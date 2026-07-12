@@ -3,8 +3,8 @@ import { hashPassword, verifyPassword, deriveGrowth, toGrowthRow, signToken } fr
 import { DbService } from '../../platform/db.service';
 import { evictPrincipalStatus } from '../../platform/principal.guard';
 
-/** settings 合并后 preferences 序列化上限(纵深防护:防 jsonb 无界膨胀 / 存储滥用 F6)。 */
-const SETTINGS_MAX_BYTES = 4096;
+/** settings 白名单键(与 contracts.updateSettingsSchema 同源):落库前把已存 preferences 投影到这些键。 */
+const SETTINGS_KEYS = ['locale', 'theme', 'notifications'];
 
 /**
  * 用户资料/设置应用服务(拥有 asPrincipal/pool + SQL + 业务编排)。controller 只解析/校验/映射 HTTP,不碰 SQL(修审计 F1)。
@@ -47,23 +47,26 @@ export class ProfileService {
     });
   }
 
-  // 设置合并(F6):controller 已用 updateSettingsSchema 严格校验(白名单 key、值枚举、拒未知 key/深嵌);
-  // 本层再对**合并后**总大小封顶(纵深防护),挡住任何绕过契约的 jsonb 无界膨胀。合并语义不变(不整体覆盖)。
+  // 设置合并(F6:防 jsonb 无界膨胀 / 存储滥用)。controller 已用 updateSettingsSchema 严格校验入参(白名单 key、值枚举、拒未知 key/深嵌)。
+  // 落库时把**已存 preferences 先投影到白名单键**(SETTINGS_KEYS)再合并新 patch:
+  //   ① 体积由白名单结构性钉死(恒极小,远小于任何字节封顶)——从根上杜绝无界膨胀,且**不用数值 reject-cap**,
+  //      故不会出现"遗留超大行被永久锁死改不了设置"的回归(审计 F6 高危项);
+  //   ② 顺带清洗历史脏 key(旧无校验代码可能残留的白名单外键),自愈存量数据。
+  // 合并语义:**顶层按 key 合并**(本次未传的 locale/theme 保留原值);notifications 是嵌套对象,按 jsonb `||`
+  //   语义**整体替换**(前端须提交完整 notifications 对象,不做子字段部分更新)。
   async settings(principal: string, b: { preferences?: Record<string, unknown> }) {
     if (!b?.preferences || typeof b.preferences !== 'object') throw new HttpException({ error: 'invalid_preferences' }, HttpStatus.BAD_REQUEST);
     const patch = JSON.stringify(b.preferences);
-    if (Buffer.byteLength(patch, 'utf8') > SETTINGS_MAX_BYTES) throw new HttpException({ error: 'settings_too_large' }, HttpStatus.BAD_REQUEST);   // 入参先兜一层
-    // 单语句原子合并 + 结果封顶:pg_column_size(合并值) 超限则 WHERE 不命中 → rowCount 0,不落库(防累积膨胀)。
+    // jsonb_object_agg(...) FILTER 把存量 prefs 投影到白名单键(无匹配→NULL→COALESCE '{}'),再 || 新 patch。单语句原子。
     const r = await this.db.pool.query(
-      `UPDATE user_account SET preferences = preferences || $2::jsonb
-         WHERE id=$1 AND pg_column_size(preferences || $2::jsonb) <= $3
+      `UPDATE user_account SET preferences = (
+           SELECT COALESCE(jsonb_object_agg(k, v) FILTER (WHERE k = ANY($3::text[])), '{}'::jsonb)
+             FROM jsonb_each(preferences) AS e(k, v)
+         ) || $2::jsonb
+         WHERE id=$1
          RETURNING preferences`,
-      [principal, patch, SETTINGS_MAX_BYTES]);
-    if (r.rowCount === 0) {   // 区分:账户不存在 vs 合并后超限
-      const exists = await this.db.pool.query('SELECT 1 FROM user_account WHERE id=$1', [principal]);
-      if (exists.rowCount === 0) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
-      throw new HttpException({ error: 'settings_too_large' }, HttpStatus.BAD_REQUEST);
-    }
+      [principal, patch, SETTINGS_KEYS]);
+    if (r.rowCount === 0) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
     return { preferences: r.rows[0].preferences };
   }
 
@@ -73,12 +76,13 @@ export class ProfileService {
     const r = await this.db.pool.query('SELECT password_hash FROM user_account WHERE id=$1', [principal]);
     if (r.rowCount === 0) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
     if (!verifyPassword(b.oldPassword, r.rows[0].password_hash)) throw new HttpException({ error: 'wrong_password' }, HttpStatus.UNAUTHORIZED);
-    // 单语句原子改哈希 + 代次自增:并发两次改密各自 read-modify-write 在行锁内串行,代次 0→1→2 不丢更新,旧令牌全失效。
+    // 单语句原子改哈希 + 代次自增:并发两次改密各自 read-modify-write 在行锁内串行,代次 0→1→2 不丢更新,两个旧代次令牌均失效。
+    // 边角:并发双改密时先提交者回签的令牌内嵌旧代次(如 1),会被终值(2)判失效——极罕见的自锁,可接受。
     const up = await this.db.pool.query(
       'UPDATE user_account SET password_hash=$2, pwd_epoch = pwd_epoch + 1 WHERE id=$1 RETURNING pwd_epoch',
       [principal, hashPassword(b.newPassword)]);
     const epoch = up.rows[0].pwd_epoch;
-    evictPrincipalStatus(principal);   // 立即清守卫缓存 → 旧令牌下一请求即 401(不等 60s)
+    evictPrincipalStatus(principal);   // 清本进程守卫缓存 → 单实例下旧令牌下一请求即 401;多实例仅本机即时,其余实例 ≤60s 缓存过期后生效
     // 签发**新代次**令牌回给当前会话,避免用户改完密码就被自己踢下线(无死胡同);缺密钥时降级为仅 changed。
     const secret = process.env.AUTH_SECRET ?? '';
     const token = secret ? signToken(principal, secret, 7 * 24 * 3600, Math.floor(Date.now() / 1000), epoch) : undefined;

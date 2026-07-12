@@ -25,7 +25,7 @@ export interface VerifiedToken { uid: string; pwdEpoch: number }
 
 /**
  * 签名会话令牌 `payload.sig`(payload=base64url{uid,exp,pe};sig=HMAC-SHA256)。
- * `pe`=密码代次(pwdEpoch)快照:签发时刻账户的密码代次。改密使代次自增,令旧代次令牌全部失效(会话吊销)。
+ * `pe`=密码代次(pwdEpoch)快照:签发时刻账户的密码代次。改密使代次自增,守卫比对不等即拒 → 旧代次令牌失效(会话吊销;时效见 PrincipalGuard 缓存说明)。
  * pwdEpoch 省略=0,与账户 pwd_epoch 默认 0 对齐,老调用点/老库无缝兼容。
  */
 export function signToken(userId: string, secret: string, ttlSec: number, nowSec: number, pwdEpoch = 0): string {

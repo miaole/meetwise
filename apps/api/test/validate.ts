@@ -271,7 +271,12 @@ async function validate() {
   // 个人总览/仪表盘(首屏聚合):平均分来自 ASMT 的 80/40 → 60
   r = await req('GET', '/profile/overview', { 'x-user-id': 'userA' }); A('个人总览:平均分∈[0,100]+答题数≥2+报告就绪≥1+面试分布', r.status === 200 && r.body.avgScore >= 0 && r.body.avgScore <= 100 && r.body.answered >= 2 && r.body.reportsReady >= 1 && typeof r.body.interviewsByStatus === 'object' && Object.keys(r.body.interviewsByStatus).length >= 1);
   r = await req('GET', '/profile/overview', { 'x-user-id': 'userNoData' }); A('无数据用户总览:avgScore=null 不报错', r.status === 200 && r.body.avgScore === null && r.body.answered === 0);
-  // F6:settings 白名单校验 + 大小封顶(此前裸 @Body 无校验 → jsonb 无界膨胀)
+  // F6 回归:模拟旧无校验代码残留的**超大脏 preferences 行**(>4KB),证明白名单投影既不锁死也自愈清洗(审计高危项)。
+  await db.pool.query("UPDATE user_account SET preferences=$2::jsonb WHERE id=$1", ['cpUser', JSON.stringify({ junkKey: 'x'.repeat(6000), theme: 'light' })]);
+  r = await patchJson('/profile/settings', { 'x-user-id': 'cpUser' }, { preferences: { locale: 'zh' } });
+  A('F6 遗留超大行(>4KB 脏 key)仍可改设置 → 200(不锁死)', r.status === 200 && r.body.preferences.locale === 'zh');
+  A('F6 落库投影清洗:白名单外脏 key 被移除 + 体积回落 <4KB', r.body.preferences.junkKey === undefined && r.body.preferences.theme === 'light' && Buffer.byteLength(JSON.stringify(r.body.preferences), 'utf8') < 4096);
+  // F6:settings 白名单校验(此前裸 @Body 无校验 → jsonb 无界膨胀)
   r = await patchJson('/profile/settings', { 'x-user-id': 'userA' }, { preferences: { locale: 'zh' } });
   A('改设置(白名单 locale)→ 200 + 合并', r.status === 200 && r.body.preferences.locale === 'zh');
   r = await patchJson('/profile/settings', { 'x-user-id': 'userA' }, { preferences: { theme: 'dark' } });

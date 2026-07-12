@@ -154,7 +154,8 @@ export type Profile = z.infer<typeof Profile>;
 /**
  * PATCH /profile/settings 请求体(F6:此前裸 @Body 无校验 → jsonb 无界膨胀)。
  * 白名单固定 key(locale/theme/notifications),值受枚举/布尔约束,`.strict()` **拒绝任何未知 key 与深层嵌套**——
- * 天然把 preferences 体积钉死在极小常量,配合 service 侧 4KB 封顶双保险。合并语义:只覆盖传入的 key。
+ * 把 preferences 体积结构性钉死在极小常量(根治 jsonb 无界膨胀);service 落库时另把存量 prefs 投影到同一白名单(自愈脏 key)。
+ * 合并语义:**顶层按 key 合并**(未传的 locale/theme 保留);notifications 为嵌套对象,`||` 语义下**整体替换**——须提交完整 notifications,不做子字段部分更新。
  */
 export const updateSettingsSchema = z.object({
   preferences: z.object({
