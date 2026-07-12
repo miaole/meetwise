@@ -61,6 +61,18 @@ export function scriptedModelClient(scripts: Record<string, (attempt: number) =>
   };
 }
 
+/**
+ * **按服务采样温度策略(评分一致性的源头钉子;专家审计致命项)**。约束性任务(评分/规划)钉**低温**求稳定可复现——
+ * 评分官若跑在供应商默认高温(~0.7),同一答案天生忽高忽低,只在 eval 事后量方差是治标;在源头钉低温才是治本。
+ * 生成性任务(出题)**不列** = 不设 temperature = 留供应商默认求多样。**未映射服务行为与从前逐字节一致(零回归)**。
+ * env `MODEL_EVAL_TEMPERATURE` 可覆盖评分温度(默认 0.2),便于 characterization 调参。
+ */
+const SERVICE_TEMPERATURE: Record<string, number> = {
+  'mock-interview.evaluate': Number(process.env.MODEL_EVAL_TEMPERATURE ?? 0.2),
+  'planner.competencies': 0.2,
+  'resume-diagnosis.generate': 0.3,
+};
+
 /** 真适配器(OpenAI 兼容,境内合规端点)。endpoint/key 从 env/cfg;未配置→当瞬时不可用(触发降级,不崩)。 */
 export function openAICompatibleClient(cfg: { baseUrl?: string; apiKey?: string; model?: string } = {}): ModelClient {
   const baseUrl = cfg.baseUrl ?? process.env.MODEL_BASE_URL;
@@ -86,6 +98,7 @@ export function openAICompatibleClient(cfg: { baseUrl?: string; apiKey?: string;
           body: JSON.stringify({
             model,
             response_format: { type: 'json_object' },                          // 结构化输出,交 invoke 的 schema 双校验
+            ...(SERVICE_TEMPERATURE[req.service] !== undefined ? { temperature: SERVICE_TEMPERATURE[req.service] } : {}),   // 约束性任务钉低温求稳(评分一致性源头);未映射服务不设=供应商默认(零回归)
             messages: [
               // **分层为可缓存前缀**:system = 稳定指令,**不含每请求变化的 nonce**(否则前缀每次都变、供应商 prompt 缓存全失效)。
               //  nonce 只活在下方 user 消息的围栏标签里 → 安全性不丢(攻击者仍猜不到本场标签去闭合),而 system 前缀字节稳定、可被缓存。

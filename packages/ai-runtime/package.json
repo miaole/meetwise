@@ -13,7 +13,8 @@
     "prove:vstream": "tsx test/voice-stream.proof.ts",
     "prove:metrics": "tsx test/metrics.proof.ts",
     "prove:tools": "tsx test/tools.proof.ts",
-    "prove:failover": "tsx test/failover.proof.ts"
+    "prove:failover": "tsx test/failover.proof.ts",
+    "prove:eval-metrics": "tsx test/eval-metrics.proof.ts"
   },
   "dependencies": {
     "@meetwise/db": "workspace:*",

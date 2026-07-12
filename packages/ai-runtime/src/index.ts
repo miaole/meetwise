@@ -28,6 +28,9 @@ export { cachingEmbedder, inMemoryEmbeddingStore } from './embedder-cache.ts';
 export type { EmbeddingStore } from './embedder-cache.ts';
 export { tokenize, denseRank, buildBm25, rrf, evalRecall } from './retrieval.ts';
 export type { Doc, Labeled, RecallReport } from './retrieval.ts';
+
+// 评分官质量 eval 的纯统计度量原语(确定性、可 per-push 证明);见 eval-metrics.proof.ts / scoring-eval:prove。
+export { mean, sampleStddev, median, percentile, mad, fractionalRanks, pearson, spearman, kendallTauB, pairwiseOrderAccuracy, icc1 } from './eval-metrics.ts';
 export { dashscopeReranker } from './reranker.ts';
 export type { Reranker } from './reranker.ts';
 export { weightedRrf, buildSearchIndex, expandQuery, multiQuerySearch } from './search.ts';

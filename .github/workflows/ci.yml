@@ -101,6 +101,8 @@ jobs:
         run: pnpm drain:prove
       - name: 检索/召回引擎（度量数学 + dense/BM25/RRF 排序 + 金标端到端;真召回率见 benchmark:eval）
         run: pnpm retrieval:prove
+      - name: 评分官质量度量数学（stddev n-1/tie-corrected Spearman·Kendall/ICC/成对序·退化用例;真评分官质量见 nightly scoring-eval）
+        run: pnpm scoring-eval:prove
       - name: B端反题库窃取/反注入（题库不进候选面·确定性抽样·结构化输出兜底·上下文最小化）
         run: pnpm security:prove
       - name: 鉴权（scrypt 密码哈希 + HMAC 令牌,常量时间校验）

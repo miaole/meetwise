@@ -55,6 +55,7 @@
     "vstream:prove": "pnpm -C packages/ai-runtime prove:vstream",
     "drain:prove": "pnpm -C apps/worker prove:drain",
     "metrics:prove": "pnpm -C packages/ai-runtime prove:metrics",
+    "scoring-eval:prove": "pnpm -C packages/ai-runtime prove:eval-metrics",
     "adaptive:prove": "pnpm -C packages/domain prove:adaptive",
     "adaptive-redesign:prove": "pnpm -C packages/domain prove:adaptive-redesign",
     "grounded:prove": "pnpm -C packages/domain prove:grounded",
