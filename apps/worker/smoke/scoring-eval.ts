@@ -59,22 +59,25 @@ for (const g of MONO_GROUPS) {
 const monoAll = pairwiseOrderAccuracy(monoScored, 2);
 console.log(`  合计:非相邻档成对序正确率 = ${monoAll.accuracy?.toFixed(3)}(阈≥0.90 tripwire;比${monoAll.comparable}对,逆序${monoAll.inversions})`);
 
-// ── ② 一致性:同质量换措辞,分数别乱跳(ICC + 中位离散度)──
-console.log('\n── 一致性(扰动不变性 · ICC + 中位离散度)──');
-const iccItems: number[][] = [];
+// ── ①b 评分器信度 ICC:item=质量档,rating=两道独立题在该档的分 → "跨题对质量档的区分是否一致可靠"──
+//   (ICC 该用在**区分不同档**上,不是同档变体之间——同档本就该分数接近、档间方差小,ICC 天生低是误用。真跑抓到的修正。)
+const allRanks = [...new Set(monoScored.flat().map((x) => x.rank))].sort((a, b) => b - a);
+const tierItems = allRanks.map((r) => monoScored.map((g) => g.find((x) => x.rank === r)?.score).filter((s): s is number => s !== undefined));
+const tierBalanced = tierItems.length >= 2 && tierItems.every((it) => it.length === tierItems[0].length && it.length >= 2);
+const icc = tierBalanced ? icc1(tierItems) : NaN;
+console.log(`  评分器信度 ICC(1,1) = ${Number.isNaN(icc) ? 'NaN(题数<2/档不全→inconclusive)' : icc.toFixed(3)}(阈≥0.75:两道独立题对质量档的区分一致)`);
+
+// ── ② 扰动不变性:同质量换措辞/语序/空白,分数别乱跳(只看组内离散度,不用 ICC)──
+console.log('\n── 扰动不变性(换说法别乱跳 · 组内离散度)──');
 const spreads: number[] = [];
 for (const g of PERTURB_GROUPS) {
   const scores: number[] = [];
   for (let i = 0; i < g.variants.length; i++) { const s = await scoreOnce(g.question, g.variants[i], `${g.id}:v${i}`); if (s !== null) scores.push(s); }
   const sd = sampleStddev(scores);
   console.log(`  ${g.id.padEnd(18)} 变体分=[${scores.join(',')}]  组内SD=${Number.isNaN(sd) ? 'NaN' : sd.toFixed(1)}`);
-  iccItems.push(scores);
   if (!Number.isNaN(sd)) spreads.push(sd);
 }
-// ICC 需平衡(等变体数);不平衡则 icc1 返 NaN(inconclusive)
-const balanced = iccItems.length >= 2 && iccItems.every((it) => it.length === iccItems[0].length && it.length >= 2);
-const icc = balanced ? icc1(iccItems) : NaN;
-console.log(`  ICC(1,1) = ${Number.isNaN(icc) ? 'NaN(不平衡/样本不足→inconclusive)' : icc.toFixed(3)}(阈≥0.75 tripwire:组内紧+跨档分明) · 中位组内SD = ${spreads.length ? median(spreads).toFixed(1) : 'NaN'}(阈≤8)`);
+console.log(`  中位组内SD = ${spreads.length ? median(spreads).toFixed(1) : 'NaN'}(阈≤8:同质量换说法分数别乱跳)`);
 
 // ── ③ 相关性:offtopic → 0(红队已覆盖,这里少量回归)──
 console.log('\n── 相关性(offtopic → 0)──');
