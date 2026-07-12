@@ -1,53 +1,62 @@
 /**
- * 记忆模块证明（真 Postgres + pgvector）：长期记忆语义召回、情景判重(防重复出题)、RLS 不串户、隐私(派生摘要非原文)。
- * 用 fakeEmbedder(词袋,512 维)→ 测的是"写入→向量化→ANN 召回→取文"全管线 + 隔离;真语义质量由检索 benchmark 实测覆盖。
+ * 记忆模块证明（真 Postgres）· **lean MVP(专家审计砍瘦定稿)**:只证两件确定性、零非确定性的事——
+ *   ① 跨会话精确判重(episode):recordAskedQuestions 写 → wasAsked 归一化 exact match 命中(防重复出题)。
+ *   ② 历史弱项只读投影:pastWeakDimensions 从 assessment_report(status=ready 且 gap=true)读维度名(给能力选择软偏置)。
+ *  外加 RLS 不串户 + 隐私(episode 只存我方归一化题面,非答案/PII)。
+ *  **不测语义召回/embedding**——lean MVP 不含它(审计判为过度工程 + 毁引擎确定性);真检索质量由 retrieval benchmark 覆盖。
  *   pnpm memory:prove   (需 pnpm db:up)
  */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { createPool } from '@meetwise/db';
-import { fakeEmbedder } from '@meetwise/ai-runtime';
-import { rememberFact, recallMemories, wasAsked } from '../src/memory-service.ts';
+import { createPool, asPrincipal, normalizeQuestion } from '@meetwise/db';
+import { wasAsked, recordAskedQuestions, pastWeakDimensions } from '../src/memory-service.ts';
 
 const pool = createPool();
 let fail = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
 const section = (t: string) => console.log(`\n──────── ${t} ────────`);
 const sql = (f: string) => readFileSync(fileURLToPath(new URL(`../../../packages/db/sql/${f}`, import.meta.url)), 'utf8');
-const emb = fakeEmbedder(512);
-const OWNER = 'userA';
+const A_OWNER = 'userA', B_OWNER = 'userB';
 
 async function main() {
-  for (const f of ['01_schema.sql', '06_retrieval.sql', '07_memory.sql']) await pool.query(sql(f));
+  for (const f of ['01_schema.sql', '07_memory.sql', '08_assessment.sql']) await pool.query(sql(f));
+  await pool.query('TRUNCATE user_memory, assessment_report');
 
-  section('① 写入长期记忆(派生事实)→ 向量化进 vector_chunk');
-  await rememberFact(pool, OWNER, emb, { kind: 'skill', content: '精通 Redis 限流与缓存设计' });
-  const weakId = await rememberFact(pool, OWNER, emb, { kind: 'weakness', content: '分布式锁掌握较弱，红锁理解不深' });
-  await rememberFact(pool, OWNER, emb, { kind: 'topic', content: 'MySQL 索引与事务隔离' });
-  await rememberFact(pool, OWNER, emb, { kind: 'episode', content: '谈谈你订单系统的限流方案', sourceId: 'iv-1' });
-  A('4 条记忆入 user_memory', (await pool.query('SELECT count(*)::int n FROM user_memory')).rows[0].n === 4);
-  A('4 条记忆向量化入 vector_chunk(kind=memory)', (await pool.query("SELECT count(*)::int n FROM vector_chunk WHERE kind='memory'")).rows[0].n === 4);
+  section('① 跨会话精确判重:recordAskedQuestions 写 episode → wasAsked 命中(归一化 exact,零语义)');
+  // 同批含重复题面(仅大小写/空白差异)→ 归一化后应去重为 2 条,绝不写答案/PII。
+  await recordAskedQuestions(pool, A_OWNER, ['谈谈你订单系统的限流方案', '  谈谈你订单系统的限流方案  ', '讲讲 Redis 持久化'], 'iv-1');
+  A('同批归一化去重:恰 2 条 episode(重复题面合一)', (await pool.query("SELECT count(*)::int n FROM user_memory WHERE kind='episode'")).rows[0].n === 2);
+  A('问过的题 wasAsked=true', (await wasAsked(pool, A_OWNER, '谈谈你订单系统的限流方案')) === true);
+  A('空白/大小写变体仍判 true(归一化 exact,非语义相似)', (await wasAsked(pool, A_OWNER, '  谈谈你订单系统的限流方案  ')) === true);
+  A('语义相近但不同题 wasAsked=false(不做语义误挡)', (await wasAsked(pool, A_OWNER, '订单系统怎么做限流')) === false);
+  A('完全没问过的题 wasAsked=false', (await wasAsked(pool, A_OWNER, '讲讲 G1 垃圾回收')) === false);
 
-  section('② 语义召回:查"分布式锁"→ 命中弱项记忆(成长档案个性化)');
-  const r1 = await recallMemories(pool, OWNER, emb, '分布式锁 红锁', 3);
-  A('召回 top-1 = 分布式锁弱项记忆', r1[0]?.id === weakId && r1[0]?.kind === 'weakness');
-  const r2 = await recallMemories(pool, OWNER, emb, 'Redis 限流缓存', 3);
-  A('查"Redis限流"→ 命中技能记忆', r2[0]?.content.includes('Redis'));
+  section('② 历史弱项只读投影:从 assessment_report(ready 且 gap=true)读维度名');
+  await asPrincipal(pool, A_OWNER, (c) => c.query(
+    `INSERT INTO assessment_report(id, owner_user_id, interview_id, status, dimensions) VALUES ($1,$2,$3,'ready',$4)`,
+    ['ar-1', A_OWNER, 'iv-1', JSON.stringify([
+      { dimension: '分布式锁', score: 35, gap: true },
+      { dimension: '高并发', score: 82, gap: false },
+      { dimension: '消息队列', score: 40, gap: true },
+    ])]));
+  const weak = await pastWeakDimensions(pool, A_OWNER);
+  A('只取 gap=true 的维度名(分布式锁+消息队列,不含达标的高并发)', weak.includes('分布式锁') && weak.includes('消息队列') && !weak.includes('高并发'));
+  // pending 报告不投影(只信已生成的 ready,防未定稿弱项污染)
+  await asPrincipal(pool, A_OWNER, (c) => c.query(
+    `INSERT INTO assessment_report(id, owner_user_id, interview_id, status, dimensions) VALUES ($1,$2,$3,'pending',$4)`,
+    ['ar-2', A_OWNER, 'iv-2', JSON.stringify([{ dimension: '缓存设计', score: 20, gap: true }])]));
+  A('pending 报告的弱项不投影(只信 status=ready)', !(await pastWeakDimensions(pool, A_OWNER)).includes('缓存设计'));
 
-  section('③ 情景记忆:防重复出题');
-  A('问过的题 wasAsked=true(不再重复出)', (await wasAsked(pool, OWNER, '谈谈你订单系统的限流方案')) === true);
-  A('没问过的题 wasAsked=false', (await wasAsked(pool, OWNER, '讲讲 G1 垃圾回收')) === false);
+  section('③ RLS 不串户:userB 读不到 userA 的 episode / 弱项');
+  A('userB wasAsked(userA 问过的题) = false', (await wasAsked(pool, B_OWNER, '谈谈你订单系统的限流方案')) === false);
+  A('userB pastWeakDimensions = 空(读不到 userA 报告)', (await pastWeakDimensions(pool, B_OWNER)).length === 0);
 
-  section('④ RLS:userB 召回不到 userA 的成长档案(不串户)');
-  const bRecall = await recallMemories(pool, 'userB', emb, '分布式锁', 5);
-  A('userB 语义召回 userA 记忆 = 0', bRecall.length === 0);
-  A('userB wasAsked(userA 问过的题) = false', (await wasAsked(pool, 'userB', '谈谈你订单系统的限流方案')) === false);
+  section('④ 隐私:episode 只存我方归一化题面,绝无答案/PII');
+  const contents = (await pool.query("SELECT content FROM user_memory WHERE kind='episode'")).rows.map((x) => x.content).join(' ');
+  A('episode 内容无手机号等原文 PII', !/1[3-9]\d{9}/.test(contents));
+  A('episode 存的是归一化题面(小写去多余空白)', contents.includes(normalizeQuestion('谈谈你订单系统的限流方案')));
 
-  section('⑤ 隐私:记忆是派生摘要,非简历原文 PII');
-  const contents = (await pool.query('SELECT content FROM user_memory')).rows.map((x) => x.content).join(' ');
-  A('记忆内容无手机号等原文 PII(派生事实)', !/1[3-9]\d{9}/.test(contents));
-
-  console.log(`\n${fail === 0 ? '✓ 记忆模块(长期语义召回 + 情景判重 + RLS + 隐私)全部通过' : '✗ ' + fail + ' 项失败'}`);
+  console.log(`\n${fail === 0 ? '✓ 记忆 lean MVP(跨会话精确判重 + 弱项只读投影 + RLS + 隐私)全部通过' : '✗ ' + fail + ' 项失败'}`);
   await pool.end();
   process.exit(fail === 0 ? 0 : 1);
 }

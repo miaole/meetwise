@@ -21,7 +21,7 @@ related:
 > **实现状态（对齐代码，勿把 schema 蓝图当已运营的语料库）**：本文是语料生命周期的**目标设计**，主体多为【规模化】阶段（多代际蓝绿迁移、影子比对、被遗忘权 SLA 编排等**均未实例化**）。代码现状：
 > - ✅ **已接线运行**：单代际 pgvector 检索 + RLS 隔离 + embedder 缓存；面试图 CRAG 自纠检索（本地 ANN 召回 fail-soft）。
 > - 🟠 **toy 种子，非策展语料**：当前 qbank 只是 **~33 条自撰种子题**（`worker/qbank-seed.ts`，开机 `ingestQbank` 灌入），**不是大规模真实策展题库**——本文的「差量复用/被遗忘权/代际迁移」是这套语料真正运营后才生效的目标，勿据此宣称已有大型真实题库。
-> - 🟡 **默认关闭**：web 探索抓取（§ CRAG fallback 提及的 `webExplore`）`WEB_ALLOWLIST=[]` 空 ⇒ 禁用，只用本地题库。
+> - 🟢 **默认开启**：web 探索抓取（§ CRAG fallback 提及的 `webExplore`，SSRF 安全 fetch）`DEFAULT_WEB_ALLOWLIST` 含 6 个官方文档源作外呼；env `WEB_ALLOWLIST` 显式空串才关（只用本地题库）。未建的是策展题库源表 + 审核门。
 > - ⬜ **未建**：多代际 `embedding_generation`/`rag_active_generation`/`rebuild_run`/蓝绿迁移/影子池/被遗忘权执行器等【规模化】表与编排。按 §11 分阶段落地。
 
 ## 0. 双指针模型与边界

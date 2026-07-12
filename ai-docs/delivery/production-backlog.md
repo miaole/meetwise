@@ -114,7 +114,7 @@ related:
 | 项 | 现状 |
 |---|---|
 | **长期记忆模块** | 🟡 **已建未接线**：`user_memory` 存取 + `memory-service`(rememberFact/recall/wasAsked) + 向量化 + `pnpm memory:prove` gate 全有，但**除测试外无调用点**——未喂进在跑的 adaptive interview loop |
-| **Web 探索（CRAG 联网 fallback）** | 🟡 **机制已接线但默认关**：`webExplore`(allowlist 强制 + 注入 fetch + 抽取 + 降级)已建,但 `WEB_ALLOWLIST=[]` 默认空 = 禁用,只用本地检索。源/授权待配 |
+| **Web 探索（CRAG 联网 fallback）** | 🟢 **机制已接线且默认开启**：`webExplore`(SSRF 安全 fetch:逐跳重定向复核 + 私网/allowlist 复核 + 硬超时 + fail-soft)已建;`DEFAULT_WEB_ALLOWLIST` 含 6 个官方文档源作 CRAG fallback 外呼(env `WEB_ALLOWLIST` 覆盖,显式空串才关)。**真正未建**:策展题库源表 + 审核门 + 扩召回 + 跨租户投毒断言 |
 | **跨供应商模型 failover** | 🟡 **机制已接线,backup 未配**：`failoverModel` 链已建并接进默认客户端,但需配 `MODEL_BACKUP_*` 才真有第二供应商;未配等价单端点 |
 | **图片简历 OCR（qwen-vl）** | 🟡 **桩**：命中图片返回显式 `422 image_ocr_unavailable`(可解释,不静默),非已落地能力;PDF/docx 抽取适配器层亦本期待补(text 先行) |
 | **起步题库语料** | 🟡 **toy corpus**：仅 ~32 条自撰种子;**真正策展/授权题库 + 离线策展灌入管线未建**(P1「题库生命周期」❌) |

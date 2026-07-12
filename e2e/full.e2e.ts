@@ -45,6 +45,15 @@ async function main() {
   b = await j(r);
   A((b.availableUnits ?? 0) >= 1, `额度到账(${b.availableUnits} 次)`);
 
+  // 3c. 图片简历 OCR 全栈(真 HTTP /resume/file → 真 api service **决策B** 计费 → 真 DB;视觉模型由 OCR_FAKE 注入,证明付费视觉链路真能用非 demo)。
+  //  放在额度到账**之后**:OCR 是付费能力(决策B reserve→产出可用画像才 confirm),无额度会 402——故须先充值再测。
+  const pngB64 = Buffer.from(`e2e-ocr-${process.env.E2E_TAG ?? 'run'}`).toString('base64');
+  r = await fetch(`${BASE}/resume/file`, { method: 'POST', headers: H, body: JSON.stringify({ filename: 'r.png', mimeType: 'image/png', contentBase64: pngB64 }) });
+  b = await j(r);
+  A(r.status === 200 && b.ocr === true && b.format === 'image' && typeof b.resumeId === 'string', `图片简历 OCR 全栈 → 摄取(ocr=true,${b.status})`);
+  const ocrProfile = await j(await fetch(`${BASE}/resume/${b.resumeId}/profile`, { headers: H }));
+  A(!JSON.stringify(ocrProfile.structured ?? {}).includes('13800138000'), 'OCR 来源 profile 结构化 + PII 脱敏(不含明文手机号)');
+
   // 4. 建面试
   r = await fetch(`${BASE}/interview`, { method: 'POST', headers: H, body: '{}' });
   b = await j(r);

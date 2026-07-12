@@ -1,12 +1,14 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
 import { createHash } from 'node:crypto';
 import { createResumeWithBlob, transitionResume, completeIngestion, decryptResumeBlob, reserveEntitlement, confirmConsumption, releaseConsumption } from '@meetwise/db';
 import { ingestResume, extractResumeText } from '@meetwise/domain';
-import { visionOcr, openAICompatibleClient, type ModelClient } from '@meetwise/ai-runtime';
+import { visionOcr, type ModelClient } from '@meetwise/ai-runtime';
 import type { UploadResumeDto, UploadResumeFileDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
 
 const MAX_RESUME_BYTES = 8 * 1024 * 1024;   // 8MB 上限(防大文件 DoS)
+/** OCR 视觉模型客户端 DI token:组合根(app.module)决定真(qwen-vl)/假(scripted,测试)——service 不硬编、只认注入的 seam,故 /resume/file 可真端到端测(非 demo)。 */
+export const OCR_VISION_CLIENT = Symbol.for('meetwise.OCR_VISION_CLIENT');
 
 /**
  * 简历应用服务(拥有 asPrincipal 事务边界 + 业务编排)。controller 只解析/校验/映射 HTTP,不碰 SQL(修审计 F1)。
@@ -14,9 +16,8 @@ const MAX_RESUME_BYTES = 8 * 1024 * 1024;   // 8MB 上限(防大文件 DoS)
  */
 @Injectable()
 export class ResumeService {
-  // 视觉模型客户端(qwen-vl):OCR 转写用。key/endpoint 从 env;未配置 → 当瞬时不可用触发降级(不崩)。
-  private readonly vision: ModelClient = openAICompatibleClient({ model: process.env.VISION_MODEL_NAME ?? 'qwen-vl-max' });
-  constructor(private readonly db: DbService) {}
+  // vision 客户端由组合根注入(真 qwen-vl / 测试 scripted),service 不硬编 → 可端到端测。
+  constructor(private readonly db: DbService, @Inject(OCR_VISION_CLIENT) private readonly vision: ModelClient) {}
 
   /** 文件上传(PDF/Word/图片):解码 → **提取+清洗文本** → 复用文本上传链路(consent/加密/结构化)。图片走 OCR(按次计费)。 */
   async uploadFile(principal: string, dto: UploadResumeFileDto) {

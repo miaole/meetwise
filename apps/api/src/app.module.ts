@@ -6,7 +6,8 @@ import { DiagnosisModule } from './modules/diagnosis/diagnosis.module';
 import { HealthController } from './modules/health/health.controller';
 import { AuthController } from './modules/auth/auth.controller';
 import { ResumeController } from './modules/resume/resume.controller';
-import { ResumeService } from './modules/resume/resume.service';
+import { ResumeService, OCR_VISION_CLIENT } from './modules/resume/resume.service';
+import { scriptedModelClient, openAICompatibleClient, type ModelClient } from '@meetwise/ai-runtime';
 import { CommerceController } from './modules/commerce/commerce.controller';
 import { CommerceWebhookController } from './modules/commerce/commerce-webhook.controller';
 import { CommerceService } from './modules/commerce/commerce.service';
@@ -33,6 +34,12 @@ import { MetricsController } from './modules/metrics/metrics.controller';
 @Module({
   imports: [PlatformModule, InterviewModule, QuizModule, DiagnosisModule],
   controllers: [HealthController, AuthController, ResumeController, CommerceController, CommerceWebhookController, PrivacyController, NotificationController, ProfileController, LegalController, AdminController, RolesController, RecruiterController, JobsController, ApplicationsController, MetricsController],
-  providers: [ResumeService, AuthService, CommerceService, ProfileService, NotificationService, AdminService, PrivacyService, RolesService, RecruiterService, JobsService, ApplicationsService],   // 应用服务层(controller→service→db 仓储,修审计 F1)
+  providers: [
+    ResumeService,
+    // OCR 视觉客户端组合根:测试(OCR_FAKE=1)注入确定性 scripted,生产用真 qwen-vl —— seam 可换,让 /resume/file 能真端到端测。
+    { provide: OCR_VISION_CLIENT, useFactory: (): ModelClient => process.env.OCR_FAKE === '1'
+        ? scriptedModelClient({ 'resume.vision': () => ({ ok: true, raw: { text: process.env.OCR_FAKE_TEXT || '技能\nGo、Redis' } }) })
+        : openAICompatibleClient({ model: process.env.VISION_MODEL_NAME ?? 'qwen-vl-max' }) },
+    AuthService, CommerceService, ProfileService, NotificationService, AdminService, PrivacyService, RolesService, RecruiterService, JobsService, ApplicationsService],   // 应用服务层(controller→service→db 仓储,修审计 F1)
 })
 export class AppModule {}

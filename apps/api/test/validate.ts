@@ -13,6 +13,8 @@ async function validate() {
   process.env.RESUME_ENC_KEY = 'test-resume-enc-key';
   process.env.RESUME_HASH_SECRET = 'test-resume-hash-secret';
   process.env.PAY_PROVIDER_SECRET = 'test-pay-secret';
+  process.env.OCR_FAKE = '1';                        // 注入确定性视觉模型(不依赖真 qwen-vl key),让 /resume/file OCR 走真栈可端到端测
+  process.env.OCR_FAKE_TEXT = '工作经历\n负责订单系统限流改造,用 Redis 计数器扛高并发\n技能 Redis、限流、Kubernetes\n联系电话 13800138000';
   const app = await createApp();
   await app.init();
   const db = app.get(DbService);
@@ -134,6 +136,32 @@ async function validate() {
   r = await req('GET', '/roles', { 'x-user-id': 'userA' }); A('岗位库列表(≥3)', r.status === 200 && r.body.roles.length >= 3);
   r = await postJson('/roles/match', { 'x-user-id': 'userA' }, { resumeId }); A('简历匹配岗位 → 后端工程师 top(技能重叠)', r.status === 200 && r.body.matches.length >= 1 && r.body.matches[0].id === 'backend');
   r = await postJson('/roles/match', { 'x-user-id': 'userB' }, { resumeId }); A('userB 拿 userA 简历匹配 → 404(RLS)', r.status === 404);
+
+  // 图片简历 OCR 端到端(真 HTTP /resume/file → 真 service 决策B → 真 DB;视觉模型注入 fake=OCR_FAKE,证明真链路可用非 demo)
+  const pngB64 = Buffer.from('fake-png-bytes-for-ocr-e2e-001').toString('base64');
+  r = await postJson('/resume/file', { 'x-user-id': 'userA' }, { filename: 'resume.png', mimeType: 'image/png', contentBase64: pngB64 });
+  A('图片简历 OCR → 200 + 摄取(ocr=true,format=image)', r.status === 200 && (r.body.status === 'ingested' || r.body.status === 'deduped') && r.body.ocr === true && r.body.format === 'image' && typeof r.body.resumeId === 'string');
+  const ocrResumeId = r.body.resumeId;
+  const ocrCons = (await db.pool.query("SELECT status FROM entitlement_consumption WHERE owner_user_id='userA' AND service_type='ocr'")).rows;
+  A('OCR 按次计费:产出可用画像 → service_type=ocr 恰 1 笔且 confirmed(决策B:可用画像才扣)', ocrCons.length === 1 && ocrCons[0].status === 'confirmed');
+  r = await req('GET', `/resume/${ocrResumeId}/profile`, { 'x-user-id': 'userA' });
+  A('OCR 来源 profile 结构化 + PII 脱敏(不含明文手机号,与文本路径同保证)', r.status === 200 && !JSON.stringify(r.body.structured).includes('13800138000'));
+  r = await req('GET', `/resume/${ocrResumeId}/profile`, { 'x-user-id': 'userB' });
+  A('OCR 简历 RLS 隔离:userB 看不到 → 404', r.status === 404);
+  r = await postJson('/resume/file', { 'x-user-id': 'userA' }, { filename: 'resume-again.png', mimeType: 'image/png', contentBase64: pngB64 });
+  A('同图字节重传 → 409 ocr_duplicate(图字节 HMAC 幂等,不重复调用/扣费)', r.status === 409 && r.body.error === 'ocr_duplicate');
+  const ocrCnt = (await db.pool.query("SELECT count(*)::int n FROM entitlement_consumption WHERE owner_user_id='userA' AND service_type='ocr'")).rows[0].n;
+  A('同图只一笔 OCR 消费(幂等锚=图字节,非易变 docId)', ocrCnt === 1);
+  // [决策B 区分用例·防又假绿] 转写成功但**无可用简历内容**(ingestResume facts=0)→ 退还 OCR 费(released),这是决策B与决策A的关键差异。
+  process.env.OCR_FAKE_TEXT = '这是一张很模糊的照片,没有可识别的简历文字内容啦啦啦';   // 无 section/无 experience/skills → ingestResume facts=0
+  const pngB64b = Buffer.from('fake-png-bytes-no-usable-content-002').toString('base64');
+  r = await postJson('/resume/file', { 'x-user-id': 'userA' }, { filename: 'blur.png', mimeType: 'image/png', contentBase64: pngB64b });
+  A('决策B:转写成功但无可用画像 → 422 ocr_no_content(不静默死胡同)', r.status === 422 && r.body.error === 'ocr_no_content');
+  const ocrRel = (await db.pool.query("SELECT count(*)::int n FROM entitlement_consumption WHERE owner_user_id='userA' AND service_type='ocr' AND status='released'")).rows[0].n;
+  A('决策B:无可用画像那笔 OCR 费已退还(released 恰 1 笔,未白扣)', ocrRel === 1);
+  const ocrConf = (await db.pool.query("SELECT count(*)::int n FROM entitlement_consumption WHERE owner_user_id='userA' AND service_type='ocr' AND status='confirmed'")).rows[0].n;
+  A('决策B:仅可用画像那笔仍 confirmed(恰 1 笔,退费不误伤成功笔)', ocrConf === 1);
+  process.env.OCR_FAKE_TEXT = '工作经历\n负责订单系统限流改造,用 Redis 计数器扛高并发\n技能 Redis、限流、Kubernetes\n联系电话 13800138000';   // 复原,不影响后续用例
 
   // 面试 CRUD 补全:create / list / transcript
   r = await postJson('/interview', { 'x-user-id': 'userA' }, {}); A('新建面试 → 200 + id(RLS WITH CHECK)', r.status === 200 && typeof r.body.interviewId === 'string');

@@ -7,7 +7,8 @@ import { spawn } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
-const env = { ...process.env, AUTH_SECRET: process.env.AUTH_SECRET ?? 'e2e-dev-secret-key', PAY_PROVIDER_SECRET: process.env.PAY_PROVIDER_SECRET ?? 'e2e-pay-secret', PORT: '8787' };
+// 测试默认密钥:CI 无 .env 也能起(简历加密/去重键)。外部已设则不覆盖。e2e 每次重建 schema,不需跨运行解密,用测试键安全。
+const env = { ...process.env, AUTH_SECRET: process.env.AUTH_SECRET ?? 'e2e-dev-secret-key', PAY_PROVIDER_SECRET: process.env.PAY_PROVIDER_SECRET ?? 'e2e-pay-secret', RESUME_ENC_KEY: process.env.RESUME_ENC_KEY ?? 'e2e-resume-enc-key', RESUME_HASH_SECRET: process.env.RESUME_HASH_SECRET ?? 'e2e-resume-hash-secret', PORT: '8787' };
 // 加载 .env(RESUME 加密键 + 模型),不覆盖已设
 if (existsSync(ROOT + '.env')) {
   for (const line of readFileSync(ROOT + '.env', 'utf8').split('\n')) {
@@ -32,7 +33,8 @@ const REG = '@swc-node/register/esm-register';
 async function main() {
   console.log('E2E: 启 api + worker…');
   // 从各自 app 目录跑(cwd=apps/api 才能解析 @swc-node/register;同 pnpm -C apps/api serve)。
-  run('api', ['--import', REG, 'src/main.ts'], ROOT + 'apps/api');
+  // OCR_FAKE=1 → api 的 vision 客户端注入确定性 scripted(不依赖真 qwen-vl key),让 /resume/file 图片 OCR 走全栈可测。
+  run('api', ['--import', REG, 'src/main.ts'], ROOT + 'apps/api', { OCR_FAKE: '1', OCR_FAKE_TEXT: '工作经历\n负责订单系统限流改造,用 Redis 计数器扛高并发\n技能\nRedis、限流、Kubernetes\n联系电话 13800138000' });
   // **hermetic 集成门**:e2e 证接线正确性(auth→交易→简历→队列→图→事件→报告→多租户),非真模型质量/延迟。
   //  E2E_FAKE_MODEL=1 → worker 用确定性 scripted 快模型(秒级跑到 report_ready golden path);WEB_ALLOWLIST='' → 关真 web 外呼(去外部延迟)。
   //  真模型 + 真检索的 live 冒烟归 flow:live / model:smoke,不混进确定性门(否则 qwen ~20s/次偶发超时会假红)。
