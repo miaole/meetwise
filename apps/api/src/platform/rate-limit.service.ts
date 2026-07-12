@@ -17,4 +17,19 @@ export class RateLimitService {
     if (b.tokens >= 1) { b.tokens -= 1; return true; }
     return false;
   }
+
+  // ── 并发槽(long-lived 连接 per-principal 上限,如 SSE)。区别于令牌桶:关注"同时占用数"而非"速率"。──
+  private readonly slots = new Map<string, number>();
+  /** 占一并发槽:当前占用 < max 则占一并返 true;否则返 false(拒)。**成功后必须 release**(放 finally/close)。 */
+  acquireSlot(key: string, max: number): boolean {
+    const n = this.slots.get(key) ?? 0;
+    if (n >= max) return false;
+    this.slots.set(key, n + 1);
+    return true;
+  }
+  /** 释放一并发槽(幂等:降到 0 删除,不会为负)。 */
+  releaseSlot(key: string): void {
+    const n = this.slots.get(key) ?? 0;
+    if (n <= 1) this.slots.delete(key); else this.slots.set(key, n - 1);
+  }
 }

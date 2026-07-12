@@ -73,23 +73,24 @@ export async function transitionResume(
 
 /** 持久化结构化 profile：只落脱敏文本 + PII **计数**摘要（连掩码值都不存）。幂等（ON CONFLICT DO NOTHING,重试安全）。 */
 export async function persistResumeProfile(
-  c: Client, owner: string, resumeId: string, p: IngestedProfile,
+  c: Client, owner: string, resumeId: string, p: IngestedProfile, status: 'ok' | 'needs_review' | 'rejected' = 'ok',
 ): Promise<void> {
   const structured = { experience: p.experience, skills: p.skills, facts: p.facts }; // ingestResume 已 stripPii
   const piiSummary = p.pii.reduce<Record<string, number>>((m, x) => { m[x.field] = (m[x.field] ?? 0) + 1; return m; }, {});
   // 追踪(低危,审计 round3)：ON CONFLICT DO NOTHING 在 fail→re-arm→重摄取 时保留旧 profile。
   // 因 dedup 按内容 HMAC、字节相同 → 旧 profile 语义等价,可接受;若未来失败发生在"已插半成品 profile 之后",重试不会刷新。
+  // status:OCR/图片源恒 needs_review(系统不冒充判真伪,给人工复核落地位),文本/PDF 文本层默认 ok。
   await c.query(
-    `INSERT INTO resume_profile(resume_id, owner_user_id, structured, pii_summary, blocked_count)
-     VALUES ($1,$2,$3,$4,$5) ON CONFLICT (resume_id) DO NOTHING`,
-    [resumeId, owner, JSON.stringify(structured), JSON.stringify(piiSummary), p.blocked.length]);
+    `INSERT INTO resume_profile(resume_id, owner_user_id, structured, pii_summary, blocked_count, status)
+     VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT (resume_id) DO NOTHING`,
+    [resumeId, owner, JSON.stringify(structured), JSON.stringify(piiSummary), p.blocked.length, status]);
 }
 
 /** 原子完成摄取：**同一事务**里落 profile + CAS ingesting→ingested。杜绝"profile 已落但状态卡 ingesting"的非原子缝（审计 P1-6）。 */
 export async function completeIngestion(
-  c: Client, owner: string, resumeId: string, p: IngestedProfile,
+  c: Client, owner: string, resumeId: string, p: IngestedProfile, status: 'ok' | 'needs_review' | 'rejected' = 'ok',
 ): Promise<boolean> {
-  await persistResumeProfile(c, owner, resumeId, p);
+  await persistResumeProfile(c, owner, resumeId, p, status);
   return transitionResume(c, owner, resumeId, 'ingesting', 'ingested');
 }
 

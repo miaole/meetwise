@@ -151,6 +151,22 @@ export const OrderResult = z.object({ orderId: z.string(), amountCents: z.number
 /* ───────────── profile ───────────── */
 export const Profile = z.object({ id: z.string(), email: z.string(), status: z.string(), preferences: z.record(z.string(), z.unknown()).optional() });
 export type Profile = z.infer<typeof Profile>;
+/**
+ * PATCH /profile/settings 请求体(F6:此前裸 @Body 无校验 → jsonb 无界膨胀)。
+ * 白名单固定 key(locale/theme/notifications),值受枚举/布尔约束,`.strict()` **拒绝任何未知 key 与深层嵌套**——
+ * 天然把 preferences 体积钉死在极小常量,配合 service 侧 4KB 封顶双保险。合并语义:只覆盖传入的 key。
+ */
+export const updateSettingsSchema = z.object({
+  preferences: z.object({
+    locale: z.enum(['zh', 'en']).optional(),
+    theme: z.enum(['light', 'dark', 'system']).optional(),
+    notifications: z.object({
+      email: z.boolean().optional(),
+      push: z.boolean().optional(),
+    }).strict().optional(),
+  }).strict(),
+}).strict();
+export type UpdateSettingsDto = z.infer<typeof updateSettingsSchema>;
 export const Overview = z.object({
   interviewsByStatus: z.record(z.string(), z.number()),
   answered: z.number().int(),

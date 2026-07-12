@@ -20,15 +20,26 @@ export function verifyPassword(password: string, stored: string): boolean {
   return dk.length === expected.length && timingSafeEqual(dk, expected);
 }
 
-/** 签名会话令牌 `payload.sig`(payload=base64url{uid,exp};sig=HMAC-SHA256)。 */
-export function signToken(userId: string, secret: string, ttlSec: number, nowSec: number): string {
-  const payload = Buffer.from(JSON.stringify({ uid: userId, exp: nowSec + ttlSec })).toString('base64url');
+/** 校验令牌后的载荷:uid + 密码代次(pwdEpoch)。 */
+export interface VerifiedToken { uid: string; pwdEpoch: number }
+
+/**
+ * 签名会话令牌 `payload.sig`(payload=base64url{uid,exp,pe};sig=HMAC-SHA256)。
+ * `pe`=密码代次(pwdEpoch)快照:签发时刻账户的密码代次。改密使代次自增,令旧代次令牌全部失效(会话吊销)。
+ * pwdEpoch 省略=0,与账户 pwd_epoch 默认 0 对齐,老调用点/老库无缝兼容。
+ */
+export function signToken(userId: string, secret: string, ttlSec: number, nowSec: number, pwdEpoch = 0): string {
+  const payload = Buffer.from(JSON.stringify({ uid: userId, exp: nowSec + ttlSec, pe: pwdEpoch })).toString('base64url');
   const sig = createHmac('sha256', secret).update(payload).digest('base64url');
   return `${payload}.${sig}`;
 }
 
-/** 校验令牌:签名对 + 未过期 → uid;否则 null(篡改/过期/错密钥/畸形 全 fail-closed)。 */
-export function verifyToken(token: string, secret: string, nowSec: number): string | null {
+/**
+ * 校验令牌:签名对 + 未过期 → {uid, pwdEpoch};否则 null(篡改/过期/错密钥/畸形 全 fail-closed)。
+ * 向后兼容:旧令牌无 `pe` 字段 → pwdEpoch 视作 0(等于 user_account.pwd_epoch 默认值,首个代次不误吊销)。
+ * pe 只在 HMAC 验签通过后读取,已不可伪造;仍做整数/非负防御性归一。
+ */
+export function verifyTokenFull(token: string, secret: string, nowSec: number): VerifiedToken | null {
   const dot = token.indexOf('.');
   if (dot < 1) return null;
   const payload = token.slice(0, dot), sig = token.slice(dot + 1);
@@ -38,6 +49,12 @@ export function verifyToken(token: string, secret: string, nowSec: number): stri
   try {
     const p = JSON.parse(Buffer.from(payload, 'base64url').toString());
     if (typeof p.uid !== 'string' || typeof p.exp !== 'number' || p.exp < nowSec) return null;
-    return p.uid;
+    const pwdEpoch = Number.isInteger(p.pe) && p.pe >= 0 ? p.pe : 0;
+    return { uid: p.uid, pwdEpoch };
   } catch { return null; }
+}
+
+/** 校验令牌 → uid（不需代次的旧调用点用；内部委托 verifyTokenFull,行为不变）。 */
+export function verifyToken(token: string, secret: string, nowSec: number): string | null {
+  return verifyTokenFull(token, secret, nowSec)?.uid ?? null;
 }

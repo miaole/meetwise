@@ -32,17 +32,18 @@ export class AuthService {
     if (!b?.email || !b?.password) throw new HttpException({ error: 'invalid_credentials' }, HttpStatus.BAD_REQUEST);
     // 防爆破:同邮箱登录限流(5 次突发 + 0.2/秒补充)。超速 → 429,不进 verify。
     if (!this.rl.allow(`login:${b.email}`, 5, 0.2)) throw new HttpException({ error: 'too_many_attempts' }, HttpStatus.TOO_MANY_REQUESTS);
-    const r = await this.db.pool.query('SELECT id, password_hash, status, role FROM user_account WHERE email=$1', [b.email]);
+    const r = await this.db.pool.query('SELECT id, password_hash, status, role, pwd_epoch FROM user_account WHERE email=$1', [b.email]);
     const u = r.rows[0];
     // 统一错误 + 都跑一次 verify,避免靠响应差异/时序枚举账号
     const ok = u && u.status === 'active' && verifyPassword(b.password, u.password_hash);
     if (!ok) throw new HttpException({ error: 'invalid_credentials' }, HttpStatus.UNAUTHORIZED);
-    return { token: this.issue(u.id), userId: u.id, role: u.role ?? 'candidate' };   // 返回身份供前端按角色路由
+    // 令牌须内嵌**当前**密码代次 pwd_epoch:否则改密自增代次后,新登录令牌仍是旧代次 → 守卫拒绝 → 用户被锁死(F4 必修)。
+    return { token: this.issue(u.id, u.pwd_epoch ?? 0), userId: u.id, role: u.role ?? 'candidate' };   // 返回身份供前端按角色路由
   }
 
-  private issue(uid: string): string {
+  private issue(uid: string, pwdEpoch = 0): string {
     const secret = process.env.AUTH_SECRET ?? '';
     if (!secret) throw new HttpException({ error: 'auth_not_configured' }, HttpStatus.INTERNAL_SERVER_ERROR);
-    return signToken(uid, secret, 7 * 24 * 3600, Math.floor(Date.now() / 1000));
+    return signToken(uid, secret, 7 * 24 * 3600, Math.floor(Date.now() / 1000), pwdEpoch);
   }
 }

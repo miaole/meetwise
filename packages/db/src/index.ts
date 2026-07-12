@@ -27,7 +27,7 @@ export function createPool(o: PoolOverrides = {}): DbPool {
     user: o.user ?? process.env.PGUSER ?? 'meetwise',
     password: o.password ?? process.env.PGPASSWORD ?? 'meetwise_dev_password',
     database: o.database ?? process.env.PGDATABASE ?? 'meetwise',
-    max: Number(process.env.PGPOOL_MAX ?? o.max ?? 8),
+    max: Number(process.env.PGPOOL_MAX ?? o.max ?? 20),   // 默认 8 太小:PrincipalGuard 每请求抢池 + SSE 周期查询,滥用下易饿死(安全审计 F5 系统性根因)。抬到 20,生产按实例数×env 调。
     // HA(修审计 F6):无超时则一条病态查询/idle-in-transaction 能拖死整池 → 生产级零优雅降级的经典事故。
     statement_timeout: Number(process.env.PG_STATEMENT_TIMEOUT_MS ?? 15000),                       // 单条语句上限
     idle_in_transaction_session_timeout: Number(process.env.PG_IDLE_TX_TIMEOUT_MS ?? 15000),        // 事务内挂死自动断

@@ -25,6 +25,7 @@
     "prove:voice-adaptive": "tsx test/voice-adaptive.proof.ts",
     "prove:qbank": "tsx test/qbank-ingest.proof.ts",
     "prove:qbank-pipeline": "tsx test/qbank-pipeline.proof.ts",
+    "prove:reqid": "tsx test/reqid.proof.ts",
     "adaptive:live": "tsx smoke/adaptive-live.ts",
     "prove:adaptive-degrade": "tsx test/adaptive-degrade.proof.ts",
     "prove:adaptive-offtopic": "tsx test/adaptive-offtopic.proof.ts",

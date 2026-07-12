@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { randomUUID } from 'node:crypto';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { getMetrics } from '@meetwise/ai-runtime';
@@ -12,6 +13,16 @@ export async function createApp(): Promise<NestFastifyApplication> {
   app.useGlobalFilters(new AllExceptionsFilter());     // 全局异常过滤(修审计 F3):统一信封 + 不泄露内部细节
   // 系统指标:每个 HTTP 响应记请求数(按 method/route/status)+ 延迟直方图。route 用路由模板(低基数,不爆 label)。
   const fastify = app.getHttpAdapter().getInstance() as any;
+  // **全链路 request-id 起点**:有 x-request-id 头(网关/前端上游给)就沿用,没有就生成一根。
+  //  放 req.reqId(controller → service → 写进 job.payload → worker → 模型 trace.request_id)+ 回写响应头,让调用方拿到同一根 id 对账。
+  //  客户端可控头需净化:只收安全字符集 + 封顶长度,非法/空 → 换新 UUID(防响应头 CRLF 注入 / 超长值污染 trace 列)。
+  fastify.addHook('onRequest', (req: any, reply: any, done: any) => {
+    const raw = String(req.headers['x-request-id'] ?? '').trim();
+    const reqId = raw && raw.length <= 200 && /^[A-Za-z0-9._-]+$/.test(raw) ? raw : randomUUID();
+    req.reqId = reqId;
+    reply.header('x-request-id', reqId);
+    done();
+  });
   // **传输层封顶(纵深 + 防 DoS 放大)**:全局 bodyLimit 为容 base64 简历/音频上传开到 12MB,但纯文本端点逻辑只需 KB 级。
   // 在 body 缓冲/JSON.parse **之前**(onRequest)按 content-length 拒掉超大请求:仅 base64 上传路由放行到 12MB,其余封 1MB →
   // `{"answer":"<11MB>"}` 这类在传输边界即 413,不会先缓冲 11MB + 同步 parse 阻塞事件循环(审计中:Zod 在 parse 之后才跑,挡不住缓冲)。

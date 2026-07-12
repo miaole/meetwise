@@ -1,5 +1,7 @@
 import { Controller, Get, Patch, Post, Body, Req, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import { updateSettingsSchema, type UpdateSettingsDto } from '@meetwise/contracts';
 import { PrincipalGuard } from '../../platform/principal.guard';
+import { ZodValidationPipe } from '../../platform/zod.pipe';
 import { ProfileService } from './profile.service';
 
 /**
@@ -28,7 +30,7 @@ export class ProfileController {
 
   @Patch('settings')
   @HttpCode(HttpStatus.OK)
-  settings(@Req() req: any, @Body() b: { preferences?: Record<string, unknown> }) {
+  settings(@Req() req: any, @Body(new ZodValidationPipe(updateSettingsSchema)) b: UpdateSettingsDto) {
     return this.profiles.settings(req.principal, b);
   }
 

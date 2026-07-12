@@ -33,6 +33,8 @@ CREATE TABLE resume_profile (
   structured jsonb NOT NULL,                                   -- {experience, skills, facts}（已脱敏）
   pii_summary jsonb NOT NULL,                                  -- {phone:n,email:n,idcard:n} 仅计数
   blocked_count int NOT NULL DEFAULT 0,                        -- 被拦的注入行数
+  status text NOT NULL DEFAULT 'ok' CHECK (status IN ('ok','needs_review','rejected')),   -- 审阅态:OCR/图片源(尤其伪造证件)恒 needs_review,系统不冒充判真伪(见迁移 0012)
+  confidence numeric,                                          -- 画像置信度(视觉抗注入 eval 后续按字段回写;现可空)
   created_at timestamptz NOT NULL DEFAULT now()
 );
 

@@ -3,6 +3,7 @@
  * 这就是"真请求经队列驱动 agent"的进程接线:api 入队 → 本消费者跑图/模型 → 事件经 SSE 回前端。
  * 三事务式:claim 提交 → 生命周期(模型在各自短事务,经 invoke) → markDone。同面试保序、租约崩溃可重领。
  */
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { asPrincipal, claimNextInterviewJob, markJobDone, markJobFailed, appendEvent, decryptResumeBlob, releaseConsumption, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, DEFAULT_LEASE_SECONDS, type DbPool } from '@meetwise/db';
 import type { ModelClient } from '@meetwise/ai-runtime';
 import type { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
@@ -13,6 +14,13 @@ import { runDrainLoop } from './drain-loop.ts';
 import { startHeartbeat } from './job-heartbeat.ts';
 
 type Checkpointer = PostgresSaver;     // 直接取类型,不从 main 引(否则 main↔consumer 成环)
+
+// **全链路 request-id 的进程内接力**:出队读 payload.requestId,把整段生命周期处理跑在 ALS 上下文里,
+// 深埋在 lifecycle/service 里的每个 invoke 关口自动读到同一 reqId → 落 ai_invocation_trace.request_id(现有 invoke 调用零改动)。
+// reqId 的持久真相在 job.payload(Postgres);ALS 只是"本次执行"的进程内传递,崩溃重投按 payload 重放同一 reqId(不依赖内存)。
+// 与 ai-runtime 关口经 Symbol 全局注册表共享同一 AsyncLocalStorage 实例(两包不互 import,单例安全)。
+const requestIdStore: AsyncLocalStorage<string> =
+  ((globalThis as unknown as Record<symbol, AsyncLocalStorage<string> | undefined>)[Symbol.for('meetwise.ai-runtime.requestIdContext')] ??= new AsyncLocalStorage<string>());
 export interface ConsumerDeps {
   pool: DbPool; cp: Checkpointer; model: ModelClient; fastModel?: ModelClient; leaseOwner: string;
   // 注入则消费者跑**自适应 agent 图**(生产注真 annSearch/web fetcher;测试注 fake);不注则跑旧固定题单流程。
@@ -39,20 +47,25 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
     await renewReservationLease(c, owner, job.interviewId, DEFAULT_LEASE_SECONDS);
     return jobAlive;
   }));
+  // 出队取 reqId(缺失/非串容忍 → undefined,不进 ALS → invoke 落 NULL,不崩;向后兼容旧 job)。
+  const requestId: string | undefined = typeof job.payload?.requestId === 'string' && job.payload.requestId ? job.payload.requestId : undefined;
+  const inReqCtx = <R>(fn: () => Promise<R>): Promise<R> => (requestId ? requestIdStore.run(requestId, fn) : fn());
   try {
-    if (d.adaptive) {
-      const localRetrieve = (q: string) => d.adaptive!.localRetrieve(owner, q);   // 闭成本 owner 专属
-      const life = { pool: d.pool, cp: d.cp, owner, interviewId: job.interviewId, model: d.model, fastModel: d.fastModel, localRetrieve, webExplore: d.adaptive.webExplore, competencyKeywords: d.adaptive.competencyKeywords };
-      if (job.kind === 'start') {
-        const raw = await asPrincipal(d.pool, owner, (c) => decryptResumeBlob(c, owner, job.payload.resumeId));   // PII 在加密 blob,这里解
-        await startAdaptiveInterview(life, d.adaptive.role ?? '技术岗', ingestResume(raw).facts);
-      } else {
-        await submitAdaptiveAnswer(life, job.payload.answer);
-      }
-    } else if (job.kind === 'start') await startInterview(d.pool, d.cp, owner, job.interviewId, job.payload.resumeId, d.model);
-    else await submitAnswer(d.pool, d.cp, owner, job.interviewId, job.payload.turn, job.payload.answer, d.model);
-    await asPrincipal(d.pool, owner, (c) => markJobDone(c, owner, job.id, d.leaseOwner));
-    return job.kind;
+    return await inReqCtx(async () => {   // 整段处理跑在 reqId 上下文:深埋的每个 invoke 自动带上本次请求的 reqId
+      if (d.adaptive) {
+        const localRetrieve = (q: string) => d.adaptive!.localRetrieve(owner, q);   // 闭成本 owner 专属
+        const life = { pool: d.pool, cp: d.cp, owner, interviewId: job.interviewId, model: d.model, fastModel: d.fastModel, localRetrieve, webExplore: d.adaptive.webExplore, competencyKeywords: d.adaptive.competencyKeywords };
+        if (job.kind === 'start') {
+          const raw = await asPrincipal(d.pool, owner, (c) => decryptResumeBlob(c, owner, job.payload.resumeId));   // PII 在加密 blob,这里解
+          await startAdaptiveInterview(life, d.adaptive.role ?? '技术岗', ingestResume(raw).facts);
+        } else {
+          await submitAdaptiveAnswer(life, job.payload.answer);
+        }
+      } else if (job.kind === 'start') await startInterview(d.pool, d.cp, owner, job.interviewId, job.payload.resumeId, d.model);
+      else await submitAnswer(d.pool, d.cp, owner, job.interviewId, job.payload.turn, job.payload.answer, d.model);
+      await asPrincipal(d.pool, owner, (c) => markJobDone(c, owner, job.id, d.leaseOwner));
+      return job.kind;
+    });
   } catch (e: any) {
     await asPrincipal(d.pool, owner, async (c) => {
       // **租约守卫(对齐 quiz-consumer;专家审计:此前缺失=真泄漏)**:markJobFailed 的 CAS 含 lease_owner=本机。

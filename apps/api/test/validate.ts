@@ -21,6 +21,9 @@ async function validate() {
   const db = app.get(DbService);
 
   for (const f of ['01_schema', '02_commerce', '03_resume', '04_report', '05_interview_jobs', '08_assessment', '09_auth', '10_learning', '11_commerce', '12_career', '13_privacy', '14_notification','15_audit','16_feedback','10_learning']) await db.pool.query(readFileSync(fileURLToPath(new URL(`../../../packages/db/sql/${f}.sql`, import.meta.url)), 'utf8'));
+  // 本自检从 sql/ 引导全量 schema(不跑 migrations 运行器);增量迁移 0015 的 pwd_epoch 列需在此显式应用(幂等 ADD COLUMN),
+  // 让改密吊销(F4)守卫查询 pwd_epoch 可用。生产/e2e 由 worker 迁移运行器应用同一文件。
+  await db.pool.query(readFileSync(fileURLToPath(new URL(`../../../packages/db/migrations/0015_pwd_epoch.sql`, import.meta.url)), 'utf8'));
   await db.pool.query(`INSERT INTO interview(id,owner_user_id,status) VALUES ('ABND','userA','created')`);
   await db.pool.query(`INSERT INTO interview(id,owner_user_id,status,questions) VALUES ('ASMT','userA','completed','["订单限流方案","分布式锁可靠性"]')`);
   await db.pool.query(`INSERT INTO interview_event(owner_user_id,stream_key,seq,kind,payload) VALUES ('userA','ASMT',1,'answer_evaluated','{"turn":0,"score":80}'),('userA','ASMT',2,'answer_evaluated','{"turn":1,"score":40}')`);
@@ -56,6 +59,10 @@ async function validate() {
   // 生产端点:begin(扣额度+入队 start)/ turn(入队 answer)——真请求经队列驱动 worker
   const postJson = async (path: string, headers: Record<string, string>, body: any) => {
     const res = await fetch(base + path, { method: 'POST', headers: { ...headers, 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    return { status: res.status, body: await res.json().catch(() => ({})) as any };
+  };
+  const patchJson = async (path: string, headers: Record<string, string>, body: any) => {
+    const res = await fetch(base + path, { method: 'PATCH', headers: { ...headers, 'content-type': 'application/json' }, body: JSON.stringify(body) });
     return { status: res.status, body: await res.json().catch(() => ({})) as any };
   };
   r = await req('POST', '/interview/R1/begin', { 'x-user-id': 'userA' }); A('begin 缺 resume-id → 400', r.status === 400);
@@ -147,6 +154,7 @@ async function validate() {
   A('OCR 按次计费:产出可用画像 → service_type=ocr 恰 1 笔且 confirmed(决策B:可用画像才扣)', ocrCons.length === 1 && ocrCons[0].status === 'confirmed');
   r = await req('GET', `/resume/${ocrResumeId}/profile`, { 'x-user-id': 'userA' });
   A('OCR 来源 profile 结构化 + PII 脱敏(不含明文手机号,与文本路径同保证)', r.status === 200 && !JSON.stringify(r.body.structured).includes('13800138000'));
+  A('OCR 来源 profile 恒 status=needs_review(系统不冒充判真伪,给人工复核落地位)', r.body.status === 'needs_review');
   r = await req('GET', `/resume/${ocrResumeId}/profile`, { 'x-user-id': 'userB' });
   A('OCR 简历 RLS 隔离:userB 看不到 → 404', r.status === 404);
   r = await postJson('/resume/file', { 'x-user-id': 'userA' }, { filename: 'resume-again.png', mimeType: 'image/png', contentBase64: pngB64 });
@@ -244,15 +252,45 @@ async function validate() {
   r = await postJson('/profile/change-password', { 'x-user-id': 'cpUser' }, { oldPassword: 'oldpass12', newPassword: 'newpass34' }); A('改密码 → 200', r.status === 200 && r.body.changed === true);
   r = await postJson('/auth/login', {}, { email: 'cp@x.com', password: 'oldpass12' }); A('旧密码登录 → 401(已失效)', r.status === 401);
   r = await postJson('/auth/login', {}, { email: 'cp@x.com', password: 'newpass34' }); A('新密码登录 → 200(签发令牌)', r.status === 200 && typeof r.body.token === 'string');
+  // F4:改密即时吊销会话(旧/被盗 Bearer 令牌失效)。必须走真 Bearer(x-user-id 回退绕过令牌代次,证不了)。
+  r = await postJson('/auth/signup', {}, { email: 'f4@x.com', password: 'initpass12' }); A('F4 造号 → 签发令牌 T0', r.status === 200 && typeof r.body.token === 'string');
+  const f4tok0 = r.body.token;
+  r = await req('GET', '/profile', { authorization: `Bearer ${f4tok0}` }); A('F4 旧令牌 T0 初始有效 → 200', r.status === 200 && r.body.email === 'f4@x.com');
+  r = await postJson('/profile/change-password', { authorization: `Bearer ${f4tok0}` }, { oldPassword: 'initpass12', newPassword: 'newpass99' });
+  A('F4 改密 → 200 + 回签新代次令牌 T1(当前会话不被踢)', r.status === 200 && r.body.changed === true && typeof r.body.token === 'string');
+  const f4tok1 = r.body.token;
+  r = await req('GET', '/profile', { authorization: `Bearer ${f4tok0}` }); A('F4 改密后旧令牌 T0 → 401(会话吊销,核心洞已堵)', r.status === 401);
+  r = await req('GET', '/profile', { authorization: `Bearer ${f4tok1}` }); A('F4 改密回签的新令牌 T1 → 200(无死胡同)', r.status === 200 && r.body.email === 'f4@x.com');
+  r = await postJson('/auth/login', {}, { email: 'f4@x.com', password: 'newpass99' }); A('F4 新密码重登 → 200 + 令牌 T2', r.status === 200 && typeof r.body.token === 'string');
+  const f4tok2 = r.body.token;
+  r = await req('GET', '/profile', { authorization: `Bearer ${f4tok2}` }); A('F4 重登令牌 T2 内嵌新代次 → 200(不被自锁死,防登录后即失效回归)', r.status === 200 && r.body.email === 'f4@x.com');
+  r = await postJson('/auth/login', {}, { email: 'f4@x.com', password: 'initpass12' }); A('F4 旧密码登录 → 401', r.status === 401);
   const st = await db.pool.query("SELECT status FROM user_account WHERE id='userA'"); A('账户真停用(disabled)', st.rows[0].status === 'disabled');
   // profile/设置 + 简历单删
   r = await req('GET', '/profile', { 'x-user-id': 'userA' }); A('看自己档案(含 email,不含密码)', r.status === 200 && r.body.email === 'ua@x.com' && r.body.password_hash === undefined);
   // 个人总览/仪表盘(首屏聚合):平均分来自 ASMT 的 80/40 → 60
   r = await req('GET', '/profile/overview', { 'x-user-id': 'userA' }); A('个人总览:平均分∈[0,100]+答题数≥2+报告就绪≥1+面试分布', r.status === 200 && r.body.avgScore >= 0 && r.body.avgScore <= 100 && r.body.answered >= 2 && r.body.reportsReady >= 1 && typeof r.body.interviewsByStatus === 'object' && Object.keys(r.body.interviewsByStatus).length >= 1);
   r = await req('GET', '/profile/overview', { 'x-user-id': 'userNoData' }); A('无数据用户总览:avgScore=null 不报错', r.status === 200 && r.body.avgScore === null && r.body.answered === 0);
-  r = await postJson('/profile/settings', { 'x-user-id': 'userA' }, { preferences: { lang: 'zh', notify: true } }); // PATCH via postJson? need PATCH
-  r = await (async () => { const res = await fetch(base + '/profile/settings', { method: 'PATCH', headers: { 'x-user-id': 'userA', 'content-type': 'application/json' }, body: JSON.stringify({ preferences: { lang: 'zh' } }) }); return { status: res.status, body: await res.json().catch(()=>({})) }; })();
-  A('改设置 → 合并 preferences', r.status === 200 && r.body.preferences.lang === 'zh');
+  // F6:settings 白名单校验 + 大小封顶(此前裸 @Body 无校验 → jsonb 无界膨胀)
+  r = await patchJson('/profile/settings', { 'x-user-id': 'userA' }, { preferences: { locale: 'zh' } });
+  A('改设置(白名单 locale)→ 200 + 合并', r.status === 200 && r.body.preferences.locale === 'zh');
+  r = await patchJson('/profile/settings', { 'x-user-id': 'userA' }, { preferences: { theme: 'dark' } });
+  A('再改设置(theme)→ 合并不覆盖(locale 仍在)', r.status === 200 && r.body.preferences.locale === 'zh' && r.body.preferences.theme === 'dark');
+  r = await req('GET', '/profile', { 'x-user-id': 'userA' });
+  A('设置可读回(/profile.preferences 含 locale+theme)', r.status === 200 && r.body.preferences?.locale === 'zh' && r.body.preferences?.theme === 'dark');
+  r = await patchJson('/profile/settings', { 'x-user-id': 'userA' }, { preferences: { hacker: 'x' } });
+  A('未知 key → 400(拒绝无界膨胀)', r.status === 400);
+  r = await patchJson('/profile/settings', { 'x-user-id': 'userA' }, { preferences: { locale: 'fr' } });
+  A('非法值(locale 非枚举)→ 400', r.status === 400);
+  r = await patchJson('/profile/settings', { 'x-user-id': 'userA' }, { preferences: { notifications: { deep: { a: 1 } } } });
+  A('深嵌绕过(notifications 下塞未知嵌套)→ 400', r.status === 400);
+  r = await patchJson('/profile/settings', { 'x-user-id': 'userA' }, { extra: 1, preferences: { locale: 'en' } });
+  A('顶层未知 key(extra)→ 400', r.status === 400);
+  r = await patchJson('/profile/settings', { 'x-user-id': 'userA' }, { preferences: { notifications: { email: true, push: false } } });
+  A('合法 notifications(布尔)→ 200', r.status === 200 && r.body.preferences.notifications.email === true);
+  // 设置多次 PATCH 后 preferences 体积仍被钉死(白名单只 3 个 key,无累积膨胀)
+  const prefSize = Buffer.byteLength(JSON.stringify((await req('GET', '/profile', { 'x-user-id': 'userA' })).body.preferences), 'utf8');
+  A('多次改设置后 preferences 体积仍 < 4KB(无 jsonb 膨胀)', prefSize < 4096);
   // 简历单删:先传一份再删
   r = await postJson('/resume', { 'x-user-id': 'userB' }, { text: '工作经历\n负责支付系统对账\n技能 对账、分布式事务' });
   const rid2 = r.body.resumeId;

@@ -11,6 +11,10 @@ const MAX_AUDIO_BYTES = 10 * 1024 * 1024;   // 10MB 上限(单题语音作答足
 // 语音端点(ASR/TTS)调付费百炼模型但无额度预留(边缘 I/O,非整场面试计费单元)→ **per-principal 令牌桶限流防成本 DoS**(安全审计高危#1)。
 // 突发 40(足够一场语音面试的 ASR+TTS 往返),稳态 0.3/秒(~18/分)——正常用够、滥用循环被摁住。
 const VOICE_RL = { capacity: 40, refillPerSec: 0.3 };
+// 每次 turn 都入队一条**付费评分** job → 无限流 = 成本 DoS(安全审计 F1)。突发 30(足够一场面试的作答+澄清重答),稳态 0.2/秒(~12/分)。
+const TURN_RL = { capacity: 30, refillPerSec: 0.2 };
+const MAX_TURN = 64;              // turn 号上界(自适应 maxTurns=8 + clarify/probe 冗余;防超大 turn 号刷无限 job)
+const MAX_ANSWER_CHARS = 8000;    // 单条作答封顶(边缘末线;评分侧 capUserData 还会再封,纵深)
 // 语音 ASR/TTS 客户端 DI token:组合根(interview.module)决定真(dashscope)/假(fake,测试 VOICE_FAKE=1)——service 不硬编、可端到端测(非 demo)。
 export const VOICE_ASR = Symbol.for('meetwise.VOICE_ASR');
 export const VOICE_TTS = Symbol.for('meetwise.VOICE_TTS');
@@ -44,8 +48,8 @@ export class InterviewService {
       throw new HttpException({ error: 'too_many_requests', message: '语音请求过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);
   }
 
-  // 开始面试:扣额度 + 入队 start job(长编排在 worker 跑,api 薄)。
-  begin(principal: string, id: string, resumeId: string) {
+  // 开始面试:扣额度 + 入队 start job(长编排在 worker 跑,api 薄)。reqId 随 payload 入队 → worker 出队沿用 → 落模型 trace.request_id(全链路一跳到底)。
+  begin(principal: string, id: string, resumeId: string, requestId?: string) {
     if (!resumeId) throw new HttpException({ error: 'missing_resume_id' }, HttpStatus.BAD_REQUEST);
     return this.db.asPrincipal(principal, async (c) => {
       // **并发竞态安全**:事务级 advisory 锁串行化同面试的并发 begin(对齐 invoke 关口)——否则两并发都过 check-then-act = 双开。
@@ -62,18 +66,28 @@ export class InterviewService {
         throw e;
       }
       if (rr.status !== 'reserved') throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
-      const jobId = await enqueueInterviewJob(c, principal, id, 'start', { resumeId });
+      const jobId = await enqueueInterviewJob(c, principal, id, 'start', { resumeId, requestId });
       return { accepted: true, jobId };
     });
   }
 
   // 提交一题答案:入队 answer job(worker 续图+评分)。text 答案;音频先 ASR 转写再走此端点。
-  turn(principal: string, id: string, body: { turn?: number; answer?: string }) {
+  turn(principal: string, id: string, body: { turn?: number; answer?: string }, requestId?: string) {
     const turn = Number(body?.turn);
-    if (!Number.isInteger(turn) || turn < 0 || !body?.answer?.trim()) throw new HttpException({ error: 'invalid_turn' }, HttpStatus.BAD_REQUEST);
+    // 边缘校验:turn 整数 + [0,MAX_TURN] 上界(防超大 turn 刷无限 job)+ 非空 + 长度封顶(防超大作答 DoS)。
+    if (!Number.isInteger(turn) || turn < 0 || turn > MAX_TURN || !body?.answer?.trim()) throw new HttpException({ error: 'invalid_turn' }, HttpStatus.BAD_REQUEST);
+    if (body.answer.length > MAX_ANSWER_CHARS) throw new HttpException({ error: 'answer_too_long', max: MAX_ANSWER_CHARS }, HttpStatus.PAYLOAD_TOO_LARGE);
+    // 成本 DoS 闸(每 turn = 一条付费评分 job):per-principal 令牌桶,超速 → 429(安全审计 F1)。
+    if (!this.rl.allow(`turn:${principal}`, TURN_RL.capacity, TURN_RL.refillPerSec))
+      throw new HttpException({ error: 'too_many_requests', message: '作答过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);
     return this.db.asPrincipal(principal, async (c) => {
-      if ((await c.query('SELECT 1 FROM interview WHERE id=$1', [id])).rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
-      const jobId = await enqueueInterviewJob(c, principal, id, 'answer', { turn, answer: body.answer }, turn + 1);
+      // 状态机守卫(对齐 quiz/diagnosis 的 CAS 守卫;安全审计 F1):只对**未终态**面试收作答。
+      // 对 completed/abandoned/failed 提交 → 409,绝不制造新付费 job、不绕状态机(此前一个守卫都没有)。
+      const iv = await c.query('SELECT status FROM interview WHERE id=$1', [id]);
+      if (iv.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+      if (['completed', 'abandoned', 'failed'].includes(iv.rows[0].status))
+        throw new HttpException({ error: 'interview_not_active', status: iv.rows[0].status }, HttpStatus.CONFLICT);
+      const jobId = await enqueueInterviewJob(c, principal, id, 'answer', { turn, answer: body.answer, requestId }, turn + 1);
       return { accepted: true, jobId };
     });
   }
@@ -344,8 +358,11 @@ export class InterviewService {
   async answer(principal: string, id: string, key: string) {
     if (!key) throw new HttpException({ error: 'missing_idempotency_key' }, HttpStatus.BAD_REQUEST);
     const out = await this.db.asPrincipal(principal, async (c) => {
-      const own = await c.query('SELECT 1 FROM interview WHERE id=$1', [id]);
+      // 状态机守卫(安全审计 F7):legacy 固定题单答题端点也只对**未终态**面试放行——
+      // 否则可往 completed/abandoned/failed 面试注入伪造 answer_evaluated 事件,污染评估/成长/转写。
+      const own = await c.query('SELECT status FROM interview WHERE id=$1', [id]);
       if (own.rowCount === 0) return { code: 404, body: { error: 'not_found_or_forbidden' } };
+      if (['completed', 'abandoned', 'failed'].includes(own.rows[0].status)) return { code: 409, body: { error: 'interview_not_active', status: own.rows[0].status } };
       const ins = await c.query(
         'INSERT INTO consumption_record(owner_user_id, idempotency_key, interview_id) VALUES($1,$2,$3) ON CONFLICT (owner_user_id, idempotency_key) DO NOTHING',
         [principal, key, id]);

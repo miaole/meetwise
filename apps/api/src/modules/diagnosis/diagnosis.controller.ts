@@ -2,6 +2,7 @@ import { Controller, Get, Post, Param, Query, Req, Res, Headers, UseGuards, Http
 import type { FastifyReply } from 'fastify';
 import { DiagnosisService } from './diagnosis.service';
 import { PrincipalGuard } from '../../platform/principal.guard';
+import { RateLimitService } from '../../platform/rate-limit.service';
 
 /**
  * 简历诊断(resume-diagnosis) HTTP 适配层(薄):解析/校验输入 → 调 DiagnosisService → 映射 HTTP。**不碰 SQL/事务/编排**。
@@ -10,7 +11,7 @@ import { PrincipalGuard } from '../../platform/principal.guard';
 @Controller('diagnosis')
 @UseGuards(PrincipalGuard)
 export class DiagnosisController {
-  constructor(private readonly diagnoses: DiagnosisService) {}
+  constructor(private readonly diagnoses: DiagnosisService, private readonly rl: RateLimitService) {}
 
   // 新建诊断(空壳,created)。begin 才扣额度跑图。
   @Post()
@@ -49,6 +50,9 @@ export class DiagnosisController {
   async events(@Param('id') id: string, @Req() req: any, @Res() reply: FastifyReply, @Headers('last-event-id') lastEventId: string) {
     const rows = await this.diagnoses.events(req.principal, id, lastEventId);
     if (rows === null) { reply.code(404).send({ error: 'not_found_or_forbidden' }); return; }
+    const slotKey = `sse:${req.principal}`;            // per-principal SSE 并发上限(安全审计 F5)
+    if (!this.rl.acquireSlot(slotKey, 5)) { reply.code(429).send({ error: 'too_many_streams', message: 'SSE 连接过多,请关闭其它页面后重试' }); return; }
+    try {
     reply.hijack();                                   // Fastify:接管底层响应做 SSE
     reply.raw.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache', connection: 'keep-alive', 'x-accel-buffering': 'no' });
     let closed = false;
@@ -75,5 +79,6 @@ export class DiagnosisController {
       else if (!safeWrite(': ping\n\n')) break;         // 心跳保活 + 写失败即知断开
     }
     if (!closed) { try { reply.raw.end(); } catch { /* 已断开 */ } }
+    } finally { this.rl.releaseSlot(slotKey); }
   }
 }

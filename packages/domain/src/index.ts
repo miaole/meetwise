@@ -66,7 +66,8 @@ export { sampleQuestions, candidateView, containsBankSecret } from './bank-secur
 export type { BankQuestion } from './bank-security.ts';
 
 // 认证核心（密码哈希 + 会话令牌）
-export { hashPassword, verifyPassword, signToken, verifyToken } from './auth.ts';
+export { hashPassword, verifyPassword, signToken, verifyToken, verifyTokenFull } from './auth.ts';
+export type { VerifiedToken } from './auth.ts';
 
 // 能力评估
 export { deriveAssessment } from './assessment.ts';

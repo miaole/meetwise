@@ -55,9 +55,11 @@ CREATE TABLE ai_invocation_trace (
   service text,                          -- 成本可观测:哪个服务(evaluate/ask/report…)
   input_tokens int, output_tokens int,   -- **成本源头真相落自己库**(不只依赖可选 Langfuse;没配 Langfuse 也能对账/计费/预算告警)
   latency_ms int,
+  request_id text,                        -- 全链路 reqId(HTTP→worker job→模型调用一跳到底);见迁移 0014
   created_at timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (owner_user_id, idempotency_key)  -- 按 principal 作用域
 );
+CREATE INDEX IF NOT EXISTS ix_trace_request_id ON ai_invocation_trace (request_id);   -- reqId 反查(定位单次请求全链路)
 
 -- fail-closed 应用角色（非 owner、无 BYPASSRLS）
 CREATE ROLE app_role NOLOGIN;

@@ -3,6 +3,7 @@ import type { FastifyReply } from 'fastify';
 import { TranscribeDto, SpeakDto, TurnDto, FeedbackDto, LearningCompleteDto } from '@meetwise/contracts';
 import { InterviewService } from './interview.service';
 import { PrincipalGuard } from '../../platform/principal.guard';
+import { RateLimitService } from '../../platform/rate-limit.service';
 import { ZodValidationPipe } from '../../platform/zod.pipe';
 
 /**
@@ -12,13 +13,13 @@ import { ZodValidationPipe } from '../../platform/zod.pipe';
 @Controller('interview')
 @UseGuards(PrincipalGuard)
 export class InterviewController {
-  constructor(private readonly interviews: InterviewService) {}
+  constructor(private readonly interviews: InterviewService, private readonly rl: RateLimitService) {}
 
   // 开始面试:扣额度 + 入队 start job(长编排在 worker 跑,api 薄)。202 已受理。
   @Post(':id/begin')
   @HttpCode(202)
   begin(@Param('id') id: string, @Req() req: any, @Headers('resume-id') resumeId: string) {
-    return this.interviews.begin(req.principal, id, resumeId);
+    return this.interviews.begin(req.principal, id, resumeId, req.reqId);   // reqId 透传进 job.payload,贯穿到 worker 模型 trace
   }
 
   // 提交一题答案:入队 answer job(worker 续图+评分),202。text 答案;音频先 ASR 转写再走此端点。
@@ -26,7 +27,7 @@ export class InterviewController {
   @Post(':id/turn')
   @HttpCode(202)
   turn(@Param('id') id: string, @Req() req: any, @Body(new ZodValidationPipe(TurnDto)) body: TurnDto) {
-    return this.interviews.turn(req.principal, id, body);
+    return this.interviews.turn(req.principal, id, body, req.reqId);   // reqId 透传进 answer job.payload,贯穿到 worker 模型 trace
   }
 
   // 语音作答转写:音频(base64)→ ASR 文本。前端塞回作答框,用户可改后再走 /turn(不破 modality-agnostic 内核)。
@@ -202,6 +203,10 @@ export class InterviewController {
   async events(@Param('id') id: string, @Req() req: any, @Res() reply: FastifyReply, @Headers('last-event-id') lastEventId: string) {
     const rows = await this.interviews.events(req.principal, id, lastEventId);
     if (rows === null) { reply.code(404).send({ error: 'not_found_or_forbidden' }); return; }
+    // per-principal SSE 并发上限(安全审计 F5):每条 SSE 长期占一 DB 池周期查询;不封顶 → 开几十条即打满连接池饿死鉴权。
+    const slotKey = `sse:${req.principal}`;
+    if (!this.rl.acquireSlot(slotKey, 5)) { reply.code(429).send({ error: 'too_many_streams', message: 'SSE 连接过多,请关闭其它页面后重试' }); return; }
+    try {
     reply.hijack();                                   // Fastify:接管底层响应做 SSE
     reply.raw.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache', connection: 'keep-alive', 'x-accel-buffering': 'no' });
     let closed = false;
@@ -228,5 +233,6 @@ export class InterviewController {
       else if (!safeWrite(': ping\n\n')) break;         // 心跳保活 + 写失败即知断开
     }
     if (!closed) { try { reply.raw.end(); } catch { /* 已断开 */ } }
+    } finally { this.rl.releaseSlot(slotKey); }        // 释放并发槽(所有退出路径:断开/终态/超时)
   }
 }

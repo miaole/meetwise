@@ -5,8 +5,10 @@ import { ingestResume, extractResumeText } from '@meetwise/domain';
 import { visionOcr, type ModelClient } from '@meetwise/ai-runtime';
 import type { UploadResumeDto, UploadResumeFileDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
+import { RateLimitService } from '../../platform/rate-limit.service';
 
 const MAX_RESUME_BYTES = 8 * 1024 * 1024;   // 8MB 上限(防大文件 DoS)
+const MAX_RESUME_TEXT = 60_000;             // 提取文本末线(对齐文本路径契约;防解压炸弹/超大文档提取出 MB 级文本无界落库+喂模型,安全审计 F3)
 /** OCR 视觉模型客户端 DI token:组合根(app.module)决定真(qwen-vl)/假(scripted,测试)——service 不硬编、只认注入的 seam,故 /resume/file 可真端到端测(非 demo)。 */
 export const OCR_VISION_CLIENT = Symbol.for('meetwise.OCR_VISION_CLIENT');
 
@@ -17,10 +19,17 @@ export const OCR_VISION_CLIENT = Symbol.for('meetwise.OCR_VISION_CLIENT');
 @Injectable()
 export class ResumeService {
   // vision 客户端由组合根注入(真 qwen-vl / 测试 scripted),service 不硬编 → 可端到端测。
-  constructor(private readonly db: DbService, @Inject(OCR_VISION_CLIENT) private readonly vision: ModelClient) {}
+  constructor(private readonly db: DbService, @Inject(OCR_VISION_CLIENT) private readonly vision: ModelClient, private readonly rl: RateLimitService) {}
+
+  // 文件上传 = CPU 重的解析(PDF/docx,可炸弹)+ 可能触发付费 OCR → per-principal 令牌桶(安全审计 F2)。突发 15、稳态 0.1/秒(~6/分),正常传够、滥用循环被摁住。
+  private uploadGate(principal: string) {
+    if (!this.rl.allow(`resume-file:${principal}`, 15, 0.1))
+      throw new HttpException({ error: 'too_many_requests', message: '文件上传过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);
+  }
 
   /** 文件上传(PDF/Word/图片):解码 → **提取+清洗文本** → 复用文本上传链路(consent/加密/结构化)。图片走 OCR(按次计费)。 */
   async uploadFile(principal: string, dto: UploadResumeFileDto) {
+    this.uploadGate(principal);                                              // 限流先行:解码/解析前就摁住滥用(防炸弹并发压事件循环)
     const buffer = Buffer.from(dto.contentBase64, 'base64');
     if (buffer.length === 0) throw new HttpException({ error: 'empty_file' }, HttpStatus.BAD_REQUEST);
     if (buffer.length > MAX_RESUME_BYTES) throw new HttpException({ error: 'file_too_large' }, HttpStatus.PAYLOAD_TOO_LARGE);
@@ -34,6 +43,7 @@ export class ResumeService {
     }
     // 扫描型 PDF(文本层空)：本期图片 OCR 已通,PDF→逐页图渲染是快随项(见 UC-RES-003 A2),暂给可解释降级不静默。
     if (extracted.text.trim().length < 20) throw new HttpException({ error: 'extracted_too_short', format: extracted.format, hint: '未从文件读到足够文字;若为扫描件/图片型 PDF,请改传清晰图片或粘贴文本' }, HttpStatus.BAD_REQUEST);
+    if (extracted.text.length > MAX_RESUME_TEXT) throw new HttpException({ error: 'extracted_too_long', format: extracted.format, max: MAX_RESUME_TEXT, hint: '文件内容过长(疑似非常规简历/解压炸弹),请精简后重传或粘贴核心文本' }, HttpStatus.PAYLOAD_TOO_LARGE);   // 安全审计 F3:防超大提取文本无界落库/喂模型
     const r = await this.upload(principal, { text: extracted.text });            // 复用文本链路
     return { ...r, format: extracted.format, chars: extracted.text.length };
   }
@@ -81,7 +91,7 @@ export class ResumeService {
       throw new HttpException({ error: 'ocr_no_content', hint: '图片识别成功但未提取到有效简历内容,已退还额度,请换更清晰的图片或粘贴文本' }, HttpStatus.UNPROCESSABLE_ENTITY);
     }
     let structured;
-    try { structured = await this.upload(principal, { text }); }               // 结构化复用文本链路(注入清洗/stripPii/加密/去重同文本简历)
+    try { structured = await this.upload(principal, { text }, 'needs_review'); }   // 结构化复用文本链路(注入清洗/stripPii/加密/去重);**OCR/图片源恒 needs_review**(伪造证件不冒充判真伪)
     catch (e) {                                                                  // 下游结构化失败 → **退 OCR 费**(决策B)
       await this.db.asPrincipal(principal, (c: any) => releaseConsumption(c, principal, ocrKey));
       throw e;
@@ -90,7 +100,8 @@ export class ResumeService {
     return { ...structured, format: 'image', chars: text.length, ocr: true };
   }
 
-  upload(principal: string, dto: UploadResumeDto) {
+  /** profileStatus:OCR/图片源传 'needs_review'(系统不冒充判真伪,给人工复核落地位);文本/PDF 文本层默认 'ok'。 */
+  upload(principal: string, dto: UploadResumeDto, profileStatus: 'ok' | 'needs_review' = 'ok') {
     return this.db.asPrincipal(principal, async (c: any) => {
       // PIPL 硬门槛:处理简历 PII 前必须有采集同意,否则拒绝(不偷偷处理)。
       const consent = await c.query("SELECT 1 FROM consent_record WHERE purpose='resume_processing' LIMIT 1");
@@ -98,7 +109,7 @@ export class ResumeService {
       const up = await createResumeWithBlob(c, principal, dto.text);          // 原文加密落库 + 去重
       if (up.dedup) return { resumeId: up.resumeId, status: 'deduped' };
       await transitionResume(c, principal, up.resumeId, 'uploaded', 'ingesting');
-      await completeIngestion(c, principal, up.resumeId, ingestResume(dto.text)); // 结构化 + PII 脱敏 → ingested
+      await completeIngestion(c, principal, up.resumeId, ingestResume(dto.text), profileStatus); // 结构化 + PII 脱敏 → ingested
       return { resumeId: up.resumeId, status: 'ingested' };
     });
   }
@@ -132,7 +143,7 @@ export class ResumeService {
 
   profile(principal: string, id: string) {
     return this.db.asPrincipal(principal, async (c: any) => {
-      const r = await c.query('SELECT structured, pii_summary, blocked_count FROM resume_profile WHERE resume_id=$1', [id]);
+      const r = await c.query('SELECT structured, pii_summary, blocked_count, status, confidence FROM resume_profile WHERE resume_id=$1', [id]);
       if (r.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND); // RLS 0 行→404
       return r.rows[0];
     });

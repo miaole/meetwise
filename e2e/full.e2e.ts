@@ -122,6 +122,39 @@ async function main() {
   A(r.status === 200, `报告端点可查 → status=${b.status}`);
   A(terminal === 'report_ready' ? b.status === 'ready' : b.status !== 'ready', `状态机:报告 status 与终态自洽(终态 ${terminal} → status=${b.status})`);
 
+  // 7b. 押题 + 诊断全栈(真 HTTP → worker 消费 → 图执行 → 终态,无死胡同)。通用终态轮询(SSE hold-and-tail)。
+  const pollTerminal = async (base: string, terminals: string[]): Promise<string> => {
+    let seq = 0, term = '';
+    const start2 = Date.now();
+    while (Date.now() - start2 < 60_000) {
+      const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 1200); let buf = '';
+      try {
+        const res = await fetch(`${BASE}${base}/events`, { headers: { authorization: `Bearer ${token}`, ...(seq ? { 'last-event-id': String(seq) } : {}) }, signal: ac.signal });
+        if (res.status === 200 && res.body) { const rd = res.body.getReader(); const dec = new TextDecoder(); for (;;) { const { done, value } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); } }
+      } catch { /* abort 预期 */ } finally { clearTimeout(t); }
+      for (const m of buf.matchAll(/^id: (\d+)\nevent: (\w+)\ndata: (.*)$/gm)) { seq = Math.max(seq, Number(m[1])); if (terminals.includes(m[2])) term = m[2]; }
+      if (term) break;
+      await new Promise((rr) => setTimeout(rr, 1000));
+    }
+    return term;
+  };
+  // 押题
+  let qz: any = await j(await fetch(`${BASE}/quiz`, { method: 'POST', headers: H, body: '{}' }));
+  const quizId = qz.id ?? qz.quizId;
+  A(typeof quizId === 'string', `押题:建 → id(${quizId})`);
+  r = await fetch(`${BASE}/quiz/${quizId}/begin`, { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
+  A(r.status === 202, '押题:begin → 202 受理');
+  const quizTerm = await pollTerminal(`/quiz/${quizId}`, ['quiz_ready', 'quiz_unavailable', 'error']);
+  A(quizTerm !== '', `押题:跑到终态(${quizTerm})——无死胡同 ✅`);
+  // 诊断
+  let dg: any = await j(await fetch(`${BASE}/diagnosis`, { method: 'POST', headers: H, body: '{}' }));
+  const diagId = dg.id ?? dg.diagnosisId;
+  A(typeof diagId === 'string', `诊断:建 → id(${diagId})`);
+  r = await fetch(`${BASE}/diagnosis/${diagId}/begin`, { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
+  A(r.status === 202, '诊断:begin → 202 受理');
+  const diagTerm = await pollTerminal(`/diagnosis/${diagId}`, ['diagnosis_ready', 'diagnosis_unavailable', 'error']);
+  A(diagTerm !== '', `诊断:跑到终态(${diagTerm})——无死胡同 ✅`);
+
   // 8. B 端(招聘方)+ 多租户 RLS 隔离:发岗位 → 自己可见 → 他人不可见
   // 招聘方是**独立角色用户**(RecruiterGuard 按 role 门禁:候选人 user1 不能发岗位 → 403)。
   const recTok = (await j(await fetch(`${BASE}/auth/signup`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: `e2e_rec_${process.env.E2E_TAG ?? 'run'}@x.com`, password, role: 'recruiter' }) }))).token;
