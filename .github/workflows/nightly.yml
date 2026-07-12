@@ -1,0 +1,77 @@
+name: nightly-live-model
+# 真模型质量门 —— 唯一能证明"AI 真可用"(非桩)的层。对真实境内模型跑,故 secrets 门控 + 定时,
+# 不放 per-push CI(qwen ~20s/次、偶发 30s×重试会拖慢并制造假红)。未配 secrets → 每步 skip(不假红);
+# 配了 secrets → 真跑,红即"真模型/真链路出问题"的信号(正是 per-push 假模型门测不出的那层)。
+on:
+  schedule:
+    - cron: '0 18 * * *'      # 每日 UTC 18:00(≈北京 02:00)
+  workflow_dispatch: {}        # 配好 secrets 后可随时手动触发验证
+
+jobs:
+  live-model:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:up
+      - name: wait for postgres
+        run: |
+          for i in $(seq 1 30); do
+            docker exec meetwise-postgres-dev pg_isready -U meetwise -d meetwise && exit 0
+            sleep 2
+          done
+          echo "postgres not ready"; exit 1
+
+      # ── 硬门(配 key 即真跑,红=真模型出题/评分/报告质量或关口出问题,阻断) ──
+      - name: 真模型冒烟(文本 qwen:出题/评分/报告经 invoke 关口双校验真跑)
+        env:
+          MODEL_BASE_URL: ${{ secrets.MODEL_BASE_URL }}
+          MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
+          MODEL_NAME: ${{ secrets.MODEL_NAME }}
+        run: |
+          if [ -z "$MODEL_API_KEY" ]; then echo "::warning::未配 MODEL_API_KEY → 跳过真模型门(配 secrets 后 nightly/手动才真跑)"; exit 0; fi
+          pnpm model:smoke
+      - name: 端到端真 agent(flow:live:简历→押题→面试→评分→报告,真模型+真检索经关口)
+        env:
+          MODEL_BASE_URL: ${{ secrets.MODEL_BASE_URL }}
+          MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
+          MODEL_NAME: ${{ secrets.MODEL_NAME }}
+          MODEL_FAST_NAME: ${{ secrets.MODEL_FAST_NAME }}
+          RESUME_ENC_KEY: ${{ secrets.RESUME_ENC_KEY }}
+          RESUME_HASH_SECRET: ${{ secrets.RESUME_HASH_SECRET }}
+        run: |
+          if [ -z "$MODEL_API_KEY" ]; then echo "::warning::skip flow:live(无 MODEL_API_KEY)"; exit 0; fi
+          pnpm flow:live
+
+      # ── 软门(依赖图片/音频 fixture、独立语音/嵌入端点;环境问题不阻断整门,真模型信号看日志) ──
+      - name: 多模态视觉(vl:smoke:qwen-vl 真读简历图片 → 结构化够用)
+        continue-on-error: true
+        env:
+          MODEL_BASE_URL: ${{ secrets.MODEL_BASE_URL }}
+          MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
+          VISION_MODEL_NAME: ${{ secrets.VISION_MODEL_NAME }}
+        run: |
+          if [ -z "$MODEL_API_KEY" ]; then echo "skip vl:smoke(无 key)"; exit 0; fi
+          pnpm vl:smoke
+      - name: 语音(voice:live:真 ASR/TTS 端到端)
+        continue-on-error: true
+        env:
+          MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
+          DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
+          TTS_URL: ${{ secrets.TTS_URL }}
+        run: |
+          if [ -z "$MODEL_API_KEY" ] && [ -z "$DASHSCOPE_API_KEY" ]; then echo "skip voice:live(无 key)"; exit 0; fi
+          pnpm voice:live
+      - name: 检索召回金标(recall:eval:真 embedding 召回率达标)
+        continue-on-error: true
+        env:
+          MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
+          EMBED_API_KEY: ${{ secrets.EMBED_API_KEY }}
+        run: |
+          if [ -z "$MODEL_API_KEY" ] && [ -z "$EMBED_API_KEY" ]; then echo "skip recall:eval(无 key)"; exit 0; fi
+          pnpm recall:eval

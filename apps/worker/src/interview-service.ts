@@ -53,6 +53,9 @@ const E2E_SCRIPTS: Record<string, (attempt: number) => ModelResult> = {
   'interviewer.ask': () => ({ ok: true, raw: { q: '请结合你的经历,谈谈在高并发系统里你做过的一个关键技术决策及其权衡。', refs: [] } }),
   'mock-interview.evaluate': () => ({ ok: true, raw: { score: 82, evidence: ['给出了具体方案与权衡'], relevant: true, hasHook: false } }),
   'report.generate': () => ({ ok: true, raw: { overall: 82, sections: [{ title: '综合评估', body: '整体表现稳定,能给出具体方案与权衡。' }] } }),
+  // 押题/诊断脚本化(refs='限流'/'Redis' 须接地于 e2e 简历 facts,过 factuality 歪曲门不被过滤空)→ 让 quiz/diagnosis 也能在全栈 e2e 经真 HTTP 跑到终态,不再只降级到 fallback。
+  'resume-quiz.generate': () => ({ ok: true, raw: { items: [{ q: '你在高并发订单系统里怎么用 Redis 做限流?讲讲取舍。', refs: ['限流'] }, { q: 'Redis 做分布式锁,可靠性(误删/续期)怎么保证?', refs: ['Redis'] }] } }),
+  'resume-diagnosis.generate': () => ({ ok: true, raw: { overall: 78, summary: '后端经验扎实,建议补充可量化的业绩数据。', sections: [{ kind: 'highlight', title: '亮点', score: 80, findings: [{ text: '有高并发限流实践', refs: ['限流'] }] }, { kind: 'risk', title: '风险', findings: [{ text: '缺量化数据支撑', refs: [] }] }], rewrites: [] } }),
 };
 const useFakeModel = () => process.env.E2E_FAKE_MODEL === '1';
 function e2eScriptedModel(): ModelClient { return scriptedModelClient(E2E_SCRIPTS); }

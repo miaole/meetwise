@@ -15,6 +15,7 @@ async function validate() {
   process.env.PAY_PROVIDER_SECRET = 'test-pay-secret';
   process.env.OCR_FAKE = '1';                        // 注入确定性视觉模型(不依赖真 qwen-vl key),让 /resume/file OCR 走真栈可端到端测
   process.env.OCR_FAKE_TEXT = '工作经历\n负责订单系统限流改造,用 Redis 计数器扛高并发\n技能 Redis、限流、Kubernetes\n联系电话 13800138000';
+  process.env.VOICE_FAKE = '1';                      // 注入确定性 ASR/TTS(不依赖真 qwen key),让语音端点走真栈可端到端测
   const app = await createApp();
   await app.init();
   const db = app.get(DbService);
@@ -162,6 +163,18 @@ async function validate() {
   const ocrConf = (await db.pool.query("SELECT count(*)::int n FROM entitlement_consumption WHERE owner_user_id='userA' AND service_type='ocr' AND status='confirmed'")).rows[0].n;
   A('决策B:仅可用画像那笔仍 confirmed(恰 1 笔,退费不误伤成功笔)', ocrConf === 1);
   process.env.OCR_FAKE_TEXT = '工作经历\n负责订单系统限流改造,用 Redis 计数器扛高并发\n技能 Redis、限流、Kubernetes\n联系电话 13800138000';   // 复原,不影响后续用例
+
+  // 语音端点端到端(真 HTTP → 真 api service → fake ASR/TTS 注入 VOICE_FAKE):证明语音链路可用非 demo + 成本限流真生效
+  r = await postJson('/interview/R1/transcribe', { 'x-user-id': 'userA' }, { audioBase64: Buffer.from([1, 2, 3, 4]).toString('base64'), mimeType: 'audio/webm' });
+  A('语音 ASR 转写 → 200 + 确定性文本(fake 注入,含"限流")', r.status === 200 && typeof r.body.text === 'string' && r.body.text.includes('限流'));
+  r = await postJson('/interview/R1/speak', { 'x-user-id': 'userA' }, { text: '请介绍一下你自己' });
+  A('语音 TTS 合成 → 200 + wav(fake AUDIO: 前缀)', r.status === 200 && r.body.mimeType === 'audio/wav' && Buffer.from(r.body.audioBase64, 'base64').toString().startsWith('AUDIO:'));
+  r = await postJson('/interview/R9/transcribe', { 'x-user-id': 'userA' }, { audioBase64: Buffer.from([1, 2, 3]).toString('base64'), mimeType: 'audio/webm' });
+  A('语音归属校验:userA 转写 userB 的 R9 → 404(RLS,越权不花 ASR)', r.status === 404);
+  // 成本 DoS 真断言:专用用户连打超令牌桶 capacity(40)→ 至少 1 次 429(把"语音成本 DoS 限流"从纸面变可证伪)
+  let voice429 = false;
+  for (let i = 0; i < 46; i++) { const vr = await postJson('/interview/R1/speak', { 'x-user-id': 'voiceDoS' }, { text: 'x' }); if (vr.status === 429) { voice429 = true; break; } }
+  A('语音成本限流:连打超令牌桶 → 429(防成本 DoS,承重安全项)', voice429);
 
   // 面试 CRUD 补全:create / list / transcript
   r = await postJson('/interview', { 'x-user-id': 'userA' }, {}); A('新建面试 → 200 + id(RLS WITH CHECK)', r.status === 200 && typeof r.body.interviewId === 'string');

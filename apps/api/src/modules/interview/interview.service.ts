@@ -1,8 +1,8 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { reserveEntitlement, enqueueInterviewJob, getReport, releaseConsumption, requeueFailedReport } from '@meetwise/db';
 import { deriveAssessment, deriveLearningPlan, deriveCareerPath } from '@meetwise/domain';
-import { dashscopeAsr, dashscopeTts, dashscopeStreamingTts } from '@meetwise/ai-runtime';
+import type { Asr, Tts, StreamingTts } from '@meetwise/ai-runtime';
 import type { TranscribeDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
 import { RateLimitService } from '../../platform/rate-limit.service';
@@ -11,6 +11,10 @@ const MAX_AUDIO_BYTES = 10 * 1024 * 1024;   // 10MB 上限(单题语音作答足
 // 语音端点(ASR/TTS)调付费百炼模型但无额度预留(边缘 I/O,非整场面试计费单元)→ **per-principal 令牌桶限流防成本 DoS**(安全审计高危#1)。
 // 突发 40(足够一场语音面试的 ASR+TTS 往返),稳态 0.3/秒(~18/分)——正常用够、滥用循环被摁住。
 const VOICE_RL = { capacity: 40, refillPerSec: 0.3 };
+// 语音 ASR/TTS 客户端 DI token:组合根(interview.module)决定真(dashscope)/假(fake,测试 VOICE_FAKE=1)——service 不硬编、可端到端测(非 demo)。
+export const VOICE_ASR = Symbol.for('meetwise.VOICE_ASR');
+export const VOICE_TTS = Symbol.for('meetwise.VOICE_TTS');
+export const VOICE_STREAM_TTS = Symbol.for('meetwise.VOICE_STREAM_TTS');
 /** MIME → DashScope 可识别的 format 字符串(MediaRecorder 常出 audio/webm;codecs=opus / audio/mp4)。 */
 function formatFromMime(mime: string): string {
   const m = (mime || '').toLowerCase();
@@ -26,7 +30,13 @@ function formatFromMime(mime: string): string {
  */
 @Injectable()
 export class InterviewService {
-  constructor(private readonly db: DbService, private readonly rl: RateLimitService) {}
+  constructor(
+    private readonly db: DbService,
+    private readonly rl: RateLimitService,
+    @Inject(VOICE_ASR) private readonly asr: Asr,
+    @Inject(VOICE_TTS) private readonly tts: Tts,
+    @Inject(VOICE_STREAM_TTS) private readonly streamTts: StreamingTts,
+  ) {}
 
   /** 语音端点共用限流闸(ASR/TTS 无额度预留 → 防成本 DoS)。超速 → 429。 */
   private voiceGate(principal: string) {
@@ -79,7 +89,7 @@ export class InterviewService {
     const text = (dto.text ?? '').trim();
     if (!text) throw new HttpException({ error: 'empty_text' }, HttpStatus.BAD_REQUEST);
     try {
-      const audio = await dashscopeTts().synthesize(text.slice(0, 2000));   // 截断防超长 TTS
+      const audio = await this.tts.synthesize(text.slice(0, 2000));   // 截断防超长 TTS
       return { audioBase64: Buffer.from(audio).toString('base64'), mimeType: 'audio/wav' };
     } catch (e: any) {
       if (String(e?.message) === 'tts_not_configured')
@@ -97,14 +107,14 @@ export class InterviewService {
     const text = (dto.text ?? '').trim();
     if (!text) throw new HttpException({ error: 'empty_text' }, HttpStatus.BAD_REQUEST);
     // 配置缺失 → 在 hijack/写头之前就抛 503,前端凭状态码干净回落(若进流后才发现没配置,头已发=无法再换状态码)。
-    if (!process.env.MODEL_API_KEY)
+    if (process.env.VOICE_FAKE !== '1' && !process.env.MODEL_API_KEY)
       throw new HttpException({ error: 'tts_unavailable', message: '语音播报暂未开通，将以文字显示题目' }, HttpStatus.SERVICE_UNAVAILABLE);
     return { text: text.slice(0, 2000) };   // 截断防超长 TTS(对齐非流式 speak)
   }
 
   /** 流式 TTS 音频块迭代器(MP3,signal 可中断:挂断/切走/barge-in 即停吐)。边缘 I/O,在 invoke 关口之外。 */
   speakStreamChunks(text: string, signal: AbortSignal): AsyncIterable<Uint8Array> {
-    return dashscopeStreamingTts().synthesizeStream(text, signal);
+    return this.streamTts.synthesizeStream(text, signal);
   }
 
   async transcribe(principal: string, id: string, dto: TranscribeDto) {
@@ -117,7 +127,7 @@ export class InterviewService {
     if (audio.length > MAX_AUDIO_BYTES) throw new HttpException({ error: 'audio_too_large' }, HttpStatus.PAYLOAD_TOO_LARGE);
     const format = dto.format?.trim() || formatFromMime(dto.mimeType);
     try {
-      const text = await dashscopeAsr().transcribe(new Uint8Array(audio), { format } as { format: string });
+      const text = await this.asr.transcribe(new Uint8Array(audio), { format } as { format: string });
       return { text };
     } catch (e: any) {
       // 优雅降级:模型未配置 / 转写失败 → 明确错误,前端回落到文字作答(不抛 500,不死胡同)。
