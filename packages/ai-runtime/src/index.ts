@@ -14,6 +14,7 @@ export { scriptedModelClient, openAICompatibleClient, modelFor, promptedModel, c
 export type { ModelClient, CompletionRequest } from './model-client.ts';
 export { getPrompt, promptVersions } from './prompts.ts';
 export type { PromptTemplate } from './prompts.ts';
+export { visionOcr, MIN_OCR_CHARS } from './resume-ocr.ts';
 export { setTracer, getTracer, recordingTracer } from './trace.ts';
 export type { Tracer, ModelCallSpan, ModelCallOutcome } from './trace.ts';
 export { langfuseTracer, httpSpanTransport, toLangfuseBatch } from './tracer-langfuse.ts';

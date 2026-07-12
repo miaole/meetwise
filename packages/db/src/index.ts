@@ -129,8 +129,8 @@ export {
 // 生产向量库（pgvector HNSW）
 export { upsertVectorChunk, annSearch } from './retrieval-store.ts';
 
-// 长期记忆存储
-export { insertMemory, getMemoriesByRefIds, episodeSeen } from './memory-store.ts';
+// 长期记忆存储 + 跨会话精确判重(normalizeQuestion/episodeSeen) + 历史弱项只读投影(historicalWeakDimensions)
+export { insertMemory, getMemoriesByRefIds, episodeSeen, normalizeQuestion, historicalWeakDimensions } from './memory-store.ts';
 export type { MemoryKind, MemoryRow } from './memory-store.ts';
 
 // 支付订单（幂等入账）

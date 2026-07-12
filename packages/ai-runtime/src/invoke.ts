@@ -20,6 +20,7 @@ export interface InvokeSpec<T> {
   sources?: string[];               // provenance:本次生成的检索来源 ref_ids,记入 trace 供审计/引用
   threadId?: string;                // 面试 id:Langfuse sessionId/traceId,**一场面试归一棵 trace 树**(跨调用关联,RCA 用)
   retrieval?: { ref: string; score: number }[];   // 检索质量信号:top-k 命中分数,分得清"没召到"(top 分低)vs"召到没用好"
+  redactOutput?: boolean;           // 敏感输出(如 OCR 转写=简历原文/PII):trace.output 只存脱敏占位({redacted:true}),绝不落 PII;调用方仍拿到真值(修专家审计:PII 不入 trace + 不破坏被遗忘权)。
 }
 export type InvokeOutcome<T> = { value: T } | { error: string };
 
@@ -60,9 +61,11 @@ export async function invoke<T>(spec: InvokeSpec<T>, c: Client, owner: string): 
     }
     span(attempt, 'ok', latency, r.usage);
     // **成本源头真相落库**(service + token + 延迟):不只依赖可选 Langfuse tracer;没配 Langfuse 也能从自己库对账/计费/预算告警。
+    // redactOutput:敏感输出(OCR 简历原文)只落脱敏占位——PII 绝不进 trace;真值仅回给调用方,由其加密落 resume_blob。
+    const stored = spec.redactOutput ? { redacted: true } : v.value;
     await c.query(
       'INSERT INTO ai_invocation_trace(owner_user_id,idempotency_key,output,service,input_tokens,output_tokens,latency_ms) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT (owner_user_id,idempotency_key) DO NOTHING',
-      [owner, spec.idempotencyKey, v.value, spec.service, r.usage?.inputTokens ?? null, r.usage?.outputTokens ?? null, latency]);
+      [owner, spec.idempotencyKey, stored, spec.service, r.usage?.inputTokens ?? null, r.usage?.outputTokens ?? null, latency]);
     return { value: v.value };
   }
   span(max, 'exhausted', 0);

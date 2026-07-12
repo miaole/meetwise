@@ -4,10 +4,11 @@
  * 每次模型调用过 invoke(双校验/exactly-once/trace),带 threadId(Langfuse 一场面试一棵树)+ sources/retrieval(provenance+topScore 信号)。
  */
 import { z } from 'zod';
-import { asPrincipal, type DbPool } from '@meetwise/db';
+import { asPrincipal, normalizeQuestion, type DbPool } from '@meetwise/db';
 import { invoke, promptedModel, type ModelClient } from '@meetwise/ai-runtime';
 import { cragRetrieve, isVerbatimCopy, toCompetencySpecs, isNonAnswer, stripScoringManipulation, type ScoredRef, type SourceDoc, type CompetencySpec, type QuestionKind } from '@meetwise/domain';
 import type { AdaptiveDeps } from '@meetwise/ai-graphs';
+import { wasAsked, pastWeakDimensions } from './memory-service.ts';
 
 const AskSchema = z.object({ q: z.string().min(1).max(2000), refs: z.array(z.string()) });   // q 封顶:模型出的题理应短;超长=异常输出,schema 闸拦下重试(也防评估侧截断吃掉答案)
 // relevant:答案是否正面回应本题(off-topic/非作答 → false + score 0)。可选默认 true(保守:模型漏给则按 on-topic,不误触澄清环)。
@@ -36,7 +37,19 @@ export async function planCompetencies(pool: DbPool, owner: string, threadId: st
   // 优雅降级:规划失败 → 用默认能力集,面试仍可开(不因规划抖动整场开不了)。
   // toCompetencySpecs(纯逻辑):top 1-2 标 core(追问上限 3)+ 确定性附加 1 个行为槽(题型 behavioral)。
   const names = 'error' in out ? ['项目经验', '技术深度', '问题解决'] : out.value.competencies;
-  return toCompetencySpecs(names);
+  const biased = await biasByPastWeakness(pool, owner, names);   // 历史弱项软偏置(hint,非硬过滤;快照进能力清单一次,decideNext 对其纯运算)
+  return toCompetencySpecs(biased);
+}
+
+/** 弱项软偏置(**反 confirmation-bias**):把规划官**本次已提**、且命中历史弱项(assessment_report gap=true)的能力**稳定前移**
+ *  → 更可能落进 core(复测更充分);但**只重排、绝不注入岗位无关能力**(hint 非硬过滤)。
+ *  关键:记忆只影响"考哪些能力",**绝不影响"多难/多有信心"**——难度仍由 initMind 从中性 2 起(上次弱→这次中性难度复测,prior 完全向中性衰减),
+ *  confidence 恒从 0 起(只累积本场证据)。空历史(冷启动/记忆不可用)→ 稳定分区自然恒等(**非特殊分支**:空集 → 全部落后桶、保持原序)。 */
+async function biasByPastWeakness(pool: DbPool, owner: string, names: string[]): Promise<string[]> {
+  const weak = await pastWeakDimensions(pool, owner).catch(() => [] as string[]);   // 记忆不可用/冷启动 → [] → 恒等(fail-soft,绝不因判重故障阻断开面)
+  const weakSet = new Set(weak.map(normalizeQuestion));
+  const isWeak = (n: string) => weakSet.has(normalizeQuestion(n));
+  return [...names.filter(isWeak), ...names.filter((n) => !isWeak(n))];             // 稳定分区:弱项前移、其余原序
 }
 
 export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
@@ -53,13 +66,26 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
         : { local: [] as ScoredRef[], web: [] as SourceDoc[] };
       const docs: SourceDoc[] = web;
       const material = [...local.map((l) => l.ref), ...web.map((w) => w.text)].join('\n').slice(0, 2000);
-      const out = await asPrincipal(d.pool, d.owner, (c) => invoke({
-        idempotencyKey: `${d.threadId}:ask:t${turn}:${attempt}`, threadId: d.threadId,   // 持久 turn → 跨进程 resume 不碰撞
-        sources: local.map((l) => l.ref), retrieval: local,                          // provenance + topScore 信号
-        schema: AskSchema,
-        businessValidate: (v) => (isVerbatimCopy(v.q, docs) ? '照搬原文(版权)' : null),   // 版权门:照搬→重试
-        model: promptedModel(d.model, 'interviewer.ask', { competency, difficulty, kind, material, resumeFacts: useFacts ? facts : [] }),
-      }, c, d.owner));
+      // 一次出题。dedupRound=0 时 idempotencyKey / material 与现状**逐字节一致** → 无历史(冷启动/记忆不可用)时行为完全不变。
+      const generate = (dedupRound: number, avoid: string[]) => {
+        const avoidNote = avoid.length
+          ? `\n\n【避免重复】该候选人往期已被问过下列问题,请换一个角度/子方向重新提问,不要与之雷同:\n- ${avoid.join('\n- ')}`
+          : '';
+        return asPrincipal(d.pool, d.owner, (c) => invoke({
+          idempotencyKey: `${d.threadId}:ask:t${turn}:${attempt}${dedupRound ? `:d${dedupRound}` : ''}`, threadId: d.threadId,   // 持久 turn → 跨进程 resume 不碰撞;dedup 轮加 :dN 后缀,与 critique attempt 键正交不碰撞
+          sources: local.map((l) => l.ref), retrieval: local,                          // provenance + topScore 信号
+          schema: AskSchema,
+          businessValidate: (v) => (isVerbatimCopy(v.q, docs) ? '照搬原文(版权)' : null),   // 版权门:照搬→重试
+          model: promptedModel(d.model, 'interviewer.ask', { competency, difficulty, kind, material: material + avoidNote, resumeFacts: useFacts ? facts : [] }),
+        }, c, d.owner));
+      };
+      let out = await generate(0, []);
+      // **跨会话精确判重(归一化 exact match,零向量/零语义)**:命中往期同题 → 有界换角度重生成(≤1 轮),仍重复则照发(无死胡同,绝不阻断出题)。
+      // wasAsked 失败(记忆不可用/冷启动)→ 视作"没问过" → 只跑上面这一次 base 生成 → 退化成现状。
+      if (!('error' in out) && await wasAsked(d.pool, d.owner, out.value.q).catch(() => false)) {
+        const re = await generate(1, [out.value.q]);
+        if (!('error' in re)) out = re;   // 重生成失败 → 保留上一版(优雅降级,不崩面试)
+      }
       if ('error' in out) {
         // **优雅降级(北极星)**:出题失败(模型抖动/重试耗尽/业务校验不过)→ 不抛错崩掉整场面试,改用确定性兜底题继续(题型适配)。
         const fallback = kind === 'behavioral'

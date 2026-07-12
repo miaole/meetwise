@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { asPrincipal, type DbPool } from '@meetwise/db';
-import { invoke, promptedModel, openAICompatibleClient, circuitBreaker, rateLimitedModel, failoverModel, type ModelClient } from '@meetwise/ai-runtime';
+import { invoke, promptedModel, openAICompatibleClient, scriptedModelClient, circuitBreaker, rateLimitedModel, failoverModel, type ModelClient, type ModelResult } from '@meetwise/ai-runtime';
 import { groundedByFacts } from '@meetwise/domain';
 import { DIAGNOSIS_SECTION_KINDS, type GenerateQuestions, type GenerateReport, type GenerateDiagnosis, type QuizItem, type RawDiagnosis, type ReportContent, type InterviewSummary } from '@meetwise/ai-graphs';
 
@@ -41,11 +41,27 @@ function withFailover(model?: string): ModelClient {
   const backup = endpoint({ baseUrl: process.env.MODEL_BACKUP_BASE_URL, apiKey: process.env.MODEL_BACKUP_API_KEY, model: process.env.MODEL_BACKUP_NAME ?? model });
   return failoverModel([primary, backup]);
 }
+/**
+ * E2E 确定性模型(**仅 E2E_FAKE_MODEL=1 生效**,由 scripts/run-e2e.mjs 设,生产绝不激活)。
+ * 为什么要它:e2e 是**接线集成门**(鉴权→交易→简历→队列→图→事件→报告→多租户 RLS),该秒级确定性跑到 report_ready 的 golden path;
+ * 真 qwen ~20s/次、偶发 30s×3 重试(≈143s)会把整场面试拖过测试预算 → e2e 假红(实为环境慢,非接线错)。真模型质量归 flow:live / model:smoke。
+ * 各 service 回合法 shape:高分 + 无钩子 → decideNext 每能力一轮即"够强" → 数轮内 conclude → 报告舱壁出 report_ready。
+ * 未脚本化的 service(quiz/diagnosis,e2e happy path 不触发)→ scriptedModelClient 返 deterministic → 图优雅降级到 fallback,不挂不崩。
+ */
+const E2E_SCRIPTS: Record<string, (attempt: number) => ModelResult> = {
+  'planner.competencies': () => ({ ok: true, raw: { competencies: ['高并发', '分布式锁'] } }),
+  'interviewer.ask': () => ({ ok: true, raw: { q: '请结合你的经历,谈谈在高并发系统里你做过的一个关键技术决策及其权衡。', refs: [] } }),
+  'mock-interview.evaluate': () => ({ ok: true, raw: { score: 82, evidence: ['给出了具体方案与权衡'], relevant: true, hasHook: false } }),
+  'report.generate': () => ({ ok: true, raw: { overall: 82, sections: [{ title: '综合评估', body: '整体表现稳定,能给出具体方案与权衡。' }] } }),
+};
+const useFakeModel = () => process.env.E2E_FAKE_MODEL === '1';
+function e2eScriptedModel(): ModelClient { return scriptedModelClient(E2E_SCRIPTS); }
+
 /** 生产默认模型客户端(真境内模型 + 跨供应商 failover;未配 MODEL_* 时 openAICompatibleClient 自身降级为 transient)。 */
-export function defaultModelClient(): ModelClient { return withFailover(); }
+export function defaultModelClient(): ModelClient { return useFakeModel() ? e2eScriptedModel() : withFailover(); }
 /** 快模型(qwen-turbo 等):**约束性任务**(评分/relevant 判定、能力规划)用它——质量够、明显更快更省。同样带 failover。 */
 export function fastModelClient(): ModelClient {
-  return withFailover(process.env.MODEL_FAST_NAME ?? 'qwen-turbo');
+  return useFakeModel() ? e2eScriptedModel() : withFailover(process.env.MODEL_FAST_NAME ?? 'qwen-turbo');
 }
 
 /** 押题:resume-quiz 图的 generate。经 invoke(双校验:schema + 非空业务校验)+ 图侧 factuality 过滤幻觉。 */

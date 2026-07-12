@@ -15,7 +15,7 @@ related:
 
 # cend-quiz · resume-quiz 最终用例 + 测试用例文档
 
-> **🔎 实现状态（对齐真实代码 · 2026-07）** — 本文是 TARGET 规格。**✅ 已实现+接线**：resume-quiz 押题生成 + 四门接地/歪曲门（无来源/照搬/跑题/重复 → rejected）+ 空召回降级 + reserve→confirm 计费，可跑。**🟠 校正**：接地素材当前仅来自**本地约 32 题种子库**；文内“接地/来源”若指**联网真题**，则 `webExplore` **默认禁用**（`WEB_ALLOWLIST=[]`，空 allowlist=只用本地，优雅降级），**真实策展题库 + 离线策展管线尚未建**（TODO）。故 `empty_recall` 更多由本地池覆盖不足触发。
+> **🔎 实现状态（对齐真实代码 · 2026-07）** — 本文是 TARGET 规格。**✅ 已实现+接线**：resume-quiz 押题生成 + 四门接地/歪曲门（无来源/照搬/跑题/重复 → rejected）+ 空召回降级 + reserve→confirm 计费，可跑。**🟠 校正**：接地素材来自**本地约 32 题种子库** + **联网 web-explore（默认开启，`main.ts` 6 个官方文档源作 CRAG fallback 外呼；env `WEB_ALLOWLIST` 设空串才关）**。真正未建的是**真实策展题库源表 + 审核门 + 扩召回 golden**（TODO；注意归属：CRAG/web-explore 接在 mock-interview 自适应图，本文 cend-quiz 的接地是简历 provenance span，另一口径）。故 `empty_recall` 更多由本地池覆盖不足触发。
 
 > 领域：简历押题（押题生成 / 查看 / 重生成 / 接地与歪曲门 / 空召回 / 导出）。
 > 本文是对抗评审后的收口版：补齐七类 case、每条异常/刁钻流落到「状态机迁移」或「四原语（CAS / 幂等键 / RLS principal 绑定 / 持久有序事件日志）」、验收可测、配齐测试用例。

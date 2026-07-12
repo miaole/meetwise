@@ -33,7 +33,10 @@ async function main() {
   console.log('E2E: 启 api + worker…');
   // 从各自 app 目录跑(cwd=apps/api 才能解析 @swc-node/register;同 pnpm -C apps/api serve)。
   run('api', ['--import', REG, 'src/main.ts'], ROOT + 'apps/api');
-  run('worker', ['--import', REG, 'src/main.ts'], ROOT + 'apps/worker', { WORKER_BOOTSTRAP: '1' });
+  // **hermetic 集成门**:e2e 证接线正确性(auth→交易→简历→队列→图→事件→报告→多租户),非真模型质量/延迟。
+  //  E2E_FAKE_MODEL=1 → worker 用确定性 scripted 快模型(秒级跑到 report_ready golden path);WEB_ALLOWLIST='' → 关真 web 外呼(去外部延迟)。
+  //  真模型 + 真检索的 live 冒烟归 flow:live / model:smoke,不混进确定性门(否则 qwen ~20s/次偶发超时会假红)。
+  run('worker', ['--import', REG, 'src/main.ts'], ROOT + 'apps/worker', { WORKER_BOOTSTRAP: '1', E2E_FAKE_MODEL: '1', WEB_ALLOWLIST: '' });
 
   // 等 api 健康
   let up = false;

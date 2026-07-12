@@ -15,7 +15,7 @@ related:
 
 # cend-resume（RES 域）用例 + 测试用例 · 评审收口最终版
 
-> **🔎 实现状态（对齐真实代码 · 2026-07）** — 本文是 TARGET 规格。**✅ 已实现+接线**：简历**文本 / PDF 文本层**上传→摄取→PII 脱敏→内容 HMAC 去重（dedup）→结构化→诊断，全链路可跑（resume:prove 24 断言 + 集成）。**🟠 未接线/桩**：**图片/拍照/扫描件简历 OCR（qwen-vl 多模态）** —— 代码当前直接**拒绝**图片简历（`resume.service.ts` 抛 `image_ocr_unavailable`「OCR 接线中」），故本文 §0.1 L1 的 `stage=ocr`、`capability=ocr`、**UC-RES-003（含 OCR / 扫描件 / kill-switch）** 等 OCR 相关流程/账本/计费项为规格与桩，尚未生效；纯文本层 PDF 路径才是已实现路径。
+> **🔎 实现状态（对齐真实代码 · 2026-07）** — 本文是 TARGET 规格。**✅ 已实现+接线**：简历**文本 / PDF 文本层**上传→摄取→PII 脱敏→内容 HMAC 去重→结构化→诊断（resume:prove）；**图片简历 OCR（qwen-vl 视觉转写，按次计费）现已接线并 gated** —— 同步走 `invoke()` 关口**只转写**→回灌 `ingestResume` 同一道门（注入清洗/stripPii/结构化/去重）、`reserve→confirm/release` 按次计费（**图字节 HMAC 幂等**，决策B：**仅当产出可用画像才扣**；转写成功但无有效内容 / 结构化失败一律退还额度）、**PII 不入 trace（redactOutput）**、能力级 **kill-switch**（`OCR_ENABLED=0`）；均由 `ocr:prove`（12 断言）证明。**🟠 快随（未接线，非桩）**：**扫描型 PDF（无文本层）OCR** 需 PDF 逐页渲染成图，本期给可解释降级（提示改传图片/文本），见 UC-RES-003 A2。**⬜ 待补**：视觉层抗注入 ai-eval 金集、伪造证件 `NEEDS_REVIEW` 标注等真模型 eval 验收项（本期以确定性下游门 + 计费/PII 单元证明为主）。
 
 > 顺序铁律：用例 → 契约 → 状态机 → 测试 → 代码。本文已按对抗评审五维收口：补齐七类缺口、每条异常/刁钻落到机制（状态机迁移 或 四原语）、验收可测（给阈值/黄金集/0 行断言）、修正测试层映射。
 >
@@ -155,7 +155,7 @@ related:
 **覆盖七类**：正常 · 异常 · 特殊(扫描件/加密 PDF/低清/多语言) · 逃逸(OCR kill-switch) · 高并发(并发同图去重·单笔 OCR) · 复杂(多步多模态) · 刁钻(图内嵌注入/伪造证件图攻击视觉模型)
 - **角色**：系统(摄取 worker)　**前置**：`Document=SCANNING` 通过
 - **触发**：进 PARSING
-- **主流程（正常，含 OCR 按次计费）· 同步走 chokepoint（不建独立 job 队列，评审裁定）**：1) PDF 文本层抽取；无文本层 / 图片文件 → **OCR 路径**：以**图片字节 HMAC** 为幂等锚 `ocr:<hmac(bytes)>`（**不用易变的 docId**——同图重传/客户端换 key 不得重扣、重调付费视觉模型）先 `consumption_record(capability=ocr, reserved)`；再经 **ai-runtime `invoke()` 唯一 chokepoint** 调 qwen-vl **仅转写图中文字为 raw text**（emit `{text}`，schema 校验；**视觉层不直接产结构化 Profile**）2) 转写文本**回灌既有文本摄取链路 `ingestResume(text)`**（注入清洗 + `stripPii` + 结构化 + content_sha 去重，与文本简历**同一道门**——满足"OCR 产物按不可信文本再校验一遍"）3) 写 L1(stage=ocr, confidence) + L4(trace)——**转写全文/PII 不入 `ai_invocation_trace.output`，只存 hash/指针**（防简历原文泄入 trace，且不破坏被遗忘权）4) 成功 → `PARSED` 且 **OCR 笔 `reserved→confirmed`（按成功转写落账，独立于后续结构化成败）**
+- **主流程（正常，含 OCR 按次计费）· 同步走 chokepoint（不建独立 job 队列，评审裁定）**：1) PDF 文本层抽取；无文本层 / 图片文件 → **OCR 路径**：以**图片字节 HMAC** 为幂等锚 `ocr:<hmac(bytes)>`（**不用易变的 docId**——同图重传/客户端换 key 不得重扣、重调付费视觉模型）先 `consumption_record(capability=ocr, reserved)`；再经 **ai-runtime `invoke()` 唯一 chokepoint** 调 qwen-vl **仅转写图中文字为 raw text**（emit `{text}`，schema 校验；**视觉层不直接产结构化 Profile**）2) 转写文本**回灌既有文本摄取链路 `ingestResume(text)`**（注入清洗 + `stripPii` + 结构化 + content_sha 去重，与文本简历**同一道门**——满足"OCR 产物按不可信文本再校验一遍"）3) 写 L1(stage=ocr, confidence) + L4(trace)——**转写全文/PII 不入 `ai_invocation_trace.output`，只存 hash/指针**（防简历原文泄入 trace，且不破坏被遗忘权）4) 成功且**产出可用画像**（`ingestResume` 有有效 facts 且结构化成功）→ `PARSED` 且 **OCR 笔 `reserved→confirmed`（决策B：产出可用画像才落账）**；转写成功但**无有效内容 / 结构化失败** → `reserved→released`（退还额度 + 可解释提示，不静默死胡同）
 - **备选 A1**：纯文本层 PDF / 纯文本 → 跳过 OCR（不建 OCR 笔、不计 OCR 费、保持**同步返回 `ingested`**）
 - **备选 A2（扫描型 PDF 回退）**：PDF 文本层抽取结果为空/过短（< 阈值）→ 视同图片走 OCR 路径（与图片文件同一计费/校验口径）
 - **异常/特殊/逃逸/高并发/刁钻流（落机制）**：

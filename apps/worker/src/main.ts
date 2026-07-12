@@ -9,7 +9,7 @@
 import { hostname } from 'node:os';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { buildMockInterviewGraph } from '@meetwise/ai-graphs';
-import { webExplore, type AllowedSource } from '@meetwise/domain';
+import { webExplore, createSafeFetch, type AllowedSource, type RawFetch } from '@meetwise/domain';
 import { fileURLToPath } from 'node:url';
 import { createPool, asPrincipal, runMigrations, loadMigrations, annSearch } from '@meetwise/db';
 import { langfuseTracer, httpSpanTransport, setTracer, dashscopeEmbedder, cachingEmbedder, inMemoryEmbeddingStore, type ModelClient } from '@meetwise/ai-runtime';
@@ -21,6 +21,30 @@ import { runQuizConsumer } from './quiz-consumer.ts';
 import { runDiagnosisConsumer } from './diagnosis-consumer.ts';
 import { ingestQbank, QBANK_OWNER } from './qbank-ingest.ts';
 import { QBANK_SEED } from './qbank-seed.ts';
+
+/**
+ * web 探索默认许可源:**权威公开技术源**(尊重 ToS、内容稳定可引)。构造 URL 走各站公开检索端点。
+ * 默认非空 = CRAG fallback 真外呼已启用(SSRF 门在 createSafeFetch/isAllowed 里承重)。
+ */
+function src(domain: string, searchUrl: (q: string) => string): AllowedSource { return { domain, searchUrl }; }
+const DEFAULT_WEB_ALLOWLIST: AllowedSource[] = [
+  src('postgresql.org', (q) => `https://www.postgresql.org/search/?u=%2Fdocs%2F&q=${encodeURIComponent(q)}`),
+  src('kubernetes.io', (q) => `https://kubernetes.io/search/?q=${encodeURIComponent(q)}`),
+  src('redis.io', (q) => `https://redis.io/docs/latest/?q=${encodeURIComponent(q)}`),
+  src('developer.mozilla.org', (q) => `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(q)}`),
+  src('nginx.org', (q) => `https://nginx.org/en/docs/?q=${encodeURIComponent(q)}`),
+  src('en.wikipedia.org', (q) => `https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(q)}`),
+];
+
+/**
+ * env WEB_ALLOWLIST 覆盖(逗号分隔域名)。未设 → 用默认权威源;显式设空串 → [](关闭外呼,只用本地题库)。
+ * env 覆盖的域用通用 `?q=` 检索端点占位(运营配了就自负其责);SSRF 门仍在 isAllowed/createSafeFetch 兜底。
+ */
+function resolveWebAllowlist(raw: string | undefined): AllowedSource[] {
+  if (raw === undefined) return DEFAULT_WEB_ALLOWLIST;                 // 未设 → 默认权威源
+  const domains = raw.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+  return domains.map((domain) => src(domain, (q) => `https://${domain}/?q=${encodeURIComponent(q)}`));   // 设了(含空=[]) → 覆盖
+}
 
 export function createCheckpointer(connString?: string): PostgresSaver {
   const conn = connString
@@ -75,9 +99,12 @@ async function bootstrap() {
   // 自适应 agent 默认开(ADAPTIVE_INTERVIEW=0 退回旧固定题单流程)。注真检索:缓存 embedder + annSearch(qbank)。
   // 检索 fail-soft:embedder/题库不可用 → 返 [] → CRAG 优雅降级(用能力出题),不让面试失败。
   const embedder = cachingEmbedder(dashscopeEmbedder(), inMemoryEmbeddingStore());
-  // web 探索许可源**默认空**(空 = 只用本地题库;运营按需在此配 {domain, searchUrl} 授权源)。
+  // web 探索许可源:默认权威公开技术源(启用 CRAG 外呼);env WEB_ALLOWLIST 覆盖,显式空串=关闭。
   // 之前漏声明 → 真跑 web-explore 路径时 ReferenceError 崩(E2E 实测抓到;假 gate 不跑此路径所以漏)。
-  const WEB_ALLOWLIST: AllowedSource[] = [];
+  const WEB_ALLOWLIST: AllowedSource[] = resolveWebAllowlist(process.env.WEB_ALLOWLIST);
+  // SSRF 门:真 fetch 包成 safeFetch——手动逐跳重定向 + 每跳 allowlist/私网复核 + 8s 硬超时 + fail-soft。
+  const rawFetch: RawFetch = (u, init) => fetch(u, init);
+  const safeFetch = createSafeFetch(rawFetch, WEB_ALLOWLIST, { timeoutMs: 8000 });
   const adaptive = process.env.ADAPTIVE_INTERVIEW === '0' ? undefined : {
     localRetrieve: async (owner: string, q: string) => {
       try {
@@ -86,10 +113,8 @@ async function bootstrap() {
         return hits.map((h) => ({ ref: h.refId, score: Math.max(0, 1 - h.distance) }));   // 距离→相似度
       } catch { return []; }                                                                // 降级:无检索 → CRAG 走能力出题
     },
-    // 真 web 探索机制已接(allowlist 强制 + 注入 fetch + 抽取 + 降级);**allowlist 默认空**(源/授权由你配 WEB_ALLOWLIST),空 = 只用本地。
-    webExplore: (q: string) => webExplore(q, WEB_ALLOWLIST, async (url) => {
-      try { const r = await fetch(url, { signal: AbortSignal.timeout(8000) }); if (!r.ok) return null; return { url, text: (await r.text()).replace(/<[^>]+>/g, ' ').slice(0, 8000) }; } catch { return null; }
-    }),
+    // 真 web 探索机制已接(allowlist 强制 + SSRF safeFetch + 抽取 + 降级);源/授权由 WEB_ALLOWLIST 配,显式空串 = 只用本地。
+    webExplore: (q: string) => webExplore(q, WEB_ALLOWLIST, safeFetch),
     role: '技术岗',
   };
   if (adaptive) {

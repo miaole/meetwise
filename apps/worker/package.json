@@ -13,6 +13,7 @@
     "prove:stress": "tsx test/context-stress.proof.ts",
     "prove:quiz": "tsx test/quiz.proof.ts",
     "prove:diagnosis": "tsx test/diagnosis.proof.ts",
+    "prove:ocr": "tsx test/ocr.proof.ts",
     "prove:reaper": "tsx test/reaper.proof.ts",
     "prove:commerce-reconcile": "tsx test/commerce-reconcile.proof.ts",
     "prove:security": "tsx test/security.proof.ts",

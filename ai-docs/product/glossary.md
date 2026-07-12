@@ -58,4 +58,4 @@ related:
 - **计费按 serviceType、路由按 graphName**，二者经本表显式桥接；落 `packages/contracts` 时以本表为 enum 真相。
 - ✅ **已签**（open-decisions）：所有 serviceType 走**共享额度池**（FIFO 先到期先扣）；`career_path` 消耗额度入主池，非免费、非独立 SKU。
 
-> **🔎 实现状态（对齐真实代码 · 2026-07）** — 术语/映射为权威定义（canonical），本身无对错。落地校正：四图（resume-quiz / mock-interview / career-path / report）与 serviceType 路由**已接线并可跑**；`career_path`/report 为**确定性派生**。但出题接地当前仅命中**本地约 32 题种子库**，`GroundedQuestion` 的“联网找真题”来源（web-explore）**默认禁用**（allowlist 空）；`GrowthProfile`/`SkillInference` 的“系统推断”当前=**复用 assessment_report 的确定性派生**，跨会话记忆/belief 未建。
+> **🔎 实现状态（对齐真实代码 · 2026-07）** — 术语/映射为权威定义（canonical），本身无对错。落地校正：四图（resume-quiz / mock-interview / career-path / report）与 serviceType 路由**已接线并可跑**；`career_path`/report 为**确定性派生**。`GroundedQuestion` 的“联网找真题”来源（web-explore）**机制已接且默认开启**（`main.ts` `DEFAULT_WEB_ALLOWLIST` 6 个官方文档源，env `WEB_ALLOWLIST` 设空串才关），但本地题库仍只约 32 条、**策展题库源表/审核门未建**；`GrowthProfile`/`SkillInference` 的“系统推断”当前=**复用 assessment_report 的确定性派生**，跨会话仅精确 hash 题目去重 + 历史弱项软偏置，语义记忆/belief 未接（死代码）。

@@ -99,4 +99,4 @@ export { critiqueQuestion, type QuestionCritique } from './question-critique.ts'
 // 简历多格式提取 + 清洗(PDF/Word/图片→文本)
 export { extractResumeText, cleanResumeText, detectResumeFormat, type ResumeFileFormat } from './resume-extract.ts';
 
-export { isAllowed, extractMaterial, webExplore, type AllowedSource, type FetchFn, type FetchedPage } from './web-explore.ts';
+export { isAllowed, isPrivateHost, extractMaterial, webExplore, createSafeFetch, type AllowedSource, type FetchFn, type FetchedPage, type RawFetch, type RawResponse, type SafeFetchOpts } from './web-explore.ts';

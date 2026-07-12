@@ -10,6 +10,7 @@ import { buildAdaptiveInterviewGraph } from '@meetwise/ai-graphs';
 import type { ModelClient } from '@meetwise/ai-runtime';
 import type { ScoredRef, SourceDoc, CompetencySpec } from '@meetwise/domain';
 import { buildAdaptiveDeps, planCompetencies } from './adaptive-interview-service.ts';
+import { recordAskedQuestions } from './memory-service.ts';
 
 const pendingQuestion = (snap: any): string | undefined => snap.tasks?.[0]?.interrupts?.[0]?.value?.question;
 
@@ -83,6 +84,11 @@ export async function submitAdaptiveAnswer(d: AdaptiveLifecycleDeps, answer: str
       await c.query("UPDATE interview SET status='completed', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status <> 'completed'", [d.interviewId, d.owner]);
       await enqueueReport(c, d.owner, d.interviewId);                                                 // 报告走舱壁(异步隔离,幂等)
     });
+    // **跨会话判重源(记忆 lean MVP · 失败隔离)**:把本场问过的题(归一化题面,非答案/PII)落 episode,供"下一场"防重复出题。
+    //  放结算事务**之外**且 fail-soft:记忆是成长增益、非面试成败关键路径——写失败绝不连累已 completed/入队报告的面试(北极星:优雅降级,无死胡同)。
+    const asked = transcript.map((t) => t.q).filter((q): q is string => !!q);
+    await recordAskedQuestions(d.pool, d.owner, asked, d.interviewId)
+      .catch((e) => console.warn('memory: 跨会话判重 episode 写入跳过(非致命)', (e as any)?.code ?? e));
   }
   return { score: last?.score, nextQuestion, done, clarifying };
 }

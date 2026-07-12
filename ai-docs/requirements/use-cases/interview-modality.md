@@ -19,7 +19,7 @@ related:
 
 # interview-modality · 面试形态最终用例 + 测试用例文档（评审收口版 r2）
 
-> **🔎 实现状态（对齐真实代码 · 2026-07）** — 本文是 TARGET 规格（frontmatter status=draft）。**✅ 已实现+接线**：serviceType↔graphName 路由、四类形态计费口径、文本模式面试、**语音形态（TTS/ASR，限频）**均可跑；权益门/转化路径经 commerce saga 接线。**🟠 校正**：各形态“出题接地/找真题”当前仅用**本地约 32 题种子库**，**联网找真题 web-explore 默认禁用**（allowlist 空）；无跨会话记忆个性化。形态“出题/评分差异”的 profile 参数化已实现，但深度专项 rubric 仍以本地资源为主。
+> **🔎 实现状态（对齐真实代码 · 2026-07）** — 本文是 TARGET 规格（frontmatter status=draft）。**✅ 已实现+接线**：serviceType↔graphName 路由、四类形态计费口径、文本模式面试、**语音形态（TTS/ASR，限频）**均可跑；权益门/转化路径经 commerce saga 接线。**🟠 校正**：各形态“出题接地/找真题”= **本地约 32 题种子库 + 联网 web-explore（默认开启，6 个官方文档源，CRAG fallback 外呼）**；未建的是策展题库源表/审核门/扩召回。跨会话**已接**精确 hash 题目去重 + 历史弱项软偏置（不动分数/难度/成长），**未接**语义记忆/信念画像。形态“出题/评分差异”的 profile 参数化已实现，但深度专项 rubric 仍以本地资源为主。
 
 > 领域：**面试形态层**——服务选择入口、四类形态显式区分（简历押题 `resume_quiz` / 专项面试 `special_interview` / 行为面试 `behavior_interview` / 模拟面试 `mock_interview`）、专项面试确认 `SpecialInterviewConfirm`、各形态**出题/评分/计费差异**的承重绑定、**形态切换**、以及**无权益→购买→回创建**的 C 端转化漏斗。
 > 边界：本域只管「选哪个形态、按哪套口径计费/出题/评分、怎么切、没权益怎么转化」。各形态**会话内部**（出题/作答/追问/中断恢复/SSE/语音）落在 `cend-mock-interview.md`(UC-INT-*)，押题内部落在 `cend-quiz.md`(UC-quiz-*)，本域**引用不重述**。`career_path`（职业路径）不是面试形态，归职业域，本域不覆盖。

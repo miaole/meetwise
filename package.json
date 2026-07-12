@@ -33,6 +33,7 @@
     "stress:prove": "pnpm -C apps/worker prove:stress",
     "quiz:prove": "pnpm -C apps/worker prove:quiz",
     "diagnosis:prove": "pnpm -C apps/worker prove:diagnosis",
+    "ocr:prove": "pnpm -C apps/worker prove:ocr",
     "reaper:prove": "pnpm -C apps/worker prove:reaper",
     "recall:eval": "pnpm -C apps/worker exec tsx smoke/recall-eval.ts",
     "benchmark:eval": "pnpm -C apps/worker exec tsx smoke/benchmark-eval.ts",

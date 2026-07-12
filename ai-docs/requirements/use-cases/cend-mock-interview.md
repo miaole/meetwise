@@ -15,7 +15,7 @@ related:
 
 # cend-mock-interview · 最终用例 + 测试用例文档（评审收口版）
 
-> **🔎 实现状态（对齐真实代码 · 2026-07）** — 本文是 TARGET 规格。**✅ 已实现+接线并可跑**：自适应模拟面试核心（真 agent + 确定性核 + 真百炼模型 + CRAG 检索 + 中断/恢复、interrupt/waiting_user 持久态、SSE 业务事件、报告舱壁隔离、commerce reserve→confirm→release 结算）；**语音面试已接线**：非流式 TTS/ASR + **真流式 WebSocket ASR（paraformer-realtime）/ TTS（cosyvoice）+ barge-in 打断**，暴露 `/transcribe`·`/speak`·`/speak/stream` 端点、电话模式，限频 + 失败降级回文字（无死胡同）。**🟠 校正/未接线**：出题接地的 CRAG 仅命中**本地约 32 题种子库**，`webExplore`（联网找真题）**默认禁用**（allowlist 空）；**无跨会话记忆/个性化**（不“记住你上次弱项”做跨会话定制，仅精确 hash 跨会话去重题目）。**⬜ 规格但未全建**：文内 `VoiceTurn`/`CompensationJob` 等承重对象的完整状态机为规格，语音已能跑但未落其全部细粒度状态机。
+> **🔎 实现状态（对齐真实代码 · 2026-07）** — 本文是 TARGET 规格。**✅ 已实现+接线并可跑**：自适应模拟面试核心（真 agent + 确定性核 + 真百炼模型 + CRAG 检索 + 中断/恢复、interrupt/waiting_user 持久态、SSE 业务事件、报告舱壁隔离、commerce reserve→confirm→release 结算）；**语音面试已接线**：非流式 TTS/ASR + **真流式 WebSocket ASR（paraformer-realtime）/ TTS（cosyvoice）+ barge-in 打断**，暴露 `/transcribe`·`/speak`·`/speak/stream` 端点、电话模式，限频 + 失败降级回文字（无死胡同）。**🟠 校正/部分**：出题接地 CRAG = **本地约 32 题种子库 + 联网 web-explore（默认开启，`main.ts` 6 个官方文档源作 fallback 外呼；env 设空串才关）**，未建的是**策展题库源表/审核门/扩召回**；跨会话**已接**两件——精确 hash 题目去重（`wasAsked`/`recordAskedQuestions`）+ 历史弱项**软偏置能力选择**（`biasByPastWeakness`，只重排能力、**不动分数/难度/成长曲线**），**未接**语义记忆/信念画像（`rememberFact`/`recallMemories` 为死代码，审计否决 rich 个性化）。**⬜ 规格但未全建**：文内 `VoiceTurn`/`CompensationJob` 等承重对象的完整状态机为规格，语音已能跑但未落其全部细粒度状态机。
 
 > 领域：C 端模拟面试。覆盖 启动/出题/作答/追问/评分/中断恢复/SSE 断线重连/语音(STT·TTS·turn-taking)/暂停/结束/超长会话恢复，并收口本轮对抗评审的全部缺口。
 > 命名与机制以 canonical 为准：业务聚合 **`Interview`（id = `threadId`）**，运行时记录 `AiGraphRun` 分离；四承重原语＝CAS / 幂等键 / RLS principal 绑定 / 持久有序事件日志；调用 LangGraph 时 `threadId` 以 `thread_id` 传入 `configurable`。

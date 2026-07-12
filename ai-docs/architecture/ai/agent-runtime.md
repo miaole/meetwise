@@ -141,6 +141,20 @@ Router 选模型的策略：
 - **幂等**：每次 `invoke` 携带 `idempotencyKey`（turn 级），重试/重放不会重复扣权益、不会重复落业务事件。事件账本侧 `seq` + `turnId` + `sessionKey` 保证一会话事件不串另一会话。
 - **硬上限兜底**：每个图运行有 step 上限，防失控重放死循环（见 §10）。
 
+### 7.1 模型稳定性 / HA 链（分层，由内到外）
+
+单供应商 = 单点故障。运行时把稳定性做成一条**分层链**，每层职责单一、可独立配置、层层兜底（代码见 `apps/worker/src/interview-service.ts` 的 `endpoint`/`withFailover`，原语在 `packages/ai-runtime`）：
+
+1. **限流**（`rateLimitedModel`，最内层）：并发上限（`MODEL_MAX_CONCURRENT`，默认 4）+ 可选 RPM（`MODEL_RPM`，默认 0=不限速只限并发），对齐供应商 RPM/并发，先排队摊平突发，防自己把自己打到 429。
+2. **熔断**（`circuitBreaker`，包在限流外）：按端点维度熔断；连续失败即打开，快速失败 + 快速恢复（半开探测），不让请求持续撞一个已挂的端点。
+3. **transient 分类 + 指数退避**（`invoke` 内）：429/408/5xx/超时归为 transient → 有界抖动退避重试（见 §7）；deterministic-refusal 不重试。
+4. **跨供应商 failover**（`failoverModel([primary, backup])`，配置驱动）：primary 熔断打开 / 持续 429 / 超时 → **秒级切 backup**（另一 key 或另一供应商的 OpenAI 兼容端点）。这是唯一能扛「整个 primary 供应商故障」的层。
+5. **全挂降级**（最外层，业务侧）：主备都不可用 → 走中性分 / 兜底题 / 可解释错误态，前端收到明确降级事件（如 `report_unavailable`），**无死胡同、不空转**（见 §12、langgraph-blueprint 的 SSE 终态事件）。
+
+**启用 backup（第 4 层）**：在 worker 环境配置三个变量 `MODEL_BACKUP_BASE_URL` / `MODEL_BACKUP_API_KEY` / `MODEL_BACKUP_NAME`（`MODEL_BACKUP_NAME` 省略则复用 primary 模型名）。示例见 `docker/env/worker.env.example`。
+
+> **诚实标注（勿把目标当已上线）**：🟡 **不配 `MODEL_BACKUP_BASE_URL` ⇒ 第 4 层 failover 不生效**，`withFailover` 返回单端点，等价「限流 + 熔断 + 退避 + 全挂降级」但**无多供应商冗余（仍是单供应商单点）**。第 1/2/3/5 层默认即在链上；第 4 层需显式配置 backup 才闭合。合规约束：backup 端点必须与 primary 同为境内，PII 请求的区域门在 failover 每一跳都生效（见 §5 审计 H6）。
+
 ## 8. 工具调用修复（tool-call-repair）
 
 模型有时不吐合法的原生 tool call，而是吐纯文本里夹 JSON、XML、或括号语法。这是上线后、规模上来才暴露的隐性需求。运行时在 coerce 之后加一道**提升**预处理：
