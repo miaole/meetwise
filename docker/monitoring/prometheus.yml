@@ -1,0 +1,40 @@
+# Prometheus 抓取 + 告警评估配置。
+# 抓 api 的 /metrics(文本 exposition),按 alert.rules.yml 评估,命中推给 alertmanager。
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: meetwise
+
+# 规则文件(告警规则)。相对本文件所在目录挂载在容器内。
+rule_files:
+  - alert.rules.yml
+
+# 命中的告警发往 alertmanager(同 compose 网络内按服务名解析)。
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+scrape_configs:
+  # api 业务指标。api 不在本 compose 内(单独跑),用 host-gateway 回连宿主机端口。
+  # 若 api 与本栈同网络编排,把 target 换成服务名(如 api:8787)即可。
+  - job_name: meetwise-api
+    metrics_path: /metrics
+    scrape_interval: 15s
+    static_configs:
+      - targets:
+          - host.docker.internal:8787
+
+  # Prometheus 自监控(可用性 / 规则评估健康)。
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - localhost:9090
+
+  # Alertmanager 自监控(接收端存活)。
+  - job_name: alertmanager
+    static_configs:
+      - targets:
+          - alertmanager:9093

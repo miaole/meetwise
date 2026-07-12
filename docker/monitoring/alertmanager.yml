@@ -1,0 +1,54 @@
+# Alertmanager 路由骨架。
+# 接收端一律留占位注释:不写任何真实 webhook / 邮箱 / 密钥(机密走 .env 或运行时注入,绝不进文件)。
+# 关键自审点:即使没有配真实接收端,also 不能静默 —— 默认 receiver 存在且 Watchdog 独立路由,
+#   保证"缺接收端"是可观测的配置缺口,而非悄无声息地丢告警。
+
+global:
+  resolve_timeout: 5m
+
+# 按告警名 + severity 分组,合并抖动,控制重复通知节奏。
+route:
+  receiver: default
+  group_by:
+    - alertname
+    - severity
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    # critical 快速、频繁重发(占位:接真值班/电话通道)。
+    - receiver: critical
+      matchers:
+        - severity="critical"
+      group_wait: 10s
+      repeat_interval: 1h
+      continue: false
+    # Watchdog 心跳单独路由到心跳接收端(占位:接 dead-man 监测,如 healthchecks 心跳 URL)。
+    - receiver: watchdog
+      matchers:
+        - alertname="MonitoringWatchdog"
+      group_wait: 0s
+      repeat_interval: 1m
+      continue: false
+
+# critical 抑制同源 warning,避免同一故障双重打扰。
+inhibit_rules:
+  - source_matchers:
+      - severity="critical"
+    target_matchers:
+      - severity="warning"
+    equal:
+      - alertname
+
+receivers:
+  # 默认接收端:占位。生产改成真实通道(webhook / 邮件 / 钉钉 / 飞书 / Slack)。
+  # 例(切勿把密钥写死在此文件):
+  #   webhook_configs:
+  #     - url: ${ALERT_WEBHOOK_URL}   # 由部署时环境注入
+  - name: default
+
+  # critical 值班通道占位。
+  - name: critical
+
+  # Watchdog 心跳通道占位(接一个"长时间没心跳就报警"的外部探针)。
+  - name: watchdog

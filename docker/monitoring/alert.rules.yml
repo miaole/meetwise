@@ -1,0 +1,91 @@
+# Meetwise 告警规则 —— SLO 派生的主动告警(事后能查 → 出事主动告警)。
+#
+# 硬约束:expr 只引用 /metrics 真实暴露的指标 + Prometheus 自带 meta 指标。
+#   当前 api 只暴露两个业务指标(main.ts onResponse hook):
+#     - http_requests_total{method,route,status}        counter
+#     - http_request_duration_ms{method,route}          histogram → _bucket{le}/_sum/_count
+#   以及 Prometheus 抓取自动合成的 up{job,instance}。
+#   熔断/退款/卡 job/DLQ 等指标 /metrics 尚未暴露 → 不写(写了=假告警)。见 alerts-lint 白名单。
+#
+# 多实例聚合:所有速率/比值先 sum() 跨实例,再取比值 / 分位,避免"单副本视角"误报。
+# 阈值均带 for 去抖(单次抓取抖动不告警);错误率带最小流量守卫(空闲期个别 5xx 不误告)。
+
+groups:
+  - name: meetwise-api-slo
+    rules:
+      # 目标失联:进程崩溃 / 端口不可达 / 容器被杀。up 由 Prometheus 抓取合成,恒为真指标。
+      # for 2m ≈ 8 次漏抓(15s 间隔),排除单次网络抖动。
+      - alert: ApiTargetDown
+        expr: 'up{job="meetwise-api"} == 0'
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'api 实例失联'
+          description: 'job=meetwise-api 的 up=0 已持续 2 分钟:进程崩溃或端口不可达,用户面全挂。'
+
+      # 抓取目标从未被发现(job 下无 target / 服务发现空)。absent(up) 覆盖 up==0 覆盖不到的"根本没这个序列"。
+      - alert: ApiScrapeMissing
+        expr: 'absent(up{job="meetwise-api"})'
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'api 抓取目标缺失'
+          description: '5 分钟内没有任何 meetwise-api target 的 up 序列:抓取配置错误或目标未注册,监控盲区。'
+
+      # 5xx 错误率(warning):服务端错误占比 > 5% 持续 10m。
+      # 阈值依据:稳定 API 的 5xx 基线应 ≈0;持续 5% 表示系统性故障(依赖挂/未捕获异常),非偶发。
+      # 最小流量守卫:5m 内总速率 > 0.05 req/s(≈3 req/min)才评估,空闲期一两个 500 不把比值放大成告警。
+      - alert: ApiHighErrorRate
+        expr: 'sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > 0.05 and sum(rate(http_requests_total[5m])) > 0.05'
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'api 5xx 错误率偏高(>5%)'
+          description: '过去 5 分钟服务端错误占比持续 >5% 超过 10 分钟,用户开始遇到失败。'
+
+      # 5xx 错误率(critical):> 20% 持续 5m —— 明确的服务级事故,快速呼叫。
+      - alert: ApiHighErrorRateCritical
+        expr: 'sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > 0.20 and sum(rate(http_requests_total[5m])) > 0.05'
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'api 5xx 错误率严重(>20%)'
+          description: '服务端错误占比 >20% 持续 5 分钟:接近整体不可用,需立即介入。'
+
+      # 请求延迟 p99(warning):跨实例合并 bucket 后取 p99 > 1000ms 持续 10m。
+      # 阈值依据:直方图在 1000ms 处正好有桶边界;交互式接口 p99 破 1s 即体验劣化。
+      - alert: ApiHighLatencyP99
+        expr: 'histogram_quantile(0.99, sum by (le) (rate(http_request_duration_ms_bucket[5m]))) > 1000'
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'api p99 延迟偏高(>1s)'
+          description: '过去 5 分钟 p99 请求延迟持续 >1000ms 超过 10 分钟:后端变慢或下游阻塞。'
+
+      # 请求延迟 p99(critical):> 2500ms 持续 10m —— 逼近超时区间,影响可用性。
+      - alert: ApiHighLatencyP99Critical
+        expr: 'histogram_quantile(0.99, sum by (le) (rate(http_request_duration_ms_bucket[5m]))) > 2500'
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'api p99 延迟严重(>2.5s)'
+          description: 'p99 延迟 >2500ms 持续 10 分钟:请求逼近超时,用户面大面积卡顿。'
+
+  - name: meetwise-monitoring-meta
+    rules:
+      # 死信开关(Watchdog / dead-man's switch):恒定发火,路由到心跳接收端。
+      # 若下游(接收端/推送网关)长时间收不到这条,说明"整条告警链路本身死了" —— 防止监控静默失效。
+      - alert: MonitoringWatchdog
+        expr: 'vector(1)'
+        for: 0m
+        labels:
+          severity: none
+        annotations:
+          summary: '告警链路心跳'
+          description: '恒定发火的守夜告警:接收端应持续收到;一旦断流即代表告警管道本身故障。'
