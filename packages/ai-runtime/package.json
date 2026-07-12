@@ -1,0 +1,27 @@
+{
+  "name": "@meetwise/ai-runtime",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "prove": "tsx test/runtime-kernel.proof.ts",
+    "prove:retrieval": "tsx test/retrieval.proof.ts",
+    "prove:breaker": "tsx test/breaker.proof.ts",
+    "prove:vstream": "tsx test/voice-stream.proof.ts",
+    "prove:metrics": "tsx test/metrics.proof.ts",
+    "prove:tools": "tsx test/tools.proof.ts",
+    "prove:failover": "tsx test/failover.proof.ts"
+  },
+  "dependencies": {
+    "@meetwise/db": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "tsx": "^4.22.4",
+    "typescript": "catalog:",
+    "@types/node": "catalog:"
+  }
+}

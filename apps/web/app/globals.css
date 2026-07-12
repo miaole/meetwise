@@ -1,0 +1,171 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+/* 知面设计语言 token(ai-docs/architecture/frontend/design-language.md)。
+   主色朱红 #BE4030 稀缺使用;暖中性底 #FCF8F6;墨字 #2A211F。映射进 shadcn token。 */
+@layer base {
+  :root {
+    --background: #FAF8F4;            /* 暖纸底 */
+    --foreground: #1A1A1A;            /* 墨 · 主文字 */
+    --card: #FFFFFF;
+    --card-foreground: #1A1A1A;
+    --popover: #FFFFFF;
+    --popover-foreground: #1A1A1A;
+    --primary: #B5651D;              /* 琥珀/赭 · 强调/CTA/批注 */
+    --primary-foreground: #FFFFFF;
+    --secondary: #F1ECE3;            /* 暖纸-2 */
+    --secondary-foreground: #3A3632;
+    --muted: #F1ECE3;
+    --muted-foreground: #8A8276;     /* 弱化文字 */
+    --accent: #F3E9DC;              /* 浅琥珀 · 批注卡/pill/图标底 */
+    --accent-foreground: #9A5418;    /* 深琥珀 */
+    --destructive: #A8362A;
+    --destructive-foreground: #FFFFFF;
+    --border: #E3DCCF;              /* 发丝线 */
+    --input: #E3DCCF;
+    --ring: #B5651D;
+    --radius: 0.375rem;             /* 6px,克制圆角(design-kit) */
+    /* 设计语言扩展(签名批注卡/能力条 + 冷调点缀) */
+    --brand-deep: #9A5418;
+    --brand-soft: #F3E9DC;
+    --brand-em: #D89A57;            /* amber-soft,深色块上强调字 */
+    --ink2: #3A3632;
+    --cool: #2F4858;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-brand-deep: var(--brand-deep);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-em: var(--brand-em);
+  --color-ink2: var(--ink2);
+  --color-cool: var(--cool);
+  --radius-sm: calc(var(--radius) - 5px);
+  --radius-md: calc(var(--radius) - 3px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  /* Accordion 展开/收起动画(tailwindcss-animate 不含 accordion keyframes,补在此处)。
+     供 components/ui/accordion.tsx 的 animate-accordion-down/up 使用,高度由 Radix 注入。 */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+}
+
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
+}
+
+@layer base {
+  * { border-color: var(--border); }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: 'Source Han Sans SC', 'PingFang SC', -apple-system, system-ui, 'Helvetica Neue', sans-serif;
+    line-height: 1.6;
+  }
+  /* 标题用衬线(design-kit:编辑感/考官气质)——正文仍无衬线 */
+  h1, h2, h3, .font-serif { font-family: 'Source Han Serif SC', 'Songti SC', Georgia, 'Times New Roman', serif; }
+  h1 { letter-spacing: .5px; font-weight: 700; }
+  h2 { font-weight: 600; }
+  /* 16px 防 iOS 输入聚焦缩放(多端) */
+  input, textarea, select { font-size: 16px; }
+  /* Tailwind v4 把 <button> 默认 cursor 从 pointer 改成了 default ——补回手型,
+     覆盖按钮/role=button/可点 label/summary/含 onClick 的链接;禁用态保持默认(不可点不给手型)。 */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="tab"]:not([aria-disabled="true"]),
+  label[for], summary, select:not(:disabled) { cursor: pointer; }
+  button:disabled, [aria-disabled="true"] { cursor: not-allowed; }
+}
+
+/* ───── 全程电话面试等待动效(VoiceCallPanel 专用,vc- 前缀防冲突)——reduced-motion 安全 ───── */
+/* 合成/思考微光:暖琥珀渐变扫过,表达"AI 正在组织/思考",不是死白屏 */
+@keyframes vc-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.vc-shimmer { background-image: linear-gradient(90deg, var(--secondary) 0%, var(--accent) 30%, var(--brand-soft) 50%, var(--accent) 70%, var(--secondary) 100%); background-size: 200% 100%; animation: vc-shimmer 1.8s linear infinite; }
+/* 思考点:三点错相呼吸 */
+@keyframes vc-breathe { 0%, 100% { opacity: .25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-2px); } }
+.vc-dot { animation: vc-breathe 1.2s ease-in-out infinite; }
+/* 转写脉冲环 */
+@keyframes vc-ping { 0% { transform: scale(.85); opacity: .55; } 80%, 100% { transform: scale(1.7); opacity: 0; } }
+.vc-ping { animation: vc-ping 1.4s cubic-bezier(0,0,.2,1) infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .vc-shimmer { animation: none; background-position: 0 0; }
+  .vc-dot { animation: none; opacity: .7; }
+  .vc-ping { animation: none; opacity: 0; }
+}
+
+/* ───── 通用等待/加载动效(mw- 前缀,与 VoiceCallPanel 的 vc- 隔离)——reduced-motion 安全 ───── */
+/* 骨架占位微光:暖纸渐变扫过,内容形状占位,绝不死白屏 */
+@keyframes mw-shimmer { 0% { background-position: 150% 0; } 100% { background-position: -150% 0; } }
+.mw-skeleton {
+  background-image: linear-gradient(90deg, var(--secondary) 0%, var(--muted) 38%, var(--accent) 50%, var(--muted) 62%, var(--secondary) 100%);
+  background-size: 200% 100%;
+  background-color: var(--secondary);
+  animation: mw-shimmer 1.6s ease-in-out infinite;
+}
+/* 思考点:三点错相呼吸,表达"AI 正在组织/思考" */
+@keyframes mw-breathe { 0%, 100% { opacity: .25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-2px); } }
+.mw-dot { animation: mw-breathe 1.2s ease-in-out infinite; }
+/* 文本柔脉冲:等待文案不死板 */
+@keyframes mw-pulse-soft { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
+.mw-pulse-soft { animation: mw-pulse-soft 1.8s ease-in-out infinite; }
+/* 品牌转圈(琥珀环) */
+@keyframes mw-spin { to { transform: rotate(360deg); } }
+.mw-spin { animation: mw-spin .8s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  /* 降级为静态占位/文案,不闪不转,仍是清晰的"加载中"语义 */
+  .mw-skeleton { animation: none; background-position: 0 0; background-image: linear-gradient(90deg, var(--secondary), var(--muted)); }
+  .mw-dot { animation: none; opacity: .7; }
+  .mw-pulse-soft { animation: none; opacity: .85; }
+  .mw-spin { animation: none; }
+}
+
+/* ───── Markdown 渲染(.prose-mw)+ 代码块(暖色 hljs 主题,贴设计语言)───── */
+.prose-mw { font-size: 15px; line-height: 1.7; }
+.prose-mw > :first-child { margin-top: 0; }
+.prose-mw > :last-child { margin-bottom: 0; }
+.prose-mw p { margin: 0.6em 0; }
+.prose-mw h1, .prose-mw h2, .prose-mw h3 { font-weight: 700; letter-spacing: -.3px; margin: 1em 0 .4em; }
+.prose-mw h1 { font-size: 1.4em; } .prose-mw h2 { font-size: 1.2em; } .prose-mw h3 { font-size: 1.05em; }
+.prose-mw ul, .prose-mw ol { margin: 0.5em 0; padding-left: 1.4em; }
+.prose-mw ul { list-style: disc; } .prose-mw ol { list-style: decimal; }
+.prose-mw li { margin: 0.25em 0; }
+.prose-mw a { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+.prose-mw blockquote { border-left: 3px solid var(--primary); padding-left: 0.9em; color: var(--muted-foreground); margin: 0.6em 0; }
+.prose-mw :not(pre) > code { background: var(--accent); color: var(--brand-deep); padding: .12em .4em; border-radius: 5px; font-size: .9em; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.prose-mw pre { background: #2A211F; color: #F3ECE9; border-radius: 12px; padding: 14px 16px; overflow-x: auto; margin: 0.7em 0; font-size: 13.5px; line-height: 1.55; }
+.prose-mw pre code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: none; padding: 0; }
+.prose-mw table { border-collapse: collapse; width: 100%; margin: 0.7em 0; font-size: .92em; }
+.prose-mw th, .prose-mw td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; }
+.prose-mw th { background: var(--secondary); font-weight: 600; }
+/* hljs 暖色 token(墨底浅字 + 朱红关键词) */
+.hljs-keyword, .hljs-selector-tag, .hljs-built_in, .hljs-name { color: #F0A99C; }
+.hljs-string, .hljs-attr, .hljs-template-variable { color: #B7D7A8; }
+.hljs-number, .hljs-literal { color: #E6C07B; }
+.hljs-comment, .hljs-quote { color: #9A8B85; font-style: italic; }
+.hljs-title, .hljs-function .hljs-title, .hljs-section { color: #8FC7E8; }
+.hljs-meta, .hljs-symbol, .hljs-bullet { color: #C9A4F0; }

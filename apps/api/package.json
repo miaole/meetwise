@@ -1,0 +1,30 @@
+{
+  "name": "@meetwise/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "serve": "node --import @swc-node/register/esm-register src/main.ts",
+    "validate": "node --import @swc-node/register/esm-register test/validate.ts",
+    "smoke:toolchain": "node --import @swc-node/register/esm-register test/toolchain.smoke.ts",
+    "smoke:contract": "node --import @swc-node/register/esm-register test/contract.smoke.ts"
+  },
+  "dependencies": {
+    "@meetwise/db": "workspace:*",
+    "@meetwise/contracts": "workspace:*",
+    "@nestjs/common": "^11.1.27",
+    "@nestjs/core": "^11.1.27",
+    "@nestjs/platform-fastify": "^11.1.27",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "zod": "catalog:",
+    "@meetwise/domain": "workspace:*",
+    "@meetwise/ai-runtime": "workspace:*"
+  },
+  "devDependencies": {
+    "@swc-node/register": "^1.11.1",
+    "@swc/core": "^1.15.43",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -1,0 +1,108 @@
+# 生产/测试全栈编排（单机 docker compose 就能跑起来——便宜服务器够用）。
+#   docker compose -f docker/compose.prod.yml up -d --build
+# 基础设施带 healthcheck;api/worker 等 DB healthy 再起;DB 首次启动自动跑 sql/ 迁移。
+# 机密走 .env(同目录),绝不写进文件。
+name: meetwise
+
+x-db-env: &db-env
+  PGHOST: postgres
+  PGPORT: "5432"
+  PGUSER: meetwise
+  PGPASSWORD: ${PGPASSWORD:-meetwise_dev_password}
+  PGDATABASE: meetwise
+
+x-model-env: &model-env
+  MODEL_BASE_URL: ${MODEL_BASE_URL:-}
+  MODEL_NAME: ${MODEL_NAME:-qwen-plus}
+  MODEL_API_KEY: ${MODEL_API_KEY:-}
+  EMBED_DIM: ${EMBED_DIM:-512}
+  RESUME_ENC_KEY: ${RESUME_ENC_KEY:-}
+  RESUME_HASH_SECRET: ${RESUME_HASH_SECRET:-}
+  LANGFUSE_HOST: ${LANGFUSE_HOST:-}
+  LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+  LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: meetwise
+      POSTGRES_PASSWORD: ${PGPASSWORD:-meetwise_dev_password}
+      POSTGRES_DB: meetwise
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../packages/db/sql:/docker-entrypoint-initdb.d:ro   # 首次启动按 01..07 顺序建表
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meetwise -d meetwise"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD:-minioadmin}
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    command: ["pnpm","-C","apps/api","serve"]
+    environment:
+      <<: [*db-env, *model-env]
+      PORT: "8787"
+      HOST: 0.0.0.0
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:8787/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    ports:
+      - "8787:8787"
+
+  worker:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    command: ["pnpm","-C","apps/worker","start"]
+    environment:
+      <<: [*db-env, *model-env]
+      WORKER_BOOTSTRAP: "1"
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+    environment:
+      NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-http://localhost:8787}
+      PORT: "3000"
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
+  miniodata:

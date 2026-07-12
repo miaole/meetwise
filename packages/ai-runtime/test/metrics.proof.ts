@@ -1,0 +1,20 @@
+/** 系统指标注册表证明(纯):counter/gauge/histogram → Prometheus 文本曝光。 pnpm metrics:prove */
+import { createMetrics } from '../src/index.ts';
+let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
+const m = createMetrics();
+m.inc('http_requests_total', { route: '/health', status: '200' });
+m.inc('http_requests_total', { route: '/health', status: '200' });
+m.inc('http_requests_total', { route: '/interview', status: '500' });
+m.observe('http_request_duration_ms', 42, { route: '/interview' });
+m.observe('http_request_duration_ms', 380, { route: '/interview' });
+m.setGauge('queue_depth', 7, { queue: 'interview_job' });
+m.setGauge('circuit_breaker_open', 1, { dep: 'model' });
+const out = m.render();
+A('counter 累加 + label(/health 200 = 2)', /http_requests_total\{route="\/health",status="200"\} 2/.test(out));
+A('counter 多 label 系列(/interview 500 = 1)', /http_requests_total\{route="\/interview",status="500"\} 1/.test(out));
+A('histogram 出 _bucket/_sum/_count', out.includes('http_request_duration_ms_bucket') && /http_request_duration_ms_sum\{route="\/interview"\} 422/.test(out) && /http_request_duration_ms_count\{route="\/interview"\} 2/.test(out));
+A('histogram le 桶单调(le=50 计入42那条)', /http_request_duration_ms_bucket\{route="\/interview",le="50"\} 1/.test(out));
+A('gauge:队列深度 + 熔断态(运维一眼看)', /queue_depth\{queue="interview_job"\} 7/.test(out) && /circuit_breaker_open\{dep="model"\} 1/.test(out));
+A('# TYPE 头齐全(Prometheus 合法曝光)', out.includes('# TYPE http_requests_total counter') && out.includes('# TYPE http_request_duration_ms histogram') && out.includes('# TYPE queue_depth gauge'));
+console.log(`\n${fail === 0 ? '✓ 系统指标注册表(Prometheus 曝光)全部通过' : '✗ ' + fail + ' 失败'}`);
+process.exit(fail === 0 ? 0 : 1);

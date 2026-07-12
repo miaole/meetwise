@@ -1,0 +1,133 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  # 密钥扫描（全历史；项目有 Langfuse key 泄露史，必须真跑、red 即阻断）
+  secrets-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # 全历史，否则只扫到 HEAD
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
+        # 命中任何密钥 → 非零退出 → 阻断
+
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        # 版本读 package.json packageManager(pnpm@10.18.0)：catalog 需 pnpm≥9.5，不能再钉 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # 文档门禁：必需文件 + 关键术语
+      - run: pnpm docs:check
+
+      # 模块边界 / 包 DAG（跨包 @meetwise/* 经 tsconfig paths 真解析，边界规则真生效；无需 Postgres）
+      - name: 架构边界（无环 / 依赖向下 / ai-graphs 纯 / ai-runtime 关口）
+        run: pnpm arch
+
+      # 起 Postgres（复用 dev compose，与本地同一映射端口）
+      - run: pnpm db:up
+      - name: wait for postgres
+        run: |
+          for i in $(seq 1 30); do
+            docker exec meetwise-postgres-dev pg_isready -U meetwise -d meetwise && exit 0
+            sleep 2
+          done
+          echo "postgres not ready"; exit 1
+
+      # 可复跑验证 gate（红即阻断合并）
+      - name: 四原语（CAS / 幂等 / RLS 越权=0 / 事件 seq）
+        run: pnpm db:prove
+      - name: 版本化迁移运行器（只跑待应用·幂等·事务·漂移检测·advisory锁）
+        run: pnpm migrate:prove
+      - name: 模型熔断器（连败→降级快速失败不打模型→冷却半开→恢复关闭）
+        run: pnpm breaker:prove
+      - name: commerce saga（共享池 reserve/confirm/release · FIFO · 按比例 · 并发不超卖 · 对账 · 零额度丢失）
+        run: pnpm commerce:prove
+      - name: 简历摄取（原文加密落库 · 结构化 profile 永不含明文PII · 注入拦截 · 状态机 · 去重 · RLS）
+        run: pnpm resume:prove
+      - name: 报告子图舱壁（失败隔离:报告失败不碰 interview · 独立重试 · 并发不双跑 · report_ready）
+        run: pnpm report:prove
+      - name: 端到端 agent 主干（简历→押题→面试(checkpointer)→eval→结算→报告;模型全经 invoke 关口）
+        run: pnpm flow:prove
+      - name: 面试进程接线（api 入队 → worker 消费循环 → 生命周期 → 报告）
+        run: pnpm adaptive:prove
+      - name: agent adaptive:prove
+        run: pnpm grounded:prove
+      - name: agent grounded:prove
+        run: pnpm crag:prove
+      - name: agent crag:prove
+        run: pnpm tools:prove
+      - name: agent tools:prove
+        run: pnpm critique:prove
+      - name: agent critique:prove
+        run: pnpm adaptive-graph:prove
+      - name: agent adaptive-graph:prove
+        run: pnpm adaptive-flow:prove
+      - name: agent adaptive-flow:prove
+        run: pnpm adaptive-life:prove
+      - name: agent adaptive-life:prove
+        run: pnpm adaptive-consumer:prove
+      - name: agent adaptive-consumer:prove
+        run: pnpm metrics:prove
+      - name: agent metrics:prove
+        run: pnpm voice-adaptive:prove
+      - name: agent voice-adaptive:prove
+        run: pnpm qbank:prove
+      - name: agent qbank:prove
+        run: pnpm qbank-pipeline:prove
+      - name: agent qbank-pipeline:prove
+        run: pnpm web-explore:prove
+      - name: agent web-explore:prove
+        run: pnpm adaptive-degrade:prove
+      - name: agent 优雅降级（出题失败→兜底题不崩面试）
+        run: pnpm interview:prove
+      - name: worker 优雅排空（SIGTERM 等在飞 job 跑完再退,滚动部署零丢失）
+        run: pnpm drain:prove
+      - name: 检索/召回引擎（度量数学 + dense/BM25/RRF 排序 + 金标端到端;真召回率见 benchmark:eval）
+        run: pnpm retrieval:prove
+      - name: B端反题库窃取/反注入（题库不进候选面·确定性抽样·结构化输出兜底·上下文最小化）
+        run: pnpm security:prove
+      - name: 鉴权（scrypt 密码哈希 + HMAC 令牌,常量时间校验）
+        run: pnpm auth:prove
+      - name: 生产向量库（pgvector HNSW · ANN对齐暴力余弦 · 索引真用 · RLS隔离 · 隐私不存原文）
+        run: pnpm vectorstore:prove
+      - name: 记忆模块（长期语义召回 + 情景判重防重复出题 + RLS 不串户 + 隐私派生摘要）
+        run: pnpm memory:prove
+      - name: 部署编排校验（compose.prod 结构合法 · 6 服务 · healthcheck · 依赖顺序）
+        run: pnpm deploy:check
+      - name: 语音面试 modality-agnostic（同一图经 ASR/TTS 推进 ≡ 文本路径）
+        run: pnpm voice:prove
+      - name: 流式语音（增量partial→final · barge-in打断TTS · 低延迟 · modality-agnostic不破内核）
+        run: pnpm vstream:prove
+      - name: 运行内核（db 四原语 + ai-runtime invoke 双校验·重试·幂等 / 状态机 / 租约 / 可恢复 / 幻觉拦截）
+        run: pnpm runtime:prove
+      - name: 真 LangGraph 图（ai-graphs 纯图 + worker PostgresSaver：interrupt + 重启续会话）
+        run: pnpm graph:prove
+      - name: 请求路径 + SSE（principal 注入 / RLS fail-closed / 幂等 / Last-Event-ID 重放）
+        run: pnpm api:validate
+      - name: 契约 must-smoke（NestJS×SWC×类型DI + @meetwise/contracts zod4 校验）
+        run: pnpm api:smoke
+      - name: 前端承重逻辑（SSE 业务事件解码 · 契约客户端校验 · report_unavailable 优雅降级不转圈）
+        run: pnpm web:prove
+      - name: 端到端 简历→押题（S2 摄取清洗 + S4 押题图 + factuality 歪曲门）
+        run: pnpm pipeline:prove
+
+      # TODO（后续层，按 secrets 门控）：
+      #  - 对抗安全 golden 套件 + ai-eval（对真实境内模型跑，需 secrets）
+      #  - 契约 schema-diff / 覆盖率门 / e2e 黄金路径（arch 已上线）

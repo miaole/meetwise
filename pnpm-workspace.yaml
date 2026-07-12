@@ -1,0 +1,18 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# 版本单一真相（catalog）。对齐已装真实版本，syncpack 守不漂移。
+# 注：TS 6.0.3 / @types/node 26 是 2026 真实版本，非笔误（纠正基建蓝图的降级建议）。
+catalog:
+  zod: 4.4.3
+  typescript: 6.0.3
+  "@types/node": 26.0.1
+  pg: 8.22.0
+  "@types/pg": 8.20.0
+
+catalogs:
+  langchain:
+    "@langchain/core": 1.2.1
+    "@langchain/langgraph": 1.4.7
+    "@langchain/langgraph-checkpoint-postgres": 1.0.4

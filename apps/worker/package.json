@@ -1,0 +1,51 @@
+{
+  "name": "@meetwise/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --import @swc-node/register/esm-register src/main.ts",
+    "prove:resume": "tsx test/resume.int.ts",
+    "prove:report": "tsx test/report-bulkhead.proof.ts",
+    "prove:flow": "tsx test/flow.proof.ts",
+    "prove:voice": "tsx test/voice.proof.ts",
+    "prove:interview": "tsx test/interview.proof.ts",
+    "prove:stress": "tsx test/context-stress.proof.ts",
+    "prove:quiz": "tsx test/quiz.proof.ts",
+    "prove:diagnosis": "tsx test/diagnosis.proof.ts",
+    "prove:reaper": "tsx test/reaper.proof.ts",
+    "prove:commerce-reconcile": "tsx test/commerce-reconcile.proof.ts",
+    "prove:security": "tsx test/security.proof.ts",
+    "prove:memory": "tsx test/memory.proof.ts",
+    "prove:drain": "tsx test/drain-loop.proof.ts",
+    "prove:adaptive-flow": "tsx test/adaptive-flow.proof.ts",
+    "prove:adaptive-life": "tsx test/adaptive-lifecycle.proof.ts",
+    "prove:adaptive-consumer": "tsx test/adaptive-consumer.proof.ts",
+    "prove:voice-adaptive": "tsx test/voice-adaptive.proof.ts",
+    "prove:qbank": "tsx test/qbank-ingest.proof.ts",
+    "prove:qbank-pipeline": "tsx test/qbank-pipeline.proof.ts",
+    "adaptive:live": "tsx smoke/adaptive-live.ts",
+    "prove:adaptive-degrade": "tsx test/adaptive-degrade.proof.ts",
+    "prove:adaptive-offtopic": "tsx test/adaptive-offtopic.proof.ts",
+    "prove:adaptive-latency": "tsx test/adaptive-latency.proof.ts",
+    "prove:window": "tsx test/context-window.proof.ts",
+    "attack": "tsx smoke/adaptive-attack.ts"
+  },
+  "dependencies": {
+    "@meetwise/ai-graphs": "workspace:*",
+    "@langchain/langgraph": "catalog:langchain",
+    "@langchain/langgraph-checkpoint-postgres": "catalog:langchain",
+    "@meetwise/db": "workspace:*",
+    "@meetwise/ai-runtime": "workspace:*",
+    "@meetwise/domain": "workspace:*",
+    "@meetwise/contracts": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "tsx": "^4.22.4",
+    "@swc-node/register": "^1.11.1",
+    "@swc/core": "^1.15.43",
+    "typescript": "catalog:",
+    "@types/node": "catalog:"
+  }
+}

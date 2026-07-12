@@ -1,0 +1,19 @@
+.DS_Store
+node_modules/
+.pnpm-store/
+dist/
+build/
+.next/
+.turbo/
+coverage/
+
+.env
+.env.*
+!.env.example
+!*.env.example
+
+.tmp/
+docker/data/
+
+# 本地设置不进开源仓库（保留 .claude/skills/ 可提交）
+.claude/settings.local.json

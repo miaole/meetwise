@@ -1,0 +1,69 @@
+name: meetwise-demo
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: meetwise-postgres-demo
+    environment:
+      POSTGRES_DB: meetwise
+      POSTGRES_USER: meetwise
+      POSTGRES_PASSWORD: meetwise_demo_password
+    ports:
+      - "54329:5432"
+    volumes:
+      - meetwise_postgres_demo:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meetwise -d meetwise"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: meetwise-redis-demo
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "63799:6379"
+    volumes:
+      - meetwise_redis_demo:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    container_name: meetwise-minio-demo
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: meetwise
+      MINIO_ROOT_PASSWORD: meetwise_demo_password
+    ports:
+      - "9009:9000"
+      - "9010:9001"
+    volumes:
+      - meetwise_minio_demo:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: meetwise-mailhog-demo
+    ports:
+      - "10259:1025"
+      - "8029:8025"
+
+# 应用服务在工程骨架阶段接入：
+# - web: Next.js
+# - api: NestJS
+# - worker: LangGraph background worker
+# - seed: migration + demo data
+
+volumes:
+  meetwise_postgres_demo:
+  meetwise_redis_demo:
+  meetwise_minio_demo:

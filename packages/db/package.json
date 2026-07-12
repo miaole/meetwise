@@ -1,0 +1,29 @@
+{
+  "name": "@meetwise/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./sql/*": "./sql/*"
+  },
+  "scripts": {
+    "prove": "docker exec -i meetwise-postgres-dev psql -U meetwise -d meetwise -v ON_ERROR_STOP=1 -q < proof/primitives.sql",
+    "commerce": "tsx test/commerce-saga.proof.ts",
+    "resume": "tsx test/resume-ingest.proof.ts",
+    "recruiter": "tsx test/recruiter-depth.proof.ts",
+    "growth": "tsx test/growth.proof.ts",
+    "prove:vectorstore": "tsx test/vectorstore.proof.ts",
+    "prove:migrate": "tsx test/migrate.proof.ts"
+  },
+  "dependencies": {
+    "pg": "catalog:"
+  },
+  "devDependencies": {
+    "@types/pg": "catalog:",
+    "typescript": "catalog:",
+    "tsx": "^4.22.4",
+    "@types/node": "catalog:",
+    "@meetwise/domain": "workspace:*"
+  }
+}
