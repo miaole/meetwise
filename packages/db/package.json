@@ -14,7 +14,8 @@
     "recruiter": "tsx test/recruiter-depth.proof.ts",
     "growth": "tsx test/growth.proof.ts",
     "prove:vectorstore": "tsx test/vectorstore.proof.ts",
-    "prove:migrate": "tsx test/migrate.proof.ts"
+    "prove:migrate": "tsx test/migrate.proof.ts",
+    "prove:qbank-source": "tsx test/qbank-source.proof.ts"
   },
   "dependencies": {
     "pg": "catalog:"
