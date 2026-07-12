@@ -56,6 +56,7 @@
     "drain:prove": "pnpm -C apps/worker prove:drain",
     "metrics:prove": "pnpm -C packages/ai-runtime prove:metrics",
     "scoring-eval:prove": "pnpm -C packages/ai-runtime prove:eval-metrics",
+    "scoring:eval": "pnpm -C apps/worker exec tsx smoke/scoring-eval.ts",
     "adaptive:prove": "pnpm -C packages/domain prove:adaptive",
     "adaptive-redesign:prove": "pnpm -C packages/domain prove:adaptive-redesign",
     "grounded:prove": "pnpm -C packages/domain prove:grounded",

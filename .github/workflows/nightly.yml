@@ -75,3 +75,13 @@ jobs:
         run: |
           if [ -z "$MODEL_API_KEY" ] && [ -z "$EMBED_API_KEY" ]; then echo "skip recall:eval(无 key)"; exit 0; fi
           pnpm recall:eval
+      - name: 评分官质量信号(scoring:eval:单调性/一致性ICC/相关性,真模型;度量数学硬门在 per-push ci)
+        continue-on-error: true
+        env:
+          MODEL_BASE_URL: ${{ secrets.MODEL_BASE_URL }}
+          MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
+          MODEL_NAME: ${{ secrets.MODEL_NAME }}
+          MODEL_FAST_NAME: ${{ secrets.MODEL_FAST_NAME }}
+        run: |
+          if [ -z "$MODEL_API_KEY" ]; then echo "skip scoring:eval(无 key)"; exit 0; fi
+          pnpm scoring:eval
