@@ -67,35 +67,35 @@ jobs:
         run: pnpm flow:prove
       - name: 面试进程接线（api 入队 → worker 消费循环 → 生命周期 → 报告）
         run: pnpm adaptive:prove
-      - name: agent adaptive:prove
+      - name: agent 接地题（检索素材出题 + 版权照搬门）
         run: pnpm grounded:prove
-      - name: agent grounded:prove
+      - name: agent CRAG（检索质量分级 + 纠偏 / 外呼降级）
         run: pnpm crag:prove
-      - name: agent crag:prove
+      - name: agent 工具（注册 + 延迟加载）
         run: pnpm tools:prove
-      - name: agent tools:prove
+      - name: agent 出题自审（critique → 重生成）
         run: pnpm critique:prove
-      - name: agent critique:prove
+      - name: agent 自适应图（决策表 / 中断 + 重启续会话）
         run: pnpm adaptive-graph:prove
-      - name: agent adaptive-graph:prove
+      - name: agent 自适应全流程（fake deps 图执行）
         run: pnpm adaptive-flow:prove
-      - name: agent adaptive-flow:prove
+      - name: agent 自适应生命周期（结算 / 收尾 / 跨会话判重）
         run: pnpm adaptive-life:prove
-      - name: agent adaptive-life:prove
+      - name: agent 消费循环（claim / 租约 / reaper 收割孤儿）
         run: pnpm adaptive-consumer:prove
-      - name: agent adaptive-consumer:prove
+      - name: agent 模型可观测（token / 延迟 / 成本落库）
         run: pnpm metrics:prove
-      - name: agent metrics:prove
+      - name: agent 语音自适应（modality-agnostic ≡ 文本路径）
         run: pnpm voice-adaptive:prove
-      - name: agent voice-adaptive:prove
+      - name: agent 题库安全（确定性抽样 / 反窃取 / 反注入）
         run: pnpm qbank:prove
-      - name: agent qbank:prove
+      - name: agent 题库摄取管线（类型感知 / 嵌入 / 召回门）
         run: pnpm qbank-pipeline:prove
-      - name: agent qbank-pipeline:prove
+      - name: agent Web 探索（SSRF 安全:私网/allowlist/超时/降级）
         run: pnpm web-explore:prove
-      - name: agent web-explore:prove
-        run: pnpm adaptive-degrade:prove
       - name: agent 优雅降级（出题失败→兜底题不崩面试）
+        run: pnpm adaptive-degrade:prove
+      - name: 自适应面试端到端（真图多轮 + 结算 + 报告舱壁）
         run: pnpm interview:prove
       - name: worker 优雅排空（SIGTERM 等在飞 job 跑完再退,滚动部署零丢失）
         run: pnpm drain:prove
@@ -107,7 +107,7 @@ jobs:
         run: pnpm auth:prove
       - name: 生产向量库（pgvector HNSW · ANN对齐暴力余弦 · 索引真用 · RLS隔离 · 隐私不存原文）
         run: pnpm vectorstore:prove
-      - name: 记忆模块（长期语义召回 + 情景判重防重复出题 + RLS 不串户 + 隐私派生摘要）
+      - name: 记忆模块 lean（跨会话精确判重 + 历史弱项只读投影 + RLS 不串户 + 隐私:题面非答案/PII）
         run: pnpm memory:prove
       - name: 部署编排校验（compose.prod 结构合法 · 6 服务 · healthcheck · 依赖顺序）
         run: pnpm deploy:check
@@ -127,6 +127,10 @@ jobs:
         run: pnpm web:prove
       - name: 端到端 简历→押题（S2 摄取清洗 + S4 押题图 + factuality 歪曲门）
         run: pnpm pipeline:prove
+      - name: OCR 简历图片视觉转写（关口双校验 + 按次计费 reserve/confirm/release + PII不入trace + 下游注入门）
+        run: pnpm ocr:prove
+      - name: 端到端全栈跨进程（真起 api+worker+db · 鉴权→简历(含图片OCR)→交易→面试真图跑到 report_ready → B端多方RLS · 32断言）
+        run: pnpm e2e:prove
 
       # TODO（后续层，按 secrets 门控）：
       #  - 对抗安全 golden 套件 + ai-eval（对真实境内模型跑，需 secrets）

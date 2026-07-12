@@ -44,7 +44,7 @@ related:
 - resume 守卫含 `resumableUntil > now()`；过期 → 由 **UC-IH-13 看门狗** CAS 迁移 `waiting_user → abandoned`，触发 `ConsumptionRecord released`（退还），并入队 checkpoint GC（`AiGraphRun → safe_terminating`，回收 checkpoint）。
 - 与 UC-IH-06 PURGE 协同：`abandoned` 仍是历史记录，可被软删/清除；GC 只回收**运行时** checkpoint，不删业务事实。
 
-### 0.3 计费时点与退费规则（修评审④2「失败/废弃会话退费未定义」，P0；对齐 e2e 决策 A）
+### 0.3 计费时点与退费规则（修评审④2「失败/废弃会话退费未定义」，P0；面试计费口径,与 e2e 一致。注:此为**面试**会话计费,与图片 OCR 的按次计费决策B 无关）
 
 **1 次额度 = 一场面试**。`ConsumptionRecord reserved` 发生在面试 **start**（创建 `Interview` 同事务，可用额度 CAS 扣减）；`reserved → confirmed` 触发点 = `Interview.completed`；**未完成即结束的一切路径一律 `released`（退还额度）**：
 
