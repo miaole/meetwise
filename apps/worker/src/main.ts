@@ -7,12 +7,14 @@
  * 骨架：当前给出组合根装配点；真实的队列消费/续跑循环 S5 落（见 production-backlog）。
  */
 import { hostname } from 'node:os';
+import { createServer, type Server } from 'node:http';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { buildMockInterviewGraph } from '@meetwise/ai-graphs';
 import { webExplore, createSafeFetch, type AllowedSource, type RawFetch } from '@meetwise/domain';
 import { fileURLToPath } from 'node:url';
 import { createPool, asPrincipal, runMigrations, loadMigrations, annSearch } from '@meetwise/db';
-import { langfuseTracer, httpSpanTransport, setTracer, dashscopeEmbedder, cachingEmbedder, inMemoryEmbeddingStore, type ModelClient } from '@meetwise/ai-runtime';
+import { langfuseTracer, httpSpanTransport, setTracer, dashscopeEmbedder, cachingEmbedder, inMemoryEmbeddingStore, getMetrics, registerBaselineMetrics, METRIC, type ModelClient } from '@meetwise/ai-runtime';
+import { runDrainLoop } from './drain-loop.ts';
 import { defaultModelClient, fastModelClient, reportGenerator } from './interview-service.ts';
 import { runReportDispatcher, type ReportWorkerDeps } from './report-worker.ts';
 import { runInterviewConsumer } from './interview-consumer.ts';
@@ -76,9 +78,70 @@ function reportWorkerDeps(pool: ReturnType<typeof createPool>, model: ModelClien
   };
 }
 
+/**
+ * 队列健康 gauge 的 DB 数据源(**告警数据源**:queued 积压 / running 超租约(卡住) / DLQ 死信)。
+ * queue 标签低基数、静态;`dead` 谓词各队列不同:report 的死信是 quarantined(耗尽重试终态),
+ * 其余 job 的 'failed' 即终态死信(见 interview-consumer:markJobFailed 后发 *_unavailable,不重试)。
+ * 表名/谓词均为硬编码常量(无注入面)。
+ */
+const JOB_GAUGE_SOURCES: ReadonlyArray<{ queue: string; table: string; dead: string }> = [
+  { queue: 'interview_job', table: 'interview_job', dead: "status='failed'" },
+  { queue: 'report',        table: 'ai_report',     dead: "status='quarantined'" },
+  { queue: 'quiz_job',      table: 'quiz_job',       dead: "status='failed'" },
+  { queue: 'diagnosis_job', table: 'diagnosis_job',  dead: "status='failed'" },
+];
+
+/**
+ * 一拍队列 gauge 刷新:越 RLS 用 superuser/dispatcher 池查**全租户**计数(同 commerce-reconcile 的 enumerate 模式)。
+ * **别拖垮 DB**:低频(默认 15s)+ 每队列单条聚合 COUNT(FILTER)一次往返、小表全扫可接受;查询失败由 drain-loop 兜底吞掉、下拍重试。
+ * gauge 是全局绝对值:多实例各查同一 DB 得同值 → 告警侧 max() 去重(切勿 sum,翻倍)。
+ */
+export async function refreshJobGauges(pool: ReturnType<typeof createPool>): Promise<void> {
+  const m = getMetrics();
+  for (const s of JOB_GAUGE_SOURCES) {
+    const r = await pool.query(
+      `SELECT count(*) FILTER (WHERE status='queued')::int AS queued,
+              count(*) FILTER (WHERE status='running' AND lease_expires_at < now())::int AS running_expired,
+              count(*) FILTER (WHERE ${s.dead})::int AS dead
+         FROM ${s.table}`);
+    const row = r.rows[0] ?? { queued: 0, running_expired: 0, dead: 0 };
+    m.setGauge(METRIC.jobsQueued, Number(row.queued) || 0, { queue: s.queue });
+    m.setGauge(METRIC.jobsRunningExpired, Number(row.running_expired) || 0, { queue: s.queue });
+    m.setGauge(METRIC.jobsDead, Number(row.dead) || 0, { queue: s.queue });
+  }
+}
+
+/**
+ * worker 侧 /metrics 暴露端点(对齐 api 的 MetricsController 风格:纯聚合标量文本、无鉴权、生产由网络/ingress 限内网)。
+ * worker 无 HTTP 业务面,故自挂一个极简 http server 供 Prometheus 抓取;渲染只出已注册指标(counter/gauge,标签仅 dep/queue)——
+ * **不含任何 owner/PII/原文**,scrape 安全。`up{job="meetwise-worker"}` 由 Prometheus 抓取合成 = worker 存活数据源。
+ */
+export function startMetricsExposition(): Server {
+  const port = Number(process.env.WORKER_METRICS_PORT || 9091);
+  const host = process.env.WORKER_METRICS_HOST || '0.0.0.0';
+  const server = createServer((req, res) => {
+    const path = (req.url ?? '').split('?')[0];
+    if (req.method === 'GET' && path === '/metrics') {
+      res.writeHead(200, { 'content-type': 'text/plain; version=0.0.4' });
+      res.end(getMetrics().render());
+    } else if (req.method === 'GET' && path === '/healthz') {
+      res.writeHead(200, { 'content-type': 'text/plain' }); res.end('ok\n');
+    } else {
+      res.writeHead(404); res.end();
+    }
+  });
+  server.listen(port, host);
+  server.unref?.();   // 不因 metrics server 阻止进程优雅退出
+  console.log(`worker /metrics on ${host}:${port}`);
+  return server;
+}
+
 async function bootstrap() {
   // 组合根：持久 checkpointer + **真正启动**两个生产消费循环——报告调度 + 面试 job 消费(api 入队的 start/answer)。
   const pool = createPool();
+  // 观测:预注册基线指标序列(熔断打开/退款失败 counter 置 0)+ 自挂 /metrics 端点(Prometheus 抓取,up 即 worker 存活数据源)。
+  registerBaselineMetrics();
+  const metricsServer = startMetricsExposition();
   // 启动先跑版本化迁移(只跑待应用、幂等、advisory 锁)——替掉 init-scripts 只跑一次/drop+recreate 丢数据。
   const migDir = fileURLToPath(new URL('../../../packages/db/migrations', import.meta.url));
   const mig = await runMigrations(pool, loadMigrations(migDir));
@@ -132,8 +195,10 @@ async function bootstrap() {
   // **商务对账兜底(C1)**:周期回收租约过期的孤儿预留(中途弃/进程崩→退额度回池,零泄漏) + 把 confirm 投的结算 outbox 真实入账本。
   // 无它则:弃面试的预留永久挂 reserved 漏额度、结算账本永不落。多实例安全(sweep 行锁 + settle SKIP LOCKED,幂等)。
   const commerceLoop = runCommerceReconciler(pool);
-  process.on('SIGTERM', async () => { await Promise.allSettled([Promise.resolve(reportLoop.stop()), interviewLoop.stop(), quizLoop.stop(), diagnosisLoop.stop(), commerceLoop.stop()]); console.log('drained, exiting'); process.exit(0); });   // 优雅排空在飞 job 再退
-  console.log('worker ready: report dispatcher + interview consumer + quiz consumer + diagnosis consumer + commerce reconciler started as', leaseOwner);
+  // 队列健康 gauge 刷新循环(告警数据源:queued/卡住/DLQ 深度)。低频 15s,查询失败经 drain-loop 兜底不停循环。
+  const gaugeLoop = runDrainLoop(() => refreshJobGauges(pool), Number(process.env.WORKER_GAUGE_INTERVAL_MS || 15000));
+  process.on('SIGTERM', async () => { await Promise.allSettled([Promise.resolve(reportLoop.stop()), interviewLoop.stop(), quizLoop.stop(), diagnosisLoop.stop(), commerceLoop.stop(), gaugeLoop.stop()]); metricsServer.close(); console.log('drained, exiting'); process.exit(0); });   // 优雅排空在飞 job 再退
+  console.log('worker ready: report dispatcher + interview consumer + quiz consumer + diagnosis consumer + commerce reconciler + gauge refresh started as', leaseOwner);
 }
 
 if (process.env.WORKER_BOOTSTRAP === '1') bootstrap();

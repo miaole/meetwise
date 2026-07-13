@@ -47,6 +47,6 @@ export { withTimeout, timeoutSignal, fetchWithTimeout } from './timeout.ts';
 export { fakeStreamingAsr, fakeStreamingTts, dashscopeStreamingAsr, dashscopeStreamingTts, streamingVoiceTurn } from './voice-stream.ts';
 export type { AsrEvent, StreamingAsr, StreamingTts, StreamTurnHooks } from './voice-stream.ts';
 
-export { createMetrics, setMetrics, getMetrics, type Metrics } from './metrics.ts';
+export { createMetrics, setMetrics, getMetrics, registerBaselineMetrics, METRIC, type Metrics } from './metrics.ts';
 
 export { toolRegistry, runToolLoop, type Tool, type ToolRegistry, type ToolStep, type ToolDecision } from './tools.ts';

@@ -59,3 +59,30 @@ export function createMetrics(): Metrics {
 let active: Metrics = createMetrics();
 export function setMetrics(m: Metrics): void { active = m; }
 export function getMetrics(): Metrics { return active; }
+
+/**
+ * 指标名单一真源(emit 点、告警 expr、alerts-lint 白名单三方共用同一常量,防手滑漂移)。
+ * 命名遵循 Prometheus 约定:counter 以 _total 收尾;label 低基数(dep/queue),绝不放 owner/PII/原文。
+ *   - circuitBreakerOpen:模型关口熔断"打开"次数(counter)——emit 在 circuit-breaker.ts 相位翻到 open 时。
+ *   - refundFailed:退款/额度释放失败次数(counter)——emit 点在 commerce 释放失败的 catch(本次任务边界外,见报告"诚实缺口")。
+ *   - jobsQueued / jobsRunningExpired / jobsDead:worker 侧队列健康(gauge)——worker 周期从 DB 查全局计数 set(见 worker main.ts)。
+ * gauge 是"全局绝对值":多 worker 实例各自查同一 DB 得同值,告警侧用 max() 去重实例视角(切勿 sum,会翻倍)。
+ * counter 是"本实例事件数":跨实例告警侧用 sum(increase()) 合并(各实例熔断是不同真实事件)。
+ */
+export const METRIC = {
+  circuitBreakerOpen: 'model_circuit_breaker_open_total',
+  refundFailed: 'refund_failed_total',
+  jobsQueued: 'worker_jobs_queued',
+  jobsRunningExpired: 'worker_jobs_running_expired',
+  jobsDead: 'worker_jobs_dead',
+} as const;
+
+/**
+ * 预注册基线序列为 0:让 Prometheus 一开机即有序列(0 值也可评估/画图),避免"从未 emit=无序列=告警无数据"。
+ * counter inc(…, 0) 只建序列不改值。worker 组合根启动时调一次。
+ */
+export function registerBaselineMetrics(m: Metrics = getMetrics()): void {
+  m.inc(METRIC.circuitBreakerOpen, { dep: 'model' }, 0);
+  m.inc(METRIC.circuitBreakerOpen, { dep: 'fast_model' }, 0);
+  m.inc(METRIC.refundFailed, undefined, 0);
+}

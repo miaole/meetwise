@@ -77,6 +77,83 @@ groups:
           summary: 'api p99 延迟严重(>2.5s)'
           description: 'p99 延迟 >2500ms 持续 10 分钟:请求逼近超时,用户面大面积卡顿。'
 
+  - name: meetwise-worker-slo
+    rules:
+      # ---- worker 存活(数据源:Prometheus 抓取 worker /metrics 合成的 up)----------------
+      # worker 挂 = 面试/报告/押题/诊断/对账全停(api 只入队),队列静默堆积。for 2m ≈ 8 次漏抓。
+      - alert: WorkerTargetDown
+        expr: 'up{job="meetwise-worker"} == 0'
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'worker 实例失联'
+          description: 'job=meetwise-worker 的 up=0 已持续 2 分钟:图执行/消费循环全停,队列只进不出。'
+
+      - alert: WorkerScrapeMissing
+        expr: 'absent(up{job="meetwise-worker"})'
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'worker 抓取目标缺失'
+          description: '5 分钟内无任何 meetwise-worker 的 up 序列:worker 未注册或 /metrics 不可达,监控盲区。'
+
+      # ---- 模型熔断打开(数据源:circuit-breaker.ts 相位翻 open 时 emit 的 counter)--------
+      # 跨实例 sum(increase()):各实例熔断是不同真实降级事件,合并计数。任一次打开即代表模型关口在降级(快速失败不打模型)。
+      - alert: ModelCircuitBreakerOpen
+        expr: 'sum(increase(model_circuit_breaker_open_total[15m])) > 0'
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: '模型熔断器打开(正在降级)'
+          description: '过去 15 分钟模型关口熔断至少打开过一次:下游模型连败到阈值,出题/评分/报告走降级路径。'
+
+      # ---- 队列健康(数据源:worker 周期从 DB 查全局计数 set 的 gauge)-------------------
+      # gauge 是全局绝对值,多实例各查同库得同值 → max() 去重实例视角(sum 会翻倍)。
+      # queued 积压:消费慢于入队 / worker 领不动。阈值 100 持续 10m 才告(去抖 + 容瞬时突发)。
+      - alert: WorkerQueueBacklog
+        expr: 'max(worker_jobs_queued) > 100'
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'worker 队列积压(queued > 100)'
+          description: '某队列 queued 深度持续 >100 超 10 分钟:消费吞吐跟不上入队,用户等待变长。'
+
+      # running 超租约 = worker 崩在半途的孤儿 job(reaper 尚未收割)。持续偏高 = 崩溃循环 / reaper 落后。
+      - alert: WorkerStuckRunningJobs
+        expr: 'max(worker_jobs_running_expired) > 5'
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'worker 卡住 job(running 超租约 > 5)'
+          description: '某队列有 >5 个 running 状态 job 租约已过期持续 5 分钟:worker 崩在半途或 reaper 收割落后。'
+
+      # DLQ 死信深度:报告 quarantined / 其余 job failed 终态。增长 = 系统性失败(依赖挂/校验持续不过),需人工介入。
+      - alert: WorkerDeadLetterBacklog
+        expr: 'max(worker_jobs_dead) > 10'
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'worker 死信堆积(DLQ > 10)'
+          description: '某队列死信(报告 quarantined / job failed 终态)持续 >10 超 10 分钟:耗尽重试的失败在累积,用户拿不到结果。'
+
+      # ---- 退款/额度释放失败(数据源:refund_failed_total counter)-----------------------
+      # 注:本 counter 已注册(基线 0 序列),但 **emit 点在 commerce 释放失败的 catch(本次任务边界外,尚未接线)**。
+      # 告警"预置就位":一旦 commerce 侧把释放失败 emit 接上即自动生效;在此之前无真实增量(不误告)。见交付报告"诚实缺口"。
+      - alert: RefundFailed
+        expr: 'sum(increase(refund_failed_total[1h])) > 0'
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: '退款/额度释放失败'
+          description: '过去 1 小时出现退款/额度释放失败:用户为失败流程被扣额度却未退回,资金/信任红线,需立即核查。'
+
   - name: meetwise-monitoring-meta
     rules:
       # 死信开关(Watchdog / dead-man's switch):恒定发火,路由到心跳接收端。

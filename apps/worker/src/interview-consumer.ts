@@ -5,7 +5,7 @@
  */
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { asPrincipal, claimNextInterviewJob, markJobDone, markJobFailed, appendEvent, decryptResumeBlob, releaseConsumption, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, DEFAULT_LEASE_SECONDS, type DbPool } from '@meetwise/db';
-import type { ModelClient } from '@meetwise/ai-runtime';
+import { getMetrics, METRIC, type ModelClient } from '@meetwise/ai-runtime';
 import type { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { ingestResume, type ScoredRef, type SourceDoc } from '@meetwise/domain';
 import { startInterview, submitAnswer } from './interview-lifecycle.ts';
@@ -81,7 +81,7 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
       await c.query("UPDATE interview SET status='failed', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status NOT IN ('completed','abandoned','failed')", [job.interviewId, owner]);
       // **失败退款**:job 失败=结算 tx 必未提交(confirm 与 completed 同事务,抛则回滚)→ 预留的 1.0 永不会被 confirm,
       // 必须释放,否则用户为失败的面试白扣额度。releaseConsumption 幂等(key=interviewId);释放失败不静默(记日志,租约 sweeper 兜底)。
-      await releaseConsumption(c, owner, job.interviewId).catch((err) => console.error('interview release failed', job.interviewId, (err as any)?.code ?? err));
+      await releaseConsumption(c, owner, job.interviewId).catch((err) => { getMetrics().inc(METRIC.refundFailed); console.error('interview release failed', job.interviewId, (err as any)?.code ?? err); });   // 退款失败可观测(告警数据源)
     });
     return 'failed';
   } finally {
@@ -106,7 +106,7 @@ export async function reapStuckInterviewJobs(d: ConsumerDeps, owner: string): Pr
       // 若预留已 confirmed(罕见:确实跑完只是 job 没 markDone 就崩)→ 面试已交付,**不发假失败事件**(报告舱壁自会发 report_*)。
       // 退款抛错不静默(记日志);除"已结算"外一律发终态事件保证前端不死等(liveness 优先,租约 sweeper 兜底泄漏)。
       const rel = await releaseConsumption(c, owner, interviewId)
-        .catch((err) => { console.error('reap interview release failed', interviewId, (err as any)?.code ?? err); return { status: 'error' as const, reason: 'release_threw' }; });
+        .catch((err) => { getMetrics().inc(METRIC.refundFailed); console.error('reap interview release failed', interviewId, (err as any)?.code ?? err); return { status: 'error' as const, reason: 'release_threw' }; });   // 退款失败可观测(告警数据源)
       const alreadySettled = rel.status === 'error' && (rel as any).reason === 'already_confirmed';
       if (!alreadySettled) {
         await appendEvent(c, owner, interviewId, 'interview_unavailable', { reason: 'worker_died' });
