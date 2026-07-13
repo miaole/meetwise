@@ -5,6 +5,7 @@ import { createHmac } from 'node:crypto';
 import { hashPassword } from '@meetwise/domain';
 import { createApp } from '../src/main';
 import { DbService } from '../src/platform/db.service';
+import { RateLimitService } from '../src/platform/rate-limit.service';
 
 /** 真 NestJS 结构下的请求路径自检（principal 注入 / RLS / 幂等 / SSE 重放 / 真鉴权）。 */
 async function validate() {
@@ -83,6 +84,25 @@ async function validate() {
   r = await req('POST', '/interview/R9/begin', { 'x-user-id': 'userA', 'resume-id': 'res-1' }); A('userA 对 userB 的 R9 begin → 404(RLS)', r.status === 404);
   r = await postJson('/interview/R1/turn', { 'x-user-id': 'userA' }, { turn: 0, answer: '我的答案' }); A('turn → 202 + 入队 answer job', r.status === 202 && r.body.accepted === true);
   r = await postJson('/interview/R1/turn', { 'x-user-id': 'userA' }, { turn: 0, answer: '' }); A('turn 空答案 → 400', r.status === 400);
+  // [安全审计 F1] turn 号无上界 → 每个不同 turn 刷一条付费评分 job(成本 DoS)。断言超上界被拒。
+  r = await postJson('/interview/R1/turn', { 'x-user-id': 'userA' }, { turn: 99999, answer: 'x' }); A('[F1] 超大 turn 号(>MAX_TURN)→ 400(防刷无限付费 job)', r.status === 400 && r.body.error === 'invalid_turn');
+  r = await postJson('/interview/R1/turn', { 'x-user-id': 'userA' }, { turn: 1, answer: 'a'.repeat(9000) }); A('[F1] 超长作答(>8000字)→ 400(契约 zod 上限先拦;service MAX_ANSWER_CHARS 为纵深兜底)', r.status === 400);
+  // [安全审计 F1/F7] 状态机守卫:对已终态(completed)面试提交 → 409,绝不制造新付费 job / 注入伪造事件。
+  r = await postJson('/interview/ASMT/turn', { 'x-user-id': 'userA' }, { turn: 0, answer: '事后补答' }); A('[F1] 对 completed 面试 turn → 409 interview_not_active(状态机守卫)', r.status === 409 && r.body.error === 'interview_not_active');
+  r = await req('POST', '/interview/ASMT/answer', { 'x-user-id': 'userA', 'idempotency-key': 'ka-terminal' }); A('[F7] 对 completed 面试 /answer → 409(桩端点不再注入伪造 score 到终态面试)', r.status === 409 && r.body.error === 'interview_not_active');
+  // [qbank 审计 #1] 守卫拒绝 __system* 保留 sentinel 作绑定主体(防 dev-header 冒充受信 qbank 写入方)。
+  r = await req('GET', '/interview/R1', { 'x-user-id': '__system_qbank__' }); A('[qbank] x-user-id 冒充系统 sentinel → 401 reserved_principal(投毒门端到端)', r.status === 401 && r.body.error === 'reserved_principal');
+  // [安全审计 F1/F5/F8 共享执行原语] 限流/并发槽是 turn 成本闸(F1)、SSE 并发上限(F5)、招聘邀请枚举闸(F8)的共同实现,确定性单测它=证明三者的拦截逻辑。
+  {
+    const rl = app.get(RateLimitService);
+    let allowed = 0; const t0 = 1_000_000;
+    for (let i = 0; i < 5; i++) if (rl.allow('rl-test', 3, 0.1, t0)) allowed++;   // 突发容量 3 → 前 3 个放行、后 2 个拒
+    A('[F1/F8] 令牌桶:突发容量 3 → 恰放行 3 个(第4/5被限流)', allowed === 3);
+    A('[F1/F8] 令牌桶补充:10 秒后按 0.1/秒补 1 个令牌 → 再放行 1', rl.allow('rl-test', 3, 0.1, t0 + 10_000) === true);
+    A('[F5] 并发槽 acquireSlot:上限 2 → 前 2 占用成功、第 3 拒', rl.acquireSlot('sse-test', 2) && rl.acquireSlot('sse-test', 2) && rl.acquireSlot('sse-test', 2) === false);
+    rl.releaseSlot('sse-test');
+    A('[F5] release 后腾出一槽 → 可再 acquire(长连接断开释放,不永久占用)', rl.acquireSlot('sse-test', 2) === true);
+  }
   q = await db.pool.query("SELECT count(*)::int n FROM interview_job WHERE interview_id='R1' AND kind='answer'"); A('answer job 已落队列', q.rows[0].n === 1);
   // 放弃面试:退还预留额度(不漏扣)
   const balBefore = (await req('GET', '/commerce/entitlement', { 'x-user-id': 'userA' })).body?.availableUnits ?? (await (async()=>{const r2=await fetch(base+'/commerce/entitlement',{headers:{'x-user-id':'userA'}});return (await r2.json()).availableUnits;})());
