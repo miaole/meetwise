@@ -9,6 +9,7 @@ import { RateLimitService } from '../../platform/rate-limit.service';
 
 const MAX_RESUME_BYTES = 8 * 1024 * 1024;   // 8MB 上限(防大文件 DoS)
 const MAX_RESUME_TEXT = 60_000;             // 提取文本末线(对齐文本路径契约;防解压炸弹/超大文档提取出 MB 级文本无界落库+喂模型,安全审计 F3)
+const PARSE_MAX = Number(process.env.RESUME_PARSE_MAX ?? 6);   // 全站同时解析上限(安全审计 F2 纵深:并发炸弹不堆积压垮事件循环)
 /** OCR 视觉模型客户端 DI token:组合根(app.module)决定真(qwen-vl)/假(scripted,测试)——service 不硬编、只认注入的 seam,故 /resume/file 可真端到端测(非 demo)。 */
 export const OCR_VISION_CLIENT = Symbol.for('meetwise.OCR_VISION_CLIENT');
 
@@ -33,13 +34,20 @@ export class ResumeService {
     const buffer = Buffer.from(dto.contentBase64, 'base64');
     if (buffer.length === 0) throw new HttpException({ error: 'empty_file' }, HttpStatus.BAD_REQUEST);
     if (buffer.length > MAX_RESUME_BYTES) throw new HttpException({ error: 'file_too_large' }, HttpStatus.PAYLOAD_TOO_LARGE);
+    // **全局解析并发闸(安全审计 F2 纵深)**:PDF/docx 解析是 CPU 重活压事件循环;即使多用户各自限流内并发涌入,
+    // 全站同时最多 PARSE_MAX 个在解析,超出快速失败(503)不堆积——把"并发炸弹压垮事件循环"的爆炸半径钉死。配合已有 8s 提取超时 + 字节/文本封顶。
+    if (!this.rl.acquireSlot('resume-parse:global', PARSE_MAX))
+      throw new HttpException({ error: 'server_busy', message: '解析繁忙,请稍候重试' }, HttpStatus.SERVICE_UNAVAILABLE);
     let extracted: { text: string; format: string };
     try {
       extracted = await extractResumeText(buffer, dto.mimeType, dto.filename);
     } catch (e: any) {
       // 图片简历 → OCR 路径(qwen-vl 转写 → 回灌文本链路);转写文本随后与文本简历同一道门(注入清洗/stripPii/结构化)。
+      // finally 在 return 前也会执行 → 解析槽恰好释放一次(不在此显式释放,避免并发下双减)。
       if (e?.code === 'image_needs_ocr') return this.uploadImageViaOcr(principal, buffer, dto);
       throw new HttpException({ error: 'parse_failed', format: undefined }, HttpStatus.UNPROCESSABLE_ENTITY);   // 解析失败可解释,不裸崩
+    } finally {
+      this.rl.releaseSlot('resume-parse:global');   // 所有路径(成功/图片重定向 return/解析失败 throw)都恰好释放一次
     }
     // 扫描型 PDF(文本层空)：本期图片 OCR 已通,PDF→逐页图渲染是快随项(见 UC-RES-003 A2),暂给可解释降级不静默。
     if (extracted.text.trim().length < 20) throw new HttpException({ error: 'extracted_too_short', format: extracted.format, hint: '未从文件读到足够文字;若为扫描件/图片型 PDF,请改传清晰图片或粘贴文本' }, HttpStatus.BAD_REQUEST);
