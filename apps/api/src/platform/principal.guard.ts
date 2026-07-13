@@ -40,6 +40,10 @@ export class PrincipalGuard implements CanActivate {
     return state;
   }
 
+  // **保留系统内部主体前缀**:`__system*`(如 qbank 灌库 owner `__system_qbank__`)是系统内部身份,**绝不可作为绑定 HTTP 主体**——
+  // 否则(尤其 staging 开 dev-header)攻击者发 `x-user-id: __system_qbank__` 就冒充受信写入方绕过 qbank 投毒门(qbank 审计残留洞 #1)。
+  private static isReserved(p: unknown): boolean { return typeof p === 'string' && p.startsWith('__system'); }
+
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req = ctx.switchToHttp().getRequest();
     const auth = (req.headers['authorization'] as string | undefined) ?? '';
@@ -47,6 +51,7 @@ export class PrincipalGuard implements CanActivate {
       const secret = process.env.AUTH_SECRET ?? '';
       const tok = secret ? verifyTokenFull(auth.slice(7), secret, Math.floor(Date.now() / 1000)) : null;
       if (!tok) throw new UnauthorizedException({ error: 'invalid_token' });
+      if (PrincipalGuard.isReserved(tok.uid)) throw new UnauthorizedException({ error: 'reserved_principal' });   // 令牌 uid 撞保留 sentinel(不可能来自正常注册,防伪造)
       const st = await this.accountState(tok.uid, Date.now());
       if (!st.active) throw new UnauthorizedException({ error: 'account_inactive' });          // 禁用/注销 → 令牌即时失效
       if (st.epoch !== tok.pwdEpoch) throw new UnauthorizedException({ error: 'session_revoked' });  // 改密后旧代次令牌失效
@@ -56,6 +61,7 @@ export class PrincipalGuard implements CanActivate {
     // x-user-id 回退仅限开发/测试:它绕过验签/status/代次,若在生产误开=任意账户接管。故硬闸——NODE_ENV=production 时该分支永不生效(不靠运维纪律)。
     if (process.env.AUTH_DEV_HEADER === '1' && process.env.NODE_ENV !== 'production') {
       const user = req.headers['x-user-id'];
+      if (PrincipalGuard.isReserved(user)) throw new UnauthorizedException({ error: 'reserved_principal' });   // dev-header 也不许冒充系统 sentinel(qbank 投毒门端到端闭合)
       if (user) { req.principal = user; return true; }
     }
     throw new UnauthorizedException({ error: 'unauthenticated' });

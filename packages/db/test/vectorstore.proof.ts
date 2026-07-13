@@ -23,11 +23,11 @@ const cosine = (a: number[], b: number[]) => { let d = 0; for (let i = 0; i < a.
 async function main() {
   await pool.query(sql('01_schema.sql'));
   await pool.query(sql('06_retrieval.sql'));
-  const N = 60, OWNER = 'userA';
+  const N = 60, OWNER = 'userA', QOWNER = '__system_qbank__';   // qbank 现仅系统灌库 principal 可写(06_retrieval 写门收紧);memory 仍各用户自写
   const vecs = Array.from({ length: N }, (_, i) => embed(i + 1));
 
-  await asPrincipal(pool, OWNER, async (c) => {
-    for (let i = 0; i < N; i++) await upsertVectorChunk(c, OWNER, { id: `vc${i}`, kind: 'qbank', refId: `q${i}`, contentHash: `h${i}`, embedding: vecs[i] });
+  await asPrincipal(pool, QOWNER, async (c) => {
+    for (let i = 0; i < N; i++) await upsertVectorChunk(c, QOWNER, { id: `vc${i}`, kind: 'qbank', refId: `q${i}`, contentHash: `h${i}`, embedding: vecs[i] });
   });
   A(`写入 ${N} 个向量块`, (await asPrincipal(pool, OWNER, (c) => c.query('SELECT count(*)::int n FROM vector_chunk'))).rows[0].n === N);
 
@@ -47,7 +47,7 @@ async function main() {
   A('查询计划走 HNSW 索引(ix_vchunk_hnsw),非全表扫', /ix_vchunk_hnsw|Index Scan/i.test(plan));
 
   // ④ 去重:同 owner+kind+hash 再写 → 不新增
-  await asPrincipal(pool, OWNER, (c) => upsertVectorChunk(c, OWNER, { id: 'vcX', kind: 'qbank', refId: 'q0', contentHash: 'h0', embedding: vecs[0] }));
+  await asPrincipal(pool, QOWNER, (c) => upsertVectorChunk(c, QOWNER, { id: 'vcX', kind: 'qbank', refId: 'q0', contentHash: 'h0', embedding: vecs[0] }));
   A('同 hash 幂等去重(不增行)', (await asPrincipal(pool, OWNER, (c) => c.query('SELECT count(*)::int n FROM vector_chunk'))).rows[0].n === N);
 
   // ⑤ 租户模型(决策 i):qbank 共享公共读 / memory 私有 owner-only
