@@ -53,6 +53,7 @@
     "migrate:prove": "pnpm -C packages/db prove:migrate",
     "drift:prove": "node scripts/schema-drift-check.mjs",
     "breaker:prove": "pnpm -C packages/ai-runtime prove:breaker",
+    "failover:prove": "pnpm -C packages/ai-runtime prove:failover",
     "vstream:prove": "pnpm -C packages/ai-runtime prove:vstream",
     "drain:prove": "pnpm -C apps/worker prove:drain",
     "metrics:prove": "pnpm -C packages/ai-runtime prove:metrics",

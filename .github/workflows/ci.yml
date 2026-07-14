@@ -59,6 +59,8 @@ jobs:
         run: pnpm drift:prove
       - name: 模型熔断器（连败→降级快速失败不打模型→冷却半开→恢复关闭）
         run: pnpm breaker:prove
+      - name: 跨供应商 failover（primary 故障秒切 backup·内容拒不换供应商·全挂交降级）
+        run: pnpm failover:prove
       - name: commerce saga（共享池 reserve/confirm/release · FIFO · 按比例 · 并发不超卖 · 对账 · 零额度丢失）
         run: pnpm commerce:prove
       - name: 简历摄取（原文加密落库 · 结构化 profile 永不含明文PII · 注入拦截 · 状态机 · 去重 · RLS）
