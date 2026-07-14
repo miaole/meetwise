@@ -21,10 +21,10 @@ test('golden path: landing → signup → cookie auth lets protected pages rende
   // 注册按钮:Server Action 设 mw_token cookie 并服务端 redirect 到 /dashboard
   await page.click('button[name="mode"][value="signup"]');
 
-  // 3) 断言已落到 /dashboard(服务端跳转)且渲染「总览」
+  // 3) 断言已落到 /dashboard(服务端跳转)且渲染仪表盘内容(Suspense 流式补上的主标题)
   await page.waitForURL('**/dashboard', { timeout: 20_000 });
   await expect(page).toHaveURL(/\/dashboard$/);
-  await expect(page.getByRole('heading', { name: '总览' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /继续打磨你的面试表现/ })).toBeVisible({ timeout: 20_000 });
 
   // 4) 经导航访问 /resume 与 /interviews:各自渲染标题,且不被踢回 /login(证明浏览器里 cookie 鉴权生效)
   // 用 exact 锚定导航链接(避免命中页内「管理简历 →」「查看面试 →」等含同字按钮)
