@@ -51,6 +51,7 @@
     "e2e:prove": "node scripts/run-e2e.mjs",
     "e2e:ui": "node scripts/run-e2e-ui.mjs",
     "migrate:prove": "pnpm -C packages/db prove:migrate",
+    "drift:prove": "node scripts/schema-drift-check.mjs",
     "breaker:prove": "pnpm -C packages/ai-runtime prove:breaker",
     "vstream:prove": "pnpm -C packages/ai-runtime prove:vstream",
     "drain:prove": "pnpm -C apps/worker prove:drain",
