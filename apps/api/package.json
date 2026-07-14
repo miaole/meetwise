@@ -7,7 +7,14 @@
     "serve": "node --import @swc-node/register/esm-register src/main.ts",
     "validate": "node --import @swc-node/register/esm-register test/validate.ts",
     "smoke:toolchain": "node --import @swc-node/register/esm-register test/toolchain.smoke.ts",
-    "smoke:contract": "node --import @swc-node/register/esm-register test/contract.smoke.ts"
+    "smoke:contract": "node --import @swc-node/register/esm-register test/contract.smoke.ts",
+    "neg:auth": "node --import @swc-node/register/esm-register test/neg-auth.proof.ts",
+    "neg:commerce": "node --import @swc-node/register/esm-register test/neg-commerce.proof.ts",
+    "neg:resume": "node --import @swc-node/register/esm-register test/neg-resume.proof.ts",
+    "neg:interview": "node --import @swc-node/register/esm-register test/neg-interview.proof.ts",
+    "neg:bend": "node --import @swc-node/register/esm-register test/neg-bend.proof.ts",
+    "neg:input": "node --import @swc-node/register/esm-register test/neg-input.proof.ts",
+    "neg:all": "for g in auth commerce resume interview bend input; do node --import @swc-node/register/esm-register test/neg-$g.proof.ts || exit 1; done"
   },
   "dependencies": {
     "@meetwise/db": "workspace:*",
