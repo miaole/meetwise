@@ -73,6 +73,21 @@ export async function isApprovedSource(c: Client, sourceId: string): Promise<boo
 }
 
 /**
+ * curator 视角按 content_hash 取一条源(**任意状态**,优先活跃源;partial-unique 保证至多一条活跃)。
+ * 系统灌库据此做幂等/治理决策:rejected → 尊重下架不复活;已有活跃源 → 复用其 id 不重建;无 → 由调用方 propose。
+ * 仅 curator 能看到全部状态(0013 读 RLS:approved / 自己的 / curator 全见);非 curator 调用只见 approved+自己的,
+ * 会漏看他人 pending/rejected → **本 helper 仅供系统灌库(curator 主体)用**,不作通用查询。
+ */
+export async function findSourceByHash(
+  c: Client, contentHash: string,
+): Promise<{ id: string; status: QbankSourceStatus } | null> {
+  const r = await c.query(
+    `SELECT id, status FROM qbank_source WHERE content_hash=$1
+       ORDER BY (status <> 'rejected') DESC LIMIT 1`, [contentHash]);
+  return r.rowCount ? { id: r.rows[0].id as string, status: r.rows[0].status as QbankSourceStatus } : null;
+}
+
+/**
  * 出题检索候选 = 只读 approved-only 视图 qbank_retrieval_candidate。撤销(approved→rejected)后该源的块
  * 立即从视图消失(结构保证,非查询自觉;连直查 pool 表也被 RLS 过滤到 approved)。返回 ref_id 供下游取文/召回。
  */

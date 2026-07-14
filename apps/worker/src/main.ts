@@ -181,10 +181,16 @@ async function bootstrap() {
     role: '技术岗',
   };
   if (adaptive) {
-    // 性能:**已灌则跳过**——否则每次开机都对全部种子调 embedder API 重嵌入(无谓成本+延迟)。
+    // 性能:**已灌且已治理则跳过**——否则每次开机都对全部种子调 embedder API 重嵌入(无谓成本+延迟)。
     const have = await asPrincipal(pool, QBANK_OWNER, (c) => c.query("SELECT count(*)::int n FROM vector_chunk WHERE kind='qbank'")).then((r) => r.rows[0].n).catch(() => 0);
-    if (have < QBANK_SEED.length) { const seeded = await ingestQbank(pool, QBANK_SEED, embedder).catch(() => 0); console.log('qbank seed:', seeded, '题'); }
-    else console.log('qbank already seeded:', have, '题(跳过重嵌入)');
+    // **治理覆盖回填(in-place 升级缺口)**:0017 前直灌的存量 qbank chunk 无 pool entry=不受撤销治理。
+    // 若有 chunk 但治理池未覆盖(governed < have),强制重灌一次把存量纳入 propose→approve→promote(ingestQbank 幂等,回填仅一次;之后 governed==have 即跳过)。
+    const governed = await asPrincipal(pool, QBANK_OWNER, (c) => c.query("SELECT count(*)::int n FROM qbank_pool_entry")).then((r) => r.rows[0].n).catch(() => 0);
+    const needBackfill = have >= QBANK_SEED.length && governed < have;
+    if (have < QBANK_SEED.length || needBackfill) {
+      const seeded = await ingestQbank(pool, QBANK_SEED, embedder).catch(() => 0);
+      console.log(needBackfill ? `qbank 治理回填:${seeded} 题纳入受审池(存量升级)` : `qbank seed: ${seeded} 题`);
+    } else console.log('qbank already seeded & governed:', have, '题(跳过重嵌入)');
   }
   const interviewLoop = runInterviewConsumer({ pool, cp, model, fastModel, leaseOwner, adaptive });
   if (adaptive) console.log('interview: ADAPTIVE agent on (规划→自适应决策→CRAG出题→反思→评估→报告舱壁)');
