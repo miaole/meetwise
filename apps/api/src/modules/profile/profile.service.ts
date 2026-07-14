@@ -93,6 +93,7 @@ export class ProfileService {
   async deactivate(principal: string) {
     const r = await this.db.pool.query("UPDATE user_account SET status='disabled' WHERE id=$1", [principal]);
     if (r.rowCount === 0) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
+    evictPrincipalStatus(principal);   // 清本进程守卫缓存 → 停用后旧令牌下一请求即 401(此前漏清 → 缓存 active:true 最长 60s 仍可用,负测抓到)
     return { deactivated: true };
   }
 }

@@ -13,6 +13,8 @@ const MAX_AUDIO_BYTES = 10 * 1024 * 1024;   // 10MB 上限(单题语音作答足
 const VOICE_RL = { capacity: 40, refillPerSec: 0.3 };
 // 每次 turn 都入队一条**付费评分** job → 无限流 = 成本 DoS(安全审计 F1)。突发 30(足够一场面试的作答+澄清重答),稳态 0.2/秒(~12/分)。
 const TURN_RL = { capacity: 30, refillPerSec: 0.2 };
+// interview 表状态机:created → active →(completed | failed | abandoned)。终态集中一处定义,begin/turn/answer/abandon 守卫共用。
+const TERMINAL_INTERVIEW = ['completed', 'abandoned', 'failed'];
 const MAX_TURN = 64;              // turn 号上界(自适应 maxTurns=8 + clarify/probe 冗余;防超大 turn 号刷无限 job)
 const MAX_ANSWER_CHARS = 8000;    // 单条作答封顶(边缘末线;评分侧 capUserData 还会再封,纵深)
 // 语音 ASR/TTS 客户端 DI token:组合根(interview.module)决定真(dashscope)/假(fake,测试 VOICE_FAKE=1)——service 不硬编、可端到端测(非 demo)。
@@ -48,16 +50,39 @@ export class InterviewService {
       throw new HttpException({ error: 'too_many_requests', message: '语音请求过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);
   }
 
+  // 作答前置守卫(turn/answer 共用)。**自适应流程全程 interview.status='created'**(逐轮态在 LangGraph checkpoint,不在本列),
+  //   故 'created' 是合法「答题中」态——但必须**已 begin**(存在 start job)才可答,以区分「进行中」vs「从未开始的空壳」;终态一律拒。
+  //   返回 {code,error} 或 null(可答)。turn 用 assertAnswerable 抛,answer 桩端点复用它返回 {code,body}(保持其契约)。
+  private async answerableError(c: any, id: string, status: string): Promise<{ code: number; error: string } | null> {
+    if (TERMINAL_INTERVIEW.includes(status)) return { code: 409, error: 'interview_not_active' };
+    if (status === 'created') {
+      const begun = await c.query("SELECT 1 FROM interview_job WHERE interview_id=$1 AND kind='start' LIMIT 1", [id]);
+      if (begun.rowCount === 0) return { code: 409, error: 'interview_not_started' };   // created 但从未 begin → 拒(不给空壳造付费 answer job)
+    }
+    return null;
+  }
+  private async assertAnswerable(c: any, id: string, status: string): Promise<void> {
+    const e = await this.answerableError(c, id, status);
+    if (e) throw new HttpException({ error: e.error, status }, e.code);
+  }
+
   // 开始面试:扣额度 + 入队 start job(长编排在 worker 跑,api 薄)。reqId 随 payload 入队 → worker 出队沿用 → 落模型 trace.request_id(全链路一跳到底)。
   begin(principal: string, id: string, resumeId: string, requestId?: string) {
     if (!resumeId) throw new HttpException({ error: 'missing_resume_id' }, HttpStatus.BAD_REQUEST);
     return this.db.asPrincipal(principal, async (c) => {
       // **并发竞态安全**:事务级 advisory 锁串行化同面试的并发 begin(对齐 invoke 关口)——否则两并发都过 check-then-act = 双开。
       await c.query('SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))', ['begin', id]);
-      if ((await c.query('SELECT 1 FROM interview WHERE id=$1', [id])).rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+      const cur = await c.query('SELECT status FROM interview WHERE id=$1', [id]);
+      if (cur.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+      // **状态机守卫(此前 begin 一个守卫都没有 → 可复活终态面试 + 白扣额度,负测 BUG-PROBE 抓到)**:
+      //   终态(completed/failed/abandoned)绝不可再 begin(不可复活、不可二次扣额)。
+      if (TERMINAL_INTERVIEW.includes(cur.rows[0].status))
+        throw new HttpException({ error: 'interview_not_active', status: cur.rows[0].status }, HttpStatus.CONFLICT);
       // 幂等:已有 start job(重复 begin/网络重试)→ 不再扣额度、不再入队(否则双扣 + 双出题双花模型)
       const existing = await c.query("SELECT id FROM interview_job WHERE interview_id=$1 AND kind='start'", [id]);
       if (existing.rowCount! > 0) return { accepted: true, jobId: existing.rows[0].id, alreadyBegun: true };
+      // 已 active(worker 已开面/已出题)但无 start job 行(边角恢复态)→ 幂等返回,绝不二次预留额度。
+      if (cur.rows[0].status === 'active') return { accepted: true, alreadyBegun: true };
       // 额度不足时 reserveEntitlement **抛**(回滚),不是返回——必须 catch 映射成 402,否则被异常过滤当 500(E2E 实测抓到)。
       let rr;
       try { rr = await reserveEntitlement(c, principal, id, 'mock_interview', 1.0); }
@@ -85,8 +110,7 @@ export class InterviewService {
       // 对 completed/abandoned/failed 提交 → 409,绝不制造新付费 job、不绕状态机(此前一个守卫都没有)。
       const iv = await c.query('SELECT status FROM interview WHERE id=$1', [id]);
       if (iv.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
-      if (['completed', 'abandoned', 'failed'].includes(iv.rows[0].status))
-        throw new HttpException({ error: 'interview_not_active', status: iv.rows[0].status }, HttpStatus.CONFLICT);
+      await this.assertAnswerable(c, id, iv.rows[0].status);   // 终态拒 / 未 begin 拒(见下方共用守卫)
       const jobId = await enqueueInterviewJob(c, principal, id, 'answer', { turn, answer: body.answer, requestId }, turn + 1);
       return { accepted: true, jobId };
     });
@@ -166,8 +190,16 @@ export class InterviewService {
   // 放弃面试:**退还预留额度**(不漏扣)+ status abandoned。对接 commerce saga release 路径。
   abandon(principal: string, id: string) {
     return this.db.asPrincipal(principal, async (c) => {
-      if ((await c.query('SELECT 1 FROM interview WHERE id=$1', [id])).rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
-      const rel = await releaseConsumption(c, principal, id);   // 退还 begin 时预留的额度(idempotencyKey=id)
+      // 事务级 advisory 锁:串行化同面试的并发 abandon(否则两并发都过 check-then-act → 双 releaseConsumption 双退款)。
+      await c.query('SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))', ['abandon', id]);
+      const cur = await c.query('SELECT status FROM interview WHERE id=$1', [id]);
+      if (cur.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+      const st = cur.rows[0].status;
+      // **状态机守卫(此前 abandon 一个守卫都没有 → 可非法 completed→abandoned 且退还已结算额度,负测 BUG-PROBE 抓到)**:
+      if (st === 'abandoned') return { abandoned: true, released: 'noop', alreadyAbandoned: true };   // 幂等:已弃不再 releaseConsumption(防二次退款)
+      if (st === 'completed' || st === 'failed')                                                       // 已完成/已失败(额度已结算/已释放)→ 不可再放弃
+        throw new HttpException({ error: 'interview_not_active', status: st }, HttpStatus.CONFLICT);
+      const rel = await releaseConsumption(c, principal, id);   // 仅 created/active 可弃;退还 begin 时预留的额度(idempotencyKey=id)
       await c.query("UPDATE interview SET status='abandoned', version=version+1 WHERE id=$1 AND owner_user_id=$2", [id, principal]);
       return { abandoned: true, released: rel.status };
     });
@@ -362,7 +394,9 @@ export class InterviewService {
       // 否则可往 completed/abandoned/failed 面试注入伪造 answer_evaluated 事件,污染评估/成长/转写。
       const own = await c.query('SELECT status FROM interview WHERE id=$1', [id]);
       if (own.rowCount === 0) return { code: 404, body: { error: 'not_found_or_forbidden' } };
-      if (['completed', 'abandoned', 'failed'].includes(own.rows[0].status)) return { code: 409, body: { error: 'interview_not_active', status: own.rows[0].status } };
+      // 共用作答守卫:终态防伪造事件注入;created 但从未 begin(空壳)防注入 answer_evaluated。已 begin 的 created(答题中)放行。
+      const ae = await this.answerableError(c, id, own.rows[0].status);
+      if (ae) return { code: ae.code, body: { error: ae.error, status: own.rows[0].status } };
       const ins = await c.query(
         'INSERT INTO consumption_record(owner_user_id, idempotency_key, interview_id) VALUES($1,$2,$3) ON CONFLICT (owner_user_id, idempotency_key) DO NOTHING',
         [principal, key, id]);

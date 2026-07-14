@@ -22,8 +22,9 @@ export class AuthService {
     const id = randomUUID();
     try {
       await this.db.pool.query('INSERT INTO user_account(id, email, password_hash, role) VALUES ($1,$2,$3,$4)', [id, b.email, hashPassword(b.password), role]);
-    } catch {
-      throw new HttpException({ error: 'email_taken' }, HttpStatus.CONFLICT);
+    } catch (e: any) {
+      if (e?.code === '23505') throw new HttpException({ error: 'email_taken' }, HttpStatus.CONFLICT);   // 仅唯一冲突=邮箱已注册;其它 DB 错(连接/约束)照抛,不误报 email_taken 掩盖故障
+      throw e;
     }
     return { token: this.issue(id), userId: id, role };
   }

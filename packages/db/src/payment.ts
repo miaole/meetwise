@@ -8,8 +8,12 @@ export async function createOrder(
   c: Client, owner: string, x: { id: string; productId: string; amountCents: number; units: number; idempotencyKey?: string },
 ): Promise<string> {
   if (x.idempotencyKey) {
-    const ex = await c.query('SELECT id FROM payment_order WHERE owner_user_id=$1 AND idempotency_key=$2', [owner, x.idempotencyKey]);
-    if (ex.rowCount! > 0) return ex.rows[0].id;                                   // 幂等:重试返回原单
+    const ex = await c.query('SELECT id, product_id FROM payment_order WHERE owner_user_id=$1 AND idempotency_key=$2', [owner, x.idempotencyKey]);
+    if (ex.rowCount! > 0) {
+      // 幂等**必须同参**:同 key 但不同 productId = 语义冲突,绝不能静默返回原单(用户想买 pack_30 却拿回 pack_10 且不报错)。
+      if (ex.rows[0].product_id !== x.productId) { const err: any = new Error('idempotency_key_conflict'); err.code = 'idempotency_key_conflict'; throw err; }
+      return ex.rows[0].id;                                                        // 幂等:同 key 同参重试 → 返回原单
+    }
   }
   await c.query(
     'INSERT INTO payment_order(id, owner_user_id, product_id, amount_cents, units, idempotency_key) VALUES ($1,$2,$3,$4,$5,$6)',

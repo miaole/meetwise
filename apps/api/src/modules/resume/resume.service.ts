@@ -10,6 +10,7 @@ import { RateLimitService } from '../../platform/rate-limit.service';
 const MAX_RESUME_BYTES = 8 * 1024 * 1024;   // 8MB 上限(防大文件 DoS)
 const MAX_RESUME_TEXT = 60_000;             // 提取文本末线(对齐文本路径契约;防解压炸弹/超大文档提取出 MB 级文本无界落库+喂模型,安全审计 F3)
 const PARSE_MAX = Number(process.env.RESUME_PARSE_MAX ?? 6);   // 全站同时解析上限(安全审计 F2 纵深:并发炸弹不堆积压垮事件循环)
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;   // 简历 id(uuid 列)守卫:非 uuid 直查会 22P02→500,提前当 not_found 兜成 404
 /** OCR 视觉模型客户端 DI token:组合根(app.module)决定真(qwen-vl)/假(scripted,测试)——service 不硬编、只认注入的 seam,故 /resume/file 可真端到端测(非 demo)。 */
 export const OCR_VISION_CLIENT = Symbol.for('meetwise.OCR_VISION_CLIENT');
 
@@ -110,14 +111,16 @@ export class ResumeService {
 
   /** profileStatus:OCR/图片源传 'needs_review'(系统不冒充判真伪,给人工复核落地位);文本/PDF 文本层默认 'ok'。 */
   upload(principal: string, dto: UploadResumeDto, profileStatus: 'ok' | 'needs_review' = 'ok') {
+    // NUL 字节(\u0000)在 Postgres text 类型里非法,直喂 pgp_sym_encrypt 会抛 → 500;简历文本里 NUL 无意义,落库前一律剥除(负测抓到)。
+    const text = dto.text.replace(/\u0000/g, '');
     return this.db.asPrincipal(principal, async (c: any) => {
       // PIPL 硬门槛:处理简历 PII 前必须有采集同意,否则拒绝(不偷偷处理)。
       const consent = await c.query("SELECT 1 FROM consent_record WHERE purpose='resume_processing' LIMIT 1");
       if (consent.rowCount === 0) throw new HttpException({ error: 'consent_required', purpose: 'resume_processing' }, HttpStatus.FORBIDDEN);
-      const up = await createResumeWithBlob(c, principal, dto.text);          // 原文加密落库 + 去重
+      const up = await createResumeWithBlob(c, principal, text);          // 原文加密落库 + 去重
       if (up.dedup) return { resumeId: up.resumeId, status: 'deduped' };
       await transitionResume(c, principal, up.resumeId, 'uploaded', 'ingesting');
-      await completeIngestion(c, principal, up.resumeId, ingestResume(dto.text), profileStatus); // 结构化 + PII 脱敏 → ingested
+      await completeIngestion(c, principal, up.resumeId, ingestResume(text), profileStatus); // 结构化 + PII 脱敏 → ingested
       return { resumeId: up.resumeId, status: 'ingested' };
     });
   }
@@ -140,6 +143,9 @@ export class ResumeService {
   }
 
   remove(principal: string, id: string) {
+    // resume/resume_profile/resume_blob 的 id 是 uuid 列;非 uuid 的 :id 直查会触发 Postgres 22P02 → 500。
+    // 非 uuid 不可能对应任何行,等价于 not_found → 干净 404(负测抓到 profile/delete 缺此兜底)。
+    if (!UUID_RE.test(id)) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
     return this.db.asPrincipal(principal, async (c: any) => {
       await c.query('DELETE FROM resume_profile WHERE resume_id=$1', [id]);
       await c.query('DELETE FROM resume_blob WHERE resume_id=$1', [id]);
@@ -150,6 +156,7 @@ export class ResumeService {
   }
 
   profile(principal: string, id: string) {
+    if (!UUID_RE.test(id)) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);   // 非 uuid → 22P02 500 兜底成 404(负测抓到)
     return this.db.asPrincipal(principal, async (c: any) => {
       const r = await c.query('SELECT structured, pii_summary, blocked_count, status, confidence FROM resume_profile WHERE resume_id=$1', [id]);
       if (r.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND); // RLS 0 行→404

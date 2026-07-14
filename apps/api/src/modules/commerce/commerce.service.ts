@@ -25,8 +25,14 @@ export class CommerceService {
     const p = PRODUCTS.find((x) => x.id === dto?.productId);
     if (!p) throw new HttpException({ error: 'unknown_product' }, HttpStatus.BAD_REQUEST);
     const id = 'ord_' + randomUUID();
-    const orderId = await this.db.asPrincipal(principal, (c) =>           // 幂等:同 key 重试返回原单
-      createOrder(c, principal, { id, productId: p.id, amountCents: p.amountCents, units: p.units, idempotencyKey }));
+    let orderId: string;
+    try {
+      orderId = await this.db.asPrincipal(principal, (c) =>              // 幂等:同 key 同参重试返回原单
+        createOrder(c, principal, { id, productId: p.id, amountCents: p.amountCents, units: p.units, idempotencyKey }));
+    } catch (e: any) {
+      if (e?.code === 'idempotency_key_conflict') throw new HttpException({ error: 'idempotency_key_conflict' }, HttpStatus.CONFLICT);   // 同 key 换商品 → 409(不静默吞)
+      throw e;
+    }
     return { orderId, amountCents: p.amountCents, status: 'created' };
   }
 

@@ -30,7 +30,7 @@ async function validate() {
   await db.pool.query(`INSERT INTO interview_event(owner_user_id,stream_key,seq,kind,payload) VALUES ('userA','ASMT',1,'answer_evaluated','{"turn":0,"score":80}'),('userA','ASMT',2,'answer_evaluated','{"turn":1,"score":40}')`);
   await db.pool.query(`INSERT INTO ai_report(owner_user_id,interview_id,status,content) VALUES ('userA','ASMT','ready','{"overall":60,"sections":[]}')`);
   await db.pool.query(`INSERT INTO ai_report(owner_user_id,interview_id,status) VALUES ('userA','R1','failed')`);
-  await db.pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('R1','userA','active'),('R9','userB','active'),('RACE','userA','created')");
+  await db.pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('R1','userA','active'),('R9','userB','active'),('RACE','userA','created'),('BEG1','userA','created')");
   await db.pool.query("INSERT INTO interview_event(owner_user_id,stream_key,seq,kind,payload) VALUES ('userA','R1',1,'question_ready','{}')");
   await db.pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ('userA','paid',5.0, now()+interval '300 days')");
   await db.pool.query("INSERT INTO consent_record(id,owner_user_id,purpose,policy_version) VALUES ('c1','userA','resume_processing','v1'),('c2','userB','resume_processing','v1')");
@@ -66,12 +66,13 @@ async function validate() {
     const res = await fetch(base + path, { method: 'PATCH', headers: { ...headers, 'content-type': 'application/json' }, body: JSON.stringify(body) });
     return { status: res.status, body: await res.json().catch(() => ({})) as any };
   };
-  r = await req('POST', '/interview/R1/begin', { 'x-user-id': 'userA' }); A('begin 缺 resume-id → 400', r.status === 400);
-  r = await req('POST', '/interview/R1/begin', { 'x-user-id': 'userA', 'resume-id': 'res-1' }); A('begin → 202 受理 + 入队 start job', r.status === 202 && r.body.accepted === true);
-  let q = await db.pool.query("SELECT count(*)::int n FROM interview_job WHERE interview_id='R1' AND kind='start'"); A('start job 已落队列', q.rows[0].n === 1);
+  // begin 系列打 BEG1(created 态)——begin 只对 created 生效;R1 是 active(已开面)专供下方 turn/answer。
+  r = await req('POST', '/interview/BEG1/begin', { 'x-user-id': 'userA' }); A('begin 缺 resume-id → 400', r.status === 400);
+  r = await req('POST', '/interview/BEG1/begin', { 'x-user-id': 'userA', 'resume-id': 'res-1' }); A('begin → 202 受理 + 入队 start job', r.status === 202 && r.body.accepted === true);
+  let q = await db.pool.query("SELECT count(*)::int n FROM interview_job WHERE interview_id='BEG1' AND kind='start'"); A('start job 已落队列', q.rows[0].n === 1);
   const balPreBegin = (await (async()=>{const x=await fetch(base+'/commerce/entitlement',{headers:{'x-user-id':'userA'}});return (await x.json()).availableUnits;})());
-  r = await req('POST', '/interview/R1/begin', { 'x-user-id': 'userA', 'resume-id': 'res-1' }); A('重复 begin → 幂等(alreadyBegun)', r.status === 202 && r.body.alreadyBegun === true);
-  q = await db.pool.query("SELECT count(*)::int n FROM interview_job WHERE interview_id='R1' AND kind='start'"); A('重复 begin 不再入第二个 start job', q.rows[0].n === 1);
+  r = await req('POST', '/interview/BEG1/begin', { 'x-user-id': 'userA', 'resume-id': 'res-1' }); A('重复 begin → 幂等(alreadyBegun)', r.status === 202 && r.body.alreadyBegun === true);
+  q = await db.pool.query("SELECT count(*)::int n FROM interview_job WHERE interview_id='BEG1' AND kind='start'"); A('重复 begin 不再入第二个 start job', q.rows[0].n === 1);
   const balPostBegin = (await (async()=>{const x=await fetch(base+'/commerce/entitlement',{headers:{'x-user-id':'userA'}});return (await x.json()).availableUnits;})());
   A('重复 begin 不再二次扣额度', balPostBegin === balPreBegin);
   // 并发竞态:同时 2 个 begin(Promise.all)→ advisory 锁串行化 → 只 1 个 start job(不双开)

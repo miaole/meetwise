@@ -8,10 +8,11 @@
 import { z } from 'zod';
 
 /* ───────────── auth ───────────── */
-export const Credentials = z.object({ email: z.string().email(), password: z.string().min(8) });
+// email 封 254(RFC 5321),password 封 128:上限防超长输入把 scrypt 变 CPU DoS 面 + 超长邮箱撑爆索引(负测抓到无上限)。
+export const Credentials = z.object({ email: z.string().email().max(254), password: z.string().min(8).max(128) });
 export type Credentials = z.infer<typeof Credentials>;
 /** 注册:含身份(求职者 C 端 / 招聘方 B 端)。 */
-export const SignupDto = z.object({ email: z.string().email(), password: z.string().min(8), role: z.enum(['candidate', 'recruiter']).optional() });
+export const SignupDto = z.object({ email: z.string().email().max(254), password: z.string().min(8).max(128), role: z.enum(['candidate', 'recruiter']).optional() });
 export type SignupDto = z.infer<typeof SignupDto>;
 export const AuthResult = z.object({ token: z.string(), userId: z.string().optional(), role: z.string().optional() });
 export type AuthResult = z.infer<typeof AuthResult>;
