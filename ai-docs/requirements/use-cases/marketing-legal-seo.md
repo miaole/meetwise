@@ -20,7 +20,7 @@ related:
 
 > **🔎 实现状态（对齐真实代码 · 2026-07）** — 本文是 TARGET 规格。**✅ 已实现+接线**：SEO 基建（`sitemap.ts`/`robots.ts`、SSR 元信息、next-intl 中英 hreflang 语义）、营销/首页/FAQ/features/pricing/legal/privacy 等 SSR 页面。**🟠 部分 / ⬜ 未建**：consent-before-tracking 同意闸、A/B 身份合并、服务端二次 PII scrub、实时计数口径过滤、反 spam 回流边、同意审计无空窗等承重合规机制多为规格，尚未全部落地。展示与 SEO 骨架已生效，合规埋点治理待建。
 
-> 顺序铁律：用例 → 契约 → 状态机 → 测试 → 代码。本文档按对抗评审五问逐条收口：先在 §0 消解伪覆盖 / 自相矛盾 / 合规致命漏 / 照搬源库弱实现，再给 17 条 UC（每条标注七类覆盖、每条异常/刁钻流落到一个机制、验收可测、配齐 TC）。**二轮评审增补**（见 §3.2）：consent-before-tracking 整条 UC、spam 回流边、A/B 身份合并、服务端二次 PII scrub、计数口径过滤、降级态治理、同意审计无空窗。
+> 顺序铁律：用例 → 契约 → 状态机 → 测试 → 代码。本文档按对抗评审五问逐条收口：先在 §0 消解伪覆盖 / 自相矛盾 / 合规致命漏 / 静默失败的弱实现，再给 17 条 UC（每条标注七类覆盖、每条异常/刁钻流落到一个机制、验收可测、配齐 TC）。**二轮评审增补**（见 §3.2）：consent-before-tracking 整条 UC、spam 回流边、A/B 身份合并、服务端二次 PII scrub、计数口径过滤、降级态治理、同意审计无空窗。
 > 四原语缩写：**CAS**(条件更新/乐观锁)、**IDEM**(幂等键唯一约束)、**RLS**(principal 绑定 fail-closed)、**LOG**(持久有序事件日志，单调 seq)。
 > 七类缩写：**正常 / 异常(失败回滚·退款) / 特殊(边界·空·首次·i18n) / 逃逸(降级·fallback·kill-switch·人工接管·安全终止) / 高并发(双击·竞态·CAS) / 复杂(多步 saga·跨聚合·部分失败) / 刁钻(注入·越狱·刷分·泄题·PII·畸形·对抗)**。
 
@@ -280,7 +280,7 @@ UC-ab-001：anon(unit 同 anonId 多次→同变体)；crossdev(unit 不同设�
 - P2 #10 万级并发/JSON-LD 全文比对→确定性断言：single-flight 回源计数=1 + JSON-LD 安全序列化结构断言（一轮已收口）。
 - P2 #12 未成年/监护人同意：UC-legal-002（一轮已收口）。
 
-二轮「两条合规硬伤整条用例缺失」均补齐：撤回同意(UC-legal-003)+Cookie/埋点同意(UC-consent-track-001)。「贴标签未落机制」四项(trackConversion 刷量/附件实际内容/上下文自由文本 PII/spam 黑洞)全部下沉到机制(M-CTA/M-SANITIZE/M-SCRUB/spam 回流边)。照搬源库弱实现三项(冷启动非0/24h cookie sticky/转化客户端敞开写)均按 Meetwise 零信任/实验严谨标准重写。
+二轮「两条合规硬伤整条用例缺失」均补齐：撤回同意(UC-legal-003)+Cookie/埋点同意(UC-consent-track-001)。「贴标签未落机制」四项(trackConversion 刷量/附件实际内容/上下文自由文本 PII/spam 黑洞)全部下沉到机制(M-CTA/M-SANITIZE/M-SCRUB/spam 回流边)。三项静默失败/合规风险的弱实现(冷启动编造非0计数/24h cookie sticky 身份漂移/转化客户端敞开写可灌量)均按 Meetwise 零信任/实验严谨标准落机制：冷启动 real<T 隐藏不编造、实验期 sticky + 匿名↔登录身份合并、转化只认服务端可信信号。
 
 ## §4 待决事项（openDecisions · 需 identity/admin/法务确认，非本域阻塞）
 1 强制条款宽限期截止时刻(UTC 权威，长度待法务)；2 计数阈值 T/粒度 g/maxStep 取值与「约数展示」措辞合规复核；3 TrackingConsent 与 identity ConsentRecord(scope=tracking) 契约字段+撤回到门禁生效 SLA；4 计数口径过滤账号 flag 来源(依赖 identity/commerce 只读视图)；5 spam 申诉回流发起方(用户自助 vs 仅人工)与 admin 域职责边界；6 未成年年龄推断方式(声明制 vs 强校验)。

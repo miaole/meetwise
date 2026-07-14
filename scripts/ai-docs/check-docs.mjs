@@ -1,7 +1,22 @@
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { join, relative } from "node:path";
 
 const root = new URL("../..", import.meta.url).pathname;
+
+// 禁词扫描:committed 文档必须第一手、无对其它/源项目的指涉、无本地路径泄漏。
+// task-sop.md 是**规则条文本身**(它必须引用这些禁词来定义政策),故豁免。
+const FORBIDDEN = [
+  { re: /源项目|源参考|照搬源|纠正源|取代源项目|借鉴了|参考了\s*[A-Za-z一-龥]+\s*(项目|库|仓)/, why: "参考性/源项目指涉(须改为第一手陈述)" },
+  { re: /\/Users\/|\/private\/tmp\/|claude-501/, why: "本地绝对路径/会话目录泄漏" },
+];
+const SCAN_ROOTS = ["ai-docs", "AGENTS.md", "README.md", "CLAUDE.md"];
+const SCAN_EXEMPT = new Set(["ai-docs/meta/task-sop.md"]);
+function walkMd(p, acc) {
+  const abs = join(root, p);
+  if (!existsSync(abs)) return;
+  if (statSync(abs).isDirectory()) { for (const c of readdirSync(abs)) walkMd(join(p, c), acc); return; }
+  if (p.endsWith(".md")) acc.push(p);
+}
 
 const requiredFiles = [
   "README.md",
@@ -66,6 +81,19 @@ for (const [file, terms] of requiredTerms) {
       errors.push(`${file} should mention "${term}"`);
     }
   }
+}
+
+// 禁词扫描
+const scanFiles = [];
+for (const r of SCAN_ROOTS) walkMd(r, scanFiles);
+for (const file of scanFiles) {
+  if (SCAN_EXEMPT.has(file)) continue;
+  const lines = readFileSync(join(root, file), "utf8").split("\n");
+  lines.forEach((line, i) => {
+    for (const { re, why } of FORBIDDEN) {
+      if (re.test(line)) errors.push(`${file}:${i + 1} 禁词命中(${why}): ${line.trim().slice(0, 80)}`);
+    }
+  });
 }
 
 if (errors.length > 0) {

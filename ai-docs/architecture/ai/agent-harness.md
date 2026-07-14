@@ -115,7 +115,7 @@ function routeAfterEval(state) {
 ```
 
 关键点：
-- `threadId = resultId`；续跑 = 同 `thread_id` 发 `Command({resume})`，从 `awaitAnswer` 的 interrupt 点恢复。**进程可在等待期被杀/换实例**——这是相对内存 Map 会话的 #1 重做项。
+- `threadId = resultId`；续跑 = 同 `thread_id` 发 `Command({resume})`，从 `awaitAnswer` 的 interrupt 点恢复。**进程可在等待期被杀/换实例**——等待用户由持久 `interrupt` 表达而非内存中的连接/`Map<sessionId,resolver>`，这是全套可恢复性的 #1 承重点。
 - **report 走独立 run**（`threadId=reportId`），由 finalize 在出图后向队列投递 job 触发。**禁止用 `Send` 做后台报告**——`Send` 调度同 thread 下一个 super-step，`invoke()` 不会返回直到子图跑完，会把面试主路径拖住。report 也**不是 subgraph**（subgraph 在父 super-step 内同步跑、抛错传播父 run）。
 
 **② 自主研究 agent — 有界预算图（模式参考，未进 MVP blueprint 前不实例化）**
@@ -539,7 +539,7 @@ interface OrchestrationPort {
 
 1. **为什么循环是 LangGraph 的、harness 不是循环**：循环=回边/`Send`/`interrupt`，由 Pregel super-step 驱动、checkpointer 管 durable/resume；harness 是叠在图之上的三层纪律（节点内 invoke/toolExec 关口、图设计约定、包住 LangGraph 的 seam）。判据：写计数器决定"走哪个节点"就错了——方向盘是条件边 + checkpointer，计数器只当安全阀。机械重排走 invoke，语义重生成走图边。
 
-2. **为什么内存 Map 会话必须重做**：等待用户=持久 `interrupt`，进程可在等待期被杀/换实例，按同 thread_id `Command(resume)` 恢复——这是相对源项目内存会话的 #1 重做项。
+2. **为什么等待用户必须落持久状态而非内存连接**：等待用户=持久 `interrupt`，进程可在等待期被杀/换实例，按同 thread_id `Command(resume)` 恢复——内存 `Map<sessionId,resolver>` 式会话进程重启即丢、不可多实例，是可恢复面试不可接受的失败模式。
 
 3. **关口完整性为什么是结构约束不是约定**：三道硬墙（能力注入 + SDK 不在闭包 + 校验器注册表查取）+ dep-cruiser CI + egress allowlist，让"绕过 invoke"从随手能写变成需同时改三个包元数据并过 review。约定会被"图省事"绕过，只有结构 + 编译期可证 + 网络 fail-closed 才匹配项目要求。
 

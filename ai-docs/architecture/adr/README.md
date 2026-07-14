@@ -27,7 +27,7 @@ related:
 **背景**：需迁移 + 约束 + 类型安全。**决定**：Prisma。**被否**：Drizzle（生态/迁移成熟度权衡后否）；裸 SQL（失类型安全）。**后果**：迁移用 Prisma Migrate；RLS 用 client extension 注入 `SET LOCAL`。
 
 ### ADR-0003 运行时状态 = LangGraph Postgres checkpointer · accepted
-**背景**：源项目用内存 `Map` 存会话，进程重启/多实例即丢。**决定**：状态进 Postgres checkpointer，等待用户=持久 `waiting_user`。**被否**：内存 session map（不可恢复、不可多实例）。**后果**：durable/resumable/多实例安全；迁移需处理 checkpoint 结构（见 `runtime-migration.md`）。**这是项目头号差异化。**
+**背景**：可恢复长会话面试的运行态必须跨进程重启/多实例存活。**决定**：状态进 Postgres checkpointer，等待用户=持久 `waiting_user`。**被否**：内存 session map（进程重启/换实例即丢会话，不可恢复、不可多实例）。**后果**：durable/resumable/多实例安全；迁移需处理 checkpoint 结构（见 `runtime-migration.md`）。**这是项目的头号承重决策。**
 
 ### ADR-0004 契约 = 共享 zod4 schema + ZodValidationPipe + zod-openapi（**取代 ts-rest**） · superseded→accepted
 **背景**：原定 ts-rest，但 must-smoke #2 实测 **ts-rest 稳定版(3.52) 只支持 zod3**，支持 zod4 的仅 3.53-**RC**；项目锁 zod4、要跑 10 年，承重契约层不赌 RC。**决定**：契约 = `packages/contracts` 的**共享 zod4 schema**（前后端 import 同一份拿类型，这才是"前后端共享"的本质）+ 后端**薄 `ZodValidationPipe`**（zod4 原生、零额外契约依赖）+ `zod-openapi`(zod^4) 按需生成 OpenAPI。**被否**：ts-rest（RC-only for zod4）、手写调用（漂移）、降级 zod3（zod4 是既定且更强）。**后果**：最少依赖、zod4 原生、十年稳定；已 must-smoke 验证（NestJS+Fastify+zod4 校验 3/3 通过）。契约变更走版本化（`api-versioning.md`，待补）。
@@ -63,7 +63,7 @@ related:
 **背景**：项目跑 10 年，LangGraph 较年轻、十年内可能换代或被取代（修架构审计 #21）。**决定**：① 业务事实（已评结果/事件/审计/成本）一律落**业务表 + 事件账本**，**绝不只活在 graph state/checkpoint**；② `ai-graphs` 只 `import type` 编排接口，运行时图只活在 worker；③ 把编排能力抽象为薄 `OrchestrationPort`（编译图/启动/中断/恢复/checkpoint），LangGraph 是其当前实现。**被否**：节点/业务代码直接耦合 LangGraph 运行时类型（十年换引擎=重写+可能丢业务事实）。**后果**：届时换编排引擎只重写 port 实现，业务事实零丢失；checkpoint 迁移见 `runtime-migration.md`。见 `architecture/ai/agent-harness.md`。
 
 ### ADR-0015 自适应面试 agent 架构 · accepted
-**背景**：第一版"agent"实为固定题单 workflow（继承源项目交互模型,无适应/工具/反思/接地）。**决定**：重建为自适应循环——规划官→能力模型决策(追问/换题/调难度/收尾)→CRAG 自纠检索(本地够好用本地/不行自主 web 探索)→接地出题(简历个性化+标源+不照搬+去重+对能力)→反思自检→角色拆分(各自 invoke+prompt 动静分离)→报告走舱壁。跑在 checkpointer + invoke 关口上。**被否**：固定题单(不适应);LlamaIndex(TS 版 2026 已弃用,押死框架——保 LangGraph + 自实现 CRAG/agentic-RAG 模式);图内出报告(破坏舱壁隔离);qbank 每用户私有(策展真题=共享知识,公共读);热路径现爬(慢/脆/版权)。**后果**：~16 块 gate + 真 qwen 实跑验证;只有真跑才暴露的细节(fetchWithTimeout 漏 import/出题没传简历/幂等键须用持久 turn)全抓修。**详见 [`adr/0015-adaptive-agent-architecture.md`](./0015-adaptive-agent-architecture.md)。**
+**背景**：面试 agent 必须是自适应的——下一题要取决于上一题答得如何,并具备工具/反思/接地能力。**决定**：自适应循环——规划官→能力模型决策(追问/换题/调难度/收尾)→CRAG 自纠检索(本地够好用本地/不行自主 web 探索)→接地出题(简历个性化+标源+不照搬+去重+对能力)→反思自检→角色拆分(各自 invoke+prompt 动静分离)→报告走舱壁。跑在 checkpointer + invoke 关口上。**被否**：固定题单 workflow(下一题与上一题无关,不自适应);LlamaIndex(TS 版 2026 已弃用,押死框架——保 LangGraph + 自实现 CRAG/agentic-RAG 模式);图内出报告(破坏舱壁隔离);qbank 每用户私有(策展真题=共享知识,公共读);热路径现爬(慢/脆/版权)。**后果**：~16 块 gate + 真 qwen 实跑验证;只有真跑才暴露的细节(fetchWithTimeout 漏 import/出题没传简历/幂等键须用持久 turn)全抓修。**详见 [`adr/0015-adaptive-agent-architecture.md`](./0015-adaptive-agent-architecture.md)。**
 
 ---
 

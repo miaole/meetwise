@@ -15,7 +15,7 @@ owner: product
 
 > 领域：管理/运营后台 — 后台认证与会话、用户管理、订单与退款核查、内容/题库审核、运营位、数据看板、RBAC、操作审计、危险操作二次确认、导出脱敏；外加四类横切治理对象（通知 / 工单CaseRef / 调度可靠性 / 商品目录·计费地基）与两类应急对象（Kill-switch / 隐私删除权）。
 > 本版在 v1（24 UC）基础上按第二轮对抗评审逐条收口，**新增 9 个承重缺失 UC 把所有"对策写在纸面但机制悬空/不可测"的刁钻流落到原语或状态机**：退款渠道异步回调摄入（区别于 chargeback）、泄题紧急撤回安全默认、AI 生成内容专用闸门、兑换码批次确定性断点续生成、通知治理、CaseRef 生命周期、调度 missed-run 补跑、权益消费 commit 时点地基、SKU/定价目录。
-> 实现标准一律遵循 Meetwise 承重设计：四原语（CAS / 幂等 / RLS / 事件日志）、显式状态机、双校验、可观测三账本、安全护栏五层。**绝不照搬源库弱实现（fire-and-forget 通知、临时 flag kill-switch、裸字符串告警、in-memory 会话、同事务插 log）。**
+> 实现标准一律遵循 Meetwise 承重设计：四原语（CAS / 幂等 / RLS / 事件日志）、显式状态机、双校验、可观测三账本、安全护栏五层。**杜绝一切静默失败的弱实现**：通知建模为有状态机的持久对象 NotificationJob（fire-and-forget 会静默丢投递、无重试无审计）；kill-switch 是带 status enum + 审计迁移 + 二人复核 + blast-radius 的对象（临时 flag 无审计、拨动不可追溯）；告警一律落 outbox domain event（裸字符串告警下游不可对账）；会话状态持久化到 DB + 版本号比对（in-memory 会话重启/多实例即丢）；审计经事务性 outbox 投递到独立哈希链存储（与业务同事务插 log 耦合业务事务、无独立防篡改保证）。
 
 ---
 
@@ -30,7 +30,7 @@ owner: product
 ### 0.2 可观测三账本（告警/通知一律绑此，禁裸副作用）
 | 账本 | 内容 | 写入方式 |
 |---|---|---|
-| `admin_audit_log`（审计/防篡改账本） | 谁、何时、对谁、做了什么、前后值摘要、caseRef、correlationId | 业务事实强一致写业务表 + 同事务写 outbox；outbox 投递到**独立 append-only 哈希链存储**（每行 `prev_hash`/`entry_hash` 链式）。**审计不与业务同库同事务插 log**（纠正源库弱实现⑤-1）。 |
+| `admin_audit_log`（审计/防篡改账本） | 谁、何时、对谁、做了什么、前后值摘要、caseRef、correlationId | 业务事实强一致写业务表 + 同事务写 outbox；outbox 投递到**独立 append-only 哈希链存储**（每行 `prev_hash`/`entry_hash` 链式）。**审计不与业务同库同事务插 log**（同事务插 log 耦合业务事务、无独立防篡改保证）。 |
 | `ai_invocation_traces`（推理账本） | 审核/检测类模型调用 traceId、prompt 版本、双校验结果、AI 内容生成管线身份 | ai-runtime invoke 内写 |
 | `consumption_records` / `payment_orders`（业务/计费账本） | 权益 reserved/committed/released、退款、clawback、红冲 | 业务服务事务内写 |
 | **告警/通知** | 一律建模为 outbox domain event（`alert.*` / `notify.*`）落入上表对应通道；测试**断言事件入箱，禁止断言下游真发**（纠正评审③-2 裸字符串告警）。 |
@@ -141,7 +141,7 @@ SkuCatalog/PricingPlan: draft → active → deprecated（版本化，价格快�
 - **前置**：存在活跃 `AdminSession`
 - **触发**：每次受保护请求的会话校验；或 super_admin 主动吊销某会话
 - **主流程**：
-  1. 鉴权中间件实时比对 `session_version`（单调 CAS 语义，纠正源库"待吊销标记"弱实现）。
+  1. 鉴权中间件实时比对 `session_version`（单调 CAS 语义；不用"待吊销标记"——标记依赖轮询清理、吊销与放行间存在窗口，版本号比对每请求即时生效、fail-closed）。
   2. 校验空闲时长 < `IDLE`、绝对时长 < `ABSOLUTE`；超则置 `idle_expired/absolute_expired`。
   3. super_admin 吊销 → `session_version` 自增（CAS），目标会话下次鉴权 fail-closed。
 - **后置**：`AdminSession: active→idle_expired|absolute_expired|revoked`；audit(session_revoke)。
@@ -853,7 +853,7 @@ SkuCatalog/PricingPlan: draft → active → deprecated（版本化，价格快�
 - **角色**：系统（所有写动作自动触发）/ auditor 查阅
 - **前置**：任意敏感动作
 - **触发**：状态迁移/敏感读写
-- **主流程（Meetwise 标准，纠正源库"同事务插 log"）**：
+- **主流程（业务事实表强一致 + 审计经事务性 outbox 投递，不与业务同库同事务插 log）**：
   1. **业务事实表强一致**写入（业务表 + 同事务写 outbox 行，单事务原子）。
   2. **审计经事务性 outbox 投递**到**独立 append-only 哈希链存储**（`prev_hash→entry_hash` 链，可验证不可篡改），**不与业务同库同事务插 log**。
   3. **按动作风险分级决定"是否阻塞业务"**（高危=outbox 确认前不放行后续 / 普通=异步），**而非是否同事务**。
@@ -964,7 +964,7 @@ SkuCatalog/PricingPlan: draft → active → deprecated（版本化，价格快�
   4. **安全恢复**：回拨 `tripped→armed` 同样需二次确认（误拨保护），恢复后**逐步放量（灰度）+ 验证**。
   5. 全程审计 + 状态广播事件入箱。
 - **后置**：`KillSwitch: armed⇄tripped`；audit(killswitch) + 状态广播事件。
-- **关联**：契约 `POST /admin/killswitch/:id`；状态机 KillSwitch + DangerApproval；CAS·幂等·事件日志；SR-AUDIT/SR-ANTIFRAUD。**kill-switch 是有 status enum + 审计迁移 + 二人复核 + blast-radius 的对象，非临时 flag（纠正源库弱实现）。**
+- **关联**：契约 `POST /admin/killswitch/:id`；状态机 KillSwitch + DangerApproval；CAS·幂等·事件日志；SR-AUDIT/SR-ANTIFRAUD。**kill-switch 是有 status enum + 审计迁移 + 二人复核 + blast-radius 的对象，非临时 flag（临时 flag 无审计、无 blast-radius 边界、拨动不可追溯）。**
 
 **七类 case：**
 - **正常**：四眼批准 → tripped，新请求被拒。
@@ -1019,7 +1019,7 @@ SkuCatalog/PricingPlan: draft → active → deprecated（版本化，价格快�
 
 ---
 
-# 模块十三：通知治理（adminnotify）— 新增，纠正源库 fire-and-forget 弱实现
+# 模块十三：通知治理（adminnotify）— 通知建模为有状态机的持久对象 NotificationJob（fire-and-forget 会静默丢投递、无重试无审计）
 
 ## UC-adminnotify-01 通知治理（持久作业状态机 + outbox + 重试 + 误发召回 + 模板审核 + PII 脱敏）
 
@@ -1236,6 +1236,6 @@ SkuCatalog/PricingPlan: draft → active → deprecated（版本化，价格快�
 3. **审计强一致 vs 防篡改取舍** — 业务事实表强一致 + 审计经事务性 outbox 投递 + 独立 append-only 链上防篡改；按显式高危枚举表（fail-closed 缺省）决定"是否阻塞业务"而非"是否同事务插 log"（UC-adminaudit-01）。
 4. **退款异步边界三分** — 我方主动退款的渠道异步结果回调（UC-adminorder-05）、用户主动拒付 chargeback（UC-adminorder-04）、主动对账轮询三者互为幂等补偿；幂等键=渠道单号，状态机单调前进，回调先于落库走 pending_match（评审"退款域最大机制空洞"闭合）。
 5. **commit 时点是退款政策地基** — reserved/committed/released 以"报告 ready"为 commit 判据，渐进消费整体 commit 而非每题，退款差额仅退 reserved 未 committed 部分；commit 与退款 release 经 run 锁 + CAS 严格互斥（UC-admincommerce-01 ↔ UC-adminorder-03）。
-6. **横切治理对象皆建模为有状态机的持久对象** — 通知（NotificationJob）、工单（CaseRef）、止血开关（KillSwitch）、调度（ScheduledTask）均有显式 status enum + 审计迁移 + 原语落点，杜绝 fire-and-forget / 临时 flag / 裸告警 / 依赖每 tick 的源库弱实现。
+6. **横切治理对象皆建模为有状态机的持久对象** — 通知（NotificationJob）、工单（CaseRef）、止血开关（KillSwitch）、调度（ScheduledTask）均有显式 status enum + 审计迁移 + 原语落点，杜绝 fire-and-forget（静默丢投递）/ 临时 flag（无审计无 blast-radius）/ 裸告警（下游不可对账）/ 仅依赖每 tick 调度（漏跑即放大）等静默失败路径。
 
 > 收尾判断：本版已把第二轮评审定为"在补齐前应保持 draft"的三类机制空洞——**异步边界（UC-adminorder-05 渠道回调 / UC-adminnotify-01 通知）、横切治理对象未建模（UC-adminkill-01 / UC-admincaseref-01 / UC-adminscheduler-01）、退款业务地基（UC-admincommerce-01 commit 时点）**——全部落到状态机或四原语，对应刁钻流均有可执行 TC。剩余 openDecisions 为产品/财务/法务口径选择（非工程机制缺口），不阻塞 spec 定稿；定稿后方可作为生成前门禁的输入。

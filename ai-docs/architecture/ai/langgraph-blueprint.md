@@ -13,7 +13,7 @@ tags:
   - langgraph
   - graph
 related:
-  - ../../references/external/langgraph.md
+  - ./agent-runtime.md
 ---
 
 # LangGraph 架构方案

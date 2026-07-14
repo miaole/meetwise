@@ -1,7 +1,7 @@
 ---
 id: adr_0015_adaptive_agent_architecture
 name: ADR-0015 自适应面试 agent 架构
-description: 把"固定题单 workflow"重建为"可靠、会自己探索的自适应 agent"——决策/检索/工具/反思/角色拆分,及被否方案与失败模式。面试可辩护。
+description: 面试 agent 为何是"可靠、会自己探索的自适应循环"而非固定题单——决策/检索/工具/反思/角色拆分,及被否方案与失败模式。面试可辩护。
 type: reference
 scope: shared
 level: guide
@@ -15,17 +15,17 @@ related:
 
 # ADR-0015 自适应面试 agent 架构 · accepted
 
-> 项目核心卖点是 **agent 架构**。本 ADR 记这套 agent 从"薄壳"重建为"真 agent"的决策与取舍,逐条可在面试追问下给出理由而非结论。
+> 项目核心卖点是 **agent 架构**。本 ADR 记这套自适应 agent 的决策与取舍,逐条可在面试追问下给出理由而非结论。
 
 ## 背景
 
-第一版面试"agent"实为 **固定题单 workflow**:`quizGenerator` 一次性让模型从简历**猜** N 道题 → 顺序问(`questions[i]`)→ 逐题评 → 报告。**下一题与上一题答得如何无关**,无工具、无反思、无适应。这是**继承了源项目"LLM 包一层固定问答"的交互模型**——我们重做了底座(杀内存 session、上 checkpointer/HA/RLS),却没质疑 agent 设计本身。
+真实面试是自适应的:面试官据上一题答得如何决定追问、换题还是加深。因此面试 agent 的本体必须是 **感知→推理→行动的自适应循环**,而不是**固定题单 workflow**——后者一次性让模型从简历**猜** N 道题 → 顺序问(`questions[i]`)→ 逐题评 → 报告,**下一题与上一题答得如何无关**,无工具、无反思、无适应,本质只是"LLM 包一层固定问答"。
 
-**核心教训(可辩护):重建基础设施 ≠ 重建智能;底座对不等于脑子对。**
+**核心判断(可辩护):可恢复的持久底座(checkpointer/HA/RLS)是必要条件而非充分条件;底座对不等于脑子对——智能必须单独设计。**
 
 ## 决定
 
-把 agent 重建为 **感知→推理→行动 的自适应循环**,跑在已有持久 substrate 上(LangGraph checkpointer + `invoke` 关口双校验/exactly-once):
+agent 是 **感知→推理→行动 的自适应循环**,跑在持久 substrate 上(LangGraph checkpointer + `invoke` 关口双校验/exactly-once):
 
 1. **规划官(plan-and-solve)**:据岗位+简历提目标能力,非固定题单。
 2. **自适应决策**(纯逻辑,确定可 gate):能力模型(per-competency confidence/depth/evidence)→ 决策 **追问 probe / 换题 pivot / 调难度 / 收尾 conclude**。
@@ -40,7 +40,7 @@ related:
 
 ## 被否方案
 
-- **固定题单(原设计)**:不自适应——核心病灶,否。
+- **固定题单 workflow**:下一题与上一题无关、不自适应——核心病灶,否。
 - **LlamaIndex(做 agent/RAG)**:查证 **LlamaIndex.TS 2026 已弃用/不再维护**(workflows-ts 弃用、legacy agents v0.9.0 移除、官方导向 Python);TS 生产押它=押死框架。**保留 LangGraphJS**(循环/有状态/人在环/长会话/持久化正是可恢复面试的形状),**拿 agentic-RAG/CRAG 模式自己在现有混合检索(pgvector+BM25+rerank)上实现**——能力同、不锁死、十年可控。
 - **图内出报告**:否——破坏报告舱壁的失败隔离 + 双花模型。
 - **qbank 每用户私有**:否——策展真题=共享知识(非 PII,非多租户)→ **公共读**(系统 owner 灌一次,全用户检索;memory 仍 owner 私有)。

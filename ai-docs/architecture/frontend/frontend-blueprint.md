@@ -20,25 +20,24 @@ related:
 # 前端架构方案
 
 > 前端是 **Next.js App Router**。本文与 `system-blueprint.md` 的「契约先行、所有用户内容不可信、状态落服务端」一致。
-> 注：本文第 11 节"关键差异清单"仍含"源项目"比较式措辞，待按原创陈述重写（落地问题，已记入审核）。
 >
 > **落地状态（apps/web）**：✅ **承重纯逻辑 + SSE 重连驱动已建+gated**（`pnpm web:prove` 40 断言,**经安全/协议/可靠性审计**）——`lib/stream`(SSE 业务事件解码:CRLF/心跳/分块;视图归约:`report_unavailable→degraded`、流断→reconnecting、重连耗尽→出口,**无静默死胡同**;`runInterviewStream` 重连驱动:Last-Event-ID 续传不丢事件、绝对重连上限防 DoS、buffer 封顶、AbortSignal 取消)、`lib/api`(契约客户端:HTTP 状态分流 business/transport/drift/invalid_request + 强制幂等键)。⏳ **待补(demo 渲染层)**：Next App Router 路由/页面/middleware + 调 `runInterviewStream` 的薄 React effect + shadcn 设计系统——依赖产品页面取舍。
 
 ## 1. 选型决策
 
-| 层 | 选型 | 取代源项目的什么 | 原因 |
-| --- | --- | --- | --- |
-| 框架 | Next.js App Router + React 19 + TypeScript | Nuxt 4 / Vue 3 | RSC、流式渲染、SEO、Vercel 一等公民 |
-| 样式 | Tailwind CSS v4 | 同 Tailwind（源项目也用） | 保留，唯一无需重做的部分 |
-| 组件库 | **shadcn/ui（Radix primitives，copy-in 自有代码）** | `@nuxt/ui` | 组件源码进仓库、可改可审计、无运行时锁定，符合「先快后稳沉淀设计系统」 |
-| 图标 | lucide-react | Heroicons | shadcn 默认，tree-shakable |
-| 契约客户端 | **共享 zod4 schema（`packages/contracts`）+ 类型化 fetch 封装** | 前端手写、漂移的 `app/api/*.js` | 同一份 schema 前后端共用，从第一天锁接口（见审计「接口缺口」）。**注：ts-rest 3.x 锁 zod^3、与 zod4 不兼容，已弃用改 zod4-native，见 ADR-0004** |
-| 服务端状态 | TanStack Query（client）+ RSC fetch（server） | 无统一方案 | 缓存、重试、失效、分页统一；RSC 负责首屏/SEO |
-| 客户端 UI 状态 | **Zustand（仅存易失 UI 态）** | Pinia + persist（把面试状态写 localStorage） | 面试真相在服务端 checkpoint，客户端只存草稿/开关，不当事实源 |
-| 表单 | react-hook-form + `@hookform/resolvers/zod` | 手写校验 | 复用契约里的 Zod schema，前后端同构校验 |
-| Markdown | **react-markdown + rehype-sanitize** | `marked` + `v-html` | 直接消除审计点名的 **XSS 风险**；AI 输出是不可信内容，必须 sanitize |
-| 语音 | Web Speech API（封装成 hook） | 同（浏览器原生） | 保留，封装为 `useSpeech*` |
-| 测试 | Vitest + RTL + Playwright + MSW | 源项目无测试 | 见 `testing/strategy/test-strategy.md` |
+| 层 | 选型 | 原因 |
+| --- | --- | --- |
+| 框架 | Next.js App Router + React 19 + TypeScript | RSC、流式渲染、SEO、部署一等公民 |
+| 样式 | Tailwind CSS v4 | 原子化、可组合、构建期裁剪，设计系统同源 |
+| 组件库 | **shadcn/ui（Radix primitives，copy-in 自有代码）** | 组件源码进仓库、可改可审计、无运行时锁定，符合「先快后稳沉淀设计系统」 |
+| 图标 | lucide-react | shadcn 默认，tree-shakable |
+| 契约客户端 | **共享 zod4 schema（`packages/contracts`）+ 类型化 fetch 封装** | 同一份 schema 前后端共用，从第一天锁接口，杜绝手写 fetch 路径漂移。**注：ts-rest 3.x 锁 zod^3、与 zod4 不兼容，已弃用改 zod4-native，见 ADR-0004** |
+| 服务端状态 | TanStack Query（client）+ RSC fetch（server） | 缓存、重试、失效、分页统一；RSC 负责首屏/SEO |
+| 客户端 UI 状态 | **Zustand（仅存易失 UI 态）** | 面试真相在服务端 checkpoint，客户端只存草稿/开关，不当事实源 |
+| 表单 | react-hook-form + `@hookform/resolvers/zod` | 复用契约里的 Zod schema，前后端同构校验 |
+| Markdown | **react-markdown + rehype-sanitize** | AI 输出是不可信内容，必须 sanitize，从根上消除 **XSS 风险** |
+| 语音 | Web Speech API（封装成 hook） | 浏览器原生能力，封装为 `useSpeech*` |
+| 测试 | Vitest + RTL + Playwright + MSW | 见 `testing/strategy/test-strategy.md` |
 
 ## 2. `apps/web` 目录结构
 
@@ -78,13 +77,13 @@ apps/web/
 
 ## 4. 路由设计：用嵌套路由，不要 URL-query 状态机
 
-源项目把整个面试流程塞进 `/interview?step=input|progress|interview|complete&serviceType=...` 一个客户端组件里。Meetwise 改为**资源化的嵌套路由**：
+把整个面试流程塞进 `/interview?step=input|progress|interview|complete&serviceType=...` 一个客户端组件的 URL-query 状态机是错的：状态活在客户端、刷新即丢、无法分享、无法从服务端恢复。Meetwise 用**资源化的嵌套路由**：
 
 - `/interview/start` → 配置入口。
 - `/interview/[resultId]` → 一次面试 = 一个 `interviewResult.resultId`（也是 LangGraph 的 `threadId`）。URL 天然可分享、可恢复、可刷新。
 - `/interview/[resultId]/report` → 报告。
 
-好处：刷新或断线后，凭 URL 里的 `resultId` 重新拉 checkpoint 即可恢复，不依赖任何客户端持久化。这正是源项目内存 session + Pinia 持久化要解决却没解决的问题。
+好处：刷新或断线后，凭 URL 里的 `resultId` 重新拉 checkpoint 即可恢复，不依赖任何客户端持久化——URL 就是恢复句柄，服务端 checkpoint 是唯一真相。
 
 ## 5. 数据获取：契约先行
 
@@ -106,7 +105,7 @@ export async function getInterview(id: string): Promise<InterviewView> {
 
 ## 6. 客户端状态：Zustand 只存易失态
 
-源项目用 Pinia + `persist` 把整段面试 `messages`、`referenceAnswer`、`sessionId` 写进 localStorage——一旦服务端 session 过期就和客户端不一致。Meetwise 反过来：
+把整段面试 `messages`、`referenceAnswer`、`sessionId` 用持久化插件写进 localStorage 是反模式——一旦服务端会话过期，客户端持久态就成了与服务端分叉的第二真相源。Meetwise 反过来：
 
 - **真相源 = 服务端 LangGraph checkpoint（Postgres）**。
 - Zustand 只放**易失 UI 态**：表单草稿、侧边栏开关、TTS 开关、乐观更新的临时占位。
@@ -128,7 +127,7 @@ export function useInterviewStream(resultId: string) {
 
 ## 8. 鉴权：middleware + httpOnly cookie
 
-源项目把 JWT 存 localStorage、每个请求手动塞 header——易受 XSS 窃取。Meetwise：
+把 JWT 存 localStorage、每个请求手动塞 header 会把 token 暴露给任意脚本，易受 XSS 窃取。Meetwise：
 
 - 登录态用 **httpOnly、Secure、SameSite cookie**，JS 读不到。
 - `middleware.ts` 拦截 `(app)` 段，未登录重定向 `/login`。
@@ -152,17 +151,19 @@ export const config = { matcher: ["/interview/:path*", "/profile", "/history"] }
 - **长连接 SSE 与 Serverless 超时**：模拟面试可能跨越数分钟到数小时，Vercel 函数有执行时长上限。因为 §7 已把 SSE 设计成可抛弃 + checkpoint 恢复，超时断开不是错误路径而是正常路径——客户端检测到流结束就用同一 `resultId` 重连。无需为此引入常驻长连接基础设施。
 - SSE 直连容器化 API（推荐，避免 Vercel 中转超时），或经 `app/api/*` 薄代理（仅开发期/同源需要时）。
 
-## 11. 与源项目（Nuxt）的关键差异清单
+## 11. 关键技术选型与理由（失败模式驱动）
 
-| 源项目做法 | Meetwise（Next）改为 | 动机 |
+每条选型都对应一个具体失败模式——这些是前端最容易踩、且一旦踩到就动摇「状态落服务端、内容不可信」两条底座的坑。
+
+| 选型 | 拒绝的反模式 | 理由（失败模式） |
 | --- | --- | --- |
-| `@nuxt/ui` 运行时组件库 | shadcn/ui 自有源码 | 可审计、可定制、无锁定 |
-| `?step=...` 单组件状态机 | 嵌套路由 + `[resultId]` | 可分享、可刷新、可恢复 |
-| Pinia persist 存面试状态 | 服务端 checkpoint 为真相，Zustand 仅 UI | 不再有客户端/服务端状态漂移 |
-| 手写 `app/api/*.js` | 共享 zod4 schema 契约 | 杜绝接口漂移 |
-| `marked` + `v-html` | react-markdown + sanitize | 消除 XSS |
-| JWT 存 localStorage | httpOnly cookie + middleware | 防 token 被 XSS 窃取 |
-| 无测试 | Vitest + RTL + Playwright + MSW | 见测试策略 |
+| shadcn/ui 自有源码 | 运行时锁定的组件库 | 组件源码进仓库才可审计、可定制、无版本锁定 |
+| 嵌套路由 + `[resultId]` | `?step=...` 单组件 URL 状态机 | 状态活在客户端则刷新即丢、无法分享、无法从服务端恢复 |
+| 服务端 checkpoint 为真相，Zustand 仅 UI | 客户端持久化整段面试状态 | 客户端持久态会成为与服务端分叉的第二真相源 |
+| 共享 zod4 schema 契约 | 手写、易漂移的前端 fetch 路径 | 同一份 schema 前后端共用，从根上杜绝接口漂移 |
+| react-markdown + rehype-sanitize | 裸 HTML 注入渲染 | AI/用户输出是不可信内容，不 sanitize 即 XSS |
+| httpOnly cookie + middleware | JWT 存 localStorage 手动塞 header | localStorage 中的 token 任意脚本可读，易被 XSS 窃取 |
+| Vitest + RTL + Playwright + MSW | 无自动化测试 | SSE 渐进渲染/断线重连/契约不漂移必须可回归，见测试策略 |
 
 ## 12. 测试
 

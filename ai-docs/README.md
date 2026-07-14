@@ -17,7 +17,6 @@
 - `architecture/`：前端、后端、AI、DevOps、观测等长期架构。
 - `rules/`：长期稳定工程规则。
 - `skills/`：任务型工作方法。
-- `references/`：源项目审计、外部资料、模板。
 - `testing/`：测试策略、AI golden tasks、E2E 和评测。
 - `delivery/`：路线图、发布说明、复盘。
 - `observability/`：AI 运行、prompt 质量、graph 质量和成本观测。
@@ -29,6 +28,6 @@
 3. 当前任务对应的 `requirements/`
 4. 对应范围的 `architecture/`
 5. 对应范围的 `rules/`
-6. 必要时使用 `skills/` 和 `references/templates/`
+6. 必要时使用 `skills/`
 7. 最后补 `testing/` 与 `delivery/`
 

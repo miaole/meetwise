@@ -40,7 +40,7 @@ tags:
 | 后端架构 | `architecture/backend/` | 模块、接口、DB、事务、队列 |
 | 部署演示 | `architecture/devops/local-demo-deployment.md` | compose、seed、健康检查 |
 | 测试设计 | `testing/strategy/test-strategy.md` | 测试矩阵、golden tasks |
-| 代码生成前确认 | `references/templates/task-harness.md` | Task Harness |
+| 代码生成前确认 | `meta/task-sop.md` 的生成前门禁 | Task Harness |
 
 ## 新增文档规则
 
@@ -49,7 +49,6 @@ tags:
 - 技术方案放 `architecture/`。
 - 强约束放 `rules/`。
 - 工作方法放 `skills/`。
-- 模板和源项目资料放 `references/`。
 - 测试策略和评测放 `testing/`。
 - 发布、复盘和路线图放 `delivery/`。
 

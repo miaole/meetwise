@@ -25,7 +25,7 @@ The workflow is documentation-first, structure-first, contract-first, test-first
 
 - **Start from `ai-docs/meta/index.md`**, then route to the right doc via its task table before touching anything.
 - **Do not invent interfaces.** Frontend and backend must be driven by a shared contract (`packages/contracts` — shared zod4 schemas + `zod-openapi`; ts-rest was rejected, see ADR-0004). Meetwise locks contracts from day one to prevent frontend/backend drift.
-- **Before writing code/DB/API/LangGraph/payment/AI tasks**, produce the pre-generation gate (`AGENTS.md` "生成前门禁"): task scope, source evidence, explicit non-goals, domain objects, state-machine impact, contract impact, DB impact, test plan, verification command. For complex tasks use `ai-docs/references/templates/task-harness.md`.
+- **Before writing code/DB/API/LangGraph/payment/AI tasks**, produce the pre-generation gate (`AGENTS.md` "生成前门禁"): task scope, source evidence, explicit non-goals, domain objects, state-machine impact, contract impact, DB impact, test plan, verification command. For complex tasks follow the pre-generation gate fields in `AGENTS.md` "生成前门禁".
 - **One conclusion lives in one place** (`ai-docs/meta/directory-boundaries.md`). Long-term product truth → `product/`; this-iteration scope → `requirements/`; tech design → `architecture/`; hard constraints → `rules/`; one-off tickets/evidence → `.tmp/` (gitignored, never committed to `ai-docs`).
 
 ## Planned architecture (target, not yet built)

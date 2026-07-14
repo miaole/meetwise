@@ -1,7 +1,7 @@
 ---
 id: requirements_uc_interview_history
 name: 用例集 · 面试历史（interview-history）
-description: 第二批 parity 缺口「面试历史」终稿。按资深产品+QA 两轮对抗评审补齐七类 case、异常/刁钻逐条落机制、验收可测、配齐测试用例，一律走 Meetwise 承重设计（四原语/RLS/双校验/状态机/可观测三账本/安全护栏五层）。源参考「内存 Map = 一个会话」的单进程假设在此被「行 CAS + run 级 fencing/lease」彻底替换；会话生命周期闭环（过期/废弃/退费）、非时间排序分页正确性、resume 失败补偿、被遗忘权对财务账本的边界 四处致命缺口已逐项收口。
+description: 第二批能力缺口「面试历史」终稿。按资深产品+QA 两轮对抗评审补齐七类 case、异常/刁钻逐条落机制、验收可测、配齐测试用例，一律走 Meetwise 承重设计（四原语/RLS/双校验/状态机/可观测三账本/安全护栏五层）。会话状态以「行 CAS + run 级 fencing/lease」建模（不用内存 Map 假设单进程：重启/多实例即丢会话）；会话生命周期闭环（过期/废弃/退费）、非时间排序分页正确性、resume 失败补偿、被遗忘权对财务账本的边界 四处致命缺口已逐项收口。
 type: use-case
 scope: cend
 level: spec
@@ -21,7 +21,7 @@ related:
 
 > **🔎 实现状态（对齐真实代码 · 2026-07）** — 本文是 TARGET 规格。**✅ 已实现+接线**：面试/报告历史查看（约 25 个 SSR 页面含 interviews/report/diagnosis 列表与详情）、RLS principal 绑定、AiGraphRun fencing/lease 单活动 run（interrupt/resume 基于持久 checkpoint，非内存 Map）。**🟠 部分 / ⬜ 未建**：会话生命周期看门狗（TTL 把 waiting_user→expired/abandoned + 退费，UC-IH-13）、非时间排序的复合 keyset 分页、被遗忘权对财务账本的排除清单等承重细节多为规格，尚未全部落地。基础历史读取与隔离已生效。
 
-> 评审定论（两轮）：契约面（RLS / IDOR-404 / 游标 / CAS）骨架扎实；致命失分集中在四处并已收口——①分布式「至多一个活动 run」的执行机制（错把保证放在 `Interview` 行 CAS 上，而 checkpoint 按 `thread_id` 写、不经这把 CAS → 脑裂）→ 0.1 fencing/lease；②**会话生命周期闭环**（谁/何时/按什么 TTL 把 `in_progress/waiting_user` 迁成 `expired/abandoned`，以及对应退费）→ 0.2 + 0.3 + 新增 **UC-IH-13 看门狗**；③**非时间排序的分页正确性**（按 score/role 排序时裸 `(started_at,id)` 游标会重复/跳漏）→ 0.6 复合 keyset；④**被遗忘权对财务账本的边界**（naive cascade 会删交易凭证）→ 0.8 erasure 排除清单。其余「抄来的高成熟度承诺」不可测项（读副本降级、报告译文层、时延持平断言）一律降级/移除。
+> 评审定论（两轮）：契约面（RLS / IDOR-404 / 游标 / CAS）骨架扎实；致命失分集中在四处并已收口——①分布式「至多一个活动 run」的执行机制（错把保证放在 `Interview` 行 CAS 上，而 checkpoint 按 `thread_id` 写、不经这把 CAS → 脑裂）→ 0.1 fencing/lease；②**会话生命周期闭环**（谁/何时/按什么 TTL 把 `in_progress/waiting_user` 迁成 `expired/abandoned`，以及对应退费）→ 0.2 + 0.3 + 新增 **UC-IH-13 看门狗**；③**非时间排序的分页正确性**（按 score/role 排序时裸 `(started_at,id)` 游标会重复/跳漏）→ 0.6 复合 keyset；④**被遗忘权对财务账本的边界**（naive cascade 会删交易凭证）→ 0.8 erasure 排除清单。其余无法测的高成熟度承诺（读副本降级、报告译文层、时延持平断言）一律降级/移除。
 
 ---
 

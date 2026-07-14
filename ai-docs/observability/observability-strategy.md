@@ -50,7 +50,7 @@ Meetwise 的状态全部落持久层（`interview` 状态机、`interview_event`
 | `principalId` | 主体（**标量,绝不带名字/简历**） | 全链路,RLS 绑定键 |
 | `idempotencyKey` | 幂等作用域 | `ai_invocation_trace` / `consumption_record` |
 
-> `threadId` 是黄金键:出问题时凭它能把"用户看到的 SSE 事件 ↔ 事件账本 ↔ checkpoint ↔ 模型 trace ↔ 结算记录"全串起来。这正是源项目内存 session 给不出的能力。
+> `threadId` 是黄金键:出问题时凭它能把"用户看到的 SSE 事件 ↔ 事件账本 ↔ checkpoint ↔ 模型 trace ↔ 结算记录"全串起来。这正是内存 session 方案给不出的能力(不可恢复、跨实例对不上)。
 
 ---
 

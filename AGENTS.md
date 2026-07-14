@@ -20,8 +20,7 @@
 - `ai-docs/rules`：长期稳定工程约束。
 - `ai-docs/skills`：AI 做某类任务时的工作方法。
 - `ai-docs/testing`：测试策略、golden tasks、E2E 和评测。
-- `ai-docs/references`：源项目分析、外部资料、模板。
-- `.tmp`：单次执行工单、harness、临时证据和运行记录。
+- `.tmp`：单次执行工单、harness、临时证据、门禁模板和运行记录（不提交）。
 
 ## 生成前门禁
 
@@ -37,4 +36,4 @@
 - 测试计划
 - 验证命令或阻塞原因
 
-复杂任务使用 `ai-docs/references/templates/task-harness.md`。
+复杂任务按上述字段逐条产出门禁（本地门禁模板见 `.tmp/references/templates/task-harness.md`，不提交）。

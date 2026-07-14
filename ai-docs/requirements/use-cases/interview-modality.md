@@ -107,7 +107,7 @@ related:
 
 ### 0.6 免费额度 = 带状态枚举的业务账本（评审 P0#3，停用「Redis 计数器即真相」）
 
-源参考库把免费额度做成 Redis 计数器即真相——违反「业务事实落业务表 + 显式状态枚举」。本域改为：
+免费额度是业务事实，落业务表 + 显式状态枚举——不把 Redis 计数器当额度真相（重启/多实例会丢、无审计、对不上账）。本域落法：
 
 - 免费额度是 `consumption_record` 中 `entitlementType=free` 的业务行，状态枚举 `granted · reserved · confirmed · released · refunded`，`idempotency_key` UNIQUE，所有迁移 CAS。
 - 「跨形态合并计数」= 对该用户 `entitlementType=free ∧ status∈{reserved,confirmed}` 行做**带 `FOR UPDATE`/CAS 的额度校验**（事务内查业务表），而非读 Redis 数。
@@ -862,11 +862,11 @@ related:
 
 > **逃逸通道补全（评审①）**：money/exactly-once 路径全部有逃逸出口——UC-06 commit 期 fail-closed 安全终止；UC-04/14/15 saga 毒丸 → DLQ + 人工对账升级；UC-01 空集合非死胡同。
 
-## 附录 B · 本域承重 delta（vs 源参考库照搬）
-1. **`serviceType` + 三 pin DB 级不可变（触发器/约束兜底）+ 创建即三口径同源 pin**：源库以散落 if/else 区分形态、应用层守卫可被旁路 UPDATE 破防 → 降型逃费/评分错配。本域以「DB 级不可变判别 + 同源 pin + CAS+触发器双层」根除（UC-MODE-03/12/14）。
+## 附录 B · 本域承重设计要点
+1. **`serviceType` + 三 pin DB 级不可变（触发器/约束兜底）+ 创建即三口径同源 pin**：以「DB 级不可变判别 + 同源 pin + CAS+触发器双层」根除降型逃费/评分错配（应用层 if/else 守卫可被旁路 UPDATE 破防，DB 触发器是兜底唯一防线）（UC-MODE-03/12/14）。
 2. **两条事件流物理分离**：`confirm_event`(键 confirmId) 与 `interview_event`(键 threadId) 不混流——confirm 在 Interview 不存在时即发生，绝不塞 threadId 单调流；`modality_switched/upgrade_settled` 作为新 thread genesis 事件（UC-MODE-04/14/§0.3）。
 3. **专项确认是显式状态机聚合**（`SpecialInterviewConfirm` 五态 + 单次 `confirmToken` 幂等 + 价格/版本 pin + TTL + 配额释放）→ 防双击双开、价格竞态、过期复用、自占额（UC-MODE-04/06/07/08）。
-4. **免费额度 = 带状态枚举的业务账本**（`consumption_record(free)`），停用「Redis 计数器即真相」→ 业务事实落业务表、跨形态合并打业务表（UC-MODE-16/18/§0.6）。
+4. **免费额度 = 带状态枚举的业务账本**（`consumption_record(free)`）→ 业务事实落业务表、跨形态合并打业务表（不以 Redis 计数器为额度真相：重启/多实例丢、无审计）（UC-MODE-16/18/§0.6）。
 5. **价格公平铁律 min(pin价,当前价) + priceToken 展示价回显**贯穿 special 与直接创建三形态 → 闭合价格竞态、消除杀熟/欺诈合规风险（UC-MODE-02/07/§0.5）。
 6. **commit exactly-once 收敛为「reserve+Interview 单 DB 事务，图 kickoff post-commit outbox」+ commit 期 fail-closed 安全终止** → 消除跨 checkpointer 单 ACID 过度承诺、无半态（UC-MODE-06）。
 7. **出题/评分/计费三轴差异数据驱动**（profile/rubric/plan 由目录 pin、独立模块、禁 AI 自评，对抗断言用固定金集+阈值）→ 口径隔离、防跨 rubric 刷分/串题/泄题（UC-MODE-09/10/11）。

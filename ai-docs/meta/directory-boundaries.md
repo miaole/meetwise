@@ -32,7 +32,6 @@ tags:
 | `architecture` | 技术上如何长期组织 | 本次任务 todo |
 | `rules` | 长期稳定约束是什么 | 一次性讨论 |
 | `skills` | 这类工作怎么做 | 产品定义 |
-| `references` | 有哪些参考资料和模板 | 最终业务口径 |
 | `testing` | 怎么验证 | 实现正文 |
 | `delivery` | 怎么发布和复盘 | 需求原文 |
 | `observability` | 怎么观察 AI 和系统质量 | 用户敏感数据 |
