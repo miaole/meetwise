@@ -122,6 +122,38 @@ async function main() {
   A(r.status === 200, `报告端点可查 → status=${b.status}`);
   A(terminal === 'report_ready' ? b.status === 'ready' : b.status !== 'ready', `状态机:报告 status 与终态自洽(终态 ${terminal} → status=${b.status})`);
 
+  // 7a. [兜底/逃逸·跨进程] **报告失败隔离**:报告生成失败 → 舱壁 quarantine → **report_unavailable**(非无限转圈死胡同);
+  //  面试本身已完成(entitlement 已扣,报告失败不退面试费——失败隔离铁律)。用带 E2E_REPORT_FAIL 标记的作答触发确定性报告失败(见 worker e2e 模型)。
+  {
+    const cr = await j(await fetch(`${BASE}/interview`, { method: 'POST', headers: H, body: '{}' }));
+    const failIv = cr.interviewId ?? cr.id ?? cr.resultId;
+    A(typeof failIv === 'string', `[兜底] 建失败测试面试 → id(${failIv})`);
+    const bg = await fetch(`${BASE}/interview/${failIv}/begin`, { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
+    A(bg.status === 202, '[兜底] 失败测试面试 begin → 202');
+    let fSeq = 0, fTurn = 0, fTerm = '';
+    const fStart = Date.now();
+    while (Date.now() - fStart < 90_000) {
+      // 内联读 failIv 事件(readEvents 闭包绑定了主 interviewId,故此处独立实现)
+      const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 1200); let buf = '';
+      try {
+        const res = await fetch(`${BASE}/interview/${failIv}/events`, { headers: { authorization: `Bearer ${token}`, ...(fSeq ? { 'last-event-id': String(fSeq) } : {}) }, signal: ac.signal });
+        if (res.status === 200 && res.body) { const rd = res.body.getReader(); const dec = new TextDecoder(); for (;;) { const { done, value } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); } }
+      } catch { /* abort 预期 */ } finally { clearTimeout(t); }
+      for (const m of buf.matchAll(/^id: (\d+)\nevent: (\w+)\ndata: (.*)$/gm)) {
+        const seq = Number(m[1]), kind = m[2];
+        if (seq <= fSeq) continue; fSeq = seq;
+        if (kind === 'question_ready') { await fetch(`${BASE}/interview/${failIv}/turn`, { method: 'POST', headers: { ...H, 'idempotency-key': `${failIv}:t:${fTurn}` }, body: JSON.stringify({ turn: fTurn, answer: 'E2E_REPORT_FAIL 我用 Redis 令牌桶限流,Lua 原子释放锁。' }) }); fTurn++; }
+        else if (kind === 'clarification_needed') { await fetch(`${BASE}/interview/${failIv}/turn`, { method: 'POST', headers: { ...H, 'idempotency-key': `${failIv}:t:${fTurn}` }, body: JSON.stringify({ turn: fTurn, answer: 'E2E_REPORT_FAIL 跳过' }) }); fTurn++; }
+        else if (['report_ready', 'report_unavailable', 'interview_unavailable'].includes(kind)) fTerm = kind;
+      }
+      if (fTerm) break;
+      await new Promise((rr) => setTimeout(rr, 1000));
+    }
+    A(fTerm === 'report_unavailable', `[兜底] 报告失败 → 终态 report_unavailable(舱壁隔离,无死胡同 ✅;实得 ${fTerm})`);
+    const rep = await j(await fetch(`${BASE}/interview/${failIv}/report`, { headers: H }));
+    A(rep.status !== 'ready', `[兜底] 失败报告 status 非 ready(${rep.status})——不谎报成功`);
+  }
+
   // 7b. 押题 + 诊断全栈(真 HTTP → worker 消费 → 图执行 → 终态,无死胡同)。通用终态轮询(SSE hold-and-tail)。
   const pollTerminal = async (base: string, terminals: string[]): Promise<string> => {
     let seq = 0, term = '';

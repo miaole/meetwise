@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { asPrincipal, type DbPool } from '@meetwise/db';
-import { invoke, promptedModel, openAICompatibleClient, scriptedModelClient, circuitBreaker, rateLimitedModel, failoverModel, type ModelClient, type ModelResult } from '@meetwise/ai-runtime';
+import { invoke, promptedModel, openAICompatibleClient, circuitBreaker, rateLimitedModel, failoverModel, type ModelClient, type ModelResult } from '@meetwise/ai-runtime';
 import { groundedByFacts } from '@meetwise/domain';
 import { DIAGNOSIS_SECTION_KINDS, type GenerateQuestions, type GenerateReport, type GenerateDiagnosis, type QuizItem, type RawDiagnosis, type ReportContent, type InterviewSummary } from '@meetwise/ai-graphs';
 
@@ -58,7 +58,27 @@ const E2E_SCRIPTS: Record<string, (attempt: number) => ModelResult> = {
   'resume-diagnosis.generate': () => ({ ok: true, raw: { overall: 78, summary: '后端经验扎实,建议补充可量化的业绩数据。', sections: [{ kind: 'highlight', title: '亮点', score: 80, findings: [{ text: '有高并发限流实践', refs: ['限流'] }] }, { kind: 'risk', title: '风险', findings: [{ text: '缺量化数据支撑', refs: [] }] }], rewrites: [] } }),
 };
 const useFakeModel = () => process.env.E2E_FAKE_MODEL === '1';
-function e2eScriptedModel(): ModelClient { return scriptedModelClient(E2E_SCRIPTS); }
+// **内容感知**(取代 content-blind scriptedModelClient):既跑 happy path,又能对**单个面试**注入失败以测跨进程失败终态兜底。
+// 失败注入:答案含 `E2E_REPORT_FAIL` 标记 → 评分给哨兵 7 → 报告输入 scores 含 7 → report.generate 确定性失败 →
+//   报告舱壁重试耗尽→quarantine→**report_unavailable**(无死胡同兜底)。只影响带标记的那场,happy path 不受污染。
+function e2eScriptedModel(): ModelClient {
+  return {
+    async complete(req: { service: string; userData?: string }): Promise<ModelResult> {
+      const data = req.userData ?? '';
+      if (req.service === 'mock-interview.evaluate') {
+        const sentinel = data.includes('E2E_REPORT_FAIL');
+        return { ok: true, raw: { score: sentinel ? 7 : 82, evidence: ['给出了具体方案与权衡'], relevant: true, hasHook: false } };
+      }
+      if (req.service === 'report.generate') {
+        const nums = (data.match(/\d+/g) ?? []).map(Number);
+        if (nums.includes(7)) return { ok: false, kind: 'deterministic' };   // scores 含哨兵 7 → 报告确定性失败(测舱壁→report_unavailable)
+        return { ok: true, raw: { overall: 82, sections: [{ title: '综合评估', body: '整体表现稳定,能给出具体方案与权衡。' }] } };
+      }
+      const s = E2E_SCRIPTS[req.service];
+      return s ? s(0) : { ok: false, kind: 'deterministic' };
+    },
+  };
+}
 
 /** 生产默认模型客户端(真境内模型 + 跨供应商 failover;未配 MODEL_* 时 openAICompatibleClient 自身降级为 transient)。 */
 export function defaultModelClient(): ModelClient { return useFakeModel() ? e2eScriptedModel() : withFailover(); }
