@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getServerToken, serverGet } from '../../lib/api/server';
-import { uploadResumeAction, uploadResumeFileAction, deleteResumeAction, reparseResumeAction } from './actions';
+import { uploadResumeAction, uploadResumeFileAction, deleteResumeAction, reparseResumeAction, grantConsentAction } from './actions';
 import { startDiagnosisAction } from '../diagnosis/actions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SubmitButton } from '@/components/ui/SubmitButton';
@@ -19,21 +19,39 @@ type Resume = { id: string; status?: string };
 export default async function ResumePage() {
   if (!(await getServerToken())) redirect('/login');
 
-  const data = await serverGet<{ resumes: Resume[] } | Resume[]>('/resume');
+  const [data, consent] = await Promise.all([
+    serverGet<{ resumes: Resume[] } | Resume[]>('/resume'),
+    serverGet<{ consented: boolean }>('/privacy/consent'),
+  ]);
   const list: Resume[] | null = data === null
     ? null
     : Array.isArray(data) ? data : (data.resumes ?? []);
+  const consented = consent?.consented === true;   // null(取数失败)→ 当未同意,安全默认展示同意门
 
   return (
     <main className="mx-auto max-w-3xl space-y-6">
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">简历 · 知面</h1>
         <p className="text-sm text-muted-foreground">
-          简历原文加密存储,仅提取结构化事实,绝不伪造经历。上传前需先同意隐私政策(PIPL);
-          若上传返回「需同意」,请先前往隐私政策页同意后再上传。
+          简历原文加密存储,仅提取结构化事实,绝不伪造经历。上传前需先同意隐私政策(PIPL)。
         </p>
       </header>
 
+      {!consented ? (
+        // **PIPL 同意门**(修死胡同:此前无授予同意的 UI,用户永远传不了简历)。同意后即解锁上传。
+        <Card>
+          <CardHeader>
+            <CardTitle>先同意隐私政策(PIPL)</CardTitle>
+            <CardDescription>上传简历会处理个人信息。请阅读并同意后再上传——原文加密存储、只提结构化事实、绝不伪造经历,你可随时导出或删除。</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <form action={grantConsentAction}>
+              <SubmitButton pendingLabel="记录中…">我已阅读并同意隐私政策(PIPL)</SubmitButton>
+            </form>
+            <p className="text-xs text-muted-foreground">同意即启用简历上传;可在<Link href="/privacy" className="underline underline-offset-4">隐私中心</Link>导出或删除你的数据。</p>
+          </CardContent>
+        </Card>
+      ) : (
       <Card>
         <CardHeader>
           <CardTitle>上传简历</CardTitle>
@@ -63,6 +81,7 @@ export default async function ResumePage() {
           </form>
         </CardContent>
       </Card>
+      )}
 
       <section className="space-y-3">
         <h2 className="text-lg font-medium">我的简历</h2>

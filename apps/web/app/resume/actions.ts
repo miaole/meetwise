@@ -12,6 +12,12 @@ function assertOk(res: Response) {
   if (!res.ok) throw new Error(`resume_action_failed_${res.status}`);
 }
 
+/** 授予 PIPL 采集同意(上传简历前置)。此前 UI 无此入口 → 用户永远传不了简历(死胡同)。幂等。 */
+export async function grantConsentAction(): Promise<void> {
+  assertOk(await serverFetch('/privacy/consent', { method: 'POST', body: JSON.stringify({ purpose: 'resume_processing' }) }));
+  revalidatePath('/resume');
+}
+
 export async function uploadResumeAction(formData: FormData): Promise<void> {
   const text = String(formData.get('text') ?? '');
   if (text.trim().length < 20) return; // 过短直接忽略(表单已 required minLength=20,这里再兜一层)

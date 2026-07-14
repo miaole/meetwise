@@ -10,9 +10,20 @@ export class PrivacyService {
   constructor(private readonly db: DbService) {}
 
   async consent(principal: string, purpose = 'resume_processing') {
-    await this.db.asPrincipal(principal, (c) =>
-      c.query('INSERT INTO consent_record(id, owner_user_id, purpose, policy_version) VALUES ($1,$2,$3,$4)', [randomUUID(), principal, purpose, POLICY_VERSION]));
+    // 幂等:同一 purpose 已同意则不重复插行(否则前端重复点击/双提交会堆积重复同意记录)。
+    await this.db.asPrincipal(principal, async (c) => {
+      const ex = await c.query('SELECT 1 FROM consent_record WHERE purpose=$1 LIMIT 1', [purpose]);
+      if (ex.rowCount === 0)
+        await c.query('INSERT INTO consent_record(id, owner_user_id, purpose, policy_version) VALUES ($1,$2,$3,$4)', [randomUUID(), principal, purpose, POLICY_VERSION]);
+    });
     return { recorded: true, policyVersion: POLICY_VERSION };
+  }
+
+  /** 查采集同意状态(前端据此决定是否显示"同意隐私政策"卡片,避免上传即报错的死胡同)。 */
+  async consentStatus(principal: string, purpose = 'resume_processing') {
+    const consented = await this.db.asPrincipal(principal, async (c) =>
+      (await c.query('SELECT 1 FROM consent_record WHERE purpose=$1 LIMIT 1', [purpose])).rowCount! > 0);
+    return { consented, purpose, policyVersion: POLICY_VERSION };
   }
 
   // 数据可携:导出结构化档案,不含加密原文/明文 PII。

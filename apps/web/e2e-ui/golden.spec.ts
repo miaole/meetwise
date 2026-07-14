@@ -33,6 +33,15 @@ test('golden path: landing → signup → cookie auth lets protected pages rende
   await expect(page).toHaveURL(/\/resume$/);
   await expect(page.getByRole('heading', { name: /简历/ }).first()).toBeVisible();
 
+  // 5) **真在浏览器 UI 里自己上传简历(全流程)**:PIPL 同意门 → 同意 → 粘贴简历 → 上传 → 列表出现已摄取简历。
+  //  (此前 UI 无授予同意入口=死胡同,用户永远传不了;本步既覆盖上传路径,也回归验证该死胡同已修。)
+  await expect(page.getByRole('button', { name: /我已阅读并同意/ })).toBeVisible({ timeout: 20_000 });
+  await page.getByRole('button', { name: /我已阅读并同意/ }).click();
+  await expect(page.locator('textarea[name="text"]')).toBeVisible({ timeout: 20_000 });   // 同意后上传表单出现(粘贴框)
+  await page.fill('textarea[name="text"]', '后端工程师 3 年。用 Redis 令牌桶限流,分布式锁 Lua 原子释放,MySQL 分库分表,消息队列削峰。');
+  await page.getByRole('button', { name: '上传简历', exact: true }).click();
+  await expect(page.getByText(/状态:ingested/).first()).toBeVisible({ timeout: 20_000 });   // 上传成功,列表出现已摄取简历
+
   await page.getByRole('link', { name: '面试', exact: true }).click();
   await page.waitForURL('**/interviews', { timeout: 20_000 });
   await expect(page).toHaveURL(/\/interviews$/);

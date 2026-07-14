@@ -16,6 +16,11 @@ export class PrivacyController {
     return this.privacy.consent(req.principal, b?.purpose ?? 'resume_processing');
   }
 
+  @Get('consent')
+  consentStatus(@Req() req: any) {
+    return this.privacy.consentStatus(req.principal, 'resume_processing');
+  }
+
   @Get('export')
   export(@Req() req: any) {
     return this.privacy.export(req.principal);
