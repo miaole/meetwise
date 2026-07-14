@@ -10,7 +10,7 @@ import { openAICompatibleClient, promptedModel } from '@meetwise/ai-runtime';
 for (const line of readFileSync(new URL('../../../.env', import.meta.url), 'utf8').split('\n')) {
   const m = line.match(/^(MODEL_[A-Z_]+)=(.*)$/); if (m) process.env[m[1]] = m[2].replace(/^["']|["']$/g, '');
 }
-const IMG = '/private/tmp/claude-501/-Users-miaole-Desktop-golucky-meetwise/de307e7b-b845-4c8d-8fbd-f683c5b922eb/scratchpad/resume.png';
+const IMG = process.env.SMOKE_IMAGE ?? './.smoke/resume.png';   // 手动 live smoke:置 SMOKE_IMAGE 指向本地图片(默认 .smoke/,gitignored)
 const VisionSchema = z.object({ skills: z.array(z.string()), experience: z.array(z.string()), phone: z.string().nullable() });
 
 async function main() {

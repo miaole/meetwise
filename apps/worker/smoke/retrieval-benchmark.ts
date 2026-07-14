@@ -11,7 +11,7 @@ for (const line of readFileSync(new URL('../../../.env', import.meta.url), 'utf8
 }
 const N = Number(process.argv[2] ?? 100);
 const DS = encodeURIComponent('C-MTEB/T2Reranking');
-const CACHE = '/private/tmp/claude-501/-Users-miaole-Desktop-golucky-meetwise/de307e7b-b845-4c8d-8fbd-f683c5b922eb/scratchpad/emb1024.json';
+const CACHE = process.env.SMOKE_CACHE ?? './.smoke/emb1024.json';   // 嵌入缓存(默认 .smoke/,gitignored;可置 SMOKE_CACHE 覆盖)
 const clean = (s: string) => (s || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 1500) || '空';
 const truncate = (v: number[], d: number) => { const t = v.slice(0, d); const nm = Math.hypot(...t) || 1; return t.map((x) => x / nm); };
 

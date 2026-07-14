@@ -1,6 +1,6 @@
 /**
  * 真语音答题实测:真音频 → 真 ASR(qwen-audio) → 推进真面试图(PostgresSaver checkpointer)。
- * 证明语音答案端到端驱动 agent 内核(与文本完全同一条图路径)。手动,需 .env + scratchpad/answer.mp3。
+ * 证明语音答案端到端驱动 agent 内核(与文本完全同一条图路径)。手动,需 .env + SMOKE_AUDIO(默认 .smoke/answer.mp3)。
  *   pnpm voice:live   (需 pnpm db:up)
  */
 import { readFileSync } from 'node:fs';
@@ -12,7 +12,7 @@ import { voiceAnswerTurn } from '../src/voice-turn.ts';
 for (const line of readFileSync(new URL('../../../.env', import.meta.url), 'utf8').split('\n')) {
   const m = line.match(/^(MODEL_[A-Z_]+|ASR_MODEL)=(.*)$/); if (m) process.env[m[1]] = m[2].replace(/^["']|["']$/g, '');
 }
-const AUDIO = '/private/tmp/claude-501/-Users-miaole-Desktop-golucky-meetwise/de307e7b-b845-4c8d-8fbd-f683c5b922eb/scratchpad/answer.mp3';
+const AUDIO = process.env.SMOKE_AUDIO ?? './.smoke/answer.mp3';   // 手动 live smoke:置 SMOKE_AUDIO 指向本地音频(默认 .smoke/,gitignored)
 
 async function main() {
   const cp = createCheckpointer(); await cp.setup();

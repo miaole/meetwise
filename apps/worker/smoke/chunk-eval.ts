@@ -11,7 +11,7 @@ for (const line of readFileSync(new URL('../../../.env', import.meta.url), 'utf8
 }
 const N = Number(process.argv[2] ?? 100);
 const DS = encodeURIComponent('C-MTEB/T2Reranking');
-const CACHE = '/private/tmp/claude-501/-Users-miaole-Desktop-golucky-meetwise/de307e7b-b845-4c8d-8fbd-f683c5b922eb/scratchpad/chunkemb.json';
+const CACHE = process.env.SMOKE_CACHE ?? './.smoke/chunkemb.json';   // 嵌入缓存(默认 .smoke/,gitignored;可置 SMOKE_CACHE 覆盖)
 const stripHtml = (s: string) => (s || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 const truncate = (v: number[], d: number) => { const t = v.slice(0, d); const nm = Math.hypot(...t) || 1; return t.map((x) => x / nm); };
 function chunk(text: string, size = 700, overlap = 120, maxChunks = 10): string[] {
