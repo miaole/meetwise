@@ -10,6 +10,14 @@ export type {
 } from './resume-diagnosis.ts';
 export { buildMockInterviewGraph } from './mock-interview.ts';
 export { buildReportGraph } from './report.ts';
+export { validateReportContent } from './report.ts';
 export type { InterviewSummary, ReportContent, GenerateReport } from './report.ts';
 
-export { buildAdaptiveInterviewGraph, type AdaptiveDeps, type Turn } from './adaptive-interview.ts';
+export {
+  buildAdaptiveInterviewGraph,
+  type AdaptiveDeps,
+  type AdaptiveInterviewGraphState,
+  type ClarifyDirective,
+  type Turn,
+  type PendingQuestion,
+} from './adaptive-interview/index.ts';
