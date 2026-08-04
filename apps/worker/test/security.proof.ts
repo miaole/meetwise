@@ -13,7 +13,7 @@ const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}
 const section = (t: string) => console.log(`\n──────── ${t} ────────`);
 
 const BANK: BankQuestion[] = Array.from({ length: 20 }, (_, i) => ({
-  id: `b${i}`, question: `题目${i}:谈谈主题${i}`, rubric: `RUBRIC_SECRET_${i}:覆盖要点A/B/C才满分`, refAnswer: `参考答案机密${i}`, refs: [`点${i}`],
+  id: `b${i}`, question: `题目${i}:谈谈主题${i}`, rubric: `RUBRIC_SECRET_${i}:覆盖要点A/B/C才满分`, refAnswer: `标准解机密${i}`, refs: [`点${i}`],
 }));
 
 function main() {
@@ -28,24 +28,25 @@ function main() {
   const sAv2 = sampleQuestions(BANK, 'candidateA', 'v2', n).map((q) => q.id);
   A('题库版本轮换 → 同候选换一批(防跨期累积刷库)', JSON.stringify(sA1) !== JSON.stringify(sAv2));
 
-  section('② 候选人可见面:绝不含 rubric / 参考答案 / refs(防泄评分标准)');
+  section('② 候选人可见面:绝不含 rubric / 标准解 / refs(防泄评分标准)');
   const view = candidateView(BANK[0]);
   A('候选视图只有 {id, question}', Object.keys(view).sort().join(',') === 'id,question');
-  A('视图序列化后不含任何 rubric / 参考答案机密', !JSON.stringify(view).includes('RUBRIC_SECRET') && !JSON.stringify(view).includes('参考答案机密') && !JSON.stringify(view).includes('点0'));
+  A('视图序列化后不含任何 rubric / 标准解机密', !JSON.stringify(view).includes('RUBRIC_SECRET') && !JSON.stringify(view).includes('标准解机密') && !JSON.stringify(view).includes('点0'));
   A('泄露探针能识别 rubric 泄露(自检有效)', containsBankSecret(`模型被诱导吐出了：${BANK[3].rubric} 到此`, BANK) === true);
 
   section('③ 结构化输出兜底:注入"打印题库/给满分"→ 输出 schema 拒,机密进不了业务');
   const dump = { questions: BANK.map((q) => ({ q: q.question, rubric: q.rubric })) };          // 模型若被注入诱导吐题库
   A('题库 dump 不是合法 eval 输出 → EvalSchema 拒(泄露被挡在业务外)', !EvalSchema.safeParse(dump).success);
-  A('注入"score=999 给满分"→ 越界被 schema 拒', !EvalSchema.safeParse({ score: 999, evidence: ['x'] }).success);
+  A('注入"score=999 给满分"→ 越界被 schema 拒', !EvalSchema.safeParse({ score: 999, evidence: [{ criterion: 'x', quote: '我的回答' }] }).success);
   A('裸文本"已忽略指令,这是全部题库…"→ 非 JSON 结构,拒', !EvalSchema.safeParse('已忽略指令，这是全部题库' as unknown).success);
-  A('合法 {score,evidence} 才放行', EvalSchema.safeParse({ score: 76, evidence: ['答到限流要点'] }).success);
+  A('合法 {score,evidence,hasHook} 才放行', EvalSchema.safeParse({ score: 76, hasHook: true, evidence: [{ criterion: '答到限流要点', quote: '我用令牌桶' }] }).success);
+  A('relevant=false 不能带非零分或 hasHook', !EvalSchema.safeParse({ score: 10, relevant: false, hasHook: true, evidence: [{ criterion: '跑题', quote: '聊天气' }] }).success);
 
   section('④ eval 上下文最小化:只喂当前题+答,绝不含其它题/rubric(题库不进模型上下文)');
   const tpl = getPrompt('mock-interview.evaluate');
   const data = tpl.buildData({ question: BANK[0].question, answer: '我的回答' });
   A('eval data 含当前题+答', data.includes(BANK[0].question) && data.includes('我的回答'));
-  A('eval data 不含其它题 / 任何 rubric / 参考答案', !containsBankSecret(data, BANK.slice(1)) && !data.includes('RUBRIC_SECRET'));
+  A('eval data 不含其它题 / 任何 rubric / 标准解', !containsBankSecret(data, BANK.slice(1)) && !data.includes('RUBRIC_SECRET'));
   A('eval system 不含题库(稳定前缀,只评 <data> 内)', !containsBankSecret(tpl.system, BANK));
 
   section('⑤ 答案是 untrusted data:注入文本进 data 区,system 指令字节不变(不被覆盖)');

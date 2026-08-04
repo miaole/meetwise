@@ -96,7 +96,7 @@ related:
 | 轴 | resume_quiz 押题 | special_interview 专项 | behavior_interview 行为 | mock_interview 模拟 |
 |---|---|---|---|---|
 | **出题 questionProfile** | 接地简历 provenance、预测高频题（押题门：歪曲门/空召回） | **topic 限定**（如系统设计/算法/某技能），按确认页 scope 出题 | STAR 行为题（情境-任务-行动-结果） | 全维度仿真面试（综合+追问+多轮） |
-| **评分 scoringRubric** | 接地真实性 + 命中度（非答题作答评分，押题以参考答案展示为主） | 专项深度/正确性 rubric（技术深度、方案权衡） | STAR 完整度 + 行为信号 rubric（无技术正确性维度） | 综合 rubric（多维加权：表达/深度/结构/匹配） |
+| **评分 scoringRubric** | 接地真实性 + 命中度（非答题作答评分，押题以标准解展示为主） | 专项深度/正确性 rubric（技术深度、方案权衡） | STAR 完整度 + 行为信号 rubric（无技术正确性维度） | 综合 rubric（多维加权：表达/深度/结构/匹配） |
 | **计费 billingPlan** | 按「题集」计（quiz 单元） | 按「轮 scoredQa + sessionStartFee」，可 member-only | 同会话计量，单价可不同 | 按 scoredQa + sessionStartFee（+语音附加） |
 | **是否需确认** | 否 | **是（SpecialInterviewConfirm）** | 否（`OPEN-DECISION-behaviorConfirm`） | 否 |
 | **价格竞态闭合** | priceToken 回显 + commit 取 min（UC-02/07） | confirm pin 价 + commit 取 min（UC-07） | priceToken 回显 + 取 min | priceToken 回显 + 取 min |
@@ -454,7 +454,7 @@ related:
 - **触发**：评分节点。
 
 **主流程 Main**
-1. 按 pin 的 `scoringRubricId` 加载形态评分维度：专项=技术深度/方案权衡；行为=STAR 完整度/行为信号（**无技术正确性维度**）；模拟=多维加权；押题以参考答案展示为主（评分弱化，见 §0.5）。
+1. 按 pin 的 `scoringRubricId` 加载形态评分维度：专项=技术深度/方案权衡；行为=STAR 完整度/行为信号（**无技术正确性维度**）；模拟=多维加权；押题以标准解展示为主（评分弱化，见 §0.5）。
 2. 评分双校验：schema → 业务校验（分值域 0–100、维度齐全、无幻觉/无歪曲简历）。
 3. 评分器 promptVersion≠出题器 promptVersion，validator 独立模块（禁 AI 自评）。
 

@@ -1,6 +1,6 @@
 'use client';
 /**
- * 押题面板:消费 useQuizStream(SSE 驱动)。据简历预测的面试题边生成边渲染——每题含**接地考察点**(refs,非幻觉)+ **追问提示**。
+ * 押题面板:消费 useQuizStream(SSE 驱动)。据简历预测的训练问题边生成边渲染——每题含**接地考察点**(refs,非幻觉)+ **追问提示**。
  * 无死胡同由 quiz-state 视图模型保证:加载(spinner)/错误/空/不可用都有出口(重试/返回)。amber/serif design-kit。
  */
 import Link from 'next/link';
@@ -45,7 +45,7 @@ export function QuizPanel({ quizId }: { quizId: string }) {
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       <header className="flex items-center justify-between border-b pb-3">
-        <h2 className="font-serif text-lg font-semibold tracking-tight">押题 · 预测面试题</h2>
+        <h2 className="font-serif text-lg font-semibold tracking-tight">押题 · 预测训练问题</h2>
         <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
           <span className={`size-1.5 rounded-full ${view.connection === 'live' && view.phase !== 'ready' ? 'animate-pulse bg-primary' : view.phase === 'ready' ? 'bg-primary' : 'bg-muted-foreground'}`} />
           {view.connection === 'reconnecting' ? '重连中…' : view.phase === 'ready' ? '已完成' : view.phase === 'generating' ? '生成中' : '连接中'}

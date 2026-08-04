@@ -20,9 +20,9 @@ related:
 
 > **实现状态（对齐代码，区分"已接线运行"vs"目标设计"）**：
 > - ✅ **已接线运行**：面试图 ①（可恢复长会话，genQuestion/awaitAnswer 拆分、interrupt/resume、evalAnswer 双校验路由、degrade 边、report 走独立 run）；invoke 关口的两阶段 ledger 幂等、瞬时错误指数退避、schema+业务双校验；`OrchestrationPort`/`LangGraphAdapter`；事件账本 outbox + SSE。commerce 对账/回收已接进 worker tick。
-> - 🟡 **机制已建、默认关闭/未接线**：跨供应商 failover（`failoverModel` 代码在，默认单端点，需 `MODEL_BACKUP_*`）；工具节点里的 web 探索（`webExplore` 已建但 `WEB_ALLOWLIST=[]` 默认空 ⇒ 禁用，只用本地题库）；长期记忆（memory 模块仅测试路径调用）。
+> - 🟡 **机制已建、默认关闭/未接线**：跨供应商 failover（`failoverModel` 代码在，默认单端点，需 `MODEL_BACKUP_*`）；语义长期记忆（冻结 snapshot、向量召回、用户信念画像均未接线；跨会话 exact 题目去重与历史弱项软偏置已运行，见 [memory-context-design.md](./memory-context-design.md)）。
 > - 🟠 **stub/骨架**：§3 的 `catalog/resolveBinding` 为 `stub:deterministic` 残留骨架，`invoke` 不消费（模型由组合根按节点直接注入）。
-> - ⬜ **模式参考、未实例化**：§2.3 的自主研究图 ② 与 supervisor 扇出图 ③（下文已各自标注）。
+> - ⬜ **设计模式说明、未实例化**：§2.3 的自主研究图 ② 与 supervisor 扇出图 ③（下文已各自标注）。
 > 下文其余机制描述均为该图/关口的**目标形态**；带 ✅/🟡/⬜ 处以标注为准。
 
 ---
@@ -118,7 +118,7 @@ function routeAfterEval(state) {
 - `threadId = resultId`；续跑 = 同 `thread_id` 发 `Command({resume})`，从 `awaitAnswer` 的 interrupt 点恢复。**进程可在等待期被杀/换实例**——等待用户由持久 `interrupt` 表达而非内存中的连接/`Map<sessionId,resolver>`，这是全套可恢复性的 #1 承重点。
 - **report 走独立 run**（`threadId=reportId`），由 finalize 在出图后向队列投递 job 触发。**禁止用 `Send` 做后台报告**——`Send` 调度同 thread 下一个 super-step，`invoke()` 不会返回直到子图跑完，会把面试主路径拖住。report 也**不是 subgraph**（subgraph 在父 super-step 内同步跑、抛错传播父 run）。
 
-**② 自主研究 agent — 有界预算图（模式参考，未进 MVP blueprint 前不实例化）**
+**② 自主研究 agent — 有界预算图（设计模式说明，未进 MVP blueprint 前不实例化）**
 
 ReAct = `agentStep` 与 `toolNode` 两节点 + 一条回边，预算是回边上的护栏。仅当四图正式纳入"自主研究图"后落地。
 
@@ -134,7 +134,7 @@ function routeAgent(state) {
 ```
 有界：模型说"我还要查"也要先过预算边，agent 不能自我授权无限循环；tool 结果回灌 `observations` channel（data block），**绝不拼进 system instruction**。
 
-**③ supervisor agent — 主子扇出图（模式参考，零当前需求，未实例化）**
+**③ supervisor agent — 主子扇出图（设计模式说明，零当前需求，未实例化）**
 
 `Send` 扇出到 worker subgraph，结果用幂等 reducer 按 `taskId` 归并。仅作模式登记，不为它预建 channel/reducer。
 
@@ -270,7 +270,7 @@ async function callWithClassification(model, messages, req, deps) {
 
 ## 4. 工具节点执行模型（harness ①·工具侧）
 
-> **实现状态**：本节 `gatedToolNode`/`toolExec` 全套门控工具执行是**目标设计**。当前面试图内唯一接线的"工具型"能力是 CRAG 检索（本地 qbank ANN 召回 ✅ + web 探索 🟡 默认关闭：`WEB_ALLOWLIST=[]` ⇒ `webExplore` 返 `[]`，只用本地）；通用 `ToolRegistry`/多工具 allowlist/sandbox/预算门尚未实例化。
+> **实现状态**：本节 `gatedToolNode`/`toolExec` 全套门控工具执行仍是**目标设计**；当前面试图没有模型驱动的通用 ToolNode。已接线的是固定只读 research capability：owner-scoped local qbank RAG，低置信时最多 3 个 allowlist 源的有界 `deep.research`，以及兼容 `web.explore` seam；每个 job 的 RAG/深检索各最多一次，未知 skill fail-closed。它们不是模型可自由选名/选 URL 的 agentic tool loop。详情与真实边界见 [`research-capability-gate.md`](./research-capability-gate.md)。
 
 ### 4.1 门控工具节点（与 invoke 对称的唯一执行点）
 
@@ -562,4 +562,4 @@ interface OrchestrationPort {
 3. 三层 state 分级 + cappedTurns + interview_event 账本写穿 + 候选人答案 0 文本。
 4. OrchestrationPort + LangGraphAdapter（业务从一开始不直依赖引擎）。
 5. 事件账本 outbox + SSE relay + seq 续传。
-6. checkpointer wrapper 先只 none/SafeTerminate 两档；懒迁移、自主研究图/supervisor 图随真实需求进 blueprint 论证后再落地（当前为模式参考，未实例化）。
+6. checkpointer wrapper 先只 none/SafeTerminate 两档；懒迁移、自主研究图/supervisor 图随真实需求进 blueprint 论证后再落地（当前为设计模式说明，未实例化）。

@@ -40,7 +40,7 @@ export default async function QuizListPage({ searchParams }: { searchParams: Pro
     <main className="mx-auto max-w-2xl space-y-6 px-4 py-8 sm:px-6">
       <header className="space-y-1">
         <h1 className="font-serif text-2xl font-semibold tracking-tight">押题 · 知面</h1>
-        <p className="text-sm text-muted-foreground">据你的简历预测高频面试题,每题标注考察点与可能的追问——面前先练，面时不慌。</p>
+        <p className="text-sm text-muted-foreground">据你的简历预测高频训练问题,每题标注考察点与可能的追问——面前先练，面时不慌。</p>
       </header>
 
       {error === 'create_failed' && (
@@ -50,7 +50,7 @@ export default async function QuizListPage({ searchParams }: { searchParams: Pro
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">开始押题</CardTitle>
-          <CardDescription>选择一份简历,AI 据真实经历预测面试题(接地校验,绝不编造你没写过的经历)。</CardDescription>
+          <CardDescription>选择一份简历,AI 据真实经历预测训练问题(接地校验,绝不编造你没写过的经历)。</CardDescription>
         </CardHeader>
         <CardContent>
           {resumes.length === 0 ? (

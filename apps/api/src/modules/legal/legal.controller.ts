@@ -5,7 +5,7 @@ export const PRIVACY_POLICY = {
   version: process.env.PRIVACY_POLICY_VERSION ?? 'v1',
   title: '知面隐私政策',
   purposes: [
-    { id: 'resume_processing', desc: '解析与分析你的简历,用于生成面试题与能力评估(不伪造经历)' },
+    { id: 'resume_processing', desc: '解析与分析你的简历,用于生成训练问题与能力评估(不伪造经历)' },
     { id: 'interview', desc: '记录面试问答与评分,用于报告与成长档案' },
   ],
   dataRights: ['数据可携(导出)', '删除权(删除简历/数据)', '撤回同意'],

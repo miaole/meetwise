@@ -88,10 +88,10 @@ export function quizDisplay(v: QuizViewState): QuizDisplay {
     case 'connecting':
       return { heading: '连接押题', message: '正在建立连接…', spinner: true, action: { kind: 'reconnecting', label: '取消' }, degraded: false };
     case 'generating':
-      return { heading: '正在押题', message: v.questions.length ? `已生成 ${v.questions.length} 道,正在继续…` : '正在依据你的简历预测面试题…', spinner: true, action: { kind: 'none', label: '' }, degraded: false };
+      return { heading: '正在押题', message: v.questions.length ? `已生成 ${v.questions.length} 道,正在继续…` : '正在依据你的简历预测训练问题…', spinner: true, action: { kind: 'none', label: '' }, degraded: false };
     case 'ready': {
       const n = v.total ?? v.questions.length;   // total 权威(防题目事件未重放时误报 0)
-      return { heading: '押题完成', message: `共 ${n} 道预测面试题,均已接地校验(过滤幻觉)。`, spinner: false, action: { kind: 'none', label: '' }, degraded: false };
+      return { heading: '押题完成', message: `共 ${n} 道预测训练问题,均已接地校验(过滤幻觉)。`, spinner: false, action: { kind: 'none', label: '' }, degraded: false };
     }
     case 'quiz_unavailable':
       return { heading: '押题暂不可用', message: '押题生成遇到问题,已停止。可重试或联系支持——不会让你干等。', spinner: false, action: { kind: 'retry', label: '重新押题' }, degraded: true };

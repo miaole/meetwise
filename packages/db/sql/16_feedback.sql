@@ -1,4 +1,4 @@
--- 16_feedback.sql — 用户对 AI 生成面试题的反馈(赞/踩+评论)。喂 AI 质量闭环(eval/改进信号)。接 01 后跑。
+-- 16_feedback.sql — 用户对 AI 生成训练问题的反馈(赞/踩+评论)。喂 AI 质量闭环(eval/改进信号)。接 01 后跑。
 -- 一人一题一反馈(可改);RLS owner 隔离。admin 可聚合看质量(经 AdminGuard,超级用户读)。
 DROP TABLE IF EXISTS question_feedback CASCADE;
 CREATE TABLE question_feedback (

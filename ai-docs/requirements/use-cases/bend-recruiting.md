@@ -294,7 +294,7 @@ IDOR / JWT 跨租 / 向量库（pgvector 命名空间）/ 缓存键 / LangGraph 
 
 ### UC-QB-002 · 裸题 AI 富化（注入隔离）
 **七类覆盖**：正常✓ 异常✓ 特殊✓ 逃逸✓ 高并发✓ 复杂✓ 刁钻✓
-- **主流程**：1) `imported→enriching`；2) ai-runtime invoke 富化（题干/标签/参考答案）→ coerce→schema→业务校验（标签合法、难度域、无幻觉）；3) `→enriched`。
+- **主流程**：1) `imported→enriching`；2) ai-runtime invoke 富化（题干/标签/标准解）→ coerce→schema→业务校验（标签合法、难度域、无幻觉）；3) `→enriched`。
 
 | 类 | flow | 机制/层 | 后置 |
 |---|---|---|---|
@@ -397,7 +397,7 @@ IDOR / JWT 跨租 / 向量库（pgvector 命名空间）/ 缓存键 / LangGraph 
 
 ### UC-QB-006 · 已发布题目纠错召回（新增）
 **七类覆盖**：正常✓ 异常✓ 特殊✓ 逃逸✓ 高并发✓ 复杂✓ 刁钻✓
-- **触发**：发现 published 题"参考答案错误"
+- **触发**：发现 published 题"标准解错误"
 - **主流程**：1) `published→recalled`（kill 旧版）；2) 新版本经富化+双签→新 published version；3) 已用该题面试结果重算策略：未完成→换新版；已完成→标记"受影响"并按策略重评/标注。
 
 | 类 | flow | 机制 | 后置 |

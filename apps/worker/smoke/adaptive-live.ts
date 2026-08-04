@@ -54,8 +54,8 @@ async function main() {
   async function candidateAnswer(question: string, kind: string): Promise<string> {
     const persona = kind === 'behavioral'
       ? '你是资深后端工程师候选人,回答一道行为/软技能题。用一段真实亲身经历作答(冲突/压力/协作/失败复盘),有反思、不堆技术细节,120-220字。'
-      : '你是资深后端工程师候选人,回答一道技术面试题。结合具体做法、关键取舍与踩过的坑作答,留一个值得继续深挖的技术细节,简洁有料,140-240字。';
-    const r = await model.complete({ service: 'smoke.candidate', system: `${persona} 只返回 JSON: {"answer":"你的回答"}`, userData: `面试题:${question}` }, 0);
+      : '你是资深后端工程师候选人,回答一道技术训练问题。结合具体做法、关键取舍与踩过的坑作答,留一个值得继续深挖的技术细节,简洁有料,140-240字。';
+    const r = await model.complete({ service: 'smoke.candidate', system: `${persona} 只返回 JSON: {"answer":"你的回答"}`, userData: `训练问题:${question}` }, 0);
     const a = (r as any)?.raw?.answer;
     return r.ok && typeof a === 'string' && a.length > 10 ? a : myAnswers[0];   // 模型抖动 → 退回固定答案(不卡 smoke)
   }

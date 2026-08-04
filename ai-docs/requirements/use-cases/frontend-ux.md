@@ -152,12 +152,12 @@ related:
 
 - **角色**：求职者
 - **前置**：押题 `Interview(serviceType=resume_quiz)` 已生成 `ForecastQuestion[]`。
-- **触发**：进入押题运行页逐题作答/查看参考答案。
+- **触发**：进入押题运行页逐题作答/查看标准解。
 
 ### 主流程 Main（正常）
 1. SSE 接 `question_ready` 渐进渲染题目列表（不一次性等全集）。
 2. 用户逐题展开作答/自评，提交携带题级幂等键。
-3. 收 `answer_evaluated` 渲染计分与参考答案（Markdown 经 rehype-sanitize）。
+3. 收 `answer_evaluated` 渲染计分与标准解（Markdown 经 rehype-sanitize）。
 
 ### 七类覆盖
 - **正常**：全部题就绪后展示总览；备选-跳过某题合法。

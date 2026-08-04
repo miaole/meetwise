@@ -1,5 +1,5 @@
 -- 20_resume_quiz.sql — 押题流程(resume-quiz 图)落库:押题结果 + 生成 job 队列。接 01_schema 之后跑。
--- 镜像 interview 形状:显式 status enum、owner RLS、version 乐观锁。押题=据简历×能力预测面试题(每题带接地考察点 refs)。
+-- 镜像 interview 形状:显式 status enum、owner RLS、version 乐观锁。押题=据简历×能力预测训练问题(每题带接地考察点 refs)。
 -- 进程边界铁律:api 薄(只入队+返回),长编排(resume-quiz 图/模型)在 worker;job 带租约+attempts,崩溃可重领。
 DROP TABLE IF EXISTS resume_quiz, quiz_job CASCADE;
 

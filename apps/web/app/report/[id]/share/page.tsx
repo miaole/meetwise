@@ -63,7 +63,7 @@ export default async function SharePosterPage({ params }: { params: Promise<{ id
   const overall = Math.max(0, Math.min(100, Math.round(report!.content!.overall)));
   const assessment = await serverGet<Assessment>('/interview/' + eid + '/assessment');
   const rawDims = Array.isArray(assessment?.dimensions) ? assessment!.dimensions! : [];
-  // 隐私铁律(审计致命项):上游 `dimension` 实为「简历接地的面试题原文」——
+  // 隐私铁律(审计致命项):上游 `dimension` 实为「简历接地的训练问题原文」——
   // packages/domain assessment.ts 取 question.slice(0,40),题面里嵌有雇主/项目/技术栈等简历事实。
   // 对外可分享海报【绝不渲染该字符串】:只保留聚合分值,维度名用中性序号占位,杜绝简历/PII 外泄。
   const dims: PosterDim[] = rawDims

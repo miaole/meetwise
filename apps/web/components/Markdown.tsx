@@ -2,7 +2,7 @@
 import { Component, lazy, memo, Suspense, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
-/** Markdown 渲染入口(GFM 表格/列表 + 代码块 highlight.js)。技术面试题/答/点评含代码块,必须真渲染。
+/** Markdown 渲染入口(GFM 表格/列表 + 代码块 highlight.js)。技术训练问题/答/点评含代码块,必须真渲染。
  *
  *  **极端场景:首屏 bundle**。react-markdown + remark-gfm + rehype-highlight + highlight.js 是最重的客户端依赖
  *  (实测使 /interview /quiz /diagnosis 三条路由首屏 JS 从 ~118 kB 涨到 ~233 kB)。这里用 `React.lazy` 把重型实现

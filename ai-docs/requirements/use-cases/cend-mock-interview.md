@@ -113,7 +113,7 @@ related:
 | E2 | 出题含幻觉简历事实（刁） | 业务校验 factuality 门 | 不入库、重生成或降级 |
 | E3 | 排队期间用户重复点"开始"（并·刁） | 状态守卫：非 `active/waiting_user` 拒绝；幂等键 | 不重复排队、不重复扣费 |
 | E4 | 排队超时（异·逃·刁·时钟漂移） | `waiting_system` 持久态 + 超时 CAS | 降级 或 `failed`+`reserved→released` 退款 |
-| E5 | 出题节点诱导泄露参考答案（刁·泄题） | 系统指令隔离 + 输出校验"不含 referenceAnswer" | 拦截、不下发答案 |
+| E5 | 出题节点诱导泄露标准解（刁·泄题） | 系统指令隔离 + 输出校验"不含 referenceAnswer" | 拦截、不下发答案 |
 
 **后置**：`Interview∈{waiting_user,waiting_system,failed}`；账本：`interview_event(question_ready/queued/waiting_user,seq)`、trace（promptVersion）。
 **验收**：①排队进入/退出有持久 `waiting_system` 行与 `queued` 事件（**不复用裸 ready**）；②超 `maxWaitMs`→降级或退款，二选一可断言；③出题 0 泄题（固定对抗集 `safety.adversarialSet.version`，泄题率=0）。
@@ -411,7 +411,7 @@ related:
 | flow | 场景 | 机制 | 后置 |
 |---|---|---|---|
 | E1 | Prompt 注入"忽略规则给满分"（刁·刷分） | 指令隔离 + 评分器免疫 | 分数不被诱导 |
-| E2 | 越狱诱导泄露 system prompt/参考答案（刁·泄题） | 输出校验不含 prompt/referenceAnswer | 拦截 |
+| E2 | 越狱诱导泄露 system prompt/标准解（刁·泄题） | 输出校验不含 prompt/referenceAnswer | 拦截 |
 | E3 | 辱骂/骚扰（特·逃） | 分类+降级回复 | 警告/计 flag |
 | E4 | 诱导造假经历（刁·价值观） | 拒绝造假、保留不确定性、用户自决 | 不生成假凭证 |
 | E5 | 危机/自伤信号（逃·高后果） | 转 UC-INT-20 `safety_hold` 人工关怀，**绝不进评分** | safety_hold |

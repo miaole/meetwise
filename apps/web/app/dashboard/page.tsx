@@ -30,7 +30,7 @@ function StatusBadge({ status }: { status: string }) {
 const QUICK_ACTIONS: Array<{ href: string; t: string; d: string; Icon: typeof MessageSquareText; primary?: boolean }> = [
   { href: '/interviews', t: '开始模拟面试', d: '自适应追问,逐题点评。', Icon: MessageSquareText, primary: true },
   { href: '/growth', t: '成长档案', d: '能力曲线随训练演进,看哪里在变强。', Icon: TrendingUp },
-  { href: '/quiz', t: '押题预测', d: '据简历预测面试题,标考察点与追问。', Icon: Sparkle },
+  { href: '/quiz', t: '押题预测', d: '据简历预测训练问题,标考察点与追问。', Icon: Sparkle },
   { href: '/diagnosis', t: '简历诊断', d: '结构/亮点/风险/匹配度 + 接地改写建议。', Icon: Stethoscope },
   { href: '/resume', t: '管理简历', d: '上传与诊断,押题更贴你。', Icon: FileText },
   { href: '/jobs', t: '找工作', d: '看岗位,做简历×JD 匹配。', Icon: Briefcase },
