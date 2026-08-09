@@ -49,6 +49,7 @@ const requiredFiles = [
   "ai-docs/product/workflows/core-workflows.md",
   "ai-docs/requirements/epics/mvp-interview-career-platform.md",
   "ai-docs/architecture/system-blueprint.md",
+  "ai-docs/architecture/current-runtime-truth.md",
   "ai-docs/architecture/ai/langgraph-blueprint.md",
   "ai-docs/architecture/ai/agent-runtime.md",
   "ai-docs/architecture/backend/data-model.md",
@@ -75,6 +76,7 @@ const requiredTerms = new Map([
   ["AGENTS.md", ["文档先行", "契约先行", "测试先行"]],
   ["ai-docs/product/vision.md", ["面试", "职业路径"]],
   ["ai-docs/architecture/system-blueprint.md", ["Next.js", "NestJS", "LangGraph", "Postgres"]],
+  ["ai-docs/architecture/current-runtime-truth.md", ["已验证", "发布阻断", "LangGraph", "RAG", "Langfuse"]],
   ["ai-docs/architecture/ai/langgraph-blueprint.md", ["checkpoint", "thread_id"]],
   ["ai-docs/architecture/devops/local-demo-deployment.md", ["docker compose", "compose.demo.yml"]],
   ["ai-docs/testing/strategy/test-strategy.md", ["contract", "E2E", "golden"]],
@@ -101,6 +103,37 @@ const questionBanksWithSpeakableAnswerGate = [
 
 const errors = [];
 
+// The architecture truth matrix is intentionally small enough to check against
+// source. This catches the high-cost failure mode where a target-state document
+// silently outlives a security or runtime change.
+const runtimeTruthAssertions = [
+  {
+    source: "apps/worker/src/main.ts",
+    sourceTerm: "legacy_interview_graph_disabled",
+    truthTerm: "旧固定题单不再是生产回退",
+  },
+  {
+    source: "packages/db/migrations/0045_checkpoint_thread_rls.sql",
+    sourceTerm: "checkpoint_thread_enrollment",
+    truthTerm: "checkpoint 原文删除闭环",
+  },
+  {
+    source: "apps/worker/src/interview-research-skills.ts",
+    sourceTerm: "'deep.research'",
+    truthTerm: "deep.research",
+  },
+  {
+    source: "packages/ai-runtime/src/langfuse-v5.ts",
+    sourceTerm: "LangfuseSpanProcessor",
+    truthTerm: "Langfuse 已使用 v5 OpenTelemetry",
+  },
+  {
+    source: "packages/ai-runtime/src/evaluation-manifest.ts",
+    sourceTerm: "manifest.cases.length !== 120",
+    truthTerm: "120 条**合成合同**",
+  },
+];
+
 for (const file of requiredFiles) {
   const absolutePath = join(root, file);
   if (!existsSync(absolutePath)) {
@@ -116,6 +149,20 @@ for (const [file, terms] of requiredTerms) {
   for (const term of terms) {
     if (!content.includes(term)) {
       errors.push(`${file} should mention "${term}"`);
+    }
+  }
+}
+
+const runtimeTruthPath = join(root, "ai-docs/architecture/current-runtime-truth.md");
+if (existsSync(runtimeTruthPath)) {
+  const runtimeTruth = readFileSync(runtimeTruthPath, "utf8");
+  for (const { source, sourceTerm, truthTerm } of runtimeTruthAssertions) {
+    const sourcePath = join(root, source);
+    if (!existsSync(sourcePath) || !readFileSync(sourcePath, "utf8").includes(sourceTerm)) {
+      errors.push(`runtime truth source assertion drifted: ${source} must contain ${JSON.stringify(sourceTerm)}`);
+    }
+    if (!runtimeTruth.includes(truthTerm)) {
+      errors.push(`runtime truth matrix must state ${JSON.stringify(truthTerm)} for ${source}`);
     }
   }
 }
