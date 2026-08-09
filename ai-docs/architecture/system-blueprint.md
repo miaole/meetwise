@@ -15,6 +15,8 @@ tags:
 
 # 系统总体架构
 
+> 本文保留长期目标与技术选型；不能把其中的“建议”“目标仓库结构”当作已上线事实。当前代码、验证命令、云上边界与发布阻断项以 [运行时事实矩阵](./current-runtime-truth.md) 为唯一优先来源。两处冲突时，以事实矩阵为准并修本文。
+
 ## 技术选型
 
 | 层 | 选型 | 原因 |
@@ -134,4 +136,3 @@ flowchart LR
 - auth requirement
 - idempotency rule
 - contract test
-

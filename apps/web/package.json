@@ -51,5 +51,5 @@
     "tsx": "^4.22.4",
     "typescript": "catalog:"
   },
-  "_note": "承重前端逻辑(SSE业务事件/契约客户端/优雅降级)已落+gated。Next App Router 渲染壳层(app/路由、middleware、页面)是 demo 阶段下一增量,依赖产品页面取舍。"
+  "_note": "承重前端逻辑（SSE 业务事件、契约客户端、优雅降级）及 Next App Router 页面/面板均已存在。proof 只验证可复现的逻辑合同；浏览器、真实 API、语音设备和云环境证据见 ai-docs/architecture/current-runtime-truth.md。"
 }

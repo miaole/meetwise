@@ -21,7 +21,7 @@ related:
 
 > 前端是 **Next.js App Router**。本文与 `system-blueprint.md` 的「契约先行、所有用户内容不可信、状态落服务端」一致。
 >
-> **落地状态（apps/web）**：✅ **承重纯逻辑 + SSE 重连驱动已建+gated**（`pnpm web:prove` 40 断言,**经安全/协议/可靠性审计**）——`lib/stream`(SSE 业务事件解码:CRLF/心跳/分块;视图归约:`report_unavailable→degraded`、流断→reconnecting、重连耗尽→出口,**无静默死胡同**;`runInterviewStream` 重连驱动:Last-Event-ID 续传不丢事件、绝对重连上限防 DoS、buffer 封顶、AbortSignal 取消)、`lib/api`(契约客户端:HTTP 状态分流 business/transport/drift/invalid_request + 强制幂等键)。⏳ **待补(demo 渲染层)**：Next App Router 路由/页面/middleware + 调 `runInterviewStream` 的薄 React effect + shadcn 设计系统——依赖产品页面取舍。
+> **落地状态（apps/web）**：SSE 重连驱动、类型化 API 客户端、Next.js App Router 页面、`InterviewPanel`、`VoiceCallPanel` 和 B/C 端页面均已存在；`runInterviewStream` 使用 Last-Event-ID（最后事件编号）续传、重连上限、buffer（缓冲区）封顶和 AbortSignal（取消信号），视图归约将 `report_unavailable` 表示为降级出口。`pnpm web:prove` 覆盖承重纯逻辑，但它不是浏览器、真实 API、语音设备或云环境的发布证明。组件库、页面清单和生产验证状态以 [运行时事实矩阵](../current-runtime-truth.md) 为准。
 
 ## 1. 选型决策
 

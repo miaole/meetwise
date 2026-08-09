@@ -65,4 +65,4 @@ flowchart LR
 
 ## 当前边界
 
-仓库尚未实现 deep-research 或 customer-service 子图，不能为满足目录形式而创建空目录。它们应在有产品需求、状态机、接口契约、评测集和运行预算后按同一布局进入代码库。
+仓库**已有**受限的内部检索 skills：`rag.retrieve`、`web.explore`，以及在注入依赖和预算允许时启用的 `deep.research`；它们由确定性分支调用，均是只读、allowlist（允许列表）和单 job 预算受限的能力，**不是**可由模型任意挑选工具的通用 Tool Loop（工具循环），也不是独立的 deep-research 子图。`customer-service` 子图尚未实现。任何独立子图仍必须先具备产品需求、状态机、接口契约、评测集和运行预算，不能为满足目录形式创建空目录。详见 [运行时事实矩阵](../current-runtime-truth.md)。
