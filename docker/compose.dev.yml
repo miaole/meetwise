@@ -1,0 +1,63 @@
+name: meetwise-dev
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: meetwise-postgres-dev
+    environment:
+      POSTGRES_DB: meetwise
+      POSTGRES_USER: meetwise
+      POSTGRES_PASSWORD: meetwise_dev_password
+    ports:
+      - "54329:5432"
+    volumes:
+      - meetwise_postgres_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meetwise -d meetwise"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: meetwise-redis-dev
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "63799:6379"
+    volumes:
+      - meetwise_redis_dev:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    container_name: meetwise-minio-dev
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: meetwise
+      MINIO_ROOT_PASSWORD: meetwise_dev_password
+    ports:
+      - "9009:9000"
+      - "9010:9001"
+    volumes:
+      - meetwise_minio_dev:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: meetwise-mailhog-dev
+    ports:
+      - "10259:1025"
+      - "8029:8025"
+
+volumes:
+  meetwise_postgres_dev:
+  meetwise_redis_dev:
+  meetwise_minio_dev:

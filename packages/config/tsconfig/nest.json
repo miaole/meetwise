@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "verbatimModuleSyntax": false,
+    "noUncheckedIndexedAccess": false,
+    "strict": false
+  },
+  "_note": "server 包(api/worker)用：开装饰器元数据(SWC 发)，关 verbatimModuleSyntax 防 type-import 擦除 DI 元数据（蓝图工具链决策）。"
+}

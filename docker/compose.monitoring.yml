@@ -1,0 +1,74 @@
+# Meetwise 监控/告警栈:Prometheus(抓取 + 规则评估)+ Alertmanager(路由/去重/静默)。
+#   docker compose -f docker/compose.monitoring.yml up -d
+# Grafana 为可选可视化,置于 profile 之后(默认不起):
+#   docker compose -f docker/compose.monitoring.yml --profile grafana up -d
+#
+# 约定对齐既有 compose:name / container_name 带 -monitoring 后缀 / 基础设施带 healthcheck /
+#   有依赖顺序的服务等被依赖方 healthy 再起。配置文件只读挂载,机密绝不写进文件。
+# api 不在本栈内(单独运行),Prometheus 经 host.docker.internal 回连宿主机;Linux 下用 extra_hosts 兜底。
+name: meetwise-monitoring
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: meetwise-prometheus-monitoring
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+      - "--web.enable-lifecycle"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
+      - meetwise_prometheus_monitoring:/prometheus
+    ports:
+      - "9090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      alertmanager:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9090/-/healthy || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: meetwise-alertmanager-monitoring
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - meetwise_alertmanager_monitoring:/alertmanager
+    ports:
+      - "9093:9093"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9093/-/healthy || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # 可选:Grafana 面板(profile: grafana)。数据源需部署时手动指向 http://prometheus:9090。
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: meetwise-grafana-monitoring
+    profiles:
+      - grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - meetwise_grafana_monitoring:/var/lib/grafana
+    ports:
+      - "3001:3000"
+    depends_on:
+      prometheus:
+        condition: service_healthy
+
+volumes:
+  meetwise_prometheus_monitoring:
+  meetwise_alertmanager_monitoring:
+  meetwise_grafana_monitoring:

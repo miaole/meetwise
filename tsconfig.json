@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./packages/config/tsconfig/base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
+    "paths": {
+      "@meetwise/db": ["packages/db/src/index.ts"],
+      "@meetwise/domain": ["packages/domain/src/index.ts"],
+      "@meetwise/contracts": ["packages/contracts/src/index.ts"],
+      "@meetwise/ai-runtime": ["packages/ai-runtime/src/index.ts"],
+      "@meetwise/ai-graphs": ["packages/ai-graphs/src/index.ts"]
+    }
+  },
+  "_note": "workspace 包路径别名单一真相。给 depcruise(arch 关口) 与未来 tsc typecheck 用，使跨包 @meetwise/* 边可解析、边界规则真生效（运行期解析仍走各包 package.json exports）。"
+}
