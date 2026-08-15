@@ -1,10 +1,51 @@
-import { readFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { generateKeyPairSync } from 'node:crypto';
 import { resolve } from 'node:path';
+import { signManifest } from '../ops/ecs/preview-release-manifest.mjs';
 
 const directory = import.meta.dirname;
 const html = await readFile(resolve(directory, 'index.html'), 'utf8');
 const css = await readFile(resolve(directory, 'styles.css'), 'utf8');
 const workflow = await readFile(resolve(directory, '../.github/workflows/pages-preview.yml'), 'utf8');
+const artifactDir = resolve(directory, '../.tmp/preview-directory-proof');
+await rm(artifactDir, { recursive: true, force: true });
+await promisify(execFile)(process.execPath, [resolve(directory, '../scripts/build-preview-directory.mjs'), artifactDir]);
+const built = await readFile(resolve(artifactDir, 'index.html'), 'utf8');
+const validDir = resolve(directory, '../.tmp/preview-directory-valid-proof');
+await rm(validDir, { recursive: true, force: true });
+await mkdir(validDir, { recursive: true });
+const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+const now = Date.now();
+const validManifest = signManifest({
+  schemaVersion: 1,
+  status: 'verified',
+  releaseDigest: 'c3de7fe',
+  commit: 'c3de7fe3e67c917c3d73e0065165aaa8ddab7fe8',
+  tree: '1'.repeat(40),
+  webBuildSha256: 'a'.repeat(64),
+  staticAssetsSha256: 'b'.repeat(64),
+  origin: 'https://preview.tail39416d.ts.net',
+  mode: 'public-read-only',
+  issuedAt: new Date(now - 60_000).toISOString(),
+  expiresAt: new Date(now + 60_000).toISOString(),
+  revoked: false,
+  receipts: { candidate: 'c'.repeat(64), loopback: 'd'.repeat(64), methodGate: 'e'.repeat(64), edge: 'f'.repeat(64), blackbox: '0'.repeat(64) },
+  signingKeyId: 'ecs-preview-ed25519-v1',
+}, privateKey.export({ type: 'pkcs8', format: 'pem' }));
+const validManifestPath = resolve(validDir, 'manifest.json');
+const validKeyPath = resolve(validDir, 'public.pem');
+await writeFile(validManifestPath, `${JSON.stringify(validManifest)}\n`);
+await writeFile(validKeyPath, publicKey.export({ type: 'spki', format: 'pem' }));
+await promisify(execFile)(process.execPath, [resolve(directory, '../scripts/build-preview-directory.mjs'), resolve(validDir, 'enabled'), validManifestPath, validKeyPath]);
+const enabled = await readFile(resolve(validDir, 'enabled/index.html'), 'utf8');
+const expiredManifestPath = resolve(validDir, 'expired.json');
+await writeFile(expiredManifestPath, `${JSON.stringify({ ...validManifest, issuedAt: new Date(now - 120_000).toISOString(), expiresAt: new Date(now - 60_000).toISOString() })}\n`);
+await promisify(execFile)(process.execPath, [resolve(directory, '../scripts/build-preview-directory.mjs'), resolve(validDir, 'expired'), expiredManifestPath, validKeyPath]);
+const expired = await readFile(resolve(validDir, 'expired/index.html'), 'utf8');
+await rm(artifactDir, { recursive: true, force: true });
+await rm(validDir, { recursive: true, force: true });
 let failures = 0;
 
 function check(name, ok) {
@@ -12,9 +53,9 @@ function check(name, ok) {
   if (!ok) failures += 1;
 }
 
-check('renders a static project introduction and a main-project entry state',
+check('renders a static project introduction and a manifest-derived main-project entry state',
   html.includes('Meetwise 知面')
-  && html.includes('主项目入口准备中')
+  && html.includes('<!-- PREVIEW_PRIMARY_ENTRY -->')
   && html.includes('查看 GitHub 源码'));
 check('uses preview-only public wording', html.includes('预览版') && !html.includes('测试版'));
 check('does not embed a bare IP address, port, secret or private endpoint',
@@ -25,15 +66,24 @@ check('keeps the directory static and side-effect free',
 check('marks the prototype directory as non-indexable until its trusted release chain exists',
   html.includes('name="robots" content="noindex,nofollow"'));
 check('fails closed until a signed preview manifest enables real HTTPS destinations',
-  html.includes('aria-disabled="true"')
-  && !/href="https?:\/\/(?!github\.com\/miaole\/meetwise\")/.test(html));
+  built.includes('aria-disabled="true"')
+  && !/href="https?:\/\/(?!github\.com\/miaole\/meetwise\")/.test(built));
+check('renders only the exact signed HTTPS origin and republishes disabled output when it expires',
+  /href="https:\/\/preview\.tail39416d\.ts\.net" rel="noopener noreferrer"/.test(enabled)
+  && expired.includes('aria-disabled="true"')
+  && !/href="https?:\/\/preview\.tail39416d\.ts\.net"/.test(expired));
 check('uses the confirmed public source repository with a safe external-link policy',
   /href="https:\/\/github\.com\/miaole\/meetwise" rel="noopener noreferrer"/.test(html));
 check('provides responsive and reduced-motion presentation',
   css.includes('@media (max-width: 720px)') && css.includes('prefers-reduced-motion'));
-check('publishes only the static directory from the protected default branch',
+check('publishes only a generated static directory from the protected default branch',
   workflow.includes('branches: [main]')
-  && workflow.includes('path: preview-site')
+  && workflow.includes('      - preview-site/**')
+  && workflow.includes("github.ref == 'refs/heads/main'")
+  && workflow.includes('node scripts/build-preview-directory.mjs .pages-preview')
+  && workflow.includes('node scripts/verify-preview-origin.mjs')
+  && workflow.includes('--force-disabled')
+  && workflow.includes("cron: '17 * * * *'")
   && !workflow.includes('pull_request')
   && !workflow.includes('pull_request_target'));
 check('uses a separate least-privilege Pages deployment job with pinned actions',

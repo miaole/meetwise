@@ -135,13 +135,12 @@ export default async function Home() {
           </div>
           <FooterCol title={t('footProductTitle')} links={[
             { href: '/features', label: t('footFeatures') },
-            { href: '/pricing', label: t('footPricing') },
-            { href: '/login', label: t('ctaPrimary') },
+            { href: '/faq', label: t('footFaq') },
+            { href: '/legal', label: t('footLegal') },
           ]} />
           <FooterCol title={t('footSupportTitle')} links={[
-            { href: '/faq', label: t('footFaq') },
-            { href: '/privacy', label: t('footPrivacy') },
             { href: '/legal', label: t('footLegal') },
+            { href: '/faq', label: t('footFaq') },
           ]} />
         </div>
         <Separator />
