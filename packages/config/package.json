@@ -1,0 +1,11 @@
+{
+  "name": "@meetwise/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "共享工程配置：tsconfig base/nest preset、eslint、tailwind preset。其余包 extends 它，单一真相。",
+  "exports": {
+    "./tsconfig/base.json": "./tsconfig/base.json",
+    "./tsconfig/nest.json": "./tsconfig/nest.json"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "name": "@meetwise/ai-runtime",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "prove": "tsx test/runtime-kernel.proof.ts",
+    "prove:retrieval": "tsx test/retrieval.proof.ts",
+    "prove:breaker": "tsx test/breaker.proof.ts",
+    "prove:vstream": "tsx test/voice-stream.proof.ts",
+    "prove:voice-reliability": "tsx test/voice-reliability.proof.ts",
+    "smoke:tts-download-live": "tsx scripts/tts-download-live-smoke.ts",
+    "prove:metrics": "tsx test/metrics.proof.ts",
+    "prove:tools": "tsx test/tools.proof.ts",
+    "prove:failover": "tsx test/failover.proof.ts",
+    "prove:eval-metrics": "tsx test/eval-metrics.proof.ts",
+    "prove:langfuse-eval": "tsx test/langfuse-evaluation-contract.proof.ts",
+    "prove:offline-eval-execution": "tsx test/offline-evaluation-execution.proof.ts",
+    "prove:offline-eval-runner": "tsx test/offline-evaluation-runner.proof.ts",
+    "prove:model-client-output-limit": "tsx test/model-client-output-limit.proof.ts",
+    "prove:dashscope-native-config": "tsx test/dashscope-native-config.proof.ts",
+    "offline-eval:contract": "tsx scripts/run-offline-contract-regression.ts",
+    "langfuse:datasets:sync": "tsx scripts/sync-langfuse-datasets.ts",
+    "langfuse:datasets:verify": "tsx scripts/verify-langfuse-datasets.ts",
+    "langfuse:synthetic-trace:smoke": "tsx scripts/langfuse-synthetic-trace-smoke.ts",
+    "prove:model-cost": "tsx test/model-cost-governance.proof.ts"
+  },
+  "dependencies": {
+    "@langfuse/client": "5.10.0",
+    "@langfuse/otel": "5.10.0",
+    "@langfuse/tracing": "5.10.0",
+    "@meetwise/db": "workspace:*",
+    "ipaddr.js": "2.4.0",
+    "@opentelemetry/sdk-node": "0.221.0",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tsx": "^4.22.4",
+    "typescript": "catalog:"
+  }
+}

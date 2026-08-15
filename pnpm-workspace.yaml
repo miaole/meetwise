@@ -1,0 +1,17 @@
+packages:
+  - apps/*
+  - packages/*
+
+catalog:
+  '@types/node': 26.0.1
+  '@types/pg': 8.20.0
+  pg: 8.22.0
+  redis: 6.2.0
+  typescript: 6.0.3
+  zod: 4.4.3
+
+catalogs:
+  langchain:
+    '@langchain/core': 1.2.1
+    '@langchain/langgraph': 1.4.7
+    '@langchain/langgraph-checkpoint-postgres': 1.0.4

@@ -1,0 +1,271 @@
+# Meetwise 告警规则 —— SLO 派生的主动告警(事后能查 → 出事主动告警)。
+#
+# 硬约束:expr 只引用 /metrics 真实暴露的指标 + Prometheus 自带 meta 指标。
+#   当前 api 只暴露两个业务指标(main.ts onResponse hook):
+#     - http_requests_total{method,route,status}        counter
+#     - http_request_duration_ms{method,route}          histogram → _bucket{le}/_sum/_count
+#   以及 Prometheus 抓取自动合成的 up{job,instance}。
+#   熔断/退款/卡 job/DLQ 等指标 /metrics 尚未暴露 → 不写(写了=假告警)。见 alerts-lint 白名单。
+#
+# 多实例聚合:所有速率/比值先 sum() 跨实例,再取比值 / 分位,避免"单副本视角"误报。
+# 阈值均带 for 去抖(单次抓取抖动不告警);错误率带最小流量守卫(空闲期个别 5xx 不误告)。
+
+groups:
+  - name: meetwise-api-slo
+    rules:
+      # 目标失联:进程崩溃 / 端口不可达 / 容器被杀。up 由 Prometheus 抓取合成,恒为真指标。
+      # for 2m ≈ 8 次漏抓(15s 间隔),排除单次网络抖动。
+      - alert: ApiTargetDown
+        expr: 'up{job="meetwise-api"} == 0'
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'api 实例失联'
+          description: 'job=meetwise-api 的 up=0 已持续 2 分钟:进程崩溃或端口不可达,用户面全挂。'
+
+      # 抓取目标从未被发现(job 下无 target / 服务发现空)。absent(up) 覆盖 up==0 覆盖不到的"根本没这个序列"。
+      - alert: ApiScrapeMissing
+        expr: 'absent(up{job="meetwise-api"})'
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'api 抓取目标缺失'
+          description: '5 分钟内没有任何 meetwise-api target 的 up 序列:抓取配置错误或目标未注册,监控盲区。'
+
+      # 5xx 错误率(warning):服务端错误占比 > 5% 持续 10m。
+      # 阈值依据:稳定 API 的 5xx 基线应 ≈0;持续 5% 表示系统性故障(依赖挂/未捕获异常),非偶发。
+      # 最小流量守卫:5m 内总速率 > 0.05 req/s(≈3 req/min)才评估,空闲期一两个 500 不把比值放大成告警。
+      - alert: ApiHighErrorRate
+        expr: 'sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > 0.05 and sum(rate(http_requests_total[5m])) > 0.05'
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'api 5xx 错误率偏高(>5%)'
+          description: '过去 5 分钟服务端错误占比持续 >5% 超过 10 分钟,用户开始遇到失败。'
+
+      # 5xx 错误率(critical):> 20% 持续 5m —— 明确的服务级事故,快速呼叫。
+      - alert: ApiHighErrorRateCritical
+        expr: 'sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > 0.20 and sum(rate(http_requests_total[5m])) > 0.05'
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'api 5xx 错误率严重(>20%)'
+          description: '服务端错误占比 >20% 持续 5 分钟:接近整体不可用,需立即介入。'
+
+      # 请求延迟 p99(warning):跨实例合并 bucket 后取 p99 > 1000ms 持续 10m。
+      # 阈值依据:直方图在 1000ms 处正好有桶边界;交互式接口 p99 破 1s 即体验劣化。
+      - alert: ApiHighLatencyP99
+        expr: 'histogram_quantile(0.99, sum by (le) (rate(http_request_duration_ms_bucket[5m]))) > 1000'
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'api p99 延迟偏高(>1s)'
+          description: '过去 5 分钟 p99 请求延迟持续 >1000ms 超过 10 分钟:后端变慢或下游阻塞。'
+
+      # 请求延迟 p99(critical):> 2500ms 持续 10m —— 逼近超时区间,影响可用性。
+      - alert: ApiHighLatencyP99Critical
+        expr: 'histogram_quantile(0.99, sum by (le) (rate(http_request_duration_ms_bucket[5m]))) > 2500'
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'api p99 延迟严重(>2.5s)'
+          description: 'p99 延迟 >2500ms 持续 10 分钟:请求逼近超时,用户面大面积卡顿。'
+
+  - name: meetwise-worker-slo
+    rules:
+      # ---- worker 存活(数据源:Prometheus 抓取 worker /metrics 合成的 up)----------------
+      # worker 挂 = 面试/报告/押题/诊断/对账全停(api 只入队),队列静默堆积。for 2m ≈ 8 次漏抓。
+      - alert: WorkerTargetDown
+        expr: 'up{job="meetwise-worker"} == 0'
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'worker 实例失联'
+          description: 'job=meetwise-worker 的 up=0 已持续 2 分钟:图执行/消费循环全停,队列只进不出。'
+
+      - alert: WorkerScrapeMissing
+        expr: 'absent(up{job="meetwise-worker"})'
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'worker 抓取目标缺失'
+          description: '5 分钟内无任何 meetwise-worker 的 up 序列:worker 未注册或 /metrics 不可达,监控盲区。'
+
+      # ---- 模型熔断打开(数据源:circuit-breaker.ts 相位翻 open 时 emit 的 counter)--------
+      # 跨实例 sum(increase()):各实例熔断是不同真实降级事件,合并计数。任一次打开即代表模型关口在降级(快速失败不打模型)。
+      - alert: ModelCircuitBreakerOpen
+        expr: 'sum(increase(model_circuit_breaker_open_total[15m])) > 0'
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: '模型熔断器打开(正在降级)'
+          description: '过去 15 分钟模型关口熔断至少打开过一次:下游模型连败到阈值,出题/评分/报告走降级路径。'
+
+      # ---- 队列健康(数据源:worker 周期从 DB 查全局计数 set 的 gauge)-------------------
+      # gauge 是全局绝对值,多实例各查同库得同值 → max() 去重实例视角(sum 会翻倍)。
+      # queued 积压:消费慢于入队 / worker 领不动。阈值 100 持续 10m 才告(去抖 + 容瞬时突发)。
+      - alert: WorkerQueueBacklog
+        expr: 'max(worker_jobs_queued) > 100'
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'worker 队列积压(queued > 100)'
+          description: '某队列 queued 深度持续 >100 超 10 分钟:消费吞吐跟不上入队,用户等待变长。'
+
+      # running 超租约 = worker 崩在半途的孤儿 job(reaper 尚未收割)。持续偏高 = 崩溃循环 / reaper 落后。
+      - alert: WorkerStuckRunningJobs
+        expr: 'max(worker_jobs_running_expired) > 5'
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'worker 卡住 job(running 超租约 > 5)'
+          description: '某队列有 >5 个 running 状态 job 租约已过期持续 5 分钟:worker 崩在半途或 reaper 收割落后。'
+
+      # DLQ 死信深度:报告 quarantined / 其余 job failed 终态。增长 = 系统性失败(依赖挂/校验持续不过),需人工介入。
+      - alert: WorkerDeadLetterBacklog
+        expr: 'max(worker_jobs_dead) > 10'
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'worker 死信堆积(DLQ > 10)'
+          description: '某队列死信(报告 quarantined / job failed 终态)持续 >10 超 10 分钟:耗尽重试的失败在累积,用户拿不到结果。'
+
+      # ---- 退款/额度释放失败(数据源:refund_failed_total counter)-----------------------
+      # 注:本 counter 已注册(基线 0 序列),但 **emit 点在 commerce 释放失败的 catch(本次任务边界外,尚未接线)**。
+      # 告警"预置就位":一旦 commerce 侧把释放失败 emit 接上即自动生效;在此之前无真实增量(不误告)。见交付报告"诚实缺口"。
+      - alert: RefundFailed
+        expr: 'sum(increase(refund_failed_total[1h])) > 0'
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: '退款/额度释放失败'
+          description: '过去 1 小时出现退款/额度释放失败:用户为失败流程被扣额度却未退回,资金/信任红线,需立即核查。'
+
+      # ---- RAG 费用与质量降级闭环（所有指标在 worker /metrics 真曝光）-----------------
+      - alert: RagCostGovernanceDisabled
+        expr: 'max(rag_cost_governance_enabled) == 0'
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'RAG 费用预留护栏未启用'
+          description: 'worker 未报告强制费用治理:生产不得在 observe 模式下提供可计费 RAG 调用。'
+
+      - alert: RagBudgetNearExhaustion
+        expr: 'max(rag_cost_governance_enabled) == 1 and min(rag_cost_budget_remaining_ratio) < 0.10'
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'RAG 月度预算剩余不足 10%'
+          description: '费用账本的可用预算比例已低于 10%;需扩容预算或降级非必要检索，避免用户路径突然拒绝。'
+
+      - alert: RagExternalOutcomeUnknown
+        expr: 'max(rag_cost_governance_enabled) == 1 and max(rag_cost_unknown_reservations) > 0'
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'RAG 外部调用结果未知，已冻结重试'
+          description: '至少一笔 embedding 已派发但未完成结算；系统已阻止盲重试，需按供应商记录人工对账。'
+
+      - alert: RagBudgetRejected
+        expr: 'sum(increase(rag_retrieval_total{outcome="budget_exhausted"}[15m])) > 0'
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'RAG 请求因预算耗尽被降级'
+          description: '过去 15 分钟出现调用前预算拒绝；用户请求没有外发到 embedding 供应商。'
+
+      - alert: RagRetrievalUnavailable
+        expr: 'sum(increase(rag_retrieval_total{outcome=~"unknown|claim_timeout|internal_error"}[15m])) > 5'
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'RAG 检索持续降级'
+          description: '15 分钟内未知外部结果、claim 超时或内部错误累计超过 5 次；检查账本、数据库和 embedding 供应商。'
+
+      # ---- 通用模型费用闭环（文本/视觉，和 RAG 账本分 scope，不能混为一谈）----------------
+      - alert: ModelCostGovernanceDisabled
+        expr: 'max(model_cost_governance_enabled) == 0'
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: '模型费用预留护栏未启用'
+          description: 'worker 未报告文本/视觉模型强制费用治理；生产不得以 observe 模式对可计费模型发请求。'
+
+      - alert: ModelBudgetNearExhaustion
+        expr: 'max(model_cost_governance_enabled) == 1 and min(model_cost_budget_remaining_ratio) < 0.10'
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: '模型月度预算剩余不足 10%'
+          description: '通用模型费用账本的可用预算比例低于 10%;需扩容预算或降级非必要生成，避免用户路径突然拒绝。'
+
+      - alert: ModelExternalOutcomeUnknown
+        expr: 'max(model_cost_governance_enabled) == 1 and max(model_cost_unknown_reservations) > 0'
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: '模型调用结果未知，已冻结重试'
+          description: '至少一笔文本或视觉模型调用已派发但未完成结算；系统已阻止盲重试，需按供应商记录人工对账。'
+
+      # 对账本身不是成功信号：它意味着数据库在供应商请求后丢失了终态，
+      # 系统已正确冻结重试，但仍需排查数据库/网络并核对供应商账单。
+      - alert: ModelPostDispatchReconciled
+        expr: 'sum(increase(model_invocation_reconcile_invocations_total{result="terminalized"}[15m])) > 0'
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: '模型已派发调用被对账冻结为未知'
+          description: '过去 15 分钟至少一笔模型请求在派发后未能正常终态化；系统没有重发，已冻结费用并要求人工核对供应商账单与数据库故障。'
+
+      - alert: ModelInvocationReconcileUnavailable
+        expr: 'sum(increase(model_invocation_reconcile_invocations_total{result=~"enumeration_failed|owner_failed"}[5m])) > 0'
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: '模型派发后对账不可用'
+          description: '模型调用的 owner 枚举或主体事务在过去 5 分钟失败。worker 就绪检查将随连续失败转为未就绪；陈旧 dispatching 调用可能无法冻结，需立即检查数据库、网关权限与行级安全配置。'
+
+      - alert: ModelBudgetRejected
+        expr: 'sum(increase(model_cost_decisions_total{decision="budget_exhausted"}[15m])) > 0'
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: '模型请求因预算耗尽被阻止'
+          description: '过去 15 分钟存在派发前预算拒绝；请求未外发给模型供应商，需安排容量或触发降级。'
+
+  - name: meetwise-monitoring-meta
+    rules:
+      # 死信开关(Watchdog / dead-man's switch):恒定发火,路由到心跳接收端。
+      # 若下游(接收端/推送网关)长时间收不到这条,说明"整条告警链路本身死了" —— 防止监控静默失效。
+      - alert: MonitoringWatchdog
+        expr: 'vector(1)'
+        for: 0m
+        labels:
+          severity: none
+        annotations:
+          summary: '告警链路心跳'
+          description: '恒定发火的守夜告警:接收端应持续收到;一旦断流即代表告警管道本身故障。'
