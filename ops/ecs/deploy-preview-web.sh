@@ -46,7 +46,7 @@ stop_candidate() {
     deploy_fail 'candidate systemd cgroup could not be stopped' 70
     return $?
   fi
-  if systemctl is-active --quiet "$candidate_unit"; then
+  if ! controller_unit_is_inactive "$candidate_unit"; then
     deploy_fail 'candidate systemd cgroup did not stop' 70
     return $?
   fi

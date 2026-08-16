@@ -116,6 +116,10 @@ const checks = [
     assert.match(reconcileSource, /controller_disable_serving/);
     assert.match(controllerSource, /controller_stop_preview_candidates/);
     assert.match(controllerSource, /systemctl stop meetwise-web-preview\.service/);
+    assert.match(controllerSource, /controller_unit_load_state meetwise-web-preview\.service/);
+    assert.match(controllerSource, /timeout 5s systemctl show --property=LoadState/);
+    assert.match(controllerSource, /timeout 15s systemctl stop meetwise-web-preview\.service[^\n]*&/);
+    assert.match(controllerSource, /controller_funnel_status_is_closed \|\| failed=1/);
     assert.doesNotMatch(controllerSource, /systemctl stop --wait/);
     assert.match(reconcileSource, /preview_reconcile_public_manifest_missing/);
     assert.match(reconcileSource, /controller_ledger_transition "\$state" failed/);
