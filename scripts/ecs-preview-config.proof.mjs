@@ -66,6 +66,7 @@ const checks = [
       && /IPAddressAllow=127\.0\.0\.0\/8/.test(unit)
       && /ExecStartPre=\+\/usr\/local\/lib\/meetwise-preview-controller\/ensure-preview-web-serving\.sh/.test(unit)
       && /Requires=meetwise-preview-recovery\.service/.test(unit)
+      && /InaccessiblePaths=\/srv\/meetwise/.test(unit)
       && !/(DATABASE_URL|REDIS|MODEL_API_KEY|DASHSCOPE|MIGRATION|PASSWORD|TOKEN=)/.test(unit)],
   ['all release entrypoints require an installed root-owned checksum-verified controller path',
     /controller_entry_guard/.test(controller)
@@ -80,12 +81,18 @@ const checks = [
       && /archive-safety\.mjs/.test(installer)
       && /--signer-workflow/.test(installer)
       && /payloadTreeSha256/.test(installer)
+      && /bootstrapSlot/.test(installer)
+      && /verified-controller-\[a-f0-9\]\{64\}/.test(installer)
+      && /controller installer invocation path must be canonical and non-symlinked/.test(installer)
+      && /receipt\.expectedArchiveSha256 !== archiveSha256/.test(installer)
       && /attestationVerifiedAt/.test(installer)
       && /\/usr\/bin\/node/.test(installer)
       && /controller\.sha256/.test(installer)
       && /chown -R root:root/.test(installer)
       && /chmod -R go-w/.test(installer)
-      && /controller-files\.txt/.test(installer)],
+      && /controller-files\.txt/.test(installer)
+      && /controller_root\.previous/.test(installer)
+      && /restore_controller_install/.test(installer)],
   ['the release archive is staged before GitHub attestation and permits only root-contained relative soft links during extraction',
     /gh attestation verify/.test(prepare)
       && /input_archive/.test(prepare)
@@ -127,6 +134,7 @@ const checks = [
       && /IPAddressDeny=any/.test(deploy)
       && /ReadOnlyPaths=\$release_dir/.test(deploy)
       && /RuntimeMaxSec=60/.test(deploy)
+      && /InaccessiblePaths=\/srv\/meetwise/.test(deploy)
       && /stop_candidate/.test(deploy)
       && /systemctl stop --wait/.test(deploy)
       && !/is-active --quiet "\$candidate_unit" && controller_fail.*\|\| true/.test(deploy)
@@ -294,6 +302,22 @@ const checks = [
       && !/\/run\/lock\/meetwise-preview-controller/.test(controller)
       && /controller_assert_root_readonly_path/.test(controller)
       && /preview release trust path is writable outside root/.test(controller)],
+  ['preview releases use a separate root-owned trust root and fail-close any prior public edge before installing it',
+    /MEETWISE_PREVIEW_ROOT=\/srv\/meetwise-preview/.test(controller)
+      && /MEETWISE_PREVIEW_RELEASE_ROOT=\/srv\/meetwise-preview\/releases/.test(controller)
+      && /MEETWISE_PREVIEW_CURRENT_LINK=\/srv\/meetwise-preview\/current/.test(controller)
+      && /controller_assert_root_trust_ancestry/.test(controller)
+      && /controller_assert_preview_trust_root/.test(controller)
+      && /preclose_existing_public_preview/.test(installer)
+      && /tailscale funnel --https=443 off/.test(installer)
+      && /existing preview Web remains active after fail-close/.test(installer)
+      && /prepare_isolated_preview_trust_root/.test(installer)
+      && /ensure_exact_root_directory/.test(installer)
+      && /preview trust directory does not match the required root-owned mode/.test(installer)
+      && /InaccessiblePaths=\/srv\/meetwise/.test(unit)
+      && /InaccessiblePaths=\/srv\/meetwise/.test(bootRecoveryUnit)
+      && !controller.includes('/srv/meetwise/releases')
+      && !unit.includes('/srv/meetwise/current')],
   ['use case retains all seven required test classes', ['main', 'E1', 'E2', 'E3', 'E4', 'E5', 'E6'].every((suffix) => useCase.includes(`TC-ecs-public-preview-web-ingress-01-${suffix}`))],
 ];
 

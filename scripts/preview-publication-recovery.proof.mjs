@@ -138,7 +138,11 @@ const checks = [
   }],
   ['installer payload rejects direct sudo execution and requires independent verified bootstrap staging', () => {
     assert.match(installerSource, /controller installer must run only from the verified bootstrap payload/);
-    assert.match(installerSource, /bootstrap_root=\/var\/lib\/meetwise-preview-bootstrap\/verified-controller/);
+    assert.match(installerSource, /bootstrap_parent=\/var\/lib\/meetwise-preview-bootstrap/);
+    assert.match(installerSource, /\^verified-controller-\[a-f0-9\]\{64\}\$/);
+    assert.match(installerSource, /receipt\.bootstrapSlot !== basename\(bootstrapRoot\)/);
+    assert.match(installerSource, /receipt\.expectedArchiveSha256 !== archiveSha256/);
+    assert.match(installerSource, /controller installer invocation path must be canonical and non-symlinked/);
     assert.doesNotMatch(installerSource, /usage: sudo install-preview-controller\.sh/);
   }],
   ['recovery policy remains current-aware rather than ledger-only', () => {

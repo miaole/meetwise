@@ -1,4 +1,4 @@
-import { lstat, mkdir, open, readlink, realpath, rename, rm, symlink } from 'node:fs/promises';
+import { lstat, open, readlink, realpath, rename, rm, symlink } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 
@@ -66,7 +66,8 @@ export async function switchCurrentPointer({ pointerPath, releaseRoot, releaseDi
 
 export async function clearCurrentPointer(pointerPath) {
   const pointerParent = dirname(resolve(pointerPath));
-  await mkdir(pointerParent, { recursive: true, mode: 0o755 });
+  const parentMetadata = await lstat(pointerParent);
+  if (!parentMetadata.isDirectory() || parentMetadata.isSymbolicLink()) throw new Error('preview_current_parent_invalid');
   await rm(pointerPath, { force: true });
   await syncDirectory(pointerParent);
 }

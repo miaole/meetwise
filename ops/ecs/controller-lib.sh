@@ -16,8 +16,9 @@ readonly MEETWISE_PREVIEW_CONTROLLER_RUNTIME=/run/meetwise-preview-controller
 readonly MEETWISE_PREVIEW_EDGE_TIMEOUT_RUNTIME_MARKER=/run/meetwise-preview-controller/edge-probe-timeout
 readonly MEETWISE_PREVIEW_CONTROLLER_LOCK=/run/meetwise-preview-controller/controller.lock
 readonly MEETWISE_PREVIEW_EDGE_FENCE_LOCK=/run/meetwise-preview-controller/edge-probe-fence.lock
-readonly MEETWISE_PREVIEW_RELEASE_ROOT=/srv/meetwise/releases
-readonly MEETWISE_PREVIEW_CURRENT_LINK=/srv/meetwise/current
+readonly MEETWISE_PREVIEW_ROOT=/srv/meetwise-preview
+readonly MEETWISE_PREVIEW_RELEASE_ROOT=/srv/meetwise-preview/releases
+readonly MEETWISE_PREVIEW_CURRENT_LINK=/srv/meetwise-preview/current
 
 controller_fail() {
   printf '%s\n' "$1" >&2
@@ -141,6 +142,25 @@ controller_ledger_read() {
   node "$MEETWISE_PREVIEW_CONTROLLER_ROOT/preview-release-ledger.mjs" read --path "$MEETWISE_PREVIEW_CONTROLLER_STATE"
 }
 
+controller_assert_root_trust_ancestry() {
+  local path="$1" ancestor mode index
+  local -a ancestors=()
+  [[ "$path" == /* ]] || controller_fail 'preview release trust path must be absolute' 77
+  ancestor="$path"
+  while :; do
+    ancestors+=("$ancestor")
+    [[ "$ancestor" == / ]] && break
+    ancestor="$(dirname "$ancestor")"
+  done
+  for ((index=${#ancestors[@]} - 1; index >= 0; index--)); do
+    ancestor="${ancestors[index]}"
+    [[ -d "$ancestor" && ! -L "$ancestor" && "$(stat -c '%U:%G' "$ancestor")" == root:root ]] \
+      || controller_fail 'preview release trust ancestor ownership is invalid' 77
+    mode="$(stat -c '%a' "$ancestor")"
+    (( (8#$mode & 0022) == 0 )) || controller_fail 'preview release trust ancestor is writable outside root' 77
+  done
+}
+
 controller_assert_root_readonly_path() {
   local path="$1" mode
   [[ -e "$path" && ! -L "$path" && "$(stat -c '%U:%G' "$path")" == root:root ]] \
@@ -149,9 +169,17 @@ controller_assert_root_readonly_path() {
   (( (8#$mode & 0022) == 0 )) || controller_fail 'preview release trust path is writable outside root' 77
 }
 
+controller_assert_preview_trust_root() {
+  controller_assert_root_trust_ancestry "$MEETWISE_PREVIEW_ROOT"
+  [[ -d "$MEETWISE_PREVIEW_ROOT" && ! -L "$MEETWISE_PREVIEW_ROOT" && "$(stat -c '%U:%G:%a' "$MEETWISE_PREVIEW_ROOT")" == root:root:755 ]] \
+    || controller_fail 'preview release root metadata is invalid' 77
+  controller_assert_root_trust_ancestry "$MEETWISE_PREVIEW_RELEASE_ROOT"
+  [[ -d "$MEETWISE_PREVIEW_RELEASE_ROOT" && ! -L "$MEETWISE_PREVIEW_RELEASE_ROOT" && "$(stat -c '%U:%G:%a' "$MEETWISE_PREVIEW_RELEASE_ROOT")" == root:root:755 ]] \
+    || controller_fail 'preview release directory metadata is invalid' 77
+}
+
 controller_current_read() {
-  controller_assert_root_readonly_path /srv/meetwise
-  controller_assert_root_readonly_path "$MEETWISE_PREVIEW_RELEASE_ROOT"
+  controller_assert_preview_trust_root
   local current release_directory
   current="$(node "$MEETWISE_PREVIEW_CONTROLLER_ROOT/preview-current-pointer.mjs" inspect \
     --pointer "$MEETWISE_PREVIEW_CURRENT_LINK" --release-root "$MEETWISE_PREVIEW_RELEASE_ROOT")"
@@ -162,12 +190,14 @@ controller_current_read() {
 
 controller_current_switch() {
   local release_dir
+  controller_assert_preview_trust_root
   release_dir="$(controller_release_dir "$1")"
   node "$MEETWISE_PREVIEW_CONTROLLER_ROOT/preview-current-pointer.mjs" switch \
     --pointer "$MEETWISE_PREVIEW_CURRENT_LINK" --release-root "$MEETWISE_PREVIEW_RELEASE_ROOT" --release "$release_dir" >/dev/null
 }
 
 controller_clear_current() {
+  controller_assert_preview_trust_root
   node "$MEETWISE_PREVIEW_CONTROLLER_ROOT/preview-current-pointer.mjs" clear --pointer "$MEETWISE_PREVIEW_CURRENT_LINK"
 }
 
