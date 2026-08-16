@@ -19,7 +19,10 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 0
-          persist-credentials: false
+          # The only candidate interaction in this trusted workflow is the
+          # Git-object fetch below. Keep the read token just long enough for
+          # that fetch, then remove it before the base-tree guard runs.
+          persist-credentials: true
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
@@ -30,9 +33,10 @@ jobs:
           GOVERNANCE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           GOVERNANCE_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           GOVERNANCE_PR_NUMBER: ${{ github.event.pull_request.number }}
-          GOVERNANCE_READ_TOKEN: ${{ github.token }}
         run: |
           set -eu
-          git -c http.extraheader="AUTHORIZATION: bearer ${GOVERNANCE_READ_TOKEN}" fetch --no-tags origin "refs/pull/${GOVERNANCE_PR_NUMBER}/head"
-          unset GOVERNANCE_READ_TOKEN
+          candidate_ref="refs/remotes/governance/pr-${GOVERNANCE_PR_NUMBER}"
+          git fetch --no-tags origin "+refs/pull/${GOVERNANCE_PR_NUMBER}/head:${candidate_ref}"
+          test "$(git rev-parse "${candidate_ref}")" = "${GOVERNANCE_HEAD_SHA}"
+          git config --local --unset-all http.https://github.com/.extraheader || true
           node scripts/quality-governance-base-guard.mjs --base "${GOVERNANCE_BASE_SHA}" --head "${GOVERNANCE_HEAD_SHA}"

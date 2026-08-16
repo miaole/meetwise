@@ -89,10 +89,10 @@ export default function FeaturesPage() {
       <Separator className="mt-12" />
       <div className="mt-8 flex flex-wrap gap-4">
         <Button asChild size="lg">
-          <Link href="/login">登录开始<ArrowRight /></Link>
+          <Link href="/faq">查看当前开放范围<ArrowRight /></Link>
         </Button>
         <Button asChild size="lg" variant="outline">
-          <Link href="/pricing">查看额度说明</Link>
+          <Link href="/legal">查看数据边界</Link>
         </Button>
       </div>
     </main>

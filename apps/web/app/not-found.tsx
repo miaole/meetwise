@@ -8,7 +8,7 @@ export default function NotFound() {
       <p className="mt-2 text-muted-foreground">你要找的页面不存在或已移动。</p>
       <div className="mt-5 flex justify-center gap-3">
         <Button asChild><Link href="/">返回首页</Link></Button>
-        <Button asChild variant="outline"><Link href="/dashboard">进入总览</Link></Button>
+        <Button asChild variant="outline"><Link href="/features">查看能力边界</Link></Button>
       </div>
     </div>
   );

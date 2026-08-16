@@ -1,0 +1,37 @@
+[Unit]
+Description=Meetwise public preview Web
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=meetwise
+Group=meetwise
+WorkingDirectory=/srv/meetwise/current/apps/web/.next/standalone/apps/web
+EnvironmentFile=/etc/meetwise/preview-web.env
+Environment=NODE_ENV=production
+Environment=NEXT_TELEMETRY_DISABLED=1
+Environment=HOSTNAME=127.0.0.1
+Environment=PORT=3000
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=20
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+IPAddressDeny=any
+IPAddressAllow=127.0.0.0/8
+IPAddressAllow=::1/128
+ReadOnlyPaths=/srv/meetwise/current
+CapabilityBoundingSet=
+AmbientCapabilities=
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

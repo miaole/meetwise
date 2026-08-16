@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale } from 'next-intl/server';
 import { Nav } from '../components/Nav';
+import { PublicPreviewNav } from '../components/PublicPreviewNav';
 import { Toaster } from '../components/ui/sonner';
 import { resolvePublicSiteUrl } from '@/lib/public-site';
 
@@ -27,14 +28,17 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, maximumScale: 5, themeColor: '#B5651D' };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const publicPreview = process.env.MEETWISE_PUBLIC_PREVIEW === '1';
+  const previewReleaseDigest = publicPreview ? process.env.MEETWISE_PREVIEW_RELEASE_DIGEST : undefined;
   const locale = await getLocale();          // i18n:locale 取自 cookie
   return (
     <html lang={locale}>
+      <head>{previewReleaseDigest ? <meta name="meetwise-preview-release" content={previewReleaseDigest} /> : null}</head>
       <body className="min-h-screen bg-background text-foreground antialiased">
         {/* NextIntlClientProvider 把文案传给客户端组件;Server Component 用 getTranslations */}
         <NextIntlClientProvider>
           {/* Nav 通栏(自带全宽 sticky 头部 bar);主体内容单独居中容器 */}
-          <Nav />
+          {publicPreview ? <PublicPreviewNav /> : <Nav />}
           <div className="mx-auto w-full max-w-6xl px-4 pb-16 pt-8 md:px-6">
             {children}
           </div>
