@@ -6,7 +6,11 @@ const DIGEST = /^[a-f0-9]{64}$/;
 const RELEASE = /^[a-f0-9]{7,64}$/;
 const COMMIT = /^[a-f0-9]{40}$/;
 const TAILSCALE_ORIGIN = /^https:\/\/[a-z0-9-]+\.tail[a-z0-9]+\.ts\.net$/;
-const REQUIRED_RECEIPTS = ['candidate', 'loopback', 'methodGate', 'edge', 'blackbox'];
+const REQUIRED_RECEIPTS = Object.freeze({
+  'public-read-only': ['candidate', 'loopback', 'methodGate', 'edge', 'blackbox'],
+  'public-full-stack-probe': ['runtime', 'synthetic', 'database', 'edge', 'blackbox'],
+  'public-full-stack': ['runtime', 'synthetic', 'database', 'edge', 'blackbox'],
+});
 
 export function canonicalJson(value) {
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
@@ -40,13 +44,16 @@ export function validateUnsignedManifest(manifest, { now = Date.now(), allowExpi
   if (!RELEASE.test(manifest.releaseDigest ?? '') || !COMMIT.test(manifest.commit ?? '') || !COMMIT.test(manifest.tree ?? '')) throw new Error('preview_manifest_identity_invalid');
   if (![manifest.webBuildSha256, manifest.staticAssetsSha256].every((value) => DIGEST.test(value ?? ''))) throw new Error('preview_manifest_artifact_digest_invalid');
   if (typeof manifest.origin !== 'string' || !TAILSCALE_ORIGIN.test(manifest.origin)) throw new Error('preview_manifest_origin_invalid');
-  if (manifest.mode !== 'public-read-only' || manifest.signingKeyId !== 'ecs-preview-ed25519-v1') throw new Error('preview_manifest_mode_invalid');
+  if (!Object.hasOwn(REQUIRED_RECEIPTS, manifest.mode) || manifest.signingKeyId !== 'ecs-preview-ed25519-v1') throw new Error('preview_manifest_mode_invalid');
   if ((manifest.status === 'verified' && manifest.revoked !== false) || (manifest.status === 'revoked' && manifest.revoked !== true)) throw new Error('preview_manifest_revocation_invalid');
   const issuedAt = parseTime(manifest.issuedAt, 'issued_at');
   const expiresAt = parseTime(manifest.expiresAt, 'expires_at');
+  if (issuedAt > now + 30_000) throw new Error('preview_manifest_issued_at_future');
   if (issuedAt >= expiresAt || expiresAt - issuedAt > 14 * 24 * 60 * 60 * 1000) throw new Error('preview_manifest_expiry_invalid');
   if (!allowExpired && expiresAt <= now) throw new Error('preview_manifest_expired');
-  if (!manifest.receipts || typeof manifest.receipts !== 'object' || REQUIRED_RECEIPTS.some((key) => !DIGEST.test(manifest.receipts[key] ?? ''))) throw new Error('preview_manifest_receipts_invalid');
+  const receiptKeys = Object.keys(manifest.receipts ?? {}).sort();
+  const requiredReceiptKeys = [...REQUIRED_RECEIPTS[manifest.mode]].sort();
+  if (!manifest.receipts || typeof manifest.receipts !== 'object' || Array.isArray(manifest.receipts) || JSON.stringify(receiptKeys) !== JSON.stringify(requiredReceiptKeys) || requiredReceiptKeys.some((key) => !DIGEST.test(manifest.receipts[key] ?? ''))) throw new Error('preview_manifest_receipts_invalid');
   return manifest;
 }
 

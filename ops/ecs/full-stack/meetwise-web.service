@@ -1,0 +1,30 @@
+[Unit]
+Description=Meetwise preview Web
+After=network-online.target meetwise-api.service meetwise-full-stack-publication-recovery.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=meetwise
+Group=meetwise
+WorkingDirectory=/srv/meetwise-full-stack/current
+EnvironmentFile=/etc/meetwise/full-stack-common.env
+EnvironmentFile=/etc/meetwise/full-stack-web.env
+ExecStartPre=/usr/bin/systemctl is-active --quiet meetwise-full-stack-publication-recovery.service
+ExecStartPre=+/usr/local/sbin/full-stack-preview-publication assert-web-start-permitted
+ExecStart=/usr/bin/node apps/web/node_modules/next/dist/bin/next start apps/web --hostname 127.0.0.1 --port 3000
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=20
+KillSignal=SIGTERM
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadOnlyPaths=/srv/meetwise-full-stack
+ReadWritePaths=/var/lib/meetwise-full-stack
+MemoryMax=512M
+TasksMax=256
+
+[Install]
+WantedBy=multi-user.target

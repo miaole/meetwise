@@ -19,7 +19,7 @@ let version = '预览环境准备中';
 let updated = '等待受控 ECS 环境就绪';
 
 let state = 'disabled';
-if (!forceDisabled && manifest.status === 'verified') {
+if (!forceDisabled && manifest.status === 'verified' && ['public-read-only', 'public-full-stack'].includes(manifest.mode)) {
   try {
     verifyManifest(manifest, publicKey);
     const href = manifest.origin;

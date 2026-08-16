@@ -1,6 +1,6 @@
 /** Production runtime login proof: a migrated DB creates an app-role member that cannot elevate or bypass RLS. */
 import { fileURLToPath } from 'node:url';
-import { assertIsolatedTestTarget, createPool, asGateway, asPrincipal, loadMigrations, provisionRuntimeLogin, runMigrations } from '../src/index.ts';
+import { assertIsolatedTestTarget, assertRuntimeLoginIdentity, createPool, asGateway, asPrincipal, loadMigrations, provisionRuntimeLogin, runMigrations } from '../src/index.ts';
 
 const admin = createPool();
 const role = `runtime_role_${process.pid}`;
@@ -43,6 +43,9 @@ async function main() {
   await admin.query("INSERT INTO ai_cost_budget_month(scope_id,period_key,limit_micro_cny,reserved_micro_cny,settled_micro_cny) VALUES ('runtime-budget',to_char(clock_timestamp() AT TIME ZONE 'UTC','YYYY-MM'),1000,100,250) ON CONFLICT (scope_id,period_key) DO UPDATE SET reserved_micro_cny=100,settled_micro_cny=250");
   const runtime = createPool({ user: role, password, max: 2 });
   try {
+    await assertRuntimeLoginIdentity(runtime, role);
+    A('组合根身份门接受精确低权 runtime login', true);
+    A('组合根身份门拒绝错误预期账号', await rejects(() => assertRuntimeLoginIdentity(runtime, `${role}_wrong`)));
     A('运行登录不能 CREATE TABLE', await rejects(() => runtime.query('CREATE TABLE runtime_role_escape(id int)')));
     A('运行登录不能 CREATE ROLE', await rejects(() => runtime.query('CREATE ROLE runtime_role_escape')));
     A('运行登录不能切回迁移高权角色', await rejects(() => runtime.query('SET ROLE meetwise')));

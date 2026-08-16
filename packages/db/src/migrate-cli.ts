@@ -1,6 +1,6 @@
 /** Dedicated production migration entrypoint. It is intentionally separate from API/worker startup. */
 import { fileURLToPath } from 'node:url';
-import { assertDistinctProvisionedLoginNames, assertQbankControlDefinerOwnership, assertQbankControlExecutorIdentity, assertRagControlDefinerOwnership, assertRagControlExecutorIdentity, createPool, loadMigrations, provisionPrivacyWorkerLogin, provisionQbankControlDefiner, provisionQbankControlLogin, provisionRagControlLogin, provisionRuntimeLogin, rebindDatabaseLogin, resolveDatabaseConnectionString, runMigrations } from './index.ts';
+import { assertDistinctProvisionedLoginNames, assertQbankControlDefinerOwnership, assertQbankControlExecutorIdentity, assertRagControlDefinerOwnership, assertRagControlExecutorIdentity, assertRuntimeLoginIdentity, createPool, loadMigrations, provisionPrivacyWorkerLogin, provisionQbankControlDefiner, provisionQbankControlLogin, provisionRagControlLogin, provisionRuntimeLogin, rebindDatabaseLogin, resolveDatabaseConnectionString, runMigrations } from './index.ts';
 
 async function main(): Promise<void> {
   const pool = createPool();
@@ -16,6 +16,7 @@ async function main(): Promise<void> {
     const privacyWorkerPassword = process.env.PRIVACY_WORKER_DB_PASSWORD;
     const ragControlUser = process.env.RAG_CONTROL_DB_USER;
     const ragControlPassword = process.env.RAG_CONTROL_DB_PASSWORD;
+    const requireProvisionedLogins = process.env.REQUIRE_PROVISIONED_LOGINS === '1';
     if ((runtimeUser === undefined) !== (runtimePassword === undefined))
       throw new Error('runtime_login_credentials_must_be_provided_together');
     if ((qbankControlUser === undefined) !== (qbankControlPassword === undefined))
@@ -24,14 +25,26 @@ async function main(): Promise<void> {
       throw new Error('privacy_worker_login_credentials_must_be_provided_together');
     if ((ragControlUser === undefined) !== (ragControlPassword === undefined))
       throw new Error('rag_control_login_credentials_must_be_provided_together');
+    if (requireProvisionedLogins && (!runtimeUser || !runtimePassword || !qbankControlUser || !qbankControlPassword
+      || !privacyWorkerUser || !privacyWorkerPassword || !ragControlUser || !ragControlPassword))
+      throw new Error('required_provisioned_logins_missing');
     assertDistinctProvisionedLoginNames([
       { service: 'runtime', roleName: runtimeUser },
       { service: 'qbank_control', roleName: qbankControlUser },
       { service: 'privacy_worker', roleName: privacyWorkerUser },
       { service: 'rag_control', roleName: ragControlUser },
     ]);
-    if (runtimeUser !== undefined && runtimePassword !== undefined)
+    if (runtimeUser !== undefined && runtimePassword !== undefined) {
       await provisionRuntimeLogin(pool, { roleName: runtimeUser, password: runtimePassword });
+      const runtimePool = createPool({
+        connectionString: rebindDatabaseLogin(resolveDatabaseConnectionString(), {
+          roleName: runtimeUser,
+          password: runtimePassword,
+        }),
+      });
+      try { await assertRuntimeLoginIdentity(runtimePool, runtimeUser); }
+      finally { await runtimePool.end(); }
+    }
     if (qbankControlUser !== undefined && qbankControlPassword !== undefined) {
       // The migration account is never allowed to remain the owner of the
       // taxonomy/artifact/generation guard chain.  Handoff is transactional

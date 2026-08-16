@@ -27,6 +27,56 @@ export interface RuntimeLoginInput {
   password: string;
 }
 
+/**
+ * Runtime composition-root gate.  A DATABASE_URL is not accepted merely
+ * because it connects: the session must be the exact provisioned low-privilege
+ * login and must not own or create database objects.
+ */
+export async function assertRuntimeLoginIdentity(pool: DbPool, expectedRoleName: string): Promise<void> {
+  if (!RUNTIME_ROLE_NAME.test(expectedRoleName)) throw new Error('runtime_identity_invalid_expected_role');
+  const c = await pool.connect();
+  try {
+    const identity = await c.query<{
+      session_user: string; current_user: string; rolsuper: boolean; rolbypassrls: boolean;
+      rolcreaterole: boolean; rolcreatedb: boolean; rolinherit: boolean; rolreplication: boolean;
+      can_create_database: boolean; can_create_public: boolean; owned_relations: number; owned_schemas: number;
+    }>(
+      `SELECT session_user::text, current_user::text,
+              role.rolsuper, role.rolbypassrls, role.rolcreaterole, role.rolcreatedb,
+              role.rolinherit, role.rolreplication,
+              has_database_privilege(session_user,current_database(),'CREATE') AS can_create_database,
+              has_schema_privilege(session_user,'public','CREATE') AS can_create_public,
+              (SELECT count(*)::int FROM pg_class WHERE relowner=role.oid) AS owned_relations,
+              (SELECT count(*)::int FROM pg_namespace WHERE nspowner=role.oid) AS owned_schemas
+         FROM pg_roles role WHERE role.rolname=session_user`,
+    );
+    const row = identity.rows[0];
+    if (!row || identity.rowCount !== 1 || row.session_user !== expectedRoleName || row.current_user !== expectedRoleName)
+      throw new Error('runtime_identity_session_mismatch');
+    if (row.rolsuper || row.rolbypassrls || row.rolcreaterole || row.rolcreatedb || row.rolinherit || row.rolreplication)
+      throw new Error('runtime_identity_unsafe_attributes');
+    if (row.can_create_database || row.can_create_public || Number(row.owned_relations) !== 0 || Number(row.owned_schemas) !== 0)
+      throw new Error('runtime_identity_owns_or_can_create_objects');
+
+    const memberships = await c.query<{ role_name: string }>(
+      `SELECT parent.rolname AS role_name
+         FROM pg_auth_members membership
+         JOIN pg_roles parent ON parent.oid=membership.roleid
+         JOIN pg_roles member ON member.oid=membership.member
+        WHERE member.rolname=session_user
+        ORDER BY parent.rolname`,
+    );
+    const actual = memberships.rows.map((entry) => entry.role_name);
+    const expected = ['app_gateway_role', 'app_role'].filter((name) => actual.includes(name));
+    if (!actual.includes('app_role') || actual.some((name) => !expected.includes(name)))
+      throw new Error('runtime_identity_membership_mismatch');
+    const schema = await c.query("SELECT to_regclass('public.schema_migrations') IS NOT NULL AS migrated");
+    if (schema.rows[0]?.migrated !== true) throw new Error('runtime_identity_schema_unavailable');
+  } finally {
+    c.release();
+  }
+}
+
 export interface ProvisionedLoginName {
   service: 'runtime' | 'qbank_control' | 'rag_control' | 'privacy_worker';
   roleName?: string;
@@ -146,6 +196,43 @@ async function revokeDirectRoleMembers(c: Client, parentRole: string): Promise<v
     );
     await c.query(String(statement.rows[0]?.statement));
   }
+}
+
+async function createOrValidateProvisionedLogin(c: Client, input: RuntimeLoginInput, errorPrefix: string): Promise<void> {
+  const existing = await c.query<{
+    rolcanlogin: boolean;
+    rolinherit: boolean;
+    rolsuper: boolean;
+    rolcreatedb: boolean;
+    rolcreaterole: boolean;
+    rolreplication: boolean;
+    rolbypassrls: boolean;
+  }>(
+    `SELECT rolcanlogin, rolinherit, rolsuper, rolcreatedb, rolcreaterole,
+            rolreplication, rolbypassrls
+       FROM pg_roles
+      WHERE rolname=$1`,
+    [input.roleName],
+  );
+  if ((existing.rowCount ?? 0) === 0) {
+    const create = await c.query<{ statement: string }>(
+      "SELECT format('CREATE ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L', $1::text, $2::text) AS statement",
+      [input.roleName, input.password],
+    );
+    await c.query(String(create.rows[0]?.statement));
+    return;
+  }
+  const role = existing.rows[0];
+  if (existing.rowCount !== 1 || role?.rolcanlogin !== true || role.rolinherit !== false
+    || role.rolsuper !== false || role.rolcreatedb !== false || role.rolcreaterole !== false
+    || role.rolreplication !== false || role.rolbypassrls !== false) {
+    throw new Error(`${errorPrefix}_existing_role_invalid`);
+  }
+  // Managed PostgreSQL may not let a delegated migration login ALTER a role
+  // that an earlier deployment already created.  Password validity is proven
+  // by the required post-flight connection as this exact login; rotation is a
+  // separate administrator operation rather than a reason to widen migrator
+  // privileges on every release.
 }
 
 /**
@@ -458,22 +545,7 @@ export async function provisionRuntimeLogin(pool: DbPool, input: RuntimeLoginInp
     throw new Error('runtime_login_invalid_password');
   const c = await pool.connect();
   try {
-    const ddl = await c.query(
-      `SELECT format(
-        'CREATE ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L',
-        $1::text, $2::text
-      ) AS statement`,
-      [input.roleName, input.password],
-    );
-    const alter = await c.query(
-      `SELECT format(
-        'ALTER ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L',
-        $1::text, $2::text
-      ) AS statement`,
-      [input.roleName, input.password],
-    );
-    const exists = await c.query('SELECT 1 FROM pg_roles WHERE rolname=$1', [input.roleName]);
-    await c.query((exists.rowCount ?? 0) === 0 ? String(ddl.rows[0]?.statement) : String(alter.rows[0]?.statement));
+    await createOrValidateProvisionedLogin(c, input, 'runtime_login');
     await revokeDirectRoleMemberships(c, input.roleName);
     const grant = await c.query("SELECT format('GRANT app_role TO %I', $1::text) AS statement", [input.roleName]);
     await c.query(String(grant.rows[0]?.statement));
@@ -508,11 +580,7 @@ export async function provisionQbankControlLogin(pool: DbPool, input: RuntimeLog
     throw new Error('qbank_control_login_invalid_password');
   const c = await pool.connect();
   try {
-    const exists = await c.query('SELECT 1 FROM pg_roles WHERE rolname=$1', [input.roleName]);
-    const createOrAlter = (exists.rowCount ?? 0) === 0
-      ? await c.query("SELECT format('CREATE ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L', $1::text, $2::text) AS statement", [input.roleName, input.password])
-      : await c.query("SELECT format('ALTER ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L', $1::text, $2::text) AS statement", [input.roleName, input.password]);
-    await c.query(String(createOrAlter.rows[0]?.statement));
+    await createOrValidateProvisionedLogin(c, input, 'qbank_control_login');
     await revokeDirectRoleMemberships(c, input.roleName);
     const grant = await c.query("SELECT format('GRANT qbank_control_executor TO %I', $1::text) AS statement", [input.roleName]);
     await c.query(String(grant.rows[0]?.statement));
@@ -537,11 +605,7 @@ export async function provisionRagControlLogin(pool: DbPool, input: RuntimeLogin
     throw new Error('rag_control_login_invalid_password');
   const c = await pool.connect();
   try {
-    const exists = await c.query('SELECT 1 FROM pg_roles WHERE rolname=$1', [input.roleName]);
-    const createOrAlter = (exists.rowCount ?? 0) === 0
-      ? await c.query("SELECT format('CREATE ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L', $1::text, $2::text) AS statement", [input.roleName, input.password])
-      : await c.query("SELECT format('ALTER ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L', $1::text, $2::text) AS statement", [input.roleName, input.password]);
-    await c.query(String(createOrAlter.rows[0]?.statement));
+    await createOrValidateProvisionedLogin(c, input, 'rag_control_login');
     await revokeDirectRoleMemberships(c, input.roleName);
     const grant = await c.query("SELECT format('GRANT rag_control_executor TO %I', $1::text) AS statement", [input.roleName]);
     await c.query(String(grant.rows[0]?.statement));
@@ -564,22 +628,7 @@ export async function provisionPrivacyWorkerLogin(pool: DbPool, input: RuntimeLo
     throw new Error('privacy_worker_login_invalid_password');
   const c = await pool.connect();
   try {
-    const ddl = await c.query(
-      `SELECT format(
-        'CREATE ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L',
-        $1::text, $2::text
-      ) AS statement`,
-      [input.roleName, input.password],
-    );
-    const alter = await c.query(
-      `SELECT format(
-        'ALTER ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L',
-        $1::text, $2::text
-      ) AS statement`,
-      [input.roleName, input.password],
-    );
-    const exists = await c.query('SELECT 1 FROM pg_roles WHERE rolname=$1', [input.roleName]);
-    await c.query((exists.rowCount ?? 0) === 0 ? String(ddl.rows[0]?.statement) : String(alter.rows[0]?.statement));
+    await createOrValidateProvisionedLogin(c, input, 'privacy_worker_login');
     await revokeDirectRoleMemberships(c, input.roleName);
     const grant = await c.query("SELECT format('GRANT privacy_worker_executor TO %I', $1::text) AS statement", [input.roleName]);
     await c.query(String(grant.rows[0]?.statement));
@@ -969,10 +1018,12 @@ export async function assertRagControlExecutorIdentity(pool: DbPool): Promise<vo
          SELECT membership.member
            FROM pg_auth_members AS membership
           WHERE membership.roleid='rag_control_executor'::regrole
+            AND (membership.inherit_option OR membership.set_option)
          UNION
          SELECT membership.member
            FROM pg_auth_members AS membership
            JOIN executor_member_closure AS parent ON parent.oid=membership.roleid
+          WHERE membership.inherit_option OR membership.set_option
        )
        SELECT session_role.rolsuper,session_role.rolbypassrls,session_role.rolcreaterole,session_role.rolcreatedb,session_role.rolinherit,session_role.rolreplication,
               executor_role.rolsuper AS executor_super,executor_role.rolbypassrls AS executor_bypass,
@@ -1118,7 +1169,7 @@ export async function assertRagControlDefinerOwnership(pool: DbPool): Promise<vo
            FROM expected_table e LEFT JOIN pg_class cls ON cls.oid=to_regclass(e.name)
        ), dynamic_vector_fact AS (
          SELECT count(cls.oid)::int AS found,
-                count(*) FILTER (WHERE cls.relowner='rag_control_definer'::regrole AND cls.relrowsecurity AND cls.relforcerowsecurity)::int AS hardened,
+                count(*) FILTER (WHERE cls.relowner='rag_control_definer'::regrole::oid AND cls.relrowsecurity AND cls.relforcerowsecurity)::int AS hardened,
                 count(*) FILTER (WHERE NOT has_table_privilege('app_role',cls.oid,'SELECT,INSERT,UPDATE,DELETE'))::int AS app_denied,
                 count(*) FILTER (WHERE
                   (
@@ -1317,7 +1368,7 @@ export async function assertQbankControlDefinerOwnership(pool: DbPool): Promise<
   const c = await pool.connect();
   try {
     const result = await c.query(
-      `WITH expected_function(signature, requires_security_definer, allow_app_role_execute, allow_executor_execute) AS (
+      `WITH RECURSIVE expected_function(signature, requires_security_definer, allow_app_role_execute, allow_executor_execute) AS (
          SELECT manifest.signature, manifest.requires_security_definer,
                 manifest.allow_app_role_execute, manifest.allow_executor_execute
            FROM jsonb_to_recordset($1::jsonb) AS manifest(
@@ -1342,8 +1393,8 @@ export async function assertQbankControlDefinerOwnership(pool: DbPool): Promise<
                     FROM aclexplode(coalesce(proc.proacl, acldefault('f', proc.proowner))) AS privilege
                    WHERE privilege.grantee=0 AND privilege.privilege_type='EXECUTE'
                 ))::int AS public_denied_count,
-                count(*) FILTER (WHERE has_function_privilege('app_role'::regrole, proc.oid, 'EXECUTE')=expected.allow_app_role_execute)::int AS app_role_match_count,
-                count(*) FILTER (WHERE has_function_privilege('qbank_control_executor'::regrole, proc.oid, 'EXECUTE')=expected.allow_executor_execute)::int AS executor_match_count,
+                count(*) FILTER (WHERE has_function_privilege('app_role'::regrole::oid, proc.oid, 'EXECUTE')=expected.allow_app_role_execute)::int AS app_role_match_count,
+                count(*) FILTER (WHERE has_function_privilege('qbank_control_executor'::regrole::oid, proc.oid, 'EXECUTE')=expected.allow_executor_execute)::int AS executor_match_count,
                 count(*) FILTER (WHERE NOT EXISTS (
                   SELECT 1
                     FROM aclexplode(coalesce(proc.proacl, acldefault('f', proc.proowner))) AS privilege
@@ -1369,22 +1420,22 @@ export async function assertQbankControlDefinerOwnership(pool: DbPool): Promise<
        ), table_acl_fact AS (
          SELECT count(cls.oid)::int AS found_count,
                 count(*) FILTER (WHERE
-                  has_table_privilege('app_role'::regrole, cls.oid, 'SELECT')=('SELECT'=ANY(expected.app_privileges))
-                  AND has_table_privilege('app_role'::regrole, cls.oid, 'INSERT')=('INSERT'=ANY(expected.app_privileges))
-                  AND has_table_privilege('app_role'::regrole, cls.oid, 'UPDATE')=('UPDATE'=ANY(expected.app_privileges))
-                  AND has_table_privilege('app_role'::regrole, cls.oid, 'DELETE')=('DELETE'=ANY(expected.app_privileges))
-                  AND has_table_privilege('app_role'::regrole, cls.oid, 'TRUNCATE')=('TRUNCATE'=ANY(expected.app_privileges))
-                  AND has_table_privilege('app_role'::regrole, cls.oid, 'REFERENCES')=('REFERENCES'=ANY(expected.app_privileges))
-                  AND has_table_privilege('app_role'::regrole, cls.oid, 'TRIGGER')=('TRIGGER'=ANY(expected.app_privileges))
+                  has_table_privilege('app_role'::regrole::oid, cls.oid, 'SELECT')=('SELECT'=ANY(expected.app_privileges))
+                  AND has_table_privilege('app_role'::regrole::oid, cls.oid, 'INSERT')=('INSERT'=ANY(expected.app_privileges))
+                  AND has_table_privilege('app_role'::regrole::oid, cls.oid, 'UPDATE')=('UPDATE'=ANY(expected.app_privileges))
+                  AND has_table_privilege('app_role'::regrole::oid, cls.oid, 'DELETE')=('DELETE'=ANY(expected.app_privileges))
+                  AND has_table_privilege('app_role'::regrole::oid, cls.oid, 'TRUNCATE')=('TRUNCATE'=ANY(expected.app_privileges))
+                  AND has_table_privilege('app_role'::regrole::oid, cls.oid, 'REFERENCES')=('REFERENCES'=ANY(expected.app_privileges))
+                  AND has_table_privilege('app_role'::regrole::oid, cls.oid, 'TRIGGER')=('TRIGGER'=ANY(expected.app_privileges))
                 )::int AS app_role_match_count,
                 count(*) FILTER (WHERE
-                  has_table_privilege('qbank_control_executor'::regrole, cls.oid, 'SELECT')=('SELECT'=ANY(expected.executor_privileges))
-                  AND has_table_privilege('qbank_control_executor'::regrole, cls.oid, 'INSERT')=('INSERT'=ANY(expected.executor_privileges))
-                  AND has_table_privilege('qbank_control_executor'::regrole, cls.oid, 'UPDATE')=('UPDATE'=ANY(expected.executor_privileges))
-                  AND has_table_privilege('qbank_control_executor'::regrole, cls.oid, 'DELETE')=('DELETE'=ANY(expected.executor_privileges))
-                  AND has_table_privilege('qbank_control_executor'::regrole, cls.oid, 'TRUNCATE')=('TRUNCATE'=ANY(expected.executor_privileges))
-                  AND has_table_privilege('qbank_control_executor'::regrole, cls.oid, 'REFERENCES')=('REFERENCES'=ANY(expected.executor_privileges))
-                  AND has_table_privilege('qbank_control_executor'::regrole, cls.oid, 'TRIGGER')=('TRIGGER'=ANY(expected.executor_privileges))
+                  has_table_privilege('qbank_control_executor'::regrole::oid, cls.oid, 'SELECT')=('SELECT'=ANY(expected.executor_privileges))
+                  AND has_table_privilege('qbank_control_executor'::regrole::oid, cls.oid, 'INSERT')=('INSERT'=ANY(expected.executor_privileges))
+                  AND has_table_privilege('qbank_control_executor'::regrole::oid, cls.oid, 'UPDATE')=('UPDATE'=ANY(expected.executor_privileges))
+                  AND has_table_privilege('qbank_control_executor'::regrole::oid, cls.oid, 'DELETE')=('DELETE'=ANY(expected.executor_privileges))
+                  AND has_table_privilege('qbank_control_executor'::regrole::oid, cls.oid, 'TRUNCATE')=('TRUNCATE'=ANY(expected.executor_privileges))
+                  AND has_table_privilege('qbank_control_executor'::regrole::oid, cls.oid, 'REFERENCES')=('REFERENCES'=ANY(expected.executor_privileges))
+                  AND has_table_privilege('qbank_control_executor'::regrole::oid, cls.oid, 'TRIGGER')=('TRIGGER'=ANY(expected.executor_privileges))
                 )::int AS executor_match_count,
                 count(*) FILTER (WHERE NOT EXISTS (
                   SELECT 1
@@ -1401,16 +1452,16 @@ export async function assertQbankControlDefinerOwnership(pool: DbPool): Promise<
        ), table_column_acl_fact AS (
          SELECT count(cls.oid)::int AS found_count,
                 count(*) FILTER (WHERE
-                  has_any_column_privilege('app_role'::regrole, cls.oid, 'SELECT')=('SELECT'=ANY(expected.app_privileges))
-                  AND has_any_column_privilege('app_role'::regrole, cls.oid, 'INSERT')=('INSERT'=ANY(expected.app_privileges))
-                  AND has_any_column_privilege('app_role'::regrole, cls.oid, 'UPDATE')=('UPDATE'=ANY(expected.app_privileges))
-                  AND has_any_column_privilege('app_role'::regrole, cls.oid, 'REFERENCES')=('REFERENCES'=ANY(expected.app_privileges))
+                  has_any_column_privilege('app_role'::regrole::oid, cls.oid, 'SELECT')=('SELECT'=ANY(expected.app_privileges))
+                  AND has_any_column_privilege('app_role'::regrole::oid, cls.oid, 'INSERT')=('INSERT'=ANY(expected.app_privileges))
+                  AND has_any_column_privilege('app_role'::regrole::oid, cls.oid, 'UPDATE')=('UPDATE'=ANY(expected.app_privileges))
+                  AND has_any_column_privilege('app_role'::regrole::oid, cls.oid, 'REFERENCES')=('REFERENCES'=ANY(expected.app_privileges))
                 )::int AS app_role_match_count,
                 count(*) FILTER (WHERE
-                  has_any_column_privilege('qbank_control_executor'::regrole, cls.oid, 'SELECT')=('SELECT'=ANY(expected.executor_privileges))
-                  AND has_any_column_privilege('qbank_control_executor'::regrole, cls.oid, 'INSERT')=('INSERT'=ANY(expected.executor_privileges))
-                  AND has_any_column_privilege('qbank_control_executor'::regrole, cls.oid, 'UPDATE')=('UPDATE'=ANY(expected.executor_privileges))
-                  AND has_any_column_privilege('qbank_control_executor'::regrole, cls.oid, 'REFERENCES')=('REFERENCES'=ANY(expected.executor_privileges))
+                  has_any_column_privilege('qbank_control_executor'::regrole::oid, cls.oid, 'SELECT')=('SELECT'=ANY(expected.executor_privileges))
+                  AND has_any_column_privilege('qbank_control_executor'::regrole::oid, cls.oid, 'INSERT')=('INSERT'=ANY(expected.executor_privileges))
+                  AND has_any_column_privilege('qbank_control_executor'::regrole::oid, cls.oid, 'UPDATE')=('UPDATE'=ANY(expected.executor_privileges))
+                  AND has_any_column_privilege('qbank_control_executor'::regrole::oid, cls.oid, 'REFERENCES')=('REFERENCES'=ANY(expected.executor_privileges))
                 )::int AS executor_match_count,
                 count(*) FILTER (WHERE NOT EXISTS (
                   SELECT 1
@@ -1442,21 +1493,21 @@ export async function assertQbankControlDefinerOwnership(pool: DbPool): Promise<
            JOIN partition_descendant parent ON parent.oid=inheritance.inhparent
        ), partition_fact AS (
          SELECT count(partition_relation.oid)::int AS found_count,
-                count(*) FILTER (WHERE partition_relation.relowner=$3::regrole)::int AS owner_count,
-                count(*) FILTER (WHERE NOT has_table_privilege('app_role'::regrole, partition_relation.oid, 'SELECT')
-                  AND NOT has_table_privilege('app_role'::regrole, partition_relation.oid, 'INSERT')
-                  AND NOT has_table_privilege('app_role'::regrole, partition_relation.oid, 'UPDATE')
-                  AND NOT has_table_privilege('app_role'::regrole, partition_relation.oid, 'DELETE')
-                  AND NOT has_table_privilege('app_role'::regrole, partition_relation.oid, 'TRUNCATE')
-                  AND NOT has_table_privilege('app_role'::regrole, partition_relation.oid, 'REFERENCES')
-                  AND NOT has_table_privilege('app_role'::regrole, partition_relation.oid, 'TRIGGER'))::int AS app_role_denied_count,
-                count(*) FILTER (WHERE NOT has_table_privilege('qbank_control_executor'::regrole, partition_relation.oid, 'SELECT')
-                  AND NOT has_table_privilege('qbank_control_executor'::regrole, partition_relation.oid, 'INSERT')
-                  AND NOT has_table_privilege('qbank_control_executor'::regrole, partition_relation.oid, 'UPDATE')
-                  AND NOT has_table_privilege('qbank_control_executor'::regrole, partition_relation.oid, 'DELETE')
-                  AND NOT has_table_privilege('qbank_control_executor'::regrole, partition_relation.oid, 'TRUNCATE')
-                  AND NOT has_table_privilege('qbank_control_executor'::regrole, partition_relation.oid, 'REFERENCES')
-                  AND NOT has_table_privilege('qbank_control_executor'::regrole, partition_relation.oid, 'TRIGGER'))::int AS executor_denied_count,
+                count(*) FILTER (WHERE partition_relation.relowner=$3::regrole::oid)::int AS owner_count,
+                count(*) FILTER (WHERE NOT has_table_privilege('app_role'::regrole::oid, partition_relation.oid, 'SELECT')
+                  AND NOT has_table_privilege('app_role'::regrole::oid, partition_relation.oid, 'INSERT')
+                  AND NOT has_table_privilege('app_role'::regrole::oid, partition_relation.oid, 'UPDATE')
+                  AND NOT has_table_privilege('app_role'::regrole::oid, partition_relation.oid, 'DELETE')
+                  AND NOT has_table_privilege('app_role'::regrole::oid, partition_relation.oid, 'TRUNCATE')
+                  AND NOT has_table_privilege('app_role'::regrole::oid, partition_relation.oid, 'REFERENCES')
+                  AND NOT has_table_privilege('app_role'::regrole::oid, partition_relation.oid, 'TRIGGER'))::int AS app_role_denied_count,
+                count(*) FILTER (WHERE NOT has_table_privilege('qbank_control_executor'::regrole::oid, partition_relation.oid, 'SELECT')
+                  AND NOT has_table_privilege('qbank_control_executor'::regrole::oid, partition_relation.oid, 'INSERT')
+                  AND NOT has_table_privilege('qbank_control_executor'::regrole::oid, partition_relation.oid, 'UPDATE')
+                  AND NOT has_table_privilege('qbank_control_executor'::regrole::oid, partition_relation.oid, 'DELETE')
+                  AND NOT has_table_privilege('qbank_control_executor'::regrole::oid, partition_relation.oid, 'TRUNCATE')
+                  AND NOT has_table_privilege('qbank_control_executor'::regrole::oid, partition_relation.oid, 'REFERENCES')
+                  AND NOT has_table_privilege('qbank_control_executor'::regrole::oid, partition_relation.oid, 'TRIGGER'))::int AS executor_denied_count,
                 count(*) FILTER (WHERE NOT EXISTS (
                   SELECT 1
                     FROM aclexplode(coalesce(partition_relation.relacl, acldefault('r', partition_relation.relowner))) AS privilege
@@ -1471,14 +1522,14 @@ export async function assertQbankControlDefinerOwnership(pool: DbPool): Promise<
            JOIN pg_class partition_relation ON partition_relation.oid=descendant.oid
        ), partition_column_acl_fact AS (
          SELECT count(partition_relation.oid)::int AS found_count,
-                count(*) FILTER (WHERE NOT has_any_column_privilege('app_role'::regrole, partition_relation.oid, 'SELECT')
-                  AND NOT has_any_column_privilege('app_role'::regrole, partition_relation.oid, 'INSERT')
-                  AND NOT has_any_column_privilege('app_role'::regrole, partition_relation.oid, 'UPDATE')
-                  AND NOT has_any_column_privilege('app_role'::regrole, partition_relation.oid, 'REFERENCES'))::int AS app_role_denied_count,
-                count(*) FILTER (WHERE NOT has_any_column_privilege('qbank_control_executor'::regrole, partition_relation.oid, 'SELECT')
-                  AND NOT has_any_column_privilege('qbank_control_executor'::regrole, partition_relation.oid, 'INSERT')
-                  AND NOT has_any_column_privilege('qbank_control_executor'::regrole, partition_relation.oid, 'UPDATE')
-                  AND NOT has_any_column_privilege('qbank_control_executor'::regrole, partition_relation.oid, 'REFERENCES'))::int AS executor_denied_count,
+                count(*) FILTER (WHERE NOT has_any_column_privilege('app_role'::regrole::oid, partition_relation.oid, 'SELECT')
+                  AND NOT has_any_column_privilege('app_role'::regrole::oid, partition_relation.oid, 'INSERT')
+                  AND NOT has_any_column_privilege('app_role'::regrole::oid, partition_relation.oid, 'UPDATE')
+                  AND NOT has_any_column_privilege('app_role'::regrole::oid, partition_relation.oid, 'REFERENCES'))::int AS app_role_denied_count,
+                count(*) FILTER (WHERE NOT has_any_column_privilege('qbank_control_executor'::regrole::oid, partition_relation.oid, 'SELECT')
+                  AND NOT has_any_column_privilege('qbank_control_executor'::regrole::oid, partition_relation.oid, 'INSERT')
+                  AND NOT has_any_column_privilege('qbank_control_executor'::regrole::oid, partition_relation.oid, 'UPDATE')
+                  AND NOT has_any_column_privilege('qbank_control_executor'::regrole::oid, partition_relation.oid, 'REFERENCES'))::int AS executor_denied_count,
                 count(*) FILTER (WHERE NOT EXISTS (
                   SELECT 1
                     FROM pg_attribute attribute
@@ -1492,7 +1543,7 @@ export async function assertQbankControlDefinerOwnership(pool: DbPool): Promise<
            JOIN pg_class partition_relation ON partition_relation.oid=descendant.oid
        ), partition_index_fact AS (
          SELECT count(index_relation.oid)::int AS found_count,
-                count(*) FILTER (WHERE index_relation.relowner=$3::regrole)::int AS owner_count
+                count(*) FILTER (WHERE index_relation.relowner=$3::regrole::oid)::int AS owner_count
            FROM partition_descendant descendant
            JOIN pg_index index_definition ON index_definition.indrelid=descendant.oid
            JOIN pg_class index_relation ON index_relation.oid=index_definition.indexrelid
@@ -1501,7 +1552,7 @@ export async function assertQbankControlDefinerOwnership(pool: DbPool): Promise<
            FROM pg_proc procedure
            JOIN pg_namespace namespace ON namespace.oid=procedure.pronamespace
           WHERE namespace.nspname='public'
-            AND procedure.proowner=$3::regrole
+            AND procedure.proowner=$3::regrole::oid
             AND procedure.prosecdef
             AND NOT EXISTS (
               SELECT 1 FROM expected_function expected
@@ -1540,7 +1591,7 @@ export async function assertQbankControlDefinerOwnership(pool: DbPool): Promise<
            FROM pg_roles role
            LEFT JOIN pg_default_acl default_acl ON default_acl.defaclrole=role.oid
            LEFT JOIN pg_namespace namespace ON namespace.oid=default_acl.defaclnamespace
-          WHERE role.rolname=$3
+          WHERE role.oid=$3::regrole::oid
        )
        SELECT function_fact.found_count AS function_count,
               function_fact.security_definer_count,
@@ -1595,7 +1646,8 @@ export async function assertQbankControlDefinerOwnership(pool: DbPool): Promise<
               EXISTS (
                 SELECT 1 FROM pg_auth_members membership
                  WHERE membership.roleid=owner_role.oid
-              ) AS owner_has_member_role
+                   AND (membership.inherit_option OR membership.set_option)
+              ) AS owner_has_effective_member_role
          FROM function_fact
          CROSS JOIN function_acl_fact
          CROSS JOIN table_fact
@@ -1660,7 +1712,7 @@ export async function assertQbankControlDefinerOwnership(pool: DbPool): Promise<
       || row?.owner_name !== QBANK_CONTROL_DEFINER_ROLE
       || row?.owner_can_login !== false || row?.owner_inherit !== false || row?.owner_super !== false
       || row?.owner_bypass_rls !== false || row?.owner_create_role !== false || row?.owner_create_database !== false
-      || row?.owner_replication !== false || row?.owner_has_parent_role !== false || row?.owner_has_member_role !== false) {
+      || row?.owner_replication !== false || row?.owner_has_parent_role !== false || row?.owner_has_effective_member_role !== false) {
       throw new Error('qbank_control_definer_ownership_invalid');
     }
     if (row?.owner_public_usage !== true || row?.owner_public_create !== true) {

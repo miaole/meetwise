@@ -12,7 +12,7 @@ import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { buildMockInterviewGraph } from '@meetwise/ai-graphs';
 import { webExplore, deepExplore, createSafeFetch, degradedRetrieval, type AllowedSource, type RawFetch } from '@meetwise/domain';
 import {
-  createPool, resolveDatabaseConnectionString, asPrincipal, asQbankControlExecutor, assertQbankControlExecutorIdentity, assertQbankControlDefinerOwnership, activeQbankGeneration, cachedQbankSearch, gatewayCostBudgetSnapshot, gatewayJobGauges,
+  createPool, resolveDatabaseConnectionString, assertRuntimeLoginIdentity, asPrincipal, asQbankControlExecutor, assertQbankControlExecutorIdentity, assertQbankControlDefinerOwnership, activeQbankGeneration, cachedQbankSearch, gatewayCostBudgetSnapshot, gatewayJobGauges,
   qbankEvidenceForRefs, qbankQuestionResultsForHits, type GatewayCostBudgetSnapshot,
 } from '@meetwise/db';
 import { createLangfuseV5Runtime, resolveLangfuseConnection, resolveModelDeadlineConfig, resolveModelRateLimitConfig, setTracer, dashscopeEmbedder, cachingEmbedder, inMemoryEmbeddingStore, getMetrics, registerBaselineMetrics, METRIC, type Embedder, type ModelClient } from '@meetwise/ai-runtime';
@@ -367,6 +367,9 @@ async function bootstrap() {
   resolveModelDeadlineConfig();
   resolveModelRateLimitConfig();
   const pool = createPool();
+  const expectedRuntimeRole = process.env.APP_RUNTIME_DB_EXPECTED_ROLE?.trim();
+  if (isProductionEnvironment() && !expectedRuntimeRole) throw new Error('APP_RUNTIME_DB_EXPECTED_ROLE is required in production');
+  if (expectedRuntimeRole) await assertRuntimeLoginIdentity(pool, expectedRuntimeRole);
   // 观测:预注册基线指标序列(熔断打开/退款失败 counter 置 0)+ 自挂 /metrics 端点(Prometheus 抓取,up 即 worker 存活数据源)。
   registerBaselineMetrics();
   // Schema migration 由独立的一次性 migrate 服务完成；运行时 worker 绝不持有 DDL 权限，

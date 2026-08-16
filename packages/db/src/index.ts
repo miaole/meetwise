@@ -12,7 +12,7 @@
 import type { Client } from './principal.ts';
 
 export {
-  createPool, resolveDatabaseConnectionString, rebindDatabaseLogin, asPrincipal, asPrivacyWorkerPrincipal, asPrivacyWorkerExecutor, assertPrivacyWorkerExecutorIdentity,
+  createPool, resolveDatabaseConnectionString, rebindDatabaseLogin, assertRuntimeLoginIdentity, asPrincipal, asPrivacyWorkerPrincipal, asPrivacyWorkerExecutor, assertPrivacyWorkerExecutorIdentity,
   asQbankControlExecutor, assertQbankControlExecutorIdentity, assertQbankControlDefinerOwnership, asRagControlExecutor, assertRagControlExecutorIdentity, assertRagControlDefinerOwnership, assertDistinctProvisionedLoginNames, asOnlineJudgeScheduler, asOnlineJudgeExecutor, asGateway,
   provisionRuntimeLogin, provisionQbankControlLogin, provisionQbankControlDefiner, provisionRagControlLogin, provisionPrivacyWorkerLogin, provisionOnlineJudgeSchedulerLogin, provisionOnlineJudgeExecutorLogin,
   QBANK_CONTROL_DEFINER_ROLE, QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST, QBANK_CONTROL_DEFINER_TABLE_MANIFEST,

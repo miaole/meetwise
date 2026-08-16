@@ -10,6 +10,10 @@ on:
       - scripts/preview-loopback-readiness.proof.mjs
       - scripts/preview-edge-probe-unit-load.proof.mjs
       - scripts/preview-monotonic-clock.proof.mjs
+      - scripts/ecs-full-stack-config.proof.mjs
+      - scripts/full-stack-preview-publisher.proof.mjs
+      - scripts/verify-full-stack-public-origin.mjs
+      - scripts/verify-full-stack-public-origin.proof.mjs
       - ops/ecs/**
       - ops/bootstrap/**
       - package.json
@@ -53,6 +57,9 @@ jobs:
           node scripts/preview-publication-recovery.proof.mjs
           node scripts/preview-release-manifest.proof.mjs
           node scripts/preview-release-control-plane.proof.mjs
+          node scripts/ecs-full-stack-config.proof.mjs
+          node scripts/full-stack-preview-publisher.proof.mjs
+          node scripts/verify-full-stack-public-origin.proof.mjs
       - name: Build the no-data Web release
         run: pnpm --filter @meetwise/web build
       - name: Package the Web release and its controller bundle

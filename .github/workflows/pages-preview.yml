@@ -15,6 +15,10 @@ on:
       - ops/ecs/revoke-preview-pages-link.sh
       - scripts/build-preview-directory.mjs
       - scripts/fetch-preview-release-manifest.mjs
+      - scripts/verify-preview-origin.mjs
+      - ops/ecs/full-stack/nginx-meetwise-full-stack.conf
+      - ops/ecs/full-stack/full-stack-preview-publisher.mjs
+      - scripts/full-stack-preview-publisher.proof.mjs
       - scripts/ecs-preview-config.proof.mjs
       - scripts/preview-edge-probe-fence.proof.mjs
       - scripts/preview-publication-recovery.proof.mjs
@@ -53,16 +57,22 @@ jobs:
         id: origin
         run: |
           endpoint="$(tr -d '\n' < preview-site/preview-manifest-origin.txt)"
-          if node scripts/fetch-preview-release-manifest.mjs "$endpoint" .preview-release-manifest.json && node scripts/verify-preview-origin.mjs .preview-release-manifest.json; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          if node scripts/fetch-preview-release-manifest.mjs "$endpoint" .preview-release-manifest.json; then
+            echo "fetched=true" >> "$GITHUB_OUTPUT"
+            if node scripts/verify-preview-origin.mjs .preview-release-manifest.json; then
+              echo "enabled=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "enabled=false" >> "$GITHUB_OUTPUT"
+            fi
           else
+            echo "fetched=false" >> "$GITHUB_OUTPUT"
             echo "enabled=false" >> "$GITHUB_OUTPUT"
           fi
       - name: Build a signed-release-aware static directory
         run: |
           if [ "${{ steps.origin.outputs.enabled }}" = "true" ]; then
             node scripts/build-preview-directory.mjs .pages-preview .preview-release-manifest.json ops/ecs/keys/preview-release-ed25519.pub.pem
-          elif [ -f .preview-release-manifest.json ]; then
+          elif [ "${{ steps.origin.outputs.fetched }}" = "true" ]; then
             node scripts/build-preview-directory.mjs .pages-preview .preview-release-manifest.json ops/ecs/keys/preview-release-ed25519.pub.pem --force-disabled
           else
             node scripts/build-preview-directory.mjs .pages-preview preview-site/release-manifest.json ops/ecs/keys/preview-release-ed25519.pub.pem --force-disabled

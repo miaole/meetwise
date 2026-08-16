@@ -16,6 +16,7 @@ readonly MEETWISE_PREVIEW_CONTROLLER_RUNTIME=/run/meetwise-preview-controller
 readonly MEETWISE_PREVIEW_EDGE_TIMEOUT_RUNTIME_MARKER=/run/meetwise-preview-controller/edge-probe-timeout
 readonly MEETWISE_PREVIEW_CONTROLLER_LOCK=/run/meetwise-preview-controller/controller.lock
 readonly MEETWISE_PREVIEW_EDGE_FENCE_LOCK=/run/meetwise-preview-controller/edge-probe-fence.lock
+readonly MEETWISE_PREVIEW_FULL_STACK_RETIRED_FENCE=/var/lib/meetwise-preview-controller/full-stack-writer-retired
 readonly MEETWISE_PREVIEW_ROOT=/srv/meetwise-preview
 readonly MEETWISE_PREVIEW_RELEASE_ROOT=/srv/meetwise-preview/releases
 readonly MEETWISE_PREVIEW_CURRENT_LINK=/srv/meetwise-preview/current
@@ -30,6 +31,7 @@ controller_entry_guard() {
   local actual
   actual="$(readlink -f "$0")"
   [[ "$EUID" -eq 0 ]] || controller_fail 'preview controller requires root' 77
+  [[ ! -e "$MEETWISE_PREVIEW_FULL_STACK_RETIRED_FENCE" ]] || controller_fail 'legacy preview controller is retired by the full-stack publisher' 69
   [[ "$actual" == "$MEETWISE_PREVIEW_CONTROLLER_ROOT/$expected" ]] || controller_fail 'preview controller must run from its installed root-owned path' 77
   [[ -d "$MEETWISE_PREVIEW_CONTROLLER_ROOT" && -f "$MEETWISE_PREVIEW_CONTROLLER_ROOT/controller.sha256" && -f "$MEETWISE_PREVIEW_CONTROLLER_ROOT/controller-version.json" ]] || controller_fail 'preview controller installation is incomplete' 69
   [[ "$(stat -c '%U:%G' "$MEETWISE_PREVIEW_CONTROLLER_ROOT")" == root:root ]] || controller_fail 'preview controller root ownership is invalid' 77

@@ -5,10 +5,12 @@ import { resolve } from 'node:path';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { getMetrics, resolveModelDeadlineConfig, resolveModelRateLimitConfig } from '@meetwise/ai-runtime';
+import { assertRuntimeLoginIdentity } from '@meetwise/db';
 import { buildOpenApiDocument } from '@meetwise/contracts/openapi';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './platform/all-exceptions.filter';
 import { installPublicPreviewIngressGate, resolvePublicPreviewMode } from './platform/public-preview';
+import { DbService } from './platform/db.service';
 
 /** 真 NestJS（Fastify + 类型 DI + SWC 运行）。 run: pnpm -C apps/api serve */
 export async function createApp(): Promise<NestFastifyApplication> {
@@ -18,6 +20,9 @@ export async function createApp(): Promise<NestFastifyApplication> {
   resolveModelDeadlineConfig();
   resolveModelRateLimitConfig();
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter({ bodyLimit: 12 * 1024 * 1024 }), { logger: false, abortOnError: false });   // 12MB:容 base64 简历文件(8MB 原文)
+  const expectedRuntimeRole = process.env.APP_RUNTIME_DB_EXPECTED_ROLE?.trim();
+  if (process.env.NODE_ENV === 'production' && !expectedRuntimeRole) throw new Error('APP_RUNTIME_DB_EXPECTED_ROLE is required in production');
+  if (expectedRuntimeRole) await assertRuntimeLoginIdentity(app.get(DbService).pool, expectedRuntimeRole);
   const fastify = app.getHttpAdapter().getInstance() as any;
   // Public preview's method allowlist must be the first Fastify lifecycle
   // hook: no request body parsing, authentication, controller or queue work

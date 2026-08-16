@@ -3,7 +3,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { generateKeyPairSync } from 'node:crypto';
 import { resolve } from 'node:path';
-import { signManifest } from '../ops/ecs/preview-release-manifest.mjs';
+import { manifestFingerprint, signManifest, unsignedManifest } from '../ops/ecs/preview-release-manifest.mjs';
 
 const directory = import.meta.dirname;
 const html = await readFile(resolve(directory, 'index.html'), 'utf8');
@@ -40,10 +40,32 @@ await writeFile(validManifestPath, `${JSON.stringify(validManifest)}\n`);
 await writeFile(validKeyPath, publicKey.export({ type: 'spki', format: 'pem' }));
 await promisify(execFile)(process.execPath, [resolve(directory, '../scripts/build-preview-directory.mjs'), resolve(validDir, 'enabled'), validManifestPath, validKeyPath]);
 const enabled = await readFile(resolve(validDir, 'enabled/index.html'), 'utf8');
+const fullStackManifest = signManifest({
+  ...unsignedManifest(validManifest),
+  mode: 'public-full-stack',
+  receipts: { runtime: '1'.repeat(64), synthetic: '2'.repeat(64), database: '3'.repeat(64), edge: '4'.repeat(64), blackbox: '5'.repeat(64) },
+}, privateKey.export({ type: 'pkcs8', format: 'pem' }));
+const fullStackManifestPath = resolve(validDir, 'full-stack.json');
+await writeFile(fullStackManifestPath, `${JSON.stringify(fullStackManifest)}\n`);
+await promisify(execFile)(process.execPath, [resolve(directory, '../scripts/build-preview-directory.mjs'), resolve(validDir, 'full-stack'), fullStackManifestPath, validKeyPath]);
+const fullStackEnabled = await readFile(resolve(validDir, 'full-stack/index.html'), 'utf8');
+const probeManifest = signManifest({
+  ...unsignedManifest(fullStackManifest),
+  mode: 'public-full-stack-probe',
+}, privateKey.export({ type: 'pkcs8', format: 'pem' }));
+const probeManifestPath = resolve(validDir, 'full-stack-probe.json');
+await writeFile(probeManifestPath, `${JSON.stringify(probeManifest)}\n`);
+await promisify(execFile)(process.execPath, [resolve(directory, '../scripts/build-preview-directory.mjs'), resolve(validDir, 'full-stack-probe'), probeManifestPath, validKeyPath]);
+const probeDisabled = await readFile(resolve(validDir, 'full-stack-probe/index.html'), 'utf8');
 const expiredManifestPath = resolve(validDir, 'expired.json');
 await writeFile(expiredManifestPath, `${JSON.stringify({ ...validManifest, issuedAt: new Date(now - 120_000).toISOString(), expiresAt: new Date(now - 60_000).toISOString() })}\n`);
 await promisify(execFile)(process.execPath, [resolve(directory, '../scripts/build-preview-directory.mjs'), resolve(validDir, 'expired'), expiredManifestPath, validKeyPath]);
 const expired = await readFile(resolve(validDir, 'expired/index.html'), 'utf8');
+const revokedManifest = signManifest({ ...unsignedManifest(validManifest), status: 'revoked', revoked: true }, privateKey.export({ type: 'pkcs8', format: 'pem' }));
+const revokedManifestPath = resolve(validDir, 'revoked.json');
+await writeFile(revokedManifestPath, `${JSON.stringify(revokedManifest)}\n`);
+await promisify(execFile)(process.execPath, [resolve(directory, '../scripts/build-preview-directory.mjs'), resolve(validDir, 'revoked'), revokedManifestPath, validKeyPath, '--force-disabled']);
+const revokedState = JSON.parse(await readFile(resolve(validDir, 'revoked/preview-link-state.json'), 'utf8'));
 await rm(artifactDir, { recursive: true, force: true });
 await rm(validDir, { recursive: true, force: true });
 let failures = 0;
@@ -70,8 +92,13 @@ check('fails closed until a signed preview manifest enables real HTTPS destinati
   && !/href="https?:\/\/(?!github\.com\/miaole\/meetwise\")/.test(built));
 check('renders only the exact signed HTTPS origin and republishes disabled output when it expires',
   /href="https:\/\/preview\.tail39416d\.ts\.net" rel="noopener noreferrer"/.test(enabled)
+  && /href="https:\/\/preview\.tail39416d\.ts\.net" rel="noopener noreferrer"/.test(fullStackEnabled)
+  && probeDisabled.includes('aria-disabled="true"')
+  && !/href="https?:\/\/preview\.tail39416d\.ts\.net"/.test(probeDisabled)
   && expired.includes('aria-disabled="true"')
   && !/href="https?:\/\/preview\.tail39416d\.ts\.net"/.test(expired));
+check('a trusted revoked manifest produces the exact disabled receipt fingerprint',
+  revokedState.state === 'disabled' && revokedState.manifestSha256 === manifestFingerprint(revokedManifest));
 check('uses the confirmed public source repository with a safe external-link policy',
   /href="https:\/\/github\.com\/miaole\/meetwise" rel="noopener noreferrer"/.test(html));
 check('provides responsive and reduced-motion presentation',
@@ -82,7 +109,11 @@ check('publishes only a generated static directory from the protected default br
   && workflow.includes("github.ref == 'refs/heads/main'")
   && workflow.includes('node scripts/build-preview-directory.mjs .pages-preview')
   && workflow.includes('node scripts/verify-preview-origin.mjs')
+  && workflow.includes('      - scripts/verify-preview-origin.mjs')
+  && workflow.includes('      - ops/ecs/full-stack/nginx-meetwise-full-stack.conf')
   && workflow.includes('--force-disabled')
+  && workflow.includes('preview-site/release-manifest.json ops/ecs/keys/preview-release-ed25519.pub.pem --force-disabled')
+  && workflow.includes('steps.origin.outputs.fetched')
   && workflow.includes("cron: '17 * * * *'")
   && !workflow.includes('pull_request')
   && !workflow.includes('pull_request_target'));

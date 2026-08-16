@@ -30,4 +30,5 @@ assert.throws(() => verifyManifest({ ...signed, expiresAt: new Date(now - 1).toI
 assert.equal(verifyManifest(signManifest({ ...valid, status: 'revoked', revoked: true }, privateKey.export({ type: 'pkcs8', format: 'pem' })), publicPem, { now }).status, 'revoked');
 assert.throws(() => signManifest({ ...valid, origin: 'http://preview.tail39416d.ts.net' }, privateKey.export({ type: 'pkcs8', format: 'pem' })), /origin_invalid/);
 assert.throws(() => signManifest({ ...valid, receipts: { ...valid.receipts, edge: 'not-a-digest' } }, privateKey.export({ type: 'pkcs8', format: 'pem' })), /receipts_invalid/);
-console.log('✓ preview release manifest 7/7 assertions passed; releaseEvidence=false');
+assert.throws(() => signManifest({ ...valid, issuedAt: new Date(now + 31_000).toISOString(), expiresAt: new Date(now + 61_000).toISOString() }, privateKey.export({ type: 'pkcs8', format: 'pem' })), /issued_at_future/);
+console.log('✓ preview release manifest 8/8 assertions passed; releaseEvidence=false');

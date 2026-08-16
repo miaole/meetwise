@@ -1920,6 +1920,28 @@
         "TC-ecs-public-preview-web-ingress-01-main"
       ],
       "expansionJustification": "The ECS public-preview ingress seven-case matrix is explicitly planned/unmapped. It does not enter required bindings, passed denominators or release evidence; the public runtime remains blocked."
+    },
+    {
+      "changeRecordTaskId": "quality-governance-control-plane-v54",
+      "previousAllowedUnmappedLeafTcIdsDigest": "sha256:262284a7ddc325ef47e6cb6090a1d7f11724758ac07731ecb6b06ff83b289114",
+      "resultingAllowedUnmappedLeafTcIdsDigest": "sha256:99e5b91dd302ed73ef10d91bd68b7519b689b7db30d386eac8ac94207b42eddd",
+      "addedUnmappedLeafTcIds": [
+        "TC-ecs-full-stack-preview-01-E1",
+        "TC-ecs-full-stack-preview-01-E2",
+        "TC-ecs-full-stack-preview-01-E3",
+        "TC-ecs-full-stack-preview-01-E4",
+        "TC-ecs-full-stack-preview-01-E5",
+        "TC-ecs-full-stack-preview-01-E6",
+        "TC-ecs-full-stack-preview-01-main",
+        "TC-preview-synthetic-data-01-E1",
+        "TC-preview-synthetic-data-01-E2",
+        "TC-preview-synthetic-data-01-E3",
+        "TC-preview-synthetic-data-01-E4",
+        "TC-preview-synthetic-data-01-E5",
+        "TC-preview-synthetic-data-01-E6",
+        "TC-preview-synthetic-data-01-main"
+      ],
+      "expansionJustification": "ECS full-stack preview and synthetic-data factory seven-case matrices are explicitly recorded as deployed-preview work with extended acceptance still pending. They remain unmapped, add no passed denominator, and do not constitute production or complete AI release evidence."
     }
   ]
 }
