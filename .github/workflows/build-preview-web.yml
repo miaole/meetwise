@@ -40,7 +40,7 @@ jobs:
           pnpm install --frozen-lockfile --ignore-scripts
       - name: Verify public copy before building the public artifact
         run: |
-          python3.11 ops/bootstrap/test_first_root_bootstrap.py
+          python3 ops/bootstrap/test_first_root_bootstrap.py
           pnpm --filter @meetwise/web prove:public-copy
           node scripts/ecs-preview-config.proof.mjs
           node scripts/preview-edge-probe-fence.proof.mjs
