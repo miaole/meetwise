@@ -18,6 +18,8 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
+      - name: 初始化静态验证临时目录
+        run: mkdir -p .tmp
       - name: 文档与公开文本静态检查
         run: node scripts/ai-docs/check-docs.mjs
       - name: 追溯静态证明
