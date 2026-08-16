@@ -86,7 +86,7 @@ preclose_existing_public_preview() {
   scratch="$(mktemp -d)"
   trap 'rm -rf "$scratch"' RETURN
   if systemctl cat meetwise-web-preview.service >/dev/null 2>&1; then
-    timeout 15s systemctl stop --wait meetwise-web-preview.service >/dev/null 2>&1 &
+    timeout 15s systemctl stop meetwise-web-preview.service >/dev/null 2>&1 &
     web_pid=$!
   else
     web_pid=''

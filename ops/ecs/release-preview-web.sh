@@ -33,9 +33,8 @@ rollback_release() {
       # If a crash occurred before any public manifest was durable, revocation
       # cannot manufacture a receipt. Disable the edge and stop the candidate
       # rather than leaving a guessed Funnel origin on an unverified release.
-      tailscale funnel --https=443 off >/dev/null 2>&1 || true
-      systemctl stop meetwise-web-preview.service >/dev/null 2>&1 || true
-      printf '%s\n' 'release rollback deferred: Pages revocation is not confirmed; preview edge disabled' >&2
+      controller_disable_serving
+      printf '%s\n' 'release rollback deferred: Pages revocation is not confirmed; preview edge was closed by the controller' >&2
       exit "$code"
     fi
     if [[ -f /usr/share/meetwise-preview/preview-release-manifest.json ]]; then

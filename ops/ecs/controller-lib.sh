@@ -345,7 +345,10 @@ controller_close_public_preview_edge() {
   # second 15-second delay before Tailscale is asked to remove the mapping.
   # State writes deliberately happen only after both physical-close attempts.
   local web_pid funnel_pid failed=0
-  timeout 15s systemctl stop --wait meetwise-web-preview.service >/dev/null 2>&1 &
+  # `systemctl stop` already waits for the unit to reach its terminal state.
+  # Unlike start/restart, systemd 255 rejects the extra wait flag on stop,
+  # so keep the external timeout but use the portable synchronous operation.
+  timeout 15s systemctl stop meetwise-web-preview.service >/dev/null 2>&1 &
   web_pid=$!
   if command -v tailscale >/dev/null; then
     timeout 15s tailscale funnel --https=443 off >/dev/null 2>&1 &
@@ -355,6 +358,10 @@ controller_close_public_preview_edge() {
     failed=1
   fi
   wait "$web_pid" || failed=1
+  # A timeout kills only the systemctl client, not PID 1's outstanding stop
+  # job. The unit's own TimeoutStopSec is bounded too, and this immediate
+  # state check prevents a still-running origin from being called closed.
+  systemctl is-active --quiet meetwise-web-preview.service && failed=1
   # A disabled Funnel feature may make `funnel off` return non-zero. Its
   # status must nevertheless be queried; status failure or a non-empty Web
   # map remains a fail-closed error.
@@ -374,7 +381,18 @@ controller_force_edge_timeout_closure() {
 }
 
 controller_stop_preview_candidates() {
-  timeout 15s systemctl stop --wait 'meetwise-preview-candidate-*.service' >/dev/null 2>&1 || true
+  local listing unit failed=0
+  if ! listing="$(systemctl list-units --all --no-legend --plain --no-pager 'meetwise-preview-candidate-*.service')"; then
+    return 1
+  fi
+  while IFS= read -r unit; do
+    [[ -n "$unit" ]] || continue
+    unit="${unit%%[[:space:]]*}"
+    [[ "$unit" =~ ^meetwise-preview-candidate-[a-z0-9-]+\.service$ ]] || return 1
+    timeout 15s systemctl stop "$unit" >/dev/null 2>&1 || failed=1
+    systemctl is-active --quiet "$unit" && failed=1
+  done <<< "$listing"
+  return "$failed"
 }
 
 controller_disable_serving() {
@@ -384,7 +402,7 @@ controller_disable_serving() {
   # permit or fence cannot be read. Never make those state-volume operations
   # a prerequisite for isolating the running edge.
   controller_close_public_preview_edge || failed=1
-  controller_stop_preview_candidates
+  controller_stop_preview_candidates || failed=1
   controller_clear_serving_permit || failed=1
   set -e
   [[ "$failed" == 0 ]] || controller_fail 'preview edge or serving permit could not be disabled' 70

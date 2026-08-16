@@ -67,6 +67,7 @@ const checks = [
       && /PORT=3000/.test(unit)
       && /IPAddressDeny=any/.test(unit)
       && /IPAddressAllow=127\.0\.0\.0\/8/.test(unit)
+      && /TimeoutStopSec=15s/.test(unit)
       && /ExecStartPre=\+\/usr\/local\/lib\/meetwise-preview-controller\/ensure-preview-web-serving\.sh/.test(unit)
       && /Requires=meetwise-preview-recovery\.service/.test(unit)
       && /InaccessiblePaths=\/srv\/meetwise/.test(unit)
@@ -98,6 +99,8 @@ const checks = [
       && /controller_root\.previous/.test(installer)
       && /old_controller_moved=0/.test(installer)
       && /old_controller_moved" == 1/.test(installer)
+      && /timeout 15s systemctl stop meetwise-web-preview\.service/.test(installer)
+      && !/systemctl stop --wait/.test(installer)
       && /restore_controller_install/.test(installer)],
   ['the release archive is staged before GitHub attestation and permits only root-contained relative soft links during extraction',
     /gh attestation verify/.test(prepare)
@@ -142,7 +145,9 @@ const checks = [
       && /RuntimeMaxSec=60/.test(deploy)
       && /InaccessiblePaths=\/srv\/meetwise/.test(deploy)
       && /stop_candidate/.test(deploy)
-      && /systemctl stop --wait/.test(deploy)
+      && /timeout 15s systemctl stop "\$candidate_unit"/.test(deploy)
+      && /--property=TimeoutStopSec=15s/.test(deploy)
+      && !/systemctl stop --wait/.test(deploy)
       && !/is-active --quiet "\$candidate_unit" && controller_fail.*\|\| true/.test(deploy)
       && !/runuser -u meetwise -- env/.test(deploy)],
   ['activation syncs current, transitions ledger and creates a start permit before the Web restart',
@@ -295,7 +300,9 @@ const checks = [
       && /controller_edge_probe_timeout_fenced/.test(controller)],
   ['hard-deadline closure stops Web and Funnel before any state-volume permit mutation',
     /controller_close_public_preview_edge\(\)/.test(controller)
-      && /timeout 15s systemctl stop --wait meetwise-web-preview\.service[^\n]*&/.test(controller)
+      && /timeout 15s systemctl stop meetwise-web-preview\.service[^\n]*&/.test(controller)
+      && !/systemctl stop --wait/.test(controller)
+      && /systemctl is-active --quiet meetwise-web-preview\.service && failed=1/.test(controller)
       && /timeout 15s tailscale funnel --https=443 off[^\n]*&/.test(controller)
       && /wait "\$web_pid"/.test(controller)
       && /wait "\$funnel_pid"/.test(controller)
@@ -303,6 +310,15 @@ const checks = [
         < controller.indexOf('controller_clear_serving_permit || failed=1')
       && controller.lastIndexOf('controller_close_public_preview_edge || failed=1')
         < controller.lastIndexOf('controller_clear_serving_permit || failed=1')],
+  ['all recovery candidate units have a manager deadline, bounded stop and inactive confirmation',
+    /systemctl list-units --all --no-legend --plain --no-pager 'meetwise-preview-candidate-\*\.service'/.test(controller)
+      && /timeout 15s systemctl stop "\$unit"/.test(controller)
+      && /systemctl is-active --quiet "\$unit" && failed=1/.test(controller)
+      && /controller_stop_preview_candidates \|\| failed=1/.test(controller)],
+  ['Pages-revocation rollback delegates physical edge closure to the bounded controller primitive',
+    /controller_disable_serving\n      printf '%s\\n' 'release rollback deferred: Pages revocation is not confirmed; preview edge was closed by the controller'/.test(release)
+      && !/tailscale funnel --https=443 off/.test(release)
+      && !/systemctl stop meetwise-web-preview\.service/.test(release)],
   ['controller lock and current release trust checks use dedicated root-only paths',
     /\/run\/meetwise-preview-controller\/controller\.lock/.test(controller)
       && !/\/run\/lock\/meetwise-preview-controller/.test(controller)
