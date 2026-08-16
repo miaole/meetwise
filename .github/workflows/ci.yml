@@ -1,0 +1,32 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  static-preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - name: 初始化静态验证临时目录
+        run: mkdir -p .tmp
+      - name: 文档与公开文本静态检查
+        run: node scripts/ai-docs/check-docs.mjs
+      - name: 追溯静态证明
+        run: node scripts/quality-traceability.proof.mjs
+      - name: 治理静态证明
+        run: node scripts/quality-governance.proof.mjs
+      - name: 治理与追溯静态预检
+        run: node scripts/quality-governance-check.mjs
+      - name: 治理历史证明
+        run: node scripts/quality-governance-base-guard.proof.mjs

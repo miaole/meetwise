@@ -50,7 +50,7 @@ packages/
   ai-runtime/ 模型适配与调用控制基础
   ai-graphs/  图编排定义
 ai-docs/      产品、架构、用例、测试与运行时事实说明
-preview-site/ GitHub Pages 静态引导页（尚未部署）
+  preview-site/ 由 GitHub Pages 发布的静态引导页；主应用入口仍会在受验证的预览发布后启用
 ```
 
 ## 文案与安全原则
