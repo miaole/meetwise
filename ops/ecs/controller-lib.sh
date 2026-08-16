@@ -339,17 +339,29 @@ controller_funnel_status_is_closed() {
   return "$result"
 }
 
+controller_unit_load_state() {
+  local unit="$1" state
+  state="$(timeout 5s systemctl show --property=LoadState --value "$unit" 2>/dev/null)" || return 1
+  case "$state" in
+    loaded|not-found) printf '%s\n' "$state" ;;
+    *) return 1 ;;
+  esac
+}
+
+controller_unit_is_inactive() {
+  local unit="$1" state
+  state="$(timeout 5s systemctl show --property=ActiveState --value "$unit" 2>/dev/null)" || return 1
+  [[ "$state" == inactive || "$state" == failed ]]
+}
+
 controller_close_public_preview_edge() {
   # Stop the local origin and withdraw the public Funnel concurrently. Each
   # command has its own fixed budget so a stalled D-Bus call cannot add a
   # second 15-second delay before Tailscale is asked to remove the mapping.
   # State writes deliberately happen only after both physical-close attempts.
   local web_pid funnel_pid failed=0
-  # `systemctl stop` already waits for the unit to reach its terminal state.
-  # Unlike start/restart, systemd 255 rejects the extra wait flag on stop,
-  # so keep the external timeout but use the portable synchronous operation.
-  timeout 15s systemctl stop meetwise-web-preview.service >/dev/null 2>&1 &
-  web_pid=$!
+  # Launch Funnel withdrawal before any D-Bus query. A delayed or failed
+  # systemd query must never postpone the only public-edge close operation.
   if command -v tailscale >/dev/null; then
     timeout 15s tailscale funnel --https=443 off >/dev/null 2>&1 &
     funnel_pid=$!
@@ -357,11 +369,23 @@ controller_close_public_preview_edge() {
     funnel_pid=''
     failed=1
   fi
-  wait "$web_pid" || failed=1
+  # Start the stop request in parallel with bounded discovery. A known missing
+  # unit makes its non-zero stop result harmless; a loaded unit must finish
+  # within its manager and client bounds. D-Bus/fragment errors are closure
+  # failures, not absence.
+  timeout 15s systemctl stop meetwise-web-preview.service >/dev/null 2>&1 &
+  web_pid=$!
+  local web_load_state=''
+  if ! web_load_state="$(controller_unit_load_state meetwise-web-preview.service)"; then
+    failed=1
+  fi
+  if ! wait "$web_pid" && [[ "$web_load_state" == loaded ]]; then
+    failed=1
+  fi
   # A timeout kills only the systemctl client, not PID 1's outstanding stop
   # job. The unit's own TimeoutStopSec is bounded too, and this immediate
   # state check prevents a still-running origin from being called closed.
-  systemctl is-active --quiet meetwise-web-preview.service && failed=1
+  [[ "$web_load_state" != loaded ]] || controller_unit_is_inactive meetwise-web-preview.service || failed=1
   # A disabled Funnel feature may make `funnel off` return non-zero. Its
   # status must nevertheless be queried; status failure or a non-empty Web
   # map remains a fail-closed error.
@@ -382,7 +406,7 @@ controller_force_edge_timeout_closure() {
 
 controller_stop_preview_candidates() {
   local listing unit failed=0
-  if ! listing="$(systemctl list-units --all --no-legend --plain --no-pager 'meetwise-preview-candidate-*.service')"; then
+  if ! listing="$(timeout 5s systemctl list-units --all --no-legend --plain --no-pager 'meetwise-preview-candidate-*.service')"; then
     return 1
   fi
   while IFS= read -r unit; do
@@ -390,7 +414,7 @@ controller_stop_preview_candidates() {
     unit="${unit%%[[:space:]]*}"
     [[ "$unit" =~ ^meetwise-preview-candidate-[a-z0-9-]+\.service$ ]] || return 1
     timeout 15s systemctl stop "$unit" >/dev/null 2>&1 || failed=1
-    systemctl is-active --quiet "$unit" && failed=1
+    controller_unit_is_inactive "$unit" || failed=1
   done <<< "$listing"
   return "$failed"
 }

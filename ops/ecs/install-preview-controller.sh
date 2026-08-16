@@ -82,38 +82,78 @@ preclose_existing_public_preview() {
   # serve its own pointer.  This is intentionally self-contained: the new
   # controller has not been installed yet and candidate release code is never
   # sourced here.
-  local scratch web_pid funnel_pid
+  local scratch web_pid funnel_pid web_load_state web_active_state web_stop_status web_failure funnel_failure cleanup_failure listing unit
   scratch="$(mktemp -d)"
   trap 'rm -rf "$scratch"' RETURN
-  if systemctl cat meetwise-web-preview.service >/dev/null 2>&1; then
-    timeout 15s systemctl stop meetwise-web-preview.service >/dev/null 2>&1 &
-    web_pid=$!
-  else
-    web_pid=''
-  fi
   command -v tailscale >/dev/null \
     || { printf '%s\n' 'tailscale is required to fail-close an existing preview edge' >&2; return 69; }
   timeout 15s tailscale funnel --https=443 off >/dev/null 2>&1 &
   funnel_pid=$!
-  [[ -z "$web_pid" ]] || wait "$web_pid" \
-    || { printf '%s\n' 'existing preview Web could not be stopped' >&2; return 70; }
+  timeout 15s systemctl stop meetwise-web-preview.service >/dev/null 2>&1 &
+  web_pid=$!
+  web_failure=''
+  if ! web_load_state="$(timeout 5s systemctl show --property=LoadState --value meetwise-web-preview.service 2>/dev/null)"; then
+    web_failure='existing preview Web load state could not be verified'
+  fi
+  case "$web_load_state" in
+    loaded|not-found) ;;
+    *)
+      [[ -n "$web_failure" ]] || web_failure='existing preview Web load state is invalid'
+      ;;
+  esac
+  web_stop_status=0
+  wait "$web_pid" || web_stop_status=$?
   # Tailscale returns non-zero when Funnel is disabled for the whole tailnet.
   # The following JSON status check, not this exit code, establishes whether
   # an old public Web mapping remains.
   wait "$funnel_pid" || true
-  if systemctl is-active --quiet meetwise-web-preview.service; then
-    printf '%s\n' 'existing preview Web remains active after fail-close' >&2
+  if [[ "$web_load_state" == loaded ]]; then
+    if [[ "$web_stop_status" != 0 ]] \
+      || ! web_active_state="$(timeout 5s systemctl show --property=ActiveState --value meetwise-web-preview.service 2>/dev/null)" \
+      || [[ "$web_active_state" != inactive && "$web_active_state" != failed ]]; then
+      web_failure='existing preview Web remains active or could not be verified after fail-close'
+    fi
+  fi
+  funnel_failure=''
+  if ! timeout 15s tailscale funnel status --json >"$scratch/funnel.json"; then
+    funnel_failure='existing preview Funnel state could not be verified closed'
+  elif ! /usr/bin/node "$payload_root/ops/ecs/preview-funnel-status.mjs" "$scratch/funnel.json"; then
+    funnel_failure='existing preview Funnel remains configured or has an unknown status'
+  fi
+  # A Web/D-Bus error is not an excuse to leave the old controller's durable
+  # permit or transient candidate cgroups behind. These actions remain bounded
+  # and their own failure keeps installation closed, after Funnel status has
+  # been checked above.
+  cleanup_failure=''
+  if ! listing="$(timeout 5s systemctl list-units --all --no-legend --plain --no-pager 'meetwise-preview-candidate-*.service')"; then
+    cleanup_failure='existing preview candidates could not be enumerated'
+  else
+    while IFS= read -r unit; do
+      [[ -n "$unit" ]] || continue
+      unit="${unit%%[[:space:]]*}"
+      if [[ ! "$unit" =~ ^meetwise-preview-candidate-[a-z0-9-]+\.service$ ]] \
+        || ! timeout 15s systemctl stop "$unit" >/dev/null 2>&1 \
+        || ! web_active_state="$(timeout 5s systemctl show --property=ActiveState --value "$unit" 2>/dev/null)" \
+        || [[ "$web_active_state" != inactive && "$web_active_state" != failed ]]; then
+        cleanup_failure='existing preview candidate could not be stopped and verified inactive'
+        break
+      fi
+    done <<< "$listing"
+  fi
+  if ! /usr/bin/node "$payload_root/ops/ecs/preview-serving-permit.mjs" clear \
+    --path /var/lib/meetwise-preview-controller/serving-permit.json; then
+    cleanup_failure='existing preview serving permit could not be cleared'
+  fi
+  if [[ -n "$funnel_failure" || -n "$cleanup_failure" || -n "$web_failure" ]]; then
+    [[ -z "$funnel_failure" ]] || printf '%s\n' "$funnel_failure" >&2
+    [[ -z "$cleanup_failure" ]] || printf '%s\n' "$cleanup_failure" >&2
+    [[ -z "$web_failure" ]] || printf '%s\n' "$web_failure" >&2
     return 70
   fi
-  timeout 15s tailscale funnel status --json >"$scratch/funnel.json" \
-    || { printf '%s\n' 'existing preview Funnel state could not be verified closed' >&2; return 70; }
-  /usr/bin/node "$payload_root/ops/ecs/preview-funnel-status.mjs" "$scratch/funnel.json" \
-    || { printf '%s\n' 'existing preview Funnel remains configured or has an unknown status' >&2; return 70; }
-  if systemctl cat meetwise-web-preview.service >/dev/null 2>&1; then
-    systemctl disable meetwise-web-preview.service >/dev/null \
+  if [[ "$web_load_state" == loaded ]]; then
+    timeout 5s systemctl disable meetwise-web-preview.service >/dev/null \
       || { printf '%s\n' 'existing preview Web unit could not be disabled' >&2; return 70; }
   fi
-  rm -f /var/lib/meetwise-preview-controller/serving-permit.json
   trap - RETURN
   rm -rf "$scratch"
 }
