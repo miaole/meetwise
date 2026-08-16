@@ -169,9 +169,13 @@ const checks = [
       && /controller_ledger_transition staged active_unpublished/.test(deploy)
       && /controller_current_switch/.test(deploy)
       && /controller_reconcile_publication/.test(deploy)
+      && /for _ in \{1\.\.20\}; do/.test(deploy)
+      && /loopback preview did not become ready after Nginx reload/.test(deploy)
+      && /--max-time 1 -H "Host: \$preview_host".*127\.0\.0\.1:8080\//.test(deploy)
+      && /&& grep -Fq "\$marker" "\$loopback_body"; then/.test(deploy)
       && /await syncDirectory\(pointerParent\);/.test(currentPointer)
       && /issueServingPermit/.test(servingPermit)
-      && /active release marker mismatch/.test(deploy)
+      && /loopback preview did not become ready after Nginx reload/.test(deploy)
       && /\/api\/privacy\/export/.test(deploy)],
   ['a temporary Funnel is an explicit edge-probing phase and cannot be opened from loopback-only activation',
     /controller_ledger_transition active_unpublished edge_probing/.test(edgeProbe)
