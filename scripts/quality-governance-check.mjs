@@ -69,6 +69,7 @@ const BASELINE_KEYS = new Set([
 const GOVERNED_PATH_PREFIXES = [
   'ai-docs/',
   'scripts/',
+  'ops/',
   '.github/',
   'package.json',
   'pnpm-lock.yaml',
