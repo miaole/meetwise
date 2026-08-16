@@ -450,8 +450,13 @@ const checks = {
       currentIndex,
       introductions,
       snapshotDigestForIntroduction: (commit, paths) => {
-        assert.ok(['e'.repeat(40), 'f'.repeat(40)].includes(commit));
-        const record = [first, second].find((item) => item.governedPaths === paths || JSON.stringify(item.governedPaths) === JSON.stringify(paths));
+        const recordsByIntroductionCommit = new Map([
+          ['e'.repeat(40), first],
+          ['f'.repeat(40), second],
+        ]);
+        const record = recordsByIntroductionCommit.get(commit);
+        assert.ok(record, `unexpected introduction commit: ${commit}`);
+        assert.deepEqual(paths, record.governedPaths);
         return record.governedPathDigest;
       },
     });
