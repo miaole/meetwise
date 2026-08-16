@@ -8,6 +8,7 @@ on:
       - packages/**
       - scripts/package-preview-web-release.mjs
       - ops/ecs/**
+      - ops/bootstrap/**
       - package.json
       - pnpm-lock.yaml
       - .github/workflows/build-preview-web.yml
@@ -39,6 +40,7 @@ jobs:
           pnpm install --frozen-lockfile --ignore-scripts
       - name: Verify public copy before building the public artifact
         run: |
+          python3.11 ops/bootstrap/test_first_root_bootstrap.py
           pnpm --filter @meetwise/web prove:public-copy
           node scripts/ecs-preview-config.proof.mjs
           node scripts/preview-edge-probe-fence.proof.mjs
