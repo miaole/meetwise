@@ -45,7 +45,7 @@ cleanup() { rm -rf "$scratch"; }
 trap cleanup EXIT
 tailscale status --json > "$scratch/tailnet.json"
 preview_host="$(node "$controller_root/preview-funnel-target.mjs" host "$scratch/tailnet.json")"
-tailscale funnel status --json > "$scratch/funnel.json"
+controller_tailscale_funnel status --json > "$scratch/funnel.json"
 origin="$(node "$controller_root/preview-funnel-target.mjs" assert "$scratch/funnel.json" "$preview_host")"
 controller_assert_edge_probe_unexpired
 node --input-type=module - "$artifact" "$loopback_receipt" "$blackbox_receipt" "$origin" "$2" "$private_key" "$public_key" "$manifest" "$controller_root/preview-release-manifest.mjs" <<'NODE'

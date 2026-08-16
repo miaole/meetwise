@@ -29,7 +29,7 @@ cleanup() { rm -rf "$scratch"; }
 trap cleanup EXIT
 tailscale status --json > "$scratch/tailnet.json"
 preview_host="$(node /usr/local/lib/meetwise-preview-controller/preview-funnel-target.mjs host "$scratch/tailnet.json")"
-tailscale funnel status --json > "$scratch/funnel.json"
+controller_tailscale_funnel status --json > "$scratch/funnel.json"
 origin="$(node /usr/local/lib/meetwise-preview-controller/preview-funnel-target.mjs assert "$scratch/funnel.json" "$preview_host")"
 marker="<meta name=\"meetwise-preview-release\" content=\"$release_id\""
 

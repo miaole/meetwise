@@ -87,7 +87,8 @@ preclose_existing_public_preview() {
   trap 'rm -rf "$scratch"' RETURN
   command -v tailscale >/dev/null \
     || { printf '%s\n' 'tailscale is required to fail-close an existing preview edge' >&2; return 69; }
-  timeout 15s tailscale funnel --https=443 off >/dev/null 2>&1 &
+  preview_funnel() { timeout --kill-after=1s 15s tailscale funnel "$@"; }
+  preview_funnel --https=443 off >/dev/null 2>&1 &
   funnel_pid=$!
   timeout 15s systemctl stop meetwise-web-preview.service >/dev/null 2>&1 &
   web_pid=$!
@@ -115,7 +116,7 @@ preclose_existing_public_preview() {
     fi
   fi
   funnel_failure=''
-  if ! timeout 15s tailscale funnel status --json >"$scratch/funnel.json"; then
+  if ! preview_funnel status --json >"$scratch/funnel.json"; then
     funnel_failure='existing preview Funnel state could not be verified closed'
   elif ! /usr/bin/node "$payload_root/ops/ecs/preview-funnel-status.mjs" "$scratch/funnel.json"; then
     funnel_failure='existing preview Funnel remains configured or has an unknown status'

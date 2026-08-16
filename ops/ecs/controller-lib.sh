@@ -327,7 +327,7 @@ controller_funnel_status_is_closed() {
   # let the caller treat the edge as closed.
   local status_file result
   status_file="$(mktemp)" || return 1
-  if ! timeout 15s tailscale funnel status --json >"$status_file" 2>/dev/null; then
+  if ! controller_tailscale_funnel status --json >"$status_file" 2>/dev/null; then
     rm -f "$status_file"
     return 1
   fi
@@ -337,6 +337,15 @@ controller_funnel_status_is_closed() {
   set -e
   rm -f "$status_file"
   return "$result"
+}
+
+controller_tailscale_funnel() {
+  # GNU timeout sends TERM first; Tailscale CLI can ignore or outlive that
+  # signal while a control-plane request is wedged. A one-second KILL grace
+  # makes the 15-second command budget real and lets the caller continue its
+  # fail-closed recovery path.
+  command -v tailscale >/dev/null || return 127
+  timeout --kill-after=1s 15s tailscale funnel "$@"
 }
 
 controller_unit_load_state() {
@@ -363,7 +372,7 @@ controller_close_public_preview_edge() {
   # Launch Funnel withdrawal before any D-Bus query. A delayed or failed
   # systemd query must never postpone the only public-edge close operation.
   if command -v tailscale >/dev/null; then
-    timeout 15s tailscale funnel --https=443 off >/dev/null 2>&1 &
+    controller_tailscale_funnel --https=443 off >/dev/null 2>&1 &
     funnel_pid=$!
   else
     funnel_pid=''
