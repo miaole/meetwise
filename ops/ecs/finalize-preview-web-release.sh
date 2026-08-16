@@ -83,9 +83,6 @@ const unsigned = {
 await writeFile(output, `${JSON.stringify(signManifest(unsigned, privateKey), null, 2)}\n`, { mode: 0o644 });
 NODE
 node "$controller_root/preview-release-manifest.mjs" verify --manifest "$manifest" --public-key "$public_key" >/dev/null
-install -d -o root -g root -m 0755 /usr/share/meetwise-preview
-install -o root -g root -m 0644 "$manifest" "$public_manifest.new"
-mv -Tf "$public_manifest.new" "$public_manifest"
 manifest_fingerprint="$(node --input-type=module - "$manifest" "$controller_root/preview-release-manifest.mjs" <<'NODE'
 import { readFile } from 'node:fs/promises';
 const [path, manifestModule] = process.argv.slice(2);
@@ -93,5 +90,12 @@ const [{ manifestFingerprint }, signed] = await Promise.all([import(manifestModu
 process.stdout.write(manifestFingerprint(signed));
 NODE
 )"
-controller_ledger_transition active_unpublished verified "$release_id" "$manifest_fingerprint" "$origin" disabled >/dev/null
+# Persist recovery intent before the public manifest can make the Pages link
+# eligible. A later disk/ledger error therefore leaves a durable state that
+# forces revocation before release rollback.
+controller_ledger_transition active_unpublished publishing "$release_id" "$manifest_fingerprint" "$origin" disabled >/dev/null
+install -d -o root -g root -m 0755 /usr/share/meetwise-preview
+install -o root -g root -m 0644 "$manifest" "$public_manifest.new"
+mv -Tf "$public_manifest.new" "$public_manifest"
+controller_ledger_transition publishing verified "$release_id" "$manifest_fingerprint" "$origin" disabled >/dev/null
 printf '%s\n' "signed verified release manifest: $manifest"

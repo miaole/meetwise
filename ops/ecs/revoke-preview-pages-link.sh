@@ -11,7 +11,8 @@ public_manifest=/usr/share/meetwise-preview/preview-release-manifest.json
 pages_state_url=https://miaole.github.io/meetwise/preview-link-state.json
 
 ledger="$(controller_ledger_read)"
-release_id="$(node -e 'const state=JSON.parse(process.argv[1]); if (state.state !== "verified") process.exit(64); console.log(state.releaseDigest)' "$ledger")" || controller_fail 'no verified Pages-linked preview release can be revoked' 64
+ledger_state="$(node -e 'const state=JSON.parse(process.argv[1]); if (!["publishing", "verified"].includes(state.state)) process.exit(64); process.stdout.write(state.state)' "$ledger")" || controller_fail 'no publishing or verified Pages-linked preview release can be revoked' 64
+release_id="$(node -e 'console.log(JSON.parse(process.argv[1]).releaseDigest)' "$ledger")"
 release_dir="$(controller_release_dir "/srv/meetwise/releases/$release_id")"
 previous="$release_dir/.meetwise-preview-release-manifest.json"
 [[ -f "$previous" && -f "$private_key" ]] || controller_fail 'verified manifest or signing key is unavailable' 65
@@ -48,7 +49,7 @@ const [{ manifestFingerprint }, manifest] = await Promise.all([import(manifestMo
 process.stdout.write(manifestFingerprint(manifest));
 NODE
 )"
-controller_ledger_transition verified revoked "$release_id" "$fingerprint" '' disabled >/dev/null
+controller_ledger_transition "$ledger_state" revoked "$release_id" "$fingerprint" '' disabled >/dev/null
 
 # The next release must not overwrite the edge while Pages still offers a link
 # whose signed release record identifies the old build.  Pages republishes its

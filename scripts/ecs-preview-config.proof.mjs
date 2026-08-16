@@ -68,7 +68,7 @@ const checks = [
       && /chown -R root:root/.test(installer)
       && /chmod -R go-w/.test(installer)
       && /controller-files\.txt/.test(installer)],
-  ['the release archive is staged before GitHub attestation and has a strict normal-file-only extraction boundary',
+  ['the release archive is staged before GitHub attestation and permits only root-contained relative soft links during extraction',
     /gh attestation verify/.test(prepare)
       && /input_archive/.test(prepare)
       && /install -o root -g root -m 0600/.test(prepare)
@@ -80,7 +80,8 @@ const checks = [
       && /sourceRepository !== 'miaole\/meetwise'/.test(artifact)
       && /preview_release_symlink_escapes_root/.test(artifact)
       && /preview_archive_special_member_rejected/.test(archiveSafety)
-      && /preview_archive_duplicate_member/.test(archiveSafety)],
+      && /preview_archive_duplicate_member/.test(archiveSafety)
+      && /preview_archive_long_link_without_symlink/.test(archiveSafety)],
   ['the CI workflow builds and attests both immutable delivery archives only from protected main',
     /branches: \[main\]/.test(buildWorkflow)
       && /github\.ref == 'refs\/heads\/main'/.test(buildWorkflow)
@@ -125,7 +126,8 @@ const checks = [
       && /preview_blackbox_receipt_invalid/.test(finalize)
       && /preview_signing_key_public_pair_mismatch/.test(finalize)
       && /manifestFingerprint/.test(finalize)
-      && /controller_ledger_transition active_unpublished verified/.test(finalize)
+      && /controller_ledger_transition active_unpublished publishing/.test(finalize)
+      && /controller_ledger_transition publishing verified/.test(finalize)
       && /preview_manifest_expired/.test(manifest)
       && /\['verified', 'revoked'\]/.test(manifest)
       && /preview_manifest_revocation_invalid/.test(manifest)],
@@ -133,7 +135,8 @@ const checks = [
     /status: 'revoked'/.test(revoke)
       && /preview-link-state\.json/.test(revoke)
       && /Pages confirmed the preview link is disabled/.test(revoke)
-      && /controller_ledger_transition verified revoked/.test(revoke)
+      && /\["publishing", "verified"\]/.test(revoke)
+      && /controller_ledger_transition "\$ledger_state" revoked/.test(revoke)
       && /manifestFingerprint/.test(revoke)
       && /for _ in \{1\.\.260\}/.test(revoke)],
   ['the Pages workflow fetches a signed edge record, verifies its content digest and publishes a disabled artifact on failure or revocation',

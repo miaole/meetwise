@@ -22,6 +22,17 @@ activated=0
 rollback_release() {
   local code=$?
   set +e
+  state="$(node -e 'console.log(JSON.parse(process.argv[1]).state)' "$(controller_ledger_read)")"
+  # A verified public record must never outlive the release it identifies. If
+  # revocation cannot be confirmed, retain the active release instead of
+  # creating a stale Pages destination.
+  if [[ "$state" == publishing || "$state" == verified ]]; then
+    if ! MEETWISE_PREVIEW_CONTROLLER_LOCK_HELD=1 "$controller_root/revoke-preview-pages-link.sh"; then
+      printf '%s\n' 'release rollback deferred: Pages revocation is not confirmed' >&2
+      exit "$code"
+    fi
+    state="$(node -e 'console.log(JSON.parse(process.argv[1]).state)' "$(controller_ledger_read)")"
+  fi
   if [[ "$activated" == 1 ]]; then
     if [[ -n "$previous_target" ]]; then
       previous_id="$(basename "$previous_target")"
@@ -34,12 +45,7 @@ rollback_release() {
       tailscale funnel --https=443 off >/dev/null 2>&1 || true
     fi
   fi
-  state="$(node -e 'console.log(JSON.parse(process.argv[1]).state)' "$(controller_ledger_read)")"
-  if [[ "$state" == verified ]]; then
-    MEETWISE_PREVIEW_CONTROLLER_LOCK_HELD=1 "$controller_root/revoke-preview-pages-link.sh" || true
-    state="$(node -e 'console.log(JSON.parse(process.argv[1]).state)' "$(controller_ledger_read)")"
-  fi
-  if [[ "$state" == active_unpublished || "$state" == verified ]]; then
+  if [[ "$state" == active_unpublished ]]; then
     release_id="$(node -e 'console.log(JSON.parse(process.argv[1]).releaseDigest)' "$(controller_ledger_read)")"
     controller_ledger_transition "$state" failed "$release_id" '' '' disabled >/dev/null 2>&1 || true
   fi

@@ -1,13 +1,14 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
-const STATES = new Set(['idle', 'staged', 'active_unpublished', 'verified', 'revoked', 'failed']);
+const STATES = new Set(['idle', 'staged', 'active_unpublished', 'publishing', 'verified', 'revoked', 'failed']);
 const TRANSITIONS = new Map([
   ['idle', new Set(['staged'])],
   ['failed', new Set(['staged'])],
   ['revoked', new Set(['staged'])],
   ['staged', new Set(['active_unpublished', 'failed'])],
-  ['active_unpublished', new Set(['verified', 'revoked', 'failed'])],
+  ['active_unpublished', new Set(['publishing', 'revoked', 'failed'])],
+  ['publishing', new Set(['verified', 'revoked', 'failed'])],
   ['verified', new Set(['revoked', 'failed'])],
 ]);
 

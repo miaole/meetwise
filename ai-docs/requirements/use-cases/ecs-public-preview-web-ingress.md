@@ -26,9 +26,9 @@ owner: platform
 | 控制面 | prepare/deploy/finalize、Nginx/unit 模板、Funnel 解析器和签名器只从 root-owned 固定控制面目录运行。首次安装由非 root 操作员先验证 GitHub Actions 对 controller archive 的构件证明，再从已验证 archive 取出与其字节一致的 installer；禁止对工作树、候选 release 或未验签路径执行 `sudo`。installer 将输入一次性复制到 root-owned `0600` staging 文件后才重新验签、解析 archive 元数据和解压。每个入口重验自己的真实路径、逐文件 owner、mode 与摘要。候选 release 仅作为非特权 Web 产物与数据被读取，不能提供 root 可执行脚本或签名器模块。 |
 | archive 边界 | controller 与 Web archive 只允许常规文件、目录，以及解析后仍位于 archive root 内的相对软链接；拒绝绝对/空/`.`/`..` 路径、重复成员、硬链接、root 外软链接、设备、FIFO、PAX 扩展、超限大小与 root 外成员。验签、列目录、解压和摘要全部针对同一个 root-owned staging archive。相同 release digest 的重放还必须具有相同 archive SHA-256。 |
 | 进程 | `meetwise` 非登录用户运行 Web；候选也必须先运行在等价或更严的 transient systemd cgroup，`KillMode=control-group` 停止后才可能激活。两个进程均不授予额外 capability，不读取私钥或服务密钥，仅读取已冻结 release 并限制出站到 loopback；失败只重启 Web，不自动迁移或启动 API/Worker。 |
-| Pages | Pages 仍是静态目录。只有签名有效且未过期、`PreviewWebRelease=verified`、HTTPS、构建摘要、边缘/健康/方法门回执进入受控目录清单时，才渲染主项目链接。签名记录只经固定静态 `/preview-release-manifest.json` 暴露；Pages 每小时独立拉取、验签和探测 origin，过期、撤销或健康失败时生成并发布禁用目录与 `preview-link-state.json` 回执。切换已启用 release 前，控制面先签发撤链记录并等到该回执确认禁用。 |
+| Pages | Pages 仍是静态目录。只有签名有效且未过期、`PreviewWebRelease=verified`、HTTPS、构建摘要、边缘/健康/方法门回执进入受控目录清单时，才渲染主项目链接。签名记录只经固定静态 `/preview-release-manifest.json` 暴露；Pages 每小时独立拉取、验签和探测 origin，过期、撤销或健康失败时生成并发布禁用目录与 `preview-link-state.json` 回执。切换已启用 release 前，控制面先签发撤链记录并等到该回执确认禁用。任何已写入公开 manifest、但尚未完成 ledger 确认的发布必须先撤链并收到该回执，之后才能回滚 Web。 |
 
-`PreviewWebRelease` 状态为 `idle / failed / revoked → staged → active_unpublished → verified → revoked / failed`。单一 root-owned `flock` 覆盖撤链、构件验签、候选、激活、Funnel、预签名黑盒验证和签名；黑盒 receipt 成功且签名前后都重验相同活动 release 后，才允许原子写入公开 signed manifest 并进入 `verified`。候选 release 必须先以独立回环端口证明其 release marker、构建摘要和允许页面，且 systemd 确认整个候选 cgroup 已退出后才可能激活。同一 release digest 重放仅接受完全相同 archive；任何签名、HTTPS、精确 origin、边缘/内部健康、构建摘要、路径或方法门失配均进入 `failed`，恢复前一 release，Pages 链接保持禁用。撤链回执使用签名 manifest 的 canonical JSON SHA-256，避免格式化差异。
+`PreviewWebRelease` 状态为 `idle / failed / revoked → staged → active_unpublished → publishing → verified → revoked / failed`。单一 root-owned `flock` 覆盖撤链、构件验签、候选、激活、Funnel、预签名黑盒验证和签名；黑盒 receipt 成功且签名前后都重验相同活动 release 后，先持久写入 `publishing`，才允许原子写入公开 signed manifest；随后才进入 `verified`。候选 release 必须先以独立回环端口证明其 release marker、构建摘要和允许页面，且 systemd 确认整个候选 cgroup 已退出后才可能激活。同一 release digest 重放仅接受完全相同 archive；任何签名、HTTPS、精确 origin、边缘/内部健康、构建摘要、路径或方法门失配均进入 `failed`，恢复前一 release，Pages 链接保持禁用。若 `publishing` 或 `verified` 的任一步失败，必须先签发撤链记录并等到 Pages 禁用回执，再恢复前一 Web。撤链回执使用签名 manifest 的 canonical JSON SHA-256，避免格式化差异。
 
 ## 主流程
 
@@ -43,7 +43,7 @@ owner: platform
 | 类别 | TC | 断言与机制 |
 | --- | --- | --- |
 | 正常 | `TC-ecs-public-preview-web-ingress-01-main` | 允许页面的 `GET`/`HEAD` 到达 Web；release marker、digest、回环健康、精确 HTTPS 地址和签名记录一致。机制：不可变 release 目录与签名健康回执。 |
-| 异常 | `TC-ecs-public-preview-web-ingress-01-E1` | 构建产物、archive 成员、候选 marker/cgroup 停止、Nginx 校验、切换、外部 HTTPS 或健康任一失败时 service 恢复前一 release，公开 manifest 尚未签发且 Pages 链接保持禁用。机制：失败关闭发布状态机。 |
+| 异常 | `TC-ecs-public-preview-web-ingress-01-E1` | 构建产物、archive 成员、候选 marker/cgroup 停止、Nginx 校验、切换、外部 HTTPS、公开 manifest 后的 ledger transition 或健康任一失败时，先完成撤链回执，再恢复前一 release；Pages 链接保持禁用。机制：`publishing` 状态与失败关闭发布状态机。 |
 | 特殊 | `TC-ecs-public-preview-web-ingress-01-E2` | 允许路径的 `OPTIONS` 返回无状态响应；缺失 API/数据库凭据时首页仍可浏览，数据页面、登录和 API 不伪造成功。机制：最小进程边界。 |
 | 逃逸通道 | `TC-ecs-public-preview-web-ingress-01-E3` | 携带已有 cookie 的 `/api/*`、RSC、登录和业务路径均不转发；`POST`、`PUT`、`PATCH`、`DELETE`、`TRACE`、`COPY`、自定义方法以及带 cookie、query、body 的变体均为 503 或 404，Next handler/Server Action/API/队列=0。机制：Nginx 路径与方法双 allowlist。 |
 | 高并发 | `TC-ecs-public-preview-web-ingress-01-E4` | 20 个并发非安全请求全部 503；无 Web action、API、队列或数据面调用。机制：无状态边缘拒绝。 |
