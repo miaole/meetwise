@@ -1,12 +1,13 @@
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { mkdir, open, readFile, rename, rm } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
 import { dirname, resolve } from 'node:path';
 
 const STATES = new Set(['idle', 'staged', 'active_unpublished', 'publishing', 'verified', 'revoked', 'failed']);
 const TRANSITIONS = new Map([
-  ['idle', new Set(['staged'])],
-  ['failed', new Set(['staged'])],
+  ['idle', new Set(['staged', 'revoked'])],
+  ['failed', new Set(['staged', 'revoked'])],
   ['revoked', new Set(['staged'])],
-  ['staged', new Set(['active_unpublished', 'failed'])],
+  ['staged', new Set(['active_unpublished', 'revoked', 'failed'])],
   ['active_unpublished', new Set(['publishing', 'revoked', 'failed'])],
   ['publishing', new Set(['verified', 'revoked', 'failed'])],
   ['verified', new Set(['revoked', 'failed'])],
@@ -33,9 +34,26 @@ async function load(path) {
 
 async function write(path, value) {
   await mkdir(dirname(path), { recursive: true, mode: 0o700 });
-  const temp = `${path}.${process.pid}.tmp`;
-  await writeFile(temp, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 });
-  await rename(temp, path);
+  const temp = `${path}.${process.pid}.${randomUUID()}.tmp`;
+  const handle = await open(temp, 'wx', 0o600);
+  try {
+    await handle.writeFile(`${JSON.stringify(value, null, 2)}\n`);
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+  try {
+    await rename(temp, path);
+  } catch (error) {
+    await rm(temp, { force: true });
+    throw error;
+  }
+  const directory = await open(dirname(path), 'r');
+  try {
+    await directory.sync();
+  } finally {
+    await directory.close();
+  }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

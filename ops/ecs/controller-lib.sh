@@ -81,3 +81,12 @@ controller_ledger_transition() {
 controller_ledger_read() {
   node "$MEETWISE_PREVIEW_CONTROLLER_ROOT/preview-release-ledger.mjs" read --path "$MEETWISE_PREVIEW_CONTROLLER_STATE"
 }
+
+controller_publish_manifest() {
+  local input="$1" output="$2"
+  node "$MEETWISE_PREVIEW_CONTROLLER_ROOT/preview-release-manifest.mjs" publish --input "$input" --output "$output"
+}
+
+controller_reconcile_publication() {
+  MEETWISE_PREVIEW_CONTROLLER_LOCK_HELD=1 "$MEETWISE_PREVIEW_CONTROLLER_ROOT/reconcile-preview-publication.sh"
+}

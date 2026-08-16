@@ -12,6 +12,7 @@ if [[ $# -ne 2 || ! -f "$1" ]]; then
   exit 64
 fi
 
+controller_reconcile_publication
 ledger="$(controller_ledger_read)"
 current_state="$(node -e 'console.log(JSON.parse(process.argv[1]).state)' "$ledger")"
 previous_target=''
@@ -28,7 +29,12 @@ rollback_release() {
   # creating a stale Pages destination.
   if [[ "$state" == publishing || "$state" == verified ]]; then
     if ! MEETWISE_PREVIEW_CONTROLLER_LOCK_HELD=1 "$controller_root/revoke-preview-pages-link.sh"; then
-      printf '%s\n' 'release rollback deferred: Pages revocation is not confirmed' >&2
+      # If a crash occurred before any public manifest was durable, revocation
+      # cannot manufacture a receipt. Disable the edge and stop the candidate
+      # rather than leaving a guessed Funnel origin on an unverified release.
+      tailscale funnel --https=443 off >/dev/null 2>&1 || true
+      systemctl stop meetwise-web-preview.service >/dev/null 2>&1 || true
+      printf '%s\n' 'release rollback deferred: Pages revocation is not confirmed; preview edge disabled' >&2
       exit "$code"
     fi
     state="$(node -e 'console.log(JSON.parse(process.argv[1]).state)' "$(controller_ledger_read)")"

@@ -2,6 +2,7 @@
 controller-lib.sh	controller-lib.sh
 archive-safety.mjs	archive-safety.mjs
 preview-release-ledger.mjs	preview-release-ledger.mjs
+preview-publication-recovery.mjs	preview-publication-recovery.mjs
 preview-release-artifact.mjs	preview-release-artifact.mjs
 preview-release-manifest.mjs	preview-release-manifest.mjs
 preview-funnel-target.mjs	preview-funnel-target.mjs
@@ -10,6 +11,7 @@ deploy-preview-web.sh	deploy-preview-web.sh
 enable-preview-funnel.sh	enable-preview-funnel.sh
 finalize-preview-web-release.sh	finalize-preview-web-release.sh
 revoke-preview-pages-link.sh	revoke-preview-pages-link.sh
+reconcile-preview-publication.sh	reconcile-preview-publication.sh
 release-preview-web.sh	release-preview-web.sh
 verify-preview-web.sh	verify-preview-web.sh
 nginx/meetwise-preview.conf	meetwise-preview.conf

@@ -94,8 +94,6 @@ NODE
 # eligible. A later disk/ledger error therefore leaves a durable state that
 # forces revocation before release rollback.
 controller_ledger_transition active_unpublished publishing "$release_id" "$manifest_fingerprint" "$origin" disabled >/dev/null
-install -d -o root -g root -m 0755 /usr/share/meetwise-preview
-install -o root -g root -m 0644 "$manifest" "$public_manifest.new"
-mv -Tf "$public_manifest.new" "$public_manifest"
+controller_publish_manifest "$manifest" "$public_manifest"
 controller_ledger_transition publishing verified "$release_id" "$manifest_fingerprint" "$origin" disabled >/dev/null
 printf '%s\n' "signed verified release manifest: $manifest"

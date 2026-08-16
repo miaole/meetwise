@@ -13,6 +13,7 @@ const deploy = read('ops/ecs/deploy-preview-web.sh');
 const funnel = read('ops/ecs/enable-preview-funnel.sh');
 const finalize = read('ops/ecs/finalize-preview-web-release.sh');
 const revoke = read('ops/ecs/revoke-preview-pages-link.sh');
+const reconcile = read('ops/ecs/reconcile-preview-publication.sh');
 const release = read('ops/ecs/release-preview-web.sh');
 const verify = read('ops/ecs/verify-preview-web.sh');
 const manifest = read('ops/ecs/preview-release-manifest.mjs');
@@ -56,8 +57,8 @@ const checks = [
   ['all release entrypoints require an installed root-owned checksum-verified controller path',
     /controller_entry_guard/.test(controller)
       && /sha256sum --check --status controller\.sha256/.test(controller)
-      && [prepare, deploy, funnel, finalize, revoke, release, verify].every((source) => /source \/usr\/local\/lib\/meetwise-preview-controller\/controller-lib\.sh/.test(source) && /controller_entry_guard /.test(source))
-      && ![prepare, deploy, funnel, finalize, revoke, release, verify].some((source) => /\$release_dir\/ops\//.test(source))],
+      && [prepare, deploy, funnel, finalize, revoke, reconcile, release, verify].every((source) => /source \/usr\/local\/lib\/meetwise-preview-controller\/controller-lib\.sh/.test(source) && /controller_entry_guard /.test(source))
+      && ![prepare, deploy, funnel, finalize, revoke, reconcile, release, verify].some((source) => /\$release_dir\/ops\//.test(source))],
   ['controller bootstrap verifies a root-owned archive copy, its own signed bytes and archive safety before installing an immutable controller manifest',
     /gh attestation verify/.test(installer)
       && /install -o root -g root -m 0600/.test(installer)
@@ -115,6 +116,7 @@ const checks = [
   ['the orchestrator owns one lock across revoke, stage, activation, Funnel, signing and black-box verification',
     /controller_lock/.test(release)
       && /revoke-preview-pages-link\.sh/.test(release)
+      && /controller_reconcile_publication/.test(release)
       && /prepare-preview-web-release\.sh/.test(release)
       && /deploy-preview-web\.sh/.test(release)
       && /enable-preview-funnel\.sh/.test(release)
@@ -128,6 +130,7 @@ const checks = [
       && /manifestFingerprint/.test(finalize)
       && /controller_ledger_transition active_unpublished publishing/.test(finalize)
       && /controller_ledger_transition publishing verified/.test(finalize)
+      && /controller_publish_manifest/.test(finalize)
       && /preview_manifest_expired/.test(manifest)
       && /\['verified', 'revoked'\]/.test(manifest)
       && /preview_manifest_revocation_invalid/.test(manifest)],
@@ -135,9 +138,11 @@ const checks = [
     /status: 'revoked'/.test(revoke)
       && /preview-link-state\.json/.test(revoke)
       && /Pages confirmed the preview link is disabled/.test(revoke)
-      && /\["publishing", "verified"\]/.test(revoke)
+      && /a revoked preview release cannot be revoked again/.test(revoke)
       && /controller_ledger_transition "\$ledger_state" revoked/.test(revoke)
       && /manifestFingerprint/.test(revoke)
+      && /controller_publish_manifest/.test(revoke)
+      && revoke.indexOf('receipt_confirmed=1') < revoke.indexOf('controller_ledger_transition "$ledger_state" revoked')
       && /for _ in \{1\.\.260\}/.test(revoke)],
   ['the Pages workflow fetches a signed edge record, verifies its content digest and publishes a disabled artifact on failure or revocation',
     /fetch-preview-release-manifest\.mjs/.test(pagesWorkflow)

@@ -39,7 +39,7 @@ try {
 
   const [finalizerSource, releaserSource] = await Promise.all([readFile(finalizer, 'utf8'), readFile(releaser, 'utf8')]);
   const intent = finalizerSource.indexOf('controller_ledger_transition active_unpublished publishing');
-  const publicManifest = finalizerSource.indexOf('mv -Tf "$public_manifest.new" "$public_manifest"');
+  const publicManifest = finalizerSource.indexOf('controller_publish_manifest "$manifest" "$public_manifest"');
   const verified = finalizerSource.indexOf('controller_ledger_transition publishing verified');
   assert.ok(intent >= 0 && intent < publicManifest && publicManifest < verified, 'publishing intent must bracket public manifest write');
   assert.ok(releaserSource.indexOf('state" == publishing || "$state" == verified') < releaserSource.indexOf('if [[ "$activated" == 1 ]]'), 'release rollback must revoke before restoring an active release');
