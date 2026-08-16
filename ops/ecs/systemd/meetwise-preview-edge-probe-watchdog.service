@@ -1,0 +1,20 @@
+[Unit]
+Description=Meetwise preview edge-probe hard deadline watchdog
+OnFailure=meetwise-preview-edge-probe-expiry.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/sleep infinity
+ExecStopPost=/usr/local/lib/meetwise-preview-controller/handle-preview-edge-probe-timeout.sh
+RuntimeMaxSec=60s
+TimeoutStopSec=50s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ReadWritePaths=/var/lib/meetwise-preview-controller /run/meetwise-preview-controller
+CapabilityBoundingSet=
+UMask=0077

@@ -2,13 +2,17 @@ import { mkdir, open, readFile, rename, rm } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { dirname, resolve } from 'node:path';
 
-const STATES = new Set(['idle', 'staged', 'active_unpublished', 'publishing', 'verified', 'revoked', 'failed']);
+const STATES = new Set(['idle', 'staged', 'active_unpublished', 'edge_probing', 'publishing', 'verified', 'revoked', 'failed']);
 const TRANSITIONS = new Map([
   ['idle', new Set(['staged', 'revoked'])],
   ['failed', new Set(['staged', 'revoked'])],
   ['revoked', new Set(['staged'])],
   ['staged', new Set(['active_unpublished', 'revoked', 'failed'])],
-  ['active_unpublished', new Set(['publishing', 'revoked', 'failed'])],
+  // `edge_probing` is a deliberately narrow, non-resumable state: it is the
+  // only state in which a temporary Funnel can be opened for the external
+  // black-box check. Pages remains disabled and a reboot must fail it closed.
+  ['active_unpublished', new Set(['edge_probing', 'revoked', 'failed'])],
+  ['edge_probing', new Set(['publishing', 'revoked', 'failed'])],
   ['publishing', new Set(['verified', 'revoked', 'failed'])],
   ['verified', new Set(['revoked', 'failed'])],
 ]);

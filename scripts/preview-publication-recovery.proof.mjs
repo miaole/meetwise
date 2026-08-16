@@ -1,91 +1,150 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
+import { mkdtemp } from 'node:fs/promises';
 import { decidePublicationReconciliation } from '../ops/ecs/preview-publication-recovery.mjs';
-import { publishManifestAtomically } from '../ops/ecs/preview-release-manifest.mjs';
+import { clearCurrentPointer, inspectCurrentPointer, switchCurrentPointer } from '../ops/ecs/preview-current-pointer.mjs';
+import { clearServingPermit, decideServingPermit, issueServingPermit, validateServingPermit } from '../ops/ecs/preview-serving-permit.mjs';
 
 const root = process.cwd();
-const ledger = await readFile(resolve(root, 'ops/ecs/preview-release-ledger.mjs'), 'utf8');
-const manifest = await readFile(resolve(root, 'ops/ecs/preview-release-manifest.mjs'), 'utf8');
-const reconcile = await readFile(resolve(root, 'ops/ecs/reconcile-preview-publication.sh'), 'utf8');
-const revoke = await readFile(resolve(root, 'ops/ecs/revoke-preview-pages-link.sh'), 'utf8');
-const release = await readFile(resolve(root, 'ops/ecs/release-preview-web.sh'), 'utf8');
+const recoverySource = await readFile(resolve(root, 'ops/ecs/preview-publication-recovery.mjs'), 'utf8');
+const currentSource = await readFile(resolve(root, 'ops/ecs/preview-current-pointer.mjs'), 'utf8');
+const permitSource = await readFile(resolve(root, 'ops/ecs/preview-serving-permit.mjs'), 'utf8');
+const reconcileSource = await readFile(resolve(root, 'ops/ecs/reconcile-preview-publication.sh'), 'utf8');
+const ensureSource = await readFile(resolve(root, 'ops/ecs/ensure-preview-web-serving.sh'), 'utf8');
+const bootRecoverySource = await readFile(resolve(root, 'ops/ecs/recover-preview-publication.sh'), 'utf8');
+const bootRecoveryUnitSource = await readFile(resolve(root, 'ops/ecs/systemd/meetwise-preview-recovery.service'), 'utf8');
+const controllerSource = await readFile(resolve(root, 'ops/ecs/controller-lib.sh'), 'utf8');
+const unitSource = await readFile(resolve(root, 'ops/ecs/systemd/meetwise-web-preview.service'), 'utf8');
+const installerSource = await readFile(resolve(root, 'ops/ecs/install-preview-controller.sh'), 'utf8');
 
-const fingerprint = 'b'.repeat(64);
 const releaseDigest = 'a'.repeat(40);
-const ledgerState = (state, overrides = {}) => ({
+const predecessorDigest = 'b'.repeat(40);
+const fingerprint = 'c'.repeat(64);
+const ledger = (state, overrides = {}) => ({
   schemaVersion: 1,
-  generation: 1,
+  generation: overrides.generation ?? 7,
   state,
   releaseDigest: overrides.releaseDigest ?? releaseDigest,
   fingerprint: overrides.fingerprint ?? fingerprint,
+  pages: overrides.pages ?? 'disabled',
 });
-const manifestState = (status, overrides = {}) => ({
+const current = (state = 'present', overrides = {}) => ({
+  state,
+  releaseDigest: overrides.releaseDigest ?? releaseDigest,
+  ...overrides,
+});
+const manifest = (status = 'verified', overrides = {}) => ({
   status,
   releaseDigest: overrides.releaseDigest ?? releaseDigest,
   fingerprint: overrides.fingerprint ?? fingerprint,
+  expired: overrides.expired ?? false,
 });
+
 const directory = await mkdtemp(resolve(tmpdir(), 'meetwise-preview-publication-'));
+const releaseRoot = resolve(directory, 'releases');
+const pointer = resolve(directory, 'current');
+const permitPath = resolve(directory, 'state', 'serving-permit.json');
+const releaseDirectory = resolve(releaseRoot, releaseDigest);
+const predecessorDirectory = resolve(releaseRoot, predecessorDigest);
 
 const checks = [
-  ['unpublished release without a public manifest is stable', () =>
-    assert.deepEqual(decidePublicationReconciliation({ ledger: ledgerState('active_unpublished'), manifest: null }), { action: 'stable' })],
-  ['publishing without a public manifest blocks rather than switching release', () =>
-    assert.deepEqual(decidePublicationReconciliation({ ledger: ledgerState('publishing'), manifest: null }), { action: 'block', reason: 'preview_reconcile_public_manifest_missing' })],
-  ['verified ledger and identical verified public manifest are stable', () =>
-    assert.deepEqual(decidePublicationReconciliation({ ledger: ledgerState('verified'), manifest: manifestState('verified') }), { action: 'stable' })],
-  ['crash after manifest publication and before verified state revokes first', () =>
-    assert.deepEqual(decidePublicationReconciliation({ ledger: ledgerState('publishing'), manifest: manifestState('verified') }), { action: 'revoke_public_manifest', releaseDigest, fingerprint })],
-  ['ledger rollback after public manifest publication revokes first', () =>
-    assert.deepEqual(decidePublicationReconciliation({ ledger: ledgerState('active_unpublished'), manifest: manifestState('verified') }), { action: 'revoke_public_manifest', releaseDigest, fingerprint })],
-  ['different release or fingerprint never silently proceeds', () =>
-    assert.deepEqual(decidePublicationReconciliation({ ledger: ledgerState('verified'), manifest: manifestState('verified', { fingerprint: 'c'.repeat(64) }) }), { action: 'revoke_public_manifest', releaseDigest, fingerprint: 'c'.repeat(64) })],
-  ['public revoked state confirms a nonterminal ledger before release work', () =>
-    assert.deepEqual(decidePublicationReconciliation({ ledger: ledgerState('publishing'), manifest: manifestState('revoked') }), { action: 'confirm_revocation', releaseDigest, fingerprint })],
-  ['terminal revoked ledger does not rewrite a public revocation', () =>
-    assert.deepEqual(decidePublicationReconciliation({ ledger: ledgerState('revoked'), manifest: manifestState('revoked', { fingerprint: 'd'.repeat(64) }) }), { action: 'stable' })],
-  ['invalid signed-manifest summary blocks', () =>
-    assert.deepEqual(decidePublicationReconciliation({ ledger: ledgerState('verified'), manifest: { status: 'verified', releaseDigest, fingerprint: 'invalid' } }), { action: 'block', reason: 'preview_reconcile_public_manifest_invalid' })],
-  ['ledger write syncs file and parent directory before returning', () => {
-    assert.match(ledger, /await handle\.sync\(\);/);
-    assert.match(ledger, /await directory\.sync\(\);/);
+  ['only matching verified ledger, manifest and current may serve publicly', () =>
+    assert.deepEqual(decidePublicationReconciliation({ ledger: ledger('verified'), manifest: manifest(), current: current() }), { action: 'serve_public' })],
+  ['unpublished matching release is loopback-only even with a revoked predecessor manifest', () => {
+    assert.deepEqual(decidePublicationReconciliation({ ledger: ledger('active_unpublished'), manifest: null, current: current() }), { action: 'serve_loopback' });
+    assert.deepEqual(decidePublicationReconciliation({ ledger: ledger('active_unpublished'), manifest: manifest('revoked', { releaseDigest: predecessorDigest }), current: current() }), { action: 'serve_loopback' });
   }],
-  ['public manifest publication syncs file and parent directory before returning', () => {
-    assert.match(manifest, /publishManifestAtomically/);
-    assert.match(manifest, /await handle\.sync\(\);/);
-    assert.match(manifest, /await directory\.sync\(\);/);
+  ['an edge probe is explicitly permitted only during the in-flight release and boot recovery aborts it', () => {
+    const edgeLedger = ledger('edge_probing');
+    assert.deepEqual(decideServingPermit({ ledger: edgeLedger, manifest: null, current: current() }), {
+      action: 'serve_edge_probe', releaseDigest, generation: 7, fingerprint,
+    });
+    assert.deepEqual(decidePublicationReconciliation({ ledger: edgeLedger, manifest: null, current: current() }), {
+      action: 'abort_edge_probe', releaseDigest,
+    });
+    assert.equal(decidePublicationReconciliation({ ledger: edgeLedger, manifest: manifest(), current: current() }).action, 'revoke_public_manifest');
+    assert.equal(decideServingPermit({ ledger: edgeLedger, manifest: manifest(), current: current() }).action, 'block');
   }],
-  ['public manifest replacement is exercised against a temporary root', async () => {
-    const source = resolve(directory, 'source.json');
-    const destination = resolve(directory, 'public', 'preview-release-manifest.json');
-    await writeFile(source, '{"state":"first"}\n');
-    await publishManifestAtomically(source, destination);
-    assert.equal(await readFile(destination, 'utf8'), '{"state":"first"}\n');
-    await writeFile(source, '{"state":"second"}\n');
-    await publishManifestAtomically(source, destination);
-    assert.equal(await readFile(destination, 'utf8'), '{"state":"second"}\n');
+  ['staged candidate pointer is never treated as activated', () =>
+    assert.deepEqual(decidePublicationReconciliation({ ledger: ledger('staged'), manifest: null, current: current() }), { action: 'block', reason: 'preview_reconcile_current_or_state_mismatch' })],
+  ['publish crash or a pointer mismatch revokes the actual public manifest first', () => {
+    assert.equal(decidePublicationReconciliation({ ledger: ledger('publishing'), manifest: manifest(), current: current() }).action, 'revoke_public_manifest');
+    assert.equal(decidePublicationReconciliation({ ledger: ledger('verified'), manifest: manifest(), current: current('present', { releaseDigest: predecessorDigest }) }).action, 'revoke_public_manifest');
   }],
-  ['every release attempt reconciles before reading state or staging a candidate', () => {
-    const reconcileAt = release.indexOf('controller_reconcile_publication');
-    const ledgerAt = release.indexOf('ledger="$(controller_ledger_read)"');
-    const prepareAt = release.indexOf('prepare-preview-web-release.sh');
-    assert.ok(reconcileAt >= 0 && reconcileAt < ledgerAt && ledgerAt < prepareAt);
+  ['expired verified manifest never returns a public serving action', () =>
+    assert.equal(decidePublicationReconciliation({ ledger: ledger('verified'), manifest: manifest('verified', { expired: true }), current: current() }).action, 'revoke_public_manifest')],
+  ['confirmed revocation requires matching release, fingerprint and disabled Pages state', () => {
+    assert.deepEqual(decidePublicationReconciliation({ ledger: ledger('revoked'), manifest: manifest('revoked'), current: current('absent') }), { action: 'disabled' });
+    assert.equal(decidePublicationReconciliation({ ledger: ledger('revoked'), manifest: manifest('revoked', { fingerprint: 'd'.repeat(64) }), current: current('absent') }).action, 'confirm_revocation');
   }],
-  ['reconciliation derives decisions from the verified public manifest and only then invokes revocation', () => {
-    assert.match(reconcile, /verifyManifest\(manifest, publicKey, \{ allowExpired: true \}\)/);
-    assert.match(reconcile, /revoke-preview-pages-link\.sh/);
-    assert.match(reconcile, /preview publication reconciliation failed/);
+  ['missing public manifest during publishing or verified state fails closed', () => {
+    assert.equal(decidePublicationReconciliation({ ledger: ledger('publishing'), manifest: null, current: current() }).action, 'block');
+    assert.equal(decidePublicationReconciliation({ ledger: ledger('verified'), manifest: null, current: current() }).action, 'block');
   }],
-  ['an unreconcilable public-manifest state disables the Funnel edge before returning failure', () => {
-    const disableAt = reconcile.indexOf('tailscale funnel --https=443 off');
-    const failureAt = reconcile.indexOf('preview publication reconciliation failed');
-    assert.ok(disableAt >= 0 && disableAt < failureAt);
+  ['invalid current pointer is never eligible for local or public serving', () => {
+    assert.equal(decidePublicationReconciliation({ ledger: ledger('active_unpublished'), manifest: null, current: current('invalid', { reason: 'bad' }) }).action, 'block');
+    assert.equal(decideServingPermit({ ledger: ledger('verified'), manifest: manifest(), current: current('invalid', { reason: 'bad' }) }).action, 'block');
   }],
-  ['revocation persists the ledger only after receiving the disabled Pages receipt', () => {
-    const receiptAt = revoke.indexOf('receipt_confirmed=1');
-    const transitionAt = revoke.indexOf('controller_ledger_transition "$ledger_state" revoked');
-    assert.ok(receiptAt >= 0 && receiptAt < transitionAt);
+  ['current pointer replacement is exercised with durable rename-and-parent-sync helper', async () => {
+    await mkdir(releaseDirectory, { recursive: true });
+    await mkdir(predecessorDirectory, { recursive: true });
+    assert.equal((await inspectCurrentPointer(pointer, releaseRoot)).state, 'absent');
+    assert.equal((await switchCurrentPointer({ pointerPath: pointer, releaseRoot, releaseDirectory })).releaseDigest, releaseDigest);
+    assert.equal((await switchCurrentPointer({ pointerPath: pointer, releaseRoot, releaseDirectory: predecessorDirectory })).releaseDigest, predecessorDigest);
+    await clearCurrentPointer(pointer);
+    assert.equal((await inspectCurrentPointer(pointer, releaseRoot)).state, 'absent');
+  }],
+  ['serving permit is durable and binds mode, release, ledger generation and fingerprint', async () => {
+    const publicDecision = decideServingPermit({ ledger: ledger('verified'), current: current(), manifest: manifest() });
+    await issueServingPermit(permitPath, publicDecision);
+    assert.equal((await validateServingPermit(permitPath, publicDecision)).mode, 'public');
+    const staleGeneration = decideServingPermit({ ledger: ledger('verified', { generation: 8 }), current: current(), manifest: manifest() });
+    await assert.rejects(() => validateServingPermit(permitPath, staleGeneration), /preview_permit_mismatch/);
+    await clearServingPermit(permitPath);
+    await assert.rejects(() => validateServingPermit(permitPath, publicDecision));
+  }],
+  ['pointer and permit helpers fsync their containing directory after atomic replacement', () => {
+    assert.match(currentSource, /await rename\(temporary, pointerPath\);/);
+    assert.match(currentSource, /await syncDirectory\(pointerParent\);/);
+    assert.match(permitSource, /await rename\(temporary, path\);/);
+    assert.match(permitSource, /await syncDirectory\(dirname\(path\)\);/);
+  }],
+  ['reconciliation catches unreadable manifests and disables edge, permit, Web and candidates', () => {
+    assert.match(reconcileSource, /preview_reconcile_public_manifest_unverifiable/);
+    assert.match(reconcileSource, /controller_disable_serving/);
+    assert.match(controllerSource, /controller_stop_preview_candidates/);
+    assert.match(controllerSource, /systemctl stop --wait meetwise-web-preview\.service/);
+    assert.match(reconcileSource, /preview_reconcile_public_manifest_missing/);
+    assert.match(reconcileSource, /controller_ledger_transition "\$state" failed/);
+  }],
+  ['boot recovery owns mutation while every Web start only validates the exact permit before Node', () => {
+    assert.match(unitSource, /ExecStartPre=\+\/usr\/local\/lib\/meetwise-preview-controller\/ensure-preview-web-serving\.sh/);
+    assert.match(unitSource, /Requires=meetwise-preview-recovery\.service/);
+    assert.doesNotMatch(ensureSource, /controller_lock/);
+    assert.doesNotMatch(ensureSource, /controller_reconcile_publication/);
+    assert.match(ensureSource, /controller_validate_serving_permit/);
+    assert.match(bootRecoverySource, /controller_lock/);
+    assert.match(bootRecoverySource, /controller_reconcile_publication/);
+    assert.match(bootRecoveryUnitSource, /Before=meetwise-web-preview\.service/);
+  }],
+  ['child control-plane scripts require an inherited file descriptor lock rather than an environment assertion', () => {
+    assert.match(controllerSource, /\/run\/meetwise-preview-controller\/controller\.lock/);
+    assert.doesNotMatch(controllerSource, /\/run\/lock\/meetwise-preview-controller/);
+    assert.match(controllerSource, /\/proc\/\$\$\/fd\/9/);
+    assert.match(controllerSource, /flock -n 9/);
+    assert.doesNotMatch(controllerSource, /MEETWISE_PREVIEW_CONTROLLER_LOCK_HELD/);
+  }],
+  ['installer payload rejects direct sudo execution and requires independent verified bootstrap staging', () => {
+    assert.match(installerSource, /controller installer must run only from the verified bootstrap payload/);
+    assert.match(installerSource, /bootstrap_root=\/var\/lib\/meetwise-preview-bootstrap\/verified-controller/);
+    assert.doesNotMatch(installerSource, /usage: sudo install-preview-controller\.sh/);
+  }],
+  ['recovery policy remains current-aware rather than ledger-only', () => {
+    assert.match(recoverySource, /currentMatches\(ledger, current\)/);
+    assert.match(recoverySource, /manifest\.expired/);
+    assert.doesNotMatch(recoverySource, /action: 'stable'/);
   }],
 ];
 
@@ -94,7 +153,7 @@ try {
     await check();
     console.log(`✓ ${name}`);
   }
-  console.log(`preview publication recovery ${checks.length}/${checks.length} assertions passed; releaseEvidence=false`);
+  console.log(`preview publication recovery ${checks.length}/${checks.length} assertions passed; ECS fault-injection and releaseEvidence remain pending`);
 } finally {
   await rm(directory, { recursive: true, force: true });
 }

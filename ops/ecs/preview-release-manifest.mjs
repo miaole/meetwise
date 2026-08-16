@@ -72,12 +72,12 @@ export function signManifest(unsigned, privateKeyPem) {
  * a crash cannot leave a partially written target or a rename not persisted
  * in its parent directory.
  */
-export async function publishManifestAtomically(inputPath, outputPath) {
+export async function publishManifestAtomically(inputPath, outputPath, mode = 0o644) {
   const content = await readFile(inputPath, 'utf8');
   JSON.parse(content);
   await mkdir(dirname(outputPath), { recursive: true, mode: 0o755 });
   const temporary = `${outputPath}.${process.pid}.${randomUUID()}.tmp`;
-  const handle = await open(temporary, 'wx', 0o644);
+  const handle = await open(temporary, 'wx', mode);
   try {
     await handle.writeFile(content);
     await handle.sync();
@@ -124,7 +124,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const input = option(args, '--input');
     const output = option(args, '--output');
     if (!input || !output) throw new Error('preview_manifest_publish_arguments_required');
-    await publishManifestAtomically(input, output);
+    const requestedMode = option(args, '--mode') ?? '644';
+    if (!/^(600|644)$/.test(requestedMode)) throw new Error('preview_manifest_publish_mode_invalid');
+    await publishManifestAtomically(input, output, Number.parseInt(requestedMode, 8));
   } else {
     throw new Error('usage: preview-release-manifest.mjs verify|sign|publish');
   }

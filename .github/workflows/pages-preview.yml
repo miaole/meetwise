@@ -7,6 +7,7 @@ on:
       - preview-site/**
       - ops/ecs/keys/preview-release-ed25519.pub.pem
       - ops/ecs/controller-lib.sh
+      - ops/ecs/preview-edge-probe-fence.mjs
       - ops/ecs/preview-release-ledger.mjs
       - ops/ecs/preview-publication-recovery.mjs
       - ops/ecs/preview-release-manifest.mjs
@@ -15,6 +16,7 @@ on:
       - scripts/build-preview-directory.mjs
       - scripts/fetch-preview-release-manifest.mjs
       - scripts/ecs-preview-config.proof.mjs
+      - scripts/preview-edge-probe-fence.proof.mjs
       - scripts/preview-publication-recovery.proof.mjs
       - .github/workflows/pages-preview.yml
   schedule:
@@ -42,7 +44,9 @@ jobs:
       - name: Verify static preview directory
         run: node preview-site/preview-directory.proof.mjs
       - name: Verify the disabled-by-default ECS preview configuration
-        run: node scripts/ecs-preview-config.proof.mjs
+        run: |
+          node scripts/ecs-preview-config.proof.mjs
+          node scripts/preview-edge-probe-fence.proof.mjs
       - name: Verify crash-safe public-manifest reconciliation
         run: node scripts/preview-publication-recovery.proof.mjs
       - name: Verify the signed HTTPS preview origin

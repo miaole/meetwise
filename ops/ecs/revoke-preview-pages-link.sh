@@ -11,6 +11,13 @@ public_manifest=/usr/share/meetwise-preview/preview-release-manifest.json
 public_key="$controller_root/preview-release-ed25519.pub.pem"
 pages_state_url=https://miaole.github.io/meetwise/preview-link-state.json
 
+if [[ $# -gt 1 || ( $# -eq 1 && "$1" != --single-check ) ]]; then
+  printf '%s\n' 'usage: internal revoke-preview-pages-link.sh [--single-check]' >&2
+  exit 64
+fi
+single_check=0
+[[ "${1:-}" == --single-check ]] && single_check=1
+
 ledger="$(controller_ledger_read)"
 ledger_state="$(node -e 'const state=JSON.parse(process.argv[1]); if (state.state === "revoked") process.exit(64); process.stdout.write(state.state)' "$ledger")" || controller_fail 'a revoked preview release cannot be revoked again' 64
 [[ -f "$public_manifest" && ! -L "$public_manifest" && "$(stat -c '%U:%G:%a' "$public_manifest")" == root:root:644 ]] \
@@ -68,7 +75,9 @@ fi
 # disabled state on the hourly verification schedule.
 receipt_confirmed=0
 for _ in {1..260}; do
-  if curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 20 "$pages_state_url?manifest=$fingerprint" -o "$scratch/pages-state.json"; then
+  curl_timeout=20
+  [[ "$single_check" == 1 ]] && curl_timeout=10
+  if curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time "$curl_timeout" "$pages_state_url?manifest=$fingerprint" -o "$scratch/pages-state.json"; then
     if node - "$scratch/pages-state.json" "$fingerprint" <<'NODE'
 const fs = require('node:fs');
 const [path, fingerprint] = process.argv.slice(2);
@@ -80,9 +89,22 @@ NODE
       break
     fi
   fi
+  [[ "$single_check" == 1 ]] && break
   sleep 15
 done
-[[ "$receipt_confirmed" == 1 ]] || controller_fail 'Pages revocation receipt did not arrive before the release deadline' 70
+if [[ "$receipt_confirmed" != 1 ]]; then
+  if [[ "$single_check" == 1 ]]; then
+    printf '%s\n' 'Pages revocation receipt is not available yet; retry is required' >&2
+    exit 75
+  fi
+  controller_fail 'Pages revocation receipt did not arrive before the release deadline' 70
+fi
+
+# A disabled Pages directory is not sufficient if a stale local service can
+# restart during the ledger transition window. Remove the permit, edge and
+# process before recording terminal revocation; a later recovery can retry
+# this idempotently if the controller loses power here.
+controller_disable_serving
 
 # Persist terminal revocation only after the independently published receipt.
 # If a process dies before this line, reconciliation observes the actual

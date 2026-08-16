@@ -1,6 +1,7 @@
 [Unit]
 Description=Meetwise public preview Web
-After=network-online.target
+Requires=meetwise-preview-recovery.service
+After=network-online.target meetwise-preview-recovery.service
 Wants=network-online.target
 
 [Service]
@@ -13,6 +14,7 @@ Environment=NODE_ENV=production
 Environment=NEXT_TELEMETRY_DISABLED=1
 Environment=HOSTNAME=127.0.0.1
 Environment=PORT=3000
+ExecStartPre=+/usr/local/lib/meetwise-preview-controller/ensure-preview-web-serving.sh
 ExecStart=/usr/bin/node server.js
 Restart=on-failure
 RestartSec=3

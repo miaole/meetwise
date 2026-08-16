@@ -87,6 +87,7 @@
     "cloud:test:fc:build": "pnpm -C apps/worker build:cloud-test-fc",
     "cloud:smoke:fc:build": "pnpm -C apps/worker build:cloud-smoke-fc",
     "ecs-preview:check": "node scripts/ecs-preview-config.proof.mjs",
+    "preview-edge-probe-fence:prove": "node scripts/preview-edge-probe-fence.proof.mjs",
     "preview-release-manifest:prove": "node scripts/preview-release-manifest.proof.mjs",
     "preview-archive-safety:prove": "node scripts/preview-archive-safety.proof.mjs",
     "preview-release-control-plane:prove": "node scripts/preview-release-control-plane.proof.mjs",

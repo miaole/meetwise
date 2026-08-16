@@ -28,21 +28,27 @@ try {
   assert.equal((await state()).state, 'idle');
   await transition('idle', 'staged');
   await transition('staged', 'active_unpublished');
-  await transition('active_unpublished', 'publishing');
+  await transition('active_unpublished', 'edge_probing');
+  await transition('edge_probing', 'publishing');
   await transition('publishing', 'verified');
   await transition('verified', 'revoked');
   await transition('revoked', 'staged');
   await assert.rejects(() => transition('staged', 'verified'), /preview_ledger_transition_invalid/);
   await transition('staged', 'active_unpublished');
-  await transition('active_unpublished', 'publishing');
+  await transition('active_unpublished', 'edge_probing');
+  await transition('edge_probing', 'publishing');
   await transition('publishing', 'revoked');
 
   const [finalizerSource, releaserSource] = await Promise.all([readFile(finalizer, 'utf8'), readFile(releaser, 'utf8')]);
-  const intent = finalizerSource.indexOf('controller_ledger_transition active_unpublished publishing');
-  const publicManifest = finalizerSource.indexOf('controller_publish_manifest "$manifest" "$public_manifest"');
+  const privateStage = finalizerSource.indexOf('controller_publish_manifest "$manifest" "$MEETWISE_PREVIEW_PENDING_MANIFEST" 600');
+  const intent = finalizerSource.indexOf('controller_ledger_transition edge_probing publishing');
   const verified = finalizerSource.indexOf('controller_ledger_transition publishing verified');
-  assert.ok(intent >= 0 && intent < publicManifest && publicManifest < verified, 'publishing intent must bracket public manifest write');
-  assert.ok(releaserSource.indexOf('state" == publishing || "$state" == verified') < releaserSource.indexOf('if [[ "$activated" == 1 ]]'), 'release rollback must revoke before restoring an active release');
+  const publicManifest = finalizerSource.indexOf('controller_publish_manifest "$manifest" "$public_manifest" 644');
+  const restartBeforePublic = finalizerSource.lastIndexOf('systemctl restart meetwise-web-preview.service', publicManifest);
+  assert.ok(privateStage >= 0 && privateStage < intent && intent < verified && verified < restartBeforePublic && restartBeforePublic < publicManifest, 'the public manifest must follow a private permit, verified ledger and Web restart');
+  assert.ok(releaserSource.indexOf('state" == publishing || "$state" == verified') < releaserSource.indexOf('controller_disable_serving'), 'release rollback must revoke before it fails closed');
+  assert.match(releaserSource, /controller_ledger_transition "\$state" failed/, 'rollback must terminalize a private publishing or verified record instead of leaving it unrecoverable');
+  assert.doesNotMatch(releaserSource, /ln -sfn/, 'release rollback must not guess a previous current pointer');
 
   assert.equal(assertFunnelAbsentOrPreview({ Web: {} }, 'preview.tail39416d.ts.net'), null);
   assert.equal(assertFunnelAbsentOrPreview({ Web: { 'preview.tail39416d.ts.net:443': { Handlers: { '/': { Proxy: 'http://127.0.0.1:8080' } } } } }, 'preview.tail39416d.ts.net'), 'https://preview.tail39416d.ts.net');

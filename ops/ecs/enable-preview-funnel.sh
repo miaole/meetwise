@@ -6,6 +6,17 @@ controller_entry_guard enable-preview-funnel.sh
 controller_require_lock
 
 command -v tailscale >/dev/null || controller_fail 'tailscale is unavailable' 69
+ledger="$(controller_ledger_read)"
+current="$(controller_current_read)"
+node - "$ledger" "$current" <<'NODE'
+const [ledger, current] = process.argv.slice(2).map(JSON.parse);
+if (ledger.state !== 'edge_probing' || current.state !== 'present' || current.releaseDigest !== ledger.releaseDigest) {
+  throw new Error('preview_funnel_requires_edge_probe_permit');
+}
+NODE
+controller_validate_serving_permit "$ledger" "$current" null
+controller_assert_edge_probe_unexpired
+
 scratch="$(mktemp -d)"
 cleanup() { rm -rf "$scratch"; }
 trap cleanup EXIT
