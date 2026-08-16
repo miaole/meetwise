@@ -34,3 +34,4 @@ jobs:
         run: |
           node scripts/preview-loopback-readiness.proof.mjs
           node scripts/preview-edge-probe-unit-load.proof.mjs
+          node scripts/preview-monotonic-clock.proof.mjs
