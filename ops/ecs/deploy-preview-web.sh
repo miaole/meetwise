@@ -129,8 +129,22 @@ systemctl is-active --quiet meetwise-web-preview.service
 nginx -s reload
 
 loopback_body="$scratch/loopback.html"
-curl --fail --silent --show-error --max-time 10 -H "Host: $preview_host" -H 'Cookie: mw_token=must_not_forward' http://127.0.0.1:8080/ -o "$loopback_body"
-grep -Fq "$marker" "$loopback_body" || deploy_fail 'active release marker mismatch' 70
+loopback_ready=0
+# `nginx -s reload` returns after signalling the master, rather than after a
+# newly configured loopback listener has accepted its first connection.  The
+# active release remains loopback-only here, so wait for a bounded successful
+# proxy response before treating the first connection refusal as a release
+# failure.  A timeout still follows the normal rollback path and never opens
+# the Funnel.
+for _ in {1..20}; do
+  if curl --fail --silent --show-error --max-time 1 -H "Host: $preview_host" -H 'Cookie: mw_token=must_not_forward' http://127.0.0.1:8080/ -o "$loopback_body" \
+    && grep -Fq "$marker" "$loopback_body"; then
+    loopback_ready=1
+    break
+  fi
+  sleep 0.5
+done
+[[ "$loopback_ready" == 1 ]] || deploy_fail 'loopback preview did not become ready after Nginx reload' 70
 [[ "$(curl --silent --output "$scratch/unsafe.json" --write-out '%{http_code}' --request POST http://127.0.0.1:8080/ -H "Host: $preview_host")" == 503 ]] || deploy_fail 'preview method gate is not active' 70
 grep -Fqx '{"error":"public_preview_read_only"}' "$scratch/unsafe.json" || deploy_fail 'preview method response is invalid' 70
 [[ "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:8080/api/privacy/export -H "Host: $preview_host" -H 'Cookie: mw_token=must_not_forward')" == 404 ]] || deploy_fail 'API path was forwarded by preview edge' 70

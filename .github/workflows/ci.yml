@@ -30,3 +30,5 @@ jobs:
         run: node scripts/quality-governance-check.mjs
       - name: 治理历史证明
         run: node scripts/quality-governance-base-guard.proof.mjs
+      - name: Preview Nginx readiness proof
+        run: node scripts/preview-loopback-readiness.proof.mjs

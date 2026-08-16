@@ -7,6 +7,7 @@ on:
       - apps/web/**
       - packages/**
       - scripts/package-preview-web-release.mjs
+      - scripts/preview-loopback-readiness.proof.mjs
       - ops/ecs/**
       - ops/bootstrap/**
       - package.json
@@ -43,6 +44,7 @@ jobs:
           python3 ops/bootstrap/test_first_root_bootstrap.py
           pnpm --filter @meetwise/web prove:public-copy
           node scripts/ecs-preview-config.proof.mjs
+          node scripts/preview-loopback-readiness.proof.mjs
           node scripts/preview-edge-probe-fence.proof.mjs
           node scripts/preview-publication-recovery.proof.mjs
           node scripts/preview-release-manifest.proof.mjs
