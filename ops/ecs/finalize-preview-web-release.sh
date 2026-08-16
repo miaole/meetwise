@@ -11,7 +11,7 @@ public_manifest=/usr/share/meetwise-preview/preview-release-manifest.json
 public_key="$controller_root/preview-release-ed25519.pub.pem"
 
 if [[ $# -ne 2 ]]; then
-  printf '%s\n' 'usage: internal finalize-preview-web-release.sh /srv/meetwise/releases/<release-digest> <expires-at-iso>' >&2
+  printf '%s\n' 'usage: internal finalize-preview-web-release.sh /srv/meetwise-preview/releases/<release-digest> <expires-at-iso>' >&2
   exit 64
 fi
 
@@ -23,7 +23,9 @@ blackbox_receipt="$release_dir/.meetwise-preview-blackbox-receipt.json"
 manifest="$release_dir/.meetwise-preview-release-manifest.json"
 [[ -f "$artifact" && -f "$loopback_receipt" && -f "$blackbox_receipt" && -f "$private_key" && -f "$public_key" ]] || controller_fail 'required trusted attestation input is missing' 65
 [[ "$(stat -c '%U:%G:%a' "$private_key")" == root:root:600 ]] || controller_fail 'preview signing key ownership or mode is invalid' 77
-[[ "$(readlink -f /srv/meetwise/current)" == "$release_dir" ]] || controller_fail 'candidate release is not active' 70
+current="$(controller_current_read)"
+[[ "$(node -e 'const value=JSON.parse(process.argv[1]); process.stdout.write(value.state === "present" ? value.releaseDirectory : "")' "$current")" == "$release_dir" ]] \
+  || controller_fail 'candidate release is not active' 70
 [[ "$(stat -c '%U:%G' "$release_dir")" == root:root ]] || controller_fail 'candidate release ownership is invalid' 70
 ! runuser -u meetwise -- test -w "$release_dir"
 artifact_json="$(node "$controller_root/preview-release-artifact.mjs" verify "$release_dir")"

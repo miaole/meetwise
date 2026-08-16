@@ -9,7 +9,7 @@ controller_entry_guard prepare-preview-edge-probe.sh
 controller_require_lock
 
 if [[ $# -ne 1 ]]; then
-  printf '%s\n' 'usage: internal prepare-preview-edge-probe.sh /srv/meetwise/releases/<release-digest>' >&2
+  printf '%s\n' 'usage: internal prepare-preview-edge-probe.sh /srv/meetwise-preview/releases/<release-digest>' >&2
   exit 64
 fi
 

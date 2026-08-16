@@ -6,7 +6,7 @@ controller_entry_guard verify-preview-web.sh
 controller_require_lock
 
 if [[ $# -ne 1 ]]; then
-  printf '%s\n' 'usage: internal verify-preview-web.sh /srv/meetwise/releases/<release-digest>' >&2
+  printf '%s\n' 'usage: internal verify-preview-web.sh /srv/meetwise-preview/releases/<release-digest>' >&2
   exit 64
 fi
 

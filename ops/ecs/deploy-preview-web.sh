@@ -12,7 +12,7 @@ env_target=/etc/meetwise/preview-web.env
 candidate_port=3001
 
 if [[ $# -ne 1 ]]; then
-  printf '%s\n' 'usage: internal deploy-preview-web.sh /srv/meetwise/releases/<release-digest>' >&2
+  printf '%s\n' 'usage: internal deploy-preview-web.sh /srv/meetwise-preview/releases/<release-digest>' >&2
   exit 64
 fi
 
@@ -27,7 +27,7 @@ preview_host="$(controller_tailnet_host)"
 web_dir="$release_dir/apps/web"
 standalone_dir="$web_dir/.next/standalone/apps/web"
 marker="<meta name=\"meetwise-preview-release\" content=\"$release_id\""
-scratch="$(mktemp -d /srv/meetwise/.preview-deploy.XXXXXX)"
+scratch="$(mktemp -d /srv/meetwise-preview/.preview-deploy.XXXXXX)"
 candidate_unit="meetwise-preview-candidate-${release_id:0:12}-${RANDOM}${RANDOM}"
 candidate_started=0
 had_nginx=0
@@ -93,7 +93,7 @@ systemd-run --unit="$candidate_unit" --collect --service-type=exec \
   --property=ProtectSystem=full --property=ProtectKernelTunables=true --property=ProtectKernelModules=true --property=ProtectControlGroups=true \
   --property='RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6' \
   --property=IPAddressDeny=any --property=IPAddressAllow=127.0.0.0/8 --property=IPAddressAllow=::1/128 \
-  --property="ReadOnlyPaths=$release_dir" --property=CapabilityBoundingSet= --property=KillMode=control-group --property=RuntimeMaxSec=60 \
+  --property="ReadOnlyPaths=$release_dir" --property=InaccessiblePaths=/srv/meetwise --property=CapabilityBoundingSet= --property=KillMode=control-group --property=RuntimeMaxSec=60 \
   --setenv=NODE_ENV=production --setenv=NEXT_TELEMETRY_DISABLED=1 --setenv=MEETWISE_PUBLIC_PREVIEW=1 \
   --setenv="MEETWISE_PREVIEW_RELEASE_DIGEST=$release_id" --setenv=HOSTNAME=127.0.0.1 --setenv="PORT=$candidate_port" \
   /usr/bin/node "$standalone_dir/server.js" >/dev/null

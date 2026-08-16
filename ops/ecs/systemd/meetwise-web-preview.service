@@ -8,7 +8,7 @@ Wants=network-online.target
 Type=simple
 User=meetwise
 Group=meetwise
-WorkingDirectory=/srv/meetwise/current/apps/web/.next/standalone/apps/web
+WorkingDirectory=/srv/meetwise-preview/current/apps/web/.next/standalone/apps/web
 EnvironmentFile=/etc/meetwise/preview-web.env
 Environment=NODE_ENV=production
 Environment=NEXT_TELEMETRY_DISABLED=1
@@ -30,7 +30,8 @@ RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 IPAddressDeny=any
 IPAddressAllow=127.0.0.0/8
 IPAddressAllow=::1/128
-ReadOnlyPaths=/srv/meetwise/current
+ReadOnlyPaths=/srv/meetwise-preview/current
+InaccessiblePaths=/srv/meetwise
 CapabilityBoundingSet=
 AmbientCapabilities=
 UMask=0077

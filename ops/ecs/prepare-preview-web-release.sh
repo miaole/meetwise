@@ -7,7 +7,7 @@ source /usr/local/lib/meetwise-preview-controller/controller-lib.sh
 controller_entry_guard prepare-preview-web-release.sh
 controller_require_lock
 
-release_root=/srv/meetwise/releases
+release_root="$MEETWISE_PREVIEW_RELEASE_ROOT"
 repository=miaole/meetwise
 signer_workflow='miaole/meetwise/.github/workflows/build-preview-web.yml@refs/heads/main'
 
@@ -17,10 +17,10 @@ if [[ $# -ne 1 || ! -f "$1" ]]; then
 fi
 
 input_archive="$(realpath -e "$1")"
-[[ "$input_archive" != /srv/meetwise/releases/* ]] || { printf '%s\n' 'release archive cannot be read from an active release directory' >&2; exit 64; }
+[[ "$input_archive" != "$MEETWISE_PREVIEW_RELEASE_ROOT"/* ]] || { printf '%s\n' 'release archive cannot be read from an active release directory' >&2; exit 64; }
 command -v gh >/dev/null || { printf '%s\n' 'GitHub CLI is required to verify the build attestation' >&2; exit 69; }
 
-install -d -o root -g root -m 0755 "$release_root"
+controller_assert_preview_trust_root
 scratch="$(mktemp -d "$release_root/.incoming.XXXXXX")"
 cleanup() { rm -rf "$scratch"; }
 trap cleanup EXIT
