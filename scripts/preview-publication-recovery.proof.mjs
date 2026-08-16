@@ -115,7 +115,8 @@ const checks = [
     assert.match(reconcileSource, /preview_reconcile_public_manifest_unverifiable/);
     assert.match(reconcileSource, /controller_disable_serving/);
     assert.match(controllerSource, /controller_stop_preview_candidates/);
-    assert.match(controllerSource, /systemctl stop --wait meetwise-web-preview\.service/);
+    assert.match(controllerSource, /systemctl stop meetwise-web-preview\.service/);
+    assert.doesNotMatch(controllerSource, /systemctl stop --wait/);
     assert.match(reconcileSource, /preview_reconcile_public_manifest_missing/);
     assert.match(reconcileSource, /controller_ledger_transition "\$state" failed/);
   }],

@@ -42,7 +42,7 @@ deploy_fail() {
 
 stop_candidate() {
   [[ "$candidate_started" == 1 ]] || return 0
-  if ! systemctl stop --wait "$candidate_unit" >/dev/null; then
+  if ! timeout 15s systemctl stop "$candidate_unit" >/dev/null; then
     deploy_fail 'candidate systemd cgroup could not be stopped' 70
     return $?
   fi
@@ -93,7 +93,7 @@ systemd-run --unit="$candidate_unit" --collect --service-type=exec \
   --property=ProtectSystem=full --property=ProtectKernelTunables=true --property=ProtectKernelModules=true --property=ProtectControlGroups=true \
   --property='RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6' \
   --property=IPAddressDeny=any --property=IPAddressAllow=127.0.0.0/8 --property=IPAddressAllow=::1/128 \
-  --property="ReadOnlyPaths=$release_dir" --property=InaccessiblePaths=/srv/meetwise --property=CapabilityBoundingSet= --property=KillMode=control-group --property=RuntimeMaxSec=60 \
+  --property="ReadOnlyPaths=$release_dir" --property=InaccessiblePaths=/srv/meetwise --property=CapabilityBoundingSet= --property=KillMode=control-group --property=RuntimeMaxSec=60 --property=TimeoutStopSec=15s \
   --setenv=NODE_ENV=production --setenv=NEXT_TELEMETRY_DISABLED=1 --setenv=MEETWISE_PUBLIC_PREVIEW=1 \
   --setenv="MEETWISE_PREVIEW_RELEASE_DIGEST=$release_id" --setenv=HOSTNAME=127.0.0.1 --setenv="PORT=$candidate_port" \
   /usr/bin/node "$standalone_dir/server.js" >/dev/null

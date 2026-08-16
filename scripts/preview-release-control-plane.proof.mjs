@@ -48,6 +48,8 @@ try {
   assert.ok(privateStage >= 0 && privateStage < intent && intent < verified && verified < restartBeforePublic && restartBeforePublic < publicManifest, 'the public manifest must follow a private permit, verified ledger and Web restart');
   assert.ok(releaserSource.indexOf('state" == publishing || "$state" == verified') < releaserSource.indexOf('controller_disable_serving'), 'release rollback must revoke before it fails closed');
   assert.match(releaserSource, /controller_ledger_transition "\$state" failed/, 'rollback must terminalize a private publishing or verified record instead of leaving it unrecoverable');
+  assert.match(releaserSource, /controller_disable_serving\n      printf '%s\\n' 'release rollback deferred: Pages revocation is not confirmed; preview edge was closed by the controller'/, 'an unconfirmed Pages revocation must delegate physical edge closure to the bounded controller primitive');
+  assert.doesNotMatch(releaserSource, /tailscale funnel --https=443 off/, 'release rollback must not bypass authoritative Funnel closure');
   assert.doesNotMatch(releaserSource, /ln -sfn/, 'release rollback must not guess a previous current pointer');
 
   assert.equal(assertFunnelAbsentOrPreview({ Web: {} }, 'preview.tail39416d.ts.net'), null);
