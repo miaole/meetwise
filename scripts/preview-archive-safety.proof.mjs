@@ -51,7 +51,11 @@ try {
   const longPath = `release/${'x'.repeat(120)}`;
   const longName = await write(archive([entry('release/', { type: '5' }), entry('././@LongLink', { type: 'L', content: Buffer.from(`${longPath}\0`) }), entry('placeholder')]));
   assert.equal((await validatePreviewArchive(longName, 'release')).entries, 3);
+  const longTarget = `nested/${'y'.repeat(120)}`;
+  const longLink = await write(archive([entry('release/', { type: '5' }), entry('././@LongLink', { type: 'K', content: Buffer.from(`${longTarget}\0`) }), entry('release/link', { type: '2' })]));
+  assert.equal((await validatePreviewArchive(longLink, 'release')).entries, 3);
   await assert.rejects(() => write(archive([entry('release/', { type: '5' }), entry('release/link', { type: '2', linkTarget: '../../outside' })])).then((path) => validatePreviewArchive(path, 'release')), /symlink_target_invalid/);
+  await assert.rejects(() => write(archive([entry('release/', { type: '5' }), entry('././@LongLink', { type: 'K', content: Buffer.from('../../outside\0') }), entry('release/link', { type: '2' })])).then((path) => validatePreviewArchive(path, 'release')), /symlink_target_invalid/);
   await assert.rejects(() => write(archive([entry('release/', { type: '5' }), entry('release/link', { type: '1' })])).then((path) => validatePreviewArchive(path, 'release')), /special_member_rejected/);
   await assert.rejects(() => write(archive([entry('release/', { type: '5' }), entry('release/../outside')])).then((path) => validatePreviewArchive(path, 'release')), /member_path_invalid/);
   await assert.rejects(() => write(archive([entry('release/', { type: '5' }), entry('release/x'), entry('release/x')])).then((path) => validatePreviewArchive(path, 'release')), /duplicate_member/);
@@ -60,7 +64,7 @@ try {
   await assert.rejects(() => write(archive([entry('release/', { type: '5' }), entry('release/x')], trailing)).then((path) => validatePreviewArchive(path, 'release')), /trailing_data_invalid/);
   await assert.rejects(() => write(archive([entry('release/', { type: '5' }), entry('release/x', { checksum: false })])).then((path) => validatePreviewArchive(path, 'release')), /checksum_invalid/);
   await assert.rejects(() => write(archive([entry('other/', { type: '5' })])).then((path) => validatePreviewArchive(path, 'release')), /member_outside_root/);
-  console.log('✓ preview archive safety 9/9 assertions passed; releaseEvidence=false');
+  console.log('✓ preview archive safety 11/11 assertions passed; releaseEvidence=false');
 } finally {
   await rm(directory, { recursive: true, force: true });
 }

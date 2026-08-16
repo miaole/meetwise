@@ -24,7 +24,7 @@ owner: platform
 | 网络 | 受信 HTTPS 边缘 → `127.0.0.1:8080` Nginx → `127.0.0.1:3000` Next Web。API、Worker、metrics 与数据库没有公网监听。Nginx 只代理 `/`、`/features`、`/faq`、`/legal` 与必需 `/_next/static/` 资源；`/api/*`、登录、业务页面和未知路径固定拒绝。 |
 | 方法门 | 只有精确 `GET`、`HEAD`、`OPTIONS` 可继续；其他所有方法在 Nginx 返回 JSON `503 public_preview_read_only`，不转发给 Web。`OPTIONS` 只在允许路径返回无状态预检响应。代理清除 Cookie、Authorization 和访客转发身份头。 |
 | 控制面 | prepare/deploy/finalize、Nginx/unit 模板、Funnel 解析器和签名器只从 root-owned 固定控制面目录运行。首次安装由非 root 操作员先验证 GitHub Actions 对 controller archive 的构件证明，再从已验证 archive 取出与其字节一致的 installer；禁止对工作树、候选 release 或未验签路径执行 `sudo`。installer 将输入一次性复制到 root-owned `0600` staging 文件后才重新验签、解析 archive 元数据和解压。每个入口重验自己的真实路径、逐文件 owner、mode 与摘要。候选 release 仅作为非特权 Web 产物与数据被读取，不能提供 root 可执行脚本或签名器模块。 |
-| archive 边界 | controller 与 Web archive 只允许常规文件和目录，拒绝绝对/空/`.`/`..` 路径、重复成员、硬链接、软链接、设备、FIFO、PAX 扩展、超限大小与 root 外成员；验签、列目录、解压和摘要全部针对同一个 root-owned staging archive。相同 release digest 的重放还必须具有相同 archive SHA-256。 |
+| archive 边界 | controller 与 Web archive 只允许常规文件、目录，以及解析后仍位于 archive root 内的相对软链接；拒绝绝对/空/`.`/`..` 路径、重复成员、硬链接、root 外软链接、设备、FIFO、PAX 扩展、超限大小与 root 外成员。验签、列目录、解压和摘要全部针对同一个 root-owned staging archive。相同 release digest 的重放还必须具有相同 archive SHA-256。 |
 | 进程 | `meetwise` 非登录用户运行 Web；候选也必须先运行在等价或更严的 transient systemd cgroup，`KillMode=control-group` 停止后才可能激活。两个进程均不授予额外 capability，不读取私钥或服务密钥，仅读取已冻结 release 并限制出站到 loopback；失败只重启 Web，不自动迁移或启动 API/Worker。 |
 | Pages | Pages 仍是静态目录。只有签名有效且未过期、`PreviewWebRelease=verified`、HTTPS、构建摘要、边缘/健康/方法门回执进入受控目录清单时，才渲染主项目链接。签名记录只经固定静态 `/preview-release-manifest.json` 暴露；Pages 每小时独立拉取、验签和探测 origin，过期、撤销或健康失败时生成并发布禁用目录与 `preview-link-state.json` 回执。切换已启用 release 前，控制面先签发撤链记录并等到该回执确认禁用。 |
 

@@ -31,7 +31,7 @@ function zeroBlock(block) {
 }
 
 function normalisePath(raw) {
-  if (!raw || raw.startsWith('/') || raw.includes('\\') || raw.includes('\0')) throw new Error('preview_archive_member_path_invalid');
+  if (!raw || raw.startsWith('/') || raw.includes('\\') || raw.includes('\0') || /[\r\n]/.test(raw)) throw new Error('preview_archive_member_path_invalid');
   const trimmed = raw.endsWith('/') ? raw.slice(0, -1) : raw;
   if (!trimmed || trimmed.includes('//')) throw new Error('preview_archive_member_path_invalid');
   const components = trimmed.split('/');
@@ -44,7 +44,7 @@ function allowedPath(path, root) {
 }
 
 function normaliseSymlink(member, target, root) {
-  if (!target || target.startsWith('/') || target.includes('\\') || target.includes('\0')) throw new Error('preview_archive_symlink_target_invalid');
+  if (!target || target.startsWith('/') || target.includes('\\') || target.includes('\0') || /[\r\n]/.test(target)) throw new Error('preview_archive_symlink_target_invalid');
   const result = [];
   for (const component of [...dirname(member).split('/'), ...target.split('/')]) {
     if (!component || component === '.') continue;
@@ -59,8 +59,17 @@ function normaliseSymlink(member, target, root) {
 
 function longName(data) {
   const nul = data.indexOf(0);
+  if (nul >= 0 && !data.subarray(nul + 1).every((byte) => byte === 0)) throw new Error('preview_archive_long_name_invalid');
   const value = data.subarray(0, nul < 0 ? data.length : nul).toString('utf8');
   return normalisePath(value);
+}
+
+function longLinkTarget(data) {
+  const nul = data.indexOf(0);
+  if (nul >= 0 && !data.subarray(nul + 1).every((byte) => byte === 0)) throw new Error('preview_archive_long_link_invalid');
+  const value = data.subarray(0, nul < 0 ? data.length : nul).toString('utf8');
+  if (!value || value.includes('\\') || /[\r\n]/.test(value)) throw new Error('preview_archive_long_link_invalid');
+  return value;
 }
 
 function inside(root, target) {
@@ -101,6 +110,7 @@ export async function validatePreviewArchive(path, root) {
   let entries = 0;
   let reachedEnd = false;
   let pendingLongName = null;
+  let pendingLongLink = null;
   while (offset < body.length) {
     const header = body.subarray(offset, offset + BLOCK);
     if (zeroBlock(header)) {
@@ -126,6 +136,12 @@ export async function validatePreviewArchive(path, root) {
       offset = nextOffset;
       continue;
     }
+    if (type === 'K') {
+      if (pendingLongLink !== null) throw new Error('preview_archive_long_link_invalid');
+      pendingLongLink = longLinkTarget(body.subarray(offset + BLOCK, offset + BLOCK + size));
+      offset = nextOffset;
+      continue;
+    }
     const prefix = field(header, 345, 155);
     const rawMember = pendingLongName ?? normalisePath(prefix ? `${prefix}/${field(header, 0, 100)}` : field(header, 0, 100));
     pendingLongName = null;
@@ -134,10 +150,12 @@ export async function validatePreviewArchive(path, root) {
     seen.add(rawMember);
     if (!['\0', '0', '2', '5'].includes(type)) throw new Error('preview_archive_special_member_rejected');
     if (type === '5' && size !== 0) throw new Error('preview_archive_directory_size_invalid');
-    if (type === '2') normaliseSymlink(rawMember, field(header, 157, 100), root);
+    if (type === '2') normaliseSymlink(rawMember, pendingLongLink ?? field(header, 157, 100), root);
+    else if (pendingLongLink !== null) throw new Error('preview_archive_long_link_without_symlink');
+    pendingLongLink = null;
     offset = nextOffset;
   }
-  if (!reachedEnd || pendingLongName !== null || !seen.has(root)) throw new Error('preview_archive_root_missing');
+  if (!reachedEnd || pendingLongName !== null || pendingLongLink !== null || !seen.has(root)) throw new Error('preview_archive_root_missing');
   return { root, entries, compressedBytes: compressed.length, uncompressedBytes: body.length };
 }
 
