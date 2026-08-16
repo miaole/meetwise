@@ -160,6 +160,22 @@ function recordDigest(record) {
   return objectDigest(withoutDigest);
 }
 
+function validateRecordMetadata(record, errors) {
+  if (!TASK_ID_PATTERN.test(record?.taskId ?? '')) {
+    addError(errors, 'history_metadata_record_id_invalid', String(record?.taskId ?? 'unknown'));
+    return false;
+  }
+  if (!SHA256_PATTERN.test(record.governedPathDigest)) addError(errors, 'history_metadata_path_digest_invalid', record.taskId);
+  if (!Array.isArray(record.governedPaths) || record.governedPaths.some((path) => !isSafeGovernedPath(path))) {
+    addError(errors, 'history_metadata_paths_invalid', record.taskId);
+  }
+  if (record.harnessDigest !== objectDigest(record.harness)) addError(errors, 'history_metadata_harness_digest_mismatch', record.taskId);
+  if (record.audit?.summaryDigest !== objectDigest(record.audit?.summary)) addError(errors, 'history_metadata_summary_digest_mismatch', record.taskId);
+  if (record.audit?.reviewScopeDigest !== reviewScopeDigest(record)) addError(errors, 'history_metadata_review_digest_mismatch', record.taskId);
+  if (record.recordDigest !== recordDigest(record)) addError(errors, 'history_metadata_record_digest_mismatch', record.taskId);
+  return true;
+}
+
 function isSafeGovernedPath(path) {
   if (!nonEmptyString(path) || path.includes('\0') || path.includes(':') || path.startsWith('/') || path.startsWith('./')
     || path.startsWith('../') || path.includes('/../') || path.endsWith('/..') || path.includes('\\')) return false;
@@ -197,6 +213,84 @@ export function validateGovernanceRecordSnapshots(index, snapshotDigestForRecord
     verified += 1;
   }
   return { valid: errors.length === 0, errors: sortedUnique(errors), stats: { verifiedRecordCount: verified } };
+}
+
+/**
+ * Verify only metadata that is self-contained in a record. This deliberately
+ * does not read governed source paths: public history that predates the
+ * protected base may have no trustworthy introduction tree to read from.
+ */
+export function validateGovernanceRecordMetadata(index) {
+  const errors = [];
+  if (!isPlainObject(index) || !Array.isArray(index.records)) {
+    return { valid: false, errors: ['history_metadata_index_invalid'], stats: {} };
+  }
+  const records = recordsByTaskId(index, 'metadata', errors);
+  validateCurrentChain(records, errors);
+  for (const record of index.records) {
+    if (!validateRecordMetadata(record, errors)) continue;
+    validateNewRecordSemantics(record, errors);
+  }
+  return {
+    valid: errors.length === 0,
+    errors: sortedUnique(errors),
+    stats: { recordCount: records.size },
+  };
+}
+
+/**
+ * Verify only records appended after the event base. Each record is checked
+ * against the exact JSON that first introduced it, then against that commit's
+ * governed paths. This prevents a PR from mutating the record after it first
+ * matched a path snapshot.
+ */
+export function validateNewGovernanceRecordSnapshots({ baseIndex, currentIndex, introductions, snapshotDigestForIntroduction }) {
+  const errors = [];
+  if (!isPlainObject(baseIndex) || !Array.isArray(baseIndex.records)
+    || !isPlainObject(currentIndex) || !Array.isArray(currentIndex.records)) {
+    return { valid: false, errors: ['history_new_snapshot_index_invalid'], stats: {} };
+  }
+  if (!(introductions instanceof Map) || typeof snapshotDigestForIntroduction !== 'function') {
+    return { valid: false, errors: ['history_new_snapshot_arguments_invalid'], stats: {} };
+  }
+  if (currentIndex.records.length < baseIndex.records.length) {
+    addError(errors, 'history_new_snapshot_record_removed', 'length');
+  }
+  const baseIds = new Set(baseIndex.records.map((record) => record?.taskId));
+  const newRecords = currentIndex.records.slice(baseIndex.records.length);
+  let verified = 0;
+  for (const record of newRecords) {
+    if (!validateRecordMetadata(record, errors)) continue;
+    if (baseIds.has(record.taskId)) {
+      addError(errors, 'history_new_snapshot_record_reused', record.taskId);
+      continue;
+    }
+    const introduction = introductions.get(record.taskId);
+    if (!isPlainObject(introduction) || !COMMIT_PATTERN.test(introduction.commit ?? '') || !isPlainObject(introduction.record)) {
+      addError(errors, 'history_new_snapshot_introduction_missing', record.taskId);
+      continue;
+    }
+    if (!sameJson(introduction.record, record)) {
+      addError(errors, 'history_new_record_mutated_after_introduction', record.taskId);
+      continue;
+    }
+    try {
+      const digest = snapshotDigestForIntroduction(introduction.commit, record.governedPaths);
+      if (digest !== record.governedPathDigest) {
+        addError(errors, 'history_new_record_path_digest_mismatch', record.taskId);
+        continue;
+      }
+    } catch {
+      addError(errors, 'history_new_record_snapshot_unreadable', record.taskId);
+      continue;
+    }
+    verified += 1;
+  }
+  return {
+    valid: errors.length === 0,
+    errors: sortedUnique(errors),
+    stats: { newRecordCount: newRecords.length, verifiedRecordCount: verified },
+  };
 }
 
 function validateSuccessorFindingContinuity(successor, predecessor, errors) {
@@ -295,13 +389,7 @@ export function validateGovernanceHistoryBase({ baseIndex, currentIndex, baseBas
   if (currentIndex === undefined || currentBaseline === undefined) {
     addError(errors, 'history_current_artifacts_missing', 'governance');
   }
-  if (baseMissing) {
-    return {
-      valid: errors.length === 0,
-      errors: sortedUnique(errors),
-      stats: { mode: 'bootstrap', baseRecordCount: 0, newRecordCount: Array.isArray(currentIndex?.records) ? currentIndex.records.length : 0, baseExpansionCount: 0, newExpansionCount: Array.isArray(currentBaseline?.expansions) ? currentBaseline.expansions.length : 0 },
-    };
-  }
+  if (baseMissing) addError(errors, 'history_base_artifacts_missing', 'index-baseline');
   if (!isPlainObject(baseIndex) || !isPlainObject(currentIndex) || !isPlainObject(baseBaseline) || !isPlainObject(currentBaseline)) {
     addError(errors, 'history_artifact_not_object', 'governance');
     return { valid: false, errors: sortedUnique(errors), stats: {} };
@@ -432,7 +520,7 @@ function readBlobAtCommit(commit, path) {
   return execFileSync('git', ['show', `${commit}:${path}`], { stdio: ['ignore', 'pipe', 'pipe'] });
 }
 
-function governedPathDigestAtCommit(commit, paths) {
+export function governedPathDigestAtCommit(commit, paths) {
   const chunks = [];
   for (const path of paths) {
     if (!isSafeGovernedPath(path)) throw new Error('history_snapshot_path_invalid');
@@ -441,15 +529,17 @@ function governedPathDigestAtCommit(commit, paths) {
   return `sha256:${createHash('sha256').update(Buffer.concat(chunks)).digest('hex')}`;
 }
 
-function recordIntroductionCommits(head) {
-  const commits = runGit(['log', '--format=%H', '--reverse', head, '--', INDEX_PATH])
+export function recordIntroductionCommits(base, head) {
+  const commits = runGit(['log', '--format=%H', '--reverse', `${base}..${head}`, '--', INDEX_PATH])
     .split('\n')
     .filter((commit) => COMMIT_PATTERN.test(commit));
   const introductions = new Map();
   for (const commit of commits) {
     const index = readJsonAtCommit(commit, INDEX_PATH);
     for (const record of index?.records ?? []) {
-      if (TASK_ID_PATTERN.test(record?.taskId ?? '') && !introductions.has(record.taskId)) introductions.set(record.taskId, commit);
+      if (TASK_ID_PATTERN.test(record?.taskId ?? '') && !introductions.has(record.taskId)) {
+        introductions.set(record.taskId, { commit, record });
+      }
     }
   }
   return introductions;
@@ -476,21 +566,32 @@ function main() {
   } catch {
     throw new Error('history_base_not_ancestor');
   }
+  const baseIndex = readJsonAtCommit(base, INDEX_PATH);
+  const currentIndex = readJsonAtCommit(head, INDEX_PATH);
   const result = validateGovernanceHistoryBase({
-    baseIndex: readJsonAtCommit(base, INDEX_PATH),
-    currentIndex: readJsonAtCommit(head, INDEX_PATH),
+    baseIndex,
+    currentIndex,
     baseBaseline: readJsonAtCommit(base, BASELINE_PATH),
     currentBaseline: readJsonAtCommit(head, BASELINE_PATH),
   });
-  const currentIndex = readJsonAtCommit(head, INDEX_PATH);
-  const introductions = recordIntroductionCommits(head);
-  const snapshots = validateGovernanceRecordSnapshots(currentIndex, (record) => {
-    const introduction = introductions.get(record.taskId);
-    if (!introduction) throw new Error('history_snapshot_introduction_missing');
-    return governedPathDigestAtCommit(introduction, record.governedPaths);
+  const baseMetadataIntegrity = validateGovernanceRecordMetadata(baseIndex);
+  const introductions = recordIntroductionCommits(base, head);
+  const newRecordSnapshotVerification = validateNewGovernanceRecordSnapshots({
+    baseIndex,
+    currentIndex,
+    introductions,
+    snapshotDigestForIntroduction: governedPathDigestAtCommit,
   });
-  console.log(JSON.stringify({ kind: 'static_governance_history_preflight', base, head, history: result, snapshots, releaseEvidence: false }, null, 2));
-  if (!result.valid || !snapshots.valid) process.exitCode = 1;
+  console.log(JSON.stringify({
+    kind: 'static_governance_history_preflight',
+    base,
+    head,
+    history: result,
+    baseMetadataIntegrity,
+    newRecordSnapshotVerification,
+    releaseEvidence: false,
+  }, null, 2));
+  if (!result.valid || !baseMetadataIntegrity.valid || !newRecordSnapshotVerification.valid) process.exitCode = 1;
 }
 
 const scriptPath = resolve(fileURLToPath(import.meta.url));

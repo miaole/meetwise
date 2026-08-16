@@ -23,10 +23,12 @@ related:
 
 ## 决定
 
-1. 使用版本化 `governance-audit-index.json` 登记**明确列出的**治理任务。每条记录包含稳定 scope ID、revision、风险级别、受管路径、紧凑 Harness、审计镜头、审阅者声明、审计摘要及其摘要、finding 处置、复审范围摘要、验证命令 ID 和 L3+/L4 ADR。受管路径摘要是该 task ID 首次写入 Git tree 时的不可变快照；其 introduction commit 由受信守卫从 Git history 派生，不回填或改写历史 JSON。
+1. 使用版本化 `governance-audit-index.json` 登记**明确列出的**治理任务。每条记录包含稳定 scope ID、revision、风险级别、受管路径、紧凑 Harness、审计镜头、审阅者声明、审计摘要及其摘要、finding 处置、复审范围摘要、验证命令 ID 和 L3+/L4 ADR。受保护根建立后的新 record 以其首次写入 `base..head` Git tree 时的受管路径作为不可变快照；其 introduction record 必须与 head record canonical JSON 相同。保护前一次性公开导入的 record 不能伪造 introduction tree 路径快照，只保留为内部摘要和 append-only 锚点，不得表述为已重验历史路径。
 2. 树内校验器重算每个 `(scopeId, riskLevel)` **terminal revision** 的当前受管路径、Harness、审计范围和记录摘要；历史 revision 只校验结构与自身摘要。L2+ 至少两个审计镜头，L3+/L4 必须有受管 ADR。记录状态、Harness `authorizationConclusion` 和审计 `decision` 必须使用同一张转换表：`blocked/blocked/blocked`、`approved_for_spike/approved_for_spike/approved`、`approved_to_implement/approved_to_implement/approved`、`done/done/approved`；非阻塞任务的 P0/P1 finding 必须关闭。revision 大于 1 必须指向同 scope、同风险级别的前一 revision，且 `(scopeId, riskLevel, revision)` 和每个 predecessor 的 successor 都唯一；successor 必须保留 predecessor 的所有 P0/P1 finding ID、严重度和受管路径，未关闭 finding 只能以带明确处置和 `closureEvidence` 的 successor 关闭。
 3. 以 `traceability-baseline.json` 的冻结未映射 leaf TC 集建立锚点。当前未映射项只允许保持或减少；新增未映射项必须由 revision 大于 1 的 change record 绑定前一摘要、精确新增 ID 和理由。这个基线不是覆盖率门，更不允许把未登记历史项从统计分母隐藏。
-4. `quality-governance-check` 只读取本地版本化文件，禁止执行命令、读取环境/Git 状态、联网或接收运行回执，因此它只证明候选树内部一致。独立的 `governance-history` CI 工作流在 `pull_request_target` 中只 checkout GitHub 事件给出的受保护 base revision，使用该 base 的 guard 读取 base/head Git blob；它要求历史 records 与冻结基线不变、既有 expansions 为精确前缀、新记录只能追加为单一 successor，并以 `git show <introduction-commit>:<path>` 重算每条 record 的原始路径快照。该工作流不安装依赖、不执行候选代码、不读取用户密钥；首次 bootstrap 需人工批准，不能回溯保护它出现前的历史。两类结果都固定 `releaseEvidence=false`。
+4. `quality-governance-check` 只读取本地版本化文件，禁止执行命令、读取环境/Git 状态、联网或接收运行回执，因此它只证明候选树内部一致。独立的 `governance-history` CI 工作流在 `pull_request_target` 中只 checkout GitHub 事件给出的受保护 base revision，使用该 base 的 guard 读取 base/head Git blob；它要求历史 records 与冻结基线不变、既有 expansions 为精确前缀、新记录只能追加为单一 successor。它把输出拆成 `baseMetadataIntegrity`（event base 中既有记录的内部摘要、结构与 append-only 根）和 `newRecordSnapshotVerification`（仅 `base..head` 新 record 的 introduction-tree 路径快照），不将前者误称为历史源码快照。base index/baseline 任一缺失即失败；首次 bootstrap 需在已经保护的默认分支上通过明确人工批准的 PR 完成，不能回溯保护它出现前的历史。该工作流不安装依赖、不执行候选代码、不读取用户密钥。两类结果都固定 `releaseEvidence=false`。
+
+   公开历史迁移的唯一 bootstrap 顺序是：先启用默认分支仅 PR 合并、禁止 direct/force push/删除且管理员同样受约束的保护，**暂不**把仍会失败的旧 guard 设为必需检查；人工审阅并合并这一个 bootstrap PR；下一 PR 由新 base guard 成功运行；最后才将 `governance-history / trusted-governance-history` 设为必需检查。该窄窗口不允许 direct push、绕过名单或将 bootstrap 记为发布证据。
 
 ## 被否方案
 
@@ -40,7 +42,7 @@ related:
 
 ## 后果与验证
 
-- 新的 L2+ 任务必须先写 Harness，再在索引登记审计摘要；后续状态、finding、范围或基线变化只能追加 successor，不能重写既有 record。治理脚本或工作流演进也必须追加 successor：新 terminal snapshot 复核当前树，旧快照仍由其 introduction tree 复核。原始过程资料仍可留在 `.tmp`，但不能代替版本化结论。
+- 新的 L2+ 任务必须先写 Harness，再在索引登记审计摘要；后续状态、finding、范围或基线变化只能追加 successor，不能重写既有 record。治理脚本或工作流演进也必须追加 successor：保护根后的新 terminal snapshot 由其 introduction tree 复核；保护前公开导入的旧记录仅保留内部摘要根。原始过程资料仍可留在 `.tmp`，但不能代替版本化结论。
 - 首次基线保留历史未映射项，避免把旧欠账伪装为覆盖完成；新建或修改的 UC/TC 必须带可追溯的注册表绑定。
 - `pnpm quality:governance:prove` 与 `pnpm quality:governance:history:prove` 包含重复登记、单 successor、路径逃逸、摘要漂移、状态三元组冲突、缺审计/ADR、未关闭 finding、伪发布证据、历史重写、基线重写和新增未映射项的确定性反例。
 - 审阅者身份和审计摘要只验证声明形状及摘要一致性，不能证明独立性、权限或审计质量。

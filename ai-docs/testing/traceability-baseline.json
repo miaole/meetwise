@@ -1905,6 +1905,21 @@
         "TC-public-preview-directory-01-main"
       ],
       "expansionJustification": "公开预览目录和公开只读 ingress 的七类用例已冻结为 planned/unmapped。它们不进入 required 绑定、passed 分母或 release evidence；ECS 主应用仍被发布清单、健康与网络边界阻断。"
+    },
+    {
+      "changeRecordTaskId": "quality-governance-control-plane-v38",
+      "previousAllowedUnmappedLeafTcIdsDigest": "sha256:628c8f1223126000cea03eb5db1a1269c9fbbbfdf05ecc35f3ca115269fa7ae7",
+      "resultingAllowedUnmappedLeafTcIdsDigest": "sha256:262284a7ddc325ef47e6cb6090a1d7f11724758ac07731ecb6b06ff83b289114",
+      "addedUnmappedLeafTcIds": [
+        "TC-ecs-public-preview-web-ingress-01-E1",
+        "TC-ecs-public-preview-web-ingress-01-E2",
+        "TC-ecs-public-preview-web-ingress-01-E3",
+        "TC-ecs-public-preview-web-ingress-01-E4",
+        "TC-ecs-public-preview-web-ingress-01-E5",
+        "TC-ecs-public-preview-web-ingress-01-E6",
+        "TC-ecs-public-preview-web-ingress-01-main"
+      ],
+      "expansionJustification": "The ECS public-preview ingress seven-case matrix is explicitly planned/unmapped. It does not enter required bindings, passed denominators or release evidence; the public runtime remains blocked."
     }
   ]
 }
