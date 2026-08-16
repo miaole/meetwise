@@ -1,5 +1,6 @@
-import { readFile, writeFile } from 'node:fs/promises';
-import { createHash, createPublicKey, createPrivateKey, sign, verify } from 'node:crypto';
+import { mkdir, open, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import { createHash, createPublicKey, createPrivateKey, randomUUID, sign, verify } from 'node:crypto';
+import { dirname } from 'node:path';
 
 const DIGEST = /^[a-f0-9]{64}$/;
 const RELEASE = /^[a-f0-9]{7,64}$/;
@@ -65,6 +66,38 @@ export function signManifest(unsigned, privateKeyPem) {
   };
 }
 
+/**
+ * Durably replace the controller's public manifest.  The caller must have
+ * verified the input before publishing it; this helper solely guarantees that
+ * a crash cannot leave a partially written target or a rename not persisted
+ * in its parent directory.
+ */
+export async function publishManifestAtomically(inputPath, outputPath, mode = 0o644) {
+  const content = await readFile(inputPath, 'utf8');
+  JSON.parse(content);
+  await mkdir(dirname(outputPath), { recursive: true, mode: 0o755 });
+  const temporary = `${outputPath}.${process.pid}.${randomUUID()}.tmp`;
+  const handle = await open(temporary, 'wx', mode);
+  try {
+    await handle.writeFile(content);
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+  try {
+    await rename(temporary, outputPath);
+  } catch (error) {
+    await rm(temporary, { force: true });
+    throw error;
+  }
+  const directory = await open(dirname(outputPath), 'r');
+  try {
+    await directory.sync();
+  } finally {
+    await directory.close();
+  }
+}
+
 async function readJson(path) {
   return JSON.parse(await readFile(path, 'utf8'));
 }
@@ -87,7 +120,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const output = option(args, '--out');
     if (!output) throw new Error('preview_manifest_output_required');
     await writeFile(output, `${JSON.stringify(signManifest(input, privateKey), null, 2)}\n`, { mode: 0o600 });
+  } else if (command === 'publish') {
+    const input = option(args, '--input');
+    const output = option(args, '--output');
+    if (!input || !output) throw new Error('preview_manifest_publish_arguments_required');
+    const requestedMode = option(args, '--mode') ?? '644';
+    if (!/^(600|644)$/.test(requestedMode)) throw new Error('preview_manifest_publish_mode_invalid');
+    await publishManifestAtomically(input, output, Number.parseInt(requestedMode, 8));
   } else {
-    throw new Error('usage: preview-release-manifest.mjs verify|sign');
+    throw new Error('usage: preview-release-manifest.mjs verify|sign|publish');
   }
 }

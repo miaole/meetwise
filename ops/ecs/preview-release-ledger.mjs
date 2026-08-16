@@ -1,13 +1,19 @@
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { mkdir, open, readFile, rename, rm } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
 import { dirname, resolve } from 'node:path';
 
-const STATES = new Set(['idle', 'staged', 'active_unpublished', 'verified', 'revoked', 'failed']);
+const STATES = new Set(['idle', 'staged', 'active_unpublished', 'edge_probing', 'publishing', 'verified', 'revoked', 'failed']);
 const TRANSITIONS = new Map([
-  ['idle', new Set(['staged'])],
-  ['failed', new Set(['staged'])],
+  ['idle', new Set(['staged', 'revoked'])],
+  ['failed', new Set(['staged', 'revoked'])],
   ['revoked', new Set(['staged'])],
-  ['staged', new Set(['active_unpublished', 'failed'])],
-  ['active_unpublished', new Set(['verified', 'revoked', 'failed'])],
+  ['staged', new Set(['active_unpublished', 'revoked', 'failed'])],
+  // `edge_probing` is a deliberately narrow, non-resumable state: it is the
+  // only state in which a temporary Funnel can be opened for the external
+  // black-box check. Pages remains disabled and a reboot must fail it closed.
+  ['active_unpublished', new Set(['edge_probing', 'revoked', 'failed'])],
+  ['edge_probing', new Set(['publishing', 'revoked', 'failed'])],
+  ['publishing', new Set(['verified', 'revoked', 'failed'])],
   ['verified', new Set(['revoked', 'failed'])],
 ]);
 
@@ -32,9 +38,26 @@ async function load(path) {
 
 async function write(path, value) {
   await mkdir(dirname(path), { recursive: true, mode: 0o700 });
-  const temp = `${path}.${process.pid}.tmp`;
-  await writeFile(temp, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 });
-  await rename(temp, path);
+  const temp = `${path}.${process.pid}.${randomUUID()}.tmp`;
+  const handle = await open(temp, 'wx', 0o600);
+  try {
+    await handle.writeFile(`${JSON.stringify(value, null, 2)}\n`);
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+  try {
+    await rename(temp, path);
+  } catch (error) {
+    await rm(temp, { force: true });
+    throw error;
+  }
+  const directory = await open(dirname(path), 'r');
+  try {
+    await directory.sync();
+  } finally {
+    await directory.close();
+  }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

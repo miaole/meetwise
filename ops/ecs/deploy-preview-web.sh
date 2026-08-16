@@ -6,7 +6,6 @@ controller_entry_guard deploy-preview-web.sh
 controller_require_lock
 
 controller_root=/usr/local/lib/meetwise-preview-controller
-current_link=/srv/meetwise/current
 nginx_target=/etc/nginx/conf.d/meetwise-preview.conf
 unit_target=/etc/systemd/system/meetwise-web-preview.service
 env_target=/etc/meetwise/preview-web.env
@@ -21,6 +20,7 @@ release_dir="$(controller_release_dir "$1")"
 release_id="$(basename "$release_dir")"
 node "$controller_root/preview-release-artifact.mjs" verify "$release_dir" >/dev/null
 [[ -f "$controller_root/meetwise-preview.conf" && -f "$controller_root/meetwise-web-preview.service" ]] || controller_fail 'trusted preview controller is unavailable' 69
+systemctl is-active --quiet meetwise-preview-recovery.service || controller_fail 'preview recovery gate is not active before deployment' 70
 [[ -x /usr/bin/node ]] || controller_fail 'node runtime is unavailable' 69
 command -v nginx >/dev/null || controller_fail 'nginx is unavailable' 69
 preview_host="$(controller_tailnet_host)"
@@ -30,20 +30,24 @@ marker="<meta name=\"meetwise-preview-release\" content=\"$release_id\""
 scratch="$(mktemp -d /srv/meetwise/.preview-deploy.XXXXXX)"
 candidate_unit="meetwise-preview-candidate-${release_id:0:12}-${RANDOM}${RANDOM}"
 candidate_started=0
-previous_target=''
 had_nginx=0
 had_unit=0
 had_env=0
 switched=0
 
+deploy_fail() {
+  printf '%s\n' "$1" >&2
+  return "${2:-70}"
+}
+
 stop_candidate() {
   [[ "$candidate_started" == 1 ]] || return 0
   if ! systemctl stop --wait "$candidate_unit" >/dev/null; then
-    controller_fail 'candidate systemd cgroup could not be stopped' 70
+    deploy_fail 'candidate systemd cgroup could not be stopped' 70
     return $?
   fi
   if systemctl is-active --quiet "$candidate_unit"; then
-    controller_fail 'candidate systemd cgroup did not stop' 70
+    deploy_fail 'candidate systemd cgroup did not stop' 70
     return $?
   fi
   candidate_started=0
@@ -61,15 +65,11 @@ rollback() {
   if [[ "$had_unit" == 1 ]]; then cp "$scratch/unit.previous" "$unit_target"; else rm -f "$unit_target"; fi
   if [[ "$had_env" == 1 ]]; then cp "$scratch/env.previous" "$env_target"; else rm -f "$env_target"; fi
   systemctl daemon-reload
-  if [[ "$switched" == 1 ]]; then
-    if [[ -n "$previous_target" ]]; then
-      ln -sfn "$previous_target" "$current_link"
-      systemctl restart meetwise-web-preview.service
-    else
-      rm -f "$current_link"
-      systemctl stop meetwise-web-preview.service
-    fi
-  fi
+  # A failed activation never guesses that a prior pointer is still safe. The
+  # boot permit is removed and the loopback service remains stopped until a
+  # later controlled release validates a complete record set.
+  controller_disable_serving >/dev/null 2>&1 || true
+  if [[ "$switched" == 1 ]]; then controller_clear_current >/dev/null 2>&1 || true; fi
   nginx -t >/dev/null 2>&1 && nginx -s reload >/dev/null 2>&1 || true
   controller_ledger_transition active_unpublished failed "$release_id" '' '' disabled >/dev/null 2>&1 || true
   controller_ledger_transition staged failed "$release_id" '' '' disabled >/dev/null 2>&1 || true
@@ -78,10 +78,7 @@ rollback() {
 }
 trap cleanup EXIT
 trap rollback ERR
-export MEETWISE_PREVIEW_CONTROLLER_TRAP_ERRORS=1
 
-if [[ -L "$current_link" ]]; then previous_target="$(readlink -f "$current_link")"; fi
-[[ -n "$previous_target" && "$(dirname "$previous_target")" == /srv/meetwise/releases ]] || previous_target=''
 [[ -f "$nginx_target" ]] && { cp "$nginx_target" "$scratch/nginx.previous"; had_nginx=1; }
 [[ -f "$unit_target" ]] && { cp "$unit_target" "$scratch/unit.previous"; had_unit=1; }
 [[ -f "$env_target" ]] && { cp "$env_target" "$scratch/env.previous"; had_env=1; }
@@ -107,12 +104,12 @@ for _ in {1..20}; do
   if curl --fail --silent --show-error --max-time 1 -H "Host: $preview_host" "http://127.0.0.1:$candidate_port/" -o "$candidate_body"; then break; fi
   sleep 0.5
 done
-grep -Fq "$marker" "$candidate_body" || controller_fail 'candidate release marker mismatch' 70
+grep -Fq "$marker" "$candidate_body" || deploy_fail 'candidate release marker mismatch' 70
 candidate_digest="$(sha256sum "$candidate_body" | awk '{print $1}')"
 stop_candidate
 
 sed "s/__MEETWISE_PREVIEW_HOST__/$preview_host/g" "$controller_root/meetwise-preview.conf" > "$scratch/meetwise-preview.conf"
-grep -Fq '__MEETWISE_PREVIEW_HOST__' "$scratch/meetwise-preview.conf" && controller_fail 'nginx hostname template was not rendered' 70
+grep -Fq '__MEETWISE_PREVIEW_HOST__' "$scratch/meetwise-preview.conf" && deploy_fail 'nginx hostname template was not rendered' 70
 install -D -o root -g root -m 0644 "$controller_root/meetwise-web-preview.service" "$unit_target"
 install -D -o root -g root -m 0644 "$scratch/meetwise-preview.conf" "$nginx_target"
 install -d -o root -g root -m 0700 /etc/meetwise
@@ -121,23 +118,24 @@ nginx -t
 systemctl daemon-reload
 systemctl enable meetwise-web-preview.service
 
-next_link="$scratch/current.next"
-ln -s "$release_dir" "$next_link"
-mv -Tf "$next_link" "$current_link"
+controller_current_switch "$release_dir"
 switched=1
+controller_ledger_transition staged active_unpublished "$release_id" '' '' disabled >/dev/null
+# The permit is issued only after both `current` and the durable activation
+# state agree. The systemd pre-start hook independently rechecks it.
+controller_reconcile_publication
 systemctl restart meetwise-web-preview.service
 systemctl is-active --quiet meetwise-web-preview.service
 nginx -s reload
 
 loopback_body="$scratch/loopback.html"
 curl --fail --silent --show-error --max-time 10 -H "Host: $preview_host" -H 'Cookie: mw_token=must_not_forward' http://127.0.0.1:8080/ -o "$loopback_body"
-grep -Fq "$marker" "$loopback_body" || controller_fail 'active release marker mismatch' 70
-[[ "$(curl --silent --output "$scratch/unsafe.json" --write-out '%{http_code}' --request POST http://127.0.0.1:8080/ -H "Host: $preview_host")" == 503 ]] || controller_fail 'preview method gate is not active' 70
-grep -Fqx '{"error":"public_preview_read_only"}' "$scratch/unsafe.json" || controller_fail 'preview method response is invalid' 70
-[[ "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:8080/api/privacy/export -H "Host: $preview_host" -H 'Cookie: mw_token=must_not_forward')" == 404 ]] || controller_fail 'API path was forwarded by preview edge' 70
+grep -Fq "$marker" "$loopback_body" || deploy_fail 'active release marker mismatch' 70
+[[ "$(curl --silent --output "$scratch/unsafe.json" --write-out '%{http_code}' --request POST http://127.0.0.1:8080/ -H "Host: $preview_host")" == 503 ]] || deploy_fail 'preview method gate is not active' 70
+grep -Fqx '{"error":"public_preview_read_only"}' "$scratch/unsafe.json" || deploy_fail 'preview method response is invalid' 70
+[[ "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:8080/api/privacy/export -H "Host: $preview_host" -H 'Cookie: mw_token=must_not_forward')" == 404 ]] || deploy_fail 'API path was forwarded by preview edge' 70
 loopback_digest="$(sha256sum "$loopback_body" | awk '{print $1}')"
 method_digest="$(sha256sum "$scratch/unsafe.json" | awk '{print $1}')"
 printf '{\n  "candidate": "%s",\n  "loopback": "%s",\n  "methodGate": "%s"\n}\n' "$candidate_digest" "$loopback_digest" "$method_digest" > "$release_dir/.meetwise-preview-loopback-receipt.json"
 fingerprint="$(sha256sum "$release_dir/.meetwise-preview-loopback-receipt.json" | awk '{print $1}')"
-controller_ledger_transition staged active_unpublished "$release_id" "$fingerprint" '' disabled >/dev/null
 printf '%s\n' 'preview Web active on loopback; public edge and Pages entry remain controlled release gates'

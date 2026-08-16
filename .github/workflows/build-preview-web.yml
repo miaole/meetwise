@@ -41,6 +41,8 @@ jobs:
         run: |
           pnpm --filter @meetwise/web prove:public-copy
           node scripts/ecs-preview-config.proof.mjs
+          node scripts/preview-edge-probe-fence.proof.mjs
+          node scripts/preview-publication-recovery.proof.mjs
           node scripts/preview-release-manifest.proof.mjs
           node scripts/preview-release-control-plane.proof.mjs
       - name: Build the no-data Web release

@@ -12,7 +12,16 @@ fi
 
 release_dir="$(controller_release_dir "$1")"
 release_id="$(basename "$release_dir")"
-[[ "$(readlink -f /srv/meetwise/current)" == "$release_dir" ]] || controller_fail 'candidate release is not active' 70
+ledger="$(controller_ledger_read)"
+current="$(controller_current_read)"
+node - "$ledger" "$current" "$release_id" <<'NODE'
+const [ledger, current, release] = process.argv.slice(2).map((value, index) => index < 2 ? JSON.parse(value) : value);
+if (ledger.state !== 'edge_probing' || ledger.releaseDigest !== release || current.state !== 'present' || current.releaseDigest !== release) {
+  throw new Error('preview_verify_requires_edge_probe_release');
+}
+NODE
+controller_validate_serving_permit "$ledger" "$current" null
+controller_assert_edge_probe_unexpired
 node /usr/local/lib/meetwise-preview-controller/preview-release-artifact.mjs verify "$release_dir" >/dev/null
 
 scratch="$(mktemp -d)"
