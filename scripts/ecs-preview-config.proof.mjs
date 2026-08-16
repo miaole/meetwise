@@ -92,6 +92,8 @@ const checks = [
       && /chmod -R go-w/.test(installer)
       && /controller-files\.txt/.test(installer)
       && /controller_root\.previous/.test(installer)
+      && /old_controller_moved=0/.test(installer)
+      && /old_controller_moved" == 1/.test(installer)
       && /restore_controller_install/.test(installer)],
   ['the release archive is staged before GitHub attestation and permits only root-contained relative soft links during extraction',
     /gh attestation verify/.test(prepare)

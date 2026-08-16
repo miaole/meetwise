@@ -143,6 +143,8 @@ const checks = [
     assert.match(installerSource, /receipt\.bootstrapSlot !== basename\(bootstrapRoot\)/);
     assert.match(installerSource, /receipt\.expectedArchiveSha256 !== archiveSha256/);
     assert.match(installerSource, /controller installer invocation path must be canonical and non-symlinked/);
+    assert.match(installerSource, /old_controller_moved=0/);
+    assert.match(installerSource, /old_controller_moved" == 1/);
     assert.doesNotMatch(installerSource, /usage: sudo install-preview-controller\.sh/);
   }],
   ['recovery policy remains current-aware rather than ledger-only', () => {

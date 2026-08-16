@@ -216,6 +216,7 @@ for unit_name in "${unit_names[@]}"; do
   fi
 done
 controller_swapped=0
+old_controller_moved=0
 installer_committed=0
 restore_controller_install() {
   local code=$?
@@ -228,7 +229,7 @@ restore_controller_install() {
         rm -f "/etc/systemd/system/$unit_name"
       fi
     done
-    if [[ "$controller_swapped" == 1 && -d "$controller_root.previous" ]]; then
+    if [[ "$old_controller_moved" == 1 && -d "$controller_root.previous" ]]; then
       rm -rf "$controller_root"
       mv -T "$controller_root.previous" "$controller_root"
     fi
@@ -241,6 +242,7 @@ restore_controller_install() {
 trap restore_controller_install ERR
 if [[ -e "$controller_root" ]]; then
   mv -T "$controller_root" "$controller_root.previous"
+  old_controller_moved=1
 fi
 mv -T "$controller_root.new" "$controller_root"
 controller_swapped=1
