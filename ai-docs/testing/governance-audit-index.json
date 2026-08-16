@@ -20260,6 +20260,754 @@
       "successorOf": "public-text-policy-control-plane-v35",
       "baselineChange": null,
       "recordDigest": "sha256:000924d04684a42a35bdac8dcaf8c954ef8eb926872f8ed62a8447e1009948ae"
+    },
+    {
+      "taskId": "quality-governance-control-plane-v49",
+      "scopeId": "quality-governance-control-plane",
+      "revision": 49,
+      "riskLevel": "L3",
+      "status": "blocked",
+      "governedPaths": [
+        ".github/workflows/build-preview-web.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/governance-history.yml",
+        ".github/workflows/pages-preview.yml",
+        "ai-docs/architecture/adr/0018-quality-governance-static-preflight.md",
+        "ai-docs/architecture/adr/0020-scorecard-authority-and-eligibility.md",
+        "ai-docs/architecture/adr/README.md",
+        "ai-docs/architecture/ai/bailian-nonproduction-rollout.md",
+        "ai-docs/architecture/ai/langgraph-blueprint.md",
+        "ai-docs/architecture/ai/model-operation-routing.md",
+        "ai-docs/architecture/ai/rag-corpus-lifecycle.md",
+        "ai-docs/architecture/ai/rag-funnel-routing.md",
+        "ai-docs/architecture/ai/scoring-measurement-runtime.md",
+        "ai-docs/architecture/current-runtime-truth.md",
+        "ai-docs/architecture/devops/local-demo-deployment.md",
+        "ai-docs/delivery/execution-master-checklist.md",
+        "ai-docs/delivery/production-backlog.md",
+        "ai-docs/delivery/production-readiness-remediation-register.md",
+        "ai-docs/meta/task-sop.md",
+        "ai-docs/requirements/use-cases/application-assessment-terminal.md",
+        "ai-docs/requirements/use-cases/cloud-runtime-and-migration.md",
+        "ai-docs/requirements/use-cases/ecs-public-preview-web-ingress.md",
+        "ai-docs/requirements/use-cases/expert-interview-coach-evaluation.md",
+        "ai-docs/requirements/use-cases/expert-long-interview-runtime.md",
+        "ai-docs/requirements/use-cases/interview-question-bank-agent-rag.md",
+        "ai-docs/requirements/use-cases/interview-scoring-measurement.md",
+        "ai-docs/requirements/use-cases/memory-governance-and-recall.md",
+        "ai-docs/requirements/use-cases/model-operation-routing.md",
+        "ai-docs/requirements/use-cases/public-preview-directory.md",
+        "ai-docs/requirements/use-cases/public-preview-write-gate.md",
+        "ai-docs/requirements/use-cases/quality-assurance-traceability.md",
+        "ai-docs/requirements/use-cases/rag-funnel-intent-routing.md",
+        "ai-docs/requirements/use-cases/worker-event-driven-dispatch.md",
+        "ai-docs/testing/cloud-runtime-migration-test-matrix.md",
+        "ai-docs/testing/strategy/scoring-evaluation-protocol.md",
+        "ai-docs/testing/traceability-baseline.json",
+        "ai-docs/testing/traceability-manifest.json",
+        "package.json",
+        "scripts/ecs-preview-config.proof.mjs",
+        "scripts/preview-archive-safety.proof.mjs",
+        "scripts/preview-edge-probe-fence.proof.mjs",
+        "scripts/preview-publication-recovery.proof.mjs",
+        "scripts/preview-release-control-plane.proof.mjs",
+        "scripts/preview-release-manifest.proof.mjs",
+        "scripts/quality-governance-base-guard.mjs",
+        "scripts/quality-governance-base-guard.proof.mjs",
+        "scripts/quality-governance-check.mjs",
+        "scripts/quality-governance.proof.mjs",
+        "scripts/quality-traceability-check.mjs",
+        "scripts/quality-traceability.proof.mjs",
+        "scripts/run-e2e-isolated.mjs"
+      ],
+      "governedPathDigest": "sha256:1edfe5f809855c849ecf08b0947c795095eb5dd26981bfc6d837c8041d06c63d",
+      "harness": {
+        "scope": "Governance successor for the ECS systemd 255 stop compatibility and bounded fail-close correction. It records static source and documentation evidence only; it does not authorize ECS execution, serving, Pages activation, API/Worker start, database access or a release.",
+        "sourceEvidenceIds": [
+          "AUD-ECS-CONTROLLER-REPLACEMENT-2026-08-16",
+          "AUD-ECS-FIRST-ROOT-BOOTSTRAP-2026-08-16",
+          "AUD-ECS-FUNNEL-HARD-TIMEOUT-2026-08-16",
+          "AUD-ECS-PREVIEW-FUNNEL-STATUS-2026-08-16",
+          "AUD-ECS-PREVIEW-RECOVERY-2026-08-16",
+          "AUD-ECS-PREVIEW-ROOT-AND-BOOTSTRAP-SLOTS-2026-08-16",
+          "AUD-ECS-PREVIEW-UNIT-PRESENCE-2026-08-16",
+          "AUD-ECS-SYSTEMD-STOP-2026-08-15",
+          "AUD-GOVERNANCE-BOOTSTRAP-2026-08-15",
+          "GH-ACTIONS-31929807609",
+          "GH-ACTIONS-31931305756",
+          "UC-quality-03"
+        ],
+        "outOfScope": [
+          "ECS public deployment",
+          "GitHub Pages live deployment",
+          "release approval",
+          "runtime serving claim"
+        ],
+        "domainObjects": [
+          "GovernanceAuditRecord",
+          "StaticGovernanceSnapshot",
+          "TraceabilityBaseline"
+        ],
+        "stateMachineEffects": [
+          "Bootstrap closure: main remains PR-only with direct, force and delete operations denied; trusted-governance-history is required only after the new-base follow-up passed.",
+          "Build compatibility: the public build invokes the bootstrap archive-policy proof through the hosted runner Python executable; this is static CI evidence only.",
+          "Controller replacement: if the old controller rename succeeds but the new rename fails, the ordinary error rollback restores `.previous`; SIGKILL/power-loss journal recovery remains blocked.",
+          "First-root bootstrap: fixed root approval descriptor and attested controller archive remain static prerequisites; no ECS execution or release approval is asserted.",
+          "Funnel command closure: enable, off and status share a 15-second GNU timeout plus one-second KILL grace; loopback permits require a strict empty status map after off, never only a CLI exit code. The isolated ECS timeout primitive was exercised, but this remains non-release evidence.",
+          "Funnel pre-close: a non-zero off command is non-decisive; the shared parser accepts only the observed empty object or one empty Web/web map, and unknown status blocks controller/root takeover.",
+          "Governance fixture: distinct introduction commits map to their own immutable record instead of relying on matching governed-path arrays.",
+          "GovernanceHistory: event-base metadata integrity remains distinct from post-base introduction-tree snapshot verification; releaseEvidence remains false.",
+          "Installer pre-close: Funnel off and legacy Web stop are dispatched before bounded systemd discovery; strict Funnel status, candidate cleanup and durable permit clearing occur even when old Web state is absent or unverifiable. This remains static evidence only.",
+          "Preview controller source: old edge is fail-closed before a separate root-owned release root is accepted; full-SHA receipt-bound bootstrap slots support controlled controller replacement while real ECS fault evidence remains pending.",
+          "Preview release control: a release-bound deadline fence, independent watchdog and Pages-revocation recovery retain fail-closed static state; real ECS/systemd/Funnel fault evidence remains pending.",
+          "Systemd compatibility: controller Web and candidate shutdown uses portable synchronous stop semantics with a 15-second manager deadline, inactive confirmation and controller-only Pages-revocation rollback; actual ECS stop-timeout/cgroup fault evidence remains pending."
+        ],
+        "contractEffects": [
+          "New GovernanceAuditRecord: introduction JSON must remain canonical-byte-equivalent to head record.",
+          "Trusted CI: reads only Git event base plus fetched head blobs and never executes candidate code."
+        ],
+        "dataEffects": [
+          "no runtime, cloud, provider, credential, or user-data writes"
+        ],
+        "privacySecurityEffects": [
+          "no raw source, answer, prompt, credential, or provider URL in this record"
+        ],
+        "testPlanIds": [
+          "TC-quality-03-E1",
+          "TC-quality-03-E2",
+          "TC-quality-03-E3",
+          "TC-quality-03-E4",
+          "TC-quality-03-E5",
+          "TC-quality-03-E6",
+          "TC-quality-03-main"
+        ],
+        "verificationCommands": [
+          "quality:governance:check",
+          "quality:governance:history:prove",
+          "quality:governance:prove",
+          "quality:traceability:inventory",
+          "quality:traceability:prove"
+        ],
+        "authorizationConclusion": "blocked"
+      },
+      "harnessDigest": "sha256:dae9f78013c66990405d55768346ef1180303f81d5868b83ee3ad8c50ad2e915",
+      "audit": {
+        "lenses": [
+          "CI candidate-execution containment audit",
+          "ECS Tailscale TERM-ignoring CLI and loopback-status-authority audit",
+          "ECS preview missing-unit and fail-close cleanup audit",
+          "ECS preview recovery and edge-timeout audit",
+          "ECS systemd 255 stop-timeout and rollback-bypass audit",
+          "Git trust boundary and protected-branch bootstrap audit",
+          "GitHub Actions static-preflight failure reproduction",
+          "Tailscale disabled-Funnel status parser audit",
+          "controller replacement rename-failure audit",
+          "first-root bootstrap trust-boundary audit",
+          "hosted-runner bootstrap-proof compatibility audit",
+          "preview root and bootstrap slot adversarial audit",
+          "static governance documentation consistency"
+        ],
+        "reviewerIds": [
+          "agent-ci-failure-inspection",
+          "agent-governance-bootstrap-audit",
+          "agent-preview-recovery-reaudit",
+          "agent-root-maintenance-self"
+        ],
+        "summary": "Independent review verified that all Funnel callers use a bounded TERM-then-KILL wrapper and that loopback serving rechecks the strict status map after off. A target-ECS isolated TERM-ignoring child exited by KILL within the configured bound; this is not a release claim.",
+        "summaryDigest": "sha256:1631783d86b7de1b75687124017f2a811063877e0b0f218169de4e4743e53352",
+        "decision": "blocked",
+        "reviewScopeDigest": "sha256:c5b861a2636ec06908a91e95d964d8c9495404bd56f52f93c38ba8f3039ae5ce",
+        "reviewedFindingIds": [
+          "GOV-CLOUD-TEST-RECOVERY-001",
+          "GOV-CLOUD-TEST-RECOVERY-002",
+          "GOV-CLOUD-TEST-RECOVERY-003",
+          "GOV-GOVERNANCE-BOOTSTRAP-001",
+          "GOV-INT-TRANSCRIPT-001",
+          "GOV-INT-TRANSCRIPT-002",
+          "GOV-INT-TRANSCRIPT-003",
+          "GOV-INT-TRANSCRIPT-004",
+          "GOV-INT-TRANSCRIPT-005",
+          "GOV-INT-TRANSCRIPT-006",
+          "GOV-MODEL-NODE-QUOTA-001",
+          "GOV-MODEL-NODE-QUOTA-002",
+          "GOV-MODEL-NODE-QUOTA-003",
+          "GOV-MODEL-NODE-QUOTA-004",
+          "GOV-MODEL-NODE-QUOTA-005",
+          "GOV-MODEL-OP-BACKUP-001",
+          "GOV-MODEL-OP-BINDING-001",
+          "GOV-MODEL-OP-DB-STATE-001",
+          "GOV-MODEL-OP-HEADER-001",
+          "GOV-MODEL-OP-NATIVE-ATTEMPT-001",
+          "GOV-MODEL-OP-NATIVE-SECRET-001",
+          "GOV-MODEL-OP-OCR-NONPROD-001",
+          "GOV-MODEL-OP-PROVIDER-001",
+          "GOV-MODEL-OP-REGISTRY-001",
+          "GOV-PUBLIC-PREVIEW-001",
+          "GOV-PUBLIC-PREVIEW-BOOTSTRAP-SLOT-001",
+          "GOV-PUBLIC-PREVIEW-CONTROLLER-RECOVERY-001",
+          "GOV-PUBLIC-PREVIEW-FUNNEL-TIMEOUT-001",
+          "GOV-PUBLIC-PREVIEW-ROOT-PATH-001",
+          "GOV-PUBLIC-PREVIEW-SYSTEMD-STOP-001",
+          "GOV-PUBLIC-PREVIEW-UNIT-PRESENCE-001",
+          "GOV-QG-001",
+          "GOV-RAG-EMBED-CACHE-001",
+          "GOV-RAG-EMBED-CACHE-002",
+          "GOV-RAG-EMBED-CACHE-003",
+          "GOV-RAG-FUNNEL-001",
+          "GOV-RAG-FUNNEL-002",
+          "GOV-RAG-FUNNEL-003",
+          "GOV-RAG-FUNNEL-004",
+          "GOV-RAG-FUNNEL-005",
+          "GOV-SCOR-00-001",
+          "GOV-SCOR-00-002",
+          "GOV-SCOR-01-001",
+          "GOV-SCOR-01-002",
+          "GOV-SCOR-EVAL-001",
+          "GOV-WORKER-DISPATCH-001"
+        ],
+        "selfCheckReason": ""
+      },
+      "findings": [
+        {
+          "findingId": "GOV-CLOUD-TEST-RECOVERY-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-CLOUD-TEST-RECOVERY-002",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-CLOUD-TEST-RECOVERY-003",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-GOVERNANCE-BOOTSTRAP-001",
+          "severity": "P1",
+          "status": "closed",
+          "disposition": "Closed only after the protected bootstrap successor merged, a follow-up PR passed the new base guard, and main branch protection required trusted-governance-history with strict up-to-date enforcement.",
+          "closureEvidence": "GitHub Actions trusted-governance-history passed for the post-bootstrap follow-up PR; protected main now requires context trusted-governance-history from the GitHub Actions app with strict enforcement. This is static governance evidence only."
+        },
+        {
+          "findingId": "GOV-INT-TRANSCRIPT-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Deletion authorization, target resolution and per-sink receipt/read-zero are unavailable; real-user transcript writes must remain disabled.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-INT-TRANSCRIPT-002",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Raw answers currently enter plaintext interview_job payload; a ref-only queue and encrypted canonical artifact contract are not implemented.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-INT-TRANSCRIPT-003",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "A response-lost or re-login submit has no durable client submission key, receipt replay or winner lookup.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-INT-TRANSCRIPT-004",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Late model output lacks a post-dispatch authorization/output-projection permit, and level scoring lacks immutable rubric and evidence gates.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-INT-TRANSCRIPT-005",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Snapshot/SSE linearization, route/blueprint/version freezes, owner-only scope and long-runtime completion remain specification work pending the P0 foundation.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-INT-TRANSCRIPT-006",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "No independent PrivacyAuthorizationIssuer, key/JTI consumption ledger or deployment provisioning exists; AUTH_SECRET, runtime SQL, worker/deleter and GUC identities cannot authorize deletion or real-user transcript writes.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-NODE-QUOTA-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "source retry removal is not the required database slot/fence.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-NODE-QUOTA-002",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-NODE-QUOTA-003",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-NODE-QUOTA-004",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-NODE-QUOTA-005",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-BACKUP-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: a half-open follower with a distinct cost policy fails closed, so current tests do not prove a real priced backup replacement path.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-BINDING-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: header and matching reservation do not prove the frozen provider/model/region/price revision relationship.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-DB-STATE-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: 0085 only guards a claimed-to-dispatching UPDATE; low-privilege raw SQL can insert dispatching, forge terminal state, or mutate invocation identity.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-HEADER-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: different keys concurrently creating one logical-node header can end in a uniqueness failure instead of deterministic canonical admission.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-NATIVE-ATTEMPT-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: direct voice, embedding and streaming paths remain outside durable attempt, admission, unknown and deletion semantics.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-NATIVE-SECRET-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: API and Worker broad native credentials are not operation-level secret isolation; split runtime secret surfaces and later use a gateway-only holder.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-OCR-NONPROD-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: OCR is kill-switched only in production/enforce; nonproduction may route resume images through an unbound text client.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-PROVIDER-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: native provider endpoints and constructor overrides are not a fixed typed allowlist, so a misconfigured egress target can receive a bearer credential.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-REGISTRY-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: catalog is not the sole resolver and caller-controlled model, service and logical-node identity can bypass an operation binding.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-PUBLIC-PREVIEW-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Static Pages and local ingress proof do not establish an ECS release manifest, private API topology, HTTPS health evidence or a verified main-project destination; the static directory must retain disabled main links.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-PUBLIC-PREVIEW-BOOTSTRAP-SLOT-001",
+          "severity": "P0",
+          "status": "closed",
+          "disposition": "Closed only for the static source contract: controller bootstrap slots are receipt-bound to a full archive SHA and legacy slots cannot be selected by the new installer.",
+          "closureEvidence": "independent_audit_task:/root/preview_recovery_reaudit; staticGate:ops/bootstrap/test_first_root_bootstrap.py; releaseEvidence=false"
+        },
+        {
+          "findingId": "GOV-PUBLIC-PREVIEW-CONTROLLER-RECOVERY-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: ordinary controller rename failure now restores `.previous`, but SIGKILL or power loss during controller/unit replacement still lacks a durable journal and boot resolver. It must remain fail-closed and cannot be claimed as automatic rollback.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-PUBLIC-PREVIEW-FUNNEL-TIMEOUT-001",
+          "severity": "P0",
+          "status": "closed",
+          "disposition": "Closed only for the current static source contract and isolated ECS primitive receipt: bounded Funnel commands force-kill a TERM-ignoring CLI, and loopback permits require strict status confirmation after off.",
+          "closureEvidence": "independent_audit_task:/root/preview_recovery_reaudit; staticGates:ecs-preview-config.proof,preview-publication-recovery.proof,preview-release-control-plane.proof; ecsReceipt:timeout_status=137,elapsed_seconds=2; releaseEvidence=false"
+        },
+        {
+          "findingId": "GOV-PUBLIC-PREVIEW-ROOT-PATH-001",
+          "severity": "P0",
+          "status": "closed",
+          "disposition": "Closed only for the static source boundary: preview release storage is isolated from the existing unprivileged home and installation fails closed before root creation when old edge closure or trust-path checks fail.",
+          "closureEvidence": "independent_audit_task:/root/preview_recovery_reaudit; staticGates:ecs-preview-config.proof,preview-publication-recovery.proof,preview-edge-probe-fence.proof; releaseEvidence=false"
+        },
+        {
+          "findingId": "GOV-PUBLIC-PREVIEW-SYSTEMD-STOP-001",
+          "severity": "P0",
+          "status": "closed",
+          "disposition": "Closed only for the current static source contract: systemd 255 no longer receives an invalid stop wait flag; Web and candidate manager stop bounds are 15 seconds, candidate shutdown is checked, and Pages-revocation rollback cannot bypass the controller closure primitive.",
+          "closureEvidence": "independent_audit_task:/root/preview_recovery_reaudit; staticGates:ecs-preview-config.proof,preview-publication-recovery.proof,preview-release-control-plane.proof; releaseEvidence=false"
+        },
+        {
+          "findingId": "GOV-PUBLIC-PREVIEW-UNIT-PRESENCE-001",
+          "severity": "P0",
+          "status": "closed",
+          "disposition": "Closed only for the current static source contract: exact LoadState=not-found is the sole benign missing-unit case, while unknown state fails closed after strict Funnel status, bounded candidate cleanup and durable permit deletion.",
+          "closureEvidence": "independent_audit_task:/root/preview_recovery_reaudit; staticGates:ecs-preview-config.proof,preview-publication-recovery.proof,preview-release-control-plane.proof; releaseEvidence=false"
+        },
+        {
+          "findingId": "GOV-QG-001",
+          "severity": "P1",
+          "status": "closed",
+          "disposition": "prior static closure retained.",
+          "closureEvidence": "independent_audit_task:/root/harness_governance_audit; staticGates:quality:governance:prove,quality:governance:history:prove,quality:governance:check,quality:traceability:prove,quality:traceability:inventory,docs:check,public-text-policy:prove; releaseEvidence=false"
+        },
+        {
+          "findingId": "GOV-RAG-EMBED-CACHE-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: generation embedding lacks durable fill intent, leader/slot/cost reservation and unknown-no-retry semantics; Redis locking alone cannot prevent duplicate provider billing.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-EMBED-CACHE-002",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: exact recipe/input identity must include actual deployment/region and executed canonicalization; a Redis vector needs finite dimension checks and complete payload HMAC before any generation write or activation.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-EMBED-CACHE-003",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: immutable scope projection, verifiable MetadataReviewReceipt, build leadership, deletion purge receipts and real-Tair failure evidence are absent; the first cache slice remains restricted to global approved QBank.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-FUNNEL-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Metadata has not entered generation, ANN, lexical, RRF, cache or evidence as an immutable leaf projection; Node/Java/Go/Python routed serving and wrong_track=0 claims remain blocked.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-FUNNEL-002",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: candidate source now provisions the fixed NOLOGIN definer and migration CLI post-flight, but there is no current low-privilege PostgreSQL composition/restart proof; deployment remains blocked.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-FUNNEL-003",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Executor annotation lacks reviewer or issuer identity, policy/facet binding, revocation and receipt semantics; it must not be called a human metadata review.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-FUNNEL-004",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: candidate source now normalizes exact function/table/column/default ACL and generation partition/index ownership, but bounded readers, security-definer view, lexical helper and pool/cache/epoch triggers remain outside the owner/ACL/RLS/fixed-search-path dependency closure. Handoff may make control or serving fail 42501; RAG-FUNNEL-01A and a real low-privilege composition root are required.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-FUNNEL-005",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: a future migration that replaces a function already owned by the fixed definer has no reviewed authoring/role-switch contract; do not relax the handoff gate or call later migration deployment safe.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-SCOR-00-001",
+          "severity": "P1",
+          "status": "closed",
+          "disposition": "Full-migration Nest/Fastify SCOR-00 proof verifies aggregate event, queue, consumption, report, assessment and application deltas are zero for all legacy calls.",
+          "closureEvidence": "command:pnpm scor-00:http:prove; result:2026-08-13 full 87-migration isolated PostgreSQL, independent NOINHERIT runtime login, C/B replay/concurrency/cross-owner zero side effects; releaseEvidence=false"
+        },
+        {
+          "findingId": "GOV-SCOR-00-002",
+          "severity": "P1",
+          "status": "closed",
+          "disposition": "The same proof confirms the HTTP application current_user is a separately provisioned NOINHERIT runtime login and direct business-table read is rejected.",
+          "closureEvidence": "command:pnpm scor-00:http:prove; assertion:runtime identity + raw business-table read denied; releaseEvidence=false"
+        },
+        {
+          "findingId": "GOV-SCOR-01-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: issue-stage/answer-stage facts are absent; runtime-writable event/question values still reach C-side consumers. INT-TRANSCRIPT-00/01 and a dedicated writer/consumer cutover are required before implementation.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-SCOR-01-002",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: no canonical answer artifact, delete-wins ScoreRequest permit, immutable contract/card/evidence chain or scorecard SSE/read contract exists.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-SCOR-EVAL-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: free criterion/score output, mutable ledger provenance and missing rubric/measurement/cohort bindings cannot support measurable or comparable scoring.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-WORKER-DISPATCH-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        }
+      ],
+      "adrPath": "ai-docs/architecture/adr/0018-quality-governance-static-preflight.md",
+      "verificationCommands": [
+        "quality:governance:check",
+        "quality:governance:history:prove",
+        "quality:governance:prove",
+        "quality:traceability:inventory",
+        "quality:traceability:prove"
+      ],
+      "successorOf": "quality-governance-control-plane-v48",
+      "baselineChange": null,
+      "recordDigest": "sha256:bb662ce3f56645e46314b5b26612cf322f303c88fdafeb7479b0662411720605"
+    },
+    {
+      "taskId": "public-text-policy-control-plane-v37",
+      "scopeId": "public-text-policy-control-plane",
+      "revision": 37,
+      "riskLevel": "L3",
+      "status": "blocked",
+      "governedPaths": [
+        ".github/workflows/build-preview-web.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/pages-preview.yml",
+        "ai-docs/architecture/adr/0019-public-text-policy-static-governance.md",
+        "ai-docs/architecture/adr/0020-scorecard-authority-and-eligibility.md",
+        "ai-docs/architecture/adr/README.md",
+        "ai-docs/architecture/ai/bailian-nonproduction-rollout.md",
+        "ai-docs/architecture/ai/langgraph-blueprint.md",
+        "ai-docs/architecture/ai/model-operation-routing.md",
+        "ai-docs/architecture/ai/rag-corpus-lifecycle.md",
+        "ai-docs/architecture/ai/rag-funnel-routing.md",
+        "ai-docs/architecture/ai/scoring-measurement-runtime.md",
+        "ai-docs/architecture/current-runtime-truth.md",
+        "ai-docs/architecture/devops/local-demo-deployment.md",
+        "ai-docs/delivery/execution-master-checklist.md",
+        "ai-docs/delivery/production-backlog.md",
+        "ai-docs/delivery/production-readiness-remediation-register.md",
+        "ai-docs/requirements/use-cases/application-assessment-terminal.md",
+        "ai-docs/requirements/use-cases/ecs-public-preview-web-ingress.md",
+        "ai-docs/requirements/use-cases/expert-interview-coach-evaluation.md",
+        "ai-docs/requirements/use-cases/expert-long-interview-runtime.md",
+        "ai-docs/requirements/use-cases/interview-question-bank-agent-rag.md",
+        "ai-docs/requirements/use-cases/interview-scoring-measurement.md",
+        "ai-docs/requirements/use-cases/model-operation-routing.md",
+        "ai-docs/requirements/use-cases/public-preview-directory.md",
+        "ai-docs/requirements/use-cases/public-preview-write-gate.md",
+        "ai-docs/requirements/use-cases/quality-assurance-traceability.md",
+        "ai-docs/requirements/use-cases/rag-funnel-intent-routing.md",
+        "ai-docs/testing/strategy/scoring-evaluation-protocol.md",
+        "ai-docs/testing/traceability-baseline.json",
+        "ai-docs/testing/traceability-manifest.json",
+        "package.json",
+        "scripts/ai-docs/check-docs.mjs",
+        "scripts/ai-docs/public-text-policy.mjs",
+        "scripts/ai-docs/public-text-policy.proof.mjs",
+        "scripts/quality-traceability-check.mjs",
+        "scripts/quality-traceability.proof.mjs",
+        "scripts/run-e2e-isolated.mjs"
+      ],
+      "governedPathDigest": "sha256:5adb6a1a41a4130b45f45ec300c966f6114812a344829e25fba138853e7c3eda",
+      "harness": {
+        "scope": "Public-text successor for the ECS Funnel hard-timeout and loopback-status wording. It records a static no-data preview contract correction plus an isolated host primitive receipt; it does not assert an ECS installation, serving, Pages link, API/Worker start, database access or release.",
+        "sourceEvidenceIds": [
+          "AUD-ECS-FIRST-ROOT-BOOTSTRAP-2026-08-16",
+          "AUD-ECS-FUNNEL-HARD-TIMEOUT-2026-08-16",
+          "AUD-ECS-PREVIEW-FUNNEL-STATUS-2026-08-16",
+          "AUD-ECS-PREVIEW-RECOVERY-2026-08-16",
+          "AUD-ECS-PREVIEW-ROOT-AND-BOOTSTRAP-SLOTS-2026-08-16",
+          "AUD-ECS-PREVIEW-UNIT-PRESENCE-2026-08-16",
+          "AUD-ECS-SYSTEMD-STOP-2026-08-15",
+          "AUD-GOVERNANCE-BOOTSTRAP-2026-08-15",
+          "GH-ACTIONS-31929807609",
+          "UC-quality-04"
+        ],
+        "outOfScope": [
+          "ECS public deployment",
+          "ECS purchase",
+          "GitHub Pages live deployment",
+          "release approval",
+          "runtime serving claim"
+        ],
+        "domainObjects": [
+          "StaticGovernanceSnapshot"
+        ],
+        "stateMachineEffects": [
+          "Build compatibility: the public build invokes the bootstrap archive-policy proof through the hosted runner Python executable; this is static CI evidence only.",
+          "First-root bootstrap: fixed root approval descriptor and attested controller archive remain static prerequisites; no ECS execution or release approval is asserted.",
+          "Funnel command closure: enable, off and status share a 15-second GNU timeout plus one-second KILL grace; loopback permits require a strict empty status map after off, never only a CLI exit code. The isolated ECS timeout primitive was exercised, but this remains non-release evidence.",
+          "Installer pre-close: Funnel off and legacy Web stop are dispatched before bounded systemd discovery; strict Funnel status, candidate cleanup and durable permit clearing occur even when old Web state is absent or unverifiable. This remains static evidence only.",
+          "Preview root: source moves preview release/current to a separate root-owned path and documents the old user home as inaccessible; deployment and Pages evidence remain pending.",
+          "Preview shutdown public copy: documents the systemd stop compatibility boundary, manager-level deadline and controller-only fail-close rollback without claiming a real ECS test or release.",
+          "Public copy: the directory remains a disabled static preview until a separate verified release manifest permits a destination.",
+          "Public history: the successor snapshots preview release wording and Pages workflow changes without asserting runtime, cloud or release evidence.",
+          "Public preview copy: a Funnel command exit code is never described as edge authority; bounded status and force-kill behavior retain failure closure.",
+          "Public preview copy: a tailnet-wide disabled Funnel is not described as a live public mapping; only a strict status result permits old-edge closure.",
+          "Public preview copy: systemd absence is described as safe only after exact bounded LoadState and strict physical-edge status; unknown states keep cleanup and installation closed.",
+          "Public preview copy: systemd shutdown wording distinguishes client timeout from manager-level stop completion and keeps ECS evidence separate from static proof."
+        ],
+        "contractEffects": [
+          "append-only static snapshot",
+          "tracked static CI entry contains no Docker, secret, cloud or runtime release action"
+        ],
+        "dataEffects": [
+          "local evidence only; no cloud, provider, credential, or user-data writes"
+        ],
+        "privacySecurityEffects": [
+          "no raw source, answer, prompt, credential, or provider URL in this record"
+        ],
+        "testPlanIds": [
+          "TC-quality-04-E1",
+          "TC-quality-04-E2",
+          "TC-quality-04-E3",
+          "TC-quality-04-E4",
+          "TC-quality-04-E5",
+          "TC-quality-04-E6",
+          "TC-quality-04-main"
+        ],
+        "verificationCommands": [
+          "public-text-policy:prove",
+          "quality:traceability:inventory",
+          "quality:traceability:prove"
+        ],
+        "authorizationConclusion": "blocked"
+      },
+      "harnessDigest": "sha256:7fb833714a54b91216984747b7bb7aa09f81c5fa146eda8e860060342ca54f4f",
+      "audit": {
+        "lenses": [
+          "ECS Tailscale TERM-ignoring CLI and loopback-status-authority audit",
+          "ECS preview missing-unit and fail-close cleanup audit",
+          "ECS preview public-copy and recovery documentation audit",
+          "ECS systemd 255 stop-timeout and rollback-bypass audit",
+          "Tailscale disabled-Funnel public-copy audit",
+          "first-root bootstrap public-instruction audit",
+          "hosted-runner bootstrap-proof compatibility audit",
+          "preview root and public-copy boundary audit",
+          "public-history bootstrap documentation audit",
+          "public-text policy static check"
+        ],
+        "reviewerIds": [
+          "agent-governance-bootstrap-audit",
+          "agent-preview-recovery-reaudit",
+          "agent-root-maintenance-self"
+        ],
+        "summary": "Independent review verified that public preview wording states the hard Funnel timeout and strict status authority without claiming a live release. An isolated target-ECS process receipt confirms TERM-ignoring child termination within the configured bound.",
+        "summaryDigest": "sha256:469be3466a96c8a2fc5ac02595a70b9fb64f249094b3cc0e44eadf4b0846db44",
+        "decision": "blocked",
+        "reviewScopeDigest": "sha256:774d39dbf00ef61e5cca713fb003841346d6320cc4ff2dcdf7c5a3262e592930",
+        "reviewedFindingIds": [
+          "GOV-PTP-001",
+          "GOV-PUBLIC-PREVIEW-BOOTSTRAP-SLOT-001",
+          "GOV-PUBLIC-PREVIEW-CONTROLLER-RECOVERY-001",
+          "GOV-PUBLIC-PREVIEW-FUNNEL-TIMEOUT-001",
+          "GOV-PUBLIC-PREVIEW-ROOT-PATH-001",
+          "GOV-PUBLIC-PREVIEW-SYSTEMD-STOP-001",
+          "GOV-PUBLIC-PREVIEW-UNIT-PRESENCE-001"
+        ],
+        "selfCheckReason": ""
+      },
+      "findings": [
+        {
+          "findingId": "GOV-PTP-001",
+          "severity": "P1",
+          "status": "closed",
+          "disposition": "prior public-text policy closure retained; QBank dependency-closure status refresh is reviewed.",
+          "closureEvidence": "independent_audit_task:/root/harness_governance_audit (prior policy closure); QBank dependency-closure status reviewed by /root/qbank_metadata_definer_audit; releaseEvidence=false"
+        },
+        {
+          "findingId": "GOV-PUBLIC-PREVIEW-BOOTSTRAP-SLOT-001",
+          "severity": "P0",
+          "status": "closed",
+          "disposition": "Closed only for the static source contract: controller bootstrap slots are receipt-bound to a full archive SHA and legacy slots cannot be selected by the new installer.",
+          "closureEvidence": "independent_audit_task:/root/preview_recovery_reaudit; staticGate:ops/bootstrap/test_first_root_bootstrap.py; releaseEvidence=false"
+        },
+        {
+          "findingId": "GOV-PUBLIC-PREVIEW-CONTROLLER-RECOVERY-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: ordinary installer errors restore the prior controller/unit, but a SIGKILL or power loss during controller/unit replacement has no durable journal or boot resolver. It must remain fail-closed and cannot be claimed as automatic rollback.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-PUBLIC-PREVIEW-FUNNEL-TIMEOUT-001",
+          "severity": "P0",
+          "status": "closed",
+          "disposition": "Closed only for the current static source contract and isolated ECS primitive receipt: bounded Funnel commands force-kill a TERM-ignoring CLI, and loopback permits require strict status confirmation after off.",
+          "closureEvidence": "independent_audit_task:/root/preview_recovery_reaudit; staticGates:ecs-preview-config.proof,preview-publication-recovery.proof,preview-release-control-plane.proof; ecsReceipt:timeout_status=137,elapsed_seconds=2; releaseEvidence=false"
+        },
+        {
+          "findingId": "GOV-PUBLIC-PREVIEW-ROOT-PATH-001",
+          "severity": "P0",
+          "status": "closed",
+          "disposition": "Closed only for the static source boundary: preview release storage is isolated from the existing unprivileged home and installation fails closed before root creation when old edge closure or trust-path checks fail.",
+          "closureEvidence": "independent_audit_task:/root/preview_recovery_reaudit; staticGates:ecs-preview-config.proof,preview-publication-recovery.proof,preview-edge-probe-fence.proof; releaseEvidence=false"
+        },
+        {
+          "findingId": "GOV-PUBLIC-PREVIEW-SYSTEMD-STOP-001",
+          "severity": "P0",
+          "status": "closed",
+          "disposition": "Closed only for the current static source contract: systemd 255 no longer receives an invalid stop wait flag; Web and candidate manager stop bounds are 15 seconds, candidate shutdown is checked, and Pages-revocation rollback cannot bypass the controller closure primitive.",
+          "closureEvidence": "independent_audit_task:/root/preview_recovery_reaudit; staticGates:ecs-preview-config.proof,preview-publication-recovery.proof,preview-release-control-plane.proof; releaseEvidence=false"
+        },
+        {
+          "findingId": "GOV-PUBLIC-PREVIEW-UNIT-PRESENCE-001",
+          "severity": "P0",
+          "status": "closed",
+          "disposition": "Closed only for the current static source contract: exact LoadState=not-found is the sole benign missing-unit case, while unknown state fails closed after strict Funnel status, bounded candidate cleanup and durable permit deletion.",
+          "closureEvidence": "independent_audit_task:/root/preview_recovery_reaudit; staticGates:ecs-preview-config.proof,preview-publication-recovery.proof,preview-release-control-plane.proof; releaseEvidence=false"
+        }
+      ],
+      "adrPath": "ai-docs/architecture/adr/0019-public-text-policy-static-governance.md",
+      "verificationCommands": [
+        "public-text-policy:prove",
+        "quality:traceability:inventory",
+        "quality:traceability:prove"
+      ],
+      "successorOf": "public-text-policy-control-plane-v36",
+      "baselineChange": null,
+      "recordDigest": "sha256:93fc8f2b3f042c5d75cc4a0367786e83a7c66a734dc0675fdbf65b93d1fb2ea2"
     }
   ]
 }

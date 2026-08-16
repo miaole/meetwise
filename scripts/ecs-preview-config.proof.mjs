@@ -100,18 +100,19 @@ const checks = [
       && /old_controller_moved=0/.test(installer)
       && /old_controller_moved" == 1/.test(installer)
       && /timeout 5s systemctl show --property=LoadState --value meetwise-web-preview\.service/.test(installer)
-      && /timeout 15s tailscale funnel --https=443 off[^\n]*&/.test(installer)
+      && /preview_funnel\(\) \{ timeout --kill-after=1s 15s tailscale funnel/.test(installer)
+      && /preview_funnel --https=443 off[^\n]*&/.test(installer)
       && /timeout 15s systemctl stop meetwise-web-preview\.service[^\n]*&/.test(installer)
-      && installer.indexOf('timeout 15s tailscale funnel --https=443 off') < installer.indexOf('timeout 5s systemctl show --property=LoadState')
+      && installer.indexOf('preview_funnel --https=443 off') < installer.indexOf('timeout 5s systemctl show --property=LoadState')
       && installer.indexOf('timeout 15s systemctl stop meetwise-web-preview.service') < installer.indexOf('timeout 5s systemctl show --property=LoadState')
       && /not-found\)/.test(installer)
-      && installer.indexOf('tailscale funnel status --json') < installer.indexOf('if [[ -n "$funnel_failure"')
+      && installer.indexOf('preview_funnel status --json') < installer.indexOf('if [[ -n "$funnel_failure"')
       && /existing preview candidates could not be enumerated/.test(installer)
       && /meetwise-preview-candidate-\[a-z0-9-\]\+\\\.service/.test(installer)
       && /existing preview serving permit could not be cleared/.test(installer)
       && /preview-serving-permit\.mjs" clear/.test(installer)
       && !/rm -f \/var\/lib\/meetwise-preview-controller\/serving-permit\.json/.test(installer)
-      && installer.indexOf('tailscale funnel status --json') < installer.indexOf('existing preview candidates could not be enumerated')
+      && installer.indexOf('preview_funnel status --json') < installer.indexOf('existing preview candidates could not be enumerated')
       && !/systemctl stop --wait/.test(installer)
       && /restore_controller_install/.test(installer)],
   ['the release archive is staged before GitHub attestation and permits only root-contained relative soft links during extraction',
@@ -309,6 +310,8 @@ const checks = [
       && /controller_clear_edge_probe_timeout/.test(reconcile)
       && /controller_clear_edge_probe_timeout_runtime/.test(reconcile)
       && /controller_clear_edge_fence/.test(reconcile)
+      && /controller_tailscale_funnel --https=443 off[^\n]*\|\| true/.test(reconcile)
+      && /controller_funnel_status_is_closed/.test(reconcile)
       && /controller_edge_probe_timeout_fenced/.test(controller)],
   ['hard-deadline closure stops Web and Funnel before any state-volume permit mutation',
     /controller_close_public_preview_edge\(\)/.test(controller)
@@ -320,8 +323,10 @@ const checks = [
       && /timeout 5s systemctl show --property=ActiveState --value "\$unit"/.test(controller)
       && /timeout 15s systemctl stop meetwise-web-preview\.service[^\n]*&/.test(controller)
       && /\[\[ "\$web_load_state" != loaded \]\] \|\| controller_unit_is_inactive meetwise-web-preview\.service \|\| failed=1/.test(controller)
-      && /timeout 15s tailscale funnel --https=443 off[^\n]*&/.test(controller)
-      && controller.indexOf('timeout 15s tailscale funnel --https=443 off') < controller.indexOf('controller_unit_load_state meetwise-web-preview.service')
+      && /controller_tailscale_funnel\(\)/.test(controller)
+      && /timeout --kill-after=1s 15s tailscale funnel "\$@"/.test(controller)
+      && /controller_tailscale_funnel --https=443 off[^\n]*&/.test(controller)
+      && controller.indexOf('controller_tailscale_funnel --https=443 off') < controller.indexOf('controller_unit_load_state meetwise-web-preview.service')
       && controller.indexOf('timeout 15s systemctl stop meetwise-web-preview.service') < controller.indexOf('controller_unit_load_state meetwise-web-preview.service')
       && /wait "\$web_pid"/.test(controller)
       && /wait "\$funnel_pid"/.test(controller)
@@ -350,7 +355,7 @@ const checks = [
       && /controller_assert_root_trust_ancestry/.test(controller)
       && /controller_assert_preview_trust_root/.test(controller)
       && /preclose_existing_public_preview/.test(installer)
-      && /tailscale funnel --https=443 off/.test(installer)
+      && /preview_funnel --https=443 off/.test(installer)
       && /existing preview Web remains active or could not be verified after fail-close/.test(installer)
       && /prepare_isolated_preview_trust_root/.test(installer)
       && /ensure_exact_root_directory/.test(installer)
@@ -361,12 +366,14 @@ const checks = [
       && !unit.includes('/srv/meetwise/current')],
   ['a tailnet with Funnel disabled may report an off-command error only when its authoritative status confirms no Web mapping',
     /wait "\$funnel_pid" \|\| true/.test(installer)
-      && /tailscale funnel status --json/.test(installer)
+      && /preview_funnel status --json/.test(installer)
       && /controller_funnel_status_is_closed\(\)/.test(controller)
       && /controller_funnel_status_is_closed \|\| failed=1/.test(controller)
       && /preview-funnel-status\.mjs/.test(controller)
       && /preview-funnel-status\.mjs/.test(installer)
       && /preview_funnel_remains_configured/.test(funnelStatus)
+      && [funnel, verify, finalize, reconcile].every((source) => /controller_tailscale_funnel/.test(source))
+      && ![funnel, verify, finalize, reconcile].some((source) => /(?:^|[^_])tailscale funnel/.test(source))
       && [[{}, true], [{ Web: {} }, true], [{ web: {} }, true], [[], false], [null, false], [{ unexpected: 1 }, false], [{ Web: null }, false], [{ Web: [] }, false], [{ Web: { '443': {} } }, false], [{ Web: {}, TCP: {} }, false]].every(([status, expected]) => funnelStatusIsClosed(status) === expected)],
   ['use case retains all seven required test classes', ['main', 'E1', 'E2', 'E3', 'E4', 'E5', 'E6'].every((suffix) => useCase.includes(`TC-ecs-public-preview-web-ingress-01-${suffix}`))],
 ];

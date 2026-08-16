@@ -118,7 +118,12 @@ case "$action" in
   serve_loopback)
     # An unpublished candidate may satisfy loopback checks, but it can never
     # inherit a public Funnel mapping left behind by a crashed predecessor.
-    if ! tailscale funnel --https=443 off >/dev/null 2>&1; then
+    # A successful CLI exit is not authority that a public mapping disappeared
+    # (and tailnet-wide Funnel disable reports a non-zero exit while already
+    # closed). The bounded status query is the sole authority before a
+    # loopback-only permit can be issued.
+    controller_tailscale_funnel --https=443 off >/dev/null 2>&1 || true
+    if ! controller_funnel_status_is_closed; then
       fail_closed 'preview_reconcile_loopback_funnel_disable_failed'
     fi
     controller_issue_serving_permit "$ledger" "$current" "$manifest_summary"
