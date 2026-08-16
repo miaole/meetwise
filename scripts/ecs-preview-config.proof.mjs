@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { funnelStatusIsClosed } from '../ops/ecs/preview-funnel-status.mjs';
 
 const root = process.cwd();
 const read = (path) => readFileSync(resolve(root, path), 'utf8');
@@ -30,6 +31,8 @@ const verify = read('ops/ecs/verify-preview-web.sh');
 const manifest = read('ops/ecs/preview-release-manifest.mjs');
 const artifact = read('ops/ecs/preview-release-artifact.mjs');
 const archiveSafety = read('ops/ecs/archive-safety.mjs');
+const controllerFileMap = read('ops/ecs/controller-files.txt');
+const funnelStatus = read('ops/ecs/preview-funnel-status.mjs');
 const buildWorkflow = read('.github/workflows/build-preview-web.yml');
 const pagesWorkflow = read('.github/workflows/pages-preview.yml');
 const middleware = read('apps/web/middleware.ts');
@@ -91,6 +94,7 @@ const checks = [
       && /chown -R root:root/.test(installer)
       && /chmod -R go-w/.test(installer)
       && /controller-files\.txt/.test(installer)
+      && /preview-funnel-status\.mjs\tpreview-funnel-status\.mjs/.test(controllerFileMap)
       && /controller_root\.previous/.test(installer)
       && /old_controller_moved=0/.test(installer)
       && /old_controller_moved" == 1/.test(installer)
@@ -320,6 +324,15 @@ const checks = [
       && /InaccessiblePaths=\/srv\/meetwise/.test(bootRecoveryUnit)
       && !controller.includes('/srv/meetwise/releases')
       && !unit.includes('/srv/meetwise/current')],
+  ['a tailnet with Funnel disabled may report an off-command error only when its authoritative status confirms no Web mapping',
+    /wait "\$funnel_pid" \|\| true/.test(installer)
+      && /tailscale funnel status --json/.test(installer)
+      && /controller_funnel_status_is_closed\(\)/.test(controller)
+      && /controller_funnel_status_is_closed \|\| failed=1/.test(controller)
+      && /preview-funnel-status\.mjs/.test(controller)
+      && /preview-funnel-status\.mjs/.test(installer)
+      && /preview_funnel_remains_configured/.test(funnelStatus)
+      && [[{}, true], [{ Web: {} }, true], [{ web: {} }, true], [[], false], [null, false], [{ unexpected: 1 }, false], [{ Web: null }, false], [{ Web: [] }, false], [{ Web: { '443': {} } }, false], [{ Web: {}, TCP: {} }, false]].every(([status, expected]) => funnelStatusIsClosed(status) === expected)],
   ['use case retains all seven required test classes', ['main', 'E1', 'E2', 'E3', 'E4', 'E5', 'E6'].every((suffix) => useCase.includes(`TC-ecs-public-preview-web-ingress-01-${suffix}`))],
 ];
 

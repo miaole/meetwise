@@ -9,6 +9,7 @@ preview-edge-probe-fence.mjs	preview-edge-probe-fence.mjs
 preview-release-artifact.mjs	preview-release-artifact.mjs
 preview-release-manifest.mjs	preview-release-manifest.mjs
 preview-funnel-target.mjs	preview-funnel-target.mjs
+preview-funnel-status.mjs	preview-funnel-status.mjs
 prepare-preview-web-release.sh	prepare-preview-web-release.sh
 deploy-preview-web.sh	deploy-preview-web.sh
 enable-preview-funnel.sh	enable-preview-funnel.sh

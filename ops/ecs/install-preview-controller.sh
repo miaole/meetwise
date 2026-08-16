@@ -97,22 +97,18 @@ preclose_existing_public_preview() {
   funnel_pid=$!
   [[ -z "$web_pid" ]] || wait "$web_pid" \
     || { printf '%s\n' 'existing preview Web could not be stopped' >&2; return 70; }
-  wait "$funnel_pid" \
-    || { printf '%s\n' 'existing preview Funnel could not be disabled' >&2; return 70; }
+  # Tailscale returns non-zero when Funnel is disabled for the whole tailnet.
+  # The following JSON status check, not this exit code, establishes whether
+  # an old public Web mapping remains.
+  wait "$funnel_pid" || true
   if systemctl is-active --quiet meetwise-web-preview.service; then
     printf '%s\n' 'existing preview Web remains active after fail-close' >&2
     return 70
   fi
   timeout 15s tailscale funnel status --json >"$scratch/funnel.json" \
     || { printf '%s\n' 'existing preview Funnel state could not be verified closed' >&2; return 70; }
-  /usr/bin/node - "$scratch/funnel.json" <<'NODE'
-const fs = require('node:fs');
-const status = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
-const web = status.Web ?? status.web;
-if (web !== undefined && (web === null || typeof web !== 'object' || Array.isArray(web) || Object.keys(web).length !== 0)) {
-  throw new Error('preview_funnel_remains_configured');
-}
-NODE
+  /usr/bin/node "$payload_root/ops/ecs/preview-funnel-status.mjs" "$scratch/funnel.json" \
+    || { printf '%s\n' 'existing preview Funnel remains configured or has an unknown status' >&2; return 70; }
   if systemctl cat meetwise-web-preview.service >/dev/null 2>&1; then
     systemctl disable meetwise-web-preview.service >/dev/null \
       || { printf '%s\n' 'existing preview Web unit could not be disabled' >&2; return 70; }
