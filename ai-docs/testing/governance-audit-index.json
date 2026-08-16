@@ -12413,7 +12413,7 @@
         "scripts/quality-traceability.proof.mjs",
         "scripts/run-e2e-isolated.mjs"
       ],
-      "governedPathDigest": "sha256:42aee2788c2ee11e0ec75d20811a2f1eda3661f4c75e9b04a04a20c451ecf81f",
+      "governedPathDigest": "sha256:4d69b74a74377f028558f1037cc3ecb51a662d5a5dfaa79b9c77360622da8bae",
       "harness": {
         "scope": "Public history bootstrap refresh for public-text policy. Recreates the tracked static CI entry and reanchors the current public text tree without claiming product, runtime, cloud or release verification.",
         "sourceEvidenceIds": [
@@ -12473,7 +12473,7 @@
         "summary": "The public-text successor restores a tracked static CI entry and refreshes the current public tree snapshot. It does not alter the closed policy finding, enable an ECS destination, or assert a release, runtime or cloud result.",
         "summaryDigest": "sha256:2bc0a45e64eb68f30ad8fa0a4a71ab2d609338f3770a1585bda7cbf374a5de11",
         "decision": "blocked",
-        "reviewScopeDigest": "sha256:6658aa1c3f5eca8acc5282e109872e1ede7e0a326ce7529e112182cd1c380363",
+        "reviewScopeDigest": "sha256:dae3cb6d95677a93e2e8853bf97956f8aaf4ee2e23c9818f63b55fe7ee4f9b1e",
         "reviewedFindingIds": [
           "GOV-PTP-001"
         ],
@@ -12496,7 +12496,7 @@
       ],
       "successorOf": "public-text-policy-control-plane-v28",
       "baselineChange": null,
-      "recordDigest": "sha256:72d0d0f376847e32f4224ee15cc672703722a1df7e5e6c7a27b8e23e9b1f5055"
+      "recordDigest": "sha256:081c8c8167c04bdfb9002d9da242ed2fe2937dd3799b99551f1c4f7d6c24dfb9"
     },
     {
       "taskId": "quality-governance-control-plane-v39",
@@ -12549,7 +12549,7 @@
         "scripts/quality-traceability.proof.mjs",
         "scripts/run-e2e-isolated.mjs"
       ],
-      "governedPathDigest": "sha256:ff77136a0acf5259423f051cb5d4ebaedfb2fefa916a56003562e1923eadca36",
+      "governedPathDigest": "sha256:6416497b5e1ef71d2b8d056a26520dd99ddad2e82ac9b1f227bdef33c3f41059",
       "harness": {
         "scope": "Protected-public-history governance bootstrap closure: the required trusted guard now runs from the protected base, and a follow-up PR has passed it. Static governance only.",
         "sourceEvidenceIds": [
@@ -12613,7 +12613,7 @@
         "summary": "Independent bootstrap audit confirmed the algorithm and documented the safe activation sequence. That sequence is now complete: the bootstrap PR merged, the new-base follow-up PR passed trusted-governance-history, and main requires that exact GitHub Actions context. This successor closes only GOV-GOVERNANCE-BOOTSTRAP-001; all other governance findings remain blocked. Static only; releaseEvidence=false.",
         "summaryDigest": "sha256:6a6c121ba2d7fc1ac2cb83f00166de9b6effac01d4ba9c887b464183caccfbbb",
         "decision": "blocked",
-        "reviewScopeDigest": "sha256:f791321267da86595f30eddeae26bb0541046c162d6c02869a4c2f5ce2f96f21",
+        "reviewScopeDigest": "sha256:d627a6eb63195f79954426a51dfe1e9f3ec6952af62e94aa91f13c3057eaeeda",
         "reviewedFindingIds": [
           "GOV-CLOUD-TEST-RECOVERY-001",
           "GOV-CLOUD-TEST-RECOVERY-002",
@@ -12950,7 +12950,7 @@
       ],
       "successorOf": "quality-governance-control-plane-v38",
       "baselineChange": null,
-      "recordDigest": "sha256:ef1c114c34eb8d37d9f3689ac691f39f4f836575f04c00aa7c4fe1a8292f1a1d"
+      "recordDigest": "sha256:e2993543650134bfbf89a33ca10ee70c77254283664e8da88d4eb8ddf2910e64"
     }
   ]
 }
