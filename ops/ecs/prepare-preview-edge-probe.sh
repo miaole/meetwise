@@ -16,7 +16,12 @@ fi
 release_dir="$(controller_release_dir "$1")"
 release_id="$(basename "$release_dir")"
 systemctl stop meetwise-preview-edge-probe-watchdog.service meetwise-preview-edge-probe-expiry.timer
-systemctl reset-failed meetwise-preview-edge-probe-watchdog.service meetwise-preview-edge-probe-expiry.service
+# A static unit that has never been activated can make `reset-failed` return
+# non-zero even though the next `start` is valid. Resetting is only cleanup of
+# a previous failure, never an authorization to expose the edge; the required
+# loaded, start and active checks remain the serving gate.
+systemctl reset-failed meetwise-preview-edge-probe-watchdog.service meetwise-preview-edge-probe-expiry.service || true
+controller_require_edge_probe_units_loaded
 controller_clear_edge_probe_timeout
 controller_clear_edge_probe_timeout_runtime
 controller_clear_edge_fence

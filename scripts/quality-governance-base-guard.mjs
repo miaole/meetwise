@@ -18,7 +18,7 @@ const INDEX_PATH = 'ai-docs/testing/governance-audit-index.json';
 const BASELINE_PATH = 'ai-docs/testing/traceability-baseline.json';
 const TASK_ID_PATTERN = /^[a-z][a-z0-9-]{2,95}$/;
 const SHA256_PATTERN = /^sha256:[a-f0-9]{64}$/;
-const GOVERNED_PATH_PREFIXES = ['ai-docs/', 'scripts/', '.github/', 'package.json', 'pnpm-lock.yaml'];
+const GOVERNED_PATH_PREFIXES = ['ai-docs/', 'ops/', 'scripts/', '.github/', 'package.json', 'pnpm-lock.yaml'];
 const TASK_STATUSES = new Set(['draft', 'blocked', 'approved_for_spike', 'approved_to_implement', 'done']);
 const FINDING_SEVERITIES = new Set(['P0', 'P1', 'P2']);
 const FINDING_STATUSES = new Set(['open', 'blocked', 'closed']);
@@ -496,7 +496,15 @@ export function validateGovernanceHistoryBase({ baseIndex, currentIndex, baseBas
 }
 
 function runGit(args) {
-  return execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  // The governed append-only index can legitimately exceed Node's 1 MiB
+  // default stdout buffer. This is an input-size limit for a trusted Git
+  // object read, not an authorization boundary; preserve a bounded ceiling
+  // large enough for the current documented history.
+  return execFileSync('git', args, {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    maxBuffer: 16 * 1024 * 1024,
+  }).trim();
 }
 
 function resolveCommit(value, label) {

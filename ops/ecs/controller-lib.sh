@@ -357,6 +357,23 @@ controller_unit_load_state() {
   esac
 }
 
+controller_require_edge_probe_units_loaded() {
+  # `reset-failed` is allowed to be a no-op for a never-started static unit,
+  # but it is never evidence that the timeout/retry chain exists. Verify the
+  # complete recovery chain through PID 1 before any edge-probe state,
+  # permit, Web restart or Funnel action becomes possible.
+  local unit state
+  for unit in \
+    meetwise-preview-edge-probe-watchdog.service \
+    meetwise-preview-edge-probe-expiry.service \
+    meetwise-preview-edge-probe-expiry.timer; do
+    state="$(timeout 5s systemctl show --property=LoadState --value "$unit" 2>/dev/null)" \
+      || controller_fail 'preview edge probe recovery unit is unavailable' 70
+    [[ "$state" == loaded ]] \
+      || controller_fail 'preview edge probe recovery unit is unavailable' 70
+  done
+}
+
 controller_unit_is_inactive() {
   local unit="$1" state
   state="$(timeout 5s systemctl show --property=ActiveState --value "$unit" 2>/dev/null)" || return 1

@@ -68,6 +68,7 @@ const BASELINE_KEYS = new Set([
 ]);
 const GOVERNED_PATH_PREFIXES = [
   'ai-docs/',
+  'ops/',
   'scripts/',
   '.github/',
   'package.json',
