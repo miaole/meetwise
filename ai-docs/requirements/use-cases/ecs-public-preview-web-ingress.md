@@ -31,6 +31,20 @@ owner: platform
 
 `PreviewWebRelease` 状态为 `idle / failed / revoked → staged → active_unpublished → edge_probing → publishing → verified → revoked / failed`。单一 root-owned 实际 `flock` 覆盖协调、撤链、构件验签、候选、激活、Funnel、预签名黑盒验证和签名；`edge_probing` 先持久写入、签发临时 permit、并重启使 Web 的启动前校验接受该 permit，之后才允许打开 Funnel 做外部黑盒检查，且 Pages 链接始终禁用。它同时启动独立 60 秒 watchdog 和 release-bound deadline/fence：watchdog 的超时处理不等待发布锁，先停 Web、关闭 Funnel；之后再清 permit、写 `/run`/持久 timeout marker、启动失败重试。finalizer 的最后公开 copy/completion 只在持有短 fence lock、deadline 尚未到期、watchdog 仍 active、两类 timeout marker 都不存在时才可成功。任何 `armed`/`timed_out` fence 都是重启不可恢复的负授权；在 Pages 撤链或失败终态确认后才可清理。因而私有 staging、`publishing`、两次 permit 重启和公开 manifest commit 都不能因活着但卡住的 release shell 延长公网暴露。黑盒 receipt 成功且签名前后都重验相同活动 release 后，把 signed manifest 写入 controller 私有 staging、持久写入 `publishing`、写入 public permit 并重启 Web；接着转为 `verified`、按新 generation 刷新 permit 并再次重启 Web。仅在这些步骤都完成后，才将同一 signed manifest 原子复制到 Nginx/Pages 可读路径，并停止 watchdog 与 expiry retry。候选 release 必须先以独立回环端口证明其 release marker、构建摘要和允许页面，且 systemd 确认整个候选 cgroup 已退出后才可能激活。`current` 的物理切换本身不是激活；只有随后的 ledger 转换与 serving permit 都持久完成、并由 unit 启动前复验后才有效。同一 release digest 重放仅接受完全相同 archive；任何签名、HTTPS、精确 origin、边缘/内部健康、构建摘要、路径、permit 或方法门失配均进入失败关闭，Pages 链接保持禁用。`publishing` 不是不可恢复状态：进程重启或状态不一致时只允许完成一致性确认，或先收到撤链回执后失败关闭；不得猜测恢复前一 Web。撤链回执使用签名 manifest 的 canonical JSON SHA-256，避免格式化差异。
 
+## 首次 root bootstrap 合同
+
+首次安装使用独立的 `ops/bootstrap/first_root_bootstrap.py`，它不被 controller archive 打包。这个文件的**唯一批准摘要**必须先由受信 `main` 中同目录的 `first-root-bootstrap.sha256` 读取，并由 `ops/bootstrap/test_first_root_bootstrap.py` 校验其与验证器字节精确一致。它不是运行后才记录的自我摘要。
+
+首次 root 执行的固定四步是：① 非特权执行者把验证器上传到临时路径；② root 以固定 `/usr/bin/sha256sum` 将该临时文件与批准摘要比较，匹配后复制到新建的 root-owned `0700` bootstrap 目录并再次比较该 root 副本；③ root 仅以 `env -i PATH=/usr/bin:/bin HOME=/root PYTHONNOUSERSITE=1 /usr/bin/python3.11 -I <root-copy> --input-archive=<untrusted-path>` 执行该 root 副本；④ 验证器再校验其隔离解释器和摘要后才读取任何候选 archive。任何摘要、owner、mode、解释器、复制后摘要或 isolation flag 不匹配都不得读取 approval 或 archive。执行者还必须先在该 bootstrap 目录建立 root-only `gh-config/`（`0700`）并以 `GH_CONFIG_DIR` 完成 GitHub device login；验证器只读取其中 root-only `hosts.yml`（`0600`），不继承任意用户家目录的 GitHub 配置。
+
+验证器不接受 archive SHA、仓库、workflow、commit、run 或 validator SHA 这类调用方参数。root 在启动前把这组值连同 `approvedSourceCommit` 写入固定 `controller-approval.json`（root:root `0600`）；描述符只允许 `miaole/meetwise` 和受信 `main` workflow，且 `approvedSourceCommit` 必须等于 attested archive 的 commit。批准者先从该 protected-main commit 读取 `first-root-bootstrap.sha256` 并核对 validator bytes，随后才创建 descriptor。验证器记录此 descriptor 的 SHA-256，并把它作为唯一信任目标：它以 `O_NOFOLLOW|O_CLOEXEC` 打开 untrusted archive descriptor，`fstat` 为有界普通文件后仅复制该 descriptor 的字节，拒绝 FIFO/链接/替换路径且在复制时再次施加 archive 上限。它在新的 root-owned `0700` staging 内复制 archive 为 `0600`，再对**这份副本**运行 `/usr/bin/gh attestation verify`，要求 subject digest、固定 repo/workflow、`refs/heads/main`、descriptor 的 commit 与 run ID 精确匹配。
+
+验证器在 receipt 发布前不加载 candidate JS 或 shell。它以流式方式只提取 `ops/ecs` 下的显式目录和 POSIX regular 文件；PAX、sparse/contiguous 扩展、链接、设备、FIFO、重复名、越界路径和超限 archive 均失败关闭。提取后再用 `lstat` 复核树并从内向外 fsync 每个目录，写入 `bootstrap.json` 与原始 attestation JSON，并对 staging 与父目录 fsync 后原子改名为 `verified-controller`。receipt 除原有 archive/tree digest 与验证时间外，还记录 expected digest、repo/workflow/commit/run、validator 的批准摘要和实际摘要、archive policy/大小和目标主机；已有 `verified-controller` 时拒绝覆盖。
+
+receipt 发布后，root **只**以 `env -i PATH=/usr/sbin:/usr/bin:/sbin:/bin HOME=/root /bin/bash --noprofile --norc /var/lib/meetwise-preview-bootstrap/verified-controller/payload/ops/ecs/install-preview-controller.sh` 调用已验 payload 的 installer；禁止经 shebang、`env bash`、`BASH_ENV`、用户 PATH、工作树或临时上传路径启动它。installer 的 shebang 固定为 `/bin/bash`，但首次调用仍必须使用上面的明确解释器命令。
+
+`TC-ecs-public-preview-web-ingress-01-E1` 的首次安装分支必须覆盖：错误 archive SHA、错误 repo/workflow/commit/run、坏 gzip、PAX、软/硬链接、越界/重复成员、超限条目、非 root/错误 mode、提取后 metadata 漂移、receipt fsync/rename 中断与既有 staging。当前 Python archive policy proof 只验证普通输入与拒绝 traversal/symlink；远端 root bootstrap 和真实 ECS 故障注入在 controller 安装回执之前均保持 `releaseEvidence=false`。
+
 ## 主流程
 
 1. GitHub Actions 在受保护 `main` 构建 Web archive 与 controller archive，并分别签发构件证明；ECS 只接受验证签发 workflow、仓库和 archive 摘要均一致的 Web archive。
