@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Verified controller payload. This file is deliberately *not* a first-root
 # bootstrap: it runs only after an independent, pre-installed root bootstrap
 # has verified the attested archive and staged this exact payload below a
