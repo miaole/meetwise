@@ -320,6 +320,25 @@ controller_complete_edge_probe_fence_held() {
   controller_complete_edge_fence_held "$1"
 }
 
+controller_funnel_status_is_closed() {
+  # Tailscale reports a non-zero result for `funnel off` when Funnel has not
+  # been enabled for the tailnet. That message is not evidence of a live
+  # mapping. The status response is the authority: only an empty Web map can
+  # let the caller treat the edge as closed.
+  local status_file result
+  status_file="$(mktemp)" || return 1
+  if ! timeout 15s tailscale funnel status --json >"$status_file" 2>/dev/null; then
+    rm -f "$status_file"
+    return 1
+  fi
+  set +e
+  /usr/bin/node "$MEETWISE_PREVIEW_CONTROLLER_ROOT/preview-funnel-status.mjs" "$status_file"
+  result=$?
+  set -e
+  rm -f "$status_file"
+  return "$result"
+}
+
 controller_close_public_preview_edge() {
   # Stop the local origin and withdraw the public Funnel concurrently. Each
   # command has its own fixed budget so a stalled D-Bus call cannot add a
@@ -336,7 +355,11 @@ controller_close_public_preview_edge() {
     failed=1
   fi
   wait "$web_pid" || failed=1
-  if [[ -n "$funnel_pid" ]]; then wait "$funnel_pid" || failed=1; fi
+  # A disabled Funnel feature may make `funnel off` return non-zero. Its
+  # status must nevertheless be queried; status failure or a non-empty Web
+  # map remains a fail-closed error.
+  if [[ -n "$funnel_pid" ]]; then wait "$funnel_pid" || true; fi
+  controller_funnel_status_is_closed || failed=1
   return "$failed"
 }
 
