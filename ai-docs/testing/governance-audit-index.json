@@ -17206,7 +17206,7 @@
         "scripts/quality-traceability.proof.mjs",
         "scripts/run-e2e-isolated.mjs"
       ],
-      "governedPathDigest": "sha256:d1b72acce14c4e76e35bb528959f51cedea52df7fe47387e264750d361881c02",
+      "governedPathDigest": "sha256:c42d0ed9a56b44fbe73a6da5a5834a7a398884c22ba11c9461db57c03e90ef5e",
       "harness": {
         "scope": "ECS preview successor for hosted-runner execution of the first-root bootstrap archive-policy proof. It records a static CI compatibility correction only; it does not authorize ECS execution, serving, Pages activation or a release. This successor records only static hardening for an isolated preview trust root and full-SHA controller bootstrap slots; it does not authorize a root bootstrap run, ECS release, Pages activation or user-data service. This successor records the narrow ordinary-rename rollback correction only; persistent replacement recovery remains blocked.",
         "sourceEvidenceIds": [
@@ -17286,7 +17286,7 @@
         "summary": "Independent review found an ordinary controller-rename rollback gap. This successor records the source fix that restores `.previous` whenever the old root was moved, even when the new root rename failed. Persistent SIGKILL/power-loss controller replacement recovery remains open; no ECS/bootstrap/release evidence is asserted.",
         "summaryDigest": "sha256:bbd17d17e8d880337991f6e26deec7163984a9e6d47905e2ac19c6b624e32281",
         "decision": "blocked",
-        "reviewScopeDigest": "sha256:6090125b2cc1c822ff0bb20e93d4a046aedf7bfa2f19c9f4646659cfe02fc359",
+        "reviewScopeDigest": "sha256:5fd7e6a60c8d1e6de5136f98ab1a2e9f9876d80f35c650c8140f5669c1381f2f",
         "reviewedFindingIds": [
           "GOV-CLOUD-TEST-RECOVERY-001",
           "GOV-CLOUD-TEST-RECOVERY-002",
@@ -17647,7 +17647,7 @@
       ],
       "successorOf": "quality-governance-control-plane-v43",
       "baselineChange": null,
-      "recordDigest": "sha256:3bbf05f2808643be9d39b6a55d32954e8f47088dc42dd9971e8963485cba0374"
+      "recordDigest": "sha256:e20828d617f60acfa17aaf7031a4160697aea0a05e6b139995dbe40e39520660"
     }
   ]
 }
