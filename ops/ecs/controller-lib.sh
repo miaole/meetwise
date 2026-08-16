@@ -218,7 +218,7 @@ controller_clear_serving_permit() {
 }
 
 controller_monotonic_milliseconds() {
-  awk '{ printf "%.0f\\n", $1 * 1000 }' /proc/uptime
+  awk '{ printf "%.0f\n", $1 * 1000 }' /proc/uptime
 }
 
 controller_edge_fence_read() {
