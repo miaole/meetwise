@@ -1,9 +1,17 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { objectDigest } from './quality-governance-check.mjs';
-import { validateGovernanceHistoryBase, validateGovernanceRecordSnapshots } from './quality-governance-base-guard.mjs';
+import {
+  validateGovernanceHistoryBase,
+  validateGovernanceRecordMetadata,
+  validateGovernanceRecordSnapshots,
+  validateNewGovernanceRecordSnapshots,
+} from './quality-governance-base-guard.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const index = JSON.parse(readFileSync(resolve(repoRoot, 'ai-docs/testing/governance-audit-index.json'), 'utf8'));
@@ -17,6 +25,74 @@ const governanceTerminal = index.records
   .at(-1);
 const governanceNextRevision = governanceTerminal.revision + 1;
 const governanceNextTaskId = `${governanceScopeId}-v${governanceNextRevision}`;
+
+function git(cwd, args) {
+  return execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+}
+
+function governedPathDigest(path, content) {
+  return `sha256:${createHash('sha256').update(Buffer.concat([
+    Buffer.from(path),
+    Buffer.from('\0'),
+    Buffer.from(content),
+    Buffer.from('\0'),
+  ])).digest('hex')}`;
+}
+
+function minimalRecord({ taskId, scopeId, governedPaths, governedPathDigest: pathDigest }) {
+  const record = {
+    taskId,
+    scopeId,
+    riskLevel: 'L1',
+    status: 'blocked',
+    revision: 1,
+    successorOf: null,
+    governedPaths,
+    governedPathDigest: pathDigest,
+    harness: { scope: taskId },
+    harnessDigest: '',
+    audit: {
+      lenses: [],
+      reviewerIds: [],
+      summary: `${taskId} metadata fixture`,
+      summaryDigest: '',
+      decision: 'blocked',
+      reviewScopeDigest: '',
+      reviewedFindingIds: [],
+      selfCheckReason: 'fixture',
+    },
+    findings: [],
+    baselineChange: null,
+    recordDigest: '',
+  };
+  refreshRecordDigest(record);
+  return record;
+}
+
+function minimalBaseline() {
+  const frozenUnmappedLeafTcIds = [];
+  return {
+    schemaVersion: 1,
+    releaseEvidence: false,
+    sourceManifestPath: 'ai-docs/testing/traceability-manifest.json',
+    frozenUnmappedLeafTcIds,
+    frozenUnmappedLeafTcIdsDigest: objectDigest(frozenUnmappedLeafTcIds),
+    expansions: [],
+  };
+}
+
+function minimalIndex(records, baseline) {
+  return {
+    schemaVersion: 1,
+    releaseEvidence: false,
+    traceabilityBaselineAnchorDigest: baseline.frozenUnmappedLeafTcIdsDigest,
+    records,
+  };
+}
+
+function writeJson(path, value) {
+  writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`);
+}
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -114,8 +190,8 @@ const checks = {
   },
   bootstrap_requires_artifact_pair: () => {
     const result = resultFor({ baseIndex: undefined, baseBaseline: undefined });
-    assert.equal(result.valid, true, result.errors.join('\n'));
-    assert.equal(result.stats.mode, 'bootstrap');
+    assert.equal(result.valid, false, 'a missing base must never bootstrap itself');
+    assert.ok(result.errors.includes('history_base_artifacts_missing:index-baseline'));
     expectError({ baseIndex: undefined, baseBaseline: baseline }, 'history_base_artifact_pair_mismatch:index-baseline');
   },
   rejects_recomputed_history_rewrite: () => {
@@ -268,6 +344,187 @@ const checks = {
     const result = validateGovernanceRecordSnapshots(forged, (record) => index.records.find((item) => item.taskId === record.taskId).governedPathDigest);
     assert.equal(result.valid, false, 'forged path digest must fail against the trusted snapshot tree');
     assert.ok(result.errors.some((error) => error.startsWith('history_snapshot_path_digest_mismatch:quality-governance-control-plane-v1')));
+  },
+  validates_protected_base_metadata_without_replaying_paths: () => {
+    const result = validateGovernanceRecordMetadata(index);
+    assert.equal(result.valid, true, result.errors.join('\n'));
+    assert.equal(result.stats.recordCount, index.records.length);
+  },
+  validates_only_new_records_against_their_introduction_tree: () => {
+    const baseIndex = clone(index);
+    baseIndex.records.pop();
+    const currentIndex = clone(index);
+    const introduced = currentIndex.records.at(-1);
+    const introductions = new Map([[introduced.taskId, { commit: 'a'.repeat(40), record: clone(introduced) }]]);
+    const result = validateNewGovernanceRecordSnapshots({
+      baseIndex,
+      currentIndex,
+      introductions,
+      snapshotDigestForIntroduction: (_commit, paths) => {
+        assert.deepEqual(paths, introduced.governedPaths);
+        return introduced.governedPathDigest;
+      },
+    });
+    assert.equal(result.valid, true, result.errors.join('\n'));
+    assert.deepEqual(result.stats, { newRecordCount: 1, verifiedRecordCount: 1 });
+  },
+  rejects_new_record_mutated_after_introduction: () => {
+    const baseIndex = clone(index);
+    baseIndex.records.pop();
+    const currentIndex = clone(index);
+    const introduced = currentIndex.records.at(-1);
+    const introductionRecord = clone(introduced);
+    introduced.governedPaths.push('scripts/quality-governance-bootstrap-fixture.mjs');
+    refreshRecordDigest(introduced);
+    const result = validateNewGovernanceRecordSnapshots({
+      baseIndex,
+      currentIndex,
+      introductions: new Map([[introduced.taskId, { commit: 'b'.repeat(40), record: introductionRecord }]]),
+      snapshotDigestForIntroduction: () => introduced.governedPathDigest,
+    });
+    assert.equal(result.valid, false);
+    assert.ok(result.errors.includes(`history_new_record_mutated_after_introduction:${introduced.taskId}`));
+  },
+  rejects_new_record_missing_or_mismatched_introduction_snapshot: () => {
+    const baseIndex = clone(index);
+    baseIndex.records.pop();
+    const currentIndex = clone(index);
+    const introduced = currentIndex.records.at(-1);
+    const missing = validateNewGovernanceRecordSnapshots({
+      baseIndex,
+      currentIndex,
+      introductions: new Map(),
+      snapshotDigestForIntroduction: () => introduced.governedPathDigest,
+    });
+    assert.ok(missing.errors.includes(`history_new_snapshot_introduction_missing:${introduced.taskId}`));
+    const unreadable = validateNewGovernanceRecordSnapshots({
+      baseIndex,
+      currentIndex,
+      introductions: new Map([[introduced.taskId, { commit: 'c'.repeat(40), record: clone(introduced) }]]),
+      snapshotDigestForIntroduction: () => { throw new Error('missing path in introduction tree'); },
+    });
+    assert.ok(unreadable.errors.includes(`history_new_record_snapshot_unreadable:${introduced.taskId}`));
+    const mismatch = validateNewGovernanceRecordSnapshots({
+      baseIndex,
+      currentIndex,
+      introductions: new Map([[introduced.taskId, { commit: 'd'.repeat(40), record: clone(introduced) }]]),
+      snapshotDigestForIntroduction: () => `sha256:${'0'.repeat(64)}`,
+    });
+    assert.ok(mismatch.errors.includes(`history_new_record_path_digest_mismatch:${introduced.taskId}`));
+  },
+  rejects_forged_l1_metadata_before_path_snapshot: () => {
+    const baseIndex = clone(index);
+    const currentIndex = clone(baseIndex);
+    const introduced = clone(index.records.at(-1));
+    introduced.taskId = 'governance-bootstrap-l1';
+    introduced.scopeId = 'governance-bootstrap-l1';
+    introduced.riskLevel = 'L1';
+    introduced.revision = 1;
+    introduced.successorOf = null;
+    introduced.findings = [];
+    introduced.audit.reviewedFindingIds = [];
+    refreshRecordDigest(introduced);
+    introduced.harnessDigest = `sha256:${'0'.repeat(64)}`;
+    currentIndex.records.push(introduced);
+    const result = validateNewGovernanceRecordSnapshots({
+      baseIndex,
+      currentIndex,
+      introductions: new Map([[introduced.taskId, { commit: 'a'.repeat(40), record: clone(introduced) }]]),
+      snapshotDigestForIntroduction: () => introduced.governedPathDigest,
+    });
+    assert.equal(result.valid, false);
+    assert.ok(result.errors.includes(`history_metadata_harness_digest_mismatch:${introduced.taskId}`));
+  },
+  validates_distinct_introduction_commits_for_multiple_new_records: () => {
+    const baseIndex = clone(index);
+    baseIndex.records.splice(-2);
+    const currentIndex = clone(index);
+    const first = currentIndex.records.at(-2);
+    const second = currentIndex.records.at(-1);
+    const introductions = new Map([
+      [first.taskId, { commit: 'e'.repeat(40), record: clone(first) }],
+      [second.taskId, { commit: 'f'.repeat(40), record: clone(second) }],
+    ]);
+    const result = validateNewGovernanceRecordSnapshots({
+      baseIndex,
+      currentIndex,
+      introductions,
+      snapshotDigestForIntroduction: (commit, paths) => {
+        assert.ok(['e'.repeat(40), 'f'.repeat(40)].includes(commit));
+        const record = [first, second].find((item) => item.governedPaths === paths || JSON.stringify(item.governedPaths) === JSON.stringify(paths));
+        return record.governedPathDigest;
+      },
+    });
+    assert.equal(result.valid, true, result.errors.join('\n'));
+    assert.deepEqual(result.stats, { newRecordCount: 2, verifiedRecordCount: 2 });
+  },
+  exercises_real_git_base_to_head_introduction_resolution: () => {
+    const fixtureRoot = mkdtempSync(resolve(tmpdir(), 'meetwise-governance-history-'));
+    try {
+      git(fixtureRoot, ['init', '--quiet']);
+      git(fixtureRoot, ['config', 'user.email', 'fixture@example.invalid']);
+      git(fixtureRoot, ['config', 'user.name', 'Governance Fixture']);
+      mkdirSync(resolve(fixtureRoot, 'ai-docs/testing'), { recursive: true });
+      mkdirSync(resolve(fixtureRoot, 'scripts'), { recursive: true });
+      const baseline = minimalBaseline();
+      const baseRecord = minimalRecord({
+        taskId: 'fixture-base-record',
+        scopeId: 'fixture-base',
+        governedPaths: ['scripts/not-present-in-public-import.mjs'],
+        governedPathDigest: `sha256:${'1'.repeat(64)}`,
+      });
+      writeJson(resolve(fixtureRoot, 'ai-docs/testing/governance-audit-index.json'), minimalIndex([baseRecord], baseline));
+      writeJson(resolve(fixtureRoot, 'ai-docs/testing/traceability-baseline.json'), baseline);
+      git(fixtureRoot, ['add', '.']);
+      git(fixtureRoot, ['commit', '--quiet', '-m', 'base metadata anchor']);
+      const base = git(fixtureRoot, ['rev-parse', 'HEAD']);
+
+      const newPath = 'scripts/new-record.mjs';
+      const newContent = 'export const introduced = true;\n';
+      writeFileSync(resolve(fixtureRoot, newPath), newContent);
+      const newRecord = minimalRecord({
+        taskId: 'fixture-new-record',
+        scopeId: 'fixture-new',
+        governedPaths: [newPath],
+        governedPathDigest: governedPathDigest(newPath, newContent),
+      });
+      writeJson(resolve(fixtureRoot, 'ai-docs/testing/governance-audit-index.json'), minimalIndex([baseRecord, newRecord], baseline));
+      git(fixtureRoot, ['add', '.']);
+      git(fixtureRoot, ['commit', '--quiet', '-m', 'introduce governed record']);
+      const introduction = git(fixtureRoot, ['rev-parse', 'HEAD']);
+
+      const guardPath = resolve(repoRoot, 'scripts/quality-governance-base-guard.mjs');
+      const successful = JSON.parse(execFileSync(process.execPath, [guardPath, '--base', base, '--head', introduction], {
+        cwd: fixtureRoot,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      }));
+      assert.equal(successful.history.valid, true);
+      assert.deepEqual(successful.baseMetadataIntegrity.stats, { recordCount: 1 });
+      assert.deepEqual(successful.newRecordSnapshotVerification.stats, { newRecordCount: 1, verifiedRecordCount: 1 });
+
+      newRecord.harness.scope = 'mutated after introduction';
+      refreshRecordDigest(newRecord);
+      writeJson(resolve(fixtureRoot, 'ai-docs/testing/governance-audit-index.json'), minimalIndex([baseRecord, newRecord], baseline));
+      git(fixtureRoot, ['add', '.']);
+      git(fixtureRoot, ['commit', '--quiet', '-m', 'mutate introduced record']);
+      const mutatedHead = git(fixtureRoot, ['rev-parse', 'HEAD']);
+      let failedOutput = '';
+      try {
+        execFileSync(process.execPath, [guardPath, '--base', base, '--head', mutatedHead], {
+          cwd: fixtureRoot,
+          encoding: 'utf8',
+          stdio: ['ignore', 'pipe', 'pipe'],
+        });
+      } catch (error) {
+        failedOutput = String(error.stdout ?? '');
+      }
+      const failed = JSON.parse(failedOutput);
+      assert.equal(failed.newRecordSnapshotVerification.valid, false);
+      assert.ok(failed.newRecordSnapshotVerification.errors.includes('history_new_record_mutated_after_introduction:fixture-new-record'));
+    } finally {
+      rmSync(fixtureRoot, { recursive: true, force: true });
+    }
   },
 };
 
