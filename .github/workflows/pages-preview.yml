@@ -56,12 +56,19 @@ jobs:
       - name: Verify the signed HTTPS preview origin
         id: origin
         run: |
-          endpoint="$(tr -d '\n' < preview-site/preview-manifest-origin.txt)"
-          if node scripts/fetch-preview-release-manifest.mjs "$endpoint" .preview-release-manifest.json; then
-            echo "fetched=true" >> "$GITHUB_OUTPUT"
-            if node scripts/verify-preview-origin.mjs .preview-release-manifest.json; then
-              echo "enabled=true" >> "$GITHUB_OUTPUT"
+          # preview-manifest-origin.txt 是 gitignored 运行时状态文件(含真实云端点/实例标识)；
+          # 开源仓库干净 checkout 中不存在 → 视为未配置，fail-closed 走 disabled(仅发布导航预览)。
+          if [ -f preview-site/preview-manifest-origin.txt ]; then
+            endpoint="$(tr -d '\n' < preview-site/preview-manifest-origin.txt)"
+            if node scripts/fetch-preview-release-manifest.mjs "$endpoint" .preview-release-manifest.json; then
+              echo "fetched=true" >> "$GITHUB_OUTPUT"
+              if node scripts/verify-preview-origin.mjs .preview-release-manifest.json; then
+                echo "enabled=true" >> "$GITHUB_OUTPUT"
+              else
+                echo "enabled=false" >> "$GITHUB_OUTPUT"
+              fi
             else
+              echo "fetched=false" >> "$GITHUB_OUTPUT"
               echo "enabled=false" >> "$GITHUB_OUTPUT"
             fi
           else
