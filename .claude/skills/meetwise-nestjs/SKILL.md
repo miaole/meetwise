@@ -29,7 +29,7 @@ begin(@Param('id') id: string, @Req() req: any, @Headers('resume-id') resumeId: 
   - TS web(PC/H5):直接 import zod,免 codegen + 运行时校验。
   - iOS/Android/小程序/其他:从生成的 `openapi.json` 跑 codegen。生成物永不漂移(从 zod 编出)。
   - **不手写 OpenAPI 当源、不做 web 端 codegen**(api 是 TS,手写源是回退)。异构端 codegen 管线**留 seam**,第一个真异构端落地再接,不提前造空壳。
-- 加 gate 断言 controller 引用契约(防再次腐化成死代码——审计实发 F2)。
+- 建议加 gate 断言 controller 引用契约(防再次腐化成死代码——审计实发 F2；当前尚无此 gate)。
 - **多端硬前提**:业务逻辑必须在 api service 层后(经契约暴露),任何端(web/原生)都不许重抄押题/扣费/状态机——见上"分层 F1"。
 
 ## RLS / 安全(强项,保持)

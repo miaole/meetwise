@@ -45,7 +45,7 @@ Set environment variables:
 ```bash
 export LANGFUSE_PUBLIC_KEY=pk-lf-...
 export LANGFUSE_SECRET_KEY=sk-lf-...
-export LANGFUSE_BASE_URL=https://cloud.langfuse.com  
+export LANGFUSE_HOST=https://cloud.langfuse.com  # LANGFUSE_BASE_URL is an accepted alias (SDK name); don't set both to different values
 ```
 
 ## Tips

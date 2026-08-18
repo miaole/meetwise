@@ -36,8 +36,8 @@ description: Meetwise Next.js(web)App Router 规范——RSC 服务端取数、S
 - 营销页加 JSON-LD(首页 Organization/WebSite/SoftwareApplication;FAQ 用 `FAQPage`)。备 OG 图。
 
 ## 多端响应式(PC + H5)
-- 用 `app/globals.css` 的 `.container`/`.card`/`.table-wrap` 体系,**别每页再塞 `maxWidth/padding/fontFamily` 内联壳**(双重 padding、宽度不一,审计 #7)。
-- 表格一律 `<div className="table-wrap"><table>`(admin 表移动端溢出,审计 #7)。
+- 布局/卡片用 Tailwind v4 token 工具类(`bg-background`/`text-foreground`/`bg-card`/`text-muted-foreground`/`border-border` 等,由 `app/globals.css` 的 `@theme inline` 映射)+ shadcn/ui 组件(`components/ui/card`/`button`/`badge` 等),**别每页再塞 `maxWidth/padding/fontFamily` 内联壳**(双重 padding、宽度不一,审计 #7)。
+- 表格用 `<div className="overflow-x-auto"><table>` 横向滚动容器(admin 表移动端溢出,审计 #7);旧的 `.table-wrap` class 已不在 globals.css 定义,别再用。
 - viewport 已配;输入 16px 防 iOS 缩放;触控 ≥42px;允许放大(a11y)。
 
 ## 性能
@@ -45,4 +45,4 @@ description: Meetwise Next.js(web)App Router 规范——RSC 服务端取数、S
 - 站内跳转用 `next/link`(prefetch),别裸 `<a>`(审计 #11)。`next/font` 优化字体;有图用 `next/image`。
 
 ## 反模式(审计实发,别犯)
-SPA-in-App-Router(全 'use client' 客户端 fetch)· 硬编码 `x-user-id:'demo'` 未鉴权(P0)· 契约客户端不接裸 fetch 无幂等键(P0)· 死代码 `lib/api/session.ts`(localStorage 令牌,删)· Server Action 不查 ok 盲跳 · 无 error/not-found 边界 · 每页内联样式壳绕过响应式 · 串行 await。
+SPA-in-App-Router(全 'use client' 客户端 fetch)· 硬编码 `x-user-id:'demo'` 未鉴权(P0)· 契约客户端不接裸 fetch 无幂等键(P0)· 回退到已删的 `lib/api/session.ts`(localStorage 令牌,勿恢复;令牌只在 httpOnly cookie 服务端读)· Server Action 不查 ok 盲跳 · 无 error/not-found 边界 · 每页内联样式壳绕过响应式 · 串行 await。

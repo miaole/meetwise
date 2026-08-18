@@ -226,8 +226,9 @@ experiment runner, or for local smoke tests. See
 [Scores via SDK](https://langfuse.com/docs/evaluation/evaluation-methods/scores-via-sdk)
 and the [Scores API reference](https://langfuse.com/docs/api) (`POST /api/public/scores`)
 for the current payload shape. Do not use the current `langfuse-cli` score-create
-wrapper unless `--help` shows a usable `value` argument; `langfuse-cli@0.0.10`
-exposes `legacy-score-v1s create` but cannot pass the required score `value`.
+wrapper unless `--help` shows a usable `value` argument; the current `langfuse-cli`
+exposes `legacy-score-v1s create` but (as of the last check) cannot pass the
+required score `value` — re-verify with `--help` before relying on it.
 
 Score names to emit:
 

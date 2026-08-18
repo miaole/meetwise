@@ -20,3 +20,7 @@ docker/data/
 
 # 手动 live smoke 的本地素材(音频/图片/嵌入缓存),不进仓库
 .smoke/
+
+# 本地工具状态/重复目录,不进开源仓库
+.playwright-mcp/
+.agents/
