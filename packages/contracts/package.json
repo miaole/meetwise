@@ -7,11 +7,12 @@
     ".": "./src/index.ts",
     "./openapi": "./src/openapi.ts"
   },
-  "scripts": { "prove:openapi": "tsx test/openapi.proof.ts" },
+  "scripts": { "prove:openapi": "tsx test/openapi.proof.ts", "prove:privacy-authorization": "tsx test/privacy-authorization.proof.ts" },
   "dependencies": {
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@types/node": "catalog:",
     "typescript": "catalog:"
   }
 }
