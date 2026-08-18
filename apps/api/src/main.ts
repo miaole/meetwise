@@ -1,18 +1,31 @@
 import 'reflect-metadata';
 import { randomUUID } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
-import { getMetrics } from '@meetwise/ai-runtime';
+import { getMetrics, resolveModelDeadlineConfig } from '@meetwise/ai-runtime';
 import { buildOpenApiDocument } from '@meetwise/contracts/openapi';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './platform/all-exceptions.filter';
+import { installPublicPreviewIngressGate, resolvePublicPreviewMode } from './platform/public-preview';
 
 /** 真 NestJS（Fastify + 类型 DI + SWC 运行）。 run: pnpm -C apps/api serve */
 export async function createApp(): Promise<NestFastifyApplication> {
-  const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter({ bodyLimit: 12 * 1024 * 1024 }), { logger: false });   // 12MB:容 base64 简历文件(8MB 原文)
+  const publicPreview = resolvePublicPreviewMode();
+  // Queue producers share the worker's timeout contract; reject a broken
+  // deployment before accepting requests that cannot be processed safely.
+  // MODEL-OP-02：全局 MODEL_MAX_CONCURRENT/MODEL_RPM 限流已废弃（per-adapter 限流移除），
+  // 并发/断路器改由共享权威（迁移 0120 的 ai_model_admission_acquire_scoped）在 invoke() 内裁决。
+  resolveModelDeadlineConfig();
+  const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter({ bodyLimit: 12 * 1024 * 1024 }), { logger: false, abortOnError: false });   // 12MB:容 base64 简历文件(8MB 原文)
+  const fastify = app.getHttpAdapter().getInstance() as any;
+  // Public preview's method allowlist must be the first Fastify lifecycle
+  // hook: no request body parsing, authentication, controller or queue work
+  // occurs for a rejected method.
+  installPublicPreviewIngressGate(fastify, publicPreview);
   app.useGlobalFilters(new AllExceptionsFilter());     // 全局异常过滤(修审计 F3):统一信封 + 不泄露内部细节
   // 系统指标:每个 HTTP 响应记请求数(按 method/route/status)+ 延迟直方图。route 用路由模板(低基数,不爆 label)。
-  const fastify = app.getHttpAdapter().getInstance() as any;
   // **全链路 request-id 起点**:有 x-request-id 头(网关/前端上游给)就沿用,没有就生成一根。
   //  放 req.reqId(controller → service → 写进 job.payload → worker → 模型 trace.request_id)+ 回写响应头,让调用方拿到同一根 id 对账。
   //  客户端可控头需净化:只收安全字符集 + 封顶长度,非法/空 → 换新 UUID(防响应头 CRLF 注入 / 超长值污染 trace 列)。
@@ -31,7 +44,7 @@ export async function createApp(): Promise<NestFastifyApplication> {
   fastify.addHook('onRequest', (req: any, reply: any, done: any) => {
     const len = Number(req.headers['content-length'] ?? 0);
     if (len > SMALL_BODY_LIMIT) {
-      const url = String(req.url ?? '').split('?')[0];
+      const url = String(req.url ?? '').split('?')[0] ?? '';
       if (!UPLOAD_ROUTES.some((re) => re.test(url))) { reply.code(413).send({ error: 'payload_too_large' }); return; }
     }
     done();
@@ -72,4 +85,15 @@ async function bootstrap() {
   await app.listen(port, host);
   console.log(`api on ${host}:${port}`);
 }
-bootstrap();
+
+// `createApp()` is deliberately exported for real HTTP E2E tests and embedders.
+// Importing this module must not also bind the production port: that created a
+// hidden second server, obscured test failures, and could race a real worker
+// process.  Only the directly executed module owns process bootstrap.
+const executedFile = process.argv[1] ? resolve(process.argv[1]) : '';
+if (executedFile === fileURLToPath(import.meta.url)) {
+  bootstrap().catch((error) => {
+    console.error(error instanceof Error ? error.message : 'api_bootstrap_failed');
+    process.exitCode = 1;
+  });
+}

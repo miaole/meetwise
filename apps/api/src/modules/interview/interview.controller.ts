@@ -34,15 +34,47 @@ export class InterviewController {
   // ASR 未配置/失败 → 503/502 明确错误,前端降级回文字作答(无死胡同)。契约 TranscribeDto 真校验。
   @Post(':id/transcribe')
   @HttpCode(HttpStatus.OK)
-  transcribe(@Param('id') id: string, @Req() req: any, @Body(new ZodValidationPipe(TranscribeDto)) b: TranscribeDto) {
-    return this.interviews.transcribe(req.principal, id, b);
+  async transcribe(
+    @Param('id') id: string,
+    @Req() req: any,
+    @Res({ passthrough: true }) reply: FastifyReply,
+    @Body(new ZodValidationPipe(TranscribeDto)) b: TranscribeDto,
+  ) {
+    const controller = new AbortController();
+    const abort = () => controller.abort();
+    req.raw.once('aborted', abort);
+    reply.raw.once('close', abort);
+    try {
+      return await this.interviews.transcribe(req.principal, id, b, { signal: controller.signal });
+    } finally {
+      req.raw.off('aborted', abort);
+      reply.raw.off('close', abort);
+    }
   }
 
   // TTS:题目语音播报(全程电话模式)。未配置/失败 → 503/502,前端降级文字读题。
   @Post(':id/speak')
   @HttpCode(HttpStatus.OK)
-  speak(@Param('id') id: string, @Req() req: any, @Body(new ZodValidationPipe(SpeakDto)) b: SpeakDto) {
-    return this.interviews.speak(req.principal, id, b);
+  async speak(
+    @Param('id') id: string,
+    @Req() req: any,
+    @Res({ passthrough: true }) reply: FastifyReply,
+    @Body(new ZodValidationPipe(SpeakDto)) b: SpeakDto,
+  ) {
+    // `req.raw.close` is normally emitted after Fastify has consumed the POST
+    // body, before this handler starts.  The response socket is the only
+    // reliable signal for a caller that disconnects while TTS is still being
+    // generated.  Keep `aborted` for a request-body interruption.
+    const controller = new AbortController();
+    const abort = () => controller.abort();
+    req.raw.once('aborted', abort);
+    reply.raw.once('close', abort);
+    try {
+      return await this.interviews.speak(req.principal, id, b, { signal: controller.signal });
+    } finally {
+      req.raw.off('aborted', abort);
+      reply.raw.off('close', abort);
+    }
   }
 
   // 流式 TTS:边合成边吐 MP3 块(cosyvoice WS)。首音(p50/暖网)~1-2s,对比非流式整段下载 ~9s(每请求新建 WS,未池化,冷启或抖动可 2-4s)。
@@ -192,7 +224,7 @@ export class InterviewController {
   }
 
   @Post(':id/answer')
-  @HttpCode(200)   // Nest @Post 默认 201；答案提交语义用 200
+  @HttpCode(HttpStatus.GONE)
   answer(@Param('id') id: string, @Req() req: any, @Headers('idempotency-key') key: string) {
     return this.interviews.answer(req.principal, id, key);
   }
@@ -201,8 +233,8 @@ export class InterviewController {
   // 修审计 F5:不再"重放即关",改 catch-up → **hold 连接轮询 tail 新事件**到终态/断开/封顶,带心跳保活(无死胡同)。
   @Get(':id/events')
   async events(@Param('id') id: string, @Req() req: any, @Res() reply: FastifyReply, @Headers('last-event-id') lastEventId: string) {
-    const rows = await this.interviews.events(req.principal, id, lastEventId);
-    if (rows === null) { reply.code(404).send({ error: 'not_found_or_forbidden' }); return; }
+    const initial = await this.interviews.events(req.principal, id, lastEventId);
+    if (initial === null) { reply.code(404).send({ error: 'not_found_or_forbidden' }); return; }
     // per-principal SSE 并发上限(安全审计 F5):每条 SSE 长期占一 DB 池周期查询;不封顶 → 开几十条即打满连接池饿死鉴权。
     const slotKey = `sse:${req.principal}`;
     if (!this.rl.acquireSlot(slotKey, 5)) { reply.code(429).send({ error: 'too_many_streams', message: 'SSE 连接过多,请关闭其它页面后重试' }); return; }
@@ -212,8 +244,8 @@ export class InterviewController {
     let closed = false;
     req.raw.on('close', () => { closed = true; });    // 客户端断开
     const safeWrite = (s: string) => { try { reply.raw.write(s); return true; } catch { closed = true; return false; } };
-    const isTerminal = (k: string) => k === 'report_ready' || k === 'report_unavailable' || k === 'interview_unavailable' || k === 'error';
-    let lastSeq = Number(lastEventId) || 0;
+    const isTerminal = (k: string) => k === 'report_ready' || k === 'report_unavailable' || k === 'assessment_unavailable' || k === 'interview_unavailable' || k === 'error';
+    let lastSeq = initial.lastId;
     let done = false;
     const emit = (list: Array<{ seq: number; kind: string; payload: unknown }>) => {
       for (const e of list) {
@@ -222,14 +254,14 @@ export class InterviewController {
         if (isTerminal(e.kind)) done = true;
       }
     };
-    emit(rows);                                        // 1. 重放 catch-up
+    emit(initial.rows);                                // 1. 重放 catch-up
     const deadline = Date.now() + 10 * 60_000;         // 封顶 10min(防僵尸连接;客户端凭 Last-Event-ID 重连续推)
     while (!done && !closed && Date.now() < deadline) {  // 2. hold + 轮询 tail
       await new Promise((r) => setTimeout(r, 2000));
       if (closed) break;
       const more = await this.interviews.events(req.principal, id, String(lastSeq)).catch(() => null);
       if (more === null) break;                         // 取数失败 → 收尾(客户端会重连)
-      if (more.length) emit(more);
+      if (more.rows.length) emit(more.rows);
       else if (!safeWrite(': ping\n\n')) break;         // 心跳保活 + 写失败即知断开
     }
     if (!closed) { try { reply.raw.end(); } catch { /* 已断开 */ } }

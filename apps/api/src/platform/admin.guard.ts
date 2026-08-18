@@ -11,7 +11,8 @@ export class AdminGuard implements CanActivate {
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req = ctx.switchToHttp().getRequest();
     if (!req.principal) throw new ForbiddenException({ error: 'forbidden' });
-    const r = await this.db.pool.query('SELECT is_admin FROM user_account WHERE id=$1', [req.principal]);
+    const r = await this.db.asPrincipal(req.principal, (c) => c.query(
+      'SELECT is_admin FROM user_account WHERE id=$1', [req.principal]));
     if (r.rowCount === 0 || r.rows[0].is_admin !== true) throw new ForbiddenException({ error: 'admin_required' });
     return true;
   }

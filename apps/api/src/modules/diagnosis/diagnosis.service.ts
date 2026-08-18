@@ -31,8 +31,23 @@ export class DiagnosisService {
       // 幂等:已有 generate job(重复 begin/网络重试)→ 不再扣额度、不再入队(否则双扣 + 双跑双花模型)。
       const existing = await c.query('SELECT id FROM diagnosis_job WHERE owner_user_id=$1 AND diagnosis_id=$2', [principal, id]);
       if (existing.rowCount! > 0) return { accepted: true, jobId: existing.rows[0].id, alreadyBegun: true };
-      // 记下目标岗位(图据此评估匹配度);与额度预留/入队同一事务。
-      await c.query('UPDATE resume_diagnosis SET target_role=$3, version=version+1 WHERE id=$1 AND owner_user_id=$2', [id, principal, role ?? null]);
+      // Bind an owner-checked ingested resume and its privacy epoch in the
+      // same transaction.  The queue receives only this typed tuple; the role
+      // stays in the parent diagnosis row, never in a JSON payload.
+      const resume = await c.query(
+        "SELECT privacy_epoch FROM resume WHERE id=$1 AND owner_user_id=$2 AND status='ingested'",
+        [resumeId, principal],
+      );
+      if (resume.rowCount !== 1) throw new HttpException({ error: 'resume_not_found_or_not_ready' }, HttpStatus.CONFLICT);
+      const privacyEpoch = Number(resume.rows[0].privacy_epoch);
+      const bound = await c.query(
+        `UPDATE resume_diagnosis
+            SET target_role=$3, resume_id=$4, privacy_epoch=$5, version=version+1
+          WHERE id=$1 AND owner_user_id=$2 AND status='created'
+            AND resume_id IS NULL AND privacy_epoch IS NULL`,
+        [id, principal, role ?? null, resumeId, privacyEpoch],
+      );
+      if (bound.rowCount !== 1) throw new HttpException({ error: 'diagnosis_resume_reference_conflict' }, HttpStatus.CONFLICT);
       // 额度不足时 reserveEntitlement **抛**(回滚),必须 catch 映射成 402,否则被异常过滤当 500。
       let rr;
       try { rr = await reserveEntitlement(c, principal, id, 'resume_diagnosis', 1.0); }
@@ -41,7 +56,7 @@ export class DiagnosisService {
         throw e;
       }
       if (rr.status !== 'reserved') throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
-      const jobId = await enqueueDiagnosisJob(c, principal, id, { resumeId, role });
+      const jobId = await enqueueDiagnosisJob(c, principal, id, resumeId, privacyEpoch);
       return { accepted: true, jobId };
     });
   }

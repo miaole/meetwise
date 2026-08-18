@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Delete, Body, Req, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Post, Get, Delete, Body, Req, UseGuards, HttpStatus, HttpCode, Headers, Param } from '@nestjs/common';
 import { PrincipalGuard } from '../../platform/principal.guard';
 import { PrivacyService } from './privacy.service';
 
@@ -24,6 +24,12 @@ export class PrivacyController {
   @Get('export')
   export(@Req() req: any) {
     return this.privacy.export(req.principal);
+  }
+
+  @Delete('interview-data/:id')
+  @HttpCode(HttpStatus.SERVICE_UNAVAILABLE)
+  eraseInterviewData(@Param('id') id: string, @Req() req: any, @Headers('idempotency-key') idempotencyKey?: string) {
+    return this.privacy.eraseInterviewData(req.principal, id, idempotencyKey);
   }
 
   @Delete('resume-data')

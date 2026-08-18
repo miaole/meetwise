@@ -7,7 +7,7 @@ import { boot, mkAssert, tokenFor, paySig, PAY_SECRET } from './_neg-harness';
  *
  * 事实基线(读真实代码得出,断言即据此):
  *  - 路由无全局前缀:/commerce/orders、/commerce/orders/:id/pay-callback、/commerce/orders/:id、
- *    /commerce/entitlement、/commerce/products(均挂 PrincipalGuard),/commerce/webhook/pay/:id(**无登录态**)。
+ *    /commerce/entitlement（PrincipalGuard）、/commerce/products（公开、可 CDN 缓存）、/commerce/webhook/pay/:id（**无登录态**）。
  *  - 下单契约 CreateOrderDto = { productId: string }。**无 amount/units 字段** → 金额/单位由服务器 PRODUCTS 权威派生,
  *    客户端注入的 amount/units 被 zod strip 掉(篡改天然无效)。PRODUCTS: pack_10=9900¢/10u, pack_30=24900¢/30u。
  *  - 回调/webhook 签名 = HMAC-sha256(`${orderId}:${providerTxn}:paid`, PAY_SECRET) 的 hex;缺字段→400 invalid_callback,
@@ -33,6 +33,8 @@ const money = (o: any) => o?.amountCents;
     "('ORD_CC','negCC','pack_10',9900,10,'created')," +         // 并发双 webhook
     "('ORD_PCC','negPCC','pack_10',9900,10,'created')," +       // 并发双 pay-callback(principal)
     "('ORD_SPOOF','negSpoof','pack_10',9900,10,'created')," +   // body 里塞 owner 冒充(应被忽略,入账真 owner)
+    "('ORD_TX_A','negTxnA','pack_10',9900,10,'created')," +     // 跨订单复用同 providerTxn
+    "('ORD_TX_B','negTxnB','pack_10',9900,10,'created')," +
     "('ORD_AMT','negAmt','pack_10',9900,10,'created')");        // 备用
   await pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ('negExp','paid',5.0, now()-interval '1 day')");   // 过期额度
   await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('IV_EXP','negExp','created')");
@@ -147,8 +149,8 @@ const money = (o: any) => o?.amountCents;
     A('create/idem 同key同body → 仍只 1 条订单', (await nOrders('userA', K)) === 1 && r3.body?.orderId === r1.body?.orderId);
   }
   {
-    // 并发同一 idempotency-key 下单 → UNIQUE(owner,idem) 兜底:最终只 1 条订单(不重复建)。
-    // (SELECT-then-INSERT 非原子,输家撞 23505 → 异常过滤映射 409 conflict;赢家 200。核心不变量:订单数==1)
+    // 并发同一 idempotency-key 下单 → ON CONFLICT + 回读：所有重试都拿到**同一个** orderId，
+    // 不把正常网络重试暴露为 23505/409。
     const K = 'race-' + randomUUID();
     const owner = 'negRaceCreate';
     const hdr = { ...U(owner), 'idempotency-key': K };
@@ -158,9 +160,9 @@ const money = (o: any) => o?.amountCents;
       h.post('/commerce/orders', hdr, { productId: 'pack_10' }),
     ]);
     A('create/并发同key → DB 只落 1 条订单(不重复建)', (await nOrders(owner, K)) === 1);
-    A('create/并发同key → 无 5xx(输家 200 或 409,不泄内部错)', rs.every((r) => r.status === 200 || r.status === 409));
-    const ids = new Set(rs.filter((r) => r.status === 200).map((r) => r.body?.orderId));
-    A('create/并发同key → 成功响应至多一个订单 id', ids.size <= 1);
+    A('create/并发同key → 3 个调用均 200（重放不是冲突）', rs.every((r) => r.status === 200));
+    const ids = new Set(rs.map((r) => r.body?.orderId));
+    A('create/并发同key → 3 个响应严格同一 orderId', ids.size === 1 && !ids.has(undefined));
   }
 
   // ════════════════════════════════════════════════════════════════════════
@@ -192,9 +194,9 @@ const money = (o: any) => o?.amountCents;
     A('query/未鉴权额度 → 401', r.status === 401);
   }
   {
-    // 未鉴权查 products(标 public 缓存但仍挂 guard)→ 401。(疑似过严:近静态品目却要登录,见结论)
+    // 商品目录是合同中明确的公开静态读接口；不可被控制器级 guard 意外遮蔽。
     const r = await h.req('GET', '/commerce/products', {});
-    A('query/未鉴权 products → 401(guard 覆盖全控制器)', r.status === 401);
+    A('query/未鉴权 products → 200(公开目录与 OpenAPI 对齐)', r.status === 200 && Array.isArray(r.body?.products) && r.body.products.length === 2);
   }
 
   // ════════════════════════════════════════════════════════════════════════
@@ -342,6 +344,20 @@ const money = (o: any) => o?.amountCents;
     A('webhook/并发双回调 → 恰一个 credited', rs.map((r) => r.body?.result).filter((x) => x === 'credited').length === 1);
     A('webhook/并发双回调 → 桶只加 1(不双结算)', (await nBuckets('negCC')) === before + 1);
     A('webhook/并发双回调 → 入账额恰 10', (await sumTotal('negCC')) === 10);
+  }
+  {
+    // P0：同一 PSP 流水被重放到**两张不同订单**。订单级 CAS 不够；必须由 provider_txn 全局唯一归属
+    // 裁决。两个请求均验签正确，故第二个必须是可解释的 409，而不是第二次发放或 500。
+    const txn = 'txn-CROSS-ORDER-ONCE';
+    const rs = await Promise.all([
+      h.post(WH('ORD_TX_A'), {}, goodBody('ORD_TX_A', txn)),
+      h.post(WH('ORD_TX_B'), {}, goodBody('ORD_TX_B', txn)),
+    ]);
+    A('webhook/跨订单同 providerTxn → 恰一笔 200 credited', rs.filter((r) => r.status === 200 && r.body?.result === 'credited').length === 1);
+    A('webhook/跨订单同 providerTxn → 另一笔 409 order_conflict（非 5xx）', rs.filter((r) => r.status === 409 && r.body?.error === 'order_conflict').length === 1);
+    const txnRows = Number((await pool.query('SELECT count(*)::int n FROM payment_order WHERE provider_txn=$1', [txn])).rows[0].n);
+    A('webhook/跨订单同 providerTxn → provider_txn 落库仅 1 行', txnRows === 1);
+    A('webhook/跨订单同 providerTxn → 两个账户合计只发 10 单位', (await sumTotal('negTxnA')) + (await sumTotal('negTxnB')) === 10);
   }
 
   // ════════════════════════════════════════════════════════════════════════

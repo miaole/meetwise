@@ -167,9 +167,9 @@ let RA = '';   // userA 一份真简历(供后续越权/删除/兜底复用)
   A('文件 mimeType 超长(>255) → 400', (await h.post('/resume/file', AUTH_A, { ...base, mimeType: 'a'.repeat(256) })).status === 400);
   A('文件 contentBase64 空串(< min1) → 400', (await h.post('/resume/file', AUTH_A, { ...base, contentBase64: '' })).status === 400);
 
-  // 解码后 0 字节(base64 "====" 解出空 buffer)→ empty_file
+  // 非法 padding 在共享 Zod 契约层拒绝，避免进入 decoder/parser。
   const empty = await h.post('/resume/file', AUTH_A, { filename: 'cv.pdf', mimeType: 'application/pdf', contentBase64: '====' });
-  A('文件解码后空(empty_file) → 400', empty.status === 400 && empty.body?.error === 'empty_file');
+  A('非法 base64 padding(====) → 400，解码/解析前拒绝', empty.status === 400 && empty.body?.error === 'invalid');
 
   // 超大:base64 超契约上限(10_700_000 chars,约等价 8MB 上限)→ 契约先拒
   const huge = await h.post('/resume/file', AUTH_A, { filename: 'cv.pdf', mimeType: 'application/pdf', contentBase64: 'A'.repeat(10_700_001) });
@@ -183,9 +183,16 @@ let RA = '';   // userA 一份真简历(供后续越权/删除/兜底复用)
   const mism = await h.post('/resume/file', AUTH_A, { filename: 'cv.pdf', mimeType: 'application/pdf', contentBase64: Buffer.from('这只是纯文本不是PDF结构').toString('base64') });
   A('mime 与内容不符(文本冒充 PDF) → >=400', inRange(mism.status, 400, 499));
 
-  // 不支持扩展 + 短内容:降级为可解释 text 路径且过短拒
+  // 不支持格式不得降级为 UTF-8 文本：否则 XLSX/PPTX/视频会以乱码“成功入库”，
+  // 既污染 RAG 又失去结构/时间轴/citation。全格式平台接入前必须显式 415。
   const exe = await h.post('/resume/file', AUTH_A, { filename: 'malware.exe', mimeType: 'application/x-msdownload', contentBase64: Buffer.from('MZ').toString('base64') });
-  A('不支持类型/扩展(.exe) → >=400', inRange(exe.status, 400, 499));
+  A('不支持类型/扩展(.exe) → 415 unsupported_file_format', exe.status === 415 && exe.body?.error === 'unsupported_file_format');
+  const xlsx = await h.post('/resume/file', AUTH_A, { filename: 'budget.xlsx', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', contentBase64: Buffer.from('PK\\x03\\x04fake-xlsx').toString('base64') });
+  A('XLSX 未接专用表格 adapter 时 → 415，绝不乱码入库', xlsx.status === 415 && xlsx.body?.error === 'unsupported_file_format');
+  const pptx = await h.post('/resume/file', AUTH_A, { filename: 'deck.pptx', mimeType: 'application/pdf', contentBase64: Buffer.from('PK\\x03\\x04fake-pptx').toString('base64') });
+  A('PPTX 即使 MIME 伪称 PDF 仍 → 415，文件名/MIME 双侧 fail-closed', pptx.status === 415 && pptx.body?.error === 'unsupported_file_format');
+  const video = await h.post('/resume/file', AUTH_A, { filename: 'interview.mp4', mimeType: 'video/mp4', contentBase64: Buffer.from('fake-video').toString('base64') });
+  A('视频不走简历 text 解析 → 415，等待 ASR/时间轴摄取器', video.status === 415 && video.body?.error === 'unsupported_file_format');
 
   // 路径穿越 filename:filename 只用于格式探测,绝不落地为文件路径 → 安全处理不 5xx
   const trav = await h.post('/resume/file', AUTH_A, { filename: '../../../../etc/passwd', mimeType: 'text/plain', contentBase64: Buffer.from('短').toString('base64') });
@@ -258,10 +265,30 @@ let RA = '';   // userA 一份真简历(供后续越权/删除/兜底复用)
   A('userA 导出不含 victimU 的简历(跨租户隔离)', !expA.body.resumes.some((x: any) => x.id === RV));
   A('userA 导出确实含自己的简历 RA(RLS 只己见,自证非空导错)', expA.body.resumes.some((x: any) => x.id === RA));
 
+  // OCR 调用记录不含转写明文，但仍可按 owner 关联个人资料；删除权只清自己的
+  // resume.vision 行，绝不误删另一个用户的同类审计记录。
+  const digest = 'a'.repeat(64);
+  await h.pool.query(
+    `INSERT INTO ai_invocation_trace(owner_user_id,idempotency_key,output,service)
+     VALUES ('userB','erase-ocr-trace-b','{}','resume.vision'),('userA','erase-ocr-trace-a','{}','resume.vision')`,
+  );
+  await h.pool.query(
+    `INSERT INTO ai_model_invocation(owner_user_id,idempotency_key,request_digest,status,output,replayable,service,completed_at)
+     VALUES ('userB','erase-ocr-invocation-b',$1,'succeeded','{}',false,'resume.vision',clock_timestamp()),
+            ('userA','erase-ocr-invocation-a',$1,'succeeded','{}',false,'resume.vision',clock_timestamp())`, [digest],
+  );
+
   // userB 删除自己的简历数据:只删己,不动 userA 的 RA / victimU 的 RV
   const delB = await h.req('DELETE', '/privacy/resume-data', AUTH_B);
   A('userB 删除自有简历数据成功(前置)', delB.status === 200);
   A('userB 删数据仅删己(resumesRemoved=0,userB 本无简历)', delB.body?.resumesRemoved === 0);
+  A('userB 的 OCR trace 被同一删除事务清除', delB.body?.ocrTracesRemoved === 1
+    && Number((await h.pool.query("SELECT count(*)::int n FROM ai_invocation_trace WHERE owner_user_id='userB' AND service='resume.vision'")).rows[0].n) === 0);
+  A('userB 的 OCR durable invocation 被同一删除事务清除', delB.body?.ocrInvocationsRemoved === 1
+    && Number((await h.pool.query("SELECT count(*)::int n FROM ai_model_invocation WHERE owner_user_id='userB' AND service='resume.vision'")).rows[0].n) === 0);
+  A('删除 userB 时不误删 userA 的 OCR 衍生记录',
+    Number((await h.pool.query("SELECT count(*)::int n FROM ai_invocation_trace WHERE owner_user_id='userA' AND service='resume.vision'")).rows[0].n) === 1
+    && Number((await h.pool.query("SELECT count(*)::int n FROM ai_model_invocation WHERE owner_user_id='userA' AND service='resume.vision'")).rows[0].n) === 1);
   A('userB 删数据后 userA 的 RA 仍在(跨用户不越界)', await resumeExists(RA));
   A('userB 删数据后 victimU 的 RV 仍在(跨用户不越界)', await resumeExists(RV));
 }
@@ -301,7 +328,7 @@ await done();
  * §7 重解析:                4
  * §8 删除:                  8
  * §9 画像读取:              2
- * §10 隐私导出/删除:         7
+ * §10 隐私导出/删除:         10
  * §11 OCR PII / 降级:        3 (二选一分支各含 2~3 条)
  * ── 合计约 79 条纯负路径用例(0 条 happy-path 断言) ──
  */

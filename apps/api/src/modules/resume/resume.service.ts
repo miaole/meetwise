@@ -1,11 +1,16 @@
 import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
 import { createHash } from 'node:crypto';
-import { createResumeWithBlob, transitionResume, completeIngestion, decryptResumeBlob, reserveEntitlement, confirmConsumption, releaseConsumption } from '@meetwise/db';
+import {
+  createResumeWithBlob, transitionResume, completeIngestion, decryptResumeBlob,
+  persistResumeOcrArtifact, decryptResumeOcrArtifact, deleteResumeOcrArtifact,
+  reserveEntitlement, confirmConsumption, releaseConsumption,
+} from '@meetwise/db';
 import { ingestResume, extractResumeText } from '@meetwise/domain';
 import { visionOcr, type ModelClient } from '@meetwise/ai-runtime';
 import type { UploadResumeDto, UploadResumeFileDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
 import { RateLimitService } from '../../platform/rate-limit.service';
+import { isOcrFeatureEnabled } from './ocr-model-client.ts';
 
 const MAX_RESUME_BYTES = 8 * 1024 * 1024;   // 8MB 上限(防大文件 DoS)
 const MAX_RESUME_TEXT = 60_000;             // 提取文本末线(对齐文本路径契约;防解压炸弹/超大文档提取出 MB 级文本无界落库+喂模型,安全审计 F3)
@@ -43,6 +48,9 @@ export class ResumeService {
     try {
       extracted = await extractResumeText(buffer, dto.mimeType, dto.filename);
     } catch (e: any) {
+      if (e?.code === 'unsupported_file_format') {
+        throw new HttpException({ error: 'unsupported_file_format', filename: dto.filename, hint: '该格式尚未接入简历解析；请上传 PDF、Word、图片或纯文本。Excel/PPT/音视频请走全格式知识库摄取管线。' }, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+      }
       // 图片简历 → OCR 路径(qwen-vl 转写 → 回灌文本链路);转写文本随后与文本简历同一道门(注入清洗/stripPii/结构化)。
       // finally 在 return 前也会执行 → 解析槽恰好释放一次(不在此显式释放,避免并发下双减)。
       if (e?.code === 'image_needs_ocr') return this.uploadImageViaOcr(principal, buffer, dto);
@@ -61,17 +69,18 @@ export class ResumeService {
    * 图片简历 OCR(同步走关口,按次计费)。承重(专家审计定稿):
    *  - 计费(决策B,用户拍板):图字节 HMAC 为幂等锚 `ocr:<hmac>`(不用易变 docId),reserve→**只有产出可用画像才 confirmed**;转写失败/无有效内容/结构化失败一律 released(退 OCR 费)。
    *  - 关口:视觉调用只走 invoke()(双校验 + PII 不入 trace + advisory-lock exactly-once)。
-   *  - kill-switch:能力级 flag(`OCR_ENABLED=0`)→ 不 reserve、不调用,返回与现状一致的 422(前端已有降级文案),终态不重排。
+   *  - fail-closed: OCR 尚未有 MODEL-OP-01 typed binding，任何环境都不允许启用；不 reserve、不调用，返回 422。
    *  - 时序:响应形状不变(返回 `ingested`/`deduped`),前端与契约零改动。
    */
   private async uploadImageViaOcr(principal: string, buffer: Buffer, dto: UploadResumeFileDto) {
-    if (process.env.OCR_ENABLED === '0') throw new HttpException({ error: 'image_ocr_unavailable', hint: '图片简历 OCR 暂不可用,请先传 PDF/Word 或粘贴文本' }, HttpStatus.UNPROCESSABLE_ENTITY);   // kill-switch
+    if (!isOcrFeatureEnabled()) throw new HttpException({ error: 'image_ocr_unavailable', hint: '图片简历 OCR 暂不可用,请先传 PDF/Word 或粘贴文本' }, HttpStatus.UNPROCESSABLE_ENTITY);   // fail-closed until MODEL-OP-01
     const imgHash = createHash('sha256').update(buffer).digest('hex');
     const ocrKey = `ocr:${imgHash}`;                                             // 幂等锚 = 图片字节(同图重传/并发不重扣、不重调付费视觉模型)
     const dataUri = `data:${dto.mimeType || 'image/png'};base64,${dto.contentBase64}`;
+    let recoveredText: string | null = null;
 
-    // reserve → 视觉转写 → confirm/release,同一 principal 事务(invoke 需事务 client 持 advisory 锁跨调用)。
-    const text = await this.db.asPrincipal(principal, async (c: any) => {
+    // 费用预留是短事务；视觉供应商请求绝不占住数据库事务/连接。
+    await this.db.asPrincipal(principal, async (c: any) => {
       // PIPL:处理简历 PII(且要付费)前必须先有采集同意,绝不先扣费再拒。
       const consent = await c.query("SELECT 1 FROM consent_record WHERE purpose='resume_processing' LIMIT 1");
       if (consent.rowCount === 0) throw new HttpException({ error: 'consent_required', purpose: 'resume_processing' }, HttpStatus.FORBIDDEN);
@@ -81,48 +90,72 @@ export class ResumeService {
         if (e?.code === 'insufficient_entitlement') throw new HttpException({ error: 'insufficient_entitlement', hint: '额度不足,请充值后再识别图片简历', requested: e.requested, available: e.available }, HttpStatus.PAYMENT_REQUIRED);
         throw e;
       }
-      // 同图并发/重传:已在处理或已识别过 → 不重复调用/扣费,导用户去列表查看(无死胡同)。
-      if (reserve.status === 'duplicate') throw new HttpException({ error: 'ocr_duplicate', hint: '该图片已识别或正在识别,请在简历列表查看' }, HttpStatus.CONFLICT);
-
-      const r = await visionOcr(this.vision, c, principal, dataUri, ocrKey);
-      if (!r.ok) {
-        const reason = 'reason' in r ? r.reason : 'ocr_failed';                 // in 守卫收窄(稳健,不依赖判别式跨 await)
-        await releaseConsumption(c, principal, ocrKey);                          // 转写失败/降级 → 不扣费
-        throw new HttpException({ error: 'ocr_failed', reason, hint: '图片识别失败,请换更清晰的图片或粘贴文本' }, HttpStatus.UNPROCESSABLE_ENTITY);
+      if (reserve.status === 'duplicate') {
+        // OCR 明文绝不放 trace；成功后若业务提交前崩溃，只能从和成功状态
+        // 同事务落下的加密工件恢复。拿到工件就继续后续摄取，绝不重发视觉请求。
+        recoveredText = await decryptResumeOcrArtifact(c, principal, ocrKey);
+        if (!recoveredText) {
+          throw new HttpException({ error: 'ocr_duplicate', hint: '该图片已识别、正在识别，或结果等待人工对账；请在简历列表查看' }, HttpStatus.CONFLICT);
+        }
       }
-      return r.text as string;                                                   // 转写成功,**先不 confirm**(决策B:结构化产出可用画像才扣)
+
     });
+    let text: string | null = recoveredText;
+    if (!text) {
+      const ocr = await visionOcr(this.vision, this.db.pool, principal, dataUri, ocrKey, {
+        // 该写入与 ai_model_invocation=succeeded 同一短事务提交；不能在模型返回后
+        // 再另开事务，否则进程崩溃会丢掉已计费且不可回放的 OCR 文本。
+        persistValidatedText: (c, value) => persistResumeOcrArtifact(c, principal, ocrKey, value),
+      });
+      if (ocr.ok === false) {
+        await this.db.asPrincipal(principal, async (c: any) => {
+          await releaseConsumption(c, principal, ocrKey);
+          await deleteResumeOcrArtifact(c, principal, ocrKey);
+        });
+        throw new HttpException({ error: 'ocr_failed', reason: ocr.reason, hint: '图片识别失败,请换更清晰的图片或粘贴文本' }, HttpStatus.UNPROCESSABLE_ENTITY);
+      }
+      text = ocr.text;
+    }
 
     // **决策B(用户拍板):只有产出可用画像才扣 OCR 费;转写成功但无有效内容 / 结构化失败 → 一律退还。**
-    //  预留在此保持 reserved(两 tx 之间若崩,C1 对账层按租约到期 sweep 回收,不泄漏)。
+    //  预留在此保持 reserved；加密工件允许中断后的同图重传继续提交，不靠盲目重调视觉模型。
     if (ingestResume(text).facts.length === 0) {                                 // 转写成功但提取不到有效简历事实 → 画像不可用 → 退费
-      await this.db.asPrincipal(principal, (c: any) => releaseConsumption(c, principal, ocrKey));
+      await this.db.asPrincipal(principal, async (c: any) => {
+        await releaseConsumption(c, principal, ocrKey);
+        await deleteResumeOcrArtifact(c, principal, ocrKey);
+      });
       throw new HttpException({ error: 'ocr_no_content', hint: '图片识别成功但未提取到有效简历内容,已退还额度,请换更清晰的图片或粘贴文本' }, HttpStatus.UNPROCESSABLE_ENTITY);
     }
-    let structured;
-    try { structured = await this.upload(principal, { text }, 'needs_review'); }   // 结构化复用文本链路(注入清洗/stripPii/加密/去重);**OCR/图片源恒 needs_review**(伪造证件不冒充判真伪)
-    catch (e) {                                                                  // 下游结构化失败 → **退 OCR 费**(决策B)
-      await this.db.asPrincipal(principal, (c: any) => releaseConsumption(c, principal, ocrKey));
-      throw e;
-    }
-    await this.db.asPrincipal(principal, (c: any) => confirmConsumption(c, principal, ocrKey));   // 可用画像已产出 → 按次落账(决策B)
+    // 简历写入、权益确认、工件删除必须同一事务：否则任一崩溃窗口都会留下
+    // “有画像未扣费”或“已扣费但下次又重调”的不一致。事务失败时保留 artifact+reserve，
+    // 重传可从工件继续；不把基础设施故障误判为应退费的业务失败。
+    const structured = await this.db.asPrincipal(principal, async (c: any) => {
+      const saved = await this.uploadInTransaction(c, principal, { text }, 'needs_review');
+      const confirmed = await confirmConsumption(c, principal, ocrKey);
+      if (confirmed.status === 'error') throw Object.assign(new Error(`ocr_confirm_failed:${confirmed.reason}`), { code: 'ocr_confirm_failed' });
+      await deleteResumeOcrArtifact(c, principal, ocrKey);
+      return saved;
+    });
     return { ...structured, format: 'image', chars: text.length, ocr: true };
   }
 
   /** profileStatus:OCR/图片源传 'needs_review'(系统不冒充判真伪,给人工复核落地位);文本/PDF 文本层默认 'ok'。 */
   upload(principal: string, dto: UploadResumeDto, profileStatus: 'ok' | 'needs_review' = 'ok') {
+    return this.db.asPrincipal(principal, (c: any) => this.uploadInTransaction(c, principal, dto, profileStatus));
+  }
+
+  /** 由普通上传和 OCR 终态事务共用；调用方决定最外层事务，禁止在 OCR 内嵌套独立提交。 */
+  private async uploadInTransaction(c: any, principal: string, dto: UploadResumeDto, profileStatus: 'ok' | 'needs_review' = 'ok') {
     // NUL 字节(\u0000)在 Postgres text 类型里非法,直喂 pgp_sym_encrypt 会抛 → 500;简历文本里 NUL 无意义,落库前一律剥除(负测抓到)。
     const text = dto.text.replace(/\u0000/g, '');
-    return this.db.asPrincipal(principal, async (c: any) => {
-      // PIPL 硬门槛:处理简历 PII 前必须有采集同意,否则拒绝(不偷偷处理)。
-      const consent = await c.query("SELECT 1 FROM consent_record WHERE purpose='resume_processing' LIMIT 1");
-      if (consent.rowCount === 0) throw new HttpException({ error: 'consent_required', purpose: 'resume_processing' }, HttpStatus.FORBIDDEN);
-      const up = await createResumeWithBlob(c, principal, text);          // 原文加密落库 + 去重
-      if (up.dedup) return { resumeId: up.resumeId, status: 'deduped' };
-      await transitionResume(c, principal, up.resumeId, 'uploaded', 'ingesting');
-      await completeIngestion(c, principal, up.resumeId, ingestResume(text), profileStatus); // 结构化 + PII 脱敏 → ingested
-      return { resumeId: up.resumeId, status: 'ingested' };
-    });
+    // PIPL 硬门槛:处理简历 PII 前必须先有采集同意,绝不偷偷处理。
+    const consent = await c.query("SELECT 1 FROM consent_record WHERE purpose='resume_processing' LIMIT 1");
+    if (consent.rowCount === 0) throw new HttpException({ error: 'consent_required', purpose: 'resume_processing' }, HttpStatus.FORBIDDEN);
+    const up = await createResumeWithBlob(c, principal, text);          // 原文加密落库 + 去重
+    if (up.dedup) return { resumeId: up.resumeId, status: 'deduped' };
+    await transitionResume(c, principal, up.resumeId, 'uploaded', 'ingesting');
+    await completeIngestion(c, principal, up.resumeId, ingestResume(text), profileStatus); // 结构化 + PII 脱敏 → ingested
+    return { resumeId: up.resumeId, status: 'ingested' };
   }
 
   list(principal: string) {
@@ -142,17 +175,14 @@ export class ResumeService {
     });
   }
 
-  remove(principal: string, id: string) {
-    // resume/resume_profile/resume_blob 的 id 是 uuid 列;非 uuid 的 :id 直查会触发 Postgres 22P02 → 500。
-    // 非 uuid 不可能对应任何行,等价于 not_found → 干净 404(负测抓到 profile/delete 缺此兜底)。
-    if (!UUID_RE.test(id)) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
-    return this.db.asPrincipal(principal, async (c: any) => {
-      await c.query('DELETE FROM resume_profile WHERE resume_id=$1', [id]);
-      await c.query('DELETE FROM resume_blob WHERE resume_id=$1', [id]);
-      const d = await c.query('DELETE FROM resume WHERE id=$1', [id]);
-      if (d.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
-      return { deleted: true };
-    });
+  /**
+   * The historical hard DELETE bypassed the C/B reference snapshot, queue and
+   * graph fences, receipt ledger, and external deletion targets.  Keep the
+   * route fail-closed until the per-resume asynchronous erasure state machine
+   * replaces it; a 200 here would falsely represent a privacy guarantee.
+   */
+  remove(_principal: string, _id: string): never {
+    throw new HttpException({ error: 'resume_erasure_migration_in_progress' }, HttpStatus.SERVICE_UNAVAILABLE);
   }
 
   profile(principal: string, id: string) {

@@ -4,10 +4,12 @@ import { InterviewModule } from './modules/interview/interview.module';
 import { QuizModule } from './modules/quiz/quiz.module';
 import { DiagnosisModule } from './modules/diagnosis/diagnosis.module';
 import { HealthController } from './modules/health/health.controller';
+import { HealthService } from './modules/health/health.service';
 import { AuthController } from './modules/auth/auth.controller';
 import { ResumeController } from './modules/resume/resume.controller';
 import { ResumeService, OCR_VISION_CLIENT } from './modules/resume/resume.service';
-import { scriptedModelClient, openAICompatibleClient, type ModelClient } from '@meetwise/ai-runtime';
+import { type ModelClient } from '@meetwise/ai-runtime';
+import { createOcrVisionClient } from './modules/resume/ocr-model-client.ts';
 import { CommerceController } from './modules/commerce/commerce.controller';
 import { CommerceWebhookController } from './modules/commerce/commerce-webhook.controller';
 import { CommerceService } from './modules/commerce/commerce.service';
@@ -36,10 +38,9 @@ import { MetricsController } from './modules/metrics/metrics.controller';
   controllers: [HealthController, AuthController, ResumeController, CommerceController, CommerceWebhookController, PrivacyController, NotificationController, ProfileController, LegalController, AdminController, RolesController, RecruiterController, JobsController, ApplicationsController, MetricsController],
   providers: [
     ResumeService,
-    // OCR 视觉客户端组合根:测试(OCR_FAKE=1)注入确定性 scripted,生产用真 qwen-vl —— seam 可换,让 /resume/file 能真端到端测。
-    { provide: OCR_VISION_CLIENT, useFactory: (): ModelClient => process.env.OCR_FAKE === '1'
-        ? scriptedModelClient({ 'resume.vision': () => ({ ok: true, raw: { text: process.env.OCR_FAKE_TEXT || '技能\nGo、Redis' } }) })
-        : openAICompatibleClient({ model: process.env.VISION_MODEL_NAME ?? 'qwen-vl-max' }) },
-    AuthService, CommerceService, ProfileService, NotificationService, AdminService, PrivacyService, RolesService, RecruiterService, JobsService, ApplicationsService],   // 应用服务层(controller→service→db 仓储,修审计 F1)
+    // OCR 尚未完成 MODEL-OP-01 的操作绑定；所有环境必须禁用，
+    // 不能让 API 直接拿到的 provider Key 变成未计量视觉外呼。
+    { provide: OCR_VISION_CLIENT, useFactory: (): ModelClient => createOcrVisionClient() },
+    AuthService, CommerceService, ProfileService, NotificationService, AdminService, PrivacyService, RolesService, RecruiterService, JobsService, ApplicationsService, HealthService],   // 应用服务层(controller→service→db 仓储,修审计 F1)
 })
 export class AppModule {}

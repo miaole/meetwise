@@ -12,7 +12,7 @@ import { ZodValidationPipe } from '../src/platform/zod.pipe';
 
 @Controller()
 class C {
-  @Post('/answer')
+  @Post('/fixture-answer-shape')
   submit(@Body(new ZodValidationPipe(AnswerDto)) body: AnswerDto) {
     return { ok: true, len: body.answer.length };
   }
@@ -24,7 +24,7 @@ async function main() {
   const app = await NestFactory.create<NestFastifyApplication>(M, new FastifyAdapter(), { logger: false });
   await app.listen(0, '127.0.0.1');
   const base = (await app.getUrl()).replace('[::1]', '127.0.0.1');
-  const post = (b: any) => fetch(base + '/answer', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(b) }).then(async (r) => ({ s: r.status, b: await r.json() as any }));
+  const post = (b: any) => fetch(base + '/fixture-answer-shape', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(b) }).then(async (r) => ({ s: r.status, b: await r.json() as any }));
   let fails = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fails++; };
   let r = await post({ answer: 'hello' }); A('合法 body → 200', (r.s === 200 || r.s === 201) && r.b.len === 5);
   r = await post({ answer: '' }); A('非法 body(空) → 400（zod4 拦截）', r.s === 400);

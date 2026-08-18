@@ -50,7 +50,7 @@ export class CommerceService {
 
   /**
    * 真异步支付 webhook(修审计 F4):**无登录态**(PSP 服务端调,无 user session)。
-   * 安全模型:HMAC 绑定订单 id + txn(密钥缺失 fail-closed)→ 验签过才认;owner **从 DB 查**(特权 pool 绕 RLS,不信调用方)→ 以该 owner 入账。
+   * 安全模型:HMAC 绑定订单 id + txn(密钥缺失 fail-closed)→ 验签过才认;owner 从无表权限网关的固定函数读取(不信调用方)→ 以该 owner 入账。
    * 入账复用同一 exactly-once CAS(markOrderPaidAndCredit),重复回调幂等不双入。
    */
   async payWebhook(id: string, body: { providerTxn?: string; sig?: string }) {
@@ -59,7 +59,9 @@ export class CommerceService {
     const exp = createHmac('sha256', secret).update(`${id}:${body.providerTxn}:paid`).digest('hex');
     const a = Buffer.from(body.sig), e = Buffer.from(exp);
     if (!secret || a.length !== e.length || !timingSafeEqual(a, e)) throw new HttpException({ error: 'bad_signature' }, HttpStatus.FORBIDDEN);
-    const owner = await this.db.pool.query('SELECT owner_user_id FROM payment_order WHERE id=$1', [id]).then((r: any) => r.rows[0]?.owner_user_id);
+    const owner = await this.db.asGateway((c) => c.query(
+      'SELECT gateway_payment_order_owner($1) AS owner_user_id', [id],
+    )).then((r: any) => r.rows[0]?.owner_user_id);
     if (!owner) throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);   // 查不到单(签名再对也不入账)
     const res = await this.db.asPrincipal(owner, (c) => markOrderPaidAndCredit(c, owner, id, body.providerTxn!));
     if (res === 'not_found') throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);

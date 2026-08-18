@@ -13,8 +13,14 @@ import { RateLimitService } from '../../platform/rate-limit.service';
 export class RecruiterService {
   constructor(private readonly db: DbService, private readonly rl: RateLimitService) {}
 
-  create(principal: string, dto: CreateJobDto) {
-    return this.db.asPrincipal(principal, (c) => createJob(c, principal, dto));
+  async create(principal: string, dto: CreateJobDto, idempotencyKey?: string) {
+    try {
+      return await this.db.asPrincipal(principal, (c) => createJob(c, principal, { ...dto, idempotencyKey }));
+    } catch (error) {
+      if ((error as { code?: string })?.code === 'job_idempotency_key_conflict')
+        throw new HttpException({ error: 'idempotency_key_conflict' }, HttpStatus.CONFLICT);
+      throw error;
+    }
   }
 
   list(principal: string) {
@@ -34,7 +40,8 @@ export class RecruiterService {
 
   /**
    * 招聘方邀请候选人为某岗位面试(InviteCandidateDto:candidateId 或 email 二选一)。
-   * email→id 解析走特权池(user_account 无 RLS,仅服务读 by email)。隐私:只解析 role='candidate',
+   * email→id 解析走受限数据库函数。函数在数据库内复核当前主体是 active recruiter，
+   * 并且只返回活跃 candidate 的 id。隐私:只解析 role='candidate',
    * 招聘方 email 视为未找到(不当 oracle 暴露 B 端账户);未注册→404(ATS 标准反馈,已 gated 在招聘方鉴权后)。
    */
   async invite(principal: string, jobId: string, dto: InviteCandidateDto) {
@@ -44,12 +51,13 @@ export class RecruiterService {
       throw new HttpException({ error: 'too_many_requests', message: '邀请过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);
     // candidateId 与 email 两条入参路径**对称**地都经受控解析,确认目标是活跃候选人——
     // 杜绝招聘方对任意 userId(含他人招聘方)建幽灵申请,也不暴露 B 端账户。
-    const key = dto.candidateId?.trim() ? { col: 'id', val: dto.candidateId.trim() } : dto.candidateEmail ? { col: 'email', val: dto.candidateEmail.trim().toLowerCase() } : null;
-    if (!key) throw new HttpException({ error: 'candidateId_or_email_required' }, HttpStatus.BAD_REQUEST);
-    const r = await this.db.pool.query(
-      `SELECT id FROM user_account WHERE ${key.col}=$1 AND role='candidate' AND status='active'`,
-      [key.val],
-    );
+    const candidateIdInput = dto.candidateId?.trim() || null;
+    const candidateEmailInput = dto.candidateEmail?.trim().toLowerCase() || null;
+    if (!candidateIdInput && !candidateEmailInput) throw new HttpException({ error: 'candidateId_or_email_required' }, HttpStatus.BAD_REQUEST);
+    const r = await this.db.asPrincipal(principal, (c) => c.query(
+      'SELECT id FROM gateway_active_candidate($1,$2)',
+      [candidateIdInput, candidateEmailInput],
+    ));
     if (r.rowCount === 0) throw new HttpException({ error: 'candidate_not_found' }, HttpStatus.NOT_FOUND);
     const candidateId = r.rows[0].id as string;
     if (candidateId === principal) throw new HttpException({ error: 'cannot_invite_self' }, HttpStatus.BAD_REQUEST);

@@ -5,7 +5,7 @@ import { AdminService } from './admin.service';
 
 /**
  * 运营 admin HTTP 适配层(薄):经 PrincipalGuard+AdminGuard 双校验 → 调 AdminService → 映射 HTTP。
- * **不碰 SQL**(修审计 F1)。跨用户特权只读由 service 走 pool(超级用户,非 RLS);普通用户到不了(403)。
+ * 跨用户能力仍由服务中的数据库函数再次复核 admin 身份。
  */
 @Controller('admin')
 @UseGuards(PrincipalGuard, AdminGuard)
@@ -13,18 +13,18 @@ export class AdminController {
   constructor(private readonly admin: AdminService) {}
 
   @Get('users')
-  users() {
-    return this.admin.users();
+  users(@Req() req: any) {
+    return this.admin.users(req.principal);
   }
 
   @Get('orders')
-  orders() {
-    return this.admin.orders();
+  orders(@Req() req: any) {
+    return this.admin.orders(req.principal);
   }
 
   @Get('stats')
-  stats() {
-    return this.admin.stats();
+  stats(@Req() req: any) {
+    return this.admin.stats(req.principal);
   }
 
   @Post('users/:id/disable')
@@ -34,12 +34,12 @@ export class AdminController {
   }
 
   @Get('audit')
-  audit() {
-    return this.admin.audit();
+  audit(@Req() req: any) {
+    return this.admin.audit(req.principal);
   }
 
   @Get('question-feedback')
-  questionFeedback() {
-    return this.admin.questionFeedback();
+  questionFeedback(@Req() req: any) {
+    return this.admin.questionFeedback(req.principal);
   }
 }

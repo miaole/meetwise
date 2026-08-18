@@ -13,15 +13,22 @@ export class AuthService {
   constructor(private readonly db: DbService, private readonly rl: RateLimitService) {}
 
   async signup(b: { email?: string; password?: string; role?: string }) {
-    if (!b?.email || !b?.password || b.password.length < 8) throw new HttpException({ error: 'invalid_credentials' }, HttpStatus.BAD_REQUEST);
+    if (!b.email || !b.password || b.password.length < 8) throw new HttpException({ error: 'invalid_credentials' }, HttpStatus.BAD_REQUEST);
     // 防注册滥用(安全审计#3:免费不限流注册是成本 DoS 的 on-ramp):同邮箱 3 次突发 + 慢补充 + 全局粗上限。
     //  (真·防海量不同邮箱注册仍需 IP 维度/验证码——内存限流是已知 seam,多实例换 Redis。)
     if (!this.rl.allow(`signup:${b.email}`, 3, 0.02) || !this.rl.allow('signup:global', 60, 1))
       throw new HttpException({ error: 'too_many_attempts' }, HttpStatus.TOO_MANY_REQUESTS);
     const role = b.role === 'recruiter' ? 'recruiter' : 'candidate';   // 身份:招聘方(B)/ 求职者(C),默认 C
     const id = randomUUID();
+    // 守卫后 b.email/b.password 已收窄为 string；但 b 是参数(可变),TS 不把收窄带入闭包,
+    // 故捕获为 const 再进 asGateway 回调,否则 strictNullChecks 下又退回 string | undefined。
+    const email = b.email;
+    const password = b.password;
     try {
-      await this.db.pool.query('INSERT INTO user_account(id, email, password_hash, role) VALUES ($1,$2,$3,$4)', [id, b.email, hashPassword(b.password), role]);
+      await this.db.asGateway((c) => c.query(
+        'SELECT gateway_auth_signup($1,$2,$3,$4)',
+        [id, email, hashPassword(password), role],
+      ));
     } catch (e: any) {
       if (e?.code === '23505') throw new HttpException({ error: 'email_taken' }, HttpStatus.CONFLICT);   // 仅唯一冲突=邮箱已注册;其它 DB 错(连接/约束)照抛,不误报 email_taken 掩盖故障
       throw e;
@@ -33,7 +40,10 @@ export class AuthService {
     if (!b?.email || !b?.password) throw new HttpException({ error: 'invalid_credentials' }, HttpStatus.BAD_REQUEST);
     // 防爆破:同邮箱登录限流(5 次突发 + 0.2/秒补充)。超速 → 429,不进 verify。
     if (!this.rl.allow(`login:${b.email}`, 5, 0.2)) throw new HttpException({ error: 'too_many_attempts' }, HttpStatus.TOO_MANY_REQUESTS);
-    const r = await this.db.pool.query('SELECT id, password_hash, status, role, pwd_epoch FROM user_account WHERE email=$1', [b.email]);
+    const r = await this.db.asGateway((c) => c.query(
+      'SELECT id, password_hash, status, role, pwd_epoch FROM gateway_auth_login($1)',
+      [b.email],
+    ));
     const u = r.rows[0];
     // 统一错误 + 都跑一次 verify,避免靠响应差异/时序枚举账号
     const ok = u && u.status === 'active' && verifyPassword(b.password, u.password_hash);

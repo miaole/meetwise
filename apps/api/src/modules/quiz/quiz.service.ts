@@ -30,6 +30,21 @@ export class QuizService {
       // 幂等:已有 generate job(重复 begin/网络重试)→ 不再扣额度、不再入队(否则双扣 + 双跑双花模型)。
       const existing = await c.query('SELECT id FROM quiz_job WHERE owner_user_id=$1 AND quiz_id=$2', [principal, id]);
       if (existing.rowCount! > 0) return { accepted: true, jobId: existing.rows[0].id, alreadyBegun: true };
+      // The JSON body is not a trusted reference.  Bind the owned, ingested
+      // resume and its current privacy epoch before reserving any entitlement.
+      const resume = await c.query(
+        "SELECT privacy_epoch FROM resume WHERE id=$1 AND owner_user_id=$2 AND status='ingested'",
+        [resumeId, principal],
+      );
+      if (resume.rowCount !== 1) throw new HttpException({ error: 'resume_not_found_or_not_ready' }, HttpStatus.CONFLICT);
+      const privacyEpoch = Number(resume.rows[0].privacy_epoch);
+      const bound = await c.query(
+        `UPDATE resume_quiz SET resume_id=$3, privacy_epoch=$4, version=version+1
+          WHERE id=$1 AND owner_user_id=$2 AND status='created'
+            AND resume_id IS NULL AND privacy_epoch IS NULL`,
+        [id, principal, resumeId, privacyEpoch],
+      );
+      if (bound.rowCount !== 1) throw new HttpException({ error: 'quiz_resume_reference_conflict' }, HttpStatus.CONFLICT);
       // 额度不足时 reserveEntitlement **抛**(回滚),必须 catch 映射成 402,否则被异常过滤当 500。
       let rr;
       try { rr = await reserveEntitlement(c, principal, id, 'resume_quiz', 1.0); }
@@ -38,7 +53,7 @@ export class QuizService {
         throw e;
       }
       if (rr.status !== 'reserved') throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
-      const jobId = await enqueueQuizJob(c, principal, id, { resumeId });
+      const jobId = await enqueueQuizJob(c, principal, id, resumeId, privacyEpoch);
       return { accepted: true, jobId };
     });
   }

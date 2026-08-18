@@ -1,16 +1,20 @@
 import { Controller, Get, Header } from '@nestjs/common';
 
-/** 法务/隐私政策(公开)。前端注册/上传前展示;consent 记录的 policy_version 对应此处 version。 */
+/**
+ * Conservative public-preview boundary. Complete deletion, withdrawal and
+ * sink-level receipts are not available, so this endpoint cannot advertise
+ * them as a data-rights workflow.
+ */
 export const PRIVACY_POLICY = {
-  version: process.env.PRIVACY_POLICY_VERSION ?? 'v1',
-  title: '知面隐私政策',
+  version: process.env.PRIVACY_POLICY_VERSION ?? 'preview-v1',
+  title: '知面预览环境数据处理边界',
   purposes: [
-    { id: 'resume_processing', desc: '解析与分析你的简历,用于生成训练问题与能力评估(不伪造经历)' },
-    { id: 'interview', desc: '记录面试问答与评分,用于报告与成长档案' },
+    { id: 'preview_boundary', desc: '公开预览不接收真实简历、身份信息、面试回答、录音或访问密钥。' },
+    { id: 'capability_notice', desc: '页面只说明项目边界，不构成正式服务、支付或招聘决策。' },
   ],
-  dataRights: ['数据可携(导出)', '删除权(删除简历/数据)', '撤回同意'],
-  retentionDays: 365,
-  pii: '简历原文加密存储;结构化档案不含明文手机号/邮箱/证件号等 PII。',
+  dataRights: ['完整删除、撤回同意和跨存储回执流程当前未开放。', '请勿通过公开预览提交个人或机密内容。'],
+  retentionDays: 0,
+  pii: '公开预览不承诺处理或留存真实个人信息。',
 };
 
 @Controller('legal')

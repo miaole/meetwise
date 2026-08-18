@@ -14,6 +14,15 @@
     "neg:interview": "node --import @swc-node/register/esm-register test/neg-interview.proof.ts",
     "neg:bend": "node --import @swc-node/register/esm-register test/neg-bend.proof.ts",
     "neg:input": "node --import @swc-node/register/esm-register test/neg-input.proof.ts",
+    "turn-idempotency:prove": "PORT=0 node --import @swc-node/register/esm-register test/turn-idempotency.proof.ts",
+    "prove:runtime-role-http": "node --import @swc-node/register/esm-register test/runtime-role-http.proof.ts",
+    "prove:privacy-erasure-http": "node --import @swc-node/register/esm-register test/privacy-erasure-http.proof.ts",
+    "prove:scor-00-http": "node --import @swc-node/register/esm-register test/scor-00-http-db.proof.ts",
+    "prove:voice-timeout": "node --import @swc-node/register/esm-register test/voice-timeout.proof.ts",
+    "prove:voice-cancel-http": "tsx test/voice-cancel-http.proof.ts",
+    "prove:ocr-operation-policy": "tsx test/ocr-operation-policy.proof.ts",
+    "prove:public-preview-write-gate": "node --import ./node_modules/@swc-node/register/esm/esm-register.mjs test/public-preview-write-gate.proof.ts",
+    "prove:resume-reference-http": "node --import @swc-node/register/esm-register test/resume-reference-http.proof.ts",
     "neg:all": "for g in auth commerce resume interview bend input; do node --import @swc-node/register/esm-register test/neg-$g.proof.ts || exit 1; done"
   },
   "dependencies": {
@@ -22,6 +31,7 @@
     "@nestjs/common": "^11.1.27",
     "@nestjs/core": "^11.1.27",
     "@nestjs/platform-fastify": "^11.1.27",
+    "fastify": "5.8.5",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "zod": "catalog:",

@@ -1,33 +1,38 @@
 import { boot, mkAssert, tokenFor } from './_neg-harness';
+import { createHash, randomUUID } from 'node:crypto';
 
 /**
- * neg:interview —— 面试状态机/begin/turn/answer/abandon/report/assessment/events/transcript 的**纯负路径**证明。
+ * neg:interview —— 面试状态机/begin/turn/legacy-answer-stop/abandon/report/assessment/events/transcript 的**纯负路径**证明。
  * 铁律:本文件**一条 happy-path 都不承载**。每条断言目标都是拒绝面:
  *   非法状态转移 / 终态再操作 / 越权(RLS) / 缺幂等键 / 乱序·越界 / 重放去重 / 不存在资源 /
  *   无额度(402) / 报告不可用兜底(不 500 死转) / 无内容评估(409) / 未鉴权(401) / 逃逸通道(保留主体).
  *
- * ⚠ BUG-PROBE 段(见下)按**应有的不变式**断言,当前实现缺守卫会让这些用例 **RED**——
- *   每一条 RED == 一个真实缺失的状态机守卫,须补守卫后转绿(而非把 buggy 行为断言成 PASS = 假验收,CLAUDE.md 禁止)。
+ * 状态机不变量段（见下）必须精确返回约定错误码；不能用“某个 4xx”掩盖守卫回退。
  *
  * 真源码依据(Read 于本次任务):
- *   - interview.controller.ts:begin(202,读 resume-id 头)/turn(202,ZodValidationPipe TurnDto)/answer(200,读 idempotency-key 头)/
+ *   - interview.controller.ts:begin(202,读 resume-id 头)/turn(202,ZodValidationPipe TurnDto)/legacy answer(410)/
  *     abandon(200)/report·retry·export/assessment·learning-plan·career-path/events(SSE)/transcript。
- *   - interview.service.ts:begin 无状态守卫(仅 start-job 幂等 + 402);turn/answer 守卫仅拒 [completed,abandoned,failed]→409(**放行 created**);
- *     abandon 无状态守卫;RLS 越权→0 行→404;report 无行→(interview_unavailable?→200 interview_failed : 404);
- *     generateAssessment 无有效评估轮→409 no_evaluated_turns;learning/career 无评估→409 assessment_required。
+ *   - interview.service.ts:begin 对终态拒绝且对已有 start/active 幂等；turn 仅允许已 begin 的非终态会话；
+ *     abandon 拒绝已完成/失败且对已放弃幂等；RLS 越权→0 行→404;report 无行→(interview_unavailable?→200 interview_failed : 404);
+ *     generateAssessment 无可评分卡→409 no_scorable_cards;learning/career 无评估→409 assessment_required。
  *   - principal.guard.ts:无/坏令牌→401;账户非 active/不存在→401;__system* 保留主体→401。
- *   - contracts TurnDto = { turn:int≥0, answer:string 1..8000 }(超限/畸形 → ZodValidationPipe 400 'invalid')。
+ *   - contracts TurnDto = {questionId,answerId,answerHash,turn:int≥0,answer:string 1..8000}；旧无身份 body 均 400。
  */
 const h = await boot();
 const { A, done } = mkAssert('neg:interview');
 
 // 额外边界种子(与 harness 固定种子并存,避免与"IV_ACT 事件为空"的断言相互耦合)
 await h.pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('IV_DUP','userA','active'),('IV_DUP2','userA','active'),('IV_UBC','userB','created')");
+// API 拒绝路径也必须带真实 server-issued identity，不能用少字段 body 把业务守卫遮住。
+await h.pool.query("INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question,status) VALUES ('userA','IV_ACT','q-v1-t0-c0',1,0,'当前题','issued'),('userA','IV_ACT','q-v2-t1-c0',2,1,'已撤销旧题','cancelled')");
 
 const A_ = h.U('userA');            // dev-header 主体 userA(有额度)
 const B_ = h.U('userB');            // userB(无额度)
 const rid = { 'resume-id': 'r1' };  // begin 必需头
-const VALID_TURN = { turn: 0, answer: '我用 Redis 令牌桶做了限流' };
+const turnAnswer = '我用 Redis 令牌桶做了限流';
+const VALID_TURN = { questionId: 'q-v1-t0-c0', stateVersion: 1, answerId: randomUUID(), answerHash: createHash('sha256').update(turnAnswer).digest('hex'), turn: 0, answer: turnAnswer };
+const VALID_SINGLE_TRACK_CAPTURE = { mode: 'single_local_microphone', consent: true, policyVersion: 'voice_ephemeral_v1' };
+const turnBody = (turn: number, answer: string, stateVersion = 1) => ({ questionId: `q-v1-t${turn}-c0`, stateVersion, answerId: randomUUID(), answerHash: createHash('sha256').update(answer).digest('hex'), turn, answer });
 
 // 断言小工具:状态码 + 可选 error 码
 const is = (r: { status: number; body: any }, code: number, err?: string) =>
@@ -75,9 +80,19 @@ A('turn 空字符串答案 → 400 invalid(zod:min 1)',
 A('turn 超长答案(>8000)→ 400 invalid(zod max 先于 service 413 拦下,纵深第一线)',
   is(await h.post('/interview/IV_ACT/turn', A_, { turn: 0, answer: 'x'.repeat(8001) }), 400, 'invalid'));
 A('turn 纯空白答案(过 zod min1,service trim 为空)→ 400 invalid_turn',
-  is(await h.post('/interview/IV_ACT/turn', A_, { turn: 0, answer: '   ' }), 400, 'invalid_turn'));
+  is(await h.post('/interview/IV_ACT/turn', A_, turnBody(0, '   ')), 400, 'invalid_turn'));
 A('turn 越界 turn 号(>MAX_TURN 64,刷无限 job)→ 400 invalid_turn',
-  is(await h.post('/interview/IV_ACT/turn', A_, { turn: 65, answer: 'x' }), 400, 'invalid_turn'));
+  is(await h.post('/interview/IV_ACT/turn', A_, turnBody(65, 'x')), 400, 'invalid_turn'));
+A('turn answerHash 与 UTF-8 原文不一致 → 422(服务端重算,不信客户端)',
+  is(await h.post('/interview/IV_ACT/turn', A_, { ...VALID_TURN, answerHash: '0'.repeat(64) }), 422, 'answer_hash_mismatch'));
+A('turn stateVersion 不匹配 ledger → 409 stale_question(旧渲染批次不能覆盖当前题)',
+  is(await h.post('/interview/IV_ACT/turn', A_, { ...VALID_TURN, stateVersion: 0 }), 409, 'stale_question'));
+A('turn 已撤销 questionId → 409 stale_question(旧 tab 不能唤醒新 interrupt)',
+  is(await h.post('/interview/IV_ACT/turn', A_, { ...turnBody(1, '旧题答案'), questionId: 'q-v2-t1-c0' }), 409, 'stale_question'));
+// 模拟另一标签已将当前题领取；本请求 identity 已消费，必须作为 stale 拒绝而非覆盖先到答案。
+await h.pool.query("UPDATE interview_question SET status='queued',answer_id='11111111-1111-4111-8111-111111111111',answer_hash=$1 WHERE interview_id='IV_ACT' AND question_id='q-v1-t0-c0'", [createHash('sha256').update('先到答案').digest('hex')]);
+A('turn 同题不同 answerId/hash → 409 stale_question(双标签页不覆盖)',
+  is(await h.post('/interview/IV_ACT/turn', A_, VALID_TURN), 409, 'stale_question'));
 A('turn 畸形 JSON 正文 → 400(解析/校验失败,不落库不入队)',
   oneOf(await h.raw('POST', '/interview/IV_ACT/turn', { ...A_, 'content-type': 'application/json' }, '{"turn":'), [400]));
 A('turn 终态 completed(IV_DONE)→ 409 interview_not_active',
@@ -94,30 +109,21 @@ A('turn 未鉴权 → 401',
   is(await h.post('/interview/IV_ACT/turn', {}, VALID_TURN), 401));
 
 // ─────────────────────────────────────────────────────────────────────────
-// 3) answer(legacy 固定题单端点)—— 缺幂等键 / 终态(409) / 越权 / 不存在 / 重放去重
+// 3) answer(legacy 固定题单端点)——全量 410，绝不写 answer_evaluated
 // ─────────────────────────────────────────────────────────────────────────
-A('answer 缺 Idempotency-Key 头 → 400 missing_idempotency_key',
-  is(await h.post('/interview/IV_ACT/answer', A_, {}), 400, 'missing_idempotency_key'));
-A('answer 终态 completed(IV_DONE)→ 409 interview_not_active(不许往终态注伪造 answer_evaluated)',
-  is(await h.post('/interview/IV_DONE/answer', { ...A_, 'idempotency-key': 'k-done' }, {}), 409, 'interview_not_active'));
-A('answer 终态 failed(IV_FAIL)→ 409',
-  is(await h.post('/interview/IV_FAIL/answer', { ...A_, 'idempotency-key': 'k-fail' }, {}), 409, 'interview_not_active'));
-A('answer 终态 abandoned(IV_ABND)→ 409',
-  is(await h.post('/interview/IV_ABND/answer', { ...A_, 'idempotency-key': 'k-abnd' }, {}), 409, 'interview_not_active'));
-A('answer 越权:userB 答 IV_ACT → 404(RLS)',
-  is(await h.post('/interview/IV_ACT/answer', { ...B_, 'idempotency-key': 'k-x' }, {}), 404, 'not_found_or_forbidden'));
-A('answer 不存在的面试 → 404',
-  is(await h.post('/interview/IV_NOPE/answer', { ...A_, 'idempotency-key': 'k-n' }, {}), 404, 'not_found_or_forbidden'));
-A('answer 未鉴权 → 401',
+const legacyBefore = await h.pool.query("SELECT count(*)::int n FROM interview_event WHERE kind='answer_evaluated'");
+const legacyResponses = await Promise.all([
+  h.post('/interview/IV_ACT/answer', { ...A_, 'idempotency-key': 'k-active' }, {}),
+  h.post('/interview/IV_DONE/answer', { ...A_, 'idempotency-key': 'k-done' }, {}),
+  h.post('/interview/IV_ACT/answer', { ...B_, 'idempotency-key': 'k-cross-owner' }, {}),
+  h.post('/interview/IV_NOPE/answer', { ...A_, 'idempotency-key': 'k-missing' }, {}),
+]);
+A('legacy answer 对有效/终态/跨主体/不存在 id 均返回统一 410，避免资源探测',
+  legacyResponses.every((r) => is(r, 410, 'legacy_answer_endpoint_disabled')));
+A('legacy answer 未鉴权仍由 guard 拒绝 401',
   is(await h.post('/interview/IV_ACT/answer', { 'idempotency-key': 'k-u' }, {}), 401));
-// 幂等重放去重:同 key 二次提交**绝不**二次评估/二次扣费(用独立 IV_DUP,避免污染 IV_ACT 事件断言)
-await h.post('/interview/IV_DUP/answer', { ...A_, 'idempotency-key': 'K-DUP' }, {});
-// 注:duplicate_ignored 在 body.result(非 body.error),故用 .result 判,不套 is(...,err)。
-A('answer 同 Idempotency-Key 重放 → 200 duplicate_ignored(去重,不二次评估)',
-  (await h.post('/interview/IV_DUP/answer', { ...A_, 'idempotency-key': 'K-DUP' }, {})).body?.result === 'duplicate_ignored');
-// 跨面试复用同 key:当前实现幂等键仅 (owner,key) 作用域 → 第二面试答案被**静默丢弃**(记录:见报告"设计隐患")
-A('answer 跨面试复用同 key → duplicate_ignored(记录:per-user key 作用域会静默吞掉他张面试答案)',
-  (await h.post('/interview/IV_DUP2/answer', { ...A_, 'idempotency-key': 'K-DUP' }, {})).body?.result === 'duplicate_ignored');
+const legacyAfter = await h.pool.query("SELECT count(*)::int n FROM interview_event WHERE kind='answer_evaluated'");
+A('legacy answer 绝不写入 answer_evaluated（杜绝 B 端评分污染）', Number(legacyAfter.rows[0].n) === Number(legacyBefore.rows[0].n));
 
 // ─────────────────────────────────────────────────────────────────────────
 // 4) abandon —— 越权 / 不存在 / 未鉴权
@@ -166,12 +172,12 @@ A('report/export 未鉴权 → 401',
 // ─────────────────────────────────────────────────────────────────────────
 // 6) assessment —— 无评估轮(409) / 越权 / 无评估行(404) / 未鉴权
 // ─────────────────────────────────────────────────────────────────────────
-A('assessment POST 无 answer_evaluated 轮(IV_ACT 仅 question_ready)→ 409 no_evaluated_turns(不落 overall=0 假报告)',
-  is(await h.post('/interview/IV_ACT/assessment', A_, {}), 409, 'no_evaluated_turns'));
-A('assessment POST created(IV_CREATED 无事件)→ 409 no_evaluated_turns',
-  is(await h.post('/interview/IV_CREATED/assessment', A_, {}), 409, 'no_evaluated_turns'));
-A('assessment POST completed 但无评估事件(IV_DONE)→ 409 no_evaluated_turns',
-  is(await h.post('/interview/IV_DONE/assessment', A_, {}), 409, 'no_evaluated_turns'));
+A('assessment POST 无可评分卡(IV_ACT 仅 question_ready)→ 409 no_scorable_cards(不落 overall=0 假报告)',
+  is(await h.post('/interview/IV_ACT/assessment', A_, {}), 409, 'no_scorable_cards'));
+A('assessment POST created(IV_CREATED 无事件)→ 409 no_scorable_cards',
+  is(await h.post('/interview/IV_CREATED/assessment', A_, {}), 409, 'no_scorable_cards'));
+A('assessment POST completed 但无可评分卡(IV_DONE)→ 409 no_scorable_cards',
+  is(await h.post('/interview/IV_DONE/assessment', A_, {}), 409, 'no_scorable_cards'));
 A('assessment POST 越权:userB 生成 IV_ASMT 评估 → 404(RLS)',
   is(await h.post('/interview/IV_ASMT/assessment', B_, {}), 404, 'not_found_or_forbidden'));
 A('assessment POST 不存在 → 404',
@@ -244,39 +250,45 @@ A('speak 越权:userB 对 IV_ACT 合成 → 404(先校归属再花 TTS)',
   is(await h.post('/interview/IV_ACT/speak', B_, { text: '你好' }), 404, 'not_found_or_forbidden'));
 A('speak 不存在 → 404',
   is(await h.post('/interview/IV_NOPE/speak', A_, { text: '你好' }), 404, 'not_found_or_forbidden'));
+A('transcribe 缺显式同意 → 400 invalid（在 ASR 前 fail-closed）',
+  is(await h.post('/interview/IV_ACT/transcribe', A_, { audioBase64: 'AAAA', mimeType: 'audio/webm' }), 400, 'invalid'));
+A('transcribe 伪称双人电话/远端轨 → 400 invalid（能力未接入不得绕过）',
+  is(await h.post('/interview/IV_ACT/transcribe', A_, { audioBase64: 'AAAA', mimeType: 'audio/webm', capture: { ...VALID_SINGLE_TRACK_CAPTURE, mode: 'two_participant_call' } }), 400, 'invalid'));
+A('transcribe 畸形 base64 → 400 invalid（模型调用前拒绝）',
+  is(await h.post('/interview/IV_ACT/transcribe', A_, { audioBase64: 'not base64!', mimeType: 'audio/webm', capture: VALID_SINGLE_TRACK_CAPTURE }), 400, 'invalid'));
 A('transcribe 越权:userB 对 IV_ACT 转写 → 404',
-  is(await h.post('/interview/IV_ACT/transcribe', B_, { audioBase64: 'AAAA', mimeType: 'audio/webm' }), 404, 'not_found_or_forbidden'));
+  is(await h.post('/interview/IV_ACT/transcribe', B_, { audioBase64: 'AAAA', mimeType: 'audio/webm', capture: VALID_SINGLE_TRACK_CAPTURE }), 404, 'not_found_or_forbidden'));
 A('transcribe 不存在 → 404',
-  is(await h.post('/interview/IV_NOPE/transcribe', A_, { audioBase64: 'AAAA', mimeType: 'audio/webm' }), 404, 'not_found_or_forbidden'));
+  is(await h.post('/interview/IV_NOPE/transcribe', A_, { audioBase64: 'AAAA', mimeType: 'audio/webm', capture: VALID_SINGLE_TRACK_CAPTURE }), 404, 'not_found_or_forbidden'));
 
 // ═════════════════════════════════════════════════════════════════════════
-// ⚠ BUG-PROBE 段:按**应有的状态机不变式**断言。当前实现缺守卫 → 这些用例预期 RED。
-//   每条 RED == 一个真实缺失的守卫(非法转移/终态再操作未拦)。补守卫后应转绿。
-//   (对齐 CLAUDE.md「Forbidden fake acceptance」:绝不把 buggy 的 202/200 断言成 PASS。)
+// 状态机硬不变量：这里的精确 409 是消费/图恢复安全契约，不能降级成任意 4xx。
 // ═════════════════════════════════════════════════════════════════════════
-A('[BUG] begin 终态 completed(IV_DONE)应拒绝(completed 不可再 begin);实测 begin 无状态守卫会 202+二次扣额',
-  oneOf(await h.post('/interview/IV_DONE/begin', { ...A_, ...rid }, {}), [400, 403, 409, 422]));
-A('[BUG] begin 终态 failed(IV_FAIL)应拒绝(failed 不可再 begin)',
-  oneOf(await h.post('/interview/IV_FAIL/begin', { ...A_, ...rid }, {}), [400, 403, 409, 422]));
-A('[BUG] begin 终态 abandoned(IV_ABND)应拒绝(abandoned 不可复活)',
-  oneOf(await h.post('/interview/IV_ABND/begin', { ...A_, ...rid }, {}), [400, 403, 409, 422]));
+A('begin 终态 completed(IV_DONE)→409 interview_not_active（不可复活/不可二次扣额）',
+  is(await h.post('/interview/IV_DONE/begin', { ...A_, ...rid }, {}), 409, 'interview_not_active'));
+A('begin 终态 failed(IV_FAIL)→409 interview_not_active',
+  is(await h.post('/interview/IV_FAIL/begin', { ...A_, ...rid }, {}), 409, 'interview_not_active'));
+A('begin 终态 abandoned(IV_ABND)→409 interview_not_active',
+  is(await h.post('/interview/IV_ABND/begin', { ...A_, ...rid }, {}), 409, 'interview_not_active'));
 {
-  // begin 已 active(IV_ACT,种子无 start-job)应幂等或拒绝;实测无守卫会 fresh-accept + 二次预留额度(双开/双扣)
+  // active 即便异常缺少历史 start job，也必须短路：不重新 reserve、不再入队第二个 start。
   const r = await h.post('/interview/IV_ACT/begin', { ...A_, ...rid }, {});
-  A('[BUG] begin 已 active(IV_ACT)应 alreadyBegun 幂等或 409;实测无状态守卫会二次入队 start job',
-    r.body?.alreadyBegun === true || oneOf(r, [409, 422]));
+  A('begin 已 active(IV_ACT)→202 alreadyBegun=true（不二次预留/入队）',
+    r.status === 202 && r.body?.alreadyBegun === true);
 }
-A('[BUG] turn created(IV_CREATED 尚未 begin)应拒绝;守卫仅拒终态,放行 created → 会对未开始面试制造付费 answer job',
-  oneOf(await h.post('/interview/IV_CREATED/turn', A_, VALID_TURN), [400, 403, 409, 422]));
-A('[BUG] answer created(IV_CREATED)应拒绝(同上,created 不在终态黑名单被放行)',
-  oneOf(await h.post('/interview/IV_CREATED/answer', { ...A_, 'idempotency-key': 'k-created' }, {}), [400, 403, 409, 422]));
-A('[BUG] abandon 终态 completed(IV_DONE)应拒绝(completed→abandoned 为非法转移);实测 abandon 无状态守卫会 200 + 退还已消费额度',
-  oneOf(await h.post('/interview/IV_DONE/abandon', A_, {}), [400, 403, 409, 422]));
-A('[BUG] abandon 终态 failed(IV_FAIL)应拒绝(failed→abandoned 非法转移)',
-  oneOf(await h.post('/interview/IV_FAIL/abandon', A_, {}), [400, 403, 409, 422]));
-// 已修:abandon 加状态守卫,重复放弃 abandoned → 幂等 200({released:'noop',alreadyAbandoned:true}),绝不二次 releaseConsumption。
-A('abandon 重复放弃 abandoned(IV_ABND)→ 幂等(不二次退款)',
-  oneOf(await h.post('/interview/IV_ABND/abandon', A_, {}), [200, 400, 403, 409, 422]));
+A('turn created(IV_CREATED 尚未 begin)→409 interview_not_started（不制造付费 answer job）',
+  is(await h.post('/interview/IV_CREATED/turn', A_, VALID_TURN), 409, 'interview_not_started'));
+A('legacy answer created(IV_CREATED 尚未 begin)也统一 410（端点不再读写面试）',
+  is(await h.post('/interview/IV_CREATED/answer', { ...A_, 'idempotency-key': 'k-created' }, {}), 410, 'legacy_answer_endpoint_disabled'));
+A('abandon 终态 completed(IV_DONE)→409 interview_not_active（不可退款覆盖已确认消费）',
+  is(await h.post('/interview/IV_DONE/abandon', A_, {}), 409, 'interview_not_active'));
+A('abandon 终态 failed(IV_FAIL)→409 interview_not_active',
+  is(await h.post('/interview/IV_FAIL/abandon', A_, {}), 409, 'interview_not_active'));
+{
+  const r = await h.post('/interview/IV_ABND/abandon', A_, {});
+  A('abandon 重复放弃(IV_ABND)→200 alreadyAbandoned + noop（不二次退款）',
+    r.status === 200 && r.body?.alreadyAbandoned === true && r.body?.released === 'noop');
+}
 
 // 用例统计:
 //   §1 begin ........... 9
@@ -288,6 +300,6 @@ A('abandon 重复放弃 abandoned(IV_ABND)→ 幂等(不二次退款)',
 //   §7 learning/career . 10
 //   §8 events/transcript 6
 //   §9 feedback/voice .. 8
-//   BUG-PROBE .......... 9
-//   ── 合计:97 条纯负路径断言(其中 9 条 BUG-PROBE 按应有不变式断言,预期 RED = 真实缺失守卫)
+//   状态机硬不变量 .... 9
+//   ── 合计:97 条纯负路径断言（所有状态守卫均为精确码断言）
 await done();

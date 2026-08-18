@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body, Query, Req, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Query, Req, Headers, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
 import { CreateJobDto, InviteCandidateDto } from '@meetwise/contracts';
 import type { TalentQuery } from '@meetwise/db';
 import { PrincipalGuard } from '../../platform/principal.guard';
@@ -18,8 +18,8 @@ export class RecruiterController {
 
   @Post('jobs')
   @HttpCode(HttpStatus.OK)
-  create(@Req() req: any, @Body(new ZodValidationPipe(CreateJobDto)) b: CreateJobDto) {
-    return this.recruiter.create(req.principal, b);
+  create(@Req() req: any, @Body(new ZodValidationPipe(CreateJobDto)) b: CreateJobDto, @Headers('idempotency-key') idempotencyKey?: string) {
+    return this.recruiter.create(req.principal, b, idempotencyKey);
   }
 
   @Get('jobs')
@@ -29,10 +29,9 @@ export class RecruiterController {
 
   // 人才库:路径第二段是字面量 'talent',与 'jobs/:id' 前缀不同,无路由冲突(顺序无关)。
   @Get('talent')
-  talent(@Req() req: any, @Query('status') status?: string, @Query('sort') sort?: string, @Query('order') order?: string) {
+  talent(@Req() req: any, @Query('status') status?: string, @Query('sort') _sort?: string, @Query('order') order?: string) {
     const q: TalentQuery = {
       status: status || undefined,
-      sort: sort === 'score' ? 'score' : 'created',
       order: order === 'asc' ? 'asc' : 'desc',
     };
     return this.recruiter.talent(req.principal, q);

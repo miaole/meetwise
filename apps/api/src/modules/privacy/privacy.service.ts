@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { DbService } from '../../platform/db.service';
 
@@ -37,13 +37,24 @@ export class PrivacyService {
     });
   }
 
-  // 删除权:删自己的简历 PII(原文 blob + 结构化 profile + 记录)。RLS 限己。
-  deleteResumeData(principal: string) {
-    return this.db.asPrincipal(principal, async (c) => {
-      await c.query('DELETE FROM resume_profile WHERE owner_user_id = current_setting($1, true)', ['app.principal_user']);
-      await c.query('DELETE FROM resume_blob WHERE owner_user_id = current_setting($1, true)', ['app.principal_user']);
-      const d = await c.query('DELETE FROM resume WHERE owner_user_id = current_setting($1, true)', ['app.principal_user']);
-      return { deleted: true, resumesRemoved: d.rowCount };
-    });
+  /**
+   * This endpoint is intentionally paused.  The previous implementation
+   * delegated owner authorization to `app.principal_user`, which is a routing
+   * GUC and not an unforgeable identity for callers that hold runtime SQL
+   * credentials.  A privacy authorization snapshot/issuer is required before
+   * any destructive request can be accepted again.
+   */
+  eraseInterviewData(_principal: string, _interviewId: string, _idempotencyKey: string | undefined): never {
+    throw new HttpException({ error: 'interview_erasure_authorization_not_available' }, HttpStatus.SERVICE_UNAVAILABLE);
+  }
+
+  /**
+   * The former all-resumes synchronous DELETE had no stable C/B references,
+   * request ledger, fences, or external receipts.  It must fail closed until
+   * the per-resume asynchronous state machine is implemented; returning a
+   * successful response here would be a false privacy-deletion claim.
+   */
+  deleteResumeData(_principal: string): never {
+    throw new HttpException({ error: 'resume_erasure_migration_in_progress' }, HttpStatus.SERVICE_UNAVAILABLE);
   }
 }

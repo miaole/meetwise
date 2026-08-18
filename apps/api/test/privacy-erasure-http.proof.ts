@@ -1,0 +1,223 @@
+/**
+ * Real HTTP proof for the first phase of interview checkpoint erasure.
+ *
+ * This does not claim that external OSS/Redis/Langfuse data was erased.  It
+ * verifies the public boundary only: a production-like low-privilege API
+ * login authenticates a candidate, rejects a missing Idempotency-Key, fences
+ * one owned interview, and replays the same request without multiplying the
+ * deletion ledger.  The isolated runner applies all migrations before this
+ * proof starts; it never drops a schema ledger or targets a cloud database.
+ */
+import 'reflect-metadata';
+import { createHash } from 'node:crypto';
+import { asPrincipal, beginCheckpointErasure, createPool, provisionRuntimeLogin } from '@meetwise/db';
+
+const admin = createPool();
+const role = `privacy_http_api_${process.pid}`;
+const password = 'privacy-http-api-runtime-password-2026';
+let runtime: ReturnType<typeof createPool> | undefined;
+let failures = 0;
+
+function A(name: string, ok: boolean) {
+  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`);
+  if (!ok) failures++;
+}
+
+async function json(response: Response): Promise<any> {
+  return response.json();
+}
+
+async function main() {
+  await provisionRuntimeLogin(admin, { roleName: role, password });
+  runtime = createPool({ user: role, password });
+  Object.assign(process.env, {
+    // The isolated runner is a real low-privilege login but must not pretend
+    // its loopback disposable PostgreSQL container is a production cloud DB.
+    NODE_ENV: 'test',
+    WEB_ORIGIN: 'https://web.example.test',
+    AUTH_SECRET: 'privacy-erasure-http-proof-auth-secret',
+    PRIVACY_ERASURE_IDEMPOTENCY_HMAC_KEY: 'privacy-erasure-http-proof-hmac-key',
+    PGUSER: role,
+    PGPASSWORD: password,
+  });
+  const { createApp } = await import('../src/main.ts');
+  const app = await createApp();
+  await app.listen(0, '127.0.0.1');
+  const base = (await app.getUrl()).replace('[::1]', '127.0.0.1');
+  const email = `privacy-http-${process.pid}@example.test`;
+  const interviewId = `privacy-http-interview-${process.pid}`;
+  const idempotencyKey = `erase-http-${process.pid}-same-request`;
+  try {
+    const signup = await fetch(`${base}/auth/signup`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email, password: 'privacy-http-password-2026', role: 'candidate' }),
+    });
+    const signupBody = await json(signup);
+    A('候选人可通过真实 API 注册并取得 Bearer 令牌', signup.status === 200 && typeof signupBody.token === 'string' && typeof signupBody.userId === 'string');
+    if (!signupBody.token || !signupBody.userId) throw new Error('privacy_http_signup_failed');
+
+    const retiredResumeDelete = await fetch(`${base}/privacy/resume-data`, {
+      method: 'DELETE', headers: { authorization: `Bearer ${signupBody.token}` },
+    });
+    A('旧的全量同步简历删除入口 fail-closed，绝不伪报已擦除', retiredResumeDelete.status === 503 && (await json(retiredResumeDelete)).error === 'resume_erasure_migration_in_progress');
+
+    await admin.query(
+      "INSERT INTO interview(id,owner_user_id,status,version,current_question_index,questions) VALUES ($1,$2,'active',0,0,'[]'::jsonb)",
+      [interviewId, signupBody.userId],
+    );
+    const authorization = { authorization: `Bearer ${signupBody.token}` };
+
+    const paused = await fetch(`${base}/privacy/interview-data/${interviewId}`, {
+      method: 'DELETE', headers: { ...authorization, 'idempotency-key': idempotencyKey },
+    });
+    A('面试数据删除在缺少不可伪造授权签发器时 fail-closed，不建删除账本',
+      paused.status === 503 && (await json(paused)).error === 'interview_erasure_authorization_not_available');
+    const sideEffects = await admin.query(
+      `SELECT
+         (SELECT count(*)::int FROM privacy_erasure_request WHERE owner_user_id=$1 AND subject_id=$2) AS requests,
+         (SELECT count(*)::int FROM privacy_deletion_target t
+            JOIN privacy_erasure_request r ON r.id=t.request_id
+           WHERE r.owner_user_id=$1 AND r.subject_id=$2) AS targets`,
+      [signupBody.userId, interviewId],
+    );
+    A('安全暂停不改变 request 或 target，并且低权 app_role 不能绕过数据库入口',
+      Number(sideEffects.rows[0]?.requests) === 0 && Number(sideEffects.rows[0]?.targets) === 0
+      && await asPrincipal(runtime, signupBody.userId, (c) =>
+        beginCheckpointErasure(c, interviewId, 'a'.repeat(64))).then(() => false).catch(() => true));
+
+    // Keep the former active-flow assertions below as a dormant regression
+    // harness.  They become reachable only when a reviewed authorization
+    // snapshot issuer replaces this pause; today continuing would incorrectly
+    // expect a 202 from a deliberately disabled destructive capability.
+    if (paused.status === 503) return;
+
+    const missingKey = await fetch(`${base}/privacy/interview-data/${interviewId}`, {
+      method: 'DELETE', headers: authorization,
+    });
+    A('缺少 Idempotency-Key 的删除请求明确拒绝且不建账本', missingKey.status === 400 && (await json(missingKey)).error === 'idempotency_key_missing_or_invalid');
+    const before = await admin.query('SELECT count(*)::int AS count FROM privacy_erasure_request WHERE owner_user_id=$1 AND subject_id=$2', [signupBody.userId, interviewId]);
+    A('被拒绝请求没有产生可重试副作用', Number(before.rows[0]?.count) === 0);
+
+    const accepted = await fetch(`${base}/privacy/interview-data/${interviewId}`, {
+      method: 'DELETE', headers: { ...authorization, 'idempotency-key': idempotencyKey },
+    });
+    const acceptedBody = await json(accepted);
+    A('首个删除请求返回 202 fenced 而非伪报完成', accepted.status === 202 && acceptedBody.status === 'fenced' && acceptedBody.replayed === false && typeof acceptedBody.requestId === 'string');
+    if (!acceptedBody.requestId) throw new Error('privacy_http_request_missing');
+
+    const replay = await fetch(`${base}/privacy/interview-data/${interviewId}`, {
+      method: 'DELETE', headers: { ...authorization, 'idempotency-key': idempotencyKey },
+    });
+    const replayBody = await json(replay);
+    A('同一 Idempotency-Key 重放同一 requestId 且不重复建账', replay.status === 202 && replayBody.replayed === true && replayBody.requestId === acceptedBody.requestId);
+
+    const answer = '删除后不得落库的答案';
+    const postDeleteTurn = await fetch(`${base}/interview/${interviewId}/turn`, {
+      method: 'POST',
+      headers: { ...authorization, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        questionId: 'q-v1-t0-c0', stateVersion: 1, turn: 0,
+        answerId: '00000000-0000-4000-8000-000000000001',
+        answerHash: createHash('sha256').update(answer, 'utf8').digest('hex'), answer,
+      }),
+    });
+    const postDeleteJobs = await admin.query('SELECT count(*)::int AS count FROM interview_job WHERE interview_id=$1', [interviewId]);
+    A('围栏后真实 HTTP /turn 返回 410，且不写答案 job',
+      postDeleteTurn.status === 410 && (await json(postDeleteTurn)).error === 'interview_privacy_fenced'
+      && Number(postDeleteJobs.rows[0]?.count) === 0);
+
+    // `turn` is the production answer path.  The privacy boundary must close
+    // projections, SSE replays and audio egress before any provider client is
+    // reached.  The retired legacy /answer endpoint has its own 410 regression
+    // proof and is deliberately excluded here: its status cannot evidence a
+    // privacy fence.
+    const beforeEscapes = await admin.query(`
+      SELECT
+        (SELECT count(*)::int FROM consumption_record WHERE interview_id=$1) AS consumption_count,
+        (SELECT count(*)::int FROM interview_event WHERE stream_key=$1) AS event_count,
+        (SELECT count(*)::int FROM question_feedback WHERE interview_id=$1) AS feedback_count,
+        (SELECT count(*)::int FROM ai_report WHERE interview_id=$1) AS report_count
+    `, [interviewId]);
+    const [feedback, speak, speakStream, transcribe, report, retryReport, exportReport, transcript, assessment, getAssessment, createLearningPlan, getLearningPlan, completeLearningItem, createCareerPath, getCareerPath, begin, abandon, interview, sse, list] = await Promise.all([
+      fetch(`${base}/interview/${interviewId}/questions/0/feedback`, {
+        method: 'POST', headers: { ...authorization, 'content-type': 'application/json' }, body: JSON.stringify({ rating: 'up' }),
+      }),
+      fetch(`${base}/interview/${interviewId}/speak`, {
+        method: 'POST', headers: { ...authorization, 'content-type': 'application/json' }, body: JSON.stringify({ text: '不得在删除后送往 TTS' }),
+      }),
+      fetch(`${base}/interview/${interviewId}/speak/stream`, {
+        method: 'POST', headers: { ...authorization, 'content-type': 'application/json' }, body: JSON.stringify({ text: '不得在删除后打开流式 TTS' }),
+      }),
+      fetch(`${base}/interview/${interviewId}/transcribe`, {
+        method: 'POST', headers: { ...authorization, 'content-type': 'application/json' }, body: JSON.stringify({
+          audioBase64: 'AA==', mimeType: 'audio/wav',
+          capture: { mode: 'single_local_microphone', consent: true, policyVersion: 'voice_ephemeral_v1' },
+        }),
+      }),
+      fetch(`${base}/interview/${interviewId}/report`, { headers: authorization }),
+      fetch(`${base}/interview/${interviewId}/report/retry`, { method: 'POST', headers: authorization }),
+      fetch(`${base}/interview/${interviewId}/report/export`, { headers: authorization }),
+      fetch(`${base}/interview/${interviewId}/transcript`, { headers: authorization }),
+      fetch(`${base}/interview/${interviewId}/assessment`, { method: 'POST', headers: authorization }),
+      fetch(`${base}/interview/${interviewId}/assessment`, { headers: authorization }),
+      fetch(`${base}/interview/${interviewId}/learning-plan`, { method: 'POST', headers: authorization }),
+      fetch(`${base}/interview/${interviewId}/learning-plan`, { headers: authorization }),
+      fetch(`${base}/interview/${interviewId}/learning-plan/complete`, {
+        method: 'POST', headers: { ...authorization, 'content-type': 'application/json' }, body: JSON.stringify({ topic: 'deletion-fenced' }),
+      }),
+      fetch(`${base}/interview/${interviewId}/career-path`, { method: 'POST', headers: authorization }),
+      fetch(`${base}/interview/${interviewId}/career-path`, { headers: authorization }),
+      fetch(`${base}/interview/${interviewId}/begin`, {
+        method: 'POST', headers: { ...authorization, 'resume-id': '00000000-0000-4000-8000-000000000002' },
+      }),
+      fetch(`${base}/interview/${interviewId}/abandon`, { method: 'POST', headers: authorization }),
+      fetch(`${base}/interview/${interviewId}`, { headers: authorization }),
+      fetch(`${base}/interview/${interviewId}/events`, { headers: authorization }),
+      fetch(`${base}/interview`, { headers: authorization }),
+    ]);
+    const afterEscapes = await admin.query(`
+      SELECT
+        (SELECT count(*)::int FROM consumption_record WHERE interview_id=$1) AS consumption_count,
+        (SELECT count(*)::int FROM interview_event WHERE stream_key=$1) AS event_count,
+        (SELECT count(*)::int FROM question_feedback WHERE interview_id=$1) AS feedback_count,
+        (SELECT count(*)::int FROM ai_report WHERE interview_id=$1) AS report_count
+    `, [interviewId]);
+    const listBody = await json(list);
+    const fencedEndpoints = [
+      feedback, speak, speakStream, transcribe, report, retryReport, exportReport, transcript,
+      assessment, getAssessment, createLearningPlan, getLearningPlan, completeLearningItem, createCareerPath,
+      getCareerPath, begin, abandon, interview, sse,
+    ];
+    A('围栏后所有生产面试读写、报告/评分、SSE、题目反馈与 ASR/TTS 均返回 410，列表不泄露，且消费/投影增量为 0',
+      fencedEndpoints.every((response) => response.status === 410)
+      && Array.isArray(listBody.interviews) && !listBody.interviews.some((row: any) => row.id === interviewId)
+      && JSON.stringify(beforeEscapes.rows[0]) === JSON.stringify(afterEscapes.rows[0]));
+
+    const ledger = await admin.query<{
+      request_count: number; target_count: number; checkpoint_targets: number; queue_targets: number; external_targets: number; raw_key_rows: number;
+    }>(`
+      SELECT
+        (SELECT count(*)::int FROM privacy_erasure_request r WHERE r.id=$1) AS request_count,
+        (SELECT count(*)::int FROM privacy_deletion_target t WHERE t.request_id=$1) AS target_count,
+        (SELECT count(*)::int FROM privacy_deletion_target t WHERE t.request_id=$1 AND t.sink='checkpoint_rows' AND t.status='pending') AS checkpoint_targets,
+        (SELECT count(*)::int FROM privacy_deletion_target t WHERE t.request_id=$1 AND t.sink='interview_job_payload' AND t.status='erased') AS queue_targets,
+        (SELECT count(*)::int FROM privacy_deletion_target t WHERE t.request_id=$1 AND t.sink IN ('oss','redis','langfuse') AND t.status='retention_pending') AS external_targets,
+        (SELECT count(*)::int FROM privacy_erasure_request r WHERE r.id=$1 AND r.idempotency_key_hash=$2) AS raw_key_rows
+    `, [acceptedBody.requestId, idempotencyKey]);
+    const row = ledger.rows[0];
+    A('一个 request 精确建立五个按数据面拆分的删除 target（含已清空的队列载荷）',
+      row?.request_count === 1 && row?.target_count === 5 && row?.checkpoint_targets === 1
+      && row?.queue_targets === 1 && row?.external_targets === 3);
+    A('原始 Idempotency-Key 从不写入删除账本', row?.raw_key_rows === 0);
+  } finally {
+    await app.close();
+    await runtime?.end();
+    await admin.query(`DROP ROLE IF EXISTS ${role}`);
+    await admin.end();
+  }
+  console.log(failures === 0 ? '\n✓ 隐私擦除 HTTP E2E proof 全部通过' : `\n✗ ${failures} 项失败`);
+  process.exit(failures === 0 ? 0 : 1);
+}
+
+main().catch(async (error) => { console.error(error); await admin.end().catch(() => undefined); process.exit(1); });

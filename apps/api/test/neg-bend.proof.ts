@@ -13,9 +13,11 @@ import { boot, mkAssert, tokenFor } from './_neg-harness';
  */
 
 const sqlText = (f: string) => readFileSync(fileURLToPath(new URL(`../../../packages/db/sql/${f}`, import.meta.url)), 'utf8');
+const migrationText = (f: string) => readFileSync(fileURLToPath(new URL(`../../../packages/db/migrations/${f}`, import.meta.url)), 'utf8');
 
 const h = await boot();
 const { A, done } = mkAssert('neg:bend');
+const VALID_RESUME_ID = '11111111-1111-4111-8111-111111111111';
 
 // ── 灌 B 端表(harness 缺)+ 播种跨租户负测场景 ─────────────────────────────
 await h.pool.query('DROP TABLE IF EXISTS job_application CASCADE; DROP TABLE IF EXISTS job_posting CASCADE;');
@@ -31,6 +33,9 @@ await h.pool.query(
 await h.pool.query(
   "INSERT INTO job_application(id,job_id,recruiter_user_id,candidate_user_id,status,source) VALUES " +
   "('APP_VICTIM','JOB_REC','recU','victimU','invited','applied')");
+// This file reloads the historical B tables for isolated negative tests, so
+// re-apply the current invariant migration after the fixture—not before it.
+await h.pool.query(migrationText('0046_application_assessment_recovery.sql'));
 
 // ── principal 上下文 client(app_role + set_config),用于 DB 层直证 RLS 隔离(不经 HTTP)。ROLLBACK 只读不改。
 const asP = async (uid: string, q: string, params: any[] = []) => {
@@ -167,7 +172,7 @@ const appStatus = async (id: string) => (await h.pool.query('SELECT status, scor
 {
   const b = h.U('userB');    // 非 APP_VICTIM 的候选人
   // start 他人申请:noop(不死胡同)且 DB 绝不变
-  const st = await h.send('POST', '/applications/APP_VICTIM/start', b, {});
+  const st = await h.send('POST', '/applications/APP_VICTIM/start', b, { resumeId: VALID_RESUME_ID });
   A('userB start victimU 的申请→noop(不推进)', st.status === 200 && st.body?.status === 'noop');
   A('userB start 后 APP_VICTIM 仍 invited(DB 未越权修改)', (await appStatus('APP_VICTIM')).status === 'invited');
   // decline 他人邀请:noop 且 DB 不变
@@ -175,15 +180,15 @@ const appStatus = async (id: string) => (await h.pool.query('SELECT status, scor
   A('userB decline victimU 的邀请→noop', dc.status === 200 && dc.body?.status === 'noop');
   A('userB decline 后 APP_VICTIM 仍 invited(未越权终结)', (await appStatus('APP_VICTIM')).status === 'invited');
   // finalize 他人申请:409 cannot_finalize 且 score 仍空
-  const fz = await h.send('POST', '/applications/APP_VICTIM/finalize', b, { interviewId: 'IV_ASMT' });
+  const fz = await h.send('POST', '/applications/APP_VICTIM/finalize', b, {});
   A('userB finalize victimU 的申请→409 cannot_finalize', fz.status === 409 && fz.body?.error === 'cannot_finalize');
   A('userB finalize 后 APP_VICTIM.score 仍为空(未越权回填)', (await appStatus('APP_VICTIM')).score === null);
   // 列表侧:userB 的 /applications 绝不含 APP_VICTIM(候选人侧 RLS)
   const mine = await h.req('GET', '/applications', b);
   A('userB /applications 不含 victimU 的 APP_VICTIM', mine.status === 200 && !(mine.body?.applications ?? []).some((x: any) => x.id === 'APP_VICTIM'));
   // 不存在的申请:start→noop、finalize→409(不区分越权/不存在,均无泄漏)
-  A('userA start 不存在申请→noop', (await h.send('POST', '/applications/app_ghost/start', h.U('userA'), {})).body?.status === 'noop');
-  A('userA finalize 不存在申请→409', (await h.send('POST', '/applications/app_ghost/finalize', h.U('userA'), { interviewId: 'IV_ASMT' })).status === 409);
+  A('userA start 不存在申请→noop', (await h.send('POST', '/applications/app_ghost/start', h.U('userA'), { resumeId: VALID_RESUME_ID })).body?.status === 'noop');
+  A('userA finalize 不存在申请→409', (await h.send('POST', '/applications/app_ghost/finalize', h.U('userA'), {})).status === 409);
 }
 
 /* ═════════════ 8) 申请闭环负路径:不存在/已关闭/重复/畸形 ═════════════ */
@@ -193,10 +198,12 @@ const appStatus = async (id: string) => (await h.pool.query('SELECT status, scor
   A('apply 不存在岗位→404 job_not_found_or_closed', nf.status === 404 && nf.body?.error === 'job_not_found_or_closed');
   const cl = await h.send('POST', '/jobs/JOB_CLOSED/apply', a, {});
   A('apply 已关闭岗位→404(闭岗不可投)', cl.status === 404 && cl.body?.error === 'job_not_found_or_closed');
-  // finalize 畸形体(契约 FinalizeApplicationDto:interviewId 非空)→400
-  A('finalize 空体→400', (await h.send('POST', '/applications/APP_VICTIM/finalize', a, {})).status === 400);
-  A('finalize interviewId 空串→400', (await h.send('POST', '/applications/APP_VICTIM/finalize', a, { interviewId: '' })).status === 400);
-  A('finalize interviewId 非字符串→400', (await h.send('POST', '/applications/APP_VICTIM/finalize', a, { interviewId: 123 })).status === 400);
+  // finalize 不接收 interviewId：空对象可达服务端后因未绑定→409，任何客户端试图注入历史会话 ID → strict 400。
+  A('finalize 空对象→409（无绑定不收口）', (await h.send('POST', '/applications/APP_VICTIM/finalize', a, {})).status === 409);
+  A('finalize 注入 interviewId 空串→400', (await h.send('POST', '/applications/APP_VICTIM/finalize', a, { interviewId: '' })).status === 400);
+  A('finalize 注入 interviewId 非字符串→400', (await h.send('POST', '/applications/APP_VICTIM/finalize', a, { interviewId: 123 })).status === 400);
+  A('start 缺 resumeId→400', (await h.send('POST', '/applications/APP_VICTIM/start', a, {})).status === 400);
+  A('start 非 UUID resumeId→400', (await h.send('POST', '/applications/APP_VICTIM/start', a, { resumeId: 'history-interview-id' })).status === 400);
   // 重复申请:dup 约束(UNIQUE job_id,candidate)→ 第二次幂等复用,绝不生成第二行
   const p1 = await h.send('POST', '/jobs/JOB_REC2/apply', h.U('userB'), {});
   const p2 = await h.send('POST', '/jobs/JOB_REC2/apply', h.U('userB'), {});
@@ -282,6 +289,20 @@ const appStatus = async (id: string) => (await h.pool.query('SELECT status, scor
   try { await asP('recU2', "INSERT INTO job_application(id,job_id,recruiter_user_id,candidate_user_id,status,source) VALUES('app_forge2','JOB_REC','recU2','userB','invited','invited')"); }
   catch { forge2 = true; }
   A('RLS: recU2 无法为 recU 的岗位建邀请申请(EXISTS 归属自校验)', forge2);
+  // P0: candidate may insert a row for themself under p_candidate_insert, so
+  // RLS alone cannot prove it is an *unscored invited shell*.  The DB trigger
+  // must reject a pre-completed, high-score row before it becomes recruiter
+  // visible.
+  let forgedScoreRejected = false;
+  try { await asP('userB', "INSERT INTO job_application(id,job_id,recruiter_user_id,candidate_user_id,status,score,source) VALUES('app_forge_score','JOB_REC','recU','userB','completed',100,'applied')"); }
+  catch { forgedScoreRejected = true; }
+  A('DB guard: candidate 不能直接插入 completed/100 的伪造候选结果', forgedScoreRejected);
+  const forgedVisible = await asP('recU', "SELECT count(*)::int n FROM job_application WHERE id='app_forge_score'");
+  A('伪造完成行对受害招聘方可见数=0', forgedVisible.rows[0].n === 0);
+  let tenantMutationRejected = false;
+  try { await asP('victimU', "UPDATE job_application SET recruiter_user_id='recU2' WHERE id='APP_VICTIM'"); }
+  catch { tenantMutationRejected = true; }
+  A('DB guard: 终态前后均不能篡改 job/recruiter 租户归属', tenantMutationRejected);
   // 候选人无法改招聘方岗位状态(job_posting p_update USING owner=principal)
   const upd = await asP('userA', "UPDATE job_posting SET status='closed' WHERE id=$1", ['JOB_REC']);
   A('RLS: candidate userA 改不动招聘方岗位(0 行受影响)', (upd.rowCount ?? 0) === 0);
@@ -293,8 +314,8 @@ const appStatus = async (id: string) => (await h.pool.query('SELECT status, scor
   A('全部越权尝试后 APP_VICTIM 仍 invited & score 空(零副作用)', s.status === 'invited' && s.score === null);
 }
 
-// ── 用例条数统计:共 109 条纯负路径断言(全部为拒绝/隔离/无副作用,零 happy-path)──
+// ── 用例条数统计:共 111 条纯负路径断言(全部为拒绝/隔离/无副作用,零 happy-path)──
 //   §1 未鉴权 22 · §2 坏 token/伪造主体 6 · §3 角色越权(recruiter)10 · §4 admin 越权 9 ·
 //   §5 admin 特权边界+返回体泄漏 6 · §6 跨租户 IDOR(recruiter)7 · §7 跨用户 IDOR(application)9 ·
-//   §8 申请闭环负路径 7 · §9 招聘方写负路径 8 · §10 roles 5 · §11 profile 15 · §12 DB 层 RLS 直证 6 · 收尾 1
+//   §8 申请闭环负路径 9（含禁止 client interviewId 注入）· §9 招聘方写负路径 8 · §10 roles 5 · §11 profile 15 · §12 DB 层 RLS 直证 6 · 收尾 1
 await done();

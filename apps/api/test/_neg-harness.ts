@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createHmac } from 'node:crypto';
 import { hashPassword, signToken } from '@meetwise/domain';
+import { assertIsolatedTestTarget } from '@meetwise/db';
 import { createApp } from '../src/main';
 import { DbService } from '../src/platform/db.service';
 
@@ -43,11 +44,19 @@ export async function boot(): Promise<Harness> {
   Object.assign(process.env, {
     AUTH_DEV_HEADER: '1', AUTH_SECRET, RESUME_ENC_KEY: 'test-resume-enc-key',
     RESUME_HASH_SECRET: 'test-resume-hash-secret', PAY_PROVIDER_SECRET: PAY_SECRET,
-    OCR_FAKE: '1', OCR_FAKE_TEXT: '工作经历\n负责订单系统限流,用 Redis 令牌桶\n技能 Redis、限流\n电话 13800138000', VOICE_FAKE: '1',
+    // OCR lacks a typed MODEL-OP-01 binding and must remain disabled even in
+    // this isolated non-production HTTP harness.
+    OCR_ENABLED: '0',
   });
+  // Negative cases must not silently call a paid provider.  Their purpose is
+  // to prove rejection occurs before external dispatch, while real provider
+  // behaviour belongs to the isolated live E2E suite.
+  delete process.env.MODEL_API_KEY;
+  delete process.env.MODEL_BASE_URL;
   const app = await createApp();
-  await app.init();
   const db = app.get(DbService);
+  await assertIsolatedTestTarget(db.pool);
+  await app.init();
   const sql = (f: string, dir = 'sql') => readFileSync(fileURLToPath(new URL(`../../../packages/db/${dir}/${f}`, import.meta.url)), 'utf8');
   // B 端文件 17/18/22 是增量迁移式(CREATE TABLE IF NOT EXISTS + 无守卫 CREATE POLICY),不像 01-16 自 DROP 重置;
   // 先显式清掉它们的表(CASCADE 连策略/视图),保证在脏库上重复整体加载也确定性可重复。
@@ -55,6 +64,10 @@ export async function boot(): Promise<Harness> {
   // 全量 schema(含 B 端 17/18/22、角色 19、押题 20、诊断 21;检索 06/记忆 07 也带上),负测覆盖所有域。
   for (const f of ['01_schema', '02_commerce', '03_resume', '04_report', '05_interview_jobs', '06_retrieval', '07_memory', '08_assessment', '09_auth', '10_learning', '11_commerce', '12_career', '13_privacy', '14_notification', '15_audit', '16_feedback', '17_recruiter', '18_job_application', '19_user_role', '20_resume_quiz', '21_resume_diagnosis', '22_interview_invitation'])
     await db.pool.query(sql(`${f}.sql`));
+  // 负路径需要覆盖当前生产模式中的模型调用持久状态和 OCR 恢复工件，不能只跑旧基础 SQL。
+  for (const f of ['0037_ai_model_invocation_durable_claim.sql', '0038_resume_ocr_artifact.sql', '0039_resume_derivative_erasure.sql', '0046_application_assessment_recovery.sql'])
+    await db.pool.query(sql(f, 'migrations'));
+  await db.pool.query(sql('23_api_gateway.sql'));
 
   // ── 种子:各种状态,专供负测(绝不含"正常成功"作为断言目标)──
   await db.pool.query("INSERT INTO user_account(id,email,password_hash,is_admin,role) VALUES " +
@@ -76,9 +89,44 @@ export async function boot(): Promise<Harness> {
   await app.listen(0, '127.0.0.1');
   const base = (await app.getUrl()).replace('[::1]', '127.0.0.1');
   const parse = async (res: Response) => ({ status: res.status, body: await res.json().catch(() => ({})), headers: res.headers });
-  const req = async (m: string, p: string, h: Record<string, string> = {}) => parse(await fetch(base + p, { method: m, headers: h }));
-  const send = async (m: string, p: string, h: Record<string, string>, b: any) => parse(await fetch(base + p, { method: m, headers: { ...h, 'content-type': 'application/json' }, body: typeof b === 'string' ? b : JSON.stringify(b) }));
-  const raw = async (m: string, p: string, h: Record<string, string>, rb: string) => { const r = await fetch(base + p, { method: m, headers: h, body: rb }); return { status: r.status, text: await r.text() }; };
+  const req = async (m: string, p: string, h: Record<string, string> = {}) => {
+    try {
+      return await parse(await fetch(base + p, { method: m, headers: h }));
+    } catch (error: any) {
+      // Node/Fastify may close an overlong request-target before it can emit an HTTP 414/431;
+      // undici exposes that valid transport-layer rejection as ECONNRESET.  This normalization is
+      // deliberately narrow: only the giant-URL adversarial cases may accept it, and later requests
+      // still prove the process is alive. Never turn an ordinary API connection failure into a green test.
+      const code = error?.cause?.code ?? error?.code;
+      if (p.length > 8_192 && (code === 'ECONNRESET' || code === 'UND_ERR_SOCKET' || code === 'EPIPE')) {
+        return { status: 431, body: { error: 'request_target_rejected_at_transport' }, headers: new Headers() };
+      }
+      throw error;
+    }
+  };
+  const send = async (m: string, p: string, h: Record<string, string>, b: any) => {
+    const payload = typeof b === 'string' ? b : JSON.stringify(b);
+    try {
+      return await parse(await fetch(base + p, { method: m, headers: { ...h, 'content-type': 'application/json' }, body: payload }));
+    } catch (error: any) {
+      // Fastify/Node is permitted to tear down a socket while rejecting a massive body. For these
+      // explicit transport-limit probes, EPIPE/RESET is equivalent to a 413; subsequent requests
+      // in neg-input prove the server remains alive. Do not normalize normal-size write failures.
+      const code = error?.cause?.code ?? error?.code;
+      if (payload.length > 1_000_000 && (code === 'ECONNRESET' || code === 'UND_ERR_SOCKET' || code === 'EPIPE')) {
+        return { status: 413, body: { error: 'payload_rejected_at_transport' }, headers: new Headers() };
+      }
+      throw error;
+    }
+  };
+  const raw = async (m: string, p: string, h: Record<string, string>, rb: string) => {
+    try { const r = await fetch(base + p, { method: m, headers: h, body: rb }); return { status: r.status, text: await r.text() }; }
+    catch (error: any) {
+      const code = error?.cause?.code ?? error?.code;
+      if (rb.length > 1_000_000 && (code === 'ECONNRESET' || code === 'UND_ERR_SOCKET' || code === 'EPIPE')) return { status: 413, text: 'payload_rejected_at_transport' };
+      throw error;
+    }
+  };
   return {
     base, pool: db.pool, req, send, raw,
     post: (p, h, b) => send('POST', p, h, b),

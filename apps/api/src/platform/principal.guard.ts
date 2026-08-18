@@ -28,7 +28,8 @@ export class PrincipalGuard implements CanActivate {
   private async accountState(uid: string, now: number): Promise<AccountState> {
     const c = statusCache.get(uid);
     if (c && c.exp > now) return { active: c.active, epoch: c.epoch };
-    const r = await this.db.pool.query("SELECT status, pwd_epoch FROM user_account WHERE id=$1", [uid]);
+    const r = await this.db.asPrincipal(uid, (c) => c.query(
+      "SELECT status, pwd_epoch FROM user_account WHERE id=$1", [uid]));
     const row = r.rows[0];
     // 账户不存在 → epoch=-1(与任何合法令牌代次 ≥0 不等,天然拒绝),active=false。
     // 显式 Number() 归一:pwd_epoch 现为 int4(返回 number);即便日后改 bigint(pg 返回字符串)也不会静默塌成 0 造成伪匹配。

@@ -8,14 +8,17 @@ const SETTINGS_KEYS = ['locale', 'theme', 'notifications'];
 
 /**
  * 用户资料/设置应用服务(拥有 asPrincipal/pool + SQL + 业务编排)。controller 只解析/校验/映射 HTTP,不碰 SQL(修审计 F1)。
- * principal=user_account.id;账户表无 owner-RLS,按 id 经 pool 查;overview 走 RLS 限己。
+ * principal=user_account.id;账户表和业务表均由 RLS 限制到当前主体。
  */
 @Injectable()
 export class ProfileService {
   constructor(private readonly db: DbService) {}
 
   async me(principal: string) {
-    const r = await this.db.pool.query('SELECT id, email, status, preferences, created_at FROM user_account WHERE id=$1', [principal]);
+    const r = await this.db.asPrincipal(principal, (c) => c.query(
+      'SELECT id, email, status, preferences, created_at FROM user_account WHERE id=$1',
+      [principal],
+    ));
     if (r.rowCount === 0) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
     return r.rows[0];   // 不含 password_hash
   }
@@ -24,7 +27,9 @@ export class ProfileService {
   overview(principal: string) {
     return this.db.asPrincipal(principal, async (c: any) => {
       const iv = await c.query('SELECT status, count(*)::int n FROM interview GROUP BY status');
-      const sc = await c.query("SELECT avg((payload->>'score')::numeric) avg, count(*)::int n FROM interview_event WHERE kind='answer_evaluated'");
+      // 得分权威 = ScoreCard(确定性总分,仅 practice_eligible/b_review_eligible),legacy answer_evaluated.score 结构性不参与。
+      // 全 owner 作用域由 score_card_app_role RLS(FORCE) 兜底,无卡 → avg=null / count=0(fail-closed,无数值)。
+      const sc = await c.query("SELECT avg(deterministic_total) avg, count(*)::int n FROM score_card WHERE status IN ('practice_eligible','b_review_eligible')");
       const rp = await c.query("SELECT count(*)::int n FROM ai_report WHERE status='ready'");
       return {
         interviewsByStatus: Object.fromEntries(iv.rows.map((r: any) => [r.status, r.n])),
@@ -42,7 +47,9 @@ export class ProfileService {
       // RLS(FORCE)已限己;再显式带 owner_user_id 作纵深防御(双闸,修审计低危项)。
       const rep = await c.query(
         "SELECT interview_id, overall, dimensions, created_at FROM assessment_report WHERE owner_user_id=current_setting('app.principal_user', true) AND status='ready' ORDER BY created_at ASC, interview_id ASC");
-      const ans = await c.query("SELECT count(*)::int n FROM interview_event WHERE kind='answer_evaluated'");
+      // answered = 可评分 ScoreCard 数(仅 practice_eligible/b_review_eligible),非 legacy answer_evaluated 事件计数;
+      // 无卡 → 0(fail-closed)。RLS(FORCE) 限己,与 overview 同源(score_card 单一真相)。
+      const ans = await c.query("SELECT count(*)::int n FROM score_card WHERE status IN ('practice_eligible','b_review_eligible')");
       return deriveGrowth(rep.rows.map(toGrowthRow), ans.rows[0].n);   // 映射单一真相 toGrowthRow(service 与 proof 同源)
     });
   }
@@ -58,29 +65,31 @@ export class ProfileService {
     if (!b?.preferences || typeof b.preferences !== 'object') throw new HttpException({ error: 'invalid_preferences' }, HttpStatus.BAD_REQUEST);
     const patch = JSON.stringify(b.preferences);
     // jsonb_object_agg(...) FILTER 把存量 prefs 投影到白名单键(无匹配→NULL→COALESCE '{}'),再 || 新 patch。单语句原子。
-    const r = await this.db.pool.query(
+    const r = await this.db.asPrincipal(principal, (c) => c.query(
       `UPDATE user_account SET preferences = (
            SELECT COALESCE(jsonb_object_agg(k, v) FILTER (WHERE k = ANY($3::text[])), '{}'::jsonb)
              FROM jsonb_each(preferences) AS e(k, v)
          ) || $2::jsonb
          WHERE id=$1
          RETURNING preferences`,
-      [principal, patch, SETTINGS_KEYS]);
+      [principal, patch, SETTINGS_KEYS]));
     if (r.rowCount === 0) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
     return { preferences: r.rows[0].preferences };
   }
 
   // 修改密码(自助,安全):验旧密码(常量时间)→ scrypt 哈希新密码 + **密码代次自增**(吊销旧/被盗令牌,F4)。绝不明文。
   async changePassword(principal: string, b: { oldPassword?: string; newPassword?: string }) {
-    if (!b?.oldPassword || !b?.newPassword || b.newPassword.length < 8) throw new HttpException({ error: 'invalid_password' }, HttpStatus.BAD_REQUEST);
-    const r = await this.db.pool.query('SELECT password_hash FROM user_account WHERE id=$1', [principal]);
+    if (!b.oldPassword || !b.newPassword || b.newPassword.length < 8) throw new HttpException({ error: 'invalid_password' }, HttpStatus.BAD_REQUEST);
+    const r = await this.db.asPrincipal(principal, (c) => c.query(
+      'SELECT password_hash FROM user_account WHERE id=$1', [principal]));
     if (r.rowCount === 0) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
     if (!verifyPassword(b.oldPassword, r.rows[0].password_hash)) throw new HttpException({ error: 'wrong_password' }, HttpStatus.UNAUTHORIZED);
     // 单语句原子改哈希 + 代次自增:并发两次改密各自 read-modify-write 在行锁内串行,代次 0→1→2 不丢更新,两个旧代次令牌均失效。
     // 边角:并发双改密时先提交者回签的令牌内嵌旧代次(如 1),会被终值(2)判失效——极罕见的自锁,可接受。
-    const up = await this.db.pool.query(
+    const newPassword = b.newPassword;   // 守卫后已收窄为 string；const 捕获进闭包(strictNullChecks 下 b 参数不收窄进回调)
+    const up = await this.db.asPrincipal(principal, (c) => c.query(
       'UPDATE user_account SET password_hash=$2, pwd_epoch = pwd_epoch + 1 WHERE id=$1 RETURNING pwd_epoch',
-      [principal, hashPassword(b.newPassword)]);
+      [principal, hashPassword(newPassword)]));
     const epoch = up.rows[0].pwd_epoch;
     evictPrincipalStatus(principal);   // 清本进程守卫缓存 → 单实例下旧令牌下一请求即 401;多实例仅本机即时,其余实例 ≤60s 缓存过期后生效
     // 签发**新代次**令牌回给当前会话,避免用户改完密码就被自己踢下线(无死胡同);缺密钥时降级为仅 changed。
@@ -91,7 +100,8 @@ export class ProfileService {
 
   // 账户注销(自助停用)。PIPL 配合删除权:停用后用 /privacy/resume-data 删 PII。
   async deactivate(principal: string) {
-    const r = await this.db.pool.query("UPDATE user_account SET status='disabled' WHERE id=$1", [principal]);
+    const r = await this.db.asPrincipal(principal, (c) => c.query(
+      "UPDATE user_account SET status='disabled' WHERE id=$1", [principal]));
     if (r.rowCount === 0) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
     evictPrincipalStatus(principal);   // 清本进程守卫缓存 → 停用后旧令牌下一请求即 401(此前漏清 → 缓存 active:true 最长 60s 仍可用,负测抓到)
     return { deactivated: true };

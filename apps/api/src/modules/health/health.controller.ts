@@ -1,18 +1,23 @@
 import { Controller, Get, HttpException, HttpStatus } from '@nestjs/common';
-import { DbService } from '../../platform/db.service';
+import { HealthService } from './health.service';
 
-/** 健康检查（容器 / LB 探活）。公开端点（无 principal 守卫）。DB 不通 → 503,供编排重启/摘流。 */
-@Controller('health')
+/**
+ * 公开探针，不读取 principal（主体）也不泄露依赖拓扑。
+ * `/livez` 只回答进程存活；`/readyz/api` 才读取数据库。旧 `/health` 保留为
+ * readiness（就绪）别名，避免已有编排器把兼容升级误判为可接流量。
+ */
+@Controller()
 export class HealthController {
-  constructor(private readonly db: DbService) {}
+  constructor(private readonly health: HealthService) {}
 
-  @Get()
-  async health() {
-    try {
-      await this.db.pool.query('SELECT 1');
-      return { status: 'ok', db: 'up' };
-    } catch {
-      throw new HttpException({ status: 'degraded', db: 'down' }, HttpStatus.SERVICE_UNAVAILABLE);
-    }
+  @Get('livez')
+  livez() {
+    return this.health.livez();
+  }
+
+  @Get(['readyz/api', 'health'])
+  async apiReady() {
+    if (await this.health.apiReady()) return { status: 'ok' as const };
+    throw new HttpException({ status: 'degraded' }, HttpStatus.SERVICE_UNAVAILABLE);
   }
 }
