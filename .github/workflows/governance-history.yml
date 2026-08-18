@@ -1,0 +1,38 @@
+name: governance-history
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  trusted-governance-history:
+    if: github.event.pull_request.base.repo.full_name == github.repository && github.event.pull_request.base.ref == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    steps:
+      # `pull_request_target` resolves this workflow and this checkout from the
+      # protected base, never from the proposed head. Do not install packages,
+      # restore caches, execute candidate scripts, or expose user secrets here.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      - name: 受信任基线的治理追加历史预检（静态，非发布证据）
+        env:
+          GOVERNANCE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GOVERNANCE_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          GOVERNANCE_PR_NUMBER: ${{ github.event.pull_request.number }}
+          GOVERNANCE_READ_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          git -c http.extraheader="AUTHORIZATION: bearer ${GOVERNANCE_READ_TOKEN}" fetch --no-tags origin "refs/pull/${GOVERNANCE_PR_NUMBER}/head"
+          unset GOVERNANCE_READ_TOKEN
+          node scripts/quality-governance-base-guard.mjs --base "${GOVERNANCE_BASE_SHA}" --head "${GOVERNANCE_HEAD_SHA}"

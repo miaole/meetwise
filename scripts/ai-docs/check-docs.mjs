@@ -1,41 +1,9 @@
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { scanPublicTextPolicy } from "./public-text-policy.mjs";
 
 const root = new URL("../..", import.meta.url).pathname;
 
-// 公开文档必须第一手、无对其它/源项目的指涉、无本地路径泄漏。
-// task-sop.md 记录文字治理规则，故只对其进行结构检查。
-const FORBIDDEN = [
-  { re: /源项目|源\u53c2\u8003|照搬源|纠正源|取代源项目|借鉴了|\u53c2\u8003了\s*[A-Za-z一-龥]+\s*(项目|库|仓)/, why: "外部项目指涉(须改为第一手陈述)" },
-  { re: /\/Users\/|\/private\/tmp\/|claude-501/, why: "本地绝对路径/会话目录泄漏" },
-];
-const SCAN_ROOTS = ["ai-docs", "AGENTS.md", "README.md", "CLAUDE.md"];
-const SCAN_EXEMPT = new Set(["ai-docs/meta/task-sop.md"]);
-const PUBLIC_TEXT_ROOTS = ["ai-docs", "apps", "packages", "scripts", "README.md"];
-const PUBLIC_TEXT_EXTENSIONS = new Set([".md", ".mjs", ".json", ".sql", ".ts", ".tsx"]);
-const OSS_LANGUAGE_FORBIDDEN = [
-  { re: new RegExp("\\u53c2\\u8003"), why: "公开仓库禁止的外部指涉文字" },
-  { re: new RegExp("\\u9762\\u8bd5\\u9898"), why: "公开仓库禁止的训练场景旧称" },
-];
-function walkMd(p, acc) {
-  const abs = join(root, p);
-  if (!existsSync(abs)) return;
-  if (statSync(abs).isDirectory()) { for (const c of readdirSync(abs)) walkMd(join(p, c), acc); return; }
-  if (p.endsWith(".md")) acc.push(p);
-}
-function walkPublicText(p, acc) {
-  const abs = join(root, p);
-  if (!existsSync(abs)) return;
-  if (statSync(abs).isDirectory()) {
-    for (const child of readdirSync(abs)) {
-      if (child === "node_modules" || child === "dist" || child === "coverage") continue;
-      walkPublicText(join(p, child), acc);
-    }
-    return;
-  }
-  const extension = p.slice(p.lastIndexOf("."));
-  if (PUBLIC_TEXT_EXTENSIONS.has(extension)) acc.push(p);
-}
 
 const requiredFiles = [
   "README.md",
@@ -62,6 +30,7 @@ const requiredFiles = [
   "ai-docs/rules/global/status-machine.md",
   "ai-docs/rules/global/production-invariants.md",
   "ai-docs/rules/ai/structured-output-and-safety.md",
+  "ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md",
   "ai-docs/testing/strategy/test-strategy.md",
   "ai-docs/delivery/roadmap.md",
   "docker/compose.dev.yml",
@@ -81,6 +50,7 @@ const requiredTerms = new Map([
   ["ai-docs/architecture/devops/local-demo-deployment.md", ["docker compose", "compose.demo.yml"]],
   ["ai-docs/testing/strategy/test-strategy.md", ["contract", "E2E", "golden"]],
   ["ai-docs/observability/observability-strategy.md", ["SLO", "降级", "恢复", "脱敏", "threadId"]],
+  ["ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md", ["qbank_control_definer", "FORCE RLS", "fail-closed", "SECURITY DEFINER", "lane(b)", "撤销", "复活"]],
 ]);
 
 // P0 readability contract: expert-interview materials must not assume the reader already knows acronyms.
@@ -108,7 +78,7 @@ const errors = [];
 // silently outlives a security or runtime change.
 const runtimeTruthAssertions = [
   {
-    source: "apps/worker/src/main.ts",
+    source: "apps/worker/src/production-config.ts",
     sourceTerm: "legacy_interview_graph_disabled",
     truthTerm: "旧固定题单不再是生产回退",
   },
@@ -190,29 +160,8 @@ for (const file of questionBanksWithSpeakableAnswerGate) {
   }
 }
 
-// 受限文字扫描
-const scanFiles = [];
-for (const r of SCAN_ROOTS) walkMd(r, scanFiles);
-for (const file of scanFiles) {
-  if (SCAN_EXEMPT.has(file)) continue;
-  const lines = readFileSync(join(root, file), "utf8").split("\n");
-  lines.forEach((line, i) => {
-    for (const { re, why } of FORBIDDEN) {
-      if (re.test(line)) errors.push(`${file}:${i + 1} 禁词命中(${why}): ${line.trim().slice(0, 80)}`);
-    }
-  });
-}
-
-const publicTextFiles = [];
-for (const scanRoot of PUBLIC_TEXT_ROOTS) walkPublicText(scanRoot, publicTextFiles);
-for (const file of publicTextFiles) {
-  const lines = readFileSync(join(root, file), "utf8").split("\n");
-  lines.forEach((line, index) => {
-    for (const { re, why } of OSS_LANGUAGE_FORBIDDEN) {
-      if (re.test(line)) errors.push(`${file}:${index + 1} 公开文字门禁命中(${why})`);
-    }
-  });
-}
+const publicTextPolicy = scanPublicTextPolicy({ repoRoot: root });
+for (const policyError of publicTextPolicy.errors) errors.push(`public_text_policy:${policyError}`);
 
 if (errors.length > 0) {
   console.error("ai-docs check failed:");
@@ -222,4 +171,4 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-console.log(`ai-docs check passed: ${requiredFiles.length} required files verified`);
+console.log(`ai-docs check passed: ${requiredFiles.length} required files verified; public text policy scanned ${publicTextPolicy.scannedFiles} managed worktree files`);

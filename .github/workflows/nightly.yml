@@ -30,43 +30,18 @@ jobs:
       # ── 硬门(配 key 即真跑,红=真模型出题/评分/报告质量或关口出问题,阻断) ──
       - name: 真模型冒烟(文本 qwen:出题/评分/报告经 invoke 关口双校验真跑)
         env:
-          MODEL_BASE_URL: ${{ secrets.MODEL_BASE_URL }}
+          MODEL_ENDPOINT_PROFILE: deepseek-cn-public
           MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
           MODEL_NAME: ${{ secrets.MODEL_NAME }}
         run: |
           if [ -z "$MODEL_API_KEY" ]; then echo "::warning::未配 MODEL_API_KEY → 跳过真模型门(配 secrets 后 nightly/手动才真跑)"; exit 0; fi
           pnpm model:smoke
-      - name: 端到端真 agent(flow:live:简历→押题→面试→评分→报告,真模型+真检索经关口)
-        env:
-          MODEL_BASE_URL: ${{ secrets.MODEL_BASE_URL }}
-          MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
-          MODEL_NAME: ${{ secrets.MODEL_NAME }}
-          MODEL_FAST_NAME: ${{ secrets.MODEL_FAST_NAME }}
-          RESUME_ENC_KEY: ${{ secrets.RESUME_ENC_KEY }}
-          RESUME_HASH_SECRET: ${{ secrets.RESUME_HASH_SECRET }}
-        run: |
-          if [ -z "$MODEL_API_KEY" ]; then echo "::warning::skip flow:live(无 MODEL_API_KEY)"; exit 0; fi
-          pnpm flow:live
-
-      # ── 软门(依赖图片/音频 fixture、独立语音/嵌入端点;环境问题不阻断整门,真模型信号看日志) ──
-      - name: 多模态视觉(vl:smoke:qwen-vl 真读简历图片 → 结构化够用)
-        continue-on-error: true
-        env:
-          MODEL_BASE_URL: ${{ secrets.MODEL_BASE_URL }}
-          MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
-          VISION_MODEL_NAME: ${{ secrets.VISION_MODEL_NAME }}
-        run: |
-          if [ -z "$MODEL_API_KEY" ]; then echo "skip vl:smoke(无 key)"; exit 0; fi
-          pnpm vl:smoke
-      - name: 语音(voice:live:真 ASR/TTS 端到端)
-        continue-on-error: true
-        env:
-          MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
-          DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
-          TTS_URL: ${{ secrets.TTS_URL }}
-        run: |
-          if [ -z "$MODEL_API_KEY" ] && [ -z "$DASHSCOPE_API_KEY" ]; then echo "skip voice:live(无 key)"; exit 0; fi
-          pnpm voice:live
+      # 视觉 OCR 在 MODEL-OP-01 前由代码全环境 fail-closed；不得在 nightly
+      # 读取 Key、简历图片或原始模型输出。恢复前需 typed binding + 合成 fixture
+      # + 脱敏回执，不能把 continue-on-error 的人工 smoke 当作验证。
+      # Voice/OCR live smoke is intentionally absent. MODEL-OP-01 must first
+      # establish typed operation binding, media budgets, deletion receipts,
+      # redacted synthetic fixtures and non-unknown attempt handling.
       - name: 检索召回金标(recall:eval:真 embedding 召回率达标)
         continue-on-error: true
         env:
@@ -78,7 +53,7 @@ jobs:
       - name: 评分官质量信号(scoring:eval:单调性/一致性ICC/相关性,真模型;度量数学硬门在 per-push ci)
         continue-on-error: true
         env:
-          MODEL_BASE_URL: ${{ secrets.MODEL_BASE_URL }}
+          MODEL_ENDPOINT_PROFILE: deepseek-cn-public
           MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
           MODEL_NAME: ${{ secrets.MODEL_NAME }}
           MODEL_FAST_NAME: ${{ secrets.MODEL_FAST_NAME }}

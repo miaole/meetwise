@@ -1,7 +1,6 @@
 /**
- * README 截图采集 runner:起真栈(api 8787 + worker + web 3100,production `next start`,E2E_FAKE_MODEL=1
- * 使图执行确定性/秒级)→ 等就绪 → 只跑 screenshots.spec.ts(chromium)→ 拆栈。
- * 用法:node scripts/capture-screenshots.mjs(需 docker DB 在跑;web 需已 build 出 .next)。截图落 docs/screenshots/。
+ * 演示截图采集 runner:起受控运行时后只跑 screenshots.spec.ts(chromium)。
+ * 截图仅落未跟踪临时目录，不作为 README 或公开发布资产。
  * 只用演示数据(假邮箱 + 通用简历文本),不含任何真实 PII/密钥。
  */
 import { spawn } from 'node:child_process';
@@ -14,7 +13,7 @@ const env = {
   PAY_PROVIDER_SECRET: process.env.PAY_PROVIDER_SECRET ?? 'shots-pay-secret',
   RESUME_ENC_KEY: process.env.RESUME_ENC_KEY ?? 'shots-resume-enc-key',
   RESUME_HASH_SECRET: process.env.RESUME_HASH_SECRET ?? 'shots-resume-hash-secret',
-  E2E_FAKE_MODEL: '1', OCR_FAKE: '1', VOICE_FAKE: '1',
+  RAG_JOB_ROUTE_INPUT_HASH_KEY: process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ?? 'shots-rag03-job-route-input-hmac-key-not-production',
   PORT: '8787',
 };
 if (existsSync(ROOT + '.env')) {
@@ -23,6 +22,11 @@ if (existsSync(ROOT + '.env')) {
     if (m && !env[m[1]]) env[m[1]] = m[2].replace(/^["']|["']$/g, '');
   }
 }
+const fakeServiceFlags = ['VOICE_FAKE', 'OCR_FAKE', 'E2E_FAKE_MODEL'].filter((name) => {
+  const value = String(env[name] ?? '').trim().toLowerCase();
+  return value && value !== '0' && value !== 'false';
+});
+if (fakeServiceFlags.length) throw new Error(`fake_service_mode_forbidden:${fakeServiceFlags.join(',')}`);
 
 const procs = [];
 const spawnProc = (name, cmd, args, cwd = ROOT, extraEnv = {}) => {
@@ -67,10 +71,10 @@ async function resetDemoUser() {
 const REG = '@swc-node/register/esm-register';
 const NEXT_BIN = ROOT + 'apps/web/node_modules/next/dist/bin/next';
 async function main() {
-  console.log('SHOTS: 启 api + worker(fake model)…');
+  console.log('SHOTS: 启 api + worker（真实服务模式）…');
   spawnProc('api', 'node', ['--import', REG, 'src/main.ts'], ROOT + 'apps/api');
   spawnProc('worker', 'node', ['--import', REG, 'src/main.ts'], ROOT + 'apps/worker', { WORKER_BOOTSTRAP: '1' });
-  if (!(await waitFor('http://127.0.0.1:8787/health', 'api', 40))) { cleanup(); process.exit(1); }
+  if (!(await waitFor('http://127.0.0.1:8787/livez', 'api', 40))) { cleanup(); process.exit(1); }
   await sleep(3000);
 
   // 重置演示用户 demo@meetwise.app(可复现:每次采集都从干净态起——同意门 + 上传态都能稳定截到)。
@@ -88,7 +92,7 @@ async function main() {
   pw.stderr.on('data', (d) => process.stderr.write(d));
   const code = await new Promise((res) => pw.on('exit', res));
   cleanup();
-  console.log(code === 0 ? 'SHOTS: 完成 → docs/screenshots/' : 'SHOTS: 失败');
+  console.log(code === 0 ? 'SHOTS: 完成 → .tmp/demo-screenshots/' : 'SHOTS: 失败');
   process.exit(code ?? 1);
 }
 main().catch((e) => { console.error(e); cleanup(); process.exit(1); });

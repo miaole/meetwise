@@ -31,6 +31,21 @@ const KNOWN_METRICS = new Set([
   "worker_jobs_queued",                 // gauge:队列 queued 深度(worker 周期查 DB set)
   "worker_jobs_running_expired",        // gauge:running 超租约(卡住 job)
   "worker_jobs_dead",                   // gauge:DLQ 死信深度(quarantined / failed 终态)
+  "rag_retrieval_total",                // counter:本地 RAG 结果/降级原因
+  "rag_retrieval_latency_ms",
+  "rag_retrieval_latency_ms_bucket",
+  "rag_retrieval_latency_ms_sum",
+  "rag_retrieval_latency_ms_count",
+  "rag_cost_decisions_total",           // counter:预留/预算拒绝/未知外部结果
+  "rag_cost_governance_enabled",        // gauge:生产硬门是否真正启用
+  "rag_cost_budget_remaining_ratio",    // gauge:本月剩余预算比例
+  "rag_cost_unknown_reservations",      // gauge:需要供应商/人工对账的调用数
+  "model_cost_decisions_total",         // counter:文本/视觉模型预留、结算、预算拒绝、未知结果
+  "model_cost_governance_enabled",      // gauge:模型费用治理硬门
+  "model_cost_budget_remaining_ratio",  // gauge:模型本月剩余预算比例
+  "model_cost_unknown_reservations",    // gauge:模型外部结果未知、等待人工对账的记录数
+  "model_invocation_reconcile_invocations_total", // counter:陈旧已派发调用被冻结或对账循环失败
+  "model_invocation_reconcile_frozen_costs_total", // counter:与上述调用一起冻结的费用预留数
 ]);
 
 // PromQL 函数(标识符后紧跟 "(" 才算函数)。未知函数 = 失败(抓 typo)。

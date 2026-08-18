@@ -4,16 +4,19 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   # 密钥扫描（全历史；项目有 Langfuse key 泄露史，必须真跑、red 即阻断）
   secrets-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0          # 全历史，否则只扫到 HEAD
       - name: gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@dcedce43c6f43de0b836d1fe38946645c9c638dc # v2
         env:
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
         # 命中任何密钥 → 非零退出 → 阻断
@@ -21,12 +24,12 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
         # 版本读 package.json packageManager(pnpm@10.18.0)：catalog 需 pnpm≥9.5，不能再钉 9
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: pnpm
@@ -35,6 +38,33 @@ jobs:
 
       # 文档门禁：必需文件 + 关键术语
       - run: pnpm docs:check
+
+      # 公共文本策略的七类反例；只证明本地静态扫描，不替代产品或发布证据。
+      - name: 公共文本策略静态证明（不替代发布证据）
+        run: pnpm public-text-policy:prove
+
+      # 公开首页、预览说明与招聘边界：仅检查已审计的文案契约，不证明运行或发布状态。
+      - name: 公开文案边界（不替代发布证据）
+        run: pnpm -C apps/web prove:public-copy
+
+      # 只校验版本化的规格—用例—测试绑定；不执行测试，也不产生发布可采信证据。
+      - name: 规格—测试—绑定静态追溯（不替代发布证据）
+        run: |
+          pnpm quality:traceability:prove
+          pnpm quality:traceability:inventory
+
+      # 显式登记的 L2+ Harness、专家审计摘要与历史追溯缺口；不执行运行测试，也不产生发布证据。
+      - name: 复杂变更治理静态预检（不替代专家结论或发布证据）
+        run: |
+          pnpm quality:governance:history:prove
+          pnpm quality:governance:prove
+          pnpm quality:governance:check
+
+      # 只盘点当前直接模型出站；不发送请求、不读取密钥，也不证明云端网络隔离。
+      - name: 模型供应商出站静态清单（observe-only，非发布证据）
+        run: |
+          pnpm provider-egress:inventory
+          pnpm provider-egress:prove
 
       # 模块边界 / 包 DAG（跨包 @meetwise/* 经 tsconfig paths 真解析，边界规则真生效；无需 Postgres）
       - name: 架构边界（无环 / 依赖向下 / ai-graphs 纯 / ai-runtime 关口）
@@ -55,7 +85,7 @@ jobs:
         run: pnpm db:prove
       - name: 版本化迁移运行器（只跑待应用·幂等·事务·漂移检测·advisory锁）
         run: pnpm migrate:prove
-      - name: schema 漂移门（迁移路径 vs sql/ 真相 逐列+约束比对;防"改 sql/ 忘写迁移"致 fresh deploy 缺表/列/约束）
+      - name: legacy schema 兼容门（迁移路径 vs sql/ 兼容镜像逐列+约束比对；不替代完整迁移 E2E）
         run: pnpm drift:prove
       - name: 模型熔断器（连败→降级快速失败不打模型→冷却半开→恢复关闭）
         run: pnpm breaker:prove
@@ -67,8 +97,8 @@ jobs:
         run: pnpm resume:prove
       - name: 报告子图舱壁（失败隔离:报告失败不碰 interview · 独立重试 · 并发不双跑 · report_ready）
         run: pnpm report:prove
-      - name: 端到端 agent 主干（简历→押题→面试(checkpointer)→eval→结算→报告;模型全经 invoke 关口）
-        run: pnpm flow:prove
+      - name: 模型调用逻辑节点派发配额（同 key 并发唯一 executor · 冻结头只配精确 reservation · trigger 形状门拒绝旁路）
+        run: pnpm model-op00:prove
       - name: 面试进程接线（api 入队 → worker 消费循环 → 生命周期 → 报告）
         run: pnpm adaptive:prove
       - name: agent 接地题（检索素材出题 + 版权照搬门）
@@ -87,12 +117,42 @@ jobs:
         run: pnpm adaptive-life:prove
       - name: agent 消费循环（claim / 租约 / reaper 收割孤儿）
         run: pnpm adaptive-consumer:prove
+      - name: checkpoint 低权 RLS 与撤销写栅栏
+        run: pnpm checkpoint-role:prove
+      - name: 隐私删除安全暂停（app_role 无破坏性入口）
+        run: |
+          pnpm privacy-erasure:prove
+          pnpm privacy-erasure:http:prove
+          pnpm privacy-erasure:pause-upgrade:prove
+      - name: 评分旁路停用（真实 HTTP + 当前迁移组合根零副作用）
+        run: pnpm scor-00:http:prove
       - name: agent 模型可观测（token / 延迟 / 成本落库）
-        run: pnpm metrics:prove
+        run: |
+          pnpm metrics:prove
+          pnpm model-output-limit:prove
+          pnpm dashscope-native-config:prove
+          pnpm voice-operation-policy:prove
+          pnpm ocr-operation-policy:prove
       - name: agent 语音自适应（modality-agnostic ≡ 文本路径）
         run: pnpm voice-adaptive:prove
-      - name: agent 题库安全（确定性抽样 / 反窃取 / 反注入）
-        run: pnpm qbank:prove
+      - name: agent 题库 generation（完整迁移 / 不可变 recipe / 完整工件 / 撤销）
+        run: pnpm rag-generation:prove
+      - name: agent 题库历史完整性升级（0068数据平面归零 → 0069隔离 → 0070–0072低权限 RLS）
+        run: pnpm qbank-integrity-upgrade:prove
+      - name: agent 题库控制面最小权限（伪造 GUC 仍拒绝 / 独立 executor）
+        run: pnpm qbank-control-role:prove
+      - name: 通用 RAG 控制连接启动门（独立低权身份 / definer-RLS 漂移 fail-closed）
+        run: pnpm rag-control-runtime:prove
+      - name: 通用 RAG 控制面目录/ACL 与动态向量 policy 门
+        run: pnpm rag-control-role:prove
+      - name: 通用 RAG 0032 前缀升级隔离门
+        run: pnpm rag-control-upgrade:prove
+      - name: 通用 RAG 版本、request 围栏与 rebuild lease 门
+        run: pnpm rag-corpus-version:prove
+      - name: 通用 RAG 派发/对账状态机门
+        run: pnpm rag-control-dispatch:prove
+      - name: 迁移 CLI 的 DATABASE_URL 低权账号 post-flight 门
+        run: pnpm migrate-cli:prove
       - name: agent 题库摄取管线（类型感知 / 嵌入 / 召回门）
         run: pnpm qbank-pipeline:prove
       - name: agent Web 探索（SSRF 安全:私网/allowlist/超时/降级）
@@ -103,6 +163,8 @@ jobs:
         run: pnpm interview:prove
       - name: worker 优雅排空（SIGTERM 等在飞 job 跑完再退,滚动部署零丢失）
         run: pnpm drain:prove
+      - name: worker 事件唤醒（LISTEN 生命周期 + 合并 wake 本地合同）
+        run: pnpm worker-wakeup:prove
       - name: 检索/召回引擎（度量数学 + dense/BM25/RRF 排序 + 金标端到端;真召回率见 benchmark:eval）
         run: pnpm retrieval:prove
       - name: 评分官质量度量数学（stddev n-1/tie-corrected Spearman·Kendall/ICC/成对序·退化用例;真评分官质量见 nightly scoring-eval）
@@ -119,6 +181,14 @@ jobs:
         run: pnpm deploy:check
       - name: 语音面试 modality-agnostic（同一图经 ASR/TTS 推进 ≡ 文本路径）
         run: pnpm voice:prove
+      - name: TTS 响应 URL 下载安全（SSRF / DNS 固定 / 截止时间 / MIME / 体积）
+        run: pnpm -C packages/ai-runtime prove:voice-reliability
+      - name: 非流式语音取消链路（代理 / API / 适配器）
+        run: |
+          pnpm -C apps/web prove:speak-proxy
+          pnpm -C apps/web prove:transcribe-proxy
+          pnpm -C apps/api prove:voice-timeout
+          pnpm -C apps/api prove:voice-cancel-http
       - name: 流式语音（增量partial→final · barge-in打断TTS · 低延迟 · modality-agnostic不破内核）
         run: pnpm vstream:prove
       - name: 运行内核（db 四原语 + ai-runtime invoke 双校验·重试·幂等 / 状态机 / 租约 / 可恢复 / 幻觉拦截）

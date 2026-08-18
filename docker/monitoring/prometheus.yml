@@ -18,24 +18,24 @@ alerting:
             - alertmanager:9093
 
 scrape_configs:
-  # api 业务指标。api 不在本 compose 内(单独跑),用 host-gateway 回连宿主机端口。
-  # 若 api 与本栈同网络编排,把 target 换成服务名(如 api:8787)即可。
+  # api 与 Prometheus 在同一个 production compose 私网，通过服务名抓取；
+  # 不使用 host.docker.internal，避免云主机/独立容器的宿主机回环盲区。
   - job_name: meetwise-api
     metrics_path: /metrics
     scrape_interval: 15s
     static_configs:
       - targets:
-          - host.docker.internal:8787
+          - api:8787
 
   # worker 侧指标(队列健康 gauge + 模型熔断/退款失败 counter)。worker 自挂 /metrics(默认 9091)。
-  # 同 api:worker 单独跑,用 host-gateway 回连宿主机;同网络编排时把 target 换成服务名(如 worker:9091)。
+  # worker 只通过 compose 私网 expose 该端口，不映射到宿主机或公网。
   # 抓取合成的 up{job="meetwise-worker"} 即 worker 存活数据源(WorkerTargetDown/WorkerScrapeMissing 告警据此)。
   - job_name: meetwise-worker
     metrics_path: /metrics
     scrape_interval: 15s
     static_configs:
       - targets:
-          - host.docker.internal:9091
+          - worker:9091
 
   # Prometheus 自监控(可用性 / 规则评估健康)。
   - job_name: prometheus

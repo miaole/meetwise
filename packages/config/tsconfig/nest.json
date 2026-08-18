@@ -4,9 +4,7 @@
   "compilerOptions": {
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "verbatimModuleSyntax": false,
-    "noUncheckedIndexedAccess": false,
-    "strict": false
+    "verbatimModuleSyntax": false
   },
-  "_note": "server 包(api/worker)用：开装饰器元数据(SWC 发)，关 verbatimModuleSyntax 防 type-import 擦除 DI 元数据（蓝图工具链决策）。"
+  "_note": "server 包(api)用：开装饰器元数据(SWC 发)，关 verbatimModuleSyntax 防 type-import 擦除 DI 元数据（蓝图工具链决策）。strict / noUncheckedIndexedAccess 继承 base.json 的 true——api 与 worker 一样必须过 strict 门禁（worker 直接 extends base.json，早已 strict:true）。"
 }

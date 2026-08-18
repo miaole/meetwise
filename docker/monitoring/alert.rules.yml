@@ -154,6 +154,109 @@ groups:
           summary: '退款/额度释放失败'
           description: '过去 1 小时出现退款/额度释放失败:用户为失败流程被扣额度却未退回,资金/信任红线,需立即核查。'
 
+      # ---- RAG 费用与质量降级闭环（所有指标在 worker /metrics 真曝光）-----------------
+      - alert: RagCostGovernanceDisabled
+        expr: 'max(rag_cost_governance_enabled) == 0'
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'RAG 费用预留护栏未启用'
+          description: 'worker 未报告强制费用治理:生产不得在 observe 模式下提供可计费 RAG 调用。'
+
+      - alert: RagBudgetNearExhaustion
+        expr: 'max(rag_cost_governance_enabled) == 1 and min(rag_cost_budget_remaining_ratio) < 0.10'
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'RAG 月度预算剩余不足 10%'
+          description: '费用账本的可用预算比例已低于 10%;需扩容预算或降级非必要检索，避免用户路径突然拒绝。'
+
+      - alert: RagExternalOutcomeUnknown
+        expr: 'max(rag_cost_governance_enabled) == 1 and max(rag_cost_unknown_reservations) > 0'
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'RAG 外部调用结果未知，已冻结重试'
+          description: '至少一笔 embedding 已派发但未完成结算；系统已阻止盲重试，需按供应商记录人工对账。'
+
+      - alert: RagBudgetRejected
+        expr: 'sum(increase(rag_retrieval_total{outcome="budget_exhausted"}[15m])) > 0'
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'RAG 请求因预算耗尽被降级'
+          description: '过去 15 分钟出现调用前预算拒绝；用户请求没有外发到 embedding 供应商。'
+
+      - alert: RagRetrievalUnavailable
+        expr: 'sum(increase(rag_retrieval_total{outcome=~"unknown|claim_timeout|internal_error"}[15m])) > 5'
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'RAG 检索持续降级'
+          description: '15 分钟内未知外部结果、claim 超时或内部错误累计超过 5 次；检查账本、数据库和 embedding 供应商。'
+
+      # ---- 通用模型费用闭环（文本/视觉，和 RAG 账本分 scope，不能混为一谈）----------------
+      - alert: ModelCostGovernanceDisabled
+        expr: 'max(model_cost_governance_enabled) == 0'
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: '模型费用预留护栏未启用'
+          description: 'worker 未报告文本/视觉模型强制费用治理；生产不得以 observe 模式对可计费模型发请求。'
+
+      - alert: ModelBudgetNearExhaustion
+        expr: 'max(model_cost_governance_enabled) == 1 and min(model_cost_budget_remaining_ratio) < 0.10'
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: '模型月度预算剩余不足 10%'
+          description: '通用模型费用账本的可用预算比例低于 10%;需扩容预算或降级非必要生成，避免用户路径突然拒绝。'
+
+      - alert: ModelExternalOutcomeUnknown
+        expr: 'max(model_cost_governance_enabled) == 1 and max(model_cost_unknown_reservations) > 0'
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: '模型调用结果未知，已冻结重试'
+          description: '至少一笔文本或视觉模型调用已派发但未完成结算；系统已阻止盲重试，需按供应商记录人工对账。'
+
+      # 对账本身不是成功信号：它意味着数据库在供应商请求后丢失了终态，
+      # 系统已正确冻结重试，但仍需排查数据库/网络并核对供应商账单。
+      - alert: ModelPostDispatchReconciled
+        expr: 'sum(increase(model_invocation_reconcile_invocations_total{result="terminalized"}[15m])) > 0'
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: '模型已派发调用被对账冻结为未知'
+          description: '过去 15 分钟至少一笔模型请求在派发后未能正常终态化；系统没有重发，已冻结费用并要求人工核对供应商账单与数据库故障。'
+
+      - alert: ModelInvocationReconcileUnavailable
+        expr: 'sum(increase(model_invocation_reconcile_invocations_total{result=~"enumeration_failed|owner_failed"}[5m])) > 0'
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: '模型派发后对账不可用'
+          description: '模型调用的 owner 枚举或主体事务在过去 5 分钟失败。worker 就绪检查将随连续失败转为未就绪；陈旧 dispatching 调用可能无法冻结，需立即检查数据库、网关权限与行级安全配置。'
+
+      - alert: ModelBudgetRejected
+        expr: 'sum(increase(model_cost_decisions_total{decision="budget_exhausted"}[15m])) > 0'
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: '模型请求因预算耗尽被阻止'
+          description: '过去 15 分钟存在派发前预算拒绝；请求未外发给模型供应商，需安排容量或触发降级。'
+
   - name: meetwise-monitoring-meta
     rules:
       # 死信开关(Watchdog / dead-man's switch):恒定发火,路由到心跳接收端。
