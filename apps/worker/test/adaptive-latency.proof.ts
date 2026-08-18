@@ -19,7 +19,7 @@ function tagged(tier: 'quality' | 'fast', ms: number): ModelClient {
   const raw: Record<string, () => ModelResult> = {
     'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发', '缓存'] } }),
     'interviewer.ask': () => ({ ok: true, raw: { q: '结合你的限流经历谈谈高并发下如何兼顾吞吐与一致性', refs: [] } }),
-    'mock-interview.evaluate': () => ({ ok: true, raw: { score: 80, relevant: true, evidence: ['讲清了'] } }),
+    'mock-interview.evaluate': () => ({ ok: true, raw: { score: 80, relevant: true, evidence: [{ criterion: '讲清了', quote: '滑动窗口' }] } }),
   };
   return { async complete(req) { hits.push({ tier, service: req.service }); await sleep(ms); return (raw[req.service] ?? (() => ({ ok: false, kind: 'deterministic' as const })))(); } };
 }
@@ -36,7 +36,7 @@ async function main() {
   const deps = buildAdaptiveDeps({ pool, owner: OWNER, threadId: TID, model: quality, fastModel: fast, competencies: ['并发'], localRetrieve: async () => [], webExplore: async () => [] });
 
   const tAsk = Date.now();
-  await deps.retrieveAndGenerate('并发', 3, 0, 0, ['限流改造']);
+  await deps.retrieveAndGenerate('并发', 3, 0, 0, ['限流改造'], 'grounded');
   const askMs = Date.now() - tAsk;
   A('出题 retrieveAndGenerate → 走**质量模型**(出题质量关键,不降)', hits.some((h) => h.service === 'interviewer.ask' && h.tier === 'quality'));
   A('出题未误走快模型', !hits.some((h) => h.service === 'interviewer.ask' && h.tier === 'fast'));
@@ -46,7 +46,7 @@ async function main() {
   const evalMs = Date.now() - tEval;
   A('评分 assess → 走**快模型**(约束性任务,降延迟)', hits.some((h) => h.service === 'mock-interview.evaluate' && h.tier === 'fast'));
   A('评分未误走质量模型', !hits.some((h) => h.service === 'mock-interview.evaluate' && h.tier === 'quality'));
-  A('快模型评分仍给出 relevant(off-topic 判定不受降速影响)', typeof ev.relevant === 'boolean' && ev.relevant === true);
+  A('快模型评分仍给出 relevant(off-topic 判定不受降速影响)', ev.status !== 'unscored' && ev.relevant === true);
 
   // 每轮(评分→出题)串行延迟前后对比:before=两步都质量;after=评分降到快模型
   const beforeTurn = QUALITY_MS + QUALITY_MS;   // 旧:assess(质量) + ask(质量)

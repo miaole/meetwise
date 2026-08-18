@@ -10,19 +10,32 @@ import { hostname } from 'node:os';
 import { createServer, type Server } from 'node:http';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { buildMockInterviewGraph } from '@meetwise/ai-graphs';
-import { webExplore, createSafeFetch, type AllowedSource, type RawFetch } from '@meetwise/domain';
-import { fileURLToPath } from 'node:url';
-import { createPool, asPrincipal, runMigrations, loadMigrations, annSearch } from '@meetwise/db';
-import { langfuseTracer, httpSpanTransport, setTracer, dashscopeEmbedder, cachingEmbedder, inMemoryEmbeddingStore, getMetrics, registerBaselineMetrics, METRIC, type ModelClient } from '@meetwise/ai-runtime';
+import { webExplore, deepExplore, createSafeFetch, degradedRetrieval, type AllowedSource, type RawFetch } from '@meetwise/domain';
+import {
+  createPool, resolveDatabaseConnectionString, asPrincipal, asQbankControlExecutor, assertQbankControlExecutorIdentity, assertQbankControlDefinerOwnership, activeQbankGeneration, cachedQbankSearch, gatewayCostBudgetSnapshot, gatewayJobGauges,
+  qbankEvidenceForRefs, qbankQuestionResultsForHits, listScorableScoreCards, type GatewayCostBudgetSnapshot,
+} from '@meetwise/db';
+import { createLangfuseV5Runtime, resolveLangfuseConnection, resolveModelDeadlineConfig, resolveDashscopeNativeConfig, setTracer, dashscopeEmbedder, cachingEmbedder, inMemoryEmbeddingStore, getMetrics, registerBaselineMetrics, METRIC, type Embedder, type ModelClient } from '@meetwise/ai-runtime';
+import { assertLegacyInterviewGraphDisabled } from './production-config.ts';
 import { runDrainLoop } from './drain-loop.ts';
+import { startWorkerJobWakeupListener } from './job-wakeup-listener.ts';
 import { defaultModelClient, fastModelClient, reportGenerator } from './interview-service.ts';
 import { runReportDispatcher, type ReportWorkerDeps } from './report-worker.ts';
 import { runInterviewConsumer } from './interview-consumer.ts';
 import { runCommerceReconciler } from './commerce-reconcile.ts';
+import { runModelInvocationReconciler, resolveModelInvocationReconcileConfig } from './model-invocation-reconcile.ts';
 import { runQuizConsumer } from './quiz-consumer.ts';
 import { runDiagnosisConsumer } from './diagnosis-consumer.ts';
-import { ingestQbank, QBANK_OWNER } from './qbank-ingest.ts';
-import { QBANK_SEED } from './qbank-seed.ts';
+import { ingestQbank, ingestQuestionBankArtifacts } from '@meetwise/db';
+import { QBANK_ARTIFACTS, QBANK_SEED } from './qbank-seed.ts';
+import { ensureActiveQbankGeneration, qbankEmbeddingRecipe } from './qbank-generation.ts';
+import { budgetedQbankEmbedding, resolveRagCostGovernance } from './rag-cost-governance.ts';
+import { resolveModelCostGovernance, verifyModelCostGovernance } from './model-cost-governance.ts';
+import { RedisQbankRetrievalCache, UnavailableQbankRetrievalCache, isProductionEnvironment, resolveRagRedisCacheConfig } from './rag-redis-cache.ts';
+import { PrincipalBoundCheckpointPool } from './checkpoint-principal.ts';
+import { runCheckpointPrivacyEraser } from './privacy-erasure-worker.ts';
+import { initializePrivacyWorkerStartup } from './privacy-worker-runtime.ts';
+import { initializeRagControlStartup } from './rag-control-runtime.ts';
 
 /**
  * web 探索默认许可源:**权威公开技术源**(尊重 ToS、内容稳定可引)。构造 URL 走各站公开检索端点。
@@ -48,11 +61,45 @@ function resolveWebAllowlist(raw: string | undefined): AllowedSource[] {
   return domains.map((domain) => src(domain, (q) => `https://${domain}/?q=${encodeURIComponent(q)}`));   // 设了(含空=[]) → 覆盖
 }
 
-export function createCheckpointer(connString?: string): PostgresSaver {
-  const conn = connString
-    ?? process.env.DATABASE_URL
-    ?? 'postgresql://meetwise:meetwise_dev_password@127.0.0.1:54329/meetwise';
-  return PostgresSaver.fromConnString(conn);
+/** 配置错误不应把整个本地检索静默降级为空：记录一次可操作告警并回退到经验证的安全范围。 */
+function boundedIntEnv(name: string, fallback: number, min: number, max: number): number {
+  const raw = process.env[name];
+  if (raw === undefined) return fallback;
+  const value = Number(raw);
+  if (Number.isInteger(value) && value >= min && value <= max) return value;
+  console.warn(`${name}=${JSON.stringify(raw)} invalid; using ${fallback} (allowed ${min}-${max})`);
+  return fallback;
+}
+
+/** A release policy must be explicit in observability/cache identity. An invalid value degrades to the evaluated default. */
+function qbankRetrievalMode(): 'dense' | 'rrf' {
+  const raw = process.env.RAG_QBANK_RETRIEVAL_MODE;
+  if (raw === undefined || raw === 'dense') return 'dense';
+  if (raw === 'rrf') return 'rrf';
+  console.warn(`RAG_QBANK_RETRIEVAL_MODE=${JSON.stringify(raw)} invalid; using dense (allowed dense|rrf)`);
+  return 'dense';
+}
+
+/**
+ * `useRuntimeRole=true` is for the production worker after migration 0043.
+ * Tests and the one-time schema initializer deliberately leave it false so
+ * PostgresSaver.setup() can exercise vendor DDL without granting DDL to apps.
+ */
+export function createCheckpointer(connString?: string, useRuntimeRole = false): PostgresSaver {
+  const url = new URL(connString ?? resolveDatabaseConnectionString());
+  if (useRuntimeRole) {
+    // PostgresSaver owns an internal pool, so it cannot use asPrincipal(). Its tables are migrated in 0043 and
+    // it must connect as the non-owner app_role rather than quietly retaining the runtime login's ambient power.
+    const options = url.searchParams.get('options') ?? '';
+    if (!/(?:^|\s)-c\s+role=app_role(?:\s|$)/.test(options))
+      url.searchParams.set('options', `${options} -c role=app_role`.trim());
+  }
+  // Do not use PostgresSaver.fromConnString(): it internally constructs a bare
+  // pg Pool and would silently bypass our CA/verify-full TLS policy. Sharing the
+  // same factory makes ordinary DB work and LangGraph checkpoints one target and
+  // one transport-security policy.
+  const pool = createPool({ connectionString: url.toString() });
+  return new PostgresSaver(useRuntimeRole ? new PrincipalBoundCheckpointPool(pool).asPool() : pool);
 }
 
 /** 组合根装配：把持久 checkpointer 注入纯 mock-interview 图。 */
@@ -64,17 +111,57 @@ export async function buildMockInterviewRunner(questions: string[], checkpointer
 
 /** 报告 worker 依赖。loadSummary 从事件账本聚合真实分数；generate **经 invoke 关口真模型出**(双校验,失败抛错→舱壁标 report failed)。 */
 function reportWorkerDeps(pool: ReturnType<typeof createPool>, model: ModelClient): ReportWorkerDeps {
+  const rawFaultInvocations = process.env.E2E_REPORT_FAIL_INVOCATIONS;
+  const rawForceAll = process.env.E2E_REPORT_FAIL_ALL;
+  if ((rawFaultInvocations !== undefined || rawForceAll !== undefined) && process.env.E2E_ISOLATED !== '1')
+    throw new Error('e2e_report_fault_requires_isolated_target');
+  if (rawForceAll !== undefined && rawForceAll !== '1')
+    throw new Error('e2e_report_fail_all_invalid');
+  const forceAllReportFailures = rawForceAll === '1';
+  // A post-provider fault must target explicit calls.  "fail every call after
+  // N" made a dedicated report-bulkhead test poison later, unrelated B-side
+  // result tests and concealed whether a report outage affected score closing.
+  // The parser is fail-closed: malformed / duplicate / non-positive sequence
+  // numbers prevent worker boot instead of silently widening a chaos test.
+  const faultInvocations = new Set<number>();
+  if (rawFaultInvocations !== undefined) {
+    const pieces = rawFaultInvocations.split(',').map((value) => value.trim());
+    if (pieces.length === 0 || pieces.some((value) => !/^[1-9]\d*$/.test(value)))
+      throw new Error('e2e_report_fault_invocations_invalid');
+    for (const piece of pieces) {
+      const value = Number(piece);
+      if (!Number.isSafeInteger(value) || faultInvocations.has(value))
+        throw new Error('e2e_report_fault_invocations_invalid');
+      faultInvocations.add(value);
+    }
+  }
+  let reportInvocations = 0;
+  const generateLiveReport = (s: import('@meetwise/ai-graphs').InterviewSummary) =>
+    reportGenerator(pool, s.owner!, `${s.interviewId}:report`, model)(s);
   return {
     loadSummary: (owner, interviewId) => asPrincipal(pool, owner, async (c) => {
-      // **剔除非作答(跳过/探尽未决)**:这些题没真实考察,绝不能把"未展开"当 0 分拉低综合分(career advice 失真红线)。
-      // 历史事件无 outcome 字段 → COALESCE 当 'answered' 计入(向后兼容)。
-      const ev = await c.query(
-        "SELECT (payload->>'score')::int AS s FROM interview_event WHERE stream_key=$1 AND kind='answer_evaluated' AND COALESCE(payload->>'outcome','answered') <> 'unresolved' ORDER BY seq", [interviewId]);
-      const scores = ev.rows.map((r) => r.s).filter((x): x is number => Number.isFinite(x));
+      // 得分权威 = ScoreCard(确定性总分,仅 practice_eligible/b_review_eligible),legacy answer_evaluated.score 结构性不参与。
+      // 无卡 → scores 空(aggregateScores 空集会抛 score_aggregate_empty,报告走 unavailable,绝不回退 legacy 分数)。
+      const cards = await listScorableScoreCards(c, interviewId);
+      const scores = cards.map((card) => card.deterministicTotal);
       return { interviewId, questionCount: scores.length, scores, owner };
     }),
     // 真报告:经 invoke 关口(双校验)出。owner/幂等键据 summary;失败抛错 → worker 标 report failed(舱壁,不碰 interview)。
-    generate: (s) => reportGenerator(pool, s.owner!, `${s.interviewId}:report`, model)(s),
+    // Isolated E2E may inject a *post-provider* fault to exercise the report
+    // bulkhead without replacing OCR/ASR/TTS/LLM with a fake.  The live model
+    // response is still obtained and validated first; production refuses this
+    // flag before it can start.
+    generate: async (s) => {
+      const report = await generateLiveReport(s);
+      reportInvocations++;
+      // Counting selected calls is useful for a narrow chaos scenario, but an
+      // end-to-end bulkhead proof must not depend on earlier real-model retry
+      // counts.  The isolated-only all-calls switch is deterministic while
+      // still failing only *after* a live provider response is validated.
+      if (forceAllReportFailures || faultInvocations.has(reportInvocations))
+        throw new Error('e2e_forced_report_post_provider_failure');
+      return report;
+    },
   };
 }
 
@@ -84,30 +171,21 @@ function reportWorkerDeps(pool: ReturnType<typeof createPool>, model: ModelClien
  * 其余 job 的 'failed' 即终态死信(见 interview-consumer:markJobFailed 后发 *_unavailable,不重试)。
  * 表名/谓词均为硬编码常量(无注入面)。
  */
-const JOB_GAUGE_SOURCES: ReadonlyArray<{ queue: string; table: string; dead: string }> = [
-  { queue: 'interview_job', table: 'interview_job', dead: "status='failed'" },
-  { queue: 'report',        table: 'ai_report',     dead: "status='quarantined'" },
-  { queue: 'quiz_job',      table: 'quiz_job',       dead: "status='failed'" },
-  { queue: 'diagnosis_job', table: 'diagnosis_job',  dead: "status='failed'" },
-];
+const JOB_GAUGE_QUEUES = ['interview_job', 'report', 'quiz_job', 'diagnosis_job'] as const;
 
 /**
- * 一拍队列 gauge 刷新:越 RLS 用 superuser/dispatcher 池查**全租户**计数(同 commerce-reconcile 的 enumerate 模式)。
- * **别拖垮 DB**:低频(默认 15s)+ 每队列单条聚合 COUNT(FILTER)一次往返、小表全扫可接受;查询失败由 drain-loop 兜底吞掉、下拍重试。
+ * 一拍队列 gauge 刷新：仅调用无表权限网关的固定聚合函数。
+ * **别拖垮 DB**:低频(默认 15s)+ 固定四个聚合、小表全扫可接受;查询失败由 drain-loop 兜底吞掉、下拍重试。
  * gauge 是全局绝对值:多实例各查同一 DB 得同值 → 告警侧 max() 去重(切勿 sum,翻倍)。
  */
 export async function refreshJobGauges(pool: ReturnType<typeof createPool>): Promise<void> {
   const m = getMetrics();
-  for (const s of JOB_GAUGE_SOURCES) {
-    const r = await pool.query(
-      `SELECT count(*) FILTER (WHERE status='queued')::int AS queued,
-              count(*) FILTER (WHERE status='running' AND lease_expires_at < now())::int AS running_expired,
-              count(*) FILTER (WHERE ${s.dead})::int AS dead
-         FROM ${s.table}`);
-    const row = r.rows[0] ?? { queued: 0, running_expired: 0, dead: 0 };
-    m.setGauge(METRIC.jobsQueued, Number(row.queued) || 0, { queue: s.queue });
-    m.setGauge(METRIC.jobsRunningExpired, Number(row.running_expired) || 0, { queue: s.queue });
-    m.setGauge(METRIC.jobsDead, Number(row.dead) || 0, { queue: s.queue });
+  const byQueue = new Map((await gatewayJobGauges(pool)).map((row) => [row.queue, row]));
+  for (const queue of JOB_GAUGE_QUEUES) {
+    const row = byQueue.get(queue);
+    m.setGauge(METRIC.jobsQueued, row?.queued ?? 0, { queue });
+    m.setGauge(METRIC.jobsRunningExpired, row?.runningExpired ?? 0, { queue });
+    m.setGauge(METRIC.jobsDead, row?.dead ?? 0, { queue });
   }
 }
 
@@ -116,16 +194,24 @@ export async function refreshJobGauges(pool: ReturnType<typeof createPool>): Pro
  * worker 无 HTTP 业务面,故自挂一个极简 http server 供 Prometheus 抓取;渲染只出已注册指标(counter/gauge,标签仅 dep/queue)——
  * **不含任何 owner/PII/原文**,scrape 安全。`up{job="meetwise-worker"}` 由 Prometheus 抓取合成 = worker 存活数据源。
  */
-export function startMetricsExposition(): Server {
+export function startMetricsExposition(options: { ragReady?: () => boolean; workerReady?: () => boolean } = {}): Server {
   const port = Number(process.env.WORKER_METRICS_PORT || 9091);
-  const host = process.env.WORKER_METRICS_HOST || '0.0.0.0';
+  // Metrics carry queue/cost/dependency posture. Bind loopback by default; a
+  // deployment must consciously opt in to a private scrape address.
+  const host = process.env.WORKER_METRICS_HOST || '127.0.0.1';
   const server = createServer((req, res) => {
     const path = (req.url ?? '').split('?')[0];
     if (req.method === 'GET' && path === '/metrics') {
       res.writeHead(200, { 'content-type': 'text/plain; version=0.0.4' });
       res.end(getMetrics().render());
-    } else if (req.method === 'GET' && path === '/healthz') {
+    } else if (req.method === 'GET' && (path === '/healthz' || path === '/livez')) {
       res.writeHead(200, { 'content-type': 'text/plain' }); res.end('ok\n');
+    } else if (req.method === 'GET' && path === '/readyz/rag') {
+      const ready = options.ragReady?.() ?? true;
+      res.writeHead(ready ? 200 : 503, { 'content-type': 'text/plain' }); res.end(ready ? 'ready\n' : 'degraded\n');
+    } else if (req.method === 'GET' && path === '/readyz/worker') {
+      const ready = options.workerReady?.() ?? true;
+      res.writeHead(ready ? 200 : 503, { 'content-type': 'text/plain' }); res.end(ready ? 'ready\n' : 'unready\n');
     } else {
       res.writeHead(404); res.end();
     }
@@ -136,75 +222,392 @@ export function startMetricsExposition(): Server {
   return server;
 }
 
+/**
+ * qbank generation is an optional read-model build. It must never hold the worker's command consumers hostage:
+ * without an active, recipe-matching generation `localRetrieve` returns no local evidence and CRAG chooses its
+ * ordinary bounded fallback. The source-of-truth interview/payment state machines stay available.
+ *
+ * This is deliberately not an automatic retry loop. Embedding is a billable POST and the provider contract has
+ * no verified idempotency key here; uncertain transport failures need a scheduled/operator-owned rebuild run,
+ * not blind at-least-once replays that can duplicate provider charges.
+ */
+async function initializeQbankReadModel(controlPool: ReturnType<typeof createPool>, embedder: Embedder, state: { ready: boolean }): Promise<void> {
+  try {
+    const generationSchema = await asQbankControlExecutor(controlPool, (c) =>
+      c.query("SELECT to_regclass('qbank_vector_generation') IS NOT NULL AS ok")).then((r) => r.rows[0]?.ok === true);
+    if (generationSchema) {
+      // Migration-safe boot: only facts with their original text can enter a new vector generation. Existing legacy
+      // vectors without facts block activation rather than being silently discarded or re-embedded from a hash.
+      const seedChunkRefs = QBANK_ARTIFACTS.flatMap((artifact) => artifact.chunks.map((chunk) => chunk.refId));
+      const seedFacts = await asQbankControlExecutor(controlPool, (c) =>
+        c.query('SELECT count(*)::int n FROM qbank_chunk WHERE ref_id = ANY($1::text[])', [seedChunkRefs]))
+        .then((r) => Number(r.rows[0]?.n ?? 0));
+      if (seedFacts < seedChunkRefs.length) {
+        const seeded = await ingestQuestionBankArtifacts(controlPool, QBANK_ARTIFACTS, embedder);
+        console.log(`qbank question artifacts seeded/reconciled: questions=${seeded.questionCount} chunks=${seeded.chunkCount}`);
+      }
+      const generation = await ensureActiveQbankGeneration(controlPool, embedder);
+      if (generation?.status === 'blocked_unrebuildable_legacy') {
+        console.error(`qbank generation BLOCKED: ${generation.unrebuildableLegacyRefs?.length ?? 0}${(generation.unrebuildableLegacyRefs?.length ?? 0) >= 101 ? '+' : ''} visible legacy refs lack approved reconstructible text; local RAG fail-closed until operator reimports them`);
+        return;
+      }
+      if (generation) {
+        // `ensureActiveQbankGeneration` returns activated/reused. A prior active/exists spelling left retrieval
+        // disabled after a normal worker restart, despite a valid active pointer in Postgres.
+        state.ready = generation.status === 'activated' || generation.status === 'reused';
+        console.log(`qbank generation ${generation.status}: ${generation.generationId ?? '-'} chunks=${generation.chunkCount} recipe=${generation.recipe.id}`);
+      }
+      return;
+    }
+
+    // Compatibility for proof fixtures / an intentionally pre-0029 database only. Production migrations install
+    // generation schema before worker bootstrap, so this branch is never a vector-model upgrade path.
+    const have = await asQbankControlExecutor(controlPool, (c) => c.query("SELECT count(*)::int n FROM vector_chunk WHERE kind='qbank'")).then((r) => r.rows[0].n);
+    const governed = await asQbankControlExecutor(controlPool, (c) => c.query("SELECT count(*)::int n FROM qbank_pool_entry")).then((r) => r.rows[0].n);
+    if (have < QBANK_SEED.length || governed < have) {
+      const seeded = await ingestQbank(controlPool, QBANK_SEED, embedder);
+      console.log(`legacy qbank seed/governance reconciliation: ${seeded}`);
+    } else console.log('legacy qbank already seeded & governed:', have, '题');
+    state.ready = true;
+  } catch (error) {
+    // Do not log a provider response/body: it can contain prompt data. The state remains false, so local RAG does
+    // not send an embedding request for every interview turn while the builder is unavailable.
+    const kind = error instanceof Error ? error.name : 'unknown_error';
+    console.error(`qbank read model unavailable at boot (${kind}); local RAG fail-closed and command consumers remain available`);
+  }
+}
+
+/** Strict-cost production never rebuilds vectors from the command-consumer process: rebuilding is billable and must be an operator-owned job. */
+async function activateExistingQbankReadModel(pool: ReturnType<typeof createPool>, recipeId: string, state: { ready: boolean }): Promise<void> {
+  try {
+    const active = await asPrincipal(pool, 'qbank-readiness', (c) => activeQbankGeneration(c));
+    state.ready = active?.recipeId === recipeId;
+    if (!state.ready) console.error('qbank active generation unavailable or recipe mismatch; local RAG remains fail-closed until a governed rebuild is promoted');
+  } catch (error) {
+    console.error(`qbank active generation check failed (${error instanceof Error ? error.name : 'unknown_error'}); local RAG remains fail-closed`);
+  }
+}
+
+function ragFailureOutcome(error: unknown): 'budget_exhausted' | 'policy_missing' | 'price_missing' | 'unknown' | 'claim_timeout' | 'cache_dependency_unavailable' | 'cache_value_invalid' | 'internal_error' {
+  const code = (error as { code?: unknown } | undefined)?.code;
+  if (code === 'qbank_retrieval_claim_timeout') return 'claim_timeout';
+  if (code === 'rag_cache_dependency_unavailable') return 'cache_dependency_unavailable';
+  if (code === 'rag_cache_value_invalid') return 'cache_value_invalid';
+  if (code === 'external_outcome_unknown' || code === 'rag_cost_unknown') return 'unknown';
+  if (typeof code === 'string' && code === 'rag_cost_budget_exhausted') return 'budget_exhausted';
+  if (typeof code === 'string' && code === 'rag_cost_policy_missing') return 'policy_missing';
+  if (typeof code === 'string' && code === 'rag_cost_price_missing') return 'price_missing';
+  return 'internal_error';
+}
+
+function observeRagRetrieval(mode: 'dense' | 'rrf', outcome: string, cacheStatus: 'hit' | 'miss' | 'none' | 'unavailable' | 'invalid', latencyMs: number, candidates = 0): void {
+  const metrics = getMetrics();
+  metrics.inc(METRIC.ragRetrievalTotal, { outcome, mode });
+  metrics.inc(METRIC.ragCacheTotal, { status: cacheStatus });
+  metrics.observe(METRIC.ragRetrievalLatencyMs, latencyMs, { outcome, mode });
+  metrics.observe(METRIC.ragRetrievalCandidates, candidates, { mode });
+}
+
+type CostSnapshotReader = (pool: ReturnType<typeof createPool>, scopeId: string) => Promise<GatewayCostBudgetSnapshot | undefined>;
+
+/** Global budget gauges use one aggregate gateway read; no user, request, or query label enters Prometheus. */
+async function refreshRagCostGauges(
+  pool: ReturnType<typeof createPool>, scopeId: string | undefined, readSnapshot: CostSnapshotReader = gatewayCostBudgetSnapshot,
+): Promise<boolean> {
+  const metrics = getMetrics();
+  if (!scopeId) {
+    metrics.setGauge(METRIC.ragCostGovernanceEnabled, 0);
+    return false;
+  }
+  const row = await readSnapshot(pool, scopeId);
+  if (!row) {
+    metrics.setGauge(METRIC.ragCostGovernanceEnabled, 0);
+    return false;
+  }
+  const limit = row.monthlyLimitMicroCny;
+  const used = row.usedMicroCny;
+  metrics.setGauge(METRIC.ragCostGovernanceEnabled, 1);
+  metrics.setGauge(METRIC.ragCostBudgetRemainingRatio, Math.max(0, Math.min(1, (limit - used) / limit)));
+  metrics.setGauge(METRIC.ragCostUnknownReservations, row.unknownCount);
+  return true;
+}
+
+/** Text/vision-model budget gauges use the same ledger truth as RAG, but a separate scope and metric family.
+ * The query has no user dimension, so Prometheus cannot become a cost or PII side channel. */
+export async function refreshModelCostGauges(
+  pool: ReturnType<typeof createPool>, scopeId: string | undefined, readSnapshot: CostSnapshotReader = gatewayCostBudgetSnapshot,
+): Promise<boolean> {
+  const metrics = getMetrics();
+  if (!scopeId) {
+    metrics.setGauge(METRIC.modelCostGovernanceEnabled, 0);
+    metrics.setGauge(METRIC.modelCostBudgetRemainingRatio, 0);
+    metrics.setGauge(METRIC.modelCostUnknownReservations, 0);
+    return false;
+  }
+  const row = await readSnapshot(pool, scopeId);
+  if (!row) {
+    metrics.setGauge(METRIC.modelCostGovernanceEnabled, 0);
+    metrics.setGauge(METRIC.modelCostBudgetRemainingRatio, 0);
+    metrics.setGauge(METRIC.modelCostUnknownReservations, 0);
+    return false;
+  }
+  const limit = row.monthlyLimitMicroCny;
+  const used = row.usedMicroCny;
+  metrics.setGauge(METRIC.modelCostGovernanceEnabled, 1);
+  metrics.setGauge(METRIC.modelCostBudgetRemainingRatio, Math.max(0, Math.min(1, (limit - used) / limit)));
+  metrics.setGauge(METRIC.modelCostUnknownReservations, row.unknownCount);
+  return true;
+}
+
 async function bootstrap() {
   // 组合根：持久 checkpointer + **真正启动**两个生产消费循环——报告调度 + 面试 job 消费(api 入队的 start/answer)。
+  // Fail deployment before serving jobs if a timeout is malformed or the
+  // transport could outlive the gateway deadline.
+  // MODEL-OP-02：全局 MODEL_MAX_CONCURRENT/MODEL_RPM 限流已废弃（per-adapter 限流移除），
+  // 并发/断路器改由共享权威（迁移 0120 的 ai_model_admission_acquire_scoped）在 invoke() 内裁决。
+  resolveModelDeadlineConfig();
+  // M1 fix: 原生 6 能力 Key（embed/rerank/asr/tts/stream_asr/stream_tts）的指纹/撤销校验只在该快照
+  // 解析时执行。过去只有 embedder 在启动构造，rerank/asr/tts/stream 适配器在运行进程里从不构造，其
+  // 「启动期校验」名不副实——一旦未来改动移掉/延后 embedder 构造，这些校验就静默消失。这里显式解析
+  // 一次：任何一把已挂载的原生 Key 命中撤销清单或与期望指纹不符，都在启动期 fail-closed。
+  resolveDashscopeNativeConfig();
   const pool = createPool();
   // 观测:预注册基线指标序列(熔断打开/退款失败 counter 置 0)+ 自挂 /metrics 端点(Prometheus 抓取,up 即 worker 存活数据源)。
   registerBaselineMetrics();
-  const metricsServer = startMetricsExposition();
-  // 启动先跑版本化迁移(只跑待应用、幂等、advisory 锁)——替掉 init-scripts 只跑一次/drop+recreate 丢数据。
-  const migDir = fileURLToPath(new URL('../../../packages/db/migrations', import.meta.url));
-  const mig = await runMigrations(pool, loadMigrations(migDir));
-  console.log(`migrations: applied ${mig.applied.length}, skipped ${mig.skipped.length}`);
-  const cp = createCheckpointer(); await cp.setup();
-  // 观测:配了 Langfuse creds 就把 invoke 关口的脱敏 span 接上(fail-open,挂了不拖垮业务);定时 flush。
-  if (process.env.LANGFUSE_PUBLIC_KEY) {
-    const lf = langfuseTracer(httpSpanTransport());
-    setTracer(lf);
-    const t = setInterval(() => void lf.flush(), 5000); t.unref?.();
-    process.on('SIGTERM', () => void lf.flush());
-    console.log('observability: Langfuse tracer attached');
+  // Schema migration 由独立的一次性 migrate 服务完成；运行时 worker 绝不持有 DDL 权限，
+  // 也不会在多副本启动时与 API/另一个 worker 竞争迁移锁。
+  // 生产必须完成价格表、月度硬预算与调用前预留；开发可用 observe 跑本地样例，但该模式不可发布。
+  const ragCost = resolveRagCostGovernance();
+  const modelCost = resolveModelCostGovernance();
+  // Exact model/price configuration is checked before any worker consumer,
+  // queue loop or provider-capable dependency is assembled.  The runtime role
+  // receives only a boolean predicate, never a writable price-book handle.
+  await verifyModelCostGovernance(pool, modelCost);
+  // Redis is the only qbank hot-cache backend. Its connection failure does not stop interview/payment consumers,
+  // but local RAG subsequently fails closed (no legacy PostgreSQL cache read and no paid embedding retry).
+  // Production must name a TLS-protected Tair endpoint.  Local isolated E2E has
+  // no VPC data-plane access by design, so it gets an explicit fail-closed cache
+  // port rather than a fake hit or forbidden PostgreSQL fallback; interviews can
+  // still exercise their bounded no-local-RAG path.
+  const ragCache = process.env.RAG_REDIS_URL
+    ? await RedisQbankRetrievalCache.connect(resolveRagRedisCacheConfig())
+    : (() => {
+      if (isProductionEnvironment()) throw new Error('rag_redis_url_missing');
+      getMetrics().setGauge(METRIC.ragCacheDependencyState, 0, { dependency: 'redis' });
+      console.warn('RAG Redis endpoint is not configured; local RAG is fail-closed');
+      return new UnavailableQbankRetrievalCache();
+    })();
+  // 价格/预算配置只在短生命周期 migrate 服务中以迁移账号写入；worker 只能读聚合快照，
+  // 防止遭入侵的业务容器关闭预算或改写单价。
+  const ragConfigured = await refreshRagCostGauges(pool, ragCost.scopeId);
+  const modelConfigured = await refreshModelCostGauges(pool, modelCost.scopeId);
+  if (ragCost.mode === 'enforce' && !ragConfigured) throw new Error('rag_cost_configuration_not_provisioned');
+  if (modelCost.mode === 'enforce' && !modelConfigured) throw new Error('model_cost_configuration_not_provisioned');
+  console.log(`rag cost governance: ${ragCost.mode}; model cost governance: ${modelCost.mode}`);
+  // 0043 owns the vendor checkpoint schema. Calling PostgresSaver.setup() here would reintroduce runtime DDL;
+  // a low-privilege startup must fail deployment migration, not acquire CREATE SCHEMA/TABLE rights.
+  const cp = createCheckpointer(undefined, true);
+  // Langfuse v5 uses the official OpenTelemetry exporter. Enabled means all
+  // keys including the dedicated correlation secret are present, otherwise
+  // startup rejects rather than silently emitting no data or leaking raw IDs.
+  const langfuseConnection = resolveLangfuseConnection(process.env, { requireCorrelationSecret: true });
+  const langfuse = langfuseConnection.enabled
+    ? createLangfuseV5Runtime(langfuseConnection, { environment: process.env.NODE_ENV, release: process.env.APP_RELEASE ?? 'unknown' })
+    : undefined;
+  if (langfuse) {
+    setTracer(langfuse.tracer);
+    getMetrics().setGauge(METRIC.langfuseTracingState, 1, { state: 'enabled' });
+    const flush = () => void langfuse.flush().catch(() => {
+      getMetrics().inc(METRIC.langfuseExportFailures, { operation: 'flush' });
+      getMetrics().setGauge(METRIC.langfuseTracingState, 1, { state: 'flush_failed' });
+    });
+    const timer = setInterval(flush, 5_000); timer.unref?.();
+    console.log('observability: Langfuse v5 OpenTelemetry exporter attached');
+  } else {
+    getMetrics().setGauge(METRIC.langfuseTracingState, 1, { state: 'disabled' });
   }
   const leaseOwner = `${hostname()}#${process.pid}`;       // 每进程唯一,租约归属可辨
-  const model = defaultModelClient();                      // 生产质量模型(出题/报告等);未配 MODEL_* 则降级
-  const fastModel = fastModelClient();                     // 快模型(评分/规划等约束性任务,降反问延迟)
-  const reportLoop = runReportDispatcher(pool, leaseOwner, reportWorkerDeps(pool, model));
-  // 自适应 agent 默认开(ADAPTIVE_INTERVIEW=0 退回旧固定题单流程)。注真检索:缓存 embedder + annSearch(qbank)。
+  // NOTIFY is a commit-delivered wakeup hint, not a queue. Every consumer
+  // retains this bounded scan for listener outages, leases and future-due
+  // report retries. The listener normally removes the previous 1.5s idle
+  // discovery delay without increasing database polling.
+  const jobReconcileIntervalMs = boundedIntEnv('WORKER_JOB_RECONCILE_INTERVAL_MS', 5_000, 1_000, 60_000);
+  // Physical erasure uses a separate least-privilege database login.  Falling
+  // back to the API/runtime pool would collapse the privilege boundary, so a
+  // missing URL leaves requests visibly fenced/pending rather than pretending
+  // the cleanup completed.
+  const privacyPool = await initializePrivacyWorkerStartup(process.env);
+  if (!privacyPool) console.warn('checkpoint privacy physical eraser disabled: dedicated database login is not configured');
+  // The qbank control credential never shares the request-path runtime pool.
+  // It is required only for a governed bootstrap rebuild; serving a previously
+  // promoted immutable generation uses the normal read-only runtime path.
+  const qbankControlUrl = process.env.QBANK_CONTROL_DATABASE_URL?.trim();
+  const qbankControlPool = qbankControlUrl ? createPool({ connectionString: qbankControlUrl }) : undefined;
+  if (qbankControlPool) {
+    await assertQbankControlExecutorIdentity(qbankControlPool);
+    await assertQbankControlDefinerOwnership(qbankControlPool);
+  }
+  // Generic/full-format RAG has no executable rebuild/outbox worker yet, so
+  // mounting this credential cannot enable one.  If the credential is
+  // mounted, however, fail startup before any worker loop starts unless the
+  // live login and complete SECURITY DEFINER/RLS manifest are exact.
+  const ragControlPool = await initializeRagControlStartup(process.env);
+  const model = defaultModelClient({ primary: modelCost.policies.primary, backup: modelCost.policies.backup });
+  const fastModel = fastModelClient({ primary: modelCost.policies.fastPrimary, backup: modelCost.policies.fastBackup });
+  const reportLoop = runReportDispatcher(pool, leaseOwner, reportWorkerDeps(pool, model), jobReconcileIntervalMs);
+  // 自适应图是唯一生产面试路径；旧固定题单会持久化原始回答且缺少 graph fence，禁止回退。
+  // （principal/模型/query HMAC/k/语料 epoch；不落 query/简历/答案）+ PostgreSQL 权威 epoch/ANN/RLS/账本。
   // 检索 fail-soft:embedder/题库不可用 → 返 [] → CRAG 优雅降级(用能力出题),不让面试失败。
-  const embedder = cachingEmbedder(dashscopeEmbedder(), inMemoryEmbeddingStore());
+  const rawEmbedder = dashscopeEmbedder();
+  const embedder = cachingEmbedder(rawEmbedder, inMemoryEmbeddingStore());
+  if (ragCost.mode === 'enforce' && rawEmbedder.id !== ragCost.model) {
+    throw new Error(`rag_cost_billing_model_mismatch:${rawEmbedder.id}`);
+  }
+  // qbank recipe is an immutable receipt over model revision, dimension, normalization and chunker. It is passed
+  // to every query; cache versioning alone is not evidence that query and document vectors share a space.
+  const qbankRecipe = qbankEmbeddingRecipe(embedder);
+  // This is intentionally process-local readiness, not a source of truth. The database functions still verify the
+  // active pointer/recipe on every read. Its only purpose is to avoid billable query embeddings while no active
+  // generation exists or a boot-time build is unavailable.
+  const qbankReadModel = { ready: false };
+  const retrievalMode = qbankRetrievalMode();
   // web 探索许可源:默认权威公开技术源(启用 CRAG 外呼);env WEB_ALLOWLIST 覆盖,显式空串=关闭。
   // 之前漏声明 → 真跑 web-explore 路径时 ReferenceError 崩(E2E 实测抓到;假 gate 不跑此路径所以漏)。
   const WEB_ALLOWLIST: AllowedSource[] = resolveWebAllowlist(process.env.WEB_ALLOWLIST);
   // SSRF 门:真 fetch 包成 safeFetch——手动逐跳重定向 + 每跳 allowlist/私网复核 + 8s 硬超时 + fail-soft。
   const rawFetch: RawFetch = (u, init) => fetch(u, init);
   const safeFetch = createSafeFetch(rawFetch, WEB_ALLOWLIST, { timeoutMs: 8000 });
-  const adaptive = process.env.ADAPTIVE_INTERVIEW === '0' ? undefined : {
+  assertLegacyInterviewGraphDisabled(process.env);
+  const adaptive = {
     localRetrieve: async (owner: string, q: string) => {
+      const started = performance.now();
       try {
-        const [vec] = await embedder.embed([q]);
-        const hits = await asPrincipal(pool, owner, (c) => annSearch(c, owner, 'qbank', vec, 5));
-        return hits.map((h) => ({ ref: h.refId, score: Math.max(0, 1 - h.distance) }));   // 距离→相似度
-      } catch { return []; }                                                                // 降级:无检索 → CRAG 走能力出题
+        if (!qbankReadModel.ready) {
+          observeRagRetrieval(retrievalMode, 'not_ready', 'none', Math.round(performance.now() - started));
+          return [degradedRetrieval('not_ready')];
+        }
+        const cached = await cachedQbankSearch(pool, owner, {
+          query: q,
+          // Chunk retrieval overfetches deliberately: old/retired standalone chunks cannot become a question;
+          // the next step groups only complete question artifacts and returns at most five of them to CRAG.
+          k: 12,
+          // HMAC cache identity includes both query embedder and immutable qbank recipe; active generation switch
+          // additionally bumps corpus epoch. A mismatch throws inside DB and is caught below as safe no-local-RAG.
+          embedderVersion: `${embedder.id}:dim=${embedder.dim}:recipe=${qbankRecipe.id}:retrieval=${retrievalMode}:v1`,
+          qbankRecipeId: qbankRecipe.id,
+          retrievalMode,
+          cache: ragCache,
+          // Strict mode intentionally uses the unwrapped provider adapter: the durable result cache already removes
+          // repeated query calls, and a local cache hit must not reserve a second external-cost ledger entry.
+          embed: budgetedQbankEmbedding(pool, owner, ragCost.mode === 'enforce' ? rawEmbedder : embedder, ragCost),
+          ttlSeconds: boundedIntEnv('RAG_QBANK_CACHE_TTL_SECONDS', 120, 5, 3600),
+          waitMs: boundedIntEnv('RAG_QBANK_CACHE_WAIT_MS', 5000, 100, 30000),
+          leaseSeconds: boundedIntEnv('RAG_QBANK_CACHE_LEASE_SECONDS', 20, 5, 60),
+        });
+        const hits = cached.hits;
+        const questionArtifactSchema = await asPrincipal(pool, owner, async (c) =>
+          (await c.query("SELECT to_regclass('qbank_question') IS NOT NULL AS ok")).rows[0]?.ok === true,
+        );
+        if (questionArtifactSchema) {
+          // A question is never represented by the one matching chunk. Resolve hits to a complete published
+          // artifact under a second active-generation/ACL check, without first reading unused raw chunk text.
+          const result = await asPrincipal(pool, owner, (c) => qbankQuestionResultsForHits(c, qbankRecipe.id, hits, 420));
+          if (result.length) {
+            observeRagRetrieval(retrievalMode, 'ok', cached.cacheStatus, Math.round(performance.now() - started), result.length);
+            return result;
+          }
+          // The 0031 schema exists but none of the hit chunks belongs to a complete artifact. Fail closed rather
+          // than allowing a legacy title-only chunk to be used as a scored interview question.
+          observeRagRetrieval(retrievalMode, 'ok', cached.cacheStatus, Math.round(performance.now() - started), 0);
+          return [];
+        }
+        // Pre-0031 proof fixtures retain only the old ref-only contract. Production migration installs 0031 before
+        // worker boot, so this compatibility path cannot weaken a live question bank.
+        const excerpts = await asPrincipal(pool, owner, (c) => qbankEvidenceForRefs(c, qbankRecipe.id, hits.map((h) => h.refId), 600));
+        const byRef = new Map(excerpts.map((x) => [x.refId, x.excerpt]));
+        const result = hits.flatMap((h) => {
+          const evidence = byRef.get(h.refId);
+          return evidence ? [{ ref: h.refId, score: Math.max(0, 1 - h.distance), evidence }] : [];
+        });
+        observeRagRetrieval(retrievalMode, 'ok', cached.cacheStatus, Math.round(performance.now() - started), result.length);
+        return result;
+      } catch (error) {
+        const outcome = ragFailureOutcome(error);
+        observeRagRetrieval(retrievalMode, outcome,
+          outcome === 'cache_dependency_unavailable' ? 'unavailable' : outcome === 'cache_value_invalid' ? 'invalid' : 'none',
+          Math.round(performance.now() - started));
+        // 只打固定 reason code，不记录 owner/query/模型响应；Prometheus 和日志能定位降级类型而不泄漏输入。
+        console.warn(`qbank retrieval degraded: ${outcome}`);
+        return [degradedRetrieval(outcome)];
+      }                                                                // 降级:无检索 → CRAG 走能力出题
     },
-    // 真 web 探索机制已接(allowlist 强制 + SSRF safeFetch + 抽取 + 降级);源/授权由 WEB_ALLOWLIST 配,显式空串 = 只用本地。
+    // 单源 explorer 只作兼容 seam；运行中的低置信 CRAG 注入下方 deepResearch（最多 3 个
+    // allowlist 源、每源 4k/总 12k 字符，safeFetch 已承重 SSRF/跳转/超时）。显式空串=只用本地。
     webExplore: (q: string) => webExplore(q, WEB_ALLOWLIST, safeFetch),
+    deepResearch: WEB_ALLOWLIST.length > 0
+      ? async (q: string) => (await deepExplore(q, WEB_ALLOWLIST, safeFetch, {
+        maxSources: 3, maxCharsPerSource: 4_000, maxTotalChars: 12_000, maxQueryChars: 256,
+      })).docs
+      : undefined,
+    graphObserver: langfuse?.graphObserver,
     role: '技术岗',
+    // 实时供应商 E2E 不能用本地模型替身。为把浏览器收口测试控制在费用/时间预算内，
+    // 仅临时隔离库允许 1–8 轮的显式上限；任何其他环境都不读取该变量，保持图默认 8 轮。
+    maxTurns: process.env.E2E_ISOLATED === '1'
+      ? boundedIntEnv('E2E_ADAPTIVE_MAX_TURNS', 8, 1, 8)
+      : undefined,
   };
-  if (adaptive) {
-    // 性能:**已灌且已治理则跳过**——否则每次开机都对全部种子调 embedder API 重嵌入(无谓成本+延迟)。
-    const have = await asPrincipal(pool, QBANK_OWNER, (c) => c.query("SELECT count(*)::int n FROM vector_chunk WHERE kind='qbank'")).then((r) => r.rows[0].n).catch(() => 0);
-    // **治理覆盖回填(in-place 升级缺口)**:0017 前直灌的存量 qbank chunk 无 pool entry=不受撤销治理。
-    // 若有 chunk 但治理池未覆盖(governed < have),强制重灌一次把存量纳入 propose→approve→promote(ingestQbank 幂等,回填仅一次;之后 governed==have 即跳过)。
-    const governed = await asPrincipal(pool, QBANK_OWNER, (c) => c.query("SELECT count(*)::int n FROM qbank_pool_entry")).then((r) => r.rows[0].n).catch(() => 0);
-    const needBackfill = have >= QBANK_SEED.length && governed < have;
-    if (have < QBANK_SEED.length || needBackfill) {
-      const seeded = await ingestQbank(pool, QBANK_SEED, embedder).catch(() => 0);
-      console.log(needBackfill ? `qbank 治理回填:${seeded} 题纳入受审池(存量升级)` : `qbank seed: ${seeded} 题`);
-    } else console.log('qbank already seeded & governed:', have, '题(跳过重嵌入)');
-  }
-  const interviewLoop = runInterviewConsumer({ pool, cp, model, fastModel, leaseOwner, adaptive });
+  const interviewLoop = runInterviewConsumer({ pool, cp, model, fastModel, leaseOwner, adaptive }, jobReconcileIntervalMs);
   if (adaptive) console.log('interview: ADAPTIVE agent on (规划→自适应决策→CRAG出题→反思→评估→报告舱壁)');
   // 押题(resume-quiz)消费循环:api 入队 generate job → 本消费者跑图/模型 → 业务事件经 SSE 回前端。
-  const quizLoop = runQuizConsumer({ pool, model, leaseOwner });
+  const quizLoop = runQuizConsumer({ pool, model, leaseOwner }, jobReconcileIntervalMs);
   // 简历诊断(resume-diagnosis)消费循环:api 入队 generate job → 本消费者跑图/模型 → 业务事件经 SSE 回前端。
-  const diagnosisLoop = runDiagnosisConsumer({ pool, model, leaseOwner });
+  const diagnosisLoop = runDiagnosisConsumer({ pool, model, leaseOwner }, jobReconcileIntervalMs);
+  // This is a dedicated, otherwise-idle PG session. It never performs RLS
+  // work or claims jobs: every notification merely coalesces a normal drain
+  // across all queue classes. Notifications contain no job or tenant data.
+  const jobWakeupListener = startWorkerJobWakeupListener(createPool({ max: 1 }), () => {
+    reportLoop.wake();
+    interviewLoop.wake();
+    quizLoop.wake();
+    diagnosisLoop.wake();
+  }, { closePoolOnStop: true });
   // **商务对账兜底(C1)**:周期回收租约过期的孤儿预留(中途弃/进程崩→退额度回池,零泄漏) + 把 confirm 投的结算 outbox 真实入账本。
   // 无它则:弃面试的预留永久挂 reserved 漏额度、结算账本永不落。多实例安全(sweep 行锁 + settle SKIP LOCKED,幂等)。
   const commerceLoop = runCommerceReconciler(pool);
+  // Post-dispatch model calls are never automatically replayed.  This loop
+  // only freezes stale indeterminate work as unknown together with its cost
+  // reservation, making the ambiguity observable and preventing a second
+  // billable send under the same idempotency key.
+  const modelInvocationReconcileLoop = runModelInvocationReconciler(pool, resolveModelInvocationReconcileConfig());
+  const privacyErasureLoop = privacyPool ? runCheckpointPrivacyEraser(privacyPool, `${leaseOwner}:privacy`) : undefined;
   // 队列健康 gauge 刷新循环(告警数据源:queued/卡住/DLQ 深度)。低频 15s,查询失败经 drain-loop 兜底不停循环。
-  const gaugeLoop = runDrainLoop(() => refreshJobGauges(pool), Number(process.env.WORKER_GAUGE_INTERVAL_MS || 15000));
-  process.on('SIGTERM', async () => { await Promise.allSettled([Promise.resolve(reportLoop.stop()), interviewLoop.stop(), quizLoop.stop(), diagnosisLoop.stop(), commerceLoop.stop(), gaugeLoop.stop()]); metricsServer.close(); console.log('drained, exiting'); process.exit(0); });   // 优雅排空在飞 job 再退
-  console.log('worker ready: report dispatcher + interview consumer + quiz consumer + diagnosis consumer + commerce reconciler + gauge refresh started as', leaseOwner);
+  const gaugeLoop = runDrainLoop(() => Promise.all([
+    refreshJobGauges(pool), refreshRagCostGauges(pool, ragCost.scopeId), refreshModelCostGauges(pool, modelCost.scopeId),
+  ]).then(() => undefined), Number(process.env.WORKER_GAUGE_INTERVAL_MS || 15000));
+  const metricsServer = startMetricsExposition({
+    ragReady: () => ragCache.available && qbankReadModel.ready,
+    workerReady: () => reportLoop.ready() && interviewLoop.ready() && quizLoop.ready() && diagnosisLoop.ready()
+      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && (privacyErasureLoop?.ready() ?? true),
+  });
+  // Start consumers before the optional external embedding build. A failure can only disable local evidence, never
+  // turn an infrastructure dependency into an interview/payment availability outage.
+  if (adaptive) {
+    // A cache outage must not become a paid bootstrap rebuild.  With no active
+    // Redis/Tair singleflight, local RAG remains fail-closed and every command
+    // consumer still serves its bounded non-RAG path.
+    if (!ragCache.available) {
+      console.warn('qbank read model disabled: Redis/Tair singleflight unavailable');
+    } else if (ragCost.mode === 'enforce') {
+      void activateExistingQbankReadModel(pool, qbankRecipe.id, qbankReadModel);
+    } else if (!qbankControlPool) {
+      console.error('qbank read model unavailable: QBANK_CONTROL_DATABASE_URL is required for a governed rebuild; local RAG remains fail-closed');
+    } else {
+      void initializeQbankReadModel(qbankControlPool, embedder, qbankReadModel);
+    }
+  }
+  process.on('SIGTERM', async () => { await jobWakeupListener.stop().catch(() => {}); await Promise.allSettled([Promise.resolve(reportLoop.stop()), interviewLoop.stop(), quizLoop.stop(), diagnosisLoop.stop(), commerceLoop.stop(), modelInvocationReconcileLoop.stop(), privacyErasureLoop?.stop() ?? Promise.resolve(), gaugeLoop.stop(), ragCache.close(), privacyPool?.end() ?? Promise.resolve(), qbankControlPool?.end() ?? Promise.resolve(), ragControlPool?.end() ?? Promise.resolve(), langfuse?.shutdown()]); metricsServer.close(); console.log('drained, exiting'); process.exit(0); });   // 优雅排空在飞 job 再退
+  console.log(`worker ${ragCache.available ? 'ready' : 'degraded'}: event wakeup + ${jobReconcileIntervalMs}ms bounded reconciliation for report/interview/quiz/diagnosis + commerce reconciler + model invocation reconciler + privacy eraser(${privacyErasureLoop ? 'enabled' : 'pending dedicated login'}) + gauge refresh started as`, leaseOwner);
 }
 
 if (process.env.WORKER_BOOTSTRAP === '1') bootstrap();

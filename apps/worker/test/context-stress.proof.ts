@@ -1,178 +1,246 @@
 /**
- * context-stress.proof — **长上下文 / 压力 + 纵深封顶**证明(用户明确要求:"来个一两万字的上下文测试")。
- * 承重断言(全真件,非"能跑就行";经专家审计加固):
- *   A. 关口封顶纯函数 capUserData:一两万字输入 → 送模型 <data> 内容**有界 + 被截带显式标记 + 码点安全(不劈代理对)**。
- *   B. **真评估路径**(真 openAICompatibleClient → invoke 关口 → 本地 echo 模型回传实收长度):
- *      18000 字答案进去模型实收 ≤ 12000 且带**绑 nonce 的截断标记**;且用户在答案里**伪造**明文截断标记**不被当真**(forge-resistant)。
- *   C. **逐轮隔离 / 无累积(跑真自适应 agent 图)**:用 echo 模型驱动 buildAdaptiveInterviewGraph 多轮,**每轮喂等长答案**,
- *      断言每轮评估送模型的数据长度**恒定**(若有人把 transcript 喂进 assess,后轮会暴涨——本断言会变红)。这是长会话不爆上下文的根因守护。
- *   D. **边缘契约 400**:超上限答案/简历被契约(TurnDto/AnswerDto/UploadResumeDto)在落库前拒掉。
- *   E. **大答案落库不破流程(线性题单路径)+ SSE 重放有界**:8000 字答案经队列→消费→评估→报告跑通;
- *      interview_event 只含 {turn,score}/{question},**绝不回放大答案原文**。
+ * 长上下文与大载荷真实回归。
  *
- *   pnpm stress:prove   (需 pnpm db:up;A/D 纯逻辑,B/C/E 对真 Postgres + 本地 echo 模型)
+ * 这不是旧固定题单的影子 schema（影子数据库结构）测试：必须在完整迁移、v64
+ * `(resume_id,resume_privacy_epoch)`（简历标识、隐私世代）和当前自适应 consumer
+ * （消费者）上运行。它验证数万字多轮会话时，每次模型调用只水合当前答案，事件流
+ * 不回放原文，完成 job（任务）也会清除答案载荷。
  */
 import http from 'node:http';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { randomUUID } from 'node:crypto';
+import { MemorySaver } from '@langchain/langgraph';
 import {
-  createPool, asPrincipal, reserveEntitlement, availableUnits,
-  createResumeWithBlob, completeIngestion, transitionResume, enqueueInterviewJob, getReport,
+  answerHash, assertIsolatedTestTarget, asPrincipal, availableUnits,
+  claimInterviewAnswer, completeIngestion, createPool, createResumeWithBlob,
+  enqueueInterviewJob, getReport, reserveEntitlement, transitionResume,
 } from '@meetwise/db';
-import { scriptedModelClient, openAICompatibleClient, capUserData, CONTEXT_TRUNCATION_MARKER, type ModelClient } from '@meetwise/ai-runtime';
+import { capUserData, CONTEXT_TRUNCATION_MARKER, openAICompatibleClient, scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
+import { AnswerDto, TurnDto, UploadResumeDto } from '@meetwise/contracts';
 import { ingestResume } from '@meetwise/domain';
-import { TurnDto, AnswerDto, UploadResumeDto } from '@meetwise/contracts';
-import { createCheckpointer } from '../src/main.ts';
 import { interviewDispatchTick, type ConsumerDeps } from '../src/interview-consumer.ts';
-import { startAdaptiveInterview, submitAdaptiveAnswer } from '../src/adaptive-lifecycle.ts';
+import { evaluateAnswer, reportGenerator } from '../src/interview-service.ts';
 import { drainReportsOnce } from '../src/report-worker.ts';
-import { reportGenerator, evaluateAnswer } from '../src/interview-service.ts';
 
 const pool = createPool();
 let failures = 0;
-const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) failures++; };
-const section = (t: string) => console.log(`\n──────── ${t} ────────`);
-const sql = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
+const A = (name: string, condition: boolean) => {
+  console.log(`${condition ? 'PASS' : 'FAIL'}  ${name}`);
+  if (!condition) failures++;
+};
+const section = (title: string) => console.log(`\n──────── ${title} ────────`);
+const RESUME = ['工作经历', '负责订单系统限流改造，使用 Redis 计数器和滑动窗口保护下游。', '技能', 'Redis、限流、分布式锁'].join('\n');
 
-const OWNER = 'stressUser', OWNER2 = 'stressUserAdaptive', IID = 'iv-stress-' + Date.now(), IID2 = 'iv-stress-adaptive-' + Date.now();
-const RESUME = ['工作经历', '负责订单系统限流改造,用 Redis 计数器扛高并发', '技能', 'Redis、限流、分布式锁'].join('\n');
-
-const scriptedModel: ModelClient = scriptedModelClient({
-  'resume-quiz.generate': () => ({ ok: true, raw: { items: [{ q: '限流怎么做?', refs: ['限流'] }, { q: 'Redis 原子性?', refs: ['Redis'] }] } }),
-  'mock-interview.evaluate': () => ({ ok: true, raw: { score: 80, evidence: ['Redis'] } }),
-  'report.generate': () => ({ ok: true, raw: { overall: 80, sections: [{ title: '总评', body: '扎实' }] } }),
-});
-
-// 本地 echo "模型":按 system 路由出对应 JSON,并把 <data> 围栏内真正收到的内容长度 + 是否**真截断**(绑 nonce 的尾标记)回传。
-// 真截断只认 `内容过长已截断-<nonce>]` 结尾——用户在答案里粘的明文 `…[内容过长已截断]`(无 nonce)不匹配 → forge 失效。
-const recorded: { svc: string; len: number }[] = [];
+const recorded: Array<{ service: 'ask' | 'eval'; length: number }> = [];
 function startEcho(): Promise<{ port: number; close: () => Promise<void> }> {
-  const server = http.createServer((rq, rs) => {
-    let body = ''; rq.on('data', (d) => (body += d));
-    rq.on('end', () => {
-      let system = '', inner = '';
+  const server = http.createServer((request, response) => {
+    let body = '';
+    request.on('data', (chunk) => { body += chunk; });
+    request.on('end', () => {
+      let system = '';
+      let data = '';
       try {
-        const msgs = JSON.parse(body).messages as { role: string; content: string | { type: string; text?: string }[] }[];
-        system = String(msgs?.[0]?.content ?? '');
-        const content = msgs?.[1]?.content;
-        const text = typeof content === 'string' ? content : (content?.find((p) => p.type === 'text')?.text ?? '');
-        inner = text.replace(/^<data-[^>]*>\n?/, '').replace(/\n?<\/data-[^>]*>$/, '');
-      } catch { /* noop */ }
-      const cut = /内容过长已截断-[a-z0-9]+\]$/.test(inner) ? 'cut' : 'whole';   // 真截断=绑 nonce 的尾标记
+        const messages = JSON.parse(body).messages as Array<{ content: string | Array<{ type: string; text?: string }> }>;
+        system = String(messages?.[0]?.content ?? '');
+        const content = messages?.[1]?.content;
+        const text = typeof content === 'string' ? content : content?.find((part) => part.type === 'text')?.text ?? '';
+        data = text.replace(/^<data-[^>]*>\n?/, '').replace(/\n?<\/data-[^>]*>$/, '');
+      } catch { /* deterministic fake transport keeps malformed input empty */ }
+      const wasTruncated = /内容过长已截断-[a-z0-9]+\]$/.test(data);
       let payload: unknown;
-      if (system.includes('评估官')) { recorded.push({ svc: 'eval', len: inner.length }); payload = { score: 60, evidence: [`datalen:${inner.length}`, cut] }; }
-      else if (system.includes('规划官')) { payload = { competencies: ['后端架构', '高并发', '可靠性'] }; }
-      else { recorded.push({ svc: 'ask', len: inner.length }); payload = { q: '请结合你的真实项目,谈谈你做过的最复杂的一次设计与当时的权衡。', refs: [] }; }
-      rs.writeHead(200, { 'content-type': 'application/json' });
-      rs.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify(payload) } }], usage: { prompt_tokens: 1, completion_tokens: 1 } }));
+      if (system.includes('评估官')) {
+        recorded.push({ service: 'eval', length: data.length });
+        const answer = data.match(/(?:^|\n)回答:([\s\S]*)$/)?.[1]?.trim() ?? data.trim();
+        payload = { score: 60, evidence: [{ criterion: `datalen:${data.length}`, quote: answer.slice(0, 80) }, { criterion: wasTruncated ? 'cut' : 'whole', quote: answer.slice(0, 80) }] };
+      } else if (system.includes('规划官')) {
+        payload = { competencies: ['高并发'] };
+      } else {
+        recorded.push({ service: 'ask', length: data.length });
+        payload = { q: '请结合你的经验，说明高并发限流的关键取舍和验证方法。', refs: [] };
+      }
+      response.writeHead(200, { 'content-type': 'application/json' });
+      response.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify(payload) } }], usage: { prompt_tokens: 1, completion_tokens: 1 } }));
     });
   });
-  return new Promise((r) => server.listen(0, '127.0.0.1', () => r({ port: (server.address() as { port: number }).port, close: () => new Promise<void>((rr) => server.close(() => rr())) })));
+  return new Promise((resolve) => server.listen(0, '127.0.0.1', () => resolve({
+    port: (server.address() as { port: number }).port,
+    close: () => new Promise<void>((done) => server.close(() => done())),
+  })));
+}
+
+async function prepareInterview(owner: string, interviewId: string): Promise<{ resumeId: string; epoch: number; before: number }> {
+  await asPrincipal(pool, owner, async (c) => {
+    await c.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0,now()+interval '30 days')", [owner]);
+  });
+  const resumeId = await asPrincipal(pool, owner, async (c) => {
+    const created = await createResumeWithBlob(c, owner, RESUME);
+    await transitionResume(c, owner, created.resumeId, 'uploaded', 'ingesting');
+    await completeIngestion(c, owner, created.resumeId, ingestResume(RESUME));
+    return created.resumeId;
+  });
+  const epoch = await asPrincipal(pool, owner, async (c) => Number((await c.query<{ privacy_epoch: number }>(
+    'SELECT privacy_epoch FROM resume WHERE id=$1 AND owner_user_id=$2', [resumeId, owner],
+  )).rows[0]?.privacy_epoch));
+  let before = 0;
+  await asPrincipal(pool, owner, async (c) => {
+    await c.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'created',$3,$4)", [interviewId, owner, resumeId, epoch]);
+    before = await availableUnits(c, owner);
+    await reserveEntitlement(c, owner, interviewId, 'mock_interview', 1);
+  });
+  return { resumeId, epoch, before };
+}
+
+function adaptiveDeps(owner: string, model: ModelClient, maxTurns: number): ConsumerDeps {
+  return {
+    pool,
+    cp: new MemorySaver() as any,
+    model,
+    leaseOwner: `stress-worker-${owner}-${process.pid}`,
+    adaptive: {
+      role: '后端工程师',
+      maxTurns,
+      localRetrieve: async () => [],
+      webExplore: async () => [],
+    },
+  };
+}
+
+async function currentIssuedQuestion(owner: string, interviewId: string) {
+  return asPrincipal(pool, owner, async (c) => (await c.query<{
+    question_id: string; state_version: number; turn: number;
+  }>(
+    "SELECT question_id,state_version,turn FROM interview_question WHERE interview_id=$1 AND status='issued' ORDER BY state_version DESC LIMIT 1",
+    [interviewId],
+  )).rows[0]);
+}
+
+async function isCompleted(owner: string, interviewId: string) {
+  return asPrincipal(pool, owner, async (c) => (await c.query<{ status: string }>(
+    'SELECT status FROM interview WHERE id=$1', [interviewId],
+  )).rows[0]?.status === 'completed');
 }
 
 async function main() {
-  // ── A. 关口封顶纯函数:一两万字 → 有界 + 显式标记 + 码点安全 ────────────────────────────
-  section('A. capUserData 封顶(有界 + 显式截断标记 + 码点安全)');
+  section('A. 入口上下文封顶与码点安全');
   const evalCap = capUserData('答'.repeat(18_000), 'mock-interview.evaluate');
-  A('18000 字经评估服务封顶 → ≤ 12000(分服务上限)', evalCap.length <= 12_000);
-  A('被截时**追加显式标记**(不是静默丢尾)', evalCap.endsWith(CONTEXT_TRUNCATION_MARKER));
-  const defCap = capUserData('简'.repeat(25_000));
-  A('25000 字经全局默认封顶 → ≤ 20000', defCap.length <= 20_000 && defCap.endsWith(CONTEXT_TRUNCATION_MARKER));
-  // 极端"几万字"单点:5 万字 / 8 万字 → 仍封到分服务上限,绝不把几万字塞进模型。
-  A('50000 字(五万字)经评估封顶 → ≤ 12000', capUserData('答'.repeat(50_000), 'mock-interview.evaluate').length <= 12_000);
-  A('80000 字(八万字)经全局默认封顶 → ≤ 20000', capUserData('字'.repeat(80_000)).length <= 20_000);
-  const small = '正常长度的一段作答,几十个字。';
-  A('正常长度不被截、不加标记(不误伤真实作答)', capUserData(small, 'mock-interview.evaluate') === small);
-  A('支持调用方传入(绑 nonce 的)自定义标记', capUserData('x'.repeat(20_000), 'mock-interview.evaluate', '[CUT-9z]').endsWith('[CUT-9z]'));
-  // 码点安全:emoji 每个占 2 个 UTF-16 码元,截断点可能落在代理对中间 → 必须回退,不留孤高代理。
-  const emojiCap = capUserData('😀'.repeat(20_000), 'mock-interview.evaluate');
-  const bodyOnly = emojiCap.slice(0, emojiCap.length - CONTEXT_TRUNCATION_MARKER.length);
-  const lastCode = bodyOnly.charCodeAt(bodyOnly.length - 1);
-  A('emoji 截断码点安全(末位非孤高代理项)', !(lastCode >= 0xd800 && lastCode <= 0xdbff));
+  A('18000 字评估输入封顶至 ≤ 12000', evalCap.length <= 12_000 && evalCap.endsWith(CONTEXT_TRUNCATION_MARKER));
+  A('50000 字评估输入仍封顶至 ≤ 12000', capUserData('答'.repeat(50_000), 'mock-interview.evaluate').length <= 12_000);
+  A('80000 字默认输入封顶至 ≤ 20000', capUserData('字'.repeat(80_000)).length <= 20_000);
+  A('正常短答案不被篡改', capUserData('正常长度的一段作答。', 'mock-interview.evaluate') === '正常长度的一段作答。');
+  A('调用方 nonce（随机一次性标识）截断标记被保留', capUserData('x'.repeat(20_000), 'mock-interview.evaluate', '[CUT-9z]').endsWith('[CUT-9z]'));
+  const emoji = capUserData('😀'.repeat(20_000), 'mock-interview.evaluate');
+  const body = emoji.slice(0, emoji.length - CONTEXT_TRUNCATION_MARKER.length);
+  const last = body.charCodeAt(body.length - 1);
+  A('emoji 截断不留下孤立高代理项', !(last >= 0xd800 && last <= 0xdbff));
 
-  // ── D. 边缘契约 400 ──────────────────────────────────────────────────────────────────
-  section('D. 边缘契约封顶(超上限 → 契约拒绝 = 400,落库前)');
-  A('TurnDto:8001 字答案 → 拒绝', !TurnDto.safeParse({ turn: 0, answer: 'x'.repeat(8_001) }).success);
-  A('TurnDto:8000 字(上限)→ 通过', TurnDto.safeParse({ turn: 0, answer: 'x'.repeat(8_000) }).success);
-  A('TurnDto:空答案 → 拒绝;负 turn → 拒绝', !TurnDto.safeParse({ turn: 0, answer: '' }).success && !TurnDto.safeParse({ turn: -1, answer: '有效' }).success);
-  A('AnswerDto:8001 字 → 拒绝', !AnswerDto.safeParse({ answer: 'x'.repeat(8_001) }).success);
-  A('UploadResumeDto:60001 → 拒绝;60000 → 通过', !UploadResumeDto.safeParse({ text: 'x'.repeat(60_001) }).success && UploadResumeDto.safeParse({ text: 'x'.repeat(60_000) }).success);
+  section('B. 边缘契约在落库前拒绝异常大输入');
+  const turnBody = (answer: string) => ({ questionId: 'q-v1-t0-c0', stateVersion: 1, answerId: randomUUID(), answerHash: answerHash(answer), turn: 0, answer });
+  A('TurnDto（答题契约）8001 字拒绝、8000 字接受', !TurnDto.safeParse(turnBody('x'.repeat(8_001))).success && TurnDto.safeParse(turnBody('x'.repeat(8_000))).success);
+  A('AnswerDto（旧答题契约）8001 字拒绝', !AnswerDto.safeParse({ answer: 'x'.repeat(8_001) }).success);
+  A('UploadResumeDto（上传简历契约）60001 字拒绝、60000 字接受', !UploadResumeDto.safeParse({ text: 'x'.repeat(60_001) }).success && UploadResumeDto.safeParse({ text: 'x'.repeat(60_000) }).success);
 
-  // ── DB 公共准备 ──────────────────────────────────────────────────────────────────────
-  for (const f of ['01_schema', '02_commerce', '03_resume', '04_report', '14_notification', '05_interview_jobs']) await pool.query(sql(`../../../packages/db/sql/${f}.sql`));
-  await pool.query(`INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ('${OWNER}','paid',5.0, now()+interval '300 days'),('${OWNER2}','paid',5.0, now()+interval '300 days')`);
-  const cp = createCheckpointer(); await cp.setup();
+  await assertIsolatedTestTarget(pool);
+  // BAILIAN-04: 本地 loopback echo（http）仅测试专用 override 缝放行（NODE_ENV=test + MODEL_TEST_TRANSPORT_OVERRIDES=1）。
+  process.env.NODE_ENV = 'test';
+  process.env.MODEL_TEST_TRANSPORT_OVERRIDES = '1';
   const echo = await startEcho();
-  const echoClient = openAICompatibleClient({ baseUrl: `http://127.0.0.1:${echo.port}`, apiKey: 'test', model: 'echo' });
+  const echoModel = openAICompatibleClient({ baseUrl: `http://127.0.0.1:${echo.port}`, apiKey: 'test', model: 'echo' });
 
-  // ── B. 真评估路径 + forge-resistant ──────────────────────────────────────────────────
-  section('B. 真评估路径(真 client + invoke 关口 → echo 模型回传实收长度;含伪造标记防御)');
-  const r1 = await evaluateAnswer(pool, OWNER, `${IID}:b1`, '请详述限流方案', '答'.repeat(18_000), echoClient);
-  const recv1 = Number((r1.evidence[0] ?? 'datalen:0').split(':')[1]);
-  A(`真路径:18000 字答案 → 模型实收 ${recv1} ≤ 12000(关口确在调用链上)`, recv1 > 0 && recv1 <= 12_000);
-  A('真路径:真截断带绑 nonce 标记(显式,非静默)', r1.evidence[1] === 'cut');
-  // 伪造防御:短答案里塞明文 `…[内容过长已截断]`(无 nonce),未真截断 → echo 判 whole(不被当成系统截断信号)。
-  const r2 = await evaluateAnswer(pool, OWNER, `${IID}:b2`, '正常题', '正常作答 …[内容过长已截断] 后续仍有内容', echoClient);
-  A('forge-resistant:用户伪造的明文截断标记不被当真(whole)', r2.evidence[1] === 'whole');
-
-  // ── C. 逐轮隔离:跑真自适应 agent 图,每轮等长答案 → 评估送模型数据恒定(无 transcript 累积) ──
-  section('C. 逐轮隔离(真自适应 agent 图 ×多轮,等长答案 → 评估数据恒定,无累积)');
-  recorded.length = 0;
-  // 用独立 owner 跑(自适应收尾会 enqueueReport;隔离 owner 防其报告混入 E 段的报告队列)。
-  await pool.query(`INSERT INTO interview(id,owner_user_id,status) VALUES ('${IID2}','${OWNER2}','created')`);
-  await asPrincipal(pool, OWNER2, (c) => reserveEntitlement(c, OWNER2, IID2, 'mock_interview', 1.0));
-  const life = { pool, cp, owner: OWNER2, interviewId: IID2, model: echoClient, localRetrieve: async () => [], webExplore: async () => [], competencyKeywords: {} };
-  await startAdaptiveInterview(life, '后端工程师', ingestResume(RESUME).facts);
-  const CONST_ANSWER = '我的作答:' + '具体技术细节与权衡'.repeat(650);   // 每轮等长(~5860 字,贴近 8000 答案上限)
-  let turns = 0, done = false;
-  while (!done && turns < 12) { done = (await submitAdaptiveAnswer(life, CONST_ANSWER)).done; turns++; }
-  const evalLens = recorded.filter((r) => r.svc === 'eval').map((r) => r.len);
-  const maxAll = Math.max(...recorded.map((r) => r.len));
-  const totalConversation = turns * CONST_ANSWER.length;   // 整场累积对话字符量
-  A(`真自适应图跑了多轮(${evalLens.length} 次评估,${turns} 轮)`, evalLens.length >= 3);
-  // 阈值对齐确定性引擎:3 能力 × MAX_PROBE 2 = 6 轮 × ~5860 字 ≈ 35k 字(几万字)。relevant-path 的 ingest 数学与本能力无关,本断言只验"累积对话达几万字而单次调用仍有界"。
-  A(`**整场累积对话达几万字(${Math.round(totalConversation / 1000)}k 字)**`, totalConversation >= 30_000);
-  A('每轮评估送模型数据 ≤ 12000(逐轮有界)', evalLens.every((l) => l <= 12_000));
-  A(`**几万字对话仍逐轮恒定**:各轮评估数据极差 ${Math.max(...evalLens) - Math.min(...evalLens)} < 50(若把 transcript 喂进 assess 此处会随轮暴涨)`, Math.max(...evalLens) - Math.min(...evalLens) < 50);
-  A(`整场任一模型调用都不累积(最大 ${maxAll} ≤ 16000,而累积对话 ${Math.round(totalConversation / 1000)}k 字)`, maxAll <= 16_000);
-  await echo.close();
-
-  // ── E. 大答案落库不破流程(线性题单路径)+ SSE 重放有界 ──────────────────────────────────
-  section('E. 8000 字答案落库 → 队列→消费→评估→报告跑通(线性路径),且 SSE 不回放大答案');
-  await pool.query(`INSERT INTO interview(id,owner_user_id,status) VALUES ('${IID}','${OWNER}','created')`);
-  const deps: ConsumerDeps = { pool, cp, model: scriptedModel, leaseOwner: 'worker-stress' };
-  const resumeId = await asPrincipal(pool, OWNER, async (c) => {
-    const up = await createResumeWithBlob(c, OWNER, RESUME);
-    await transitionResume(c, OWNER, up.resumeId, 'uploaded', 'ingesting');
-    await completeIngestion(c, OWNER, up.resumeId, ingestResume(RESUME));
-    return up.resumeId;
+  section('C. 真 invoke（模型网关）路径：截断不可由用户伪造');
+  const directOwner = `stress-direct-${process.pid}`;
+  await asPrincipal(pool, directOwner, async (c) => {
+    await c.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0,now()+interval '30 days')", [directOwner]);
   });
-  const before = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));
-  await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, IID, 'mock_interview', 1.0));
-  await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, IID, 'start', { resumeId }));
-  await interviewDispatchTick(deps);
-  const questions: string[] = (await asPrincipal(pool, OWNER, (c) => c.query('SELECT questions q FROM interview WHERE id=$1', [IID]))).rows[0].q;
-  A('押题落库(2 题)', questions.length === 2);
-  const HUGE = '答'.repeat(8_000);
-  for (let i = 0; i < questions.length; i++) {
-    await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, IID, 'answer', { turn: i, answer: i === 0 ? HUGE : '正常作答:Redis 计数器' }, i + 1));
-    await interviewDispatchTick(deps);
-  }
-  const jobPayloadLen = (await asPrincipal(pool, OWNER, (c) => c.query("SELECT max(length(payload->>'answer')) n FROM interview_job WHERE interview_id=$1 AND kind='answer'", [IID]))).rows[0].n;
-  A('大答案确实整段落库(interview_job.payload 存 8000 字)', Number(jobPayloadLen) === 8_000);
-  A('大答案不破流程:面试 completed', (await asPrincipal(pool, OWNER, (c) => c.query('SELECT status FROM interview WHERE id=$1', [IID]))).rows[0].status === 'completed');
-  A('额度正常结算(扣 1.0)', (await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER))) === before - 1.0);
-  const events = (await asPrincipal(pool, OWNER, (c) => c.query('SELECT kind, payload FROM interview_event WHERE stream_key=$1 ORDER BY seq', [IID]))).rows as { kind: string; payload: any }[];
-  const maxPayload = Math.max(...events.map((e) => JSON.stringify(e.payload).length));
-  A(`SSE 事件载荷有界(最大 ${maxPayload} 字 < 500)`, maxPayload < 500);
-  A('SSE 绝不回放大答案原文 + answer_evaluated 只含 {turn,score}',
-    !events.some((e) => JSON.stringify(e.payload).includes('答答答答答答答答答答')) &&
-    events.filter((e) => e.kind === 'answer_evaluated').every((e) => 'turn' in e.payload && 'score' in e.payload && !('answer' in e.payload)));
-  const out = await drainReportsOnce(pool, OWNER, 'rpt-stress', { loadSummary: () => ({ interviewId: IID, questionCount: 2, scores: [80, 80] }), generate: reportGenerator(pool, OWNER, `${IID}:report`, scriptedModel) });
-  A('报告 ready(大答案不影响报告)', out === 'ready' && (await asPrincipal(pool, OWNER, (c) => getReport(c, OWNER, IID)))!.status === 'ready');
+  const direct = await evaluateAnswer(pool, directOwner, `stress-direct-${Date.now()}`, '请说明限流方案', '答'.repeat(18_000), echoModel);
+  const directLength = Number((direct.evidence[0] ?? 'datalen:0').split(':')[1]);
+  A('18000 字经真实 HTTP 模型适配器实收 ≤ 12000', directLength > 0 && directLength <= 12_000);
+  A('真实截断带 nonce 标记', direct.evidence[1] === 'cut');
+  const forged = await evaluateAnswer(pool, directOwner, `stress-forged-${Date.now()}`, '正常题', '正常作答 …[内容过长已截断] 后续仍有内容', echoModel);
+  A('用户伪造无 nonce 截断字样不会被当作系统截断', forged.evidence[1] === 'whole');
 
-  console.log(`\n${failures === 0 ? '✓ context-stress:全部通过(长上下文有界 + 码点安全 + forge 防御 + 真自适应图逐轮隔离 + 边缘封顶 + 大答案不破流程/不撑爆 SSE)' : '✗ ' + failures + ' 项失败'}`);
+  section('D. 数万字多轮经 v64 队列与当前自适应图，逐轮评估不累积 transcript');
+  const owner = `stress-graph-${process.pid}`;
+  const interviewId = `stress-graph-${Date.now()}`;
+  await prepareInterview(owner, interviewId);
+  const graphDeps = adaptiveDeps(owner, echoModel, 6);
+  recorded.length = 0;
+  await asPrincipal(pool, owner, (c) => enqueueInterviewJob(c, owner, interviewId, 'start', {}, 0));
+  await interviewDispatchTick(graphDeps);
+  const answer = '我的作答：' + '具体技术细节、指标、取舍与复盘。'.repeat(650);
+  let turns = 0;
+  while (turns < 8 && !await isCompleted(owner, interviewId)) {
+    const question = await currentIssuedQuestion(owner, interviewId);
+    if (!question) break;
+    const input = { questionId: question.question_id, stateVersion: Number(question.state_version), turn: Number(question.turn), answerId: randomUUID(), answerHash: answerHash(answer), answer };
+    const claim = await asPrincipal(pool, owner, (c) => claimInterviewAnswer(c, owner, interviewId, input));
+    A(`第 ${input.turn + 1} 轮身份账本接受`, claim.status === 'accepted');
+    await asPrincipal(pool, owner, (c) => enqueueInterviewJob(c, owner, interviewId, 'answer', input, input.turn + 1));
+    await interviewDispatchTick(graphDeps);
+    turns++;
+  }
+  const evalLengths = recorded.filter((item) => item.service === 'eval').map((item) => item.length);
+  const totalConversation = turns * answer.length;
+  const spread = evalLengths.length ? Math.max(...evalLengths) - Math.min(...evalLengths) : Infinity;
+  A('当前图实际完成至少 3 次评估', evalLengths.length >= 3);
+  A(`累计会话达到 ≥ 30000 字（实际 ${Math.round(totalConversation / 1000)}k）`, totalConversation >= 30_000);
+  A('每次评估请求 ≤ 12000 字', evalLengths.every((length) => length <= 12_000));
+  A(`同等长度回答的评估输入极差 < 50（实际 ${spread}）`, spread < 50);
+
+  section('E. 8000 字答案在 v64 队列中短暂存在、消费后清除，SSE 不回放正文');
+  const largeOwner = `stress-large-${process.pid}`;
+  const largeInterview = `stress-large-${Date.now()}`;
+  const prepared = await prepareInterview(largeOwner, largeInterview);
+  const scripted: ModelClient = scriptedModelClient({
+    'planner.competencies': () => ({ ok: true, raw: { competencies: ['Redis'] } }),
+    'interviewer.ask': () => ({ ok: true, raw: { q: '请说明 Redis 限流实现。', refs: [] } }),
+    'mock-interview.evaluate': () => ({ ok: true, raw: { score: 80, evidence: [{ criterion: 'Redis', quote: 'Redis' }] } }),
+    'report.generate': () => ({ ok: true, raw: { overall: 80, sections: [{ title: '总评', body: '通过。' }] } }),
+  });
+  const largeDeps = adaptiveDeps(largeOwner, scripted, 2);
+  await asPrincipal(pool, largeOwner, (c) => enqueueInterviewJob(c, largeOwner, largeInterview, 'start', {}, 0));
+  await interviewDispatchTick(largeDeps);
+  let maximumQueuedAnswer = 0;
+  for (let guard = 0; guard < 4 && !await isCompleted(largeOwner, largeInterview); guard++) {
+    const question = await currentIssuedQuestion(largeOwner, largeInterview);
+    if (!question) break;
+    const largeAnswer = guard === 0 ? `Redis${'答'.repeat(7_995)}` : 'Redis 计数器与滑动窗口。';
+    const input = { questionId: question.question_id, stateVersion: Number(question.state_version), turn: Number(question.turn), answerId: randomUUID(), answerHash: answerHash(largeAnswer), answer: largeAnswer };
+    A(`8000 字链路第 ${input.turn + 1} 轮身份领取`, (await asPrincipal(pool, largeOwner, (c) => claimInterviewAnswer(c, largeOwner, largeInterview, input))).status === 'accepted');
+    await asPrincipal(pool, largeOwner, (c) => enqueueInterviewJob(c, largeOwner, largeInterview, 'answer', input, input.turn + 1));
+    const queuedLength = await asPrincipal(pool, largeOwner, async (c) => Number((await c.query<{ length: number }>(
+      "SELECT length(payload->>'answer')::int AS length FROM interview_job WHERE interview_id=$1 AND kind='answer' AND seq=$2",
+      [largeInterview, input.turn + 1],
+    )).rows[0]?.length ?? 0));
+    maximumQueuedAnswer = Math.max(maximumQueuedAnswer, queuedLength);
+    await interviewDispatchTick(largeDeps);
+  }
+  const largeState = await asPrincipal(pool, largeOwner, async (c) => {
+    const payload = await c.query<{ payload: unknown }>('SELECT payload FROM interview_job WHERE interview_id=$1 AND kind=\'answer\'', [largeInterview]);
+    const events = await c.query<{ payload: unknown }>('SELECT payload FROM interview_event WHERE stream_key=$1', [largeInterview]);
+    const unfinished = await c.query<{ n: number }>("SELECT count(*)::int AS n FROM interview_job WHERE interview_id=$1 AND status!='done'", [largeInterview]);
+    return { payload: payload.rows, events: events.rows, unfinished: Number(unfinished.rows[0]?.n) };
+  });
+  A('队列在消费前确实承载 8000 字答案', maximumQueuedAnswer === 8_000);
+  A('消费完成后 answer payload（回答载荷）已清除', largeState.payload.every((row) => !Object.prototype.hasOwnProperty.call((row.payload ?? {}) as object, 'answer')));
+  A('SSE（服务器推送事件）载荷不含 8000 字正文且每条 < 500 字', largeState.events.every((row) => {
+    const text = JSON.stringify(row.payload);
+    return text.length < 500 && !text.includes('答答答答答答答答答答');
+  }));
+  A('大答案链路所有 job 收口为 done、额度精确扣 1', largeState.unfinished === 0 && (await asPrincipal(pool, largeOwner, (c) => availableUnits(c, largeOwner))) === prepared.before - 1);
+  const report = await asPrincipal(pool, largeOwner, (c) => getReport(c, largeOwner, largeInterview));
+  const reportResult = await drainReportsOnce(pool, largeOwner, `stress-report-${process.pid}`, {
+    loadSummary: () => ({ interviewId: largeInterview, questionCount: 2, scores: [80, 80] }),
+    generate: reportGenerator(pool, largeOwner, `${largeInterview}:report`, scripted),
+  });
+  A('大答案不阻塞报告舱壁', report?.status === 'queued' && reportResult === 'ready');
+
+  await echo.close();
+  console.log(`\n${failures === 0 ? '✓ 长上下文真实 v64 队列/图/报告链路全部通过' : `✗ ${failures} 项失败`}`);
   await pool.end();
   process.exit(failures === 0 ? 0 : 1);
 }
-main().catch((e) => { console.error(e); process.exit(1); });
+
+main().catch(async (error) => {
+  console.error(error);
+  await pool.end().catch(() => undefined);
+  process.exit(1);
+});

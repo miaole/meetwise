@@ -1,5 +1,5 @@
 /**
- * 真模型连通性 smoke（手动跑,**非 CI gate**;需 .env 里的 MODEL_*)：用真 openAICompatibleClient 打一次百炼,
+ * 真模型连通性 smoke（手动跑,**非 CI gate**;需 .env 里的 MODEL_*)：用真 openAICompatibleClient 打一次文本主端点，
  * 验证 endpoint/key/JSON 输出贯通。仅发 benign "ping",不含任何 PII。
  *   pnpm model:smoke
  */
@@ -14,7 +14,11 @@ for (const line of readFileSync(fileURLToPath(new URL('../../../.env', import.me
 }
 
 async function main() {
-  console.log('endpoint:', process.env.MODEL_BASE_URL, '| model:', process.env.MODEL_NAME, '| key:', (process.env.MODEL_API_KEY ?? '').slice(0, 8) + '…(hidden)');
+  console.log('provider configuration:', JSON.stringify({
+    model: process.env.MODEL_NAME ?? null,
+    endpointProfile: process.env.MODEL_ENDPOINT_PROFILE ?? null,
+    apiKeyConfigured: Boolean(process.env.MODEL_API_KEY),
+  }));
   const client = openAICompatibleClient();
   const res = await client.complete({
     service: 'smoke',

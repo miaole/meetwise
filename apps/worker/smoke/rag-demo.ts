@@ -1,12 +1,12 @@
 /**
- * 端到端生产 RAG 一条龙(真路径,非分开测):真语料 → text-embedding-v4 → **入 pgvector** → **HNSW annSearch 召回** → **gte-rerank 重排** → 测 recall。
- * 用 C-MTEB T2Reranking 池化语料(官方标注)。证明"向量化入库+ANN+重排"是接通的、不是嘴说。
+ * demo（非 serving 路径）：把真语料 → text-embedding-v4 → 入 pgvector(旧 legacy annSearchLegacy) → gte-rerank 重排 → 测 recall 一条龙跑通。
+ * 用 C-MTEB T2Reranking 池化语料(官方标注)。它只演示旧向量路径的接通，不代表生产 generation-aware hybridQbankSearch 路径/规模/权限。
  *   pnpm rag:demo [N]   (需 .env + pnpm db:up;联网拉数据集)
  */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
-import { createPool, asPrincipal, upsertVectorChunk, annSearch } from '@meetwise/db';
+import { createPool, asPrincipal, upsertVectorChunk, annSearchLegacy } from '@meetwise/db';
 import { dashscopeEmbedder, cachingEmbedder, inMemoryEmbeddingStore, dashscopeReranker, evalRecall } from '@meetwise/ai-runtime';
 
 for (const line of readFileSync(new URL('../../../.env', import.meta.url), 'utf8').split('\n')) {
@@ -58,7 +58,7 @@ async function main() {
   const annOnly: string[][] = [], reranked: string[][] = [];
   for (let i = 0; i < golden.length; i++) {
     const [qv] = await emb.embed([golden[i].query]);
-    const hits = await asPrincipal(pool, OWNER, (c) => annSearch(c, OWNER, 'qbank', qv, 20));   // **真 pgvector HNSW 召回**
+    const hits = await asPrincipal(pool, OWNER, (c) => annSearchLegacy(c, 'qbank', qv, 20));   // legacy pgvector HNSW 召回(非 generation-aware serving)
     annOnly.push(hits.map((h) => h.refId));
     const docs = hits.map((h) => ({ id: h.refId, text: text.get(h.refId) ?? '' }));
     reranked.push(await reranker.rerank(golden[i].query, docs, 10));                              // **真 gte-rerank 重排**
@@ -71,7 +71,7 @@ async function main() {
     console.log(`k=${k}  pgvector-ANN  hit@k=${(a.hitRate * 100).toFixed(1)}% recall=${(a.recall * 100).toFixed(1)}% MAP=${a.map.toFixed(3)}`);
     console.log(`k=${k}  +gte-rerank   hit@k=${(r.hitRate * 100).toFixed(1)}% recall=${(r.recall * 100).toFixed(1)}% MAP=${r.map.toFixed(3)}`);
   }
-  console.log('─'.repeat(64) + '\n✓ 一条龙打通:真语料→嵌入→入 pgvector→HNSW 召回→gte-rerank 重排→度量(全真路径)');
+  console.log('─'.repeat(64) + '\n✓ demo 打通:真语料→嵌入→入 pgvector(legacy)→HNSW 召回→gte-rerank 重排→度量(非生产 serving 路径,不代表规模/权限)');
   await pool.end();
 }
 main().catch((e) => { console.error('✗', e?.message ?? e); process.exit(1); });

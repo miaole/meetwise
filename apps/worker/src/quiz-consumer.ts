@@ -3,7 +3,7 @@
  * 镜像 interview-consumer 的三事务式(claim 提交 → 生命周期短事务 → markDone)+ **失败路径(无泄漏)**:
  *   job 失败=终态(押题不重试到无穷)→ markFailed + 发 quiz_unavailable 终态事件(前端不死等)+ release 预留额度(不白扣)。
  */
-import { asPrincipal, claimNextQuizJob, markQuizJobDone, markQuizJobFailed, appendEvent, releaseConsumption, renewQuizJobLease, sweepStuckQuizJobs, type DbPool } from '@meetwise/db';
+import { asPrincipal, gatewayDispatchOwners, claimNextQuizJob, markQuizJobDone, markQuizJobFailed, appendEvent, releaseConsumption, renewQuizJobLease, sweepStuckQuizJobs, RESUME_DERIVATIVE_REFERENCE_VERSION, type DbPool } from '@meetwise/db';
 import type { ModelClient } from '@meetwise/ai-runtime';
 import { runQuiz } from './quiz-lifecycle.ts';
 import { runDrainLoop } from './drain-loop.ts';
@@ -12,6 +12,13 @@ import { startHeartbeat } from './job-heartbeat.ts';
 export interface QuizConsumerDeps { pool: DbPool; model: ModelClient; leaseOwner: string }
 export type QuizDrainResult = 'generate' | 'idle' | 'failed';
 
+function hasCurrentResumeReference(job: { resumeId: string | null; privacyEpoch: number | null; referenceSchemaVersion: number | null }) {
+  return job.referenceSchemaVersion === RESUME_DERIVATIVE_REFERENCE_VERSION
+    && typeof job.resumeId === 'string'
+    && Number.isSafeInteger(job.privacyEpoch)
+    && (job.privacyEpoch as number) >= 1;
+}
+
 /** 领一个押题 job 跑完 → markDone;失败 markFailed + 终态事件 + 退还额度。模型/图在生命周期短事务,不与 claim 同事务。 */
 export async function drainQuizJobOnce(d: QuizConsumerDeps, owner: string): Promise<QuizDrainResult> {
   const job = await asPrincipal(d.pool, owner, (c) => claimNextQuizJob(c, owner, d.leaseOwner));   // tx1 claim
@@ -19,19 +26,33 @@ export async function drainQuizJobOnce(d: QuizConsumerDeps, owner: string): Prom
   // 心跳:押题图/模型可能慢(>120s 租约),续租避免被 reaper 误判崩溃而重领(=并发双跑同一押题)。
   const hb = startHeartbeat(() => asPrincipal(d.pool, owner, (c) => renewQuizJobLease(c, owner, job.id, d.leaseOwner)));
   try {
-    await runQuiz(d.pool, owner, job.quizId, job.payload.resumeId, d.model);
+    // A historical JSON payload is never selected by `claimNextQuizJob`.
+    // Terminalize it before decrypt, graph checkpoint, or model dispatch.
+    if (!hasCurrentResumeReference(job)) throw Object.assign(new Error('legacy_resume_reference_unresolved'), { code: 'legacy_resume_reference_unresolved' });
+    await runQuiz(d.pool, owner, job.quizId, job.resumeId!, job.privacyEpoch!, d.model);
     await asPrincipal(d.pool, owner, (c) => markQuizJobDone(c, owner, job.id, d.leaseOwner));
     return 'generate';
   } catch (e: any) {
     await asPrincipal(d.pool, owner, async (c) => {
       // **租约守卫(专家审计:丢租约的 worker 不得碰业务态)**:markFailed 的 CAS 含 lease_owner=本机;
       // 若已被重领(0 行 → false),本 worker 已不持租约 → 静默退出,不发终态事件、不退额度(否则会退掉现租约持有者正要 confirm 的预留 = 漏扣)。
-      const stillMine = await markQuizJobFailed(c, owner, job.id, d.leaseOwner, e?.message ?? 'err');
+      const isLegacyReference = e?.code === 'legacy_resume_reference_unresolved';
+      // The job was claimed without selecting payload.  Once classified as
+      // legacy, erase its opaque historical JSON in the same terminal CAS so
+      // it cannot wait in a failed row for a future accidental reader.
+      const stillMine = isLegacyReference
+        ? (await c.query(
+          `UPDATE quiz_job SET status='failed', payload='{}'::jsonb,
+             last_error='legacy_resume_reference_unresolved', lease_owner=NULL, version=version+1
+           WHERE id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3`,
+          [job.id, owner, d.leaseOwner],
+        )).rowCount === 1
+        : await markQuizJobFailed(c, owner, job.id, d.leaseOwner, e?.message ?? 'err');
       if (!stillMine) return;
       // 不把已 ready 的押题倒退(confirm 后 markDone 抛错也会落此 catch);仅从非终态置 failed。
       await c.query("UPDATE resume_quiz SET status='failed', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status NOT IN ('ready')", [job.quizId, owner]);
       // **终态事件(北极星:无静默死胡同)**:押题失败=终态 → 发 quiz_unavailable,否则前端死等 question_ready 无限转圈。
-      await appendEvent(c, owner, job.quizId, 'quiz_unavailable', { reason: 'job_failed' });
+      await appendEvent(c, owner, job.quizId, 'quiz_unavailable', { reason: isLegacyReference ? 'legacy_reference_unresolved' : 'job_failed' });
       // **失败退款(无泄漏)**:押题终态失败 → 预留的 1.0 永不会被 confirm,必须释放(幂等,key=quizId)。
       await releaseConsumption(c, owner, job.quizId).catch(() => {});
     });
@@ -65,9 +86,9 @@ export async function reapStuckQuizJobs(d: QuizConsumerDeps, owner: string): Pro
   });
 }
 
-/** 一拍调度:枚举有待办押题 job 的 owner(需越 RLS)→ 每 owner 先 reap(收割孤儿) 再 drain。 */
+/** 一拍调度:受限网关只枚举 owner id，随后每 owner 立即回到 RLS 事务处理。 */
 export async function quizDispatchTick(d: QuizConsumerDeps): Promise<{ owners: number; requeued: number; failed: number }> {
-  const owners = (await d.pool.query("SELECT DISTINCT owner_user_id FROM quiz_job WHERE status='queued' OR (status='running' AND lease_expires_at < now())")).rows.map((r) => r.owner_user_id as string);
+  const owners = await gatewayDispatchOwners(d.pool, 'quiz');
   let requeued = 0, failed = 0;
   for (const o of owners) {
     const r = await reapStuckQuizJobs(d, o);
@@ -78,6 +99,6 @@ export async function quizDispatchTick(d: QuizConsumerDeps): Promise<{ owners: n
 }
 
 /** 常驻消费循环(可优雅排空:stop() 等当前 tick 跑完,滚动部署不丢在飞 job)。 */
-export function runQuizConsumer(d: QuizConsumerDeps, intervalMs = 1500) {
+export function runQuizConsumer(d: QuizConsumerDeps, intervalMs = 5000) {
   return runDrainLoop(async () => { await quizDispatchTick(d); }, intervalMs);
 }

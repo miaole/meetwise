@@ -4,34 +4,38 @@
  *   ② 历史弱项只读投影:pastWeakDimensions 从 assessment_report(status=ready 且 gap=true)读维度名(给能力选择软偏置)。
  *  外加 RLS 不串户 + 隐私(episode 只存我方归一化题面,非答案/PII)。
  *  **不测语义召回/embedding**——lean MVP 不含它(审计判为过度工程 + 毁引擎确定性);真检索质量由 retrieval benchmark 覆盖。
- *   pnpm memory:prove   (需 pnpm db:up)
+ *   pnpm memory:prove       （根脚本会起临时 pgvector cluster；绝不重建共享开发库）
+ *   pnpm memory:prove:raw   （仅供已确认隔离的 cluster 调用）
  */
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { createPool, asPrincipal, normalizeQuestion } from '@meetwise/db';
+import { assertIsolatedTestTarget, createPool, asPrincipal, normalizeQuestion } from '@meetwise/db';
 import { wasAsked, recordAskedQuestions, pastWeakDimensions } from '../src/memory-service.ts';
 
 const pool = createPool();
 let fail = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
 const section = (t: string) => console.log(`\n──────── ${t} ────────`);
-const sql = (f: string) => readFileSync(fileURLToPath(new URL(`../../../packages/db/sql/${f}`, import.meta.url)), 'utf8');
 const A_OWNER = 'userA', B_OWNER = 'userB';
 
 async function main() {
-  for (const f of ['01_schema.sql', '07_memory.sql', '08_assessment.sql']) await pool.query(sql(f));
-  await pool.query('TRUNCATE user_memory, assessment_report');
+  // `packages/db/sql/` 是旧兼容样本；这里必须验证当前 migration（迁移）
+  // 前缀下的 RLS（行级安全）和 memory（记忆）表，而不是在测试中重建过时结构。
+  await assertIsolatedTestTarget(pool);
 
   section('① 跨会话精确判重:recordAskedQuestions 写 episode → wasAsked 命中(归一化 exact,零语义)');
   // 同批含重复题面(仅大小写/空白差异)→ 归一化后应去重为 2 条,绝不写答案/PII。
   await recordAskedQuestions(pool, A_OWNER, ['谈谈你订单系统的限流方案', '  谈谈你订单系统的限流方案  ', '讲讲 Redis 持久化'], 'iv-1');
-  A('同批归一化去重:恰 2 条 episode(重复题面合一)', (await pool.query("SELECT count(*)::int n FROM user_memory WHERE kind='episode'")).rows[0].n === 2);
+  A('同批归一化去重:恰 2 条 episode(重复题面合一)', Number((await asPrincipal(pool, A_OWNER, (c) => c.query("SELECT count(*)::int n FROM user_memory WHERE kind='episode'"))).rows[0].n) === 2);
   A('问过的题 wasAsked=true', (await wasAsked(pool, A_OWNER, '谈谈你订单系统的限流方案')) === true);
   A('空白/大小写变体仍判 true(归一化 exact,非语义相似)', (await wasAsked(pool, A_OWNER, '  谈谈你订单系统的限流方案  ')) === true);
   A('语义相近但不同题 wasAsked=false(不做语义误挡)', (await wasAsked(pool, A_OWNER, '订单系统怎么做限流')) === false);
   A('完全没问过的题 wasAsked=false', (await wasAsked(pool, A_OWNER, '讲讲 G1 垃圾回收')) === false);
 
   section('② 历史弱项只读投影:从 assessment_report(ready 且 gap=true)读维度名');
+  // 当前投影 trigger（触发器）要求关联面试仍处于隐私活动态；完整迁移下不能再用
+  // 旧 shadow schema（影子数据库结构）凭空插 report（报告）。
+  await asPrincipal(pool, A_OWNER, async (c) => {
+    await c.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('iv-1',$1,'created'),('iv-2',$1,'created')", [A_OWNER]);
+  });
   await asPrincipal(pool, A_OWNER, (c) => c.query(
     `INSERT INTO assessment_report(id, owner_user_id, interview_id, status, dimensions) VALUES ($1,$2,$3,'ready',$4)`,
     ['ar-1', A_OWNER, 'iv-1', JSON.stringify([
@@ -52,7 +56,7 @@ async function main() {
   A('userB pastWeakDimensions = 空(读不到 userA 报告)', (await pastWeakDimensions(pool, B_OWNER)).length === 0);
 
   section('④ 隐私:episode 只存我方归一化题面,绝无答案/PII');
-  const contents = (await pool.query("SELECT content FROM user_memory WHERE kind='episode'")).rows.map((x) => x.content).join(' ');
+  const contents = (await asPrincipal(pool, A_OWNER, (c) => c.query("SELECT content FROM user_memory WHERE kind='episode'"))).rows.map((x) => x.content).join(' ');
   A('episode 内容无手机号等原文 PII', !/1[3-9]\d{9}/.test(contents));
   A('episode 存的是归一化题面(小写去多余空白)', contents.includes(normalizeQuestion('谈谈你订单系统的限流方案')));
 

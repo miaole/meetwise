@@ -5,10 +5,8 @@
  * 测的全是生产件(diagnosis-jobs/diagnosis-consumer/diagnosis-lifecycle);模型注脚本(CI)。
  *   pnpm diagnosis:prove   (需 pnpm db:up)
  */
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import {
-  createPool, asPrincipal, reserveEntitlement, availableUnits,
+  assertIsolatedTestTarget, createPool, asPrincipal, reserveEntitlement, availableUnits,
   createResumeWithBlob, completeIngestion, transitionResume, enqueueDiagnosisJob,
 } from '@meetwise/db';
 import { scriptedModelClient } from '@meetwise/ai-runtime';
@@ -19,7 +17,6 @@ const pool = createPool();
 let failures = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) failures++; };
 const section = (t: string) => console.log(`\n──────── ${t} ────────`);
-const sql = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
 const OWNER = 'diagUser', DID = 'dg-' + Date.now(), DID_FAIL = 'dgf-' + Date.now(), DID_METRIC = 'dgm-' + Date.now();
 const RESUME = ['工作经历', '负责订单系统限流改造,用 Redis 计数器扛高并发', '技能', 'Redis、限流、分布式锁'].join('\n');
 
@@ -73,16 +70,25 @@ async function seedResume(): Promise<string> {
 }
 
 async function main() {
-  for (const f of ['01_schema', '02_commerce', '03_resume', '14_notification', '21_resume_diagnosis']) await pool.query(sql(`../../../packages/db/sql/${f}.sql`));
-  await pool.query(`INSERT INTO resume_diagnosis(id,owner_user_id,status) VALUES ('${DID}','${OWNER}','created'),('${DID_FAIL}','${OWNER}','created'),('${DID_METRIC}','${OWNER}','created')`);
-  await pool.query(`INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ('${OWNER}','paid',5.0, now()+interval '300 days')`);
+  await assertIsolatedTestTarget(pool);
+  await asPrincipal(pool, OWNER, async (c) => {
+    await c.query("INSERT INTO resume_diagnosis(id,owner_user_id,status) VALUES ($1,$2,'created'),($3,$2,'created'),($4,$2,'created')", [DID, OWNER, DID_FAIL, DID_METRIC]);
+    await c.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0,now()+interval '300 days')", [OWNER]);
+  });
   const resumeId = await seedResume();
+  const epoch = await asPrincipal(pool, OWNER, async (c) => Number((await c.query<{ privacy_epoch: number }>(
+    'SELECT privacy_epoch FROM resume WHERE id=$1 AND owner_user_id=$2', [resumeId, OWNER],
+  )).rows[0]?.privacy_epoch));
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    'UPDATE resume_diagnosis SET resume_id=$3,privacy_epoch=$4 WHERE owner_user_id=$1 AND id IN ($2,$5,$6)',
+    [OWNER, DID, resumeId, epoch, DID_FAIL, DID_METRIC],
+  ));
   const facts = ingestResume(RESUME).facts;
 
   section('① 成功诊断:api 入队 generate → worker 消费 → 诊断落库 + 逐维度事件 + 结算额度');
   const before = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, DID, 'resume_diagnosis', 1.0));
-  await asPrincipal(pool, OWNER, (c) => enqueueDiagnosisJob(c, OWNER, DID, { resumeId, role: '后端工程师' }));
+  await asPrincipal(pool, OWNER, (c) => enqueueDiagnosisJob(c, OWNER, DID, resumeId, epoch));
   const okDeps: DiagnosisConsumerDeps = { pool, model: okModel, leaseOwner: 'dworker-1' };
   const tick = await diagnosisDispatchTick(okDeps);
   A('diagnosisDispatchTick 消费到 owner', tick.owners >= 1);
@@ -95,7 +101,7 @@ async function main() {
   section('② 真接地(非 theatre):每条 finding/改写的 refs 必接地;幻觉 Go 过滤;空 refs 正面信用走私被剔除(审计致命#2)');
   const highlight = report.sections.find((s: any) => s.kind === 'highlight');
   A('highlight 维度过滤后剩 2 条(Go ungrounded ref + Google 空 refs 均被剔除)', highlight.findings.length === 2);
-  const allFindings = report.sections.flatMap((s: any) => s.findings as Array<{ text: string; refs: string[] }>);
+  const allFindings: Array<{ text: string; refs: string[] }> = report.sections.flatMap((s: any): Array<{ text: string; refs: string[] }> => s.findings);
   A('被过滤的幻觉发现(refs=[Go])确实没入库', !allFindings.some((f) => f.refs.includes('Go')));
   A('空 refs 的正面信用走私(「Google 首席科学家」)被剔除(亮点维度强制引证)', !allFindings.some((f) => f.text.includes('Google')));
   // 真 factuality 断言:每条有 refs 的 finding 必须真接地(groundedByFacts=生产同一函数);空 refs 仅允许非正面声明维度(结构/完整性/风险)。
@@ -121,7 +127,7 @@ async function main() {
   const beforeFail = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, DID_FAIL, 'resume_diagnosis', 1.0));
   A('预留后额度 -1.0', (await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER))) === beforeFail - 1.0);
-  await asPrincipal(pool, OWNER, (c) => enqueueDiagnosisJob(c, OWNER, DID_FAIL, { resumeId, role: '后端工程师' }));
+  await asPrincipal(pool, OWNER, (c) => enqueueDiagnosisJob(c, OWNER, DID_FAIL, resumeId, epoch));
   await diagnosisDispatchTick({ pool, model: failModel, leaseOwner: 'dworker-2' });
   const failRow = await asPrincipal(pool, OWNER, (c) => c.query('SELECT status FROM resume_diagnosis WHERE id=$1', [DID_FAIL]));
   A('诊断标 failed(业务校验拒虚构经历)', failRow.rows[0].status === 'failed');
@@ -134,7 +140,7 @@ async function main() {
   section('⑤b 量化造假硬拒(审计致命#1:refs 接地≠内容接地):改写 refs 全接地但 after 编造数字 → fabricated_metric 拒');
   const beforeMetric = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, DID_METRIC, 'resume_diagnosis', 1.0));
-  await asPrincipal(pool, OWNER, (c) => enqueueDiagnosisJob(c, OWNER, DID_METRIC, { resumeId, role: '后端工程师' }));
+  await asPrincipal(pool, OWNER, (c) => enqueueDiagnosisJob(c, OWNER, DID_METRIC, resumeId, epoch));
   await diagnosisDispatchTick({ pool, model: metricFabModel, leaseOwner: 'dworker-3' });
   A('量化造假诊断标 failed(after 的 99999 不在简历 → 业务校验拒,旧版只校验 refs 会放行)', (await asPrincipal(pool, OWNER, (c) => c.query('SELECT status FROM resume_diagnosis WHERE id=$1', [DID_METRIC]))).rows[0].status === 'failed');
   A('量化造假报告未落库(不交付编造数字的改写)', (await asPrincipal(pool, OWNER, (c) => c.query('SELECT report FROM resume_diagnosis WHERE id=$1', [DID_METRIC]))).rows[0].report === null);

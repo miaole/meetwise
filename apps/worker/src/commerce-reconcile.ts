@@ -10,18 +10,13 @@
  * 幂等/多实例安全:sweep 的 `WHERE status='reserved' AND lease<now RETURNING` 行锁 + settle 的 SKIP LOCKED 使并发/重叠拍不重复处理;
  * 已 released 的不会二次进 swept → 终态事件 exactly-once。一个 owner 抛不拖垮整拍;整拍从不抛(否则 drain-loop 会停)。
  */
-import { asPrincipal, reconcile, appendEvent, type DbPool } from '@meetwise/db';
+import { asPrincipal, gatewayDispatchOwners, reconcile, appendEvent, failInterviewAndRelease, markApplicationAssessmentUnavailable, type DbPool } from '@meetwise/db';
 import { runDrainLoop } from './drain-loop.ts';
 
-/** 枚举有"待回收"的 owner（**调度层基础设施,需越 RLS 看全租户**）：dev 用 superuser 池;
- *  prod 用最小权限 dispatcher 角色(BYPASSRLS,只读 owner_user_id)。逐 owner 处理仍走 RLS 限定的 principal。
- *  两类待办:租约过期的孤儿预留(要回收) ∪ pending 结算 outbox(要入账)。 */
+/** 枚举有"待回收"的 owner：网关只能返回 owner id；每个 owner 的对账仍在 RLS 事务内。
+ * 两类待办:租约过期的孤儿预留(要回收) ∪ pending 结算 outbox(要入账)。 */
 export async function enumerateOwnersWithReclaimWork(pool: DbPool): Promise<string[]> {
-  const r = await pool.query(
-    `SELECT owner_user_id FROM entitlement_consumption WHERE status='reserved' AND lease_expires_at < now()
-     UNION
-     SELECT owner_user_id FROM commerce_outbox WHERE status='pending'`);
-  return r.rows.map((x) => x.owner_user_id as string);
+  return gatewayDispatchOwners(pool, 'commerce');
 }
 
 export interface ReconcileOutcome { staleReleased: number; settled: number; abandoned: number }
@@ -40,10 +35,24 @@ export async function reconcileOwner(pool: DbPool, owner: string): Promise<Recon
     // exactly-once:swept 只含本拍从 reserved 翻 released 的笔(行锁),下拍已 released 不再入 swept → 状态翻转+事件都不重放。
     for (const s of rec.swept) {
       if (s.serviceType === 'mock_interview') {
-        await c.query(
-          "UPDATE interview SET status='abandoned', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status NOT IN ('completed','abandoned','failed')",
-          [s.idempotencyKey, owner]);
-        await appendEvent(c, owner, s.idempotencyKey, 'interview_unavailable', { reason: 'abandoned' });
+        const iv = await c.query<{ application_id: string | null }>(
+          'SELECT application_id FROM interview WHERE id=$1 AND owner_user_id=$2 FOR UPDATE', [s.idempotencyKey, owner]);
+        if (iv.rows[0]?.application_id) {
+          // `reconcile` already changed reserved→released in this transaction.
+          // Reuse the terminal helper so the DB-level failed↔released pairing is
+          // checked rather than trusting this dispatcher.  B-bound sessions may
+          // not become abandoned: they must expose a scoreless, restartable
+          // application terminal state.
+          await failInterviewAndRelease(c, owner, s.idempotencyKey);
+          const marked = await markApplicationAssessmentUnavailable(c, owner, s.idempotencyKey);
+          if (marked !== 'updated' && marked !== 'replayed') throw Object.assign(new Error(`reconcile_application_recovery_${marked}`), { code: 'reconcile_application_recovery_conflict' });
+          await appendEvent(c, owner, s.idempotencyKey, 'assessment_unavailable', { reason: 'reservation_expired' }, 'assessment_unavailable:reservation_expired');
+        } else {
+          await c.query(
+            "UPDATE interview SET status='abandoned', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status NOT IN ('completed','abandoned','failed')",
+            [s.idempotencyKey, owner]);
+          await appendEvent(c, owner, s.idempotencyKey, 'interview_unavailable', { reason: 'abandoned' });
+        }
         abandoned++;
       }
     }

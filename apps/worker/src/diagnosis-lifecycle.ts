@@ -7,7 +7,7 @@
  *               → 落库报告(ready)→ confirm 额度 → 发 diagnosis_ready 终态事件。前端经 SSE 消费业务事件(非模型 token)。
  */
 import type { PoolClient } from 'pg';
-import { asPrincipal, appendEvent, confirmConsumption, decryptResumeBlob, type DbPool } from '@meetwise/db';
+import { asPrincipal, appendEvent, confirmConsumption, decryptActiveResumeBlob, type DbPool } from '@meetwise/db';
 import type { ModelClient } from '@meetwise/ai-runtime';
 import { buildResumeDiagnosisGraph, type DiagnosisReport } from '@meetwise/ai-graphs';
 import { ingestResume } from '@meetwise/domain';
@@ -15,14 +15,31 @@ import { diagnosisGenerator } from './interview-service.ts';
 
 /** 据简历诊断:解密原文 → 跑 resume-diagnosis 图(诊断→factuality 过滤→派生报告)→ 落库 + 逐维度事件 + 终态 + 结算额度。 */
 export async function runDiagnosis(
-  pool: DbPool, owner: string, diagnosisId: string, resumeId: string, role: string | undefined, model: ModelClient,
+  pool: DbPool, owner: string, diagnosisId: string, resumeId: string, privacyEpoch: number, model: ModelClient,
 ): Promise<{ report: DiagnosisReport | null }> {
-  // 解密简历原文(受控:PII 留加密层,不进 job 载荷),据此提脱敏事实。
-  const resumeRaw = await asPrincipal(pool, owner, (c: PoolClient) => decryptResumeBlob(c, owner, resumeId));
+  // Read role from the parent row, never from a queued JSON payload.
+  const binding = await asPrincipal(pool, owner, (c: PoolClient) => c.query(
+    `SELECT target_role FROM resume_diagnosis
+      WHERE id=$1 AND owner_user_id=$2 AND status='created'
+        AND (resume_id IS NULL OR (resume_id=$3 AND privacy_epoch=$4))`,
+    [diagnosisId, owner, resumeId, privacyEpoch],
+  ));
+  if (binding.rowCount !== 1) throw new Error('diagnosis_resume_reference_conflict');
+  const role = binding.rows[0].target_role == null ? undefined : String(binding.rows[0].target_role);
+  // Same transaction holds the resume privacy lock through the active-epoch
+  // predicate and decrypt.  A future erase fence uses that lock too.
+  const resumeRaw = await asPrincipal(pool, owner, (c: PoolClient) => decryptActiveResumeBlob(c, owner, resumeId, privacyEpoch));
   const facts = ingestResume(resumeRaw).facts;
 
   await asPrincipal(pool, owner, async (c: PoolClient) => {
-    await c.query("UPDATE resume_diagnosis SET status='generating', resume_id=$3, version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','generating')", [diagnosisId, owner, resumeId]);
+    const bound = await c.query(
+      `UPDATE resume_diagnosis
+          SET status='generating', resume_id=$3, privacy_epoch=$4, version=version+1
+        WHERE id=$1 AND owner_user_id=$2 AND status='created'
+          AND (resume_id IS NULL OR (resume_id=$3 AND privacy_epoch=$4))`,
+      [diagnosisId, owner, resumeId, privacyEpoch],
+    );
+    if (bound.rowCount !== 1) throw new Error('diagnosis_resume_reference_conflict');
     await appendEvent(c, owner, diagnosisId, 'progress', { stage: 'generating' });   // SSE→前端:已开始诊断
   });
 
@@ -40,8 +57,10 @@ export async function runDiagnosis(
       throw new Error('diagnosis_settlement_failed:' + ((conf as any).reason ?? conf.status));
     // ② CAS 落 ready(仅当仍 generating)——被 abandon/并发改态则 0 行 → throw 回滚,绝不交付已放弃的诊断。
     const upd = await c.query(
-      "UPDATE resume_diagnosis SET status='ready', report=$3, version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status='generating'",
-      [diagnosisId, owner, JSON.stringify(report)]);
+      `UPDATE resume_diagnosis SET status='ready', report=$3, version=version+1
+        WHERE id=$1 AND owner_user_id=$2 AND status='generating'
+          AND resume_id=$4 AND privacy_epoch=$5`,
+      [diagnosisId, owner, JSON.stringify(report), resumeId, privacyEpoch]);
     if (upd.rowCount === 0) throw new Error('diagnosis_status_conflict');
     // ③ 逐维度发 section_ready + 逐条发 rewrite_ready(前端边到边渲染,**每条独立成帧**)。
     // 审计 SRE 中危修复:rewrites 不再塞进单条终态帧——否则大报告可能撑爆前端 1MB 缓冲 → 误判"暂不可用"(而 DB 实为 ready)。

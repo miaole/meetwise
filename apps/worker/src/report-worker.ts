@@ -4,15 +4,23 @@
  * 这样 failed/过期 running 真有人周期跟进（重排/重领/隔离），不是写了机制却无人调用。
  */
 import {
-  asPrincipal, claimReport, markReportReady, markReportFailed, sweepReports, appendEvent, insertNotification, type DbPool,
+  asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimReport, markReportReady, markReportFailed, sweepReports, appendEvent, insertNotification, type DbPool,
 } from '@meetwise/db';
 import { buildReportGraph, type GenerateReport, type InterviewSummary } from '@meetwise/ai-graphs';
+import { runDrainLoop } from './drain-loop.ts';
 
 export interface ReportWorkerDeps {
   /** 取面试结果摘要（生产从 interview/事件账本聚合；测试注入）。 */
   loadSummary: (owner: string, interviewId: string) => Promise<InterviewSummary> | InterviewSummary;
   /** 生成报告内容（生产由 ai-runtime.invoke 双校验背书,失败应抛）。 */
   generate: GenerateReport;
+  /**
+   * Test seam for the pre-egress privacy proof.  Production composition never
+   * supplies this and always calls the database SECURITY DEFINER guard below;
+   * legacy narrow-schema unit proofs can supply a no-op because they are not
+   * privacy evidence.  The real privacy E2E intentionally exercises default.
+   */
+  privacyCheck?: (owner: string, interviewId: string) => Promise<void> | void;
 }
 
 export type DrainOutcome = 'ready' | 'failed' | 'stale' | 'idle';
@@ -23,11 +31,20 @@ export async function drainReportsOnce(
 ): Promise<DrainOutcome> {
   const claim = await asPrincipal(pool, owner, (c) => claimReport(c, owner, leaseOwner));   // tx1
   if (!claim) return 'idle';
-  const summary = await deps.loadSummary(owner, claim.interviewId);
   let report;
   try {
+    // Claim is deliberately a short transaction.  A deletion might commit
+    // after that claim, so prove the durable interview fence again before
+    // loading a summary or handing it to a model.  The finalization write is
+    // independently guarded by the 0059 RLS/trigger fence.
+    if (deps.privacyCheck) await deps.privacyCheck(owner, claim.interviewId);
+    else await asPrincipal(pool, owner, (c) => assertInterviewPrivacyActive(c, claim.interviewId));
+    // 摘要读取也是报告 job 的一部分：若它失败，绝不能把 job 留在 running 直到租约过期。
+    // 否则一次事件库/解密/聚合故障会平白增加 120 秒恢复延迟，并让调度器看起来像“没在工作”。
+    const summary = await deps.loadSummary(owner, claim.interviewId);
     report = (await buildReportGraph({ generate: deps.generate }).invoke({ summary }))!.report!;  // 模型在事务外
   } catch (e: any) {
+    if (e?.message === 'interview_privacy_fenced') return 'stale';
     await asPrincipal(pool, owner, (c) => markReportFailed(c, owner, claim.reportId, leaseOwner, e?.message ?? 'err'));
     return 'failed';
   }
@@ -59,13 +76,9 @@ export async function drainOwner(pool: DbPool, owner: string, leaseOwner: string
   return sweepReportsOnce(pool, owner);
 }
 
-/** 枚举有待办报告的 owner（**调度层基础设施,需越 RLS 看全租户**）：dev 用 superuser 池;
- *  prod 用最小权限 dispatcher 角色（BYPASSRLS,**只读 owner_user_id**,不碰业务数据）。逐 owner 处理仍走 RLS 限定的 principal。 */
+/** 枚举有待办报告的 owner：固定网关只返回 owner id，不暴露报告正文；逐 owner 处理仍走 RLS。 */
 export async function enumerateOwnersWithReportWork(pool: DbPool): Promise<string[]> {
-  const r = await pool.query(
-    `SELECT DISTINCT owner_user_id FROM ai_report
-      WHERE status IN ('queued','failed') OR (status='running' AND lease_expires_at < now())`);
-  return r.rows.map((x) => x.owner_user_id as string);
+  return gatewayDispatchOwners(pool, 'report');
 }
 
 /** 一拍调度：枚举活跃 owner → 每个 owner 各 drain+sweep（RLS 限定到该 principal）。这才是多租户全队列真排干。 */
@@ -76,14 +89,8 @@ export async function dispatchTick(pool: DbPool, leaseOwner: string, deps: Repor
 }
 
 /** 常驻调度循环：周期 dispatchTick。stop() 优雅退出。main 启动它即让报告队列在生产真被排干。 */
-export function runReportDispatcher(pool: DbPool, leaseOwner: string, deps: ReportWorkerDeps, intervalMs = 2000) {
-  let stopped = false;
-  const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
-  (async () => {
-    while (!stopped) {
-      await dispatchTick(pool, leaseOwner, deps);
-      if (!stopped) await sleep(intervalMs);
-    }
-  })().catch((e) => console.error('report dispatcher loop error', e));
-  return { stop() { stopped = true; } };
+export function runReportDispatcher(pool: DbPool, leaseOwner: string, deps: ReportWorkerDeps, intervalMs = 5000) {
+  // Share the bounded failure/staleness signal with every other consumer. A
+  // process that keeps swallowing database failures is alive but not ready.
+  return runDrainLoop(async () => { await dispatchTick(pool, leaseOwner, deps); }, intervalMs);
 }

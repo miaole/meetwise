@@ -6,7 +6,7 @@
  *          → 落库题目+报告(ready)→ confirm 额度 → 发 quiz_ready 终态事件。前端经 SSE 消费业务事件(非模型 token)。
  */
 import type { PoolClient } from 'pg';
-import { asPrincipal, appendEvent, confirmConsumption, decryptResumeBlob, type DbPool } from '@meetwise/db';
+import { asPrincipal, appendEvent, confirmConsumption, decryptActiveResumeBlob, type DbPool } from '@meetwise/db';
 import type { ModelClient } from '@meetwise/ai-runtime';
 import { buildResumeQuizGraph, type QuizItem } from '@meetwise/ai-graphs';
 import { ingestResume } from '@meetwise/domain';
@@ -14,14 +14,22 @@ import { quizGenerator } from './interview-service.ts';
 
 /** 据简历押题:解密原文 → 跑 resume-quiz 图(押题→factuality 过滤→派生报告)→ 落库 + 逐题事件 + 终态 + 结算额度。 */
 export async function runQuiz(
-  pool: DbPool, owner: string, quizId: string, resumeId: string, model: ModelClient,
+  pool: DbPool, owner: string, quizId: string, resumeId: string, privacyEpoch: number, model: ModelClient,
 ): Promise<{ questions: QuizItem[]; report: { score: number; grounded: number; summary: string } | null }> {
-  // 解密简历原文(受控:PII 留加密层,不进 job 载荷),据此提脱敏事实。
-  const resumeRaw = await asPrincipal(pool, owner, (c: PoolClient) => decryptResumeBlob(c, owner, resumeId));
+  // Same transaction holds the resume privacy lock through the active-epoch
+  // predicate and decrypt.  A future erase fence uses that lock too.
+  const resumeRaw = await asPrincipal(pool, owner, (c: PoolClient) => decryptActiveResumeBlob(c, owner, resumeId, privacyEpoch));
   const facts = ingestResume(resumeRaw).facts;
 
   await asPrincipal(pool, owner, async (c: PoolClient) => {
-    await c.query("UPDATE resume_quiz SET status='generating', resume_id=$3, version=version+1 WHERE id=$1 AND owner_user_id=$2", [quizId, owner, resumeId]);
+    const bound = await c.query(
+      `UPDATE resume_quiz
+          SET status='generating', resume_id=$3, privacy_epoch=$4, version=version+1
+        WHERE id=$1 AND owner_user_id=$2 AND status='created'
+          AND (resume_id IS NULL OR (resume_id=$3 AND privacy_epoch=$4))`,
+      [quizId, owner, resumeId, privacyEpoch],
+    );
+    if (bound.rowCount !== 1) throw new Error('quiz_resume_reference_conflict');
     await appendEvent(c, owner, quizId, 'progress', { stage: 'generating' });   // SSE→前端:已开始押题
   });
 
@@ -39,8 +47,10 @@ export async function runQuiz(
       throw new Error('quiz_settlement_failed:' + ((conf as any).reason ?? conf.status));
     // ② CAS 落 ready(仅当仍 generating)——被 abandon/并发改态则 0 行 → throw 回滚,绝不交付已放弃的押题。
     const upd = await c.query(
-      "UPDATE resume_quiz SET status='ready', questions=$3, report=$4, version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status='generating'",
-      [quizId, owner, JSON.stringify(questions), JSON.stringify(report)]);
+      `UPDATE resume_quiz SET status='ready', questions=$3, report=$4, version=version+1
+        WHERE id=$1 AND owner_user_id=$2 AND status='generating'
+          AND resume_id=$5 AND privacy_epoch=$6`,
+      [quizId, owner, JSON.stringify(questions), JSON.stringify(report), resumeId, privacyEpoch]);
     if (upd.rowCount === 0) throw new Error('quiz_status_conflict');
     // ③ 逐题发 question_ready(前端边到边渲染);refs=接地考察点。终态 quiz_ready 收尾(SSE)。
     for (const it of questions) await appendEvent(c, owner, quizId, 'question_ready', { question: it.q, refs: it.refs });

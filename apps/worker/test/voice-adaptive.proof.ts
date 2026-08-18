@@ -21,7 +21,7 @@ async function main() {
   A('语音驱动跑完 2 回合', r.turns.length === 2 && r.concluded === true);
   A('每题都流式 TTS 播了(低延迟边播)', ttsChunks > 1);
   A('ASR 转写当答案喂 submit(modality-agnostic ≡ 文本)', submitted.length === 2 && submitted.every((a) => a === ANS));
-  A('动态题序经 lifecycle(第2题是下一题)', r.turns[1].question.includes('第2题'));
+  A('动态题序经 lifecycle(第2题是下一题)', r.turns[1]?.question.includes('第2题') ?? false);
 
   console.log(`\n${fail === 0 ? '✓ 语音驱动自适应面试(真流式 TTS问+ASR听 + 不破内核)全部通过' : '✗ ' + fail + ' 失败'}`);
   process.exit(fail === 0 ? 0 : 1);

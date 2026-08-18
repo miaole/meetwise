@@ -49,6 +49,6 @@ for (const [svc, cap] of Object.entries(SERVICES)) {
 }
 
 console.log(failures === 0
-  ? '\n✓ context-window:压缩在 200K/128K/32K 窗口全部成立,单次调用与总上下文规模解耦'
+  ? '\n✓ context-window:字符截断上限在 200K/128K/32K 近似预算内成立,单次调用与总上下文规模解耦；这不是语义压缩或真实 tokenizer 证明'
   : `\n✗ ${failures} 条失败`);
 process.exit(failures === 0 ? 0 : 1);

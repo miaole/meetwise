@@ -4,15 +4,149 @@
  * 模型输出 schema 是契约,业务校验是第二道闸——双校验、幂等 trace、旁路不可绕,全在 invoke 里。
  */
 import { z } from 'zod';
-import { asPrincipal, type DbPool } from '@meetwise/db';
-import { invoke, promptedModel, openAICompatibleClient, circuitBreaker, rateLimitedModel, failoverModel, type ModelClient, type ModelResult } from '@meetwise/ai-runtime';
-import { groundedByFacts } from '@meetwise/domain';
-import { DIAGNOSIS_SECTION_KINDS, type GenerateQuestions, type GenerateReport, type GenerateDiagnosis, type QuizItem, type RawDiagnosis, type ReportContent, type InterviewSummary } from '@meetwise/ai-graphs';
+import { createHash } from 'node:crypto';
+import { type DbPool } from '@meetwise/db';
+import { invoke, getPrompt, promptedModel, openAICompatibleClient, failoverModel, isTextBackupEnabled, type ModelClient, type ModelCostPolicy } from '@meetwise/ai-runtime';
+import { aggregateScores, groundedByFacts } from '@meetwise/domain';
+import { DIAGNOSIS_SECTION_KINDS, validateReportContent, type GenerateQuestions, type GenerateReport, type GenerateDiagnosis, type QuizItem, type RawDiagnosis, type ReportContent, type InterviewSummary } from '@meetwise/ai-graphs';
 
-export const QuizSchema = z.object({ items: z.array(z.object({ q: z.string().min(1).max(2000), refs: z.array(z.string()) })) });   // q 封顶:模型出题理应短,超长=异常输出 → schema 闸拦下重试
-// relevant:答案是否正面回应本题(off-topic/非作答 → false + score 0)。可选默认 true:旧脚本/降级路径不带也安全(保守=按 on-topic)。
-export const EvalSchema = z.object({ score: z.number().min(0).max(100), evidence: z.array(z.string()), relevant: z.boolean().optional().default(true) });
-export const ReportSchema = z.object({ overall: z.number().min(0).max(100), sections: z.array(z.object({ title: z.string(), body: z.string() })) });
+export const QuizSchema = z.object({ items: z.array(z.object({ q: z.string().min(1).max(2000), refs: z.array(z.string()) })) });   // q 封顶:模型出题理应短,超长=异常输出 → schema 闸拦下并以失败/降级收口
+/**
+ * 评分证据必须同时含“判据”和来自本次回答的逐字引文。只存一条模型概述无法
+ * 审计，也无法发现模型把别的候选人内容或提示词混进评分。
+ */
+export const ScoreEvidenceSchema = z.object({
+  criterion: z.string().trim().min(1).max(240),
+  quote: z.string().trim().min(1).max(500),
+});
+export type ScoreEvidence = z.infer<typeof ScoreEvidenceSchema>;
+/** 可审计但不保存候选人原文的证据形式：用解密的答案+span+hash 可重验。 */
+export interface ScoreEvidenceRecord {
+  criterion: string;
+  start: number;
+  end: number;
+  quoteSha256: string;
+}
+
+// relevant:答案是否正面回应本题(off-topic/非作答 → false + score 0)。hasHook 是实际
+// 图分支信号，不能被 Zod 默认 strip 掉。evidence 用结构化引文代替不可核实的自由文本。
+export const EvalSchema = z.object({
+  score: z.number().int().min(0).max(100),
+  evidence: z.array(ScoreEvidenceSchema).min(1).max(6),
+  relevant: z.boolean().optional().default(true),
+  hasHook: z.boolean().optional().default(false),
+}).superRefine((value, ctx) => {
+  if (!value.relevant && value.score !== 0) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['score'], message: 'irrelevant_score_must_be_zero' });
+  }
+  if (!value.relevant && value.hasHook) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['hasHook'], message: 'irrelevant_has_hook_must_be_false' });
+  }
+});
+
+/** report 模型只负责叙事；overall 由后端对 scores 确定性聚合，不接受模型自行计算。 */
+export const ReportSchema = z.object({
+  sections: z.array(z.object({ title: z.string().trim().min(1).max(160), body: z.string().trim().min(1).max(6000) })).min(1).max(12),
+});
+
+export type ScoredEvaluation = {
+  status: 'scored'; score: number; relevant: boolean; hasHook: boolean;
+  evidence: string[]; evidenceRecords: ScoreEvidenceRecord[];
+};
+export type UnscoredEvaluation = {
+  status: 'unscored'; reason: string; score?: never; relevant?: never; hasHook?: never;
+  evidence: []; evidenceRecords: [];
+};
+export type EvaluationOutcome = ScoredEvaluation | UnscoredEvaluation;
+
+/** 只有引文可以在候选人的本题答案里逐字找到，证据才能进业务路径。 */
+export function validateEvaluationEvidence(value: z.infer<typeof EvalSchema>, answer: string): string | null {
+  const seen = new Set<string>();
+  for (const item of value.evidence) {
+    if (!answer.includes(item.quote)) return 'evidence_quote_not_in_answer';
+    const key = `${item.criterion}\u0000${item.quote}`;
+    if (seen.has(key)) return 'duplicate_evidence';
+    seen.add(key);
+  }
+  return null;
+}
+
+function quoteDigest(quote: string): string {
+  return createHash('sha256').update(quote, 'utf8').digest('hex');
+}
+
+/** 模型返回的 quote 只在本次校验时留存于内存；落 trace/cache 前必须替换为可重验 span+hash。 */
+function toEvidenceRecord(answer: string, item: ScoreEvidence): ScoreEvidenceRecord {
+  const start = answer.indexOf(item.quote);
+  return { criterion: item.criterion, start, end: start + item.quote.length, quoteSha256: quoteDigest(item.quote) };
+}
+
+function isStoredEvidence(item: unknown): item is ScoreEvidenceRecord {
+  return !!item && typeof item === 'object' && 'quoteSha256' in item && 'start' in item && 'end' in item;
+}
+
+function persistedEvaluation(value: z.infer<typeof EvalSchema>, answer: string) {
+  return {
+    ...value,
+    evidence: value.evidence.map((item) => toEvidenceRecord(answer, item)),
+  };
+}
+
+/** 同一 turn 的不同答案必须绝不共用一份缓存评分；哈希不向 trace 泄露原答案。 */
+export function evaluationIdempotencyKey(baseKey: string, answer: string): string {
+  const answerHash = createHash('sha256').update(answer, 'utf8').digest('hex');
+  return `${baseKey}:answer:${answerHash}`;
+}
+
+/** The current evidence schema is still a stopgap before SCOR-01/02. */
+export const EVALUATION_RUBRIC_VERSION = getPrompt('mock-interview.evaluate').version;
+
+export type EvaluationInvokeResult =
+  | { status: 'scored'; value: z.infer<typeof EvalSchema>; primaryIdempotencyKey: string }
+  | { status: 'quote_repair_exhausted'; error: 'business:evidence_quote_not_in_answer'; primaryIdempotencyKey: string }
+  | { status: 'failed'; error: string; primaryIdempotencyKey: string };
+
+export interface EvaluationInvokeInput {
+  /** 必须包含业务回合 identity；调用者不允许为 repair 新造 turn。 */
+  baseIdempotencyKey: string;
+  threadId?: string;
+  /** Deletion authorization is independent from trace grouping. */
+  privacyInterviewId?: string;
+  question: string;
+  answer: string;
+  model: ModelClient;
+}
+
+function evaluationModel(model: ModelClient, question: string, answer: string) {
+  const prompt = getPrompt('mock-interview.evaluate');
+  return promptedModel(model, prompt.service, { question, answer });
+}
+
+/**
+ * 评分 invoke 的唯一入口。
+ *
+ * - 首次输出必须通过 EvalSchema + validateEvaluationEvidence；不降低审计标准。
+ * - quote 不匹配是已经派发后的业务失败，只能请求候选人同题澄清，不能用 repair key 再调用模型。
+ * - 该函数没有事件、权益或能力画像写入；调用方仍只会消费一次 graph assess 结果。
+ */
+export async function invokeEvaluationOnce(pool: DbPool, owner: string, input: EvaluationInvokeInput): Promise<EvaluationInvokeResult> {
+  const primaryIdempotencyKey = evaluationIdempotencyKey(input.baseIdempotencyKey, input.answer);
+  // `invoke` 自身使用持久 claim；不再用 advisory transaction 锁包住模型 RPC。
+  const primary = await invoke({
+    idempotencyKey: primaryIdempotencyKey,
+    operation: { id: 'interview.answer-scoring.v1', businessRevision: primaryIdempotencyKey },
+    threadId: input.threadId,
+    privacyInterviewId: input.privacyInterviewId,
+    schema: EvalSchema,
+    businessValidate: (v) => validateEvaluationEvidence(v, input.answer),
+    storeOutput: (v) => persistedEvaluation(v, input.answer),
+    model: evaluationModel(input.model, input.question, input.answer),
+  }, pool, owner);
+  if (!('error' in primary)) return { status: 'scored', value: primary.value, primaryIdempotencyKey };
+  if (primary.error === 'business:evidence_quote_not_in_answer')
+    return { status: 'quote_repair_exhausted', error: primary.error, primaryIdempotencyKey };
+  return { status: 'failed', error: primary.error, primaryIdempotencyKey };
+}
 /** 简历诊断结构化输出 schema(第一道闸:schema 校验;枚举/区间在此硬性表达)。 */
 export const DiagnosisSchema = z.object({
   overall: z.number().min(0).max(100),
@@ -27,77 +161,50 @@ export const DiagnosisSchema = z.object({
 });
 
 /** 生产默认模型客户端(真境内模型;未配 MODEL_* 时 openAICompatibleClient 自身降级为 transient)。 */
-// 熔断(挂了降级+快恢复)外层包并发限流(对齐百炼 RPM/并发,防突发轰炸 429)。顺序:rateLimit 在内、circuit 在外——
-// 限流先排队摊平,熔断再兜底真故障。MODEL_MAX_CONCURRENT/MODEL_RPM 不设时只限并发(默认 4),不影响功能。
-/** 一个模型端点 = 限流(内)+熔断(外);限流先排队摊平,熔断兜底真故障。 */
-function endpoint(cfg: { baseUrl?: string; apiKey?: string; model?: string } = {}): ModelClient {
-  return circuitBreaker(rateLimitedModel(openAICompatibleClient(cfg)));
+// MODEL-OP-02：并发限流 + 熔断已从「各适配器各自包一层」收编为 invoke() 内共享权威
+// （ai_model_admission_acquire_scoped / ai_model_admission_record_scoped，迁移 0120）。
+// 这里绝不再给端点包 rateLimitedModel/circuitBreaker——否则每端点各限各的、共享分区形同虚设，
+// 且与 MODEL-OP-03/04 的节点矩阵/单一网关重复。端点只是纯 OpenAI-compatible 传输。
+/** 一个模型端点 = 纯传输（无本地限流/熔断；共享准入/断路器在 invoke() 的共享权威层）。 */
+function endpoint(cfg: { baseUrl?: string; apiKey?: string; model?: string; costPolicy?: ModelCostPolicy; backup?: boolean } = {}): ModelClient {
+  return openAICompatibleClient(cfg);
 }
-/** **跨供应商 failover 链(生产高可用:单供应商=单点故障)**:primary=百炼;配了 MODEL_BACKUP_BASE_URL 才启用 backup。
- *  primary 熔断打开/持续 429/超时 → 秒级切 backup(不同 key/供应商的 OpenAI 兼容端点)→ 全挂才降级。不配 backup 则等价单端点(向后兼容)。 */
-function withFailover(model?: string): ModelClient {
-  const primary = endpoint(model ? { model } : {});
-  if (!process.env.MODEL_BACKUP_BASE_URL) return primary;
-  const backup = endpoint({ baseUrl: process.env.MODEL_BACKUP_BASE_URL, apiKey: process.env.MODEL_BACKUP_API_KEY, model: process.env.MODEL_BACKUP_NAME ?? model });
+/** 跨供应商 failover（故障转移）链：primary 由受控 profile 指定；备用以「MODEL_BACKUP_API_KEY 已挂载」为启用开关。
+ *  endpoint 同样由受控 profile 解析（绝不接受自由 URL）。仅 primary 在派发前已知不可用时才选 backup。
+ *  429/超时等已派发结果必须冻结为 unknown，不能把“不确定是否已扣费”误做秒级重发。
+ *  不配 backup 则等价单端点（向后兼容）。
+ *
+ *  MODEL-OP-02 边界（诚实声明）：端点级「熔断打开 → 切 backup」的降级信号已随 per-adapter circuitBreaker
+ *  移除——共享断路器现在住在 invoke() 的操作级（decision 非 admitted 直接返回 model_circuit_open /
+ *  model_circuit_half_open / model_concurrency_exhausted 等确定性拒绝，不再触发本链 prepare 的降级）。
+ *  端点级（per-provider）failover 与「单一网关统一路由」一并延后到 MODEL-OP-04。 */
+function withFailover(model?: string, costs: { primary?: ModelCostPolicy; backup?: ModelCostPolicy } = {}, backupModel?: string): ModelClient {
+  const primary = endpoint(model ? { model, costPolicy: costs.primary } : { costPolicy: costs.primary });
+  // L3 fix: 这里过去直接读 process.env.MODEL_BACKUP_API_KEY 而不 trim，而 isTextBackupEnabled（同仓库
+  // text-endpoint-config）用 `?.trim()` 判断——两边对「Key 是否挂载」的语义漂移（例如值含空白时一边启用、
+  // 一边不启用）。复用 isTextBackupEnabled 保持单一开关语义，避免主/备路径各判各的。
+  if (!isTextBackupEnabled(process.env)) return primary;
+  const backup = endpoint({ backup: true, model: backupModel ?? process.env.MODEL_BACKUP_NAME ?? model, costPolicy: costs.backup });
   return failoverModel([primary, backup]);
 }
-/**
- * E2E 确定性模型(**仅 E2E_FAKE_MODEL=1 生效**,由 scripts/run-e2e.mjs 设,生产绝不激活)。
- * 为什么要它:e2e 是**接线集成门**(鉴权→交易→简历→队列→图→事件→报告→多租户 RLS),该秒级确定性跑到 report_ready 的 golden path;
- * 真 qwen ~20s/次、偶发 30s×3 重试(≈143s)会把整场面试拖过测试预算 → e2e 假红(实为环境慢,非接线错)。真模型质量归 flow:live / model:smoke。
- * 各 service 回合法 shape:高分 + 无钩子 → decideNext 每能力一轮即"够强" → 数轮内 conclude → 报告舱壁出 report_ready。
- * 未脚本化的 service(quiz/diagnosis,e2e happy path 不触发)→ scriptedModelClient 返 deterministic → 图优雅降级到 fallback,不挂不崩。
- */
-const E2E_SCRIPTS: Record<string, (attempt: number) => ModelResult> = {
-  'planner.competencies': () => ({ ok: true, raw: { competencies: ['高并发', '分布式锁'] } }),
-  'interviewer.ask': () => ({ ok: true, raw: { q: '请结合你的经历,谈谈在高并发系统里你做过的一个关键技术决策及其权衡。', refs: [] } }),
-  'mock-interview.evaluate': () => ({ ok: true, raw: { score: 82, evidence: ['给出了具体方案与权衡'], relevant: true, hasHook: false } }),
-  'report.generate': () => ({ ok: true, raw: { overall: 82, sections: [{ title: '综合评估', body: '整体表现稳定,能给出具体方案与权衡。' }] } }),
-  // 押题/诊断脚本化(refs='限流'/'Redis' 须接地于 e2e 简历 facts,过 factuality 歪曲门不被过滤空)→ 让 quiz/diagnosis 也能在全栈 e2e 经真 HTTP 跑到终态,不再只降级到 fallback。
-  'resume-quiz.generate': () => ({ ok: true, raw: { items: [{ q: '你在高并发订单系统里怎么用 Redis 做限流?讲讲取舍。', refs: ['限流'] }, { q: 'Redis 做分布式锁,可靠性(误删/续期)怎么保证?', refs: ['Redis'] }] } }),
-  'resume-diagnosis.generate': () => ({ ok: true, raw: { overall: 78, summary: '后端经验扎实,建议补充可量化的业绩数据。', sections: [{ kind: 'highlight', title: '亮点', score: 80, findings: [{ text: '有高并发限流实践', refs: ['限流'] }] }, { kind: 'risk', title: '风险', findings: [{ text: '缺量化数据支撑', refs: [] }] }], rewrites: [] } }),
-};
-const useFakeModel = () => process.env.E2E_FAKE_MODEL === '1';
-// **内容感知**(取代 content-blind scriptedModelClient):既跑 happy path,又能对**单个面试**注入失败以测跨进程失败终态兜底。
-// 失败注入:答案含 `E2E_REPORT_FAIL` 标记 → 评分给哨兵 7 → 报告输入 scores 含 7 → report.generate 确定性失败 →
-//   报告舱壁重试耗尽→quarantine→**report_unavailable**(无死胡同兜底)。只影响带标记的那场,happy path 不受污染。
-function e2eScriptedModel(): ModelClient {
-  return {
-    async complete(req: { service: string; userData?: string }): Promise<ModelResult> {
-      const data = req.userData ?? '';
-      if (req.service === 'mock-interview.evaluate') {
-        const sentinel = data.includes('E2E_REPORT_FAIL');
-        return { ok: true, raw: { score: sentinel ? 7 : 82, evidence: ['给出了具体方案与权衡'], relevant: true, hasHook: false } };
-      }
-      if (req.service === 'report.generate') {
-        const nums = (data.match(/\d+/g) ?? []).map(Number);
-        if (nums.includes(7)) return { ok: false, kind: 'deterministic' };   // scores 含哨兵 7 → 报告确定性失败(测舱壁→report_unavailable)
-        return { ok: true, raw: { overall: 82, sections: [{ title: '综合评估', body: '整体表现稳定,能给出具体方案与权衡。' }] } };
-      }
-      const s = E2E_SCRIPTS[req.service];
-      return s ? s(0) : { ok: false, kind: 'deterministic' };
-    },
-  };
-}
-
 /** 生产默认模型客户端(真境内模型 + 跨供应商 failover;未配 MODEL_* 时 openAICompatibleClient 自身降级为 transient)。 */
-export function defaultModelClient(): ModelClient { return useFakeModel() ? e2eScriptedModel() : withFailover(); }
+export function defaultModelClient(costs: { primary?: ModelCostPolicy; backup?: ModelCostPolicy } = {}): ModelClient { return withFailover(undefined, costs); }
 /** 快模型(qwen-turbo 等):**约束性任务**(评分/relevant 判定、能力规划)用它——质量够、明显更快更省。同样带 failover。 */
-export function fastModelClient(): ModelClient {
-  return useFakeModel() ? e2eScriptedModel() : withFailover(process.env.MODEL_FAST_NAME ?? 'qwen-turbo');
+export function fastModelClient(costs: { primary?: ModelCostPolicy; backup?: ModelCostPolicy } = {}): ModelClient {
+  return withFailover(process.env.MODEL_FAST_NAME ?? 'qwen-turbo', costs, process.env.MODEL_FAST_BACKUP_NAME ?? process.env.MODEL_BACKUP_NAME);
 }
 
 /** 押题:resume-quiz 图的 generate。经 invoke(双校验:schema + 非空业务校验)+ 图侧 factuality 过滤幻觉。 */
 export function quizGenerator(pool: DbPool, owner: string, resumeFacts: string[], idempotencyKey: string, model: ModelClient): GenerateQuestions {
-  return async (): Promise<QuizItem[]> => asPrincipal(pool, owner, async (c) => {
+  return async (): Promise<QuizItem[]> => {
     const out = await invoke({
-      idempotencyKey, schema: QuizSchema,
+      idempotencyKey, operation: { id: 'interview.quiz-generation.v1', businessRevision: idempotencyKey }, schema: QuizSchema,
       businessValidate: (v) => (v.items.length === 0 ? 'empty_quiz' : v.items.some((it) => !it.q.trim()) ? 'blank_question' : null),
       model: promptedModel(model, 'resume-quiz.generate', { facts: resumeFacts }),
-    }, c, owner);
+    }, pool, owner);
     if ('error' in out) throw new Error('quiz:' + out.error);
     return out.value.items;
-  });
+  };
 }
 
 /** 改写建议封顶(防单帧/单串失控,审计 SRE 中危的纵深兜底)。 */
@@ -120,9 +227,9 @@ function hasUngroundedNumber(text: string, anchors: string[]): boolean {
  * 残留:refs 接地但正文语义虚构非确定性可拦,属 ai-eval/LLM-judge 层——不在此过度声明已解决。
  */
 export function diagnosisGenerator(pool: DbPool, owner: string, resumeFacts: string[], role: string | undefined, idempotencyKey: string, model: ModelClient): GenerateDiagnosis {
-  return async (): Promise<RawDiagnosis> => asPrincipal(pool, owner, async (c) => {
+  return async (): Promise<RawDiagnosis> => {
     const out = await invoke({
-      idempotencyKey, schema: DiagnosisSchema, service: 'resume-diagnosis.generate',
+      idempotencyKey, operation: { id: 'resume.diagnosis.v1', businessRevision: idempotencyKey }, schema: DiagnosisSchema, service: 'resume-diagnosis.generate',
       businessValidate: (v) => {
         if (v.sections.length === 0) return 'empty_diagnosis';
         // 每条 finding 至少要有文字结论(schema 已保 min(1),此处守 trim 空白)。
@@ -138,34 +245,51 @@ export function diagnosisGenerator(pool: DbPool, owner: string, resumeFacts: str
         return null;
       },
       model: promptedModel(model, 'resume-diagnosis.generate', { facts: resumeFacts, role }),
-    }, c, owner);
+    }, pool, owner);
     if ('error' in out) throw new Error('diagnosis:' + out.error);
     return out.value;
-  });
+  };
 }
 
-/** 评分:一题一答经 invoke(无证据的分数=业务校验失败)。 */
-export async function evaluateAnswer(pool: DbPool, owner: string, idempotencyKey: string, question: string, answer: string, model: ModelClient): Promise<{ score: number; evidence: string[] }> {
-  return asPrincipal(pool, owner, async (c) => {
-    const out = await invoke({
-      idempotencyKey, schema: EvalSchema,
-      businessValidate: (v) => (v.evidence.length === 0 ? 'no_evidence' : null),
-      model: promptedModel(model, 'mock-interview.evaluate', { question, answer }),
-    }, c, owner);
-    if ('error' in out) throw new Error('eval:' + out.error);
-    return out.value;
-  });
+/**
+ * 评分:一题一答经 invoke。供应商/schema 失败是 `unscored`，不是 50 分。
+ * 调用方必须发审计事件并排除出能力画像/报告聚合，不允许编造中性分数。
+ * `idempotencyKey` 会作为 registry businessRevision 派发:必须满足
+ * `/^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/`(首字符字母数字,余下仅 `._:-`);否则
+ * invoke 以 `model_operation_revision_invalid` fail-closed(不会派发,绝不静默吞掉)。
+ */
+export async function evaluateAnswer(pool: DbPool, owner: string, idempotencyKey: string, question: string, answer: string, model: ModelClient): Promise<EvaluationOutcome> {
+  {
+    const out = await invokeEvaluationOnce(pool, owner, {
+      baseIdempotencyKey: idempotencyKey, question, answer, model,
+    });
+    // 旧的非自适应调用方没有 clarify 分支，保守保持 unscored；自适应图会把
+    // quote_repair_exhausted 转为同题澄清，见 adaptive-interview-service。
+    if (out.status !== 'scored') return { status: 'unscored', reason: out.error, evidence: [], evidenceRecords: [] };
+    const value = out.value;
+    return {
+      status: 'scored', score: value.relevant ? value.score : 0, relevant: value.relevant,
+      hasHook: value.relevant && value.hasHook,
+      evidence: value.evidence.map((item) => item.criterion),
+      // cache 命中返回的已是脱敏 record；首次模型返回则在这里做一次脱敏转换。
+      evidenceRecords: value.evidence.map((item) => isStoredEvidence(item) ? item : toEvidenceRecord(answer, item)),
+    };
+  }
 }
 
 /** 报告:report 图的 generate,经 invoke(空报告=业务校验失败)。 */
 export function reportGenerator(pool: DbPool, owner: string, idempotencyKey: string, model: ModelClient): GenerateReport {
-  return (s: InterviewSummary): Promise<ReportContent> => asPrincipal(pool, owner, async (c) => {
+  return async (s: InterviewSummary): Promise<ReportContent> => {
+    const overall = aggregateScores(s.scores); // 空集或越界 score 由确定性聚合门拒绝，不交给模型猜。
     const out = await invoke({
-      idempotencyKey, schema: ReportSchema,
-      businessValidate: (v) => (v.sections.length === 0 ? 'empty_report' : null),
+      idempotencyKey, operation: { id: 'report.narrative.v1', businessRevision: idempotencyKey }, schema: ReportSchema,
+      businessValidate: (v) => {
+        try { validateReportContent(s, { overall, sections: v.sections }); return null; }
+        catch (error: any) { return error?.message ?? 'invalid_report'; }
+      },
       model: promptedModel(model, 'report.generate', { scores: s.scores }),
-    }, c, owner);
+    }, pool, owner);
     if ('error' in out) throw new Error('report:' + out.error);
-    return out.value;
-  });
+    return { overall, sections: out.value.sections };
+  };
 }

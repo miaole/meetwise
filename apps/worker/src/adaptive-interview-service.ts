@@ -4,36 +4,61 @@
  * 每次模型调用过 invoke(双校验/exactly-once/trace),带 threadId(Langfuse 一场面试一棵树)+ sources/retrieval(provenance+topScore 信号)。
  */
 import { z } from 'zod';
-import { asPrincipal, normalizeQuestion, type DbPool } from '@meetwise/db';
-import { invoke, promptedModel, type ModelClient } from '@meetwise/ai-runtime';
-import { cragRetrieve, isVerbatimCopy, toCompetencySpecs, isNonAnswer, stripScoringManipulation, type ScoredRef, type SourceDoc, type CompetencySpec, type QuestionKind } from '@meetwise/domain';
+import { normalizeQuestion, type DbPool } from '@meetwise/db';
+import { invoke, promptedModel, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
+import { cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, toCompetencySpecs, isNonAnswer, stripScoringManipulation, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec, type QuestionKind } from '@meetwise/domain';
 import type { AdaptiveDeps } from '@meetwise/ai-graphs';
 import { wasAsked, pastWeakDimensions } from './memory-service.ts';
+import { invokeEvaluationOnce } from './interview-service.ts';
 
 const AskSchema = z.object({ q: z.string().min(1).max(2000), refs: z.array(z.string()) });   // q 封顶:模型出的题理应短;超长=异常输出,schema 闸拦下重试(也防评估侧截断吃掉答案)
-// relevant:答案是否正面回应本题(off-topic/非作答 → false + score 0)。可选默认 true(保守:模型漏给则按 on-topic,不误触澄清环)。
-// hasHook:这答案有无"可深挖的具体钩子"(值得就同一能力多问一轮)。**默认 false**(模型漏给 → 不强行深挖,保守收敛)。
-const EvalSchema = z.object({ score: z.number().min(0).max(100), evidence: z.array(z.string()), relevant: z.boolean().optional().default(true), hasHook: z.boolean().optional().default(false) });
 
+/**
+ * A deterministic same-scope shell used after a known local rejection.  It is
+ * intentionally not added to QBank and carries no retrieval source: a clean
+ * QBank miss is handled by QuestionPlan, not by a retry hidden in this node.
+ */
+function deterministicQuestionFallback(competency: string, kind: QuestionKind): { question: string; sources: string[] } {
+  if (kind === 'behavioral') {
+    return {
+      question: '请讲一段你与同事或上级在协作中发生分歧或遇到压力的经历：当时怎样沟通、如何推进，以及事后怎样复盘？',
+      sources: [],
+    };
+  }
+  return {
+    question: `请以一个具体的「${competency}」实践为例，说明目标、关键设计取舍、怎样验证结果，以及遇到问题时如何处理。`,
+    sources: [],
+  };
+}
 export interface AdaptiveServiceDeps {
   pool: DbPool; owner: string; threadId: string; model: ModelClient;
   /** 快模型(qwen-turbo):评分/relevant 等约束性任务用,显著降反问延迟;缺省回退 model(兼容旧调用)。出题仍用 model(质量关键)。 */
   fastModel?: ModelClient;
   competencies: (string | CompetencySpec)[];
-  resumeFacts?: string[];                               // 简历事实:出题个性化(经图状态 durable)
+  /** Only an authorization bit may reach graph deps; resume text remains in the profile artifact. */
+  resumeProfileAvailable?: boolean;
   localRetrieve: (q: string) => Promise<ScoredRef[]>;   // 真:annSearch over vector_chunk
   webExplore: (q: string) => Promise<SourceDoc[]>;      // 真:allowlist 抓取(源由配置定)
+  /** 低置信 CRAG 才会调用的、有源数/字符/调用预算的多源取证。未注入时兼容旧 web seam。 */
+  deepResearch?: (q: string) => Promise<SourceDoc[]>;
+  researchBoundary?: (q: string) => ResearchBoundaryDecision;
   competencyKeywords?: Record<string, string[]>;
+  /** 图的总轮数预算；隔离 E2E 可显式缩短，生产调用保持未设置。 */
+  maxTurns?: number;
+  /** 仅携带图拓扑和数值状态的观测 seam，不向图节点暴露供应商 SDK。 */
+  graphObserver?: GraphObserver;
+  /** 运行时短暂水合答案；不得把原文放回图 state（状态）。 */
+  loadAnswer?: AdaptiveDeps['loadAnswer'];
 }
 
 /** 规划官:据岗位+简历提目标能力(plan-and-solve 的 plan)。经 invoke。**约束性任务,走快模型**(缺省回退 model)。 */
 export async function planCompetencies(pool: DbPool, owner: string, threadId: string, model: ModelClient, role: string, facts: string[]): Promise<CompetencySpec[]> {
-  const out = await asPrincipal(pool, owner, (c) => invoke({
-    idempotencyKey: `${threadId}:plan`, threadId,
+  const out = await invoke({
+    idempotencyKey: `${threadId}:plan`, operation: { id: 'interview.competency-planning.v1', businessRevision: `${threadId}:plan` }, threadId, privacyInterviewId: threadId,
     schema: z.object({ competencies: z.array(z.string().min(1)).min(1) }),
     businessValidate: (v) => (v.competencies.length === 0 ? 'empty_plan' : null),
     model: promptedModel(model, 'planner.competencies', { role, facts }),
-  }, c, owner));
+  }, pool, owner);
   // 优雅降级:规划失败 → 用默认能力集,面试仍可开(不因规划抖动整场开不了)。
   // toCompetencySpecs(纯逻辑):top 1-2 标 core(追问上限 3)+ 确定性附加 1 个行为槽(题型 behavioral)。
   const names = 'error' in out ? ['项目经验', '技术深度', '问题解决'] : out.value.competencies;
@@ -55,67 +80,122 @@ async function biasByPastWeakness(pool: DbPool, owner: string, names: string[]):
 export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
   return {
     competencies: d.competencies,
-    resumeFacts: d.resumeFacts,
+    resumeProfileAvailable: d.resumeProfileAvailable,
+    loadAnswer: d.loadAnswer ?? (async () => { throw new Error('answer_artifact_unavailable'); }),
+    maxTurns: d.maxTurns,
+    graphObserver: d.graphObserver,
     competencyKeywords: d.competencyKeywords,
-    async retrieveAndGenerate(competency, difficulty, attempt, turn, facts, kind) {
+    async retrieveAndGenerate(competency, difficulty, attempt, turn, _facts, kind) {
+      // `attempt` remains in this compatibility seam so older graph fixtures
+      // type-check, but a non-zero value must never issue another provider
+      // request for the same logical node.  The graph only calls zero.
+      if (attempt !== 0) return deterministicQuestionFallback(competency, kind);
+      // Candidate-specific first questions have a stricter trust boundary than
+      // generic qbank questions.  Only a parsed fact may be quoted as a claim
+      // about the candidate; everything else is a neutral request to explain
+      // that fact.  This avoids a model turning “Redis” into a fabricated
+      // e-commerce project, metric, employer or duration.
+      if (kind === 'grounded') {
+        if (!d.resumeProfileAvailable) {
+          // The graph normally routes this to fundamental before arriving here.
+          // Retain a safe direct-call fallback for tests and future callers.
+          return {
+            question: `请结合你的实际经验，说明在「${competency}」方面你会如何做关键取舍，并如何验证结果。`,
+            sources: [],
+          };
+        }
+        return {
+          // Do not repeat a resume fact: the question is checkpointed, sent by
+          // interrupt/SSE, recorded in events and later normalized into an
+          // episode.  The candidate can choose which authorized experience to
+          // discuss without that original fact becoming a second data copy.
+          question: `请结合你简历中一段与「${competency}」相关的真实经历，说明你的做法、关键取舍和验证结果。`,
+          sources: [],
+        };
+      }
       // 题型决定接地:grounded/fundamental 用 CRAG 检索真题素材;scenario/behavioral 与简历/题库解耦(空素材、空来源)。
-      const useRetrieval = kind === 'grounded' || kind === 'fundamental';
-      const useFacts = kind === 'grounded';                            // 仅 grounded 接简历事实;fundamental 考通用原理(不绑候选人项目)
+      const useRetrieval = kind === 'fundamental';
+      const useFacts = false; // grounded was returned above; non-grounded questions never make resume claims.
       const { local, web } = useRetrieval
-        ? await cragRetrieve(`${competency} 难度${difficulty}`, { localRetrieve: d.localRetrieve, webExplore: d.webExplore })
+        ? await cragRetrieve(`${competency} 难度${difficulty}`, { localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary })
         : { local: [] as ScoredRef[], web: [] as SourceDoc[] };
       const docs: SourceDoc[] = web;
-      const material = [...local.map((l) => l.ref), ...web.map((w) => w.text)].join('\n').slice(0, 2000);
-      // 一次出题。dedupRound=0 时 idempotencyKey / material 与现状**逐字节一致** → 无历史(冷启动/记忆不可用)时行为完全不变。
-      const generate = (dedupRound: number, avoid: string[]) => {
-        const avoidNote = avoid.length
-          ? `\n\n【避免重复】该候选人往期已被问过下列问题,请换一个角度/子方向重新提问,不要与之雷同:\n- ${avoid.join('\n- ')}`
-          : '';
-        return asPrincipal(d.pool, d.owner, (c) => invoke({
-          idempotencyKey: `${d.threadId}:ask:t${turn}:${attempt}${dedupRound ? `:d${dedupRound}` : ''}`, threadId: d.threadId,   // 持久 turn → 跨进程 resume 不碰撞;dedup 轮加 :dN 后缀,与 critique attempt 键正交不碰撞
+      // Web 和本地 qbank excerpt 都不是可信 prompt；二者进入模型前均保持显式 data 信封、固定预算。
+      // 本地 evidence 由 active generation + approved source 在刚取回时二次授权；没有 evidence 的兼容 seam
+      // 只给 opaque ref，绝不从 ref 伪造正文。模型只能从下列 knownRefs 回填 citation。
+      const knownRefs = [...local.map((l) => l.ref), ...web.map((w) => w.url)];
+      const localMaterial = local.map((l) => {
+        const excerpt = l.evidence?.replace(/[\u0000-\u001f\u007f]/g, ' ').slice(0, 600);
+        return excerpt
+          ? `[UNTRUSTED_RAG_EVIDENCE ref=${l.ref}]\n${excerpt}\n[/UNTRUSTED_RAG_EVIDENCE]`
+          : `[RAG_LOCAL_REF]\n${l.ref}\n[/RAG_LOCAL_REF]`;
+      }).join('\n');
+      const material = [
+        localMaterial,
+        formatUntrustedResearchMaterial(web, 1_600),
+      ].filter(Boolean).join('\n');
+      // One logical question node has exactly one provider attempt.  Duplicate
+      // detection is deliberately post-response and deterministic; it cannot
+      // create a second :d1 request with a new idempotency key.
+      const generate = () => invoke({
+          idempotencyKey: `${d.threadId}:ask:t${turn}:0`, operation: { id: 'interview.question-generation.v1', businessRevision: `${d.threadId}:ask:t${turn}` },
+          threadId: d.threadId, privacyInterviewId: d.threadId,
           sources: local.map((l) => l.ref), retrieval: local,                          // provenance + topScore 信号
           schema: AskSchema,
-          businessValidate: (v) => (isVerbatimCopy(v.q, docs) ? '照搬原文(版权)' : null),   // 版权门:照搬→重试
-          model: promptedModel(d.model, 'interviewer.ask', { competency, difficulty, kind, material: material + avoidNote, resumeFacts: useFacts ? facts : [] }),
-        }, c, d.owner));
-      };
-      let out = await generate(0, []);
-      // **跨会话精确判重(归一化 exact match,零向量/零语义)**:命中往期同题 → 有界换角度重生成(≤1 轮),仍重复则照发(无死胡同,绝不阻断出题)。
-      // wasAsked 失败(记忆不可用/冷启动)→ 视作"没问过" → 只跑上面这一次 base 生成 → 退化成现状。
-      if (!('error' in out) && await wasAsked(d.pool, d.owner, out.value.q).catch(() => false)) {
-        const re = await generate(1, [out.value.q]);
-        if (!('error' in re)) out = re;   // 重生成失败 → 保留上一版(优雅降级,不崩面试)
-      }
+          businessValidate: (v) => {
+            if (isVerbatimCopy(v.q, docs)) return '照搬原文(版权)';
+            // 来源列表是 provenance，不是模型可自由编造的文案。空资料时允许空 refs；有资料时
+            // 任一 ref 都必须精确属于本次 local/web evidence，防“看似有引用”的幻觉审计记录。
+            if (v.refs.some((ref) => !knownRefs.includes(ref))) return 'unknown_retrieval_reference';
+            return null;
+          },
+          // 检索素材(material)走 rag 字段独立分账(仍在 <data> 围栏内、受 DATA_BOUNDARY_RULE 保护),不进 buildData 的 userData。
+          model: promptedModel(d.model, 'interviewer.ask', { competency, difficulty, kind, resumeFacts: [] }, undefined, material),
+        }, d.pool, d.owner);
+      const out = await generate();
       if ('error' in out) {
         // **优雅降级(北极星)**:出题失败(模型抖动/重试耗尽/业务校验不过)→ 不抛错崩掉整场面试,改用确定性兜底题继续(题型适配)。
-        const fallback = kind === 'behavioral'
-          ? `请讲一段你与同事/上级在协作中发生分歧或遇到压力的经历:当时怎么沟通、如何推进、事后你怎么复盘?`
-          : `请结合你的经验,谈谈在「${competency}」方面你做过的工作、遇到过的挑战,以及当时是怎么权衡和解决的。`;
-        return { question: fallback, sources: [] };
+        return deterministicQuestionFallback(competency, kind);
       }
+      // Cross-session exact duplicate is a known local result, not a reason to
+      // call the provider again.  Return a same-competency deterministic shell
+      // and let a future QuestionPlan own curated QBank-miss generation.
+      if (await wasAsked(d.pool, d.owner, out.value.q).catch(() => false))
+        return deterministicQuestionFallback(competency, kind);
       return { question: out.value.q, sources: out.value.refs };
     },
-    async assess(question, answer, _competency, turn) {
+    async assess(question, answer, _competency, turn, identity) {
       // **结构化防评分操纵(红队实测:靠 prompt 让 turbo 自己抵抗不可靠)**:评分前确定性剥离评分元指令/伪造截断标记。
       //  真答案+注入尾巴 → 剥尾巴按真内容评(不被抬到100、不误伤清零);纯操纵 → 剥空 → 下方 relevant 判非作答→score 0。不赌模型听话。
       const { clean, detected } = stripScoringManipulation(answer);
       const scored = detected ? clean : answer;
       // **检到操纵 → 评分升级到 quality 模型(qwen-plus 更抗残留注入)**,并对剥空的直接判非作答(免一次模型调用 + 杜绝空输入误评)。
       if (detected && isNonAnswer(scored)) return { score: 0, evidence: ['含评分操纵企图,剥离后无实质作答(已忽略操纵指令)'], relevant: false, hasHook: false };
-      const out = await asPrincipal(d.pool, d.owner, (c) => invoke({
-        idempotencyKey: `${d.threadId}:eval:t${turn}`, threadId: d.threadId,            // 持久 turn 键
-        // 非作答(relevant=false)允许空 evidence —— 否则模型正确判跑题但漏给 evidence 会触发 no_evidence→降级→relevant 被翻回 true,把一次正确的非作答检测吞掉(审计中)。
-        schema: EvalSchema, businessValidate: (v) => (v.evidence.length === 0 && v.relevant !== false ? 'no_evidence' : null),
-        model: promptedModel(detected ? d.model : (d.fastModel ?? d.model), 'mock-interview.evaluate', { question, answer: scored }),
-      }, c, d.owner));
-      // 优雅降级:评分失败 → 不崩面试,给中性分 + 留痕(relevant=true:**是我方模型挂了,绝不据此误判候选人非作答去触发澄清环**;hasHook=false:不强行深挖)。
-      if ('error' in out) return { score: 50, evidence: ['(评分降级:模型暂不可用,按中性计)'], relevant: true, hasHook: false };
+      // 同一 pending question 的 stateVersion/turn 写进 idempotency base。逐字引文
+      // 无法核验时只澄清原题，不派生 repair key 再次调用模型。
+      // Graph 调用始终提供 identity。保留这个固定 fallback 仅兼容旧的 isolated-deps
+      // 测试 seam；它不属于 lifecycle/API 生产路径，不能把不同答案混到同一 hash key。
+      const stableIdentity = identity ?? { questionId: `direct-assess-t${turn}`, stateVersion: 0 };
+      const out = await invokeEvaluationOnce(d.pool, d.owner, {
+        baseIdempotencyKey: `${d.threadId}:eval:q:${stableIdentity.questionId}:v:${stableIdentity.stateVersion}:t:${turn}`,
+        threadId: d.threadId,
+        privacyInterviewId: d.threadId,
+        question,
+        answer: scored,
+        model: detected ? d.model : (d.fastModel ?? d.model),
+      });
+      // 引文无法逐字核验而答案仍是正常作答时，不能写 unscored/能力画像；图会走 clarify，
+      // 让用户以同一题补充一次。其余确定性/供应商失败仍严格 unscored（不编造分数）。
+      if (out.status === 'quote_repair_exhausted') {
+        return { status: 'scored' as const, score: 0, evidence: ['评分证据无法逐字核验，请围绕原题补充一次具体作答。'], relevant: false, hasHook: false };
+      }
+      if (out.status === 'failed') return { status: 'unscored' as const, reason: `evaluation_${out.error}` };
       // 业务规整(双校验补强,非仅 schema):relevant=false 时**强制** score=0 + hasHook=false(对齐 prompt 契约,
       // 防模型自相矛盾地"判跑题却给高分/给钩子"驱动错误深挖;两个控制流布尔不裸过 schema)。
       const relevant = out.value.relevant;
       return relevant
-        ? { score: out.value.score, evidence: out.value.evidence, relevant: true, hasHook: out.value.hasHook }
-        : { score: 0, evidence: out.value.evidence, relevant: false, hasHook: false };
+        ? { status: 'scored' as const, score: out.value.score, evidence: out.value.evidence.map((item) => item.criterion), relevant: true, hasHook: out.value.hasHook }
+        : { status: 'scored' as const, score: 0, evidence: out.value.evidence.map((item) => item.criterion), relevant: false, hasHook: false };
     },
     // 无 report:报告走舱壁 report-worker(失败隔离),不在 agent 图内出。
   };

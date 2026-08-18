@@ -4,11 +4,11 @@
  *      ②活会话(续约)绝不被误扫 ③confirm 投的 outbox 被真实入账本 ④重跑/并发幂等(不重退/不重发/不重入账)。
  *   pnpm -C apps/worker prove:commerce-reconcile   (需 db:up)
  */
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { randomUUID } from 'node:crypto';
 import {
   createPool, asPrincipal, reserveEntitlement, confirmConsumption, availableUnits,
-  renewReservationLease, DEFAULT_LEASE_SECONDS,
+  renewReservationLease, DEFAULT_LEASE_SECONDS, assertIsolatedTestTarget,
+  inviteCandidate, startApplicationInterview,
 } from '@meetwise/db';
 import { commerceReconcileTick, reconcileOwner } from '../src/commerce-reconcile.ts';
 
@@ -16,7 +16,6 @@ const pool = createPool();
 let fail = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
 const section = (t: string) => console.log(`\n──────── ${t} ────────`);
-const sql = (f: string) => readFileSync(fileURLToPath(new URL(`../../../packages/db/sql/${f}.sql`, import.meta.url)), 'utf8');
 
 // 每 owner 独立池,tick 用 superuser 池越 RLS 枚举(dev 口径)。用唯一后缀避免与其它 proof/重跑撞。
 const S = Date.now().toString(36);
@@ -40,7 +39,9 @@ async function expireLease(owner: string, key: string) {
 }
 
 async function main() {
-  for (const f of ['01_schema', '02_commerce', '04_report']) await pool.query(sql(f));
+  // This proof writes expired reservations and must only run against the
+  // throwaway cluster that has received the complete migration ledger.
+  await assertIsolatedTestTarget(pool);
 
   section('① 中途弃的面试预留:租约过期 → 对账 tick 回收退额度 + 发 interview_unavailable 终态事件');
   {
@@ -139,6 +140,32 @@ async function main() {
     const r = await commerceReconcileTick(pool);
     A('quiz 孤儿预留被回收退额度', r.staleReleased >= 1 && (await asPrincipal(pool, owner, (c) => availableUnits(c, owner))) === 5.0);
     A('quiz 回收不发 interview_unavailable(仅 mock_interview 发)', (await evCount(owner, qid, 'interview_unavailable')) === 0);
+  }
+
+  section('⑦ B 端岗位面试的过期预留：评分不可用、释放一次、可创建下一 attempt');
+  {
+    const owner = OWN('bound'), recruiter = OWN('bound-rec'), iidPrefix = IID('bound');
+    const jobId = `job-${iidPrefix}`, resumeId = randomUUID();
+    await seedOwner(owner, 2.0);
+    await pool.query("INSERT INTO job_posting(id,owner_user_id,title,competencies,status) VALUES ($1,$2,'后端工程师',$3,'open')", [jobId, recruiter, JSON.stringify(['可靠性'])]);
+    await pool.query("INSERT INTO resume(id,owner_user_id,status,content_sha) VALUES ($1,$2,'ingested',$3)", [resumeId, owner, `reconcile:${owner}`]);
+    const app = await asPrincipal(pool, recruiter, (c) => inviteCandidate(c, recruiter, jobId, owner));
+    const first = await asPrincipal(pool, owner, (c) => startApplicationInterview(c, owner, app!.applicationId, resumeId)) as any;
+    await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, first.interviewId, 'mock_interview', 1.0));
+    await expireLease(owner, first.interviewId);
+    await commerceReconcileTick(pool);
+    const state = (await pool.query('SELECT status,score,interview_id,interview_attempt FROM job_application WHERE id=$1', [app!.applicationId])).rows[0];
+    A('B 端过期会话 → assessment_unavailable、score=NULL、指针仍为旧 attempt', state?.status === 'assessment_unavailable'
+      && state?.score === null && state?.interview_id === first.interviewId && Number(state?.interview_attempt) === 1);
+    A('B 端过期会话的 interview=failed 且额度 released 恰一次',
+      (await asPrincipal(pool, owner, (c) => c.query('SELECT status FROM interview WHERE id=$1', [first.interviewId]))).rows[0]?.status === 'failed'
+      && (await consStatus(owner, first.interviewId)) === 'released'
+      && (await evCount(owner, first.interviewId, 'assessment_unavailable')) === 1);
+    const retries = await Promise.all(Array.from({ length: 20 }, () => asPrincipal(pool, owner, (c) => startApplicationInterview(c, owner, app!.applicationId, resumeId))));
+    const retryId = (retries.find((x: any) => x.status === 'started' || x.status === 'reused') as any)?.interviewId;
+    const retry = (await pool.query('SELECT status,interview_id,interview_attempt,score FROM job_application WHERE id=$1', [app!.applicationId])).rows[0];
+    A('20 路恢复只创建下一 attempt=2，旧失败会话不可回填', retries.every((x: any) => (x.status === 'started' || x.status === 'reused') && x.interviewId === retryId)
+      && retry?.status === 'in_progress' && retry?.interview_id === retryId && Number(retry?.interview_attempt) === 2 && retry?.score === null);
   }
 
   console.log(`\n${fail === 0 ? '✓ C1 对账兜底调度侧:孤儿预留回收+终态事件+结算入账+幂等+并发安全 全部通过' : '✗ ' + fail + ' 失败'}`);

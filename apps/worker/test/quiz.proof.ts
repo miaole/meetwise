@@ -5,10 +5,8 @@
  * 测的全是生产件(quiz-jobs/quiz-consumer/quiz-lifecycle);模型注脚本(CI)。
  *   pnpm quiz:prove   (需 pnpm db:up)
  */
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import {
-  createPool, asPrincipal, reserveEntitlement, availableUnits,
+  assertIsolatedTestTarget, createPool, asPrincipal, reserveEntitlement, availableUnits,
   createResumeWithBlob, completeIngestion, transitionResume, enqueueQuizJob,
 } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
@@ -19,7 +17,6 @@ const pool = createPool();
 let failures = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) failures++; };
 const section = (t: string) => console.log(`\n──────── ${t} ────────`);
-const sql = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
 const OWNER = 'quizUser', QID = 'qz-' + Date.now(), QID_FAIL = 'qzf-' + Date.now();
 const RESUME = ['工作经历', '负责订单系统限流改造,用 Redis 计数器扛高并发', '技能', 'Redis、限流、分布式锁'].join('\n');
 
@@ -42,15 +39,24 @@ async function seedResume(): Promise<string> {
 }
 
 async function main() {
-  for (const f of ['01_schema', '02_commerce', '03_resume', '14_notification', '20_resume_quiz']) await pool.query(sql(`../../../packages/db/sql/${f}.sql`));
-  await pool.query(`INSERT INTO resume_quiz(id,owner_user_id,status) VALUES ('${QID}','${OWNER}','created'),('${QID_FAIL}','${OWNER}','created')`);
-  await pool.query(`INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ('${OWNER}','paid',5.0, now()+interval '300 days')`);
+  await assertIsolatedTestTarget(pool);
+  await asPrincipal(pool, OWNER, async (c) => {
+    await c.query("INSERT INTO resume_quiz(id,owner_user_id,status) VALUES ($1,$2,'created'),($3,$2,'created')", [QID, OWNER, QID_FAIL]);
+    await c.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0,now()+interval '300 days')", [OWNER]);
+  });
   const resumeId = await seedResume();
+  const epoch = await asPrincipal(pool, OWNER, async (c) => Number((await c.query<{ privacy_epoch: number }>(
+    'SELECT privacy_epoch FROM resume WHERE id=$1 AND owner_user_id=$2', [resumeId, OWNER],
+  )).rows[0]?.privacy_epoch));
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    'UPDATE resume_quiz SET resume_id=$3,privacy_epoch=$4 WHERE owner_user_id=$1 AND id IN ($2,$5)',
+    [OWNER, QID, resumeId, epoch, QID_FAIL],
+  ));
 
   section('① 成功押题:api 入队 generate → worker 消费 → 押题落库 + 逐题事件 + 结算额度');
   const before = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, QID, 'resume_quiz', 1.0));
-  await asPrincipal(pool, OWNER, (c) => enqueueQuizJob(c, OWNER, QID, { resumeId }));
+  await asPrincipal(pool, OWNER, (c) => enqueueQuizJob(c, OWNER, QID, resumeId, epoch));
   const okDeps: QuizConsumerDeps = { pool, model: okModel, leaseOwner: 'qworker-1' };
   const tick = await quizDispatchTick(okDeps);
   A('quizDispatchTick 消费到 owner', tick.owners >= 1);
@@ -80,7 +86,7 @@ async function main() {
   const beforeFail = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, QID_FAIL, 'resume_quiz', 1.0));
   A('预留后额度 -1.0', (await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER))) === beforeFail - 1.0);
-  await asPrincipal(pool, OWNER, (c) => enqueueQuizJob(c, OWNER, QID_FAIL, { resumeId }));
+  await asPrincipal(pool, OWNER, (c) => enqueueQuizJob(c, OWNER, QID_FAIL, resumeId, epoch));
   await quizDispatchTick({ pool, model: failModel, leaseOwner: 'qworker-2' });
   const failRow = await asPrincipal(pool, OWNER, (c) => c.query('SELECT status FROM resume_quiz WHERE id=$1', [QID_FAIL]));
   A('押题标 failed', failRow.rows[0].status === 'failed');

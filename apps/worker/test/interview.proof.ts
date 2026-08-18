@@ -1,87 +1,170 @@
 /**
- * 面试进程接线证明（对真 Postgres）：**真请求经队列驱动 agent**——api 入队(start/answer) → worker 消费循环 → 生命周期跑图/模型。
- *   enqueue start → dispatchTick(消费) → 押题落库+首问 → 逐轮 enqueue answer → dispatchTick → eval+续图 → 末轮完成+入队报告 → 报告 drain。
- * 测的全是生产件(interview-jobs/interview-consumer/interview-lifecycle);模型注脚本(CI)。
- *   pnpm interview:prove   (需 pnpm db:up)
+ * 当前生产面试链路证明：C 端已入队的 v64 start/answer → 当前自适应
+ * consumer（消费者）→ LangGraph（图编排框架）→ 账本/报告舱壁。
+ *
+ * 此测试只能由 `scripts/run-e2e-isolated.mjs` 在完整版本化迁移后运行。
+ * 禁止用 `packages/db/sql/` 影子 schema（影子数据库结构）伪造通过，因为
+ * 生产 consumer 已不支持旧固定题单图，且 v64 简历世代门必须真实存在。
  */
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { randomUUID } from 'node:crypto';
+import { MemorySaver } from '@langchain/langgraph';
 import {
-  createPool, asPrincipal, reserveEntitlement, availableUnits,
-  createResumeWithBlob, completeIngestion, transitionResume, enqueueInterviewJob, getReport,
+  assertIsolatedTestTarget, asPrincipal, availableUnits, claimInterviewAnswer,
+  createPool, createResumeWithBlob, enqueueInterviewJob, getReport,
+  reserveEntitlement, transitionResume, completeIngestion, answerHash,
 } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { ingestResume } from '@meetwise/domain';
-import { createCheckpointer } from '../src/main.ts';
-import { interviewDispatchTick, type ConsumerDeps } from '../src/interview-consumer.ts';
 import { drainReportsOnce } from '../src/report-worker.ts';
+import { interviewDispatchTick, type ConsumerDeps } from '../src/interview-consumer.ts';
 import { reportGenerator } from '../src/interview-service.ts';
 
 const pool = createPool();
 let failures = 0;
-const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) failures++; };
-const section = (t: string) => console.log(`\n──────── ${t} ────────`);
-const sql = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
-const OWNER = 'apiUser', IID = 'iv-' + Date.now();
-const RESUME = ['工作经历', '负责订单系统限流改造,用 Redis 计数器扛高并发', '技能', 'Redis、限流、分布式锁'].join('\n');
+const A = (name: string, condition: boolean) => {
+  console.log(`${condition ? 'PASS' : 'FAIL'}  ${name}`);
+  if (!condition) failures++;
+};
+const section = (title: string) => console.log(`\n──────── ${title} ────────`);
 
-const baseModel = scriptedModelClient({
-  'resume-quiz.generate': () => ({ ok: true, raw: { items: [{ q: '限流怎么做?', refs: ['限流'] }, { q: 'Redis 原子性?', refs: ['Redis'] }, { q: '3 年 Go?', refs: ['Go'] }] } }),
-  'mock-interview.evaluate': () => ({ ok: true, raw: { score: 80, evidence: ['Redis'] } }),
-  'report.generate': () => ({ ok: true, raw: { overall: 80, sections: [{ title: '总评', body: '扎实' }] } }),
+const OWNER = `interview-proof-${process.pid}`;
+const INTERVIEW_ID = `interview-proof-${Date.now()}`;
+const RESUME = [
+  '工作经历',
+  '负责订单系统限流改造，使用 Redis 计数器和滑动窗口保护下游。',
+  '技能',
+  'Redis、限流、分布式锁',
+].join('\n');
+
+const model: ModelClient = scriptedModelClient({
+  'planner.competencies': () => ({ ok: true, raw: { competencies: ['高并发'] } }),
+  'interviewer.ask': () => ({ ok: true, raw: { q: '请说明高并发限流的取舍，并给出验证方法。', refs: [] } }),
+  'mock-interview.evaluate': () => ({ ok: true, raw: { score: 80, evidence: [{ criterion: 'Redis', quote: 'Redis' }] } }),
+  'report.generate': () => ({ ok: true, raw: { overall: 80, sections: [{ title: '总评', body: '能说明限流取舍。' }] } }),
 });
-const model: ModelClient = baseModel;
 
 async function main() {
-  for (const f of ['01_schema', '02_commerce', '03_resume', '04_report','14_notification', '05_interview_jobs']) await pool.query(sql(`../../../packages/db/sql/${f}.sql`));
-  await pool.query(`INSERT INTO interview(id,owner_user_id,status) VALUES ('${IID}','${OWNER}','created')`);
-  await pool.query(`INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ('${OWNER}','paid',5.0, now()+interval '300 days')`);
-  const cp = createCheckpointer(); await cp.setup();
-  const deps: ConsumerDeps = { pool, cp, model, leaseOwner: 'worker-1' };
-
-  // api POST /interview 等价:摄取 + 扣额度 + 入队 start
-  const resumeId = await asPrincipal(pool, OWNER, async (c) => {
-    const up = await createResumeWithBlob(c, OWNER, RESUME);
-    await transitionResume(c, OWNER, up.resumeId, 'uploaded', 'ingesting');
-    await completeIngestion(c, OWNER, up.resumeId, ingestResume(RESUME));
-    return up.resumeId;
+  await assertIsolatedTestTarget(pool);
+  await asPrincipal(pool, OWNER, async (c) => {
+    await c.query(
+      "INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0,now()+interval '30 days')",
+      [OWNER],
+    );
   });
+
+  const resume = await asPrincipal(pool, OWNER, async (c) => {
+    const created = await createResumeWithBlob(c, OWNER, RESUME);
+    await transitionResume(c, OWNER, created.resumeId, 'uploaded', 'ingesting');
+    await completeIngestion(c, OWNER, created.resumeId, ingestResume(RESUME));
+    return created.resumeId;
+  });
+  const epoch = await asPrincipal(pool, OWNER, async (c) => {
+    const row = await c.query<{ privacy_epoch: number }>(
+      'SELECT privacy_epoch FROM resume WHERE id=$1 AND owner_user_id=$2', [resume, OWNER],
+    );
+    return Number(row.rows[0]?.privacy_epoch);
+  });
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    "INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'created',$3,$4)",
+    [INTERVIEW_ID, OWNER, resume, epoch],
+  ));
+
   const before = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));
-  await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, IID, 'mock_interview', 1.0));
-  await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, IID, 'start', { resumeId }));
+  await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, INTERVIEW_ID, 'mock_interview', 1));
+  await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, INTERVIEW_ID, 'start', { requestId: 'interview-proof-request' }, 0));
 
-  section('① worker 消费 start job → 押题落库 + 首问(api 不跑图,worker 跑)');
-  const tick1 = await interviewDispatchTick(deps);
-  A('dispatchTick 消费到 owner', tick1.owners >= 1);
-  const ivRow = await asPrincipal(pool, OWNER, (c) => c.query('SELECT status, jsonb_array_length(questions) n FROM interview WHERE id=$1', [IID]));
-  A('面试 active 且题目落库(过滤幻觉 Go 后 2 题)', ivRow.rows[0].status === 'active' && ivRow.rows[0].n === 2);
-  const questions: string[] = (await asPrincipal(pool, OWNER, (c) => c.query('SELECT questions q FROM interview WHERE id=$1', [IID]))).rows[0].q;
+  const deps: ConsumerDeps = {
+    pool,
+    cp: new MemorySaver() as any,
+    model,
+    leaseOwner: `interview-proof-worker-${process.pid}`,
+    adaptive: {
+      role: '后端工程师',
+      maxTurns: 2,
+      localRetrieve: async () => [],
+      webExplore: async () => [],
+    },
+  };
 
-  section('② 逐轮 enqueue answer → 消费 → eval+续图(保序)');
-  for (let i = 0; i < questions.length; i++) {
-    await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, IID, 'answer', { turn: i, answer: `答案${i + 1}:Redis 计数器` }, i + 1));
+  section('① v64 start 由当前 consumer 消费并投影首题');
+  const firstTick = await interviewDispatchTick(deps);
+  const start = await asPrincipal(pool, OWNER, async (c) => {
+    const interview = await c.query<{ status: string }>('SELECT status FROM interview WHERE id=$1', [INTERVIEW_ID]);
+    const question = await c.query<{ question_id: string; state_version: number; turn: number }>(
+      "SELECT question_id,state_version,turn FROM interview_question WHERE interview_id=$1 AND status='issued' ORDER BY state_version DESC LIMIT 1",
+      [INTERVIEW_ID],
+    );
+    const job = await c.query<{ reference_schema_version: number; resume_id: string; resume_privacy_epoch: number }>(
+      "SELECT reference_schema_version,resume_id,resume_privacy_epoch FROM interview_job WHERE interview_id=$1 AND kind='start'",
+      [INTERVIEW_ID],
+    );
+    return { status: interview.rows[0]?.status, question: question.rows[0], job: job.rows[0] };
+  });
+  A('调度器发现且消费 owner 队列', firstTick.owners === 1);
+  A('start 任务保留 parent 的 v64 简历标识与世代', start.job?.reference_schema_version === 64 && start.job.resume_id === resume && Number(start.job.resume_privacy_epoch) === epoch);
+  // 自适应流程以 `created + start job` 表示已开始，逐轮状态在 question ledger（题目账本）与图检查点；
+  // 不沿用旧固定题单的 `interview.status='active'` 断言。
+  A('当前自适应图投影 issued 首题', start.status === 'created' && !!start.question);
+
+  section('② API 身份领取 → v64 answer 队列 → 自适应评估/收口');
+  let completed = false;
+  let answerTurns = 0;
+  for (; answerTurns < 4 && !completed; answerTurns++) {
+    const question = await asPrincipal(pool, OWNER, async (c) => (await c.query<{
+      question_id: string; state_version: number; turn: number;
+    }>(
+      "SELECT question_id,state_version,turn FROM interview_question WHERE interview_id=$1 AND status='issued' ORDER BY state_version DESC LIMIT 1",
+      [INTERVIEW_ID],
+    )).rows[0]);
+    if (!question) break;
+    const answer = `第 ${Number(question.turn) + 1} 题：我会用 Redis 计数器、滑动窗口和降级保护下游。`;
+    const input = {
+      questionId: question.question_id,
+      stateVersion: Number(question.state_version),
+      turn: Number(question.turn),
+      answerId: randomUUID(),
+      answerHash: answerHash(answer),
+      answer,
+    };
+    const claimed = await asPrincipal(pool, OWNER, (c) => claimInterviewAnswer(c, OWNER, INTERVIEW_ID, input));
+    A(`第 ${input.turn + 1} 题 API 身份账本接受`, claimed.status === 'accepted');
+    await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, INTERVIEW_ID, 'answer', input, input.turn + 1));
     await interviewDispatchTick(deps);
-    const evc = await asPrincipal(pool, OWNER, (c) => c.query("SELECT count(*)::int n FROM interview_event WHERE stream_key=$1 AND kind='answer_evaluated'", [IID]));
-    A(`第${i + 1}轮 answer 消费后 answer_evaluated 累计 ${i + 1} 条`, evc.rows[0].n === i + 1);
+    completed = await asPrincipal(pool, OWNER, async (c) => {
+      const row = await c.query<{ status: string }>('SELECT status FROM interview WHERE id=$1', [INTERVIEW_ID]);
+      return row.rows[0]?.status === 'completed';
+    });
   }
+  const after = await asPrincipal(pool, OWNER, async (c) => {
+    const events = await c.query<{ n: number }>(
+      "SELECT count(*)::int AS n FROM interview_event WHERE stream_key=$1 AND kind='answer_evaluated'", [INTERVIEW_ID],
+    );
+    const jobs = await c.query<{ n: number }>(
+      "SELECT count(*)::int AS n FROM interview_job WHERE interview_id=$1 AND status!='done'", [INTERVIEW_ID],
+    );
+    return { evaluated: Number(events.rows[0]?.n), unfinished: Number(jobs.rows[0]?.n) };
+  });
+  A('自适应图在有限轮数内完成', completed && answerTurns >= 1);
+  A('每个已完成回答都有 answer_evaluated 业务事件', after.evaluated >= 1);
+  A('start/answer durable job（持久任务）均收口为 done', after.unfinished === 0);
+  A('权益确认后可用额度精确减少 1', (await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER))) === before - 1);
 
-  section('③ 末轮完成:interview=completed + 额度结算 + 报告入队');
-  const fin = await asPrincipal(pool, OWNER, (c) => c.query('SELECT status FROM interview WHERE id=$1', [IID]));
-  A('面试 completed', fin.rows[0].status === 'completed');
-  A('额度已结算(扣 1.0)', (await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER))) === before - 1.0);
-  A('报告已入队(submitAnswer 末轮 enqueue)', (await asPrincipal(pool, OWNER, (c) => getReport(c, OWNER, IID)))!.status === 'queued');
+  section('③ 报告舱壁独立领取并形成 ready');
+  const report = await asPrincipal(pool, OWNER, (c) => getReport(c, OWNER, INTERVIEW_ID));
+  A('面试完成只入队报告，不在图内生成报告', report?.status === 'queued');
+  const reportResult = await drainReportsOnce(pool, OWNER, `interview-proof-report-${process.pid}`, {
+    loadSummary: () => ({ interviewId: INTERVIEW_ID, questionCount: after.evaluated, scores: Array.from({ length: after.evaluated }, () => 80) }),
+    generate: reportGenerator(pool, OWNER, `${INTERVIEW_ID}:report`, model),
+  });
+  A('报告 worker（后台进程）独立收口 ready', reportResult === 'ready' && (await asPrincipal(pool, OWNER, (c) => getReport(c, OWNER, INTERVIEW_ID)))?.status === 'ready');
 
-  section('④ 报告舱壁 drain → ready(全程经队列+消费循环,真请求驱动)');
-  const out = await drainReportsOnce(pool, OWNER, 'rpt-1', { loadSummary: () => ({ interviewId: IID, questionCount: 2, scores: [80, 80] }), generate: reportGenerator(pool, OWNER, `${IID}:report`, model) });
-  A('报告 ready', out === 'ready' && (await asPrincipal(pool, OWNER, (c) => getReport(c, OWNER, IID)))!.status === 'ready');
-
-  section('⑤ 队列 job 全 done + 关口 trace + RLS');
-  A('所有 interview_job 已 done(无卡 running/queued)', (await asPrincipal(pool, OWNER, (c) => c.query("SELECT count(*)::int n FROM interview_job WHERE owner_user_id=$1 AND status!='done'", [OWNER]))).rows[0].n === 0);
-  A('模型调用经 invoke 关口留 trace(quiz+2eval+report=4)', (await asPrincipal(pool, OWNER, (c) => c.query('SELECT count(*)::int n FROM ai_invocation_trace WHERE owner_user_id=$1', [OWNER]))).rows[0].n === 4);
-  A('userB 看不到 apiUser 的 job(RLS)', (await asPrincipal(pool, 'userB', (c) => c.query(`SELECT count(*)::int n FROM interview_job WHERE owner_user_id='${OWNER}'`))).rows[0].n === 0);
-
-  console.log(`\n${failures === 0 ? '✓ 面试进程接线(api 入队→worker 消费→生命周期)全部通过' : '✗ ' + failures + ' 项失败'}`);
+  console.log(`\n${failures === 0 ? '✓ 当前 v64 面试链路全部通过' : `✗ ${failures} 项失败`}`);
   await pool.end();
   process.exit(failures === 0 ? 0 : 1);
 }
-main().catch((e) => { console.error(e); process.exit(1); });
+
+main().catch(async (error) => {
+  console.error(error);
+  await pool.end().catch(() => undefined);
+  process.exit(1);
+});

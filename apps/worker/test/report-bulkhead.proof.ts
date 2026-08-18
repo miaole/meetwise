@@ -3,10 +3,8 @@
  * 核心不变量:**报告失败绝不回滚/阻塞 interview**（面试结果照样 completed）；报告可独立 requeue 恢复;ready 才发 report_ready。
  *   pnpm report:prove   (需 pnpm db:up)
  */
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import {
-  createPool, asPrincipal, appendEvent,
+  assertIsolatedTestTarget, createPool, asPrincipal, appendEvent,
   enqueueReport, claimReport, markReportReady, markReportFailed, requeueFailedReport, sweepReports, getReport,
   MAX_REPORT_ATTEMPTS,
 } from '@meetwise/db';
@@ -17,7 +15,6 @@ const pool = createPool();
 let failures = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) failures++; };
 const section = (t: string) => console.log(`\n──────── ${t} ────────`);
-const sql = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
 
 const summary: InterviewSummary = { interviewId: 'R1', questionCount: 2, scores: [68, 80] };
 // 注入的 generate：先失败（模拟模型抖动）后成功——驱动舱壁的失败隔离与重试
@@ -31,18 +28,29 @@ const goodGenerate = (s: InterviewSummary): ReportContent => ({
 const depsWith = (generate: (s: InterviewSummary) => ReportContent): ReportWorkerDeps => ({
   loadSummary: (_o, iid) => ({ ...summary, interviewId: iid }),
   generate,
+  // This file deliberately boots only the legacy report tables to exercise
+  // report retry semantics.  It is not a privacy proof; the real fence is
+  // exercised with default production deps in checkpoint-privacy-erasure.
+  privacyCheck: async () => undefined,
 });
 // 跑一次报告 job = 调用**真实生产函数** drainReportsOnce（3 事务生命周期 + 事件 CAS gate 都在生产代码里,不在测试里复制）
 const runReportOnce = (owner: string, leaseOwner: string, generate: (s: InterviewSummary) => ReportContent) =>
   drainReportsOnce(pool, owner, leaseOwner, depsWith(generate));
 
 async function main() {
-  await pool.query(sql('../../../packages/db/sql/01_schema.sql'));
-  await pool.query(sql('../../../packages/db/sql/04_report.sql'));
-  // seed：已完成的面试（报告不存在不影响它）。userG 用于隔离 租约/重试/隔离 场景
-  await pool.query(`INSERT INTO interview(id,owner_user_id,status) VALUES
-    ('R1','userA','completed'),('R9','userB','completed'),
-    ('RG-live','userG','completed'),('RG-stale','userG','completed'),('RG-pill','userG','completed'),('RG-back','userG','completed')`);
+  // 不得用 `packages/db/sql/` 影子 schema（影子数据库结构）绕过当前 privacy
+  // trigger（隐私触发器）/RLS（行级安全）。本 proof 只在完整隔离迁移后运行。
+  await assertIsolatedTestTarget(pool);
+  // seed：已完成的面试（报告不存在不影响它）。每个 owner（所有者）在真实 RLS
+  // 事务中写自己的 parent（父实体），使后续 report/event 写入经过当前隐私门。
+  for (const [owner, ids] of Object.entries({
+    userA: ['R1'], userB: ['R9'], userG: ['RG-live', 'RG-stale', 'RG-pill', 'RG-back'], userJ: ['RJ-bad'], userK: ['RK-good'],
+  })) {
+    await asPrincipal(pool, owner, async (c) => {
+      for (const id of ids)
+        await c.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'completed')", [id, owner]);
+    });
+  }
 
   section('enqueue：面试完成只做一次幂等 enqueue（不阻塞、不等报告）');
   const e1 = await asPrincipal(pool, 'userA', (c) => enqueueReport(c, 'userA', 'R1'));
@@ -77,7 +85,7 @@ async function main() {
   A('活租约的 running 不被抢（第二 claim 落空）', steal === null);
 
   section('崩溃恢复：租约过期的 running 可被重领（attempts 增长）');
-  await pool.query("UPDATE ai_report SET lease_expires_at = now() - interval '1 minute' WHERE owner_user_id='userG' AND interview_id='RG-live'");
+  await asPrincipal(pool, 'userG', (c) => c.query("UPDATE ai_report SET lease_expires_at = now() - interval '1 minute' WHERE interview_id='RG-live'"));
   const reclaim = await asPrincipal(pool, 'userG', (c) => claimReport(c, 'userG', 'wResume'));
   A('租约过期后被重领（崩溃 worker 不致卡死）', !!reclaim && reclaim!.attempts === 2);
   await asPrincipal(pool, 'userG', (c) => markReportReady(c, 'userG', reclaim!.reportId, 'wResume', { overall: 70, sections: [{ title: 't', body: 'b' }] }));
@@ -85,7 +93,7 @@ async function main() {
   section('stale finalize 防护：被抢租约的旧 worker finalize 落空,且**不发 report_ready**（审计 S1）');
   await asPrincipal(pool, 'userG', (c) => enqueueReport(c, 'userG', 'RG-stale'));
   const a = await asPrincipal(pool, 'userG', (c) => claimReport(c, 'userG', 'wA'));          // A 领到
-  await pool.query("UPDATE ai_report SET lease_expires_at = now() - interval '1 minute' WHERE owner_user_id='userG' AND interview_id='RG-stale'"); // A 卡住,租约过期
+  await asPrincipal(pool, 'userG', (c) => c.query("UPDATE ai_report SET lease_expires_at = now() - interval '1 minute' WHERE interview_id='RG-stale'")); // A 卡住,租约过期
   const b = await asPrincipal(pool, 'userG', (c) => claimReport(c, 'userG', 'wB'));           // B 重领
   A('B 重领 RG-stale', !!b && b!.reportId === a!.reportId);
   const staleOk = await asPrincipal(pool, 'userG', (c) => markReportReady(c, 'userG', a!.reportId, 'wA', { overall: 1, sections: [{ title: 'x', body: 'y' }] }));
@@ -100,7 +108,7 @@ async function main() {
     const res = await runReportOnce('userG', 'wPill', failingGenerate);
     if (res === 'idle') break;                                       // 被隔离后领不到了
     // 模拟退避时间已过（生产里是真实等待 2^n 秒,封顶 5min）
-    await pool.query("UPDATE ai_report SET next_attempt_at = now() - interval '1 second' WHERE owner_user_id='userG' AND interview_id='RG-pill' AND status='failed'");
+    await asPrincipal(pool, 'userG', (c) => c.query("UPDATE ai_report SET next_attempt_at = now() - interval '1 second' WHERE interview_id='RG-pill' AND status='failed'"));
     await sweepReportsOnce(pool, 'userG');                           // 未超→requeue,超→quarantine
   }
   section('退避：失败后 next_attempt_at 置未来 → 退避未到 sweeper 不重排（瞬时故障不毫秒烧光重试）');
@@ -122,13 +130,30 @@ async function main() {
     (await asPrincipal(pool, 'userG', (c) => c.query("SELECT count(*)::int n FROM interview_event WHERE stream_key='RG-pill' AND kind='report_unavailable'"))).rows[0].n === 1);
 
   section('多租户调度：dispatchTick 枚举活跃 owner 各自 drain（队列在生产真被排干,非只写不调度）');
-  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('RH','userH','completed'),('RI','userI','completed')");
+  await asPrincipal(pool, 'userH', (c) => c.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('RH','userH','completed')"));
+  await asPrincipal(pool, 'userI', (c) => c.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('RI','userI','completed')"));
   await asPrincipal(pool, 'userH', (c) => enqueueReport(c, 'userH', 'RH'));
   await asPrincipal(pool, 'userI', (c) => enqueueReport(c, 'userI', 'RI'));
   const tick = await dispatchTick(pool, 'dispatcher-1', depsWith(goodGenerate));   // 枚举 → 逐 owner drain+sweep
   A('dispatchTick 枚举到含待办的多个 owner（≥2）', tick.owners >= 2);
   A('userH 报告被排干到 ready', (await asPrincipal(pool, 'userH', (c) => getReport(c, 'userH', 'RH')))!.status === 'ready');
   A('userI 报告被排干到 ready', (await asPrincipal(pool, 'userI', (c) => getReport(c, 'userI', 'RI')))!.status === 'ready');
+
+  section('依赖故障隔离：摘要读取失败会标 failed，且不阻断同一拍其他租户的报告');
+  await asPrincipal(pool, 'userJ', (c) => enqueueReport(c, 'userJ', 'RJ-bad'));
+  await asPrincipal(pool, 'userK', (c) => enqueueReport(c, 'userK', 'RK-good'));
+  const mixedDeps: ReportWorkerDeps = {
+    loadSummary: (owner, iid) => {
+      if (owner === 'userJ') throw new Error('summary_store_unavailable');
+      return { ...summary, interviewId: iid };
+    },
+    generate: goodGenerate,
+  };
+  await dispatchTick(pool, 'dispatcher-summary-failure', mixedDeps);
+  const failedSummary = await asPrincipal(pool, 'userJ', (c) => getReport(c, 'userJ', 'RJ-bad'));
+  const unaffected = await asPrincipal(pool, 'userK', (c) => getReport(c, 'userK', 'RK-good'));
+  A('摘要读取故障从 running 收束为 failed（不等租约过期）', failedSummary!.status === 'failed' && failedSummary!.attempts === 1);
+  A('同一调度拍的其他租户仍到 ready（不被坏租户阻断）', unaffected!.status === 'ready');
 
   section('并发不双跑：两 worker 同时 claim,只一个领到');
   await asPrincipal(pool, 'userB', (c) => enqueueReport(c, 'userB', 'R9'));
