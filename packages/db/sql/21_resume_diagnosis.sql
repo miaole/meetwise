@@ -8,7 +8,9 @@ CREATE TABLE resume_diagnosis (
   id text PRIMARY KEY,
   owner_user_id text NOT NULL,
   status text NOT NULL DEFAULT 'created' CHECK (status IN ('created','generating','ready','failed')),
-  resume_id text,                                            -- 据哪份简历诊断(begin 时定;PII 仍在加密 blob,这里只存引用)
+  legacy_resume_id text,                                    -- 历史 JSON/text 兼容位；运行时不得读取或回填猜测
+  resume_id uuid,                                            -- 据哪份简历诊断(begin 时定;owner 复合 FK)
+  privacy_epoch bigint,                                     -- 删除围栏世代；与 typed resume_id 成对写入
   target_role text,                                          -- 可选目标岗位(岗位匹配度维度据此评估)
   report jsonb,                                              -- DiagnosisReport {overall,summary,sections[],rewrites[],groundedCount,rejectedCount}
   version int NOT NULL DEFAULT 0,
@@ -20,7 +22,10 @@ CREATE TABLE diagnosis_job (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_user_id text NOT NULL,
   diagnosis_id text NOT NULL,
-  payload jsonb NOT NULL DEFAULT '{}',                       -- {resumeId, role?}
+  payload jsonb NOT NULL DEFAULT '{}',                       -- 不含 resume locator/role；role 位于 parent row
+  resume_id uuid,
+  privacy_epoch bigint,
+  reference_schema_version smallint,
   status text NOT NULL DEFAULT 'queued' CHECK (status IN ('queued','running','done','failed')),
   attempts int NOT NULL DEFAULT 0,
   last_error text,

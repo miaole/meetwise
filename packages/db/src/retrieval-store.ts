@@ -2,13 +2,12 @@
  * @meetwise/db · 生产向量库 ops(pgvector HNSW)。隐私:只收向量+ref_id+hash,不收原文。检索返回 ref_id,由业务层取文。
  */
 import type { PoolClient as Client } from 'pg';
+import { activeQbankGeneration } from './qbank-generation-retrieval.ts';
+import { annSearchLegacy } from './retrieval-legacy.ts';
+
+export { annSearchLegacy } from './retrieval-legacy.ts';
 
 const vec = (e: number[]) => `[${e.join(',')}]`;   // pgvector 字面量
-const SYSTEM_QBANK_OWNER = '__system_qbank__';     // 唯一可信 qbank 写入 principal(见 06_retrieval/0016 写门 + apps/worker qbank-ingest)
-
-// 进程级缓存:一旦探到接管视图 qbank_visible_ref 存在即恒真(生产恒有;此后不再每次探测,省热路径一次往返)。
-// 假设单进程内 schema 稳定(本应用成立);未探到时按下方策略回落或 fail-closed。
-let qbankTakeoverPresent = false;
 
 /** 写入/去重一个向量块(同 owner+kind+hash 幂等覆盖)。 */
 export async function upsertVectorChunk(
@@ -42,41 +41,20 @@ export async function upsertVectorChunk(
  */
 export async function annSearch(
   c: Client, owner: string, kind: 'qbank' | 'memory', queryEmbedding: number[], k: number,
+  opts: { qbankRecipeId?: string } = {},
 ): Promise<{ refId: string; distance: number }[]> {
   const qvec = vec(queryEmbedding);
   if (kind === 'qbank') {
-    // 探接管视图是否存在(未缓存到"存在"时才探;catalog 查极廉价)。用非限定名以随 search_path 与下方 JOIN 的解析一致。
-    // 不能把视图名写进"缺失时仍被解析"的 SQL——PG 执行前先解析全部关系引用,缺视图会解析期报错,故先探再择 SQL。
-    if (!qbankTakeoverPresent) {
-      const ok = (await c.query("SELECT to_regclass('qbank_visible_ref') IS NOT NULL AS ok")).rows[0].ok as boolean;
-      if (ok) qbankTakeoverPresent = true;
-      else if (process.env.QBANK_TAKEOVER_REQUIRED === '1')
-        throw new Error('qbank_visible_ref 缺失但 QBANK_TAKEOVER_REQUIRED=1:拒绝回落到未过滤 qbank 读(fail-closed 防投毒)');
+    // 0029+ has an immutable generation pointer. A query embedding without its recipe receipt is unsafe:
+    // same dimension does not mean same vector space. Do not fall through to legacy vector_chunk here.
+    // activeQbankGeneration is fail-closed (throws on a legacy/pre-generation DB), so there is no
+    // undefined fallback branch — legacy callers must use annSearchLegacy directly.
+    const active = await activeQbankGeneration(c);
+    if (!opts.qbankRecipeId || active.recipeId !== opts.qbankRecipeId) {
+      throw new Error(`qbank_generation_recipe_mismatch:active=${active.recipeId}:query=${opts.qbankRecipeId ?? 'missing'}`);
     }
-    if (qbankTakeoverPresent) {
-      // 与可信可见集求交 + 系统 owner 过滤 + 按 ref_id 去重(保留最近),外层再按距离排序取 top-k。
-      const r = await c.query(
-        `SELECT ref_id, dist FROM (
-           SELECT DISTINCT ON (v.ref_id) v.ref_id AS ref_id, v.embedding <=> $1::vector AS dist
-             FROM vector_chunk v
-             JOIN qbank_visible_ref vr ON vr.ref_id = v.ref_id
-            WHERE v.kind='qbank' AND v.owner_user_id=$3
-            ORDER BY v.ref_id, v.embedding <=> $1::vector
-         ) t ORDER BY dist LIMIT $2`,
-        [qvec, k, SYSTEM_QBANK_OWNER]);
-      return r.rows.map((row) => ({ refId: row.ref_id as string, distance: Number(row.dist) }));
-    }
-    // 回落(仅未部署接管且未强制的隔离环境):原始 qbank 读,与接管前一致。
-    const r = await c.query(
-      `SELECT ref_id, embedding <=> $1::vector AS dist FROM vector_chunk
-         WHERE kind='qbank' ORDER BY embedding <=> $1::vector LIMIT $2`,
-      [qvec, k]);
-    return r.rows.map((row) => ({ refId: row.ref_id as string, distance: Number(row.dist) }));
+    const r = await c.query('SELECT ref_id, distance FROM qbank_generation_ann_search($1,$2::vector,$3)', [active.generationId, qvec, k]);
+    return r.rows.map((row) => ({ refId: row.ref_id as string, distance: Number(row.distance) }));
   }
-  // 非 qbank(memory 等):与接管前逐字节一致。
-  const r = await c.query(
-    `SELECT ref_id, embedding <=> $1::vector AS dist FROM vector_chunk
-       WHERE kind=$2 ORDER BY embedding <=> $1::vector LIMIT $3`,
-    [qvec, kind, k]);
-  return r.rows.map((row) => ({ refId: row.ref_id as string, distance: Number(row.dist) }));
+  return annSearchLegacy(c, kind, queryEmbedding, k);
 }

@@ -1,58 +1,131 @@
 /**
- * growth:prove — 成长档案/能力曲线读侧聚合证明（对真 Postgres）。
+ * growth:prove — 成长档案/能力曲线读侧聚合证明（isolated 完整迁移 + 非交互临时 Postgres）。
  * 证明:(1) 历次 ready 评估 → 按时间升序的成长点;(2) 维度并集 + 各场维度分;(3) 趋势由最新两场 overall 决定;
  *       (4) 边界 0/1 场不臆造方向(trend=none);(5) **RLS 隔离**——他人评估永不入本人成长档案;
- *       (6) 聚合是确定性纯函数 deriveGrowth(乱序输入仍稳定排序);(7) 响应零 PII(只 score/维度标签/时间戳)。
- * 编排 = db SQL(asPrincipal/appendEvent) + domain.deriveGrowth(生产同一函数,非测试复制)。
- *   pnpm growth:prove   (需 dev Postgres 起着)
+ *       (6) 聚合是确定性纯函数 deriveGrowth(乱序输入仍稳定排序);(7) 响应零 PII(只 score/维度标签/时间戳);
+ *       (8) answered = 可评分 ScoreCard 数(与 profile.service.growth 同源,legacy answer_evaluated 事件计数已停用)。
+ * 编排 = db SQL(asPrincipal) + domain.deriveGrowth(生产同一函数,非测试复制)。
+ *   pnpm growth:prove   (经 run-e2e-isolated.mjs 起临时库并应用完整迁移)
  */
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
-import { createPool, asPrincipal, appendEvent } from '../src/index.ts';
-import { deriveGrowth, toGrowthRow, type GrowthRow, type GrowthView } from '@meetwise/domain';
+import {
+  createPool, asPrincipal, asScoringWorkerPrincipal, assertIsolatedTestTarget,
+  publishQuestionRubric, issueQuestionContract, submitInterviewAnswer, createScoreRequest,
+  claimScoreRequest, writeFinalScoreCard, answerBodyHmac,
+  type Client,
+} from '@meetwise/db';
+import { deriveGrowth, toGrowthRow, scoreSpanDigest, type GrowthRow, type GrowthView } from '@meetwise/domain';
 
-const pool = createPool();
+// 确定性密钥（在调用 submitInterviewAnswer/answerBodyHmac 前注入）。
+process.env.INTERVIEW_ANSWER_ENC_KEY = 'proof_answer_enc_key_v1_16chars';
+process.env.INTERVIEW_ANSWER_HMAC_SECRET = 'proof_answer_hmac_secret_16chars';
+
+const admin = createPool();
 let failures = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) failures++; };
 const section = (t: string) => console.log(`\n──────── ${t} ────────`);
-const sql = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
 
 const OWNER_A = `growthA-${randomUUID()}`;
 const OWNER_B = `growthB-${randomUUID()}`;
 const OWNER_C = `growthC-${randomUUID()}`;   // 零评估,空档案边界
 
+const asOwner = <T>(u: string, fn: (c: Client) => Promise<T>) => asPrincipal(admin, u, fn);
+const asWorker = <T>(u: string, fn: (c: Client) => Promise<T>) => asScoringWorkerPrincipal(admin, u, fn);
+
+let hashCounter = 0;
+const nextHash = () => (++hashCounter).toString(16).padStart(64, '0');
+let tokenCounter = 0;
+const nextToken = () => `00000000-0000-4000-8000-${(++tokenCounter).toString(16).padStart(12, '0')}`;
+
+// 确定性评分答案 + span（UTF-8 字节）。
+const ANSWER = 'my-scored-answer-body-123';
+const SPAN_CLARITY = { offsetKind: 'utf8_byte' as const, start: 0, end: 9 };
+const SPAN_DEPTH = { offsetKind: 'utf8_byte' as const, start: 10, end: 21 };
+const RUBRIC_CRITERIA = [
+  { criterionId: 'clarity', weight: 2 },
+  { criterionId: 'depth', weight: 3 },
+];
+
+async function insertInterview(ownerId: string, interviewId: string): Promise<void> {
+  // ON CONFLICT DO NOTHING 使该助手幂等：seedAssessment 会为每个 interview_id 补 interview 行，
+  // 而 IV-A1 已在 seedScorableCard 前显式插入，避免重复主键冲突。
+  await admin.query(
+    "INSERT INTO interview(id,owner_user_id,status,version,current_question_index,questions) VALUES ($1,$2,'active',0,0,'[]'::jsonb) ON CONFLICT (id) DO NOTHING",
+    [interviewId, ownerId],
+  );
+}
+
 // 插一行评估(经 asPrincipal,RLS WITH CHECK 强制 owner 一致;created_at 显式控序)。
 async function seedAssessment(owner: string, iid: string, overall: number | null, dims: { dimension: string; score: number }[], ageSeconds: number) {
-  await asPrincipal(pool, owner, (c) => c.query(
+  // 全量迁移下 assessment_report 的投影隐私栅栏（enforce_interview_projection_privacy_active）
+  // 要求目标 interview 已存在且 privacy-active；先补 interview 行再插评估。
+  await insertInterview(owner, iid);
+  await asPrincipal(admin, owner, (c) => c.query(
     `INSERT INTO assessment_report(id, owner_user_id, interview_id, status, dimensions, overall, created_at)
        VALUES ($1,$2,$3,'ready',$4,$5, now() - ($6 || ' seconds')::interval)`,
     [randomUUID(), owner, iid, JSON.stringify(dims), overall, String(ageSeconds)]));
 }
 
-// 走与 profile.service.growth **同一** SQL + 同一 toGrowthRow 映射 + 同一 deriveGrowth(映射真相单一,杜绝 gate 与生产漂移)。
+// 经完整 SCOR-02 管线写一张可评分 ScoreCard（practice_eligible,deterministic_total=80）。
+// 只用于构造「answered=可评分卡数」的事实源,证明读侧 count 吃 score_card 而非 legacy 事件。
+async function seedScorableCard(owner: string, interviewId: string, questionId: string, rubricId: string): Promise<void> {
+  const issued = await asOwner(owner, (c) => issueQuestionContract(c, {
+    interviewId, questionId, stateVersion: 2, turn: 0, questionContentHash: nextHash(),
+    rubricId, form: 'mock', language: 'zh', route: 'adaptive', promptPolicyVersion: 'prompt-v1',
+    measurementVersion: 'measure-v1', privacyEpoch: 5,
+  }));
+  const submitted = await asOwner(owner, (c) => submitInterviewAnswer(c, {
+    interviewId, questionId, stateVersion: 2, clientSubmissionKey: `growth-sub-${questionId}`,
+    answer: ANSWER, privacyEpoch: 5,
+  }));
+  const req = await asOwner(owner, (c) => createScoreRequest(c, {
+    issuedContractId: issued.contractId, submissionId: submitted.submissionId, artifactId: submitted.artifactId,
+    answerBodyHmac: answerBodyHmac(ANSWER), privacyEpoch: 5, operationPolicyVersion: 'op-v1',
+    answerVersion: 1, idempotencyKey: `growth-req-${questionId}`,
+  }));
+  const token = nextToken();
+  await asWorker(owner, (c) => claimScoreRequest(c, req.requestId, `growth-worker-${owner}`, token));
+  const written = await asWorker(owner, (c) => writeFinalScoreCard(c, {
+    requestId: req.requestId, leaseToken: token,
+    evidence: [
+      { criterionId: 'clarity', sourceAnswerId: submitted.artifactId, answerVersion: 1, span: SPAN_CLARITY, spanDigest: scoreSpanDigest(ANSWER, SPAN_CLARITY), disposition: 'meets' as const },
+      { criterionId: 'depth', sourceAnswerId: submitted.artifactId, answerVersion: 1, span: SPAN_DEPTH, spanDigest: scoreSpanDigest(ANSWER, SPAN_DEPTH), disposition: 'exceeds' as const },
+    ],
+    targetStatus: 'practice_eligible',
+  }));
+  if (!written.recorded) throw new Error(`seed_scorable_card_failed:${questionId}`);
+}
+
+// 走与 profile.service.growth **同一** SQL(score_card eligible 计数)+ 同一 toGrowthRow 映射 + 同一 deriveGrowth。
 async function loadGrowth(owner: string): Promise<GrowthView> {
-  return asPrincipal(pool, owner, async (c) => {
+  return asPrincipal(admin, owner, async (c) => {
     const rep = await c.query("SELECT interview_id, overall, dimensions, created_at FROM assessment_report WHERE owner_user_id=current_setting('app.principal_user', true) AND status='ready' ORDER BY created_at ASC, interview_id ASC");
-    const ans = await c.query("SELECT count(*)::int n FROM interview_event WHERE kind='answer_evaluated'");
+    const ans = await c.query("SELECT count(*)::int n FROM score_card WHERE status IN ('practice_eligible','b_review_eligible')");
     return deriveGrowth(rep.rows.map(toGrowthRow), ans.rows[0].n);
   });
 }
 
 async function main() {
-  await pool.query(sql('../sql/01_schema.sql'));      // app_role / RLS GUC / interview_event
-  await pool.query(sql('../sql/08_assessment.sql'));  // assessment_report (+GRANT +RLS)
+  await assertIsolatedTestTarget(admin);
 
   // OWNER_A: 3 场(故意乱序插入,靠 created_at 还原时间序)。overall 50 → 65 → 60(最新两场 65→60 = down)。
+  // IV-A1 另造 2 张可评分 ScoreCard,供「answered=可评分卡数」断言(非 legacy 事件计数)。
+  await insertInterview(OWNER_A, 'IV-A1');
+  const rubricId = (await asOwner(OWNER_A, (c) => publishQuestionRubric(c, {
+    questionId: 'growth-rubric', questionVersion: 1, rubricVersion: 1, competency: '系统设计',
+    difficulty: 3, languageScope: ['zh', 'en'], questionContentHash: nextHash(), criteria: RUBRIC_CRITERIA,
+  }))).rubricId;
+  await seedScorableCard(OWNER_A, 'IV-A1', 'growth-q-1', rubricId);
+  await seedScorableCard(OWNER_A, 'IV-A1', 'growth-q-2', rubricId);
+
   await seedAssessment(OWNER_A, 'IV-A2', 65, [{ dimension: '系统设计', score: 70 }, { dimension: '算法', score: 60 }], 200);
   await seedAssessment(OWNER_A, 'IV-A3', 60, [{ dimension: '系统设计', score: 75 }, { dimension: '沟通', score: 45 }], 100);
   await seedAssessment(OWNER_A, 'IV-A1', 50, [{ dimension: '系统设计', score: 50 }, { dimension: '算法', score: 40 }], 300);
-  await asPrincipal(pool, OWNER_A, (c) => appendEvent(c, OWNER_A, 'IV-A1', 'answer_evaluated', { turn: 0, score: 50 }));
-  await asPrincipal(pool, OWNER_A, (c) => appendEvent(c, OWNER_A, 'IV-A1', 'answer_evaluated', { turn: 1, score: 40 }));
 
   // OWNER_B: 1 场(单场=趋势 none)+ 一行 quarantine（非 ready,必须被过滤掉）。
   await seedAssessment(OWNER_B, 'IV-B1', 80, [{ dimension: '系统设计', score: 80 }], 50);
-  await asPrincipal(pool, OWNER_B, (c) => c.query(
+  await insertInterview(OWNER_B, 'IV-B-pending');
+  await asPrincipal(admin, OWNER_B, (c) => c.query(
     `INSERT INTO assessment_report(id, owner_user_id, interview_id, status, dimensions, overall) VALUES ($1,$2,'IV-B-pending','pending','[]',null)`,
     [randomUUID(), OWNER_B]));
 
@@ -65,14 +138,14 @@ async function main() {
   section('② 维度并集 + 各场维度分');
   A('dimensions 并集含 系统设计/算法/沟通', ['系统设计', '算法', '沟通'].every((d) => ga.dimensions.includes(d)));
   A('dimensions 已排序(确定性)', JSON.stringify(ga.dimensions) === JSON.stringify([...ga.dimensions].sort()));
-  A('A1.dims 系统设计=50 算法=40', ga.points[0].dims['系统设计'] === 50 && ga.points[0].dims['算法'] === 40);
-  A('A3.dims 含沟通=45、不含算法', ga.points[2].dims['沟通'] === 45 && !('算法' in ga.points[2].dims));
+  A('A1.dims 系统设计=50 算法=40', ga.points[0]?.dims['系统设计'] === 50 && ga.points[0]?.dims['算法'] === 40);
+  A('A3.dims 含沟通=45、不含算法', ga.points[2]?.dims['沟通'] === 45 && !('算法' in (ga.points[2]?.dims ?? {})));
 
   section('③ 汇总:最佳/最新/趋势');
   A('bestScore=65', ga.totals.bestScore === 65);
   A('latestScore=60', ga.totals.latestScore === 60);
   A('trend=down(65→60)', ga.totals.trend === 'down');
-  A('answered=2(answer_evaluated 计数透传)', ga.totals.answered === 2);
+  A('answered=2(可评分 ScoreCard 计数透传,非 legacy 事件)', ga.totals.answered === 2);
 
   section('④ 边界:0 场 / 1 场不臆造方向');
   const gc = await loadGrowth(OWNER_C);
@@ -98,7 +171,7 @@ async function main() {
   A('最新场未评分 → latestScore=null(不冒充旧分)', gd.totals.latestScore === null);
   A('最新场未评分 → trend=none(不画无视最新场的趋势)', gd.totals.trend === 'none');
   A('bestScore 仍取历来已评分最高=60', gd.totals.bestScore === 60);
-  A('未评分场仍计入 sessions=3 与 points', gd.totals.sessions === 3 && gd.points[2].overall === null);
+  A('未评分场仍计入 sessions=3 与 points', gd.totals.sessions === 3 && gd.points[2]?.overall === null);
 
   // 全未评分:不出 -Infinity,best/latest=null,trend=none。
   const OWNER_E = `growthE-${randomUUID()}`;
@@ -125,11 +198,11 @@ async function main() {
   A('trend=down(90→70)', gs.totals.trend === 'down');
   A('overall 超界被 clamp(>100→100,<0→0)', (() => {
     const g = deriveGrowth([{ interviewId: 'x', overall: 150, dimensions: [{ dimension: 'd', score: -5 }], at: '2026-01-01T00:00:00.000Z' }]);
-    return g.points[0].overall === 100 && g.points[0].dims['d'] === 0;
+    return g.points[0]?.overall === 100 && g.points[0]?.dims['d'] === 0;
   })());
   A('空白维度标签被丢弃(不进 dims/dimensions)', (() => {
     const g = deriveGrowth([{ interviewId: 'x', overall: 50, dimensions: [{ dimension: '  ', score: 80 }, { dimension: 'real', score: 90 }], at: '2026-01-01T00:00:00.000Z' }]);
-    return !('  ' in g.points[0].dims) && g.dimensions.join() === 'real';
+    return !('  ' in (g.points[0]?.dims ?? {})) && g.dimensions.join() === 'real';
   })());
 
   section('⑧ 响应零 PII(只 score/维度标签/时间戳)');
@@ -151,7 +224,7 @@ async function main() {
   A('响应文本不含明文邮箱/手机样式', !/@|\b1[3-9]\d{9}\b/.test(json.replace(/IV-[A-Z0-9-]+/g, '')));
 
   console.log(`\n${failures === 0 ? '✓ growth:prove 全部通过' : `✗ growth:prove ${failures} 条失败`}`);
-  await pool.end();
+  await admin.end();
   process.exit(failures === 0 ? 0 : 1);
 }
 

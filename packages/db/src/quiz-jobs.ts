@@ -9,11 +9,18 @@ const LEASE_SECONDS = 120;
 export const MAX_QUIZ_JOB_ATTEMPTS = 5;
 
 /** 入队押题生成 job(api 用)。**幂等**:同押题(owner+quiz_id)重复 begin → 不新建,返已存在 job(防双扣双跑)。 */
-export async function enqueueQuizJob(c: Client, owner: string, quizId: string, payload: unknown): Promise<string> {
+export const RESUME_DERIVATIVE_REFERENCE_VERSION = 61;
+
+/** New jobs never carry a resume locator in JSON.  The typed tuple is checked
+ * again by the database trigger against its parent quiz and active resume. */
+export async function enqueueQuizJob(
+  c: Client, owner: string, quizId: string, resumeId: string, privacyEpoch: number,
+): Promise<string> {
   const r = await c.query(
-    `INSERT INTO quiz_job(owner_user_id, quiz_id, payload) VALUES ($1,$2,$3)
+    `INSERT INTO quiz_job(owner_user_id, quiz_id, resume_id, privacy_epoch, reference_schema_version, payload)
+     VALUES ($1,$2,$3,$4,$5,'{}'::jsonb)
        ON CONFLICT (owner_user_id, quiz_id) DO NOTHING RETURNING id`,
-    [owner, quizId, JSON.stringify(payload)]);
+    [owner, quizId, resumeId, privacyEpoch, RESUME_DERIVATIVE_REFERENCE_VERSION]);
   if (r.rowCount === 1) return r.rows[0].id;
   const ex = await c.query('SELECT id FROM quiz_job WHERE owner_user_id=$1 AND quiz_id=$2', [owner, quizId]);
   return ex.rows[0].id;
@@ -22,7 +29,7 @@ export async function enqueueQuizJob(c: Client, owner: string, quizId: string, p
 /** 领取下一个可跑押题 job(FIFO by created_at;租约过期可重领,同押题有 running 的不领——防并发双推同一图)。 */
 export async function claimNextQuizJob(
   c: Client, owner: string, leaseOwner: string, maxAttempts = MAX_QUIZ_JOB_ATTEMPTS,
-): Promise<{ id: string; quizId: string; payload: any; attempts: number } | null> {
+): Promise<{ id: string; quizId: string; resumeId: string | null; privacyEpoch: number | null; referenceSchemaVersion: number | null; attempts: number } | null> {
   const r = await c.query(
     `UPDATE quiz_job SET status='running', lease_owner=$2, lease_expires_at=now()+($3||' seconds')::interval, attempts=attempts+1, version=version+1
        WHERE id = (
@@ -31,10 +38,17 @@ export async function claimNextQuizJob(
             AND (j.status='queued' OR (j.status='running' AND j.lease_expires_at < now() AND j.attempts < $4))
             AND NOT EXISTS (SELECT 1 FROM quiz_job r WHERE r.quiz_id=j.quiz_id AND r.status='running' AND r.lease_expires_at >= now())
           ORDER BY j.created_at ASC FOR UPDATE SKIP LOCKED LIMIT 1)
-     RETURNING id, quiz_id, payload, attempts`, [owner, leaseOwner, String(LEASE_SECONDS), maxAttempts]);
+     RETURNING id, quiz_id, resume_id, privacy_epoch, reference_schema_version, attempts`, [owner, leaseOwner, String(LEASE_SECONDS), maxAttempts]);
   if (r.rowCount === 0) return null;
   const x = r.rows[0];
-  return { id: x.id, quizId: x.quiz_id, payload: x.payload, attempts: x.attempts };
+  return {
+    id: x.id,
+    quizId: x.quiz_id,
+    resumeId: x.resume_id ?? null,
+    privacyEpoch: x.privacy_epoch == null ? null : Number(x.privacy_epoch),
+    referenceSchemaVersion: x.reference_schema_version == null ? null : Number(x.reference_schema_version),
+    attempts: x.attempts,
+  };
 }
 
 export async function markQuizJobDone(c: Client, owner: string, jobId: string, leaseOwner: string): Promise<boolean> {

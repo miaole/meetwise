@@ -17,7 +17,9 @@ export async function insertMemory(
 /** 取回召回到的记忆内容(按 vector_chunk.ref_id),保持传入顺序(检索相关度序)。 */
 export async function getMemoriesByRefIds(c: Client, owner: string, refIds: string[]): Promise<MemoryRow[]> {
   if (!refIds.length) return [];
-  const r = await c.query('SELECT id, kind, content, salience, source_id FROM user_memory WHERE id = ANY($1)', [refIds]);
+  // owner 必须进 WHERE（RLS 之上再加一道租户硬过滤）：此前 owner 参数被忽略，调用方传任一
+  // ref_id 即可读到**他人**的 user_memory 行（RLS 若被漏绑 principal 即构成越权读）。
+  const r = await c.query('SELECT id, kind, content, salience, source_id FROM user_memory WHERE id = ANY($1) AND owner_user_id = $2', [refIds, owner]);
   const byId = new Map(r.rows.map((x) => [x.id, { id: x.id, kind: x.kind, content: x.content, salience: Number(x.salience), sourceId: x.source_id }]));
   return refIds.map((id) => byId.get(id)).filter(Boolean) as MemoryRow[];
 }
@@ -31,9 +33,11 @@ export function normalizeQuestion(q: string): string {
 /** 情景记忆判重:这道题该候选人是否问过(防重复出题)。**精确匹配**——把存量 content 与传入题面都按 normalizeQuestion 归一后比对
  *  (SQL 内 collapse+btrim+lower 与 JS 侧一致),小写/空白差异不漏判,但绝不用相似度(合法不同题不误挡)。 */
 export async function episodeSeen(c: Client, owner: string, content: string): Promise<boolean> {
+  // owner 必须进 WHERE（RLS 之上再加一道租户硬过滤）：此前 owner 参数被忽略，调用方传任一
+  // 题面即可判出**他人**的 user_memory episode 行（RLS 若被漏绑 principal 即构成跨租户判重泄漏）。
   const r = await c.query(
-    "SELECT 1 FROM user_memory WHERE kind='episode' AND lower(btrim(regexp_replace(content, '\\s+', ' ', 'g'))) = $1 LIMIT 1",
-    [normalizeQuestion(content)]);
+    "SELECT 1 FROM user_memory WHERE kind='episode' AND lower(btrim(regexp_replace(content, '\\s+', ' ', 'g'))) = $1 AND owner_user_id = $2 LIMIT 1",
+    [normalizeQuestion(content), owner]);
   return r.rowCount! > 0;
 }
 

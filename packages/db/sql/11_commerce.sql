@@ -15,6 +15,10 @@ CREATE TABLE payment_order (
   created_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (owner_user_id, idempotency_key)
 );
+-- 渠道流水是全局支付事实，不是「每个订单各自的字符串」。NULL 保留给尚未支付订单；一旦写入，
+-- 同一流水绝不能关联第二张订单，否则两个 created→paid CAS 都会各自成功并双发权益。
+CREATE UNIQUE INDEX uq_payment_order_provider_txn
+  ON payment_order (provider_txn) WHERE provider_txn IS NOT NULL;
 CREATE INDEX ix_order_owner ON payment_order (owner_user_id, status);
 
 GRANT SELECT, INSERT, UPDATE ON payment_order TO app_role;

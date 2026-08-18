@@ -84,3 +84,41 @@ BEGIN
       'WITH CHECK (owner_user_id = current_setting(''app.principal_user'', true))', t);
   END LOOP;
 END $$;
+
+-- 收费面试进入终态时必须与预留消费记录成对收口。迁移 0020 为既有库补同一约束；此处保证
+-- sql/ 全量引导/测试路径也具备该 DB 兜底，避免只在应用代码里假设 worker 与 abandon 永远不竞态。
+CREATE OR REPLACE FUNCTION enforce_interview_consumption_terminal_pair()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  consumption_status text;
+BEGIN
+  IF NEW.status NOT IN ('completed', 'abandoned') THEN
+    RETURN NEW;
+  END IF;
+
+  SELECT status INTO consumption_status
+    FROM entitlement_consumption
+   WHERE owner_user_id=NEW.owner_user_id AND idempotency_key=NEW.id
+   LIMIT 1;
+
+  IF consumption_status IS NULL THEN
+    RETURN NEW;
+  END IF;
+  IF NEW.status='completed' AND consumption_status <> 'confirmed' THEN
+    RAISE EXCEPTION 'invalid_interview_consumption_pair: completed requires confirmed, got %', consumption_status
+      USING ERRCODE='23514';
+  END IF;
+  IF NEW.status='abandoned' AND consumption_status <> 'released' THEN
+    RAISE EXCEPTION 'invalid_interview_consumption_pair: abandoned requires released, got %', consumption_status
+      USING ERRCODE='23514';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_interview_consumption_terminal_pair ON interview;
+CREATE TRIGGER trg_interview_consumption_terminal_pair
+  BEFORE INSERT OR UPDATE OF status ON interview
+  FOR EACH ROW EXECUTE FUNCTION enforce_interview_consumption_terminal_pair();

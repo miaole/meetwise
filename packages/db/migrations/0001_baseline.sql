@@ -245,7 +245,6 @@ ALTER TABLE ai_report FORCE ROW LEVEL SECURITY;
 CREATE POLICY p_owner ON ai_report
   USING (owner_user_id = current_setting('app.principal_user', true))
   WITH CHECK (owner_user_id = current_setting('app.principal_user', true));
-
 -- ===== 05_interview_jobs =====
 -- 05_interview_jobs.sql — 面试 job 队列：api 入队(start/answer),worker 消费循环 drain。接 01_schema 之后跑。
 -- 进程边界:api 薄(只入队+返回),长编排(图/模型)在 worker(架构铁律)。job 带租约+attempts,崩溃可重领。
@@ -484,4 +483,3 @@ ALTER TABLE notification FORCE ROW LEVEL SECURITY;
 CREATE POLICY p_owner ON notification
   USING (owner_user_id = current_setting('app.principal_user', true))
   WITH CHECK (owner_user_id = current_setting('app.principal_user', true));
-

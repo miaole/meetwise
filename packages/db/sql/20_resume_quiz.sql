@@ -7,7 +7,9 @@ CREATE TABLE resume_quiz (
   id text PRIMARY KEY,
   owner_user_id text NOT NULL,
   status text NOT NULL DEFAULT 'created' CHECK (status IN ('created','generating','ready','failed')),
-  resume_id text,                                            -- 据哪份简历押题(begin 时定;PII 仍在加密 blob,这里只存引用)
+  legacy_resume_id text,                                    -- 历史 JSON/text 兼容位；运行时不得读取或回填猜测
+  resume_id uuid,                                            -- 据哪份简历押题(begin 时定;owner 复合 FK)
+  privacy_epoch bigint,                                     -- 删除围栏世代；与 typed resume_id 成对写入
   questions jsonb NOT NULL DEFAULT '[]',                     -- [{q, refs}] 已过 factuality 歪曲门的题目
   report jsonb,                                              -- {score, grounded, summary} 图 make_report 节点派生
   version int NOT NULL DEFAULT 0,
@@ -19,7 +21,10 @@ CREATE TABLE quiz_job (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_user_id text NOT NULL,
   quiz_id text NOT NULL,
-  payload jsonb NOT NULL DEFAULT '{}',                       -- {resumeId}
+  payload jsonb NOT NULL DEFAULT '{}',                       -- 不含 resume locator；历史 JSON 只作不透明终结记录
+  resume_id uuid,
+  privacy_epoch bigint,
+  reference_schema_version smallint,
   status text NOT NULL DEFAULT 'queued' CHECK (status IN ('queued','running','done','failed')),
   attempts int NOT NULL DEFAULT 0,
   last_error text,

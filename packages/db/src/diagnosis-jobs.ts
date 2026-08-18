@@ -3,17 +3,22 @@
  * 镜像 quiz-jobs:诊断只有单一 job 类型(generate),无 answer/seq——结构同。租约字段兼容 reaper/heartbeat 模式。
  */
 import type { PoolClient as Client } from 'pg';
+import { RESUME_DERIVATIVE_REFERENCE_VERSION } from './quiz-jobs.ts';
 
 const LEASE_SECONDS = 120;
 /** claim 续领上限 = reaper 终结边界（单一真相,claim 与 sweep 共用）。 */
 export const MAX_DIAGNOSIS_JOB_ATTEMPTS = 5;
 
 /** 入队诊断生成 job(api 用)。**幂等**:同诊断(owner+diagnosis_id)重复 begin → 不新建,返已存在 job(防双扣双跑)。 */
-export async function enqueueDiagnosisJob(c: Client, owner: string, diagnosisId: string, payload: unknown): Promise<string> {
+/** New jobs carry no JSON resume locator or role; both live in typed tables. */
+export async function enqueueDiagnosisJob(
+  c: Client, owner: string, diagnosisId: string, resumeId: string, privacyEpoch: number,
+): Promise<string> {
   const r = await c.query(
-    `INSERT INTO diagnosis_job(owner_user_id, diagnosis_id, payload) VALUES ($1,$2,$3)
+    `INSERT INTO diagnosis_job(owner_user_id, diagnosis_id, resume_id, privacy_epoch, reference_schema_version, payload)
+     VALUES ($1,$2,$3,$4,$5,'{}'::jsonb)
        ON CONFLICT (owner_user_id, diagnosis_id) DO NOTHING RETURNING id`,
-    [owner, diagnosisId, JSON.stringify(payload)]);
+    [owner, diagnosisId, resumeId, privacyEpoch, RESUME_DERIVATIVE_REFERENCE_VERSION]);
   if (r.rowCount === 1) return r.rows[0].id;
   const ex = await c.query('SELECT id FROM diagnosis_job WHERE owner_user_id=$1 AND diagnosis_id=$2', [owner, diagnosisId]);
   return ex.rows[0].id;
@@ -22,7 +27,7 @@ export async function enqueueDiagnosisJob(c: Client, owner: string, diagnosisId:
 /** 领取下一个可跑诊断 job(FIFO by created_at;租约过期可重领,同诊断有 running 的不领——防并发双推同一图)。 */
 export async function claimNextDiagnosisJob(
   c: Client, owner: string, leaseOwner: string, maxAttempts = MAX_DIAGNOSIS_JOB_ATTEMPTS,
-): Promise<{ id: string; diagnosisId: string; payload: any; attempts: number } | null> {
+): Promise<{ id: string; diagnosisId: string; resumeId: string | null; privacyEpoch: number | null; referenceSchemaVersion: number | null; attempts: number } | null> {
   const r = await c.query(
     `UPDATE diagnosis_job SET status='running', lease_owner=$2, lease_expires_at=now()+($3||' seconds')::interval, attempts=attempts+1, version=version+1
        WHERE id = (
@@ -31,10 +36,17 @@ export async function claimNextDiagnosisJob(
             AND (j.status='queued' OR (j.status='running' AND j.lease_expires_at < now() AND j.attempts < $4))
             AND NOT EXISTS (SELECT 1 FROM diagnosis_job r WHERE r.diagnosis_id=j.diagnosis_id AND r.status='running' AND r.lease_expires_at >= now())
           ORDER BY j.created_at ASC FOR UPDATE SKIP LOCKED LIMIT 1)
-     RETURNING id, diagnosis_id, payload, attempts`, [owner, leaseOwner, String(LEASE_SECONDS), maxAttempts]);
+     RETURNING id, diagnosis_id, resume_id, privacy_epoch, reference_schema_version, attempts`, [owner, leaseOwner, String(LEASE_SECONDS), maxAttempts]);
   if (r.rowCount === 0) return null;
   const x = r.rows[0];
-  return { id: x.id, diagnosisId: x.diagnosis_id, payload: x.payload, attempts: x.attempts };
+  return {
+    id: x.id,
+    diagnosisId: x.diagnosis_id,
+    resumeId: x.resume_id ?? null,
+    privacyEpoch: x.privacy_epoch == null ? null : Number(x.privacy_epoch),
+    referenceSchemaVersion: x.reference_schema_version == null ? null : Number(x.reference_schema_version),
+    attempts: x.attempts,
+  };
 }
 
 export async function markDiagnosisJobDone(c: Client, owner: string, jobId: string, leaseOwner: string): Promise<boolean> {

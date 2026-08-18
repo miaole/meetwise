@@ -2,12 +2,10 @@
  * S2 简历摄取证明（对真 Postgres）：上传→加密落库→摄取清洗→结构化 profile，证明隐私铁律与数据完整性。
  * 编排 = db 存储 ops + domain.ingestResume（纯函数）。证明:原文只在加密 blob、profile 永不含明文/PII、注入被拦、
  * 状态机 CAS、幂等去重、RLS 越权=0、加密往返。
- *   pnpm resume:prove   (需 pnpm db:up)
+ *   pnpm resume:prove（完整版本化迁移后的隔离 PostgreSQL）
  */
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import {
-  createPool, asPrincipal,
+  assertIsolatedTestTarget, createPool, asPrincipal,
   createResumeWithBlob, transitionResume, completeIngestion, failIngestion, decryptResumeBlob,
 } from '../src/index.ts';
 import { ingestResume } from '@meetwise/domain';
@@ -16,8 +14,6 @@ const pool = createPool();
 let failures = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) failures++; };
 const section = (t: string) => console.log(`\n──────── ${t} ────────`);
-const sql = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
-
 const PHONE = '13800138000', EMAIL = 'zhang@example.com';
 const PHONE_INTL = '+8613912345678';                 // 带 +86,旧 lookbehind 会漏
 const PHONE_FW = '１３７００１３８０００';              // 全角数字,旧 \d 漏
@@ -36,8 +32,7 @@ const RAW = [
 ].join('\n');
 
 async function main() {
-  await pool.query(sql('../sql/01_schema.sql'));
-  await pool.query(sql('../sql/03_resume.sql'));
+  await assertIsolatedTestTarget(pool);
 
   section('上传：原文加密落库（与结构化分表）');
   const up = await asPrincipal(pool, 'userA', (c) => createResumeWithBlob(c, 'userA', RAW, 'text'));

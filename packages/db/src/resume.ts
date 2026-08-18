@@ -5,7 +5,7 @@
 import type { PoolClient as Client } from 'pg';
 import { createHmac } from 'node:crypto';
 
-export type ResumeStatus = 'uploaded' | 'ingesting' | 'ingested' | 'failed';
+export type ResumeStatus = 'uploaded' | 'ingesting' | 'ingested' | 'failed' | 'erasure_fenced' | 'erased';
 
 const IS_PROD = process.env.NODE_ENV === 'production';
 /** 必需密钥：prod 缺失即 fail-closed 抛错（杜绝静默用 dev 默认 = 加密形同虚设,审计 P0-2）。 */
@@ -45,7 +45,9 @@ export async function createResumeWithBlob(
   const digest = contentDigest(plaintext);                                  // HMAC,非裸 sha（防确认预言机）
   const ins = await c.query(
     `INSERT INTO resume(owner_user_id, content_sha, source_kind) VALUES ($1,$2,$3)
-     ON CONFLICT (owner_user_id, content_sha) DO NOTHING RETURNING id`, [owner, digest, sourceKind]);
+     ON CONFLICT (owner_user_id, content_sha)
+       WHERE content_sha IS NOT NULL AND status IN ('uploaded','ingesting','ingested','failed')
+       DO NOTHING RETURNING id`, [owner, digest, sourceKind]);
   if (ins.rowCount === 0) {
     const ex = await c.query('SELECT id, status FROM resume WHERE owner_user_id=$1 AND content_sha=$2', [owner, digest]);
     if (ex.rows[0].status === 'failed') {                                  // 上次失败 → re-upload 视为重试,re-arm failed→uploaded（审计 N2：否则永久卡死、改字节才能重传）
@@ -77,13 +79,29 @@ export async function persistResumeProfile(
 ): Promise<void> {
   const structured = { experience: p.experience, skills: p.skills, facts: p.facts }; // ingestResume 已 stripPii
   const piiSummary = p.pii.reduce<Record<string, number>>((m, x) => { m[x.field] = (m[x.field] ?? 0) + 1; return m; }, {});
-  // 追踪(低危,审计 round3)：ON CONFLICT DO NOTHING 在 fail→re-arm→重摄取 时保留旧 profile。
-  // 因 dedup 按内容 HMAC、字节相同 → 旧 profile 语义等价,可接受;若未来失败发生在"已插半成品 profile 之后",重试不会刷新。
-  // status:OCR/图片源恒 needs_review(系统不冒充判真伪,给人工复核落地位),文本/PDF 文本层默认 ok。
-  await c.query(
-    `INSERT INTO resume_profile(resume_id, owner_user_id, structured, pii_summary, blocked_count, status)
-     VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT (resume_id) DO NOTHING`,
-    [resumeId, owner, JSON.stringify(structured), JSON.stringify(piiSummary), p.blocked.length, status]);
+  // Do not use `ON CONFLICT DO NOTHING` here. PostgreSQL may require the
+  // conflict row to satisfy the table's SELECT policy; during `ingesting` our
+  // deliberate active-read policy hides that profile. A plain INSERT is
+  // therefore required, but a PostgreSQL unique violation aborts the *whole*
+  // transaction even when JavaScript catches it. Contain just this retry race
+  // in a savepoint so a duplicate profile stays idempotent without weakening
+  // read RLS or materializing the existing profile to the caller.
+  const savepoint = 'resume_profile_insert';
+  await c.query(`SAVEPOINT ${savepoint}`);
+  try {
+    await c.query(
+      `INSERT INTO resume_profile(resume_id, owner_user_id, structured, pii_summary, blocked_count, status)
+       VALUES ($1,$2,$3,$4,$5,$6)`,
+      [resumeId, owner, JSON.stringify(structured), JSON.stringify(piiSummary), p.blocked.length, status],
+    );
+  } catch (error: any) {
+    if (error?.code !== '23505') {
+      await c.query(`ROLLBACK TO SAVEPOINT ${savepoint}`);
+      throw error;
+    }
+    await c.query(`ROLLBACK TO SAVEPOINT ${savepoint}`);
+  }
+  await c.query(`RELEASE SAVEPOINT ${savepoint}`);
 }
 
 /** 原子完成摄取：**同一事务**里落 profile + CAS ingesting→ingested。杜绝"profile 已落但状态卡 ingesting"的非原子缝（审计 P1-6）。 */
@@ -111,4 +129,73 @@ export async function decryptResumeBlob(c: Client, owner: string, resumeId: stri
     'SELECT pgp_sym_decrypt(ciphertext, $3) AS pt FROM resume_blob WHERE resume_id=$1 AND owner_user_id=$2',
     [resumeId, owner, key]);
   return r.rows[0].pt;
+}
+
+/**
+ * Resume-derived workers (quiz/diagnosis) must use this instead of the
+ * unrestricted blob reader.  It holds the future erasure lock for the whole
+ * caller transaction, checks the owner-bound privacy epoch and only then
+ * decrypts.  A later erase implementation has to acquire the same lock before
+ * fencing, so it cannot commit between this check and the sensitive read.
+ */
+export async function decryptActiveResumeBlob(
+  c: Client, owner: string, resumeId: string, privacyEpoch: number,
+): Promise<string> {
+  await c.query('SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))', ['resume-privacy', resumeId]);
+  const meta = await c.query(
+    `SELECT b.key_version
+       FROM resume r
+       JOIN resume_blob b ON b.resume_id=r.id AND b.owner_user_id=r.owner_user_id
+      WHERE r.id=$1
+        AND r.owner_user_id=$2
+        AND r.status='ingested'
+        AND r.privacy_epoch=$3
+      FOR KEY SHARE OF r`,
+    [resumeId, owner, privacyEpoch],
+  );
+  if (meta.rowCount !== 1) {
+    throw Object.assign(new Error('resume_privacy_fenced_or_not_active'), { code: 'resume_privacy_fenced_or_not_active' });
+  }
+  const key = keyForVersion(Number(meta.rows[0].key_version));
+  const r = await c.query(
+    `SELECT pgp_sym_decrypt(b.ciphertext, $3) AS pt
+       FROM resume_blob b
+      WHERE b.resume_id=$1 AND b.owner_user_id=$2`,
+    [resumeId, owner, key],
+  );
+  if (r.rowCount !== 1) throw new Error('resume_blob_not_found_or_forbidden');
+  return r.rows[0].pt;
+}
+
+/**
+ * OCR 成功文本的短暂恢复工件。它只服务于“供应商已成功、业务提交前进程中断”
+ * 的恢复窗口；调用方在简历入库并确认权益的同一事务中必须删除它。
+ * 与 resume_blob 相同：数据库只存 pgcrypto 密文与密钥版本，绝不存明文或 trace。
+ */
+export async function persistResumeOcrArtifact(c: Client, owner: string, idempotencyKey: string, plaintext: string): Promise<void> {
+  await c.query(
+    `INSERT INTO resume_ocr_artifact(owner_user_id,idempotency_key,ciphertext,key_version)
+     VALUES($1,$2,pgp_sym_encrypt($3,$4),$5)
+     ON CONFLICT(owner_user_id,idempotency_key) DO NOTHING`,
+    [owner, idempotencyKey, plaintext, RESUME_ENC_KEY(), RESUME_KEY_VERSION],
+  );
+}
+
+/** Returns `null` when no recovery artifact exists; RLS makes cross-owner reads indistinguishable from absence. */
+export async function decryptResumeOcrArtifact(c: Client, owner: string, idempotencyKey: string): Promise<string | null> {
+  const meta = await c.query(
+    'SELECT key_version FROM resume_ocr_artifact WHERE owner_user_id=$1 AND idempotency_key=$2', [owner, idempotencyKey]);
+  if (meta.rowCount === 0) return null;
+  const key = keyForVersion(Number(meta.rows[0].key_version));
+  const r = await c.query(
+    'SELECT pgp_sym_decrypt(ciphertext,$3) AS pt FROM resume_ocr_artifact WHERE owner_user_id=$1 AND idempotency_key=$2',
+    [owner, idempotencyKey, key],
+  );
+  return r.rowCount === 1 ? String(r.rows[0].pt) : null;
+}
+
+/** Deleting after terminal ingestion/release minimizes the lifetime of OCR-derived PII. */
+export async function deleteResumeOcrArtifact(c: Client, owner: string, idempotencyKey: string): Promise<boolean> {
+  const r = await c.query('DELETE FROM resume_ocr_artifact WHERE owner_user_id=$1 AND idempotency_key=$2', [owner, idempotencyKey]);
+  return r.rowCount === 1;
 }

@@ -1,13 +1,14 @@
 /**
- * qbank 策展源表 + 审核门 + 跨租户投毒隔离证明(真 Postgres)。对齐 apps/worker/src/qbank-curation.ts 的门 SQL,
+ * qbank 策展源表 + 审核门 + 跨租户投毒隔离证明(真 Postgres)。对齐 packages/db/src/qbank-curation.ts 的门 SQL,
  * 但**在 DB 层直证**(RLS + 触发器 + CAS + 视图才是安全源头,绕过 TS 包装照样被挡)。
  *
  * 覆盖范围:策展门本身(源状态机 + 审核授权 + 投毒隔离 + approved-only 池视图)**并**生产检索接管
  *   (0016:vector_chunk 写门收紧 + annSearch(kind='qbank') 与 approved 源求交)——即 0013 文末 TODO 的两步已落地并在此直证。
- *   诚实缺口:现有灌库 apps/worker qbank-ingest 直写 vector_chunk 但尚未把块登记进 qbank_pool_entry(灌库↔策展门未接线),
+ *   诚实缺口:现有灌库 packages/db qbank-ingest 直写 vector_chunk 但尚未把块登记进 qbank_pool_entry(灌库↔策展门未接线),
  *   故接管后经 annSearch 的生产 qbank 召回只见已进 approved 池的块;把 ingest 接进"促块进池"是后续步骤(不在本轮)。
  *
- *   pnpm qbank-source:prove   (需 pnpm db:up;pgvector image)
+ *   pnpm qbank-source:prove   （根脚本会起临时 pgvector cluster；绝不重建共享开发库）
+ *   pnpm qbank-source:prove:raw  （仅供已确认隔离的 cluster 调用）
  *
  * 断言:① 源状态机(合法跃迁 / 非法跃迁+关键列篡改被拒 / 陈旧 CAS 落败);
  *      ② 跨租户投毒隔离(自审批 / 越权审核 / 非 curator 塞池[RLS 与触发器两条门分别打] / 自封 curator 全被拒);
@@ -19,7 +20,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { createPool, asPrincipal, annSearch, upsertVectorChunk } from '../src/index.ts';
+import { assertIsolatedTestTarget, createPool, asPrincipal, annSearch, upsertVectorChunk } from '../src/index.ts';
 
 const pool = createPool();
 let fail = 0;
@@ -61,6 +62,7 @@ const errCode = async (fn: () => Promise<unknown>): Promise<string | null> => {
 const RLS = '42501', CHK = '23514';   // 42501=RLS 违规/权限拒;23514=触发器 check_violation
 
 async function main() {
+  await assertIsolatedTestTarget(pool);
   await pool.query(sql('../sql/01_schema.sql'));                 // app_role + RLS 基座
   await pool.query(sql('../sql/06_retrieval.sql'));              // vector_chunk(接管后写门:qbank 仅系统 principal 可写)
   // 测试台重建(仅证明用,非迁移的一部分):qbank_* 不在 01_schema,持久库跨 schema 改动需先拆,
@@ -78,11 +80,11 @@ async function main() {
   await asPrincipal(pool, CAND, (c) => propose(c, CAND, 'S1', 'hashA'));
   A('候选人提议源 → 落 pending, added_by=自己',
     await asPrincipal(pool, CURATOR, (c) => c.query("SELECT status,added_by FROM qbank_source WHERE id='S1'"))
-      .then((r) => r.rows[0].status === 'pending' && r.rows[0].added_by === CAND));
+      .then((r: any) => r.rows[0]?.status === 'pending' && r.rows[0]?.added_by === CAND));
   A('curator: pending→approved 生效(CAS 1 行)',
-    await asPrincipal(pool, CURATOR, (c) => review(c, 'S1', 'pending', 'approved')).then((r) => r.rowCount === 1));
+    await asPrincipal(pool, CURATOR, (c) => review(c, 'S1', 'pending', 'approved')).then((r: any) => r.rowCount === 1));
   A('curator: 已 approved 再传 from=pending → 陈旧 CAS 落败(0 行)',
-    await asPrincipal(pool, CURATOR, (c) => review(c, 'S1', 'pending', 'approved')).then((r) => r.rowCount === 0));
+    await asPrincipal(pool, CURATOR, (c) => review(c, 'S1', 'pending', 'approved')).then((r: any) => r.rowCount === 0));
   A('非法跃迁 approved→pending 被触发器拒(23514)',
     await errCode(() => asPrincipal(pool, CURATOR, (c) => c.query("UPDATE qbank_source SET status='pending' WHERE id='S1'"))) === CHK);
   A('关键列篡改:curator 借审核 UPDATE 改 content_hash 被触发器拒(23514,内容不可偷换)',
@@ -90,7 +92,7 @@ async function main() {
 
   await asPrincipal(pool, CAND, (c) => propose(c, CAND, 'S2', 'hashB'));
   A('curator: pending→rejected 生效',
-    await asPrincipal(pool, CURATOR, (c) => review(c, 'S2', 'pending', 'rejected')).then((r) => r.rowCount === 1));
+    await asPrincipal(pool, CURATOR, (c) => review(c, 'S2', 'pending', 'rejected')).then((r: any) => r.rowCount === 1));
   A('非法跃迁 rejected→approved 被触发器拒(23514)',
     await errCode(() => asPrincipal(pool, CURATOR, (c) => c.query("UPDATE qbank_source SET status='approved' WHERE id='S2'"))) === CHK);
 
@@ -102,7 +104,7 @@ async function main() {
   // (b) 越权审核:候选人 UPDATE 自己的 pending 源为 approved → RLS USING 假 → 0 行(不抛错,改不动)
   await asPrincipal(pool, CAND, (c) => propose(c, CAND, 'S3', 'hashC'));
   A('候选人 UPDATE pending→approved → RLS USING 假, 0 行(改不动 status)',
-    (await asPrincipal(pool, CAND, (c) => review(c, 'S3', 'pending', 'approved'))).rowCount === 0);
+    ((await asPrincipal(pool, CAND, (c) => review(c, 'S3', 'pending', 'approved'))) as any).rowCount === 0);
   A('S3 仍是 pending(投毒未生效)', await asPrincipal(pool, CURATOR, (c) => statusOf(c, 'S3')) === 'pending');
   // (c) 非 curator 塞池 —— 两条门分别打:
   //   c1) 用 pending 源 → BEFORE 触发器先于 RLS 触发 → 23514(未 approved 门)
@@ -131,7 +133,7 @@ async function main() {
     await direct(CAND2).then((d) => d.length === 2 && d[0] === 'ref_s1' && d[1] === 'ref_s5'));
   // 撤销 S1:approved→rejected → 其块即时从视图与直读双双消失(池条目 P1 仍在也不召回 → 真过滤,非"从没插入")
   A('撤销 S1: approved→rejected 生效',
-    await asPrincipal(pool, CURATOR, (c) => review(c, 'S1', 'approved', 'rejected')).then((r) => r.rowCount === 1));
+    await asPrincipal(pool, CURATOR, (c) => review(c, 'S1', 'approved', 'rejected')).then((r: any) => r.rowCount === 1));
   A('P1 池条目仍在(未删,超级用户绕 RLS 可见)', (await pool.query("SELECT count(*)::int n FROM qbank_pool_entry WHERE id='P1'")).rows[0].n === 1);
   cands = (await asPrincipal(pool, CAND2, (c) => c.query(candidatesSQL))).rows.map((r) => r.ref_id);
   A('撤销后候选(视图)只剩 ref_s5(被撤销源的块即时剔除,即便池行仍在)', cands.length === 1 && cands[0] === 'ref_s5');
@@ -139,19 +141,19 @@ async function main() {
     await direct(CAND2).then((d) => d.length === 1 && d[0] === 'ref_s5'));
 
   section('④ content_hash 去重防重复投毒 + 无幽灵 id + 被拒 hash 不永久占坑');
-  const dup = await asPrincipal(pool, CAND2, (c) => propose(c, CAND2, 'S5_DUP', 'hashE'));   // 别人重投同活跃内容
-  const h5 = (await pool.query("SELECT count(*)::int n, min(added_by) ab FROM qbank_source WHERE content_hash='hashE'")).rows[0];
+  const dup: any = await asPrincipal(pool, CAND2, (c) => propose(c, CAND2, 'S5_DUP', 'hashE'));   // 别人重投同活跃内容
+  const h5: any = (await pool.query("SELECT count(*)::int n, min(added_by) ab FROM qbank_source WHERE content_hash='hashE'")).rows[0];
   A('重复投同活跃 content_hash → ON CONFLICT DO NOTHING(不新增行)', dup.rowCount === 0 && h5.n === 1);
   A('既有源不被劫持(added_by 仍是原提议者 cand1)', h5.ab === CAND);
   // 无幽灵 id:他人 pending 源被 RLS 挡成不可见时,去重回退经 SECURITY DEFINER 反查真既有 id(非未落库的传入 id)
   await asPrincipal(pool, CAND, (c) => propose(c, CAND, 'S6', 'hashF'));                    // cand1 的 pending 源(cand2 不可见)
-  const conflict = await asPrincipal(pool, CAND2, (c) => propose(c, CAND2, 'S6_PHANTOM', 'hashF'));
-  const resolved = (await asPrincipal(pool, CAND2, (c) => c.query('SELECT qbank_active_source_id($1) AS id', ['hashF']))).rows[0].id;
+  const conflict: any = await asPrincipal(pool, CAND2, (c) => propose(c, CAND2, 'S6_PHANTOM', 'hashF'));
+  const resolved = ((await asPrincipal(pool, CAND2, (c) => c.query('SELECT qbank_active_source_id($1) AS id', ['hashF']))) as any).rows[0]?.id;
   A('命中去重回退取到真既有源 id(S6),非传入的幽灵 id(S6_PHANTOM 从未落库)',
     conflict.rowCount === 0 && resolved === 'S6' &&
     (await pool.query("SELECT count(*)::int n FROM qbank_source WHERE id='S6_PHANTOM'")).rows[0].n === 0);
   // 被拒 hash 不永久占坑:hashB(S2 已 rejected)可被重新提议成新活跃源(partial unique 排除 rejected)
-  const reproposed = await asPrincipal(pool, CAND, (c) => propose(c, CAND, 'S2B', 'hashB'));
+  const reproposed: any = await asPrincipal(pool, CAND, (c) => propose(c, CAND, 'S2B', 'hashB'));
   A('被拒的 hashB 可重新提议成活跃源(误拒不造成永久 DoS)',
     reproposed.rowCount === 1 &&
     (await pool.query("SELECT count(*)::int n FROM qbank_source WHERE content_hash='hashB' AND status<>'rejected'")).rows[0].n === 1);
@@ -189,8 +191,12 @@ async function main() {
   // —— 应用 0016(拆策略收紧写/改/删 + 建可信可见集视图 + 属主可绕 RLS 硬前置)。
   await pool.query({ text: sql('../migrations/0016_qbank_retrieval_takeover.sql') });
 
-  // 属主可绕 RLS 前置(0016 DO 块已强制;此处显式复证:lane(b) 撤销正确性钉在此不变量上)。
-  A('qbank_visible_ref 属主具 rolsuper/rolbypassrls(lane(b) NOT EXISTS 能看到被撤销池条目 → 撤销才生效)',
+  // 属主可绕 RLS 前置(0016 DO 块已强制;此处显式复证)。**仅 pre-handoff 成立**：本 proof 只加载 0013+0016、尚未
+  // provision,视图 owner = 迁移超级用户,故 0016 的 DO 硬断言(rolsuper/rolbypassrls)此时必然为真。移交(provision)后
+  // owner 变为 qbank_control_definer(NOBYPASSRLS),lane(b) 撤销正确性改由 0068 p_qbank_pool_candidate_view 的动态 owner
+  // 授权 + 两视图共享 owner 承接(见 sealed-manifest §6.2 与 qbank-handoff-closure.proof.ts 的 post-handoff 撤销断言),
+  // 不再依赖 RLS bypass——本断言不适用于 post-handoff 形态,不得反向要求移交后 owner 绕 RLS。
+  A('(pre-handoff 边界) qbank_visible_ref 属主具 rolsuper/rolbypassrls——0016 时代 lane(b) 撤销正确性钉在 RLS bypass 上; 移交后该前置被 §6.2 三事实取代',
     (await pool.query(`SELECT bool_or(rolsuper OR rolbypassrls) ok FROM pg_roles
        WHERE rolname = (SELECT viewowner FROM pg_views WHERE viewname='qbank_visible_ref')`)).rows[0].ok === true);
 
@@ -235,7 +241,7 @@ async function main() {
   A('撤销前系统 qr_a 块确在库',
     (await pool.query("SELECT count(*)::int n FROM vector_chunk WHERE owner_user_id=$1 AND ref_id='qr_a'", [QOWNER])).rows[0].n === 1);
   A('撤销 SA(approved→rejected)生效',
-    await asPrincipal(pool, CURATOR, (c) => review(c, 'SA', 'approved', 'rejected')).then((r) => r.rowCount === 1));
+    await asPrincipal(pool, CURATOR, (c) => review(c, 'SA', 'approved', 'rejected')).then((r: any) => r.rowCount === 1));
   A('撤销后系统 qr_a 块仍在库(未删,证下面是求交剔除)',
     (await pool.query("SELECT count(*)::int n FROM vector_chunk WHERE owner_user_id=$1 AND ref_id='qr_a'", [QOWNER])).rows[0].n === 1);
   A('撤销后 qr_a 即时从 annSearch 消失(出 approved 池;有池条目故不落直灌通道漏召回)',

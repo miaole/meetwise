@@ -6,11 +6,17 @@ CREATE TABLE IF NOT EXISTS job_posting (
   title text NOT NULL,
   description text NOT NULL DEFAULT '',
   competencies jsonb NOT NULL DEFAULT '[]',     -- 目标能力数组(面试引擎据此出题)
+  idempotency_key text,
+  idempotency_payload_hash text,
   status text NOT NULL DEFAULT 'open' CHECK (status IN ('open','closed')),
   version int NOT NULL DEFAULT 0,
-  created_at timestamptz NOT NULL DEFAULT now()
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CHECK ((idempotency_key IS NULL AND idempotency_payload_hash IS NULL)
+      OR (idempotency_key IS NOT NULL AND idempotency_payload_hash IS NOT NULL))
 );
 CREATE INDEX IF NOT EXISTS ix_job_owner ON job_posting (owner_user_id, status);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_job_posting_owner_idempotency
+  ON job_posting(owner_user_id, idempotency_key) WHERE idempotency_key IS NOT NULL;
 
 GRANT SELECT, INSERT, UPDATE ON job_posting TO app_role;
 

@@ -99,6 +99,9 @@ export async function confirmConsumption(
     [owner, idempotencyKey]);
   if (row.rowCount === 0) return { status: 'error', reason: 'not_found' };
   const r = row.rows[0];
+  // rowCount 与 rows[0] 在 pg 的运行时契约是一致的；显式守卫也让严格编译器
+  // 看见这一点，避免将数据库异常误当成可继续结算的空记录。
+  if (!r) return { status: 'error', reason: 'not_found' };
   if (r.status === 'confirmed' || r.status === 'partial_confirmed') return { status: 'noop', finalStatus: r.status }; // 幂等：不重扣、不重投 outbox
   if (r.status === 'released') return { status: 'error', reason: 'already_released' };                                // 被对账 sweeper 回收过 → 大声失败,绝不静默丢
 
@@ -108,6 +111,7 @@ export async function confirmConsumption(
   let distributed = 0;
   for (let i = 0; i < allocations.length; i++) {
     const a = allocations[i];
+    if (!a) throw Object.assign(new Error('confirm_allocation_missing'), { code: 'confirm_allocation_missing', index: i });
     const consume = i < allocations.length - 1 ? r2(a.units * ratio) : r2(settled - distributed);
     distributed = r2(distributed + consume);
     const upd = await c.query(
@@ -142,6 +146,125 @@ export async function releaseConsumption(c: Client, owner: string, idempotencyKe
   }
   await c.query("UPDATE entitlement_consumption SET status='released' WHERE id=$1", [r.id]);
   return { status: 'released' };
+}
+
+/** 付费面试终态的唯一收口协议。
+ *
+ * `confirmConsumption`/`releaseConsumption` 自己能把额度账本串行化，却不能阻止调用方随后用无条件
+ * `UPDATE interview` 覆盖另一方的终态。这个函数把「确认额度 → completed」放在同一事务，且状态更新必须
+ * 从进行中态 CAS 成功；若用户已 abandon，抛错让刚才的 confirm 一并回滚，绝不留下 `(abandoned,confirmed)`。
+ */
+export type CompleteInterviewResult = { status: 'completed' | 'already_completed'; unitsSettled?: number };
+
+export async function completeInterviewAndConfirm(c: Client, owner: string, interviewId: string): Promise<CompleteInterviewResult> {
+  await assertPrincipal(c, owner);
+  const settlement = await confirmConsumption(c, owner, interviewId, 1);
+  if (settlement.status === 'error')
+    throw Object.assign(new Error(`interview_settlement_failed:${settlement.reason}`), { code: 'interview_settlement_failed', reason: settlement.reason });
+  if (settlement.status === 'partial_confirmed' || (settlement.status === 'noop' && settlement.finalStatus !== 'confirmed'))
+    throw Object.assign(new Error('interview_settlement_not_fully_confirmed'), { code: 'interview_settlement_not_fully_confirmed' });
+
+  // 同一条带谓词 UPDATE 是状态机 CAS：若 abandon 已在别的事务中赢了，0 行 + 抛错会回滚上方确认。
+  const updated = await c.query(
+    `UPDATE interview SET status='completed', version=version+1
+      WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','active')
+      RETURNING status`, [interviewId, owner]);
+  if (updated.rowCount === 1) {
+    return { status: 'completed', unitsSettled: settlement.status === 'confirmed' ? settlement.unitsSettled : undefined };
+  }
+
+  const current = await c.query('SELECT status FROM interview WHERE id=$1 AND owner_user_id=$2', [interviewId, owner]);
+  // 重放：前次同一事务已经确认且标 completed；本次 confirm 是 noop，允许返回已完成。
+  if (current.rowCount === 1 && current.rows[0].status === 'completed' && settlement.status === 'noop')
+    return { status: 'already_completed' };
+
+  // 关键：异常必须让 asPrincipal 回滚上方 confirm，不能仅 return error 后提交消费终态。
+  throw Object.assign(new Error(`interview_terminal_conflict:${current.rows[0]?.status ?? 'not_found'}`), {
+    code: 'interview_terminal_conflict', status: current.rows[0]?.status ?? 'not_found',
+  });
+}
+
+/**
+ * A missing model-backed score is not a completed assessment. Release the
+ * still-reserved unit and mark the interview failed in one transaction, so
+ * callers cannot observe (failed, confirmed) or (active, released).
+ */
+export type FailInterviewAndReleaseResult = { status: 'failed' | 'already_failed'; released: 'released' | 'noop' };
+
+export async function failInterviewAndRelease(c: Client, owner: string, interviewId: string): Promise<FailInterviewAndReleaseResult> {
+  await assertPrincipal(c, owner);
+  const release = await releaseConsumption(c, owner, interviewId);
+  // A start job may fail before it ever reserves an entitlement (for example a
+  // free/legacy session).  There is then no cross-table pair to compensate;
+  // `failed` is still a valid terminal state.  Any *existing* consumption,
+  // however, must be released or this transaction fails and rolls back.
+  if (release.status === 'error' && release.reason !== 'not_found') {
+    throw Object.assign(new Error(`interview_failure_release_failed:${release.reason}`), {
+      code: 'interview_failure_release_failed', reason: release.reason,
+    });
+  }
+  const updated = await c.query(
+    `UPDATE interview SET status='failed', version=version+1
+      WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','active','waiting_user','migrating','paused')
+      RETURNING status`, [interviewId, owner]);
+  if (updated.rowCount === 1) return { status: 'failed', released: release.status === 'released' ? 'released' : 'noop' };
+
+  const current = await c.query('SELECT status FROM interview WHERE id=$1 AND owner_user_id=$2', [interviewId, owner]);
+  if (current.rowCount === 1 && current.rows[0].status === 'failed' && (release.status === 'noop' || (release.status === 'error' && release.reason === 'not_found')))
+    return { status: 'already_failed', released: 'noop' };
+
+  // Throwing rolls back a release if another terminal transition won the race.
+  throw Object.assign(new Error(`interview_failure_terminal_conflict:${current.rows[0]?.status ?? 'not_found'}`), {
+    code: 'interview_failure_terminal_conflict', status: current.rows[0]?.status ?? 'not_found',
+  });
+}
+
+/** 放弃付费面试的唯一收口协议。
+ *
+ * 先在 consumption 行上串行化 release，再条件更新 interview；若完成方已先确认，release 返回
+ * `already_confirmed` 并抛错，绝不把 completed 覆盖为 abandoned。created 且从未 reserve 的空壳可直接
+ * abandoned，但 UPDATE 同时检查「现在仍不存在消费记录」，堵住 begin 与 abandon 的窗口。
+ */
+export type AbandonInterviewResult = { status: 'abandoned' | 'already_abandoned'; released: 'released' | 'noop' };
+
+export async function abandonInterviewAndRelease(c: Client, owner: string, interviewId: string): Promise<AbandonInterviewResult> {
+  await assertPrincipal(c, owner);
+  const release = await releaseConsumption(c, owner, interviewId);
+  if (release.status === 'error') {
+    if (release.reason !== 'not_found') {
+      throw Object.assign(new Error(`interview_release_failed:${release.reason}`), { code: 'interview_release_failed', reason: release.reason });
+    }
+    // 只有「仍 created 且事务提交时仍未 reserve」的空壳可无消费记录放弃。begin 若刚落了 reserve，
+    // NOT EXISTS 会让此语句 0 行并转为冲突，避免 `(abandoned,reserved)`。
+    const empty = await c.query(
+      `UPDATE interview SET status='abandoned', version=version+1
+        WHERE id=$1 AND owner_user_id=$2 AND status='created'
+          AND NOT EXISTS (
+            SELECT 1 FROM entitlement_consumption ec
+             WHERE ec.owner_user_id=$2 AND ec.idempotency_key=$1
+          )
+        RETURNING status`, [interviewId, owner]);
+    if (empty.rowCount === 1) return { status: 'abandoned', released: 'noop' };
+    const current = await c.query('SELECT status FROM interview WHERE id=$1 AND owner_user_id=$2', [interviewId, owner]);
+    if (current.rowCount === 1 && current.rows[0].status === 'abandoned') return { status: 'already_abandoned', released: 'noop' };
+    throw Object.assign(new Error(`interview_abandon_conflict:${current.rows[0]?.status ?? 'not_found'}`), {
+      code: 'interview_abandon_conflict', status: current.rows[0]?.status ?? 'not_found',
+    });
+  }
+
+  const updated = await c.query(
+    `UPDATE interview SET status='abandoned', version=version+1
+      WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','active')
+      RETURNING status`, [interviewId, owner]);
+  if (updated.rowCount === 1) return { status: 'abandoned', released: release.status };
+
+  const current = await c.query('SELECT status FROM interview WHERE id=$1 AND owner_user_id=$2', [interviewId, owner]);
+  if (current.rowCount === 1 && current.rows[0].status === 'abandoned' && release.status === 'noop')
+    return { status: 'already_abandoned', released: 'noop' };
+  // 与 complete 对称：0 行时抛错，外层事务回滚本次 release，维持账本与 interview 一致。
+  throw Object.assign(new Error(`interview_abandon_conflict:${current.rows[0]?.status ?? 'not_found'}`), {
+    code: 'interview_abandon_conflict', status: current.rows[0]?.status ?? 'not_found',
+  });
 }
 
 /** 当前可用额度（共享池 = 各未过期桶 available 之和）。 */

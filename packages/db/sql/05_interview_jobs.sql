@@ -9,6 +9,8 @@ CREATE TABLE interview_job (
   kind text NOT NULL CHECK (kind IN ('start','answer')),
   seq int NOT NULL DEFAULT 0,                                 -- 同面试内保序(答题按 seq 消费)
   payload jsonb NOT NULL DEFAULT '{}',                        -- start:{resumeRaw}; answer:{turn, answer}
+  resume_id uuid,                                             -- 生产迁移 0049+：start 的稳定来源列
+  reference_schema_version smallint NOT NULL DEFAULT 50 CHECK (reference_schema_version=50),
   status text NOT NULL DEFAULT 'queued' CHECK (status IN ('queued','running','done','failed')),
   attempts int NOT NULL DEFAULT 0,
   last_error text,

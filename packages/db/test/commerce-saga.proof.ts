@@ -1,13 +1,12 @@
 /**
  * commerce saga 证明（对真 Postgres）：共享权益池 reserve/confirm/release + FIFO + 按比例 + 并发不超卖 + 对账。
  * 这是"零业务数据丢失"承重证明:额度不丢、不重扣、降级按比例、FIFO 先到期先扣、并发安全、失败全退、对账兜底。
- *   pnpm commerce:prove   (需 pnpm db:up)
+ *   pnpm commerce:prove（完整版本化迁移后的隔离 PostgreSQL）
  */
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import {
-  createPool, asPrincipal,
+  assertIsolatedTestTarget, createPool, asPrincipal,
   reserveEntitlement, confirmConsumption, releaseConsumption, availableUnits,
+  createOrder, markOrderPaidAndCredit, completeInterviewAndConfirm, abandonInterviewAndRelease,
   renewReservationLease, sweepExpiredReservations, settleOutbox, reconcile,
 } from '../src/index.ts';
 
@@ -19,12 +18,9 @@ const pool = createPool();
 let failures = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) failures++; };
 const section = (t: string) => console.log(`\n──────── ${t} ────────`);
-const sql = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
-
-// seed 用超级用户（绕 RLS）：userA 三桶（gift 1.0 最先到期 / trial 1.0 次之 / paid 2.0 最后），共 4.0；userB 1 桶
+// seed 用隔离库拥有者：userA 三桶（gift 1.0 最先到期 / trial 1.0 次之 / paid 2.0 最后），共 4.0；userB 1 桶
 async function seed() {
-  await pool.query(sql('../sql/01_schema.sql'));
-  await pool.query(sql('../sql/02_commerce.sql'));
+  await assertIsolatedTestTarget(pool);
   await pool.query(`INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES
     ('userA','gift',1.0, now()+interval '10 days'),
     ('userA','trial',1.0, now()+interval '20 days'),
@@ -39,7 +35,7 @@ async function main() {
   const r1 = await asPrincipal(pool, 'userA', (c) => reserveEntitlement(c, 'userA', 'k-1', 'mock_interview', 1.5));
   A('reserve 1.5 成功', r1.status === 'reserved');
   if (r1.status === 'reserved') {
-    A('FIFO：先吃 gift(1.0)+trial(0.5)，不碰 paid', r1.allocations.length === 2 && r1.allocations[0].units === 1.0 && r1.allocations[1].units === 0.5);
+    A('FIFO：先吃 gift(1.0)+trial(0.5)，不碰 paid', r1.allocations.length === 2 && r1.allocations[0]?.units === 1.0 && r1.allocations[1]?.units === 0.5);
   }
   A('可用额度 4.0 → 预留 1.5 后剩 2.5', (await asPrincipal(pool, 'userA', (c) => availableUnits(c, 'userA'))) === 2.5);
 
@@ -140,7 +136,7 @@ async function main() {
   const rec = await asPrincipal(pool, 'userA', (c) => reconcile(c, 'userA'));
   A('回收 1 笔租约过期的孤儿预留', rec.staleReleased === 1);
   A('swept 带回被回收笔身份(idempotencyKey/serviceType 供业务层发终态事件)',
-    rec.swept.length === 1 && rec.swept[0].idempotencyKey === 'k-stale' && rec.swept[0].serviceType === 'mock_interview');
+    rec.swept.length === 1 && rec.swept[0]?.idempotencyKey === 'k-stale' && rec.swept[0]?.serviceType === 'mock_interview');
   A('结算消费者把 2 条 pending outbox 真实入账（settled=2）', rec.settled === 2);
   A('孤儿预留额度回池（available 回升 0.5）', (await asPrincipal(pool, 'userA', (c) => availableUnits(c, 'userA'))) === avBeforeSweep + 0.5);
   const ledger1 = await asPrincipal(pool, 'userA', (c) => c.query("SELECT count(*)::int n, COALESCE(SUM(units_settled),0) s FROM settlement_ledger"));
@@ -158,7 +154,7 @@ async function main() {
   await asPrincipal(pool, 'userD', (c) => reserveEntitlement(c, 'userD', 'd-1', 'mock_interview', 0.5)); // 跨两桶各 0.25
   const dpc = await asPrincipal(pool, 'userD', (c) => confirmConsumption(c, 'userD', 'd-1', 0.5));       // 逐桶独立舍入会 0.13+0.13=0.26≠0.25
   const dSettled = (dpc as any).unitsSettled;
-  const dBuckets = await asPrincipal(pool, 'userD', (c) => sumConsumed(c, 'userD'));
+  const dBuckets = await asPrincipal(pool, 'userD', (c) => sumConsumed(c, 'userD')) as { s: unknown };
   A('settled=0.25（权威总额）', dSettled === 0.25);
   A('两桶 consumed 之和===settled（0.25,非 0.26）', Number(dBuckets.s) === 0.25);
   A('降级后未结算 0.25 退回池（available=0.25）', (await asPrincipal(pool, 'userD', (c) => availableUnits(c, 'userD'))) === 0.25);
@@ -194,6 +190,70 @@ async function main() {
   let capBlocked = false;
   try { await pool.query("UPDATE entitlement_bucket SET units_reserved = units_total + 1 WHERE owner_user_id='userB'"); } catch { capBlocked = true; }
   A('ck_bucket_capacity 拦截超卖直写', capBlocked);
+
+  section('P0：并发同 idempotencyKey 创建订单 → 三个调用全返回同一 orderId（不暴露 23505）');
+  const orderOwner = 'order-idem-owner';
+  const sameOrder = await Promise.all([0, 1, 2].map((i) =>
+    asPrincipal(pool, orderOwner, (c) => createOrder(c, orderOwner, {
+      id: `ord-idem-${i}`, productId: 'pack_10', amountCents: 9900, units: 10, idempotencyKey: 'same-order-key',
+    }))));
+  A('3 个并发下单调用都成功且 orderId 集合大小=1', new Set(sameOrder).size === 1);
+  const orderRows = await pool.query("SELECT count(*)::int n FROM payment_order WHERE owner_user_id=$1 AND idempotency_key='same-order-key'", [orderOwner]);
+  A('同 idempotencyKey 数据库恰 1 行订单', orderRows.rows[0].n === 1);
+
+  section('P0：同一 providerTxn 并发打两张订单 → 恰一次发权益，另一笔确定性 conflict');
+  await Promise.all([
+    asPrincipal(pool, 'pay-owner-a', (c) => createOrder(c, 'pay-owner-a', { id: 'pay-order-a', productId: 'pack_10', amountCents: 9900, units: 10 })),
+    asPrincipal(pool, 'pay-owner-b', (c) => createOrder(c, 'pay-owner-b', { id: 'pay-order-b', productId: 'pack_10', amountCents: 9900, units: 10 })),
+  ]);
+  const duplicateTxnResults = await Promise.all([
+    asPrincipal(pool, 'pay-owner-a', (c) => markOrderPaidAndCredit(c, 'pay-owner-a', 'pay-order-a', 'psp-txn-global-once')),
+    asPrincipal(pool, 'pay-owner-b', (c) => markOrderPaidAndCredit(c, 'pay-owner-b', 'pay-order-b', 'psp-txn-global-once')),
+  ]);
+  A('跨订单并发相同流水：credited 恰 1，conflict 恰 1',
+    duplicateTxnResults.filter((x) => x === 'credited').length === 1 && duplicateTxnResults.filter((x) => x === 'conflict').length === 1);
+  const claimed = await pool.query("SELECT count(*)::int n FROM payment_order WHERE provider_txn='psp-txn-global-once'");
+  const granted = await pool.query("SELECT COALESCE(SUM(units_total),0)::float8 u FROM entitlement_bucket WHERE owner_user_id IN ('pay-owner-a','pay-owner-b')");
+  A('providerTxn 全局仅归属 1 单且合计权益=10.0', claimed.rows[0].n === 1 && Number(granted.rows[0].u) === 10);
+
+  section('P0：abandon vs confirm 并发 16 轮，只能收口为 completed/confirmed 或 abandoned/released');
+  let terminalPairsOk = true;
+  let terminalEffectsOk = true;
+  for (let round = 0; round < 16; round++) {
+    const owner = `pair-owner-${round}`;
+    const interviewId = `pair-iv-${round}`;
+    await pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',1.0,now()+interval '90 days')", [owner]);
+    await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [interviewId, owner]);
+    await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, interviewId, 'mock_interview', 1));
+    const outcomes = await Promise.all([
+      asPrincipal(pool, owner, (c) => completeInterviewAndConfirm(c, owner, interviewId)).then(() => 'complete').catch(() => 'complete_conflict'),
+      asPrincipal(pool, owner, (c) => abandonInterviewAndRelease(c, owner, interviewId)).then(() => 'abandon').catch(() => 'abandon_conflict'),
+    ]);
+    const pair = await pool.query(
+      `SELECT i.status AS interview_status, ec.status AS consumption_status
+         FROM interview i JOIN entitlement_consumption ec
+           ON ec.owner_user_id=i.owner_user_id AND ec.idempotency_key=i.id
+        WHERE i.id=$1`, [interviewId]);
+    const s = pair.rows[0];
+    if (!((s.interview_status === 'completed' && s.consumption_status === 'confirmed') ||
+          (s.interview_status === 'abandoned' && s.consumption_status === 'released'))) terminalPairsOk = false;
+    if (!((outcomes.includes('complete') && outcomes.includes('abandon_conflict')) ||
+          (outcomes.includes('abandon') && outcomes.includes('complete_conflict')))) terminalEffectsOk = false;
+  }
+  A('16/16 并发轮次终态配对均合法', terminalPairsOk);
+  A('16/16 并发轮次恰一个收口动作提交，另一方回滚', terminalEffectsOk);
+
+  section('P0：数据库触发器拒绝绕过应用的非法 terminal pair');
+  const triggerOwner = 'pair-trigger-owner';
+  const triggerInterview = 'pair-trigger-iv';
+  await pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',1.0,now()+interval '90 days')", [triggerOwner]);
+  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [triggerInterview, triggerOwner]);
+  await asPrincipal(pool, triggerOwner, (c) => reserveEntitlement(c, triggerOwner, triggerInterview, 'mock_interview', 1));
+  let directPairBlocked = false;
+  try {
+    await asPrincipal(pool, triggerOwner, (c) => c.query("UPDATE interview SET status='completed' WHERE id=$1", [triggerInterview]));
+  } catch (e: any) { directPairBlocked = e?.code === '23514'; }
+  A('reserved 状态直接改 completed 被 DB 约束拒绝(23514)', directPairBlocked);
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
   await pool.end();

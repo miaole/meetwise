@@ -16,3 +16,12 @@ CREATE TABLE user_account (
 CREATE INDEX ix_user_email ON user_account (email);
 
 GRANT SELECT, INSERT, UPDATE ON user_account TO app_role;
+
+-- 账户资料同样属于租户数据；强制 RLS 后，app_role 即使已被错误授予表权限也只能看到
+-- current principal 自己。注册、登录与跨用户运营操作必须走 23_api_gateway.sql 的固定函数。
+ALTER TABLE user_account ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_account FORCE ROW LEVEL SECURITY;
+CREATE POLICY p_user_account_self ON user_account
+  FOR ALL TO app_role
+  USING (id = current_setting('app.principal_user', true))
+  WITH CHECK (id = current_setting('app.principal_user', true));
