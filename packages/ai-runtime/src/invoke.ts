@@ -664,7 +664,11 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
   }
 
   const validated = doubleValidate(spec.schema, spec.businessValidate, result.raw);
+  // 返回给调用方的 error 保留业务 reason 可读性(`business:${reason}`)；落库的 error_code 必须是
+  // 稳定 ASCII 机器码(0088 强约束 `^[A-Za-z0-9._:-]{1,120}$`，中文 reason 会触发
+  // ai_model_terminalize_invalid_input、被 catch 误记为 unknown)。二者分离。
   const error = validated.ok ? undefined : (validated.stage === 'schema' ? 'schema_validation_failed' : `business:${validated.reason}`);
+  const errorCode = validated.ok ? undefined : (validated.stage === 'schema' ? 'schema_validation_failed' : 'business_validation_failed');
   let stored: unknown;
   let value: T | undefined;
   let settledCost = 0;
@@ -684,7 +688,7 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
       if (validated.ok && spec.persistValidatedOutput) await spec.persistValidatedOutput(c, value!);
       const completed = await completeModelInvocation(c, {
         owner, idempotencyKey: spec.idempotencyKey, output: stored, replayable: !spec.redactOutput,
-        error, inputTokens: settledUsage?.inputTokens, outputTokens: settledUsage?.outputTokens, latencyMs,
+        error: errorCode, inputTokens: settledUsage?.inputTokens, outputTokens: settledUsage?.outputTokens, latencyMs,
       });
       if (!completed) throw new Error('model_invocation_complete_state');
       if (!error) await persistTrace(c, owner, spec, stored, settledUsage, latencyMs, requestId);

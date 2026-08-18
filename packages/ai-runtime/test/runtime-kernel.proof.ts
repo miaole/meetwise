@@ -37,9 +37,12 @@ async function main() {
   ]) {
     await pool.query(readFileSync(fileURLToPath(new URL(`../../db/migrations/${migration}`, import.meta.url)), 'utf8'));
   }
-  // 0037 是增量表，01_schema 的演示基座不会删除它。显式清理避免上一次
+  // 0037/0085 是增量表，01_schema 的演示基座不会删除它们。显式清理避免上一次
   // proof 的幂等键被误当成当前进程的缓存命中，导致模型调用/观测断言失真。
-  await pool.query('TRUNCATE ai_model_invocation');
+  // 0085 的 dispatch slot 是「派发后永不放行」的受管账本：不清它，同库重跑时
+  // slot 主键(owner,logical_node_key_digest)撞车 → ai_model_transition_dispatched_scoped
+  // 的 ON CONFLICT DO NOTHING 空转 → 误报 model_dispatch_preflight_failed。
+  await pool.query('TRUNCATE ai_model_dispatch_slot, ai_model_logical_node_header, ai_model_invocation');
   await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('R1','userA','created'),('R9','userB','created')");
   await pool.query("INSERT INTO ai_graph_run(graph_name,thread_id,owner_user_id,status) VALUES ('mock-interview','R1','userA','created')");
 

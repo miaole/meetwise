@@ -23,6 +23,8 @@ jobs:
 
   verify:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://meetwise:meetwise_dev_password@localhost:54329/meetwise
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
