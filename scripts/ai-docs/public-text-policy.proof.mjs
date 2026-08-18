@@ -12,6 +12,8 @@ import {
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
 function createFixtureRoot() {
+  // .tmp/ 是 gitignored 临时目录，干净 checkout/CI 中不存在；mkdtempSync 不会创建父目录，须先确保其存在。
+  mkdirSync(resolve(repoRoot, '.tmp'), { recursive: true });
   const fixture = mkdtempSync(resolve(repoRoot, '.tmp/public-text-policy-'));
   for (const directory of ['ai-docs', 'apps', 'packages', 'scripts']) mkdirSync(resolve(fixture, directory));
   return fixture;

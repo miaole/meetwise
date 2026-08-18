@@ -125,6 +125,10 @@
         {
           "source": "packages/ai-runtime/test/model-client-dispatch.proof.ts",
           "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/context-budget.proof.ts",
+          "class": "local-adapter-test"
         }
       ]
     },
@@ -907,6 +911,11 @@
     },
     {
       "name": "MODEL_API_KEY",
+      "source": "scripts/ecs-preview-config.proof.mjs",
+      "class": "deployment-contract"
+    },
+    {
+      "name": "MODEL_API_KEY",
       "source": "scripts/run-e2e-isolated.mjs",
       "class": "test-isolation"
     },
@@ -1154,6 +1163,11 @@
       "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
       "source": "packages/ai-runtime/src/text-endpoint-config.ts",
       "class": "adapter-configuration"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/context-budget.proof.ts",
+      "class": "test-fixture"
     },
     {
       "name": "MODEL_TEST_TRANSPORT_OVERRIDES",

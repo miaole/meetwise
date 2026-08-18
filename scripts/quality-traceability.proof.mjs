@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -138,6 +138,8 @@ const checks = {
     const inventory = traceabilityInventory(candidate, documented);
     assert.ok(inventory.orphanManifestCases.includes('TC-quality-02-E4-rewritten'));
     assert.ok(inventory.unmappedLeaves.includes('TC-quality-02-E4'));
+    // .tmp/ 是 gitignored 临时目录，干净 checkout/CI 中不存在；mkdtempSync 不会创建父目录，须先确保其存在。
+    mkdirSync(resolve(repoRoot, '.tmp'), { recursive: true });
     const fixtureRoot = mkdtempSync(resolve(repoRoot, '.tmp/meetwise-traceability-'));
     const rootLink = `${fixtureRoot}-root-link`;
     const danglingRootLink = `${fixtureRoot}-dangling-root-link`;
