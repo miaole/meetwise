@@ -58,7 +58,7 @@ export async function runQuizStream(opts: RunQuizStreamOpts): Promise<QuizViewSt
         buffer = rest;
         for (const f of frames) {
           const ev = toQuizEvent(f);
-          if (!ev) continue;
+          if (!ev || ev.id <= view.lastEventId) continue; // 客户端水位去重：重放不能重复追加题目。
           view = applyQuizEvent(view, ev);
           opts.onView(view);
           if (isQuizTerminal(view.phase)) { view = { ...view, connection: 'closed' }; opts.onView(view); return view; }

@@ -4,18 +4,45 @@
  */
 import { z } from 'zod';
 
+/**
+ * 题型来自 `packages/domain/src/adaptive-interview.ts`。保留旧值是为了让
+ * 已经落库、仍会被重放的历史事件可读；新图产生 grounded/fundamental/
+ * scenario/behavioral。这里若收窄会使完整的 question_ready 帧被丢弃，UI
+ * 便会永久停在 connecting。
+ */
+export const QuestionKind = z.enum([
+  'grounded', 'fundamental', 'scenario', 'behavioral',
+  'primary', 'followup', 'clarification', 'fallback',
+]);
+export type QuestionKind = z.infer<typeof QuestionKind>;
+
 /** 业务事件判别联合（event = SSE event 字段 = 后端 interview_event.kind）。 */
 export const BusinessEvent = z.discriminatedUnion('event', [
   z.object({ event: z.literal('progress'), id: z.number().int(), data: z.record(z.string(), z.unknown()) }),
-  z.object({ event: z.literal('question_ready'), id: z.number().int(), data: z.object({ question: z.string(), competency: z.string().optional() }) }),
+  // question identity 由服务端持久化发放；旧流可显示题面但不能取得可提交身份（UI fail-closed）。
+  z.object({ event: z.literal('question_ready'), id: z.number().int(), data: z.object({
+    question: z.string(), competency: z.string().optional(),
+    questionId: z.string().regex(/^q-v\d+-t\d+-c\d+$/).optional(),
+    stateVersion: z.number().int().nonnegative().optional(),
+    turn: z.number().int().nonnegative().optional(),
+    qkind: QuestionKind.optional(),
+  }) }),
   z.object({ event: z.literal('waiting_user'), id: z.number().int(), data: z.record(z.string(), z.unknown()) }),
   // outcome 区分 answered / unresolved(跳过/探尽未决):unresolved 不是"得0分",前端标 skipped、不展示惩罚分;报告侧亦剔除。
   z.object({ event: z.literal('answer_evaluated'), id: z.number().int(), data: z.object({ score: z.number(), outcome: z.string().optional() }) }),
-  // 引导事件(**非终态**):回答没正面回应本题 → 展示引导(想了解的是…)+ 重答同题或跳过,绝不当弱答静默加深、绝不死等。
-  z.object({ event: z.literal('clarification_needed'), id: z.number().int(), data: z.object({ hint: z.string(), question: z.string(), competency: z.string().optional() }) }),
+  // 引导事件(**非终态**):回答没正面回应本题 → 图已发放一条新的 pending question
+  // identity（不是旧题的重放许可），前端必须随事件替换提交令牌，否则重答会被服务端拒绝为 stale。
+  z.object({ event: z.literal('clarification_needed'), id: z.number().int(), data: z.object({
+    hint: z.string(), question: z.string(), competency: z.string().optional(),
+    questionId: z.string().regex(/^q-v\d+-t\d+-c\d+$/).optional(),
+    stateVersion: z.number().int().nonnegative().optional(),
+    turn: z.number().int().nonnegative().optional(),
+  }) }),
   z.object({ event: z.literal('report_ready'), id: z.number().int(), data: z.object({ overall: z.number() }) }),
   // 终态降级事件：报告生成失败被隔离 → 前端退出等待态、显示"报告暂不可用",绝不无限转圈
   z.object({ event: z.literal('report_unavailable'), id: z.number().int(), data: z.object({ reason: z.string() }) }),
+  // 评分证据不足/评分执行失败：没有可信分数，额度已释放。不得与 report_unavailable 混用；后者的面试已经完成并扣费。
+  z.object({ event: z.literal('assessment_unavailable'), id: z.number().int(), data: z.object({ reason: z.string() }).loose() }),
   z.object({ event: z.literal('interview_unavailable'), id: z.number().int(), data: z.object({ reason: z.string() }).loose() }),
   z.object({ event: z.literal('error'), id: z.number().int(), data: z.record(z.string(), z.unknown()) }),
 ]);

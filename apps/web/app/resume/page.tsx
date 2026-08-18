@@ -1,11 +1,11 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getServerToken, serverGet } from '../../lib/api/server';
-import { uploadResumeAction, uploadResumeFileAction, deleteResumeAction, reparseResumeAction, grantConsentAction } from './actions';
+import { reparseResumeAction, grantConsentAction } from './actions';
 import { startDiagnosisAction } from '../diagnosis/actions';
+import { ResumeUploadForms } from './ResumeUploadForms';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SubmitButton } from '@/components/ui/SubmitButton';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 
 export const metadata = { title: '简历 · 知面' };
@@ -14,7 +14,7 @@ type Resume = { id: string; status?: string };
 
 /**
  * 简历页(Server Component):服务端取令牌→未登录跳 /login;服务端 GET /resume 渲染列表;
- * 上传/删除/重新解析全部走 Server Action(无客户端 JS)。原文加密存储、只提结构化事实、不伪造经历。
+ * 上传与重新解析走 Server Action。完整删除仍未闭环，因此页面不提供会误导用户的删除操作。
  */
 export default async function ResumePage() {
   if (!(await getServerToken())) redirect('/login');
@@ -33,7 +33,7 @@ export default async function ResumePage() {
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">简历 · 知面</h1>
         <p className="text-sm text-muted-foreground">
-          简历原文加密存储,仅提取结构化事实,绝不伪造经历。上传前需先同意隐私政策(PIPL)。
+          用于练习的简历内容会经过当前已覆盖的存储与访问约束；只提取必要结构化事实，不编造经历。完整删除与撤回流程尚未开放。
         </p>
       </header>
 
@@ -42,13 +42,13 @@ export default async function ResumePage() {
         <Card>
           <CardHeader>
             <CardTitle>先同意隐私政策(PIPL)</CardTitle>
-            <CardDescription>上传简历会处理个人信息。请阅读并同意后再上传——原文加密存储、只提结构化事实、绝不伪造经历,你可随时导出或删除。</CardDescription>
+            <CardDescription>上传简历会处理个人信息。请阅读并同意后再上传——系统只用于练习所需的结构化提取，不编造经历。完整删除、撤回与跨存储回执流程尚未开放。</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <form action={grantConsentAction}>
               <SubmitButton pendingLabel="记录中…">我已阅读并同意隐私政策(PIPL)</SubmitButton>
             </form>
-            <p className="text-xs text-muted-foreground">同意即启用简历上传;可在<Link href="/privacy" className="underline underline-offset-4">隐私中心</Link>导出或删除你的数据。</p>
+            <p className="text-xs text-muted-foreground">同意后可启用简历上传；<Link href="/privacy" className="underline underline-offset-4">数据边界说明</Link>会标明当前可用范围与未开放流程。</p>
           </CardContent>
         </Card>
       ) : (
@@ -58,27 +58,7 @@ export default async function ResumePage() {
           <CardDescription>上传 PDF / Word / 图片文件,或直接粘贴文本——服务端自动提取并清洗。</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
-          {/* 文件上传(PDF/Word/图片):Server Action 直收 File → 服务端提取+清洗 */}
-          <form action={uploadResumeFileAction} className="flex flex-wrap items-center gap-3 rounded-xl border border-dashed bg-secondary/40 p-4">
-            <input
-              type="file" name="file" accept=".pdf,.doc,.docx,image/*" required
-              className="text-sm file:mr-3 file:rounded-md file:border file:border-input file:bg-background file:px-3 file:py-1.5 file:text-sm file:font-medium" />
-            <SubmitButton variant="outline" size="sm" pendingLabel="上传中…">提取并上传</SubmitButton>
-            <span className="w-full text-xs text-muted-foreground sm:w-auto">支持 PDF / Word(.docx)/ 图片(OCR 接线中,先用 PDF/Word)· ≤ 8MB</span>
-          </form>
-
-          <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />或粘贴文本<span className="h-px flex-1 bg-border" /></div>
-
-          <form action={uploadResumeAction} className="space-y-4">
-            <Textarea
-              name="text"
-              required
-              minLength={20}
-              placeholder="在此粘贴简历原文(至少 20 字)…"
-              className="min-h-36"
-            />
-            <SubmitButton pendingLabel="上传中…">上传简历</SubmitButton>
-          </form>
+          <ResumeUploadForms />
         </CardContent>
       </Card>
       )}
@@ -110,9 +90,9 @@ export default async function ResumePage() {
                       <form action={reparseResumeAction.bind(null, r.id)}>
                         <SubmitButton variant="outline" size="sm" pendingLabel="解析中…">重新解析</SubmitButton>
                       </form>
-                      <form action={deleteResumeAction.bind(null, r.id)}>
-                        <SubmitButton variant="outline" size="sm" className="text-destructive hover:text-destructive" pendingLabel="删除中…">删除</SubmitButton>
-                      </form>
+                      <button type="button" disabled title="完整删除与跨存储回执流程尚未开放" className="rounded-md border border-destructive/30 px-3 py-1.5 text-sm text-destructive/60 disabled:cursor-not-allowed">
+                        删除功能暂未开放
+                      </button>
                     </div>
                   </CardContent>
                 </Card>

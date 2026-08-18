@@ -74,18 +74,18 @@ async function GrowthHome() {
         </div>
       </header>
 
-      {/* ── 当前水平(分数环前置)+ stats ── */}
+      {/* ── 当前练习反馈 + stats ── */}
       <section className="grid gap-4 md:grid-cols-[260px_1fr]">
         <Card className="flex items-center gap-5 p-5">
           {ov?.avgScore != null ? <ScoreRing score={ov.avgScore} size={112} /> : (
             <div className="grid size-[112px] shrink-0 place-items-center rounded-full border-[7px] border-muted text-sm text-muted-foreground">尚无评分</div>
           )}
           <div>
-            <div className="text-[13px] text-muted-foreground">当前水平</div>
+            <div className="text-[13px] text-muted-foreground">练习反馈</div>
             <div className="mt-1 text-sm leading-relaxed text-foreground">
               {ov?.avgScore != null
-                ? '基于历次回答的平均评分,完成更多面试可让它更准。'
-                : '完成第一场面试后,这里会画出你的分数。'}
+                ? '基于当前练习记录的模型反馈，仅供个人复盘；不代表经校准的能力评定，也不能用于招聘决定。'
+                : '完成第一场练习后，这里可能显示反馈摘要；它不构成能力认证。'}
             </div>
           </div>
         </Card>

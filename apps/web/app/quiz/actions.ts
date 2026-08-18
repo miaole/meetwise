@@ -12,7 +12,6 @@ export async function startQuizAction(formData: FormData) {
   const { quizId } = await created.json().catch(() => ({ quizId: undefined }));
   if (!quizId) redirect('/quiz?error=create_failed');
   const begin = await serverFetch('/quiz/' + quizId + '/begin', { method: 'POST', headers: { 'resume-id': resumeId } });
-  // 额度不足(402)→ 引导去购买,不静默失败(无死胡同)。
-  if (begin.status === 402) redirect('/billing?need=quiz');
+  if (begin.status === 402) redirect('/quiz?error=credits_unavailable');
   redirect('/quiz/' + quizId);
 }

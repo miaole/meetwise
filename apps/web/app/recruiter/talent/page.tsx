@@ -5,13 +5,12 @@ import type { Metadata } from 'next';
 import { getServerToken, serverGet } from '@/lib/api/server';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { listWindow, withLimitHref } from '@/lib/paginate';
 
 const PAGE = 30;          // 人才库可能很大:封顶首屏渲染行数,"加载更多"递增 ?limit
 
-export const metadata: Metadata = { title: '人才库 · 招聘方 · 知面', description: '跨自有岗位聚合候选人,用同一引擎面试,数据严格隔离。' };
+export const metadata: Metadata = { title: '人才库 · 招聘方 · 知面', description: '在经授权的招聘方范围内查看必要流程状态；不提供数值排名或自动招聘决定。' };
 
 interface Talent {
   id: string; job_id: string; job_title: string; candidate_user_id: string;
@@ -22,31 +21,31 @@ const STATUS_LABEL: Record<string, { text: string; variant: 'success' | 'outline
   invited: { text: '已邀请', variant: 'outline' },
   in_progress: { text: '面试中', variant: 'outline' },
   completed: { text: '已完成', variant: 'success' },
+  assessment_unavailable: { text: '待人工复核', variant: 'outline' },
   declined: { text: '已婉拒', variant: 'destructive' },
 };
 
 /**
  * B 端人才库:跨招聘方**自有所有岗位**聚合候选人(后端 RLS 租户隔离,看不到他人租户)。
- * 服务端排序/筛选(?sort=score&order=desc&status=completed)。RSC,无死胡同(空/失败/各状态都有出口)。
+ * 服务端只按创建时间排序/筛选。评分校准发布前，B 端没有数值比较或排名入口。
  */
 export default async function TalentPoolPage({ searchParams }: { searchParams: Promise<{ sort?: string; order?: string; status?: string; limit?: string }> }) {
   if (!(await getServerToken())) redirect('/login');
   const sp = await searchParams;
   // 纵深防御:排序/筛选键白名单后再转发后端(即便后端已校验,前端也不把任意串拼进查询,杜绝 ORDER BY 注入面)。
   const qs = new URLSearchParams();
-  if (sp.sort === 'score') qs.set('sort', 'score');
   if (sp.order === 'asc' || sp.order === 'desc') qs.set('order', sp.order);
-  if (sp.status && ['invited', 'in_progress', 'completed', 'declined'].includes(sp.status)) qs.set('status', sp.status);
+  if (sp.status && ['invited', 'in_progress', 'completed', 'assessment_unavailable', 'declined'].includes(sp.status)) qs.set('status', sp.status);
   const data = await serverGet<{ talents: Talent[] }>(`/recruiter/talent${qs.toString() ? `?${qs}` : ''}`);
   const talents = data?.talents ?? null;
   const win = talents ? listWindow(talents, sp.limit, PAGE) : null;
 
-  const sortByScore = sp.sort === 'score';
   const filters: { key: string; label: string }[] = [
     { key: '', label: '全部' },
     { key: 'invited', label: '已邀请' },
     { key: 'in_progress', label: '面试中' },
     { key: 'completed', label: '已完成' },
+    { key: 'assessment_unavailable', label: '待人工复核' },
     { key: 'declined', label: '已婉拒' },
   ];
   const hrefWith = (over: Record<string, string>) => {
@@ -64,10 +63,10 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
 
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold"><Database className="size-6 text-primary" />人才库</h1>
-        <p className="mt-1 text-muted-foreground">跨你所有岗位聚合的候选人,用同一引擎面试。数据严格隔离——只见状态与评分,看不到面试内容,也看不到其他企业的候选人。</p>
+        <p className="mt-1 text-muted-foreground">在经授权的岗位范围内查看候选人的必要流程状态。页面不展示面试内容或数值评分；不提供自动筛选、排名、拒绝或录用决定，任何判断都需人工复核。</p>
       </div>
 
-      {/* 服务端筛选/排序:链接驱动(RSC 重新取数),无客户端状态 */}
+      {/* 服务端状态筛选:链接驱动(RSC 重新取数),无客户端状态。 */}
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <span className="text-muted-foreground">状态:</span>
         {filters.map((f) => (
@@ -76,9 +75,6 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
             {f.label}
           </Link>
         ))}
-        <span className="ml-2 text-muted-foreground">排序:</span>
-        <Link href={hrefWith({ sort: 'score', order: 'desc' })} className={`rounded-full border px-3 py-1 transition-colors ${sortByScore ? 'border-primary bg-primary/10 text-primary' : 'text-muted-foreground hover:border-foreground'}`}>评分高→低</Link>
-        <Link href={hrefWith({ sort: '', order: '' })} className={`rounded-full border px-3 py-1 transition-colors ${!sortByScore ? 'border-primary bg-primary/10 text-primary' : 'text-muted-foreground hover:border-foreground'}`}>最新</Link>
       </div>
 
       <Card>
@@ -91,7 +87,7 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
               还没有候选人。去<Link href="/recruiter/jobs" className="text-primary hover:underline">岗位</Link>邀请候选人,或等候选人主动投递。
             </div>
           ) : (
-            <div className="table-wrap overflow-x-auto">
+            <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">
@@ -99,7 +95,7 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
                     <th className="py-2 pr-4 font-medium">岗位</th>
                     <th className="py-2 pr-4 font-medium">来源</th>
                     <th className="py-2 pr-4 font-medium">状态</th>
-                    <th className="py-2 font-medium">评分</th>
+                    <th className="py-2 font-medium">评估</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -113,16 +109,7 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
                         </td>
                         <td className="py-3 pr-4 text-xs text-muted-foreground">{t.source === 'invited' ? '招聘方邀请' : '主动投递'}</td>
                         <td className="py-3 pr-4"><Badge variant={st.variant}>{st.text}</Badge></td>
-                        <td className="py-3">
-                          {t.score === null ? (
-                            <span className="text-muted-foreground">—</span>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <Progress value={Math.max(0, Math.min(100, t.score))} className="h-1.5 w-24" />
-                              <span className="text-xs font-semibold tabular-nums text-primary">{t.score}</span>
-                            </div>
-                          )}
-                        </td>
+                        <td className="py-3 text-muted-foreground">{t.status === 'assessment_unavailable' ? '待人工复核' : '不提供数值评分'}</td>
                       </tr>
                     );
                   })}
@@ -131,7 +118,7 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
               {win!.hasMore && (
                 <div className="mt-3 text-center">
                   <Button asChild variant="ghost" size="sm">
-                    <Link href={withLimitHref('/recruiter/talent', { sort: sp.sort, order: sp.order, status: sp.status }, win!.nextLimit)} scroll={false}>
+                    <Link href={withLimitHref('/recruiter/talent', { order: sp.order, status: sp.status }, win!.nextLimit)} scroll={false}>
                       加载更多(还有 {win!.remaining} 人)
                     </Link>
                   </Button>

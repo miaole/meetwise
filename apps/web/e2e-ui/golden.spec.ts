@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
 
 /**
  * 真浏览器黄金路径:落地页 → 注册(Server Action 设 httpOnly cookie + 服务端跳转)→ 受保护页可达。
@@ -15,7 +16,9 @@ test('golden path: landing → signup → cookie auth lets protected pages rende
 
   // 2) 进登录页,注册(唯一邮箱)
   await page.goto('/login');
-  const email = `e2e-ui-${Date.now()}@x.com`;
+  // desktop/mobile 在并行 worker 中可能同一毫秒执行；时间戳本身不是唯一键。
+  // 使用 UUID 保证跨 worker、跨重跑也不会把“账号已存在”误判成产品登录故障。
+  const email = `e2e-ui-${randomUUID()}@x.com`;
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', 'strongpw123');
   // 注册按钮:Server Action 设 mw_token cookie 并服务端 redirect 到 /dashboard

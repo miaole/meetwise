@@ -1,4 +1,5 @@
 import { getServerToken } from '../../../../../lib/api/server';
+import { proxyInterviewTranscribe } from '../../../../../lib/api/transcribe-proxy';
 
 /**
  * 同源语音转写代理:与 /turn 同模式——服务端读 httpOnly cookie 加 Bearer 转发到 api 的 /interview/:id/transcribe。
@@ -12,11 +13,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const token = await getServerToken();
   if (!token) return Response.json({ error: 'unauthorized' }, { status: 401 });
   const body = await req.text();
-  const upstream = await fetch(`${API}/interview/${encodeURIComponent(id)}/transcribe`, {
-    method: 'POST',
-    headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+  return await proxyInterviewTranscribe({
+    apiBase: API,
+    interviewId: id,
+    bearerToken: token,
     body,
+    signal: req.signal,
   });
-  const text = await upstream.text();
-  return new Response(text, { status: upstream.status, headers: { 'content-type': upstream.headers.get('content-type') ?? 'application/json' } });
 }

@@ -10,6 +10,9 @@ import { interviewDisplay, isDeadEnd } from '../lib/view-model.ts';
 import { makeInterviewApi, type FetchLike, type FetchResponse } from '../lib/api/client.ts';
 import { runInterviewStream, type StreamOpener } from '../lib/stream/interview-stream.ts';
 import type { InterviewView } from '../lib/stream/interview-state.ts';
+import { makeFrameCoalescer } from '../lib/stream/frame-coalescer.ts';
+import { interviewTurnWindow } from '../lib/stream/turn-window.ts';
+import { buildTurnSubmission } from '../lib/interview/turn-submission.ts';
 
 /** 把若干 chunk 串成异步流(模拟 ReadableStream 分块)。 */
 async function* streamOf(...chunks: string[]) { for (const c of chunks) yield c; }
@@ -32,10 +35,43 @@ function fakeFetchWith() {
 }
 
 async function main() {
+  section('渲染背压：同一动画帧内合并为最后一个视图，取消后绝不提交');
+  const animationFrames: Array<() => void> = [];
+  const rendered: number[] = [];
+  const coalescer = makeFrameCoalescer<number>(
+    (view) => rendered.push(view),
+    (flush) => { animationFrames.push(flush); return animationFrames.length - 1; },
+  );
+  coalescer.offer(1);
+  coalescer.offer(2);
+  coalescer.offer(3);
+  A('同一帧的 3 次业务更新只调度 1 次渲染', animationFrames.length === 1 && rendered.length === 0);
+  animationFrames.shift()?.();
+  A('帧回调只提交最新快照（中间状态不触发 React commit）', rendered.length === 1 && rendered[0] === 3);
+  coalescer.offer(4);
+  coalescer.cancel();
+  animationFrames.shift()?.();
+  A('组件卸载取消待渲染帧后，不会向已卸载组件提交状态', rendered.length === 1);
+
+  section('超长会话窗口：1 万轮只挂载 80 轮，翻页不累积 DOM');
+  const newestTurns = interviewTurnWindow(10_000, 0);
+  A('最新窗口精确为第 9,921–10,000 轮（80 条）', newestTurns.start === 9_920 && newestTurns.end === 10_000 && newestTurns.size === 80);
+  const oldestTurns = interviewTurnWindow(10_000, 9_999);
+  A('越界历史页会钳制到最早窗口，不产生空白或超量渲染', oldestTurns.page === 124 && oldestTurns.start === 0 && oldestTurns.end === 80 && oldestTurns.size === 80);
+
+  section('作答身份：question/answer/hash 三元组稳定且服务端可复算');
+  const submitted = await buildTurnSubmission(
+    { questionId: 'q-v1-t7-c3', stateVersion: 9, turn: 7 },
+    '原始回答，不经 trim 或规范化',
+    '0d2e58d1-5c6b-4c0a-9a75-8b67f2251d1c',
+  );
+  A('提交体保留服务端发放 questionId/stateVersion/turn 与稳定 answerId', submitted.questionId === 'q-v1-t7-c3' && submitted.stateVersion === 9 && submitted.turn === 7 && submitted.answerId === '0d2e58d1-5c6b-4c0a-9a75-8b67f2251d1c');
+  A('answerHash 为原始 UTF-8 文本 SHA-256（不因 UI trim 而漂移）', submitted.answerHash === 'fe069d0a6a303fec24317692bc6bab6708b651bd517fe8a63a0f9f9b13bb6fb2');
+
   section('SSE 解码：多帧 + 分块累积 + CRLF + 心跳/注释帧');
   const wire =
     'id: 1\nevent: question_ready\ndata: {"question":"限流器怎么设计?"}\n\n' +
-    'id: 2\nevent: answer_evaluated\ndata: {"score":68}\n\n' +
+    'id: 2\nevent: answer_evaluated\ndata: {"score":80}\n\n' +
     'id: 3\nevent: report_ready\ndata: {"overall"';
   const d1 = decodeSSE(wire);
   A('切出 2 完整帧,第 3 不完整留 rest', d1.frames.length === 2 && d1.rest.startsWith('id: 3'));
@@ -61,13 +97,20 @@ async function main() {
   ]);
   A('answer_evaluated → phase=answered(settled 显示分数,非"评估中"转圈)', v.phase === 'answered' && v.lastScore === 80);
   A('lastEventId=3(断线重连用)', v.lastEventId === 3);
-
-  // 答非所问/没答:clarification_needed = **非终态**,回到可作答态 + 挂引导(同题、不新增 turn、可跳过),下一题/评分即清引导(自动消解,无死胡同)。
-  const clar = reduceInterview([
-    toBusinessEvent({ event: 'question_ready', id: 1, data: '{"question":"Q1","competency":"并发"}' })!,
-    toBusinessEvent({ event: 'clarification_needed', id: 2, data: '{"hint":"想了解你在并发方面的真实经历,可重答或回复跳过","question":"Q1","competency":"并发"}' })!,
+  const identityView = reduceInterview([
+    toBusinessEvent({ event: 'question_ready', id: 1, data: '{"question":"Q1","questionId":"q-v1-t0-c0","stateVersion":4,"turn":0,"qkind":"grounded"}' })!,
   ]);
-  A('clarification_needed → 非终态(phase=question)+ 挂引导 + 不新增 turn(同一题)', clar.phase === 'question' && !isTerminal(clar.phase) && !!clar.guidance && clar.guidance!.hint.includes('跳过') && clar.turns.length === 1);
+  A('question_ready 身份令牌进入视图（提交不再依赖本地 turn）', identityView.questionIdentity?.questionId === 'q-v1-t0-c0' && identityView.questionIdentity.stateVersion === 4 && identityView.questionIdentity.turn === 0);
+  A('真实图题型 grounded 被消费（不能因枚举漂移卡在 connecting）', identityView.phase === 'question' && identityView.turns[0]?.qkind === 'grounded');
+
+  // 答非所问/没答:clarification_needed = **非终态**,回到可作答态 + 挂引导(不新增历史 turn、可跳过),
+  // 但提交必须换成后端新发的 identity，不能复用已经 consumed 的旧题令牌。
+  const clar = reduceInterview([
+    toBusinessEvent({ event: 'question_ready', id: 1, data: '{"question":"Q1","competency":"并发","questionId":"q-v1-t0-c0","stateVersion":4,"turn":0}' })!,
+    toBusinessEvent({ event: 'clarification_needed', id: 2, data: '{"hint":"想了解你在并发方面的真实经历,可重答或回复跳过","question":"Q1","competency":"并发","questionId":"q-v2-t1-c0","stateVersion":5,"turn":1}' })!,
+  ]);
+  A('clarification_needed → 非终态(phase=question)+ 挂引导 + 不新增历史 turn', clar.phase === 'question' && !isTerminal(clar.phase) && !!clar.guidance && clar.guidance!.hint.includes('跳过') && clar.turns.length === 1);
+  A('clarification_needed 用新 identity 替换已消费令牌，重答不会 stale', clar.questionIdentity?.questionId === 'q-v2-t1-c0' && clar.questionIdentity.stateVersion === 5 && clar.questionIdentity.turn === 1);
   const clarDisplay = interviewDisplay(clar);
   A('clarification → 显式引导文案 + 可作答出口(非死胡同、非转圈)', !isDeadEnd(clarDisplay) && clarDisplay.action.kind === 'answer' && clarDisplay.message.includes('跳过') && !clarDisplay.spinner);
   const clarResolved = applyEvent(clar, toBusinessEvent({ event: 'answer_evaluated', id: 3, data: '{"score":75}' })!);
@@ -82,6 +125,12 @@ async function main() {
   const deg = applyEvent(reduceInterview([toBusinessEvent({ event: 'waiting_user', id: 5, data: '{}' })!]),
     toBusinessEvent({ event: 'report_unavailable', id: 6, data: '{"reason":"max_attempts_exceeded"}' })!);
   A('report_unavailable → degraded 且退出等待(无限转圈防护)', deg.degraded && deg.phase === 'report_unavailable');
+  const scoreless = applyEvent(reduceInterview([toBusinessEvent({ event: 'waiting_user', id: 7, data: '{}' })!]),
+    toBusinessEvent({ event: 'assessment_unavailable', id: 8, data: '{"reason":"evaluation_unscored"}' })!);
+  const scorelessDisplay = interviewDisplay(scoreless);
+  A('assessment_unavailable → 独立终态、额度已释放提示并导向我的投递（不冒充报告不可用）',
+    scoreless.degraded && scoreless.phase === 'assessment_unavailable' && isTerminal(scoreless.phase)
+    && scorelessDisplay.action.kind === 'view_applications' && scorelessDisplay.message.includes('额度已释放'));
   A('error 事件 → phase=error(终态)', reduceInterview([toBusinessEvent({ event: 'error', id: 7, data: '{}' })!]).phase === 'error');
   // reaper 终态:worker 崩在跑 → interview_unavailable → degraded 终态(无静默转圈;承接 worker reaper:prove。quiz_unavailable→degraded 见下方押题段)。
   const ivUnavail = reduceInterview([toBusinessEvent({ event: 'interview_unavailable', id: 8, data: '{"reason":"worker_died"}' })!]);
@@ -114,14 +163,16 @@ async function main() {
   A('2xx 但形不符 → drift(告警,不裸用)', await api.getInterview('R1').then((r) => !r.ok && r.kind === 'drift'));
 
   f = fakeFetchWith();
-  api = makeInterviewApi('http://x', f.make(200, { result: 'evaluated', score: 68 }));
-  const ar = await api.submitAnswer('R1', { answer: 'hi' }, 'idem-key-1');
-  A('submitAnswer 带幂等键 → ok+判别联合', ar.ok && ar.value.result === 'evaluated');
+  const turnBody = { questionId: 'q-v1-t0-c0', stateVersion: 2, turn: 0, answer: 'hi', answerId: '0d2e58d1-5c6b-4c0a-9a75-8b67f2251d1c', answerHash: '8f434346648f6b96df89dda901c5176b10a6d5f2b0f3e7f75f1e3e2b2d3e1f62' };
+  api = makeInterviewApi('http://x', f.make(200, { accepted: true, replayed: false, jobId: 'J1' }));
+  const ar = await api.submitAnswer('R1', turnBody, 'idem-key-1');
+  A('submitAnswer 带幂等键 → ok+判别联合', ar.ok && ar.value.accepted === true && ar.value.replayed === false);
   A('请求确实带上 idempotency-key 头(后端必需)', f.calls.at(-1)?.headers?.['idempotency-key'] === 'idem-key-1');
-  const noKey = await makeInterviewApi('http://x', fakeFetchWith().make(200, {})).submitAnswer('R1', { answer: 'hi' }, '');
+  A('提交走 /turn 且请求体含服务端 questionId', f.calls.at(-1)?.url.endsWith('/interview/R1/turn') === true && f.calls.at(-1)?.body?.includes('q-v1-t0-c0') === true);
+  const noKey = await makeInterviewApi('http://x', fakeFetchWith().make(200, {})).submitAnswer('R1', turnBody, '');
   A('缺幂等键 → 本地拦为 business 错(不发无效请求)', !noKey.ok && (noKey as any).error === 'missing_idempotency_key');
-  const badReq = await makeInterviewApi('http://x', fakeFetchWith().make(200, {})).submitAnswer('R1', { answer: '' } as any, 'k');
-  A('空答案违反 AnswerDto → 本地 invalid_request,不发请求', !badReq.ok && badReq.kind === 'invalid_request');
+  const badReq = await makeInterviewApi('http://x', fakeFetchWith().make(200, {})).submitAnswer('R1', { ...turnBody, answerHash: 'bad' }, 'k');
+  A('非法 question/answer 身份契约 → 本地 invalid_request,不发请求', !badReq.ok && badReq.kind === 'invalid_request');
 
   section('SSE 驱动：读流→续状态→终态收尾（端到端,无浏览器）');
   const noSleep = async () => {};
@@ -130,6 +181,11 @@ async function main() {
     onView: () => {}, sleep: noSleep,
   });
   A('驱动跑到 report_ready 终态收尾(connection=closed)', happy.phase === 'report_ready' && happy.connection === 'closed' && happy.report?.overall === 74);
+  const duplicateInterview = await runInterviewStream({
+    open: () => streamOf(ev(1, 'question_ready', { question: 'Q1' }), ev(1, 'question_ready', { question: 'Q1 重放' }), ev(2, 'report_ready', { overall: 74 })),
+    onView: () => {}, sleep: noSleep,
+  });
+  A('重复 SSE id 不会重复归约/重复渲染题目', duplicateInterview.turns.length === 1 && duplicateInterview.turns[0]?.q === 'Q1');
 
   section('SSE 驱动：断线自动重连,凭 Last-Event-ID 续(不丢不重)');
   const seenLastIds: number[] = [];
@@ -263,7 +319,7 @@ async function main() {
   const qExhaust = await runQuizStream({ open: () => { qOpens++; return streamOf(ev(1, 'progress', {})); }, onView: () => {}, sleep: noSleep, maxRetries: 2 });
   A('永不出终态 → 有界重连后 degraded(不无限转圈)', qExhaust.degraded && qExhaust.connection === 'closed' && qOpens <= 3);
   const qReplay = await runQuizStream({   // 用户打开一个已完成押题:服务端一次性重放全部事件含终态
-    open: () => streamOf(ev(1, 'question_ready', { question: 'Q1', refs: [] }), ev(2, 'question_ready', { question: 'Q2', refs: [] }), ev(3, 'quiz_ready', { count: 2, report: { score: 80, grounded: 2, summary: 's' } })),
+    open: () => streamOf(ev(1, 'question_ready', { question: 'Q1', refs: [] }), ev(2, 'question_ready', { question: 'Q2', refs: [] }), ev(2, 'question_ready', { question: 'Q2 重放', refs: [] }), ev(3, 'quiz_ready', { count: 2, report: { score: 80, grounded: 2, summary: 's' } })),
     onView: () => {}, sleep: noSleep,
   });
   A('已就绪押题重放 → 一次到 ready,题目齐(无重连)', qReplay.phase === 'ready' && qReplay.questions.length === 2);
@@ -312,6 +368,11 @@ async function main() {
     onView: () => {}, sleep: noSleep,
   });
   A('驱动跑到 diagnosis_ready 终态收尾(closed)', dHappy.phase === 'ready' && dHappy.connection === 'closed' && dHappy.sections.length === 1);
+  const dDuplicate = await runDiagnosisStream({
+    open: () => streamOf(ev(1, 'section_ready', { kind: 'highlight', title: 'h', findings: [] }), ev(1, 'section_ready', { kind: 'risk', title: '重放', findings: [] }), ev(2, 'diagnosis_ready', { sectionCount: 1, rewrites: [] })),
+    onView: () => {}, sleep: noSleep,
+  });
+  A('诊断流重复 SSE id 不会重复追加区块', dDuplicate.sections.length === 1 && dDuplicate.sections[0]?.title === 'h');
   const dSeen: number[] = [];
   const dResumed = await runDiagnosisStream({
     open: (lastId) => { dSeen.push(lastId); return lastId === 0

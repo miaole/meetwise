@@ -1,14 +1,11 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { Building2, Plus, ArrowRight } from 'lucide-react';
+import { Building2, ArrowRight } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getServerToken, serverGet } from '@/lib/api/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { SubmitButton } from '@/components/ui/SubmitButton';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { createJobAction } from './actions';
+import { JobCreateForm } from './JobCreateForm';
 
 export const metadata: Metadata = { title: '招聘方 · 岗位 · 知面', description: '招聘方发布岗位并按目标能力组织面试。' };
 
@@ -32,17 +29,7 @@ export default async function RecruiterJobsPage() {
           <CardDescription>填岗位名 + 目标能力(逗号分隔)。</CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={createJobAction} className="space-y-3">
-            <div className="space-y-2">
-              <Label htmlFor="title">岗位名称</Label>
-              <Input id="title" name="title" placeholder="如:高级后端工程师" required minLength={2} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="competencies">目标能力(逗号分隔)</Label>
-              <Input id="competencies" name="competencies" placeholder="高并发, 分布式锁, 限流, 系统设计" />
-            </div>
-            <SubmitButton pendingLabel="发布中…"><Plus className="size-4" />发布岗位</SubmitButton>
-          </form>
+          <JobCreateForm />
         </CardContent>
       </Card>
 

@@ -18,7 +18,7 @@ type Notification = { id: string; kind: string; payload: Record<string, any>; re
 
 const KIND_LABELS: Record<string, string> = {
   report_ready: '面试报告已就绪',
-  assessment_ready: '能力评估已就绪',
+  assessment_ready: '练习反馈已就绪',
 };
 function labelOf(kind: string): string {
   return KIND_LABELS[kind] ?? kind;
@@ -80,7 +80,7 @@ export default async function NotificationsPage({ searchParams }: { searchParams
                     </div>
                     {(score != null || (n.kind === 'report_ready' && interviewId)) && (
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                        {score != null && <span>综合评分: {score}</span>}
+                        {score != null && <span>本次练习反馈: {score}（仅供个人复盘）</span>}
                         {n.kind === 'report_ready' && interviewId && (
                           <Link href={`/report/${interviewId}`} className="font-medium text-primary hover:underline">
                             查看报告 →

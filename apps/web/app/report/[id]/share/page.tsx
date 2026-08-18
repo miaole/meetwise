@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { getServerToken, serverGet } from '@/lib/api/server';
 import { SharePoster, type PosterDim } from '@/components/SharePoster';
+import { publicSiteHref } from '@/lib/public-site';
 
 export const metadata = { title: '分享海报 · 知面' };
 
@@ -11,14 +12,14 @@ type Report = { status: ReportStatus; content: { overall: number; sections: Arra
 type Dimension = { dimension: string; score: number; gap?: boolean; evidence?: string };
 type Assessment = { status?: string; dimensions?: Dimension[]; overall?: number };
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://meetwise.example';
+const SITE = publicSiteHref();
 
-/** 按综合分给一句【通用】文案——无任何 PII / 简历 / 回答内容,仅按分档选词。 */
+/** 按练习反馈给一句通用文案——无任何 PII / 简历 / 回答内容。 */
 function tastefulLine(overall: number): string {
-  if (overall >= 85) return '稳扎稳打,结构与表达都立住了';
-  if (overall >= 70) return '在知面认真练过,临场更稳了';
-  if (overall >= 55) return '正在把面试能力一点点磨出来';
-  return '每一场练习,都是离 offer 更近一步';
+  if (overall >= 85) return '本次练习呈现出较完整的表达结构';
+  if (overall >= 70) return '继续用具体经历支撑你的表达';
+  if (overall >= 55) return '把一个关键经历讲得更具体一些';
+  return '每一场练习都可以帮助你发现下一步要补足的表达';
 }
 
 /**
@@ -45,9 +46,9 @@ export default async function SharePosterPage({ params }: { params: Promise<{ id
     return (
       <main className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center px-4 py-16 text-center">
         <div className="text-xs font-medium uppercase tracking-wide text-primary">分享海报</div>
-        <h1 className="mt-3 font-serif text-2xl font-bold tracking-tight">报告就绪后可生成海报</h1>
+        <h1 className="mt-3 font-serif text-2xl font-bold tracking-tight">练习反馈就绪后可生成海报</h1>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          这场面试的报告还没生成完成,等报告就绪后再回来,就能一键生成专属的能力评估海报。
+          这场练习的反馈还没生成完成，完成后可生成一张不含回答内容的练习反馈海报。
         </p>
         <Link
           href={'/report/' + id}
@@ -84,10 +85,10 @@ export default async function SharePosterPage({ params }: { params: Promise<{ id
       </div>
 
       <header className="mb-7 text-center">
-        <div className="text-xs font-medium uppercase tracking-wide text-primary">运营 · 分享海报</div>
-        <h1 className="mt-3 font-serif text-2xl font-bold tracking-tight sm:text-3xl">生成你的能力评估海报</h1>
+        <div className="text-xs font-medium uppercase tracking-wide text-primary">分享海报</div>
+        <h1 className="mt-3 font-serif text-2xl font-bold tracking-tight sm:text-3xl">生成你的练习反馈海报</h1>
         <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-          一张克制好看的成绩卡,只含综合评分与能力维度,不含任何简历或回答内容。分享到社交平台,邀请朋友一起练。
+          海报只展示本次练习的聚合反馈，不含简历或回答内容。它不代表能力认证，也不能用于招聘、资格或录用判断。
         </p>
       </header>
 

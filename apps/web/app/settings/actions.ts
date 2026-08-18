@@ -1,8 +1,6 @@
 'use server';
 import { serverFetch } from '../../lib/api/server';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
 
 export async function saveSettingsAction(formData: FormData) {
   const preferences = {
@@ -38,11 +36,4 @@ export async function changePasswordAction(
   if (!res.ok) return { error: '修改失败,请稍后重试(' + res.status + ')' };
   revalidatePath('/settings');
   return { ok: true };
-}
-
-export async function deactivateAction() {
-  const res = await serverFetch('/profile/deactivate', { method: 'POST' });
-  if (!res.ok) throw new Error(`deactivate_failed_${res.status}`);   // 注销失败 → 落错误边界,**绝不假装成功还把人登出**(误成功比报错更糟)
-  (await cookies()).delete('mw_token');
-  redirect('/login');
 }

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getServerToken, serverGet } from '../../lib/api/server';
-import { saveSettingsAction, deactivateAction } from './actions';
+import { saveSettingsAction } from './actions';
 import { ChangePasswordForm } from './ChangePasswordForm';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { SubmitButton } from '@/components/ui/SubmitButton';
@@ -84,20 +84,18 @@ export default async function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-destructive/50 bg-destructive/5">
+        <Card className="border-destructive/30 bg-muted/40">
           <CardHeader>
-            <CardTitle className="text-destructive">账户注销(危险操作)</CardTitle>
-            <CardDescription className="text-destructive/80">
-              注销后账户将被停用,需重新激活方可继续使用。
+            <CardTitle>账户注销暂未开放</CardTitle>
+            <CardDescription>
+              账户注销与其关联的数据处置需要独立的授权、删除与回执流程。该流程完成验证前，本站不接受或伪装完成注销请求。
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form action={deactivateAction}>
-              <SubmitButton variant="destructive" pendingLabel="注销中…">注销账户</SubmitButton>
-            </form>
+            <button type="button" disabled className="rounded-md border px-3 py-2 text-sm text-muted-foreground disabled:cursor-not-allowed">账户注销暂未开放</button>
           </CardContent>
         </Card>
-        <p className="text-sm"><a href="/privacy" className="text-muted-foreground hover:text-foreground">隐私与数据(导出 / 删除我的数据)→</a></p>
+        <p className="text-sm"><a href="/privacy" className="text-muted-foreground hover:text-foreground">数据边界与导出范围 →</a></p>
       </div>
     </div>
   );

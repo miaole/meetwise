@@ -21,7 +21,7 @@ import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 type NavLink = { href: string; label: string };
 
 /** 顶部导航(Server Component:读 cookie 判登录态 + **角色化**(C端求职者 / B端招聘方两套链接)+ i18n + 语言切换)。
- *  营销态在 H5 折叠进 Sheet(汉堡菜单),登录态用 Avatar + DropdownMenu 收纳账户操作。 */
+ *  未登录态展示完整产品导航 title(点击统一跳登录页,由 middleware / 页面内 redirect 兜底),登录态用 Avatar + DropdownMenu 收纳账户操作;H5 折叠进 Sheet(汉堡菜单)。 */
 export async function Nav() {
   const ck = await cookies();
   const authed = !!(await getServerToken());
@@ -30,29 +30,27 @@ export async function Nav() {
   const linkCls = 'text-sm text-muted-foreground transition-colors hover:text-foreground';
   const home = isRecruiter ? '/recruiter/jobs' : '/dashboard';
 
-  const appLinks: NavLink[] = isRecruiter
-    ? [
-        { href: '/recruiter/jobs', label: '岗位' },
-        { href: '/recruiter/talent', label: '人才库' },
-        { href: '/settings', label: t('settings') },
-      ]
-    : [
-        { href: '/dashboard', label: t('dashboard') },
-        { href: '/growth', label: t('growth') },
-        { href: '/resume', label: t('resume') },
-        { href: '/interviews', label: t('interviews') },
-        { href: '/quiz', label: '押题' },
-        { href: '/jobs', label: '找工作' },
-        { href: '/notifications', label: t('notifications') },
-        { href: '/billing', label: t('billing') },
-        { href: '/settings', label: t('settings') },
-      ];
-
-  const marketingLinks: NavLink[] = [
-    { href: '/features', label: t('features') },
-    { href: '/pricing', label: t('pricing') },
-    { href: '/faq', label: t('faq') },
+  // C 端(求职者)导航清单:登录后展示真实路由;未登录复用同一份清单,渲染时把 href 改写为 /login(门禁)。
+  const candidateLinks: NavLink[] = [
+    { href: '/dashboard', label: t('dashboard') },
+    { href: '/growth', label: t('growth') },
+    { href: '/resume', label: t('resume') },
+    { href: '/interviews', label: t('interviews') },
+    { href: '/quiz', label: '押题' },
+    { href: '/jobs', label: '找工作' },
+    { href: '/notifications', label: t('notifications') },
+    { href: '/pricing', label: t('billing') },
+    { href: '/settings', label: t('settings') },
   ];
+
+  // B 端(招聘方)导航清单:登录后按角色切换。
+  const recruiterLinks: NavLink[] = [
+    { href: '/recruiter/jobs', label: '岗位' },
+    { href: '/recruiter/talent', label: '人才库' },
+    { href: '/settings', label: t('settings') },
+  ];
+
+  const appLinks: NavLink[] = isRecruiter ? recruiterLinks : candidateLinks;
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/65">
@@ -97,10 +95,10 @@ export async function Nav() {
         </>
       ) : (
         <>
-          {/* 营销链接:PC 内联 */}
-          <div className="hidden items-center gap-5 md:flex">
-            {marketingLinks.map((l) => (
-              <Link key={l.href} href={l.href} className={linkCls}>{l.label}</Link>
+          {/* 未登录:PC 内联展示完整产品导航 title(与登录后 C 端一致),点击统一跳登录页(门禁) */}
+          <div className="hidden flex-wrap items-center gap-x-4 gap-y-1 md:flex">
+            {candidateLinks.map((l) => (
+              <Link key={l.href} href="/login" className={linkCls}>{l.label}</Link>
             ))}
           </div>
           <div className="ml-auto flex items-center gap-2">
@@ -118,9 +116,9 @@ export async function Nav() {
                   <SheetTitle>{t('brand')}</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 flex flex-col gap-1">
-                  {marketingLinks.map((l) => (
+                  {candidateLinks.map((l) => (
                     <SheetClose asChild key={l.href}>
-                      <Link href={l.href} className="rounded-md px-2 py-2 text-sm text-foreground transition-colors hover:bg-accent">{l.label}</Link>
+                      <Link href="/login" className="rounded-md px-2 py-2 text-sm text-foreground transition-colors hover:bg-accent">{l.label}</Link>
                     </SheetClose>
                   ))}
                   <Separator className="my-3" />

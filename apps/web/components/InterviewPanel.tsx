@@ -4,13 +4,16 @@
  * 真会话:对话历史(逐题 + 所探能力 + **追问/换题标记** + 逐答评分)+ 当前题**打字流式渲染**(贴近流式输出)+ 作答输入。
  * 自适应引擎做追问(同能力=追问 probe、换能力=pivot);面板把它呈现出来。无死胡同由 view-model 保证。
  */
-import { useEffect, useRef, useState } from 'react';
-import { Loader2, Mic, Send, Square, CornerDownRight, Sparkle, Phone } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Loader2, Mic, Send, Square, CornerDownRight, Sparkle } from 'lucide-react';
 import { toast } from 'sonner';
+import { VOICE_CAPTURE_POLICY_VERSION } from '@meetwise/contracts';
 import { useInterviewStream } from '@/lib/hooks/useInterviewStream';
 import { Markdown } from '@/components/Markdown';
 import { VoiceCallPanel } from '@/components/VoiceCallPanel';
 import { Thinking } from '@/components/ui/Thinking';
+import { interviewTurnWindow, VISIBLE_TURN_LIMIT } from '@/lib/stream/turn-window';
+import { buildTurnSubmission, newAnswerId } from '@/lib/interview/turn-submission';
 
 /** Blob → base64(剥掉 data:URL 前缀)。FileReader 路径避免大数组 btoa 爆栈。 */
 function blobToBase64(blob: Blob): Promise<string> {
@@ -58,23 +61,51 @@ function Typewriter({ text }: { text: string }) {
   return <Markdown>{text}</Markdown>;
 }
 
-export function InterviewPanel({ resultId }: { resultId: string }) {
+export function InterviewPanel({ resultId, applicationId }: { resultId: string; applicationId?: string }) {
   const { view, display } = useInterviewStream(resultId);
-  const [mode, setMode] = useState<'text' | 'call'>('text');   // 打字 / 全程电话(语音)模式,共用同一条 SSE 流
+  const [mode, setMode] = useState<'text' | 'voice'>('text');  // 打字 / 单人本机语音模式,共用同一条 SSE 流
   const [answer, setAnswer] = useState('');
   const [answers, setAnswers] = useState<Record<number, string>>({});   // turnIndex → 已提交答案(本地保留以显示对话)
-  const [turn, setTurn] = useState(0);
+  // 仅平移窗口，不“加载更多后继续堆 DOM”：极长事件回放也始终最多渲染 80 轮。
+  const [historyPage, setHistoryPage] = useState(0);
   const [rec, setRec] = useState<'idle' | 'recording' | 'transcribing'>('idle');   // 语音作答状态机
   const [submitting, setSubmitting] = useState(false);   // 已提交答案↔下一题到达之间的"AI 思考中"桥接(本地态,SSE 推进即清)
   const [voiceErr, setVoiceErr] = useState<string | null>(null);
+  const [voiceCaptureConsented, setVoiceCaptureConsented] = useState(false);
+  const [voiceConsentPrompt, setVoiceConsentPrompt] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const endRef = useRef<HTMLDivElement>(null);
   const submitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // 同 question + 原始文本的网络重试复用同一 answerId；改一个字符即是新尝试。
+  const answerAttemptIdsRef = useRef<Map<string, string>>(new Map());
+  const finalizedApplicationRef = useRef<string | null>(null);
   const canAnswer = display.action.kind === 'answer';
   const lastIdx = view.turns.length - 1;
+  const turnWindow = useMemo(() => interviewTurnWindow(view.turns.length, historyPage), [view.turns.length, historyPage]);
+  const visibleTurns = useMemo(() => view.turns.slice(turnWindow.start, turnWindow.end), [view.turns, turnWindow.start, turnWindow.end]);
 
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [view.turns.length, display.action.kind]);
+  useEffect(() => { if (historyPage === 0) endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [view.turns.length, display.action.kind, historyPage]);
+  useEffect(() => { setHistoryPage(0); }, [resultId]);
+  useEffect(() => { answerAttemptIdsRef.current.clear(); setAnswer(''); setAnswers({}); }, [resultId]);
+  // 岗位面试完成后确认回填。即便 URL applicationId 被改写，代理/API 也不会接收 interviewId，
+  // 而是从 application 的持久化绑定校验 owner/job/resume/终态；数据库 trigger 还是浏览器关闭时的兜底。
+  useEffect(() => {
+    if (!applicationId || !['report_ready', 'report_unavailable', 'assessment_unavailable'].includes(view.phase) || finalizedApplicationRef.current === applicationId) return;
+    let cancelled = false;
+    const finalize = async () => {
+      const res = await fetch(`/api/applications/${encodeURIComponent(applicationId)}/finalize`, {
+        method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}',
+      });
+      if (cancelled) return;
+      if (res.ok) { finalizedApplicationRef.current = applicationId; return; }
+      // 不在面试 UI 静默伪造“企业已收到结果”；触发器通常已处理，若未处理则给出可恢复提示。
+      toast.error('岗位评估结果暂未同步，可稍后从“我的投递”继续确认');
+    };
+    void finalize();
+    return () => { cancelled = true; };
+  }, [applicationId, view.phase]);
+  useEffect(() => { finalizedApplicationRef.current = null; }, [applicationId, resultId]);
   // SSE 一旦推进(新题/评分/终态/降级),清掉本地"思考中"桥接,交回 display 驱动(避免双 spinner / 卡死)。
   useEffect(() => {
     setSubmitting(false);
@@ -106,7 +137,11 @@ export function InterviewPanel({ resultId }: { resultId: string }) {
         const b64 = await blobToBase64(blob);
         const res = await fetch(`/api/interview/${encodeURIComponent(resultId)}/transcribe`, {
           method: 'POST', headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ audioBase64: b64, mimeType: blob.type }),
+          body: JSON.stringify({
+            audioBase64: b64,
+            mimeType: blob.type,
+            capture: { mode: 'single_local_microphone', consent: true, policyVersion: VOICE_CAPTURE_POLICY_VERSION },
+          }),
         });
         if (!res.ok) {
           const j = await res.json().catch(() => ({} as any));
@@ -126,7 +161,8 @@ export function InterviewPanel({ resultId }: { resultId: string }) {
   }
   function toggleVoice() {
     if (rec === 'recording') { try { recorderRef.current?.stop(); } catch { setRec('idle'); } }
-    else if (rec === 'idle') void startRecording();
+    else if (rec === 'idle' && voiceCaptureConsented) void startRecording();
+    else if (rec === 'idle') setVoiceConsentPrompt(true);
   }
 
   function clearSubmitBridge() {
@@ -137,17 +173,22 @@ export function InterviewPanel({ resultId }: { resultId: string }) {
   async function submit(overrideText?: string) {
     const sent = overrideText ?? answer;          // 锁定本次作答文本(跳过传 '跳过';失败可保留在框内重试)
     if (!sent.trim() || submitting) return;       // 防空答 / 防双提交(in-flight 期间再点直接忽略)
-    const sentTurn = turn;                        // 锁定本回合序号:body/幂等键/计数推进都用它,避免 30s 兜底重开输入后计数错位
+    const identity = view.questionIdentity;
+    if (!identity) { toast.error('题目安全身份尚未就绪，为防止陈旧回答误入账，请刷新或稍后重试'); return; }
+    const attemptKey = `${identity.questionId}\u0000${sent}`;
+    const answerId = answerAttemptIdsRef.current.get(attemptKey) ?? newAnswerId();
+    answerAttemptIdsRef.current.set(attemptKey, answerId);
     setSubmitting(true);   // 立刻进入"AI 思考中",填满提交↔评分/下一题的间隙(下条 SSE 事件会清掉)
     // 兜底:即使提交请求异常 / 流迟迟不推进,也在 30s 后退回作答态,绝不把用户永久卡在"思考中"。
     if (submitTimerRef.current) clearTimeout(submitTimerRef.current);
     submitTimerRef.current = setTimeout(() => setSubmitting(false), 30000);
     setAnswers((m) => ({ ...m, [lastIdx]: sent }));   // 乐观回显;失败时回滚
     try {
+      const body = await buildTurnSubmission(identity, sent, answerId);
       const res = await fetch(`/api/interview/${encodeURIComponent(resultId)}/turn`, {
         method: 'POST',
-        headers: { 'content-type': 'application/json', 'idempotency-key': `${resultId}:turn:${sentTurn}` },
-        body: JSON.stringify({ turn: sentTurn, answer: sent }),
+        headers: { 'content-type': 'application/json', 'idempotency-key': `${resultId}:question:${body.questionId}:answer:${body.answerId}` },
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({} as any));
@@ -157,16 +198,15 @@ export function InterviewPanel({ resultId }: { resultId: string }) {
         return;
       }
       setAnswer('');                                       // 仅成功才清空作答框
-      setTurn((t) => (t > sentTurn ? t : sentTurn + 1));   // 幂等推进:同一回合即使重复成功也只前进一格(失败保持同键以便重试)
     } catch {
-      toast.error('网络错误,提交未成功,请重试');
+      toast.error('提交未成功，请重试');
       setAnswers((m) => { const n = { ...m }; delete n[lastIdx]; return n; });
       clearSubmitBridge();
     }
   }
 
-  // 全程电话模式:同一条 useInterviewStream 驱动,语音「说→听→转写→提交→下一题」连续进行。
-  if (mode === 'call') {
+  // 单人语音模式:同一条 useInterviewStream 驱动,语音「说→听→转写→提交→下一题」连续进行。
+  if (mode === 'voice') {
     return (
       <div className="mx-auto max-w-2xl">
         <VoiceCallPanel resultId={resultId} view={view} display={display} onSwitchToText={() => setMode('text')} />
@@ -180,11 +220,11 @@ export function InterviewPanel({ resultId }: { resultId: string }) {
         <h2 className="font-semibold tracking-tight">模拟面试</h2>
         <div className="flex items-center gap-3">
           <button
-            type="button" onClick={() => setMode('call')}
-            title="全程语音通话:AI 朗读题目,你说话作答,像打电话一样连续面试"
+            type="button" onClick={() => setMode('voice')}
+            title="单人语音模式：AI 朗读题目，你通过本机麦克风作答；不接入电话或另一位参与者"
             className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium hover:border-primary hover:text-primary"
           >
-            <Phone className="size-3.5" />电话模式
+            <Mic className="size-3.5" />语音模式
           </button>
           <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
             <span className={`size-1.5 rounded-full ${view.connection === 'live' ? 'animate-pulse bg-primary' : 'bg-muted-foreground'}`} />
@@ -195,10 +235,22 @@ export function InterviewPanel({ resultId }: { resultId: string }) {
 
       {/* 对话历史 */}
       <div className="space-y-4">
-        {view.turns.map((t, i) => {
+        {turnWindow.maxPage > 0 && (
+          <div data-testid="history-window" className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground" role="status">
+            <span>显示第 {turnWindow.start + 1}–{turnWindow.end} 轮 / 共 {view.turns.length} 轮（每页最多 {VISIBLE_TURN_LIMIT} 轮，保护长会话性能）</span>
+            <span className="flex gap-2">
+              <button type="button" onClick={() => setHistoryPage((p) => Math.min(turnWindow.maxPage, p + 1))} disabled={turnWindow.page >= turnWindow.maxPage}
+                className="rounded border bg-background px-2 py-1 disabled:opacity-50">查看更早 {VISIBLE_TURN_LIMIT} 条</button>
+              <button type="button" onClick={() => setHistoryPage((p) => Math.max(0, p - 1))} disabled={turnWindow.page === 0}
+                className="rounded border bg-background px-2 py-1 disabled:opacity-50">返回较新内容</button>
+            </span>
+          </div>
+        )}
+        {visibleTurns.map((t, localIndex) => {
+          const i = turnWindow.start + localIndex;
           const isCurrent = i === lastIdx && canAnswer;
           return (
-            <div key={i} className="space-y-2">
+            <div key={i} data-testid="interview-turn" className="space-y-2">
               {/* 题:追问/换题标记 + 能力 */}
               <div className="rounded-lg border bg-card p-4 shadow-[0_1px_0_rgba(26,26,26,.03),0_8px_24px_-18px_rgba(26,26,26,.25)]">
                 <div className="mb-2 flex items-center gap-2 text-xs">
@@ -237,7 +289,8 @@ export function InterviewPanel({ resultId }: { resultId: string }) {
       )}
       {display.report && (
         <div className="rounded-lg border bg-accent p-4 text-center text-accent-foreground">
-          面试完成 · 综合评分 <span className="text-2xl font-extrabold text-primary">{display.report.overall}</span>
+          练习完成 · 本次练习反馈 <span className="text-2xl font-extrabold text-primary">{display.report.overall}</span>
+          <p className="mt-1 text-xs text-muted-foreground">仅供个人复盘，不用于招聘决定。</p>
         </div>
       )}
       {display.degraded && <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{display.message}</p>}
@@ -251,7 +304,7 @@ export function InterviewPanel({ resultId }: { resultId: string }) {
       )}
 
       {/* 作答输入(思考中时收起,交给上方"AI 思考中"占位;30s 兜底必回作答态,无死胡同) */}
-      {canAnswer && !submitting && (
+      {canAnswer && !submitting && view.questionIdentity && (
         <div className="sticky bottom-4 space-y-2 rounded-lg border bg-card p-3 shadow-[0_1px_0_rgba(26,26,26,.03),0_8px_24px_-18px_rgba(26,26,26,.25)]">
           <textarea
             value={answer} onChange={(e) => setAnswer(e.target.value)} rows={3}
@@ -282,12 +335,51 @@ export function InterviewPanel({ resultId }: { resultId: string }) {
               <Send className="size-4" />提交</button>
           </div>
           {voiceErr && <p role="alert" className="px-1 text-xs text-destructive">{voiceErr}</p>}
+          {voiceCaptureConsented && rec === 'idle' && (
+            <button
+              type="button"
+              onClick={() => setVoiceCaptureConsented(false)}
+              className="px-1 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+            >
+              停止本页面后续语音录入
+            </button>
+          )}
+          {voiceConsentPrompt && rec === 'idle' && (
+            <section role="dialog" aria-modal="true" aria-labelledby="single-track-consent-title" className="rounded-md border border-primary/30 bg-secondary/50 p-3 text-sm">
+              <h3 id="single-track-consent-title" className="font-medium">启用本机单人语音录入</h3>
+              <p className="mt-1 leading-relaxed text-muted-foreground">
+                仅采集当前这台设备的一个麦克风片段，并即时发送给转写服务；原始音频不保存。它不是电话或会议接入，不能录入另一位参与者，也不提供说话人分离或逐词时间戳。
+              </p>
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setVoiceCaptureConsented(true); setVoiceConsentPrompt(false); void startRecording(); }}
+                  className="rounded bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                >
+                  同意并开始录音
+                </button>
+                <button type="button" onClick={() => setVoiceConsentPrompt(false)} className="rounded border px-3 py-1.5 text-xs hover:border-primary">
+                  取消
+                </button>
+              </div>
+            </section>
+          )}
         </div>
+      )}
+      {canAnswer && !submitting && !view.questionIdentity && (
+        <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">题目安全身份缺失，已禁止提交以避免陈旧回答被错误评分；请刷新或稍后重试。</p>
       )}
       {display.action.kind === 'retry' && (
         <button
           onClick={(e) => { e.currentTarget.disabled = true; e.currentTarget.setAttribute('aria-busy', 'true'); location.reload(); }}
           className="inline-flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm hover:border-primary disabled:cursor-not-allowed disabled:opacity-50">
+          {display.action.label}
+        </button>
+      )}
+      {display.action.kind === 'view_applications' && (
+        <button
+          onClick={() => { location.assign('/jobs'); }}
+          className="inline-flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm hover:border-primary">
           {display.action.label}
         </button>
       )}

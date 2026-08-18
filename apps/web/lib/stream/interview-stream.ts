@@ -6,8 +6,8 @@
  * 不变量:① 终态(report_ready/unavailable/error)→ 收尾返回,不再重连;② 非终态断流/传输错 → reconnecting,凭 lastEventId 续(seq>lastId 重放,不丢不重);
  *        ③ 重连耗尽 → degraded 出口,停止;④ 本次连接有进展(收到帧)→ 重置重试计数(健康的 flapping 不误判耗尽)。
  */
-import { decodeSSE, toBusinessEvent } from './business-events';
-import { applyEvent, initialView, isTerminal, onStreamClosed, onReconnectExhausted, type InterviewView } from './interview-state';
+import { decodeSSE, toBusinessEvent, type BusinessEvent } from './business-events';
+import { applyEvents, initialView, isTerminal, onStreamClosed, onReconnectExhausted, type InterviewView } from './interview-state';
 
 /** 打开 SSE 流：真实实现 fetch(url, {headers:{'last-event-id': String(lastEventId)}, signal}) 返回 res.body 的字符串分块异步迭代;
  *  此处注入便于确定性单测。lastEventId>0 时带 Last-Event-ID 头让服务端从 seq>lastEventId 重放;signal 用于卸载取消。 */
@@ -54,10 +54,20 @@ export async function runInterviewStream(opts: RunStreamOpts): Promise<Interview
         if (buffer.length > maxBuf) throw new Error('sse_buffer_overflow'); // 防无分隔符流无限增长 → 当失败重连
         const { frames, rest } = decodeSSE(buffer);
         buffer = rest;
+        const events: BusinessEvent[] = [];
+        let highestId = view.lastEventId;
         for (const f of frames) {
           const ev = toBusinessEvent(f);
-          if (!ev) continue;                                            // 心跳/未知/坏帧:跳过
-          view = applyEvent(view, ev);
+          // 服务器按 seq>Last-Event-ID 重放，但代理、切换网络或错误客户端仍可能投递重复帧。
+          // 在归约前拒绝 <= 水位的帧，防止重复题目/重复区块/重复 React 更新。
+          if (!ev || ev.id <= highestId) continue;
+          events.push(ev);
+          highestId = ev.id;
+        }
+        // One decoded network chunk now has one immutable view snapshot and one UI publication. This protects the
+        // reducer itself from O(n²) history copies; the React bridge then further coalesces multiple chunks to rAF.
+        if (events.length) {
+          view = applyEvents(view, events);
           opts.onView(view);
           if (isTerminal(view.phase)) { view = { ...view, connection: 'closed' }; opts.onView(view); return view; } // 终态收尾
         }

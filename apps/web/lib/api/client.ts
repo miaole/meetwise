@@ -3,7 +3,7 @@
  * 审计 HIGH 修复:① 不再 status-盲——4xx=业务错(可降级)、5xx/网络=传输错(可重试)、2xx 但形不符=契约漂移,三者分开,绝不混成不透明抛错;
  * ② submitAnswer **强制 Idempotency-Key**(后端必需,缺则 400);③ 返回类型化 Result,不在业务错上裸抛(前端能优雅降级)。
  */
-import { AnswerDto, AnswerResult, InterviewView } from '@meetwise/contracts';
+import { InterviewView, TurnDto, TurnResult } from '@meetwise/contracts';
 import type { z } from 'zod';
 
 export interface FetchResponse { status: number; json(): Promise<unknown> }
@@ -29,7 +29,7 @@ async function call<T>(schema: z.ZodType<T>, fetchImpl: FetchLike, url: string, 
 
 export interface InterviewApi {
   getInterview(id: string, headers?: Record<string, string>): Promise<ApiResult<z.infer<typeof InterviewView>>>;
-  submitAnswer(id: string, body: z.infer<typeof AnswerDto>, idempotencyKey: string, headers?: Record<string, string>): Promise<ApiResult<z.infer<typeof AnswerResult>>>;
+  submitAnswer(id: string, body: z.infer<typeof TurnDto>, idempotencyKey: string, headers?: Record<string, string>): Promise<ApiResult<z.infer<typeof TurnResult>>>;
 }
 
 export function makeInterviewApi(baseUrl: string, fetchImpl: FetchLike): InterviewApi {
@@ -38,10 +38,10 @@ export function makeInterviewApi(baseUrl: string, fetchImpl: FetchLike): Intervi
       return call(InterviewView, fetchImpl, `${baseUrl}/interview/${encodeURIComponent(id)}`, { headers });
     },
     submitAnswer(id, body, idempotencyKey, headers = {}) {
-      const v = AnswerDto.safeParse(body);
-      if (!v.success) return Promise.resolve<ApiResult<z.infer<typeof AnswerResult>>>({ ok: false, kind: 'invalid_request' }); // 请求体本地不合法,不发请求
-      if (!idempotencyKey) return Promise.resolve<ApiResult<z.infer<typeof AnswerResult>>>({ ok: false, kind: 'business', status: 400, error: 'missing_idempotency_key' });
-      return call(AnswerResult, fetchImpl, `${baseUrl}/interview/${encodeURIComponent(id)}/answer`, {
+      const v = TurnDto.safeParse(body);
+      if (!v.success) return Promise.resolve<ApiResult<z.infer<typeof TurnResult>>>({ ok: false, kind: 'invalid_request' }); // 请求体本地不合法,不发请求
+      if (!idempotencyKey) return Promise.resolve<ApiResult<z.infer<typeof TurnResult>>>({ ok: false, kind: 'business', status: 400, error: 'missing_idempotency_key' });
+      return call(TurnResult, fetchImpl, `${baseUrl}/interview/${encodeURIComponent(id)}/turn`, {
         method: 'POST',
         headers: { ...headers, 'content-type': 'application/json', 'idempotency-key': idempotencyKey }, // 后端必需,强制带上
         body: JSON.stringify(v.data),

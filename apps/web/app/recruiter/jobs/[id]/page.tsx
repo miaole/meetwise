@@ -5,7 +5,6 @@ import { getServerToken, serverGet } from '@/lib/api/server';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { InviteCandidateDialog } from '@/components/InviteCandidateDialog';
 import { listWindow, withLimitHref } from '@/lib/paginate';
@@ -22,6 +21,7 @@ const STATUS_LABEL: Record<string, { text: string; variant: 'success' | 'outline
   invited: { text: '已邀请', variant: 'outline' },
   in_progress: { text: '面试中', variant: 'outline' },
   completed: { text: '已完成', variant: 'success' },
+  assessment_unavailable: { text: '待人工复核', variant: 'outline' },
   declined: { text: '已婉拒', variant: 'destructive' },
 };
 
@@ -50,7 +50,7 @@ export default async function RecruiterJobCandidatesPage({ params, searchParams 
           <h1 className="flex items-center gap-2 text-2xl font-bold"><Users className="size-6 text-primary" />{job?.title ?? '岗位候选人'}</h1>
           {job ? <InviteCandidateDialog jobId={id} /> : null}
         </div>
-        <p className="mt-1 text-muted-foreground">投递/受邀该岗位的候选人及其面试评估状态。用同一引擎面试,数据严格隔离——你只见状态与评分,看不到面试内容。</p>
+        <p className="mt-1 text-muted-foreground">投递/受邀该岗位的候选人及其最小评估状态。数值评分校准完成前仅可人工复核；你看不到面试内容。</p>
         {job?.competencies?.length ? (
           <div className="mt-3 flex flex-wrap gap-1">
             {job.competencies.map((s) => <Badge key={s} variant="outline">{s}</Badge>)}
@@ -66,14 +66,14 @@ export default async function RecruiterJobCandidatesPage({ params, searchParams 
           ) : candidates.length === 0 ? (
             <p className="text-sm text-muted-foreground">还没有候选人投递这个岗位。</p>
           ) : (
-            <div className="table-wrap overflow-x-auto">
+            <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">
                     <th className="py-2 pr-4 font-medium">候选人</th>
                     <th className="py-2 pr-4 font-medium">来源</th>
                     <th className="py-2 pr-4 font-medium">状态</th>
-                    <th className="py-2 font-medium">评分</th>
+                    <th className="py-2 font-medium">评估</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -84,16 +84,7 @@ export default async function RecruiterJobCandidatesPage({ params, searchParams 
                         <td className="py-3 pr-4 font-mono">{c.candidate_user_id.slice(0, 8)}</td>
                         <td className="py-3 pr-4 text-xs text-muted-foreground">{c.source === 'invited' ? '招聘方邀请' : '主动投递'}</td>
                         <td className="py-3 pr-4"><Badge variant={st.variant}>{st.text}</Badge></td>
-                        <td className="py-3">
-                          {c.score === null ? (
-                            <span className="text-muted-foreground">—</span>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <Progress value={Math.max(0, Math.min(100, c.score))} className="h-1.5 w-24" />
-                              <span className="text-xs font-semibold tabular-nums text-primary">{c.score}</span>
-                            </div>
-                          )}
-                        </td>
+                        <td className="py-3 text-muted-foreground">{c.status === 'assessment_unavailable' ? '待人工复核' : '不提供数值评分'}</td>
                       </tr>
                     );
                   })}

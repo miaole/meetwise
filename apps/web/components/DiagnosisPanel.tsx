@@ -84,15 +84,18 @@ export function DiagnosisPanel({ diagnosisId }: { diagnosisId: string }) {
         </span>
       </header>
 
-      {/* 综合评分(ready 时,签名大数字) */}
+      {/* 练习反馈数值：不是能力认证或招聘用途评分。 */}
       {view.phase === 'ready' && typeof view.overall === 'number' && (
         <Card className="border-primary/20 bg-accent">
           <CardContent className="flex items-center gap-4 p-4">
             <div className="flex items-baseline gap-0.5">
               <span className="text-4xl font-extrabold tracking-tight text-primary tabular-nums">{Math.round(view.overall)}</span>
-              <span className="text-sm text-muted-foreground">/100</span>
+              <span className="text-sm text-muted-foreground">/100 · 练习反馈</span>
             </div>
-            {view.summary && <p className="flex-1 text-sm leading-relaxed text-accent-foreground">{view.summary}</p>}
+            <div className="flex-1 space-y-1 text-sm leading-relaxed text-accent-foreground">
+              {view.summary && <p>{view.summary}</p>}
+              <p className="text-xs text-muted-foreground">仅供个人复盘，不代表经校准的能力评定，也不能用于招聘筛选、排名或录用决定。</p>
+            </div>
           </CardContent>
         </Card>
       )}

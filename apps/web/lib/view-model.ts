@@ -4,7 +4,7 @@
  */
 import type { InterviewView } from './stream/interview-state';
 
-export type ActionKind = 'answer' | 'retry' | 'view_report' | 'reconnecting' | 'none';
+export type ActionKind = 'answer' | 'retry' | 'view_report' | 'view_applications' | 'reconnecting' | 'none';
 export interface Display {
   heading: string;
   message: string;
@@ -33,10 +33,12 @@ export function interviewDisplay(v: InterviewView): Display {
     case 'answered':
       return { heading: '已作答', message: `本题得分 ${v.lastScore ?? '—'},正在出下一题…`, spinner: true, action: { kind: 'none', label: '' }, degraded: false };
     case 'report_ready':
-      return { heading: '面试报告', message: `综合评分 ${v.report?.overall ?? '—'}`, spinner: false, action: { kind: 'view_report', label: '查看完整报告' }, report: v.report, degraded: false };
+      return { heading: '练习报告', message: `本次练习反馈 ${v.report?.overall ?? '—'}（仅供个人复盘）`, spinner: false, action: { kind: 'view_report', label: '查看完整报告' }, report: v.report, degraded: false };
     case 'report_unavailable':
       // 优雅降级:报告暂不可用 → 给出路(重试/联系),**绝不无限等 report_ready**
       return { heading: '报告暂不可用', message: '面试已完成,但报告暂时无法生成。可稍后重试或联系支持。', spinner: false, action: { kind: 'retry', label: '重试生成报告' }, degraded: true };
+    case 'assessment_unavailable':
+      return { heading: '本次评分暂不可用', message: '没有得到足够可信的评分证据，本次预留额度已释放。岗位面试可从“我的投递”重新开始；其他面试可新建一场。', spinner: false, action: { kind: 'view_applications', label: '前往我的投递' }, degraded: true };
     case 'interview_unavailable':
       return { heading: '面试暂不可用', message: '面试启动/处理遇到问题,已停止。可重试或联系支持——不会让你干等。', spinner: false, action: { kind: 'retry', label: '重新开始面试' }, degraded: true };
     case 'error':

@@ -58,24 +58,24 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
 
       {/* 报告头:标题 + 分数环(签名时刻)。主色稀缺,仅落在分数与环上。 */}
       <header className="mb-8">
-        <div className="text-xs font-medium uppercase tracking-wide text-primary">面试报告</div>
+        <div className="text-xs font-medium uppercase tracking-wide text-primary">练习报告</div>
         <div className="mt-3 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">逐题点评与成长建议</h1>
             <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-              像一位资深面试官在你真实回答旁认真批注——下面是这场面试的综合评估、逐题点评、学习计划与职业路径。
+              基于本次练习生成的逐题反馈与后续建议。模型生成内容仅供个人复盘，不代表能力认证、招聘结论或录用建议。
             </p>
           </div>
           {overall != null ? (
             <div className="flex shrink-0 flex-col items-center">
               <ScoreRing score={overall} />
-              <span className="mt-2 text-xs text-muted-foreground">综合评分</span>
+              <span className="mt-2 text-center text-xs text-muted-foreground">本次练习反馈<br />不用于招聘决定</span>
               {/* 运营层裂变:报告就绪后,owner 可一键生成可分享海报(仅聚合分数,无 PII)。 */}
               <Link
                 href={'/report/' + id + '/share'}
                 className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
               >
-                <Share2 className="h-3.5 w-3.5" /> 生成分享海报
+                <Share2 className="h-3.5 w-3.5" /> 生成练习反馈海报
               </Link>
             </div>
           ) : null}

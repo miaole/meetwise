@@ -15,7 +15,6 @@ export async function startDiagnosisAction(formData: FormData) {
   const headers: Record<string, string> = { 'resume-id': resumeId };
   if (targetRole) headers['target-role'] = targetRole;
   const begin = await serverFetch('/diagnosis/' + diagnosisId + '/begin', { method: 'POST', headers });
-  // 额度不足(402)→ 引导去购买,不静默失败(无死胡同)。
-  if (begin.status === 402) redirect('/billing?need=diagnosis');
+  if (begin.status === 402) redirect('/diagnosis?error=credits_unavailable');
   redirect('/diagnosis/' + diagnosisId);
 }

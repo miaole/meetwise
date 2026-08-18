@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "prove": "tsx test/web-logic.proof.ts",
+    "prove:public-copy": "node test/public-copy.proof.mjs",
+    "prove:speak-proxy": "tsx test/speak-proxy.proof.ts",
+    "prove:transcribe-proxy": "tsx test/transcribe-proxy.proof.ts",
     "dev": "next dev",
     "build": "next build",
     "start": "next start"

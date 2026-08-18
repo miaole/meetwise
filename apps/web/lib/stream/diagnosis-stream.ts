@@ -58,7 +58,7 @@ export async function runDiagnosisStream(opts: RunDiagnosisStreamOpts): Promise<
         buffer = rest;
         for (const f of frames) {
           const ev = toDiagnosisEvent(f);
-          if (!ev) continue;
+          if (!ev || ev.id <= view.lastEventId) continue; // 客户端水位去重：重放不能重复追加诊断区块。
           view = applyDiagnosisEvent(view, ev);
           opts.onView(view);
           if (isDiagnosisTerminal(view.phase)) { view = { ...view, connection: 'closed' }; opts.onView(view); return view; }

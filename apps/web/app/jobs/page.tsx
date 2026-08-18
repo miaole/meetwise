@@ -15,12 +15,14 @@ const PAGE = 20;          // 岗位广场可能很多:封顶首屏渲染,"加载
 export const metadata: Metadata = { title: '岗位广场 · 知面', description: '浏览招聘中的岗位并投递申请。' };
 
 interface Job { id: string; title: string; competencies: string[]; status: string }
-interface Application { id: string; job_id: string; status: string; score: number | null; source?: string }
+interface Application { id: string; job_id: string; interview_id: string | null; resume_id: string | null; status: string; score: number | null; source?: string }
+interface Resume { id: string; status: string }
 
 const STATUS_LABEL: Record<string, { text: string; variant: 'success' | 'outline' | 'secondary' | 'destructive' }> = {
   invited: { text: '待开始', variant: 'outline' },
   in_progress: { text: '面试中', variant: 'secondary' },
   completed: { text: '已完成', variant: 'success' },
+  assessment_unavailable: { text: '评分暂不可用（可重试）', variant: 'destructive' },
   declined: { text: '已婉拒', variant: 'destructive' },
 };
 
@@ -29,9 +31,10 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   if (!(await getServerToken())) redirect('/login');
   const { limit, alimit } = await searchParams;
 
-  const [jobsRes, appsRes] = await Promise.all([
+  const [jobsRes, appsRes, resumesRes] = await Promise.all([
     serverGet<{ jobs: Job[] }>('/jobs'),
     serverGet<{ applications: Application[] }>('/applications'),
+    serverGet<{ resumes: Resume[] }>('/resume'),
   ]);
   const jobs = jobsRes?.jobs ?? [];
   const applications = appsRes?.applications ?? [];
@@ -39,6 +42,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   const appliedJobIds = new Set(applications.map((a) => a.job_id));
   const jobsWin = listWindow(jobs, limit, PAGE);
   const appsWin = listWindow(applications, alimit, PAGE);     // 投递列表独立分页(?alimit),两窗互不影响
+  const eligibleResumes = (resumesRes?.resumes ?? []).filter((r) => r.status === 'ingested');
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
@@ -99,6 +103,9 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
           ) : appsWin.shown.map((app) => {
             const st = STATUS_LABEL[app.status] ?? { text: app.status, variant: 'outline' as const };
             const invited = app.status === 'invited';
+            // `assessment_unavailable` 是无可信分数且已退款的可恢复终态；重试必须显式由
+            // 用户发起，服务端会创建新的 attempt，不会复活或覆盖旧会话。
+            const startable = app.status === 'invited' || app.status === 'in_progress' || app.status === 'assessment_unavailable';
             return (
               <div key={app.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3">
                 <span className="font-mono text-sm text-muted-foreground">
@@ -108,15 +115,22 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                 <div className="flex items-center gap-2">
                   {app.score !== null && <span className="text-sm text-muted-foreground">评分 {app.score}</span>}
                   <Badge variant={st.variant}>{st.text}</Badge>
-                  {/* 无死胡同:受邀(invited)给出"开始面试 / 婉拒"出口;其余状态只展示。 */}
-                  {invited && (
+                  {/* 岗位面试必须显式选择一份已摄取简历；服务端会把 resume/job/application 原子绑定到唯一会话。 */}
+                  {startable && (
                     <>
-                      <form action={startApplicationAction.bind(null, app.id)}>
-                        <SubmitButton size="sm" pendingLabel="启动中…">开始面试</SubmitButton>
-                      </form>
-                      <form action={declineApplicationAction.bind(null, app.id)}>
+                      {eligibleResumes.length > 0 ? (
+                        <form action={startApplicationAction.bind(null, app.id)} className="flex items-center gap-1">
+                          <select name="resumeId" defaultValue={eligibleResumes[0]?.id} aria-label="选择用于本岗位面试的简历" className="h-8 max-w-36 rounded border bg-background px-1 text-xs">
+                            {eligibleResumes.map((r) => <option key={r.id} value={r.id}>简历 {r.id.slice(0, 8)}</option>)}
+                          </select>
+                          <SubmitButton size="sm" pendingLabel="启动中…">{invited ? '开始面试' : '继续岗位面试'}</SubmitButton>
+                        </form>
+                      ) : (
+                        <Link href="/resume" className="text-xs text-primary underline underline-offset-2">先上传并完成解析简历</Link>
+                      )}
+                      {invited && <form action={declineApplicationAction.bind(null, app.id)}>
                         <SubmitButton size="sm" variant="outline" pendingLabel="处理中…">婉拒</SubmitButton>
-                      </form>
+                      </form>}
                     </>
                   )}
                 </div>

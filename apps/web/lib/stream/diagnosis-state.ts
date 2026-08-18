@@ -109,7 +109,7 @@ export function diagnosisDisplay(v: DiagnosisViewState): DiagnosisDisplay {
       return { heading: '正在诊断', message: v.sections.length ? `已完成 ${v.sections.length} 个维度,正在继续…` : '正在依据你的简历逐维度诊断…', spinner: true, action: { kind: 'none', label: '' }, degraded: false };
     case 'ready': {
       const n = v.total ?? v.sections.length;   // total 权威(防维度事件未重放时误报 0)
-      return { heading: '诊断完成', message: `综合评分 ${v.overall ?? '—'} 分,${n} 个维度,所有结论均已接地校验(不虚构经历)。`, spinner: false, action: { kind: 'none', label: '' }, degraded: false };
+      return { heading: '诊断完成', message: `本次练习反馈 ${v.overall ?? '—'}，覆盖 ${n} 个维度。反馈仅供个人复盘，不构成能力认证。`, spinner: false, action: { kind: 'none', label: '' }, degraded: false };
     }
     case 'diagnosis_unavailable':
       return { heading: '诊断暂不可用', message: '诊断生成遇到问题,已停止。可重试或联系支持——不会让你干等。', spinner: false, action: { kind: 'retry', label: '重新诊断' }, degraded: true };

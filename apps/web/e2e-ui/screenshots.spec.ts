@@ -2,12 +2,12 @@ import { test, expect, Page } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 
 /**
- * README 截图采集(**非断言测试**,只截图):驱动真实 UI 走一遍 C 端主路径,把关键页面截到 docs/screenshots/。
+ * 演示截图采集(**非断言测试**,只截图):驱动演示路径并把截图写入未跟踪临时目录。
  * 只用**演示数据**(假邮箱 demo@meetwise.app + 通用简历文本),绝不含任何真实 PII / 密钥 / 个人信息。
  * 由 scripts/capture-screenshots.mjs 起真栈(api+worker+web,E2E_FAKE_MODEL=1)后运行。
  */
 
-const DIR = 'docs/screenshots';
+const DIR = '.tmp/demo-screenshots';
 const DEMO_EMAIL = 'demo@meetwise.app';
 const DEMO_PW = 'demopass123';
 const RESUME = '资深后端工程师,5 年经验。主导高并发订单系统:Redis 令牌桶限流、分布式锁 Lua 原子释放、MySQL 分库分表、消息队列削峰填谷;主导服务可用性从 99.5% 提升到 99.95%。';
@@ -33,7 +33,7 @@ async function auth(page: Page) {
   }
 }
 
-test('capture README screenshots (desktop)', async ({ page }) => {
+test('capture demo screenshots (desktop)', async ({ page }) => {
   mkdirSync(DIR, { recursive: true });
   await page.setViewportSize({ width: 1280, height: 900 });
 
@@ -87,7 +87,7 @@ test('capture README screenshots (desktop)', async ({ page }) => {
   await shot(page, '08-growth');
 });
 
-test('capture README screenshots (mobile H5)', async ({ page }) => {
+test('capture demo screenshots (mobile H5)', async ({ page }) => {
   mkdirSync(DIR, { recursive: true });
   await page.setViewportSize({ width: 390, height: 844 });   // iPhone 12/13 视口
   await page.goto('/');

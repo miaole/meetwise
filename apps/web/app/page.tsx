@@ -7,21 +7,23 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
+import { publicSiteHref } from '@/lib/public-site';
+
+const SITE = publicSiteHref();
 
 export const metadata: Metadata = {
-  description: '知面 Meetwise:基于你真实经历的 AI 面试准备——简历诊断、押题、模拟面试、逐题点评报告。',
-  alternates: { canonical: '/' },
+  description: '知面 Meetwise 项目预览：围绕真实经历进行表达练习与个人复盘；实际开放能力以页面说明为准。',
+  alternates: SITE ? { canonical: '/' } : undefined,
 };
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://meetwise.example';
-const jsonLd = {
+const jsonLd = SITE ? {
   '@context': 'https://schema.org',
   '@graph': [
     { '@type': 'Organization', name: 'Meetwise 知面', url: SITE },
     { '@type': 'WebSite', name: 'Meetwise 知面', url: SITE, inLanguage: 'zh-CN' },
-    { '@type': 'SoftwareApplication', name: 'Meetwise 知面', applicationCategory: 'EducationApplication', operatingSystem: 'Web', offers: { '@type': 'Offer', priceCurrency: 'CNY' } },
+    { '@type': 'SoftwareApplication', name: 'Meetwise 知面', applicationCategory: 'EducationApplication', operatingSystem: 'Web' },
   ],
-};
+} : null;
 
 export default async function Home() {
   const t = await getTranslations('home');
@@ -36,7 +38,7 @@ export default async function Home() {
 
   return (
     <main className="space-y-24 pb-8">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      {jsonLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} /> : null}
 
       {/* ───── Hero:两栏(左文案 / 右红笔批注报告卡)───── */}
       <section className="grid items-center gap-10 pt-6 md:grid-cols-[1.05fr_.95fr] md:gap-12 md:pt-10">
@@ -51,8 +53,8 @@ export default async function Home() {
           </h1>
           <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-muted-foreground">{t('lead')}</p>
           <div className="mt-7 flex flex-wrap items-center gap-3">
-            <Button asChild size="lg"><Link href="/login">{t('ctaPrimary')}<ArrowRight /></Link></Button>
-            <Button asChild size="lg" variant="outline"><Link href="/features">{t('ctaSecondary')}</Link></Button>
+            <Button asChild size="lg"><Link href="/features">{t('ctaPrimary')}<ArrowRight /></Link></Button>
+            <Button asChild size="lg" variant="outline"><Link href="/legal">{t('ctaSecondary')}</Link></Button>
             <span className="text-xs text-muted-foreground">{t('free')}</span>
           </div>
         </div>
@@ -73,10 +75,7 @@ export default async function Home() {
             </div>
             <Separator className="mt-5" />
             <div className="mt-5 flex items-center gap-6">
-              <div className="flex items-baseline gap-0.5">
-                <span className="font-serif text-4xl font-extrabold tracking-tight text-primary">68</span>
-                <span className="text-sm text-muted-foreground">/100</span>
-              </div>
+              <div className="font-serif text-lg font-extrabold tracking-tight text-primary">练习反馈</div>
               <div className="flex-1 space-y-2">
                 {bars.map((b) => (
                   <div key={b.l} className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -118,13 +117,11 @@ export default async function Home() {
       {/* ───── Deep statement(墨色块)───── */}
       <section className="grid items-center gap-8 rounded-lg bg-foreground p-8 text-background sm:p-12 md:grid-cols-[1.3fr_1fr]">
         <div>
-          <h3 className="font-serif text-2xl font-extrabold leading-snug sm:text-3xl">
-            {t('stmtPre')}<em className="not-italic text-brand-em">{t('stmtEm1')}</em>{t('stmtMid')}<em className="not-italic text-brand-em">{t('stmtEm2')}</em>{t('stmtPost')}
-          </h3>
+          <h3 className="font-serif text-2xl font-extrabold leading-snug sm:text-3xl">{t('stmtTitle')}</h3>
           <p className="mt-4 text-[15px] leading-relaxed text-background/70">{t('stmtP')}</p>
         </div>
         <div>
-          <Button asChild size="lg" className="w-full"><Link href="/login">{t('stmtCta')}<ArrowRight /></Link></Button>
+          <Button asChild size="lg" className="w-full"><Link href="/features">{t('stmtCta')}<ArrowRight /></Link></Button>
           <p className="mt-3 text-center text-xs text-background/55">{t('stmtNote')}</p>
         </div>
       </section>

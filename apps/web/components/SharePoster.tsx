@@ -31,7 +31,7 @@ export function SharePoster({
   overall: number;
   dims: PosterDim[];
   line: string;
-  siteUrl: string;
+  siteUrl: string | null;
   product?: string;
 }) {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -48,6 +48,10 @@ export function SharePoster({
     let alive = true;
     setQr(null);
     setQrErr(false);
+    if (!siteUrl) {
+      setQrErr(true);
+      return undefined;
+    }
     import('qrcode')
       .then((m) =>
         m.toDataURL(siteUrl, {
@@ -155,7 +159,7 @@ export function SharePoster({
           viewBox={`0 0 ${W} ${H}`}
           xmlns="http://www.w3.org/2000/svg"
           role="img"
-          aria-label={`知面面试能力评估海报,综合评分 ${safeOverall} 分`}
+          aria-label={`知面模拟面试练习反馈海报，反馈数值 ${safeOverall}`}
           style={{ width: '100%', height: 'auto', display: 'block' }}
         >
           {/* 背景:暖纸底 + 内框发丝线 */}
@@ -172,10 +176,10 @@ export function SharePoster({
 
           {/* 标题(衬线) */}
           <text x="96" y="232" fontFamily={serif} fontSize="62" fontWeight="700" fill="#1A1A1A">
-            我的面试能力评估
+            我的模拟面试练习反馈
           </text>
           <text x="98" y="280" fontFamily={sans} fontSize="26" fill="#8A8276">
-            AI 模拟面试 · 综合评分
+            AI 模拟面试 · 仅供个人复盘
           </text>
 
           {/* 分数环(签名时刻) */}
@@ -197,13 +201,13 @@ export function SharePoster({
             {safeOverall}
           </text>
           <text x={ringCx} y={ringCy + 54} textAnchor="middle" fontFamily={sans} fontSize="28" fill="#8A8276">
-            / 100 综合评分
+            / 100 本次练习反馈
           </text>
 
           {/* 能力维度条(中性序号标签 + 数值,无题面/点评/简历文字) */}
           {top.length > 0 ? (
             <text x={barX} y={barsTop - 38} fontFamily={sans} fontSize="26" fontWeight="600" fill="#3A3632">
-              各维度得分分布
+              本次练习维度反馈
             </text>
           ) : null}
           {top.map((d, i) => {
@@ -228,21 +232,25 @@ export function SharePoster({
             {line}
           </text>
 
+          <text x={W / 2} y={1186} textAnchor="middle" fontFamily={sans} fontSize="20" fill="#8A8276">
+            仅供个人复盘 · 非能力认证 · 不得用于招聘、资格或录用判断
+          </text>
+
           {/* 分隔线 */}
-          <line x1="96" y1="1200" x2={W - 96} y2="1200" stroke="#E3DCCF" strokeWidth="2" />
+          <line x1="96" y1="1225" x2={W - 96} y2="1225" stroke="#E3DCCF" strokeWidth="2" />
 
           {/* 底部:二维码 + 落地页引导 */}
-          <g transform="translate(96,1240)">
+          <g transform="translate(96,1252)">
             <rect x="0" y="0" width="160" height="160" rx="10" fill="#FFFFFF" stroke="#E3DCCF" strokeWidth="2" />
             {qr ? <image href={qr} x="12" y="12" width="136" height="136" preserveAspectRatio="xMidYMid meet" /> : null}
             <text x="192" y="44" fontFamily={serif} fontSize="38" fontWeight="700" fill="#1A1A1A">
-              扫码开启你的面试训练
+              {siteUrl ? '扫码查看项目页面' : '预览环境'}
             </text>
             <text x="192" y="88" fontFamily={sans} fontSize="25" fill="#8A8276">
-              逐题点评 · 能力评估 · 成长路径
+              {siteUrl ? '逐题反馈 · 个人复盘 · 后续练习' : '未配置公开链接'}
             </text>
             <text x="192" y="138" fontFamily={sans} fontSize="23" fill="#B5651D" letterSpacing="1">
-              {siteUrl.replace(/^https?:\/\//, '')}
+              {siteUrl ? siteUrl.replace(/^https?:\/\//, '') : '预览环境 · 未配置公开链接'}
             </text>
           </g>
         </svg>

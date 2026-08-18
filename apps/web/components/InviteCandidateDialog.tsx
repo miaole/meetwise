@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 
 /**
  * 邀请候选人面试弹窗(B 端企业纵深):Dialog + Server Action(useActionState)。
- * 提交候选人邮箱 → 后端创建 invited 申请(同一面试引擎,严格隔离)。无死胡同:成功/未找到/失败都有 aria-live 文案。
+ * 提交候选人邮箱 → 后端创建 invited 申请。页面只呈现必要流程状态和人工复核提示；成功、未找到与失败都有 aria-live 文案。
  */
 export function InviteCandidateDialog({ jobId }: { jobId: string }) {
   const [state, formAction, pending] = useActionState(inviteCandidateAction, {} as { ok?: boolean; msg?: string });
@@ -27,7 +27,7 @@ export function InviteCandidateDialog({ jobId }: { jobId: string }) {
         <DialogHeader>
           <DialogTitle className="font-serif">邀请候选人面试</DialogTitle>
           <DialogDescription>
-            填候选人邮箱(需对方已注册为求职者)。对方用<strong>同一 AI 引擎</strong>面试,你只会看到状态与评分,<strong>看不到面试内容</strong>(数据严格隔离)。
+            填候选人邮箱（需对方已注册为求职者）。你只会看到必要流程状态与人工复核提示，<strong>看不到面试内容，也不会得到数值评分</strong>。本功能不得用于自动筛选、排名、拒绝或录用决定。
           </DialogDescription>
         </DialogHeader>
         <form ref={formRef} action={formAction} className="space-y-3">
