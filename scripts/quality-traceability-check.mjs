@@ -245,7 +245,7 @@ function addError(errors, code, detail) {
 }
 
 function hasExactKeys(object, allowed) {
-  return Object.keys(object).every((key) => allowed.has(key));
+  return Object.keys(object).length === allowed.size && Object.keys(object).every((key) => allowed.has(key));
 }
 
 function validateSelector(selector, tcId) {

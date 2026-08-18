@@ -5,7 +5,26 @@ on:
     branches: [main]
     paths:
       - preview-site/**
+      - ops/ecs/keys/preview-release-ed25519.pub.pem
+      - ops/ecs/controller-lib.sh
+      - ops/ecs/preview-edge-probe-fence.mjs
+      - ops/ecs/preview-release-ledger.mjs
+      - ops/ecs/preview-publication-recovery.mjs
+      - ops/ecs/preview-release-manifest.mjs
+      - ops/ecs/reconcile-preview-publication.sh
+      - ops/ecs/revoke-preview-pages-link.sh
+      - scripts/build-preview-directory.mjs
+      - scripts/fetch-preview-release-manifest.mjs
+      - scripts/verify-preview-origin.mjs
+      - ops/ecs/full-stack/nginx-meetwise-full-stack.conf
+      - ops/ecs/full-stack/full-stack-preview-publisher.mjs
+      - scripts/full-stack-preview-publisher.proof.mjs
+      - scripts/ecs-preview-config.proof.mjs
+      - scripts/preview-edge-probe-fence.proof.mjs
+      - scripts/preview-publication-recovery.proof.mjs
       - .github/workflows/pages-preview.yml
+  schedule:
+    - cron: '17 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -17,6 +36,7 @@ concurrency:
 
 jobs:
   verify-and-package:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -27,12 +47,43 @@ jobs:
           node-version: 22
       - name: Verify static preview directory
         run: node preview-site/preview-directory.proof.mjs
+      - name: Verify the disabled-by-default ECS preview configuration
+        run: |
+          node scripts/ecs-preview-config.proof.mjs
+          node scripts/preview-edge-probe-fence.proof.mjs
+      - name: Verify crash-safe public-manifest reconciliation
+        run: node scripts/preview-publication-recovery.proof.mjs
+      - name: Verify the signed HTTPS preview origin
+        id: origin
+        run: |
+          endpoint="$(tr -d '\n' < preview-site/preview-manifest-origin.txt)"
+          if node scripts/fetch-preview-release-manifest.mjs "$endpoint" .preview-release-manifest.json; then
+            echo "fetched=true" >> "$GITHUB_OUTPUT"
+            if node scripts/verify-preview-origin.mjs .preview-release-manifest.json; then
+              echo "enabled=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "enabled=false" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "fetched=false" >> "$GITHUB_OUTPUT"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Build a signed-release-aware static directory
+        run: |
+          if [ "${{ steps.origin.outputs.enabled }}" = "true" ]; then
+            node scripts/build-preview-directory.mjs .pages-preview .preview-release-manifest.json ops/ecs/keys/preview-release-ed25519.pub.pem
+          elif [ "${{ steps.origin.outputs.fetched }}" = "true" ]; then
+            node scripts/build-preview-directory.mjs .pages-preview .preview-release-manifest.json ops/ecs/keys/preview-release-ed25519.pub.pem --force-disabled
+          else
+            node scripts/build-preview-directory.mjs .pages-preview preview-site/release-manifest.json ops/ecs/keys/preview-release-ed25519.pub.pem --force-disabled
+          fi
       - name: Upload the only public artifact
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
-          path: preview-site
+          path: .pages-preview
 
   deploy:
+    if: github.ref == 'refs/heads/main'
     needs: verify-and-package
     runs-on: ubuntu-latest
     permissions:

@@ -24,7 +24,7 @@ from pathlib import Path, PurePosixPath
 from typing import BinaryIO
 
 BOOTSTRAP_PARENT = Path("/var/lib/meetwise-preview-bootstrap")
-FINAL_NAME = "verified-controller"
+FINAL_PREFIX = "verified-controller-"
 PAYLOAD_ROOT = PurePosixPath("ops/ecs")
 MAX_ARCHIVE_BYTES = 64 * 1024 * 1024
 MAX_MEMBER_BYTES = 2 * 1024 * 1024
@@ -116,6 +116,17 @@ def require_gh_config(parent: Path) -> Path:
 
 def sha256_text(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
+
+
+def verified_controller_slot(archive_sha256: str) -> Path:
+    """Return the immutable, receipt-bound controller staging directory.
+
+    A controller archive is never overwritten in place.  Replacements use a
+    different digest-derived slot, which lets the installer prove that its
+    own payload and receipt describe the same artifact while preserving an
+    earlier root-verified slot for investigation or rollback.
+    """
+    return BOOTSTRAP_PARENT / f"{FINAL_PREFIX}{archive_sha256}"
 
 
 def read_approval_descriptor(parent: Path) -> tuple[dict, str]:
@@ -354,7 +365,7 @@ def bootstrap(arguments: argparse.Namespace) -> Path:
     if validator_sha256 != approval["validatorSha256"]:
         fail("bootstrap_validator_sha256_mismatch")
     gh_config = require_gh_config(BOOTSTRAP_PARENT)
-    final = BOOTSTRAP_PARENT / FINAL_NAME
+    final = verified_controller_slot(approval["archiveSha256"])
     if final.exists() or final.is_symlink():
         fail("bootstrap_already_published")
     stage = BOOTSTRAP_PARENT / f".staging-{uuid.uuid4().hex}"
@@ -369,7 +380,8 @@ def bootstrap(arguments: argparse.Namespace) -> Path:
         payload = stage / "payload"
         entry_count, uncompressed_bytes = extract_regular_controller_payload(archive, payload, uid=0, gid=0)
         receipt = {
-            "schemaVersion": 1, "archiveSha256": archive_sha256, "payloadTreeSha256": payload_tree_sha256(payload),
+            "schemaVersion": 2, "bootstrapSlot": final.name,
+            "archiveSha256": archive_sha256, "payloadTreeSha256": payload_tree_sha256(payload),
             "attestationVerifiedAt": datetime.now(UTC).isoformat(), "expectedArchiveSha256": approval["archiveSha256"],
             "repository": APPROVED_REPOSITORY, "signerWorkflow": APPROVED_SIGNER_WORKFLOW, "workflowCommit": approval["commit"],
             "runId": approval["runId"], "archivePolicy": "bootstrap-controller-v1:regular-files-only",
@@ -402,4 +414,3 @@ if __name__ == "__main__":
     except (BootstrapError, subprocess.SubprocessError) as error:
         print(str(error), file=sys.stderr)
         raise SystemExit(70)
-

@@ -1,0 +1,18 @@
+[Unit]
+Description=Meetwise preview edge-probe expiry guard
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/lib/meetwise-preview-controller/expire-preview-edge-probe.sh
+TimeoutStartSec=15s
+Restart=on-failure
+RestartSec=5s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+CapabilityBoundingSet=
+UMask=0077

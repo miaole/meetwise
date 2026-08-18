@@ -70,6 +70,21 @@ jobs:
       - name: 架构边界（无环 / 依赖向下 / ai-graphs 纯 / ai-runtime 关口）
         run: pnpm arch
 
+      # ECS 完整应用预览：静态契约证明（无 DB/网络，纯断言）——nginx 回环就绪/边缘探针单位负载/单调时钟
+      - name: Preview Nginx readiness proof
+        run: |
+          node scripts/preview-loopback-readiness.proof.mjs
+          node scripts/preview-edge-probe-unit-load.proof.mjs
+          node scripts/preview-monotonic-clock.proof.mjs
+      - name: Preview synthetic data control proof
+        run: |
+          node scripts/preview-synthetic-data/loader.proof.mjs
+          node scripts/full-stack-preview-publisher.proof.mjs
+          node scripts/ecs-full-stack-config.proof.mjs
+          node scripts/verify-full-stack-public-origin.proof.mjs
+      - name: Web preview gate behavioral proof (real NextRequest, not string match)
+        run: pnpm -C apps/web prove:middleware
+
       # 起 Postgres（复用 dev compose，与本地同一映射端口）
       - run: pnpm db:up
       - name: wait for postgres

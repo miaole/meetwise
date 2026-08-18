@@ -10,7 +10,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, lstatSync, readFileSync, realpathSync } from 'node:fs';
 import { extname, isAbsolute, relative, resolve, sep } from 'node:path';
 
-export const PUBLIC_TEXT_POLICY_VERSION = 4;
+export const PUBLIC_TEXT_POLICY_VERSION = 5;
 export const PUBLIC_TEXT_POLICY_CODES = Object.freeze({
   ATTRIBUTION_ZH: 'PTP_ATTRIBUTION_ZH',
   ATTRIBUTION_EN: 'PTP_ATTRIBUTION_EN',
@@ -28,12 +28,15 @@ export const PUBLIC_TEXT_POLICY_CODES = Object.freeze({
   PATH_READ_FAILED: 'PTP_PATH_READ_FAILED',
   FILE_LIMIT: 'PTP_FILE_LIMIT',
   FILE_TOO_LARGE: 'PTP_FILE_TOO_LARGE',
+  PRIVATE_KEY: 'PTP_PRIVATE_KEY',
+  CLOUD_IDENTIFIER: 'PTP_CLOUD_IDENTIFIER',
+  API_KEY: 'PTP_API_KEY',
 });
 
-const MANAGED_ROOTS = Object.freeze(['ai-docs', 'apps', 'packages', 'scripts', 'docker', 'e2e', '.github', '.claude']);
+const MANAGED_ROOTS = Object.freeze(['ai-docs', 'apps', 'packages', 'scripts', 'docker', 'e2e', '.github', '.claude', 'ops', 'preview-site']);
 const REQUIRED_ROOTS = Object.freeze(['ai-docs', 'apps', 'packages', 'scripts']);
 const ROOT_FILES = new Set(['README.md', 'AGENTS.md', 'CLAUDE.md']);
-const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.tsx', '.mts', '.cts', '.json', '.yaml', '.yml', '.sql', '.sh', '.toml']);
+const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.tsx', '.mts', '.cts', '.json', '.yaml', '.yml', '.sql', '.sh', '.toml', '.conf', '.service', '.timer', '.html', '.css', '.txt', '.pem', '.py']);
 const MAX_FILES = 2_048;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
@@ -126,6 +129,28 @@ const POLICY_RULES = Object.freeze([
   },
 ]);
 
+// 云端标识 / 私钥 / API 密钥:真实生产标识不得进入开源仓库。真正的密钥/凭据由 gitleaks(全历史)
+// 与 check-staged-secrets(提交时)负责;这里补上 IP/实例 ID/Tailscale/RDS hostname 这类 gitleaks
+// 抓不到的「标识」泄漏兜底。公钥(BEGIN PUBLIC KEY)不命中;合成夹具用 SYNTHETIC_IDENTIFIER_PATTERNS 精确放行。
+export const CLOUD_IDENTIFIER_RULES = Object.freeze([
+  { code: PUBLIC_TEXT_POLICY_CODES.PRIVATE_KEY, re: /-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----/ },
+  { code: PUBLIC_TEXT_POLICY_CODES.CLOUD_IDENTIFIER, re: /\bizbp[a-z0-9]{8,}\b/ },
+  { code: PUBLIC_TEXT_POLICY_CODES.CLOUD_IDENTIFIER, re: /\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.ts\.net\b/ },
+  { code: PUBLIC_TEXT_POLICY_CODES.CLOUD_IDENTIFIER, re: /\b[a-z0-9-]+\.(?:pg|redis|mysql|mssql|mariadb)\.rds\.aliyuncs\.com\b/ },
+  { code: PUBLIC_TEXT_POLICY_CODES.API_KEY, re: /\bLTAI[A-Za-z0-9]{12,}\b/ },
+  { code: PUBLIC_TEXT_POLICY_CODES.API_KEY, re: /\b(?:AKIA|ASIA)[0-9A-Z]{16}\b/ },
+  { code: PUBLIC_TEXT_POLICY_CODES.API_KEY, re: /\bsk-(?!example|test|xxx|placeholder|changeme|dummy|fake|your_)[A-Za-z0-9._-]{16,}\b/ },
+]);
+
+// 合成夹具精确放行(proof 里的假 tailnet/RDS endpoint);只放行这批显式登记的值,任何真实值仍命中。
+export const SYNTHETIC_IDENTIFIER_PATTERNS = Object.freeze([
+  /(?:^|\.)tail0000000\.ts\.net$/i,
+  /^pgm-(?:test|proof)\.pg\.rds\.aliyuncs\.com$/i,
+]);
+export function isSyntheticIdentifier(text) {
+  return SYNTHETIC_IDENTIFIER_PATTERNS.some((re) => re.test(text));
+}
+
 // Published project documents state their own contracts and evidence. They
 // must not outsource either to an external citation link. This applies to all
 // public Markdown roots, not the private agent-skill library under `.claude`.
@@ -156,9 +181,10 @@ function rulesForPath(trackedPath) {
     ROOT_FILES.has(trackedPath)
     || PUBLISHED_MARKDOWN_ROOTS.some((root) => trackedPath.startsWith(`${root}/`))
   );
-  return isPublishedMarkdown
-    ? [...POLICY_RULES, ...PUBLISHED_MARKDOWN_REFERENCE_RULES]
-    : POLICY_RULES;
+  return [
+    ...(isPublishedMarkdown ? [...POLICY_RULES, ...PUBLISHED_MARKDOWN_REFERENCE_RULES] : POLICY_RULES),
+    ...CLOUD_IDENTIFIER_RULES,
+  ];
 }
 
 function stable(values) {
@@ -302,7 +328,7 @@ export function scanPublicTextPolicy({ repoRoot, trackedPaths } = {}) {
     for (const { code, re } of rulesForPath(trackedPath)) {
       const expression = new RegExp(re.source, re.flags.includes('g') ? re.flags : `${re.flags}g`);
       for (const match of read.text.matchAll(expression)) {
-        if (isSelfUrl(match[0])) continue;
+        if (isSelfUrl(match[0]) || isSyntheticIdentifier(match[0])) continue;
         errors.push(`${code}:${trackedPath}:${lineNumber(read.text, match.index)}`);
       }
     }

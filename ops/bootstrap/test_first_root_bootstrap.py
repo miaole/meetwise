@@ -17,6 +17,7 @@ from first_root_bootstrap import BootstrapError, copy_to_root_staging, extract_r
 
 PINNED_VALIDATOR_SHA256 = Path(__file__).with_name("first-root-bootstrap.sha256").read_text(encoding="utf-8").split()[0]
 assert PINNED_VALIDATOR_SHA256 == sha256_file(Path(__file__).with_name("first_root_bootstrap.py"))
+assert bootstrap.verified_controller_slot("a" * 64).name == f"verified-controller-{'a' * 64}"
 
 
 def add_directory(package: tarfile.TarFile, name: str) -> None:
@@ -138,5 +139,4 @@ with tempfile.TemporaryDirectory(prefix="meetwise-bootstrap-proof-") as temporar
     except BootstrapError as error:
         assert "nonregular" in str(error)
 
-print("✓ first-root bootstrap archive policy 8/8 assertions passed; no candidate code executed")
-
+print("✓ first-root bootstrap archive policy 9/9 assertions passed; no candidate code executed")

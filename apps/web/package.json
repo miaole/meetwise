@@ -8,6 +8,7 @@
     "prove:public-copy": "node test/public-copy.proof.mjs",
     "prove:speak-proxy": "tsx test/speak-proxy.proof.ts",
     "prove:transcribe-proxy": "tsx test/transcribe-proxy.proof.ts",
+    "prove:middleware": "tsx test/web-middleware.proof.ts",
     "dev": "next dev",
     "build": "next build",
     "start": "next start"

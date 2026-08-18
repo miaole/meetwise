@@ -41,6 +41,17 @@ const externalReferenceDefinitions = [
 ].join('\n');
 const protocolRelativeReference = '[source](//example.invalid/protocol-relative)';
 const unknownAttribution = ['归属', '待确认'].join('');
+// 云端标识夹具：真实形状必须逐段拼接，避免 proof 源文件本身被 docs:check 的 public-text 扫描命中。
+// （E9 的合成夹具 tail0000000.ts.net / pgm-test.pg.rds.aliyuncs.com 由 isSyntheticIdentifier 精确放行，可字面出现。）
+const privateKeyFixture = ['-----BEGIN ', 'RSA ', 'PRIVATE ', 'KEY-----'].join('');
+const izbpFixture = ['izbp', '1a2b3c4d5e6f7g8'].join('');
+const tailnetFixture = ['relay1', 'tail0000001', 'ts', 'net'].join('.');
+const prodTailnetFixture = ['prod-relay', 'tail0000001', 'ts', 'net'].join('.');
+const rdsFixture = ['meetwise-prod', 'pg', 'rds', 'aliyuncs', 'com'].join('.');
+const mysqlRdsFixture = ['mysql-prod', 'mysql', 'rds', 'aliyuncs', 'com'].join('.');
+const ltaiFixture = ['LTAI', '5tAbCdEfGhIjKlMnOp'].join('');
+const akiaFixture = ['AKIA', 'IOSFODNN7EXAMPLE'].join('');
+const skLiveFixture = ['sk-', 'live_abcdefghijklmnopqrstuv'].join('');
 
 const checks = {
   'TC-quality-04-main': () => {
@@ -172,6 +183,63 @@ const checks = {
       assert.equal(lookalikeResult.valid, false, 'same-prefix foreign repo must stay blocked');
       expectCode(lookalikeResult, PUBLIC_TEXT_POLICY_CODES.EXTERNAL_REFERENCE_LINK);
       expectCode(lookalikeResult, PUBLIC_TEXT_POLICY_CODES.CODE_HOST_URL);
+    } finally {
+      rmSync(fixture, { recursive: true, force: true });
+    }
+  },
+  'TC-quality-04-E8': () => {
+    const fixture = createFixtureRoot();
+    try {
+      // 真实生产标识/私钥/API 密钥必须命中云端标识兜底（gitleaks 抓不到的 IP/实例ID/Tailscale/RDS hostname）。
+      write(fixture, 'scripts/leak.mjs', [
+        privateKeyFixture,
+        `instance ${izbpFixture}`,
+        `tailnet ${tailnetFixture}`,
+        `db ${rdsFixture}`,
+        `db ${mysqlRdsFixture}`,
+        `access ${ltaiFixture}`,
+        `aws ${akiaFixture}`,
+        `token ${skLiveFixture}`,
+      ].join('\n'));
+      const result = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: ['scripts/leak.mjs'] });
+      assert.equal(result.valid, false);
+      expectCode(result, PUBLIC_TEXT_POLICY_CODES.PRIVATE_KEY);
+      expectCode(result, PUBLIC_TEXT_POLICY_CODES.CLOUD_IDENTIFIER);
+      expectCode(result, PUBLIC_TEXT_POLICY_CODES.API_KEY);
+    } finally {
+      rmSync(fixture, { recursive: true, force: true });
+    }
+  },
+  'TC-quality-04-E9': () => {
+    const fixture = createFixtureRoot();
+    try {
+      // 显式登记的合成夹具精确放行；公钥(非私钥)与占位 API 密钥不命中。
+      write(fixture, 'ops/ecs/synthetic.conf', [
+        'tailnet = tail0000000.ts.net',
+        'endpoint = pgm-test.pg.rds.aliyuncs.com',
+        'endpoint = pgm-proof.pg.rds.aliyuncs.com',
+        'public = -----BEGIN PUBLIC KEY-----',
+        'placeholder = sk-example-abcdefghijklmnop',
+        'placeholder = sk-test-abcdefghijklmnop',
+      ].join('\n'));
+      const result = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: ['ops/ecs/synthetic.conf'] });
+      assert.equal(result.valid, true, result.errors.join('\n'));
+    } finally {
+      rmSync(fixture, { recursive: true, force: true });
+    }
+  },
+  'TC-quality-04-E10': () => {
+    const fixture = createFixtureRoot();
+    try {
+      // 放行边界：fake tailnet 的子域仍属合成(整个 `tail0000000.ts.net` 是假 tailnet)，
+      // 但同形不同尾号的真实 tailnet(非登记值)仍必须拦截。
+      write(fixture, 'ops/ecs/subdomain.conf', 'tailnet = evil.tail0000000.ts.net\n');
+      const sub = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: ['ops/ecs/subdomain.conf'] });
+      assert.equal(sub.valid, true, sub.errors.join('\n'));
+      write(fixture, 'ops/ecs/real.conf', `tailnet = ${prodTailnetFixture}\n`);
+      const real = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: ['ops/ecs/real.conf'] });
+      assert.equal(real.valid, false, 'unregistered tailnet must stay blocked');
+      expectCode(real, PUBLIC_TEXT_POLICY_CODES.CLOUD_IDENTIFIER);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }

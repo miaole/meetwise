@@ -24,3 +24,10 @@ docker/data/
 # 本地工具状态/重复目录,不进开源仓库
 .playwright-mcp/
 .agents/
+
+# ECS 预览运行时状态(含真实云端点/实例标识),不进开源仓库;模板见 .example
+preview-site/preview-manifest-origin.txt
+
+# Python 编译产物(含内嵌本机绝对路径),不进开源仓库
+__pycache__/
+*.pyc

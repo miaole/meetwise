@@ -52,6 +52,7 @@ const AUDIT_KEYS = new Set([
   'reviewedFindingIds', 'selfCheckReason',
 ]);
 const FINDING_KEYS = new Set(['findingId', 'severity', 'status', 'disposition', 'closureEvidence']);
+const FINDING_REQUIRED_KEYS = new Set(['findingId', 'severity', 'status', 'disposition']);
 const BASELINE_CHANGE_KEYS = new Set([
   'previousAllowedUnmappedLeafTcIdsDigest', 'resultingAllowedUnmappedLeafTcIdsDigest',
   'addedUnmappedLeafTcIds', 'expansionJustification',
@@ -68,6 +69,7 @@ const BASELINE_KEYS = new Set([
 ]);
 const GOVERNED_PATH_PREFIXES = [
   'ai-docs/',
+  'ops/',
   'scripts/',
   '.github/',
   'package.json',
@@ -94,7 +96,15 @@ function sortedUnique(values) {
 }
 
 function hasExactKeys(value, keys) {
-  return isPlainObject(value) && Object.keys(value).every((key) => keys.has(key));
+  return isPlainObject(value) && Object.keys(value).length === keys.size && Object.keys(value).every((key) => keys.has(key));
+}
+
+// 与 hasExactKeys 不同:closureEvidence 仅在 closed 时才有值,是可选键。这里只强制 required 全在场
+// 且不允许 required+allowed 之外的任何键——既抓缺失(假绿根因),也不把旧记录里缺 closureEvidence 误判为结构非法。
+function hasRequiredAndAllowedKeys(value, required, allowed) {
+  if (!isPlainObject(value)) return false;
+  const present = Object.keys(value);
+  return [...required].every((key) => key in value) && present.every((key) => allowed.has(key));
 }
 
 function addError(errors, code, detail) {
@@ -272,7 +282,7 @@ function validateFindings(record, errors) {
   }
   const ids = new Set();
   for (const finding of findings) {
-    if (!hasExactKeys(finding, FINDING_KEYS) || !FINDING_ID_PATTERN.test(finding.findingId ?? '')) {
+    if (!hasRequiredAndAllowedKeys(finding, FINDING_REQUIRED_KEYS, FINDING_KEYS) || !FINDING_ID_PATTERN.test(finding.findingId ?? '')) {
       addError(errors, 'finding_fields_invalid', record.taskId);
       continue;
     }

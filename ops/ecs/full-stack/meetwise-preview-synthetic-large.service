@@ -1,0 +1,23 @@
+[Unit]
+Description=Meetwise one-shot large synthetic preview dataset loader
+After=network-online.target meetwise-api.service
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=exec
+User=root
+Group=root
+WorkingDirectory=/usr/local/lib/meetwise-preview-synthetic
+EnvironmentFile=/etc/meetwise/full-stack-common.env
+EnvironmentFile=/etc/meetwise/full-stack-migrate.env
+ExecStart=/usr/bin/node loader.mjs run --profile large-v1 --dataset-id preview-large-v1
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=4h
+TimeoutStopSec=30
+KillMode=control-group
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true

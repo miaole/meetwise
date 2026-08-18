@@ -1,0 +1,10 @@
+[Unit]
+Description=Deadline for a Meetwise full-stack public edge probe
+
+[Timer]
+OnActiveSec=60s
+AccuracySec=1s
+Unit=meetwise-full-stack-edge-probe-expiry.service
+
+[Install]
+WantedBy=timers.target

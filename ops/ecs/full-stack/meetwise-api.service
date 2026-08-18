@@ -1,0 +1,29 @@
+[Unit]
+Description=Meetwise preview API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=meetwise
+Group=meetwise
+WorkingDirectory=/srv/meetwise-full-stack/current/apps/api
+EnvironmentFile=/etc/meetwise/full-stack-common.env
+EnvironmentFile=/etc/meetwise/full-stack-api.env
+Environment=HOST=127.0.0.1
+ExecStart=/usr/bin/node --import @swc-node/register/esm-register src/main.ts
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=20
+KillSignal=SIGTERM
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadOnlyPaths=/srv/meetwise-full-stack
+ReadWritePaths=/var/lib/meetwise-full-stack
+MemoryMax=512M
+TasksMax=256
+
+[Install]
+WantedBy=multi-user.target

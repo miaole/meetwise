@@ -116,6 +116,14 @@ Web/API/Worker 在本机用 pnpm dev 启动。
 - 静态目录只包含项目简介、受控入口状态和已核验的 HTTPS 链接；不得包含 API 调用、iframe、环境变量、连接串、令牌、数据服务地址或用户数据。
 - 目录必须由受保护分支的最小权限发布任务生成。没有仓库地址、签名目录清单、ECS 健康回执、不可变镜像摘要和到期时间的入口保持禁用。
 - 目录不是认证层；实际 ECS 预览环境独立执行认证，入口链接不携带 token、query 或 fragment。
+- 首次 controller 安装是单独的 root 信任仪式：先由非 root 用户验证 GitHub Actions 的 controller archive 构件证明，再从已验证 archive 取出 installer；禁止对 checkout、release 目录或任意本机文件直接使用 sudo。controller 之后只接受 root-owned staging archive，并在验签后拒绝链接、特殊成员和路径逃逸。
+
+只读 Web 预览：
+
+- `UC-ecs-public-preview-web-ingress-01` 的 Web 只能监听 ECS 回环端口；受信 HTTPS 边缘只可转发到回环 Nginx，不能把 API、Worker、metrics 或数据服务暴露给公网。
+- Nginx 在反代之前只允许 `GET`、`HEAD`、`OPTIONS`；其余 HTTP 方法必须直接返回固定 503，因此 Next Server Action 和任何 API 代理都不会收到公开请求。
+- 该工作包不启动 API/Worker、不授予数据面凭据、不迁移数据库。只有 Web 构建摘要、回环健康、HTTPS 地址和入口过期时间均被受控 release 清单验证后，Pages 才能渲染链接。
+- HTTPS 的完整黑盒必须在公开签名记录前完成；若失败，不会出现短暂有效的 Pages 链接。撤销与 Pages 的禁用回执以 canonical signed-manifest 摘要匹配，而不是依赖 JSON 格式。
 
 应用运行时：
 

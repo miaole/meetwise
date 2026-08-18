@@ -81,7 +81,7 @@ export async function createApp(): Promise<NestFastifyApplication> {
 async function bootstrap() {
   const app = await createApp();
   const port = Number(process.env.PORT || 8787);
-  const host = process.env.HOST || '0.0.0.0';      // 容器内需绑 0.0.0.0
+  const host = process.env.HOST || '127.0.0.1';   // 默认仅回环;容器/反向代理需显式 HOST=0.0.0.0(审计:默认 0.0.0.0 会把写 API+/docs 暴露到所有网卡)
   await app.listen(port, host);
   console.log(`api on ${host}:${port}`);
 }

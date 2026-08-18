@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { CLOUD_IDENTIFIER_RULES, PUBLIC_TEXT_POLICY_CODES, isSyntheticIdentifier } from './ai-docs/public-text-policy.mjs';
 
 const credentialPatterns = [
   { name: 'Alibaba AccessKey ID', pattern: /\bLTAI[A-Za-z0-9]{12,}\b/ },
@@ -20,6 +21,17 @@ const credentialPatterns = [
       /\b(?:api[_-]?key|secret(?:[_-]?key)?|access[_-]?key|token|password)\s*[:=]\s*['"](?![A-Za-z0-9._~+\/-]*(?:password|token|test|proof|fixture|dummy|placeholder|example|changeme|replace_me|xxx|your_|-\d{4}))[A-Za-z0-9._~+\/-]{16,}/i,
   },
 ];
+
+// 云端标识兜底：gitleaks 抓不到的「标识」而非「秘密」。复用 public-text-policy.mjs 的
+// CLOUD_IDENTIFIER_RULES(单一事实源，避免两处正则漂移)。API_KEY 类(LTAI/AKIA/sk-)已由上方
+// credentialPatterns 覆盖，这里只补私钥 PEM 与实例/网络标识；合成夹具经 isSyntheticIdentifier 放行。
+const IDENTIFIER_RULE_NAMES = {
+  [PUBLIC_TEXT_POLICY_CODES.PRIVATE_KEY]: 'private key PEM',
+  [PUBLIC_TEXT_POLICY_CODES.CLOUD_IDENTIFIER]: 'cloud identifier (instance/tailnet/RDS hostname)',
+};
+const cloudIdentifierPatterns = CLOUD_IDENTIFIER_RULES
+  .filter(({ code }) => code === PUBLIC_TEXT_POLICY_CODES.PRIVATE_KEY || code === PUBLIC_TEXT_POLICY_CODES.CLOUD_IDENTIFIER)
+  .map(({ code, re }) => ({ name: IDENTIFIER_RULE_NAMES[code], pattern: re }));
 
 function stagedFiles() {
   const output = execFileSync('git', ['diff', '--cached', '--name-only', '-z', '--diff-filter=ACMR'], {
@@ -55,6 +67,15 @@ for (const path of stagedFiles()) {
   if (content === null || content.includes('\0')) continue;
   for (const { name, pattern } of credentialPatterns) {
     if (pattern.test(content)) findings.push({ path, rule: name });
+  }
+  for (const { name, pattern } of cloudIdentifierPatterns) {
+    // matchAll 要求 global 标志；CLOUD_IDENTIFIER_RULES 的 re 无 g，这里补上（与 public-text-policy.mjs 一致）。
+    const global = new RegExp(pattern.source, pattern.flags.includes('g') ? pattern.flags : `${pattern.flags}g`);
+    for (const match of content.matchAll(global)) {
+      if (isSyntheticIdentifier(match[0])) continue;
+      findings.push({ path, rule: name });
+      break;
+    }
   }
 }
 
