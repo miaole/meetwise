@@ -21,6 +21,13 @@ const model: ModelClient = { complete: (r, a) => { calls++; return base.complete
 async function main() {
   await runMigrations(pool, loadMigrations(fileURLToPath(new URL('../../../packages/db/migrations', import.meta.url))));
 
+  // 每个 invoke 都带 privacyInterviewId=TID；预派发隐私围栏要求该 interview 真实存在且 owner 匹配。
+  // 若缺此行会走隐私围栏拒绝分支(privacy_fenced_pre_dispatch)，模型从未被调用、4 角色 trace=0，与本 proof 要证明的
+  // 「角色拆分+invoke 关口+CRAG+threadId」无关(adaptive-degrade 同样 seed 了 owner-scoped parent)。
+  await asPrincipal(pool, OWNER, async (c) => {
+    await c.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')", [TID, OWNER]);
+  });
+
   const comps = await planCompetencies(pool, OWNER, TID, model, '后端工程师', ['限流改造', 'Redis 计数器']);
   A('① 规划官经 invoke 产出目标能力规格(≥2,top1-2 标 core,附行为槽)', comps.length >= 2 && comps.some((c) => c.name === '并发') && comps.some((c) => c.behavioral));
 
