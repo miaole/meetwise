@@ -14288,7 +14288,7 @@
         "scripts/quality-traceability.proof.mjs",
         "scripts/run-e2e-isolated.mjs"
       ],
-      "governedPathDigest": "sha256:ca6382f4b367f2ed6b87ac51afa341cc5c057e5b040eff54a45af674cde3eda1",
+      "governedPathDigest": "sha256:d286a2af5896d5964ae3d8599f7e3e62f22b7073bc2a3ddaea5946b5f656d33e",
       "harness": {
         "scope": "public-text policy 覆盖面扩展：受管根/文本扩展名新增 ops、preview-site 与 .conf/.service/.timer/.html/.css/.txt/.pem/.py；新增云端标识兜底规则（PTP_PRIVATE_KEY/PTP_CLOUD_IDENTIFIER/PTP_API_KEY）拦截 gitleaks 抓不到的私钥 PEM、izbp 实例 ID、Tailscale *.ts.net、阿里云 RDS hostname 与 LTAI/AKIA/sk- 凭据形状，并用 SYNTHETIC_IDENTIFIER_PATTERNS 精确放行合成夹具。proof 增补 E8/E9/E10 覆盖命中、合成放行与同形拦截边界。",
         "sourceEvidenceIds": [
@@ -14361,7 +14361,7 @@
         "summary": "Successor widening public-text policy to cover the ECS preview ops/preview-site roots and cloud-identifier leakage fallback (private-key PEM, izbp instance id, Tailscale/RDS hostnames, LTAI/AKIA/sk- credential shapes) that gitleaks full-history scanning does not catch. A synthetic allowlist precisely exempts the registered fake tailnet/RDS fixtures; any same-shaped unregistered value still fails. Governed-path digests are recomputed against the current tree; releaseEvidence=false, no live deployment or secret claim.",
         "summaryDigest": "sha256:5c7a103e68bef47b26d2913f1241cec8cb65f9b191fb6eae54f645e59164ccd5",
         "decision": "blocked",
-        "reviewScopeDigest": "sha256:c1e1ce08b8211fad901ce5d89624a7a9fe4cd71b33e68e5905434373b8275885",
+        "reviewScopeDigest": "sha256:8bbb45b5174035776c733e4da1e684d97275d69a164932254b081e32ecaf40c8",
         "reviewedFindingIds": [
           "GOV-PTP-001"
         ],
@@ -14384,7 +14384,7 @@
       ],
       "successorOf": "public-text-policy-control-plane-v29",
       "baselineChange": null,
-      "recordDigest": "sha256:2154084c3a35c1fa6363a0437c563b80aa9b4930c5adda1ee7b4cdf0e58d90e7"
+      "recordDigest": "sha256:038607b86ceae988ff58d6686bd4d0ac6abe3cc0cbbad2de565a2fbe854e2815"
     },
     {
       "taskId": "quality-governance-control-plane-v39",
@@ -14437,7 +14437,7 @@
         "scripts/quality-traceability.proof.mjs",
         "scripts/run-e2e-isolated.mjs"
       ],
-      "governedPathDigest": "sha256:3bda2dfa1dbd535ac18d1f399fcae88f5401f9f1a86f7821b10b68b0f13dfb88",
+      "governedPathDigest": "sha256:8b854e77395eb57175f8700768535f059828e66c3545c7c3ca433306df00e034",
       "harness": {
         "scope": "治理校验器结构完整性修复：hasExactKeys 由单方向(仅无多余键)改为双向集合相等(既无多余键、也抓缺失键)；findings 因 closureEvidence 仅在 closed 时有值，改用 hasRequiredAndAllowedKeys(必填 findingId/severity/status/disposition + 允许闭证据键)。修复假绿根因，不把旧记录缺 closureEvidence 误判为结构非法。",
         "sourceEvidenceIds": [
@@ -14519,7 +14519,7 @@
         "summary": "Successor fixing the hasExactKeys false-green in the governance validator: exact-key checks now require set equality (no extra AND no missing keys), and findings switch to a required-plus-allowed check because closureEvidence is optional for open findings. Historical records that predate the closureEvidence field are no longer mis-flagged as structurally invalid. Governed-path digests recomputed; releaseEvidence=false.",
         "summaryDigest": "sha256:2c45b6cf74df5302be9bb4cd91e45a57e7c9d219e23453e4f00c60ba1ea8b690",
         "decision": "blocked",
-        "reviewScopeDigest": "sha256:bd20582cb9082dc53e5bab08dfaea9b4a79103120a6cd436ab35ae28d8659220",
+        "reviewScopeDigest": "sha256:4873a00dae75402c6354fe8617378d30d6b0d3dea42d2f76ed129f71ba1300a4",
         "reviewedFindingIds": [
           "GOV-CLOUD-TEST-RECOVERY-001",
           "GOV-CLOUD-TEST-RECOVERY-002",
@@ -14848,7 +14848,7 @@
       ],
       "successorOf": "quality-governance-control-plane-v38",
       "baselineChange": null,
-      "recordDigest": "sha256:71cacf946671a6f766562b440659c1fd5530167024f4d7aa7341b598bbf104b1"
+      "recordDigest": "sha256:e6f3757bb92a39f75a5391f414ee8390dc2143d41a4986a9993bbff0cffac330"
     }
   ]
 }
