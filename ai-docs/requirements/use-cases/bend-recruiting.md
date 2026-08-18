@@ -1,7 +1,7 @@
 ---
 id: requirements_uc_bend_recruiting
 name: 用例 · B端招聘 入驻·席位·题库·匹配·隔离·录用
-description: B端招聘 入驻·席位·题库·匹配·隔离·录用 业务用例与测试用例（正常/异常/特殊/逃逸/并发/复杂/刁钻七类，28 UC / 135 TC）。
+description: B端招聘 入驻·席位·题库·匹配·隔离·录用 业务用例与测试用例（正常/异常/特殊/逃逸/并发/复杂/刁钻七类，29 UC / 141 TC）。
 type: reference
 scope: shared
 level: spec
@@ -604,6 +604,43 @@ IDOR / JWT 跨租 / 向量库（pgvector 命名空间）/ 缓存键 / LangGraph 
 | TC-AIIV-004-HC1 | 集成 | 同 IDEM 双击→计费 1 |
 | TC-AIIV-004-TR1 | 集成 | 超次数上限→拒绝 |
 | TC-AIIV-004-EX1 | 集成 | 生成失败→不计费不计次 |
+
+### UC-AIIV-005 · 岗位面试评分不可用的可恢复收口（新增·真实 E2E 缺陷修复）
+**七类覆盖**：正常✓ 异常✓ 特殊✓ 逃逸✓ 高并发✓ 复杂✓ 刁钻✓
+
+- **角色**：候选人 / 招聘方 / 面试 Worker（后台任务进程）/ 人工复核队列。
+- **前置**：`JobApplication` 已由 `start` 原子绑定当前 `CandidateEvaluationSession`；候选人有一笔 `reserved`（已预留）面试额度；所有可见 B 端字段只来自该绑定。
+- **触发**：最后一个面试回合无法形成带答案证据的评分（`answer_unscored`），或报告生成失败。
+- **主流程**：
+  1. 若全部回合已形成可审计评分，Worker 以同一事务 `confirmConsumption + Interview→completed`；岗位申请自动 `in_progress→completed`，写服务端推导分数。
+  2. 若仅报告生成失败而评分已成立，`Interview=completed` 和 `JobApplication=completed` 保持不变；报告进入 `quarantined`（隔离）并发 `report_unavailable`，不得用报告失败回滚分数或二次扣费。
+  3. 若任一终态回合无法评分，Worker 以同一事务 `releaseConsumption + Interview→failed + JobApplication→assessment_unavailable`，分数恒为 `NULL`；发 `assessment_unavailable` 事件。候选人与招聘方都看到可解释终态，不能把缺证据的答案伪造成 `0` 分或 `completed`。
+  4. 候选人显式重新开始时，仅允许 `assessment_unavailable→in_progress`；服务端在同一 application 下创建递增 attempt（尝试）编号的新会话，旧失败会话保留审计历史且永不再回填当前申请。
+
+| 类 | flow | 场景 | 落点机制 | 后置/账本 |
+|---|---|---|---|---|
+| 正常 | N1 | 所有回合有评分，报告成功或失败 | 绑定四元组 + 状态机 | `completed`；评分证据/消费账本各 1 |
+| 异常 | EX1 | 全部或部分回合 `unscored` | 同一事务释放预留 + 状态 CAS | `assessment_unavailable`；`score=NULL`、额度 `released` |
+| 特殊 | SP1 | 报告失败但已有全部评分 | 报告子图舱壁 | 岗位仍 `completed`；报告 `quarantined` |
+| 逃逸 | ES1 | 客户端试图写 0 分、传历史 interviewId、伪造 unavailable | strict DTO + DB trigger + 绑定复核 | 400/409；无分数/状态副作用 |
+| 高并发 | HC1 | Worker 完成、sweeper（对账器）和候选人重新开始并发 | `status=:from` CAS + `UNIQUE(application_id,attempt)` | 恰一个终态；新 attempt 至多 1 个 |
+| 复杂 | CX1 | 首次评分不可用→退额度→候选人重试→新 attempt 成功 | attempt 单调序号 + 旧会话 fenced（围栏） | 旧会话不可回填；新会话唯一完成 |
+| 刁钻 | TR1 | 旧失败 attempt 晚到的事件/重试回填新申请 | current attempt 与 `interview_id` 双重谓词 | 更新 0 行；招聘方不见伪分数 |
+
+- **异常流**：E1 重复事件/重复 finalize 为幂等重放；E2 完成/释放/重启只允许 CAS 的预期来源态；E3 候选人、招聘方和第三租户的越权更新均为 RLS（行级安全）0 行；E4 评分不可用必须释放预留且所有账本同事务回滚；E5 报告故障与评分故障分别降级，不混用 `report_unavailable`；E6 SSE（服务端事件流）断线后按事件账本恢复同一终态，前端不无限旋转。
+- **后置**：`JobApplication.status∈{completed,assessment_unavailable}`；`completed` 必有 0–100 的服务端分数与至少 1 条证据，`assessment_unavailable` 必有 `score=NULL`、释放账本和不可伪造事件；历史 attempt 只读。
+- **验收**：①评分不可用时 B 端状态为 `assessment_unavailable`、分数 `NULL`、释放额度恰 1 次；②报告不可用但有分数时 B 端仍 `completed`，不退款、不重复扣费；③并发 20 次完成/重试后，当前 attempt 数增量为 0 或 1，任意旧 attempt 回填数为 0；④前端收到两类终态都停止等待并调用不带 `interviewId` 的 finalize；⑤跨主体读取/更新均为 0 行。
+- **关联**：契约 `POST /applications/:id/finalize`、`POST /applications/:id/start`、SSE `assessment_unavailable`；状态机 `Interview`、`JobApplication`；原语 CAS + 幂等键 + RLS + 事件日志；关联评分协议“无证据=`unscored`，不得伪造分数”。
+
+| TC | 层 | 断言 |
+|---|---|---|
+| TC-AIIV-005-N1 | 真实 PostgreSQL + HTTP | 评分齐全→`completed`，分数与事件均服务端推导；重复 finalize 不新增账本 |
+| TC-AIIV-005-EX1 | 真实 PostgreSQL | `answer_unscored` 终态→`assessment_unavailable`、`score=NULL`、额度 `released` 恰 1 |
+| TC-AIIV-005-SP1 | 真实 PostgreSQL + report worker | 报告 `quarantined` 且已有评分→申请仍 `completed`，消费 `confirmed` 恰 1 |
+| TC-AIIV-005-ES1 | HTTP 负向 | 夹带历史 `interviewId`、客户端分数或伪造状态→400/409，业务表无变化 |
+| TC-AIIV-005-HC1 | 集成 | 20 个完成/重试并发请求→一个 CAS 胜者、每个 attempt 至多一笔 settle/release |
+| TC-AIIV-005-CX1 | E2E | 真实服务先出现评分不可用，再重试新 attempt；旧 attempt 不能写新申请，成功 attempt 可回填 |
+| TC-AIIV-005-TR1 | 集成 | 模拟延迟旧 worker 写入→`WHERE interview_id=current AND attempt=current` 影响行数 0 |
 
 ---
 

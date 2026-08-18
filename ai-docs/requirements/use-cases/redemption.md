@@ -1,7 +1,7 @@
 ---
 id: requirements_uc_redeem
 name: 用例 · 兑换码/兑换服务（批次·校验·一次性·有效期·绑定·防刷·权益衔接）
-description: 兑换域业务用例与测试用例（正常/异常/特殊/逃逸/并发/复杂/刁钻七类）。评审收口·终版：在前稿基础上补齐共享多次码全局名额计数器、批次预算上限、validFrom 生效下界、跨批次叠加/互斥、码明文受控导出（明文不落日志）、输入规范化纯函数、充值侧退款冲正、码泄露应急 kill-switch、账本 append-only DB 强制+哈希链、能力位 tier=max 不降级、幂等真相键投毒防护、reserve-then-abandon DoS。41 UC / 99 TC。
+description: 兑换域业务用例与测试用例（正常/异常/特殊/逃逸/并发/复杂/刁钻七类）。评审收口·终版：在前稿基础上补齐共享多次码全局名额计数器、批次预算上限、validFrom 生效下界、跨批次叠加/互斥、码明文受控导出（明文不落日志）、输入规范化纯函数、充值侧退款冲正、码泄露应急 kill-switch、账本 append-only DB 强制+哈希链、能力位 tier=max 不降级、幂等真相键投毒防护、reserve-then-abandon DoS。41 UC / 104 TC。
 type: reference
 scope: shared
 level: spec

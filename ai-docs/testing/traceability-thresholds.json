@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "profiles": {
+    "pr-local": {
+      "scope": "static-preflight-only",
+      "minimumSamples": 1,
+      "minimumConsecutiveRuns": 1,
+      "maxEvidenceAgeHours": 24,
+      "releaseEvidence": false
+    }
+  }
+}

@@ -75,7 +75,7 @@ related:
 - 引导层=检索时算，不落表。
 - `SkillInferenceEvidence`(junction)：inferenceId、interviewEventId、contribution——证据用关系表，不用 JSON 数组。
 
-> **实现现状（诚实校准）**：长期记忆存取原语（`user_memory` 表 + `packages/db` 的 `insertMemory/getMemoriesByRefIds/episodeSeen` + `apps/worker` 的 `memory-service` `rememberFact/recallMemories/wasAsked`，向量化入 `vector_chunk kind=memory`）已建**且有独立 gate**（`pnpm memory:prove`）。但**尚未接线进实时面试主链路**——现存代码中除测试外无调用点，即"记住上场弱项/已问过的题"还没喂进在跑的 adaptive interview loop。属**已建未接线**，非生产运行态。
+> **实现现状（诚实校准）**：`user_memory` 表、`insertMemory/episodeSeen` 和 worker `memory-service` 的 lean 路径已部分接线：面试完成后写**系统生成题面**为 `episode`，下一场通过 `wasAsked` 精确判重；历史弱项从 `assessment_report` 只读，用于能力排序软偏置。`pnpm memory:prove` 覆盖 RLS 与不存答案/PII。语义 `user_memory` 向量召回、冻结 snapshot、用户信念画像及其同意/删除闭环仍未接线，不能把本表称为生产语义记忆；见 `architecture/ai/memory-context-design.md`。
 
 ## 6. RAG 语料（统一存储，含企业自维护题库）
 

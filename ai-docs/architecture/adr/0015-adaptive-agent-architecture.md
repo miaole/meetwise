@@ -41,7 +41,7 @@ agent 是 **感知→推理→行动 的自适应循环**,跑在持久 substrate
 ## 被否方案
 
 - **固定题单 workflow**:下一题与上一题无关、不自适应——核心病灶,否。
-- **LlamaIndex(做 agent/RAG)**:查证 **LlamaIndex.TS 2026 已弃用/不再维护**(workflows-ts 弃用、legacy agents v0.9.0 移除、官方导向 Python);TS 生产押它=押死框架。**保留 LangGraphJS**(循环/有状态/人在环/长会话/持久化正是可恢复面试的形状),**拿 agentic-RAG/CRAG 模式自己在现有混合检索(pgvector+BM25+rerank)上实现**——能力同、不锁死、十年可控。
+- **LlamaIndex(做 agent/RAG)**:TS 运行时维护与迁移风险不适合作为本项目的长期核心依赖，因此保留 LangGraphJS（循环、有状态、人在环、长会话和持久化贴合可恢复面试）。QBank 当前生产检索是 generation-aware dense，显式 RRF 时附加 PostgreSQL FTS；内存 BM25、rerank 与 query expansion 仍是实验/离线能力，不能写成现有 serving 组合根。
 - **图内出报告**:否——破坏报告舱壁的失败隔离 + 双花模型。
 - **qbank 每用户私有**:否——策展真题=共享知识(非 PII,非多租户)→ **公共读**(系统 owner 灌一次,全用户检索;memory 仍 owner 私有)。
 - **热路径现爬 web**:否——慢/脆/踩 ToS 版权。**离线建库 + allowlist 强制 + 注入 fetch + transform 不照搬**;CRAG 仅在本地不够好时才探。
@@ -62,7 +62,7 @@ agent 是 **感知→推理→行动 的自适应循环**,跑在持久 substrate
 
 ## 记忆设计裁决(已过两轮专家审计)
 
-自适应 agent 的"富记忆/个性化"设计(信念层 + 成长层 + embedding 三层)被**否决**:它会破坏引擎确定性、造出与 `assessment_report` 分叉的第二成长真相源、并形成"确认偏差"回路(记住"弱项"→ 只探弱项 → 更"证实"弱项)。**审定的 MVP**:跨会话**精确哈希去重**(同候选人不重复出同题) + **复用 `assessment_report` 作为唯一成长真相源**;信念/个性化 store **暂缓(deferred)**。成长曲线只从 `assessment_report` 派生。对应 `memory-service` 模块(`rememberFact`/`recallMemories`/`episodeSeen`)现为🟡**机制已建、未接线**(仅测试路径调用,主循环不读写)。
+自适应 agent 的"富记忆/个性化"设计(信念层 + 成长层 + embedding 三层)被**否决**:它会破坏引擎确定性、造出与 `assessment_report` 分叉的第二成长真相源、并形成"确认偏差"回路(记住"弱项"→ 只探弱项 → 更"证实"弱项)。**审定的 MVP**:跨会话**精确哈希去重**(同候选人不重复出同题) + **复用 `assessment_report` 作为唯一成长真相源**;信念/个性化 store **暂缓(deferred)**。成长曲线只从 `assessment_report` 派生。当前 `memory-service` 已在主循环运行 exact `episode` 判重和弱项软偏置；语义召回/信念画像仍不接线，见 `architecture/ai/memory-context-design.md`。
 
 ## 与代码现状的对账(哪些已接线运行、哪些默认关闭/骨架)
 
@@ -72,4 +72,4 @@ agent 是 **感知→推理→行动 的自适应循环**,跑在持久 substrate
 
 ## 未尽(非架构缺口,属内容/配置)
 
-更多策展真题(运营离线 `ingestQbank`)、web allowlist 真源(配置)、图片简历 OCR 接线(qwen-vl,当前 stub)、流式语音电话网关(PSTN/SIP,外部基建)。
+更多策展真题(运营离线 `ingestQbank`)、web allowlist 真源(配置)、图片简历 OCR（光学字符识别）真实阿里百炼/浏览器验收（qwen-vl 的代码接线及脚本模型回归已存在，但非当前 stub 或外部发布证据）、流式语音电话网关(PSTN/SIP,外部基建)。

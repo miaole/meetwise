@@ -20,7 +20,7 @@ related:
 
 # 面试与职业准备领域模型
 
-> **🔎 实现状态（对齐真实代码 · 2026-07）** — 领域对象/状态机为 canonical 定义，均已在代码建模并接线（Interview / InterviewQA / AssessmentReport / AiGraphRun / InterviewEvent / Entitlement / ConsumptionRecord 等）。落地校正：`GrowthProfile`/`SkillInference` 标注为“系统**推断**”，但当前实现是**确定性派生**（从面试后的 `assessment_report` 汇总），**未接入跨会话记忆/信念建模**（经审计判定为过度设计而暂缓，仅保留精确 hash 去重）；`ResumeVersion.structuredProfile` 当前**仅支持文本/PDF 文本层**，图片简历 OCR 为桩。
+> **🔎 实现状态（对齐真实代码 · 2026-08-10）** — 领域对象/状态机为 canonical 定义，均已在代码建模并接线（Interview / InterviewQA / AssessmentReport / AiGraphRun / InterviewEvent / Entitlement / ConsumptionRecord 等）。落地校正：`GrowthProfile`/`SkillInference` 标注为“系统**推断**”，但当前实现是**确定性派生**（从面试后的 `assessment_report` 汇总），**未接入跨会话记忆/信念建模**（经审计判定为过度设计而暂缓，仅保留精确 hash 去重）；`ResumeVersion.structuredProfile` 支持文本/PDF 文本层，图片 OCR（光学字符识别）有受开关控制的代码路径和脚本模型回归，但尚无真视觉模型、扫描型 PDF 或完整删除的发布证据。
 
 > **唯一事实源**：领域结构 / 聚合归属 / 状态枚举以 `architecture/backend/data-model.md` 与 `rules/global/status-machine.md` 为准。本文是面向产品的概览，**不得平行重述出分叉口径**（修架构审计致命 #1/#2 域口径双定义）。
 

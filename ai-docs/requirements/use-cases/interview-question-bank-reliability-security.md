@@ -244,7 +244,7 @@ COMMIT;
 
 **场景**：C 端简历/面试原文只能归候选人；B 端可看经授权的申请状态/缓存评分；后台 worker 也会读写数据。
 
-**90 秒可口述完整答案**：RLS 的价值只在每个读取路径都带着不可伪造的身份进入数据库。HTTP 和 worker 都应通过统一 asPrincipal 事务设置 app_role 与 principal；高权 dispatcher 只能枚举最小任务集合，真正处理每个 owner 时仍切回受 RLS 限制的连接。没有 owner 的 checkpoint 不能被“内部表”豁免：要么由 thread 映射回 interview owner 后授权读取，要么把 owner 写进可强制过滤的结构。B 端也不是管理员视图，而是经同意、岗位和用途限定后的最小投影，默认不含回答原文。我要用跨用户、跨 tenant、worker 重放、checkpoint 恢复四类 E2E 测试，要求越权返回数和 trace 中越权原文数均为 0。
+**90 秒可口述完整答案**：RLS 的价值只在每个读取路径都带着可信主体上下文进入数据库。HTTP 和 worker 都应通过统一 asPrincipal 事务设置 app_role 与 principal；高权 dispatcher 只能枚举最小任务集合，真正处理每个 owner 时仍切回受 RLS 限制的连接。要特别说明：`SET LOCAL app.principal_user` 是可信应用进程的上下文，不是加密签名身份；持有运行时数据库凭据并能执行任意 SQL 的攻击者也可伪造它。因此 SQL 注入防护、数据库凭据隔离是前置，高风险删除/付款还应改走独立 executor（执行角色）和签名授权。没有 owner 的 checkpoint 不能被“内部表”豁免：要么由 thread 映射回 interview owner 后授权读取，要么把 owner 写进可强制过滤的结构。B 端也不是管理员视图，而是经同意、岗位和用途限定后的最小投影，默认不含回答原文。我要用跨用户、跨 tenant、worker 重放、checkpoint 恢复四类 E2E 测试，要求越权返回数和 trace 中越权原文数均为 0。
 
 **考察点**：`SET LOCAL`、事务池、FORCE RLS、app role、principal 传播、BYPASSRLS 最小化、checkpoint 例外。
 

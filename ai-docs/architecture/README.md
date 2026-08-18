@@ -19,4 +19,3 @@ tags:
 1. `system-blueprint.md`
 2. `ai/langgraph-blueprint.md`
 3. `devops/local-demo-deployment.md`
-

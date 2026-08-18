@@ -65,6 +65,18 @@ related:
 ### ADR-0015 自适应面试 agent 架构 · accepted
 **背景**：面试 agent 必须是自适应的——下一题要取决于上一题答得如何,并具备工具/反思/接地能力。**决定**：自适应循环——规划官→能力模型决策(追问/换题/调难度/收尾)→CRAG 自纠检索(本地够好用本地/不行自主 web 探索)→接地出题(简历个性化+标源+不照搬+去重+对能力)→反思自检→角色拆分(各自 invoke+prompt 动静分离)→报告走舱壁。跑在 checkpointer + invoke 关口上。**被否**：固定题单 workflow(下一题与上一题无关,不自适应);LlamaIndex(TS 版 2026 已弃用,押死框架——保 LangGraph + 自实现 CRAG/agentic-RAG 模式);图内出报告(破坏舱壁隔离);qbank 每用户私有(策展真题=共享知识,公共读);热路径现爬(慢/脆/版权)。**后果**：~16 块 gate + 真 qwen 实跑验证;只有真跑才暴露的细节(fetchWithTimeout 漏 import/出题没传简历/幂等键须用持久 turn)全抓修。**详见 [`adr/0015-adaptive-agent-architecture.md`](./0015-adaptive-agent-architecture.md)。**
 
+### ADR-0016 全格式 RAG 版本控制面 · accepted
+**背景**：向量模型版本不能单独代表 RAG 版本；内容、解析、清洗、切块、transform、语料快照和发布口径任一变化都可能改变事实链。**决定**：Postgres 事实源 + 不可变 content/recipe/generation + shadow release policy + `1→10→50→100` 灰度 + active pointer CAS + frozen query binding + retained-generation 擦除传播；0073 进一步以独立控制登录和双安全定义者隔离 0032 的可伪造控制授权，0074 为 rebuild lease 增加成功 request 围栏，0079–0080 为 control schema/function 直接 ACL 与 executor 成员闭包加入严格 allowlist，0081 将同一 request 的并发 dispatch 收敛到唯一可外发 attempt。**被否**：原地覆盖 active vector、只留 model version、应用内指针、把回填当 LangGraph 对话图。**后果**：当前本地隔离合同包括 20 条版本状态机断言、19 条角色、4 条升级和 6 条派发/对账断言，均非发布证据；Office/OCR/ASR、组织 ACL、请求热路径、真实规模指标仍需独立接线和验证。**详见 [`adr/0016-rag-corpus-version-control.md`](./0016-rag-corpus-version-control.md)。**
+
+### ADR-0018 复杂变更的静态治理预检 · accepted
+**背景**：Harness 与专家审计曾主要保留在流程文字或临时工作单中，CI 无法复核范围与处置。**决定**：以版本化治理审计索引、摘要绑定和冻结未映射基线实施纯静态预检。**被否**：自动猜测所有复杂变更、把 CI 绿灯当审批/发布证据。**后果**：仅显式登记的受管任务进入本门；结果恒为 `releaseEvidence=false`。**详见 [`adr/0018-quality-governance-static-preflight.md`](./0018-quality-governance-static-preflight.md)。**
+
+### ADR-0019 公共文本策略的静态治理 · proposed
+**背景**：公共成果既要拒绝外部项目归属表述，也要保留合法技术术语。**决定**：受管路径静态扫描 + 原因码 + 独立 L3 治理记录。**后果**：审阅者身份和摘要是声明而不是独立性证明；未复核记录保持 `blocked`，结果恒为 `releaseEvidence=false`。**详见 [`adr/0019-public-text-policy-static-governance.md`](./0019-public-text-policy-static-governance.md)。**
+
+### ADR-0020 评分卡事实权威与资格门 · proposed
+**背景**：普通 runtime 可伪造 event 分数，题目/rubric/答案/版本未被同时冻结。**决定**：评分仅从不可变已发题合同、版本化 rubric、数据库 verifier 与专用 score-writer 产生；消费者只读资格化 ScoreCard，未标注题 score-excluded。**后果**：过渡期 C 端可能显示 unavailable，B 端继续无数值用途；等待产品确认与专用 writer 部署设计。**详见 [`adr/0020-scorecard-authority-and-eligibility.md`](./0020-scorecard-authority-and-eligibility.md)。**
+
 ---
 
-> 待补：ADR-0007 的 B 端物理隔离决策、API 版本化策略、密钥管理与 KMS。来源：原 `.tmp/decision-register.md`（D1–D22）合并去重，逐步补全。
+> 待补：ADR-0007 的 B 端物理隔离决策、API 版本化策略、密钥管理与 KMS；相关决策将按现行治理流程逐步补全。

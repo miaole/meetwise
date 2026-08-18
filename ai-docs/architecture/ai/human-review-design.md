@@ -24,13 +24,13 @@ related:
 
 | 能力 | 当前代码/实测 | 数量化结论 | 不能据此声称 |
 | --- | --- | ---: | --- |
-| 题库源审核门 | `qbank_source` 有 `pending → approved/rejected`、`approved → rejected`，RLS、触发器与 CAS | 在全新隔离 pgvector/Postgres 容器运行 `pnpm qbank-source:prove`，测试输出的全部断言通过；覆盖自审批、越权审核、撤销即时从检索消失、残留投毒与 ref-id 碰撞 | 已有审核员后台、工单 SLA、题库人工运营闭环。`reviewSource` 的运行时调用目前仅见灌库代码；没有 HTTP/UI 审核工作台。 |
+| 题库源审核门 | `qbank_source` 有 `pending → approved/rejected`、`approved → rejected`、来源/池/正文哈希一致、历史脏链隔离和已发布工件不可变触发器 | `pnpm rag-generation:prove`（28/28）、`pnpm qbank-integrity-upgrade:prove`（18/18）、`pnpm qbank-pipeline:prove`（5/5）与 `pnpm qbank-control-role:prove`（8/8）在完整 **72** 个迁移的隔离 PostgreSQL（关系型数据库）运行；升级 proof（证明）真实模拟 0067 下正文篡改后经 0068/0069/0070/0071/0072 升级，污染 source 变 rejected 且所有数据平面读取为 `0`；它还在无超级权限、不可绕过行级安全的函数/表所有者形态下执行 `building → validated → active`，证明完整题目证据读取器与写入函数共享同一受限 owner（所有者），并以真实 worker（后台任务进程）构建 catch（捕获）处理 embedding（向量嵌入）数量错配为 `failed`，再使不完整构建在激活前失败后进入 `failed`。后者验证普通运行时伪造会话主体后对写入和原始读取均为 `0`，误挂 runtime（运行时）、管理员、残留成员关系或不合格的 SECURITY DEFINER（安全定义者）owner（所有者）均被拒绝；受 provision（配置）的应用控制登录只能进入 `qbank_control_executor`（题库控制执行器）执行受限入口。所有回执均 `releaseEvidence=false` | **发布阻断**：真实云数据库尚未执行/留存升级扫描回执；真实云密钥挂载、审核员后台、工单 SLA（服务等级协议）和人工运营闭环仍不存在；历史 `qbank-source.proof.ts` 不再作为公开验证入口，不能作为当前安全/召回证据。 |
 | OCR 简历的 `needs_review` | 图片/OCR 来源落 `resume_profile.status='needs_review'` | 状态值 **1** 个 | 有案件、分配、审核结论、回写、申诉或审核员访问控制。它只是待审标记。 |
 | 评分金标结构 | `pnpm scoring-golden:prove` 实跑通过；集合有 **6** 个五档相对序组、**4** 个措辞扰动组、至少 **18** 条非 happy-path 输入 | 证明 fixture 结构、操纵剥离与“绝对校准未建立”的 fail-closed 声明 | 真实模型准确率、人类一致性、B 端招聘有效性或人工兜底。 |
 | 评分申诉/改判 | 只有用例文档中的 `ManualReview open/in_review/upheld/overturned` | 运行时代码中通用 `ManualReview` 表、API、审核员角色、案件 UI、申诉 E2E 均为 **0** | 用户可申诉、审核员可看证据或改分。 |
 | B 端最终决定 | 当前为个人招聘方账号、岗位和摘要分数 alpha | 自动 `reject/hire` API 应为 **0**；当前也没有 `DecisionRecord` | 分数能自动淘汰、录用或作为企业 ATS 最终决定。 |
 
-隔离测试还暴露一个测试基础设施缺陷：直接在共享 `meetwise` 数据库运行 `qbank-source:prove` 会尝试重建全局角色 `app_role`，因其他对象依赖而失败。验证改在临时 pgvector 容器完成，容器和临时数据库均已删除。今后该类 proof 必须由隔离 runner 启动，不能清空开发库。
+隔离测试还暴露一个测试基础设施缺陷：历史影子 schema 测试会尝试重建全局角色 `app_role`，因其他对象依赖而失败。因此公开 `qbank-source:prove` 已改为当前完整迁移的低权限控制面证明；验证始终由临时 pgvector 容器完成，容器和临时数据库均已删除。今后该类 proof 必须由隔离 runner 启动，不能清空开发库。
 
 ## 1. 设计原则与边界
 

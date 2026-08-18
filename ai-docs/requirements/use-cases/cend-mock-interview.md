@@ -15,7 +15,7 @@ related:
 
 # cend-mock-interview · 最终用例 + 测试用例文档（评审收口版）
 
-> **🔎 实现状态（对齐真实代码 · 2026-07）** — 本文是 TARGET 规格。**✅ 已实现+接线并可跑**：自适应模拟面试核心（真 agent + 确定性核 + 真百炼模型 + CRAG 检索 + 中断/恢复、interrupt/waiting_user 持久态、SSE 业务事件、报告舱壁隔离、commerce reserve→confirm→release 结算）；**语音面试已接线**：非流式 TTS/ASR + **真流式 WebSocket ASR（paraformer-realtime）/ TTS（cosyvoice）+ barge-in 打断**，暴露 `/transcribe`·`/speak`·`/speak/stream` 端点、电话模式，限频 + 失败降级回文字（无死胡同）。**🟠 校正/部分**：出题接地 CRAG = **本地约 32 题种子库 + 联网 web-explore（默认开启，`main.ts` 6 个官方文档源作 fallback 外呼；env 设空串才关）**，未建的是**策展题库源表/审核门/扩召回**；跨会话**已接**两件——精确 hash 题目去重（`wasAsked`/`recordAskedQuestions`）+ 历史弱项**软偏置能力选择**（`biasByPastWeakness`，只重排能力、**不动分数/难度/成长曲线**），**未接**语义记忆/信念画像（`rememberFact`/`recallMemories` 为死代码，审计否决 rich 个性化）。**⬜ 规格但未全建**：文内 `VoiceTurn`/`CompensationJob` 等承重对象的完整状态机为规格，语音已能跑但未落其全部细粒度状态机。
+> **🔎 实现状态（对齐真实代码 · 2026-08）** — 本文是 TARGET 规格。**✅ 已实现+接线并可跑**：自适应模拟面试核心（真 agent + 确定性核 + 真百炼模型 + CRAG 检索 + 中断/恢复、interrupt/waiting_user 持久态、SSE 业务事件、报告舱壁隔离、commerce reserve→confirm→release 结算）；**人 ↔ AI 的本机双向语音已接线**：浏览器单麦克风采集与 TTS 并行，VAD（语音活动检测）首个有效信号会中止 AI 的 TTS 拉取与播放，随后继续 ASR（自动语音识别）至完整文本；ASR 失败可退回文字，端点为 `/transcribe`·`/speak`·`/speak/stream`。**未实现**：PSTN（公共电话交换网）号码呼叫、远端媒体轨、双人录音、说话人分离、通话纪要及其保留/删除合规闭环；这些与人 ↔ AI 双向语音是不同产品能力。**🟠 校正/部分**：出题接地 CRAG = **本地约 32 题种子库 + 联网 web-explore（默认开启，`main.ts` 6 个官方文档源作 fallback 外呼；env 设空串才关）**，未建的是**策展题库源表/审核门/扩召回**；跨会话**已接**两件——精确 hash 题目去重（`wasAsked`/`recordAskedQuestions`）+ 历史弱项**软偏置能力选择**（`biasByPastWeakness`，只重排能力、**不动分数/难度/成长曲线**），**未接**语义记忆/信念画像（`rememberFact`/`recallMemories` 为死代码，审计否决 rich 个性化）。**⬜ 规格但未全建**：文内 `VoiceTurn`/`CompensationJob` 等承重对象的完整状态机为规格，语音已能跑但未落其全部细粒度状态机。
 
 > 领域：C 端模拟面试。覆盖 启动/出题/作答/追问/评分/中断恢复/SSE 断线重连/语音(STT·TTS·turn-taking)/暂停/结束/超长会话恢复，并收口本轮对抗评审的全部缺口。
 > 命名与机制以 canonical 为准：业务聚合 **`Interview`（id = `threadId`）**，运行时记录 `AiGraphRun` 分离；四承重原语＝CAS / 幂等键 / RLS principal 绑定 / 持久有序事件日志；调用 LangGraph 时 `threadId` 以 `thread_id` 传入 `configurable`。
@@ -103,6 +103,8 @@ related:
 2. 输出双校验：schema → 业务校验（题量、题型枚举、**无幻觉简历事实**、无泄题）。
 3. 持久化 `InterviewQA(status=asked)`；`active→waiting_user`；emit `question_ready`+`waiting_user`。
 
+**简历事实接地补充契约（当前实现）**：`grounded`（基于简历的接地题）只能在解析后至少有一条可用事实时成立；事实集为空时，图必须在调用出题模型**之前**把该题改为 `fundamental`（通用原理题），事件中的 `qkind` 也必须是 `fundamental`。事实非空时，首题用确定性题框逐字引用一条已解析事实，其他措辞只要求候选人解释做法、取舍与验证；模型不能把“后端工程师/Redis”等技能补全为电商、增长、履约时效、百分比等项目经历。这个防线不把用户本人写入简历的错误当作模型事实，但阻止系统新增候选人经历。
+
 **备选流**
 - A1 **资源紧张排队**（逃·特）：模型并发超 `interview.queue.capacity` → `active→waiting_system`，emit `queued`，排队中可见。资源就绪后 `waiting_system→active` 继续出题；超 `interview.queue.maxWaitMs` → 降级出题（UC-INT-26）或可解释失败+退款。
 
@@ -111,6 +113,8 @@ related:
 |---|---|---|---|
 | E1 | schema 失败/模型瞬时失败（异·逃） | 重试分类：transient 重试、确定性拒绝不重试 | 重试或降级题 |
 | E2 | 出题含幻觉简历事实（刁） | 业务校验 factuality 门 | 不入库、重生成或降级 |
+| E2a | `grounded` 但事实集为空（刁·逃） | 图节点先改 `grounded→fundamental`；服务工厂纵深拒绝模型个性化调用 | `question_ready.qkind=fundamental`；题面无“你简历中提到”的虚构前提 |
+| E2b | `grounded` 且事实非空，模型试图补全项目细节（刁） | 确定性 fact-frame（事实题框），只逐字引用选中的已解析事实 | 题面只带原始事实与通用追问；模型调用数=0 |
 | E3 | 排队期间用户重复点"开始"（并·刁） | 状态守卫：非 `active/waiting_user` 拒绝；幂等键 | 不重复排队、不重复扣费 |
 | E4 | 排队超时（异·逃·刁·时钟漂移） | `waiting_system` 持久态 + 超时 CAS | 降级 或 `failed`+`reserved→released` 退款 |
 | E5 | 出题节点诱导泄露标准解（刁·泄题） | 系统指令隔离 + 输出校验"不含 referenceAnswer" | 拦截、不下发答案 |
@@ -125,6 +129,8 @@ related:
 | TC-INT-02-main | graph-fake-model | 出题→waiting_user、question_ready 事件 |
 | TC-INT-02-queue | 集成 | 超容量→waiting_system 行 + queued 事件落库 |
 | TC-INT-02-E2 | graph-fake-model | fake 注入幻觉事实→业务校验拒、QA 未入库 |
+| TC-INT-02-E2a | graph | 空事实首问：生成依赖只收到 `fundamental`，interrupt/SSE 的 `qkind=fundamental`，无简历个性化前提 |
+| TC-INT-02-E2b | worker unit | 非空事实的接地首题逐字包含所选事实、没有模型调用、不能出现测试注入的虚构项目词 |
 | TC-INT-02-E4 | 集成 | 注入超 maxWaitMs→降级或 failed+released（断言账本） |
 | TC-INT-02-E5 | ai-eval | 对抗集泄题率=0（真实境内模型） |
 

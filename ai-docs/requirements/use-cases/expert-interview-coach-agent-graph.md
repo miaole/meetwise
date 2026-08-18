@@ -115,7 +115,7 @@ related:
 
 不要把下面各题的 90 秒版本背成零散要点。完整回答应当是一段可被追问的因果链：先用一句话下结论；接着说明**当前仓库已经接线的边界**和**尚属目标设计的部分**；再画出节点、状态和数据事实分别在哪里；之后说清同一请求重放、两个 worker 并发和外部依赖失败时谁拥有最终写权；最后给出可运行的测试、分母、公式和停止/降级条件。只要其中任何一环缺失，面试官就可以用“进程在这里崩掉呢？”“另一个标签页呢？”或“你如何量出来？”击穿答案。
 
-对本仓库尤其要准确区分一件细节：当前自适应图的 `submitted.answer` 在 `awaitAnswer` resume 后会短暂进入 graph state，供紧随其后的 `evalAnswer` 使用；完成回合后代码会将它清空，`transcript` 保留的是题面、分数、来源、结果类型和摘要性审计字段，而**不是**完整回答原文。因而它已经避免了“每一轮都把所有 answer append 到 transcript”的问题，却仍未达到“原文从不经过 checkpoint”的目标。后者需要把 resume 改为受控 `answerRef`，并在图外按授权读取正文；在未完成前，不能说答案原文零 checkpoint 暴露。
+对本仓库尤其要准确区分一件细节：当前自适应图的 `submitted` 在 `awaitAnswer` resume 后只保存受控 `answerId`，紧随其后的 `evalAnswer` 才从 owner（所有者）限定的运行时工件边界读取正文；`transcript` 保留题面、分数、来源、结果类型和摘要性审计字段，而**不是**完整回答原文。`pnpm adaptive-graph:prove` 已扫描全部 MemorySaver（内存检查点）历史 `storage/writes`，原始答案标记为 0。仍不能说“删除权已闭环”：旧历史、备份、队列在途工件和外部数据面的物理擦除尚未完成。
 
 ---
 
@@ -137,7 +137,7 @@ checkpoint 解决的是‘进程崩了从哪个节点继续’，不是‘业务
 
 图拓扑上，API 先完成认证、对象授权和 `answerId + answerHash` 的 claim；worker 再在受 fence 保护的 thread 上恢复图；图得到评分结果后，业务投影事务把 answer 的 applied 状态、事件和下一题 ledger 一起写入，SSE 只从这个事实层投影。这样 checkpoint 与 ledger 不一致时，恢复程序先用 ledger 判断是否已 applied：已完成只补缺失事件，不再把 `Command(resume)` 送进图；未完成才继续图。它把重放从‘猜模型是否已经做过’变成‘检查可验证的业务事实’。
 
-当前仓库已经把完成态 transcript 设计成不复制原始 answer，并在完成 evaluation 后清空 `submitted`；但 resume 到 `evalAnswer` 的短窗口内，`submitted.answer` 仍可能被 checkpointer 持久化，而且题面、来源和审计摘要也仍属于可能需要保留策略的数据。因此我不会说‘敏感内容完全不进入 checkpoint’。目标状态是业务表保存加密 answer，graph state 只保存不可猜的 `answerRef`、hash 和最小评分摘要；评估 node 通过 owner-scoped repository 临时水合正文，checkpoint、trace、cache 与对象存储统一纳入删除/保留期任务。
+当前仓库的 graph state 已只保存不可猜的 `answerId` 和最小评分摘要；评估 node（节点）通过 owner-scoped（所有者限定）运行时边界临时水合正文，且 terminal（终态）job 会剥离 payload（载荷）中的 answer。`CheckpointAccess(owner,threadId,fenceEpoch)` 与数据库触发器会拒绝撤回后的迟到写入。题面、来源和审计摘要仍属于需要保留策略的数据，旧历史、备份、trace（追踪）、cache（缓存）与对象存储的统一异步删除/回执尚未实现，因此不能说“敏感内容的删除权已闭环”。
 
 验证不能只看一次恢复成功。我会对 checkpoint、ledger、outbox 三个面做对账，人工注入 checkpoint 写前/写后、业务投影前/后和缓存清空五类故障；每个逻辑答案重复投递后，`answer_evaluated` 和 ledger event 的 distinct key 都应为 1，缓存跨 principal 命中应为 0。若做隐私门，还要扫描 checkpoint/trace 的原始 answer 命中率，并同时报告扫描范围和误报复核，而不是只宣布‘已脱敏’。”
 
@@ -153,7 +153,7 @@ checkpoint 解决的是‘进程崩了从哪个节点继续’，不是‘业务
 
 3. **追问三：当前仓库真的已经做到‘答案 0 文本进 state’了吗？**
 
-   “没有，但要准确描述缺口：当前 `submitted.answer` 会在 resume 到 `evalAnswer` 的短窗口进入 state；evaluation 完成后它被清空，完成态 transcript 只保留题面和评分摘要，不复制完整 answer。它已经避免了无界 answer 历史累积，却还不是‘原文从不进 checkpoint’。目标是 state 只存 `answerRef/hash/评分摘要`，节点按需从业务表取受控正文，并补 checkpoint/trace/cache 的删除与重放测试。”
+   “对新写入路径可以说‘是’：state 只存 `answerId` 和评分摘要，节点按需从 owner-scoped（所有者限定）边界取受控正文，测试扫描全部内存 checkpoint 历史为 0 个原文标记。不能夸大为删除闭环：旧历史、备份、trace/cache（追踪/缓存）和对象存储的物理擦除与回执仍未完成。”
 
 ### 系统图
 
@@ -778,7 +778,7 @@ it('stale tab cannot apply answer to a new question', async () => {
 
 面试官给出场景：用户在第 4 题提交回答后，worker 正在生成评分；此时进程被杀、网络重连、浏览器自动重发了请求，随后另一台 worker 拿到同一个任务。请设计“继续面试”和“出报告”的恢复路径。要求：不重复出题、不重复扣点、不把半成品当完成报告，也不能把候选人原文长期泄漏到不该访问的状态。
 
-**当前实现（可核查）**：自适应图已经把 `genQuestion → awaitAnswer(interrupt) → evalAnswer` 切分，并在 worker 使用 `PostgresSaver` 进行 checkpoint。resume 后的 `submitted.answer` 会在 evaluation 前短暂进入 graph state；完成态 `transcript` 保存题面、分数和审计摘要而不复制完整 answer。因此“答案原文从不进图状态”不是当前事实，但“所有问答原文都不断 append 到 transcript”也不是事实。消费侧另有题目 identity、回答 claim、结算与 fence 等业务表逻辑。它们共同减少重复处理，但不等于所有崩溃窗口已经经过容量与故障演练。
+**当前实现（可核查）**：自适应图已经把 `genQuestion → awaitAnswer(interrupt) → evalAnswer` 切分，并在 worker 使用 `PostgresSaver`（PostgreSQL 检查点保存器）进行 checkpoint。resume 后的 graph state 只含 `answerId`；evaluation（评估）节点经 owner-scoped（所有者限定）工件边界临时读取正文，完成态 `transcript` 保存题面、分数和审计摘要而不复制完整 answer。消费者还有题目 identity、回答 claim、结算与 fence（栅栏）等业务表逻辑；`CheckpointAccess` 与数据库 trigger（触发器）会拒绝撤回后的旧 epoch（世代）写入。它们共同减少重复处理，但不等于旧历史/备份的删除、容量和故障演练已经完成。
 
 **目标设计**：Graph checkpoint 仅保存可恢复的流程游标、question identity、聚合后的评分摘要和版本；回答原文保存在按 principal 隔离、可审计、加密且有限保留期的业务存储。业务表/outbox 才是扣点、报告发布等副作用的唯一事实源。
 

@@ -1,0 +1,1257 @@
+{
+  "schemaVersion": 1,
+  "mode": "observe-only",
+  "releaseEvidence": false,
+  "statement": "静态清单只枚举当前仓库已知的模型供应商直接出站，不证明镜像、云网络、密钥分发或唯一出口。",
+  "requiredOperationIds": [
+    "chat",
+    "vision-ocr",
+    "asr",
+    "stream-asr",
+    "tts",
+    "stream-tts",
+    "embedding-build",
+    "embedding-query",
+    "rerank",
+    "provider-signed-download"
+  ],
+  "operations": [
+    {
+      "id": "chat",
+      "adapterId": "openai-compatible-chat",
+      "currentAvailability": "production-direct"
+    },
+    {
+      "id": "vision-ocr",
+      "adapterId": "openai-compatible-chat",
+      "currentAvailability": "disabled-pending-typed-binding"
+    },
+    {
+      "id": "asr",
+      "adapterId": "dashscope-http-voice",
+      "currentAvailability": "disabled-pending-typed-binding"
+    },
+    {
+      "id": "stream-asr",
+      "adapterId": "dashscope-streaming-voice",
+      "currentAvailability": "disabled-pending-typed-binding"
+    },
+    {
+      "id": "tts",
+      "adapterId": "dashscope-http-voice",
+      "currentAvailability": "disabled-pending-typed-binding"
+    },
+    {
+      "id": "stream-tts",
+      "adapterId": "dashscope-streaming-voice",
+      "currentAvailability": "disabled-pending-typed-binding"
+    },
+    {
+      "id": "embedding-build",
+      "adapterId": "dashscope-embedding",
+      "currentAvailability": "production-direct"
+    },
+    {
+      "id": "embedding-query",
+      "adapterId": "dashscope-embedding",
+      "currentAvailability": "production-direct"
+    },
+    {
+      "id": "rerank",
+      "adapterId": "dashscope-rerank",
+      "currentAvailability": "manual-evaluation-only"
+    },
+    {
+      "id": "provider-signed-download",
+      "adapterId": "dashscope-http-voice",
+      "currentAvailability": "disabled-pending-typed-binding"
+    }
+  ],
+  "adapters": [
+    {
+      "id": "openai-compatible-chat",
+      "source": "packages/ai-runtime/src/model-client.ts",
+      "factory": "openAICompatibleClient",
+      "transports": [
+        "https"
+      ],
+      "credentialEnv": [
+        "MODEL_API_KEY",
+        "MODEL_BACKUP_API_KEY",
+        "DASHSCOPE_VISION_API_KEY"
+      ],
+      "endpointEnv": [
+        "MODEL_ENDPOINT_PROFILE",
+        "MODEL_BACKUP_ENDPOINT_PROFILE"
+      ],
+      "dataClasses": [
+        "text",
+        "vision-image-reference",
+        "structured-model-output"
+      ],
+      "consumers": [
+        {
+          "source": "apps/api/src/modules/resume/ocr-model-client.ts",
+          "class": "production-runtime"
+        },
+        {
+          "source": "apps/worker/src/interview-service.ts",
+          "class": "production-runtime"
+        },
+        {
+          "source": "apps/worker/smoke/adaptive-attack.ts",
+          "class": "manual-live-smoke"
+        },
+        {
+          "source": "apps/worker/smoke/model-live-smoke.ts",
+          "class": "manual-live-smoke"
+        },
+        {
+          "source": "apps/worker/test/context-stress.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/model-client-output-limit.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/usage-estimate-threading.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/context-component-ledger.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/model-client-dispatch.proof.ts",
+          "class": "local-adapter-test"
+        }
+      ]
+    },
+    {
+      "id": "dashscope-embedding",
+      "source": "packages/ai-runtime/src/embedder.ts",
+      "factory": "dashscopeEmbedder",
+      "transports": [
+        "https"
+      ],
+      "credentialEnv": [
+        "DASHSCOPE_EMBED_API_KEY"
+      ],
+      "endpointEnv": [
+        "DASHSCOPE_ENDPOINT_PROFILE",
+        "DASHSCOPE_WORKSPACE_ID"
+      ],
+      "dataClasses": [
+        "qbank-chunk",
+        "rag-query",
+        "embedding-vector"
+      ],
+      "consumers": [
+        {
+          "source": "apps/worker/src/main.ts",
+          "class": "production-runtime"
+        },
+        {
+          "source": "apps/worker/smoke/chunk-eval.ts",
+          "class": "manual-evaluation"
+        },
+        {
+          "source": "apps/worker/smoke/map-eval.ts",
+          "class": "manual-evaluation"
+        },
+        {
+          "source": "apps/worker/smoke/qbank-retrieval-eval.ts",
+          "class": "manual-evaluation"
+        },
+        {
+          "source": "apps/worker/smoke/rag-adversarial-eval.ts",
+          "class": "manual-evaluation"
+        },
+        {
+          "source": "apps/worker/smoke/rag-adversarial-pg-eval.ts",
+          "class": "manual-evaluation"
+        },
+        {
+          "source": "apps/worker/smoke/rag-demo.ts",
+          "class": "manual-evaluation"
+        },
+        {
+          "source": "apps/worker/smoke/retrieval-benchmark.ts",
+          "class": "manual-evaluation"
+        },
+        {
+          "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "apps/worker/test/qbank-retrieval-eval-pg.proof.ts",
+          "class": "local-adapter-test"
+        }
+      ]
+    },
+    {
+      "id": "dashscope-rerank",
+      "source": "packages/ai-runtime/src/reranker.ts",
+      "factory": "dashscopeReranker",
+      "transports": [
+        "https"
+      ],
+      "credentialEnv": [
+        "DASHSCOPE_RERANK_API_KEY"
+      ],
+      "endpointEnv": [
+        "DASHSCOPE_ENDPOINT_PROFILE",
+        "DASHSCOPE_WORKSPACE_ID"
+      ],
+      "dataClasses": [
+        "rag-query",
+        "candidate-excerpt",
+        "rerank-score"
+      ],
+      "consumers": [
+        {
+          "source": "apps/worker/smoke/rag-adversarial-eval.ts",
+          "class": "manual-evaluation"
+        },
+        {
+          "source": "apps/worker/smoke/rag-demo.ts",
+          "class": "manual-evaluation"
+        },
+        {
+          "source": "apps/worker/smoke/retrieval-benchmark.ts",
+          "class": "manual-evaluation"
+        },
+        {
+          "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+          "class": "local-adapter-test"
+        }
+      ]
+    },
+    {
+      "id": "dashscope-http-voice",
+      "source": "packages/ai-runtime/src/voice.ts",
+      "factory": "dashscopeAsr|dashscopeTts",
+      "transports": [
+        "https",
+        "provider-signed-download"
+      ],
+      "credentialEnv": [
+        "DASHSCOPE_ASR_API_KEY",
+        "DASHSCOPE_TTS_API_KEY"
+      ],
+      "endpointEnv": [
+        "DASHSCOPE_ENDPOINT_PROFILE",
+        "DASHSCOPE_WORKSPACE_ID"
+      ],
+      "dataClasses": [
+        "audio",
+        "speech-transcript",
+        "tts-text",
+        "tts-audio"
+      ],
+      "consumers": [
+        {
+          "source": "apps/api/test/voice-cancel-http.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/voice-reliability.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+          "class": "local-adapter-test"
+        }
+      ]
+    },
+    {
+      "id": "dashscope-streaming-voice",
+      "source": "packages/ai-runtime/src/voice-stream.ts",
+      "factory": "dashscopeStreamingAsr|dashscopeStreamingTts",
+      "transports": [
+        "websocket"
+      ],
+      "credentialEnv": [
+        "DASHSCOPE_STREAM_ASR_API_KEY",
+        "DASHSCOPE_STREAM_TTS_API_KEY"
+      ],
+      "endpointEnv": [
+        "DASHSCOPE_ENDPOINT_PROFILE",
+        "DASHSCOPE_WORKSPACE_ID"
+      ],
+      "dataClasses": [
+        "audio-frame",
+        "partial-transcript",
+        "tts-frame"
+      ],
+      "consumers": [
+        {
+          "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+          "class": "local-adapter-test"
+        }
+      ]
+    }
+  ],
+  "transportSources": [
+    "packages/ai-runtime/src/timeout.ts",
+    "packages/ai-runtime/src/voice-stream.ts"
+  ],
+  "providerLiteralFixtureSources": [
+    "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+    "packages/ai-runtime/test/model-operation-registry.proof.ts",
+    "packages/ai-runtime/test/text-endpoint-config.proof.ts",
+    "packages/ai-runtime/test/vision-endpoint-config.proof.ts",
+    "packages/ai-runtime/test/voice-reliability.proof.ts"
+  ],
+  "environmentReferences": [
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "scripts/deploy-check.mjs",
+      "class": "deployment-contract"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "scripts/run-e2e-isolated.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_ASR_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_ASR_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_ASR_API_KEY",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_ASR_API_KEY",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_ASR_API_KEY",
+      "source": "scripts/deploy-check.mjs",
+      "class": "deployment-contract"
+    },
+    {
+      "name": "DASHSCOPE_ASR_MODEL",
+      "source": "packages/ai-runtime/src/voice.ts",
+      "class": "adapter"
+    },
+    {
+      "name": "DASHSCOPE_ASR_MODEL",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_ASR_MODEL",
+      "source": "scripts/run-e2e-isolated.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_COMPAT_BASE_URL",
+      "source": "apps/api/test/voice-cancel-http.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_COMPAT_BASE_URL",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_COMPAT_BASE_URL",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_COMPAT_BASE_URL",
+      "source": "packages/ai-runtime/test/voice-reliability.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_COMPAT_BASE_URL",
+      "source": "scripts/run-e2e-isolated.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_EMBED_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_EMBED_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_EMBED_API_KEY",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_EMBED_API_KEY",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_EMBED_API_KEY",
+      "source": "scripts/deploy-check.mjs",
+      "class": "deployment-contract"
+    },
+    {
+      "name": "DASHSCOPE_EMBED_API_KEY",
+      "source": "apps/worker/test/qbank-retrieval-eval-pg.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_EMBED_MODEL",
+      "source": "packages/ai-runtime/src/embedder.ts",
+      "class": "adapter"
+    },
+    {
+      "name": "DASHSCOPE_EMBED_MODEL",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_EMBED_MODEL",
+      "source": "scripts/run-e2e-isolated.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_ENDPOINT_PROFILE",
+      "source": "scripts/deploy-check.mjs",
+      "class": "deployment-contract"
+    },
+    {
+      "name": "DASHSCOPE_ENDPOINT_PROFILE",
+      "source": "scripts/run-e2e-isolated.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_RERANK_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_RERANK_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_RERANK_API_KEY",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_RERANK_API_KEY",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_RERANK_API_KEY",
+      "source": "scripts/deploy-check.mjs",
+      "class": "deployment-contract"
+    },
+    {
+      "name": "DASHSCOPE_RERANK_MODEL",
+      "source": "packages/ai-runtime/src/reranker.ts",
+      "class": "adapter"
+    },
+    {
+      "name": "DASHSCOPE_RERANK_MODEL",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_RERANK_MODEL",
+      "source": "scripts/run-e2e-isolated.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_RERANK_URL",
+      "source": "apps/api/test/voice-cancel-http.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_RERANK_URL",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_RERANK_URL",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_RERANK_URL",
+      "source": "packages/ai-runtime/test/voice-reliability.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_RERANK_URL",
+      "source": "scripts/run-e2e-isolated.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_REVOKED_KEY_FINGERPRINTS",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_REVOKED_KEY_FINGERPRINTS",
+      "source": "packages/ai-runtime/src/vision-endpoint-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_REVOKED_KEY_FINGERPRINTS",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_REVOKED_KEY_FINGERPRINTS",
+      "source": "packages/ai-runtime/test/vision-endpoint-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_ASR_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_ASR_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_ASR_API_KEY",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_ASR_API_KEY",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_ASR_API_KEY",
+      "source": "scripts/deploy-check.mjs",
+      "class": "deployment-contract"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_ASR_MODEL",
+      "source": "packages/ai-runtime/src/voice-stream.ts",
+      "class": "adapter"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_ASR_MODEL",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_ASR_MODEL",
+      "source": "scripts/run-e2e-isolated.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_API_KEY",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_API_KEY",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_API_KEY",
+      "source": "scripts/deploy-check.mjs",
+      "class": "deployment-contract"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_MODEL",
+      "source": "packages/ai-runtime/src/voice-stream.ts",
+      "class": "adapter"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_MODEL",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_MODEL",
+      "source": "scripts/run-e2e-isolated.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_URL",
+      "source": "apps/api/test/voice-cancel-http.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_URL",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_URL",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_URL",
+      "source": "packages/ai-runtime/test/voice-reliability.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_URL",
+      "source": "scripts/run-e2e-isolated.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_TEST_TRANSPORT_OVERRIDES",
+      "source": "apps/api/test/voice-cancel-http.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "test-only-guard"
+    },
+    {
+      "name": "DASHSCOPE_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/voice-reliability.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_TTS_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_TTS_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_TTS_API_KEY",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_TTS_API_KEY",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_TTS_API_KEY",
+      "source": "scripts/deploy-check.mjs",
+      "class": "deployment-contract"
+    },
+    {
+      "name": "DASHSCOPE_TTS_MODEL",
+      "source": "packages/ai-runtime/src/voice.ts",
+      "class": "adapter"
+    },
+    {
+      "name": "DASHSCOPE_TTS_MODEL",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_TTS_MODEL",
+      "source": "scripts/run-e2e-isolated.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_TTS_URL",
+      "source": "apps/api/test/voice-cancel-http.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_TTS_URL",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_TTS_URL",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_TTS_URL",
+      "source": "packages/ai-runtime/test/voice-reliability.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_TTS_URL",
+      "source": "scripts/run-e2e-isolated.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_VISION_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/src/vision-endpoint-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_VISION_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/test/vision-endpoint-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_VISION_API_KEY_FINGERPRINT",
+      "source": "apps/api/test/ocr-operation-policy.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_VISION_API_KEY",
+      "source": "apps/api/src/modules/resume/ocr-model-client.ts",
+      "class": "production-runtime"
+    },
+    {
+      "name": "DASHSCOPE_VISION_API_KEY",
+      "source": "apps/api/test/ocr-operation-policy.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_VISION_API_KEY",
+      "source": "packages/ai-runtime/src/model-client.ts",
+      "class": "adapter"
+    },
+    {
+      "name": "DASHSCOPE_VISION_API_KEY",
+      "source": "packages/ai-runtime/src/vision-endpoint-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_VISION_API_KEY",
+      "source": "packages/ai-runtime/test/vision-endpoint-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_VISION_MODEL",
+      "source": "scripts/deploy-check.mjs",
+      "class": "deployment-contract"
+    },
+    {
+      "name": "DASHSCOPE_VISION_MODEL",
+      "source": "scripts/run-e2e-isolated.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_VISION_MODEL",
+      "source": "apps/api/test/ocr-operation-policy.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_VISION_MODEL",
+      "source": "packages/ai-runtime/src/vision-endpoint-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_VISION_MODEL",
+      "source": "packages/ai-runtime/test/vision-endpoint-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_WORKSPACE_ID",
+      "source": "packages/ai-runtime/src/dashscope-native-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "DASHSCOPE_WORKSPACE_ID",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_WORKSPACE_ID",
+      "source": "scripts/deploy-check.mjs",
+      "class": "deployment-contract"
+    },
+    {
+      "name": "DASHSCOPE_WORKSPACE_ID",
+      "source": "scripts/run-e2e-isolated.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/src/text-endpoint-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "MODEL_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/test/text-endpoint-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/src/modules/resume/ocr-model-client.ts",
+      "class": "production-runtime"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/_neg-harness.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/ocr-operation-policy.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/scor-00-http-db.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/validate.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/smoke/adaptive-attack.ts",
+      "class": "manual-live-smoke"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/smoke/model-live-smoke.ts",
+      "class": "manual-live-smoke"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/smoke/rag-adversarial-eval.ts",
+      "class": "manual-evaluation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/smoke/scoring-eval.ts",
+      "class": "manual-evaluation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/src/text-endpoint-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/src/vision-endpoint-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/offline-evaluation-runner.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/text-endpoint-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/vision-endpoint-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/deploy-check.mjs",
+      "class": "deployment-contract"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/run-e2e-isolated.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/run-e2e-ui.mjs",
+      "class": "live-test-launcher"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/run-e2e.mjs",
+      "class": "live-test-launcher"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/model-client-dispatch.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/src/text-endpoint-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "apps/worker/src/interview-service.ts",
+      "class": "production-runtime"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "apps/worker/src/model-cost-governance.ts",
+      "class": "runtime-configuration"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "apps/worker/test/model-cost-governance.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "packages/ai-runtime/src/text-endpoint-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "packages/ai-runtime/test/text-endpoint-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "scripts/deploy-check.mjs",
+      "class": "deployment-contract"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "apps/worker/test/deploy-worker-env.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "packages/ai-runtime/test/model-client-dispatch.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_BASE_URL",
+      "source": "apps/worker/src/model-cost-governance.ts",
+      "class": "runtime-configuration"
+    },
+    {
+      "name": "MODEL_BACKUP_BASE_URL",
+      "source": "apps/worker/test/model-cost-governance.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_BASE_URL",
+      "source": "packages/ai-runtime/src/text-endpoint-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "MODEL_BACKUP_BASE_URL",
+      "source": "packages/ai-runtime/src/vision-endpoint-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "MODEL_BACKUP_BASE_URL",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_BASE_URL",
+      "source": "packages/ai-runtime/test/text-endpoint-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_BASE_URL",
+      "source": "packages/ai-runtime/test/vision-endpoint-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_BASE_URL",
+      "source": "scripts/deploy-check.mjs",
+      "class": "deployment-contract"
+    },
+    {
+      "name": "MODEL_BACKUP_ENDPOINT_PROFILE",
+      "source": "apps/worker/test/model-cost-governance.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/src/text-endpoint-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "MODEL_BACKUP_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/text-endpoint-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_ENDPOINT_PROFILE",
+      "source": "scripts/deploy-check.mjs",
+      "class": "deployment-contract"
+    },
+    {
+      "name": "MODEL_BACKUP_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/model-client-dispatch.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/src/modules/resume/ocr-model-client.ts",
+      "class": "production-runtime"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/_neg-harness.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/ocr-operation-policy.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/scor-00-http-db.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/validate.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/worker/src/model-cost-governance.ts",
+      "class": "runtime-configuration"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/worker/test/model-cost-governance.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "packages/ai-runtime/src/text-endpoint-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "packages/ai-runtime/src/vision-endpoint-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "packages/ai-runtime/test/text-endpoint-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "packages/ai-runtime/test/vision-endpoint-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "scripts/deploy-check.mjs",
+      "class": "deployment-contract"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/src/text-endpoint-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/text-endpoint-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "scripts/deploy-check.mjs",
+      "class": "deployment-contract"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "apps/worker/smoke/model-live-smoke.ts",
+      "class": "manual-live-smoke"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/model-client-dispatch.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_REVOKED_KEY_FINGERPRINTS",
+      "source": "packages/ai-runtime/src/text-endpoint-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "MODEL_REVOKED_KEY_FINGERPRINTS",
+      "source": "packages/ai-runtime/test/text-endpoint-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "apps/worker/test/context-stress.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/src/model-client.ts",
+      "class": "adapter"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/src/text-endpoint-config.ts",
+      "class": "adapter-configuration"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/context-component-ledger.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/model-client-output-limit.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/usage-estimate-threading.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/model-client-dispatch.proof.ts",
+      "class": "test-fixture"
+    }
+  ],
+  "deploymentReferences": [
+    {
+      "source": "docker/compose.prod.yml",
+      "keys": [
+        "MODEL_ENDPOINT_PROFILE",
+        "MODEL_BACKUP_ENDPOINT_PROFILE",
+        "MODEL_API_KEY",
+        "MODEL_BACKUP_API_KEY",
+        "MODEL_API_KEY_FINGERPRINT",
+        "MODEL_BACKUP_API_KEY_FINGERPRINT",
+        "MODEL_REVOKED_KEY_FINGERPRINTS",
+        "DASHSCOPE_EMBED_API_KEY",
+        "DASHSCOPE_RERANK_API_KEY",
+        "DASHSCOPE_ASR_API_KEY",
+        "DASHSCOPE_TTS_API_KEY",
+        "DASHSCOPE_STREAM_ASR_API_KEY",
+        "DASHSCOPE_STREAM_TTS_API_KEY",
+        "DASHSCOPE_VISION_API_KEY",
+        "DASHSCOPE_EMBED_API_KEY_FINGERPRINT",
+        "DASHSCOPE_RERANK_API_KEY_FINGERPRINT",
+        "DASHSCOPE_ASR_API_KEY_FINGERPRINT",
+        "DASHSCOPE_TTS_API_KEY_FINGERPRINT",
+        "DASHSCOPE_STREAM_ASR_API_KEY_FINGERPRINT",
+        "DASHSCOPE_STREAM_TTS_API_KEY_FINGERPRINT",
+        "DASHSCOPE_VISION_API_KEY_FINGERPRINT",
+        "DASHSCOPE_REVOKED_KEY_FINGERPRINTS",
+        "DASHSCOPE_API_KEY",
+        "DASHSCOPE_ENDPOINT_PROFILE",
+        "DASHSCOPE_WORKSPACE_ID",
+        "DASHSCOPE_ASR_MODEL",
+        "DASHSCOPE_TTS_MODEL",
+        "DASHSCOPE_EMBED_MODEL",
+        "DASHSCOPE_RERANK_MODEL",
+        "DASHSCOPE_VISION_MODEL",
+        "DASHSCOPE_STREAM_ASR_MODEL",
+        "DASHSCOPE_STREAM_TTS_MODEL"
+      ]
+    },
+    {
+      "source": "docker/env/worker.env.example",
+      "keys": [
+        "MODEL_ENDPOINT_PROFILE",
+        "MODEL_BACKUP_ENDPOINT_PROFILE",
+        "MODEL_API_KEY",
+        "MODEL_BACKUP_API_KEY",
+        "MODEL_API_KEY_FINGERPRINT",
+        "MODEL_BACKUP_API_KEY_FINGERPRINT",
+        "MODEL_REVOKED_KEY_FINGERPRINTS",
+        "MODEL_BASE_URL",
+        "MODEL_BACKUP_BASE_URL",
+        "DASHSCOPE_EMBED_API_KEY",
+        "DASHSCOPE_RERANK_API_KEY",
+        "DASHSCOPE_ASR_API_KEY",
+        "DASHSCOPE_TTS_API_KEY",
+        "DASHSCOPE_STREAM_ASR_API_KEY",
+        "DASHSCOPE_STREAM_TTS_API_KEY",
+        "DASHSCOPE_VISION_API_KEY",
+        "DASHSCOPE_EMBED_API_KEY_FINGERPRINT",
+        "DASHSCOPE_RERANK_API_KEY_FINGERPRINT",
+        "DASHSCOPE_ASR_API_KEY_FINGERPRINT",
+        "DASHSCOPE_TTS_API_KEY_FINGERPRINT",
+        "DASHSCOPE_STREAM_ASR_API_KEY_FINGERPRINT",
+        "DASHSCOPE_STREAM_TTS_API_KEY_FINGERPRINT",
+        "DASHSCOPE_VISION_API_KEY_FINGERPRINT",
+        "DASHSCOPE_REVOKED_KEY_FINGERPRINTS",
+        "DASHSCOPE_API_KEY",
+        "DASHSCOPE_ENDPOINT_PROFILE",
+        "DASHSCOPE_WORKSPACE_ID",
+        "DASHSCOPE_ASR_MODEL",
+        "DASHSCOPE_TTS_MODEL",
+        "DASHSCOPE_EMBED_MODEL",
+        "DASHSCOPE_RERANK_MODEL",
+        "DASHSCOPE_VISION_MODEL",
+        "DASHSCOPE_STREAM_ASR_MODEL",
+        "DASHSCOPE_STREAM_TTS_MODEL"
+      ]
+    }
+  ]
+}

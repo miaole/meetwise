@@ -123,7 +123,7 @@ export function useInterviewStream(resultId: string) {
 }
 ```
 
-**关键设计：SSE 连接是一次性的、可随时断的。** 断线/超时不丢业务状态，因为状态在 checkpoint。这让前端可以在 Vercel 的函数超时下安全运行（见 §10），也让「关掉标签页再回来」天然可恢复。
+**关键设计：SSE 连接是一次性的、可随时断的。** 断线/超时不丢业务状态，因为状态在服务端业务事实与受控 checkpoint 中。这不把 checkpoint 当作用户历史、删除账本或长时 transcript；这些能力仍受 `INT-TRANSCRIPT-00/01` 阻断。ECS 应用运行时必须支持断线后的安全重连，客户端不得把连接存活当作事实。
 
 ## 8. 鉴权：middleware + httpOnly cookie
 
@@ -144,12 +144,12 @@ export const config = { matcher: ["/interview/:path*", "/profile", "/history"] }
 - 报告/答案里的链接、图片白名单化。
 - 前端只做预校验，权威校验在服务端（与 `status-machine.md`、`structured-output-and-safety.md` 一致）。
 
-## 10. Vercel 部署注意
+## 10. 静态目录与 ECS 应用运行时
 
-- Web 部署 Vercel；**API/Worker（NestJS + LangGraph）不在 Vercel**，是容器化服务（见 `local-demo-deployment.md`）。
-- 营销页用 ISR/静态化吃满 SEO 与缓存。
-- **长连接 SSE 与 Serverless 超时**：模拟面试可能跨越数分钟到数小时，Vercel 函数有执行时长上限。因为 §7 已把 SSE 设计成可抛弃 + checkpoint 恢复，超时断开不是错误路径而是正常路径——客户端检测到流结束就用同一 `resultId` 重连。无需为此引入常驻长连接基础设施。
-- SSE 直连容器化 API（推荐，避免 Vercel 中转超时），或经 `app/api/*` 薄代理（仅开发期/同源需要时）。
+- GitHub Pages 只发布项目导航用的纯静态目录，不承载 Next Server Actions、cookie、API、SSE 代理或用户数据；它不是实际应用部署，也不是认证边界。
+- 用户应用、API 与 Worker 由受控 ECS 运行。预览入口必须是固定 HTTPS hostname，并绑定不可变镜像摘要、健康回执和独立访问策略；没有这些证明的目录项保持禁用。
+- **长连接 SSE**：面试可能跨越数分钟到数小时。应用运行时必须把 SSE 断线视为正常路径：客户端使用稳定 cursor/snapshot 重连，服务端业务事实与受控 checkpoint 决定可见状态。不能因静态目录可访问而假设应用连接已经就绪。
+- API 不应被静态目录代理；同源需求只能由经认证的 ECS Web 运行时处理。
 
 ## 11. 关键技术选型与理由（失败模式驱动）
 

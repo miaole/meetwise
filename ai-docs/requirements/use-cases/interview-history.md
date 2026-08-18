@@ -19,7 +19,7 @@ related:
 
 # 用例集 · 面试历史（interview-history）
 
-> **🔎 实现状态（对齐真实代码 · 2026-07）** — 本文是 TARGET 规格。**✅ 已实现+接线**：面试/报告历史查看（约 25 个 SSR 页面含 interviews/report/diagnosis 列表与详情）、RLS principal 绑定、AiGraphRun fencing/lease 单活动 run（interrupt/resume 基于持久 checkpoint，非内存 Map）。**🟠 部分 / ⬜ 未建**：会话生命周期看门狗（TTL 把 waiting_user→expired/abandoned + 退费，UC-IH-13）、非时间排序的复合 keyset 分页、被遗忘权对财务账本的排除清单等承重细节多为规格，尚未全部落地。基础历史读取与隔离已生效。
+> **🔎 实现状态（对齐真实代码 · 2026-08-09）** — 本文是 TARGET（目标）规格，不能把后续流程图或测试编号当作已跑证据。**✅ 已实现并有局部实测**：面试/报告历史读取、RLS（行级安全）principal（主体）绑定；LangGraph（图编排框架）checkpoint（检查点）通过 `CheckpointAccess(owner,threadId,fenceEpoch)` 与数据库触发器拒绝撤回后的迟到写入，跨主体读、改、删为 0 的真实 PostgreSQL（关系型数据库）证明已通过。**🟠 部分 / ⬜ 未建**：本节定义的完整 `AiGraphRun` lease（租约）抢占、历史 checkpoint 物理删除与外部数据面回执、会话生命周期看门狗、非时间排序的复合 keyset（键集）分页、被遗忘权对财务账本的排除清单，均不能当作已完成发布能力。基础历史读取与隔离已生效。
 
 > 评审定论（两轮）：契约面（RLS / IDOR-404 / 游标 / CAS）骨架扎实；致命失分集中在四处并已收口——①分布式「至多一个活动 run」的执行机制（错把保证放在 `Interview` 行 CAS 上，而 checkpoint 按 `thread_id` 写、不经这把 CAS → 脑裂）→ 0.1 fencing/lease；②**会话生命周期闭环**（谁/何时/按什么 TTL 把 `in_progress/waiting_user` 迁成 `expired/abandoned`，以及对应退费）→ 0.2 + 0.3 + 新增 **UC-IH-13 看门狗**；③**非时间排序的分页正确性**（按 score/role 排序时裸 `(started_at,id)` 游标会重复/跳漏）→ 0.6 复合 keyset；④**被遗忘权对财务账本的边界**（naive cascade 会删交易凭证）→ 0.8 erasure 排除清单。其余无法测的高成熟度承诺（读副本降级、报告译文层、时延持平断言）一律降级/移除。
 
@@ -33,7 +33,7 @@ related:
 
 - `AiGraphRun` 增列：`fenceEpoch int`（每线程单调递增的栅栏世代）、`leaseOwner`（实例/请求标识）、`leaseExpiresAt`、`heartbeatAt`。每 `threadId` 任意时刻**至多一个有效 lease**。
 - **抢锁/续跑** = 两段 CAS：先对 `Interview` 行 CAS（前态守卫），**再**对该 `threadId` 的 run lease CAS 抢占：仅当旧 lease 已死（`leaseExpiresAt < now()` 或心跳超时）才允许 `fenceEpoch = fenceEpoch + 1`，返回新 epoch。
-- **所有 checkpoint 写入带 fence 校验**：checkpointer 写入守卫 `WHERE thread_id=$tid AND fenceEpoch=$myEpoch`；陈旧 run（低 epoch）写入返回 0 行 → 该 run 判定「被栅栏」→ 自我转 `safe_terminating`（不改写 checkpoint，不脑裂）。
+- **目标态：所有 checkpoint 写入带 fence 校验**：本规格要求 checkpointer 写入守卫等价于 `thread_id=$tid AND fenceEpoch=$myEpoch`；陈旧 run（低 epoch）写入返回 0 行 → 该 run 判定「被栅栏」→ 自我转 `safe_terminating`（不改写 checkpoint，不脑裂）。当前 `0047_checkpoint_privacy_fence` 已以 `CheckpointAccess(owner,threadId,fenceEpoch)` 和三张 vendor（供应商）checkpoint 表的触发器实现“撤回后旧 epoch 拒写”，但尚未实现本节完整的 `AiGraphRun` lease 抢占/心跳/接管状态机；不得将两者混为一项已完成能力。
 - **心跳**：活动 run 周期性 `UPDATE … heartbeatAt=now() WHERE fenceEpoch=$myEpoch`；0 行 = 已被抢占 → 立即停机安全终止。
 - **死 run 检测**：`leaseExpiresAt < now()`（心跳超时）→ 该 run 可被抢占；**僵尸 `Interview.active` 但 lease 已死**（实例崩溃）→ resume 时检测到死 lease，bump epoch 栅栏僵尸，再拉起新 run（不会拉起第二个活动 run）。
 - **`resume_lock` 布尔锁是反模式**（违反「显式状态枚举、禁布尔汤」「等待态由持久化 state 表达」），**本设计不引入**任何 ad-hoc 锁标志：单写者互斥完全由 `AiGraphRun` 的 `fenceEpoch/lease` 状态迁移 + CAS 表达。

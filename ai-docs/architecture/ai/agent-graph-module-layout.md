@@ -24,7 +24,7 @@ tags:
 adaptive-interview/
   state.ts                 # 状态字段、reducer、依赖契约与公共类型
   nodes/
-    plan.ts                # 初始化能力目标与简历事实
+    plan.ts                # 初始化能力目标；画像原文不进入图状态
     decide.ts              # 纯策略路由
     generate-question.ts   # 检索、生成与题目自检；写入 pending
     await-answer.ts        # 仅 interrupt；恢复时不调用模型

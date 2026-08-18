@@ -16,6 +16,8 @@ tags:
 
 # 本地演示与部署架构
 
+> 当前部署目标正在切换为“静态预览目录 + ECS 应用运行时”。本文保留 Compose 的历史开发说明，不能把它当成云端验收、发布证据或数据面测试入口。GitHub Pages 静态目录和 ECS 环境尚未配置完成，所有相关状态均为 `planned`。
+
 ## 目标
 
 Meetwise 必须从第一阶段就能一键本地演示：
@@ -101,21 +103,25 @@ Web/API/Worker 在本机用 pnpm dev 启动。
 
 | 环境 | 目的 | 部署 |
 | --- | --- | --- |
-| local | 开发自测 | pnpm + compose.dev |
-| demo | 一键演示 | compose.demo |
-| preview | PR 预览 | Vercel web + hosted API 或容器 |
-| staging | 联调和回归 | Docker/K8s |
-| production | 正式使用 | Vercel web + container API/worker + managed Postgres/Redis/S3 |
+| local | 纯逻辑、静态文档与前端样式开发 | 不接真实数据面；当前不作为云端验证替代 |
+| demo | 历史一键演示兼容路径 | `compose.demo`；不得作为发布或 ECS 验收证据 |
+| preview | 公开、无敏感信息的项目导航目录 | GitHub Pages 纯静态产物；实际入口只在经核验的 HTTPS ECS 环境可用时显示 |
+| staging | 联调和回归 | 受控 ECS 运行时 + 受管数据服务；尚未配置，不得宣称可用 |
+| production | 正式使用 | ECS Web/API/Worker + 受管 PostgreSQL/Redis/对象存储；当前不得发布 |
 
 ## 线上部署建议
 
-第一阶段：
+预览目录：
 
-- Web：Vercel。
-- API/Worker：Railway/Fly.io/Render 或自有 VPS Docker Compose。
-- DB：Managed Postgres。
-- Redis：Managed Redis。
-- Object Storage：S3/R2/OSS。
+- 静态目录只包含项目简介、受控入口状态和已核验的 HTTPS 链接；不得包含 API 调用、iframe、环境变量、连接串、令牌、数据服务地址或用户数据。
+- 目录必须由受保护分支的最小权限发布任务生成。没有仓库地址、签名目录清单、ECS 健康回执、不可变镜像摘要和到期时间的入口保持禁用。
+- 目录不是认证层；实际 ECS 预览环境独立执行认证，入口链接不携带 token、query 或 fragment。
+
+应用运行时：
+
+- Web、API 与 Worker 部署于受控 ECS；仅 HTTPS Web 入口对外暴露，API 不直出，Worker 没有公网入站。公开预览 listener 必须以精确 `MEETWISE_PUBLIC_PREVIEW=1` 启动，并在应用 ingress allowlist 只读方法；变量缺失或为 `0` 的运行时只能放在私网受控 listener。
+- 数据库、缓存和对象存储只接受 ECS VPC 内的最小网络路径与工作负载身份。
+- 云端数据面测试由独立 ECS executor 执行，使用 run-owned 目标、恢复账本和清理回执；在对应 `CLOUD-TEST-01…05` 通过前，Docker 路由不删除，且不得把本地回执冒充云端通过。
 
 长期：
 
@@ -139,3 +145,4 @@ Web/API/Worker 在本机用 pnpm dev 启动。
 - AI golden tasks。
 - 支付沙箱验证。
 - 敏感日志扫描。
+- 静态目录链接与受控 ECS 环境的镜像摘要、健康回执、访问策略和过期时间一致；失配、过期、撤销或健康失败时入口不可点击。

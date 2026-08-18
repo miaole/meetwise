@@ -1370,7 +1370,7 @@ async function writeFrame(frame: string, signal: AbortSignal) {
 | LG-4 | API 接受客户端 `turn` 并按序入队，但没有与 pending interrupt 的 server-issued questionId/token 比对。 | `apps/api/src/modules/interview/interview.service.ts:99-115` | 同一 `(owner,interview,kind,seq)` 重复提交可去重，但错误/陈旧页面若传入一个未占用 seq 仍可入队；现有测试仅验证同 seq 的两次入队。 |
 | LG-5 | 队列使用 `NOT EXISTS running` 尝试同面试保序，但当前自适应 lifecycle 中没有显式 per-thread advisory lock/lease 来线性化 `Command(resume)`。 | `packages/db/src/interview-jobs.ts:25-43`；`apps/worker/src/adaptive-lifecycle.ts:48-52` | 两 worker 的抢占、租约过期重领和 checkpoint 并发写没有 barrier 测试；架构文档要求 resume 前取得 per-thread 锁。 |
 | LG-6 | 图以 `route | concluded:boolean` 表示运行态，没有 `waiting_user/completed/degraded/aborted` 等互斥 runOutcome；模型评分失败会作为 `score=50,relevant=true` 继续。 | `packages/ai-graphs/src/adaptive-interview.ts:31-38,107-115`；`apps/worker/src/adaptive-interview-service.ts:105-118` | 模型故障可能进入 transcript 与后续报告/成长数据；当前 test 只覆盖出题失败降级，不覆盖“评分失败不得伪造候选人分数”。 |
-| LG-7 | 图有默认 `maxTurns=8` 和每题最多 3 次题面生成，但未在图调用处显式设置 recursionLimit，也未持久化 llm/token/tool 全局预算。 | `packages/ai-graphs/src/adaptive-interview.ts:41-68,109-115` | 仅按上层默认计算，单场最多 8 turn；每 turn 最多 3 次出题尝试加 1 次评分，未计 invoke 内重试。无“预算耗尽→degraded”真实端到端门。 |
+| LG-7 | 图有默认 `maxTurns=8`，题面 critique/判重失败已改为一次派发后的同能力确定性题面；但未在图调用处显式设置 recursionLimit，也未持久化 llm/token/tool 全局预算或数据库级逻辑节点 slot。 | `packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts`, `apps/worker/src/adaptive-interview-service.ts` | 单场最多 8 turn；当前调用方每 turn 最多一次出题与一次评分外呼，但这不防旧 worker 或新 key 绕过。无“预算耗尽→degraded”真实端到端门。 |
 | LG-8 | 现有图、lifecycle、consumer 证明均通过，但主要使用 `MemorySaver`、scripted model 或 fake deps。 | `packages/ai-graphs/test/adaptive-interview.proof.ts:1-76`；`apps/worker/test/adaptive-lifecycle.proof.ts`；`apps/worker/test/adaptive-consumer.proof.ts:16-20,30-31` | 本轮实际执行：图证明 `12` 断言通过，lifecycle `9` 断言通过，consumer `13` 断言通过；均未覆盖 LG-1 至 LG-7 的 crash-barrier 或双 worker 并发恢复。 |
 | SSE-1 | 当前是持久化业务事件流而非 token 流；前端仅接受 schema 白名单中的业务事件。 | `apps/api/src/modules/interview/interview.controller.ts:200-236`；`apps/web/lib/stream/business-events.ts:1-57` | 这是正确的当前边界，不能作为已完成 token stream、token 重放或 token 级脱敏的证据。 |
 | SSE-2 | API `safeWrite()` 忽略 Node `Writable.write()` 返回的 `false`，只捕获抛异常。 | `apps/api/src/modules/interview/interview.controller.ts:214,218-233` | 当前低频业务事件风险较低；接入高频 token 后，慢消费者可造成写缓冲持续累积。没有 `drain`、每连接 queue bytes 或慢读压测门。 |
@@ -1422,7 +1422,7 @@ type InterviewQuestion = {
 | 结论 | 仓库证据 |
 | --- | --- |
 | 启动题库为 33 题 / 132 role chunks，不是一题一个向量 | `apps/worker/src/qbank-seed.ts` 中 `QBANK_ARTIFACTS`；每题 4 个 `prompt/rubric/follow_up/anti_pattern` chunk |
-| 题目业务实体、角色映射和完整题 evidence read-shape | `packages/db/migrations/0031_qbank_question_artifact_rag.sql`；`apps/worker/src/qbank-ingest.ts:QbankQuestionArtifact` |
+| 题目业务实体、角色映射和完整题 evidence read-shape | `packages/db/migrations/0031_qbank_question_artifact_rag.sql`；`packages/db/src/qbank-ingest.ts:QbankQuestionArtifact` |
 | 面试 CRAG 查询为系统生成的能力+难度 | `apps/worker/src/adaptive-interview-service.ts:60-68` |
 | 当前分类器为规则骨架且无调用方 | `packages/ai-runtime/src/router/index.ts:8-21`；全仓 `classify(` 搜索仅命中定义 |
 | CRAG 阈值为固定 `high=.7 / low=.3 / keep=.5` | `packages/domain/src/crag.ts:15-22` |

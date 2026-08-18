@@ -102,6 +102,25 @@ related:
 
 详见 `architecture/ai/runtime-migration.md`（迁移 spec，待 land）。
 
+### ManualReview（人工复核案件，TARGET）
+
+> 当前没有运行时表/API/UI；本转换表是后续实现唯一口径，详见 `architecture/ai/human-review-design.md`。题库内容的 `qbank_source` 审批状态机不迁入这里。
+
+枚举：`open · claimed · evidence_frozen · awaiting_second_review · decided · applying · applied · withdrawn · expired · voided`
+
+| from | to | 触发 | 守卫 | 失败动作 |
+| --- | --- | --- | --- | --- |
+| —(insert) | open | 申诉/风险 policy/抽检创建 | subject + purpose + idempotency key 唯一；冻结最小证据版本 | 重复请求返回同一案件 |
+| open | claimed | 审核员领取 | tenant/purpose capability、无利益冲突、CAS + lease | 已领取 → 409 / 回查 |
+| claimed | evidence_frozen | 受控读取确认 | consent、对象版本、assignment lease 均有效 | 失效 → voided |
+| evidence_frozen | awaiting_second_review | 四眼 policy 命中 | owner/reviewer/管线身份互异 | 不满足 → 不得决定 |
+| evidence_frozen·awaiting_second_review | decided | 追加 `ReviewDecision` | expected subject version、决定幂等键；必要时独立二审通过 | 陈旧/重复 → 0 effect |
+| decided | applying | 领取 `ReviewEffect` | outbox effect key 唯一 | — |
+| applying | applied | 领域效果成功 | 目标聚合 expected version CAS 成功 | 可重试 → decided；版本失配 → voided |
+| open·claimed·evidence_frozen | withdrawn/expired/voided | 用户撤回、到期、同意或 snapshot 失效 | 不得再读原文或应用效果 | 新版本需求另开案件 |
+
+候选人可见的 `upheld` / `overturned` 是 `ReviewDecision.outcome_code` 的映射，不是案件 `status`。人工改判追加新 `AssessmentVersion` / `DecisionRecord` / ledger event，禁止覆盖原记录。
+
 ---
 
 以上五张表是 [生产不变量](./production-invariants.md) 原语 1（CAS）的直接落点；每次转换服务端再校验、写审计、并发用版本号守卫。**测试必须覆盖：合法流转、非法流转（断言 0 行）、重复操作（幂等）、并发（断言恰一个赢）。**
@@ -120,7 +139,7 @@ related:
 - `CompensationJob`（补偿任务，配 DLQ + reconciliation sweeper）
 - `AnswerEval`（答案评估结果态）
 - `GuardrailHit`（护栏命中事件态：拦截/放行/升级人工）
-- `ManualReview`（人审工单：待审/通过/驳回）
+- `ManualReview`（人审案件：`open→claimed→evidence_frozen→[awaiting_second_review]→decided→applying→applied`；终止 `withdrawn/expired/voided`；决定结果独立存储）
 - commerce 五表：`PaymentOrder`(+`pending`/`closed`)、`EntitlementAccount`、`RefundOrder`、`Subscription`、`Invoice`
 
 ### 审计修复（H13–H15）：补死胡同出边 + 常态 resume + 退款回补
@@ -134,4 +153,3 @@ related:
   - `PaymentOrder.refunding → refunded` 的守卫"权益回收 CAS"补失败动作：0 行 → 进 `refunded_uncollectible` 分支，不假装成功。
 
 > 注：完整转换表随各对象用例定稿补全；补全后同步 `scripts/ai-docs/check-docs.mjs` 的 requiredTerms，使治理与文档不脱节。
-

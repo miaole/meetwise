@@ -36,7 +36,7 @@ related:
 - **答案级补评态 `AnswerEval`**：`pending_eval · evaluated · eval_failed`（题级降级补评闭环，UC-024）。`Interview.completed` 时若存在 `pending_eval`，最终分按"暂不含该题、回填后重算"口径，补评由后台 job 触发，幂等键 = `(interviewId, questionId)`。
 - **护栏命中审计 `GuardrailHit`**：append-only，枚举命中类型 `injection · jailbreak · abuse · self_harm · fabrication`，绑定 `interviewId/principal`，落库即审计（UC-031/032）。命中不改 `Interview` 业务态，只追加事件 + 触发安全策略（拒答 / 转人工 / 危机话术）。
 - **预占对账态**：复用 `ConsumptionRecord` 的 `reserved→released`；新增 reserved 记录的**对账触发器**（lazy-on-access + 定时 sweeper 双保险，前置决策 D2）回收孤儿预占（UC-017）。
-- **人工复核 `ManualReview`**：`open · in_review · upheld · overturned`，绑定申诉对象（`AssessmentReport` / 单题分），结论可解释（UC-027）。
+- **人工复核 `ManualReview`**：案件状态采用 `open · claimed · evidence_frozen · [awaiting_second_review] · decided · applying · applied`，候选人可见结果由独立的 `outcome_code` 映射为 `upheld / overturned / inconclusive`，绑定申诉对象（`AssessmentReport` / 单题分），结论可解释（UC-027；TARGET）。
 - **B 端状态机（条件 in-scope，见前置决策 D4）**：`BatchJob`（`queued · running · partial_failed · completed · failed`）、`QuestionBankItem`（`draft · enriched · pinned · adopted · retired`，采纳双签）、`SeatLedger`（席位 reserve/release，CAS 计数）。
 
 ---
@@ -348,20 +348,21 @@ related:
 
 - **七类覆盖**：逃逸通道 ✅（人工接管）· 异常 ✅ · 复杂 ✅。
 - **触发**：用户对报告分 / 单题分提出申诉。
-- **主流程**：1) 用户提申诉 → `ManualReview open`（绑定申诉对象 + principal）。2) 人工/管理员领取 → `in_review`。3) 复核结论 → `upheld`（维持）或 `overturned`（改判，CAS 更新对应分，version 守卫）。4) 可解释结论回传用户。
+- **主流程**：1) 用户提申诉 → `ManualReview open`（绑定申诉对象、principal、幂等键和证据 snapshot）。2) 授权审核员领取 → `claimed → evidence_frozen`。3) 按 policy 单审或双审，追加 `ReviewDecision`；候选人结果为 `upheld`（维持）、`overturned`（批准新评分版本）或 `inconclusive`。4) `ReviewEffect` 用 expected version CAS 创建新 `AssessmentVersion`，成功后 `applied`，再回传可解释结论。
 - **异常流**：
   | flow | 机制 | 后置 |
   |---|---|---|
   | E-重复申诉 | 同对象幂等键 | 仅一条 open |
-  | E-改判并发 | 报告分 CAS | 恰一次改判生效 |
-  | E-越权复核 | RLS / 管理员角色守卫 | 非授权 0 行 |
-- **后置**：`ManualReview ∈ {upheld, overturned}`，审计可解释。
-- **验收**：A1 申诉后状态 open 可见；A2 overturned 后分数按 CAS 更新且有审计原因；A3 重复申诉不产生多条。
+  | E-改判并发 | ReviewEffect + 报告版本 CAS | 恰一次新版本生效，原评分不覆盖 |
+  | E-越权复核 | tenant/purpose capability + RLS | 非授权读取、领取、决定和 effect 均为 0 |
+  | E-同意/对象版本失效 | snapshot 校验 | `voided`，新读取和新 effect 均为 0 |
+- **后置**：`ManualReview=applied|withdrawn|expired|voided`，`ReviewDecision.outcome_code` 可解释且审计 append-only。
+- **验收**：A1 申诉后状态 open 可见；A2 overturned 只创建一次新 AssessmentVersion 并带审计原因；A3 重复申诉不产生多条；A4 过期审核 lease 的决定 effect=0。
 - **关联**：状态机：ManualReview（新增 D3）、AssessmentReport。原语：CAS、幂等键、RLS、事件日志。
 
 **测试用例**
 - TC-E2E-027-appeal · e2e · 提申诉断言 open + 结论可见。
-- TC-E2E-027-overturn · integration · overturned 断言分数 CAS 更新 + 审计。
+- TC-E2E-027-overturn · integration · overturned 断言新版本 CAS 生效 + 审计。
 
 ---
 
@@ -639,7 +640,7 @@ related:
 
 - **D1 计费模型边界**：本稿采用工作假设「1 次额度 = 一场面试；`reserved→confirmed` 触发点 = `Interview.completed`；诊断/押题/career-path 不单独计面试额度；报告子图失败不退款、提供免费 regenerate；面试 failed/abandoned 退还(released)」。**须 ADR 正式钉死**，否则 011/014/017/018/019 整组验收不可判定。
 - **D2 expired/孤儿预占触发器**：采用「lazy-on-access + 定时 sweeper 双触发、结果幂等一致」。须确认两路径一致性 SLA，否则 017/030 迁移不可审计。
-- **D3 新状态机入载重清单**：`AnswerEval`(补评)、`GuardrailHit`(护栏)、`ManualReview`(人工)须正式纳入 status-machine.md 载重清单并定义契约，否则 024/027/031/032 引用未定义状态机。
+- **D3 新状态机入载重清单**：`AnswerEval`(补评)、`GuardrailHit`(护栏)、`ManualReview`(人工)须正式纳入 status-machine.md 载重清单并定义契约；`ManualReview` 已以 `human-review-design.md` 给出 TARGET 口径，仍须迁移/API/E2E 落地后才可声明可用。
 - **D4 B 端 scope 裁决**：项目定位为 C 端；B 端 040–043 引入 `BatchJob/QuestionBankItem/SeatLedger` 整套状态机。**须裁决本迭代是否 in-scope**：若保留，先补三张状态机 + 契约并纳入载重清单；若移出，第六章移出本迭代。当前第六章成立以 in-scope 为前提。
 - **D5 成长档案/能力曲线落点字段**：钉死 `CapabilityProfile.dimensions[]` 与 `GrowthTimeline` 的确定字段 schema，否则 001-A5 / 004-A1/A2 的"档案落点"断言无法写成确定断言。
 - **D6 测试层归属固化**：031/032 的"模型抗注入/不造假"、003 的"模型按 locale 产语言"一律归 ai-eval；e2e 仅保留结构面/转义/业务校验断言；毫秒级竞态真实保证归 integration（CAS/租约），e2e 双击仅"尽力复现+终态一致"。须在 test-strategy 固化此分层纪律。
