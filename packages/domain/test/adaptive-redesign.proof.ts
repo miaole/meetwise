@@ -91,7 +91,7 @@ A('B 全程 hasHook 仍收敛终止(depthProbed 顶到 cap → all_resolved,非�
 /* ───── G. toCompetencySpecs:top 1-2 标 core + 确定性附加 1 个行为槽 ───── */
 {
   const specs = toCompetencySpecs(['并发', '缓存', '数据库']);
-  A('G top 1-2 标 core(并发/缓存 core,数据库非 core)', specs[0].core === true && specs[1].core === true && specs[2].core === false);
+  A('G top 1-2 标 core(并发/缓存 core,数据库非 core)', specs[0]?.core === true && specs[1]?.core === true && specs[2]?.core === false);
   A('G 确定性附加 1 个行为槽(behavioral=true,题型与简历解耦)', specs.some((s) => s.name === BEHAVIORAL_COMPETENCY && s.behavioral === true));
   // 重名防御:规划官恰好产出同名能力时,**提升**为行为槽(behavioral=true、非 core),绝不静默丢失保证维度(否则降级成技术题)
   const collide = toCompetencySpecs([BEHAVIORAL_COMPETENCY, '后端']);

@@ -103,7 +103,7 @@ export function ingestAssessment(mind: InterviewMind, competency: string, score:
 // 显式跳过(用户主动放弃本题):空答 或 "跳过/skip/下一题…"。整句锚定,绝不误伤含这些词的长答案。
 const SKIP_RE = /^(跳过|跳|skip|pass|下一题|换一题|换题|next|不答了?)[。.!！,，\s]*$/i;
 // 整句即"非作答套话":首尾锚定 + 仅允许少量语气前后缀,避免长答案里偶含"不会/没有"被误判。
-const NON_ANSWER_RE = /^(我|这|那|这个|那个|嗯+|呃+|额|唉|啊|emmm*)?\s*(不(知道|会|太会|懂|太懂|清楚|了解|记得)|没(做过|接触过|经验|了解过|印象|思路|头绪)|记不清|想不起来?|忘(了|记了?)|没什么可说的?|不太懂|略|无|没有)\s*(了|呢|啊|诶|哦|呀)?[。.!！…?？~\s]*$/i;
+const NON_ANSWER_RE = /^(?:(我|这|那|这个|那个|嗯+|呃+|额|唉|啊|emmm*)?\s*(不(知道|会|太会|懂|太懂|清楚|了解|记得)|没(做过|接触过|经验|了解过|印象|思路|头绪)|记不清|想不起来?|忘(了|记了?)|没什么可说的?|不太懂|略|无|没有)\s*(了|呢|啊|诶|哦|呀)?|请?\s*(?:照此|按(?:此|上面|上述))\s*(?:输出|返回|执行|处理))[。.!！…?？~\s]*$/i;
 
 /** 去空白与标点/符号后的"有意义字符"串(CJK/字母/数字)——长度判"太短",字符多样性判"复读/乱敲"。 */
 function meaningfulChars(t: string): string {
@@ -159,7 +159,11 @@ export function stripScoringManipulation(answer: string): { clean: string; detec
     if (hit) detected = true;
     return !hit;
   });
-  return { clean: kept.join('').trim(), detected };
+  // 只有围栏、没有实际内容的 json code fence 是常见的评分字段伪造残留。去掉
+  // delimiter 后交给 isNonAnswer，避免它把“请照此输出”送进模型并因伪 quote
+  // 变成 unscored 终止；真实 fenced code 的正文不受影响。
+  const clean = kept.join('').replace(/^\s*```(?:json)?\s*$/gim, '').trim();
+  return { clean, detected };
 }
 
 export type TurnSignal = { skipped: boolean; nonAnswer: boolean };

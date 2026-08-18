@@ -27,7 +27,8 @@ export function isPrivateHost(host: string): boolean {
   if (m) {
     const o = m.slice(1, 5).map(Number);
     if (o.some((x) => x > 255)) return true;                              // 非法段 → 保守拒
-    const [a, b] = o;
+    const a = o[0]!;
+    const b = o[1]!;
     if (a === 0) return true;                                            // 0.0.0.0/8(本机/未指定)
     if (a === 127) return true;                                          // 环回 127.0.0.0/8
     if (a === 10) return true;                                           // 私有 10.0.0.0/8
@@ -83,7 +84,71 @@ export type RawFetch = (url: string, init: { redirect: 'manual'; signal: AbortSi
 export interface SafeFetchOpts { maxRedirects?: number; timeoutMs?: number; maxBytes?: number }
 
 /**
- * 把低层 fetch 包成"安全 FetchFn":**手动逐跳重定向 + 每跳 allowlist/私网复核 + 硬超时 + fail-soft**。
+ * 有界深度检索不是通用搜索引擎，也不是让模型自由浏览网页：它只是同一条经过
+ * allowlist/SSRF 门的多源证据获取路径。默认最多并发抓 3 个已授权源，整次取证
+ * 最多带回 12,000 个字符；这样一次低置信 CRAG 分支的 egress 和 prompt 面积都可计算。
+ */
+export interface DeepExploreOpts {
+  /** 单次最多尝试的 allowlist 源，硬上限 6。 */
+  maxSources?: number;
+  /** 单个源进入模型前的最大字符数。 */
+  maxCharsPerSource?: number;
+  /** 全部源合计进入模型前的最大字符数。 */
+  maxTotalChars?: number;
+  /** 系统生成的检索 query 的最大字符数；超出直接拒绝，不截断成另一个语义。 */
+  maxQueryChars?: number;
+}
+export interface DeepExploreResult {
+  docs: SourceDoc[];
+  /** 实际发出的、已通过 allowlist 预检的请求数。 */
+  attempted: number;
+  /** 因 URL/响应不合规、空文本或预算而丢弃的源数。 */
+  rejected: number;
+  /** `invalid_query`/`no_allowed_sources`/`ok`，供调用方观测而非让模型猜。 */
+  reason: 'invalid_query' | 'no_allowed_sources' | 'ok';
+}
+
+function boundedPositive(value: number | undefined, fallback: number, min: number, max: number): number {
+  if (!Number.isInteger(value) || (value as number) < min || (value as number) > max) return fallback;
+  return value as number;
+}
+
+/**
+ * 不把控制字符、空 query 或超长 query 交给站点检索端点。这里不做“截断后继续搜”，
+ * 因为那会悄悄改变系统决定的证据主题；调用方应降级为本地题库/无素材出题。
+ */
+export function normalizeResearchQuery(query: string, maxChars = 256): string | null {
+  if (typeof query !== 'string') return null;
+  const normalized = query.normalize('NFKC').replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!normalized || normalized.length > maxChars) return null;
+  // 检索 query 会离开本系统；即使上游 planner 理应只给“能力名”，也不能把直接标识符
+  // 当作站点检索词。这里是 egress 前的纵深门，不替代上游简历脱敏/权限控制。
+  const directIdentifier = /[^\s@]+@[^\s@]+\.[^\s@]+|(?:\+?86[-\s]?)?1[3-9]\d{9}(?!\d)|(?<!\d)(?:\d{17}[\dXx]|\d{15})(?!\d)/;
+  if (directIdentifier.test(normalized)) return null;
+  return normalized;
+}
+
+/**
+ * 给模型的来源文本必须以数据信封交付；URL、页面正文都不具有指令权限。控制字符会被
+ * 丢弃，长度仍由调用方的总预算控制。此函数不是“靠 prompt 防注入”的替代品，系统 prompt
+ * 也必须声明该信封不执行；它负责让来源边界可审计、不可伪造出宿主 data 围栏。
+ */
+export function formatUntrustedResearchMaterial(docs: SourceDoc[], maxChars = 12_000): string {
+  let remaining = Math.max(0, maxChars);
+  const out: string[] = [];
+  for (let i = 0; i < docs.length && remaining > 0; i++) {
+    const text = String(docs[i]?.text ?? '').replace(/[\u0000-\u001f\u007f]/g, ' ').trim();
+    if (!text) continue;
+    const part = text.slice(0, remaining);
+    remaining -= part.length;
+    const url = String(docs[i]?.url ?? '').replace(/[\u0000-\u001f\u007f]/g, ' ').trim();
+    out.push(`[UNTRUSTED_RESEARCH_SOURCE index=${i + 1} url=${url}]\n${part}\n[/UNTRUSTED_RESEARCH_SOURCE]`);
+  }
+  return out.join('\n');
+}
+
+/**
+ * 把低层 fetch 包成"安全 FetchFn":**手动逐跳重定向 + 每跳 allowlist/私网复核 + 整条跳链共享硬超时 + fail-soft**。
  * 这是 SSRF 的承重实现——allowlist 域 302→私网会被逐跳复核拦下(自动 redirect 会绕过)。任意异常/非 2xx/超跳数 → null(降级跳过,不拖垮整流程)。
  */
 export function createSafeFetch(rawFetch: RawFetch, allowlist: AllowedSource[], opts: SafeFetchOpts = {}): FetchFn {
@@ -93,9 +158,12 @@ export function createSafeFetch(rawFetch: RawFetch, allowlist: AllowedSource[], 
   return async (startUrl: string): Promise<FetchedPage | null> => {
     try {
       let url = startUrl;
+      const deadline = Date.now() + timeoutMs;                               // 不是“每一跳各 8 秒”，整条 redirect chain 共用预算。
       for (let hop = 0; hop <= maxRedirects; hop++) {
         if (!isAllowed(url, allowlist)) return null;                          // 每一跳都复核(起始 URL + 每次重定向目标)
-        const res = await rawFetch(url, { redirect: 'manual', signal: AbortSignal.timeout(timeoutMs) });  // 硬超时:慢/死源不阻塞
+        const remainingMs = deadline - Date.now();
+        if (remainingMs <= 0) return null;
+        const res = await rawFetch(url, { redirect: 'manual', signal: AbortSignal.timeout(remainingMs) });  // 整链硬超时:慢/死源不阻塞
         if (res.status >= 300 && res.status < 400) {                         // 重定向:取 Location,下一跳循环开头重新校验
           const loc = res.headers.get('location');
           if (!loc) return null;
@@ -103,12 +171,65 @@ export function createSafeFetch(rawFetch: RawFetch, allowlist: AllowedSource[], 
           continue;
         }
         if (res.status < 200 || res.status >= 300) return null;              // 非 2xx → 跳过
-        const text = (await res.text()).replace(/<[^>]+>/g, ' ').slice(0, maxBytes);   // 裸抓 + 主正文粗清洗(去标签)。readability 抽取后续再上
+        // 先整块剔除 script/style/comment，再去标签。仅“去标签”会把 `<script>ignore…</script>`
+        // 的正文保留下来并送进模型；这不是完整 Readability，但能在不引入解析器的前提下收掉
+        // 最常见的网页注入载体。剩余页面文字仍按不可信数据处理。
+        const text = (await res.text())
+          .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, ' ')
+          .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, ' ')
+          .replace(/<!--[\s\S]*?-->/g, ' ')
+          .replace(/<[^>]+>/g, ' ')
+          .slice(0, maxBytes);
         return { url, text };
       }
       return null;                                                           // 跳数超限(重定向环/滥用)→ 跳过
     } catch { return null; }                                                 // 超时/网络挂/malformed → fail-soft
   };
+}
+
+/**
+ * 受限“deep research”：对至多 N 个已授权官方源并发取证，再在进入 prompt 前实施每源和
+ * 总字符预算。它不会跟随站外链接、不会递归抓页面、不会接收用户自由 URL，更不提供
+ * 通用 WebSearch/浏览器能力。真实外呼仍须由 createSafeFetch 注入，因而每跳 SSRF 校验
+ * 与超时在这里之前已经完成。
+ */
+export async function deepExplore(
+  query: string, allowlist: AllowedSource[], fetchFn: FetchFn, opts: DeepExploreOpts = {},
+): Promise<DeepExploreResult> {
+  const maxQueryChars = boundedPositive(opts.maxQueryChars, 256, 1, 512);
+  const safeQuery = normalizeResearchQuery(query, maxQueryChars);
+  if (!safeQuery) return { docs: [], attempted: 0, rejected: 0, reason: 'invalid_query' };
+  const maxSources = boundedPositive(opts.maxSources, 3, 1, 6);
+  const maxCharsPerSource = boundedPositive(opts.maxCharsPerSource, 4_000, 128, 16_000);
+  const maxTotalChars = boundedPositive(opts.maxTotalChars, 12_000, 128, 32_000);
+  const sources = allowlist.slice(0, maxSources);
+  if (sources.length === 0) return { docs: [], attempted: 0, rejected: 0, reason: 'no_allowed_sources' };
+
+  // 固定上界≤6，Promise.all 将总墙钟时间收敛到最慢一个安全 fetch（而不是 6×8s 串行）。
+  const fetched = await Promise.all(sources.map(async (source) => {
+    let url: string;
+    try { url = source.searchUrl(safeQuery); }
+    catch { return { attempted: false, page: null as FetchedPage | null }; } // 配置源坏了只丢该源，不打断面试。
+    if (!isAllowed(url, allowlist)) return { attempted: false, page: null as FetchedPage | null };
+    const page = await fetchFn(url).catch(() => null);
+    // 即使注入的是非 safe fetch，也不能信任返回的最终 URL。
+    if (!page || !isAllowed(page.url, allowlist)) return { attempted: true, page: null as FetchedPage | null };
+    return { attempted: true, page };
+  }));
+
+  let remaining = maxTotalChars;
+  let rejected = Math.max(0, allowlist.length - sources.length);
+  const docs: SourceDoc[] = [];
+  for (const item of fetched) {
+    if (!item.page || remaining <= 0) { rejected++; continue; }
+    const text = item.page.text.replace(/[\u0000-\u001f\u007f]/g, ' ').trim();
+    if (!text) { rejected++; continue; }
+    const bounded = text.slice(0, Math.min(maxCharsPerSource, remaining));
+    if (!bounded) { rejected++; continue; }
+    remaining -= bounded.length;
+    docs.push({ url: item.page.url, text: bounded });
+  }
+  return { docs, attempted: fetched.filter((item) => item.attempted).length, rejected, reason: 'ok' };
 }
 
 /** 探索:遍历 allowlist 源 → 构造 URL → allowlist 复核 → 注入 fetch 抓取 → 收成 SourceDoc[]。空 allowlist/抓取失败 → 跳过(降级)。 */

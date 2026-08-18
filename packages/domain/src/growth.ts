@@ -73,11 +73,11 @@ export function deriveGrowth(rows: GrowthRow[], answered = 0): GrowthView {
   // **诚实语义(修审计 #4)**:latestScore/trend 锚定"最新一场"(而非"最新已评分场")。
   //   若最新一场未评分(ready 但 overall=null,schema 合法),latestScore=null、trend=none——
   //   绝不把更早的旧分冒充"最新",也不画一条无视最新场的趋势。
-  const latestScore = points.length ? points[points.length - 1].overall : null;
+  const latestScore = points.length ? points[points.length - 1]!.overall : null;
   let trend: GrowthTrend = 'none';
   if (points.length >= 2) {
-    const prev = points[points.length - 2].overall;
-    const last = points[points.length - 1].overall;
+    const prev = points[points.length - 2]!.overall;
+    const last = points[points.length - 1]!.overall;
     if (prev != null && last != null) trend = last > prev ? 'up' : last < prev ? 'down' : 'flat';
   }
 

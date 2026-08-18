@@ -15,7 +15,7 @@ const r = validateGrounded([
   { q: '结合你简历里的限流改造,聊聊缓存击穿怎么防', competency: '缓存', difficulty: 3, citations: ['y'] },        // 重复→挡
 ], sources, comps);
 
-A('好题通过(改写+标源+对能力)', r.ok.length === 1 && r.ok[0].competency === '缓存');
+A('好题通过(改写+标源+对能力)', r.ok.length === 1 && r.ok[0]?.competency === '缓存');
 A('照搬原题被挡(版权底线)', r.rejected.some((x) => x.reason === 'verbatim_copy'));
 A('无来源被挡', r.rejected.some((x) => x.reason === 'no_citation'));
 A('跑题被挡(不在目标能力)', r.rejected.some((x) => x.reason === 'off_competency'));
