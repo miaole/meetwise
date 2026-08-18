@@ -1,6 +1,6 @@
 ---
-id: adr_0021_app_versioning_release
-name: ADR-0021 应用版本与发布机制
+id: adr_0022_app_versioning_release
+name: ADR-0022 应用版本与发布机制
 description: 单一语义化版本来源、发布脚本、CHANGELOG 与 git tag 的可复现发布链路，以及运行时 /meta 版本暴露。
 type: reference
 scope: shared
@@ -14,7 +14,7 @@ related:
   - ../../meta/directory-boundaries.md
 ---
 
-# ADR-0021 应用版本与发布机制 · accepted
+# ADR-0022 应用版本与发布机制 · accepted
 
 ## 背景
 
@@ -42,7 +42,7 @@ related:
 
 `node scripts/release.mjs <patch|minor|major|prerelease> [--dry-run]`：
 
-- bump 版本（内置语义化递增，不引第三方依赖）。
+- bump 版本（内置语义化递增，不引第三方依赖；prerelease 计数器与 finalize 语义已覆盖）。
 - 收敛 `CHANGELOG.md` 的 `[Unreleased]` 段为新版本段（Keep a Changelog）。
 - 提交 `chore(release): X.Y.Z` + 打带注释的 tag `vX.Y.Z`。
 - `--dry-run` 预览；**脏工作区拒绝执行**（tag 必须钉在干净、可复现的提交上）。
@@ -50,11 +50,11 @@ related:
 
 ### 4. 运行时暴露 `/meta`
 
-api 增加 `/meta` 探针，返回 `{ name, version, revision }`。`version` 的运行时来源是部署注入的 `APP_VERSION`（CI 从 git tag 写入），本地/未发布环境回退 `dev`；`revision` 来自 `APP_REVISION`/`GIT_SHA`。**刻意不读文件系统取版本**——cwd / `__dirname` 在打包与多进程下存在歧义，12-factor 应用以环境注入为准。
+api 增加 `/meta` 探针，返回 `{ name, version, revision }`。`version` 读 `APP_VERSION`、`revision` 读 `APP_REVISION`/`GIT_SHA`。**当前部署管线尚未把 git tag 写入这两个变量**（接线点在部署步骤），故 `/meta` 现恒为 `dev`——这是"尚未接线"而非"已实现"，接线前不宣称线上版本可读。**刻意不读文件系统取版本**——cwd / `__dirname` 在打包与多进程下存在歧义，12-factor 应用以环境注入为准。
 
 ### 5. 一致性门 `release.yml`
 
-推 `v*` tag 触发：校验 tag 与 `package.json` 版本一致（防"tag 说 v0.1.0、文件却写 0.1.1"的漂移），然后跑 `docs:check` + `arch`。
+推 `v*` tag 触发：校验 tag 与 `package.json` 版本一致（防"tag 说 v0.1.0、文件却写 0.1.1"的漂移），校验 `CHANGELOG.md` 含对应版本段，然后跑 `docs:check` + `arch`。
 
 ### 6. 契约与迁移的版本纪律（文档化，非新机制）
 
@@ -63,13 +63,13 @@ api 增加 `/meta` 探针，返回 `{ name, version, revision }`。`version` 的
 
 ## 被否
 
-- **Changesets / 独立 per-package 版本**：产品非 SDK，独立发版是十年负债（[[meetwise-longevity-10yr]]）。
+- **Changesets / 独立 per-package 版本**：产品非 SDK，独立发版是十年负债。
 - **运行时读文件取版本**：`process.cwd()` 与 `__dirname` 在 monorepo 打包、多进程、容器路径下均歧义，环境注入才是稳定契约。
 - **发布脚本自动 push**：push 是外部副作用，必须显式、可审计，不能藏在脚本里。
 
 ## 后果
 
 - 首次发布基线 `0.1.0`（行走骨架 + 10 模块），后续由 `release.mjs` 递增。
-- 每个发布都是一个可审计的提交 + 带注释 tag + CHANGELOG 段；CI 校验 tag↔版本一致。
-- 部署校验从"不知道是哪版"变成"`curl /meta` 一看即知"；回滚有了可读锚点。
+- 每个发布都是一个可审计的提交 + 带注释 tag + CHANGELOG 段；CI 校验 tag↔版本一致 + CHANGELOG 段存在。
+- 部署校验的锚点已就位（`/meta` 端点 + 发布 tag）；`curl /meta` 要等部署管线把 `APP_VERSION` 注入后才返回真实版本。
 - 契约、OpenAPI、迁移的版本号从此与产品版本同一套纪律，不再各自漂移。

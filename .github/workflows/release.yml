@@ -39,6 +39,15 @@ jobs:
             exit 1
           fi
 
+      # CHANGELOG 必须含对应版本段：防"版本 bump 了但 CHANGELOG 静默没收敛"。
+      - name: 校验 CHANGELOG 含对应版本段
+        run: |
+          VER="$(node -p "require('./package.json').version")"
+          if ! grep -q "## \\[${VER}\\]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md 缺少 [${VER}] 段" >&2
+            exit 1
+          fi
+
       - run: pnpm docs:check
 
       - run: pnpm arch

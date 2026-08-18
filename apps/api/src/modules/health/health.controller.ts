@@ -23,8 +23,8 @@ export class HealthController {
   }
 
   /**
-   * `/meta` 只回构建与版本标识（无依赖、无 PII、无拓扑），供发布后核对"线上跑的是哪一版"。
-   * 版本来源见 ADR-0021：部署注入 `APP_VERSION`/`APP_REVISION`，本地回退 `dev`。
+   * `/meta` 只回构建与版本标识（无依赖、无 PII、无拓扑）。版本来源见 ADR-0022：
+   * 读部署注入的 `APP_VERSION`/`APP_REVISION`，本地回退 `dev`；当前管线尚未注入，故恒为 dev。
    */
   @Get('meta')
   meta() {

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 版本发布机制（ADR-0021）。
+ * 版本发布机制（ADR-0022）。
  *
  * 单一版本来源：根 package.json 的 `version` 字段（语义化版本）。
  * 每次发布：bump 版本 → 把 CHANGELOG 的 `[Unreleased]` 收敛为版本段 → 提交 → 打 tag `vX.Y.Z`。
@@ -33,19 +33,38 @@ function git(args) {
   return execFileSync('git', args, { cwd: ROOT, encoding: 'utf8' }).trim();
 }
 
+/** 本地日期 YYYY-MM-DD（不用 toISOString 的 UTC，避免东八区 00:00–08:00 落成前一天）。 */
+function localDate() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const mo = String(d.getMonth() + 1).padStart(2, '0');
+  const da = String(d.getDate()).padStart(2, '0');
+  return `${y}-${mo}-${da}`;
+}
+
 function parseVersion(v) {
   const m = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/.exec(v);
   if (!m) throw new Error(`非语义化版本: ${v}`);
-  return { major: Number(m[1]), minor: Number(m[2]), patch: Number(m[3]) };
+  return { major: Number(m[1]), minor: Number(m[2]), patch: Number(m[3]), prerelease: m[4] ?? null };
 }
 
 function nextVersion(v, type) {
-  const { major, minor, patch } = parseVersion(v);
+  const { major, minor, patch, prerelease } = parseVersion(v);
   switch (type) {
     case 'major': return `${major + 1}.0.0`;
     case 'minor': return `${major}.${minor + 1}.0`;
-    case 'patch': return `${major}.${minor}.${patch + 1}`;
-    case 'prerelease': return `${major}.${minor}.${patch + 1}-0`;
+    case 'patch':
+      // 从 prerelease 收版（finalize）：剥后缀、patch 不再 +1（0.1.1-0 → 0.1.1）。
+      return prerelease ? `${major}.${minor}.${patch}` : `${major}.${minor}.${patch + 1}`;
+    case 'prerelease': {
+      if (prerelease) {
+        // 已是 prerelease：纯数字后缀则 +1（0.1.1-0 → 0.1.1-1）；带点/字符则拒绝自动递增。
+        const n = /^(\d+)$/.exec(prerelease);
+        if (n) return `${major}.${minor}.${patch}-${Number(n[1]) + 1}`;
+        throw new Error(`带点号/字符的 prerelease 后缀(${prerelease})不支持自动递增，请手改版本`);
+      }
+      return `${major}.${minor}.${patch + 1}-0`;
+    }
     default: throw new Error(`未知 bump 类型: ${type}`);
   }
 }
@@ -57,14 +76,18 @@ const next = nextVersion(current, bumpType);
 
 const changelog = readFileSync(CHANGELOG_PATH, 'utf8');
 const UNRELEASED = '## [Unreleased]';
-if (!changelog.includes(UNRELEASED)) {
-  throw new Error(`CHANGELOG.md 缺少 "${UNRELEASED}" 段`);
-}
 
-// 收敛：把 [Unreleased] 段头替换为"空 [Unreleased] + 新版本段头"，使其下内容归属新版本。
-const date = new Date().toISOString().slice(0, 10);
+// 收敛：把首个（行首的）[Unreleased] 段头替换为"空 [Unreleased] + 新版本段头"，使其下内容归属新版本。
+// 用行首锚定 + 可选 CR，兼容无尾换行 / CRLF；写前断言内容确实变化，杜绝静默 no-op。
+const date = localDate();
 const nextHeader = `## [${next}] - ${date}`;
-const newChangelog = changelog.replace(`${UNRELEASED}\n`, `${UNRELEASED}\n\n${nextHeader}\n`);
+const unreleasedMatch = /^## \[Unreleased\][ \t]*\r?\n/m.exec(changelog);
+if (!unreleasedMatch) throw new Error('CHANGELOG.md 缺少行首的 "## [Unreleased]" 段头');
+const newChangelog =
+  changelog.slice(0, unreleasedMatch.index) +
+  `${UNRELEASED}\n\n${nextHeader}\n` +
+  changelog.slice(unreleasedMatch.index + unreleasedMatch[0].length);
+if (newChangelog === changelog) throw new Error('CHANGELOG 收敛失败：内容未变化');
 
 // 空 [Unreleased] 只警告不阻断：早期发布允许空版本段。
 const unreleasedBody = changelog.split(UNRELEASED)[1]?.split('\n## [')[0]?.trim() ?? '';

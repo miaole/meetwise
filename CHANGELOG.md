@@ -1,6 +1,6 @@
 # Changelog
 
-本项目遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 格式，版本号遵循[语义化版本 2.0.0](https://semver.org/lang/zh-CN/)。版本唯一来源是根 `package.json` 的 `version` 字段，发布流程见 [`scripts/release.mjs`](scripts/release.mjs) 与 ADR-0021。
+本项目遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 格式，版本号遵循[语义化版本 2.0.0](https://semver.org/lang/zh-CN/)。版本唯一来源是根 `package.json` 的 `version` 字段，发布流程见 [`scripts/release.mjs`](scripts/release.mjs) 与 ADR-0022。
 
 ## [Unreleased]
 
