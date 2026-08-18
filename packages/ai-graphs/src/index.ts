@@ -15,9 +15,11 @@ export type { InterviewSummary, ReportContent, GenerateReport } from './report.t
 
 export {
   buildAdaptiveInterviewGraph,
+  createEphemeralAnswerVault,
   type AdaptiveDeps,
   type AdaptiveInterviewGraphState,
   type ClarifyDirective,
   type Turn,
   type PendingQuestion,
+  type SubmittedAnswerRef,
 } from './adaptive-interview/index.ts';

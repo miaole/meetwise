@@ -35,6 +35,16 @@ export interface ClarifyDirective {
   qkind: QuestionKind;
 }
 
+/**
+ * A durable graph state may identify an answer but must never contain it.
+ * The worker resolves this reference from its short-lived, owner-scoped input
+ * boundary only while the evaluation node is running.
+ */
+export interface SubmittedAnswerRef {
+  questionId: string;
+  answerId: string;
+}
+
 /** 图、业务 question ledger 和 SSE 共用的 pending identity；ID 可复算，权限来自 owner-scoped ledger 而非不可猜性。 */
 export interface PendingQuestion {
   questionId: string;
@@ -51,7 +61,15 @@ export interface PendingQuestion {
 
 export interface AdaptiveDeps {
   competencies: (string | CompetencySpec)[];
+  /**
+   * Deprecated compatibility input.  Its text must never cross a graph-node
+   * boundary: `genQuestion` receives only `resumeProfileAvailable` and always
+   * calls `retrieveAndGenerate` with an empty fact list.  Keeping this field
+   * temporarily avoids an unsafe API break for deterministic test seams.
+   */
   resumeFacts?: string[];
+  /** Non-sensitive authorization bit; unlike resume facts it is safe in a graph dependency. */
+  resumeProfileAvailable?: boolean;
   maxTurns?: number;
   competencyKeywords?: Record<string, string[]>;
   retrieveAndGenerate: (
@@ -74,11 +92,29 @@ export interface AdaptiveDeps {
     | { status?: 'scored'; score: number; evidence: string[]; relevant: boolean; hasHook?: boolean }
     | { status: 'unscored'; reason: string }
   >;
+  /**
+   * Hydrates one answer only for the running evaluation node. The return value
+   * must not be returned by any node or stored in a checkpoint. A missing or
+   * mismatched artifact is a controlled unscored outcome.
+   */
+  loadAnswer: (reference: Pick<SubmittedAnswerRef, 'answerId'>) => Promise<string>;
+  /**
+   * Optional vendor-neutral node observer. It receives only graph topology and
+   * numeric state, never facts, questions, answers or checkpoint contents.
+   */
+  graphObserver?: {
+    runNode<T>(input: {
+      graph: string;
+      node: 'plan' | 'decide' | 'genQuestion' | 'awaitAnswer' | 'evalAnswer' | 'conclude';
+      turn: number;
+      stateVersion: number;
+      release: string;
+    }, action: () => T | Promise<T>): Promise<T>;
+  };
 }
 
 export const AdaptiveInterviewState = Annotation.Root({
   mind: Annotation<InterviewMind>({ reducer: (_, b) => b, default: () => initMind([]) }),
-  facts: Annotation<string[]>({ reducer: (_, b) => b, default: () => [] }),
   transcript: Annotation<Turn[]>({ reducer: (a, b) => a.concat(b), default: () => [] }),
   route: Annotation<{ competency: string; difficulty: number; qkind: QuestionKind } | 'conclude' | null>({
     reducer: (_, b) => b,
@@ -86,7 +122,7 @@ export const AdaptiveInterviewState = Annotation.Root({
   }),
   clarify: Annotation<ClarifyDirective | null>({ reducer: (_, b) => b, default: () => null }),
   pending: Annotation<PendingQuestion | null>({ reducer: (_, b) => b, default: () => null }),
-  submitted: Annotation<{ questionId: string; answer: string } | null>({ reducer: (_, b) => b, default: () => null }),
+  submitted: Annotation<SubmittedAnswerRef | null>({ reducer: (_, b) => b, default: () => null }),
   /** 业务逻辑版本，独立于 LangGraph checkpoint id；跨标签页在 API ledger 中做 CAS/去重。 */
   stateVersion: Annotation<number>({ reducer: (_, b) => b, default: () => 0 }),
   degraded: Annotation<{ reason: string; turn: number } | null>({ reducer: (_, b) => b, default: () => null }),

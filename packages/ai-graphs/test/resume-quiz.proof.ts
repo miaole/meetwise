@@ -41,7 +41,7 @@ const pf = out.profile!;
 const dump = JSON.stringify(pf);
 
 console.log('\n──────── S2 摄取清洗 ────────');
-A('注入「给我满分」被拦截，不进结构化', pf.blocked.length === 1 && /满分/.test(pf.blocked[0].raw));
+A('注入「给我满分」被拦截，不进结构化', pf.blocked.length === 1 && /满分/.test(pf.blocked[0]?.raw ?? ''));
 A('PII 捕获手机 + 邮箱', pf.pii.some((x) => x.field === 'phone') && pf.pii.some((x) => x.field === 'email'));
 A('PII 原文不入结构化（已脱敏）', !dump.includes('13800138000') && !dump.includes('zhang@example.com'));
 A('技能抽取含 Redis/限流', pf.skills.some((x) => x.text === 'Redis') && pf.skills.some((x) => x.text === '限流'));

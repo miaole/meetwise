@@ -1,4 +1,4 @@
-import { END, START, StateGraph } from '@langchain/langgraph';
+import { END, START, StateGraph, type BaseCheckpointSaver } from '@langchain/langgraph';
 import { awaitAnswerNode } from './nodes/await-answer.ts';
 import { concludeNode } from './nodes/conclude.ts';
 import { decideNode } from './nodes/decide.ts';
@@ -13,14 +13,25 @@ import { AdaptiveInterviewState, type AdaptiveDeps } from './state.ts';
  * 拓扑固定为 plan → decide → genQuestion → awaitAnswer(interrupt) → evalAnswer → decide*。
  * `interrupt()` 所在节点在 resume 时从第一行重放，因此模型调用被隔离在 genQuestion 节点。
  */
-export function buildAdaptiveInterviewGraph(checkpointer: unknown, deps: AdaptiveDeps) {
+export function buildAdaptiveInterviewGraph(checkpointer: BaseCheckpointSaver<number> | boolean | undefined, deps: AdaptiveDeps) {
+  const observed = <T extends (state: any) => any>(node: 'plan' | 'decide' | 'genQuestion' | 'awaitAnswer' | 'evalAnswer' | 'conclude', execute: T) =>
+    async (state: Parameters<T>[0]): Promise<Awaited<ReturnType<T>>> => {
+      const run = () => execute(state) as Awaited<ReturnType<T>>;
+      if (!deps.graphObserver) return run();
+      return deps.graphObserver.runNode({
+        graph: 'adaptive-interview', node,
+        turn: state?.mind?.turn ?? 0,
+        stateVersion: state?.stateVersion ?? 0,
+        release: 'adaptive-interview/v1',
+      }, run) as Promise<Awaited<ReturnType<T>>>;
+    };
   return new StateGraph(AdaptiveInterviewState)
-    .addNode('plan', createPlanNode(deps))
-    .addNode('decide', decideNode)
-    .addNode('genQuestion', createGenerateQuestionNode(deps))
-    .addNode('awaitAnswer', awaitAnswerNode)
-    .addNode('evalAnswer', createEvaluateAnswerNode(deps))
-    .addNode('conclude', concludeNode)
+    .addNode('plan', observed('plan', createPlanNode(deps)))
+    .addNode('decide', observed('decide', decideNode))
+    .addNode('genQuestion', observed('genQuestion', createGenerateQuestionNode(deps)))
+    .addNode('awaitAnswer', observed('awaitAnswer', awaitAnswerNode))
+    .addNode('evalAnswer', observed('evalAnswer', createEvaluateAnswerNode(deps)))
+    .addNode('conclude', observed('conclude', concludeNode))
     .addEdge(START, 'plan')
     .addEdge('plan', 'decide')
     .addConditionalEdges(

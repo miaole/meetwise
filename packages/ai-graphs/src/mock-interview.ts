@@ -16,6 +16,7 @@ export function buildMockInterviewGraph(checkpointer: any, questions: string[]) 
   const ask = (state: typeof State.State) => {
     const i = state.idx;
     const question = questions[i];
+    if (!question) throw new Error(`mock_interview_question_missing:${i}`);
     const answer = interrupt({ question });           // 持久化等待用户（真 interrupt）
     return { questions: [question], answers: [String(answer)], idx: i + 1 };
   };

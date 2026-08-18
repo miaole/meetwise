@@ -25,7 +25,31 @@ export function createEvaluateAnswerNode(deps: AdaptiveDeps) {
     }
 
     const { question, competency, turn } = pending;
-    const answer = submitted.answer;
+    let answer: string;
+    try {
+      answer = await deps.loadAnswer({ answerId: submitted.answerId });
+    } catch {
+      return {
+        pending: null,
+        submitted: null,
+        concluded: true,
+        clarify: null,
+        degraded: { reason: 'answer_artifact_unavailable', turn },
+        transcript: [{
+          questionId: pending.questionId,
+          stateVersion: pending.stateVersion,
+          q: question,
+          competency,
+          score: null,
+          sources: pending.sources,
+          critique: pending.critique,
+          outcome: 'unscored' as const,
+          relevant: false,
+          kind: pending.kind,
+          reason: 'answer_artifact_unavailable',
+        }],
+      };
+    }
     const mind = withCurrent(state.mind, competency);
     const skipped = isSkip(answer);
     const deterministicNonAnswer = isNonAnswer(answer);
