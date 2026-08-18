@@ -5,7 +5,7 @@
  * **它只证"我算指标的公式没写错",不证真评分官质量**(那归 nightly 真模型信号,见 smoke/scoring-eval.ts)。
  *   pnpm scoring-eval:prove
  */
-import { mean, sampleStddev, median, percentile, mad, fractionalRanks, spearman, kendallTauB, pairwiseOrderAccuracy, icc1 } from '../src/eval-metrics.ts';
+import { mean, sampleStddev, median, percentile, mad, fractionalRanks, spearman, kendallTauB, pairwiseOrderAccuracy, icc1, wilsonLowerBound } from '../src/eval-metrics.ts';
 
 let fail = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
@@ -60,6 +60,12 @@ A('p90 对"孤儿 outlier"盲(仍≤8)——所以 p90 不够,必须配绝对帽
 A('绝对帽(max)抓到孤儿 outlier(>20)', Math.max(...oneOutlier) > 20);
 const spreadUnstable = [3, 4, 3, 18, 4, 17, 4, 16, 4, 3, 19, 4];   // ~1/3 条成片不稳
 A('p90 抓得到"成片不稳"(>15)——不稳集中时 p90 才是对的聚合', percentile(spreadUnstable, 90) > 15);
+
+sec('⑦ 真实模型样本比例：Wilson 95% 下界(防止把小样本全过写成 100%)');
+A('9/9 表观 100%，Wilson 95% 下界仅约 70.1%', near(wilsonLowerBound(9, 9), 0.7009, 1e-3));
+A('36/36 表观 100%，Wilson 95% 下界约 90.4%(达到 0.90 需至少此量级)', near(wilsonLowerBound(36, 36), 0.9036, 1e-3));
+A('有一次失败也会明显降低下界(35/36 < 0.90)', wilsonLowerBound(35, 36) < 0.9);
+A('空样本/越界成功数不产生伪结论(NaN)', isNaNv(wilsonLowerBound(0, 0)) && isNaNv(wilsonLowerBound(4, 3)));
 
 console.log(`\n${fail === 0 ? '✓ 评分官度量数学全绿(退化用例全覆盖;真评分官质量归 nightly 信号)' : '✗ ' + fail + ' 项失败'}`);
 process.exit(fail === 0 ? 0 : 1);

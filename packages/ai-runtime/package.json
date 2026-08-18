@@ -11,18 +11,48 @@
     "prove:retrieval": "tsx test/retrieval.proof.ts",
     "prove:breaker": "tsx test/breaker.proof.ts",
     "prove:vstream": "tsx test/voice-stream.proof.ts",
+    "prove:voice-reliability": "tsx test/voice-reliability.proof.ts",
+    "smoke:tts-download-live": "tsx scripts/tts-download-live-smoke.ts",
     "prove:metrics": "tsx test/metrics.proof.ts",
     "prove:tools": "tsx test/tools.proof.ts",
     "prove:failover": "tsx test/failover.proof.ts",
-    "prove:eval-metrics": "tsx test/eval-metrics.proof.ts"
+    "prove:eval-metrics": "tsx test/eval-metrics.proof.ts",
+    "prove:langfuse-eval": "tsx test/langfuse-evaluation-contract.proof.ts",
+    "prove:offline-eval-execution": "tsx test/offline-evaluation-execution.proof.ts",
+    "prove:offline-eval-runner": "tsx test/offline-evaluation-runner.proof.ts",
+    "prove:model-client-output-limit": "tsx test/model-client-output-limit.proof.ts",
+    "prove:model-operation-registry": "tsx test/model-operation-registry.proof.ts",
+    "prove:operation-binding": "tsx test/operation-binding.proof.ts",
+    "prove:component-ledger": "tsx test/context-component-ledger.proof.ts",
+    "prove:usage-reconciliation": "tsx test/usage-reconciliation.proof.ts",
+    "prove:usage-estimate-threading": "tsx test/usage-estimate-threading.proof.ts",
+    "prove:context-budget": "tsx test/context-budget.proof.ts",
+    "prove:failover-price-policy": "tsx test/failover-price-policy.proof.ts",
+    "prove:estimate-threading-invoke": "tsx test/estimate-threading-invoke.proof.ts",
+    "prove:usage-calibration-reconciler": "tsx test/usage-calibration-reconciler.proof.ts",
+    "prove:dashscope-native-config": "tsx test/dashscope-native-config.proof.ts",
+    "prove:text-endpoint-config": "tsx test/text-endpoint-config.proof.ts",
+    "prove:vision-endpoint-config": "tsx test/vision-endpoint-config.proof.ts",
+    "prove:model-client-dispatch": "tsx test/model-client-dispatch.proof.ts",
+    "prove:model-op02": "tsx test/model-op02-shared-provider.proof.ts",
+    "offline-eval:contract": "tsx scripts/run-offline-contract-regression.ts",
+    "langfuse:datasets:sync": "tsx scripts/sync-langfuse-datasets.ts",
+    "langfuse:datasets:verify": "tsx scripts/verify-langfuse-datasets.ts",
+    "langfuse:synthetic-trace:smoke": "tsx scripts/langfuse-synthetic-trace-smoke.ts",
+    "prove:model-cost": "tsx test/model-cost-governance.proof.ts"
   },
   "dependencies": {
+    "@langfuse/client": "5.10.0",
+    "@langfuse/otel": "5.10.0",
+    "@langfuse/tracing": "5.10.0",
     "@meetwise/db": "workspace:*",
+    "ipaddr.js": "2.4.0",
+    "@opentelemetry/sdk-node": "0.221.0",
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@types/node": "catalog:",
     "tsx": "^4.22.4",
-    "typescript": "catalog:",
-    "@types/node": "catalog:"
+    "typescript": "catalog:"
   }
 }

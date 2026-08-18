@@ -34,7 +34,7 @@ export function buildBm25(corpus: Doc[]) {
   return { rank(query: string, k: number, k1 = 1.5, b = 0.75): string[] {
     const qts = new Set(tokenize(query));
     return corpus.map((d, i) => {
-      const ts = docToks[i]; const tf = new Map<string, number>(); ts.forEach((t) => tf.set(t, (tf.get(t) ?? 0) + 1));
+      const ts = docToks[i]!; const tf = new Map<string, number>(); ts.forEach((t) => tf.set(t, (tf.get(t) ?? 0) + 1));
       let score = 0;
       for (const q of qts) {
         const f = tf.get(q); if (!f) continue;
@@ -58,7 +58,7 @@ export interface RecallReport { recall: number; successRate: number; hitRate: nu
 export function evalRecall(retrievedPerQuery: string[][], golden: Labeled[], k: number): RecallReport {
   let relHit = 0, relTotal = 0, success = 0, hitAny = 0, mrrSum = 0, ndcgSum = 0, mapSum = 0;
   golden.forEach((g, i) => {
-    const top = retrievedPerQuery[i].slice(0, k);
+    const top = (retrievedPerQuery[i] ?? []).slice(0, k);
     const rel = new Set(g.relevant);
     const hit = top.filter((id) => rel.has(id)).length;
     relHit += hit; relTotal += rel.size;
@@ -66,7 +66,7 @@ export function evalRecall(retrievedPerQuery: string[][], golden: Labeled[], k: 
     if (hit >= 1) hitAny++;                                             // 产品现实:至少召回 1 个相关(命中率)
     // MAP(MTEB 重排官方指标):AP = (1/|rel|) Σ_k rel(k)·precision@k,在完整排名上算
     let apHits = 0, ap = 0;
-    retrievedPerQuery[i].forEach((id, r) => { if (rel.has(id)) { apHits++; ap += apHits / (r + 1); } });
+    (retrievedPerQuery[i] ?? []).forEach((id, r) => { if (rel.has(id)) { apHits++; ap += apHits / (r + 1); } });
     mapSum += rel.size ? ap / rel.size : 0;
     const firstRank = top.findIndex((id) => rel.has(id));
     if (firstRank >= 0) mrrSum += 1 / (firstRank + 1);

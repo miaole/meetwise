@@ -21,6 +21,11 @@ const REGISTRY: Record<string, ModelBinding> = {
   'mock-interview.evaluate': { service: 'mock-interview.evaluate', model: 'stub:deterministic', promptVersion: 'v0', maxOutputTokens: 1024 },
 };
 
+/**
+ * 实验骨架，非生产授权根：invoke 主链走 model-operation-registry.ts 的 `resolveModelOperation`，
+ * 本函数当前零调用方，仅演示「业务侧只引服务 key」的形状，不是模型/区域/提示词版本的授权根。
+ * @deprecated 接真模型由 model-operation-registry 统一解析；勿在此扩展生产 binding。
+ */
 export function resolveBinding(service: string): ModelBinding {
   const b = REGISTRY[service];
   if (!b) throw new Error(`unknown_model_service:${service}`);

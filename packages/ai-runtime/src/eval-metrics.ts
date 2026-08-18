@@ -33,12 +33,12 @@ export function median(xs: number[]): number {
 /** 百分位 p∈[0,100](线性插值,与 numpy 默认一致)。空 → NaN。 */
 export function percentile(xs: number[], p: number): number {
   if (xs.length === 0) return NaN;
-  if (xs.length === 1) return xs[0];
+  if (xs.length === 1) return xs[0]!;
   const s = [...xs].sort((a, b) => a - b);
   const idx = (p / 100) * (s.length - 1);
   const lo = Math.floor(idx), hi = Math.ceil(idx);
-  if (lo === hi) return s[lo];
-  return s[lo] + (s[hi] - s[lo]) * (idx - lo);
+  if (lo === hi) return s[lo]!;
+  return s[lo]! + (s[hi]! - s[lo]!) * (idx - lo);
 }
 
 /** 中位绝对偏差(MAD,抗 outlier 的离散度)。n<1 → NaN。 */
@@ -55,9 +55,9 @@ export function fractionalRanks(xs: number[]): number[] {
   let i = 0;
   while (i < idx.length) {
     let j = i;
-    while (j + 1 < idx.length && idx[j + 1][0] === idx[i][0]) j++;   // 找并列区间 [i,j]
+    while (j + 1 < idx.length && idx[j + 1]![0] === idx[i]![0]) j++;   // 找并列区间 [i,j]
     const avg = (i + j) / 2 + 1;                                     // 平均秩(1-based)
-    for (let k = i; k <= j; k++) ranks[idx[k][1]] = avg;
+    for (let k = i; k <= j; k++) ranks[idx[k]![1]!] = avg;
     i = j + 1;
   }
   return ranks;
@@ -68,7 +68,7 @@ export function pearson(a: number[], b: number[]): number {
   if (a.length !== b.length || a.length < 2) return NaN;
   const ma = mean(a), mb = mean(b);
   let num = 0, da = 0, db = 0;
-  for (let i = 0; i < a.length; i++) { const x = a[i] - ma, y = b[i] - mb; num += x * y; da += x * x; db += y * y; }
+  for (let i = 0; i < a.length; i++) { const x = a[i]! - ma, y = b[i]! - mb; num += x * y; da += x * x; db += y * y; }
   if (da === 0 || db === 0) return NaN;
   return num / Math.sqrt(da * db);
 }
@@ -84,7 +84,7 @@ export function kendallTauB(a: number[], b: number[]): number {
   if (n !== b.length || n < 2) return NaN;
   let concordant = 0, discordant = 0, tieA = 0, tieB = 0;
   for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
-    const da = Math.sign(a[i] - a[j]), db = Math.sign(b[i] - b[j]);
+    const da = Math.sign(a[i]! - a[j]!), db = Math.sign(b[i]! - b[j]!);
     if (da === 0 && db === 0) { continue; }        // 双并列:两侧都不计(标准 τ-b)
     if (da === 0) { tieA++; continue; }
     if (db === 0) { tieB++; continue; }
@@ -108,11 +108,11 @@ export function pairwiseOrderAccuracy(
   let correct = 0, comparable = 0, ties = 0, inversions = 0;
   for (const g of groups) {
     for (let i = 0; i < g.length; i++) for (let j = i + 1; j < g.length; j++) {
-      if (Math.abs(g[i].rank - g[j].rank) < minGap) continue;      // 只断言足够分开的档(相邻档人也难分)
-      if (g[i].score === g[j].score) { ties++; continue; }         // 相等分=tie,排除出分母(不冤判逆序)
+      if (Math.abs(g[i]!.rank - g[j]!.rank) < minGap) continue;      // 只断言足够分开的档(相邻档人也难分)
+      if (g[i]!.score === g[j]!.score) { ties++; continue; }         // 相等分=tie,排除出分母(不冤判逆序)
       comparable++;
-      const rankHigher = g[i].rank > g[j].rank ? i : j;            // rank 大 = 质量高,应得分更高
-      const scoreHigher = g[i].score > g[j].score ? i : j;
+      const rankHigher = g[i]!.rank > g[j]!.rank ? i : j;            // rank 大 = 质量高,应得分更高
+      const scoreHigher = g[i]!.score > g[j]!.score ? i : j;
       if (rankHigher === scoreHigher) correct++; else inversions++;
     }
   }
@@ -127,14 +127,31 @@ export function pairwiseOrderAccuracy(
 export function icc1(items: number[][]): number {
   const n = items.length;
   if (n < 2) return NaN;
-  const k = items[0].length;
+  const k = items[0]!.length;
   if (k < 2 || items.some((it) => it.length !== k)) return NaN;    // 需平衡 + 每档≥2 次
   const all = items.flat();
   const grand = mean(all);
   const itemMeans = items.map(mean);
   const msb = (k * itemMeans.reduce((a, m) => a + (m - grand) ** 2, 0)) / (n - 1);
-  const msw = items.reduce((a, it, i) => a + it.reduce((s, x) => s + (x - itemMeans[i]) ** 2, 0), 0) / (n * (k - 1));
+  const msw = items.reduce((a, it, i) => a + it.reduce((s, x) => s + (x - itemMeans[i]!) ** 2, 0), 0) / (n * (k - 1));
   const denom = msb + (k - 1) * msw;
   if (denom === 0) return NaN;                                      // 全同值 → 无区分度也无噪声,ICC 无定义
   return (msb - msw) / denom;
+}
+
+/**
+ * 二项比例的 Wilson 双侧 95% 置信下界。
+ *
+ * 真模型评测不该把「样本里刚好全过」误写为「真实成功率=100%」。例如 9/9
+ * 的 95% 下界仅约为 70.1%。调用方应把 `NaN` 和低于发布阈值的下界都视为
+ * inconclusive / failed，而不是绿灯。z=1.96 是双侧 95% 区间的保守默认值。
+ */
+export function wilsonLowerBound(successes: number, total: number, z = 1.96): number {
+  if (!Number.isInteger(successes) || !Number.isInteger(total) || total <= 0 || successes < 0 || successes > total || !Number.isFinite(z) || z <= 0) return NaN;
+  const p = successes / total;
+  const z2 = z * z;
+  const denom = 1 + z2 / total;
+  const center = p + z2 / (2 * total);
+  const margin = z * Math.sqrt((p * (1 - p) + z2 / (4 * total)) / total);
+  return (center - margin) / denom;
 }

@@ -1,26 +1,40 @@
 /**
- * 模型 failover 链(生产高可用:单供应商=单点故障)。按序尝试各 ModelClient:
- *   - ok → 立即返回;
- *   - transient(含熔断打开的快速失败、429/5xx/超时)→ 换下一个 client(通常是不同 key/供应商的备用端点);
- *   - deterministic(4xx 内容被拒/越权)→ **不 failover**(换供应商也会拒),直接返回。
- * 全挂 → 返回最后一个 transient(交 invoke 重试/降级)。每个 client 各自带熔断,dead primary 秒级快速失败→切 backup。
- * 与 rateLimitedModel/circuitBreaker 正交组合:`failoverModel([circuitBreaker(rl(primary)), circuitBreaker(rl(backup))])`。
+ * Model failover selects a healthy endpoint only before the durable dispatch
+ * boundary. A primary timeout, 5xx or broken response is deliberately not
+ * followed by a backup request for the same idempotency key: the primary may
+ * already have accepted and billed it. The ledger records that result as
+ * unknown and reconciliation decides the next action.
  */
 import type { ModelClient } from './model-client.ts';
 import type { ModelResult } from './invoke.ts';
 
 export function failoverModel(clients: ModelClient[]): ModelClient {
   const chain = clients.filter(Boolean);
-  return {
-    async complete(req, attempt) {
-      let last: ModelResult = { ok: false, kind: 'transient' };
-      for (const c of chain) {
-        const r = await c.complete(req, attempt);
-        if (r.ok) return r;                          // 首个成功即返
-        if (r.kind === 'deterministic') return r;    // 内容被拒(4xx),换供应商也拒 → 不 failover
-        last = r;                                    // transient → 试下一个
+  const prepare = async (req: Parameters<ModelClient['complete']>[0], attempt: number, signal?: AbortSignal) => {
+    let last = 'model_endpoint_unavailable';
+    for (const client of chain) {
+      try {
+        const plan = client.prepare
+          ? await client.prepare(req, attempt, signal)
+          : { ready: true as const, execute: (executeSignal?: AbortSignal) => client.complete(req, attempt, executeSignal), cost: client.costPolicy };
+        if (plan.ready === true) return plan;
+        last = plan.error;
+      } catch {
+        // prepare 是纯预派发(契约要求不发网络请求),抛异常不会产生计费歧义,视同 not-ready 继续降级到 backup——
+        // 与「主端点返回 not-ready → 选 backup」语义对齐。此前抛异常会直接冒出循环跳过 backup,造成不对称。
+        last = 'model_endpoint_unavailable';
       }
-      return last;                                   // 全挂 → transient(上层重试/降级)
+    }
+    return { ready: false as const, error: last };
+  };
+  return {
+    prepare,
+    async complete(req, attempt, signal) {
+      const plan = await prepare(req, attempt, signal);
+      if (!plan.ready) return { ok: false, kind: 'transient', externalOutcome: 'known_not_executed' } as ModelResult;
+      const admission = plan.admit ? await plan.admit(signal) : undefined;
+      try { return await plan.execute(signal); }
+      finally { admission?.release(); }
     },
   };
 }

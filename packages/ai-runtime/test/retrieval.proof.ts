@@ -1,10 +1,13 @@
 /**
  * 检索/召回引擎证明（确定性,无网络）：度量数学正确 + dense/BM25/RRF 排序正确 + 全金标集端到端跑通。
- * 真召回率(94.3% @dim128,text-embedding-v4)由 key-gated `recall:eval` 实测;此 gate 锁的是"度量与管线没算错"。
+ * 此 gate 锁的是“度量与管线没算错”；真实模型质量仅由当前 57-query 发布集的独立 eval 报告。
  *   pnpm retrieval:prove
  */
-import { fakeEmbedder, denseRank, buildBm25, rrf, evalRecall, weightedRrf, buildSearchIndex, type Reranker } from '../src/index.ts';
-import { CORPUS, QUERIES } from '../../../apps/worker/smoke/retrieval-golden.ts';
+import {
+  fakeEmbedder, denseRank, buildBm25, rrf, evalRecall, weightedRrf, buildSearchIndex,
+  expandQuery, multiQuerySearch, type QueryExpansionInvoker, type Reranker,
+} from '../src/index.ts';
+import { ADVERSARIAL_CORPUS, ADVERSARIAL_QUERIES } from '../../../apps/worker/smoke/retrieval-adversarial-golden.ts';
 
 let fail = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
@@ -30,17 +33,20 @@ async function main() {
   // ④ Dense:fakeEmbedder(词袋) 下,文本相同者 cosine=1 排首
   const emb = fakeEmbedder(128);
   const vecs = await emb.embed(['滑动窗口限流', '令牌桶限流', '完全不相关的内容']);
-  const corpusVec = [{ id: 'a', vec: vecs[0] }, { id: 'b', vec: vecs[1] }, { id: 'c', vec: vecs[2] }];
+  const corpusVec = [{ id: 'a', vec: vecs[0]! }, { id: 'b', vec: vecs[1]! }, { id: 'c', vec: vecs[2]! }];
   const [qv] = await emb.embed(['滑动窗口限流']);
+  if (!qv) throw new Error('test_embedder_returned_no_query_vector');
   A('Dense:与查询同文 → 居首', denseRank(qv, corpusVec, 3)[0] === 'a');
 
-  // ⑤ 全金标集端到端:harness 在 35 查询上跑通,产出合法度量(0..1)
-  const cv = (await emb.embed(CORPUS.map((c) => c.text))).map((vec, i) => ({ id: CORPUS[i].id, vec }));
-  const qvs = await emb.embed(QUERIES.map((q) => q.q));
-  const golden = QUERIES.map((q) => ({ query: q.q, relevant: q.relevant }));
-  const rep = evalRecall(QUERIES.map((_, i) => denseRank(qvs[i], cv, 5)), golden, 5);
-  A(`全金标集(${QUERIES.length}查询)跑通,度量合法[0,1]`, rep.n === QUERIES.length && rep.recall >= 0 && rep.recall <= 1 && rep.successRate >= 0 && rep.successRate <= 1);
-  A('金标集无重复 query / 相关 id 都在语料内', new Set(QUERIES.map((q) => q.q)).size === QUERIES.length && QUERIES.every((q) => q.relevant.every((id) => CORPUS.some((c) => c.id === id))));
+  // ⑤ 当前发布集的可回答子集端到端：只验证 harness 与度量范围，不将 fake embedding 当质量结论。
+  const answerable = ADVERSARIAL_QUERIES.filter((q) => !q.noAnswer);
+  const cv = (await emb.embed(ADVERSARIAL_CORPUS.map((c) => c.text))).map((vec, i) => ({ id: ADVERSARIAL_CORPUS[i]!.id, vec }));
+  const qvs = await emb.embed(answerable.map((q) => q.query));
+  const golden = answerable.map((q) => ({ query: q.query, relevant: q.relevant }));
+  if (qvs.length !== answerable.length || qvs.some((vec) => !vec)) throw new Error('test_embedder_returned_incomplete_batch');
+  const rep = evalRecall(answerable.map((_, i) => denseRank(qvs[i]!, cv, 5)), golden, 5);
+  A(`当前发布集可回答子集(${answerable.length}查询)跑通,度量合法[0,1]`, rep.n === answerable.length && rep.recall >= 0 && rep.recall <= 1 && rep.successRate >= 0 && rep.successRate <= 1);
+  A('发布集无重复 query / 相关 id 都在语料内', new Set(answerable.map((q) => q.query)).size === answerable.length && answerable.every((q) => q.relevant.every((id) => ADVERSARIAL_CORPUS.some((c) => c.id === id))));
 
   // ⑥ 加权 RRF:高权重路的命中应压过低权重路
   A('加权 RRF:dense 权重高 → 其首项压过 bm25 首项', weightedRrf([{ ids: ['x', 'y'], weight: 1 }, { ids: ['z'], weight: 0.1 }], 3)[0] === 'x');
@@ -56,6 +62,30 @@ async function main() {
   const fakeReranker: Reranker = { id: 'fake', async rerank(_q, ds, topN) { rerankCalled++; return ds.map((d) => d.id).reverse().slice(0, topN); } };
   const rHit = await idx.search('限流', { mode: 'rerank', k: 2, recallN: 3, reranker: fakeReranker });
   A('search rerank:reranker 被调用 + 返回其排序结果', rerankCalled === 1 && rHit.length === 2);
+
+  // ⑧ 多查询扩展:真实 OpenAI-compatible client returns a parsed object,
+  // while some adapters return a JSON string. Both must work, but malformed
+  // model output must not become an embedding query or an exception.
+  let expansionCalls = 0;
+  const objectExpansion: QueryExpansionInvoker = {
+    async invokeQueryExpansion() {
+      expansionCalls++;
+      return { queries: ['令牌桶 限流 原理', '令牌桶 限流 原理', '滑动窗口与令牌桶差异', '原问题'] };
+    },
+  };
+  const objectVariants = await expandQuery('原问题', objectExpansion, 3);
+  A('多查询扩展兼容已解析对象，去重且排除原 query', expansionCalls === 1
+    && objectVariants.join('|') === '令牌桶 限流 原理|滑动窗口与令牌桶差异');
+  const stringVariants = await expandQuery('原问题', {
+    async invokeQueryExpansion() { return JSON.stringify({ queries: ['JSON 字符串变体'] }); },
+  });
+  A('多查询扩展兼容 JSON 字符串返回', stringVariants.length === 1 && stringVariants[0] === 'JSON 字符串变体');
+  const malformedVariants = await expandQuery('原问题', {
+    async invokeQueryExpansion() { return { queries: ['ok'], injected: 'not allowed' }; },
+  });
+  A('畸形/越界模型输出 fail-soft，不进入后续检索', malformedVariants.length === 0);
+  const multi = await multiQuerySearch('令牌桶限流', idx, objectExpansion, { k: 2, recallN: 3 });
+  A('multiQuerySearch 仅接受受治理调用 seam，扩展后仍返回语料内结果', multi.length === 2 && multi.every((id) => docs.some((d) => d.id === id)));
 
   console.log(`\n${fail === 0 ? '✓ 检索/召回引擎(度量+管线+两段式)全部通过' : '✗ ' + fail + ' 项失败'}`);
   process.exit(fail === 0 ? 0 : 1);

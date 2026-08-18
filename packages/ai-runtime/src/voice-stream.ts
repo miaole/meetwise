@@ -6,9 +6,20 @@
  * seam 可换:fake 用于 gate;dashscope 流式(qwen3-asr WebSocket / cosyvoice 流式)是生产实现(下一步接 WS)。
  * 内核不变:最终转写仍只是"答案",喂同一面试图——流式只是边缘 I/O 升级,modality-agnostic 不破。
  */
+import { rejectDashscopeNativeTransportOverride, resolveDashscopeNativeConfig } from './dashscope-native-config.ts';
+import { VOICE_EGRESS_DISABLED_ID } from './voice.ts';
+
 export interface AsrEvent { text: string; final: boolean }
 export interface StreamingAsr { readonly id: string; transcribeStream(chunks: AsyncIterable<Uint8Array>, signal?: AbortSignal): AsyncIterable<AsrEvent> }
 export interface StreamingTts { readonly id: string; synthesizeStream(text: string, signal?: AbortSignal): AsyncIterable<Uint8Array> }
+
+/** A fail-closed streaming TTS seam for product composition roots. */
+export function disabledStreamingTts(): StreamingTts {
+  return Object.freeze({
+    id: VOICE_EGRESS_DISABLED_ID,
+    async *synthesizeStream() { throw new Error('streaming_tts_not_configured'); },
+  });
+}
 
 /** fake 流式 ASR:每收一块吐一个 partial,流尽吐 final。 */
 export function fakeStreamingAsr(finalText: string): StreamingAsr {
@@ -40,9 +51,12 @@ export function fakeStreamingTts(chunk = 5): StreamingTts {
  * 把 WS 事件桥成 async generator(边收边 yield),音频发送并发跑。
  */
 export function dashscopeStreamingAsr(cfg: { apiKey?: string; url?: string; model?: string; sampleRate?: number } = {}): StreamingAsr {
-  const apiKey = cfg.apiKey ?? process.env.MODEL_API_KEY;
-  const url = cfg.url ?? 'wss://dashscope.aliyuncs.com/api-ws/v1/inference';
-  const model = cfg.model ?? process.env.STREAM_ASR_MODEL ?? 'paraformer-realtime-v2';
+  rejectDashscopeNativeTransportOverride(cfg.apiKey);
+  rejectDashscopeNativeTransportOverride(cfg.url);
+  const native = resolveDashscopeNativeConfig();
+  const apiKey = cfg.apiKey ?? native.keys.streamAsr;  // 只取流式 ASR 能力 Key；缺失即 streaming_asr_not_configured
+  const url = cfg.url ?? native.streamUrl;
+  const model = cfg.model ?? process.env.DASHSCOPE_STREAM_ASR_MODEL ?? 'paraformer-realtime-v2';
   const sampleRate = cfg.sampleRate ?? 16000;
   return {
     id: model,
@@ -88,9 +102,12 @@ export function dashscopeStreamingAsr(cfg: { apiKey?: string; url?: string; mode
  * 音频走**二进制帧**(result-generated 仅元数据)。边合成边吐音频块;signal abort 即停(支持 barge-in)。
  */
 export function dashscopeStreamingTts(cfg: { apiKey?: string; url?: string; model?: string; voice?: string; format?: string } = {}): StreamingTts {
-  const apiKey = cfg.apiKey ?? process.env.MODEL_API_KEY;
-  const url = cfg.url ?? 'wss://dashscope.aliyuncs.com/api-ws/v1/inference';
-  const model = cfg.model ?? process.env.STREAM_TTS_MODEL ?? 'cosyvoice-v1';
+  rejectDashscopeNativeTransportOverride(cfg.apiKey);
+  rejectDashscopeNativeTransportOverride(cfg.url);
+  const native = resolveDashscopeNativeConfig();
+  const apiKey = cfg.apiKey ?? native.keys.streamTts;  // 只取流式 TTS 能力 Key；缺失即 streaming_tts_not_configured
+  const url = cfg.url ?? native.streamUrl;
+  const model = cfg.model ?? process.env.DASHSCOPE_STREAM_TTS_MODEL ?? 'cosyvoice-v1';
   const voice = cfg.voice ?? 'longxiaochun';
   const format = cfg.format ?? 'mp3';
   // 超时护栏(可调):任何 await 都不得无界阻塞——否则 WS 连同 HTTP 连接一起悬挂(审计 致命#1/#2)。
@@ -161,24 +178,43 @@ export function dashscopeStreamingTts(cfg: { apiKey?: string; url?: string; mode
   };
 }
 
-export interface StreamTurnHooks { onTtsChunk?: (c: Uint8Array) => void; onPartial?: (t: string) => void; bargeIn?: Promise<void> }
+export interface StreamTurnHooks {
+  onTtsChunk?: (c: Uint8Array) => void;
+  onPartial?: (t: string) => void;
+  /** Browser/WebRTC VAD can signal speech before ASR has a partial hypothesis. */
+  bargeIn?: Promise<void>;
+  /** Called once when ASR observes user speech while assistant TTS is still playing. */
+  onBargeIn?: () => void;
+}
 
 /**
- * 实时一回合:流式播问题(可被 barge-in 打断)→ 流式识别用户答(边说边出 partial)→ final 转写。
+ * 实时一回合:AI 流式播问题与用户流式 ASR **并行**运行；任一路 VAD/ASR 观察到
+ * 用户开口立即中止 TTS。旧实现先完整 TTS 再开始 ASR，实质是半双工，无法覆盖电话
+ * 中的抢话、重叠语音和“我先说”的行为。
  * 返回 { transcript(喂图), ttsInterrupted, partials }。
  */
 export async function streamingVoiceTurn(
   deps: { asr: StreamingAsr; tts: StreamingTts }, question: string, userAudio: AsyncIterable<Uint8Array>, hooks: StreamTurnHooks = {},
 ): Promise<{ transcript: string; ttsInterrupted: boolean; partials: number }> {
   const ttsAbort = new AbortController();
-  hooks.bargeIn?.then(() => ttsAbort.abort(), () => {});             // 用户开口 → 打断 TTS
-  for await (const chunk of deps.tts.synthesizeStream(question, ttsAbort.signal)) hooks.onTtsChunk?.(chunk);
-  const ttsInterrupted = ttsAbort.signal.aborted;
-
+  let barged = false;
+  const interruptTts = () => {
+    if (barged) return;
+    barged = true;
+    ttsAbort.abort();
+    hooks.onBargeIn?.();
+  };
+  hooks.bargeIn?.then(interruptTts, () => {});                         // VAD 先于 ASR partial 时也能打断
+  const speak = (async () => {
+    for await (const chunk of deps.tts.synthesizeStream(question, ttsAbort.signal)) hooks.onTtsChunk?.(chunk);
+  })();
   let transcript = '', partials = 0;
+  let sawUserSpeech = false;
   for await (const ev of deps.asr.transcribeStream(userAudio)) {
+    if (!sawUserSpeech && ev.text.trim()) { sawUserSpeech = true; interruptTts(); }
     if (ev.final) transcript = ev.text;
     else { partials++; hooks.onPartial?.(ev.text); }
   }
-  return { transcript, ttsInterrupted, partials };
+  await speak;
+  return { transcript, ttsInterrupted: ttsAbort.signal.aborted, partials };
 }

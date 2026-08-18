@@ -13,7 +13,7 @@ export interface Metrics {
   render(): string;                                               // Prometheus 文本曝光
 }
 
-const keyOf = (labels?: Labels) => labels ? Object.keys(labels).sort().map((k) => `${k}=${JSON.stringify(labels[k])}`).join(',') : '';
+const keyOf = (labels?: Labels) => labels ? Object.keys(labels).sort().map((k) => `${k}=${JSON.stringify(labels[k]!)}`).join(',') : '';
 const lblStr = (labels?: Labels) => { const e = Object.entries(labels ?? {}); return e.length ? `{${e.map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(',')}}` : ''; };
 
 export function createMetrics(): Metrics {
@@ -30,22 +30,21 @@ export function createMetrics(): Metrics {
     observe(name, value, labels) {
       const k = id(name, labels); const h = hists.get(k) ?? { labels, buckets: new Array(HIST_BUCKETS.length).fill(0), sum: 0, count: 0 };
       h.sum += value; h.count += 1;
-      for (let i = 0; i < HIST_BUCKETS.length; i++) if (value <= HIST_BUCKETS[i]) h.buckets[i] += 1;
+      for (let i = 0; i < HIST_BUCKETS.length; i++) if (value <= HIST_BUCKETS[i]!) h.buckets[i]! += 1;
       hists.set(k, h);
     },
     render() {
       const out: string[] = [];
       const types = new Set<string>();
       const typeLine = (name: string, t: string) => { if (!types.has(name)) { out.push(`# TYPE ${name} ${t}`); types.add(name); } };
-      for (const { labels, v } of counters.values()) { /* name embedded in key—recover */ }
       // counters
-      for (const [k, c] of counters) { const name = k.split('|')[0]; typeLine(name, 'counter'); out.push(`${name}${lblStr(c.labels)} ${c.v}`); }
-      for (const [k, g] of gauges) { const name = k.split('|')[0]; typeLine(name, 'gauge'); out.push(`${name}${lblStr(g.labels)} ${g.v}`); }
+      for (const [k, c] of counters) { const name = k.split('|')[0]!; typeLine(name, 'counter'); out.push(`${name}${lblStr(c.labels)} ${c.v}`); }
+      for (const [k, g] of gauges) { const name = k.split('|')[0]!; typeLine(name, 'gauge'); out.push(`${name}${lblStr(g.labels)} ${g.v}`); }
       for (const [k, h] of hists) {
-        const name = k.split('|')[0]; typeLine(name, 'histogram');
+        const name = k.split('|')[0]!; typeLine(name, 'histogram');
         const base = h.labels ?? {};
         let cum = 0;
-        for (let i = 0; i < HIST_BUCKETS.length; i++) { cum = h.buckets[i]; out.push(`${name}_bucket${lblStr({ ...base, le: String(HIST_BUCKETS[i]) })} ${cum}`); }
+        for (let i = 0; i < HIST_BUCKETS.length; i++) { cum = h.buckets[i]!; out.push(`${name}_bucket${lblStr({ ...base, le: String(HIST_BUCKETS[i]!) })} ${cum}`); }
         out.push(`${name}_bucket${lblStr({ ...base, le: '+Inf' })} ${h.count}`);
         out.push(`${name}_sum${lblStr(base)} ${h.sum}`);
         out.push(`${name}_count${lblStr(base)} ${h.count}`);
@@ -75,6 +74,29 @@ export const METRIC = {
   jobsQueued: 'worker_jobs_queued',
   jobsRunningExpired: 'worker_jobs_running_expired',
   jobsDead: 'worker_jobs_dead',
+  ragRetrievalTotal: 'rag_retrieval_total',
+  ragRetrievalLatencyMs: 'rag_retrieval_latency_ms',
+  ragRetrievalCandidates: 'rag_retrieval_candidates',
+  ragCacheTotal: 'rag_cache_total',
+  ragRedisCommandLatencyMs: 'rag_redis_command_latency_ms',
+  ragCacheDependencyFailures: 'rag_cache_dependency_failures_total',
+  ragCacheDependencyState: 'rag_cache_dependency_state',
+  ragCostDecisions: 'rag_cost_decisions_total',
+  ragCostSettledMicroCny: 'rag_cost_settled_micro_cny_total',
+  ragCostGovernanceEnabled: 'rag_cost_governance_enabled',
+  ragCostBudgetRemainingRatio: 'rag_cost_budget_remaining_ratio',
+  ragCostUnknownReservations: 'rag_cost_unknown_reservations',
+  modelCostDecisions: 'model_cost_decisions_total',
+  modelCostSettledMicroCny: 'model_cost_settled_micro_cny_total',
+  modelEstimateUnderestimated: 'model_estimate_underestimated_total',
+  modelEstimateCalibrationUnderestimated: 'model_estimate_calibration_underestimated_total',
+  modelCostGovernanceEnabled: 'model_cost_governance_enabled',
+  modelCostBudgetRemainingRatio: 'model_cost_budget_remaining_ratio',
+  modelCostUnknownReservations: 'model_cost_unknown_reservations',
+  modelInvocationReconcileInvocations: 'model_invocation_reconcile_invocations_total',
+  modelInvocationReconcileFrozenCosts: 'model_invocation_reconcile_frozen_costs_total',
+  langfuseTracingState: 'langfuse_tracing_state',
+  langfuseExportFailures: 'langfuse_export_failures_total',
 } as const;
 
 /**
@@ -85,4 +107,30 @@ export function registerBaselineMetrics(m: Metrics = getMetrics()): void {
   m.inc(METRIC.circuitBreakerOpen, { dep: 'model' }, 0);
   m.inc(METRIC.circuitBreakerOpen, { dep: 'fast_model' }, 0);
   m.inc(METRIC.refundFailed, undefined, 0);
+  for (const outcome of ['ok', 'not_ready', 'budget_exhausted', 'policy_missing', 'price_missing', 'unknown', 'claim_timeout', 'cache_dependency_unavailable', 'cache_value_invalid', 'internal_error']) {
+    m.inc(METRIC.ragRetrievalTotal, { outcome, mode: 'dense' }, 0);
+  }
+  for (const cacheStatus of ['hit', 'miss', 'none', 'unavailable', 'invalid']) m.inc(METRIC.ragCacheTotal, { status: cacheStatus }, 0);
+  for (const operation of ['get', 'lock', 'renew', 'publish', 'release']) {
+    m.observe(METRIC.ragRedisCommandLatencyMs, 0, { operation });
+    m.inc(METRIC.ragCacheDependencyFailures, { operation }, 0);
+  }
+  m.setGauge(METRIC.ragCacheDependencyState, 0, { dependency: 'redis' });
+  for (const decision of ['observe', 'reserved', 'settled', 'budget_exhausted', 'policy_missing', 'price_missing', 'unknown']) m.inc(METRIC.ragCostDecisions, { decision }, 0);
+  m.inc(METRIC.ragCostSettledMicroCny, undefined, 0);
+  m.setGauge(METRIC.ragCostGovernanceEnabled, 0);
+  m.setGauge(METRIC.ragCostBudgetRemainingRatio, 0);
+  m.setGauge(METRIC.ragCostUnknownReservations, 0);
+  for (const decision of ['reserved', 'held', 'settled', 'budget_exhausted', 'policy_missing', 'price_missing', 'unknown', 'rejected']) m.inc(METRIC.modelCostDecisions, { decision }, 0);
+  m.inc(METRIC.modelCostSettledMicroCny, undefined, 0);
+  m.inc(METRIC.modelEstimateUnderestimated, undefined, 0);
+  m.inc(METRIC.modelEstimateCalibrationUnderestimated, undefined, 0);
+  m.setGauge(METRIC.modelCostGovernanceEnabled, 0);
+  m.setGauge(METRIC.modelCostBudgetRemainingRatio, 0);
+  m.setGauge(METRIC.modelCostUnknownReservations, 0);
+  for (const result of ['terminalized', 'enumeration_failed', 'owner_failed'])
+    m.inc(METRIC.modelInvocationReconcileInvocations, { result }, 0);
+  m.inc(METRIC.modelInvocationReconcileFrozenCosts, undefined, 0);
+  for (const state of ['disabled', 'enabled', 'flush_failed']) m.setGauge(METRIC.langfuseTracingState, 0, { state });
+  m.inc(METRIC.langfuseExportFailures, { operation: 'flush' }, 0);
 }
