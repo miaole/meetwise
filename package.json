@@ -1,6 +1,7 @@
 {
   "name": "meetwise",
   "private": true,
+  "version": "0.1.0",
   "packageManager": "pnpm@10.18.0",
   "scripts": {
     "docs:check": "node scripts/ai-docs/check-docs.mjs",
@@ -15,6 +16,7 @@
     "provider-egress:prove": "node scripts/provider-egress-inventory.proof.mjs",
     "secrets:check-staged": "node scripts/check-staged-secrets.mjs",
     "hooks:install": "git config --local core.hooksPath .githooks",
+    "release": "node scripts/release.mjs",
     "db:up": "docker compose -f docker/compose.dev.yml up -d postgres",
     "db:prove": "pnpm -C packages/db prove",
     "runtime:prove": "pnpm -C packages/ai-runtime prove",

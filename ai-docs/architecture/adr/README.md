@@ -77,6 +77,9 @@ related:
 ### ADR-0020 评分卡事实权威与资格门 · proposed
 **背景**：普通 runtime 可伪造 event 分数，题目/rubric/答案/版本未被同时冻结。**决定**：评分仅从不可变已发题合同、版本化 rubric、数据库 verifier 与专用 score-writer 产生；消费者只读资格化 ScoreCard，未标注题 score-excluded。**后果**：过渡期 C 端可能显示 unavailable，B 端继续无数值用途；等待产品确认与专用 writer 部署设计。**详见 [`adr/0020-scorecard-authority-and-eligibility.md`](./0020-scorecard-authority-and-eligibility.md)。**
 
+### ADR-0021 应用版本与发布机制 · accepted
+**背景**：全包 version=0.0.0、无 tag/CHANGELOG/发布脚本、探针不报版本，无法钉/校验/回滚部署。**决定**：锁定式 monorepo 单一 semver（根 `package.json`）+ `scripts/release.mjs`（bump→CHANGELOG→tag）+ 运行时 `/meta`（部署注入 `APP_VERSION`）+ CI 一致性门（tag↔版本一致 + docs:check/arch）。**被否**：Changesets 独立发版、运行时读文件取版本、脚本自动 push。**后果**：可复现发布、`curl /meta` 一看即知线上版本、回滚有锚点。**详见 [`adr/0021-app-versioning-release.md`](./0021-app-versioning-release.md)。**
+
 ---
 
-> 待补：ADR-0007 的 B 端物理隔离决策、API 版本化策略、密钥管理与 KMS；相关决策将按现行治理流程逐步补全。
+> 待补：ADR-0007 的 B 端物理隔离决策、密钥管理与 KMS；相关决策将按现行治理流程逐步补全。
