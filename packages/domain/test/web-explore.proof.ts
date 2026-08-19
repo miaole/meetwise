@@ -74,9 +74,11 @@ const rec = (fn: (url: string) => RawResponse) => { const seen: string[] = []; r
 { const { raw } = rec(() => resp(302, { location: 'https://allow.example/loop' })); A('safeFetch:重定向环 → 超跳数拒', (await createSafeFetch(raw, allow, { maxRedirects: 3 })('https://allow.example/loop')) === null); }
 
 // redirect chain 共享同一个 timeout，不允许 4 次跳转把 8s 放大为 40s。
+// timeoutMs 必须远大于首跳 isAllowed/URL 解析开销(否则加载型 runner 上 deadline 在首跳前就到，
+// calls===0 而非 1)，又远小于假 fetch 延迟(保证第 2 跳前 budget 已耗尽)。20ms/60ms 留 3× 裕度。
 { let calls = 0;
-  const slowRedirect = async () => { calls++; await new Promise((resolve) => setTimeout(resolve, 12)); return resp(302, { location: 'https://allow.example/next' }); };
-  A('safeFetch:redirect 总超时耗尽后不再发下一跳', (await createSafeFetch(slowRedirect, allow, { timeoutMs: 1, maxRedirects: 3 })('https://allow.example/a')) === null && calls === 1); }
+  const slowRedirect = async () => { calls++; await new Promise((resolve) => setTimeout(resolve, 60)); return resp(302, { location: 'https://allow.example/next' }); };
+  A('safeFetch:redirect 总超时耗尽后不再发下一跳', (await createSafeFetch(slowRedirect, allow, { timeoutMs: 20, maxRedirects: 3 })('https://allow.example/a')) === null && calls === 1); }
 
 // 抛错(超时/网络挂)→ fail-soft null
 { A('safeFetch:抛错 → fail-soft(null)', (await createSafeFetch(async () => { throw new Error('timeout'); }, allow)('https://allow.example/s')) === null); }
