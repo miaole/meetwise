@@ -66,12 +66,6 @@ db:prove  runtime:prove  graph:prove  pipeline:prove  api:validate  api:smoke  a
 | --- | --- | --- |
 | ![成长曲线](apps/web/docs/screenshots/08-growth.png) | ![定价](apps/web/docs/screenshots/06-pricing.png) | ![能力特性](apps/web/docs/screenshots/07-features.png) |
 
-### 移动端（H5）
-
-| 落地页 | 控制台 |
-| --- | --- |
-| ![移动端落地页](apps/web/docs/screenshots/m1-landing-mobile.png) | ![移动端控制台](apps/web/docs/screenshots/m2-dashboard-mobile.png) |
-
 ---
 
 ## 技术架构
