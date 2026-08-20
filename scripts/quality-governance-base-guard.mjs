@@ -452,7 +452,7 @@ function resolveCommit(value, label) {
   return resolved;
 }
 
-function readJsonAtCommit(commit, path) {
+export function readJsonAtCommit(commit, path) {
   try {
     return JSON.parse(runGit(['show', `${commit}:${path}`]));
   } catch (error) {
@@ -469,7 +469,7 @@ function readBlobAtCommit(commit, path) {
   });
 }
 
-function governedPathDigestAtCommit(commit, paths) {
+export function governedPathDigestAtCommit(commit, paths) {
   const chunks = [];
   for (const path of paths) {
     if (!isSafeGovernedPath(path)) throw new Error('history_snapshot_path_invalid');

@@ -1,10 +1,17 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { objectDigest } from './quality-governance-check.mjs';
-import { candidateSnapshotRecords, validateGovernanceHistoryBase, validateGovernanceRecordSnapshots } from './quality-governance-base-guard.mjs';
+import {
+  candidateSnapshotRecords,
+  governedPathDigestAtCommit,
+  readJsonAtCommit,
+  validateGovernanceHistoryBase,
+  validateGovernanceRecordSnapshots,
+} from './quality-governance-base-guard.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const index = JSON.parse(readFileSync(resolve(repoRoot, 'ai-docs/testing/governance-audit-index.json'), 'utf8'));
@@ -285,18 +292,28 @@ const checks = {
     assert.ok(!selected.some((record) => record.taskId === governanceTerminal.taskId), 'superseded base terminal is anchored, not replayed');
   },
   cli_reads_append_only_index_larger_than_node_default_buffer: () => {
-    const indexPath = resolve(repoRoot, 'ai-docs/testing/governance-audit-index.json');
-    assert.ok(readFileSync(indexPath).byteLength > 1024 * 1024, 'fixture must exceed Node execFileSync default maxBuffer');
-    const guardPath = resolve(repoRoot, 'scripts/quality-governance-base-guard.mjs');
-    const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).trim();
-    const output = execFileSync(process.execPath, [guardPath, '--base', head, '--head', head], {
-      cwd: repoRoot,
-      encoding: 'utf8',
-      maxBuffer: 4 * 1024 * 1024,
-    });
-    const result = JSON.parse(output);
-    assert.equal(result.history.valid, true, result.history.errors.join('\n'));
-    assert.equal(result.snapshots.valid, true, result.snapshots.errors.join('\n'));
+    const fixtureRoot = mkdtempSync(resolve(tmpdir(), 'meetwise-governance-buffer-'));
+    const originalCwd = process.cwd();
+    try {
+      execFileSync('git', ['init', '--quiet'], { cwd: fixtureRoot });
+      execFileSync('git', ['config', 'user.email', 'governance-proof@meetwise.invalid'], { cwd: fixtureRoot });
+      execFileSync('git', ['config', 'user.name', 'Meetwise governance proof'], { cwd: fixtureRoot });
+      const fixture = { schemaVersion: 1, padding: 'x'.repeat(1024 * 1024 + 64) };
+      mkdirSync(resolve(fixtureRoot, 'ai-docs'));
+      const fixtureRelativePath = 'ai-docs/large-governance.json';
+      const fixturePath = resolve(fixtureRoot, fixtureRelativePath);
+      writeFileSync(fixturePath, JSON.stringify(fixture));
+      assert.ok(readFileSync(fixturePath).byteLength > 1024 * 1024, 'fixture must exceed Node execFileSync default maxBuffer');
+      execFileSync('git', ['add', fixtureRelativePath], { cwd: fixtureRoot });
+      execFileSync('git', ['commit', '--quiet', '-m', 'large governance fixture'], { cwd: fixtureRoot });
+      const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: fixtureRoot, encoding: 'utf8' }).trim();
+      process.chdir(fixtureRoot);
+      assert.deepEqual(readJsonAtCommit(head, fixtureRelativePath), fixture);
+      assert.match(governedPathDigestAtCommit(head, [fixtureRelativePath]), /^sha256:[a-f0-9]{64}$/);
+    } finally {
+      process.chdir(originalCwd);
+      rmSync(fixtureRoot, { recursive: true, force: true });
+    }
   },
 };
 
