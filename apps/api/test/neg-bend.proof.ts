@@ -18,6 +18,7 @@ const migrationText = (f: string) => readFileSync(fileURLToPath(new URL(`../../.
 const h = await boot();
 const { A, done } = mkAssert('neg:bend');
 const VALID_RESUME_ID = '11111111-1111-4111-8111-111111111111';
+const STALE_RESUME_ID = '22222222-2222-4222-8222-222222222222';
 
 // ── 灌 B 端表(harness 缺)+ 播种跨租户负测场景 ─────────────────────────────
 await h.pool.query('DROP TABLE IF EXISTS job_application CASCADE; DROP TABLE IF EXISTS job_posting CASCADE;');
@@ -33,11 +34,37 @@ await h.pool.query(
 await h.pool.query(
   "INSERT INTO job_application(id,job_id,recruiter_user_id,candidate_user_id,status,source) VALUES " +
   "('APP_VICTIM','JOB_REC','recU','victimU','invited','applied')");
+// 旧库中可能存在「申请仍 in_progress、绑定面试已 abandoned」的历史行：
+// 0046/0082 会把运行时 start 约束收紧到 created/active，但不会伪造地重写
+// 这类历史事实。0123 只回填展示快照，不能因为 UPDATE 触发器再次检查 start
+// 而整笔迁移失败；迁移后运行时约束仍必须恢复并拒绝该死绑定。
+await h.pool.query(
+  "INSERT INTO resume(id,owner_user_id,status,content_sha,source_kind) VALUES ($1,'userA','ingested','stale-snapshot-resume','text')",
+  [STALE_RESUME_ID]);
+await h.pool.query(
+  "INSERT INTO job_application(id,job_id,recruiter_user_id,candidate_user_id,interview_id,status,source,resume_id) " +
+  "VALUES ('APP_STALE','JOB_REC','recU','userA','IV_STALE','in_progress','applied',$1)",
+  [STALE_RESUME_ID]);
+await h.pool.query(
+  "INSERT INTO interview(id,owner_user_id,status,application_id,job_id,resume_id) " +
+  "VALUES ('IV_STALE','userA','abandoned','APP_STALE','JOB_REC',$1)",
+  [STALE_RESUME_ID]);
 // This file reloads the historical B tables for isolated negative tests, so
 // re-apply the current invariant migration after the fixture—not before it.
 await h.pool.query(migrationText('0046_application_assessment_recovery.sql'));
 await h.pool.query(migrationText('0104_job_route_decision.sql'));
-await h.pool.query(migrationText('0123_user_facing_context_snapshots.sql'));
+let contextSnapshotMigrationPassed = true;
+const migrationClient = await h.pool.connect();
+try {
+  await migrationClient.query('BEGIN');
+  await migrationClient.query(migrationText('0123_user_facing_context_snapshots.sql'));
+  await migrationClient.query('COMMIT');
+} catch {
+  contextSnapshotMigrationPassed = false;
+  await migrationClient.query('ROLLBACK').catch(() => {});
+} finally {
+  migrationClient.release();
+}
 
 // ── principal 上下文 client(app_role + set_config),用于 DB 层直证 RLS 隔离(不经 HTTP)。ROLLBACK 只读不改。
 const asP = async (uid: string, q: string, params: any[] = []) => {
@@ -53,6 +80,29 @@ const asP = async (uid: string, q: string, params: any[] = []) => {
 };
 const oneOf = (s: number, arr: number[]) => arr.includes(s);
 const appStatus = async (id: string) => (await h.pool.query('SELECT status, score FROM job_application WHERE id=$1', [id])).rows[0];
+
+A('0123 展示快照回填不被历史 abandoned 绑定行阻断', contextSnapshotMigrationPassed);
+const staleSnapshot = (await h.pool.query(
+  'SELECT job_title_snapshot, status, interview_id, interview_attempt FROM job_application WHERE id=$1',
+  ['APP_STALE'])).rows[0];
+A('历史死绑定只补展示快照，不改写申请状态/绑定 attempt',
+  staleSnapshot?.job_title_snapshot === '后端岗'
+  && staleSnapshot?.status === 'in_progress'
+  && staleSnapshot?.interview_id === 'IV_STALE'
+  && staleSnapshot?.interview_attempt === 1);
+A('0123 完成后 lineage 与 application binding trigger 均恢复启用',
+  (await h.pool.query(
+    "SELECT count(*)::int n FROM pg_trigger WHERE tgname IN ('trg_job_application_lineage','trg_enforce_job_application_interview_binding') " +
+    "AND tgrelid='public.job_application'::regclass AND NOT tgisinternal AND tgenabled='O'" )).rows[0]?.n === 2);
+let staleBindingStillRejected = false;
+try {
+  // Even a no-op UPDATE must not make an abandoned interview startable after
+  // the migration window closes; the restored trigger remains fail-closed.
+  await asP('userA', "UPDATE job_application SET version=version WHERE id='APP_STALE'");
+} catch (error) {
+  staleBindingStillRejected = String(error).includes('job_application_start_requires_bound_interview');
+}
+A('迁移窗口结束后历史死绑定仍由运行时 guard fail-closed 拒绝', staleBindingStillRejected);
 
 /* ═════════════ 1) 未鉴权:无 token 且无 dev 头 → 401 unauthenticated ═════════════ */
 {

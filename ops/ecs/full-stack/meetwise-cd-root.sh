@@ -229,7 +229,7 @@ derive_transaction_generation() {
       return
     fi
     case "$current_phase" in
-      committed|rolled_back) ;;
+      committed|rolled_back|forward_only_maintenance) ;;
       *) die transaction_in_progress 75 ;;
     esac
   fi

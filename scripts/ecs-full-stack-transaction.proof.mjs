@@ -249,6 +249,29 @@ try {
     await command('ledger-init', completePath, { ...nextIdentity, transactionId: 'tx-complete-active', generation: prior.generation + 2 }, true);
   });
 
+  await check('forward-only maintenance rolls over only to a newer forward-fix transaction', async () => {
+    const path = join(directory, 'forward-only-rollover.json');
+    const firstIdentity = { ...identity, transactionId: 'tx-forward-only-1', recoveryPolicy: 'forward_only_maintenance' };
+    await command('ledger-init', path, firstIdentity);
+    await command('ledger-transition', path, { transactionId: firstIdentity.transactionId, release, token, expectedPhase: 'preflighted', nextPhase: 'snapshotted' });
+    await command('ledger-transition', path, { transactionId: firstIdentity.transactionId, release, token, expectedPhase: 'snapshotted', nextPhase: 'edge_closed' });
+    await command('ledger-transition', path, { transactionId: firstIdentity.transactionId, release, token, expectedPhase: 'edge_closed', nextPhase: 'quiesced' });
+    await command('ledger-transition', path, { transactionId: firstIdentity.transactionId, release, token, expectedPhase: 'quiesced', nextPhase: 'migrating' });
+    await command('ledger-transition', path, { transactionId: firstIdentity.transactionId, release, token, expectedPhase: 'migrating', nextPhase: 'rollback_pending', patchJson: JSON.stringify({ schemaAfter: schemaNew }) });
+    await command('ledger-transition', path, { transactionId: firstIdentity.transactionId, release, token, expectedPhase: 'rollback_pending', nextPhase: 'forward_only_maintenance' });
+    const terminal = await readLedger(path);
+    assert.equal(terminal.phase, 'forward_only_maintenance');
+    const nextRelease = `${'d'.repeat(40)}-fullstack-20260821-3-1`;
+    const nextIdentity = { ...identity, transactionId: 'tx-forward-fix-2', release: nextRelease, generation: terminal.generation + 1, token: '7'.repeat(64), schemaBefore: schemaNew, schemaAfter: schemaNew, predecessor: { runtimeOwner: 'none', pages: { state: 'disabled', generation: 1, fingerprint: digest('6') } } };
+    await command('ledger-init', path, { ...nextIdentity, transactionId: 'tx-forward-fix-stale', generation: terminal.generation }, true);
+    const next = await command('ledger-init', path, nextIdentity);
+    assert.equal(next.phase, 'preflighted');
+    assert.equal(next.transactionId, nextIdentity.transactionId);
+    assert.equal(next.generation, terminal.generation + 1);
+    assert.equal(next.predecessor.runtimeOwner, 'none');
+    await command('ledger-init', path, { ...nextIdentity, transactionId: 'tx-forward-fix-active', generation: terminal.generation + 2 }, true);
+  });
+
   await check('preflight crash discards only the unmutated transaction', async () => {
     const path = join(directory, 'preflight.json');
     await command('ledger-init', path, { ...identity, transactionId: 'tx-preflight-1' });
