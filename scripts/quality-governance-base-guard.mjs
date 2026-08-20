@@ -14,6 +14,10 @@ import { resolve } from 'node:path';
 import { canonicalJson, objectDigest } from './quality-governance-check.mjs';
 
 const COMMIT_PATTERN = /^[a-f0-9]{40}$/;
+// Keep Git reads explicitly bounded, but above Node's 1 MiB execFileSync
+// default. The append-only governance index legitimately crossed that default
+// while remaining well within this static preflight's reviewed input budget.
+const MAX_GIT_OUTPUT_BYTES = 4 * 1024 * 1024;
 const INDEX_PATH = 'ai-docs/testing/governance-audit-index.json';
 const BASELINE_PATH = 'ai-docs/testing/traceability-baseline.json';
 const TASK_ID_PATTERN = /^[a-z][a-z0-9-]{2,95}$/;
@@ -434,7 +438,11 @@ export function candidateSnapshotRecords(baseIndex, currentIndex) {
 }
 
 function runGit(args) {
-  return execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  return execFileSync('git', args, {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    maxBuffer: MAX_GIT_OUTPUT_BYTES,
+  }).trim();
 }
 
 function resolveCommit(value, label) {
@@ -444,7 +452,7 @@ function resolveCommit(value, label) {
   return resolved;
 }
 
-function readJsonAtCommit(commit, path) {
+export function readJsonAtCommit(commit, path) {
   try {
     return JSON.parse(runGit(['show', `${commit}:${path}`]));
   } catch (error) {
@@ -455,10 +463,13 @@ function readJsonAtCommit(commit, path) {
 }
 
 function readBlobAtCommit(commit, path) {
-  return execFileSync('git', ['show', `${commit}:${path}`], { stdio: ['ignore', 'pipe', 'pipe'] });
+  return execFileSync('git', ['show', `${commit}:${path}`], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    maxBuffer: MAX_GIT_OUTPUT_BYTES,
+  });
 }
 
-function governedPathDigestAtCommit(commit, paths) {
+export function governedPathDigestAtCommit(commit, paths) {
   const chunks = [];
   for (const path of paths) {
     if (!isSafeGovernedPath(path)) throw new Error('history_snapshot_path_invalid');

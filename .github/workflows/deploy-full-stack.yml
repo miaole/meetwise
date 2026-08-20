@@ -130,11 +130,16 @@ jobs:
         run: |
           container="$(docker create "$REGISTRY/$NAMESPACE/meetwise-web:sha-${{ steps.git.outputs.commit }}")"
           trap 'docker rm -f "$container" >/dev/null 2>&1 || true' EXIT
-          mkdir -p /tmp/web-runtime
-          docker cp "$container:/app/apps/web/." /tmp/web-runtime/
+          # Copy the complete /app boundary so standalone Next.js symlinks such
+          # as apps/web/node_modules/next -> ../../../node_modules/... remain
+          # inside the extracted image tree.  Copying apps/web in isolation is
+          # rejected by docker cp as an escaping symlink even though the link is
+          # valid inside the built image.
+          mkdir -p /tmp/web-image-app
+          docker cp "$container:/app/." /tmp/web-image-app/
           # This is deliberately a fixed inline control-plane hash, not code
           # loaded from the candidate checkout after ACR credentials exist.
-          node --input-type=module - /tmp/web-runtime "$GITHUB_OUTPUT" <<'NODE'
+          node --input-type=module - /tmp/web-image-app/apps/web "$GITHUB_OUTPUT" <<'NODE'
           import { createHash } from 'node:crypto';
           import { appendFile, lstat, readFile, readdir, readlink } from 'node:fs/promises';
           import { relative, resolve, sep } from 'node:path';
