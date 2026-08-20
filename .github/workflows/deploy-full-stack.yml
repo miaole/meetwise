@@ -457,9 +457,13 @@ jobs:
           echo "expected_manifest_sha256=$manifest_sha256" >> "$GITHUB_OUTPUT"
 
       - name: Token-bound recovery after deploy-stage failure
-        if: ${{ always() && failure() && steps.release.outputs.transaction_id != '' }}
+        if: ${{ always() && failure() && steps.transaction.outputs.generation != '' }}
+        env:
+          TRANSACTION_ID: ${{ steps.release.outputs.transaction_id }}
+          RELEASE: ${{ steps.release.outputs.release }}
+          RECOVERY_TOKEN: ${{ steps.release.outputs.recovery_token }}
         run: |
-          ssh meetwise-ecs "meetwise-cd transaction recover '${{ steps.release.outputs.transaction_id }}' '${{ steps.release.outputs.release }}' '${{ steps.release.outputs.recovery_token }}'" || {
+          ssh meetwise-ecs "meetwise-cd transaction recover $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN" || {
             echo 'token-bound recovery request failed; leave edge closed and escalate' >&2
             exit 1
           }
@@ -837,8 +841,11 @@ jobs:
         env:
           RECEIPT_B64: ${{ needs.external-verify.outputs.receipt_b64 }}
           ORIGIN: ${{ needs.deploy-probe.outputs.origin }}
+          TRANSACTION_ID: ${{ needs.deploy-probe.outputs.transaction_id }}
+          RELEASE: ${{ needs.deploy-probe.outputs.release }}
+          RECOVERY_TOKEN: ${{ needs.deploy-probe.outputs.recovery_token }}
         run: |
-          confirm_json="$(printf '%s' "$RECEIPT_B64" | base64 -d | ssh meetwise-ecs "meetwise-cd transaction confirm '${{ needs.deploy-probe.outputs.transaction_id }}' '${{ needs.deploy-probe.outputs.release }}' '${{ needs.deploy-probe.outputs.recovery_token }}'")"
+          confirm_json="$(printf '%s' "$RECEIPT_B64" | base64 -d | ssh meetwise-ecs "meetwise-cd transaction confirm $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN")"
           final_fingerprint="$(printf '%s' "$confirm_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{const v=JSON.parse(s);const f=v?.candidate?.finalManifestFingerprint;if(!/^[a-f0-9]{64}$/.test(f??""))process.exit(1);process.stdout.write(f)}catch{process.exit(1)}})')"
           [[ "$final_fingerprint" =~ ^[a-f0-9]{64}$ ]] || { echo 'transaction confirm did not return a manifest fingerprint' >&2; exit 1; }
           final_generation=''
@@ -987,8 +994,11 @@ jobs:
       - name: Bind the exact Pages receipt to the transaction ledger
         env:
           EXPECTED_FINGERPRINT: ${{ steps.confirm-public.outputs.final_fingerprint }}
+          TRANSACTION_ID: ${{ needs.deploy-probe.outputs.transaction_id }}
+          RELEASE: ${{ needs.deploy-probe.outputs.release }}
+          RECOVERY_TOKEN: ${{ needs.deploy-probe.outputs.recovery_token }}
         run: |
-          ssh meetwise-ecs "meetwise-cd transaction wait-pages '${{ needs.deploy-probe.outputs.transaction_id }}' '${{ needs.deploy-probe.outputs.release }}' '${{ needs.deploy-probe.outputs.recovery_token }}' $EXPECTED_FINGERPRINT"
+          ssh meetwise-ecs "meetwise-cd transaction wait-pages $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN $EXPECTED_FINGERPRINT"
 
       - name: Revalidate main and CI identity before commit
         env:
@@ -1017,28 +1027,35 @@ jobs:
       - name: Commit only after exact Pages receipt
         env:
           EXPECTED_FINGERPRINT: ${{ steps.confirm-public.outputs.final_fingerprint }}
+          TRANSACTION_ID: ${{ needs.deploy-probe.outputs.transaction_id }}
+          RELEASE: ${{ needs.deploy-probe.outputs.release }}
+          RECOVERY_TOKEN: ${{ needs.deploy-probe.outputs.recovery_token }}
         run: |
           ssh meetwise-ecs "meetwise-cd verify-public"
-          ssh meetwise-ecs "meetwise-cd transaction commit '${{ needs.deploy-probe.outputs.transaction_id }}' '${{ needs.deploy-probe.outputs.release }}' '${{ needs.deploy-probe.outputs.recovery_token }}' $EXPECTED_FINGERPRINT"
+          ssh meetwise-ecs "meetwise-cd transaction commit $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN $EXPECTED_FINGERPRINT"
 
       - name: Token-bound recovery after confirmation or Pages failure
         if: ${{ always() && failure() }}
+        env:
+          TRANSACTION_ID: ${{ needs.deploy-probe.outputs.transaction_id }}
+          RELEASE: ${{ needs.deploy-probe.outputs.release }}
+          RECOVERY_TOKEN: ${{ needs.deploy-probe.outputs.recovery_token }}
         run: |
-          ssh meetwise-ecs "meetwise-cd transaction recover '${{ needs.deploy-probe.outputs.transaction_id }}' '${{ needs.deploy-probe.outputs.release }}' '${{ needs.deploy-probe.outputs.recovery_token }}'" || {
+          ssh meetwise-ecs "meetwise-cd transaction recover $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN" || {
             echo 'token-bound recovery request failed; leave edge closed and escalate' >&2
             exit 1
           }
 
   recover:
     if: >-
-      always() && needs.deploy-probe.outputs.transaction_id != '' &&
+      always() && needs.deploy-probe.outputs.generation != '' &&
       (needs.deploy-probe.result != 'success' || needs.external-verify.result != 'success' || needs.confirm.result != 'success')
     needs: [deploy-probe, external-verify, confirm]
     runs-on: ubuntu-latest
     # The recovery step has one shared 13-minute wall-clock budget; keeping the
     # job ceiling at 20 minutes leaves bounded room for Tailscale/SSH setup.
     timeout-minutes: 20
-    environment: preview-cd
+    environment: preview-cd-recovery
     permissions:
       contents: read
       actions: write
@@ -1077,6 +1094,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RECOVERY_BUDGET_SECONDS: '780'
+          TRANSACTION_ID: ${{ needs.deploy-probe.outputs.transaction_id }}
+          RELEASE: ${{ needs.deploy-probe.outputs.release }}
+          RECOVERY_TOKEN: ${{ needs.deploy-probe.outputs.recovery_token }}
         run: |
           set -euo pipefail
           started_at="$(date +%s)"
@@ -1093,7 +1113,7 @@ jobs:
             left="$(remaining_until "$deadline")" || return 124
             timeout --signal=TERM --kill-after=5s "${left}s" "$@"
           }
-          status_json="$(bounded ssh meetwise-ecs "meetwise-cd transaction status '${{ needs.deploy-probe.outputs.transaction_id }}' '${{ needs.deploy-probe.outputs.release }}' '${{ needs.deploy-probe.outputs.recovery_token }}'")"
+          status_json="$(bounded ssh meetwise-ecs "meetwise-cd transaction status $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN")"
           predecessor_pages="$(printf '%s' "$status_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{const p=JSON.parse(s)?.predecessor?.pages;if(!p||!["enabled","disabled","none"].includes(p.state))process.exit(2);if(p.state!=="none"&&(!Number.isSafeInteger(p.generation)||p.generation<1||!/^[a-f0-9]{64}$/.test(p.fingerprint??"")))process.exit(2);process.stdout.write(`${p.state}\t${p.generation??0}\t${p.fingerprint??""}`)}catch{process.exit(2)}})')" || { echo 'predecessor Pages identity missing from durable ledger' >&2; exit 1; }
           pages_identity="$(printf '%s' "$status_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{const v=JSON.parse(s);const f=v?.candidate?.finalManifestFingerprint;if(!/^[a-f0-9]{64}$/.test(f??"")||!Number.isSafeInteger(v.generation)||v.generation<1)process.exit(2);process.stdout.write(`${v.generation} ${f}`)}catch{process.exit(2)}})')" || pages_identity=''
           if [ -n "$pages_identity" ]; then
@@ -1110,8 +1130,8 @@ jobs:
             done
             test "$disabled" = 1 || { echo 'exact Pages disabled recovery receipt missing' >&2; exit 1; }
           fi
-          bounded ssh meetwise-ecs "meetwise-cd transaction recover '${{ needs.deploy-probe.outputs.transaction_id }}' '${{ needs.deploy-probe.outputs.release }}' '${{ needs.deploy-probe.outputs.recovery_token }}'"
-          terminal_json="$(bounded ssh meetwise-ecs "meetwise-cd transaction status '${{ needs.deploy-probe.outputs.transaction_id }}' '${{ needs.deploy-probe.outputs.release }}' '${{ needs.deploy-probe.outputs.recovery_token }}'")"
+          bounded ssh meetwise-ecs "meetwise-cd transaction recover $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN"
+          terminal_json="$(bounded ssh meetwise-ecs "meetwise-cd transaction status $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN")"
           terminal_phase="$(printf '%s' "$terminal_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{const p=JSON.parse(s).phase;if(!["rolled_back","forward_only_maintenance"].includes(p))process.exit(2);process.stdout.write(p)})')" || { echo 'release recovery did not reach a terminal phase' >&2; exit 1; }
           IFS=$'\t' read -r predecessor_state predecessor_generation predecessor_fingerprint <<<"$predecessor_pages"
           if [ "$terminal_phase" = rolled_back ] && [ "$predecessor_state" != none ]; then

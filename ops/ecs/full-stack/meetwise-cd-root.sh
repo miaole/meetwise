@@ -64,6 +64,17 @@ APPROVAL=/etc/meetwise/full-stack-release.json
 TARGET=/etc/meetwise/preview-synthetic-target.json
 PAGES_LINK_STATE=https://miaole.github.io/meetwise/preview-link-state.json
 
+# The ECS image has Node/npm but does not guarantee Corepack on PATH.  Keep the
+# package manager in a controller-owned prefix, and never execute a tool from
+# the candidate release tree or the pre-existing /usr/local/bin/pnpm (which may
+# have been installed by an unrelated user).  The version is the repository's
+# root packageManager contract and is checked again before every install.
+PNPM_VERSION=10.18.0
+PNPM_INTEGRITY='sha512-6AT4ifHOzEDVctsITuw+SIFzn43sacD/ENLRvv+aTjCTg7ontbdQBZ1/TBSVNbbNDSyx7Trrc5I5pChKaPQM+g=='
+PNPM_PREFIX=/usr/local/lib/meetwise-cd-pnpm
+PNPM_BIN="$PNPM_PREFIX/bin/pnpm"
+PNPM_PACKAGE_ROOT="$PNPM_PREFIX/lib/node_modules/pnpm"
+
 RELEASE_RE='^[a-f0-9]{40}-fullstack-[0-9]{8}-[1-9][0-9]*-[1-9][0-9]*$'
 COMMIT_RE='^[a-f0-9]{40}$'
 DIGEST_RE='^[a-f0-9]{64}$'
@@ -1178,17 +1189,110 @@ with_release_cwd() {
   printf '%s' "$dir"
 }
 
+validate_pnpm_prefix_receipt() {
+  local prefix="$1" bin="$1/bin/pnpm" package_root="$1/lib/node_modules/pnpm"
+  local receipt="$1/.meetwise-integrity"
+  local required_integrity="${2:-}" required_version="${3:-}"
+  local resolved actual_version package_version declared_integrity unsafe
+  [[ -d "$prefix" && ! -L "$prefix" && -L "$bin" && -x "$bin" ]] || return 1
+  [[ -f "$receipt" && ! -L "$receipt" && "$(stat -c '%u:%g:%a' "$receipt" 2>/dev/null || true)" == '0:0:600' ]] || return 1
+  declared_integrity="$(cat "$receipt" 2>/dev/null || true)"
+  [[ "$declared_integrity" =~ ^sha512-[A-Za-z0-9+/]+={0,2}$ ]] || return 1
+  [[ -z "$required_integrity" || "$declared_integrity" == "$required_integrity" ]] || return 1
+  [[ "$(stat -c '%u:%g' "$bin" 2>/dev/null || true)" == '0:0' ]] || return 1
+  [[ -d "$package_root" && ! -L "$package_root" ]] || return 1
+  resolved="$(readlink -f "$bin" 2>/dev/null || true)"
+  [[ "$resolved" == "$package_root/bin/pnpm.cjs" ]] || return 1
+  # No package-file symlink and no non-root/group-writable package material:
+  # this prevents a lower-privilege account from replacing the trusted tool.
+  if find "$package_root" -type l -print -quit 2>/dev/null | grep -q .; then
+    return 1
+  fi
+  unsafe="$(find "$prefix" \( -type f -o -type d \) \( ! -user root -o ! -group root -o -perm /022 \) -print -quit 2>/dev/null || true)"
+  [[ -z "$unsafe" ]] || return 1
+  package_version="$(/usr/bin/node -e 'const p=require(process.argv[1]);process.stdout.write(String(p.version ?? ""))' "$package_root/package.json" 2>/dev/null || true)"
+  [[ "$package_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || return 1
+  [[ -z "$required_version" || "$package_version" == "$required_version" ]] || return 1
+  actual_version="$(/usr/bin/env -i HOME=/var/lib/meetwise-preview-synthetic PATH=/usr/bin:/usr/sbin:/bin:/sbin:"$prefix/bin" "$bin" --version 2>/dev/null || true)"
+  [[ "$actual_version" == "$package_version" ]]
+}
+
+validate_pnpm_prefix() {
+  validate_pnpm_prefix_receipt "$1" "$PNPM_INTEGRITY" "$PNPM_VERSION"
+}
+
+ensure_pnpm_toolchain() {
+  local stage archive candidate backup actual_integrity
+  backup="$PNPM_PREFIX.rollback"
+  if validate_pnpm_prefix "$PNPM_PREFIX"; then
+    [[ ! -e "$backup" && ! -L "$backup" ]] || rm -rf -- "$backup"
+    return 0
+  fi
+  if validate_pnpm_prefix_receipt "$backup"; then
+    [[ ! -e "$PNPM_PREFIX" && ! -L "$PNPM_PREFIX" ]] || rm -rf -- "$PNPM_PREFIX"
+    mv -T -- "$backup" "$PNPM_PREFIX"
+    validate_pnpm_prefix_receipt "$PNPM_PREFIX" || die pnpm_rollback_restore_failed 70
+    sync -f /usr/local/lib
+  fi
+  [[ ! -e "$backup" && ! -L "$backup" ]] || die pnpm_rollback_invalid 70
+  [[ -x /usr/bin/npm ]] || die npm_missing 70
+  if [[ -e "$PNPM_PREFIX" || -L "$PNPM_PREFIX" ]]; then
+    [[ -d "$PNPM_PREFIX" && ! -L "$PNPM_PREFIX" ]] || die pnpm_prefix_invalid 70
+    validate_pnpm_prefix_receipt "$PNPM_PREFIX" || die pnpm_existing_prefix_invalid 70
+  fi
+  stage="$(mktemp -d /usr/local/lib/.meetwise-cd-pnpm.XXXXXX)" || die pnpm_stage_create_failed 70
+  trap 'rm -rf -- "${stage:-}"' EXIT
+  install -d -o root -g root -m 0700 "$stage/download" "$stage/prefix"
+  timeout --signal=TERM --kill-after=5s 180s /usr/bin/env -i HOME=/root PATH=/usr/bin:/usr/sbin:/bin:/sbin \
+    /usr/bin/npm pack "pnpm@$PNPM_VERSION" --pack-destination "$stage/download" \
+      --ignore-scripts --json >/dev/null 2>&1 || die pnpm_download_failed 70
+  archive="$stage/download/pnpm-$PNPM_VERSION.tgz"
+  [[ -f "$archive" && ! -L "$archive" ]] || die pnpm_archive_missing 70
+  actual_integrity="$(/usr/bin/node - "$archive" <<'NODE'
+const { createHash } = require('node:crypto');
+const { readFileSync } = require('node:fs');
+process.stdout.write(`sha512-${createHash('sha512').update(readFileSync(process.argv[2])).digest('base64')}`);
+NODE
+)"
+  [[ "$actual_integrity" == "$PNPM_INTEGRITY" ]] || die pnpm_archive_integrity_invalid 70
+  timeout --signal=TERM --kill-after=5s 300s /usr/bin/env -i HOME=/root PATH=/usr/bin:/usr/sbin:/bin:/sbin \
+    /usr/bin/npm install --global --prefix "$stage/prefix" \
+      --ignore-scripts --no-audit --no-fund "$archive" >/dev/null 2>&1 \
+    || die pnpm_install_failed 70
+  chown -R root:root "$stage/prefix" || die pnpm_prefix_chown_failed 70
+  chmod -R go-w "$stage/prefix" || die pnpm_prefix_mode_failed 70
+  printf '%s\n' "$PNPM_INTEGRITY" > "$stage/prefix/.meetwise-integrity"
+  chown root:root "$stage/prefix/.meetwise-integrity"
+  chmod 0600 "$stage/prefix/.meetwise-integrity"
+  validate_pnpm_prefix "$stage/prefix" || die pnpm_candidate_invalid 70
+  candidate="$stage/prefix"
+  if [[ -e "$PNPM_PREFIX" || -L "$PNPM_PREFIX" ]]; then mv -T -- "$PNPM_PREFIX" "$backup"; fi
+  mv -T -- "$candidate" "$PNPM_PREFIX"
+  validate_pnpm_prefix "$PNPM_PREFIX" || {
+    rm -rf -- "$PNPM_PREFIX"
+    [[ ! -e "$backup" && ! -L "$backup" ]] || mv -T -- "$backup" "$PNPM_PREFIX"
+    die pnpm_toolchain_invalid 70
+  }
+  [[ ! -e "$backup" && ! -L "$backup" ]] || rm -rf -- "$backup"
+  sync -f /usr/local/lib
+  trap - EXIT
+  rm -rf -- "$stage"
+  echo bootstrap_toolchain_ok
+}
+
 install_deps() {
   local dir; dir="$(with_release_cwd "$1")"
   # Workspace install with a frozen lockfile; --ignore-scripts avoids lifecycle
   # scripts (postinstall) from untrusted source during provisioning. 不再在 ECS 上
   # `next build`（4G OOM 根因已随 compose 上移到 CI），这里只装依赖供 prepare/db-verify 解析 pg。
+  with_controller_lock
+  validate_pnpm_prefix "$PNPM_PREFIX" || die pnpm_toolchain_invalid 70
   chown -R meetwise-synthetic:meetwise "$dir"
   chmod -R u+rwX,g+rX,o-rwx "$dir"
   chown root:root "$dir/.source-archive.sha256"; chmod 0600 "$dir/.source-archive.sha256"
   /usr/sbin/runuser -u meetwise-synthetic -- /usr/bin/env -i \
-    HOME=/var/lib/meetwise-preview-synthetic PATH=/usr/sbin:/usr/bin:/sbin:/bin \
-    /bin/bash -c 'cd "$1" && corepack pnpm install --frozen-lockfile --ignore-scripts' bash "$dir" \
+    HOME=/var/lib/meetwise-preview-synthetic PATH=/usr/bin:/usr/sbin:/bin:/sbin:"$PNPM_PREFIX/bin" \
+    /bin/bash -c 'cd "$1" && exec "$2" install --frozen-lockfile --ignore-scripts' bash "$dir" "$PNPM_BIN" \
     || die install_deps_failed 70
   # P0-1 降权：prepare compute 与 synthetic-verify 以 meetwise-synthetic（meetwise 补充组）读本树
   # 与 node_modules（解析 pg）。源码树非机密（开源），组可读即可；g+rX 只加组读与目录遍历，
@@ -2100,6 +2204,10 @@ case "${1:-}" in
   flip-current)      flip_current "${2:-}" ;;
   synthetic-verify)  synthetic_verify "${2:-}" ;;
   probe-nonce)       probe_nonce ;;
+  bootstrap-toolchain)
+    [[ $# -eq 1 ]] || die controller_argc_invalid
+    with_controller_lock
+    ensure_pnpm_toolchain ;;
   confirm-public)    die legacy_direct_confirm_disabled ;;
   receive-controller)
     [[ $# -eq 3 ]] || die controller_argc_invalid

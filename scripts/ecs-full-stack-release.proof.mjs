@@ -6,6 +6,7 @@ import { dirname, join } from 'node:path';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => readFileSync(join(root, rel), 'utf8');
+const rootPackage = JSON.parse(read('package.json'));
 
 const provisionCd = read('ops/ecs/full-stack/provision-meetwise-cd.sh');
 const prepare = read('ops/ecs/full-stack/prepare-full-stack-release.mjs');
@@ -21,6 +22,8 @@ const verifyOrigin = read('scripts/verify-full-stack-public-origin.mjs');
 const loader = read('scripts/preview-synthetic-data/loader.mjs');
 const edgeClose = read('ops/ecs/full-stack/full-stack-preview-edge-close.sh');
 const install = read('ops/ecs/full-stack/install-full-stack-runtime.sh');
+
+assert.equal(rootPackage.packageManager, 'pnpm@10.18.0', 'repository packageManager must stay pinned');
 
 // --- prepare-full-stack-release.mjs -------------------------------------------------
 // 确定性生成：digest 必须复用本次 release 的 catalog.mjs 导出，绝不自带 crypto 副本。
@@ -91,6 +94,28 @@ assert.match(dispatch, /die release_name_invalid/);
 assert.match(dispatch, /die release_path_invalid/);
 assert.match(dispatch, /die unknown_subcommand/);
 assert.match(dispatch, /MIGRATE_ENV=\/etc\/meetwise\/full-stack-migrate\.env/);
+// ECS base images may omit Corepack and may contain an unrelated global pnpm.
+// Install/provision a root-owned exact pnpm into the controller prefix and
+// revalidate it before every candidate dependency install.
+assert.match(dispatch, /PNPM_VERSION=10\.18\.0/);
+assert.match(dispatch, /PNPM_PREFIX=\/usr\/local\/lib\/meetwise-cd-pnpm/);
+assert.match(dispatch, /PNPM_BIN="\$PNPM_PREFIX\/bin\/pnpm"/);
+assert.match(dispatch, /PNPM_PACKAGE_ROOT="\$PNPM_PREFIX\/lib\/node_modules\/pnpm"/);
+assert.match(dispatch, /PNPM_INTEGRITY='sha512-[A-Za-z0-9+/]+=*'/);
+assert.match(dispatch, /npm pack "pnpm@\$PNPM_VERSION"/);
+assert.match(dispatch, /actual_integrity.*PNPM_INTEGRITY/s);
+assert.match(dispatch, /\.meetwise-integrity/);
+assert.match(dispatch, /0:0:600/);
+assert.match(dispatch, /timeout --signal=TERM --kill-after=5s 180s/);
+assert.match(dispatch, /timeout --signal=TERM --kill-after=5s 300s/);
+assert.match(dispatch, /mktemp -d \/usr\/local\/lib\/\.meetwise-cd-pnpm\.XXXXXX/);
+assert.match(dispatch, /mv -T -- "\$candidate" "\$PNPM_PREFIX"/);
+assert.match(dispatch, /validate_pnpm_prefix "\$PNPM_PREFIX" \|\| die pnpm_toolchain_invalid/);
+assert.match(dispatch, /validate_pnpm_prefix_receipt "\$backup"/);
+assert.match(dispatch, /validate_pnpm_prefix_receipt "\$PNPM_PREFIX" \|\| die pnpm_rollback_restore_failed/);
+assert.match(dispatch, /bootstrap-toolchain\)[\s\S]*with_controller_lock[\s\S]*ensure_pnpm_toolchain/);
+assert.match(dispatch, /--version/);
+assert.ok(!dispatch.includes('corepack'), 'root controller must not depend on Corepack being installed');
 // 绝不回显任何密钥：禁止 echo 任何 env 文件内容。
 assert.ok(!dispatch.includes('echo "$DATABASE_URL"'), 'root must not echo DATABASE_URL');
 assert.ok(!dispatch.includes('echo "$MIGRATE_ENV"'), 'root must not echo the migrate env');
@@ -403,12 +428,14 @@ assert.match(workflow, /steps\.confirm-public\.outputs\.final_fingerprint != ''/
 assert.match(workflow, /needs\.confirm\.result != 'success'/);
 assert.match(workflow, /transaction commit/);
 assert.match(workflow, /meetwise-cd transaction recover/);
-assert.match(workflow, /always\(\) && failure\(\) && steps\.release\.outputs\.transaction_id != ''/);
+assert.match(workflow, /always\(\) && failure\(\) && steps\.transaction\.outputs\.generation != ''/);
 assert.match(workflow, /always\(\) && failure\(\)/);
+assert.ok(!/meetwise-cd transaction (?:status|recover|confirm|wait-pages|commit)[^\n]*['\\]/.test(workflow), 'forced-command transaction arguments must not contain quotes or backslashes rejected by the receiver');
 assert.ok(!workflow.includes('ECS_PROBE_SIGNING_KEY'), 'candidate workflow must never receive the probe signing key');
 const deployRecoveryAt = workflow.indexOf('\n  recover:');
 assert.ok(deployRecoveryAt > 0, 'deploy workflow must retain an in-run recovery job');
 const deployRecoveryBlock = workflow.slice(deployRecoveryAt);
+assert.match(deployRecoveryBlock, /environment: preview-cd-recovery/);
 assert.match(deployRecoveryBlock, /RECOVERY_BUDGET_SECONDS: '780'/);
 assert.match(deployRecoveryBlock, /timeout-minutes: 20/);
 assert.ok(780 < 20 * 60, 'deploy recovery wait budget must be strictly below its job timeout');
@@ -626,6 +653,8 @@ assert.match(provision, /up -d worker/);
 
 // --- provision-meetwise-cd.sh：ECS 侧装机（幂等、非破坏性）契约 -------------------------
 assert.match(provisionCd, /provision_cd_requires_root/);
+assert.match(provisionCd, /"\$ROOT_DST" bootstrap-toolchain/);
+assert.ok(!provisionCd.includes('corepack'), 'provision must not leave Corepack as a hidden prerequisite');
 // 非破坏性硬约束：绝不切 current、绝不停旧 app 单元、绝不 compose up、绝不签 manifest。
 assert.ok(!/systemctl (stop|disable)[^\n]*meetwise-(api|web|worker)\.service/.test(provisionCd), 'provision-cd must not stop/disable legacy app units');
 assert.ok(!/ln -sfn|mv -Tf?[^\n]*current/.test(provisionCd), 'provision-cd must not repoint the current symlink');
