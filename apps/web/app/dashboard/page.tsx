@@ -9,16 +9,17 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScoreRing } from '@/components/ScoreRing';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { interviewActionLabel, interviewDisplayStatus, interviewProgressLabel } from '@/lib/interview/progress';
+import { InterviewList, type InterviewView as Interview } from '@meetwise/contracts';
 
 export const metadata = { title: '成长主页 · 知面' };     // App Router Metadata API(SEO,服务端注入)
 
 interface Profile { id: string; email: string; status: string }
 interface Overview { interviewsByStatus: Record<string, number>; answered: number; avgScore: number | null; reportsReady: number }
-interface Interview { id: string; status: string; current_question_index?: number }
 
 const STATUS_LABEL: Record<string, string> = {
-  created: '待开始', running: '进行中', waiting_user: '等你作答',
-  completed: '已完成', failed: '已失败',
+  created: '待开始', active: '进行中', running: '进行中', waiting_user: '等你作答',
+  completed: '已完成', abandoned: '已放弃', failed: '已失败',
 };
 
 /** 状态徽章:语义色克制——完成=暖色 success、失败=destructive、其余=secondary。 */
@@ -41,12 +42,11 @@ async function GrowthHome() {
   const [profile, ov, listRaw] = await Promise.all([
     serverGet<Profile>('/profile'),
     serverGet<Overview>('/profile/overview'),
-    serverGet<{ interviews: Interview[] } | Interview[]>('/interview'),
+    serverGet<unknown>('/interview'),
   ]);
 
-  const interviews: Interview[] = listRaw
-    ? (Array.isArray(listRaw) ? listRaw : listRaw.interviews ?? [])
-    : [];
+  const parsedInterviews = InterviewList.safeParse(listRaw);
+  const interviews: Interview[] = parsedInterviews.success ? parsedInterviews.data.interviews : [];
   const sessions = Object.values(ov?.interviewsByStatus ?? {}).reduce((a, b) => a + b, 0) || interviews.length;
   const recent = interviews.slice(0, 4);
 
@@ -102,7 +102,7 @@ async function GrowthHome() {
       {/* ── 最近面试(真实行:状态 + 进度 + 入口)── */}
       <section>
         <div className="mb-4 flex items-end justify-between">
-          <h2 className="text-lg font-bold tracking-tight">最近面试</h2>
+          <h2 className="text-lg font-bold tracking-tight">有进度的面试</h2>
           {recent.length > 0 && (
             <Link href="/interviews" className="text-sm text-muted-foreground underline-offset-4 hover:text-primary hover:underline">查看全部 →</Link>
           )}
@@ -123,14 +123,17 @@ async function GrowthHome() {
                   <li key={it.id}>
                     {i > 0 && <Separator />}
                     <div className="flex flex-wrap items-center gap-3 p-4">
-                      <StatusBadge status={it.status} />
+                      <StatusBadge status={interviewDisplayStatus(it)} />
                       <span className="flex-1 text-sm text-muted-foreground">
-                        {done ? '已完成 · 报告已就绪' : `进行至第 ${(it.current_question_index ?? 0) + 1} 题`}
+                        {done ? `已完成 · ${interviewProgressLabel(it)}` : interviewProgressLabel(it)}
                       </span>
-                      <Button asChild variant="outline" size="sm">
-                        {/* 完成→看报告,未完成→回到面试,避免点进尚未生成的报告(无死胡同)。 */}
-                        <Link href={done ? `/report/${it.id}` : `/interview/${it.id}`}>{done ? '查看报告 →' : '继续作答 →'}</Link>
-                      </Button>
+                      {it.status === 'abandoned' || it.status === 'failed' ? (
+                        <Button variant="outline" size="sm" disabled>{interviewActionLabel(it.status)}</Button>
+                      ) : (
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={done ? `/report/${it.id}` : `/interview/${it.id}`}>{interviewActionLabel(it.status)}</Link>
+                        </Button>
+                      )}
                     </div>
                   </li>
                 );
