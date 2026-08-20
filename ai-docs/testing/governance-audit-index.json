@@ -20491,7 +20491,7 @@
         "scripts/quality-traceability.proof.mjs",
         "scripts/run-e2e-isolated.mjs"
       ],
-      "governedPathDigest": "sha256:99817fba8d5bd035b285660fbd0f877af1a3c127fb08f447dfb4b2c01a1af3ef",
+      "governedPathDigest": "sha256:a43d2ef4579935470995f7f93917e5b74d74ebad064ae11670790c40c1301a2b",
       "harness": {
         "scope": "Recovery-environment successor: bind the dedicated preview-cd-recovery environment and fail-closed systemd owner readback. Cloud secret installation and real scheduled recovery remain external execution evidence.",
         "sourceEvidenceIds": [
@@ -20568,7 +20568,7 @@
         "summary": "Append-only public-text successor for the dedicated recovery environment and strict runtime-owner readback; releaseEvidence remains false until GitHub and ECS receipts exist.",
         "summaryDigest": "sha256:d5b2062ad8215d22ab7b8b43ffcc83d7b945a8750a3363b7875ee95ddf4e6486",
         "decision": "blocked",
-        "reviewScopeDigest": "sha256:ad25a22af5aa14dd41b3ed72dcb6b308bc466b88b8f352a59e8d97f90965ea9c",
+        "reviewScopeDigest": "sha256:48afb3a6ba08c986b69cc2af4290b7124d4ff809f03d169c8ba7dcb04968ef2e",
         "reviewedFindingIds": [
           "GOV-PTP-001"
         ],
@@ -20591,7 +20591,7 @@
       ],
       "successorOf": "public-text-policy-control-plane-v37",
       "baselineChange": null,
-      "recordDigest": "sha256:8c3576c0dd7fdedb7c51e196633f3fd6bf462402ea984a4c1a3551cd55d9fcab"
+      "recordDigest": "sha256:b5e61bbf746b8431087a1139b485978a035fcc494969d452a14a9f2b41bd9387"
     },
     {
       "taskId": "quality-governance-control-plane-v49",
@@ -20688,7 +20688,7 @@
         "scripts/quality-traceability.proof.mjs",
         "scripts/run-e2e-isolated.mjs"
       ],
-      "governedPathDigest": "sha256:2965260eeb57c8039fca80f4a7a72c3fec410b57168fe7fe091d5f549cdc6ce9",
+      "governedPathDigest": "sha256:6293f16b35d56ccf1187b6aadb69750e40931e95e6131001b533d5efb0bae382",
       "harness": {
         "scope": "Recovery-environment successor: bind the dedicated least-privilege GitHub environment and strict systemd owner readback before any predecessor edge restoration. Static checks are not deployment evidence.",
         "sourceEvidenceIds": [
@@ -20775,7 +20775,7 @@
         "summary": "Expert-audited append-only successor for the final recovery-environment and readback corrections. Real environment configuration, CI, ECS bootstrap, two deploys and B/C E2E remain required; releaseEvidence=false.",
         "summaryDigest": "sha256:c86bfcddb4ff7418c5986c82ca25e575d61be2dd4c8cb90921318f2047dec970",
         "decision": "blocked",
-        "reviewScopeDigest": "sha256:92313acefc6553def7a07990648ef76df598df0c0c59dc5b8e9398cb09bb6d3f",
+        "reviewScopeDigest": "sha256:8d187b967b67d14e392f760c8780e2c134ad2f0caafcdf23172aff54a14aa4c0",
         "reviewedFindingIds": [
           "GOV-CLOUD-TEST-RECOVERY-001",
           "GOV-CLOUD-TEST-RECOVERY-002",
@@ -21104,7 +21104,7 @@
       ],
       "successorOf": "quality-governance-control-plane-v48",
       "baselineChange": null,
-      "recordDigest": "sha256:19ad3e40d886b8af925d25f29f7f74a5b32215d5f0f1c89fa062fd2173305633"
+      "recordDigest": "sha256:fafaae08b77941b65c3e70743accf5181852da2e4babe3de1f1b2b13b5dd5844"
     }
   ]
 }
