@@ -30655,7 +30655,7 @@
     "scripts/quality-traceability.proof.mjs",
     "scripts/run-e2e-isolated.mjs"
    ],
-   "governedPathDigest": "sha256:1d4034576317ee11ecbd8fdd9f0c62b80f6db959d7800dbc2c75f297c1ae1f40",
+   "governedPathDigest": "sha256:705ef4a2642e11f40b41fca7cc17a158a194fe436d6b487409c7eda2daec8406",
    "harness": {
     "scope": "Static runtime-entrypoint successor for real run 32425255349 attempt-2: controller, ACR, source, transaction, compose-pull and legacy quiesce passed, then the migration container exited before SQL because the runtime image invoked Corepack/pnpm and /home/app/.cache/node/corepack/v1 was absent; recovery restored legacy services and rolled back with the schema digest unchanged. The candidate correction changes production API, Worker and migration entrypoints to direct Node and removes runtime Corepack dependency; this record remains blocked until a subsequent cloud release proves it. Exact production runtime inputs and direct entry sources are now bound in the governed snapshot: Dockerfile, .dockerignore, docker/compose.prod.yml, workspace manifests, API/Worker/DB package manifests, four entrypoint sources, deploy-check and governance checker/proof; root suffix lookalikes and path escapes remain rejected.",
     "sourceEvidenceIds": [
@@ -30781,7 +30781,7 @@
     "summary": "Static runtime-entrypoint review records the real migration-container Corepack/pnpm cache failure from run 32425255349 attempt-2 and the direct-Node correction. The successor binds Dockerfile, .dockerignore, docker/compose.prod.yml, workspace and package manifests, four entrypoint sources, deploy-check and governance checker/proof paths; exact-only roots, slash-bounded docker/ paths, lookalikes and traversal are statically proven. Schema remained unchanged and recovery rolled_back; no cloud release or serving claim is made.",
     "summaryDigest": "sha256:fd95bcb73c81b3f417650fab070aed86b201aed206e0f47f7e4f5604c21c60e1",
     "decision": "blocked",
-    "reviewScopeDigest": "sha256:e9ebcce2e484056a9f8ede1af479c613a31cb939323409219b324ac874537de3",
+    "reviewScopeDigest": "sha256:b5a579d8dc3aeedbc43aefea1b727bda44bcbe4e1a779c3aef9eb381a798d397",
     "reviewedFindingIds": [
      "GOV-CD-CURRENT-TARGET-001",
      "GOV-CD-DEPLOY-PRE-MUTATION-001",
@@ -31215,7 +31215,7 @@
  ],
  "successorOf": "quality-governance-control-plane-v61",
  "baselineChange": null,
-  "recordDigest": "sha256:7238a0efac8855123ccfd0b82a3895f8a4b3ba87a5c6b6030bc534a77aeb4403"
+  "recordDigest": "sha256:b1d4614c03d8008e4dccd7461b3c8d71dd776d0f72c541677c5bfc3c7b65ba24"
  }
 ]
 }

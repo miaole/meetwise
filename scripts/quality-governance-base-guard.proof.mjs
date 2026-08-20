@@ -331,18 +331,20 @@ const checks = {
       const submoduleHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: submoduleRoot, encoding: 'utf8' }).trim();
 
       mkdirSync(resolve(fixtureRoot, 'docker/tree-entry'), { recursive: true });
+      mkdirSync(resolve(fixtureRoot, 'apps/web/app/[id]'), { recursive: true });
       writeFileSync(resolve(fixtureRoot, 'Dockerfile'), 'FROM node:22\n');
       writeFileSync(resolve(fixtureRoot, 'docker/compose.prod.yml'), 'services: {}\n');
       writeFileSync(resolve(fixtureRoot, 'docker/tree-entry/child.txt'), 'tree fixture\n');
       writeFileSync(resolve(fixtureRoot, 'docker/link-target.txt'), 'symlink target\n');
+      writeFileSync(resolve(fixtureRoot, 'apps/web/app/[id]/page.tsx'), 'export default function Page() { return null; }\n');
       symlinkSync('link-target.txt', resolve(fixtureRoot, 'docker/symlink-entry'));
-      execFileSync('git', ['add', 'Dockerfile', 'docker'], { cwd: fixtureRoot });
+      execFileSync('git', ['add', '--all'], { cwd: fixtureRoot });
       execFileSync('git', ['update-index', '--add', '--cacheinfo', `160000,${submoduleHead},docker/submodule-entry`], { cwd: fixtureRoot });
       execFileSync('git', ['commit', '--quiet', '-m', 'governance entry-type fixture'], { cwd: fixtureRoot });
       const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: fixtureRoot, encoding: 'utf8' }).trim();
 
       process.chdir(fixtureRoot);
-      assert.match(governedPathDigestAtCommit(head, ['Dockerfile', 'docker/compose.prod.yml']), /^sha256:[a-f0-9]{64}$/);
+      assert.match(governedPathDigestAtCommit(head, ['Dockerfile', 'docker/compose.prod.yml', 'apps/web/app/[id]/page.tsx']), /^sha256:[a-f0-9]{64}$/);
       for (const nonBlobPath of ['docker/tree-entry', 'docker/symlink-entry', 'docker/submodule-entry']) {
         assert.throws(
           () => governedPathDigestAtCommit(head, [nonBlobPath]),
@@ -355,6 +357,13 @@ const checks = {
           () => governedPathDigestAtCommit(head, [lexicalPath]),
           /history_snapshot_path_invalid/,
           `${lexicalPath} must be rejected lexically`,
+        );
+      }
+      for (const nonExactPath of ['apps/web/app/*/page.tsx', 'apps/web/app/[other]/page.tsx', 'apps/web/app/[id]/page.tsx.bak']) {
+        assert.throws(
+          () => governedPathDigestAtCommit(head, [nonExactPath]),
+          /history_snapshot_entry_missing/,
+          `${nonExactPath} must not expand to the [id] blob`,
         );
       }
     } finally {

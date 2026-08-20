@@ -457,7 +457,11 @@ export function readJsonAtCommit(commit, path) {
 function readRegularBlobAtCommit(commit, path) {
   let listing;
   try {
-    listing = execFileSync('git', ['ls-tree', '-z', '--full-tree', commit, '--', path], {
+    // Git pathspecs treat brackets and asterisks as wildcards by default. The
+    // governed path is already lexically validated, so preserve its exact
+    // bytes when asking ls-tree for the one entry we intend to snapshot.
+    const literalPathspec = `:(literal)${path}`;
+    listing = execFileSync('git', ['ls-tree', '-z', '--full-tree', commit, '--', literalPathspec], {
       stdio: ['ignore', 'pipe', 'pipe'],
       maxBuffer: MAX_GIT_OUTPUT_BYTES,
     });
@@ -465,6 +469,7 @@ function readRegularBlobAtCommit(commit, path) {
     throw new Error('history_snapshot_entry_missing');
   }
   const entries = listing.toString('utf8').split('\0').filter(Boolean);
+  if (entries.length === 0) throw new Error('history_snapshot_entry_missing');
   if (entries.length !== 1) throw new Error('history_snapshot_entry_ambiguous');
   const separator = entries[0].indexOf('\t');
   if (separator < 0) throw new Error('history_snapshot_entry_malformed');
