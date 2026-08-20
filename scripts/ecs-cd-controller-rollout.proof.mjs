@@ -376,6 +376,7 @@ assert.match(workflow, /controller-version/);
 assert.match(workflow, /Verify forced-command sentinel before sensitive ECS SSH/);
 assert.match(workflow, /__meetwise_cd_forced_command_sentinel__/);
 assert.match(workflow, /meetwise_cd_unknown_command/);
+assert.match(workflow, /ssh -o BatchMode=yes -o LogLevel=ERROR meetwise-ecs 'meetwise-cd __meetwise_cd_forced_command_sentinel__'/);
 const rolloutSentinelAt = workflow.indexOf('Verify forced-command sentinel before sensitive ECS SSH');
 const receiveSshAt = workflow.indexOf('ssh meetwise-ecs "meetwise-cd receive-controller');
 const installSshAt = workflow.indexOf('ssh meetwise-ecs "meetwise-cd install-controller');
