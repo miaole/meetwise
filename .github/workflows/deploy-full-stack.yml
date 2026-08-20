@@ -1114,7 +1114,7 @@ jobs:
             timeout --signal=TERM --kill-after=5s "${left}s" "$@"
           }
           status_json="$(bounded ssh meetwise-ecs "meetwise-cd transaction status $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN")"
-          predecessor_pages="$(printf '%s' "$status_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{const p=JSON.parse(s)?.predecessor?.pages;if(!p||!["enabled","disabled","none"].includes(p.state))process.exit(2);if(p.state!=="none"&&(!Number.isSafeInteger(p.generation)||p.generation<1||!/^[a-f0-9]{64}$/.test(p.fingerprint??"")))process.exit(2);process.stdout.write(`${p.state}\t${p.generation??0}\t${p.fingerprint??""}`)}catch{process.exit(2)}})')" || { echo 'predecessor Pages identity missing from durable ledger' >&2; exit 1; }
+          predecessor_pages="$(printf '%s' "$status_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{const p=JSON.parse(s)?.predecessor?.pages;if(!p||!["enabled","disabled","none"].includes(p.state))process.exit(2);if(p.state==="enabled"&&(!Number.isSafeInteger(p.generation)||p.generation<1||!/^[a-f0-9]{64}$/.test(p.fingerprint??"")))process.exit(2);if(p.state==="disabled"&&(!Number.isSafeInteger(p.generation)||p.generation<0||!/^[a-f0-9]{64}$/.test(p.fingerprint??"")))process.exit(2);process.stdout.write(`${p.state}\t${p.generation??0}\t${p.fingerprint??""}`)}catch{process.exit(2)}})')" || { echo 'predecessor Pages identity missing from durable ledger' >&2; exit 1; }
           pages_identity="$(printf '%s' "$status_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{const v=JSON.parse(s);const f=v?.candidate?.finalManifestFingerprint;if(!/^[a-f0-9]{64}$/.test(f??"")||!Number.isSafeInteger(v.generation)||v.generation<1)process.exit(2);process.stdout.write(`${v.generation} ${f}`)}catch{process.exit(2)}})')" || pages_identity=''
           if [ -n "$pages_identity" ]; then
             read -r final_generation final_fingerprint <<<"$pages_identity"
@@ -1134,7 +1134,7 @@ jobs:
           terminal_json="$(bounded ssh meetwise-ecs "meetwise-cd transaction status $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN")"
           terminal_phase="$(printf '%s' "$terminal_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{const p=JSON.parse(s).phase;if(!["rolled_back","forward_only_maintenance"].includes(p))process.exit(2);process.stdout.write(p)})')" || { echo 'release recovery did not reach a terminal phase' >&2; exit 1; }
           IFS=$'\t' read -r predecessor_state predecessor_generation predecessor_fingerprint <<<"$predecessor_pages"
-          if [ "$terminal_phase" = rolled_back ] && [ "$predecessor_state" != none ]; then
+          if [ "$terminal_phase" = rolled_back ] && [ "$predecessor_state" = enabled ]; then
             bounded gh workflow run pages-preview.yml --repo "$GITHUB_REPOSITORY" --ref main \
               -f expected_state="$predecessor_state" \
               -f expected_generation="$predecessor_generation" \
@@ -1146,4 +1146,7 @@ jobs:
               bounded sleep 5
             done
             test "$restored" = 1 || { echo 'exact predecessor Pages recovery receipt missing' >&2; exit 1; }
+          elif [ "$predecessor_state" = disabled ]; then
+            state="$(bounded curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 10 'https://miaole.github.io/meetwise/preview-link-state.json')"
+            env STATE="$state" GEN="$predecessor_generation" FP="$predecessor_fingerprint" node -e 'const v=JSON.parse(process.env.STATE);const g=Number(process.env.GEN);if(v.state!=="disabled"||(g!==0&&(v.manifestSha256!==process.env.FP||v.finalFingerprint!==process.env.FP||String(v.generation)!==process.env.GEN)))process.exit(1)' || { echo 'Pages is not safely disabled after predecessor recovery' >&2; exit 1; }
           fi

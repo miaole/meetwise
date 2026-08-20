@@ -331,7 +331,20 @@ snapshot_predecessor() {
     pages_state="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v.state === "verified" ? "enabled" : v.state)' "$pages_json")"
     pages_generation="$(/usr/bin/node -e 'process.stdout.write(String(JSON.parse(process.argv[1]).generation))' "$pages_json")"
     pages_fingerprint="$(/usr/bin/node -e 'process.stdout.write(JSON.parse(process.argv[1]).fingerprint)' "$pages_json")"
-    [[ "$pages_state" =~ ^(enabled|disabled)$ && "$pages_generation" =~ ^[1-9][0-9]*$ && "$pages_fingerprint" == "$publication_fingerprint" ]] || die predecessor_pages_identity_mismatch 70
+    case "$pages_state" in
+      enabled)
+        [[ "$pages_generation" =~ ^[1-9][0-9]*$ && "$pages_fingerprint" == "$publication_fingerprint" ]] || die predecessor_pages_identity_mismatch 70
+        ;;
+      disabled)
+        # Preserve the exact public disabled receipt independently from the
+        # local predecessor manifest.  A scheduled bootstrap receipt can have
+        # generation zero and a different fingerprint; rollback must keep that
+        # fail-closed Pages state rather than trying to re-enable stale local
+        # publication evidence.
+        [[ "$pages_generation" =~ ^(0|[1-9][0-9]*)$ && "$pages_fingerprint" =~ $DIGEST_RE ]] || die predecessor_pages_identity_mismatch 70
+        ;;
+      *) die predecessor_pages_identity_mismatch 70 ;;
+    esac
   fi
   local snapshot_file
   for snapshot_file in "$dir/compose.env" "$dir/compose.env.missing" "$dir/compose.spec" "$dir/compose.spec.missing" "$dir/compose.env.rollback" "$dir/compose.env.rollback.missing" "$dir/rollback-compose-present" "$dir/rollback-compose-present.missing" "$dir/publication.state" "$dir/publication.state.missing" "$dir/public.manifest" "$dir/public.manifest.missing"; do
@@ -536,11 +549,25 @@ restore_predecessor_snapshot() {
   # The old public publication may be restored only after the predecessor
   # files and owner are back.  A missing/disabled predecessor intentionally
   # remains fail-closed at this point.
-  local origin publication_status; publication_status="$(/usr/bin/node -e 'const v=require(process.argv[1]); process.stdout.write(v.status ?? "")' "$PUBLICATION_STATE" 2>/dev/null || true)"
-  if [[ -f "$PUBLICATION_STATE" && -f "$PUBLIC_MANIFEST" ]]; then
-    origin="$(/usr/bin/node -e 'const v=require(process.argv[1]); process.stdout.write(v.origin ?? "")' "$PUBLIC_MANIFEST" 2>/dev/null || true)"
-    if [[ "$origin" =~ $ORIGIN_RE && "$publication_status" == verified ]]; then /usr/local/sbin/full-stack-preview-funnel-enable "$origin" >/dev/null 2>&1 || die predecessor_edge_restore_failed 70; fi
-  fi
+  local origin publication_status predecessor_pages_state predecessor_pages_generation predecessor_pages_fingerprint predecessor_publication_fingerprint
+  predecessor_pages_state="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v.pages?.state ?? "none")' "$record")"
+  predecessor_pages_generation="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v.pages?.generation === null ? "" : String(v.pages?.generation ?? ""))' "$record")"
+  predecessor_pages_fingerprint="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v.pages?.fingerprint ?? "")' "$record")"
+  predecessor_publication_fingerprint="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v.publication?.manifestSha256 ?? "")' "$record")"
+  publication_status="$(/usr/bin/node -e 'const v=require(process.argv[1]); process.stdout.write(v.status ?? "")' "$PUBLICATION_STATE" 2>/dev/null || true)"
+  case "$predecessor_pages_state" in
+    enabled)
+      [[ "$predecessor_pages_generation" =~ ^[1-9][0-9]*$ && "$predecessor_pages_fingerprint" =~ $DIGEST_RE && "$predecessor_pages_fingerprint" == "$predecessor_publication_fingerprint" ]] || die predecessor_edge_restore_identity_invalid 70
+      [[ -f "$PUBLICATION_STATE" && -f "$PUBLIC_MANIFEST" && "$publication_status" == verified ]] || die predecessor_edge_restore_identity_invalid 70
+      origin="$(/usr/bin/node -e 'const v=require(process.argv[1]); process.stdout.write(v.origin ?? "")' "$PUBLIC_MANIFEST" 2>/dev/null || true)"
+      [[ "$origin" =~ $ORIGIN_RE ]] || die predecessor_edge_restore_identity_invalid 70
+      /usr/local/sbin/full-stack-preview-funnel-enable "$origin" >/dev/null 2>&1 || die predecessor_edge_restore_failed 70
+      ;;
+    disabled|none)
+      /usr/local/sbin/full-stack-preview-funnel-close >/dev/null 2>&1 || die predecessor_edge_restore_failed 70
+      ;;
+    *) die predecessor_edge_restore_identity_invalid 70 ;;
+  esac
 }
 
 clear_transaction_snapshot() {
@@ -1100,7 +1127,9 @@ if (!pages || !['enabled','disabled','none'].includes(pages.state)) throw new Er
 if (pages.state === 'none') {
   if (pages.generation !== null && pages.generation !== undefined && pages.generation !== 0) throw new Error('pages_none_generation');
   if (pages.fingerprint !== null && pages.fingerprint !== undefined && pages.fingerprint !== '') throw new Error('pages_none_fingerprint');
-} else if (!Number.isSafeInteger(pages.generation) || pages.generation < 1 || !digest(pages.fingerprint)) throw new Error('pages_identity');
+} else if (pages.state === 'enabled') {
+  if (!Number.isSafeInteger(pages.generation) || pages.generation < 1 || !digest(pages.fingerprint)) throw new Error('pages_enabled_identity');
+} else if (!Number.isSafeInteger(pages.generation) || pages.generation < 0 || !digest(pages.fingerprint)) throw new Error('pages_disabled_identity');
 const candidate = value.candidate ?? {};
 const finalManifestFingerprint = digest(candidate.finalManifestFingerprint);
 const pagesFingerprint = digest(candidate.pagesFingerprint);
