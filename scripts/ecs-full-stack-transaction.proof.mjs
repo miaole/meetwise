@@ -15,7 +15,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { canonicalJson } from '../ops/ecs/preview-release-manifest.mjs';
-import { assertExternalProbeReceiptV2, canGarbageCollectFullStackRollback, createFullStackReleaseLedger, decideFullStackReleaseRecovery, decideFullStackSystemRecovery, heartbeatFullStackReleaseLedger, inspectFullStackReleaseLease, transitionFullStackReleaseLedger } from '../ops/ecs/full-stack/full-stack-preview-publisher.mjs';
+import { assertExternalProbeReceiptV2, canGarbageCollectFullStackRollback, createFullStackReleaseLedger, decideFullStackReleaseRecovery, decideFullStackSystemRecovery, heartbeatFullStackReleaseLedger, inspectFullStackReleaseLease, systemRecoveryRequiresMutation, transitionFullStackReleaseLedger } from '../ops/ecs/full-stack/full-stack-preview-publisher.mjs';
 
 const run = promisify(execFile);
 const publisher = join(process.cwd(), 'ops/ecs/full-stack/full-stack-preview-publisher.mjs');
@@ -173,7 +173,19 @@ try {
     const decisions = await Promise.all(Array.from({ length: 16 }, () => Promise.resolve().then(() => decideFullStackSystemRecovery(ledger, '2026-08-20T03:01:59.999Z'))));
     assert.equal(decisions.length, 16);
     assert.ok(decisions.every((decision) => decision.action === 'lease_active'));
+    assert.ok(decisions.every((decision) => systemRecoveryRequiresMutation(decision) === false));
     assert.equal(JSON.stringify(ledger), before);
+  });
+
+  await check('expired and legacy lease decisions still enter recovery', async () => {
+    const active = createFullStackReleaseLedger({ ...identity, transactionId: 'tx-recovery-routing', now: '2026-08-20T03:00:00.000Z' });
+    assert.equal(systemRecoveryRequiresMutation(decideFullStackSystemRecovery(active, '2026-08-20T03:14:59.999Z')), false);
+    assert.equal(systemRecoveryRequiresMutation(decideFullStackSystemRecovery(active, '2026-08-20T03:15:00.001Z')), true);
+    const legacy = { ...active }; delete legacy.leaseOwner; delete legacy.heartbeatAt; delete legacy.leaseExpiresAt; delete legacy.leaseTtlSeconds;
+    const legacyDecision = decideFullStackSystemRecovery(legacy, '2026-08-20T03:01:00.000Z');
+    assert.equal(legacyDecision.action, 'discard_unmutated_transaction');
+    assert.equal(legacyDecision.leaseStatus, 'unknown');
+    assert.equal(systemRecoveryRequiresMutation(legacyDecision), true);
   });
 
   await check('begin retry is idempotent and cannot replace the candidate identity', async () => {

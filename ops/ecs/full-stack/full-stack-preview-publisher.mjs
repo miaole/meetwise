@@ -107,8 +107,8 @@ function leaseExpiry(now, ttlSeconds = FULL_STACK_RELEASE_LEASE_TTL_SECONDS) {
 function assertLeaseShape(value) {
   const leaseFieldsPresent = ['leaseOwner', 'heartbeatAt', 'leaseExpiresAt', 'leaseTtlSeconds'].some((field) => Object.hasOwn(value, field));
   // A controller upgrade may meet a pre-lease v1 ledger. It is readable for
-  // boot safety, but system recovery must treat it as unknown and refuse to
-  // mutate it until the owner explicitly re-claims it.
+  // boot safety; because no active owner can be proven, system recovery routes
+  // it through the same idempotent phase policy as an expired lease.
   if (!leaseFieldsPresent) return value;
   const terminal = FULL_STACK_TERMINAL_PHASES.has(value.phase);
   if (!Number.isSafeInteger(value.leaseTtlSeconds) || value.leaseTtlSeconds < 30 || value.leaseTtlSeconds > 3600) throw new Error('full_stack_release_lease_invalid');
@@ -147,8 +147,20 @@ export function inspectFullStackReleaseLease(ledger, now = Date.now()) {
 
 export function decideFullStackSystemRecovery(ledger, now = Date.now()) {
   const lease = inspectFullStackReleaseLease(ledger, now);
-  if (lease.status === 'active' || lease.status === 'unknown') return { action: `lease_${lease.status}`, phase: ledger.phase, heartbeatAt: lease.heartbeatAt ?? null, leaseExpiresAt: lease.leaseExpiresAt ?? null };
+  if (lease.status === 'active') return { action: 'lease_active', phase: ledger.phase, heartbeatAt: lease.heartbeatAt ?? null, leaseExpiresAt: lease.leaseExpiresAt ?? null };
+  // Ledgers created before durable leases existed cannot safely prove that a
+  // live deploy still owns them. Route them through the same phase-based,
+  // idempotent recovery policy as an expired lease instead of mutating the
+  // ledger to rollback_pending and then leaving it there forever.
   return { ...decideFullStackReleaseRecovery(ledger), leaseStatus: lease.status };
+}
+
+export function systemRecoveryRequiresMutation(decision) {
+  if (!decision || typeof decision.action !== 'string') throw new Error('full_stack_system_recovery_decision_invalid');
+  // A live GitHub transaction owns the lease.  The periodic/root recovery
+  // observer must remain read-only until that lease expires; otherwise the
+  // timer can abort a healthy transaction between two token-bound steps.
+  return !['noop', 'lease_active'].includes(decision.action);
 }
 
 function assertTransactionShape(value) {
@@ -442,7 +454,7 @@ async function ledgerRecoverSystemCli(args) {
     await removeFullStackReleaseLedger(path);
     process.stdout.write(`${JSON.stringify(decision)}\n`); return;
   }
-  if (['noop'].includes(decision.action)) { process.stdout.write(`${JSON.stringify(decision)}\n`); return; }
+  if (!systemRecoveryRequiresMutation(decision)) { process.stdout.write(`${JSON.stringify(decision)}\n`); return; }
   if (current.phase === 'rollback_pending') { process.stdout.write(`${JSON.stringify(decision)}\n`); return; }
   const next = trustedLedgerTransition(current, { expectedPhase: current.phase, nextPhase: 'rollback_pending', patch: { recoveryAttempts: current.recoveryAttempts + 1, lastErrorCode: `system_recovery_${decision.action}` } });
   await writeFullStackReleaseLedger(path, next);
