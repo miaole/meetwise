@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict';
 import { NextRequest } from 'next/server';
-import { middleware, resolvePublicPreview, stripClientIdentityHeaders, config } from '../middleware.ts';
+import { authRedirectLocation, authRedirectUrl, middleware, resolvePublicPreview, stripClientIdentityHeaders, config } from '../middleware.ts';
 
 let assertions = 0;
 function equal(actual: unknown, expected: unknown, label: string) {
@@ -15,7 +15,10 @@ function equal(actual: unknown, expected: unknown, label: string) {
 }
 
 function req(method: string, path: string, headers: Record<string, string> = {}) {
-  return new NextRequest(`https://preview.test${path}`, { method, headers });
+  return new NextRequest(`http://127.0.0.1:3000${path}`, {
+    method,
+    headers: { host: 'preview.test', 'x-forwarded-host': 'preview.test', 'x-forwarded-proto': 'https', ...headers },
+  });
 }
 
 async function main() {
@@ -66,9 +69,13 @@ async function main() {
   process.env.MEETWISE_PUBLIC_PREVIEW = '0';
   const auth = middleware(req('GET', '/dashboard'));
   equal(auth.status, 307, 'normal GET /dashboard without cookie → redirect');
-  const location = new URL(auth.headers.get('location')!, 'http://x');
-  equal(location.pathname, '/login', 'redirects to /login');
-  equal(location.searchParams.get('next'), '/dashboard', 'preserves next path');
+  const location = auth.headers.get('location');
+  equal(location, 'https://preview.test/login?next=%2Fdashboard', 'redirect uses trusted external origin instead of the internal Next origin');
+  equal(location?.includes('localhost'), false, 'redirect never exposes internal localhost origin');
+  equal(authRedirectLocation('/dashboard'), '/login?next=%2Fdashboard', 'redirect helper preserves encoded next path');
+  equal(authRedirectUrl(req('GET', '/dashboard'), '/dashboard').href, 'https://preview.test/login?next=%2Fdashboard', 'absolute redirect target uses trusted proxy headers');
+  assertions += 1;
+  assert.throws(() => authRedirectUrl(req('GET', '/dashboard', { 'x-forwarded-host': 'evil.test/path' }), '/dashboard'), /invalid_forwarded_host/, 'malformed forwarded host fails closed');
   equal(middleware(req('GET', '/')).status, 200, 'normal GET / passes');
   equal(middleware(req('GET', '/api/interview')).status, 200, 'normal GET /api passes (page auth is cookie-based, API has its own gate)');
 

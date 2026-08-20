@@ -65,6 +65,10 @@ export const InterviewView = z.object({
   id: z.string(),
   status: z.string(),
   current_question_index: z.number().int().nullable(),
+  issued_turns: z.number().int().nonnegative(),
+  answered_turns: z.number().int().nonnegative(),
+  current_turn: z.number().int().nonnegative().nullable(),
+  processing_turn: z.number().int().nonnegative().nullable(),
 });
 export type InterviewView = z.infer<typeof InterviewView>;
 export const InterviewList = z.object({ interviews: z.array(InterviewView) });

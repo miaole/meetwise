@@ -19,7 +19,9 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 0
-          persist-credentials: false
+          # The protected-base checkout owns the credential used by the
+          # read-only PR-ref fetch below. No candidate code is executed.
+          persist-credentials: true
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
@@ -30,9 +32,7 @@ jobs:
           GOVERNANCE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           GOVERNANCE_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           GOVERNANCE_PR_NUMBER: ${{ github.event.pull_request.number }}
-          GOVERNANCE_READ_TOKEN: ${{ github.token }}
         run: |
           set -eu
-          git -c http.extraheader="AUTHORIZATION: bearer ${GOVERNANCE_READ_TOKEN}" fetch --no-tags origin "refs/pull/${GOVERNANCE_PR_NUMBER}/head"
-          unset GOVERNANCE_READ_TOKEN
+          git fetch --no-tags origin "refs/pull/${GOVERNANCE_PR_NUMBER}/head"
           node scripts/quality-governance-base-guard.mjs --base "${GOVERNANCE_BASE_SHA}" --head "${GOVERNANCE_HEAD_SHA}"

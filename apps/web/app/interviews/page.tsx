@@ -8,18 +8,19 @@ import { SubmitButton } from '@/components/ui/SubmitButton';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { listWindow, withLimitHref } from '@/lib/paginate';
+import { interviewDisplayStatus, interviewProgressLabel } from '@/lib/interview/progress';
+import { InterviewList, type InterviewView as Interview } from '@meetwise/contracts';
 
 const PAGE = 20;          // 初始/每次"加载更多"渲染条数,封顶首屏 DOM(极端长列表防卡)
 
 export const metadata = { title: '面试 · 知面' };          // App Router Metadata API(SEO,服务端注入)
 
 /** 面试列表 + 开始新面试:服务端鉴权 + 服务端取数(GET /interview、/resume),Server Action 启动面试。 */
-type Interview = { id: string; status: string; current_question_index?: number };
 type Resume = { id: string; status?: string };
 
 const STATUS_LABEL: Record<string, string> = {
-  created: '待开始', running: '进行中', waiting_user: '等你作答',
-  completed: '已完成', failed: '已失败',
+  created: '待开始', active: '进行中', running: '进行中', waiting_user: '等你作答',
+  completed: '已完成', abandoned: '已放弃', failed: '已失败',
 };
 
 function statusBadge(status: string) {
@@ -32,12 +33,11 @@ export default async function InterviewsPage({ searchParams }: { searchParams: P
   const { limit, error } = await searchParams;
 
   // 真服务端取数:在 RSC 里 await,HTML 服务端渲染好再发(首屏即有数据,无客户端 fetch 闪烁)。
-  const data = await serverGet<{ interviews: Interview[] } | Interview[]>('/interview');
+  const data = await serverGet<unknown>('/interview');
   const resumesRaw = await serverGet<{ resumes: Resume[] } | Resume[]>('/resume');
 
-  const interviews: Interview[] | null = data
-    ? (Array.isArray(data) ? data : data.interviews ?? [])
-    : null;
+  const parsedInterviews = InterviewList.safeParse(data);
+  const interviews: Interview[] | null = parsedInterviews.success ? parsedInterviews.data.interviews : null;
   const resumes: Resume[] = resumesRaw
     ? (Array.isArray(resumesRaw) ? resumesRaw : resumesRaw.resumes ?? [])
     : [];
@@ -100,11 +100,13 @@ export default async function InterviewsPage({ searchParams }: { searchParams: P
                         {i > 0 && <Separator />}
                         <div className="flex flex-wrap items-center gap-3 p-4">
                           <code className="flex-1 truncate text-sm text-muted-foreground">{it.id.slice(0, 12)}…</code>
-                          {statusBadge(it.status)}
-                          <span className="text-xs text-muted-foreground tabular-nums">第 {(it.current_question_index ?? 0) + 1} 题</span>
-                          <Button asChild variant="outline" size="sm">
-                            <Link href={`/interview/${it.id}`}>进入 →</Link>
-                          </Button>
+                          {statusBadge(interviewDisplayStatus(it))}
+                          <span className="text-xs text-muted-foreground tabular-nums">{interviewProgressLabel(it)}</span>
+                          {it.status === 'abandoned' || it.status === 'failed' ? (
+                            <Button variant="outline" size="sm" disabled>已结束</Button>
+                          ) : (
+                            <Button asChild variant="outline" size="sm"><Link href={`/interview/${it.id}`}>进入 →</Link></Button>
+                          )}
                         </div>
                       </li>
                     ))}

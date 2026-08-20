@@ -13,6 +13,7 @@ import type { InterviewView } from '../lib/stream/interview-state.ts';
 import { makeFrameCoalescer } from '../lib/stream/frame-coalescer.ts';
 import { interviewTurnWindow } from '../lib/stream/turn-window.ts';
 import { buildTurnSubmission } from '../lib/interview/turn-submission.ts';
+import { interviewActionLabel, interviewDisplayStatus, interviewProgressLabel } from '../lib/interview/progress.ts';
 
 /** 把若干 chunk 串成异步流(模拟 ReadableStream 分块)。 */
 async function* streamOf(...chunks: string[]) { for (const c of chunks) yield c; }
@@ -35,6 +36,16 @@ function fakeFetchWith() {
 }
 
 async function main() {
+  section('面试列表进度：以问题账本投影为准，不再把空会话伪装成第 1 题');
+  A('零轮 abandoned 显示尚未出题', interviewProgressLabel({ status: 'abandoned', issued_turns: 0, answered_turns: 0, current_turn: null }) === '尚未出题');
+  A('active 的 turn=3 显示第 4 题待答', interviewProgressLabel({ status: 'active', issued_turns: 4, answered_turns: 3, current_turn: 3 }) === '第 4 题待答');
+  A('queued 的 turn=3 显示处理中', interviewProgressLabel({ status: 'created', issued_turns: 4, answered_turns: 3, processing_turn: 3 }) === '第 4 题处理中');
+  A('completed 显示实际总题数', interviewProgressLabel({ status: 'completed', issued_turns: 8, answered_turns: 8 }) === '共 8 题');
+  A('终态已出题但零回答不伪装成尚未出题', interviewProgressLabel({ status: 'abandoned', issued_turns: 1, answered_turns: 0, current_turn: 0 }) === '已出 1 题，未作答');
+  A('终态残留 open turn 仍只显示已答题数', interviewProgressLabel({ status: 'abandoned', issued_turns: 4, answered_turns: 3, current_turn: 3 }) === '已作答 3 题');
+  A('已放弃不再提供继续作答 CTA', interviewActionLabel('abandoned') === '已结束');
+  A('有题的 created 派生为进行中展示态', interviewDisplayStatus({ status: 'created', issued_turns: 1, current_turn: 0 }) === 'active');
+
   section('渲染背压：同一动画帧内合并为最后一个视图，取消后绝不提交');
   const animationFrames: Array<() => void> = [];
   const rendered: number[] = [];
@@ -147,7 +158,7 @@ async function main() {
 
   section('契约客户端：HTTP 状态分流(business/transport/drift)+ 强制幂等键');
   let f = fakeFetchWith();
-  let api = makeInterviewApi('http://x', f.make(200, { id: 'R1', status: 'active', current_question_index: 0 }));
+  let api = makeInterviewApi('http://x', f.make(200, { id: 'R1', status: 'active', current_question_index: 0, issued_turns: 1, answered_turns: 0, current_turn: 0, processing_turn: null }));
   const okr = await api.getInterview('R1');
   A('2xx 合法 → ok+类型化', okr.ok && okr.value.id === 'R1');
   api = makeInterviewApi('http://x', fakeFetchWith().make(404, { error: 'not_found_or_forbidden' }));
