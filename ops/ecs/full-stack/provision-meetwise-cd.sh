@@ -77,7 +77,6 @@ FULL_STACK_RELEASES=/srv/meetwise-full-stack/releases
 FULL_STACK_SNAPSHOTS="$CONTROLLER_STATE/full-stack-rollback"
 FULL_STACK_RELEASE_RECOVERY_SERVICE=meetwise-full-stack-release-recovery.service
 FULL_STACK_RELEASE_RECOVERY_TIMER=meetwise-full-stack-release-recovery.timer
-
 die() { echo "provision_cd_$1" >&2; exit "${2:-64}"; }
 
 # Parse the small, root-owned env contracts without sourcing them.  These files
@@ -361,6 +360,7 @@ rm -f "$controller_rows"
 printf '%s\n' "$controller_digest" > "$CONTROLLER_VERSION.tmp"
 chown root:root "$CONTROLLER_VERSION.tmp"; chmod 0600 "$CONTROLLER_VERSION.tmp"
 mv -f "$CONTROLLER_VERSION.tmp" "$CONTROLLER_VERSION"
+"$ROOT_DST" bootstrap-toolchain >/dev/null || die pnpm_toolchain_bootstrap_failed 70
 
 # --- 6. 窄 sudoers（只放行 root dispatch，无通配；dispatch 内部二次校验）----------------
 tmp_sudoers="$SUDOERS.tmp.$$"

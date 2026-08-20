@@ -151,7 +151,7 @@ case "$sub" in
     require_release "${argv[9]}"
     exec sudo "$ROOT_DISPATCH" prepare "${argv[2]}" "${argv[3]}" "${argv[4]}" "${argv[5]}" "${argv[6]}" "${argv[7]}" "${argv[8]}" "${argv[9]}"
     ;;
-  probe-nonce|verify-public|controller-version)
+  probe-nonce|verify-public|controller-version|bootstrap-toolchain)
     [[ ${#argv[@]} -eq 2 ]] || { echo 'meetwise_cd_argc_invalid' >&2; exit 1; }
     exec sudo "$ROOT_DISPATCH" "$sub"
     ;;

@@ -41,4 +41,13 @@ const injected = spawnSync(receiver, [], { env: { ...env, SSH_ORIGINAL_COMMAND: 
 assert.notEqual(injected.status, 0);
 assert.match(injected.stderr, /meetwise_cd_metacharacter_rejected/);
 
+const recover = `meetwise-cd transaction recover ${tx} ${release} ${token}`;
+const recoverOk = spawnSync(receiver, [], { env: { ...env, SSH_ORIGINAL_COMMAND: recover }, encoding: 'utf8' });
+assert.equal(recoverOk.status, 0, recoverOk.stderr);
+assert.match(recoverOk.stdout, new RegExp(`transaction recover ${tx} ${release} ${token}\\n?$`));
+
+const quotedRecover = spawnSync(receiver, [], { env: { ...env, SSH_ORIGINAL_COMMAND: `meetwise-cd transaction recover '${tx}' '${release}' '${token}'` }, encoding: 'utf8' });
+assert.notEqual(quotedRecover.status, 0);
+assert.match(quotedRecover.stderr, /meetwise_cd_metacharacter_rejected/);
+
 console.log('meetwise CD forced receiver argv behavior proof passed');

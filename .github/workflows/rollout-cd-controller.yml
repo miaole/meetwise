@@ -162,6 +162,7 @@ jobs:
             exit 1
           }
           ssh meetwise-ecs "meetwise-cd install-controller $BUNDLE_DIGEST $ARCHIVE_DIGEST"
+          ssh meetwise-ecs 'meetwise-cd bootstrap-toolchain'
           installed="$(ssh meetwise-ecs 'meetwise-cd controller-version')"
           [[ "$installed" == "$BUNDLE_DIGEST" ]] || { echo 'controller_version_readback_mismatch' >&2; exit 1; }
           printf 'controller_version=%s\n' "$installed"
