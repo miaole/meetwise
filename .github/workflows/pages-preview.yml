@@ -80,7 +80,12 @@ jobs:
           if [ "${{ steps.origin.outputs.enabled }}" = "true" ]; then
             node scripts/build-preview-directory.mjs .pages-preview .preview-release-manifest.json ops/ecs/keys/preview-release-ed25519.pub.pem
           elif [ "${{ steps.origin.outputs.fetched }}" = "true" ]; then
-            node scripts/build-preview-directory.mjs .pages-preview .preview-release-manifest.json ops/ecs/keys/preview-release-ed25519.pub.pem --force-disabled
+            # The signed record still owns the destination. A verified,
+            # unexpired, non-revoked record may keep the directory link visible
+            # while a newly deployed Web build awaits its successor receipt;
+            # build-preview-directory independently rejects revoked/expired
+            # records and never accepts an unsigned URL.
+            node scripts/build-preview-directory.mjs .pages-preview .preview-release-manifest.json ops/ecs/keys/preview-release-ed25519.pub.pem
           else
             node scripts/build-preview-directory.mjs .pages-preview preview-site/release-manifest.json ops/ecs/keys/preview-release-ed25519.pub.pem --force-disabled
           fi
