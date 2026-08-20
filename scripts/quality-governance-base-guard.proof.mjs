@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -282,6 +283,20 @@ const checks = {
     const selected = candidateSnapshotRecords(index, currentIndex);
     assert.ok(selected.some((record) => record.taskId === successor.taskId), 'candidate successor must be verified');
     assert.ok(!selected.some((record) => record.taskId === governanceTerminal.taskId), 'superseded base terminal is anchored, not replayed');
+  },
+  cli_reads_append_only_index_larger_than_node_default_buffer: () => {
+    const indexPath = resolve(repoRoot, 'ai-docs/testing/governance-audit-index.json');
+    assert.ok(readFileSync(indexPath).byteLength > 1024 * 1024, 'fixture must exceed Node execFileSync default maxBuffer');
+    const guardPath = resolve(repoRoot, 'scripts/quality-governance-base-guard.mjs');
+    const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).trim();
+    const output = execFileSync(process.execPath, [guardPath, '--base', head, '--head', head], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      maxBuffer: 4 * 1024 * 1024,
+    });
+    const result = JSON.parse(output);
+    assert.equal(result.history.valid, true, result.history.errors.join('\n'));
+    assert.equal(result.snapshots.valid, true, result.snapshots.errors.join('\n'));
   },
 };
 
