@@ -76,6 +76,11 @@ PNPM_BIN="$PNPM_PREFIX/bin/pnpm"
 PNPM_PACKAGE_ROOT="$PNPM_PREFIX/lib/node_modules/pnpm"
 
 RELEASE_RE='^[a-f0-9]{40}-fullstack-[0-9]{8}-[1-9][0-9]*-[1-9][0-9]*$'
+# The one-time systemd-to-Compose takeover must be able to snapshot and restore
+# the exact legacy release directory already on ECS. This wider pattern is
+# used only for a predecessor symlink target; every candidate release and
+# transaction identity continues to require RELEASE_RE.
+LEGACY_PREDECESSOR_RELEASE_RE='^[a-f0-9]{7,40}-(progress|worktree)-[0-9]{8}-[1-9][0-9]*$'
 COMMIT_RE='^[a-f0-9]{40}$'
 DIGEST_RE='^[a-f0-9]{64}$'
 IMAGE_DIGEST_RE='^sha256:[a-f0-9]{64}$'
@@ -276,7 +281,9 @@ snapshot_predecessor() {
     if [[ "$current_target" == "$RELEASES_ROOT/"* ]]; then
       current_target="releases/${current_target#"$RELEASES_ROOT/"}"
     fi
-    [[ "$current_target" == releases/* && "$current_target" != *..* && "${current_target#releases/}" =~ $RELEASE_RE ]] || die predecessor_current_target_invalid 70
+    local predecessor_release="${current_target#releases/}"
+    [[ "$current_target" == releases/* && "$current_target" != *..* && ( "$predecessor_release" =~ $RELEASE_RE || "$predecessor_release" =~ $LEGACY_PREDECESSOR_RELEASE_RE ) ]] || die predecessor_current_target_invalid 70
+    [[ -d "$RELEASES_ROOT/$predecessor_release" && ! -L "$RELEASES_ROOT/$predecessor_release" ]] || die predecessor_current_target_not_directory 70
   fi
   local compose_present=0 compose_running=''
   if [[ -f "$COMPOSE_ENV" && ! -L "$COMPOSE_ENV" && -f "$COMPOSE_FILE" && ! -L "$COMPOSE_FILE" ]]; then
@@ -456,8 +463,9 @@ restore_predecessor_snapshot() {
   sync -f "$(dirname "$PUBLIC_MANIFEST")"
   local current_target; current_target="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v.currentTarget ?? "")' "$record")"
   if [[ -n "$current_target" ]]; then
-    [[ "$current_target" == releases/* && "$current_target" != *..* ]] || die snapshot_current_target_invalid
-    [[ -d "$RELEASES_ROOT/${current_target#releases/}" ]] || die snapshot_current_target_missing
+    local predecessor_release="${current_target#releases/}"
+    [[ "$current_target" == releases/* && "$current_target" != *..* && ( "$predecessor_release" =~ $RELEASE_RE || "$predecessor_release" =~ $LEGACY_PREDECESSOR_RELEASE_RE ) ]] || die snapshot_current_target_invalid
+    [[ -d "$RELEASES_ROOT/$predecessor_release" && ! -L "$RELEASES_ROOT/$predecessor_release" ]] || die snapshot_current_target_missing
     ln -sfn "$current_target" "$CURRENT.new"; mv -Tf "$CURRENT.new" "$CURRENT"
   else
     unlink "$CURRENT" 2>/dev/null || true

@@ -162,12 +162,12 @@ jobs:
             (( phase_deadline < deadline )) || phase_deadline="$deadline"
             dispatch_started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
             if [ -n "$expected_generation" ]; then
-              bounded_until "$phase_deadline" gh workflow run pages-preview.yml --ref main \
+              bounded_until "$phase_deadline" gh workflow run pages-preview.yml --repo "$GITHUB_REPOSITORY" --ref main \
                 -f expected_state="$expected_state" \
                 -f expected_generation="$expected_generation" \
                 -f expected_manifest_sha256="$expected_fingerprint"
             else
-              bounded_until "$phase_deadline" gh workflow run pages-preview.yml --ref main -f expected_state="$expected_state"
+              bounded_until "$phase_deadline" gh workflow run pages-preview.yml --repo "$GITHUB_REPOSITORY" --ref main -f expected_state="$expected_state"
             fi
             for _ in $(seq 1 30); do
               runs="$(bounded_until "$phase_deadline" gh api "repos/$GITHUB_REPOSITORY/actions/workflows/pages-preview.yml/runs?event=workflow_dispatch&branch=main&per_page=20")" || break
