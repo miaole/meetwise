@@ -2,7 +2,6 @@ ops/ecs/full-stack/meetwise-cd-receive.sh|/usr/local/bin/meetwise-cd-receive|075
 ops/ecs/full-stack/meetwise-cd-root.sh|/usr/local/sbin/meetwise-cd-root|0755
 ops/ecs/full-stack/provision-meetwise-synthetic.sh|/usr/local/sbin/provision-meetwise-synthetic|0755
 ops/ecs/full-stack/cd-controller-files.txt|/usr/local/share/meetwise-cd/cd-controller-files.txt|0644
-docker/compose.prod.yml|/srv/meetwise-compose/docker/compose.prod.yml|0644
 ops/ecs/controller-lib.sh|/usr/local/lib/meetwise-preview-controller/controller-lib.sh|0644
 ops/ecs/preview-release-manifest.mjs|/usr/local/lib/meetwise-preview-controller/preview-release-manifest.mjs|0644
 ops/ecs/preview-funnel-status.mjs|/usr/local/lib/meetwise-preview-controller/preview-funnel-status.mjs|0755
@@ -29,3 +28,5 @@ ops/ecs/full-stack/meetwise-full-stack-edge-restore.service|/etc/systemd/system/
 ops/ecs/full-stack/meetwise-full-stack-revocation-retry.service|/etc/systemd/system/meetwise-full-stack-revocation-retry.service|0644
 ops/ecs/full-stack/meetwise-full-stack-revocation-retry.timer|/etc/systemd/system/meetwise-full-stack-revocation-retry.timer|0644
 ops/ecs/full-stack/meetwise-cd-controller-rollout-recovery.service|/etc/systemd/system/meetwise-cd-controller-rollout-recovery.service|0644
+ops/ecs/full-stack/meetwise-full-stack-release-recovery.service|/etc/systemd/system/meetwise-full-stack-release-recovery.service|0644
+ops/ecs/full-stack/meetwise-full-stack-release-recovery.timer|/etc/systemd/system/meetwise-full-stack-release-recovery.timer|0644

@@ -24,6 +24,8 @@
 #   flip-current <release>                            repoint current symlink + compose up api/worker (web 停到 activate)
 #   synthetic-verify <release>                        run showcase + large synthetic load (receipts)
 #   confirm-public                                    promote the external probe receipt + confirm
+#   transaction status-system                         read-only, tokenless ledger projection for recovery
+#   transaction recover-system                        root-owned expiry/CAS recovery after runner cancellation
 #   receive-controller <bundle> <archive>             validate a staged controller archive only
 #   install-controller <bundle> <archive>             snapshot/install/verify/rollback a controller bundle
 #   controller-recover                               recover a durable interrupted controller install
@@ -76,6 +78,8 @@ CONTROLLER_ROLLOUT_ROOT=/var/lib/meetwise-preview-controller/controller-rollout
 CONTROLLER_ROLLOUT_SNAPSHOTS="$CONTROLLER_ROLLOUT_ROOT/snapshots"
 CONTROLLER_ROLLOUT_TARGETS="$CONTROLLER_ROLLOUT_ROOT/targets"
 CONTROLLER_ROLLOUT_LEDGER="$CONTROLLER_ROLLOUT_ROOT/rollout-ledger.json"
+FULL_STACK_RELEASE_RECOVERY_SERVICE=meetwise-full-stack-release-recovery.service
+FULL_STACK_RELEASE_RECOVERY_TIMER=meetwise-full-stack-release-recovery.timer
 
 die() { printf 'meetwise_cd_%s\n' "$1" >&2; exit "${2:-64}"; }
 
@@ -101,6 +105,14 @@ with_controller_lock() {
   exec 9>>"$lock_path"
   flock -n 9 || die full_stack_controller_busy 75
   export MEETWISE_FULL_STACK_PUBLICATION_LOCK_FD=9
+}
+
+start_full_stack_release_recovery_timer() {
+  /usr/bin/systemctl start --no-block "$FULL_STACK_RELEASE_RECOVERY_TIMER" >/dev/null 2>&1 || die full_stack_release_recovery_timer_start_failed 70
+}
+
+stop_full_stack_release_recovery_timer() {
+  /usr/bin/systemctl stop --no-block "$FULL_STACK_RELEASE_RECOVERY_TIMER" >/dev/null 2>&1 || true
 }
 
 assert_transaction_args() {
@@ -247,7 +259,7 @@ snapshot_predecessor() {
   local compose_present=0 compose_running=''
   if [[ -f "$COMPOSE_ENV" && ! -L "$COMPOSE_ENV" && -f "$COMPOSE_FILE" && ! -L "$COMPOSE_FILE" ]]; then
     compose_present=1
-    compose_running="$(run_compose ps --status running --services 2>/dev/null | tr '\n' ' ' || true)"
+    compose_running="$(run_compose ps --status running --services 2>/dev/null | tr '\n' ' ')" || die predecessor_compose_state_unavailable 70
   fi
   local compose_digest=''; [[ -f "$COMPOSE_FILE" && ! -L "$COMPOSE_FILE" ]] && compose_digest="$(sha256sum "$COMPOSE_FILE" | awk '{print $1}')"
   local rollback_env_present=0 rollback_marker_present=0
@@ -266,14 +278,20 @@ snapshot_predecessor() {
     publication_status="$(/usr/bin/node -e 'try { const v=require(process.argv[1]); process.stdout.write(v.status ?? "") } catch {}' "$PUBLICATION_STATE" 2>/dev/null || true)"
     publication_fingerprint="$(/usr/bin/node -e 'try { const v=require(process.argv[1]); process.stdout.write(v.manifestSha256 ?? "") } catch {}' "$PUBLICATION_STATE" 2>/dev/null || true)"
   fi
-  local pages_state='' pages_generation='' pages_fingerprint='' pages_url="$PAGES_LINK_STATE" pages_json=''
-  [[ "$publication_fingerprint" =~ $DIGEST_RE ]] && pages_url="$PAGES_LINK_STATE?manifest=$publication_fingerprint"
-  pages_json="$(/usr/bin/curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 10 --max-filesize 100000 "$pages_url" 2>/dev/null || true)"
-  if [[ -n "$pages_json" ]]; then
-    pages_state="$(printf '%s' "$pages_json" | /usr/bin/node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{process.stdout.write(String(JSON.parse(s).state ?? ""))}catch{}})' 2>/dev/null || true)"
-    pages_generation="$(printf '%s' "$pages_json" | /usr/bin/node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{process.stdout.write(String(JSON.parse(s).generation ?? ""))}catch{}})' 2>/dev/null || true)"
-    pages_fingerprint="$(printf '%s' "$pages_json" | /usr/bin/node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{const v=JSON.parse(s); process.stdout.write(String(v.finalFingerprint ?? v.manifestSha256 ?? ""))}catch{}})' 2>/dev/null || true)"
-    [[ "$pages_fingerprint" =~ $DIGEST_RE ]] || pages_fingerprint=''
+  local pages_state=none pages_generation=0 pages_fingerprint='' pages_json='' predecessor_origin=''
+  local publication_present=0 manifest_present=0
+  [[ -f "$PUBLICATION_STATE" && ! -L "$PUBLICATION_STATE" ]] && publication_present=1
+  [[ -f "$PUBLIC_MANIFEST" && ! -L "$PUBLIC_MANIFEST" ]] && manifest_present=1
+  [[ "$publication_present" == "$manifest_present" ]] || die predecessor_publication_pair_incomplete 70
+  if [[ "$publication_present" -eq 1 ]]; then
+    [[ "$publication_fingerprint" =~ $DIGEST_RE ]] || die predecessor_publication_identity_invalid 70
+    predecessor_origin="$(/usr/bin/node -e 'const v=require(process.argv[1]); process.stdout.write(v.origin ?? "")' "$PUBLIC_MANIFEST")" || die predecessor_manifest_origin_invalid 70
+    [[ "$predecessor_origin" =~ ^https://[a-z0-9.-]+\.ts\.net$ ]] || die predecessor_manifest_origin_invalid 70
+    pages_json="$(trusted_pages_link_identity "$predecessor_origin")" || die predecessor_pages_identity_unavailable 70
+    pages_state="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v.state === "verified" ? "enabled" : v.state)' "$pages_json")"
+    pages_generation="$(/usr/bin/node -e 'process.stdout.write(String(JSON.parse(process.argv[1]).generation))' "$pages_json")"
+    pages_fingerprint="$(/usr/bin/node -e 'process.stdout.write(JSON.parse(process.argv[1]).fingerprint)' "$pages_json")"
+    [[ "$pages_state" =~ ^(enabled|disabled)$ && "$pages_generation" =~ ^[1-9][0-9]*$ && "$pages_fingerprint" == "$publication_fingerprint" ]] || die predecessor_pages_identity_mismatch 70
   fi
   local snapshot_file
   for snapshot_file in "$dir/compose.env" "$dir/compose.env.missing" "$dir/compose.spec" "$dir/compose.spec.missing" "$dir/compose.env.rollback" "$dir/compose.env.rollback.missing" "$dir/rollback-compose-present" "$dir/rollback-compose-present.missing" "$dir/publication.state" "$dir/publication.state.missing" "$dir/public.manifest" "$dir/public.manifest.missing"; do
@@ -281,20 +299,31 @@ snapshot_predecessor() {
   done
   sync -f "$dir"
   local snapshot_path="$dir"
-  /usr/bin/node - "$snapshot_path" "$release" "$current_target" "$compose_present" "$compose_running" "$compose_digest" "$rollback_env_present" "$rollback_marker_present" "$backend_ref" "$web_ref" "$approval_digest" "$target_digest" "$publication_status" "$publication_fingerprint" "$pages_state" "$pages_generation" "$pages_fingerprint" <<'NODE'
+  /usr/bin/node - "$snapshot_path" "$release" "$current_target" "$compose_present" "$compose_running" "$compose_digest" "$rollback_env_present" "$rollback_marker_present" "$backend_ref" "$web_ref" "$approval_digest" "$target_digest" "$publication_status" "$publication_fingerprint" "$pages_state" "$pages_generation" "$pages_fingerprint" "$publication_present" "$manifest_present" <<'NODE'
 const { chmodSync, chownSync, closeSync, fsyncSync, openSync, renameSync, writeFileSync } = require('node:fs');
 const { execFileSync } = require('node:child_process');
 const { dirname } = require('node:path');
-const [path, release, currentTarget, composePresent, composeRunning, composeSpecDigest, rollbackEnvPresent, rollbackMarkerPresent, backendImage, webImage, approvalDigest, targetDigest, publicationStatus, publicationFingerprint, pagesState, pagesGeneration, pagesFingerprint] = process.argv.slice(2);
+const [path, release, currentTarget, composePresent, composeRunning, composeSpecDigest, rollbackEnvPresent, rollbackMarkerPresent, backendImage, webImage, approvalDigest, targetDigest, publicationStatus, publicationFingerprint, pagesState, pagesGeneration, pagesFingerprint, publicationStatePresent, publicManifestPresent] = process.argv.slice(2);
 const units = {};
 for (const unit of ['meetwise-api.service', 'meetwise-worker.service', 'meetwise-web.service']) {
-  const read = (property) => { try { return execFileSync('/usr/bin/timeout', ['--kill-after=1s', '5s', '/usr/bin/systemctl', 'show', '--property', property, '--value', unit], { encoding: 'utf8' }).trim(); } catch { return 'unknown'; } };
-  units[unit] = { load: read('LoadState'), active: read('ActiveState'), enabled: read('UnitFileState'), masked: read('UnitFileState') === 'masked' };
+  const read = (property) => execFileSync('/usr/bin/timeout', ['--kill-after=1s', '5s', '/usr/bin/systemctl', 'show', '--property', property, '--value', unit], { encoding: 'utf8' }).trim();
+  const load = read('LoadState');
+  const active = read('ActiveState');
+  const enabled = read('UnitFileState');
+  if (!['loaded', 'not-found'].includes(load) || !['active', 'inactive', 'failed'].includes(active) || !/^(enabled|disabled|masked|static|indirect|generated|transient|not-found)$/.test(enabled)) {
+    throw new Error(`predecessor_legacy_state_invalid:${unit}`);
+  }
+  units[unit] = { load, active, enabled, masked: enabled === 'masked' };
 }
 const digestOrNull = (value) => /^[a-f0-9]{64}$/.test(value ?? '') ? value : null;
 const activeServices = String(composeRunning ?? '').trim().split(/\s+/).filter(Boolean).filter((name) => ['migrate', 'api', 'worker', 'web'].includes(name));
+const composeOwnsRuntime = activeServices.some((name) => ['api', 'worker', 'web'].includes(name));
+const legacyOwnsRuntime = Object.values(units).some((unit) => unit.active === 'active');
+if (composeOwnsRuntime && legacyOwnsRuntime) throw new Error('predecessor_runtime_owner_conflict');
+const runtimeOwner = composeOwnsRuntime ? 'compose' : legacyOwnsRuntime ? 'legacy' : 'none';
 const record = {
-  schemaVersion: 1, release, currentTarget: currentTarget || null,
+  schemaVersion: 1, release, currentTarget: currentTarget || null, runtimeOwner,
+  publicationStatePresent: publicationStatePresent === '1', publicManifestPresent: publicManifestPresent === '1',
   approval: { digest: digestOrNull(approvalDigest) }, target: { digest: digestOrNull(targetDigest) },
   compose: { present: composePresent === '1', activeServices, envFile: 'compose.env', specFile: 'compose.spec', specDigest: digestOrNull(composeSpecDigest), rollbackEnvFile: 'compose.env.rollback', rollbackEnvPresent: rollbackEnvPresent === '1', rollbackMarkerFile: 'rollback-compose-present', rollbackMarkerPresent: rollbackMarkerPresent === '1', images: { backend: backendImage || null, web: webImage || null } },
   legacyUnits: units,
@@ -410,39 +439,58 @@ restore_predecessor_snapshot() {
   else
     unlink "$CURRENT" 2>/dev/null || true
   fi
-  local compose_present; compose_present="$(/usr/bin/node -e 'process.stdout.write(JSON.parse(process.argv[1]).compose?.present ? "1" : "0")' "$record")"
-  if [[ "$compose_present" == 1 ]]; then
-    local compose_active_services; compose_active_services="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write((v.compose?.activeServices ?? []).join(" "))' "$record")"
-    if [[ -n "$compose_active_services" ]]; then
-      local -a compose_services=(); read -r -a compose_services <<< "$compose_active_services"
-      run_compose up -d "${compose_services[@]}" || die predecessor_compose_restore_failed 70
-    fi
-  else
-    local unit active load enabled masked
-    while IFS= read -r unit; do
-      [[ -n "$unit" ]] || continue
-      load="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v.legacyUnits?.[process.argv[2]]?.load ?? "")' "$record" "$unit")"
-      active="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v.legacyUnits?.[process.argv[2]]?.active ?? "")' "$record" "$unit")"
-      enabled="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v.legacyUnits?.[process.argv[2]]?.enabled ?? "")' "$record" "$unit")"
-      masked="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v.legacyUnits?.[process.argv[2]]?.masked ? "true" : "false")' "$record" "$unit")"
-      [[ "$load" == loaded ]] || continue
-      systemctl stop "$unit" >/dev/null 2>&1 || true
-      if [[ "$masked" == true ]]; then
-        systemctl mask "$unit" >/dev/null 2>&1 || die predecessor_legacy_restore_failed 70
-      else
-        systemctl unmask "$unit" >/dev/null 2>&1 || die predecessor_legacy_restore_failed 70
-        case "$enabled" in
-          enabled) systemctl enable "$unit" >/dev/null 2>&1 || die predecessor_legacy_restore_failed 70 ;;
-          disabled) systemctl disable "$unit" >/dev/null 2>&1 || die predecessor_legacy_restore_failed 70 ;;
-        esac
-        if [[ "$active" == active ]]; then
-          systemctl start "$unit" >/dev/null 2>&1 || die predecessor_legacy_restore_failed 70
-        else
-          systemctl stop "$unit" >/dev/null 2>&1 || true
-        fi
+  local runtime_owner; runtime_owner="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); if(!["compose","legacy","none"].includes(v.runtimeOwner)) process.exit(1); process.stdout.write(v.runtimeOwner)' "$record")" || die snapshot_runtime_owner_invalid
+  case "$runtime_owner" in
+    compose)
+      local compose_active_services; compose_active_services="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write((v.compose?.activeServices ?? []).join(" "))' "$record")"
+      if [[ -n "$compose_active_services" ]]; then
+        local -a compose_services=(); read -r -a compose_services <<< "$compose_active_services"
+        run_compose up -d "${compose_services[@]}" || die predecessor_compose_restore_failed 70
       fi
-    done < <(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); for (const k of Object.keys(v.legacyUnits ?? {})) process.stdout.write(`${k}\n`)' "$record")
-  fi
+      ;;
+    legacy|none) ;;
+    *) die snapshot_runtime_owner_invalid ;;
+  esac
+  # Unit mask/enabled state is part of the predecessor even when Compose owns
+  # the application.  Restore that state on every path, but start legacy
+  # writers only when the durable owner enum says legacy.
+  local unit active load enabled masked
+  while IFS= read -r unit; do
+    [[ -n "$unit" ]] || continue
+    load="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v.legacyUnits?.[process.argv[2]]?.load ?? "")' "$record" "$unit")"
+    active="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v.legacyUnits?.[process.argv[2]]?.active ?? "")' "$record" "$unit")"
+    enabled="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v.legacyUnits?.[process.argv[2]]?.enabled ?? "")' "$record" "$unit")"
+    masked="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v.legacyUnits?.[process.argv[2]]?.masked ? "true" : "false")' "$record" "$unit")"
+    [[ "$load" == loaded ]] || continue
+    systemctl stop "$unit" >/dev/null 2>&1 || true
+    if [[ "$masked" == true ]]; then
+      systemctl mask "$unit" >/dev/null 2>&1 || die predecessor_legacy_restore_failed 70
+    else
+      systemctl unmask "$unit" >/dev/null 2>&1 || die predecessor_legacy_restore_failed 70
+      case "$enabled" in
+        enabled) systemctl enable "$unit" >/dev/null 2>&1 || die predecessor_legacy_restore_failed 70 ;;
+        disabled) systemctl disable "$unit" >/dev/null 2>&1 || die predecessor_legacy_restore_failed 70 ;;
+      esac
+      if [[ "$runtime_owner" == legacy && "$active" == active ]]; then
+        systemctl start "$unit" >/dev/null 2>&1 || die predecessor_legacy_restore_failed 70
+      else
+        systemctl stop "$unit" >/dev/null 2>&1 || true
+      fi
+    fi
+  done < <(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); for (const k of Object.keys(v.legacyUnits ?? {})) process.stdout.write(`${k}\n`)' "$record")
+  local actual_compose expected_compose actual_legacy expected_legacy
+  actual_compose="$(run_compose ps --status running --services 2>/dev/null | awk '$0=="api"||$0=="worker"||$0=="web"' | sort | tr '\n' ' ')" || die predecessor_owner_readback_failed 70
+  expected_compose="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); if(v.runtimeOwner==="compose") process.stdout.write((v.compose?.activeServices??[]).filter(x=>["api","worker","web"].includes(x)).sort().join(" "))' "$record")"
+  actual_legacy=''
+  for unit in meetwise-api.service meetwise-worker.service meetwise-web.service; do
+    local active_state
+    active_state="$(timeout --kill-after=1s 5s systemctl show --property=ActiveState --value "$unit" 2>/dev/null)" || die predecessor_owner_readback_failed 70
+    [[ "$active_state" =~ ^(active|inactive|failed)$ ]] || die predecessor_owner_readback_failed 70
+    [[ "$active_state" == active ]] && actual_legacy+="$unit "
+  done
+  actual_legacy="$(printf '%s\n' $actual_legacy | sed '/^$/d' | sort | tr '\n' ' ')"
+  expected_legacy="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); if(v.runtimeOwner==="legacy") process.stdout.write(Object.entries(v.legacyUnits??{}).filter(([,s])=>s.active==="active").map(([k])=>k).sort().join(" "))' "$record")"
+  [[ "${actual_compose% }" == "$expected_compose" && "${actual_legacy% }" == "$expected_legacy" ]] || die predecessor_runtime_owner_readback_mismatch 70
   # The old public publication may be restored only after the predecessor
   # files and owner are back.  A missing/disabled predecessor intentionally
   # remains fail-closed at this point.
@@ -582,7 +630,7 @@ NODE
     expected_env_sha="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v?.composePull?.envSha256 ?? "")' "$candidate")"
     [[ -f "$COMPOSE_ENV" && ! -L "$COMPOSE_ENV" ]] || die transaction_compose_pull_binding_invalid
     env_sha="$(sha256sum "$COMPOSE_ENV" | awk '{print $1}')"
-    [[ "$env_sha" == "$expected_env_sha" ]] || die transaction_compose_pull_binding_invalid
+    [[ "$env_sha" == "$expected_env_sha" && -f "$COMPOSE_FILE" && ! -L "$COMPOSE_FILE" && "$(sha256sum "$COMPOSE_FILE" | awk '{print $1}')" == "$(/usr/bin/node -e 'process.stdout.write(JSON.parse(process.argv[1]).composeSpecDigest ?? "")' "$current_json")" ]] || die transaction_compose_pull_binding_invalid
     printf '%s\n' "$current_json"
     return
   fi
@@ -592,6 +640,7 @@ NODE
   then
     die transaction_compose_pull_conflict
   fi
+  install_candidate_compose_spec "$release" "$(/usr/bin/node -e 'process.stdout.write(JSON.parse(process.argv[1]).composeSpecDigest ?? "")' "$current_json")"
   compose_pull "$backend_digest" "$web_digest"
   [[ -f "$COMPOSE_ENV" && ! -L "$COMPOSE_ENV" ]] || die compose_env_missing
   env_sha="$(sha256sum "$COMPOSE_ENV" | awk '{print $1}')"
@@ -701,6 +750,7 @@ transaction_step() {
   with_controller_lock
   local current_json phase; current_json="$(ledger_node ledger-read)" || die transaction_ledger_missing
   assert_transaction_ledger_identity "$current_json" "$transaction_id" "$release" "$token"
+  current_json="$(ledger_node ledger-heartbeat --transaction-id "$transaction_id" --release "$release" --token "$token")" || die transaction_lease_expired 75
   phase="$(/usr/bin/node -e 'process.stdout.write(JSON.parse(process.argv[1])?.phase ?? "")' "$current_json")"
   case "$action:$phase" in
     migrate:migrated)
@@ -807,7 +857,15 @@ transaction_cmd() {
       local predecessor_json; predecessor_json="$(/usr/bin/node -e 'process.stdout.write(JSON.stringify(require(process.argv[1])))' "$predecessor_file")" || die snapshot_read_failed
       # The JSON is generated by the root-owned snapshot helper; ledger-init
       # validates all immutable identity fields again and is idempotent on retry.
-      ledger_node ledger-init --transaction-id "$transaction_id" --release "$release" --commit "$commit" --tree "$tree" --generation "$generation" --token "$token" --controller-digest "$controller_digest" --compose-spec-digest "$compose_digest" --source-archive-digest "$source_digest" --backend-image-digest "$backend_digest" --web-image-digest "$web_digest" --predecessor-json "$predecessor_json" --candidate-json "$(/usr/bin/node -e 'process.stdout.write(JSON.stringify({bootstrapOrigin:process.argv[1]}))' "$bootstrap_origin")"
+      local begin_json; begin_json="$(ledger_node ledger-init --transaction-id "$transaction_id" --release "$release" --commit "$commit" --tree "$tree" --generation "$generation" --token "$token" --controller-digest "$controller_digest" --compose-spec-digest "$compose_digest" --source-archive-digest "$source_digest" --backend-image-digest "$backend_digest" --web-image-digest "$web_digest" --predecessor-json "$predecessor_json" --candidate-json "$(/usr/bin/node -e 'process.stdout.write(JSON.stringify({bootstrapOrigin:process.argv[1]}))' "$bootstrap_origin")")"
+      # ledger-init is intentionally idempotent for a replay, including a
+      # legacy v1 file written before durable leases existed. Claim/refresh
+      # the lease under the same controller flock before starting the watcher;
+      # otherwise a legacy ledger would remain lease_unknown forever and could
+      # never be recovered safely after a runner cancellation.
+      begin_json="$(ledger_node ledger-heartbeat --transaction-id "$transaction_id" --release "$release" --token "$token")" || die transaction_lease_claim_failed 70
+      start_full_stack_release_recovery_timer
+      printf '%s\n' "$begin_json"
       ;;
     compose-pull|snapshot|revoke-predecessor|close-edge|quiesce|migrate|start-backend|start-web-internal|verify-data|publish-probe|activate|confirm)
       if [[ "$action" == compose-pull ]]; then
@@ -817,6 +875,14 @@ transaction_cmd() {
       fi
       transaction_step "$@"
       ;;
+    heartbeat)
+      [[ $# -eq 5 ]] || die transaction_argc_invalid
+      local transaction_id="$3" release="$4" token="$5"
+      assert_transaction_args "$transaction_id" "$release" "$token"
+      with_controller_lock
+      local heartbeat_json; heartbeat_json="$(ledger_node ledger-heartbeat --transaction-id "$transaction_id" --release "$release" --token "$token")" || die transaction_lease_expired 75
+      printf '%s\n' "$heartbeat_json"
+      ;;
     schema-before|schema-after)
       [[ $# -eq 6 ]] || die transaction_argc_invalid
       local transaction_id="$3" release="$4" token="$5" schema_digest="$6"
@@ -825,6 +891,7 @@ transaction_cmd() {
       with_controller_lock
       local current_json phase; current_json="$(ledger_node ledger-read)" || die transaction_ledger_missing
       assert_transaction_ledger_identity "$current_json" "$transaction_id" "$release" "$token"
+      current_json="$(ledger_node ledger-heartbeat --transaction-id "$transaction_id" --release "$release" --token "$token")" || die transaction_lease_expired 75
       phase="$(/usr/bin/node -e 'process.stdout.write(JSON.parse(process.argv[1])?.phase ?? "")' "$current_json")"
       if [[ "$action" == schema-before ]]; then [[ "$phase" == quiesced ]] || die transaction_phase_conflict; else [[ "$phase" == migrated ]] || die transaction_phase_conflict; fi
       local patch_json; if [[ "$action" == schema-before ]]; then patch_json="{\"schemaBefore\":\"$schema_digest\"}"; else patch_json="{\"schemaAfter\":\"$schema_digest\"}"; fi
@@ -843,20 +910,25 @@ transaction_cmd() {
           ;;
         noop)
           local recovery_phase; recovery_phase="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v?.phase ?? "")' "$recovery_json")"
-          if [[ "$recovery_phase" == committed ]]; then clear_transaction_snapshot "$transaction_id"; fi
+          if [[ "$recovery_phase" == committed || "$recovery_phase" == rolled_back || "$recovery_phase" == forward_only_maintenance ]]; then clear_transaction_snapshot "$transaction_id"; stop_full_stack_release_recovery_timer; fi
           printf '%s\n' "$recovery_json"
           ;;
         discard_unmutated_transaction)
           clear_transaction_snapshot "$transaction_id"
+          stop_full_stack_release_recovery_timer
           printf '%s\n' "$recovery_json"
           ;;
         restore_pre_migration_snapshot|rollback_compatible)
           restore_predecessor_snapshot "$transaction_id" "$release"
           ledger_node ledger-transition --transaction-id "$transaction_id" --release "$release" --token "$token" --expected-phase rollback_pending --next-phase rolled_back
+          clear_transaction_snapshot "$transaction_id"
+          stop_full_stack_release_recovery_timer
           ;;
         forward_only_maintenance)
           run_compose stop api worker web >/dev/null 2>&1 || true
           ledger_node ledger-transition --transaction-id "$transaction_id" --release "$release" --token "$token" --expected-phase rollback_pending --next-phase forward_only_maintenance
+          clear_transaction_snapshot "$transaction_id"
+          stop_full_stack_release_recovery_timer
           ;;
         reprobe_migration)
           local migration_probe migration_digest migration_before migration_patch migration_recovery_action
@@ -873,9 +945,13 @@ NODE
           if [[ "$migration_recovery_action" == rollback_compatible ]]; then
             restore_predecessor_snapshot "$transaction_id" "$release"
             ledger_node ledger-transition --transaction-id "$transaction_id" --release "$release" --token "$token" --expected-phase rollback_pending --next-phase rolled_back
+            clear_transaction_snapshot "$transaction_id"
+            stop_full_stack_release_recovery_timer
           else
             run_compose stop api worker web >/dev/null 2>&1 || true
             ledger_node ledger-transition --transaction-id "$transaction_id" --release "$release" --token "$token" --expected-phase rollback_pending --next-phase forward_only_maintenance
+            clear_transaction_snapshot "$transaction_id"
+            stop_full_stack_release_recovery_timer
           fi
           ;;
         *) die transaction_recovery_action_invalid ;;
@@ -888,26 +964,40 @@ NODE
       system_recovery_action="$(/usr/bin/node -e 'process.stdout.write(JSON.parse(process.argv[1]).action ?? "")' "$system_recovery_json")"
       case "$system_recovery_action" in
         no_ledger)
+          stop_full_stack_release_recovery_timer
+          printf '%s\n' "$system_recovery_json"
+          ;;
+        lease_active|lease_unknown)
+          # A boot/timer check is read-only while the durable lease is live or
+          # cannot be trusted. Only an expired, well-formed lease may enter
+          # the recovery CAS below.
           printf '%s\n' "$system_recovery_json"
           ;;
         noop)
           local system_phase system_transaction_id; system_phase="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v?.phase ?? "")' "$system_before_json")"; system_transaction_id="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v?.transactionId ?? "")' "$system_before_json")"
-          if [[ "$system_phase" == committed && -n "$system_transaction_id" ]]; then clear_transaction_snapshot "$system_transaction_id"; fi
+          if [[ -n "$system_transaction_id" ]]; then clear_transaction_snapshot "$system_transaction_id"; fi
+          stop_full_stack_release_recovery_timer
           printf '%s\n' "$system_recovery_json"
           ;;
         discard_unmutated_transaction)
           local system_transaction_id; system_transaction_id="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v?.transactionId ?? "")' "$system_before_json")"
           [[ -n "$system_transaction_id" ]] && clear_transaction_snapshot "$system_transaction_id"
+          stop_full_stack_release_recovery_timer
           printf '%s\n' "$system_recovery_json"
           ;;
         restore_pre_migration_snapshot|rollback_compatible)
           local system_transaction_id system_release; system_transaction_id="$(/usr/bin/node -e 'process.stdout.write(JSON.parse(process.argv[1]).transactionId)' "$(ledger_node ledger-read)")"; system_release="$(/usr/bin/node -e 'process.stdout.write(JSON.parse(process.argv[1]).release)' "$(ledger_node ledger-read)")"
           restore_predecessor_snapshot "$system_transaction_id" "$system_release"
           ledger_node ledger-system-transition --expected-phase rollback_pending --next-phase rolled_back
+          clear_transaction_snapshot "$system_transaction_id"
+          stop_full_stack_release_recovery_timer
           ;;
         forward_only_maintenance)
           run_compose stop api worker web >/dev/null 2>&1 || true
+          local system_transaction_id; system_transaction_id="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(v?.transactionId ?? "")' "$(ledger_node ledger-read)")"
           ledger_node ledger-system-transition --expected-phase rollback_pending --next-phase forward_only_maintenance
+          [[ -n "$system_transaction_id" ]] && clear_transaction_snapshot "$system_transaction_id"
+          stop_full_stack_release_recovery_timer
           ;;
         reprobe_migration)
           local system_migration_json system_migration_release system_migration_id system_probe system_probe_digest system_before_digest system_action system_patch
@@ -925,9 +1015,13 @@ NODE
           if [[ "$system_action" == rollback_compatible ]]; then
             restore_predecessor_snapshot "$system_migration_id" "$system_migration_release"
             ledger_node ledger-system-transition --expected-phase rollback_pending --next-phase rolled_back
+            clear_transaction_snapshot "$system_migration_id"
+            stop_full_stack_release_recovery_timer
           else
             run_compose stop api worker web >/dev/null 2>&1 || true
             ledger_node ledger-system-transition --expected-phase rollback_pending --next-phase forward_only_maintenance
+            clear_transaction_snapshot "$system_migration_id"
+            stop_full_stack_release_recovery_timer
           fi
           ;;
         *) die transaction_recovery_action_invalid ;;
@@ -942,6 +1036,41 @@ NODE
       assert_transaction_ledger_identity "$current_json" "$transaction_id" "$release" "$token"
       printf '%s\n' "$current_json"
       ;;
+    status-system)
+      # Read-only, tokenless status for an independent recovery workflow.  The
+      # root ledger remains the source of truth, but the response is a narrow
+      # allowlisted projection: never expose token digests, image refs, source
+      # paths, database facts, or candidate receipt bodies to the recovery
+      # runner.  A missing ledger is a normal no-op for the scheduled checker.
+      [[ $# -eq 2 ]] || die transaction_argc_invalid
+      with_controller_lock
+      local system_status_json; system_status_json="$(ledger_node ledger-read)" || die transaction_ledger_missing
+      /usr/bin/node - "$system_status_json" <<'NODE' || die transaction_status_invalid 70
+const raw = process.argv[2] ?? '';
+if (!raw || raw === 'null') { process.stdout.write('{"action":"no_ledger"}\n'); process.exit(0); }
+const value = JSON.parse(raw);
+const digest = (v) => typeof v === 'string' && /^[a-f0-9]{64}$/.test(v) ? v : null;
+const pages = value?.predecessor?.pages;
+if (!value || !['preflighted','snapshotted','edge_closed','quiesced','migrating','migrated','backend_ready','web_internal_ready','receipts_ready','probe_published','edge_probing','confirmed_pending_pages','pages_enabled','rollback_pending','committed','rolled_back','forward_only_maintenance'].includes(value.phase)) throw new Error('phase');
+if (typeof value.transactionId !== 'string' || typeof value.release !== 'string' || !Number.isSafeInteger(value.generation) || value.generation < 1) throw new Error('identity');
+if (!pages || !['enabled','disabled','none'].includes(pages.state)) throw new Error('pages_state');
+if (pages.state === 'none') {
+  if (pages.generation !== null && pages.generation !== undefined && pages.generation !== 0) throw new Error('pages_none_generation');
+  if (pages.fingerprint !== null && pages.fingerprint !== undefined && pages.fingerprint !== '') throw new Error('pages_none_fingerprint');
+} else if (!Number.isSafeInteger(pages.generation) || pages.generation < 1 || !digest(pages.fingerprint)) throw new Error('pages_identity');
+const candidate = value.candidate ?? {};
+const finalManifestFingerprint = digest(candidate.finalManifestFingerprint);
+const pagesFingerprint = digest(candidate.pagesFingerprint);
+process.stdout.write(`${JSON.stringify({
+  action: 'status', schemaVersion: value.schemaVersion, transactionId: value.transactionId,
+  release: value.release, generation: value.generation, phase: value.phase,
+  recoveryPolicy: value.recoveryPolicy, lastErrorCode: value.lastErrorCode ?? null,
+  leaseExpiresAt: value.leaseExpiresAt ?? null,
+  predecessor: { pages: { state: pages.state, generation: pages.state === 'none' ? null : pages.generation, fingerprint: pages.state === 'none' ? null : pages.fingerprint } },
+  candidate: { finalManifestFingerprint, pagesFingerprint },
+})}\n`);
+NODE
+      ;;
     wait-pages)
       [[ $# -eq 6 ]] || die transaction_argc_invalid
       local transaction_id="$3" release="$4" token="$5" pages_fingerprint="$6"
@@ -950,6 +1079,7 @@ NODE
       with_controller_lock
       local current_json; current_json="$(ledger_node ledger-read)" || die transaction_ledger_missing
       assert_transaction_ledger_identity "$current_json" "$transaction_id" "$release" "$token"
+      current_json="$(ledger_node ledger-heartbeat --transaction-id "$transaction_id" --release "$release" --token "$token")" || die transaction_lease_expired 75
       local phase; phase="$(/usr/bin/node -e 'const x=JSON.parse(process.argv[1]); process.stdout.write(x?.phase ?? "")' "$current_json")"
       if [[ "$phase" == pages_enabled || "$phase" == committed ]]; then
         local stored_pages_fingerprint; stored_pages_fingerprint="$(/usr/bin/node -e 'const x=JSON.parse(process.argv[1]); process.stdout.write(x?.candidate?.pagesFingerprint ?? "")' "$current_json")"
@@ -978,6 +1108,7 @@ NODE
       with_controller_lock
       local current_json; current_json="$(ledger_node ledger-read)" || die transaction_ledger_missing
       assert_transaction_ledger_identity "$current_json" "$transaction_id" "$release" "$token"
+      current_json="$(ledger_node ledger-heartbeat --transaction-id "$transaction_id" --release "$release" --token "$token")" || die transaction_lease_expired 75
       local phase candidate_fingerprint; phase="$(/usr/bin/node -e 'process.stdout.write(JSON.parse(process.argv[1])?.phase ?? "")' "$current_json")"; candidate_fingerprint="$(/usr/bin/node -e 'process.stdout.write(JSON.parse(process.argv[1])?.candidate?.pagesFingerprint ?? "")' "$current_json")"
       [[ "$phase" == committed || "$phase" == pages_enabled ]] || die transaction_commit_phase_invalid
       [[ "$candidate_fingerprint" == "$pages_fingerprint" ]] || die pages_receipt_mismatch
@@ -990,6 +1121,7 @@ NODE
         printf '%s\n' "$current_json"
       fi
       clear_transaction_snapshot "$transaction_id"
+      stop_full_stack_release_recovery_timer
       ;;
     *) die transaction_action_invalid ;;
   esac
@@ -1084,6 +1216,25 @@ set_image_env() {
   printf 'BACKEND_IMAGE=%s\nWEB_IMAGE=%s\n' "$backend_ref" "$web_ref" >> "$tmp"
   chmod 0600 "$tmp"
   mv -f "$tmp" "$COMPOSE_ENV"
+}
+
+install_candidate_compose_spec() {
+  local release="$1" expected_digest="$2" release_root candidate temporary actual_digest
+  [[ "$expected_digest" =~ $DIGEST_RE ]] || die candidate_compose_spec_digest_invalid
+  release_root="$(with_release_cwd "$release")"
+  candidate="$release_root/docker/compose.prod.yml"
+  [[ -f "$candidate" && ! -L "$candidate" && "$(stat -c '%u' "$candidate" 2>/dev/null || true)" == 0 ]] || die candidate_compose_spec_invalid 70
+  actual_digest="$(sha256sum "$candidate" | awk '{print $1}')"
+  [[ "$actual_digest" == "$expected_digest" ]] || die candidate_compose_spec_digest_mismatch 70
+  install -d -o root -g root -m 0755 "$(dirname "$COMPOSE_FILE")"
+  temporary="$(mktemp "$(dirname "$COMPOSE_FILE")/.compose.prod.yml.XXXXXX")" || die candidate_compose_spec_temp_failed 70
+  trap 'rm -f -- "$temporary"' RETURN
+  install -o root -g root -m 0644 "$candidate" "$temporary"
+  /usr/bin/docker compose --project-directory "$COMPOSE_DIR" -f "$temporary" config >/dev/null || die candidate_compose_spec_config_invalid 70
+  sync -f "$temporary"
+  mv -f -- "$temporary" "$COMPOSE_FILE"
+  sync -f "$(dirname "$COMPOSE_FILE")"
+  trap - RETURN
 }
 
 compose_pull() {
@@ -1319,10 +1470,71 @@ confirm_public() {
   # its shape before promoting it to the root path the publisher reads.
   local receipt="$INCOMING/receipt.json"
   assert_incoming_file "$receipt"
+  /usr/bin/node - "$receipt" <<'NODE' || die receipt_schema_invalid
+const { readFileSync } = require('node:fs');
+const receipt = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+const ORIGIN_RE = /^https:\/\/[a-z0-9-]+\.tail[a-z0-9]+\.ts\.net$/;
+const DIGEST_RE = /^[a-f0-9]{64}$/;
+const PAGE_PATHS = new Set(['/dashboard', '/interviews', '/jobs', '/resume', '/settings', '/privacy', '/recruiter/jobs', '/recruiter/talent']);
+const HEADER_NAMES = new Set(['content-type', 'cache-control']);
+const exactKeys = (value, expected, label) => {
+  if (!value || typeof value !== 'object' || Array.isArray(value) || JSON.stringify(Object.keys(value).sort()) !== JSON.stringify([...expected].sort())) throw new Error(`${label}_keys_invalid`);
+};
+const digest = (value, label) => { if (!DIGEST_RE.test(value ?? '')) throw new Error(`${label}_digest_invalid`); };
+const safeReason = (value, label) => { if (typeof value !== 'string' || value.length < 1 || value.length > 256 || /[\u0000-\u001f\u007f]/.test(value)) throw new Error(`${label}_reason_invalid`); };
+exactKeys(receipt, ['schemaVersion', 'origin', 'probeNonce', 'checkedAt', 'manifestSha256', 'rootStatus', 'loginStatus', 'manifestStatus', 'rootUrl', 'loginUrl', 'manifestUrl', 'rootSha256', 'blackboxSha256', 'signingKeyId', 'verifier', 'e2e', 'signature'], 'receipt_v2');
+if (receipt.schemaVersion !== 2 || !ORIGIN_RE.test(receipt.origin ?? '') || !DIGEST_RE.test(receipt.probeNonce ?? '') || !DIGEST_RE.test(receipt.manifestSha256 ?? '') || new Date(receipt.checkedAt).toISOString() !== receipt.checkedAt || receipt.signingKeyId !== 'probe-receipt-ed25519-v2') throw new Error('receipt_v2_binding_invalid');
+if (receipt.rootStatus !== 200 || receipt.loginStatus !== 200 || receipt.manifestStatus !== 200 || receipt.rootUrl !== `${receipt.origin}/` || receipt.loginUrl !== `${receipt.origin}/login` || receipt.manifestUrl !== `${receipt.origin}/preview-release-manifest.json`) throw new Error('receipt_v2_surface_invalid');
+if (!/^[A-Za-z0-9+/]+={0,2}$/.test(receipt.signature ?? '') || Buffer.from(receipt.signature, 'base64').length !== 64) throw new Error('receipt_v2_signature_invalid');
+digest(receipt.rootSha256, 'receipt_v2_root');
+digest(receipt.blackboxSha256, 'receipt_v2_blackbox');
+exactKeys(receipt.verifier, ['repository', 'workflow', 'ref', 'commit', 'runId', 'sourceSha256', 'workflowSha256', 'packageLockSha256'], 'receipt_v2_verifier');
+if (receipt.verifier.repository !== 'miaole/meetwise-deploy-control' || receipt.verifier.workflow !== 'verify-meetwise-public-origin' || receipt.verifier.ref !== 'refs/heads/main' || !/^[a-f0-9]{40}$/.test(receipt.verifier.commit ?? '') || !/^[0-9]+$/.test(receipt.verifier.runId ?? '')) throw new Error('receipt_v2_verifier_identity_invalid');
+for (const [name, value] of [['source', receipt.verifier.sourceSha256], ['workflow', receipt.verifier.workflowSha256], ['package_lock', receipt.verifier.packageLockSha256]]) digest(value, `receipt_v2_verifier_${name}`);
+const e2e = receipt.e2e; const redirect = e2e?.noCookieProtectedRedirect;
+exactKeys(e2e, ['status', 'scope', 'complete', 'noCookieProtectedRedirect', 'accounts', 'sensitiveResponseBodies'], 'receipt_v2_e2e');
+if (e2e.status !== 'passed_pages_only' || e2e.scope !== 'browser_auth_pages_only' || e2e.complete !== false || e2e.sensitiveResponseBodies !== 'not_stored' || !redirect) throw new Error('receipt_v2_e2e_invalid');
+exactKeys(redirect, ['origin', 'pathname', 'search'], 'receipt_v2_redirect');
+if (redirect.origin !== receipt.origin || redirect.pathname !== '/login' || redirect.search !== '?next=%2Fdashboard') throw new Error('receipt_v2_redirect_invalid');
+exactKeys(e2e.accounts, ['candidate', 'recruiter'], 'receipt_v2_accounts');
+for (const [role, loginPath] of [['candidate', '/dashboard'], ['recruiter', '/recruiter/jobs']]) {
+  const account = e2e.accounts?.[role];
+  exactKeys(account, ['role', 'accountEmailSha256', 'loginPath', 'sessionCookie', 'pages', 'roleBoundary', 'api', 'sse', 'worker', 'semanticAssertionCount'], `receipt_v2_${role}_account`);
+  if (account.role !== role || account.loginPath !== loginPath) throw new Error('receipt_v2_account_invalid');
+  digest(account.accountEmailSha256, 'receipt_v2_account');
+  exactKeys(account.sessionCookie, ['httpOnly', 'secure', 'roleCookie'], `receipt_v2_${role}_session`);
+  if (account.sessionCookie.httpOnly !== true || account.sessionCookie.secure !== true || account.sessionCookie.roleCookie !== role) throw new Error('receipt_v2_session_invalid');
+  if (!Array.isArray(account.pages) || account.pages.length < 1) throw new Error('receipt_v2_pages_invalid');
+  account.pages.forEach((page, index) => {
+    exactKeys(page, ['path', 'status', 'headers', 'bodyHash', 'bodyStored', 'markerHashes', 'negativeMarkerHashes'], `receipt_v2_${role}_page_${index}`);
+    if (!PAGE_PATHS.has(page.path) || page.status !== 200 || page.bodyStored !== false) throw new Error('receipt_v2_page_invalid');
+    exactKeys(page.headers, Object.keys(page.headers).filter((key) => HEADER_NAMES.has(key)), `receipt_v2_${role}_page_${index}_headers`);
+    for (const [name, value] of Object.entries(page.headers)) if (!HEADER_NAMES.has(name) || typeof value !== 'string' || !/^[\x20-\x7e]{1,256}$/.test(value)) throw new Error('receipt_v2_page_header_invalid');
+    digest(page.bodyHash, 'receipt_v2_page');
+    if (!Array.isArray(page.markerHashes) || !Array.isArray(page.negativeMarkerHashes) || page.markerHashes.length === 0) throw new Error('receipt_v2_page_semantic_invalid');
+    for (const marker of [...page.markerHashes, ...page.negativeMarkerHashes]) digest(marker, 'receipt_v2_page_marker');
+  });
+  const boundary = account.roleBoundary;
+  exactKeys(boundary, boundary?.status === 'verified' ? ['status', 'path', 'markerHashes'] : ['status', 'reason'], `receipt_v2_${role}_role_boundary`);
+  if (boundary.status === 'verified') {
+    if (boundary.path !== '/recruiter/jobs' || !Array.isArray(boundary.markerHashes) || boundary.markerHashes.length < 1) throw new Error('receipt_v2_role_boundary_invalid');
+    boundary.markerHashes.forEach((marker) => digest(marker, 'receipt_v2_role_boundary_marker'));
+  } else if (boundary.status === 'unproven') safeReason(boundary.reason, 'receipt_v2_role_boundary');
+  else throw new Error('receipt_v2_role_boundary_invalid');
+  for (const [name, value] of [['api', account.api], ['sse', account.sse], ['worker', account.worker]]) {
+    exactKeys(value, ['status', 'reason'], `receipt_v2_${role}_${name}`);
+    if (value.status !== 'unproven') throw new Error(`receipt_v2_${name}_overclaim`);
+    safeReason(value.reason, `receipt_v2_${role}_${name}`);
+  }
+  if (!Number.isInteger(account.semanticAssertionCount) || account.semanticAssertionCount < 1) throw new Error('receipt_v2_semantic_count_invalid');
+}
+const text = JSON.stringify(receipt);
+if (/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(text) || /(?:password|authorization|set-cookie|bearer)\s*[:=]/i.test(text) || /"(?:password|authorization|cookie|set-cookie)"\s*:/i.test(text) || /\bbearer\s+[A-Za-z0-9._-]+/i.test(text)) throw new Error('receipt_v2_sensitive_value_invalid');
+NODE
   local origin probe_nonce manifest_sha256
-  origin="$(node -e 'const r=require(process.argv[1]); if(r.schemaVersion!==1)process.exit(1); process.stdout.write(r.origin)' "$receipt")" || die receipt_schema_invalid
-  probe_nonce="$(node -e 'const r=require(process.argv[1]); process.stdout.write(r.probeNonce)' "$receipt")"
-  manifest_sha256="$(node -e 'const r=require(process.argv[1]); process.stdout.write(r.manifestSha256)' "$receipt")"
+  origin="$(/usr/bin/node -e 'const r=require(process.argv[1]); process.stdout.write(r.origin)' "$receipt")" || die receipt_schema_invalid
+  probe_nonce="$(/usr/bin/node -e 'const r=require(process.argv[1]); process.stdout.write(r.probeNonce)' "$receipt")"
+  manifest_sha256="$(/usr/bin/node -e 'const r=require(process.argv[1]); process.stdout.write(r.manifestSha256)' "$receipt")"
   [[ "$origin" =~ $ORIGIN_RE && "$probe_nonce" =~ ^[a-f0-9]{64}$ && "$manifest_sha256" =~ $DIGEST_RE ]] || die receipt_field_invalid
   install -o root -g root -m 0600 "$receipt" "$VERIFICATION"
   # transaction_step already owns the controller flock and exported its fd;
@@ -1376,7 +1588,8 @@ NODE
 controller_live_readback() {
   local expected="${1:-}"
   /usr/bin/node - "$CONTROLLER_MANIFEST" "$expected" <<'NODE'
-const { closeSync, constants, createHash, lstatSync, openSync, readFileSync } = require('node:fs');
+const { createHash } = require('node:crypto');
+const { closeSync, constants, lstatSync, openSync, readFileSync } = require('node:fs');
 const [manifestPath, expected] = process.argv.slice(2);
 if (typeof constants.O_NOFOLLOW !== 'number') throw new Error('controller_o_nofollow_unavailable');
 const source = require('node:fs').readFileSync(manifestPath, 'utf8');
@@ -1414,7 +1627,8 @@ NODE
 controller_copy_archive_root() {
   local source="$1" destination="$2" archive_digest="$3"
   /usr/bin/node - "$source" "$destination" "$archive_digest" <<'NODE'
-const { closeSync, constants, createHash, fstatSync, fsyncSync, lstatSync, mkdirSync, openSync, readSync, writeSync, chownSync, chmodSync } = require('node:fs');
+const { createHash } = require('node:crypto');
+const { closeSync, constants, fstatSync, fsyncSync, lstatSync, mkdirSync, openSync, readSync, writeSync, chownSync, chmodSync } = require('node:fs');
 const [source, destination, expectedDigest] = process.argv.slice(2);
 if (typeof constants.O_NOFOLLOW !== 'number') process.exit(1);
 const sourceStat = lstatSync(source); if (!sourceStat.isFile() || sourceStat.isSymbolicLink() || sourceStat.size > 67108864) process.exit(1);
@@ -1466,7 +1680,8 @@ controller_stage_archive() {
   done < <(/usr/bin/tar -tvzf "$root_archive")
   /usr/bin/tar -xzf "$root_archive" --no-same-owner --same-permissions -C "$stage" || die controller_archive_extract_failed
   /usr/bin/node - "$CONTROLLER_MANIFEST" "$stage/manifest.txt" "$entries" "$stage" "$bundle_digest" <<'NODE' || die controller_archive_manifest_invalid
-const { closeSync, constants, createHash, lstatSync, openSync, readFileSync } = require('node:fs');
+const { createHash } = require('node:crypto');
+const { closeSync, constants, lstatSync, openSync, readFileSync } = require('node:fs');
 const { join } = require('node:path');
 const [basePath, candidatePath, entriesPath, stage, bundleDigest] = process.argv.slice(2);
 const text = readFileSync(candidatePath, 'utf8');
@@ -1535,7 +1750,8 @@ controller_snapshot_validate() {
   [[ -d "$snapshot" && ! -L "$snapshot" && "$(stat -c '%u:%g:%a' "$snapshot" 2>/dev/null || true)" == '0:0:700' ]] || die controller_snapshot_invalid
   [[ -f "$snapshot/controller-manifest.txt" && ! -L "$snapshot/controller-manifest.txt" && "$(stat -c '%u:%g:%a' "$snapshot/controller-manifest.txt" 2>/dev/null || true)" == '0:0:600' && -f "$snapshot/snapshot.tsv" && ! -L "$snapshot/snapshot.tsv" && -f "$snapshot/version.tsv" && ! -L "$snapshot/version.tsv" && -d "$snapshot/files" && ! -L "$snapshot/files" ]] || die controller_snapshot_invalid
   /usr/bin/node - "$snapshot/controller-manifest.txt" "$snapshot" <<'NODE' || die controller_snapshot_invalid
-const { createHash, lstatSync, readFileSync, readdirSync } = require('node:fs');
+const { createHash } = require('node:crypto');
+const { lstatSync, readFileSync, readdirSync } = require('node:fs');
 const { join } = require('node:path');
 const [manifestPath, snapshot] = process.argv.slice(2);
 const manifestStat = lstatSync(manifestPath); if (!manifestStat.isFile() || manifestStat.isSymbolicLink() || manifestStat.uid !== 0 || manifestStat.gid !== 0 || (manifestStat.mode & 0o777) !== 0o600) throw new Error();
@@ -1619,7 +1835,8 @@ controller_snapshot_create() {
 controller_snapshot_live_readback() {
   local snapshot="$1"
   /usr/bin/node - "$snapshot/controller-manifest.txt" "$snapshot" <<'NODE'
-const { closeSync, constants, createHash, lstatSync, openSync, readFileSync } = require('node:fs');
+const { createHash } = require('node:crypto');
+const { closeSync, constants, lstatSync, openSync, readFileSync } = require('node:fs');
 const { join } = require('node:path');
 const [manifestPath, snapshot] = process.argv.slice(2);
 if (typeof constants.O_NOFOLLOW !== 'number') throw new Error();

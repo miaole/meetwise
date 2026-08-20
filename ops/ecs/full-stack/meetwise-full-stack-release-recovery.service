@@ -1,0 +1,23 @@
+[Unit]
+Description=Recover an expired Meetwise full-stack release lease
+After=local-fs.target network-online.target time-sync.target tailscaled.service
+Wants=network-online.target
+Before=meetwise-full-stack-publication-recovery.service meetwise-full-stack-edge-restore.service nginx.service
+ConditionPathExists=/usr/local/sbin/meetwise-cd-root
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/local/sbin/meetwise-cd-root transaction recover-system
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/meetwise-preview-controller /srv/meetwise-full-stack /srv/meetwise-compose /usr/share/meetwise-preview /run/meetwise-preview-controller /etc/meetwise
+TimeoutStartSec=120
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

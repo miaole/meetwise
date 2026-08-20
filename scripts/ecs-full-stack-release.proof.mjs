@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -11,6 +12,9 @@ const prepare = read('ops/ecs/full-stack/prepare-full-stack-release.mjs');
 const receive = read('ops/ecs/full-stack/meetwise-cd-receive.sh');
 const dispatch = read('ops/ecs/full-stack/meetwise-cd-root.sh');
 const workflow = read('.github/workflows/deploy-full-stack.yml');
+const recoveryWorkflow = read('.github/workflows/recover-full-stack.yml');
+const rolloutWorkflow = read('.github/workflows/rollout-cd-controller.yml');
+const ciWorkflow = read('.github/workflows/ci.yml');
 const pagesWorkflow = read('.github/workflows/pages-preview.yml');
 const publisher = read('ops/ecs/full-stack/full-stack-preview-publisher.mjs');
 const verifyOrigin = read('scripts/verify-full-stack-public-origin.mjs');
@@ -66,6 +70,11 @@ assert.ok(receiveStatusAt > 0 && receiveStatusEnd > receiveStatusAt, 'receive mu
 const receiveStatusBlock = receive.slice(receiveStatusAt, receiveStatusEnd);
 assert.match(receiveStatusBlock, /\[\[ \$\{#argv\[@\]\} -eq 6 \]\]/);
 assert.match(receiveStatusBlock, /\[\[ "\$\{argv\[3\]\}" =~ \$TRANSACTION_ID_RE && "\$\{argv\[4\]\}" =~ \$RELEASE_RE && "\$\{argv\[5\]\}" =~ \$TOKEN_RE \]\]/);
+const receiveSystemStatusAt = receive.indexOf('      status-system|recover-system)');
+assert.ok(receiveSystemStatusAt > 0, 'receiver must expose the bounded tokenless system recovery surface');
+const receiveSystemStatusEnd = receive.indexOf('      *)', receiveSystemStatusAt);
+const receiveSystemStatusBlock = receive.slice(receiveSystemStatusAt, receiveSystemStatusEnd);
+assert.match(receiveSystemStatusBlock, /\[\[ \$\{#argv\[@\]\} -eq 3 \]\]/);
 // 只有 receive-source 与 confirm-public 接受 stdin；其余命令不读 stdin。
 assert.match(receive, /head -c 268435457 > "\$temporary"/);
 assert.match(receive, /sha256sum "\$temporary"/);
@@ -129,14 +138,33 @@ assert.match(publisher, /full_stack_probe_nonce_unavailable/);
 assert.match(publisher, /process\.stdout\.write\(`\$\{state\.probeNonce\}\\n`\)/);
 
 // --- ADR-0021 回执签名：外部验证器签、ECS 只验签（公网激活不是 ECS 自证） -------------
-// verify-origin 用「仅存在于 GitHub Actions 的私钥」签名回执，签名绑定 nonce+manifestSha256+表面哈希。
+// legacy verify-origin helper remains a surface-only v1 fixture; the deploy
+// control-repository contract is v2 and is enforced by root + publisher.
 assert.match(verifyOrigin, /probe-receipt-ed25519-v1/);
 assert.match(verifyOrigin, /sign\(null, Buffer\.from\(canonicalJson\(unsigned\)\)/);
 assert.match(verifyOrigin, /createPrivateKey\(signingKeyPem\)/);
 assert.match(verifyOrigin, /--signing-key/);
-// publisher 只持公钥验签，且伪造/未签名回执 fail-closed。
+// publisher/root only hold the public key, enforce exact v2 browser-page
+// evidence, preserve API/SSE/worker as unproven, and reject forged/secret-bearing
+// receipts fail-closed.
 assert.match(publisher, /probeReceiptPublicKey: '\/etc\/meetwise\/probe-receipt-ed25519\.pub\.pem'/);
-assert.match(publisher, /full_stack_probe_receipt_signature_invalid/);
+assert.match(publisher, /probe-receipt-ed25519-v2/);
+assert.doesNotMatch(publisher, /probe-receipt-ed25519-v1/);
+assert.match(publisher, /assertExternalProbeReceiptV2/);
+assert.match(publisher, /full_stack_probe_receipt_v2_signature_invalid/);
+assert.match(publisher, /noCookieProtectedRedirect/);
+assert.match(publisher, /status !== 'passed_pages_only'/);
+assert.match(publisher, /scope !== 'browser_auth_pages_only'/);
+assert.match(publisher, /complete !== false/);
+assert.match(publisher, /sessionCookie/);
+assert.match(publisher, /markerHashes/);
+assert.match(publisher, /roleBoundary/);
+assert.match(publisher, /account\.api/);
+assert.match(publisher, /value\.status !== 'unproven'/);
+assert.doesNotMatch(publisher, /api\.path !== '\/api\/privacy\/export'/);
+assert.match(dispatch, /schemaVersion !== 2/);
+assert.match(dispatch, /receipt_v2_e2e_invalid/);
+assert.match(dispatch, /receipt_v2_sensitive_value_invalid/);
 assert.match(publisher, /verify\(null, Buffer\.from\(canonicalJson\(without\(receipt, 'signature'\)\)\)/);
 // 候选 workflow 不得直接获得 probe 私钥；签名由独立固定版本 verifier 完成。
 assert.ok(!workflow.includes('ECS_PROBE_SIGNING_KEY'), 'candidate workflow must never receive the probe signing key');
@@ -146,7 +174,17 @@ assert.match(workflow, /on:/);
 assert.match(workflow, /workflow_run:/);
 assert.match(workflow, /workflows: \[ci\]/);
 assert.match(workflow, /branches: \[main\]/);
-assert.match(workflow, /permissions:\s*\n\s*contents: read/);
+const deployHeader = workflow.slice(0, workflow.indexOf('jobs:'));
+assert.match(deployHeader, /permissions:\s*\{\}/, 'deploy workflow must default all token permissions to none');
+assert.doesNotMatch(deployHeader, /actions:|attestations:|id-token:/, 'deploy workflow must not generalize sensitive permissions at top level');
+assert.match(workflow, /deploy-probe:[\s\S]*?permissions:\s*\n\s+contents: read\n\s+actions: read\n\s+attestations: write\n\s+id-token: write/);
+assert.match(workflow, /external-verify:[\s\S]*?permissions:\s*\n\s+contents: read\n\s+actions: read/);
+assert.match(workflow, /confirm:[\s\S]*?permissions:\s*\n\s+contents: read\n\s+actions: write/);
+assert.match(workflow, /recover:[\s\S]*?permissions:\s*\n\s+contents: read\n\s+actions: write/);
+const ciHeader = ciWorkflow.slice(0, ciWorkflow.indexOf('jobs:'));
+assert.doesNotMatch(ciHeader, /permissions:/, 'CI must not generalize token permissions at top level');
+assert.match(ciWorkflow, /secrets-scan:[\s\S]*?permissions:\s*\n\s+contents: read/);
+assert.match(ciWorkflow, /verify:[\s\S]*?permissions:\s*\n\s+contents: read/);
 assert.match(workflow, /concurrency:/);
 assert.match(workflow, /cancel-in-progress: false/);
 // fork/PR 防护：只允许真实仓库 + main 分支。
@@ -165,12 +203,184 @@ assert.match(workflow, /stale main before revoke/);
 assert.match(workflow, /stale main before activate/);
 assert.match(workflow, /stale main before confirm/);
 assert.match(workflow, /stale main before commit/);
+assert.equal((workflow.match(/Verify forced-command sentinel before sensitive ECS SSH/g) ?? []).length, 3, 'every credentialed deploy job must prove the forced-command boundary');
+assert.equal((workflow.match(/__meetwise_cd_forced_command_sentinel__/g) ?? []).length, 3, 'each deploy sentinel must use the fixed unknown command');
+assert.equal((workflow.match(/meetwise_cd_unknown_command/g) ?? []).length, 3, 'each deploy sentinel must require the exact unknown-command reason');
+const deployFirstSsh = workflow.indexOf("ssh meetwise-ecs 'meetwise-cd controller-version'");
+assert.ok(workflow.indexOf('Verify forced-command sentinel before sensitive ECS SSH') < deployFirstSsh, 'deploy sentinel must precede first controller SSH');
+const confirmBlockAt = workflow.indexOf('\n  confirm:');
+const confirmSentinelAt = workflow.indexOf('Verify forced-command sentinel before sensitive ECS SSH', confirmBlockAt);
+const confirmSshAt = workflow.indexOf('ssh meetwise-ecs "meetwise-cd transaction confirm', confirmBlockAt);
+assert.ok(confirmBlockAt > 0 && confirmSentinelAt > confirmBlockAt && confirmSentinelAt < confirmSshAt, 'confirm sentinel must precede first confirmation SSH');
+const recoverBlockAt = workflow.indexOf('\n  recover:');
+const recoverSentinelAt = workflow.indexOf('Verify forced-command sentinel before sensitive ECS SSH', recoverBlockAt);
+const recoverSshAt = workflow.indexOf('ssh meetwise-ecs "meetwise-cd transaction status', recoverBlockAt);
+assert.ok(recoverBlockAt > 0 && recoverSentinelAt > recoverBlockAt && recoverSentinelAt < recoverSshAt, 'recovery sentinel must precede first recovery SSH');
 assert.match(workflow, /version: 10\.18\.0/);
 for (const proof of ['cd-pages-receipt.proof.mjs', 'ecs-full-stack-release.proof.mjs', 'verify-full-stack-public-origin.proof.mjs']) {
   assert.ok(workflow.includes(`node scripts/${proof}`), `workflow must run ${proof} before external mutation`);
 }
-// 外部验证器：探针在 GitHub runner（ECS 之外）执行，ECS 无法自证公开可用。
-assert.match(workflow, /miaole\/meetwise-deploy-control\/\.github\/workflows\/verify\.yml@ccb02e1ab7cf28b812028f7ca9b3699cef0ffc4a/);
+// 外部验证器：探针在独立控制仓库的 GitHub runner（ECS 之外）执行，
+// 其 protected environment signer 不会经 workflow_call 泄漏到候选仓库。
+const verifierControlCommit = '28939a6f5ccb571be5bfdb72f0d74967ac1b9b66';
+assert.match(workflow, /external-verify:\n\s+needs: deploy-probe\n\s+runs-on: ubuntu-latest/);
+assert.match(workflow, /CONTROL_REPOSITORY: miaole\/meetwise-deploy-control/);
+assert.match(workflow, /CONTROL_WORKFLOW: verify\.yml/);
+assert.match(workflow, /CONTROL_REF: main/);
+assert.match(workflow, new RegExp(`CONTROL_COMMIT: ${verifierControlCommit}`));
+assert.match(workflow, /expected_manifest_sha256: \$\{\{ steps\.probe\.outputs\.expected_manifest_sha256 \}\}/);
+assert.ok(!workflow.includes('uses: miaole/meetwise-deploy-control/.github/workflows/verify.yml@'), 'verifier must not use cross-repository workflow_call');
+assert.match(workflow, /actions\/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2/);
+assert.equal((workflow.match(/actions\/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349/g) ?? []).length, 1, 'verifier App token action must be pinned once');
+assert.match(workflow, /app-id: \$\{\{ vars\.VERIFIER_DISPATCH_APP_ID \}\}/);
+assert.match(workflow, /private-key: \$\{\{ secrets\.VERIFIER_DISPATCH_APP_PRIVATE_KEY \}\}/);
+assert.match(workflow, /repositories: meetwise-deploy-control/);
+assert.match(workflow, /permission-actions: write/);
+assert.match(workflow, /permission-metadata: read/);
+assert.ok(!workflow.includes('MEETWISE_VERIFIER_DISPATCH_TOKEN'), 'verifier dispatch must use the scoped GitHub App token');
+assert.match(workflow, /actions\/workflows\/\$CONTROL_WORKFLOW\/dispatches/);
+assert.match(workflow, /\[\[ "\$CONTROL_REF" == 'main' \]\]/);
+assert.match(workflow, /ref:\$ref,inputs:\{origin:\$origin,probe_nonce:\$nonce,expected_manifest_sha256:\$manifest\}/);
+assert.match(workflow, /\.event == "workflow_dispatch" and \.head_sha == \$sha/);
+assert.match(workflow, /\.display_title == \$title/);
+assert.match(workflow, /EXPECTED_RUN_NAME: meetwise-public-origin-\$\{\{ needs\.deploy-probe\.outputs\.probe_nonce \}\}/);
+assert.match(workflow, /\.repository\.full_name == "miaole\/meetwise-deploy-control"/);
+assert.match(workflow, /\.path == "\.github\/workflows\/verify\.yml"/);
+assert.match(workflow, /artifact_name="meetwise-public-origin-receipt-\$PROBE_NONCE"/);
+assert.match(workflow, /actions\/runs\/\$VERIFIER_RUN_ID\/artifacts/);
+assert.match(workflow, /exactly one nonce-bound verifier artifact is required/);
+assert.match(workflow, /expected_receipt_filename='receipt\.json'/);
+assert.match(workflow, /verifier artifact must contain exactly receipt\.json/);
+assert.match(workflow, /printf 'receipt_b64=%s\\n' "\$receipt_b64"/);
+const tailscaleAction = 'tailscale/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade';
+assert.equal(workflow.split(tailscaleAction).length - 1, 3, 'all deploy Tailscale jobs must use the audited v3 commit');
+assert.equal(rolloutWorkflow.split(tailscaleAction).length - 1, 1, 'controller rollout must use the audited v3 commit');
+const tailscaleOauthBlock = /uses: tailscale\/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade # v3\n\s+with:\n\s+oauth-client-id: \$\{\{ secrets\.TAILSCALE_OAUTH_CLIENT_ID \}\}\n\s+oauth-secret: \$\{\{ secrets\.TAILSCALE_OAUTH_SECRET \}\}\n\s+tags: tag:meetwise-cd/g;
+assert.equal((workflow.match(tailscaleOauthBlock) ?? []).length, 3, 'every deploy OAuth action must supply its required tag input');
+assert.equal((rolloutWorkflow.match(tailscaleOauthBlock) ?? []).length, 1, 'controller rollout OAuth action must supply its required tag input');
+assert.ok(!workflow.includes('args: --advertise-tags=tag:meetwise-cd'), 'OAuth tags must use the action tags input');
+assert.ok(!rolloutWorkflow.includes('args: --advertise-tags=tag:meetwise-cd'), 'rollout OAuth tags must use the action tags input');
+assert.ok(!workflow.includes('92117a0a1d5c99a90c035c00d1eb52e357e1e1a4'), 'unresolvable Tailscale action pin must not return');
+assert.ok(!rolloutWorkflow.includes('92117a0a1d5c99a90c035c00d1eb52e357e1e1a4'), 'unresolvable rollout action pin must not return');
+assert.match(ciWorkflow, /repos\/tailscale\/github-action\/contents\/action\.yml\?ref=6cae46e2d796f265265cfcf628b72a32b4d7cade/);
+assert.match(ciWorkflow, /repos\/actions\/create-github-app-token\/contents\/action\.yml\?ref=fee1f7d63c2ff003460e3d139729b119787bc349/);
+assert.match(ciWorkflow, /control_sha='28939a6f5ccb571be5bfdb72f0d74967ac1b9b66'/);
+assert.match(ciWorkflow, /meetwise-deploy-control\/contents\/scripts\/verify-preview-e2e\.mjs\?ref=\$control_sha/);
+assert.match(ciWorkflow, /meetwise-deploy-control\/contents\/scripts\/verify-preview-e2e\.proof\.mjs\?ref=\$control_sha/);
+assert.match(ciWorkflow, /meetwise-deploy-control\/contents\/package-lock\.json\?ref=\$control_sha/);
+assert.match(ciWorkflow, /control_dir=.*mktemp -d/);
+assert.match(ciWorkflow, /node scripts\/verify-preview-e2e\.proof\.mjs/);
+for (const contractText of ['const probe =', 'inputs.probe_nonce', 'run-name: meetwise-public-origin-${probe}', '  workflow_dispatch:', '      expected_manifest_sha256:', 'RUNNER_TEMP}/receipt.json', 'name: meetwise-public-origin-receipt-${probe}', 'schemaVersion: 2', 'probe-receipt-ed25519-v2', 'noCookieProtectedRedirect', 'validateReceiptShape', 'passed_pages_only', 'browser_auth_pages_only', 'complete: false', 'sessionCookie', 'markerHashes', 'roleBoundary', 'semanticAssertionCount', 'sse', 'worker']) {
+  assert.ok(ciWorkflow.includes(contractText), `CI must enforce pinned verifier contract text: ${contractText}`);
+}
+assert.ok(ciWorkflow.includes('privacy export is intentionally omitted'));
+assert.ok(ciWorkflow.includes('control_receipt_must_not_request_privacy_export'));
+// The caller validator is executable contract, not a grep-only assertion.  Use
+// the v2 control-repository fixture shape (B/C accounts, protected pages,
+// and explicitly unproven API/SSE/worker) and execute the
+// exact validator source embedded in deploy-full-stack.yml.  A valid
+// `noCookieProtectedRedirect` field must pass; similarly named raw-secret keys
+// and non-allowlisted headers must fail by exact recursive schema checks.
+const callerValidatorStart = workflow.indexOf('          // BEGIN caller receipt validator v2');
+const callerValidatorEndMarker = '          // END caller receipt validator v2';
+const callerValidatorEnd = workflow.indexOf(callerValidatorEndMarker, callerValidatorStart);
+assert.ok(callerValidatorStart >= 0 && callerValidatorEnd > callerValidatorStart, 'caller validator source markers must exist');
+assert.match(workflow, /receiptExactKeys/);
+assert.match(workflow, /RECEIPT_HEADER_NAMES = new Set\(\['content-type', 'cache-control'\]\)/);
+assert.doesNotMatch(workflow, /text\.includes\(['"]previewc@meetwise\.com/);
+assert.doesNotMatch(workflow, /\/password\|authorization\|cookie\/i/);
+const callerValidatorSource = workflow
+  .slice(callerValidatorStart, callerValidatorEnd + callerValidatorEndMarker.length)
+  .split('\n')
+  .map((line) => line.startsWith('          ') ? line.slice('          '.length) : line)
+  .join('\n');
+const fixtureOrigin = ['https:/', '/', 'preview-', 'tail1234', '.tail', '1234', '.ts.net'].join('');
+const fixtureNonce = 'a'.repeat(64);
+const fixtureManifest = 'b'.repeat(64);
+const fixtureControlCommit = 'c'.repeat(40);
+const fixturePage = (path, bodyHash, markerHash) => ({
+  path,
+  status: 200,
+  headers: { 'content-type': 'text/html; charset=utf-8' },
+  bodyHash,
+  bodyStored: false,
+  markerHashes: [markerHash],
+  negativeMarkerHashes: [],
+});
+const fixtureUnproven = (reason) => ({ status: 'unproven', reason });
+const fixtureAccount = (role, loginPath, pagePath, bodyHash, markerHash, accountHash) => ({
+  role,
+  accountEmailSha256: accountHash,
+  loginPath,
+  sessionCookie: { httpOnly: true, secure: true, roleCookie: role },
+  pages: [fixturePage(pagePath, bodyHash, markerHash)],
+  roleBoundary: role === 'candidate'
+    ? { status: 'verified', path: '/recruiter/jobs', markerHashes: ['7'.repeat(64)] }
+    : fixtureUnproven('no safe recruiter-to-candidate negative write-free contract is available'),
+  api: fixtureUnproven('privacy export is intentionally omitted because Playwright API responses may buffer personal data'),
+  sse: fixtureUnproven('no stable persisted interview-or-quiz id is permitted for the short verifier'),
+  worker: fixtureUnproven('no business object is created by the short verifier'),
+  semanticAssertionCount: 1,
+});
+const callerV2Fixture = {
+  schemaVersion: 2,
+  origin: fixtureOrigin,
+  probeNonce: fixtureNonce,
+  checkedAt: new Date(Date.now() - 1000).toISOString(),
+  manifestSha256: fixtureManifest,
+  rootStatus: 200,
+  loginStatus: 200,
+  manifestStatus: 200,
+  rootUrl: `${fixtureOrigin}/`,
+  loginUrl: `${fixtureOrigin}/login`,
+  manifestUrl: `${fixtureOrigin}/preview-release-manifest.json`,
+  rootSha256: 'd'.repeat(64),
+  blackboxSha256: 'e'.repeat(64),
+  signingKeyId: 'probe-receipt-ed25519-v2',
+  verifier: {
+    repository: 'miaole/meetwise-deploy-control',
+    workflow: 'verify-meetwise-public-origin',
+    ref: 'refs/heads/main',
+    commit: fixtureControlCommit,
+    runId: '123',
+    sourceSha256: 'f'.repeat(64),
+    workflowSha256: '1'.repeat(64),
+    packageLockSha256: '2'.repeat(64),
+  },
+  e2e: {
+    status: 'passed_pages_only',
+    scope: 'browser_auth_pages_only',
+    complete: false,
+    sensitiveResponseBodies: 'not_stored',
+    noCookieProtectedRedirect: { origin: fixtureOrigin, pathname: '/login', search: '?next=%2Fdashboard' },
+    accounts: {
+      candidate: fixtureAccount('candidate', '/dashboard', '/dashboard', '4'.repeat(64), '5'.repeat(64), '3'.repeat(64)),
+      recruiter: fixtureAccount('recruiter', '/recruiter/jobs', '/recruiter/jobs', '6'.repeat(64), '8'.repeat(64), '5'.repeat(64)),
+    },
+  },
+  signature: Buffer.alloc(64, 7).toString('base64'),
+};
+const callerHarness = `${callerValidatorSource}
+const fixture = ${JSON.stringify(callerV2Fixture)};
+const options = { origin: fixture.origin, nonce: fixture.probeNonce, manifest: fixture.manifestSha256, controlCommit: fixture.verifier.commit, runId: fixture.verifier.runId };
+validateCallerReceipt(fixture, options);
+const clone = (value) => JSON.parse(JSON.stringify(value));
+const rejects = (name, mutate) => {
+  const candidate = clone(fixture);
+  mutate(candidate);
+  try { validateCallerReceipt(candidate, options); throw new Error(name + '_accepted'); }
+  catch (error) { if (error.message === name + '_accepted') throw error; }
+};
+rejects('top_level_password_key', (value) => { value.password = 'raw'; });
+rejects('nested_authorization_header', (value) => { value.e2e.accounts.candidate.pages[0].headers.authorization = 'raw'; });
+rejects('nested_cookie_key', (value) => { value.e2e.cookie = 'contract-name-only'; });
+rejects('api_claimed', (value) => { value.e2e.accounts.candidate.api.status = 'passed'; });
+rejects('sse_claimed', (value) => { value.e2e.accounts.candidate.sse.status = 'passed'; });
+rejects('e2e_overclaimed', (value) => { value.e2e.complete = true; });
+process.stdout.write('CALLER_V2_VALIDATOR_PASS\\n');`;
+const callerBehavior = spawnSync(process.execPath, ['-e', callerHarness], { encoding: 'utf8' });
+assert.equal(callerBehavior.status, 0, `caller v2 validator behavior failed: ${callerBehavior.stderr}`);
+assert.match(callerBehavior.stdout, /CALLER_V2_VALIDATOR_PASS/);
 // Pages 吊销回执耦合被显式处理（revoke 阻塞于此）。
 assert.match(workflow, /gh workflow run pages-preview\.yml/);
 assert.ok(!workflow.includes('2>/dev/null || true'), 'Pages dispatch failure must not be swallowed');
@@ -196,6 +406,40 @@ assert.match(workflow, /meetwise-cd transaction recover/);
 assert.match(workflow, /always\(\) && failure\(\) && steps\.release\.outputs\.transaction_id != ''/);
 assert.match(workflow, /always\(\) && failure\(\)/);
 assert.ok(!workflow.includes('ECS_PROBE_SIGNING_KEY'), 'candidate workflow must never receive the probe signing key');
+const deployRecoveryAt = workflow.indexOf('\n  recover:');
+assert.ok(deployRecoveryAt > 0, 'deploy workflow must retain an in-run recovery job');
+const deployRecoveryBlock = workflow.slice(deployRecoveryAt);
+assert.match(deployRecoveryBlock, /RECOVERY_BUDGET_SECONDS: '780'/);
+assert.match(deployRecoveryBlock, /timeout-minutes: 20/);
+assert.ok(780 < 20 * 60, 'deploy recovery wait budget must be strictly below its job timeout');
+assert.match(deployRecoveryBlock, /bounded\s+gh workflow run pages-preview\.yml/);
+assert.match(deployRecoveryBlock, /bounded\s+ssh meetwise-ecs/);
+// Independent cancellation recovery: no candidate checkout/JavaScript/Docker
+// path, fixed Pages dispatch, and a single bounded budget below the job ceiling.
+assert.match(recoveryWorkflow, /schedule:/);
+assert.match(recoveryWorkflow, /workflow_dispatch:/);
+assert.match(recoveryWorkflow, /environment: preview-cd-recovery/);
+assert.match(recoveryWorkflow, /actions: write/);
+assert.match(recoveryWorkflow, /tailscale\/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade/);
+assert.match(recoveryWorkflow, /transaction status-system/);
+assert.match(recoveryWorkflow, /transaction recover-system/);
+assert.match(recoveryWorkflow, /predecessor\.pages\.state/);
+assert.match(recoveryWorkflow, /predecessor\.pages\.generation/);
+assert.match(recoveryWorkflow, /predecessor\.pages\.fingerprint/);
+assert.match(recoveryWorkflow, /expected_state/);
+assert.match(recoveryWorkflow, /expected_generation/);
+assert.match(recoveryWorkflow, /expected_manifest_sha256/);
+assert.match(recoveryWorkflow, /rolled_back/);
+assert.match(recoveryWorkflow, /forward_only_maintenance/);
+assert.match(recoveryWorkflow, /RECOVERY_BUDGET_SECONDS: '780'/);
+assert.match(recoveryWorkflow, /timeout-minutes: 20/);
+assert.ok(780 < 20 * 60, 'independent recovery wait budget must be strictly below its job timeout');
+assert.doesNotMatch(recoveryWorkflow, /actions\/checkout|node scripts\//, 'independent recovery must not execute candidate checkout code');
+assert.doesNotMatch(recoveryWorkflow, /\bdocker\b/i, 'independent recovery must not use Docker');
+assert.match(dispatch, /status-system\)/);
+assert.match(dispatch, /transaction_status_invalid/);
+assert.match(dispatch, /candidate\.finalManifestFingerprint/);
+assert.match(dispatch, /predecessor(?:\.|\?\.)pages/);
 const transactionBeginAt = workflow.indexOf('meetwise-cd transaction begin');
 const transactionSnapshotAt = workflow.indexOf('meetwise-cd transaction snapshot');
 const composePullAt = workflow.indexOf('meetwise-cd transaction compose-pull');
@@ -269,7 +513,14 @@ assert.ok(receive.includes('meetwise_cd_transaction_identity_invalid'), 'receive
 assert.ok(workflow.includes('docker build') && workflow.includes('docker push'), 'workflow must build+push in CI');
 assert.ok(workflow.includes('RepoDigests'), 'workflow must extract @sha256 digest from pushed image');
 assert.ok(workflow.includes('meetwise-cd transaction compose-pull $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN ${{ steps.images.outputs.backend_digest }} ${{ steps.images.outputs.web_digest }}'), 'workflow must pin both digests via the token-bound transaction');
-assert.ok(workflow.includes('hash-web-runtime-artifact.mjs'), 'approval web digests must come from the final image');
+assert.ok(!workflow.includes('hash-web-runtime-artifact.mjs'), 'credentialed deploy must not execute candidate checkout hash code');
+assert.match(workflow, /fixed inline control-plane hash/);
+const acrLoginAt = workflow.indexOf('docker login "$REGISTRY"');
+assert.ok(acrLoginAt > 0 && !workflow.slice(acrLoginAt).includes('node scripts/'), 'no candidate checkout script may run after ACR login');
+const sshKeyAt = workflow.indexOf('secrets\.ECS_CD_DEPLOY_KEY');
+assert.ok(sshKeyAt > 0 && !workflow.slice(sshKeyAt).includes('node scripts/'), 'no candidate checkout script may run after SSH key landing');
+assert.doesNotMatch(workflow, /import \{ manifestFingerprint \} from ["']\.\/ops\/ecs\/preview-release-manifest\.mjs["']/);
+assert.match(workflow, /manifest hashing in this fixed workflow script/);
 assert.ok(workflow.includes('git archive --format=tar'), 'source archive must derive from the exact git tree');
 assert.ok(workflow.includes('StrictHostKeyChecking yes') && workflow.includes('ECS_CD_KNOWN_HOSTS'), 'SSH host identity must be pinned');
 assert.ok(dispatch.includes('acr-pull.env') && dispatch.includes('docker login'), 'ECS must provision a separate ACR pull identity');
@@ -391,7 +642,11 @@ assert.match(provisionCd, /cd-controller-files\.txt/);
 assert.match(provisionCd, /CONTROLLER_VERSION=\/etc\/meetwise\/cd-controller-version/);
 assert.match(provisionCd, /CONTROLLER_RUN=\/run\/meetwise-preview-controller/);
 assert.match(provisionCd, /FULL_STACK_RELEASES=\/srv\/meetwise-full-stack\/releases/);
-assert.match(provisionCd, /systemctl enable meetwise-cd-controller-rollout-recovery\.service meetwise-full-stack-publication-recovery\.service meetwise-full-stack-edge-restore\.service nginx\.service/);
+assert.match(provisionCd, /systemctl enable meetwise-cd-controller-rollout-recovery\.service meetwise-full-stack-publication-recovery\.service meetwise-full-stack-edge-restore\.service/);
+assert.match(provisionCd, /FULL_STACK_RELEASE_RECOVERY_SERVICE=meetwise-full-stack-release-recovery\.service/);
+assert.match(provisionCd, /FULL_STACK_RELEASE_RECOVERY_TIMER=meetwise-full-stack-release-recovery\.timer/);
+assert.match(provisionCd, /systemctl is-enabled "\$FULL_STACK_RELEASE_RECOVERY_SERVICE"/);
+assert.match(provisionCd, /systemctl is-enabled "\$FULL_STACK_RELEASE_RECOVERY_TIMER"/);
 assert.match(provisionCd, /systemctl is-enabled meetwise-cd-controller-rollout-recovery\.service/);
 // Docker/compose 硬校验（fail-closed）。
 assert.match(provisionCd, /docker compose version >\/dev\/null 2>&1 \|\| die docker_compose_plugin_missing/);
@@ -406,12 +661,14 @@ assert.match(provisionCd, /install -d -o "\$CD_USER" -g "\$CD_USER" -m 0700 "\$C
 assert.match(provisionCd, /install -d -o "\$CD_USER" -g "\$CD_USER" -m 0700 "\$CD_SSH"/);
 assert.match(provisionCd, /install -d -o "\$CD_USER" -g "\$CD_USER" -m 0700 "\$CD_INCOMING"/);
 assert.match(provisionCd, /chmod 0600 "\$tmp"/);
-// 绝不读/改签名私钥：它只能出现在 `[[ -f ... ]] || warn` 存在性检查里，绝无任何读/写/改权/改属主。
-assert.match(provisionCd, /\[\[ -f "\$ETC\/preview-release-ed25519\.pem" \]\][^\n]*\|\| warn signing_key_absent/);
+// 绝不读/改签名私钥：只通过统一的 owner/mode 元数据门，缺失或漂移必须 fail-closed。
+assert.match(provisionCd, /require_file_state "\$ETC\/preview-release-ed25519\.pem" root:root:600 signing_key_invalid/);
+assert.doesNotMatch(provisionCd, /provision_cd_warn_/);
 assert.ok(!/(cat|cp|install|chmod|chown|>|>>|tee)[^\n]*preview-release-ed25519\.pem/.test(provisionCd), 'provision-cd may only [[ -f ]]-test the signing key, never read/copy/rewrite it');
-// 绝不写含密钥的 .env：对 $COMPOSE_ENV 只做只读的 grep 存在性检查，无任何写入/追加/tee/install。
-assert.match(provisionCd, /grep -qE "\^\(export\[\[:space:\]\]\+\)\?\$k=" "\$COMPOSE_ENV"/);
+// 绝不写含密钥的 .env：固定 parser 只读检查，不 source、不回显、无任何写入/追加/tee/install。
+assert.match(provisionCd, /parse_env_file "\$COMPOSE_ENV" compose 1/);
 assert.ok(!/(>|>>|tee|install|cp)[^\n]*"\$COMPOSE_ENV"/.test(provisionCd), 'provision-cd must not author/overwrite the secret .env');
+assert.match(provisionCd, /docker compose --project-directory "\$COMPOSE_DIR" -f "\$COMPOSE_DST" config >\/dev\/null \|\| die compose_config_invalid/);
 
 // --- provision-meetwise-synthetic.sh：过渡期非破坏（RDS CA 是公开证书，绝不换组夺旧 app 读权）---
 // 专家审计 HIGH：旧 systemd api/worker 以 meetwise 用户运行时直接读 RDS CA 做库 TLS；把 CA chown 成
