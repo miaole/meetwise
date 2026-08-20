@@ -57,7 +57,7 @@ test('target and approval bind successor capacity, deep receipt schema, and both
     releasePath: '/srv/meetwise-full-stack/releases/proof',
     releaseTreeDigest: '1'.repeat(64),
     apiContractDigest: '2'.repeat(64),
-    schemaHead: '0122_resume_pgcrypto_optional_acl.sql',
+    schemaHead: '0123_user_facing_context_snapshots.sql',
     schemaLedgerDigest: '3'.repeat(64),
     factoryDigest: fakeFactory,
     catalogDigests,
@@ -105,13 +105,13 @@ test('target and approval bind successor capacity, deep receipt schema, and both
   assert.deepEqual(approval.previewData, target.previewData);
   const upgradedLegacyIdentity = buildTarget({ ...previous, database: 'meetwise_preview', expectedDbRole: 'meetwise_migrate' }, {
     releasePath: '/srv/meetwise-full-stack/releases/proof', releaseTreeDigest: '1'.repeat(64), apiContractDigest: '2'.repeat(64),
-    schemaHead: '0122_resume_pgcrypto_optional_acl.sql', schemaLedgerDigest: '3'.repeat(64), factoryDigest: fakeFactory, catalogDigests, sha256,
+    schemaHead: '0123_user_facing_context_snapshots.sql', schemaLedgerDigest: '3'.repeat(64), factoryDigest: fakeFactory, catalogDigests, sha256,
   });
   assert.equal(upgradedLegacyIdentity.database, 'meetwise_cloud_test');
   assert.equal(upgradedLegacyIdentity.expectedDbRole, 'meetwise_preview_audit');
   assert.throws(() => buildTarget(previous, {
     releasePath: '/srv/meetwise-full-stack/releases/proof', releaseTreeDigest: '1'.repeat(64), apiContractDigest: '2'.repeat(64),
-    schemaHead: '0122_resume_pgcrypto_optional_acl.sql', schemaLedgerDigest: '3'.repeat(64), factoryDigest: fakeFactory, catalogDigests, sha256,
+    schemaHead: '0123_user_facing_context_snapshots.sql', schemaLedgerDigest: '3'.repeat(64), factoryDigest: fakeFactory, catalogDigests, sha256,
     verifierContract: { readOnly: true, requiredEnv: ['PREVIEW_VERIFY_DATABASE_URL'], expectedDatabase: 'meetwise_preview', expectedRole: 'meetwise_migrate', forbiddenEnv: [] },
   }), /prepare_verifier_contract_invalid/);
 });

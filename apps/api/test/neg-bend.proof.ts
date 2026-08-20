@@ -37,7 +37,7 @@ await h.pool.query(
 // re-apply the current invariant migration after the fixture—not before it.
 await h.pool.query(migrationText('0046_application_assessment_recovery.sql'));
 await h.pool.query(migrationText('0104_job_route_decision.sql'));
-await h.pool.query(migrationText('0121_user_facing_context_snapshots.sql'));
+await h.pool.query(migrationText('0123_user_facing_context_snapshots.sql'));
 
 // ── principal 上下文 client(app_role + set_config),用于 DB 层直证 RLS 隔离(不经 HTTP)。ROLLBACK 只读不改。
 const asP = async (uid: string, q: string, params: any[] = []) => {

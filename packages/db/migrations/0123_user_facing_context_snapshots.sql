@@ -1,4 +1,4 @@
--- 0121_user_facing_context_snapshots.sql
+-- 0123_user_facing_context_snapshots.sql
 -- 用户可见上下文不能依赖会被关闭岗位 RLS 隐藏的当前行，也不能拿内部 id 兜底。
 -- 申请时冻结岗位标题；岗位面试继承该快照。interview.created_at 为同岗位多场练习提供可读时间线。
 BEGIN;
