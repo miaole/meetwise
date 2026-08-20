@@ -146,6 +146,9 @@ assert.match(recoveryWorkflow, /predecessor_state" == disabled[\s\S]*?predecesso
 assert.match(recoveryWorkflow, /if \[ "\$predecessor_state" = enabled \]; then[\s\S]*?wait_pages_receipt[\s\S]*?elif \[ "\$predecessor_state" = disabled \]; then[\s\S]*?\.state == "disabled"[\s\S]*?env\.GEN == "0"/, 'standalone recovery must verify rather than dispatch a disabled bootstrap predecessor');
 assert.match(dispatch, /if \[\[ "\$pages_state" == disabled \]\]; then[\s\S]*?status=0[\s\S]*?predecessorRevoked:[\s\S]*?completed: status === 0/, 'the fresh disabled generation-zero receipt must close the edge and persist a completed predecessor fence without Pages dispatch');
 assert.match(dispatch, /LEGACY_PREDECESSOR_RELEASE_RE='\^\[a-f0-9\]\{7,40\}-\(progress\|worktree\)-/);
+assert.match(dispatch, /flock -w 15 9 \|\| die full_stack_controller_busy 75/, 'transaction commands must tolerate the short recovery-timer lock holder without waiting forever');
+assert.match(workflow, /observed_phase[\s\S]*?if \[ "\$observed_phase" = committed \]; then[\s\S]*?p!==f[\s\S]*?v\.state!=="enabled"[\s\S]*?recovery is a read-only no-op[\s\S]*?exit 0[\s\S]*?expected_state=disabled/, 'committed recovery must verify exact enabled Pages and exit before any disabled dispatch');
+assert.match(workflow, /observed_phase" == rolled_back[\s\S]*?forward_only_maintenance[\s\S]*?terminal_json="\$status_json"[\s\S]*?else[\s\S]*?transaction recover/, 'rolled-back and forward-only terminal phases must be idempotent while active phases recover once');
 assert.match(dispatch, /predecessor_release" =~ \$RELEASE_RE \|\| "\$predecessor_release" =~ \$LEGACY_PREDECESSOR_RELEASE_RE/);
 assert.match(dispatch, /-d "\$RELEASES_ROOT\/\$predecessor_release" && ! -L "\$RELEASES_ROOT\/\$predecessor_release"/);
 const releasePattern = dispatch.match(/^RELEASE_RE='([^']+)'$/m)?.[1];
