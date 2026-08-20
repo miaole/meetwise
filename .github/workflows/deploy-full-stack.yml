@@ -6,11 +6,7 @@ on:
     types: [completed]
     branches: [main]
 
-permissions:
-  contents: read
-  actions: write
-  attestations: write
-  id-token: write
+permissions: {}
 
 # Serialize deploys: a second push while one is mid-flight must queue, never interleave.
 concurrency:
@@ -35,9 +31,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 150
     environment: preview-cd
+    permissions:
+      contents: read
+      actions: read
+      attestations: write
+      id-token: write
     outputs:
       origin: ${{ steps.probe.outputs.origin }}
       probe_nonce: ${{ steps.probe.outputs.probe_nonce }}
+      expected_manifest_sha256: ${{ steps.probe.outputs.expected_manifest_sha256 }}
       release: ${{ steps.release.outputs.release }}
       transaction_id: ${{ steps.release.outputs.transaction_id }}
       generation: ${{ steps.transaction.outputs.generation }}
@@ -130,7 +132,42 @@ jobs:
           trap 'docker rm -f "$container" >/dev/null 2>&1 || true' EXIT
           mkdir -p /tmp/web-runtime
           docker cp "$container:/app/apps/web/." /tmp/web-runtime/
-          node scripts/hash-web-runtime-artifact.mjs /tmp/web-runtime "$GITHUB_OUTPUT"
+          # This is deliberately a fixed inline control-plane hash, not code
+          # loaded from the candidate checkout after ACR credentials exist.
+          node --input-type=module - /tmp/web-runtime "$GITHUB_OUTPUT" <<'NODE'
+          import { createHash } from 'node:crypto';
+          import { appendFile, lstat, readFile, readdir, readlink } from 'node:fs/promises';
+          import { relative, resolve, sep } from 'node:path';
+
+          const [runtimeRoot, output] = process.argv.slice(2);
+          if (!runtimeRoot || !output) throw new Error('web_runtime_hash_arguments_invalid');
+          async function collect(directory, root = directory) {
+            const rows = [];
+            for (const entry of (await readdir(directory, { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
+              const path = resolve(directory, entry.name);
+              if (entry.isDirectory()) rows.push(...await collect(path, root));
+              else if (entry.isFile() || entry.isSymbolicLink()) rows.push(relative(root, path).split(sep).join('/'));
+              else throw new Error('web_runtime_artifact_unsupported_entry');
+            }
+            return rows;
+          }
+          async function treeDigest(directory) {
+            const hash = createHash('sha256');
+            for (const file of await collect(directory)) {
+              const path = resolve(directory, file);
+              const stat = await lstat(path);
+              hash.update(`${file}\0`);
+              hash.update(stat.isSymbolicLink() ? `symlink:${await readlink(path)}` : await readFile(path));
+            }
+            return hash.digest('hex');
+          }
+          const root = resolve(runtimeRoot);
+          await lstat(resolve(root, 'server.js'));
+          await lstat(resolve(root, '.next/static'));
+          const webBuildSha256 = await treeDigest(root);
+          const staticAssetsSha256 = await treeDigest(resolve(root, '.next/static'));
+          await appendFile(resolve(output), `webBuildSha256=${webBuildSha256}\nstaticAssetsSha256=${staticAssetsSha256}\n`);
+          NODE
         env:
           REGISTRY: ${{ secrets.ACR_REGISTRY }}
           NAMESPACE: ${{ secrets.ACR_NAMESPACE }}
@@ -164,11 +201,11 @@ jobs:
           echo "source_digest=$(sha256sum /tmp/source.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
 
       - name: Connect ephemeral Tailscale node
-        uses: tailscale/github-action@92117a0a1d5c99a90c035c00d1eb52e357e1e1a4 # v3
+        uses: tailscale/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade # v3
         with:
           oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
-          args: --advertise-tags=tag:meetwise-cd
+          tags: tag:meetwise-cd
 
       - name: Configure SSH to ECS (tailnet-only, forced command)
         run: |
@@ -192,6 +229,16 @@ jobs:
           } > "$HOME/.ssh/config"
           printf '%s\n' "${{ secrets.ECS_CD_KNOWN_HOSTS }}" > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/config"
+
+      - name: Verify forced-command sentinel before sensitive ECS SSH
+        run: |
+          set -euo pipefail
+          sentinel_status=0
+          sentinel_output="$(ssh -o BatchMode=yes meetwise-ecs 'meetwise-cd __meetwise_cd_forced_command_sentinel__' 2>&1)" || sentinel_status=$?
+          [[ "$sentinel_status" -ne 0 && "$sentinel_output" == 'meetwise_cd_unknown_command' ]] || {
+            echo 'forced-command sentinel did not fail closed with the exact unknown-command reason' >&2
+            exit 1
+          }
 
       - name: Verify separately provisioned ECS controller bundle
         id: controller
@@ -371,9 +418,38 @@ jobs:
         env:
           ORIGIN: ${{ secrets.ECS_FULL_STACK_ORIGIN }}
         run: |
+          set -euo pipefail
           nonce="$(ssh meetwise-ecs "meetwise-cd probe-nonce")"
+          manifest_text="$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 20 "$ORIGIN/preview-release-manifest.json")" || {
+            echo 'candidate probe manifest unavailable' >&2
+            exit 1
+          }
+          manifest_file="$(mktemp)"
+          trap 'rm -f "$manifest_file"' EXIT
+          printf '%s' "$manifest_text" > "$manifest_file"
+          # Keep manifest hashing in this fixed workflow script. Loading the
+          # candidate checkout's ops/ecs module after credentials are present
+          # would make the credentialed runner execute candidate JavaScript.
+          manifest_sha256="$(node --input-type=module - "$manifest_file" <<'NODE'
+          import { createHash } from 'node:crypto';
+          import { readFileSync } from 'node:fs';
+          const [manifestPath] = process.argv.slice(2);
+          const canonicalJson = (value) => {
+            if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+            if (value && typeof value === 'object') return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(',')}}`;
+            return JSON.stringify(value);
+          };
+          const value = JSON.parse(readFileSync(manifestPath, 'utf8'));
+          process.stdout.write(createHash('sha256').update(canonicalJson(value)).digest('hex'));
+          NODE
+          )" || {
+            echo 'candidate probe manifest identity invalid' >&2
+            exit 1
+          }
+          [[ "$manifest_sha256" =~ ^[a-f0-9]{64}$ ]] || { echo 'candidate probe manifest digest invalid' >&2; exit 1; }
           echo "origin=$ORIGIN" >> "$GITHUB_OUTPUT"
           echo "probe_nonce=$nonce" >> "$GITHUB_OUTPUT"
+          echo "expected_manifest_sha256=$manifest_sha256" >> "$GITHUB_OUTPUT"
 
       - name: Token-bound recovery after deploy-stage failure
         if: ${{ always() && failure() && steps.release.outputs.transaction_id != '' }}
@@ -383,23 +459,307 @@ jobs:
             exit 1
           }
 
-  # The signing key belongs to this fixed, private verifier workflow. The
+  # The signing key belongs to this fixed, independent verifier workflow. The
   # candidate checkout never receives it and therefore cannot self-attest.
-  # There is deliberately no in-repository signing fallback: if this exact
-  # deploy-control target/commit is unavailable, the dependency is skipped or
-  # fails and the release remains unconfirmed/closed.
+  # This is an ordinary job (rather than a cross-repository reusable workflow):
+  # GitHub does not pass the called repository's protected environment secrets
+  # through workflow_call. A narrowly scoped preview-cd token dispatches the
+  # verifier, which runs with its own protected signing environment and returns
+  # one nonce-named artifact. If this exact target/commit is unavailable, the
+  # dependency fails and the release remains unconfirmed/closed.
   external-verify:
     needs: deploy-probe
-    uses: miaole/meetwise-deploy-control/.github/workflows/verify.yml@ccb02e1ab7cf28b812028f7ca9b3699cef0ffc4a
-    with:
-      origin: ${{ needs.deploy-probe.outputs.origin }}
-      probe_nonce: ${{ needs.deploy-probe.outputs.probe_nonce }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: preview-cd
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      receipt_b64: ${{ steps.verify.outputs.receipt_b64 }}
+    env:
+      CONTROL_REPOSITORY: miaole/meetwise-deploy-control
+      CONTROL_WORKFLOW: verify.yml
+      CONTROL_REF: main
+      # Replace this marker with the final immutable commit after the v2
+      # verifier control-repo change is merged. Until then dispatch must fail
+      # closed rather than silently using the old v1 receipt contract.
+      CONTROL_COMMIT: 28939a6f5ccb571be5bfdb72f0d74967ac1b9b66
+    steps:
+      - name: Mint a repository-scoped verifier installation token
+        id: verifier-token
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
+        with:
+          app-id: ${{ vars.VERIFIER_DISPATCH_APP_ID }}
+          private-key: ${{ secrets.VERIFIER_DISPATCH_APP_PRIVATE_KEY }}
+          owner: miaole
+          repositories: meetwise-deploy-control
+          permission-actions: write
+          permission-metadata: read
+
+      - name: Dispatch the independent verifier at the exact control commit
+        id: dispatch
+        env:
+          GH_TOKEN: ${{ steps.verifier-token.outputs.token }}
+          ORIGIN: ${{ needs.deploy-probe.outputs.origin }}
+          PROBE_NONCE: ${{ needs.deploy-probe.outputs.probe_nonce }}
+          EXPECTED_MANIFEST_SHA256: ${{ needs.deploy-probe.outputs.expected_manifest_sha256 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${GH_TOKEN:-}" ]] || { echo 'verifier dispatch credential missing' >&2; exit 1; }
+          [[ "$CONTROL_REPOSITORY" == 'miaole/meetwise-deploy-control' ]] || { echo 'verifier repository is not fixed' >&2; exit 1; }
+          [[ "$CONTROL_WORKFLOW" == 'verify.yml' ]] || { echo 'verifier workflow is not fixed' >&2; exit 1; }
+          [[ "$CONTROL_REF" == 'main' ]] || { echo 'verifier ref is not fixed to protected main' >&2; exit 1; }
+          [[ "$CONTROL_COMMIT" =~ ^[a-f0-9]{40}$ ]] || { echo 'verifier control commit is invalid' >&2; exit 1; }
+          [[ "$ORIGIN" =~ ^https://[a-z0-9-]+\.tail[a-z0-9]+\.ts\.net$ ]] || { echo 'verifier origin is invalid' >&2; exit 1; }
+          [[ "$PROBE_NONCE" =~ ^[a-f0-9]{64}$ ]] || { echo 'verifier nonce is invalid' >&2; exit 1; }
+          [[ "$EXPECTED_MANIFEST_SHA256" =~ ^[a-f0-9]{64}$ ]] || { echo 'verifier manifest identity is invalid' >&2; exit 1; }
+          dispatch_started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          payload="$(jq -cn --arg ref "$CONTROL_REF" --arg origin "$ORIGIN" --arg nonce "$PROBE_NONCE" --arg manifest "$EXPECTED_MANIFEST_SHA256" '{ref:$ref,inputs:{origin:$origin,probe_nonce:$nonce,expected_manifest_sha256:$manifest}}')"
+          printf '%s' "$payload" | gh api --method POST \
+            --header 'Accept: application/vnd.github+json' \
+            --input - "repos/$CONTROL_REPOSITORY/actions/workflows/$CONTROL_WORKFLOW/dispatches" >/dev/null
+          printf 'dispatch_started=%s\n' "$dispatch_started" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for the exact verifier run
+        id: run
+        env:
+          GH_TOKEN: ${{ steps.verifier-token.outputs.token }}
+          DISPATCH_STARTED: ${{ steps.dispatch.outputs.dispatch_started }}
+          EXPECTED_RUN_NAME: meetwise-public-origin-${{ needs.deploy-probe.outputs.probe_nonce }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_id=''
+          for _ in $(seq 1 120); do
+            runs="$(gh api --paginate --slurp "repos/$CONTROL_REPOSITORY/actions/workflows/$CONTROL_WORKFLOW/runs?event=workflow_dispatch&per_page=100")" || {
+              echo 'verifier run inventory unavailable' >&2
+              exit 1
+            }
+            run_id="$(jq -r --arg start "$DISPATCH_STARTED" --arg sha "$CONTROL_COMMIT" --arg title "$EXPECTED_RUN_NAME" '
+              [.[].workflow_runs[]
+                | select(.event == "workflow_dispatch" and .head_sha == $sha and .created_at >= $start and .display_title == $title)]
+              | sort_by(.created_at, .id)
+              | if length == 1 then .[0].id else empty end
+            ' <<<"$runs")"
+            if [[ "$run_id" =~ ^[1-9][0-9]*$ ]]; then break; fi
+            sleep 5
+          done
+          [[ "$run_id" =~ ^[1-9][0-9]*$ ]] || { echo 'exact verifier run was not found' >&2; exit 1; }
+
+          workflow_json="$(gh api "repos/$CONTROL_REPOSITORY/actions/workflows/$CONTROL_WORKFLOW")" || {
+            echo 'verifier workflow identity unavailable' >&2
+            exit 1
+          }
+          workflow_id="$(jq -r '.id // empty' <<<"$workflow_json")"
+          workflow_path="$(jq -r '.path // empty' <<<"$workflow_json")"
+          [[ "$workflow_id" =~ ^[1-9][0-9]*$ && "$workflow_path" == '.github/workflows/verify.yml' ]] || {
+            echo 'verifier workflow identity mismatch' >&2
+            exit 1
+          }
+
+          run_json="$(gh api "repos/$CONTROL_REPOSITORY/actions/runs/$run_id")" || {
+            echo 'verifier run identity unavailable' >&2
+            exit 1
+          }
+          jq -e --argjson id "$run_id" --arg workflow_id "$workflow_id" \
+            --arg sha "$CONTROL_COMMIT" --arg start "$DISPATCH_STARTED" --arg title "$EXPECTED_RUN_NAME" \
+            '(.id == $id)
+             and (.workflow_id == ($workflow_id | tonumber))
+             and (.repository.full_name == "miaole/meetwise-deploy-control")
+             and (.path == ".github/workflows/verify.yml")
+             and (.event == "workflow_dispatch")
+             and (.head_sha == $sha)
+             and (.head_branch == "main")
+             and (.created_at >= $start)
+             and (.display_title == $title)' <<<"$run_json" >/dev/null || {
+            echo 'verifier run identity mismatch' >&2
+            exit 1
+          }
+          status="$(jq -r '.status // empty' <<<"$run_json")"
+          completed=0
+          for _ in $(seq 1 120); do
+            [[ "$status" == completed ]] && { completed=1; break; }
+            sleep 5
+            run_json="$(gh api "repos/$CONTROL_REPOSITORY/actions/runs/$run_id")" || {
+              echo 'verifier run status unavailable' >&2
+              exit 1
+            }
+            jq -e --argjson id "$run_id" --arg workflow_id "$workflow_id" \
+              --arg sha "$CONTROL_COMMIT" --arg title "$EXPECTED_RUN_NAME" \
+              '(.id == $id) and (.workflow_id == ($workflow_id | tonumber)) and
+               (.repository.full_name == "miaole/meetwise-deploy-control") and
+               (.path == ".github/workflows/verify.yml") and (.event == "workflow_dispatch") and
+               (.head_sha == $sha) and (.display_title == $title)' <<<"$run_json" >/dev/null || {
+              echo 'verifier run identity changed while waiting' >&2
+              exit 1
+            }
+            status="$(jq -r '.status // empty' <<<"$run_json")"
+          done
+          [[ "$completed" == 1 ]] || { echo 'independent verifier timed out' >&2; exit 1; }
+          [[ "$(jq -r '.conclusion // empty' <<<"$run_json")" == success ]] || {
+            echo 'independent verifier did not succeed' >&2
+            exit 1
+          }
+          printf 'run_id=%s\n' "$run_id" >> "$GITHUB_OUTPUT"
+
+      - name: Download and validate the nonce-bound signed receipt
+        id: verify
+        env:
+          GH_TOKEN: ${{ steps.verifier-token.outputs.token }}
+          ORIGIN: ${{ needs.deploy-probe.outputs.origin }}
+          PROBE_NONCE: ${{ needs.deploy-probe.outputs.probe_nonce }}
+          EXPECTED_MANIFEST_SHA256: ${{ needs.deploy-probe.outputs.expected_manifest_sha256 }}
+          VERIFIER_RUN_ID: ${{ steps.run.outputs.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$VERIFIER_RUN_ID" =~ ^[1-9][0-9]*$ ]] || { echo 'verifier run id is invalid' >&2; exit 1; }
+          [[ "$PROBE_NONCE" =~ ^[a-f0-9]{64}$ ]] || { echo 'verifier nonce is invalid' >&2; exit 1; }
+          artifact_name="meetwise-public-origin-receipt-$PROBE_NONCE"
+          artifacts="$(gh api "repos/$CONTROL_REPOSITORY/actions/runs/$VERIFIER_RUN_ID/artifacts?per_page=100")" || {
+            echo 'verifier artifact inventory unavailable' >&2
+            exit 1
+          }
+          artifact_count="$(jq --arg name "$artifact_name" '[.artifacts[] | select(.name == $name and .expired == false)] | length' <<<"$artifacts")"
+          [[ "$artifact_count" == 1 ]] || { echo 'exactly one nonce-bound verifier artifact is required' >&2; exit 1; }
+          artifact_size="$(jq --arg name "$artifact_name" -r '[.artifacts[] | select(.name == $name and .expired == false)][0].size_in_bytes // 0' <<<"$artifacts")"
+          [[ "$artifact_size" =~ ^[1-9][0-9]*$ && "$artifact_size" -le 65536 ]] || { echo 'verifier artifact size is invalid' >&2; exit 1; }
+
+          download_dir="$(mktemp -d)"
+          trap 'rm -rf "$download_dir"' EXIT
+          gh run download "$VERIFIER_RUN_ID" --repo "$CONTROL_REPOSITORY" --name "$artifact_name" --dir "$download_dir" >/dev/null 2>&1 || {
+            echo 'verifier receipt artifact download failed' >&2
+            exit 1
+          }
+          mapfile -t receipt_files < <(find "$download_dir" -type f -print)
+          expected_receipt_filename='receipt.json'
+          [[ "${#receipt_files[@]}" == 1 && "$(basename "${receipt_files[0]}")" == "$expected_receipt_filename" ]] || {
+            echo 'verifier artifact must contain exactly receipt.json' >&2
+            exit 1
+          }
+          receipt_path="${receipt_files[0]}"
+          receipt_bytes="$(wc -c < "$receipt_path" | tr -d '[:space:]')"
+          [[ "$receipt_bytes" =~ ^[1-9][0-9]*$ && "$receipt_bytes" -le 32768 ]] || { echo 'verifier receipt size is invalid' >&2; exit 1; }
+          RECEIPT_PATH="$receipt_path" ORIGIN="$ORIGIN" PROBE_NONCE="$PROBE_NONCE" CONTROL_COMMIT="$CONTROL_COMMIT" node <<'NODE'
+          // BEGIN caller receipt validator v2
+          const { readFileSync } = require('node:fs');
+          const RECEIPT_HEX64 = /^[a-f0-9]{64}$/;
+          const RECEIPT_ORIGIN = /^https:\/\/[a-z0-9-]+\.tail[a-z0-9]+\.ts\.net$/;
+          const RECEIPT_COMMIT = /^[a-f0-9]{40}$/;
+          const RECEIPT_RUN_ID = /^[1-9][0-9]*$/;
+          const RECEIPT_BASE64 = /^[A-Za-z0-9+/]+={0,2}$/;
+          const RECEIPT_HEADER_NAMES = new Set(['content-type', 'cache-control']);
+          const RECEIPT_PAGE_PATHS = new Set(['/dashboard', '/interviews', '/jobs', '/resume', '/settings', '/privacy', '/recruiter/jobs', '/recruiter/talent']);
+          const RECEIPT_UNPROVEN_REASONS = Object.freeze({
+            roleBoundary: 'no safe recruiter-to-candidate negative write-free contract is available',
+            api: 'privacy export is intentionally omitted because Playwright API responses may buffer personal data',
+            sse: 'no stable persisted interview-or-quiz id is permitted for the short verifier',
+            worker: 'no business object is created by the short verifier',
+          });
+          const receiptFail = (code) => { throw new Error(code); };
+          function receiptExactKeys(value, expected, label) {
+            if (!value || typeof value !== 'object' || Array.isArray(value)) receiptFail(`${label}_shape_invalid`);
+            const actual = Object.keys(value).sort();
+            const wanted = [...expected].sort();
+            if (JSON.stringify(actual) !== JSON.stringify(wanted)) receiptFail(`${label}_keys_invalid`);
+          }
+          function receiptDigest(value, label) {
+            if (typeof value !== 'string' || !RECEIPT_HEX64.test(value)) receiptFail(`${label}_digest_invalid`);
+          }
+          function receiptAscii(value, label) {
+            if (typeof value !== 'string' || !/^[\x20-\x7e]{1,256}$/.test(value)) receiptFail(`${label}_value_invalid`);
+          }
+          function receiptHeaderMap(headers, label) {
+            receiptExactKeys(headers, Object.keys(headers).filter((key) => RECEIPT_HEADER_NAMES.has(key)), label);
+            for (const [name, value] of Object.entries(headers)) {
+              if (!RECEIPT_HEADER_NAMES.has(name)) receiptFail(`${label}_name_invalid`);
+              receiptAscii(value, `${label}_${name}`);
+            }
+          }
+          function receiptPage(page, label) {
+            receiptExactKeys(page, ['path', 'status', 'headers', 'bodyHash', 'bodyStored', 'markerHashes', 'negativeMarkerHashes'], label);
+            if (typeof page.path !== 'string' || !RECEIPT_PAGE_PATHS.has(page.path)) receiptFail(`${label}_path_invalid`);
+            if (page.status !== 200) receiptFail(`${label}_status_invalid`);
+            receiptHeaderMap(page.headers, `${label}_headers`);
+            receiptDigest(page.bodyHash, `${label}_body`);
+            if (page.bodyStored !== false || !Array.isArray(page.markerHashes) || !Array.isArray(page.negativeMarkerHashes) || page.markerHashes.length === 0) receiptFail(`${label}_semantic_invalid`);
+            for (const marker of [...page.markerHashes, ...page.negativeMarkerHashes]) receiptDigest(marker, `${label}_marker`);
+          }
+          function receiptUnproven(value, label, reasonKey) {
+            receiptExactKeys(value, ['status', 'reason'], label);
+            if (value.status !== 'unproven' || value.reason !== RECEIPT_UNPROVEN_REASONS[reasonKey] || typeof value.reason !== 'string' || value.reason.length < 1 || value.reason.length > 256 || /[\u0000-\u001f\u007f]/.test(value.reason)) receiptFail(`${label}_invalid`);
+          }
+          function receiptAccount(account, label, expectedRole, expectedLoginPath) {
+            receiptExactKeys(account, ['role', 'accountEmailSha256', 'loginPath', 'sessionCookie', 'pages', 'roleBoundary', 'api', 'sse', 'worker', 'semanticAssertionCount'], label);
+            if (account.role !== expectedRole || account.loginPath !== expectedLoginPath) receiptFail(`${label}_identity_invalid`);
+            receiptDigest(account.accountEmailSha256, `${label}_account`);
+            receiptExactKeys(account.sessionCookie, ['httpOnly', 'secure', 'roleCookie'], `${label}_session`);
+            if (account.sessionCookie.httpOnly !== true || account.sessionCookie.secure !== true || account.sessionCookie.roleCookie !== expectedRole) receiptFail(`${label}_session_invalid`);
+            if (!Array.isArray(account.pages) || account.pages.length < 1) receiptFail(`${label}_pages_invalid`);
+            const paths = new Set();
+            account.pages.forEach((page, index) => {
+              receiptPage(page, `${label}_page_${index}`);
+              if (paths.has(page.path)) receiptFail(`${label}_duplicate_page`);
+              paths.add(page.path);
+            });
+            if (!account.roleBoundary || typeof account.roleBoundary !== 'object' || Array.isArray(account.roleBoundary)) receiptFail(`${label}_role_boundary_shape_invalid`);
+            if (account.roleBoundary.status === 'verified') {
+              receiptExactKeys(account.roleBoundary, ['status', 'path', 'markerHashes'], `${label}_role_boundary`);
+              if (account.roleBoundary.path !== '/recruiter/jobs' || !Array.isArray(account.roleBoundary.markerHashes) || account.roleBoundary.markerHashes.length < 1) receiptFail(`${label}_role_boundary_invalid`);
+              account.roleBoundary.markerHashes.forEach((marker) => receiptDigest(marker, `${label}_role_boundary_marker`));
+            } else {
+              receiptUnproven(account.roleBoundary, `${label}_role_boundary`, 'roleBoundary');
+            }
+            receiptUnproven(account.api, `${label}_api`, 'api');
+            receiptUnproven(account.sse, `${label}_sse`, 'sse');
+            receiptUnproven(account.worker, `${label}_worker`, 'worker');
+            if (!Number.isInteger(account.semanticAssertionCount) || account.semanticAssertionCount < 1) receiptFail(`${label}_semantic_count_invalid`);
+          }
+          function validateCallerReceipt(value, { origin, nonce, manifest, controlCommit, runId }) {
+            receiptExactKeys(value, ['schemaVersion', 'origin', 'probeNonce', 'checkedAt', 'manifestSha256', 'rootStatus', 'loginStatus', 'manifestStatus', 'rootUrl', 'loginUrl', 'manifestUrl', 'rootSha256', 'blackboxSha256', 'signingKeyId', 'verifier', 'e2e', 'signature'], 'receipt');
+            if (value.schemaVersion !== 2 || value.origin !== origin || !RECEIPT_ORIGIN.test(origin) || value.probeNonce !== nonce || !RECEIPT_HEX64.test(nonce) || value.manifestSha256 !== manifest || !RECEIPT_HEX64.test(manifest)) receiptFail('receipt_binding_invalid');
+            if (value.checkedAt !== new Date(value.checkedAt).toISOString() || Date.parse(value.checkedAt) > Date.now() + 120000) receiptFail('receipt_time_invalid');
+            if (value.rootStatus !== 200 || value.loginStatus !== 200 || value.manifestStatus !== 200) receiptFail('receipt_status_invalid');
+            if (value.rootUrl !== `${origin}/` || value.loginUrl !== `${origin}/login` || value.manifestUrl !== `${origin}/preview-release-manifest.json`) receiptFail('receipt_urls_invalid');
+            for (const key of ['manifestSha256', 'rootSha256', 'blackboxSha256']) receiptDigest(value[key], `receipt_${key}`);
+            if (value.signingKeyId !== 'probe-receipt-ed25519-v2' || typeof value.signature !== 'string' || !RECEIPT_BASE64.test(value.signature) || Buffer.from(value.signature, 'base64').length !== 64) receiptFail('receipt_signature_invalid');
+            receiptExactKeys(value.verifier, ['repository', 'workflow', 'ref', 'commit', 'runId', 'sourceSha256', 'workflowSha256', 'packageLockSha256'], 'receipt_verifier');
+            if (value.verifier.repository !== 'miaole/meetwise-deploy-control' || value.verifier.workflow !== 'verify-meetwise-public-origin' || value.verifier.ref !== 'refs/heads/main' || value.verifier.commit !== controlCommit || !RECEIPT_COMMIT.test(controlCommit) || value.verifier.runId !== runId || !RECEIPT_RUN_ID.test(runId)) receiptFail('receipt_verifier_identity_invalid');
+            for (const key of ['sourceSha256', 'workflowSha256', 'packageLockSha256']) receiptDigest(value.verifier[key], `receipt_verifier_${key}`);
+            receiptExactKeys(value.e2e, ['status', 'scope', 'complete', 'noCookieProtectedRedirect', 'accounts', 'sensitiveResponseBodies'], 'receipt_e2e');
+            if (value.e2e.status !== 'passed_pages_only' || value.e2e.scope !== 'browser_auth_pages_only' || value.e2e.complete !== false || value.e2e.sensitiveResponseBodies !== 'not_stored') receiptFail('receipt_e2e_status_invalid');
+            receiptExactKeys(value.e2e.noCookieProtectedRedirect, ['origin', 'pathname', 'search'], 'receipt_redirect');
+            if (value.e2e.noCookieProtectedRedirect.origin !== origin || value.e2e.noCookieProtectedRedirect.pathname !== '/login' || value.e2e.noCookieProtectedRedirect.search !== '?next=%2Fdashboard') receiptFail('receipt_redirect_invalid');
+            receiptExactKeys(value.e2e.accounts, ['candidate', 'recruiter'], 'receipt_accounts');
+            receiptAccount(value.e2e.accounts.candidate, 'receipt_candidate', 'candidate', '/dashboard');
+            receiptAccount(value.e2e.accounts.recruiter, 'receipt_recruiter', 'recruiter', '/recruiter/jobs');
+            return value;
+          }
+          // END caller receipt validator v2
+          const path = process.env.RECEIPT_PATH;
+          const value = JSON.parse(readFileSync(path, 'utf8'));
+          validateCallerReceipt(value, {
+            origin: process.env.ORIGIN,
+            nonce: process.env.PROBE_NONCE,
+            manifest: process.env.EXPECTED_MANIFEST_SHA256,
+            controlCommit: process.env.CONTROL_COMMIT,
+            runId: process.env.VERIFIER_RUN_ID,
+          });
+          NODE
+          receipt_b64="$(base64 < "$receipt_path" | tr -d '\n')"
+          [[ "$receipt_b64" =~ ^[A-Za-z0-9+/]+={0,2}$ ]] || { echo 'receipt base64 encoding invalid' >&2; exit 1; }
+          printf 'receipt_b64=%s\n' "$receipt_b64" >> "$GITHUB_OUTPUT"
 
   confirm:
     needs: [deploy-probe, external-verify]
     runs-on: ubuntu-latest
     timeout-minutes: 35
     environment: preview-cd
+    permissions:
+      contents: read
+      actions: write
     outputs:
       final_fingerprint: ${{ steps.confirm-public.outputs.final_fingerprint }}
       final_generation: ${{ steps.confirm-public.outputs.final_generation }}
@@ -413,11 +773,11 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
-      - uses: tailscale/github-action@92117a0a1d5c99a90c035c00d1eb52e357e1e1a4 # v3
+      - uses: tailscale/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade # v3
         with:
           oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
-          args: --advertise-tags=tag:meetwise-cd
+          tags: tag:meetwise-cd
       - name: Configure pinned SSH identity
         run: |
           mkdir -p "$HOME/.ssh"
@@ -434,6 +794,15 @@ jobs:
             UserKnownHostsFile ~/.ssh/known_hosts
           EOF
           chmod 600 "$HOME/.ssh/config"
+      - name: Verify forced-command sentinel before sensitive ECS SSH
+        run: |
+          set -euo pipefail
+          sentinel_status=0
+          sentinel_output="$(ssh -o BatchMode=yes meetwise-ecs 'meetwise-cd __meetwise_cd_forced_command_sentinel__' 2>&1)" || sentinel_status=$?
+          [[ "$sentinel_status" -ne 0 && "$sentinel_output" == 'meetwise_cd_unknown_command' ]] || {
+            echo 'forced-command sentinel did not fail closed with the exact unknown-command reason' >&2
+            exit 1
+          }
       - name: Revalidate main and CI identity before confirmation
         env:
           GH_TOKEN: ${{ github.token }}
@@ -468,9 +837,25 @@ jobs:
           final_fingerprint="$(printf '%s' "$confirm_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{const v=JSON.parse(s);const f=v?.candidate?.finalManifestFingerprint;if(!/^[a-f0-9]{64}$/.test(f??""))process.exit(1);process.stdout.write(f)}catch{process.exit(1)}})')"
           [[ "$final_fingerprint" =~ ^[a-f0-9]{64}$ ]] || { echo 'transaction confirm did not return a manifest fingerprint' >&2; exit 1; }
           final_generation=''
+          manifest_file="$(mktemp)"
+          trap 'rm -f "$manifest_file"' EXIT
           for _ in $(seq 1 30); do
             if manifest_text="$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 20 "$ORIGIN/preview-release-manifest.json")"; then
-              final_generation="$(printf '%s' "$manifest_text" | env EXPECTED_FINGERPRINT="$final_fingerprint" ORIGIN="$ORIGIN" node --input-type=module -e 'import { manifestFingerprint } from "./ops/ecs/preview-release-manifest.mjs"; let s=""; process.stdin.on("data", d => s += d); process.stdin.on("end", () => { const m = JSON.parse(s); if (!Number.isSafeInteger(m.generation) || m.status !== "verified" || m.revoked !== false || m.origin !== process.env.ORIGIN || manifestFingerprint(m) !== process.env.EXPECTED_FINGERPRINT) process.exit(1); process.stdout.write(String(m.generation)); })' || true)"
+              printf '%s' "$manifest_text" > "$manifest_file"
+              final_generation="$(node --input-type=module - "$manifest_file" "$final_fingerprint" "$ORIGIN" <<'NODE'
+              import { createHash } from 'node:crypto';
+              import { readFileSync } from 'node:fs';
+              const [manifestPath, expectedFingerprint, expectedOrigin] = process.argv.slice(2);
+              const canonicalJson = (value) => {
+                if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+                if (value && typeof value === 'object') return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(',')}}`;
+                return JSON.stringify(value);
+              };
+              const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+              if (!Number.isSafeInteger(manifest.generation) || manifest.status !== 'verified' || manifest.revoked !== false || manifest.origin !== expectedOrigin || createHash('sha256').update(canonicalJson(manifest)).digest('hex') !== expectedFingerprint) process.exit(1);
+              process.stdout.write(String(manifest.generation));
+              NODE
+              || true)"
               [ -n "$final_generation" ] && break
             fi
             sleep 2
@@ -641,18 +1026,23 @@ jobs:
 
   recover:
     if: >-
-      always() && needs.deploy-probe.result == 'success' &&
-      (needs.external-verify.result != 'success' || needs.confirm.result != 'success')
+      always() && needs.deploy-probe.outputs.transaction_id != '' &&
+      (needs.deploy-probe.result != 'success' || needs.external-verify.result != 'success' || needs.confirm.result != 'success')
     needs: [deploy-probe, external-verify, confirm]
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # The recovery step has one shared 13-minute wall-clock budget; keeping the
+    # job ceiling at 20 minutes leaves bounded room for Tailscale/SSH setup.
+    timeout-minutes: 20
     environment: preview-cd
+    permissions:
+      contents: read
+      actions: write
     steps:
-      - uses: tailscale/github-action@92117a0a1d5c99a90c035c00d1eb52e357e1e1a4 # v3
+      - uses: tailscale/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade # v3
         with:
           oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
-          args: --advertise-tags=tag:meetwise-cd
+          tags: tag:meetwise-cd
       - name: Configure pinned SSH identity for recovery
         run: |
           mkdir -p "$HOME/.ssh"
@@ -669,24 +1059,66 @@ jobs:
             UserKnownHostsFile ~/.ssh/known_hosts
           EOF
           chmod 600 "$HOME/.ssh/config"
+      - name: Verify forced-command sentinel before sensitive ECS SSH
+        run: |
+          set -euo pipefail
+          sentinel_status=0
+          sentinel_output="$(ssh -o BatchMode=yes meetwise-ecs 'meetwise-cd __meetwise_cd_forced_command_sentinel__' 2>&1)" || sentinel_status=$?
+          [[ "$sentinel_status" -ne 0 && "$sentinel_output" == 'meetwise_cd_unknown_command' ]] || {
+            echo 'forced-command sentinel did not fail closed with the exact unknown-command reason' >&2
+            exit 1
+          }
       - name: Invoke token-bound recovery and require a receipt
         env:
           GH_TOKEN: ${{ github.token }}
+          RECOVERY_BUDGET_SECONDS: '780'
         run: |
-          status_json="$(ssh meetwise-ecs "meetwise-cd transaction status '${{ needs.deploy-probe.outputs.transaction_id }}' '${{ needs.deploy-probe.outputs.release }}' '${{ needs.deploy-probe.outputs.recovery_token }}'")"
+          set -euo pipefail
+          started_at="$(date +%s)"
+          deadline=$((started_at + RECOVERY_BUDGET_SECONDS))
+          remaining_until() {
+            local until="$1" now left
+            now="$(date +%s)"
+            left=$((until - now))
+            (( left > 0 )) || return 124
+            printf '%s\n' "$left"
+          }
+          bounded() {
+            local left
+            left="$(remaining_until "$deadline")" || return 124
+            timeout --signal=TERM --kill-after=5s "${left}s" "$@"
+          }
+          status_json="$(bounded ssh meetwise-ecs "meetwise-cd transaction status '${{ needs.deploy-probe.outputs.transaction_id }}' '${{ needs.deploy-probe.outputs.release }}' '${{ needs.deploy-probe.outputs.recovery_token }}'")"
+          predecessor_pages="$(printf '%s' "$status_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{const p=JSON.parse(s)?.predecessor?.pages;if(!p||!["enabled","disabled","none"].includes(p.state))process.exit(2);if(p.state!=="none"&&(!Number.isSafeInteger(p.generation)||p.generation<1||!/^[a-f0-9]{64}$/.test(p.fingerprint??"")))process.exit(2);process.stdout.write(`${p.state}\t${p.generation??0}\t${p.fingerprint??""}`)}catch{process.exit(2)}})')" || { echo 'predecessor Pages identity missing from durable ledger' >&2; exit 1; }
           pages_identity="$(printf '%s' "$status_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{const v=JSON.parse(s);const f=v?.candidate?.finalManifestFingerprint;if(!/^[a-f0-9]{64}$/.test(f??"")||!Number.isSafeInteger(v.generation)||v.generation<1)process.exit(2);process.stdout.write(`${v.generation} ${f}`)}catch{process.exit(2)}})')" || pages_identity=''
           if [ -n "$pages_identity" ]; then
             read -r final_generation final_fingerprint <<<"$pages_identity"
-            gh workflow run pages-preview.yml --ref main \
+            bounded gh workflow run pages-preview.yml --ref main \
               -f expected_state=disabled \
               -f expected_generation="$final_generation" \
               -f expected_manifest_sha256="$final_fingerprint"
             disabled=0
             for _ in $(seq 1 120); do
-              if state="$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 20 "https://miaole.github.io/meetwise/preview-link-state.json?generation=$final_generation&manifest=$final_fingerprint")" \
+              if state="$(bounded curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 10 "https://miaole.github.io/meetwise/preview-link-state.json?generation=$final_generation&manifest=$final_fingerprint")" \
                 && env STATE="$state" GEN="$final_generation" FP="$final_fingerprint" node -e 'const v=JSON.parse(process.env.STATE);if(v.state!=="disabled"||String(v.generation)!==process.env.GEN||v.manifestSha256!==process.env.FP||v.finalFingerprint!==process.env.FP)process.exit(1)'; then disabled=1; break; fi
-              sleep 5
+              bounded sleep 5
             done
             test "$disabled" = 1 || { echo 'exact Pages disabled recovery receipt missing' >&2; exit 1; }
           fi
-          ssh meetwise-ecs "meetwise-cd transaction recover '${{ needs.deploy-probe.outputs.transaction_id }}' '${{ needs.deploy-probe.outputs.release }}' '${{ needs.deploy-probe.outputs.recovery_token }}'"
+          bounded ssh meetwise-ecs "meetwise-cd transaction recover '${{ needs.deploy-probe.outputs.transaction_id }}' '${{ needs.deploy-probe.outputs.release }}' '${{ needs.deploy-probe.outputs.recovery_token }}'"
+          terminal_json="$(bounded ssh meetwise-ecs "meetwise-cd transaction status '${{ needs.deploy-probe.outputs.transaction_id }}' '${{ needs.deploy-probe.outputs.release }}' '${{ needs.deploy-probe.outputs.recovery_token }}'")"
+          terminal_phase="$(printf '%s' "$terminal_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{const p=JSON.parse(s).phase;if(!["rolled_back","forward_only_maintenance"].includes(p))process.exit(2);process.stdout.write(p)})')" || { echo 'release recovery did not reach a terminal phase' >&2; exit 1; }
+          IFS=$'\t' read -r predecessor_state predecessor_generation predecessor_fingerprint <<<"$predecessor_pages"
+          if [ "$terminal_phase" = rolled_back ] && [ "$predecessor_state" != none ]; then
+            bounded gh workflow run pages-preview.yml --ref main \
+              -f expected_state="$predecessor_state" \
+              -f expected_generation="$predecessor_generation" \
+              -f expected_manifest_sha256="$predecessor_fingerprint"
+            restored=0
+            for _ in $(seq 1 120); do
+              if state="$(bounded curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 10 "https://miaole.github.io/meetwise/preview-link-state.json?generation=$predecessor_generation&manifest=$predecessor_fingerprint")" \
+                && env STATE="$state" EXPECTED_STATE="$predecessor_state" GEN="$predecessor_generation" FP="$predecessor_fingerprint" node -e 'const v=JSON.parse(process.env.STATE);if(v.state!==process.env.EXPECTED_STATE||String(v.generation)!==process.env.GEN||v.manifestSha256!==process.env.FP||v.finalFingerprint!==process.env.FP)process.exit(1)'; then restored=1; break; fi
+              bounded sleep 5
+            done
+            test "$restored" = 1 || { echo 'exact predecessor Pages recovery receipt missing' >&2; exit 1; }
+          fi

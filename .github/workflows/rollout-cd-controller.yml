@@ -8,10 +8,6 @@ on:
         required: true
         type: string
 
-permissions:
-  contents: read
-  actions: read
-
 concurrency:
   group: full-stack-deploy
   cancel-in-progress: false
@@ -22,6 +18,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: preview-cd
+    permissions:
+      contents: read
+      actions: read
     steps:
       - name: Check out the requested commit without credentials
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -91,11 +90,11 @@ jobs:
           printf 'main_sha=%s\n' "$MAIN_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Connect the protected tailnet and configure forced-command SSH
-        uses: tailscale/github-action@92117a0a1d5c99a90c035c00d1eb52e357e1e1a4 # v3
+        uses: tailscale/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade # v3
         with:
           oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
-          args: --advertise-tags=tag:meetwise-cd
+          tags: tag:meetwise-cd
 
       - name: Configure SSH to the provisioned controller receiver
         run: |
@@ -116,6 +115,16 @@ jobs:
           } > "$HOME/.ssh/config"
           chmod 600 "$HOME/.ssh/config"
 
+      - name: Verify forced-command sentinel before sensitive ECS SSH
+        run: |
+          set -euo pipefail
+          sentinel_status=0
+          sentinel_output="$(ssh -o BatchMode=yes meetwise-ecs 'meetwise-cd __meetwise_cd_forced_command_sentinel__' 2>&1)" || sentinel_status=$?
+          [[ "$sentinel_status" -ne 0 && "$sentinel_output" == 'meetwise_cd_unknown_command' ]] || {
+            echo 'forced-command sentinel did not fail closed with the exact unknown-command reason' >&2
+            exit 1
+          }
+
       - name: Receive the candidate bundle (stage only)
         env:
           BUNDLE_DIGEST: ${{ steps.bundle.outputs.bundle_digest }}
@@ -129,8 +138,29 @@ jobs:
         env:
           BUNDLE_DIGEST: ${{ steps.bundle.outputs.bundle_digest }}
           ARCHIVE_DIGEST: ${{ steps.bundle.outputs.archive_digest }}
+          MAIN_SHA: ${{ inputs.main_sha }}
         run: |
           set -euo pipefail
+          [[ "$MAIN_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo 'controller_main_sha_invalid_before_install' >&2; exit 1; }
+          [[ "$(git rev-parse HEAD)" == "$MAIN_SHA" ]] || { echo 'controller_checkout_sha_mismatch_before_install' >&2; exit 1; }
+          main_json="$(gh api "repos/$GITHUB_REPOSITORY/branches/main")"
+          [[ "$(jq -r '.commit.sha' <<<"$main_json")" == "$MAIN_SHA" ]] || {
+            echo 'controller_main_sha_stale_before_install_stage_left_uninstalled' >&2
+            exit 1
+          }
+          [[ "$(jq -r '.protected' <<<"$main_json")" == true ]] || { echo 'controller_main_not_protected_before_install' >&2; exit 1; }
+          workflow_inventory="$(gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/actions/workflows?per_page=100")"
+          ci_count="$(jq '[.[].workflows[] | select(.name == "ci")] | length' <<<"$workflow_inventory")"
+          [[ "$ci_count" == 1 ]] || { echo 'controller_ci_workflow_not_unique_before_install' >&2; exit 1; }
+          ci_workflow_id="$(jq -r '[.[].workflows[] | select(.name == "ci")][0].id' <<<"$workflow_inventory")"
+          ci_path="$(jq -r '[.[].workflows[] | select(.name == "ci")][0].path' <<<"$workflow_inventory")"
+          [[ "$ci_path" == .github/workflows/ci.yml && "$ci_workflow_id" =~ ^[1-9][0-9]*$ ]] || { echo 'controller_ci_workflow_identity_invalid_before_install' >&2; exit 1; }
+          runs="$(gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$MAIN_SHA&per_page=100")"
+          success_count="$(jq --arg sha "$MAIN_SHA" --argjson workflow "$ci_workflow_id" '[.[].workflow_runs[] | select(.workflow_id == $workflow and .head_sha == $sha and .head_branch == "main" and .event == "push" and .status == "completed" and .conclusion == "success")] | length' <<<"$runs")"
+          [[ "$success_count" -ge 1 ]] || {
+            echo 'controller_ci_success_missing_before_install_stage_left_uninstalled' >&2
+            exit 1
+          }
           ssh meetwise-ecs "meetwise-cd install-controller $BUNDLE_DIGEST $ARCHIVE_DIGEST"
           installed="$(ssh meetwise-ecs 'meetwise-cd controller-version')"
           [[ "$installed" == "$BUNDLE_DIGEST" ]] || { echo 'controller_version_readback_mismatch' >&2; exit 1; }

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { generateKeyPairSync } from 'node:crypto';
 import { canonicalJson, verifyManifest } from '../ops/ecs/preview-release-manifest.mjs';
-import { composeFullStackManifest, surfaceReceipt } from '../ops/ecs/full-stack/full-stack-preview-publisher.mjs';
-import { createHash } from 'node:crypto';
+import { assertExternalProbeReceiptV2, composeFullStackManifest, surfaceReceipt } from '../ops/ecs/full-stack/full-stack-preview-publisher.mjs';
+import { createHash, sign } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
 const sha = (value) => createHash('sha256').update(typeof value === 'string' ? value : canonicalJson(value)).digest('hex');
@@ -36,6 +36,108 @@ assert.equal(verifyManifest(manifest, publicPem).mode, 'public-full-stack-probe'
 assert.equal(manifest.receipts.blackbox, surfaceReceipt(evidence.rootHtml, evidence.loginHtml).digest);
 // compose 单机：runtime 身份 = sha256(approval.images)（backend/web 两镜像），不再是源码树摘要。
 assert.equal(manifest.receipts.runtime, sha(approval.images));
+
+// The external control repository is the sole receipt-shape authority. Keep a
+// real signed v2 receipt here so the ECS consumer is tested against the exact
+// closed recursive contract rather than source-text fragments.
+const probeOrigin = 'https://preview.tail0000000.ts.net';
+const probeNonce = 'a'.repeat(64);
+const probeManifest = 'b'.repeat(64);
+const probeRoot = 'c'.repeat(64);
+const probeBlackbox = 'd'.repeat(64);
+const probeVerifier = {
+  repository: 'miaole/meetwise-deploy-control',
+  workflow: 'verify-meetwise-public-origin',
+  ref: 'refs/heads/main',
+  commit: 'e'.repeat(40),
+  runId: '123',
+  sourceSha256: 'f'.repeat(64),
+  workflowSha256: '1'.repeat(64),
+  packageLockSha256: '2'.repeat(64),
+};
+const probePage = (path, bodyHash, markerHash) => ({
+  path,
+  status: 200,
+  headers: { 'content-type': 'text/html; charset=utf-8' },
+  bodyHash,
+  bodyStored: false,
+  markerHashes: [markerHash],
+  negativeMarkerHashes: [],
+});
+const probeUnproven = (reason) => ({ status: 'unproven', reason });
+const probeAccount = (role, loginPath, pagePath, bodyHash, markerHash, emailHash) => ({
+  role,
+  accountEmailSha256: emailHash,
+  loginPath,
+  sessionCookie: { httpOnly: true, secure: true, roleCookie: role },
+  pages: [probePage(pagePath, bodyHash, markerHash)],
+  roleBoundary: role === 'candidate'
+    ? { status: 'verified', path: '/recruiter/jobs', markerHashes: ['3'.repeat(64)] }
+    : probeUnproven('no safe recruiter-to-candidate negative write-free contract is available'),
+  api: probeUnproven('privacy export is intentionally omitted because Playwright API responses may buffer personal data'),
+  sse: probeUnproven('no stable persisted interview-or-quiz id is permitted for the short verifier'),
+  worker: probeUnproven('no business object is created by the short verifier'),
+  semanticAssertionCount: 1,
+});
+const probeUnsigned = {
+  schemaVersion: 2,
+  origin: probeOrigin,
+  probeNonce,
+  checkedAt: new Date(now - 1_000).toISOString(),
+  manifestSha256: probeManifest,
+  rootStatus: 200,
+  loginStatus: 200,
+  manifestStatus: 200,
+  rootUrl: `${probeOrigin}/`,
+  loginUrl: `${probeOrigin}/login`,
+  manifestUrl: `${probeOrigin}/preview-release-manifest.json`,
+  rootSha256: probeRoot,
+  blackboxSha256: probeBlackbox,
+  signingKeyId: 'probe-receipt-ed25519-v2',
+  verifier: probeVerifier,
+  e2e: {
+    status: 'passed_pages_only',
+    scope: 'browser_auth_pages_only',
+    complete: false,
+    noCookieProtectedRedirect: { origin: probeOrigin, pathname: '/login', search: '?next=%2Fdashboard' },
+    accounts: {
+      candidate: probeAccount('candidate', '/dashboard', '/dashboard', '4'.repeat(64), '5'.repeat(64), '6'.repeat(64)),
+      recruiter: probeAccount('recruiter', '/recruiter/jobs', '/recruiter/jobs', '7'.repeat(64), '8'.repeat(64), '9'.repeat(64)),
+    },
+    sensitiveResponseBodies: 'not_stored',
+  },
+};
+const signedProbeReceipt = (unsigned) => ({ ...unsigned, signature: sign(null, Buffer.from(canonicalJson(unsigned)), privateKey).toString('base64') });
+const probeReceipt = signedProbeReceipt(probeUnsigned);
+assert.equal(assertExternalProbeReceiptV2(probeReceipt, {
+  origin: probeOrigin,
+  probeNonce,
+  manifestSha256: probeManifest,
+  rootSha256: probeRoot,
+  blackboxSha256: probeBlackbox,
+  publicKeyPem: publicPem,
+  activationAt: new Date(now - 5_000).toISOString(),
+  deadlineAt: new Date(now + 600_000).toISOString(),
+  now,
+}).signingKeyId, 'probe-receipt-ed25519-v2');
+assert.throws(() => assertExternalProbeReceiptV2({ ...probeReceipt, unexpected: true }, {
+  origin: probeOrigin, probeNonce, manifestSha256: probeManifest, rootSha256: probeRoot, blackboxSha256: probeBlackbox, publicKeyPem: publicPem,
+  activationAt: new Date(now - 5_000).toISOString(), deadlineAt: new Date(now + 600_000).toISOString(), now,
+}));
+const probeMutation = (mutate) => {
+  const candidate = structuredClone(probeUnsigned);
+  mutate(candidate);
+  return signedProbeReceipt(candidate);
+};
+assert.throws(() => assertExternalProbeReceiptV2(probeMutation((value) => { value.e2e.status = 'passed'; }), {
+  origin: probeOrigin, probeNonce, manifestSha256: probeManifest, rootSha256: probeRoot, blackboxSha256: probeBlackbox, publicKeyPem: publicPem,
+  activationAt: new Date(now - 5_000).toISOString(), deadlineAt: new Date(now + 600_000).toISOString(), now,
+}));
+assert.throws(() => assertExternalProbeReceiptV2(probeMutation((value) => { value.e2e.accounts.candidate.api.reason = 'authorization: raw'; }), {
+  origin: probeOrigin, probeNonce, manifestSha256: probeManifest, rootSha256: probeRoot, blackboxSha256: probeBlackbox, publicKeyPem: publicPem,
+  activationAt: new Date(now - 5_000).toISOString(), deadlineAt: new Date(now + 600_000).toISOString(), now,
+}));
+
 const allowedOverlay = { schemaVersion: 1, scope: 'fixed-preview-candidate', ownerUserId: 'candidate-preview', deepUsageReceiptDigest: '9'.repeat(64), interviewIds: ['iv-1', 'iv-2', 'iv-3'], applicationIds: ['app-1', 'app-2', 'app-3'], interviews: 3, applicationExceptions: 3, modelInvocations: 17, consumptions: 3, answerEvents: 13, limits: { interviews: 500, applicationExceptions: 500, modelInvocations: 10000, consumptions: 500, answerEvents: 10000 } };
 const overlayDbUnsigned = { ...dbUnsigned, counts: { ...cumulative, interviews: cumulative.interviews + 3 }, capacityCounts: cumulative, attestationMode: 'capacity_with_fixed_deep_overlay', allowedOverlay };
 const overlayDbReceipt = { ...overlayDbUnsigned, receiptDigest: sha(overlayDbUnsigned) };
@@ -82,9 +184,20 @@ assert.match(publisherSource, /status: 'edge_probing'/);
 assert.match(publisherSource, /full-stack-public-verification\.json/);
 assert.match(publisherSource, /Date\.now\(\) \+ 600_000/);
 assert.match(publisherSource, /randomBytes\(32\)/);
-assert.match(publisherSource, /receipt\.probeNonce !== state\.probeNonce/);
-assert.match(publisherSource, /receipt\.rootSha256 !== manifest\.receipts\?\.edge/);
-assert.match(publisherSource, /receipt\.blackboxSha256 !== manifest\.receipts\?\.blackbox/);
+assert.match(publisherSource, /assertExternalProbeReceiptV2/);
+assert.match(publisherSource, /receipt\.probeNonce !== probeNonce/);
+assert.match(publisherSource, /receipt\.rootSha256 !== rootSha256/);
+assert.match(publisherSource, /receipt\.blackboxSha256 !== blackboxSha256/);
+assert.match(publisherSource, /noCookieProtectedRedirect/);
+assert.match(publisherSource, /status !== 'passed_pages_only'/);
+assert.match(publisherSource, /scope !== 'browser_auth_pages_only'/);
+assert.match(publisherSource, /complete !== false/);
+assert.match(publisherSource, /sessionCookie/);
+assert.match(publisherSource, /markerHashes/);
+assert.match(publisherSource, /roleBoundary/);
+assert.match(publisherSource, /account\.api/);
+assert.match(publisherSource, /value\.status !== 'unproven'/);
+assert.doesNotMatch(publisherSource, /api\.path !== '\/api\/privacy\/export'/);
 assert.match(publisherSource, /mode: 'public-full-stack-probe'/);
 assert.match(publisherSource, /mode: 'public-full-stack'/);
 assert.ok(publisherSource.indexOf("status: 'confirmed_pending_public'") < publisherSource.indexOf('durableJson(PATHS.publicManifest, finalManifest'));

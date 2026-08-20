@@ -25,7 +25,8 @@ umask 077
 #     再对每个子命令+参数二次校验（纵深防御）。
 #   - meetwise-synthetic 降权账号由 provision-meetwise-synthetic.sh 装（P0-1：不可信 tarball JS 不再以
 #     root 跑）。本脚本编排调用它。
-#   - 签名私钥 /etc/meetwise/preview-release-ed25519.pem 恒 0600 root:root，本脚本绝不读/改它。
+#   - 签名私钥 /etc/meetwise/preview-release-ed25519.pem 恒 0600 root:root，本脚本只在内存中解析
+#     其 Ed25519 结构，不复制、不打印、不改写。
 #
 # 用法：
 #   sudo provision-meetwise-cd.sh --source-root <解包的 release 源码根> --deploy-pubkey <SSH 公钥文件>
@@ -74,12 +75,220 @@ CONTROLLER_STATE=/var/lib/meetwise-preview-controller
 PUBLIC_MANIFEST_ROOT=/usr/share/meetwise-preview
 FULL_STACK_RELEASES=/srv/meetwise-full-stack/releases
 FULL_STACK_SNAPSHOTS="$CONTROLLER_STATE/full-stack-rollback"
+FULL_STACK_RELEASE_RECOVERY_SERVICE=meetwise-full-stack-release-recovery.service
+FULL_STACK_RELEASE_RECOVERY_TIMER=meetwise-full-stack-release-recovery.timer
 
 die() { echo "provision_cd_$1" >&2; exit "${2:-64}"; }
+
+# Parse the small, root-owned env contracts without sourcing them.  These files
+# are later consumed by different privilege domains, so a grep for KEY= is not
+# enough: KEY=, duplicate assignments, CRLF and shell-looking lines must all
+# fail before the controller is declared provisioned.  The parser emits only a
+# status code; values are fetched one fixed key at a time and are never logged.
+parse_env_file() {
+  local path="$1" label="$2" allow_unknown="${3:-0}" allowed_csv status
+  shift 3 || true
+  allowed_csv="$*"
+  allowed_csv="${allowed_csv// /,}"
+  set +e
+  /usr/bin/awk -v allow_unknown="$allow_unknown" -v allowed_csv="$allowed_csv" '
+    BEGIN {
+      allowed_count = split(allowed_csv, allowed_values, ",");
+      for (i = 1; i <= allowed_count; i++) if (allowed_values[i] != "") allowed[allowed_values[i]] = 1;
+    }
+    {
+      if (index($0, "\r") > 0) exit 11;
+      raw = $0;
+      if (raw ~ /^export[[:space:]]+[A-Z][A-Z0-9_]*=.*/) sub(/^export[[:space:]]+/, "", raw);
+      else if (raw !~ /^[A-Z][A-Z0-9_]*=.*/) exit 15;
+      separator = index(raw, "=");
+      key = substr(raw, 1, separator - 1);
+      value = substr(raw, separator + 1);
+      if (value == "") exit 12;
+      if (allow_unknown != "1" && !(key in allowed)) exit 13;
+      if (key in seen) exit 14;
+      seen[key] = 1;
+    }
+  ' "$path"
+  status=$?
+  set -e
+  case "$status" in
+    0) ;;
+    11) die "${label}_cr" 70 ;;
+    12) die "${label}_empty_value" 70 ;;
+    13) die "${label}_unknown_key" 70 ;;
+    14) die "${label}_duplicate_key" 70 ;;
+    *) die "${label}_illegal_line" 70 ;;
+  esac
+}
+
+env_value() {
+  local path="$1" wanted="$2"
+  /usr/bin/awk -v wanted="$wanted" '
+    {
+      raw = $0;
+      if (raw ~ /^export[[:space:]]+[A-Z][A-Z0-9_]*=.*/) sub(/^export[[:space:]]+/, "", raw);
+      separator = index(raw, "=");
+      if (separator > 1 && substr(raw, 1, separator - 1) == wanted) {
+        print substr(raw, separator + 1);
+        found = 1;
+        exit;
+      }
+    }
+    END { if (!found) exit 1; }
+  ' "$path"
+}
+
+require_env_value() {
+  local path="$1" label="$2" key="$3" value
+  value="$(env_value "$path" "$key" 2>/dev/null)" || die "${label}_missing_key:$key" 70
+  [[ -n "$value" ]] || die "${label}_empty_value:$key" 70
+}
+
+validate_preview_password() {
+  local key="$1" value="$2" password_length="${#2}"
+  (( password_length >= 8 && password_length <= 128 )) || die "preview_password_length_invalid:$key" 70
+}
+
+validate_preview_key_material() {
+  local signing_key="$1" probe_public_key="$2"
+  # Node's crypto parser validates the PEM/DER structure and the actual key
+  # type without emitting key material.  The private key is only read by this
+  # short-lived root process for validation; it is never copied or persisted.
+  /usr/bin/node - "$signing_key" "$probe_public_key" >/dev/null 2>&1 <<'NODE' || die key_material_invalid 70
+const { createPrivateKey, createPublicKey } = require('node:crypto');
+const { readFileSync } = require('node:fs');
+const [privatePath, publicPath] = process.argv.slice(2);
+const privateKey = createPrivateKey(readFileSync(privatePath));
+const publicKey = createPublicKey(readFileSync(publicPath));
+if (privateKey.asymmetricKeyType !== 'ed25519' || publicKey.asymmetricKeyType !== 'ed25519') throw new Error('ed25519_required');
+NODE
+}
+
+validate_verifier_contract() {
+  local database_url="$1" ca_path="$2" tls_servername="$3" expected_database="$4" expected_role="$5"
+  [[ -f "$ca_path" && ! -L "$ca_path" ]] || die verifier_tls_ca_path_invalid 70
+  env -i \
+    PREVIEW_VERIFY_DATABASE_URL="$database_url" \
+    PREVIEW_VERIFY_DATABASE_SSL_CA_PATH="$ca_path" \
+    PREVIEW_VERIFY_PG_TLS_SERVERNAME="$tls_servername" \
+    PREVIEW_VERIFY_EXPECTED_DATABASE="$expected_database" \
+    PREVIEW_VERIFY_EXPECTED_ROLE="$expected_role" \
+    /usr/bin/node - >/dev/null 2>&1 <<'NODE' || die verifier_env_contract_invalid 70
+const expectedDatabase = 'meetwise_cloud_test';
+const expectedRole = 'meetwise_preview_audit';
+const url = new URL(process.env.PREVIEW_VERIFY_DATABASE_URL);
+if (!['postgres:', 'postgresql:'].includes(url.protocol) || url.search || url.hash || !url.hostname || ['localhost', '127.0.0.1', '::1', '[::1]'].includes(url.hostname)) throw new Error('database_url_invalid');
+if (decodeURIComponent(url.pathname.replace(/^\/+/, '')) !== expectedDatabase) throw new Error('database_identity_invalid');
+const caPath = process.env.PREVIEW_VERIFY_DATABASE_SSL_CA_PATH;
+const tlsServername = process.env.PREVIEW_VERIFY_PG_TLS_SERVERNAME;
+if (!caPath.startsWith('/') || caPath.startsWith('-') || caPath.includes('..') || caPath.length > 4096 || /[\u0000-\u001f\u007f]/.test(caPath)) throw new Error('ca_path_invalid');
+if (!/^[A-Za-z0-9][A-Za-z0-9.-]{0,254}$/.test(tlsServername)) throw new Error('tls_servername_invalid');
+if (process.env.PREVIEW_VERIFY_EXPECTED_DATABASE !== expectedDatabase || process.env.PREVIEW_VERIFY_EXPECTED_ROLE !== expectedRole) throw new Error('identity_binding_invalid');
+NODE
+}
+
+validate_env_contract_contents() {
+  local env_file required missing
+  for env_file in \
+    "$ETC/preview-release-ed25519.pem" \
+    "$ETC/probe-receipt-ed25519.pub.pem" \
+    "$ETC/full-stack-migrate.env" \
+    "$ETC/full-stack-verifier.env" \
+    "$ETC/preview-test-accounts.env" \
+    "$ETC/preview-synthetic-target.json" \
+    "$ETC/preview-synthetic.seed" \
+    "$ETC/acr-pull.env" \
+    "$COMPOSE_ENV"; do
+    [[ -f "$env_file" && ! -L "$env_file" ]] || die "provision_input_missing:$env_file" 70
+  done
+
+  # Validate the migration env before provision-meetwise-synthetic.sh can
+  # source it to discover the CA path.  This parser never evaluates values.
+  parse_env_file "$ETC/full-stack-migrate.env" migrate 1
+
+  parse_env_file "$ETC/full-stack-verifier.env" verifier 0 \
+    PREVIEW_VERIFY_DATABASE_URL PREVIEW_VERIFY_DATABASE_SSL_CA_PATH \
+    PREVIEW_VERIFY_PG_TLS_SERVERNAME PREVIEW_VERIFY_EXPECTED_DATABASE PREVIEW_VERIFY_EXPECTED_ROLE
+  for required in PREVIEW_VERIFY_DATABASE_URL PREVIEW_VERIFY_DATABASE_SSL_CA_PATH PREVIEW_VERIFY_PG_TLS_SERVERNAME PREVIEW_VERIFY_EXPECTED_DATABASE PREVIEW_VERIFY_EXPECTED_ROLE; do
+    require_env_value "$ETC/full-stack-verifier.env" verifier "$required"
+  done
+  verifier_database_url="$(env_value "$ETC/full-stack-verifier.env" PREVIEW_VERIFY_DATABASE_URL)"
+  verifier_ca_path="$(env_value "$ETC/full-stack-verifier.env" PREVIEW_VERIFY_DATABASE_SSL_CA_PATH)"
+  verifier_tls_servername="$(env_value "$ETC/full-stack-verifier.env" PREVIEW_VERIFY_PG_TLS_SERVERNAME)"
+  verifier_expected_database="$(env_value "$ETC/full-stack-verifier.env" PREVIEW_VERIFY_EXPECTED_DATABASE)"
+  verifier_expected_role="$(env_value "$ETC/full-stack-verifier.env" PREVIEW_VERIFY_EXPECTED_ROLE)"
+  validate_verifier_contract \
+    "$verifier_database_url" \
+    "$verifier_ca_path" \
+    "$verifier_tls_servername" \
+    "$verifier_expected_database" \
+    "$verifier_expected_role"
+
+  parse_env_file "$ETC/preview-test-accounts.env" preview_test_accounts 0 \
+    PREVIEW_C_EMAIL PREVIEW_C_PASSWORD PREVIEW_B_EMAIL PREVIEW_B_PASSWORD
+  for required in PREVIEW_C_EMAIL PREVIEW_C_PASSWORD PREVIEW_B_EMAIL PREVIEW_B_PASSWORD; do
+    require_env_value "$ETC/preview-test-accounts.env" preview_test_accounts "$required"
+  done
+  preview_c_email="$(env_value "$ETC/preview-test-accounts.env" PREVIEW_C_EMAIL)"
+  preview_b_email="$(env_value "$ETC/preview-test-accounts.env" PREVIEW_B_EMAIL)"
+  preview_c_password="$(env_value "$ETC/preview-test-accounts.env" PREVIEW_C_PASSWORD)"
+  preview_b_password="$(env_value "$ETC/preview-test-accounts.env" PREVIEW_B_PASSWORD)"
+  [[ "$preview_c_email" == 'previewc@meetwise.com' ]] || die preview_candidate_email_invalid 70
+  [[ "$preview_b_email" == 'previewb@meetwise.com' ]] || die preview_recruiter_email_invalid 70
+  validate_preview_password PREVIEW_C_PASSWORD "$preview_c_password"
+  validate_preview_password PREVIEW_B_PASSWORD "$preview_b_password"
+
+  parse_env_file "$ETC/acr-pull.env" acr_pull 0 ACR_PULL_USERNAME ACR_PULL_PASSWORD
+  require_env_value "$ETC/acr-pull.env" acr_pull ACR_PULL_USERNAME
+  require_env_value "$ETC/acr-pull.env" acr_pull ACR_PULL_PASSWORD
+
+  validate_preview_key_material "$ETC/preview-release-ed25519.pem" "$ETC/probe-receipt-ed25519.pub.pem"
+
+  # .env 校验：固定 parser 先拒绝空值/重复键/CR/非法行，再由 Compose
+  # 验证完整插值（Compose 需要在后续 Docker 安装完成后执行）。
+  REQUIRED_ENV_KEYS=(ACR_REGISTRY ACR_NAMESPACE RDS_CA_HOST_PATH RUNTIME_DATABASE_URL MIGRATION_DATABASE_URL WEB_ORIGIN AUTH_SECRET NEXT_PUBLIC_API_BASE)
+  parse_env_file "$COMPOSE_ENV" compose 1
+  missing=()
+  for k in "${REQUIRED_ENV_KEYS[@]}"; do
+    if ! env_value "$COMPOSE_ENV" "$k" >/dev/null 2>&1; then missing+=("$k"); fi
+  done
+  [[ ${#missing[@]} -eq 0 ]] || die "compose_env_missing_keys:$(IFS=,; echo "${missing[*]}")" 70
+}
+
+# Tailscale SSH must be disabled before this script mutates the controller
+# trust roots.  `tailscale/github-action` uses the tailnet for the deploy SSH
+# path; if RunSSH is enabled, Tailscale's SSH server can accept the connection
+# without going through the authorized_keys forced-command boundary.  Read the
+# daemon's JSON prefs and fail closed on missing, malformed, or true RunSSH.
+# Never turn it off here: doing so could interrupt the very SSH session running
+# this provisioner.
+tailscale_runssh_must_be_disabled() {
+  command -v tailscale >/dev/null 2>&1 || die tailscale_missing 70
+  local prefs
+  prefs="$(timeout --kill-after=1s 15s tailscale debug prefs 2>/dev/null)" || die tailscale_debug_prefs_unavailable 70
+  if ! printf '%s' "$prefs" | /usr/bin/node -e '
+let raw = "";
+process.stdin.setEncoding("utf8");
+process.stdin.on("data", (chunk) => { raw += chunk; });
+process.stdin.on("end", () => {
+  try {
+    const prefs = JSON.parse(raw);
+    if (!prefs || Array.isArray(prefs) || prefs.RunSSH !== false) process.exitCode = 1;
+  } catch {
+    process.exitCode = 1;
+  }
+});
+'; then
+    die tailscale_runssh_not_disabled 70
+  fi
+}
 
 # --- 0. 承重前置：meetwise 组必须已存在（基座 provisioning / install 脚本先建）。缺则在任何
 #        变更前 fail-closed，绝不半装（synthetic 也依赖 meetwise 补充组遍历 /srv）。 ---------
 getent group meetwise >/dev/null 2>&1 || die meetwise_group_missing_run_base_provisioning_first 2
+tailscale_runssh_must_be_disabled
+validate_env_contract_contents
 
 # --- 1. Docker Engine + compose 插件 ---------------------------------------------------
 # Alibaba Cloud Linux 4 上 docker 包名有差异；尽力而为安装，最终以 `docker compose version` 硬校验。
@@ -172,34 +381,25 @@ install -o root -g root -m 0644 "$COMPOSE_SRC" "$COMPOSE_DST"
 bash "$SYNTH_SRC"
 systemctl daemon-reload
 nginx -t >/dev/null
-systemctl enable meetwise-cd-controller-rollout-recovery.service meetwise-full-stack-publication-recovery.service meetwise-full-stack-edge-restore.service nginx.service >/dev/null
+systemctl enable meetwise-cd-controller-rollout-recovery.service meetwise-full-stack-publication-recovery.service meetwise-full-stack-edge-restore.service "$FULL_STACK_RELEASE_RECOVERY_SERVICE" "$FULL_STACK_RELEASE_RECOVERY_TIMER" nginx.service >/dev/null
 [[ "$(systemctl is-enabled meetwise-cd-controller-rollout-recovery.service)" == "enabled" ]] || die controller_rollout_recovery_not_enabled 70
+[[ "$(systemctl is-enabled "$FULL_STACK_RELEASE_RECOVERY_SERVICE")" == "enabled" ]] || die full_stack_release_recovery_service_not_enabled 70
+[[ "$(systemctl is-enabled "$FULL_STACK_RELEASE_RECOVERY_TIMER")" == "enabled" ]] || die full_stack_release_recovery_timer_not_enabled 70
 
-# --- 9. 必需凭据自检（缺失只告警，不臆造密钥）------------------------------------------
-warn() { echo "provision_cd_warn_$1" >&2; }
-[[ -f "$ETC/preview-release-ed25519.pem" ]]      || warn signing_key_absent
-[[ -f "$ETC/probe-receipt-ed25519.pub.pem" ]]    || warn probe_receipt_pubkey_absent
-[[ -f "$ETC/full-stack-migrate.env" ]]           || warn migrate_env_absent
-[[ -f "$ETC/full-stack-verifier.env" ]]          || warn verifier_env_absent
-[[ -f "$ETC/preview-test-accounts.env" ]]        || warn preview_test_accounts_env_absent
-[[ -f "$ETC/preview-synthetic-target.json" ]]    || warn synthetic_target_absent
-[[ -f "$ETC/preview-synthetic.seed" ]]           || warn synthetic_seed_absent
-[[ -f "$ETC/acr-pull.env" ]]                     || warn acr_pull_env_absent
-
-# .env 校验：存在则检查必需键齐备（值不读、不打印）；不存在则列出运维待补键。
-REQUIRED_ENV_KEYS=(ACR_REGISTRY ACR_NAMESPACE RDS_CA_HOST_PATH RUNTIME_DATABASE_URL MIGRATION_DATABASE_URL WEB_ORIGIN AUTH_SECRET NEXT_PUBLIC_API_BASE)
-if [[ -f "$COMPOSE_ENV" ]]; then
-  missing=()
-  for k in "${REQUIRED_ENV_KEYS[@]}"; do
-    grep -qE "^(export[[:space:]]+)?$k=" "$COMPOSE_ENV" || missing+=("$k")
-  done
-  if [[ ${#missing[@]} -gt 0 ]]; then
-    echo "provision_cd_compose_env_missing_keys: ${missing[*]}" >&2
-  else
-    echo 'compose .env present with required keys'
-  fi
-else
-  echo "provision_cd_compose_env_absent: create $COMPOSE_ENV (0600 root:root) with keys: ${REQUIRED_ENV_KEYS[*]} + all compose \${VAR:?} runtime/worker/migration secrets" >&2
-fi
+# --- 9. 必需凭据自检（首发地基不允许“warning success”）-------------------------------
+require_file_state() {
+  local path="$1" expected="$2" code="$3"
+  [[ -f "$path" && ! -L "$path" && "$(stat -c '%U:%G:%a' "$path" 2>/dev/null || true)" == "$expected" ]] || die "$code" 70
+}
+require_file_state "$ETC/preview-release-ed25519.pem" root:root:600 signing_key_invalid
+require_file_state "$ETC/probe-receipt-ed25519.pub.pem" root:root:644 probe_receipt_pubkey_invalid
+require_file_state "$ETC/full-stack-migrate.env" root:root:600 migrate_env_invalid
+require_file_state "$ETC/full-stack-verifier.env" root:meetwise-synthetic:640 verifier_env_invalid
+require_file_state "$ETC/preview-test-accounts.env" root:meetwise-synthetic:640 preview_test_accounts_env_invalid
+require_file_state "$ETC/preview-synthetic-target.json" root:meetwise-synthetic:640 synthetic_target_invalid
+require_file_state "$ETC/preview-synthetic.seed" root:meetwise-synthetic:640 synthetic_seed_invalid
+require_file_state "$ETC/acr-pull.env" root:root:600 acr_pull_env_invalid
+require_file_state "$COMPOSE_ENV" root:root:600 compose_env_invalid
+/usr/bin/docker compose --project-directory "$COMPOSE_DIR" -f "$COMPOSE_DST" config >/dev/null || die compose_config_invalid 70
 
 echo provision_meetwise_cd_ok

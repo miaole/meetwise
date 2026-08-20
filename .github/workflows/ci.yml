@@ -5,13 +5,12 @@ on:
     branches: [main]
   pull_request:
 
-permissions:
-  contents: read
-
 jobs:
   # 密钥扫描（全历史；项目有 Langfuse key 泄露史，必须真跑、red 即阻断）
   secrets-scan:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -25,6 +24,8 @@ jobs:
 
   verify:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     env:
       DATABASE_URL: postgresql://meetwise:meetwise_dev_password@localhost:54329/meetwise
     steps:
@@ -37,6 +38,52 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+
+      # GitHub rejects an unavailable pinned action before any job step can run.
+      # Resolve the exact external actions and independent verifier workflow
+      # commit in the PR gate so a bad pin cannot first surface post-merge.
+      - name: Verify pinned CD dependencies resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api 'repos/tailscale/github-action/contents/action.yml?ref=6cae46e2d796f265265cfcf628b72a32b4d7cade' --silent
+          gh api 'repos/actions/create-github-app-token/contents/action.yml?ref=fee1f7d63c2ff003460e3d139729b119787bc349' --silent
+          # Immutable control-repository verifier commit. Any contract update
+          # requires an explicit successor commit and matching consumer change.
+          control_sha='28939a6f5ccb571be5bfdb72f0d74967ac1b9b66'
+          control_workflow_b64="$(gh api "repos/miaole/meetwise-deploy-control/contents/.github/workflows/verify.yml?ref=$control_sha" --jq .content)"
+          control_script_b64="$(gh api "repos/miaole/meetwise-deploy-control/contents/scripts/verify-preview-e2e.mjs?ref=$control_sha" --jq .content)"
+          control_proof_b64="$(gh api "repos/miaole/meetwise-deploy-control/contents/scripts/verify-preview-e2e.proof.mjs?ref=$control_sha" --jq .content)"
+          control_lock_b64="$(gh api "repos/miaole/meetwise-deploy-control/contents/package-lock.json?ref=$control_sha" --jq .content)"
+          control_dir="$(mktemp -d)"
+          trap 'rm -rf "$control_dir"' EXIT
+          mkdir -p "$control_dir/scripts" "$control_dir/.github/workflows"
+          printf '%s' "$control_workflow_b64" | base64 --decode > "$control_dir/.github/workflows/verify.yml"
+          printf '%s' "$control_script_b64" | base64 --decode > "$control_dir/scripts/verify-preview-e2e.mjs"
+          printf '%s' "$control_proof_b64" | base64 --decode > "$control_dir/scripts/verify-preview-e2e.proof.mjs"
+          printf '%s' "$control_lock_b64" | base64 --decode > "$control_dir/package-lock.json"
+          CONTROL_DIR="$control_dir" node <<'NODE'
+          const { readFileSync } = require('node:fs');
+          const root = process.env.CONTROL_DIR;
+          const workflow = readFileSync(`${root}/.github/workflows/verify.yml`, 'utf8');
+          const source = readFileSync(`${root}/scripts/verify-preview-e2e.mjs`, 'utf8');
+          const proof = readFileSync(`${root}/scripts/verify-preview-e2e.proof.mjs`, 'utf8');
+          const probe = '${' + '{ inputs.probe_nonce }}';
+          for (const text of [
+            `run-name: meetwise-public-origin-${probe}`,
+            '  workflow_dispatch:',
+            '      expected_manifest_sha256:',
+            'RUNNER_TEMP}/receipt.json',
+            `name: meetwise-public-origin-receipt-${probe}`,
+            'Real browser B/C login and read-only E2E',
+            'scripts/verify-preview-e2e.mjs',
+          ]) if (!workflow.includes(text) && !source.includes(text)) throw new Error(`control_workflow_contract_missing:${text}`);
+          for (const text of ['schemaVersion: 2', 'probe-receipt-ed25519-v2', 'noCookieProtectedRedirect', 'passed_pages_only', 'browser_auth_pages_only', 'complete: false', 'sessionCookie', 'markerHashes', 'negativeMarkerHashes', 'roleBoundary', 'semanticAssertionCount', 'sse', 'worker']) if (!source.includes(text) && !proof.includes(text)) throw new Error(`control_receipt_contract_missing:${text}`);
+          if (!source.includes('privacy export is intentionally omitted') || !source.includes("api: unprovenApiEvidence()")) throw new Error('control_receipt_privacy_boundary_missing');
+          if (source.includes('/api/privacy/export')) throw new Error('control_receipt_must_not_request_privacy_export');
+          for (const text of ['buildUnsignedReceipt', 'signReceipt', 'validateReceiptShape', 'PASS verify-preview-e2e proof']) if (!proof.includes(text)) throw new Error(`control_proof_contract_missing:${text}`);
+          NODE
+          (cd "$control_dir" && node scripts/verify-preview-e2e.proof.mjs)
 
       - run: pnpm install --frozen-lockfile
 

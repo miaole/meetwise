@@ -9,11 +9,13 @@
  */
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
+import { generateKeyPairSync, sign } from 'node:crypto';
 import { mkdtemp, readFile, stat, access, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
-import { canGarbageCollectFullStackRollback, createFullStackReleaseLedger, decideFullStackReleaseRecovery, transitionFullStackReleaseLedger } from '../ops/ecs/full-stack/full-stack-preview-publisher.mjs';
+import { canonicalJson } from '../ops/ecs/preview-release-manifest.mjs';
+import { assertExternalProbeReceiptV2, canGarbageCollectFullStackRollback, createFullStackReleaseLedger, decideFullStackReleaseRecovery, decideFullStackSystemRecovery, heartbeatFullStackReleaseLedger, inspectFullStackReleaseLease, transitionFullStackReleaseLedger } from '../ops/ecs/full-stack/full-stack-preview-publisher.mjs';
 
 const run = promisify(execFile);
 const publisher = join(process.cwd(), 'ops/ecs/full-stack/full-stack-preview-publisher.mjs');
@@ -39,7 +41,7 @@ async function command(commandName, path, extra = {}, expectFailure = false) {
     return JSON.parse(result.stdout);
   } catch (error) {
     if (!expectFailure) throw error;
-    assert.match(`${error.stderr ?? ''}${error.stdout ?? ''}`, /full_stack_release_(begin_argument_invalid|token_mismatch|phase_conflict|transition_invalid|patch_invalid|schema_before_immutable|existing_identity_conflict)/);
+    assert.match(`${error.stderr ?? ''}${error.stdout ?? ''}`, /full_stack_release_(begin_argument_invalid|token_mismatch|phase_conflict|transition_invalid|patch_invalid|schema_before_immutable|existing_identity_conflict|lease_expired)/);
     return null;
   }
 }
@@ -71,6 +73,107 @@ try {
     assert.equal(onDisk.backendImageDigest, identity.backendImageDigest);
     assert.deepEqual(onDisk.predecessor, identity.predecessor);
     assert.equal((await stat(ledgerPath)).mode & 0o777, 0o600);
+    assert.equal(onDisk.leaseOwner, identity.transactionId);
+    assert.equal(onDisk.heartbeatAt, onDisk.updatedAt);
+    assert.equal(Date.parse(onDisk.leaseExpiresAt) - Date.parse(onDisk.heartbeatAt), 900_000);
+  });
+
+  await check('durable lease heartbeat survives replay and rejects stale owners', async () => {
+    const leasePath = join(directory, 'lease.json');
+    const leaseNow = '2026-08-20T00:00:00.000Z';
+    const leaseIdentity = { ...identity, transactionId: 'tx-lease-1234' };
+    const initial = createFullStackReleaseLedger({ ...leaseIdentity, now: leaseNow });
+    const refreshed = heartbeatFullStackReleaseLedger(initial, { transactionId: leaseIdentity.transactionId, release, token, now: '2026-08-20T00:00:30.000Z' });
+    assert.equal(refreshed.heartbeatAt, '2026-08-20T00:00:30.000Z');
+    assert.equal(refreshed.leaseExpiresAt, '2026-08-20T00:15:30.000Z');
+    assert.deepEqual(heartbeatFullStackReleaseLedger(refreshed, { transactionId: leaseIdentity.transactionId, release, token, now: '2026-08-20T00:00:30.000Z' }), refreshed);
+    assert.throws(() => heartbeatFullStackReleaseLedger(refreshed, { transactionId: leaseIdentity.transactionId, release, token, now: '2026-08-20T00:15:31.000Z' }), /full_stack_release_lease_expired/);
+    assert.throws(() => inspectFullStackReleaseLease({ ...refreshed, leaseOwner: 'tx-other-1234' }, '2026-08-20T00:00:31.000Z'), /full_stack_release_lease_owner_invalid/);
+    assert.throws(() => inspectFullStackReleaseLease({ ...refreshed, leaseExpiresAt: '2026-08-20T00:16:30.000Z' }, '2026-08-20T00:00:31.000Z'), /full_stack_release_lease_window_invalid/);
+    await command('ledger-init', leasePath, { ...leaseIdentity, now: leaseNow });
+    const rebooted = await command('ledger-read', leasePath);
+    assert.equal(rebooted.leaseExpiresAt, '2026-08-20T00:15:00.000Z');
+    assert.equal(inspectFullStackReleaseLease(rebooted, '2026-08-20T00:12:00.000Z').status, 'active');
+    assert.equal(inspectFullStackReleaseLease(rebooted, '2026-08-20T00:15:00.000Z').status, 'expired');
+  });
+
+  await check('system recovery is read-only for every active phase and recovers only after expiry', async () => {
+    const phases = ['preflighted', 'snapshotted', 'edge_closed', 'quiesced', 'migrating', 'migrated', 'backend_ready', 'web_internal_ready', 'receipts_ready', 'probe_published', 'edge_probing', 'confirmed_pending_pages', 'pages_enabled', 'rollback_pending'];
+    const leaseNow = '2026-08-20T01:00:00.000Z';
+    for (const [index, phase] of phases.entries()) {
+      const value = createFullStackReleaseLedger({ ...identity, transactionId: `tx-lease-phase-${String(index).padStart(2, '0')}`, schemaBefore: schemaOld, schemaAfter: schemaOld, now: leaseNow });
+      value.phase = phase;
+      if (phase === 'preflighted') value.schemaBefore = null;
+      const active = decideFullStackSystemRecovery(value, '2026-08-20T01:12:00.000Z');
+      assert.equal(active.action, 'lease_active', phase);
+      const expired = decideFullStackSystemRecovery(value, '2026-08-20T01:15:00.000Z');
+      assert.notEqual(expired.action, 'lease_active', phase);
+      assert.notEqual(expired.action, 'lease_unknown', phase);
+      if (phase !== 'rollback_pending') assert.equal(expired.leaseStatus, 'expired', phase);
+    }
+  });
+
+  await check('v2 external probe receipt binds B/C pages and preserves API/SSE/worker as unproven', async () => {
+    const receiptKeys = generateKeyPairSync('ed25519');
+    const publicKeyPem = receiptKeys.publicKey.export({ type: 'spki', format: 'pem' });
+    const origin = 'https://preview.tail0000000.ts.net';
+    const probeNonce = 'b'.repeat(64);
+    const manifestSha256 = digest('c');
+    const rootSha256 = digest('d');
+    const blackboxSha256 = digest('e');
+    const now = Date.parse('2026-08-20T02:05:00.000Z');
+    const unproven = (reason) => ({ status: 'unproven', reason });
+    const account = (role, loginPath) => ({
+      role,
+      loginPath,
+      accountEmailSha256: digest(role === 'candidate' ? 'f' : '0'),
+      sessionCookie: { httpOnly: true, secure: true, roleCookie: role },
+      pages: [{ status: 200, path: loginPath, headers: {}, bodyStored: false, bodyHash: digest(role === 'candidate' ? '1' : '2'), markerHashes: [digest('3')], negativeMarkerHashes: [] }],
+      roleBoundary: role === 'candidate' ? { status: 'verified', path: '/recruiter/jobs', markerHashes: [digest('4')] } : unproven('no safe recruiter-to-candidate negative write-free contract is available'),
+      api: unproven('privacy export is intentionally omitted because Playwright API responses may buffer personal data'),
+      sse: unproven('no stable persisted interview-or-quiz id is permitted for the short verifier'),
+      worker: unproven('no business object is created by the short verifier'),
+      semanticAssertionCount: 1,
+    });
+    const unsigned = {
+      schemaVersion: 2,
+      origin,
+      probeNonce,
+      checkedAt: '2026-08-20T02:04:00.000Z',
+      manifestSha256,
+      rootStatus: 200,
+      loginStatus: 200,
+      manifestStatus: 200,
+      rootUrl: `${origin}/`,
+      loginUrl: `${origin}/login`,
+      manifestUrl: `${origin}/preview-release-manifest.json`,
+      rootSha256,
+      blackboxSha256,
+      signingKeyId: 'probe-receipt-ed25519-v2',
+      verifier: { repository: 'miaole/meetwise-deploy-control', workflow: 'verify-meetwise-public-origin', ref: 'refs/heads/main', commit: '5'.repeat(40), runId: '123', sourceSha256: digest('6'), workflowSha256: digest('7'), packageLockSha256: digest('8') },
+      e2e: {
+        status: 'passed_pages_only',
+        scope: 'browser_auth_pages_only',
+        complete: false,
+        sensitiveResponseBodies: 'not_stored',
+        noCookieProtectedRedirect: { origin, pathname: '/login', search: '?next=%2Fdashboard' },
+        accounts: { candidate: account('candidate', '/dashboard'), recruiter: account('recruiter', '/recruiter/jobs') },
+      },
+    };
+    const receipt = { ...unsigned, signature: sign(null, Buffer.from(canonicalJson(unsigned)), receiptKeys.privateKey).toString('base64') };
+    assert.equal(assertExternalProbeReceiptV2(receipt, { origin, probeNonce, manifestSha256, rootSha256, blackboxSha256, publicKeyPem, activationAt: '2026-08-20T02:00:00.000Z', deadlineAt: '2026-08-20T02:10:00.000Z', now }), receipt);
+    assert.throws(() => assertExternalProbeReceiptV2({ ...receipt, schemaVersion: 1 }, { origin, probeNonce, manifestSha256, rootSha256, blackboxSha256, publicKeyPem, activationAt: '2026-08-20T02:00:00.000Z', deadlineAt: '2026-08-20T02:10:00.000Z', now }), /full_stack_probe_receipt_v2/);
+    assert.throws(() => assertExternalProbeReceiptV2({ ...receipt, e2e: { ...receipt.e2e, accounts: { ...receipt.e2e.accounts, candidate: { ...receipt.e2e.accounts.candidate, sse: { status: 'passed' } } } } }, { origin, probeNonce, manifestSha256, rootSha256, blackboxSha256, publicKeyPem, activationAt: '2026-08-20T02:00:00.000Z', deadlineAt: '2026-08-20T02:10:00.000Z', now }), /full_stack_probe_receipt_v2/);
+    assert.throws(() => assertExternalProbeReceiptV2({ ...receipt, e2e: { ...receipt.e2e, accounts: { ...receipt.e2e.accounts, recruiter: { ...receipt.e2e.accounts.recruiter, api: { status: 'passed', reason: receipt.e2e.accounts.recruiter.api.reason } } } } }, { origin, probeNonce, manifestSha256, rootSha256, blackboxSha256, publicKeyPem, activationAt: '2026-08-20T02:00:00.000Z', deadlineAt: '2026-08-20T02:10:00.000Z', now }), /full_stack_probe_receipt_v2/);
+  });
+
+  await check('concurrent active-lease recovery checks stay read-only', async () => {
+    const ledger = createFullStackReleaseLedger({ ...identity, transactionId: 'tx-concurrent-lease', now: '2026-08-20T03:00:00.000Z' });
+    const before = JSON.stringify(ledger);
+    const decisions = await Promise.all(Array.from({ length: 16 }, () => Promise.resolve().then(() => decideFullStackSystemRecovery(ledger, '2026-08-20T03:01:59.999Z'))));
+    assert.equal(decisions.length, 16);
+    assert.ok(decisions.every((decision) => decision.action === 'lease_active'));
+    assert.equal(JSON.stringify(ledger), before);
   });
 
   await check('begin retry is idempotent and cannot replace the candidate identity', async () => {

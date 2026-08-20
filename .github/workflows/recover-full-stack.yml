@@ -1,0 +1,247 @@
+name: recover-full-stack
+
+on:
+  schedule:
+    - cron: '47 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+# This workflow is deliberately independent from deploy-full-stack.  A cancelled
+# runner, a failed control-plane dispatch, or a queued Pages run must not remove
+# the only remaining recovery attempt.  The ECS systemd timer is the second
+# independent recovery owner; both paths use the root ledger CAS/lock.
+concurrency:
+  group: full-stack-release-recovery
+  cancel-in-progress: false
+
+jobs:
+  recover:
+    if: github.repository == 'miaole/meetwise'
+    runs-on: ubuntu-latest
+    # The bounded recovery step below has a 13-minute total budget.  Setup and
+    # SSH-boundary checks remain below the 20-minute job ceiling, and a running
+    # recovery can never consume the next scheduled/manual invocation.
+    timeout-minutes: 20
+    environment: preview-cd
+    permissions:
+      contents: read
+      # The only write is dispatching the fixed Pages workflow with an exact
+      # disabled/enabled identity; no repository contents are written here.
+      actions: write
+    steps:
+      - name: Connect to the fixed ECS recovery target
+        uses: tailscale/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade # v3
+        with:
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
+          tags: tag:meetwise-cd
+
+      - name: Configure pinned SSH identity for recovery
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "${{ secrets.ECS_CD_DEPLOY_KEY }}" > "$HOME/.ssh/deploy_key"
+          printf '%s\n' "${{ secrets.ECS_CD_KNOWN_HOSTS }}" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/deploy_key" "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host meetwise-ecs
+            HostName ${{ secrets.ECS_CD_SSH_HOST }}
+            User meetwise-cd
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile ~/.ssh/known_hosts
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Verify forced-command sentinel before recovery SSH
+        run: |
+          set -euo pipefail
+          sentinel_status=0
+          sentinel_output="$(ssh -o BatchMode=yes meetwise-ecs 'meetwise-cd __meetwise_cd_forced_command_sentinel__' 2>&1)" || sentinel_status=$?
+          [[ "$sentinel_status" -ne 0 && "$sentinel_output" == 'meetwise_cd_unknown_command' ]] || {
+            echo 'forced-command sentinel did not fail closed with the exact unknown-command reason' >&2
+            exit 1
+          }
+
+      - name: Recover the root-ledger transaction and reconcile Pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # One shared wall-clock budget covers every SSH/GitHub/Pages wait in
+          # this step.  780 seconds is strictly less than timeout-minutes: 20.
+          RECOVERY_BUDGET_SECONDS: '780'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          started_at="$(date +%s)"
+          deadline=$((started_at + RECOVERY_BUDGET_SECONDS))
+          remaining_until() {
+            local until="$1" now left
+            now="$(date +%s)"
+            left=$((until - now))
+            (( left > 0 )) || return 124
+            printf '%s\n' "$left"
+          }
+          bounded_until() {
+            local until="$1"; shift
+            local left
+            left="$(remaining_until "$until")" || return 124
+            timeout --signal=TERM --kill-after=5s "${left}s" "$@"
+          }
+          bounded_sleep_until() {
+            local seconds="$1" until="$2" left
+            left="$(remaining_until "$until")" || return 124
+            (( seconds < left )) || seconds="$left"
+            sleep "$seconds"
+          }
+          status_system() {
+            bounded_until "$deadline" ssh meetwise-ecs 'meetwise-cd transaction status-system'
+          }
+          recover_system() {
+            bounded_until "$deadline" ssh meetwise-ecs 'meetwise-cd transaction recover-system'
+          }
+
+          status_json="$(status_system)" || { echo 'root ledger status unavailable' >&2; exit 1; }
+          if jq -e '.action == "no_ledger"' >/dev/null <<<"$status_json"; then
+            echo 'full-stack recovery: no root transaction ledger'
+            exit 0
+          fi
+          jq -e '.action == "status" and (.phase | type == "string") and (.predecessor.pages.state | IN("enabled", "disabled", "none"))' >/dev/null <<<"$status_json" || {
+            echo 'root ledger status projection invalid' >&2
+            exit 1
+          }
+
+          # The root command owns expiry, migration compatibility, runtime
+          # restoration, and terminal CAS transitions.  An active/unknown lease
+          # is deliberately left alone for the current deploy/timer owner.
+          recovery_json="$(recover_system)" || { echo 'root ledger recovery command failed' >&2; exit 1; }
+          if [ -n "$recovery_json" ]; then
+            recovery_action="$(jq -r '.action // empty' <<<"$recovery_json" 2>/dev/null || true)"
+            case "$recovery_action" in
+              lease_active|lease_unknown|reprobe_migration)
+                echo "full-stack recovery deferred: $recovery_action"
+                exit 0
+                ;;
+            esac
+          fi
+          status_json="$(status_system)" || { echo 'root ledger status unavailable after recovery' >&2; exit 1; }
+          if jq -e '.action == "no_ledger"' >/dev/null <<<"$status_json"; then
+            echo 'full-stack recovery: unmutated transaction discarded'
+            exit 0
+          fi
+
+          phase="$(jq -r '.phase' <<<"$status_json")"
+          predecessor_state="$(jq -r '.predecessor.pages.state' <<<"$status_json")"
+          predecessor_generation="$(jq -r '.predecessor.pages.generation // empty' <<<"$status_json")"
+          predecessor_fingerprint="$(jq -r '.predecessor.pages.fingerprint // empty' <<<"$status_json")"
+          candidate_fingerprint="$(jq -r '.candidate.finalManifestFingerprint // empty' <<<"$status_json")"
+          ledger_generation="$(jq -r '.generation' <<<"$status_json")"
+
+          [[ "$phase" == committed || "$phase" == rolled_back || "$phase" == forward_only_maintenance ]] || {
+            echo "full-stack recovery remains non-terminal: $phase" >&2
+            exit 1
+          }
+          [[ "$predecessor_state" == none || ( "$predecessor_generation" =~ ^[1-9][0-9]*$ && "$predecessor_fingerprint" =~ ^[a-f0-9]{64}$ ) ]] || {
+            echo 'predecessor Pages identity is not exact' >&2
+            exit 1
+          }
+          if [ -n "$candidate_fingerprint" ]; then
+            [[ "$candidate_fingerprint" =~ ^[a-f0-9]{64}$ ]] || { echo 'candidate Pages identity is not exact' >&2; exit 1; }
+          fi
+
+          main_sha="$(bounded_until "$deadline" gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')" || { echo 'main ref unavailable' >&2; exit 1; }
+          [[ "$main_sha" =~ ^[a-f0-9]{40}$ ]] || { echo 'main ref identity invalid' >&2; exit 1; }
+
+          wait_pages_receipt() {
+            local expected_state="$1" expected_generation="$2" expected_fingerprint="$3"
+            local phase_deadline now dispatch_started pages_run_id='' runs run_json status state_url state
+            now="$(date +%s)"
+            phase_deadline=$((now + 300))
+            (( phase_deadline < deadline )) || phase_deadline="$deadline"
+            dispatch_started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            if [ -n "$expected_generation" ]; then
+              bounded_until "$phase_deadline" gh workflow run pages-preview.yml --ref main \
+                -f expected_state="$expected_state" \
+                -f expected_generation="$expected_generation" \
+                -f expected_manifest_sha256="$expected_fingerprint"
+            else
+              bounded_until "$phase_deadline" gh workflow run pages-preview.yml --ref main -f expected_state="$expected_state"
+            fi
+            for _ in $(seq 1 30); do
+              runs="$(bounded_until "$phase_deadline" gh api "repos/$GITHUB_REPOSITORY/actions/workflows/pages-preview.yml/runs?event=workflow_dispatch&branch=main&per_page=20")" || break
+              pages_run_id="$(jq -r --arg start "$dispatch_started" --arg sha "$main_sha" '[.workflow_runs[] | select(.event == "workflow_dispatch" and .head_sha == $sha and .created_at >= $start)] | sort_by(.created_at) | last.id // empty' <<<"$runs")"
+              [ -n "$pages_run_id" ] && break
+              bounded_sleep_until 5 "$phase_deadline" || break
+            done
+            [ -n "$pages_run_id" ] || { echo 'Pages recovery dispatch was not identifiable' >&2; return 1; }
+            for _ in $(seq 1 60); do
+              run_json="$(bounded_until "$phase_deadline" gh api "repos/$GITHUB_REPOSITORY/actions/runs/$pages_run_id")" || break
+              status="$(jq -r '.status' <<<"$run_json")"
+              if [ "$status" = completed ]; then
+                test "$(jq -r '.conclusion' <<<"$run_json")" = success || { echo 'Pages recovery workflow failed' >&2; return 1; }
+                break
+              fi
+              bounded_sleep_until 5 "$phase_deadline" || break
+            done
+            test "$(jq -r '.status' <<<"$(bounded_until "$phase_deadline" gh api "repos/$GITHUB_REPOSITORY/actions/runs/$pages_run_id")")" = completed || {
+              echo 'Pages recovery workflow did not complete before its bounded budget' >&2
+              return 1
+            }
+            if [ -n "$expected_generation" ]; then
+              state_url="https://miaole.github.io/meetwise/preview-link-state.json?generation=$expected_generation&manifest=$expected_fingerprint"
+            else
+              state_url='https://miaole.github.io/meetwise/preview-link-state.json'
+            fi
+            for _ in $(seq 1 60); do
+              state="$(bounded_until "$phase_deadline" curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 10 "$state_url")" || true
+              if [ -n "$state" ] && env STATE="$state" EXPECTED_STATE="$expected_state" EXPECTED_GENERATION="$expected_generation" EXPECTED_FINGERPRINT="$expected_fingerprint" jq -e '(.state == env.EXPECTED_STATE) and ((env.EXPECTED_GENERATION == "") or ((.generation | tostring) == env.EXPECTED_GENERATION and .manifestSha256 == env.EXPECTED_FINGERPRINT and .finalFingerprint == env.EXPECTED_FINGERPRINT))' >/dev/null <<<"$state"; then
+                echo "Pages recovery receipt confirmed: $expected_state"
+                return 0
+              fi
+              bounded_sleep_until 5 "$phase_deadline" || break
+            done
+            echo 'Pages recovery receipt did not arrive before its bounded budget' >&2
+            return 1
+          }
+
+          ensure_disabled() {
+            local generation="$1" fingerprint="$2"
+            wait_pages_receipt disabled "$generation" "$fingerprint"
+          }
+          ensure_predecessor() {
+            if [ "$predecessor_state" = enabled ] || [ "$predecessor_state" = disabled ]; then
+              wait_pages_receipt "$predecessor_state" "$predecessor_generation" "$predecessor_fingerprint"
+            else
+              echo 'predecessor Pages state is none; remain disabled without publishing a guessed identity'
+            fi
+          }
+
+          case "$phase" in
+            rolled_back)
+              # First revoke any candidate identity that may have been published
+              # before cancellation; then restore the exact predecessor receipt.
+              if [ -n "$candidate_fingerprint" ]; then
+                ensure_disabled "$ledger_generation" "$candidate_fingerprint"
+              elif [ "$predecessor_state" != none ]; then
+                ensure_disabled "$predecessor_generation" "$predecessor_fingerprint"
+              fi
+              ensure_predecessor
+              ;;
+            forward_only_maintenance)
+              # Schema-incompatible recovery never reopens the public preview.
+              # If no candidate identity exists, the predecessor identity is the
+              # only trusted disabled receipt we may request; never invent one.
+              if [ -n "$candidate_fingerprint" ]; then
+                ensure_disabled "$ledger_generation" "$candidate_fingerprint"
+              elif [ "$predecessor_state" != none ]; then
+                ensure_disabled "$predecessor_generation" "$predecessor_fingerprint"
+              else
+                echo 'forward-only recovery has no Pages identity; remain disabled'
+              fi
+              ;;
+            committed)
+              echo 'full-stack recovery: transaction already committed; Pages untouched'
+              ;;
+          esac

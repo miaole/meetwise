@@ -35,6 +35,16 @@ const PATHS = Object.freeze({
   ledger: '/var/lib/meetwise-preview-controller/full-stack-release-ledger.json',
 });
 const CONTROLLER_LOCK = '/run/meetwise-preview-controller/controller.lock';
+const PROBE_RECEIPT_V2_KEYS = Object.freeze([
+  'schemaVersion', 'origin', 'probeNonce', 'checkedAt', 'manifestSha256',
+  'rootStatus', 'loginStatus', 'manifestStatus', 'rootUrl', 'loginUrl',
+  'manifestUrl', 'rootSha256', 'blackboxSha256', 'signingKeyId', 'verifier', 'e2e', 'signature',
+]);
+const PROBE_RECEIPT_ORIGIN = /^https:\/\/[a-z0-9-]+\.tail[a-z0-9]+\.ts\.net$/;
+const PROBE_RECEIPT_PAGES = new Set(['/dashboard', '/interviews', '/jobs', '/resume', '/settings', '/privacy', '/recruiter/jobs', '/recruiter/talent']);
+const PROBE_RECEIPT_HEADER_NAMES = new Set(['content-type', 'cache-control']);
+const PROBE_CONTROL_REPOSITORY = 'miaole/meetwise-deploy-control';
+const PROBE_CONTROL_WORKFLOW = 'verify-meetwise-public-origin';
 
 /**
  * The publication manifest is not the release transaction.  The former only
@@ -50,6 +60,15 @@ export const FULL_STACK_RELEASE_PHASES = Object.freeze([
   'edge_probing', 'confirmed_pending_pages', 'pages_enabled', 'committed',
   'rollback_pending', 'rolled_back', 'forward_only_maintenance',
 ]);
+
+// The transaction is owned by the runner only while it is making progress.
+// The lease must span the bounded cross-job public-probe hand-off: both the
+// independent verifier and exact Pages receipt have ten-minute hard deadlines,
+// and the next transaction command refreshes the heartbeat. Fifteen minutes
+// prevents reclaiming a healthy hand-off while still converging a cancelled
+// runner without operator intervention.
+export const FULL_STACK_RELEASE_LEASE_TTL_SECONDS = 900;
+const FULL_STACK_TERMINAL_PHASES = new Set(['committed', 'rolled_back', 'forward_only_maintenance']);
 
 const FULL_STACK_PHASE_TRANSITIONS = Object.freeze({
   preflighted: new Set(['snapshotted', 'rollback_pending']),
@@ -75,6 +94,63 @@ const TRANSACTION_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/;
 const RELEASE_ID = /^[a-f0-9]{40}-fullstack-[0-9]{8}-[1-9][0-9]*-[1-9][0-9]*$/;
 const TOKEN = /^[a-f0-9]{64}$/;
 
+function leaseTimestamp(value, code) {
+  if (!Number.isFinite(Date.parse(value ?? ''))) throw new Error(code);
+}
+
+function leaseExpiry(now, ttlSeconds = FULL_STACK_RELEASE_LEASE_TTL_SECONDS) {
+  const timestamp = Date.parse(now ?? '');
+  if (!Number.isFinite(timestamp) || !Number.isSafeInteger(ttlSeconds) || ttlSeconds < 30 || ttlSeconds > 3600) throw new Error('full_stack_release_lease_invalid');
+  return new Date(timestamp + ttlSeconds * 1000).toISOString();
+}
+
+function assertLeaseShape(value) {
+  const leaseFieldsPresent = ['leaseOwner', 'heartbeatAt', 'leaseExpiresAt', 'leaseTtlSeconds'].some((field) => Object.hasOwn(value, field));
+  // A controller upgrade may meet a pre-lease v1 ledger. It is readable for
+  // boot safety, but system recovery must treat it as unknown and refuse to
+  // mutate it until the owner explicitly re-claims it.
+  if (!leaseFieldsPresent) return value;
+  const terminal = FULL_STACK_TERMINAL_PHASES.has(value.phase);
+  if (!Number.isSafeInteger(value.leaseTtlSeconds) || value.leaseTtlSeconds < 30 || value.leaseTtlSeconds > 3600) throw new Error('full_stack_release_lease_invalid');
+  if (terminal) {
+    if (value.leaseOwner !== null || value.heartbeatAt !== null || value.leaseExpiresAt !== null) throw new Error('full_stack_release_terminal_lease_present');
+    return value;
+  }
+  if (typeof value.leaseOwner !== 'string' || !TRANSACTION_ID.test(value.leaseOwner) || value.leaseOwner !== value.transactionId) throw new Error('full_stack_release_lease_owner_invalid');
+  leaseTimestamp(value.heartbeatAt, 'full_stack_release_heartbeat_invalid');
+  leaseTimestamp(value.leaseExpiresAt, 'full_stack_release_lease_expiry_invalid');
+  if (Date.parse(value.leaseExpiresAt) !== Date.parse(value.heartbeatAt) + value.leaseTtlSeconds * 1000) throw new Error('full_stack_release_lease_window_invalid');
+  return value;
+}
+
+function refreshLease(ledger, now) {
+  if (FULL_STACK_TERMINAL_PHASES.has(ledger.phase)) return { ...ledger, leaseOwner: null, heartbeatAt: null, leaseExpiresAt: null, leaseTtlSeconds: ledger.leaseTtlSeconds ?? FULL_STACK_RELEASE_LEASE_TTL_SECONDS };
+  const ttlSeconds = ledger.leaseTtlSeconds ?? FULL_STACK_RELEASE_LEASE_TTL_SECONDS;
+  return { ...ledger, leaseOwner: ledger.leaseOwner ?? ledger.transactionId, heartbeatAt: now, leaseExpiresAt: leaseExpiry(now, ttlSeconds), leaseTtlSeconds: ttlSeconds };
+}
+
+export function inspectFullStackReleaseLease(ledger, now = Date.now()) {
+  assertTransactionShape(ledger);
+  if (FULL_STACK_TERMINAL_PHASES.has(ledger.phase)) return { status: 'terminal', phase: ledger.phase };
+  if (!Object.hasOwn(ledger, 'leaseExpiresAt')) return { status: 'unknown', phase: ledger.phase };
+  const nowMs = typeof now === 'number' ? now : Date.parse(now);
+  const expiresMs = Date.parse(ledger.leaseExpiresAt);
+  if (!Number.isFinite(nowMs) || !Number.isFinite(expiresMs)) throw new Error('full_stack_release_lease_clock_invalid');
+  return {
+    status: expiresMs > nowMs ? 'active' : 'expired',
+    phase: ledger.phase,
+    leaseOwner: ledger.leaseOwner,
+    heartbeatAt: ledger.heartbeatAt,
+    leaseExpiresAt: ledger.leaseExpiresAt,
+  };
+}
+
+export function decideFullStackSystemRecovery(ledger, now = Date.now()) {
+  const lease = inspectFullStackReleaseLease(ledger, now);
+  if (lease.status === 'active' || lease.status === 'unknown') return { action: `lease_${lease.status}`, phase: ledger.phase, heartbeatAt: lease.heartbeatAt ?? null, leaseExpiresAt: lease.leaseExpiresAt ?? null };
+  return { ...decideFullStackReleaseRecovery(ledger), leaseStatus: lease.status };
+}
+
 function assertTransactionShape(value) {
   if (!value || value.schemaVersion !== 1 || !TRANSACTION_ID.test(value.transactionId ?? '') || !RELEASE_ID.test(value.release ?? '') || !COMMIT.test(value.commit ?? '') || !COMMIT.test(value.tree ?? '') || !Number.isSafeInteger(value.generation) || value.generation < 1 || !FULL_STACK_RELEASE_PHASES.includes(value.phase) || !DIGEST.test(value.tokenDigest ?? '') || !Number.isFinite(Date.parse(value.updatedAt ?? ''))) throw new Error('full_stack_release_ledger_invalid');
   if (!['rollback_pre_migration', 'rollback_compatible', 'forward_only_maintenance'].includes(value.recoveryPolicy)) throw new Error('full_stack_release_recovery_policy_invalid');
@@ -83,18 +159,19 @@ function assertTransactionShape(value) {
   }
   if (!Number.isSafeInteger(value.recoveryAttempts) || value.recoveryAttempts < 0 || (value.committedAt !== null && value.committedAt !== undefined && !Number.isFinite(Date.parse(value.committedAt)))) throw new Error('full_stack_release_recovery_metadata_invalid');
   for (const key of ['predecessor', 'candidate']) if (!value[key] || typeof value[key] !== 'object' || Array.isArray(value[key])) throw new Error(`full_stack_release_${key}_bundle_invalid`);
+  assertLeaseShape(value);
   return value;
 }
 
 export function createFullStackReleaseLedger({ transactionId, release, commit, tree, generation, token, controllerDigest = null, composeSpecDigest = null, sourceArchiveDigest = null, backendImageDigest = null, webImageDigest = null, schemaBefore = null, schemaAfter = null, predecessor = {}, candidate = {}, recoveryPolicy = 'rollback_pre_migration', now = new Date().toISOString() }) {
   if (!TRANSACTION_ID.test(transactionId ?? '') || !RELEASE_ID.test(release ?? '') || !COMMIT.test(commit ?? '') || !COMMIT.test(tree ?? '') || !Number.isSafeInteger(generation) || generation < 1 || !TOKEN.test(token ?? '')) throw new Error('full_stack_release_begin_argument_invalid');
-  const ledger = {
+  const ledger = refreshLease({
     schemaVersion: 1, transactionId, release, commit, tree, generation, phase: 'preflighted', updatedAt: now,
     controllerDigest, composeSpecDigest, sourceArchiveDigest, backendImageDigest, webImageDigest, schemaBefore, schemaAfter,
     predecessor: { ...predecessor }, candidate: { ...candidate },
     recoveryPolicy, tokenDigest: sha256(token), lastErrorCode: null, recoveryAttempts: 0,
     committedAt: null,
-  };
+  }, now);
   return assertTransactionShape(ledger);
 }
 
@@ -111,8 +188,9 @@ function patchMatchesLedger(ledger, patch) {
   return Object.entries(patch).every(([key, value]) => canonicalJson(ledger[key]) === canonicalJson(value));
 }
 
-export function transitionFullStackReleaseLedger(ledger, { transactionId, release, token, expectedPhase, nextPhase, patch = {}, now = new Date().toISOString() }) {
+export function transitionFullStackReleaseLedger(ledger, { transactionId, release, token, expectedPhase, nextPhase, patch = {}, now = new Date().toISOString(), allowExpiredLease = false }) {
   assertLedgerIdentity(ledger, { transactionId, release, token });
+  if (!allowExpiredLease && inspectFullStackReleaseLease(ledger, now).status === 'expired') throw new Error('full_stack_release_lease_expired');
   if (!FULL_STACK_RELEASE_PHASES.includes(nextPhase) || !FULL_STACK_RELEASE_PHASES.includes(expectedPhase)) throw new Error('full_stack_release_phase_invalid');
   const mutableFields = new Set(['schemaAfter', 'candidate', 'lastErrorCode', 'recoveryAttempts', 'committedAt']);
   assertLedgerPatch(patch, mutableFields);
@@ -122,25 +200,34 @@ export function transitionFullStackReleaseLedger(ledger, { transactionId, releas
   // identity/receipt checks below.
   if (ledger.phase === nextPhase) {
     const isRetryOfImmediatePredecessor = FULL_STACK_RELEASE_PHASES.some((phase) => phase === expectedPhase && FULL_STACK_PHASE_TRANSITIONS[phase]?.has(nextPhase));
-    if (isRetryOfImmediatePredecessor && patchMatchesLedger(ledger, patch)) return ledger;
+    if (isRetryOfImmediatePredecessor && patchMatchesLedger(ledger, patch)) return refreshLease(ledger, now);
     throw new Error('full_stack_release_phase_conflict');
   }
   if (ledger.phase !== expectedPhase) throw new Error('full_stack_release_phase_conflict');
   if (!FULL_STACK_PHASE_TRANSITIONS[expectedPhase]?.has(nextPhase)) throw new Error('full_stack_release_transition_invalid');
-  const next = { ...ledger, ...patch, phase: nextPhase, updatedAt: now };
+  const next = refreshLease({ ...ledger, ...patch, phase: nextPhase, updatedAt: now }, now);
   if (nextPhase === 'committed') next.committedAt = now;
   return assertTransactionShape(next);
 }
 
 export function updateFullStackReleaseLedger(ledger, { transactionId, release, token, expectedPhase, patch = {}, now = new Date().toISOString() }) {
   assertLedgerIdentity(ledger, { transactionId, release, token });
+  if (inspectFullStackReleaseLease(ledger, now).status === 'expired') throw new Error('full_stack_release_lease_expired');
   if (ledger.phase !== expectedPhase) throw new Error('full_stack_release_phase_conflict');
   const mutableFields = new Set(['schemaAfter', 'candidate', 'lastErrorCode', 'recoveryAttempts', 'committedAt']);
   const allowSchemaBefore = ledger.phase === 'quiesced' && ledger.schemaBefore === null;
   if (allowSchemaBefore) mutableFields.add('schemaBefore');
   assertLedgerPatch(patch, mutableFields);
   if (Object.hasOwn(patch, 'schemaBefore') && ledger.schemaBefore !== null) throw new Error('full_stack_release_schema_before_immutable');
-  return assertTransactionShape({ ...ledger, ...patch, updatedAt: now });
+  return assertTransactionShape(refreshLease({ ...ledger, ...patch, updatedAt: now }, now));
+}
+
+export function heartbeatFullStackReleaseLedger(ledger, { transactionId, release, token, now = new Date().toISOString() }) {
+  assertLedgerIdentity(ledger, { transactionId, release, token });
+  const lease = inspectFullStackReleaseLease(ledger, now);
+  if (lease.status === 'terminal') return ledger;
+  if (lease.status === 'expired') throw new Error('full_stack_release_lease_expired');
+  return assertTransactionShape(refreshLease(ledger, now));
 }
 
 export function decideFullStackReleaseRecovery(ledger) {
@@ -249,6 +336,7 @@ async function ledgerInitCli(args) {
     webImageDigest: args.webImageDigest ?? null, schemaBefore: args.schemaBefore ?? null,
     schemaAfter: args.schemaAfter ?? null, predecessor: args.predecessorJson ? JSON.parse(args.predecessorJson) : {},
     candidate: args.candidateJson ? JSON.parse(args.candidateJson) : {}, recoveryPolicy: args.recoveryPolicy ?? 'rollback_pre_migration',
+    ...(args.now ? { now: args.now } : {}),
   });
   if (existing) {
     assertLedgerIdentity(existing, { transactionId: requested.transactionId, release: requested.release, token: args.token });
@@ -287,6 +375,21 @@ async function ledgerUpdateCli(args) {
   process.stdout.write(`${JSON.stringify(next)}\n`);
 }
 
+async function ledgerHeartbeatCli(args) {
+  const path = args.path ?? PATHS.ledger;
+  assertLedgerMutationLock(path);
+  const current = await readFullStackReleaseLedger(path);
+  if (!current) throw new Error('full_stack_release_ledger_missing');
+  const next = heartbeatFullStackReleaseLedger(current, {
+    transactionId: args.transactionId,
+    release: args.release,
+    token: args.token,
+    ...(args.now ? { now: args.now } : {}),
+  });
+  if (next !== current) await writeFullStackReleaseLedger(path, next);
+  process.stdout.write(`${JSON.stringify(next)}\n`);
+}
+
 async function ledgerRecoverCli(args) {
   const path = args.path ?? PATHS.ledger;
   assertLedgerMutationLock(path);
@@ -303,11 +406,11 @@ async function ledgerRecoverCli(args) {
     process.stdout.write(`${JSON.stringify(decision)}\n`); return;
   }
   if (decision.action === 'forward_only_maintenance') {
-    const next = transitionFullStackReleaseLedger(current, { transactionId: args.transactionId, release: args.release, token: args.token, expectedPhase: current.phase, nextPhase: 'rollback_pending', patch: { recoveryAttempts: current.recoveryAttempts + 1, lastErrorCode: 'reboot_recovery_forward_only' } });
+    const next = transitionFullStackReleaseLedger(current, { transactionId: args.transactionId, release: args.release, token: args.token, expectedPhase: current.phase, nextPhase: 'rollback_pending', patch: { recoveryAttempts: current.recoveryAttempts + 1, lastErrorCode: 'reboot_recovery_forward_only' }, allowExpiredLease: true });
     await writeFullStackReleaseLedger(path, next);
     process.stdout.write(`${JSON.stringify({ ...decision, phase: next.phase })}\n`); return;
   }
-  const next = transitionFullStackReleaseLedger(current, { transactionId: args.transactionId, release: args.release, token: args.token, expectedPhase: current.phase, nextPhase: 'rollback_pending', patch: { recoveryAttempts: current.recoveryAttempts + 1, lastErrorCode: 'reboot_recovery_rollback_pending' } });
+  const next = transitionFullStackReleaseLedger(current, { transactionId: args.transactionId, release: args.release, token: args.token, expectedPhase: current.phase, nextPhase: 'rollback_pending', patch: { recoveryAttempts: current.recoveryAttempts + 1, lastErrorCode: 'reboot_recovery_rollback_pending' }, allowExpiredLease: true });
   await writeFullStackReleaseLedger(path, next);
   process.stdout.write(`${JSON.stringify({ ...decision, phase: next.phase })}\n`);
 }
@@ -321,7 +424,7 @@ function trustedLedgerTransition(ledger, { expectedPhase, nextPhase, patch = {},
     throw new Error('full_stack_release_phase_conflict');
   }
   if (ledger.phase !== expectedPhase || !FULL_STACK_PHASE_TRANSITIONS[expectedPhase]?.has(nextPhase)) throw new Error('full_stack_release_phase_conflict');
-  const next = { ...ledger, ...patch, phase: nextPhase, updatedAt: now };
+  const next = refreshLease({ ...ledger, ...patch, phase: nextPhase, updatedAt: now }, now);
   if (nextPhase === 'committed') next.committedAt = now;
   return assertTransactionShape(next);
 }
@@ -333,7 +436,7 @@ async function ledgerRecoverSystemCli(args) {
   assertLedgerMutationLock(path);
   const current = await readFullStackReleaseLedger(path);
   if (!current) { process.stdout.write('{"action":"no_ledger"}\n'); return; }
-  const decision = decideFullStackReleaseRecovery(current);
+  const decision = decideFullStackSystemRecovery(current, args.now ? Date.parse(args.now) : Date.now());
   if (decision.action === 'reprobe_migration') { process.stdout.write(`${JSON.stringify(decision)}\n`); return; }
   if (decision.action === 'discard_unmutated_transaction') {
     await removeFullStackReleaseLedger(path);
@@ -368,6 +471,97 @@ const runCompose = (args, opts = {}) => promisify(execFile)('/usr/bin/docker', [
 const sha256 = (value) => createHash('sha256').update(typeof value === 'string' || value instanceof Uint8Array ? value : canonicalJson(value)).digest('hex');
 
 function without(object, key) { const copy = { ...object }; delete copy[key]; return copy; }
+
+function assertProbeReceiptObject(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('full_stack_probe_receipt_v2_shape_invalid');
+  if (JSON.stringify(Object.keys(value).sort()) !== JSON.stringify([...PROBE_RECEIPT_V2_KEYS].sort())) throw new Error('full_stack_probe_receipt_v2_keys_invalid');
+}
+
+function assertProbeExactKeys(value, expected, label) {
+  if (!value || typeof value !== 'object' || Array.isArray(value) || JSON.stringify(Object.keys(value).sort()) !== JSON.stringify([...expected].sort())) throw new Error(`full_stack_probe_receipt_v2_${label}_keys_invalid`);
+}
+
+function assertProbeDigest(value, label) {
+  if (!DIGEST.test(value ?? '')) throw new Error(`full_stack_probe_receipt_v2_${label}_digest_invalid`);
+}
+
+function assertProbeSafeReason(value, label) {
+  if (typeof value !== 'string' || value.length < 1 || value.length > 256 || /[\u0000-\u001f\u007f]/.test(value)) throw new Error(`full_stack_probe_receipt_v2_${label}_reason_invalid`);
+}
+
+function assertProbeHeaderMap(value, label) {
+  assertProbeExactKeys(value, Object.keys(value ?? {}).filter((key) => PROBE_RECEIPT_HEADER_NAMES.has(key)), label);
+  for (const [name, header] of Object.entries(value)) if (!PROBE_RECEIPT_HEADER_NAMES.has(name) || typeof header !== 'string' || !/^[\x20-\x7e]{1,256}$/.test(header)) throw new Error(`full_stack_probe_receipt_v2_${label}_value_invalid`);
+}
+
+function assertProbePageEvidence(page, label) {
+  assertProbeExactKeys(page, ['path', 'status', 'headers', 'bodyHash', 'bodyStored', 'markerHashes', 'negativeMarkerHashes'], label);
+  if (!PROBE_RECEIPT_PAGES.has(page.path) || page.status !== 200 || page.bodyStored !== false) throw new Error(`full_stack_probe_receipt_v2_${label}_semantic_invalid`);
+  assertProbeHeaderMap(page.headers, `${label}_headers`);
+  assertProbeDigest(page.bodyHash, `${label}_body`);
+  if (!Array.isArray(page.markerHashes) || !Array.isArray(page.negativeMarkerHashes) || page.markerHashes.length === 0) throw new Error(`full_stack_probe_receipt_v2_${label}_semantic_invalid`);
+  for (const marker of [...page.markerHashes, ...page.negativeMarkerHashes]) assertProbeDigest(marker, `${label}_marker`);
+}
+
+function assertProbeAccountEvidence(account, role, loginPath) {
+  assertProbeExactKeys(account, ['role', 'accountEmailSha256', 'loginPath', 'sessionCookie', 'pages', 'roleBoundary', 'api', 'sse', 'worker', 'semanticAssertionCount'], `${role}_account`);
+  if (account.role !== role || account.loginPath !== loginPath) throw new Error('full_stack_probe_receipt_v2_account_invalid');
+  assertProbeDigest(account.accountEmailSha256, `${role}_account`);
+  assertProbeExactKeys(account.sessionCookie, ['httpOnly', 'secure', 'roleCookie'], `${role}_session`);
+  if (account.sessionCookie.httpOnly !== true || account.sessionCookie.secure !== true || account.sessionCookie.roleCookie !== role) throw new Error('full_stack_probe_receipt_v2_session_invalid');
+  if (!Array.isArray(account.pages) || account.pages.length < 1) throw new Error('full_stack_probe_receipt_v2_pages_invalid');
+  account.pages.forEach((page, index) => assertProbePageEvidence(page, `${role}_page_${index}`));
+  const roleBoundary = account.roleBoundary;
+  assertProbeExactKeys(roleBoundary, roleBoundary?.status === 'verified' ? ['status', 'path', 'markerHashes'] : ['status', 'reason'], `${role}_role_boundary`);
+  if (roleBoundary.status === 'verified') {
+    if (roleBoundary.path !== '/recruiter/jobs' || !Array.isArray(roleBoundary.markerHashes) || roleBoundary.markerHashes.length < 1) throw new Error('full_stack_probe_receipt_v2_role_boundary_invalid');
+    roleBoundary.markerHashes.forEach((marker) => assertProbeDigest(marker, `${role}_role_boundary_marker`));
+  } else if (roleBoundary.status === 'unproven') {
+    assertProbeSafeReason(roleBoundary.reason, `${role}_role_boundary`);
+  } else throw new Error('full_stack_probe_receipt_v2_role_boundary_invalid');
+  for (const [name, value] of [['api', account.api], ['sse', account.sse], ['worker', account.worker]]) {
+    assertProbeExactKeys(value, ['status', 'reason'], `${role}_${name}`);
+    if (value.status !== 'unproven') throw new Error(`full_stack_probe_receipt_v2_${name}_overclaim`);
+    assertProbeSafeReason(value.reason, `${role}_${name}`);
+  }
+  if (!Number.isInteger(account.semanticAssertionCount) || account.semanticAssertionCount < 1) throw new Error('full_stack_probe_receipt_v2_semantic_count_invalid');
+}
+
+/**
+ * Validate the exact v2 receipt emitted by the independent control-repository
+ * verifier.  The verifier proves only authenticated browser pages and the
+ * no-cookie redirect. API, SSE and worker activity remain explicitly
+ * `unproven` and are never promoted to release evidence here.
+ */
+export function assertExternalProbeReceiptV2(receipt, { origin, probeNonce, manifestSha256, rootSha256, blackboxSha256, publicKeyPem, activationAt, deadlineAt, now = Date.now() }) {
+  assertProbeReceiptObject(receipt);
+  if (receipt.schemaVersion !== 2 || receipt.origin !== origin || !PROBE_RECEIPT_ORIGIN.test(receipt.origin ?? '') || !DIGEST.test(receipt.probeNonce ?? '') || receipt.probeNonce !== probeNonce || receipt.manifestSha256 !== manifestSha256) throw new Error('full_stack_probe_receipt_v2_binding_invalid');
+  const checkedAt = Date.parse(receipt.checkedAt ?? '');
+  const activation = Date.parse(activationAt ?? '');
+  const deadline = Date.parse(deadlineAt ?? '');
+  if (!Number.isFinite(checkedAt) || receipt.checkedAt !== new Date(checkedAt).toISOString() || checkedAt > now + 120_000 || !Number.isFinite(activation) || !Number.isFinite(deadline) || checkedAt < activation || checkedAt >= deadline || now >= deadline) throw new Error('full_stack_probe_receipt_v2_time_invalid');
+  if (receipt.rootStatus !== 200 || receipt.loginStatus !== 200 || receipt.manifestStatus !== 200 || receipt.rootUrl !== `${origin}/` || receipt.loginUrl !== `${origin}/login` || receipt.manifestUrl !== `${origin}/preview-release-manifest.json`) throw new Error('full_stack_probe_receipt_v2_surface_invalid');
+  if (![receipt.manifestSha256, receipt.rootSha256, receipt.blackboxSha256].every((value) => DIGEST.test(value ?? '')) || receipt.rootSha256 !== rootSha256 || receipt.blackboxSha256 !== blackboxSha256) throw new Error('full_stack_probe_receipt_v2_digest_invalid');
+  if (receipt.signingKeyId !== 'probe-receipt-ed25519-v2' || typeof receipt.signature !== 'string' || !/^[A-Za-z0-9+/]+={0,2}$/.test(receipt.signature) || Buffer.from(receipt.signature, 'base64').length !== 64 || typeof publicKeyPem !== 'string' || !verify(null, Buffer.from(canonicalJson(without(receipt, 'signature'))), createPublicKey(publicKeyPem), Buffer.from(receipt.signature, 'base64'))) throw new Error('full_stack_probe_receipt_v2_signature_invalid');
+  assertProbeExactKeys(receipt.verifier, ['repository', 'workflow', 'ref', 'commit', 'runId', 'sourceSha256', 'workflowSha256', 'packageLockSha256'], 'verifier');
+  if (receipt.verifier.repository !== PROBE_CONTROL_REPOSITORY || receipt.verifier.workflow !== PROBE_CONTROL_WORKFLOW || receipt.verifier.ref !== 'refs/heads/main' || !/^[a-f0-9]{40}$/.test(receipt.verifier.commit ?? '') || !/^[0-9]+$/.test(receipt.verifier.runId ?? '')) throw new Error('full_stack_probe_receipt_v2_verifier_identity_invalid');
+  for (const [name, value] of [['source', receipt.verifier.sourceSha256], ['workflow', receipt.verifier.workflowSha256], ['package_lock', receipt.verifier.packageLockSha256]]) assertProbeDigest(value, `verifier_${name}`);
+  const e2e = receipt.e2e;
+  const redirect = e2e?.noCookieProtectedRedirect;
+  assertProbeExactKeys(e2e, ['status', 'scope', 'complete', 'noCookieProtectedRedirect', 'accounts', 'sensitiveResponseBodies'], 'e2e');
+  if (e2e.status !== 'passed_pages_only' || e2e.scope !== 'browser_auth_pages_only' || e2e.complete !== false || e2e.sensitiveResponseBodies !== 'not_stored' || !redirect) throw new Error('full_stack_probe_receipt_v2_e2e_invalid');
+  assertProbeExactKeys(redirect, ['origin', 'pathname', 'search'], 'redirect');
+  if (redirect.origin !== origin || redirect.pathname !== '/login' || redirect.search !== '?next=%2Fdashboard') throw new Error('full_stack_probe_receipt_v2_redirect_invalid');
+  assertProbeExactKeys(e2e.accounts, ['candidate', 'recruiter'], 'accounts');
+  assertProbeAccountEvidence(e2e.accounts.candidate, 'candidate', '/dashboard');
+  assertProbeAccountEvidence(e2e.accounts.recruiter, 'recruiter', '/recruiter/jobs');
+  const serialized = JSON.stringify(receipt);
+  // Do not reject the contract field name `noCookieProtectedRedirect`; reject
+  // raw secret material or header values instead. The receipt contains only
+  // hashes, status markers, paths, and explicit `unproven` reasons.
+  if (/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(serialized) || /(?:password|authorization|set-cookie|bearer)\s*[:=]/i.test(serialized) || /"(?:password|authorization|cookie|set-cookie)"\s*:/i.test(serialized) || /\bbearer\s+[A-Za-z0-9._-]+/i.test(serialized)) throw new Error('full_stack_probe_receipt_v2_sensitive_value_invalid');
+  return receipt;
+}
 
 const IMAGE_DIGEST = /^sha256:[a-f0-9]{64}$/;
 const COMPOSE_IMAGES = Object.freeze(['backend', 'web']);
@@ -881,16 +1075,21 @@ async function confirmPublic() {
   const [approval, state, manifest, receipt, privateKey, publicKey, probeReceiptPublicKey] = await Promise.all([rootJson(PATHS.approval, 0o600), rootJson(PATHS.state, 0o600), rootJson(PATHS.publicManifest, 0o644), rootJson(PATHS.publicVerification, 0o600), rootText(PATHS.privateKey, 0o600), rootText(PATHS.publicKey, 0o644), rootText(PATHS.probeReceiptPublicKey, 0o644)]);
   await assertTrustedLedgerGeneration(approval.generation);
   if (state.status === 'verified' && state.publicConfirmedAt && manifest.mode === 'public-full-stack' && state.generation === approval.generation && state.manifestSha256 === manifestFingerprint(manifest)) { process.stdout.write(`${state.manifestSha256}\n`); return; }
-  const checkedAt = Date.parse(receipt.checkedAt ?? '');
   const activationAt = Date.parse(state.activationAt ?? ''); const deadlineAt = Date.parse(state.deadlineAt ?? '');
   if (createPublicKey(privateKey).export({ type: 'spki', format: 'pem' }) !== createPublicKey(publicKey).export({ type: 'spki', format: 'pem' })) throw new Error('full_stack_signing_key_mismatch');
   // ADR-0021：回执签名必须由 ECS 之外的验证器（GitHub Actions 私钥）签发。ECS 只有公钥，
-  // 无法自签自证公开可用。签名绑定 probeNonce + manifestSha256 + checkedAt + 表面哈希。
-  const receiptSignatureValid = receipt.signingKeyId === 'probe-receipt-ed25519-v1'
-    && typeof receipt.signature === 'string' && /^[A-Za-z0-9+/]+={0,2}$/.test(receipt.signature)
-    && verify(null, Buffer.from(canonicalJson(without(receipt, 'signature'))), createPublicKey(probeReceiptPublicKey), Buffer.from(receipt.signature, 'base64'));
-  if (!receiptSignatureValid) throw new Error('full_stack_probe_receipt_signature_invalid');
-  if (manifest.mode !== 'public-full-stack-probe' || !Number.isSafeInteger(manifest.generation) || manifest.generation !== approval.generation || state.status !== 'edge_probing' || state.generation !== approval.generation || state.manifestSha256 !== manifestFingerprint(manifest) || receipt.schemaVersion !== 1 || receipt.origin !== approval.origin || receipt.probeNonce !== state.probeNonce || receipt.manifestSha256 !== state.manifestSha256 || receipt.rootStatus !== 200 || receipt.loginStatus !== 200 || receipt.manifestStatus !== 200 || receipt.rootUrl !== `${approval.origin}/` || receipt.loginUrl !== `${approval.origin}/login` || receipt.manifestUrl !== `${approval.origin}/preview-release-manifest.json` || receipt.rootSha256 !== manifest.receipts?.edge || receipt.blackboxSha256 !== manifest.receipts?.blackbox || !Number.isFinite(checkedAt) || !Number.isFinite(activationAt) || !Number.isFinite(deadlineAt) || checkedAt < activationAt || checkedAt >= deadlineAt || Date.now() >= deadlineAt) throw new Error('full_stack_public_confirmation_invalid');
+  // 无法自签自证公开可用。v2 只绑定 B/C 浏览器页面，并把 API/SSE/worker 保持为 unproven。
+  if (manifest.mode !== 'public-full-stack-probe' || !Number.isSafeInteger(manifest.generation) || manifest.generation !== approval.generation || state.status !== 'edge_probing' || state.generation !== approval.generation || state.manifestSha256 !== manifestFingerprint(manifest)) throw new Error('full_stack_public_confirmation_invalid');
+  assertExternalProbeReceiptV2(receipt, {
+    origin: approval.origin,
+    probeNonce: state.probeNonce,
+    manifestSha256: state.manifestSha256,
+    rootSha256: manifest.receipts?.edge,
+    blackboxSha256: manifest.receipts?.blackbox,
+    publicKeyPem: probeReceiptPublicKey,
+    activationAt: state.activationAt,
+    deadlineAt: state.deadlineAt,
+  });
   const finalManifest = signManifest({ ...without(manifest, 'signature'), mode: 'public-full-stack', issuedAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 13 * 24 * 60 * 60 * 1000).toISOString() }, privateKey);
   const publicConfirmedAt = new Date().toISOString();
   await durableJson(PATHS.state, { ...state, status: 'confirmed_pending_public', probeManifest: manifest, pendingManifest: finalManifest, publicConfirmedAt }, 0o600);
@@ -923,6 +1122,6 @@ async function assertWebStartPermitted() {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const command = process.argv[2];
-  (command === 'stage' ? stage() : command === 'publish' ? publish() : command === 'activate' ? activate() : command === 'confirm-public' ? confirmPublic() : command === 'probe-nonce' ? probeNonce() : command === 'expire-probe' ? expireProbe() : command === 'restore-confirmed-edge' ? restoreConfirmedEdge() : command === 'resume-revocation' ? resumeRevocation() : command === 'revoke' ? revoke() : command === 'recover' ? recover() : command === 'verify-public' ? verifyPublic() : command === 'assert-web-start-permitted' ? assertWebStartPermitted() : command === 'ledger-init' ? ledgerInitCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-transition' ? ledgerTransitionCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-update' ? ledgerUpdateCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-recover' ? ledgerRecoverCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-recover-system' ? ledgerRecoverSystemCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-system-transition' ? ledgerSystemTransitionCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-read' ? readFullStackReleaseLedger(parseLedgerCliArgs(process.argv.slice(3)).path).then((ledger) => process.stdout.write(`${JSON.stringify(ledger)}\n`)) : Promise.reject(new Error('usage: full-stack-preview-publisher.mjs stage|publish|activate|confirm-public|probe-nonce|expire-probe|restore-confirmed-edge|resume-revocation|revoke|recover|verify-public|assert-web-start-permitted|ledger-init|ledger-transition|ledger-update|ledger-recover|ledger-recover-system|ledger-system-transition|ledger-read')))
+  (command === 'stage' ? stage() : command === 'publish' ? publish() : command === 'activate' ? activate() : command === 'confirm-public' ? confirmPublic() : command === 'probe-nonce' ? probeNonce() : command === 'expire-probe' ? expireProbe() : command === 'restore-confirmed-edge' ? restoreConfirmedEdge() : command === 'resume-revocation' ? resumeRevocation() : command === 'revoke' ? revoke() : command === 'recover' ? recover() : command === 'verify-public' ? verifyPublic() : command === 'assert-web-start-permitted' ? assertWebStartPermitted() : command === 'ledger-init' ? ledgerInitCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-transition' ? ledgerTransitionCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-update' ? ledgerUpdateCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-heartbeat' ? ledgerHeartbeatCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-recover' ? ledgerRecoverCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-recover-system' ? ledgerRecoverSystemCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-system-transition' ? ledgerSystemTransitionCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-read' ? readFullStackReleaseLedger(parseLedgerCliArgs(process.argv.slice(3)).path).then((ledger) => process.stdout.write(`${JSON.stringify(ledger)}\n`)) : Promise.reject(new Error('usage: full-stack-preview-publisher.mjs stage|publish|activate|confirm-public|probe-nonce|expire-probe|restore-confirmed-edge|resume-revocation|revoke|recover|verify-public|assert-web-start-permitted|ledger-init|ledger-transition|ledger-update|ledger-heartbeat|ledger-recover|ledger-recover-system|ledger-system-transition|ledger-read')))
     .catch((error) => { process.stderr.write(`${error instanceof Error ? error.message : 'full_stack_publication_failed'}\n`); process.exitCode = error?.exitCode ?? 1; });
 }

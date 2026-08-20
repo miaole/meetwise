@@ -192,6 +192,9 @@ case "$sub" in
         [[ ${#argv[@]} -eq 6 ]] || { echo 'meetwise_cd_argc_invalid' >&2; exit 1; }
         [[ "${argv[3]}" =~ $TRANSACTION_ID_RE && "${argv[4]}" =~ $RELEASE_RE && "${argv[5]}" =~ $TOKEN_RE ]] || { echo 'meetwise_cd_transaction_identity_invalid' >&2; exit 1; }
         ;;
+      status-system|recover-system)
+        [[ ${#argv[@]} -eq 3 ]] || { echo 'meetwise_cd_argc_invalid' >&2; exit 1; }
+        ;;
       *) echo 'meetwise_cd_transaction_action_invalid' >&2; exit 1 ;;
     esac
     exec sudo "$ROOT_DISPATCH" "${argv[@]:1}"
