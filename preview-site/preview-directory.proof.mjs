@@ -78,6 +78,7 @@ function check(name, ok) {
 check('renders a static project introduction and a manifest-derived main-project entry state',
   html.includes('Meetwise 知面')
   && html.includes('<!-- PREVIEW_PRIMARY_ENTRY -->')
+  && html.includes('<!-- PREVIEW_RAG_ENTRY -->')
   && html.includes('查看 GitHub 源码'));
 check('uses preview-only public wording', html.includes('预览版') && !html.includes('测试版'));
 check('does not embed a bare IP address, port, secret or private endpoint',
@@ -93,6 +94,8 @@ check('fails closed until a signed preview manifest enables real HTTPS destinati
 check('renders only the exact signed HTTPS origin and republishes disabled output when it expires',
   /href="https:\/\/preview\.tail0000000\.ts\.net" rel="noopener noreferrer"/.test(enabled)
   && /href="https:\/\/preview\.tail0000000\.ts\.net" rel="noopener noreferrer"/.test(fullStackEnabled)
+  && fullStackEnabled.includes('进入题库与岗位路由预览')
+  && fullStackEnabled.includes('已随主项目部署')
   && probeDisabled.includes('aria-disabled="true"')
   && !/href="https?:\/\/preview\.tail0000000\.ts\.net"/.test(probeDisabled)
   && expired.includes('aria-disabled="true"')
