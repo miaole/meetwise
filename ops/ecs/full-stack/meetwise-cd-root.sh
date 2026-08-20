@@ -1873,7 +1873,10 @@ for (let i = 0; i < base.length; i += 1) {
     expectedFiles.push(String(i));
   } else if (mode !== '-' || digest !== '-') throw new Error();
 }
-const files = readdirSync(join(snapshot, 'files')).sort(); if (files.join('\n') !== expectedFiles.join('\n')) throw new Error();
+const files = readdirSync(join(snapshot, 'files'));
+if (files.some((file) => !/^(0|[1-9][0-9]*)$/.test(file))) throw new Error();
+files.sort((a, b) => Number(a) - Number(b));
+if (files.join('\n') !== expectedFiles.join('\n')) throw new Error();
 const versionRows = readFileSync(join(snapshot, 'version.tsv'), 'utf8').trimEnd().split('\n').filter(Boolean);
 if (versionRows.length !== 1) throw new Error(); const version = versionRows[0].split('|');
 if (version[0] === 'present') { if (!/^[a-f0-9]{64}$/.test(version[1])) throw new Error(); const stat = lstatSync(join(snapshot, 'version')); if (!stat.isFile() || stat.isSymbolicLink() || stat.uid !== 0 || stat.gid !== 0 || (stat.mode & 0o777) !== 0o600 || createHash('sha256').update(readFileSync(join(snapshot, 'version'))).digest('hex') !== version[1]) throw new Error(); }
