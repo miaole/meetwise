@@ -15,6 +15,7 @@ const publicKey = await readFile(publicKeyPath, 'utf8');
 
 let entry = '<span class="button button-primary is-disabled" aria-disabled="true">主项目入口准备中 <span aria-hidden="true">↗</span></span>';
 let detail = '<span class="button button-card is-disabled" aria-disabled="true">预览环境准备中 <span aria-hidden="true">↗</span></span>';
+let routeDetail = '<span class="button button-card is-disabled" aria-disabled="true">预览环境准备中 <span aria-hidden="true">↗</span></span>';
 let version = '预览环境准备中';
 let updated = '等待受控 ECS 环境就绪';
 
@@ -25,6 +26,7 @@ if (!forceDisabled && manifest.status === 'verified' && ['public-read-only', 'pu
     const href = manifest.origin;
     entry = `<a class="button button-primary" href="${href}" rel="noopener noreferrer">打开项目预览版 <span aria-hidden="true">↗</span></a>`;
     detail = `<a class="button button-card" href="${href}" rel="noopener noreferrer">进入项目预览版 <span aria-hidden="true">↗</span></a>`;
+    routeDetail = `<a class="button button-card" href="${href}" rel="noopener noreferrer">进入题库与岗位路由预览 <span aria-hidden="true">↗</span></a>`;
     version = `release ${manifest.releaseDigest}`;
     updated = `有效至 ${new Date(manifest.expiresAt).toISOString().slice(0, 10)}`;
     state = 'verified';
@@ -37,6 +39,7 @@ if (!forceDisabled && manifest.status === 'verified' && ['public-read-only', 'pu
 const html = template
   .replace('<!-- PREVIEW_PRIMARY_ENTRY -->', entry)
   .replace('<!-- PREVIEW_CORE_ENTRY -->', detail)
+  .replace('<!-- PREVIEW_RAG_ENTRY -->', routeDetail)
   .replace('<!-- PREVIEW_RELEASE_VERSION -->', version)
   .replace('<!-- PREVIEW_RELEASE_UPDATED -->', updated);
 
