@@ -225,7 +225,8 @@ NODE
 }
 
 snapshot_predecessor() {
-  local transaction_id="$1" release="$2" dir="$FULL_STACK_SNAPSHOTS/$transaction_id"
+  local transaction_id="$1" release="$2" dir
+  dir="$FULL_STACK_SNAPSHOTS/$transaction_id"
   [[ "$transaction_id" =~ $TRANSACTION_ID_RE ]] || die transaction_id_invalid
   [[ "$release" =~ $RELEASE_RE ]] || die release_name_invalid
   [[ "$dir" == "$FULL_STACK_SNAPSHOTS/"* && "$dir" != *..* ]] || die snapshot_path_invalid
@@ -267,6 +268,16 @@ snapshot_predecessor() {
   if [[ -f "$PUBLICATION_STATE" && ! -L "$PUBLICATION_STATE" ]]; then install -o root -g root -m 0600 "$PUBLICATION_STATE" "$dir/publication.state"; else install -o root -g root -m 0600 /dev/null "$dir/publication.state.missing"; fi
   if [[ -f "$PUBLIC_MANIFEST" && ! -L "$PUBLIC_MANIFEST" ]]; then install -o root -g root -m 0644 "$PUBLIC_MANIFEST" "$dir/public.manifest"; else install -o root -g root -m 0600 /dev/null "$dir/public.manifest.missing"; fi
   local current_target=''; [[ -L "$CURRENT" ]] && current_target="$(readlink "$CURRENT")"
+  if [[ -n "$current_target" ]]; then
+    # Legacy releases used an absolute /srv/.../releases/<id> symlink while
+    # the transactional controller stores a confined, portable relative
+    # target.  Normalize only an exact child of RELEASES_ROOT and reject every
+    # other absolute/escaping target before it can enter a rollback bundle.
+    if [[ "$current_target" == "$RELEASES_ROOT/"* ]]; then
+      current_target="releases/${current_target#"$RELEASES_ROOT/"}"
+    fi
+    [[ "$current_target" == releases/* && "$current_target" != *..* && "${current_target#releases/}" =~ $RELEASE_RE ]] || die predecessor_current_target_invalid 70
+  fi
   local compose_present=0 compose_running=''
   if [[ -f "$COMPOSE_ENV" && ! -L "$COMPOSE_ENV" && -f "$COMPOSE_FILE" && ! -L "$COMPOSE_FILE" ]]; then
     compose_present=1
@@ -395,7 +406,8 @@ start_web_internal() {
 }
 
 restore_predecessor_snapshot() {
-  local transaction_id="$1" release="$2" dir="$FULL_STACK_SNAPSHOTS/$transaction_id"
+  local transaction_id="$1" release="$2" dir
+  dir="$FULL_STACK_SNAPSHOTS/$transaction_id"
   [[ "$transaction_id" =~ $TRANSACTION_ID_RE && "$release" =~ $RELEASE_RE ]] || die transaction_identity_invalid
   [[ -f "$dir/predecessor.json" && ! -L "$dir/predecessor.json" ]] || die snapshot_missing
   local record; record="$(/usr/bin/node -e 'const v=require(process.argv[1]); if(v.schemaVersion!==1 || v.release!==process.argv[2]) process.exit(1); process.stdout.write(JSON.stringify(v))' "$dir/predecessor.json" "$release")" || die snapshot_binding_invalid
@@ -513,7 +525,8 @@ restore_predecessor_snapshot() {
 }
 
 clear_transaction_snapshot() {
-  local transaction_id="$1" snapshot_dir="$FULL_STACK_SNAPSHOTS/$transaction_id"
+  local transaction_id="$1" snapshot_dir
+  snapshot_dir="$FULL_STACK_SNAPSHOTS/$transaction_id"
   [[ "$transaction_id" =~ $TRANSACTION_ID_RE && "$snapshot_dir" == "$FULL_STACK_SNAPSHOTS/"* && ! -L "$snapshot_dir" ]] || die snapshot_path_invalid
   [[ -d "$snapshot_dir" ]] || return 0
   for entry in "$snapshot_dir"/*; do
@@ -978,10 +991,10 @@ NODE
           stop_full_stack_release_recovery_timer
           printf '%s\n' "$system_recovery_json"
           ;;
-        lease_active|lease_unknown)
-          # A boot/timer check is read-only while the durable lease is live or
-          # cannot be trusted. Only an expired, well-formed lease may enter
-          # the recovery CAS below.
+        lease_active)
+          # A boot/timer check is read-only while the durable lease is live.
+          # Legacy ledgers without a trustworthy lease are routed through the
+          # phase-based recovery policy by the controller.
           printf '%s\n' "$system_recovery_json"
           ;;
         noop)
@@ -1189,7 +1202,7 @@ with_release_cwd() {
   printf '%s' "$dir"
 }
 
-validate_pnpm_prefix_receipt() {
+validate_pnpm_prefix_contents() {
   local prefix="$1" bin="$1/bin/pnpm" package_root="$1/lib/node_modules/pnpm"
   local receipt="$1/.meetwise-integrity"
   local required_integrity="${2:-}" required_version="${3:-}"
@@ -1217,6 +1230,17 @@ validate_pnpm_prefix_receipt() {
   [[ "$actual_version" == "$package_version" ]]
 }
 
+validate_pnpm_prefix_receipt() {
+  local prefix="$1" package_root="$1/lib/node_modules/pnpm"
+  validate_pnpm_prefix_contents "$@" || return 1
+  [[ "$(stat -c '%u:%g:%a' "$prefix" 2>/dev/null || true)" == '0:0:755' ]] || return 1
+  # The trusted package remains root-owned and non-writable, but every
+  # directory must be traversable and every package file readable by the
+  # low-privilege install-deps account.
+  ! find "$prefix" -type d ! -perm -0005 -print -quit 2>/dev/null | grep -q . || return 1
+  ! find "$package_root" -type f ! -perm -0004 -print -quit 2>/dev/null | grep -q . || return 1
+}
+
 validate_pnpm_prefix() {
   validate_pnpm_prefix_receipt "$1" "$PNPM_INTEGRITY" "$PNPM_VERSION"
 }
@@ -1224,6 +1248,13 @@ validate_pnpm_prefix() {
 ensure_pnpm_toolchain() {
   local stage archive candidate backup actual_integrity
   backup="$PNPM_PREFIX.rollback"
+  # Normalize the one legacy private-prefix layout only after the complete
+  # root-owned receipt/content/version checks pass. This is an idempotent
+  # accessibility repair, not a trust bypass.
+  if validate_pnpm_prefix_contents "$PNPM_PREFIX" "$PNPM_INTEGRITY" "$PNPM_VERSION"; then
+    chmod -R u=rwX,go=rX "$PNPM_PREFIX" || die pnpm_prefix_access_failed 70
+    chmod 0600 "$PNPM_PREFIX/.meetwise-integrity" || die pnpm_receipt_mode_failed 70
+  fi
   if validate_pnpm_prefix "$PNPM_PREFIX"; then
     [[ ! -e "$backup" && ! -L "$backup" ]] || rm -rf -- "$backup"
     return 0
@@ -1242,7 +1273,8 @@ ensure_pnpm_toolchain() {
   fi
   stage="$(mktemp -d /usr/local/lib/.meetwise-cd-pnpm.XXXXXX)" || die pnpm_stage_create_failed 70
   trap 'rm -rf -- "${stage:-}"' EXIT
-  install -d -o root -g root -m 0700 "$stage/download" "$stage/prefix"
+  install -d -o root -g root -m 0700 "$stage/download"
+  install -d -o root -g root -m 0755 "$stage/prefix"
   timeout --signal=TERM --kill-after=5s 180s /usr/bin/env -i HOME=/root PATH=/usr/bin:/usr/sbin:/bin:/sbin \
     /usr/bin/npm pack "pnpm@$PNPM_VERSION" --pack-destination "$stage/download" \
       --ignore-scripts --json >/dev/null 2>&1 || die pnpm_download_failed 70
@@ -1260,7 +1292,7 @@ NODE
       --ignore-scripts --no-audit --no-fund "$archive" >/dev/null 2>&1 \
     || die pnpm_install_failed 70
   chown -R root:root "$stage/prefix" || die pnpm_prefix_chown_failed 70
-  chmod -R go-w "$stage/prefix" || die pnpm_prefix_mode_failed 70
+  chmod -R u=rwX,go=rX "$stage/prefix" || die pnpm_prefix_mode_failed 70
   printf '%s\n' "$PNPM_INTEGRITY" > "$stage/prefix/.meetwise-integrity"
   chown root:root "$stage/prefix/.meetwise-integrity"
   chmod 0600 "$stage/prefix/.meetwise-integrity"
@@ -1885,7 +1917,8 @@ NODE
 }
 
 controller_snapshot_create() {
-  local bundle_digest="$1" snapshot="$CONTROLLER_ROLLOUT_SNAPSHOTS/$bundle_digest" temporary source destination mode idx
+  local bundle_digest="$1" snapshot temporary source destination mode idx
+  snapshot="$CONTROLLER_ROLLOUT_SNAPSHOTS/$bundle_digest"
   controller_require_digest "$bundle_digest"
   controller_ensure_state_root
   if [[ -e "$snapshot" || -L "$snapshot" ]]; then
@@ -2037,7 +2070,8 @@ controller_write_version() {
 }
 
 controller_write_receipt() {
-  local bundle_digest="$1" archive_digest="$2" stage="$3" snapshot="$4" target="$CONTROLLER_ROLLOUT_TARGETS/$bundle_digest" temporary
+  local bundle_digest="$1" archive_digest="$2" stage="$3" snapshot="$4" target temporary
+  target="$CONTROLLER_ROLLOUT_TARGETS/$bundle_digest"
   controller_ensure_state_root
   if [[ -e "$target" || -L "$target" ]]; then
     [[ -d "$target" && ! -L "$target" && "$(stat -c '%u:%g:%a' "$target" 2>/dev/null || true)" == '0:0:700' ]] || die controller_receipt_target_invalid

@@ -24,6 +24,10 @@ const edgeClose = read('ops/ecs/full-stack/full-stack-preview-edge-close.sh');
 const install = read('ops/ecs/full-stack/install-full-stack-runtime.sh');
 
 assert.equal(rootPackage.packageManager, 'pnpm@10.18.0', 'repository packageManager must stay pinned');
+assert.match(dispatch, /case "\$system_recovery_action" in\s+no_ledger\)[\s\S]*?lease_active\)/, 'root recovery must keep only a live lease read-only');
+assert.doesNotMatch(dispatch, /lease_active\|lease_unknown\)/, 'legacy unknown leases must execute phase-based recovery');
+assert.doesNotMatch(dispatch, /local transaction_id="\$1"[^\n]*\$(?:transaction_id|bundle_digest)/, 'dependent local paths must be assigned after their identifiers under set -u');
+assert.doesNotMatch(dispatch, /local bundle_digest="\$1"[^\n]*\$bundle_digest/, 'controller paths must be assigned after bundle_digest under set -u');
 
 // --- prepare-full-stack-release.mjs -------------------------------------------------
 // 确定性生成：digest 必须复用本次 release 的 catalog.mjs 导出，绝不自带 crypto 副本。
@@ -102,6 +106,13 @@ assert.match(dispatch, /PNPM_PREFIX=\/usr\/local\/lib\/meetwise-cd-pnpm/);
 assert.match(dispatch, /PNPM_BIN="\$PNPM_PREFIX\/bin\/pnpm"/);
 assert.match(dispatch, /PNPM_PACKAGE_ROOT="\$PNPM_PREFIX\/lib\/node_modules\/pnpm"/);
 assert.match(dispatch, /PNPM_INTEGRITY='sha512-[A-Za-z0-9+/]+=*'/);
+assert.match(dispatch, /current_target="releases\/\$\{current_target#"\$RELEASES_ROOT\/"\}"/);
+assert.match(dispatch, /predecessor_current_target_invalid/);
+assert.match(dispatch, /validate_pnpm_prefix_contents "\$PNPM_PREFIX" "\$PNPM_INTEGRITY" "\$PNPM_VERSION"/);
+assert.match(dispatch, /chmod -R u=rwX,go=rX "\$PNPM_PREFIX"/);
+assert.match(dispatch, /install -d -o root -g root -m 0755 "\$stage\/prefix"/);
+assert.match(dispatch, /find "\$prefix" -type d ! -perm -0005/);
+assert.match(dispatch, /find "\$package_root" -type f ! -perm -0004/);
 assert.match(dispatch, /npm pack "pnpm@\$PNPM_VERSION"/);
 assert.match(dispatch, /actual_integrity.*PNPM_INTEGRITY/s);
 assert.match(dispatch, /\.meetwise-integrity/);
