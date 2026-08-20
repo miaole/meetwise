@@ -1934,6 +1934,21 @@
         "TC-preview-synthetic-data-01-main"
       ],
       "expansionJustification": "The ECS full-stack preview, public-preview web ingress and preview synthetic-data factory seven-case matrices are explicitly planned/unmapped. They add no required binding, passed denominator or release evidence; the public runtime remains blocked pending a verified release manifest binding HTTPS, listener mode, image digest and health evidence."
+    },
+    {
+      "changeRecordTaskId": "quality-governance-control-plane-v40",
+      "previousAllowedUnmappedLeafTcIdsDigest": "sha256:99e5b91dd302ed73ef10d91bd68b7519b689b7db30d386eac8ac94207b42eddd",
+      "resultingAllowedUnmappedLeafTcIdsDigest": "sha256:fdc5ab4c6e6ebd940251c1226a156d548655d3322c10f2cc4103770e1539e7ae",
+      "addedUnmappedLeafTcIds": [
+        "TC-preview-deep-usage-01-E1",
+        "TC-preview-deep-usage-01-E2",
+        "TC-preview-deep-usage-01-E3",
+        "TC-preview-deep-usage-01-E4",
+        "TC-preview-deep-usage-01-E5",
+        "TC-preview-deep-usage-01-E6",
+        "TC-preview-deep-usage-01-main"
+      ],
+      "expansionJustification": "UC-preview-synthetic-data-02 的七类深度使用叶子已有规格与低权执行器合同，但尚无 traceability manifest primary binding；本 successor 将其显式登记为 planned/unmapped，不计入 required 分母、passed 或 release evidence。"
     }
   ]
 }
