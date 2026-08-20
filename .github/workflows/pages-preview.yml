@@ -56,10 +56,10 @@ jobs:
       - name: Verify the signed HTTPS preview origin
         id: origin
         run: |
-          # preview-manifest-origin.txt 是 gitignored 运行时状态文件(含真实云端点/实例标识)；
-          # 开源仓库干净 checkout 中不存在 → 视为未配置，fail-closed 走 disabled(仅发布导航预览)。
-          if [ -f preview-site/preview-manifest-origin.txt ]; then
-            endpoint="$(tr -d '\n' < preview-site/preview-manifest-origin.txt)"
+          # 真实 manifest URL 是非敏感的公开 HTTPS 地址，由 repository variable 注入；
+          # 不依赖 gitignored 文件（GitHub clean checkout 永远没有该文件）。
+          endpoint='${{ vars.ECS_FULL_STACK_MANIFEST_URL }}'
+          if [ -n "$endpoint" ]; then
             if node scripts/fetch-preview-release-manifest.mjs "$endpoint" .preview-release-manifest.json; then
               echo "fetched=true" >> "$GITHUB_OUTPUT"
               if node scripts/verify-preview-origin.mjs .preview-release-manifest.json; then
