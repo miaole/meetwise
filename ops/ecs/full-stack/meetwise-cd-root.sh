@@ -240,6 +240,37 @@ process.stdout.write(String(base + 1));
 NODE
 }
 
+read_legacy_units_json() {
+  /usr/bin/node <<'NODE'
+const { execFileSync } = require('node:child_process');
+const units = {};
+for (const unit of ['meetwise-api.service', 'meetwise-worker.service', 'meetwise-web.service']) {
+  const output = execFileSync('/usr/bin/timeout', ['--kill-after=1s', '5s', '/usr/bin/systemctl', 'show', '--property', 'LoadState,ActiveState,UnitFileState,Restart', unit], { encoding: 'utf8' });
+  const properties = Object.fromEntries(output.trim().split(/\n/).map((line) => {
+    const split = line.indexOf('=');
+    return split > 0 ? [line.slice(0, split), line.slice(split + 1)] : ['', ''];
+  }));
+  const load = properties.LoadState;
+  const observedActive = properties.ActiveState;
+  const enabled = properties.UnitFileState;
+  const restart = properties.Restart;
+  // Transitional states mean systemd still owns a running/start operation.
+  // A failed unit is never promoted from its Restart configuration alone:
+  // start limits and conditional restart modes can leave it terminally failed.
+  const active = ['active', 'activating', 'reloading'].includes(observedActive) ? 'active' : observedActive;
+  const restartValid = /^(no|always|on-success|on-failure|on-abnormal|on-abort|on-watchdog)$/.test(restart)
+    || (load === 'not-found' && restart === '');
+  const unitFileStateValid = /^(enabled|disabled|masked|static|indirect|generated|transient|not-found)$/.test(enabled)
+    || (load === 'not-found' && enabled === '');
+  if (!['loaded', 'not-found'].includes(load) || !['active', 'inactive', 'failed'].includes(active) || !unitFileStateValid || !restartValid) {
+    throw new Error(`predecessor_legacy_state_invalid:${unit}`);
+  }
+  units[unit] = { load, active, enabled, masked: enabled === 'masked' };
+}
+process.stdout.write(JSON.stringify(units));
+NODE
+}
+
 snapshot_predecessor() {
   local transaction_id="$1" release="$2" dir
   dir="$FULL_STACK_SNAPSHOTS/$transaction_id"
@@ -351,23 +382,13 @@ snapshot_predecessor() {
     [[ -f "$snapshot_file" ]] && sync -f "$snapshot_file"
   done
   sync -f "$dir"
-  local snapshot_path="$dir"
-  /usr/bin/node - "$snapshot_path" "$release" "$current_target" "$compose_present" "$compose_running" "$compose_digest" "$rollback_env_present" "$rollback_marker_present" "$backend_ref" "$web_ref" "$approval_digest" "$target_digest" "$publication_status" "$publication_fingerprint" "$pages_state" "$pages_generation" "$pages_fingerprint" "$publication_present" "$manifest_present" <<'NODE'
+  local snapshot_path="$dir" legacy_units_json
+  legacy_units_json="$(read_legacy_units_json)" || die predecessor_legacy_state_invalid 70
+  /usr/bin/node - "$snapshot_path" "$legacy_units_json" "$release" "$current_target" "$compose_present" "$compose_running" "$compose_digest" "$rollback_env_present" "$rollback_marker_present" "$backend_ref" "$web_ref" "$approval_digest" "$target_digest" "$publication_status" "$publication_fingerprint" "$pages_state" "$pages_generation" "$pages_fingerprint" "$publication_present" "$manifest_present" <<'NODE'
 const { chmodSync, chownSync, closeSync, fsyncSync, openSync, renameSync, writeFileSync } = require('node:fs');
-const { execFileSync } = require('node:child_process');
 const { dirname } = require('node:path');
-const [path, release, currentTarget, composePresent, composeRunning, composeSpecDigest, rollbackEnvPresent, rollbackMarkerPresent, backendImage, webImage, approvalDigest, targetDigest, publicationStatus, publicationFingerprint, pagesState, pagesGeneration, pagesFingerprint, publicationStatePresent, publicManifestPresent] = process.argv.slice(2);
-const units = {};
-for (const unit of ['meetwise-api.service', 'meetwise-worker.service', 'meetwise-web.service']) {
-  const read = (property) => execFileSync('/usr/bin/timeout', ['--kill-after=1s', '5s', '/usr/bin/systemctl', 'show', '--property', property, '--value', unit], { encoding: 'utf8' }).trim();
-  const load = read('LoadState');
-  const active = read('ActiveState');
-  const enabled = read('UnitFileState');
-  if (!['loaded', 'not-found'].includes(load) || !['active', 'inactive', 'failed'].includes(active) || !/^(enabled|disabled|masked|static|indirect|generated|transient|not-found)$/.test(enabled)) {
-    throw new Error(`predecessor_legacy_state_invalid:${unit}`);
-  }
-  units[unit] = { load, active, enabled, masked: enabled === 'masked' };
-}
+const [path, legacyUnitsJson, release, currentTarget, composePresent, composeRunning, composeSpecDigest, rollbackEnvPresent, rollbackMarkerPresent, backendImage, webImage, approvalDigest, targetDigest, publicationStatus, publicationFingerprint, pagesState, pagesGeneration, pagesFingerprint, publicationStatePresent, publicManifestPresent] = process.argv.slice(2);
+const units = JSON.parse(legacyUnitsJson);
 const digestOrNull = (value) => /^[a-f0-9]{64}$/.test(value ?? '') ? value : null;
 const activeServices = String(composeRunning ?? '').trim().split(/\s+/).filter(Boolean).filter((name) => ['migrate', 'api', 'worker', 'web'].includes(name));
 const composeOwnsRuntime = activeServices.some((name) => ['api', 'worker', 'web'].includes(name));
@@ -536,14 +557,9 @@ restore_predecessor_snapshot() {
   local actual_compose expected_compose actual_legacy expected_legacy
   actual_compose="$(run_compose ps --status running --services 2>/dev/null | awk '$0=="api"||$0=="worker"||$0=="web"' | sort | tr '\n' ' ')" || die predecessor_owner_readback_failed 70
   expected_compose="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); if(v.runtimeOwner==="compose") process.stdout.write((v.compose?.activeServices??[]).filter(x=>["api","worker","web"].includes(x)).sort().join(" "))' "$record")"
-  actual_legacy=''
-  for unit in meetwise-api.service meetwise-worker.service meetwise-web.service; do
-    local active_state
-    active_state="$(timeout --kill-after=1s 5s systemctl show --property=ActiveState --value "$unit" 2>/dev/null)" || die predecessor_owner_readback_failed 70
-    [[ "$active_state" =~ ^(active|inactive|failed)$ ]] || die predecessor_owner_readback_failed 70
-    [[ "$active_state" == active ]] && actual_legacy+="$unit "
-  done
-  actual_legacy="$(printf '%s\n' $actual_legacy | sed '/^$/d' | sort | tr '\n' ' ')"
+  local legacy_readback_json
+  legacy_readback_json="$(read_legacy_units_json)" || die predecessor_owner_readback_failed 70
+  actual_legacy="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); process.stdout.write(Object.entries(v).filter(([,s])=>s.active==="active").map(([k])=>k).sort().join(" "))' "$legacy_readback_json")" || die predecessor_owner_readback_failed 70
   expected_legacy="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); if(v.runtimeOwner==="legacy") process.stdout.write(Object.entries(v.legacyUnits??{}).filter(([,s])=>s.active==="active").map(([k])=>k).sort().join(" "))' "$record")"
   [[ "${actual_compose% }" == "$expected_compose" && "${actual_legacy% }" == "$expected_legacy" ]] || die predecessor_runtime_owner_readback_mismatch 70
   # The old public publication may be restored only after the predecessor
