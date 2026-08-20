@@ -99,6 +99,58 @@ assert.match(dispatch, /die release_name_invalid/);
 assert.match(dispatch, /die release_path_invalid/);
 assert.match(dispatch, /die unknown_subcommand/);
 assert.match(dispatch, /MIGRATE_ENV=\/etc\/meetwise\/full-stack-migrate\.env/);
+// Legacy systemd app units are regular files under /etc/systemd/system on the
+// current ECS image, so persistent `systemctl mask` is not a valid ownership
+// transfer (it cannot replace the file).  The transactional hand-off must stop
+// and disable every loaded predecessor and read back inactive+disabled.  The
+// disabled state is persistent across reboot; rollback restores the snapshot's
+// enabled/active state through restore_predecessor_snapshot.
+const quiesceStart = dispatch.indexOf('quiesce_all_writers()');
+const quiesceEnd = dispatch.indexOf('\n}\n\nstart_backend_internal()', quiesceStart);
+assert.ok(quiesceStart >= 0 && quiesceEnd > quiesceStart, 'quiesce ownership block must be present');
+const quiesceBlock = dispatch.slice(quiesceStart, quiesceEnd);
+assert.match(quiesceBlock, /systemctl stop \"\$unit\"/);
+assert.match(quiesceBlock, /systemctl disable \"\$unit\"/);
+assert.match(quiesceBlock, /systemctl is-active \"\$unit\"[^\n]*== inactive/);
+assert.match(quiesceBlock, /systemctl is-enabled \"\$unit\"[^\n]*== disabled/);
+assert.match(quiesceBlock, /legacy_unit_has_no_activation_edges \"\$unit\"/);
+assert.match(quiesceBlock, /legacy_unit_has_no_dbus_activation \"\$unit\"/);
+assert.doesNotMatch(quiesceBlock, /^\s*systemctl mask\b/m, 'quiesce must not mask regular local unit files');
+const activationFenceStart = dispatch.indexOf('legacy_unit_has_no_activation_edges()');
+const activationFenceEnd = dispatch.indexOf('\n}\n\nlegacy_unit_has_no_dbus_activation()', activationFenceStart);
+assert.ok(activationFenceStart >= 0 && activationFenceEnd > activationFenceStart, 'legacy activation-edge fence must be present');
+const activationFenceBlock = dispatch.slice(activationFenceStart, activationFenceEnd);
+for (const property of ['TriggeredBy', 'RequiredBy', 'WantedBy', 'UpheldBy', 'BoundBy', 'BusName']) {
+  assert.match(activationFenceBlock, new RegExp(`--property=${property}`));
+}
+assert.match(activationFenceBlock, /value !== ''/);
+assert.match(activationFenceBlock, /seen\.size !== expected\.size/);
+const dbusFenceStart = dispatch.indexOf('legacy_unit_has_no_dbus_activation()');
+const dbusFenceEnd = dispatch.indexOf('\n}\n\nquiesce_all_writers()', dbusFenceStart);
+assert.ok(dbusFenceStart >= 0 && dbusFenceEnd > dbusFenceStart, 'legacy D-Bus activation fence must be present');
+const dbusFenceBlock = dispatch.slice(dbusFenceStart, dbusFenceEnd);
+assert.match(dbusFenceBlock, /\/usr\/share\/dbus-1\/system-services/);
+assert.match(dbusFenceBlock, /lstatSync, readdirSync, readFileSync/);
+assert.match(dbusFenceBlock, /error\?\.code === 'ENOENT'/);
+assert.match(dbusFenceBlock, /!directoryStat\.isDirectory\(\) \|\| directoryStat\.isSymbolicLink\(\)/);
+assert.match(dbusFenceBlock, /!fileStat\.isFile\(\) \|\| fileStat\.isSymbolicLink\(\)/);
+assert.match(dbusFenceBlock, /line\.slice\(0, index\)\.trim\(\) === 'SystemdService'/);
+assert.match(dbusFenceBlock, /catch \{[\s\S]*?process\.exit\(1\)/);
+const restoreSnapshotStart = dispatch.indexOf('restore_predecessor_snapshot()');
+const restoreSnapshotEnd = dispatch.indexOf('\n}\n\nrestore_flip_predecessor()', restoreSnapshotStart);
+assert.ok(restoreSnapshotStart >= 0 && restoreSnapshotEnd > restoreSnapshotStart, 'snapshot restore block must be present');
+const restoreSnapshotBlock = dispatch.slice(restoreSnapshotStart, restoreSnapshotEnd);
+assert.match(restoreSnapshotBlock, /systemctl enable \"\$unit\"/);
+assert.match(restoreSnapshotBlock, /systemctl start \"\$unit\"/);
+const flipStart = dispatch.indexOf('flip_current()');
+const flipEnd = dispatch.indexOf('\n}\n\nsynthetic_verify()', flipStart);
+assert.ok(flipStart >= 0 && flipEnd > flipStart, 'legacy flip ownership block must be present');
+const flipBlock = dispatch.slice(flipStart, flipEnd);
+assert.match(flipBlock, /systemctl disable \"\$unit\"/);
+assert.match(flipBlock, /systemctl is-enabled \"\$unit\"[^\n]*!= disabled/);
+assert.match(flipBlock, /legacy_unit_has_no_activation_edges \"\$unit\"/);
+assert.match(flipBlock, /legacy_unit_has_no_dbus_activation \"\$unit\"/);
+assert.doesNotMatch(flipBlock, /^\s*systemctl mask\b/m, 'legacy flip must not mask regular local unit files');
 // ECS base images may omit Corepack and may contain an unrelated global pnpm.
 // Install/provision a root-owned exact pnpm into the controller prefix and
 // revalidate it before every candidate dependency install.
