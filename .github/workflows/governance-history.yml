@@ -34,5 +34,8 @@ jobs:
           GOVERNANCE_PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -eu
-          git fetch --no-tags origin "refs/pull/${GOVERNANCE_PR_NUMBER}/head"
+          candidate_ref="refs/remotes/governance/pr-${GOVERNANCE_PR_NUMBER}"
+          git fetch --no-tags origin "+refs/pull/${GOVERNANCE_PR_NUMBER}/head:${candidate_ref}"
+          test "$(git rev-parse --verify "${candidate_ref}^{commit}")" = "${GOVERNANCE_HEAD_SHA}"
+          git config --local --unset-all http.https://github.com/.extraheader || true
           node scripts/quality-governance-base-guard.mjs --base "${GOVERNANCE_BASE_SHA}" --head "${GOVERNANCE_HEAD_SHA}"

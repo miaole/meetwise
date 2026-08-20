@@ -69,11 +69,11 @@ E0=用户确认/已验证仓库事实；E1=据 E0 合理推断；E2=猜测；E3=
 
 ### 6.1 L2+ 可复核记录
 
-`.tmp` 保留原始过程材料；当任务影响显式受管路径且风险为 L2+ 时，归集一条紧凑的版本化结论到 `ai-docs/testing/governance-audit-index.json`：任务 ID、scope ID、revision、受管路径、Harness 摘要、审计镜头、审阅者声明、审计摘要及其摘要、finding 处置、复审范围摘要、验证命令 ID；L3/L4 再绑定 ADR。revision 大于 1 必须以 `successorOf` 指向同 scope、同风险级别的前一 revision，且保留 predecessor 的所有 P0/P1 finding ID、严重度和受管路径；未关闭 finding 的关闭必须在 successor 中声明处置和 `closureEvidence`。`quality:governance:check` 只重算每个 scope/risk terminal revision；历史记录的路径摘要固定为其 task ID 首次出现的 Git tree 快照。
+`.tmp` 保留原始过程材料；当任务影响显式受管路径且风险为 L2+ 时，归集一条紧凑的版本化结论到 `ai-docs/testing/governance-audit-index.json`：任务 ID、scope ID、revision、受管路径、Harness 摘要、审计镜头、审阅者声明、审计摘要及其摘要、finding 处置、复审范围摘要、验证命令 ID；L3/L4 再绑定 ADR。revision 大于 1 必须以 `successorOf` 指向同 scope、同风险级别的前一 revision，且保留 predecessor 的所有 P0/P1 finding ID、严重度和受管路径；未关闭 finding 的关闭必须在 successor 中声明处置和 `closureEvidence`。`quality:governance:check` 只重算每个 scope/risk terminal revision；受信 CI 以受保护 base 的精确前缀锚定旧记录，并对候选新增记录和当前 terminal records 重算 exact head tree 路径摘要。
 
 追溯基线的冻结 ID 集由索引锚定；新增允许缺口必须由 revision 大于 1 的 change record 追加，精确绑定前一摘要、新增 ID 和理由。`open` 表示已识别待处置，`blocked` 表示处置受阻；两者只能伴随任务 `blocked`。状态三元组固定为：`blocked / blocked / blocked`、`approved_for_spike / approved_for_spike / approved`、`approved_to_implement / approved_to_implement / approved`、`done / done / approved`（依次是记录状态、Harness 授权结论、审计结论）；后三种状态的 P0/P1 finding 必须全部 `closed`。
 
-树内静态预检不执行验证命令、不读取 Git 状态或环境变量、不接收运行回执。另有受保护 base 上执行的 `governance-history` CI 守卫，读取 base/head Git blob 来拒绝历史 record/冻结基线重写、重排、删除和 successor 分叉；它不执行候选代码，首次 bootstrap 必须人工批准。审阅者身份和审计摘要只校验声明的形状与摘要匹配，**不证明独立性、权限或审计质量**。两类守卫只能给出 `static_preflight_valid`，并且恒为 `releaseEvidence=false`；它们不表示专家结论自动成立，更不表示测试、云端或发布已经通过。
+树内静态预检不执行验证命令、不读取 Git 状态或环境变量、不接收运行回执。另有受保护 base 上执行的 `governance-history` CI 守卫，读取 base/head Git blob 来拒绝历史 record/冻结基线重写、重排、删除和 successor 分叉；它还验证已抓取 PR ref 等于事件 head SHA，且不执行候选代码。base 治理工件缺失时普通 PR 固定失败，首次 bootstrap 必须人工带外批准。审阅者身份和审计摘要只校验声明的形状与摘要匹配，**不证明独立性、权限或审计质量**。两类守卫只能给出 `static_preflight_valid`，并且恒为 `releaseEvidence=false`；它们不表示专家结论自动成立，更不表示测试、云端或发布已经通过。
 
 ## 7. 归集（.tmp → ai-docs）：只进结果
 

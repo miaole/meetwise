@@ -117,7 +117,7 @@ tags:
 - **主流程 Main：**
   1. 工程师在版本化 `governance-audit-index` 写入任务 ID、稳定 scope ID、风险级别、受管路径摘要、Harness 摘要、审计镜头、审阅者声明、审计摘要及其摘要、finding ID、处置状态、复审结论和验证命令；原始推理仍可保留在 `.tmp`。
   2. 校验器只读取当前工作区中索引明确列出的本地文件，只重算每个 scope/risk terminal revision 的 Harness、受管路径与审计记录摘要；历史 revision 只验结构和存储摘要。它确认 L2+ 有审计结论，L3+ 有 ADR（架构决策记录）；记录状态、Harness 授权结论和审计结论必须匹配转换表，`open`（已识别待处置）或 `blocked`（处置受阻）finding 只能伴随任务 `blocked`。它不读取 Git 状态或推断未登记路径的风险级别。
-  3. 受信 CI 守卫从 GitHub 事件给出的受保护 base revision 执行 base 版本 guard，将 PR head 的索引和基线作为 Git blob 读取；既有 record、冻结基线和既有 expansion 必须保持原序和原内容，新 record 只能追加为单一 successor。它从该 task ID 首次出现的 Git commit 重算每条路径快照；successor 必须保留 predecessor 的 P0/P1 finding ID、严重度和路径，关闭未闭合 finding 必须有明确处置和 `closureEvidence`。它不安装依赖或执行候选代码。两类检查均仅输出 `static_preflight_valid`，不产生发布证据，也不把审计文字转为运行通过。
+  3. 受信 CI 守卫从 GitHub 事件给出的受保护 base revision 执行 base 版本 guard，将 PR head 的索引和基线作为 Git blob 读取；既有 record、冻结基线和既有 expansion 必须保持原序和原内容，新 record 只能追加为单一 successor。它验证 fetched PR ref 等于事件 head SHA，再从 exact head tree 重算全部候选新增记录与当前 terminal records 的路径摘要；successor 必须保留 predecessor 的 P0/P1 finding ID、严重度和路径，关闭未闭合 finding 必须有明确处置和 `closureEvidence`。它不安装依赖或执行候选代码；base 工件缺失固定失败。两类检查均仅输出 `static_preflight_valid`，不产生发布证据，也不把审计文字转为运行通过。
   4. 新增或修改 UC/TC（业务/测试用例）时，追溯基线比较未映射 ID 集；历史缺口允许保留，但当前修订不得扩大缺口。若确有新增历史缺口，必须以 revision 大于 1 的 change record 绑定前一基线摘要、精确新增 ID 和扩展理由。
 - **备选流 Alternate：** L0/L1 只允许显式 `self_checked` 且必须含跳过理由；一次范围未变化的修订可重用有效审计记录。
 - **异常流 Exception：**
