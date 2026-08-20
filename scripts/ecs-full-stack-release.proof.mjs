@@ -111,6 +111,7 @@ assert.match(dispatch, /current_target="releases\/\$\{current_target#"\$RELEASES
 assert.match(dispatch, /predecessor_current_target_invalid/);
 assert.match(dispatch, /v\.state!=="disabled"\|\|v\.generation!==null\|\|v\.releaseDigest!==null/);
 assert.match(dispatch, /state:"disabled",generation:0,fingerprint:v\.manifestSha256/);
+assert.match(dispatch, /case "\$pages_state" in[\s\S]*?enabled\)[\s\S]*?"\$pages_fingerprint" == "\$publication_fingerprint"[\s\S]*?disabled\)[\s\S]*?"\$pages_generation" =~ \^\(0\|\[1-9\]\[0-9\]\*\)\$/, 'enabled predecessor Pages must bind the local manifest while an exact disabled receipt remains independently restorable');
 const normalizePagesIdentity = (value) => {
   const fingerprint = value?.manifestSha256;
   if (['enabled', 'disabled'].includes(value?.state) && Number.isSafeInteger(value?.generation) && value.generation >= 1 && /^[a-f0-9]{64}$/.test(fingerprint ?? '') && value.finalFingerprint === fingerprint) {
@@ -131,6 +132,18 @@ for (const invalidBootstrap of [
   { state: 'enabled', generation: 0, releaseDigest: null, manifestSha256: bootstrapFingerprint, finalFingerprint: bootstrapFingerprint },
   { state: 'disabled', generation: 0, releaseDigest: null, manifestSha256: bootstrapFingerprint, finalFingerprint: bootstrapFingerprint },
 ]) assert.equal(normalizePagesIdentity(invalidBootstrap), null, 'only the exact disabled bootstrap receipt may map to generation zero');
+const predecessorPagesSnapshotValid = ({ state, generation, fingerprint }, publicationFingerprint) => state === 'enabled'
+  ? Number.isSafeInteger(generation) && generation >= 1 && fingerprint === publicationFingerprint
+  : state === 'disabled' && Number.isSafeInteger(generation) && generation >= 0 && /^[a-f0-9]{64}$/.test(fingerprint ?? '');
+assert.equal(predecessorPagesSnapshotValid({ state: 'enabled', generation: 1, fingerprint: bootstrapFingerprint }, bootstrapFingerprint), true);
+assert.equal(predecessorPagesSnapshotValid({ state: 'enabled', generation: 1, fingerprint: 'c'.repeat(64) }, bootstrapFingerprint), false);
+assert.equal(predecessorPagesSnapshotValid({ state: 'disabled', generation: 0, fingerprint: 'c'.repeat(64) }, bootstrapFingerprint), true, 'a fail-closed Pages bootstrap receipt is preserved independently from stale local publication evidence');
+assert.equal(predecessorPagesSnapshotValid({ state: 'disabled', generation: -1, fingerprint: bootstrapFingerprint }, bootstrapFingerprint), false);
+assert.match(dispatch, /case "\$predecessor_pages_state" in[\s\S]*?enabled\)[\s\S]*?"\$predecessor_pages_fingerprint" == "\$predecessor_publication_fingerprint"[\s\S]*?full-stack-preview-funnel-enable[\s\S]*?disabled\|none\)[\s\S]*?full-stack-preview-funnel-close/, 'rollback may reopen the edge only for an exact enabled predecessor Pages identity; disabled bootstrap predecessors stay physically closed');
+assert.match(dispatch, /pages\.state === 'enabled'[\s\S]*?pages\.generation < 1[\s\S]*?pages\.generation < 0/, 'system recovery status must preserve disabled generation zero while rejecting enabled generation zero');
+assert.match(workflow, /predecessor_state" = enabled[\s\S]*?gh workflow run pages-preview\.yml[\s\S]*?elif \[ "\$predecessor_state" = disabled \][\s\S]*?v\.state!=="disabled"[\s\S]*?g!==0/, 'in-run recovery must publish only enabled predecessors and keep disabled generation-zero recovery fail-closed without dispatch');
+assert.match(recoveryWorkflow, /predecessor_state" == disabled[\s\S]*?predecessor_generation" =~ \^\(0\|\[1-9\]\[0-9\]\*\)\$/, 'standalone recovery projection must admit disabled generation zero');
+assert.match(recoveryWorkflow, /if \[ "\$predecessor_state" = enabled \]; then[\s\S]*?wait_pages_receipt[\s\S]*?elif \[ "\$predecessor_state" = disabled \]; then[\s\S]*?\.state == "disabled"[\s\S]*?env\.GEN == "0"/, 'standalone recovery must verify rather than dispatch a disabled bootstrap predecessor');
 assert.match(dispatch, /if \[\[ "\$pages_state" == disabled \]\]; then[\s\S]*?status=0[\s\S]*?predecessorRevoked:[\s\S]*?completed: status === 0/, 'the fresh disabled generation-zero receipt must close the edge and persist a completed predecessor fence without Pages dispatch');
 assert.match(dispatch, /LEGACY_PREDECESSOR_RELEASE_RE='\^\[a-f0-9\]\{7,40\}-\(progress\|worktree\)-/);
 assert.match(dispatch, /predecessor_release" =~ \$RELEASE_RE \|\| "\$predecessor_release" =~ \$LEGACY_PREDECESSOR_RELEASE_RE/);

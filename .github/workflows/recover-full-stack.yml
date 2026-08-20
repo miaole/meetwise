@@ -143,7 +143,7 @@ jobs:
             echo "full-stack recovery remains non-terminal: $phase" >&2
             exit 1
           }
-          [[ "$predecessor_state" == none || ( "$predecessor_generation" =~ ^[1-9][0-9]*$ && "$predecessor_fingerprint" =~ ^[a-f0-9]{64}$ ) ]] || {
+          [[ "$predecessor_state" == none || ( "$predecessor_state" == enabled && "$predecessor_generation" =~ ^[1-9][0-9]*$ && "$predecessor_fingerprint" =~ ^[a-f0-9]{64}$ ) || ( "$predecessor_state" == disabled && "$predecessor_generation" =~ ^(0|[1-9][0-9]*)$ && "$predecessor_fingerprint" =~ ^[a-f0-9]{64}$ ) ]] || {
             echo 'predecessor Pages identity is not exact' >&2
             exit 1
           }
@@ -211,8 +211,12 @@ jobs:
             wait_pages_receipt disabled "$generation" "$fingerprint"
           }
           ensure_predecessor() {
-            if [ "$predecessor_state" = enabled ] || [ "$predecessor_state" = disabled ]; then
+            if [ "$predecessor_state" = enabled ]; then
               wait_pages_receipt "$predecessor_state" "$predecessor_generation" "$predecessor_fingerprint"
+            elif [ "$predecessor_state" = disabled ]; then
+              local state
+              state="$(bounded_until "$deadline" curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 10 'https://miaole.github.io/meetwise/preview-link-state.json')" || { echo 'disabled predecessor Pages receipt unavailable' >&2; return 1; }
+              env GEN="$predecessor_generation" FP="$predecessor_fingerprint" jq -e '(.state == "disabled") and ((env.GEN == "0") or (.manifestSha256 == env.FP and .finalFingerprint == env.FP and (.generation | tostring) == env.GEN))' >/dev/null <<<"$state" || { echo 'Pages is not safely disabled after predecessor recovery' >&2; return 1; }
             else
               echo 'predecessor Pages state is none; remain disabled without publishing a guessed identity'
             fi
@@ -224,8 +228,10 @@ jobs:
               # before cancellation; then restore the exact predecessor receipt.
               if [ -n "$candidate_fingerprint" ]; then
                 ensure_disabled "$ledger_generation" "$candidate_fingerprint"
-              elif [ "$predecessor_state" != none ]; then
+              elif [ "$predecessor_state" = enabled ]; then
                 ensure_disabled "$predecessor_generation" "$predecessor_fingerprint"
+              elif [ "$predecessor_state" = disabled ]; then
+                ensure_predecessor
               fi
               ensure_predecessor
               ;;
@@ -235,8 +241,10 @@ jobs:
               # only trusted disabled receipt we may request; never invent one.
               if [ -n "$candidate_fingerprint" ]; then
                 ensure_disabled "$ledger_generation" "$candidate_fingerprint"
-              elif [ "$predecessor_state" != none ]; then
+              elif [ "$predecessor_state" = enabled ]; then
                 ensure_disabled "$predecessor_generation" "$predecessor_fingerprint"
+              elif [ "$predecessor_state" = disabled ]; then
+                ensure_predecessor
               else
                 echo 'forward-only recovery has no Pages identity; remain disabled'
               fi
