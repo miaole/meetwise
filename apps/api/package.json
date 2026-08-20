@@ -8,6 +8,7 @@
     "validate": "node --import @swc-node/register/esm-register test/validate.ts",
     "smoke:toolchain": "node --import @swc-node/register/esm-register test/toolchain.smoke.ts",
     "smoke:contract": "node --import @swc-node/register/esm-register test/contract.smoke.ts",
+    "smoke:display-names": "node --import @swc-node/register/esm-register test/resume-display.proof.ts",
     "neg:auth": "node --import @swc-node/register/esm-register test/neg-auth.proof.ts",
     "neg:commerce": "node --import @swc-node/register/esm-register test/neg-commerce.proof.ts",
     "neg:resume": "node --import @swc-node/register/esm-register test/neg-resume.proof.ts",

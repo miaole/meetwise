@@ -37,7 +37,7 @@
     "neg:input": "node scripts/run-e2e-isolated.mjs neg:input",
     "turn-idempotency:prove": "node scripts/run-e2e-isolated.mjs turn-idempotency:prove",
     "neg:all": "node scripts/run-e2e-isolated.mjs neg:all",
-    "api:smoke": "pnpm -C apps/api smoke:toolchain && pnpm -C apps/api smoke:contract",
+    "api:smoke": "pnpm -C apps/api smoke:toolchain && pnpm -C apps/api smoke:contract && pnpm -C apps/api smoke:display-names",
     "dev": "bash scripts/dev-up.sh",
     "compose:demo": "docker compose -f docker/compose.demo.yml up --build",
     "compose:down": "docker compose -f docker/compose.demo.yml down",

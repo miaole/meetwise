@@ -105,6 +105,10 @@ async function validate() {
   const abandonResumeId = '33333333-3333-4333-8333-333333333333';
   const r1ResumeId = '44444444-4444-4444-8444-444444444444';
   await db.pool.query("INSERT INTO resume(id,owner_user_id,status,content_sha,source_kind) VALUES ($1,'userA','ingested','validate-begin-reference','text'),($2,'userA','ingested','validate-race-reference','text'),($3,'userA','ingested','validate-abandon-reference','text'),($4,'userA','ingested','validate-r1-reference','text')", [beginResumeId, raceResumeId, abandonResumeId, r1ResumeId]);
+  await db.pool.query("INSERT INTO resume_profile(resume_id,owner_user_id,structured,pii_summary,blocked_count,status) VALUES ($1,'userA','{\"experience\":[{\"text\":\"后端工程师\",\"line\":1}],\"skills\":[],\"facts\":[]}'::jsonb,'{}'::jsonb,0,'ok')", [r1ResumeId]);
+  await db.pool.query("INSERT INTO job_posting(id,owner_user_id,title,status) VALUES ('JOB-CLOSED-CN','recruiter-context','高级后端研发工程师','open')");
+  await db.pool.query("INSERT INTO job_application(id,job_id,recruiter_user_id,candidate_user_id,status,job_title_snapshot) VALUES ('APP-CLOSED-CN','JOB-CLOSED-CN','recruiter-context','userA','invited','高级后端研发工程师')");
+  await db.pool.query("UPDATE job_posting SET status='closed' WHERE id='JOB-CLOSED-CN'");
   await db.pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('R9','userB','active'),('RACE','userA','created'),('BEG1','userA','created')");
   // R1 是 active(已开面)。v64 契约要求 enqueueInterviewJob(answer) 读到 parent 的
   // (resume_id, resume_privacy_epoch) 与一条 matching v64 start job(0064 的 answer job 触发器
@@ -149,19 +153,31 @@ async function validate() {
   r = await req('GET', '/interview/R1', { 'x-user-id': 'userB' }); A('userB 越权 GET R1 → 404（RLS 0 行）', r.status === 404);
   r = await req('GET', '/interview/ABND', { 'x-user-id': 'userA' });
   A('userA GET 自己的零轮 ABND → 权威题目账本投影全为零/空', r.status === 200 && r.body.id === 'ABND'
+    && r.body.job_title === null && r.body.resume_display_name === null
     && r.body.current_question_index === null && r.body.issued_turns === 0 && r.body.answered_turns === 0
     && r.body.current_turn === null && r.body.processing_turn === null);
   r = await req('GET', '/interview/R1', { 'x-user-id': 'userA' });
   A('userA GET 自己的 R1 → 已出 1 题、未答且当前题为第 1 题', r.status === 200 && r.body.id === 'R1'
+    && r.body.job_title === null && r.body.resume_display_name?.startsWith('简历 · 后端工程师 · ')
     && r.body.current_question_index === 0 && r.body.issued_turns === 1 && r.body.answered_turns === 0
     && r.body.current_turn === 0 && r.body.processing_turn === null);
   r = await req('GET', '/interview', { 'x-user-id': 'userA' });
   A('面试列表携带 ABND 零轮进度投影', r.status === 200 && r.body.interviews?.some((item: any) => item.id === 'ABND'
+    && item.job_title === null && item.resume_display_name === null
     && item.current_question_index === null && item.issued_turns === 0 && item.answered_turns === 0
     && item.current_turn === null && item.processing_turn === null));
   A('面试列表携带 R1 已出题未答进度投影', r.status === 200 && r.body.interviews?.some((item: any) => item.id === 'R1'
+    && item.job_title === null && item.resume_display_name?.startsWith('简历 · 后端工程师 · ')
     && item.current_question_index === 0 && item.issued_turns === 1 && item.answered_turns === 0
     && item.current_turn === 0 && item.processing_turn === null));
+  r = await req('GET', '/resume', { 'x-user-id': 'userA' });
+  A('简历列表只返回中文业务名称，不把 UUID 当展示名', r.status === 200 && r.body.resumes?.some((item: any) => item.id === r1ResumeId
+    && item.display_name.startsWith('简历 · 后端工程师 · ') && !item.display_name.includes(r1ResumeId)));
+  r = await req('GET', '/applications', { 'x-user-id': 'userA' });
+  A('关闭岗位仍通过不可变中文标题快照可识别', r.status === 200 && r.body.applications?.some((item: any) =>
+    item.id === 'APP-CLOSED-CN' && item.job_title === '高级后端研发工程师' && !item.job_title.includes(item.job_id)));
+  r = await req('GET', '/applications', { 'x-user-id': 'userB' });
+  A('非申请人与非招聘方不能读取岗位标题快照', r.status === 200 && !r.body.applications?.some((item: any) => item.id === 'APP-CLOSED-CN'));
   const legacyBefore = await db.pool.query("SELECT count(*)::int n FROM interview_event WHERE stream_key='R1' AND kind='answer_evaluated'");
   r = await req('POST', '/interview/R1/answer', { 'x-user-id': 'userA', 'idempotency-key': 'k1' }); A('legacy /answer → 410，必须改用 question-bound /turn', r.status === 410 && r.body.error === 'legacy_answer_endpoint_disabled');
   r = await req('POST', '/interview/R1/answer', { 'x-user-id': 'userB', 'idempotency-key': 'k2' }); A('legacy /answer 对跨主体同样统一 410，不作资源 oracle', r.status === 410 && r.body.error === 'legacy_answer_endpoint_disabled');

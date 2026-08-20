@@ -5,6 +5,7 @@ import { ArrowLeft, Download, CheckSquare, Square, Share2 } from 'lucide-react';
 import { getServerToken, serverGet } from '@/lib/api/server';
 import { retryReportAction, refreshReportAction } from './actions';
 import { SubmitButton } from '@/components/ui/SubmitButton';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -13,10 +14,12 @@ import { AbilityBar } from '@/components/AbilityBar';
 import { AnnotationCard } from '@/components/AnnotationCard';
 import { Thinking } from '@/components/ui/Thinking';
 import { Skeleton, SkeletonText } from '@/components/ui/Skeleton';
+import { InterviewView } from '@meetwise/contracts';
+import { interviewContextTitle, interviewResumeLabel, interviewTimeLabel } from '@/lib/interview/context';
 
 export const metadata = { title: '面试报告 · 知面' };
 
-type ReportStatus = 'queued' | 'running' | 'ready' | 'failed' | 'quarantined' | 'interview_failed';   // interview_failed:无报告行但面试已中断(E5,API report() 返回)
+type ReportStatus = 'queued' | 'running' | 'ready' | 'failed' | 'quarantined' | 'interview_failed' | 'assessment_unavailable';
 type Report = { status: ReportStatus; content: { overall: number; sections: Array<{ title: string; body: string }> } | null };
 type Dimension = { dimension: string; score: number; gap: boolean; evidence?: string };
 type Assessment = { status?: string; dimensions?: Dimension[]; overall?: number };
@@ -31,7 +34,12 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   if (!(await getServerToken())) redirect('/login');
 
   const base = process.env.NEXT_PUBLIC_API_BASE ?? '';
-  const r = await serverGet<Report>('/interview/' + id + '/report');
+  const [r, interviewRaw] = await Promise.all([
+    serverGet<Report>('/interview/' + id + '/report'),
+    serverGet<unknown>('/interview/' + id),
+  ]);
+  const parsedInterview = InterviewView.safeParse(interviewRaw);
+  const interview = parsedInterview.success ? parsedInterview.data : null;
 
   // Server Action 需要绑定 id(Server Component 内不能传内联闭包给 form action)。
   const retry = retryReportAction.bind(null, id);
@@ -42,6 +50,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   const pending = status === 'queued' || status === 'running';
   const unavailable = status === 'failed' || status === 'quarantined';   // **报告生成失败**(才给"重试生成")
   const interviewFailed = status === 'interview_failed';   // **面试本身已中断**(E5:别显示成"继续答题",那是引导用户去答一场已死的面试)
+  const assessmentUnavailable = status === 'assessment_unavailable';
   const noReport = !r;   // 报告**还没生成**(面试进行中/未开始)——不是失败,引导回面试继续
   const overall = ready && typeof r?.content?.overall === 'number' ? r!.content!.overall : null;
 
@@ -62,6 +71,8 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
         <div className="mt-3 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">逐题点评与成长建议</h1>
+            <p className="mt-2 text-sm font-medium">{interviewContextTitle(interview?.job_title)}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{interviewResumeLabel(interview?.resume_display_name)} · {interview?.display_code ?? '场次信息同步中'} · {interviewTimeLabel(interview?.created_at)}</p>
             <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
               基于本次练习生成的逐题反馈与后续建议。模型生成内容仅供个人复盘，不代表能力认证、招聘结论或录用建议。
             </p>
@@ -143,6 +154,16 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
             <a href={base + '/interviews'} className="inline-flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
               回到面试列表 →
             </a>
+          </CardContent>
+        </Card>
+      )}
+
+      {assessmentUnavailable && (
+        <Card className="mb-8 border-amber-300/50 bg-amber-50/50">
+          <CardContent className="p-6 text-center">
+            <p className="mb-2 font-semibold">本次岗位评估不可用</p>
+            <p className="mb-4 text-sm text-muted-foreground">本场练习已结束，但没有形成可用于岗位流程的评估。具体额度处理以账户记录为准，你可以回到“我的投递”重新发起岗位面试。</p>
+            <Button asChild><Link href="/jobs">回到我的投递 →</Link></Button>
           </CardContent>
         </Card>
       )}

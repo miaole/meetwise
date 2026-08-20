@@ -7,12 +7,13 @@ import { Button } from '@/components/ui/button';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { ResumeList, type ResumeRef as Resume } from '@meetwise/contracts';
+import { resumeOptionLabel } from '@/lib/resume/display';
 
 export const metadata = { title: '简历诊断 · 知面' };          // App Router Metadata API(SEO,服务端注入)
 
 /** 简历诊断列表 + 开始诊断:服务端鉴权 + 服务端取数(GET /diagnosis、/resume),Server Action 启动诊断。镜像 quiz 页。 */
 type Diagnosis = { id: string; status: string };
-type Resume = { id: string; status?: string };
 
 const STATUS_LABEL: Record<string, string> = {
   created: '待开始', generating: '诊断中', ready: '已完成', failed: '已失败',
@@ -28,14 +29,13 @@ export default async function DiagnosisListPage({ searchParams }: { searchParams
   const { error } = await searchParams;
 
   const data = await serverGet<{ diagnoses: Diagnosis[] } | Diagnosis[]>('/diagnosis');
-  const resumesRaw = await serverGet<{ resumes: Resume[] } | Resume[]>('/resume');
+  const resumesRaw = await serverGet<unknown>('/resume');
 
   const diagnoses: Diagnosis[] | null = data
     ? (Array.isArray(data) ? data : data.diagnoses ?? [])
     : null;
-  const resumes: Resume[] = resumesRaw
-    ? (Array.isArray(resumesRaw) ? resumesRaw : resumesRaw.resumes ?? [])
-    : [];
+  const parsedResumes = ResumeList.safeParse(resumesRaw);
+  const resumes: Resume[] = parsedResumes.success ? parsedResumes.data.resumes : [];
 
   return (
     <main className="mx-auto max-w-2xl space-y-6 px-4 py-8 sm:px-6">
@@ -70,7 +70,7 @@ export default async function DiagnosisListPage({ searchParams }: { searchParams
                   className="h-10 rounded-lg border border-input bg-background px-3 text-sm sm:flex-1"
                 >
                   {resumes.map((r) => (
-                    <option key={r.id} value={r.id}>{r.id.slice(0, 12)}{r.status ? `(${r.status})` : ''}</option>
+                    <option key={r.id} value={r.id}>{resumeOptionLabel(r)}</option>
                   ))}
                 </select>
               </div>

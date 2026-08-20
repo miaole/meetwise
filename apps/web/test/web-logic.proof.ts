@@ -13,7 +13,9 @@ import type { InterviewView } from '../lib/stream/interview-state.ts';
 import { makeFrameCoalescer } from '../lib/stream/frame-coalescer.ts';
 import { interviewTurnWindow } from '../lib/stream/turn-window.ts';
 import { buildTurnSubmission } from '../lib/interview/turn-submission.ts';
-import { interviewActionLabel, interviewDisplayStatus, interviewProgressLabel } from '../lib/interview/progress.ts';
+import { interviewActionLabel, interviewDisplayStatus, interviewProgressLabel, isInterviewEnterable } from '../lib/interview/progress.ts';
+import { resumeOptionLabel, resumeStatusLabel } from '../lib/resume/display.ts';
+import { interviewContextTitle, interviewResumeLabel, interviewTimeLabel } from '../lib/interview/context.ts';
 
 /** 把若干 chunk 串成异步流(模拟 ReadableStream 分块)。 */
 async function* streamOf(...chunks: string[]) { for (const c of chunks) yield c; }
@@ -36,6 +38,15 @@ function fakeFetchWith() {
 }
 
 async function main() {
+  section('中文业务名称：内部 id 只作 value，不进入可见文案');
+  const resume = { id: '44444444-4444-4444-8444-444444444444', status: 'ingested', display_name: '简历 · 后端工程师 · 2026年08月20日 10:00' };
+  A('简历选项显示中文业务名和中文状态', resumeOptionLabel(resume) === '简历 · 后端工程师 · 2026年08月20日 10:00（解析完成）');
+  A('未知状态不回显英文状态键', resumeStatusLabel('unexpected_internal_state') === '状态未知');
+  A('可见简历名称不包含内部 UUID', !resumeOptionLabel(resume).includes(resume.id));
+  A('岗位上下文避免重复拼接面试字样', interviewContextTitle('算法工程师面试') === '面试岗位：算法工程师面试');
+  A('旧 API 缺字段与确实未绑定保持不同中文语义', interviewContextTitle(undefined) === '面试岗位信息同步中' && interviewResumeLabel(undefined) === '简历信息同步中' && interviewResumeLabel(null) === '未绑定简历');
+  A('面试时间按中文时区显示且缺失安全降级', interviewTimeLabel('2026-08-20T10:00:00.000Z').includes('18:00') && interviewTimeLabel(null) === '时间待同步');
+
   section('面试列表进度：以问题账本投影为准，不再把空会话伪装成第 1 题');
   A('零轮 abandoned 显示尚未出题', interviewProgressLabel({ status: 'abandoned', issued_turns: 0, answered_turns: 0, current_turn: null }) === '尚未出题');
   A('active 的 turn=3 显示第 4 题待答', interviewProgressLabel({ status: 'active', issued_turns: 4, answered_turns: 3, current_turn: 3 }) === '第 4 题待答');
@@ -44,6 +55,8 @@ async function main() {
   A('终态已出题但零回答不伪装成尚未出题', interviewProgressLabel({ status: 'abandoned', issued_turns: 1, answered_turns: 0, current_turn: 0 }) === '已出 1 题，未作答');
   A('终态残留 open turn 仍只显示已答题数', interviewProgressLabel({ status: 'abandoned', issued_turns: 4, answered_turns: 3, current_turn: 3 }) === '已作答 3 题');
   A('已放弃不再提供继续作答 CTA', interviewActionLabel('abandoned') === '已结束');
+  A('未知状态 fail-closed，不提供作答入口', interviewActionLabel('future_terminal') === '状态待同步' && !isInterviewEnterable('future_terminal'));
+  A('未知状态不伪装成进行中或待答', interviewDisplayStatus({ status: 'future_terminal', issued_turns: 1, current_turn: 0 }) === 'future_terminal' && interviewProgressLabel({ status: 'future_terminal', issued_turns: 1, current_turn: 0 }) === '进度待同步');
   A('有题的 created 派生为进行中展示态', interviewDisplayStatus({ status: 'created', issued_turns: 1, current_turn: 0 }) === 'active');
 
   section('渲染背压：同一动画帧内合并为最后一个视图，取消后绝不提交');
@@ -158,7 +171,7 @@ async function main() {
 
   section('契约客户端：HTTP 状态分流(business/transport/drift)+ 强制幂等键');
   let f = fakeFetchWith();
-  let api = makeInterviewApi('http://x', f.make(200, { id: 'R1', status: 'active', current_question_index: 0, issued_turns: 1, answered_turns: 0, current_turn: 0, processing_turn: null }));
+  let api = makeInterviewApi('http://x', f.make(200, { id: 'R1', status: 'active', job_title: '高级后端工程师', resume_display_name: '简历 · 后端工程师 · 2026年08月20日 10:00', current_question_index: 0, issued_turns: 1, answered_turns: 0, current_turn: 0, processing_turn: null }));
   const okr = await api.getInterview('R1');
   A('2xx 合法 → ok+类型化', okr.ok && okr.value.id === 'R1');
   api = makeInterviewApi('http://x', fakeFetchWith().make(404, { error: 'not_found_or_forbidden' }));

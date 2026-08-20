@@ -7,10 +7,10 @@ import { ResumeUploadForms } from './ResumeUploadForms';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import { Badge } from '@/components/ui/badge';
+import { ResumeList, type ResumeRef as Resume } from '@meetwise/contracts';
+import { resumeStatusLabel } from '@/lib/resume/display';
 
 export const metadata = { title: '简历 · 知面' };
-
-type Resume = { id: string; status?: string };
 
 /**
  * 简历页(Server Component):服务端取令牌→未登录跳 /login;服务端 GET /resume 渲染列表;
@@ -20,12 +20,11 @@ export default async function ResumePage() {
   if (!(await getServerToken())) redirect('/login');
 
   const [data, consent] = await Promise.all([
-    serverGet<{ resumes: Resume[] } | Resume[]>('/resume'),
+    serverGet<unknown>('/resume'),
     serverGet<{ consented: boolean }>('/privacy/consent'),
   ]);
-  const list: Resume[] | null = data === null
-    ? null
-    : Array.isArray(data) ? data : (data.resumes ?? []);
+  const parsedResumes = ResumeList.safeParse(data);
+  const list: Resume[] | null = data === null ? null : parsedResumes.success ? parsedResumes.data.resumes : null;
   const consented = consent?.consented === true;   // null(取数失败)→ 当未同意,安全默认展示同意门
 
   return (
@@ -75,11 +74,9 @@ export default async function ResumePage() {
               <li key={r.id}>
                 <Card>
                   <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-2">
-                      <code title={r.id} className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
-                        {String(r.id).slice(0, 8)}
-                      </code>
-                      <Badge variant="secondary">状态:{r.status ?? '未知'}</Badge>
+                    <div className="min-w-0">
+                      <div className="truncate font-medium">{r.display_name}</div>
+                      <Badge variant="secondary" className="mt-1">{resumeStatusLabel(r.status)}</Badge>
                     </div>
                     <div className="flex gap-2">
                       {/* 一键据这份简历做诊断(隐藏 resumeId → Server Action startDiagnosisAction)。 */}
