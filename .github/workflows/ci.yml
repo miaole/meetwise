@@ -2,6 +2,7 @@ name: ci
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:
@@ -18,6 +19,7 @@ jobs:
       - name: gitleaks
         uses: gitleaks/gitleaks-action@dcedce43c6f43de0b836d1fe38946645c9c638dc # v2
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
         # 命中任何密钥 → 非零退出 → 阻断
 
@@ -81,11 +83,26 @@ jobs:
       - name: Preview synthetic data control proof
         run: |
           node scripts/preview-synthetic-data/loader.proof.mjs
+          node scripts/preview-account-scenarios/proof.mjs
           node scripts/full-stack-preview-publisher.proof.mjs
           node scripts/ecs-full-stack-config.proof.mjs
+          node scripts/ecs-full-stack-release.proof.mjs
+          node scripts/ecs-full-stack-transaction.proof.mjs
+          node scripts/cd-pages-receipt.proof.mjs
+          node scripts/meetwise-cd-receiver.proof.mjs
+          node scripts/ecs-cd-controller-rollout.proof.mjs
           node scripts/verify-full-stack-public-origin.proof.mjs
       - name: Web preview gate behavioral proof (real NextRequest, not string match)
         run: pnpm -C apps/web prove:middleware
+
+      # PR/main 都从同一受信源码上下文构建两份最终镜像；不登录、不推送。
+      # 这可以在撤销线上入口之前捕获 Dockerfile、standalone 与 workspace 打包错误。
+      - name: Full-stack container build gate (no push)
+        run: |
+          commit="$(git rev-parse HEAD)"
+          tree="$(git rev-parse HEAD^{tree})"
+          docker build --build-arg "VCS_REF=$commit" --build-arg "SOURCE_TREE=$tree" -f Dockerfile -t meetwise-backend:ci .
+          docker build --build-arg "VCS_REF=$commit" --build-arg "SOURCE_TREE=$tree" -f apps/web/Dockerfile -t meetwise-web:ci .
 
       # 起 Postgres（复用 dev compose，与本地同一映射端口）
       - run: pnpm db:up

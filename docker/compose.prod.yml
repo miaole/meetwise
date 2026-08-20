@@ -115,6 +115,20 @@ x-worker-native-model-env: &worker-native-model-env
   DASHSCOPE_STREAM_ASR_MODEL: ${DASHSCOPE_STREAM_ASR_MODEL:?set DASHSCOPE_STREAM_ASR_MODEL}
   DASHSCOPE_STREAM_TTS_MODEL: ${DASHSCOPE_STREAM_TTS_MODEL:?set DASHSCOPE_STREAM_TTS_MODEL}
 
+# Every application container is an immutable runtime.  The only writable
+# surface is the bounded in-memory /tmp mount used by Node's TLS and multipart
+# helpers; images, source and dependency trees must never be modified in place.
+# `cap_drop` and `no-new-privileges` are deliberately repeated through a YAML
+# anchor so a newly added service cannot silently become a privileged exception.
+x-container-runtime-security: &container-runtime-security
+  read_only: true
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,nodev,size=64m
+
 x-migration-env: &migration-env
   NODE_ENV: production
   DATABASE_URL: ${MIGRATION_DATABASE_URL:?set MIGRATION_DATABASE_URL from the cloud secret manager}
@@ -206,18 +220,16 @@ x-migration-env: &migration-env
 
 services:
   migrate:
-    build:
-      context: ..
-      dockerfile: Dockerfile
+    <<: *container-runtime-security
+    image: ${BACKEND_IMAGE:?set BACKEND_IMAGE = <registry>/<namespace>/meetwise-backend@sha256:<digest>}
     command: ["sh", "-c", "pnpm -C packages/db migrate && pnpm -C apps/worker cost:configure"]
     restart: "no"
     environment: *migration-env
     secrets: [rds_ca]
 
   api:
-    build:
-      context: ..
-      dockerfile: Dockerfile
+    <<: *container-runtime-security
+    image: ${BACKEND_IMAGE:?set BACKEND_IMAGE = <registry>/<namespace>/meetwise-backend@sha256:<digest>}
     command: ["pnpm", "-C", "apps/api", "serve"]
     environment:
       <<: *cloud-runtime-env
@@ -228,12 +240,24 @@ services:
       migrate:
         condition: service_completed_successfully
     ports:
-      - "8787:8787"
+      # 宿主回环绑定：api 不 0.0.0.0 暴露（0.0.0.0 会绕过 funnel/edge-close 直连 tailnet）。
+      # 宿主上只有 loader.mjs（synthetic-verify）需要经 127.0.0.1:8787 打 api；web/worker/Prometheus
+      # 走 compose 私网 `api:8787`。公网唯一入口仍是 funnel → nginx:80 → web:3000。
+      - "127.0.0.1:8787:8787"
+    # 单机 4G 预览：崩溃自动拉起（对齐原 systemd Restart=on-failure）+ 内存硬顶。
+    # 为什么 mem_limit 而非 deploy.resources：compose 非 swarm 下 deploy.resources 被忽略。
+    restart: unless-stopped
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/readyz/api').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
 
   worker:
-    build:
-      context: ..
-      dockerfile: Dockerfile
+    <<: *container-runtime-security
+    image: ${BACKEND_IMAGE:?set BACKEND_IMAGE = <registry>/<namespace>/meetwise-backend@sha256:<digest>}
     command: ["pnpm", "-C", "apps/worker", "start"]
     environment:
       <<: [*cloud-runtime-env, *worker-native-model-env]
@@ -288,8 +312,8 @@ services:
       # promote qbank generations but has no request-path app_role membership.
       QBANK_CONTROL_DATABASE_URL: ${QBANK_CONTROL_DATABASE_URL:?set dedicated qbank control database URL}
       RAG_CONTROL_DATABASE_URL: ${RAG_CONTROL_DATABASE_URL:?set dedicated generic RAG control database URL}
-      # Prometheus is a sibling on this private compose network.  Do not map
-      # 9091 to the host/public internet; `expose` below is container-only.
+      # Metrics 由独立的 docker/compose.monitoring.yml 抓取（单机 4G 预览不常驻
+      # Prometheus）。Do not map 9091 to the host/public internet; `expose` 仅容器网络。
       WORKER_METRICS_HOST: 0.0.0.0
     secrets: [rds_ca]
     depends_on:
@@ -297,40 +321,41 @@ services:
         condition: service_completed_successfully
     expose:
       - "9091"
-
-  prometheus:
-    image: prom/prometheus:v3.5.0
-    command:
-      - --config.file=/etc/prometheus/prometheus.yml
-      - --storage.tsdb.path=/prometheus
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./monitoring/alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
-    depends_on:
-      api:
-        condition: service_started
-      worker:
-        condition: service_started
-
-  alertmanager:
-    image: prom/alertmanager:v0.28.1
-    command:
-      - --config.file=/etc/alertmanager/alertmanager.yml
-    volumes:
-      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    restart: unless-stopped
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:9091/readyz/worker').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
 
   web:
-    build:
-      context: ..
-      dockerfile: apps/web/Dockerfile
+    <<: *container-runtime-security
+    image: ${WEB_IMAGE:?set WEB_IMAGE = <registry>/<namespace>/meetwise-web@sha256:<digest>}
     environment:
+      # 浏览器侧公开源（如 funnel host）：仅用于导出下载直链等 client 可见地址。
       NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:?set public API base URL}
+      # 服务端直连 api：serverFetch / 同源 SSE 代理在 web 容器内运行，必须走 compose 私网
+      # `api:8787`（容器内 127.0.0.1 是自身回环，不是宿主）。缺失会回退到 NEXT_PUBLIC_API_BASE
+      # 造成经公网 funnel 自环或失败。
+      API_BASE_INTERNAL: http://api:8787
       PORT: "3000"
     depends_on:
       api:
-        condition: service_started
+        condition: service_healthy
     ports:
-      - "3000:3000"
+      # 宿主回环绑定：web 只由宿主 nginx 代理（funnel → nginx:80 → 127.0.0.1:3000），
+      # 不 0.0.0.0 暴露，避免绕过 funnel/edge-close 直连 tailnet。
+      - "127.0.0.1:3000:3000"
+    restart: unless-stopped
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/login').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
 
 secrets:
   rds_ca:

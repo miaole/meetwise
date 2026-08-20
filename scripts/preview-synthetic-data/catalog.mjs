@@ -1,9 +1,40 @@
 import { createHash } from 'node:crypto';
 
+const LARGE_PROFILE_CONFIG = Object.freeze({ recruiters: 20, candidates: 200, jobsPerRecruiter: 50, applicationsPerCandidate: 50, resumesPerCandidate: 3, interviewsPerCandidate: 30 });
+
+// The successor carries a small, human-facing B/C slice in addition to the
+// historical bulk catalog.  These are deliberately modest enough to fit the
+// ECS maintenance budget, but large enough that the fixed preview accounts
+// are useful when an operator opens the public preview (rather than being
+// login-only shells).  All objects still go through the public API in
+// loader.mjs; this object only freezes the deterministic shape/counts.
+export const FIXED_PREVIEW_CAPACITY = Object.freeze({
+  recruiters: 1,
+  candidates: 1,
+  jobs: 30,
+  applications: 30,
+  resumes: 12,
+  interviews: 0,
+});
+
 export const PROFILE_CONFIGS = Object.freeze({
   'showcase-v1': Object.freeze({ recruiters: 2, candidates: 6, jobsPerRecruiter: 12, applicationsPerCandidate: 12, resumesPerCandidate: 3, interviewsPerCandidate: 30 }),
-  'large-v1': Object.freeze({ recruiters: 20, candidates: 200, jobsPerRecruiter: 50, applicationsPerCandidate: 50, resumesPerCandidate: 3, interviewsPerCandidate: 30 }),
+  // Historical capacity catalog.  Keep this object and its digest immutable;
+  // fixed B/C accounts belong to the successor below, never retrofitted here.
+  'large-v1': LARGE_PROFILE_CONFIG,
+  'large-v1-successor': Object.freeze({ ...LARGE_PROFILE_CONFIG, successorOf: 'large-v1', receiptLayers: ['capacity', 'deep-usage'], fixedCapacity: FIXED_PREVIEW_CAPACITY }),
 });
+
+/**
+ * The two human-facing preview identities are pre-provisioned by the trusted
+ * controller.  Passwords intentionally do not appear in this catalog: the
+ * runner reads the root-only environment variables at execution time and
+ * never persists them in a plan, state file, or receipt.
+ */
+export const FIXED_PREVIEW_ACCOUNTS = Object.freeze([
+  Object.freeze({ key: 'preview-candidate', email: 'previewc@meetwise.com', role: 'candidate', displayName: '预览求职者 C 端', credentialEnv: 'PREVIEW_C_PASSWORD', preProvisioned: true }),
+  Object.freeze({ key: 'preview-recruiter', email: 'previewb@meetwise.com', role: 'recruiter', displayName: '预览招聘方 B 端', credentialEnv: 'PREVIEW_B_PASSWORD', preProvisioned: true }),
+]);
 
 const tracks = Object.freeze([
   ['后端工程师 · Node.js', ['backend', 'nodejs', 'postgresql']],
@@ -42,35 +73,47 @@ export function buildPlan(profileName, datasetId) {
     role: 'candidate',
     persona: index === 0 ? 'deep-candidate' : index === 1 ? 'edge-candidate' : index === 2 ? 'long-resume-candidate' : index === 3 ? 'empty-candidate' : 'bulk-candidate',
   }));
-  const jobs = recruiters.flatMap((account, recruiterIndex) => Array.from({ length: config.jobsPerRecruiter }, (_, jobIndex) => {
+  if (profileName === 'large-v1-successor') {
+    recruiters.push({ ...FIXED_PREVIEW_ACCOUNTS.find((account) => account.role === 'recruiter'), persona: 'deep-recruiter', fixedPreviewAccount: true });
+    candidates.push({ ...FIXED_PREVIEW_ACCOUNTS.find((account) => account.role === 'candidate'), persona: 'long-resume-candidate', fixedPreviewAccount: true });
+  }
+  const jobs = recruiters.flatMap((account, recruiterIndex) => Array.from({ length: account.fixedPreviewAccount ? FIXED_PREVIEW_CAPACITY.jobs : config.jobsPerRecruiter }, (_, jobIndex) => {
     const [baseTitle, competencies] = tracks[(recruiterIndex * config.jobsPerRecruiter + jobIndex) % tracks.length];
     const edge = recruiterIndex === 1 && jobIndex === 0;
     return {
       key: `${account.key}-job-${String(jobIndex + 1).padStart(3, '0')}`,
       ownerKey: account.key,
-      title: edge ? `边缘岗位：${baseTitle}／全角＋emoji 🧩 e\u0301` : `${baseTitle} · ${String(jobIndex + 1).padStart(2, '0')}`,
-      description: buildJobDescription(baseTitle, jobIndex, edge),
+      title: account.fixedPreviewAccount
+        ? `预览招聘岗位 · ${baseTitle} · 第${String(jobIndex + 1).padStart(2, '0')}个`
+        : edge ? `边缘岗位：${baseTitle}／全角＋emoji 🧩 e\u0301` : `${baseTitle} · ${String(jobIndex + 1).padStart(2, '0')}`,
+      description: account.fixedPreviewAccount
+        ? buildFixedJobDescription(baseTitle, jobIndex)
+        : buildJobDescription(baseTitle, jobIndex, edge),
       competencies,
     };
   }));
-  const applications = candidates.flatMap((account, candidateIndex) => Array.from({ length: config.applicationsPerCandidate }, (_, applicationIndex) => ({
+  const applications = candidates.flatMap((account, candidateIndex) => Array.from({ length: account.fixedPreviewAccount ? FIXED_PREVIEW_CAPACITY.applications : config.applicationsPerCandidate }, (_, applicationIndex) => ({
     key: `${account.key}-application-${String(applicationIndex + 1).padStart(3, '0')}`,
     candidateKey: account.key,
-    jobKey: jobs[(candidateIndex * 17 + applicationIndex) % jobs.length].key,
+    jobKey: (account.fixedPreviewAccount
+      ? jobs.filter((job) => job.ownerKey === 'preview-recruiter')
+      : jobs)[(candidateIndex * 17 + applicationIndex) % (account.fixedPreviewAccount ? FIXED_PREVIEW_CAPACITY.jobs : jobs.length)].key,
     decline: applicationIndex % 4 === 3,
   })));
-  const resumes = candidates.flatMap((account, candidateIndex) => Array.from({ length: config.resumesPerCandidate }, (_, resumeIndex) => ({
+  const resumes = candidates.flatMap((account, candidateIndex) => Array.from({ length: account.fixedPreviewAccount ? FIXED_PREVIEW_CAPACITY.resumes : config.resumesPerCandidate }, (_, resumeIndex) => ({
     key: `${account.key}-resume-${String(resumeIndex + 1).padStart(2, '0')}`,
     candidateKey: account.key,
     text: account.persona === 'long-resume-candidate' && resumeIndex === 0
       ? buildLongResume(59_800)
       : buildResume(account.persona, candidateIndex, resumeIndex),
   })));
-  const interviews = candidates.flatMap((account) => Array.from({ length: config.interviewsPerCandidate }, (_, interviewIndex) => ({
+  const interviews = candidates.flatMap((account) => Array.from({ length: account.fixedPreviewAccount ? FIXED_PREVIEW_CAPACITY.interviews : config.interviewsPerCandidate }, (_, interviewIndex) => ({
     key: `${account.key}-interview-${String(interviewIndex + 1).padStart(3, '0')}`,
     candidateKey: account.key,
   })));
-  const publicPlan = { schemaVersion: 1, datasetId, profileName, config, recruiters, candidates, jobs, applications, resumes: resumes.map(({ text, ...resume }) => ({ ...resume, textChars: text.length, textDigest: sha256(text) })), interviews };
+  const publicPlan = { schemaVersion: 1, datasetId, profileName, config, recruiters, candidates, jobs, applications, resumes: resumes.map(({ text, ...resume }) => ({ ...resume, textChars: text.length, textDigest: sha256(text) })), interviews,
+    ...(profileName === 'large-v1-successor' ? { catalogLayers: ['capacity', 'deep-usage'], fixedAccounts: FIXED_PREVIEW_ACCOUNTS } : {}),
+  };
   return { ...publicPlan, catalogDigest: sha256(publicPlan), privateObjects: { resumes } };
 }
 
@@ -98,4 +141,13 @@ export function buildLongResume(targetChars) {
   let value = header;
   while (value.length < targetChars) value += paragraph;
   return value.slice(0, targetChars);
+}
+
+function buildFixedJobDescription(title, index) {
+  return [
+    `这是 Meetwise 预览环境的中文合成岗位：${title}。`,
+    `岗位序号：${index + 1}；工作内容包括需求澄清、方案设计、工程实现、自动化验证、可观测性和复盘。`,
+    '候选人将围绕真实工作场景进行结构化面试练习，所有企业、职位与结果均为演示数据，不代表任何真实招聘决定。',
+    '重点能力：技术取舍、边界处理、故障定位、跨团队协作、风险沟通与交付质量。',
+  ].join('\n');
 }

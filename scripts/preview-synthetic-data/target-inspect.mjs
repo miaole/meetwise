@@ -3,6 +3,7 @@ import { createRequire } from 'node:module';
 import { readFileSync, readdirSync, realpathSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { sha256 } from './catalog.mjs';
+import { resolveReadOnlyVerifierEnv } from './verifier-env.mjs';
 
 function releaseDigest(root) {
   const rows = [];
@@ -19,11 +20,14 @@ function releaseDigest(root) {
 }
 
 async function main() {
-  if (process.getuid?.() !== 0) throw new Error('target_inspect_requires_root');
+  if (!((process.getuid?.() === 0 && process.getgid?.() === 0) || (process.getuid?.() === 2001 && process.getgid?.() === 2001))) throw new Error('target_inspect_requires_trusted_uid');
+  const verifierEnv = resolveReadOnlyVerifierEnv(process.env);
   const root = realpathSync('/srv/meetwise-full-stack/current'); const require = createRequire(join(root, 'packages/db/package.json')); const pg = require('pg');
-  const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, ssl: { ca: readFileSync(process.env.DATABASE_SSL_CA_PATH, 'utf8'), rejectUnauthorized: true, servername: process.env.PG_TLS_SERVERNAME }, max: 1 });
+  const pool = new pg.Pool({ connectionString: verifierEnv.databaseUrl, ssl: { ca: readFileSync(verifierEnv.caPath, 'utf8'), rejectUnauthorized: true, servername: verifierEnv.tlsServername }, max: 1 });
   try {
-    const identity = (await pool.query('SELECT current_database() AS database, current_user AS role')).rows[0]; const ledger = (await pool.query('SELECT version, checksum FROM schema_migrations ORDER BY version')).rows;
+    const identity = (await pool.query('SELECT current_database() AS database, current_user AS role')).rows[0];
+    if (identity.database !== verifierEnv.expectedDatabase || identity.role !== verifierEnv.expectedRole) throw new Error('target_inspect_wrong_identity');
+    const ledger = (await pool.query('SELECT version, checksum FROM schema_migrations ORDER BY version')).rows;
     process.stdout.write(`${JSON.stringify({ identity, schemaHead: `${ledger.at(-1)?.version}.sql`, schemaLedgerDigest: sha256(ledger), releasePath: root, releaseTreeDigest: releaseDigest(root), apiContractDigest: sha256(readFileSync(join(root, 'packages/contracts/src/openapi.ts'))) }, null, 2)}\n`);
   } finally { await pool.end(); }
 }

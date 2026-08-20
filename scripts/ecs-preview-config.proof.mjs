@@ -61,7 +61,8 @@ const checks = [
       && /public_preview_read_only/.test(middleware)
       && /public_preview_path_unavailable/.test(middleware)
       && /protectedPaths/.test(middleware)
-      && /url\.pathname = '\/login'/.test(middleware)
+      && /authRedirectUrl\(request, pathname\)/.test(middleware)
+      && /NextResponse\.redirect\(authRedirectUrl/.test(middleware)
       && /matcher: '\/:path\*'/.test(middleware)],
   ['the active unit is unprivileged, loopback-only and carries neither secrets nor data-plane configuration',
     /User=meetwise/.test(unit)

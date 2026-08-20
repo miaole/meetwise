@@ -14288,7 +14288,7 @@
         "scripts/quality-traceability.proof.mjs",
         "scripts/run-e2e-isolated.mjs"
       ],
-      "governedPathDigest": "sha256:623a50b60080c43285a411fa79f8d7d465c0ef19e28f2617cac7b40e715e25c8",
+      "governedPathDigest": "sha256:0160ec71fe77bcf4a919efc44be518f384e855133adac844b10a6e96954f21e1",
       "harness": {
         "scope": "public-text policy 覆盖面扩展：受管根/文本扩展名新增 ops、preview-site 与 .conf/.service/.timer/.html/.css/.txt/.pem/.py；新增云端标识兜底规则（PTP_PRIVATE_KEY/PTP_CLOUD_IDENTIFIER/PTP_API_KEY）拦截 gitleaks 抓不到的私钥 PEM、izbp 实例 ID、Tailscale *.ts.net、阿里云 RDS hostname 与 LTAI/AKIA/sk- 凭据形状，并用 SYNTHETIC_IDENTIFIER_PATTERNS 精确放行合成夹具。proof 增补 E8/E9/E10 覆盖命中、合成放行与同形拦截边界。",
         "sourceEvidenceIds": [
@@ -14361,7 +14361,7 @@
         "summary": "Successor widening public-text policy to cover the ECS preview ops/preview-site roots and cloud-identifier leakage fallback (private-key PEM, izbp instance id, Tailscale/RDS hostnames, LTAI/AKIA/sk- credential shapes) that gitleaks full-history scanning does not catch. A synthetic allowlist precisely exempts the registered fake tailnet/RDS fixtures; any same-shaped unregistered value still fails. Governed-path digests are recomputed against the current tree; releaseEvidence=false, no live deployment or secret claim.",
         "summaryDigest": "sha256:5c7a103e68bef47b26d2913f1241cec8cb65f9b191fb6eae54f645e59164ccd5",
         "decision": "blocked",
-        "reviewScopeDigest": "sha256:4f8263c535f5033e0862e30417fc1f398da231c8dac788973362b00da70f2650",
+        "reviewScopeDigest": "sha256:211b2c504cf15307aa7a58c9c54c65d6a44117129ef4b8f7e982345414aedf97",
         "reviewedFindingIds": [
           "GOV-PTP-001"
         ],
@@ -14384,7 +14384,7 @@
       ],
       "successorOf": "public-text-policy-control-plane-v29",
       "baselineChange": null,
-      "recordDigest": "sha256:51c2bfe6e0204cd88a651d1ac1b76108ab89c7477cd49ad767b10e19dfd95275"
+      "recordDigest": "sha256:3123914d28f2609880904d846c308e38f2a40dbebb00014825a1009afdab6a2f"
     },
     {
       "taskId": "quality-governance-control-plane-v39",
@@ -14437,7 +14437,7 @@
         "scripts/quality-traceability.proof.mjs",
         "scripts/run-e2e-isolated.mjs"
       ],
-      "governedPathDigest": "sha256:9a2fa68ddce3bf26dcecfa0c0920c583bff1666cc39e2e8de236b9589c775acb",
+      "governedPathDigest": "sha256:b09c0a9211b3869cdb17b0ba7a18aad0ce762d1ae9774ad96b1863e6b78e1bd2",
       "harness": {
         "scope": "治理校验器结构完整性修复：hasExactKeys 由单方向(仅无多余键)改为双向集合相等(既无多余键、也抓缺失键)；findings 因 closureEvidence 仅在 closed 时有值，改用 hasRequiredAndAllowedKeys(必填 findingId/severity/status/disposition + 允许闭证据键)。修复假绿根因，不把旧记录缺 closureEvidence 误判为结构非法。",
         "sourceEvidenceIds": [
@@ -14519,7 +14519,7 @@
         "summary": "Successor fixing the hasExactKeys false-green in the governance validator: exact-key checks now require set equality (no extra AND no missing keys), and findings switch to a required-plus-allowed check because closureEvidence is optional for open findings. Historical records that predate the closureEvidence field are no longer mis-flagged as structurally invalid. Governed-path digests recomputed; releaseEvidence=false.",
         "summaryDigest": "sha256:2c45b6cf74df5302be9bb4cd91e45a57e7c9d219e23453e4f00c60ba1ea8b690",
         "decision": "blocked",
-        "reviewScopeDigest": "sha256:530cd21a628d304544acdd499c092b442b25609ba1bdb0db443467921b5badd3",
+        "reviewScopeDigest": "sha256:01be52613eac529dbaddcd9807894294551bb7027e6b41252dabdaf71d84abd6",
         "reviewedFindingIds": [
           "GOV-CLOUD-TEST-RECOVERY-001",
           "GOV-CLOUD-TEST-RECOVERY-002",
@@ -14848,7 +14848,1411 @@
       ],
       "successorOf": "quality-governance-control-plane-v38",
       "baselineChange": null,
-      "recordDigest": "sha256:8cab73d19d8f367efeaf684488c8ab8b13339a1c2ce37a0caf3e1900902ebf46"
+      "recordDigest": "sha256:a36167aeae10441ef4f2568b74260cc141124ad894f592d2de6d926bfc2a4dc2"
+    },
+    {
+      "taskId": "public-text-policy-control-plane-v31",
+      "scopeId": "public-text-policy-control-plane",
+      "revision": 31,
+      "riskLevel": "L3",
+      "status": "blocked",
+      "governedPaths": [
+        ".github/CODEOWNERS",
+        ".github/workflows/ci.yml",
+        ".github/workflows/deploy-full-stack.yml",
+        ".github/workflows/nightly.yml",
+        ".github/workflows/pages-preview.yml",
+        "ai-docs/architecture/adr/0019-public-text-policy-static-governance.md",
+        "ai-docs/architecture/adr/0020-scorecard-authority-and-eligibility.md",
+        "ai-docs/architecture/adr/0021-ecs-full-stack-preview-runtime.md",
+        "ai-docs/architecture/adr/README.md",
+        "ai-docs/architecture/ai/bailian-nonproduction-rollout.md",
+        "ai-docs/architecture/ai/langgraph-blueprint.md",
+        "ai-docs/architecture/ai/model-operation-routing.md",
+        "ai-docs/architecture/ai/rag-corpus-lifecycle.md",
+        "ai-docs/architecture/ai/rag-funnel-routing.md",
+        "ai-docs/architecture/ai/scoring-measurement-runtime.md",
+        "ai-docs/architecture/current-runtime-truth.md",
+        "ai-docs/architecture/devops/ci-cd.md",
+        "ai-docs/architecture/devops/local-demo-deployment.md",
+        "ai-docs/delivery/cloud-resource-inventory.md",
+        "ai-docs/delivery/ecs-full-stack-cd-implementation-plan.md",
+        "ai-docs/delivery/execution-master-checklist.md",
+        "ai-docs/delivery/production-backlog.md",
+        "ai-docs/delivery/production-readiness-remediation-register.md",
+        "ai-docs/meta/index.md",
+        "ai-docs/requirements/use-cases/application-assessment-terminal.md",
+        "ai-docs/requirements/use-cases/ecs-full-stack-preview-runtime.md",
+        "ai-docs/requirements/use-cases/expert-interview-coach-evaluation.md",
+        "ai-docs/requirements/use-cases/expert-long-interview-runtime.md",
+        "ai-docs/requirements/use-cases/interview-question-bank-agent-rag.md",
+        "ai-docs/requirements/use-cases/interview-scoring-measurement.md",
+        "ai-docs/requirements/use-cases/model-operation-routing.md",
+        "ai-docs/requirements/use-cases/public-preview-directory.md",
+        "ai-docs/requirements/use-cases/public-preview-write-gate.md",
+        "ai-docs/requirements/use-cases/quality-assurance-traceability.md",
+        "ai-docs/requirements/use-cases/rag-funnel-intent-routing.md",
+        "ai-docs/testing/strategy/scoring-evaluation-protocol.md",
+        "ai-docs/testing/traceability-baseline.json",
+        "ai-docs/testing/traceability-manifest.json",
+        "package.json",
+        "scripts/ai-docs/check-docs.mjs",
+        "scripts/ai-docs/public-text-policy.mjs",
+        "scripts/ai-docs/public-text-policy.proof.mjs",
+        "scripts/preview-account-scenarios/README.md",
+        "scripts/quality-traceability-check.mjs",
+        "scripts/quality-traceability.proof.mjs",
+        "scripts/run-e2e-isolated.mjs"
+      ],
+      "governedPathDigest": "sha256:fd2a59fe25ad65a8bd648f9fb894e89eecfe6b8d30e2a661d22cabb2d7d7c6d9",
+      "harness": {
+        "scope": "GitHub CI/CD 与 ECS full-stack 发布控制面的公开文本 successor：文档继续明确 implementation_blocked 与 releaseEvidence=false；密钥只以名称出现，固定测试账号密码不进入受管文本，线上运行事实、Pages、ACR 与 ECS 证据边界保持可审计。",
+        "sourceEvidenceIds": [
+          "AUD-ECS-FULL-STACK-CD-2026-08-20",
+          "AUD-ECS-RELEASE-2026-08-14",
+          "AUD-MODEL-OP-DB-2026-08-14",
+          "AUD-MODEL-OP-RUNTIME-2026-08-14",
+          "AUD-PUBLIC-PREVIEW-INGRESS-2026-08-14",
+          "AUD-PUBLIC-TEXT-IDENTIFIER-2026-08-18",
+          "AUD-QBANK-DEFINER-2026-08-14",
+          "AUD-QBANK-DEFINER-CLOSURE-2026-08-14",
+          "AUD-QBANK-EMBED-CACHE-REAUDIT-2026-08-14",
+          "AUD-QBANK-METADATA-SECURITY-REAUDIT-2026-08-14",
+          "AUD-SCOR-DB-REAUDIT-2026-08-13",
+          "AUD-SCOR-MEASURE-REAUDIT-2026-08-13",
+          "SCOR-00-ISOLATED-2026-08-13"
+        ],
+        "outOfScope": [
+          "ECS public deployment",
+          "ECS purchase",
+          "GitHub Pages live deployment",
+          "release approval",
+          "runtime serving claim"
+        ],
+        "domainObjects": [
+          "StaticGovernanceSnapshot"
+        ],
+        "stateMachineEffects": [
+          "FullStackRelease: 仅冻结 preflight→snapshot→quiesce→migrate→internal-ready→synthetic→probe→confirm→Pages-exact→commit；没有真实 GitHub/ECS 执行不得标记 published。",
+          "PublicPreview: 旧 manifest 与实际 runtime/schema 漂移已记录；successor 发布前保持 releaseEvidence=false。"
+        ],
+        "contractEffects": [
+          "No credential value or fixed test-account password may enter tracked public text.",
+          "append-only static snapshot"
+        ],
+        "dataEffects": [
+          "local evidence only; no cloud, provider, credential, or user-data writes"
+        ],
+        "privacySecurityEffects": [
+          "no raw source, answer, prompt, credential, or provider URL in this record"
+        ],
+        "testPlanIds": [
+          "TC-quality-04-E1",
+          "TC-quality-04-E2",
+          "TC-quality-04-E3",
+          "TC-quality-04-E4",
+          "TC-quality-04-E5",
+          "TC-quality-04-E6",
+          "TC-quality-04-main"
+        ],
+        "verificationCommands": [
+          "public-text-policy:prove",
+          "quality:traceability:inventory",
+          "quality:traceability:prove"
+        ],
+        "authorizationConclusion": "blocked"
+      },
+      "harnessDigest": "sha256:26954902d988abc4a23def11ac03d8f1cad07cdc3559bb21a7d99450f8ffa616",
+      "audit": {
+        "lenses": [
+          "CD public-text and secret-shape audit",
+          "ECS release evidence honesty audit",
+          "Pages public-copy audit",
+          "public-text policy static check"
+        ],
+        "reviewerIds": [
+          "agent-cd-e2e-contract-expert",
+          "agent-cd-supply-chain-expert",
+          "agent-root-maintenance-self"
+        ],
+        "summary": "Successor refreshing the public-text snapshot for the GitHub→ACR→ECS→Pages CD control plane. It records fixed B/C account names without storing their password, preserves blocked/releaseEvidence=false until real Actions/ECS/Pages receipts exist, and makes no cloud-write or deployment claim.",
+        "summaryDigest": "sha256:19ed3b89ada14d153b846376a0ca2d4524f6592cf75cf40252c26d81ab22a003",
+        "decision": "blocked",
+        "reviewScopeDigest": "sha256:1ec606ecf70803725d536c69ff91df3d405598c64f43507c53ff161056ce7ec7",
+        "reviewedFindingIds": [
+          "GOV-PTP-001"
+        ],
+        "selfCheckReason": ""
+      },
+      "findings": [
+        {
+          "findingId": "GOV-PTP-001",
+          "severity": "P1",
+          "status": "closed",
+          "disposition": "Prior public-text policy closure retained; CD docs contain no credential values and keep runtime evidence blocked.",
+          "closureEvidence": "commands:public-text-policy:prove,docs:check; independent reviewers: agent-cd-supply-chain-expert,agent-cd-e2e-contract-expert; releaseEvidence=false"
+        }
+      ],
+      "adrPath": "ai-docs/architecture/adr/0019-public-text-policy-static-governance.md",
+      "verificationCommands": [
+        "public-text-policy:prove",
+        "quality:traceability:inventory",
+        "quality:traceability:prove"
+      ],
+      "successorOf": "public-text-policy-control-plane-v30",
+      "baselineChange": null,
+      "recordDigest": "sha256:8320a6e8202c17165126050383c1348726c5939db655d78b9a054bb90b6fbdfc"
+    },
+    {
+      "taskId": "quality-governance-control-plane-v40",
+      "scopeId": "quality-governance-control-plane",
+      "revision": 40,
+      "riskLevel": "L3",
+      "status": "blocked",
+      "governedPaths": [
+        ".github/CODEOWNERS",
+        ".github/workflows/ci.yml",
+        ".github/workflows/deploy-full-stack.yml",
+        ".github/workflows/governance-history.yml",
+        ".github/workflows/nightly.yml",
+        ".github/workflows/pages-preview.yml",
+        "ai-docs/architecture/adr/0018-quality-governance-static-preflight.md",
+        "ai-docs/architecture/adr/0020-scorecard-authority-and-eligibility.md",
+        "ai-docs/architecture/adr/0021-ecs-full-stack-preview-runtime.md",
+        "ai-docs/architecture/adr/README.md",
+        "ai-docs/architecture/ai/bailian-nonproduction-rollout.md",
+        "ai-docs/architecture/ai/langgraph-blueprint.md",
+        "ai-docs/architecture/ai/model-operation-routing.md",
+        "ai-docs/architecture/ai/rag-corpus-lifecycle.md",
+        "ai-docs/architecture/ai/rag-funnel-routing.md",
+        "ai-docs/architecture/ai/scoring-measurement-runtime.md",
+        "ai-docs/architecture/current-runtime-truth.md",
+        "ai-docs/architecture/devops/ci-cd.md",
+        "ai-docs/architecture/devops/local-demo-deployment.md",
+        "ai-docs/delivery/cloud-resource-inventory.md",
+        "ai-docs/delivery/ecs-full-stack-cd-implementation-plan.md",
+        "ai-docs/delivery/execution-master-checklist.md",
+        "ai-docs/delivery/production-backlog.md",
+        "ai-docs/delivery/production-readiness-remediation-register.md",
+        "ai-docs/meta/index.md",
+        "ai-docs/meta/task-sop.md",
+        "ai-docs/requirements/use-cases/application-assessment-terminal.md",
+        "ai-docs/requirements/use-cases/cloud-runtime-and-migration.md",
+        "ai-docs/requirements/use-cases/ecs-full-stack-preview-runtime.md",
+        "ai-docs/requirements/use-cases/expert-interview-coach-evaluation.md",
+        "ai-docs/requirements/use-cases/expert-long-interview-runtime.md",
+        "ai-docs/requirements/use-cases/interview-question-bank-agent-rag.md",
+        "ai-docs/requirements/use-cases/interview-scoring-measurement.md",
+        "ai-docs/requirements/use-cases/memory-governance-and-recall.md",
+        "ai-docs/requirements/use-cases/model-operation-routing.md",
+        "ai-docs/requirements/use-cases/public-preview-directory.md",
+        "ai-docs/requirements/use-cases/public-preview-write-gate.md",
+        "ai-docs/requirements/use-cases/quality-assurance-traceability.md",
+        "ai-docs/requirements/use-cases/rag-funnel-intent-routing.md",
+        "ai-docs/requirements/use-cases/worker-event-driven-dispatch.md",
+        "ai-docs/testing/cloud-runtime-migration-test-matrix.md",
+        "ai-docs/testing/strategy/scoring-evaluation-protocol.md",
+        "ai-docs/testing/traceability-baseline.json",
+        "ai-docs/testing/traceability-manifest.json",
+        "ops/ecs/full-stack/cd-controller-files.txt",
+        "ops/ecs/full-stack/full-stack-preview-edge-close.sh",
+        "ops/ecs/full-stack/full-stack-preview-publication.sh",
+        "ops/ecs/full-stack/full-stack-preview-publisher.mjs",
+        "ops/ecs/full-stack/install-full-stack-runtime.sh",
+        "ops/ecs/full-stack/meetwise-cd-receive.sh",
+        "ops/ecs/full-stack/meetwise-cd-root.sh",
+        "ops/ecs/full-stack/meetwise-full-stack-edge-probe-expiry.timer",
+        "ops/ecs/full-stack/meetwise-full-stack-edge-restore.service",
+        "ops/ecs/full-stack/meetwise-full-stack-publication-recovery.service",
+        "ops/ecs/full-stack/nginx-meetwise-full-stack.conf",
+        "ops/ecs/full-stack/prepare-full-stack-release.mjs",
+        "ops/ecs/full-stack/provision-meetwise-cd.sh",
+        "ops/ecs/full-stack/provision-meetwise-synthetic.sh",
+        "ops/ecs/full-stack/provision-preview-showcase-entitlement.mjs",
+        "ops/ecs/full-stack/provision-preview-showcase-entitlement.proof.mjs",
+        "package.json",
+        "scripts/cd-pages-receipt.proof.mjs",
+        "scripts/deploy-check.mjs",
+        "scripts/ecs-full-stack-config.proof.mjs",
+        "scripts/ecs-full-stack-release.proof.mjs",
+        "scripts/ecs-full-stack-transaction.proof.mjs",
+        "scripts/ecs-preview-config.proof.mjs",
+        "scripts/full-stack-preview-publisher.proof.mjs",
+        "scripts/hash-web-runtime-artifact.mjs",
+        "scripts/prepare-full-stack-release.proof.mjs",
+        "scripts/preview-account-scenarios/README.md",
+        "scripts/preview-account-scenarios/proof.mjs",
+        "scripts/preview-account-scenarios/runner.mjs",
+        "scripts/preview-synthetic-data/catalog.mjs",
+        "scripts/preview-synthetic-data/db-verify.mjs",
+        "scripts/preview-synthetic-data/loader.mjs",
+        "scripts/preview-synthetic-data/loader.proof.mjs",
+        "scripts/preview-synthetic-data/target-inspect.mjs",
+        "scripts/preview-synthetic-data/verifier-env.mjs",
+        "scripts/quality-governance-base-guard.mjs",
+        "scripts/quality-governance-base-guard.proof.mjs",
+        "scripts/quality-governance-check.mjs",
+        "scripts/quality-governance.proof.mjs",
+        "scripts/quality-traceability-check.mjs",
+        "scripts/quality-traceability.proof.mjs",
+        "scripts/run-e2e-isolated.mjs",
+        "scripts/verify-full-stack-public-origin.mjs",
+        "scripts/verify-full-stack-public-origin.proof.mjs"
+      ],
+      "governedPathDigest": "sha256:301cceb962348d8dee7090230d9e8f0494998c5f9d4a4d8a629aa2ae65ec4555",
+      "harness": {
+        "scope": "GitHub→ACR→ECS→Pages full-stack CD successor: durable release transaction, predecessor snapshot, writer quiescence, migration fence, internal Web/API/Worker readiness, successor synthetic/deep receipts, external probe, exact Pages receipt and commit cleanup. Static and fake proofs remain releaseEvidence=false until real cloud fault-injection.",
+        "sourceEvidenceIds": [
+          "AUD-ECS-FULL-STACK-CD-2026-08-20",
+          "AUD-ECS-RELEASE-2026-08-14",
+          "AUD-ECS-RUNTIME-REALITY-2026-08-20",
+          "AUD-GOVERNANCE-KEYS-2026-08-18",
+          "AUD-MODEL-OP-DB-2026-08-14",
+          "AUD-MODEL-OP-RUNTIME-2026-08-14",
+          "AUD-PUBLIC-PREVIEW-INGRESS-2026-08-14",
+          "AUD-QBANK-DEFINER-2026-08-14",
+          "AUD-QBANK-DEFINER-CLOSURE-2026-08-14",
+          "AUD-QBANK-EMBED-CACHE-REAUDIT-2026-08-14",
+          "AUD-QBANK-METADATA-SECURITY-REAUDIT-2026-08-14",
+          "AUD-SCOR-DB-REAUDIT-2026-08-13",
+          "AUD-SCOR-MEASURE-REAUDIT-2026-08-13",
+          "SCOR-00-ISOLATED-2026-08-13"
+        ],
+        "outOfScope": [
+          "Executing GitHub Actions",
+          "installing Docker/controller on ECS",
+          "publishing or enabling the public release",
+          "writing GitHub environment secrets",
+          "writing the online test database"
+        ],
+        "domainObjects": [
+          "CapacityReceipt",
+          "DeepUsageReceipt",
+          "FullStackReleaseTransaction",
+          "PagesLinkReceipt",
+          "PredecessorBundle",
+          "StaticGovernanceSnapshot"
+        ],
+        "stateMachineEffects": [
+          "Commit and cleanup occur only after an exact enabled Pages fingerprint receipt.",
+          "FullStackRelease phases are ordered and CAS-bound; every pre-commit failure must converge to predecessor recovery or durable forward-only maintenance.",
+          "Migration starts only after legacy and Compose writers are mechanically inactive."
+        ],
+        "contractEffects": [
+          "CI workflow identity and exact successful main SHA gate CD.",
+          "Fixed preview accounts remain synthetic; passwords are external env-only and must satisfy the production minimum length.",
+          "Runtime images, controller bundle, schema ledger, B/C receipts, external probe and Pages link receipt are independently digest-bound."
+        ],
+        "dataEffects": [
+          "Local implementation and static evidence only; no cloud, database, registry, GitHub secret or public endpoint mutation in this record."
+        ],
+        "privacySecurityEffects": [
+          "Candidate code never receives the migration credential; DB verification uses the dedicated read-only identity.",
+          "No raw resume, answer, credential, token or private key is stored in governance or release receipts."
+        ],
+        "testPlanIds": [
+          "TC-quality-03-E1",
+          "TC-quality-03-E2",
+          "TC-quality-03-E3",
+          "TC-quality-03-E4",
+          "TC-quality-03-E5",
+          "TC-quality-03-E6",
+          "TC-quality-03-main"
+        ],
+        "verificationCommands": [
+          "quality:governance:check",
+          "quality:governance:history:prove",
+          "quality:governance:prove",
+          "quality:traceability:inventory",
+          "quality:traceability:prove"
+        ],
+        "authorizationConclusion": "blocked"
+      },
+      "harnessDigest": "sha256:ca8f9ae8899bfd8f63cc2c90dd5eef8da06994f75ab218de14bcf1171f6465b3",
+      "audit": {
+        "lenses": [
+          "B/C data and E2E evidence audit",
+          "CD state-machine and crash-recovery audit",
+          "ECS/ACR/RDS runtime reality audit",
+          "GitHub workflow and supply-chain audit",
+          "static governance consistency"
+        ],
+        "reviewerIds": [
+          "agent-cd-e2e-contract-expert",
+          "agent-cd-state-machine-expert",
+          "agent-cd-supply-chain-expert",
+          "agent-root-maintenance-self"
+        ],
+        "summary": "Expert-audited implementation successor for the GitHub full-stack CD control plane. Local type/build/static proofs and durable transaction behaviors are recorded, while real GitHub Actions, ACR, ECS takeover, database migration, public B/C E2E, reboot/race injection and Pages exact receipt remain required external evidence; status stays blocked and releaseEvidence=false.",
+        "summaryDigest": "sha256:51c9cc9d78481403e38008d382c8ee6a8230dfef69e164f60b3d386a5eb29461",
+        "decision": "blocked",
+        "reviewScopeDigest": "sha256:b0c05cb24b1011a4dd83e85183f0dd76334d3b20417678f12a0d86280695fe0e",
+        "reviewedFindingIds": [
+          "GOV-CLOUD-TEST-RECOVERY-001",
+          "GOV-CLOUD-TEST-RECOVERY-002",
+          "GOV-CLOUD-TEST-RECOVERY-003",
+          "GOV-ECS-CD-001",
+          "GOV-ECS-CD-002",
+          "GOV-ECS-CD-003",
+          "GOV-INT-TRANSCRIPT-001",
+          "GOV-INT-TRANSCRIPT-002",
+          "GOV-INT-TRANSCRIPT-003",
+          "GOV-INT-TRANSCRIPT-004",
+          "GOV-INT-TRANSCRIPT-005",
+          "GOV-INT-TRANSCRIPT-006",
+          "GOV-MODEL-NODE-QUOTA-001",
+          "GOV-MODEL-NODE-QUOTA-002",
+          "GOV-MODEL-NODE-QUOTA-003",
+          "GOV-MODEL-NODE-QUOTA-004",
+          "GOV-MODEL-NODE-QUOTA-005",
+          "GOV-MODEL-OP-BACKUP-001",
+          "GOV-MODEL-OP-BINDING-001",
+          "GOV-MODEL-OP-DB-STATE-001",
+          "GOV-MODEL-OP-HEADER-001",
+          "GOV-MODEL-OP-NATIVE-ATTEMPT-001",
+          "GOV-MODEL-OP-NATIVE-SECRET-001",
+          "GOV-MODEL-OP-OCR-NONPROD-001",
+          "GOV-MODEL-OP-PROVIDER-001",
+          "GOV-MODEL-OP-REGISTRY-001",
+          "GOV-PUBLIC-PREVIEW-001",
+          "GOV-QG-001",
+          "GOV-RAG-EMBED-CACHE-001",
+          "GOV-RAG-EMBED-CACHE-002",
+          "GOV-RAG-EMBED-CACHE-003",
+          "GOV-RAG-FUNNEL-001",
+          "GOV-RAG-FUNNEL-002",
+          "GOV-RAG-FUNNEL-003",
+          "GOV-RAG-FUNNEL-004",
+          "GOV-RAG-FUNNEL-005",
+          "GOV-SCOR-00-001",
+          "GOV-SCOR-00-002",
+          "GOV-SCOR-01-001",
+          "GOV-SCOR-01-002",
+          "GOV-SCOR-EVAL-001",
+          "GOV-WORKER-DISPATCH-001"
+        ],
+        "selfCheckReason": ""
+      },
+      "findings": [
+        {
+          "findingId": "GOV-CLOUD-TEST-RECOVERY-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-CLOUD-TEST-RECOVERY-002",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-CLOUD-TEST-RECOVERY-003",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-INT-TRANSCRIPT-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Deletion authorization, target resolution and per-sink receipt/read-zero are unavailable; real-user transcript writes must remain disabled.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-INT-TRANSCRIPT-002",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Raw answers currently enter plaintext interview_job payload; a ref-only queue and encrypted canonical artifact contract are not implemented.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-INT-TRANSCRIPT-003",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "A response-lost or re-login submit has no durable client submission key, receipt replay or winner lookup.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-INT-TRANSCRIPT-004",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Late model output lacks a post-dispatch authorization/output-projection permit, and level scoring lacks immutable rubric and evidence gates.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-INT-TRANSCRIPT-005",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Snapshot/SSE linearization, route/blueprint/version freezes, owner-only scope and long-runtime completion remain specification work pending the P0 foundation.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-INT-TRANSCRIPT-006",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "No independent PrivacyAuthorizationIssuer, key/JTI consumption ledger or deployment provisioning exists; AUTH_SECRET, runtime SQL, worker/deleter and GUC identities cannot authorize deletion or real-user transcript writes.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-NODE-QUOTA-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "source retry removal is not the required database slot/fence.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-NODE-QUOTA-002",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-NODE-QUOTA-003",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-NODE-QUOTA-004",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-NODE-QUOTA-005",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-BACKUP-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: a half-open follower with a distinct cost policy fails closed, so current tests do not prove a real priced backup replacement path.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-BINDING-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: header and matching reservation do not prove the frozen provider/model/region/price revision relationship.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-DB-STATE-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: 0085 only guards a claimed-to-dispatching UPDATE; low-privilege raw SQL can insert dispatching, forge terminal state, or mutate invocation identity.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-HEADER-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: different keys concurrently creating one logical-node header can end in a uniqueness failure instead of deterministic canonical admission.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-NATIVE-ATTEMPT-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: direct voice, embedding and streaming paths remain outside durable attempt, admission, unknown and deletion semantics.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-NATIVE-SECRET-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: API and Worker broad native credentials are not operation-level secret isolation; split runtime secret surfaces and later use a gateway-only holder.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-OCR-NONPROD-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: OCR is kill-switched only in production/enforce; nonproduction may route resume images through an unbound text client.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-PROVIDER-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: native provider endpoints and constructor overrides are not a fixed typed allowlist, so a misconfigured egress target can receive a bearer credential.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-REGISTRY-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: catalog is not the sole resolver and caller-controlled model, service and logical-node identity can bypass an operation binding.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-PUBLIC-PREVIEW-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Static Pages and local ingress proof do not establish an ECS release manifest, private API topology, HTTPS health evidence or a verified main-project destination; the static directory must retain disabled main links.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-QG-001",
+          "severity": "P1",
+          "status": "closed",
+          "disposition": "prior static closure retained.",
+          "closureEvidence": "independent_audit_task:/root/harness_governance_audit; staticGates:quality:governance:prove,quality:governance:history:prove,quality:governance:check,quality:traceability:prove,quality:traceability:inventory,docs:check,public-text-policy:prove; releaseEvidence=false"
+        },
+        {
+          "findingId": "GOV-RAG-EMBED-CACHE-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: generation embedding lacks durable fill intent, leader/slot/cost reservation and unknown-no-retry semantics; Redis locking alone cannot prevent duplicate provider billing.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-EMBED-CACHE-002",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: exact recipe/input identity must include actual deployment/region and executed canonicalization; a Redis vector needs finite dimension checks and complete payload HMAC before any generation write or activation.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-EMBED-CACHE-003",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: immutable scope projection, verifiable MetadataReviewReceipt, build leadership, deletion purge receipts and real-Tair failure evidence are absent; the first cache slice remains restricted to global approved QBank.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-FUNNEL-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Metadata has not entered generation, ANN, lexical, RRF, cache or evidence as an immutable leaf projection; Node/Java/Go/Python routed serving and wrong_track=0 claims remain blocked.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-FUNNEL-002",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: candidate source now provisions the fixed NOLOGIN definer and migration CLI post-flight, but there is no current low-privilege PostgreSQL composition/restart proof; deployment remains blocked.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-FUNNEL-003",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Executor annotation lacks reviewer or issuer identity, policy/facet binding, revocation and receipt semantics; it must not be called a human metadata review.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-FUNNEL-004",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: candidate source now normalizes exact function/table/column/default ACL and generation partition/index ownership, but bounded readers, security-definer view, lexical helper and pool/cache/epoch triggers remain outside the owner/ACL/RLS/fixed-search-path dependency closure. Handoff may make control or serving fail 42501; RAG-FUNNEL-01A and a real low-privilege composition root are required.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-FUNNEL-005",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: a future migration that replaces a function already owned by the fixed definer has no reviewed authoring/role-switch contract; do not relax the handoff gate or call later migration deployment safe.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-SCOR-00-001",
+          "severity": "P1",
+          "status": "closed",
+          "disposition": "Full-migration Nest/Fastify SCOR-00 proof verifies aggregate event, queue, consumption, report, assessment and application deltas are zero for all legacy calls.",
+          "closureEvidence": "command:pnpm scor-00:http:prove; result:2026-08-13 full 87-migration isolated PostgreSQL, independent NOINHERIT runtime login, C/B replay/concurrency/cross-owner zero side effects; releaseEvidence=false"
+        },
+        {
+          "findingId": "GOV-SCOR-00-002",
+          "severity": "P1",
+          "status": "closed",
+          "disposition": "The same proof confirms the HTTP application current_user is a separately provisioned NOINHERIT runtime login and direct business-table read is rejected.",
+          "closureEvidence": "command:pnpm scor-00:http:prove; assertion:runtime identity + raw business-table read denied; releaseEvidence=false"
+        },
+        {
+          "findingId": "GOV-SCOR-01-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: issue-stage/answer-stage facts are absent; runtime-writable event/question values still reach C-side consumers. INT-TRANSCRIPT-00/01 and a dedicated writer/consumer cutover are required before implementation.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-SCOR-01-002",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: no canonical answer artifact, delete-wins ScoreRequest permit, immutable contract/card/evidence chain or scorecard SSE/read contract exists.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-SCOR-EVAL-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: free criterion/score output, mutable ledger provenance and missing rubric/measurement/cohort bindings cannot support measurable or comparable scoring.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-WORKER-DISPATCH-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-ECS-CD-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Real clean-host ECS provisioning, legacy takeover, migration, ACR pull and first publication have not been executed; release authorization remains blocked.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-ECS-CD-002",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Per-phase SIGKILL/reboot, stale-SHA, rollback/forward-only recovery and exact Pages enabled receipt require real environment evidence.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-ECS-CD-003",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Fixed B/C online login, Worker completion, RLS isolation and Chinese high-volume data are implemented as contracts but not yet proven on the online test stack.",
+          "closureEvidence": null
+        }
+      ],
+      "adrPath": "ai-docs/architecture/adr/0018-quality-governance-static-preflight.md",
+      "verificationCommands": [
+        "quality:governance:check",
+        "quality:governance:history:prove",
+        "quality:governance:prove",
+        "quality:traceability:inventory",
+        "quality:traceability:prove"
+      ],
+      "successorOf": "quality-governance-control-plane-v39",
+      "baselineChange": {
+        "previousAllowedUnmappedLeafTcIdsDigest": "sha256:99e5b91dd302ed73ef10d91bd68b7519b689b7db30d386eac8ac94207b42eddd",
+        "resultingAllowedUnmappedLeafTcIdsDigest": "sha256:fdc5ab4c6e6ebd940251c1226a156d548655d3322c10f2cc4103770e1539e7ae",
+        "addedUnmappedLeafTcIds": [
+          "TC-preview-deep-usage-01-E1",
+          "TC-preview-deep-usage-01-E2",
+          "TC-preview-deep-usage-01-E3",
+          "TC-preview-deep-usage-01-E4",
+          "TC-preview-deep-usage-01-E5",
+          "TC-preview-deep-usage-01-E6",
+          "TC-preview-deep-usage-01-main"
+        ],
+        "expansionJustification": "The fixed B/C deep-usage seven-case matrix is registered as planned/unmapped while real GitHub Actions, ACR, ECS, RDS, Worker, RLS, failure-injection and Pages exact-receipt evidence remains unexecuted. It contributes no required binding, passed denominator or release evidence."
+      },
+      "recordDigest": "sha256:a6a9a978c0f561463945203a6410d01775493bc72889e11a05c765b5667dd06a"
+    },
+    {
+      "taskId": "public-text-policy-control-plane-v32",
+      "scopeId": "public-text-policy-control-plane",
+      "revision": 32,
+      "riskLevel": "L3",
+      "status": "blocked",
+      "governedPaths": [
+        ".github/CODEOWNERS",
+        ".github/workflows/ci.yml",
+        ".github/workflows/deploy-full-stack.yml",
+        ".github/workflows/nightly.yml",
+        ".github/workflows/pages-preview.yml",
+        ".github/workflows/rollout-cd-controller.yml",
+        "ai-docs/architecture/adr/0019-public-text-policy-static-governance.md",
+        "ai-docs/architecture/adr/0020-scorecard-authority-and-eligibility.md",
+        "ai-docs/architecture/adr/0021-ecs-full-stack-preview-runtime.md",
+        "ai-docs/architecture/adr/README.md",
+        "ai-docs/architecture/ai/bailian-nonproduction-rollout.md",
+        "ai-docs/architecture/ai/langgraph-blueprint.md",
+        "ai-docs/architecture/ai/model-operation-routing.md",
+        "ai-docs/architecture/ai/rag-corpus-lifecycle.md",
+        "ai-docs/architecture/ai/rag-funnel-routing.md",
+        "ai-docs/architecture/ai/scoring-measurement-runtime.md",
+        "ai-docs/architecture/current-runtime-truth.md",
+        "ai-docs/architecture/devops/ci-cd.md",
+        "ai-docs/architecture/devops/local-demo-deployment.md",
+        "ai-docs/delivery/cloud-resource-inventory.md",
+        "ai-docs/delivery/ecs-full-stack-cd-implementation-plan.md",
+        "ai-docs/delivery/execution-master-checklist.md",
+        "ai-docs/delivery/production-backlog.md",
+        "ai-docs/delivery/production-readiness-remediation-register.md",
+        "ai-docs/meta/index.md",
+        "ai-docs/requirements/use-cases/application-assessment-terminal.md",
+        "ai-docs/requirements/use-cases/ecs-full-stack-preview-runtime.md",
+        "ai-docs/requirements/use-cases/expert-interview-coach-evaluation.md",
+        "ai-docs/requirements/use-cases/expert-long-interview-runtime.md",
+        "ai-docs/requirements/use-cases/interview-question-bank-agent-rag.md",
+        "ai-docs/requirements/use-cases/interview-scoring-measurement.md",
+        "ai-docs/requirements/use-cases/model-operation-routing.md",
+        "ai-docs/requirements/use-cases/public-preview-directory.md",
+        "ai-docs/requirements/use-cases/public-preview-write-gate.md",
+        "ai-docs/requirements/use-cases/quality-assurance-traceability.md",
+        "ai-docs/requirements/use-cases/rag-funnel-intent-routing.md",
+        "ai-docs/testing/strategy/scoring-evaluation-protocol.md",
+        "ai-docs/testing/traceability-baseline.json",
+        "ai-docs/testing/traceability-manifest.json",
+        "package.json",
+        "scripts/ai-docs/check-docs.mjs",
+        "scripts/ai-docs/public-text-policy.mjs",
+        "scripts/ai-docs/public-text-policy.proof.mjs",
+        "scripts/preview-account-scenarios/README.md",
+        "scripts/quality-traceability-check.mjs",
+        "scripts/quality-traceability.proof.mjs",
+        "scripts/run-e2e-isolated.mjs"
+      ],
+      "governedPathDigest": "sha256:7be4293fc5790a102847bc8037c854b2ef20c5aca0ee23f793be29017751eb9a",
+      "harness": {
+        "scope": "GitHub CI/CD 与 ECS full-stack 控制器 rollout 公开文本 successor：新增受保护 main SHA、同 SHA CI、preview-cd、精确 controller bundle 与恢复 unit 合同；继续明确首次 ECS bootstrap 未执行、implementation_blocked 与 releaseEvidence=false。",
+        "sourceEvidenceIds": [
+          "AUD-CD-CONTROLLER-ROLLOUT-2026-08-20",
+          "AUD-ECS-FULL-STACK-CD-2026-08-20",
+          "AUD-ECS-RELEASE-2026-08-14",
+          "AUD-MODEL-OP-DB-2026-08-14",
+          "AUD-MODEL-OP-RUNTIME-2026-08-14",
+          "AUD-PUBLIC-PREVIEW-INGRESS-2026-08-14",
+          "AUD-PUBLIC-TEXT-IDENTIFIER-2026-08-18",
+          "AUD-QBANK-DEFINER-2026-08-14",
+          "AUD-QBANK-DEFINER-CLOSURE-2026-08-14",
+          "AUD-QBANK-EMBED-CACHE-REAUDIT-2026-08-14",
+          "AUD-QBANK-METADATA-SECURITY-REAUDIT-2026-08-14",
+          "AUD-SCOR-DB-REAUDIT-2026-08-13",
+          "AUD-SCOR-MEASURE-REAUDIT-2026-08-13",
+          "SCOR-00-ISOLATED-2026-08-13"
+        ],
+        "outOfScope": [
+          "ECS public deployment",
+          "ECS purchase",
+          "GitHub Pages live deployment",
+          "release approval",
+          "runtime serving claim"
+        ],
+        "domainObjects": [
+          "StaticGovernanceSnapshot"
+        ],
+        "stateMachineEffects": [
+          "FullStackRelease: 仅冻结 preflight→snapshot→quiesce→migrate→internal-ready→synthetic→probe→confirm→Pages-exact→commit；没有真实 GitHub/ECS 执行不得标记 published。",
+          "PublicPreview: 旧 manifest 与实际 runtime/schema 漂移已记录；successor 发布前保持 releaseEvidence=false。"
+        ],
+        "contractEffects": [
+          "No credential value or fixed test-account password may enter tracked public text.",
+          "append-only static snapshot"
+        ],
+        "dataEffects": [
+          "local evidence only; no cloud, provider, credential, or user-data writes"
+        ],
+        "privacySecurityEffects": [
+          "no raw source, answer, prompt, credential, or provider URL in this record"
+        ],
+        "testPlanIds": [
+          "TC-quality-04-E1",
+          "TC-quality-04-E2",
+          "TC-quality-04-E3",
+          "TC-quality-04-E4",
+          "TC-quality-04-E5",
+          "TC-quality-04-E6",
+          "TC-quality-04-main"
+        ],
+        "verificationCommands": [
+          "public-text-policy:prove",
+          "quality:traceability:inventory",
+          "quality:traceability:prove"
+        ],
+        "authorizationConclusion": "blocked"
+      },
+      "harnessDigest": "sha256:b366b0b4827479fc76d680ea432622ed07dcf27f9783777792440cc570d9b2e5",
+      "audit": {
+        "lenses": [
+          "CD public-text and secret-shape audit",
+          "ECS release evidence honesty audit",
+          "Pages public-copy audit",
+          "public-text policy static check"
+        ],
+        "reviewerIds": [
+          "agent-cd-e2e-contract-expert",
+          "agent-cd-final-state-audit",
+          "agent-cd-supply-chain-expert",
+          "agent-root-maintenance-self"
+        ],
+        "summary": "Append-only successor binding the final controller-rollout workflow and CD documentation. It records a protected-main, same-SHA, exact-bundle rollout contract while explicitly retaining the one-time trusted ECS bootstrap and all real GitHub/ECS/Pages evidence as unexecuted. No secret value, cloud write, deployment, or release evidence is asserted.",
+        "summaryDigest": "sha256:6fbe25d9d6b3785f944e7a999aeb558504fb18fb4f8729659099c8fb769ca58d",
+        "decision": "blocked",
+        "reviewScopeDigest": "sha256:4eb0baec1ee4cd93e29c4250c57812fe4bc27659fc8d4acd587f2aca439d5f9e",
+        "reviewedFindingIds": [
+          "GOV-PTP-001"
+        ],
+        "selfCheckReason": ""
+      },
+      "findings": [
+        {
+          "findingId": "GOV-PTP-001",
+          "severity": "P1",
+          "status": "closed",
+          "disposition": "Prior public-text policy closure retained; CD docs contain no credential values and keep runtime evidence blocked.",
+          "closureEvidence": "commands:public-text-policy:prove,docs:check; independent reviewers: agent-cd-supply-chain-expert,agent-cd-e2e-contract-expert; releaseEvidence=false"
+        }
+      ],
+      "adrPath": "ai-docs/architecture/adr/0019-public-text-policy-static-governance.md",
+      "verificationCommands": [
+        "public-text-policy:prove",
+        "quality:traceability:inventory",
+        "quality:traceability:prove"
+      ],
+      "successorOf": "public-text-policy-control-plane-v31",
+      "baselineChange": null,
+      "recordDigest": "sha256:c71ee160453f87411b6b6e78f8eb07bef8ead2a6801c6de9f2e267831ca78069"
+    },
+    {
+      "taskId": "quality-governance-control-plane-v41",
+      "scopeId": "quality-governance-control-plane",
+      "revision": 41,
+      "riskLevel": "L3",
+      "status": "blocked",
+      "governedPaths": [
+        ".github/CODEOWNERS",
+        ".github/workflows/ci.yml",
+        ".github/workflows/deploy-full-stack.yml",
+        ".github/workflows/governance-history.yml",
+        ".github/workflows/nightly.yml",
+        ".github/workflows/pages-preview.yml",
+        ".github/workflows/rollout-cd-controller.yml",
+        "ai-docs/architecture/adr/0018-quality-governance-static-preflight.md",
+        "ai-docs/architecture/adr/0020-scorecard-authority-and-eligibility.md",
+        "ai-docs/architecture/adr/0021-ecs-full-stack-preview-runtime.md",
+        "ai-docs/architecture/adr/README.md",
+        "ai-docs/architecture/ai/bailian-nonproduction-rollout.md",
+        "ai-docs/architecture/ai/langgraph-blueprint.md",
+        "ai-docs/architecture/ai/model-operation-routing.md",
+        "ai-docs/architecture/ai/rag-corpus-lifecycle.md",
+        "ai-docs/architecture/ai/rag-funnel-routing.md",
+        "ai-docs/architecture/ai/scoring-measurement-runtime.md",
+        "ai-docs/architecture/current-runtime-truth.md",
+        "ai-docs/architecture/devops/ci-cd.md",
+        "ai-docs/architecture/devops/local-demo-deployment.md",
+        "ai-docs/delivery/cloud-resource-inventory.md",
+        "ai-docs/delivery/ecs-full-stack-cd-implementation-plan.md",
+        "ai-docs/delivery/execution-master-checklist.md",
+        "ai-docs/delivery/production-backlog.md",
+        "ai-docs/delivery/production-readiness-remediation-register.md",
+        "ai-docs/meta/index.md",
+        "ai-docs/meta/task-sop.md",
+        "ai-docs/requirements/use-cases/application-assessment-terminal.md",
+        "ai-docs/requirements/use-cases/cloud-runtime-and-migration.md",
+        "ai-docs/requirements/use-cases/ecs-full-stack-preview-runtime.md",
+        "ai-docs/requirements/use-cases/expert-interview-coach-evaluation.md",
+        "ai-docs/requirements/use-cases/expert-long-interview-runtime.md",
+        "ai-docs/requirements/use-cases/interview-question-bank-agent-rag.md",
+        "ai-docs/requirements/use-cases/interview-scoring-measurement.md",
+        "ai-docs/requirements/use-cases/memory-governance-and-recall.md",
+        "ai-docs/requirements/use-cases/model-operation-routing.md",
+        "ai-docs/requirements/use-cases/public-preview-directory.md",
+        "ai-docs/requirements/use-cases/public-preview-write-gate.md",
+        "ai-docs/requirements/use-cases/quality-assurance-traceability.md",
+        "ai-docs/requirements/use-cases/rag-funnel-intent-routing.md",
+        "ai-docs/requirements/use-cases/worker-event-driven-dispatch.md",
+        "ai-docs/testing/cloud-runtime-migration-test-matrix.md",
+        "ai-docs/testing/strategy/scoring-evaluation-protocol.md",
+        "ai-docs/testing/traceability-baseline.json",
+        "ai-docs/testing/traceability-manifest.json",
+        "ops/ecs/full-stack/cd-controller-files.txt",
+        "ops/ecs/full-stack/full-stack-preview-edge-close.sh",
+        "ops/ecs/full-stack/full-stack-preview-publication.sh",
+        "ops/ecs/full-stack/full-stack-preview-publisher.mjs",
+        "ops/ecs/full-stack/install-full-stack-runtime.sh",
+        "ops/ecs/full-stack/meetwise-cd-controller-rollout-recovery.service",
+        "ops/ecs/full-stack/meetwise-cd-receive.sh",
+        "ops/ecs/full-stack/meetwise-cd-root.sh",
+        "ops/ecs/full-stack/meetwise-full-stack-edge-probe-expiry.timer",
+        "ops/ecs/full-stack/meetwise-full-stack-edge-restore.service",
+        "ops/ecs/full-stack/meetwise-full-stack-publication-recovery.service",
+        "ops/ecs/full-stack/nginx-meetwise-full-stack.conf",
+        "ops/ecs/full-stack/prepare-full-stack-release.mjs",
+        "ops/ecs/full-stack/provision-meetwise-cd.sh",
+        "ops/ecs/full-stack/provision-meetwise-synthetic.sh",
+        "ops/ecs/full-stack/provision-preview-showcase-entitlement.mjs",
+        "ops/ecs/full-stack/provision-preview-showcase-entitlement.proof.mjs",
+        "package.json",
+        "scripts/cd-pages-receipt.proof.mjs",
+        "scripts/deploy-check.mjs",
+        "scripts/ecs-cd-controller-rollout.proof.mjs",
+        "scripts/ecs-full-stack-config.proof.mjs",
+        "scripts/ecs-full-stack-release.proof.mjs",
+        "scripts/ecs-full-stack-transaction.proof.mjs",
+        "scripts/ecs-preview-config.proof.mjs",
+        "scripts/full-stack-preview-publisher.proof.mjs",
+        "scripts/hash-web-runtime-artifact.mjs",
+        "scripts/meetwise-cd-receiver.proof.mjs",
+        "scripts/prepare-full-stack-release.proof.mjs",
+        "scripts/preview-account-scenarios/README.md",
+        "scripts/preview-account-scenarios/proof.mjs",
+        "scripts/preview-account-scenarios/runner.mjs",
+        "scripts/preview-synthetic-data/catalog.mjs",
+        "scripts/preview-synthetic-data/db-verify.mjs",
+        "scripts/preview-synthetic-data/loader.mjs",
+        "scripts/preview-synthetic-data/loader.proof.mjs",
+        "scripts/preview-synthetic-data/target-inspect.mjs",
+        "scripts/preview-synthetic-data/verifier-env.mjs",
+        "scripts/quality-governance-base-guard.mjs",
+        "scripts/quality-governance-base-guard.proof.mjs",
+        "scripts/quality-governance-check.mjs",
+        "scripts/quality-governance.proof.mjs",
+        "scripts/quality-traceability-check.mjs",
+        "scripts/quality-traceability.proof.mjs",
+        "scripts/run-e2e-isolated.mjs",
+        "scripts/verify-full-stack-public-origin.mjs",
+        "scripts/verify-full-stack-public-origin.proof.mjs"
+      ],
+      "governedPathDigest": "sha256:865a9fa3c7878f8c1b4b9cee5d4707f1fab53d5326e567ccb8460b6f56d2d0f4",
+      "harness": {
+        "scope": "GitHub→ACR→ECS→Pages full-stack CD controller rollout successor：controller bundle 以 source/destination/mode/hash 闭包、共享发布锁、durable installing ledger、SIGKILL 恢复 unit、新进程 self-test 与 live readback 收敛；首次旧 ECS bootstrap 和所有真实云端证据仍阻断发布。",
+        "sourceEvidenceIds": [
+          "AUD-CD-FINAL-STATE-2026-08-20",
+          "AUD-ECS-FULL-STACK-CD-2026-08-20",
+          "AUD-ECS-RELEASE-2026-08-14",
+          "AUD-ECS-RUNTIME-REALITY-2026-08-20",
+          "AUD-GOVERNANCE-KEYS-2026-08-18",
+          "AUD-MODEL-OP-DB-2026-08-14",
+          "AUD-MODEL-OP-RUNTIME-2026-08-14",
+          "AUD-PUBLIC-PREVIEW-INGRESS-2026-08-14",
+          "AUD-QBANK-DEFINER-2026-08-14",
+          "AUD-QBANK-DEFINER-CLOSURE-2026-08-14",
+          "AUD-QBANK-EMBED-CACHE-REAUDIT-2026-08-14",
+          "AUD-QBANK-METADATA-SECURITY-REAUDIT-2026-08-14",
+          "AUD-SCOR-DB-REAUDIT-2026-08-13",
+          "AUD-SCOR-MEASURE-REAUDIT-2026-08-13",
+          "SCOR-00-ISOLATED-2026-08-13"
+        ],
+        "outOfScope": [
+          "Executing GitHub Actions",
+          "installing Docker/controller on ECS",
+          "publishing or enabling the public release",
+          "writing GitHub environment secrets",
+          "writing the online test database"
+        ],
+        "domainObjects": [
+          "CapacityReceipt",
+          "DeepUsageReceipt",
+          "FullStackReleaseTransaction",
+          "PagesLinkReceipt",
+          "PredecessorBundle",
+          "StaticGovernanceSnapshot"
+        ],
+        "stateMachineEffects": [
+          "Commit and cleanup occur only after an exact enabled Pages fingerprint receipt.",
+          "FullStackRelease phases are ordered and CAS-bound; every pre-commit failure must converge to predecessor recovery or durable forward-only maintenance.",
+          "Migration starts only after legacy and Compose writers are mechanically inactive."
+        ],
+        "contractEffects": [
+          "CI workflow identity and exact successful main SHA gate CD.",
+          "Fixed preview accounts remain synthetic; passwords are external env-only and must satisfy the production minimum length.",
+          "Runtime images, controller bundle, schema ledger, B/C receipts, external probe and Pages link receipt are independently digest-bound."
+        ],
+        "dataEffects": [
+          "Local implementation and static evidence only; no cloud, database, registry, GitHub secret or public endpoint mutation in this record."
+        ],
+        "privacySecurityEffects": [
+          "Candidate code never receives the migration credential; DB verification uses the dedicated read-only identity.",
+          "No raw resume, answer, credential, token or private key is stored in governance or release receipts."
+        ],
+        "testPlanIds": [
+          "TC-quality-03-E1",
+          "TC-quality-03-E2",
+          "TC-quality-03-E3",
+          "TC-quality-03-E4",
+          "TC-quality-03-E5",
+          "TC-quality-03-E6",
+          "TC-quality-03-main"
+        ],
+        "verificationCommands": [
+          "quality:governance:check",
+          "quality:governance:history:prove",
+          "quality:governance:prove",
+          "quality:traceability:inventory",
+          "quality:traceability:prove"
+        ],
+        "authorizationConclusion": "blocked"
+      },
+      "harnessDigest": "sha256:b9c56d1f0e6af2bf26a4f666914cd7e64a5591d454ba9476d421dd93e8dd7316",
+      "audit": {
+        "lenses": [
+          "B/C data and E2E evidence audit",
+          "CD state-machine and crash-recovery audit",
+          "ECS/ACR/RDS runtime reality audit",
+          "GitHub workflow and supply-chain audit",
+          "static governance consistency"
+        ],
+        "reviewerIds": [
+          "agent-cd-e2e-contract-expert",
+          "agent-cd-final-state-audit",
+          "agent-cd-state-machine-expert",
+          "agent-cd-supply-chain-expert",
+          "agent-root-maintenance-self"
+        ],
+        "summary": "Expert-audited append-only successor for the final local CD/controller state. Receiver argv behavior, controller bundle closure, durable rollout recovery, application transaction recovery, Pages exact receipt, entitlement and layered capacity/deep receipts pass local no-Docker proofs. The existing ECS still requires one trusted bootstrap and real GitHub Actions, ACR, migration, takeover, B/C E2E, reboot/fault injection and Pages receipts; status remains blocked and releaseEvidence=false.",
+        "summaryDigest": "sha256:9bae6e86fbc8db979eba976f247628b161d71dab896b3aedd1870b89cef01fcc",
+        "decision": "blocked",
+        "reviewScopeDigest": "sha256:96478292ca5fe533c1ae9054155fcb9e979a42ebb63c1b62c577ba7641a406f9",
+        "reviewedFindingIds": [
+          "GOV-CLOUD-TEST-RECOVERY-001",
+          "GOV-CLOUD-TEST-RECOVERY-002",
+          "GOV-CLOUD-TEST-RECOVERY-003",
+          "GOV-ECS-CD-001",
+          "GOV-ECS-CD-002",
+          "GOV-ECS-CD-003",
+          "GOV-INT-TRANSCRIPT-001",
+          "GOV-INT-TRANSCRIPT-002",
+          "GOV-INT-TRANSCRIPT-003",
+          "GOV-INT-TRANSCRIPT-004",
+          "GOV-INT-TRANSCRIPT-005",
+          "GOV-INT-TRANSCRIPT-006",
+          "GOV-MODEL-NODE-QUOTA-001",
+          "GOV-MODEL-NODE-QUOTA-002",
+          "GOV-MODEL-NODE-QUOTA-003",
+          "GOV-MODEL-NODE-QUOTA-004",
+          "GOV-MODEL-NODE-QUOTA-005",
+          "GOV-MODEL-OP-BACKUP-001",
+          "GOV-MODEL-OP-BINDING-001",
+          "GOV-MODEL-OP-DB-STATE-001",
+          "GOV-MODEL-OP-HEADER-001",
+          "GOV-MODEL-OP-NATIVE-ATTEMPT-001",
+          "GOV-MODEL-OP-NATIVE-SECRET-001",
+          "GOV-MODEL-OP-OCR-NONPROD-001",
+          "GOV-MODEL-OP-PROVIDER-001",
+          "GOV-MODEL-OP-REGISTRY-001",
+          "GOV-PUBLIC-PREVIEW-001",
+          "GOV-QG-001",
+          "GOV-RAG-EMBED-CACHE-001",
+          "GOV-RAG-EMBED-CACHE-002",
+          "GOV-RAG-EMBED-CACHE-003",
+          "GOV-RAG-FUNNEL-001",
+          "GOV-RAG-FUNNEL-002",
+          "GOV-RAG-FUNNEL-003",
+          "GOV-RAG-FUNNEL-004",
+          "GOV-RAG-FUNNEL-005",
+          "GOV-SCOR-00-001",
+          "GOV-SCOR-00-002",
+          "GOV-SCOR-01-001",
+          "GOV-SCOR-01-002",
+          "GOV-SCOR-EVAL-001",
+          "GOV-WORKER-DISPATCH-001"
+        ],
+        "selfCheckReason": ""
+      },
+      "findings": [
+        {
+          "findingId": "GOV-CLOUD-TEST-RECOVERY-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-CLOUD-TEST-RECOVERY-002",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-CLOUD-TEST-RECOVERY-003",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-INT-TRANSCRIPT-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Deletion authorization, target resolution and per-sink receipt/read-zero are unavailable; real-user transcript writes must remain disabled.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-INT-TRANSCRIPT-002",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Raw answers currently enter plaintext interview_job payload; a ref-only queue and encrypted canonical artifact contract are not implemented.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-INT-TRANSCRIPT-003",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "A response-lost or re-login submit has no durable client submission key, receipt replay or winner lookup.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-INT-TRANSCRIPT-004",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Late model output lacks a post-dispatch authorization/output-projection permit, and level scoring lacks immutable rubric and evidence gates.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-INT-TRANSCRIPT-005",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Snapshot/SSE linearization, route/blueprint/version freezes, owner-only scope and long-runtime completion remain specification work pending the P0 foundation.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-INT-TRANSCRIPT-006",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "No independent PrivacyAuthorizationIssuer, key/JTI consumption ledger or deployment provisioning exists; AUTH_SECRET, runtime SQL, worker/deleter and GUC identities cannot authorize deletion or real-user transcript writes.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-NODE-QUOTA-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "source retry removal is not the required database slot/fence.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-NODE-QUOTA-002",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-NODE-QUOTA-003",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-NODE-QUOTA-004",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-NODE-QUOTA-005",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-BACKUP-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: a half-open follower with a distinct cost policy fails closed, so current tests do not prove a real priced backup replacement path.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-BINDING-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: header and matching reservation do not prove the frozen provider/model/region/price revision relationship.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-DB-STATE-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: 0085 only guards a claimed-to-dispatching UPDATE; low-privilege raw SQL can insert dispatching, forge terminal state, or mutate invocation identity.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-HEADER-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: different keys concurrently creating one logical-node header can end in a uniqueness failure instead of deterministic canonical admission.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-NATIVE-ATTEMPT-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: direct voice, embedding and streaming paths remain outside durable attempt, admission, unknown and deletion semantics.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-NATIVE-SECRET-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: API and Worker broad native credentials are not operation-level secret isolation; split runtime secret surfaces and later use a gateway-only holder.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-OCR-NONPROD-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: OCR is kill-switched only in production/enforce; nonproduction may route resume images through an unbound text client.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-PROVIDER-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: native provider endpoints and constructor overrides are not a fixed typed allowlist, so a misconfigured egress target can receive a bearer credential.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-MODEL-OP-REGISTRY-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: catalog is not the sole resolver and caller-controlled model, service and logical-node identity can bypass an operation binding.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-PUBLIC-PREVIEW-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Static Pages and local ingress proof do not establish an ECS release manifest, private API topology, HTTPS health evidence or a verified main-project destination; the static directory must retain disabled main links.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-QG-001",
+          "severity": "P1",
+          "status": "closed",
+          "disposition": "prior static closure retained.",
+          "closureEvidence": "independent_audit_task:/root/harness_governance_audit; staticGates:quality:governance:prove,quality:governance:history:prove,quality:governance:check,quality:traceability:prove,quality:traceability:inventory,docs:check,public-text-policy:prove; releaseEvidence=false"
+        },
+        {
+          "findingId": "GOV-RAG-EMBED-CACHE-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: generation embedding lacks durable fill intent, leader/slot/cost reservation and unknown-no-retry semantics; Redis locking alone cannot prevent duplicate provider billing.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-EMBED-CACHE-002",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: exact recipe/input identity must include actual deployment/region and executed canonicalization; a Redis vector needs finite dimension checks and complete payload HMAC before any generation write or activation.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-EMBED-CACHE-003",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: immutable scope projection, verifiable MetadataReviewReceipt, build leadership, deletion purge receipts and real-Tair failure evidence are absent; the first cache slice remains restricted to global approved QBank.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-FUNNEL-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Metadata has not entered generation, ANN, lexical, RRF, cache or evidence as an immutable leaf projection; Node/Java/Go/Python routed serving and wrong_track=0 claims remain blocked.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-FUNNEL-002",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: candidate source now provisions the fixed NOLOGIN definer and migration CLI post-flight, but there is no current low-privilege PostgreSQL composition/restart proof; deployment remains blocked.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-FUNNEL-003",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Executor annotation lacks reviewer or issuer identity, policy/facet binding, revocation and receipt semantics; it must not be called a human metadata review.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-FUNNEL-004",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: candidate source now normalizes exact function/table/column/default ACL and generation partition/index ownership, but bounded readers, security-definer view, lexical helper and pool/cache/epoch triggers remain outside the owner/ACL/RLS/fixed-search-path dependency closure. Handoff may make control or serving fail 42501; RAG-FUNNEL-01A and a real low-privilege composition root are required.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-RAG-FUNNEL-005",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: a future migration that replaces a function already owned by the fixed definer has no reviewed authoring/role-switch contract; do not relax the handoff gate or call later migration deployment safe.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-SCOR-00-001",
+          "severity": "P1",
+          "status": "closed",
+          "disposition": "Full-migration Nest/Fastify SCOR-00 proof verifies aggregate event, queue, consumption, report, assessment and application deltas are zero for all legacy calls.",
+          "closureEvidence": "command:pnpm scor-00:http:prove; result:2026-08-13 full 87-migration isolated PostgreSQL, independent NOINHERIT runtime login, C/B replay/concurrency/cross-owner zero side effects; releaseEvidence=false"
+        },
+        {
+          "findingId": "GOV-SCOR-00-002",
+          "severity": "P1",
+          "status": "closed",
+          "disposition": "The same proof confirms the HTTP application current_user is a separately provisioned NOINHERIT runtime login and direct business-table read is rejected.",
+          "closureEvidence": "command:pnpm scor-00:http:prove; assertion:runtime identity + raw business-table read denied; releaseEvidence=false"
+        },
+        {
+          "findingId": "GOV-SCOR-01-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: issue-stage/answer-stage facts are absent; runtime-writable event/question values still reach C-side consumers. INT-TRANSCRIPT-00/01 and a dedicated writer/consumer cutover are required before implementation.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-SCOR-01-002",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Open: no canonical answer artifact, delete-wins ScoreRequest permit, immutable contract/card/evidence chain or scorecard SSE/read contract exists.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-SCOR-EVAL-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Open: free criterion/score output, mutable ledger provenance and missing rubric/measurement/cohort bindings cannot support measurable or comparable scoring.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-WORKER-DISPATCH-001",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "open finding retained.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-ECS-CD-001",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Real clean-host ECS provisioning, legacy takeover, migration, ACR pull and first publication have not been executed; release authorization remains blocked.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-ECS-CD-002",
+          "severity": "P0",
+          "status": "open",
+          "disposition": "Per-phase SIGKILL/reboot, stale-SHA, rollback/forward-only recovery and exact Pages enabled receipt require real environment evidence.",
+          "closureEvidence": null
+        },
+        {
+          "findingId": "GOV-ECS-CD-003",
+          "severity": "P1",
+          "status": "open",
+          "disposition": "Fixed B/C online login, Worker completion, RLS isolation and Chinese high-volume data are implemented as contracts but not yet proven on the online test stack.",
+          "closureEvidence": null
+        }
+      ],
+      "adrPath": "ai-docs/architecture/adr/0018-quality-governance-static-preflight.md",
+      "verificationCommands": [
+        "quality:governance:check",
+        "quality:governance:history:prove",
+        "quality:governance:prove",
+        "quality:traceability:inventory",
+        "quality:traceability:prove"
+      ],
+      "successorOf": "quality-governance-control-plane-v40",
+      "baselineChange": null,
+      "recordDigest": "sha256:8b8a086f636ebc2c2c14e233d0b42effffa357dc752c9875027dc95ad7ad90f1"
     }
   ]
 }

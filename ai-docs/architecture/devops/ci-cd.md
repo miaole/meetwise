@@ -71,3 +71,11 @@ push → [docs|lint|arch|contract|unit|rls|concurrency|graph] 并行
 - **真实模型 ai-eval 不作 PR 硬合并门**（H8：非确定性 flake 会阻断全部合并，且与"secrets 门控"矛盾）→ 移到 **nightly / release-gate**，带阈值 + flake 容忍 + owner；**PR 只跑 fake-model 确定性 fixture**。
 
 DoD：标"已 wired"的每条都是 CI 里真实运行、真能卡住合并的 job；标"计划"的不得在 DoD 里冒充已具备。
+
+## 7. ECS 全栈 GitHub CD 当前实施状态
+
+- 目标流水线：`successful main CI SHA → ACR digest images → ECS forced command → quiesce → migrate → internal compose → synthetic/E2E → signed probe → external verify → confirm → Pages exact receipt`。
+- 2026-08-20 远程 `main` 尚无该 workflow，ECS 也未 provision Compose/controller；状态是候选实现，不是已接入。
+- PR gate 至少要构建两个 Docker image（不 push）并运行状态机行为 proof；纯 regex/includes 不能发现 publish 前 Web 未启动、旧写者未静默或 rollback 过早清理。
+- 部署成功必须同时绑定 GitHub run/head SHA、OCI digests、controller live digest、migration ledger、publication generation、Pages final fingerprint 和公网 E2E receipt。
+- 任一后半程失败必须由持久状态机自动恢复 predecessor 或保持可前滚的 fail-closed maintenance；不得让 workflow 绿而 Pages 仍 disabled，也不得让 workflow 红后无限期停站。

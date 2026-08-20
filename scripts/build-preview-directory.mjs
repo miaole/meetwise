@@ -27,7 +27,7 @@ if (!forceDisabled && manifest.status === 'verified' && ['public-read-only', 'pu
     detail = `<a class="button button-card" href="${href}" rel="noopener noreferrer">进入项目预览版 <span aria-hidden="true">↗</span></a>`;
     version = `release ${manifest.releaseDigest}`;
     updated = `有效至 ${new Date(manifest.expiresAt).toISOString().slice(0, 10)}`;
-    state = 'verified';
+    state = 'enabled';
   } catch {
     // A stale, revoked, malformed, or unverifiable manifest must actively
     // publish the disabled page instead of leaving an older enabled artifact.
@@ -48,7 +48,7 @@ const linkState = {
   schemaVersion: 1,
   state,
   manifestSha256,
-  releaseDigest: state === 'verified' ? manifest.releaseDigest : null,
+  releaseDigest: state === 'enabled' ? manifest.releaseDigest : null,
 };
 await Promise.all([
   writeFile(resolve(outputDir, 'index.html'), html),
