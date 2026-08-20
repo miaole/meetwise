@@ -27678,7 +27678,846 @@
     ],
     "successorOf": "quality-governance-control-plane-v57",
     "baselineChange": null,
-    "recordDigest": "sha256:c5b06c4b7d636148f9d844d184d52fb6ada5e6758f79a3b42450ee78bf1310a7"
+  "recordDigest": "sha256:c5b06c4b7d636148f9d844d184d52fb6ada5e6758f79a3b42450ee78bf1310a7"
+  },
+  {
+    "taskId": "public-text-policy-control-plane-v48",
+    "scopeId": "public-text-policy-control-plane",
+    "revision": 48,
+    "riskLevel": "L3",
+    "status": "blocked",
+    "governedPaths": [
+      ".github/workflows/ci.yml",
+      ".github/workflows/deploy-full-stack.yml",
+      ".github/workflows/pages-preview.yml",
+      ".github/workflows/recover-full-stack.yml",
+      ".github/workflows/rollout-cd-controller.yml",
+      "ai-docs/architecture/adr/0019-public-text-policy-static-governance.md",
+      "ai-docs/architecture/adr/0020-scorecard-authority-and-eligibility.md",
+      "ai-docs/architecture/adr/README.md",
+      "ai-docs/architecture/ai/bailian-nonproduction-rollout.md",
+      "ai-docs/architecture/ai/langgraph-blueprint.md",
+      "ai-docs/architecture/ai/model-operation-routing.md",
+      "ai-docs/architecture/ai/rag-corpus-lifecycle.md",
+      "ai-docs/architecture/ai/rag-funnel-routing.md",
+      "ai-docs/architecture/ai/scoring-measurement-runtime.md",
+      "ai-docs/architecture/current-runtime-truth.md",
+      "ai-docs/architecture/devops/local-demo-deployment.md",
+      "ai-docs/delivery/ecs-full-stack-cd-implementation-plan.md",
+      "ai-docs/delivery/execution-master-checklist.md",
+      "ai-docs/delivery/production-backlog.md",
+      "ai-docs/delivery/production-readiness-remediation-register.md",
+      "ai-docs/requirements/use-cases/application-assessment-terminal.md",
+      "ai-docs/requirements/use-cases/expert-interview-coach-evaluation.md",
+      "ai-docs/requirements/use-cases/expert-long-interview-runtime.md",
+      "ai-docs/requirements/use-cases/interview-question-bank-agent-rag.md",
+      "ai-docs/requirements/use-cases/interview-scoring-measurement.md",
+      "ai-docs/requirements/use-cases/model-operation-routing.md",
+      "ai-docs/requirements/use-cases/public-preview-directory.md",
+      "ai-docs/requirements/use-cases/public-preview-write-gate.md",
+      "ai-docs/requirements/use-cases/quality-assurance-traceability.md",
+      "ai-docs/requirements/use-cases/rag-funnel-intent-routing.md",
+      "ai-docs/testing/strategy/scoring-evaluation-protocol.md",
+      "ai-docs/testing/traceability-baseline.json",
+      "ai-docs/testing/traceability-manifest.json",
+      "apps/api/src/modules/interview/interview.service.ts",
+      "apps/api/src/modules/resume/resume-display.ts",
+      "apps/api/src/modules/resume/resume.service.ts",
+      "apps/web/app/dashboard/page.tsx",
+      "apps/web/app/diagnosis/page.tsx",
+      "apps/web/app/interview/[resultId]/page.tsx",
+      "apps/web/app/interviews/page.tsx",
+      "apps/web/app/jobs/page.tsx",
+      "apps/web/app/quiz/page.tsx",
+      "apps/web/app/report/[id]/page.tsx",
+      "apps/web/app/resume/page.tsx",
+      "apps/web/app/roles/page.tsx",
+      "apps/web/lib/interview/context.ts",
+      "apps/web/lib/interview/progress.ts",
+      "apps/web/lib/resume/display.ts",
+      "ops/ecs/full-stack/cd-controller-files.txt",
+      "ops/ecs/full-stack/full-stack-preview-publisher.mjs",
+      "ops/ecs/full-stack/meetwise-cd-receive.sh",
+      "ops/ecs/full-stack/meetwise-cd-root.sh",
+      "ops/ecs/full-stack/meetwise-full-stack-release-recovery.service",
+      "ops/ecs/full-stack/meetwise-full-stack-release-recovery.timer",
+      "ops/ecs/full-stack/provision-meetwise-cd.sh",
+      "package.json",
+      "packages/contracts/src/index.ts",
+      "packages/db/migrations/0123_user_facing_context_snapshots.sql",
+      "scripts/ai-docs/check-docs.mjs",
+      "scripts/ai-docs/public-text-policy.mjs",
+      "scripts/ai-docs/public-text-policy.proof.mjs",
+      "scripts/ecs-cd-controller-rollout.proof.mjs",
+      "scripts/ecs-full-stack-config.proof.mjs",
+      "scripts/ecs-full-stack-release.proof.mjs",
+      "scripts/ecs-full-stack-transaction.proof.mjs",
+      "scripts/full-stack-preview-publisher.proof.mjs",
+      "scripts/meetwise-cd-receiver.proof.mjs",
+      "scripts/quality-traceability-check.mjs",
+      "scripts/quality-traceability.proof.mjs",
+      "scripts/run-e2e-isolated.mjs"
+    ],
+    "governedPathDigest": "sha256:d7c0509c902a0d57160f8095fe2a1a629e8f5c8d1d30bfd342a8a9359c69e9fd",
+    "harness": {
+      "scope": "Static public-text successor for the legacy systemd ownership read repair: the unique read_legacy_units_json helper performs one exact systemctl show tuple for both snapshot and restore readback, and active/activating/reloading normalize to active so a restarting meetwise-worker is not misclassified before transaction begin; failed, unknown and malformed values remain fail-closed. The root and config proof bind run 32416406153 attempt-2; existing Pages snapshot, bootstrap and terminal-ledger boundaries remain inherited, with no cloud serving or release claim.",
+      "sourceEvidenceIds": [
+        "AUD-CD-CONTROLLER-ROLLOUT-2026-08-20",
+        "AUD-CD-ECS-DEPLOY-ATTEMPT-2-2026-08-20",
+        "AUD-CD-PAGES-BOOTSTRAP-2026-08-20",
+        "AUD-CD-STANDALONE-RECOVERY-2026-08-20",
+        "AUD-ECS-RELEASE-2026-08-14",
+        "AUD-MIGRATION-ATOMICITY-2026-08-20",
+        "AUD-MODEL-OP-DB-2026-08-14",
+        "AUD-MODEL-OP-RUNTIME-2026-08-14",
+        "AUD-PUBLIC-PREVIEW-INGRESS-2026-08-14",
+        "AUD-PUBLIC-TEXT-IDENTIFIER-2026-08-18",
+        "AUD-QBANK-DEFINER-2026-08-14",
+        "AUD-QBANK-DEFINER-CLOSURE-2026-08-14",
+        "AUD-QBANK-EMBED-CACHE-REAUDIT-2026-08-14",
+        "AUD-QBANK-METADATA-SECURITY-REAUDIT-2026-08-14",
+        "AUD-SCOR-DB-REAUDIT-2026-08-13",
+        "AUD-SCOR-MEASURE-REAUDIT-2026-08-13",
+        "ECS-RUN-32410632683-ATTEMPT-2",
+        "ECS-RUN-32413798327-ATTEMPT-2",
+        "ECS-RUN-32416406153-ATTEMPT-2",
+        "SCOR-00-ISOLATED-2026-08-13"
+      ],
+      "outOfScope": [
+        "ECS public deployment",
+        "ECS purchase",
+        "GitHub Pages live deployment",
+        "release approval",
+        "runtime serving claim"
+      ],
+      "domainObjects": [
+        "StaticGovernanceSnapshot"
+      ],
+      "stateMachineEffects": [
+        "Deployment recovery: an exact identity-complete disabled Pages bootstrap receipt maps to generation zero only when its releaseDigest is null and finalFingerprint exactly equals manifestSha256; ordinary enabled or disabled receipts require generation >=1, malformed shapes fail closed, and the durable terminal ledger still wins.",
+        "Deployment recovery: enabled predecessor Pages receipts require a safe generation >=1 and fingerprint equal to the local publication manifest; disabled or none receipts preserve an independent valid fingerprint at generation >=0 and rollback forces the Funnel closed, so stale local verified evidence cannot reopen it.",
+        "Deployment recovery: the unique read_legacy_units_json helper reads LoadState, ActiveState, UnitFileState and Restart once for both snapshot and restore readback; active, activating and reloading normalize to active legacy ownership, while failed, unknown or malformed values fail closed.",
+        "Documentation: RAG-FUNNEL-01A blocks QBank handoff until readers, view, helpers and cache/epoch triggers have a sealed owner/ACL/RLS/fixed-search-path closure.",
+        "Documentation: public text makes no claim of routed serving, production deployment, cloud verification or release evidence.",
+        "Predecessor boundary: legacy release names are accepted only for a confined predecessor directory, while candidate transaction identities retain the strict release pattern.",
+        "Public copy: the directory remains a disabled static preview until a separate verified release manifest permits a destination.",
+        "Release ledger: same-identity replay remains idempotent; a committed or rolled_back ledger is atomically replaced only by a different transaction with a strictly higher generation, while stale or equal generations fail closed.",
+        "Toolchain bootstrap: only the root-owned, integrity-receipted and version-validated prefix may become active; a failed atomic swap restores the validated rollback prefix and fails closed."
+      ],
+      "contractEffects": [
+        "append-only static snapshot",
+        "用户界面以中文业务名称展示简历、岗位面试与候选人投递；内部 id 仅用于路由和提交。"
+      ],
+      "dataEffects": [
+        "公开文案记录绑定 0123 数据库快照迁移后的读取语义；本记录本身不执行云端部署或线上数据写入。"
+      ],
+      "privacySecurityEffects": [
+        "简历名称仅使用 owner-scoped 脱敏结构化字段和上传日期；不读取原文、PII 或内部 id 作为展示文案。"
+      ],
+      "testPlanIds": [
+        "TC-quality-04-E1",
+        "TC-quality-04-E2",
+        "TC-quality-04-E3",
+        "TC-quality-04-E4",
+        "TC-quality-04-E5",
+        "TC-quality-04-E6",
+        "TC-quality-04-main"
+      ],
+      "verificationCommands": [
+        "public-text-policy:prove",
+        "quality:traceability:inventory",
+        "quality:traceability:prove"
+      ],
+      "authorizationConclusion": "blocked"
+    },
+    "harnessDigest": "sha256:3a98b463c95ed4c4a9bef43bf507dbd1c8c44593d494240c31aa16ddf7eac54a",
+    "audit": {
+      "lenses": [
+        "ECS Pages predecessor snapshot audit",
+        "ECS legacy systemd ownership audit",
+        "ECS release and Pages public-copy audit",
+        "ECS terminal ledger rollover audit",
+        "Fastify preview boundary audit",
+        "QBank definer dependency-closure documentation audit",
+        "public-text policy static check"
+      ],
+      "reviewerIds": [
+        "agent-cd-final-state-audit",
+        "agent-ecs-release-audit",
+        "agent-preview-guard-audit",
+        "agent-root-maintenance-self"
+      ],
+      "summary": "Static public-copy review records the shared read_legacy_units_json normalization used by snapshot and restore readback: a restarting meetwise-worker is treated as active legacy ownership only for active, activating and reloading states; failed, unknown or malformed tuples fail closed; run 32416406153 attempt-2 is the source observation, cloud execution remains pending and releaseEvidence=false.",
+      "summaryDigest": "sha256:1167c8b2d7dc71d58526108a6b9a4374bec93c50e9ef0160c16708354bc1bf8e",
+      "decision": "blocked",
+      "reviewScopeDigest": "sha256:8b61cda89ebbb37f2a5e1848ae9c15dffb4bf55873dbeccb9ee7b5cec2ad5984",
+      "reviewedFindingIds": [
+        "GOV-CD-LEGACY-STATE-001",
+        "GOV-CD-PAGES-BOOTSTRAP-001",
+        "GOV-CD-PAGES-SNAPSHOT-001",
+        "GOV-CD-TERMINAL-ROLLOVER-001",
+        "GOV-PTP-001"
+      ],
+      "selfCheckReason": ""
+    },
+    "findings": [
+      {
+        "findingId": "GOV-CD-LEGACY-STATE-001",
+        "severity": "P1",
+        "status": "closed",
+        "disposition": "The shared read_legacy_units_json helper supplies one exact LoadState/ActiveState/UnitFileState/Restart tuple to predecessor snapshot and restore readback; active, activating and reloading normalize to active legacy ownership, while failed, unknown or malformed states fail closed.",
+        "closureEvidence": "source observation:real run:32416406153; attempt:2; observed meetwise-worker restarting loop with ActiveState=activating before transaction begin; behavior proof:node scripts/ecs-full-stack-config.proof.mjs; assertions:shared helper used by snapshot and restore readback, one-show parsing, active normalization for active/activating/reloading, failed remains failed and unknown rejection; releaseEvidence=false"
+      },
+      {
+        "findingId": "GOV-CD-PAGES-BOOTSTRAP-001",
+        "severity": "P1",
+        "status": "closed",
+        "disposition": "A Pages disabled bootstrap receipt with generation=null and releaseDigest=null is accepted only when manifestSha256 is a valid digest and finalFingerprint exactly equals it; that exact shape maps to generation 0, while every other incomplete or mismatched identity fails closed and does not reopen the closed Funnel.",
+        "closureEvidence": "source observation:real run:32410632683; attempt:2; behavior proof:node scripts/ecs-full-stack-release.proof.mjs; assertions:exact disabled bootstrap mapping to generation=0, ordinary Pages generations >=1, and malformed identity rejection; releaseEvidence=false"
+      },
+      {
+        "findingId": "GOV-CD-PAGES-SNAPSHOT-001",
+        "severity": "P1",
+        "status": "closed",
+        "disposition": "Predecessor snapshot restore binds enabled Pages receipts to the local publication fingerprint at generation >=1, while disabled receipts preserve their own valid exact fingerprint at generation >=0 and rollback keeps the Pages state disabled.",
+        "closureEvidence": "source observation:real run:32413798327; attempt:2; observed local old publication fingerprint differing from the current exact disabled Pages bootstrap fingerprint; behavior proof:node scripts/ecs-full-stack-release.proof.mjs; assertions:enabled local-fingerprint binding, disabled independent receipt preservation at generation zero, negative-generation rejection and disabled rollback close; releaseEvidence=false"
+      },
+      {
+        "findingId": "GOV-CD-TERMINAL-ROLLOVER-001",
+        "severity": "P1",
+        "status": "closed",
+        "disposition": "A committed or rolled_back full-stack ledger may be atomically replaced only by a different transaction with a strictly higher generation; same-identity replay remains idempotent and stale or equal generations fail closed.",
+        "closureEvidence": "source observation:real run:32410632683; attempt:2; behavior proof:node scripts/ecs-full-stack-transaction.proof.mjs; assertions:terminal ledger rollover accepts generation+1, rejects stale/equal generations, and reads back the atomic replacement; releaseEvidence=false"
+      },
+      {
+        "findingId": "GOV-PTP-001",
+        "severity": "P1",
+        "status": "closed",
+        "disposition": "prior public-text policy closure retained; QBank dependency-closure status refresh is reviewed.",
+        "closureEvidence": "independent_audit_task:/root/harness_governance_audit (prior policy closure); QBank dependency-closure status reviewed by /root/qbank_metadata_definer_audit; releaseEvidence=false"
+      }
+    ],
+    "adrPath": "ai-docs/architecture/adr/0019-public-text-policy-static-governance.md",
+    "verificationCommands": [
+      "public-text-policy:prove",
+      "quality:traceability:inventory",
+      "quality:traceability:prove"
+    ],
+    "successorOf": "public-text-policy-control-plane-v47",
+    "baselineChange": null,
+    "recordDigest": "sha256:1462f20a3a62a9e99bc2daccf72e67dc9093124079bab88fa1643b181d8adab2"
+  },
+  {
+    "taskId": "quality-governance-control-plane-v59",
+    "scopeId": "quality-governance-control-plane",
+    "revision": 59,
+    "riskLevel": "L3",
+    "status": "blocked",
+    "governedPaths": [
+      ".github/workflows/ci.yml",
+      ".github/workflows/deploy-full-stack.yml",
+      ".github/workflows/governance-history.yml",
+      ".github/workflows/pages-preview.yml",
+      ".github/workflows/recover-full-stack.yml",
+      ".github/workflows/rollout-cd-controller.yml",
+      "ai-docs/architecture/adr/0018-quality-governance-static-preflight.md",
+      "ai-docs/architecture/adr/0020-scorecard-authority-and-eligibility.md",
+      "ai-docs/architecture/adr/README.md",
+      "ai-docs/architecture/ai/bailian-nonproduction-rollout.md",
+      "ai-docs/architecture/ai/langgraph-blueprint.md",
+      "ai-docs/architecture/ai/model-operation-routing.md",
+      "ai-docs/architecture/ai/rag-corpus-lifecycle.md",
+      "ai-docs/architecture/ai/rag-funnel-routing.md",
+      "ai-docs/architecture/ai/scoring-measurement-runtime.md",
+      "ai-docs/architecture/current-runtime-truth.md",
+      "ai-docs/architecture/devops/local-demo-deployment.md",
+      "ai-docs/delivery/ecs-full-stack-cd-implementation-plan.md",
+      "ai-docs/delivery/execution-master-checklist.md",
+      "ai-docs/delivery/production-backlog.md",
+      "ai-docs/delivery/production-readiness-remediation-register.md",
+      "ai-docs/meta/task-sop.md",
+      "ai-docs/requirements/use-cases/application-assessment-terminal.md",
+      "ai-docs/requirements/use-cases/cloud-runtime-and-migration.md",
+      "ai-docs/requirements/use-cases/expert-interview-coach-evaluation.md",
+      "ai-docs/requirements/use-cases/expert-long-interview-runtime.md",
+      "ai-docs/requirements/use-cases/interview-question-bank-agent-rag.md",
+      "ai-docs/requirements/use-cases/interview-scoring-measurement.md",
+      "ai-docs/requirements/use-cases/memory-governance-and-recall.md",
+      "ai-docs/requirements/use-cases/model-operation-routing.md",
+      "ai-docs/requirements/use-cases/public-preview-directory.md",
+      "ai-docs/requirements/use-cases/public-preview-write-gate.md",
+      "ai-docs/requirements/use-cases/quality-assurance-traceability.md",
+      "ai-docs/requirements/use-cases/rag-funnel-intent-routing.md",
+      "ai-docs/requirements/use-cases/worker-event-driven-dispatch.md",
+      "ai-docs/testing/cloud-runtime-migration-test-matrix.md",
+      "ai-docs/testing/strategy/scoring-evaluation-protocol.md",
+      "ai-docs/testing/traceability-baseline.json",
+      "ai-docs/testing/traceability-manifest.json",
+      "apps/api/package.json",
+      "apps/api/src/modules/interview/interview.service.ts",
+      "apps/api/src/modules/resume/resume-display.ts",
+      "apps/api/src/modules/resume/resume.service.ts",
+      "apps/api/test/neg-bend.proof.ts",
+      "apps/api/test/resume-display.proof.ts",
+      "apps/api/test/validate.ts",
+      "apps/web/app/dashboard/page.tsx",
+      "apps/web/app/diagnosis/page.tsx",
+      "apps/web/app/interview/[resultId]/page.tsx",
+      "apps/web/app/interviews/page.tsx",
+      "apps/web/app/jobs/page.tsx",
+      "apps/web/app/quiz/page.tsx",
+      "apps/web/app/report/[id]/page.tsx",
+      "apps/web/app/resume/page.tsx",
+      "apps/web/app/roles/page.tsx",
+      "apps/web/lib/interview/context.ts",
+      "apps/web/lib/interview/progress.ts",
+      "apps/web/lib/resume/display.ts",
+      "apps/web/test/web-logic.proof.ts",
+      "ops/ecs/full-stack/cd-controller-files.txt",
+      "ops/ecs/full-stack/full-stack-preview-publisher.mjs",
+      "ops/ecs/full-stack/meetwise-cd-controller-rollout-recovery.service",
+      "ops/ecs/full-stack/meetwise-cd-receive.sh",
+      "ops/ecs/full-stack/meetwise-cd-root.sh",
+      "ops/ecs/full-stack/meetwise-full-stack-release-recovery.service",
+      "ops/ecs/full-stack/meetwise-full-stack-release-recovery.timer",
+      "ops/ecs/full-stack/provision-meetwise-cd.sh",
+      "package.json",
+      "packages/contracts/src/index.ts",
+      "packages/db/migrations/0123_user_facing_context_snapshots.sql",
+      "packages/db/src/migrate.ts",
+      "packages/db/src/recruiter.ts",
+      "packages/db/test/migrate.proof.ts",
+      "scripts/ecs-cd-controller-rollout.proof.mjs",
+      "scripts/ecs-full-stack-config.proof.mjs",
+      "scripts/ecs-full-stack-release.proof.mjs",
+      "scripts/ecs-full-stack-transaction.proof.mjs",
+      "scripts/full-stack-preview-publisher.proof.mjs",
+      "scripts/meetwise-cd-receiver.proof.mjs",
+      "scripts/prepare-full-stack-release.proof.mjs",
+      "scripts/quality-governance-base-guard.mjs",
+      "scripts/quality-governance-base-guard.proof.mjs",
+      "scripts/quality-governance-check.mjs",
+      "scripts/quality-governance.proof.mjs",
+      "scripts/quality-traceability-check.mjs",
+      "scripts/quality-traceability.proof.mjs",
+      "scripts/run-e2e-isolated.mjs"
+    ],
+    "governedPathDigest": "sha256:67f896d5cfe078f743126a10bab31b7730c260951ef19c6f267ab399d20462ba",
+    "harness": {
+      "scope": "Static quality-governance successor for the legacy systemd ownership read repair: the unique read_legacy_units_json helper parses one exact systemctl show tuple for both snapshot and restore readback; active/activating/reloading normalize to active legacy ownership so a restarting meetwise-worker is not misclassified before transaction begin, while failed, unknown or malformed values remain fail-closed. The root and config proof bind run 32416406153 attempt 2; existing Pages snapshot, bootstrap and terminal-ledger boundaries remain inherited and all other release/cloud evidence remains unclaimed.",
+      "sourceEvidenceIds": [
+        "AUD-CD-ECS-DEPLOY-ATTEMPT-2-2026-08-20",
+        "AUD-CD-FINAL-STATE-2026-08-20",
+        "AUD-CD-PAGES-BOOTSTRAP-2026-08-20",
+        "AUD-CD-STANDALONE-RECOVERY-2026-08-20",
+        "AUD-ECS-RELEASE-2026-08-14",
+        "AUD-GOVERNANCE-KEYS-2026-08-18",
+        "AUD-MIGRATION-ATOMICITY-2026-08-20",
+        "AUD-MODEL-OP-DB-2026-08-14",
+        "AUD-MODEL-OP-RUNTIME-2026-08-14",
+        "AUD-PUBLIC-PREVIEW-INGRESS-2026-08-14",
+        "AUD-QBANK-DEFINER-2026-08-14",
+        "AUD-QBANK-DEFINER-CLOSURE-2026-08-14",
+        "AUD-QBANK-EMBED-CACHE-REAUDIT-2026-08-14",
+        "AUD-QBANK-METADATA-SECURITY-REAUDIT-2026-08-14",
+        "AUD-SCOR-DB-REAUDIT-2026-08-13",
+        "AUD-SCOR-MEASURE-REAUDIT-2026-08-13",
+        "ECS-RUN-32410632683-ATTEMPT-2",
+        "ECS-RUN-32413798327-ATTEMPT-2",
+        "ECS-RUN-32416406153-ATTEMPT-2",
+        "SCOR-00-ISOLATED-2026-08-13"
+      ],
+      "outOfScope": [
+        "ECS public deployment",
+        "ECS purchase",
+        "GitHub Pages live deployment",
+        "release approval",
+        "runtime serving claim"
+      ],
+      "domainObjects": [
+        "StaticGovernanceSnapshot"
+      ],
+      "stateMachineEffects": [
+        "Deployment recovery: an exact identity-complete disabled Pages bootstrap receipt maps to generation zero only when its releaseDigest is null and finalFingerprint exactly equals manifestSha256; ordinary enabled or disabled receipts require generation >=1, malformed shapes fail closed and the durable terminal ledger still wins.",
+        "Deployment recovery: enabled predecessor Pages receipts require a safe generation >=1 and fingerprint equal to the local publication manifest; disabled or none receipts preserve an independent valid fingerprint at generation >=0 and rollback forces the Funnel closed, so stale local verified evidence cannot reopen it.",
+        "Deployment recovery: the unique read_legacy_units_json helper reads LoadState, ActiveState, UnitFileState and Restart once for both snapshot and restore readback; active, activating and reloading normalize to active legacy ownership, while failed, unknown or malformed values fail closed.",
+        "Documentation: MODEL-OP and cloud-test findings remain retained and blocked; this successor makes no runtime or release transition.",
+        "Documentation: RAG-FUNNEL-01 remains P0 blocked on MetadataReviewReceipt, complete metadata facets and a real low-privilege handoff/restart composition root; no routed serving or release claim is authorized.",
+        "Documentation: RAG-FUNNEL-01A is blocked until a sealed directory dependency manifest validates owner, exact ACL, RLS and fixed search_path for control writers, bounded readers, helpers, view and cache/epoch triggers.",
+        "Pages bootstrap identity: disabled generation-zero receipt handling prevents a closed Funnel from becoming a pre-generation self-lock while preserving fail-closed validation of every other shape.",
+        "Predecessor boundary: legacy release names are accepted only for a confined predecessor directory, while candidate transaction identities retain the strict release pattern.",
+        "PublicPreview: static directory remains link-disabled; public listener is blocked pending verified release manifest.",
+        "Release ledger: same-identity replay remains idempotent; a committed or rolled_back ledger is atomically replaced only by a different transaction with a strictly higher generation, while stale or equal generations fail closed.",
+        "Toolchain bootstrap: only the root-owned, integrity-receipted and version-validated prefix may become active; a failed atomic swap restores the validated rollback prefix and fails closed."
+      ],
+      "contractEffects": [
+        "Pages artifact is preview-site only; public ingress allowlists GET, HEAD and OPTIONS.",
+        "append-only static snapshot",
+        "用户界面以中文业务名称展示简历、岗位面试与候选人投递；内部 id 仅用于路由和提交。"
+      ],
+      "dataEffects": [
+        "0123 对 job_application/interview 执行 expand/backfill；新增岗位标题快照、interview.created_at 与数据库来源/不可变触发器。",
+        "运行时申请和岗位面试写入数据库派生标题快照；现有业务状态机、原始简历与模型数据不改写。"
+      ],
+      "privacySecurityEffects": [
+        "简历名称不读取原文或内部 id，仅使用 owner-scoped 已清洗结构化字段；岗位标题快照由数据库从受信岗位/申请派生并冻结，RLS 仍阻止第三方读取。"
+      ],
+      "testPlanIds": [
+        "TC-quality-03-E1",
+        "TC-quality-03-E2",
+        "TC-quality-03-E3",
+        "TC-quality-03-E4",
+        "TC-quality-03-E5",
+        "TC-quality-03-E6",
+        "TC-quality-03-main"
+      ],
+      "verificationCommands": [
+        "quality:governance:check",
+        "quality:governance:history:prove",
+        "quality:governance:prove",
+        "quality:traceability:inventory",
+        "quality:traceability:prove"
+      ],
+      "authorizationConclusion": "blocked"
+    },
+    "harnessDigest": "sha256:e63c42ab6072f8ef2f7cfc6fab74165735a43a701f02e34c642993f9e8170c20",
+    "audit": {
+      "lenses": [
+        "ECS Pages bootstrap receipt audit",
+        "ECS Pages predecessor snapshot audit",
+        "ECS legacy systemd ownership audit",
+        "ECS real deploy-attempt pre-mutation audit",
+        "ECS release and Pages deployment audit",
+        "ECS standalone recovery workflow audit",
+        "ECS terminal ledger rollover audit",
+        "Fastify public-preview ingress audit",
+        "QBank definer ACL and partition ownership audit",
+        "QBank definer dependency-closure audit",
+        "QBank embedding compute-cache audit",
+        "QBank metadata and low-privilege deployment audit",
+        "database state-machine and concurrency audit",
+        "runtime operation-registry and provider-egress audit",
+        "static documentation consistency"
+      ],
+      "reviewerIds": [
+        "agent-cd-final-state-audit",
+        "agent-ecs-release-audit",
+        "agent-preview-guard-audit",
+        "agent-root-maintenance-self"
+      ],
+      "summary": "Expert-audited append-only successor for the legacy systemd ownership boundary: the unique read_legacy_units_json helper supplies one exact LoadState/ActiveState/UnitFileState/Restart read to both snapshot and restore readback, normalizing active, activating and reloading legacy ownership to active while leaving failed unpromoted; unknown or malformed tuples fail closed. Run 32416406153 attempt-2 observed the restarting worker before transaction begin; root/config assertions bind the repair, while cloud execution and release evidence remain unclaimed.",
+      "summaryDigest": "sha256:e15255318af19046685096ac73d50d38babb43f26af373f06ae42464f8f1c330",
+      "decision": "blocked",
+      "reviewScopeDigest": "sha256:8af452a5bc38110f777a526fcbe8b34335481863c9a6632bc0307b3e8507eb58",
+      "reviewedFindingIds": [
+        "GOV-CD-CURRENT-TARGET-001",
+        "GOV-CD-DEPLOY-PRE-MUTATION-001",
+        "GOV-CD-LEASE-TIMER-001",
+        "GOV-CD-LEGACY-STATE-001",
+        "GOV-CD-NOUNSET-PATH-001",
+        "GOV-CD-PAGES-BOOTSTRAP-001",
+        "GOV-CD-PAGES-SNAPSHOT-001",
+        "GOV-CD-PNPM-PREFIX-001",
+        "GOV-CD-STANDALONE-RECOVERY-001",
+        "GOV-CD-TERMINAL-ROLLOVER-001",
+        "GOV-CLOUD-TEST-RECOVERY-001",
+        "GOV-CLOUD-TEST-RECOVERY-002",
+        "GOV-CLOUD-TEST-RECOVERY-003",
+        "GOV-INT-TRANSCRIPT-001",
+        "GOV-INT-TRANSCRIPT-002",
+        "GOV-INT-TRANSCRIPT-003",
+        "GOV-INT-TRANSCRIPT-004",
+        "GOV-INT-TRANSCRIPT-005",
+        "GOV-INT-TRANSCRIPT-006",
+        "GOV-MODEL-NODE-QUOTA-001",
+        "GOV-MODEL-NODE-QUOTA-002",
+        "GOV-MODEL-NODE-QUOTA-003",
+        "GOV-MODEL-NODE-QUOTA-004",
+        "GOV-MODEL-NODE-QUOTA-005",
+        "GOV-MODEL-OP-BACKUP-001",
+        "GOV-MODEL-OP-BINDING-001",
+        "GOV-MODEL-OP-DB-STATE-001",
+        "GOV-MODEL-OP-HEADER-001",
+        "GOV-MODEL-OP-NATIVE-ATTEMPT-001",
+        "GOV-MODEL-OP-NATIVE-SECRET-001",
+        "GOV-MODEL-OP-OCR-NONPROD-001",
+        "GOV-MODEL-OP-PROVIDER-001",
+        "GOV-MODEL-OP-REGISTRY-001",
+        "GOV-PUBLIC-PREVIEW-001",
+        "GOV-QG-001",
+        "GOV-RAG-EMBED-CACHE-001",
+        "GOV-RAG-EMBED-CACHE-002",
+        "GOV-RAG-EMBED-CACHE-003",
+        "GOV-RAG-FUNNEL-001",
+        "GOV-RAG-FUNNEL-002",
+        "GOV-RAG-FUNNEL-003",
+        "GOV-RAG-FUNNEL-004",
+        "GOV-RAG-FUNNEL-005",
+        "GOV-SCOR-00-001",
+        "GOV-SCOR-00-002",
+        "GOV-SCOR-01-001",
+        "GOV-SCOR-01-002",
+        "GOV-SCOR-EVAL-001",
+        "GOV-WORKER-DISPATCH-001"
+      ],
+      "selfCheckReason": ""
+    },
+    "findings": [
+      {
+        "findingId": "GOV-CD-CURRENT-TARGET-001",
+        "severity": "P1",
+        "status": "closed",
+        "disposition": "Rollback predecessor capture must not persist an unconfined legacy absolute current target; exact RELEASES_ROOT children normalize to releases/<id> and other absolute or escaping targets fail closed.",
+        "closureEvidence": "command:node scripts/ecs-full-stack-release.proof.mjs; assertion:legacy current-target normalization and predecessor_current_target_invalid guard bound to root installer bytes; releaseEvidence=false"
+      },
+      {
+        "findingId": "GOV-CD-DEPLOY-PRE-MUTATION-001",
+        "severity": "P1",
+        "status": "closed",
+        "disposition": "The real ECS deploy attempt 2 stopped before external mutation when the legacy predecessor target did not satisfy the candidate release identity. The root now accepts only the bounded legacy predecessor form at snapshot/restore, confines it to the exact releases root and requires a real non-symlink directory; candidate transaction identities remain strict.",
+        "closureEvidence": "ECS deploy attempt 2 pre-mutation observation; command:node scripts/ecs-full-stack-release.proof.mjs; assertions:legacy/new predecessor normalization, malformed/absolute/escaping rejection and missing/symlink directory rejection; releaseEvidence=false"
+      },
+      {
+        "findingId": "GOV-CD-LEASE-TIMER-001",
+        "severity": "P1",
+        "status": "closed",
+        "disposition": "Periodic/root recovery must not mutate a transaction while a valid active lease is held; active leases remain read-only and unknown/expired leases follow the idempotent phase recovery policy.",
+        "closureEvidence": "command:node scripts/ecs-full-stack-transaction.proof.mjs; assertions:concurrent active-lease decisions remain non-mutating plus expired/legacy routing; releaseEvidence=false"
+      },
+      {
+        "findingId": "GOV-CD-LEGACY-STATE-001",
+        "severity": "P1",
+        "status": "closed",
+        "disposition": "The shared read_legacy_units_json helper supplies one exact LoadState/ActiveState/UnitFileState/Restart tuple to predecessor snapshot and restore readback; active, activating and reloading normalize to active legacy ownership, while failed, unknown or malformed states fail closed.",
+        "closureEvidence": "source observation:real run:32416406153; attempt:2; observed meetwise-worker restarting loop with ActiveState=activating before transaction begin; behavior proof:node scripts/ecs-full-stack-config.proof.mjs; assertions:shared helper used by snapshot and restore readback, one-show parsing, active normalization for active/activating/reloading, failed remains failed and unknown rejection; releaseEvidence=false"
+      },
+      {
+        "findingId": "GOV-CD-NOUNSET-PATH-001",
+        "severity": "P1",
+        "status": "closed",
+        "disposition": "Root snapshot/restore/clear and controller snapshot/receipt path variables must not expand dependent identifiers in the same local declaration under set -u; paths are assigned only after identifier locals exist.",
+        "closureEvidence": "command:node scripts/ecs-full-stack-release.proof.mjs; assertions:unsafe dependent same-line local initialization is rejected for transaction and controller paths; releaseEvidence=false"
+      },
+      {
+        "findingId": "GOV-CD-PAGES-BOOTSTRAP-001",
+        "severity": "P1",
+        "status": "closed",
+        "disposition": "A Pages disabled bootstrap receipt with generation=null and releaseDigest=null is accepted only when manifestSha256 is a valid digest and finalFingerprint exactly equals it; that exact shape maps to generation 0, while every other incomplete or mismatched identity fails closed and does not reopen the closed Funnel.",
+        "closureEvidence": "real run:32410632683; attempt:2; observed pre-generation failure before a trusted publication generation existed; command:node scripts/ecs-full-stack-release.proof.mjs; assertions:exact disabled bootstrap mapping to generation=0 plus enabled/releaseDigest/fingerprint/digest-shape rejection; releaseEvidence=false"
+      },
+      {
+        "findingId": "GOV-CD-PAGES-SNAPSHOT-001",
+        "severity": "P1",
+        "status": "closed",
+        "disposition": "Predecessor snapshot restore binds enabled Pages receipts to the local publication fingerprint at generation >=1, while disabled receipts preserve their own valid exact fingerprint at generation >=0 and rollback keeps the Pages state disabled.",
+        "closureEvidence": "source observation:real run:32413798327; attempt:2; observed local old publication fingerprint differing from the current exact disabled Pages bootstrap fingerprint; behavior proof:node scripts/ecs-full-stack-release.proof.mjs; assertions:enabled local-fingerprint binding, disabled independent receipt preservation at generation zero, negative-generation rejection and disabled rollback close; releaseEvidence=false"
+      },
+      {
+        "findingId": "GOV-CD-PNPM-PREFIX-001",
+        "severity": "P1",
+        "status": "closed",
+        "disposition": "The trusted root-owned pnpm prefix must be integrity/version validated before accessibility normalization, with traversable directories and readable package files for the low-privilege installer and a 0755 newly provisioned prefix.",
+        "closureEvidence": "command:node scripts/ecs-full-stack-release.proof.mjs; assertions:prefix content validation, root-owned accessibility modes, 0755 stage prefix and low-privilege find checks; releaseEvidence=false"
+      },
+      {
+        "findingId": "GOV-CD-STANDALONE-RECOVERY-001",
+        "severity": "P1",
+        "status": "closed",
+        "disposition": "Standalone and in-run Pages recovery must not depend on the runner having a Git checkout; every Pages dispatch now names GITHUB_REPOSITORY explicitly and the release proof binds both recovery workflows.",
+        "closureEvidence": "ECS standalone-recovery observation: gh workflow run without checkout failed with not a git repository; command:node scripts/ecs-full-stack-release.proof.mjs; assertions:--repo binding in deploy/recover workflows and no checkout/Docker path in standalone recovery; releaseEvidence=false"
+      },
+      {
+        "findingId": "GOV-CD-TERMINAL-ROLLOVER-001",
+        "severity": "P1",
+        "status": "closed",
+        "disposition": "A committed or rolled_back full-stack ledger may be atomically replaced only by a different transaction with a strictly higher generation; same-identity replay remains idempotent and stale or equal generations fail closed.",
+        "closureEvidence": "source observation:real run:32410632683; attempt:2; behavior proof:node scripts/ecs-full-stack-transaction.proof.mjs; assertions:terminal ledger rollover accepts generation+1, rejects stale/equal generations, and reads back the atomic replacement; releaseEvidence=false"
+      },
+      {
+        "findingId": "GOV-CLOUD-TEST-RECOVERY-001",
+        "severity": "P0",
+        "status": "open",
+        "disposition": "open finding retained.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-CLOUD-TEST-RECOVERY-002",
+        "severity": "P1",
+        "status": "open",
+        "disposition": "open finding retained.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-CLOUD-TEST-RECOVERY-003",
+        "severity": "P1",
+        "status": "open",
+        "disposition": "open finding retained.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-INT-TRANSCRIPT-001",
+        "severity": "P0",
+        "status": "open",
+        "disposition": "Deletion authorization, target resolution and per-sink receipt/read-zero are unavailable; real-user transcript writes must remain disabled.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-INT-TRANSCRIPT-002",
+        "severity": "P0",
+        "status": "open",
+        "disposition": "Raw answers currently enter plaintext interview_job payload; a ref-only queue and encrypted canonical artifact contract are not implemented.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-INT-TRANSCRIPT-003",
+        "severity": "P0",
+        "status": "open",
+        "disposition": "A response-lost or re-login submit has no durable client submission key, receipt replay or winner lookup.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-INT-TRANSCRIPT-004",
+        "severity": "P0",
+        "status": "open",
+        "disposition": "Late model output lacks a post-dispatch authorization/output-projection permit, and level scoring lacks immutable rubric and evidence gates.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-INT-TRANSCRIPT-005",
+        "severity": "P1",
+        "status": "open",
+        "disposition": "Snapshot/SSE linearization, route/blueprint/version freezes, owner-only scope and long-runtime completion remain specification work pending the P0 foundation.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-INT-TRANSCRIPT-006",
+        "severity": "P0",
+        "status": "open",
+        "disposition": "No independent PrivacyAuthorizationIssuer, key/JTI consumption ledger or deployment provisioning exists; AUTH_SECRET, runtime SQL, worker/deleter and GUC identities cannot authorize deletion or real-user transcript writes.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-MODEL-NODE-QUOTA-001",
+        "severity": "P0",
+        "status": "open",
+        "disposition": "source retry removal is not the required database slot/fence.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-MODEL-NODE-QUOTA-002",
+        "severity": "P1",
+        "status": "open",
+        "disposition": "open finding retained.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-MODEL-NODE-QUOTA-003",
+        "severity": "P1",
+        "status": "open",
+        "disposition": "open finding retained.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-MODEL-NODE-QUOTA-004",
+        "severity": "P1",
+        "status": "open",
+        "disposition": "open finding retained.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-MODEL-NODE-QUOTA-005",
+        "severity": "P1",
+        "status": "open",
+        "disposition": "open finding retained.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-MODEL-OP-BACKUP-001",
+        "severity": "P1",
+        "status": "open",
+        "disposition": "Open: a half-open follower with a distinct cost policy fails closed, so current tests do not prove a real priced backup replacement path.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-MODEL-OP-BINDING-001",
+        "severity": "P1",
+        "status": "open",
+        "disposition": "Open: header and matching reservation do not prove the frozen provider/model/region/price revision relationship.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-MODEL-OP-DB-STATE-001",
+        "severity": "P0",
+        "status": "open",
+        "disposition": "Open: 0085 only guards a claimed-to-dispatching UPDATE; low-privilege raw SQL can insert dispatching, forge terminal state, or mutate invocation identity.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-MODEL-OP-HEADER-001",
+        "severity": "P1",
+        "status": "open",
+        "disposition": "Open: different keys concurrently creating one logical-node header can end in a uniqueness failure instead of deterministic canonical admission.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-MODEL-OP-NATIVE-ATTEMPT-001",
+        "severity": "P1",
+        "status": "open",
+        "disposition": "Open: direct voice, embedding and streaming paths remain outside durable attempt, admission, unknown and deletion semantics.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-MODEL-OP-NATIVE-SECRET-001",
+        "severity": "P0",
+        "status": "open",
+        "disposition": "Open: API and Worker broad native credentials are not operation-level secret isolation; split runtime secret surfaces and later use a gateway-only holder.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-MODEL-OP-OCR-NONPROD-001",
+        "severity": "P0",
+        "status": "open",
+        "disposition": "Open: OCR is kill-switched only in production/enforce; nonproduction may route resume images through an unbound text client.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-MODEL-OP-PROVIDER-001",
+        "severity": "P0",
+        "status": "open",
+        "disposition": "Open: native provider endpoints and constructor overrides are not a fixed typed allowlist, so a misconfigured egress target can receive a bearer credential.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-MODEL-OP-REGISTRY-001",
+        "severity": "P0",
+        "status": "open",
+        "disposition": "Open: catalog is not the sole resolver and caller-controlled model, service and logical-node identity can bypass an operation binding.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-PUBLIC-PREVIEW-001",
+        "severity": "P1",
+        "status": "open",
+        "disposition": "Static Pages and local ingress proof do not establish an ECS release manifest, private API topology, HTTPS health evidence or a verified main-project destination; the static directory must retain disabled main links.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-QG-001",
+        "severity": "P1",
+        "status": "closed",
+        "disposition": "prior static closure retained.",
+        "closureEvidence": "independent_audit_task:/root/harness_governance_audit; staticGates:quality:governance:prove,quality:governance:history:prove,quality:governance:check,quality:traceability:prove,quality:traceability:inventory,docs:check,public-text-policy:prove; releaseEvidence=false"
+      },
+      {
+        "findingId": "GOV-RAG-EMBED-CACHE-001",
+        "severity": "P0",
+        "status": "open",
+        "disposition": "Open: generation embedding lacks durable fill intent, leader/slot/cost reservation and unknown-no-retry semantics; Redis locking alone cannot prevent duplicate provider billing.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-RAG-EMBED-CACHE-002",
+        "severity": "P0",
+        "status": "open",
+        "disposition": "Open: exact recipe/input identity must include actual deployment/region and executed canonicalization; a Redis vector needs finite dimension checks and complete payload HMAC before any generation write or activation.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-RAG-EMBED-CACHE-003",
+        "severity": "P1",
+        "status": "open",
+        "disposition": "Open: immutable scope projection, verifiable MetadataReviewReceipt, build leadership, deletion purge receipts and real-Tair failure evidence are absent; the first cache slice remains restricted to global approved QBank.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-RAG-FUNNEL-001",
+        "severity": "P0",
+        "status": "open",
+        "disposition": "Metadata has not entered generation, ANN, lexical, RRF, cache or evidence as an immutable leaf projection; Node/Java/Go/Python routed serving and wrong_track=0 claims remain blocked.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-RAG-FUNNEL-002",
+        "severity": "P0",
+        "status": "open",
+        "disposition": "Open: candidate source now provisions the fixed NOLOGIN definer and migration CLI post-flight, but there is no current low-privilege PostgreSQL composition/restart proof; deployment remains blocked.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-RAG-FUNNEL-003",
+        "severity": "P1",
+        "status": "open",
+        "disposition": "Executor annotation lacks reviewer or issuer identity, policy/facet binding, revocation and receipt semantics; it must not be called a human metadata review.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-RAG-FUNNEL-004",
+        "severity": "P0",
+        "status": "open",
+        "disposition": "Open: candidate source now normalizes exact function/table/column/default ACL and generation partition/index ownership, but bounded readers, security-definer view, lexical helper and pool/cache/epoch triggers remain outside the owner/ACL/RLS/fixed-search-path dependency closure. Handoff may make control or serving fail 42501; RAG-FUNNEL-01A and a real low-privilege composition root are required.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-RAG-FUNNEL-005",
+        "severity": "P1",
+        "status": "open",
+        "disposition": "Open: a future migration that replaces a function already owned by the fixed definer has no reviewed authoring/role-switch contract; do not relax the handoff gate or call later migration deployment safe.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-SCOR-00-001",
+        "severity": "P1",
+        "status": "closed",
+        "disposition": "Full-migration Nest/Fastify SCOR-00 proof verifies aggregate event, queue, consumption, report, assessment and application deltas are zero for all legacy calls.",
+        "closureEvidence": "command:pnpm scor-00:http:prove; result:2026-08-13 full 87-migration isolated PostgreSQL, independent NOINHERIT runtime login, C/B replay/concurrency/cross-owner zero side effects; releaseEvidence=false"
+      },
+      {
+        "findingId": "GOV-SCOR-00-002",
+        "severity": "P1",
+        "status": "closed",
+        "disposition": "The same proof confirms the HTTP application current_user is a separately provisioned NOINHERIT runtime login and direct business-table read is rejected.",
+        "closureEvidence": "command:pnpm scor-00:http:prove; assertion:runtime identity + raw business-table read denied; releaseEvidence=false"
+      },
+      {
+        "findingId": "GOV-SCOR-01-001",
+        "severity": "P0",
+        "status": "open",
+        "disposition": "Open: issue-stage/answer-stage facts are absent; runtime-writable event/question values still reach C-side consumers. INT-TRANSCRIPT-00/01 and a dedicated writer/consumer cutover are required before implementation.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-SCOR-01-002",
+        "severity": "P1",
+        "status": "open",
+        "disposition": "Open: no canonical answer artifact, delete-wins ScoreRequest permit, immutable contract/card/evidence chain or scorecard SSE/read contract exists.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-SCOR-EVAL-001",
+        "severity": "P0",
+        "status": "open",
+        "disposition": "Open: free criterion/score output, mutable ledger provenance and missing rubric/measurement/cohort bindings cannot support measurable or comparable scoring.",
+        "closureEvidence": null
+      },
+      {
+        "findingId": "GOV-WORKER-DISPATCH-001",
+        "severity": "P1",
+        "status": "open",
+        "disposition": "open finding retained.",
+        "closureEvidence": null
+      }
+    ],
+    "adrPath": "ai-docs/architecture/adr/0018-quality-governance-static-preflight.md",
+    "verificationCommands": [
+      "quality:governance:check",
+      "quality:governance:history:prove",
+      "quality:governance:prove",
+      "quality:traceability:inventory",
+      "quality:traceability:prove"
+    ],
+    "successorOf": "quality-governance-control-plane-v58",
+    "baselineChange": null,
+    "recordDigest": "sha256:d7247638a9cdb0508c779dd9362f28edbb1002dfa13fe99a330fc76783fa13e3"
   }
 ]
 }
