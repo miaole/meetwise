@@ -119,7 +119,10 @@ with_controller_lock() {
   fi
   [[ "$(stat -c '%u:%g:%a' "$lock_path" 2>/dev/null || true)" == '0:0:600' ]] || die full_stack_controller_lock_invalid
   exec 9>>"$lock_path"
-  flock -n 9 || die full_stack_controller_busy 75
+  # The boot-persistent recovery timer uses the same lock for a short CAS
+  # read.  Wait a bounded interval so a legitimate transaction command does
+  # not fail merely because that read overlapped its SSH arrival.
+  flock -w 15 9 || die full_stack_controller_busy 75
   export MEETWISE_FULL_STACK_PUBLICATION_LOCK_FD=9
 }
 

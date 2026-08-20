@@ -1114,6 +1114,15 @@ jobs:
             timeout --signal=TERM --kill-after=5s "${left}s" "$@"
           }
           status_json="$(bounded ssh meetwise-ecs "meetwise-cd transaction status $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN")"
+          observed_phase="$(printf '%s' "$status_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{const p=JSON.parse(s).phase;if(typeof p!=="string")process.exit(2);process.stdout.write(p)})')" || { echo 'release recovery status has no phase' >&2; exit 1; }
+          if [ "$observed_phase" = committed ]; then
+            committed_identity="$(printf '%s' "$status_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{const v=JSON.parse(s);const f=v?.candidate?.finalManifestFingerprint;const p=v?.candidate?.pagesFingerprint;if(!Number.isSafeInteger(v.generation)||v.generation<1||!/^[a-f0-9]{64}$/.test(f??"")||p!==f)process.exit(2);process.stdout.write(`${v.generation} ${f}`)})')" || { echo 'committed release Pages identity is invalid' >&2; exit 1; }
+            read -r committed_generation committed_fingerprint <<<"$committed_identity"
+            state="$(bounded curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 10 "https://miaole.github.io/meetwise/preview-link-state.json?generation=$committed_generation&manifest=$committed_fingerprint")"
+            env STATE="$state" GEN="$committed_generation" FP="$committed_fingerprint" node -e 'const v=JSON.parse(process.env.STATE);if(v.state!=="enabled"||String(v.generation)!==process.env.GEN||v.manifestSha256!==process.env.FP||v.finalFingerprint!==process.env.FP)process.exit(1)' || { echo 'committed release is not exact-enabled on Pages' >&2; exit 1; }
+            echo 'release already committed with its exact enabled Pages receipt; recovery is a read-only no-op'
+            exit 0
+          fi
           predecessor_pages="$(printf '%s' "$status_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{const p=JSON.parse(s)?.predecessor?.pages;if(!p||!["enabled","disabled","none"].includes(p.state))process.exit(2);if(p.state==="enabled"&&(!Number.isSafeInteger(p.generation)||p.generation<1||!/^[a-f0-9]{64}$/.test(p.fingerprint??"")))process.exit(2);if(p.state==="disabled"&&(!Number.isSafeInteger(p.generation)||p.generation<0||!/^[a-f0-9]{64}$/.test(p.fingerprint??"")))process.exit(2);process.stdout.write(`${p.state}\t${p.generation??0}\t${p.fingerprint??""}`)}catch{process.exit(2)}})')" || { echo 'predecessor Pages identity missing from durable ledger' >&2; exit 1; }
           pages_identity="$(printf '%s' "$status_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{const v=JSON.parse(s);const f=v?.candidate?.finalManifestFingerprint;if(!/^[a-f0-9]{64}$/.test(f??"")||!Number.isSafeInteger(v.generation)||v.generation<1)process.exit(2);process.stdout.write(`${v.generation} ${f}`)}catch{process.exit(2)}})')" || pages_identity=''
           if [ -n "$pages_identity" ]; then
@@ -1130,8 +1139,12 @@ jobs:
             done
             test "$disabled" = 1 || { echo 'exact Pages disabled recovery receipt missing' >&2; exit 1; }
           fi
-          bounded ssh meetwise-ecs "meetwise-cd transaction recover $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN"
-          terminal_json="$(bounded ssh meetwise-ecs "meetwise-cd transaction status $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN")"
+          if [[ "$observed_phase" == rolled_back || "$observed_phase" == forward_only_maintenance ]]; then
+            terminal_json="$status_json"
+          else
+            bounded ssh meetwise-ecs "meetwise-cd transaction recover $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN"
+            terminal_json="$(bounded ssh meetwise-ecs "meetwise-cd transaction status $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN")"
+          fi
           terminal_phase="$(printf '%s' "$terminal_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{const p=JSON.parse(s).phase;if(!["rolled_back","forward_only_maintenance"].includes(p))process.exit(2);process.stdout.write(p)})')" || { echo 'release recovery did not reach a terminal phase' >&2; exit 1; }
           IFS=$'\t' read -r predecessor_state predecessor_generation predecessor_fingerprint <<<"$predecessor_pages"
           if [ "$terminal_phase" = rolled_back ] && [ "$predecessor_state" = enabled ]; then
