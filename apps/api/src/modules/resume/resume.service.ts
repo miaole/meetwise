@@ -11,6 +11,7 @@ import type { UploadResumeDto, UploadResumeFileDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
 import { RateLimitService } from '../../platform/rate-limit.service';
 import { isOcrFeatureEnabled } from './ocr-model-client.ts';
+import { resumeDisplayName } from './resume-display.ts';
 
 const MAX_RESUME_BYTES = 8 * 1024 * 1024;   // 8MB 上限(防大文件 DoS)
 const MAX_RESUME_TEXT = 60_000;             // 提取文本末线(对齐文本路径契约;防解压炸弹/超大文档提取出 MB 级文本无界落库+喂模型,安全审计 F3)
@@ -160,8 +161,20 @@ export class ResumeService {
 
   list(principal: string) {
     return this.db.asPrincipal(principal, async (c: any) => {
-      const r = await c.query('SELECT id, status FROM resume ORDER BY id');   // RLS:只己见
-      return { resumes: r.rows };
+      const r = await c.query(`
+        SELECT r.id, r.status, r.created_at, r.content_sha,
+          rp.structured #>> '{experience,0,text}' AS experience_hint,
+          rp.structured #>> '{skills,0,text}' AS skill_hint
+        FROM resume r
+        LEFT JOIN resume_profile rp ON rp.resume_id=r.id AND rp.owner_user_id=r.owner_user_id
+        ORDER BY r.created_at DESC, r.id`);   // RLS:只己见
+      return {
+        resumes: r.rows.map((row: any) => ({
+          id: row.id,
+          status: row.status,
+          display_name: resumeDisplayName(row),
+        })),
+      };
     });
   }
 

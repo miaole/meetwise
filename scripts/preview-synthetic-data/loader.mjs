@@ -1,25 +1,70 @@
 #!/usr/bin/env node
 import { createHmac } from 'node:crypto';
-import { chmodSync, closeSync, fstatSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, statSync, writeFileSync } from 'node:fs';
+import { chmodSync, closeSync, fstatSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, realpathSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { buildLongResume, buildPlan, sha256 } from './catalog.mjs';
+import { FIXED_PREVIEW_ACCOUNTS, buildLongResume, buildPlan, sha256 } from './catalog.mjs';
+import { buildVerifierProcessEnv, EXPECTED_DATABASE, EXPECTED_ROLE, forbiddenGenericDatabaseEnv } from './verifier-env.mjs';
 
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost', '::1']);
 const STATE_ROOT = '/var/lib/meetwise-preview-synthetic';
 const SEED_FILE = '/etc/meetwise/preview-synthetic.seed';
 const TARGET_FILE = '/etc/meetwise/preview-synthetic-target.json';
 const API_BASE_URL = 'http://127.0.0.1:8787';
+// 降权执行（P0-1 修复）：tarball 合成脚本改由 meetwise-synthetic（uid/gid 2001，provision 固定）
+// 运行，不再强制 root。root 与 meetwise-synthetic 同为可信执行者；其余 uid 一律拒绝，
+// 防被任意低权限进程（如 web 容器逃逸）冒充。uid/gid 必须成对匹配，杜绝跨用户伪造。
+const SYNTHETIC_UID = 2001;
+const SYNTHETIC_GID = 2001;
+const trustedUid = (uid, gid) => (uid === 0 && gid === 0) || (uid === SYNTHETIC_UID && gid === SYNTHETIC_GID);
+// 文件/目录所有权（assertRootFile/Directory 用）：root 拥有（组 root 或 meetwise-synthetic），
+// 或 meetwise-synthetic 拥有。降权后 seed/target/env 是 root:meetwise-synthetic 0640（root 写、
+// synthetic 只读），/etc/meetwise 是 root:meetwise-synthetic 0710（synthetic 需 traverse 读内部
+// 文件，但无组读权限故不能列目录/窥探签名私钥），STATE_ROOT 是 meetwise-synthetic 0700。
+const trustedOwner = (uid, gid) => (uid === 0 && (gid === 0 || gid === SYNTHETIC_GID)) || (uid === SYNTHETIC_UID && gid === SYNTHETIC_GID);
 const REQUIRED_FORBIDDEN_KEYS = Object.freeze(['answerEvents', 'consumptions', 'invalidApplicationStates', 'invalidInterviewStates', 'invalidJobStates', 'invalidResumeStates', 'modelInvocations', 'nonCatalogAccounts', 'numericScores', 'paymentOrders', 'queuedOrRunningJobs', 'rawAnswerJobs']);
 
-function factoryDigest() {
+export const FACTORY_FILES = Object.freeze([
+  'catalog.mjs',
+  'db-verify.mjs',
+  'loader.mjs',
+  'target-inspect.mjs',
+  'verifier-env.mjs',
+  '../preview-account-scenarios/runner.mjs',
+]);
+
+export function factoryDigest() {
   const root = dirname(fileURLToPath(import.meta.url));
-  return sha256(['catalog.mjs', 'db-verify.mjs', 'loader.mjs', 'target-inspect.mjs'].map((name) => [name, sha256(readFileSync(join(root, name)))]));
+  return sha256(FACTORY_FILES.map((name) => [name, sha256(readFileSync(join(root, name)))]));
 }
 
 export function derivePassword(seed, email) {
   return `Mw9!${createHmac('sha256', seed).update(`preview-synthetic-password:v1:${email}`).digest('base64url').slice(0, 24)}`;
+}
+
+/** Resolve controller-provisioned B/C passwords at the process boundary only. */
+export function resolveFixedPreviewCredentials(env = process.env) {
+  const values = {};
+  for (const account of FIXED_PREVIEW_ACCOUNTS) {
+    const password = env[account.credentialEnv];
+    // Keep the shared auth contract intact.  In particular, the historical
+    // six-character demo password must not be accepted as a special preview
+    // bypass; a missing/short value fails before any API mutation.
+    if (typeof password !== 'string' || password.length === 0) throw new Error(`fixed_preview_password_missing:${account.key}`);
+    if (password.length < 8 || password.length > 128) throw new Error(`fixed_preview_password_invalid:${account.key}`);
+    values[account.key] = password;
+  }
+  return Object.freeze(values);
+}
+
+function passwordForAccount(account, seed, fixedPreviewCredentials) {
+  if (account.fixedPreviewAccount) {
+    const password = fixedPreviewCredentials?.[account.key];
+    if (typeof password !== 'string' || password.length < 8 || password.length > 128) throw new Error(`fixed_preview_password_invalid:${account.key}`);
+    return password;
+  }
+  return derivePassword(seed, account.email);
 }
 
 export function assertLoopbackBaseUrl(raw) {
@@ -67,39 +112,54 @@ function loadJson(path, fallback) { try { return JSON.parse(readFileSync(path, '
 
 function assertRootFile(path, mode) {
   const stat = lstatSync(path);
-  if (!stat.isFile() || stat.isSymbolicLink() || stat.uid !== 0 || stat.gid !== 0 || (stat.mode & 0o777) !== mode) throw new Error(`unsafe_root_file:${path}`);
+  const permissions = stat.mode & 0o777;
+  // seed/target（root 写、synthetic 只读）落盘为 0640，root 执行仍读 0600；两者都无组/他人写位，
+  // 保证 synthetic 只能读、不能改写门控档。其余 mode 参数仍按精确匹配（向后兼容）。
+  const modeOk = mode === 0o600 ? (permissions === 0o600 || permissions === 0o640) : permissions === mode;
+  if (!stat.isFile() || stat.isSymbolicLink() || !trustedOwner(stat.uid, stat.gid) || !modeOk) throw new Error(`unsafe_root_file:${path}`);
   return readFileSync(path);
 }
 
 function assertRootDirectory(path, mode) {
   const stat = lstatSync(path);
   const permissions = stat.mode & 0o777;
-  if (!stat.isDirectory() || stat.isSymbolicLink() || stat.uid !== 0 || stat.gid !== 0 || (mode === null ? (permissions & 0o022) !== 0 : permissions !== mode)) throw new Error(`unsafe_root_directory:${path}`);
+  if (!stat.isDirectory() || stat.isSymbolicLink() || !trustedOwner(stat.uid, stat.gid) || (mode === null ? (permissions & 0o022) !== 0 : permissions !== mode)) throw new Error(`unsafe_root_directory:${path}`);
 }
 
 function validateTarget(target, profileName, datasetId) {
-  if (target?.schemaVersion !== 1 || target.database !== 'meetwise_preview' || target.apiBaseUrl !== API_BASE_URL) throw new Error('invalid_synthetic_target');
-  if (!/^pgm-[a-z0-9]+$/.test(target.rdsInstanceId ?? '') || target.rdsEndpoint !== `${target.rdsInstanceId}.pg.rds.aliyuncs.com` || target.tlsServername !== target.rdsEndpoint || target.rdsPort !== 5432 || target.expectedDbRole !== 'meetwise_migrate' || !/^0[0-9]{3}_[a-z0-9_]+\.sql$/.test(target.schemaHead ?? '') || !/^[a-f0-9]{64}$/.test(target.schemaLedgerDigest ?? '') || !/^[a-f0-9]{64}$/.test(target.releaseTreeDigest ?? '') || !/^[a-f0-9]{64}$/.test(target.apiContractDigest ?? '') || target.factoryDigest !== factoryDigest()) throw new Error('invalid_synthetic_target_binding');
+  if (target?.schemaVersion !== 1 || target.database !== EXPECTED_DATABASE || target.apiBaseUrl !== API_BASE_URL) throw new Error('invalid_synthetic_target');
+  if (!/^pgm-[a-z0-9]+$/.test(target.rdsInstanceId ?? '') || target.rdsEndpoint !== `${target.rdsInstanceId}.pg.rds.aliyuncs.com` || target.tlsServername !== target.rdsEndpoint || target.rdsPort !== 5432 || target.expectedDbRole !== EXPECTED_ROLE || !/^0[0-9]{3}_[a-z0-9_]+\.sql$/.test(target.schemaHead ?? '') || !/^[a-f0-9]{64}$/.test(target.schemaLedgerDigest ?? '') || !/^[a-f0-9]{64}$/.test(target.releaseTreeDigest ?? '') || !/^[a-f0-9]{64}$/.test(target.apiContractDigest ?? '') || target.factoryDigest !== factoryDigest()) throw new Error('invalid_synthetic_target_binding');
   const approval = target.approvedProfiles?.[profileName];
   if (target.successorOfTargetDigest !== undefined && !/^[a-f0-9]{64}$/.test(target.successorOfTargetDigest)) throw new Error('invalid_target_predecessor');
   if (!approval || approval.datasetId !== datasetId || !Number.isSafeInteger(approval.maxDurationSeconds) || approval.maxDurationSeconds < 60) throw new Error('profile_not_approved');
-  return { target, targetDigest: sha256(target), approval };
+  // Target files created before the scoped-bundle rollout have no explicit
+  // release identity. The release tree digest is the immutable fallback and
+  // is already bound by targetDigest/releaseTreeDigest.
+  const releaseIdentity = target.releaseIdentity ?? `tree:${target.releaseTreeDigest}`;
+  if (!/^[A-Za-z0-9._:@+/=-]{1,256}$/.test(releaseIdentity)) throw new Error('invalid_target_release_identity');
+  return { target, targetDigest: sha256(target), releaseIdentity, approval };
 }
 
-export function validateDbReceipt(receipt, { plan, targetBinding, phase, notBefore = 0 }) {
-  if (!receipt || receipt.schemaVersion !== 1 || receipt.phase !== phase || receipt.status !== 'verified' || receipt.datasetId !== plan.datasetId || receipt.profile !== plan.profileName || receipt.targetDigest !== targetBinding.targetDigest || receipt.catalogDigest !== plan.catalogDigest) throw new Error('db_receipt_identity_mismatch');
+export function validateDbReceipt(receipt, { plan, targetBinding, phase, notBefore = 0, layer = 'capacity' }) {
+  if (!receipt || receipt.schemaVersion !== 1 || receipt.phase !== phase || receipt.status !== 'verified' || (receipt.receiptLayer ?? 'capacity') !== layer || receipt.datasetId !== plan.datasetId || receipt.profile !== plan.profileName || receipt.targetDigest !== targetBinding.targetDigest || receipt.catalogDigest !== plan.catalogDigest) throw new Error('db_receipt_identity_mismatch');
   const { receiptDigest, ...unsigned } = receipt;
   if (!/^[a-f0-9]{64}$/.test(receiptDigest ?? '') || sha256(unsigned) !== receiptDigest) throw new Error('db_receipt_digest_invalid');
   const target = targetBinding.target;
-  if (receipt.identity?.database !== target.database || receipt.identity?.role !== target.expectedDbRole || receipt.identity?.endpoint !== target.rdsEndpoint || receipt.identity?.port !== target.rdsPort || receipt.identity?.tlsServername !== target.tlsServername || receipt.schemaLedgerDigest !== target.schemaLedgerDigest || `${receipt.schemaHead}.sql` !== target.schemaHead || receipt.releasePath !== target.releasePath || receipt.releaseTreeDigest !== target.releaseTreeDigest || receipt.apiContractDigest !== target.apiContractDigest) throw new Error('db_receipt_target_mismatch');
+  if (target.database !== EXPECTED_DATABASE || target.expectedDbRole !== EXPECTED_ROLE || receipt.identity?.database !== target.database || receipt.identity?.role !== target.expectedDbRole || receipt.identity?.endpoint !== target.rdsEndpoint || receipt.identity?.port !== target.rdsPort || receipt.identity?.tlsServername !== target.tlsServername || receipt.schemaLedgerDigest !== target.schemaLedgerDigest || `${receipt.schemaHead}.sql` !== target.schemaHead || receipt.releasePath !== target.releasePath || receipt.releaseTreeDigest !== target.releaseTreeDigest || receipt.apiContractDigest !== target.apiContractDigest || (targetBinding.releaseIdentity && receipt.releaseIdentity !== targetBinding.releaseIdentity)) throw new Error('db_receipt_target_mismatch');
   if (!receipt.forbidden || JSON.stringify(Object.keys(receipt.forbidden).sort()) !== JSON.stringify(REQUIRED_FORBIDDEN_KEYS) || Object.values(receipt.forbidden).some((value) => value !== 0)) throw new Error('db_receipt_forbidden_side_effect');
   if (receipt.factoryDigest !== target.factoryDigest) throw new Error('db_receipt_factory_mismatch');
   const baseline = targetBinding.approval.expectedBaseline; const cumulative = targetBinding.approval.expectedCumulative;
   if (!baseline || !cumulative) throw new Error('db_receipt_expected_counts_missing');
   const countKeys = ['accounts', 'jobs', 'applications', 'resumes', 'interviews'];
+  const effectiveCounts = receipt.attestationMode === 'capacity_with_fixed_deep_overlay' ? receipt.capacityCounts : receipt.counts;
+  if (receipt.attestationMode === 'capacity_with_fixed_deep_overlay') {
+    const overlay = receipt.allowedOverlay;
+    const limits = { interviews: 500, applicationExceptions: 500, modelInvocations: 10000, consumptions: 500, answerEvents: 10000 };
+    if (plan.profileName !== 'large-v1-successor' || overlay?.schemaVersion !== 1 || overlay.scope !== 'fixed-preview-candidate' || typeof overlay.ownerUserId !== 'string' || overlay.ownerUserId.length === 0 || !/^[a-f0-9]{64}$/.test(overlay.deepUsageReceiptDigest ?? '') || !Array.isArray(overlay.interviewIds) || overlay.interviewIds.length !== 3 || new Set(overlay.interviewIds).size !== 3 || !Array.isArray(overlay.applicationIds) || overlay.applicationIds.length !== 3 || new Set(overlay.applicationIds).size !== 3 || JSON.stringify(overlay.limits) !== JSON.stringify(limits) || Object.entries(limits).some(([key, limit]) => !Number.isSafeInteger(overlay[key]) || overlay[key] < (key === 'interviews' ? 3 : 0) || overlay[key] > limit)) throw new Error('db_receipt_overlay_invalid');
+  }
   const countsInvalid = phase === 'pre' && receipt.recovery === true
-    ? countKeys.some((key) => receipt.counts?.[key] < baseline[key] || receipt.counts?.[key] > cumulative[key])
-    : countKeys.some((key) => receipt.counts?.[key] !== (phase === 'pre' ? baseline[key] : cumulative[key]));
+    ? (receipt.attestationMode === 'capacity_with_fixed_deep_overlay' ? countKeys.some((key) => effectiveCounts?.[key] !== cumulative[key]) : countKeys.some((key) => effectiveCounts?.[key] < baseline[key] || effectiveCounts?.[key] > cumulative[key]))
+    : countKeys.some((key) => effectiveCounts?.[key] !== (phase === 'pre' ? baseline[key] : cumulative[key]));
   if (countsInvalid) throw new Error('db_receipt_count_mismatch');
   const verifiedAt = Date.parse(receipt.verifiedAt ?? '');
   if (!Number.isFinite(verifiedAt) || verifiedAt < notBefore || verifiedAt > Date.now() + 30_000) throw new Error('db_receipt_stale_or_future');
@@ -110,26 +170,87 @@ export function isVerificationContinuableState(status) {
   return status === 'loaded_unverified' || status === 'verifying';
 }
 
-function validateCommittedReady(verification, manifest, { targetDigest, catalogDigest }) {
-  if (!verification || !manifest || manifest.status !== 'ready' || manifest.targetDigest !== targetDigest || verification.targetDigest !== targetDigest || manifest.catalogDigest !== catalogDigest || verification.catalogDigest !== catalogDigest || manifest.verificationDigest !== verification.verificationDigest) throw new Error('committed_ready_not_satisfied');
+function validateCommittedReady(verification, manifest, { targetDigest, catalogDigest, releaseIdentity = null }) {
+  if (!verification || !manifest || manifest.status !== 'ready' || manifest.targetDigest !== targetDigest || verification.targetDigest !== targetDigest || manifest.catalogDigest !== catalogDigest || verification.catalogDigest !== catalogDigest || manifest.verificationDigest !== verification.verificationDigest || (releaseIdentity && verification.releaseIdentity && verification.releaseIdentity !== releaseIdentity) || (releaseIdentity && manifest.releaseIdentity && manifest.releaseIdentity !== releaseIdentity)) throw new Error('committed_ready_not_satisfied');
   const { verificationDigest, ...unsigned } = verification;
   if (!/^[a-f0-9]{64}$/.test(verificationDigest ?? '') || sha256(unsigned) !== verificationDigest) throw new Error('showcase_verification_digest_invalid');
   return verification;
+}
+
+/**
+ * Build a new manifest for a successor target without touching the committed
+ * predecessor manifest.  Only API projection checks may run against the
+ * returned state; all object IDs and the original load provenance are kept.
+ * The caller should persist it under `targetScopedDatasetStatePath` so the
+ * predecessor verification/receipt remains immutable.
+ */
+export function buildTargetReattestationState({ state, plan, targetBinding } = {}) {
+  if (!state || state.status !== 'ready' || state.datasetId !== plan?.datasetId || state.catalogDigest !== plan?.catalogDigest || typeof state.targetDigest !== 'string' || state.targetDigest === targetBinding?.targetDigest) throw new Error('reattestation_source_not_committed_ready');
+  if (targetBinding?.target?.successorOfTargetDigest !== state.targetDigest) throw new Error('reattestation_target_not_successor');
+  const required = [
+    ...plan.recruiters.map((account) => ['accounts', account.key]),
+    ...plan.candidates.map((account) => ['accounts', account.key]),
+    ...plan.jobs.map((job) => ['jobs', job.key]),
+    ...plan.applications.map((application) => ['applications', application.key]),
+    ...plan.privateObjects.resumes.map((resume) => ['resumes', resume.key]),
+    ...plan.interviews.map((interview) => ['interviews', interview.key]),
+  ];
+  if (required.some(([collection, key]) => !state[collection]?.[key])) throw new Error('reattestation_object_provenance_incomplete');
+  return {
+    ...structuredClone(state),
+    status: 'loaded_unverified',
+    targetDigest: targetBinding.targetDigest,
+    releaseIdentity: targetBinding.releaseIdentity,
+    reattestationMode: 'api_read_only',
+    predecessorTargetDigest: state.targetDigest,
+    predecessorVerificationDigest: state.verificationDigest ?? null,
+    reattestedAt: new Date().toISOString(),
+  };
+}
+
+export function targetScopedDatasetStatePath(statePath, targetBinding) {
+  const digest = targetBinding?.targetDigest;
+  const releaseIdentity = targetBinding?.releaseIdentity ?? targetBinding?.target?.releaseIdentity ?? 'target-only';
+  if (!/^[a-f0-9]{64}$/.test(digest ?? '')) throw new Error('reattestation_target_digest_invalid');
+  if (!/^[A-Za-z0-9._:@+/=-]{1,256}$/.test(releaseIdentity)) throw new Error('reattestation_release_identity_invalid');
+  const source = resolve(statePath);
+  const releaseTag = sha256(releaseIdentity).slice(0, 16);
+  return join(dirname(source), `.target-${digest}-${releaseTag}`, 'manifest.json');
+}
+
+export function targetScopedDatasetDir(datasetDir, targetBinding) {
+  return dirname(targetScopedDatasetStatePath(join(resolve(datasetDir), 'manifest.json'), targetBinding));
+}
+
+export function persistTargetReattestation({ sourceStatePath, targetStatePath, plan, targetBinding } = {}) {
+  const source = loadJson(sourceStatePath, null);
+  const state = buildTargetReattestationState({ state: source, plan, targetBinding });
+  durableWriteJson(targetStatePath, state);
+  return state;
 }
 
 function validateShowcaseGate(showcase, manifest, targetBinding) {
   return validateCommittedReady(showcase, manifest, { targetDigest: targetBinding.targetDigest, catalogDigest: targetBinding.approval.requiredShowcaseCatalogDigest });
 }
 
-export async function applyPlan({ plan, api, seed, statePath, credentialPath, targetBinding = { targetDigest: 'test-target', approval: { maxDurationSeconds: 3600 } }, onProgress = () => {} }) {
+export async function applyPlan({ plan, api, seed, statePath, credentialPath, targetBinding = { targetDigest: 'test-target', approval: { maxDurationSeconds: 3600 } }, fixedPreviewCredentials = null, onProgress = () => {} }) {
   const publicPlan = { ...plan }; delete publicPlan.privateObjects;
   const startedAt = Date.now();
-  let state = loadJson(statePath, { schemaVersion: 2, datasetId: plan.datasetId, catalogDigest: plan.catalogDigest, targetDigest: targetBinding.targetDigest, status: 'loading', accounts: {}, jobs: {}, applications: {}, resumes: {}, interviews: {} });
+  let state = loadJson(statePath, { schemaVersion: 2, datasetId: plan.datasetId, catalogDigest: plan.catalogDigest, targetDigest: targetBinding.targetDigest, releaseIdentity: targetBinding.releaseIdentity ?? null, status: 'loading', accounts: {}, jobs: {}, applications: {}, resumes: {}, interviews: {} });
   if (state.datasetId !== plan.datasetId || state.catalogDigest !== plan.catalogDigest) throw new Error('dataset_manifest_conflict');
   const hadTargetBinding = typeof state.targetDigest === 'string';
   const targetUpgraded = state.targetDigest && state.targetDigest !== targetBinding.targetDigest;
   if (targetUpgraded && targetBinding.target.successorOfTargetDigest !== state.targetDigest) throw new Error('dataset_target_conflict');
+  if (state.releaseIdentity && targetBinding.releaseIdentity && state.releaseIdentity !== targetBinding.releaseIdentity && !targetUpgraded) throw new Error('dataset_release_identity_conflict');
+  if (plan.recruiters.some((account) => account.fixedPreviewAccount) || plan.candidates.some((account) => account.fixedPreviewAccount)) {
+    if (!fixedPreviewCredentials) throw new Error('fixed_preview_credentials_required');
+    for (const account of FIXED_PREVIEW_ACCOUNTS) {
+      const password = fixedPreviewCredentials[account.key];
+      if (typeof password !== 'string' || password.length < 8 || password.length > 128) throw new Error(`fixed_preview_password_invalid:${account.key}`);
+    }
+  }
   state.targetDigest = targetBinding.targetDigest;
+  if (targetBinding.releaseIdentity) state.releaseIdentity = targetBinding.releaseIdentity;
   if (state.status === 'ready' && hadTargetBinding && !targetUpgraded) return state;
   if (state.status === 'ready' && (!hadTargetBinding || targetUpgraded)) state.status = 'loading';
   if (state.status === 'loaded_unverified' || state.status === 'verifying') return state;
@@ -138,7 +259,7 @@ export async function applyPlan({ plan, api, seed, statePath, credentialPath, ta
   const persist = () => durableWriteJson(statePath, state);
   const guardDuration = () => { if ((Date.now() - startedAt) / 1000 > targetBinding.approval.maxDurationSeconds) throw new Error('dataset_duration_limit_exceeded'); };
   const authAccount = async (account) => {
-    const password = derivePassword(seed, account.email);
+    const password = passwordForAccount(account, seed, fixedPreviewCredentials);
     let result;
     if (!state.accounts[account.key]) {
       try { result = await api.request('/auth/signup', { method: 'POST', body: { email: account.email, password, role: account.role } }); }
@@ -150,11 +271,14 @@ export async function applyPlan({ plan, api, seed, statePath, credentialPath, ta
       persist();
     } else result = await api.request('/auth/login', { method: 'POST', body: { email: account.email, password } });
     tokens.set(account.key, result.payload.token);
-    credentials.push({ key: account.key, email: account.email, password, role: account.role, persona: account.persona });
+    // The credential file is a resumability index, not a secret store.  The
+    // password remains in this process only (fixed passwords come from env;
+    // generated passwords are re-derived from the seed on the next run).
+    credentials.push({ key: account.key, email: account.email, role: account.role, persona: account.persona });
     onProgress('account', account.key);
   };
   for (const account of [...plan.recruiters, ...plan.candidates]) { guardDuration(); await authAccount(account); }
-  durableWriteJson(credentialPath, { schemaVersion: 1, datasetId: plan.datasetId, catalogDigest: plan.catalogDigest, credentials });
+  durableWriteJson(credentialPath, { schemaVersion: 2, datasetId: plan.datasetId, catalogDigest: plan.catalogDigest, credentials });
 
   for (const resume of plan.privateObjects.resumes) {
     guardDuration();
@@ -227,14 +351,18 @@ export async function applyPlan({ plan, api, seed, statePath, credentialPath, ta
   return state;
 }
 
-export async function verifyPlan({ plan, api, seed, statePath, targetBinding = { targetDigest: 'test-target', approval: { expectedCumulative: null } }, dbReceipt = null }) {
+export async function verifyPlan({ plan, api, seed, statePath, targetBinding = { targetDigest: 'test-target', approval: { expectedCumulative: null } }, dbReceipt = null, fixedPreviewCredentials = null }) {
   const state = loadJson(statePath, null);
-  if (!state || !['loaded_unverified', 'verifying', 'ready'].includes(state.status) || state.catalogDigest !== plan.catalogDigest || state.targetDigest !== targetBinding.targetDigest) throw new Error('dataset_not_loaded');
-  if (state.status === 'ready') return loadJson(join(dirname(statePath), 'verification.json'), null) ?? (() => { throw new Error('ready_verification_missing'); })();
+  if (!state || !['loaded_unverified', 'verifying', 'ready'].includes(state.status) || state.catalogDigest !== plan.catalogDigest || state.targetDigest !== targetBinding.targetDigest || (targetBinding.releaseIdentity && state.releaseIdentity && state.releaseIdentity !== targetBinding.releaseIdentity)) throw new Error('dataset_not_loaded');
+  if (state.status === 'ready') {
+    const readyReceipt = loadJson(join(dirname(statePath), 'verification.json'), null) ?? (() => { throw new Error('ready_verification_missing'); })();
+    if (dbReceipt) validateDbReceipt(dbReceipt, { plan, targetBinding, phase: 'post' });
+    return readyReceipt;
+  }
   state.status = 'verifying'; durableWriteJson(statePath, state);
   const observations = { accounts: 0, jobs: 0, applications: 0, resumes: 0, interviews: 0, numericScores: 0, declined: 0, invited: 0 };
   for (const account of [...plan.recruiters, ...plan.candidates]) {
-    const password = derivePassword(seed, account.email);
+    const password = passwordForAccount(account, seed, fixedPreviewCredentials);
     const login = await api.request('/auth/login', { method: 'POST', body: { email: account.email, password } });
     if (login.payload.role !== account.role || login.payload.userId !== state.accounts[account.key]?.userId) throw new Error(`account_identity_mismatch:${account.key}`);
     observations.accounts += 1;
@@ -256,12 +384,25 @@ export async function verifyPlan({ plan, api, seed, statePath, targetBinding = {
       if (!stateResumeIds.every((id) => resumes.payload.resumes.some((row) => row.id === id)) || !stateInterviewIds.every((id) => interviews.payload.interviews.some((row) => row.id === id)) || !stateApplicationIds.every((id) => applications.payload.applications.some((row) => row.id === id))) throw new Error(`candidate_projection_mismatch:${account.key}`);
     }
   }
+  if (plan.profileName === 'large-v1-successor') {
+    // Fixed identities are part of the successor catalog and were already
+    // authenticated/provisioned by the common account loop.  Keep a public
+    // identity projection in the receipt, but never persist credentials.
+    observations.fixedPreviewAccounts = FIXED_PREVIEW_ACCOUNTS.map(({ key, email, role }) => ({ key, email, role }));
+  }
   if (observations.numericScores !== 0) throw new Error('numeric_recruiter_score_detected');
+  validateDbReceipt(dbReceipt, { plan, targetBinding, phase: 'post' });
+  const rawObservations = { ...observations };
+  if (dbReceipt.attestationMode === 'capacity_with_fixed_deep_overlay') {
+    const overlay = dbReceipt.allowedOverlay;
+    if (observations.interviews < overlay.interviews) throw new Error('api_overlay_count_mismatch');
+    observations.interviews -= overlay.interviews;
+    observations.fixedDeepOverlay = { ...overlay };
+  }
   const expected = targetBinding.approval.expectedCumulative;
   if (expected && ['accounts', 'jobs', 'applications', 'resumes', 'interviews'].some((key) => observations[key] !== expected[key])) throw new Error('api_cumulative_count_mismatch');
-  validateDbReceipt(dbReceipt, { plan, targetBinding, phase: 'post' });
   const priorVerification = loadJson(join(dirname(statePath), 'verification.json'), null);
-  const receipt = { schemaVersion: 2, datasetId: plan.datasetId, catalogDigest: plan.catalogDigest, targetDigest: targetBinding.targetDigest, loadReceiptDigest: state.loadReceiptDigest, observations, dbReceiptDigest: dbReceipt.receiptDigest, priorVerificationDigest: priorVerification?.verificationDigest ?? null, verifiedAt: new Date().toISOString() };
+  const receipt = { schemaVersion: 2, ...(plan.profileName === 'large-v1-successor' ? { receiptLayer: 'capacity', profile: 'large-v1-successor', fixedAccountCatalog: FIXED_PREVIEW_ACCOUNTS.map(({ email, role, key }) => ({ email, role, key })) } : {}), datasetId: plan.datasetId, catalogDigest: plan.catalogDigest, targetDigest: targetBinding.targetDigest, releaseIdentity: targetBinding.releaseIdentity ?? null, loadReceiptDigest: state.loadReceiptDigest, observations, ...(dbReceipt.attestationMode === 'capacity_with_fixed_deep_overlay' ? { rawObservations } : {}), dbReceiptDigest: dbReceipt.receiptDigest, priorVerificationDigest: state.predecessorVerificationDigest ?? priorVerification?.verificationDigest ?? null, attestationMode: state.reattestationMode ?? 'initial_load', predecessorTargetDigest: state.predecessorTargetDigest ?? null, verifiedAt: new Date().toISOString() };
   receipt.verificationDigest = sha256(receipt);
   durableWriteJson(join(dirname(statePath), 'verification.json'), receipt);
   state.status = 'ready'; state.completedAt = receipt.verifiedAt; state.verificationDigest = receipt.verificationDigest; durableWriteJson(statePath, state);
@@ -279,12 +420,38 @@ function parseArgs(argv) {
 }
 
 function runCommand(command, args, options = {}) {
-  const result = spawnSync(command, args, { stdio: options.stdio ?? 'inherit', timeout: options.timeout ?? 30_000, env: process.env });
+  const result = spawnSync(command, args, { stdio: options.stdio ?? 'inherit', timeout: options.timeout ?? 30_000, env: options.env ?? process.env });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`command_failed:${command}:${result.status ?? 'signal'}`);
 }
 
+function assertCandidateLoaderEnvironment(env = process.env) {
+  if (forbiddenGenericDatabaseEnv.some((key) => typeof env[key] === 'string' && env[key].length > 0)) {
+    throw new Error('candidate_loader_migration_database_env_forbidden');
+  }
+}
+
+// compose 单机：维护窗口要静默的「worker」已从系统 service 变成容器，nginx 仍是宿主 systemd。
+// 为什么保留 meetwise-worker.service 这一标识：maintenance 回执的 workerWasActive 字段与 publisher
+// 校验逐字绑定，不能换名；只在控制面做 名字→(compose|systemctl) 的分派，回执形状不变。
+const COMPOSE_DIR = '/srv/meetwise-compose';
+const COMPOSE_FILE = '/srv/meetwise-compose/docker/compose.prod.yml';
+const COMPOSE_SERVICES = new Set(['meetwise-worker.service']);
+
+function composeWorkerRunning() {
+  // compose 单机下 worker 是 restart:unless-stopped 容器。「active」= running 或 restarting
+  // （crash-loop 回退期仍会被拉起），只有手动 `docker compose stop` 之后的 exited（粘性停止）
+  // 才算 inactive。旧的 `ps --status running -q` 只认 running 会漏掉 restarting → workerWasActive
+  // 误判 false 卡死发布、stop 守卫跳过 restarting worker 与装载写库形成数据竞争。
+  // 降权后 meetwise-synthetic 不在 docker 组，docker 查询/启停一律经窄 sudo。改用 `ps --status`
+  // 判定，弃用 docker inspect：inspect 需按动态容器 id 逐个查，无法写成窄 sudo 规则（sudoers 用
+  // `docker inspect *` 通配会泄露容器 env 里的 DB/模型密钥，比降权本身更危险）。
+  const statusActive = (status) => runPrivilegedCapture('/usr/bin/docker', ['compose', '--project-directory', COMPOSE_DIR, '-f', COMPOSE_FILE, 'ps', '--status', status, '-q', 'worker']).trim() !== '';
+  return statusActive('running') || statusActive('restarting');
+}
+
 function serviceIsActive(name) {
+  if (COMPOSE_SERVICES.has(name)) return composeWorkerRunning();
   const result = spawnSync('/usr/bin/systemctl', ['show', name, '--property=LoadState', '--property=ActiveState', '--no-pager'], { encoding: 'utf8', timeout: 10_000 });
   if (result.error || result.status !== 0) throw new Error(`service_state_query_failed:${name}`);
   const values = Object.fromEntries(result.stdout.trim().split('\n').map((line) => line.split('=', 2)));
@@ -292,13 +459,35 @@ function serviceIsActive(name) {
   return values.ActiveState === 'active';
 }
 
+// 维护窗口的服务启停：root 下直接调；meetwise-synthetic 下经窄 sudo（sudoers 只放行
+// systemctl stop|start nginx 与 docker compose ps|stop|up worker，见 provision-meetwise-synthetic.sh）。
+function runPrivileged(command, args) {
+  if (process.getuid?.() === 0) return runCommand(command, args);
+  return runCommand('/usr/bin/sudo', [command, ...args]);
+}
+
+// 同 runPrivileged，但捕获 stdout 供 composeWorkerRunning 判定容器状态。docker 查询与启停
+// 一样走 sudo（meetwise-synthetic 不在 docker 组，加入 docker 组 = 经 socket 变相 root，禁止）。
+function runPrivilegedCapture(command, args) {
+  const argv = process.getuid?.() === 0 ? [command, ...args] : ['/usr/bin/sudo', command, ...args];
+  const result = spawnSync(argv[0], argv.slice(1), { encoding: 'utf8', timeout: 10_000, env: process.env });
+  if (result.error) throw result.error;
+  if (result.status !== 0) throw new Error(`command_failed:${command}:${result.status ?? 'signal'}`);
+  return result.stdout;
+}
+
+function controlService(name, action) {
+  if (COMPOSE_SERVICES.has(name)) runPrivileged('/usr/bin/docker', ['compose', '--project-directory', COMPOSE_DIR, '-f', COMPOSE_FILE, action === 'start' ? 'up' : 'stop', ...(action === 'start' ? ['-d'] : []), 'worker']);
+  else runPrivileged('/usr/bin/systemctl', [action, name]);
+}
+
 function restoreMaintenanceServices(maintenance, maintenancePath) {
   const errors = [];
   for (const [name, wanted] of [['meetwise-worker.service', maintenance.workerWasActive], ['nginx.service', maintenance.nginxWasActive]]) {
     try {
       const active = serviceIsActive(name);
-      if (wanted && !active) runCommand('/usr/bin/systemctl', ['start', name]);
-      if (!wanted && active) runCommand('/usr/bin/systemctl', ['stop', name]);
+      if (wanted && !active) controlService(name, 'start');
+      if (!wanted && active) controlService(name, 'stop');
       if (serviceIsActive(name) !== wanted) throw new Error(`service_restore_mismatch:${name}`);
     } catch (error) { errors.push(error); }
   }
@@ -311,11 +500,128 @@ function validateMaintenance(maintenance, plan, targetBinding) {
   return maintenance;
 }
 
+const BUNDLE_ARTIFACTS = Object.freeze(['manifest.json', 'verification.json', 'pre-db-verification.json', 'post-db-verification.json', 'maintenance.json']);
+
+function readTrustedJsonIfPresent(path) {
+  try {
+    const stat = lstatSync(path);
+    if (!stat.isFile() || stat.isSymbolicLink()) throw new Error(`unsafe_receipt_artifact:${path}`);
+    return JSON.parse(readFileSync(path, 'utf8'));
+  } catch (error) {
+    if (error?.code === 'ENOENT') return null;
+    throw error;
+  }
+}
+
+function writeCredentialIndex(path, plan, state) {
+  const credentials = [...plan.recruiters, ...plan.candidates].map((account) => ({
+    key: account.key,
+    email: account.email,
+    role: account.role,
+    persona: account.persona,
+    userId: state.accounts?.[account.key]?.userId ?? null,
+  }));
+  durableWriteJson(path, { schemaVersion: 2, datasetId: plan.datasetId, catalogDigest: plan.catalogDigest, credentials });
+}
+
+function assertScopedDirectory(path) {
+  mkdirSync(path, { recursive: true, mode: 0o700 });
+  assertRootDirectory(path, 0o700);
+  for (const entry of readdirSync(path, { withFileTypes: true })) {
+    if (entry.isSymbolicLink()) throw new Error(`unsafe_target_bundle_symlink:${join(path, entry.name)}`);
+  }
+}
+
+/**
+ * Pure routing decision used by the filesystem materializer and its proof.
+ * A target-scoped directory can only replay its own target; an old ready
+ * legacy manifest is an immutable predecessor input and routes to a new
+ * read-only re-attestation bundle.  No filesystem or API mutation happens in
+ * this helper.
+ */
+export function routeTargetBundle({ legacyState = null, targetState = null, plan, targetBinding } = {}) {
+  const identityMatches = (state) => state && state.datasetId === plan?.datasetId && state.catalogDigest === plan?.catalogDigest;
+  if (targetState) {
+    if (!identityMatches(targetState) || targetState.targetDigest !== targetBinding?.targetDigest) throw new Error('target_bundle_identity_conflict');
+    if (targetState.releaseIdentity && targetBinding?.releaseIdentity && targetState.releaseIdentity !== targetBinding.releaseIdentity) throw new Error('target_bundle_release_identity_conflict');
+    return { mode: targetState.reattestationMode === 'api_read_only' ? 'reattestation' : 'canonical', predecessorTargetDigest: targetState.predecessorTargetDigest ?? null };
+  }
+  if (!legacyState) return { mode: 'initial', predecessorTargetDigest: null };
+  if (!identityMatches(legacyState)) throw new Error('legacy_bundle_identity_conflict');
+  if (legacyState.targetDigest === targetBinding?.targetDigest) return { mode: 'legacy_migrated', predecessorTargetDigest: null };
+  if (legacyState.status !== 'ready') throw new Error('legacy_predecessor_not_ready_for_reattestation');
+  if (targetBinding?.target?.successorOfTargetDigest !== legacyState.targetDigest) throw new Error('reattestation_target_not_successor');
+  return { mode: 'reattestation', predecessorTargetDigest: legacyState.targetDigest };
+}
+
+/**
+ * Materialize the canonical target bundle. Legacy datasetDir/manifest.json is
+ * read as a predecessor only; it is never overwritten or renamed. A ready
+ * predecessor gets a new API-read-only manifest, while a same-target legacy
+ * bundle is copied into the canonical directory for replay.
+ */
+export function materializeTargetBundle({ legacyDir, targetDir, plan, targetBinding }) {
+  assertScopedDirectory(legacyDir);
+  if (resolve(targetDir) === resolve(legacyDir)) throw new Error('target_bundle_must_be_scoped');
+  assertScopedDirectory(targetDir);
+  const manifestPath = join(targetDir, 'manifest.json');
+  const existing = readTrustedJsonIfPresent(manifestPath);
+  const legacyManifest = readTrustedJsonIfPresent(join(legacyDir, 'manifest.json'));
+  const route = routeTargetBundle({ legacyState: legacyManifest, targetState: existing, plan, targetBinding });
+  if (route.mode === 'canonical' || route.mode === 'reattestation') return route;
+  if (route.mode === 'initial') return route;
+  if (route.mode === 'legacy_migrated') {
+    for (const name of BUNDLE_ARTIFACTS) {
+      const value = readTrustedJsonIfPresent(join(legacyDir, name));
+      if (value !== null) durableWriteJson(join(targetDir, name), value);
+    }
+    // Old credential files may contain passwords. Never copy them; generate a
+    // secret-free replacement from the manifest/account projection.
+    writeCredentialIndex(join(targetDir, 'credentials.json'), plan, legacyManifest);
+    return route;
+  }
+  const state = buildTargetReattestationState({ state: legacyManifest, plan, targetBinding });
+  durableWriteJson(manifestPath, state);
+  writeCredentialIndex(join(targetDir, 'credentials.json'), plan, legacyManifest);
+  return { mode: 'reattestation', predecessorTargetDigest: legacyManifest.targetDigest };
+}
+
+function bundlePaths(targetDir) {
+  return {
+    targetStateDir: targetDir,
+    manifestPath: join(targetDir, 'manifest.json'),
+    verificationPath: join(targetDir, 'verification.json'),
+    preDbVerificationPath: join(targetDir, 'pre-db-verification.json'),
+    postDbVerificationPath: join(targetDir, 'post-db-verification.json'),
+    maintenancePath: join(targetDir, 'maintenance.json'),
+    credentialsPath: join(targetDir, 'credentials.json'),
+    receiptBundlePath: join(targetDir, 'receipt-bundle.json'),
+  };
+}
+
+function writeReceiptBundle(paths, { plan, targetBinding, receipt, dbReceipt, mode }) {
+  durableWriteJson(paths.receiptBundlePath, {
+    schemaVersion: 1,
+    datasetId: plan.datasetId,
+    profile: plan.profileName,
+    targetDigest: targetBinding.targetDigest,
+    releaseIdentity: targetBinding.releaseIdentity,
+    mode,
+    targetStateDir: paths.targetStateDir,
+    paths: { ...paths },
+    receipts: { verificationDigest: receipt.verificationDigest, databaseReceiptDigest: dbReceipt.receiptDigest },
+  });
+}
+
+function replayOutput(receipt, paths, mode) {
+  return { ...receipt, replayed: true, targetStateDir: paths.targetStateDir, receiptBundlePath: paths.receiptBundlePath, receiptPaths: paths, bundleMode: mode };
+}
+
 function inheritedGlobalLockIsValid(lockPath) {
   if (process.env.MEETWISE_SYNTHETIC_LOCK_FD !== '9') return false;
   try {
     const descriptor = fstatSync(9); const path = lstatSync(lockPath);
-    if (!descriptor.isFile() || !path.isFile() || path.isSymbolicLink() || path.uid !== 0 || path.gid !== 0 || (path.mode & 0o777) !== 0o600 || descriptor.dev !== path.dev || descriptor.ino !== path.ino) return false;
+    if (!descriptor.isFile() || !path.isFile() || path.isSymbolicLink() || !trustedUid(path.uid, path.gid) || (path.mode & 0o777) !== 0o600 || descriptor.dev !== path.dev || descriptor.ino !== path.ino) return false;
     const parent = process.ppid;
     const parentExecutable = realpathSync(`/proc/${parent}/exe`);
     const parentDescriptor = statSync(`/proc/${parent}/fd/9`);
@@ -327,9 +633,13 @@ async function main() {
   const args = parseArgs(process.argv);
   const plan = buildPlan(args.profile, args.datasetId);
   const publicPlan = { ...plan }; delete publicPlan.privateObjects;
+  // Even the pure plan command must not run inside a shell that has inherited
+  // a migration/runtime connection string; keeping this guard before the
+  // early return makes the candidate-loader boundary uniform for every mode.
+  assertCandidateLoaderEnvironment(process.env);
   if (args.command === 'plan') { process.stdout.write(`${JSON.stringify(publicPlan, null, 2)}\n`); return; }
   if (!['apply', 'verify', 'run'].includes(args.command)) throw new Error('usage: loader.mjs plan|apply|verify|run [--profile name --dataset-id id]');
-  if (process.getuid?.() !== 0) throw new Error('apply_and_verify_require_root');
+  if (!trustedUid(process.getuid?.() ?? -1, process.getgid?.() ?? -1)) throw new Error('apply_and_verify_require_trusted_uid');
   if (Object.keys(args).some((key) => !['command', 'profile', 'datasetId'].includes(key))) throw new Error('unsafe_path_or_target_override');
   assertRootDirectory('/etc/meetwise', null); assertRootDirectory(STATE_ROOT, 0o700);
   const seed = assertRootFile(SEED_FILE, 0o600);
@@ -337,13 +647,16 @@ async function main() {
   const target = JSON.parse(assertRootFile(TARGET_FILE, 0o600).toString('utf8'));
   const targetBinding = validateTarget(target, args.profile, args.datasetId);
   if (targetBinding.approval.catalogDigest !== plan.catalogDigest) throw new Error('approved_catalog_digest_mismatch');
+  // The historical dataset directory is retained as an immutable predecessor
+  // input. Every target/release now gets its own canonical child directory.
   const datasetDir = join(STATE_ROOT, args.datasetId);
+  const targetDir = targetScopedDatasetDir(datasetDir, targetBinding);
   const api = new ApiClient(API_BASE_URL);
   mkdirSync(datasetDir, { recursive: true, mode: 0o700 }); assertRootDirectory(datasetDir, 0o700);
   const lockPath = join(STATE_ROOT, 'global.apply.lock');
   if (!inheritedGlobalLockIsValid(lockPath)) {
     const lockFd = openSync(lockPath, 'a', 0o600); const lockStat = lstatSync(lockPath);
-    if (!lockStat.isFile() || lockStat.isSymbolicLink() || lockStat.uid !== 0 || lockStat.gid !== 0) { closeSync(lockFd); throw new Error('unsafe_global_lock_file'); }
+    if (!lockStat.isFile() || lockStat.isSymbolicLink() || !trustedUid(lockStat.uid, lockStat.gid)) { closeSync(lockFd); throw new Error('unsafe_global_lock_file'); }
     if ((lockStat.mode & 0o777) !== 0o600) chmodSync(lockPath, 0o600);
     const stdio = ['inherit', 'inherit', 'inherit', 'ignore', 'ignore', 'ignore', 'ignore', 'ignore', 'ignore', lockFd];
     const child = spawnSync('/usr/bin/flock', ['--exclusive', '--nonblock', '9', process.execPath, process.argv[1], ...process.argv.slice(2)], { stdio, env: { ...process.env, MEETWISE_SYNTHETIC_LOCK_FD: '9' } });
@@ -351,52 +664,92 @@ async function main() {
     if (child.error) throw child.error;
     process.exitCode = child.status ?? 1; return;
   }
-  if (args.profile === 'large-v1') {
-    const showcase = loadJson(join(STATE_ROOT, 'preview-showcase-v1', 'verification.json'), null);
-    const showcaseManifest = loadJson(join(STATE_ROOT, 'preview-showcase-v1', 'manifest.json'), null);
+  const bundle = materializeTargetBundle({ legacyDir: datasetDir, targetDir, plan, targetBinding });
+  const paths = bundlePaths(targetDir);
+  if (args.profile === 'large-v1' || args.profile === 'large-v1-successor') {
+    const showcaseLegacyDir = join(STATE_ROOT, 'preview-showcase-v1');
+    const showcaseDir = targetScopedDatasetDir(showcaseLegacyDir, targetBinding);
+    const showcaseScopedManifest = readTrustedJsonIfPresent(join(showcaseDir, 'manifest.json'));
+    const showcaseLegacyManifest = readTrustedJsonIfPresent(join(showcaseLegacyDir, 'manifest.json'));
+    const showcaseManifest = showcaseScopedManifest ?? (showcaseLegacyManifest?.targetDigest === targetBinding.targetDigest ? showcaseLegacyManifest : null);
+    const showcase = readTrustedJsonIfPresent(join(showcaseDir, 'verification.json')) ?? (showcaseLegacyManifest?.targetDigest === targetBinding.targetDigest ? readTrustedJsonIfPresent(join(showcaseLegacyDir, 'verification.json')) : null);
     validateShowcaseGate(showcase, showcaseManifest, targetBinding);
     if (args.command !== 'run') throw new Error('large_requires_atomic_run_command');
   }
+  const verifierProcessEnv = args.command === 'run' ? buildVerifierProcessEnv(process.env) : null;
+  const fixedPreviewCredentials = args.profile === 'large-v1-successor' ? resolveFixedPreviewCredentials(process.env) : null;
   if (args.command === 'run') {
-    const startedAt = Date.now(); const statePath = join(datasetDir, 'manifest.json'); const verificationPath = join(datasetDir, 'verification.json'); const maintenancePath = join(datasetDir, 'maintenance.json');
+    const startedAt = Date.now();
+    const statePath = paths.manifestPath; const verificationPath = paths.verificationPath; const maintenancePath = paths.maintenancePath;
     const existingManifest = loadJson(statePath, null); const existingVerification = loadJson(verificationPath, null); let maintenance = loadJson(maintenancePath, null);
+    const readOnlyReattestation = bundle.mode === 'reattestation' || existingManifest?.reattestationMode === 'api_read_only';
     if (existingManifest?.status === 'ready') {
-      const receipt = validateCommittedReady(existingVerification, existingManifest, { targetDigest: targetBinding.targetDigest, catalogDigest: plan.catalogDigest });
+      const receipt = validateCommittedReady(existingVerification, existingManifest, { targetDigest: targetBinding.targetDigest, catalogDigest: plan.catalogDigest, releaseIdentity: targetBinding.releaseIdentity });
       if (maintenance?.status === 'maintenance') restoreMaintenanceServices(validateMaintenance(maintenance, plan, targetBinding), maintenancePath);
       else if (maintenance && maintenance.status !== 'restored') throw new Error('maintenance_ledger_mismatch');
-      process.stdout.write(`${JSON.stringify({ ...receipt, replayed: true }, null, 2)}\n`); return;
+      const dbReceipt = loadJson(paths.postDbVerificationPath, null);
+      validateDbReceipt(dbReceipt, { plan, targetBinding, phase: 'post' });
+      writeReceiptBundle(paths, { plan, targetBinding, receipt, dbReceipt, mode: 'replay' });
+      process.stdout.write(`${JSON.stringify(replayOutput(receipt, paths, 'replay'), null, 2)}\n`); return;
     }
-    if (maintenance?.status === 'maintenance') {
-      validateMaintenance(maintenance, plan, targetBinding);
+    if (readOnlyReattestation) {
+      if (maintenance?.status === 'maintenance') {
+        // A prior process may have died after arming a maintenance ledger. It
+        // is safe to restore that ledger before read-only re-attestation; no
+        // API object mutation is allowed on this path.
+        restoreMaintenanceServices(validateMaintenance(maintenance, plan, targetBinding), maintenancePath);
+        maintenance = loadJson(maintenancePath, null);
+      } else if (maintenance && maintenance.status !== 'restored') {
+        throw new Error('maintenance_ledger_mismatch');
+      }
+      if (!maintenance) {
+        const now = new Date().toISOString();
+        maintenance = { schemaVersion: 1, status: 'restored', datasetId: plan.datasetId, catalogDigest: plan.catalogDigest, targetDigest: targetBinding.targetDigest, releaseIdentity: targetBinding.releaseIdentity, nginxWasActive: serviceIsActive('nginx.service'), workerWasActive: serviceIsActive('meetwise-worker.service'), armedAt: now, restoredAt: now, attestationMode: 'api_read_only' };
+        durableWriteJson(maintenancePath, maintenance);
+      }
     } else {
-      maintenance = { schemaVersion: 1, status: 'maintenance', datasetId: plan.datasetId, catalogDigest: plan.catalogDigest, targetDigest: targetBinding.targetDigest, nginxWasActive: serviceIsActive('nginx.service'), workerWasActive: serviceIsActive('meetwise-worker.service'), armedAt: new Date().toISOString() };
-      durableWriteJson(maintenancePath, maintenance);
+      if (maintenance?.status === 'maintenance') {
+        validateMaintenance(maintenance, plan, targetBinding);
+      } else {
+        maintenance = { schemaVersion: 1, status: 'maintenance', datasetId: plan.datasetId, catalogDigest: plan.catalogDigest, targetDigest: targetBinding.targetDigest, releaseIdentity: targetBinding.releaseIdentity, nginxWasActive: serviceIsActive('nginx.service'), workerWasActive: serviceIsActive('meetwise-worker.service'), armedAt: new Date().toISOString() };
+        durableWriteJson(maintenancePath, maintenance);
+      }
     }
-    let committedReady = false;
+    let restorePending = !readOnlyReattestation;
     try {
-      if (serviceIsActive('nginx.service')) runCommand('/usr/bin/systemctl', ['stop', 'nginx.service']);
-      if (serviceIsActive('meetwise-worker.service')) runCommand('/usr/bin/systemctl', ['stop', 'meetwise-worker.service']);
-      runCommand(process.execPath, [join(dirname(process.argv[1]), 'db-verify.mjs'), '--profile', args.profile, '--dataset-id', args.datasetId, '--phase', 'pre'], { timeout: 120_000 });
-      const preflight = loadJson(join(datasetDir, 'pre-db-verification.json'), null); validateDbReceipt(preflight, { plan, targetBinding, phase: 'pre', notBefore: startedAt });
-      const state = await applyPlan({ plan, api, seed, statePath, credentialPath: join(datasetDir, 'credentials.json'), targetBinding, onProgress: (kind, key) => process.stderr.write(`progress ${kind} ${key}\n`) });
+      if (!readOnlyReattestation) {
+        if (serviceIsActive('nginx.service')) controlService('nginx.service', 'stop');
+        if (serviceIsActive('meetwise-worker.service')) controlService('meetwise-worker.service', 'stop');
+      }
+      const verifier = join(dirname(process.argv[1]), 'db-verify.mjs');
+      runCommand(process.execPath, [verifier, '--profile', args.profile, '--dataset-id', args.datasetId, '--phase', 'pre', '--output-dir', targetDir], { timeout: 120_000, env: verifierProcessEnv });
+      const preflight = loadJson(paths.preDbVerificationPath, null); validateDbReceipt(preflight, { plan, targetBinding, phase: 'pre', notBefore: startedAt });
+      const state = readOnlyReattestation
+        ? loadJson(statePath, null)
+        : await applyPlan({ plan, api, seed, statePath, credentialPath: paths.credentialsPath, targetBinding, fixedPreviewCredentials, onProgress: (kind, key) => process.stderr.write(`progress ${kind} ${key}\n`) });
       if (!isVerificationContinuableState(state.status)) throw new Error(`unexpected_loaded_state:${state.status}`);
-      runCommand(process.execPath, [join(dirname(process.argv[1]), 'db-verify.mjs'), '--profile', args.profile, '--dataset-id', args.datasetId, '--phase', 'post'], { timeout: 120_000 });
-      const dbReceipt = loadJson(join(datasetDir, 'post-db-verification.json'), null); validateDbReceipt(dbReceipt, { plan, targetBinding, phase: 'post', notBefore: startedAt });
-      const receipt = await verifyPlan({ plan, api, seed, statePath, targetBinding, dbReceipt });
-      committedReady = true;
-      process.stdout.write(`${JSON.stringify(receipt, null, 2)}\n`);
+      runCommand(process.execPath, [verifier, '--profile', args.profile, '--dataset-id', args.datasetId, '--phase', 'post', '--output-dir', targetDir], { timeout: 120_000, env: verifierProcessEnv });
+      const dbReceipt = loadJson(paths.postDbVerificationPath, null); validateDbReceipt(dbReceipt, { plan, targetBinding, phase: 'post', notBefore: startedAt });
+      const receipt = await verifyPlan({ plan, api, seed, statePath, targetBinding, dbReceipt, fixedPreviewCredentials });
+      if (restorePending) {
+        restoreMaintenanceServices(maintenance, maintenancePath);
+        restorePending = false;
+      }
+      writeReceiptBundle(paths, { plan, targetBinding, receipt, dbReceipt, mode: readOnlyReattestation ? 'reattestation' : bundle.mode });
+      process.stdout.write(`${JSON.stringify({ ...receipt, targetStateDir: paths.targetStateDir, receiptBundlePath: paths.receiptBundlePath, receiptPaths: paths, bundleMode: readOnlyReattestation ? 'reattestation' : bundle.mode }, null, 2)}\n`);
     } finally {
-      if (committedReady) {
+      if (restorePending && maintenance?.status === 'maintenance') {
         restoreMaintenanceServices(maintenance, maintenancePath);
       }
     }
   } else if (args.command === 'apply') {
-    const state = await applyPlan({ plan, api, seed, statePath: join(datasetDir, 'manifest.json'), credentialPath: join(datasetDir, 'credentials.json'), targetBinding, onProgress: (kind, key) => process.stderr.write(`progress ${kind} ${key}\n`) });
-    process.stdout.write(`${JSON.stringify({ datasetId: state.datasetId, status: state.status, counts: state.counts, loadReceiptDigest: state.loadReceiptDigest }, null, 2)}\n`);
+    const state = await applyPlan({ plan, api, seed, statePath: paths.manifestPath, credentialPath: paths.credentialsPath, targetBinding, fixedPreviewCredentials, onProgress: (kind, key) => process.stderr.write(`progress ${kind} ${key}\n`) });
+    process.stdout.write(`${JSON.stringify({ datasetId: state.datasetId, status: state.status, counts: state.counts, loadReceiptDigest: state.loadReceiptDigest, targetStateDir: paths.targetStateDir, receiptBundlePath: paths.receiptBundlePath, receiptPaths: paths, bundleMode: bundle.mode }, null, 2)}\n`);
   } else {
-    const dbReceipt = loadJson(join(datasetDir, 'post-db-verification.json'), null);
-    const receipt = await verifyPlan({ plan, api, seed, statePath: join(datasetDir, 'manifest.json'), targetBinding, dbReceipt });
-    process.stdout.write(`${JSON.stringify(receipt, null, 2)}\n`);
+    const dbReceipt = loadJson(paths.postDbVerificationPath, null);
+    const receipt = await verifyPlan({ plan, api, seed, statePath: paths.manifestPath, targetBinding, dbReceipt, fixedPreviewCredentials });
+    writeReceiptBundle(paths, { plan, targetBinding, receipt, dbReceipt, mode: bundle.mode });
+    process.stdout.write(`${JSON.stringify({ ...receipt, targetStateDir: paths.targetStateDir, receiptBundlePath: paths.receiptBundlePath, receiptPaths: paths, bundleMode: bundle.mode }, null, 2)}\n`);
   }
 }
 

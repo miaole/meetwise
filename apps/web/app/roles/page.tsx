@@ -5,12 +5,13 @@ import { getServerToken, serverGet, serverFetch } from '@/lib/api/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ResumeList, type ResumeRef } from '@meetwise/contracts';
+import { resumeOptionLabel } from '@/lib/resume/display';
 
 export const metadata: Metadata = { title: '岗位匹配 · 知面', description: '据你的简历匹配适合的岗位方向。' };
 
 interface Role { id: string; title: string; skills: string[] }
 interface Match { id: string; title: string; score: number }
-interface ResumeRef { id: string; status: string }
 
 /** 岗位匹配页(C 端:据简历推荐岗位方向)。RSC + searchParam:选简历(GET 表单)→ 服务端 POST /roles/match → 渲染结果。无 client。 */
 export default async function RolesPage({ searchParams }: { searchParams: Promise<{ resumeId?: string }> }) {
@@ -19,10 +20,11 @@ export default async function RolesPage({ searchParams }: { searchParams: Promis
 
   const [rolesRes, resumesRes] = await Promise.all([
     serverGet<{ roles: Role[] }>('/roles'),
-    serverGet<{ resumes: ResumeRef[] } | ResumeRef[]>('/resume'),
+    serverGet<unknown>('/resume'),
   ]);
   const roles = rolesRes?.roles ?? [];
-  const resumes = Array.isArray(resumesRes) ? resumesRes : (resumesRes?.resumes ?? []);
+  const parsedResumes = ResumeList.safeParse(resumesRes);
+  const resumes: ResumeRef[] = parsedResumes.success ? parsedResumes.data.resumes : [];
 
   // 选了简历 → 服务端匹配
   let matches: Match[] | null = null;
@@ -52,7 +54,7 @@ export default async function RolesPage({ searchParams }: { searchParams: Promis
             <form method="get" className="flex flex-wrap items-center gap-2">
               <select name="resumeId" defaultValue={resumeId ?? ''} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
                 <option value="" disabled>选择简历…</option>
-                {resumes.map((r) => <option key={r.id} value={r.id}>{r.id.slice(0, 8)}（{r.status}）</option>)}
+                {resumes.map((r) => <option key={r.id} value={r.id}>{resumeOptionLabel(r)}</option>)}
               </select>
               <Button type="submit">匹配岗位</Button>
             </form>

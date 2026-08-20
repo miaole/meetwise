@@ -1,0 +1,9 @@
+# CI/CD and production-runtime trust boundaries require explicit owner review.
+/.github/workflows/ @miaole
+/Dockerfile @miaole
+/apps/web/Dockerfile @miaole
+/docker/ @miaole
+/ops/ecs/ @miaole
+/packages/db/migrations/ @miaole
+/scripts/preview-synthetic-data/ @miaole
+/scripts/preview-account-scenarios/ @miaole

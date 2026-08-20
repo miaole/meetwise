@@ -1,12 +1,21 @@
 /** 迁移运行器证明（真 Postgres）：只跑待应用 · 幂等 · 事务 · 漂移检测 · advisory 锁 · 目录加载。 pnpm migrate:prove */
-import { existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { assertIsolatedTestTarget, createPool, runMigrations, loadMigrations } from '../src/index.ts';
+import { containsTopLevelTransactionControl } from '../src/migrate.ts';
 
 export type MigrateProofOutcome = {
   assertions: number;
   failures: string[];
 };
+
+// This byte/checksum is the migration already executed by the fixed cloud
+// test database.  Keep the number and bytes exact; a later Chinese-context
+// change must use 0122 instead of silently replacing/copying this migration.
+const RESUME_PGCRYPTO_0121_VERSION = '0121_resume_pgcrypto_runtime_acl';
+const RESUME_PGCRYPTO_0121_CHECKSUM = '228f14105feb546c66aff68296ace5e389f16af32c52a84fd4a42679e9166ec8';
+const RESUME_PGCRYPTO_0122_VERSION = '0122_resume_pgcrypto_optional_acl';
 
 /**
  * The exact migration-runner proof shared by the local isolated target and
@@ -43,6 +52,28 @@ export async function runMigrateProof(
   const m3 = { version: '0003', sql: 'CREATE TABLE IF NOT EXISTS mig_t3(id int)' };
   r = await runMigrations(pool, [m1, m2, m3]);   // 加新迁移
   A('只跑新增的 0003', JSON.stringify(r.applied) === JSON.stringify(['0003']) && await has('mig_t3'));
+
+  let nestedTransactionRejected = false;
+  try {
+    await runMigrations(pool, [m1, m2, m3, {
+      version: '0003_tx',
+      sql: 'BEGIN;\nCREATE TABLE migration_must_not_escape(id int);\nCOMMIT;',
+    }]);
+  } catch (error) {
+    nestedTransactionRejected = (error as { code?: string }).code === 'migration_transaction_control_forbidden:0003_tx';
+  }
+  A('普通迁移禁止自带 BEGIN/COMMIT，DDL 与 ledger 只能由运行器同一事务托管', nestedTransactionRejected
+    && !(await has('migration_must_not_escape'))
+    && (await pool.query("SELECT count(*)::int n FROM schema_migrations WHERE version='0003_tx'")).rows[0]?.n === 0);
+  A('同一行多语句和前置注释不能绕过事务控制门',
+    containsTopLevelTransactionControl('BEGIN; SELECT 1; COMMIT;')
+    && containsTopLevelTransactionControl('/* reviewed */ START TRANSACTION; SELECT 1;'));
+  A('事务控制别名与两阶段提交不能脱离运行器事务',
+    containsTopLevelTransactionControl('END WORK;')
+    && containsTopLevelTransactionControl('ABORT TRANSACTION;')
+    && containsTopLevelTransactionControl("PREPARE TRANSACTION 'migration-gid';"));
+  A('字符串、注释和 PL/pgSQL dollar quote 内的 BEGIN 不会被误拒',
+    !containsTopLevelTransactionControl("SELECT 'BEGIN;'; -- COMMIT;\nDO $$ BEGIN PERFORM 1; END $$;"));
 
   // PostgreSQL does not allow CREATE INDEX CONCURRENTLY inside a transaction.
   // The runner has one narrow, parsed escape hatch—not a generic
@@ -191,6 +222,30 @@ export async function runMigrateProof(
   // 目录加载 + baseline(冻结真 schema) + 增量 + 幂等 + **数据保全(零丢失)**
   await pool.query('DROP TABLE IF EXISTS schema_migrations, app_setting CASCADE');
   const loaded = loadMigrations(migrationDirectory);
+  A('版本化目录没有普通迁移自带事务控制语句', loaded.every((migration) => migration.executionMode === 'concurrent-index'
+    || !containsTopLevelTransactionControl(migration.sql)));
+  const resumePgcrypto0121 = loaded.find((migration) => migration.version === RESUME_PGCRYPTO_0121_VERSION);
+  const resumePgcrypto0121Path = resolve(migrationDirectory, `${RESUME_PGCRYPTO_0121_VERSION}.sql`);
+  const resumePgcrypto0121Bytes = existsSync(resumePgcrypto0121Path) ? readFileSync(resumePgcrypto0121Path) : null;
+  A('0121 简历 pgcrypto 迁移已纳入目录且文件字节 checksum 精确受管',
+    Boolean(resumePgcrypto0121 && resumePgcrypto0121Bytes
+      && createHash('sha256').update(resumePgcrypto0121Bytes).digest('hex') === RESUME_PGCRYPTO_0121_CHECKSUM
+      && resumePgcrypto0121.sql === resumePgcrypto0121Bytes.toString('utf8')
+      && resumePgcrypto0121.version === RESUME_PGCRYPTO_0121_VERSION));
+  const resumePgcrypto0121Index = loaded.findIndex((migration) => migration.version === RESUME_PGCRYPTO_0121_VERSION);
+  const manifestStrictlyIncreasing = loaded.every((migration, index) => {
+    if (index === 0) return true;
+    const previous = loaded[index - 1];
+    return previous !== undefined && previous.version.localeCompare(migration.version) < 0;
+  });
+  const laterVersionsAreSuccessors = loaded.slice(resumePgcrypto0121Index + 1).every((migration) => /^([0-9]{4})_/.test(migration.version)
+    && Number(migration.version.slice(0, 4)) >= 122);
+  A('0121 位于版本化 manifest 的连续前缀尾部，未出现重复编号',
+    loaded.filter((migration) => migration.version === RESUME_PGCRYPTO_0121_VERSION).length === 1
+      && resumePgcrypto0121Index >= 0
+      && manifestStrictlyIncreasing
+      && laterVersionsAreSuccessors
+      && loaded.some((migration) => migration.version === RESUME_PGCRYPTO_0122_VERSION));
   A('加载迁移(0001_baseline 起,≥3)', loaded[0]?.version === '0001_baseline' && loaded.length >= 3);
   A('加载 P0 commerce 迁移 0020', loaded.some((m) => m.version === '0020_commerce_terminal_integrity'));
   A('加载 question identity 迁移 0021', loaded.some((m) => m.version === '0021_interview_question_identity'));
@@ -231,6 +286,8 @@ export async function runMigrateProof(
   A('加载题库控制面原文读取与活动 generation 边界迁移 0067',
     loaded.some((m) => m.version === '0067_qbank_control_plane_read_boundary'));
   const rr = await runMigrations(pool, loaded);
+  const recorded0121 = (await pool.query('SELECT version, checksum FROM schema_migrations WHERE version=$1', [RESUME_PGCRYPTO_0121_VERSION])).rows[0];
+  A('0121 ledger 记录与源码精确 checksum 一致（线上已执行版本不可漂移）', recorded0121?.checksum === RESUME_PGCRYPTO_0121_CHECKSUM);
   A('baseline 应用 → 真生产 schema 建出来(user_account/payment_order/vector_chunk)', (await has('user_account')) && (await has('payment_order')) && (await has('vector_chunk')));
   A('0020 → providerTxn partial unique index 已建', (await pool.query("SELECT to_regclass('public.uq_payment_order_provider_txn') r")).rows[0].r !== null);
   A('0020 → interview/consumption terminal-pair trigger 已建', (await pool.query(
@@ -275,6 +332,13 @@ export async function runMigrateProof(
   A('0038 → OCR 加密恢复工件表与强制行级安全已建',
     (await has('resume_ocr_artifact'))
     && (await pool.query("SELECT relforcerowsecurity FROM pg_class WHERE oid='public.resume_ocr_artifact'::regclass")).rows[0].relforcerowsecurity === true);
+  A('0121 → app_role 仅获简历运行时所需的双参数 pgcrypto 能力，PUBLIC 与可选参数重载保持拒绝',
+    (await pool.query("SELECT has_function_privilege('app_role','pgp_sym_encrypt(text,text)','EXECUTE') allowed")).rows[0].allowed === true
+    && (await pool.query("SELECT has_function_privilege('app_role','pgp_sym_decrypt(bytea,text)','EXECUTE') allowed")).rows[0].allowed === true
+    && (await pool.query("SELECT has_function_privilege('public','pgp_sym_encrypt(text,text)','EXECUTE') allowed")).rows[0].allowed === false
+    && (await pool.query("SELECT has_function_privilege('public','pgp_sym_decrypt(bytea,text)','EXECUTE') allowed")).rows[0].allowed === false
+    && (await pool.query("SELECT has_function_privilege('app_role','pgp_sym_encrypt(text,text,text)','EXECUTE') allowed")).rows[0].allowed === false
+    && (await pool.query("SELECT has_function_privilege('app_role','pgp_sym_decrypt(bytea,text,text)','EXECUTE') allowed")).rows[0].allowed === false);
   A('0039/0088 → app_role 仅保留 OCR trace 删除权，调用账本不得直接删除',
     (await pool.query("SELECT has_table_privilege('app_role','ai_invocation_trace','DELETE') allowed")).rows[0].allowed === true
     && (await pool.query("SELECT has_table_privilege('app_role','ai_model_invocation','DELETE') allowed")).rows[0].allowed === false);

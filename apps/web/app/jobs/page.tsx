@@ -9,14 +9,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { applyAction, startApplicationAction, declineApplicationAction } from './actions';
 import { listWindow, withLimitHref } from '@/lib/paginate';
+import { resumeOptionLabel } from '@/lib/resume/display';
+import { MyApplications, ResumeList, type ResumeRef as Resume } from '@meetwise/contracts';
 
 const PAGE = 20;          // 岗位广场可能很多:封顶首屏渲染,"加载更多"递增 ?limit
 
 export const metadata: Metadata = { title: '岗位广场 · 知面', description: '浏览招聘中的岗位并投递申请。' };
 
 interface Job { id: string; title: string; competencies: string[]; status: string }
-interface Application { id: string; job_id: string; interview_id: string | null; resume_id: string | null; status: string; score: number | null; source?: string }
-interface Resume { id: string; status: string }
+type Application = (typeof MyApplications)['_output']['applications'][number];
 
 const STATUS_LABEL: Record<string, { text: string; variant: 'success' | 'outline' | 'secondary' | 'destructive' }> = {
   invited: { text: '待开始', variant: 'outline' },
@@ -33,16 +34,18 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
 
   const [jobsRes, appsRes, resumesRes] = await Promise.all([
     serverGet<{ jobs: Job[] }>('/jobs'),
-    serverGet<{ applications: Application[] }>('/applications'),
-    serverGet<{ resumes: Resume[] }>('/resume'),
+    serverGet<unknown>('/applications'),
+    serverGet<unknown>('/resume'),
   ]);
   const jobs = jobsRes?.jobs ?? [];
-  const applications = appsRes?.applications ?? [];
+  const parsedApplications = MyApplications.safeParse(appsRes);
+  const parsedResumes = ResumeList.safeParse(resumesRes);
+  const applications: Application[] = parsedApplications.success ? parsedApplications.data.applications : [];
   // 已投递的岗位 id 集合 → 避免重复投递入口(基于全量 applications,与窗口无关,故不漏判)
   const appliedJobIds = new Set(applications.map((a) => a.job_id));
   const jobsWin = listWindow(jobs, limit, PAGE);
   const appsWin = listWindow(applications, alimit, PAGE);     // 投递列表独立分页(?alimit),两窗互不影响
-  const eligibleResumes = (resumesRes?.resumes ?? []).filter((r) => r.status === 'ingested');
+  const eligibleResumes: Resume[] = (parsedResumes.success ? parsedResumes.data.resumes : []).filter((r) => r.status === 'ingested');
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
@@ -101,15 +104,15 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
           ) : applications.length === 0 ? (
             <p className="text-sm text-muted-foreground">你还没有投递任何岗位,在上方选一个岗位申请吧。</p>
           ) : appsWin.shown.map((app) => {
-            const st = STATUS_LABEL[app.status] ?? { text: app.status, variant: 'outline' as const };
+            const st = STATUS_LABEL[app.status] ?? { text: '状态未知', variant: 'outline' as const };
             const invited = app.status === 'invited';
             // `assessment_unavailable` 是无可信分数且已退款的可恢复终态；重试必须显式由
             // 用户发起，服务端会创建新的 attempt，不会复活或覆盖旧会话。
             const startable = app.status === 'invited' || app.status === 'in_progress' || app.status === 'assessment_unavailable';
             return (
               <div key={app.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3">
-                <span className="font-mono text-sm text-muted-foreground">
-                  岗位 {app.job_id.slice(0, 8)}
+                <span className="text-sm font-medium">
+                  {app.job_title}
                   {app.source === 'invited' && <Badge variant="secondary" className="ml-2 align-middle">招聘方邀请</Badge>}
                 </span>
                 <div className="flex items-center gap-2">
@@ -121,7 +124,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                       {eligibleResumes.length > 0 ? (
                         <form action={startApplicationAction.bind(null, app.id)} className="flex items-center gap-1">
                           <select name="resumeId" defaultValue={eligibleResumes[0]?.id} aria-label="选择用于本岗位面试的简历" className="h-8 max-w-36 rounded border bg-background px-1 text-xs">
-                            {eligibleResumes.map((r) => <option key={r.id} value={r.id}>简历 {r.id.slice(0, 8)}</option>)}
+                            {eligibleResumes.map((r) => <option key={r.id} value={r.id}>{resumeOptionLabel(r)}</option>)}
                           </select>
                           <SubmitButton size="sm" pendingLabel="启动中…">{invited ? '开始面试' : '继续岗位面试'}</SubmitButton>
                         </form>

@@ -36,6 +36,8 @@ await h.pool.query(
 // This file reloads the historical B tables for isolated negative tests, so
 // re-apply the current invariant migration after the fixture—not before it.
 await h.pool.query(migrationText('0046_application_assessment_recovery.sql'));
+await h.pool.query(migrationText('0104_job_route_decision.sql'));
+await h.pool.query(migrationText('0123_user_facing_context_snapshots.sql'));
 
 // ── principal 上下文 client(app_role + set_config),用于 DB 层直证 RLS 隔离(不经 HTTP)。ROLLBACK 只读不改。
 const asP = async (uid: string, q: string, params: any[] = []) => {
@@ -297,6 +299,10 @@ const appStatus = async (id: string) => (await h.pool.query('SELECT status, scor
   try { await asP('userB', "INSERT INTO job_application(id,job_id,recruiter_user_id,candidate_user_id,status,score,source) VALUES('app_forge_score','JOB_REC','recU','userB','completed',100,'applied')"); }
   catch { forgedScoreRejected = true; }
   A('DB guard: candidate 不能直接插入 completed/100 的伪造候选结果', forgedScoreRejected);
+  let snapshotMutationRejected = false;
+  try { await asP('victimU', "UPDATE job_application SET job_title_snapshot='伪造岗位' WHERE id='APP_VICTIM'"); }
+  catch { snapshotMutationRejected = true; }
+  A('DB guard: 候选人不能改写岗位标题快照', snapshotMutationRejected);
   const forgedVisible = await asP('recU', "SELECT count(*)::int n FROM job_application WHERE id='app_forge_score'");
   A('伪造完成行对受害招聘方可见数=0', forgedVisible.rows[0].n === 0);
   let tenantMutationRejected = false;

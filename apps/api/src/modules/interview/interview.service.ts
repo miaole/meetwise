@@ -6,6 +6,7 @@ import { VOICE_EGRESS_DISABLED_ID, type Asr, type Tts, type StreamingTts } from 
 import type { TranscribeDto, TurnDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
 import { RateLimitService } from '../../platform/rate-limit.service';
+import { resumeDisplayName } from '../resume/resume-display.ts';
 
 const MAX_AUDIO_BYTES = 10 * 1024 * 1024;   // 10MB 上限(单题语音作答足够;防大文件 DoS)
 // 语音端点(ASR/TTS)调付费百炼模型但无额度预留(边缘 I/O,非整场面试计费单元)→ **per-principal 令牌桶限流防成本 DoS**(安全审计高危#1)。
@@ -18,6 +19,31 @@ const TERMINAL_INTERVIEW = ['completed', 'abandoned', 'failed'];
 const MAX_TURN = 64;              // turn 号上界(自适应 maxTurns=8 + clarify/probe 冗余;防超大 turn 号刷无限 job)
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ANSWER_HASH_RE = /^[a-f0-9]{64}$/;
+
+function toInterviewView(row: any) {
+  let displayNumber = 0;
+  for (const char of String(row.id)) displayNumber = (displayNumber * 33 + char.charCodeAt(0)) % 1_000_000;
+  return {
+    id: row.id,
+    status: row.status,
+    job_title: row.job_title,
+    created_at: row.created_at ? new Date(row.created_at).toISOString() : null,
+    display_code: `场次${String(displayNumber).padStart(6, '0')}`,
+    resume_display_name: row.resume_id
+      ? resumeDisplayName({
+          created_at: row.resume_created_at,
+          experience_hint: row.resume_experience_hint,
+          skill_hint: row.resume_skill_hint,
+          content_sha: row.resume_content_sha,
+        })
+      : null,
+    current_question_index: row.current_question_index,
+    issued_turns: row.issued_turns,
+    answered_turns: row.answered_turns,
+    current_turn: row.current_turn,
+    processing_turn: row.processing_turn,
+  };
+}
 // 语音接口由 DI seam 提供。默认组合根固定注入 fail-closed seam；只有后续
 // typed operation binding 才能替换它，service 不硬编码供应商细节。
 export const VOICE_ASR = Symbol.for('meetwise.VOICE_ASR');
@@ -358,13 +384,20 @@ export class InterviewService {
   async list(principal: string, status?: string, limit?: string) {
     const lim = Math.min(Math.max(Number(limit) || 50, 1), 200);
     const projection = `
-      SELECT i.id, i.status,
+      SELECT i.id, i.status, i.created_at,
+        i.job_title_snapshot AS job_title,
+        i.resume_id,
+        r.created_at AS resume_created_at, r.content_sha AS resume_content_sha,
+        rp.structured #>> '{experience,0,text}' AS resume_experience_hint,
+        rp.structured #>> '{skills,0,text}' AS resume_skill_hint,
         q.current_question_index,
         COALESCE(q.issued_turns, 0)::int AS issued_turns,
         COALESCE(q.answered_turns, 0)::int AS answered_turns,
         q.current_turn,
         q.processing_turn
       FROM interview i
+      LEFT JOIN resume r ON r.id=i.resume_id AND r.owner_user_id=i.owner_user_id
+      LEFT JOIN resume_profile rp ON rp.resume_id=r.id AND rp.owner_user_id=r.owner_user_id
       LEFT JOIN LATERAL (
         SELECT
           max(iq.turn) FILTER (WHERE iq.status <> 'cancelled')::int AS current_question_index,
@@ -377,22 +410,29 @@ export class InterviewService {
       ) q ON true`;
     const r = await this.db.asPrincipal(principal, (c) =>
       status
-        ? c.query(`${projection} WHERE i.status=$1 AND interview_privacy_active(i.id) ORDER BY COALESCE(q.issued_turns,0) DESC, i.id LIMIT $2`, [status, lim])
-        : c.query(`${projection} WHERE interview_privacy_active(i.id) ORDER BY COALESCE(q.issued_turns,0) DESC, i.id LIMIT $1`, [lim]));
-    return { interviews: r.rows };
+        ? c.query(`${projection} WHERE i.status=$1 AND interview_privacy_active(i.id) ORDER BY i.created_at DESC NULLS LAST, i.id DESC LIMIT $2`, [status, lim])
+        : c.query(`${projection} WHERE interview_privacy_active(i.id) ORDER BY i.created_at DESC NULLS LAST, i.id DESC LIMIT $1`, [lim]));
+    return { interviews: r.rows.map(toInterviewView) };
   }
 
   async get(principal: string, id: string) {
     const r = await this.db.asPrincipal(principal, async (c) => {
       await this.guardInterviewPrivacy(c, id);
       return c.query(`
-        SELECT i.id, i.status,
+        SELECT i.id, i.status, i.created_at,
+          i.job_title_snapshot AS job_title,
+          i.resume_id,
+          r.created_at AS resume_created_at, r.content_sha AS resume_content_sha,
+          rp.structured #>> '{experience,0,text}' AS resume_experience_hint,
+          rp.structured #>> '{skills,0,text}' AS resume_skill_hint,
           q.current_question_index,
           COALESCE(q.issued_turns, 0)::int AS issued_turns,
           COALESCE(q.answered_turns, 0)::int AS answered_turns,
           q.current_turn,
           q.processing_turn
         FROM interview i
+        LEFT JOIN resume r ON r.id=i.resume_id AND r.owner_user_id=i.owner_user_id
+        LEFT JOIN resume_profile rp ON rp.resume_id=r.id AND rp.owner_user_id=r.owner_user_id
         LEFT JOIN LATERAL (
           SELECT
             max(iq.turn) FILTER (WHERE iq.status <> 'cancelled')::int AS current_question_index,
@@ -405,7 +445,7 @@ export class InterviewService {
         ) q ON true
         WHERE i.id=$1`, [id]);
     });
-    return r.rows[0];
+    return r.rows[0] ? toInterviewView(r.rows[0]) : undefined;
   }
 
   // 查看面试报告:ready 返内容;queued/processing 返状态(前端按 report_ready 事件刷新);report_unavailable 已由舱壁标 failed。

@@ -6,12 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import { Badge } from '@/components/ui/badge';
+import { ResumeList, type ResumeRef as Resume } from '@meetwise/contracts';
+import { resumeOptionLabel } from '@/lib/resume/display';
 
 export const metadata = { title: '押题 · 知面' };          // App Router Metadata API(SEO,服务端注入)
 
 /** 押题列表 + 开始押题:服务端鉴权 + 服务端取数(GET /quiz、/resume),Server Action 启动押题。镜像 interviews 页。 */
 type Quiz = { id: string; status: string };
-type Resume = { id: string; status?: string };
 
 const STATUS_LABEL: Record<string, string> = {
   created: '待开始', generating: '生成中', ready: '已完成', failed: '已失败',
@@ -27,14 +28,13 @@ export default async function QuizListPage({ searchParams }: { searchParams: Pro
   const { error } = await searchParams;
 
   const data = await serverGet<{ quizzes: Quiz[] } | Quiz[]>('/quiz');
-  const resumesRaw = await serverGet<{ resumes: Resume[] } | Resume[]>('/resume');
+  const resumesRaw = await serverGet<unknown>('/resume');
 
   const quizzes: Quiz[] | null = data
     ? (Array.isArray(data) ? data : data.quizzes ?? [])
     : null;
-  const resumes: Resume[] = resumesRaw
-    ? (Array.isArray(resumesRaw) ? resumesRaw : resumesRaw.resumes ?? [])
-    : [];
+  const parsedResumes = ResumeList.safeParse(resumesRaw);
+  const resumes: Resume[] = parsedResumes.success ? parsedResumes.data.resumes : [];
 
   return (
     <main className="mx-auto max-w-2xl space-y-6 px-4 py-8 sm:px-6">
@@ -68,7 +68,7 @@ export default async function QuizListPage({ searchParams }: { searchParams: Pro
                 className="h-10 rounded-lg border border-input bg-background px-3 text-sm sm:flex-1"
               >
                 {resumes.map((r) => (
-                  <option key={r.id} value={r.id}>{r.id.slice(0, 12)}{r.status ? `(${r.status})` : ''}</option>
+                  <option key={r.id} value={r.id}>{resumeOptionLabel(r)}</option>
                 ))}
               </select>
               <SubmitButton pendingLabel="启动中…">开始押题</SubmitButton>

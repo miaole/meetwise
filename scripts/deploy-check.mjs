@@ -6,6 +6,7 @@
 import { readFileSync } from 'node:fs';
 
 const compose = readFileSync('docker/compose.prod.yml', 'utf8');
+const monitoringCompose = readFileSync('docker/compose.monitoring.yml', 'utf8');
 const prometheus = readFileSync('docker/monitoring/prometheus.yml', 'utf8');
 const prometheusWithoutComments = prometheus.replace(/^\s*#.*$/gm, '');
 const dockerfile = readFileSync('Dockerfile', 'utf8');
@@ -23,6 +24,9 @@ must(/apps\/api","serve"/.test(dockerfile) && !/"tsx","src\/main/.test(dockerfil
 // ② serve/start 脚本确实走 @swc-node/register(发元数据,与 gate api:validate 同路径)
 must(/@swc-node\/register/.test(apiPkg.scripts?.serve ?? ''), 'apps/api serve 必须经 @swc-node/register');
 must(/@swc-node\/register/.test(workerPkg.scripts?.start ?? ''), 'apps/worker start 必须经 @swc-node/register');
+// compose 单机：生产必须 pull 镜像（image:），绝不在 ECS 上 build（4G 内存 OOM 根因）。
+must(!/^\s+build:\s*$/m.test(compose), '生产 compose 必须 pull 镜像(image:)，不得在 ECS 上 build');
+must(/image:\s*\$\{BACKEND_IMAGE:\?/.test(compose) && /image:\s*\$\{WEB_IMAGE:\?/.test(compose), '生产 compose 必须用 BACKEND_IMAGE/WEB_IMAGE 按 @sha256 摘要 pin 的镜像引用');
 
 // ③ 部署迁移:只能由一次性 migrate 服务执行版本化 migrations。基础 sql 含 DROP，
 // 绝不可作为 postgres init-script 与增量迁移混用。
@@ -34,7 +38,13 @@ must((compose.match(/condition:\s*service_completed_successfully/g) ?? []).lengt
 // 且所有连接字符串必须由部署期密钥管理注入，不能回退 PGHOST/默认口令。
 must(!/^\s{2}(postgres|redis|minio):/m.test(compose), '生产 compose 不得声明本地 postgres/redis/minio 服务');
 must(!/^volumes:/m.test(compose), '生产 compose 不得声明本地数据卷');
-must(!/\bPGHOST\s*:|meetwise_dev_password|localhost:|127\.0\.0\.1:/.test(compose), '生产 compose 不得含本地数据库目标或开发口令');
+must(!/\bPGHOST\s*:|meetwise_dev_password|localhost:|(?:postgres(?:ql)?|redis|mysql):\/\/127\.0\.0\.1|127\.0\.0\.1:(?:5432|6379|3306)/.test(compose), '生产 compose 不得含本地数据库目标或开发口令');
+// app 端口必须宿主回环绑定：0.0.0.0 会把 api/web 直连 tailnet/公网，绕过 funnel 与 edge-close
+// 仪式（revoke 关 funnel 后 app 仍可从 :8787/:3000 直达）。唯一公网入口必须仍是 funnel→nginx:80→web:3000。
+must(/"127\.0\.0\.1:8787:8787"/.test(compose) && /"127\.0\.0\.1:3000:3000"/.test(compose) && !/^\s*-\s*"0\.0\.0\.0:/m.test(compose), 'app 端口必须绑定 127.0.0.1（仅 funnel/nginx/宿主 loader 可达），不得 0.0.0.0 暴露');
+// web 容器的服务端 api 调用（serverFetch / 同源 SSE 代理）必须走 compose 私网 api:8787，
+// 缺失会回退到公网 NEXT_PUBLIC_API_BASE 造成经 funnel 自环或失败。
+must(/API_BASE_INTERNAL:\s*http:\/\/api:8787/.test(compose), 'web 容器必须经 compose 私网 api:8787 直连，不得回退公网 NEXT_PUBLIC_API_BASE');
 must(/x-cloud-runtime-env:[\s\S]*DATABASE_URL:\s*\$\{RUNTIME_DATABASE_URL:\?/.test(compose), 'API/worker 必须从密钥管理注入 runtime DATABASE_URL');
 must(/x-migration-env:[\s\S]*DATABASE_URL:\s*\$\{MIGRATION_DATABASE_URL:\?/.test(compose), '迁移任务必须从密钥管理注入独立 MIGRATION_DATABASE_URL');
 must(/DATABASE_SSL_MODE:\s*verify-full/.test(compose) && /DATABASE_SSL_CA_PATH:\s*\/run\/secrets\/rds_ca/.test(compose), '生产数据库必须 verify-full TLS 并读取 CA secret');
@@ -44,7 +54,7 @@ must(/RAG_REDIS_URL:\s*\$\{RAG_REDIS_URL:\?/.test(compose), 'worker 必须从密
 // data-class boundaries.  The API may receive the latter for voice fallback,
 // but never the DeepSeek primary or Qwen text-backup credentials.
 const apiBlock = compose.match(/^  api:\n([\s\S]*?)(?=^  worker:)/m)?.[1] ?? '';
-const workerBlock = compose.match(/^  worker:\n([\s\S]*?)(?=^  prometheus:)/m)?.[1] ?? '';
+const workerBlock = compose.match(/^  worker:\n([\s\S]*?)(?=^  web:)/m)?.[1] ?? '';
 const migrationBlock = compose.match(/^  migrate:\n([\s\S]*?)(?=^  api:)/m)?.[1] ?? '';
 const workerNativeModelBlock = compose.match(/^x-worker-native-model-env: &worker-native-model-env\n([\s\S]*?)(?=^x-migration-env:)/m)?.[1] ?? '';
 const migrationEnvBlock = compose.match(/^x-migration-env: &migration-env\n([\s\S]*?)(?=^services:)/m)?.[1] ?? '';
@@ -96,9 +106,9 @@ must(/secrets:\s*\[rds_ca\]/.test(compose), '云端运行服务必须挂载 RDS 
 // 也永远拿不到模型对账、队列与就绪状态的数据。
 must(/worker:[\s\S]*?WORKER_METRICS_HOST:\s*0\.0\.0\.0[\s\S]*?expose:\s*\n\s*-\s*"9091"/.test(compose),
   'worker 必须只在 compose 私网 expose 9091，并显式监听 0.0.0.0');
-must(/^\s{2}prometheus:/m.test(compose) && /^\s{2}alertmanager:/m.test(compose),
-  '生产 compose 必须携带 Prometheus 和 Alertmanager 服务，不能依赖未声明的宿主机监控');
-must(/prom\/prometheus:v\d+\.\d+\.\d+/.test(compose) && /prom\/alertmanager:v\d+\.\d+\.\d+/.test(compose),
+must(/^\s{2}prometheus:/m.test(monitoringCompose) && /^\s{2}alertmanager:/m.test(monitoringCompose),
+  '监控栈必须声明 Prometheus 和 Alertmanager 服务（独立 compose.monitoring.yml），不能依赖未声明的宿主机监控');
+must(/prom\/prometheus:v\d+\.\d+\.\d+/.test(monitoringCompose) && /prom\/alertmanager:v\d+\.\d+\.\d+/.test(monitoringCompose),
   '监控镜像必须固定版本，禁止 latest');
 must(/targets:\s*\n\s*- api:8787/.test(prometheus) && /targets:\s*\n\s*- worker:9091/.test(prometheus),
   'Prometheus 必须通过 compose 服务名抓 api:8787 与 worker:9091');

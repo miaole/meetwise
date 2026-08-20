@@ -1,7 +1,7 @@
 [Unit]
 Description=Restore a durably confirmed Meetwise full-stack public edge
-After=meetwise-full-stack-publication-recovery.service meetwise-web.service nginx.service tailscaled.service
-Wants=meetwise-web.service nginx.service
+After=meetwise-full-stack-publication-recovery.service nginx.service tailscaled.service
+Wants=nginx.service
 
 [Service]
 Type=oneshot

@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScoreRing } from '@/components/ScoreRing';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { interviewActionLabel, interviewDisplayStatus, interviewProgressLabel } from '@/lib/interview/progress';
+import { interviewActionLabel, interviewDisplayStatus, interviewProgressLabel, isInterviewEnterable } from '@/lib/interview/progress';
+import { interviewContextTitle, interviewResumeLabel, interviewTimeLabel } from '@/lib/interview/context';
 import { InterviewList, type InterviewView as Interview } from '@meetwise/contracts';
 
 export const metadata = { title: '成长主页 · 知面' };     // App Router Metadata API(SEO,服务端注入)
@@ -25,7 +26,7 @@ const STATUS_LABEL: Record<string, string> = {
 /** 状态徽章:语义色克制——完成=暖色 success、失败=destructive、其余=secondary。 */
 function StatusBadge({ status }: { status: string }) {
   const variant = status === 'completed' ? 'success' : status === 'failed' ? 'destructive' : 'secondary';
-  return <Badge variant={variant}>{STATUS_LABEL[status] ?? status}</Badge>;
+  return <Badge variant={variant}>{STATUS_LABEL[status] ?? '状态未知'}</Badge>;
 }
 
 const QUICK_ACTIONS: Array<{ href: string; t: string; d: string; Icon: typeof MessageSquareText; primary?: boolean }> = [
@@ -124,10 +125,13 @@ async function GrowthHome() {
                     {i > 0 && <Separator />}
                     <div className="flex flex-wrap items-center gap-3 p-4">
                       <StatusBadge status={interviewDisplayStatus(it)} />
-                      <span className="flex-1 text-sm text-muted-foreground">
-                        {done ? `已完成 · ${interviewProgressLabel(it)}` : interviewProgressLabel(it)}
-                      </span>
-                      {it.status === 'abandoned' || it.status === 'failed' ? (
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-medium">{interviewContextTitle(it.job_title)}</div>
+                        <div className="truncate text-xs text-muted-foreground">
+                          {interviewResumeLabel(it.resume_display_name)} · {it.display_code} · {interviewTimeLabel(it.created_at)} · {done ? `已完成 · ${interviewProgressLabel(it)}` : interviewProgressLabel(it)}
+                        </div>
+                      </div>
+                      {!done && !isInterviewEnterable(it.status) ? (
                         <Button variant="outline" size="sm" disabled>{interviewActionLabel(it.status)}</Button>
                       ) : (
                         <Button asChild variant="outline" size="sm">

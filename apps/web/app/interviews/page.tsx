@@ -8,16 +8,16 @@ import { SubmitButton } from '@/components/ui/SubmitButton';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { listWindow, withLimitHref } from '@/lib/paginate';
-import { interviewDisplayStatus, interviewProgressLabel } from '@/lib/interview/progress';
-import { InterviewList, type InterviewView as Interview } from '@meetwise/contracts';
+import { interviewDisplayStatus, interviewProgressLabel, isInterviewEnterable } from '@/lib/interview/progress';
+import { interviewContextTitle, interviewResumeLabel, interviewTimeLabel } from '@/lib/interview/context';
+import { resumeOptionLabel } from '@/lib/resume/display';
+import { InterviewList, ResumeList, type InterviewView as Interview, type ResumeRef as Resume } from '@meetwise/contracts';
 
 const PAGE = 20;          // 初始/每次"加载更多"渲染条数,封顶首屏 DOM(极端长列表防卡)
 
 export const metadata = { title: '面试 · 知面' };          // App Router Metadata API(SEO,服务端注入)
 
 /** 面试列表 + 开始新面试:服务端鉴权 + 服务端取数(GET /interview、/resume),Server Action 启动面试。 */
-type Resume = { id: string; status?: string };
-
 const STATUS_LABEL: Record<string, string> = {
   created: '待开始', active: '进行中', running: '进行中', waiting_user: '等你作答',
   completed: '已完成', abandoned: '已放弃', failed: '已失败',
@@ -25,7 +25,7 @@ const STATUS_LABEL: Record<string, string> = {
 
 function statusBadge(status: string) {
   const variant = status === 'failed' ? 'destructive' : status === 'completed' ? 'success' : 'secondary';
-  return <Badge variant={variant}>{STATUS_LABEL[status] ?? status}</Badge>;
+  return <Badge variant={variant}>{STATUS_LABEL[status] ?? '状态未知'}</Badge>;
 }
 
 export default async function InterviewsPage({ searchParams }: { searchParams: Promise<{ limit?: string; error?: string }> }) {
@@ -34,13 +34,12 @@ export default async function InterviewsPage({ searchParams }: { searchParams: P
 
   // 真服务端取数:在 RSC 里 await,HTML 服务端渲染好再发(首屏即有数据,无客户端 fetch 闪烁)。
   const data = await serverGet<unknown>('/interview');
-  const resumesRaw = await serverGet<{ resumes: Resume[] } | Resume[]>('/resume');
+  const resumesRaw = await serverGet<unknown>('/resume');
 
   const parsedInterviews = InterviewList.safeParse(data);
   const interviews: Interview[] | null = parsedInterviews.success ? parsedInterviews.data.interviews : null;
-  const resumes: Resume[] = resumesRaw
-    ? (Array.isArray(resumesRaw) ? resumesRaw : resumesRaw.resumes ?? [])
-    : [];
+  const parsedResumes = ResumeList.safeParse(resumesRaw);
+  const resumes: Resume[] = parsedResumes.success ? parsedResumes.data.resumes : [];
 
   return (
     <main className="mx-auto max-w-2xl space-y-6 px-4 py-8 sm:px-6">
@@ -73,7 +72,7 @@ export default async function InterviewsPage({ searchParams }: { searchParams: P
                 className="h-10 rounded-md border border-input bg-background px-3 text-sm sm:flex-1"
               >
                 {resumes.map((r) => (
-                  <option key={r.id} value={r.id}>{r.id.slice(0, 12)}{r.status ? `(${r.status})` : ''}</option>
+                  <option key={r.id} value={r.id}>{resumeOptionLabel(r)}</option>
                 ))}
               </select>
               <SubmitButton pendingLabel="启动中…">开始新面试</SubmitButton>
@@ -99,11 +98,16 @@ export default async function InterviewsPage({ searchParams }: { searchParams: P
                       <li key={it.id}>
                         {i > 0 && <Separator />}
                         <div className="flex flex-wrap items-center gap-3 p-4">
-                          <code className="flex-1 truncate text-sm text-muted-foreground">{it.id.slice(0, 12)}…</code>
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate text-sm font-medium">{interviewContextTitle(it.job_title)}</div>
+                            <div className="truncate text-xs text-muted-foreground">{interviewResumeLabel(it.resume_display_name)} · {it.display_code} · {interviewTimeLabel(it.created_at)}</div>
+                          </div>
                           {statusBadge(interviewDisplayStatus(it))}
                           <span className="text-xs text-muted-foreground tabular-nums">{interviewProgressLabel(it)}</span>
-                          {it.status === 'abandoned' || it.status === 'failed' ? (
-                            <Button variant="outline" size="sm" disabled>已结束</Button>
+                          {it.status === 'completed' ? (
+                            <Button asChild variant="outline" size="sm"><Link href={`/report/${it.id}`}>查看报告 →</Link></Button>
+                          ) : !isInterviewEnterable(it.status) ? (
+                            <Button variant="outline" size="sm" disabled>{it.status === 'abandoned' || it.status === 'failed' ? '已结束' : '状态待同步'}</Button>
                           ) : (
                             <Button asChild variant="outline" size="sm"><Link href={`/interview/${it.id}`}>进入 →</Link></Button>
                           )}

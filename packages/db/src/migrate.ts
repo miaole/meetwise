@@ -25,6 +25,67 @@ function migrationError(code: string): Error & { code: string } {
   return Object.assign(new Error(code), { code });
 }
 
+/** Return true when a top-level SQL statement can control the runner transaction. */
+export function containsTopLevelTransactionControl(sql: string): boolean {
+  const statements: string[] = [];
+  let statement = '';
+  for (let i = 0; i < sql.length;) {
+    const ch = sql[i] ?? '';
+    const next = sql[i + 1] ?? '';
+    if (ch === '-' && next === '-') {
+      i += 2;
+      while (i < sql.length && sql[i] !== '\n') i++;
+      statement += ' ';
+      continue;
+    }
+    if (ch === '/' && next === '*') {
+      let depth = 1;
+      i += 2;
+      while (i < sql.length && depth > 0) {
+        if (sql[i] === '/' && sql[i + 1] === '*') { depth++; i += 2; }
+        else if (sql[i] === '*' && sql[i + 1] === '/') { depth--; i += 2; }
+        else i++;
+      }
+      statement += ' ';
+      continue;
+    }
+    if (ch === "'" || ch === '"') {
+      const quote = ch;
+      statement += ' ';
+      i++;
+      while (i < sql.length) {
+        if (sql[i] === quote) {
+          if (sql[i + 1] === quote) { i += 2; continue; }
+          i++;
+          break;
+        }
+        i++;
+      }
+      continue;
+    }
+    if (ch === '$') {
+      const tag = sql.slice(i).match(/^\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$/)?.[0];
+      if (tag) {
+        statement += ' ';
+        i += tag.length;
+        const end = sql.indexOf(tag, i);
+        i = end === -1 ? sql.length : end + tag.length;
+        continue;
+      }
+    }
+    if (ch === ';') {
+      statements.push(statement);
+      statement = '';
+      i++;
+      continue;
+    }
+    statement += ch;
+    i++;
+  }
+  statements.push(statement);
+  return statements.some((value) => /^\s*(?:BEGIN|COMMIT|ROLLBACK|END|ABORT)(?:\s+(?:WORK|TRANSACTION))?\b|^\s*(?:START|PREPARE)\s+TRANSACTION\b/i.test(value));
+}
+
 function tagMigrationFailure(error: unknown, version: string): unknown {
   // Preserve the driver error for callers that need its SQLSTATE, while adding
   // only the immutable manifest version. No SQL text or target metadata is
@@ -136,6 +197,10 @@ function canonicalMigrations(migrations: Migration[]): Array<Migration & { check
     if (!ordered[i]?.version) throw migrationError('migration_manifest_version_missing');
     if (i > 0 && ordered[i - 1]?.version === ordered[i]?.version)
       throw migrationError(`migration_manifest_duplicate_version:${ordered[i]?.version}`);
+    const migration = ordered[i];
+    if (migration?.executionMode !== 'concurrent-index'
+      && containsTopLevelTransactionControl(migration?.sql ?? ''))
+      throw migrationError(`migration_transaction_control_forbidden:${migration?.version}`);
   }
   return ordered;
 }

@@ -73,6 +73,8 @@ const GOVERNED_PATH_PREFIXES = [
   'packages/',
   'ops/',
   'scripts/',
+  'apps/',
+  'packages/',
   '.github/',
   'package.json',
   'pnpm-lock.yaml',

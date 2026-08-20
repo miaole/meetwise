@@ -1,0 +1,692 @@
+name: deploy-full-stack
+
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: write
+  attestations: write
+  id-token: write
+
+# Serialize deploys: a second push while one is mid-flight must queue, never interleave.
+concurrency:
+  group: full-stack-deploy
+  cancel-in-progress: false
+
+# Deployment-control migration is explicit: the fixed external target below currently
+# supplies only the independent public-probe signer/receipt. Until it exposes the full
+# transaction contract, this repository is the temporary ACR/ECS orchestration fallback;
+# no alternate/unpinned target is attempted, and an unavailable/failed target leaves the
+# transaction unconfirmed so token-bound recovery keeps the edge fail-closed.
+jobs:
+  deploy-probe:
+    # Only the real repository (where the deploy key, Tailscale OAuth, ACR, and the
+    # gitignored Pages origin live) may reach the protected preview-cd environment.
+    # Forks and PRs never run this; no deployment credential is repo-scoped.
+    if: >-
+      github.repository == 'miaole/meetwise' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    environment: preview-cd
+    outputs:
+      origin: ${{ steps.probe.outputs.origin }}
+      probe_nonce: ${{ steps.probe.outputs.probe_nonce }}
+      release: ${{ steps.release.outputs.release }}
+      transaction_id: ${{ steps.release.outputs.transaction_id }}
+      generation: ${{ steps.transaction.outputs.generation }}
+      recovery_token: ${{ steps.release.outputs.recovery_token }}
+      commit: ${{ steps.git.outputs.commit }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+        with:
+          version: 10.18.0
+
+      - name: Verify CD control-plane contracts before any external mutation
+        run: |
+          node scripts/cd-pages-receipt.proof.mjs
+          node scripts/ecs-full-stack-release.proof.mjs
+          node scripts/verify-full-stack-public-origin.proof.mjs
+
+      - name: Resolve commit + tree identity
+        id: git
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ci_sha='${{ github.event.workflow_run.head_sha }}'
+          ci_run_id='${{ github.event.workflow_run.id }}'
+          ci_workflow_id='${{ github.event.workflow_run.workflow_id }}'
+          [[ "$ci_sha" =~ ^[a-f0-9]{40}$ ]] || { echo 'workflow_run SHA is not a commit identity' >&2; exit 1; }
+          [[ "$ci_run_id" =~ ^[1-9][0-9]*$ && "$ci_workflow_id" =~ ^[1-9][0-9]*$ ]] || { echo 'workflow_run identity is not numeric' >&2; exit 1; }
+          run_json="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$ci_run_id")"
+          test "$(jq -r .id <<<"$run_json")" = "$ci_run_id" || { echo 'workflow_run id mismatch' >&2; exit 1; }
+          test "$(jq -r .workflow_id <<<"$run_json")" = "$ci_workflow_id" || { echo 'workflow_run workflow id mismatch' >&2; exit 1; }
+          test "$(jq -r .head_sha <<<"$run_json")" = "$ci_sha" || { echo 'workflow_run head SHA mismatch' >&2; exit 1; }
+          test "$(jq -r .head_branch <<<"$run_json")" = main || { echo 'workflow_run branch mismatch' >&2; exit 1; }
+          test "$(jq -r .event <<<"$run_json")" = push || { echo 'workflow_run event mismatch' >&2; exit 1; }
+          test "$(jq -r .conclusion <<<"$run_json")" = success || { echo 'workflow_run conclusion mismatch' >&2; exit 1; }
+          workflow_inventory="$(gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/actions/workflows?per_page=100")"
+          ci_count="$(jq '[.[].workflows[] | select(.name == "ci")] | length' <<<"$workflow_inventory")"
+          test "$ci_count" = 1 || { echo 'exactly one workflow named ci is required' >&2; exit 1; }
+          ci_path="$(jq -r '[.[].workflows[] | select(.name == "ci")][0].path' <<<"$workflow_inventory")"
+          test "$ci_path" = .github/workflows/ci.yml || { echo 'workflow named ci is not the protected ci.yml' >&2; exit 1; }
+          live_workflow_id="$(jq -r '[.[].workflows[] | select(.name == "ci")][0].id' <<<"$workflow_inventory")"
+          test "$live_workflow_id" = "$ci_workflow_id" || { echo 'successful run is not from the unique ci workflow' >&2; exit 1; }
+          commit="$(git rev-parse HEAD)"
+          test "$commit" = "$ci_sha" || { echo 'checkout does not match the successful CI SHA' >&2; exit 1; }
+          current_main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          test "$ci_sha" = "$current_main" || { echo 'stale main deployment rejected' >&2; exit 1; }
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+          echo "ci_sha=$ci_sha" >> "$GITHUB_OUTPUT"
+          echo "tree=$(git rev-parse HEAD^{tree})" >> "$GITHUB_OUTPUT"
+          echo "ci_run_id=$ci_run_id" >> "$GITHUB_OUTPUT"
+          echo "ci_workflow_id=$ci_workflow_id" >> "$GITHUB_OUTPUT"
+
+      - name: Install workspace dependencies (no lifecycle scripts)
+        run: corepack pnpm install --frozen-lockfile --ignore-scripts
+
+      # compose 单机：镜像在 CI 构建 + 推送（web 的 next build 移出 4G ECS），
+      # 用 @sha256 内容摘要钉死 runtime 身份。tag 只作构建定位，摘要才是审批绑定的事实。
+      - name: Build + push images to ACR
+        id: images
+        env:
+          REGISTRY: ${{ secrets.ACR_REGISTRY }}
+          NAMESPACE: ${{ secrets.ACR_NAMESPACE }}
+        run: |
+          printf '%s\n' "${{ secrets.ACR_PASSWORD }}" | docker login "$REGISTRY" -u "${{ secrets.ACR_USERNAME }}" --password-stdin
+          sha="${{ steps.git.outputs.commit }}"
+          backend_tag="$REGISTRY/$NAMESPACE/meetwise-backend:sha-$sha"
+          web_tag="$REGISTRY/$NAMESPACE/meetwise-web:sha-$sha"
+          docker build --build-arg "VCS_REF=$sha" --build-arg "SOURCE_TREE=${{ steps.git.outputs.tree }}" -t "$backend_tag" -f Dockerfile .
+          docker push "$backend_tag"
+          docker build --build-arg "VCS_REF=$sha" --build-arg "SOURCE_TREE=${{ steps.git.outputs.tree }}" -t "$web_tag" -f apps/web/Dockerfile .
+          docker push "$web_tag"
+          backend_digest="$(docker inspect --format '{{index .RepoDigests 0}}' "$backend_tag" | sed -E 's/^.*@(sha256:[a-f0-9]{64})$/\1/')"
+          web_digest="$(docker inspect --format '{{index .RepoDigests 0}}' "$web_tag" | sed -E 's/^.*@(sha256:[a-f0-9]{64})$/\1/')"
+          test -n "$backend_digest" -a -n "$web_digest" -a "$backend_digest" != "$backend_tag" -a "$web_digest" != "$web_tag" \
+            || { echo "digest extraction failed" >&2; exit 1; }
+          echo "backend_digest=$backend_digest" >> "$GITHUB_OUTPUT"
+          echo "web_digest=$web_digest" >> "$GITHUB_OUTPUT"
+
+      - name: Compute attestation digests from the actual Web image
+        id: web
+        run: |
+          container="$(docker create "$REGISTRY/$NAMESPACE/meetwise-web:sha-${{ steps.git.outputs.commit }}")"
+          trap 'docker rm -f "$container" >/dev/null 2>&1 || true' EXIT
+          mkdir -p /tmp/web-runtime
+          docker cp "$container:/app/apps/web/." /tmp/web-runtime/
+          node scripts/hash-web-runtime-artifact.mjs /tmp/web-runtime "$GITHUB_OUTPUT"
+        env:
+          REGISTRY: ${{ secrets.ACR_REGISTRY }}
+          NAMESPACE: ${{ secrets.ACR_NAMESPACE }}
+
+      - name: Attest backend image provenance
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
+        with:
+          subject-name: ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/meetwise-backend
+          subject-digest: ${{ steps.images.outputs.backend_digest }}
+
+      - name: Attest Web image provenance
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
+        with:
+          subject-name: ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/meetwise-web
+          subject-digest: ${{ steps.images.outputs.web_digest }}
+
+      - name: Verify both GitHub provenance attestations before ECS mutation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REGISTRY: ${{ secrets.ACR_REGISTRY }}
+          NAMESPACE: ${{ secrets.ACR_NAMESPACE }}
+        run: |
+          gh attestation verify "oci://$REGISTRY/$NAMESPACE/meetwise-backend@${{ steps.images.outputs.backend_digest }}" --repo "$GITHUB_REPOSITORY"
+          gh attestation verify "oci://$REGISTRY/$NAMESPACE/meetwise-web@${{ steps.images.outputs.web_digest }}" --repo "$GITHUB_REPOSITORY"
+
+      - name: Package source tarball
+        id: source
+        run: |
+          git archive --format=tar "${{ steps.git.outputs.commit }}" | gzip -9 > /tmp/source.tar.gz
+          echo "source_bytes=$(stat -c %s /tmp/source.tar.gz)" >> "$GITHUB_OUTPUT"
+          echo "source_digest=$(sha256sum /tmp/source.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+
+      - name: Connect ephemeral Tailscale node
+        uses: tailscale/github-action@92117a0a1d5c99a90c035c00d1eb52e357e1e1a4 # v3
+        with:
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
+          args: --advertise-tags=tag:meetwise-cd
+
+      - name: Configure SSH to ECS (tailnet-only, forced command)
+        run: |
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "${{ secrets.ECS_CD_DEPLOY_KEY }}" > "$HOME/.ssh/deploy_key"
+          chmod 600 "$HOME/.ssh/deploy_key"
+          # Host is a tailnet IP/hostname only (no shell metacharacters); the
+          # remote `meetwise-cd` account has NO shell — its authorized_keys
+          # force-runs /usr/local/bin/meetwise-cd-receive.
+          {
+            printf 'Host meetwise-ecs\n'
+            printf '  HostName %s\n' "${{ secrets.ECS_CD_SSH_HOST }}"
+            printf '  User meetwise-cd\n'
+            printf '  IdentityFile ~/.ssh/deploy_key\n'
+            printf '  IdentitiesOnly yes\n'
+            printf '  StrictHostKeyChecking yes\n'
+            printf '  UserKnownHostsFile ~/.ssh/known_hosts\n'
+            printf '  ConnectTimeout 30\n'
+            printf '  ServerAliveInterval 15\n'
+            printf '  ServerAliveCountMax 4\n'
+          } > "$HOME/.ssh/config"
+          printf '%s\n' "${{ secrets.ECS_CD_KNOWN_HOSTS }}" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Verify separately provisioned ECS controller bundle
+        id: controller
+        run: |
+          rows="$(mktemp)"
+          while IFS='|' read -r source _destination _mode; do
+            test -n "$source" || continue
+            printf '%s|%s|%s|%s\n' "$source" "$_destination" "$_mode" "$(sha256sum "$source" | awk '{print $1}')" >> "$rows"
+          done < ops/ecs/full-stack/cd-controller-files.txt
+          expected="$(sha256sum "$rows" | awk '{print $1}')"
+          actual="$(ssh meetwise-ecs 'meetwise-cd controller-version')"
+          test "$expected" = "$actual" || { echo 'ECS controller bundle is not provisioned for this release' >&2; exit 1; }
+          echo "digest=$expected" >> "$GITHUB_OUTPUT"
+
+      - name: Receive source onto ECS
+        id: release
+        run: |
+          release="${{ steps.git.outputs.commit }}-fullstack-$(date +%Y%m%d)-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          transaction_id="$release"
+          recovery_token="$(printf '%s' "$GITHUB_REPOSITORY:$GITHUB_RUN_ID:$GITHUB_RUN_ATTEMPT:$release" | sha256sum | awk '{print $1}')"
+          echo "RELEASE=$release" >> "$GITHUB_ENV"
+          echo "TRANSACTION_ID=$transaction_id" >> "$GITHUB_ENV"
+          echo "RECOVERY_TOKEN=$recovery_token" >> "$GITHUB_ENV"
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+          echo "transaction_id=$transaction_id" >> "$GITHUB_OUTPUT"
+          echo "recovery_token=$recovery_token" >> "$GITHUB_OUTPUT"
+          cat /tmp/source.tar.gz | ssh meetwise-ecs "meetwise-cd receive-source $release ${{ steps.source.outputs.source_digest }}"
+
+      - name: Install dependencies on ECS (pg for prepare/db-verify; no web build)
+        run: ssh meetwise-ecs "meetwise-cd install-deps $RELEASE"
+
+      - name: Begin token-bound full-stack transaction
+        id: transaction
+        env:
+          ORIGIN: ${{ secrets.ECS_FULL_STACK_ORIGIN }}
+        run: |
+          controller_digest='${{ steps.controller.outputs.digest }}'
+          compose_digest="$(sha256sum docker/compose.prod.yml | awk '{print $1}')"
+          [[ "$controller_digest" =~ ^[a-f0-9]{64}$ && "$compose_digest" =~ ^[a-f0-9]{64}$ ]] || { echo 'transaction controller/compose digest invalid' >&2; exit 1; }
+          begin_json="$(ssh meetwise-ecs "meetwise-cd transaction begin $TRANSACTION_ID $RELEASE ${{ steps.git.outputs.commit }} ${{ steps.git.outputs.tree }} $RECOVERY_TOKEN $controller_digest $compose_digest ${{ steps.source.outputs.source_digest }} ${{ steps.images.outputs.backend_digest }} ${{ steps.images.outputs.web_digest }} $ORIGIN")"
+          generation="$(printf '%s' "$begin_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{const v=JSON.parse(s); if(!Number.isSafeInteger(v.generation)||v.generation<1)process.exit(1); process.stdout.write(String(v.generation))}catch{process.exit(1)}})')" || {
+            echo 'transaction begin did not return a root-owned generation' >&2
+            exit 1
+          }
+          echo "GENERATION=$generation" >> "$GITHUB_ENV"
+          echo "generation=$generation" >> "$GITHUB_OUTPUT"
+          echo "controller_digest=$controller_digest" >> "$GITHUB_OUTPUT"
+          echo "compose_digest=$compose_digest" >> "$GITHUB_OUTPUT"
+
+      # Snapshot the currently enabled release before any compose or publication
+      # mutation. Recovery must restore the predecessor's image/env/edge state.
+      - name: Snapshot predecessor before compose pull or revoke
+        run: ssh meetwise-ecs "meetwise-cd transaction snapshot $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN"
+
+      - name: Revalidate unique CI workflow and main before predecessor revoke
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ci_sha='${{ steps.git.outputs.commit }}'
+          ci_run_id='${{ steps.git.outputs.ci_run_id }}'
+          ci_workflow_id='${{ steps.git.outputs.ci_workflow_id }}'
+          current_main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          test "$current_main" = "$ci_sha" || { echo 'stale main before revoke' >&2; exit 1; }
+          run_json="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$ci_run_id")"
+          test "$(jq -r .id <<<"$run_json")" = "$ci_run_id" || { echo 'CI run id changed before revoke' >&2; exit 1; }
+          test "$(jq -r .workflow_id <<<"$run_json")" = "$ci_workflow_id" || { echo 'CI workflow id changed before revoke' >&2; exit 1; }
+          test "$(jq -r .head_sha <<<"$run_json")" = "$ci_sha" || { echo 'CI SHA changed before revoke' >&2; exit 1; }
+          test "$(jq -r .head_branch <<<"$run_json")" = main || { echo 'CI branch changed before revoke' >&2; exit 1; }
+          test "$(jq -r .event <<<"$run_json")" = push || { echo 'CI event changed before revoke' >&2; exit 1; }
+          test "$(jq -r .conclusion <<<"$run_json")" = success || { echo 'CI run no longer successful before revoke' >&2; exit 1; }
+          workflow_inventory="$(gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/actions/workflows?per_page=100")"
+          ci_count="$(jq '[.[].workflows[] | select(.name == "ci")] | length' <<<"$workflow_inventory")"
+          test "$ci_count" = 1 || { echo 'exactly one workflow named ci is required before revoke' >&2; exit 1; }
+          ci_path="$(jq -r '[.[].workflows[] | select(.name == "ci")][0].path' <<<"$workflow_inventory")"
+          test "$ci_path" = .github/workflows/ci.yml || { echo 'protected ci path changed before revoke' >&2; exit 1; }
+          live_workflow_id="$(jq -r '[.[].workflows[] | select(.name == "ci")][0].id' <<<"$workflow_inventory")"
+          test "$live_workflow_id" = "$ci_workflow_id" || { echo 'unique ci workflow changed before revoke' >&2; exit 1; }
+
+      - name: Pull images + pin runtime identity under the transaction lease
+        run: |
+          ssh meetwise-ecs "meetwise-cd transaction compose-pull $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN ${{ steps.images.outputs.backend_digest }} ${{ steps.images.outputs.web_digest }}"
+
+      - name: Revoke current public release under the transaction lease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          revoke_status=0
+          revoke_json=''
+          revoke_json="$(ssh meetwise-ecs "meetwise-cd transaction revoke-predecessor $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN")" || revoke_status=$?
+          if [ "$revoke_status" -eq 0 ]; then
+            echo 'predecessor was already revoked'
+          elif [ "$revoke_status" -eq 75 ]; then
+            # The predecessor is generation N while this successor transaction
+            # is generation N+1.  Never infer that identity from the public
+            # manifest: ask the token-bound root ledger for the identity which
+            # revoke-predecessor persisted (the root may still be waiting for
+            # Pages to acknowledge the signed revoked receipt).
+            revoke_status_json="$(ssh meetwise-ecs "meetwise-cd transaction status $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN")" || {
+              echo 'root transaction status unavailable while predecessor revoke is pending' >&2
+              exit 1
+            }
+            revoked_identity="$(printf '%s' "$revoke_status_json" | node --input-type=module -e 'let s=""; process.stdin.on("data", d => s += d); process.stdin.on("end", () => { try { const ledger = JSON.parse(s); const identity = ledger?.candidate?.predecessorRevoked; if (identity?.identityBound !== true || typeof identity.freshHost !== "boolean" || !Number.isSafeInteger(identity.generation) || identity.generation < 1 || !/^[a-f0-9]{64}$/.test(identity.fingerprint ?? "")) process.exit(1); process.stdout.write(JSON.stringify({ generation: identity.generation, fingerprint: identity.fingerprint })); } catch { process.exit(1); } })')" || {
+              echo 'root transaction status did not return a trusted predecessor identity' >&2
+              exit 1
+            }
+            revoked_generation="$(jq -r .generation <<<"$revoked_identity")"
+            revoked_fingerprint="$(jq -r .fingerprint <<<"$revoked_identity")"
+            [[ "$revoked_generation" =~ ^[1-9][0-9]*$ && "$revoked_fingerprint" =~ ^[a-f0-9]{64}$ ]] || { echo 'revoked manifest identity invalid' >&2; exit 1; }
+            (( revoked_generation < GENERATION )) || { echo 'predecessor generation is not older than candidate transaction' >&2; exit 1; }
+            gh workflow run pages-preview.yml --ref main \
+              -f expected_state=disabled \
+              -f expected_generation="$revoked_generation" \
+              -f expected_manifest_sha256="$revoked_fingerprint"
+            revoked=0
+            for _ in $(seq 1 260); do
+              retry_status=0
+              ssh meetwise-ecs "meetwise-cd transaction revoke-predecessor $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN" || retry_status=$?
+              if [ "$retry_status" -eq 0 ]; then
+                revoked=1
+                break
+              fi
+              test "$retry_status" -eq 75 || { echo "revoke failed with non-retryable status $retry_status" >&2; exit "$retry_status"; }
+              sleep 15
+            done
+            test "$revoked" = 1 || { echo 'revoke did not reach the exact Pages disabled receipt' >&2; exit 1; }
+          else
+            echo "revoke failed before Pages dispatch with status $revoke_status" >&2
+            exit "$revoke_status"
+          fi
+
+      - name: Close the edge after predecessor revoke
+        run: ssh meetwise-ecs "meetwise-cd transaction close-edge $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN"
+
+      - name: Quiesce all writers before migration
+        run: ssh meetwise-ecs "meetwise-cd transaction quiesce $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN"
+
+      - name: Run database migrations under the transaction lease
+        run: ssh meetwise-ecs "meetwise-cd transaction migrate $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN"
+
+      - name: Prepare deterministic approval + target from the migrated ledger
+        id: prepare
+        env:
+          ORIGIN: ${{ secrets.ECS_FULL_STACK_ORIGIN }}
+        run: |
+          prepare_json="$(ssh meetwise-ecs "meetwise-cd prepare ${{ steps.git.outputs.commit }} ${{ steps.git.outputs.tree }} $ORIGIN ${{ steps.web.outputs.webBuildSha256 }} ${{ steps.web.outputs.staticAssetsSha256 }} ${{ steps.images.outputs.backend_digest }} ${{ steps.images.outputs.web_digest }} $RELEASE")"
+          prepared_generation="$(printf '%s' "$prepare_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{const v=JSON.parse(s); if(!Number.isSafeInteger(v.generation))process.exit(1); process.stdout.write(String(v.generation))})')"
+          test "$prepared_generation" = "$GENERATION" || { echo 'prepare generation differs from transaction identity' >&2; exit 1; }
+          echo "generation=$prepared_generation" >> "$GITHUB_OUTPUT"
+
+      - name: Start backend inside the transaction
+        run: ssh meetwise-ecs "meetwise-cd transaction start-backend $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN"
+
+      - name: Start internal Web inside the transaction
+        run: ssh meetwise-ecs "meetwise-cd transaction start-web-internal $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN"
+
+      - name: Verify deep synthetic data inside the transaction
+        run: ssh meetwise-ecs "meetwise-cd transaction verify-data $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN"
+
+      - name: Publish the probe manifest inside the transaction
+        run: ssh meetwise-ecs "meetwise-cd transaction publish-probe $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN"
+
+      - name: Revalidate main and CI identity before public activation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current_main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          test "$current_main" = "${{ steps.git.outputs.commit }}" || { echo 'stale main before activate' >&2; exit 1; }
+          run_json="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/${{ steps.git.outputs.ci_run_id }}")"
+          test "$(jq -r .head_sha <<<"$run_json")" = "${{ steps.git.outputs.commit }}" || { echo 'CI SHA changed before activate' >&2; exit 1; }
+          test "$(jq -r .conclusion <<<"$run_json")" = success || { echo 'CI run no longer successful before activate' >&2; exit 1; }
+
+      - name: Activate public probe window
+        run: ssh meetwise-ecs "meetwise-cd transaction activate $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN"
+
+      - name: Export one-time probe identity
+        id: probe
+        env:
+          ORIGIN: ${{ secrets.ECS_FULL_STACK_ORIGIN }}
+        run: |
+          nonce="$(ssh meetwise-ecs "meetwise-cd probe-nonce")"
+          echo "origin=$ORIGIN" >> "$GITHUB_OUTPUT"
+          echo "probe_nonce=$nonce" >> "$GITHUB_OUTPUT"
+
+      - name: Token-bound recovery after deploy-stage failure
+        if: ${{ always() && failure() && steps.release.outputs.transaction_id != '' }}
+        run: |
+          ssh meetwise-ecs "meetwise-cd transaction recover '${{ steps.release.outputs.transaction_id }}' '${{ steps.release.outputs.release }}' '${{ steps.release.outputs.recovery_token }}'" || {
+            echo 'token-bound recovery request failed; leave edge closed and escalate' >&2
+            exit 1
+          }
+
+  # The signing key belongs to this fixed, private verifier workflow. The
+  # candidate checkout never receives it and therefore cannot self-attest.
+  # There is deliberately no in-repository signing fallback: if this exact
+  # deploy-control target/commit is unavailable, the dependency is skipped or
+  # fails and the release remains unconfirmed/closed.
+  external-verify:
+    needs: deploy-probe
+    uses: miaole/meetwise-deploy-control/.github/workflows/verify.yml@ccb02e1ab7cf28b812028f7ca9b3699cef0ffc4a
+    with:
+      origin: ${{ needs.deploy-probe.outputs.origin }}
+      probe_nonce: ${{ needs.deploy-probe.outputs.probe_nonce }}
+
+  confirm:
+    needs: [deploy-probe, external-verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: preview-cd
+    outputs:
+      final_fingerprint: ${{ steps.confirm-public.outputs.final_fingerprint }}
+      final_generation: ${{ steps.confirm-public.outputs.final_generation }}
+      pages_dispatch_attempted: ${{ steps.pages-dispatch.outputs.dispatched }}
+      pages_enabled_receipt: ${{ steps.pages-enabled.outputs.enabled }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.deploy-probe.outputs.commit }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - uses: tailscale/github-action@92117a0a1d5c99a90c035c00d1eb52e357e1e1a4 # v3
+        with:
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
+          args: --advertise-tags=tag:meetwise-cd
+      - name: Configure pinned SSH identity
+        run: |
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "${{ secrets.ECS_CD_DEPLOY_KEY }}" > "$HOME/.ssh/deploy_key"
+          printf '%s\n' "${{ secrets.ECS_CD_KNOWN_HOSTS }}" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/deploy_key" "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host meetwise-ecs
+            HostName ${{ secrets.ECS_CD_SSH_HOST }}
+            User meetwise-cd
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile ~/.ssh/known_hosts
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+      - name: Revalidate main and CI identity before confirmation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ci_sha='${{ needs.deploy-probe.outputs.commit }}'
+          ci_run_id='${{ github.event.workflow_run.id }}'
+          ci_workflow_id='${{ github.event.workflow_run.workflow_id }}'
+          current_main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          test "$current_main" = "$ci_sha" || { echo 'stale main before confirm' >&2; exit 1; }
+          run_json="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$ci_run_id")"
+          test "$(jq -r .id <<<"$run_json")" = "$ci_run_id" || { echo 'CI run id changed before confirm' >&2; exit 1; }
+          test "$(jq -r .workflow_id <<<"$run_json")" = "$ci_workflow_id" || { echo 'CI workflow id changed before confirm' >&2; exit 1; }
+          test "$(jq -r .head_sha <<<"$run_json")" = "$ci_sha" || { echo 'CI SHA changed before confirm' >&2; exit 1; }
+          test "$(jq -r .head_branch <<<"$run_json")" = main || { echo 'CI branch changed before confirm' >&2; exit 1; }
+          test "$(jq -r .event <<<"$run_json")" = push || { echo 'CI event changed before confirm' >&2; exit 1; }
+          test "$(jq -r .conclusion <<<"$run_json")" = success || { echo 'CI run no longer successful before confirm' >&2; exit 1; }
+          workflow_inventory="$(gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/actions/workflows?per_page=100")"
+          ci_count="$(jq '[.[].workflows[] | select(.name == "ci")] | length' <<<"$workflow_inventory")"
+          test "$ci_count" = 1 || { echo 'exactly one workflow named ci is required before confirm' >&2; exit 1; }
+          ci_path="$(jq -r '[.[].workflows[] | select(.name == "ci")][0].path' <<<"$workflow_inventory")"
+          test "$ci_path" = .github/workflows/ci.yml || { echo 'protected ci path changed before confirm' >&2; exit 1; }
+          live_workflow_id="$(jq -r '[.[].workflows[] | select(.name == "ci")][0].id' <<<"$workflow_inventory")"
+          test "$live_workflow_id" = "$ci_workflow_id" || { echo 'unique ci workflow changed before confirm' >&2; exit 1; }
+
+      - name: Confirm independently signed short-probe receipt
+        id: confirm-public
+        env:
+          RECEIPT_B64: ${{ needs.external-verify.outputs.receipt_b64 }}
+          ORIGIN: ${{ needs.deploy-probe.outputs.origin }}
+        run: |
+          confirm_json="$(printf '%s' "$RECEIPT_B64" | base64 -d | ssh meetwise-ecs "meetwise-cd transaction confirm '${{ needs.deploy-probe.outputs.transaction_id }}' '${{ needs.deploy-probe.outputs.release }}' '${{ needs.deploy-probe.outputs.recovery_token }}'")"
+          final_fingerprint="$(printf '%s' "$confirm_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{const v=JSON.parse(s);const f=v?.candidate?.finalManifestFingerprint;if(!/^[a-f0-9]{64}$/.test(f??""))process.exit(1);process.stdout.write(f)}catch{process.exit(1)}})')"
+          [[ "$final_fingerprint" =~ ^[a-f0-9]{64}$ ]] || { echo 'transaction confirm did not return a manifest fingerprint' >&2; exit 1; }
+          final_generation=''
+          for _ in $(seq 1 30); do
+            if manifest_text="$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 20 "$ORIGIN/preview-release-manifest.json")"; then
+              final_generation="$(printf '%s' "$manifest_text" | env EXPECTED_FINGERPRINT="$final_fingerprint" ORIGIN="$ORIGIN" node --input-type=module -e 'import { manifestFingerprint } from "./ops/ecs/preview-release-manifest.mjs"; let s=""; process.stdin.on("data", d => s += d); process.stdin.on("end", () => { const m = JSON.parse(s); if (!Number.isSafeInteger(m.generation) || m.status !== "verified" || m.revoked !== false || m.origin !== process.env.ORIGIN || manifestFingerprint(m) !== process.env.EXPECTED_FINGERPRINT) process.exit(1); process.stdout.write(String(m.generation)); })' || true)"
+              [ -n "$final_generation" ] && break
+            fi
+            sleep 2
+          done
+          [[ "$final_generation" =~ ^[1-9][0-9]*$ ]] || { echo 'final manifest has no verified generation' >&2; exit 1; }
+          echo "final_fingerprint=$final_fingerprint" >> "$GITHUB_OUTPUT"
+          echo "final_generation=$final_generation" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch Pages exactly once for the final identity
+        id: pages-dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_FINGERPRINT: ${{ steps.confirm-public.outputs.final_fingerprint }}
+          EXPECTED_GENERATION: ${{ steps.confirm-public.outputs.final_generation }}
+        run: |
+          dispatch_started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "dispatch_started=$dispatch_started" >> "$GITHUB_OUTPUT"
+          gh workflow run pages-preview.yml --ref main \
+            -f expected_state=enabled \
+            -f expected_generation="$EXPECTED_GENERATION" \
+            -f expected_manifest_sha256="$EXPECTED_FINGERPRINT"
+          echo 'dispatched=true' >> "$GITHUB_OUTPUT"
+
+      - name: Wait for the dispatched Pages workflow and exact public receipt
+        id: pages-enabled
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DISPATCH_STARTED: ${{ steps.pages-dispatch.outputs.dispatch_started }}
+          EXPECTED_FINGERPRINT: ${{ steps.confirm-public.outputs.final_fingerprint }}
+          EXPECTED_GENERATION: ${{ steps.confirm-public.outputs.final_generation }}
+          ORIGIN: ${{ needs.deploy-probe.outputs.origin }}
+        run: |
+          pages_run_id=''
+          for _ in $(seq 1 60); do
+            runs="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/pages-preview.yml/runs?event=workflow_dispatch&branch=main&per_page=20")"
+            pages_run_id="$(jq -r --arg start "$DISPATCH_STARTED" --arg sha "${{ needs.deploy-probe.outputs.commit }}" '[.workflow_runs[] | select(.event == "workflow_dispatch" and .head_sha == $sha and .created_at >= $start)] | sort_by(.created_at) | last.id // empty' <<<"$runs")"
+            [ -n "$pages_run_id" ] && break
+            sleep 5
+          done
+          [ -n "$pages_run_id" ] || { echo 'the single Pages dispatch did not create an identifiable run' >&2; exit 1; }
+          for _ in $(seq 1 180); do
+            run_json="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$pages_run_id")"
+            status="$(jq -r .status <<<"$run_json")"
+            if [ "$status" = completed ]; then
+              test "$(jq -r .conclusion <<<"$run_json")" = success || { echo 'Pages workflow failed' >&2; exit 1; }
+              break
+            fi
+            sleep 5
+          done
+          test "$(jq -r .status <<<"$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$pages_run_id")")" = completed || { echo 'Pages workflow did not complete before timeout' >&2; exit 1; }
+          page_url='https://miaole.github.io/meetwise'
+          for _ in $(seq 1 120); do
+            if curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 20 "$page_url/preview-link-state.json?generation=$EXPECTED_GENERATION&manifest=$EXPECTED_FINGERPRINT" -o /tmp/final-pages-link-state.json; then
+            if node --input-type=module - <<'NODE'
+            import { readFile } from 'node:fs/promises';
+            const state = JSON.parse(await readFile('/tmp/final-pages-link-state.json', 'utf8'));
+            if (state.state !== 'enabled' || String(state.generation) !== process.env.EXPECTED_GENERATION || state.manifestSha256 !== process.env.EXPECTED_FINGERPRINT || state.finalFingerprint !== process.env.EXPECTED_FINGERPRINT) process.exit(1);
+          NODE
+            then
+              echo 'final Pages enabled receipt confirmed'
+              echo 'enabled=true' >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            fi
+            sleep 5
+          done
+          echo 'final Pages enabled receipt did not arrive' >&2
+          exit 1
+
+      # A Pages deployment may have become enabled before a later ECS ledger or
+      # CI freshness check failed. Revoke that exact public artifact before
+      # asking the root controller to recover; if this bounded receipt cannot
+      # be obtained, the job remains red and retryable and commit is impossible.
+      - name: Recover Pages to an exact disabled receipt after post-confirm failure
+        # confirm-public durably records the final identity in the root ledger
+        # before dispatch.  Do not depend on the post-dispatch output: a runner
+        # can die after GitHub accepted the dispatch but before that output.
+        if: ${{ always() && failure() && steps.confirm-public.outputs.final_fingerprint != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_FINGERPRINT: ${{ steps.confirm-public.outputs.final_fingerprint }}
+          EXPECTED_GENERATION: ${{ steps.confirm-public.outputs.final_generation }}
+        run: |
+          disabled_dispatch_started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          gh workflow run pages-preview.yml --ref main \
+            -f expected_state=disabled \
+            -f expected_generation="$EXPECTED_GENERATION" \
+            -f expected_manifest_sha256="$EXPECTED_FINGERPRINT"
+          pages_run_id=''
+          for _ in $(seq 1 60); do
+            runs="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/pages-preview.yml/runs?event=workflow_dispatch&branch=main&per_page=20")"
+            pages_run_id="$(jq -r --arg start "$disabled_dispatch_started" --arg sha "${{ needs.deploy-probe.outputs.commit }}" '[.workflow_runs[] | select(.event == "workflow_dispatch" and .head_sha == $sha and .created_at >= $start)] | sort_by(.created_at) | last.id // empty' <<<"$runs")"
+            [ -n "$pages_run_id" ] && break
+            sleep 5
+          done
+          [ -n "$pages_run_id" ] || { echo 'disabled Pages dispatch did not create an identifiable run' >&2; exit 1; }
+          for _ in $(seq 1 180); do
+            run_json="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$pages_run_id")"
+            if [ "$(jq -r .status <<<"$run_json")" = completed ]; then
+              test "$(jq -r .conclusion <<<"$run_json")" = success || { echo 'disabled Pages recovery workflow failed' >&2; exit 1; }
+              break
+            fi
+            sleep 5
+          done
+          test "$(jq -r .status <<<"$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$pages_run_id")")" = completed || { echo 'disabled Pages recovery workflow timed out' >&2; exit 1; }
+          page_url='https://miaole.github.io/meetwise'
+          for _ in $(seq 1 120); do
+            if curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 20 "$page_url/preview-link-state.json?generation=$EXPECTED_GENERATION&manifest=$EXPECTED_FINGERPRINT" -o /tmp/final-pages-disabled-state.json; then
+              if node --input-type=module - <<'NODE'
+          import { readFile } from 'node:fs/promises';
+          const state = JSON.parse(await readFile('/tmp/final-pages-disabled-state.json', 'utf8'));
+          if (state.state !== 'disabled' || String(state.generation) !== process.env.EXPECTED_GENERATION || state.manifestSha256 !== process.env.EXPECTED_FINGERPRINT || state.finalFingerprint !== process.env.EXPECTED_FINGERPRINT) process.exit(1);
+          NODE
+              then
+                echo 'exact Pages disabled recovery receipt confirmed'
+                exit 0
+              fi
+            fi
+            sleep 5
+          done
+          echo 'exact Pages disabled recovery receipt did not arrive; leave workflow failed and retryable' >&2
+          exit 1
+
+      - name: Bind the exact Pages receipt to the transaction ledger
+        env:
+          EXPECTED_FINGERPRINT: ${{ steps.confirm-public.outputs.final_fingerprint }}
+        run: |
+          ssh meetwise-ecs "meetwise-cd transaction wait-pages '${{ needs.deploy-probe.outputs.transaction_id }}' '${{ needs.deploy-probe.outputs.release }}' '${{ needs.deploy-probe.outputs.recovery_token }}' $EXPECTED_FINGERPRINT"
+
+      - name: Revalidate main and CI identity before commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ci_sha='${{ needs.deploy-probe.outputs.commit }}'
+          ci_run_id='${{ github.event.workflow_run.id }}'
+          ci_workflow_id='${{ github.event.workflow_run.workflow_id }}'
+          current_main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          test "$current_main" = "$ci_sha" || { echo 'stale main before commit' >&2; exit 1; }
+          run_json="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$ci_run_id")"
+          test "$(jq -r .id <<<"$run_json")" = "$ci_run_id" || { echo 'CI run id changed before commit' >&2; exit 1; }
+          test "$(jq -r .workflow_id <<<"$run_json")" = "$ci_workflow_id" || { echo 'CI workflow id changed before commit' >&2; exit 1; }
+          test "$(jq -r .head_sha <<<"$run_json")" = "$ci_sha" || { echo 'CI SHA changed before commit' >&2; exit 1; }
+          test "$(jq -r .head_branch <<<"$run_json")" = main || { echo 'CI branch changed before commit' >&2; exit 1; }
+          test "$(jq -r .event <<<"$run_json")" = push || { echo 'CI event changed before commit' >&2; exit 1; }
+          test "$(jq -r .conclusion <<<"$run_json")" = success || { echo 'CI run no longer successful before commit' >&2; exit 1; }
+          workflow_inventory="$(gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/actions/workflows?per_page=100")"
+          ci_count="$(jq '[.[].workflows[] | select(.name == "ci")] | length' <<<"$workflow_inventory")"
+          test "$ci_count" = 1 || { echo 'exactly one workflow named ci is required before commit' >&2; exit 1; }
+          ci_path="$(jq -r '[.[].workflows[] | select(.name == "ci")][0].path' <<<"$workflow_inventory")"
+          test "$ci_path" = .github/workflows/ci.yml || { echo 'protected ci path changed before commit' >&2; exit 1; }
+          live_workflow_id="$(jq -r '[.[].workflows[] | select(.name == "ci")][0].id' <<<"$workflow_inventory")"
+          test "$live_workflow_id" = "$ci_workflow_id" || { echo 'unique ci workflow changed before commit' >&2; exit 1; }
+
+      - name: Commit only after exact Pages receipt
+        env:
+          EXPECTED_FINGERPRINT: ${{ steps.confirm-public.outputs.final_fingerprint }}
+        run: |
+          ssh meetwise-ecs "meetwise-cd verify-public"
+          ssh meetwise-ecs "meetwise-cd transaction commit '${{ needs.deploy-probe.outputs.transaction_id }}' '${{ needs.deploy-probe.outputs.release }}' '${{ needs.deploy-probe.outputs.recovery_token }}' $EXPECTED_FINGERPRINT"
+
+      - name: Token-bound recovery after confirmation or Pages failure
+        if: ${{ always() && failure() }}
+        run: |
+          ssh meetwise-ecs "meetwise-cd transaction recover '${{ needs.deploy-probe.outputs.transaction_id }}' '${{ needs.deploy-probe.outputs.release }}' '${{ needs.deploy-probe.outputs.recovery_token }}'" || {
+            echo 'token-bound recovery request failed; leave edge closed and escalate' >&2
+            exit 1
+          }
+
+  recover:
+    if: >-
+      always() && needs.deploy-probe.result == 'success' &&
+      (needs.external-verify.result != 'success' || needs.confirm.result != 'success')
+    needs: [deploy-probe, external-verify, confirm]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: preview-cd
+    steps:
+      - uses: tailscale/github-action@92117a0a1d5c99a90c035c00d1eb52e357e1e1a4 # v3
+        with:
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
+          args: --advertise-tags=tag:meetwise-cd
+      - name: Configure pinned SSH identity for recovery
+        run: |
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "${{ secrets.ECS_CD_DEPLOY_KEY }}" > "$HOME/.ssh/deploy_key"
+          printf '%s\n' "${{ secrets.ECS_CD_KNOWN_HOSTS }}" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/deploy_key" "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host meetwise-ecs
+            HostName ${{ secrets.ECS_CD_SSH_HOST }}
+            User meetwise-cd
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile ~/.ssh/known_hosts
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+      - name: Invoke token-bound recovery and require a receipt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          status_json="$(ssh meetwise-ecs "meetwise-cd transaction status '${{ needs.deploy-probe.outputs.transaction_id }}' '${{ needs.deploy-probe.outputs.release }}' '${{ needs.deploy-probe.outputs.recovery_token }}'")"
+          pages_identity="$(printf '%s' "$status_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{const v=JSON.parse(s);const f=v?.candidate?.finalManifestFingerprint;if(!/^[a-f0-9]{64}$/.test(f??"")||!Number.isSafeInteger(v.generation)||v.generation<1)process.exit(2);process.stdout.write(`${v.generation} ${f}`)}catch{process.exit(2)}})')" || pages_identity=''
+          if [ -n "$pages_identity" ]; then
+            read -r final_generation final_fingerprint <<<"$pages_identity"
+            gh workflow run pages-preview.yml --ref main \
+              -f expected_state=disabled \
+              -f expected_generation="$final_generation" \
+              -f expected_manifest_sha256="$final_fingerprint"
+            disabled=0
+            for _ in $(seq 1 120); do
+              if state="$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 20 "https://miaole.github.io/meetwise/preview-link-state.json?generation=$final_generation&manifest=$final_fingerprint")" \
+                && env STATE="$state" GEN="$final_generation" FP="$final_fingerprint" node -e 'const v=JSON.parse(process.env.STATE);if(v.state!=="disabled"||String(v.generation)!==process.env.GEN||v.manifestSha256!==process.env.FP||v.finalFingerprint!==process.env.FP)process.exit(1)'; then disabled=1; break; fi
+              sleep 5
+            done
+            test "$disabled" = 1 || { echo 'exact Pages disabled recovery receipt missing' >&2; exit 1; }
+          fi
+          ssh meetwise-ecs "meetwise-cd transaction recover '${{ needs.deploy-probe.outputs.transaction_id }}' '${{ needs.deploy-probe.outputs.release }}' '${{ needs.deploy-probe.outputs.recovery_token }}'"

@@ -113,7 +113,7 @@ export async function updateJob(c: Client, owner: string, id: string, input: { t
 export interface JobApplication {
   id: string; job_id: string; recruiter_user_id: string; candidate_user_id: string;
   interview_id: string | null; resume_id: string | null; status: string; score: number | null;
-  source: string; version: number; created_at: string;
+  source: string; version: number; created_at: string; job_title_snapshot: string;
 }
 
 /** 人才库一行:跨招聘方自有岗位聚合的候选人(含岗位标题 + 来源)。只缓存状态/分数,无候选人私有面试。 */
@@ -131,15 +131,15 @@ export async function listOpenJobs(c: Client): Promise<JobPosting[]> {
 /** 候选人投递岗位。岗位不存在/已关闭→null。重复投递幂等(UNIQUE 冲突复用既有申请 id)。 */
 export async function applyToJob(c: Client, candidate: string, jobId: string): Promise<{ applicationId: string } | null> {
   await assertPrincipal(c, candidate);
-  const job = await c.query("SELECT owner_user_id FROM job_posting WHERE id=$1 AND status='open'", [jobId]);  // 公开读
+  const job = await c.query("SELECT owner_user_id, title FROM job_posting WHERE id=$1 AND status='open'", [jobId]);  // 公开读
   if (job.rowCount === 0) return null;
   const recruiter = job.rows[0].owner_user_id as string;
   const id = 'app_' + randomUUID();
   const ins = await c.query(
-    `INSERT INTO job_application(id, job_id, recruiter_user_id, candidate_user_id, status)
-     VALUES ($1,$2,$3,$4,'invited')
+    `INSERT INTO job_application(id, job_id, recruiter_user_id, candidate_user_id, status, job_title_snapshot)
+     VALUES ($1,$2,$3,$4,'invited',$5)
      ON CONFLICT (job_id, candidate_user_id) DO NOTHING RETURNING id`,
-    [id, jobId, recruiter, candidate],
+    [id, jobId, recruiter, candidate, job.rows[0].title],
   );
   const applicationId = ((ins.rowCount ?? 0) > 0)
     ? (ins.rows[0].id as string)
@@ -150,10 +150,15 @@ export async function applyToJob(c: Client, candidate: string, jobId: string): P
 }
 
 /** 候选人查自己的申请(RLS p_party_read:候选人侧)。带 source 让候选人 UI 区分"受邀/主动投递"并给出动作出口。 */
-export async function listMyApplications(c: Client, candidate: string): Promise<Pick<JobApplication, 'id' | 'job_id' | 'interview_id' | 'resume_id' | 'status' | 'score' | 'source'>[]> {
+export async function listMyApplications(c: Client, candidate: string): Promise<Array<Pick<JobApplication, 'id' | 'job_id' | 'interview_id' | 'resume_id' | 'status' | 'score' | 'source'> & { job_title: string }>> {
   await assertPrincipal(c, candidate);
-  const r = await c.query('SELECT id, job_id, interview_id, resume_id, status, score, source FROM job_application WHERE candidate_user_id=$1 ORDER BY created_at DESC', [candidate]);
-  return r.rows as Pick<JobApplication, 'id' | 'job_id' | 'interview_id' | 'resume_id' | 'status' | 'score' | 'source'>[];
+  const r = await c.query(`
+    SELECT a.id, a.job_id, a.job_title_snapshot AS job_title,
+      a.interview_id, a.resume_id, a.status, a.score, a.source
+    FROM job_application a
+    WHERE a.candidate_user_id=$1
+    ORDER BY a.created_at DESC`, [candidate]);
+  return r.rows as Array<Pick<JobApplication, 'id' | 'job_id' | 'interview_id' | 'resume_id' | 'status' | 'score' | 'source'> & { job_title: string }>;
 }
 
 /**
@@ -316,14 +321,14 @@ export async function markApplicationNoEligibleScore(c: Client, candidate: strin
 export async function inviteCandidate(c: Client, recruiter: string, jobId: string, candidateId: string): Promise<{ applicationId: string; status: string } | null> {
   await assertPrincipal(c, recruiter);
   // 显式校验岗位归属(应用层),与 RLS p_recruiter_insert 的 EXISTS 自校验形成纵深防御。
-  const job = await c.query('SELECT id FROM job_posting WHERE id=$1 AND owner_user_id=$2', [jobId, recruiter]);
+  const job = await c.query('SELECT id, title FROM job_posting WHERE id=$1 AND owner_user_id=$2', [jobId, recruiter]);
   if (job.rowCount === 0) return null;
   const id = 'app_' + randomUUID();
   const ins = await c.query(
-    `INSERT INTO job_application(id, job_id, recruiter_user_id, candidate_user_id, status, source)
-     VALUES ($1,$2,$3,$4,'invited','invited')
+    `INSERT INTO job_application(id, job_id, recruiter_user_id, candidate_user_id, status, source, job_title_snapshot)
+     VALUES ($1,$2,$3,$4,'invited','invited',$5)
      ON CONFLICT (job_id, candidate_user_id) DO NOTHING RETURNING id, status`,
-    [id, jobId, recruiter, candidateId],
+    [id, jobId, recruiter, candidateId, job.rows[0].title],
   );
   let applicationId: string; let status: string;
   if ((ins.rowCount ?? 0) > 0) {
@@ -349,12 +354,12 @@ export type StartApplicationResult =
 export async function startApplicationInterview(c: Client, candidate: string, appId: string, resumeId: string): Promise<StartApplicationResult> {
   await assertPrincipal(c, candidate);
   const app = await c.query(
-    `SELECT id,job_id,status,interview_id,resume_id,interview_attempt
+    `SELECT id,job_id,job_title_snapshot,status,interview_id,resume_id,interview_attempt
        FROM job_application WHERE id=$1 AND candidate_user_id=$2 FOR UPDATE`,
     [appId, candidate],
   );
   if (app.rowCount === 0) return { status: 'noop' }; // 不区分不存在/越权
-  const row = app.rows[0] as { id: string; job_id: string; status: string; interview_id: string | null; resume_id: string | null; interview_attempt: number };
+  const row = app.rows[0] as { id: string; job_id: string; job_title_snapshot: string; status: string; interview_id: string | null; resume_id: string | null; interview_attempt: number };
   if (row.status === 'completed' || row.status === 'declined') return { status: 'noop' };
 
   if (row.status === 'in_progress' && row.interview_id) {
@@ -389,9 +394,9 @@ export async function startApplicationInterview(c: Client, candidate: string, ap
   const interviewId = 'iv_' + randomUUID();
   const nextAttempt = Math.max(0, Number(row.interview_attempt ?? 0)) + 1;
   await c.query(
-    `INSERT INTO interview(id,owner_user_id,status,application_id,application_attempt,job_id,resume_id,resume_privacy_epoch)
-     VALUES($1,$2,'created',$3,$4,$5,$6,$7)`,
-    [interviewId, candidate, row.id, nextAttempt, row.job_id, resumeId, Number(resume.rows[0].privacy_epoch)],
+    `INSERT INTO interview(id,owner_user_id,status,application_id,application_attempt,job_id,job_title_snapshot,resume_id,resume_privacy_epoch)
+     VALUES($1,$2,'created',$3,$4,$5,$6,$7,$8)`,
+    [interviewId, candidate, row.id, nextAttempt, row.job_id, row.job_title_snapshot, resumeId, Number(resume.rows[0].privacy_epoch)],
   );
   const updated = await c.query(
     `UPDATE job_application

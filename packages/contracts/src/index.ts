@@ -30,7 +30,9 @@ const ResumeFileBase64 = z.string().min(1).max(10_700_000)
   .refine((value) => value.length % 4 === 0, 'base64 padding is invalid');
 export const UploadResumeFileDto = z.object({ filename: z.string().min(1).max(255), mimeType: z.string().max(255).default(''), contentBase64: ResumeFileBase64 });
 export type UploadResumeFileDto = z.infer<typeof UploadResumeFileDto>;
-export const ResumeRef = z.object({ id: z.string(), status: z.string() });
+/** 简历 id 只用于提交/路由；界面必须展示服务端生成的中文业务名称。 */
+export const ResumeRef = z.object({ id: z.string(), status: z.string(), display_name: z.string().min(1).max(80).optional().default('简历信息同步中') });
+export type ResumeRef = z.infer<typeof ResumeRef>;
 export const ResumeList = z.object({ resumes: z.array(ResumeRef) });
 export type ResumeList = z.infer<typeof ResumeList>;
 
@@ -64,6 +66,10 @@ export type TurnDto = z.infer<typeof TurnDto>;
 export const InterviewView = z.object({
   id: z.string(),
   status: z.string(),
+  job_title: z.string().nullable().optional(),
+  resume_display_name: z.string().nullable().optional(),
+  created_at: z.string().datetime().nullable().optional(),
+  display_code: z.string().min(1).max(32).optional().default('场次信息同步中'),
   current_question_index: z.number().int().nullable(),
   issued_turns: z.number().int().nonnegative(),
   answered_turns: z.number().int().nonnegative(),
@@ -276,7 +282,7 @@ export type ApplyResult = z.infer<typeof ApplyResult>;
 /** 候选人侧:我投递的申请(缓存状态/分数)。 */
 export const MyApplications = z.object({
   applications: z.array(z.object({
-    id: z.string(), job_id: z.string(), interview_id: z.string().nullable(), resume_id: z.string().uuid().nullable(), status: z.string(), score: z.number().int().nullable(),
+    id: z.string(), job_id: z.string(), job_title: z.string().min(1).optional().default('岗位信息同步中'), interview_id: z.string().nullable(), resume_id: z.string().uuid().nullable(), status: z.string(), score: z.number().int().nullable(),
     source: z.string().optional(),
   })),
 });

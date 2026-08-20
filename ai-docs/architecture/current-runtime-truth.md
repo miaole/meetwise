@@ -35,6 +35,20 @@ related:
 [`production-readiness-remediation-register.md`](../delivery/production-readiness-remediation-register.md)。
 登记不是修复；只有对应运行时验收和复审完成后才能关闭。
 
+## 1.1 GitHub CI/CD 与线上预览事实（2026-08-20）
+
+| 面 | 当前事实 | 状态 |
+| --- | --- | --- |
+| PR CI | `main` 要求 `trusted-governance-history`、`verify`、`secrets-scan`，最新 main CI 为绿；nightly 真模型项因无 secrets 全部 skip。 | 已验证，但不证明真模型或部署。 |
+| 完整 CD | 远程 `main` 没有 `deploy-full-stack.yml`；本地文件仍未跟踪且依赖多份未跟踪 controller/migration 文件。 | 发布阻断。 |
+| ECS runtime | Web/API/Worker 仍由 legacy systemd 原生 Node 运行；Docker/Compose/CD controller 尚未 provision。 | 已验证现状。 |
+| Pages | Pages HTTP 200，但签名 manifest 绑定旧 commit `97d5aee`，当前 main 为 `2ff948b6`；manifest 将于 2026-08-29 过期。 | 在线但陈旧，不是最新全栈 CD 证据。 |
+| 数据库 | 线上 `meetwise_cloud_test` 已应用 `0121_resume_pgcrypto_runtime_acl`，其 checksum 对应当前候选未跟踪文件；远程 main 只有 `0120`。 | 发布阻断；须先收编精确迁移。 |
+| ACR | 后端候选镜像可解析，配套 Web 镜像不存在；ECS pull 身份/config 未 provision。 | 已接线待验。 |
+| 回滚/E2E | 候选在 publish 前未启动 Web、迁移前未静默全部旧写者、后半程过早丢 rollback、未等待 Pages final exact receipt。 | 发布阻断。 |
+
+“CI success”“Pages 200”“release workflow success”分别只证明对应检查，不能互相替代，更不能宣称最新前后端已自动部署。
+
 ### 首次术语表
 
 | 缩写/术语 | 中文含义 | 本项目中的作用 |
