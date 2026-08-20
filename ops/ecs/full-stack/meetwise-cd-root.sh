@@ -418,6 +418,74 @@ NODE
   printf '%s\n' "$dir/predecessor.json"
 }
 
+legacy_unit_has_no_activation_edges() {
+  local unit="$1" topology
+  topology="$(timeout --kill-after=1s 5s systemctl show \
+    --property=TriggeredBy \
+    --property=RequiredBy \
+    --property=WantedBy \
+    --property=UpheldBy \
+    --property=BoundBy \
+    --property=BusName \
+    "$unit" 2>/dev/null)" || return 1
+  TOPOLOGY="$topology" /usr/bin/node - <<'NODE'
+const expected = new Set(['TriggeredBy', 'RequiredBy', 'WantedBy', 'UpheldBy', 'BoundBy', 'BusName']);
+const seen = new Set();
+for (const line of (process.env.TOPOLOGY ?? '').split('\n')) {
+  if (!line) continue;
+  const index = line.indexOf('=');
+  if (index <= 0) process.exit(1);
+  const key = line.slice(0, index);
+  const value = line.slice(index + 1);
+  if (!expected.has(key) || seen.has(key) || value !== '') process.exit(1);
+  seen.add(key);
+}
+if (seen.size !== expected.size) process.exit(1);
+NODE
+}
+
+legacy_unit_has_no_dbus_activation() {
+  local unit="$1"
+  UNIT="$unit" /usr/bin/node - <<'NODE'
+const { lstatSync, readdirSync, readFileSync } = require('node:fs');
+const { join } = require('node:path');
+const target = process.env.UNIT;
+const directories = [
+  '/etc/dbus-1/system-services',
+  '/run/dbus-1/system-services',
+  '/usr/local/share/dbus-1/system-services',
+  '/usr/share/dbus-1/system-services',
+  '/lib/dbus-1/system-services',
+];
+try {
+  for (const directory of directories) {
+    let directoryStat;
+    try {
+      directoryStat = lstatSync(directory);
+    } catch (error) {
+      if (error?.code === 'ENOENT') continue;
+      throw error;
+    }
+    if (!directoryStat.isDirectory() || directoryStat.isSymbolicLink() || directoryStat.uid !== 0 || directoryStat.gid !== 0 || (directoryStat.mode & 0o022) !== 0) process.exit(1);
+    for (const name of readdirSync(directory)) {
+      if (!name.endsWith('.service')) continue;
+      const file = join(directory, name);
+      const fileStat = lstatSync(file);
+      if (!fileStat.isFile() || fileStat.isSymbolicLink() || fileStat.uid !== 0 || fileStat.gid !== 0 || (fileStat.mode & 0o022) !== 0) process.exit(1);
+      const content = readFileSync(file, 'utf8');
+      for (const line of content.split(/\r?\n/)) {
+        const index = line.indexOf('=');
+        if (index < 0) continue;
+        if (line.slice(0, index).trim() === 'SystemdService' && line.slice(index + 1).trim() === target) process.exit(1);
+      }
+    }
+  }
+} catch {
+  process.exit(1);
+}
+NODE
+}
+
 quiesce_all_writers() {
   # The edge is already closed by the preceding transaction phase.  Stop every
   # possible app writer, including a stale legacy unit and a previously running
@@ -434,7 +502,16 @@ quiesce_all_writers() {
       timeout --kill-after=2s 30s systemctl stop "$unit" >/dev/null 2>&1 || die legacy_unit_stop_failed 70
       [[ "$(systemctl is-active "$unit" 2>/dev/null || true)" != active ]] || die legacy_unit_still_active 70
       systemctl disable "$unit" >/dev/null 2>&1 || die legacy_unit_disable_failed 70
-      systemctl mask "$unit" >/dev/null 2>&1 || die legacy_unit_mask_failed 70
+      # These legacy units are regular files under /etc/systemd/system.  A
+      # persistent `systemctl mask` cannot replace such a file and would make
+      # the first Compose hand-off fail after the old owner was already stopped.
+      # Disable is the durable ownership-transfer bit: it survives reboot and
+      # prevents systemd boot activation.  Read it back before migration so a
+      # partial/failed disable never lets the old owner race the new one.
+      [[ "$(systemctl is-active "$unit" 2>/dev/null || true)" == inactive ]] || die legacy_unit_inactive_readback_failed 70
+      [[ "$(systemctl is-enabled "$unit" 2>/dev/null || true)" == disabled ]] || die legacy_unit_disable_readback_failed 70
+      legacy_unit_has_no_activation_edges "$unit" || die legacy_unit_activation_edge_present 70
+      legacy_unit_has_no_dbus_activation "$unit" || die legacy_unit_dbus_activation_present 70
     fi
   done
 }
@@ -1507,7 +1584,6 @@ restore_flip_predecessor() {
     done
     return 1
   fi
-  for unit in "${managed_legacy[@]}"; do systemctl unmask "$unit" >/dev/null 2>&1 || return 1; done
   for unit in "${active_legacy[@]}"; do
     systemctl enable "$unit" >/dev/null 2>&1 || return 1
     systemctl start "$unit" || return 1
@@ -1560,7 +1636,7 @@ publish_subcommand() {
 # + 启动新 api/worker 容器。web 仍在停（等 activate），避免「旧 web 打新 api」的过渡窗口。
 flip_current() {
   local dir; dir="$(with_release_cwd "$1")"
-  local previous_target='' active_legacy=() managed_legacy=() masked_legacy=() unit load_state
+  local previous_target='' active_legacy=() managed_legacy=() unit load_state
   if [[ -L "$CURRENT" ]]; then previous_target="$(readlink "$CURRENT")"; fi
   # One-time ownership transfer: legacy host units must be physically inactive
   # before Compose can bind 8787/3000 or run a Worker. The public edge has already
@@ -1571,20 +1647,20 @@ flip_current() {
       managed_legacy+=("$unit")
       if systemctl is-active --quiet "$unit"; then active_legacy+=("$unit"); fi
       timeout --kill-after=2s 30s systemctl stop "$unit" || die legacy_unit_stop_failed 70
-      [[ "$(systemctl is-active "$unit" 2>/dev/null || true)" != active ]] || die legacy_unit_still_active 70
+      [[ "$(systemctl is-active "$unit" 2>/dev/null || true)" == inactive ]] || die legacy_unit_still_active 70
     elif [[ "$load_state" != not-found ]]; then
       die legacy_unit_state_invalid 70
     fi
   done
   for unit in "${managed_legacy[@]}"; do
     if ! systemctl disable "$unit" >/dev/null 2>&1 \
-      || ! systemctl mask "$unit" >/dev/null 2>&1 \
-      || [[ "$(systemctl is-enabled "$unit" 2>/dev/null || true)" != masked ]]; then
-      for unit in "${masked_legacy[@]}"; do systemctl unmask "$unit" >/dev/null 2>&1 || true; done
+      || [[ "$(systemctl is-active "$unit" 2>/dev/null || true)" != inactive ]] \
+      || [[ "$(systemctl is-enabled "$unit" 2>/dev/null || true)" != disabled ]] \
+      || ! legacy_unit_has_no_activation_edges "$unit" \
+      || ! legacy_unit_has_no_dbus_activation "$unit"; then
       for unit in "${active_legacy[@]}"; do systemctl enable "$unit" >/dev/null 2>&1 || true; systemctl start "$unit" || true; done
       die legacy_unit_ownership_transfer_failed 70
     fi
-    masked_legacy+=("$unit")
   done
   ln -sfn "releases/$1" "$CURRENT.new"
   mv -Tf "$CURRENT.new" "$CURRENT"
