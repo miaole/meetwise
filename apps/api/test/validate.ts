@@ -147,12 +147,21 @@ async function validate() {
   A('CORS:跨域请求返回 Access-Control-Allow-Origin(浏览器前端可调)', !!corsRes.headers.get('access-control-allow-origin'));
   r = await req('GET', '/interview/R1'); A('无 principal → 401（fail-closed）', r.status === 401);
   r = await req('GET', '/interview/R1', { 'x-user-id': 'userB' }); A('userB 越权 GET R1 → 404（RLS 0 行）', r.status === 404);
+  r = await req('GET', '/interview/ABND', { 'x-user-id': 'userA' });
+  A('userA GET 自己的零轮 ABND → 权威题目账本投影全为零/空', r.status === 200 && r.body.id === 'ABND'
+    && r.body.current_question_index === null && r.body.issued_turns === 0 && r.body.answered_turns === 0
+    && r.body.current_turn === null && r.body.processing_turn === null);
   r = await req('GET', '/interview/R1', { 'x-user-id': 'userA' });
-  A('userA GET 自己的零轮 R1 → 权威题目账本投影全为零/空', r.status === 200 && r.body.id === 'R1'
-    && r.body.issued_turns === 0 && r.body.answered_turns === 0 && r.body.current_turn === null && r.body.processing_turn === null);
+  A('userA GET 自己的 R1 → 已出 1 题、未答且当前题为第 1 题', r.status === 200 && r.body.id === 'R1'
+    && r.body.current_question_index === 0 && r.body.issued_turns === 1 && r.body.answered_turns === 0
+    && r.body.current_turn === 0 && r.body.processing_turn === null);
   r = await req('GET', '/interview', { 'x-user-id': 'userA' });
-  A('面试列表同样携带 required 进度投影', r.status === 200 && r.body.interviews?.some((item: any) => item.id === 'R1'
-    && item.issued_turns === 0 && item.answered_turns === 0 && item.current_turn === null && item.processing_turn === null));
+  A('面试列表携带 ABND 零轮进度投影', r.status === 200 && r.body.interviews?.some((item: any) => item.id === 'ABND'
+    && item.current_question_index === null && item.issued_turns === 0 && item.answered_turns === 0
+    && item.current_turn === null && item.processing_turn === null));
+  A('面试列表携带 R1 已出题未答进度投影', r.status === 200 && r.body.interviews?.some((item: any) => item.id === 'R1'
+    && item.current_question_index === 0 && item.issued_turns === 1 && item.answered_turns === 0
+    && item.current_turn === 0 && item.processing_turn === null));
   const legacyBefore = await db.pool.query("SELECT count(*)::int n FROM interview_event WHERE stream_key='R1' AND kind='answer_evaluated'");
   r = await req('POST', '/interview/R1/answer', { 'x-user-id': 'userA', 'idempotency-key': 'k1' }); A('legacy /answer → 410，必须改用 question-bound /turn', r.status === 410 && r.body.error === 'legacy_answer_endpoint_disabled');
   r = await req('POST', '/interview/R1/answer', { 'x-user-id': 'userB', 'idempotency-key': 'k2' }); A('legacy /answer 对跨主体同样统一 410，不作资源 oracle', r.status === 410 && r.body.error === 'legacy_answer_endpoint_disabled');
