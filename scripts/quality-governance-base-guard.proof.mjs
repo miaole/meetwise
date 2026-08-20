@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { objectDigest } from './quality-governance-check.mjs';
-import { validateGovernanceHistoryBase, validateGovernanceRecordSnapshots } from './quality-governance-base-guard.mjs';
+import { candidateSnapshotRecords, validateGovernanceHistoryBase, validateGovernanceRecordSnapshots } from './quality-governance-base-guard.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const index = JSON.parse(readFileSync(resolve(repoRoot, 'ai-docs/testing/governance-audit-index.json'), 'utf8'));
@@ -112,10 +112,11 @@ const checks = {
     assert.equal(result.valid, true, result.errors.join('\n'));
     assert.equal(result.stats.mode, 'append_only');
   },
-  bootstrap_requires_artifact_pair: () => {
+  missing_base_is_not_an_automatic_bootstrap: () => {
     const result = resultFor({ baseIndex: undefined, baseBaseline: undefined });
-    assert.equal(result.valid, true, result.errors.join('\n'));
-    assert.equal(result.stats.mode, 'bootstrap');
+    assert.equal(result.valid, false);
+    assert.equal(result.stats.mode, 'blocked_missing_base');
+    assert.ok(result.errors.includes('history_base_artifacts_missing:governance'));
     expectError({ baseIndex: undefined, baseBaseline: baseline }, 'history_base_artifact_pair_mismatch:index-baseline');
   },
   rejects_recomputed_history_rewrite: () => {
@@ -268,6 +269,19 @@ const checks = {
     const result = validateGovernanceRecordSnapshots(forged, (record) => index.records.find((item) => item.taskId === record.taskId).governedPathDigest);
     assert.equal(result.valid, false, 'forged path digest must fail against the trusted snapshot tree');
     assert.ok(result.errors.some((error) => error.startsWith('history_snapshot_path_digest_mismatch:quality-governance-control-plane-v1')));
+  },
+  snapshots_cover_new_and_terminal_records_only: () => {
+    const unchanged = candidateSnapshotRecords(index, index);
+    const hasSuccessor = new Set(index.records.map((record) => record.successorOf).filter(Boolean));
+    const expectedTerminalIds = index.records.filter((record) => !hasSuccessor.has(record.taskId)).map((record) => record.taskId);
+    assert.deepEqual(unchanged.map((record) => record.taskId), expectedTerminalIds);
+
+    const currentIndex = clone(index);
+    const successor = successorRecord(governanceNextTaskId, governanceTerminal.taskId);
+    currentIndex.records.push(successor);
+    const selected = candidateSnapshotRecords(index, currentIndex);
+    assert.ok(selected.some((record) => record.taskId === successor.taskId), 'candidate successor must be verified');
+    assert.ok(!selected.some((record) => record.taskId === governanceTerminal.taskId), 'superseded base terminal is anchored, not replayed');
   },
 };
 

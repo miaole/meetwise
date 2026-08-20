@@ -296,10 +296,11 @@ export function validateGovernanceHistoryBase({ baseIndex, currentIndex, baseBas
     addError(errors, 'history_current_artifacts_missing', 'governance');
   }
   if (baseMissing) {
+    addError(errors, 'history_base_artifacts_missing', 'governance');
     return {
-      valid: errors.length === 0,
+      valid: false,
       errors: sortedUnique(errors),
-      stats: { mode: 'bootstrap', baseRecordCount: 0, newRecordCount: Array.isArray(currentIndex?.records) ? currentIndex.records.length : 0, baseExpansionCount: 0, newExpansionCount: Array.isArray(currentBaseline?.expansions) ? currentBaseline.expansions.length : 0 },
+      stats: { mode: 'blocked_missing_base', baseRecordCount: 0, newRecordCount: Array.isArray(currentIndex?.records) ? currentIndex.records.length : 0, baseExpansionCount: 0, newExpansionCount: Array.isArray(currentBaseline?.expansions) ? currentBaseline.expansions.length : 0 },
     };
   }
   if (!isPlainObject(baseIndex) || !isPlainObject(currentIndex) || !isPlainObject(baseBaseline) || !isPlainObject(currentBaseline)) {
@@ -407,6 +408,22 @@ export function validateGovernanceHistoryBase({ baseIndex, currentIndex, baseBas
   };
 }
 
+/**
+ * The protected base is the immutable historical anchor. Revalidate only
+ * candidate-added records plus the terminal record of every current chain
+ * against the exact candidate head tree. Terminal coverage makes a governed
+ * blob change without a successor fail, while avoiding impossible replay of
+ * legacy bulk-import introduction commits.
+ */
+export function candidateSnapshotRecords(baseIndex, currentIndex) {
+  const baseTaskIds = new Set((baseIndex?.records ?? []).map((record) => record?.taskId));
+  const hasSuccessor = new Set((currentIndex?.records ?? [])
+    .map((record) => record?.successorOf)
+    .filter((taskId) => TASK_ID_PATTERN.test(taskId ?? '')));
+  return (currentIndex?.records ?? []).filter((record) =>
+    !baseTaskIds.has(record?.taskId) || !hasSuccessor.has(record?.taskId));
+}
+
 function runGit(args) {
   return execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 }
@@ -441,20 +458,6 @@ function governedPathDigestAtCommit(commit, paths) {
   return `sha256:${createHash('sha256').update(Buffer.concat(chunks)).digest('hex')}`;
 }
 
-function recordIntroductionCommits(head) {
-  const commits = runGit(['log', '--format=%H', '--reverse', head, '--', INDEX_PATH])
-    .split('\n')
-    .filter((commit) => COMMIT_PATTERN.test(commit));
-  const introductions = new Map();
-  for (const commit of commits) {
-    const index = readJsonAtCommit(commit, INDEX_PATH);
-    for (const record of index?.records ?? []) {
-      if (TASK_ID_PATTERN.test(record?.taskId ?? '') && !introductions.has(record.taskId)) introductions.set(record.taskId, commit);
-    }
-  }
-  return introductions;
-}
-
 function parseArgs(argv) {
   const values = new Map();
   for (let index = 0; index < argv.length; index += 2) {
@@ -482,13 +485,12 @@ function main() {
     baseBaseline: readJsonAtCommit(base, BASELINE_PATH),
     currentBaseline: readJsonAtCommit(head, BASELINE_PATH),
   });
+  const baseIndex = readJsonAtCommit(base, INDEX_PATH);
   const currentIndex = readJsonAtCommit(head, INDEX_PATH);
-  const introductions = recordIntroductionCommits(head);
-  const snapshots = validateGovernanceRecordSnapshots(currentIndex, (record) => {
-    const introduction = introductions.get(record.taskId);
-    if (!introduction) throw new Error('history_snapshot_introduction_missing');
-    return governedPathDigestAtCommit(introduction, record.governedPaths);
-  });
+  const snapshotIndex = { records: candidateSnapshotRecords(baseIndex, currentIndex) };
+  const snapshots = result.valid
+    ? validateGovernanceRecordSnapshots(snapshotIndex, (record) => governedPathDigestAtCommit(head, record.governedPaths))
+    : { valid: false, errors: ['history_snapshot_skipped_invalid_history'], stats: { verifiedRecordCount: 0 } };
   console.log(JSON.stringify({ kind: 'static_governance_history_preflight', base, head, history: result, snapshots, releaseEvidence: false }, null, 2));
   if (!result.valid || !snapshots.valid) process.exitCode = 1;
 }
