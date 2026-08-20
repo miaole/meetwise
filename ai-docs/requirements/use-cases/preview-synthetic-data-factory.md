@@ -81,6 +81,7 @@ tags:
   6. `interview_job status IN ('queued','running')`、模型调用、支付、语音/OCR/OSS 副作用增量均为 0；
   7. RLS 越权矩阵全部返回 0，公开岗位之外无跨主体数据；
   8. 同 dataset 重放业务表总量不变；若数据库出现非 catalog 账号或第二 dataset，装载器立即拒绝，不能自动清理。
+  9. `create→abandon` 且从未出题的容量历史必须显示“尚未出题”；面试进度只从 `interview_question` 账本投影，禁止把无人维护的 `interview.current_question_index=0` 解释成“第 1 题”。
 - 关联：不新增公开 endpoint；状态对象为 `SyntheticFixtureBatch`/`SyntheticFixtureObject`；命中 CAS、幂等键、RLS 和持久账本；安全规则为 synthetic-only、无凭据输出、无模型/支付/PII 副作用。
 - 七类覆盖：正常（Main）/异常（E4、E6）/特殊（边界文本与状态目录）/逃逸通道（E3）/高并发（E2）/复杂（跨 B/C 关系图与分页）/刁钻（E1 同 batch 异 manifest、错误 target、孤儿与清理攻击）。
 
@@ -102,6 +103,77 @@ tags:
 - 模型/RAG/Embedding/语音/OCR/支付/退款/删除完成和供应商回执。
 - raw answer、简历原文、真实 PII、真实企业/岗位和受保护属性。
 - queued/running job、活动 lease、活跃模型 invocation 或费用预留。
+
+## UC-preview-synthetic-data-02 · 两个公开预览账号的 B/C 深度使用联动
+
+- 角色 Actor：预览环境管理员、固定合成求职者、固定合成招聘方、API、Worker、模型运行时、RDS。
+- 前置 Precondition：
+  1. 展示账号固定为 `previewc@meetwise.com`（candidate）与 `previewb@meetwise.com`（recruiter）；账号 ID、目标 RDS/database、schema head、release digest 和有效期写入 root-only TargetGrant，密码不进入 Git、Pages、日志或回执；
+  2. `large-v1` 继续作为大列表容量历史的不可变回执，本用例使用独立 `deep-usage-v1` 状态与 verification receipt，不篡改旧批次为“真实多轮”；
+  3. 场景执行器以专用非 root 身份运行，只持两个展示账号的 API 凭据，不读取 migration URL、模型 key、manifest 签名密钥或整个 `/etc/meetwise`；
+  4. 合成面试权益由受信控制器在独立短事务中向精确 candidate ID 发放确定性、有限额、可过期的 `gift` bucket；不创建 payment order，不留下通用 LOGIN/SECURITY DEFINER 能力；
+  5. 总场次、总 turn、总模型调用、总时长和最坏单步余量均有硬上限；页面进度已从 `interview_question` 权威账本投影。
+- 触发 Trigger：管理员执行一次受控 `deep-usage-v1`，目标是让两个展示账号形成可观察的深度业务关系，而不是继续生成零轮空壳。
+- 主流程 Main：
+  1. 只读核对两个账号的角色、既有简历/岗位/申请/面试基线和当前 schema；任何漂移在发放权益或调用模型前拒绝；
+  2. C 端使用本人的已摄取合成简历，对 B 端自有岗位走真实 apply/start 流程；B 端继续保留大量岗位/候选人，并形成 `invited`、`declined`、`in_progress`、`assessment_unavailable` 的合法组合，`score` 始终为 NULL；
+  3. C 端通过 loopback API 真实 create/begin/turn，Worker/图/模型按生产状态机推进；首切片最多三场：一场走自然终态或明确降级终态，两场分别在至少 3/5 个已应用答案后真实 abandon；
+  4. 每次 answer 先持久化 `interviewId + questionId + stateVersion + turn + answerId + answerHash`，再提交；响应丢失只重放同一 TurnDto，不生成新答案身份；
+  5. 每一题只在匹配同 question/answer identity 的 applied 事件或权威 question ledger 收口后推进；terminal 事件只收口 interview，不得冒充当前答案已应用；
+  6. 最终以低权 C/B HTTP 投影、SSE identity 与独立只读数据库快照三方核对题数、状态、岗位绑定、消费、job/model/report 终态和 RLS；
+  7. 全部机械断言通过才写 `deep_usage_verified`；公开 manifest 若需要声明该能力，必须绑定新的 verification digest 后再启用，不复用旧 large-only manifest。
+- 备选流 Alternate：模型自然早停、澄清、unscored、report failed/quarantined 或预算即将耗尽时，只记录实际终态；预算上限不通过人为 abandon 伪装成自然完成，输出 `ready_limited` 或 `failed`。
+- 异常流 Exception：
+  - E1 重复：同 TurnDto 重放只产生一个 job 和一个 applied event；同 answerId 异文、旧 question identity 或同 batch 异 target 全部拒绝。机制：幂等键、answer hash、账本唯一约束。
+  - E2 并发：20 路相同提交恰一个 accepted，其余 replay；abandon 与最后一答并发只能收敛到一个合法终态，消费只结算或释放一次。机制：CAS、租约、消费 saga。
+  - E3 越权：C/B、另一个 C/B、无 principal、伪 role/cookie 对他人 resume/interview/SSE/turn/job candidate 私有面均为 0/404；公开岗位仍按合同可读。机制：RLS、显式 owner/party 绑定。
+  - E4 失败回滚：发放权益后、begin 后、turn accepted 后或 verification 前崩溃，状态停在可恢复 phase；不得删除合法历史或伪造 completed。临时授权撤销失败必须 fail-closed 并由独立 recovery 重试。
+  - E5 降级：Worker/模型/report 失败产生真实 unavailable/failed/quarantined 状态，B 端只显示待人工复核/评估不可用，不补 0 分、不产生排序。
+  - E6 超时/断线：HTTP/SSE/SSH 响应丢失从 durable submission/cursor 恢复；创建响应丢失先按 open interview/绑定账本对账，禁止再次创建孤儿会话。
+- 后置 Postcondition：两个展示账号保留原大列表数据，并新增少量真实多轮场景；C 端至少可见超过第 1 题的实际进度，B 端可见与其岗位绑定的多状态候选投影；gift/consumption、job/event/model/report 写入各有独立回执；payment、numeric B score、伪录用结论和跨 owner 可见性增量为 0。
+- 验收 Acceptance：
+  1. C 端列表中至少三场 `answered_turns >= 3`，其中至少一场达到 5 轮或真实终态；旧零轮历史显示“尚未出题”；
+  2. B 端仍有大量岗位/候选人，并至少观察到 invited、declined 以及 in_progress/assessment_unavailable 中的真实合法状态，所有 score 为 NULL；
+  3. API、SSE、DB 对每场 issued/answered/current/processing turn 和身份一致；没有 active job、未知模型调用或 terminal raw job answer；
+  4. gift 总额、reserved/consumed/released 与场景终态精确守恒，payment order 增量为 0；
+  5. 20 路重放、跨 owner、8,001 字、旧 endpoint、response-loss、SSE resume 与 abandon race 均有独立行为回执，未执行的 case 不得写 passed；
+  6. 任一中途失败不重新公开旧 large-only manifest 来背书已变化的数据；恢复公开必须绑定本批次 receipt。
+- 关联：复用 `/auth/login`、`/applications/:id/start`、`/interview/:id/begin`、`/interview/:id/turn`、`/interview/:id/events`、`/interview/:id/abandon`；状态对象为 `JobApplication`、`Interview`、`InterviewQuestion`、`InterviewJob`、`EntitlementConsumption` 与 `DeepUsageBatch`；命中 CAS、幂等键、RLS、事件日志和租约原语。
+- 七类覆盖标注：正常（Main）/异常（E4、E5）/特殊（澄清、Unicode、长回答边界）/逃逸通道（E3、失败关闭）/高并发（E2）/复杂（B/C 岗位绑定 + 消费 + Worker/模型/report）/刁钻（E1、E6、abandon race、伪分数/支付）。
+
+### `deep-usage-v1` 七类测试矩阵
+
+| 类别 | TC | 层 | 核心断言 |
+| --- | --- | --- | --- |
+| 正常 | `TC-preview-deep-usage-01-main` | ECS + HTTPS/SSE + RDS | 两个展示账号真实联动；C 多轮、B 多状态、三方题数一致。 |
+| 异常 | `TC-preview-deep-usage-01-E1` | online worker/model | 模型/report 失败只产生真实降级，消费守恒且 B score=NULL。 |
+| 特殊 | `TC-preview-deep-usage-01-E2` | contract + online | Unicode/澄清/7,900 字合法；8,001 字零写拒绝。 |
+| 逃逸通道 | `TC-preview-deep-usage-01-E3` | low-privilege HTTP + SQL | B/C/无主体/伪身份跨 owner 全部拒绝，公开岗位例外精确。 |
+| 高并发 | `TC-preview-deep-usage-01-E4` | 20 路 online | 单 TurnDto 单赢家、同 jobId、单 applied event、单次消费。 |
+| 复杂 | `TC-preview-deep-usage-01-E5` | browser + API + DB | 岗位申请→绑定面试→终态→B 端 assessment_unavailable 全链一致。 |
+| 刁钻 | `TC-preview-deep-usage-01-E6` | fault/replay | create/turn 响应丢失、SSE cursor 恢复、abandon race、旧 Worker 迟到结果不重复。 |
+
+### 非 root 场景执行器合同
+
+`scripts/preview-account-scenarios/runner.mjs` 是 UC-02 的低权 HTTP 执行器，不是
+`large-v1` loader 的替代品，也不是数据库控制器。它只允许 ECS loopback API，启动时拒绝
+uid 0；只在内存中持有两个固定账号的 bearer token，持久化文件仅保留账号/申请/面试 ID、
+question identity、answerId/hash、jobId 和 SSE cursor。密码、token、题目正文、回答正文、
+migration/model/signing secret 均不得进入状态、日志或 receipt。
+
+执行器固定复用 `/auth/login`、`/resume`、`/applications`、
+`/applications/{id}/start`、`/interview/{id}/begin`、`/interview/{id}/events`、
+`/interview/{id}/turn`、`/interview/{id}/abandon`、`/interview`、
+`/recruiter/jobs`、`/recruiter/talent` 和 `/commerce/entitlement`；不新增 endpoint，
+不直写派生事实。`TurnDto` 在提交前落本地恢复记录，响应丢失时只重放同一
+`questionId/stateVersion/turn/answerId/answerHash`；SSE 以 `Last-Event-ID` 恢复，未知身份或
+状态漂移 fail-closed。
+
+权益不足时执行器必须停止并输出 `preview_entitlement_grant_required`。一次性 gift bucket
+只能由独立受信控制器按精确 candidate ID、有限数量和过期时间发放；执行器不创建支付订单、
+不持有迁移凭据、不持有通用登录/`SECURITY DEFINER` 能力。执行器 receipt 的最高声明是
+`verified_online_projection`；数据库禁止副作用、RLS 全矩阵、模型/支付账本等未由独立只读
+快照证明的项目必须保持 `unproven`，不得直接写成 `deep_usage_verified`。
 
 ## 分阶段执行门
 

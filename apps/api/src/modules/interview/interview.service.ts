@@ -357,17 +357,53 @@ export class InterviewService {
   // 列出自己的面试(RLS 只见己),可按 status 过滤 + limit 分页。
   async list(principal: string, status?: string, limit?: string) {
     const lim = Math.min(Math.max(Number(limit) || 50, 1), 200);
+    const projection = `
+      SELECT i.id, i.status,
+        q.current_question_index,
+        COALESCE(q.issued_turns, 0)::int AS issued_turns,
+        COALESCE(q.answered_turns, 0)::int AS answered_turns,
+        q.current_turn,
+        q.processing_turn
+      FROM interview i
+      LEFT JOIN LATERAL (
+        SELECT
+          max(iq.turn) FILTER (WHERE iq.status <> 'cancelled')::int AS current_question_index,
+          count(*) FILTER (WHERE iq.status <> 'cancelled')::int AS issued_turns,
+          count(*) FILTER (WHERE iq.status = 'answered')::int AS answered_turns,
+          max(iq.turn) FILTER (WHERE iq.status = 'issued')::int AS current_turn,
+          max(iq.turn) FILTER (WHERE iq.status = 'queued')::int AS processing_turn
+        FROM interview_question iq
+        WHERE iq.interview_id = i.id AND iq.owner_user_id = i.owner_user_id
+      ) q ON true`;
     const r = await this.db.asPrincipal(principal, (c) =>
       status
-        ? c.query('SELECT id, status, current_question_index FROM interview WHERE status=$1 AND interview_privacy_active(id) ORDER BY id LIMIT $2', [status, lim])
-        : c.query('SELECT id, status, current_question_index FROM interview WHERE interview_privacy_active(id) ORDER BY id LIMIT $1', [lim]));
+        ? c.query(`${projection} WHERE i.status=$1 AND interview_privacy_active(i.id) ORDER BY COALESCE(q.issued_turns,0) DESC, i.id LIMIT $2`, [status, lim])
+        : c.query(`${projection} WHERE interview_privacy_active(i.id) ORDER BY COALESCE(q.issued_turns,0) DESC, i.id LIMIT $1`, [lim]));
     return { interviews: r.rows };
   }
 
   async get(principal: string, id: string) {
     const r = await this.db.asPrincipal(principal, async (c) => {
       await this.guardInterviewPrivacy(c, id);
-      return c.query('SELECT id, status, current_question_index FROM interview WHERE id=$1', [id]);
+      return c.query(`
+        SELECT i.id, i.status,
+          q.current_question_index,
+          COALESCE(q.issued_turns, 0)::int AS issued_turns,
+          COALESCE(q.answered_turns, 0)::int AS answered_turns,
+          q.current_turn,
+          q.processing_turn
+        FROM interview i
+        LEFT JOIN LATERAL (
+          SELECT
+            max(iq.turn) FILTER (WHERE iq.status <> 'cancelled')::int AS current_question_index,
+            count(*) FILTER (WHERE iq.status <> 'cancelled')::int AS issued_turns,
+            count(*) FILTER (WHERE iq.status = 'answered')::int AS answered_turns,
+            max(iq.turn) FILTER (WHERE iq.status = 'issued')::int AS current_turn,
+            max(iq.turn) FILTER (WHERE iq.status = 'queued')::int AS processing_turn
+          FROM interview_question iq
+          WHERE iq.interview_id = i.id AND iq.owner_user_id = i.owner_user_id
+        ) q ON true
+        WHERE i.id=$1`, [id]);
     });
     return r.rows[0];
   }

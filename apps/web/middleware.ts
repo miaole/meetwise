@@ -47,6 +47,26 @@ export function stripClientIdentityHeaders(headers: Headers): Headers {
   return next;
 }
 
+/**
+ * 只返回同源相对地址，避免 Next 在反向代理后用内部的 localhost:3000
+ * 生成绝对 Location，导致公网用户被重定向到自己的本机。
+ */
+export function authRedirectLocation(pathname: string): string {
+  return `/login?next=${encodeURIComponent(pathname)}`;
+}
+
+export function authRedirectUrl(request: NextRequest, pathname: string): URL {
+  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host');
+  const proto = request.headers.get('x-forwarded-proto');
+  if (!host || !/^[a-z0-9.-]+(?::[0-9]{1,5})?$/i.test(host)) {
+    throw new Error('invalid_forwarded_host');
+  }
+  if (proto !== 'http' && proto !== 'https') {
+    throw new Error('invalid_forwarded_proto');
+  }
+  return new URL(authRedirectLocation(pathname), `${proto}://${host}`);
+}
+
 export function middleware(request: NextRequest) {
   if (resolvePublicPreview(process.env.MEETWISE_PUBLIC_PREVIEW)) {
     if (!safeMethods.has(request.method)) {
@@ -62,10 +82,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const needsAuth = protectedPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
   if (needsAuth && !request.cookies.get('mw_token')) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    url.searchParams.set('next', pathname);   // 登录后可回跳
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(authRedirectUrl(request, pathname));
   }
   return NextResponse.next();
 }
