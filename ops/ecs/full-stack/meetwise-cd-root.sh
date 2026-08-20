@@ -181,8 +181,19 @@ trusted_pages_link_identity() {
   local bootstrap_origin="$1" state_json
   [[ "$bootstrap_origin" =~ ^https://[a-z0-9.-]+\.ts\.net$ ]] || die bootstrap_origin_invalid 70
   state_json="$(curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 20 https://miaole.github.io/meetwise/preview-link-state.json)" || die pages_link_identity_invalid 70
-  if printf '%s' "$state_json" | /usr/bin/node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{const v=JSON.parse(s);const f=v.manifestSha256;if(!["enabled","disabled"].includes(v.state)||!Number.isSafeInteger(v.generation)||v.generation<0||!/^[a-f0-9]{64}$/.test(f??"")||v.finalFingerprint!==f)process.exit(1)})'; then
+  if printf '%s' "$state_json" | /usr/bin/node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{const v=JSON.parse(s);const f=v.manifestSha256;if(!["enabled","disabled"].includes(v.state)||!Number.isSafeInteger(v.generation)||v.generation<1||!/^[a-f0-9]{64}$/.test(f??"")||v.finalFingerprint!==f)process.exit(1)})'; then
     printf '%s' "$state_json" | /usr/bin/node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{const v=JSON.parse(s);process.stdout.write(JSON.stringify({state:v.state,generation:v.generation,fingerprint:v.manifestSha256}))})'
+    return
+  fi
+  # A scheduled Pages run can publish an identity-complete disabled bootstrap
+  # receipt while no controller publication state exists yet.  It has no
+  # release generation by construction.  Treat only this exact shape as the
+  # generation-zero floor; the durable terminal transaction ledger still wins
+  # in derive_transaction_generation(), so an earlier generation is never
+  # reused.  Crucially, this avoids reopening the deliberately closed Funnel
+  # merely to fetch an obsolete predecessor manifest.
+  if printf '%s' "$state_json" | /usr/bin/node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{const v=JSON.parse(s);const f=v.manifestSha256;if(v.state!=="disabled"||v.generation!==null||v.releaseDigest!==null||!/^[a-f0-9]{64}$/.test(f??"")||v.finalFingerprint!==f)process.exit(1)})'; then
+    printf '%s' "$state_json" | /usr/bin/node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{const v=JSON.parse(s);process.stdout.write(JSON.stringify({state:"disabled",generation:0,fingerprint:v.manifestSha256}))})'
     return
   fi
   # Legacy Pages receipts used state=verified and omitted generation and

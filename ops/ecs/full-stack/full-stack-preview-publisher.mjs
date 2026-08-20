@@ -351,10 +351,19 @@ async function ledgerInitCli(args) {
     ...(args.now ? { now: args.now } : {}),
   });
   if (existing) {
-    assertLedgerIdentity(existing, { transactionId: requested.transactionId, release: requested.release, token: args.token });
-    const immutableFields = ['commit', 'tree', 'generation', 'controllerDigest', 'composeSpecDigest', 'sourceArchiveDigest', 'backendImageDigest', 'webImageDigest', 'schemaBefore', 'schemaAfter', 'recoveryPolicy'];
-    if (immutableFields.some((field) => existing[field] !== requested[field]) || sha256(existing.predecessor) !== sha256(requested.predecessor)) throw new Error('full_stack_release_existing_identity_conflict');
-    process.stdout.write(`${JSON.stringify(existing)}\n`); return;
+    const sameIdentity = existing.transactionId === requested.transactionId && existing.release === requested.release && TOKEN.test(args.token ?? '') && existing.tokenDigest === sha256(args.token);
+    if (sameIdentity) {
+      const immutableFields = ['commit', 'tree', 'generation', 'controllerDigest', 'composeSpecDigest', 'sourceArchiveDigest', 'backendImageDigest', 'webImageDigest', 'schemaBefore', 'schemaAfter', 'recoveryPolicy'];
+      if (immutableFields.some((field) => existing[field] !== requested[field]) || sha256(existing.predecessor) !== sha256(requested.predecessor)) throw new Error('full_stack_release_existing_identity_conflict');
+      process.stdout.write(`${JSON.stringify(existing)}\n`); return;
+    }
+    if (!['committed', 'rolled_back'].includes(existing.phase)) throw new Error('full_stack_release_existing_identity_conflict');
+    if (requested.generation <= existing.generation) throw new Error('full_stack_release_generation_not_advanced');
+    // The controller flock serializes this terminal rollover with recovery and
+    // every other mutation.  writeFullStackReleaseLedger uses a durable atomic
+    // replace, so a new transaction can never observe a partially rotated file.
+    await writeFullStackReleaseLedger(path, requested);
+    process.stdout.write(`${JSON.stringify(requested)}\n`); return;
   }
   await writeFullStackReleaseLedger(path, requested);
   process.stdout.write(`${JSON.stringify(requested)}\n`);

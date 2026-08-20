@@ -109,6 +109,29 @@ assert.match(dispatch, /PNPM_PACKAGE_ROOT="\$PNPM_PREFIX\/lib\/node_modules\/pnp
 assert.match(dispatch, /PNPM_INTEGRITY='sha512-[A-Za-z0-9+/]+=*'/);
 assert.match(dispatch, /current_target="releases\/\$\{current_target#"\$RELEASES_ROOT\/"\}"/);
 assert.match(dispatch, /predecessor_current_target_invalid/);
+assert.match(dispatch, /v\.state!=="disabled"\|\|v\.generation!==null\|\|v\.releaseDigest!==null/);
+assert.match(dispatch, /state:"disabled",generation:0,fingerprint:v\.manifestSha256/);
+const normalizePagesIdentity = (value) => {
+  const fingerprint = value?.manifestSha256;
+  if (['enabled', 'disabled'].includes(value?.state) && Number.isSafeInteger(value?.generation) && value.generation >= 1 && /^[a-f0-9]{64}$/.test(fingerprint ?? '') && value.finalFingerprint === fingerprint) {
+    return { state: value.state, generation: value.generation, fingerprint };
+  }
+  if (value?.state === 'disabled' && value?.generation === null && value?.releaseDigest === null && /^[a-f0-9]{64}$/.test(fingerprint ?? '') && value.finalFingerprint === fingerprint) {
+    return { state: 'disabled', generation: 0, fingerprint };
+  }
+  return null;
+};
+const bootstrapFingerprint = 'b'.repeat(64);
+assert.deepEqual(normalizePagesIdentity({ state: 'disabled', generation: null, releaseDigest: null, manifestSha256: bootstrapFingerprint, finalFingerprint: bootstrapFingerprint }), { state: 'disabled', generation: 0, fingerprint: bootstrapFingerprint });
+for (const invalidBootstrap of [
+  { state: 'enabled', generation: null, releaseDigest: null, manifestSha256: bootstrapFingerprint, finalFingerprint: bootstrapFingerprint },
+  { state: 'disabled', generation: null, releaseDigest: 'old-release', manifestSha256: bootstrapFingerprint, finalFingerprint: bootstrapFingerprint },
+  { state: 'disabled', generation: null, releaseDigest: null, manifestSha256: bootstrapFingerprint, finalFingerprint: 'c'.repeat(64) },
+  { state: 'disabled', generation: null, releaseDigest: null, manifestSha256: 'not-a-digest', finalFingerprint: 'not-a-digest' },
+  { state: 'enabled', generation: 0, releaseDigest: null, manifestSha256: bootstrapFingerprint, finalFingerprint: bootstrapFingerprint },
+  { state: 'disabled', generation: 0, releaseDigest: null, manifestSha256: bootstrapFingerprint, finalFingerprint: bootstrapFingerprint },
+]) assert.equal(normalizePagesIdentity(invalidBootstrap), null, 'only the exact disabled bootstrap receipt may map to generation zero');
+assert.match(dispatch, /if \[\[ "\$pages_state" == disabled \]\]; then[\s\S]*?status=0[\s\S]*?predecessorRevoked:[\s\S]*?completed: status === 0/, 'the fresh disabled generation-zero receipt must close the edge and persist a completed predecessor fence without Pages dispatch');
 assert.match(dispatch, /LEGACY_PREDECESSOR_RELEASE_RE='\^\[a-f0-9\]\{7,40\}-\(progress\|worktree\)-/);
 assert.match(dispatch, /predecessor_release" =~ \$RELEASE_RE \|\| "\$predecessor_release" =~ \$LEGACY_PREDECESSOR_RELEASE_RE/);
 assert.match(dispatch, /-d "\$RELEASES_ROOT\/\$predecessor_release" && ! -L "\$RELEASES_ROOT\/\$predecessor_release"/);

@@ -41,7 +41,7 @@ async function command(commandName, path, extra = {}, expectFailure = false) {
     return JSON.parse(result.stdout);
   } catch (error) {
     if (!expectFailure) throw error;
-    assert.match(`${error.stderr ?? ''}${error.stdout ?? ''}`, /full_stack_release_(begin_argument_invalid|token_mismatch|phase_conflict|transition_invalid|patch_invalid|schema_before_immutable|existing_identity_conflict|lease_expired)/);
+    assert.match(`${error.stderr ?? ''}${error.stdout ?? ''}`, /full_stack_release_(begin_argument_invalid|token_mismatch|phase_conflict|transition_invalid|patch_invalid|schema_before_immutable|existing_identity_conflict|generation_not_advanced|lease_expired)/);
     return null;
   }
 }
@@ -233,6 +233,20 @@ try {
     const committed = await readLedger(completePath);
     assert.equal(committed.phase, 'committed');
     assert.equal(canGarbageCollectFullStackRollback(committed, digest('a')), true);
+  });
+
+  await check('a terminal ledger rolls over atomically only to a newer generation', async () => {
+    const prior = await readLedger(completePath);
+    assert.equal(prior.phase, 'committed');
+    const nextRelease = `${'b'.repeat(40)}-fullstack-20260821-2-1`;
+    const nextIdentity = { ...identity, transactionId: 'tx-complete-2', release: nextRelease, generation: prior.generation + 1, token: '8'.repeat(64) };
+    await command('ledger-init', completePath, { ...nextIdentity, transactionId: 'tx-complete-stale', generation: prior.generation }, true);
+    const next = await command('ledger-init', completePath, nextIdentity);
+    assert.equal(next.phase, 'preflighted');
+    assert.equal(next.transactionId, nextIdentity.transactionId);
+    assert.equal(next.generation, prior.generation + 1);
+    assert.deepEqual(await readLedger(completePath), next);
+    await command('ledger-init', completePath, { ...nextIdentity, transactionId: 'tx-complete-active', generation: prior.generation + 2 }, true);
   });
 
   await check('preflight crash discards only the unmutated transaction', async () => {
