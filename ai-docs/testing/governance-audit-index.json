@@ -17745,7 +17745,7 @@
         "scripts/quality-traceability.proof.mjs",
         "scripts/run-e2e-isolated.mjs"
       ],
-      "governedPathDigest": "sha256:26e85b79e9e9754b36ac226d09570447dba4bda94d6e7ecc8de066d4ccafb413",
+      "governedPathDigest": "sha256:68a408ea358759af6c0cf2818f20c345c0aa565bd75e404d94befdeb6c476d32",
       "harness": {
         "scope": "公开文本 CD 依赖完整性 successor：纳入 deploy/controller workflows 与 release proof 当前字节，诚实记录有效 Tailscale action pin 和 CI 远端 verifier ref 解析门；这些是静态/远端 ref 检查，不声称 GitHub Actions、云端部署或 release evidence 已执行。",
         "sourceEvidenceIds": [
@@ -17822,7 +17822,7 @@
         "summary": "Append-only public-text successor for the CD dependency-integrity gate. The deploy/controller workflows and release proof record the effective Tailscale action commit and a CI preflight that resolves the pinned remote verifier workflow ref. This is local source and ref-gate evidence only; no GitHub Actions, cloud deployment, or release evidence is asserted.",
         "summaryDigest": "sha256:f8281953adc48252d3c41ab756ad9d493740338fe0ac441966e2cdc5bfafff77",
         "decision": "blocked",
-        "reviewScopeDigest": "sha256:11879287a0c0d121a333448b265d76a0ec05210a5e4a3efc0d1933efcc5c010b",
+        "reviewScopeDigest": "sha256:0414ed3d7a2facfe2946adefb4a3008f9b6cf7b5df837a494704bb8893f1aef7",
         "reviewedFindingIds": [
           "GOV-PTP-001"
         ],
@@ -17845,7 +17845,7 @@
       ],
       "successorOf": "public-text-policy-control-plane-v33",
       "baselineChange": null,
-      "recordDigest": "sha256:082c8b1ca790213a620f1310f411ef67193d1b360f6be069af06c77ef254e2b2"
+      "recordDigest": "sha256:0bed7576759aaa1e693ebd6cf7ed72926864475cfd37d911d8dd50624743fcec"
     },
     {
       "taskId": "quality-governance-control-plane-v45",
@@ -17937,7 +17937,7 @@
         "scripts/quality-traceability.proof.mjs",
         "scripts/run-e2e-isolated.mjs"
       ],
-      "governedPathDigest": "sha256:910b9a45da9899dab395ad2fd3c698ac7164338be7f7a584ed0bcf733d2466b6",
+      "governedPathDigest": "sha256:a81e58361ff663541c8c17957b3231bd454947d3be6d471b4c197a08388e9cb7",
       "harness": {
         "scope": "GitHub CD 依赖完整性 successor：deploy/controller workflows 统一使用已验证的 Tailscale action commit，CI 在部署 job 前通过 GitHub API 解析该 commit 与固定 remote verifier workflow ref；这是静态/远端 ref 门，不是实际 Actions、ECS、ACR、RDS、B/C E2E 或 Pages release evidence。迁移原子性与 releaseEvidence=false 语义保持不变。",
         "sourceEvidenceIds": [
@@ -18024,7 +18024,7 @@
         "summary": "Expert-audited append-only successor for the CD dependency-integrity gate. The deploy and controller workflows use the verified Tailscale action commit, and CI resolves that action commit plus the pinned remote verifier workflow ref before deployment. This records source/static and ref-resolution gates only; real GitHub Actions, ECS, ACR, RDS, public B/C E2E and Pages receipts remain unexecuted, so status stays blocked and releaseEvidence=false.",
         "summaryDigest": "sha256:b2b2f3e5fdbc21957187863b067e0a47c0ba45c5c1b627b6011777552ecbd65e",
         "decision": "blocked",
-        "reviewScopeDigest": "sha256:f8dcdf53f1a18bd285c491673e5252749fd655f4a3f12df4b260d121bf5a9930",
+        "reviewScopeDigest": "sha256:22b8edb3f5f952d2b38d73b7641c3bc36cd20faa3b2e6aa4846f965538588141",
         "reviewedFindingIds": [
           "GOV-CLOUD-TEST-RECOVERY-001",
           "GOV-CLOUD-TEST-RECOVERY-002",
@@ -18353,7 +18353,7 @@
       ],
       "successorOf": "quality-governance-control-plane-v44",
       "baselineChange": null,
-      "recordDigest": "sha256:634a117072c11ccc4bec16b42e61a058f2631fbd2f9ca681718754389ccee76d"
+      "recordDigest": "sha256:5b0b806836847f6f0745cb2624b0d338154da8ab9d62e23f9a806166de4f2f61"
     },
     {
       "taskId": "public-text-policy-control-plane-v35",
@@ -18423,7 +18423,7 @@
         "scripts/quality-traceability.proof.mjs",
         "scripts/run-e2e-isolated.mjs"
       ],
-      "governedPathDigest": "sha256:70b93875940e4529e48e25a251d5b9166c456e3fc2ae150ab7c4d931f743d368",
+      "governedPathDigest": "sha256:5f53ba0de0f41262adbf82674aba8bcb2aefc4ed8534a3116f61b87a214cba46",
       "harness": {
         "scope": "公开文本 CD 依赖完整性 successor：在 v34 受管 workflows/release proof 快照上，追加绑定 meetwise-cd-root、provision-meetwise-cd 与 controller rollout proof 的当前字节；这些是静态/远端 ref 检查，不声称 GitHub Actions、云端部署或 release evidence 已执行。",
         "sourceEvidenceIds": [
@@ -18500,7 +18500,7 @@
         "summary": "Append-only public-text successor for the CD dependency-integrity gate. It rebinds the controller root/provision and rollout proof bytes alongside the existing workflows and release proof. This is local source and ref-gate evidence only; no GitHub Actions, cloud deployment, or release evidence is asserted.",
         "summaryDigest": "sha256:cc72ed3eb89a8338873b359c6a39675382e9a834b387c2316303429024242cbd",
         "decision": "blocked",
-        "reviewScopeDigest": "sha256:1115126e800c3b36ecd9bc3296cf6f1580f34effc991028dfe99e10995347e78",
+        "reviewScopeDigest": "sha256:a60893defed28cde6cb3fe66a116e046f01f8d5b3b69ca1de522a1eac0b66c3d",
         "reviewedFindingIds": [
           "GOV-PTP-001"
         ],
@@ -18523,7 +18523,7 @@
       ],
       "successorOf": "public-text-policy-control-plane-v34",
       "baselineChange": null,
-      "recordDigest": "sha256:379a37c5f95d7aa5edf85ad3dd9c243fdc83c16b06ebe22ba9a711ab701e0b4e"
+      "recordDigest": "sha256:f60426a99abb9a61b430fc6ed18c98255e9176631603ba821849c5ae0f79f7d4"
     },
     {
       "taskId": "quality-governance-control-plane-v46",
@@ -18615,7 +18615,7 @@
         "scripts/quality-traceability.proof.mjs",
         "scripts/run-e2e-isolated.mjs"
       ],
-      "governedPathDigest": "sha256:ac5a18e6bb306b9994d7ca2ef011ab0cdff31fb00559eb716bbaf6a8599d324a",
+      "governedPathDigest": "sha256:a81e58361ff663541c8c17957b3231bd454947d3be6d471b4c197a08388e9cb7",
       "harness": {
         "scope": "GitHub CD 依赖完整性 successor：刷新 v45 已受管 workflows、controller bootstrap/root/provision、rollout/release proof 的当前字节；这些是静态/远端 ref 检查，不声称 GitHub Actions、ECS、ACR、RDS、公开 B/C E2E 或 Pages release evidence 已执行。迁移原子性与 releaseEvidence=false 语义保持不变。",
         "sourceEvidenceIds": [
@@ -18702,7 +18702,7 @@
         "summary": "Expert-audited append-only successor for the CD dependency-integrity gate. It refreshes the current workflows, controller bootstrap/root/provision, rollout and release proof bytes. This records source/static and ref-resolution gates only; real GitHub Actions, ECS, ACR, RDS, public B/C E2E and Pages receipts remain unexecuted, so status stays blocked and releaseEvidence=false.",
         "summaryDigest": "sha256:5005f0a7236a6322b017c3c0c4bbbf9c8bb5fa301a4ec2d1d650bf01f16a3dd5",
         "decision": "blocked",
-        "reviewScopeDigest": "sha256:5b39267d71d3ae0b0bf6f12096ca3f356ab7e2e1262ddc5567a68f0290b8d09b",
+        "reviewScopeDigest": "sha256:ce9403eb77981b5b743b276014d8b72420cb3c08501624cae3f4237bbc891995",
         "reviewedFindingIds": [
           "GOV-CLOUD-TEST-RECOVERY-001",
           "GOV-CLOUD-TEST-RECOVERY-002",
@@ -19031,7 +19031,7 @@
       ],
       "successorOf": "quality-governance-control-plane-v45",
       "baselineChange": null,
-      "recordDigest": "sha256:0bc1c689ea325d5a397acd398507638b92ea4f088e393f9650a42c5f06b9be60"
+      "recordDigest": "sha256:2500ae893e6a9a283e3b2f0a3c3ddb43fa15e6f59ba55c8bcbb1bd49ba72ea5c"
     },
     {
       "taskId": "public-text-policy-control-plane-v36",
@@ -19108,7 +19108,7 @@
         "scripts/quality-traceability.proof.mjs",
         "scripts/run-e2e-isolated.mjs"
       ],
-      "governedPathDigest": "sha256:1b046e0e5eb35e86ecdb2dcb72d8dc905b9ef4cb54563308a7353b924f09a774",
+      "governedPathDigest": "sha256:06715fe427a20e2b3d323735a66d05bb6211ef930b76a1d2f0da065be09e658c",
       "harness": {
         "scope": "GitHub full-stack CD recovery successor: refresh the managed public workflows and controller text after exact verifier-v2, predecessor runtime/Pages recovery, application-owned Compose-spec installation and fail-closed bootstrap checks. No cloud deployment receipt is claimed.",
         "sourceEvidenceIds": [
@@ -19185,7 +19185,7 @@
         "summary": "Append-only public-text successor for the final CD recovery implementation. The reviewed source keeps releaseEvidence=false until the GitHub workflows, ECS bootstrap, two deployments, exact Pages receipts and B/C online checks run successfully.",
         "summaryDigest": "sha256:d693a65252a80061f24b79627697b9bf7fc3333cfd860fa762eac3db915af3c6",
         "decision": "blocked",
-        "reviewScopeDigest": "sha256:49db27deea2a44e385df4627ca8868abeb12bd0ca321d080840dac07e4bc1ae6",
+        "reviewScopeDigest": "sha256:8c0a58f0ec47b42bb0c351c0c12577890f151d2a77a61a505c67eee4af33fcb5",
         "reviewedFindingIds": [
           "GOV-PTP-001"
         ],
@@ -19208,7 +19208,7 @@
       ],
       "successorOf": "public-text-policy-control-plane-v35",
       "baselineChange": null,
-      "recordDigest": "sha256:5dea24c7ee447258b77e05ba4895f096ee379d88c49cfc201c273933b3a3977d"
+      "recordDigest": "sha256:c7331fe482b6e46ed7a649d2acecbe2749dc24e3548cba2ca9b6742af820e278"
     },
     {
       "taskId": "quality-governance-control-plane-v47",
@@ -19304,7 +19304,7 @@
         "scripts/quality-traceability.proof.mjs",
         "scripts/run-e2e-isolated.mjs"
       ],
-      "governedPathDigest": "sha256:e64d1cb40635b03b1aa8cbdae7dad617e69dfcea6bfe2e23fa8db746e1b33147",
+      "governedPathDigest": "sha256:1fdca4a70796e896a768b25e5e52dda3020b06366063eb2a70ad383bb446a0dc",
       "harness": {
         "scope": "GitHub full-stack CD recovery successor: bind verifier-v2, durable release recovery, actual runtime-owner restoration, exact predecessor Pages restoration, transaction-owned Compose spec installation and fail-closed runtime bootstrap to the current reviewed bytes. Static gates do not constitute cloud release evidence.",
         "sourceEvidenceIds": [
@@ -19391,7 +19391,7 @@
         "summary": "Expert-audited append-only successor for the final CD recovery implementation. Current source and no-Docker behavior gates are bound; real GitHub Actions, trusted ECS bootstrap, first and second deployments, Pages receipts and B/C public E2E remain required, so status stays blocked and releaseEvidence=false.",
         "summaryDigest": "sha256:6bde1b549cea46a02842503109f879d32bd5d8837f772ad050470bca90d37ca1",
         "decision": "blocked",
-        "reviewScopeDigest": "sha256:c57ce3d9da8f9070e5ca10c653bcab5577303c7892d5d5dd8c5a0e77445a7880",
+        "reviewScopeDigest": "sha256:d1d3a09bc25de910424f60599b01b4b3a3517d1d1e8f381ef9c11abffaf30cf5",
         "reviewedFindingIds": [
           "GOV-CLOUD-TEST-RECOVERY-001",
           "GOV-CLOUD-TEST-RECOVERY-002",
@@ -19720,7 +19720,7 @@
       ],
       "successorOf": "quality-governance-control-plane-v46",
       "baselineChange": null,
-      "recordDigest": "sha256:92e2de264a3245b49890387111846893ece4cdb1ffa9e160298f08b6487f15c3"
+      "recordDigest": "sha256:100945cb154a9cc181c9e4228679bc8a5e04d8850542d93d1c51e541469d4ae0"
     },
     {
       "taskId": "public-text-policy-control-plane-v37",
@@ -19799,7 +19799,7 @@
         "scripts/quality-traceability.proof.mjs",
         "scripts/run-e2e-isolated.mjs"
       ],
-      "governedPathDigest": "sha256:90c20c300cb0fea884d4e57f17fcbabad481b296c71f84084057948644f70641",
+      "governedPathDigest": "sha256:a43d2ef4579935470995f7f93917e5b74d74ebad064ae11670790c40c1301a2b",
       "harness": {
         "scope": "Final GitHub full-stack CD recovery successor: bind strict credential parsing, explicit legacy/Compose runtime ownership, exact predecessor Pages restoration and independent scheduled recovery to the reviewed bytes. No cloud receipt is claimed.",
         "sourceEvidenceIds": [
@@ -19876,7 +19876,7 @@
         "summary": "Append-only public-text successor for the final CD recovery implementation. Source and no-Docker checks are current; cloud execution remains pending and releaseEvidence=false.",
         "summaryDigest": "sha256:0617f9883719354211b738596fc6ca93d2d5bd3d3ecb404b787773f3bddefbeb",
         "decision": "blocked",
-        "reviewScopeDigest": "sha256:d0ff403c2e0c1b280f6572e3938d45d5f8dc3658b108965b995fa78390b1b1bf",
+        "reviewScopeDigest": "sha256:cd46ab807c414e75b7af1812845a3109bf262a28b61ffb2937fbcd9aaaaafd4c",
         "reviewedFindingIds": [
           "GOV-PTP-001"
         ],
@@ -19899,7 +19899,7 @@
       ],
       "successorOf": "public-text-policy-control-plane-v36",
       "baselineChange": null,
-      "recordDigest": "sha256:5c20299933761a9412df75b1dd26cbe142cf9d69a591dd8585e0dceb099100d6"
+      "recordDigest": "sha256:4dec564587de15a21664cc9891fd29ad0a2a47a5ba4b39821c25a04916d3ed18"
     },
     {
       "taskId": "quality-governance-control-plane-v48",
@@ -19996,7 +19996,7 @@
         "scripts/quality-traceability.proof.mjs",
         "scripts/run-e2e-isolated.mjs"
       ],
-      "governedPathDigest": "sha256:e00f667e1d79369c49a1ee9091707eca00ab075d3f835e1eebd912c876bfddd2",
+      "governedPathDigest": "sha256:6293f16b35d56ccf1187b6aadb69750e40931e95e6131001b533d5efb0bae382",
       "harness": {
         "scope": "Final GitHub full-stack CD recovery successor: bind strict credential parsing, fail-closed systemd ownership, explicit legacy/Compose recovery, bounded Pages waits and independent cancel-safe recovery to current reviewed bytes. Static checks are not deployment evidence.",
         "sourceEvidenceIds": [
@@ -20083,7 +20083,7 @@
         "summary": "Expert-audited append-only successor for the final CD recovery implementation. Current no-Docker behavior gates are bound; GitHub Actions, trusted ECS bootstrap, two deployments, exact Pages receipts and B/C public E2E remain required, so status stays blocked and releaseEvidence=false.",
         "summaryDigest": "sha256:32f5f4befa6c15e0168c553036bf557e36f06e8b31048011f888ddb64a2750df",
         "decision": "blocked",
-        "reviewScopeDigest": "sha256:1115763d28cae9cea30776355edbd3d3f60a318a4fbf440eaad449b9920a7609",
+        "reviewScopeDigest": "sha256:04a5dc8786ea478dcccb4ab3c6cda2a88f5af1fed273495c7fa5cdcb7988298f",
         "reviewedFindingIds": [
           "GOV-CLOUD-TEST-RECOVERY-001",
           "GOV-CLOUD-TEST-RECOVERY-002",
@@ -20412,7 +20412,7 @@
       ],
       "successorOf": "quality-governance-control-plane-v47",
       "baselineChange": null,
-      "recordDigest": "sha256:eb5e6c583deb170b7b350172e0ce13f455b3afed007089d270108b147c322077"
+      "recordDigest": "sha256:45b113058515455906d4f8d44a7b3a27d605ac33cdbae018e9b7459e0163c3b7"
     },
     {
       "taskId": "public-text-policy-control-plane-v38",
