@@ -120,6 +120,17 @@ check('publishes only a generated static directory from the protected default br
   && workflow.includes("cron: '17 * * * *'")
   && !workflow.includes('pull_request')
   && !workflow.includes('pull_request_target'));
+check('publishes a fresh disabled Pages artifact when validation is canceled or fails',
+  workflow.includes('package-disabled:')
+  && workflow.includes('always()')
+  && workflow.includes("needs.verify-and-package.result != 'success'")
+  && workflow.includes('Build a disabled directory after any validation failure')
+  && workflow.includes('preview-site/release-manifest.json ops/ecs/keys/preview-release-ed25519.pub.pem --force-disabled')
+  && workflow.includes('needs: [verify-and-package, package-disabled]'));
+check('deploys only the verified artifact or its explicit disabled fallback',
+  workflow.includes("needs.verify-and-package.result == 'success' || needs.package-disabled.result == 'success'")
+  && workflow.includes('always() &&')
+  && workflow.includes('actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e'));
 check('uses a separate least-privilege Pages deployment job with pinned actions',
   workflow.includes('permissions:\n  contents: read')
   && workflow.includes('pages: write')

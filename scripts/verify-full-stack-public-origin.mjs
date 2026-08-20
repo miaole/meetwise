@@ -1,9 +1,10 @@
 #!/usr/bin/env node
-import { createHash } from 'node:crypto';
+import { createHash, createPrivateKey, sign } from 'node:crypto';
 import { open, readFile } from 'node:fs/promises';
 import { canonicalJson, manifestFingerprint, verifyManifest } from '../ops/ecs/preview-release-manifest.mjs';
 
 const NONCE = /^[a-f0-9]{64}$/;
+const RECEIPT_SIGNING_KEY_ID = 'probe-receipt-ed25519-v1';
 const MAX_BYTES = 2_000_000;
 const ALLOWED_ORIGIN = /^https:\/\/[a-z0-9-]+\.tail[0-9a-f]+\.ts\.net$/;
 const sha256 = (value) => createHash('sha256').update(value).digest('hex');
@@ -32,8 +33,9 @@ async function boundedText(fetchImpl, url, signal) {
   return Buffer.concat(chunks).toString('utf8');
 }
 
-export async function verifyFullStackPublicOrigin({ origin, probeNonce, publicKeyPem, fetchImpl = fetch, now = Date.now() }) {
+export async function verifyFullStackPublicOrigin({ origin, probeNonce, publicKeyPem, signingKeyPem, fetchImpl = fetch, now = Date.now() }) {
   if (!ALLOWED_ORIGIN.test(origin ?? '') || new URL(origin).origin !== origin || !NONCE.test(probeNonce ?? '')) throw new Error('full_stack_public_probe_input_invalid');
+  if (typeof signingKeyPem !== 'string' || !signingKeyPem.includes('PRIVATE KEY')) throw new Error('full_stack_probe_signing_key_invalid');
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 20_000);
   try {
@@ -53,7 +55,9 @@ export async function verifyFullStackPublicOrigin({ origin, probeNonce, publicKe
     const login = { status: 200, bytes: Buffer.byteLength(loginHtml), sha256: sha256(loginHtml) };
     const blackboxSha256 = sha256(canonicalJson({ root, login }));
     if (manifest.receipts?.edge !== root.sha256 || manifest.receipts?.blackbox !== blackboxSha256) throw new Error('full_stack_public_surface_receipt_mismatch');
-    return {
+    // ADR-0021: 公网激活不是 ECS 自证。回执必须由「ECS 之外的验证器」持有私钥签名，
+    // 否则 ECS（或 meetwise-cd）可自证公开可用。私钥只存在于 GitHub Actions，绝不上 ECS。
+    const unsigned = {
       schemaVersion: 1,
       origin,
       probeNonce,
@@ -67,6 +71,11 @@ export async function verifyFullStackPublicOrigin({ origin, probeNonce, publicKe
       manifestUrl,
       rootSha256: root.sha256,
       blackboxSha256,
+      signingKeyId: RECEIPT_SIGNING_KEY_ID,
+    };
+    return {
+      ...unsigned,
+      signature: sign(null, Buffer.from(canonicalJson(unsigned)), createPrivateKey(signingKeyPem)).toString('base64'),
     };
   } finally {
     clearTimeout(timeout);
@@ -77,9 +86,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const origin = option(process.argv.slice(2), '--origin');
   const probeNonce = option(process.argv.slice(2), '--probe-nonce');
   const publicKeyPath = option(process.argv.slice(2), '--public-key');
+  const signingKeyPath = option(process.argv.slice(2), '--signing-key');
   const output = option(process.argv.slice(2), '--out');
-  if (!origin || !probeNonce || !publicKeyPath || !output) throw new Error('usage: verify-full-stack-public-origin.mjs --origin <origin> --probe-nonce <64hex> --public-key <path> --out <path>');
-  const receipt = await verifyFullStackPublicOrigin({ origin, probeNonce, publicKeyPem: await readFile(publicKeyPath, 'utf8') });
+  if (!origin || !probeNonce || !publicKeyPath || !signingKeyPath || !output) throw new Error('usage: verify-full-stack-public-origin.mjs --origin <origin> --probe-nonce <64hex> --public-key <path> --signing-key <path> --out <path>');
+  const receipt = await verifyFullStackPublicOrigin({ origin, probeNonce, publicKeyPem: await readFile(publicKeyPath, 'utf8'), signingKeyPem: await readFile(signingKeyPath, 'utf8') });
   const handle = await open(output, 'wx', 0o600);
   try { await handle.writeFile(`${JSON.stringify(receipt, null, 2)}\n`); await handle.sync(); } finally { await handle.close(); }
 }

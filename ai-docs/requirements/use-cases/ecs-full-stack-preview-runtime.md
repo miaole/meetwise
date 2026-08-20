@@ -7,7 +7,7 @@ scope: shared
 level: spec
 status: active
 owner: platform
-version: 1
+version: 2
 related:
   - ./cloud-runtime-and-migration.md
   - ./ecs-public-preview-web-ingress.md
@@ -25,7 +25,10 @@ tags:
 
 # ECS 完整应用预览运行时用例
 
-> 本文同时记录已落地的受控预览切片和仍待验收的边界。Web、API、Worker、合成数据与签名入口已在指定 ECS/RDS 上运行；这不是生产可用或完整 AI 能力证明。GitHub Pages 只负责项目介绍和跳转。
+> 本文定义目标合同，不把候选代码或旧手工部署写成已经完成的 CD 证据。2026-08-20 的真实状态是：
+> ECS 仍运行 legacy systemd Web/API/Worker；远程 `main` 没有 `deploy-full-stack` workflow；Pages 指向
+> 旧 commit `97d5aee` 的签名清单；ACR 只有后端候选镜像，Web 镜像、ECS Compose/controller 与完整 CD
+> Secrets 尚未就绪。因此本用例当前为 **implementation_blocked**，`releaseEvidence=false`。
 
 ## UC-ecs-full-stack-preview-01 · 访问完整应用并完成合成写入闭环
 
@@ -38,13 +41,15 @@ tags:
   5. Pages 主链接仍禁用。
 - 触发 Trigger：发布控制面收到受保护 `main` 的已验构件并执行一次 full-stack preview release。
 - 主流程 Main：
-  1. 一次性迁移任务复核目标档与独立数据库 `meetwise_preview`，运行当前 migration set，写入迁移回执后退出；固定只读验收库 `meetwise_cloud_test` 不执行 DDL/DML；
-  2. systemd 以低权身份依次启动 API、Worker、Web，分别只绑定 loopback，Worker metrics 也只绑定 loopback；
-  3. 内部健康检查验证 schema revision、运行身份、RDS/Tair TLS、连接池预算和 Worker readiness；
-  4. 受控预览用户从 Web 登录固定合成账号，提交一条合成业务动作；API 在 `meetwise_preview` 写入权威状态与 durable job；
-  5. Worker 领取该 job，按相同 release/config 处理，并将可见结果写回；Web 经 API/SSE 读取结果；
-  6. 控制面先发布 Pages 不会启用的签名 `public-full-stack-probe` manifest，再生成一次性 256-bit `probeNonce` 和 60 秒 deadline，只在该窗口临时启用 Funnel；ECS 外部的无凭据验证器以 `redirect=error` 访问精确 root/login/manifest URL，验证签名 manifest、页面摘要、nonce 与时间后产生回执；
-  7. 发布控制面只接受同 generation、同 nonce、同 probe manifest fingerprint 且未过 deadline 的外部回执，随后才签发 `public-full-stack` manifest。超时处理先物理关闭 Web/Funnel，再等待发布锁修复账本；确认与超时并发时，过期处理器只对已持久确认的最终 manifest 恢复一致边缘；Pages 仅对最终模式启用主按钮。
+  1. GitHub 只接受 `ci` 对受保护 `main` 的同一 `head_sha` 成功回执；stale SHA、PR run、失败或取消 run 均不得部署；
+  2. CI 从该 Git tree 的干净只读输入构建后端/Web 镜像，推入 ACR，并冻结 OCI digest、commit、tree 和 Web 构件摘要；错误 ACR/Tailscale/SSH/controller 身份必须在撤权前失败；
+  3. ECS 建立持久发布 owner 和 predecessor 快照；首发显式处理无 predecessor，升级则先取得旧 publication/Compose/legacy owner 的完整恢复材料；
+  4. 控制面关闭 Funnel/Web，并确认旧 API、Worker、Web/legacy 或 Compose 常驻写者全部停止；随后一次性 migrate 容器复核 live database identity/schema ledger 并只向前迁移；
+  5. ECS 从 ACR 拉取按 digest 固定的镜像，先在公网关闭状态启动 API、Worker、Web；三者通过 schema revision、运行身份、RDS/Tair TLS、连接池预算和 readiness 后，才生成页面/运行时摘要；
+  6. 受控预览用户通过固定合成主体走 API/Worker 写入闭环；pre/post receipt 必须绑定同 release、DB、schema、禁止项与 target，失败保持边缘关闭；
+  7. 控制面发布 Pages 不启用的签名 `public-full-stack-probe` manifest，再生成一次性 256-bit `probeNonce` 和 10 分钟硬 deadline；耗时的 B/C、API/Worker/RLS/测试库写闭环已在公网关闭状态完成并形成签名组合回执，外部固定版本 verifier 仅重验 root/login/manifest、受保护路由、版本身份、该组合回执摘要与 nonce，签名私钥不进入候选 workflow；
+  8. 控制面只接受同 generation、nonce、fingerprint 且未过 deadline 的回执，签发 final manifest；随后触发 Pages 并等待 **同一 final fingerprint 的 enabled receipt**，成功后才提交 publication、清理 predecessor 快照；
+  9. 任一步失败进入持久 `failed_closed/rollback_pending`，停止候选并恢复 predecessor 或留下可自动前滚的维护态；不得只依赖当前 GitHub job 的 shell trap。
 - 备选流 Alternate：模型能力尚未取得合格凭据时，Web/API 可运行并显示能力不可用；Worker 不得伪造模型成功。只有不依赖模型的合成写入链通过时，发布状态最多为 `internal_ready`，不得启用 Pages 的“完整 AI 流程可用”表述。
 - 异常流 Exception：
   - E1 重复：同 release/构件重放只复用同一迁移结果；同合成提交幂等键与相同 payload 返回同一结果，不新增 job/消费；同键不同 payload 返回冲突。机制：构件摘要、迁移 revision、幂等键和事件账本。
@@ -55,7 +60,7 @@ tags:
   - E6 超时/断线：提交响应丢失、SSE 重连、Worker takeover 和发布进程中断后只从 durable DB/ledger 恢复；已派发模型超时为 `unknown`，不换模型重发。机制：幂等 receipt、SSE cursor、lease fence、模型调用账本。
 - 后置 Postcondition：成功时 `FullStackPreviewRelease=published`，迁移回执、release manifest、内部健康、黑盒验证、合成写入 receipt 与 Pages link state 均绑定同一 commit/digest；失败时为 `failed/revoked`，Pages 链接禁用且边缘关闭。业务数据库只含合成预览数据，不含真实个人资料。
 - 验收 Acceptance：
-  1. Web、API、Worker 三个独立 systemd 单元均使用非 root 用户、固定 release 和最小 EnvironmentFile；
+  1. Web、API、Worker 容器均使用非 root 用户、固定 OCI digest 和最小显式环境；宿主 systemd 仅运行发布控制面/Nginx，旧 app 单元为 inactive+disabled；
   2. API/Worker 查询 `current_user` 与预期低权身份相等，RDS 连接 `verify-full`，Tair TLS `PING=PONG`；
   3. 一条合成提交在数据库中恰有一个业务记录、一个 job/receipt 和一个可读终态，响应丢失/重复/20 并发仍不增量；
   4. 公网只开放 HTTPS Web，API 管理路径、metrics、数据库、Tair、Worker 端口不可达；
@@ -78,8 +83,12 @@ tags:
 
 ## 当前门禁
 
-- `spec-gate`：**preview_slice_deployed_pending_extended_acceptance**。当前 release、低权运行身份、独立 `meetwise_preview`、large-v1 合成数据、HTTPS root/login 与签名 full-stack manifest 已形成一次受控证据；Pages 入口只在受保护 main 的 workflow 验签后启用。
-- 尚未完成 SIGKILL takeover、RLS 全矩阵、浏览器分页/筛选、持续性能和完整模型/RAG/评分验收；不得据此声称生产高可用、真实用户数据环境或完整 AI 流程可用。
+- `spec-gate`：**implementation_blocked**，`releaseEvidence=false`。
+- 必须先闭合：Web 在 publish 前内网启动；迁移前静默所有旧写者；首发 provisioning；完整 predecessor rollback；
+  Pages final exact receipt；controller live bundle；ACR/Tailscale secrets 与只读 pull 身份；`0121` 已在线迁移纳入源码，
+  `0122` 补齐 pgcrypto 可选参数 ACL，中文上下文迁移改为 `0123`。
+- 必须补真实 GitHub/ECS 组合根：clean-host 首发、legacy 接管、第二次升级、每 phase SIGKILL/重启、ACR/迁移/
+  readiness/synthetic/verifier/Pages 故障、B/C 登录与测试库写入。静态 regex proof 不算 release evidence。
 
 ## Expert-audit 收敛项
 

@@ -2,7 +2,7 @@
 Description=Deadline for a Meetwise full-stack public edge probe
 
 [Timer]
-OnActiveSec=60s
+OnActiveSec=600s
 AccuracySec=1s
 Unit=meetwise-full-stack-edge-probe-expiry.service
 

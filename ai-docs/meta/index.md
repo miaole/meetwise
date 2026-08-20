@@ -42,6 +42,7 @@ tags:
 - `delivery/resume-project-highlights.md`：已验证指标、简历项目亮点、面试追问卡与禁止夸大表述。
 - `delivery/production-readiness-remediation-register.md`：测试、评测、演示与真实生产路径不等价时的整改登记、验收和关闭纪律。
 - `delivery/execution-master-checklist.md`：所有已登记未闭环事项的依赖顺序、逐项执行清单和阶段出口；审阅后按此顺序实施。
+- `delivery/ecs-full-stack-cd-implementation-plan.md`：从同 SHA CI、ACR、ECS 发布事务、回滚到 Pages exact receipt 与 B/C E2E 的完整实施合同；当前为阻断态计划，不是发布证据。
 - `observability/README.md`：AI、Graph、成本和质量观测。
 - `requirements/use-cases/expert-interview-coach-agent-graph.md`：面向候选人的 LangGraph / Agent 图深度面试教练材料。
 - `requirements/use-cases/expert-interview-coach-rag-runtime.md`：面向候选人的 RAG、Agent Runtime、流式性能深度面试教练材料。

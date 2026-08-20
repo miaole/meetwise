@@ -3,18 +3,25 @@
  * it does not import the DB package and never contacts ECS/RDS/model providers. */
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
-import { mkdtempSync, readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, symlinkSync, unlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   PREVIEW_ACCOUNTS,
+  RECEIPT_LAYERS,
   SESSION_TARGETS,
   assertLoopbackBaseUrl,
   assertNonRootUid,
+  assertReleaseBinding,
+  discoverPredecessorState,
   readState,
+  resolvePreviewCredentials,
   runScenario,
   sha256,
   stableUuid,
+  targetScopedStatePath,
+  validateDeepUsageReceipt,
+  validateReceiptLayers,
 } from './runner.mjs';
 
 function json(response, status, value) {
@@ -55,7 +62,7 @@ function fakePreviewServer() {
     const principal = auth(request);
     const body = request.method === 'POST' ? await bodyOf(request) : {};
     if (url.pathname === '/auth/login' && request.method === 'POST') {
-      const row = [...data.users.entries()].find(([, item]) => item.email === body.email && body.password === '123456');
+      const row = [...data.users.entries()].find(([, item]) => item.email === body.email && typeof body.password === 'string' && body.password.length > 0);
       return row ? json(response, 200, { token: row[0], userId: row[1].userId, role: row[1].role }) : json(response, 401, { error: 'invalid_credentials' });
     }
     if (!principal) return json(response, 401, { error: 'unauthenticated' });
@@ -149,11 +156,39 @@ async function main() {
     assert.throws(() => assertLoopbackBaseUrl('http://localhost:8787/'), /loopback/);
     assert.equal(assertNonRootUid(2001), 2001);
   });
+  test('target/release binding is mandatory and scopes successor state', () => {
+    const base = join(tmpdir(), 'deep-usage-v1.json');
+    const n = { targetDigest: 'a'.repeat(64), releaseIdentity: 'commit-a/tree-a' };
+    const n1 = { targetDigest: 'b'.repeat(64), releaseIdentity: 'commit-b/tree-b' };
+    assert.deepEqual(assertReleaseBinding(n), n);
+    assert.notEqual(targetScopedStatePath(base, n), targetScopedStatePath(base, n1));
+    assert.throws(() => assertReleaseBinding({ ...n, targetDigest: 'not-a-digest' }), /target_digest_invalid/);
+    assert.throws(() => assertReleaseBinding({ ...n, releaseIdentity: 'contains whitespace' }), /release_identity_invalid/);
+  });
   test('stable identities are retry-safe and contract-shaped', () => {
     assert.equal(stableUuid('same'), stableUuid('same'));
     assert.notEqual(stableUuid('same'), stableUuid('other'));
     assert.match(stableUuid('same'), /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
     assert.match(sha256('answer'), /^[a-f0-9]{64}$/);
+  });
+  test('fixed B/C credentials are env-only and receipt layers cannot be conflated', () => {
+    const credentials = resolvePreviewCredentials({ PREVIEW_C_PASSWORD: 'candidate-proof-secret', PREVIEW_B_PASSWORD: 'recruiter-proof-secret' });
+    assert.deepEqual(Object.keys(credentials).sort(), ['candidatePassword', 'recruiterPassword']);
+    assert.equal(credentials.candidatePassword, 'candidate-proof-secret');
+    assert.equal(credentials.recruiterPassword, 'recruiter-proof-secret');
+    assert.throws(() => resolvePreviewCredentials({ PREVIEW_C_PASSWORD: '', PREVIEW_B_PASSWORD: 'present' }), /credentials_missing/);
+    assert.deepEqual(validateReceiptLayers(
+      { receiptLayer: RECEIPT_LAYERS.capacity, profile: 'large-v1-successor', datasetId: 'preview-large-v1-successor' },
+      { schemaVersion: 1, receiptLayer: RECEIPT_LAYERS.deepUsage, datasetId: 'preview-deep-usage-v1', scenarioId: 'deep-usage-v1', predecessorCapacityDatasetId: 'preview-large-v1-successor', targetDigest: 'a'.repeat(64), releaseIdentity: 'proof-release', phase: 'verified_online_projection' },
+    ), { capacityDatasetId: 'preview-large-v1-successor', deepUsageDatasetId: 'preview-deep-usage-v1', deepUsageScenarioId: 'deep-usage-v1', capacityProfile: 'large-v1-successor' });
+    assert.throws(() => validateReceiptLayers(
+      { schemaVersion: 1, receiptLayer: RECEIPT_LAYERS.capacity, datasetId: 'preview-large-v1' },
+      { schemaVersion: 1, receiptLayer: RECEIPT_LAYERS.deepUsage, datasetId: 'preview-deep-usage-v1', scenarioId: 'deep-usage-v1', predecessorCapacityDatasetId: 'preview-large-v1', targetDigest: 'a'.repeat(64), releaseIdentity: 'proof-release', phase: 'verified_online_projection' },
+    ), /capacity_receipt_layer_invalid/);
+    assert.throws(() => validateReceiptLayers(
+      { schemaVersion: 1, receiptLayer: RECEIPT_LAYERS.capacity, profile: 'large-v1-successor', datasetId: 'preview-large-v1-successor', forbidden: { answerEvents: 1 } },
+      { schemaVersion: 1, receiptLayer: RECEIPT_LAYERS.deepUsage, datasetId: 'preview-deep-usage-v1', scenarioId: 'deep-usage-v1', predecessorCapacityDatasetId: 'preview-large-v1-successor', targetDigest: 'a'.repeat(64), releaseIdentity: 'proof-release', phase: 'verified_online_projection' },
+    ), /capacity_receipt_forbidden_side_effect/);
   });
   test('real API-shaped scenario resumes after committed response loss', async () => {
     const fake = fakePreviewServer();
@@ -161,10 +196,17 @@ async function main() {
     const port = fake.server.address().port;
     const root = mkdtempSync(join(tmpdir(), 'meetwise-preview-scenario-proof-'));
     const statePath = join(root, 'deep-usage-v1.json');
+    const target = { targetDigest: 'a'.repeat(64), releaseIdentity: 'proof-commit-a/proof-tree-a' };
     try {
-      const receipt = await runScenario({ apiBaseUrl: `http://127.0.0.1:${port}`, statePath, uid: 2001, candidatePassword: '123456', recruiterPassword: '123456' });
+      const receipt = await runScenario({ apiBaseUrl: `http://127.0.0.1:${port}`, statePath, ...target, uid: 2001, candidatePassword: stableUuid('proof-candidate-credential'), recruiterPassword: stableUuid('proof-recruiter-credential') });
       assert.equal(receipt.phase, 'verified_online_projection');
-      const state = readState(statePath);
+      assert.equal(receipt.attestationMode, 'initial_load');
+      assert.equal(receipt.receiptLayer, RECEIPT_LAYERS.deepUsage);
+      assert.equal(receipt.datasetId, 'preview-deep-usage-v1');
+      assert.equal(receipt.predecessorCapacityDatasetId, 'preview-large-v1-successor');
+      assert.doesNotMatch(JSON.stringify(receipt), /"(?:password|token|secret)"\s*:/i);
+      const scopedStatePath = targetScopedStatePath(statePath, target);
+      const state = readState(scopedStatePath);
       assert.equal(state.sessions.length, SESSION_TARGETS.length);
       assert.equal(state.sessions[0].phase, 'terminal');
       assert.equal(state.sessions[0].appliedTurns, 5);
@@ -172,7 +214,15 @@ async function main() {
       assert.equal(state.sessions[1].appliedTurns, 3);
       assert.equal(state.sessions[2].phase, 'abandoned');
       assert.equal(state.sessions[2].appliedTurns, 5);
-      const serialized = readFileSync(statePath, 'utf8');
+      assert.equal(state.receiptLayer, RECEIPT_LAYERS.deepUsage);
+      assert.equal(state.datasetId, 'preview-deep-usage-v1');
+      assert.equal(state.predecessorCapacityDatasetId, 'preview-large-v1-successor');
+      assert.equal(state.targetDigest, target.targetDigest);
+      assert.equal(state.releaseIdentity, target.releaseIdentity);
+      assert.equal(state.sessionCount, SESSION_TARGETS.length);
+      assert.deepEqual(validateDeepUsageReceipt(state.deepUsageReceipt), receipt);
+      assert.equal(state.deepUsageReceipt.receiptDigest, state.receiptDigest);
+      const serialized = readFileSync(scopedStatePath, 'utf8');
       assert.doesNotMatch(serialized, /合成预览回答|"password"\s*:|"token"\s*:|"answer"\s*:/);
       assert.equal(fake.data.responseLossInjected, true);
       assert.equal(fake.data.interviews.size, 3);
@@ -180,6 +230,37 @@ async function main() {
       assert.ok(state.observations.oldZeroHistory >= 2);
       assert.ok(state.observations.recruiterStatuses.includes('assessment_unavailable'));
       assert.ok(state.observations.recruiterStatuses.includes('in_progress'));
+      // A successor target must not reuse the N ledger/receipt.  With a new
+      // binding the fake API is re-attested into a different target-scoped
+      // state path, while the N receipt remains byte-for-byte unchanged.
+      const oldBytes = readFileSync(scopedStatePath, 'utf8');
+      const successor = { targetDigest: 'b'.repeat(64), releaseIdentity: 'proof-commit-b/proof-tree-b' };
+      const poisonedPath = `${statePath}.target-${'c'.repeat(64)}-poison`;
+      symlinkSync(scopedStatePath, poisonedPath);
+      assert.throws(() => discoverPredecessorState(statePath, successor, `http://127.0.0.1:${port}`), /scenario_predecessor_symlink/);
+      unlinkSync(poisonedPath);
+      const mutationRequests = [];
+      const successorFetch = async (url, init = {}) => {
+        const method = String(init.method ?? 'GET').toUpperCase();
+        const path = new URL(url).pathname;
+        if (method !== 'GET' && path !== '/auth/login') mutationRequests.push({ method, path });
+        return fetch(url, init);
+      };
+      const successorReceipt = await runScenario({ apiBaseUrl: `http://127.0.0.1:${port}`, fetchImpl: successorFetch, statePath, ...successor, uid: 2001, candidatePassword: stableUuid('proof-candidate-credential'), recruiterPassword: stableUuid('proof-recruiter-credential') });
+      assert.equal(successorReceipt.targetDigest, successor.targetDigest);
+      assert.equal(successorReceipt.releaseIdentity, successor.releaseIdentity);
+      assert.equal(successorReceipt.attestationMode, 'api_read_only');
+      assert.equal(successorReceipt.predecessorTargetDigest, target.targetDigest);
+      assert.equal(successorReceipt.predecessorReleaseIdentity, target.releaseIdentity);
+      assert.deepEqual(mutationRequests, [], 'successor re-attestation must not start/begin/turn/abandon/signup');
+      assert.notEqual(targetScopedStatePath(statePath, target), targetScopedStatePath(statePath, successor));
+      assert.match(successorReceipt.receiptDigest, /^[a-f0-9]{64}$/);
+      const successorState = readState(targetScopedStatePath(statePath, successor));
+      assert.equal(successorState.reattestationMode, 'api_read_only');
+      assert.deepEqual(successorState.accounts, state.accounts);
+      assert.deepEqual(successorState.sessions.map(({ applicationId, interviewId }) => ({ applicationId, interviewId })), state.sessions.map(({ applicationId, interviewId }) => ({ applicationId, interviewId })));
+      assert.equal(successorState.deepUsageReceipt.attestationMode, 'api_read_only');
+      assert.equal(readFileSync(scopedStatePath, 'utf8'), oldBytes);
     } finally {
       await new Promise((resolve) => fake.server.close(resolve));
     }

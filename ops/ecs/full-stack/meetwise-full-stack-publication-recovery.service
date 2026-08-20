@@ -2,7 +2,7 @@
 Description=Meetwise full-stack publication recovery gate
 After=network-online.target tailscaled.service
 Wants=network-online.target
-Before=meetwise-web.service nginx.service
+Before=nginx.service
 
 [Service]
 Type=oneshot
