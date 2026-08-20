@@ -515,6 +515,9 @@ assert.ok(workflow.includes('RepoDigests'), 'workflow must extract @sha256 diges
 assert.ok(workflow.includes('meetwise-cd transaction compose-pull $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN ${{ steps.images.outputs.backend_digest }} ${{ steps.images.outputs.web_digest }}'), 'workflow must pin both digests via the token-bound transaction');
 assert.ok(!workflow.includes('hash-web-runtime-artifact.mjs'), 'credentialed deploy must not execute candidate checkout hash code');
 assert.match(workflow, /fixed inline control-plane hash/);
+assert.match(workflow, /docker cp "\$container:\/app\/\." \/tmp\/web-image-app\//, 'Web attestation must copy the complete image app boundary');
+assert.match(workflow, /node --input-type=module - \/tmp\/web-image-app\/apps\/web/, 'Web attestation must hash only the runtime Web subtree after boundary-safe extraction');
+assert.ok(!workflow.includes('docker cp "$container:/app/apps/web/."'), 'Web attestation must not isolate standalone symlinks from their image root');
 const acrLoginAt = workflow.indexOf('docker login "$REGISTRY"');
 assert.ok(acrLoginAt > 0 && !workflow.slice(acrLoginAt).includes('node scripts/'), 'no candidate checkout script may run after ACR login');
 const sshKeyAt = workflow.indexOf('secrets\.ECS_CD_DEPLOY_KEY');
