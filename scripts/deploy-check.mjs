@@ -1,9 +1,10 @@
 /**
- * 部署运行路径守卫：防"容器用 tsx、gate 用 swc"的工具链漂移(实跑部署才抓到的 Nest DI 静默失效)。
- * 断言:容器命令必须用 serve/start(= @swc-node/register,发 emitDecoratorMetadata),绝不用 tsx 跑 main。
+ * 部署运行路径守卫：防"容器入口依赖 Corepack/pnpm"或"容器用 tsx、gate 用 swc"的工具链漂移。
+ * 断言:生产容器直接用 Node + workspace-local @swc-node/register（发 emitDecoratorMetadata），
+ * migrate 直接调用 workspace-local tsx CLI；运行镜像不需要 Corepack/pnpm。
  * 配合 `docker compose config -q`(编排合法)组成 deploy:check。
  */
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 const compose = readFileSync('docker/compose.prod.yml', 'utf8');
 const monitoringCompose = readFileSync('docker/compose.monitoring.yml', 'utf8');
@@ -12,16 +13,31 @@ const prometheusWithoutComments = prometheus.replace(/^\s*#.*$/gm, '');
 const dockerfile = readFileSync('Dockerfile', 'utf8');
 const apiPkg = JSON.parse(readFileSync('apps/api/package.json', 'utf8'));
 const workerPkg = JSON.parse(readFileSync('apps/worker/package.json', 'utf8'));
+const dbPkg = JSON.parse(readFileSync('packages/db/package.json', 'utf8'));
 
 const fails = [];
 const must = (cond, msg) => { if (!cond) fails.push(msg); };
 
-// ① 容器命令用 serve/start,不用 tsx 跑 main(tsx 不发装饰器元数据 → Nest DI 失效)
-must(/"apps\/api",\s*"serve"/.test(compose), 'compose api 应 command: pnpm -C apps/api serve');
-must(/"apps\/worker",\s*"start"/.test(compose), 'compose worker 应 command: pnpm -C apps/worker start');
-must(!/"tsx","src\/main/.test(compose), 'compose 不得用 tsx 跑 main(DI 元数据缺失)');
-must(/apps\/api","serve"/.test(dockerfile) && !/"tsx","src\/main/.test(dockerfile), 'Dockerfile CMD 应 serve、非 tsx main');
-// ② serve/start 脚本确实走 @swc-node/register(发元数据,与 gate api:validate 同路径)
+// ① 运行镜像不经过 Corepack/pnpm；API/Worker 直接使用各自 workspace 的
+// @swc-node/register（发元数据），迁移先用 packages/db 的 tsx CLI，再配置 Worker 费用。
+must(/working_dir:\s*\/app\/apps\/api\s+command:\s*\["node",\s*"--import",\s*"@swc-node\/register\/esm-register",\s*"src\/main\.ts"\]/s.test(compose), 'compose api 必须直接 Node + app-local swc entrypoint');
+must(/working_dir:\s*\/app\/apps\/worker\s+command:\s*\["node",\s*"--import",\s*"@swc-node\/register\/esm-register",\s*"src\/main\.ts"\]/s.test(compose), 'compose worker 必须直接 Node + app-local swc entrypoint');
+must(/working_dir:\s*\/app\/packages\/db\s+command:\s*\["sh",\s*"-c",\s*"node node_modules\/tsx\/dist\/cli\.mjs src\/migrate-cli\.ts && cd \/app\/apps\/worker && node --import @swc-node\/register\/esm-register src\/cost-configure\.ts"\]/s.test(compose), 'compose migrate 必须直接 tsx CLI + worker cost entrypoint');
+must(!/command:\s*\[[^\n]*pnpm/.test(compose), '生产 compose 运行命令不得调用 pnpm/Corepack');
+must(/COPY --from=deps \/app\/node_modules \.\/node_modules/.test(dockerfile)
+  && /COPY --from=deps \/app\/apps \.\/apps/.test(dockerfile)
+  && /COPY --from=deps \/app\/packages \.\/packages/.test(dockerfile)
+  && /COPY \. \./.test(dockerfile), 'runtime 必须携带源码与 workspace 依赖链接');
+for (const entrypoint of ['apps/api/src/main.ts', 'apps/worker/src/main.ts', 'apps/worker/src/cost-configure.ts', 'packages/db/src/migrate-cli.ts']) {
+  must(existsSync(entrypoint), `backend image source entrypoint 缺失:${entrypoint}`);
+}
+must(Boolean(apiPkg.devDependencies?.['@swc-node/register'])
+  && Boolean(workerPkg.devDependencies?.['@swc-node/register'])
+  && Boolean(dbPkg.devDependencies?.tsx), 'workspace-local direct entrypoint 依赖未在 package manifest 声明');
+const runtimeDockerfile = dockerfile.slice(dockerfile.indexOf(' AS runtime'));
+must(!/RUN corepack enable/.test(runtimeDockerfile), 'runtime stage 不得启用 Corepack');
+must(/WORKDIR \/app\/apps\/api[\s\S]*CMD \["node","--import","@swc-node\/register\/esm-register","src\/main\.ts"\]/.test(runtimeDockerfile), 'Dockerfile 默认 API 必须直接 Node + swc entrypoint');
+// ② package scripts 仍是源事实：Node direct entrypoint 与它们保持同一 swc loader。
 must(/@swc-node\/register/.test(apiPkg.scripts?.serve ?? ''), 'apps/api serve 必须经 @swc-node/register');
 must(/@swc-node\/register/.test(workerPkg.scripts?.start ?? ''), 'apps/worker start 必须经 @swc-node/register');
 // compose 单机：生产必须 pull 镜像（image:），绝不在 ECS 上 build（4G 内存 OOM 根因）。
@@ -32,7 +48,7 @@ must(/image:\s*\$\{BACKEND_IMAGE:\?/.test(compose) && /image:\s*\$\{WEB_IMAGE:\?
 // 绝不可作为 postgres init-script 与增量迁移混用。
 import { readdirSync, readFileSync as rf } from 'node:fs';
 must(!/docker-entrypoint-initdb\.d/.test(compose), 'compose 不得挂载基础 sql 到 postgres initdb');
-must(/packages\/db(?:","migrate"|\s+migrate\b)/.test(compose), 'compose 须有独立 packages/db migrate 服务');
+must(/working_dir:\s*\/app\/packages\/db/.test(compose) && /src\/migrate-cli\.ts/.test(compose), 'compose 须有独立 packages/db migrate 服务');
 must((compose.match(/condition:\s*service_completed_successfully/g) ?? []).length >= 2, 'api/worker 须依赖 migrate 成功完成');
 // ④ production compose 是云端唯一数据面：本地服务只能留在 dev/demo 文件，
 // 且所有连接字符串必须由部署期密钥管理注入，不能回退 PGHOST/默认口令。
@@ -119,4 +135,4 @@ const proofInMigrations = migrations.filter((f) => /\\(set|pset)\b/.test(rf(`pac
 must(proofInMigrations.length === 0, `migration 目录混入 psql 证明文件:${proofInMigrations.join(',')}`);
 
 if (fails.length) { console.error('✗ 部署校验失败:\n  - ' + fails.join('\n  - ')); process.exit(1); }
-console.log(`✓ deploy-check-ok（命令经 @swc-node/register 无 tsx 漂移 · 云端唯一数据面 · ${migrations.length} 个版本化迁移由一次性服务执行）`);
+console.log(`✓ deploy-check-ok（API/Worker 直达 @swc-node/register、migrate 直达 tsx CLI · 云端唯一数据面 · ${migrations.length} 个版本化迁移由一次性服务执行）`);

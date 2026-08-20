@@ -245,6 +245,54 @@ const checks = {
     const candidate = clone(index);
     candidate.records[0].governedPaths[0] = '../outside.md';
     expectGovernanceError(candidate, 'governed_path_invalid:quality-governance-control-plane-v1:../outside.md');
+
+    // Production runtime inputs are now explicitly governed: exact root files
+    // must be allowlisted by identity, while the docker/ subtree and ordinary
+    // workspace paths remain slash-bounded.  This fixture exercises the same
+    // successor shape used by a real append, then verifies lookalikes and
+    // traversal paths remain rejected.
+    const acceptedRuntimePaths = [
+      '.dockerignore',
+      'Dockerfile',
+      'docker/compose.prod.yml',
+      'pnpm-workspace.yaml',
+      'pnpm-lock.yaml',
+      'apps/api/package.json',
+      'apps/api/src/main.ts',
+      'apps/worker/package.json',
+      'apps/worker/src/cost-configure.ts',
+      'apps/worker/src/main.ts',
+      'packages/db/package.json',
+      'packages/db/src/migrate-cli.ts',
+      'scripts/deploy-check.mjs',
+      'scripts/quality-governance-check.mjs',
+      'scripts/quality-governance.proof.mjs',
+    ];
+    const accepted = clone(index);
+    const acceptedSuccessor = governanceSuccessor(accepted);
+    acceptedSuccessor.governedPaths = [...new Set([
+      ...acceptedSuccessor.governedPaths,
+      ...acceptedRuntimePaths,
+    ])].sort();
+    refreshRecord(acceptedSuccessor);
+    accepted.records.push(acceptedSuccessor);
+    assert.equal(governanceResult(accepted).valid, true, governanceResult(accepted).errors.join('\n'));
+
+    for (const dangerousPath of [
+      'Dockerfile.bak',
+      '.dockerignore.bak',
+      'pnpm-workspace.yaml.attacker',
+      'docker-compose.prod.yml',
+      'docker/../Dockerfile',
+      'docker/../../outside.md',
+      'docker//compose.prod.yml',
+    ]) {
+      const invalid = clone(index);
+      const invalidSuccessor = governanceSuccessor(invalid);
+      invalidSuccessor.governedPaths = [...invalidSuccessor.governedPaths, dangerousPath].sort();
+      invalid.records.push(invalidSuccessor);
+      expectGovernanceError(invalid, `governed_path_invalid:${governanceNextTaskId}:${dangerousPath}`);
+    }
   },
   'TC-quality-03-E4': () => {
     const missingAdr = clone(index);

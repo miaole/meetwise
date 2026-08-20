@@ -67,18 +67,26 @@ const BASELINE_KEYS = new Set([
   'schemaVersion', 'releaseEvidence', 'sourceManifestPath', 'frozenUnmappedLeafTcIds',
   'frozenUnmappedLeafTcIdsDigest', 'expansions',
 ]);
+// Directory roots are slash-terminated; root files are exact-only.  Keeping
+// these categories separate prevents a declaration such as `Dockerfile.bak`
+// or `pnpm-lock.yaml.attacker` from becoming governed merely by a prefix
+// match, while still allowing the reviewed production composition subtree.
 const GOVERNED_PATH_PREFIXES = [
+  '.github/',
   'ai-docs/',
   'apps/',
-  'packages/',
+  'docker/',
   'ops/',
-  'scripts/',
-  'apps/',
   'packages/',
-  '.github/',
+  'scripts/',
+];
+const GOVERNED_PATH_EXACT = new Set([
+  '.dockerignore',
+  'Dockerfile',
   'package.json',
   'pnpm-lock.yaml',
-];
+  'pnpm-workspace.yaml',
+]);
 const INDEX_PATH = 'ai-docs/testing/governance-audit-index.json';
 const BASELINE_PATH = 'ai-docs/testing/traceability-baseline.json';
 const MANIFEST_PATH = 'ai-docs/testing/traceability-manifest.json';
@@ -154,13 +162,15 @@ function normalizedRelativePath(repoRoot, candidate) {
 }
 
 function isAllowedGovernedPath(path) {
-  return GOVERNED_PATH_PREFIXES.some((prefix) => path === prefix || path.startsWith(prefix));
+  return GOVERNED_PATH_EXACT.has(path) || GOVERNED_PATH_PREFIXES.some((prefix) => path.startsWith(prefix));
 }
 
-function isSafeGovernedPathDeclaration(path) {
+export function isSafeGovernedPathDeclaration(path) {
   if (!nonEmptyString(path) || isAbsolute(path) || path.includes('\0') || path.includes('://') || path.includes(':')) return false;
   const normalized = path.split('\\').join('/');
   if (normalized !== path || normalized.startsWith('./') || normalized.includes('/../') || normalized.startsWith('../') || normalized.endsWith('/..')) return false;
+  const segments = normalized.split('/');
+  if (normalized.endsWith('/') || segments.some((segment) => segment === '' || segment === '.')) return false;
   return isAllowedGovernedPath(path);
 }
 
