@@ -1189,7 +1189,7 @@ with_release_cwd() {
   printf '%s' "$dir"
 }
 
-validate_pnpm_prefix_receipt() {
+validate_pnpm_prefix_contents() {
   local prefix="$1" bin="$1/bin/pnpm" package_root="$1/lib/node_modules/pnpm"
   local receipt="$1/.meetwise-integrity"
   local required_integrity="${2:-}" required_version="${3:-}"
@@ -1217,6 +1217,17 @@ validate_pnpm_prefix_receipt() {
   [[ "$actual_version" == "$package_version" ]]
 }
 
+validate_pnpm_prefix_receipt() {
+  local prefix="$1" package_root="$1/lib/node_modules/pnpm"
+  validate_pnpm_prefix_contents "$@" || return 1
+  [[ "$(stat -c '%u:%g:%a' "$prefix" 2>/dev/null || true)" == '0:0:755' ]] || return 1
+  # The trusted package remains root-owned and non-writable, but every
+  # directory must be traversable and every package file readable by the
+  # low-privilege install-deps account.
+  ! find "$prefix" -type d ! -perm -0005 -print -quit 2>/dev/null | grep -q . || return 1
+  ! find "$package_root" -type f ! -perm -0004 -print -quit 2>/dev/null | grep -q . || return 1
+}
+
 validate_pnpm_prefix() {
   validate_pnpm_prefix_receipt "$1" "$PNPM_INTEGRITY" "$PNPM_VERSION"
 }
@@ -1224,6 +1235,13 @@ validate_pnpm_prefix() {
 ensure_pnpm_toolchain() {
   local stage archive candidate backup actual_integrity
   backup="$PNPM_PREFIX.rollback"
+  # Normalize the one legacy private-prefix layout only after the complete
+  # root-owned receipt/content/version checks pass. This is an idempotent
+  # accessibility repair, not a trust bypass.
+  if validate_pnpm_prefix_contents "$PNPM_PREFIX" "$PNPM_INTEGRITY" "$PNPM_VERSION"; then
+    chmod -R u=rwX,go=rX "$PNPM_PREFIX" || die pnpm_prefix_access_failed 70
+    chmod 0600 "$PNPM_PREFIX/.meetwise-integrity" || die pnpm_receipt_mode_failed 70
+  fi
   if validate_pnpm_prefix "$PNPM_PREFIX"; then
     [[ ! -e "$backup" && ! -L "$backup" ]] || rm -rf -- "$backup"
     return 0
@@ -1242,7 +1260,8 @@ ensure_pnpm_toolchain() {
   fi
   stage="$(mktemp -d /usr/local/lib/.meetwise-cd-pnpm.XXXXXX)" || die pnpm_stage_create_failed 70
   trap 'rm -rf -- "${stage:-}"' EXIT
-  install -d -o root -g root -m 0700 "$stage/download" "$stage/prefix"
+  install -d -o root -g root -m 0700 "$stage/download"
+  install -d -o root -g root -m 0755 "$stage/prefix"
   timeout --signal=TERM --kill-after=5s 180s /usr/bin/env -i HOME=/root PATH=/usr/bin:/usr/sbin:/bin:/sbin \
     /usr/bin/npm pack "pnpm@$PNPM_VERSION" --pack-destination "$stage/download" \
       --ignore-scripts --json >/dev/null 2>&1 || die pnpm_download_failed 70
@@ -1260,7 +1279,7 @@ NODE
       --ignore-scripts --no-audit --no-fund "$archive" >/dev/null 2>&1 \
     || die pnpm_install_failed 70
   chown -R root:root "$stage/prefix" || die pnpm_prefix_chown_failed 70
-  chmod -R go-w "$stage/prefix" || die pnpm_prefix_mode_failed 70
+  chmod -R u=rwX,go=rX "$stage/prefix" || die pnpm_prefix_mode_failed 70
   printf '%s\n' "$PNPM_INTEGRITY" > "$stage/prefix/.meetwise-integrity"
   chown root:root "$stage/prefix/.meetwise-integrity"
   chmod 0600 "$stage/prefix/.meetwise-integrity"
