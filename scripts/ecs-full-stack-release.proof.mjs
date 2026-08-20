@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { lstatSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { tmpdir } from 'node:os';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => readFileSync(join(root, rel), 'utf8');
@@ -108,6 +109,42 @@ assert.match(dispatch, /PNPM_PACKAGE_ROOT="\$PNPM_PREFIX\/lib\/node_modules\/pnp
 assert.match(dispatch, /PNPM_INTEGRITY='sha512-[A-Za-z0-9+/]+=*'/);
 assert.match(dispatch, /current_target="releases\/\$\{current_target#"\$RELEASES_ROOT\/"\}"/);
 assert.match(dispatch, /predecessor_current_target_invalid/);
+assert.match(dispatch, /LEGACY_PREDECESSOR_RELEASE_RE='\^\[a-f0-9\]\{7,40\}-\(progress\|worktree\)-/);
+assert.match(dispatch, /predecessor_release" =~ \$RELEASE_RE \|\| "\$predecessor_release" =~ \$LEGACY_PREDECESSOR_RELEASE_RE/);
+assert.match(dispatch, /-d "\$RELEASES_ROOT\/\$predecessor_release" && ! -L "\$RELEASES_ROOT\/\$predecessor_release"/);
+const releasePattern = dispatch.match(/^RELEASE_RE='([^']+)'$/m)?.[1];
+const legacyPredecessorPattern = dispatch.match(/^LEGACY_PREDECESSOR_RELEASE_RE='([^']+)'$/m)?.[1];
+assert.ok(releasePattern && legacyPredecessorPattern, 'predecessor release patterns must be readable by the behavior proof');
+const releaseName = new RegExp(releasePattern);
+const legacyPredecessorName = new RegExp(legacyPredecessorPattern);
+const normalizePredecessorTarget = (target) => {
+  const normalized = target.startsWith('/srv/meetwise-full-stack/releases/')
+    ? `releases/${target.slice('/srv/meetwise-full-stack/releases/'.length)}`
+    : target;
+  const suffix = normalized.startsWith('releases/') ? normalized.slice('releases/'.length) : '';
+  return normalized.startsWith('releases/') && !normalized.includes('..') && (releaseName.test(suffix) || legacyPredecessorName.test(suffix)) ? normalized : null;
+};
+assert.equal(normalizePredecessorTarget('/srv/meetwise-full-stack/releases/c898395-progress-20260820-1'), 'releases/c898395-progress-20260820-1');
+assert.equal(normalizePredecessorTarget('releases/c898395-worktree-20260819-1'), 'releases/c898395-worktree-20260819-1');
+assert.equal(normalizePredecessorTarget(`releases/${'a'.repeat(40)}-fullstack-20260820-1-1`), `releases/${'a'.repeat(40)}-fullstack-20260820-1-1`);
+for (const attack of ['/srv/meetwise-full-stack/releasesX/c898395-progress-20260820-1', '/srv/meetwise-full-stack/releases//c898395-progress-20260820-1', 'releases/c898395-progress-20260820-1/extra', 'releases/../c898395-progress-20260820-1', '/tmp/c898395-progress-20260820-1', 'releases/c898395-random-20260820-1']) {
+  assert.equal(normalizePredecessorTarget(attack), null, `unsafe predecessor target accepted: ${attack}`);
+}
+const predecessorFsRoot = mkdtempSync(join(tmpdir(), 'meetwise-predecessor-target-'));
+try {
+  const validName = 'c898395-progress-20260820-1';
+  const validPath = join(predecessorFsRoot, validName);
+  mkdirSync(validPath);
+  assert.ok(lstatSync(validPath).isDirectory() && !lstatSync(validPath).isSymbolicLink());
+  const outside = join(predecessorFsRoot, 'outside'); mkdirSync(outside);
+  const linkedName = 'c898396-progress-20260820-1';
+  symlinkSync(outside, join(predecessorFsRoot, linkedName));
+  assert.ok(lstatSync(join(predecessorFsRoot, linkedName)).isSymbolicLink(), 'a matching-name directory symlink must be rejected by the controller');
+  assert.equal(lstatSync(join(predecessorFsRoot, linkedName)).isDirectory(), false);
+  assert.throws(() => lstatSync(join(predecessorFsRoot, 'c898397-progress-20260820-1')), /ENOENT/);
+} finally {
+  rmSync(predecessorFsRoot, { recursive: true, force: true });
+}
 assert.match(dispatch, /validate_pnpm_prefix_contents "\$PNPM_PREFIX" "\$PNPM_INTEGRITY" "\$PNPM_VERSION"/);
 assert.match(dispatch, /chmod -R u=rwX,go=rX "\$PNPM_PREFIX"/);
 assert.match(dispatch, /install -d -o root -g root -m 0755 "\$stage\/prefix"/);
@@ -452,6 +489,7 @@ assert.match(deployRecoveryBlock, /RECOVERY_BUDGET_SECONDS: '780'/);
 assert.match(deployRecoveryBlock, /timeout-minutes: 20/);
 assert.ok(780 < 20 * 60, 'deploy recovery wait budget must be strictly below its job timeout');
 assert.match(deployRecoveryBlock, /bounded\s+gh workflow run pages-preview\.yml/);
+assert.match(deployRecoveryBlock, /gh workflow run pages-preview\.yml --repo "\$GITHUB_REPOSITORY"/, 'recovery dispatch must not depend on a local Git checkout');
 assert.match(deployRecoveryBlock, /bounded\s+ssh meetwise-ecs/);
 // Independent cancellation recovery: no candidate checkout/JavaScript/Docker
 // path, fixed Pages dispatch, and a single bounded budget below the job ceiling.
@@ -468,6 +506,10 @@ assert.match(recoveryWorkflow, /predecessor\.pages\.fingerprint/);
 assert.match(recoveryWorkflow, /expected_state/);
 assert.match(recoveryWorkflow, /expected_generation/);
 assert.match(recoveryWorkflow, /expected_manifest_sha256/);
+assert.match(recoveryWorkflow, /gh workflow run pages-preview\.yml --repo "\$GITHUB_REPOSITORY"/, 'standalone recovery dispatch must identify the repository outside a checkout');
+const pagesDispatches = [...`${workflow}\n${recoveryWorkflow}`.matchAll(/gh workflow run pages-preview\.yml[^\n]*/g)].map((match) => match[0]);
+assert.equal(pagesDispatches.length, 7, 'every current Pages dispatch must be enumerated by the release proof');
+assert.ok(pagesDispatches.every((line) => line.includes('--repo "$GITHUB_REPOSITORY"')), 'every Pages dispatch must be repository-bound');
 assert.match(recoveryWorkflow, /rolled_back/);
 assert.match(recoveryWorkflow, /forward_only_maintenance/);
 assert.match(recoveryWorkflow, /RECOVERY_BUDGET_SECONDS: '780'/);

@@ -353,7 +353,7 @@ jobs:
             revoked_fingerprint="$(jq -r .fingerprint <<<"$revoked_identity")"
             [[ "$revoked_generation" =~ ^[1-9][0-9]*$ && "$revoked_fingerprint" =~ ^[a-f0-9]{64}$ ]] || { echo 'revoked manifest identity invalid' >&2; exit 1; }
             (( revoked_generation < GENERATION )) || { echo 'predecessor generation is not older than candidate transaction' >&2; exit 1; }
-            gh workflow run pages-preview.yml --ref main \
+            gh workflow run pages-preview.yml --repo "$GITHUB_REPOSITORY" --ref main \
               -f expected_state=disabled \
               -f expected_generation="$revoked_generation" \
               -f expected_manifest_sha256="$revoked_fingerprint"
@@ -885,7 +885,7 @@ jobs:
         run: |
           dispatch_started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           echo "dispatch_started=$dispatch_started" >> "$GITHUB_OUTPUT"
-          gh workflow run pages-preview.yml --ref main \
+          gh workflow run pages-preview.yml --repo "$GITHUB_REPOSITORY" --ref main \
             -f expected_state=enabled \
             -f expected_generation="$EXPECTED_GENERATION" \
             -f expected_manifest_sha256="$EXPECTED_FINGERPRINT"
@@ -952,7 +952,7 @@ jobs:
           EXPECTED_GENERATION: ${{ steps.confirm-public.outputs.final_generation }}
         run: |
           disabled_dispatch_started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          gh workflow run pages-preview.yml --ref main \
+          gh workflow run pages-preview.yml --repo "$GITHUB_REPOSITORY" --ref main \
             -f expected_state=disabled \
             -f expected_generation="$EXPECTED_GENERATION" \
             -f expected_manifest_sha256="$EXPECTED_FINGERPRINT"
@@ -1118,7 +1118,7 @@ jobs:
           pages_identity="$(printf '%s' "$status_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{const v=JSON.parse(s);const f=v?.candidate?.finalManifestFingerprint;if(!/^[a-f0-9]{64}$/.test(f??"")||!Number.isSafeInteger(v.generation)||v.generation<1)process.exit(2);process.stdout.write(`${v.generation} ${f}`)}catch{process.exit(2)}})')" || pages_identity=''
           if [ -n "$pages_identity" ]; then
             read -r final_generation final_fingerprint <<<"$pages_identity"
-            bounded gh workflow run pages-preview.yml --ref main \
+            bounded gh workflow run pages-preview.yml --repo "$GITHUB_REPOSITORY" --ref main \
               -f expected_state=disabled \
               -f expected_generation="$final_generation" \
               -f expected_manifest_sha256="$final_fingerprint"
@@ -1135,7 +1135,7 @@ jobs:
           terminal_phase="$(printf '%s' "$terminal_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{const p=JSON.parse(s).phase;if(!["rolled_back","forward_only_maintenance"].includes(p))process.exit(2);process.stdout.write(p)})')" || { echo 'release recovery did not reach a terminal phase' >&2; exit 1; }
           IFS=$'\t' read -r predecessor_state predecessor_generation predecessor_fingerprint <<<"$predecessor_pages"
           if [ "$terminal_phase" = rolled_back ] && [ "$predecessor_state" != none ]; then
-            bounded gh workflow run pages-preview.yml --ref main \
+            bounded gh workflow run pages-preview.yml --repo "$GITHUB_REPOSITORY" --ref main \
               -f expected_state="$predecessor_state" \
               -f expected_generation="$predecessor_generation" \
               -f expected_manifest_sha256="$predecessor_fingerprint"
