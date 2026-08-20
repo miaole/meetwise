@@ -136,6 +136,7 @@ jobs:
 
       - name: Install the candidate bundle atomically with rollback
         env:
+          GH_TOKEN: ${{ github.token }}
           BUNDLE_DIGEST: ${{ steps.bundle.outputs.bundle_digest }}
           ARCHIVE_DIGEST: ${{ steps.bundle.outputs.archive_digest }}
           MAIN_SHA: ${{ inputs.main_sha }}

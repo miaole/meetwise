@@ -392,6 +392,7 @@ assert.match(workflow, /\.head_branch == \"main\"/);
 const installStepAt = workflow.indexOf('- name: Install the candidate bundle atomically with rollback');
 const installRevalidationAt = workflow.indexOf('controller_main_sha_stale_before_install_stage_left_uninstalled', installStepAt);
 assert.ok(installStepAt > 0 && installRevalidationAt > installStepAt && installRevalidationAt < installSshAt, 'exact main/CI revalidation must precede controller install');
+assert.match(workflow.slice(installStepAt, installSshAt), /env:\s*\n\s+GH_TOKEN: \$\{\{ github\.token \}\}/, 'the final freshness recheck must authenticate gh api before controller installation');
 assert.match(workflow, /persist-credentials: false/);
 assert.doesNotMatch(workflow, /docker/i, 'controller rollout workflow has no image/build path');
 
