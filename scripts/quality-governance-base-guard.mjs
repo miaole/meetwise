@@ -11,7 +11,11 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
-import { canonicalJson, objectDigest } from './quality-governance-check.mjs';
+import {
+  canonicalJson,
+  isSafeGovernedPathDeclaration,
+  objectDigest,
+} from './quality-governance-check.mjs';
 
 const COMMIT_PATTERN = /^[a-f0-9]{40}$/;
 // Keep Git reads explicitly bounded, but above Node's 1 MiB execFileSync
@@ -22,16 +26,6 @@ const INDEX_PATH = 'ai-docs/testing/governance-audit-index.json';
 const BASELINE_PATH = 'ai-docs/testing/traceability-baseline.json';
 const TASK_ID_PATTERN = /^[a-z][a-z0-9-]{2,95}$/;
 const SHA256_PATTERN = /^sha256:[a-f0-9]{64}$/;
-const GOVERNED_PATH_PREFIXES = [
-  'ai-docs/',
-  'apps/',
-  'packages/',
-  'ops/',
-  'scripts/',
-  '.github/',
-  'package.json',
-  'pnpm-lock.yaml',
-];
 const TASK_STATUSES = new Set(['draft', 'blocked', 'approved_for_spike', 'approved_to_implement', 'done']);
 const FINDING_SEVERITIES = new Set(['P0', 'P1', 'P2']);
 const FINDING_STATUSES = new Set(['open', 'blocked', 'closed']);
@@ -174,9 +168,7 @@ function recordDigest(record) {
 }
 
 function isSafeGovernedPath(path) {
-  if (!nonEmptyString(path) || path.includes('\0') || path.includes(':') || path.startsWith('/') || path.startsWith('./')
-    || path.startsWith('../') || path.includes('/../') || path.endsWith('/..') || path.includes('\\')) return false;
-  return GOVERNED_PATH_PREFIXES.some((prefix) => path === prefix || path.startsWith(prefix));
+  return isSafeGovernedPathDeclaration(path);
 }
 
 /**
@@ -462,18 +454,52 @@ export function readJsonAtCommit(commit, path) {
   }
 }
 
-function readBlobAtCommit(commit, path) {
-  return execFileSync('git', ['show', `${commit}:${path}`], {
-    stdio: ['ignore', 'pipe', 'pipe'],
-    maxBuffer: MAX_GIT_OUTPUT_BYTES,
-  });
+function readRegularBlobAtCommit(commit, path) {
+  let listing;
+  try {
+    listing = execFileSync('git', ['ls-tree', '-z', '--full-tree', commit, '--', path], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      maxBuffer: MAX_GIT_OUTPUT_BYTES,
+    });
+  } catch {
+    throw new Error('history_snapshot_entry_missing');
+  }
+  const entries = listing.toString('utf8').split('\0').filter(Boolean);
+  if (entries.length !== 1) throw new Error('history_snapshot_entry_ambiguous');
+  const separator = entries[0].indexOf('\t');
+  if (separator < 0) throw new Error('history_snapshot_entry_malformed');
+  const metadata = entries[0].slice(0, separator).split(' ');
+  const entryPath = entries[0].slice(separator + 1);
+  const [mode, type, objectId] = metadata;
+  if (entryPath !== path || !['100644', '100755'].includes(mode) || type !== 'blob' || !/^[a-f0-9]{40,64}$/.test(objectId ?? '')) {
+    throw new Error('history_snapshot_entry_not_regular_blob');
+  }
+  let objectType;
+  try {
+    objectType = execFileSync('git', ['cat-file', '-t', objectId], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      maxBuffer: 128,
+    }).trim();
+  } catch {
+    throw new Error('history_snapshot_blob_unreadable');
+  }
+  if (objectType !== 'blob') throw new Error('history_snapshot_blob_type_invalid');
+  try {
+    return execFileSync('git', ['cat-file', 'blob', objectId], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      maxBuffer: MAX_GIT_OUTPUT_BYTES,
+    });
+  } catch {
+    throw new Error('history_snapshot_blob_unreadable');
+  }
 }
 
 export function governedPathDigestAtCommit(commit, paths) {
   const chunks = [];
   for (const path of paths) {
     if (!isSafeGovernedPath(path)) throw new Error('history_snapshot_path_invalid');
-    chunks.push(Buffer.from(path), Buffer.from('\0'), readBlobAtCommit(commit, path), Buffer.from('\0'));
+    chunks.push(Buffer.from(path), Buffer.from('\0'), readRegularBlobAtCommit(commit, path), Buffer.from('\0'));
   }
   return `sha256:${createHash('sha256').update(Buffer.concat(chunks)).digest('hex')}`;
 }

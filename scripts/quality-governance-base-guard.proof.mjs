@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -313,6 +313,54 @@ const checks = {
     } finally {
       process.chdir(originalCwd);
       rmSync(fixtureRoot, { recursive: true, force: true });
+    }
+  },
+  rejects_non_blob_tree_entries_and_lexical_paths: () => {
+    const fixtureRoot = mkdtempSync(resolve(tmpdir(), 'meetwise-governance-types-'));
+    const submoduleRoot = mkdtempSync(resolve(tmpdir(), 'meetwise-governance-submodule-'));
+    const originalCwd = process.cwd();
+    try {
+      for (const cwd of [fixtureRoot, submoduleRoot]) {
+        execFileSync('git', ['init', '--quiet'], { cwd });
+        execFileSync('git', ['config', 'user.email', 'governance-proof@meetwise.invalid'], { cwd });
+        execFileSync('git', ['config', 'user.name', 'Meetwise governance proof'], { cwd });
+      }
+      writeFileSync(resolve(submoduleRoot, 'README.md'), 'submodule fixture\n');
+      execFileSync('git', ['add', 'README.md'], { cwd: submoduleRoot });
+      execFileSync('git', ['commit', '--quiet', '-m', 'submodule fixture'], { cwd: submoduleRoot });
+      const submoduleHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: submoduleRoot, encoding: 'utf8' }).trim();
+
+      mkdirSync(resolve(fixtureRoot, 'docker/tree-entry'), { recursive: true });
+      writeFileSync(resolve(fixtureRoot, 'Dockerfile'), 'FROM node:22\n');
+      writeFileSync(resolve(fixtureRoot, 'docker/compose.prod.yml'), 'services: {}\n');
+      writeFileSync(resolve(fixtureRoot, 'docker/tree-entry/child.txt'), 'tree fixture\n');
+      writeFileSync(resolve(fixtureRoot, 'docker/link-target.txt'), 'symlink target\n');
+      symlinkSync('link-target.txt', resolve(fixtureRoot, 'docker/symlink-entry'));
+      execFileSync('git', ['add', 'Dockerfile', 'docker'], { cwd: fixtureRoot });
+      execFileSync('git', ['update-index', '--add', '--cacheinfo', `160000,${submoduleHead},docker/submodule-entry`], { cwd: fixtureRoot });
+      execFileSync('git', ['commit', '--quiet', '-m', 'governance entry-type fixture'], { cwd: fixtureRoot });
+      const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: fixtureRoot, encoding: 'utf8' }).trim();
+
+      process.chdir(fixtureRoot);
+      assert.match(governedPathDigestAtCommit(head, ['Dockerfile', 'docker/compose.prod.yml']), /^sha256:[a-f0-9]{64}$/);
+      for (const nonBlobPath of ['docker/tree-entry', 'docker/symlink-entry', 'docker/submodule-entry']) {
+        assert.throws(
+          () => governedPathDigestAtCommit(head, [nonBlobPath]),
+          /history_snapshot_entry_not_regular_blob/,
+          `${nonBlobPath} must not be accepted as a regular blob`,
+        );
+      }
+      for (const lexicalPath of ['docker/', 'docker//compose.prod.yml', 'docker/./compose.prod.yml', 'docker/tree-entry/']) {
+        assert.throws(
+          () => governedPathDigestAtCommit(head, [lexicalPath]),
+          /history_snapshot_path_invalid/,
+          `${lexicalPath} must be rejected lexically`,
+        );
+      }
+    } finally {
+      process.chdir(originalCwd);
+      rmSync(fixtureRoot, { recursive: true, force: true });
+      rmSync(submoduleRoot, { recursive: true, force: true });
     }
   },
 };

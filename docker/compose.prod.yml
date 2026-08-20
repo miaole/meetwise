@@ -222,7 +222,12 @@ services:
   migrate:
     <<: *container-runtime-security
     image: ${BACKEND_IMAGE:?set BACKEND_IMAGE = <registry>/<namespace>/meetwise-backend@sha256:<digest>}
-    command: ["sh", "-c", "pnpm -C packages/db migrate && pnpm -C apps/worker cost:configure"]
+    # The runtime image must not invoke the mutable Corepack/pnpm shim.  Keep
+    # the migration and cost-ledger configuration in the package workspaces so
+    # Node resolves their workspace-local tsx/@swc-node dependencies exactly as
+    # the package scripts do, without downloading anything at container start.
+    working_dir: /app/packages/db
+    command: ["sh", "-c", "node node_modules/tsx/dist/cli.mjs src/migrate-cli.ts && cd /app/apps/worker && node --import @swc-node/register/esm-register src/cost-configure.ts"]
     restart: "no"
     environment: *migration-env
     secrets: [rds_ca]
@@ -230,7 +235,8 @@ services:
   api:
     <<: *container-runtime-security
     image: ${BACKEND_IMAGE:?set BACKEND_IMAGE = <registry>/<namespace>/meetwise-backend@sha256:<digest>}
-    command: ["pnpm", "-C", "apps/api", "serve"]
+    working_dir: /app/apps/api
+    command: ["node", "--import", "@swc-node/register/esm-register", "src/main.ts"]
     environment:
       <<: *cloud-runtime-env
       PORT: "8787"
@@ -258,7 +264,8 @@ services:
   worker:
     <<: *container-runtime-security
     image: ${BACKEND_IMAGE:?set BACKEND_IMAGE = <registry>/<namespace>/meetwise-backend@sha256:<digest>}
-    command: ["pnpm", "-C", "apps/worker", "start"]
+    working_dir: /app/apps/worker
+    command: ["node", "--import", "@swc-node/register/esm-register", "src/main.ts"]
     environment:
       <<: [*cloud-runtime-env, *worker-native-model-env]
       # Text provider credentials are Worker-only.  Primary and backup are
