@@ -1,7 +1,6 @@
 -- 0123_user_facing_context_snapshots.sql
 -- 用户可见上下文不能依赖会被关闭岗位 RLS 隐藏的当前行，也不能拿内部 id 兜底。
 -- 申请时冻结岗位标题；岗位面试继承该快照。interview.created_at 为同岗位多场练习提供可读时间线。
-BEGIN;
 
 ALTER TABLE job_application
   ADD COLUMN IF NOT EXISTS job_title_snapshot text NOT NULL DEFAULT '岗位信息待补充';
@@ -92,5 +91,3 @@ DROP TRIGGER IF EXISTS trg_interview_job_title_snapshot ON interview;
 CREATE TRIGGER trg_interview_job_title_snapshot
 BEFORE INSERT OR UPDATE OF job_title_snapshot ON interview
 FOR EACH ROW EXECUTE FUNCTION enforce_user_facing_context_snapshot();
-
-COMMIT;

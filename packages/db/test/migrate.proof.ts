@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { assertIsolatedTestTarget, createPool, runMigrations, loadMigrations } from '../src/index.ts';
+import { containsTopLevelTransactionControl } from '../src/migrate.ts';
 
 export type MigrateProofOutcome = {
   assertions: number;
@@ -51,6 +52,28 @@ export async function runMigrateProof(
   const m3 = { version: '0003', sql: 'CREATE TABLE IF NOT EXISTS mig_t3(id int)' };
   r = await runMigrations(pool, [m1, m2, m3]);   // 加新迁移
   A('只跑新增的 0003', JSON.stringify(r.applied) === JSON.stringify(['0003']) && await has('mig_t3'));
+
+  let nestedTransactionRejected = false;
+  try {
+    await runMigrations(pool, [m1, m2, m3, {
+      version: '0003_tx',
+      sql: 'BEGIN;\nCREATE TABLE migration_must_not_escape(id int);\nCOMMIT;',
+    }]);
+  } catch (error) {
+    nestedTransactionRejected = (error as { code?: string }).code === 'migration_transaction_control_forbidden:0003_tx';
+  }
+  A('普通迁移禁止自带 BEGIN/COMMIT，DDL 与 ledger 只能由运行器同一事务托管', nestedTransactionRejected
+    && !(await has('migration_must_not_escape'))
+    && (await pool.query("SELECT count(*)::int n FROM schema_migrations WHERE version='0003_tx'")).rows[0]?.n === 0);
+  A('同一行多语句和前置注释不能绕过事务控制门',
+    containsTopLevelTransactionControl('BEGIN; SELECT 1; COMMIT;')
+    && containsTopLevelTransactionControl('/* reviewed */ START TRANSACTION; SELECT 1;'));
+  A('事务控制别名与两阶段提交不能脱离运行器事务',
+    containsTopLevelTransactionControl('END WORK;')
+    && containsTopLevelTransactionControl('ABORT TRANSACTION;')
+    && containsTopLevelTransactionControl("PREPARE TRANSACTION 'migration-gid';"));
+  A('字符串、注释和 PL/pgSQL dollar quote 内的 BEGIN 不会被误拒',
+    !containsTopLevelTransactionControl("SELECT 'BEGIN;'; -- COMMIT;\nDO $$ BEGIN PERFORM 1; END $$;"));
 
   // PostgreSQL does not allow CREATE INDEX CONCURRENTLY inside a transaction.
   // The runner has one narrow, parsed escape hatch—not a generic
@@ -199,6 +222,8 @@ export async function runMigrateProof(
   // 目录加载 + baseline(冻结真 schema) + 增量 + 幂等 + **数据保全(零丢失)**
   await pool.query('DROP TABLE IF EXISTS schema_migrations, app_setting CASCADE');
   const loaded = loadMigrations(migrationDirectory);
+  A('版本化目录没有普通迁移自带事务控制语句', loaded.every((migration) => migration.executionMode === 'concurrent-index'
+    || !containsTopLevelTransactionControl(migration.sql)));
   const resumePgcrypto0121 = loaded.find((migration) => migration.version === RESUME_PGCRYPTO_0121_VERSION);
   const resumePgcrypto0121Path = resolve(migrationDirectory, `${RESUME_PGCRYPTO_0121_VERSION}.sql`);
   const resumePgcrypto0121Bytes = existsSync(resumePgcrypto0121Path) ? readFileSync(resumePgcrypto0121Path) : null;

@@ -71,6 +71,8 @@ const GOVERNED_PATH_PREFIXES = [
   'ai-docs/',
   'ops/',
   'scripts/',
+  'apps/',
+  'packages/',
   '.github/',
   'package.json',
   'pnpm-lock.yaml',
