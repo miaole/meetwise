@@ -418,7 +418,7 @@ assert.match(deployRecoveryBlock, /bounded\s+ssh meetwise-ecs/);
 // path, fixed Pages dispatch, and a single bounded budget below the job ceiling.
 assert.match(recoveryWorkflow, /schedule:/);
 assert.match(recoveryWorkflow, /workflow_dispatch:/);
-assert.match(recoveryWorkflow, /environment: preview-cd/);
+assert.match(recoveryWorkflow, /environment: preview-cd-recovery/);
 assert.match(recoveryWorkflow, /actions: write/);
 assert.match(recoveryWorkflow, /tailscale\/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade/);
 assert.match(recoveryWorkflow, /transaction status-system/);

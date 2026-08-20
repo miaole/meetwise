@@ -483,7 +483,10 @@ restore_predecessor_snapshot() {
   expected_compose="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); if(v.runtimeOwner==="compose") process.stdout.write((v.compose?.activeServices??[]).filter(x=>["api","worker","web"].includes(x)).sort().join(" "))' "$record")"
   actual_legacy=''
   for unit in meetwise-api.service meetwise-worker.service meetwise-web.service; do
-    [[ "$(systemctl is-active "$unit" 2>/dev/null || true)" == active ]] && actual_legacy+="$unit "
+    local active_state
+    active_state="$(timeout --kill-after=1s 5s systemctl show --property=ActiveState --value "$unit" 2>/dev/null)" || die predecessor_owner_readback_failed 70
+    [[ "$active_state" =~ ^(active|inactive|failed)$ ]] || die predecessor_owner_readback_failed 70
+    [[ "$active_state" == active ]] && actual_legacy+="$unit "
   done
   actual_legacy="$(printf '%s\n' $actual_legacy | sed '/^$/d' | sort | tr '\n' ' ')"
   expected_legacy="$(/usr/bin/node -e 'const v=JSON.parse(process.argv[1]); if(v.runtimeOwner==="legacy") process.stdout.write(Object.entries(v.legacyUnits??{}).filter(([,s])=>s.active==="active").map(([k])=>k).sort().join(" "))' "$record")"

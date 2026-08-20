@@ -23,7 +23,7 @@ jobs:
     # SSH-boundary checks remain below the 20-minute job ceiling, and a running
     # recovery can never consume the next scheduled/manual invocation.
     timeout-minutes: 20
-    environment: preview-cd
+    environment: preview-cd-recovery
     permissions:
       contents: read
       # The only write is dispatching the fixed Pages workflow with an exact
