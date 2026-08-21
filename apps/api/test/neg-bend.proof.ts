@@ -46,11 +46,26 @@ await h.pool.query(
   "VALUES ('APP_STALE','JOB_REC','recU','userA','IV_STALE','in_progress','applied',$1)",
   [STALE_RESUME_ID]);
 await h.pool.query(
-  "INSERT INTO interview(id,owner_user_id,status,application_id,job_id,resume_id) " +
-  "VALUES ('IV_STALE','userA','abandoned','APP_STALE','JOB_REC',$1)",
+  "INSERT INTO interview(id,owner_user_id,status,application_id,job_id,resume_id,application_attempt) " +
+  "VALUES ('IV_STALE','userA','abandoned','APP_STALE','JOB_REC',$1,1)",
   [STALE_RESUME_ID]);
 // This file reloads the historical B tables for isolated negative tests, so
 // re-apply the current invariant migration after the fixture—not before it.
+// 22_interview_invitation.sql above must retain the same four initially-deferred
+// FKs as production; otherwise this fixture would miss PostgreSQL's pending
+// trigger-event failure when 0123 reaches its later ALTER TABLE statements.
+const deferredBindingConstraints = (await h.pool.query(
+  "SELECT conname, conrelid::regclass::text source_table, confrelid::regclass::text target_table, " +
+  "pg_get_constraintdef(oid, false) definition FROM pg_constraint WHERE contype='f' AND conname IN " +
+  "('fk_interview_application_binding','fk_interview_job_binding','fk_interview_resume_binding','fk_job_application_resume_binding') " +
+  "AND condeferrable AND condeferred ORDER BY conname" )).rows;
+A('0123 回归 fixture 保留 production initially-deferred FK 精确表列形状',
+  JSON.stringify(deferredBindingConstraints) === JSON.stringify([
+    { conname: 'fk_interview_application_binding', source_table: 'interview', target_table: 'job_application', definition: 'FOREIGN KEY (application_id) REFERENCES job_application(id) DEFERRABLE INITIALLY DEFERRED' },
+    { conname: 'fk_interview_job_binding', source_table: 'interview', target_table: 'job_posting', definition: 'FOREIGN KEY (job_id) REFERENCES job_posting(id) DEFERRABLE INITIALLY DEFERRED' },
+    { conname: 'fk_interview_resume_binding', source_table: 'interview', target_table: 'resume', definition: 'FOREIGN KEY (resume_id) REFERENCES resume(id) DEFERRABLE INITIALLY DEFERRED' },
+    { conname: 'fk_job_application_resume_binding', source_table: 'job_application', target_table: 'resume', definition: 'FOREIGN KEY (resume_id) REFERENCES resume(id) DEFERRABLE INITIALLY DEFERRED' },
+  ]));
 await h.pool.query(migrationText('0046_application_assessment_recovery.sql'));
 await h.pool.query(migrationText('0104_job_route_decision.sql'));
 let contextSnapshotMigrationPassed = true;
