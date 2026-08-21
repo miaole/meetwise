@@ -47,6 +47,12 @@ assert.match(prepare, /resolve\(args\['release-path'\]\)/);
 assert.match(prepare, /rdsEndpoint !== `\$\{frozen\.rdsInstanceId\}\.pg\.rds\.aliyuncs\.com`/);
 assert.match(prepare, /frozen\.expectedDbRole !== VERIFIER_EXPECTED_ROLE/);
 assert.match(prepare, /frozen\.database !== VERIFIER_EXPECTED_DATABASE/);
+// P0: prepare consumes the token-bound controller generation. It must not
+// mint N+1 from PUBLICATION_STATE or replay an approval for another generation.
+assert.match(prepare, /const generation = Number\(args\.generation\)/);
+assert.match(prepare, /previousApproval\.generation === expected\.generation/);
+assert.ok(!prepare.includes('PUBLICATION_STATE_PATH'), 'prepare must not read publication state to mint a generation');
+assert.doesNotMatch(prepare, /state\.generation\s*\+\s*1/, 'prepare must not derive a successor generation');
 // 唯一 stdout 只输出 targetDigest/generation/releasePath，不打印任何密钥/连接串。
 assert.match(prepare, /process\.stdout\.write\(`\$\{JSON\.stringify\(\{ targetDigest, generation, releasePath \}, null, 2\)\}\\n`\)/);
 assert.ok(!prepare.includes('DATABASE_URL}\n'), 'prepare must not print DATABASE_URL');
@@ -78,6 +84,15 @@ assert.ok(receiveStatusAt > 0 && receiveStatusEnd > receiveStatusAt, 'receive mu
 const receiveStatusBlock = receive.slice(receiveStatusAt, receiveStatusEnd);
 assert.match(receiveStatusBlock, /\[\[ \$\{#argv\[@\]\} -eq 6 \]\]/);
 assert.match(receiveStatusBlock, /\[\[ "\$\{argv\[3\]\}" =~ \$TRANSACTION_ID_RE && "\$\{argv\[4\]\}" =~ \$RELEASE_RE && "\$\{argv\[5\]\}" =~ \$TOKEN_RE \]\]/);
+const receivePrepareAt = receive.indexOf('  prepare)');
+const receivePrepareEnd = receive.indexOf('  probe-nonce|', receivePrepareAt);
+assert.ok(receivePrepareAt > 0 && receivePrepareEnd > receivePrepareAt, 'receiver prepare boundary must be present');
+const receivePrepareBlock = receive.slice(receivePrepareAt, receivePrepareEnd);
+assert.match(receivePrepareBlock, /\[\[ \$\{#argv\[@\]\} -eq 12 \]\]/);
+assert.match(receivePrepareBlock, /argv\[2\].*TRANSACTION_ID_RE/);
+assert.match(receivePrepareBlock, /argv\[4\].*TOKEN_RE/);
+assert.match(receivePrepareBlock, /ROOT_DISPATCH" prepare "\$\{argv\[2\]\}" "\$\{argv\[3\]\}" "\$\{argv\[4\]\}"/);
+assert.doesNotMatch(receivePrepareBlock, /\[\[ \$\{#argv\[@\]\} -eq 10 \]\]/, 'receiver must not retain the legacy unbound prepare shape');
 const receiveSystemStatusAt = receive.indexOf('      status-system|recover-system)');
 assert.ok(receiveSystemStatusAt > 0, 'receiver must expose the bounded tokenless system recovery surface');
 const receiveSystemStatusEnd = receive.indexOf('      *)', receiveSystemStatusAt);
@@ -99,6 +114,18 @@ assert.match(dispatch, /die release_name_invalid/);
 assert.match(dispatch, /die release_path_invalid/);
 assert.match(dispatch, /die unknown_subcommand/);
 assert.match(dispatch, /MIGRATE_ENV=\/etc\/meetwise\/full-stack-migrate\.env/);
+assert.match(dispatch, /prepare_ledger_generation\(\)/);
+assert.match(dispatch, /with_controller_lock[\s\S]*?prepare_ledger_generation/);
+assert.match(dispatch, /ledger-heartbeat --transaction-id "\$transaction_id" --release "\$release" --token "\$token"/);
+assert.match(dispatch, /ledger\.phase !== 'migrated'/);
+assert.match(dispatch, /ledger\.commit !== commit/);
+assert.match(dispatch, /ledger\.tree !== tree/);
+assert.match(dispatch, /ledger_node ledger-prepare --transaction-id "\$transaction_id" --release "\$release" --token "\$token" --commit "\$commit" --tree "\$tree"/);
+assert.match(dispatch, /--release-path "\$dir" --generation "\$generation"/);
+assert.match(dispatch, /prepare\)\s+prepare "\$\{2:-\}" "\$\{3:-\}" "\$\{4:-\}" "\$\{5:-\}" "\$\{6:-\}" "\$\{7:-\}" "\$\{8:-\}" "\$\{9:-\}" "\$\{10:-\}" "\$\{11:-\}"/);
+assert.match(publisher, /assertFullStackPrepareLedger/);
+assert.match(publisher, /async function ledgerPrepareCli/);
+assert.match(publisher, /command === 'ledger-prepare'/);
 // Legacy systemd app units are regular files under /etc/systemd/system on the
 // current ECS image, so persistent `systemctl mask` is not a valid ownership
 // transfer (it cannot replace the file).  The transactional hand-off must stop
@@ -639,6 +666,8 @@ assert.match(workflow, /meetwise-cd transaction revoke-predecessor \$TRANSACTION
 assert.doesNotMatch(workflow, /meetwise-ecs "meetwise-cd compose-pull/);
 assert.doesNotMatch(workflow, /meetwise-ecs "meetwise-cd revoke(?: |\")/);
 assert.match(workflow, /meetwise-cd transaction migrate \$TRANSACTION_ID \$RELEASE \$RECOVERY_TOKEN/);
+assert.match(workflow, /meetwise-cd prepare \$TRANSACTION_ID \$RELEASE \$RECOVERY_TOKEN/);
+assert.doesNotMatch(workflow, /meetwise-cd prepare \$\{\{ steps\.git\.outputs\.commit \}\}/, 'workflow must not retain standalone prepare invocation');
 assert.doesNotMatch(workflow, /transaction migrate[^\n]*schema/);
 const disabledRecoveryAt = workflow.indexOf('Recover Pages to an exact disabled receipt after post-confirm failure');
 const waitPagesAt = workflow.indexOf('transaction wait-pages');

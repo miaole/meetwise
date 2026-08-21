@@ -192,6 +192,23 @@ function assertLedgerIdentity(ledger, { transactionId, release, token }) {
   if (ledger.transactionId !== transactionId || ledger.release !== release || !TOKEN.test(token ?? '') || ledger.tokenDigest !== sha256(token)) throw new Error('full_stack_release_token_mismatch');
 }
 
+/**
+ * Prepare is the first step that materializes release approval artifacts. It
+ * therefore has a stricter identity fence than a generic heartbeat: the
+ * caller must present the exact token-bound transaction, immutable commit and
+ * tree, and the post-migration phase. Returning the ledger generation (rather
+ * than deriving it from publication state) makes retries deterministic.
+ */
+export function assertFullStackPrepareLedger(ledger, { transactionId, release, token, commit, tree }) {
+  assertLedgerIdentity(ledger, { transactionId, release, token });
+  if (ledger.transactionId !== transactionId || ledger.release !== release
+    || ledger.commit !== commit || ledger.tree !== tree || ledger.phase !== 'migrated'
+    || !Number.isSafeInteger(ledger.generation) || ledger.generation < 1) {
+    throw new Error('full_stack_prepare_ledger_identity_mismatch');
+  }
+  return ledger;
+}
+
 function assertLedgerPatch(patch, mutableFields) {
   if (!patch || typeof patch !== 'object' || Array.isArray(patch) || Object.keys(patch).some((key) => !mutableFields.has(key))) throw new Error('full_stack_release_patch_invalid');
 }
@@ -407,6 +424,37 @@ async function ledgerHeartbeatCli(args) {
     token: args.token,
     ...(args.now ? { now: args.now } : {}),
   });
+  if (next !== current) await writeFullStackReleaseLedger(path, next);
+  process.stdout.write(`${JSON.stringify(next)}\n`);
+}
+
+async function ledgerPrepareCli(args) {
+  const path = args.path ?? PATHS.ledger;
+  assertLedgerMutationLock(path);
+  const current = await readFullStackReleaseLedger(path);
+  if (!current) throw new Error('full_stack_release_ledger_missing');
+  assertFullStackPrepareLedger(current, {
+    transactionId: args.transactionId,
+    release: args.release,
+    token: args.token,
+    commit: args.commit,
+    tree: args.tree,
+  });
+  // Refresh the lease only after all prepare identity/phase checks pass. The
+  // generation remains the immutable ledger value, never a derived N+1.
+  let next;
+  try {
+    next = heartbeatFullStackReleaseLedger(current, {
+      transactionId: args.transactionId,
+      release: args.release,
+      token: args.token,
+    });
+  } catch (error) {
+    // The receiver can retry a lease expiry, but must never retry an identity
+    // mismatch as if it were transient.
+    if (error instanceof Error && error.message === 'full_stack_release_lease_expired') error.exitCode = 75;
+    throw error;
+  }
   if (next !== current) await writeFullStackReleaseLedger(path, next);
   process.stdout.write(`${JSON.stringify(next)}\n`);
 }
@@ -1143,6 +1191,6 @@ async function assertWebStartPermitted() {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const command = process.argv[2];
-  (command === 'stage' ? stage() : command === 'publish' ? publish() : command === 'activate' ? activate() : command === 'confirm-public' ? confirmPublic() : command === 'probe-nonce' ? probeNonce() : command === 'expire-probe' ? expireProbe() : command === 'restore-confirmed-edge' ? restoreConfirmedEdge() : command === 'resume-revocation' ? resumeRevocation() : command === 'revoke' ? revoke() : command === 'recover' ? recover() : command === 'verify-public' ? verifyPublic() : command === 'assert-web-start-permitted' ? assertWebStartPermitted() : command === 'ledger-init' ? ledgerInitCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-transition' ? ledgerTransitionCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-update' ? ledgerUpdateCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-heartbeat' ? ledgerHeartbeatCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-recover' ? ledgerRecoverCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-recover-system' ? ledgerRecoverSystemCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-system-transition' ? ledgerSystemTransitionCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-read' ? readFullStackReleaseLedger(parseLedgerCliArgs(process.argv.slice(3)).path).then((ledger) => process.stdout.write(`${JSON.stringify(ledger)}\n`)) : Promise.reject(new Error('usage: full-stack-preview-publisher.mjs stage|publish|activate|confirm-public|probe-nonce|expire-probe|restore-confirmed-edge|resume-revocation|revoke|recover|verify-public|assert-web-start-permitted|ledger-init|ledger-transition|ledger-update|ledger-heartbeat|ledger-recover|ledger-recover-system|ledger-system-transition|ledger-read')))
+  (command === 'stage' ? stage() : command === 'publish' ? publish() : command === 'activate' ? activate() : command === 'confirm-public' ? confirmPublic() : command === 'probe-nonce' ? probeNonce() : command === 'expire-probe' ? expireProbe() : command === 'restore-confirmed-edge' ? restoreConfirmedEdge() : command === 'resume-revocation' ? resumeRevocation() : command === 'revoke' ? revoke() : command === 'recover' ? recover() : command === 'verify-public' ? verifyPublic() : command === 'assert-web-start-permitted' ? assertWebStartPermitted() : command === 'ledger-init' ? ledgerInitCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-transition' ? ledgerTransitionCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-update' ? ledgerUpdateCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-heartbeat' ? ledgerHeartbeatCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-prepare' ? ledgerPrepareCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-recover' ? ledgerRecoverCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-recover-system' ? ledgerRecoverSystemCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-system-transition' ? ledgerSystemTransitionCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-read' ? readFullStackReleaseLedger(parseLedgerCliArgs(process.argv.slice(3)).path).then((ledger) => process.stdout.write(`${JSON.stringify(ledger)}\n`)) : Promise.reject(new Error('usage: full-stack-preview-publisher.mjs stage|publish|activate|confirm-public|probe-nonce|expire-probe|restore-confirmed-edge|resume-revocation|revoke|recover|verify-public|assert-web-start-permitted|ledger-init|ledger-transition|ledger-update|ledger-heartbeat|ledger-prepare|ledger-recover|ledger-recover-system|ledger-system-transition|ledger-read')))
     .catch((error) => { process.stderr.write(`${error instanceof Error ? error.message : 'full_stack_publication_failed'}\n`); process.exitCode = error?.exitCode ?? 1; });
 }

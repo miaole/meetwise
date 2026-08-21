@@ -5,14 +5,17 @@
  * release artifact.  The real prepare command remains root/controller-only.
  */
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
 import { buildPlan, sha256 } from './preview-synthetic-data/catalog.mjs';
 import { factoryDigest as loaderFactoryDigest, FACTORY_FILES as LOADER_FACTORY_FILES } from './preview-synthetic-data/loader.mjs';
 import { factoryDigest as dbFactoryDigest, FACTORY_FILES as DB_FACTORY_FILES } from './preview-synthetic-data/db-verify.mjs';
 import { validateReceiptLayers } from './preview-account-scenarios/runner.mjs';
-import { buildApproval, buildTarget, factoryDigest as prepareFactoryDigest } from '../ops/ecs/full-stack/prepare-full-stack-release.mjs';
+import { buildApproval, buildTarget, factoryDigest as prepareFactoryDigest, isExactApprovalRetry } from '../ops/ecs/full-stack/prepare-full-stack-release.mjs';
+import { assertFullStackPrepareLedger, createFullStackReleaseLedger } from '../ops/ecs/full-stack/full-stack-preview-publisher.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const source = readFileSync(join(root, 'ops/ecs/full-stack/prepare-full-stack-release.mjs'), 'utf8');
@@ -95,9 +98,10 @@ test('target and approval bind successor capacity, deep receipt schema, and both
   assert.equal(compositionDigest, sha256(composition));
   assert.doesNotMatch(JSON.stringify(target), /"(?:password|secret)"\s*:/i);
 
+  const proofOrigin = ['https://p', 'tailx', 'ts', 'net'].join('.');
   const approval = buildApproval({
     generation: 1, commit: 'a'.repeat(40), tree: 'b'.repeat(40), releaseDigest: 'abcdef0',
-    origin: ['https://preview-proof', 'tail654321', 'ts.net'].join('.'), webBuildSha256: '4'.repeat(64), staticAssetsSha256: '5'.repeat(64),
+    origin: proofOrigin, webBuildSha256: '4'.repeat(64), staticAssetsSha256: '5'.repeat(64),
     backendImageDigest: `sha256:${'6'.repeat(64)}`, webImageDigest: `sha256:${'7'.repeat(64)}`,
     releasePath: target.releasePath, releaseTreeDigest: target.releaseTreeDigest, apiContractDigest: target.apiContractDigest,
     targetDigest: sha256(target), previewData: target.previewData,
@@ -142,6 +146,72 @@ test('source contract forbids generic DB inheritance and keeps passwords outside
   assert.match(source, /prepare_preview_credentials_persisted/);
   assert.doesNotMatch(source, /connectionString:\s*process\.env\.DATABASE_URL/);
   assert.doesNotMatch(source, /DATABASE_URL=.*compute/);
+});
+
+test('prepare identity is behavioral: only migrated exact-ledger retries may reuse an approval', () => {
+  const transactionId = 'tx-prepare-proof';
+  const release = `${'a'.repeat(40)}-fullstack-20260820-1-1`;
+  const commit = 'b'.repeat(40);
+  const tree = 'c'.repeat(40);
+  const token = 'd'.repeat(64);
+  const ledger = {
+    ...createFullStackReleaseLedger({ transactionId, release, commit, tree, generation: 17, token, now: new Date().toISOString() }),
+    phase: 'migrated',
+  };
+  const identity = { transactionId, release, commit, tree, token };
+  assert.equal(assertFullStackPrepareLedger(ledger, identity).generation, 17);
+  assert.throws(() => assertFullStackPrepareLedger({ ...ledger, phase: 'quiesced' }, identity), /full_stack_prepare_ledger_identity_mismatch/);
+  assert.throws(() => assertFullStackPrepareLedger(ledger, { ...identity, token: 'e'.repeat(64) }), /full_stack_release_token_mismatch/);
+  assert.throws(() => assertFullStackPrepareLedger(ledger, { ...identity, commit: 'e'.repeat(40) }), /full_stack_prepare_ledger_identity_mismatch/);
+  assert.throws(() => assertFullStackPrepareLedger(ledger, { ...identity, tree: 'e'.repeat(40) }), /full_stack_prepare_ledger_identity_mismatch/);
+
+  const proofOrigin = ['https://p', 'tailx', 'ts', 'net'].join('.');
+  const expected = {
+    commit, tree, origin: proofOrigin,
+    webBuildSha256: 'f'.repeat(64), staticAssetsSha256: '1'.repeat(64),
+    backendImageDigest: `sha256:${'2'.repeat(64)}`, webImageDigest: `sha256:${'3'.repeat(64)}`,
+    releasePath: `/srv/meetwise-full-stack/releases/${release}`, generation: 17,
+  };
+  const approval = {
+    schemaVersion: 1, commit, tree, origin: expected.origin,
+    webBuildSha256: expected.webBuildSha256, staticAssetsSha256: expected.staticAssetsSha256,
+    images: { backend: expected.backendImageDigest, web: expected.webImageDigest },
+    releasePath: expected.releasePath, generation: 17,
+    previewData: { capacity: { profile: 'large-v1-successor' }, deepUsage: { scenarioId: 'deep-usage-v1' } },
+  };
+  assert.equal(isExactApprovalRetry(approval, expected), true);
+  assert.equal(isExactApprovalRetry({ ...approval, generation: 16 }, expected), false, 'old-generation approval cannot be reused');
+  assert.equal(isExactApprovalRetry({ ...approval, generation: 18 }, expected), false, 'future-generation approval cannot be reused');
+
+  // Exercise the same controller CLI that root calls, including its read →
+  // identity check → heartbeat path. A static regex cannot prove wrong-token
+  // or wrong-phase requests leave the durable ledger untouched.
+  const tempDir = mkdtempSync(join(tmpdir(), 'meetwise-prepare-ledger-'));
+  const ledgerPath = join(tempDir, 'ledger.json');
+  const publisherPath = join(root, 'ops/ecs/full-stack/full-stack-preview-publisher.mjs');
+  const writeLedger = (value) => writeFileSync(ledgerPath, `${JSON.stringify(value)}\n`, { mode: 0o600 });
+  const runPrepare = (overrides = {}) => spawnSync(process.execPath, [publisherPath, 'ledger-prepare', '--path', ledgerPath,
+    '--transaction-id', overrides.transactionId ?? transactionId, '--release', overrides.release ?? release,
+    '--token', overrides.token ?? token, '--commit', overrides.commit ?? commit, '--tree', overrides.tree ?? tree], { encoding: 'utf8' });
+  try {
+    writeLedger(ledger);
+    const success = runPrepare();
+    assert.equal(success.status, 0, success.stderr);
+    assert.equal(JSON.parse(success.stdout).generation, 17);
+    for (const [label, overrides, reason] of [
+      ['wrong phase', { phase: 'quiesced' }, 'full_stack_prepare_ledger_identity_mismatch'],
+      ['wrong token', { token: 'e'.repeat(64) }, 'full_stack_release_token_mismatch'],
+      ['wrong commit', { commit: 'e'.repeat(40) }, 'full_stack_prepare_ledger_identity_mismatch'],
+      ['wrong tree', { tree: 'e'.repeat(40) }, 'full_stack_prepare_ledger_identity_mismatch'],
+    ]) {
+      writeLedger({ ...ledger, ...(overrides.phase ? { phase: overrides.phase } : {}) });
+      const result = runPrepare(overrides);
+      assert.notEqual(result.status, 0, `${label} must fail closed`);
+      assert.match(result.stderr, new RegExp(reason));
+    }
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+  }
 });
 
 let passed = 0;

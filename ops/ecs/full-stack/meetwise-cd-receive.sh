@@ -146,10 +146,13 @@ case "$sub" in
     exec sudo "$ROOT_DISPATCH" "$sub" "${argv[2]}"
     ;;
   prepare)
-    [[ ${#argv[@]} -eq 10 ]] || { echo 'meetwise_cd_argc_invalid' >&2; exit 1; }
-    [[ "${argv[2]}" =~ $COMMIT_RE && "${argv[3]}" =~ $COMMIT_RE && "${argv[4]}" =~ $ORIGIN_RE && "${argv[5]}" =~ $DIGEST_RE && "${argv[6]}" =~ $DIGEST_RE && "${argv[7]}" =~ $IMAGE_DIGEST_RE && "${argv[8]}" =~ $IMAGE_DIGEST_RE ]] || { echo 'meetwise_cd_prepare_arg_invalid' >&2; exit 1; }
-    require_release "${argv[9]}"
-    exec sudo "$ROOT_DISPATCH" prepare "${argv[2]}" "${argv[3]}" "${argv[4]}" "${argv[5]}" "${argv[6]}" "${argv[7]}" "${argv[8]}" "${argv[9]}"
+    # Prepare is transaction-bound: the root dispatcher reads the durable
+    # ledger and owns the controller flock.  There is intentionally no
+    # standalone commit/tree/release form that could mint an approval without
+    # a recovery token and the post-migration phase fence.
+    [[ ${#argv[@]} -eq 12 ]] || { echo 'meetwise_cd_argc_invalid' >&2; exit 1; }
+    [[ "${argv[2]}" =~ $TRANSACTION_ID_RE && "${argv[3]}" =~ $RELEASE_RE && "${argv[4]}" =~ $TOKEN_RE && "${argv[5]}" =~ $COMMIT_RE && "${argv[6]}" =~ $COMMIT_RE && "${argv[7]}" =~ $ORIGIN_RE && "${argv[8]}" =~ $DIGEST_RE && "${argv[9]}" =~ $DIGEST_RE && "${argv[10]}" =~ $IMAGE_DIGEST_RE && "${argv[11]}" =~ $IMAGE_DIGEST_RE ]] || { echo 'meetwise_cd_prepare_arg_invalid' >&2; exit 1; }
+    exec sudo "$ROOT_DISPATCH" prepare "${argv[2]}" "${argv[3]}" "${argv[4]}" "${argv[5]}" "${argv[6]}" "${argv[7]}" "${argv[8]}" "${argv[9]}" "${argv[10]}" "${argv[11]}"
     ;;
   probe-nonce|verify-public|controller-version|bootstrap-toolchain)
     [[ ${#argv[@]} -eq 2 ]] || { echo 'meetwise_cd_argc_invalid' >&2; exit 1; }
