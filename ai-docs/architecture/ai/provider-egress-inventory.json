@@ -911,11 +911,6 @@
     },
     {
       "name": "MODEL_API_KEY",
-      "source": "scripts/ecs-preview-config.proof.mjs",
-      "class": "deployment-contract"
-    },
-    {
-      "name": "MODEL_API_KEY",
       "source": "scripts/run-e2e-isolated.mjs",
       "class": "test-isolation"
     },
