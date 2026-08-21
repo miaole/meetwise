@@ -18,7 +18,7 @@
 #   install-deps <release>                            pnpm install (frozen, no build) — 供 prepare/db-verify 解析 pg
 #   transaction compose-pull <tx> <release> <token> <backend-digest> <web-digest>
 #                                                       钉住 .env 两镜像引用 + docker compose pull
-#   prepare <commit> <tree> <origin> <wb> <sa> <backend-digest> <web-digest> <release>
+#   prepare <transaction> <release> <recovery-token> <commit> <tree> <origin> <wb> <sa> <backend-digest> <web-digest>
 #   migrate                                           run DB migrations via the one-shot migrate container
 #   stage | publish | activate | probe-nonce (revoke is transaction-bound)
 #   flip-current <release>                            repoint current symlink + compose up api/worker (web 停到 activate)
@@ -149,6 +149,25 @@ const ledger = JSON.parse(raw);
 const token = process.env.MEETWISE_TRANSACTION_TOKEN ?? '';
 const digest = createHash('sha256').update(token).digest('hex');
 if (ledger.transactionId !== transactionId || ledger.release !== release || ledger.tokenDigest !== digest) process.exit(1);
+NODE
+}
+
+# Prepare is an irreversible artifact-binding step and therefore cannot be a
+# standalone root command.  The durable ledger is the only authority for its
+# generation: require the exact token-bound transaction identity and the
+# post-migration phase before handing any value to the prepare module.
+prepare_ledger_generation() {
+  local transaction_id="$1" release="$2" token="$3" commit="$4" tree="$5" current_json
+  local prepare_status=0
+  current_json="$(ledger_node ledger-prepare --transaction-id "$transaction_id" --release "$release" --token "$token" --commit "$commit" --tree "$tree")" || prepare_status=$?
+  [[ "$prepare_status" -eq 0 ]] || { [[ "$prepare_status" -eq 75 ]] && die prepare_transaction_lease_expired 75; die prepare_transaction_identity_mismatch; }
+  /usr/bin/node - "$current_json" "$transaction_id" "$release" "$commit" "$tree" <<'NODE' || die prepare_transaction_identity_mismatch
+const [raw, transactionId, release, commit, tree] = process.argv.slice(2);
+const ledger = JSON.parse(raw);
+if (ledger.transactionId !== transactionId || ledger.release !== release
+  || ledger.commit !== commit || ledger.tree !== tree || ledger.phase !== 'migrated'
+  || !Number.isSafeInteger(ledger.generation) || ledger.generation < 1) process.exit(1);
+process.stdout.write(String(ledger.generation));
 NODE
 }
 
@@ -1591,15 +1610,37 @@ restore_flip_predecessor() {
 }
 
 prepare() {
-  local commit="$1" tree="$2" origin="$3" wb="$4" sa="$5" backend_digest="$6" web_digest="$7" release="$8"
-  local dir; dir="$(with_release_cwd "$release")"
+  local transaction_id="$1" release="$2" token="$3" commit="$4" tree="$5" origin="$6" wb="$7" sa="$8" backend_digest="$9" web_digest="${10}"
   [[ "$commit" =~ $COMMIT_RE && "$tree" =~ $COMMIT_RE && "$origin" =~ $ORIGIN_RE && "$wb" =~ $DIGEST_RE && "$sa" =~ $DIGEST_RE && "$backend_digest" =~ $IMAGE_DIGEST_RE && "$web_digest" =~ $IMAGE_DIGEST_RE ]] || die prepare_argument_invalid
+  [[ "$transaction_id" =~ $TRANSACTION_ID_RE ]] || die prepare_transaction_id_invalid
+  [[ "$release" =~ $RELEASE_RE ]] || die prepare_release_invalid
+  [[ "$token" =~ $TOKEN_RE ]] || die prepare_recovery_token_invalid
+  local dir; dir="$(with_release_cwd "$release")"
   [[ -f "$VERIFIER_ENV" && ! -L "$VERIFIER_ENV" && "$(stat -c '%U:%G:%a' "$VERIFIER_ENV" 2>/dev/null || true)" == root:meetwise-synthetic:640 ]] || die prepare_verifier_env_unsafe
+  # The flock covers ledger read → lease heartbeat → child execution → final
+  # artifact publication.  A second runner cannot observe the same transaction
+  # and race an approval with a different generation.
+  with_controller_lock
+  local generation generation_status=0
+  generation="$(prepare_ledger_generation "$transaction_id" "$release" "$token" "$commit" "$tree")" || generation_status=$?
+  if [[ "$generation_status" -ne 0 ]]; then
+    # ledger-prepare uses 75 for an expired token lease. Preserve that status
+    # so GitHub enters the existing recovery job; never turn it into the
+    # generic 64 identity error or blindly retry prepare.
+    [[ "$generation_status" -eq 75 ]] && exit 75
+    die prepare_transaction_identity_mismatch
+  fi
+  local prepare_status=0
   /usr/bin/node "$PREPARE" \
+    --transaction-id "$transaction_id" --release "$release" --recovery-token "$token" \
     --commit "$commit" --tree "$tree" --origin "$origin" \
     --web-build-sha256 "$wb" --static-assets-sha256 "$sa" \
     --backend-image-digest "$backend_digest" --web-image-digest "$web_digest" \
-    --release-path "$dir" || die prepare_failed 70
+    --release-path "$dir" --generation "$generation" || prepare_status=$?
+  if [[ "$prepare_status" -ne 0 ]]; then
+    [[ "$prepare_status" -eq 75 ]] && exit 75
+    die prepare_failed 70
+  fi
 }
 
 # compose 单机：迁移由一次性 migrate 容器执行（后端镜像内含 migrations + pg），不再从源码树跑。
@@ -2377,7 +2418,7 @@ case "${1:-}" in
   receive-source)    receive_source "${2:-}" "${3:-}" ;;
   install-deps)      install_deps "${2:-}" ;;
   compose-pull)      die legacy_direct_compose_pull_disabled ;;
-  prepare)           prepare "${2:-}" "${3:-}" "${4:-}" "${5:-}" "${6:-}" "${7:-}" "${8:-}" "${9:-}" ;;
+  prepare)           prepare "${2:-}" "${3:-}" "${4:-}" "${5:-}" "${6:-}" "${7:-}" "${8:-}" "${9:-}" "${10:-}" "${11:-}" ;;
   migrate)           migrate ;;
   revoke)            die legacy_direct_revoke_disabled ;;
   stage|publish|activate|verify-public) publish_subcommand "$1" ;;

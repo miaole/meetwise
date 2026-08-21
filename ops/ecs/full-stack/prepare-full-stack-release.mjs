@@ -19,7 +19,7 @@
  *
  * P0-1 降权执行：`sha256`/`buildPlan` 来自**本次 release 的 catalog.mjs**，而 catalog.mjs
  * 是 tarball 上传的不可信代码。为不让它以 root 执行，本脚本拆成两个模式：
- *   - root 模式（默认）：只读前驱审批→推导 generation，然后 spawn `runuser -u
+ *   - root 模式（默认）：接收并校验 controller 已从 token-bound ledger 读出的 generation，然后 spawn `runuser -u
  *     meetwise-synthetic` 跑 compute 模式，校验其输出把「CI 传入的身份字段
  *     (commit/tree/origin/镜像摘要/releasePath/generation)」原样保留，最后以 root
  *     把两份 JSON 落盘（目标档 0640 root:meetwise-synthetic 供 synthetic 只读）。
@@ -33,7 +33,7 @@
  *     --commit <40hex> --tree <40hex> --origin <https://...ts.net> \
  *     --web-build-sha256 <64hex> --static-assets-sha256 <64hex> \
  *     --backend-image-digest <sha256:64hex> --web-image-digest <sha256:64hex> \
- *     --release-path /srv/meetwise-full-stack/releases/<release>
+ *     --release-path /srv/meetwise-full-stack/releases/<release> --generation <ledger-generation>
  *
  * 安全不变量：本脚本只写 /etc/meetwise/ 下的两份 root 掌控的 JSON；不读也不写任何
  * 密钥；不打印任何密钥/连接串。生成结果仍会被 full-stack-preview-publisher.mjs 逐字段校验。
@@ -46,8 +46,10 @@ import { spawnSync } from 'node:child_process';
 
 const APPROVAL_PATH = '/etc/meetwise/full-stack-release.json';
 const TARGET_PATH = '/etc/meetwise/preview-synthetic-target.json';
-const PUBLICATION_STATE_PATH = '/var/lib/meetwise-preview-controller/full-stack-publication.json';
 const VERIFIER_ENV_FILE = '/etc/meetwise/full-stack-verifier.env';
+const FULL_STACK_LEDGER_PATH = '/var/lib/meetwise-preview-controller/full-stack-release-ledger.json';
+const FULL_STACK_PUBLISHER_PATH = '/usr/local/lib/meetwise-preview-controller/full-stack/full-stack-preview-publisher.mjs';
+const COMPUTE_TIMEOUT_SECONDS = 600;
 
 // P0-1：compute 模式以 meetwise-synthetic（uid/gid 2001，provision 固定）运行；
 // root 模式仍要求 root（读前驱审批 + 落盘两份 JSON）。
@@ -61,6 +63,8 @@ const COMMIT = /^[a-f0-9]{40}$/;
 const DIGEST = /^[a-f0-9]{64}$/;
 const IMAGE_DIGEST = /^sha256:[a-f0-9]{64}$/;
 const TAILSCALE_ORIGIN = /^https:\/\/[a-z0-9-]+\.tail[a-z0-9]+\.ts\.net$/;
+const TRANSACTION_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/;
+const RECOVERY_TOKEN = /^[a-f0-9]{64}$/;
 // The factory is a composition, not only the historical four-file loader.
 // verifier-env.mjs owns the read-only DB boundary and the account runner owns
 // the deep-usage receipt contract; omitting either file would let a release
@@ -326,6 +330,53 @@ export function buildApproval({ generation, commit, tree, releaseDigest, origin,
   };
 }
 
+/** Exact retry is safe only when the approval identity, including generation,
+ * is byte-for-byte the transaction's current identity. A previous approval
+ * for the same commit but another generation belongs to a different ledger
+ * and must not be reused. */
+export function isExactApprovalRetry(previousApproval, expected) {
+  return previousApproval?.schemaVersion === 1
+    && previousApproval.commit === expected.commit
+    && previousApproval.tree === expected.tree
+    && previousApproval.origin === expected.origin
+    && previousApproval.webBuildSha256 === expected.webBuildSha256
+    && previousApproval.staticAssetsSha256 === expected.staticAssetsSha256
+    && previousApproval.images?.backend === expected.backendImageDigest
+    && previousApproval.images?.web === expected.webImageDigest
+    && previousApproval.releasePath === expected.releasePath
+    && previousApproval.generation === expected.generation
+    && previousApproval.previewData?.capacity?.profile === 'large-v1-successor'
+    && previousApproval.previewData?.deepUsage?.scenarioId === 'deep-usage-v1';
+}
+
+// This is the trusted finalize fence.  The compute child never receives the
+// transaction id or recovery token; only this root-owned module invokes the
+// controller publisher with the secret after the untrusted catalog computation
+// has completed.  `ledger-prepare` performs the token-bound identity check and
+// heartbeat while the controller flock is still inherited from the caller.
+function finalizeLedgerPrepare({ transactionId, release, token, commit, tree, generation }) {
+  // Node closes unknown descriptors unless they are listed in stdio.  Pass
+  // controller flock fd 9 explicitly so the trusted publisher can verify the
+  // same root-owned lock inode before mutating the ledger.
+  const stdio = ['ignore', 'pipe', 'pipe'];
+  for (let index = 3; index < 9; index += 1) stdio[index] = 'ignore';
+  stdio[9] = 9;
+  const result = spawnSync(process.execPath, [
+    FULL_STACK_PUBLISHER_PATH, 'ledger-prepare', '--path', FULL_STACK_LEDGER_PATH,
+    '--transaction-id', transactionId, '--release', release, '--token', token,
+    '--commit', commit, '--tree', tree,
+  ], { encoding: 'utf8', env: process.env, stdio, maxBuffer: 1024 * 1024 });
+  if (result.error) throw result.error;
+  if (result.status === 75) throw Object.assign(new Error('prepare_transaction_lease_expired'), { exitCode: 75 });
+  if (result.status !== 0) throw new Error('prepare_transaction_identity_mismatch');
+  let ledger;
+  try { ledger = JSON.parse(result.stdout); } catch { throw new Error('prepare_transaction_identity_mismatch'); }
+  if (ledger.transactionId !== transactionId || ledger.release !== release
+    || ledger.commit !== commit || ledger.tree !== tree || ledger.phase !== 'migrated'
+    || ledger.generation !== generation) throw new Error('prepare_transaction_identity_mismatch');
+  return ledger;
+}
+
 export async function querySchemaLedger(releasePath, sha256, resolveReadOnlyVerifierEnv) {
   const require = createRequire(join(releasePath, 'packages/db/package.json'));
   const pg = require('pg');
@@ -405,6 +456,15 @@ async function main() {
   if (process.getuid?.() !== 0) throw new Error('prepare_requires_root');
   const args = parseArgs(process.argv);
   const { releasePath } = validateSharedArgs(args);
+  if (!TRANSACTION_ID.test(args['transaction-id'] ?? '') || !RECOVERY_TOKEN.test(args['recovery-token'] ?? '') || !/^[a-f0-9]{40}-fullstack-[0-9]{8}-[1-9][0-9]*-[1-9][0-9]*$/.test(args.release ?? '')) {
+    throw new Error('prepare_transaction_identity_invalid');
+  }
+  // Generation is a controller-owned transaction fact.  The caller must not
+  // omit it and let this script derive a successor from PUBLICATION_STATE:
+  // that would permit a tokenless/replayed prepare to race a live transaction
+  // and bind an approval to the wrong release generation.
+  const generation = Number(args.generation);
+  if (!Number.isSafeInteger(generation) || generation < 1) throw new Error('prepare_generation_invalid');
 
   // Exact retry is idempotent: once this release approval exists, never advance
   // generation merely because a later stage failed. The publisher remains the
@@ -415,29 +475,20 @@ async function main() {
   } catch (error) {
     if (error?.code !== 'ENOENT') throw error;
   }
-  const exactRetry = previousApproval?.schemaVersion === 1
-    && previousApproval.commit === args.commit
-    && previousApproval.tree === args.tree
-    && previousApproval.origin === args.origin
-    && previousApproval.webBuildSha256 === args['web-build-sha256']
-    && previousApproval.staticAssetsSha256 === args['static-assets-sha256']
-    && previousApproval.images?.backend === args['backend-image-digest']
-    && previousApproval.images?.web === args['web-image-digest']
-    && previousApproval.releasePath === releasePath
-    && previousApproval.previewData?.capacity?.profile === 'large-v1-successor'
-    && previousApproval.previewData?.deepUsage?.scenarioId === 'deep-usage-v1';
+  const exactRetry = isExactApprovalRetry(previousApproval, {
+    commit: args.commit,
+    tree: args.tree,
+    origin: args.origin,
+    webBuildSha256: args['web-build-sha256'],
+    staticAssetsSha256: args['static-assets-sha256'],
+    backendImageDigest: args['backend-image-digest'],
+    webImageDigest: args['web-image-digest'],
+    releasePath,
+    generation,
+  });
   if (exactRetry) {
     process.stdout.write(`${JSON.stringify({ targetDigest: previousApproval.targetDigest, generation: previousApproval.generation, releasePath, replayed: true }, null, 2)}\n`);
     return;
-  }
-
-  let generation = 1;
-  try {
-    const state = JSON.parse(assertStrictRootFile(PUBLICATION_STATE_PATH));
-    if (state.status !== 'revoked' || !Number.isSafeInteger(state.generation) || state.generation < 1) throw new Error('prepare_committed_predecessor_not_revoked');
-    generation = state.generation + 1;
-  } catch (error) {
-    if (error?.code !== 'ENOENT') throw error;
   }
 
   // P0-1：不可信 catalog.mjs 以 meetwise-synthetic 执行（compute 模式），root 只做编排 + 落盘。
@@ -457,13 +508,19 @@ async function main() {
   const computeArgs = ['compute', '--commit', args.commit, '--tree', args.tree, '--origin', args.origin, '--web-build-sha256', args['web-build-sha256'], '--static-assets-sha256', args['static-assets-sha256'], '--backend-image-digest', args['backend-image-digest'], '--web-image-digest', args['web-image-digest'], '--release-path', releasePath, '--generation', String(generation)];
   // bash -c SCRIPT bash <self> compute … → $0='bash'、$@=[self, …computeArgs]；exec node "$@"。
   const childScript = `set -a; . ${VERIFIER_ENV_FILE}; set +a; exec /usr/bin/node "$@"`;
-  const child = spawnSync('/usr/sbin/runuser', [
+  // GNU timeout is deliberate here: Node's spawnSync timeout only signals the
+  // direct child and can leave a runuser descendant alive.  The controller
+  // compute budget is a hard 600 seconds, with a bounded TERM→KILL grace.
+  const child = spawnSync('/usr/bin/timeout', [
+    '--signal=TERM', '--kill-after=5s', `${COMPUTE_TIMEOUT_SECONDS}s`,
+    '/usr/sbin/runuser',
     '-u', 'meetwise-synthetic', '--',
     '/usr/bin/env', '-i',
     'HOME=/var/lib/meetwise-preview-synthetic', 'PATH=/usr/sbin:/usr/bin:/sbin:/bin',
     '/bin/bash', '-c', childScript, 'bash', self, ...computeArgs,
   ], { encoding: 'utf8', env: {}, maxBuffer: 16 * 1024 * 1024 });
   if (child.error) throw child.error;
+  if (child.status === 124 || child.status === 137) throw Object.assign(new Error('prepare_compute_timeout'), { exitCode: 70 });
   // 不回传 child.stderr（compute 的 pg 连接错误可能带 host/user——按隐私铁律不外泄），只出固定 reason code。
   if (child.status !== 0) throw new Error('prepare_compute_failed');
   let target; let approval;
@@ -510,8 +567,17 @@ async function main() {
   assertPreviewDataShape(target.previewData);
 
   const targetDigest = approval.targetDigest;
+  // Never write either fixed artifact until a second token-bound ledger
+  // heartbeat/CAS confirms the exact migrated transaction and generation.  A
+  // lease expiry or identity mismatch therefore leaves both artifacts byte
+  // unchanged; the publisher's exit 75 is intentionally preserved for the
+  // workflow's existing recovery classification.
+  finalizeLedgerPrepare({
+    transactionId: args['transaction-id'], release: args.release, token: args['recovery-token'],
+    commit: args.commit, tree: args.tree, generation,
+  });
   // 目标档落盘为 0640 root:meetwise-synthetic（loader/db-verify/compute 以 synthetic 只读）；
-  // 审批档保持 0600 root:root（synthetic 无需读，仅 root 推导 generation）。
+  // 审批档保持 0600 root:root（generation 已由 token-bound controller ledger 冻结）。
   durableWriteJson(TARGET_PATH, target, { mode: 0o640, uid: 0, gid: SYNTHETIC_GID });
   durableWriteJson(APPROVAL_PATH, approval, { mode: 0o600, uid: 0, gid: 0 });
   process.stdout.write(`${JSON.stringify({ targetDigest, generation, releasePath }, null, 2)}\n`);
@@ -519,5 +585,9 @@ async function main() {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const entry = process.argv[2] === 'compute' ? computeMain() : main();
-  entry.catch((error) => { process.stderr.write(`${error instanceof Error ? error.message : 'prepare_full_stack_release_failed'}\n`); process.exitCode = 1; });
+  entry.catch((error) => {
+    process.stderr.write(`${error instanceof Error ? error.message : 'prepare_full_stack_release_failed'}\n`);
+    const exitCode = Number.isInteger(error?.exitCode) && error.exitCode >= 1 && error.exitCode <= 255 ? error.exitCode : 1;
+    process.exitCode = exitCode;
+  });
 }
