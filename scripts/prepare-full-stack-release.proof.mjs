@@ -199,6 +199,138 @@ test('forced receiver forwards all ten prepare parameters to fake sudo in order'
   }
 });
 
+test('real prepare CLI keeps sentinel artifacts byte-identical when finalize CAS fails', () => {
+  const tempDir = mkdtempSync(join(tmpdir(), 'meetwise-prepare-finalize-proof-'));
+  const approvalPath = join(tempDir, 'approval.json');
+  const targetPath = join(tempDir, 'target.json');
+  const verifierEnvPath = join(tempDir, 'verifier.env');
+  const ledgerPath = join(tempDir, 'ledger.json');
+  const fakePublisher = join(tempDir, 'publisher.mjs');
+  const fakeTimeout = join(tempDir, 'timeout');
+  const fakeRunuser = join(tempDir, 'runuser');
+  const harness = join(tempDir, 'prepare.mjs');
+  const lockPath = join(tempDir, 'controller.lock');
+  const releasePath = join(tempDir, 'release');
+  const transactionId = 'tx-finalize-proof';
+  const release = `${'a'.repeat(40)}-fullstack-20260820-1-1`;
+  const token = 'd'.repeat(64);
+  const commit = 'b'.repeat(40);
+  const tree = 'c'.repeat(40);
+  const origin = 'https://preview.tail0000000.ts.net';
+  const webBuild = 'f'.repeat(64);
+  const staticAssets = '1'.repeat(64);
+  const backend = `sha256:${'2'.repeat(64)}`;
+  const web = `sha256:${'3'.repeat(64)}`;
+  const generation = 17;
+  const target = buildTarget(previous, {
+    releasePath,
+    releaseTreeDigest: '1'.repeat(64),
+    apiContractDigest: '2'.repeat(64),
+    schemaHead: '0123_user_facing_context_snapshots.sql',
+    schemaLedgerDigest: '3'.repeat(64),
+    factoryDigest: fakeFactory,
+    catalogDigests,
+    sha256,
+  });
+  const approval = buildApproval({
+    generation, commit, tree, releaseDigest: 'abcdef0', origin,
+    webBuildSha256: webBuild, staticAssetsSha256: staticAssets,
+    backendImageDigest: backend, webImageDigest: web,
+    releasePath, releaseTreeDigest: target.releaseTreeDigest,
+    apiContractDigest: target.apiContractDigest, targetDigest: sha256(target), previewData: target.previewData,
+  });
+  const computeOutputPath = join(tempDir, 'compute-output.json');
+  const targetSentinel = '{"sentinel":"target-before-finalize"}\n';
+  const approvalSentinel = '{"schemaVersion":1,"sentinel":"approval-before-finalize"}\n';
+  const ledger = {
+    schemaVersion: 1, transactionId, release, commit, tree, generation, phase: 'migrated',
+    tokenDigest: sha256(token), updatedAt: new Date().toISOString(),
+    predecessor: {}, candidate: {}, recoveryPolicy: 'rollback_compatible', recoveryAttempts: 0, committedAt: null,
+  };
+  const shellQuote = (value) => `'${String(value).replaceAll("'", "'\\''")}'`;
+  const writeHarness = () => {
+    const replacements = [
+      ["const APPROVAL_PATH = '/etc/meetwise/full-stack-release.json';", `const APPROVAL_PATH = ${JSON.stringify(approvalPath)};`],
+      ["const TARGET_PATH = '/etc/meetwise/preview-synthetic-target.json';", `const TARGET_PATH = ${JSON.stringify(targetPath)};`],
+      ["const VERIFIER_ENV_FILE = '/etc/meetwise/full-stack-verifier.env';", `const VERIFIER_ENV_FILE = ${JSON.stringify(verifierEnvPath)};`],
+      ["const FULL_STACK_LEDGER_PATH = '/var/lib/meetwise-preview-controller/full-stack-release-ledger.json';", `const FULL_STACK_LEDGER_PATH = ${JSON.stringify(ledgerPath)};`],
+      ["const FULL_STACK_PUBLISHER_PATH = '/usr/local/lib/meetwise-preview-controller/full-stack/full-stack-preview-publisher.mjs';", `const FULL_STACK_PUBLISHER_PATH = ${JSON.stringify(fakePublisher)};`],
+      ["'/usr/bin/timeout', [", `${JSON.stringify(fakeTimeout)}, [`],
+      ["'/usr/sbin/runuser',", `${JSON.stringify(fakeRunuser)},`],
+      ["if (process.getuid?.() !== 0) throw new Error('prepare_requires_root');", "if (process.getuid?.() !== 0 && process.env.MEETWISE_PREPARE_PROOF !== '1') throw new Error('prepare_requires_root');"],
+      ["if (!releasePath.startsWith('/srv/meetwise-full-stack/releases/') || releasePath.includes('..')) throw new Error('prepare_release_path_invalid');", "if ((process.env.MEETWISE_PREPARE_PROOF !== '1' && !releasePath.startsWith('/srv/meetwise-full-stack/releases/')) || releasePath.includes('..')) throw new Error('prepare_release_path_invalid');"],
+      ["function assertVerifierEnvFile(path = VERIFIER_ENV_FILE) {", "function assertVerifierEnvFile(path = VERIFIER_ENV_FILE) {\n  if (process.env.MEETWISE_PREPARE_PROOF === '1') return;"],
+      ["function assertStrictRootFile(path) {", "function assertStrictRootFile(path) {\n  if (process.env.MEETWISE_PREPARE_PROOF === '1') return readFileSync(path, 'utf8');"],
+    ];
+    let copy = source;
+    for (const [from, to] of replacements) {
+      assert.equal(copy.includes(from), true, `prepare proof harness replacement missing: ${from}`);
+      copy = copy.replace(from, to);
+    }
+    // macOS exposes tmpdir() through /var while import.meta resolves /private/var;
+    // the deployed Linux path has no such alias, so normalize only the harness
+    // entry guard to execute this copied CLI.
+    copy = copy.replace("if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {", "if (process.argv[1]) {");
+    writeFileSync(harness, copy, { mode: 0o700 });
+  };
+  const writeFakePublisher = () => writeFileSync(fakePublisher, `#!/usr/bin/node
+import { fstatSync, readFileSync } from 'node:fs';
+try { fstatSync(9); } catch { process.stderr.write('publisher_lock_fd_missing\\n'); process.exit(99); }
+const mode = process.env.MEETWISE_FINALIZE_PROOF_MODE;
+const ledger = JSON.parse(readFileSync(${JSON.stringify(ledgerPath)}, 'utf8'));
+if (mode === 'wrong-phase' && ledger.phase !== 'migrated') { process.stderr.write('full_stack_prepare_ledger_identity_mismatch\\n'); process.exit(1); }
+if (mode === 'wrong-token') { process.stderr.write('full_stack_release_token_mismatch\\n'); process.exit(1); }
+if (mode === 'expired-75') { process.stderr.write('full_stack_release_lease_expired\\n'); process.exit(75); }
+process.stdout.write(JSON.stringify(ledger));
+`, { mode: 0o700 });
+  const writeFakeCompute = () => writeFileSync(fakeRunuser, `#!${process.execPath}
+const { readFileSync } = require('node:fs');
+process.stdout.write(readFileSync(${JSON.stringify(computeOutputPath)}, 'utf8'));
+`, { mode: 0o700 });
+  writeFileSync(fakeTimeout, '#!/bin/sh\nshift 3\nexec "$@"\n', { mode: 0o700 });
+  writeFileSync(verifierEnvPath, 'PREVIEW_VERIFY_DATABASE_URL=proof\n');
+  writeHarness();
+  writeFakePublisher();
+  writeFileSync(computeOutputPath, `${JSON.stringify({ target, approval })}\n`);
+  writeFakeCompute();
+  const cliArgs = [
+    '--transaction-id', transactionId, '--release', release, '--recovery-token', token,
+    '--commit', commit, '--tree', tree, '--origin', origin,
+    '--web-build-sha256', webBuild, '--static-assets-sha256', staticAssets,
+    '--backend-image-digest', backend, '--web-image-digest', web,
+    '--release-path', releasePath, '--generation', String(generation),
+  ];
+  try {
+    for (const [mode, phase, expectedStatus, expectedError] of [
+      ['wrong-phase', 'quiesced', 1, /prepare_transaction_identity_mismatch/],
+      ['wrong-token', 'migrated', 1, /prepare_transaction_identity_mismatch/],
+      ['expired-75', 'migrated', 75, /prepare_transaction_lease_expired/],
+    ]) {
+      writeFileSync(targetPath, targetSentinel);
+      writeFileSync(approvalPath, approvalSentinel);
+      writeFileSync(ledgerPath, `${JSON.stringify({ ...ledger, phase })}\n`);
+      const beforeTarget = readFileSync(targetPath, 'utf8');
+      const beforeApproval = readFileSync(approvalPath, 'utf8');
+      const beforeLedger = readFileSync(ledgerPath, 'utf8');
+      const command = [
+        `exec 9>${shellQuote(lockPath)}`,
+        `exec ${shellQuote(process.execPath)} ${shellQuote(harness)} ${cliArgs.map(shellQuote).join(' ')}`,
+      ].join('; ');
+      const result = spawnSync('/bin/bash', ['-c', command], {
+        encoding: 'utf8',
+        env: { ...process.env, MEETWISE_PREPARE_PROOF: '1', MEETWISE_FINALIZE_PROOF_MODE: mode },
+      });
+      assert.equal(result.status, expectedStatus, `${mode}: stdout=${result.stdout} stderr=${result.stderr}`);
+      assert.match(result.stderr, expectedError);
+      assert.equal(readFileSync(targetPath, 'utf8'), beforeTarget, `${mode}: target changed`);
+      assert.equal(readFileSync(approvalPath, 'utf8'), beforeApproval, `${mode}: approval changed`);
+      assert.equal(readFileSync(ledgerPath, 'utf8'), beforeLedger, `${mode}: ledger changed`);
+    }
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('prepare identity is behavioral: only migrated exact-ledger retries may reuse an approval', () => {
   const transactionId = 'tx-prepare-proof';
   const release = `${'a'.repeat(40)}-fullstack-20260820-1-1`;
