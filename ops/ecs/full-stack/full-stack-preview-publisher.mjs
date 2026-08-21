@@ -357,7 +357,7 @@ async function ledgerInitCli(args) {
       if (immutableFields.some((field) => existing[field] !== requested[field]) || sha256(existing.predecessor) !== sha256(requested.predecessor)) throw new Error('full_stack_release_existing_identity_conflict');
       process.stdout.write(`${JSON.stringify(existing)}\n`); return;
     }
-    if (!['committed', 'rolled_back'].includes(existing.phase)) throw new Error('full_stack_release_existing_identity_conflict');
+    if (!['committed', 'rolled_back', 'forward_only_maintenance'].includes(existing.phase)) throw new Error('full_stack_release_existing_identity_conflict');
     if (requested.generation <= existing.generation) throw new Error('full_stack_release_generation_not_advanced');
     // The controller flock serializes this terminal rollover with recovery and
     // every other mutation.  writeFullStackReleaseLedger uses a durable atomic

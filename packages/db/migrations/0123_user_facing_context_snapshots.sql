@@ -7,12 +7,22 @@ ALTER TABLE job_application
 
 -- 这是受控 migration backfill，不是候选人运行时状态迁移。现有 lineage trigger
 -- 强制 app.principal_user=候选人，migration owner 必须只在本事务的快照回填窗口暂停它。
+--
+-- `trg_enforce_job_application_interview_binding` 也必须在这个同一窗口暂停：
+-- 它会在每一条 UPDATE 上重新检查 `status='in_progress'` 是否仍指向
+-- created/active interview，即使本次 UPDATE 只写新的展示快照。历史库允许保留
+-- 已 abandon/failed 的 in_progress 行（运行时会 fail-closed），这类行会让无关的
+-- 展示字段回填被误判成一次 start。这里只暂停这两个受影响的 UPDATE trigger，
+-- 不改变 status、interview_id、attempt、score 或任何 lineage 字段；migration
+-- runner 的事务保证任一失败时禁用状态和数据一起回滚，随后立即恢复运行时约束。
 ALTER TABLE job_application DISABLE TRIGGER trg_job_application_lineage;
+ALTER TABLE job_application DISABLE TRIGGER trg_enforce_job_application_interview_binding;
 UPDATE job_application a
    SET job_title_snapshot = j.title
   FROM job_posting j
  WHERE j.id = a.job_id
    AND a.job_title_snapshot = '岗位信息待补充';
+ALTER TABLE job_application ENABLE TRIGGER trg_enforce_job_application_interview_binding;
 ALTER TABLE job_application ENABLE TRIGGER trg_job_application_lineage;
 
 ALTER TABLE job_application DROP CONSTRAINT IF EXISTS job_application_title_snapshot_chk;
