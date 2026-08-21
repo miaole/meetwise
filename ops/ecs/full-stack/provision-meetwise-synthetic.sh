@@ -28,6 +28,7 @@ UID_=2001
 GID_=2001
 ETC=/etc/meetwise
 STATE=/var/lib/meetwise-preview-synthetic
+STATE_LOCK_HELPER=/usr/local/lib/meetwise-preview-controller/full-stack/full-stack-preview-publisher.mjs
 MIGRATE_ENV="$ETC/full-stack-migrate.env"
 VERIFIER_ENV="$ETC/full-stack-verifier.env"
 ACCOUNT_ENV="$ETC/preview-test-accounts.env"
@@ -82,7 +83,16 @@ if [[ -f "$MIGRATE_ENV" ]]; then
 fi
 
 # 5. 合成状态根：synthetic 独占写（回执/manifest/credentials/global lock 都落这里）。
+#    Existing root-owned state from a legacy install may be repaired through the
+#    trusted fd helper; symlinks, non-directories and unexpected owners fail
+#    closed.  The helper creates/normalizes the lock without replacing an inode.
+if [[ -L "$STATE" || ( -e "$STATE" && ! -d "$STATE" ) ]]; then
+  echo 'provision_synthetic_state_root_invalid' >&2
+  exit 2
+fi
 install -d -o "$ACCT" -g "$ACCT" -m 0700 "$STATE"
+[[ -f "$STATE_LOCK_HELPER" && ! -L "$STATE_LOCK_HELPER" ]] || { echo 'provision_synthetic_state_lock_helper_missing' >&2; exit 2; }
+/usr/bin/node "$STATE_LOCK_HELPER" synthetic-lock-repair --repair-state || { echo 'provision_synthetic_state_lock_invalid' >&2; exit 2; }
 
 # 6. 窄 sudo：只放行 loader.mjs 维护窗口所需的确切 argv（与 loader 的 runPrivileged/
 #    runPrivilegedCapture 逐字节一致）。docker 启停/查询只作用于 worker 服务、固定

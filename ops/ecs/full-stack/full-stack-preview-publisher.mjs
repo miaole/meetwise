@@ -1,7 +1,17 @@
 #!/usr/bin/env node
 import { execFile } from 'node:child_process';
 import { createHash, createPublicKey, randomBytes, verify } from 'node:crypto';
-import { constants as fsConstants, fstatSync, lstatSync } from 'node:fs';
+import {
+  closeSync,
+  constants as fsConstants,
+  fchmodSync,
+  fchownSync,
+  fstatSync,
+  fsyncSync,
+  lstatSync,
+  mkdirSync,
+  openSync,
+} from 'node:fs';
 import { chmod, lstat, mkdir, mkdtemp, open, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { promisify } from 'node:util';
 import { canonicalJson, manifestFingerprint, publishManifestAtomically, signManifest, verifyManifest } from '../preview-release-manifest.mjs';
@@ -16,6 +26,8 @@ const DEEP_USAGE_SCENARIO_ID = 'deep-usage-v1';
 const DEEP_USAGE_PHASE = 'verified_online_projection';
 const DEEP_USAGE_UNPROVEN = Object.freeze(['database_forbidden_counters', 'RLS_cross_owner_matrix', 'model_and_payment_side_effects']);
 const DEEP_USAGE_SESSION_COUNT = 3;
+const SYNTHETIC_STATE_ROOT = '/var/lib/meetwise-preview-synthetic';
+const SYNTHETIC_GLOBAL_LOCK = `${SYNTHETIC_STATE_ROOT}/global.apply.lock`;
 const PATHS = Object.freeze({
   approval: '/etc/meetwise/full-stack-release.json',
   target: '/etc/meetwise/preview-synthetic-target.json',
@@ -35,6 +47,91 @@ const PATHS = Object.freeze({
   ledger: '/var/lib/meetwise-preview-controller/full-stack-release-ledger.json',
 });
 const CONTROLLER_LOCK = '/run/meetwise-preview-controller/controller.lock';
+
+const stateLockMode = (stat) => stat.mode & 0o777;
+const sameStateLockInode = (left, right) => left.dev === right.dev && left.ino === right.ino;
+const hasStateLockOwner = (stat, uid, gid) => stat.uid === uid && stat.gid === gid;
+export const acceptedSyntheticStateOwner = (stat, { rootUid, rootGid, syntheticUid, syntheticGid }) => (
+  hasStateLockOwner(stat, rootUid, rootGid) || hasStateLockOwner(stat, syntheticUid, syntheticGid)
+);
+
+function openSyntheticStateRoot(statePath, { repairState, rootUid, rootGid, syntheticUid, syntheticGid }) {
+  let fd;
+  try {
+    fd = openSync(statePath, fsConstants.O_RDONLY | fsConstants.O_DIRECTORY | fsConstants.O_NOFOLLOW | fsConstants.O_NONBLOCK);
+  } catch (error) {
+    if (!repairState || error?.code !== 'ENOENT') throw new Error('synthetic_state_root_invalid');
+    try { mkdirSync(statePath, { mode: 0o700 }); } catch (mkdirError) {
+      if (mkdirError?.code !== 'EEXIST') throw new Error('synthetic_state_root_invalid');
+    }
+    try {
+      fd = openSync(statePath, fsConstants.O_RDONLY | fsConstants.O_DIRECTORY | fsConstants.O_NOFOLLOW | fsConstants.O_NONBLOCK);
+    } catch { throw new Error('synthetic_state_root_invalid'); }
+  }
+  try {
+    const before = fstatSync(fd);
+    if (!before.isDirectory() || !acceptedSyntheticStateOwner(before, { rootUid, rootGid, syntheticUid, syntheticGid })) throw new Error('synthetic_state_root_invalid');
+    if (!repairState && (!hasStateLockOwner(before, syntheticUid, syntheticGid) || stateLockMode(before) !== 0o700)) throw new Error('synthetic_state_root_invalid');
+    if (repairState && (!hasStateLockOwner(before, syntheticUid, syntheticGid) || stateLockMode(before) !== 0o700)) {
+      fchownSync(fd, syntheticUid, syntheticGid); fchmodSync(fd, 0o700); fsyncSync(fd);
+    }
+    const after = fstatSync(fd); const path = lstatSync(statePath);
+    if (!after.isDirectory() || path.isSymbolicLink() || !path.isDirectory() || !sameStateLockInode(after, path)
+      || !hasStateLockOwner(after, syntheticUid, syntheticGid) || stateLockMode(after) !== 0o700) throw new Error('synthetic_state_root_binding_invalid');
+    return { fd, stat: after };
+  } catch (error) { closeSync(fd); throw error; }
+}
+
+function openSyntheticGlobalLock(lockPath) {
+  const flags = fsConstants.O_RDWR | fsConstants.O_NOFOLLOW | fsConstants.O_NONBLOCK;
+  try { return openSync(lockPath, flags); } catch (error) {
+    if (error?.code !== 'ENOENT') throw new Error('synthetic_global_lock_invalid');
+  }
+  try { return openSync(lockPath, flags | fsConstants.O_CREAT | fsConstants.O_EXCL, 0o600); } catch (error) {
+    if (error?.code !== 'EEXIST') throw new Error('synthetic_global_lock_invalid');
+    try { return openSync(lockPath, flags); } catch { throw new Error('synthetic_global_lock_invalid'); }
+  }
+}
+
+export function ensureSyntheticStateLock({
+  statePath = SYNTHETIC_STATE_ROOT,
+  lockPath = SYNTHETIC_GLOBAL_LOCK,
+  repairState = false,
+  rootUid = 0,
+  rootGid = 0,
+  syntheticUid = SYNTHETIC_UID,
+  syntheticGid = SYNTHETIC_GID,
+  afterLockOpen,
+} = {}) {
+  if (lockPath !== `${statePath}/global.apply.lock`) throw new Error('synthetic_global_lock_path_invalid');
+  const state = openSyntheticStateRoot(statePath, { repairState, rootUid, rootGid, syntheticUid, syntheticGid });
+  let lockFd;
+  try {
+    lockFd = openSyntheticGlobalLock(lockPath);
+    const before = fstatSync(lockFd);
+    if (!before.isFile() || before.nlink !== 1 || !acceptedSyntheticStateOwner(before, { rootUid, rootGid, syntheticUid, syntheticGid })) throw new Error('synthetic_global_lock_invalid');
+    afterLockOpen?.({ fd: lockFd, stat: before });
+    fchownSync(lockFd, syntheticUid, syntheticGid); fchmodSync(lockFd, 0o600); fsyncSync(lockFd);
+    const after = fstatSync(lockFd); const path = lstatSync(lockPath);
+    if (!after.isFile() || after.nlink !== 1 || path.isSymbolicLink() || !path.isFile() || path.nlink !== 1
+      || !sameStateLockInode(before, after) || !sameStateLockInode(after, path)
+      || !hasStateLockOwner(after, syntheticUid, syntheticGid) || stateLockMode(after) !== 0o600) throw new Error('synthetic_global_lock_binding_invalid');
+    const stateAfter = fstatSync(state.fd); const statePathAfter = lstatSync(statePath);
+    if (!sameStateLockInode(state.stat, stateAfter) || !sameStateLockInode(stateAfter, statePathAfter)
+      || !hasStateLockOwner(statePathAfter, syntheticUid, syntheticGid) || stateLockMode(statePathAfter) !== 0o700) throw new Error('synthetic_state_root_binding_invalid');
+  } finally {
+    if (lockFd !== undefined) closeSync(lockFd);
+    closeSync(state.fd);
+  }
+}
+
+async function repairSyntheticStateLock() {
+  if (process.getuid?.() !== 0) throw new Error('synthetic_state_lock_repair_requires_root');
+  const repairState = process.argv[3] === '--repair-state';
+  if (process.argv.length !== (repairState ? 4 : 3)) throw new Error('synthetic_state_lock_repair_args_invalid');
+  ensureSyntheticStateLock({ repairState });
+  process.stdout.write('synthetic_state_lock_ready\n');
+}
 const PROBE_RECEIPT_V2_KEYS = Object.freeze([
   'schemaVersion', 'origin', 'probeNonce', 'checkedAt', 'manifestSha256',
   'rootStatus', 'loginStatus', 'manifestStatus', 'rootUrl', 'loginUrl',
@@ -1252,6 +1349,6 @@ async function assertWebStartPermitted() {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const command = process.argv[2];
-  (command === 'stage' ? stage() : command === 'publish' ? publish() : command === 'activate' ? activate() : command === 'confirm-public' ? confirmPublic() : command === 'probe-nonce' ? probeNonce() : command === 'expire-probe' ? expireProbe() : command === 'restore-confirmed-edge' ? restoreConfirmedEdge() : command === 'resume-revocation' ? resumeRevocation() : command === 'revoke' ? revoke() : command === 'recover' ? recover() : command === 'verify-public' ? verifyPublic() : command === 'assert-web-start-permitted' ? assertWebStartPermitted() : command === 'ledger-init' ? ledgerInitCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-transition' ? ledgerTransitionCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-update' ? ledgerUpdateCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-heartbeat' ? ledgerHeartbeatCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-prepare' ? ledgerPrepareCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-recover' ? ledgerRecoverCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-recover-system' ? ledgerRecoverSystemCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-system-transition' ? ledgerSystemTransitionCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-read' ? readFullStackReleaseLedger(parseLedgerCliArgs(process.argv.slice(3)).path).then((ledger) => process.stdout.write(`${JSON.stringify(ledger)}\n`)) : Promise.reject(new Error('usage: full-stack-preview-publisher.mjs stage|publish|activate|confirm-public|probe-nonce|expire-probe|restore-confirmed-edge|resume-revocation|revoke|recover|verify-public|assert-web-start-permitted|ledger-init|ledger-transition|ledger-update|ledger-heartbeat|ledger-prepare|ledger-recover|ledger-recover-system|ledger-system-transition|ledger-read')))
+  (command === 'synthetic-lock-repair' ? repairSyntheticStateLock() : command === 'stage' ? stage() : command === 'publish' ? publish() : command === 'activate' ? activate() : command === 'confirm-public' ? confirmPublic() : command === 'probe-nonce' ? probeNonce() : command === 'expire-probe' ? expireProbe() : command === 'restore-confirmed-edge' ? restoreConfirmedEdge() : command === 'resume-revocation' ? resumeRevocation() : command === 'revoke' ? revoke() : command === 'recover' ? recover() : command === 'verify-public' ? verifyPublic() : command === 'assert-web-start-permitted' ? assertWebStartPermitted() : command === 'ledger-init' ? ledgerInitCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-transition' ? ledgerTransitionCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-update' ? ledgerUpdateCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-heartbeat' ? ledgerHeartbeatCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-prepare' ? ledgerPrepareCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-recover' ? ledgerRecoverCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-recover-system' ? ledgerRecoverSystemCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-system-transition' ? ledgerSystemTransitionCli(parseLedgerCliArgs(process.argv.slice(3))) : command === 'ledger-read' ? readFullStackReleaseLedger(parseLedgerCliArgs(process.argv.slice(3)).path).then((ledger) => process.stdout.write(`${JSON.stringify(ledger)}\n`)) : Promise.reject(new Error('usage: full-stack-preview-publisher.mjs synthetic-lock-repair|stage|publish|activate|confirm-public|probe-nonce|expire-probe|restore-confirmed-edge|resume-revocation|revoke|recover|verify-public|assert-web-start-permitted|ledger-init|ledger-transition|ledger-update|ledger-heartbeat|ledger-prepare|ledger-recover|ledger-recover-system|ledger-system-transition|ledger-read')))
     .catch((error) => { process.stderr.write(`${error instanceof Error ? error.message : 'full_stack_publication_failed'}\n`); process.exitCode = error?.exitCode ?? 1; });
 }

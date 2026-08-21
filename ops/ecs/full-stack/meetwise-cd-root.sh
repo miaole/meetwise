@@ -1521,6 +1521,11 @@ install_deps() {
   echo install_deps_ok
 }
 
+ensure_synthetic_state_lock() {
+  [[ -f "$PUBLISHER" && ! -L "$PUBLISHER" ]] || die synthetic_state_lock_helper_missing 70
+  /usr/bin/node "$PUBLISHER" synthetic-lock-repair || die synthetic_state_lock_invalid 70
+}
+
 discard_unclaimed_release() {
   local release="$1" dir marker current_target ledger_json marker_status snapshot_status ledger_status
   [[ $# -eq 1 && "$release" =~ $RELEASE_RE ]] || die release_name_invalid
@@ -1836,6 +1841,9 @@ flip_current() {
 
 synthetic_verify() {
   local release="$1" dir; dir="$(with_release_cwd "$release")"
+  # Reconcile the fixed state root/lock through controller-owned fd code before
+  # any runuser boundary can start candidate-controlled loader JavaScript.
+  ensure_synthetic_state_lock
   [[ -f "$SYNTHETIC_LOADER" && ! -L "$SYNTHETIC_LOADER" ]] || die trusted_loader_missing
   [[ -f "$DEEP_USAGE_RUNNER" && ! -L "$DEEP_USAGE_RUNNER" ]] || die trusted_deep_runner_missing
   [[ -f "$VERIFIER_ENV" && ! -L "$VERIFIER_ENV" && -f "$PREVIEW_ACCOUNT_ENV" && ! -L "$PREVIEW_ACCOUNT_ENV" ]] || die synthetic_runtime_env_missing
