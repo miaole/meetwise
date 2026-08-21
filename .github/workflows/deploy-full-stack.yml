@@ -391,7 +391,15 @@ jobs:
           # Prepare is bound to the already-migrated token ledger.  The ECS
           # controller, not PUBLICATION_STATE or this workflow, supplies the
           # generation used by the approval artifact.
-          prepare_json="$(ssh meetwise-ecs "meetwise-cd prepare $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN ${{ steps.git.outputs.commit }} ${{ steps.git.outputs.tree }} $ORIGIN ${{ steps.web.outputs.webBuildSha256 }} ${{ steps.web.outputs.staticAssetsSha256 }} ${{ steps.images.outputs.backend_digest }} ${{ steps.images.outputs.web_digest }}")"
+          prepare_status=0
+          prepare_json="$(ssh meetwise-ecs "meetwise-cd prepare $TRANSACTION_ID $RELEASE $RECOVERY_TOKEN ${{ steps.git.outputs.commit }} ${{ steps.git.outputs.tree }} $ORIGIN ${{ steps.web.outputs.webBuildSha256 }} ${{ steps.web.outputs.staticAssetsSha256 }} ${{ steps.images.outputs.backend_digest }} ${{ steps.images.outputs.web_digest }}")" || prepare_status=$?
+          if [ "$prepare_status" -ne 0 ]; then
+            # 75 is the controller's token-lease expiry classification. Let
+            # the existing deploy failure/recovery path handle it; do not
+            # blindly retry a prepare that may have timed out or lost its CAS.
+            [ "$prepare_status" -eq 75 ] && { echo 'prepare transaction lease expired; recovery will classify the release' >&2; exit 75; }
+            exit "$prepare_status"
+          fi
           prepared_generation="$(printf '%s' "$prepare_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{const v=JSON.parse(s); if(!Number.isSafeInteger(v.generation))process.exit(1); process.stdout.write(String(v.generation))})')"
           test "$prepared_generation" = "$GENERATION" || { echo 'prepare generation differs from transaction identity' >&2; exit 1; }
           echo "generation=$prepared_generation" >> "$GITHUB_OUTPUT"

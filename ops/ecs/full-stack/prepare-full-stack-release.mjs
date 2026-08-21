@@ -47,6 +47,9 @@ import { spawnSync } from 'node:child_process';
 const APPROVAL_PATH = '/etc/meetwise/full-stack-release.json';
 const TARGET_PATH = '/etc/meetwise/preview-synthetic-target.json';
 const VERIFIER_ENV_FILE = '/etc/meetwise/full-stack-verifier.env';
+const FULL_STACK_LEDGER_PATH = '/var/lib/meetwise-preview-controller/full-stack-release-ledger.json';
+const FULL_STACK_PUBLISHER_PATH = '/usr/local/lib/meetwise-preview-controller/full-stack/full-stack-preview-publisher.mjs';
+const COMPUTE_TIMEOUT_SECONDS = 600;
 
 // P0-1：compute 模式以 meetwise-synthetic（uid/gid 2001，provision 固定）运行；
 // root 模式仍要求 root（读前驱审批 + 落盘两份 JSON）。
@@ -60,6 +63,8 @@ const COMMIT = /^[a-f0-9]{40}$/;
 const DIGEST = /^[a-f0-9]{64}$/;
 const IMAGE_DIGEST = /^sha256:[a-f0-9]{64}$/;
 const TAILSCALE_ORIGIN = /^https:\/\/[a-z0-9-]+\.tail[a-z0-9]+\.ts\.net$/;
+const TRANSACTION_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/;
+const RECOVERY_TOKEN = /^[a-f0-9]{64}$/;
 // The factory is a composition, not only the historical four-file loader.
 // verifier-env.mjs owns the read-only DB boundary and the account runner owns
 // the deep-usage receipt contract; omitting either file would let a release
@@ -344,6 +349,34 @@ export function isExactApprovalRetry(previousApproval, expected) {
     && previousApproval.previewData?.deepUsage?.scenarioId === 'deep-usage-v1';
 }
 
+// This is the trusted finalize fence.  The compute child never receives the
+// transaction id or recovery token; only this root-owned module invokes the
+// controller publisher with the secret after the untrusted catalog computation
+// has completed.  `ledger-prepare` performs the token-bound identity check and
+// heartbeat while the controller flock is still inherited from the caller.
+function finalizeLedgerPrepare({ transactionId, release, token, commit, tree, generation }) {
+  // Node closes unknown descriptors unless they are listed in stdio.  Pass
+  // controller flock fd 9 explicitly so the trusted publisher can verify the
+  // same root-owned lock inode before mutating the ledger.
+  const stdio = ['ignore', 'pipe', 'pipe'];
+  for (let index = 3; index < 9; index += 1) stdio[index] = 'ignore';
+  stdio[9] = 9;
+  const result = spawnSync(process.execPath, [
+    FULL_STACK_PUBLISHER_PATH, 'ledger-prepare', '--path', FULL_STACK_LEDGER_PATH,
+    '--transaction-id', transactionId, '--release', release, '--token', token,
+    '--commit', commit, '--tree', tree,
+  ], { encoding: 'utf8', env: process.env, stdio, maxBuffer: 1024 * 1024 });
+  if (result.error) throw result.error;
+  if (result.status === 75) throw Object.assign(new Error('prepare_transaction_lease_expired'), { exitCode: 75 });
+  if (result.status !== 0) throw new Error('prepare_transaction_identity_mismatch');
+  let ledger;
+  try { ledger = JSON.parse(result.stdout); } catch { throw new Error('prepare_transaction_identity_mismatch'); }
+  if (ledger.transactionId !== transactionId || ledger.release !== release
+    || ledger.commit !== commit || ledger.tree !== tree || ledger.phase !== 'migrated'
+    || ledger.generation !== generation) throw new Error('prepare_transaction_identity_mismatch');
+  return ledger;
+}
+
 export async function querySchemaLedger(releasePath, sha256, resolveReadOnlyVerifierEnv) {
   const require = createRequire(join(releasePath, 'packages/db/package.json'));
   const pg = require('pg');
@@ -423,6 +456,9 @@ async function main() {
   if (process.getuid?.() !== 0) throw new Error('prepare_requires_root');
   const args = parseArgs(process.argv);
   const { releasePath } = validateSharedArgs(args);
+  if (!TRANSACTION_ID.test(args['transaction-id'] ?? '') || !RECOVERY_TOKEN.test(args['recovery-token'] ?? '') || !/^[a-f0-9]{40}-fullstack-[0-9]{8}-[1-9][0-9]*-[1-9][0-9]*$/.test(args.release ?? '')) {
+    throw new Error('prepare_transaction_identity_invalid');
+  }
   // Generation is a controller-owned transaction fact.  The caller must not
   // omit it and let this script derive a successor from PUBLICATION_STATE:
   // that would permit a tokenless/replayed prepare to race a live transaction
@@ -472,13 +508,19 @@ async function main() {
   const computeArgs = ['compute', '--commit', args.commit, '--tree', args.tree, '--origin', args.origin, '--web-build-sha256', args['web-build-sha256'], '--static-assets-sha256', args['static-assets-sha256'], '--backend-image-digest', args['backend-image-digest'], '--web-image-digest', args['web-image-digest'], '--release-path', releasePath, '--generation', String(generation)];
   // bash -c SCRIPT bash <self> compute … → $0='bash'、$@=[self, …computeArgs]；exec node "$@"。
   const childScript = `set -a; . ${VERIFIER_ENV_FILE}; set +a; exec /usr/bin/node "$@"`;
-  const child = spawnSync('/usr/sbin/runuser', [
+  // GNU timeout is deliberate here: Node's spawnSync timeout only signals the
+  // direct child and can leave a runuser descendant alive.  The controller
+  // compute budget is a hard 600 seconds, with a bounded TERM→KILL grace.
+  const child = spawnSync('/usr/bin/timeout', [
+    '--signal=TERM', '--kill-after=5s', `${COMPUTE_TIMEOUT_SECONDS}s`,
+    '/usr/sbin/runuser',
     '-u', 'meetwise-synthetic', '--',
     '/usr/bin/env', '-i',
     'HOME=/var/lib/meetwise-preview-synthetic', 'PATH=/usr/sbin:/usr/bin:/sbin:/bin',
     '/bin/bash', '-c', childScript, 'bash', self, ...computeArgs,
   ], { encoding: 'utf8', env: {}, maxBuffer: 16 * 1024 * 1024 });
   if (child.error) throw child.error;
+  if (child.status === 124 || child.status === 137) throw Object.assign(new Error('prepare_compute_timeout'), { exitCode: 70 });
   // 不回传 child.stderr（compute 的 pg 连接错误可能带 host/user——按隐私铁律不外泄），只出固定 reason code。
   if (child.status !== 0) throw new Error('prepare_compute_failed');
   let target; let approval;
@@ -525,6 +567,15 @@ async function main() {
   assertPreviewDataShape(target.previewData);
 
   const targetDigest = approval.targetDigest;
+  // Never write either fixed artifact until a second token-bound ledger
+  // heartbeat/CAS confirms the exact migrated transaction and generation.  A
+  // lease expiry or identity mismatch therefore leaves both artifacts byte
+  // unchanged; the publisher's exit 75 is intentionally preserved for the
+  // workflow's existing recovery classification.
+  finalizeLedgerPrepare({
+    transactionId: args['transaction-id'], release: args.release, token: args['recovery-token'],
+    commit: args.commit, tree: args.tree, generation,
+  });
   // 目标档落盘为 0640 root:meetwise-synthetic（loader/db-verify/compute 以 synthetic 只读）；
   // 审批档保持 0600 root:root（generation 已由 token-bound controller ledger 冻结）。
   durableWriteJson(TARGET_PATH, target, { mode: 0o640, uid: 0, gid: SYNTHETIC_GID });
@@ -534,5 +585,9 @@ async function main() {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const entry = process.argv[2] === 'compute' ? computeMain() : main();
-  entry.catch((error) => { process.stderr.write(`${error instanceof Error ? error.message : 'prepare_full_stack_release_failed'}\n`); process.exitCode = 1; });
+  entry.catch((error) => {
+    process.stderr.write(`${error instanceof Error ? error.message : 'prepare_full_stack_release_failed'}\n`);
+    const exitCode = Number.isInteger(error?.exitCode) && error.exitCode >= 1 && error.exitCode <= 255 ? error.exitCode : 1;
+    process.exitCode = exitCode;
+  });
 }

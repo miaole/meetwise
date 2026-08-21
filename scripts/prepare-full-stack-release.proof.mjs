@@ -5,7 +5,7 @@
  * release artifact.  The real prepare command remains root/controller-only.
  */
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
@@ -146,6 +146,57 @@ test('source contract forbids generic DB inheritance and keeps passwords outside
   assert.match(source, /prepare_preview_credentials_persisted/);
   assert.doesNotMatch(source, /connectionString:\s*process\.env\.DATABASE_URL/);
   assert.doesNotMatch(source, /DATABASE_URL=.*compute/);
+  assert.match(source, /COMPUTE_TIMEOUT_SECONDS = 600/);
+  assert.match(source, /'--kill-after=5s', `\$\{COMPUTE_TIMEOUT_SECONDS\}s`/);
+  assert.match(source, /prepare_compute_timeout/);
+  assert.match(source, /finalizeLedgerPrepare\(\{/);
+  assert.match(source, /stdio\[9\] = 9/);
+  const finalCas = source.indexOf('finalizeLedgerPrepare({');
+  const artifactWrite = source.indexOf('durableWriteJson(TARGET_PATH');
+  assert.ok(finalCas < artifactWrite);
+  assert.doesNotMatch(source, /computeArgs[\s\S]{0,800}recovery-token/);
+});
+
+test('forced receiver forwards all ten prepare parameters to fake sudo in order', () => {
+  const tempDir = mkdtempSync(join(tmpdir(), 'meetwise-receiver-proof-'));
+  const incoming = join(tempDir, 'incoming');
+  const fakeBin = join(tempDir, 'bin');
+  const capture = join(tempDir, 'sudo-argv.txt');
+  const rootDispatch = join(tempDir, 'root-dispatch');
+  const receiver = join(tempDir, 'receiver.sh');
+  mkdirSync(incoming, { mode: 0o700 });
+  mkdirSync(fakeBin, { mode: 0o700 });
+  writeFileSync(join(fakeBin, 'sudo'), '#!/bin/sh\nprintf \'%s\\n\' "$@" > "$CAPTURE"\n', { mode: 0o700 });
+  // The production receiver runs on GNU/Linux; this proof also runs on the
+  // macOS developer host, whose stat has no `-c` flag.  Stub only the one
+  // bounded mode query used before sudo dispatch.
+  writeFileSync(join(fakeBin, 'stat'), '#!/bin/sh\n[ "$1" = "-c" ] && [ "$2" = "%a" ] && { printf "700\\n"; exit 0; }\nexit 1\n', { mode: 0o700 });
+  writeFileSync(rootDispatch, '#!/bin/sh\nexit 0\n', { mode: 0o700 });
+  const receiverSource = readFileSync(join(root, 'ops/ecs/full-stack/meetwise-cd-receive.sh'), 'utf8')
+    .replace(/^ROOT_DISPATCH=.*$/m, `ROOT_DISPATCH=${rootDispatch}`)
+    .replace(/^INCOMING=.*$/m, `INCOMING=${incoming}`);
+  writeFileSync(receiver, receiverSource, { mode: 0o700 });
+  const transactionId = 'tx-prepare-proof';
+  const release = `${'a'.repeat(40)}-fullstack-20260820-1-1`;
+  const token = 'd'.repeat(64);
+  const commit = 'b'.repeat(40);
+  const tree = 'c'.repeat(40);
+  const origin = 'https://preview.tail0000000.ts.net';
+  const webBuild = 'f'.repeat(64);
+  const staticAssets = '1'.repeat(64);
+  const backend = `sha256:${'2'.repeat(64)}`;
+  const web = `sha256:${'3'.repeat(64)}`;
+  const prepareArgs = [transactionId, release, token, commit, tree, origin, webBuild, staticAssets, backend, web];
+  const result = spawnSync('/bin/bash', [receiver], {
+    encoding: 'utf8',
+    env: { ...process.env, PATH: `${fakeBin}:${process.env.PATH ?? ''}`, CAPTURE: capture, SSH_ORIGINAL_COMMAND: ['meetwise-cd', 'prepare', ...prepareArgs].join(' ') },
+  });
+  try {
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(readFileSync(capture, 'utf8').trimEnd().split('\n'), [rootDispatch, 'prepare', ...prepareArgs]);
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+  }
 });
 
 test('prepare identity is behavioral: only migrated exact-ledger retries may reuse an approval', () => {
@@ -205,10 +256,23 @@ test('prepare identity is behavioral: only migrated exact-ledger retries may reu
       ['wrong tree', { tree: 'e'.repeat(40) }, 'full_stack_prepare_ledger_identity_mismatch'],
     ]) {
       writeLedger({ ...ledger, ...(overrides.phase ? { phase: overrides.phase } : {}) });
+      const beforeBytes = readFileSync(ledgerPath, 'utf8');
+      const beforeHeartbeat = JSON.parse(beforeBytes).heartbeatAt;
       const result = runPrepare(overrides);
       assert.notEqual(result.status, 0, `${label} must fail closed`);
       assert.match(result.stderr, new RegExp(reason));
+      assert.equal(readFileSync(ledgerPath, 'utf8'), beforeBytes, `${label} must not rewrite the ledger`);
+      assert.equal(JSON.parse(readFileSync(ledgerPath, 'utf8')).heartbeatAt, beforeHeartbeat, `${label} must not heartbeat`);
     }
+    const expired = new Date(Date.now() - 1_200_000).toISOString();
+    const expiredLedger = { ...ledger, heartbeatAt: expired, leaseExpiresAt: new Date(Date.parse(expired) + 900_000).toISOString() };
+    writeLedger(expiredLedger);
+    const expiredBefore = readFileSync(ledgerPath, 'utf8');
+    const expiredResult = runPrepare();
+    assert.equal(expiredResult.status, 75, expiredResult.stderr);
+    assert.match(expiredResult.stderr, /full_stack_release_lease_expired/);
+    assert.equal(readFileSync(ledgerPath, 'utf8'), expiredBefore, 'expired lease must not rewrite the ledger');
+    assert.equal(JSON.parse(readFileSync(ledgerPath, 'utf8')).heartbeatAt, expired, 'expired lease must not heartbeat');
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
   }

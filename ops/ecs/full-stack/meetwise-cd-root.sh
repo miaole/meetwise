@@ -1621,13 +1621,26 @@ prepare() {
   # artifact publication.  A second runner cannot observe the same transaction
   # and race an approval with a different generation.
   with_controller_lock
-  local generation
-  generation="$(prepare_ledger_generation "$transaction_id" "$release" "$token" "$commit" "$tree")" || die prepare_transaction_identity_mismatch
+  local generation generation_status=0
+  generation="$(prepare_ledger_generation "$transaction_id" "$release" "$token" "$commit" "$tree")" || generation_status=$?
+  if [[ "$generation_status" -ne 0 ]]; then
+    # ledger-prepare uses 75 for an expired token lease. Preserve that status
+    # so GitHub enters the existing recovery job; never turn it into the
+    # generic 64 identity error or blindly retry prepare.
+    [[ "$generation_status" -eq 75 ]] && exit 75
+    die prepare_transaction_identity_mismatch
+  fi
+  local prepare_status=0
   /usr/bin/node "$PREPARE" \
+    --transaction-id "$transaction_id" --release "$release" --recovery-token "$token" \
     --commit "$commit" --tree "$tree" --origin "$origin" \
     --web-build-sha256 "$wb" --static-assets-sha256 "$sa" \
     --backend-image-digest "$backend_digest" --web-image-digest "$web_digest" \
-    --release-path "$dir" --generation "$generation" || die prepare_failed 70
+    --release-path "$dir" --generation "$generation" || prepare_status=$?
+  if [[ "$prepare_status" -ne 0 ]]; then
+    [[ "$prepare_status" -eq 75 ]] && exit 75
+    die prepare_failed 70
+  fi
 }
 
 # compose 单机：迁移由一次性 migrate 容器执行（后端镜像内含 migrations + pg），不再从源码树跑。
