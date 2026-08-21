@@ -1,0 +1,99 @@
+name: deploy
+
+# 精简 CD:main 上 CI 成功后自动部署,也可手动触发。
+# 只做「构建镜像 → 推 ACR(@sha256)→ SSH 到单机 ECS 跑 compose 部署」。
+# 原 deploy-full-stack 的 token 事务账本 / 外部签名 / Pages 回执 / 合成数据重灌
+# 已退役 —— 单机 demo 不需要,且是此前一夜连续失败的根源。
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# 串行化:一次只允许一个部署,新推的排队,绝不交错。
+concurrency:
+  group: meetwise-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # 仅真仓库、且(自动触发时)对应 CI 成功才部署;fork/PR 永不触及部署凭据。
+    if: >-
+      github.repository == 'miaole/meetwise' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: preview-cd
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+
+      # 镜像在 CI 构建(4G ECS 上 next build 会 OOM),以 @sha256 内容摘要钉死运行时
+      # 身份:tag 只作构建定位,摘要才是被部署的事实。
+      - name: Build + push images to ACR
+        id: images
+        env:
+          REGISTRY: ${{ secrets.ACR_REGISTRY }}
+          NAMESPACE: ${{ secrets.ACR_NAMESPACE }}
+        run: |
+          set -euo pipefail
+          printf '%s\n' "${{ secrets.ACR_PASSWORD }}" | docker login "$REGISTRY" -u "${{ secrets.ACR_USERNAME }}" --password-stdin
+          sha="$(git rev-parse HEAD)"
+          tree="$(git rev-parse HEAD^{tree})"
+          backend_tag="$REGISTRY/$NAMESPACE/meetwise-backend:sha-$sha"
+          web_tag="$REGISTRY/$NAMESPACE/meetwise-web:sha-$sha"
+          docker build --build-arg "VCS_REF=$sha" --build-arg "SOURCE_TREE=$tree" -t "$backend_tag" -f Dockerfile .
+          docker push "$backend_tag"
+          docker build --build-arg "VCS_REF=$sha" --build-arg "SOURCE_TREE=$tree" -t "$web_tag" -f apps/web/Dockerfile .
+          docker push "$web_tag"
+          backend_ref="$(docker inspect --format '{{index .RepoDigests 0}}' "$backend_tag")"
+          web_ref="$(docker inspect --format '{{index .RepoDigests 0}}' "$web_tag")"
+          [[ "$backend_ref" == *@sha256:* && "$web_ref" == *@sha256:* ]] || { echo 'digest extraction failed' >&2; exit 1; }
+          echo "backend_ref=$backend_ref" >> "$GITHUB_OUTPUT"
+          echo "web_ref=$web_ref" >> "$GITHUB_OUTPUT"
+
+      # 单机 ECS 只在 tailnet 内可达(无公网 SSH);临时节点部署完即回收。
+      - name: Connect ephemeral Tailscale node
+        uses: tailscale/github-action@92117a0a1d5c99a90c035c00d1eb52e357e1e1a4 # v3
+        with:
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
+          args: --advertise-tags=tag:meetwise-cd
+
+      - name: Configure SSH to ECS (tailnet-only, pinned host key)
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "${{ secrets.ECS_DEPLOY_KEY }}" > "$HOME/.ssh/deploy_key"
+          printf '%s\n' "${{ secrets.ECS_CD_KNOWN_HOSTS }}" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/deploy_key" "$HOME/.ssh/known_hosts"
+          {
+            printf 'Host meetwise-ecs\n'
+            printf '  HostName %s\n' "${{ secrets.ECS_CD_SSH_HOST }}"
+            printf '  User meetwise-deploy\n'
+            printf '  IdentityFile ~/.ssh/deploy_key\n'
+            printf '  IdentitiesOnly yes\n'
+            printf '  StrictHostKeyChecking yes\n'
+            printf '  UserKnownHostsFile ~/.ssh/known_hosts\n'
+            printf '  ConnectTimeout 30\n'
+          } > "$HOME/.ssh/config"
+          chmod 600 "$HOME/.ssh/config"
+
+      # compose 文件由仓库作为唯一真相同步到机器,再运行部署脚本;.env(含 DB/模型
+      # 凭据)是机器一次性 provision 的,部署只改两行镜像摘要。
+      - name: Sync compose files to ECS
+        run: |
+          scp docker/compose.prod.yml meetwise-ecs:/srv/meetwise-compose/docker/compose.prod.yml
+          scp docker/compose.prod.override.yml meetwise-ecs:/srv/meetwise-compose/docker/compose.prod.override.yml
+
+      - name: Deploy (compose pull → migrate → up --wait → 失败回滚)
+        run: |
+          ssh meetwise-ecs 'bash -s -- "${{ steps.images.outputs.backend_ref }}" "${{ steps.images.outputs.web_ref }}"' \
+            < ops/deploy/remote-deploy.sh
