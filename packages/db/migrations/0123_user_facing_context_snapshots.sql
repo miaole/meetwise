@@ -25,6 +25,13 @@ UPDATE job_application a
 ALTER TABLE job_application ENABLE TRIGGER trg_enforce_job_application_interview_binding;
 ALTER TABLE job_application ENABLE TRIGGER trg_job_application_lineage;
 
+-- `interview` 通过 DEFERRABLE INITIALLY DEFERRED 外键引用 application/job/resume。
+-- 上面的 application 回填会在本事务中留下待结算的约束事件；PostgreSQL 在这些
+-- 事件结算前拒绝后续 ALTER TABLE interview。这里先强制结算并把本事务剩余部分
+-- 切到 immediate 检查：约束不满足则整笔 migration 回滚，满足后后续 interview
+-- 回填不会再次积累 pending events，也不会把结构变更拆出 migration ledger 事务。
+SET CONSTRAINTS ALL IMMEDIATE;
+
 ALTER TABLE job_application DROP CONSTRAINT IF EXISTS job_application_title_snapshot_chk;
 ALTER TABLE job_application ADD CONSTRAINT job_application_title_snapshot_chk
   CHECK (char_length(btrim(job_title_snapshot)) BETWEEN 1 AND 120);

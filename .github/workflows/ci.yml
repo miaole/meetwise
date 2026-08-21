@@ -166,6 +166,8 @@ jobs:
         run: pnpm db:prove
       - name: 版本化迁移运行器（只跑待应用·幂等·事务·漂移检测·advisory锁）
         run: pnpm migrate:prove
+      - name: B端历史快照迁移回归（stale binding + deferred FK pending events）
+        run: pnpm neg:bend
       - name: legacy schema 兼容门（迁移路径 vs sql/ 兼容镜像逐列+约束比对；不替代完整迁移 E2E）
         run: pnpm drift:prove
       - name: 模型熔断器（连败→降级快速失败不打模型→冷却半开→恢复关闭）
