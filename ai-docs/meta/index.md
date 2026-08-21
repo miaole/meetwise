@@ -42,7 +42,8 @@ tags:
 - `delivery/resume-project-highlights.md`：已验证指标、简历项目亮点、面试追问卡与禁止夸大表述。
 - `delivery/production-readiness-remediation-register.md`：测试、评测、演示与真实生产路径不等价时的整改登记、验收和关闭纪律。
 - `delivery/execution-master-checklist.md`：所有已登记未闭环事项的依赖顺序、逐项执行清单和阶段出口；审阅后按此顺序实施。
-- `delivery/ecs-full-stack-cd-implementation-plan.md`：从同 SHA CI、ACR、ECS 发布事务、回滚到 Pages exact receipt 与 B/C E2E 的完整实施合同；当前为阻断态计划，不是发布证据。
+- `delivery/lean-cd-deployment.md`：**当前生效**的精简单机 CD——CI 构建镜像(@sha256)→ACR→SSH→compose pull/migrate/up --wait/失败回滚。部署相关首看此文档。
+- `delivery/ecs-full-stack-cd-implementation-plan.md`：**已退役（历史背景）**。原全栈事务化预览 CD（27 步 token 事务 + 外部签名回执 + Pages exact receipt）；对单机 demo 过度工程且长期不收敛，已被 `lean-cd-deployment.md` 取代，工作流已 disable。不代表运行现状。
 - `observability/README.md`：AI、Graph、成本和质量观测。
 - `requirements/use-cases/expert-interview-coach-agent-graph.md`：面向候选人的 LangGraph / Agent 图深度面试教练材料。
 - `requirements/use-cases/expert-interview-coach-rag-runtime.md`：面向候选人的 RAG、Agent Runtime、流式性能深度面试教练材料。
@@ -73,7 +74,8 @@ tags:
 | AI 编排 | `architecture/ai/langgraph-blueprint.md` | graph、state、checkpoint、eval |
 | 前端架构 | `architecture/frontend/` | 页面、组件、数据流、RSC 边界 |
 | 后端架构 | `architecture/backend/` | 模块、接口、DB、事务、队列 |
-| 部署演示 | `architecture/devops/local-demo-deployment.md` | compose、seed、健康检查 |
+| 云端部署(CD) | `delivery/lean-cd-deployment.md` | 精简单机 compose 部署、ACR、回滚 |
+| 本地演示 | `architecture/devops/local-demo-deployment.md` | compose、seed、健康检查 |
 | 测试设计 | `testing/strategy/test-strategy.md` | 测试矩阵、golden tasks |
 | 代码生成前确认 | `meta/task-sop.md` 的生成前门禁 | Task Harness |
 
