@@ -177,9 +177,21 @@ for (const generation of [6, 7, 9]) {
   if (generation <= 6) assert.throws(() => assertTrustedLedgerApproval(approvalFor(generation), ledger, { state: revokedState, manifest: revokedManifest }), /full_stack_trusted_predecessor_mismatch/);
   if (generation === 9) assert.throws(() => assertTrustedLedgerApproval(approvalFor(8), ledger, { state: revokedState, manifest: revokedManifest }), /full_stack_trusted_approval_mismatch/);
 }
-const freshCandidate2 = candidateLedger(2, { identityBound: true, completed: true, freshHost: true, generation: 0, fingerprint: 'e'.repeat(64) });
-assert.doesNotThrow(() => assertTrustedLedgerApproval(approvalFor(2), freshCandidate2, { state: null, manifest: null }), 'fresh host may retry at ledger generation 2 with generation-zero predecessor');
-assert.throws(() => assertTrustedLedgerApproval(approvalFor(2), candidateLedger(2, { identityBound: true, completed: false, freshHost: true, generation: 0, fingerprint: 'e'.repeat(64) }), { state: null, manifest: null }), /full_stack_trusted_predecessor_mismatch/);
+// A fresh host's predecessor is the trusted Pages-disabled receipt, not an
+// implied generation-zero constant.  It may carry any safe generation >= 0,
+// but the candidate ledger must advance strictly beyond that receipt.
+const freshHostDisabledReceipt = { identityBound: true, completed: true, freshHost: true, generation: 6, fingerprint: 'e'.repeat(64) };
+const freshCandidate8 = candidateLedger(8, freshHostDisabledReceipt);
+assert.doesNotThrow(() => assertTrustedLedgerApproval(approvalFor(8), freshCandidate8, { state: null, manifest: null }), 'fresh host candidate generation 8 must advance beyond trusted disabled receipt generation 6');
+for (const generation of [6, 5]) {
+  assert.throws(() => assertTrustedLedgerApproval(approvalFor(generation), candidateLedger(generation, freshHostDisabledReceipt), { state: null, manifest: null }), /full_stack_trusted_predecessor_mismatch/, `fresh host generation ${generation} must not equal or fall behind disabled receipt generation 6`);
+}
+for (const predecessorGeneration of [-1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+  assert.throws(() => assertTrustedLedgerApproval(approvalFor(8), candidateLedger(8, { ...freshHostDisabledReceipt, generation: predecessorGeneration }), { state: null, manifest: null }), /full_stack_trusted_predecessor_mismatch/, `unsafe fresh-host predecessor generation ${predecessorGeneration} must fail closed`);
+}
+assert.throws(() => assertTrustedLedgerApproval(approvalFor(8), candidateLedger(8, undefined), { state: null, manifest: null }), /full_stack_trusted_predecessor_mismatch/, 'missing fresh-host predecessor record must fail closed');
+assert.throws(() => assertTrustedLedgerApproval(approvalFor(8), candidateLedger(8, { ...freshHostDisabledReceipt, completed: false }), { state: null, manifest: null }), /full_stack_trusted_predecessor_mismatch/, 'incomplete fresh-host predecessor record must fail closed');
+assert.throws(() => assertTrustedLedgerApproval(approvalFor(5), candidate8, { state: revokedState, manifest: revokedManifest }), /full_stack_trusted_approval_mismatch/, 'revoked predecessor older approval must fail closed');
 // Legacy systemd app units are regular files under /etc/systemd/system on the
 // current ECS image, so persistent `systemctl mask` is not a valid ownership
 // transfer (it cannot replace the file).  The transactional hand-off must stop

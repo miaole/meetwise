@@ -325,7 +325,8 @@ export function assertTrustedLedgerApproval(approval, ledger, { state = null, ma
       || state.generation !== ledger.generation) throw new Error('full_stack_trusted_predecessor_mismatch');
   } else if (state === null && manifest === null) {
     if (!predecessor || predecessor.identityBound !== true || predecessor.completed !== true || predecessor.freshHost !== true
-      || predecessor.generation !== 0 || !DIGEST.test(predecessor.fingerprint ?? '')) throw new Error('full_stack_trusted_predecessor_mismatch');
+      || !Number.isSafeInteger(predecessor.generation) || predecessor.generation < 0
+      || ledger.generation <= predecessor.generation || !DIGEST.test(predecessor.fingerprint ?? '')) throw new Error('full_stack_trusted_predecessor_mismatch');
   } else if (state === null && manifest !== null) {
     if (manifest.status !== 'verified' || manifest.revoked !== false || manifest.generation !== approval.generation
       || manifest.releaseDigest !== approval.releaseDigest || manifest.commit !== approval.commit || manifest.tree !== approval.tree
