@@ -5,5 +5,3 @@
 /docker/ @miaole
 /ops/ecs/ @miaole
 /packages/db/migrations/ @miaole
-/scripts/preview-synthetic-data/ @miaole
-/scripts/preview-account-scenarios/ @miaole
