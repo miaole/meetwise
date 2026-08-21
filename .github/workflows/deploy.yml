@@ -61,7 +61,7 @@ jobs:
 
       # 单机 ECS 只在 tailnet 内可达(无公网 SSH);临时节点部署完即回收。
       - name: Connect ephemeral Tailscale node
-        uses: tailscale/github-action@92117a0a1d5c99a90c035c00d1eb52e357e1e1a4 # v3
+        uses: tailscale/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade # v3.3.0
         with:
           oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
