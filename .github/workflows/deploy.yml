@@ -65,7 +65,9 @@ jobs:
         with:
           oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
-          args: --advertise-tags=tag:meetwise-cd
+          # v3+ 用 OAuth 时,tag 必须经独立 tags input 传(action 会据此校验并自动
+          # advertise);放进 args 会被判为「OAuth identity empty」而失败。
+          tags: tag:meetwise-cd
 
       - name: Configure SSH to ECS (tailnet-only, pinned host key)
         run: |
