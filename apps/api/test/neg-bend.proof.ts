@@ -46,8 +46,8 @@ await h.pool.query(
   "VALUES ('APP_STALE','JOB_REC','recU','userA','IV_STALE','in_progress','applied',$1)",
   [STALE_RESUME_ID]);
 await h.pool.query(
-  "INSERT INTO interview(id,owner_user_id,status,application_id,job_id,resume_id) " +
-  "VALUES ('IV_STALE','userA','abandoned','APP_STALE','JOB_REC',$1)",
+  "INSERT INTO interview(id,owner_user_id,status,application_id,job_id,resume_id,interview_attempt) " +
+  "VALUES ('IV_STALE','userA','abandoned','APP_STALE','JOB_REC',$1,1)",
   [STALE_RESUME_ID]);
 // This file reloads the historical B tables for isolated negative tests, so
 // re-apply the current invariant migration after the fixture—not before it.

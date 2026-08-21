@@ -32308,7 +32308,7 @@
       "scripts/quality-traceability.proof.mjs",
       "scripts/run-e2e-isolated.mjs"
     ],
-    "governedPathDigest": "sha256:b9f7e471f973b8151ac7e6ba22e9a9f1ef3b6fecb4cdcaf868a1dc1f7be29250",
+    "governedPathDigest": "sha256:504dd699bc8bc70dcdd0423d44b6ba290819fe2141a03fae2367fb144783ce6c",
     "harness": {
       "scope": "Static migration-history successor for real CD run 32431467021 attempt 2: forward rollover, controller and ACR checks passed; migration 0123 failed before SQL commit because deferred foreign-key pending trigger events rejected a later ALTER TABLE statement. Recovery succeeded with phase=rolled_back, schemaBefore=schemaAfter=1b606f08d3af64983388a215e8ca7498fbbf6482dd9e9737e9cba6ddcbe6ae08, schema head 0122_resume_pgcrypto_optional_acl.sql, runtimeOwner=none, services inactive, Funnel off and Pages disabled; this record binds the 0123 migration, neg-bend proof and CI regression gate, remains blocked, and releaseEvidence=false.",
       "sourceEvidenceIds": [
@@ -32442,7 +32442,7 @@
       "summary": "Static follow-up review records real CD run 32431467021 attempt 2: forward rollover, controller and ACR checks passed; migration 0123 failed before SQL commit on deferred foreign-key pending trigger events, recovery succeeded to rolled_back, schemaBefore=schemaAfter=1b606f08d3af64983388a215e8ca7498fbbf6482dd9e9737e9cba6ddcbe6ae08 with head 0122_resume_pgcrypto_optional_acl.sql, runtimeOwner was none, services were inactive, Funnel was off and Pages was disabled; CI neg:bend also binds the four initially-deferred production foreign keys; no release evidence or serving claim is made.",
       "summaryDigest": "sha256:11623bf444b6f35e03c53747210e749a24b19541b4a71f9381a93d576779f19e",
       "decision": "blocked",
-      "reviewScopeDigest": "sha256:8d32b23de59b0d988c81f6ff8f6b8049a33a2b0f3ed58661b726e608f70ed009",
+      "reviewScopeDigest": "sha256:ddf5064a20d085ca7aa9b9c85be40ba6a8c74296fcb9b753ef17e5591407f4fe",
       "reviewedFindingIds": [
         "GOV-CD-LEGACY-MASK-001",
         "GOV-CD-LEGACY-STATE-001",
@@ -32532,7 +32532,7 @@
     ],
     "successorOf": "public-text-policy-control-plane-v52",
     "baselineChange": null,
-    "recordDigest": "sha256:262d2d3fad9508ae6682331e5de580e3218abe47eb6c78beff5b566f9f3f2690"
+    "recordDigest": "sha256:d3baffb15dcfe9a87e70367e2da42aba904bc97e9a76912d942aadba5dbdae0b"
   },
   {
     "taskId": "quality-governance-control-plane-v64",
@@ -32641,7 +32641,7 @@
       "scripts/quality-traceability.proof.mjs",
       "scripts/run-e2e-isolated.mjs"
     ],
-    "governedPathDigest": "sha256:e72feaa4abcdfb43445972180b897189e1d8c0afd7337fe2171c214cbd20dc60",
+    "governedPathDigest": "sha256:8d34689a33b13620a553c15d063a9691dbc5ffd5aa02c2ae066e303b08ea1902",
     "harness": {
       "scope": "Static migration-history successor for real CD run 32431467021 attempt 2: forward rollover, controller and ACR checks passed; migration 0123 failed before SQL commit because deferred foreign-key pending trigger events rejected a later ALTER TABLE statement. Recovery succeeded with phase=rolled_back, schemaBefore=schemaAfter=1b606f08d3af64983388a215e8ca7498fbbf6482dd9e9737e9cba6ddcbe6ae08, schema head 0122_resume_pgcrypto_optional_acl.sql, runtimeOwner=none, services inactive, Funnel off and Pages disabled; this record binds the 0123 migration, neg-bend proof and CI regression gate, remains blocked, and releaseEvidence=false.",
       "sourceEvidenceIds": [
@@ -32787,7 +32787,7 @@
       "summary": "Static follow-up review records real CD run 32431467021 attempt 2: forward rollover, controller and ACR checks passed; migration 0123 failed before SQL commit on deferred foreign-key pending trigger events, recovery succeeded to rolled_back, schemaBefore=schemaAfter=1b606f08d3af64983388a215e8ca7498fbbf6482dd9e9737e9cba6ddcbe6ae08 with head 0122_resume_pgcrypto_optional_acl.sql, runtimeOwner was none, services were inactive, Funnel was off and Pages was disabled; CI neg:bend also binds the four initially-deferred production foreign keys; no release evidence or serving claim is made.",
       "summaryDigest": "sha256:11623bf444b6f35e03c53747210e749a24b19541b4a71f9381a93d576779f19e",
       "decision": "blocked",
-      "reviewScopeDigest": "sha256:2a32bc2e5c0446f1e5648bd14af58c35e52ad289ed149e29b15201f767b964d9",
+      "reviewScopeDigest": "sha256:30297286a96f890cc051c9aa481ff7acc46fe4e4e78982999fb61cf86d30fd1c",
       "reviewedFindingIds": [
         "GOV-CD-CURRENT-TARGET-001",
         "GOV-CD-DEPLOY-PRE-MUTATION-001",
@@ -33229,7 +33229,7 @@
     ],
     "successorOf": "quality-governance-control-plane-v63",
     "baselineChange": null,
-    "recordDigest": "sha256:1f363e431013c752da08afc68694c19e394dee0b49950938e8425f0aa2fe58f0"
+    "recordDigest": "sha256:19baaac3efab913e77e13cf3fd9c03ba1af60671faca4baff7274b24c0500d64"
   }
 ]
 }
