@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readlinkSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readlinkSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
@@ -195,6 +195,13 @@ const extractFunction = (source, name, nextMarker) => {
   assert.ok(start >= 0 && end > start, `extract ${name}`);
   return source.slice(start, end + 2);
 };
+const installDepsFunction = extractFunction(root, 'install_deps', 'discard_unclaimed_release() {');
+// Install-deps is intentionally scoped to the DB production closure.  Keep
+// the exact selector/flags in the executable proof: a broad workspace install
+// is a disk/lockfile/lifecycle regression even when its command exits 0.
+assert.match(installDepsFunction, /--filter @meetwise\/db install --prod --frozen-lockfile --ignore-scripts/);
+assert.doesNotMatch(installDepsFunction, /\bpnpm\s+install\b/);
+assert.doesNotMatch(installDepsFunction, /--filter\s+\.\.\.\s+install/);
 const liveReadbackFunction = extractFunction(root, 'controller_live_readback', 'controller_copy_archive_root');
 const controllerVersionFunction = extractFunction(root, 'controller_version', 'controller_recover_pending "${1:-}"');
 const shellQuote = (value) => `'${value.replaceAll("'", "'\\''")}'`;
@@ -261,6 +268,211 @@ fs.lstatSync = (...args) => new Proxy(original(...args), {
 } finally {
   rmSync(fixture, { recursive: true, force: true });
 }
+
+// Execute install-deps in a fake root harness and capture every runuser argv.
+// The real pnpm binary is never invoked; the captured command must still prove
+// the exact @meetwise/db production-only, frozen, lifecycle-free invocation.
+const installFixture = mkdtempSync(join(tmpdir(), 'meetwise-install-deps-proof-'));
+try {
+  const fakeBin = join(installFixture, 'bin');
+  const releaseDir = join(installFixture, 'release');
+  const calls = join(installFixture, 'runuser.argv');
+  const fakeRunuser = join(fakeBin, 'runuser');
+  const release = `${'a'.repeat(40)}-fullstack-20260820-1-1`;
+  mkdirSync(fakeBin, { mode: 0o700 });
+  mkdirSync(releaseDir, { mode: 0o700 });
+  writeFileSync(join(releaseDir, '.source-archive.sha256'), `${'b'.repeat(64)}\n`, { mode: 0o600 });
+  writeFileSync(fakeRunuser, `#!/bin/sh\n: > ${shellQuote(calls)}\nfor arg in "$@"; do printf '%s\\n' "$arg" >> ${shellQuote(calls)}; done\n`, { mode: 0o755 });
+  chmodSync(fakeRunuser, 0o755);
+  for (const command of ['chown', 'chmod', 'sync']) {
+    writeFileSync(join(fakeBin, command), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+    chmodSync(join(fakeBin, command), 0o755);
+  }
+  const pnpmPrefix = join(installFixture, 'pnpm');
+  const pnpmBin = join(pnpmPrefix, 'bin', 'pnpm');
+  const harness = [
+    'set -euo pipefail',
+    `PATH=${shellQuote(fakeBin)}:/usr/bin:/bin`,
+    'export PATH',
+    `PNPM_PREFIX=${shellQuote(pnpmPrefix)}`,
+    `PNPM_BIN=${shellQuote(pnpmBin)}`,
+    `RELEASE_DIR=${shellQuote(releaseDir)}`,
+    'with_release_cwd() { printf "%s\\n" "$RELEASE_DIR"; }',
+    'with_controller_lock() { :; }',
+    'validate_pnpm_prefix() { return 0; }',
+    'die() { printf "install_deps_proof_%s\\n" "$1" >&2; exit "${2:-64}"; }',
+    installDepsFunction.replaceAll('/usr/sbin/runuser', shellQuote(fakeRunuser)),
+    `install_deps ${shellQuote(release)}`,
+  ].join('\n');
+  const result = spawnSync('/bin/bash', ['-c', harness], { encoding: 'utf8' });
+  assert.equal(result.status, 0, `install-deps fake harness must pass: ${result.stderr}`);
+  const actualArgv = readFileSync(calls, 'utf8').trimEnd().split('\n');
+  assert.deepEqual(actualArgv, [
+    '-u',
+    'meetwise-synthetic',
+    '--',
+    '/usr/bin/env',
+    '-i',
+    'HOME=/var/lib/meetwise-preview-synthetic',
+    `PATH=/usr/bin:/usr/sbin:/bin:/sbin:${pnpmPrefix}/bin`,
+    '/bin/bash',
+    '-c',
+    'cd "$1" && exec "$2" --filter @meetwise/db install --prod --frozen-lockfile --ignore-scripts',
+    'bash',
+    releaseDir,
+    pnpmBin,
+  ], 'install-deps must execute the exact scoped pnpm argv');
+} finally {
+  rmSync(installFixture, { recursive: true, force: true });
+}
+
+// Execute discard-unclaimed-release against a temporary filesystem.  The
+// harness supplies only the controller-owned ledger read and lock primitives;
+// all release/snapshot/marker checks and the final rm therefore run exactly as
+// the production function does.  Node's lstat view is root-shaped only inside
+// this fixture, never in the host filesystem.
+const discardStart = root.indexOf('discard_unclaimed_release() {');
+const discardEnd = root.indexOf('\n}\n\n# 把本次两镜像', discardStart);
+assert.ok(discardStart >= 0 && discardEnd > discardStart, 'extract discard-unclaimed-release');
+const discardFunction = root.slice(discardStart, discardEnd + 2).replaceAll('/usr/bin/node', shellQuote(process.execPath));
+const runDiscardCase = (label, requestedRelease, setup, check) => {
+  const fixture = mkdtempSync(join(tmpdir(), `meetwise-discard-${label}-`));
+  try {
+    const releasesRoot = join(fixture, 'releases');
+    const snapshotsRoot = join(fixture, 'snapshots');
+    const current = join(fixture, 'current');
+    const ledgerFile = join(fixture, 'ledger.json');
+    const fakeBin = join(fixture, 'bin');
+    const preload = join(fixture, 'root-stat-preload.cjs');
+    const fakeRm = join(fakeBin, 'rm');
+    const release = `${'a'.repeat(40)}-fullstack-20260820-1-1`;
+    const releaseDir = join(releasesRoot, release);
+    mkdirSync(releasesRoot, { recursive: true, mode: 0o700 });
+    mkdirSync(fakeBin, { mode: 0o700 });
+    writeFileSync(ledgerFile, '{}\n', { mode: 0o600 });
+    writeFileSync(join(fakeBin, 'stat'), '#!/bin/sh\nif [ "$1" = "-c" ]; then case "$3" in *.source-archive.sha256) printf "0:0:600\\n" ;; *) printf "0:0:700\\n" ;; esac; else exec /usr/bin/stat "$@"; fi\n', { mode: 0o755 });
+    writeFileSync(join(fakeBin, 'sync'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+    // macOS /bin/rm has no --one-file-system; retain the production argv
+    // contract in this fake and delegate only the exact target deletion to
+    // the platform rm for the temporary fixture.
+    writeFileSync(fakeRm, '#!/bin/sh\nset -eu\n[ "${1:-}" = "-rf" ] && [ "${2:-}" = "--one-file-system" ] && [ "${3:-}" = "--" ] && [ -n "${4:-}" ] && [ "$#" -eq 4 ] || exit 90\nexec /bin/rm -rf -- "$4"\n', { mode: 0o755 });
+    chmodSync(join(fakeBin, 'stat'), 0o755);
+    chmodSync(join(fakeBin, 'sync'), 0o755);
+    chmodSync(fakeRm, 0o755);
+    writeFileSync(preload, `
+const fs = require('node:fs');
+const original = fs.lstatSync;
+fs.lstatSync = (...args) => new Proxy(original(...args), {
+  get(target, property) {
+    if (property === 'uid' || property === 'gid') return 0;
+    const value = target[property];
+    return typeof value === 'function' ? value.bind(target) : value;
+  },
+});
+`);
+    const writeLedger = (value) => writeFileSync(ledgerFile, `${JSON.stringify(value)}\n`, { mode: 0o600 });
+    const context = { fixture, releasesRoot, snapshotsRoot, current, ledgerFile, release, releaseDir, writeLedger };
+    setup(context);
+    const harness = [
+      'set -euo pipefail',
+      `PATH=${shellQuote(fakeBin)}:/usr/bin:/bin`,
+      'export PATH',
+      `RELEASES_ROOT=${shellQuote(realpathSync(releasesRoot))}`,
+      `FULL_STACK_SNAPSHOTS=${shellQuote(snapshotsRoot)}`,
+      `CURRENT=${shellQuote(current)}`,
+      `LEDGER_FILE=${shellQuote(ledgerFile)}`,
+      "RELEASE_RE='^[a-f0-9]{40}-fullstack-[0-9]{8}-[1-9][0-9]*-[1-9][0-9]*$'",
+      "DIGEST_RE='^[a-f0-9]{64}$'",
+      'die() { printf "discard_proof_%s\\n" "$1" >&2; exit "${2:-64}"; }',
+      'with_controller_lock() { :; }',
+      'ledger_node() { [[ "${1:-}" == ledger-read ]] && cat "$LEDGER_FILE"; }',
+      discardFunction,
+      `discard_unclaimed_release ${shellQuote(requestedRelease)}`,
+    ].join('\n');
+    const result = spawnSync('/bin/bash', ['-c', harness], {
+      env: { ...process.env, NODE_OPTIONS: `--require=${preload}` },
+      encoding: 'utf8',
+    });
+    check(result, context);
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+};
+const expectDiscardFailure = (reason, result) => {
+  assert.notEqual(result.status, 0, `${reason} must fail closed`);
+  assert.match(`${result.stdout}\n${result.stderr}`, new RegExp(`discard_proof_${reason}`));
+};
+runDiscardCase('missing', `${'a'.repeat(40)}-fullstack-20260820-1-1`, ({ releaseDir },) => {}, (result, { releaseDir }) => {
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stdout.trim(), 'discard_unclaimed_release_missing', 'missing release cleanup is idempotent');
+  assert.equal(existsSync(releaseDir), false, 'missing cleanup does not invent a release');
+});
+runDiscardCase('current', `${'a'.repeat(40)}-fullstack-20260820-1-1`, ({ releaseDir, current }) => {
+  mkdirSync(releaseDir, { mode: 0o700 });
+  symlinkSync(releaseDir, current);
+}, (result) => expectDiscardFailure('release_current', result));
+runDiscardCase('ledger-reference', `${'a'.repeat(40)}-fullstack-20260820-1-1`, ({ releaseDir, release, writeLedger }) => {
+  mkdirSync(releaseDir, { mode: 0o700 });
+  writeLedger({ release });
+}, (result) => expectDiscardFailure('release_ledger_referenced', result));
+runDiscardCase('snapshot-reference', `${'a'.repeat(40)}-fullstack-20260820-1-1`, ({ releaseDir, snapshotsRoot, release, writeLedger }) => {
+  mkdirSync(releaseDir, { mode: 0o700 });
+  writeLedger({});
+  const snapshot = join(snapshotsRoot, 'snapshot-1');
+  mkdirSync(snapshot, { recursive: true, mode: 0o700 });
+  writeFileSync(join(snapshot, 'predecessor.json'), `${JSON.stringify({ schemaVersion: 1, release, currentTarget: null })}\n`, { mode: 0o600 });
+  chmodSync(join(snapshot, 'predecessor.json'), 0o600);
+}, (result) => expectDiscardFailure('release_snapshot_referenced', result));
+runDiscardCase('snapshot-current-target-reference', `${'a'.repeat(40)}-fullstack-20260820-1-1`, ({ releaseDir, snapshotsRoot, release, writeLedger }) => {
+  mkdirSync(releaseDir, { mode: 0o700 });
+  writeLedger({});
+  const snapshot = join(snapshotsRoot, 'snapshot-2');
+  mkdirSync(snapshot, { recursive: true, mode: 0o700 });
+  writeFileSync(join(snapshot, 'predecessor.json'), `${JSON.stringify({ schemaVersion: 1, release: 'predecessor-not-targeted', currentTarget: `releases/${release}` })}\n`, { mode: 0o600 });
+  chmodSync(join(snapshot, 'predecessor.json'), 0o600);
+}, (result) => expectDiscardFailure('release_snapshot_referenced', result));
+runDiscardCase('snapshot-symlink', `${'a'.repeat(40)}-fullstack-20260820-1-1`, ({ releaseDir, snapshotsRoot, writeLedger }) => {
+  mkdirSync(releaseDir, { mode: 0o700 });
+  writeLedger({});
+  mkdirSync(snapshotsRoot, { mode: 0o700 });
+  const outside = join(snapshotsRoot, '..', 'outside-snapshot');
+  mkdirSync(outside, { mode: 0o700 });
+  symlinkSync(outside, join(snapshotsRoot, 'snapshot-link'));
+}, (result) => expectDiscardFailure('release_snapshot_invalid', result));
+runDiscardCase('marker-wrong', `${'a'.repeat(40)}-fullstack-20260820-1-1`, ({ releaseDir, writeLedger }) => {
+  mkdirSync(releaseDir, { mode: 0o700 });
+  writeLedger({});
+  writeFileSync(join(releaseDir, '.source-archive.sha256'), 'not-a-digest\n', { mode: 0o600 });
+}, (result) => expectDiscardFailure('release_marker_invalid', result));
+runDiscardCase('marker-symlink', `${'a'.repeat(40)}-fullstack-20260820-1-1`, ({ releaseDir, writeLedger }) => {
+  mkdirSync(releaseDir, { mode: 0o700 });
+  writeLedger({});
+  const outside = join(releaseDir, '..', 'outside-marker');
+  writeFileSync(outside, `${'b'.repeat(64)}\n`, { mode: 0o600 });
+  symlinkSync(outside, join(releaseDir, '.source-archive.sha256'));
+}, (result) => expectDiscardFailure('release_marker_invalid', result));
+runDiscardCase('release-symlink', `${'a'.repeat(40)}-fullstack-20260820-1-1`, ({ releaseDir, release, releasesRoot, writeLedger }) => {
+  writeLedger({});
+  const outside = join(releasesRoot, '..', 'outside-release');
+  mkdirSync(outside, { mode: 0o700 });
+  symlinkSync(outside, releaseDir);
+}, (result) => expectDiscardFailure('release_dir_not_directory', result));
+runDiscardCase('path-boundary', '../outside-release', ({ writeLedger }) => writeLedger({}), (result) => expectDiscardFailure('release_name_invalid', result));
+runDiscardCase('exact-success', `${'a'.repeat(40)}-fullstack-20260820-1-1`, ({ releaseDir, releasesRoot, writeLedger }) => {
+  mkdirSync(join(releaseDir, 'partial'), { recursive: true, mode: 0o700 });
+  writeFileSync(join(releaseDir, 'partial', 'payload.txt'), 'partial payload\n');
+  const outside = join(releasesRoot, '..', 'outside-preserved');
+  writeFileSync(outside, 'must survive symlink cleanup\n');
+  symlinkSync(outside, join(releaseDir, 'partial', 'outside-link'));
+  writeLedger({});
+  writeFileSync(join(releaseDir, '.source-archive.sha256'), `${'c'.repeat(64)}\n`, { mode: 0o600 });
+  chmodSync(join(releaseDir, '.source-archive.sha256'), 0o600);
+}, (result, { releaseDir, releasesRoot }) => {
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stdout.trim(), 'discard_unclaimed_release_ok', 'ordinary exact partial release is removed');
+  assert.equal(existsSync(releaseDir), false, 'release directory is removed exactly');
+  assert.equal(existsSync(join(releasesRoot, '..', 'outside-preserved')), true, 'cleanup never follows nested symlinks');
+});
 
 // Execute the provisioner’s exact RunSSH gate with a fake `tailscale` binary.
 // The gate must reject true and malformed prefs while accepting only the JSON
@@ -397,6 +609,13 @@ const installStepAt = workflow.indexOf('- name: Install the candidate bundle ato
 const installRevalidationAt = workflow.indexOf('controller_main_sha_stale_before_install_stage_left_uninstalled', installStepAt);
 assert.ok(installStepAt > 0 && installRevalidationAt > installStepAt && installRevalidationAt < installSshAt, 'exact main/CI revalidation must precede controller install');
 assert.match(workflow.slice(installStepAt, installSshAt), /env:\s*\n\s+GH_TOKEN: \$\{\{ github\.token \}\}/, 'the final freshness recheck must authenticate gh api before controller installation');
+const cleanupStepAt = workflow.indexOf('- name: Discard one exact unclaimed ECS release after controller readback');
+const cleanupSshAt = workflow.indexOf('ssh meetwise-ecs "meetwise-cd discard-unclaimed-release $CLEANUP_RELEASE"', cleanupStepAt);
+assert.ok(cleanupStepAt > versionReadbackAt && cleanupSshAt > cleanupStepAt, 'release cleanup must follow controller version readback');
+const cleanupStep = workflow.slice(cleanupStepAt, cleanupSshAt);
+assert.match(cleanupStep, /\[\[ "\$CLEANUP_RELEASE" =~ \^\[a-f0-9\]\{40\}-fullstack-\[0-9\]\{8\}-\[1-9\]\[0-9\]\*-\[1-9\]\[0-9\]\*\$ \]\]/, 'cleanup input must use the exact release regex');
+assert.doesNotMatch(cleanupStep, /rm\s+-rf|\/srv\/meetwise-full-stack\/releases\/\*/, 'workflow cleanup must not construct a broad filesystem deletion');
+assert.equal(cleanupSshAt, workflow.indexOf('ssh meetwise-ecs "meetwise-cd discard-unclaimed-release $CLEANUP_RELEASE"', cleanupStepAt), 'cleanup must dispatch exactly once');
 assert.match(workflow, /persist-credentials: false/);
 assert.doesNotMatch(workflow, /docker/i, 'controller rollout workflow has no image/build path');
 

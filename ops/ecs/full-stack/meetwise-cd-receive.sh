@@ -145,6 +145,11 @@ case "$sub" in
     [[ ${#argv[@]} -eq 3 ]] || { echo 'meetwise_cd_argc_invalid' >&2; exit 1; }
     exec sudo "$ROOT_DISPATCH" "$sub" "${argv[2]}"
     ;;
+  discard-unclaimed-release)
+    [[ ${#argv[@]} -eq 3 ]] || { echo 'meetwise_cd_argc_invalid' >&2; exit 1; }
+    require_release "${argv[2]}"
+    exec sudo "$ROOT_DISPATCH" discard-unclaimed-release "${argv[2]}"
+    ;;
   prepare)
     # Prepare is transaction-bound: the root dispatcher reads the durable
     # ledger and owns the controller flock.  There is intentionally no
