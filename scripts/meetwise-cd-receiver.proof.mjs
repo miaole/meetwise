@@ -50,4 +50,21 @@ const quotedRecover = spawnSync(receiver, [], { env: { ...env, SSH_ORIGINAL_COMM
 assert.notEqual(quotedRecover.status, 0);
 assert.match(quotedRecover.stderr, /meetwise_cd_metacharacter_rejected/);
 
+// Cleanup is a single exact forced-command argv: no glob, path or extra
+// argument may reach the root dispatcher.  The fake sudo prints the exact
+// argv it receives, so this is a behavior assertion rather than a regex-only
+// contract check.
+const discard = `meetwise-cd discard-unclaimed-release ${release}`;
+const discardOk = spawnSync(receiver, [], { env: { ...env, SSH_ORIGINAL_COMMAND: discard }, encoding: 'utf8' });
+assert.equal(discardOk.status, 0, discardOk.stderr);
+assert.equal(discardOk.stdout, `${root}/root-dispatch discard-unclaimed-release ${release}\n`, 'discard command must forward the exact root argv');
+
+const discardExtra = spawnSync(receiver, [], { env: { ...env, SSH_ORIGINAL_COMMAND: `${discard} extra` }, encoding: 'utf8' });
+assert.notEqual(discardExtra.status, 0);
+assert.match(discardExtra.stderr, /meetwise_cd_argc_invalid/);
+
+const discardInvalid = spawnSync(receiver, [], { env: { ...env, SSH_ORIGINAL_COMMAND: 'meetwise-cd discard-unclaimed-release not-a-release' }, encoding: 'utf8' });
+assert.notEqual(discardInvalid.status, 0);
+assert.match(discardInvalid.stderr, /meetwise_cd_release_invalid/);
+
 console.log('meetwise CD forced receiver argv behavior proof passed');

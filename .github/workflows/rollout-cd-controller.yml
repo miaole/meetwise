@@ -7,6 +7,11 @@ on:
         description: Exact protected main commit to roll out
         required: true
         type: string
+      cleanup_release:
+        description: Optional exact unclaimed ECS release directory to discard after controller readback
+        required: false
+        default: ''
+        type: string
 
 concurrency:
   group: full-stack-deploy
@@ -167,3 +172,15 @@ jobs:
           installed="$(ssh meetwise-ecs 'meetwise-cd controller-version')"
           [[ "$installed" == "$BUNDLE_DIGEST" ]] || { echo 'controller_version_readback_mismatch' >&2; exit 1; }
           printf 'controller_version=%s\n' "$installed"
+
+      - name: Discard one exact unclaimed ECS release after controller readback
+        if: ${{ inputs.cleanup_release != '' }}
+        env:
+          CLEANUP_RELEASE: ${{ inputs.cleanup_release }}
+        run: |
+          set -euo pipefail
+          [[ "$CLEANUP_RELEASE" =~ ^[a-f0-9]{40}-fullstack-[0-9]{8}-[1-9][0-9]*-[1-9][0-9]*$ ]] || {
+            echo 'cleanup_release_invalid' >&2
+            exit 1
+          }
+          ssh meetwise-ecs "meetwise-cd discard-unclaimed-release $CLEANUP_RELEASE"

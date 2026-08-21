@@ -15,7 +15,8 @@
 #
 # Subcommands (compose 单机 —— app 层跑容器，源码树只用于 prepare/合成校验):
 #   receive-source <release>                          extract the staged source tarball
-#   install-deps <release>                            pnpm install (frozen, no build) — 供 prepare/db-verify 解析 pg
+#   install-deps <release>                            filtered production @meetwise/db install — 供 prepare/db-verify 解析 pg
+#   discard-unclaimed-release <release>               delete one safely unclaimed partial release
 #   transaction compose-pull <tx> <release> <token> <backend-digest> <web-digest>
 #                                                       钉住 .env 两镜像引用 + docker compose pull
 #   prepare <transaction> <release> <recovery-token> <commit> <tree> <origin> <wb> <sa> <backend-digest> <web-digest>
@@ -1490,9 +1491,11 @@ NODE
 
 install_deps() {
   local dir; dir="$(with_release_cwd "$1")"
-  # Workspace install with a frozen lockfile; --ignore-scripts avoids lifecycle
-  # scripts (postinstall) from untrusted source during provisioning. 不再在 ECS 上
-  # `next build`（4G OOM 根因已随 compose 上移到 CI），这里只装依赖供 prepare/db-verify 解析 pg。
+  # Only @meetwise/db's production closure is needed on ECS: prepare and
+  # db-verify use createRequire(packages/db/package.json) to resolve pg. A
+  # workspace-wide install needlessly materializes every app/package (and can
+  # exhaust the small ECS disk); --prod plus the dependency selector keeps the
+  # install frozen, lifecycle-free, and limited to the runtime DB boundary.
   with_controller_lock
   validate_pnpm_prefix "$PNPM_PREFIX" || die pnpm_toolchain_invalid 70
   chown -R meetwise-synthetic:meetwise "$dir"
@@ -1500,7 +1503,7 @@ install_deps() {
   chown root:root "$dir/.source-archive.sha256"; chmod 0600 "$dir/.source-archive.sha256"
   /usr/sbin/runuser -u meetwise-synthetic -- /usr/bin/env -i \
     HOME=/var/lib/meetwise-preview-synthetic PATH=/usr/bin:/usr/sbin:/bin:/sbin:"$PNPM_PREFIX/bin" \
-    /bin/bash -c 'cd "$1" && exec "$2" install --frozen-lockfile --ignore-scripts' bash "$dir" "$PNPM_BIN" \
+    /bin/bash -c 'cd "$1" && exec "$2" --filter @meetwise/db install --prod --frozen-lockfile --ignore-scripts' bash "$dir" "$PNPM_BIN" \
     || die install_deps_failed 70
   # P0-1 降权：prepare compute 与 synthetic-verify 以 meetwise-synthetic（meetwise 补充组）读本树
   # 与 node_modules（解析 pg）。源码树非机密（开源），组可读即可；g+rX 只加组读与目录遍历，
@@ -1516,6 +1519,98 @@ install_deps() {
   sync -f "$dir/.source-archive.sha256"
   sync -f "$dir"
   echo install_deps_ok
+}
+
+discard_unclaimed_release() {
+  local release="$1" dir marker current_target ledger_json marker_status snapshot_status ledger_status
+  [[ $# -eq 1 && "$release" =~ $RELEASE_RE ]] || die release_name_invalid
+  [[ -d "$RELEASES_ROOT" && ! -L "$RELEASES_ROOT" ]] || die releases_root_invalid 70
+  dir="$RELEASES_ROOT/$release"
+  [[ "$dir" == "$RELEASES_ROOT/"* && "$dir" != *..* ]] || die release_path_invalid 70
+
+  # Serialize cleanup with transaction begin/recovery and every other ledger
+  # mutation. Missing is an idempotent safe success; no broad glob is ever
+  # passed to rm.
+  with_controller_lock
+  if [[ ! -e "$dir" && ! -L "$dir" ]]; then
+    printf 'discard_unclaimed_release_missing\n'
+    return 0
+  fi
+  [[ -d "$dir" && ! -L "$dir" ]] || die release_dir_not_directory 70
+
+  if [[ -e "$CURRENT" || -L "$CURRENT" ]]; then
+    [[ -L "$CURRENT" ]] || die current_pointer_invalid 70
+    current_target="$(readlink -f "$CURRENT" 2>/dev/null || true)"
+    [[ -n "$current_target" && -d "$current_target" && ! -L "$current_target" ]] || die current_pointer_invalid 70
+    [[ "$current_target" != "$dir" ]] || die release_current 70
+  fi
+
+  ledger_json="$(ledger_node ledger-read)" || die release_ledger_read_failed 70
+  ledger_status=0
+  /usr/bin/node - "$ledger_json" "$release" <<'NODE' || ledger_status=$?
+const [raw, release] = process.argv.slice(2);
+const value = JSON.parse(raw);
+if (value && value.release === release) process.exit(2);
+NODE
+  case "$ledger_status" in
+    0) : ;;
+    2) die release_ledger_referenced 70 ;;
+    *) die release_ledger_invalid 70 ;;
+  esac
+
+  # Snapshot predecessor files are root-owned rollback authorities. Validate
+  # their ownership/shape before accepting the no-reference result; an
+  # unexpected snapshot entry fails closed instead of being ignored.
+  snapshot_status=0
+  /usr/bin/node - "$FULL_STACK_SNAPSHOTS" "$release" <<'NODE' || snapshot_status=$?
+const { lstatSync, readdirSync, readFileSync } = require('node:fs');
+const [root, release] = process.argv.slice(2);
+let rootStat;
+try { rootStat = lstatSync(root); } catch (error) {
+  if (error?.code === 'ENOENT') process.exit(0);
+  process.exit(3);
+}
+if (!rootStat.isDirectory() || rootStat.isSymbolicLink() || rootStat.uid !== 0 || rootStat.gid !== 0 || (rootStat.mode & 0o777) !== 0o700) process.exit(3);
+for (const name of readdirSync(root)) {
+  const dir = `${root}/${name}`;
+  const dirStat = lstatSync(dir);
+  if (!dirStat.isDirectory() || dirStat.isSymbolicLink() || dirStat.uid !== 0 || dirStat.gid !== 0 || (dirStat.mode & 0o777) !== 0o700) process.exit(3);
+  const predecessor = `${dir}/predecessor.json`;
+  let stat;
+  try { stat = lstatSync(predecessor); } catch (error) {
+    if (error?.code === 'ENOENT') continue;
+    process.exit(3);
+  }
+  if (!stat.isFile() || stat.isSymbolicLink() || stat.uid !== 0 || stat.gid !== 0 || (stat.mode & 0o777) !== 0o600) process.exit(3);
+  const value = JSON.parse(readFileSync(predecessor, 'utf8'));
+  if (value?.schemaVersion !== 1 || typeof value.release !== 'string'
+    || (value.currentTarget !== null && typeof value.currentTarget !== 'string')) process.exit(3);
+  if (value.release === release || value.currentTarget === `releases/${release}`) process.exit(2);
+}
+NODE
+  case "$snapshot_status" in
+    0) : ;;
+    2) die release_snapshot_referenced 70 ;;
+    *) die release_snapshot_invalid 70 ;;
+  esac
+
+  marker="$dir/.source-archive.sha256"
+  [[ -f "$marker" && ! -L "$marker" && "$(stat -c '%u:%g:%a' "$marker" 2>/dev/null || true)" == '0:0:600' ]] || die release_marker_invalid 70
+  marker_status=0
+  /usr/bin/node - "$marker" <<'NODE' || marker_status=$?
+const { lstatSync, readFileSync } = require('node:fs');
+const path = process.argv[2];
+const stat = lstatSync(path);
+if (!stat.isFile() || stat.isSymbolicLink() || stat.uid !== 0 || stat.gid !== 0 || (stat.mode & 0o777) !== 0o600) process.exit(1);
+const bytes = readFileSync(path);
+if (bytes.length !== 65 || bytes[64] !== 0x0a || !/^[a-f0-9]{64}\n$/.test(bytes.toString('utf8'))) process.exit(1);
+NODE
+  [[ "$marker_status" -eq 0 ]] || die release_marker_invalid 70
+
+  rm -rf --one-file-system -- "$dir"
+  [[ ! -e "$dir" && ! -L "$dir" ]] || die release_discard_failed 70
+  sync -f "$RELEASES_ROOT"
+  printf 'discard_unclaimed_release_ok\n'
 }
 
 # 把本次两镜像的 @sha256 摘要拼成完整引用写进 .env，再 pull。云凭据（DB/Tair/模型 key/ACR 认证）
@@ -2430,6 +2525,10 @@ case "${1:-}" in
   transaction)       transaction_cmd "$@" ;;
   receive-source)    receive_source "${2:-}" "${3:-}" ;;
   install-deps)      install_deps "${2:-}" ;;
+  discard-unclaimed-release)
+    [[ $# -eq 2 ]] || die discard_release_argc_invalid
+    discard_unclaimed_release "$2"
+    ;;
   compose-pull)      die legacy_direct_compose_pull_disabled ;;
   prepare)           prepare "${2:-}" "${3:-}" "${4:-}" "${5:-}" "${6:-}" "${7:-}" "${8:-}" "${9:-}" "${10:-}" "${11:-}" ;;
   migrate)           migrate ;;
