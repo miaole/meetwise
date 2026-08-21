@@ -59,7 +59,11 @@ cat "$tmp_env" > "$ENV_FILE"; rm -f "$tmp_env"
 dc pull
 
 # 4. 迁移:一次性服务,跑到结束;非零退出 → trap 回滚。迁移幂等,只应用新增。
-dc run --rm migrate
+#    -T + </dev/null 关键:本脚本经 `ssh 'bash -s' < remote-deploy.sh` 从 stdin 读入;
+#    `docker compose run`(默认分配 TTY 并代理 stdin)会吞掉脚本剩余行(下面的 up 与
+#    deploy_ok),导致 up 从不执行、容器不被重建,却仍 exit 0 = 假绿。-T 禁 TTY、
+#    </dev/null 断开 stdin,保证后续步骤照常执行。
+dc run --rm -T migrate </dev/null
 
 # 5. 起/滚动更新长期服务,--wait 等 compose 内建健康检查(api:/readyz/api、
 #    worker:/readyz/worker、web:/login)通过;超时/不健康 → trap 回滚。
