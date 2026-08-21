@@ -30,15 +30,13 @@ dc() { docker compose --project-directory "$PROJECT_DIR" -f "$COMPOSE_FILE" "$@"
 
 # 1. 快照当前生效的镜像行,供失败回滚。.env 里除这两行外都是一次性 provision 的
 #    云凭据/模型 key,本脚本一律不碰。
-PREV_BACKEND="$(grep -E '^BACKEND_IMAGE=' "$ENV_FILE" || true)"
-PREV_WEB="$(grep -E '^WEB_IMAGE=' "$ENV_FILE" || true)"
-BACKUP="$(mktemp)"; cp -p "$ENV_FILE" "$BACKUP"
+BACKUP="$(mktemp)"; cat "$ENV_FILE" > "$BACKUP"
 
 restore_and_fail() {
   echo "deploy_failed → 回滚到上一版镜像" >&2
-  cp -p "$BACKUP" "$ENV_FILE"
+  cat "$BACKUP" > "$ENV_FILE"
   # 尽力把上一版重新拉起;回滚本身失败也如实退非零,让部署红着可重试。
-  dc up -d --wait --wait-timeout 180 migrate api worker web >&2 || echo "rollback_restart_failed(需人工介入)" >&2
+  dc up -d --no-deps --wait --wait-timeout 180 api worker web >&2 || echo "rollback_restart_failed(需人工介入)" >&2
   rm -f "$BACKUP"
   exit 1
 }
@@ -49,7 +47,9 @@ tmp_env="$(mktemp)"
 grep -vE '^(BACKEND_IMAGE|WEB_IMAGE)=' "$ENV_FILE" > "$tmp_env"
 printf 'BACKEND_IMAGE=%s\n' "$BACKEND_REF" >> "$tmp_env"
 printf 'WEB_IMAGE=%s\n' "$WEB_REF" >> "$tmp_env"
-install -m 0600 "$tmp_env" "$ENV_FILE"; rm -f "$tmp_env"
+# 原地覆盖写:/srv/meetwise-compose 目录是 root 属主,部署账号不能在其中 unlink/新建
+# (install/mv 会失败);.env 本身归部署账号,truncate+写同一 inode 只需文件写权限。
+cat "$tmp_env" > "$ENV_FILE"; rm -f "$tmp_env"
 
 # 3. 拉新镜像(拉取失败即回滚,不动运行中的旧版)。
 dc pull
@@ -59,7 +59,9 @@ dc run --rm migrate
 
 # 5. 起/滚动更新长期服务,--wait 等 compose 内建健康检查(api:/readyz/api、
 #    worker:/readyz/worker、web:/login)通过;超时/不健康 → trap 回滚。
-dc up -d --wait --wait-timeout 180 api worker web
+#    --no-deps:migrate 已在上一步单独 run 过并退出;此处不让 depends_on 重复触发
+#    一次性 migrate(否则 `--wait` 会一直等一个正常退出的服务而挂住)。
+dc up -d --no-deps --wait --wait-timeout 180 api worker web
 
 # 6. 成功:清理回滚快照,输出被部署的摘要身份。
 trap - ERR

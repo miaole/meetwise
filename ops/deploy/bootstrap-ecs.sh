@@ -55,8 +55,16 @@ chown -R "$DEPLOY_USER:$DEPLOY_USER" "$PROJECT_DIR/docker"
 echo '== 5. 简单 nginx:恒定反代 web:3000(去掉旧 funnel/Pages 门控)=='
 if [[ -f "$PROJECT_DIR/docker/meetwise-nginx.conf" ]]; then
   install -m 0644 "$PROJECT_DIR/docker/meetwise-nginx.conf" /etc/nginx/conf.d/meetwise.conf
-  # 旧的 funnel 配置若存在则移走,避免两份 server 冲突。
-  [[ -f /etc/nginx/conf.d/meetwise-full-stack.conf ]] && mv /etc/nginx/conf.d/meetwise-full-stack.conf /etc/nginx/conf.d/meetwise-full-stack.conf.retired
+  # 旧的 funnel/preview 配置若存在则移走,避免两份 server 冲突。
+  for old in meetwise-full-stack.conf meetwise-preview.conf; do
+    [[ -f "/etc/nginx/conf.d/$old" ]] && mv "/etc/nginx/conf.d/$old" "/etc/nginx/conf.d/$old.retired"
+  done
+  # 摘掉发行版自带的 default_server(serve /usr/share/nginx/html 欢迎页),否则它会
+  # 抢占 :80 默认流量,导致公网命中欢迎页而非应用;本站的 conf 是唯一 default_server。
+  if grep -qE 'listen[[:space:]]+[0-9.:]*80[[:space:]]+default_server' /etc/nginx/nginx.conf; then
+    sed -i -E 's/(listen[[:space:]]+[0-9.:]*80)[[:space:]]+default_server/\1/' /etc/nginx/nginx.conf
+    echo '  发行版默认 default_server 已摘除'
+  fi
   nginx -t && systemctl reload nginx && echo '  nginx reloaded'
 else
   echo "  提示:把 ops/deploy/nginx.conf 放到 $PROJECT_DIR/docker/meetwise-nginx.conf 后重跑本步" >&2
