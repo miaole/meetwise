@@ -138,6 +138,8 @@ jobs:
           node scripts/cd-pages-receipt.proof.mjs
           node scripts/meetwise-cd-receiver.proof.mjs
           node scripts/ecs-cd-controller-rollout.proof.mjs
+          node scripts/synthetic-state-lock.proof.mjs
+          sudo "$(command -v node)" scripts/synthetic-state-lock.proof.mjs --root-cross-owner
           node scripts/verify-full-stack-public-origin.proof.mjs
       - name: Web preview gate behavioral proof (real NextRequest, not string match)
         run: pnpm -C apps/web prove:middleware
