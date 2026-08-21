@@ -33327,7 +33327,7 @@
       "scripts/quality-traceability.proof.mjs",
       "scripts/run-e2e-isolated.mjs"
     ],
-    "governedPathDigest": "sha256:a57ce1daa7c86be35ba907ed2294e829f87f11abe53413e5e15bef95772c956e",
+    "governedPathDigest": "sha256:acef17fb2925ca19c33be7b5b0c5474e5be3023418d1c58aeaa58055cba30058",
     "harness": {
       "scope": "Static CD generation/prepare successor for real run 32435220955; generation=8; migration 0123 succeeded; schemaBefore=1b606f08d3af64983388a215e8ca7498fbbf6482dd9e9737e9cba6ddcbe6ae08; schemaAfterPrefix=d633d...; prepare generation mismatch rejected; recovery=forward_only_maintenance; Pages=disabled; Funnel=disabled; releaseEvidence=false: token-bound prepare, trusted predecessor stage/publish and the final lease/identity fence are statically closed; this record remains blocked pending a fresh cloud rerun and releaseEvidence=false.",
       "sourceEvidenceIds": [
@@ -33475,7 +33475,7 @@
       "summary": "Static follow-up review records real run 32435220955; generation=8; migration 0123 succeeded; schemaBefore=1b606f08d3af64983388a215e8ca7498fbbf6482dd9e9737e9cba6ddcbe6ae08; schemaAfterPrefix=d633d...; prepare generation mismatch rejected; recovery=forward_only_maintenance; Pages=disabled; Funnel=disabled; releaseEvidence=false; generation-bound prepare rejected a mismatched generation, trusted stage/publish predecessor checks and the final lease/identity fence are statically proven, while Pages and Funnel stayed disabled. The static finding is closed, but authorization remains blocked and no release evidence is claimed pending a fresh cloud rerun.",
       "summaryDigest": "sha256:d7c35da9c2da4a6ce9f477df58bbd1d535262dfadcdb7fd4f2deb2d92fd64a67",
       "decision": "blocked",
-      "reviewScopeDigest": "sha256:9807f0d147803acff61c894646de89606f015cb05cc151343f20adbca91fa20e",
+      "reviewScopeDigest": "sha256:3117da6b93e7d941e1c5b1681e66f16697aeeefe78735777b86def701f39eabb",
       "reviewedFindingIds": [
         "GOV-CD-LEGACY-MASK-001",
         "GOV-CD-LEGACY-STATE-001",
@@ -33573,7 +33573,7 @@
     ],
     "successorOf": "public-text-policy-control-plane-v53",
     "baselineChange": null,
-    "recordDigest": "sha256:b7d2c4a1bba0eea3e7c9907a9d8ba3b7d2a2f99bddfdfbaa7465c003206d7f51"
+    "recordDigest": "sha256:3ee1d33617a0b7334547021dd46ce699c3bb90d33f4409c9abb323d1d9502d1a"
   },
   {
     "taskId": "quality-governance-control-plane-v65",
@@ -33683,7 +33683,7 @@
       "scripts/quality-traceability.proof.mjs",
       "scripts/run-e2e-isolated.mjs"
     ],
-    "governedPathDigest": "sha256:3350bd1e39a752f16cece3a87eb5975cb00485125c72a14e6e97a88142034410",
+    "governedPathDigest": "sha256:17ffb89dd512626ceeafd7d827f7fad0320bffa9c1a65f6397cb09c3a1acf862",
     "harness": {
       "scope": "Static CD generation/prepare successor for real run 32435220955; generation=8; migration 0123 succeeded; schemaBefore=1b606f08d3af64983388a215e8ca7498fbbf6482dd9e9737e9cba6ddcbe6ae08; schemaAfterPrefix=d633d...; prepare generation mismatch rejected; recovery=forward_only_maintenance; Pages=disabled; Funnel=disabled; releaseEvidence=false: token-bound prepare, trusted predecessor stage/publish and the final lease/identity fence are statically closed; this record remains blocked pending a fresh cloud rerun and releaseEvidence=false.",
       "sourceEvidenceIds": [
@@ -33843,7 +33843,7 @@
       "summary": "Static follow-up review records real run 32435220955; generation=8; migration 0123 succeeded; schemaBefore=1b606f08d3af64983388a215e8ca7498fbbf6482dd9e9737e9cba6ddcbe6ae08; schemaAfterPrefix=d633d...; prepare generation mismatch rejected; recovery=forward_only_maintenance; Pages=disabled; Funnel=disabled; releaseEvidence=false; generation-bound prepare rejected a mismatched generation, trusted stage/publish predecessor checks and the final lease/identity fence are statically proven, while Pages and Funnel stayed disabled. The static finding is closed, but authorization remains blocked and no release evidence is claimed pending a fresh cloud rerun.",
       "summaryDigest": "sha256:d7c35da9c2da4a6ce9f477df58bbd1d535262dfadcdb7fd4f2deb2d92fd64a67",
       "decision": "blocked",
-      "reviewScopeDigest": "sha256:5b5de8228af0504e90f237ce6b54c514bad799d06363c6858535646930432499",
+      "reviewScopeDigest": "sha256:6f32de723479d5677cbf12f31dc5cee067de6a8361ae122b1647e648c2cbbe01",
       "reviewedFindingIds": [
         "GOV-CD-CURRENT-TARGET-001",
         "GOV-CD-DEPLOY-PRE-MUTATION-001",
@@ -34293,7 +34293,7 @@
     ],
     "successorOf": "quality-governance-control-plane-v64",
     "baselineChange": null,
-    "recordDigest": "sha256:7d11ea06f760a50c72be62902455c43a493f78223ca1ace714029dd772c5dfdc"
+    "recordDigest": "sha256:b561c71a77bc3a4f4021557ae6635f67c338ed0bfd8eb6941d2062d05473a742"
   },
     {
       "taskId": "public-text-policy-control-plane-v55",
