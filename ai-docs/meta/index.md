@@ -43,7 +43,6 @@ tags:
 - `delivery/production-readiness-remediation-register.md`：测试、评测、演示与真实生产路径不等价时的整改登记、验收和关闭纪律。
 - `delivery/execution-master-checklist.md`：所有已登记未闭环事项的依赖顺序、逐项执行清单和阶段出口；审阅后按此顺序实施。
 - `delivery/lean-cd-deployment.md`：**当前生效**的精简单机 CD——CI 构建镜像(@sha256)→ACR→SSH→compose pull/migrate/up --wait/失败回滚。部署相关首看此文档。
-- `delivery/ecs-full-stack-cd-implementation-plan.md`：**已退役（历史背景）**。原全栈事务化预览 CD（27 步 token 事务 + 外部签名回执 + Pages exact receipt）；对单机 demo 过度工程且长期不收敛，已被 `lean-cd-deployment.md` 取代，工作流已 disable。不代表运行现状。
 - `observability/README.md`：AI、Graph、成本和质量观测。
 - `requirements/use-cases/expert-interview-coach-agent-graph.md`：面向候选人的 LangGraph / Agent 图深度面试教练材料。
 - `requirements/use-cases/expert-interview-coach-rag-runtime.md`：面向候选人的 RAG、Agent Runtime、流式性能深度面试教练材料。
@@ -54,9 +53,6 @@ tags:
 - `requirements/use-cases/model-invocation-reliability.md`：模型调用的准入、半开熔断、未知结果冻结与对账边界。
 - `requirements/use-cases/model-operation-routing.md`：按业务操作选择文本、视觉、语音、embedding、rerank 和记忆派生能力，并冻结预算、成本、备用与降级语义。
 - `requirements/use-cases/worker-event-driven-dispatch.md`：用户可见作业的提交后事件唤醒、低频恢复扫描、通知最小化与多副本领取边界。
-- `requirements/use-cases/ecs-public-preview-web-ingress.md`：公开预览 Web 的回环网络、边缘方法门、最小 systemd 进程和 Pages 入口启用边界；不等价于完整应用发布。
-- `requirements/use-cases/ecs-full-stack-preview-runtime.md`：完整 Web、API 与 Worker 接入受管测试 RDS/Tair、完成合成写入闭环并经 Pages 跳转公开预览的目标用例；当前为待审草案。
-- `requirements/use-cases/preview-synthetic-data-factory.md`：预览环境 B/C 海量合成账号、复杂状态、幂等批量装载、RLS 验证和按批次清理合同；不生成真实 PII、评分或模型副作用。
 - `requirements/use-cases/rag-funnel-intent-routing.md`：题库 metadata、自动岗位意图路由、面试 route snapshot、QBank track 硬过滤、同桶无题 LLM fallback 与自由文本漏斗分类的业务用例和验收矩阵。
 - `architecture/ai/model-operation-routing.md`：模型节点矩阵、operation registry、总上下文预算、共享准入与“派发后不换模型”的目标架构及当前接线边界。
 - `architecture/ai/bailian-nonproduction-rollout.md`：百炼非生产工作空间、Key、模型能力 smoke 与 `MODEL-OP` 整改的逐项勾选清单；不含密钥，也不构成生产网关或发布证据。
