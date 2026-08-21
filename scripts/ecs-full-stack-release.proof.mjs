@@ -4,6 +4,8 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { assertTrustedLedgerApproval, createFullStackReleaseLedger } from '../ops/ecs/full-stack/full-stack-preview-publisher.mjs';
+import { manifestFingerprint } from '../ops/ecs/preview-release-manifest.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => readFileSync(join(root, rel), 'utf8');
@@ -126,6 +128,58 @@ assert.match(dispatch, /prepare\)\s+prepare "\$\{2:-\}" "\$\{3:-\}" "\$\{4:-\}" 
 assert.match(publisher, /assertFullStackPrepareLedger/);
 assert.match(publisher, /async function ledgerPrepareCli/);
 assert.match(publisher, /command === 'ledger-prepare'/);
+// Stage and publish share one trusted-ledger/predecessor fence. A revoked
+// predecessor is a strict floor, not a `+1` formula owned by publication state.
+assert.match(publisher, /export function assertTrustedLedgerApproval\(approval, ledger/);
+assert.match(publisher, /TRUSTED_APPROVAL_PHASES/);
+assert.match(publisher, /ledger\.commit !== approval\.commit/);
+assert.match(publisher, /ledger\.tree !== approval\.tree/);
+assert.match(publisher, /ledger\.release !== release/);
+assert.match(publisher, /ledger\.backendImageDigest !== approval\.images\?\.backend/);
+assert.match(publisher, /ledger\.webImageDigest !== approval\.images\?\.web/);
+assert.match(publisher, /predecessor\.identityBound !== true/);
+assert.match(publisher, /predecessor\.completed !== true/);
+assert.match(publisher, /predecessor\.freshHost !== false/);
+assert.match(publisher, /ledger\.generation <= state\.generation/);
+assert.match(publisher, /predecessor\.freshHost !== true/);
+assert.equal((publisher.match(/await assertTrustedLedgerApprovalFromDisk\(approval, (?:state, manifest|state, currentManifest)\)/g) ?? []).length, 2, 'stage and publish must use the same trusted-ledger predecessor fence');
+assert.doesNotMatch(publisher, /state\.generation \+ 1/, 'revoked predecessor must allow a strict monotonic generation gap');
+
+const release = `${'a'.repeat(40)}-fullstack-20260820-1-1`;
+const commit = 'b'.repeat(40);
+const tree = 'c'.repeat(40);
+const backendImage = `sha256:${'1'.repeat(64)}`;
+const webImage = `sha256:${'2'.repeat(64)}`;
+const proofOrigin = ['https://p', 'tailx', 'ts', 'net'].join('.');
+const revokedOrigin = ['https://old', 'tailx', 'ts', 'net'].join('.');
+const approvalFor = (generation) => ({
+  schemaVersion: 1, mode: 'public-full-stack', generation, commit, tree,
+  releaseDigest: commit.slice(0, 7), origin: proofOrigin,
+  releasePath: `/srv/meetwise-full-stack/releases/${release}`,
+  images: { backend: backendImage, web: webImage },
+});
+const revokedManifest = { schemaVersion: 1, status: 'revoked', revoked: true, generation: 6, releaseDigest: commit.slice(0, 7), commit, tree, origin: revokedOrigin };
+const revokedState = { schemaVersion: 2, status: 'revoked', generation: 6, manifestSha256: manifestFingerprint(revokedManifest) };
+const candidateLedger = (generation, predecessorRevoked, phase = 'receipts_ready') => ({
+  ...createFullStackReleaseLedger({ transactionId: 'tx-generation-proof', release, commit, tree, generation, token: 'd'.repeat(64), backendImageDigest: backendImage, webImageDigest: webImage, candidate: { predecessorRevoked } }),
+  phase,
+});
+// Terminal ledger generation 7 may roll over to candidate generation 8 while
+// the revoked publication at generation 6 remains a strict predecessor floor.
+const terminalLedger7 = { ...candidateLedger(7, { identityBound: true, completed: true, freshHost: false, generation: 6, fingerprint: revokedState.manifestSha256 }, 'forward_only_maintenance'), leaseOwner: null, heartbeatAt: null, leaseExpiresAt: null };
+const candidate8 = candidateLedger(8, { identityBound: true, completed: true, freshHost: false, generation: 6, fingerprint: revokedState.manifestSha256 });
+assert.equal(terminalLedger7.generation, 7);
+assert.throws(() => assertTrustedLedgerApproval(approvalFor(8), terminalLedger7, { state: revokedState, manifest: revokedManifest }), /full_stack_trusted_approval_mismatch/);
+assert.doesNotThrow(() => assertTrustedLedgerApproval(approvalFor(8), candidate8, { state: revokedState, manifest: revokedManifest }), 'stage candidate generation 8 must pass after revoked publication 6');
+assert.doesNotThrow(() => assertTrustedLedgerApproval(approvalFor(8), candidate8, { state: revokedState, manifest: revokedManifest }), 'publish candidate generation 8 must pass after revoked publication 6');
+for (const generation of [6, 7, 9]) {
+  const ledger = candidateLedger(generation, { identityBound: true, completed: true, freshHost: false, generation: 6, fingerprint: revokedState.manifestSha256 });
+  if (generation <= 6) assert.throws(() => assertTrustedLedgerApproval(approvalFor(generation), ledger, { state: revokedState, manifest: revokedManifest }), /full_stack_trusted_predecessor_mismatch/);
+  if (generation === 9) assert.throws(() => assertTrustedLedgerApproval(approvalFor(8), ledger, { state: revokedState, manifest: revokedManifest }), /full_stack_trusted_approval_mismatch/);
+}
+const freshCandidate2 = candidateLedger(2, { identityBound: true, completed: true, freshHost: true, generation: 0, fingerprint: 'e'.repeat(64) });
+assert.doesNotThrow(() => assertTrustedLedgerApproval(approvalFor(2), freshCandidate2, { state: null, manifest: null }), 'fresh host may retry at ledger generation 2 with generation-zero predecessor');
+assert.throws(() => assertTrustedLedgerApproval(approvalFor(2), candidateLedger(2, { identityBound: true, completed: false, freshHost: true, generation: 0, fingerprint: 'e'.repeat(64) }), { state: null, manifest: null }), /full_stack_trusted_predecessor_mismatch/);
 // Legacy systemd app units are regular files under /etc/systemd/system on the
 // current ECS image, so persistent `systemctl mask` is not a valid ownership
 // transfer (it cannot replace the file).  The transactional hand-off must stop
@@ -746,7 +800,8 @@ assert.ok(!install.includes('meetwise-api.service') && !install.includes('meetwi
 // --- P0-1 降权执行：tarball 不可信 JS 以 meetwise-synthetic 跑，root 不再跑不可信代码 ---------
 const provision = read('ops/ecs/full-stack/provision-meetwise-synthetic.sh');
 // prepare 拆两模式：root 只编排+落盘，catalog.mjs 由 runuser -u meetwise-synthetic 的 compute 模式 import。
-assert.match(prepare, /spawnSync\('\/usr\/sbin\/runuser'/);
+assert.match(prepare, /spawnSync\('\/usr\/bin\/timeout'/);
+assert.match(prepare, /'\/usr\/sbin\/runuser'/);
 assert.match(prepare, /'-u', 'meetwise-synthetic'/);
 assert.match(prepare, /prepare_compute_requires_trusted_uid/);
 // F4 环境白名单 + 无 argv 密钥：compute 子进程绝不透传 root 环境，且绝不把 DB 口令放进 argv。
@@ -754,7 +809,8 @@ assert.match(prepare, /prepare_compute_requires_trusted_uid/);
 // 从零重建、spawnSync 自身传 env:{}；DB 变量由内层 bash source migrate-env 经 environ 传入（不进 argv）。
 // （断言锚定「代码形态」而非散文，避免匹配上方解释性注释里出现的同名词。）
 assert.ok(!prepare.includes("'--preserve-environment'"), 'prepare compute must not pass --preserve-environment as a runuser argv');
-assert.ok(!/env:\s*process\.env/.test(prepare), 'prepare compute must not forward process.env to the untrusted child');
+const computeSpawnBlock = prepare.slice(prepare.indexOf("spawnSync('/usr/bin/timeout'"), prepare.indexOf('if (child.error)'));
+assert.ok(!/env:\s*process\.env/.test(computeSpawnBlock), 'prepare compute must not forward process.env to the untrusted child');
 assert.match(prepare, /'\/usr\/bin\/env', '-i'/);
 assert.match(prepare, /env: \{\}/);
 // 无 argv 密钥（/proc/<pid>/cmdline 泄漏面）：compute 经 bash source migrate-env，argv 里绝无 DATABASE_URL=。

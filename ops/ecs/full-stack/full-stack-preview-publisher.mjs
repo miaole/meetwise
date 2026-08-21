@@ -281,6 +281,61 @@ export function canGarbageCollectFullStackRollback(ledger, pagesFingerprint) {
   return ledger.phase === 'committed' && DIGEST.test(pagesFingerprint ?? '') && ledger.candidate?.pagesFingerprint === pagesFingerprint;
 }
 
+const TRUSTED_APPROVAL_PHASES = new Set(['receipts_ready', 'probe_published', 'edge_probing', 'confirmed_pending_pages', 'pages_enabled', 'committed']);
+
+function approvalReleaseName(approval) {
+  const releasePath = approval?.releasePath;
+  if (typeof releasePath !== 'string' || !releasePath.startsWith('/srv/meetwise-full-stack/releases/')) return null;
+  const release = releasePath.slice('/srv/meetwise-full-stack/releases/'.length);
+  return /^[a-f0-9]{40}-fullstack-[0-9]{8}-[1-9][0-9]*-[1-9][0-9]*$/.test(release) ? release : null;
+}
+
+/**
+ * Shared stage/publish trust fence.  Publication state is only a predecessor
+ * observation; the candidate transaction ledger remains the authority for
+ * the approval generation and immutable release/image identity.
+ *
+ * A revoked predecessor may be skipped (for example after a terminal
+ * forward-only recovery) but never reused: the candidate ledger generation
+ * must be strictly greater than the revoked publication generation.  A fresh
+ * host has no predecessor and is represented by the explicit generation-zero
+ * predecessor receipt persisted by revoke-predecessor.
+ */
+export function assertTrustedLedgerApproval(approval, ledger, { state = null, manifest = null } = {}) {
+  assertTransactionShape(ledger);
+  const release = approvalReleaseName(approval);
+  if (approval?.schemaVersion !== 1 || approval.mode !== 'public-full-stack' || !Number.isSafeInteger(approval.generation) || approval.generation < 1
+    || !COMMIT.test(approval.commit ?? '') || !COMMIT.test(approval.tree ?? '') || !release
+    || ledger.phase === undefined || !TRUSTED_APPROVAL_PHASES.has(ledger.phase)
+    || ledger.generation !== approval.generation || ledger.transactionId === undefined
+    || ledger.release !== release || ledger.commit !== approval.commit || ledger.tree !== approval.tree
+    || ledger.backendImageDigest !== approval.images?.backend || ledger.webImageDigest !== approval.images?.web) {
+    throw new Error('full_stack_trusted_approval_mismatch');
+  }
+
+  const predecessor = ledger.candidate?.predecessorRevoked;
+  if (state?.status === 'revoked') {
+    if (!manifest || state.manifestSha256 !== manifestFingerprint(manifest) || manifest.status !== 'revoked' || manifest.revoked !== true
+      || !Number.isSafeInteger(state.generation) || state.generation < 1
+      || !predecessor || predecessor.identityBound !== true || predecessor.completed !== true || predecessor.freshHost !== false
+      || predecessor.generation !== state.generation || predecessor.fingerprint !== state.manifestSha256
+      || ledger.generation <= state.generation) throw new Error('full_stack_trusted_predecessor_mismatch');
+  } else if (state?.status === 'verified') {
+    if (!manifest || state.manifestSha256 !== manifestFingerprint(manifest) || manifest.status !== 'verified' || manifest.revoked !== false
+      || state.generation !== ledger.generation) throw new Error('full_stack_trusted_predecessor_mismatch');
+  } else if (state === null && manifest === null) {
+    if (!predecessor || predecessor.identityBound !== true || predecessor.completed !== true || predecessor.freshHost !== true
+      || predecessor.generation !== 0 || !DIGEST.test(predecessor.fingerprint ?? '')) throw new Error('full_stack_trusted_predecessor_mismatch');
+  } else if (state === null && manifest !== null) {
+    if (manifest.status !== 'verified' || manifest.revoked !== false || manifest.generation !== approval.generation
+      || manifest.releaseDigest !== approval.releaseDigest || manifest.commit !== approval.commit || manifest.tree !== approval.tree
+      || manifest.origin !== approval.origin) throw new Error('full_stack_trusted_predecessor_mismatch');
+  } else {
+    throw new Error('full_stack_trusted_predecessor_mismatch');
+  }
+  return ledger;
+}
+
 async function readFullStackReleaseLedger(path = PATHS.ledger) {
   try {
     const directory = path.replace(/\/[^/]+$/, '') || '/';
@@ -810,6 +865,11 @@ async function assertTrustedLedgerGeneration(generation) {
   return ledger;
 }
 
+async function assertTrustedLedgerApprovalFromDisk(approval, state, manifest) {
+  const ledger = await rootJson(PATHS.ledger, 0o600);
+  return assertTrustedLedgerApproval(approval, ledger, { state, manifest });
+}
+
 async function durableJson(path, value, mode) {
   const scratch = await mkdtemp('/run/meetwise-full-stack-publication.');
   try {
@@ -845,7 +905,7 @@ async function stage() {
     rootJson(PATHS.approval, 0o600), syntheticOwnedJson(PATHS.target), rootText(PATHS.publicKey, 0o644), optionalRootJson(PATHS.state, 0o600), optionalRootJson(PATHS.publicManifest, 0o644),
   ]);
   if (approval?.schemaVersion !== 1 || !Number.isSafeInteger(approval.generation) || approval.generation < 1 || approval.mode !== 'public-full-stack' || approval.targetDigest !== sha256(target)) throw new Error('full_stack_stage_approval_invalid');
-  await assertTrustedLedgerGeneration(approval.generation);
+  await assertTrustedLedgerApprovalFromDisk(approval, state, manifest);
   await promisify(execFile)('/usr/local/sbin/full-stack-preview-funnel-close', [], { maxBuffer: 100_000 });
   let predecessorStatus = null; let predecessorGeneration = null; let predecessorManifestSha256 = null;
   if (state === null) {
@@ -854,11 +914,11 @@ async function stage() {
       if (!Number.isSafeInteger(manifest.generation) || manifest.generation !== approval.generation || manifest.releaseDigest !== approval.releaseDigest || manifest.commit !== approval.commit || manifest.tree !== approval.tree || manifest.origin !== approval.origin || manifest.receipts?.runtime !== runtimeImageDigest(approval)) throw new Error('full_stack_stage_predecessor_binding_invalid');
       if (manifest.status !== 'verified' || manifest.revoked !== false) throw new Error('full_stack_stage_predecessor_invalid');
       predecessorStatus = 'adopt'; predecessorManifestSha256 = manifestFingerprint(manifest);
-    } else if (approval.generation !== 1) throw new Error('full_stack_stage_generation_invalid');
+    }
   } else {
     if (!manifest || !['verified', 'revoked'].includes(state.status) || state.manifestSha256 !== manifestFingerprint(manifest)) throw new Error('full_stack_stage_predecessor_invalid');
     verifyManifest(manifest, publicKey, { allowExpired: state.status === 'revoked' });
-    if (state.status === 'revoked' && approval.generation !== state.generation + 1) throw new Error('full_stack_stage_generation_invalid');
+    if (state.status === 'revoked' && approval.generation <= state.generation) throw new Error('full_stack_stage_generation_invalid');
     if (state.status === 'verified' && approval.generation !== state.generation) throw new Error('full_stack_stage_requires_revoked_predecessor');
     predecessorStatus = state.status; predecessorGeneration = state.generation; predecessorManifestSha256 = state.manifestSha256;
   }
@@ -872,17 +932,17 @@ async function publish() {
   const [approval, target, verification, dbReceipt, datasetManifest, maintenance, deepUsage, entitlement, privateKey, publicKey] = await Promise.all([
     rootJson(PATHS.approval, 0o600), syntheticOwnedJson(PATHS.target), syntheticOwnedJson(PATHS.verification), syntheticOwnedJson(PATHS.dbReceipt), syntheticOwnedJson(PATHS.datasetManifest), syntheticOwnedJson(PATHS.maintenance), syntheticOwnedJson(PATHS.deepUsage), rootJson(PATHS.entitlement, 0o600), rootText(PATHS.privateKey, 0o600), rootText(PATHS.publicKey, 0o644),
   ]);
-  await assertTrustedLedgerGeneration(approval.generation);
   if (createPublicKey(privateKey).export({ type: 'spki', format: 'pem' }) !== createPublicKey(publicKey).export({ type: 'spki', format: 'pem' })) throw new Error('full_stack_signing_key_mismatch');
   // compose 单机：runtime 身份 = 容器镜像摘要。publish 前验证 compose 配置里 migrate/api/worker/web
   // 的镜像引用都按 @sha256 钉死且 == approval.images，保证 manifest 声称的 runtime 与实际将运行的镜像一致。
   await assertComposeImageBinding(approval);
   let state = await optionalRootJson(PATHS.state, 0o600);
   let currentManifest = await optionalRootJson(PATHS.publicManifest, 0o644);
+  await assertTrustedLedgerApprovalFromDisk(approval, state, currentManifest);
   const trustedPublicKey = createPublicKey(privateKey).export({ type: 'spki', format: 'pem' });
   if (state?.status === 'revoking') throw new Error('full_stack_release_revocation_in_progress');
   if (state?.status === 'revoked') {
-    if (approval.generation !== state.generation + 1) throw new Error('full_stack_release_successor_invalid');
+    if (approval.generation <= state.generation) throw new Error('full_stack_release_successor_invalid');
     if (!currentManifest || state.manifestSha256 !== manifestFingerprint(currentManifest)) throw new Error('full_stack_publication_state_mismatch');
     verifyManifest(currentManifest, trustedPublicKey, { allowExpired: true });
     state = null;
