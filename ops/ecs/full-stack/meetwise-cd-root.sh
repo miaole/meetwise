@@ -552,8 +552,21 @@ start_backend_internal() {
 start_web_internal() {
   /usr/local/sbin/full-stack-preview-edge-close >/dev/null 2>&1 || die edge_close_required 70
   run_compose up -d web || die compose_up_web_failed 70
-  curl --fail --silent --show-error --max-time 20 http://127.0.0.1:3000/ >/dev/null || die web_internal_not_ready 70
-  curl --fail --silent --show-error --max-time 20 http://127.0.0.1:3000/login >/dev/null || die web_internal_not_ready 70
+  local ready=0
+  # Next may accept the container before its RSC/server surface is ready.  A
+  # single probe creates a deployment race (and probing / then /login in two
+  # separate loops can observe different readiness windows), so require both
+  # public surfaces in the same bounded round.  Funnel remains closed here;
+  # only the later activate transition may open it.
+  for _ in $(seq 1 60); do
+    if curl --fail --silent --show-error --max-time 2 http://127.0.0.1:3000/ >/dev/null \
+      && curl --fail --silent --show-error --max-time 2 http://127.0.0.1:3000/login >/dev/null; then
+      ready=1
+      break
+    fi
+    sleep 2
+  done
+  [[ "$ready" -eq 1 ]] || die web_internal_not_ready 70
 }
 
 restore_predecessor_snapshot() {

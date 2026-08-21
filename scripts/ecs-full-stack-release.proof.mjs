@@ -229,6 +229,20 @@ assert.match(dbusFenceBlock, /!directoryStat\.isDirectory\(\) \|\| directoryStat
 assert.match(dbusFenceBlock, /!fileStat\.isFile\(\) \|\| fileStat\.isSymbolicLink\(\)/);
 assert.match(dbusFenceBlock, /line\.slice\(0, index\)\.trim\(\) === 'SystemdService'/);
 assert.match(dbusFenceBlock, /catch \{[\s\S]*?process\.exit\(1\)/);
+// Web internal staging must tolerate the Next container's startup window.
+// Both root and login are required in the same bounded round while Funnel is
+// still closed; a single early curl must never advance the transaction.
+const webInternalStart = dispatch.indexOf('start_web_internal() {');
+const webInternalEnd = dispatch.indexOf('\n}\n\nrestore_predecessor_snapshot()', webInternalStart);
+assert.ok(webInternalStart >= 0 && webInternalEnd > webInternalStart, 'web internal readiness block must be present');
+const webInternalBlock = dispatch.slice(webInternalStart, webInternalEnd);
+assert.match(webInternalBlock, /full-stack-preview-edge-close[\s\S]*?run_compose up -d web/);
+assert.match(webInternalBlock, /local ready=0/);
+assert.match(webInternalBlock, /for _ in \$\(seq 1 60\); do/);
+assert.match(webInternalBlock, /curl [^\n]*http:\/\/127\.0\.0\.1:3000\/[^\n]*\n\s+&& curl [^\n]*http:\/\/127\.0\.0\.1:3000\/login/);
+assert.match(webInternalBlock, /sleep 2/);
+assert.match(webInternalBlock, /\[\[ "\$ready" -eq 1 \]\] \|\| die web_internal_not_ready 70/);
+assert.doesNotMatch(webInternalBlock, /full-stack-preview-funnel-enable/);
 const restoreSnapshotStart = dispatch.indexOf('restore_predecessor_snapshot()');
 const restoreSnapshotEnd = dispatch.indexOf('\n}\n\nrestore_flip_predecessor()', restoreSnapshotStart);
 assert.ok(restoreSnapshotStart >= 0 && restoreSnapshotEnd > restoreSnapshotStart, 'snapshot restore block must be present');
