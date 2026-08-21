@@ -1,0 +1,15 @@
+# 精简 CD 部署叠加层(与 compose.prod.yml 一起 -f 加载)。
+#
+# 为什么单独一个 override 而不是改 compose.prod.yml:后者受 governance 台账约束,
+# 任何改动都要走「追加 successor 记录 + 重算多重 digest」的重仪式(历史 base-guard
+# 会按引入 commit 复算,原地改会失败)。部署期的运行时旋钮放在这个非治理叠加层里,
+# 既保持 compose.prod.yml 为受治理的稳定契约,又能无仪式地调部署细节。
+#
+# 当前唯一内容:修 Next.js standalone 的监听地址。Docker 会把容器 ID 注入 HOSTNAME,
+# Next standalone 会把它当监听地址而只绑该容器 IP,导致容器内 healthcheck 打
+# 127.0.0.1:3000 连不上、web 恒 unhealthy(宿主经 docker-proxy 反而能通)。显式绑
+# 0.0.0.0,让内建 healthcheck 与私网互访都可达。
+services:
+  web:
+    environment:
+      HOSTNAME: "0.0.0.0"

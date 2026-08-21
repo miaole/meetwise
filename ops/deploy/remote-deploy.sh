@@ -22,10 +22,14 @@ done
 
 PROJECT_DIR=/srv/meetwise-compose
 COMPOSE_FILE="$PROJECT_DIR/docker/compose.prod.yml"
+# 非治理叠加层:部署期运行时旋钮(如 web HOSTNAME=0.0.0.0),与受治理的
+# compose.prod.yml 一起加载。后加载者覆盖/合并,故 override 里的键生效。
+OVERRIDE_FILE="$PROJECT_DIR/docker/compose.prod.override.yml"
 ENV_FILE="$PROJECT_DIR/.env"
-dc() { docker compose --project-directory "$PROJECT_DIR" -f "$COMPOSE_FILE" "$@"; }
+dc() { docker compose --project-directory "$PROJECT_DIR" -f "$COMPOSE_FILE" -f "$OVERRIDE_FILE" "$@"; }
 
 [[ -f "$COMPOSE_FILE" ]] || { echo "compose_file_missing:$COMPOSE_FILE" >&2; exit 2; }
+[[ -f "$OVERRIDE_FILE" ]] || { echo "compose_override_missing:$OVERRIDE_FILE" >&2; exit 2; }
 [[ -f "$ENV_FILE" ]] || { echo "env_file_missing:$ENV_FILE (secrets/DB creds 由机器一次性 provision,部署不下发)" >&2; exit 2; }
 
 # 1. 快照当前生效的镜像行,供失败回滚。.env 里除这两行外都是一次性 provision 的

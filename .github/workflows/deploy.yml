@@ -88,8 +88,10 @@ jobs:
 
       # compose 文件由仓库作为唯一真相同步到机器,再运行部署脚本;.env(含 DB/模型
       # 凭据)是机器一次性 provision 的,部署只改两行镜像摘要。
-      - name: Sync compose file to ECS
-        run: scp docker/compose.prod.yml meetwise-ecs:/srv/meetwise-compose/docker/compose.prod.yml
+      - name: Sync compose files to ECS
+        run: |
+          scp docker/compose.prod.yml meetwise-ecs:/srv/meetwise-compose/docker/compose.prod.yml
+          scp docker/compose.prod.override.yml meetwise-ecs:/srv/meetwise-compose/docker/compose.prod.override.yml
 
       - name: Deploy (compose pull → migrate → up --wait → 失败回滚)
         run: |

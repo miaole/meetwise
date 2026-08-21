@@ -37675,7 +37675,7 @@
         "scripts/run-e2e-isolated.mjs",
         "scripts/synthetic-state-lock.proof.mjs"
       ],
-      "governedPathDigest": "sha256:3abc1a2f1f8aaf3f6b4cda9739510967a903eef6c343b14b730517fb707f4b75",
+      "governedPathDigest": "sha256:189f54b01b7428df0996841bf2a8b90e8ce388f2d7c64cc3d1ba035085bf169b",
       "harness": {
         "scope": "Static CD generation/prepare successor for real run 32435220955; generation=8; migration 0123 succeeded; schemaBefore=1b606f08d3af64983388a215e8ca7498fbbf6482dd9e9737e9cba6ddcbe6ae08; schemaAfterPrefix=d633d...; prepare generation mismatch rejected; recovery=forward_only_maintenance; Pages=disabled; Funnel=disabled; releaseEvidence=false: token-bound prepare, trusted predecessor stage/publish and the final lease/identity fence are statically closed; this record remains blocked pending a fresh cloud rerun and releaseEvidence=false. Final source commits b6a9474 (freshHost trusted Pages predecessor generation binding) and 3b9d595 (prepare finalize artifact-byte immutability proof) are bound: trusted Pages freshHost generation 6 advances to candidate generation 8; equal or older generations are rejected; wrong phase, wrong token and expired lease exit 75 while fixed-artifact and ledger bytes remain unchanged. Static web-readiness successor for real run 32441570797 attempt 2 (main d0b7f161c60415604b11a10efd984f42e2d2f6f7); generation=9; controller rollout 32441593011 succeeded with digest 60d7e9c47083ff6873b99c8ef20df6c8576b522b062e0b158b495a22cee5064f; ACR, migration, prepare and backend_ready passed; after web container start, a single early curl reset at about 0.1s caused web_internal_not_ready; recovery succeeded; external verifier/confirm skipped; Pages disabled and Funnel closed; releaseEvidence=false. Static fix: start_web_internal keeps Funnel closed, retries root and login in the same bounded readiness round, and fails closed after exhaustion; this record remains blocked pending a fresh cloud rerun. Static ECS disk/cleanup successor for real run 32443467062 attempt 2 (exact main 4ab65740); generation=9; controller rollout 32443496023 succeeded with digest 9070f914...; ACR/provenance passed; before transaction begin, workspace-wide install-deps materialized 606 packages on ECS and failed ENOSPC with exit 70; no transaction or recovery jobs ran; the existing Pages/Funnel state remained disabled; releaseEvidence=false. Static correction applies the exact @meetwise/db production dependency filter and constrains discard-unclaimed-release to one validated unclaimed release after successful controller version readback; current ECS cleanup, controller rollout and cloud rerun remain outstanding, so this record stays blocked. Static synthetic-state lock successor for real run 32446044074 attempt 2: synthetic verify failed on EACCES for the global synthetic state lock before public activation; token-bound recovery succeeded; existing Pages and Funnel remained disabled; releaseEvidence=false. Static correction uses the controller-owned publisher fd helper to validate/repair the state root and global lock without inode replacement, and invokes it before any runuser boundary; the exact CI proof covers owner, mode, symlink, hardlink, FIFO and replacement races. The cloud rerun remains unproven, so this record stays blocked.",
         "sourceEvidenceIds": [
@@ -37839,7 +37839,7 @@
         "summary": "Static follow-up review records real run 32446044074 attempt 2: synthetic verify hit EACCES on the global synthetic state lock before public activation, token-bound recovery succeeded, and existing Pages/Funnel remained disabled. The exact CI proof and controller/provision wiring bind the publisher-owned state-root/lock repair before the runuser boundary; release evidence remains false and authorization stays blocked pending a fresh cloud rerun.",
         "summaryDigest": "sha256:c0ef5b0044464f058604d2896dfd422cbf78ede13fdfe0eebc80003bae816bab",
         "decision": "blocked",
-        "reviewScopeDigest": "sha256:94744146ce8ae2b1daf07457dcb5f9cf5a0f13994f5798398765deb4181b6c06",
+        "reviewScopeDigest": "sha256:2c2b83c403b08c631a718550e53b3537ab610d3b06a2da8c610a212ee589d827",
         "reviewedFindingIds": [
           "GOV-CD-ECS-DISK-001",
           "GOV-CD-LEGACY-MASK-001",
@@ -37961,7 +37961,7 @@
       ],
       "successorOf": "public-text-policy-control-plane-v57",
       "baselineChange": null,
-      "recordDigest": "sha256:6a36d75bfe51163628130268177fef20a252c1d492a883ff809a160084ae6b54"
+      "recordDigest": "sha256:268cdf8afd508fe0c76d947084fcb3c641e952ca560885e3db3de9a4fd0ccc16"
     },
     {
       "taskId": "quality-governance-control-plane-v69",
@@ -38073,7 +38073,7 @@
         "scripts/run-e2e-isolated.mjs",
         "scripts/synthetic-state-lock.proof.mjs"
       ],
-      "governedPathDigest": "sha256:1524ba7a6bb9c6352081f60235d733698b8ad09aaac91b3a1986fcdfcf09332f",
+      "governedPathDigest": "sha256:0a2e35e5ea557babfb75fce945e23c554425d3b9ca655f60b5efff97b1792847",
       "harness": {
         "scope": "Static CD generation/prepare successor for real run 32435220955; generation=8; migration 0123 succeeded; schemaBefore=1b606f08d3af64983388a215e8ca7498fbbf6482dd9e9737e9cba6ddcbe6ae08; schemaAfterPrefix=d633d...; prepare generation mismatch rejected; recovery=forward_only_maintenance; Pages=disabled; Funnel=disabled; releaseEvidence=false: token-bound prepare, trusted predecessor stage/publish and the final lease/identity fence are statically closed; this record remains blocked pending a fresh cloud rerun and releaseEvidence=false. Final source commits b6a9474 (freshHost trusted Pages predecessor generation binding) and 3b9d595 (prepare finalize artifact-byte immutability proof) are bound: trusted Pages freshHost generation 6 advances to candidate generation 8; equal or older generations are rejected; wrong phase, wrong token and expired lease exit 75 while fixed-artifact and ledger bytes remain unchanged. Static web-readiness successor for real run 32441570797 attempt 2 (main d0b7f161c60415604b11a10efd984f42e2d2f6f7); generation=9; controller rollout 32441593011 succeeded with digest 60d7e9c47083ff6873b99c8ef20df6c8576b522b062e0b158b495a22cee5064f; ACR, migration, prepare and backend_ready passed; after web container start, a single early curl reset at about 0.1s caused web_internal_not_ready; recovery succeeded; external verifier/confirm skipped; Pages disabled and Funnel closed; releaseEvidence=false. Static fix: start_web_internal keeps Funnel closed, retries root and login in the same bounded readiness round, and fails closed after exhaustion; this record remains blocked pending a fresh cloud rerun. Static ECS disk/cleanup successor for real run 32443467062 attempt 2 (exact main 4ab65740); generation=9; controller rollout 32443496023 succeeded with digest 9070f914...; ACR/provenance passed; before transaction begin, workspace-wide install-deps materialized 606 packages on ECS and failed ENOSPC with exit 70; no transaction or recovery jobs ran; the existing Pages/Funnel state remained disabled; releaseEvidence=false. Static correction applies the exact @meetwise/db production dependency filter and constrains discard-unclaimed-release to one validated unclaimed release after successful controller version readback; current ECS cleanup, controller rollout and cloud rerun remain outstanding, so this record stays blocked. Static synthetic-state lock successor for real run 32446044074 attempt 2: synthetic verify failed on EACCES for the global synthetic state lock before public activation; token-bound recovery succeeded; existing Pages and Funnel remained disabled; releaseEvidence=false. Static correction uses the controller-owned publisher fd helper to validate/repair the state root and global lock without inode replacement, and invokes it before any runuser boundary; the exact CI proof covers owner, mode, symlink, hardlink, FIFO and replacement races. The cloud rerun remains unproven, so this record stays blocked.",
         "sourceEvidenceIds": [
@@ -38249,7 +38249,7 @@
         "summary": "Static follow-up review records real run 32446044074 attempt 2: synthetic verify hit EACCES on the global synthetic state lock before public activation, token-bound recovery succeeded, and existing Pages/Funnel remained disabled. The exact CI proof and controller/provision wiring bind the publisher-owned state-root/lock repair before the runuser boundary; release evidence remains false and authorization stays blocked pending a fresh cloud rerun.",
         "summaryDigest": "sha256:c0ef5b0044464f058604d2896dfd422cbf78ede13fdfe0eebc80003bae816bab",
         "decision": "blocked",
-        "reviewScopeDigest": "sha256:e2be5080c428f72dc25bfb105c0091652d7e2e67de1ba3ab9c17fb5066989177",
+        "reviewScopeDigest": "sha256:960474e541e91b667be20203880b740f9c3c690e1f51dc8c1ae32a6a7cce6f8b",
         "reviewedFindingIds": [
           "GOV-CD-CURRENT-TARGET-001",
           "GOV-CD-DEPLOY-PRE-MUTATION-001",
@@ -38723,7 +38723,7 @@
       ],
       "successorOf": "quality-governance-control-plane-v68",
       "baselineChange": null,
-      "recordDigest": "sha256:ac5f33593561fbfbf947bc9bd98662922e51fa72a22d497bdb8126dcb07a6b04"
+      "recordDigest": "sha256:d2f8fab64e11757fab3d49519ce6472a883de0d43c13b15e08271e839669ee47"
     }
 ]
 }

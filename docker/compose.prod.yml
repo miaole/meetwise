@@ -348,10 +348,6 @@ services:
       # 造成经公网 funnel 自环或失败。
       API_BASE_INTERNAL: http://api:8787
       PORT: "3000"
-      # Next.js standalone 会把 Docker 注入的 HOSTNAME(=容器 ID)当监听地址,只绑该
-      # 容器 IP,导致容器内 healthcheck 打 127.0.0.1:3000 连不上(宿主经 docker-proxy
-      # 反而能通)。显式绑 0.0.0.0,让内建 healthcheck 与私网互访都可达。
-      HOSTNAME: "0.0.0.0"
     depends_on:
       api:
         condition: service_healthy
