@@ -83,7 +83,6 @@ packages/
   ai-graphs/  LangGraph 图编排定义
   config/     配置基座
 ai-docs/      产品、架构、用例、测试与运行时事实说明
-preview-site/ GitHub Pages 项目导航
 ```
 
 **技术栈**：Next.js App Router · NestJS · LangGraphJS · Postgres（+pgvector）· Redis · S3/MinIO。
