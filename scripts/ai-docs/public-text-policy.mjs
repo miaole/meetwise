@@ -33,7 +33,7 @@ export const PUBLIC_TEXT_POLICY_CODES = Object.freeze({
   API_KEY: 'PTP_API_KEY',
 });
 
-const MANAGED_ROOTS = Object.freeze(['ai-docs', 'apps', 'packages', 'scripts', 'docker', 'e2e', '.github', '.claude', 'ops', 'preview-site']);
+const MANAGED_ROOTS = Object.freeze(['ai-docs', 'apps', 'packages', 'scripts', 'docker', 'e2e', '.github', '.claude', 'ops']);
 const REQUIRED_ROOTS = Object.freeze(['ai-docs', 'apps', 'packages', 'scripts']);
 const ROOT_FILES = new Set(['README.md', 'AGENTS.md', 'CLAUDE.md']);
 const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.tsx', '.mts', '.cts', '.json', '.yaml', '.yml', '.sql', '.sh', '.toml', '.conf', '.service', '.timer', '.html', '.css', '.txt', '.pem', '.py']);
