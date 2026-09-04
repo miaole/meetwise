@@ -18,7 +18,7 @@ related:
 
 # 模型操作路由、成本与降级
 
-> **实现状态：** 当前文本 `invoke()` 具备部分持久调用与费用治理。`resume.ocr.v1` 已切 registry node identity，并经 `bindResumeOcr` / `SealedOcrProvenance` / `admitInterviewResume` 形成 typed binding 与面试 fail-closed 缝（见 `resume-ocr-binding.md`）。该封印是身份标签（operation / profile id / recipe / media digest），**不是**出站 host pin，也不是 invocation↔blob 哈希链；HTTP 仍走注入 `ModelClient`。生产 API OCR 组合根与原始媒体 smoke 仍 fail-closed（`OCR_ENABLED=1` 拒绝装配，binding 存在也不开）。ASR、TTS、embedding 和 rerank 尚未由统一 operation registry 接管，catalog 也未接入主链。`MODEL-OP-00-DB-STATE-001` 已有本地低权回执并独立复审关闭，但 `MODEL-OP-00` 整体（tokenizer 回派发、catalog 主链）仍未关。文本主链与 DashScope 原生能力必须使用不同的凭据变量。原生 URL 已收敛为固定 Beijing endpoint profile；这只是 `BAILIAN-04` 的静态传输止血，不等于 operation 级最小权限、secret isolation 或统一 registry。OCR 合同缝不得被解读为已启用视觉或已完成 `MODEL-OP-01`。
+> **实现状态：** 当前文本 `invoke()` 具备部分持久调用与费用治理。`resume.ocr.v1` 已切 registry node identity，并经 `bindResumeOcr` / `SealedOcrProvenance` / `admitInterviewResume` 形成 typed binding 与面试 fail-closed 缝（见 `resume-ocr-binding.md`）。该封印是身份标签（operation / profile id / recipe / media digest），**不是**出站 host pin，也不是 invocation↔blob 哈希链；HTTP 仍走注入 `ModelClient`。预览双旗可走通 API OCR invoke（非 SLO）；缺 `OCR_PREVIEW`、仅 `OCR_ENABLED=1`、生产/enforce、或 `MEETWISE_PUBLIC_PREVIEW=1` 仍拒绝装配。原始媒体 smoke 仍 fail-closed。ASR、TTS、embedding 和 rerank 尚未由统一 operation registry 接管，catalog 也未接入主链。`MODEL-OP-00-DB-STATE-001` 已有本地低权回执并独立复审关闭，但 `MODEL-OP-00` 整体（tokenizer 回派发、catalog 主链）仍未关。文本主链与 DashScope 原生能力必须使用不同的凭据变量。原生 URL 已收敛为固定 Beijing endpoint profile；这只是 `BAILIAN-04` 的静态传输止血，不等于 operation 级最小权限、secret isolation 或统一 registry。OCR 合同缝不得被解读为已启用视觉或已完成 `MODEL-OP-01`。
 
 ## 领域对象与状态
 

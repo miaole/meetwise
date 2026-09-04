@@ -2,9 +2,8 @@
 --
 -- MODEL-OP-01：图片简历的面试授权只认密封 OCR binding 快照。
 -- 快照不含转写原文、prompt 或 Key；文本/PDF 行保持 ocr_binding IS NULL。
--- Number is 0127. 0124_rag_retrieval_acl_fail_closed is on main (#71).
--- Sibling open PRs: #70=0125 memory vector erasure, #74=0126 interview
--- answer dual-write fence. Do not collide 0124–0126.
+-- Number is 0127. 0124 and 0125 are on main. Open #74 holds 0126.
+-- Do not collide 0124–0126.
 
 ALTER TABLE resume DROP CONSTRAINT IF EXISTS resume_source_kind_chk;
 ALTER TABLE resume ADD CONSTRAINT resume_source_kind_chk

@@ -2,8 +2,8 @@
  * @meetwise/ai-runtime — AI 运行时关口（公共面）。
  * 外部只许从这里 import；router/validators/catalog 是关口内部件，禁深链（.dependency-cruiser.cjs ai-runtime-chokepoint）。
  * 文本受管调用通过 `invoke`。`resume.ocr.v1` 已有 typed binding + 密封 provenance 缝
- * （身份封印，非出站 host pin），但生产 API OCR 仍 fail-closed（`OCR_ENABLED=1`
- * 拒绝组合根，binding 存在也不开）。本入口仍导出原生语音、embedding 与 rerank
+ * （身份封印，非出站 host pin）。预览版双旗 `OCR_ENABLED=1`+`OCR_PREVIEW=1`
+ * 可走通 invoke；生产/enforce/公开只读预览仍拒绝组合根。本入口仍导出原生语音、embedding 与 rerank
  * 适配器，它们尚未完成 MODEL-OP-01 接线，不能误称为无旁路网关。
  */
 export { invoke, resolveModelDeadlineConfig } from './invoke.ts';

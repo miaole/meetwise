@@ -71,11 +71,13 @@ export class ResumeService {
    * 图片简历 OCR(同步走关口,按次计费)。承重(专家审计定稿):
    *  - 计费(决策B,用户拍板):图字节 HMAC 为幂等锚 `ocr:<hmac>`(不用易变 docId),reserve→**只有产出可用画像才 confirmed**;转写失败/无有效内容/结构化失败一律 released(退 OCR 费)。
    *  - 关口:视觉调用只走 invoke()(双校验 + PII 不入 trace + advisory-lock exactly-once)。
-   *  - fail-closed: typed binding / 密封 provenance 已落地，但生产组合根仍拒绝 `OCR_ENABLED=1`；不 reserve、不调用，返回 422。
+   *  - 预览版: `OCR_ENABLED=1` + `OCR_PREVIEW=1` 且非 production/enforce/公开只读预览时，走
+   *    bindResumeOcr → visionOcr → 密封 provenance → 面试 admit。失败不编造转写，release 额度。
+   *  - 生产/enforce/`MEETWISE_PUBLIC_PREVIEW=1` 仍拒绝组合根；缺 flag 返回 422，不 reserve。
    *  - 时序:响应形状不变(返回 `ingested`/`deduped`),前端与契约零改动。
    */
   private async uploadImageViaOcr(principal: string, buffer: Buffer, dto: UploadResumeFileDto) {
-    if (!isOcrFeatureEnabled()) throw new HttpException({ error: 'image_ocr_unavailable', hint: '图片简历 OCR 暂不可用,请先传 PDF/Word 或粘贴文本' }, HttpStatus.UNPROCESSABLE_ENTITY);   // 生产组合根仍 fail-closed；typed binding 是身份封印，不是已启用视觉。
+    if (!isOcrFeatureEnabled()) throw new HttpException({ error: 'image_ocr_unavailable', hint: '图片简历 OCR 仅预览版可用（OCR_ENABLED=1 且 OCR_PREVIEW=1）；生产未开放，请先传 PDF/Word 或粘贴文本' }, HttpStatus.UNPROCESSABLE_ENTITY);
     const imgHash = createHash('sha256').update(buffer).digest('hex');
     const ocrKey = `ocr:${imgHash}`;                                             // 幂等锚 = 图片字节(同图重传/并发不重扣、不重调付费视觉模型)
     const dataUri = `data:${dto.mimeType || 'image/png'};base64,${dto.contentBase64}`;

@@ -95,8 +95,8 @@ const WIRED_TEXT_OPERATIONS: readonly ModelOperationDefinition[] = [
 /**
  * MODEL-OP-01 OCR 窄切片：`visionOcr` 先经 `bindResumeOcr` 解析冻结 binding，
  * 再以 registry 派生的 `resume.ocr.v1` node identity 进入 invoke()。
- * `wired: true` 表示 registry 授权该节点身份与 binding；生产 egress 仍由
- * `OCR_ENABLED` 组合根 + 视觉 client 无成本策略（MODEL-OP-02）fail-closed。
+ * `wired: true` 表示 registry 授权该节点身份与 binding；预览双旗可派发，
+ * 生产/enforce 组合根仍 fail-closed。视觉 token ledger（MODEL-OP-02）未做。
  */
 const WIRED_VISION_OPERATIONS: readonly ModelOperationDefinition[] = [
   {

@@ -38,8 +38,8 @@ import { MetricsController } from './modules/metrics/metrics.controller';
   controllers: [HealthController, AuthController, ResumeController, CommerceController, CommerceWebhookController, PrivacyController, NotificationController, ProfileController, LegalController, AdminController, RolesController, RecruiterController, JobsController, ApplicationsController, MetricsController],
   providers: [
     ResumeService,
-    // OCR 尚未完成 MODEL-OP-01 的操作绑定；所有环境必须禁用，
-    // 不能让 API 直接拿到的 provider Key 变成未计量视觉外呼。
+    // OCR 预览双旗（OCR_ENABLED=1 且 OCR_PREVIEW=1）可派发；生产/enforce/
+    // 公开只读预览仍拒绝装配。createOcrVisionClient 读进程 env。
     { provide: OCR_VISION_CLIENT, useFactory: (): ModelClient => createOcrVisionClient() },
     AuthService, CommerceService, ProfileService, NotificationService, AdminService, PrivacyService, RolesService, RecruiterService, JobsService, ApplicationsService, HealthService],   // 应用服务层(controller→service→db 仓储,修审计 F1)
 })

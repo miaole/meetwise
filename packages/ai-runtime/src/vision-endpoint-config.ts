@@ -12,7 +12,7 @@
  *   - 解析结果 `Object.freeze`，调用方无法在派发前改写 endpoint。
  *
  * 注意：这仍是 **transport 边界**，不是 operation registry。OCR 的业务接线仍由
- * MODEL-OP-01 在 `ocr-model-client.ts` 里 fail-closed 把关（OCR_ENABLED!=='1' 即拒绝）。
+ * MODEL-OP-01 在 `ocr-model-client.ts` 把关：仅预览双旗可派发，生产锁仍拒绝。
  */
 import { assertKeyFingerprint, parseRevokedFingerprints } from './secret-fingerprint.ts';
 
