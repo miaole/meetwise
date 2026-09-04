@@ -27,7 +27,7 @@ const SITE = publicSiteHref();
 export const metadata: Metadata = {
   title: '产品功能 · 知面 Meetwise',
   description:
-    '知面 Meetwise：真实经历 → 自适应面试 → 可复盘成长。公开预览不提供支付或自动招聘决定；未开放能力不以已可用方式展示。',
+    '知面 Meetwise：按真实经历练面试。公开预览不提供支付或自动招聘决定；未开放能力不以已可用方式展示。',
   alternates: SITE ? { canonical: '/features' } : undefined,
 };
 

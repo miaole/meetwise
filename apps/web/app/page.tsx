@@ -12,7 +12,7 @@ import { publicSiteHref } from '@/lib/public-site';
 const SITE = publicSiteHref();
 
 export const metadata: Metadata = {
-  description: '知面 Meetwise：从真实经历出发的 AI 面试准备。自适应面试 Agent、可复盘成长；公开预览不提供支付，也不接收需要删除保证的真实数据。',
+  description: '知面 Meetwise：按真实经历练面试，留下能回头看的点评。公开预览不提供支付，也不接收需要删除保证的真实数据。',
   alternates: SITE ? { canonical: '/' } : undefined,
 };
 

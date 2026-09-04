@@ -169,8 +169,17 @@ const checks = {
     requireText(pagesWorkflow, "github.ref == 'refs/heads/main'", 'Pages workflow');
     requireText(pagesWorkflow, 'docs/index.html', 'Pages workflow');
     requireText(pagesCss, 'prefers-reduced-motion', 'Pages stylesheet');
+    requireText(pagesCss, 'PingFang SC', 'Pages type stack');
+    requireText(pagesCss, 'Source Han Sans SC', 'Pages type stack');
+    requireText(pagesCss, 'Source Han Serif SC', 'Pages hero serif');
+    requireText(pagesCss, '.hero {', 'Pages hero layout');
+    requireText(pagesHtml, 'class="hero"', 'Pages hero layout');
+    requireText(pagesHtml, 'class="report"', 'Pages annotation card');
+    requireText(pagesHtml, '点评', 'Pages annotation card');
+    forbid(pagesCss, ['Inter', 'Roboto', 'Geist'], 'Pages type stack');
     forbid(pagesHtml, ['<script', 'fetch(', 'XMLHttpRequest', '预览环境准备中'], 'Pages showcase');
     forbid(pagesHtml, ['支付服务已开放', '完整删除已开放', 'OCR 已开放', '语音已开放'], 'Pages showcase');
+    forbid(pagesHtml, ['承重件', '四张 LangGraph', 'AI 驱动'], 'Pages brochure tone');
     assert.equal(/https?:\/\/(?:\d{1,3}\.){3}\d{1,3}/.test(pagesHtml), false, 'Pages showcase must not embed a bare IP');
   },
   'TC-PUBLIC-COPY-E10': () => {
