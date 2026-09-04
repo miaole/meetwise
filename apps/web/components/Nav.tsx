@@ -47,6 +47,7 @@ export async function Nav() {
   const recruiterLinks: NavLink[] = [
     { href: '/recruiter/jobs', label: '岗位' },
     { href: '/recruiter/talent', label: '人才库' },
+    { href: '/recruiter/how-it-works', label: '怎么评估' },
     { href: '/settings', label: t('settings') },
   ];
 

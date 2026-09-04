@@ -121,9 +121,15 @@ test('C→B: real browser binds application to a new interview, completes it, an
   await expect(page.getByText(/面试完成 · 综合评分|报告暂不可用/)).toBeVisible({ timeout: 90_000 });
   await expect.poll(() => finalizeResponses.some((status) => status === 200), { timeout: 15_000 }).toBeTruthy();
 
-  // B 端刷新后只见状态/评分，不见候选人的逐题内容；这一步是 browser 可见的跨端回填证据。
+  // B 端刷新后只见流程状态，不见候选人的逐题内容或数值分；校准 hold 下终态是待人工复核。
   await recruiter.reload();
-  await expect(recruiter.getByText('已完成').first()).toBeVisible({ timeout: 20_000 });
+  await expect(recruiter.getByText(/待人工复核|已完成/).first()).toBeVisible({ timeout: 20_000 });
+  await expect(recruiter.getByText(/综合评分|我的回答|评分 \d+/)).toHaveCount(0);
+  const reviewLink = recruiter.getByRole('link', { name: '查看复核' }).first();
+  await expect(reviewLink).toBeVisible();
+  await reviewLink.click();
+  await expect(recruiter.getByRole('heading', { name: '申请复核' })).toBeVisible({ timeout: 20_000 });
+  await expect(recruiter.getByText(/看不到面试内容/)).toBeVisible();
   await expect(recruiter.getByText(/综合评分|我的回答/)).toHaveCount(0);
   await recruiterContext.close();
 });

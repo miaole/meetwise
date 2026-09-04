@@ -44,6 +44,13 @@ const diagnosisAction = read('apps/web/app/diagnosis/actions.ts');
 const jobsAction = read('apps/web/app/jobs/actions.ts');
 const recruiterInvite = read('apps/web/components/InviteCandidateDialog.tsx');
 const recruiterTalent = read('apps/web/app/recruiter/talent/page.tsx');
+const recruiterHow = read('apps/web/app/recruiter/how-it-works/page.tsx');
+const recruiterReview = read('apps/web/app/recruiter/jobs/[id]/applications/[applicationId]/page.tsx');
+const recruiterJobCandidates = read('apps/web/app/recruiter/jobs/[id]/page.tsx');
+const recruiterJobs = read('apps/web/app/recruiter/jobs/page.tsx');
+const recruiterSurface = read('apps/web/lib/recruiter/surface.ts');
+const candidateJobs = read('apps/web/app/jobs/page.tsx');
+const recruiterHighlights = read('apps/web/components/recruiter/ArchitectureHighlights.tsx');
 const poster = read('apps/web/components/SharePoster.tsx');
 const publicSite = read('apps/web/lib/public-site.ts');
 const readme = read('README.md');
@@ -230,6 +237,29 @@ const checks = {
     forbid(pagesHtml, ['支付服务已开放', '完整删除已开放', 'OCR 已开放', '语音已开放'], 'Pages showcase');
     forbid(pagesHtml, ['承重件', '四张 LangGraph', 'AI 驱动'], 'Pages brochure tone');
     assert.equal(/https?:\/\/(?:\d{1,3}\.){3}\d{1,3}/.test(pagesHtml), false, 'Pages showcase must not embed a bare IP');
+  },
+  'TC-PUBLIC-COPY-E12': () => {
+    requireText(recruiterHow, '怎么评估', 'recruiter architecture page');
+    requireText(recruiterHighlights, '不构成能力认证', 'recruiter architecture highlights');
+    requireText(recruiterHighlights, '不提供自动筛选、排名、拒绝或录用决定', 'recruiter architecture highlights');
+    requireText(recruiterSurface, '下一题跟着回答走', 'recruiter architecture copy');
+    requireText(recruiterSurface, '进度写在服务端', 'recruiter architecture copy');
+    requireText(recruiterSurface, '关键保护可以核对', 'recruiter architecture copy');
+    requireText(recruiterSurface, '证据不够就不给分', 'recruiter architecture copy');
+    requireText(recruiterSurface, '两边分开记账', 'recruiter architecture copy');
+    requireText(recruiterSurface, '不是高峰容量保证', 'recruiter architecture copy');
+    requireText(recruiterSurface, '检索只在授权范围内', 'recruiter architecture copy');
+    requireText(recruiterSurface, '不会用 0 分凑数', 'recruiter architecture copy');
+    forbid(recruiterHow + recruiterHighlights + recruiterSurface, ['Grok', '生产级可靠', '自动录用已开放'], 'recruiter architecture copy');
+    requireText(recruiterReview, '看不到面试内容', 'recruiter review page');
+    requireText(recruiterReview, '不提供数值评分', 'recruiter review page');
+    requireText(recruiterReview, '待人工复核', 'recruiter review page');
+    forbid(recruiterReview, ['综合评分', '我的回答'], 'recruiter review page');
+    requireText(recruiterJobCandidates, '查看复核', 'recruiter job candidates');
+    requireText(recruiterTalent, '查看复核', 'recruiter talent page');
+    requireText(recruiterJobs, 'ArchitectureHighlights', 'recruiter jobs page');
+    forbid(candidateJobs, ['评分 {'], 'candidate applications must not render application.score');
+    forbid(recruiterJobCandidates + recruiterTalent + recruiterReview, ['评分 {'], 'recruiter pages must not render application.score');
   },
   'TC-PUBLIC-COPY-E10': () => {
     const retiredAssets = [

@@ -44,6 +44,7 @@ const requiredFiles = [
   "ai-docs/requirements/use-cases/cend-overview-progress.md",
   "ai-docs/requirements/use-cases/interview-control-signals.md",
   "ai-docs/requirements/use-cases/interview-signal-sse.md",
+  "ai-docs/requirements/use-cases/bend-recruiter-architecture-surface.md",
   "ai-docs/delivery/roadmap.md",
   "docker/compose.dev.yml",
   "docker/compose.demo.yml",
@@ -98,6 +99,7 @@ const requiredTerms = new Map([
     "enqueueInterviewJob",
   ]],
   ["ai-docs/requirements/use-cases/interview-control-signals.md", ["observeInterviewSignals", "early_weak", "thrashing", "safety_ceiling", "不是能力等级校准", "INT-LEVEL-01"]],
+  ["ai-docs/requirements/use-cases/bend-recruiter-architecture-surface.md", ["怎么评估", "查看复核", "不提供数值评分", "releaseEvidence=false", "不是高峰容量保证"]],
 ]);
 
 // P0 readability contract: expert-interview materials must not assume the reader already knows acronyms.
@@ -203,6 +205,11 @@ const runtimeTruthAssertions = [
     source: "packages/ai-runtime/src/model-operation-registry.ts",
     sourceTerm: "generation_unavailable",
     truthTerm: "generation_unavailable",
+  },
+  {
+    source: "apps/web/lib/recruiter/surface.ts",
+    sourceTerm: "applicationScoreVisible",
+    truthTerm: "/recruiter/how-it-works",
   },
 ];
 

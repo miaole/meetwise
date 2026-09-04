@@ -109,6 +109,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
             // `assessment_unavailable` 是无可信分数且已退款的可恢复终态；重试必须显式由
             // 用户发起，服务端会创建新的 attempt，不会复活或覆盖旧会话。
             const startable = app.status === 'invited' || app.status === 'in_progress' || app.status === 'assessment_unavailable';
+            // 申请 score 即使历史非空也不得渲染：B 端校准 hold 下它不是可比较评分。
             return (
               <div key={app.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3">
                 <span className="text-sm font-medium">
@@ -116,7 +117,6 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                   {app.source === 'invited' && <Badge variant="secondary" className="ml-2 align-middle">招聘方邀请</Badge>}
                 </span>
                 <div className="flex items-center gap-2">
-                  {app.score !== null && <span className="text-sm text-muted-foreground">评分 {app.score}</span>}
                   <Badge variant={st.variant}>{st.text}</Badge>
                   {/* 岗位面试必须显式选择一份已摄取简历；服务端会把 resume/job/application 原子绑定到唯一会话。 */}
                   {startable && (

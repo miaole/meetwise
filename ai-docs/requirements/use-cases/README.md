@@ -36,6 +36,7 @@ related:
   - ./redemption.md
   - ./interview-history.md
   - ./cend-overview-progress.md
+  - ./bend-recruiter-architecture-surface.md
 ---
 
 # 业务用例目录
@@ -63,7 +64,8 @@ related:
 | 15 | 3D 数字人面试官（3D→语音→文本降级阶梯） | 22 | 91 | `avatar-3d.md` |
 | 16 | 兑换码/兑换服务（兑换 vs 充值·共享权益池·FIFO） | 41 | 104 | `redemption.md` |
 | 17 | 面试历史（列表/详情/继续未完成/重看报告） | 13 | 93 | `interview-history.md` |
-| | **合计** | **496** | **≈1625** | |
+| 18 | B 端招聘方说明与申请复核消费 | 2 | 静态证明 | `bend-recruiter-architecture-surface.md` |
+| | **合计** | **498** | **≈1625** | |
 
 **七类覆盖**（单 UC 多归类，均 ≈4.1 类/UC）：
 

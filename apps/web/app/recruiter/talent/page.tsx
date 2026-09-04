@@ -7,6 +7,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { listWindow, withLimitHref } from '@/lib/paginate';
+import { applicationStatusLabel, recruiterAssessmentLabel } from '@/lib/recruiter/surface';
+import { ArchitectureHighlights } from '@/components/recruiter/ArchitectureHighlights';
 
 const PAGE = 30;          // 人才库可能很大:封顶首屏渲染行数,"加载更多"递增 ?limit
 
@@ -16,14 +18,6 @@ interface Talent {
   id: string; job_id: string; job_title: string; candidate_user_id: string;
   status: string; score: number | null; source: string; created_at: string;
 }
-
-const STATUS_LABEL: Record<string, { text: string; variant: 'success' | 'outline' | 'destructive' }> = {
-  invited: { text: '已邀请', variant: 'outline' },
-  in_progress: { text: '面试中', variant: 'outline' },
-  completed: { text: '已完成', variant: 'success' },
-  assessment_unavailable: { text: '待人工复核', variant: 'outline' },
-  declined: { text: '已婉拒', variant: 'destructive' },
-};
 
 /**
  * B 端人才库:跨招聘方**自有所有岗位**聚合候选人(后端 RLS 租户隔离,看不到他人租户)。
@@ -66,6 +60,8 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
         <p className="mt-1 text-muted-foreground">在经授权的岗位范围内查看候选人的必要流程状态。页面不展示面试内容或数值评分；不提供自动筛选、排名、拒绝或录用决定，任何判断都需人工复核。</p>
       </div>
 
+      <ArchitectureHighlights compact />
+
       {/* 服务端状态筛选:链接驱动(RSC 重新取数),无客户端状态。 */}
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <span className="text-muted-foreground">状态:</span>
@@ -96,11 +92,12 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
                     <th className="py-2 pr-4 font-medium">来源</th>
                     <th className="py-2 pr-4 font-medium">状态</th>
                     <th className="py-2 font-medium">评估</th>
+                    <th className="py-2 font-medium">复核</th>
                   </tr>
                 </thead>
                 <tbody>
                   {win!.shown.map((t) => {
-                    const st = STATUS_LABEL[t.status] ?? { text: t.status, variant: 'outline' as const };
+                    const st = applicationStatusLabel(t.status);
                     return (
                       <tr key={t.id} className="border-b last:border-0">
                         <td className="py-3 pr-4 font-mono">{t.candidate_user_id.slice(0, 8)}</td>
@@ -109,7 +106,10 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
                         </td>
                         <td className="py-3 pr-4 text-xs text-muted-foreground">{t.source === 'invited' ? '招聘方邀请' : '主动投递'}</td>
                         <td className="py-3 pr-4"><Badge variant={st.variant}>{st.text}</Badge></td>
-                        <td className="py-3 text-muted-foreground">{t.status === 'assessment_unavailable' ? '待人工复核' : '不提供数值评分'}</td>
+                        <td className="py-3 pr-4 text-muted-foreground">{recruiterAssessmentLabel(t.status, t.score)}</td>
+                        <td className="py-3">
+                          <Link href={`/recruiter/jobs/${t.job_id}/applications/${t.id}`} className="text-primary hover:underline">查看复核</Link>
+                        </td>
                       </tr>
                     );
                   })}

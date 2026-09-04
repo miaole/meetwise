@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { InviteCandidateDialog } from '@/components/InviteCandidateDialog';
 import { listWindow, withLimitHref } from '@/lib/paginate';
+import { applicationStatusLabel, recruiterAssessmentLabel } from '@/lib/recruiter/surface';
 
 const PAGE = 30;          // 单岗位候选人封顶首屏渲染,"加载更多"递增 ?limit
 
@@ -15,15 +16,6 @@ export const metadata: Metadata = { title: '岗位候选人 · 招聘方 · 知�
 
 interface Job { id: string; title: string; competencies: string[]; status: string }
 interface Candidate { id: string; candidate_user_id: string; status: string; score: number | null; source?: string }
-
-/** 申请状态 → 中文标签 + Badge 变体(无死胡同:每个状态都有出口文案)。 */
-const STATUS_LABEL: Record<string, { text: string; variant: 'success' | 'outline' | 'destructive' }> = {
-  invited: { text: '已邀请', variant: 'outline' },
-  in_progress: { text: '面试中', variant: 'outline' },
-  completed: { text: '已完成', variant: 'success' },
-  assessment_unavailable: { text: '待人工复核', variant: 'outline' },
-  declined: { text: '已婉拒', variant: 'destructive' },
-};
 
 /** B 端(招聘方)岗位详情:看本岗位的候选人列表(多租户 RLS 只见自己岗位)。RSC,await params 取 id,Promise.all 并行取数。 */
 export default async function RecruiterJobCandidatesPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ limit?: string }> }) {
@@ -42,7 +34,7 @@ export default async function RecruiterJobCandidatesPage({ params, searchParams 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <p className="text-sm">
-        <a href="/recruiter/jobs" className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" />返回岗位列表</a>
+        <Link href="/recruiter/jobs" className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" />返回岗位列表</Link>
       </p>
 
       <div>
@@ -50,7 +42,7 @@ export default async function RecruiterJobCandidatesPage({ params, searchParams 
           <h1 className="flex items-center gap-2 text-2xl font-bold"><Users className="size-6 text-primary" />{job?.title ?? '岗位候选人'}</h1>
           {job ? <InviteCandidateDialog jobId={id} /> : null}
         </div>
-        <p className="mt-1 text-muted-foreground">投递/受邀该岗位的候选人及其最小评估状态。数值评分校准完成前仅可人工复核；你看不到面试内容。</p>
+        <p className="mt-1 text-muted-foreground">投递/受邀该岗位的候选人及其最小评估状态。点「查看复核」只打开流程状态；你看不到面试内容，也不提供数值评分。</p>
         {job?.competencies?.length ? (
           <div className="mt-3 flex flex-wrap gap-1">
             {job.competencies.map((s) => <Badge key={s} variant="outline">{s}</Badge>)}
@@ -74,17 +66,21 @@ export default async function RecruiterJobCandidatesPage({ params, searchParams 
                     <th className="py-2 pr-4 font-medium">来源</th>
                     <th className="py-2 pr-4 font-medium">状态</th>
                     <th className="py-2 font-medium">评估</th>
+                    <th className="py-2 font-medium">复核</th>
                   </tr>
                 </thead>
                 <tbody>
                   {win!.shown.map((c) => {
-                    const st = STATUS_LABEL[c.status] ?? { text: c.status, variant: 'outline' as const };
+                    const st = applicationStatusLabel(c.status);
                     return (
                       <tr key={c.id} className="border-b last:border-0">
                         <td className="py-3 pr-4 font-mono">{c.candidate_user_id.slice(0, 8)}</td>
                         <td className="py-3 pr-4 text-xs text-muted-foreground">{c.source === 'invited' ? '招聘方邀请' : '主动投递'}</td>
                         <td className="py-3 pr-4"><Badge variant={st.variant}>{st.text}</Badge></td>
-                        <td className="py-3 text-muted-foreground">{c.status === 'assessment_unavailable' ? '待人工复核' : '不提供数值评分'}</td>
+                        <td className="py-3 pr-4 text-muted-foreground">{recruiterAssessmentLabel(c.status, c.score)}</td>
+                        <td className="py-3">
+                          <Link href={`/recruiter/jobs/${id}/applications/${c.id}`} className="text-primary hover:underline">查看复核</Link>
+                        </td>
                       </tr>
                     );
                   })}
