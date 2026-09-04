@@ -7,7 +7,7 @@ scope: shared
 level: guide
 status: active
 owner: architecture
-version: 1
+version: 2
 tags:
   - meta
   - boundaries
@@ -31,7 +31,19 @@ tags:
 | `requirements` | 这次具体做什么 | 长期工程规则 |
 | `architecture` | 技术上如何长期组织 | 本次任务 todo。删除回执 sink 盘点只维护在 `architecture/ai/privacy-deletion-sink-inventory.md`；用例/七类矩阵在 `requirements/use-cases/privacy-deletion-sink-inventory.md`，不另写一份“已删除”声明。 |
 | `rules` | 长期稳定约束是什么 | 一次性讨论 |
-| `skills` | 这类工作怎么做 | 产品定义 |
-| `testing` | 怎么验证 | 实现正文 |
+| `skills` | 这类工作怎么做。测试仪式在 `skills/testing/sop.md` | 产品定义、测试策略正文 |
+| `testing` | 怎么验证：策略、TC 规范、golden-tasks、证据 | 实现正文；变更后怎么跑门写在 `skills/testing/` |
 | `delivery` | 怎么发布和复盘 | 需求原文 |
 | `observability` | 怎么观察 AI 和系统质量 | 用户敏感数据 |
+
+## 测试文档落位（一个结论一处）
+
+- 分层与禁止伪验收 → `testing/strategy/test-strategy.md`
+- 如何写 TC、层映射（HTTP 主层 / Playwright 次层） → `testing/conventions/test-authoring.md`
+- 改完功能后审核、选层、跑命令 → `skills/testing/SKILL.md`
+- 实跑回执与结论边界 → `testing/e2e-performance-evidence.md`
+- AI 代码/输出不得默认信任：收束公式 → `skills/testing/fail-closed-gate.md`；长期指针 → `rules/global/ai-generated-review.md`
+- E2E 平台集成分支的核实合并顺序 → `delivery/e2e-platform-integration.md`
+- 当前短流程面试长度政策（软预算 + 绝对杀开关） → `requirements/use-cases/adaptive-interview-length.md`；一到两小时 blueprint 仍在 `requirements/use-cases/expert-long-interview-runtime.md`，二者不得写成同一完成项
+- HTTP E2E 可执行目录契约 → `testing/conventions/e2e-directory-contract.md`（叙事 SOP 在 `skills/testing/e2e-platform/`，禁止第三套目录故事）
+- e2e 用例/断言 parity floors → `testing/e2e-parity-baseline.md`
