@@ -9,7 +9,7 @@
 - 不在没有 PRD、领域模型、接口契约和测试计划的情况下直接生成生产代码；实现前先写清楚测试先行的验收方式。
 - 不暗猜接口，不创造未定义接口；前后端必须由共享契约驱动。
 - 不把 AI 输出直接当事实；所有模型输出必须经过结构化校验和业务校验。
-- 不默认信任 AI 写出的代码、测试或 UI。变更后只走 `ai-docs/skills/testing/sop.md`；能否收束由 `ai-docs/skills/testing/fail-closed-gate.md` 判定（审核 ∧ 验证，缺一阻断，作者不得自签审核，允许多轮）。不提交密钥。
+- 不默认信任 AI 写出的代码、测试或 UI。变更后只走 `ai-docs/skills/testing/sop.md`；能否收束由 `ai-docs/skills/testing/fail-closed-gate.md` 判定（审核 ∧ 验证，缺一阻断，作者不得自签审核，允许多轮）。AI 测试 diff 还须过 `e2e-parity:check`（parity floors）与独立审核，步骤只在 `ai-docs/testing/e2e-parity-baseline.md`。不提交密钥。
 - 不把简历、聊天记录、模型密钥、支付信息写入日志。
 - 不提交真实 `.env`、密钥、简历原文、面试录音或用户敏感数据。
 

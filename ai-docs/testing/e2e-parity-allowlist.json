@@ -1,5 +1,38 @@
 {
   "schemaVersion": 1,
   "releaseEvidence": false,
-  "entries": []
+  "entries": [
+    {
+      "id": "E2E-PARITY-20260904-receipt-source-digest-retarget",
+      "path": "scripts/local-e2e-receipt.proof.mjs",
+      "reason": "Fail-closed e2e-platform base retargeted receipt source digests after the resume helper landed; old helper/orchestrator hashes no longer match the current proof body.",
+      "removedTests": [
+        {
+          "kind": "test",
+          "label": "复杂边界：源码摘要覆盖客户端、helpers、编排器和隔离器，迁移清单不为空",
+          "conditionDigest": "sha256:236bcccf05cfa1cb3fec539144d6ecb244c61197668f73a03608c159ae1a8953"
+        },
+        {
+          "kind": "test",
+          "label": "正常：原子回执包含退出码、时长、断言数、源码与迁移清单摘要",
+          "conditionDigest": "sha256:a0052f4d4fb783e6de3fc08d9ee0e9ea358307e67ebf28ac85a6672eacbe290e"
+        }
+      ],
+      "removedAssertions": [
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:8d4ca1ecc8bc802cc892ea02274e97b0b3f50cd893d0d37b0ec9f5702806cb6f"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:5cbce631eb069ad9239123fc5baeee9d5123569396013586a979e8830d35f2bc"
+        }
+      ],
+      "removedFile": false,
+      "testCountDelta": -2,
+      "assertionCountDelta": -2
+    }
+  ]
 }

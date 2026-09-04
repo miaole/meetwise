@@ -33,17 +33,20 @@ export const TEST_CALLEES = Object.freeze(['test', 'it']);
 
 const SHA256_PATTERN = /^sha256:[a-f0-9]{64}$/;
 const ALLOWLIST_ID_PATTERN = /^E2E-PARITY-\d{8}-[a-z0-9-]{3,64}$/;
-const BANNED_REASON = /^(todo|tbd|n\/a|na|update|fix|allow|ok|yes|temp|temporary|placeholder)\b/i;
+const BANNED_REASON = /(^(todo|tbd|n\/a|na|update|fix|allow|ok|yes|temp|temporary|placeholder)\b|\b(todo|tbd|n\/a|placeholder|temporary)\b)/i;
+const BANNED_AI_REASON = /\b(ai[- ]?(generated|edit|refactor|cleanup)|agent (edit|refactor)|simplified the tests|cleaned up tests|auto[- ]?(update|fix))\b/i;
 const MAX_FILES = 64;
 const MAX_FILE_BYTES = 512_000;
 const MAX_DEPTH = 8;
 const MAX_ALLOWLIST = 256;
-const BASELINE_KEYS = Object.freeze(['schemaVersion', 'releaseEvidence', 'scope', 'files']);
+const BASELINE_KEYS = Object.freeze(['schemaVersion', 'releaseEvidence', 'scope', 'floors', 'files']);
 const FILE_KEYS = Object.freeze(['testCount', 'assertionCount', 'tests', 'assertions']);
+const FLOOR_KEYS = Object.freeze(['testCount', 'assertionCount']);
 const IDENTITY_KEYS = Object.freeze(['kind', 'label', 'conditionDigest']);
 const ALLOWLIST_DOC_KEYS = Object.freeze(['schemaVersion', 'releaseEvidence', 'entries']);
 const ALLOWLIST_ENTRY_KEYS = Object.freeze([
   'id', 'path', 'reason', 'removedTests', 'removedAssertions', 'removedFile',
+  'testCountDelta', 'assertionCountDelta',
 ]);
 
 function isPlainObject(value) {
@@ -68,6 +71,16 @@ function normalizeExpr(value) {
 
 function identityKey(item) {
   return `${item.kind}\n${item.label}\n${item.conditionDigest}`;
+}
+
+export function floorsFromFiles(files) {
+  let testCount = 0;
+  let assertionCount = 0;
+  for (const file of Object.values(files ?? {})) {
+    if (Number.isInteger(file?.testCount)) testCount += file.testCount;
+    if (Number.isInteger(file?.assertionCount)) assertionCount += file.assertionCount;
+  }
+  return { testCount, assertionCount };
 }
 
 function sortedIdentities(items) {
@@ -498,6 +511,14 @@ export function extractParityCalls(source) {
     let kind = ident.name;
     if (code[cursor] === '.') {
       const methodIdent = readIdent(code, skipWs(code, cursor + 1));
+      if (methodIdent && TEST_CALLEES.includes(ident.name) && ['skip', 'todo'].includes(methodIdent.name)) {
+        const open = skipWs(code, methodIdent.end);
+        if (code[open] === '(') {
+          const skipClose = matchingParen(code, open);
+          i = skipClose >= 0 ? skipClose + 1 : methodIdent.end;
+          continue;
+        }
+      }
       if (!methodIdent || ident.name !== 'assert' || !ASSERT_METHODS.includes(methodIdent.name)) {
         i = ident.end;
         continue;
@@ -781,6 +802,24 @@ export function validateParityDocuments(baseline, allowlist, { scan, previousBas
     validateSnapshotShape(baseline.files[path], path, errors);
   }
 
+  if (!isPlainObject(baseline.floors) || !hasExactKeys(baseline.floors, FLOOR_KEYS)) {
+    addError(errors, 'floor_fields_invalid', 'floors');
+  } else {
+    if (!Number.isInteger(baseline.floors.testCount) || baseline.floors.testCount < 0) {
+      addError(errors, 'floor_invalid', 'testCount');
+    }
+    if (!Number.isInteger(baseline.floors.assertionCount) || baseline.floors.assertionCount < 0) {
+      addError(errors, 'floor_invalid', 'assertionCount');
+    }
+    const frozenTotals = floorsFromFiles(baseline.files);
+    if (baseline.floors.testCount !== frozenTotals.testCount) {
+      addError(errors, 'floor_sum_mismatch', `tests:${baseline.floors.testCount}!=${frozenTotals.testCount}`);
+    }
+    if (baseline.floors.assertionCount !== frozenTotals.assertionCount) {
+      addError(errors, 'floor_sum_mismatch', `assertions:${baseline.floors.assertionCount}!=${frozenTotals.assertionCount}`);
+    }
+  }
+
   const ids = new Set();
   const removedByPath = new Map();
   const removedFiles = new Set();
@@ -794,10 +833,17 @@ export function validateParityDocuments(baseline, allowlist, { scan, previousBas
     if (ids.has(entry.id)) addError(errors, 'allowlist_id_duplicate', entry.id);
     ids.add(entry.id);
     if (!nonEmptyString(entry.path) || !baseline.files[entry.path]) addError(errors, 'allowlist_path_unknown', `${entry.id}:${entry.path}`);
-    if (typeof entry.reason !== 'string' || entry.reason.trim().length < 24 || !entry.reason.includes(' ') || BANNED_REASON.test(entry.reason.trim())) {
+    const reason = typeof entry.reason === 'string' ? entry.reason.trim() : '';
+    if (reason.length < 24 || !reason.includes(' ') || BANNED_REASON.test(reason) || BANNED_AI_REASON.test(reason)) {
       addError(errors, 'allowlist_reason_invalid', entry.id);
     }
     if (typeof entry.removedFile !== 'boolean') addError(errors, 'allowlist_removed_file_invalid', entry.id);
+    if (!Number.isInteger(entry.testCountDelta) || entry.testCountDelta > 0) {
+      addError(errors, 'allowlist_delta_invalid', `${entry.id}:testCountDelta`);
+    }
+    if (!Number.isInteger(entry.assertionCountDelta) || entry.assertionCountDelta > 0) {
+      addError(errors, 'allowlist_delta_invalid', `${entry.id}:assertionCountDelta`);
+    }
     if (!Array.isArray(entry.removedTests) || !Array.isArray(entry.removedAssertions)) {
       addError(errors, 'allowlist_removed_arrays_invalid', entry.id);
       continue;
@@ -806,6 +852,18 @@ export function validateParityDocuments(baseline, allowlist, { scan, previousBas
       addError(errors, 'allowlist_removed_file_conflict', entry.id);
     }
     const snapshot = baseline.files[entry.path];
+    const expectedTestDelta = entry.removedFile
+      ? -(snapshot?.testCount ?? 0)
+      : -(entry.removedTests?.length ?? 0);
+    const expectedAssertionDelta = entry.removedFile
+      ? -(snapshot?.assertionCount ?? 0)
+      : -(entry.removedAssertions?.length ?? 0);
+    if (Number.isInteger(entry.testCountDelta) && entry.testCountDelta !== expectedTestDelta) {
+      addError(errors, 'allowlist_delta_mismatch', `${entry.id}:testCountDelta`);
+    }
+    if (Number.isInteger(entry.assertionCountDelta) && entry.assertionCountDelta !== expectedAssertionDelta) {
+      addError(errors, 'allowlist_delta_mismatch', `${entry.id}:assertionCountDelta`);
+    }
     const knownTests = snapshot ? bagKeys(snapshot.tests) : new Map();
     const knownAssertions = snapshot ? bagKeys(snapshot.assertions) : new Map();
     const bucket = removedByPath.get(entry.path) ?? { tests: new Map(), assertions: new Map() };
@@ -850,11 +908,15 @@ export function validateParityDocuments(baseline, allowlist, { scan, previousBas
     const baselineTests = bagKeys(snapshot.tests);
     const baselineAssertions = bagKeys(snapshot.assertions);
     for (const [key, count] of removed.tests) {
-      if ((currentTests.get(key) ?? 0) > 0) addError(errors, 'allowlist_still_present', `${path}:test:${key.split('\n')[1] || key.split('\n')[0]}`);
+      if ((currentTests.get(key) ?? 0) > (baselineTests.get(key) ?? 0) - count) {
+        addError(errors, 'allowlist_still_present', `${path}:test:${key.split('\n')[1] || key.split('\n')[0]}`);
+      }
       if ((baselineTests.get(key) ?? 0) < count) addError(errors, 'allowlist_unknown_test', `${path}:${key.split('\n')[0]}`);
     }
     for (const [key, count] of removed.assertions) {
-      if ((currentAssertions.get(key) ?? 0) > 0) addError(errors, 'allowlist_still_present', `${path}:assertion:${key.split('\n')[1] || key.split('\n')[0]}`);
+      if ((currentAssertions.get(key) ?? 0) > (baselineAssertions.get(key) ?? 0) - count) {
+        addError(errors, 'allowlist_still_present', `${path}:assertion:${key.split('\n')[1] || key.split('\n')[0]}`);
+      }
       if ((baselineAssertions.get(key) ?? 0) < count) addError(errors, 'allowlist_unknown_assertion', `${path}:${key.split('\n')[1] || key.split('\n')[0]}`);
     }
     const expectedTests = new Map(baselineTests);
@@ -893,6 +955,24 @@ export function validateParityDocuments(baseline, allowlist, { scan, previousBas
     }
   }
 
+  const allowlistTestDelta = (allowlist.entries ?? []).reduce(
+    (sum, entry) => sum + (Number.isInteger(entry?.testCountDelta) ? entry.testCountDelta : 0),
+    0,
+  );
+  const allowlistAssertionDelta = (allowlist.entries ?? []).reduce(
+    (sum, entry) => sum + (Number.isInteger(entry?.assertionCountDelta) ? entry.assertionCountDelta : 0),
+    0,
+  );
+  const effectiveTestFloor = (baseline.floors?.testCount ?? 0) + allowlistTestDelta;
+  const effectiveAssertionFloor = (baseline.floors?.assertionCount ?? 0) + allowlistAssertionDelta;
+  const scanTotals = floorsFromFiles(inventory.files);
+  if (scanTotals.testCount < effectiveTestFloor) {
+    addError(errors, 'floor_violation', `tests:${scanTotals.testCount}<${effectiveTestFloor}`);
+  }
+  if (scanTotals.assertionCount < effectiveAssertionFloor) {
+    addError(errors, 'floor_violation', `assertions:${scanTotals.assertionCount}<${effectiveAssertionFloor}`);
+  }
+
   if (previousBaseline && isPlainObject(previousBaseline.files)) {
     for (const path of Object.keys(previousBaseline.files).sort()) {
       const previous = previousBaseline.files[path];
@@ -908,7 +988,8 @@ export function validateParityDocuments(baseline, allowlist, { scan, previousBas
       const removed = removedByPath.get(path) ?? { tests: new Map(), assertions: new Map() };
       for (const [key, count] of previousTests) {
         if ((currentTests.get(key) ?? 0) + (removed.tests.get(key) ?? 0) < count) {
-          addError(errors, 'baseline_identity_dropped', `${path}:test`);
+          const item = identityByKey(previous.tests ?? []).get(key);
+          addError(errors, 'baseline_identity_dropped', `${path}:${item?.label || item?.kind || 'test'}`);
         }
       }
       for (const [key, count] of previousAssertions) {
@@ -918,16 +999,36 @@ export function validateParityDocuments(baseline, allowlist, { scan, previousBas
         }
       }
     }
+    if (isPlainObject(previousBaseline.floors) && hasExactKeys(previousBaseline.floors, FLOOR_KEYS)) {
+      const previousTests = previousBaseline.floors.testCount;
+      const previousAssertions = previousBaseline.floors.assertionCount;
+      const currentTests = baseline.floors?.testCount ?? 0;
+      const currentAssertions = baseline.floors?.assertionCount ?? 0;
+      if (Number.isInteger(previousTests) && currentTests < previousTests && previousTests - currentTests > -allowlistTestDelta) {
+        addError(errors, 'floor_dropped', `tests:${previousTests}->${currentTests}`);
+      }
+      if (Number.isInteger(previousAssertions) && currentAssertions < previousAssertions && previousAssertions - currentAssertions > -allowlistAssertionDelta) {
+        addError(errors, 'floor_dropped', `assertions:${previousAssertions}->${currentAssertions}`);
+      }
+    }
   }
 
   const unique = [...new Set(errors)].sort();
   const fileCount = Object.keys(inventory.files ?? {}).length;
-  const testCount = Object.values(inventory.files ?? {}).reduce((sum, file) => sum + file.testCount, 0);
-  const assertionCount = Object.values(inventory.files ?? {}).reduce((sum, file) => sum + file.assertionCount, 0);
+  const testCount = scanTotals.testCount;
+  const assertionCount = scanTotals.assertionCount;
   return {
     valid: unique.length === 0,
     errors: unique,
-    stats: { fileCount, testCount, assertionCount, allowlistCount: allowlist.entries.length, releaseEvidence: false },
+    stats: {
+      fileCount,
+      testCount,
+      assertionCount,
+      floors: { testCount: baseline.floors?.testCount ?? 0, assertionCount: baseline.floors?.assertionCount ?? 0 },
+      effectiveFloors: { testCount: effectiveTestFloor, assertionCount: effectiveAssertionFloor },
+      allowlistCount: allowlist.entries.length,
+      releaseEvidence: false,
+    },
   };
 }
 
@@ -955,18 +1056,103 @@ export function loadJson(repoRoot, relativePath) {
   return JSON.parse(readFileSync(resolved, 'utf8'));
 }
 
-export function loadPreviousBaselineFromGit(repoRoot) {
+function gitShowText(repoRoot, spec) {
   try {
-    const text = execFileSync('git', ['show', `HEAD:${BASELINE_PATH}`], {
+    const text = execFileSync('git', ['show', spec], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      maxBuffer: MAX_FILE_BYTES,
+    });
+    return { ok: true, text };
+  } catch (error) {
+    const detail = `${error.stderr ?? ''} ${error.message ?? ''}`;
+    const missing = /does not exist|exists on disk, but not in|bad object|unknown revision|bad revision|pathspec|not a git/i.test(detail)
+      || error.status === 128
+      || error.code === 128;
+    return { ok: false, missing, detail };
+  }
+}
+
+function gitRevParse(repoRoot, rev) {
+  try {
+    return execFileSync('git', ['rev-parse', '--verify', rev], {
       cwd: repoRoot,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
-      maxBuffer: MAX_FILE_BYTES,
-    });
-    return JSON.parse(text);
+    }).trim();
   } catch {
     return null;
   }
+}
+
+function gitMergeBase(repoRoot, left, right) {
+  try {
+    return execFileSync('git', ['merge-base', left, right], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    return null;
+  }
+}
+
+function baselineSnapshotEqual(left, right) {
+  if (!left || !right) return false;
+  try {
+    return JSON.stringify(left) === JSON.stringify(right);
+  } catch {
+    return false;
+  }
+}
+
+function predecessorRefs(repoRoot) {
+  const refs = [];
+  const envBase = String(process.env.E2E_PARITY_BASE_REF || process.env.GITHUB_BASE_REF || '').trim();
+  if (envBase) {
+    refs.push(envBase.includes(':') ? envBase : envBase);
+    if (!envBase.startsWith('origin/') && !envBase.includes('/')) refs.push(`origin/${envBase}`);
+    const mergeBase = gitMergeBase(repoRoot, 'HEAD', envBase.startsWith('origin/') || envBase.includes('/') ? envBase : `origin/${envBase}`)
+      ?? gitMergeBase(repoRoot, 'HEAD', envBase);
+    if (mergeBase) refs.push(mergeBase);
+  }
+  const parent = gitRevParse(repoRoot, 'HEAD^');
+  if (parent) refs.push(parent);
+  return [...new Set(refs.filter(Boolean))];
+}
+
+export function loadCommittedBaselineFromGit(repoRoot) {
+  const shown = gitShowText(repoRoot, `HEAD:${BASELINE_PATH}`);
+  if (shown.ok) {
+    try { return { baseline: JSON.parse(shown.text), error: null, source: 'HEAD' }; }
+    catch { return { baseline: null, error: 'baseline_predecessor_unreadable:HEAD_parse', source: 'HEAD' }; }
+  }
+  if (shown.missing) return { baseline: null, error: null, source: 'HEAD' };
+  return { baseline: null, error: 'baseline_predecessor_unreadable:HEAD', source: 'HEAD' };
+}
+
+export function loadPreviousBaselineFromGit(repoRoot, workingBaseline) {
+  const committed = loadCommittedBaselineFromGit(repoRoot);
+  if (committed.error) return committed;
+  if (workingBaseline && committed.baseline && !baselineSnapshotEqual(workingBaseline, committed.baseline)) {
+    return { baseline: committed.baseline, error: null, source: 'HEAD' };
+  }
+  const hardErrors = [];
+  for (const ref of predecessorRefs(repoRoot)) {
+    const spec = `${ref}:${BASELINE_PATH}`;
+    const shown = gitShowText(repoRoot, spec);
+    if (shown.ok) {
+      try { return { baseline: JSON.parse(shown.text), error: null, source: ref }; }
+      catch { hardErrors.push(`baseline_predecessor_unreadable:${ref}_parse`); }
+      continue;
+    }
+    if (!shown.missing) hardErrors.push(`baseline_predecessor_unreadable:${ref}`);
+  }
+  if (hardErrors.length && !committed.baseline) {
+    return { baseline: null, error: hardErrors[0], source: null };
+  }
+  return { baseline: null, error: null, source: null };
 }
 
 export function checkE2EParity(repoRoot) {
@@ -990,11 +1176,20 @@ export function checkE2EParity(repoRoot) {
       scan,
     };
   }
+  const previous = loadPreviousBaselineFromGit(repoRoot, baseline);
+  if (previous.error) {
+    return {
+      valid: false,
+      errors: [previous.error, ...scan.errors].sort(),
+      stats: { fileCount: Object.keys(scan.files).length, releaseEvidence: false },
+      scan,
+    };
+  }
   const result = validateParityDocuments(baseline, allowlist, {
     scan,
-    previousBaseline: loadPreviousBaselineFromGit(repoRoot),
+    previousBaseline: previous.baseline,
   });
-  return { ...result, scan };
+  return { ...result, scan, previousSource: previous.source };
 }
 
 export function untrackedAgainstBaseline(scan, baseline) {
@@ -1021,6 +1216,7 @@ export function baselineCandidate(scan) {
     schemaVersion: 1,
     releaseEvidence: false,
     scope: 'e2e/ test+assertion parity plus agreed critical prove scripts',
+    floors: floorsFromFiles(scan.files),
     files: scan.files,
   };
 }

@@ -3,12 +3,14 @@
  * Does not execute live E2E and never sets releaseEvidence.
  */
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   checkE2EParity,
   extractParityCalls,
+  floorsFromFiles,
   scanParitySources,
   stripCommentsPreservingStrings,
   validateParityDocuments,
@@ -49,6 +51,7 @@ function baselineFrom(scan) {
     schemaVersion: 1,
     releaseEvidence: false,
     scope: 'fixture',
+    floors: floorsFromFiles(scan.files),
     files: scan.files,
   };
 }
@@ -63,14 +66,18 @@ function expectError(result, prefix) {
 }
 
 function allowlistEntry(overrides = {}) {
-  const assertion = overrides.removedAssertions?.[0];
+  const removedTests = overrides.removedTests ?? [];
+  const removedAssertions = overrides.removedAssertions ?? [];
+  const removedFile = overrides.removedFile ?? false;
   return {
     id: 'E2E-PARITY-20260904-drop-order-id',
     path: 'e2e/full.e2e.ts',
     reason: 'Product retired this HTTP assertion after the contract moved to resume:prove.',
-    removedTests: [],
-    removedAssertions: assertion ? overrides.removedAssertions : [],
-    removedFile: false,
+    removedTests,
+    removedAssertions,
+    removedFile,
+    testCountDelta: removedFile ? 0 : -removedTests.length,
+    assertionCountDelta: removedFile ? 0 : -removedAssertions.length,
     ...overrides,
   };
 }
@@ -81,9 +88,13 @@ const checks = {
     assert.equal(result.valid, true, result.errors.join('\n'));
     assert.equal(result.stats.releaseEvidence, false);
     assert.equal(result.stats.fileCount, 7);
-    assert.equal(result.stats.testCount, 18);
-    assert.equal(result.stats.assertionCount, 137);
-    assert.equal(result.stats.allowlistCount, 0);
+    assert.equal(result.stats.testCount, 20);
+    assert.equal(result.stats.assertionCount, 153);
+    assert.equal(result.stats.floors.testCount, 22);
+    assert.equal(result.stats.floors.assertionCount, 155);
+    assert.equal(result.stats.effectiveFloors.testCount, 20);
+    assert.equal(result.stats.effectiveFloors.assertionCount, 153);
+    assert.equal(result.stats.allowlistCount, 1);
   },
 
   'TC-e2e-parity-01-E1': () => {
@@ -337,6 +348,131 @@ const checks = {
       const claimed = baselineFrom(fixtureScan(fixture));
       claimed.releaseEvidence = true;
       expectError(validateParityDocuments(claimed, emptyAllowlist(), { scan: fixtureScan(fixture) }), 'release_evidence_claimed');
+    } finally {
+      rmSync(fixture, { recursive: true, force: true });
+    }
+  },
+
+  'TC-e2e-parity-01-E7': () => {
+    const fixture = createFixtureRoot();
+    try {
+      write(fixture, 'e2e/full.e2e.ts', [sampleSource(), "A(paid === true, 'ledger posted');"].join('\n'));
+      const baseline = baselineFrom(fixtureScan(fixture));
+      assert.equal(baseline.floors.assertionCount, 2);
+      write(fixture, 'e2e/full.e2e.ts', sampleSource());
+      const result = validateParityDocuments(baseline, emptyAllowlist(), { scan: fixtureScan(fixture) });
+      expectError(result, 'floor_violation');
+      expectError(result, 'assertion_removed');
+    } finally {
+      rmSync(fixture, { recursive: true, force: true });
+    }
+  },
+
+  'TC-e2e-parity-02-E9': () => {
+    const fixture = createFixtureRoot();
+    try {
+      write(fixture, 'e2e/full.e2e.ts', sampleSource());
+      const previous = baselineFrom(fixtureScan(fixture));
+      write(fixture, 'e2e/full.e2e.ts', 'const x = 1;\n');
+      const shrunk = baselineFrom(fixtureScan(fixture));
+      assert.ok(shrunk.floors.assertionCount < previous.floors.assertionCount);
+      const result = validateParityDocuments(shrunk, emptyAllowlist(), {
+        scan: fixtureScan(fixture),
+        previousBaseline: previous,
+      });
+      expectError(result, 'floor_dropped');
+      expectError(result, 'baseline_identity_dropped');
+    } finally {
+      rmSync(fixture, { recursive: true, force: true });
+    }
+  },
+
+  'TC-e2e-parity-02-E10': () => {
+    const fixture = createFixtureRoot();
+    try {
+      write(fixture, 'e2e/full.e2e.ts', sampleSource());
+      const baseline = baselineFrom(fixtureScan(fixture));
+      const removed = baseline.files['e2e/full.e2e.ts'].assertions[0];
+      const result = validateParityDocuments(baseline, emptyAllowlist([allowlistEntry({
+        reason: 'ai-generated cleanup of leftover assertions after the agent refactor',
+        removedAssertions: [removed],
+      })]), { scan: fixtureScan(fixture) });
+      expectError(result, 'allowlist_reason_invalid');
+      const buried = validateParityDocuments(baseline, emptyAllowlist([allowlistEntry({
+        reason: 'Product kept the old hash as a todo leftover after the digest retarget.',
+        removedAssertions: [removed],
+      })]), { scan: fixtureScan(fixture) });
+      expectError(buried, 'allowlist_reason_invalid');
+    } finally {
+      rmSync(fixture, { recursive: true, force: true });
+    }
+  },
+
+  'TC-e2e-parity-02-E11': () => {
+    const fixture = createFixtureRoot();
+    const savedBaseRef = process.env.GITHUB_BASE_REF;
+    const savedParityRef = process.env.E2E_PARITY_BASE_REF;
+    delete process.env.GITHUB_BASE_REF;
+    delete process.env.E2E_PARITY_BASE_REF;
+    try {
+      write(fixture, 'e2e/full.e2e.ts', sampleSource());
+      const strong = baselineFrom(fixtureScan(fixture));
+      write(fixture, 'ai-docs/testing/e2e-parity-baseline.json', JSON.stringify(strong, null, 2));
+      write(fixture, 'ai-docs/testing/e2e-parity-allowlist.json', JSON.stringify(emptyAllowlist()));
+      execFileSync('git', ['init'], { cwd: fixture, stdio: 'ignore' });
+      execFileSync('git', ['config', 'user.email', 'parity@example.test'], { cwd: fixture, stdio: 'ignore' });
+      execFileSync('git', ['config', 'user.name', 'parity'], { cwd: fixture, stdio: 'ignore' });
+      execFileSync('git', ['config', 'commit.gpgsign', 'false'], { cwd: fixture, stdio: 'ignore' });
+      execFileSync('git', ['add', 'e2e/full.e2e.ts', 'ai-docs/testing/e2e-parity-baseline.json', 'ai-docs/testing/e2e-parity-allowlist.json'], { cwd: fixture, stdio: 'ignore' });
+      execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', 'strong baseline'], { cwd: fixture, stdio: 'ignore' });
+      write(fixture, 'e2e/full.e2e.ts', 'const x = 1;\n');
+      write(fixture, 'ai-docs/testing/e2e-parity-baseline.json', JSON.stringify(baselineFrom(fixtureScan(fixture)), null, 2));
+      execFileSync('git', ['add', '-A'], { cwd: fixture, stdio: 'ignore' });
+      execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', 'silent weaken'], { cwd: fixture, stdio: 'ignore' });
+      const result = checkE2EParity(fixture);
+      expectError(result, 'floor_dropped');
+      expectError(result, 'baseline_identity_dropped');
+    } finally {
+      if (savedBaseRef !== undefined) process.env.GITHUB_BASE_REF = savedBaseRef;
+      else delete process.env.GITHUB_BASE_REF;
+      if (savedParityRef !== undefined) process.env.E2E_PARITY_BASE_REF = savedParityRef;
+      else delete process.env.E2E_PARITY_BASE_REF;
+      rmSync(fixture, { recursive: true, force: true });
+    }
+  },
+
+  'TC-e2e-parity-02-E12': () => {
+    const fixture = createFixtureRoot();
+    try {
+      write(fixture, 'e2e/full.e2e.ts', `${sampleSource()}\ntest('keeps the ledger', () => { A(ok, 'kept'); });\n`);
+      const baseline = baselineFrom(fixtureScan(fixture));
+      write(fixture, 'e2e/full.e2e.ts', `${sampleSource()}\ntest.skip('keeps the ledger', () => { A(ok, 'kept'); });\n`);
+      const result = validateParityDocuments(baseline, emptyAllowlist(), { scan: fixtureScan(fixture) });
+      expectError(result, 'test_removed');
+    } finally {
+      rmSync(fixture, { recursive: true, force: true });
+    }
+  },
+
+  'TC-e2e-parity-02-E13': () => {
+    const fixture = createFixtureRoot();
+    try {
+      write(fixture, 'e2e/full.e2e.ts', [
+        "const { A } = { A: (c, m) => { if (!c) throw new Error(m); } };",
+        "A(true, 'dup');",
+        "A(true, 'dup');",
+      ].join('\n'));
+      const baseline = baselineFrom(fixtureScan(fixture));
+      write(fixture, 'e2e/full.e2e.ts', [
+        "const { A } = { A: (c, m) => { if (!c) throw new Error(m); } };",
+        "A(true, 'dup');",
+      ].join('\n'));
+      const removed = baseline.files['e2e/full.e2e.ts'].assertions[0];
+      const result = validateParityDocuments(baseline, emptyAllowlist([allowlistEntry({
+        removedAssertions: [removed],
+        assertionCountDelta: -1,
+      })]), { scan: fixtureScan(fixture) });
+      assert.equal(result.valid, true, result.errors.join('\n'));
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }

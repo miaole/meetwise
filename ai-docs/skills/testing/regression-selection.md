@@ -21,7 +21,7 @@ related:
 
 | 触达路径 | 必须（无 Key） | 有 Key 时再跑 | 明确不够 |
 | --- | --- | --- | --- |
-| `e2e/`、`scripts/run-e2e*.mjs`、`scripts/local-e2e-receipt*` | `pnpm e2e-parity:check` `pnpm e2e-parity:prove` `pnpm e2e-helpers:prove` `pnpm e2e-receipt:prove` `pnpm e2e-runner:prove` | `pnpm e2e:isolated` | 只改注释却声称全链路重跑；删断言却不写 allowlist |
+| `e2e/`、`scripts/run-e2e*.mjs`、`scripts/local-e2e-receipt*` | `pnpm e2e-parity:check` `pnpm e2e-parity:prove` `pnpm e2e-helpers:prove` `pnpm e2e-receipt:prove` `pnpm e2e-runner:prove` | `pnpm e2e:isolated` | 只改注释却声称全链路重跑；删断言或下调 floors 却不写 allowlist；未跑 parity 就信 AI diffs |
 | `packages/db`、`packages/db/migrations` | `pnpm db:prove` `pnpm migrate:prove` `pnpm drift:prove`；相关业务 prove | 当前 schema 上重跑 `e2e:isolated` | 旧迁移回执（迁移数已变） |
 | `apps/api` | `pnpm api:validate` `pnpm api:smoke` + 对应 `neg:*` | `e2e:isolated` | 只 `livez` 200 |
 | `apps/worker`、`packages/ai-graphs` | `pnpm graph:prove` `pnpm interview:prove` 或被改图的 prove | `e2e:isolated` | 单测假模型质量 |

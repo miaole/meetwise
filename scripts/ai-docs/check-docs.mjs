@@ -67,7 +67,7 @@ const requiredFiles = [
 
 const requiredTerms = new Map([
   ["README.md", ["Meetwise", "知面"]],
-  ["AGENTS.md", ["文档先行", "契约先行", "测试先行", "skills/testing/sop.md", "fail-closed-gate.md"]],
+  ["AGENTS.md", ["文档先行", "契约先行", "测试先行", "skills/testing/sop.md", "fail-closed-gate.md", "e2e-parity:check", "parity floors"]],
   ["CLAUDE.md", ["skills/testing/sop.md", "fail-closed-gate.md"]],
   ["ai-docs/meta/task-sop.md", ["skills/testing/sop.md", "fail-closed-gate.md"]],
   ["ai-docs/product/vision.md", ["面试", "职业路径"]],
@@ -78,13 +78,13 @@ const requiredTerms = new Map([
   ["ai-docs/testing/strategy/test-strategy.md", ["contract", "E2E", "golden", "e2e:isolated", "Playwright"]],
   ["ai-docs/meta/index.md", ["skills/testing/sop.md", "skills/testing/SKILL.md", "skills/README.md", "fail-closed-gate.md"]],
   ["ai-docs/skills/testing/SKILL.md", ["pnpm regression", "releaseEvidence", "出处", "status: draft", "fail-closed", "生成物默认不可信", "skip-as-pass"]],
-  ["ai-docs/skills/testing/sop.md", ["审核", "回归", "status: draft", "releaseEvidence", "always-on", "不减免", "fail-closed-gate.md", "生成物默认不可信", "不得声称完成", "skip-as-pass"]],
-  ["ai-docs/skills/testing/fail-closed-gate.md", ["fail-closed", "不可信", "审核", "验证", "多轮", "UNTRUSTED", "releaseEvidence", "secrets", "aiTrust", "文档门"]],
-  ["ai-docs/skills/testing/post-change-review.md", ["pnpm regression", "未查", "自签", "fail-closed", "生成物默认不可信", "skip-as-pass", "不得标 READY"]],
+  ["ai-docs/skills/testing/sop.md", ["审核", "回归", "status: draft", "releaseEvidence", "always-on", "不减免", "fail-closed-gate.md", "生成物默认不可信", "不得声称完成", "skip-as-pass", "e2e-parity:check"]],
+  ["ai-docs/skills/testing/fail-closed-gate.md", ["fail-closed", "不可信", "审核", "验证", "多轮", "UNTRUSTED", "releaseEvidence", "secrets", "aiTrust", "文档门", "e2e-parity:check", "parity floors"]],
+  ["ai-docs/skills/testing/post-change-review.md", ["pnpm regression", "未查", "自签", "fail-closed", "生成物默认不可信", "skip-as-pass", "不得标 READY", "e2e-parity:check", "parity floors"]],
   ["ai-docs/skills/testing/honesty-rules.md", ["releaseEvidence", "aiTrust", "passed_adversarial", "secrets", "未审核生成", "不得标 READY"]],
   ["ai-docs/skills/testing/e2e-platform/README.md", ["draft", "PASS_WITH_GAPS", "e2e:isolated", "NOT_READY"]],
   ["ai-docs/testing/golden-tasks/README.md", ["GT-01", "planned", "mapped"]],
-  ["ai-docs/testing/e2e-parity-baseline.md", ["allowlist", "fail-closed", "releaseEvidence", "e2e-parity:check"]],
+  ["ai-docs/testing/e2e-parity-baseline.md", ["allowlist", "fail-closed", "releaseEvidence", "e2e-parity:check", "parity floors", "AI diffs", "review"]],
   ["ai-docs/observability/observability-strategy.md", ["SLO", "降级", "恢复", "脱敏", "threadId"]],
   ["ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md", ["qbank_control_definer", "FORCE RLS", "fail-closed", "SECURITY DEFINER", "lane(b)", "撤销", "复活"]],
 ]);

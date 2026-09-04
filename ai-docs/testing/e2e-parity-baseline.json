@@ -2,6 +2,10 @@
   "schemaVersion": 1,
   "releaseEvidence": false,
   "scope": "e2e/ test+assertion parity plus agreed critical prove scripts",
+  "floors": {
+    "testCount": 22,
+    "assertionCount": 155
+  },
   "files": {
     "e2e/full.e2e.ts": {
       "testCount": 1,
@@ -319,8 +323,8 @@
       ]
     },
     "e2e/helpers/e2e-helpers.proof.ts": {
-      "testCount": 7,
-      "assertionCount": 24,
+      "testCount": 9,
+      "assertionCount": 40,
       "tests": [
         {
           "kind": "test",
@@ -339,6 +343,11 @@
         },
         {
           "kind": "test",
+          "label": "resume helper 只封装同意/文本/图片/画像，不打日志、不引用 apps/web",
+          "conditionDigest": "sha256:fbac570de98230376ec2e2513b25570fb261eafc7a2ab3e79e9671eb72edcf6a"
+        },
+        {
+          "kind": "test",
           "label": "SSE 解析只接受 id/event/data 三行，坏 JSON 变成空对象而不是抛穿",
           "conditionDigest": "sha256:f08415611252cb7b1074f7e53cede5f33c7651d48d6f661d718f435f3b07decf"
         },
@@ -346,6 +355,11 @@
           "kind": "test",
           "label": "uidFromToken 读取当前 API 嵌入在第一段的 uid，缺 uid 失败",
           "conditionDigest": "sha256:646d4a674268765aaadbff4c3b6de3baaf8cd5ca2b519318e75e3e0a430dd576"
+        },
+        {
+          "kind": "test",
+          "label": "失败分类区分缺 Key、假服务、越权、供应商，未知 5xx 与裸 403 不洗成 BLOCKED",
+          "conditionDigest": "sha256:266efdb2dcf70b165030a5e1e4f5cd5d63af486fec4c6cf1c7f397ffb1569538"
         },
         {
           "kind": "test",
@@ -392,6 +406,11 @@
         {
           "kind": "assert.equal",
           "label": "",
+          "conditionDigest": "sha256:356dee173d2dea87e8089adafea20680f3b65802f0fc671184dbea4cca84a3fc"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
           "conditionDigest": "sha256:96b8bcfae097661aed4a3147376ae41d50deb03e1eed33e91f7e64cda463fc7d"
         },
         {
@@ -403,6 +422,66 @@
           "kind": "assert.equal",
           "label": "",
           "conditionDigest": "sha256:b8ffbc02dce358ea436b34da7cc27fba10e206654d306a5b06b5b04872006f14"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:d50e46b096f5c89b31320ad787721ee3fe0b94803f9eb1e32fb6181b3dffbd79"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "BLOCKED_DATA_OR_PERMISSION",
+          "conditionDigest": "sha256:27fee953dfcc190e5d7d549a75af45acc4c64ff1b224448869f5337ba2da1cd8"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "BLOCKED_DATA_OR_PERMISSION",
+          "conditionDigest": "sha256:522422f2e0957a1937aa20df5b5c6278cfe4b07c8f7ae8f3362103093e9c3779"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "BLOCKED_DATA_OR_PERMISSION",
+          "conditionDigest": "sha256:d54dc6c5fc8cbd1e048821c1c47a2ad00d8bbc208c4299c7d895dd3458380b38"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "BLOCKED_LIVE_KEY",
+          "conditionDigest": "sha256:e5293d35a4d0bf74cd5b1e879da888f412e34ef6a9306ce99a70651355d29023"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "FAIL_API",
+          "conditionDigest": "sha256:9b2334bdc3f5904dbd438fe40776524d43f0084d14d0438d13484bd7ccd21c76"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "FAIL_API",
+          "conditionDigest": "sha256:a97c879193e39c8e38b488dfa82b589c24552c263d52d4a95cbeef23107b85c4"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "FAIL_API",
+          "conditionDigest": "sha256:bd0ce227762a71dd684a23c50c50d01ab243c9f1ddb095fa740bf9c5c82d3a26"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "FAIL_CAPABILITY",
+          "conditionDigest": "sha256:2a161c6673b3d0f73a32b3fb43b170efcdc4affd7edcc6aa84e6782455c4b1d4"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "FAIL_CAPABILITY",
+          "conditionDigest": "sha256:3328f985ceccd46ff25dbe49af8f551aca4b8c802dfd94aa9b4f71eb8b465d7d"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "FAIL_CAPABILITY",
+          "conditionDigest": "sha256:df808af297c2eb927638ea2312054408ac7c5720c95133dfa35e18a61ec44e8e"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "FAIL_PROVIDER",
+          "conditionDigest": "sha256:2aa76969f984b211aef377fe7e86477c92610bcb9acdaa6bf2bbc64c9ae38187"
         },
         {
           "kind": "assert.equal",
@@ -447,7 +526,22 @@
         {
           "kind": "assert.match",
           "label": "",
+          "conditionDigest": "sha256:8a2d6831cb16cac0abc30e977da0c47eed753edbebde4e865b81b01cc97f0998"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:94b9703b4892aa6792bb4d21b02ddb227ae70591f313fb946064e222991c1f8c"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
           "conditionDigest": "sha256:c28b751b6ab2e0aae2b0410bee64643bbbfba92cc1930d494bc5c522a767f233"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:f72577aac92784f7a05f3e62de19f9d1d5a80d4497ec846582c6d95c7dda6b8d"
         },
         {
           "kind": "assert.notEqual",
@@ -636,8 +730,8 @@
       ]
     },
     "scripts/local-e2e-receipt.proof.mjs": {
-      "testCount": 7,
-      "assertionCount": 31,
+      "testCount": 9,
+      "assertionCount": 33,
       "tests": [
         {
           "kind": "test",
@@ -651,8 +745,18 @@
         },
         {
           "kind": "test",
+          "label": "复杂边界：源码摘要覆盖客户端、helpers、编排器和隔离器，迁移清单不为空",
+          "conditionDigest": "sha256:ce394cd6f8c058f1c8609a88160b413b393aa9e8a36a4e9e44bfb3c1adb74421"
+        },
+        {
+          "kind": "test",
           "label": "异常：失败退出码仍保留为失败回执，不伪造成通过",
           "conditionDigest": "sha256:de3d8bee3c4ed6d24d03a6e58bf49fcc698ee32708af41230d6294c40083311e"
+        },
+        {
+          "kind": "test",
+          "label": "正常：原子回执包含退出码、时长、断言数、源码与迁移清单摘要",
+          "conditionDigest": "sha256:2cbd49841aa24995c8dc9d0bb172217c1a0fc7ab990e71aa0961439d66fd46b0"
         },
         {
           "kind": "test",
@@ -685,6 +789,11 @@
           "kind": "assert.deepEqual",
           "label": "",
           "conditionDigest": "sha256:8d4ca1ecc8bc802cc892ea02274e97b0b3f50cd893d0d37b0ec9f5702806cb6f"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:ff598fea9614625de7203615a84221177704fc3210e950f1aeba00ca016a1106"
         },
         {
           "kind": "assert.equal",
@@ -725,6 +834,11 @@
           "kind": "assert.equal",
           "label": "",
           "conditionDigest": "sha256:c1db5b9a1cc2fab0387d650463ee7bc5b76921d7667b3f59a79743900eb45479"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:df0ca3ee96215748190c020b20833dfe2f2b786675f128e1e0b770469f4330e1"
         },
         {
           "kind": "assert.equal",

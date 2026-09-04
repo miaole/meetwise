@@ -115,6 +115,7 @@ async function main() {
     outcome: wantLive ? 'passed_always_on_and_http_e2e' : 'passed_always_on_only',
     claimDone: false,
     reviewGate: 'ai_touched_diff_required',
+    e2eParityReview: 'required',
     skipAsPass: 'forbidden',
     readyFromUnreviewedGeneration: 'forbidden',
     releaseEvidence: false,
@@ -123,7 +124,7 @@ async function main() {
     steps: results,
     durationMs: Date.now() - started,
   })}`);
-  console.log('REGRESSION_CLAIM_DONE forbidden. Review the AI-touched diff (correctness, security, provenance). Commands passing is not READY.');
+  console.log('REGRESSION_CLAIM_DONE forbidden. Review the AI-touched diff (correctness, security, provenance). Commands passing is not READY. e2e-parity:check green is not review.');
   if (!wantLive) {
     console.log('live HTTP E2E not requested. After interview/API/web/db changes, run `pnpm regression --live` when MODEL_API_KEY is available; otherwise record not_run.');
   }
