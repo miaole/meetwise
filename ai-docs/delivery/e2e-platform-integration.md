@@ -189,11 +189,11 @@ verification: commands_ok
 commands: pnpm regression
 claimDone: false
 ready: NOT_READY
-rounds: 22
+rounds: 23
 releaseEvidence: false
 liveE2E: not_run:live_provider_key_missing
 core: not_requested
 secrets: none
 ```
 
-叠到 `origin/main` @ `ba71631`（+#86）后 `pnpm regression` → `passed_always_on`。`docs:check` 现为 77 个 required files。迁移计数仍为 130。本 PR 只 supersede #55–#64，不 supersede #86 / #88 / #78 / #84 / #80 / #67 / #83 / #79 / #72 / #82 / #77 / #75 / #74 / #73 / #66 / #70。作者不得自签 `review: passed`。不得 `--claim-done`。不得写「本轮局部验证完成」——审核仍是 `blocked:author_only`。
+叠到 `origin/main` @ `30ca46e`（+#87）后 `pnpm regression` → `passed_always_on`。`docs:check` 现为 78 个 required files。迁移计数仍为 130。本 PR 只 supersede #55–#64，不 supersede #87 / #86 / #88 / #78 / #84 / #80 / #67 / #83 / #79 / #72 / #82 / #77 / #75 / #74 / #73 / #66 / #70。作者不得自签 `review: passed`。不得 `--claim-done`。不得写「本轮局部验证完成」——审核仍是 `blocked:author_only`。
