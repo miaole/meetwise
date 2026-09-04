@@ -28,7 +28,7 @@ owner: architecture
   - **E2 并发冲突：** 同一端点熔断冷却期只允许一个半开探针取得本进程 lease（租约）；跟随者在派发前重新执行一次纯选路，存在同 scope（范围）备用端点时改走备用端点，否则明确拒绝，主端点供应商调用数增量为 `0`。机制：半开 CAS（比较并交换）式 lease + 一次纯选路；该 lease 仅限进程内，不冒充跨副本全局限流。
   - **E3 越权：** 主体 A 无法读取、领取或终态化主体 B 的调用/费用记录。机制：RLS（行级安全）与 `asPrincipal`。
   - **E4 终态写入失败：** 外部请求已可能计费，数据库临时不可用；记录保持 `dispatching`，到达有界陈旧阈值后由对账 Worker 以条件更新成为 `unknown`，绝不释放或自动重发。每一笔对账按持久 `cost_scope_id` 精确冻结，缺失配对费用会回滚并使 worker 未就绪，不允许假报成功。机制：`status='dispatching'` 条件更新 + 费用账本原子冻结。
-  - **E5 依赖降级：** 熔断打开、无健康端点或预算不足时，在派发前停止；出题走确定性降级，评分写 `unscored`（未评分），不伪造数值成绩。机制：熔断状态机、费用预留、业务事件账本。
+  - **E5 依赖降级：** 熔断打开、无健康端点或预算不足时，在派发前停止；出题走 `generation_unavailable`（`interview_unavailable`+provenance，**不发明题面**；仅 grounded 批准模板可标 `origin=approved_template`，`UC-MODEL-ROUTE-04`），评分写 `unscored`（未评分），不伪造数值成绩。机制：熔断状态机、费用预留、业务事件账本。
   - **E6 超时/断线：** `prepare`、准入和 HTTP 传输收到 AbortSignal（中断信号）；准入前超时=确定未发送，已派发超时=`unknown`。迟到成功不得写成功工件、trace（追踪）或覆盖未知终态。机制：AbortSignal、持久状态机、幂等键。
 - **后置 Postcondition：** 每个调用处于 `succeeded`、`failed` 或 `unknown`；`claimed` 仅在未发送租约期内可接管，`dispatching` 不可自动重发。费用与模型调用在已派发异常时都可审计且冻结。
 - **验收 Acceptance：** 同键并发供应商派发数 `=1`（follower 只 `wait`/`cached`/`failed`/`unknown`，不得因孤儿 permit 或无行冲突而第二次 `execute`）；半开并发仅 `1` 个主端点探针进入供应商，配置备用端点的 follower（跟随者）派发数 `=1` 且两条幂等键均成功；准入超时调用/费用预留 `=0`；迟到成功后的成功工件/trace `=0`；危险“执行时限 ≥ 对账窗口−宽限”配置启动失败；对账后陈旧 `dispatching` 数 `=0` 且同键二次外呼 `=0`；跨 scope 同键的无关费用状态不变；跨主体读取/更新 `=0` 行；对账基础设施连续失败使 worker 就绪状态为 `false`。
@@ -42,7 +42,7 @@ owner: architecture
 - `TC-MODEL-001-E2` · 隔离 PostgreSQL（关系型数据库）集成：两个请求先完成半开纯选路时，恰一条主端点探针外呼，另一条在派发前重选同 scope backup（备用端点）；两条持久幂等键均成功。
 - `TC-MODEL-001-E3` · 隔离 PostgreSQL 集成：跨主体调用记录查询/更新均为 `0` 行或被拒绝。
 - `TC-MODEL-001-E4` · 隔离 PostgreSQL 集成：注入终态事务失败，陈旧记录由对账转 `unknown`，只冻结持久绑定 scope 的费用，重放零外呼；费用配对缺失时整笔回滚并向 drain loop（排空循环）传播失败。
-- `TC-MODEL-001-E5` · 确定性运行时：熔断打开/预算拒绝不外呼，评分业务映射为 `unscored`。
+- `TC-MODEL-001-E5` · 确定性运行时：熔断打开/预算拒绝不外呼，评分业务映射为 `unscored`；出题映射为 `interview_unavailable`（发明题面=0）。
 - `TC-MODEL-001-E6` · 隔离 PostgreSQL 集成：准入超时零外呼，已派发超时与迟到成功不覆写 `unknown`。
 
 ## 当前实现边界

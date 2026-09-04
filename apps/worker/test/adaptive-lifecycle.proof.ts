@@ -10,9 +10,13 @@ import { startAdaptiveInterview, submitAdaptiveAnswer, type AdaptiveLifecycleDep
 const pool = createPool();
 let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
 const OWNER = 'lifeA', IID = 'life-' + Date.now();
+let askSeq = 0;
 const base = scriptedModelClient({
   'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发', '缓存'] } }),
-  'interviewer.ask': () => ({ ok: true, raw: { q: '结合你的限流经历聊聊高并发下怎么兼顾吞吐与一致', refs: ['qbank:a'] } }),
+  'interviewer.ask': () => ({
+    ok: true,
+    raw: { q: `结合你的限流经历聊聊高并发下怎么兼顾吞吐与一致，并说明第 ${++askSeq} 轮验证方法`, refs: [] },
+  }),
   'mock-interview.evaluate': () => ({ ok: true, raw: { score: 88, evidence: [{ criterion: '讲清滑动窗口', quote: '滑动窗口' }] } }),
 });
 const model: ModelClient = base;
@@ -162,6 +166,33 @@ async function main() {
   A('quote 不可核验仅执行一次评分；lifecycle 返回 clarifying，而非 97 分/终止 unscored', repairCalls.length === 1 && repairResult.clarifying === true && repairResult.score === 0 && repairResult.degraded === false);
   A('clarify 投影不产生 answer_evaluated/answer_unscored，不更新能力画像计分事件', (repairKinds['clarification_needed'] ?? 0) === 1 && (repairKinds['answer_evaluated'] ?? 0) === 0 && (repairKinds['answer_unscored'] ?? 0) === 0);
   A('clarify 不确认或重复权益：同一面试仅保留一条 reserved consumption', repairConsumption.rowCount === 1 && repairConsumption.rows[0]?.status === 'reserved' && repairConsumption.rows[0]?.n === 1);
+
+  // TC-MODEL-ROUTE-04-E4: 出题 invoke 失败不得发明 question_ready。
+  const failIid = 'life-fail-' + Date.now();
+  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')", [failIid, OWNER]);
+  await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, failIid, 'mock_interview', 1.0));
+  const failingAsk = scriptedModelClient({
+    'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发'] } }),
+  });
+  const failStart = await startAdaptiveInterview({
+    pool, cp: new MemorySaver(), owner: OWNER, interviewId: failIid, model: failingAsk,
+    localRetrieve: async () => [], webExplore: async () => [],
+  }, '后端工程师', []);
+  const failEv = await asPrincipal(pool, OWNER, (c) => c.query(
+    "SELECT kind, payload FROM interview_event WHERE stream_key=$1 ORDER BY seq", [failIid],
+  ));
+  const failKinds = failEv.rows.map((r: any) => r.kind);
+  const unavail = failEv.rows.find((r: any) => r.kind === 'interview_unavailable');
+  const failStatus = await asPrincipal(pool, OWNER, (c) => c.query('SELECT status FROM interview WHERE id=$1', [failIid]));
+  const failCons = await asPrincipal(pool, OWNER, (c) => c.query('SELECT status FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2', [OWNER, failIid]));
+  A('出题失败 → 不发明 question_ready / 题面',
+    !failStart.question && !failStart.questionId && !!failStart.unavailable
+    && !failKinds.includes('question_ready'));
+  A('出题失败 → interview_unavailable 含 provenance.origin=unavailable',
+    unavail?.payload?.reason && unavail.payload.provenance?.origin === 'unavailable'
+    && typeof unavail.payload.provenance?.errorCode === 'string');
+  A('出题失败 → 面试 failed 且预留释放',
+    failStatus.rows[0]?.status === 'failed' && failCons.rows[0]?.status === 'released');
 
   console.log(`\n${fail === 0 ? '✓ 生产主线替换:自适应 agent 图驱动真面试生命周期(SSE 事件+结算+舱壁报告)全部通过' : '✗ ' + fail + ' 失败'}`);
   await pool.end(); process.exit(fail ? 1 : 0);

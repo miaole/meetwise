@@ -1,24 +1,31 @@
-import { critiqueQuestion, type QuestionKind } from '@meetwise/domain';
+import {
+  critiqueQuestion,
+  isQuestionGenerationFailure,
+  normalizeQuestionGenerationResult,
+  type QuestionGenerationProvenance,
+  type QuestionKind,
+} from '@meetwise/domain';
 import type { AdaptiveDeps, AdaptiveInterviewGraphState } from '../state.ts';
 
 function issueQuestionId(stateVersion: number, turn: number, clarifyAttempts: number): string {
   return `q-v${stateVersion}-t${turn}-c${clarifyAttempts}`;
 }
 
-/**
- * A post-dispatch critique failure is not a licence to send the same logical
- * node to a model again.  Keep the fallback local, scoped to the already
- * selected competency, and deliberately source-free: it is a question shell,
- * not evidence or a replacement QBank artifact.
- */
-function deterministicQuestionFallback(competency: string, kind: QuestionKind): string {
-  if (kind === 'behavioral') {
-    return '请讲一段你与同事或上级在协作中发生分歧或遇到压力的经历：当时怎样沟通、如何推进，以及事后怎样复盘？';
-  }
-  return `请以一个具体的「${competency}」实践为例，说明目标、关键设计取舍、怎样验证结果，以及遇到问题时如何处理。`;
+function failClosed(
+  state: AdaptiveInterviewGraphState,
+  provenance: QuestionGenerationProvenance,
+  reason: string,
+) {
+  return {
+    stateVersion: state.stateVersion + 1,
+    pending: null,
+    concluded: true,
+    degraded: { reason, turn: state.mind.turn },
+    generationProvenance: provenance,
+  };
 }
 
-/** 只生成/反思并 checkpoint pending question；这里没有 interrupt，因此 resume 不会重调模型。 */
+/** 只生成/反思并 checkpoint pending question；失败不发明题面，resume 也不会重调模型。 */
 export function createGenerateQuestionNode(deps: AdaptiveDeps) {
   return async (state: AdaptiveInterviewGraphState) => {
     const route = state.route as { competency: string; difficulty: number; qkind: QuestionKind };
@@ -42,6 +49,7 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
     let sources: string[];
     let critiqueIssues: string[];
     let hint: string | undefined;
+    let provenance: QuestionGenerationProvenance = state.generationProvenance ?? { origin: 'model' };
 
     if (clarifying) {
       ({ question, sources } = clarifying);
@@ -52,16 +60,29 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
       // Pass no resume fact text into the graph-generation seam.  The concrete
       // grounded question may say "your resume mentions a relevant experience"
       // but must not repeat the fact itself; see worker buildAdaptiveDeps.
-      const generated = await deps.retrieveAndGenerate(route.competency, route.difficulty, 0, turn, [], effectiveKind);
+      const generated = normalizeQuestionGenerationResult(
+        await deps.retrieveAndGenerate(route.competency, route.difficulty, 0, turn, [], effectiveKind),
+      );
+      if (isQuestionGenerationFailure(generated)) {
+        return failClosed(state, generated.provenance, `generation_${generated.error}`);
+      }
       const critique = critiqueQuestion(generated.question, route.competency, asked, deps.competencyKeywords ?? {});
-      // The model request has already crossed its billable boundary.  A graph
-      // loop with :attempt=1/2 used to create new idempotency keys and could
-      // turn one question node into three provider calls.  The durable slot is
-      // enforced separately in MODEL-OP-00; this local fallback immediately
-      // removes that source-level escape path.
-      question = critique.ok ? generated.question : deterministicQuestionFallback(route.competency, effectiveKind);
-      sources = critique.ok ? generated.sources : [];
+      // A critique miss used to invent a same-competency shell and emit it as
+      // question_ready.  That silently fabricates interview content after a
+      // provider or quality failure.  Fail-closed: no pending, no invented stem.
+      if (!critique.ok) {
+        return failClosed(state, {
+          origin: 'unavailable',
+          errorCode: 'business_invalid',
+          invokeError: 'question_critique_failed',
+          operationId: generated.provenance.operationId,
+          idempotencyKey: generated.provenance.idempotencyKey,
+        }, 'generation_business_invalid');
+      }
+      question = generated.question;
+      sources = generated.sources;
       critiqueIssues = critique.issues;
+      provenance = generated.provenance;
     }
 
     const stateVersion = state.stateVersion + 1;
@@ -79,6 +100,8 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
         critique: critiqueIssues,
         hint,
       },
+      generationProvenance: provenance,
+      degraded: null,
     };
   };
 }

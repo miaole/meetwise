@@ -86,6 +86,8 @@ START → genQuestion ─persist→ awaitAnswer ──→ evalAnswer ──route
                                                             degrade │→ degrade → END
 ```
 
+> **当前运行时（已接线，非上图目标拓扑）**：自适应图没有独立 `persistQ`/`degrade` 节点。`genQuestion` 失败时不写 pending、不发明题面，条件边直接 `conclude`，由 worker lifecycle 投影 `interview_unavailable`（`UC-MODEL-ROUTE-04`）。事实以 [运行时事实矩阵](../current-runtime-truth.md) 为准。
+
 ```ts
 const interview = new StateGraph(InterviewState)
   .addNode("genQuestion", genQuestion)   // 调模型出题 → 幂等键持久化 → 不含 interrupt

@@ -36,7 +36,7 @@ async function main() {
   const deps = buildAdaptiveDeps({ pool, owner: OWNER, threadId: TID, model: quality, fastModel: fast, competencies: ['并发'], localRetrieve: async () => [], webExplore: async () => [] });
 
   const tAsk = Date.now();
-  await deps.retrieveAndGenerate('并发', 3, 0, 0, ['限流改造'], 'grounded');
+  await deps.retrieveAndGenerate('并发', 3, 0, 0, ['限流改造'], 'fundamental');
   const askMs = Date.now() - tAsk;
   A('出题 retrieveAndGenerate → 走**质量模型**(出题质量关键,不降)', hits.some((h) => h.service === 'interviewer.ask' && h.tier === 'quality'));
   A('出题未误走快模型', !hits.some((h) => h.service === 'interviewer.ask' && h.tier === 'fast'));

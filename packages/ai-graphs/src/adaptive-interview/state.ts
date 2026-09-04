@@ -4,6 +4,8 @@ import {
   type CompetencySpec,
   type DecisionProvenance,
   type InterviewMind,
+  type QuestionGenerationProvenance,
+  type QuestionGenerationResult,
   type QuestionKind,
 } from '@meetwise/domain';
 
@@ -82,7 +84,7 @@ export interface AdaptiveDeps {
     turn: number,
     facts: string[],
     kind: QuestionKind,
-  ) => Promise<{ question: string; sources: string[] }>;
+  ) => Promise<QuestionGenerationResult | { question: string; sources: string[] }>;
   /** 评分故障必须 unscored，不能把 provider 不可用写成候选人 50 分；status 缺失兼容既有 scripted deps。 */
   /** identity 是已落库 pending question 的业务身份；评分内部 repair 必须复用它，绝不能另造回合。 */
   assess: (
@@ -129,6 +131,8 @@ export const AdaptiveInterviewState = Annotation.Root({
   /** 业务逻辑版本，独立于 LangGraph checkpoint id；跨标签页在 API ledger 中做 CAS/去重。 */
   stateVersion: Annotation<number>({ reducer: (_, b) => b, default: () => 0 }),
   degraded: Annotation<{ reason: string; turn: number } | null>({ reducer: (_, b) => b, default: () => null }),
+  /** Fail-closed generation receipt. Never holds the invented stem. */
+  generationProvenance: Annotation<QuestionGenerationProvenance | null>({ reducer: (_, b) => b, default: () => null }),
   concluded: Annotation<boolean>({ reducer: (_, b) => b, default: () => false }),
   /** 收尾出处;缺省兼容旧 checkpoint。不含答案原文或证据全文。worker/SSE/report 不读。 */
   concludeReason: Annotation<DecisionProvenance | null>({ reducer: (_, b) => b, default: () => null }),

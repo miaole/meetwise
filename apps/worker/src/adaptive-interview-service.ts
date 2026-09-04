@@ -6,30 +6,20 @@
 import { z } from 'zod';
 import { normalizeQuestion, type DbPool } from '@meetwise/db';
 import { invoke, promptedModel, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
-import { cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, toCompetencySpecs, isNonAnswer, stripScoringManipulation, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec, type QuestionKind } from '@meetwise/domain';
+import { cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, modelGeneration, unavailableGeneration, resolveCitedSources, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
 import type { AdaptiveDeps } from '@meetwise/ai-graphs';
 import { wasAsked, pastWeakDimensions } from './memory-service.ts';
 import { invokeEvaluationOnce } from './interview-service.ts';
 
+/** Native embed/rerank miss is not “empty qbank”; do not invent a stem from the competency name. */
+function nativeRetrievalFailureToken(reason: string): string | null {
+  const match = /(embedder|reranker)_(not_configured|timeout|malformed)/.exec(reason);
+  return match ? match[0] : null;
+}
+
 const AskSchema = z.object({ q: z.string().min(1).max(2000), refs: z.array(z.string()) });   // q 封顶:模型出的题理应短;超长=异常输出,schema 闸拦下重试(也防评估侧截断吃掉答案)
 
-/**
- * A deterministic same-scope shell used after a known local rejection.  It is
- * intentionally not added to QBank and carries no retrieval source: a clean
- * QBank miss is handled by QuestionPlan, not by a retry hidden in this node.
- */
-function deterministicQuestionFallback(competency: string, kind: QuestionKind): { question: string; sources: string[] } {
-  if (kind === 'behavioral') {
-    return {
-      question: '请讲一段你与同事或上级在协作中发生分歧或遇到压力的经历：当时怎样沟通、如何推进，以及事后怎样复盘？',
-      sources: [],
-    };
-  }
-  return {
-    question: `请以一个具体的「${competency}」实践为例，说明目标、关键设计取舍、怎样验证结果，以及遇到问题时如何处理。`,
-    sources: [],
-  };
-}
+const QUESTION_OPERATION_ID = 'interview.question-generation.v1' as const;
 export interface AdaptiveServiceDeps {
   pool: DbPool; owner: string; threadId: string; model: ModelClient;
   /** 快模型(qwen-turbo):评分/relevant 等约束性任务用,显著降反问延迟;缺省回退 model(兼容旧调用)。出题仍用 model(质量关键)。 */
@@ -92,7 +82,12 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       // `attempt` remains in this compatibility seam so older graph fixtures
       // type-check, but a non-zero value must never issue another provider
       // request for the same logical node.  The graph only calls zero.
-      if (attempt !== 0) return deterministicQuestionFallback(competency, kind);
+      if (attempt !== 0) {
+        return unavailableGeneration('attempt_replay_forbidden', {
+          operationId: QUESTION_OPERATION_ID,
+          idempotencyKey: `${d.threadId}:ask:t${turn}:0`,
+        });
+      }
       // Candidate-specific first questions have a stricter trust boundary than
       // generic qbank questions.  Only a parsed fact may be quoted as a claim
       // about the candidate; everything else is a neutral request to explain
@@ -101,27 +96,32 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       if (kind === 'grounded') {
         if (!d.resumeProfileAvailable) {
           // The graph normally routes this to fundamental before arriving here.
-          // Retain a safe direct-call fallback for tests and future callers.
-          return {
-            question: `请结合你的实际经验，说明在「${competency}」方面你会如何做关键取舍，并如何验证结果。`,
-            sources: [],
-          };
+          // Direct callers still get the approved template, never a model guess.
+          return approvedTemplateGeneration(`请结合你的实际经验，说明在「${competency}」方面你会如何做关键取舍，并如何验证结果。`);
         }
-        return {
+        return approvedTemplateGeneration(
           // Do not repeat a resume fact: the question is checkpointed, sent by
           // interrupt/SSE, recorded in events and later normalized into an
           // episode.  The candidate can choose which authorized experience to
           // discuss without that original fact becoming a second data copy.
-          question: `请结合你简历中一段与「${competency}」相关的真实经历，说明你的做法、关键取舍和验证结果。`,
-          sources: [],
-        };
+          `请结合你简历中一段与「${competency}」相关的真实经历，说明你的做法、关键取舍和验证结果。`,
+        );
       }
       // 题型决定接地:grounded/fundamental 用 CRAG 检索真题素材;scenario/behavioral 与简历/题库解耦(空素材、空来源)。
       const useRetrieval = kind === 'fundamental';
-      const useFacts = false; // grounded was returned above; non-grounded questions never make resume claims.
-      const { local, web } = useRetrieval
+      const { local, web, verdict } = useRetrieval
         ? await cragRetrieve(`${competency} 难度${difficulty}`, { localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary })
-        : { local: [] as ScoredRef[], web: [] as SourceDoc[] };
+        : { local: [] as ScoredRef[], web: [] as SourceDoc[], verdict: undefined };
+      if (useRetrieval && verdict) {
+        const nativeError = nativeRetrievalFailureToken(verdict.reason);
+        if (nativeError) {
+          return unavailableGeneration(classifyQuestionGenerationError(nativeError), {
+            operationId: QUESTION_OPERATION_ID,
+            idempotencyKey: `${d.threadId}:ask:t${turn}:0`,
+            invokeError: nativeError,
+          });
+        }
+      }
       const docs: SourceDoc[] = web;
       // Web 和本地 qbank excerpt 都不是可信 prompt；二者进入模型前均保持显式 data 信封、固定预算。
       // 本地 evidence 由 active generation + approved source 在刚取回时二次授权；没有 evidence 的兼容 seam
@@ -147,25 +147,42 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           schema: AskSchema,
           businessValidate: (v) => {
             if (isVerbatimCopy(v.q, docs)) return '照搬原文(版权)';
-            // 来源列表是 provenance，不是模型可自由编造的文案。空资料时允许空 refs；有资料时
-            // 任一 ref 都必须精确属于本次 local/web evidence，防“看似有引用”的幻觉审计记录。
-            if (v.refs.some((ref) => !knownRefs.includes(ref))) return 'unknown_retrieval_reference';
-            return null;
+            const cited = resolveCitedSources(knownRefs, v.refs);
+            return cited.ok ? null : cited.reason;
           },
           // 检索素材(material)走 rag 字段独立分账(仍在 <data> 围栏内、受 DATA_BOUNDARY_RULE 保护),不进 buildData 的 userData。
           model: promptedModel(d.model, 'interviewer.ask', { competency, difficulty, kind, resumeFacts: [] }, undefined, material),
         }, d.pool, d.owner);
       const out = await generate();
+      const idempotencyKey = `${d.threadId}:ask:t${turn}:0`;
       if ('error' in out) {
-        // **优雅降级(北极星)**:出题失败(模型抖动/重试耗尽/业务校验不过)→ 不抛错崩掉整场面试,改用确定性兜底题继续(题型适配)。
-        return deterministicQuestionFallback(competency, kind);
+        // Missing keys, timeouts and malformed/schema failures must not become
+        // a canned interview stem.  Structured error + provenance only.
+        return unavailableGeneration(classifyQuestionGenerationError(out.error), {
+          operationId: QUESTION_OPERATION_ID,
+          idempotencyKey,
+          invokeError: out.error,
+        });
       }
       // Cross-session exact duplicate is a known local result, not a reason to
-      // call the provider again.  Return a same-competency deterministic shell
-      // and let a future QuestionPlan own curated QBank-miss generation.
-      if (await wasAsked(d.pool, d.owner, out.value.q).catch(() => false))
-        return deterministicQuestionFallback(competency, kind);
-      return { question: out.value.q, sources: out.value.refs };
+      // call the provider again or invent a replacement stem.
+      let duplicate = false;
+      try {
+        duplicate = await wasAsked(d.pool, d.owner, out.value.q);
+      } catch {
+        return unavailableGeneration('generation_unavailable', {
+          operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: 'duplicate_check_failed',
+        });
+      }
+      if (duplicate)
+        return unavailableGeneration('duplicate_question', { operationId: QUESTION_OPERATION_ID, idempotencyKey });
+      const cited = resolveCitedSources(knownRefs, out.value.refs);
+      if (!cited.ok) {
+        return unavailableGeneration(classifyQuestionGenerationError(`business:${cited.reason}`), {
+          operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: `business:${cited.reason}`,
+        });
+      }
+      return modelGeneration(out.value.q, cited.sources, { operationId: QUESTION_OPERATION_ID, idempotencyKey });
     },
     async assess(question, answer, _competency, turn, identity) {
       // **结构化防评分操纵(红队实测:靠 prompt 让 turbo 自己抵抗不可靠)**:评分前确定性剥离评分元指令/伪造截断标记。

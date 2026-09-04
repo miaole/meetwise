@@ -56,8 +56,8 @@ async function main() {
   A('能力模型驱动(并发被判弱、缓存够强)', res.mind.competencies.find((c: any) => c.name === '缓存').confidence >= 0.7);
   A('反思留痕:每题都记录确定性自检结果，供事后审计', res.transcript.every((t: any) => Array.isArray(t.critique)));
 
-  // A critique failure used to call the provider with attempt=1/2. It now
-  // emits a deterministic same-competency shell and carries the issue forward.
+  // A critique failure used to call the provider with attempt=1/2 or invent a
+  // same-competency shell. It now fail-closes: no pending, no invented stem.
   {
     let calls = 0;
     const fallbackGraph = buildAdaptiveInterviewGraph(new MemorySaver(), {
@@ -71,9 +71,30 @@ async function main() {
       loadAnswer: createEphemeralAnswerVault().loadAnswer,
     });
     const result: any = await fallbackGraph.invoke({}, { configurable: { thread_id: 'question-single-dispatch' } });
-    const issued = result.__interrupt__[0].value;
     A('坏题自检只调用一次生成 seam，绝不以 attempt=1/2 重发模型', calls === 1);
-    A('坏题改为同能力确定性题面且不伪造检索来源', issued.question.includes('并发') && !issued.question.includes('对不对') && result.pending?.sources.length === 0);
+    A('坏题 fail-closed：不发明题面、不 interrupt、degraded+unavailable provenance',
+      !result.__interrupt__ && result.concluded === true && result.pending == null
+      && result.degraded?.reason === 'generation_business_invalid'
+      && result.generationProvenance?.origin === 'unavailable'
+      && result.generationProvenance?.errorCode === 'business_invalid');
+  }
+
+  {
+    const missingKeyGraph = buildAdaptiveInterviewGraph(new MemorySaver(), {
+      competencies: ['并发'], maxTurns: 1,
+      retrieveAndGenerate: async () => ({
+        ok: false as const,
+        error: 'provider_not_configured' as const,
+        provenance: { origin: 'unavailable' as const, errorCode: 'provider_not_configured' as const, invokeError: 'deterministic_refusal' },
+      }),
+      assess: async () => ({ score: 88, evidence: ['ok'], relevant: true }),
+      loadAnswer: createEphemeralAnswerVault().loadAnswer,
+    });
+    const missing: any = await missingKeyGraph.invoke({}, { configurable: { thread_id: 'missing-key-fail-closed' } });
+    A('缺 Key 出题 fail-closed：无 pending/interrupt，不发明题',
+      !missing.__interrupt__ && missing.pending == null && missing.concluded === true
+      && missing.degraded?.reason === 'generation_provider_not_configured'
+      && missing.generationProvenance?.origin === 'unavailable');
   }
 
   // Resume facts may exist in a runtime dependency, but no graph node is
@@ -130,9 +151,11 @@ async function main() {
   /* ───── UC-INT-LENGTH-01 图证明：早停 turn<8 / 深挖 turn>8 / 出处 ───── */
   {
     const skipVault = createEphemeralAnswerVault();
+    let skipAsk = 0;
     const skipGraph = buildAdaptiveInterviewGraph(new MemorySaver(), {
       competencies: ['并发', '缓存', '可靠性'],
-      retrieveAndGenerate: async (competency) => ({ question: `Q[${competency}]`, sources: [] }),
+      // Critique fail-closed (no invented replacement). Stems must be unique and ≥8 chars.
+      retrieveAndGenerate: async (competency) => ({ question: `请说明「${competency}」第 ${++skipAsk} 轮关键取舍与验证`, sources: [] }),
       assess: async () => ({ score: 50, evidence: ['不应评分'], relevant: true }),
       loadAnswer: skipVault.loadAnswer,
     });
@@ -150,13 +173,14 @@ async function main() {
 
   {
     const deepVault = createEphemeralAnswerVault();
+    let deepAsk = 0;
     const deepGraph = buildAdaptiveInterviewGraph(new MemorySaver(), {
       competencies: [
         { name: 'A', core: true }, { name: 'B', core: true },
         { name: 'C', core: false }, { name: '协作与沟通', behavioral: true },
       ],
       maxTurns: 8,
-      retrieveAndGenerate: async (competency) => ({ question: `Q[${competency}]`, sources: [] }),
+      retrieveAndGenerate: async (competency) => ({ question: `请说明「${competency}」第 ${++deepAsk} 轮关键取舍与验证`, sources: [] }),
       assess: async () => ({ score: 95, evidence: ['可深挖钩子'], relevant: true, hasHook: true }),
       loadAnswer: deepVault.loadAnswer,
     });

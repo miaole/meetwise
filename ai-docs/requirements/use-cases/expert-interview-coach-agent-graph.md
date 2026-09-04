@@ -395,7 +395,7 @@ deep research 目前最多 3 个 allowlist 源、每源 4KB、总 12KB、每 job
 
 ### 可直接说出的完整版（约 3 分钟）
 
-“我的结论是：**RAG、网页取证和 tool calling 不是同一个风险等级；当前图应先走 owner-scoped 本地证据，再在确定性 policy 允许时做一次有界外部取证。** 当前面试图不是 ReAct agent。它在 `genQuestion` 内固定执行 `rag.retrieve`，CRAG 根据检索质量决定使用本地证据、调用一次 `deep.research`，或者以无来源的确定性降级题结束取证。`web.explore` 是兼容/降级 seam。模型不能自主选择 function name、URL、第二轮搜索或写入；`ToolRegistry/runToolLoop` 虽有库级原语，却没有接进这个用户图，因此不能对外称为动态 skills 平台。
+“我的结论是：**RAG、网页取证和 tool calling 不是同一个风险等级；当前图应先走 owner-scoped 本地证据，再在确定性 policy 允许时做一次有界外部取证。** 当前面试图不是 ReAct agent。它在 `genQuestion` 内固定执行 `rag.retrieve`，CRAG 根据检索质量决定使用本地证据、调用一次 `deep.research`，或以空证据继续（不得伪造 citation）。供应商出题失败本身走 `interview_unavailable`，不是另造无来源兜底题。`web.explore` 是兼容/降级 seam。模型不能自主选择 function name、URL、第二轮搜索或写入；`ToolRegistry/runToolLoop` 虽有库级原语，却没有接进这个用户图，因此不能对外称为动态 skills 平台。
 
 这张图里状态必须足够表达证据的生命周期：route 说明要测哪项能力；pending 绑定题目、题号和允许引用；检索结果应以有限的 ref/provenance 进入出题调用，而不是把网页正文永久 append 到 state。外部正文是 untrusted data：fetch 前后执行 allowlist、协议、redirect、私网地址、字节与时间门；进入 prompt 前套数据边界、截断、消毒并保留来源。模型返回的 citation 必须是本次 local evidence 或 allowlist source 的成员，否则业务校验拒绝。因而‘prompt 写了不要听网页’只是辅助，真正承重的是没有可以被网页诱导的高风险写能力，以及模型外的 policy 与 schema 校验。
 
@@ -564,13 +564,13 @@ if (looksLikeScoreManipulation(answer)) {
 
 ### 90 秒口语答案
 
-“我不把所有异常都 `catch` 后给一个 50 分。先按动作风险分级：检索/Web 是可降级的证据输入，失败返回空证据和确定性 fallback question；出题模型失败可给不带伪造 citation 的兜底题；评分失败则是 `unscored`，不更新能力画像、不进入报告综合分，必要时结束/标记本场待恢复。报告在独立 worker 舱壁失败，不能拖垮已完成面试。
+“我不把所有异常都 `catch` 后给一个 50 分。先按动作风险分级：检索/Web 是可降级的证据输入，失败返回空证据，**不得伪造 citation**；出题模型/供应商失败走 `interview_unavailable`+provenance，**不发明题面**冒充模型题（仅 grounded 首题可用批准模板且必须标 `origin=approved_template`）；评分失败则是 `unscored`，不更新能力画像、不进入报告综合分，必要时结束/标记本场待恢复。报告在独立 worker 舱壁失败，不能拖垮已完成面试。
 
 网络错误、429、5xx 可以有界退避；业务校验、unknown ref、越权、无效状态是确定性拒绝，不应盲重试。所有终态都要有用户可见事件，不能静默转圈。钱和权益的补偿由业务状态机、outbox、对账和 lease sweeper 做，不依赖 graph catch。”
 
 ### 可直接说出的完整版（约 3 分钟）
 
-“我的结论是：**故障处理的第一步不是 retry，而是确定这项失败能否安全降级、是否已经产生不可逆影响、以及用户应该看到什么语义。** 图里证据获取、出题、评分、报告、结算分别有不同的终态。RAG/Web 只是出题证据，未取得证据时可以产出明确标为无引用的 fallback 题，或者结束当前能力维度；绝不能补造 citation。评分服务的 schema、逐字引用校验或 provider 调用失败，则候选人能力是未知，所以写 `unscored`、停止自动聚合并发出 `report_unavailable`，而不是给一个看似中性的 50 分。报告 worker 是主面试完成后的舱壁，它失败应有可重试/人工补发的状态，而不应回滚已完成的答题事实。
+“我的结论是：**故障处理的第一步不是 retry，而是确定这项失败能否安全降级、是否已经产生不可逆影响、以及用户应该看到什么语义。** 图里证据获取、出题、评分、报告、结算分别有不同的终态。RAG/Web 只是出题证据，未取得证据时不得补造 citation；供应商出题失败不得写确定性兜底题继续面试，应发 `interview_unavailable` 并结束本场（`UC-MODEL-ROUTE-04`）。评分服务的 schema、逐字引用校验或 provider 调用失败，则候选人能力是未知，所以写 `unscored`、停止自动聚合并发出 `report_unavailable`，而不是给一个看似中性的 50 分。报告 worker 是主面试完成后的舱壁，它失败应有可重试/人工补发的状态，而不应回滚已完成的答题事实。
 
 重试策略必须按错误类和作用域写进状态机。429、连接 reset、可验证的 5xx 可以在单一 deadline 与 attempt budget 内重试，并复用相同 invocation/事件 key；校验失败、unknown citation、权限拒绝、stale question、预算耗尽是确定性失败，重试只会扩大成本或攻击面，应立即转 fail-closed 或用户可操作的澄清。若调用已发出却响应丢失，而供应商不支持查询或幂等，则建模为 `unknown`，交给对账或人工，而不是在 catch 中重发。对外发送的报告/邮件通过 outbox 发送并让消费者按 event key 去重；数据库内的点数确认/释放由 ledger 和条件状态迁移做补偿，不能依赖 node 的 `finally`。
 

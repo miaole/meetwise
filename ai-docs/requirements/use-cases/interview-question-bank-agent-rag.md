@@ -1003,10 +1003,10 @@ LangGraph 在 `Command({resume})` 后会从含 `interrupt()` 的节点起点重�
 
 **标准要点**
 
-**90 秒可口述完整答案**：优雅降级的底线是不把系统未知写成用户能力事实。检索失败可用明确 `sourceUnavailable` 的通用题，出题失败可用版本化兜底题；但评分模型、schema 或引用校验失败必须标 `assessment_unavailable/degraded`，不更新能力曲线、不进入 B 端决策，也不伪造 50 分。checkpoint 损坏、非法状态或 poison pill 则安全终止本轮，保留已经确认的业务事实，并对未确认权益 release/reconcile；报告是独立 job，它失败只影响报告交付，不能倒改已完成面试。所有降级状态包含 `reason/affectedCapabilities/retryability/userMessage`，用户能知道发生了什么，运营能按版本与原因定位。测试要把每类失败注入到真实状态机，分别断言是否可重试、是否允许 fallback、账本变化、事件投影与用户终态；关键门是故障被写成正式评分数为 `0`、静默死胡同为 `0`。
+**90 秒可口述完整答案**：优雅降级的底线是不把系统未知写成用户能力事实。检索失败可用明确 `sourceUnavailable` 的通用题，但供应商出题失败不得发明题面继续面试，应走 `generation_unavailable`/`interview_unavailable`+provenance；仅 grounded 或已批准同 leaf 模板可标 `approved_template`/`template_in_bucket`。评分模型、schema 或引用校验失败必须标 `assessment_unavailable/degraded`，不更新能力曲线、不进入 B 端决策，也不伪造 50 分。checkpoint 损坏、非法状态或 poison pill 则安全终止本轮，保留已经确认的业务事实，并对未确认权益 release/reconcile；报告是独立 job，它失败只影响报告交付，不能倒改已完成面试。所有降级状态包含 `reason/affectedCapabilities/retryability/userMessage`，用户能知道发生了什么，运营能按版本与原因定位。测试要把每类失败注入到真实状态机，分别断言是否可重试、是否允许 fallback、账本变化、事件投影与用户终态；关键门是故障被写成正式评分数为 `0`、静默死胡同为 `0`。
 
 - 检索失败可以返回带 `sourceUnavailable` 的通用题；不能声称题目已接地。
-- 出题失败可使用版本化确定性兜底题，并记录 reason code、model failure 与无来源状态。
+- 供应商出题失败不得发明题面；自适应面试投影 `interview_unavailable`（`UC-MODEL-ROUTE-04`）。题库同桶无题的目标路径才允许已批准同 leaf 模板，否则 `generation_unavailable`。
 - 评分失败不得伪造“候选人得 50 分”；应标 `assessment_unavailable` 或 `degraded`，不进入能力曲线/招聘决策。
 - checkpointer 不可读、schema/business 违规、poison pill 应走安全终止，保留已写业务事实，释放/补偿未确认权益。
 - 报告独立 job；其失败不得改变已完成面试事实，但必须发可见终态事件。

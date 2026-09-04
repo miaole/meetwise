@@ -17,6 +17,7 @@
     "prove:crag": "tsx test/crag.proof.ts",
     "prove:research-policy": "tsx test/research-policy-adversarial.proof.ts",
     "prove:critique": "tsx test/question-critique.proof.ts",
+    "prove:question-generation-fail-closed": "tsx test/question-generation-fail-closed.proof.ts",
     "prove:web-explore": "tsx test/web-explore.proof.ts",
     "prove:resume-extract": "tsx test/resume-extract.proof.ts",
     "prove:rag-chunking": "tsx test/rag-chunking.proof.ts",

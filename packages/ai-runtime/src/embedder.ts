@@ -1,5 +1,6 @@
-import { ExternalHttpStatusError, fetchJsonWithTimeout } from './timeout.ts';
+import { ExternalHttpStatusError, ExternalRequestTimeoutError, ExternalResponseJsonError, fetchJsonWithTimeout } from './timeout.ts';
 import { rejectDashscopeNativeTransportOverride, resolveDashscopeNativeConfig } from './dashscope-native-config.ts';
+import { requireFiniteVector, requireRecord } from './native-response-guard.ts';
 
 /**
  * 向量化 seam（10 年负债隔离：embedding 供应商可换,接口不变）。
@@ -41,11 +42,25 @@ export function dashscopeEmbedder(cfg: { baseUrl?: string; apiKey?: string; mode
             body: JSON.stringify({ model, input: batch, dimensions: dim }),
           }, { maxBytes: 1024 * 1024 });
         } catch (error) {
+          if (error instanceof ExternalRequestTimeoutError) throw new Error('embedder_timeout');
+          if (error instanceof ExternalResponseJsonError) throw new Error('embedder_malformed');
           if (error instanceof ExternalHttpStatusError) throw new Error('embed_http_' + error.status);
           throw error;
         }
-        const sorted = j.data.slice().sort((a, b) => a.index - b.index);
-        for (const d of sorted) out.push(d.embedding);
+        const body = requireRecord(j, 'embedder_malformed');
+        if (!Array.isArray(body.data) || body.data.length !== batch.length) throw new Error('embedder_malformed');
+        const sorted = body.data.slice().sort((a, b) => {
+          const left = requireRecord(a, 'embedder_malformed');
+          const right = requireRecord(b, 'embedder_malformed');
+          const li = left.index;
+          const ri = right.index;
+          if (!Number.isSafeInteger(li) || !Number.isSafeInteger(ri)) throw new Error('embedder_malformed');
+          return (li as number) - (ri as number);
+        });
+        for (const row of sorted) {
+          const item = requireRecord(row, 'embedder_malformed');
+          out.push(requireFiniteVector(item.embedding, dim, 'embedder_malformed'));
+        }
         const used = j.usage?.prompt_tokens ?? j.usage?.input_tokens ?? j.usage?.total_tokens;
         if (typeof used === 'number' && Number.isFinite(used) && used >= 0) { inputTokens += used; sawUsage = true; }
       }

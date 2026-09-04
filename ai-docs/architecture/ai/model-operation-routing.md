@@ -107,7 +107,7 @@ related:
 
 因此历史 `pnpm model-invocation-reconcile:prove` 的 raw-SQL 回归仍只是一条局部、本地 `releaseEvidence=false` 证据；本机 Docker daemon 可用后，必须重跑新增的 direct ACL、ACL 漂移 permit、terminal、identity、reservation 与并发组合根。`MODEL-OP-00-DB-STATE-001`、`MODEL-OP-00-HEADER-001` 和 `MODEL-OP-00-BINDING-001` 在这些回归与独立复审前均不关闭。
 
-六个文本调用面与 `resume.ocr.v1` 已由 registry 派生 node identity；OCR 另经 `bindResumeOcr` 封存 endpoint **identity**（profile id / admission key），出站仍由注入 client + 视觉 endpoint config 决定。尚未完成的是让 ASR、TTS、embedding、rerank 和所有遗留直连适配器都经过同一种 binding/共享准入，以及撤销 `invoke()` 对 legacy `logicalNodeKey` 的兼容入口。首版仍不允许可配置的“两三次 repair”：无效问题走批准模板或 `generation_unavailable`；评分证据不合格走 `unscored/review_required`。若以后确需第二次供应商调用，它必须是新的 operation 与业务 revision，不能作为本节点 retry。
+六个文本调用面与 `resume.ocr.v1` 已由 registry 派生 node identity；OCR 另经 `bindResumeOcr` 封存 endpoint **identity**（profile id / admission key），出站仍由注入 client + 视觉 endpoint config 决定。尚未完成的是让 ASR、TTS、embedding、rerank 和所有遗留直连适配器都经过同一种 binding/共享准入，以及撤销 `invoke()` 对 legacy `logicalNodeKey` 的兼容入口。首版仍不允许可配置的“两三次 repair”。`interview.question-generation.v1` 的 registry `fallbackAction` 现为 `generation_unavailable`：缺 Key、超时、畸形/schema/critique 失败不得写确定性兜底题冒充 `question_ready`；只允许 grounded 批准模板（`origin=approved_template`）或终态 `interview_unavailable`+provenance。评分证据不合格走 `unscored/review_required`。若以后确需第二次供应商调用，它必须是新的 operation 与业务 revision，不能作为本节点 retry。
 
 ## 6. 实施顺序与当前阻塞
 

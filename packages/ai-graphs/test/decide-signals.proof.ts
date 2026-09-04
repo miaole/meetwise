@@ -91,9 +91,15 @@ async function softBudgetClamp() {
 async function concludeReasonPersists() {
   const vault = createEphemeralAnswerVault();
   let n = 0;
+  let nAsk = 0;
   const g = buildAdaptiveInterviewGraph(new MemorySaver(), {
     competencies: [{ name: '并发' }, { name: '缓存' }, { name: '可靠性' }], maxTurns: 8,
-    retrieveAndGenerate: async (competency) => ({ question: `Q:${competency}`, sources: [] }),
+    // Unique long stems: fail-closed critique rejects short/duplicate `Q:${competency}`
+    // as business_invalid and concludes interview_unavailable instead of early_weak.
+    retrieveAndGenerate: async (competency) => ({
+      question: `请说明「${competency}」第 ${++nAsk} 轮关键取舍与验证`,
+      sources: [],
+    }),
     assess: async () => { n++; return { score: 30, evidence: ['弱'], relevant: true }; },
     loadAnswer: vault.loadAnswer,
   });

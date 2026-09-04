@@ -145,7 +145,7 @@ route_decided -> application_bound -> interview_snapshotted
 
 模型只可输出结构化题文和 blueprint focus。服务端验证 leaf 语言、长度、非引导、去重和 schema，并绑定已有版本化 rubric/score policy；模型不能创建 tag、rubric、source 或权限。题目以 `origin=llm_qbank_miss` 落账，记录脱敏 plan/scope/generation/eligibility/prompt/schema/rubric/score-policy/attempt/cost digest，且 `refs=[]` 不得被展示为题库证据。
 
-已派发后 unknown 永不自动重发或换题。模型已知失败时，才可走已批准同 leaf 确定性模板或 `generation_unavailable`。生成题不自动进入 QBank、向量或 generation；希望复用时必须重新走策展审核、artifact revision 和 generation 发布。当前评分合同未校准，因此首期 generated fallback 必须 `review_required/score_excluded`：它不能驱动 B 端 overall、排名、录用或完成门。
+已派发后 unknown 永不自动重发或换题。模型已知失败时，才可走已批准同 leaf 确定性模板或 `generation_unavailable`。这是题库 `qbank_miss` 路径，**不是**自适应面试图把 canned 兜底题写成 `question_ready`；供应商出题失败的当前接线见 `UC-MODEL-ROUTE-04` 与 [运行时事实矩阵](../current-runtime-truth.md)。生成题不自动进入 QBank、向量或 generation；希望复用时必须重新走策展审核、artifact revision 和 generation 发布。当前评分合同未校准，因此首期 generated fallback 必须 `review_required/score_excluded`：它不能驱动 B 端 overall、排名、录用或完成门。
 
 ## 6. 运行与发布标准
 

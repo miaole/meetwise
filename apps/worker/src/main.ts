@@ -289,7 +289,10 @@ async function activateExistingQbankReadModel(pool: ReturnType<typeof createPool
   }
 }
 
-function ragFailureOutcome(error: unknown): 'budget_exhausted' | 'policy_missing' | 'price_missing' | 'unknown' | 'claim_timeout' | 'cache_dependency_unavailable' | 'cache_value_invalid' | 'internal_error' {
+function ragFailureOutcome(error: unknown): 'budget_exhausted' | 'policy_missing' | 'price_missing' | 'unknown' | 'claim_timeout' | 'cache_dependency_unavailable' | 'cache_value_invalid' | 'internal_error' | 'embedder_not_configured' | 'embedder_timeout' | 'embedder_malformed' | 'reranker_not_configured' | 'reranker_timeout' | 'reranker_malformed' {
+  const message = error instanceof Error ? error.message : '';
+  if (/^(embedder|reranker)_(not_configured|timeout|malformed)$/.test(message))
+    return message as 'embedder_not_configured' | 'embedder_timeout' | 'embedder_malformed' | 'reranker_not_configured' | 'reranker_timeout' | 'reranker_malformed';
   const code = (error as { code?: unknown } | undefined)?.code;
   if (code === 'qbank_retrieval_claim_timeout') return 'claim_timeout';
   if (code === 'rag_cache_dependency_unavailable') return 'cache_dependency_unavailable';

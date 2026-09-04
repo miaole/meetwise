@@ -16,9 +16,13 @@ let pool!: ReturnType<typeof createPool>;
 let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
 let stage = 'BOOT';
 const OWNER = 'consA', IID = 'cons-' + Date.now();
+let askSeq = 0;
 const scripted = scriptedModelClient({
   'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发', '缓存'] } }),
-  'interviewer.ask': () => ({ ok: true, raw: { q: '结合你的限流经历聊聊高并发下怎么兼顾吞吐与一致', refs: ['https://allow.example/deep'] } }),
+  'interviewer.ask': () => ({
+    ok: true,
+    raw: { q: `结合你的限流经历聊聊高并发下怎么兼顾吞吐与一致，并说明第 ${++askSeq} 轮验证方法`, refs: ['https://allow.example/deep'] },
+  }),
   'mock-interview.evaluate': () => ({ ok: true, raw: { score: 88, evidence: [{ criterion: '讲清滑动窗口', quote: '滑动窗口' }] } }),
 });
 const askRequests: Array<{ system: string; userData: string; rag?: string }> = [];

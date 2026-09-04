@@ -68,7 +68,7 @@ const WIRED_TEXT_OPERATIONS: readonly ModelOperationDefinition[] = [
   {
     operationId: 'interview.question-generation.v1', inputKind: 'chat', capability: 'text-quality', maxDispatches: 1,
     wired: true, admission: { providerAccount: 'dashscope-main', region: 'cn-beijing', modelOrRecipe: 'questioner' },
-    meter: 'text-tokens', fallbackAction: 'approved_template_question',
+    meter: 'text-tokens', fallbackAction: 'generation_unavailable',
   },
   {
     operationId: 'interview.answer-scoring.v1', inputKind: 'chat', capability: 'text-small', maxDispatches: 1,

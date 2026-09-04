@@ -81,7 +81,7 @@ related:
   - **E2 并发：** 多 worker 对同一节点或记忆范围仅一个 attempt 可投影；其他读取既有结果。机制：lease/CAS。
   - **E3 越权：** 不同 tenant、C/B、project 或 purpose 的模型/记忆操作无法共用上下文、预算或来源。机制：RLS + binding predicate。
   - **E4 失败回滚/退款：** 报告、诊断、OCR、语音等已派发失败不伪造完成；按各自领域规则退款/冻结/人工处理。机制：attempt + 领域状态机。
-  - **E5 降级：** 出题→批准模板或 `generation_unavailable`、评分→unscored/review_required、ASR→文字输入、TTS→文字展示、embedding→无 RAG、记忆→不写候选。无效输出或配额耗尽不触发 repair 外呼。机制：能力矩阵。
+  - **E5 降级：** 出题供应商/结构失败→`generation_unavailable`（`interview_unavailable`+provenance，**不发明题面**）；仅 grounded 可用批准模板且必须标 `origin=approved_template`。评分→unscored/review_required、ASR→文字输入、TTS→文字展示、embedding→无 RAG、记忆→不写候选。无效输出或配额耗尽不触发 repair 外呼。机制：能力矩阵。`UC-MODEL-ROUTE-04`。
   - **E6 超时/断线：** 流式首帧前允许未派发降级，首帧/派发后 unknown；用户取消不得误计为供应商成功或自动换模型。机制：stream session/attempt 状态机。
 - **后置 Postcondition：** 每个业务结果带 operation/attempt 或明确 `deterministic` 来源；模型结果不越过其能力和质量边界。
 - **验收 Acceptance：** 确定性节点调用模型数=0；首版每个模型逻辑节点的调用数至多为 1；评分、OCR、语音、embedding 的降级语义分别可测；模型候选不能直接成为 active 长期事实。
@@ -116,7 +116,7 @@ related:
   - **E2 并发：** 测试 runner 受低并发和总费用上限约束；并发超限被拒绝。机制：共享准入。
   - **E3 越权：** Key 不授本地任意脚本、浏览器、公开 API 或常驻 API/Worker；错误工作空间/区域/模型拒绝。把 DeepSeek 文本 Key 注入到进程也不能让 DashScope 原生适配器认证，反之亦然。机制：业务空间模型许可、secret scope、显式 provider 变量、registry 和启动校验。
   - **E4 失败回滚/退款：** 网络或供应商失败记录 unknown/failed 与已知计量，禁止自动换 Key/模型重试。机制：attempt 状态机。
-  - **E5 降级：** Key 缺失/额度耗尽时测试为 `not_run`，产品路径使用确定性降级。机制：环境 gate。
+  - **E5 降级：** Key 缺失/额度耗尽时测试为 `not_run`；产品出题路径使用 `generation_unavailable`（不发明题面），其他能力按矩阵降级（ASR→文字输入等）。机制：环境 gate + `UC-MODEL-ROUTE-04`。
   - **E6 超时/断线：** 外发前取消零调用；外发后 unknown，非敏感测试 run 需新 revision 才可重试。机制：attempt 状态机。
 - **后置 Postcondition：** 仅有最小脱敏验证回执；不会新增真实用户内容、生产 Key 或“已发布”声明。
 - **验收 Acceptance：** Key 从未出现在工作树/日志；每次 smoke 费用和调用数有上限；未登记操作/越权输入=0 外呼；文本主/备用路由与 DashScope 原生适配器各自只使用允许的变量；非生产 OCR、语音和视觉 smoke 在对应 typed binding 前也必须零外呼；真实模型结果通过结构校验才生成 `nonproduction_verified` 回执。
@@ -132,6 +132,42 @@ related:
 - `TC-MODEL-ROUTE-03-E4` · 受控 transport：错误/响应丢失保留 unknown，不自动换模型或 Key。
 - `TC-MODEL-ROUTE-03-E5` · 环境测试：缺 Key/额度时只标 not-run，业务无付费外呼。
 - `TC-MODEL-ROUTE-03-E6` · transport：超时边界产生正确 known-not-sent/unknown 与一次性计量。
+
+## UC-MODEL-ROUTE-04 · 百炼/原生 endpoint 失败不得静默发明面试内容
+
+> **本包范围（P0 止血）：** 缺 Key、超时、畸形响应不得把确定性兜底题面写成 `question_ready`。结构化错误码 + 来源 provenance 进入图状态与 `interview_unavailable`。不宣称统一网关、不接真实 Key smoke、不加 CI/CD。
+
+- **角色 Actor：** C 端候选人、Worker、百炼文本/DashScope 原生适配器、对账/SSE 前端。
+- **前置 Precondition：** 出题走 `interview.question-generation.v1` 或 grounded 批准模板；原生 ASR/TTS/embedding/rerank 只认本能力 Key。面试已 reserve。调用方不得在失败时另造题面。
+- **触发 Trigger：** 出题 `invoke` 或原生适配器遇到缺 Key、超时、空/非 JSON/缺字段响应。
+- **主流程 Main：**
+  1. 适配器把失败收成稳定错误码（`*_not_configured` / `*_timeout` / `*_malformed` / invoke `schema_validation_failed` / `external_outcome_unknown`），**不**返回看似成功的题面、空转写或零向量。
+  2. `retrieveAndGenerate` 返回 `QuestionGenerationResult.ok=false` + `QuestionGenerationProvenance{origin:unavailable,errorCode,invokeError}`；禁止 `deterministicQuestionFallback` 冒充模型题。
+  3. 图 `genQuestion` 不写 pending；条件边直接 `conclude`。`awaitAnswer` 不会对失败出题 interrupt。
+  4. lifecycle 同一 principal 事务：`failInterviewAndRelease` + `interview_unavailable{reason,provenance}`（`event_key=interview_unavailable:terminal`）；`question_ready` 增量 = 0。中途下一题失败时同事务先写 `answer_evaluated`/`answer_unscored`，再终态化，不 `completeInterviewAndConfirm`。
+- **备选流 Alternate：** grounded 首题仍可用批准模板，但 provenance `origin=approved_template`，且不得引用简历原文。评分失败继续 `unscored`，不在本包改分数语义。scenario/behavioral 无检索材料时，题面保留、leftover `refs` 丢弃为空（`resolveCitedSources`），不当 `unknown_retrieval_reference`；有检索材料时未知 ref 仍 fail-closed。
+- **异常流 Exception：**
+  - **E1 重复：** 同 interview 再投 start/同键出题只回放既有 `interview_unavailable` 或既有 invocation 终态；不得另发明题。机制：事件 `event_key` 幂等 + invocation 幂等键。
+  - **E2 并发：** 双 worker 对同一 start 只一条 terminal；失败者 `graph_fence_lost`，ledger/SSE 增量为 0。机制：graph fence CAS。
+  - **E3 越权：** 他主体不能读本场 unavailable 事件或释放本场预留。机制：RLS + `asPrincipal`。
+  - **E4 失败回滚：** 未派发缺 Key = known-not-sent + 释放预留；已派发超时/畸形 = invocation `unknown`/`failed` + 面试 `failed`，不写成功题。机制：invocation 状态机 + `failInterviewAndRelease`。
+  - **E5 降级：** 失败出口是 `interview_unavailable`（可解释、可重试），不是假题继续面试。机制：registry fallback 语义收紧为 `generation_unavailable`。
+  - **E6 超时/断线：** 派发前超时零外呼；派发后 timeout/畸形 JSON 不编题、不重发同键。机制：AbortSignal + 持久 attempt。
+- **后置 Postcondition：** 失败场次 `Interview=failed`；无 `question_ready` 假题；`interview_unavailable.provenance.origin=unavailable`；原生畸形/超时抛结构化错误，不发明内容。
+- **验收 Acceptance：** 缺 Key / timeout / malformed 三条路径：发明题面数 = 0；`question_ready` = 0；`interview_unavailable` = 1 且含 errorCode；预留释放或 invocation 可审计；跨主体事件 = 0。
+- **关联：** `UC-MODEL-001` E5/E6、`UC-MODEL-ROUTE-02` E5、`packages/domain/src/question-generation.ts`、`apps/worker/src/adaptive-interview-service.ts`、`adaptive-lifecycle.ts`、DashScope 原生适配器。原语：幂等键、CAS fence、RLS、事件账本。
+- **七类覆盖：** 正（结构化失败）、异（释放预留）、特（grounded 模板带 provenance）、逃（unavailable 终态）、并（fence）、复（invocation+面试+事件）、刁（畸形 JSON/空 content 不编题）。
+
+### 测试用例
+
+- `TC-MODEL-ROUTE-04-main` · 单元：invoke 错误码分类到 `provider_not_configured` / `provider_timeout` / `provider_malformed` / `external_outcome_unknown`，成功路径不得标 unavailable。
+- `TC-MODEL-ROUTE-04-E1` · 隔离 PostgreSQL：同场二次 start 不追加第二道假题；unavailable 事件幂等 ≤ 1。
+- `TC-MODEL-ROUTE-04-E2` · graph：丢失 fence 不投影 question ledger。
+- `TC-MODEL-ROUTE-04-E3` · 既有 RLS 事件门覆盖跨主体 0 行（本包不新开越权面）。
+- `TC-MODEL-ROUTE-04-E4` · 隔离 PostgreSQL：出题 invoke 失败 → 无 question_ready、面试 failed、预留 released。
+- `TC-MODEL-ROUTE-04-E5` · worker deps：缺 handler / timeout / schema 失败返回 `ok:false`，题面字符串不出现。
+- `TC-MODEL-ROUTE-04-E6` · 原生适配器：缺 Key / 超时 / 空 content / 非 JSON / 缺字段 → 结构化抛错，零发明转写/向量/排序。
+- `TC-MODEL-ROUTE-04-alt-leftover` · 单元：`knownRefs=[]` 时 leftover refs → `sources=[]` 且不 fail-close；`knownRefs` 非空时未知 ref 仍 `unknown_retrieval_reference`。
 
 ## 实现门禁结论
 

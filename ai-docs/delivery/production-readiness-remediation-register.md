@@ -109,7 +109,7 @@ related:
 | MODEL-OP-00 真实预算与账本一致性 | ☑ | ◐ | ◐ | ☐ | 文本适配器已将批准且不可变成本策略的最大输出下传到供应商，并拒绝请求模型/策略模型错配；受管文本端点在 claim/预留/HTTP 前对实际 rendered system/user、图片 descriptor/reserve 与结构化输出 reserve 做保守窗口预算。请求摘要、启动低权断言及文本费用 reserve 精确绑定 provider/model/region/price revision，旧“取最新价格”的运行时入口已撤权。`0085` 的历史 header/slot 只保护一条更新；`0088` 的完整状态机候选已于 2026-08-16 经真实低权 PostgreSQL 回归跑绿（`pnpm model-op00:prove`，89 迁移、exit 0、`releaseEvidence=false`）。RAG 与 tool reserve 已由类型化 component ledger（`planContextBudget`/`ContextBudgetPlan` 预算器分解）独立分账，`toolReserve` 计入 `availableInput` 公式；snapshot、recent、summary 属 L5 未接线，仍只要进入渲染字段即被总量覆盖。真实 tokenizer 校准仍未完成（estimate 穿线 + 纯版本化校准模块 + 低估 flag 已建，异步 reconciler 未接线）；registry 对 node identity 的服务端重算、所有 provider 适配器与共享准入仍未完成。所有本地回执均 `releaseEvidence=false`。 |
 | MODEL-OP-01 统一 operation binding | ☑ | ◐ | ◐ | ☐ | **OCR 窄切片已接线（非关闭整项）**：`resume.ocr.v1` 经 `bindResumeOcr`/`visionOcr` 取得冻结 Beijing **identity** + 密封 provenance（身份封印，非 host pin / 非哈希链）；面试 `admitInterviewResume` 在图片源缺 binding 时 fail-closed；worker/面试图零 `visionOcr`。预览双旗可走通 invoke（非 SLO）；生产/enforce 组合根仍 `OCR_ENABLED`/`OCR_PREVIEW` kill-switch（binding 存在也不开）。chat 六个文本面走 registry operation，但 `invoke` 仍接受 legacy `logicalNodeKey`。ASR/TTS/embedding/rerank/signed-download 仍 unwired；媒体预算、删除、脱敏视觉回执、共享准入未完成。禁止 raw prompt / provider URL / 未知字段已在 binding **解析器 + 静态负例**证明（非 E2E 治理、非 ledger）。`pnpm model-op01:prove` 为本地静态证据，`releaseEvidence=false`。 |
 | MODEL-OP-02 共享容量与费用准入 | ☑ | ☐ | ☐ | ☐ | 默认/快/视觉/语音/embedding 的准入按账号、区域、模型或 recipe、tenant/project、operation 汇总，而非每进程独立桶；并发压力下总许可不超限，拒绝与冻结均可观察。 |
-| MODEL-OP-03 节点矩阵与业务降级 | ☑ | ☐ | ☐ | ☐ | 确定性节点模型调用=0；每个逻辑节点有总派发次数；评分、题目、OCR、语音、RAG 和记忆候选分别走已定义降级，派发后 unknown 自动重发=0。 |
+| MODEL-OP-03 节点矩阵与业务降级 | ☑ | ☐ | ☐ | ☐ | 确定性节点模型调用=0；每个逻辑节点有总派发次数；评分、题目、OCR、语音、RAG 和记忆候选分别走已定义降级，派发后 unknown 自动重发=0。出题 registry `fallbackAction` 已本地收紧为 `generation_unavailable`（`UC-MODEL-ROUTE-04`，发明题面=0），**不是**节点矩阵或共享准入关闭。 |
 | MODEL-OP-04 唯一模型网关 | ☑ | ☐ | ☐ | ☐ | 仅在 UC-MODEL-002 的授权 snapshot、outbox、attempt、删除/保留、流会话、独立凭据与网络出口全部完成后实施；API/Worker 不再持供应商 Key。 |
 
 ### PRD-TEST-014a · 百炼非生产配置与真实调用边界
@@ -122,9 +122,9 @@ related:
 | BAILIAN-01 模型/区域/价格 revision | ☑ | ☐ | ☐ | ☐ | 每个候选模型的可用性、区域、计量单位与价格 revision 必须由控制台核对并写入受控非密配置。 |
 | BAILIAN-02 预算与告警 | ☑ | ☐ | ☐ | ☐ | 测试总额、单日/单 run 上限和告警必须先于扩大模型能力；额度不足保持 `not_run`。 |
 | BAILIAN-03 Key 保存边界 | ☑ | ☑ | ◑ | ☐ | 本机一次性测试 Key 仅保存于受控钥匙串；它不进入 API/Worker、CI、镜像、回执或受管文档。需在轮换后复验无旧 Key 残留。 |
-| BAILIAN-04 endpoint/TLS/区域 | ☑ | ☐ | ☐ | ☐ | endpoint 由受控部署配置提供；拒绝 URL query、片段、任意备用 URL 和跨区域 endpoint。 |
+| BAILIAN-04 endpoint/TLS/区域 | ☑ | ◐ | ☐ | ☐ | 原生 URL 已改为固定 Beijing profile，旧 URL 环境变量与 production/development override fail-closed。缺 Key/超时/畸形 body 现抛 `*_not_configured` / `*_timeout` / `*_malformed`（本地 `native-fail-closed:prove`）。仍不是控制台核对后的 TLS/区域 smoke，也不是 `MODEL-OP-01`。 |
 | BAILIAN-05 最小文本 smoke | ☑ | ☑ | ◑ | ☐ | 固定非敏感三档文本和受控客户端调用已有脱敏回执；单次兼容性不证明子空间、统一网关、生产容量或费用封顶。 |
-| BAILIAN-06 专用能力 smoke | ☑ | ☐ | ☐ | ☐ | 视觉、embedding、ASR、TTS、流式能力逐项单独验证；未获准或无对应 operation/隐私/计量契约的能力保持关闭。 |
+| BAILIAN-06 专用能力 smoke | ☑ | ☐ | ☐ | ☐ | 视觉、embedding、ASR、TTS、流式能力逐项单独验证；未获准或无对应 operation/隐私/计量契约的能力保持关闭。本地原生适配器 fail-closed 证明（空 content/非 JSON/NaN 向量）**不是**本项 smoke。 |
 | BAILIAN-07 轮换与撤销 | ☑ | ☐ | ☐ | ☐ | 旧 Key 失效即 fail-closed；轮换后无旧 Key 残留。任何真实模型 smoke 均 `releaseEvidence=false`。 |
 
 ## 3. 证据索引
@@ -145,6 +145,7 @@ related:
 | PRD-TEST-012 | `packages/ai-runtime/src/model-client.ts`、`apps/worker/test/context-window.proof.ts` | `architecture/ai/memory-context-design.md`、`architecture/ai/agent-runtime.md`。 |
 | PRD-TEST-013 / MEM-12…14 | `packages/db/src/memory-store.ts`、`apps/api/src/modules/privacy/privacy.service.ts`、当前 RLS/principal 路径 | `requirements/use-cases/memory-governance-and-recall.md`、`architecture/ai/memory-context-design.md`。 |
 | PRD-TEST-014 / MODEL-OP-00…04 | `packages/ai-runtime/src/model-client.ts`、`invoke.ts`、`catalog/index.ts`、`apps/worker/src/interview-service.ts`、API OCR/voice composition roots | `requirements/use-cases/model-operation-routing.md`、`architecture/ai/model-operation-routing.md`、`requirements/use-cases/model-invocation-reliability.md`。 |
+| PRD-TEST-014 / UC-MODEL-ROUTE-04 | `packages/domain/src/question-generation.ts`、`packages/ai-runtime/src/native-response-guard.ts`、`packages/ai-runtime/src/model-operation-registry.ts`、`packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts`、`apps/worker/src/adaptive-lifecycle.ts` | `requirements/use-cases/model-operation-routing.md` 的 `UC-MODEL-ROUTE-04`、`architecture/current-runtime-truth.md` 出题 fail-closed 行。本地 prove，`releaseEvidence=false`。 |
 | PRD-TEST-015 / SCOR-01…08 | `apps/worker/src/adaptive-lifecycle.ts`、`packages/domain/src/assessment.ts`、`packages/db/src/interview-question.ts`、`packages/db/src/recruiter.ts` | `requirements/use-cases/interview-scoring-measurement.md`、`architecture/ai/scoring-measurement-runtime.md`。 |
 | PRD-TEST-016 / RAG-FUNNEL-01…06 | `apps/worker/src/main.ts`、`apps/worker/src/qbank-generation.ts`、`packages/ai-runtime/src/embedder-cache.ts`、`apps/worker/src/interview-consumer.ts`、`apps/worker/src/adaptive-interview-service.ts`、`packages/db/src/qbank-generation-retrieval.ts` | `requirements/use-cases/rag-funnel-intent-routing.md`、`architecture/ai/rag-funnel-routing.md`、`architecture/ai/rag-corpus-lifecycle.md`、当前运行时事实矩阵。 |
 | PRD-TEST-017 / RAG-FUNNEL-07…08 | `packages/domain/src/crag.ts`、`packages/domain/src/research-policy.ts`、`packages/ai-runtime/src/router/index.ts` | `architecture/ai/classifier-router-tier.md`、`requirements/use-cases/rag-funnel-intent-routing.md`。 |
