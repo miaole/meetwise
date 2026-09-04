@@ -157,7 +157,7 @@ related:
 
 QBank 密封清单不拥有 generic corpus 函数（那些归 `rag_runtime_definer`）。`0124_rag_retrieval_acl_fail_closed.sql` 只替换已有 `rag_bind_query` / `rag_resolve_query_binding` / `rag_search_bound` / `rag_evidence_bound` 的函数体：空或空白 `app.principal_user` 抛 `rag_acl_principal_missing`（`insufficient_privilege`），不得无范围检索。跨租户 binding 仍是 `rag_binding_unavailable`；global 无批准 provenance 仍是 0 行。域合同在 `packages/domain/src/rag-retrieval-acl.ts`。
 
-编号（与并行未合入变更协调，不构成对方已合入的证据）：`main` 最新仍是 `0123_user_facing_context_snapshots.sql`，本切片占用 `0124`。并行隐私删除 sink（`memory_vector_chunk` 擦除）已改用 `0125_memory_vector_chunk_erasure.sql`，不得与本文件抢 `0124`，本文件也不得改号到 `0125`。`0124` 未进 `main`。该并行变更不在本树，不得把 `memory_vector_chunk` 写成已落地。
+编号（与并行未合入变更协调，不构成对方已合入的证据）：`main` 在合入 #65/#68/#69 后最新仍是 `0123_user_facing_context_snapshots.sql`（那三项无新迁移）。本切片占用 `0124`。并行隐私删除 sink（`memory_vector_chunk` 擦除）已改用 `0125_memory_vector_chunk_erasure.sql`，不得与本文件抢 `0124`，本文件也不得改号到 `0125`。`0124` 未进 `main`。该并行变更不在本树，不得把 `memory_vector_chunk` 写成已落地。#65 题目账本谓词、#68 公开预览写门禁、#69 公开 DELETE 503 / 无 `/answers` 均保持。
 
 ---
 
