@@ -167,7 +167,7 @@ stateDiagram-v2
 
 `user_ended | time_budget_exhausted | coverage_satisfied | insufficient_evidence | privacy_fenced | system_unavailable | cancelled`。
 
-**现行代码子集（不是本目标枚举）：** 经 `decideNext` 的 `safety_ceiling` / `coverage_met` / `all_resolved` / `early_weak` / `thrashing` / `budget_exhausted`（图 `concludeReason` 为 provenance hook，worker/SSE/report 不读）；另有 `evalAnswer` 的 `unscored` / identity-mismatch 直跳 conclude。详见 §6 与 [interview-control-signals.md](./interview-control-signals.md)。
+**现行代码子集（不是本目标枚举）：** 经 `decideNext` 的 `safety_ceiling` / `coverage_met` / `all_resolved` / `early_weak` / `thrashing`（`budget_exhausted` 仅枚举兼容，当前主路径不产出；图 `concludeReason` 为 provenance hook，worker/SSE/report 不读）；另有 `evalAnswer` 的 `unscored` / identity-mismatch 直跳 conclude。详见 §6 与 [interview-control-signals.md](./interview-control-signals.md)。
 
 例如，候选人一开始按 1–3 年经验进入 `intermediate hypothesis`，但在 Go 并发、数据库事务和分布式幂等三个 module 中连续给出可验证的高级 evidence，scheduler 必须加一组 promotion probes，而不是因初始年限停止。反过来，宣称高级但核心模块没有足够 evidence 时，结论只能是 `insufficient_evidence/review_required`。这要求大纲和 rubric 先冻结；否则“多问几题”只会把模型漂移和题目难度差异放大。
 
@@ -284,7 +284,7 @@ stateDiagram-v2
 
 ## 6. UC-INT-LONG-INTERVIEW-01 · 冻结一到两小时专家面试蓝图并安全终止
 
-> **当前代码边界：** 终止仍是短流程：`safety_ceiling`（`turn>=absoluteMaxTurns`，杀开关先赢）/ 控制信号 `early_weak`·`thrashing`（同真时 weak 优先）/ 会话 abort 与覆盖政策（`coverage_met`/`all_resolved`）。软预算耗尽可上调，不单独收尾。另有 `evalAnswer` 的 `unscored` / identity-mismatch 不经 `decideNext`、不写 `concludeReason`。这不是 time+coverage+evidence 的 blueprint 终止策略，也不能把调大固定轮数当作本用例完成。信号合同见 [interview-control-signals.md](./interview-control-signals.md)。
+> **当前代码边界：** 终止仍是短流程：`safety_ceiling` → 轨迹 `early_weak`/`thrashing`（同真时 weak 优先）→ abort-count `early_weak` → consecutive-pivot `thrashing` → probe/pivot（软预算可 `raise_soft_budget`）→ `coverage_met`/`all_resolved`。另有 `evalAnswer` 的 `unscored` / identity-mismatch 不经 `decideNext`、不写 `concludeReason`。这不是 time+coverage+evidence 的 blueprint 终止策略，也不能把调大固定轮数当作本用例完成。信号合同见 [interview-control-signals.md](./interview-control-signals.md)。
 
 
 

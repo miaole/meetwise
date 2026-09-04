@@ -44,7 +44,7 @@ function thrashMind(): InterviewMind {
   A('正: 两能力持续弱且 turn≥4 → signal.weak',
     ws.kind === 'weak' && w.turn >= WEAK_MIN_TURNS && ws.probedCount >= WEAK_MIN_PROBED);
   A('正: decideNext 消费 weak → early_weak（第三门未探也停）',
-    wa.kind === 'conclude' && wa.reason === 'early_weak'
+    wa.kind === 'conclude' && wa.reason === 'early_weak' && wa.provenance.code === 'early_weak'
     && w.competencies.some((c) => c.name === '可靠性' && c.depthProbed === 0));
 
   const t = thrashMind();
@@ -55,7 +55,7 @@ function thrashMind(): InterviewMind {
     && t.recentScores?.length === THRASH_MIN_SAMPLES
     && t.competencies.every((c) => c.confidence < SIGNAL_CONF_ENOUGH));
   A('正: decideNext 消费 thrashing → thrashing',
-    ta.kind === 'conclude' && ta.reason === 'thrashing');
+    ta.kind === 'conclude' && ta.reason === 'thrashing' && ta.provenance.code === 'thrashing');
 
   const dual = {
     ...t,
@@ -121,12 +121,14 @@ function thrashMind(): InterviewMind {
   const w = { ...weakAcross(['X', 'Y', 'Z'], 16), turn: 120, absoluteMaxTurns: 120 };
   A('逃: 构造后 turn 已达绝对杀开关且信号为 weak',
     w.turn >= w.absoluteMaxTurns && observeInterviewSignals(w).kind === 'weak');
+  const wStop = decideNext(w);
   A('逃: turn>=absoluteMaxTurns 覆盖 weak → 仍 safety_ceiling（杀开关先赢）',
-    decideNext(w).kind === 'conclude' && decideNext(w).reason === 'safety_ceiling');
+    wStop.kind === 'conclude' && wStop.reason === 'safety_ceiling' && wStop.provenance.code === 'safety_ceiling');
   const t = { ...thrashMind(), turn: 120, absoluteMaxTurns: 120 };
+  const tStop = decideNext(t);
   A('逃: turn>=absoluteMaxTurns 覆盖 thrashing → 仍 safety_ceiling',
     observeInterviewSignals(t).kind === 'thrashing'
-    && decideNext(t).kind === 'conclude' && decideNext(t).reason === 'safety_ceiling');
+    && tStop.kind === 'conclude' && tStop.reason === 'safety_ceiling' && tStop.provenance.code === 'safety_ceiling');
   A('逃: 缺 competencies 的残缺 mind → none（fail-closed 不抛）',
     observeInterviewSignals({ turn: 4 } as never).kind === 'none');
 }
