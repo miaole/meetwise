@@ -13,6 +13,12 @@ const LEASE_SECONDS = 120;
 export const INTERVIEW_RESUME_REFERENCE_VERSION = 64;
 /** claim 续领上限 = reaper 终结边界（单一真相,claim 与 sweep 共用,杜绝 off-by-one 死循环/早夭）。 */
 export const MAX_INTERVIEW_JOB_ATTEMPTS = 5;
+/** Default per-owner unexpired running cap. Production dispatch always passes this explicitly. */
+export const DEFAULT_INTERVIEW_PER_OWNER_INFLIGHT = 1;
+
+export type InterviewClaimBudget = {
+  perOwnerInflight: number;
+};
 
 /** 入队 job（api 用）。answer 用 seq 保证按答题顺序消费。**幂等**:同面试同题(owner+interview+kind+seq)重复提交 → 不新建,返已存在 job(防双提交错位)。 */
 export async function enqueueInterviewJob(
@@ -105,7 +111,14 @@ export type ClaimedInterviewJob = {
  */
 export async function claimNextInterviewJob(
   c: Client, owner: string, leaseOwner: string, maxAttempts = MAX_INTERVIEW_JOB_ATTEMPTS,
+  budget: InterviewClaimBudget = { perOwnerInflight: DEFAULT_INTERVIEW_PER_OWNER_INFLIGHT },
 ): Promise<ClaimedInterviewJob | null> {
+  if (!Number.isInteger(budget.perOwnerInflight) || budget.perOwnerInflight < 1) {
+    throw Object.assign(new Error('interview_claim_budget_invalid'), { code: 'interview_claim_budget_invalid' });
+  }
+  // Serialize same-owner claims in this transaction so the running-count
+  // predicate cannot race two replicas past the per-owner cap.
+  await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [`meetwise.interview_dispatch.owner:${owner}`]);
   const r = await c.query(
     `UPDATE interview_job SET status='running', lease_owner=$2, lease_expires_at=now()+($3||' seconds')::interval, attempts=attempts+1, version=version+1
        WHERE id = (
@@ -117,8 +130,18 @@ export async function claimNextInterviewJob(
             -- 僵尸兄弟守卫(专家审计 F3):同面试任一 job 已终态 failed → 面试已死(已发 interview_unavailable+退款),
             -- 绝不再领其后续 seq job(否则对已宣告不可用/已退款的面试乱序跑答题 → 重复假终态 + churn)。
             AND NOT EXISTS (SELECT 1 FROM interview_job f WHERE f.interview_id=j.interview_id AND f.status='failed')
+            -- Cap counts unexpired running only. Expired running is reclaimable:
+            -- the same tick reaps first, then this predicate must still admit a
+            -- replacement claim. Counting expired rows would pin an owner at cap
+            -- until sweep succeeded on every replica.
+            AND (
+              SELECT count(*)::int FROM interview_job live
+               WHERE live.owner_user_id=$1
+                 AND live.status='running'
+                 AND live.lease_expires_at >= now()
+            ) < $5
           ORDER BY j.seq ASC, j.created_at ASC FOR UPDATE SKIP LOCKED LIMIT 1)
-     RETURNING id, interview_id, kind, seq, resume_id, resume_privacy_epoch, reference_schema_version, attempts`, [owner, leaseOwner, String(LEASE_SECONDS), maxAttempts]);
+     RETURNING id, interview_id, kind, seq, resume_id, resume_privacy_epoch, reference_schema_version, attempts`, [owner, leaseOwner, String(LEASE_SECONDS), maxAttempts, budget.perOwnerInflight]);
   if (r.rowCount === 0) return null;
   const x = r.rows[0];
   return {

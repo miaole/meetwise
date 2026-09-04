@@ -94,8 +94,9 @@ export { WORKER_JOB_WAKEUP_CHANNEL, WORKER_JOB_WAKEUP_PAYLOAD } from './worker-j
 export {
   enqueueInterviewJob, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, enumerateOwnersWithJobs,
   renewInterviewJobLease, sweepStuckInterviewJobs, requeueInterviewJob, MAX_INTERVIEW_JOB_ATTEMPTS, INTERVIEW_RESUME_REFERENCE_VERSION,
+  DEFAULT_INTERVIEW_PER_OWNER_INFLIGHT,
 } from './interview-jobs.ts';
-export type { JobKind, ClaimedInterviewJob, ClaimedInterviewJobRequestId, ClaimedInterviewAnswerPayload } from './interview-jobs.ts';
+export type { JobKind, ClaimedInterviewJob, ClaimedInterviewJobRequestId, ClaimedInterviewAnswerPayload, InterviewClaimBudget } from './interview-jobs.ts';
 
 // 答题正文双写互斥（0126 / INT-P0-RAW-QUEUE 围栏，不是 INT-TRANSCRIPT-01）
 export {

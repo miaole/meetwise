@@ -250,6 +250,14 @@ const isolatedReceiptSources = {
     'packages/db/src/interview-jobs.ts', 'packages/db/src/resume.ts',
     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
   ],
+  'interview-dispatch:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/interview-dispatch-fairness-pg.proof.ts',
+    'apps/worker/src/interview-dispatch-fairness.ts',
+    'apps/worker/src/interview-consumer.ts',
+    'packages/db/src/interview-jobs.ts', 'packages/db/src/gateway-dispatch.ts',
+    'packages/db/migrations/0124_interview_dispatch_fairness.sql',
+  ],
   'stress:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/context-stress.proof.ts', 'apps/worker/src/interview-consumer.ts',
@@ -919,7 +927,7 @@ if (![
   'stress:prove:raw', 'adaptive-latency:prove', 'runtime:prove:raw', 'model-cost:prove:raw', 'adaptive-degrade:prove:raw', 'vectorstore:prove:raw',
   'qbank-source:prove:raw', 'memory:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'ocr:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'rag-generation:prove:raw', 'rag-corpus-version:prove:raw',
   'voice:prove', 'scoring-integrity:prove', 'scoring:eval:raw', 'qbank-pipeline:prove:raw', 'runtime-role:prove:raw', 'checkpoint-role:prove:raw', 'api-runtime-role:prove:raw',
-  'qbank:prove:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure:pause-upgrade:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw',
+  'qbank:prove:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure:pause-upgrade:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'interview-dispatch:prove:raw',
   'scor-00:http:prove:raw',
   'online-judge-control:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-integrity-upgrade:prove:raw', 'qbank-retrieval-eval:prove:raw',
   'rag-control-role:prove:raw', 'rag-control-upgrade:prove:raw', 'rag-control-dispatch:prove:raw', 'migrate-cli:prove:raw',
@@ -984,6 +992,8 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:reqid']]
   : target === 'interview:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:interview']]
+  : target === 'interview-dispatch:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:interview-dispatch-pg']]
   : target === 'stress:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:stress']]
   : target === 'memory:prove:raw'

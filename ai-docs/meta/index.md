@@ -56,7 +56,8 @@ tags:
 - `requirements/use-cases/model-invocation-reliability.md`：模型调用的准入、半开熔断、未知结果冻结与对账边界。
 - `requirements/use-cases/model-operation-routing.md`：按业务操作选择文本、视觉、语音、embedding、rerank 和记忆派生能力，并冻结预算、成本、备用与降级语义。
 - `requirements/use-cases/resume-ocr-binding.md`：MODEL-OP-01 窄切片 + 预览版图片 OCR 走通（双旗）；面试只消费密封 provenance；生产视觉仍关。
-- `requirements/use-cases/worker-event-driven-dispatch.md`：用户可见作业的提交后事件唤醒、低频恢复扫描、通知最小化与多副本领取边界。
+- `requirements/use-cases/worker-event-driven-dispatch.md`：用户可见作业的提交后事件唤醒、低频恢复扫描、通知最小化与多副本领取边界；`UC-WORKER-002` 为面试队列公平轮转与领取幂等围栏。
+- `architecture/backend/worker-dispatch-fairness.md`：面试公平调度的当前接线、进程内预算边界和未交付项。
 - `requirements/use-cases/rag-funnel-intent-routing.md`：题库 metadata、自动岗位意图路由、面试 route snapshot、QBank track 硬过滤、同桶无题 LLM fallback 与自由文本漏斗分类的业务用例和验收矩阵。
 - `architecture/ai/model-operation-routing.md`：模型节点矩阵、operation registry、总上下文预算、共享准入与“派发后不换模型”的目标架构及当前接线边界。
 - `architecture/ai/bailian-nonproduction-rollout.md`：百炼非生产工作空间、Key、模型能力 smoke 与 `MODEL-OP` 整改的逐项勾选清单；不含密钥，也不构成生产网关或发布证据。

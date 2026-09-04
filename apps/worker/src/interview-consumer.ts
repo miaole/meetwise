@@ -4,7 +4,7 @@
  * 三事务式:claim 提交 → 生命周期(模型在各自短事务,经 invoke) → markDone。同面试保序、租约崩溃可重领。
  */
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, type DbPool, type InterviewGraphFence } from '@meetwise/db';
+import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, type DbPool, type InterviewGraphFence } from '@meetwise/db';
 import { getMetrics, METRIC, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
 import type { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { admitInterviewResume, type ScoredRef, type SourceDoc } from '@meetwise/domain';
@@ -13,6 +13,10 @@ import { createInterviewResearchSkills } from './interview-research-skills.ts';
 import { runDrainLoop } from './drain-loop.ts';
 import { startHeartbeat } from './job-heartbeat.ts';
 import { withCheckpointAccess } from './checkpoint-principal.ts';
+import {
+  DEFAULT_INTERVIEW_DISPATCH_BUDGET, DEFAULT_INTERVIEW_OWNER_LAUNCH_CAP, fairDrainInterviewOwners,
+  type InterviewDispatchBudget,
+} from './interview-dispatch-fairness.ts';
 
 type Checkpointer = PostgresSaver;     // 直接取类型,不从 main 引(否则 main↔consumer 成环)
 
@@ -24,6 +28,8 @@ const requestIdStore: AsyncLocalStorage<string> =
   ((globalThis as unknown as Record<symbol, AsyncLocalStorage<string> | undefined>)[Symbol.for('meetwise.ai-runtime.requestIdContext')] ??= new AsyncLocalStorage<string>());
 export interface ConsumerDeps {
   pool: DbPool; cp: Checkpointer; model: ModelClient; fastModel?: ModelClient; leaseOwner: string;
+  /** Process-local interview fairness budget. Missing means the documented defaults. */
+  dispatchBudget?: InterviewDispatchBudget;
   /** 仅测试观测：start 不再解密原文。生产路径读画像授权门，不调用此 hook。 */
   decryptResume?: typeof decryptActiveResumeBlob;
   // 注入则消费者跑**自适应 agent 图**(生产注真 annSearch/web fetcher;测试注 fake);不注则跑旧固定题单流程。
@@ -44,7 +50,7 @@ export interface ConsumerDeps {
     onBeforeResumeProfileHydration?: () => void;
   };
 }
-export type DrainResult = 'start' | 'answer' | 'idle' | 'failed';
+export type DrainResult = 'start' | 'answer' | 'idle' | 'failed' | 'retry';
 
 /**
  * Convert a worker-fatal assessment into one transactionally paired terminal
@@ -154,7 +160,9 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
   // fallback: a misconfigured worker must fail at startup/dispatch instead of
   // silently weakening the privacy contract.
   if (!d.adaptive) throw new Error('legacy_interview_graph_disabled');
-  const job = await asPrincipal(d.pool, owner, (c) => claimNextInterviewJob(c, owner, d.leaseOwner));   // tx1 claim
+  const budget = d.dispatchBudget ?? DEFAULT_INTERVIEW_DISPATCH_BUDGET;
+  const job = await asPrincipal(d.pool, owner, (c) =>
+    claimNextInterviewJob(c, owner, d.leaseOwner, MAX_INTERVIEW_JOB_ATTEMPTS, { perOwnerInflight: budget.perOwnerInflight }));   // tx1 claim
   if (!job) return 'idle';
   try {
     // A claimed row can race with the deletion transaction after its metadata
@@ -164,7 +172,12 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
     // transition or event may be emitted here.
     await asPrincipal(d.pool, owner, (c) => assertInterviewPrivacyActive(c, job.interviewId));
   } catch (error: any) {
-    if (error?.message === 'interview_privacy_fenced') return 'idle';
+    if (error?.message === 'interview_privacy_fenced') {
+      // Do not leave a naked running row occupying the per-owner cap until
+      // lease expiry. Lease CAS=0 is ignored: we are no longer the holder.
+      await asPrincipal(d.pool, owner, (c) => requeueInterviewJob(c, owner, job.id, d.leaseOwner));
+      return 'retry';
+    }
     throw error;
   }
   // This must precede every graph-related side effect.  In particular, do not
@@ -181,12 +194,12 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
   // until the version/reference gate above has passed under the current lease.
   const requestContext = await asPrincipal(d.pool, owner, (c) =>
     loadClaimedInterviewJobRequestId(c, owner, job.id, d.leaseOwner));
-  if (!requestContext.stillClaimed) return 'idle';
+  if (!requestContext.stillClaimed) return 'retry';
   let answerPayload: unknown;
   if (job.kind === 'answer') {
     const answer = await asPrincipal(d.pool, owner, (c) =>
       loadClaimedInterviewAnswerPayload(c, owner, job.id, d.leaseOwner));
-    if (!answer.stillClaimed) return 'idle';
+    if (!answer.stillClaimed) return 'retry';
     answerPayload = answer.payload;
   }
   // **预留租约续约(C1;北极星:活会话不被对账误扫)**:本 worker 正推进此面试的 job → 证明 liveness,把预留租约(key=interviewId,与 begin 预留同键)往后推。
@@ -280,10 +293,11 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
         }));
         if (!fenced.acquired) {
           await asPrincipal(d.pool, owner, (c) => requeueInterviewJob(c, owner, job.id, d.leaseOwner));
-          return 'idle';
+          return 'retry';
         }
       }
-      await asPrincipal(d.pool, owner, (c) => markJobDone(c, owner, job.id, d.leaseOwner));
+      const done = await asPrincipal(d.pool, owner, (c) => markJobDone(c, owner, job.id, d.leaseOwner));
+      if (!done) return 'retry';
       return job.kind;
     });
   } catch (e: any) {
@@ -292,7 +306,7 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
     // 归还同一 job，下一持有者会从 checkpoint 识别 alreadyApplied 并只补投影。
     if (e?.code === 'graph_fence_lost') {
       const requeued = await asPrincipal(d.pool, owner, (c) => requeueInterviewJob(c, owner, job.id, d.leaseOwner));
-      if (requeued) return 'idle';
+      if (requeued) return 'retry';
     }
     // **租约守卫**在共享 helper 内：若 job 已被重领/终态，CAS=0，绝不发假
     // unavailable 或释放现持有者的预留额度。
@@ -303,9 +317,12 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
   }
 }
 
+/** Test/maintenance helper: drain one owner to idle. Production ticks must use fair rotation. */
 export async function drainOwnerJobs(d: ConsumerDeps, owner: string): Promise<void> {
-  let r: DrainResult = 'start';
-  while (r !== 'idle') r = await drainInterviewJobOnce(d, owner);
+  for (let i = 0; i < DEFAULT_INTERVIEW_OWNER_LAUNCH_CAP; i++) {
+    const r = await drainInterviewJobOnce(d, owner);
+    if (r === 'idle') return;
+  }
 }
 
 /** Reaper 一拍(北极星:无静默死胡同)：收割 owner 名下崩在 running 且租约过期的孤儿 job。
@@ -326,16 +343,29 @@ export async function reapStuckInterviewJobs(d: ConsumerDeps, owner: string): Pr
   });
 }
 
-/** 一拍调度:受限网关只枚举 owner id，随后每 owner 立即回到 RLS 事务处理。 */
-export async function interviewDispatchTick(d: ConsumerDeps): Promise<{ owners: number; requeued: number; failed: number }> {
+/** 一拍调度:受限网关只枚举 owner id，reap 后按 owner 量子轮转，不再把单个 owner 抽干。 */
+export async function interviewDispatchTick(d: ConsumerDeps): Promise<{ owners: number; requeued: number; failed: number; claimed: number }> {
   const owners = await gatewayDispatchOwners(d.pool, 'interview');
+  const drainable: string[] = [];
   let requeued = 0, failed = 0;
   for (const o of owners) {
-    const r = await reapStuckInterviewJobs(d, o);   // 先收割:超限终结+发终态事件+退款;未超限 requeue → 同拍被 drain 重领
-    requeued += r.requeued; failed += r.failed;
-    await drainOwnerJobs(d, o);
+    try {
+      const r = await reapStuckInterviewJobs(d, o);   // 先收割:超限终结+发终态事件+退款;未超限 requeue → 同拍被 drain 重领
+      requeued += r.requeued; failed += r.failed;
+      drainable.push(o);
+    } catch (error: any) {
+      // Isolate per-owner reap. Do not drain this owner in the same tick: cap
+      // ignores expired running, so a failed sweep plus claim could overlap a
+      // still-executing expired lease. Later owners still drain.
+      console.error('interview reap failed', error?.code ?? error?.message ?? 'err');
+    }
   }
-  return { owners: owners.length, requeued, failed };
+  const drained = await fairDrainInterviewOwners(
+    d, drainable, d.dispatchBudget ?? DEFAULT_INTERVIEW_DISPATCH_BUDGET, drainInterviewJobOnce,
+    (result) => result === 'idle',
+    (result) => result === 'retry',
+  );
+  return { owners: owners.length, requeued, failed, claimed: drained.claimed };
 }
 
 /** 常驻消费循环(可优雅排空:stop() 等当前 tick 跑完,滚动部署不丢在飞 job)。 */

@@ -152,8 +152,12 @@ AS $$
 BEGIN
   CASE p_work
     WHEN 'interview' THEN
-      RETURN QUERY SELECT DISTINCT j.owner_user_id::text FROM public.interview_job AS j
-        WHERE j.status='queued' OR (j.status='running' AND j.lease_expires_at < clock_timestamp());
+      RETURN QUERY
+        SELECT j.owner_user_id::text
+        FROM public.interview_job AS j
+        WHERE j.status='queued' OR (j.status='running' AND j.lease_expires_at < clock_timestamp())
+        GROUP BY j.owner_user_id
+        ORDER BY min(j.created_at) ASC, j.owner_user_id ASC;
     WHEN 'quiz' THEN
       RETURN QUERY SELECT DISTINCT j.owner_user_id::text FROM public.quiz_job AS j
         WHERE j.status='queued' OR (j.status='running' AND j.lease_expires_at < clock_timestamp());
