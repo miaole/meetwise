@@ -94,9 +94,9 @@ A('S1 软预算 999 只能涨到绝对杀开关,不能无界', boundedSoftBudget
   const done = conclude(decideNext(deep));
   A('M1 软预算 8 + 全程 hasHook → turn>8 且发生 raise_soft_budget',
     deep.turn > 8 && sawRaise && (deep.budgetRaises ?? 0) >= 1 && deep.maxTurns > 8 && guard < 40);
-  A('M1 深挖收尾不是 safety_ceiling,也不是被 16 砍断',
-    done !== null && done.reason !== 'safety_ceiling' && done.reason !== 'early_weak'
-    && deep.turn !== 16 && done.provenance.absoluteMaxTurns === 120);
+  A('M1 深挖收尾是覆盖政策(coverage_met/all_resolved),不是 safety_ceiling/early_weak',
+    done !== null && (done.reason === 'coverage_met' || done.reason === 'all_resolved')
+    && deep.turn > 8 && done.provenance.absoluteMaxTurns === 120);
 }
 
 /* ───── 逃 TC-INT-LENGTH-01-E5：16 不是墙；只有高位绝对杀开关是墙 ───── */

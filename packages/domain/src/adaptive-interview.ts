@@ -81,8 +81,10 @@ export type NextAction =
   | { kind: 'conclude'; reason: ConcludeReason; provenance: DecisionProvenance };
 
 /**
- * 平台 runaway/成本杀开关默认值:对齐 INT-LONG 120 分钟档的轮次上界,不是面试质量政策。
- * 允许配置 60/90/120 档;再高也夹到 PLATFORM_ABSOLUTE_CEILING,防 1e9 无界。
+ * 平台 runaway/成本杀开关默认值:长时面试**轮次**上界(120),不是面试质量政策,
+ * 也不是 INT-LONG 的 60/90/120 **分钟** blueprint(01 仍未接线)。
+ * 允许把绝对杀开关配成 60/90/120 档;再高也夹到 PLATFORM_ABSOLUTE_CEILING,防 1e9 无界。
+ * 生产 Worker 默认不传 → 120;档位选择尚未接 blueprint/env。
  */
 export const LONG_INTERVIEW_ABSOLUTE_BANDS = [60, 90, 120] as const;
 export const DEFAULT_ABSOLUTE_MAX_TURNS = 120;
@@ -90,6 +92,7 @@ export const PLATFORM_ABSOLUTE_CEILING_TURNS = 180;
 export const SOFT_BUDGET_RAISE_STEP = 4;
 /** @deprecated 旧名;现等于默认绝对杀开关,不是产品硬顶 16。 */
 export const SAFETY_CEILING_TURNS = DEFAULT_ABSOLUTE_MAX_TURNS;
+/** @deprecated 易被当成默认软预算;软预算由 derivedSoftBudget / 调用方给出。此值=绝对杀开关默认 120。 */
 export const DEFAULT_MAX_TURNS = DEFAULT_ABSOLUTE_MAX_TURNS;
 export const MIN_EARLY_TURNS = 2;
 export const EARLY_WEAK_ABORTS = 2;

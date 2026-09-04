@@ -169,7 +169,8 @@ async function main() {
       deepRes = await deepGraph.invoke(new Command({ resume: deepVault.issue('我在项目里这样做并权衡了取舍,还踩过坑复盘了,细节是分段缓存加限流') }), deepCfg);
     }
     A('深挖:软预算 8 + hasHook → turn>8 且软预算被上调', deepRes.concluded === true && askedDeep.length > 8 && deepRes.mind.turn > 8 && deepRes.mind.maxTurns > 8 && (deepRes.mind.budgetRaises ?? 0) >= 1);
-    A('深挖出处存在且不是 safety_ceiling/early_weak', typeof deepRes.concludeReason?.code === 'string' && deepRes.concludeReason.code !== 'early_weak' && deepRes.concludeReason.code !== 'safety_ceiling');
+    A('深挖收尾是覆盖政策,不是 safety_ceiling/early_weak/budget_exhausted',
+      deepRes.concludeReason?.code === 'coverage_met' || deepRes.concludeReason?.code === 'all_resolved');
     A('深挖收尾后 transcript 分数不被 conclude 改写', deepRes.transcript.every((t: any) => t.score === 95 || t.score === 0));
   }
 
