@@ -19,6 +19,8 @@ related:
 
 这是 [变更后 SOP](./sop.md) 的第 1 步，也是 [fail-closed 门](./fail-closed-gate.md) 的审核半边。任一项为“未查”则不得声称审核通过，也**不得声称完成**。勾完后进入 [选测试层](./layer-selection.md)，不要直接跑 `pnpm regression`。作者不得自签 `review: passed`；须非作者或对抗式第二镜头，见 fail-closed 门。
 
+**review/verify** gate: `pnpm regression` is automation; **automation does not trust AI outputs**. **multi-round allowed** — review can run again after verify fails or after a later change. Unchecked items cannot be claimed reviewed. No secrets in the checklist or logs.
+
 ## 0. 生成物默认不可信（P0，先于一切“已完成”）
 
 可以自动化重构、测试、UI 检查和回归；**默认不信任生成代码或模型输出**。`pnpm regression` 绿了只证明 always-on 子集，不是审核通过，更不是 READY。收束公式见 [fail-closed 门](./fail-closed-gate.md)。

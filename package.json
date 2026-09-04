@@ -12,6 +12,7 @@
     "regression": "node scripts/run-post-change-regression.mjs",
     "regression:core": "node scripts/run-post-change-regression.mjs --core",
     "regression:live": "node scripts/run-post-change-regression.mjs --live",
+    "regression:prove": "node scripts/run-post-change-regression.proof.mjs",
     "public-text-policy:prove": "node scripts/ai-docs/public-text-policy.proof.mjs",
     "quality:traceability:inventory": "node scripts/quality-traceability-check.mjs",
     "quality:traceability:prove": "node scripts/quality-traceability.proof.mjs",

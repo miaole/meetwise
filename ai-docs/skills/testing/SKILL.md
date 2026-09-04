@@ -36,13 +36,31 @@ related:
 - [诚实规则](./honesty-rules.md) + [fail-closed 门](./fail-closed-gate.md)（SOP 5 收束）
 - [E2E 平台 SOP](./e2e-platform/README.md)（draft / NOT_READY；`pnpm e2e-platform:prove` 可跑，不表示 live E2E READY）
 
-入口命令（与 [门禁目录](./run-gates.md) 同步；默认项**不是**触达面必须列）：
+总入口命令（**必跑顺序固定**，flag 可组合，省略的车道记 `not_run`，禁止 skip-as-pass）：
+
+1. **always-on**（默认）：无 Key、无 Docker 的文档 / helper / 回执 / 架构 / api smoke，以及 `package.json` 里已存在的静态守卫
+2. **`--core`**：行走骨架隔离门（需要 Docker / 临时 Postgres）
+3. **`--live`**：真供应商 HTTP E2E；缺或空白 `MODEL_API_KEY` 必须非零退出
 
 ```bash
-pnpm regression          # always-on：文档 + helper + 回执/运行器 + arch + api:smoke
-pnpm regression --core   # 再加行走骨架隔离门（需要 Docker / 临时 Postgres）；不是 interview/commerce 全集
-pnpm regression --live   # 仅真供应商 HTTP E2E；无 MODEL_API_KEY 不要跑（会非零）。浏览器层另见 SOP
+pnpm regression                 # 只跑 always-on
+pnpm regression --core          # always-on 之后再跑行走骨架
+pnpm regression --live          # always-on 之后再跑 HTTP E2E
+pnpm regression --core --live   # 仍按 always-on → core → live
+pnpm regression --dry-run       # 只打印计划，不执行
 ```
+
+浏览器层不在本入口内：需先 `pnpm -C apps/web build` 再 `pnpm e2e:ui:isolated`。
+
+## review/verify gate
+
+`pnpm regression` is automation. **automation does not trust AI outputs.** A green command is not “the model said it is fine.”
+
+- **review**: walk [post-change-review.md](./post-change-review.md). Unchecked items cannot be claimed reviewed.
+- **verify**: exit codes and receipts only (schema then business validators). Not AI self-report, not a chat summary.
+- **multi-round allowed**: review → verify → review again is allowed. A later failing gate reopens review; do not treat the first green as final.
+- **fail-closed**: missing review/verify language, missing Key on `--live`, or a failed step exits non-zero.
+- **no secrets**: do not print keys, résumés, answers, or prompts.
 
 ## 改本技能时
 
