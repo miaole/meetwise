@@ -14,13 +14,21 @@ description: 功能改动后必须走完的审核→测试→回归。选择 uni
 5. 若改动碰到模型/评分/题面/报告：[出处检查](./ai-provenance.md)
 6. 写结论前对照：[诚实规则](./honesty-rules.md)
 
-总入口命令：
+总入口命令（**必跑顺序固定**，flag 可组合，省略的车道记 `not_run`，禁止 skip-as-pass）：
+
+1. **always-on**（默认）：无 Key、无 Docker 的文档 / helper / 回执 / 架构 / api smoke，以及 `package.json` 里已存在的静态守卫
+2. **`--core`**：行走骨架隔离门（需要 Docker / 临时 Postgres）
+3. **`--live`**：真供应商 HTTP E2E；缺或空白 `MODEL_API_KEY` 必须非零退出
 
 ```bash
-pnpm regression          # 无 Key 也可跑的事后回归（文档 + helper + 回执/运行器证明）
-pnpm regression --core   # 再加行走骨架隔离门（需要 Docker / 临时 Postgres）
-pnpm regression --live   # 真供应商 HTTP E2E；缺 MODEL_API_KEY 必须非零退出。浏览器层需先 `pnpm -C apps/web build` 再 `pnpm e2e:ui:isolated`
+pnpm regression                 # 只跑 always-on
+pnpm regression --core          # always-on 之后再跑行走骨架
+pnpm regression --live          # always-on 之后再跑 HTTP E2E
+pnpm regression --core --live   # 仍按 always-on → core → live
+pnpm regression --dry-run       # 只打印计划，不执行
 ```
+
+浏览器层不在本入口内：需先 `pnpm -C apps/web build` 再 `pnpm e2e:ui:isolated`。
 
 ## 生成前门禁（本技能自身）
 
@@ -30,13 +38,13 @@ pnpm regression --live   # 真供应商 HTTP E2E；缺 MODEL_API_KEY 必须非�
 | --- | --- |
 | 范围 | 测试技能、HTTP E2E helpers、golden-task 登记、策略文档对齐、`pnpm regression` |
 | 来源 | `test-strategy.md`、`test-authoring.md`、`e2e/full.e2e.ts`、`scripts/run-e2e.mjs`、CI `verify` / `nightly` |
-| 明确不做 | 不在无 Key 的 CI 里假绿 live E2E；不把 Playwright 写成 HTTP 全链路的唯一实现；不把 planned golden-task 标成已通过 |
+| 明确不做 | 不在无 Key 的 CI 里假绿 live E2E；不把 always-on 绿写成 `--core` / `--live` 通过；不把 Playwright 写成 HTTP 全链路的唯一实现；不把 planned golden-task 标成已通过 |
 | 领域对象 | 无业务对象变更 |
 | 状态机 | 无 |
 | 契约 | 无 |
 | 数据库 | 无 schema 变更；隔离 E2E 仍走完整迁移 |
-| 测试计划 | `pnpm e2e-helpers:prove`、`pnpm e2e-receipt:prove`、`pnpm golden-tasks:check`、`pnpm docs:check`、`pnpm regression` |
-| 验证 | 上列命令；`pnpm e2e:isolated` 仅在有 `MODEL_API_KEY` 时 |
+| 测试计划 | `pnpm regression:prove`、`pnpm regression --dry-run`、`pnpm e2e-helpers:prove`、`pnpm e2e-receipt:prove`、`pnpm golden-tasks:check`、`pnpm docs:check` |
+| 验证 | `pnpm regression:prove`；always-on 用 `pnpm regression --dry-run` 或 `pnpm regression`。`pnpm regression --live` / `pnpm e2e:isolated` 仅在有 `MODEL_API_KEY` 时；缺 Key 必须非零退出 |
 
 ## 铁律（先读再跑）
 

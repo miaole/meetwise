@@ -11,7 +11,7 @@ description: 测试与文档的诚实边界：releaseEvidence、假服务、skip
 
 1. **把 `releaseEvidence=false` 写成发布、简历或横向对比证据。** 本地隔离回执没有 OIDC runner、不可变对象存储或独立验签。
 2. **在需要 live 供应商时打开假服务。** `VOICE_FAKE`、`OCR_FAKE`、`E2E_FAKE_MODEL` 必须使 runner 失败。不要删守卫来“先绿一下”。
-3. **缺 Key 却报告 live E2E 通过。** 正确写法是 `not_run:live_provider_key_missing`。CI 刻意不把 `e2e:isolated` 放进 per-push，就是为了避免 skip-as-pass。
+3. **缺 Key 却报告 live E2E 通过。** 正确写法是 `not_run:live_provider_key_missing`。`pnpm regression --live` 在缺或空白 `MODEL_API_KEY` 时必须非零退出。CI 刻意不把 `e2e:isolated` 放进 per-push，就是为了避免 skip-as-pass。未请求的 `--core` / `--live` 只能写 `not_requested`，不能写通过。
 4. **用过期回执。** 迁移清单数量或最新文件名与当前 `packages/db/migrations/` 不一致时，该 HTTP E2E 回执只是历史记录。
 5. **只断言 HTTP 200、只打开页面、只用 mock 证质量、AI 自评、只测 happy path。**
 6. **把 planned / unmapped golden-task 标成 passed。** 登记文件里的 `status` 枚举见 `ai-docs/testing/golden-tasks/README.md`。

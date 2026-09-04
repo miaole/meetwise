@@ -53,7 +53,7 @@ const requiredTerms = new Map([
   ["ai-docs/architecture/ai/langgraph-blueprint.md", ["checkpoint", "thread_id"]],
   ["ai-docs/architecture/devops/local-demo-deployment.md", ["docker compose", "compose.demo.yml"]],
   ["ai-docs/testing/strategy/test-strategy.md", ["contract", "E2E", "golden", "e2e:isolated", "Playwright"]],
-  ["ai-docs/skills/testing/SKILL.md", ["pnpm regression", "releaseEvidence", "出处"]],
+  ["ai-docs/skills/testing/SKILL.md", ["pnpm regression", "releaseEvidence", "出处", "--core", "--live", "always-on"]],
   ["ai-docs/testing/golden-tasks/README.md", ["GT-01", "planned", "mapped"]],
   ["ai-docs/observability/observability-strategy.md", ["SLO", "降级", "恢复", "脱敏", "threadId"]],
   ["ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md", ["qbank_control_definer", "FORCE RLS", "fail-closed", "SECURITY DEFINER", "lane(b)", "撤销", "复活"]],

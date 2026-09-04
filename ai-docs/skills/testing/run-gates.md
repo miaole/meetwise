@@ -7,27 +7,46 @@ description: 隔离 prove、HTTP E2E、浏览器 E2E、性能门的真实命令�
 
 所有会重建 schema 的命令必须走 `scripts/run-e2e-isolated.mjs`（临时 `meetwise-e2e-*` 容器）。不要对开发库跑这些目标。
 
-## 1. 无供应商 Key 的总是门
+## 0. 三车道与必跑顺序
+
+`pnpm regression` 只有三条车道，**顺序固定**：
+
+1. **always-on**（默认，无 Key、无 Docker）
+2. **`--core`**（行走骨架；需要 Docker / 临时 Postgres）
+3. **`--live`**（真供应商 HTTP E2E）
+
+flag 可组合：`pnpm regression --core --live` 仍按 always-on → core → live。省略某车道只表示没跑（`not_run`），不能写成该车道通过。
+
+`--core` 不是另一套入口：它**先跑完 always-on**，再跑行走骨架 prove。  
+`--live` 同样先跑完 always-on（若带了 `--core` 则先跑 core），再跑 `e2e:isolated`。  
+缺或空白 `MODEL_API_KEY` 时 `--live` 立即非零退出（`live_provider_key_missing`），禁止 skip-as-pass。未知 flag 退出码 2。`pnpm regression --dry-run` 只打印计划。
+
+浏览器 UI 从不进本入口。
+
+## 1. 无供应商 Key 的 always-on
 
 ```bash
 pnpm regression
+# 查看将跑哪些步：
+pnpm regression --dry-run
 ```
 
-默认包含：`docs:check`、`golden-tasks:check`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`arch`、`api:smoke`。缺 Docker 不能假装隔离 prove 已跑。
+必跑：`docs:check`、`golden-tasks:check`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`arch`、`api:smoke`。其中任一条在 `package.json` 缺失 → 非零退出（fail-closed）。
 
-行走骨架（本地有 Docker 时）：
+若 `package.json` 里还有这些脚本，会自动接上（没有则跳过，不记通过）：`public-text-policy:prove`、`quality:traceability:prove`、`provider-egress:prove`。`quality:governance:check` 仍是 EXEC-00 静态治理门，不挂进 always-on：历史记录引用已删除路径时它会红，不能当成变更后烟雾。入口自身的契约用 `pnpm regression:prove` 验证，不挂进 always-on，避免自举循环。
+
+缺 Docker 不能假装隔离 prove 已跑。
+
+行走骨架（本地有 Docker 时；**先跑完 always-on**）：
 
 ```bash
 pnpm regression --core
-# 等价于依次：
-pnpm docs:check
-pnpm arch
+# always-on 之后追加：
 pnpm db:prove
 pnpm runtime:prove
 pnpm graph:prove
 pnpm pipeline:prove
 pnpm api:validate
-pnpm api:smoke
 ```
 
 CI `verify` 比这更长，见 `.github/workflows/ci.yml`。合并阻断以 CI 列表为准，不要用本文件的短列表替代。
@@ -50,14 +69,14 @@ CI `verify` 比这更长，见 `.github/workflows/ci.yml`。合并阻断以 CI �
 
 ```bash
 pnpm e2e:isolated
-# 或
+# 或（先 always-on，再 HTTP E2E）
 pnpm regression --live
 ```
 
 硬条件（`scripts/run-e2e.mjs`）：
 
 - `E2E_ISOLATED=1`（由 isolated 包装器注入）
-- `MODEL_API_KEY` 存在
+- `MODEL_API_KEY` 存在且非空白
 - `VOICE_FAKE` / `OCR_FAKE` / `E2E_FAKE_MODEL` 未开启
 
 客户端是 `e2e/full.e2e.ts`（helpers 在 `e2e/helpers/`），用 fetch + SSE，不是 Playwright。完整面试存活预算 **420 秒**，只证明链路能到终态，不是接口 P95。
@@ -86,7 +105,9 @@ pnpm verify:e2e-performance     # 本地全量子集；含 live HTTP/UI，需要
 
 ## 6. 失败怎么读
 
-- `live_provider_key_missing`：没有 Key。记 `not_run`，不要改 runner 去 skip-as-pass。
+- `live_provider_key_missing`：没有 Key。记 `not_run`，不要改 runner 去 skip-as-pass。`pnpm regression --live` 在此码上非零退出。
+- `regression_unknown_flag`：未知 flag，退出码 2。
+- `regression_required_script_missing`：必跑脚本不在 `package.json`。
 - `fake_service_mode_forbidden`：有人打开了假服务开关。关掉再跑，不要删这条守卫。
 - `e2e_isolation_required`：直接跑了 `pnpm e2e:prove`。必须用 `e2e:isolated`。
 - 子进程 stdout/stderr 默认不进回执。失败时只看退出码、断言行和 `E2E_PROCESS_OUTPUT_WITHHELD` 字节计数。

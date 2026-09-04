@@ -5,7 +5,7 @@ description: 按触达面选择必须重跑的隔离 prove 与 E2E，避免只�
 
 # 回归选择矩阵
 
-先跑 `pnpm regression`。再按 **实际 diff 触达的目录** 加跑，不要凭感觉跳过面试/支付。
+先跑 `pnpm regression`（always-on）。需要行走骨架时再加 `--core`，有 Key 且触达面试/API/web/db 时再加 `--live`。顺序固定为 always-on → core → live。再按 **实际 diff 触达的目录** 加跑，不要凭感觉跳过面试/支付。
 
 `必须` = 该面改动后没有回执不得合并到自己的完成声明。`建议` = 强相关但可用更小 prove 代替 live。`有 Key` = 本地/nightly，CI per-push 不跑。
 
@@ -27,11 +27,14 @@ description: 按触达面选择必须重跑的隔离 prove 与 E2E，避免只�
 
 ```text
 1. 审核清单（post-change-review.md）全部勾完或记录缺口
-2. pnpm regression
+2. pnpm regression                    # always-on；可用 --dry-run 先看计划
 3. 上表中“必须”列
-4. 若有 MODEL_API_KEY 且触达面试/API/web/db：pnpm regression --live
-5. 若无 Key：在说明里写 not_run:live_e2e，不要写“E2E 通过”
+4. 若 Docker/Postgres 行走骨架在范围内：pnpm regression --core（仍先跑 always-on）
+5. 若有 MODEL_API_KEY 且触达面试/API/web/db：pnpm regression --live
+6. 若无 Key：在说明里写 not_run:live_e2e，不要写“E2E 通过”。`--live` 缺 Key 必须非零退出
 ```
+
+`pnpm regression --core --live` 与分两次跑等价，仍按 always-on → core → live。缺 Key 时不要带 `--live` 来“看绿”。
 
 ## 与 `verify:e2e-performance` 的区别
 

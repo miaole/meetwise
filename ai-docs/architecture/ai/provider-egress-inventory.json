@@ -926,6 +926,16 @@
     },
     {
       "name": "MODEL_API_KEY",
+      "source": "scripts/run-post-change-regression.mjs",
+      "class": "live-test-launcher"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/run-post-change-regression.proof.mjs",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
       "source": "packages/ai-runtime/test/model-client-dispatch.proof.ts",
       "class": "test-fixture"
     },

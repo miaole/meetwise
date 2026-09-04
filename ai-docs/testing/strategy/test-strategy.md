@@ -47,10 +47,13 @@ tags:
 功能改动后的审核 → 选层 → 跑门配方见 [`ai-docs/skills/testing/SKILL.md`](../../skills/testing/SKILL.md)。
 
 ```bash
-pnpm regression            # 无 Key 的总是门（文档 / helpers / 回执 / 架构 / api smoke）
-pnpm regression --core     # 行走骨架隔离 prove（需 Docker）
-pnpm regression --live     # 真供应商 HTTP E2E；缺 MODEL_API_KEY 非零退出。浏览器层另跑 e2e:ui:isolated（需先构建 web）
+pnpm regression                 # always-on：无 Key 的文档 / helpers / 回执 / 架构 / api smoke（及已存在的静态守卫）
+pnpm regression --core          # 先 always-on，再行走骨架隔离 prove（需 Docker）
+pnpm regression --live          # 先 always-on，再真供应商 HTTP E2E；缺 MODEL_API_KEY 非零退出
+pnpm regression --core --live   # 固定顺序 always-on → core → live
 ```
+
+浏览器层另跑 `e2e:ui:isolated`（需先构建 web），不在 `pnpm regression` 内。
 
 per-push CI 跑隔离 prove，**不**跑 `e2e:isolated`。缺 Key 时记录 `not_run`，禁止 skip-as-pass。
 
