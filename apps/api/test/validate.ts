@@ -110,18 +110,35 @@ async function validate() {
   await db.pool.query("INSERT INTO job_application(id,job_id,recruiter_user_id,candidate_user_id,status,job_title_snapshot) VALUES ('APP-CLOSED-CN','JOB-CLOSED-CN','recruiter-context','userA','invited','高级后端研发工程师')");
   await db.pool.query("UPDATE job_posting SET status='closed' WHERE id='JOB-CLOSED-CN'");
   await db.pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('R9','userB','active'),('RACE','userA','created'),('BEG1','userA','created'),('LEDG','ledgerUser','active'),('LEDGQ','ledgerUser','active')");
-  // userB / ledgerUser 只种题目账本、不种 ScoreCard：证明总览已答题数跟账本走，不被卡表空集写成 0，且不串主体。
-  // open 题唯一索引限制同场至多一条 issued/queued，故 queued 单独放 LEDGQ。
-  await db.pool.query(`INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question,status)
+  // 题目账本写守卫要求 session principal = interview owner。隔离池默认绑 userA，
+  // 故跨主体种子必须在同一连接上改 GUC 后再 INSERT。
+  const seedQuestions = async (principal: string, sql: string) => {
+    const client = await db.pool.connect();
+    try {
+      await new Promise((resolve) => setImmediate(resolve));
+      await client.query('BEGIN');
+      await client.query("SELECT set_config('app.principal_user', $1, true)", [principal]);
+      await client.query(sql);
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK').catch(() => {});
+      throw err;
+    } finally {
+      client.release();
+    }
+  };
+  await seedQuestions('userB', `INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question,status)
     VALUES ('userB','R9','q-v1-t0-c0',1,0,'userB answered 1','answered'),
-           ('userB','R9','q-v2-t1-c0',2,1,'userB answered 2','answered'),
-           ('ledgerUser','LEDG','q-v1-t0-c0',1,0,'ledger answered 1','answered'),
+           ('userB','R9','q-v2-t1-c0',2,1,'userB answered 2','answered')`);
+  await seedQuestions('ledgerUser', `INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question,status)
+    VALUES ('ledgerUser','LEDG','q-v1-t0-c0',1,0,'ledger answered 1','answered'),
            ('ledgerUser','LEDG','q-v2-t1-c0',2,1,'ledger answered 2','answered'),
            ('ledgerUser','LEDG','q-v3-t2-c0',3,2,'ledger answered 3','answered'),
            ('ledgerUser','LEDG','q-v4-t3-c0',4,3,'ledger issued','issued'),
            ('ledgerUser','LEDG','q-v5-t5-c0',5,5,'ledger cancelled','cancelled'),
-           ('ledgerUser','LEDGQ','q-v1-t0-c0',1,0,'ledger queued','queued'),
-           ('userA','RACE','q-v1-t0-c0',1,0,'userA ledger-only answered','answered')`);
+           ('ledgerUser','LEDGQ','q-v1-t0-c0',1,0,'ledger queued','queued')`);
+  await seedQuestions('userA', `INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question,status)
+    VALUES ('userA','RACE','q-v1-t0-c0',1,0,'userA ledger-only answered','answered')`);
   // R1 是 active(已开面)。v64 契约要求 enqueueInterviewJob(answer) 读到 parent 的
   // (resume_id, resume_privacy_epoch) 与一条 matching v64 start job(0064 的 answer job 触发器
   // 也要求先存在 v64 start)。补全两者,使 /turn 入队 answer job 不再抛 interview_resume_reference_unavailable。
