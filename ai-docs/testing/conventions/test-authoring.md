@@ -10,6 +10,8 @@ owner: qa
 related:
   - ../strategy/test-strategy.md
   - ../../requirements/use-case-conventions.md
+  - ../../skills/testing/SKILL.md
+  - ../golden-tasks/README.md
 ---
 
 # 测试用例编写规范
@@ -31,8 +33,9 @@ related:
 | 对外 API 形状 | 契约 | zod4 schema-diff（contracts 包导出对比） |
 | 跨模块 + DB + RLS/CAS/幂等 | 集成 | Supertest + Testcontainers / 真 Postgres |
 | 图编排、interrupt/resume、节点决策 | graph | 确定性 fixture + **fake model** |
-| 端到端关键路径（简历→押题→面试→报告） | e2e | Playwright（demo 黄金路径） |
-| 模型质量/安全 | ai-eval | golden 任务，对**真实境内模型**跑 |
+| 端到端关键路径（鉴权→简历→交易→面试→报告→B 端） | e2e HTTP | `pnpm e2e:isolated`：`e2e/full.e2e.ts` fetch/SSE，真供应商，**不是** Playwright |
+| 浏览器 cookie / 页面流 | e2e UI | Playwright：`pnpm e2e:ui:isolated`（`apps/web/e2e-ui/`） |
+| 模型质量/安全 | ai-eval | golden 任务登记在 `testing/golden-tasks/`；对**真实境内模型**跑的条目不得用 fake 冒充 |
 
 ## 3. 命名与可追溯
 
@@ -47,7 +50,8 @@ related:
 
 ## 5. Gate 语义（接 CI）
 
-- 阻断合并的 TC：契约、单元、集成（含 RLS 越权=0/CAS 并发/幂等）、graph fixture、demo 黄金路径 e2e、对抗安全 golden。
+- 阻断合并的 TC：契约、单元、集成（含 RLS 越权=0/CAS 并发/幂等）、graph fixture、隔离 prove。HTTP/浏览器 live E2E **不是** per-push 阻断门（需 Key；见测试技能）。
+- 变更后命令：`pnpm regression`；触达面加跑见 `ai-docs/skills/testing/regression-selection.md`。
 - ai-eval 质量回归掉线 = 阻断发布（release-gate）。
 - CI 工作流见 `.github/workflows/ci.yml`；每新增 gate 必须挂在某条 UC 的 Acceptance 上。
 

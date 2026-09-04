@@ -1,7 +1,7 @@
 /**
  * E2E 自启动 runner(你要的"做完自己跑 E2E"):起真栈(api + worker,DB 需已 up)→ 等就绪 → 跑 e2e/full.e2e.ts → 拆栈。
  * 全栈真跑:真 Bearer 鉴权 + 真 commerce(下单+HMAC webhook)+ 真简历 + 真 worker 图执行 + 真报告。
- * 用法:pnpm e2e:prove(需 docker DB 在跑;无模型 key 也跑——优雅降级到 fallback 题 + report_unavailable,仍到终态)。
+ * 用法:pnpm e2e:isolated（包装器注入 E2E_ISOLATED=1）。缺 MODEL_API_KEY 或打开 VOICE_FAKE/OCR_FAKE/E2E_FAKE_MODEL 会立即失败，不会降级成假绿。
  */
 import { spawn } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';

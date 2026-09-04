@@ -38,7 +38,9 @@ tags:
 - `architecture/ai/research-capability-gate.md`：面试 Agent 的 RAG、受限 Web/deep research 与内部 skills 实际能力边界。
 - `architecture/ai/voice-capability-boundary.md`：人机双向语音的当前边界；批量 ASR/TTS 预览接线；流式 ASR / 服务端 turn-taking 生产/默认 fail-closed，预览须精确双旗且不得编造转写。
 - `architecture/devops/local-demo-deployment.md`：Docker Compose 本地演示和部署策略。
-- `testing/strategy/test-strategy.md`：测试策略。
+- `testing/strategy/test-strategy.md`：测试策略（HTTP E2E 与 Playwright 分层以本文和 runtime 事实为准）。
+- `skills/testing/SKILL.md`：变更后审核 → 选层 → 跑门 → 回归 → AI 出处。
+- `testing/golden-tasks/README.md`：第一批 golden tasks 登记（含 planned/unmapped，无假绿）。
 - `testing/e2e-performance-evidence.md`：全量隔离 E2E、本地性能预算与外部检索基准的实跑证据。
 - `testing/rag-retrieval-evaluation-baseline.md`：RAG 检索实跑基线、测试集局限和发布边界。
 - `testing/full-format-rag-evaluation.md`：全格式提取、切块、表格、citation 与检索的数据集、指标和发布协议。
@@ -89,6 +91,7 @@ tags:
 | 本地演示 | `architecture/devops/local-demo-deployment.md` | compose、seed、健康检查 |
 | 测试设计 | `testing/strategy/test-strategy.md` | 测试矩阵、golden tasks |
 | 隐私删除 sink 盘点 | `architecture/ai/privacy-deletion-sink-inventory.md` | `privacy_deletion_target.sink` 回执列、公开 503、未闭合缺口；用例在 `requirements/use-cases/privacy-deletion-sink-inventory.md` |
+| 变更后测试/回归 | `skills/testing/SKILL.md` | 审核清单、选层、`pnpm regression`、出处检查 |
 | 代码生成前确认 | `meta/task-sop.md` 的生成前门禁 | Task Harness |
 
 ## 新增文档规则
