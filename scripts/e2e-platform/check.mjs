@@ -7,6 +7,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkCoreBoundaries } from './core-boundaries.mjs';
 import { checkDirectoryContract } from './directory-contract.mjs';
+import { checkTrustGuard } from './trust-guard.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const args = new Set(process.argv.slice(2));
@@ -18,12 +19,14 @@ if (unknown.length) {
 }
 
 const directory = checkDirectoryContract(repoRoot);
+const trust = checkTrustGuard(repoRoot);
 const boundaries = skipCoreBoundaries
   ? { errors: [], skipped: true, releaseEvidence: false }
   : checkCoreBoundaries(repoRoot);
 
 const errors = [
   ...directory.errors.map((error) => `directory-contract:${error}`),
+  ...trust.errors.map((error) => `trust-guard:${error}`),
   ...boundaries.errors.map((error) => `core-boundaries:${error}`),
 ];
 
@@ -34,9 +37,12 @@ if (errors.length) {
 }
 
 console.log(JSON.stringify({
-  outcome: skipCoreBoundaries ? 'passed_directory_contract_only' : 'passed_directory_contract_and_core_boundaries',
+  outcome: skipCoreBoundaries ? 'passed_directory_contract_and_trust' : 'passed_directory_contract_core_boundaries_and_trust',
   releaseEvidence: false,
+  aiOutputTrusted: false,
   coreBoundaries: skipCoreBoundaries ? 'skipped' : 'ran',
+  trustGuard: 'ran',
   directoryErrors: directory.errors.length,
+  trustErrors: trust.errors.length,
   boundaryErrors: boundaries.errors.length,
 }));

@@ -18,6 +18,7 @@ description: 测试与文档的诚实边界：releaseEvidence、假服务、skip
 7. **把 Playwright 说成当前 HTTP 全链路实现。** 浏览器层才是 Playwright；HTTP 层是 fetch/SSE。
 8. **把本机性能数字说成线上 SLO。**
 9. **把一场场景的简历/答词写进 `e2e/helpers` 或 `scripts/run-e2e*`。** 共享 harness 只放可复用原语；一次性叙事留在 `e2e/*.e2e.ts`。目录契约见 `ai-docs/testing/conventions/e2e-directory-contract.md`。
+10. **默认信任 AI 代码或测试产出。** 自动化重构/测试/UI/回归之后：验证成功仍是 `pending_review` 且退出码 2；失败或 `--ui` 缺 Key 是 `rejected` 且退出码 1。`aiOutputTrusted` 必须为 false。把 exit 0 或 `verified` 当成审核完成 = 假验收。
 
 ## 允许
 

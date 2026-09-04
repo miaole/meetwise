@@ -35,8 +35,8 @@ pnpm regression --live   # 真供应商 HTTP E2E；缺 MODEL_API_KEY 必须非�
 | 状态机 | 无 |
 | 契约 | 无 API 变更；E2E 目录契约由 `pnpm e2e-platform:check` 静态执行 |
 | 数据库 | 无 schema 变更；隔离 E2E 仍走完整迁移 |
-| 测试计划 | `pnpm e2e-platform:check`、`pnpm e2e-platform:prove`、`pnpm e2e-helpers:prove`、`pnpm e2e-receipt:prove`、`pnpm golden-tasks:check`、`pnpm docs:check`、`pnpm regression` |
-| 验证 | 上列命令；`pnpm e2e:isolated` 仅在有 `MODEL_API_KEY` 时 |
+| 测试计划 | `pnpm e2e-platform:check`、`pnpm e2e-platform:prove`、`pnpm e2e-platform:loop`、`pnpm e2e-helpers:prove`、`pnpm e2e-receipt:prove`、`pnpm golden-tasks:check`、`pnpm docs:check`、`pnpm regression` |
+| 验证 | 上列命令；`pnpm e2e:isolated` 仅在有 `MODEL_API_KEY` 时。loop 成功验证仍是 `pending_review` + 退出码 2 + `aiOutputTrusted=false`；步失败或 `--ui` 缺 Key 为 `rejected` + 退出码 1 |
 
 ## 铁律（先读再跑）
 
@@ -45,3 +45,4 @@ pnpm regression --live   # 真供应商 HTTP E2E；缺 MODEL_API_KEY 必须非�
 - `run-e2e.mjs` 在 `E2E_ISOLATED=1` 且存在 `MODEL_API_KEY` 时才启动；`VOICE_FAKE` / `OCR_FAKE` / `E2E_FAKE_MODEL` 直接失败。
 - 回执恒为 `releaseEvidence=false`。没有受信 runner、不可变对象存储和独立验签，就不能写发布通过。
 - golden-tasks 第一批已建档；未映射到可跑门的条目状态必须是 `planned` 或 `unmapped`，禁止标 `passed`。
+- **AI 产出默认不可信。** 可以自动跑重构/测试/UI/回归，也可以多轮，但必须留下审核+验证回执；禁止把模型生成的代码或测试绿当成已接受。入口：`pnpm e2e-platform:loop`。

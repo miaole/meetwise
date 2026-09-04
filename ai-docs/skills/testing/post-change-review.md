@@ -41,3 +41,4 @@ description: 功能 diff 落地后、跑测试前的审核清单。对应 AGENTS
 
 - [ ] 准备写的验证记录区分：局部合同 / 隔离 prove / 真供应商 E2E / 发布证据。
 - [ ] 不会把 `releaseEvidence=false` 的回执抄进发布说明。
+- [ ] AI 写出的 diff 仍不可信：已跑 `pnpm e2e-platform:loop`（或等价验证），回执是 `pending_review`，没有把绿门写成已接受。

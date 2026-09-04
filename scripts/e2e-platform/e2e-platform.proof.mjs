@@ -16,12 +16,16 @@ import {
 } from './core-boundaries.mjs';
 import {
   REQUIRED_HELPERS,
+  REQUIRED_PLATFORM_FILES,
   REQUIRED_RUNNERS,
   REQUIRED_SCENARIOS,
   checkDirectoryContract,
   checkRequiredPaths,
   inspectE2eLayout,
 } from './directory-contract.mjs';
+import { loopExitCode, parseArgs, runReviewLoop } from './review-loop.mjs';
+import { writeReviewRecord } from './review-record.mjs';
+import { FORBIDDEN_TRUST_CLAIMS, checkTrustGuard, scanTrustSource } from './trust-guard.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const CHECK = join(ROOT, 'scripts/e2e-platform/check.mjs');
@@ -58,17 +62,21 @@ const writeTree = async (root, files) => {
   }
 };
 
-await test('正：当前仓库目录契约与核心边界均为空错误', async () => {
+await test('正：当前仓库目录契约、信任守卫与核心边界均为空错误', async () => {
   const directory = checkDirectoryContract(ROOT);
+  const trust = checkTrustGuard(ROOT);
   const boundaries = checkCoreBoundaries(ROOT);
   assert.deepEqual(directory.errors, []);
+  assert.deepEqual(trust.errors, []);
   assert.deepEqual(boundaries.errors, []);
   assert.equal(directory.releaseEvidence, false);
-  assert.equal(boundaries.releaseEvidence, false);
+  assert.equal(trust.releaseEvidence, false);
   const cli = await runCheck();
   assert.equal(cli.code, 0, cli.stderr);
-  assert.match(cli.stdout, /passed_directory_contract_and_core_boundaries/);
+  assert.match(cli.stdout, /passed_directory_contract_core_boundaries_and_trust/);
   assert.match(cli.stdout, /"releaseEvidence":false/);
+  assert.match(cli.stdout, /"aiOutputTrusted":false/);
+  assert.ok(REQUIRED_PLATFORM_FILES.length >= 7);
 });
 
 await test('异：缺失必列运行器不得当成通过', async () => {
@@ -102,7 +110,8 @@ await test('特：允许 README，拒绝 e2e 根下杂文件', async () => {
 await test('逃：--skip-core-boundaries 仍跑目录契约；未知旗标非零；不能跳过目录契约', async () => {
   const skipped = await runCheck(['--skip-core-boundaries']);
   assert.equal(skipped.code, 0, skipped.stderr);
-  assert.match(skipped.stdout, /passed_directory_contract_only/);
+  assert.match(skipped.stdout, /passed_directory_contract_and_trust/);
+  assert.match(skipped.stdout, /"trustGuard":"ran"/);
   const unknown = await runCheck(['--skip-directory-contract']);
   assert.equal(unknown.code, 2);
   assert.match(unknown.stderr, /e2e_platform_unknown_flag:--skip-directory-contract/);
@@ -161,6 +170,120 @@ await test('刁：一次性叙事、场景 main、反向 import 必须被核心�
   assert.deepEqual(scanHelperSource('e2e/helpers/e2e-helpers.proof.ts', `const token = '${token}';\n`), []);
   assert.ok(REQUIRED_HELPERS.length >= 8 && REQUIRED_SCENARIOS.length >= 2 && REQUIRED_RUNNERS.length >= 5);
   assert.ok(ONE_OFF_NARRATIVE_TOKENS.length >= 3);
+});
+
+const validSteps = () => ({
+  refactor: { command: 'pnpm e2e-platform:check', outcome: 'passed', exit: 0 },
+  test: { command: 'pnpm e2e-platform:prove', outcome: 'passed', exit: 0 },
+  ui: { command: 'pnpm e2e:ui:isolated', outcome: 'not_requested', exit: null },
+  regression: { command: 'pnpm regression', outcome: 'not_requested', exit: null },
+});
+
+await test('刁：AI 默认信任、密钥字段、覆盖旧回执、状态与步骤不一致一律失败', async () => {
+  await mkdir(join(ROOT, '.tmp'), { recursive: true });
+  const temporaryRoot = await mkdtemp(join(ROOT, '.tmp', 'e2e-platform-review-'));
+  const startedAt = new Date('2026-09-04T03:00:00.000Z');
+  const finishedAt = new Date('2026-09-04T03:00:01.000Z');
+  try {
+    await assert.rejects(
+      () => writeReviewRecord({
+        repoRoot: ROOT, receiptRoot: temporaryRoot, reviewStatus: 'pending_review',
+        runnerKind: 'injected_for_proof', aiOutputTrusted: true, steps: validSteps(), startedAt, finishedAt,
+      }),
+      /e2e_review_ai_output_trusted_forbidden/,
+    );
+    await assert.rejects(
+      () => writeReviewRecord({
+        repoRoot: ROOT, receiptRoot: temporaryRoot, reviewStatus: 'approved',
+        runnerKind: 'injected_for_proof', steps: validSteps(), startedAt, finishedAt,
+      }),
+      /e2e_review_status_invalid:approved/,
+    );
+    await assert.rejects(
+      () => writeReviewRecord({
+        repoRoot: ROOT, receiptRoot: temporaryRoot, reviewStatus: 'pending_review',
+        runnerKind: 'injected_for_proof', steps: validSteps(), startedAt, finishedAt, token: 'fixture-token',
+      }),
+      /e2e_review_forbidden_field:token/,
+    );
+    await assert.rejects(
+      () => writeReviewRecord({
+        repoRoot: ROOT, receiptRoot: '/tmp/meetwise-e2e-escape', reviewStatus: 'pending_review',
+        runnerKind: 'injected_for_proof', steps: validSteps(), startedAt, finishedAt,
+      }),
+      /e2e_review_receipt_root_outside_tmp/,
+    );
+    const failedSteps = {
+      ...validSteps(),
+      test: { command: 'pnpm e2e-platform:prove', outcome: 'failed', exit: 1 },
+    };
+    await assert.rejects(
+      () => writeReviewRecord({
+        repoRoot: ROOT, receiptRoot: temporaryRoot, reviewStatus: 'pending_review',
+        runnerKind: 'injected_for_proof', steps: failedSteps, startedAt, finishedAt,
+      }),
+      /e2e_review_status_step_mismatch:pending_review/,
+    );
+    const first = await writeReviewRecord({
+      repoRoot: ROOT, receiptRoot: temporaryRoot, reviewStatus: 'pending_review',
+      runnerKind: 'injected_for_proof', steps: validSteps(), startedAt, finishedAt, round: 1,
+    });
+    assert.equal(first.receipt.aiOutputTrusted, false);
+    assert.equal(first.receipt.releaseEvidence, false);
+    assert.equal(first.receipt.reviewStatus, 'pending_review');
+    assert.equal(first.receipt.liveE2E, 'not_requested');
+    assert.equal(first.receipt.runnerKind, 'injected_for_proof');
+    const second = await writeReviewRecord({
+      repoRoot: ROOT, receiptRoot: temporaryRoot, reviewStatus: 'pending_review',
+      runnerKind: 'injected_for_proof', steps: validSteps(), startedAt, finishedAt, round: 2,
+      predecessorReceiptId: first.receiptId,
+    });
+    assert.notEqual(second.finalPath, first.finalPath);
+    mustFail(scanTrustSource('scripts/e2e-platform/check.mjs', `const ok = { ${FORBIDDEN_TRUST_CLAIMS[0]} };\n`), 'e2e_trust_guard_forbidden_claim');
+    assert.deepEqual(scanTrustSource('scripts/e2e-platform/e2e-platform.proof.mjs', FORBIDDEN_TRUST_CLAIMS[0]), []);
+  } finally {
+    await rm(temporaryRoot, { recursive: true, force: true });
+  }
+});
+
+await test('逃：loop 禁止信任 AI / 跳过审核；--ui 缺 Key 记 not_run 且非零', async () => {
+  assert.throws(() => parseArgs(['--trust-ai']), /e2e_platform_ai_trust_or_skip_review_forbidden/);
+  assert.throws(() => parseArgs(['--skip-review']), /e2e_platform_ai_trust_or_skip_review_forbidden/);
+  assert.throws(() => parseArgs(['--auto-approve']), /e2e_platform_ai_trust_or_skip_review_forbidden/);
+  await mkdir(join(ROOT, '.tmp'), { recursive: true });
+  const temporaryRoot = await mkdtemp(join(ROOT, '.tmp', 'e2e-platform-loop-'));
+  try {
+    const fakeRun = async () => ({ exit: 0 });
+    const rejected = await runReviewLoop({
+      repoRoot: ROOT,
+      argv: ['--ui', '--receipt-root', temporaryRoot],
+      receiptRoot: temporaryRoot,
+      env: { PATH: process.env.PATH },
+      runStep: fakeRun,
+    });
+    assert.equal(rejected.requestedFailed, true);
+    assert.equal(rejected.reviewStatus, 'rejected');
+    assert.equal(rejected.steps.ui.outcome, 'not_run');
+    assert.equal(rejected.steps.ui.skipReason, 'live_provider_key_missing');
+    assert.equal(rejected.receipt.aiOutputTrusted, false);
+    assert.equal(rejected.runnerKind, 'injected_for_proof');
+    assert.equal(loopExitCode(rejected), 1);
+
+    const pending = await runReviewLoop({
+      repoRoot: ROOT,
+      argv: ['--receipt-root', temporaryRoot, '--round', '2'],
+      receiptRoot: temporaryRoot,
+      env: { PATH: process.env.PATH },
+      runStep: fakeRun,
+    });
+    assert.equal(pending.reviewStatus, 'pending_review');
+    assert.equal(pending.steps.ui.outcome, 'not_requested');
+    assert.equal(pending.receipt.liveE2E, 'not_requested');
+    assert.equal(loopExitCode(pending), 2);
+    assert.notEqual(loopExitCode({ requestedFailed: false, reviewStatus: 'pending_review' }), 0);
+  } finally {
+    await rm(temporaryRoot, { recursive: true, force: true });
+  }
 });
 
 console.log(`PASS e2e-platform proof: ${passed} scenarios; releaseEvidence=false`);

@@ -41,6 +41,16 @@ export const REQUIRED_RUNNERS = Object.freeze([
 
 export const REQUIRED_DOC = 'ai-docs/testing/conventions/e2e-directory-contract.md';
 
+export const REQUIRED_PLATFORM_FILES = Object.freeze([
+  'scripts/e2e-platform/check.mjs',
+  'scripts/e2e-platform/core-boundaries.mjs',
+  'scripts/e2e-platform/directory-contract.mjs',
+  'scripts/e2e-platform/e2e-platform.proof.mjs',
+  'scripts/e2e-platform/review-loop.mjs',
+  'scripts/e2e-platform/review-record.mjs',
+  'scripts/e2e-platform/trust-guard.mjs',
+]);
+
 export const REQUIRED_PACKAGE_SCRIPTS = Object.freeze({
   'e2e:prove': 'scripts/run-e2e.mjs',
   'e2e:isolated': 'scripts/run-e2e-isolated.mjs',
@@ -49,6 +59,7 @@ export const REQUIRED_PACKAGE_SCRIPTS = Object.freeze({
   'performance:e2e': 'scripts/run-performance-e2e.mjs',
   'e2e-platform:check': 'scripts/e2e-platform/check.mjs',
   'e2e-platform:prove': 'scripts/e2e-platform/e2e-platform.proof.mjs',
+  'e2e-platform:loop': 'scripts/e2e-platform/review-loop.mjs',
 });
 
 export const RUNNER_MUST_MENTION = Object.freeze({
@@ -86,6 +97,7 @@ export function checkRequiredPaths(repoRoot, paths = [
   ...REQUIRED_SCENARIOS,
   ...REQUIRED_FIXTURES,
   ...REQUIRED_RUNNERS,
+  ...REQUIRED_PLATFORM_FILES,
   REQUIRED_DOC,
 ]) {
   const root = assertRepoRoot(repoRoot);
@@ -225,8 +237,20 @@ export function checkDirectoryContract(repoRoot) {
     ...inspectE2eLayout(underRoot(root, 'e2e')),
     ...checkPackageScripts(root),
     ...checkRunnerMentions(root),
+    ...checkRegressionDoesNotNestLoop(root),
   ];
   return { errors, releaseEvidence: RELEASE_EVIDENCE };
+}
+
+export function checkRegressionDoesNotNestLoop(repoRoot) {
+  const root = assertRepoRoot(repoRoot);
+  const absolute = underRoot(root, 'scripts/run-post-change-regression.mjs');
+  if (!existsSync(absolute)) return ['e2e_directory_contract_missing:scripts/run-post-change-regression.mjs'];
+  const source = readFileSync(absolute, 'utf8');
+  if (source.includes('e2e-platform:loop')) {
+    return ['e2e_directory_contract_loop_nested_in_regression'];
+  }
+  return [];
 }
 
 function isCli(url) {

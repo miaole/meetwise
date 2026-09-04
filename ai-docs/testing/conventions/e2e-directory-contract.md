@@ -52,11 +52,29 @@ Meetwise 的 HTTP 端到端（E2E）客户端已经拆成 **helpers**、**场景
 ## 门禁（fail-closed）
 
 ```bash
-pnpm e2e-platform:check          # 目录契约 + 核心边界；缺文件或叙事泄漏 → 非零退出
+pnpm e2e-platform:check          # 目录契约 + 信任守卫 + 核心边界；缺文件或叙事泄漏 → 非零退出
 pnpm e2e-platform:prove          # 证明检查能失败：种植违规必须非零，禁止 skip-as-pass
-pnpm e2e-platform:check --skip-core-boundaries   # 只跑目录契约；不能跳过目录契约本身
+pnpm e2e-platform:loop           # 自动跑重构守卫 + 测试证明，写下 pending_review 回执；不默认信任 AI 产出
+pnpm e2e-platform:loop --ui      # 再跑浏览器层；缺 MODEL_API_KEY 记 not_run 且非零，禁止 skip-as-pass
+pnpm e2e-platform:loop --regression
+pnpm e2e-platform:check --skip-core-boundaries   # 仍跑目录契约与信任守卫；不能跳过目录契约或审核
 ```
 
 `scripts/e2e-platform/` 只服务 Meetwise 这棵树。它不引入其他产品的模块地图，也不替代 `pnpm e2e:isolated`。
 
-挂到无 Key 的事后回归：`pnpm regression` 的 always-on 列表。绿了只说明布局没漂，**不是** live E2E，更不是发布通过。
+挂到无 Key 的事后回归：`pnpm regression` 的 always-on 仍是 `e2e-platform:check` / `prove`。`loop` 是变更轮次入口，**不要**把它再塞进 always-on，以免 `prove` 递归。
+
+绿了只说明布局没漂、守卫能失败，**不是** live E2E，更不是发布通过。
+
+## P0：可自动化，但 AI 产出默认不可信
+
+可以自动跑 **重构守卫 / 测试 / UI / 回归**，也可以多轮。每一轮必须同时有：
+
+1. **验证**：真实命令与退出码（`refactor` = `e2e-platform:check`，`test` = `e2e-platform:prove`，`ui` = `e2e:ui:isolated`，`regression` = `pnpm regression` 的 always-on 子集，**不含** `--live` / `--core`）。
+2. **审核**：回执 `reviewStatus` 只能是 `pending_review`（请求步都跑完）或 `rejected`（有失败或 `--ui` 缺 Key）。命令绿了仍是 `pending_review`，CLI 退出码 **2**，`aiOutputTrusted` 必须为 `false`，`reviewComplete` 必须为 false。失败退出 1。
+
+禁止 `--trust-ai`、`--auto-approve`、跳过审核。没有「AI 已通过」状态。`liveE2E` 在本 loop 里恒为 `not_requested`。
+
+回执写在仓库 `.tmp/e2e-platform-reviews/`（gitignore，不提交；拒绝写到 `.tmp` 之外）。每轮新文件，禁止覆盖；可用 `--round` / `--predecessor` 串多轮。回执只留命令、退出码、`skipReason`（如 `live_provider_key_missing`）、平台脚本 SHA-256 摘要；不写 stdout、提示词、答案、令牌、`.env`。注入的假 runner 必须标 `runnerKind=injected_for_proof`。`releaseEvidence=false`。
+
+这不是 `quality:governance` 那套 L2+ 治理索引，也不证明审阅人身份或发布通过。它只让目录和守卫能被审计：哪一轮、哪步 `not_run`/`not_requested`、AI 产出是否仍未被默认信任。

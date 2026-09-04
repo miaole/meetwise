@@ -54,7 +54,7 @@ const requiredTerms = new Map([
   ["ai-docs/architecture/ai/langgraph-blueprint.md", ["checkpoint", "thread_id"]],
   ["ai-docs/architecture/devops/local-demo-deployment.md", ["docker compose", "compose.demo.yml"]],
   ["ai-docs/testing/strategy/test-strategy.md", ["contract", "E2E", "golden", "e2e:isolated", "Playwright", "e2e-platform"]],
-  ["ai-docs/testing/conventions/e2e-directory-contract.md", ["e2e/helpers", "run-e2e", "叙事", "fail-closed", "e2e-platform:check"]],
+  ["ai-docs/testing/conventions/e2e-directory-contract.md", ["e2e/helpers", "run-e2e", "叙事", "fail-closed", "e2e-platform:check", "pending_review", "不可信", "多轮"]],
   ["ai-docs/skills/testing/SKILL.md", ["pnpm regression", "releaseEvidence", "出处", "e2e-platform"]],
   ["ai-docs/testing/golden-tasks/README.md", ["GT-01", "planned", "mapped"]],
   ["ai-docs/observability/observability-strategy.md", ["SLO", "降级", "恢复", "脱敏", "threadId"]],
