@@ -18,6 +18,7 @@ import { resumeOptionLabel, resumeStatusLabel } from '../lib/resume/display.ts';
 import { isOcrPreviewEnabled, isOcrPreviewRequested, isProductionOcrLocked } from '../lib/ocr-preview.ts';
 import {
   RESUME_OCR_PREVIEW_TIMEOUT_MS,
+  isPreviewOcrImage,
   isResumeImageUpload,
   isUploadTimeoutError,
   mapResumeUploadAbort,
@@ -25,6 +26,7 @@ import {
   resumeFileAccept,
   resumeFileHelpText,
   resumeImageRefusedLocally,
+  resumePreviewFormatRefused,
   resumeOcrPreviewBanner,
   resumeUploadCardDescription,
 } from '../lib/resume/ocr-preview-ui.ts';
@@ -511,10 +513,26 @@ async function main() {
     && isResumeImageUpload('x', 'image/jpeg')
     && !isResumeImageUpload('cv.pdf', 'application/pdf')
     && !isResumeImageUpload('cv.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'));
+  A('TC-RES-081-special 预览 accept 与 POST allowlist 同为 png/jpeg/webp，gif/bmp 关闭态仍当图片拒绝',
+    !resumeFileAccept(true).includes('gif')
+    && !resumeFileAccept(true).includes('bmp')
+    && isPreviewOcrImage('scan.png', '')
+    && isPreviewOcrImage('x', 'image/jpeg')
+    && !isPreviewOcrImage('scan.gif', 'image/gif')
+    && !isPreviewOcrImage('scan.bmp', '')
+    && isResumeImageUpload('scan.gif', 'image/gif')
+    && isResumeImageUpload('scan.bmp', ''));
+  A('TC-RES-081-escape 扫描型 PDF 空文本不承诺未接线的逐页 OCR',
+    mapResumeUploadError(400, { error: 'extracted_too_short' }).message.includes('带文字层的 PDF')
+    && !mapResumeUploadError(400, { error: 'extracted_too_short' }).message.includes('仅预览环境'));
   A('TC-RES-081-escape 关闭态本地拒绝图片，不把本地拒绝写成成功',
     resumeImageRefusedLocally().ok === false
     && resumeImageRefusedLocally().error === 'image_ocr_unavailable'
     && !resumeImageRefusedLocally().message.includes('已识别'));
+  A('TC-RES-081-special 预览态非 png/jpeg/webp 本地拒格式，不编造转写',
+    resumePreviewFormatRefused().ok === false
+    && resumePreviewFormatRefused().error === 'ocr_preview_format'
+    && !resumePreviewFormatRefused().message.includes('已识别'));
   const invented = { error: 'ocr_failed', text: '伪造的北大博士经历', transcript: '完整转写', ocrText: '手机号13800138000' };
   const failed = mapResumeUploadError(422, invented);
   A('TC-RES-081-adversarial ocr_failed 带 text/transcript 也不当成功、不回显转写',

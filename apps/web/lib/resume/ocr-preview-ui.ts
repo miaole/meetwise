@@ -10,7 +10,9 @@ export const RESUME_MAX_BYTES = 8 * 1024 * 1024;
 
 export type ResumeUploadFailure = { ok: false; message: string; error: string };
 
-const IMAGE_NAME = /\.(png|jpe?g|webp|gif|bmp|tiff?)$/i;
+const ANY_IMAGE_NAME = /\.(png|jpe?g|webp|gif|bmp|tiff?)$/i;
+const PREVIEW_IMAGE_NAME = /\.(png|jpe?g|webp)$/i;
+const PREVIEW_IMAGE_MIME = new Set(['image/png', 'image/jpeg', 'image/webp']);
 
 const ERROR_MESSAGES: Record<string, string> = {
   image_ocr_unavailable: '图片简历识别未开放，请先传 PDF/Word 或粘贴文本。',
@@ -21,7 +23,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   ocr_binding_invalid: '图片简历绑定无法解析，已按失败处理并退还额度，请改传 PDF/Word 或粘贴文本。',
   consent_required: '请先同意隐私政策后再上传。',
   insufficient_entitlement: '额度不足，图片识别未执行。请改传 PDF/Word 或粘贴文本。',
-  extracted_too_short: '未从文件读到足够文字。扫描型 PDF 请改传清晰图片（仅预览环境）或粘贴文本。',
+  extracted_too_short: '未从文件读到足够文字。请粘贴文本或上传带文字层的 PDF。',
+  ocr_preview_format: '预览版仅支持 PNG / JPEG / WebP。请改传这些格式、PDF/Word 或粘贴文本。',
   extracted_too_long: '文件内容过长，请精简后重传或粘贴核心文本。',
   file_too_large: '文件超过 8MB 上限。',
   empty_file: '请选择要上传的文件。',
@@ -37,7 +40,15 @@ const ERROR_MESSAGES: Record<string, string> = {
 export function isResumeImageUpload(filename: string, mimeType: string): boolean {
   const mime = mimeType.trim().toLowerCase();
   if (mime.startsWith('image/')) return true;
-  return IMAGE_NAME.test(filename);
+  return ANY_IMAGE_NAME.test(filename);
+}
+
+/** Preview POST allowlist — must match `resumeFileAccept(true)`. */
+export function isPreviewOcrImage(filename: string, mimeType: string): boolean {
+  const mime = mimeType.trim().toLowerCase();
+  if (PREVIEW_IMAGE_MIME.has(mime)) return true;
+  if (mime.startsWith('image/')) return false;
+  return PREVIEW_IMAGE_NAME.test(filename);
 }
 
 export function resumeFileAccept(ocrPreview: boolean): string {
@@ -62,6 +73,10 @@ export function resumeOcrPreviewBanner(): string {
 
 export function resumeImageRefusedLocally(): ResumeUploadFailure {
   return { ok: false, error: 'image_ocr_unavailable', message: ERROR_MESSAGES.image_ocr_unavailable };
+}
+
+export function resumePreviewFormatRefused(): ResumeUploadFailure {
+  return { ok: false, error: 'ocr_preview_format', message: ERROR_MESSAGES.ocr_preview_format };
 }
 
 /** Extract only the machine error code. Ignore any transcript-shaped fields. */

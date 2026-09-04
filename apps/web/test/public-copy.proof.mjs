@@ -148,9 +148,13 @@ const checks = {
     requireText(resumeOcrUi, '图片识别未开放', 'resume OCR closed copy');
     requireText(resumeOcrPreview, "OCR_ENABLED === '1' && env.OCR_PREVIEW === '1'", 'resume OCR preview flags');
     requireText(resumeOcrPreview, "MEETWISE_PUBLIC_PREVIEW === '1'", 'resume OCR public-preview lock');
+    requireText(resume, 'isOcrPreviewEnabled', 'resume page wires the preview gate');
+    requireText(resume, 'ocrPreview={ocrPreview}', 'resume page passes the gate into the form');
     requireText(resumeActions, 'resumeImageRefusedLocally', 'resume file action local refuse');
+    requireText(resumeActions, 'isPreviewOcrImage', 'resume file action preview allowlist');
     requireText(resumeActions, 'mapResumeUploadError', 'resume file action error mapping');
     forbid(resumeActions, ['ocr.text', 'transcript'], 'resume file action must not invent transcripts');
+    forbid(resumeOcrUi, ['扫描型 PDF 请改传清晰图片', '仅预览环境'], 'no unwired scanned-PDF OCR promise');
   },
   'TC-PUBLIC-COPY-E10': () => {
     const retiredAssets = [

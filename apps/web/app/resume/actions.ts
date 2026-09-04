@@ -7,11 +7,13 @@ import {
   RESUME_MAX_BYTES,
   RESUME_OCR_PREVIEW_TIMEOUT_MS,
   RESUME_TEXT_UPLOAD_TIMEOUT_MS,
+  isPreviewOcrImage,
   isResumeImageUpload,
   isUploadTimeoutError,
   mapResumeUploadAbort,
   mapResumeUploadError,
   resumeImageRefusedLocally,
+  resumePreviewFormatRefused,
   type ResumeUploadFailure,
 } from '../../lib/resume/ocr-preview-ui';
 
@@ -75,6 +77,7 @@ export async function uploadResumeFileAction(formData: FormData): Promise<Resume
   if (file.size > RESUME_MAX_BYTES) return { ok: false, message: '文件超过 8MB 上限。' };
   const image = isResumeImageUpload(file.name, file.type);
   if (image && !isOcrPreviewEnabled()) return resumeImageRefusedLocally();
+  if (image && !isPreviewOcrImage(file.name, file.type)) return resumePreviewFormatRefused();
   const timeoutMs = image ? RESUME_OCR_PREVIEW_TIMEOUT_MS : RESUME_TEXT_UPLOAD_TIMEOUT_MS;
   try {
     const contentBase64 = Buffer.from(await file.arrayBuffer()).toString('base64');
