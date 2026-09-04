@@ -47,7 +47,7 @@ owner: architecture
 
 ## 当前实现边界
 
-- `TC-MODEL-001-E1/E6` 已由 `pnpm runtime:isolated:prove` 与 `pnpm model-cost:isolated:prove` 覆盖；它们不证明供应商已取消计费。`0128` 把同键 claim 创建串到短事务 advisory lock 上，无 invocation 行时只 `wait`（清孤儿 permit），不二次 execute。不改 `0126`（答题双写）或 `0127`（简历 OCR binding）。
+- `TC-MODEL-001-E1/E6` 已由 `pnpm runtime:isolated:prove` 与 `pnpm model-cost:isolated:prove` 覆盖；它们不证明供应商已取消计费。`0130` 把同键 claim 创建串到短事务 advisory lock 上，无 invocation 行时只 `wait`（清孤儿 permit），不二次 execute。不改 `0126`（答题双写）、`0127`（简历 OCR binding）、`0128`（派发公平）或 `0129`（隐私擦除）。
 - 熔断、并发和 RPM 目前均是进程内控制，尚非跨 API/Worker 副本的全局限流；云 Redis/Tair（内存键值服务）数据面验证完成前，不能把它表述为生产容量保证。
 - OCR（光学字符识别）仍有单独的 API 同步调用路径；其完整费用治理和跨副本保护必须单独通过本用例的验收，不得因文本模型通过而默认已通过。
 

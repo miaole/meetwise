@@ -34,7 +34,7 @@ async function main() {
     '0085_ai_model_logical_node_dispatch_slot.sql',
     '0088_ai_model_invocation_controlled_state_machine.sql',
     '0119_usage_reconciliation_wiring.sql',
-    '0128_model_invocation_same_key_claim_join.sql',
+    '0130_model_invocation_same_key_claim_join.sql',
   ]) {
     await pool.query(readFileSync(fileURLToPath(new URL(`../../db/migrations/${migration}`, import.meta.url)), 'utf8'));
   }

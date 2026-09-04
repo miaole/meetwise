@@ -41,7 +41,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0083_ai_text_cost_price_revision_binding.sql',
     'packages/db/migrations/0085_ai_model_logical_node_dispatch_slot.sql',
     'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
-    'packages/db/migrations/0128_model_invocation_same_key_claim_join.sql',
+    'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
   ],
   'model-invocation-reconcile:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -120,7 +120,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0085_ai_model_logical_node_dispatch_slot.sql',
     'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
     'packages/db/migrations/0119_usage_reconciliation_wiring.sql',
-    'packages/db/migrations/0128_model_invocation_same_key_claim_join.sql',
+    'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
   ],
   'model-op02:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -140,7 +140,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0085_ai_model_logical_node_dispatch_slot.sql',
     'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
     'packages/db/migrations/0119_usage_reconciliation_wiring.sql',
-    'packages/db/migrations/0128_model_invocation_same_key_claim_join.sql',
+    'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
     'packages/db/migrations/0120_model_op02_shared_provider_admission_ledger_breaker.sql',
   ],
   'privacy-erasure:prove:raw': [
