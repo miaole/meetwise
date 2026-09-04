@@ -29,7 +29,7 @@ tags:
 - `architecture/ai/tool-skill-memory-runtime-design.md`：Tools、Skills 与记忆运行时的当前能力边界、版本化工具平台和受控语义记忆设计。
 - `architecture/ai/provider-egress-inventory.md`：模型、嵌入、语音与签名下载的当前直连出站静态清单；明确不等价于网关隔离或发布证据。
 - `architecture/backend/public-preview-write-inventory.md`：公开预览下能写面试或评分状态的当前写面清单与失败关闭围栏；静态门，不是 ECS 或发布证据。
-- `architecture/ai/privacy-deletion-sink-inventory.md`：删除回执必须覆盖的 sink 盘点（含 `vector_chunk` / memory / transcript 相邻落点）；公开删除在清单未齐前保持 503。
+- `architecture/ai/privacy-deletion-sink-inventory.md`：删除回执必须覆盖的 sink 盘点（含 `vector_chunk` / memory / transcript 相邻落点）；生产 DELETE 在清单未齐前保持 503；预览版路径见 `requirements/use-cases/privacy-erasure-preview-path.md`。
 - `architecture/ai/rag-corpus-lifecycle.md`：RAG 语料/向量代际、更新删除、蓝绿迁移、影子评测与回滚的当前边界和目标方案。
 - `architecture/ai/rag-funnel-routing.md`：后端、前端、测试、AI 等岗位题域如何冻结到面试，并在题库、检索、缓存和证据读取中硬过滤；同桶确认无合格题时如何受控由 LLM 出题的目标架构。
 - `architecture/ai/rag-production-release-runbook.md`：RAG artifact 定义、量化发布门、稳定灰度、CAS 回滚、tombstone、缓存与灾备演练手册。

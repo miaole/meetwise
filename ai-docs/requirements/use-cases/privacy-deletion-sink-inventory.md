@@ -31,7 +31,7 @@ tags:
 | --- | --- |
 | 任务范围 | 在 ai-docs 固定删除 sink 盘点；为 `vector_chunk.kind='memory'` 补账户删除 target、写围栏与残留=0 回执。公开删除入口保持 503。 |
 | 来源证据 | `0096` 登记过 MEM-00 未覆盖 `vector_chunk`；`0093` `memory_begin_account_erasure` 只枚举 3 sink；`memory_embedding` 只删 `memory_index_generation`；0125 补 `memory_vector_chunk`；PRD-TEST-015 / 盘点仍开 `user_memory` 与 trace；公开入口 `PrivacyService` 503。 |
-| 明确不做 | 不重开公开删除；不改冻结 0093 三 sink 形状；不删 `kind='qbank'`；不宣称账户/备份/trace/`user_memory` 已完整删除；不接生产长期记忆写入。 |
+| 明确不做 | 不重开生产 DELETE；不改冻结 0093 三 sink 形状；不删 `kind='qbank'`；不宣称账户/备份/trace/`user_memory` 已完整删除；不接生产长期记忆写入。预览路径见 `privacy-erasure-preview-path.md`。 |
 | 领域对象 | `privacy_erasure_request`、`privacy_deletion_target`、`vector_chunk`、授权快照 jti。 |
 | 状态机影响 | 本 sweep：request `requested→fenced→purging→completed`；target `pending→leased→erased`。无行级 fenced 列。 |
 | 接口契约影响 | 无新公开 HTTP。域侧新增 `memory_vector_chunk` 进签发并集。 |

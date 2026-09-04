@@ -54,6 +54,7 @@
     "prove:ctx05-concurrency-recovery": "tsx test/ctx05-concurrency-recovery.proof.ts",
     "prove:ctx06-deletion-closure": "tsx test/ctx06-deletion-closure.proof.ts",
     "prove:memory-vector-chunk-erasure": "tsx test/memory-vector-chunk-erasure.proof.ts",
+    "prove:privacy-erasure-preview": "tsx test/privacy-erasure-preview.proof.ts",
     "migrate": "tsx src/migrate-cli.ts"
   },
   "dependencies": {

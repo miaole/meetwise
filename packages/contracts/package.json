@@ -10,7 +10,8 @@
   "scripts": {
     "prove:openapi": "tsx test/openapi.proof.ts",
     "prove:privacy-authorization": "tsx test/privacy-authorization.proof.ts",
-    "prove:interview-answer-submission": "tsx test/interview-answer-submission.proof.ts"
+    "prove:interview-answer-submission": "tsx test/interview-answer-submission.proof.ts",
+    "prove:privacy-erasure-preview": "tsx test/privacy-erasure-preview.proof.ts"
   },
   "dependencies": {
     "zod": "catalog:"

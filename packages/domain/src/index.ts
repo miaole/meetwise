@@ -399,6 +399,19 @@ export { COMPRESSION_DELETION_SINKS } from './ctx06-deletion-closure.ts';
 export type { CompressionDeletionSink } from './ctx06-deletion-closure.ts';
 export { MEMORY_VECTOR_CHUNK_DELETION_SINKS } from './memory-vector-chunk-deletion.ts';
 export type { MemoryVectorChunkDeletionSink } from './memory-vector-chunk-deletion.ts';
+export {
+  PRIVACY_PREVIEW_EDITION, PRIVACY_PREVIEW_EDITION_LABEL, PRIVACY_PREVIEW_SCOPES,
+  PRIVACY_PREVIEW_STATUSES, PRIVACY_PREVIEW_DISPOSITIONS, PRIVACY_PREVIEW_COMPLETENESS,
+  PRIVACY_DELETION_TARGET_CHECK_SINKS, PRIVACY_PREVIEW_ADJACENT_SINKS,
+  PRIVACY_PREVIEW_SINK_CATALOG, PRIVACY_PREVIEW_SINK_NAMES,
+  assertPrivacyPreviewScope, previewLocalBeginForScope, dispositionForPreviewSink,
+  statusForPreviewScope, composePrivacyPreviewReceipt, catalogSinksInDeletionTargetCheck,
+} from './privacy-erasure-preview.ts';
+export type {
+  PrivacyPreviewScope, PrivacyPreviewStatus, PrivacyPreviewDisposition,
+  PrivacyPreviewTrack, PrivacyPreviewLocalBegin, PrivacyPreviewSinkSpec,
+  PrivacyPreviewSinkLine, PrivacyPreviewReceiptView,
+} from './privacy-erasure-preview.ts';
 
 // MODEL-OP-01 窄切片：面试只消费密封 OCR provenance，禁止图内临时视觉/LLM 转写。
 export {

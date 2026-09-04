@@ -24,19 +24,20 @@ tags:
 
 # 隐私删除 sink 清单
 
-> 本文是删除回执的**盘点真相**。它枚举当前代码里的 `privacy_deletion_target.sink`（隐私删除目标落点）与相邻物理表，并写明每个落点有没有 resolver（解析器）、物理 purge（清除）和删后残留=0。它**不是**完整删除权、不是公开删除入口、也不是发布证据。公开 `DELETE /privacy/*` 在清单未齐前保持 HTTP 503 fail-closed（故障关闭）。
+> 本文是删除回执的**盘点真相**。它枚举当前代码里的 `privacy_deletion_target.sink`（隐私删除目标落点）与相邻物理表，并写明每个落点有没有 resolver（解析器）、物理 purge（清除）和删后残留=0。它**不是**完整删除权，也不是发布证据。公开生产 `DELETE /privacy/interview-data/:id` 与 `DELETE /privacy/resume-data` 保持 HTTP 503 fail-closed（故障关闭）。另有**预览版**路径 `POST/GET /privacy/erasure-preview`（0129）：受理请求 → 按本盘点枚举 sink → 返回诚实回执；不宣称跨存储生产删除 SLO。
 
 机器可读对照：
 
 - 域侧签发并集：`packages/domain/src/privacy-authorization.ts` 的 `ALL_PRIVACY_AUTHZ_SINK_KINDS`
-- SQL 侧枚举：最新迁移对 `privacy_deletion_target.sink` 的 CHECK（当前为 `0125_memory_vector_chunk_erasure.sql`）。`0124` 与 `0125` 已在 main。本围栏只新增 `0126`，不改 0124/0125。
-- 本迭代闭合：`memory_vector_chunk`（`vector_chunk.kind='memory'`）
+- SQL 侧枚举：`privacy_deletion_target.sink` CHECK 仍以 `0125_memory_vector_chunk_erasure.sql` 为最新扩展。`0124_rag_retrieval_acl_fail_closed.sql` 与 `0126_interview_answer_dual_write_fence.sql` 已在 main；`0126` 不改该 CHECK。`0129_privacy_erasure_preview_path.sql` 也不改该 CHECK。
+- 预览路径目录：`packages/domain/src/privacy-erasure-preview.ts` 的 `PRIVACY_PREVIEW_SINK_CATALOG`（0125 CHECK 全集 + `user_memory` / `ai_invocation_trace` / `backup_pitr`）
 
-验证（隔离 PostgreSQL 需要容器运行时；无容器时只跑域/静态 pin）：
+验证（隔离 PostgreSQL 需要容器运行时；无容器时只跑域/契约/静态 pin）：
 
 ```bash
-pnpm -C packages/domain prove:memory-vector-chunk-deletion
-pnpm memory-vector-chunk-erasure:prove
+pnpm -C packages/domain prove:privacy-erasure-preview
+pnpm -C packages/contracts prove:privacy-erasure-preview
+pnpm privacy-erasure-preview:prove
 pnpm privacy-erasure:http:prove
 pnpm docs:check
 ```
@@ -53,11 +54,13 @@ pnpm docs:check
 
 | 入口 | 当前代码 | 回执 |
 | --- | --- | --- |
-| `DELETE /privacy/resume-data` | `PrivacyService.deleteResumeData` 固定 HTTP 503，`resume_erasure_migration_in_progress` | 无 request / target |
-| `DELETE /privacy/interview-data/:id` | `PrivacyService.eraseInterviewData` 固定 HTTP 503，`interview_erasure_authorization_not_available` | 无 request / target |
+| `POST /privacy/erasure-preview` | `PrivacyService.beginPreview`：预览版受理，202 + 盘点回执 | `privacy_preview_request`；面试链接 0096，账户链接 0125；禁止 `completed` / `productionSloClaimed=true` |
+| `GET /privacy/erasure-preview` 与 `GET /privacy/erasure-preview/:requestId` | 读取预览回执/列表 | 同上，越权 404 |
+| `DELETE /privacy/resume-data` | `PrivacyService.deleteResumeData` 固定 HTTP 503，`resume_erasure_migration_in_progress` | 无生产 request / target |
+| `DELETE /privacy/interview-data/:id` | `PrivacyService.eraseInterviewData` 固定 HTTP 503，`interview_erasure_authorization_not_available` | 无生产 request / target |
 | `DELETE /resume/:id` | 同步硬删除已退役，同样 fail-closed | 无 |
 
-在 §3 必收录执列与 §4.2 未闭合缺口全部有真实组合根回执之前，**禁止**把上述入口改成 202/204 或 `completed`。
+在 §3 必收录执列与 §4.2 未闭合缺口全部有真实组合根回执之前，**禁止**把两个生产 DELETE 入口改成 202/204 或 `completed`。预览路径的 202 **不是**生产完成。
 
 ## 3. `privacy_deletion_target.sink` 当前枚举（0125）
 
@@ -131,7 +134,8 @@ CHECK 能插入 ≠ 已有 resolver。占位 sink（`memory_event` / `memory_cac
 | 枚举 | begin 固定插入 `sink='memory_vector_chunk'` | 0093 的 3-sink begin 仍不含此 sink；向量行仍在 |
 | 写围栏 | `kind='memory'` 的 INSERT/UPDATE 在本 sink 账本处于 `fenced` / `purging` / `pending_external` / `completed` / `partial_failed` 时拒绝。0125 无撤销函数，故 `completed` 后对该 owner 的 memory 写入是永久拒绝。触发器不拦 DELETE：`app_role` 仍可能自删 memory 行，收据与真实删除者可能脱节（已知缺口）。Worker DELETE RLS 只要求 principal + `kind='memory'` + `privacy_target_id` 非空，不绑定 `lease_token`（弱于 0048 checkpoint） | 围栏后迟到 INSERT/UPDATE=0；`kind='qbank'` 仍可走题库控制面；不得把本围栏写成可撤销或 lease-bound 物理删 |
 | 物理清除 | worker 仅 DELETE `owner=principal AND kind='memory'`，残留≠0 fail-closed | 跨 owner 行=原数；qbank 行=原数 |
-| 公开入口 | 简历/面试 DELETE 保持 503 | 无新 request/target |
+| 公开入口 | 简历/面试 DELETE 保持 503 | 无新生产 request/target。预览路径另账，禁止标 completed |
+| 预览路径 | 0129 `privacy_preview_begin_erasure` | 回执含全量盘点；`completeness=preview_incomplete`；`releaseEvidence=false` |
 | 完成语义 | 本 sweep 的 request 可 `completed`；**不等于**账户删除完成 | `user_memory` / trace / 外部 sink 仍在清单缺口中 |
 
 ## 6. 维护规则
@@ -140,5 +144,5 @@ CHECK 能插入 ≠ 已有 resolver。占位 sink（`memory_event` / `memory_cac
 
 1. 更新本文 §3/§4 的状态，而不是另写一份“已删除”声明；
 2. 更新域侧 registry 与最新迁移 CHECK，并跑对应 pin 证明；
-3. 公开删除入口保持 503，直到 §3 必收录执列与 §4.2 未闭合缺口都有真实组合根回执；
+3. 生产删除入口保持 503，直到 §3 必收录执列与 §4.2 未闭合缺口都有真实组合根回执；预览路径不得改写为 `completed`；
 4. 保持 `releaseEvidence=false`，直到独立复审关闭登记册对应行。

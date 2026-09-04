@@ -1,8 +1,14 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
+import { createHmac, randomUUID } from 'node:crypto';
+import {
+  beginPrivacyPreviewErasure, getPrivacyPreviewReceipt, listPrivacyPreviewReceipts,
+} from '@meetwise/db';
+import type { PrivacyPreviewBeginDto } from '@meetwise/contracts';
+import { assertPublicPreviewWritesClosed, PublicPreviewReadOnlyError } from '../../platform/public-preview';
 import { DbService } from '../../platform/db.service';
 
 const POLICY_VERSION = process.env.PRIVACY_POLICY_VERSION ?? 'v1';
+const IDEMPOTENCY_RE = /^[\x21-\x7e]{8,128}$/;
 
 /** PIPL 合规应用服务:采集同意 / 数据可携导出 / 删除权。全经 principal/RLS(修审计 F1)。 */
 @Injectable()
@@ -59,5 +65,83 @@ export class PrivacyService {
   deleteResumeData(_principal: string): never {
     // 同步全量删除会伪称完成。盘点未齐前 fail-closed，见 privacy-deletion-sink-inventory.md。
     throw new HttpException({ error: 'resume_erasure_migration_in_progress' }, HttpStatus.SERVICE_UNAVAILABLE);
+  }
+
+  private hashPreviewIdempotencyKey(raw: string | undefined): string {
+    if (!raw || !IDEMPOTENCY_RE.test(raw)) {
+      throw new HttpException({ error: 'idempotency_key_missing_or_invalid' }, HttpStatus.BAD_REQUEST);
+    }
+    const secret = process.env.PRIVACY_ERASURE_IDEMPOTENCY_HMAC_KEY ?? process.env.AUTH_SECRET;
+    if (!secret) throw new HttpException({ error: 'privacy_preview_hmac_unavailable' }, HttpStatus.SERVICE_UNAVAILABLE);
+    return createHmac('sha256', secret).update(`privacy-preview:${raw}`).digest('hex');
+  }
+
+  private mapPreviewError(error: unknown): never {
+    if (error instanceof PublicPreviewReadOnlyError) {
+      throw new HttpException({ error: 'public_preview_read_only' }, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+    const code = typeof error === 'object' && error && 'code' in error ? String((error as { code?: string }).code) : '';
+    const message = error instanceof Error ? error.message : '';
+    if (code === '23505' || message.includes('privacy_preview_idempotency_conflict') || message.includes('privacy_preview_subject_mismatch')) {
+      throw new HttpException({ error: 'privacy_preview_idempotency_conflict' }, HttpStatus.CONFLICT);
+    }
+    if (code === '42501' || message.includes('privacy_preview_not_found_or_forbidden') || message.includes('privacy_preview_account_not_found')) {
+      throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+    }
+    if (code === '22023' || message.includes('privacy_preview_invalid') || message.includes('privacy_preview_subject_required') || message.includes('privacy_preview_scope_invalid')) {
+      throw new HttpException({ error: 'privacy_preview_invalid' }, HttpStatus.BAD_REQUEST);
+    }
+    throw new HttpException({ error: 'privacy_preview_unavailable' }, HttpStatus.SERVICE_UNAVAILABLE);
+  }
+
+  async beginPreview(principal: string, body: PrivacyPreviewBeginDto, idempotencyKey: string | undefined) {
+    try {
+      assertPublicPreviewWritesClosed();
+    } catch (error) {
+      this.mapPreviewError(error);
+    }
+    const hash = this.hashPreviewIdempotencyKey(idempotencyKey);
+    if (body.scope === 'interview_data' && !body.subjectId) {
+      throw new HttpException({ error: 'privacy_preview_subject_required' }, HttpStatus.BAD_REQUEST);
+    }
+    try {
+      return await this.db.asPrincipal(principal, (c) =>
+        beginPrivacyPreviewErasure(c, body.scope, body.subjectId ?? null, hash));
+    } catch (error) {
+      this.mapPreviewError(error);
+    }
+  }
+
+  async getPreview(principal: string, requestId: string) {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(requestId)) {
+      throw new HttpException({ error: 'privacy_preview_invalid' }, HttpStatus.BAD_REQUEST);
+    }
+    try {
+      return await this.db.asPrincipal(principal, (c) => getPrivacyPreviewReceipt(c, requestId));
+    } catch (error) {
+      this.mapPreviewError(error);
+    }
+  }
+
+  async listPreview(principal: string) {
+    try {
+      const items = await this.db.asPrincipal(principal, (c) => listPrivacyPreviewReceipts(c, 8));
+      return {
+        editionLabel: '预览版' as const,
+        productionSloClaimed: false as const,
+        items: items.map((row) => ({
+          requestId: row.requestId,
+          scope: row.scope,
+          subjectId: row.subjectId,
+          status: row.status,
+          edition: 'preview' as const,
+          editionLabel: '预览版' as const,
+          productionSloClaimed: false as const,
+          completeness: 'preview_incomplete' as const,
+        })),
+      };
+    } catch (error) {
+      this.mapPreviewError(error);
+    }
   }
 }

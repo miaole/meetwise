@@ -26,7 +26,8 @@
     "prove:mem09-lifecycle-triggers": "tsx test/mem09-lifecycle-triggers.proof.ts",
     "prove:rag-retrieval-acl": "tsx test/rag-retrieval-acl.proof.ts",
     "prove:memory-vector-chunk-deletion": "tsx test/memory-vector-chunk-deletion.proof.ts",
-    "prove:sealed-ocr-binding": "tsx test/sealed-ocr-binding.proof.ts"
+    "prove:sealed-ocr-binding": "tsx test/sealed-ocr-binding.proof.ts",
+    "prove:privacy-erasure-preview": "tsx test/privacy-erasure-preview.proof.ts"
   },
   "dependencies": {
     "mammoth": "^1.12.0",

@@ -29,7 +29,7 @@ tags:
 | `meta` | 这套知识怎么找、怎么用 | 业务正文、实现细节 |
 | `product` | 业务是什么，为什么存在 | 单次迭代清单、DDL |
 | `requirements` | 这次具体做什么 | 长期工程规则 |
-| `architecture` | 技术上如何长期组织 | 本次任务 todo。删除回执 sink 盘点只维护在 `architecture/ai/privacy-deletion-sink-inventory.md`；用例/七类矩阵在 `requirements/use-cases/privacy-deletion-sink-inventory.md`，不另写一份“已删除”声明。 |
+| `architecture` | 技术上如何长期组织 | 本次任务 todo。删除回执 sink 盘点只维护在 `architecture/ai/privacy-deletion-sink-inventory.md`；盘点七类矩阵在 `requirements/use-cases/privacy-deletion-sink-inventory.md`；预览路径用例在 `requirements/use-cases/privacy-erasure-preview-path.md`，不另写一份“已删除”声明。 |
 | `rules` | 长期稳定约束是什么 | 一次性讨论 |
 | `skills` | 这类工作怎么做 | 产品定义 |
 | `testing` | 怎么验证 | 实现正文 |

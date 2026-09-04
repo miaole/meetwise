@@ -22,7 +22,7 @@ tags:
 
 # LangGraph 检查点隐私擦除与状态最小化
 
-> 本文是本次 P0（最高优先级）实现契约。它只覆盖自适应面试的运行态检查点和其直接答案队列载荷；不是“已经完成 OSS/Tair/Langfuse 全数据面删除”的声明。任何外部删除 target（目标）未收到可验证回执时，删除请求必须保持 `pending_external`（等待外部完成）或 `partial_failed`（部分失败）。**当前 `DELETE /privacy/interview-data/:id` 仍安全暂停并返回 503**：旧实现将可写的 `app.principal_user` 当成删除授权根，不能抵抗持有 runtime SQL（结构化查询语言）凭据的伪造主体。独立 `PrivacyAuthorizationIssuer` 与 0091 账本已在源码落地，但 HTTP 未接线、无部署密钥、无真实组合根回执；登录令牌不能打开删除。只有签发/验签/滥用证明在真实组合根通过后，才可重新开放受理。事实以 [运行时事实矩阵](../../architecture/current-runtime-truth.md) 为准。
+> 本文是本次 P0（最高优先级）实现契约。它只覆盖自适应面试的运行态检查点和其直接答案队列载荷；不是“已经完成 OSS/Tair/Langfuse 全数据面删除”的声明。任何外部删除 target（目标）未收到可验证回执时，删除请求必须保持 `pending_external`（等待外部完成）或 `partial_failed`（部分失败）。**当前 `DELETE /privacy/interview-data/:id` 仍安全暂停并返回 503**：旧实现将可写的 `app.principal_user` 当成删除授权根，不能抵抗持有 runtime SQL（结构化查询语言）凭据的伪造主体。独立 `PrivacyAuthorizationIssuer` 与 0091 账本已在源码落地，但生产 HTTP 未接线、无部署密钥、无真实组合根回执；登录令牌不能打开**生产**删除。`0129` 预览版 `POST /privacy/erasure-preview` 可盘点 sink 并链接 0096 投影 begin，回执固定未完成，不是本入口重开。只有签发/验签/滥用证明在真实组合根通过后，才可重新开放生产受理。事实以 [运行时事实矩阵](../../architecture/current-runtime-truth.md) 为准。
 
 ## 1. 问题与范围
 
