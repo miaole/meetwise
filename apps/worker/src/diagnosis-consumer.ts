@@ -8,6 +8,7 @@ import type { ModelClient } from '@meetwise/ai-runtime';
 import { runDiagnosis } from './diagnosis-lifecycle.ts';
 import { runDrainLoop } from './drain-loop.ts';
 import { startHeartbeat } from './job-heartbeat.ts';
+import { drainOwnersInListedOrder } from './owner-queue-drain.ts';
 
 export interface DiagnosisConsumerDeps { pool: DbPool; model: ModelClient; leaseOwner: string }
 export type DiagnosisDrainResult = 'generate' | 'idle' | 'failed';
@@ -62,8 +63,7 @@ export async function drainDiagnosisJobOnce(d: DiagnosisConsumerDeps, owner: str
 }
 
 export async function drainOwnerDiagnosisJobs(d: DiagnosisConsumerDeps, owner: string): Promise<void> {
-  let r: DiagnosisDrainResult = 'generate';
-  while (r !== 'idle') r = await drainDiagnosisJobOnce(d, owner);
+  await drainOwnersInListedOrder(d, [owner], drainDiagnosisJobOnce, (result) => result === 'idle');
 }
 
 /** Reaper 一拍(镜像 quiz)：收割 owner 名下崩在 running 且租约过期的孤儿诊断 job。
@@ -85,15 +85,17 @@ export async function reapStuckDiagnosisJobs(d: DiagnosisConsumerDeps, owner: st
   });
 }
 
-/** 一拍调度:受限网关只枚举 owner id，随后每 owner 立即回到 RLS 事务处理。 */
+/** 一拍调度:受限网关只枚举 owner id，随后按列表顺序把每个 owner 抽干。不是面试量子轮转。 */
 export async function diagnosisDispatchTick(d: DiagnosisConsumerDeps): Promise<{ owners: number; requeued: number; failed: number }> {
   const owners = await gatewayDispatchOwners(d.pool, 'diagnosis');
   let requeued = 0, failed = 0;
-  for (const o of owners) {
-    const r = await reapStuckDiagnosisJobs(d, o);
-    requeued += r.requeued; failed += r.failed;
-    await drainOwnerDiagnosisJobs(d, o);
-  }
+  await drainOwnersInListedOrder(d, owners, drainDiagnosisJobOnce, (result) => result === 'idle', {
+    beforeOwner: async (owner) => {
+      const r = await reapStuckDiagnosisJobs(d, owner);
+      requeued += r.requeued;
+      failed += r.failed;
+    },
+  });
   return { owners: owners.length, requeued, failed };
 }
 

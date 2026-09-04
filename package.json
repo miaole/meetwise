@@ -204,6 +204,7 @@
     "voice-timeout:prove": "pnpm -C apps/api prove:voice-timeout",
     "drain:prove": "pnpm -C apps/worker prove:drain",
     "interview-dispatch:unit:prove": "pnpm -C apps/worker prove:interview-dispatch",
+    "owner-drain-order:unit:prove": "pnpm -C apps/worker prove:owner-drain-order",
     "last-event-id:unit:prove": "pnpm -C apps/api prove:last-event-id",
     "interview-dispatch:prove": "pnpm -C apps/worker prove:interview-dispatch-pg",
     "interview-dispatch:prove:raw": "pnpm -C apps/worker prove:interview-dispatch-pg",

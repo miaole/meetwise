@@ -8,6 +8,7 @@ import type { ModelClient } from '@meetwise/ai-runtime';
 import { runQuiz } from './quiz-lifecycle.ts';
 import { runDrainLoop } from './drain-loop.ts';
 import { startHeartbeat } from './job-heartbeat.ts';
+import { drainOwnersInListedOrder } from './owner-queue-drain.ts';
 
 export interface QuizConsumerDeps { pool: DbPool; model: ModelClient; leaseOwner: string }
 export type QuizDrainResult = 'generate' | 'idle' | 'failed';
@@ -63,8 +64,7 @@ export async function drainQuizJobOnce(d: QuizConsumerDeps, owner: string): Prom
 }
 
 export async function drainOwnerQuizJobs(d: QuizConsumerDeps, owner: string): Promise<void> {
-  let r: QuizDrainResult = 'generate';
-  while (r !== 'idle') r = await drainQuizJobOnce(d, owner);
+  await drainOwnersInListedOrder(d, [owner], drainQuizJobOnce, (result) => result === 'idle');
 }
 
 /** Reaper 一拍(镜像 interview)：收割 owner 名下崩在 running 且租约过期的孤儿押题 job。
@@ -86,15 +86,17 @@ export async function reapStuckQuizJobs(d: QuizConsumerDeps, owner: string): Pro
   });
 }
 
-/** 一拍调度:受限网关只枚举 owner id，随后每 owner 立即回到 RLS 事务处理。 */
+/** 一拍调度:受限网关只枚举 owner id，随后按列表顺序把每个 owner 抽干。不是面试量子轮转。 */
 export async function quizDispatchTick(d: QuizConsumerDeps): Promise<{ owners: number; requeued: number; failed: number }> {
   const owners = await gatewayDispatchOwners(d.pool, 'quiz');
   let requeued = 0, failed = 0;
-  for (const o of owners) {
-    const r = await reapStuckQuizJobs(d, o);
-    requeued += r.requeued; failed += r.failed;
-    await drainOwnerQuizJobs(d, o);
-  }
+  await drainOwnersInListedOrder(d, owners, drainQuizJobOnce, (result) => result === 'idle', {
+    beforeOwner: async (owner) => {
+      const r = await reapStuckQuizJobs(d, owner);
+      requeued += r.requeued;
+      failed += r.failed;
+    },
+  });
   return { owners: owners.length, requeued, failed };
 }
 

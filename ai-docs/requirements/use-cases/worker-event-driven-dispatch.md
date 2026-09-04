@@ -13,7 +13,7 @@ owner: architecture
 
 > 实施状态：源码已将四类队列接到提交后静态 `wake`、专用 `LISTEN` 会话和 5 秒有界 reconciliation（对账扫描）；本地生命周期合同通过。真实 PostgreSQL 的 commit/rollback、多副本、RLS 与重连数据面验收不得称为发布或端到端低延迟证据（`releaseEvidence=false`）。
 >
-> `UC-WORKER-002` 已把**面试** tick 从按 owner 抽干改为量子轮转，并加上每 owner 数据库未过期 running cap、进程内 global inflight、`idle`/`retry` 轮转语义和切片/reap 隔离。押题/诊断/报告仍抽干；进程内 global cap 不是集群锁。
+> `UC-WORKER-002` 已把**面试** tick 从按 owner 抽干改为量子轮转，并加上每 owner 数据库未过期 running cap、进程内 global inflight、`idle`/`retry` 轮转语义和切片/reap 隔离。押题/诊断/报告仍抽干（`drainOwnersInListedOrder`；无库合同证明顺序为 `A,A,A,B`）；进程内 global cap 不是集群锁。这三类未接公平轮转，不得写成已公平。
 >
 > 改造前事实：面试、押题、诊断消费者每 1.5 秒扫描一次，报告消费者每 2 秒扫描一次。API 会先返回已受理，用户随后等待下一次扫描领取。目标是把**正常已提交作业**的领取触发改为提交后即时唤醒；PostgreSQL 作业表、领取 CAS、租约、RLS 与持久事件账本仍是唯一事实源。通知不是队列、不是授权通道，也不承载业务数据。
 
@@ -100,7 +100,7 @@ owner: architecture
 
 ## 已知后续项
 
-- `WORKER-DISPATCH-002` 的**面试**切片已接线：owner 量子轮转、每 owner 数据库未过期 running cap、进程内 global inflight、`idle`/`retry` 与切片/reap 隔离。押题、诊断、报告仍按 owner 抽干，不在本用例宣称公平。
+- `WORKER-DISPATCH-002` 的**面试**切片已接线：owner 量子轮转、每 owner 数据库未过期 running cap、进程内 global inflight、`idle`/`retry` 与切片/reap 隔离。押题、诊断、报告仍按 owner 抽干（`pnpm owner-drain-order:unit:prove`），不在本用例宣称公平。
 - 进程内 `WORKER_INTERVIEW_GLOBAL_INFLIGHT` **不是**跨 Worker 副本的集群全局锁。多副本时集群同时 running 数可以超过该值；跨副本硬 cap 属于后续项，不得写成已交付。
 - 模型 operation 预算仍是既有 `invoke` / registry / `MODEL_*` 路径，本用例不改派发后模型身份或费用账本。
 - 真实多副本、真实 commit/rollback 数据面与发布级延迟测量仍为 `releaseEvidence=false`，不得因本用例通过而宣称端到端低延迟或容量保证。

@@ -81,6 +81,10 @@ jobs:
       - name: quiz/diagnosis dual-claim fail-closed (no database)
         run: pnpm quiz-dual-claim:unit:prove
 
+      # 押题/诊断/报告当前仍按 owner 抽干（无库）：证明顺序是 A,A,A,B，不是面试轮转。
+      - name: quiz/diagnosis/report sequential drain order (no database)
+        run: pnpm owner-drain-order:unit:prove
+
       # SSE Last-Event-ID 失败关闭（无库）：押题/诊断不得把非法游标降级为全量重放。
       - name: SSE last-event-id fail-closed parser (no database)
         run: pnpm last-event-id:unit:prove

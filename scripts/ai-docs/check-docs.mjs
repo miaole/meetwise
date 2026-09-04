@@ -86,6 +86,7 @@ const requiredTerms = new Map([
   ["ai-docs/architecture/backend/high-concurrency-review.md", [
     "SKIP LOCKED",
     "fairDrainInterviewOwners",
+    "drainOwnersInListedOrder",
     "Last-Event-ID",
     "parseLastEventId",
     "0120",
@@ -96,6 +97,7 @@ const requiredTerms = new Map([
     "ai_model_concurrency_lease",
     "releaseEvidence",
     "HC-GAP-",
+    "owner-drain-order:unit:prove",
   ]],
   ["ai-docs/architecture/backend/interview-answer-dual-write-cutover.md", [
     "INT-P0-RAW-QUEUE",
