@@ -39,6 +39,20 @@ export function requiresBoundModelOperation(env: NodeJS.ProcessEnv = process.env
     || env.MODEL_COST_ENFORCEMENT?.trim().toLowerCase() === 'enforce';
 }
 
+/**
+ * Bound-operation fence env. Omitting `cfgEnv` is identical to `process.env`.
+ * Defined non-blank overlay keys override; `undefined` / blank cannot strip
+ * process production/enforce (spread would treat those as missing triggers).
+ */
+function envForBoundOperationFence(cfgEnv?: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  if (cfgEnv === undefined) return process.env;
+  const merged: NodeJS.ProcessEnv = { ...process.env };
+  for (const [key, value] of Object.entries(cfgEnv)) {
+    if (typeof value === 'string' && value.trim() !== '') merged[key] = value;
+  }
+  return merged;
+}
+
 export interface RenderedContextBudgetPlan {
   estimator: 'utf8-bytes-v1';
   contextWindowTokens: number;
@@ -261,11 +275,11 @@ export function openAICompatibleClient(cfg: {
   /**
    * Optional env snapshot. Vision profile resolution is wholesale
    * (`cfg.env ?? process.env`) so a vision-only snapshot cannot inherit
-   * `MODEL_API_KEY`.  The bound-operation fence merges: provided keys
-   * override, missing keys inherit `process.env`, so `{}` or vision-only
-   * snapshots cannot strip production/enforce.  Omitting `cfg.env` is
-   * identical to `process.env`.  Text profiles and NODE_ENV test-transport
-   * seams stay on `process.env` (intentionally global).
+   * `MODEL_API_KEY`.  The bound-operation fence overlays defined non-blank
+   * keys onto `process.env`; `undefined` / blank / omitted keys inherit
+   * process production/enforce.  Omitting `cfg.env` is identical to
+   * `process.env`.  Text profiles and NODE_ENV test-transport seams stay
+   * on `process.env` (intentionally global).
    */
   env?: NodeJS.ProcessEnv;
 } = {}): ModelClient {
@@ -292,9 +306,8 @@ export function openAICompatibleClient(cfg: {
   // request, so a caller cannot mutate a policy after admission and make the
   // supplier cap disagree with the ledger reservation.
   const costPolicy = cfg.costPolicy === undefined ? undefined : Object.freeze({ ...cfg.costPolicy });
-  const policyRequired = requiresBoundModelOperation(
-    cfg.env === undefined ? process.env : { ...process.env, ...cfg.env },
-  ) || cfg.requireBoundOperation === true;
+  const policyRequired = requiresBoundModelOperation(envForBoundOperationFence(cfg.env))
+    || cfg.requireBoundOperation === true;
   const maxOutputTokens = costPolicy?.maxOutputTokens;
   if (maxOutputTokens !== undefined
     && (!Number.isSafeInteger(maxOutputTokens) || maxOutputTokens < 1 || maxOutputTokens > 1_000_000)) {

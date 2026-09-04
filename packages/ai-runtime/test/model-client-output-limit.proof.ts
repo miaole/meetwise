@@ -187,6 +187,17 @@ async function main() {
         && partialResult.ok === false && partialResult.externalOutcome === 'known_not_executed'
         && requestBodies.length === 3);
 
+      const blankFence = openAICompatibleClient({
+        baseUrl: 'https://model.invalid', apiKey: 'test-only', model: 'blank-fence',
+        env: { MODEL_COST_ENFORCEMENT: undefined, NODE_ENV: '', DASHSCOPE_VISION_API_KEY: 'vision-only' },
+      });
+      const blankPlan = await blankFence.prepare?.({ service: 'proof.blank-fence', system: 'trusted', userData: 'safe fixture' }, 1);
+      const blankResult = await blankFence.complete({ service: 'proof.blank-fence', system: 'trusted', userData: 'safe fixture' }, 1);
+      A('undefined/blank fence keys in cfg.env cannot strip process.env enforce',
+        blankPlan?.ready === false && blankPlan?.error === 'model_operation_policy_required'
+        && blankResult.ok === false && blankResult.externalOutcome === 'known_not_executed'
+        && requestBodies.length === 3);
+
       const previousEnforcement = process.env.MODEL_COST_ENFORCEMENT;
       process.env.MODEL_COST_ENFORCEMENT = 'observe';
       try {
@@ -207,6 +218,34 @@ async function main() {
     } finally {
       if (isolationEnforcement === undefined) delete process.env.MODEL_COST_ENFORCEMENT;
       else process.env.MODEL_COST_ENFORCEMENT = isolationEnforcement;
+    }
+
+    const isolationNodeEnv = process.env.NODE_ENV;
+    const isolationEnforce2 = process.env.MODEL_COST_ENFORCEMENT;
+    process.env.NODE_ENV = 'production';
+    delete process.env.MODEL_COST_ENFORCEMENT;
+    try {
+      const productionOmit = openAICompatibleClient({ model: 'production-omit' });
+      const productionOmitPlan = await productionOmit.prepare?.({ service: 'proof.production-omit', system: 'trusted', userData: 'safe fixture' }, 1);
+      const productionOmitResult = await productionOmit.complete({ service: 'proof.production-omit', system: 'trusted', userData: 'safe fixture' }, 1);
+      A('omitting cfg.env still honors process.env NODE_ENV=production',
+        productionOmitPlan?.ready === false && productionOmitPlan?.error === 'model_operation_policy_required'
+        && productionOmitResult.ok === false && productionOmitResult.externalOutcome === 'known_not_executed'
+        && requestBodies.length === 3);
+
+      const observeOnly = openAICompatibleClient({
+        model: 'observe-only-overlay',
+        env: { MODEL_COST_ENFORCEMENT: 'observe' },
+      });
+      const observeOnlyPlan = await observeOnly.prepare?.({ service: 'proof.observe-only', system: 'trusted', userData: 'safe fixture' }, 1);
+      const observeOnlyResult = await observeOnly.complete({ service: 'proof.observe-only', system: 'trusted', userData: 'safe fixture' }, 1);
+      A('cfg.env observe without NODE_ENV cannot strip process.env production',
+        observeOnlyPlan?.ready === false && observeOnlyPlan?.error === 'model_operation_policy_required'
+        && observeOnlyResult.ok === false && observeOnlyResult.externalOutcome === 'known_not_executed'
+        && requestBodies.length === 3);
+    } finally {
+      if (isolationNodeEnv === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = isolationNodeEnv;
+      if (isolationEnforce2 === undefined) delete process.env.MODEL_COST_ENFORCEMENT; else process.env.MODEL_COST_ENFORCEMENT = isolationEnforce2;
     }
   } finally {
     globalThis.fetch = originalFetch;
