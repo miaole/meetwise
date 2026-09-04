@@ -70,6 +70,7 @@ export const OPTIONAL_ALWAYS_ON = Object.freeze([
   'interview-voice-seams:prove',
   'voice-stream-asr-honesty:prove',
   'model-slot-bypass:static:prove',
+  'quiz-dual-claim:unit:prove',
   'native-fail-closed:prove',
   'question-generation-fail-closed:prove',
 ]);
