@@ -69,6 +69,7 @@ export const OPTIONAL_ALWAYS_ON = Object.freeze([
   'signal-sse-worker:prove',
   'interview-voice-seams:prove',
   'voice-stream-asr-honesty:prove',
+  'model-slot-bypass:static:prove',
   'native-fail-closed:prove',
   'question-generation-fail-closed:prove',
 ]);
