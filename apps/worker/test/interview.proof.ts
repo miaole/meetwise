@@ -81,6 +81,7 @@ async function main() {
     adaptive: {
       role: '后端工程师',
       maxTurns: 2,
+      absoluteMaxTurns: 2,
       localRetrieve: async () => [],
       webExplore: async () => [],
     },

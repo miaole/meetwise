@@ -971,7 +971,7 @@ LangGraph 在 `Command({resume})` 后会从含 `interrupt()` 的节点起点重�
 
 **追问**
 
-一次面试安全天花板 16 个 turn（`decideNext` 可按覆盖/证据提前结束，不是固定问满）、每题最多 3 次出题尝试、每次模型调用最多 3 次瞬时重试，如何给出 provider 尝试次数的上界？
+一次面试软预算由覆盖计划派生且可上调；平台绝对杀开关默认 120 个 turn（`decideNext` 按覆盖/证据提前结束或加深，不是固定问满，16 不是产品硬顶）、每题最多 3 次出题尝试、每次模型调用最多 3 次瞬时重试，如何给出 provider 尝试次数的上界？
 
 **常见错误**
 
@@ -1365,12 +1365,12 @@ async function writeFrame(frame: string, signal: AbortSignal) {
 | 编号 | 实际发现 | 证据 | 可量化影响/缺失测试 |
 | --- | --- | --- |
 | LG-1 | `ask` 节点在 `interrupt()` 前生成题目、反思题面；resume 会重放该依赖调用。 | `packages/ai-graphs/src/adaptive-interview.ts:53-72` | 2026-08-03 本地 MemorySaver 黑盒 probe：首次 `invoke` 后再 `resume`，`retrieveAndGenerate=2`、`assess=1`、`transcript=1`。真实 runtime 的同 key 模型调用可缓存，但图级依赖仍被调用两次，且无回归断言要求调用数为 1。 |
-| LG-2 | 历史发现曾写 State 含完整答案 `a`。当前完成态 `transcript` 已不复制 raw answer（以运行时事实矩阵为准）；安全天花板现为 16，不是固定 8。 | `packages/ai-graphs/src/adaptive-interview/state.ts`；`adaptive-interview.proof.ts` | 单答 API 上限仍 `8000` 字符。最坏路径按天花板 16 估算工作态体积；不得再写“默认 8 轮 × 8000 = 64,000”。 |
+| LG-2 | 历史发现曾写 State 含完整答案 `a`。当前完成态 `transcript` 已不复制 raw answer（以运行时事实矩阵为准）；长度由软预算 + 绝对杀开关（默认 120）约束，不是固定 8 或 16。 | `packages/ai-graphs/src/adaptive-interview/state.ts`；`adaptive-interview.proof.ts` | 单答 API 上限仍 `8000` 字符。最坏路径按绝对杀开关估算工作态体积；不得再写“默认 8 轮 × 8000 = 64,000”或“天花板 16 × 8000”。 |
 | LG-3 | 图推进、事件追加、结算/报告入队不是同一事务：`g.invoke` 返回后才 append event，完成后再 confirm/enqueue。 | `apps/worker/src/adaptive-lifecycle.ts:51-85`；`packages/db/src/index.ts:58-66` | 在 checkpoint 已推进、事件未追加之间崩溃会留下恢复窗口；事件只有 stream seq，无 `(turnId,eventKind)` 去重。现有 lifecycle proof 为正常路径，未注入该窗口崩溃。 |
 | LG-4 | API 接受客户端 `turn` 并按序入队，但没有与 pending interrupt 的 server-issued questionId/token 比对。 | `apps/api/src/modules/interview/interview.service.ts:99-115` | 同一 `(owner,interview,kind,seq)` 重复提交可去重，但错误/陈旧页面若传入一个未占用 seq 仍可入队；现有测试仅验证同 seq 的两次入队。 |
 | LG-5 | 队列使用 `NOT EXISTS running` 尝试同面试保序，但当前自适应 lifecycle 中没有显式 per-thread advisory lock/lease 来线性化 `Command(resume)`。 | `packages/db/src/interview-jobs.ts:25-43`；`apps/worker/src/adaptive-lifecycle.ts:48-52` | 两 worker 的抢占、租约过期重领和 checkpoint 并发写没有 barrier 测试；架构文档要求 resume 前取得 per-thread 锁。 |
 | LG-6 | 图以 `route | concluded:boolean` 表示运行态，没有 `waiting_user/completed/degraded/aborted` 等互斥 runOutcome；模型评分失败会作为 `score=50,relevant=true` 继续。 | `packages/ai-graphs/src/adaptive-interview.ts:31-38,107-115`；`apps/worker/src/adaptive-interview-service.ts:105-118` | 模型故障可能进入 transcript 与后续报告/成长数据；当前 test 只覆盖出题失败降级，不覆盖“评分失败不得伪造候选人分数”。 |
-| LG-7 | 图默认预算/安全天花板为 16，收口由 `decideNext` 覆盖/证据政策决定，不是固定 8 轮；题面 critique/判重失败已改为一次派发后的同能力确定性题面。仍未在图调用处显式设置 recursionLimit，也未持久化 llm/token/tool 全局预算或数据库级逻辑节点 slot。 | `packages/domain/src/adaptive-interview.ts`；`packages/ai-graphs/src/adaptive-interview/nodes/plan.ts` | 单场最多 16 turn（天花板）；调用方每 turn 最多一次出题与一次评分外呼，但这不防旧 worker 或新 key 绕过。无“预算耗尽→degraded”真实端到端门。 |
+| LG-7 | 图软预算按覆盖计划派生且可上调；绝对杀开关默认 120（平台安全，不是质量政策）。收口由 `decideNext` 覆盖/证据政策决定，不是固定 8/16 轮。题面 critique/判重失败已改为一次派发后的同能力确定性题面。`recursionLimit` 只是单段 invoke 结构阀（resume 重置），不是整场预算。仍未持久化 llm/token/tool 全局预算或数据库级逻辑节点 slot。 | `packages/domain/src/adaptive-interview.ts`；`packages/ai-graphs/src/adaptive-interview/nodes/plan.ts`；`graph.ts` | 单场硬墙是 `absoluteMaxTurns`（默认 120）；调用方每 turn 最多一次出题与一次评分外呼，但这不防旧 worker 或新 key 绕过。无“预算耗尽→degraded”真实端到端门。 |
 | LG-8 | 现有图、lifecycle、consumer 证明均通过，但主要使用 `MemorySaver`、scripted model 或 fake deps。 | `packages/ai-graphs/test/adaptive-interview.proof.ts:1-76`；`apps/worker/test/adaptive-lifecycle.proof.ts`；`apps/worker/test/adaptive-consumer.proof.ts:16-20,30-31` | 本轮实际执行：图证明 `12` 断言通过，lifecycle `9` 断言通过，consumer `13` 断言通过；均未覆盖 LG-1 至 LG-7 的 crash-barrier 或双 worker 并发恢复。 |
 | SSE-1 | 当前是持久化业务事件流而非 token 流；前端仅接受 schema 白名单中的业务事件。 | `apps/api/src/modules/interview/interview.controller.ts:200-236`；`apps/web/lib/stream/business-events.ts:1-57` | 这是正确的当前边界，不能作为已完成 token stream、token 重放或 token 级脱敏的证据。 |
 | SSE-2 | API `safeWrite()` 忽略 Node `Writable.write()` 返回的 `false`，只捕获抛异常。 | `apps/api/src/modules/interview/interview.controller.ts:214,218-233` | 当前低频业务事件风险较低；接入高频 token 后，慢消费者可造成写缓冲持续累积。没有 `drain`、每连接 queue bytes 或慢读压测门。 |

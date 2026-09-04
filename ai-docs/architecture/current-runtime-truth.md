@@ -138,7 +138,7 @@ plan → decide ──┬→ genQuestion → awaitAnswer(interrupt)
 ```
 
 - `plan`：图内只消费已确定的能力维度；简历画像的解析与能力规划发生在图外受控边界，图 state（状态）只持有“画像可用”布尔量。历史弱项只能软偏置能力顺序，不能直接抬高/降低评分。
-- `decide`：依据可持久化的 `mind`（覆盖、证据计数、会话信号、轮次、难度）决定继续、加深或收尾；出处写入 `lastDecision`/`concludeReason`。停续是确定性政策，不是模型裁判。默认预算与安全天花板为 16，不是产品硬顶 8；弱/空转可在 8 轮前结束，强+钩子可在 8 轮后继续，直至覆盖满足或天花板。这**不是** `INT-LONG-INTERVIEW-01` 的 60/90/120 分钟 blueprint。
+- `decide`：依据可持久化的 `mind`（覆盖、证据计数、会话信号、软预算、绝对杀开关、轮次、难度）决定继续、加深、上调软预算或收尾；出处写入 `lastDecision`/`concludeReason`。停续是确定性政策，不是模型裁判。软预算由覆盖计划派生或由调用方给出，证据加深时可上调，**不是**「turn≥N 就停」。绝对杀开关默认 120（可配 60/90/120 档，再高夹到 180），只防 runaway/成本滥用，不是面试质量政策。弱/空转可在 8 轮前结束；强+钩子可过原 8、也可过 16，直至覆盖满足或绝对杀开关。这**不是** `INT-LONG-INTERVIEW-01` 的 60/90/120 分钟 blueprint；允许杀开关档位 ≠ 已接线 blueprint。`releaseEvidence` 对本长度切片为 false。
 - `genQuestion`：模型调用被放在 interrupt（中断）之前；恢复同一 checkpoint 不会因为 `awaitAnswer` 重放而重复生成题目。
 - `awaitAnswer`：只负责中断和恢复边界。
 - `evalAnswer`：清除 pending/submitted、写评分投影或 `unscored`，再由 `decide` 选择继续/结束。

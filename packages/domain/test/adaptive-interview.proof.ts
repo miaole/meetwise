@@ -31,10 +31,13 @@ A('强答一次即 confidence≥0.7(够强)', (m2.competencies[0]?.confidence ??
 act = decideNext(m2);
 A('唯一能力已够强 → 收尾(all_resolved)', act.kind === 'conclude' && act.reason === 'all_resolved');
 
-// 预算耗尽 → 收尾
+// 软预算触顶不是墙:还有覆盖缺口则上调;只有绝对杀开关硬收尾
 let m3 = initMind(['x', 'y'], 1);
-m3 = ingestAssessment(m3, 'x', 50, []);   // turn→1 = maxTurns
-A('预算耗尽 → 收尾(budget_exhausted)', decideNext(m3).kind === 'conclude' && (decideNext(m3) as any).reason === 'budget_exhausted');
+m3 = ingestAssessment(m3, 'x', 50, []);   // turn→1 = 软预算
+A('软预算触顶但仍可探 → raise_soft_budget,不是收尾', decideNext(m3).kind === 'ask' && (decideNext(m3) as any).reason === 'raise_soft_budget');
+let locked = initMind(['x', 'y'], 1, 1);
+locked = ingestAssessment(locked, 'x', 50, []);
+A('绝对杀开关触顶 → safety_ceiling', decideNext(locked).kind === 'conclude' && (decideNext(locked) as any).reason === 'safety_ceiling');
 
 /* ───────────── 答非所问 / 没答:确定性感知 + 决策(非作答≠弱答) ───────────── */
 // 非作答检测:空/跳过/过短/整句套话 命中;真实长答案不误伤(即便含"不会"等词)

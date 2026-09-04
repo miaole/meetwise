@@ -46,14 +46,18 @@ export type AskReason =
   | 'probe_weak'
   | 'probe_deepen_strong'
   | 'pivot_coverage'
-  | 'pivot_offramp';
+  | 'pivot_offramp'
+  | 'raise_soft_budget';
 
 /** 决策出处:不用答案原文/证据全文,只报 code + 覆盖计数 + 能力名。旧 checkpoint 可缺此字段。 */
 export interface DecisionProvenance {
   code: ConcludeReason | AskReason;
   turn: number;
-  maxTurns: number;
-  safetyCeiling: number;
+  maxTurns: number;                 // 当前软预算(raise 后已是新值)
+  softBudget: number;
+  absoluteMaxTurns: number;
+  safetyCeiling: number;            // = absoluteMaxTurns:平台杀开关,不是面试质量政策
+  budgetRaises: number;
   coverage: CoverageSnapshot;
   citedCompetencies: string[];
   signals: InterviewSessionSignals & { consecutiveLow: number };
@@ -62,7 +66,9 @@ export interface DecisionProvenance {
 export interface InterviewMind {
   competencies: Competency[];   // 目标能力清单(来自岗位匹配 + 简历)
   turn: number;
-  maxTurns: number;             // 本场预算(夹在 1..SAFETY_CEILING);深挖也从这里借,另有政策可提前收尾
+  maxTurns: number;             // 软预算(政策):可被证据加深上调,耗尽不单独收尾
+  absoluteMaxTurns: number;     // 平台 runaway 杀开关(默认 120,长时面试档)
+  budgetRaises?: number;        // 本场已上调软预算次数
   difficulty: number;           // 1..5 当前难度(随表现自适应)
   current: string | null;       // 当前在探的能力
   clarifyAttempts: number;      // 当前题已澄清(引导重答)几次(防对非作答死缠;每题至多 1 次)
@@ -71,19 +77,43 @@ export interface InterviewMind {
   lastDecision?: DecisionProvenance | null;
 }
 export type NextAction =
-  | { kind: 'ask'; competency: string; difficulty: number; mode: 'probe' | 'pivot'; qkind: QuestionKind; reason: AskReason; provenance: DecisionProvenance }
+  | { kind: 'ask'; competency: string; difficulty: number; mode: 'probe' | 'pivot'; qkind: QuestionKind; reason: AskReason; provenance: DecisionProvenance; softBudget?: number }
   | { kind: 'conclude'; reason: ConcludeReason; provenance: DecisionProvenance };
 
-/** 结构安全天花板:防无界面谈。不是「默认总问 16 题」,也不是 INT-LONG 的 60/90/120 分钟蓝图。 */
-export const SAFETY_CEILING_TURNS = 16;
-export const DEFAULT_MAX_TURNS = SAFETY_CEILING_TURNS;
+/**
+ * 平台 runaway/成本杀开关默认值:对齐 INT-LONG 120 分钟档的轮次上界,不是面试质量政策。
+ * 允许配置 60/90/120 档;再高也夹到 PLATFORM_ABSOLUTE_CEILING,防 1e9 无界。
+ */
+export const LONG_INTERVIEW_ABSOLUTE_BANDS = [60, 90, 120] as const;
+export const DEFAULT_ABSOLUTE_MAX_TURNS = 120;
+export const PLATFORM_ABSOLUTE_CEILING_TURNS = 180;
+export const SOFT_BUDGET_RAISE_STEP = 4;
+/** @deprecated 旧名;现等于默认绝对杀开关,不是产品硬顶 16。 */
+export const SAFETY_CEILING_TURNS = DEFAULT_ABSOLUTE_MAX_TURNS;
+export const DEFAULT_MAX_TURNS = DEFAULT_ABSOLUTE_MAX_TURNS;
 export const MIN_EARLY_TURNS = 2;
 export const EARLY_WEAK_ABORTS = 2;
 export const THRASH_PIVOTS = 3;
 
-export function boundedInterviewTurns(value: number | undefined): number {
-  if (!Number.isInteger(value)) return DEFAULT_MAX_TURNS;
-  return Math.max(1, Math.min(value, SAFETY_CEILING_TURNS));
+export function boundedAbsoluteMaxTurns(value: number | undefined): number {
+  if (!Number.isInteger(value)) return DEFAULT_ABSOLUTE_MAX_TURNS;
+  return Math.max(1, Math.min(value, PLATFORM_ABSOLUTE_CEILING_TURNS));
+}
+
+export function derivedSoftBudget(competencies: (string | CompetencySpec)[]): number {
+  const specs = competencies.map(toSpec);
+  if (specs.length === 0) return 1;
+  return specs.reduce((n, s) => n + (s.core ? 3 : 2), 0);
+}
+
+export function boundedSoftBudget(value: number | undefined, absoluteMax: number, derived: number): number {
+  const raw = Number.isInteger(value) ? value as number : derived;
+  return Math.max(1, Math.min(raw, absoluteMax));
+}
+
+/** 软预算夹紧:未指定则用 derived=1 的占位,真正默认在 initMind 按能力清单派生。 */
+export function boundedInterviewTurns(value: number | undefined, absoluteMax = DEFAULT_ABSOLUTE_MAX_TURNS): number {
+  return boundedSoftBudget(value, absoluteMax, 1);
 }
 
 const CONF_ENOUGH = 0.7;            // 该能力够强 → 不再纠缠
@@ -127,14 +157,20 @@ export function sessionOf(mind: InterviewMind): InterviewSessionSignals {
   return { consecutivePivots: n(s?.consecutivePivots), unresolvedCount: n(s?.unresolvedCount), offRampCount: n(s?.offRampCount) };
 }
 
-export function initMind(competencies: (string | CompetencySpec)[], maxTurns = DEFAULT_MAX_TURNS): InterviewMind {
+export function initMind(competencies: (string | CompetencySpec)[], maxTurns?: number, absoluteMaxTurns?: number): InterviewMind {
+  const absolute = boundedAbsoluteMaxTurns(absoluteMaxTurns);
+  const soft = boundedSoftBudget(maxTurns, absolute, derivedSoftBudget(competencies));
   return {
     competencies: competencies.map(toSpec).map((s) => ({
       name: s.name, confidence: 0, depthProbed: 0, evidence: [], core: !!s.core, behavioral: !!s.behavioral,
     })),
-    turn: 0, maxTurns: boundedInterviewTurns(maxTurns), difficulty: 2, current: null, clarifyAttempts: 0, consecutiveLow: 0,
+    turn: 0, maxTurns: soft, absoluteMaxTurns: absolute, budgetRaises: 0, difficulty: 2, current: null, clarifyAttempts: 0, consecutiveLow: 0,
     session: emptySession(), lastDecision: null,
   };
+}
+
+export function absoluteMaxOf(mind: InterviewMind): number {
+  return Number.isInteger(mind.absoluteMaxTurns) ? mind.absoluteMaxTurns : DEFAULT_ABSOLUTE_MAX_TURNS;
 }
 
 /** 感知:把一次评分(0..100 + 证据 + hasHook)并入能力模型。confidence 用深度加权滑动更新(越多次证据越稳)。
@@ -306,11 +342,15 @@ export function interviewCoverage(mind: InterviewMind): CoverageSnapshot {
 
 function provenanceOf(mind: InterviewMind, code: ConcludeReason | AskReason, cited: string[]): DecisionProvenance {
   const session = sessionOf(mind);
+  const absolute = absoluteMaxOf(mind);
   return {
     code,
     turn: mind.turn,
     maxTurns: mind.maxTurns,
-    safetyCeiling: SAFETY_CEILING_TURNS,
+    softBudget: mind.maxTurns,
+    absoluteMaxTurns: absolute,
+    safetyCeiling: absolute,
+    budgetRaises: Number.isInteger(mind.budgetRaises) ? mind.budgetRaises! : 0,
     coverage: interviewCoverage(mind),
     citedCompetencies: cited,
     signals: { ...session, consecutiveLow: mind.consecutiveLow },
@@ -318,21 +358,41 @@ function provenanceOf(mind: InterviewMind, code: ConcludeReason | AskReason, cit
 }
 
 export function rememberDecision(mind: InterviewMind, action: NextAction): InterviewMind {
-  return { ...mind, lastDecision: action.provenance };
+  const nextSoft = action.kind === 'ask' && typeof action.softBudget === 'number' ? action.softBudget : mind.maxTurns;
+  const raised = nextSoft > mind.maxTurns;
+  return {
+    ...mind,
+    lastDecision: action.provenance,
+    maxTurns: nextSoft,
+    budgetRaises: (Number.isInteger(mind.budgetRaises) ? mind.budgetRaises! : 0) + (raised ? 1 : 0),
+  };
 }
 
-/** 策略:覆盖/证据/会话信号决定继续、加深或收尾。确定性、可解释;模型不得写停续。 */
+/** 策略:覆盖/证据/会话信号决定继续、加深或收尾。确定性、可解释;模型不得写停续。软预算可上调,只有绝对杀开关是硬墙。 */
 export function decideNext(mind: InterviewMind): NextAction {
   const session = sessionOf(mind);
   const coverage = interviewCoverage(mind);
+  const absolute = absoluteMaxOf(mind);
   const weakCited = mind.competencies.filter((c) => c.depthProbed > 0 && c.confidence < CONF_ENOUGH).map((c) => c.name);
   const conclude = (reason: ConcludeReason, cited: string[]): NextAction =>
     ({ kind: 'conclude', reason, provenance: provenanceOf(mind, reason, cited) });
-  const ask = (c: Competency, mode: 'probe' | 'pivot', reason: AskReason): NextAction =>
-    ({ kind: 'ask', competency: c.name, difficulty: mind.difficulty, mode, qkind: pickKind(c), reason, provenance: provenanceOf(mind, reason, [c.name]) });
+  const ask = (c: Competency, mode: 'probe' | 'pivot', reason: AskReason): NextAction => {
+    let nextReason = reason;
+    let softBudget: number | undefined;
+    let view = mind;
+    if (mind.turn >= mind.maxTurns) {
+      const raised = Math.min(mind.maxTurns + SOFT_BUDGET_RAISE_STEP, absolute);
+      view = { ...mind, maxTurns: raised };
+      nextReason = 'raise_soft_budget';
+      softBudget = raised;
+    }
+    return {
+      kind: 'ask', competency: c.name, difficulty: mind.difficulty, mode, qkind: pickKind(c),
+      reason: nextReason, provenance: provenanceOf(view, nextReason, [c.name]), softBudget,
+    };
+  };
 
-  if (mind.turn >= SAFETY_CEILING_TURNS) return conclude('safety_ceiling', weakCited);
-  if (mind.turn >= mind.maxTurns) return conclude('budget_exhausted', weakCited);
+  if (mind.turn >= absolute) return conclude('safety_ceiling', weakCited);
 
   const abortCount = session.unresolvedCount + session.offRampCount;
   if (mind.turn >= MIN_EARLY_TURNS && coverage.resolvedStrong === 0 && abortCount >= EARLY_WEAK_ABORTS && coverage.probed >= 2) {

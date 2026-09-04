@@ -60,9 +60,9 @@ DNS rebinding 的“域名解析后连接到私网 IP”不能仅靠 URL hostnam
 
 ## 4. 可计算资源上限
 
-默认面试图预算与安全天花板为 `SAFETY_CEILING_TURNS=16`（`decideNext` 可按覆盖/证据提前收尾，不是固定问满 16 题），每个 job 仅生成一个 pending question。因此在“每题都低置信且未被早停”的最坏路径中：
+默认软预算由覆盖计划派生，`decideNext` 可按覆盖/证据提前收尾或上调软预算；平台绝对杀开关默认 `DEFAULT_ABSOLUTE_MAX_TURNS=120`（不是产品硬顶 16）。每个 job 仅生成一个 pending question。因此在“每题都低置信且从未早停、一直顶到绝对杀开关”的最坏路径中：
 
-- 外呼次数 ≤ `16 × 3 = 48`；
+- 外呼次数 ≤ `absoluteMaxTurns × 3`；生产默认 ≤ `120 × 3 = 360`；隔离 E2E 把软预算与绝对杀开关同时锁到 1–8，该夹具上界是 `8 × 3 = 24`，不是生产长度证据；
 - 单次 Web 正文取证 ≤ `12,000` 字符，实际传入出题模型的 Web 文本 ≤ `1,600` 字符；
 - 单 source 的整条重定向链最长等待 8 秒，3 源并发时该轮的 fetch 墙钟上界约为最慢 source 的 8 秒，而非 24 秒（不含模型调用）；
 - `WEB_ALLOWLIST=''` 时 `deep.research` 不注册，CRAG 只保留本地或无素材降级题。

@@ -43,8 +43,10 @@ export interface AdaptiveServiceDeps {
   deepResearch?: (q: string) => Promise<SourceDoc[]>;
   researchBoundary?: (q: string) => ResearchBoundaryDecision;
   competencyKeywords?: Record<string, string[]>;
-  /** 图的总轮数预算；隔离 E2E 可显式缩短，生产调用保持未设置。 */
+  /** 软预算初值；隔离 E2E 可显式缩短，生产不传则按覆盖计划派生。 */
   maxTurns?: number;
+  /** 平台 runaway 杀开关；隔离 E2E 可与软预算一起压低控费。生产默认 120。 */
+  absoluteMaxTurns?: number;
   /** 仅携带图拓扑和数值状态的观测 seam，不向图节点暴露供应商 SDK。 */
   graphObserver?: GraphObserver;
   /** 运行时短暂水合答案；不得把原文放回图 state（状态）。 */
@@ -83,6 +85,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
     resumeProfileAvailable: d.resumeProfileAvailable,
     loadAnswer: d.loadAnswer ?? (async () => { throw new Error('answer_artifact_unavailable'); }),
     maxTurns: d.maxTurns,
+    absoluteMaxTurns: d.absoluteMaxTurns,
     graphObserver: d.graphObserver,
     competencyKeywords: d.competencyKeywords,
     async retrieveAndGenerate(competency, difficulty, attempt, turn, _facts, kind) {

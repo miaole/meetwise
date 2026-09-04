@@ -1,10 +1,9 @@
-import { decideNext, rememberDecision, SAFETY_CEILING_TURNS } from '@meetwise/domain';
+import { absoluteMaxOf, decideNext, rememberDecision } from '@meetwise/domain';
 import type { AdaptiveInterviewGraphState } from '../state.ts';
 
 export function decideNode(state: AdaptiveInterviewGraphState) {
   if (state.clarify) {
-    const hitCeiling = state.mind.turn >= SAFETY_CEILING_TURNS || state.mind.turn >= state.mind.maxTurns;
-    if (hitCeiling) {
+    if (state.mind.turn >= absoluteMaxOf(state.mind)) {
       const action = decideNext(state.mind);
       const mind = rememberDecision(state.mind, action);
       return {

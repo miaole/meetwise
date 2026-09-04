@@ -5,7 +5,7 @@
  *  E. 题型(qkind)确定性规则:首问 grounded → 深追 fundamental/scenario 交替;行为槽恒 behavioral。 F. 全程 hasHook 仍在预算内终止(无黑洞)。
  *  G. toCompetencySpecs:top 1-2 标 core + 确定性附加 1 个行为槽。  pnpm adaptive-redesign:prove
  */
-import { initMind, ingestAssessment, decideNext, withCurrent, markUnresolved, toCompetencySpecs, BEHAVIORAL_COMPETENCY, type InterviewMind, type NextAction } from '../src/index.ts';
+import { initMind, ingestAssessment, decideNext, withCurrent, rememberDecision, markUnresolved, toCompetencySpecs, BEHAVIORAL_COMPETENCY, type InterviewMind, type NextAction } from '../src/index.ts';
 let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
 const ask = (a: NextAction) => (a.kind === 'ask' ? a : null);
 
@@ -82,10 +82,12 @@ A('B 全程 hasHook 仍收敛终止(depthProbed 顶到 cap → all_resolved,非�
 {
   let m = initMind(toCompetencySpecs(['并发', '缓存', '可靠性']), 8); let guard = 0;
   while (decideNext(m).kind === 'ask' && guard++ < 50) {
-    const a = ask(decideNext(m))!; m = withCurrent(m, a.competency);
+    const action = decideNext(m); const a = ask(action)!;
+    m = rememberDecision(m, action);
+    m = withCurrent(m, a.competency);
     m = ingestAssessment(m, a.competency, 99, ['钩子'], true);   // 每答都有钩子 + 满分(最不易收敛)
   }
-  A('F 全程 hasHook+满分 → 仍在预算内终止(turn≤maxTurns,无预算黑洞)', decideNext(m).kind === 'conclude' && m.turn <= m.maxTurns && guard < 50);
+  A('F 全程 hasHook+满分 → 覆盖收口且 turn≤绝对杀开关(软预算可上调,无黑洞)', decideNext(m).kind === 'conclude' && m.turn <= m.absoluteMaxTurns && m.turn <= m.maxTurns && guard < 50);
 }
 
 /* ───── G. toCompetencySpecs:top 1-2 标 core + 确定性附加 1 个行为槽 ───── */

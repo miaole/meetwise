@@ -32,7 +32,7 @@ async function runScenario(index: number): Promise<{ concluded: boolean; generat
   let generated = 0;
   const answerVault = createEphemeralAnswerVault();
   const deps: AdaptiveDeps = {
-    competencies: ['并发控制', '检索安全', '故障恢复'], maxTurns: 8,
+    competencies: ['并发控制', '检索安全', '故障恢复'], maxTurns: 8, absoluteMaxTurns: 8,
     retrieveAndGenerate: async (competency, difficulty, _attempt, turn) => {
       generated++;
       return { question: `Q:${competency}:t${turn}:d${difficulty}`, sources: [] };

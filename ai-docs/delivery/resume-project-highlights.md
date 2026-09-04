@@ -80,7 +80,7 @@ pnpm rag-cache:prove
 | 题库 generation | **23 条**完整迁移 PostgreSQL 断言：recipe mismatch（配方不匹配）故障关闭、来源/池/正文哈希一致、已发布工件和映射不可原地改写、任一映射块撤销、cache（缓存）、active/rollback pointer（活动/回滚指针） | `pnpm rag-generation:prove` |
 | 缓存防击穿 | `12` 并发 miss 每轮实际为 `1` 次 embedding + `11` 个等待命中；连续 `5` 轮通过 | `pnpm rag-cache:prove` |
 | 异常输入 egress | **32 条**表驱动输入，其中 `20` 条高风险/注入/混淆输入在 CRAG 前零 local retrieval、零 web/deep egress | `pnpm research-policy:prove` |
-| 多轮 Agent 收敛 | **96 条**固定 seed 异常回答序列；全部在 `<40` 次 resume 收敛。该夹具显式 `maxTurns=8` 故出题 `≤8`；生产默认不再是 8 轮硬顶（天花板 16 + 政策收口）。完成态不保留原始异常回答 | `pnpm adaptive-chaos:prove` |
+| 多轮 Agent 收敛 | **96 条**固定 seed 异常回答序列；全部在 `<40` 次 resume 收敛。该夹具显式锁 `maxTurns=8` **且** `absoluteMaxTurns=8` 故出题 `≤8`（控费，不是生产长度）。生产默认：软预算按覆盖计划派生且可上调；绝对杀开关 120 只防 runaway。完成态不保留原始异常回答 | `pnpm adaptive-chaos:prove` |
 
 这些是确定性合同，不是用户体验满意度、真实 ASR 质量或云上容量数据。
 

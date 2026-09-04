@@ -72,6 +72,8 @@ export interface AdaptiveDeps {
   /** Non-sensitive authorization bit; unlike resume facts it is safe in a graph dependency. */
   resumeProfileAvailable?: boolean;
   maxTurns?: number;
+  /** 平台 runaway 杀开关;未设则默认 120(长时面试档)。隔离 E2E 可压低控费。 */
+  absoluteMaxTurns?: number;
   competencyKeywords?: Record<string, string[]>;
   retrieveAndGenerate: (
     competency: string,

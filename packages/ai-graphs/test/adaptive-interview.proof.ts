@@ -1,7 +1,7 @@
 /** 自适应 agent 图端到端证明(脑子接身体):规划→决策→CRAG出题→等答→评估→更新→动态下一步→报告。
  *  fake deps 确定性:并发=弱(30)→被追问;缓存=强(88)。验证"非固定题单"。 pnpm adaptive-graph:prove */
 import { MemorySaver, Command } from '@langchain/langgraph';
-import { SAFETY_CEILING_TURNS } from '@meetwise/domain';
+import { DEFAULT_ABSOLUTE_MAX_TURNS } from '@meetwise/domain';
 import { buildAdaptiveInterviewGraph, createEphemeralAnswerVault } from '../src/index.ts';
 let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
 
@@ -123,14 +123,15 @@ async function main() {
       loadAnswer: createEphemeralAnswerVault().loadAnswer,
     });
     const cappedResult: any = await capped.invoke({}, { configurable: { thread_id: 'hard-turn-cap' } });
-    A('外部 maxTurns 无法把图变成无界长会话（安全天花板 16，不再是产品硬顶 8）', cappedResult.mind.maxTurns === SAFETY_CEILING_TURNS);
+    A('外部 maxTurns=999 不能无界：软预算夹到绝对杀开关 120（不是产品硬顶 16）',
+      cappedResult.mind.maxTurns === DEFAULT_ABSOLUTE_MAX_TURNS && cappedResult.mind.absoluteMaxTurns === DEFAULT_ABSOLUTE_MAX_TURNS);
   }
 
   /* ───── UC-INT-LENGTH-01 图证明：早停 turn<8 / 深挖 turn>8 / 出处 ───── */
   {
     const skipVault = createEphemeralAnswerVault();
     const skipGraph = buildAdaptiveInterviewGraph(new MemorySaver(), {
-      competencies: ['并发', '缓存', '可靠性'], maxTurns: 16,
+      competencies: ['并发', '缓存', '可靠性'],
       retrieveAndGenerate: async (competency) => ({ question: `Q[${competency}]`, sources: [] }),
       assess: async () => ({ score: 50, evidence: ['不应评分'], relevant: true }),
       loadAnswer: skipVault.loadAnswer,
@@ -154,7 +155,7 @@ async function main() {
         { name: 'A', core: true }, { name: 'B', core: true },
         { name: 'C', core: false }, { name: '协作与沟通', behavioral: true },
       ],
-      maxTurns: 16,
+      maxTurns: 8,
       retrieveAndGenerate: async (competency) => ({ question: `Q[${competency}]`, sources: [] }),
       assess: async () => ({ score: 95, evidence: ['可深挖钩子'], relevant: true, hasHook: true }),
       loadAnswer: deepVault.loadAnswer,
@@ -167,8 +168,8 @@ async function main() {
       askedDeep.push(deepRes.__interrupt__[0].value.competency);
       deepRes = await deepGraph.invoke(new Command({ resume: deepVault.issue('我在项目里这样做并权衡了取舍,还踩过坑复盘了,细节是分段缓存加限流') }), deepCfg);
     }
-    A('深挖:全程 hasHook 多核心 turn>8 仍继续后收尾', deepRes.concluded === true && askedDeep.length > 8 && deepRes.mind.turn > 8 && deepRes.mind.turn <= SAFETY_CEILING_TURNS);
-    A('深挖出处存在且不是 early_weak', typeof deepRes.concludeReason?.code === 'string' && deepRes.concludeReason.code !== 'early_weak');
+    A('深挖:软预算 8 + hasHook → turn>8 且软预算被上调', deepRes.concluded === true && askedDeep.length > 8 && deepRes.mind.turn > 8 && deepRes.mind.maxTurns > 8 && (deepRes.mind.budgetRaises ?? 0) >= 1);
+    A('深挖出处存在且不是 safety_ceiling/early_weak', typeof deepRes.concludeReason?.code === 'string' && deepRes.concludeReason.code !== 'early_weak' && deepRes.concludeReason.code !== 'safety_ceiling');
     A('深挖收尾后 transcript 分数不被 conclude 改写', deepRes.transcript.every((t: any) => t.score === 95 || t.score === 0));
   }
 
