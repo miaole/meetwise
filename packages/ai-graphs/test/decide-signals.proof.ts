@@ -77,7 +77,7 @@ function weakMind() {
     out.route === 'conclude' && codeOf(out.concludeReason) === 'safety_ceiling');
 }
 
-async function hardMax() {
+async function softBudgetClamp() {
   const vault = createEphemeralAnswerVault();
   const g = buildAdaptiveInterviewGraph(new MemorySaver(), {
     competencies: ['容量'], maxTurns: 999,
@@ -85,8 +85,8 @@ async function hardMax() {
     assess: async () => ({ score: 88, evidence: ['ok'], relevant: true }),
     loadAnswer: vault.loadAnswer,
   });
-  const res: any = await g.invoke({}, { configurable: { thread_id: 'signal-hard-max' } });
-  A('信号不抬预算：外部 maxTurns=999 仍被 plan 钳成有限值（夹到绝对杀开关，不是产品硬顶 8）',
+  const res: any = await g.invoke({}, { configurable: { thread_id: 'signal-soft-clamp' } });
+  A('信号不抬预算：外部 maxTurns=999 仍被 plan 钳成有限值（夹到绝对杀开关，不是产品轮次硬顶）',
     res.mind.maxTurns >= 1 && res.mind.maxTurns < 999
     && res.mind.maxTurns <= res.mind.absoluteMaxTurns
     && res.mind.absoluteMaxTurns <= 180);
@@ -112,7 +112,7 @@ async function concludeReasonPersists() {
 }
 
 async function main() {
-  await hardMax();
+  await softBudgetClamp();
   await concludeReasonPersists();
   console.log(`\n${fail === 0 ? '✓ 图 decide 控制信号 hook（concludeReason provenance；杀开关先赢）全部通过' : '✗ ' + fail + ' 失败'}`);
   process.exit(fail === 0 ? 0 : 1);
