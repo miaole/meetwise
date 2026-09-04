@@ -76,6 +76,11 @@ jobs:
       - name: interview dispatch fairness (no database)
         run: pnpm interview-dispatch:unit:prove
 
+      # 押题/诊断双连接恰一领（无库）：拒绝本地 Docker / loopback。
+      # 隔离 PostgreSQL 证明不在 per-push CI（需 E2E_CLOUD_ISOLATED=1；releaseEvidence=false）。
+      - name: quiz/diagnosis dual-claim fail-closed (no database)
+        run: pnpm quiz-dual-claim:unit:prove
+
       # SSE Last-Event-ID 失败关闭（无库）：押题/诊断不得把非法游标降级为全量重放。
       - name: SSE last-event-id fail-closed parser (no database)
         run: pnpm last-event-id:unit:prove
