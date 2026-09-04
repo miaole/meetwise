@@ -44,7 +44,7 @@ db:prove  runtime:prove  graph:prove  pipeline:prove  api:validate  api:smoke  a
 
 另按模块沉淀几十套专项证明门禁：`commerce:prove`（44 断言）、`resume:prove`（24）、`report:prove`（25）、`web:prove`（27）、`e2e:prove`、`security:prove`、`privacy-erasure:prove`、`retrieval:prove`、`adaptive:prove` 等，覆盖支付不超卖、简历安全、报告故障隔离、真浏览器端到端、红队反操纵、删除回执、检索召回。
 
-**禁止伪验收**：不能只断言 HTTP 200、不能只跑 happy path、不能用 mock 模型证明生产模型质量、不能 AI 自评自己的报告。
+**禁止伪验收**：不能只断言 HTTP 200、不能只跑 happy path、不能用 mock 模型证明生产模型质量、不能 AI 自评自己的报告。**不得默认信任** AI 代码或输出：须审核 + 多轮自动化门禁（`ai-docs/rules/global/ai-generated-review.md`）。
 
 ---
 
