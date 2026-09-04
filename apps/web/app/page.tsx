@@ -12,7 +12,7 @@ import { publicSiteHref } from '@/lib/public-site';
 const SITE = publicSiteHref();
 
 export const metadata: Metadata = {
-  description: '知面预览版：求职者按真实经历练面试，面试官跟着回答追问。场次能接着，招聘与练习数据分开。',
+  description: '知面预览版：按真实经历练面试，下一题跟着回答走。招聘侧是后续方向，不是已经能用来招人。',
   alternates: SITE ? { canonical: '/' } : undefined,
 };
 

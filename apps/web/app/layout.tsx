@@ -9,7 +9,7 @@ import { resolvePublicSiteUrl } from '@/lib/public-site';
 import { resolvePublicPreview } from '@/lib/public-preview';
 
 const SITE = resolvePublicSiteUrl();
-const DESC = '知面预览版：求职者按真实经历练面试，面试官跟着回答追问。场次能接着，招聘与练习数据分开。';
+const DESC = '知面预览版：按真实经历练面试，下一题跟着回答走。招聘侧是后续方向，不是已经能用来招人。';
 
 /** 全站 SEO 元数据(服务端注入):title 模板、description、Open Graph、Twitter、canonical、robots。RSC 已让内容可爬,这里补元数据层。 */
 export const metadata: Metadata = {

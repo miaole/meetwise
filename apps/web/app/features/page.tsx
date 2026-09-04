@@ -23,7 +23,7 @@ const SITE = publicSiteHref();
 export const metadata: Metadata = {
   title: '产品功能 · 知面 Meetwise',
   description:
-    '知面预览版：求职者按真实经历练面试，面试官跟着回答追问。场次能接着，招聘与练习数据分开。',
+    '知面预览版：按真实经历练面试，下一题跟着回答走。招聘侧是后续方向，不是已经能用来招人。',
   alternates: SITE ? { canonical: '/features' } : undefined,
 };
 

@@ -78,6 +78,13 @@ const checks = {
     requireText(homeEn, 'not a calibrated capability assessment', 'English home copy');
     requireText(homeZh, '真实经历 → 自适应面试 → 可复盘成长', 'Chinese home story');
     requireText(homeEn, 'Real experience → adaptive interview → reviewable growth', 'English home story');
+    requireText(homeZh, '招聘侧是后续方向', 'Chinese home B-side framing');
+    requireText(pagesHtml, '招聘侧是后续方向', 'Pages B-side framing');
+    forbid(`${homeZh}\n${homeEn}\n${pagesHtml}`, [
+      '面试官问得深',
+      '用同一套追问看岗位',
+      'Interviewers and recruiters use the same follow-ups',
+    ], 'B-side oversell');
   },
   'TC-PUBLIC-COPY-E1': () => {
     const privacyAction = read('apps/web/app/privacy/actions.ts');
