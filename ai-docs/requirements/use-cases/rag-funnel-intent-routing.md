@@ -127,7 +127,7 @@ question plan: planned -> dispatching -> issued | failed | unknown
 
 | 面 | 目标变更 | 当前状态 |
 | --- | --- | --- |
-| 题库摄取/切块 | `QbankQuestionArtifact` 携带完整 `QuestionArtifactMetadata`；每个可检索 mapping 有 `ChunkServingMetadata` 与 `MetadataReviewReceipt`，并在 embedding 前被审核 | **局部实现、P0 阻断。** `0086/0087/0089` 仅有 taxonomy、四元 annotation/hash、release leaf 校验及**不完整的** 18-function/14-table control-definer handoff 候选。它已按对象检查 function、表级/列级 ACL，以及 global/`public` default ACL，且递归移交既有 generation 分区/索引 owner；但 app retrieval readers、`qbank_retrieval_candidate` view、词法 helper 与 cache/pool trigger 尚未形成 owner/ACL/RLS/search-path 依赖闭包，移交后可能 42501。`qbank_curator`/`qbank_cache_epoch` 是显式的 request 只读例外，不能推广为原始题库可读。真实隔离组合根尚未验证。必须先冻结并证明 sealed reader/control closure，才可称 handoff 可部署。technology/seniority/kind/language、独立审核者/政策/撤销 receipt、future migration definer authoring 合同及已验证的部署 handoff 均未完成。 |
+| 题库摄取/切块 | `QbankQuestionArtifact` 携带完整 `QuestionArtifactMetadata`；每个可检索 mapping 有 `ChunkServingMetadata` 与 `MetadataReviewReceipt`，并在 embedding 前被审核 | **局部实现。** `RAG-FUNNEL-01A` 源码闭包已密封：31 函数 + 15 表 + 2 视图（含 bounded reader、`qbank_retrieval_candidate`/`qbank_visible_ref`、词法 helper、cache/pool trigger）在同一 owner/ACL/RLS/fixed-`search_path` 清单内；`qbank_curator`/`qbank_cache_epoch`/`qbank_visible_ref` 是 request 只读例外。本地 `qbank-handoff-closure:prove` 证明移交前 42501 与 raw-read=0；`0124` 空 principal → `rag_acl_principal_missing`。`releaseEvidence=false`，不是云部署回执。`MetadataReviewReceipt` 表存在但未进入 routed serving。technology/seniority/kind/language 完整 facets 与标准部署 handoff 仍归 `RAG-FUNNEL-01`。 |
 | generation 构建 | 只为已有 serving metadata 的 question/artifact 构建 question-aware projection/embedding；禁止 source 默认继承 | 未实施；当前 generation 只按 raw `ref_id` 建向量行，没有 scope projection。 |
 | embedding compute cache | 以 data-class/region/visibility scope、exact recipe digest、actual canonical provider-input digest、dimension、transform/chunker 与 schema 组成不透明 key；仅未命中才经持久 attempt/cost 发送 provider；Redis value 只保存有界向量数值、checksum 与完整 HMAC | 未实施；当前只在单 Worker 进程内 `Map` 缓存，Redis/Tair 只缓存 query retrieval hits。 |
 | 岗位创建/编辑 | 创建或修改 `title/description/competencies` 后写 `JobSemanticRevision` 和 route pending；自动路由完成后才具备面试资格 | 未实施；当前创建幂等只覆盖原始字段，没有分类状态。 |
@@ -161,10 +161,32 @@ question plan: planned -> dispatching -> issued | failed | unknown
   - **E4 失败回滚：** metadata/mapping/manifest 任一失败，artifact 不发布、generation 不激活。机制：事务与 generation 状态机。
   - **E5 降级：** 标注不唯一、taxonomy 失效或审核未完成时进 review queue；不使用 generic 或全库标签。机制：fail-to-curation。
   - **E6 超时/断线：** 中断只恢复相同 receipt；未知 embedding/构建不激活旧/无标签 projection。机制：lease/attempt。
-- **部署闭包约束：** handoff 后任一 bounded reader、view、lexical helper 或 pool/cache trigger 的 owner/ACL/RLS/search-path 不完整时，control 摄取和 app retrieval 都 fail-closed；不得通过补回 app raw-table grant、恢复 migration owner 或放宽 PUBLIC ACL 暂时打通。机制：sealed dependency manifest + startup catalog gate + 低权组合根。该约束属于 `RAG-FUNNEL-01A`，不新增第八类 TC。
+- **部署闭包约束：** handoff 后任一 bounded reader、view、lexical helper 或 pool/cache trigger 的 owner/ACL/RLS/search-path 不完整时，control 摄取和 app retrieval 都 fail-closed；不得通过补回 app raw-table grant、恢复 migration owner 或放宽 PUBLIC ACL 暂时打通。机制：`principal.ts` 31/15/2 sealed manifest + `assertQbankControlDefinerOwnership` + `qbank-handoff-closure:prove`。该约束属于 `RAG-FUNNEL-01A`（源码已密封，云回执仍归 01）。
 - **后置 Postcondition：** 所有 published/serving 投影都有 hash 固化 leaf metadata；未标注内容不可检索。
 - **验收标准 Acceptance：** Node.js/Java/Go/Python 互相误入=0；父节点直标、未知 tag、hash 不符、未审核 `servingScopeId`、source 默认误继承和共享 chunk 错继承全部拒绝。handoff 后 provisioned control login 的完整 artifact ingest/pool promotion 与 provisioned app login 的 active metadata、dense、lexical、distance、evidence、question evidence、cache epoch 读取均可用；app raw relation/view read=0，任何 closure owner/ACL/search-path drift 均在启动前拒绝。
 - **关联：** QBank artifact/generation、不可变 receipt、CAS/RLS。
+
+### UC-RAG-FUNNEL-01A · 密封检索 ACL，跨租户/会话不得泄漏，缺 ACL/provenance fail-closed
+
+- **角色 Actor：** 请求运行时、QBank/RAG definer、隔离 proof。
+- **前置 Precondition：** `qbank_control_definer` 与 `rag_runtime_definer` 已 provision；request 只经 bounded reader / `rag_resolve_query_binding`。
+- **触发 Trigger：** 启动 catalog 检查、低权 ingest/retrieval、或 generic RAG resolve/search/evidence。
+- **主流程 Main：**
+  1. 启动门禁核对 31 函数 + 15 表 + 2 视图的 owner/ACL/RLS/fixed-`search_path`；漂移抛 `qbank_control_definer_ownership_invalid`。
+  2. 已 provision 的 app login 调用 active-metadata、dense、lexical、distance、evidence、question-evidence、cache-epoch；不得 raw-read 密封底表。
+  3. generic RAG resolve/search 要求非空 `app.principal_user`；同租户只见本人私有行 + 已批准 global。
+- **备选流 Alternate：** 二次 `provisionQbankControlDefiner` 重入成功，gate 仍接受。
+- **异常流 Exception：**
+  - **E1 重复：** 二次 provision 不改变 owner，不重新开放 GRANT。机制：幂等 provision + catalog gate。
+  - **E2 并发：** 两请求同 binding 并发 resolve，属主谓词不变，不会放出他租户行。机制：RLS + `owner_user_id=principal`。SQL 不校验 session/sticky；跨会话 replay 不是本项数据面承诺。
+  - **E3 越权：** 租户 B 用 A 的 binding → `rag_binding_unavailable`；B 读 A 私有 chunk=0。机制：RLS principal。
+  - **E4 失败回滚：** 移交前非超级用户 owner 时 bounded reader 为 42501；gate 拒绝分裂 owner。机制：FORCE RLS + catalog fail-closed。
+  - **E5 降级：** 空/空白 principal → `rag_acl_principal_missing`（42501），不得无范围 bind/检索。机制：0124 SQL 入口。
+  - **E6 超时/断线：** 中断恢复仍走同一 sealed 函数，不改走 raw SELECT。机制：无旁路入口。
+- **后置 Postcondition：** 密封对象保持单一 definer owner；request raw-read=0（除刻意只读面）；缺 ACL 的检索不返回行。
+- **验收标准 Acceptance：** 移交前 42501 且移交后非 42501；raw relation/view read=0；跨租户 binding/私有行=0；空 principal 抛 `rag_acl_principal_missing`；global 无批准 provenance=0 行。`releaseEvidence=false`。
+- **关联：** `TC-RAG-FUNNEL-01-*`、`principal.ts`、0124、`rag-retrieval-acl.ts`、RLS。
+- **七类覆盖标注：** 正/异/特/逃/并/复/刁。
 
 ### UC-RAG-FUNNEL-02 · 已审核 artifact 建立受 recipe 约束的 generation projection 与 embedding compute cache
 
@@ -313,7 +335,8 @@ question plan: planned -> dispatching -> issued | failed | unknown
 
 | 交付项 | 已发现 | 已实现 | 已验证 | 已关闭 | 关键验收 |
 | --- | :---: | :---: | :---: | :---: | --- |
-| RAG-FUNNEL-01 摄取/切块 metadata taxonomy | ☑ | ◐ | ☐ | ☐ | `0086/0087/0089` 已写入 v1 taxonomy、executor annotation/hash、release leaf 校验及候选的 18-function/14-table control-definer handoff 和迁移 CLI post-flight；该 handoff 尚缺 reader/view/helper/trigger 的目录依赖闭包，移交后 serving/control 可能 42501。先完成 `RAG-FUNNEL-01A` sealed dependency manifest，再跑低权 control ingest + app retrieval 组合根。本机 Docker daemon 不可用，当前树没有真实隔离回执。它不是 `MetadataReviewReceipt`，也不能称标准部署已验证。必须先闭合审核 receipt、完整 facets、部署 handoff 与七类验收；Node/Java/Go/Python 不互混尚不能作为 serving 结论。 |
+| RAG-FUNNEL-01A 密封依赖闭包与检索 ACL | ☑ | ☑ | ◐ | ☐ | 源码 31/15/2 manifest + `0094` + 启动门禁已密封。QBank 本地 `qbank-handoff-closure:prove`：移交 42501、raw-read=0。Generic RAG 本地 `rag-corpus-version.proof.ts`：跨租户 binding=`rag_binding_unavailable`、空 principal=`rag_acl_principal_missing`/42501。域 `prove:rag-retrieval-acl` 只证纯合同，不是 SQL 抛码。`releaseEvidence=false`。 |
+| RAG-FUNNEL-01 摄取/切块 metadata taxonomy | ☑ | ◐ | ☐ | ☐ | taxonomy/annotation 与 01A 闭包已在源码；`MetadataReviewReceipt` 表在清单内但未进入 routed serving。完整 facets、标准部署 handoff 回执与七类 serving 验收未关闭。Node/Java/Go/Python 不互混尚不能作为 serving 结论。 |
 | RAG-FUNNEL-02A projection 与 canonical embedding recipe | ☑ | ☐ | ☐ | ☐ | 先建立 immutable `(generation, artifact/question, ref, scope)` projection、实际 provider-input canonicalizer 和完整 deployment/region/model/revision recipe；未标注/哈希不符不入 generation。 |
 | RAG-FUNNEL-02B / RAG-EMBED-CACHE-01 durable embedding compute cache | ☑ | ☐ | ☐ | ☐ | 与 retrieval-result Redis cache 分离；同 recipe/input 跨实例仅一个 fill intent/slot/cost dispatch，unknown 与 `succeeded_uncached` 不自动重算。 |
 | RAG-FUNNEL-03 自动岗位意图分类与 route binding | ☑ | ☐ | ☐ | ☐ | title/description/competencies 自动决定合法 allocation；低置信=interview ineligible，不出现手选桶。 |
@@ -327,7 +350,7 @@ question plan: planned -> dispatching -> issued | failed | unknown
 
 | TC | 层级 | 断言 |
 | --- | --- | --- |
-| `TC-RAG-FUNNEL-01-main`<br>`TC-RAG-FUNNEL-01-E1`<br>`TC-RAG-FUNNEL-01-E2`<br>`TC-RAG-FUNNEL-01-E3`<br>`TC-RAG-FUNNEL-01-E4`<br>`TC-RAG-FUNNEL-01-E5`<br>`TC-RAG-FUNNEL-01-E6` | 完整迁移 PostgreSQL + provisioned control/app plane | 已 provision 的 sealed definer/control login 写入审核 receipt；低权 app login 的 active metadata、dense/lexical/distance/evidence/question evidence/cache epoch 全部可用且 raw read=0；20 并发、taxonomy 竞争、RLS、完整 facets、review revoke、owner/表级/列级/default ACL/search-path drift、依赖闭包缺项、失败和 unknown 全覆盖。 |
+| `TC-RAG-FUNNEL-01-main`<br>`TC-RAG-FUNNEL-01-E1`<br>`TC-RAG-FUNNEL-01-E2`<br>`TC-RAG-FUNNEL-01-E3`<br>`TC-RAG-FUNNEL-01-E4`<br>`TC-RAG-FUNNEL-01-E5`<br>`TC-RAG-FUNNEL-01-E6` | 域单元 + 完整迁移 PostgreSQL（本地隔离） + provisioned control/app plane | 01A 源码密封复用本行既有 leaf：域合同七类码（未接线，`prove:rag-retrieval-acl`）；QBank handoff 前 42501 / 后非 42501 且 raw-read=0；generic RAG 跨租户 binding=`rag_binding_unavailable`、空 principal=`rag_acl_principal_missing`/`42501`。完整 facets / 审核 receipt serving / 20 并发仍归 01，不得勾选已验证。 |
 | `TC-RAG-FUNNEL-02-main`<br>`TC-RAG-FUNNEL-02-E1`<br>`TC-RAG-FUNNEL-02-E2`<br>`TC-RAG-FUNNEL-02-E3`<br>`TC-RAG-FUNNEL-02-E4`<br>`TC-RAG-FUNNEL-02-E5`<br>`TC-RAG-FUNNEL-02-E6` | 完整迁移 PostgreSQL + control plane + controlled embedding transport | artifact-to-generation projection 只消费已审核 metadata；canonicalizer/recipe 含实际 deployment，20 并发只有一个 provider dispatch；未标注、hash/recipe/dimension/HMAC 不符、共享 chunk 错继承、Redis 损坏/unknown、撤销或跨域伪造均不可 serving。 |
 | `TC-RAG-FUNNEL-03-main`<br>`TC-RAG-FUNNEL-03-E1`<br>`TC-RAG-FUNNEL-03-E2`<br>`TC-RAG-FUNNEL-03-E3`<br>`TC-RAG-FUNNEL-03-E4`<br>`TC-RAG-FUNNEL-03-E5`<br>`TC-RAG-FUNNEL-03-E6` | PostgreSQL + API + controlled model transport | job title/description/competencies 自动产生合法 single/multi leaf allocation；幂等、编辑/申请并发、伪造、事务失败、low-confidence/unknown 与断线时未决 route 的检索/出题=0；没有手选 bucket 字段。 |
 | `TC-RAG-FUNNEL-04-main`<br>`TC-RAG-FUNNEL-04-E1`<br>`TC-RAG-FUNNEL-04-E2`<br>`TC-RAG-FUNNEL-04-E3`<br>`TC-RAG-FUNNEL-04-E4`<br>`TC-RAG-FUNNEL-04-E5`<br>`TC-RAG-FUNNEL-04-E6` | full migration + Worker/graph | immutable route snapshot、deterministic allocation scheduler、每个 query path 硬过滤、plan 重放、撤销、越权、失败、降级与 unknown；全部 `wrong_track=0`。 |
@@ -340,4 +363,4 @@ question plan: planned -> dispatching -> issued | failed | unknown
 
 ## 6. 实现门禁结论
 
-**需求与架构门被 P0 阻断；不得开始 routed serving 实现。** `RAG-FUNNEL-01A` 必须先冻结并验证完整 definer dependency manifest：control writer/trigger、bounded app reader、调用 helper、security-definer view、cache/epoch trigger 的唯一 owner、精确 ACL、固定 `search_path` 与 RLS 共同组成闭包；当前候选 handoff 未覆盖该闭包，移交后 control 或 serving 可能 42501。其后 `RAG-FUNNEL-01` 才可补可部署的 definer handoff、`MetadataReviewReceipt` 与完整 facets；随后依次实施 `RAG-FUNNEL-02A canonical projection/recipe` → `RAG-FUNNEL-02B / RAG-EMBED-CACHE-01 durable compute cache` → `03 automatic job classifier + binding` → `04 retrieval/planner` → `05 qbank-miss generation` → `06 cache/provenance` → `07 free-text` → `08 production evaluation`。没有 metadata/projection 时，岗位分类器没有可信桶可选；没有自动 job decision/snapshot 时，Worker 不得从当前 job 或固定“技术岗”猜桶；没有 eligibility、QuestionPlan、rubric/score contract 和评分隔离时，不得把 generic LLM 出题冒充同桶 fallback。
+**Routed serving 仍不得当作生产已接线。** `RAG-FUNNEL-01A` 源码依赖闭包已密封（31 函数 + 15 表 + 2 视图 + 检索 ACL fail-closed）；本地 isolation/abuse proof 存在，`releaseEvidence=false`。`RAG-FUNNEL-01` 仍须补 `MetadataReviewReceipt` serving、完整 facets 与真实组合根部署回执。其后才是 `02A canonical projection/recipe` → `02B / RAG-EMBED-CACHE-01` → `03` → `04` → `05` → `06` → `07` → `08`。本地 03–07 合同 proof 不是生产 Worker 接线：没有自动 job decision/snapshot 时，Worker 不得从当前 job 或固定“技术岗”猜桶；没有 eligibility、QuestionPlan、rubric/score contract 和评分隔离时，不得把 generic LLM 出题冒充同桶 fallback。

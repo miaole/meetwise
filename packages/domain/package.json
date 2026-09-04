@@ -21,7 +21,8 @@
     "prove:ctx-01-input-routing": "tsx test/input-routing.proof.ts",
     "prove:scoring-operation-routing": "tsx test/scoring-operation-routing.proof.ts",
     "prove:mem07-injection-fence": "tsx test/mem07-injection-fence.proof.ts",
-    "prove:mem09-lifecycle-triggers": "tsx test/mem09-lifecycle-triggers.proof.ts"
+    "prove:mem09-lifecycle-triggers": "tsx test/mem09-lifecycle-triggers.proof.ts",
+    "prove:rag-retrieval-acl": "tsx test/rag-retrieval-acl.proof.ts"
   },
   "dependencies": {
     "mammoth": "^1.12.0",

@@ -190,6 +190,51 @@ async function main() {
     A('AFTER handoff: the same non-superuser serving principal observes no 42501 and the writer path completes',
       afterLockEpochOk && afterActiveMetadata && afterIngestOk);
 
+    // Bounded readers must be callable after handoff (any non-42501 outcome is
+    // the ACL proof: missing generation/null vector is a business error, not a
+    // privilege hole).  Raw relation/view SELECT stays 0 except the three
+    // intentional request-side surfaces.
+    const not42501 = async (fn: () => Promise<unknown>): Promise<boolean> => {
+      try { await fn(); return true; } catch (error) { return (error as { code?: string }).code !== '42501'; }
+    };
+    const afterAnn = await not42501(() => asServingRuntime(serving, () => serving.query(
+      "SELECT * FROM qbank_generation_ann_search('qgen-00000000-0000-0000-0000-000000000000', NULL::vector, 1)",
+    )));
+    const afterLexical = await not42501(() => asServingRuntime(serving, () => serving.query(
+      "SELECT * FROM qbank_generation_lexical_search('qgen-00000000-0000-0000-0000-000000000000', 'handoff', 1)",
+    )));
+    const afterDistances = await not42501(() => asServingRuntime(serving, () => serving.query(
+      "SELECT * FROM qbank_generation_distances('qgen-00000000-0000-0000-0000-000000000000', NULL::vector, ARRAY[]::text[])",
+    )));
+    const afterEvidence = await not42501(() => asServingRuntime(serving, () => serving.query(
+      "SELECT * FROM qbank_generation_evidence('qgen-00000000-0000-0000-0000-000000000000', ARRAY[]::text[], 40)",
+    )));
+    const afterQuestionEvidence = await not42501(() => asServingRuntime(serving, () => serving.query(
+      "SELECT * FROM qbank_generation_question_evidence('qgen-00000000-0000-0000-0000-000000000000', ARRAY[]::text[], 40)",
+    )));
+    A('AFTER handoff: dense reader is not 42501', afterAnn);
+    A('AFTER handoff: lexical reader is not 42501', afterLexical);
+    A('AFTER handoff: distance reader is not 42501', afterDistances);
+    A('AFTER handoff: evidence reader is not 42501', afterEvidence);
+    A('AFTER handoff: question-evidence reader is not 42501', afterQuestionEvidence);
+
+    const rawReadDenied: string[] = [];
+    for (const table of QBANK_CONTROL_DEFINER_TABLE_MANIFEST) {
+      if (table.appRolePrivileges.includes('SELECT')) continue;
+      const denied = await rejectsCode(() => asServingRuntime(serving, () => serving.query(`SELECT * FROM ${table.name} LIMIT 1`)));
+      if (!denied) rawReadDenied.push(table.name);
+    }
+    for (const view of QBANK_CONTROL_DEFINER_VIEW_MANIFEST) {
+      if (view.appRolePrivileges.includes('SELECT')) continue;
+      const denied = await rejectsCode(() => asServingRuntime(serving, () => serving.query(`SELECT * FROM ${view.name} LIMIT 1`)));
+      if (!denied) rawReadDenied.push(view.name);
+    }
+    const curatorReadable = await asServingRuntime(serving, () => serving.query('SELECT 1 FROM qbank_curator LIMIT 1')).then(() => true, () => false);
+    const epochReadable = await asServingRuntime(serving, () => serving.query('SELECT 1 FROM qbank_cache_epoch LIMIT 1')).then(() => true, () => false);
+    const visibleRefReadable = await asServingRuntime(serving, () => serving.query('SELECT 1 FROM qbank_visible_ref LIMIT 1')).then(() => true, () => false);
+    A('AFTER handoff: app raw relation/view read=0 except qbank_curator / qbank_cache_epoch / qbank_visible_ref',
+      rawReadDenied.length === 0 && curatorReadable && epochReadable && visibleRefReadable);
+
     // ── MetadataReviewReceipt domain object: append-only, hash-verified,
     //    explicit status enum (recorded/voided), FORCE RLS, executor-only.
     const validReceiptId = `receipt:handoff:${process.pid}:approved`;

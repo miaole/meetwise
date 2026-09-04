@@ -144,6 +144,15 @@ export { extractResumeText, cleanResumeText, detectResumeFormat, type ResumeFile
 
 export { chunkStructuredDocument, type SourceLocator, type DocumentFormat, type ElementKind, type TextElement, type TableElement, type TranscriptElement, type DocumentElement, type StructuredDocument, type ChunkerRecipe, type RagChunk } from './rag-chunking.ts';
 
+// 检索 ACL fail-closed（RAG-FUNNEL-01A）纯域原语：缺 principal / 跨租户 binding /
+// 跨会话 replay / 私有越权 / global 无 provenance / 未知 visibility 一律拒绝。
+export {
+  RAG_RETRIEVAL_ACL_CODES, decideRagRetrievalAcl, assertRagRetrievalAcl,
+} from './rag-retrieval-acl.ts';
+export type {
+  RagRetrievalAclCode, RagRetrievalAclInput, RagRetrievalAclDecision, RagRetrievalVisibility,
+} from './rag-retrieval-acl.ts';
+
 export { isAllowed, isPrivateHost, extractMaterial, webExplore, deepExplore, createSafeFetch, normalizeResearchQuery, formatUntrustedResearchMaterial, type AllowedSource, type FetchFn, type FetchedPage, type RawFetch, type RawResponse, type SafeFetchOpts, type DeepExploreOpts, type DeepExploreResult } from './web-explore.ts';
 
 // 评分测量事实根（SCOR-01）纯域状态机：ScoreCard 证据流转移表 + 可评分判定（与迁移 0100 触发器逐值一致）。

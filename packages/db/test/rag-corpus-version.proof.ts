@@ -26,6 +26,15 @@ const check = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAI
 const failed = async (fn: () => Promise<unknown>, signal: string) => {
   try { await fn(); return false; } catch (error) { return String(error).includes(signal); }
 };
+const failedAcl = async (fn: () => Promise<unknown>) => {
+  try {
+    await fn();
+    return false;
+  } catch (error) {
+    const databaseError = error as { code?: string; message?: string };
+    return databaseError.code === '42501' && String(databaseError.message).includes('rag_acl_principal_missing');
+  }
+};
 
 function versionInput(documentId: string, suffix: string, chunks: { id: string; content: string; ordinal: number }[]) {
   return {
@@ -133,6 +142,16 @@ async function main() {
       && bHits.some((x) => x.chunkId === 'rchunk-global-v1') && !bHits.some((x) => x.chunkId === 'rchunk-a-v1'));
   const bindingTheft = await failed(() => asPrincipal(pool, B, (c) => searchRagBinding(c, 'rbind-a-v1', [1, 0, 0], 5)), 'rag_binding_unavailable');
   check('a binding cannot be replayed by another principal', bindingTheft);
+  check('empty principal fail-closes resolve with rag_acl_principal_missing/42501',
+    await failedAcl(() => asPrincipal(pool, '', (c) => c.query('SELECT * FROM rag_runtime.rag_resolve_query_binding($1)', ['rbind-a-v1']))));
+  check('empty principal fail-closes search with rag_acl_principal_missing/42501',
+    await failedAcl(() => asPrincipal(pool, '', (c) => searchRagBinding(c, 'rbind-a-v1', [1, 0, 0], 5))));
+  check('empty principal fail-closes evidence with rag_acl_principal_missing/42501',
+    await failedAcl(() => asPrincipal(pool, '', (c) => ragBindingEvidence(c, 'rbind-a-v1', ['rchunk-a-v1'], 40))));
+  check('whitespace principal fail-closes resolve with rag_acl_principal_missing/42501',
+    await failedAcl(() => asPrincipal(pool, '   ', (c) => c.query('SELECT * FROM rag_runtime.rag_resolve_query_binding($1)', ['rbind-a-v1']))));
+  check('empty principal fail-closes bind with rag_acl_principal_missing/42501',
+    await failedAcl(() => asPrincipal(pool, '', (c) => bindRagQuery(c, 'rbind-empty-principal', 'session-empty', 3600))));
   const aEvidence = await asPrincipal(pool, A, (c) => ragBindingEvidence(c, 'rbind-a-v1', ['rchunk-a-v1'], 40));
   await asPrincipal(pool, A, (c) => recordRagCitation(c, 'rcite-a-v1', 'rbind-a-v1', 'rchunk-a-v1'));
   check('evidence returns frozen chunk/content version/hash/locator rather than a ref-only citation',
