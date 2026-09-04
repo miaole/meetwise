@@ -44,6 +44,12 @@ jobs:
       # 文档门禁：必需文件 + 关键术语
       - run: pnpm docs:check
 
+      # 预览删除路径源码 pin（无库）：目录/契约/公开 503。不替代隔离库证明。
+      - name: 隐私删除预览路径（域/契约 pin，非发布证据）
+        run: |
+          pnpm privacy-erasure-preview:domain:prove
+          pnpm privacy-erasure-preview:contract:prove
+
       # 公开首页、预览说明与招聘边界：仅检查已审计的文案契约，不证明运行或发布状态。
       - name: 公开文案边界（不替代发布证据）
         run: pnpm -C apps/web prove:public-copy
@@ -137,6 +143,7 @@ jobs:
         run: |
           pnpm privacy-erasure:prove
           pnpm privacy-erasure:http:prove
+          pnpm privacy-erasure-preview:prove
           pnpm privacy-erasure:pause-upgrade:prove
       - name: 评分旁路停用（真实 HTTP + 当前迁移组合根零副作用）
         run: pnpm scor-00:http:prove

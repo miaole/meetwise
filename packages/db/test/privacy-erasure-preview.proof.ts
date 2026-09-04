@@ -16,6 +16,8 @@ const interviewId = `preview-iv-${process.pid}`;
 const HASH = 'a'.repeat(64);
 const HASH2 = 'b'.repeat(64);
 const HASH3 = 'c'.repeat(64);
+const HASH4 = 'd'.repeat(64);
+const HASH5 = 'e'.repeat(64);
 
 let failures = 0;
 const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures++; };
@@ -57,6 +59,16 @@ async function main() {
     'SELECT count(*)::int AS n FROM privacy_erasure_request WHERE id=$1 AND owner_user_id=$2 AND scope=$3',
     [begun.localSweepRequestId, owner, 'interview_data']);
   A('正：链接的 0096 子请求存在', Number(child.rows[0]?.n) === 1);
+  const active = await asPrincipal(admin, owner, async (c: Client) => {
+    const r = await c.query<{ active: boolean }>('SELECT interview_privacy_active($1) AS active', [interviewId]);
+    return r.rows[0]?.active;
+  });
+  const anchors = Number((await admin.query<{ n: string }>(
+    'SELECT count(*)::int AS n FROM privacy_checkpoint_target WHERE thread_id=$1 AND owner_user_id=$2',
+    [interviewId, owner],
+  )).rows[0]?.n);
+  A('正：面试预览后投影围栏生效（active=false 且 fence 锚≥1）',
+    active === false && anchors >= 1);
 
   const replay = await asPrincipal(admin, owner, (c: Client) =>
     beginPrivacyPreviewErasure(c, 'interview_data', interviewId, HASH));
@@ -109,11 +121,44 @@ async function main() {
     && account.sinks.some((row) => row.sink === 'user_memory' && row.disposition === 'honest_unresolved')
     && account.completeness === 'preview_incomplete');
 
-  const rawKey = await admin.query<{ n: string }>(
-    `SELECT count(*)::int AS n FROM privacy_preview_request
-      WHERE owner_user_id=$1 AND idempotency_key_hash=$2`,
-    [owner, 'raw-key-must-not-land']);
-  A('刁：原始幂等键不入库', Number(rawKey.rows[0]?.n) === 0);
+  const storedHashes = await admin.query<{ idempotency_key_hash: string }>(
+    'SELECT idempotency_key_hash FROM privacy_preview_request WHERE owner_user_id=$1',
+    [owner]);
+  A('刁：落库只接受调用方已 HMAC 的 64-hex，不含 raw 明文键',
+    storedHashes.rows.length >= 1
+    && storedHashes.rows.every((row) => /^[a-f0-9]{64}$/.test(row.idempotency_key_hash))
+    && !storedHashes.rows.some((row) => row.idempotency_key_hash.includes('raw-key') || row.idempotency_key_hash === HASH.slice(0, 8)));
+
+  const beforeFail = Number((await admin.query<{ n: string }>(
+    'SELECT count(*)::int AS n FROM privacy_preview_request WHERE owner_user_id=$1',
+    [owner],
+  )).rows[0]?.n);
+  const foreignInterview = `preview-foreign-iv-${process.pid}`;
+  await admin.query(
+    "INSERT INTO interview(id,owner_user_id,status,version,current_question_index,questions) VALUES ($1,$2,'active',0,0,'[]'::jsonb)",
+    [foreignInterview, other],
+  );
+  A('异：他人面试 begin 失败后预览行不增加',
+    await rejects(() => asPrincipal(admin, owner, (c: Client) =>
+      beginPrivacyPreviewErasure(c, 'interview_data', foreignInterview, HASH5)))
+    && Number((await admin.query<{ n: string }>(
+      'SELECT count(*)::int AS n FROM privacy_preview_request WHERE owner_user_id=$1',
+      [owner],
+    )).rows[0]?.n) === beforeFail);
+
+  const concurrent = await Promise.allSettled([
+    asPrincipal(admin, owner, (c: Client) => beginPrivacyPreviewErasure(c, 'resume_data', null, HASH4)),
+    asPrincipal(admin, owner, (c: Client) => beginPrivacyPreviewErasure(c, 'resume_data', null, HASH4)),
+  ]);
+  const concurrentOk = concurrent.filter((row) => row.status === 'fulfilled') as PromiseFulfilledResult<Awaited<ReturnType<typeof beginPrivacyPreviewErasure>>>[];
+  const concurrentCount = Number((await admin.query<{ n: string }>(
+    'SELECT count(*)::int AS n FROM privacy_preview_request WHERE owner_user_id=$1 AND idempotency_key_hash=$2',
+    [owner, HASH4],
+  )).rows[0]?.n);
+  A('并：同 key 并发恰 1 预览请求且回执同一 requestId',
+    concurrentCount === 1
+    && concurrentOk.length >= 1
+    && concurrentOk.every((row) => row.value.requestId === concurrentOk[0].value.requestId));
 
   if (failures) {
     console.error(`\n✗ privacy-erasure-preview db ${failures} 失败`);

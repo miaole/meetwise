@@ -55,7 +55,7 @@ export class PrivacyController {
   }
 
   @Delete('resume-data')
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.SERVICE_UNAVAILABLE)
   deleteResumeData(@Req() req: any) {
     return this.privacy.deleteResumeData(req.principal);
   }

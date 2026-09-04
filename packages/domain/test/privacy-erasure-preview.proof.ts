@@ -116,12 +116,18 @@ A('生产 DELETE 仍 503；预览路径已接线',
   && svc.includes('assertPublicPreviewWritesClosed'));
 
 const page = read('apps/web/app/privacy/page.tsx');
+const publicCopy = read('apps/web/test/public-copy.proof.mjs');
+const privacyAction = read('apps/web/app/privacy/actions.ts');
 A('web 隐私页不再只放 disabled 按钮，且契约拒伪造完成态',
   page.includes('预览版')
   && page.includes('PreviewErasureForm')
   && page.includes('PrivacyPreviewList.safeParse')
   && page.includes('PrivacyPreviewReceipt.safeParse')
-  && !page.includes('删除功能暂未开放'));
+  && !page.includes('删除功能暂未开放')
+  && publicCopy.includes("requireText(privacy, '预览版'")
+  && !publicCopy.includes("requireText(privacy, '删除功能暂未开放'")
+  && privacyAction.includes("update(`preview:${parsed.data.scope}:${parsed.data.subjectId ?? 'self'}`)")
+  && !privacyAction.includes('randomUUID()'));
 
 const statusMachine = read('ai-docs/rules/global/status-machine.md');
 A('状态机登记预览请求且禁止 completed',

@@ -200,6 +200,46 @@ async function main() {
     A('预览 202 之后生产 DELETE 仍 503，不把预览当生产开放',
       stillPaused.status === 503 && (await json(stillPaused)).error === 'interview_erasure_authorization_not_available');
 
+    const rawKeyRows = await admin.query(
+      'SELECT count(*)::int AS count FROM privacy_preview_request WHERE owner_user_id=$1 AND idempotency_key_hash=$2',
+      [signupBody.userId, previewKey],
+    );
+    const hashedRows = await admin.query(
+      `SELECT count(*)::int AS count FROM privacy_preview_request
+        WHERE owner_user_id=$1 AND idempotency_key_hash ~ '^[a-f0-9]{64}$'`,
+      [signupBody.userId],
+    );
+    A('HTTP 原始 Idempotency-Key 不入库，只落 64-hex HMAC',
+      Number(rawKeyRows.rows[0]?.count) === 0 && Number(hashedRows.rows[0]?.count) >= 1);
+
+    const otherPreview = await fetch(`${base}/privacy/erasure-preview`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${otherBody.token}`,
+        'content-type': 'application/json',
+        'idempotency-key': `${previewKey}-other`,
+      },
+      body: JSON.stringify({ scope: 'interview_data', subjectId: interviewId }),
+    });
+    A('跨 owner POST 他人面试预览 404，不建他人盘点',
+      otherPreview.status === 404);
+
+    const fencedTurnAnswer = '预览围栏后不得落库的答案';
+    const fencedTurn = await fetch(`${base}/interview/${interviewId}/turn`, {
+      method: 'POST',
+      headers: { ...authorization, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        questionId: 'q-v1-t0-c0', stateVersion: 1, turn: 0,
+        answerId: '00000000-0000-4000-8000-000000000001',
+        answerHash: createHash('sha256').update(fencedTurnAnswer, 'utf8').digest('hex'),
+        answer: fencedTurnAnswer,
+      }),
+    });
+    const fencedJobs = await admin.query('SELECT count(*)::int AS count FROM interview_job WHERE interview_id=$1', [interviewId]);
+    A('面试预览后 /turn 410 且不写答案 job（0096 围栏副作用）',
+      fencedTurn.status === 410 && (await json(fencedTurn)).error === 'interview_privacy_fenced'
+      && Number(fencedJobs.rows[0]?.count) === 0);
+
     // Public delete stays 503 until composition-root abuse proofs exist.
     // The dormant 202 harness below must not run: issuer foundation is local
     // only and must not be mistaken for a reopened destructive HTTP path.

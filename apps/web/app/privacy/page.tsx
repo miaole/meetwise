@@ -54,7 +54,7 @@ export default async function PrivacyPage() {
             <Badge variant="outline">预览版</Badge>
           </CardTitle>
           <CardDescription>
-            请求会盘点已知 sink，并在面试/账户范围内启动已有本地围栏。回执固定为未完成，不宣称 OSS、Redis、Langfuse 或备份已删除。生产 `DELETE /privacy/*` 仍关闭。
+            请求会盘点已知 sink。面试范围会启动 0096 投影围栏（不含队列载荷 redact）；账户范围会启动 0125 向量块 sweep。回执固定为未完成，不宣称 OSS、Redis、Langfuse 或备份已删除。生产 `DELETE /privacy/*` 仍关闭。
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

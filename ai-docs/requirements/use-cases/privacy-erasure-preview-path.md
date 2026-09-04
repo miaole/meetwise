@@ -34,7 +34,7 @@ tags:
 | 明确不做 | 不重开生产 DELETE；不接线 issuer 为生产授权根；不写 OSS/Redis/Langfuse/备份执行器；不把任一预览回执标 `completed` 或 `productionSloClaimed=true`；不占用 0126–0128；不把公开预览部署（`MEETWISE_PUBLIC_PREVIEW=1`）改成可写。 |
 | 领域对象 | `privacy_preview_request`、`privacy_preview_sink_line`、预览回执、既有 `privacy_erasure_request`（仅作被链接的本地 sweep）。 |
 | 状态机影响 | 预览请求：`inventoried` / `local_fenced`。禁止 `completed`。外部/未闭合 sink 使 `completeness=preview_incomplete`。 |
-| 接口契约影响 | `POST /privacy/erasure-preview`、`GET /privacy/erasure-preview/:requestId`。形状进 `packages/contracts`，OpenAPI 标明预览版。生产 DELETE 路径仍不进 OpenAPI。 |
+| 接口契约影响 | `POST /privacy/erasure-preview`、`GET /privacy/erasure-preview`、`GET /privacy/erasure-preview/:requestId`。形状进 `packages/contracts`，OpenAPI 标明预览版。生产 DELETE 路径仍不进 OpenAPI。 |
 | 数据库影响 | 迁移 `0129_privacy_erasure_preview_path.sql`：预览请求/行表、RLS、begin/get 安全定义者函数。不改 0125 sink CHECK。 |
 | 测试计划 | 域 pin（无库）+ 契约负向 + 隔离 PostgreSQL 七类 + HTTP：预览 202/重放/越权，生产 DELETE 仍 503。 |
 | 验证命令 | `pnpm -C packages/domain prove:privacy-erasure-preview`；`pnpm -C packages/contracts prove:privacy-erasure-preview`；`pnpm privacy-erasure-preview:prove`（需隔离库）；`pnpm privacy-erasure:http:prove`；`pnpm docs:check`。无容器时不得把隔离库写成已验证发布。`releaseEvidence=false`。 |
@@ -71,11 +71,11 @@ tags:
 
 | 类 | 证明层 | 能失败的断言 |
 | --- | --- | --- |
-| 正 | 隔离 PostgreSQL + HTTP | 面试预览 202；恰好一份预览请求；0096 子请求已链接；回执含全量 sink 且 `completeness=preview_incomplete` |
+| 正 | 隔离 PostgreSQL + HTTP | 面试预览 202；恰好一份预览请求；0096 子请求已链接；`interview_privacy_active=false`；`/turn` 410；回执含全量 sink 且 `completeness=preview_incomplete` |
 | 异 | 隔离 PostgreSQL | 非 64-hex hash 拒；begin 失败后预览行=0 |
 | 特 | 域 pin + 契约 | 简历范围不启本地 sweep；缺 subject 的面试范围拒；`completed` / `productionSloClaimed=true` schema 拒 |
 | 逃 | HTTP + 源码 pin | 生产两 DELETE 仍 503 且 request=0；公开预览模式 POST 503 |
-| 并 | 隔离 PostgreSQL | 同 key 并发恰 1 预览请求 |
+| 并 | 隔离 PostgreSQL | 同 key 并发恰 1 预览请求；`ON CONFLICT` 回读同一 requestId |
 | 复 | 隔离 PostgreSQL | 账户预览启动 0125 后，`user_memory` / `backup_pitr` 仍 `honest_unresolved`；一份子 request `fenced` ≠ 账户删除完成 |
 | 刁 | 隔离 PostgreSQL + HTTP | 跨 owner=0；原始幂等键不入库；登录令牌仍不能打开生产 DELETE |
 

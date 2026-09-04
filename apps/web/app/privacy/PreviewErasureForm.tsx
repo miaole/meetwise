@@ -56,8 +56,8 @@ export function PreviewErasureForm({ initialReceipt }: { initialReceipt?: Privac
             defaultValue="interview_data"
             className="flex h-11 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            <option value="interview_data">一份面试（会启动本地投影围栏）</option>
-            <option value="account_data">账户记忆向量块（会启动 0125 本地 sweep）</option>
+            <option value="interview_data">一份面试（启动投影围栏，不含队列载荷清除）</option>
+            <option value="account_data">账户记忆向量块（启动 0125 本地 sweep，不等于账户删完）</option>
             <option value="resume_data">简历（只盘点，不启破坏性 sweep）</option>
           </select>
         </div>

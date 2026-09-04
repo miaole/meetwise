@@ -1,6 +1,6 @@
 'use server';
 
-import { randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
 import { PrivacyPreviewBeginDto, PrivacyPreviewReceipt } from '@meetwise/contracts';
 import { serverFetch } from '../../lib/api/server';
@@ -21,11 +21,14 @@ export async function requestPrivacyPreviewAction(
   });
   if (!parsed.success) return { error: '请选择范围；面试删除预览需要填写面试标识。' };
 
+  const idempotencyKey = createHash('sha256')
+    .update(`preview:${parsed.data.scope}:${parsed.data.subjectId ?? 'self'}`)
+    .digest('hex');
   let res: Response;
   try {
     res = await serverFetch('/privacy/erasure-preview', {
       method: 'POST',
-      headers: { 'idempotency-key': `preview-${parsed.data.scope}-${randomUUID()}` },
+      headers: { 'idempotency-key': idempotencyKey },
       body: JSON.stringify(parsed.data),
     });
   } catch {
