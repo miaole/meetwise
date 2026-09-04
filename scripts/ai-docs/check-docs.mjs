@@ -77,7 +77,7 @@ const requiredTerms = new Map([
   ["ai-docs/meta/task-sop.md", ["skills/testing/sop.md", "fail-closed-gate.md"]],
   ["ai-docs/product/vision.md", ["面试", "职业路径"]],
   ["ai-docs/architecture/system-blueprint.md", ["Next.js", "NestJS", "LangGraph", "Postgres"]],
-  ["ai-docs/architecture/current-runtime-truth.md", ["已验证", "发布阻断", "LangGraph", "RAG", "Langfuse", "issued_turns", "overview.answered", "interview_erasure_authorization_not_available", "/answers"]],
+  ["ai-docs/architecture/current-runtime-truth.md", ["已验证", "发布阻断", "LangGraph", "RAG", "Langfuse", "issued_turns", "overview.answered", "interview_erasure_authorization_not_available", "/answers", "RAG-FUNNEL-01A", "0124_rag_retrieval_acl_fail_closed"]],
   ["ai-docs/architecture/ai/langgraph-blueprint.md", ["checkpoint", "thread_id"]],
   ["ai-docs/architecture/devops/local-demo-deployment.md", ["docker compose", "compose.demo.yml"]],
   ["ai-docs/testing/strategy/test-strategy.md", ["contract", "E2E", "golden", "e2e:isolated", "Playwright", "主层", "次层", "不得默认信任", "多轮门禁", "e2e-platform", "e2e-static-guards", "unverified AI path", "e2e-parity:check"]],
@@ -91,7 +91,7 @@ const requiredTerms = new Map([
   ["ai-docs/skills/testing/post-change-review.md", ["pnpm regression", "未查", "自签", "fail-closed", "生成物默认不可信", "skip-as-pass", "不得标 READY", "review/verify", "automation does not trust AI outputs", "multi-round allowed", "e2e-parity:check", "parity floors"]],
   ["ai-docs/skills/testing/honesty-rules.md", ["releaseEvidence", "aiTrust", "passed_adversarial", "secrets", "未审核生成", "不得标 READY", "unverified AI path", "失败即关", "parity floors"]],
   ["ai-docs/skills/testing/e2e-platform/README.md", ["draft", "PASS_WITH_GAPS", "e2e:isolated", "NOT_READY"]],
-  ["ai-docs/delivery/e2e-platform-integration.md", ["#55", "#64", "#69", "feature/e2e-platform-integration", "fail-closed", "releaseEvidence", "supersede"]],
+  ["ai-docs/delivery/e2e-platform-integration.md", ["#55", "#64", "#69", "#71", "feature/e2e-platform-integration", "fail-closed", "releaseEvidence", "supersede"]],
   ["ai-docs/testing/golden-tasks/README.md", ["GT-01", "planned", "mapped", "partial", "uncovered", "ai-output"]],
   ["ai-docs/testing/e2e-parity-baseline.md", ["allowlist", "fail-closed", "releaseEvidence", "e2e-parity:check", "parity floors", "AI diffs", "review"]],
   ["ai-docs/observability/observability-strategy.md", ["SLO", "降级", "恢复", "脱敏", "threadId"]],
@@ -167,6 +167,11 @@ const runtimeTruthAssertions = [
     source: "apps/api/src/modules/privacy/privacy.service.ts",
     sourceTerm: "interview_erasure_authorization_not_available",
     truthTerm: "interview_erasure_authorization_not_available",
+  },
+  {
+    source: "packages/db/migrations/0124_rag_retrieval_acl_fail_closed.sql",
+    sourceTerm: "rag_acl_principal_missing",
+    truthTerm: "0124_rag_retrieval_acl_fail_closed",
   },
 ];
 

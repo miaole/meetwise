@@ -85,6 +85,7 @@ tags:
 | C 端进度/已答题数 | `requirements/use-cases/cend-overview-progress.md` | 题目账本投影、与 ScoreCard 分责 |
 | 公开预览写门禁 | `architecture/backend/public-preview-write-inventory.md` | 面试/评分写面清单 + fail-closed；本地 proof ≠ 发布 |
 | INT-TRANSCRIPT-00 隐私诚实 | `architecture/current-runtime-truth.md` | 公开 DELETE 仍 503；无 `/answers`；签发器落地 ≠ 删除权闭合 |
+| RAG-FUNNEL-01A ACL | `rules/backend/qbank-control-definer-sealed-manifest.md` | 31/15/2 闭包 + `0124` 空 principal fail-closed；域 ACL 未接线；≠ routed serving |
 | 后端架构 | `architecture/backend/` | 模块、接口、DB、事务、队列 |
 | 云端部署(CD) | `delivery/lean-cd-deployment.md` | 精简单机 compose 部署、ACR、回滚 |
 | 本地演示 | `architecture/devops/local-demo-deployment.md` | compose、seed、健康检查 |

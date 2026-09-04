@@ -128,9 +128,9 @@ related:
 
 可选（`package.json` 有脚本才挂）：`public-text-policy:prove` · `quality:traceability:prove` · `provider-egress:prove` · `public-preview-write:prove` · `public-preview-write-gate:prove` · `interview-answer-submission:prove`。
 
-## 相对最新 main 的叠底（#65 + #68 + #69）
+## 相对最新 main 的叠底（#65 + #68 + #69 + #71）
 
-本分支已叠到 `origin/main` @ `e9d7817`（#68 preview write-gate → #65 ledger predicates → #69 INT-TRANSCRIPT-00 privacy honesty）。`package.json` 与 `scripts/run-e2e-isolated.mjs` 自动并集；冲突只解一次，四方都留：
+本分支已叠到 `origin/main` @ `e202739`（#68 preview write-gate → #65 ledger predicates → #69 INT-TRANSCRIPT-00 privacy honesty → #71 RAG-FUNNEL-01A ACL seal）。与 #71 无同文件冲突，E2E 平台与 main 的 ledger/preview/privacy/RAG ACL 并集保留：
 
 | 来源 | 必须保留 |
 | --- | --- |
@@ -138,6 +138,7 @@ related:
 | #65 | C 端 `issued_turns`=`status<>'cancelled'`；`Overview.answered`=`iq.status='answered'`；禁止 ScoreCard 空集伪装成 0 |
 | #68 | `assertPublicPreviewWritesClosed`；CI `public-preview-write:*`；可选 always-on 挂 `public-preview-write:prove` / `public-preview-write-gate:prove` |
 | #69 | 公开 `DELETE /privacy/interview-data/:id` 仍 `503 interview_erasure_authorization_not_available`；无公开 `/answers`；`interview-answer-submission:prove` 冻结 submission/receipt 合同且不进 OpenAPI；签发器/0091 账本 ≠ 删除已开放；预览 `/turn` 503 不是隐私 DELETE 503，也不关闭 `INT-P0-RAW-QUEUE` |
+| #71 | `0124_rag_retrieval_acl_fail_closed.sql` 空 principal → `rag_acl_principal_missing`；QBank definer 闭包 31 函数 / 15 表 / 2 视图已密封；域 `rag-retrieval-acl.ts` 是未接线合同，不是 routed serving 或发布证据；不重开公开删除、不新增 `/answers` |
 
 `check-docs.mjs` / `meta/index.md` / 用例目录是并集，不是二选一。
 
@@ -159,7 +160,7 @@ related:
 | `testing/e2e-parity-baseline.md` + JSON/allowlist | floors 48/367；effective 37/342；allowlist 6 条 |
 | `architecture/ai/provider-egress-inventory.{json,md}` | 登记 #62/#63 新增的 7 处 `MODEL_*` / `DASHSCOPE_TEST_*` 引用；`environmentReferenceCount` = 186 |
 
-`docs:check` 把本文件列为 required，并要求出现 `#55`、`#64`、`#69`、`feature/e2e-platform-integration`、`fail-closed`、`releaseEvidence`、`supersede`。
+`docs:check` 把本文件列为 required，并要求出现 `#55`、`#64`、`#69`、`#71`、`feature/e2e-platform-integration`、`fail-closed`、`releaseEvidence`、`supersede`。
 
 ## 本轮诚实边界
 
@@ -173,11 +174,11 @@ exit: docs:check=0 generation-trust:prove=0 golden-tasks:check=0 golden-tasks:pr
 receipts: none
 claimDone: false
 ready: NOT_READY
-rounds: 4
+rounds: 5
 releaseEvidence: false
 liveE2E: not_run:live_provider_key_missing
 core: not_requested
 secrets: none
 ```
 
-`pnpm regression` 在叠到 `origin/main`（#65+#68+#69）后退出 0（`outcome=passed_always_on`）。这只证明 always-on + 已接线可选静态门（含 #68 write-gate 与 #69 submission/receipt 合同），不是 CI `verify`、不是 `--core`、不是 live E2E。作者不得自签 `review: passed`。不得 `--claim-done`。不得写「本轮局部验证完成」——审核仍是 `blocked:author_only`。
+`pnpm regression` 在叠到 `origin/main`（#65+#68+#69+#71）后退出 0（`outcome=passed_always_on`）。这只证明 always-on + 已接线可选静态门（含 #68 write-gate 与 #69 submission/receipt 合同），不是 CI `verify`、不是 `--core`、不是 live E2E。#71 的 `qbank-handoff-closure:prove` 需要 Docker，未跑，不得写成 ACL 组合根已证明。作者不得自签 `review: passed`。不得 `--claim-done`。不得写「本轮局部验证完成」——审核仍是 `blocked:author_only`。
