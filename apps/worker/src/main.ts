@@ -22,6 +22,7 @@ import { startWorkerJobWakeupListener } from './job-wakeup-listener.ts';
 import { defaultModelClient, fastModelClient, reportGenerator } from './interview-service.ts';
 import { runReportDispatcher, type ReportWorkerDeps } from './report-worker.ts';
 import { runInterviewConsumer } from './interview-consumer.ts';
+import { readInterviewDispatchBudget } from './interview-dispatch-fairness.ts';
 import { runCommerceReconciler } from './commerce-reconcile.ts';
 import { runModelInvocationReconciler, resolveModelInvocationReconcileConfig } from './model-invocation-reconcile.ts';
 import { runQuizConsumer } from './quiz-consumer.ts';
@@ -454,6 +455,9 @@ async function bootstrap() {
   const ragControlPool = await initializeRagControlStartup(process.env);
   const model = defaultModelClient({ primary: modelCost.policies.primary, backup: modelCost.policies.backup });
   const fastModel = fastModelClient({ primary: modelCost.policies.fastPrimary, backup: modelCost.policies.fastBackup });
+  // Fail closed before any consumer loop starts. Invalid budget must not leave
+  // report/quiz/diagnosis running while interview dispatch is misconfigured.
+  const interviewDispatchBudget = readInterviewDispatchBudget(process.env);
   const reportLoop = runReportDispatcher(pool, leaseOwner, reportWorkerDeps(pool, model), jobReconcileIntervalMs);
   // 自适应图是唯一生产面试路径；旧固定题单会持久化原始回答且缺少 graph fence，禁止回退。
   // （principal/模型/query HMAC/k/语料 epoch；不落 query/简历/答案）+ PostgreSQL 权威 epoch/ANN/RLS/账本。
@@ -560,7 +564,8 @@ async function bootstrap() {
       ? boundedIntEnv('E2E_ADAPTIVE_MAX_TURNS', 8, 1, 8)
       : undefined,
   };
-  const interviewLoop = runInterviewConsumer({ pool, cp, model, fastModel, leaseOwner, adaptive }, jobReconcileIntervalMs);
+  console.log(`interview dispatch budget: perOwner=${interviewDispatchBudget.perOwnerInflight} globalInflight=${interviewDispatchBudget.globalInflight} (process-local)`);
+  const interviewLoop = runInterviewConsumer({ pool, cp, model, fastModel, leaseOwner, adaptive, dispatchBudget: interviewDispatchBudget }, jobReconcileIntervalMs);
   if (adaptive) console.log('interview: ADAPTIVE agent on (规划→自适应决策→CRAG出题→反思→评估→报告舱壁)');
   // 押题(resume-quiz)消费循环:api 入队 generate job → 本消费者跑图/模型 → 业务事件经 SSE 回前端。
   const quizLoop = runQuizConsumer({ pool, model, leaseOwner }, jobReconcileIntervalMs);

@@ -1949,6 +1949,21 @@
         "TC-preview-deep-usage-01-main"
       ],
       "expansionJustification": "UC-preview-synthetic-data-02 的七类深度使用叶子已有规格与低权执行器合同，但尚无 traceability manifest primary binding；本 successor 将其显式登记为 planned/unmapped，不计入 required 分母、passed 或 release evidence。"
+    },
+    {
+      "changeRecordTaskId": "quality-governance-control-plane-v70",
+      "previousAllowedUnmappedLeafTcIdsDigest": "sha256:fdc5ab4c6e6ebd940251c1226a156d548655d3322c10f2cc4103770e1539e7ae",
+      "resultingAllowedUnmappedLeafTcIdsDigest": "sha256:23f1d507d96269c49b03a0770a94e34e92536fd651183e433feb6a9dc7a6bab0",
+      "addedUnmappedLeafTcIds": [
+        "TC-WORKER-002-E1",
+        "TC-WORKER-002-E2",
+        "TC-WORKER-002-E3",
+        "TC-WORKER-002-E4",
+        "TC-WORKER-002-E5",
+        "TC-WORKER-002-E6",
+        "TC-WORKER-002-main"
+      ],
+      "expansionJustification": "UC-WORKER-002 面试公平轮转与领取围栏的七类叶子已冻结为 planned/unmapped。它们不进入 required 绑定、passed 分母或 release evidence；进程内 global cap 不是集群锁，押题/诊断/报告公平与云多副本验收仍未交付。"
     }
   ]
 }

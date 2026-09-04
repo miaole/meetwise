@@ -11,7 +11,9 @@ owner: architecture
 
 # Worker 事件唤醒调度
 
-> 实施状态：源码已将四类队列接到提交后静态 `wake`、专用 `LISTEN` 会话和 5 秒有界 reconciliation（对账扫描）；本地生命周期合同通过。真实 PostgreSQL 的 commit/rollback、多副本、RLS 与重连数据面验收尚未运行：本机 Docker 存储空间不足，故 `releaseEvidence=false`，不得称为发布或端到端低延迟证据。
+> 实施状态：源码已将四类队列接到提交后静态 `wake`、专用 `LISTEN` 会话和 5 秒有界 reconciliation（对账扫描）；本地生命周期合同通过。真实 PostgreSQL 的 commit/rollback、多副本、RLS 与重连数据面验收不得称为发布或端到端低延迟证据（`releaseEvidence=false`）。
+>
+> `UC-WORKER-002` 已把**面试** tick 从按 owner 抽干改为量子轮转，并加上每 owner 数据库未过期 running cap、进程内 global inflight、`idle`/`retry` 轮转语义和切片/reap 隔离。押题/诊断/报告仍抽干；进程内 global cap 不是集群锁。
 >
 > 改造前事实：面试、押题、诊断消费者每 1.5 秒扫描一次，报告消费者每 2 秒扫描一次。API 会先返回已受理，用户随后等待下一次扫描领取。目标是把**正常已提交作业**的领取触发改为提交后即时唤醒；PostgreSQL 作业表、领取 CAS、租约、RLS 与持久事件账本仍是唯一事实源。通知不是队列、不是授权通道，也不承载业务数据。
 
@@ -58,6 +60,45 @@ owner: architecture
 - 不删除 lease、reaper、RLS、gateway owner 枚举或低频对账扫描。
 - 不在 API 请求内直接执行图、模型、报告或付费外呼来掩盖调度延迟。
 
+## UC-WORKER-002 · 面试队列公平轮转与领取幂等围栏
+
+- **角色 Actor：** 求职者、API、Worker 副本、PostgreSQL。
+- **前置 Precondition：** `UC-WORKER-001` 的 wakeup、gateway owner 枚举、`asPrincipal` 领取、lease/reaper 与同面试 `queued → running` CAS 已存在；`interview_job` 以 `(owner, interview, kind, seq)` 唯一键去重。
+- **触发 Trigger：** 面试 tick 发现至少两个 owner 有可领取作业，或同一 owner 在多个副本上同时被领取。
+- **主流程 Main：**
+  1. Gateway 只返回有可领取或过期 running 作业的 owner id，面试队列按该 owner 最老可领取行的 `created_at`、再按 owner id 稳定排序；载荷仍不含作业或主体业务数据。
+  2. Tick 先对每个 owner **隔离** reap（单个失败不中断后续 owner，且该失败 owner 本拍不再 drain），再进入公平 drain：每次启动对一个 owner 至多一个 `drainOnce`，并在仍有配额的 owner 间轮转，而不是把单个 owner 抽干。`WORKER_INTERVIEW_GLOBAL_INFLIGHT>1` 时多个 owner 可重叠。`idle` 只在 claim 为 null 时出现；`retry`（隐私围栏后归还、丢租约、graph fence 未取得、`markDone` CAS=0）不把 owner 踢出本拍。同一 `fairDrain` 调用里每个 owner 最多启动 32 次。
+  3. 领取仍在 `asPrincipal` 事务内：owner 级 advisory lock + `FOR UPDATE SKIP LOCKED` + 同面试未过期 `running` 守卫 + 同面试 `failed` 兄弟守卫 + **每 owner 未过期 running 数 < per-owner cap**（默认 1）。过期 running 不计入 cap，以便回收领取。
+  4. 同一进程内同时处理的面试作业数不超过 `WORKER_INTERVIEW_GLOBAL_INFLIGHT`（默认 4，范围 1–64）。该上限是**进程内**预算，不是跨副本集群锁。非法预算在任何消费循环启动前失败关闭。
+  5. 同一面试的后续 seq 在前一条未过期 `running` 时不得被领取；入队冲突返回已存在且同 v64 世代的 job id，不新建。
+- **备选流 Alternate：** 只有一个 owner 时仍按 quantum=1 循环到 idle，行为与“抽干该 owner”等价，但不改变领取 CAS。
+- **异常流 Exception：**
+  - **E1 重复入队/重放：** 同 `(owner, interview, kind, seq)` 第二次入队不新增行，返回已有 id；重复 drain 对已 `running`/`done` 行 CAS=0。机制：唯一键 + CAS。
+  - **E2 并发双领：** 两副本同时 claim 同一 owner 的两条可领作业且 cap=1 时，恰一个 `queued → running`，另一场保持 `queued`。机制：`FOR UPDATE SKIP LOCKED` + owner advisory lock + 未过期 running 计数。
+  - **E3 越权：** `SET LOCAL ROLE app_role` 且不绑定 principal 时读/领为 0 行或 RLS 拒绝，受害行仍 `queued`；跨 owner claim=0；gateway 仍只返回 owner id。机制：RLS。
+  - **E4 失败/丢租约：** `markDone`/`markFailed`/`requeue` 必须带本机 `lease_owner`；CAS=0 时不得发假终态或退他人预留；`markDone` CAS=0 对调度层返回 `retry` 而不是成功。机制：lease CAS。
+  - **E5 预算耗尽/非法配置：** per-owner 已达 cap 时该 owner 新作业保持 `queued`，不改同步外呼、不跳过 RLS；非法 `WORKER_INTERVIEW_*`（含 `1e1`/`1.0`）使 worker 在循环启动前失败。机制：显式预算 + fail-closed。
+  - **E6 同面试保序/中途停止：** 同面试 seq 不得并行（后序保持 `queued`）；单个 drain 切片拒绝时其他 in-flight 切片先结束；stop 等当前 tick（含在飞并行切片）结束后才退出。机制：同面试 running 守卫 + drain loop 排空。
+- **后置 Postcondition：** 每个 `interview_job` 至多一个未过期 `running` lease；同一面试至多一条未过期 `running`；一 owner 未过期 running 数不超过 per-owner cap；未被领取的作业保持可恢复 `queued` 或过期 `running`。不新增业务状态，不写简历/答案到调度元数据。
+- **验收 Acceptance：** 两 owner（A 三条、B 一条）且 gateway 按最老等待排序时，领取顺序是 `A,B,A,A` 而不是 `A,A,A,B`；两连接对同一 owner 两条作业在 cap=1 时恰一个 `running`；同面试后序在前序 running 时 enqueue 成功且 claim=null、seq1 保持 `queued`；跨 owner / 无 principal 为 0 行；非法预算启动失败；重复 enqueue 行数不增加。不据此宣称集群全局 cap、端到端延迟 SLO 或押题/诊断/报告已公平。
+- **关联：** `apps/worker/src/interview-dispatch-fairness.ts`、`apps/worker/src/interview-consumer.ts`、`packages/db/src/interview-jobs.ts`、`packages/db/migrations/0128_interview_dispatch_fairness.sql`、`ai-docs/architecture/backend/worker-dispatch-fairness.md`；状态机仍是 `queued → running → done|failed`；原语为 CAS、幂等键、RLS、lease。
+- **七类覆盖：** 正（轮转）、异（丢租约不双处理）、特（单 owner / 空队列）、逃（非法预算 fail-closed / cap 耗尽保持 queued）、并（双副本恰一赢）、复（reap 后公平 drain + 同面试保序）、刁（跨 owner=0 / 通知仍无业务数据）。
+
+### 测试用例
+
+| ID | 层 | 场景 | 关键断言 |
+| --- | --- | --- | --- |
+| `TC-WORKER-002-main` | 确定性单元 + 远程 PostgreSQL | A 三条、B 一条；gateway 按最老等待给出 `[A,B]` | 单元与远程库领取顺序都是 `A,B,A,A`，不是 `A,A,A,B`。禁止本地 Docker 库。 |
+| `TC-WORKER-002-E1` | 远程 PostgreSQL | 同 key 重复 enqueue | 行数不增加，返回同一 id。 |
+| `TC-WORKER-002-E2` | 远程 PostgreSQL | 两连接、同一 owner 两场面试、cap=1 并发 claim | 恰一个 `running`，另一场保持 `queued`。 |
+| `TC-WORKER-002-E3` | 远程 PostgreSQL | 跨 owner claim；`SET LOCAL ROLE app_role` 且不绑定 principal | 跨 owner=0；无 principal 读 0 行或 RLS 拒绝，受害行仍 `queued`。 |
+| `TC-WORKER-002-E4` | 远程 PostgreSQL | 非持租 `markDone`/`markFailed`/`requeue` | CAS=0，作业状态与他人 lease 不变。 |
+| `TC-WORKER-002-E5` | 确定性单元 + 远程 PostgreSQL | cap=1 时同 owner 第二场仍 queued；`0`/`1e1`/`1.0`/倒置预算 | 第二场保持 `queued`；非法 env 抛 `*_invalid`，不静默放大。 |
+| `TC-WORKER-002-E6` | 远程 PostgreSQL + 确定性单元 | 同面试 seq0 running 时入队并 claim seq1；切片拒绝 | enqueue 成功、claim=null、seq1 保持 `queued`；拒绝的切片等其他 in-flight 结束后再抛出。 |
+
 ## 已知后续项
 
-- 事件唤醒只消除空闲时的发现等待。当前单个 owner 的多个长模型作业仍会被一个 `drainOwner*` 调用顺序抽干，其他 owner 可能发生 head-of-line（队首阻塞）等待。该公平性和每 owner/global 并发预算属于 `WORKER-DISPATCH-002`，不得因本用例通过而宣称端到端低延迟或容量保证。
+- `WORKER-DISPATCH-002` 的**面试**切片已接线：owner 量子轮转、每 owner 数据库未过期 running cap、进程内 global inflight、`idle`/`retry` 与切片/reap 隔离。押题、诊断、报告仍按 owner 抽干，不在本用例宣称公平。
+- 进程内 `WORKER_INTERVIEW_GLOBAL_INFLIGHT` **不是**跨 Worker 副本的集群全局锁。多副本时集群同时 running 数可以超过该值；跨副本硬 cap 属于后续项，不得写成已交付。
+- 模型 operation 预算仍是既有 `invoke` / registry / `MODEL_*` 路径，本用例不改派发后模型身份或费用账本。
+- 真实多副本、真实 commit/rollback 数据面与发布级延迟测量仍为 `releaseEvidence=false`，不得因本用例通过而宣称端到端低延迟或容量保证。
