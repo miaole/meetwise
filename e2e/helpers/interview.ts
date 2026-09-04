@@ -4,7 +4,7 @@ import { readSseEvents, rejectForgedProgressScores, type SseEvent } from './sse.
 import type { AssertFn } from './assert.ts';
 
 export const INTERVIEW_TERMINAL_DEADLINE_MS = 420_000;
-export const INTERVIEW_TERMINALS = ['report_ready', 'report_unavailable', 'assessment_unavailable', 'interview_unavailable'] as const;
+export const INTERVIEW_TERMINALS = ['report_ready', 'report_unavailable', 'assessment_unavailable', 'interview_unavailable', 'error'] as const;
 export const STALE_QUESTION_ERROR = 'stale_question';
 
 /** Canonical server-issued questionId: q-v{stateVersion}-t{turn}-c{clarifyAttempts}. */

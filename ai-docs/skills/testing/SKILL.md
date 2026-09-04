@@ -64,7 +64,7 @@ pnpm regression --dry-run       # 只打印计划，不执行
 
 ## 改本技能时
 
-改配方、E2E harness 或 golden-tasks 仍走 `AGENTS.md` 生成前门禁。升格 `active` 的条件只写在 [SOP](./sop.md)。e2e-platform 保持 **draft / NOT_READY**，不随本页升格而变成 READY。不把 `relatedCommands` 或 `scoring:eval` 写成 covering；不把 planned golden-task 标成已通过。
+改配方、E2E harness 或 golden-tasks 仍走 `AGENTS.md` 生成前门禁。升格 `active` 的条件只写在 [SOP](./sop.md)。e2e-platform 保持 **draft / NOT_READY**，不随本页升格而变成 READY。不把 `relatedCommands` 或 `scoring:eval` 写成 covering；不把 planned golden-task 标成已通过。失败分类账本由 `pnpm e2e-helpers:prove` 覆盖，绿结果缺 `E2E_REVIEW_SUMMARY` 记 `opaque_pass`。
 
 ## 铁律（先读再跑）
 

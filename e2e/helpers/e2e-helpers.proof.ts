@@ -15,6 +15,23 @@ import {
 import { parseSseBuffer, payloadHasNumericScore, rejectForgedProgressScores } from './sse.ts';
 import { signupOrLogin, uidFromToken } from './auth.ts';
 import { classifyFailure } from './classify-failure.ts';
+import {
+  AI_SYSTEM_TERMINAL_REVIEWS,
+  E2E_FAILURE_CLASSES,
+  E2E_FAILURE_RECORD_SCHEMA,
+  classifyE2EFailure,
+  collectE2EReviews,
+  createE2EReviewLedger,
+  evaluateIsolatedHttpE2E,
+  formatE2EReviewCodes,
+  formatE2EFailure,
+  formatE2EReview,
+  parseE2EFailure,
+  parseE2EFailureRecord,
+  parseE2EReviewSummaryCount,
+  reviewAiSystemTerminal,
+  tagE2EFailure,
+} from './failure.ts';
 import { liveOcrResumePngBase64 } from '../ocr-fixture.ts';
 import { signToken, verifyTokenFull } from '../../packages/domain/src/auth.ts';
 
@@ -190,7 +207,7 @@ await test('SSE 解析只接受 id/event/data 三行，坏 JSON 变成空对象�
 
 await test('终态集合包含成功报告与舱壁失败，不能只认任意非空事件', () => {
   assert.deepEqual([...INTERVIEW_TERMINALS], [
-    'report_ready', 'report_unavailable', 'assessment_unavailable', 'interview_unavailable',
+    'report_ready', 'report_unavailable', 'assessment_unavailable', 'interview_unavailable', 'error',
   ]);
   assert.equal(STALE_QUESTION_ERROR, 'stale_question');
 });
@@ -460,6 +477,135 @@ await test('多轮不封顶：10 轮仍只信服务端 identity，不把 AI 分�
     () => refuseBSideScoreFromInterviewStream({ from: 'answer_evaluated', value: reviewed.practiceHints[9]?.value }),
     /e2e_forged_score:answer_evaluated/,
   );
+});
+
+await test('failure ledger 只有 7 个封闭 class，schema 拒绝未知 class / 多余字段 / 不透明 code', () => {
+  assert.deepEqual([...E2E_FAILURE_CLASSES], [
+    'api', 'worker', 'db', 'provider', 'capability', 'data_or_permission', 'frontend',
+  ]);
+  assert.deepEqual(E2E_FAILURE_RECORD_SCHEMA.properties.class.enum, [...E2E_FAILURE_CLASSES]);
+  assert.deepEqual(parseE2EFailureRecord({ class: 'worker', code: 'interview_terminal_timeout' }), {
+    class: 'worker', code: 'interview_terminal_timeout',
+  });
+  assert.throws(() => parseE2EFailureRecord({ class: 'e2e', code: 'assertion' }), /e2e_failure_class_invalid/);
+  assert.throws(() => parseE2EFailureRecord({ class: 'api', code: 'e2e_failed' }), /e2e_failure_code_opaque/);
+  assert.throws(() => parseE2EFailureRecord({ class: 'api', code: 'failed' }), /e2e_failure_code_opaque/);
+  assert.throws(() => parseE2EFailureRecord({ class: 'api', code: 'MODEL_API_KEY' }), /e2e_failure_code_invalid/);
+  assert.throws(() => parseE2EFailureRecord({ class: 'api', code: 'assertion', token: 'secret' }), /e2e_failure_record_invalid/);
+  const tagged = tagE2EFailure('frontend', 'web_not_ready');
+  assert.equal(formatE2EFailure(parseE2EFailure(tagged)!), 'E2E_FAILURE class=frontend code=web_not_ready');
+  assert.equal(formatE2EFailure({ class: 'capability', code: 'isolation_required' }).includes('secret'), false);
+});
+
+await test('classify 识别已知 runner/helper code，拒绝只写 E2E 失败', () => {
+  assert.deepEqual(classifyE2EFailure(tagE2EFailure('provider', 'live_provider_key_missing')), {
+    class: 'provider', code: 'live_provider_key_missing',
+  });
+  assert.deepEqual(classifyE2EFailure(new Error('e2e_worker_not_ready_before_test')), {
+    class: 'worker', code: 'worker_not_ready_before_test',
+  });
+  assert.deepEqual(classifyE2EFailure(new Error('isolated_postgres_database_not_ready')), {
+    class: 'db', code: 'isolated_postgres_database_not_ready',
+  });
+  assert.deepEqual(classifyE2EFailure(new Error('e2e_isolation_required:use_pnpm_e2e:isolated')), {
+    class: 'capability', code: 'isolation_required',
+  });
+  assert.deepEqual(classifyE2EFailure(tagE2EFailure('capability', 'success_with_failure_class')), {
+    class: 'capability', code: 'success_with_failure_class',
+  });
+  assert.deepEqual(classifyE2EFailure(new Error('e2e_dependency_exited_during_test:worker_exit:1')), {
+    class: 'worker', code: 'worker_exited_during_test',
+  });
+  assert.equal(classifyE2EFailure(new Error('E2E 失败: boom')), null);
+  assert.equal(classifyE2EFailure(new Error('e2e failed')), null);
+});
+
+await test('AI/system 终态必须入账，未分类终态与空 review 不能当通过', () => {
+  assert.deepEqual(reviewAiSystemTerminal('report_unavailable'), { class: 'worker', code: 'report_unavailable' });
+  assert.deepEqual(reviewAiSystemTerminal('report_ready'), { class: 'worker', code: 'report_ready' });
+  assert.deepEqual(reviewAiSystemTerminal('assessment_unavailable'), { class: 'worker', code: 'assessment_unavailable' });
+  assert.equal(reviewAiSystemTerminal('not_a_terminal'), null);
+  assert.deepEqual(Object.keys(AI_SYSTEM_TERMINAL_REVIEWS).sort(), [
+    'assessment_unavailable', 'diagnosis_ready', 'diagnosis_unavailable', 'error',
+    'interview_unavailable', 'quiz_ready', 'quiz_unavailable', 'report_ready', 'report_unavailable',
+  ]);
+  const ledger = createE2EReviewLedger();
+  assert.throws(() => ledger.emitSummary(), (error) => {
+    assert.deepEqual(parseE2EFailure(error), { class: 'capability', code: 'opaque_pass' });
+    return true;
+  });
+  ledger.recordTerminal('report_unavailable');
+  ledger.recordTerminal('quiz_ready');
+  assert.throws(() => ledger.recordTerminal('mystery_event'), (error) => {
+    assert.deepEqual(parseE2EFailure(error), { class: 'worker', code: 'unclassified_ai_system_terminal' });
+    return true;
+  });
+  const summary = ledger.emitSummary();
+  assert.equal(summary, 'E2E_REVIEW_SUMMARY count=2');
+  assert.equal(parseE2EReviewSummaryCount(summary), 2);
+  const output = [
+    formatE2EReview({ class: 'worker', code: 'report_unavailable' }),
+    formatE2EReview({ class: 'provider', code: 'voice_transient' }),
+    'E2E_REVIEW_SUMMARY count=2',
+    'token=fixture-token-should-never-be-classified',
+  ].join('\n');
+  const collected = collectE2EReviews(output);
+  assert.deepEqual(collected, [
+    { class: 'worker', code: 'report_unavailable' },
+    { class: 'provider', code: 'voice_transient' },
+  ]);
+  assert.equal(String(JSON.stringify(collected)).includes('fixture-token'), false);
+  assert.equal(parseE2EReviewSummaryCount('E2E_REVIEW_SUMMARY count=0'), null);
+  assert.equal(parseE2EReviewSummaryCount(''), null);
+});
+
+await test('隔离 HTTP 绿结果必须有可复核 AI/system ledger，opaque pass 不得 accept', () => {
+  const greenBody = [
+    'E2E_REVIEW class=worker code=report_unavailable',
+    'E2E_REVIEW class=worker code=quiz_ready',
+    'E2E_REVIEW_SUMMARY count=2',
+    '✓ E2E 全栈跑通(83 断言,含异常/特殊/兜底/状态机):鉴权→简历',
+  ].join('\n');
+  const accepted = evaluateIsolatedHttpE2E({ exitCode: 0, stdout: greenBody });
+  assert.equal(accepted.accept, true);
+  assert.equal(accepted.reject, null);
+  assert.equal(accepted.assertionCount, 83);
+  assert.deepEqual(accepted.reviewLedger.map((item) => item.code), ['report_unavailable', 'quiz_ready']);
+  assert.equal(formatE2EReviewCodes(accepted.reviewLedger), 'E2E_REVIEW_CODES codes=report_unavailable,quiz_ready');
+  const opaque = evaluateIsolatedHttpE2E({
+    exitCode: 0,
+    stdout: '✓ E2E 全栈跑通(83 断言,含异常/特殊/兜底/状态机):鉴权→简历',
+  });
+  assert.equal(opaque.accept, false);
+  assert.deepEqual(opaque.reject, { class: 'capability', code: 'opaque_pass' });
+  const noSummary = evaluateIsolatedHttpE2E({
+    exitCode: 0,
+    stdout: 'E2E_REVIEW class=worker code=report_unavailable\n✓ E2E 全栈跑通(1 断言,x)',
+  });
+  assert.deepEqual(noSummary.reject, { class: 'capability', code: 'opaque_pass' });
+  const mismatch = evaluateIsolatedHttpE2E({
+    exitCode: 0,
+    stdout: 'E2E_REVIEW class=worker code=report_unavailable\nE2E_REVIEW_SUMMARY count=2\n✓ E2E 全栈跑通(1 断言,x)',
+  });
+  assert.deepEqual(mismatch.reject, { class: 'capability', code: 'review_summary_mismatch' });
+  const mixed = evaluateIsolatedHttpE2E({
+    exitCode: 0,
+    stdout: 'E2E_FAILURE class=api code=assertion\nE2E_REVIEW class=worker code=report_unavailable\nE2E_REVIEW_SUMMARY count=1\n✓ E2E 全栈跑通(1 断言,x)',
+  });
+  assert.deepEqual(mixed.reject, { class: 'capability', code: 'success_with_failure_class' });
+  const noAssert = evaluateIsolatedHttpE2E({
+    exitCode: 0,
+    stdout: 'E2E_REVIEW class=worker code=report_unavailable\nE2E_REVIEW_SUMMARY count=1',
+  });
+  assert.deepEqual(noAssert.reject, { class: 'capability', code: 'success_without_assertion_summary' });
+  const failed = evaluateIsolatedHttpE2E({
+    exitCode: 1,
+    stdout: 'E2E_REVIEW class=worker code=report_unavailable\nE2E_FAILURE class=worker code=assertion',
+  });
+  assert.equal(failed.accept, false);
+  assert.equal(failed.reject, null);
+  assert.equal(failed.failureClass, 'worker');
+  assert.equal(failed.reviewLedger.length, 1);
 });
 
 console.log(`PASS e2e-helpers proof: ${passed} scenarios; releaseEvidence=false`);

@@ -30,11 +30,13 @@ related:
 7. **把 AI 输出类 golden-task（GT-01..04）标成 `mapped`。** 夹具结构门、fake assess、脚本化出题都不是模型输出质量。这些条目最高 `partial`。升 `mapped` 只适用于 `subject=mechanism`，且必须先实跑 covering 门。
 8. **把 Playwright 说成当前 HTTP 全链路实现。** 浏览器层才是 Playwright；HTTP 层是 fetch/SSE。
 9. **把本机性能数字说成线上 SLO。**
-10. **把默认 `pnpm regression` 绿写成触达面必须列已完成、CI `verify` 通过或发布证据。**
-11. **skip-as-pass。** 缺 Key、未跑、失败，只能记 `not_run` / `blocked` / 非零退出，不能改 runner 或删守卫来绿。
-12. **未审核生成物标 READY 或声称完成。** 生成代码 / 模型输出默认不可信。没有走完 [变更后审核](./post-change-review.md) 第 0 节，不得标 READY，也不得把 `releaseEvidence=false` 的绿回归写成完成。受信回执出现之前，`releaseEvidence` 必须保持 `false`。
-13. **默认信任 AI 代码或 AI 输出。** 审核与验证缺一，或把 `aiTrust` 写成 `trusted`，即 [fail-closed 门](./fail-closed-gate.md) `BLOCK`。
-14. **提交或记录真实密钥、`.env`、token、简历原文、录音。** 技能与回执只允许占位名。
+10. **失败只写 `E2E 失败` / `e2e failed`。** 必须带封闭 `E2E_FAILURE class=` 行（`api` / `worker` / `db` / `provider` / `capability` / `data_or_permission` / `frontend`），见 [run-gates.md](./run-gates.md) §6。
+11. **AI/系统失败被绿结果吞掉。** `report_unavailable` / 评分不可用 / 供应商暂态必须进 `E2E_REVIEW` 账本；没有 `E2E_REVIEW_SUMMARY` 的 exit 0 记 `opaque_pass`，不得写成通过。
+12. **把默认 `pnpm regression` 绿写成触达面必须列已完成、CI `verify` 通过或发布证据。**
+13. **skip-as-pass。** 缺 Key、未跑、失败，只能记 `not_run` / `blocked` / 非零退出，不能改 runner 或删守卫来绿。
+14. **未审核生成物标 READY 或声称完成。** 生成代码 / 模型输出默认不可信。没有走完 [变更后审核](./post-change-review.md) 第 0 节，不得标 READY，也不得把 `releaseEvidence=false` 的绿回归写成完成。受信回执出现之前，`releaseEvidence` 必须保持 `false`。
+15. **默认信任 AI 代码或 AI 输出。** 审核与验证缺一，或把 `aiTrust` 写成 `trusted`，即 [fail-closed 门](./fail-closed-gate.md) `BLOCK`。
+16. **提交或记录真实密钥、`.env`、token、简历原文、录音。** 技能与回执只允许占位名。
 
 ## 允许
 

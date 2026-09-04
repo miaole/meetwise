@@ -10,8 +10,8 @@ import { randomUUID } from 'node:crypto';
 import { liveOcrResumePngBase64 } from './ocr-fixture.ts';
 import { createAssert } from './helpers/assert.ts';
 import { signupOrLogin, uidFromToken } from './helpers/auth.ts';
-import { classifyFailure } from './helpers/classify-failure.ts';
 import { createOrder, entitlement, isWebhookCreditResult, paidWebhookSignature, payWebhook, postPayWebhook } from './helpers/commerce.ts';
+import { createE2EReviewLedger, emitClassifiedE2EFailure } from './helpers/failure.ts';
 import { BASE, readJson } from './helpers/http.ts';
 import { driveInterviewToTerminal } from './helpers/interview.ts';
 import { consentResumeProcessing, getResumeProfile, uploadImageResume, uploadTextResume } from './helpers/resume.ts';
@@ -19,6 +19,7 @@ import { pollTerminal } from './helpers/sse.ts';
 import { callLiveVoiceGateway } from './helpers/voice.ts';
 
 const { A, passed } = createAssert();
+const reviews = createE2EReviewLedger();
 
 async function main() {
   const tag = process.env.E2E_TAG ?? 'run';
@@ -62,7 +63,7 @@ async function main() {
   const structuredOcr = JSON.stringify(ocrProfile.structured ?? {});
   A(Number.isInteger(b.chars) && b.chars >= 20 && ocrProfile.status === 'needs_review' && !structuredOcr.includes('13800138000')
     && /redis|postgresql|typescript|backend/i.test(structuredOcr),
-  `OCR 来源产出可复核画像(${b.chars} chars)、识别至少 1 个非敏感技能且 PII 脱敏(不含明文手机号)`);
+  `OCR 来源产出可复核画像(${b.chars} chars)、识别至少 1 个非敏感技能且 PII 脱敏(不含明文手机号)`, 'provider');
   const afterOcr = await entitlement(H);
   A(afterOcr.availableUnits === beforeOcr.availableUnits - 1, 'OCR 成功只确认扣减 1 个额度');
   const duplicateOcrUpload = await uploadImageResume(H, { filename: 'r-repeat.png', mimeType: 'image/png', contentBase64: pngB64 });
@@ -87,7 +88,7 @@ async function main() {
   const spokenBody: any = spoken.body;
   A(spoken.response.status === 200 && spokenBody.mimeType === 'audio/wav'
     && typeof spokenBody.audioBase64 === 'string' && Buffer.from(spokenBody.audioBase64, 'base64').byteLength > 1_000,
-  `真实 TTS → 有效 WAV 音频（非本地假实现，${spoken.attempts} 次请求）`);
+  `真实 TTS → 有效 WAV 音频（非本地假实现，${spoken.attempts} 次请求）`, 'provider');
   const transcribed = await callLiveVoiceGateway('ASR', () => fetch(`${BASE}/interview/${interviewId}/transcribe`, {
     method: 'POST', headers: H,
     body: JSON.stringify({
@@ -102,7 +103,7 @@ async function main() {
     && transcribedBody.capture?.mode === 'single_local_microphone'
     && transcribedBody.capture?.speakerAttribution === 'not_diarized'
     && transcribedBody.capture?.wordTimestamps === 'not_available',
-  `真实 ASR 回转 TTS 音频 → 可理解转写（${String(transcribedBody.text ?? '').slice(0, 40)}；${transcribed.attempts} 次请求）`);
+  `真实 ASR 回转 TTS 音频 → 可理解转写（${String(transcribedBody.text ?? '').slice(0, 40)}；${transcribed.attempts} 次请求）`, 'provider');
 
   // 5. begin(入队 start job;worker 规划 + 出首题)
   r = await fetch(`${BASE}/interview/${interviewId}/begin`, { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
@@ -128,10 +129,12 @@ async function main() {
     && provenance.identities.length === questions,
     `出处审查: 不把 AI 分/progress 当 B 端分（identities=${provenance.identities.length}, forgedScores=${provenance.forgedScores}）`);
   if (!terminal) {
+    emitE2EFailure({ class: 'worker', code: 'interview_terminal_timeout' });
     const diagnostic = await readJson(await fetch(`${BASE}/interview/${interviewId}/report`, { headers: H }));
     console.error(`E2E_INTERVIEW_TERMINAL_TIMEOUT interview=${interviewId} elapsedMs=${Date.now() - interviewStartedAt} lastSeq=${lastSeq} questions=${questions} turns=${turn} events=${[...kinds].join(',')} reportStatus=${String(diagnostic.status ?? 'unknown')}`);
   }
-  A(terminal !== '', `面试跑到终态事件(${terminal})——无死胡同 ✅`);
+  if (terminal) reviews.recordTerminal(terminal);
+  A(terminal !== '', `面试跑到终态事件(${terminal})——无死胡同 ✅`, 'worker');
 
   // 7. 报告端点可查,且 status 与终态一致(不能只断 200——卡在 queued 也会过)
   r = await fetch(`${BASE}/interview/${interviewId}/report`, { headers: H });
@@ -156,6 +159,7 @@ async function main() {
       clarificationAcceptedLabel: '[兜底] 澄清 canonical /turn → 202',
     });
     const rep = await readJson(await fetch(`${BASE}/interview/${failIv}/report`, { headers: H }));
+    if (failLoop.terminal) reviews.recordTerminal(failLoop.terminal);
     A(failLoop.terminal === 'report_unavailable' && rep.status === 'quarantined',
       `[兜底] 报告失败 → report_unavailable + quarantined(无死胡同;终态=${failLoop.terminal || 'none'}, status=${rep.status ?? 'none'})`);
   }
@@ -167,14 +171,16 @@ async function main() {
   r = await fetch(`${BASE}/quiz/${quizId}/begin`, { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
   A(r.status === 202, '押题:begin → 202 受理');
   const quizTerm = await pollTerminal(`/quiz/${quizId}`, token, ['quiz_ready', 'quiz_unavailable', 'error']);
-  A(quizTerm !== '', `押题:跑到终态(${quizTerm})——无死胡同 ✅`);
+  if (quizTerm) reviews.recordTerminal(quizTerm);
+  A(quizTerm !== '', `押题:跑到终态(${quizTerm})——无死胡同 ✅`, 'worker');
   let dg: any = await readJson(await fetch(`${BASE}/diagnosis`, { method: 'POST', headers: H, body: '{}' }));
   const diagId = dg.id ?? dg.diagnosisId;
   A(typeof diagId === 'string', `诊断:建 → id(${diagId})`);
   r = await fetch(`${BASE}/diagnosis/${diagId}/begin`, { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
   A(r.status === 202, '诊断:begin → 202 受理');
   const diagTerm = await pollTerminal(`/diagnosis/${diagId}`, token, ['diagnosis_ready', 'diagnosis_unavailable', 'error']);
-  A(diagTerm !== '', `诊断:跑到终态(${diagTerm})——无死胡同 ✅`);
+  if (diagTerm) reviews.recordTerminal(diagTerm);
+  A(diagTerm !== '', `诊断:跑到终态(${diagTerm})——无死胡同 ✅`, 'worker');
 
   // 8. B 端(招聘方)+ 多租户 RLS 隔离:发岗位 → 自己可见 → 他人不可见
   const recruiter = await signupOrLogin(`e2e_rec_${tag}@x.com`, password, 'recruiter');
@@ -191,16 +197,16 @@ async function main() {
   r = await fetch(`${BASE}/recruiter/jobs`, { method: 'POST', headers: { ...HR, 'idempotency-key': createJobKey }, body: JSON.stringify({ ...createJobBody, title: '冲突岗位' }) });
   A(r.status === 409, 'B端:同 idempotency-key 换载荷 → 409(不静默覆盖/重复创建)');
   r = await fetch(`${BASE}/recruiter/jobs`, { method: 'POST', headers: H, body: JSON.stringify({ title: 'x', competencies: [] }) });
-  A(r.status === 403, `B端门禁:候选人发岗位 → 403(role=candidate 被 RecruiterGuard 拦)`);
+  A(r.status === 403, `B端门禁:候选人发岗位 → 403(role=candidate 被 RecruiterGuard 拦)`, 'data_or_permission');
   r = await fetch(`${BASE}/recruiter/jobs`, { headers: HR });
   b = await readJson(r);
   A(r.status === 200 && (b.jobs ?? []).some((x: any) => x.id === jobId), 'B端:招聘方看到自己的岗位');
   const recruiter2 = await signupOrLogin(`e2e_rec2_${tag}@x.com`, password, 'recruiter');
   r = await fetch(`${BASE}/recruiter/jobs`, { headers: { authorization: `Bearer ${recruiter2.token}` } });
   b = await readJson(r);
-  A(r.status === 200 && !(b.jobs ?? []).some((x: any) => x.id === jobId), 'B端 RLS:另一招聘方看不到他人岗位(租户隔离 ✅)');
+  A(r.status === 200 && !(b.jobs ?? []).some((x: any) => x.id === jobId), 'B端 RLS:另一招聘方看不到他人岗位(租户隔离 ✅)', 'data_or_permission');
   r = await fetch(`${BASE}/recruiter/jobs/${jobId}`, { headers: { authorization: `Bearer ${recruiter2.token}` } });
-  A(r.status === 404, 'B端 RLS:越权取他人岗位 → 404');
+  A(r.status === 404, 'B端 RLS:越权取他人岗位 → 404', 'data_or_permission');
 
   // 9. 候选人闭环(多方 RLS)
   const candidate2 = await signupOrLogin(`e2e2_${tag}@x.com`, password);
@@ -233,7 +239,7 @@ async function main() {
   const iv3 = (await readJson(await fetch(`${BASE}/interview`, { method: 'POST', headers: H3, body: '{}' }))).interviewId;
   r = await fetch(`${BASE}/interview/${iv3}/begin`, { method: 'POST', headers: { ...H3, 'resume-id': noEntitlementResume.resumeId }, body: '{}' });
   b = await readJson(r);
-  A(r.status === 402 && b.error === 'insufficient_entitlement', '[异常] 额度不足 begin → 402 insufficient_entitlement（不再被 mask 成 500）');
+  A(r.status === 402 && b.error === 'insufficient_entitlement', '[异常] 额度不足 begin → 402 insufficient_entitlement（不再被 mask 成 500）', 'data_or_permission');
 
   const { response: order2Res, body: ord } = await createOrder(H, 'pack_10', `${email}:order2`);
   A(order2Res.status === 200 && typeof ord.orderId === 'string', '[异常前置] 第二笔订单可用于错签断言');
@@ -273,6 +279,7 @@ async function main() {
     questionAcceptedLabel: () => '[状态机] 岗位 canonical /turn → 202',
     clarificationAcceptedLabel: '[状态机] 岗位澄清 canonical /turn → 202',
   });
+  if (boundLoop.terminal) reviews.recordTerminal(boundLoop.terminal);
   A(boundLoop.questions >= 1 && boundLoop.turns >= 1 && boundLoop.terminal !== '', `[状态机] 岗位绑定会话经真 worker 到终态(${boundLoop.terminal}; ${boundLoop.questions} 题/${boundLoop.turns} 答)`);
   A(boundLoop.provenance.trustedBSideScore === null && boundLoop.provenance.identities.length === boundLoop.questions,
     '[状态机] 岗位会话出处审查: AI 分/progress 不是 B 端分');
@@ -297,16 +304,10 @@ async function main() {
       `[状态机·可信] 招聘方看到 completed + **服务端推导**分数=${cand?.score}(非自报,跨方 RLS 可读)`);
   }
 
+  reviews.emitSummary();
   console.log(`\n✓ E2E 全栈跑通(${passed()} 断言,含异常/特殊/兜底/状态机):鉴权→简历→交易→面试(真agent)→报告→B端多租户→候选人多方RLS闭环 · 终态 ${terminal}`);
 }
 main().catch((e) => {
-  const message = String(e?.message ?? e);
-  const statusMatch = message.match(/\bstatus=(\d{3})\b/);
-  console.error(`E2E_FAILURE_KIND ${classifyFailure({
-    error: message,
-    status: statusMatch ? Number(statusMatch[1]) : undefined,
-    runnerCode: message,
-  })}`);
-  console.error('E2E 失败:', message);
+  emitClassifiedE2EFailure(e, { class: 'api', code: 'client_uncaught' });
   process.exit(1);
 });

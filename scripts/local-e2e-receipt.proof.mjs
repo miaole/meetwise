@@ -24,6 +24,7 @@ const valid = (overrides = {}) => ({
   startedAt: new Date('2026-08-09T20:00:00.000Z'),
   finishedAt: new Date('2026-08-09T20:00:01.234Z'),
   assertionCount: 73,
+  reviewLedger: [{ class: 'worker', code: 'report_unavailable' }],
   ...overrides,
 });
 
@@ -42,6 +43,8 @@ try {
       'e2e/helpers/auth.ts',
       'e2e/helpers/classify-failure.ts',
       'e2e/helpers/commerce.ts',
+      'e2e/helpers/failure-class.mjs',
+      'e2e/helpers/failure.ts',
       'e2e/helpers/http.ts',
       'e2e/helpers/interview.ts',
       'e2e/helpers/resume.ts',
@@ -51,6 +54,8 @@ try {
       'scripts/run-e2e-isolated.mjs',
       'scripts/run-e2e.mjs',
     ]);
+    assert.equal(persisted.failureClass, undefined);
+    assert.deepEqual(persisted.reviewLedger, [{ class: 'worker', code: 'report_unavailable' }]);
     assert.ok(Object.values(persisted.sourceDigests).every((digest) => /^sha256:[0-9a-f]{64}$/.test(digest)));
     assert.ok(Number.isInteger(persisted.schemaMigrationManifest.count) && persisted.schemaMigrationManifest.count > 0);
     assert.match(persisted.schemaMigrationManifest.latest, /^\d{4}_.+\.sql$/);
@@ -61,6 +66,9 @@ try {
     const { receipt } = await writeLocalE2EReceipt(valid({ outcome: 'failed', exitCode: 1, assertionCount: null }));
     assert.equal(receipt.outcome, 'failed');
     assert.equal(receipt.assertionCount, null);
+    assert.equal(receipt.failureClass, undefined);
+    const classified = await writeLocalE2EReceipt(valid({ outcome: 'failed', exitCode: 1, assertionCount: null, failureClass: 'worker' }));
+    assert.equal(classified.receipt.failureClass, 'worker');
   });
 
   await test('特殊：同一毫秒的两个运行使用不同文件，不能覆盖旧回执', async () => {
@@ -89,6 +97,14 @@ try {
     await rejects(() => writeLocalE2EReceipt(valid({ target: 'performance:e2e' })), 'target_invalid');
     await rejects(() => writeLocalE2EReceipt(valid({ finishedAt: new Date('2026-08-09T19:59:59.999Z') })), 'time_invalid');
     await rejects(() => writeLocalE2EReceipt(valid({ assertionCount: -1 })), 'assertion_count_invalid');
+    await rejects(() => writeLocalE2EReceipt(valid({ failureClass: 'worker' })), 'failure_class_on_pass');
+    await rejects(() => writeLocalE2EReceipt(valid({ reviewLedger: null })), 'review_ledger_required');
+    await rejects(() => writeLocalE2EReceipt(valid({ reviewLedger: [] })), 'review_ledger_required');
+    await rejects(() => writeLocalE2EReceipt(valid({
+      reviewLedger: [{ class: 'worker', code: 'report_unavailable', token: 'secret' }],
+    })), 'e2e_failure_record_invalid');
+    await rejects(() => writeLocalE2EReceipt(valid({ outcome: 'failed', exitCode: 1, assertionCount: null, failureClass: 'e2e' })), 'failure_class_invalid');
+    await rejects(() => writeLocalE2EReceipt(valid({ outcome: 'failed', exitCode: 1, assertionCount: null, failureClass: 'privacy_assertion_failed' })), 'failure_class_invalid');
     const isolated = await writeLocalIsolatedReceipt({
       repoRoot: ROOT, receiptRoot: temporaryRoot, target: 'privacy-erasure:prove:raw', outcome: 'passed', exitCode: 0,
       startedAt: new Date('2026-08-09T20:00:00.000Z'), finishedAt: new Date('2026-08-09T20:00:01.000Z'),

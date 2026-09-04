@@ -6,6 +6,7 @@
  */
 import { spawn } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
+import { emitClassifiedE2EFailure, emitE2EFailure, tagE2EFailure } from '../e2e/helpers/failure-class.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const env = {
@@ -34,13 +35,13 @@ if (env.E2E_ISOLATED === '1') {
   for (const key of Object.keys(env)) if (key.startsWith('LANGFUSE_')) delete env[key];
   env.DATABASE_SSL_MODE = 'disable';
 }
-if (env.E2E_ISOLATED !== '1') throw new Error('e2e_ui_isolation_required:use_pnpm_e2e:ui:isolated');
+if (env.E2E_ISOLATED !== '1') throw tagE2EFailure('capability', 'isolation_required');
 const fakeServiceFlags = ['VOICE_FAKE', 'OCR_FAKE', 'E2E_FAKE_MODEL'].filter((name) => {
   const value = String(env[name] ?? '').trim().toLowerCase();
   return value && value !== '0' && value !== 'false';
 });
-if (fakeServiceFlags.length) throw new Error(`fake_service_mode_forbidden:${fakeServiceFlags.join(',')}`);
-if (!String(env.MODEL_API_KEY ?? '').trim()) throw new Error('live_provider_key_missing:MODEL_API_KEY');
+if (fakeServiceFlags.length) throw tagE2EFailure('provider', 'fake_service_mode_forbidden');
+if (!String(env.MODEL_API_KEY ?? '').trim()) throw tagE2EFailure('provider', 'live_provider_key_missing');
 
 // Fixed 8787/19091/3100 lets a parallel UI run attach its browser to another
 // stack.  Each run gets an independent pair/triple and propagates those
@@ -48,14 +49,14 @@ if (!String(env.MODEL_API_KEY ?? '').trim()) throw new Error('live_provider_key_
 const parsePort = (name, fallback) => {
   const value = Number(env[name] ?? fallback);
   if (!Number.isInteger(value) || value < 10_240 || value > 65_534) {
-    throw new Error(`e2e_ui_port_invalid:${name}`);
+    throw tagE2EFailure('api', 'port_invalid');
   }
   return value;
 };
 const apiPort = parsePort('E2E_API_PORT', 20_000 + (process.pid % 20_000));
 const workerMetricsPort = parsePort('E2E_WORKER_METRICS_PORT', apiPort + 1);
 const webPort = parsePort('E2E_WEB_PORT', apiPort + 2);
-if (new Set([apiPort, workerMetricsPort, webPort]).size !== 3) throw new Error('e2e_ui_port_collision');
+if (new Set([apiPort, workerMetricsPort, webPort]).size !== 3) throw tagE2EFailure('api', 'port_collision');
 const apiBase = `http://127.0.0.1:${apiPort}`;
 const webBase = `http://127.0.0.1:${webPort}`;
 
@@ -92,7 +93,8 @@ const waitFor = async (url, label, tries = 60) => {
     await sleep(1000);
     try { const r = await fetch(url); if (r.ok || r.status === 307 || r.status === 308) return true; } catch {}
   }
-  console.error(`E2E-UI: ${label} 未就绪 (${url})`); return false;
+  emitE2EFailure({ class: label === 'web' ? 'frontend' : 'api', code: label === 'web' ? 'web_not_ready' : 'api_not_ready' });
+  return false;
 };
 // /livez 不能代表 migration 完成。隔离包装器会先迁移；随机不存在账户登录到 401
 // 表示 API 已真正读到 user_account，Playwright 不会因启动竞态而得到假 500。
@@ -117,11 +119,12 @@ async function main() {
   const api = spawnProc('api', 'node', ['--import', REG, 'src/main.ts'], ROOT + 'apps/api', { PORT: String(apiPort) });
   const worker = spawnProc('worker', 'node', ['--import', REG, 'src/main.ts'], ROOT + 'apps/worker', { WORKER_BOOTSTRAP: '1', WEB_ALLOWLIST: '', WORKER_METRICS_PORT: String(workerMetricsPort) });
   if (!(await waitFor(`${apiBase}/livez`, 'api', 40))) { cleanup(); process.exit(1); }
-  if (!(await waitForApiDatabase())) { console.error('E2E-UI: API DB 未就绪'); cleanup(); process.exit(1); }
+  if (!(await waitForApiDatabase())) { emitE2EFailure({ class: 'db', code: 'database_not_ready' }); cleanup(); process.exit(1); }
   await sleep(3000);   // 给 worker 消费循环就绪
-  if (api.exitCode !== null || worker.exitCode !== null) throw new Error('e2e_ui_dependency_exited_before_test');
+  if (worker.exitCode !== null) throw tagE2EFailure('worker', 'worker_exited_before_test');
+  if (api.exitCode !== null) throw tagE2EFailure('api', 'api_exited_before_test');
   const workerReady = await fetch(`http://127.0.0.1:${workerMetricsPort}/readyz/worker`).then((r) => r.ok).catch(() => false);
-  if (!workerReady) throw new Error('e2e_ui_worker_not_ready_before_test');
+  if (!workerReady) throw tagE2EFailure('worker', 'worker_not_ready');
 
   console.log(`E2E-UI: 启 web(production next start, :${webPort})…`);
   // 假设 .next 已构建(构建太慢,不在此重建)。next start 直接服务 .next + 静态资源。
@@ -148,8 +151,16 @@ async function main() {
   pw.stdout.on('data', (d) => process.stdout.write(d));
   pw.stderr.on('data', (d) => process.stderr.write(d));
   const code = await new Promise((res) => pw.on('exit', res));
-  if (code !== 0) emitFailureDiagnostics();
+  if (code !== 0) {
+    emitFailureDiagnostics();
+    emitE2EFailure({ class: 'frontend', code: 'client_exited' });
+  }
   cleanup();
   process.exit(code ?? 1);
 }
-main().catch((e) => { console.error(e); emitFailureDiagnostics(); cleanup(); process.exit(1); });
+main().catch((e) => {
+  emitFailureDiagnostics();
+  emitClassifiedE2EFailure(e, { class: 'frontend', code: 'client_uncaught' });
+  cleanup();
+  process.exit(1);
+});

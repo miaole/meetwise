@@ -4,6 +4,7 @@
  */
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
+import { emitClassifiedE2EFailure, tagE2EFailure } from '../e2e/helpers/failure-class.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const env = {
@@ -31,12 +32,12 @@ if (env.E2E_ISOLATED === '1') {
   for (const key of Object.keys(env)) if (key.startsWith('LANGFUSE_')) delete env[key];
   env.DATABASE_SSL_MODE = 'disable';
 }
-if (env.E2E_ISOLATED !== '1') throw new Error('performance_e2e_isolation_required:use_pnpm_performance:e2e:isolated');
+if (env.E2E_ISOLATED !== '1') throw tagE2EFailure('capability', 'isolation_required');
 const fakeServiceFlags = ['VOICE_FAKE', 'OCR_FAKE', 'E2E_FAKE_MODEL'].filter((name) => {
   const value = String(env[name] ?? '').trim().toLowerCase();
   return value && value !== '0' && value !== 'false';
 });
-if (fakeServiceFlags.length) throw new Error(`fake_service_mode_forbidden:${fakeServiceFlags.join(',')}`);
+if (fakeServiceFlags.length) throw tagE2EFailure('provider', 'fake_service_mode_forbidden');
 
 // A fixed 8787/19091 pair lets parallel isolated runs attach to another
 // runner's API and accidentally report its result.  Keep the process-local
@@ -45,13 +46,13 @@ if (fakeServiceFlags.length) throw new Error(`fake_service_mode_forbidden:${fake
 const parsePort = (name, fallback) => {
   const value = Number(env[name] ?? fallback);
   if (!Number.isInteger(value) || value < 10_240 || value > 65_534) {
-    throw new Error(`performance_e2e_port_invalid:${name}`);
+    throw tagE2EFailure('api', 'port_invalid');
   }
   return value;
 };
 const apiPort = parsePort('E2E_API_PORT', 20_000 + (process.pid % 20_000));
 const workerMetricsPort = parsePort('E2E_WORKER_METRICS_PORT', apiPort + 1);
-if (apiPort === workerMetricsPort) throw new Error('performance_e2e_port_collision');
+if (apiPort === workerMetricsPort) throw tagE2EFailure('api', 'port_collision');
 const apiBase = `http://127.0.0.1:${apiPort}`;
 
 const processes = [];
@@ -86,14 +87,14 @@ async function main() {
   const reg = '@swc-node/register/esm-register';
   const api = spawnNode('api', ['--import', reg, 'src/main.ts'], ROOT + 'apps/api', { PORT: String(apiPort) });
   const worker = spawnNode('worker', ['--import', reg, 'src/main.ts'], ROOT + 'apps/worker', { WORKER_BOOTSTRAP: '1', WEB_ALLOWLIST: '', WORKER_METRICS_PORT: String(workerMetricsPort) });
-  if (!(await databaseReady())) throw new Error('performance_e2e_database_not_ready');
+  if (!(await databaseReady())) throw tagE2EFailure('db', 'database_not_ready');
   // HTTP 能访问只说明 API 已监听端口。性能门禁必须同时确认 worker
   // 没有在启动期退出，否则会把残缺栈误报成可用系统。
   await sleep(3_000);
-  if (worker.exitCode !== null) throw new Error(`performance_e2e_worker_exited_before_test:${worker.exitCode}`);
-  if (api.exitCode !== null) throw new Error(`performance_e2e_api_exited_before_test:${api.exitCode}`);
+  if (worker.exitCode !== null) throw tagE2EFailure('worker', 'worker_exited_before_test');
+  if (api.exitCode !== null) throw tagE2EFailure('api', 'api_exited_before_test');
   const workerReady = await fetch(`http://127.0.0.1:${workerMetricsPort}/readyz/worker`).then((r) => r.ok).catch(() => false);
-  if (!workerReady) throw new Error('performance_e2e_worker_not_ready_before_test');
+  if (!workerReady) throw tagE2EFailure('worker', 'worker_not_ready');
   const test = spawnNode('performance', [ROOT + 'node_modules/tsx/dist/cli.mjs', 'e2e/performance.e2e.ts'], ROOT, { E2E_BASE: apiBase }, false);
   test.stdout.on('data', (data) => process.stdout.write(data));
   test.stderr.on('data', (data) => process.stderr.write(data));
@@ -102,9 +103,15 @@ async function main() {
     new Promise((resolve) => worker.on('exit', (workerCode) => resolve(`worker_exit:${workerCode ?? 'signal'}`))),
     new Promise((resolve) => api.on('exit', (apiCode) => resolve(`api_exit:${apiCode ?? 'signal'}`))),
   ]);
-  if (typeof code === 'string') throw new Error(`performance_e2e_dependency_exited_during_test:${code}`);
+  if (typeof code === 'string') {
+    throw tagE2EFailure(code.startsWith('worker_exit') ? 'worker' : 'api', code.startsWith('worker_exit') ? 'worker_exited_during_test' : 'api_exited_during_test');
+  }
   cleanup();
   process.exit(code ?? 1);
 }
 
-main().catch((error) => { console.error(error); cleanup(); process.exit(1); });
+main().catch((error) => {
+  emitClassifiedE2EFailure(error, { class: 'api', code: 'client_uncaught' });
+  cleanup();
+  process.exit(1);
+});

@@ -47,6 +47,12 @@ related:
 - 技能文档：保留 fail-closed / SOP / e2e-platform 链接，并写入 #58 要求的 `review/verify`、`automation does not trust AI outputs`、`multi-round allowed`。
 - `provider-egress-inventory`：同时登记 `run-post-change-regression.mjs` 与 `.proof.mjs`；`environmentReferenceCount` 随清单长度更新，禁止手改成旧数。
 
+### #60
+
+- helper prove 并入 provenance / forged-score 用例，同时保留 #56 的 commerce/auth mock 合同。
+- `questionIdentity` 采用规范 `q-v{n}-t{n}-c{n}`；`q-ready` 视为伪造。
+- `ai-provenance.md` 保留 #59 的 covering 诚实句，并入 #60 的 SSE/conclude P0。
+
 ### #56
 
 - `full.e2e.ts` 保留母线 `classifyFailure`，采用 #56 的 `isWebhookCreditResult` / `postPayWebhook`。

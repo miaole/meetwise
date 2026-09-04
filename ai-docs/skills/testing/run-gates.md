@@ -126,9 +126,33 @@ pnpm verify:e2e-performance     # 本地全量子集；含 live HTTP/UI，需要
 
 ## 6. 失败怎么读
 
-- `live_provider_key_missing`：没有 Key。记 `not_run`，不要改 runner 去 skip-as-pass。`pnpm regression --live` 在此码上非零退出。
+失败必须带封闭分类，禁止只报一句 `E2E 失败` / `e2e failed`。helpers 与 runner 写出一行：
+
+`E2E_FAILURE class=<class> code=<code>`
+
+`class` 只有这 7 个（常见 E2E 平台的分层归属，不是产品错误码）：
+
+| class | 何时用 |
+| --- | --- |
+| `api` | HTTP API 进程/请求处理 |
+| `worker` | 后台 worker / 图执行 / 终态超时 |
+| `db` | 库未就绪、迁移失败、连接 |
+| `provider` | 缺 live Key、假服务开关、第三方语音/视觉 |
+| `capability` | 隔离门未开等 harness 能力不足 |
+| `data_or_permission` | 鉴权、额度、RLS、缺失服务端身份 |
+| `frontend` | 浏览器 / Playwright / web 未就绪 |
+
+`code` 是 `[a-z][a-z0-9_]{0,79}` 标识符，禁止 `e2e_failed` / `failed` / `unknown`。行里不写密钥、prompt、答案或连接串。隔离 HTTP 回执在失败时可带 `failureClass`（同上 7 值）；这与 isolated prove 的 `proofSummary.failureClass` 不是同一套词表。
+
+AI/系统终态（`report_unavailable`、`assessment_unavailable`、押题/诊断 `*_unavailable`、以及对应的 `*_ready`）必须另写：
+
+`E2E_REVIEW class=<class> code=<code>`
+
+收口一行 `E2E_REVIEW_SUMMARY count=N`（N≥1）。**缺 review 摘要的 exit 0 是 opaque pass，隔离包装器按 `capability/opaque_pass` 失败。** 回执的 `reviewLedger` 只存 `{class,code}`，不存原文。`report_unavailable` 仍可以是断言通过（舱壁），但必须可复核，不能只当绿。
+
+- `E2E_FAILURE class=provider code=live_provider_key_missing` 或 `live_provider_key_missing`：没有 Key。记 `not_run`，不要改 runner 去 skip-as-pass。`pnpm regression --live` 在此码上非零退出。
 - `regression_unknown_flag`：未知 flag，退出码 2。
 - `regression_required_script_missing`：必跑脚本不在 `package.json`。
-- `fake_service_mode_forbidden`：有人打开了假服务开关。关掉再跑，不要删这条守卫。
-- `e2e_isolation_required`：直接跑了 `pnpm e2e:prove`。必须用 `e2e:isolated`。
-- 子进程 stdout/stderr 默认不进回执。失败时只看退出码、断言行和 `E2E_PROCESS_OUTPUT_WITHHELD` 字节计数。
+- `E2E_FAILURE class=provider code=fake_service_mode_forbidden` 或 `fake_service_mode_forbidden`：有人打开了假服务开关。关掉再跑，不要删这条守卫。
+- `E2E_FAILURE class=capability code=isolation_required` 或 `e2e_isolation_required`：直接跑了 `pnpm e2e:prove`。必须用 `e2e:isolated`。
+- 子进程 stdout/stderr 默认不进回执。失败时只看退出码、分类行、断言行和 `E2E_PROCESS_OUTPUT_WITHHELD` 字节计数。
