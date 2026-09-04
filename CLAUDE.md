@@ -42,6 +42,7 @@ Backend module seams (NestJS): `identity`, `resume`, `role`, `assessment`, `inte
 - **AI graphs never mutate payment/entitlements directly.** Entitlements are controlled in business services. Graph state holds run-time state; business facts still land in business tables.
 - **All user content is untrusted input** before it reaches a model — it goes in a data block, never spliced into system instructions (`ai-docs/rules/ai/structured-output-and-safety.md`).
 - **All model output is validated twice** before entering business logic: schema validation, then a business validator (question counts, score ranges, enum legality, no hallucinated résumé facts). Schema failure → retry / degrade / explainable error.
+- **P0: never default-trust AI-generated code or outputs.** Review against source/UC/contract, then verify with automated multi-round gates (`ai-docs/rules/global/ai-generated-review.md`). One green command is not completion.
 - **Every state-bearing object uses an explicit status enum**, never a soup of booleans, with audited transitions re-validated server-side (`ai-docs/rules/global/status-machine.md`). Key objects: `InterviewResult`, `AssessmentReport`, `PaymentOrder`, `ConsumptionRecord`, `AiGraphRun`.
 
 ### LangGraph orchestration (`ai-docs/architecture/ai/langgraph-blueprint.md`)
@@ -65,7 +66,7 @@ These are the non-negotiable deltas that define Meetwise's engineering:
 
 ## Testing posture (`ai-docs/testing/strategy/test-strategy.md`)
 
-Layers: unit (Vitest/Jest) · contract (shared zod4 schema) · integration (Supertest + Testcontainers) · graph (deterministic fixtures + fake model) · e2e HTTP **primary** (`pnpm e2e:isolated`, fetch/SSE) · e2e UI **secondary** (Playwright, `pnpm e2e:ui:isolated`) · ai-eval (golden tasks in `ai-docs/testing/golden-tasks/`). Authoring: `ai-docs/testing/conventions/test-authoring.md`. Post-change workflow: `ai-docs/skills/testing/SKILL.md` then `pnpm regression`. **Forbidden fake acceptance:** asserting only HTTP 200, opening a page without running the flow, proving production model quality with a mock model, AI self-grading its own report, testing only the happy path while skipping failure-refund and duplicate-request cases, or treating Playwright as the HTTP full-path implementation.
+Layers: unit (Vitest/Jest) · contract (shared zod4 schema) · integration (Supertest + Testcontainers) · graph (deterministic fixtures + fake model) · e2e HTTP **primary** (`pnpm e2e:isolated`, fetch/SSE) · e2e UI **secondary** (Playwright, `pnpm e2e:ui:isolated`) · ai-eval (golden tasks in `ai-docs/testing/golden-tasks/`). Authoring: `ai-docs/testing/conventions/test-authoring.md`. Post-change workflow: `ai-docs/skills/testing/SKILL.md` then `pnpm regression` (multi-round: review → gate → fix → re-gate). **Never default-trust AI code/outputs** (`ai-docs/rules/global/ai-generated-review.md`). **Forbidden fake acceptance:** asserting only HTTP 200, opening a page without running the flow, proving production model quality with a mock model, AI self-grading its own report, testing only the happy path while skipping failure-refund and duplicate-request cases, or treating Playwright as the HTTP full-path implementation.
 
 ## Privacy / safety constraints (hard rules)
 

@@ -11,7 +11,7 @@ allowed-tools:
 
 # usecase-gen · 业务用例 + 测试用例生成（七类 · 非 happy path · 无玩具代码）
 
-产出一个能力的用例与测试用例。用例写 `ai-docs/requirements/use-cases/<domain>.md`，测试用例按 [test-authoring](../../../ai-docs/testing/conventions/test-authoring.md) 落层（HTTP `e2e:isolated` 主层，Playwright 仅浏览器次层）。变更后怎么跑门见 [testing skill](../../../ai-docs/skills/testing/SKILL.md)。**默认只写 happy path = 直接不合格。**
+产出一个能力的用例与测试用例。用例写 `ai-docs/requirements/use-cases/<domain>.md`，测试用例按 [test-authoring](../../../ai-docs/testing/conventions/test-authoring.md) 落层（HTTP `e2e:isolated` 主层，Playwright 仅浏览器次层）。变更后怎么跑门见 [testing skill](../../../ai-docs/skills/testing/SKILL.md)。生成稿**不得默认信任**，须审核 + 多轮门禁（[ai-generated-review](../../../ai-docs/rules/global/ai-generated-review.md)）。**默认只写 happy path = 直接不合格。**
 
 ## 一、每条 UC 必含字段（缺一不可）
 

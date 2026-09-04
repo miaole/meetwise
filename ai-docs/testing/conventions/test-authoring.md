@@ -13,11 +13,12 @@ related:
   - ../../skills/testing/SKILL.md
   - ../../skills/testing/layer-selection.md
   - ../golden-tasks/README.md
+  - ../../rules/global/ai-generated-review.md
 ---
 
 # 测试用例编写规范
 
-> 顺序：**用例 → 测试用例 → 代码**。测试用例从业务用例的 Acceptance + 每条异常流派生，**先于实现代码存在**。已写的实现若没有对应 TC，视为未完成。
+> 顺序：**用例 → 测试用例 → 代码**。测试用例从业务用例的 Acceptance + 每条异常流派生，**先于实现代码存在**。已写的实现若没有对应 TC，视为未完成。AI 代写的 TC/代码同样适用：[不得默认信任](../../rules/global/ai-generated-review.md)，必须审核并走多轮自动化门禁。
 
 ## 1. 覆盖规则
 

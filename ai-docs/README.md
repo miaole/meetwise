@@ -15,7 +15,7 @@
 - `product/`：产品愿景、术语、领域模型、核心工作流。
 - `requirements/`：epic 与 iteration PRD。
 - `architecture/`：前端、后端、AI、DevOps、观测等长期架构。
-- `rules/`：长期稳定工程规则。
+- `rules/`：长期稳定工程规则。P0：`rules/global/ai-generated-review.md`（AI 产物须审核+验证，不得默认信任）。
 - `skills/`：任务型工作方法。变更后测试入口：`skills/testing/SKILL.md`。
 - `testing/`：测试策略（HTTP E2E 主层、Playwright 次层）、`conventions/test-authoring.md`、`golden-tasks/` 登记、E2E 证据和评测。
 - `delivery/`：路线图、发布说明、复盘。

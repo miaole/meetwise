@@ -35,6 +35,7 @@ tags:
 - `architecture/ai/human-review-design.md`：人工校验、申诉、审核授权、四眼与幂等副作用的当前边界和目标架构。
 - `architecture/ai/research-capability-gate.md`：面试 Agent 的 RAG、受限 Web/deep research 与内部 skills 实际能力边界。
 - `architecture/devops/local-demo-deployment.md`：Docker Compose 本地演示和部署策略。
+- `rules/global/ai-generated-review.md`：P0——AI 代码/输出必须审核并验证，不得默认信任；鼓励自动化、多轮门禁；禁止密钥入库。
 - `testing/strategy/test-strategy.md`：测试策略。业务全链路以隔离 HTTP fetch/SSE（`e2e:isolated`）为主层，Playwright 只覆盖浏览器次层；与 runtime 事实冲突时以 runtime 为准。
 - `testing/conventions/test-authoring.md`：用例→TC 编写规范与层映射（HTTP 主 / Playwright 次）。
 - `skills/testing/SKILL.md`：变更后审核 → 选层 → 跑门 → 回归 → AI 出处。
@@ -78,6 +79,7 @@ tags:
 | 测试设计 | `testing/strategy/test-strategy.md` + `testing/conventions/test-authoring.md` | 分层（HTTP 主 / Playwright 次）、TC 规范、golden tasks |
 | 变更后测试/回归 | `skills/testing/SKILL.md` | 审核清单、选层、`pnpm regression`、出处检查 |
 | 代码生成前确认 | `meta/task-sop.md` 的生成前门禁 | Task Harness |
+| AI 产物收口 | `rules/global/ai-generated-review.md` | 审核 + 多轮验证，不得默认信任 |
 
 ## 新增文档规则
 

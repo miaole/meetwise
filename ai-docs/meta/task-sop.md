@@ -53,7 +53,7 @@ E0=用户确认/已验证仓库事实；E1=据 E0 合理推断；E2=猜测；E3=
    - 隐私/租户：4 级可见性、fail-closed、PIPL 同意 + controller/processor、加密、销户级联、两侧物理隔离。
    - 安全（L4/对外）：不暴露 Redis/DB/Docker、密钥不入库+消费上限、注入对抗、防挖矿、备份/IR。
    - C 端产品（候选人 UI）：转化/onboarding/流式 UX/移动/taste。
-3. **验证门（可测就必填）**：测试计划（含失败/退款/重复/并发/隔离/注入）；层按 [test-authoring](../testing/conventions/test-authoring.md)：业务全链路默认 `pnpm e2e:isolated`（HTTP fetch/SSE 主层），Playwright 只覆盖浏览器次层；**禁伪验收**（只断言 200/只开页/mock 证质量/AI 自评/只 happy path/把 Playwright 当 HTTP 全链路）；验证命令。变更后入口：`skills/testing/SKILL.md`。
+3. **验证门（可测就必填）**：测试计划（含失败/退款/重复/并发/隔离/注入）；层按 [test-authoring](../testing/conventions/test-authoring.md)：业务全链路默认 `pnpm e2e:isolated`（HTTP fetch/SSE 主层），Playwright 只覆盖浏览器次层；**禁伪验收**（只断言 200/只开页/mock 证质量/AI 自评/只 happy path/把 Playwright 当 HTTP 全链路）；**不得默认信任** AI 代码/输出，须审核 + 多轮自动化门禁（[ai-generated-review](../rules/global/ai-generated-review.md)）；验证命令。变更后入口：`skills/testing/SKILL.md`。
 
 ## 5. 专家 agent 审计（P0 强制 · 禁止 freehand）
 

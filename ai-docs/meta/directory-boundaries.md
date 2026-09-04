@@ -42,3 +42,4 @@ tags:
 - 如何写 TC、层映射（HTTP 主层 / Playwright 次层） → `testing/conventions/test-authoring.md`
 - 改完功能后审核、选层、跑命令 → `skills/testing/SKILL.md`
 - 实跑回执与结论边界 → `testing/e2e-performance-evidence.md`
+- AI 代码/输出不得默认信任（审核 + 多轮门禁） → `rules/global/ai-generated-review.md`

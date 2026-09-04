@@ -39,5 +39,7 @@ description: 功能 diff 落地后、跑测试前的审核清单。对应 AGENTS
 
 ## 6. 结论边界
 
+- [ ] AI 写出的 diff 已经过审核，没有默认信任；验证走多轮门禁（修完再跑受影响的门）。见 [ai-generated-review](../../rules/global/ai-generated-review.md)。
 - [ ] 准备写的验证记录区分：局部合同 / 隔离 prove / 真供应商 E2E / 发布证据。
 - [ ] 不会把 `releaseEvidence=false` 的回执抄进发布说明。
+- [ ] 未写入密钥、真实 `.env`、简历原文或支付秘密。

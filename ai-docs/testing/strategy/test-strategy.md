@@ -16,6 +16,7 @@ related:
   - ../../skills/testing/SKILL.md
   - ../golden-tasks/README.md
   - ../e2e-performance-evidence.md
+  - ../../rules/global/ai-generated-review.md
 ---
 
 # 测试策略
@@ -40,6 +41,10 @@ related:
 **次层**是浏览器 E2E：`pnpm e2e:ui:isolated`（Playwright，`apps/web/e2e-ui/`）。只证明 cookie、middleware、页面可见性和移动视口渲染。不能用 Playwright 冒充 HTTP 全链路，也不能用 HTTP E2E 冒充 cookie 或 DOM。
 
 写 TC 的层映射见 [test-authoring](../conventions/test-authoring.md)。改完功能后怎么选层、怎么跑门见 [测试技能](../../skills/testing/SKILL.md)。
+
+## AI 产物：审核 + 多轮验证（P0）
+
+[AI 产物必须审核并验证](../../rules/global/ai-generated-review.md)：**不得默认信任** agent 写出的代码/测试/文档，也不得默认信任产品侧模型输出。先审核（对来源、用例、契约），再验证（自动化门禁）。鼓励自动化，且必须**多轮门禁**（生成 → 审核 → 跑门 → 修 → 再跑受影响的门）。一轮 `docs:check` 或单测绿不等于业务全链路过。密钥与敏感数据不得进仓库或日志。
 
 ## MVP 必测路径
 
@@ -95,6 +100,7 @@ RAG 检索的当前实跑基线、非 happy-path 桶和 pgvector HNSW 复核见 
 - 只测 happy path 不测失败退款和重复请求。
 - 把 Playwright 写成 HTTP 全链路的实现或唯一 E2E。
 - 把 `planned` / `unmapped` golden-task 标成已通过。
+- 默认信任 AI 代码/输出，或用 AI 自评代替审核与多轮门禁。
 
 ## 本地性能回归门
 

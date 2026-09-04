@@ -20,8 +20,8 @@ allowed-tools:
    - 每条异常/刁钻流**落到机制**：状态机迁移 或 [四原语](../../../ai-docs/rules/global/production-invariants.md)（CAS/幂等键/RLS/事件日志），不能停在"会处理好"。
 3. 校验测试用例（[test-authoring](../../../ai-docs/testing/conventions/test-authoring.md)）：主流程 + **每条异常流各 ≥1 TC**；强制负向集（失败退款/重复幂等/并发 CAS 恰一赢/越权 RLS=0/schema 失败/幻觉/断线重连/降级）；**正确测试层**（HTTP `e2e:isolated` 主层，Playwright 仅浏览器次层）。变更后入口：[testing skill](../../../ai-docs/skills/testing/SKILL.md)。
 4. **层映射校验**：钱/状态/隔离的 `并`/`复`/`逃`/`刁` 至少一条落到 HTTP E2E 主层，不得全堆集成 gate；不得把 Playwright 写成这些断言的唯一层。
-5. **无玩具代码检查**（任一命中即 BLOCKED）：HTTP 200 / 页面打开 / mock 证质量 / AI 自评 / 只 happy path / 单 `main()` 无隔离 / 存在即通过 / 异常流不落机制。
-6. 输出 `PASS`（可进契约/代码）或 `BLOCKED + 缺口清单`。
+5. **无玩具代码检查**（任一命中即 BLOCKED）：HTTP 200 / 页面打开 / mock 证质量 / AI 自评 / 默认信任 AI 代码或输出 / 只 happy path / 单 `main()` 无隔离 / 存在即通过 / 异常流不落机制。
+6. 输出 `PASS`（可进契约/代码）或 `BLOCKED + 缺口清单`。PASS 仍须按 [ai-generated-review](../../../ai-docs/rules/global/ai-generated-review.md) 做审核 + 多轮自动化门禁，不是默认信任。
 
 ## 不通过怎么办
 
