@@ -47,7 +47,7 @@ related:
 | 数据库 | 线上 `meetwise_cloud_test` 已应用 `0121_resume_pgcrypto_runtime_acl`，其 checksum 对应当前候选未跟踪文件；远程 main 只有 `0120`。 | 发布阻断；须先收编精确迁移。 |
 | ACR | 后端候选镜像可解析，配套 Web 镜像不存在；ECS pull 身份/config 未 provision。 | 已接线待验。 |
 | 回滚/E2E | 候选在 publish 前未启动 Web、迁移前未静默全部旧写者、后半程过早丢 rollback、未等待 Pages final exact receipt。 | 发布阻断。 |
-| 公开预览写门禁 | `MEETWISE_PUBLIC_PREVIEW=1` 时 NestJS(Fastify) `onRequest` 只放行 `GET`/`HEAD`/`OPTIONS`；`InterviewService` 面试/评分写方法与 `ApplicationsService.start`/`finalize` 在 `asPrincipal` 前再失败关闭。写面由 `ai-docs/architecture/backend/public-preview-write-inventory.json` 枚举；未登记或 GET 写表会使 `pnpm public-preview-write:inventory` 失败，`:prove` 只跑清单负例。本地另有 Fastify inject 与 `pnpm -C apps/web prove:middleware`。预览不入队新作业，但不停止已在跑的 worker 评分写；Web 与 API 必须同设精确 `1`，清单不证明编排已锁死。 | 已接线待验。本地 `releaseEvidence=false`，不是 ECS listener、镜像摘要、健康回执或发布证据。`TC-public-preview-01-*` 仍为 planned/unmapped。 |
+| 公开预览写门禁 | `MEETWISE_PUBLIC_PREVIEW=1` 时 NestJS(Fastify) `onRequest` 只放行 `GET`/`HEAD`/`OPTIONS`；`InterviewService` 面试/评分写方法与 `ApplicationsService.start`/`finalize` 在 `asPrincipal` 前再失败关闭。写面由 `ai-docs/architecture/backend/public-preview-write-inventory.json` 枚举；未登记或 GET 写表会使 `pnpm public-preview-write:inventory` 失败，`:prove` 只跑清单负例。本地另有 Fastify inject 与 `pnpm -C apps/web prove:middleware`。预览不入队新作业，但不停止已在跑的 worker 评分写；Web 与 API 必须同设精确 `1`，清单不证明编排已锁死。预览对 `POST /interview/:id/turn` 的 `503 public_preview_read_only` **不是**关闭 `INT-P0-RAW-QUEUE`，也不是新的 canonical write，更不是隐私删除 `503 interview_erasure_authorization_not_available`。非预览 `/turn` 仍写明文 job payload；公开删除仍 503 且无 `/answers`。 | 已接线待验。本地 `releaseEvidence=false`，不是 ECS listener、镜像摘要、健康回执或发布证据。`TC-public-preview-01-*` 仍为 planned/unmapped。 |
 
 “CI success”“Pages 200”“release workflow success”分别只证明对应检查，不能互相替代，更不能宣称最新前后端已自动部署。
 
