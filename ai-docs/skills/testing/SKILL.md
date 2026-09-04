@@ -34,7 +34,7 @@ related:
 - [门禁目录](./run-gates.md) / [回归矩阵](./regression-selection.md)（SOP 3）
 - [出处检查](./ai-provenance.md)（SOP 4，按需）
 - [诚实规则](./honesty-rules.md) + [fail-closed 门](./fail-closed-gate.md)（SOP 5 收束）
-- [E2E 平台 SOP](./e2e-platform/README.md)（draft / NOT_READY；`pnpm e2e-platform:prove` 可跑，不表示 live E2E READY）
+- [E2E 平台 SOP](./e2e-platform/README.md)（draft / NOT_READY；`pnpm e2e-platform:check` / `prove` / `layout:prove` 可跑，不表示 live E2E READY）
 
 总入口命令（**必跑顺序固定**，flag 可组合，省略的车道记 `not_run`，禁止 skip-as-pass）：
 

@@ -64,7 +64,7 @@ related:
 
 ## 变更后回归入口
 
-功能改动后的审核 → 测试 → 回归仪式见 [`skills/testing/sop.md`](../../skills/testing/sop.md)（`status: draft`）。AI 产物默认不可信，见 [`skills/testing/fail-closed-gate.md`](../../skills/testing/fail-closed-gate.md)。概述见 [`skills/testing/SKILL.md`](../../skills/testing/SKILL.md)。HTTP E2E 平台 SOP（**draft / NOT_READY**，`pnpm e2e-platform:prove`）见 [`skills/testing/e2e-platform/README.md`](../../skills/testing/e2e-platform/README.md)。命令与失败语义见 [`skills/testing/run-gates.md`](../../skills/testing/run-gates.md)。默认 `pnpm regression` 只是 always-on 子集，不是触达面必须列。本页 `status: active` 只表示分层策略生效，不表示 live 全链路或平台 SOP 已 READY。生成物默认不可信：命令绿、未审核的生成 diff 不得标 READY；skip-as-pass 禁止；没有受信回执前 `releaseEvidence` 必须为 `false`。
+功能改动后的审核 → 测试 → 回归仪式见 [`skills/testing/sop.md`](../../skills/testing/sop.md)（`status: draft`）。AI 产物默认不可信，见 [`skills/testing/fail-closed-gate.md`](../../skills/testing/fail-closed-gate.md)。概述见 [`skills/testing/SKILL.md`](../../skills/testing/SKILL.md)。HTTP E2E 平台 SOP（**draft / NOT_READY**；`pnpm e2e-platform:check` / `e2e-platform:prove` / `e2e-platform:layout:prove` 三者不可对调）见 [`skills/testing/e2e-platform/README.md`](../../skills/testing/e2e-platform/README.md)。命令与失败语义见 [`skills/testing/run-gates.md`](../../skills/testing/run-gates.md)。默认 `pnpm regression` 只是 always-on 子集，不是触达面必须列。本页 `status: active` 只表示分层策略生效，不表示 live 全链路或平台 SOP 已 READY。生成物默认不可信：命令绿、未审核的生成 diff 不得标 READY；skip-as-pass 禁止；没有受信回执前 `releaseEvidence` 必须为 `false`。
 
 ```bash
 pnpm regression                 # always-on：无 Key 的文档 / 平台守卫 / helpers / 回执 / 架构 / api smoke（及已存在的静态守卫）

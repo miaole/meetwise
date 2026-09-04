@@ -1,15 +1,26 @@
 /**
  * Meetwise E2E platform static guards. Fail closed. Never sets releaseEvidence.
+ *
+ * `pnpm e2e-platform:prove` is the 5 named guards. Planted-violation proofs of
+ * the directory tree live in `pnpm e2e-platform:layout:prove`.
  */
-import { pathToFileURL } from 'node:url';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { checkAssertionFloor } from './assertion-floor.mjs';
 import { checkDirectoryContract } from './directory-contract.mjs';
 import { checkNoFakeService, scanToyRunner } from './no-fake-service.mjs';
 import { checkRunnerDocAlignment, scanDocAlignment } from './runner-doc-alignment.mjs';
 import { checkSecretRedaction } from './secret-redaction.mjs';
 
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+
+function directoryContractErrors() {
+  const found = checkDirectoryContract(ROOT);
+  return Array.isArray(found) ? found : (found?.errors ?? []);
+}
+
 const checks = [
-  ['directory-contract', checkDirectoryContract],
+  ['directory-contract', directoryContractErrors],
   ['no-fake-service', checkNoFakeService],
   ['secret-redaction', checkSecretRedaction],
   ['assertion-floor', checkAssertionFloor],
@@ -38,7 +49,8 @@ export function runE2EPlatformGuards() {
   }
   for (const [name, fn] of checks) {
     const found = fn();
-    for (const error of found) errors.push(`${name}: ${error}`);
+    const list = Array.isArray(found) ? found : (found?.errors ?? []);
+    for (const error of list) errors.push(`${name}: ${error}`);
   }
   return errors;
 }

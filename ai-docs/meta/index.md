@@ -38,11 +38,12 @@ tags:
 - `rules/global/ai-generated-review.md`：长期规则指针——AI 代码/输出必须审核并验证，不得默认信任；收束公式只维护在 `skills/testing/fail-closed-gate.md`。
 - `testing/strategy/test-strategy.md`：测试策略。业务全链路以隔离 HTTP fetch/SSE（`e2e:isolated`）为主层，Playwright 只覆盖浏览器次层；与 runtime 事实冲突时以 runtime 为准。
 - `testing/conventions/test-authoring.md`：用例→TC 编写规范与层映射（HTTP 主 / Playwright 次）。
+- `testing/conventions/e2e-directory-contract.md`：HTTP E2E 的 helpers / 场景 / `scripts/run-e2e*` 目录契约；静态门 `pnpm e2e-platform:check`，种植违规证明 `pnpm e2e-platform:layout:prove`。
 - `skills/README.md`：工作方法索引。当前只登记测试技能（draft）。
 - `skills/testing/SKILL.md`：测试技能概述与铁律（`status: draft`）。
 - `skills/testing/sop.md`：变更后审核 → 测试 → 回归仪式；未升格前保持 draft。
 - `skills/testing/fail-closed-gate.md`：P0 fail-closed——AI 产物默认不可信，审核 ∧ 验证缺一阻断。
-- `skills/testing/e2e-platform/README.md`：HTTP E2E 平台 SOP（draft / NOT_READY；`pnpm e2e-platform:prove`）。
+- `skills/testing/e2e-platform/README.md`：HTTP E2E 平台 SOP（draft / NOT_READY；`pnpm e2e-platform:prove` 是 5 守卫，不是 `layout:prove`）。
 - `delivery/e2e-platform-integration.md`：E2E 平台集成分支的核实合并顺序、冲突决议与 supersession（draft PR，非 READY）。
 - `testing/golden-tasks/README.md`：第一批 golden tasks 登记（含 planned/unmapped，无假绿）。
 - `testing/e2e-performance-evidence.md`：全量隔离 E2E、本地性能预算与外部检索基准的实跑证据。

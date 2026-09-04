@@ -1,6 +1,6 @@
 # 01 · 目录合同
 
-静态守卫：`scripts/e2e-platform/directory-contract.mjs`（经 `pnpm e2e-platform:prove`）。
+可执行合同：`scripts/e2e-platform/directory-contract.mjs`。入口不要对调：`pnpm e2e-platform:check` 跑目录 + 信任 + 核心边界；`pnpm e2e-platform:prove` 把它当作 5 条命名守卫之一；`pnpm e2e-platform:layout:prove` 种植违规必须非零。叙事 SOP 在本页；可执行布局锁在 [`../../../testing/conventions/e2e-directory-contract.md`](../../../testing/conventions/e2e-directory-contract.md)，不要再写第三套目录故事。
 
 ## 布局
 
@@ -19,6 +19,8 @@ e2e/
     sse.ts
     voice.ts
     classify-failure.ts
+    failure.ts
+    failure-class.mjs
 scripts/
   run-e2e.mjs              # HTTP 全链路 runner：隔离 + 真 Key + 禁假服务
   run-e2e-ui.mjs           # 浏览器 runner

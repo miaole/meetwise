@@ -35,7 +35,7 @@ if (env.E2E_ISOLATED === '1') {
   for (const key of Object.keys(env)) if (key.startsWith('LANGFUSE_')) delete env[key];
   env.DATABASE_SSL_MODE = 'disable';
 }
-if (env.E2E_ISOLATED !== '1') throw tagE2EFailure('capability', 'isolation_required');
+if (env.E2E_ISOLATED !== '1') throw tagE2EFailure('capability', 'e2e_ui_isolation_required');
 const fakeServiceFlags = ['VOICE_FAKE', 'OCR_FAKE', 'E2E_FAKE_MODEL'].filter((name) => {
   const value = String(env[name] ?? '').trim().toLowerCase();
   return value && value !== '0' && value !== 'false';

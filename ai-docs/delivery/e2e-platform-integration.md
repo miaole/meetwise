@@ -32,8 +32,8 @@ related:
 | 4 | #59 | `cursor/golden-tasks-registry-71ea` | 约 `b7b078c` | 已 merge：`golden-tasks:prove` 进 always-on；GT-01..04 禁止 `mapped` |
 | 5 | #56 | `cursor/harden-e2e-auth-commerce-0f82` | 约 `b7b078c` | 已 merge：auth/commerce helper 合同 + mock fetch prove；保留母线 `classifyFailure` |
 | 6 | #60 | `cursor/e2e-interview-provenance-526a` | 约 `b7b078c` | 已 merge：规范 questionId + 拒绝伪造分；保留 #56 commerce prove 与母线 golden covering 诚实句 |
-| 7 | #61 | `cursor/e2e-failure-class-ledger-e5f7` | 约 `b7b078c` | 待 merge |
-| 8 | #62 | `cursor/e2e-directory-contract-07f9` | 约 `b7b078c` | 待 merge；与母线已有 `skills/testing/e2e-platform/` 去重 |
+| 7 | #61 | `cursor/e2e-failure-class-ledger-e5f7` | 约 `b7b078c` | 已 merge：封闭 `E2E_FAILURE`/`E2E_REVIEW` 账本；不回退 #56 auth 或 #60 identity |
+| 8 | #62 | `cursor/e2e-directory-contract-07f9` | 约 `b7b078c` | 已 merge：可执行目录契约 + planted-violation；母线 SOP 仍是叙事源；脚本不与 5 守卫 `prove` 对调 |
 | 9 | #63 | `cursor/e2e-static-guards-b01f` | 约 `6530171` | 待 merge |
 | 10 | #64 | `cursor/e2e-parity-baseline-f563` | 已基于 `dbcc310` | 待 merge |
 
@@ -46,6 +46,13 @@ related:
 - `scripts/run-post-change-regression.mjs`：采用 #58 的 always-on → `--core` → `--live`、`--dry-run`、可选静态守卫、`REGRESSION_REVIEW_VERIFY_GATE`。**并入**母线 `ALWAYS_ON_REQUIRED` 的 `generation-trust:prove`、`e2e-platform:prove`，以及 `--claim-done` / `--ready` / `--done` → `regression_claim_done_forbidden`。摘要保留 `claimDone: false`、`readyFromUnreviewedGeneration`。
 - 技能文档：保留 fail-closed / SOP / e2e-platform 链接，并写入 #58 要求的 `review/verify`、`automation does not trust AI outputs`、`multi-round allowed`。
 - `provider-egress-inventory`：同时登记 `run-post-change-regression.mjs` 与 `.proof.mjs`；`environmentReferenceCount` 随清单长度更新，禁止手改成旧数。
+
+### #61
+
+- 采用 #61 的 `failure-class.mjs` / `failure.ts` 与 runner `tagE2EFailure`，但 **不**把 `signupOrLogin` / `uidFromToken` / `questionIdentity` 退回旧实现。
+- helper prove 保留 #56/#60 合同，追加 ledger / opaque_pass 用例。
+- `INTERVIEW_TERMINALS` 含 `error`（#61 AI/system 终态）；证明数组同步更新。
+- 回归脚本保持 #58 车道合同，拒绝 #61 旧 `ALWAYS_ON` 回退。
 
 ### #60
 
@@ -64,6 +71,18 @@ related:
 - 诚实规则并入：`relatedCommands` 不是 covering；GT-01..04（`subject=ai-output`）禁止 `mapped`。
 - 丢弃 #59 对回归脚本的旧 `ALWAYS_ON` 数组回退。
 
+### #62
+
+- 采用 #62 的 `check.mjs` / `core-boundaries.mjs` / `trust-guard.mjs` / `review-loop.mjs` / `review-record.mjs` / `e2e-platform.proof.mjs` 与 `testing/conventions/e2e-directory-contract.md`。
+- **不**把 `e2e-platform:prove` 改指 `e2e-platform.proof.mjs`。母线 `prove.mjs` 仍是 5 条命名守卫；种植违规入口是 `e2e-platform:layout:prove`。
+- `directory-contract.mjs` 以 #62 可执行布局为准，并入母线已有 helpers（`resume.ts`、`classify-failure.ts`、`failure.ts`、`failure-class.mjs`）。`.mjs` helper 合法；场景仍不得进 `helpers/`。
+- 保留母线「`e2e/full.e2e.ts` 必须 import `helpers/resume.ts`」与「helpers 不得 import `apps/web` / `apps/api`」。
+- 技能文档（`SKILL.md` / SOP / fail-closed / e2e-platform 叙事）以母线为源，只补 check / prove / layout:prove 映射，不另开第二套 P0。
+- `ALWAYS_ON_REQUIRED` 在原有 `e2e-platform:prove` 旁加上 `e2e-platform:check` 与 `e2e-platform:layout:prove`。`loop` 不进 always-on。
+- CI `verify` 同一步跑 check + prove + layout:prove；不加新的云部署 job。
+- #61 把 runner 隔离码收成短码 `isolation_required` 后，5 守卫扫不到 `e2e_*_isolation_required`。本合并把三个 runner 的 `tagE2EFailure` 码恢复为 `e2e_isolation_required` / `e2e_ui_isolation_required` / `performance_e2e_isolation_required`，与 `failure-class.mjs` 映射和 `classify-failure.ts` 一致。
+- helper prove 已改 `await test(`；`baseline.json` 地板改为 `^(?:await )?test\\(`，min 仍 9，不降。
+
 ### #57
 
 - P0 公式只在 `skills/testing/fail-closed-gate.md`。`rules/global/ai-generated-review.md` **降为指针**（不得默认信任 / 审核 / 验证 / 多轮门禁 / 自动化仍在文中，供 `docs:check`），不再复制第二套 close 句。
@@ -76,7 +95,7 @@ related:
 | --- | --- |
 | #57 `ai-generated-review.md` 与 #55 `fail-closed-gate.md` 两套 P0 | 只保留 fail-closed 为收束公式；前者改指针 |
 | 各 PR 各自重写 `SKILL.md` / `run-gates.md` / `check-docs.mjs` | 并集：母线文件清单 + 后来 PR 的新术语/新文件 |
-| #62 目录合同 vs 母线 `skills/testing/e2e-platform/` | 待 merge 时以母线 SOP 为叙事源，#62 可执行 check/prove 并入，不复制第二套目录故事 |
+| #62 目录合同 vs 母线 `skills/testing/e2e-platform/` | 母线 SOP 为叙事源；可执行布局锁在 `testing/conventions/e2e-directory-contract.md` + `scripts/e2e-platform/check.mjs`；不复制第三套目录故事 |
 
 ## 源 PR 处置
 
@@ -86,7 +105,9 @@ related:
 
 `scripts/run-post-change-regression.mjs` 的 `ALWAYS_ON_REQUIRED`：
 
-`docs:check` · `generation-trust:prove` · `golden-tasks:check` · `golden-tasks:prove` · `e2e-platform:prove` · `e2e-helpers:prove` · `e2e-receipt:prove` · `e2e-runner:prove` · `arch` · `api:smoke`
+`docs:check` · `generation-trust:prove` · `golden-tasks:check` · `golden-tasks:prove` · `e2e-platform:check` · `e2e-platform:prove` · `e2e-platform:layout:prove` · `e2e-helpers:prove` · `e2e-receipt:prove` · `e2e-runner:prove` · `arch` · `api:smoke`
+
+脚本映射（禁止对调）：`e2e-platform:check` → `scripts/e2e-platform/check.mjs`；`e2e-platform:prove` → `scripts/e2e-platform/prove.mjs`（5 命名守卫）；`e2e-platform:layout:prove` → `scripts/e2e-platform/e2e-platform.proof.mjs`（种植违规）；`e2e-platform:loop` → `scripts/e2e-platform/review-loop.mjs`（`test` 步仍是 `prove`，不是 `layout:prove`）。
 
 可选（`package.json` 有脚本才挂）：`public-text-policy:prove` · `quality:traceability:prove` · `provider-egress:prove`。
 
