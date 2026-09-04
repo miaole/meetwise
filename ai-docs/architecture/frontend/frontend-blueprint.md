@@ -18,6 +18,8 @@ related:
   - ../../requirements/use-cases/cend-overview-progress.md
   - ../../requirements/use-cases/bend-recruiter-architecture-surface.md
   - ../current-runtime-truth.md
+  - ../../testing/strategy/test-strategy.md
+  - ../../skills/testing/SKILL.md
 ---
 
 # 前端架构方案
@@ -40,7 +42,7 @@ related:
 | 表单 | react-hook-form + `@hookform/resolvers/zod` | 复用契约里的 Zod schema，前后端同构校验 |
 | Markdown | **react-markdown + rehype-sanitize** | AI 输出是不可信内容，必须 sanitize，从根上消除 **XSS 风险** |
 | 语音 | Web Speech API（封装成 hook） | 浏览器原生能力，封装为 `useSpeech*` |
-| 测试 | Vitest + RTL + Playwright + MSW | 见 `testing/strategy/test-strategy.md` |
+| 测试 | Vitest + RTL；业务全链路 HTTP E2E（fetch/SSE）；Playwright 仅浏览器层 | 分层见 `testing/strategy/test-strategy.md`；写 TC 见 `testing/conventions/test-authoring.md` |
 
 ## 2. `apps/web` 目录结构
 
@@ -175,11 +177,12 @@ export const config = { matcher: ["/interview/:path*", "/profile", "/history"] }
 | 共享 zod4 schema 契约 | 手写、易漂移的前端 fetch 路径 | 同一份 schema 前后端共用，从根上杜绝接口漂移 |
 | react-markdown + rehype-sanitize | 裸 HTML 注入渲染 | AI/用户输出是不可信内容，不 sanitize 即 XSS |
 | httpOnly cookie + middleware | JWT 存 localStorage 手动塞 header | localStorage 中的 token 任意脚本可读，易被 XSS 窃取 |
-| Vitest + RTL + Playwright + MSW | 无自动化测试 | SSE 渐进渲染/断线重连/契约不漂移必须可回归，见测试策略 |
+| Vitest + RTL + HTTP E2E（fetch/SSE）+ Playwright（仅 UI） | 无自动化测试，或把 Playwright 当 HTTP 全链路 | SSE 渐进渲染/断线重连/契约不漂移必须可回归；业务主链路见测试策略 HTTP 主层 |
 
 ## 12. 测试
 
 - 组件/hook：Vitest + React Testing Library。
-- SSE：MSW 模拟事件流，断言渐进渲染与断线重连。
-- E2E：Playwright 跑「选岗→押题 SSE→报告」「开始模拟面试→回答→暂停→恢复→结束」全链路（见 `test-strategy.md` 必测路径）。
+- SSE 组件：确定性 fixture 断言渐进渲染与断线重连（`pnpm web:prove`）；不把合成流写成真供应商质量。
+- E2E **主层**：`pnpm e2e:isolated`（`e2e/full.e2e.ts` fetch/SSE）跑鉴权→简历→交易→面试→报告的业务必测路径。
+- E2E **次层**：`pnpm e2e:ui:isolated`（Playwright，`apps/web/e2e-ui/`）只覆盖 cookie / middleware / 页面流。变更后入口：`skills/testing/SKILL.md`。
 - 契约：前端用与后端同一份 zod4 schema 做类型与 schema 测试，保证不漂移。
