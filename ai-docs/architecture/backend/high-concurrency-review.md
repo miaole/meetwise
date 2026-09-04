@@ -107,7 +107,7 @@ related:
 | `pnpm last-event-id:unit:prove` | 无库；per-push CI | 解析器：缺省=0；空串拒绝；合法整数；负号/小数/科学计数/前导加号/前导零/`Infinity`/超长 | 不是 HTTP |
 | `pnpm api:validate` | 隔离 HTTP（需库） | **仅面试** `/interview/:id/events` 非法游标 400 | **押题 / 诊断 HTTP 400 未断言**；三路并发槽 429 未用真实 hijack 打满 |
 | `apps/api/test/validate.ts` `[F5]` | 纯 RateLimitService | 上限 2 时第 3 次 acquire 失败、release 后可再占 | 不是跨进程、不是真实 SSE |
-| `pnpm web:prove` | 前端纯函数 | 解码、Last-Event-ID 续传、终态停转 | 不证明 API 槽或轮询；400 时前端仍当断线重连（`HC-GAP-014`） |
+| `pnpm web:prove` | 前端纯函数 | 解码、Last-Event-ID 续传、终态停转；**HTTP 400 `invalid_last_event_id` 立即停转 / degraded，open=1，不得用同一游标重试**（`HC-GAP-014` 已关） | 不证明 API 槽、轮询或浏览器实链 |
 
 未交付：跨 API 副本的 SSE 槽；把 2 秒轮询换成 LISTEN；把连接当业务状态。
 
@@ -143,7 +143,7 @@ related:
 
 ## 7. 证明与测试缺口（可执行清单）
 
-下列项是持续缺口。§4.1 的共享解析器已接线；HTTP / 多副本项仍开。
+下列项是持续缺口。§4.1 的共享解析器已接线；前端 400 停转见已关闭的 `HC-GAP-014`；押题/诊断 HTTP 与多副本项仍开。
 
 | ID | 面 | 缺口 | 正确层级 | 负例断言（尚未具备或未在 CI） |
 | --- | --- | --- | --- | --- |
@@ -160,16 +160,16 @@ related:
 | `HC-GAP-011` | claim-join | `0130` 已进 `runtime:isolated:prove`；孤儿 permit / 两连接同时无行 的独立用例未单列到 CI 名 | 隔离 PG | 两并发无行 → execute=1 且 `wait`/`cached`，calls 不因清 permit 变成 2 |
 | `HC-GAP-012` | 账本 | commerce / quiz / report / reaper 回执停在 64 迁移 | 当前迁移隔离 PG | 在 **130** 个迁移上重跑后才能引用新回执 |
 | `HC-GAP-013` | 唤醒 | 真实 commit-to-claim ≤250ms | 远程数据面 | 未测不得写达标 |
-| `HC-GAP-014` | SSE | 前端对 `400 invalid_last_event_id` 当断线重连 | `web:prove` / 流驱动 | 非法游标必须停转 / degraded，不得用同一游标重试 |
 
 `TC-WORKER-001-*`、`TC-WORKER-002-*`（远程）、`TC-MODEL-001-E2` 半开改路等，用例文档已写、治理叶多为 planned/unmapped。不得用本复核文件把它们标成已绑定。
 
 ## 8. 当前树落地 / 明确不做
 
-**已落地（文档 + 解析器）**
+**已落地（文档 + 解析器 + 前端 400 停转）**
 
 - 本复核骨架挂到索引与运行时事实矩阵的 related。
 - 三路 SSE service 共用 `parseLastEventId`；controller 只用返回的 `lastId`。无库证明 `pnpm last-event-id:unit:prove` 进入 per-push CI。`HC-GAP-006`（押题/诊断 HTTP 400）与 `HC-GAP-007`（槽打满）仍开。
+- **`HC-GAP-014` 已关闭（仅前端）**：面试 / 押题 / 诊断流驱动把 HTTP 400 `invalid_last_event_id` 当失败关闭，不是断线。`pnpm web:prove` 断言 open 恰好 1 次、`connection=closed`、`degraded`、不得用同一 `Last-Event-ID` 重试；Next SSE 代理保持 400 而不改写成普通 `stream_unavailable`。不是浏览器实链、不是 `api:validate` 押题/诊断 HTTP（仍 `HC-GAP-006`）。`releaseEvidence=false`。
 
 **明确不做**
 

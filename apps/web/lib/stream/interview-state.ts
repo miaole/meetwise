@@ -1,7 +1,7 @@
 /**
  * 面试视图状态归约：业务事件序列 → 前端视图态。纯函数（可单测,无 React）。
  * 不变量(无静默死胡同):任何情形都有出路——report_unavailable→degraded;流断在非终态→reconnecting(自动重连+显式"重连中");
- * 重连耗尽→degraded/error。绝不停在干等无出口的转圈。状态真相在服务端 checkpoint,断线用同一 resultId + Last-Event-ID 续。
+ * 重连耗尽或 HTTP 400 非法 Last-Event-ID→degraded/error（不得用同一游标重试）。绝不停在干等无出口的转圈。状态真相在服务端 checkpoint,断线用同一 resultId + Last-Event-ID 续。
  */
 import type { InterviewSignalConcludeReason } from '@meetwise/contracts';
 import type { BusinessEvent, QuestionKind } from './business-events';

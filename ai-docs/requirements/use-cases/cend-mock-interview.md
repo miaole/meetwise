@@ -254,9 +254,10 @@ related:
 | E2 | 中途 kill 后重连（异·逃） | 持久事件账本 | 不丢不重 |
 | E3 | 海量并发订阅（并·刁） | 背压/限流（UC-INT-25） | 不击穿、降级为轮询快照 |
 | E4 | 伪造他人 threadId 订阅（刁·IDOR） | RLS principal 绑定 | 0 行/403 |
+| E5 | 非法 `Last-Event-ID` → HTTP 400（逃·刁） | 失败关闭：停转 / degraded，不得用同一游标重试 | 连接 `closed` + `degraded`；自动 `open`=1 |
 
 **后置**：客户端最终一致；账本不变。
-**验收**：①`Last-Event-ID=N`→仅 seq>N；②全量重放=快照+增量等价；③越权订阅 403。
+**验收**：①`Last-Event-ID=N`→仅 seq>N；②全量重放=快照+增量等价；③越权订阅 403；④非法游标 HTTP 400 → 前端停转 / degraded，不得用同一 `Last-Event-ID` 重试（`pnpm web:prove`）。
 **关联**：契约 events SSE schema；原语 3/4。
 
 **测试用例**
@@ -265,6 +266,7 @@ related:
 | TC-INT-06-main | 集成 | Last-Event-ID=N→只重放 seq>N |
 | TC-INT-06-E2 | 集成+混沌 | kill 重连→不丢不重 |
 | TC-INT-06-E4 | 集成 | 他人 threadId 订阅→403 |
+| TC-INT-06-E5 | 单元 (`web:prove`) | `400 invalid_last_event_id` → open=1、`connection=closed`、`degraded`、fail-closed 出口；不得用同一游标再 `open` |
 | TC-INT-06-contract | 契约 | event schema + eventSeq 单调（**补足契约层**） |
 
 ---

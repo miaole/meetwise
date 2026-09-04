@@ -10,6 +10,10 @@ import { interviewDisplay, isDeadEnd, signalConcludePracticeCopy } from '../lib/
 import { makeInterviewApi, type FetchLike, type FetchResponse } from '../lib/api/client.ts';
 import { runInterviewStream, type StreamOpener } from '../lib/stream/interview-stream.ts';
 import type { InterviewView } from '../lib/stream/interview-state.ts';
+import {
+  InvalidLastEventIdError, isInvalidLastEventIdError, lastEventIdHeaderValue,
+  throwIfInvalidLastEventIdStatus, sseProxyFailureResponse,
+} from '../lib/stream/sse-cursor.ts';
 import { makeFrameCoalescer } from '../lib/stream/frame-coalescer.ts';
 import { interviewTurnWindow } from '../lib/stream/turn-window.ts';
 import { buildTurnSubmission } from '../lib/interview/turn-submission.ts';
@@ -295,6 +299,66 @@ async function main() {
   });
   A('open 每次抛 → 有界重连后 degraded(不崩,不无限)', transportFail.degraded && transportFail.connection === 'closed');
 
+  section('HC-GAP-014：HTTP 400 invalid_last_event_id 必须停转/degraded，不得用同一游标重试');
+  A('合法整数才编码 Last-Event-ID；0 不带头',
+    lastEventIdHeaderValue(0) === undefined && lastEventIdHeaderValue(2) === '2');
+  A('Infinity/小数/负数/NaN 本地失败关闭，绝不写成 Last-Event-ID',
+    (() => {
+      const bad = [Number.POSITIVE_INFINITY, 1.5, -1, Number.NaN];
+      return bad.every((id) => {
+        try { lastEventIdHeaderValue(id); return false; } catch (err) { return isInvalidLastEventIdError(err); }
+      });
+    })());
+  A('HTTP 400 → 抛 InvalidLastEventIdError；502/401 不抛',
+    (() => {
+      try { throwIfInvalidLastEventIdStatus(400); return false; } catch (err) {
+        if (!isInvalidLastEventIdError(err)) return false;
+      }
+      throwIfInvalidLastEventIdStatus(502);
+      throwIfInvalidLastEventIdStatus(401);
+      return true;
+    })());
+  const proxied400 = await sseProxyFailureResponse(new Response(JSON.stringify({ error: 'invalid_last_event_id' }), { status: 400 }));
+  const proxied502 = await sseProxyFailureResponse(new Response('', { status: 502 }));
+  A('SSE 代理 400 保持 400 且不伪装成 stream_unavailable',
+    proxied400.status === 400 && (await proxied400.text()).includes('invalid_last_event_id'));
+  A('SSE 代理 502 仍是不可用断线语义', proxied502.status === 502 && (await proxied502.text()) === 'stream_unavailable');
+  const illegalCursorIds: number[] = [];
+  const illegalCursor = await runInterviewStream({
+    open: (lastId) => { illegalCursorIds.push(lastId); throw new InvalidLastEventIdError(); },
+    onView: () => {}, sleep: noSleep, maxRetries: 5,
+  });
+  const illegalDisp = interviewDisplay(illegalCursor);
+  A('首连 400 → open 恰好 1 次（不得用同一游标重试）', illegalCursorIds.length === 1 && illegalCursorIds[0] === 0);
+  A('首连 400 → degraded + connection=closed + phase=error',
+    illegalCursor.degraded && illegalCursor.connection === 'closed' && illegalCursor.phase === 'error');
+  A('首连 400 fail-closed 展示：不转圈 + 重试出口',
+    illegalDisp.degraded && !illegalDisp.spinner && illegalDisp.action.kind === 'retry' && illegalDisp.message.trim().length > 0);
+  const midCursorIds: number[] = [];
+  const midIllegal = await runInterviewStream({
+    open: (lastId) => {
+      midCursorIds.push(lastId);
+      if (lastId === 0) return streamOf(ev(1, 'question_ready', { question: 'Q1' }), ev(2, 'waiting_user', {}));
+      throw new InvalidLastEventIdError();
+    },
+    onView: () => {}, sleep: noSleep, maxRetries: 5,
+  });
+  const midDisp = interviewDisplay(midIllegal);
+  A('重连 400 → 第二次 open 带 lastEventId=2 后立即停，不再第三次用 2 重试',
+    midCursorIds.length === 2 && midCursorIds[1] === 2 && midIllegal.degraded && midIllegal.connection === 'closed' && midIllegal.lastEventId === 2);
+  A('中途非法游标 fail-closed：不转圈、不当成仍可作答',
+    midDisp.degraded && !midDisp.spinner && midDisp.action.kind === 'retry' && midDisp.message.includes('不会再用同一续传编号') && !midDisp.message.includes('请回答'));
+  let emptyOpens = 0;
+  const emptyThenOk = await runInterviewStream({
+    open: () => {
+      emptyOpens++;
+      return emptyOpens === 1 ? streamOf() : streamOf(ev(1, 'report_ready', { overall: 70 }));
+    },
+    onView: () => {}, sleep: noSleep,
+  });
+  A('空结束(502/401 语义)仍按断线重连，不是 400 停转',
+    emptyOpens === 2 && emptyThenOk.phase === 'report_ready' && !emptyThenOk.degraded);
+
   section('SSE 驱动：error 终态事件 → phase=error 收尾(不重连)');
   let opensE = 0;
   const errEnd = await runInterviewStream({
@@ -390,6 +454,14 @@ async function main() {
   let qOpens = 0;
   const qExhaust = await runQuizStream({ open: () => { qOpens++; return streamOf(ev(1, 'progress', {})); }, onView: () => {}, sleep: noSleep, maxRetries: 2 });
   A('永不出终态 → 有界重连后 degraded(不无限转圈)', qExhaust.degraded && qExhaust.connection === 'closed' && qOpens <= 3);
+  const qBadIds: number[] = [];
+  const qBad = await runQuizStream({
+    open: (lastId) => { qBadIds.push(lastId); throw new InvalidLastEventIdError(); },
+    onView: () => {}, sleep: noSleep, maxRetries: 5,
+  });
+  A('押题 400 非法游标 → open=1 + degraded/closed，不得同游标重试',
+    qBadIds.length === 1 && qBad.degraded && qBad.connection === 'closed');
+  A('押题 400 fail-closed 展示不转圈', (() => { const d = quizDisplay(qBad); return d.degraded && !d.spinner && d.action.kind === 'retry'; })());
   const qReplay = await runQuizStream({   // 用户打开一个已完成押题:服务端一次性重放全部事件含终态
     open: () => streamOf(ev(1, 'question_ready', { question: 'Q1', refs: [] }), ev(2, 'question_ready', { question: 'Q2', refs: [] }), ev(2, 'question_ready', { question: 'Q2 重放', refs: [] }), ev(3, 'quiz_ready', { count: 2, report: { score: 80, grounded: 2, summary: 's' } })),
     onView: () => {}, sleep: noSleep,
@@ -456,6 +528,14 @@ async function main() {
   let dOpens = 0;
   const dExhaust = await runDiagnosisStream({ open: () => { dOpens++; return streamOf(ev(1, 'progress', {})); }, onView: () => {}, sleep: noSleep, maxRetries: 2 });
   A('永不出终态 → 有界重连后 degraded(不无限转圈)', dExhaust.degraded && dExhaust.connection === 'closed' && dOpens <= 3);
+  const dBadIds: number[] = [];
+  const dBad = await runDiagnosisStream({
+    open: (lastId) => { dBadIds.push(lastId); throw new InvalidLastEventIdError(); },
+    onView: () => {}, sleep: noSleep, maxRetries: 5,
+  });
+  A('诊断 400 非法游标 → open=1 + degraded/closed，不得同游标重试',
+    dBadIds.length === 1 && dBad.degraded && dBad.connection === 'closed');
+  A('诊断 400 fail-closed 展示不转圈', (() => { const d = diagnosisDisplay(dBad); return d.degraded && !d.spinner && d.action.kind === 'retry'; })());
 
   section('诊断视图模型:任何状态都不死胡同(P0:无死胡同可确定性 gate)');
   const dDisplays = ALL_DIAGNOSIS_PHASES.map((p) => diagnosisDisplay({ phase: p, sections: [], rewrites: [], degraded: false, connection: 'live', lastEventId: 0 }));

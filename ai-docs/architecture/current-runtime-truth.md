@@ -110,7 +110,7 @@ PostgreSQL（关系型数据库）承载业务真相，Redis/Tair（内存键值
 
 ## 4. 请求、异步任务与一致性
 
-1. Web 不把面试事实放进浏览器缓存。页面从 API 读取权威状态，SSE 只运输业务事件；断线使用 `Last-Event-ID`（最后事件编号）续传。面试 / 押题 / 诊断长连接是 **2 秒轮询账本**，不是跨进程扇出；每 API 进程每主体最多 5 条 SSE（进程内 Map）。service 层 `parseLastEventId` 失败关闭非法游标；无库确定性证明 `pnpm last-event-id:unit:prove`（per-push CI）。**HTTP 400 目前只在 `api:validate` 的面试路径断言**；押题 / 诊断 HTTP 400 未写入该套件。五面并发复核与证明缺口见 `architecture/backend/high-concurrency-review.md`，该页不是容量 SLO。
+1. Web 不把面试事实放进浏览器缓存。页面从 API 读取权威状态，SSE 只运输业务事件；断线使用 `Last-Event-ID`（最后事件编号）续传。面试 / 押题 / 诊断长连接是 **2 秒轮询账本**，不是跨进程扇出；每 API 进程每主体最多 5 条 SSE（进程内 Map）。service 层 `parseLastEventId` 失败关闭非法游标；无库确定性证明 `pnpm last-event-id:unit:prove`（per-push CI）。**前端不得把 HTTP 400 `invalid_last_event_id` 当断线重连**：三路流驱动停转 / degraded，不得用同一游标重试（`pnpm web:prove`，`HC-GAP-014` 已关）。**HTTP 400 目前只在 `api:validate` 的面试路径断言**；押题 / 诊断 HTTP 400 未写入该套件（`HC-GAP-006`）。五面并发复核与证明缺口见 `architecture/backend/high-concurrency-review.md`，该页不是容量 SLO。
 2. API 在认证后进入 `asPrincipal` 事务，向 PostgreSQL 写 principal（主体）上下文。普通业务容器不应拥有迁移角色权限。
 3. 需要模型、长计算或可恢复执行的请求先写业务记录和 durable job（持久任务），worker 再按租约领取。任务状态、模型调用状态和权益状态分别持久化，避免 HTTP 连接中断成为业务失败。
    面试、押题、诊断与报告的 `queued` 转换已接入 PostgreSQL 提交后固定 `wake` 和 worker 专用 `LISTEN` 会话；通知不含任何业务数据，只合并唤醒现有领取 loop。每类 loop 仍以 5 秒为上限做恢复扫描，覆盖监听启动/断线窗口、过期 lease（租约）和到期报告重试。现有代码/本地生命周期合同已接线，但真实 PostgreSQL 的 transaction、trigger、RLS、多副本和故障恢复验收不能称为发布证据。

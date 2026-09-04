@@ -249,10 +249,10 @@ related:
 - **正常**：心跳维持；备选-服务端主动 `report_ready` 跳报告页。
 - **异常**：`error`(可降级) → 渲染 degraded + 重试；不可恢复 → error 态。
 - **特殊**：首事件前的空白态(loading)；i18n 状态文案；事件乱序到达按 seq 排序。
-- **逃逸**：连续重连 N 次仍失败 → 提供"返回列表，凭 resultId 稍后恢复"出口（不无限 spinner）；服务端安全终止事件 → `crisis_safe_stop` 终态。
+- **逃逸**：连续重连 N 次仍失败 → 提供"返回列表，凭 resultId 稍后恢复"出口（不无限 spinner）；服务端安全终止事件 → `crisis_safe_stop` 终态；HTTP 400 非法 `Last-Event-ID` → 立即停转 / degraded，不用同一游标重试。
 - **并发**：重连后重复事件 → seq 幂等去重。
 - **复杂**：跨多次重连拼接完整会话，状态由 checkpoint 收敛而非客户端累计。
-- **刁钻**：服务端推来 seq 倒退/重复/缺口 → seq<=lastSeen 丢弃；缺口触发一次性全量重放回查，不盲信单事件；恶意超大事件体 → 大小上限保护。
+- **刁钻**：服务端推来 seq 倒退/重复/缺口 → seq<=lastSeen 丢弃；缺口触发一次性全量重放回查，不盲信单事件；恶意超大事件体 → 大小上限保护；非法 / `Infinity` 游标不得编码进 `Last-Event-ID`。
 
 ### 后置
 FE 态随事件收敛；不写业务账本（账本在服务端事件日志）。
@@ -262,6 +262,7 @@ FE 态随事件收敛；不写业务账本（账本在服务端事件日志）�
 - 注入乱序事件 → 渲染顺序按 seq。
 - 注入 seq 倒退事件 → 被丢弃。
 - 重连失败 N 次 → 出现逃逸出口而非永久 loading。
+- HTTP 400 `invalid_last_event_id` → 停转 / degraded，`open` 恰好 1 次，不得用同一续传编号重试（`pnpm web:prove`，`HC-GAP-014`）。
 
 ### 关联
 契约：SSE 事件清单 + seq。状态机：FE 渲染态机；Interview 由服务端驱动。原语：持久有序事件日志(seq/Last-Event-ID 重放)。安全：事件为不可信，大小/类型校验。
@@ -273,6 +274,7 @@ FE 态随事件收敛；不写业务账本（账本在服务端事件日志）�
 | TC-FE-SSE-001-replay | 并发/复杂 | component | Last-Event-ID 只应用 seq>N |
 | TC-FE-SSE-001-outoforder | 特殊/刁钻 | 单元(reducer) | 乱序按 seq、倒退丢弃 |
 | TC-FE-SSE-001-escape | 逃逸 | component | N 次重连失败 → 逃逸出口 |
+| TC-FE-SSE-001-invalid-cursor | 逃逸/刁钻 | 单元 (`web:prove`) | 400 非法游标 → 停转 / degraded，不得同游标重试 |
 | TC-FE-SSE-001-safestop | 逃逸 | component | 安全终止事件 → crisis_safe_stop 终态、隐藏继续 |
 
 ---

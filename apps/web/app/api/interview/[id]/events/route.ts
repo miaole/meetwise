@@ -1,4 +1,5 @@
 import { getServerToken } from '../../../../../lib/api/server';
+import { sseProxyFailureResponse } from '../../../../../lib/stream/sse-cursor';
 
 /**
  * 同源 SSE 代理(修审计 P0:面试流原来硬编码 x-user-id:'demo' 未鉴权)。
@@ -57,7 +58,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const lastEventIdHeader = req.headers.get('last-event-id');
   if (lastEventIdHeader) headers['last-event-id'] = lastEventIdHeader;     // 续传水位透传
   const upstream = await fetch(`${API}/interview/${encodeURIComponent(id)}/events`, { headers, signal: req.signal });
-  if (!upstream.ok || !upstream.body) return new Response('stream_unavailable', { status: upstream.status || 502 });
+  if (!upstream.ok || !upstream.body) return sseProxyFailureResponse(upstream);
   return new Response(upstream.body, {                          // 透传 SSE 流(ReadableStream)
     status: 200,
     headers: { 'content-type': 'text/event-stream', 'cache-control': 'no-cache, no-transform', connection: 'keep-alive' },
