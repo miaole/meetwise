@@ -1,0 +1,38 @@
+---
+name: regression-selection
+description: 按触达面选择必须重跑的隔离 prove 与 E2E，避免只跑无关门或漏掉面试/API/web/db。
+---
+
+# 回归选择矩阵
+
+先跑 `pnpm regression`。再按 **实际 diff 触达的目录** 加跑，不要凭感觉跳过面试/支付。
+
+`必须` = 该面改动后没有回执不得合并到自己的完成声明。`建议` = 强相关但可用更小 prove 代替 live。`有 Key` = 本地/nightly，CI per-push 不跑。
+
+| 触达路径 | 必须（无 Key） | 有 Key 时再跑 | 明确不够 |
+| --- | --- | --- | --- |
+| `e2e/`、`scripts/run-e2e*.mjs`、`scripts/local-e2e-receipt*` | `pnpm e2e-helpers:prove` `pnpm e2e-receipt:prove` `pnpm e2e-runner:prove` | `pnpm e2e:isolated` | 只改注释却声称全链路重跑 |
+| `packages/db`、`packages/db/migrations` | `pnpm db:prove` `pnpm migrate:prove` `pnpm drift:prove`；相关业务 prove | 当前 schema 上重跑 `e2e:isolated` | 旧迁移回执（迁移数已变） |
+| `apps/api` | `pnpm api:validate` `pnpm api:smoke` + 对应 `neg:*` | `e2e:isolated` | 只 `livez` 200 |
+| `apps/worker`、`packages/ai-graphs` | `pnpm graph:prove` `pnpm interview:prove` 或被改图的 prove | `e2e:isolated` | 单测假模型质量 |
+| `packages/ai-runtime` | `pnpm runtime:prove` 以及被改的 breaker/failover/invoke prove | `model:smoke` / nightly | 把 schema 失败当质量通过 |
+| `apps/web` | `pnpm web:prove` | `pnpm e2e:ui:isolated`（需 `.next`） | 只打开落地页 |
+| 面试 / 评分 / 报告 | `pnpm interview:prove` `pnpm scoring-integrity:prove` `pnpm report:prove` `pnpm turn-idempotency:prove` | HTTP E2E 主面试 + 岗位绑定会话 | 客户端自报分数 |
+| 交易 / 额度 / OCR 计费 | `pnpm commerce:prove` `pnpm ocr:prove` `pnpm neg:commerce` | HTTP E2E 的下单/webhook/OCR 扣费段 | mock PSP |
+| 简历 / 隐私 | `pnpm resume:prove` 及 erasure 相关 prove | HTTP E2E 文本+图片简历 | 把影子 `sql/` fixture 当生产 schema |
+| B 端 / 投递 | `pnpm recruiter:prove` `pnpm neg:bend` | HTTP E2E 的 RLS + finalize 段 | 长度断言代替 candidate id |
+| RAG / 题库 | 对应 `rag*:` / `qbank*:` prove | `retrieval:benchmark` 单独记账 | 把 fixture 覆盖率写成 Recall |
+
+## 最低事后序列（agent 必须留下命令与退出码）
+
+```text
+1. 审核清单（post-change-review.md）全部勾完或记录缺口
+2. pnpm regression
+3. 上表中“必须”列
+4. 若有 MODEL_API_KEY 且触达面试/API/web/db：pnpm regression --live
+5. 若无 Key：在说明里写 not_run:live_e2e，不要写“E2E 通过”
+```
+
+## 与 `verify:e2e-performance` 的区别
+
+`pnpm verify:e2e-performance` 是本机全量子集（含 live HTTP/UI、性能、一长串 RAG prove）。它慢、要 Key、回执仍是 `releaseEvidence=false`。日常改动用本矩阵，不要默认复制那条长命令来假装更严格。

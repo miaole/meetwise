@@ -23,8 +23,9 @@ tags:
 | contract | 共享 zod4 schema + schema tests | 前后端接口不漂移 |
 | integration | Supertest + Testcontainers | API + DB + Redis |
 | graph | deterministic fixtures + fake model | LangGraph 状态、分支、恢复 |
-| e2e | Playwright | 用户主链路 |
-| ai eval | golden tasks | 模型输出质量、结构、事实一致性 |
+| e2e (HTTP) | `e2e/full.e2e.ts` + `scripts/run-e2e.mjs`（fetch / SSE），入口 `pnpm e2e:isolated` | 真 API + worker + 隔离 Postgres + **真供应商**主链路；不是 Playwright |
+| e2e (browser) | Playwright（`apps/web/e2e-ui/`），入口 `pnpm e2e:ui:isolated` | cookie / middleware / 页面流；需 production Next 与 live Key |
+| ai eval | golden tasks（见 `testing/golden-tasks/`） | 模型输出质量、结构、事实一致性；未映射条目不得标绿 |
 | security | 静态扫描 + 日志检查 | 密钥、PII、XSS、越权 |
 
 ## MVP 必测路径
@@ -41,18 +42,30 @@ tags:
 - 重启服务后恢复未完成会话。
 - 权益扣减和失败退款。
 
+## 变更后回归入口
+
+功能改动后的审核 → 选层 → 跑门配方见 [`ai-docs/skills/testing/SKILL.md`](../../skills/testing/SKILL.md)。
+
+```bash
+pnpm regression            # 无 Key 的总是门（文档 / helpers / 回执 / 架构 / api smoke）
+pnpm regression --core     # 行走骨架隔离 prove（需 Docker）
+pnpm regression --live     # 真供应商 HTTP + 浏览器 E2E；缺 MODEL_API_KEY 非零退出
+```
+
+per-push CI 跑隔离 prove，**不**跑 `e2e:isolated`。缺 Key 时记录 `not_run`，禁止 skip-as-pass。
+
 ## AI Golden Tasks
 
-第一批 golden tasks：
+第一批已登记在 [`testing/golden-tasks/README.md`](../golden-tasks/README.md)，状态为 `mapped` / `partial` / `planned`，**没有**“已通过”项。
 
-1. 前端开发岗位 + 有项目简历 -> 生成 8-12 个问题，包含项目深挖。
-2. 回答过短 -> 报告应指出表达不足，而不是给高分。
-3. JD 要求 React/Next.js，简历缺 Next.js -> 能力差距必须出现 Next.js。
-4. 用户回答“不会” -> 追问策略应转为引导，不应幻觉用户掌握。
-5. 模型输出非法 JSON -> validator 拒绝并重试。
-6. 评分证据中的 quote 不属于本题答案 -> `unscored`，不得写入 0/50/99 等任何伪造分数。
-7. 同 turn 给出不同 answer -> 评分幂等键不同；同答案重放 -> 息缓存且不重打模型。
-8. 报告模型输出的 overall 与逐题 scores 不同、或 sections/段落重复 -> 拒绝；只允许服务端确定性聚合总分。
+1. 前端开发岗位 + 有项目简历 -> 生成 8-12 个问题，包含项目深挖。`GT-01` **planned**。
+2. 回答过短 -> 报告应指出表达不足，而不是给高分。`GT-02` **partial**（`scoring-golden:prove`）。
+3. JD 要求 React/Next.js，简历缺 Next.js -> 能力差距必须出现 Next.js。`GT-03` **planned**。
+4. 用户回答“不会” -> 追问策略应转为引导，不应幻觉用户掌握。`GT-04` **partial**。
+5. 模型输出非法 JSON -> validator 拒绝；当前运行时派发后**不**自动重试。`GT-05` **mapped**（`runtime:prove`）。
+6. 评分证据中的 quote 不属于本题答案 -> `unscored`，不得写入 0/50/99 等任何伪造分数。`GT-06` **mapped**（`scoring-integrity:prove`）。
+7. 同 turn 给出不同 answer -> 评分幂等键不同；同答案重放 -> 缓存且不重打模型。`GT-07` **partial**（`turn-idempotency:prove` 覆盖同答案重放）。
+8. 报告模型输出的 overall 与逐题 scores 不同、或 sections/段落重复 -> 拒绝；只允许服务端确定性聚合总分。`GT-08` **mapped**（`scoring-integrity:prove`）。
 
 评分官的真模型评测、置信区间、非 happy-path 桶和绝对分校准边界见 [评分评测与校准发布协议](./scoring-evaluation-protocol.md)。它明确区分“链路不伪造分数”的确定性 proof 与“模型评分有效”的统计证据；未完成双盲人标与公平性切片前，分数不得作为 B 端自动决策。
 

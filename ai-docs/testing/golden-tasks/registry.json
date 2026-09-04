@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "releaseEvidence": false,
+  "batch": "strategy-first-eight",
+  "source": "ai-docs/testing/strategy/test-strategy.md",
+  "tasks": [
+    {
+      "id": "GT-01",
+      "status": "planned",
+      "title": "前端岗项目深挖出题",
+      "doc": "ai-docs/testing/golden-tasks/GT-01-frontend-project-deep-dive.md",
+      "mappedCommands": []
+    },
+    {
+      "id": "GT-02",
+      "status": "partial",
+      "title": "过短作答不得高分",
+      "doc": "ai-docs/testing/golden-tasks/GT-02-short-answer-not-high-score.md",
+      "mappedCommands": ["scoring-golden:prove"]
+    },
+    {
+      "id": "GT-03",
+      "status": "planned",
+      "title": "JD Next.js 能力差距",
+      "doc": "ai-docs/testing/golden-tasks/GT-03-jd-nextjs-gap.md",
+      "mappedCommands": []
+    },
+    {
+      "id": "GT-04",
+      "status": "partial",
+      "title": "不会则引导不幻觉掌握",
+      "doc": "ai-docs/testing/golden-tasks/GT-04-unknown-answer-no-hallucination.md",
+      "mappedCommands": ["scoring-golden:prove"]
+    },
+    {
+      "id": "GT-05",
+      "status": "mapped",
+      "title": "非法 JSON 拒绝入库",
+      "doc": "ai-docs/testing/golden-tasks/GT-05-illegal-json-reject.md",
+      "mappedCommands": ["runtime:prove"]
+    },
+    {
+      "id": "GT-06",
+      "status": "mapped",
+      "title": "quote 不在答案内不得计分",
+      "doc": "ai-docs/testing/golden-tasks/GT-06-quote-not-in-answer-unscored.md",
+      "mappedCommands": ["scoring-integrity:prove"]
+    },
+    {
+      "id": "GT-07",
+      "status": "partial",
+      "title": "答题幂等与不同答案密钥",
+      "doc": "ai-docs/testing/golden-tasks/GT-07-turn-idempotency.md",
+      "mappedCommands": ["turn-idempotency:prove"]
+    },
+    {
+      "id": "GT-08",
+      "status": "mapped",
+      "title": "报告总分仅服务端聚合",
+      "doc": "ai-docs/testing/golden-tasks/GT-08-report-server-aggregation.md",
+      "mappedCommands": ["scoring-integrity:prove"]
+    }
+  ]
+}

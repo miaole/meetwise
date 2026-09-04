@@ -37,7 +37,17 @@ try {
     assert.equal(persisted.assertionCount, 73);
     assert.equal(persisted.releaseEvidence, false);
     assert.deepEqual(Object.keys(persisted.sourceDigests).sort(), [
-      'e2e/full.e2e.ts', 'scripts/run-e2e-isolated.mjs', 'scripts/run-e2e.mjs',
+      'e2e/full.e2e.ts',
+      'e2e/helpers/assert.ts',
+      'e2e/helpers/auth.ts',
+      'e2e/helpers/commerce.ts',
+      'e2e/helpers/http.ts',
+      'e2e/helpers/interview.ts',
+      'e2e/helpers/sse.ts',
+      'e2e/helpers/voice.ts',
+      'e2e/ocr-fixture.ts',
+      'scripts/run-e2e-isolated.mjs',
+      'scripts/run-e2e.mjs',
     ]);
     assert.ok(Object.values(persisted.sourceDigests).every((digest) => /^sha256:[0-9a-f]{64}$/.test(digest)));
     assert.ok(Number.isInteger(persisted.schemaMigrationManifest.count) && persisted.schemaMigrationManifest.count > 0);
@@ -67,9 +77,9 @@ try {
     await rejects(() => writeLocalE2EReceipt(valid({ outcome: 'passed', exitCode: 1 })), 'outcome_exit_code_mismatch');
   });
 
-  await test('复杂边界：源码摘要覆盖客户端、编排器和隔离器三层，迁移清单不为空', async () => {
+  await test('复杂边界：源码摘要覆盖客户端、helpers、编排器和隔离器，迁移清单不为空', async () => {
     const { receipt } = await writeLocalE2EReceipt(valid());
-    assert.equal(Object.keys(receipt.sourceDigests).length, 3);
+    assert.equal(Object.keys(receipt.sourceDigests).length, 11);
     assert.ok(receipt.schemaMigrationManifest.count >= 1);
   });
 

@@ -9,6 +9,14 @@ import { join, relative, resolve } from 'node:path';
 
 const SOURCE_PATHS = Object.freeze([
   'e2e/full.e2e.ts',
+  'e2e/helpers/assert.ts',
+  'e2e/helpers/auth.ts',
+  'e2e/helpers/commerce.ts',
+  'e2e/helpers/http.ts',
+  'e2e/helpers/interview.ts',
+  'e2e/helpers/sse.ts',
+  'e2e/helpers/voice.ts',
+  'e2e/ocr-fixture.ts',
   'scripts/run-e2e.mjs',
   'scripts/run-e2e-isolated.mjs',
 ]);

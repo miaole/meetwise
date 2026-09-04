@@ -65,7 +65,7 @@ These are the non-negotiable deltas that define Meetwise's engineering:
 
 ## Testing posture (`ai-docs/testing/strategy/test-strategy.md`)
 
-Layers: unit (Vitest/Jest) · contract (shared zod4 schema) · integration (Supertest + Testcontainers) · graph (deterministic fixtures + fake model) · e2e (Playwright) · ai-eval (golden tasks). **Forbidden fake acceptance:** asserting only HTTP 200, opening a page without running the flow, proving production model quality with a mock model, AI self-grading its own report, or testing only the happy path while skipping failure-refund and duplicate-request cases.
+Layers: unit (Vitest/Jest) · contract (shared zod4 schema) · integration (Supertest + Testcontainers) · graph (deterministic fixtures + fake model) · e2e HTTP (`pnpm e2e:isolated`, fetch/SSE) · e2e UI (Playwright, `pnpm e2e:ui:isolated`) · ai-eval (golden tasks in `ai-docs/testing/golden-tasks/`). Post-change workflow: `ai-docs/skills/testing/SKILL.md` then `pnpm regression`. **Forbidden fake acceptance:** asserting only HTTP 200, opening a page without running the flow, proving production model quality with a mock model, AI self-grading its own report, or testing only the happy path while skipping failure-refund and duplicate-request cases.
 
 ## Privacy / safety constraints (hard rules)
 
