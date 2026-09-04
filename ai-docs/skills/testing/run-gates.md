@@ -88,6 +88,7 @@ CI `verify` 与 always-on **不是同一集合**。`.github/workflows/ci.yml` �
 | `pnpm int-transcript-preview-submit:http:prove` | 预览 `POST /interview/:id/answers` 落入 0092 `submitInterviewAnswer`；受 0126 围栏；非预览 404 | `INT-TRANSCRIPT-01` 生产 cutover、公开删除、语音 `/transcribe` `/speak`。须远程 Postgres / isolated 包装器，**不进** always-on |
 | `pnpm model-slot-bypass:prove` | 无 `operation` 的 invoke 不写 `ai_model_concurrency_lease`；有 operation 且 max=2 时第三条拒绝、零外呼 | 多 Worker 真副本 / `HC-GAP-010`。须 `run-e2e-isolated.mjs`，**不进** always-on。无库静态门是 `pnpm model-slot-bypass:static:prove` |
 | `pnpm quiz-dual-claim:prove` | 同 owner 同一押题 / 诊断 job 两连接并发 claim 恰一 `running`，败者 null 且事件/额度/父行增量=0 | owner cap / 公平轮转 / 模型外呼。须 `E2E_CLOUD_ISOLATED=1` 远程隔离库，禁止本地 Docker，**不进** always-on。无库门是 `pnpm quiz-dual-claim:unit:prove` |
+| `pnpm runtime:claim-join:prove` | `HC-GAP-011` 具名：孤儿 create-permit claim → `wait`；两连接无行 execute=1+wait=1；清 permit 不得把 calls 变成 2 | 供应商取消计费 / 0120 槽交叉 / lease 接管。须隔离或远程 PG，**不进** always-on。per-push 已跑同脚本 `pnpm runtime:prove` |
 
 ## 3. 真供应商 HTTP E2E
 

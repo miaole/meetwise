@@ -126,11 +126,11 @@ related:
 
 脚本映射（禁止对调）：`e2e-platform:check` → `scripts/e2e-platform/check.mjs`；`e2e-platform:prove` → `scripts/e2e-platform/prove.mjs`（5 命名守卫）；`e2e-platform:layout:prove` → `scripts/e2e-platform/e2e-platform.proof.mjs`（种植违规）；`e2e-platform:loop` → `scripts/e2e-platform/review-loop.mjs`（`test` 步仍是 `prove`，不是 `layout:prove`）。
 
-可选（`package.json` 有脚本才挂）：`public-text-policy:prove` · `quality:traceability:prove` · `provider-egress:prove` · `public-preview-write:prove` · `public-preview-write-gate:prove` · `interview-answer-submission:prove` · `adaptive-length:prove` · `scor-00-honesty:prove` · `model-op01:prove` · `interview-dispatch:unit:prove` · `last-event-id:unit:prove` · `privacy-erasure-preview:domain:prove` · `privacy-erasure-preview:contract:prove` · `adaptive-signals:prove` · `adaptive-signals-graph:prove` · `signal-sse:prove` · `signal-sse-contract:prove` · `signal-sse-worker:prove` · `interview-voice-seams:prove` · `voice-stream-asr-honesty:prove` · `model-slot-bypass:static:prove` · `quiz-dual-claim:unit:prove` · `native-fail-closed:prove` · `question-generation-fail-closed:prove`。隔离 `model-slot-bypass:prove` / `quiz-dual-claim:prove` **不进** always-on。
+可选（`package.json` 有脚本才挂）：`public-text-policy:prove` · `quality:traceability:prove` · `provider-egress:prove` · `public-preview-write:prove` · `public-preview-write-gate:prove` · `interview-answer-submission:prove` · `adaptive-length:prove` · `scor-00-honesty:prove` · `model-op01:prove` · `interview-dispatch:unit:prove` · `last-event-id:unit:prove` · `privacy-erasure-preview:domain:prove` · `privacy-erasure-preview:contract:prove` · `adaptive-signals:prove` · `adaptive-signals-graph:prove` · `signal-sse:prove` · `signal-sse-contract:prove` · `signal-sse-worker:prove` · `interview-voice-seams:prove` · `voice-stream-asr-honesty:prove` · `model-slot-bypass:static:prove` · `quiz-dual-claim:unit:prove` · `native-fail-closed:prove` · `question-generation-fail-closed:prove`。隔离 `model-slot-bypass:prove` / `quiz-dual-claim:prove` / `runtime:claim-join:prove` **不进** always-on。
 
-## 相对最新 main 的叠底（#65 + #68 + #69 + #71 + #70 + #66 + #73 + #74 + #75 + #77 + #82 + #72 + #79 + #83 + #67 + #80 + #84 + #78 + #88 + #86 + #87 + #81 + #90 + #89 + #95 + #91 + #93）
+## 相对最新 main 的叠底（#65 + #68 + #69 + #71 + #70 + #66 + #73 + #74 + #75 + #77 + #82 + #72 + #79 + #83 + #67 + #80 + #84 + #78 + #88 + #86 + #87 + #81 + #90 + #89 + #95 + #91 + #93 + #92）
 
-本分支已叠到 `origin/main` @ `231051e`（#68 → #65 → #69 → #71 → #70 `0125` → #66 覆盖驱动软预算 → #73 `SCOR-00H` → #74 `0126` 答题双写互斥 → #75 `0127` 预览 OCR binding → #77 `0128` 面试公平调度 → #82 `0129` 隐私删除预览 → #72 `0130` SIGNAL-01 → #79 预览批量 ASR/TTS → #83 预览 `/resume` 图片入口 → #67 出题/原生 fail-closed → #80 预览 `POST /interview/:id/answers` → #84 SIGNAL-SSE `session_concluded` → #78 Pages 预览展示 → #88 Pages 仅面试练习证明 → #86 预览路径诚实闸 → #87 高并发复核骨架 + `parseLastEventId` → #81 招聘方内部预览笔记 → #90 `HC-GAP-014` 前端 400 停转 → #89 `HC-GAP-006` 押题/诊断 HTTP 400 → #95 流式 ASR 诚实双旗 → #91 `HC-GAP-009` 静态门 → #93 `HC-GAP-004` 押题/诊断双连接恰一领）。`package.json` / `run-e2e-isolated.mjs` 自动并集（保留 `tagE2EFailure` / `assertNoFakeServiceFlags` / `VOICE_FAKE`+`ASR_FAKE`+`TTS_FAKE`+`OCR_FAKE`）；`ci.yml` / `check-docs.mjs` / `current-runtime-truth.md` 按并集解。迁移计数仍为经 `0130` 共 130（#93 / #91 / #95 / #89 / #90 / #81 / #87 / #86 / #88 / #78 / #84 / #80 / #67 / #83 / #79 无新迁移）。#93 / #91 / #95 / #89 / #90 / #81 / #87 / #86 / #88 / #78 / #84 / #80 / #67 / #83 / #79 / #72 / #82 / #77 / #75 / #74 / #73 / #66 / #70 是 main 上已合并的独立切片，**不是**本 PR 的 supersede 对象；本 PR 只 supersede #55–#64。
+本分支已叠到 `origin/main` @ `4c515d1`（#68 → #65 → #69 → #71 → #70 `0125` → #66 覆盖驱动软预算 → #73 `SCOR-00H` → #74 `0126` 答题双写互斥 → #75 `0127` 预览 OCR binding → #77 `0128` 面试公平调度 → #82 `0129` 隐私删除预览 → #72 `0130` SIGNAL-01 → #79 预览批量 ASR/TTS → #83 预览 `/resume` 图片入口 → #67 出题/原生 fail-closed → #80 预览 `POST /interview/:id/answers` → #84 SIGNAL-SSE `session_concluded` → #78 Pages 预览展示 → #88 Pages 仅面试练习证明 → #86 预览路径诚实闸 → #87 高并发复核骨架 + `parseLastEventId` → #81 招聘方内部预览笔记 → #90 `HC-GAP-014` 前端 400 停转 → #89 `HC-GAP-006` 押题/诊断 HTTP 400 → #95 流式 ASR 诚实双旗 → #91 `HC-GAP-009` 静态门 → #93 `HC-GAP-004` 押题/诊断双连接恰一领 → #92 `HC-GAP-011` 具名 claim-join 孤儿）。`package.json` / `run-e2e-isolated.mjs` 自动并集（保留 `tagE2EFailure` / `assertNoFakeServiceFlags` / `VOICE_FAKE`+`ASR_FAKE`+`TTS_FAKE`+`OCR_FAKE` **和** `runtime:claim-join:prove:raw`）；`ci.yml` / `check-docs.mjs` / `current-runtime-truth.md` 按并集解。迁移计数仍为经 `0130` 共 130（#92 / #93 / #91 / #95 / #89 / #90 / #81 / #87 / #86 / #88 / #78 / #84 / #80 / #67 / #83 / #79 无新迁移）。#92 / #93 / #91 / #95 / #89 / #90 / #81 / #87 / #86 / #88 / #78 / #84 / #80 / #67 / #83 / #79 / #72 / #82 / #77 / #75 / #74 / #73 / #66 / #70 是 main 上已合并的独立切片，**不是**本 PR 的 supersede 对象；本 PR 只 supersede #55–#64。
 
 | 来源 | 必须保留 |
 | --- | --- |
@@ -162,6 +162,7 @@ related:
 | #95 | 流式 ASR / turn-taking 诚实闸：精确双旗 `VOICE_STREAM_ASR_ENABLED=1` **且** `VOICE_STREAM_ASR_PREVIEW=1`；生产 / enforce / 公开预览仍拒；Key 单独不能开 WebSocket；组合根不接线 live stream。`pnpm voice-stream-asr-honesty:prove`。不是产品流式 E2E，不关闭 `PRD-TEST-006`。无新迁移 |
 | #91 | `HC-GAP-009`：legacy invoke 无 `operation` 不进 0120 租约；第三条有 operation 槽拒绝。可选 always-on 挂无库 `pnpm model-slot-bypass:static:prove`（已在 per-push CI）。隔离 `pnpm model-slot-bypass:prove` 需 Docker，**不进** always-on，本环境无回执。不 fail-close 旧缝，不关闭 `HC-GAP-010`。无新迁移 |
 | #93 | `HC-GAP-004`：同 owner 同一押题 / 诊断 job 两连接并发 claim 恰一 `running`，败者 null 且副作用=0。可选 always-on 挂无库 `pnpm quiz-dual-claim:unit:prove`（已在 per-push CI；拒本地 Docker / loopback）。隔离 `pnpm quiz-dual-claim:prove` 须 `E2E_CLOUD_ISOLATED=1`，**不进** always-on，本环境无回执。不证明 owner cap / 公平轮转。无新迁移 |
+| #92 | `HC-GAP-011`：`0130` 孤儿 create-permit / 两连接无行具名负例。per-push 已挂进既有 `pnpm runtime:prove`。隔离 `pnpm runtime:claim-join:prove` / `pnpm runtime:isolated:prove` **不进** always-on，本环境无回执。不证明供应商取消计费、0120 槽交叉、lease 接管。无新迁移 |
 
 `check-docs.mjs` / `meta/index.md` / 用例目录是并集，不是二选一。
 
@@ -183,7 +184,7 @@ related:
 | `testing/e2e-parity-baseline.md` + JSON/allowlist | floors 48/367；effective 37/342；allowlist 6 条 |
 | `architecture/ai/provider-egress-inventory.{json,md}` | 登记 #62/#63 E2E 引用 + #79 `interview-voice-seams` + #67 `native-fail-closed` + #95 `voice-stream-preview`；`environmentReferenceCount` = 211；consumer pairs = 33 |
 
-`docs:check` 把本文件列为 required，并要求出现 `#55`、`#64`、`#69`、`#71`、`#70`、`#66`、`#73`、`#74`、`#75`、`#77`、`#82`、`#72`、`#79`、`#83`、`#67`、`#80`、`#84`、`#78`、`#88`、`#86`、`#87`、`#81`、`#90`、`#89`、`#95`、`#91`、`#93`、`feature/e2e-platform-integration`、`fail-closed`、`releaseEvidence`、`supersede`。
+`docs:check` 把本文件列为 required，并要求出现 `#55`、`#64`、`#69`、`#71`、`#70`、`#66`、`#73`、`#74`、`#75`、`#77`、`#82`、`#72`、`#79`、`#83`、`#67`、`#80`、`#84`、`#78`、`#88`、`#86`、`#87`、`#81`、`#90`、`#89`、`#95`、`#91`、`#93`、`#92`、`feature/e2e-platform-integration`、`fail-closed`、`releaseEvidence`、`supersede`。
 
 ## 本轮诚实边界
 
@@ -192,14 +193,14 @@ aiAuthored: yes
 aiTrust: untrusted
 review: blocked:author_only
 verification: restack_union_only
-commands: docs:check, quiz-dual-claim:unit:prove
+commands: docs:check
 claimDone: false
 ready: NOT_READY
-rounds: 25
+rounds: 26
 releaseEvidence: false
 liveE2E: not_run:live_provider_key_missing
 core: not_requested
 secrets: none
 ```
 
-叠到 `origin/main` @ `231051e`（+#93）后仅做冲突并集，本 tip 未重跑 `pnpm regression`。`docs:check` 现为 80 个 required files。迁移计数仍为 130。本 PR 只 supersede #55–#64，不 supersede #93 / #91 / #95 / #89 / #90 / #81 / #87 / #86 / #88 / #78 / #84 / #80 / #67 / #83 / #79 / #72 / #82 / #77 / #75 / #74 / #73 / #66 / #70。作者不得自签 `review: passed`。不得 `--claim-done`。不得写「本轮局部验证完成」——审核仍是 `blocked:author_only`。
+叠到 `origin/main` @ `4c515d1`（+#92）后仅做冲突并集，本 tip 未重跑 `pnpm regression`。`docs:check` 现为 80 个 required files。迁移计数仍为 130。本 PR 只 supersede #55–#64，不 supersede #92 / #93 / #91 / #95 / #89 / #90 / #81 / #87 / #86 / #88 / #78 / #84 / #80 / #67 / #83 / #79 / #72 / #82 / #77 / #75 / #74 / #73 / #66 / #70。作者不得自签 `review: passed`。不得 `--claim-done`。不得写「本轮局部验证完成」——审核仍是 `blocked:author_only`。
