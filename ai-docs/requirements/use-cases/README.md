@@ -34,6 +34,7 @@ related:
   - ./redemption.md
   - ./interview-history.md
   - ./cend-overview-progress.md
+  - ./e2e-parity-baseline.md
 ---
 
 # 业务用例目录
@@ -117,6 +118,7 @@ related:
 
 ### 横切运行时用例
 
+E2E 用例数/断言 parity 是测试控制面，不计入上表产品域估算，全文见 `e2e-parity-baseline.md`。
 模型调用、模型操作路由、记忆治理、隐私删除、岗位题域路由、长时专家面试运行时和云测试运行器属于多个领域共用的承重契约，不计入上表按产品域的历史估算；新增或调整模型节点时必须同时满足 `model-invocation-reliability.md` 与 `model-operation-routing.md`，不能因图节点名称或适配器不同而绕过预算、授权、成本和降级验收。长时面试的 transcript、恢复、级别校准、blueprint 和安全围栏必须同时满足 `expert-long-interview-runtime.md`；checkpoint/SSE/job payload 不得被当作用户历史或授权根。涉及后端、前端、测试、AI 等多题域题库时，必须先满足 `rag-funnel-intent-routing.md` 的轨道快照和数据面硬过滤；只有同桶正常完成且确认无合格题，才可按该用例的一次 LLM fallback 生成题。不能用语义相似度、分类建议或 generic fallback 替代隔离。公开预览必须同时满足 `ecs-public-preview-web-ingress.md` 的回环网络、边缘方法门和 release 状态约束，以及 `public-preview-write-gate.md` 的面试/评分写面清单与失败关闭围栏；不得把 Web 页面、静态构建成功或本地 write-gate proof 解释为完整应用发布。
 
 | 横切能力 | 文档 | 当前代码口径（不得用目标态覆盖） |
