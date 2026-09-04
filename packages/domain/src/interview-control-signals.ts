@@ -20,7 +20,7 @@ export interface InterviewMindSignalView {
 export const INTERVIEW_CONTROL_SIGNAL_KINDS = ['none', 'weak', 'thrashing'] as const;
 export type InterviewControlSignalKind = (typeof INTERVIEW_CONTROL_SIGNAL_KINDS)[number];
 
-/** 与 coverage-driven length 的 ConcludeReason 对齐（thrashing 不是 early_thrashing）。 */
+/** 与 coverage-driven length 的 ConcludeReason 对齐（thrashing 不是 early_thrashing）。`budget_exhausted` 仅枚举兼容，decideNext 当前不产出。 */
 export const INTERVIEW_CONCLUDE_REASONS = [
   'budget_exhausted',
   'all_resolved',

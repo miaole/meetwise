@@ -7,12 +7,8 @@ import { decideNode } from '../src/adaptive-interview/nodes/decide.ts';
 let fail = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
 const codeOf = (r: unknown): string | null => {
-  if (r == null) return null;
-  if (typeof r === 'string') return r;
-  if (typeof r === 'object' && 'code' in r && typeof (r as { code: unknown }).code === 'string') {
-    return (r as { code: string }).code;
-  }
-  return null;
+  if (r == null || typeof r !== 'object' || !('code' in r)) return null;
+  return typeof (r as { code: unknown }).code === 'string' ? (r as { code: string }).code : null;
 };
 
 function weakMind() {

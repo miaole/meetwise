@@ -1,7 +1,7 @@
 ---
 id: requirements_use_cases_interview_control_signals
 name: 面试控制信号（弱/震荡）地基
-description: INT-LEVEL 的控制流地基：从已持久化的 InterviewMind 算出 weak/thrashing 信号，供 decideNext 消费；不产出能力等级或 B 端 band。验收仅本地 prove（releaseEvidence=false）。
+description: INT-LEVEL-SIGNAL-01 控制流地基（≠ INT-LEVEL-01 能力等级校准）：从已持久化的 InterviewMind 算出 weak/thrashing 信号，供 decideNext 消费；不产出能力等级或 B 端 band。验收仅本地 prove（releaseEvidence=false）。
 type: requirement
 scope: shared
 level: must
@@ -15,6 +15,7 @@ tags:
   - control-signal
 related:
   - ./expert-long-interview-runtime.md
+  - ./adaptive-interview-length.md
   - ../../architecture/current-runtime-truth.md
   - ../../architecture/ai/langgraph-blueprint.md
   - ../../rules/global/production-invariants.md
@@ -50,11 +51,11 @@ related:
 | `packages/ai-graphs/src/adaptive-interview/nodes/plan.ts` | `initMind(competencies, maxTurns, absoluteMaxTurns)`；无固定 8 轮产品硬顶。 | 时长数值属覆盖驱动策略；信号不得抬 `maxTurns`。 |
 | `packages/ai-graphs/.../evaluate-answer.ts`（对照，非本包） | `unscored` / identity-mismatch 可直接 `concluded=true`，**不经** `decideNext`，**不写** `concludeReason`。 | 不是 `early_*`；本 UC 只对照列出，不改该通道。 |
 
-本包关闭的是控制流 hook，**不关闭** `INT-LEVEL-01` / `INT-P0-LEVEL-EVIDENCE` / `INT-LONG-INTERVIEW-01`。
+本包交付（本地 prove）的是控制流 hook，**不关闭** `INT-LEVEL-01` / `INT-P0-LEVEL-EVIDENCE` / `INT-LONG-INTERVIEW-01`。
 
 ## UC-INT-LEVEL-SIGNAL-01 · 弱/震荡信号供 decideNext 消费
 
-- **角色 Actor：** 自适应决策（纯域）、图 `decide` 节点、后续动态时长/报告 hook。
+- **角色 Actor：** 自适应决策（纯域）、图 `decide` 节点。worker / SSE / report 不消费 `concludeReason`。
 - **前置 Precondition：** `InterviewMind` 已由 `initMind` / `ingestAssessment` / `markUnresolved` / `withCurrent` 更新；评分只作 0..100 整数轨迹，不作 band。
 - **触发 Trigger：** 每次 `decideNext(mind)`。
 - **主流程 Main：**
@@ -72,13 +73,13 @@ related:
   - **E4 失败回滚：** 本层不写账本；非法 mind（缺 competencies）fail-closed → `none`，不抛、不抬 maxTurns。
   - **E5 降级：** 缺轨迹字段、分数样本不足、或仅 clarify/unresolved 未 ingest → `none`。图级 `unscored`/identity-mismatch 走 `evaluate-answer` 直跳 conclude，不经本包 `ConcludeReason`。
   - **E6 超时/断线：** 本层无 IO。恢复后只对账 checkpoint 里的 mind，不补造分数。
-- **后置 Postcondition：** 若经 `decideNext` conclude，reason 为 `ConcludeReason` 之一；`maxTurns` 未被信号改写；无 band/等级写入；`concludeReason` 未被 worker/SSE/report 消费。
+- **后置 Postcondition：** `decideNext` 返回 `NextAction.reason ∈ ConcludeReason`；图 state `concludeReason` 为 `DecisionProvenance | null`（`code` 承载 reason）。`maxTurns` 未被信号改写；无 band/等级写入；`concludeReason` 未被 worker/SSE/report 消费。
 - **验收 Acceptance：**
   - 多能力持续弱且已过最小轮次且分数样本≥2 → `early_weak`，且仍有未探能力时也会停（不再为凑满清单继续问）。
   - 跨能力高/低分翻转≥3 且 `pivotCount≥3` 且无人 `confidence≥0.7` → `thrashing`。
   - `weak` 与 `thrashing` 同真 → `early_weak`。
   - `turn>=absoluteMaxTurns` 即使信号为 weak/thrashing 仍是 `safety_ceiling`。
-  - 已满足 weak 的 mind 在 `clarify` 续问时不 conclude（`concludeReason=null`）。
+  - 已满足 weak 的 mind 在 `clarify` 续问时默认不 conclude（`concludeReason=null`）；仅 `turn>=absoluteMaxTurns` 时经 `decideNext` 收 `safety_ceiling`。
   - 单题高分、hasHook 深挖、单能力 off-ramp 不触发提前终止。
   - 受保护属性/客户端 band 不进入特征。
 - **关联：** 无 HTTP。状态机对象 `NextAction`。原语：纯函数幂等（E1）；隔离靠不读外来字段（E3）。隐私：不读简历原文/PII。
