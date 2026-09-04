@@ -23,8 +23,8 @@ A('超时 → provider_timeout',
   && classifyQuestionGenerationError('model_prepare_timeout') === 'provider_timeout'
   && classifyQuestionGenerationError('external_request_timeout') === 'provider_timeout');
 
-A('畸形 schema / JSON → provider_malformed',
-  classifyQuestionGenerationError('schema_validation_failed') === 'provider_malformed'
+A('畸形 schema / JSON → schema_invalid / provider_malformed',
+  classifyQuestionGenerationError('schema_validation_failed') === 'schema_invalid'
   && classifyQuestionGenerationError('external_response_json_invalid') === 'provider_malformed'
   && classifyQuestionGenerationError('asr_malformed') === 'provider_malformed');
 

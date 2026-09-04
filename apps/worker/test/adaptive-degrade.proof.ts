@@ -1,7 +1,7 @@
 /** TC-MODEL-ROUTE-04-E5: 出题模型失败 → 结构化错误 + provenance，不发明题面。 */
 import { assertIsolatedTestTarget, asPrincipal, createPool } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
-import { isQuestionGenerationFailure } from '@meetwise/domain';
+import { isQuestionGenerationFailure, normalizeQuestionGenerationResult } from '@meetwise/domain';
 import { buildAdaptiveDeps, planCompetencies } from '../src/adaptive-interview-service.ts';
 
 const pool = createPool();
@@ -29,7 +29,7 @@ async function main() {
     localRetrieve: async () => [], webExplore: async () => [],
   });
   let threw = false, gen: any = null;
-  try { gen = await deps.retrieveAndGenerate('并发', 3, 0, 0, ['限流经历'], 'fundamental'); } catch { threw = true; }
+  try { gen = normalizeQuestionGenerationResult(await deps.retrieveAndGenerate('并发', 3, 0, 0, ['限流经历'], 'fundamental')); } catch { threw = true; }
   A('出题模型失败 → 不抛错', threw === false);
   A('返回 ok:false，不发明题面', isQuestionGenerationFailure(gen) && !('question' in gen));
   A('provenance.origin=unavailable 且错误可分类',
@@ -76,7 +76,7 @@ async function main() {
       competencies: ['并发'], localRetrieve: async () => [], webExplore: async () => [],
     });
     timedOutEval = await deps4.assess('q', '有效答案', '并发', 0);
-    timedOutGen = await deps4.retrieveAndGenerate('并发', 3, 0, 0, [], 'fundamental');
+    timedOutGen = normalizeQuestionGenerationResult(await deps4.retrieveAndGenerate('并发', 3, 0, 0, [], 'fundamental'));
   } finally {
     if (previousExecutionTimeout === undefined) delete process.env.MODEL_EXECUTION_TIMEOUT_MS;
     else process.env.MODEL_EXECUTION_TIMEOUT_MS = previousExecutionTimeout;
@@ -98,9 +98,9 @@ async function main() {
     pool, owner: OWNER, threadId: threads.malformed, model: malformed,
     competencies: ['并发'], localRetrieve: async () => [], webExplore: async () => [],
   });
-  const bad = await depsM.retrieveAndGenerate('并发', 3, 0, 0, [], 'fundamental');
-  A('畸形 structured output → provider_malformed，不发明题',
-    isQuestionGenerationFailure(bad) && bad.error === 'provider_malformed' && !('question' in bad)
+  const bad = normalizeQuestionGenerationResult(await depsM.retrieveAndGenerate('并发', 3, 0, 0, [], 'fundamental'));
+  A('畸形 structured output → schema_invalid，不发明题',
+    isQuestionGenerationFailure(bad) && bad.error === 'schema_invalid' && !('question' in bad)
     && bad.provenance.invokeError === 'schema_validation_failed');
 
   console.log(`\n${fail === 0 ? '✓ agent 出题 fail-closed(不发明题面)+评分 unscored 全部通过' : '✗ ' + fail + ' 失败'}`);

@@ -56,8 +56,8 @@ async function main() {
   A('能力模型驱动(并发被判弱、缓存够强)', res.mind.competencies.find((c: any) => c.name === '缓存').confidence >= 0.7);
   A('反思留痕:每题都记录确定性自检结果，供事后审计', res.transcript.every((t: any) => Array.isArray(t.critique)));
 
-  // A critique failure used to call the provider with attempt=1/2. It now
-  // emits a deterministic same-competency shell and carries the issue forward.
+  // A critique failure used to call the provider with attempt=1/2 or invent a
+  // same-competency shell. It now fail-closes: no pending, no invented stem.
   {
     let calls = 0;
     const fallbackGraph = buildAdaptiveInterviewGraph(new MemorySaver(), {

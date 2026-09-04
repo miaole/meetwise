@@ -21,6 +21,7 @@ export function requireFiniteVector(value: unknown, dim: number, code: string): 
     if (typeof item !== 'number' || !Number.isFinite(item)) throw new Error(code);
     out.push(item);
   }
+  if (out.every((item) => item === 0)) throw new Error(code);
   return out;
 }
 

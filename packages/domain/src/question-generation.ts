@@ -36,18 +36,18 @@ export type QuestionGenerationResult =
 
 const NOT_CONFIGURED = /not_configured|policy_required|known_not_executed|provider_rejected|deterministic_refusal|admission|project_missing|project_disabled|operation_unknown|operation_blocked|prepare_failed|operation_policy/;
 const TIMEOUT = /timeout|timed_out|deadline_exceeded/;
-const MALFORMED = /schema_validation_failed|malformed|json_invalid|parse|empty_content|no_audio|usage_invalid/;
+const MALFORMED = /schema_validation_failed|malformed|json_invalid|parse_error|empty_content|no_audio|usage_invalid/;
 
 export function classifyQuestionGenerationError(invokeError: string): QuestionGenerationErrorCode {
   if (typeof invokeError !== 'string' || invokeError.length < 1 || invokeError.length > 200) {
     return 'generation_unavailable';
   }
   if (invokeError.startsWith('business:')) return 'business_invalid';
-  if (MALFORMED.test(invokeError)) return 'provider_malformed';
+  if (invokeError === 'schema_validation_failed') return 'schema_invalid';
+  if (invokeError === 'external_outcome_unknown') return 'external_outcome_unknown';
   if (TIMEOUT.test(invokeError)) return 'provider_timeout';
   if (NOT_CONFIGURED.test(invokeError)) return 'provider_not_configured';
-  if (invokeError === 'external_outcome_unknown') return 'external_outcome_unknown';
-  if (invokeError === 'schema_validation_failed') return 'schema_invalid';
+  if (MALFORMED.test(invokeError)) return 'provider_malformed';
   return 'generation_unavailable';
 }
 

@@ -144,7 +144,7 @@ related:
   1. 适配器把失败收成稳定错误码（`*_not_configured` / `*_timeout` / `*_malformed` / invoke `schema_validation_failed` / `external_outcome_unknown`），**不**返回看似成功的题面、空转写或零向量。
   2. `retrieveAndGenerate` 返回 `QuestionGenerationResult.ok=false` + `QuestionGenerationProvenance{origin:unavailable,errorCode,invokeError}`；禁止 `deterministicQuestionFallback` 冒充模型题。
   3. 图 `genQuestion` 不写 pending；条件边直接 `conclude`。`awaitAnswer` 不会对失败出题 interrupt。
-  4. lifecycle 同一 principal 事务：`failInterviewAndRelease` + `interview_unavailable{reason,provenance}`；`question_ready` 增量 = 0。
+  4. lifecycle 同一 principal 事务：`failInterviewAndRelease` + `interview_unavailable{reason,provenance}`（`event_key=interview_unavailable:terminal`）；`question_ready` 增量 = 0。中途下一题失败时同事务先写 `answer_evaluated`/`answer_unscored`，再终态化，不 `completeInterviewAndConfirm`。
 - **备选流 Alternate：** grounded 首题仍可用批准模板，但 provenance `origin=approved_template`，且不得引用简历原文。评分失败继续 `unscored`，不在本包改分数语义。
 - **异常流 Exception：**
   - **E1 重复：** 同 interview 再投 start/同键出题只回放既有 `interview_unavailable` 或既有 invocation 终态；不得另发明题。机制：事件 `event_key` 幂等 + invocation 幂等键。

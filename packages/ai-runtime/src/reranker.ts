@@ -37,13 +37,15 @@ export function dashscopeReranker(cfg: { apiKey?: string; model?: string; url?: 
       }
       const body = requireRecord(j, 'reranker_malformed');
       const output = requireRecord(body.output, 'reranker_malformed');
-      if (!Array.isArray(output.results)) throw new Error('reranker_malformed');
-      // 供应商的 index 也是不可信远端输入；越界/缺字段必须丢弃，不能发明 id。
-      return output.results.flatMap((row) => {
+      if (!Array.isArray(output.results) || (docs.length > 0 && output.results.length === 0))
+        throw new Error('reranker_malformed');
+      // 供应商的 index 也是不可信远端输入；越界/缺字段必须抛错，不能发明或静默丢弃 id。
+      return output.results.map((row) => {
         const r = requireRecord(row, 'reranker_malformed');
         if (!Number.isSafeInteger(r.index)) throw new Error('reranker_malformed');
-        const doc = docs[r.index as number];
-        return doc ? [doc.id] : [];
+        const index = r.index as number;
+        if (index < 0 || index >= docs.length) throw new Error('reranker_malformed');
+        return docs[index]!.id;
       });
     },
   };

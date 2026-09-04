@@ -156,7 +156,7 @@ Router 选模型的策略：
 
 **启用 backup（第 4 层）**：在 worker 环境配置三个变量 `MODEL_BACKUP_BASE_URL` / `MODEL_BACKUP_API_KEY` / `MODEL_BACKUP_NAME`（`MODEL_BACKUP_NAME` 省略则复用 primary 模型名）。示例见 `docker/env/worker.env.example`。
 
-> **诚实标注（勿把目标当已上线）**：🟡 **不配 `MODEL_BACKUP_BASE_URL` ⇒ 第 4 层 failover 不生效**，`withFailover` 返回单端点，等价「本进程限流 + 本进程熔断 + 派发后未知冻结 + 全挂降级」但**无多供应商冗余（仍是单供应商单点）**。第 1/2/3/5 层默认即在链上；第 4 层需显式配置 backup 才闭合。共享 Redis/Tair 全局限流、云端多副本和供应商计费回执验证尚未实现，不能据此宣称高可用。合规约束：backup 端点必须与 primary 同为境内，PII（个人身份信息）请求的区域门在 failover 每一跳都生效（见 §5 审计 H6）。
+> **诚实标注（勿把目标当已上线）**：🟡 **不配 `MODEL_BACKUP_BASE_URL` ⇒ 第 4 层 failover 不生效**，`withFailover` 返回单端点，等价「本进程限流 + 本进程熔断 + 派发后未知冻结 + 全挂降级」但**无多供应商冗余（仍是单供应商单点）**。第 1/2/3/5 层默认即在链上；第 4 层需显式配置 backup 才闭合。第 5 层出题 fail-closed 是本地接线（`UC-MODEL-ROUTE-04`），规划失败仍 conservative 默认能力集。共享 Redis/Tair 全局限流、云端多副本和供应商计费回执验证尚未实现，不能据此宣称高可用。合规约束：backup 端点必须与 primary 同为境内，PII（个人身份信息）请求的区域门在 failover 每一跳都生效（见 §5 审计 H6）。
 
 ## 8. 工具调用修复（tool-call-repair）
 

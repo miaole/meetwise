@@ -86,6 +86,31 @@ async function main() {
 
     A('embedding NaN vector → embedder_malformed (does not return zeros)',
       await errorOf(() => dashscopeEmbedder({ dim: 2, baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: 'proof-embed-key' }).embed(['x'])) === 'embedder_malformed');
+
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.endsWith('/embeddings')) {
+        return new Response(JSON.stringify({ data: [{ index: 0, embedding: [0, 0] }] }), {
+          status: 200, headers: { 'content-type': 'application/json' },
+        });
+      }
+      if (url.includes('text-rerank')) {
+        return new Response(JSON.stringify({ output: { results: [] } }), {
+          status: 200, headers: { 'content-type': 'application/json' },
+        });
+      }
+      throw new Error(`unexpected_url:${url}`);
+    }) as typeof fetch;
+    A('embedding all-zero vector → embedder_malformed',
+      await errorOf(() => dashscopeEmbedder({ dim: 2, baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: 'proof-embed-key' }).embed(['x'])) === 'embedder_malformed');
+    A('rerank empty results → reranker_malformed (does not return [])',
+      await errorOf(() => dashscopeReranker({ url: 'https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank', apiKey: 'proof-rerank-key' }).rerank('q', [{ id: 'one', text: 'doc' }], 1)) === 'reranker_malformed');
+
+    globalThis.fetch = (async () => new Response(JSON.stringify({ output: { results: [{ index: 99, relevance_score: 1 }] } }), {
+      status: 200, headers: { 'content-type': 'application/json' },
+    })) as typeof fetch;
+    A('rerank out-of-range index → reranker_malformed',
+      await errorOf(() => dashscopeReranker({ url: 'https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank', apiKey: 'proof-rerank-key' }).rerank('q', [{ id: 'one', text: 'doc' }], 1)) === 'reranker_malformed');
     A('ASR empty content → asr_malformed (does not return empty transcript)',
       await errorOf(() => dashscopeAsr({ baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: 'proof-asr-key', timeoutMs: 200 }).transcribe(new Uint8Array([1]), { format: 'wav' })) === 'asr_malformed');
     A('rerank missing results → reranker_malformed (does not invent ranked ids)',
@@ -100,6 +125,17 @@ async function main() {
       await errorOf(() => dashscopeEmbedder({ dim: 2 }).embed(['x'])) === 'embedder_not_configured');
     A('missing asr key does not invent a transcript',
       await errorOf(() => dashscopeAsr().transcribe(new Uint8Array([1]), { format: 'wav' })) === 'asr_not_configured');
+    A('missing rerank key does not invent ranked ids',
+      await errorOf(() => dashscopeReranker().rerank('q', [{ id: 'one', text: 'doc' }], 1)) === 'reranker_not_configured');
+    A('missing tts key does not invent audio',
+      await errorOf(() => dashscopeTts().synthesize('hi')) === 'tts_not_configured');
+
+    Object.assign(process.env, { DASHSCOPE_TTS_API_KEY: 'proof-tts-key' });
+    globalThis.fetch = (async () => {
+      throw new ExternalRequestTimeoutError(50);
+    }) as typeof fetch;
+    A('TTS timeout → tts_download_deadline_exceeded, no invented audio',
+      await errorOf(() => dashscopeTts({ ttsUrl: 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', apiKey: 'proof-tts-key', timeoutMs: 50 }).synthesize('hi')) === 'tts_download_deadline_exceeded');
   } finally {
     globalThis.fetch = originalFetch;
     for (const name of names) {

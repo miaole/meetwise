@@ -11,6 +11,12 @@ import type { AdaptiveDeps } from '@meetwise/ai-graphs';
 import { wasAsked, pastWeakDimensions } from './memory-service.ts';
 import { invokeEvaluationOnce } from './interview-service.ts';
 
+/** Native embed/rerank miss is not “empty qbank”; do not invent a stem from the competency name. */
+function nativeRetrievalFailureToken(reason: string): string | null {
+  const match = /(embedder|reranker)_(not_configured|timeout|malformed)/.exec(reason);
+  return match ? match[0] : null;
+}
+
 const AskSchema = z.object({ q: z.string().min(1).max(2000), refs: z.array(z.string()) });   // q 封顶:模型出的题理应短;超长=异常输出,schema 闸拦下重试(也防评估侧截断吃掉答案)
 
 const QUESTION_OPERATION_ID = 'interview.question-generation.v1' as const;
@@ -103,10 +109,19 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       }
       // 题型决定接地:grounded/fundamental 用 CRAG 检索真题素材;scenario/behavioral 与简历/题库解耦(空素材、空来源)。
       const useRetrieval = kind === 'fundamental';
-      const useFacts = false; // grounded was returned above; non-grounded questions never make resume claims.
-      const { local, web } = useRetrieval
+      const { local, web, verdict } = useRetrieval
         ? await cragRetrieve(`${competency} 难度${difficulty}`, { localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary })
-        : { local: [] as ScoredRef[], web: [] as SourceDoc[] };
+        : { local: [] as ScoredRef[], web: [] as SourceDoc[], verdict: undefined };
+      if (useRetrieval && verdict) {
+        const nativeError = nativeRetrievalFailureToken(verdict.reason);
+        if (nativeError) {
+          return unavailableGeneration(classifyQuestionGenerationError(nativeError), {
+            operationId: QUESTION_OPERATION_ID,
+            idempotencyKey: `${d.threadId}:ask:t${turn}:0`,
+            invokeError: nativeError,
+          });
+        }
+      }
       const docs: SourceDoc[] = web;
       // Web 和本地 qbank excerpt 都不是可信 prompt；二者进入模型前均保持显式 data 信封、固定预算。
       // 本地 evidence 由 active generation + approved source 在刚取回时二次授权；没有 evidence 的兼容 seam
@@ -153,7 +168,15 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       }
       // Cross-session exact duplicate is a known local result, not a reason to
       // call the provider again or invent a replacement stem.
-      if (await wasAsked(d.pool, d.owner, out.value.q).catch(() => false))
+      let duplicate = false;
+      try {
+        duplicate = await wasAsked(d.pool, d.owner, out.value.q);
+      } catch {
+        return unavailableGeneration('generation_unavailable', {
+          operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: 'duplicate_check_failed',
+        });
+      }
+      if (duplicate)
         return unavailableGeneration('duplicate_question', { operationId: QUESTION_OPERATION_ID, idempotencyKey });
       return modelGeneration(out.value.q, out.value.refs, { operationId: QUESTION_OPERATION_ID, idempotencyKey });
     },

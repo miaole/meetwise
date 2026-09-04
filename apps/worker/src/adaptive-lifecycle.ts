@@ -14,9 +14,6 @@ import { admitInterviewResume, type QuestionGenerationProvenance, type ScoredRef
 import { buildAdaptiveDeps, planCompetencies } from './adaptive-interview-service.ts';
 import { recordAskedQuestions } from './memory-service.ts';
 
-const pendingQuestion = (snap: any): PendingQuestion | undefined =>
-  snap.values?.pending ?? snap.tasks?.[0]?.interrupts?.[0]?.value;
-
 export type InterviewGenerationUnavailable = {
   reason: string;
   provenance: QuestionGenerationProvenance;
@@ -26,29 +23,41 @@ function generationFailureOf(snap: any): InterviewGenerationUnavailable | null {
   const provenance = snap.values?.generationProvenance as QuestionGenerationProvenance | null | undefined;
   const degraded = snap.values?.degraded as { reason?: string } | null | undefined;
   if (provenance?.origin === 'unavailable') {
+    const errorCode = provenance.errorCode ?? 'generation_unavailable';
     return {
-      reason: provenance.errorCode ?? degraded?.reason ?? 'generation_unavailable',
-      provenance,
+      reason: `generation_${errorCode}`,
+      provenance: { ...provenance, origin: 'unavailable', errorCode },
     };
   }
   if (typeof degraded?.reason === 'string' && degraded.reason.startsWith('generation_')) {
     return {
       reason: degraded.reason,
-      provenance: provenance ?? { origin: 'unavailable', errorCode: 'generation_unavailable' },
+      provenance: { origin: 'unavailable', errorCode: 'generation_unavailable', invokeError: degraded.reason },
     };
   }
   return null;
 }
 
+const pendingQuestion = (snap: any): PendingQuestion | undefined => {
+  if (snap.values?.concluded === true || generationFailureOf(snap)) return undefined;
+  return snap.values?.pending ?? snap.tasks?.[0]?.interrupts?.[0]?.value;
+};
+
+async function writeGenerationUnavailable(
+  c: Parameters<typeof failInterviewAndRelease>[0],
+  d: AdaptiveLifecycleDeps,
+  failure: InterviewGenerationUnavailable,
+): Promise<void> {
+  await requireCurrentFence(c, d);
+  await failInterviewAndRelease(c, d.owner, d.interviewId);
+  await appendEvent(c, d.owner, d.interviewId, 'interview_unavailable', {
+    reason: failure.reason,
+    provenance: failure.provenance,
+  }, 'interview_unavailable:terminal');
+}
+
 async function emitGenerationUnavailable(d: AdaptiveLifecycleDeps, failure: InterviewGenerationUnavailable): Promise<void> {
-  await asPrincipal(d.pool, d.owner, async (c) => {
-    await requireCurrentFence(c, d);
-    await failInterviewAndRelease(c, d.owner, d.interviewId);
-    await appendEvent(c, d.owner, d.interviewId, 'interview_unavailable', {
-      reason: failure.reason,
-      provenance: failure.provenance,
-    }, `interview_unavailable:${failure.reason}`);
-  });
+  await asPrincipal(d.pool, d.owner, (c) => writeGenerationUnavailable(c, d, failure));
 }
 
 export interface AdaptiveLifecycleDeps {
@@ -254,6 +263,7 @@ async function submitAdaptiveAnswerImpl(
           reason: last.reason ?? 'evaluation_unavailable', competency: last.competency, question: last.q ?? '',
         }, `answer_unscored:${input.questionId}`);
       }
+      await writeGenerationUnavailable(c, d, generationFailed);
       return;
     }
     if (unscored) {
@@ -289,7 +299,6 @@ async function submitAdaptiveAnswerImpl(
 
   const generationFailed = generationFailureOf(snap);
   if (generationFailed) {
-    await emitGenerationUnavailable(d, generationFailed);
     return {
       score: typeof last.score === 'number' ? last.score : undefined,
       nextQuestion: undefined, nextQuestionId: undefined,

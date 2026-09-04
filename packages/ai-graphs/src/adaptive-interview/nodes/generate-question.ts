@@ -49,7 +49,7 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
     let sources: string[];
     let critiqueIssues: string[];
     let hint: string | undefined;
-    let provenance: QuestionGenerationProvenance = { origin: 'model' };
+    let provenance: QuestionGenerationProvenance = state.generationProvenance ?? { origin: 'model' };
 
     if (clarifying) {
       ({ question, sources } = clarifying);
