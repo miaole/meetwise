@@ -48,6 +48,8 @@ owner: architecture
 | `TC-WORKER-001-main` | 隔离 PostgreSQL + Worker 集成 | 四类队列提交并 commit | 对应 loop 在 wakeup 后立即开始 drain；payload 只等于静态常量 `wake`。 |
 | `TC-WORKER-001-E1` | 确定性单元 + 隔离 PostgreSQL | 重复通知、重复 enqueue、报告重排 | 单飞 tick；同一作业最终只有一次领取和业务副作用。 |
 | `TC-WORKER-001-E2` | 隔离 PostgreSQL 集成 | 两个 Worker、20 个同队列 wakeup | 每条作业恰一个 `running` lease；非赢家零业务副作用。 |
+| `TC-WORKER-001-E2-quiz` | 远程隔离 PostgreSQL | 同 owner 同一押题 job，两连接并发 `claimNextQuizJob` | 恰一 `running`；`attempts`/`version` 各 +1；败者 null；事件/额度/父行不变；败者 lease `markDone` CAS=0。禁止本地 Docker。`pnpm quiz-dual-claim:prove`。 |
+| `TC-WORKER-001-E2-diagnosis` | 远程隔离 PostgreSQL | 同 owner 同一诊断 job，两连接并发 `claimNextDiagnosisJob` | 与押题同形。同一 `pnpm quiz-dual-claim:prove`，不另开 follow-up。 |
 | `TC-WORKER-001-E3` | 隔离 PostgreSQL 集成 | 非法 payload、跨主体和无 principal | wakeup 不泄露主体；跨主体领取/读取均为 0。 |
 | `TC-WORKER-001-E4` | 隔离 PostgreSQL 集成 | rollback、监听断线、重连前后提交 | rollback 无通知；重连 immediate drain；fallback scan 最终领取未通知行。 |
 | `TC-WORKER-001-E5` | 确定性运行时 | 监听建立/重连连续失败 | Worker 标记 wakeup degraded，仍按有界周期恢复，不同步外呼。 |

@@ -24,6 +24,8 @@
     "prove:drain": "tsx test/drain-loop.proof.ts",
     "prove:interview-dispatch": "tsx test/interview-dispatch-fairness.proof.ts",
     "prove:interview-dispatch-pg": "tsx test/interview-dispatch-fairness-pg.proof.ts",
+    "prove:quiz-dual-claim": "tsx test/quiz-diagnosis-dual-claim.proof.ts",
+    "prove:quiz-dual-claim-pg": "tsx test/quiz-diagnosis-dual-claim-pg.proof.ts",
     "prove:job-wakeup": "tsx test/job-wakeup-listener.proof.ts",
     "prove:adaptive-flow": "tsx test/adaptive-flow.proof.ts",
     "prove:adaptive-life": "tsx test/adaptive-lifecycle.proof.ts",
