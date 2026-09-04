@@ -99,7 +99,7 @@ const requiredTerms = new Map([
     "enqueueInterviewJob",
   ]],
   ["ai-docs/requirements/use-cases/interview-control-signals.md", ["observeInterviewSignals", "early_weak", "thrashing", "safety_ceiling", "不是能力等级校准", "INT-LEVEL-01"]],
-  ["ai-docs/requirements/use-cases/bend-recruiter-architecture-surface.md", ["怎么评估", "查看状态", "不提供数值评分", "releaseEvidence=false", "不是高峰容量保证"]],
+  ["ai-docs/requirements/use-cases/bend-recruiter-architecture-surface.md", ["怎么评估", "查看状态", "不提供数值评分", "releaseEvidence=false", "不是高峰容量保证", "预览版"]],
 ]);
 
 // P0 readability contract: expert-interview materials must not assume the reader already knows acronyms.

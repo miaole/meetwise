@@ -12,7 +12,7 @@ import { ArchitectureHighlights } from '@/components/recruiter/ArchitectureHighl
 
 const PAGE = 30;          // 人才库可能很大:封顶首屏渲染行数,"加载更多"递增 ?limit
 
-export const metadata: Metadata = { title: '人才库 · 招聘方 · 知面', description: '在经授权的招聘方范围内查看必要流程状态；不提供数值排名或自动招聘决定。' };
+export const metadata: Metadata = { title: '投递列表 · 预览版 · 知面', description: '预览版投递列表。只看流程状态，不是人才库产品，也不能据此招聘。' };
 
 interface Talent {
   id: string; job_id: string; job_title: string; candidate_user_id: string;
@@ -56,8 +56,8 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
       </p>
 
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold"><Database className="size-6 text-primary" />人才库</h1>
-        <p className="mt-1 text-muted-foreground">在经授权的岗位范围内查看候选人的必要流程状态。页面不展示面试内容或数值评分；不提供自动筛选、排名、拒绝或录用决定。校准完成前没有人工审核工单。</p>
+        <h1 className="flex items-center gap-2 text-2xl font-bold"><Database className="size-6 text-primary" />投递列表 · 预览版</h1>
+        <p className="mt-1 text-muted-foreground">在自己的岗位范围内看投递流程状态。不是人才库产品。不展示面试内容或数值评分；不提供自动筛选、排名、拒绝或录用决定。校准完成前没有人工审核工单。</p>
       </div>
 
       <ArchitectureHighlights compact />
@@ -76,7 +76,7 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
       <Card>
         <CardContent className="p-4">
           {talents === null ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">人才库暂不可用,请稍后重试。</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">投递列表暂不可用，请稍后重试。</p>
           ) : talents.length === 0 ? (
             <div className="py-10 text-center text-sm text-muted-foreground">
               <Users className="mx-auto mb-2 size-6 opacity-50" />

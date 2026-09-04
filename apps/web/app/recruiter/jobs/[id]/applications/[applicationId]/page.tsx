@@ -11,10 +11,11 @@ import {
   isRecruiterApplicationId,
   recruiterAssessmentLabel,
 } from '@/lib/recruiter/surface';
+import { RecruiterPreviewNote } from '@/components/recruiter/PreviewNote';
 
 export const metadata: Metadata = {
-  title: '申请状态 · 招聘方 · 知面',
-  description: '查看岗位申请的必要流程状态。不提供数值评分，也看不到面试内容。',
+  title: '申请状态 · 预览版 · 知面',
+  description: '预览版：查看岗位申请的必要流程状态。不是招聘工作流，不提供数值评分，也看不到面试内容。',
 };
 
 interface Job { id: string; title: string; competencies: string[]; status: string }
@@ -91,6 +92,7 @@ export default async function RecruiterApplicationStatusPage({
         <h1 className="flex items-center gap-2 text-2xl font-bold">
           <ClipboardCheck className="size-6 text-primary" />申请状态
         </h1>
+        <RecruiterPreviewNote className="mt-1" />
         <p className="mt-1 text-muted-foreground">
           只显示必要流程状态。看不到面试内容，不提供数值评分，也没有人工审核工单，不能自动拒绝或录用。
         </p>
@@ -137,7 +139,7 @@ export default async function RecruiterApplicationStatusPage({
           <p>
             <Link href="/recruiter/how-it-works" className="text-primary hover:underline">怎么评估 · 完整说明</Link>
             {' · '}
-            <Link href="/recruiter/talent" className="text-primary hover:underline">返回人才库</Link>
+            <Link href="/recruiter/talent" className="text-primary hover:underline">返回投递列表</Link>
           </p>
         </CardContent>
       </Card>

@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { JobCreateForm } from './JobCreateForm';
 import { ArchitectureHighlights } from '@/components/recruiter/ArchitectureHighlights';
 
-export const metadata: Metadata = { title: '招聘方 · 岗位 · 知面', description: '招聘方发布岗位并按目标能力组织面试。' };
+export const metadata: Metadata = { title: '岗位 · 预览版 · 知面', description: '预览版岗位骨架。不是已上线的招聘工作流。' };
 
 interface Job { id: string; title: string; description: string; competencies: string[]; status: string; created_at: string }
 
@@ -20,8 +20,8 @@ export default async function RecruiterJobsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold"><Building2 className="size-6 text-primary" />招聘方 · 岗位</h1>
-        <p className="mt-1 text-muted-foreground">发布岗位、定义目标能力。候选人面试顺着回答往下问；你只能看到自己的岗位，看不到练习原文。</p>
+        <h1 className="flex items-center gap-2 text-2xl font-bold"><Building2 className="size-6 text-primary" />岗位 · 预览版</h1>
+        <p className="mt-1 text-muted-foreground">可以发一个岗位骨架、看投递状态。这不是正式招聘系统；候选人练习顺着回答往下问，你看不到原文，也不能据此录用。</p>
       </div>
 
       <ArchitectureHighlights compact />
@@ -67,7 +67,7 @@ export default async function RecruiterJobsPage() {
       <p className="text-sm">
         <Link href="/recruiter/how-it-works" className="text-muted-foreground hover:text-foreground">怎么评估</Link>
         {' · '}
-        <Link href="/recruiter/talent" className="text-muted-foreground hover:text-foreground">人才库</Link>
+        <Link href="/recruiter/talent" className="text-muted-foreground hover:text-foreground">投递列表</Link>
       </p>
     </div>
   );

@@ -10,7 +10,7 @@ export default function RecruiterApplicationNotFound() {
       </p>
       <div className="mt-5 flex justify-center gap-3">
         <Button asChild><Link href="/recruiter/jobs">返回岗位</Link></Button>
-        <Button asChild variant="outline"><Link href="/recruiter/talent">打开人才库</Link></Button>
+        <Button asChild variant="outline"><Link href="/recruiter/talent">打开投递列表</Link></Button>
       </div>
     </div>
   );

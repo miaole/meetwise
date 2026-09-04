@@ -52,6 +52,7 @@ const recruiterJobs = read('apps/web/app/recruiter/jobs/page.tsx');
 const recruiterSurface = read('apps/web/lib/recruiter/surface.ts');
 const candidateJobs = read('apps/web/app/jobs/page.tsx');
 const recruiterHighlights = read('apps/web/components/recruiter/ArchitectureHighlights.tsx');
+const recruiterPreviewNote = read('apps/web/components/recruiter/PreviewNote.tsx');
 const poster = read('apps/web/components/SharePoster.tsx');
 const publicSite = read('apps/web/lib/public-site.ts');
 const readme = read('README.md');
@@ -181,10 +182,18 @@ const checks = {
   'TC-PUBLIC-COPY-E9': () => {
     requireText(poster, '非能力认证 · 不得用于招聘、资格或录用判断', 'downloadable poster');
     requireText(recruiterTalent, '不提供自动筛选、排名、拒绝或录用决定', 'recruiter talent page');
+    requireText(recruiterTalent, '预览版', 'recruiter talent page');
+    requireText(recruiterTalent, '不是人才库产品', 'recruiter talent page');
     forbid(features, ['CRAG', '自动触发再检索', '自主探索'], 'feature claims');
     requireText(recruiterHow, '怎么评估', 'recruiter architecture page');
+    requireText(recruiterHow, '预览版', 'recruiter architecture page');
+    requireText(recruiterHow, '正式招聘或面试官工作台', 'recruiter architecture page');
+    requireText(recruiterHighlights, '预览版', 'recruiter architecture highlights');
+    requireText(recruiterPreviewNote, '预览版', 'recruiter preview note');
+    requireText(recruiterPreviewNote, '不是已上线的招聘或面试官工作流', 'recruiter preview note');
     requireText(recruiterHighlights, '不构成能力认证', 'recruiter architecture highlights');
     requireText(recruiterHighlights, '不提供自动筛选、排名、拒绝或录用决定', 'recruiter architecture highlights');
+    forbid(recruiterHighlights, ['面试官能指望什么'], 'recruiter architecture highlights');
     requireText(recruiterSurface, '下一题跟着回答走', 'recruiter architecture copy');
     requireText(recruiterSurface, '进度写在服务端', 'recruiter architecture copy');
     requireText(recruiterSurface, '关键保护可以核对', 'recruiter architecture copy');
@@ -210,6 +219,9 @@ const checks = {
     requireText(recruiterJobCandidates, '不会把失败说成「还没有候选人」', 'recruiter job candidates');
     requireText(recruiterTalent, '查看状态', 'recruiter talent page');
     requireText(recruiterJobs, 'ArchitectureHighlights', 'recruiter jobs page');
+    requireText(recruiterJobs, '预览版', 'recruiter jobs page');
+    requireText(recruiterJobs, '不是正式招聘系统', 'recruiter jobs page');
+    requireText(candidateJobs, '不是正式招聘', 'candidate jobs page');
     requireText(candidateJobs, 'applicationScoreVisible', 'candidate applications consume the score gate');
     forbid(candidateJobs, ['评分 {'], 'candidate applications must not render application.score');
     forbid(recruiterJobCandidates + recruiterTalent + recruiterReview, ['评分 {', 'app.score}'], 'recruiter pages must not render application.score');

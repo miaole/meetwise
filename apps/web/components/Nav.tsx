@@ -46,7 +46,7 @@ export async function Nav() {
   // B 端(招聘方)导航清单:登录后按角色切换。
   const recruiterLinks: NavLink[] = [
     { href: '/recruiter/jobs', label: '岗位' },
-    { href: '/recruiter/talent', label: '人才库' },
+    { href: '/recruiter/talent', label: '投递' },
     { href: '/recruiter/how-it-works', label: '怎么评估' },
     { href: '/settings', label: t('settings') },
   ];
@@ -57,7 +57,7 @@ export async function Nav() {
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/65">
     <nav className="mx-auto flex min-h-14 max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-2.5 md:px-6">
       <Link href={authed ? home : '/'} className="mr-1 flex items-center gap-1.5 font-serif text-base font-bold tracking-tight">
-        {t('brand')}{isRecruiter ? <span className="font-sans text-xs font-normal text-muted-foreground">· 招聘方</span> : null}
+        {t('brand')}{isRecruiter ? <span className="font-sans text-xs font-normal text-muted-foreground">· 招聘方 · 预览版</span> : null}
       </Link>
 
       {authed ? (
