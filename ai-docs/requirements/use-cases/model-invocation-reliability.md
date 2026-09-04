@@ -31,7 +31,7 @@ owner: architecture
   - **E5 依赖降级：** 熔断打开、无健康端点或预算不足时，在派发前停止；出题走确定性降级，评分写 `unscored`（未评分），不伪造数值成绩。机制：熔断状态机、费用预留、业务事件账本。
   - **E6 超时/断线：** `prepare`、准入和 HTTP 传输收到 AbortSignal（中断信号）；准入前超时=确定未发送，已派发超时=`unknown`。迟到成功不得写成功工件、trace（追踪）或覆盖未知终态。机制：AbortSignal、持久状态机、幂等键。
 - **后置 Postcondition：** 每个调用处于 `succeeded`、`failed` 或 `unknown`；`claimed` 仅在未发送租约期内可接管，`dispatching` 不可自动重发。费用与模型调用在已派发异常时都可审计且冻结。
-- **验收 Acceptance：** 同键并发供应商派发数 `=1`；半开并发仅 `1` 个主端点探针进入供应商，配置备用端点的 follower（跟随者）派发数 `=1` 且两条幂等键均成功；准入超时调用/费用预留 `=0`；迟到成功后的成功工件/trace `=0`；危险“执行时限 ≥ 对账窗口−宽限”配置启动失败；对账后陈旧 `dispatching` 数 `=0` 且同键二次外呼 `=0`；跨 scope 同键的无关费用状态不变；跨主体读取/更新 `=0` 行；对账基础设施连续失败使 worker 就绪状态为 `false`。
+- **验收 Acceptance：** 同键并发供应商派发数 `=1`（follower 只 `wait`/`cached`/`failed`/`unknown`，不得因孤儿 permit 或无行冲突而第二次 `execute`）；半开并发仅 `1` 个主端点探针进入供应商，配置备用端点的 follower（跟随者）派发数 `=1` 且两条幂等键均成功；准入超时调用/费用预留 `=0`；迟到成功后的成功工件/trace `=0`；危险“执行时限 ≥ 对账窗口−宽限”配置启动失败；对账后陈旧 `dispatching` 数 `=0` 且同键二次外呼 `=0`；跨 scope 同键的无关费用状态不变；跨主体读取/更新 `=0` 行；对账基础设施连续失败使 worker 就绪状态为 `false`。
 - **关联：** `packages/ai-runtime/src/invoke.ts`、`circuit-breaker.ts`、`rate-limit-model.ts`、`packages/db/src/model-invocation.ts`；状态机 `claimed → dispatching → succeeded|failed|unknown`；原语为 CAS、幂等键、RLS、持久事件/审计账本。
 - **七类覆盖：** 正常、异常、特殊（可计费/非可计费）、逃逸通道（降级/人工对账）、高并发、复杂（供应商与两个账本）、刁钻（迟到成功、半开并发、终态库故障）均覆盖。
 
@@ -47,7 +47,7 @@ owner: architecture
 
 ## 当前实现边界
 
-- `TC-MODEL-001-E1/E6` 已由 `pnpm runtime:isolated:prove` 与 `pnpm model-cost:isolated:prove` 覆盖；它们不证明供应商已取消计费。
+- `TC-MODEL-001-E1/E6` 已由 `pnpm runtime:isolated:prove` 与 `pnpm model-cost:isolated:prove` 覆盖；它们不证明供应商已取消计费。`0127` 把同键 claim 创建串到短事务 advisory lock 上，无 invocation 行时只 `wait`（清孤儿 permit），不二次 execute。不改 `0126`。
 - 熔断、并发和 RPM 目前均是进程内控制，尚非跨 API/Worker 副本的全局限流；云 Redis/Tair（内存键值服务）数据面验证完成前，不能把它表述为生产容量保证。
 - OCR（光学字符识别）仍有单独的 API 同步调用路径；其完整费用治理和跨副本保护必须单独通过本用例的验收，不得因文本模型通过而默认已通过。
 

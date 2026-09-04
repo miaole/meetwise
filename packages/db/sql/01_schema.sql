@@ -4,7 +4,7 @@
 --  * 策略 USING(读) + WITH CHECK(写) 双侧——禁止把 owner 写成别人（改归属=越权搬数据）
 --  * 幂等键/trace 主键按 (owner_user_id, key) 作用域——杜绝跨用户复用 key 静默吞 DoS
 --  * 业务路径以非 owner 的 app_role 执行（见 demo.ts asPrincipal）；超级用户仅做 setup/seed
-DROP TABLE IF EXISTS interview, ai_graph_run, interview_event, interview_question, consumption_record, ai_invocation_trace, ai_model_invocation CASCADE;
+DROP TABLE IF EXISTS interview, ai_graph_run, interview_event, interview_question, consumption_record, ai_invocation_trace, ai_model_invocation, ai_model_invocation_transition_permit CASCADE;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname='app_role') THEN
     EXECUTE 'DROP OWNED BY app_role'; EXECUTE 'DROP ROLE app_role';

@@ -34,6 +34,7 @@ async function main() {
     '0085_ai_model_logical_node_dispatch_slot.sql',
     '0088_ai_model_invocation_controlled_state_machine.sql',
     '0119_usage_reconciliation_wiring.sql',
+    '0127_model_invocation_same_key_claim_join.sql',
   ]) {
     await pool.query(readFileSync(fileURLToPath(new URL(`../../db/migrations/${migration}`, import.meta.url)), 'utf8'));
   }
@@ -42,7 +43,7 @@ async function main() {
   // 0085 的 dispatch slot 是「派发后永不放行」的受管账本：不清它，同库重跑时
   // slot 主键(owner,logical_node_key_digest)撞车 → ai_model_transition_dispatched_scoped
   // 的 ON CONFLICT DO NOTHING 空转 → 误报 model_dispatch_preflight_failed。
-  await pool.query('TRUNCATE ai_model_dispatch_slot, ai_model_logical_node_header, ai_model_invocation');
+  await pool.query('TRUNCATE ai_model_dispatch_slot, ai_model_logical_node_header, ai_model_invocation, ai_model_invocation_transition_permit');
   await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('R1','userA','created'),('R9','userB','created')");
   await pool.query("INSERT INTO ai_graph_run(graph_name,thread_id,owner_user_id,status) VALUES ('mock-interview','R1','userA','created')");
 
@@ -97,8 +98,13 @@ async function main() {
     invoke({ idempotencyKey: 'R1:conc', schema: QSchema, businessValidate: () => null, model: concModel }, pool, 'userA'),
     invoke({ idempotencyKey: 'R1:conc', schema: QSchema, businessValidate: () => null, model: concModel }, pool, 'userA'),
   ]);
+  const sameValue = 'value' in both[0] && 'value' in both[1]
+    && JSON.stringify((both[0] as { value: unknown }).value) === JSON.stringify((both[1] as { value: unknown }).value);
+  if (concModel.calls !== 1 || !sameValue) {
+    console.log('  concurrent same-key outcomes', JSON.stringify(both), 'calls', concModel.calls);
+  }
   assert('两并发 invoke 模型仅真调 1 次（同键持久领取去重，避免重复派发）', concModel.calls === 1);
-  assert('两者返回同一值(不发散)', 'value' in both[0] && 'value' in both[1] && JSON.stringify((both[0] as any).value) === JSON.stringify((both[1] as any).value));
+  assert('两者返回同一值(不发散)', sameValue);
 
   section('双校验 & 重试分类');
   const h = await invoke({ idempotencyKey: 'R1:hallu', schema: HalluSchema, model: halluModel, businessValidate: (v) => (v.claim && !RESUME_FACTS.includes(v.claim) ? '幻觉简历事实' : null) }, pool, 'userA');

@@ -437,7 +437,9 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
     if (claim.action === 'cached') { span(0, 'cached', 0); return { value: claim.output as T }; }
     if (claim.action === 'failed' || claim.action === 'unknown') { span(0, 'deterministic_refusal', 0); return { error: claim.error }; }
     if (Date.now() >= deadline) { span(0, 'exhausted', 0); return { error: 'model_invocation_wait_timeout' }; }
-    await sleep(100);
+    // Followers must join, never execute.  20ms is still a real poll of durable
+    // status (claimed/dispatching → succeeded), not an in-process single-flight.
+    await sleep(20);
   }
 
   // MODEL-OP-02 共享准入 + 断路器入场 + 并发槽认领（单一权威，取代 per-adapter 限流）。
