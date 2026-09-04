@@ -46,7 +46,7 @@ related:
 | SKIP LOCKED 领取 | `interview-jobs.ts` / `quiz-jobs.ts` / `diagnosis-jobs.ts` / `report.ts` 的 claim SQL；`commerce.ts` `settleOutbox`；`ai_model_reconcile_stale_scoped` | 多领取者对**同一候选行**不互相等待；赢家 CAS 成 running / relayed / unknown | 无行时 `SELECT FOR UPDATE` 锁不住创建竞态（模型 claim 另用 `0130` advisory）；quiz/diagnosis/report **没有**面试那套 owner cap + advisory | 本文件 §3 |
 | SSE 扇出 | 面试 / 押题 / 诊断 `GET :id/events`：catch-up → 2s 轮询 tail；`RateLimitService.acquireSlot('sse:'+principal, 5)` | 账本是真相；连接可丢；三路 service 用 `parseLastEventId` 失败关闭非法游标；`pnpm api:validate` 对三路非法 `Last-Event-ID` 断言 HTTP 400（`HC-GAP-006` 已关）；`pnpm sse-slot:prove` 对共享 `sse:${principal}` 打满 5+1 → HTTP 429（`HC-GAP-007` 已关，计数 `asPrincipal` stub）；每进程每主体最多 5 条长连接；10 分钟封顶 | **不是** LISTEN/NOTIFY 或跨进程扇出；槽是进程内 Map，且在首次 catch-up 查询之后才占槽；跨副本槽仍开（`HC-GAP-008`） | `frontend-blueprint.md` §7 |
 | 模型调用槽 | `0120` `ai_model_concurrency_lease` + `admitSharedModelOperation`；另有进程内 `rateLimitedModel` / `MODEL_MAX_CONCURRENT` | 带 `spec.operation` 的路径：共享槽认领失败则 `concurrency_exhausted`，零外呼；释放按 (owner, idempotency) 匹配，不误清他人槽 | 无 `operation` 的 legacy `invoke` **不走** 0120 槽；`MODEL_MAX_CONCURRENT` 仍是进程内；ASR/TTS/embedding 等多条路径仍未共享该槽 | `model-operation-routing.md`、`UC-MODEL-001` |
-| 账本 CAS / 同键 claim-join | `0130` `ai_model_claim_invocation_scoped`；`casTransition`；`appendEvent`；权益 `UNIQUE(owner,idempotency)` + 桶 `FOR UPDATE`；结算 `ON CONFLICT DO NOTHING` | 同键至多一个 execute；孤儿 create-permit 只 `wait`；权益同 key 不二次分配；结算 at-least-once → 入账 exactly-once | `0130` 不证明供应商取消计费；`appendEvent` 的 `hashtext(stream)` 是 32-bit 命名空间，与面试 owner lock / 0126 writer lock / 0130 claim lock 不同键；commerce 回执停在历史 64 迁移 | `UC-MODEL-001`、`commerce-saga.md` |
+| 账本 CAS / 同键 claim-join | `0130` `ai_model_claim_invocation_scoped`；`casTransition`；`appendEvent`；权益 `UNIQUE(owner,idempotency)` + 桶 `FOR UPDATE`；结算 `ON CONFLICT DO NOTHING` | 同键至多一个 execute；孤儿 create-permit 只 `wait`；权益同 key 不二次分配；结算 at-least-once → 入账 exactly-once | `0130` 不证明供应商取消计费；`appendEvent` 的 `hashtext(stream)` 是 32-bit 命名空间，与面试 owner lock / 0126 writer lock / 0130 claim lock 不同键；quiz / reaper **无** 130 迁移回执 | `UC-MODEL-001`、`commerce-saga.md` |
 
 ## 2. Worker 公平调度
 
@@ -79,10 +79,10 @@ related:
 | 路径 | 文件 | 额外围栏 | 本拍证明 |
 | --- | --- | --- | --- |
 | 面试 job | `packages/db/src/interview-jobs.ts` `claimNextInterviewJob` | owner `pg_advisory_xact_lock`；同面试未过期 running / failed 兄弟；未过期 running `< perOwnerInflight` | 单元与失败关闭门有；远程 PG 证明有脚本与回执路径，**无**本文件可引用的通过回执 |
-| 押题 job | `quiz-jobs.ts` `claimNextQuizJob` | 同 quiz 未过期 running 守卫；**无** owner cap / advisory | 双连接专用合同 `pnpm quiz-dual-claim:prove`（`E2E_CLOUD_ISOLATED=1`，禁止本地 Docker）；无库门 `pnpm quiz-dual-claim:unit:prove`（per-push）。`quiz:prove` 历史回执不含本合同。本环境未取得隔离库通过回执时不得写成已跑绿 |
-| 诊断 job | `diagnosis-jobs.ts` | 同诊断 running 守卫；无 owner cap | 与押题同形，同一 `pnpm quiz-dual-claim:prove` 覆盖；不另开 follow-up |
-| 报告 | `report.ts` `claimReport` | attempts 上限；无 owner cap | `pnpm report:prove` 含两并发恰一领（历史 64 迁移回执） |
-| 结算 outbox | `commerce.ts` `settleOutbox` | `FOR UPDATE OF o SKIP LOCKED` + ledger `UNIQUE(consumption_id)` | `pnpm commerce:prove` 历史 50/50（64 迁移） |
+| 押题 job | `quiz-jobs.ts` `claimNextQuizJob` | 同 quiz 未过期 running 守卫；**无** owner cap / advisory | 双连接专用合同 `pnpm quiz-dual-claim:prove`（`E2E_CLOUD_ISOLATED=1`，禁止本地 Docker）；无库门 `pnpm quiz-dual-claim:unit:prove`（per-push）。`quiz:prove` **无 130 迁移回执**（main CI `33864913506` 未跑；历史 64 迁移 25/25 不得写成当前通过；源码现 22 条 `A()`）；本切片只改 YAML。`quiz:prove` 不含双连接合同。本环境未取得 `quiz-dual-claim:prove` 隔离库回执时不得写成已跑绿 |
+| 诊断 job | `diagnosis-jobs.ts` | 同诊断 running 守卫；无 owner cap | 双连接与押题同形，同一 `pnpm quiz-dual-claim:prove` 覆盖；不另开 follow-up。`pnpm diagnosis:prove` 历史 64 迁移回执仍不得写成当前通过（不在本切片） |
+| 报告 | `report.ts` `claimReport` | attempts 上限；无 owner cap | `pnpm report:prove` 含两并发恰一领：2026-09-04 main CI `33864913506` / tip `54cf595`，**130** 迁移 **31/31**，`releaseEvidence=false` |
+| 结算 outbox | `commerce.ts` `settleOutbox` | `FOR UPDATE OF o SKIP LOCKED` + ledger `UNIQUE(consumption_id)` | `pnpm commerce:prove` 2026-09-04 同上 CI，**130** 迁移 **50/50**，`releaseEvidence=false` |
 | 模型对账 | `model-invocation.ts` → `ai_model_reconcile_stale_scoped` | 只终态化陈旧 `dispatching` | `pnpm model-invocation-reconcile:prove` 标明须在当前迁移重跑 |
 
 `sweepStuck*` / `sweepReports` / `sweepExpiredReservations` 是按 owner 的条件 `UPDATE`，**不是** SKIP LOCKED 领取。它们靠行锁 + lease 过期谓词防心跳 TOCTOU，不能写成“跳过锁的领取”。
@@ -144,7 +144,7 @@ related:
 | 调用 / 费用状态机 | `0088` / `markModelInvocationDispatched` 等 scoped 过程 | `claimed → dispatching` 无 slot 被拒；终态不自动重发 | 历史 reconcile proof 注明迁移数已落后，须重跑 |
 | 面试状态 CAS | `casTransition`：`UPDATE interview … WHERE status=$from` | 0 行即落败 | 不是 job / invocation 通用 CAS |
 | 事件序 | `appendEvent`：`pg_advisory_xact_lock(hashtext(stream))` + `MAX(seq)+1` + `event_key` 幂等 | 同 stream 串行分配 seq | `hashtext` 32-bit 碰撞未做隔离证明；不是 SSE 推送锁 |
-| 权益 | `reserveEntitlement` 先 `ON CONFLICT DO NOTHING` 占坑，再桶 `FOR UPDATE` | 同 key 不二次扣；凑不齐整事务回滚 | 历史 commerce 回执 64 迁移 |
+| 权益 | `reserveEntitlement` 先 `ON CONFLICT DO NOTHING` 占坑，再桶 `FOR UPDATE` | 同 key 不二次扣；凑不齐整事务回滚 | 已有 130 迁移 CI 回执（50/50）；不是支付渠道回调 |
 | 结算 | `settleOutbox` SKIP LOCKED + `settlement_ledger UNIQUE(consumption_id)` | 重跑不双入账 | 不是支付渠道回调证明 |
 
 `0130` 的合同与 `UC-MODEL-001` 验收一致：同键并发供应商派发数 = 1。`current-runtime-truth.md` 把 `runtime:isolated:prove` 记为已覆盖同键双并发与 `0130` wait 语义。`HC-GAP-011` 的具名负例（legacy 两路：孤儿 permit 的 claim → `wait`；两连接无行 claim execute=1 且 wait=1；`invoke()` calls=1 且同值；清 permit 不得把 calls 变成 2）已单列进 per-push `pnpm runtime:prove`，隔离门另有 `pnpm runtime:isolated:prove` / `pnpm runtime:claim-join:prove`。**不**把该行升级为账单、0120 槽交叉、lease 接管或云多副本证据。
@@ -174,7 +174,7 @@ related:
 | `HC-GAP-005` | SKIP LOCKED | `UC-WORKER-001` 的 rollback 通知=0、20 路 wakeup、重连 drain | 真实 PG NOTIFY | 回滚后 drain 次数不增加；监听恢复立即 drain |
 | `HC-GAP-008` | SSE | 槽与 2s 轮询均为单进程 | 多 API 副本 | N 副本时可开到 `5N` 条连接（今日即如此） |
 | `HC-GAP-010` | 模型槽 | 文本 `MODEL_MAX_CONCURRENT` 与 0120 `max_concurrency` 双层，无组合根交叉证明 | 隔离 PG | 共享槽已满时进程内队列不得把调用标成 `dispatching` |
-| `HC-GAP-012` | 账本 | commerce / quiz / report / reaper 回执停在 64 迁移 | 当前迁移隔离 PG | 在 **130** 个迁移上重跑后才能引用新回执 |
+| `HC-GAP-012` | 账本 | **未完全关闭。** commerce **50/50**、report **31/31** 已在 **130** 迁移隔离 PG 重跑（main CI run `33864913506`，tip `54cf595`）。quiz / reaper **仍无 130 回执**（该 main run 未跑这两门；历史 64 迁移不得写成当前通过）。本切片只把二者写入 per-push YAML，YAML 不是回执。关闭条件仍是四门都有当前迁移回执 | 当前迁移隔离 PG | 本变更后的 verify 在 130 隔离库上跑绿 quiz 22 条 `A()` / reaper 28 条 `A()`，并回写 run/tip/回执名 |
 | `HC-GAP-013` | 唤醒 | 真实 commit-to-claim ≤250ms | 远程数据面 | 未测不得写达标 |
 
 `HC-GAP-004` **已关**：押题/诊断双连接恰一领的专用合同见 §3 / §8。`TC-WORKER-001-E2-quiz` 与 `TC-WORKER-001-E2-diagnosis` 挂在同一命令。未跑隔离库回执不得写成发布。
@@ -204,7 +204,7 @@ related:
 - 不关闭 `HC-GAP-003` / `005` / `008` / `010` / `012` / `013`；不重开已关闭的 `HC-GAP-001` / `002` / `004` / `006` / `007` / `009` / `011` / `014`。不把 `HC-GAP-009` 的隔离命令写成发布回执。
 - 不把 LISTEN 接到 SSE，不把 `acquireSlot` 挪到首次 catch-up 之前（那是行为变更，不是本切片）。
 - 不实现集群 inflight 或跨副本 SSE 槽。
-- 不重跑、不伪造隔离库或远程库通过回执；不起 compose.dev / 本地常驻 Docker 库。无远程/隔离库 env 时保持 `releaseEvidence=false`。不把本切片写成这三类已公平，或跨副本 / 远程 PG 领取顺序已验收。
+- 不重跑、不伪造隔离库或远程库通过回执；本环境无远程 PG env 时不起本地 Docker / compose.dev / 本地常驻库，不把失败 spawn 回执写成通过。无远程/隔离库 env 时保持 `releaseEvidence=false`。不把本切片写成这三类已公平，或跨副本 / 远程 PG 领取顺序已验收。
 - 不把 `interview-dispatch:prove` 写进 per-push CI。
 
 ## 9. 验证命令
@@ -224,4 +224,4 @@ pnpm runtime:isolated:prove
 pnpm runtime:claim-join:prove
 ```
 
-`pnpm model-slot-bypass:prove` / `pnpm quiz-dual-claim:prove` / `pnpm api:validate` / `pnpm interview-dispatch:prove` / `pnpm runtime:isolated:prove` / `pnpm runtime:claim-join:prove` 需要隔离或远程库（经 env，禁止 `pnpm db:up` / 共享本地 Docker Postgres）。缺远程配置时 `interview-dispatch:prove` 与 `quiz-dual-claim:prove` 必须失败关闭。本环境未取得新回执时保持 `releaseEvidence=false`。
+`pnpm commerce:prove` / `pnpm report:prove` 的当前回执见 `current-runtime-truth.md`（main CI 130 迁移）。`pnpm quiz:prove` / `pnpm reaper:prove` 仅写入本切片 YAML，main `33864913506` 未跑；未出本变更后的 verify 回执前保持历史 64 迁移标注。`pnpm model-slot-bypass:prove` / `pnpm quiz-dual-claim:prove` / `pnpm api:validate` / `pnpm interview-dispatch:prove` / `pnpm runtime:isolated:prove` / `pnpm runtime:claim-join:prove` 需要隔离或远程库（经 env，禁止 `pnpm db:up` / 共享本地 Docker Postgres）。缺远程配置时 `interview-dispatch:prove` 与 `quiz-dual-claim:prove` 必须失败关闭。本环境未取得新回执时保持 `releaseEvidence=false`。

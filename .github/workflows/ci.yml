@@ -142,6 +142,10 @@ jobs:
         run: pnpm resume:prove
       - name: 报告子图舱壁（失败隔离:报告失败不碰 interview · 独立重试 · 并发不双跑 · report_ready）
         run: pnpm report:prove
+      - name: 押题进程接线（v61 typed resume 引用 · 接地 · 失败退款 · SSE 终态）
+        run: pnpm quiz:prove
+      - name: 孤儿任务收割（心跳 vs 收割 · 失败退款 · 已结算不倒退）
+        run: pnpm reaper:prove
       - name: 模型调用逻辑节点派发配额（同 key 并发唯一 executor · 冻结头只配精确 reservation · trigger 形状门拒绝旁路）
         run: pnpm model-op00:prove
       - name: 面试进程接线（api 入队 → worker 消费循环 → 生命周期 → 报告）
