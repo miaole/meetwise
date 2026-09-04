@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>知面 Meetwise · 预览版</title>
+  <meta name="description" content="知面预览版：按真实经历练面试。下一题跟着回答走，进度能留下来，点评只供复盘。">
+  <meta name="robots" content="index,follow">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">跳到正文</a>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#main"><span class="mark" aria-hidden="true"></span>知面</a>
+      <nav class="nav-links" aria-label="项目导航">
+        <a href="#path">怎么练</a>
+        <a href="#arch">承重点</a>
+        <a href="#shots">界面</a>
+        <a href="https://github.com/miaole/meetwise" rel="noopener noreferrer">源码</a>
+      </nav>
+      <a class="btn btn-primary btn-sm nav-cta" href="https://github.com/miaole/meetwise/blob/main/README.md" rel="noopener noreferrer">阅读 README</a>
+    </div>
+  </header>
+
+  <main id="main" class="wrap page stack">
+    <section class="hero">
+      <div>
+        <p class="eyebrow"><i></i>预览版</p>
+        <h1>按真实经历练面试，下一题<em>跟着你</em>。</h1>
+        <p class="lead">预览版按这个建：顺着回答往下问，进度能留下来，练完有点评。点评只供复盘，不构成能力认证。</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://github.com/miaole/meetwise" rel="noopener noreferrer">查看源码</a>
+          <a class="btn btn-outline" href="#arch">看承重点</a>
+        </div>
+      </div>
+
+      <aside class="report" aria-label="练习反馈示例">
+        <div class="report-head">
+          <span>练习反馈示例 · 系统设计</span>
+          <span class="live"><i></i>示例</span>
+        </div>
+        <div class="report-body">
+          <div class="q">如何设计一个高并发限流器？</div>
+          <div class="a">用 Redis 计数器，每次请求 +1，超阈值即拒绝……</div>
+          <div class="note-block"><b>点评</b>　提到了计数器，但可以再说说滑动窗口与固定窗口的取舍，以及分布式下的原子性——补上这两点会更稳。</div>
+          <div class="report-score">
+            <div class="score">68</div>
+            <div class="bars">
+              <div class="bar"><span>技术深度</span><div class="track"><i style="width:62%"></i></div></div>
+              <div class="bar"><span>表达清晰</span><div class="track"><i style="width:48%"></i></div></div>
+              <div class="bar"><span>结构完整</span><div class="track"><i style="width:74%"></i></div></div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <div class="stats">
+      <div class="stat"><strong>追问</strong><p>按回答往下问</p></div>
+      <div class="stat accent"><strong>续场</strong><p>进度能留下来</p></div>
+      <div class="stat"><strong>核对</strong><p>关键路径可本地验</p></div>
+      <div class="stat"><strong>复盘</strong><p>点评给自己看</p></div>
+    </div>
+
+    <section id="path">
+      <div class="kicker">怎么练</div>
+      <h2>真实经历 → 自适应面试 → 可复盘成长</h2>
+      <div class="cards cards-3">
+        <article class="card">
+          <div class="step">01</div>
+          <h3>真实经历</h3>
+          <p>简历和项目是练习素材。改的是说法，不是履历。</p>
+        </article>
+        <article class="card">
+          <div class="step">02</div>
+          <h3>自适应面试</h3>
+          <p>文字对练会顺着你的回答往下问，不是把题单走完。</p>
+        </article>
+        <article class="card">
+          <div class="step">03</div>
+          <h3>可复盘成长</h3>
+          <p>逐题点评给自己看，练完能看见卡在哪。</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="arch">
+      <div class="kicker">承重点</div>
+      <h2>预览里按这个建。</h2>
+      <div class="cards cards-6">
+        <article class="card">
+          <h3>自适应面试官</h3>
+          <p>系统按你的回答追问，不是套题，也不是招聘方在用。</p>
+        </article>
+        <article class="card">
+          <h3>进度可接着</h3>
+          <p>进度写在库里，不是记在浏览器。</p>
+        </article>
+        <article class="card">
+          <h3>本地可核对</h3>
+          <p>关键路径有本地 prove 门。打开页面不算验收。</p>
+        </article>
+        <article class="card">
+          <h3>分数有围栏</h3>
+          <p>点评给复盘用，不构成能力认证。</p>
+        </article>
+        <article class="card">
+          <h3>写入有双记</h3>
+          <p>同一件事不写成两套账。</p>
+        </article>
+        <article class="card">
+          <h3>检索有范围</h3>
+          <p>题和材料按可见范围取。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="statement">
+      <div>
+        <h2>下一题跟着你。点评只供复盘。</h2>
+        <p>点评给自己复盘用，不代表经校准的能力评定，也不能作为招聘、资格或录用决定的依据。</p>
+      </div>
+      <div>
+        <a class="btn btn-primary" href="https://github.com/miaole/meetwise" rel="noopener noreferrer">查看源码</a>
+      </div>
+    </section>
+
+    <section id="shots">
+      <div class="kicker">界面</div>
+      <h2>合成界面一览</h2>
+      <p class="lead">合成截图，用来看版式。标题、按钮和价格以本页正文为准。</p>
+      <div class="shots">
+        <figure class="card shot">
+          <img src="./screenshots/01-landing.png" alt="合成截图：落地页与练习反馈批注卡">
+          <figcaption>落地页 · 合成截图</figcaption>
+        </figure>
+        <figure class="card shot">
+          <img src="./screenshots/03-dashboard.png" alt="合成截图：控制台概览">
+          <figcaption>控制台 · 合成截图</figcaption>
+        </figure>
+        <figure class="card shot">
+          <img src="./screenshots/04a-resume-consent.png" alt="合成截图：简历上传前的同意说明">
+          <figcaption>简历同意门 · 合成截图</figcaption>
+        </figure>
+        <figure class="card shot">
+          <img src="./screenshots/04-resume.png" alt="合成截图：简历整理结果">
+          <figcaption>简历整理 · 合成截图</figcaption>
+        </figure>
+        <figure class="card shot">
+          <img src="./screenshots/05-interviews.png" alt="合成截图：面试列表">
+          <figcaption>面试列表 · 合成截图</figcaption>
+        </figure>
+        <figure class="card shot">
+          <img src="./screenshots/08-growth.png" alt="合成截图：练习记录">
+          <figcaption>练习记录 · 合成截图</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <div class="foot-grid">
+        <div>
+          <div class="foot-brand">知面 Meetwise</div>
+          <p class="foot-desc">预览版。按真实经历练面试。招聘不在本预览范围。</p>
+        </div>
+        <div class="foot-col">
+          产品
+          <ul>
+            <li><a href="#path">怎么练</a></li>
+            <li><a href="#arch">承重点</a></li>
+            <li><a href="https://github.com/miaole/meetwise" rel="noopener noreferrer">源码</a></li>
+          </ul>
+        </div>
+        <div class="foot-col">
+          说明
+          <ul>
+            <li><a href="https://github.com/miaole/meetwise/blob/main/README.md" rel="noopener noreferrer">README</a></li>
+            <li><a href="#shots">合成截图</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="foot-bar">
+        <span>预览版 · © 知面 MEETWISE · MIT</span>
+        <span>本页是项目展示，不是已经部署的在线服务，不启动本地数据面服务。不提供支付、购买、退款或自动扣费。语音与简历识图陆续开放。</span>
+      </div>
+    </footer>
+  </main>
+</body>
+</html>

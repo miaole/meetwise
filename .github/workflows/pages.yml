@@ -1,0 +1,45 @@
+name: pages
+
+# 只把 docs/ 项目展示发布到 GitHub Pages。不构建应用，不读 secrets，
+# 不代理 API / 认证 / SSE，也不证明 ECS 或数据面可用。
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'apps/web/docs/screenshots/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: meetwise-pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'miaole/meetwise' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Stage static showcase
+        run: |
+          set -euo pipefail
+          mkdir -p .pages-dist/screenshots
+          cp docs/index.html docs/styles.css docs/.nojekyll .pages-dist/
+          cp apps/web/docs/screenshots/*.png .pages-dist/screenshots/
+
+      - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v3
+        with:
+          path: .pages-dist
+
+      - id: deploy
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

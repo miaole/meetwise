@@ -47,6 +47,9 @@ const recruiterTalent = read('apps/web/app/recruiter/talent/page.tsx');
 const poster = read('apps/web/components/SharePoster.tsx');
 const publicSite = read('apps/web/lib/public-site.ts');
 const readme = read('README.md');
+const pagesHtml = read('docs/index.html');
+const pagesCss = read('docs/styles.css');
+const pagesWorkflow = read('.github/workflows/pages.yml');
 const prohibitedAttribution = ['参', '考', '至'].join('');
 const prohibitedAdaptations = [
   ['改', '编', '自'].join(''),
@@ -70,9 +73,35 @@ const prohibitedMarketingPhrases = [
 
 const checks = {
   'TC-PUBLIC-COPY-main': () => {
-    forbid(`${homeZh}\n${homeEn}\n${features}`, prohibitedMarketingPhrases, 'public marketing copy');
+    forbid(`${homeZh}\n${homeEn}\n${features}\n${pagesHtml}`, prohibitedMarketingPhrases, 'public marketing copy');
     requireText(homeZh, '不构成能力认证', 'Chinese home copy');
     requireText(homeEn, 'not a calibrated capability assessment', 'English home copy');
+    requireText(homeZh, '真实经历 → 自适应面试 → 可复盘成长', 'Chinese home story');
+    requireText(homeEn, 'Real experience → adaptive interview → reviewable growth', 'English home story');
+    requireText(pagesHtml, '招聘不在本预览范围', 'Pages hiring out-of-scope');
+    requireText(homeZh, '招聘不在本预览范围', 'Chinese home hiring out-of-scope');
+    assert.equal((pagesHtml.match(/招聘不在本预览范围/g) ?? []).length, 1, 'Pages may state hiring is out of scope once');
+    forbid(`${homeZh}\n${homeEn}\n${features}\n${pagesHtml}\n${readme}`, [
+      '招聘侧是后续方向',
+      '招聘侧往后排',
+      '不是已经能用来招人',
+      '求职者练得清',
+      '面试官问得深',
+      '用同一套追问看岗位',
+      'Interviewers and recruiters use the same follow-ups',
+      'Recruiting is a later direction',
+      'id="rec"',
+      'href="#rec"',
+    ], 'dual-role / dual-audience marketing');
+    forbid(pagesHtml, [
+      '>求职者<',
+      '>面试官<',
+      'href="#path">求职者',
+      'href="#rec">面试官',
+      'kicker">求职者',
+      'kicker">面试官',
+      'kicker">招聘方向',
+    ], 'Pages dual-role nav');
   },
   'TC-PUBLIC-COPY-E1': () => {
     const privacyAction = read('apps/web/app/privacy/actions.ts');
@@ -116,7 +145,7 @@ const checks = {
     forbid(readme, ['Docker。', '全栈端到端', prohibitedMarketingPhrases[7]], 'README');
   },
   'TC-PUBLIC-COPY-E6': () => {
-    for (const text of [homeZh, homeEn, features, faq, privacy, pricing, legal, billing, recruiterInvite, recruiterTalent, poster, readme]) {
+    for (const text of [homeZh, homeEn, features, faq, privacy, pricing, legal, billing, recruiterInvite, recruiterTalent, poster, readme, pagesHtml]) {
       forbid(text, prohibitedAdaptations, 'public copy');
     }
   },
@@ -155,6 +184,27 @@ const checks = {
     requireText(resumeActions, 'mapResumeUploadError', 'resume file action error mapping');
     forbid(resumeActions, ['ocr.text', 'transcript'], 'resume file action must not invent transcripts');
     forbid(resumeOcrUi, ['扫描型 PDF 请改传清晰图片', '仅预览环境'], 'no unwired scanned-PDF OCR promise');
+    requireText(pagesHtml, '真实经历 → 自适应面试 → 可复盘成长', 'Pages showcase');
+    requireText(pagesHtml, '不是已经部署的在线服务', 'Pages showcase');
+    requireText(pagesHtml, '不启动本地数据面服务', 'Pages showcase');
+    requireText(pagesHtml, '合成截图', 'Pages showcase');
+    requireText(pagesHtml, '不提供支付、购买、退款或自动扣费', 'Pages showcase');
+    requireText(pagesHtml, 'https://github.com/miaole/meetwise', 'Pages showcase');
+    requireText(pagesWorkflow, "github.ref == 'refs/heads/main'", 'Pages workflow');
+    requireText(pagesWorkflow, 'docs/index.html', 'Pages workflow');
+    requireText(pagesCss, 'prefers-reduced-motion', 'Pages stylesheet');
+    requireText(pagesCss, 'PingFang SC', 'Pages type stack');
+    requireText(pagesCss, 'Source Han Sans SC', 'Pages type stack');
+    requireText(pagesCss, 'Source Han Serif SC', 'Pages hero serif');
+    requireText(pagesCss, '.hero {', 'Pages hero layout');
+    requireText(pagesHtml, 'class="hero"', 'Pages hero layout');
+    requireText(pagesHtml, 'class="report"', 'Pages annotation card');
+    requireText(pagesHtml, '点评', 'Pages annotation card');
+    forbid(pagesCss, ['Inter', 'Roboto', 'Geist'], 'Pages type stack');
+    forbid(pagesHtml, ['<script', 'fetch(', 'XMLHttpRequest', '预览环境准备中'], 'Pages showcase');
+    forbid(pagesHtml, ['支付服务已开放', '完整删除已开放', 'OCR 已开放', '语音已开放'], 'Pages showcase');
+    forbid(pagesHtml, ['承重件', '四张 LangGraph', 'AI 驱动'], 'Pages brochure tone');
+    assert.equal(/https?:\/\/(?:\d{1,3}\.){3}\d{1,3}/.test(pagesHtml), false, 'Pages showcase must not embed a bare IP');
   },
   'TC-PUBLIC-COPY-E10': () => {
     const retiredAssets = [

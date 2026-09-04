@@ -87,8 +87,8 @@
     font-family: 'Source Han Sans SC', 'PingFang SC', -apple-system, system-ui, 'Helvetica Neue', sans-serif;
     line-height: 1.6;
   }
-  /* 标题用衬线(design-kit:编辑感/考官气质)——正文仍无衬线 */
-  h1, h2, h3, .font-serif { font-family: 'Source Han Serif SC', 'Songti SC', Georgia, 'Times New Roman', serif; }
+  /* 衬线只给 H1 与显式 .font-serif；正文与其余标题保持无衬线 */
+  h1, .font-serif { font-family: 'Source Han Serif SC', 'Songti SC', Georgia, 'Times New Roman', serif; }
   h1 { letter-spacing: .5px; font-weight: 700; }
   h2 { font-weight: 600; }
   /* 16px 防 iOS 输入聚焦缩放(多端) */
