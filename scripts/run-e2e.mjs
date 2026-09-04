@@ -1,10 +1,12 @@
 /**
  * E2E 自启动 runner(你要的"做完自己跑 E2E"):起真栈(api + worker,DB 需已 up)→ 等就绪 → 跑 e2e/full.e2e.ts → 拆栈。
  * 全栈真跑:真 Bearer 鉴权 + 真 commerce(下单+HMAC webhook)+ 真简历 + 真 worker 图执行 + 真报告。
- * 用法:pnpm e2e:prove(需 docker DB 在跑;无模型 key 也跑——优雅降级到 fallback 题 + report_unavailable,仍到终态)。
+ * 用法:pnpm e2e:isolated（包装器注入 E2E_ISOLATED=1）。缺 MODEL_API_KEY 或打开假服务开关会立即失败，不会降级成假绿。
  */
 import { spawn } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
+import { emitClassifiedE2EFailure, emitE2EFailure, tagE2EFailure } from '../e2e/helpers/failure-class.mjs';
+import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 // 测试默认密钥:CI 无 .env 也能起(简历加密/去重键)。外部已设则不覆盖。e2e 每次重建 schema,不需跨运行解密,用测试键安全。
@@ -30,13 +32,14 @@ if (env.E2E_ISOLATED === '1') {
   for (const key of Object.keys(env)) if (key.startsWith('LANGFUSE_')) delete env[key];
   env.DATABASE_SSL_MODE = 'disable';
 }
-if (env.E2E_ISOLATED !== '1') throw new Error('e2e_isolation_required:use_pnpm_e2e:isolated');
+if (env.E2E_ISOLATED !== '1') throw tagE2EFailure('capability', 'e2e_isolation_required');
+assertNoFakeServiceFlags(env);
 const fakeServiceFlags = ['VOICE_FAKE', 'OCR_FAKE', 'E2E_FAKE_MODEL'].filter((name) => {
   const value = String(env[name] ?? '').trim().toLowerCase();
   return value && value !== '0' && value !== 'false';
 });
-if (fakeServiceFlags.length) throw new Error(`fake_service_mode_forbidden:${fakeServiceFlags.join(',')}`);
-if (!env.MODEL_API_KEY) throw new Error('live_provider_key_missing:MODEL_API_KEY');
+if (fakeServiceFlags.length) throw tagE2EFailure('provider', 'fake_service_mode_forbidden');
+if (!String(env.MODEL_API_KEY ?? '').trim()) throw tagE2EFailure('provider', 'live_provider_key_missing');
 
 // A previous E2E used fixed 8787/19091 ports.  Two isolated runs then raced:
 // the second runner connected to the first runner's API and reported a false
@@ -45,12 +48,12 @@ if (!env.MODEL_API_KEY) throw new Error('live_provider_key_missing:MODEL_API_KEY
 const parsePort = (name, fallback) => {
   const value = Number(env[name] ?? fallback);
   if (!Number.isInteger(value) || value < 10_240 || value > 65_534)
-    throw new Error(`e2e_port_invalid:${name}`);
+    throw tagE2EFailure('api', 'port_invalid');
   return value;
 };
 const apiPort = parsePort('E2E_API_PORT', 20_000 + (process.pid % 20_000));
 const workerMetricsPort = parsePort('E2E_WORKER_METRICS_PORT', apiPort + 1);
-if (workerMetricsPort === apiPort) throw new Error('e2e_port_collision');
+if (workerMetricsPort === apiPort) throw tagE2EFailure('api', 'port_collision');
 const apiBase = `http://127.0.0.1:${apiPort}`;
 
 const procs = [];
@@ -111,15 +114,15 @@ async function main() {
     await sleep(1000);
     try { const r = await fetch(`${apiBase}/livez`); if (r.ok) { up = true; break; } } catch {}
   }
-  if (!up) { console.error('E2E: api 未就绪'); cleanup(); process.exit(1); }
-  if (!(await waitForApiDatabase())) { console.error('E2E: API DB 未就绪'); cleanup(); process.exit(1); }
+  if (!up) { emitE2EFailure({ class: 'api', code: 'api_not_ready' }); cleanup(); process.exit(1); }
+  if (!(await waitForApiDatabase())) { emitE2EFailure({ class: 'db', code: 'database_not_ready' }); cleanup(); process.exit(1); }
   await sleep(3000);   // 给 worker 消费循环就绪
   // HTTP health only proves API bound its port.  A dead worker previously made
   // the suite wait 90 seconds for an event that could never arrive.
-  if (worker.exitCode !== null) throw new Error(`e2e_worker_exited_before_test:${worker.exitCode}`);
-  if (api.exitCode !== null) throw new Error(`e2e_api_exited_before_test:${api.exitCode}`);
+  if (worker.exitCode !== null) throw tagE2EFailure('worker', 'worker_exited_before_test');
+  if (api.exitCode !== null) throw tagE2EFailure('api', 'api_exited_before_test');
   const workerReady = await fetch(`http://127.0.0.1:${workerMetricsPort}/readyz/worker`).then((r) => r.ok).catch(() => false);
-  if (!workerReady) throw new Error('e2e_worker_not_ready_before_test');
+  if (!workerReady) throw tagE2EFailure('worker', 'worker_not_ready');
 
   console.log('E2E: 跑全栈用例…');
   const tsx = run('e2e', [ROOT + 'node_modules/tsx/dist/cli.mjs', 'e2e/full.e2e.ts'], ROOT, {
@@ -132,9 +135,16 @@ async function main() {
     new Promise((res) => worker.on('exit', (workerCode) => res(`worker_exit:${workerCode ?? 'signal'}`))),
     new Promise((res) => api.on('exit', (apiCode) => res(`api_exit:${apiCode ?? 'signal'}`))),
   ]);
-  if (typeof code === 'string') throw new Error(`e2e_dependency_exited_during_test:${code}`);
-  if (code !== 0) throw new Error(`e2e_client_exited:${code ?? 'signal'}`);
+  if (typeof code === 'string') {
+    throw tagE2EFailure(code.startsWith('worker_exit') ? 'worker' : 'api', code.startsWith('worker_exit') ? 'worker_exited_during_test' : 'api_exited_during_test');
+  }
+  if (code !== 0) throw tagE2EFailure('api', 'client_exited');
   cleanup();
   process.exit(0);
 }
-main().catch((e) => { console.error(e); emitFailureDiagnostics(); cleanup(); process.exit(1); });
+main().catch((e) => {
+  emitClassifiedE2EFailure(e, { class: 'api', code: 'client_uncaught' });
+  emitFailureDiagnostics();
+  cleanup();
+  process.exit(1);
+});

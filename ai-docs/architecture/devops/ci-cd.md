@@ -29,7 +29,7 @@ related:
 | 并发 | CAS 竞争、同 threadId 并发 resume（断言恰一个赢、不双发） | 阻断 |
 | graph | 确定性 fixture + fake model 轨迹测试 | 阻断 |
 | AI 安全/质量 | **对抗 golden 安全套件 + ai-eval golden**，对真实模型跑，红 → 阻断发布 | 阻断 |
-| e2e | **demo 黄金路径**（上传简历→押题→面试→报告）Playwright 必绿 | 阻断 |
+| e2e | 隔离 prove 阻断合并。HTTP 全链路是 `pnpm e2e:isolated`（fetch/SSE，需 live Key，**不在** per-push）。Playwright 只覆盖 `pnpm e2e:ui:isolated` 浏览器层 | 隔离 prove 阻断；live E2E 非 per-push |
 | 安全扫描 | gitleaks 密钥扫描 + Trivy/Dependabot SCA + 镜像扫描 | 高危阻断 |
 
 ## 2. 密钥与供应链
