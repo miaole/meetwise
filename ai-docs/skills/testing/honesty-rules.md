@@ -10,6 +10,7 @@ owner: qa
 version: 1
 related:
   - ./sop.md
+  - ./fail-closed-gate.md
 ---
 
 # 诚实规则
@@ -31,6 +32,8 @@ related:
 9. **把默认 `pnpm regression` 绿写成触达面必须列已完成、CI `verify` 通过或发布证据。**
 10. **skip-as-pass。** 缺 Key、未跑、失败，只能记 `not_run` / `blocked` / 非零退出，不能改 runner 或删守卫来绿。
 11. **未审核生成物标 READY 或声称完成。** 生成代码 / 模型输出默认不可信。没有走完 [变更后审核](./post-change-review.md) 第 0 节，不得标 READY，也不得把 `releaseEvidence=false` 的绿回归写成完成。受信回执出现之前，`releaseEvidence` 必须保持 `false`。
+12. **默认信任 AI 代码或 AI 输出。** 审核与验证缺一，或把 `aiTrust` 写成 `trusted`，即 [fail-closed 门](./fail-closed-gate.md) `BLOCK`。
+13. **提交或记录真实密钥、`.env`、token、简历原文、录音。** 技能与回执只允许占位名。
 
 ## 允许
 
@@ -51,4 +54,12 @@ ready: NOT_READY
 liveE2E: ran | not_run:<reason>
 kind: FAIL_API | FAIL_WORKER | FAIL_DB | FAIL_PROVIDER | FAIL_CAPABILITY | BLOCKED_DATA_OR_PERMISSION | BLOCKED_LIVE_KEY | none
 forgedScores: none | <缺口>
+aiAuthored: yes | mixed | no
+aiTrust: untrusted | blocked:<gap>
+review: passed_adversarial | passed:<reviewerId> | blocked:<gap>
+verification: commands_ok | blocked:<gap>
+rounds: <正整数>
+secrets: none
 ```
+
+作者不得写裸 `review: passed`。同 run 第二镜头用 `passed_adversarial` 并附 fix-list 路径；非作者用 `passed:<reviewerId>`。`verification: commands_ok` 必须带上面的 `commands`/`exit`。两者都通过才允许写「本轮局部验证完成（releaseEvidence: false）」，禁止单独写「已验证」。`aiTrust` 不得为 `trusted`。模板里只写占位名与退出码，不粘贴密钥值。

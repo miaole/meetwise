@@ -35,4 +35,4 @@ pnpm regression           # 含上列守卫 + 文档/helpers/回执
 pnpm regression --live    # 另加 HTTP E2E；缺 MODEL_API_KEY 非零退出
 ```
 
-变更后顺序只维护在 [`../sop.md`](../sop.md)。本目录是 HTTP harness 平台合同，不替代那套仪式。
+变更后顺序只维护在 [`../sop.md`](../sop.md)。本目录是 HTTP harness 平台合同，不替代那套仪式。收束公式见 [`../fail-closed-gate.md`](../fail-closed-gate.md)（AI 产物默认不可信）。

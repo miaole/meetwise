@@ -5,6 +5,6 @@ description: 功能改动落地后、写「已验证」之前的审核→测试�
 
 # meetwise-testing · 变更后仪式（指针）
 
-**必须先读并逐步执行** [`ai-docs/skills/testing/sop.md`](../../../ai-docs/skills/testing/sop.md)。
+**必须先读并逐步执行** [`ai-docs/skills/testing/sop.md`](../../../ai-docs/skills/testing/sop.md)。第 5 步用 [`fail-closed-gate.md`](../../../ai-docs/skills/testing/fail-closed-gate.md) 收束：AI 产物默认不可信，作者不得自签审核，缺一阻断。
 
-本文件不维护步骤、命令或矩阵。draft 只限制宣称流程已生产就绪，不减免步骤。默认 `pnpm regression` 只是 always-on 子集。
+本文件不维护步骤、命令或矩阵。draft 只限制宣称流程已生产就绪，不减免步骤。默认 `pnpm regression` 只是 always-on 子集。不提交密钥。

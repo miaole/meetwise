@@ -42,6 +42,7 @@ tags:
 - `skills/README.md`：工作方法索引。当前只登记测试技能（draft）。
 - `skills/testing/SKILL.md`：测试技能概述与铁律（`status: draft`）。
 - `skills/testing/sop.md`：变更后审核 → 测试 → 回归仪式；未升格前保持 draft。
+- `skills/testing/fail-closed-gate.md`：P0 fail-closed——AI 产物默认不可信，审核 ∧ 验证缺一阻断。
 - `skills/testing/e2e-platform/README.md`：HTTP E2E 平台 SOP（draft / NOT_READY；`pnpm e2e-platform:prove`）。
 - `testing/golden-tasks/README.md`：第一批 golden tasks 登记（含 planned/unmapped，无假绿）。
 - `testing/e2e-performance-evidence.md`：全量隔离 E2E、本地性能预算与外部检索基准的实跑证据。
@@ -95,6 +96,7 @@ tags:
 | 测试设计 | `testing/strategy/test-strategy.md` | 测试矩阵、golden tasks |
 | 隐私删除 sink 盘点 | `architecture/ai/privacy-deletion-sink-inventory.md` | `privacy_deletion_target.sink` 回执列、公开 503、未闭合缺口；用例在 `requirements/use-cases/privacy-deletion-sink-inventory.md` |
 | 变更后测试/回归 | `skills/testing/sop.md` | 审核 → 选层 → 跑门 → `pnpm regression` → 出处；概述见 `skills/testing/SKILL.md` |
+| AI 产物验收 | `skills/testing/fail-closed-gate.md` | 默认不可信；审核 ∧ 验证；多轮重开；无密钥 |
 | 代码生成前确认 | `meta/task-sop.md` 的生成前门禁 | Task Harness |
 
 ## 新增文档规则
