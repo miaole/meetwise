@@ -261,7 +261,7 @@ export async function runMigrateProof(
   A('加载文本/多模态模型费用迁移 0036', loaded.some((m) => m.version === '0036_ai_text_cost_governance'));
   A('加载模型调用持久幂等状态机迁移 0037', loaded.some((m) => m.version === '0037_ai_model_invocation_durable_claim'));
   A('加载 OCR 崩溃恢复加密工件迁移 0038', loaded.some((m) => m.version === '0038_resume_ocr_artifact'));
-  A('加载 OCR binding provenance 迁移 0124', loaded.some((m) => m.version === '0124_resume_ocr_binding_provenance'));
+  A('加载 OCR binding provenance 迁移 0127', loaded.some((m) => m.version === '0127_resume_ocr_binding_provenance'));
   A('加载简历 OCR 衍生记录删除迁移 0039', loaded.some((m) => m.version === '0039_resume_derivative_erasure'));
   A('加载低权网关调度迁移 0040', loaded.some((m) => m.version === '0040_gateway_dispatch_least_privilege'));
   A('加载 API 低权运行迁移 0041', loaded.some((m) => m.version === '0041_api_runtime_least_privilege'));
@@ -333,10 +333,10 @@ export async function runMigrateProof(
   A('0038 → OCR 加密恢复工件表与强制行级安全已建',
     (await has('resume_ocr_artifact'))
     && (await pool.query("SELECT relforcerowsecurity FROM pg_class WHERE oid='public.resume_ocr_artifact'::regclass")).rows[0].relforcerowsecurity === true);
-  A('0124 → resume_profile.ocr_binding 存在且无明文 text 列',
+  A('0127 → resume_profile.ocr_binding 存在且无明文 text 列',
     (await pool.query("SELECT 1 FROM information_schema.columns WHERE table_name='resume_profile' AND column_name='ocr_binding'")).rowCount === 1
     && (await pool.query("SELECT 1 FROM information_schema.columns WHERE table_name='resume_profile' AND column_name='text'")).rowCount === 0);
-  A('0124 → OCR identity pairing/immutability trigger 存在',
+  A('0127 → OCR identity pairing/immutability trigger 存在',
     (await pool.query("SELECT 1 FROM pg_trigger WHERE tgname IN ('trg_resume_ocr_identity_guard','trg_resume_source_kind_immutable')")).rowCount === 2);
   A('0121 → app_role 仅获简历运行时所需的双参数 pgcrypto 能力，PUBLIC 与可选参数重载保持拒绝',
     (await pool.query("SELECT has_function_privilege('app_role','pgp_sym_encrypt(text,text)','EXECUTE') allowed")).rows[0].allowed === true

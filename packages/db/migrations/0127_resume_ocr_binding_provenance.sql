@@ -1,7 +1,9 @@
--- 0124_resume_ocr_binding_provenance.sql
+-- 0127_resume_ocr_binding_provenance.sql
 --
 -- MODEL-OP-01：图片简历的面试授权只认密封 OCR binding 快照。
 -- 快照不含转写原文、prompt 或 Key；文本/PDF 行保持 ocr_binding IS NULL。
+-- Number is 0127: 0124–0126 are reserved by open PRs (#71 RAG ACL, #70
+-- memory vector erasure, #74 interview answer dual-write fence).
 
 ALTER TABLE resume DROP CONSTRAINT IF EXISTS resume_source_kind_chk;
 ALTER TABLE resume ADD CONSTRAINT resume_source_kind_chk

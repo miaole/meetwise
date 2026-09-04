@@ -26,7 +26,7 @@ related:
 - **领域对象：** `ModelOperationBinding`、`SealedOcrProvenance`、`ResumeProfile`（`needs_review`）、`InterviewResult`（只持「画像可用」布尔，不持 OCR 原文）。
 - **状态机影响：** 不新增枚举。图片源 profile 仍落 `needs_review`。面试不因缺 binding 伪造 grounded 题。
 - **接口契约影响：** 无新 HTTP。`visionOcr` 成功返回密封 provenance；失败原因为确定性 `ocr_*` / `model_operation_*`。
-- **数据库影响：** `resume.source_kind` 允许 `image`；`resume_profile.ocr_binding` 存无 PII/无原文的 binding 快照。OCR 恢复密文仍只活在 `resume_ocr_artifact`。
+- **数据库影响：** `resume.source_kind` 允许 `image`；`resume_profile.ocr_binding`（迁移 0127；0124–0126 已由其他开放 PR 占用）存无 PII/无原文的 binding 快照。OCR 恢复密文仍只活在 `resume_ocr_artifact`。`releaseEvidence=false`。
 - **测试计划：** 七类 TC 见下。本地 `pnpm model-op01:prove`（无网络、无真实 Key）只断言本切片新增的零外呼/画像不可用/组合根拒绝。E2 并发槽、E3 RLS、E4 ledger 沿用既有 `ocr:prove` / invocation 围栏，不记入本门。
 - **验证命令：** `pnpm model-op01:prove`；可选隔离 `pnpm ocr:prove`。
 

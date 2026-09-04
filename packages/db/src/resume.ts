@@ -41,7 +41,7 @@ export interface IngestedProfile {
 /** 上传：建 resume（幂等去重 by content_sha）+ 落**加密**原文 blob。返回是否去重命中。 */
 export type ResumeSourceKind = 'text' | 'pdf' | 'image';
 
-/** MODEL-OP-01 密封 OCR 快照（无原文/Key）。形状由迁移 0124 CHECK 与 domain parseSealedOcrProvenance 共同收口。 */
+/** MODEL-OP-01 密封 OCR 快照（无原文/Key）。形状由迁移 0127 CHECK 与 domain parseSealedOcrProvenance 共同收口。 */
 export type ResumeOcrBindingSnapshot = {
   operationId: string;
   registryVersion: string;
