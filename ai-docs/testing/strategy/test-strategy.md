@@ -47,7 +47,7 @@ tags:
 功能改动后的审核 → 选层 → 跑门配方见 [`ai-docs/skills/testing/SKILL.md`](../../skills/testing/SKILL.md)。
 
 ```bash
-pnpm regression            # 无 Key 的总是门（文档 / helpers / 回执 / 架构 / api smoke）
+pnpm regression            # 无 Key 的总是门（文档 / helpers / 回执 / 静态守卫 / 架构 / api smoke）
 pnpm regression --core     # 行走骨架隔离 prove（需 Docker）
 pnpm regression --live     # 真供应商 HTTP E2E；缺 MODEL_API_KEY 非零退出。浏览器层另跑 e2e:ui:isolated（需先构建 web）
 ```
@@ -78,6 +78,8 @@ RAG 检索的当前实跑基线、非 happy-path 桶和 pgvector HNSW 复核见 
 - 只用 mock model 证明生产模型质量。
 - 只凭 AI 自评说报告合理。
 - 只测 happy path 不测失败退款和重复请求。
+- 在 live E2E runner 打开假服务开关，或删掉 `pnpm e2e-static-guards:check` 所核对的拒绝列表。
+- 证据/日志 helper 回显扫描命中的密钥原文。
 
 ## 本地性能回归门
 

@@ -35,13 +35,13 @@ pnpm regression --live   # 真供应商 HTTP E2E；缺 MODEL_API_KEY 必须非�
 | 状态机 | 无 |
 | 契约 | 无 |
 | 数据库 | 无 schema 变更；隔离 E2E 仍走完整迁移 |
-| 测试计划 | `pnpm e2e-helpers:prove`、`pnpm e2e-receipt:prove`、`pnpm golden-tasks:check`、`pnpm docs:check`、`pnpm regression` |
+| 测试计划 | `pnpm e2e-helpers:prove`、`pnpm e2e-receipt:prove`、`pnpm e2e-static-guards:check`、`pnpm e2e-static-guards:prove`、`pnpm golden-tasks:check`、`pnpm docs:check`、`pnpm regression` |
 | 验证 | 上列命令；`pnpm e2e:isolated` 仅在有 `MODEL_API_KEY` 时 |
 
 ## 铁律（先读再跑）
 
 - 控制器/页面绿了不算业务完成。断言状态机落点、账本、隔离、终态事件。
 - HTTP 全链路 E2E 是 `e2e/full.e2e.ts` + `scripts/run-e2e.mjs`（fetch / SSE），**不是** Playwright。Playwright 只覆盖 `pnpm e2e:ui:isolated` 的浏览器层。
-- `run-e2e.mjs` 在 `E2E_ISOLATED=1` 且存在 `MODEL_API_KEY` 时才启动；`VOICE_FAKE` / `OCR_FAKE` / `E2E_FAKE_MODEL` 直接失败。
+- `run-e2e.mjs` 在 `E2E_ISOLATED=1` 且存在 `MODEL_API_KEY` 时才启动；假服务开关（`VOICE_FAKE` / `OCR_FAKE` / `E2E_FAKE_MODEL` / `ASR_FAKE` / `TTS_FAKE` / `EMBED_FAKE` / `RERANK_FAKE` / `MODEL_TEST_TRANSPORT_OVERRIDES` / `DASHSCOPE_TEST_TRANSPORT_OVERRIDES`）直接失败。静态守卫 `pnpm e2e-static-guards:check` 禁止 runner 漏掉该断言，并对证据/日志 helper（含 `e2e/helpers/` 自动发现）做密钥扫描（失败即关，报告只含路径和规则名，不回显命中值）。
 - 回执恒为 `releaseEvidence=false`。没有受信 runner、不可变对象存储和独立验签，就不能写发布通过。
 - golden-tasks 第一批已建档；未映射到可跑门的条目状态必须是 `planned` 或 `unmapped`，禁止标 `passed`。

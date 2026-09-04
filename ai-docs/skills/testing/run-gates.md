@@ -13,7 +13,7 @@ description: 隔离 prove、HTTP E2E、浏览器 E2E、性能门的真实命令�
 pnpm regression
 ```
 
-默认包含：`docs:check`、`golden-tasks:check`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`arch`、`api:smoke`。缺 Docker 不能假装隔离 prove 已跑。
+默认包含：`docs:check`、`golden-tasks:check`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`e2e-static-guards:check`、`e2e-static-guards:prove`、`arch`、`api:smoke`。缺 Docker 不能假装隔离 prove 已跑。
 
 行走骨架（本地有 Docker 时）：
 
@@ -58,7 +58,7 @@ pnpm regression --live
 
 - `E2E_ISOLATED=1`（由 isolated 包装器注入）
 - `MODEL_API_KEY` 存在
-- `VOICE_FAKE` / `OCR_FAKE` / `E2E_FAKE_MODEL` 未开启
+- `VOICE_FAKE` / `OCR_FAKE` / `E2E_FAKE_MODEL` / `ASR_FAKE` / `TTS_FAKE` / `EMBED_FAKE` / `RERANK_FAKE` / `MODEL_TEST_TRANSPORT_OVERRIDES` / `DASHSCOPE_TEST_TRANSPORT_OVERRIDES` 未开启（`scripts/e2e-fake-service-flags.mjs`）
 
 客户端是 `e2e/full.e2e.ts`（helpers 在 `e2e/helpers/`），用 fetch + SSE，不是 Playwright。完整面试存活预算 **420 秒**，只证明链路能到终态，不是接口 P95。
 
@@ -87,6 +87,6 @@ pnpm verify:e2e-performance     # 本地全量子集；含 live HTTP/UI，需要
 ## 6. 失败怎么读
 
 - `live_provider_key_missing`：没有 Key。记 `not_run`，不要改 runner 去 skip-as-pass。
-- `fake_service_mode_forbidden`：有人打开了假服务开关。关掉再跑，不要删这条守卫。
+- `fake_service_mode_forbidden`：有人打开了假服务开关。关掉再跑，不要删这条守卫。`pnpm e2e-static-guards:check` 会静态核对 runner 仍拒绝同一份列表，并对证据/日志 helper 做密钥扫描（失败即关，不回显命中值）。
 - `e2e_isolation_required`：直接跑了 `pnpm e2e:prove`。必须用 `e2e:isolated`。
 - 子进程 stdout/stderr 默认不进回执。失败时只看退出码、断言行和 `E2E_PROCESS_OUTPUT_WITHHELD` 字节计数。

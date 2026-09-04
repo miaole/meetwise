@@ -10,13 +10,14 @@ description: 测试与文档的诚实边界：releaseEvidence、假服务、skip
 ## 禁止
 
 1. **把 `releaseEvidence=false` 写成发布、简历或横向对比证据。** 本地隔离回执没有 OIDC runner、不可变对象存储或独立验签。
-2. **在需要 live 供应商时打开假服务。** `VOICE_FAKE`、`OCR_FAKE`、`E2E_FAKE_MODEL` 必须使 runner 失败。不要删守卫来“先绿一下”。
-3. **缺 Key 却报告 live E2E 通过。** 正确写法是 `not_run:live_provider_key_missing`。CI 刻意不把 `e2e:isolated` 放进 per-push，就是为了避免 skip-as-pass。
-4. **用过期回执。** 迁移清单数量或最新文件名与当前 `packages/db/migrations/` 不一致时，该 HTTP E2E 回执只是历史记录。
-5. **只断言 HTTP 200、只打开页面、只用 mock 证质量、AI 自评、只测 happy path。**
-6. **把 planned / unmapped golden-task 标成 passed。** 登记文件里的 `status` 枚举见 `ai-docs/testing/golden-tasks/README.md`。
-7. **把 Playwright 说成当前 HTTP 全链路实现。** 浏览器层才是 Playwright；HTTP 层是 fetch/SSE。
-8. **把本机性能数字说成线上 SLO。**
+2. **在需要 live 供应商时打开假服务。** `VOICE_FAKE`、`OCR_FAKE`、`E2E_FAKE_MODEL`、`ASR_FAKE`、`TTS_FAKE`、`EMBED_FAKE`、`RERANK_FAKE`、`MODEL_TEST_TRANSPORT_OVERRIDES`、`DASHSCOPE_TEST_TRANSPORT_OVERRIDES` 必须使 runner 失败。`pnpm e2e-static-guards:check` 会静态核对 runner 仍调用同一份禁止列表（注释掉的调用不算）。不要删守卫来“先绿一下”。
+3. **证据/日志 helper 不得回显命中的密钥。** 扫描覆盖固定清单与 `e2e/helpers/` 自动发现文件；失败即关；报告只含路径和规则名，不得打印、持久化或把匹配原文写进错误码。
+4. **缺 Key 却报告 live E2E 通过。** 正确写法是 `not_run:live_provider_key_missing`。CI 刻意不把 `e2e:isolated` 放进 per-push，就是为了避免 skip-as-pass。
+5. **用过期回执。** 迁移清单数量或最新文件名与当前 `packages/db/migrations/` 不一致时，该 HTTP E2E 回执只是历史记录。
+6. **只断言 HTTP 200、只打开页面、只用 mock 证质量、AI 自评、只测 happy path。**
+7. **把 planned / unmapped golden-task 标成 passed。** 登记文件里的 `status` 枚举见 `ai-docs/testing/golden-tasks/README.md`。
+8. **把 Playwright 说成当前 HTTP 全链路实现。** 浏览器层才是 Playwright；HTTP 层是 fetch/SSE。
+9. **把本机性能数字说成线上 SLO。**
 
 ## 允许
 

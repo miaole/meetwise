@@ -1,10 +1,11 @@
 /**
  * E2E 自启动 runner(你要的"做完自己跑 E2E"):起真栈(api + worker,DB 需已 up)→ 等就绪 → 跑 e2e/full.e2e.ts → 拆栈。
  * 全栈真跑:真 Bearer 鉴权 + 真 commerce(下单+HMAC webhook)+ 真简历 + 真 worker 图执行 + 真报告。
- * 用法:pnpm e2e:isolated（包装器注入 E2E_ISOLATED=1）。缺 MODEL_API_KEY 或打开 VOICE_FAKE/OCR_FAKE/E2E_FAKE_MODEL 会立即失败，不会降级成假绿。
+ * 用法:pnpm e2e:isolated（包装器注入 E2E_ISOLATED=1）。缺 MODEL_API_KEY 或打开假服务开关会立即失败，不会降级成假绿。
  */
 import { spawn } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
+import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 // 测试默认密钥:CI 无 .env 也能起(简历加密/去重键)。外部已设则不覆盖。e2e 每次重建 schema,不需跨运行解密,用测试键安全。
@@ -31,11 +32,7 @@ if (env.E2E_ISOLATED === '1') {
   env.DATABASE_SSL_MODE = 'disable';
 }
 if (env.E2E_ISOLATED !== '1') throw new Error('e2e_isolation_required:use_pnpm_e2e:isolated');
-const fakeServiceFlags = ['VOICE_FAKE', 'OCR_FAKE', 'E2E_FAKE_MODEL'].filter((name) => {
-  const value = String(env[name] ?? '').trim().toLowerCase();
-  return value && value !== '0' && value !== 'false';
-});
-if (fakeServiceFlags.length) throw new Error(`fake_service_mode_forbidden:${fakeServiceFlags.join(',')}`);
+assertNoFakeServiceFlags(env);
 if (!env.MODEL_API_KEY) throw new Error('live_provider_key_missing:MODEL_API_KEY');
 
 // A previous E2E used fixed 8787/19091 ports.  Two isolated runs then raced:

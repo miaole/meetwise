@@ -44,6 +44,12 @@ jobs:
       # 文档门禁：必需文件 + 关键术语
       - run: pnpm docs:check
 
+      # 静态守卫：live E2E 禁止假服务开关；证据/日志 helper 密钥扫描失败即关，且不回显命中值。
+      - name: E2E static guards (fake-service flags + secret-redaction scan)
+        run: |
+          pnpm e2e-static-guards:check
+          pnpm e2e-static-guards:prove
+
       # 公开首页、预览说明与招聘边界：仅检查已审计的文案契约，不证明运行或发布状态。
       - name: 公开文案边界（不替代发布证据）
         run: pnpm -C apps/web prove:public-copy

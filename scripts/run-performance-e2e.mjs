@@ -4,6 +4,7 @@
  */
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
+import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const env = {
@@ -32,11 +33,7 @@ if (env.E2E_ISOLATED === '1') {
   env.DATABASE_SSL_MODE = 'disable';
 }
 if (env.E2E_ISOLATED !== '1') throw new Error('performance_e2e_isolation_required:use_pnpm_performance:e2e:isolated');
-const fakeServiceFlags = ['VOICE_FAKE', 'OCR_FAKE', 'E2E_FAKE_MODEL'].filter((name) => {
-  const value = String(env[name] ?? '').trim().toLowerCase();
-  return value && value !== '0' && value !== 'false';
-});
-if (fakeServiceFlags.length) throw new Error(`fake_service_mode_forbidden:${fakeServiceFlags.join(',')}`);
+assertNoFakeServiceFlags(env);
 
 // A fixed 8787/19091 pair lets parallel isolated runs attach to another
 // runner's API and accidentally report its result.  Keep the process-local

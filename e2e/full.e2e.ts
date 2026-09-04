@@ -4,7 +4,7 @@
  * 真鉴权(Bearer)、真队列、真 worker 图执行。假模型/假语音/假 OCR 开关会使 runner 失败。
  *
  * 场景编排在本文件；HTTP / 鉴权 / 交易 / SSE / 面试循环 / 语音网关在 e2e/helpers。
- * 运行器仍由 scripts/run-e2e.mjs 强制隔离 + 真实供应商 Key，禁止 VOICE_FAKE/OCR_FAKE/E2E_FAKE_MODEL。
+ * 运行器仍由 scripts/run-e2e.mjs 强制隔离 + 真实供应商 Key，禁止假服务开关（见 scripts/e2e-fake-service-flags.mjs）。
  */
 import { createHmac, randomUUID } from 'node:crypto';
 import { liveOcrResumePngBase64 } from './ocr-fixture.ts';

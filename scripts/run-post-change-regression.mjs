@@ -28,6 +28,8 @@ const ALWAYS_ON = [
   ['e2e-helpers:prove', ['e2e-helpers:prove']],
   ['e2e-receipt:prove', ['e2e-receipt:prove']],
   ['e2e-runner:prove', ['e2e-runner:prove']],
+  ['e2e-static-guards:check', ['e2e-static-guards:check']],
+  ['e2e-static-guards:prove', ['e2e-static-guards:prove']],
   ['arch', ['arch']],
   ['api:smoke', ['api:smoke']],
 ];

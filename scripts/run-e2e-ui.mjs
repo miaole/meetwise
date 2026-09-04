@@ -6,6 +6,7 @@
  */
 import { spawn } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
+import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const env = {
@@ -35,11 +36,7 @@ if (env.E2E_ISOLATED === '1') {
   env.DATABASE_SSL_MODE = 'disable';
 }
 if (env.E2E_ISOLATED !== '1') throw new Error('e2e_ui_isolation_required:use_pnpm_e2e:ui:isolated');
-const fakeServiceFlags = ['VOICE_FAKE', 'OCR_FAKE', 'E2E_FAKE_MODEL'].filter((name) => {
-  const value = String(env[name] ?? '').trim().toLowerCase();
-  return value && value !== '0' && value !== 'false';
-});
-if (fakeServiceFlags.length) throw new Error(`fake_service_mode_forbidden:${fakeServiceFlags.join(',')}`);
+assertNoFakeServiceFlags(env);
 if (!env.MODEL_API_KEY) throw new Error('live_provider_key_missing:MODEL_API_KEY');
 
 // Fixed 8787/19091/3100 lets a parallel UI run attach its browser to another
