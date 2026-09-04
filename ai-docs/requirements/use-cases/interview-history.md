@@ -11,6 +11,7 @@ related:
   - ./use-case-conventions.md
   - ./UC-interview-submit-answer.md
   - ./cend-mock-interview.md
+  - ./cend-overview-progress.md
   - ../../rules/global/production-invariants.md
   - ../../rules/global/status-machine.md
   - ../../architecture/ai/langgraph-blueprint.md
@@ -19,7 +20,7 @@ related:
 
 # 用例集 · 面试历史（interview-history）
 
-> **🔎 实现状态（对齐真实代码 · 2026-08-09）** — 本文是 TARGET（目标）规格，不能把后续流程图或测试编号当作已跑证据。**✅ 已实现并有局部实测**：面试/报告历史读取、RLS（行级安全）principal（主体）绑定；列表/详情进度投影 `issued_turns`/`answered_turns`（题目账本），与成长主页「已答题数」同源，见 [cend-overview-progress](./cend-overview-progress.md)；LangGraph（图编排框架）checkpoint（检查点）通过 `CheckpointAccess(owner,threadId,fenceEpoch)` 与数据库触发器拒绝撤回后的迟到写入，跨主体读、改、删为 0 的真实 PostgreSQL（关系型数据库）证明已通过。**🟠 部分 / ⬜ 未建**：本节定义的完整 `AiGraphRun` lease（租约）抢占、历史 checkpoint 物理删除与外部数据面回执、会话生命周期看门狗、非时间排序的复合 keyset（键集）分页、被遗忘权对财务账本的排除清单，均不能当作已完成发布能力。基础历史读取与隔离已生效。
+> **🔎 实现状态（对齐真实代码 · 2026-08-09）** — 本文是 TARGET（目标）规格，不能把后续流程图或测试编号当作已跑证据。**✅ 已实现并有局部实测**：面试/报告历史读取、RLS（行级安全）principal（主体）绑定；列表/详情进度投影 `issued_turns`/`answered_turns`（题目账本），与成长主页「已答题数」同一 `answered` FILTER（单场 vs 全局计数），见 [cend-overview-progress](./cend-overview-progress.md)；LangGraph（图编排框架）checkpoint（检查点）通过 `CheckpointAccess(owner,threadId,fenceEpoch)` 与数据库触发器拒绝撤回后的迟到写入，跨主体读、改、删为 0 的真实 PostgreSQL（关系型数据库）证明已通过。**🟠 部分 / ⬜ 未建**：本节定义的完整 `AiGraphRun` lease（租约）抢占、历史 checkpoint 物理删除与外部数据面回执、会话生命周期看门狗、非时间排序的复合 keyset（键集）分页、被遗忘权对财务账本的排除清单，均不能当作已完成发布能力。基础历史读取与隔离已生效。
 
 > 评审定论（两轮）：契约面（RLS / IDOR-404 / 游标 / CAS）骨架扎实；致命失分集中在四处并已收口——①分布式「至多一个活动 run」的执行机制（错把保证放在 `Interview` 行 CAS 上，而 checkpoint 按 `thread_id` 写、不经这把 CAS → 脑裂）→ 0.1 fencing/lease；②**会话生命周期闭环**（谁/何时/按什么 TTL 把 `in_progress/waiting_user` 迁成 `expired/abandoned`，以及对应退费）→ 0.2 + 0.3 + 新增 **UC-IH-13 看门狗**；③**非时间排序的分页正确性**（按 score/role 排序时裸 `(started_at,id)` 游标会重复/跳漏）→ 0.6 复合 keyset；④**被遗忘权对财务账本的边界**（naive cascade 会删交易凭证）→ 0.8 erasure 排除清单。其余无法测的高成熟度承诺（读副本降级、报告译文层、时延持平断言）一律降级/移除。
 

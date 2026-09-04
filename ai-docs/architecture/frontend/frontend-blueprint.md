@@ -15,13 +15,15 @@ tags:
 related:
   - ../system-blueprint.md
   - ../ai/langgraph-blueprint.md
+  - ../../requirements/use-cases/cend-overview-progress.md
+  - ../current-runtime-truth.md
 ---
 
 # 前端架构方案
 
 > 前端是 **Next.js App Router**。本文与 `system-blueprint.md` 的「契约先行、所有用户内容不可信、状态落服务端」一致。
 >
-> **落地状态（apps/web）**：SSE 重连驱动、类型化 API 客户端、Next.js App Router 页面、`InterviewPanel`、`VoiceCallPanel` 和 B/C 端页面均已存在；`runInterviewStream` 使用 Last-Event-ID（最后事件编号）续传、重连上限、buffer（缓冲区）封顶和 AbortSignal（取消信号），视图归约将 `report_unavailable` 表示为降级出口。C 端实际路由是 `/dashboard`（成长主页）与 `/interviews`（列表），不是下文目标态的 `history`/`profile`。列表/详情进度文案读 `InterviewView.issued_turns`/`answered_turns`；成长主页「已答题数」读经契约校验的 `Overview.answered`（题目账本，不是 ScoreCard 张数），取数失败显示「—」。均分仍来自 ScoreCard。成长档案页 `totals.answered` 仍为可评分 ScoreCard 数，文案是「累计已评分」，与 dashboard 已答题数不同源。见 [C 端总览进度用例](../../requirements/use-cases/cend-overview-progress.md)。`pnpm web:prove` 覆盖承重纯逻辑，但它不是浏览器、真实 API、语音设备或云环境的发布证明。组件库、页面清单和生产验证状态以 [运行时事实矩阵](../current-runtime-truth.md) 为准。
+> **落地状态（apps/web）**：SSE 重连驱动、类型化 API 客户端、Next.js App Router 页面、`InterviewPanel`、`VoiceCallPanel` 和 B/C 端页面均已存在；`runInterviewStream` 使用 Last-Event-ID（最后事件编号）续传、重连上限、buffer（缓冲区）封顶和 AbortSignal（取消信号），视图归约将 `report_unavailable` 表示为降级出口。C 端进度相关路由是 `/dashboard`（成长主页）与 `/interviews`（列表）；`/growth` 是成长档案（`totals.answered`=ScoreCard「累计已评分」，与 dashboard 已答题数不同源）。不是下文目标态的 `history`/`profile`。列表/详情进度文案读 `InterviewView.issued_turns`/`answered_turns`；成长主页「已答题数」读经契约校验的 `Overview.answered`（题目账本，不是 ScoreCard 张数），取数失败显示「—」。均分仍来自 ScoreCard。成长档案页 `totals.answered` 仍为可评分 ScoreCard 数，文案是「累计已评分」，与 dashboard 已答题数不同源。见 [C 端总览进度用例](../../requirements/use-cases/cend-overview-progress.md)。`pnpm web:prove` 覆盖承重纯逻辑，但它不是浏览器、真实 API、语音设备或云环境的发布证明。组件库、页面清单和生产验证状态以 [运行时事实矩阵](../current-runtime-truth.md) 为准。
 
 ## 1. 选型决策
 
@@ -46,13 +48,13 @@ apps/web/
   app/
     (marketing)/            # RSC：首页、FAQ、协议、隐私、联系 —— SEO、ISR
     (auth)/login/           # 微信扫码登录（client island 轮询二维码状态）
-    (app)/
+    (app)/                  # 目标态曾规划 history/profile；当前 C 端进度面如下
+      dashboard/            # 成长主页：已答题数 + 最近场次进度
+      interviews/           # 面试列表进度文案
+      growth/               # 成长档案（累计已评分 = ScoreCard，不是已答题数）
       interview/
-        start/              # 选岗位/简历/服务类型（RSC 预取 + 表单 client 边界）
-        [resultId]/         # 押题/模拟面试运行页（client：SSE + 对话）
-        [resultId]/report/  # 报告页（RSC 首屏 + client 渐进揭示）
-      history/              # RSC 列表 + client 详情
-      profile/              # 账户、次数、充值、兑换（client）
+        [resultId]/         # 模拟面试运行页（client：SSE + 对话）
+        [resultId]/report/  # 报告页（实际路由多为 /report/[id]）
     api/                    # 仅做 SSE/上传的薄代理 route handler，不放业务
   components/               # shadcn/ui 自有组件 + 业务组件
   lib/
@@ -72,8 +74,10 @@ apps/web/
 | `interview/start` | RSC 预取岗位/简历列表 + 表单 client 子树 | 首屏服务端取数，交互局部 client |
 | `interview/[resultId]`（押题进度 / 模拟对话） | client | 实时 SSE、流式文本、TTS、暂停恢复 |
 | `interview/[resultId]/report` | RSC 首屏（报告若就绪）→ 未就绪降级 client 轮询/SSE | 报告重、可 SSR；异步未完成时再订阅 `report_ready` |
-| `history` | RSC 分页列表 + client 详情抽屉 | 列表可 SSR，详情交互 client |
-| `profile` | client | 余额、弹窗、兑换交互 |
+| `history` / `profile` | 目标态 | 下文路由设计仍用这两个名字；**当前代码没有这两条路径** |
+| `/dashboard`（成长主页） | RSC | 并发拉 `/profile/overview` + `/interview`；「已答题数」=`overviewAnsweredLabel`（契约失败→「—」）；最近场次走 `interviewProgressLabel` |
+| `/interviews` | RSC | 列表进度只渲染 `InterviewView` 账本字段，不另计 ScoreCard |
+| `/growth` | RSC | `totals.answered` 文案「累计已评分」，与 dashboard 已答题数不同源 |
 
 ## 4. 路由设计：用嵌套路由，不要 URL-query 状态机
 
@@ -130,11 +134,12 @@ export function useInterviewStream(resultId: string) {
 把 JWT 存 localStorage、每个请求手动塞 header 会把 token 暴露给任意脚本，易受 XSS 窃取。Meetwise：
 
 - 登录态用 **httpOnly、Secure、SameSite cookie**，JS 读不到。
-- `middleware.ts` 拦截 `(app)` 段，未登录重定向 `/login`。
+- `middleware.ts` 用 `protectedPaths` 前缀匹配 + `matcher: '/:path*'`，未登录重定向 `/login`。`/dashboard` 与 `/interviews` 在名单内；`/growth` 目前靠页内 `getServerToken()`，尚未列入 `protectedPaths`。下方 snippet 是目标态示例，不是当前文件。
 - RSC 取数在服务端转发 cookie；client 走同源代理 route handler。
 
 ```ts
-// middleware.ts
+// middleware.ts —— 下文是目标态示例，不是当前文件。现网 matcher 为 `/:path*`；
+// 鉴权名单含 /dashboard /interviews，不含目标态 /history /profile。
 export const config = { matcher: ["/interview/:path*", "/profile", "/history"] };
 ```
 

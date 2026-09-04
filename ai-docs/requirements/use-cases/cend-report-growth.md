@@ -11,6 +11,7 @@ related:
   - ./README.md
   - ../use-case-conventions.md
   - ../../testing/conventions/test-authoring.md
+  - ./cend-overview-progress.md
 ---
 
 # 报告与成长域 · 用例 + 测试用例（评审收口最终版）

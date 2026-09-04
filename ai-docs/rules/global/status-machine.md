@@ -44,6 +44,12 @@ related:
 
 编排：`completed` → 入队 `AssessmentReport`；`completed` → `ConsumptionRecord` 由 reserved 转 confirmed；`failed/abandoned` → `ConsumptionRecord` released（退还权益）。
 
+### InterviewQA（题目账本，物理表 `interview_question`）
+
+枚举：`issued · queued · answered · cancelled`。写路径与合法边以 [qbank-generation-lifecycle](../../requirements/use-cases/qbank-generation-lifecycle.md) 为准（`issued → queued → answered` 或 `issued/queued → cancelled`，不可原地换题）。
+
+C 端进度是只读投影，不在本对象上发明转换：`issued_turns`=`status<>'cancelled'`，`answered_turns`/`Overview.answered`=`status='answered'`。见 [cend-overview-progress](../../requirements/use-cases/cend-overview-progress.md)。
+
 ### AssessmentReport（报告，子图/后台 job）
 
 枚举：`pending · generating · completed · failed`
