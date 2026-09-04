@@ -7,7 +7,8 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "prove": "tsx test/runtime-kernel.proof.ts",
+    "prove": "tsx test/runtime-kernel.proof.ts && tsx test/claim-join-orphan.proof.ts",
+    "prove:claim-join-orphan": "tsx test/claim-join-orphan.proof.ts",
     "prove:retrieval": "tsx test/retrieval.proof.ts",
     "prove:breaker": "tsx test/breaker.proof.ts",
     "prove:vstream": "tsx test/voice-stream.proof.ts",

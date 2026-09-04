@@ -28,6 +28,12 @@ import { withheldOutputSummary } from './withheld-output.mjs';
 const ROOT = new URL('..', import.meta.url).pathname;
 const target = process.argv[2] ?? 'e2e:prove';
 const isolatedReceiptSources = {
+  'runtime:claim-join:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/ai-runtime/test/claim-join-orphan.proof.ts',
+    'packages/ai-runtime/src/invoke.ts', 'packages/db/src/model-invocation.ts',
+    'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
+  ],
   'model-cost:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/ai-runtime/test/model-cost-governance.proof.ts',
@@ -957,7 +963,7 @@ const isolatedReceiptSources = {
 if (![
   'e2e:prove', 'e2e:ui', 'performance:e2e',
   'api:validate', 'neg:all', 'neg:auth', 'neg:commerce', 'neg:resume', 'neg:interview', 'neg:bend', 'neg:input', 'turn-idempotency:prove', 'migrate:prove', 'commerce:prove:raw', 'resume:prove:raw',
-  'stress:prove:raw', 'adaptive-latency:prove', 'runtime:prove:raw', 'model-cost:prove:raw', 'adaptive-degrade:prove:raw', 'vectorstore:prove:raw',
+  'stress:prove:raw', 'adaptive-latency:prove', 'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'adaptive-degrade:prove:raw', 'vectorstore:prove:raw',
   'qbank-source:prove:raw', 'memory:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'ocr:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'rag-generation:prove:raw', 'rag-corpus-version:prove:raw',
   'voice:prove', 'scoring-integrity:prove', 'scoring:eval:raw', 'qbank-pipeline:prove:raw', 'runtime-role:prove:raw', 'checkpoint-role:prove:raw', 'api-runtime-role:prove:raw',
   'qbank:prove:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'privacy-erasure:pause-upgrade:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw',
@@ -1011,6 +1017,8 @@ const isolatedCommand = target === 'migrate:prove'
   ? ['pnpm', ['-C', 'packages/db', 'prove:migrate']]
   : target === 'runtime:prove:raw'
     ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove']]
+  : target === 'runtime:claim-join:prove:raw'
+    ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove:claim-join-orphan']]
   : target === 'model-cost:prove:raw'
     ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove:model-cost']]
   : target === 'commerce:prove:raw'
