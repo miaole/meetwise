@@ -176,6 +176,8 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0076_privacy_erasure_legacy_request_pause.sql',
     'packages/db/migrations/0077_privacy_worker_dispatch_rls.sql',
     'packages/db/migrations/0078_privacy_worker_parent_request_guard.sql',
+    'packages/db/migrations/0091_privacy_authorization_issuer.sql',
+    'packages/domain/src/privacy-authorization.ts', 'packages/domain/src/auth.ts',
   ],
   'scor-00:http:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -505,7 +507,7 @@ const isolatedReceiptSources = {
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/privacy-authorization.proof.ts',
     'packages/db/src/privacy-authorization.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
-    'packages/domain/src/privacy-authorization.ts',
+    'packages/domain/src/privacy-authorization.ts', 'packages/domain/src/auth.ts',
     'packages/db/migrations/0047_checkpoint_privacy_fence.sql',
     'packages/db/migrations/0048_checkpoint_physical_erasure.sql',
     'packages/db/migrations/0075_privacy_erasure_authorization_pause.sql',

@@ -10,7 +10,7 @@ import {
   PRIVACY_AUTHZ_ISSUER, PRIVACY_AUTHZ_AUDIENCE, MAX_PRIVACY_AUTHZ_TTL_SEC,
   PRIVACY_AUTHZ_PURPOSES, PRIVACY_AUTHZ_KID_RE, PRIVACY_AUTHZ_DIGEST_RE,
   canonicalTargetSetDigest, generatePrivacyAuthzKeyPair, signPrivacyAuthorizationSnapshot,
-  verifyPrivacyAuthorizationSnapshot, PrivacyAuthzKeyRegistry,
+  verifyPrivacyAuthorizationSnapshot, PrivacyAuthzKeyRegistry, signToken,
   type PrivacyAuthzTarget, type PrivacyAuthorizationClaims,
 } from '../src/index.ts';
 import {
@@ -168,6 +168,16 @@ A('M6 跨侧: kid regex 逐值相等(source+flags)',
   PRIVACY_AUTHZ_KID_RE.source === CONTRACT_KID_RE.source && PRIVACY_AUTHZ_KID_RE.flags === CONTRACT_KID_RE.flags);
 A('M6 跨侧: digest regex 逐值相等(source+flags)',
   PRIVACY_AUTHZ_DIGEST_RE.source === CONTRACT_DIGEST_RE.source && PRIVACY_AUTHZ_DIGEST_RE.flags === CONTRACT_DIGEST_RE.flags);
+
+// INT-TRANSCRIPT-00 身份根分离：登录 HMAC（AUTH_SECRET）不得冒充删除授权 JWS。
+const loginToken = signToken('user-1', 'auth-secret-reuse-probe', 600, NOW);
+A('AUTH_SECRET 登录令牌不能当隐私 JWS 验签', vRaw(loginToken) === null);
+A('AUTH_SECRET 字符串不能当 ECDSA 私钥签发', signErr(() => signPrivacyAuthorizationSnapshot({
+  ...signInput, privateKeyPem: 'auth-secret-reuse-probe',
+})));
+A('模型网关 iss/aud 登录令牌形状不能当删除授权', vRaw(rawSign({
+  ...base(), iss: 'meetwise-authz-v1', aud: 'meetwise-model-gateway', issuerId: 'meetwise-authz-v1',
+}, keyA.kid, keyA.privateKeyPem)) === null);
 
 console.log(`\n${fail === 0 ? '✓ PrivacyAuthorizationIssuer 密码学 全部通过' : '✗ ' + fail + ' 失败'}`);
 process.exit(fail === 0 ? 0 : 1);
