@@ -190,6 +190,8 @@ const checks = {
     requireText(recruiterSurface, '关键保护可以核对', 'recruiter architecture copy');
     requireText(recruiterSurface, '证据不够就不给分', 'recruiter architecture copy');
     requireText(recruiterSurface, '两边分开记账', 'recruiter architecture copy');
+    requireText(recruiterSurface, '生产作答仍可能写明文任务', 'recruiter architecture copy');
+    requireText(recruiterSurface, '不是完整逐题档案', 'recruiter architecture copy');
     requireText(recruiterSurface, '排队公平还没保证', 'recruiter architecture copy');
     requireText(recruiterSurface, '不是高峰容量保证', 'recruiter architecture copy');
     requireText(recruiterSurface, '练习原文不会摊开给你', 'recruiter architecture copy');

@@ -641,6 +641,7 @@ async function main() {
   A('公平卡片写明不是高峰容量保证', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'fairness')?.body.includes('不是高峰容量保证') === true);
   A('ACL 卡片不把检索权限写成已交付', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'acl')?.body.includes('生产接线还没完成') === true);
   A('评分卡片写明不用 0 分凑数', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'scoring')?.body.includes('不会用 0 分凑数') === true);
+  A('分开记账卡片不把 0126 写成完整档案', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'fence')?.body.includes('生产作答仍可能写明文任务') === true);
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
   process.exit(failures === 0 ? 0 : 1);

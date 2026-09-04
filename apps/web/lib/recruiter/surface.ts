@@ -84,7 +84,7 @@ export const RECRUITER_ARCHITECTURE_HIGHLIGHTS: readonly RecruiterArchitectureCa
   {
     id: 'fence',
     title: '两边分开记账',
-    body: '面试进行中的运行记录，和岗位申请结果，分开写。一边写成功，另一边不会偷偷补一个假分数；旧的后台任务也不能把新一场盖掉。',
+    body: '面试进行中的运行记录，和岗位申请结果，分开写。一边写成功，另一边不会偷偷补一个假分数；旧的后台任务也不能把新一场盖掉。答题正文已有互斥围栏，但生产作答仍可能写明文任务；这不是完整逐题档案，招聘方也看不到原文。',
   },
   {
     id: 'fairness',

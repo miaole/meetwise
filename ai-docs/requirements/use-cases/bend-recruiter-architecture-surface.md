@@ -45,7 +45,7 @@ related:
 | `SCOR-01…08` 测量根 / 校准 / B 端用途门 | 无 canonical answer artifact、无校准 release；本页只能解释「为什么没有数字」。 |
 | `PENDING-PRD-REVIEW-01` 人工复核工单 | 无案件、领取、四眼、申诉；本切片是只读申请状态，不是审核后台。 |
 | Worker 公平调度（`WORKER-DISPATCH-002`） | 仍可能按账号串行抽干；文案必须写清「不是高峰容量保证」。 |
-| 完整 transcript / 删除回执 | `INT-TRANSCRIPT-00/01` 未关闭；状态页不得假装能回放逐题内容。 |
+| 完整 transcript / 删除回执 | `INT-TRANSCRIPT-00/01` 未关闭；`0126` 只是答题双写互斥，不是 01。`/turn` 仍可写明文 payload。状态页不得假装能回放逐题内容。 |
 | 企业租户 / 席位 / ATS | 仍是个人招聘方账号骨架。 |
 | `GET .../candidates` 不先校验岗位归属 | 他岗 URL 现由 `GET /recruiter/jobs/:id` 404 收口；candidates 单独调用仍可能 200+空列表。本切片不改 API。 |
 | C 端 `listMyApplications` 仍 SELECT `a.score` | DOM 已用 `applicationScoreVisible` 关掉；查询列未删。 |
