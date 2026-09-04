@@ -41,7 +41,7 @@ pnpm regression --live   # 真供应商 HTTP E2E；缺 MODEL_API_KEY 必须非�
 ## 铁律（先读再跑）
 
 - 控制器/页面绿了不算业务完成。断言状态机落点、账本、隔离、终态事件。
-- HTTP 全链路 E2E 是 `e2e/full.e2e.ts` + `scripts/run-e2e.mjs`（fetch / SSE），**不是** Playwright。Playwright 只覆盖 `pnpm e2e:ui:isolated` 的浏览器层。
+- HTTP 全链路 E2E 是 **主层**：`e2e/full.e2e.ts` + `scripts/run-e2e.mjs`（fetch / SSE），入口 `pnpm e2e:isolated`。Playwright 是 **次层**，只覆盖 `pnpm e2e:ui:isolated` 的浏览器 cookie / 页面流。分层结论在 [test-strategy](../../testing/strategy/test-strategy.md) 与 [test-authoring](../../testing/conventions/test-authoring.md)。
 - `run-e2e.mjs` 在 `E2E_ISOLATED=1` 且存在 `MODEL_API_KEY` 时才启动；`VOICE_FAKE` / `OCR_FAKE` / `E2E_FAKE_MODEL` 直接失败。
 - 回执恒为 `releaseEvidence=false`。没有受信 runner、不可变对象存储和独立验签，就不能写发布通过。
 - golden-tasks 第一批已建档；未映射到可跑门的条目状态必须是 `planned` 或 `unmapped`，禁止标 `passed`。

@@ -7,7 +7,7 @@ scope: shared
 level: guide
 status: active
 owner: architecture
-version: 1
+version: 2
 tags:
   - meta
   - boundaries
@@ -31,7 +31,14 @@ tags:
 | `requirements` | 这次具体做什么 | 长期工程规则 |
 | `architecture` | 技术上如何长期组织 | 本次任务 todo |
 | `rules` | 长期稳定约束是什么 | 一次性讨论 |
-| `skills` | 这类工作怎么做 | 产品定义 |
-| `testing` | 怎么验证 | 实现正文 |
+| `skills` | 这类工作怎么做（可执行配方） | 产品定义；不要另写一套与 `testing/` 冲突的分层 |
+| `testing` | 怎么验证：策略、TC 规范、golden-tasks、证据 | 实现正文；变更后怎么跑门写在 `skills/testing/` |
 | `delivery` | 怎么发布和复盘 | 需求原文 |
 | `observability` | 怎么观察 AI 和系统质量 | 用户敏感数据 |
+
+## 测试文档落位（一个结论一处）
+
+- 分层与禁止伪验收 → `testing/strategy/test-strategy.md`
+- 如何写 TC、层映射（HTTP 主层 / Playwright 次层） → `testing/conventions/test-authoring.md`
+- 改完功能后审核、选层、跑命令 → `skills/testing/SKILL.md`
+- 实跑回执与结论边界 → `testing/e2e-performance-evidence.md`

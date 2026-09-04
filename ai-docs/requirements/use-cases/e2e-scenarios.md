@@ -11,13 +11,15 @@ related:
   - ./README.md
   - ../use-case-conventions.md
   - ../../testing/conventions/test-authoring.md
+  - ../../testing/strategy/test-strategy.md
+  - ../../skills/testing/SKILL.md
 ---
 
 # e2e-scenarios · 端到端用例 + 测试用例（评审收口最终稿）
 
 > **🔎 实现状态（对齐真实代码 · 2026-09）** — 本文大量条目仍是 TARGET。当前已接线的 HTTP 全链路是 `pnpm e2e:isolated`（`e2e/full.e2e.ts` fetch/SSE，需 live Key，**不是** Playwright）。浏览器层是 `pnpm e2e:ui:isolated`（Playwright，需 production Next）。隔离 worker 会注入报告故障，主面试终态不必是 `report_ready`。per-push CI 不跑 live E2E。文内“已绿 / fake-model e2e”不得当当前证据。变更后入口见 `ai-docs/skills/testing/SKILL.md`。
 
-> 范围：黄金路径（上传简历→摄取清洗→诊断→押题→模拟面试→报告）+ 关键失败路径（断线 / 退款 / 越权 / 降级）+ 四图正常闭环（resume-quiz · mock-interview · career-path · report）+ B 端批量 + 跨设备恢复，落为 Playwright e2e 场景。
+> 范围：黄金路径（上传简历→摄取清洗→诊断→押题→模拟面试→报告）+ 关键失败路径（断线 / 退款 / 越权 / 降级）+ 四图正常闭环（resume-quiz · mock-interview · career-path · report）+ B 端批量 + 跨设备恢复。业务全链路落为隔离 HTTP E2E（`pnpm e2e:isolated`，fetch/SSE）主层；Playwright（`e2e:ui:isolated`）只覆盖 cookie / 页面流次层。
 > 收口原则：每条 UC 标注命中的**七类 case**（正常 / 异常 / 特殊 / 逃逸通道 / 高并发 / 复杂 / 刁钻）；每条异常 / 刁钻流必须落到一个机制——**状态机迁移**或**四承重原语**（CAS / 幂等键 / RLS principal 绑定 / 持久有序事件日志）；验收必须可测；每条 UC 配套测试用例与测试层。
 > **测试层纪律（本次评审硬性纠偏）**：e2e 只验**结构面 / 用户可见行为 / 业务校验器对 fixture 的取舍**；"模型是否真的抗注入 / 真的不造假 / 真的跟随 locale 产语言"这类**模型质量**断言一律归 **ai-eval**，禁止由 fake-model 在 e2e 冒充。毫秒级竞态窗口的真实保证归 **integration**（CAS / 租约），e2e 双击只做"尽力复现 + 终态一致"断言。
 
@@ -70,7 +72,7 @@ related:
 - **关联**：契约 `POST /resume`、`POST /quiz`、`POST /interview`、`POST /interview/:id/answer`、`GET /interview/:id/events`(SSE)、`GET /report/:id`。状态机：全部五张。原语：CAS（步 5/6/7）、幂等键（步 5/6）、RLS（全程）、事件日志（步 6/8）。安全：用户内容入数据块、模型产出双校验。
 
 **测试用例**
-- TC-E2E-001-main · e2e（Playwright）· 断言 A1–A5；fake-model 走确定 fixture，校验**结构与状态落点**（不主张模型质量）。
+- TC-E2E-001-main · e2e HTTP（`pnpm e2e:isolated` fetch/SSE 主层）· 断言 A1–A5 中可用 HTTP/账本观测的部分；页面可见性另见 `e2e:ui:isolated`。真供应商链路不主张模型质量；结构与状态落点用隔离 prove / fake-model graph 补。
 - TC-E2E-001-ledger · integration（Supertest+Testcontainers）· 断言 `completed` 后 `consumption_record` 恰一条 confirmed、`interview_event.seq` 单调无洞。
 - TC-E2E-001-graph · graph（fake model + deterministic fixture）· 断言 mock-interview 图 `active↔waiting_user` 分支与 `→completed` 编排入队 report。
 
@@ -643,4 +645,4 @@ related:
 - **D3 新状态机入载重清单**：`AnswerEval`(补评)、`GuardrailHit`(护栏)、`ManualReview`(人工)须正式纳入 status-machine.md 载重清单并定义契约；`ManualReview` 已以 `human-review-design.md` 给出 TARGET 口径，仍须迁移/API/E2E 落地后才可声明可用。
 - **D4 B 端 scope 裁决**：项目定位为 C 端；B 端 040–043 引入 `BatchJob/QuestionBankItem/SeatLedger` 整套状态机。**须裁决本迭代是否 in-scope**：若保留，先补三张状态机 + 契约并纳入载重清单；若移出，第六章移出本迭代。当前第六章成立以 in-scope 为前提。
 - **D5 成长档案/能力曲线落点字段**：钉死 `CapabilityProfile.dimensions[]` 与 `GrowthTimeline` 的确定字段 schema，否则 001-A5 / 004-A1/A2 的"档案落点"断言无法写成确定断言。
-- **D6 测试层归属固化**：031/032 的"模型抗注入/不造假"、003 的"模型按 locale 产语言"一律归 ai-eval；e2e 仅保留结构面/转义/业务校验断言；毫秒级竞态真实保证归 integration（CAS/租约），e2e 双击仅"尽力复现+终态一致"。须在 test-strategy 固化此分层纪律。
+- **D6 测试层归属固化**：031/032 的"模型抗注入/不造假"、003 的"模型按 locale 产语言"一律归 ai-eval；e2e 仅保留结构面/转义/业务校验断言；毫秒级竞态真实保证归 integration（CAS/租约），e2e 双击仅"尽力复现+终态一致"。业务 e2e 主层是 HTTP `e2e:isolated`，Playwright 是浏览器次层；分层已写在 [test-strategy](../../testing/strategy/test-strategy.md) 与 [test-authoring](../../testing/conventions/test-authoring.md)。

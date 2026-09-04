@@ -12,6 +12,10 @@ tags:
   - e2e
   - performance
   - evidence
+related:
+  - ./strategy/test-strategy.md
+  - ./conventions/test-authoring.md
+  - ../skills/testing/SKILL.md
 ---
 
 # 全量 E2E 与性能门证据

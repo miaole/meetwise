@@ -26,8 +26,8 @@
 - `ai-docs/requirements`：具体 epic 和 iteration PRD。
 - `ai-docs/architecture`：长期技术架构、模块划分、LangGraph、部署和观测。
 - `ai-docs/rules`：长期稳定工程约束。
-- `ai-docs/skills`：AI 做某类任务时的工作方法。
-- `ai-docs/testing`：测试策略、golden tasks、E2E 和评测。
+- `ai-docs/skills`：AI 做某类任务时的工作方法。变更后测试入口：`ai-docs/skills/testing/SKILL.md`。
+- `ai-docs/testing`：测试策略（HTTP `e2e:isolated` 主层，Playwright 次层）、TC 规范、golden tasks、E2E 证据和评测。
 - `.tmp`：单次执行工单、harness、临时证据、门禁模板和运行记录（不提交）。
 
 ## 生成前门禁
