@@ -29,7 +29,7 @@ tags:
 机器可读对照：
 
 - 域侧签发并集：`packages/domain/src/privacy-authorization.ts` 的 `ALL_PRIVACY_AUTHZ_SINK_KINDS`
-- SQL 侧枚举：最新迁移对 `privacy_deletion_target.sink` 的 CHECK（当前为 `0124_memory_vector_chunk_erasure.sql`）
+- SQL 侧枚举：最新迁移对 `privacy_deletion_target.sink` 的 CHECK（当前为 `0125_memory_vector_chunk_erasure.sql`）。`0124` 已被 sibling PR #71 的 `0124_rag_retrieval_acl_fail_closed.sql` 占用，本 sink 不得抢号。
 - 本迭代闭合：`memory_vector_chunk`（`vector_chunk.kind='memory'`）
 
 验证（隔离 PostgreSQL 需要容器运行时；无容器时只跑域/静态 pin）：
@@ -59,11 +59,11 @@ pnpm docs:check
 
 在 §3 必收录执列与 §4.2 未闭合缺口全部有真实组合根回执之前，**禁止**把上述入口改成 202/204 或 `completed`。
 
-## 3. `privacy_deletion_target.sink` 当前枚举（0124）
+## 3. `privacy_deletion_target.sink` 当前枚举（0125）
 
 签发侧合法 kind = 五套 registry 的并集（`PRIVACY_AUTHZ_SINK_KINDS` ∪ `MEMORY_AUTHZ_SINK_KINDS` ∪ `CONVERSATION_EVENT_SINKS` ∪ `COMPRESSION_DELETION_SINKS` ∪ `MEMORY_VECTOR_CHUNK_DELETION_SINKS`）。域归属由各轨道 claim 函数强制，跨域 claim fail-closed。
 
-0124 `privacy_deletion_target_sink_check` 全集（与迁移字面量一致；增删任一值必须同 PR 改本文与域 registry）：
+0125 `privacy_deletion_target_sink_check` 全集（与迁移字面量一致；增删任一值必须同 PR 改本文与域 registry）：
 
 `checkpoint_rows`, `interview_job_payload`, `event`, `report`, `vector`, `redis`, `oss`, `langfuse`, `interview_answer_artifact`, `memory_event`, `memory_summary`, `memory_fact`, `memory_embedding`, `memory_cache`, `memory_context_snapshot`, `memory_trace`, `ai_graph_run`, `conversation_event`, `conversation_event_artifact`, `context_compression_snapshot`, `context_compression_dispatch`, `memory_vector_chunk`。
 
@@ -92,7 +92,7 @@ CHECK 能插入 ≠ 已有 resolver。占位 sink（`memory_event` / `memory_cac
 | `memory_embedding` | `memory_index_generation`（及 0107 控制面的 generation 子表） | 0093 / 0107 | 该 sweep 可 erased | **不**删除 `vector_chunk` |
 | `memory_context_snapshot` | `memory_context_snapshot` | 0093 | 该 sweep 可 erased | 与 CTX 压缩 snapshot 不是同一张表 |
 | `memory_summary` | `memory_summary` | `memory_summary_begin_erasure`（0112） | 该 sweep 可 erased | 独立账本 |
-| `memory_vector_chunk` | `vector_chunk` 且 `kind='memory'` | `memory_vector_chunk_begin_erasure`（0124） | **本迭代闭合**：target + 写围栏 + 物理 DELETE + 残留=0 | 永不删 `kind='qbank'` |
+| `memory_vector_chunk` | `vector_chunk` 且 `kind='memory'` | `memory_vector_chunk_begin_erasure`（0125） | **本迭代闭合**：target + 写围栏 + 物理 DELETE + 残留=0 | 永不删 `kind='qbank'` |
 | `memory_event` / `memory_cache` / `memory_trace` | 枚举占位 | 0093 **不建** target | 未知 locator，fail-closed | 不得伪装已删除 |
 | `conversation_event` / `conversation_event_artifact` | 0108 事件源 | `conversation_event_begin_erasure`（0111） | 该 sweep 可 erased | 独立账本 |
 | `context_compression_snapshot` / `context_compression_dispatch` | 0115 / 0117 | `context_compression_begin_erasure`（0118） | 该 sweep 可 erased | dispatch 无 fence 态，read=0 由 DELETE 承重 |
@@ -107,7 +107,7 @@ CHECK 能插入 ≠ 已有 resolver。占位 sink（`memory_event` / `memory_cac
 
 | 落点 | 为何必须进回执 | 当前处理 | 禁止 |
 | --- | --- | --- | --- |
-| `vector_chunk` `kind='memory'` | owner 级用户向量，可召回正文 ref | **0124 已进账户回执**（`memory_vector_chunk`，见 §3.2 / §5） | 面试删除不得代删；不得称 MEM-00/0093 已覆盖；本 sweep `completed` ≠ 账户删除完成 |
+| `vector_chunk` `kind='memory'` | owner 级用户向量，可召回正文 ref | **0125 已进账户回执**（`memory_vector_chunk`，见 §3.2 / §5） | 面试删除不得代删；不得称 MEM-00/0093 已覆盖；本 sweep `completed` ≠ 账户删除完成 |
 | `vector_chunk` `kind='qbank'` | 共享题库，系统或题库控制面 owner | 合法拒删（RLS DELETE 要求 `kind='memory'`） | 不得当作用户删除成功 |
 
 ### 4.2 仍未闭合
@@ -124,12 +124,12 @@ CHECK 能插入 ≠ 已有 resolver。占位 sink（`memory_event` / `memory_cac
 
 ## 5. 本迭代闭合的围栏（不是完整删除）
 
-`0124_memory_vector_chunk_erasure.sql` 只做一件可证明的事：让 `vector_chunk.kind='memory'` **必须**作为账户删除 target 出现，并在该 target 未 erased 或残留>0 时不能把“向量块已删”写成事实。
+`0125_memory_vector_chunk_erasure.sql` 只做一件可证明的事：让 `vector_chunk.kind='memory'` **必须**作为账户删除 target 出现，并在该 target 未 erased 或残留>0 时不能把“向量块已删”写成事实。
 
 | 围栏 | 机制 | 负向验收 |
 | --- | --- | --- |
 | 枚举 | begin 固定插入 `sink='memory_vector_chunk'` | 0093 的 3-sink begin 仍不含此 sink；向量行仍在 |
-| 写围栏 | `kind='memory'` 的 INSERT/UPDATE 在本 sink 账本处于 `fenced` / `purging` / `pending_external` / `completed` / `partial_failed` 时拒绝。0124 无撤销函数，故 `completed` 后对该 owner 的 memory 写入是永久拒绝。触发器不拦 DELETE：`app_role` 仍可能自删 memory 行，收据与真实删除者可能脱节（已知缺口）。Worker DELETE RLS 只要求 principal + `kind='memory'` + `privacy_target_id` 非空，不绑定 `lease_token`（弱于 0048 checkpoint） | 围栏后迟到 INSERT/UPDATE=0；`kind='qbank'` 仍可走题库控制面；不得把本围栏写成可撤销或 lease-bound 物理删 |
+| 写围栏 | `kind='memory'` 的 INSERT/UPDATE 在本 sink 账本处于 `fenced` / `purging` / `pending_external` / `completed` / `partial_failed` 时拒绝。0125 无撤销函数，故 `completed` 后对该 owner 的 memory 写入是永久拒绝。触发器不拦 DELETE：`app_role` 仍可能自删 memory 行，收据与真实删除者可能脱节（已知缺口）。Worker DELETE RLS 只要求 principal + `kind='memory'` + `privacy_target_id` 非空，不绑定 `lease_token`（弱于 0048 checkpoint） | 围栏后迟到 INSERT/UPDATE=0；`kind='qbank'` 仍可走题库控制面；不得把本围栏写成可撤销或 lease-bound 物理删 |
 | 物理清除 | worker 仅 DELETE `owner=principal AND kind='memory'`，残留≠0 fail-closed | 跨 owner 行=原数；qbank 行=原数 |
 | 公开入口 | 简历/面试 DELETE 保持 503 | 无新 request/target |
 | 完成语义 | 本 sweep 的 request 可 `completed`；**不等于**账户删除完成 | `user_memory` / trace / 外部 sink 仍在清单缺口中 |

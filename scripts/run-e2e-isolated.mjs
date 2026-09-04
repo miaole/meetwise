@@ -701,7 +701,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0091_privacy_authorization_issuer.sql',
     'packages/db/migrations/0093_memory_governance.sql',
     'packages/db/migrations/0118_ctx06_deletion_closure.sql',
-    'packages/db/migrations/0124_memory_vector_chunk_erasure.sql',
+    'packages/db/migrations/0125_memory_vector_chunk_erasure.sql',
   ],
   'int-transcript-answer-fact-root:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',

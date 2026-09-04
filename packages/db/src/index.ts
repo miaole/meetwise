@@ -491,7 +491,7 @@ export type {
   ClaimedCompressionTarget, PurgedCompressionTarget,
 } from './context-compression-erasure.ts';
 
-// 0124：vector_chunk.kind=memory 账户删除 sink（独立于 0093 memory_embedding）。
+// 0125：vector_chunk.kind=memory 账户删除 sink（独立于 0093 memory_embedding）。
 export {
   beginMemoryVectorChunkErasure, claimMemoryVectorChunkTarget, purgeMemoryVectorChunkTarget,
   isMemoryVectorChunkErasureActive,

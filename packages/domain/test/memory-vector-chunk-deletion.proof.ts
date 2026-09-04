@@ -2,7 +2,7 @@
  * 记忆向量块删除 sink 的无库 pin：域 registry、签发并集、迁移 CHECK、盘点文档、公开 503。
  * 不连 PostgreSQL，不自称完整删除或发布证据。
  */
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -48,8 +48,12 @@ try {
 }
 A('表名 vector_chunk 不是合法 sink kind（必须用 memory_vector_chunk）', unknownRejected);
 
-const migration = read('packages/db/migrations/0124_memory_vector_chunk_erasure.sql');
-A('0124 CHECK 含 memory_vector_chunk 且 purge/RLS 只认 kind=memory',
+A('迁移号避开 sibling #71 的 0124_rag_retrieval_acl_fail_closed，本 sink 用 0125',
+  existsSync(resolve(root, 'packages/db/migrations/0125_memory_vector_chunk_erasure.sql'))
+  && !existsSync(resolve(root, 'packages/db/migrations/0124_memory_vector_chunk_erasure.sql')));
+
+const migration = read('packages/db/migrations/0125_memory_vector_chunk_erasure.sql');
+A('0125 CHECK 含 memory_vector_chunk 且 purge/RLS 只认 kind=memory',
   migration.includes("'memory_vector_chunk'")
   && migration.includes("'memory_embedding'")
   && migration.includes("'context_compression_dispatch'")
@@ -70,7 +74,8 @@ A('盘点文档与代码同 sink 名，并诚实保留 user_memory / ai_invocati
   && inventory.includes('ai_invocation_trace')
   && inventory.includes('fail-closed')
   && inventory.includes('privacy_deletion_target')
-  && inventory.includes('0124')
+  && inventory.includes('0125')
+  && inventory.includes('0124_rag_retrieval_acl_fail_closed.sql')
   && inventory.includes('MEMORY_VECTOR_CHUNK_DELETION_SINKS')
   && inventory.includes('context_compression_dispatch')
   && inventory.includes('无撤销函数')
@@ -86,24 +91,24 @@ const domainUnion = [...new Set([
   ...COMPRESSION_DELETION_SINKS,
   ...MEMORY_VECTOR_CHUNK_DELETION_SINKS,
 ])].sort();
-A('0124 CHECK 与五套域 registry 并集逐值相等',
+A('0125 CHECK 与五套域 registry 并集逐值相等',
   checkSinks.join(',') === domainUnion.join(',')
   && checkSinks.includes('memory_vector_chunk'));
-A('盘点列出 0124 CHECK 每一个 sink（文档与迁移枚举同步）',
+A('盘点列出 0125 CHECK 每一个 sink（文档与迁移枚举同步）',
   checkSinks.length > 0 && checkSinks.every((s) => inventory.includes(s)));
 
 const runtimeTruth = read('ai-docs/architecture/current-runtime-truth.md');
-A('运行时真相与 0124 同 sink，不把账户删除写成完成',
+A('运行时真相与 0125 同 sink，不把账户删除写成完成',
   runtimeTruth.includes('memory_vector_chunk')
-  && runtimeTruth.includes('0124')
+  && runtimeTruth.includes('0125')
   && runtimeTruth.includes('user_memory')
   && runtimeTruth.includes('ai_invocation_trace')
   && runtimeTruth.includes('privacy-deletion-sink-inventory.md'));
 
 const register = read('ai-docs/delivery/production-readiness-remediation-register.md');
-A('登记册 PRD-TEST-015 写明 0124 已进回执且 user_memory 仍开',
+A('登记册 PRD-TEST-015 写明 0125 已进回执且 user_memory 仍开',
   register.includes('memory_vector_chunk')
-  && register.includes('0124')
+  && register.includes('0125')
   && register.includes('仍未进回执：`user_memory`')
   && register.includes('公开 DELETE 保持 503')
   && !register.includes('未覆盖 vector_chunk'));

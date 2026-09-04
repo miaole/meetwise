@@ -1,5 +1,5 @@
 /**
- * @meetwise/db · 记忆向量块删除 sink（0124）存储侧。
+ * @meetwise/db · 记忆向量块删除 sink（0125）存储侧。
  *
  * 为 `vector_chunk.kind='memory'` 补账户删除等价 sweep（begin → 受约束 claim →
  * 物理 purge → 删后 kind=memory 残留=0）。**不**删除 qbank，**不**重实现删除根。

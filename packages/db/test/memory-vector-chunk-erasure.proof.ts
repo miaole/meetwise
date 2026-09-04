@@ -1,5 +1,5 @@
 /**
- * 0124 记忆向量块删除 sink DB 证明（隔离 PostgreSQL）。
+ * 0125 记忆向量块删除 sink DB 证明（隔离 PostgreSQL）。
  *
  * 七类：① begin+purge 残留=0 ② 非法 hash 拒 ③ 0093 不含本 sink / qbank 不删
  * ④ 跨 owner=0 + 写围栏 ⑤ claim CAS 单赢家 ⑥ 0093 走完向量仍在 ⑦ 域错配拒。

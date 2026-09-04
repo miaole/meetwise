@@ -5,7 +5,7 @@
  * **不**覆盖 `vector_chunk`。INT-TRANSCRIPT 的 `vector` sink 无 interview 作用域键，
  * 面试删除诚实拒建 target。本模块是账户删除轨道上该物理表的**唯一域侧扩展点**：
  * 只登记 `memory_vector_chunk`，供 `privacy-authorization.ts` 的
- * `ALL_PRIVACY_AUTHZ_SINK_KINDS` 并集追加，与 SQL 侧 0124 迁移的
+ * `ALL_PRIVACY_AUTHZ_SINK_KINDS` 并集追加，与 SQL 侧 0125 迁移的
  * `privacy_deletion_target.sink` CHECK 增量双向 pin（漂移即证明失败）。
  *
  * 语义（如实登记，不伪删）：

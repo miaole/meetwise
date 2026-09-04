@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════════════════════
--- 0124：vector_chunk kind=memory 进入账户删除回执（盘点+围栏，不宣称完整删除）
+-- 0125：vector_chunk kind=memory 进入账户删除回执（盘点+围栏，不宣称完整删除）
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- 闭合 0096 / PRD-TEST-015 已登记的缺口：MEM-00（0093）只删 memory_fact /
 -- memory_index_generation / memory_context_snapshot，未覆盖 vector_chunk。
@@ -42,7 +42,7 @@ ALTER TABLE privacy_deletion_target ADD CONSTRAINT privacy_deletion_target_sink_
     'ai_graph_run',
     'conversation_event','conversation_event_artifact',
     'context_compression_snapshot','context_compression_dispatch',
-    -- 0124：owner 级记忆向量块（非 INT vector，非 qbank）
+    -- 0125：owner 级记忆向量块（非 INT vector，非 qbank）
     'memory_vector_chunk'
   ));
 
