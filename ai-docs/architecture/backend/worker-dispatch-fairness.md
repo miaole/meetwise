@@ -63,5 +63,5 @@ Cap 计数刻意只含未过期 `running`。同一拍先 reap 再 claim：过期
 
 `fairDrainInterviewOwners` 返回的 `claimed` 计入 `start`/`answer`/`failed`，不计 `idle`/`retry`。
 
-- 确定性：`pnpm interview-dispatch:unit:prove`（无数据库）。
-- 隔离 PostgreSQL：`pnpm interview-dispatch:prove`（`releaseEvidence=false`，不能代替发布或云多副本演练）。本环境若无 Docker，该命令不能作为本切片的通过证据。
+- 确定性：`pnpm interview-dispatch:unit:prove`（无数据库）。per-push CI `verify` 跑这一条。
+- 隔离 PostgreSQL：`pnpm interview-dispatch:prove`（`releaseEvidence=false`，不能代替发布或云多副本演练）。不在 per-push CI。本环境若无 Docker，该命令不能作为本切片的通过证据。

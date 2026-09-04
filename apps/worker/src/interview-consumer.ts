@@ -305,8 +305,8 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
     // requireCurrentFence 整体回滚。此时不能把一次可恢复的 lease 交接误判为业务失败/退款：
     // 归还同一 job，下一持有者会从 checkpoint 识别 alreadyApplied 并只补投影。
     if (e?.code === 'graph_fence_lost') {
-      const requeued = await asPrincipal(d.pool, owner, (c) => requeueInterviewJob(c, owner, job.id, d.leaseOwner));
-      if (requeued) return 'retry';
+      await asPrincipal(d.pool, owner, (c) => requeueInterviewJob(c, owner, job.id, d.leaseOwner));
+      return 'retry';
     }
     // **租约守卫**在共享 helper 内：若 job 已被重领/终态，CAS=0，绝不发假
     // unavailable 或释放现持有者的预留额度。
