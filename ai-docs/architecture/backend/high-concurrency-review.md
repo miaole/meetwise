@@ -64,7 +64,8 @@ related:
 | --- | --- | --- | --- |
 | `pnpm interview-dispatch:unit:prove` | 无库确定性 | 轮转 A,B,A,A；非法预算；切片隔离；远程库配置门 | 不碰 SQL / RLS / 多副本 |
 | `pnpm owner-drain-order:unit:prove` | 无库确定性；per-push CI | 押题/诊断/报告当前顺序是 `A,A,A,B`；同队列经 `fairDrain` 才是 `A,B,A,A`；tick 源码绑定；单 owner / 空列表 / 失败不提前轮转；本拍不重叠两个 owner | 不是远程 PG claim 顺序；不是跨副本；不改 gateway `DISTINCT` 排序 |
-| `pnpm interview-dispatch:prove` | 远程 Postgres，`E2E_CLOUD_ISOLATED=1` | 合同写了 TC-WORKER-002-main/E1–E6 | **不在 per-push CI**；缺远程配置必须失败关闭，不得改起本地 Docker。`current-runtime-truth.md` 未登记本命令的通过回执 |
+| `pnpm interview-dispatch:gate:prove` | 无库包装器 | 缺远程配置 / isolated profile / loopback / compose 主机名 / `DATABASE_URL` 失败关闭；源码不调用 compose | 不连远程库，不写通过回执；浅层门不是 cloud attestation |
+| `pnpm interview-dispatch:prove` | 远程 Postgres，`E2E_CLOUD_ISOLATED=1` | **脚本合同**含 TC-WORKER-002-main/E1–E6（须远程跑绿后才算证明）；远程成功时写入 `.tmp/interview-dispatch-receipts/` | **不在 per-push CI**。`current-runtime-truth.md` 已登记命令与回执路径；**本环境无通过回执** |
 | `pnpm worker-wakeup:prove` | 确定性 listener / DrainLoop | 单飞 tick、停后无新 tick | 不是真实 NOTIFY/回滚/20 路多副本 |
 
 未交付（已写在专文，禁止对外勾完成）：跨副本集群 inflight 锁；押题/诊断/报告**公平轮转**（本切片只证明当前抽干顺序）；繁忙态端到端延迟。
@@ -77,7 +78,7 @@ related:
 
 | 路径 | 文件 | 额外围栏 | 本拍证明 |
 | --- | --- | --- | --- |
-| 面试 job | `packages/db/src/interview-jobs.ts` `claimNextInterviewJob` | owner `pg_advisory_xact_lock`；同面试未过期 running / failed 兄弟；未过期 running `< perOwnerInflight` | 单元有；远程 PG 证明有脚本、无本文件可引用的通过回执 |
+| 面试 job | `packages/db/src/interview-jobs.ts` `claimNextInterviewJob` | owner `pg_advisory_xact_lock`；同面试未过期 running / failed 兄弟；未过期 running `< perOwnerInflight` | 单元与失败关闭门有；远程 PG 证明有脚本与回执路径，**无**本文件可引用的通过回执 |
 | 押题 job | `quiz-jobs.ts` `claimNextQuizJob` | 同 quiz 未过期 running 守卫；**无** owner cap / advisory | 双连接专用合同 `pnpm quiz-dual-claim:prove`（`E2E_CLOUD_ISOLATED=1`，禁止本地 Docker）；无库门 `pnpm quiz-dual-claim:unit:prove`（per-push）。`quiz:prove` 历史回执不含本合同。本环境未取得隔离库通过回执时不得写成已跑绿 |
 | 诊断 job | `diagnosis-jobs.ts` | 同诊断 running 守卫；无 owner cap | 与押题同形，同一 `pnpm quiz-dual-claim:prove` 覆盖；不另开 follow-up |
 | 报告 | `report.ts` `claimReport` | attempts 上限；无 owner cap | `pnpm report:prove` 含两并发恰一领（历史 64 迁移回执） |
@@ -150,22 +151,25 @@ related:
 
 ## 7. 证明与测试缺口（可执行清单）
 
-下列项是持续缺口，除非写进「已关闭」。§4.1 的共享解析器已接线。`HC-GAP-002`（抽干顺序合同）、`HC-GAP-004`（押题/诊断双连接恰一领）、`HC-GAP-006`（押题/诊断 HTTP 400）、`HC-GAP-007`（HTTP 槽打满）、`HC-GAP-011`（0130 claim-join 孤儿 / 两连接无行）与 `HC-GAP-014`（前端 400 停转）已关；`HC-GAP-009` 证明已接线，见 §7.1，隔离回执未取得前不得写成发布证据。跨副本项仍开。
+下列项是持续缺口，除非写进「已关闭」。§4.1 的共享解析器已接线。`HC-GAP-001` 关闭的是**门 + 回执路径**，不是远程 SQL 绿或 per-push CI 绿。`HC-GAP-002`（抽干顺序合同）、`HC-GAP-004`（押题/诊断双连接恰一领）、`HC-GAP-006`（押题/诊断 HTTP 400）、`HC-GAP-007`（HTTP 槽打满）、`HC-GAP-011`（0130 claim-join 孤儿 / 两连接无行）与 `HC-GAP-014`（前端 400 停转）已关。`HC-GAP-009` 证明已接线，见 §7.1；隔离回执未取得前不得写成发布证据。跨副本项仍开。
 
-**已关闭**
+### 7.1 已关闭
 
 | ID | 面 | 关闭命令 | 范围诚实 |
 | --- | --- | --- | --- |
-| `HC-GAP-002` | 公平调度 | `pnpm owner-drain-order:unit:prove` | 押题 / 诊断 / 报告生产 tick 按 gateway 列表抽干，顺序**就是** `A,A,A,B`，未接 `fairDrainInterviewOwners`。不证明远程 PG 领取顺序、gateway `DISTINCT` 稳定性、每 owner DB cap、跨副本（`HC-GAP-003`）。不是面试轮转，不是容量 SLO。 |
-| `HC-GAP-004` | SKIP LOCKED | `pnpm quiz-dual-claim:unit:prove`（per-push）；`pnpm quiz-dual-claim:prove`（远程隔离库） | 同 owner 同一押题 / 诊断 job 两连接并发 claim 恰一 `running`，败者 null 且事件/额度/父行增量=0。无库门拒绝本地 Docker / loopback。隔离库命令要求 `E2E_CLOUD_ISOLATED=1`；本文件不登记未跑隔离库回执。不证明 owner 级 cap、公平轮转或发布。诊断与押题同一证明，不另开 follow-up。`releaseEvidence=false`。 |
+| `HC-GAP-001` | 公平调度 | `pnpm interview-dispatch:gate:prove`（per-push CI）；可选 `pnpm interview-dispatch:prove` | 缺远程配置失败关闭，不得改起本地 Docker。远程成功时的回执写入路径 `.tmp/interview-dispatch-receipts/` 已登记。不是 per-push CI 远程绿；本环境无通过回执；远程负例（两连接 cap=1 恰一 `running`；跨 owner=0）仍只在脚本里。浅层门不是 cloud attestation。不是集群 inflight。`releaseEvidence=false`。 |
+| `HC-GAP-002` | 公平调度 | `pnpm owner-drain-order:unit:prove` | 已在 `main`（#94）。押题 / 诊断 / 报告生产 tick 按 gateway 列表抽干，顺序**就是** `A,A,A,B`，未接 `fairDrainInterviewOwners`。不证明远程 PG 领取顺序、gateway `DISTINCT` 稳定性、每 owner DB cap、跨副本（`HC-GAP-003`）。不是面试轮转，不是容量 SLO。 |
+| `HC-GAP-004` | SKIP LOCKED | `pnpm quiz-dual-claim:unit:prove`（per-push）；`pnpm quiz-dual-claim:prove`（远程隔离库） | 已在 `main`（#93）。同 owner 同一押题 / 诊断 job 两连接并发 claim 恰一 `running`，败者 null 且事件/额度/父行增量=0。无库门拒绝本地 Docker / loopback。隔离库命令要求 `E2E_CLOUD_ISOLATED=1`；本文件不登记未跑隔离库回执。不证明 owner 级 cap、公平轮转或发布。诊断与押题同一证明，不另开 follow-up。`releaseEvidence=false`。 |
 | `HC-GAP-006` | SSE | `pnpm api:validate` | 押题 / 诊断与面试同一组坏游标（`-1` / `1.5` / `Infinity` / `+1` / 超安全整数 / 过长）HTTP `status=400`、`error=invalid_last_event_id`、不是 `text/event-stream`；`Infinity` 的 `interview_event` catch-up SQL 次数=0（先用合法游标证明计数器会动）。不证明 429 槽打满（另由 `sse-slot:prove`）或跨副本槽（`HC-GAP-008`）。不是容量 SLO。回执保持 `releaseEvidence=false`。 |
-| `HC-GAP-007` | SSE | `pnpm sse-slot:prove` | 同一 `sse:${principal}` 计数 stub 上 5 条持有 + 第 6 条面试 / 押题 / 诊断均 429 `too_many_streams`（非 SSE）；overflow 各 1 次 catch-up；随后一个 poll 周期 stub 只 +5（holders）。不是隔离库 `DbService.asPrincipal`；privacy/ownership SQL 被 stub 短路；不证明跨副本（`HC-GAP-008`）；首次 catch-up 仍在占槽前。不是容量 SLO。 |
-| `HC-GAP-011` | claim-join | `pnpm runtime:prove` | 单库、legacy 无 cost/operation、两路并发。孤儿 leftover create-permit（无 invocation 行）claim 只 `wait`、不 execute、清 permit；`invoke()` 撞上该 permit 仍 calls=1。两连接同时无行 → claim execute=1 且 wait=1；两路 `invoke()` calls=1 且同值。清 permit 后 calls 不得变成 2。具名：`HC-GAP-011-orphan-permit`、`HC-GAP-011-concurrent-no-row`、`HC-GAP-011-orphan-concurrent`。per-push：`pnpm runtime:prove`（CI Postgres）。隔离门：`pnpm runtime:isolated:prove` / `pnpm runtime:claim-join:prove`（需隔离/远程 env，不在 per-push）。不证明供应商取消计费、0120 槽交叉、billed/`operation` digest、lease 过期接管、云多副本。无新迁移。 |
+| `HC-GAP-007` | SSE | `pnpm sse-slot:prove` | 已在 `main`（#98）。同一 `sse:${principal}` 计数 stub 上 5 条持有 + 第 6 条面试 / 押题 / 诊断均 429 `too_many_streams`（非 SSE）；overflow 各 1 次 catch-up；随后一个 poll 周期 stub 只 +5（holders）。不是隔离库 `DbService.asPrincipal`；privacy/ownership SQL 被 stub 短路；不证明跨副本（`HC-GAP-008`）；首次 catch-up 仍在占槽前。不是容量 SLO。 |
+| `HC-GAP-009` | 模型槽 | `pnpm model-slot-bypass:static:prove`（per-push CI）；可选 `pnpm model-slot-bypass:prove` | 已在 `main`（#91）。静态门：无 `operation` / resolve 失败不得派生分区；`admitSharedModelOperation` 只能在 `if (admissionPartition)` 内调用；`invoke.ts` 不得直连 `acquireModelAdmission` / 0120 过程 / lease 表。隔离命令已接线：无 `operation` 的 invoke 不写 `ai_model_concurrency_lease`；有 operation 且 max=2 时第三条拒绝、零外呼。本环境无 Docker，**未取得隔离回执**，`releaseEvidence=false`。不把 legacy 缝改成生产 fail-closed；隔离证明不在 per-push；无隔离回执不得写成发布通过；不关闭 `HC-GAP-010`。 |
+| `HC-GAP-011` | claim-join | `pnpm runtime:prove` | 已在 `main`（#92）。单库、legacy 无 cost/operation、两路并发。孤儿 leftover create-permit（无 invocation 行）claim 只 `wait`、不 execute、清 permit；`invoke()` 撞上该 permit 仍 calls=1。两连接同时无行 → claim execute=1 且 wait=1；两路 `invoke()` calls=1 且同值。清 permit 后 calls 不得变成 2。具名：`HC-GAP-011-orphan-permit`、`HC-GAP-011-concurrent-no-row`、`HC-GAP-011-orphan-concurrent`。per-push：`pnpm runtime:prove`（CI Postgres）。隔离门：`pnpm runtime:isolated:prove` / `pnpm runtime:claim-join:prove`（需隔离/远程 env，不在 per-push）。不证明供应商取消计费、0120 槽交叉、billed/`operation` digest、lease 过期接管、云多副本。无新迁移。 |
 | `HC-GAP-014` | SSE | `pnpm web:prove` | 已在 `main`（#90）。三路流驱动把 HTTP 400 `invalid_last_event_id` 当失败关闭，open=1，不得用同一游标重试。不是浏览器实链，不是 API HTTP 门。 |
+
+### 7.2 仍开
 
 | ID | 面 | 缺口 | 正确层级 | 负例断言（尚未具备或未在 CI） |
 | --- | --- | --- | --- | --- |
-| `HC-GAP-001` | 公平调度 | `interview-dispatch:prove` 无登记回执、不在 per-push | 远程 PG | 两连接 cap=1 恰一 `running`；跨 owner=0 |
 | `HC-GAP-003` | 公平调度 | 无跨 Worker 副本集群 inflight | 多进程 + 共享库 | 两进程 `globalInflight=4` 时集群 running 可大于 4（今日即如此，需诚实度量而非“修掉”） |
 | `HC-GAP-005` | SKIP LOCKED | `UC-WORKER-001` 的 rollback 通知=0、20 路 wakeup、重连 drain | 真实 PG NOTIFY | 回滚后 drain 次数不增加；监听恢复立即 drain |
 | `HC-GAP-008` | SSE | 槽与 2s 轮询均为单进程 | 多 API 副本 | N 副本时可开到 `5N` 条连接（今日即如此） |
@@ -177,18 +181,13 @@ related:
 
 `TC-WORKER-001-*`、`TC-WORKER-002-*`（远程）、`TC-MODEL-001-E2` 半开改路等，用例文档已写、治理叶多为 planned/unmapped。不得用本复核文件把它们标成已绑定。
 
-### 7.1 `HC-GAP-009`（证明已接线，隔离回执未跑）
-
-| ID | 关闭物 | 不关闭 |
-| --- | --- | --- |
-| `HC-GAP-009` | 静态门 `pnpm model-slot-bypass:static:prove` 进入 per-push：无 `operation` / resolve 失败不得派生分区；`admitSharedModelOperation` 只能在 `if (admissionPartition)` 内调用；`invoke.ts` 不得直连 `acquireModelAdmission` / 0120 过程 / lease 表。隔离命令 `pnpm model-slot-bypass:prove` 已接线：无 `operation` 的 invoke 不写 `ai_model_concurrency_lease`；有 operation 且 max=2 时第三条拒绝、零外呼。本环境无 Docker，**未取得隔离回执**，`releaseEvidence=false`。 | 不把 legacy 缝改成生产 fail-closed；隔离证明不在 per-push；无隔离回执不得写成发布通过；不关闭 `HC-GAP-010`（进程内 `MODEL_MAX_CONCURRENT` 与 0120 交叉） |
-
 ## 8. 当前树落地 / 明确不做
 
-**已落地（文档 + 解析器 + 抽干合同 + 共享槽 HTTP + 三路 HTTP 400 + 前端 400 停转 + HC-GAP-004 合同 + HC-GAP-009 证明接线 + HC-GAP-011 具名用例）**
+**已落地（文档 + 解析器 + `HC-GAP-001` 门 + 抽干合同 + 共享槽 HTTP + 三路 HTTP 400 + 前端 400 停转 + HC-GAP-004 合同 + HC-GAP-009 证明接线 + HC-GAP-011 具名用例）**
 
 - 本复核骨架挂到索引与运行时事实矩阵的 related。
 - 三路 SSE service 共用 `parseLastEventId`；controller 只用返回的 `lastId`。无库证明 `pnpm last-event-id:unit:prove` 进入 per-push CI。`HC-GAP-006`（押题/诊断 HTTP 400）由 `pnpm api:validate` 关闭。`HC-GAP-007`（槽打满）由 `pnpm sse-slot:prove` 关闭。
+- `HC-GAP-001`：`pnpm interview-dispatch:prove` 经包装器失败关闭；`pnpm interview-dispatch:gate:prove` 进入 per-push CI。远程成功时的回执写入路径 `.tmp/interview-dispatch-receipts/`。本环境无远程通过回执。远程 SQL **不**进 per-push CI。
 - `HC-GAP-002`：押题 / 诊断 / 报告生产 tick 接到 `drainOwnersInListedOrder`；无库证明 `pnpm owner-drain-order:unit:prove` 进入 per-push CI。领取顺序合同是 `A,A,A,B`，不是面试轮转。
 - `HC-GAP-007` 已关闭：`pnpm sse-slot:prove` 用真实 Fastify hijack 打满共享 `sse:principal`（面试 3 + 押题 2），第 6 条面试 / 押题 / 诊断均 429。overflow 在占槽前各付 1 次 catch-up（counting `asPrincipal` stub，不是隔离库 `DbService.asPrincipal`）；被拒连接不进入 2s 轮询，holders 一个周期 stub 恰 +5。跨副本槽仍是 `HC-GAP-008`。
 - **`HC-GAP-014` 已关闭（仅前端，#90）**：面试 / 押题 / 诊断流驱动把 HTTP 400 `invalid_last_event_id` 当失败关闭，不是断线。`pnpm web:prove` 断言 open 恰好 1 次、`connection=closed`、`degraded`、不得用同一 `Last-Event-ID` 重试；Next SSE 代理保持 400 而不改写成普通 `stream_unavailable`。不是浏览器实链。押题/诊断 HTTP 400 现由 `api:validate` 覆盖。`releaseEvidence=false`。
@@ -202,11 +201,11 @@ related:
 - 不改领取 SQL、公平调度、0120 槽语义、`0130`、权益账本。
 - 不加 `0131+` 迁移。
 - 不把无 `operation` 的 legacy invoke 改成生产 fail-closed（除非后续单独立项）。
-- 不关闭 `HC-GAP-001` / `003` / `005` / `008` / `010` / `012` / `013`；不重开已关闭的 `HC-GAP-002` / `HC-GAP-004` / `HC-GAP-006` / `HC-GAP-007` / `HC-GAP-011` / `HC-GAP-014`。不把 `HC-GAP-009` 的隔离命令写成发布回执。
-
+- 不关闭 `HC-GAP-003` / `005` / `008` / `010` / `012` / `013`；不重开已关闭的 `HC-GAP-001` / `002` / `004` / `006` / `007` / `009` / `011` / `014`。不把 `HC-GAP-009` 的隔离命令写成发布回执。
 - 不把 LISTEN 接到 SSE，不把 `acquireSlot` 挪到首次 catch-up 之前（那是行为变更，不是本切片）。
 - 不实现集群 inflight 或跨副本 SSE 槽。
-- 不重跑、不伪造隔离库回执；不起 compose.dev / 本地常驻 Docker 库。无远程/隔离库 env 时保持 `releaseEvidence=false`。不把本切片写成这三类已公平，或跨副本 / 远程 PG 领取顺序已验收。
+- 不重跑、不伪造隔离库或远程库通过回执；不起 compose.dev / 本地常驻 Docker 库。无远程/隔离库 env 时保持 `releaseEvidence=false`。不把本切片写成这三类已公平，或跨副本 / 远程 PG 领取顺序已验收。
+- 不把 `interview-dispatch:prove` 写进 per-push CI。
 
 ## 9. 验证命令
 
@@ -215,6 +214,7 @@ pnpm last-event-id:unit:prove
 pnpm sse-slot:prove
 pnpm interview-dispatch:unit:prove
 pnpm owner-drain-order:unit:prove
+pnpm interview-dispatch:gate:prove
 pnpm model-slot-bypass:static:prove
 pnpm quiz-dual-claim:unit:prove
 pnpm docs:check
@@ -224,4 +224,4 @@ pnpm runtime:isolated:prove
 pnpm runtime:claim-join:prove
 ```
 
-`pnpm model-slot-bypass:prove` / `pnpm quiz-dual-claim:prove` / `pnpm api:validate` / `pnpm interview-dispatch:prove` / `pnpm runtime:isolated:prove` / `pnpm runtime:claim-join:prove` 需要隔离或远程库（经 env，禁止 `pnpm db:up` / 共享本地 Docker Postgres）。本环境未取得新回执时保持 `releaseEvidence=false`。
+`pnpm model-slot-bypass:prove` / `pnpm quiz-dual-claim:prove` / `pnpm api:validate` / `pnpm interview-dispatch:prove` / `pnpm runtime:isolated:prove` / `pnpm runtime:claim-join:prove` 需要隔离或远程库（经 env，禁止 `pnpm db:up` / 共享本地 Docker Postgres）。缺远程配置时 `interview-dispatch:prove` 与 `quiz-dual-claim:prove` 必须失败关闭。本环境未取得新回执时保持 `releaseEvidence=false`。

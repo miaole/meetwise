@@ -24,16 +24,39 @@ export function readInterviewDispatchBudget(
   return { perOwnerInflight, globalInflight };
 }
 
+function forbiddenInterviewDispatchHost(host: string | undefined): boolean {
+  if (!host) return false;
+  const normalized = host.replace(/^\[|\]$/g, '').replace(/\.$/, '').toLowerCase();
+  return normalized === 'localhost'
+    || normalized === 'postgres'
+    || normalized === '::1'
+    || normalized === '0:0:0:0:0:0:0:1'
+    || normalized === '0.0.0.0'
+    || normalized.startsWith('meetwise-postgres')
+    || /^127(?:\.\d{1,3}){3}$/.test(normalized)
+    || /^::ffff:127(?:\.\d{1,3}){3}$/.test(normalized)
+    || /^169\.254(?:\.\d{1,3}){2}$/.test(normalized)
+    || /^fe[89ab][0-9a-f]*:/i.test(normalized);
+}
+
 /** DB proofs for this slice use remote Postgres only. Local Docker / loopback is forbidden. */
 export function assertInterviewDispatchRemotePostgres(
   env: Record<string, string | undefined> = process.env,
 ): void {
-  const host = env.PGHOST?.trim();
-  if (env.E2E_ISOLATED === '1' || Boolean(env.E2E_TEST_CONTAINER?.trim())
-    || host === '127.0.0.1' || host === 'localhost') {
+  // Keep error codes in sync with scripts/interview-dispatch-remote-gate.mjs.
+  if (env.E2E_ISOLATED === '1' || Boolean(env.E2E_TEST_CONTAINER?.trim())) {
     throw new Error('interview_dispatch_prove_forbids_local_docker_db');
   }
-  if (env.E2E_CLOUD_ISOLATED !== '1') throw new Error('interview_dispatch_prove_requires_remote_postgres');
+  if (env.DATABASE_URL?.trim()) {
+    throw new Error('interview_dispatch_prove_forbids_database_url');
+  }
+  const host = env.PGHOST?.trim();
+  if (forbiddenInterviewDispatchHost(host)) {
+    throw new Error('interview_dispatch_prove_forbids_local_docker_db');
+  }
+  if (env.E2E_CLOUD_ISOLATED !== '1' || !host) {
+    throw new Error('interview_dispatch_prove_requires_remote_postgres');
+  }
 }
 
 function readBoundedInt(
