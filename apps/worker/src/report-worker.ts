@@ -8,6 +8,7 @@ import {
 } from '@meetwise/db';
 import { buildReportGraph, type GenerateReport, type InterviewSummary } from '@meetwise/ai-graphs';
 import { runDrainLoop } from './drain-loop.ts';
+import { drainOwnersInListedOrder } from './owner-queue-drain.ts';
 
 export interface ReportWorkerDeps {
   /** 取面试结果摘要（生产从 interview/事件账本聚合；测试注入）。 */
@@ -69,10 +70,14 @@ export async function sweepReportsOnce(pool: DbPool, owner: string) {
   });
 }
 
-/** 单 owner 抽干：drain 直到空 + sweep。 */
+/** 单 owner 抽干：drain 直到空 + sweep。测试/维护助手；生产 tick 走 listed-order 抽干。 */
 export async function drainOwner(pool: DbPool, owner: string, leaseOwner: string, deps: ReportWorkerDeps) {
-  let outcome: DrainOutcome = 'ready';
-  while (outcome !== 'idle') outcome = await drainReportsOnce(pool, owner, leaseOwner, deps);
+  await drainOwnersInListedOrder(
+    { pool, leaseOwner, deps },
+    [owner],
+    (d, nextOwner) => drainReportsOnce(d.pool, nextOwner, d.leaseOwner, d.deps),
+    (outcome) => outcome === 'idle',
+  );
   return sweepReportsOnce(pool, owner);
 }
 
@@ -81,10 +86,17 @@ export async function enumerateOwnersWithReportWork(pool: DbPool): Promise<strin
   return gatewayDispatchOwners(pool, 'report');
 }
 
-/** 一拍调度：枚举活跃 owner → 每个 owner 各 drain+sweep（RLS 限定到该 principal）。这才是多租户全队列真排干。 */
+/** 一拍调度：枚举活跃 owner → 按列表顺序抽干再 sweep。不是面试量子轮转。 */
 export async function dispatchTick(pool: DbPool, leaseOwner: string, deps: ReportWorkerDeps): Promise<{ owners: number }> {
   const owners = await enumerateOwnersWithReportWork(pool);
-  for (const owner of owners) await drainOwner(pool, owner, leaseOwner, deps);
+  const bound = { pool, leaseOwner, deps };
+  await drainOwnersInListedOrder(
+    bound,
+    owners,
+    (d, owner) => drainReportsOnce(d.pool, owner, d.leaseOwner, d.deps),
+    (outcome) => outcome === 'idle',
+    { afterOwner: (owner) => sweepReportsOnce(pool, owner).then(() => undefined) },
+  );
   return { owners: owners.length };
 }
 

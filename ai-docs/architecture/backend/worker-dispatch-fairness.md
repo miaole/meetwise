@@ -7,7 +7,7 @@ scope: shared
 level: reference
 status: active
 owner: architecture
-version: 2
+version: 3
 related:
   - ../current-runtime-truth.md
   - ../../requirements/use-cases/worker-event-driven-dispatch.md
@@ -42,7 +42,7 @@ related:
 | 入队幂等 | `UNIQUE (owner, interview, kind, seq)` | 重复提交不新建；世代冲突抛错 | 不是跨面试去重 |
 | 终态/归还 | `markDone` / `markFailed` / `requeue` 带 `lease_owner` | CAS=0 则本副本不得写业务终态；`markDone` CAS=0 对调度层是 `retry` 而不是成功 | 丢租约后的恢复仍靠 reaper |
 
-押题、诊断、报告消费者**没有**接入上述轮转，仍按 owner 抽干。`drainOwnerJobs` 只留给测试/维护，生产 tick 必须走公平轮转。
+押题、诊断、报告消费者**没有**接入上述轮转。生产 tick 走 `drainOwnersInListedOrder`：按 gateway 列表把一个 owner 抽到 idle 再处理下一个（`A,A,A,B`）。这三类 gateway 分支仍是无最老等待排序的 `DISTINCT`，也没有每 owner DB cap。`drainOwnerJobs` 只留给面试测试/维护，面试生产 tick 必须走公平轮转。无库合同：`pnpm owner-drain-order:unit:prove`。
 
 ## 3. 状态机
 
@@ -55,7 +55,7 @@ Cap 计数刻意只含未过期 `running`。同一拍先 reap 再 claim：过期
 ## 4. 未交付（禁止对外写成已完成）
 
 - 跨 Worker 副本的集群全局 inflight 锁或 slot 表。
-- 押题 / 诊断 / 报告的公平轮转。
+- 押题 / 诊断 / 报告的公平轮转（当前只有抽干顺序合同，不是 `fairDrainInterviewOwners`）。
 - 把即时 wakeup 说成繁忙状态下的端到端延迟或容量 SLO。
 - 用模型 operation 预算替代本队列 cap，或反过来。
 - 把隔离 PostgreSQL 证明写成发布、云多副本或延迟验收。
@@ -64,5 +64,6 @@ Cap 计数刻意只含未过期 `running`。同一拍先 reap 再 claim：过期
 
 `fairDrainInterviewOwners` 返回的 `claimed` 计入 `start`/`answer`/`failed`，不计 `idle`/`retry`。
 
-- 确定性：`pnpm interview-dispatch:unit:prove`（无数据库）。per-push CI `verify` 跑这一条。
+- 确定性：`pnpm interview-dispatch:unit:prove`（无数据库，面试轮转）。per-push CI `verify` 跑这一条。
+- 确定性：`pnpm owner-drain-order:unit:prove`（无数据库，押题/诊断/报告抽干顺序 `A,A,A,B`）。per-push CI `verify` 跑这一条。不证明远程领取顺序或跨副本。
 - 远程 PostgreSQL：`pnpm interview-dispatch:prove` 只走 `E2E_CLOUD_ISOLATED=1` 的远端库。禁止本地 Docker / loopback。缺远程配置则失败关闭，不得改起本地库。`releaseEvidence=false`。不在 per-push CI。
