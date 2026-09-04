@@ -5,6 +5,7 @@ export type AuthSession = {
   headers: Record<string, string>;
   email: string;
   status: number;
+  response: Response;
 };
 
 type AuthPayload = { token?: unknown };
@@ -12,13 +13,13 @@ type AuthPayload = { token?: unknown };
 async function postAuth(
   path: '/auth/signup' | '/auth/login',
   body: { email: string; password: string; role?: 'recruiter' | 'candidate' },
-): Promise<{ status: number; payload: AuthPayload }> {
+): Promise<{ status: number; payload: AuthPayload; response: Response }> {
   const response = await fetch(`${BASE}${path}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),
   });
-  return { status: response.status, payload: await readJson(response) };
+  return { status: response.status, payload: await readJson(response), response };
 }
 
 function tokenFromPayload(payload: AuthPayload): string | null {
@@ -36,15 +37,15 @@ export async function signupOrLogin(email: string, password: string, role?: 'rec
     throw new Error('e2e_auth_failed:status=invalid_input');
   }
   const signupBody = role ? { email, password, role } : { email, password };
-  let { status, payload } = await postAuth('/auth/signup', signupBody);
+  let { status, payload, response } = await postAuth('/auth/signup', signupBody);
   if (status !== 200) {
-    ({ status, payload } = await postAuth('/auth/login', { email, password }));
+    ({ status, payload, response } = await postAuth('/auth/login', { email, password }));
   }
   const token = tokenFromPayload(payload);
   if (status !== 200 || !token) {
     throw new Error(`e2e_auth_failed:status=${status}`);
   }
-  return { token, headers: jsonHeaders(token), email, status };
+  return { token, headers: jsonHeaders(token), email, status, response };
 }
 
 /**
