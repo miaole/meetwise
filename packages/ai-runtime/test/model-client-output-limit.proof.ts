@@ -178,7 +178,7 @@ async function main() {
 
       const partialEnv = openAICompatibleClient({
         baseUrl: 'https://model.invalid', apiKey: 'test-only', model: 'partial-env',
-        env: { DASHSCOPE_VISION_API_KEY: 'vision-only' },
+        env: { PROOF_NON_FENCE_KEY: '1' },
       });
       const partialPlan = await partialEnv.prepare?.({ service: 'proof.partial-env', system: 'trusted', userData: 'safe fixture' }, 1);
       const partialResult = await partialEnv.complete({ service: 'proof.partial-env', system: 'trusted', userData: 'safe fixture' }, 1);
@@ -189,7 +189,7 @@ async function main() {
 
       const blankFence = openAICompatibleClient({
         baseUrl: 'https://model.invalid', apiKey: 'test-only', model: 'blank-fence',
-        env: { MODEL_COST_ENFORCEMENT: undefined, NODE_ENV: '', DASHSCOPE_VISION_API_KEY: 'vision-only' },
+        env: { MODEL_COST_ENFORCEMENT: undefined, NODE_ENV: '', PROOF_NON_FENCE_KEY: '1' },
       });
       const blankPlan = await blankFence.prepare?.({ service: 'proof.blank-fence', system: 'trusted', userData: 'safe fixture' }, 1);
       const blankResult = await blankFence.complete({ service: 'proof.blank-fence', system: 'trusted', userData: 'safe fixture' }, 1);

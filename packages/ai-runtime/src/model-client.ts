@@ -275,11 +275,11 @@ export function openAICompatibleClient(cfg: {
   /**
    * Optional env snapshot. Vision profile resolution is wholesale
    * (`cfg.env ?? process.env`) so a vision-only snapshot cannot inherit
-   * `MODEL_API_KEY`.  The bound-operation fence overlays defined non-blank
-   * keys onto `process.env`; `undefined` / blank / omitted keys inherit
-   * process production/enforce.  Omitting `cfg.env` is identical to
-   * `process.env`.  Text profiles and NODE_ENV test-transport seams stay
-   * on `process.env` (intentionally global).
+   * the text primary key.  The bound-operation fence overlays defined
+   * non-blank keys onto `process.env`; `undefined` / blank / omitted keys
+   * inherit process production/enforce.  Omitting `cfg.env` is identical
+   * to `process.env`.  Text profiles and NODE_ENV test-transport seams
+   * stay on `process.env` (intentionally global).
    */
   env?: NodeJS.ProcessEnv;
 } = {}): ModelClient {
