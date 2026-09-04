@@ -18,6 +18,7 @@ related:
   - ../../rules/global/production-invariants.md
   - ../../architecture/current-runtime-truth.md
   - ./expert-long-interview-runtime.md
+  - ./interview-control-signals.md
 ---
 
 # 自适应面试动态长度
@@ -50,11 +51,12 @@ related:
 长度政策优先级（先匹配先生效）：
 
 1. `safety_ceiling`（`turn ≥ absoluteMaxTurns`）——唯一硬墙
-2. `early_weak`（已问够最少轮、无强能力、弱答下车+未决次数达标）
-3. `thrashing`（连续无产出换题达标、无强能力）
-4. 若将 ask：`probe_weak` / `probe_deepen_strong` / `pivot_coverage` / `pivot_offramp`；若此时 `turn ≥ 软预算` 则改为 `raise_soft_budget` 并写入新软预算
-5. `coverage_met`（核心均已结算且有计分证据，且无可探）
-6. `all_resolved`（无可探，但核心证据不足或无核心标记）
+2. 分数轨迹 `observeInterviewSignals`（`UC-INT-LEVEL-SIGNAL-01`）：`weak` → `early_weak`，`thrashing` → `thrashing`；同真时 weak 优先；不改写 `maxTurns`
+3. 会话 abort `early_weak`（已问够最少轮、无强能力、弱答下车+未决次数达标）
+4. 连续无产出换题 `thrashing`
+5. 若将 ask：`probe_weak` / `probe_deepen_strong` / `pivot_coverage` / `pivot_offramp`；若此时 `turn ≥ 软预算` 则改为 `raise_soft_budget` 并写入新软预算
+6. `coverage_met`（核心均已结算且有计分证据，且无可探）
+7. `all_resolved`（无可探，但核心证据不足或无核心标记）
 
 `budget_exhausted` 仍留在 reason 枚举（旧 checkpoint / 审计兼容），**不再**作为「软预算到点就停」的主路径。
 
@@ -67,15 +69,17 @@ related:
 **主流程 Main**
 1. `decideNext` 从 mind 计算 `CoverageSnapshot` 与会话信号（连续换题、未决、off-ramp），不读模型自由文本。
 2. 若已触达绝对杀开关 → `conclude/safety_ceiling`。
-3. 若当前能力仍弱或被钩子封顶、且未满该能力 probeCap → `ask/probe`（`probe_weak` 或 `probe_deepen_strong`）。
-4. 若仍有覆盖缺口 → `ask/pivot`（`pivot_coverage` / `pivot_offramp`）。
-5. 若将 ask 且已达当前软预算 → 上调软预算并标 `raise_soft_budget`（仍出题，不收尾）。
-6. 核心覆盖已满且无可探 → `conclude/coverage_met` 或 `all_resolved`。
-7. 图把 `DecisionProvenance` 写入 `mind.lastDecision`；`rememberDecision` 落盘新软预算与 `budgetRaises`；收尾时写入 `concludeReason`；`conclude` 后不再 `genQuestion`。
+3. 否则消费 `observeInterviewSignals`（分数轨迹；见 `UC-INT-LEVEL-SIGNAL-01`）：`weak` → `early_weak`，`thrashing` → `thrashing`。
+4. 否则会话 abort / 连续无产出换题仍可 `early_weak` / `thrashing`（与轨迹信号独立）。
+5. 若当前能力仍弱或被钩子封顶、且未满该能力 probeCap → `ask/probe`（`probe_weak` 或 `probe_deepen_strong`）。
+6. 若仍有覆盖缺口 → `ask/pivot`（`pivot_coverage` / `pivot_offramp`）。
+7. 若将 ask 且已达当前软预算 → 上调软预算并标 `raise_soft_budget`（仍出题，不收尾）。
+8. 核心覆盖已满且无可探 → `conclude/coverage_met` 或 `all_resolved`。
+9. 图把 `DecisionProvenance` 写入 `mind.lastDecision`；`rememberDecision` 落盘新软预算与 `budgetRaises`；收尾时写入 `concludeReason`；`conclude` 后不再 `genQuestion`。
 
 **备选流 Alternate**
-- A1 弱/跳过/连续低分下车：达到最少轮与中止阈值 → `early_weak`，即使 `turn<8` 且未到软预算。
-- A2 连续无产出换题 → `thrashing`。
+- A1 弱/跳过/连续低分下车：达到最少轮与中止阈值 → `early_weak`，即使未到软预算。分数轨迹 `weak` 也可独立 `early_weak`（见 `UC-INT-LEVEL-SIGNAL-01`）。
+- A2 连续无产出换题 → `thrashing`。跨能力高/低分翻转 + `pivotCount` 的轨迹 `thrashing` 也可独立触发。
 - A3 强+hasHook：仍走既有 HOOK_CAP 深挖；软预算 8 时可上调并 `turn>8` 继续。无钩子高分仍一次结算。
 - A4 软预算触顶但仍可探：`raise_soft_budget`，不是 `safety_ceiling`，也不是 `budget_exhausted`。
 

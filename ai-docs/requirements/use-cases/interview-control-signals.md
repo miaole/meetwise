@@ -62,14 +62,14 @@ related:
   2. `decideNext` 先判 `turn >= absoluteMaxTurns` → `safety_ceiling`。
   3. 若观察为 `weak` → `early_weak`；否则若 `thrashing` → `thrashing`（双真时 weak 优先）。
   4. 否则沿覆盖驱动政策（会话 abort、软预算上调、`coverage_met`/`all_resolved`、probe/pivot）。
-  5. 否则沿既有 probe/pivot。图 `decide` 把 reason 写入 `concludeReason`（hook；worker/SSE/report 不读）。`clarify` 续问烧 turn、绕过 `decideNext`，不消费 weak/thrashing。
+  5. 否则沿既有 probe/pivot。图 `decide` 把 `DecisionProvenance` 写入 `concludeReason`（hook；worker/SSE/report 不读）。`clarify` 续问烧 turn、绕过 `decideNext`，不消费 weak/thrashing。
 - **备选流 Alternate：** 旧 checkpoint 缺 `recentScores` → 观察 `kind=none`（不按缺轨迹开火；会话 abort 仍可独立 `early_weak`）。分数样本 `<2`（仅 clarify/unresolved、未 ingest）→ 观察 `none`。单能力 off-ramp / 一次弱答 / 单能力 hasHook 深挖 / 平稳换题仍 probe 或 pivot，不因本观察 conclude。两门均已探尽且观察为 weak 时轨迹信号先于 `all_resolved` → `early_weak`。
 - **异常流 Exception：**
   - **E1 重复：** 同一 mind 重放 `observeInterviewSignals` / `decideNext` 字节级相同（纯函数；缺幂等键会让“同输入不同输出”漏过）。
   - **E2 并发：** 本层无共享可变状态；20 次并行观察同一冻结 mind 结果全等。真实双 worker 仍靠 graph fence/CAS（本包不重实现）。
   - **E3 越权：** 函数签名只收 `InterviewMind`。注入 `observedBand` / 年限 / 性别 / 权重 / 学校不得改变信号。
   - **E4 失败回滚：** 本层不写账本；非法 mind（缺 competencies）fail-closed → `none`，不抛、不抬 maxTurns。
-  - **E5 降级：** 缺轨迹字段、分数样本不足、或仅 clarify/unresolved 未 ingest → `none`。图级 `unscored`/identity-mismatch 走 `evaluate-answer` 直跳 conclude，不经本四 reason。
+  - **E5 降级：** 缺轨迹字段、分数样本不足、或仅 clarify/unresolved 未 ingest → `none`。图级 `unscored`/identity-mismatch 走 `evaluate-answer` 直跳 conclude，不经本包 `ConcludeReason`。
   - **E6 超时/断线：** 本层无 IO。恢复后只对账 checkpoint 里的 mind，不补造分数。
 - **后置 Postcondition：** 若经 `decideNext` conclude，reason 为 `ConcludeReason` 之一；`maxTurns` 未被信号改写；无 band/等级写入；`concludeReason` 未被 worker/SSE/report 消费。
 - **验收 Acceptance：**
