@@ -55,6 +55,13 @@ function latchModel() {
   return { model, startedP, finish, calls };
 }
 
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`hc_gap_009_latch_timeout:${label}`)), ms);
+    promise.then((value) => { clearTimeout(timer); resolve(value); }, (error) => { clearTimeout(timer); reject(error); });
+  });
+}
+
 async function leaseSnapshot() {
   const r = await pool.query(
     `SELECT provider_account, region, model_or_recipe, operation_id, slot_index,
@@ -77,7 +84,13 @@ async function occupiedScorerLeases() {
 
 async function main() {
   await assertIsolatedTestTarget(pool);
+  const previousMax = await pool.query(
+    `SELECT max_concurrency FROM ai_model_admission_policy WHERE operation_id=$1`,
+    [SCORER],
+  );
+  const restoreMax = Number(previousMax.rows[0]?.max_concurrency ?? 4);
 
+  try {
   const beforeLegacy = await leaseSnapshot();
   const legacyCalls = { n: 0 };
   const legacy = await invoke({
@@ -87,10 +100,40 @@ async function main() {
     businessValidate: () => null,
     model: scripted({ ok: true, raw: { answer: 'legacy' } }, legacyCalls),
   }, pool, OWNER);
-  A('无 operation 的 invoke 仍可走 MODEL-OP-00 兼容缝（外呼 1）',
+  A('无 operation + 显式 logicalNodeKey 的 invoke 仍可走 MODEL-OP-00 兼容缝（外呼 1）',
     'value' in legacy && legacyCalls.n === 1);
   A('无 operation 的成功 invoke 不写 ai_model_concurrency_lease',
     (await leaseSnapshot()) === beforeLegacy);
+
+  const derivedCalls = { n: 0 };
+  const previousNodeEnv = process.env.NODE_ENV;
+  const previousEnforce = process.env.MODEL_COST_ENFORCEMENT;
+  process.env.NODE_ENV = 'test';
+  delete process.env.MODEL_COST_ENFORCEMENT;
+  const derived = await invoke({
+    idempotencyKey: `hcg009:legacy-derived:${suffix}`,
+    schema: Schema,
+    businessValidate: () => null,
+    model: scripted({ ok: true, raw: { answer: 'derived' } }, derivedCalls),
+  }, pool, OWNER);
+  A('非生产无 logicalNodeKey 的 legacy 派生路径也不写 lease',
+    'value' in derived && derivedCalls.n === 1 && (await leaseSnapshot()) === beforeLegacy);
+
+  process.env.NODE_ENV = 'production';
+  const strictCalls = { n: 0 };
+  const strict = await invoke({
+    idempotencyKey: `hcg009:legacy-strict:${suffix}`,
+    schema: Schema,
+    businessValidate: () => null,
+    model: scripted({ ok: true, raw: { answer: 'must-not-send' } }, strictCalls),
+  }, pool, OWNER);
+  A('生产无 operation/logicalNodeKey → model_logical_node_key_required 且不写 lease',
+    'error' in strict && strict.error === 'model_logical_node_key_required'
+      && strictCalls.n === 0 && (await leaseSnapshot()) === beforeLegacy);
+  if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+  else process.env.NODE_ENV = previousNodeEnv;
+  if (previousEnforce === undefined) delete process.env.MODEL_COST_ENFORCEMENT;
+  else process.env.MODEL_COST_ENFORCEMENT = previousEnforce;
 
   const hungLegacy = latchModel();
   const hungLegacyInvoke = invoke({
@@ -101,7 +144,7 @@ async function main() {
     model: hungLegacy.model,
     executionTimeoutMs: 8_000,
   }, pool, OWNER);
-  await hungLegacy.startedP;
+  await withTimeout(hungLegacy.startedP, 4_000, 'legacy-hang');
   A('无 operation 的在途 invoke 仍不写 ai_model_concurrency_lease',
     (await leaseSnapshot()) === beforeLegacy && hungLegacy.calls.n === 1);
   hungLegacy.finish({ ok: true, raw: { answer: 'legacy-hang' } });
@@ -139,7 +182,10 @@ async function main() {
     model: holdB.model,
     executionTimeoutMs: 8_000,
   }, pool, OWNER);
-  await Promise.all([holdA.startedP, holdB.startedP]);
+  await Promise.all([
+    withTimeout(holdA.startedP, 4_000, 'op-a'),
+    withTimeout(holdB.startedP, 4_000, 'op-b'),
+  ]);
   A('有 operation 时两槽均 occupied（invoke 已过 0120 admit）',
     holdA.calls.n === 1 && holdB.calls.n === 1 && (await occupiedScorerLeases()) === 2);
 
@@ -156,10 +202,12 @@ async function main() {
       WHERE owner_user_id=$1 AND idempotency_key=$2`,
     [OWNER, `hcg009:op-c:${suffix}`],
   );
-  A('max=2 时第三条 invoke 拒绝 concurrency_exhausted、零外呼',
+  A('max=2 时第三条 invoke 拒绝 concurrency_exhausted、零外呼、非 wait/dispatching',
     'error' in third && third.error === 'model_concurrency_exhausted'
+      && third.error !== 'model_invocation_wait_timeout'
       && thirdCalls.n === 0
       && thirdClaim.rows[0]?.status === 'failed'
+      && thirdClaim.rows[0]?.status !== 'dispatching'
       && thirdClaim.rows[0]?.error_code === 'model_concurrency_exhausted');
   A('拒绝第三条后仍只占两槽', (await occupiedScorerLeases()) === 2);
 
@@ -167,6 +215,12 @@ async function main() {
   holdB.finish({ ok: true, raw: { answer: 'b' } });
   const [doneA, doneB] = await Promise.all([invokeA, invokeB]);
   A('前两槽 invoke 收口成功', 'value' in doneA && 'value' in doneB);
+  } finally {
+    await pool.query(
+      `UPDATE ai_model_admission_policy SET max_concurrency=$2 WHERE operation_id=$1`,
+      [SCORER, restoreMax],
+    );
+  }
 
   console.log(failures ? `\n✗ ${failures} HC-GAP-009 isolated failed` : '\n✓ HC-GAP-009 isolated: legacy writes 0 leases; third slot rejects');
   await pool.end();

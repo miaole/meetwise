@@ -170,20 +170,20 @@ related:
 
 `TC-WORKER-001-*`、`TC-WORKER-002-*`（远程）、`TC-MODEL-001-E2` 半开改路等，用例文档已写、治理叶多为 planned/unmapped。不得用本复核文件把它们标成已绑定。
 
-### 7.1 已关闭：`HC-GAP-009`
+### 7.1 `HC-GAP-009`（证明已接线，隔离回执未跑）
 
 | ID | 关闭物 | 不关闭 |
 | --- | --- | --- |
-| `HC-GAP-009` | 静态门 `pnpm model-slot-bypass:static:prove` 进入 per-push：无 `operation` 不得派生分区，`admitSharedModelOperation` 只能在 `if (admissionPartition)` 内调用。隔离证明 `pnpm model-slot-bypass:prove`：无 `operation` 的 invoke 不写 `ai_model_concurrency_lease`；有 operation 且 max=2 时第三条拒绝、零外呼。 | 不把 legacy 缝改成生产 fail-closed；隔离证明不在 per-push；无本环境隔离回执时不得填写 `releaseEvidence=true`；不关闭 `HC-GAP-010`（进程内 `MODEL_MAX_CONCURRENT` 与 0120 交叉） |
+| `HC-GAP-009` | 静态门 `pnpm model-slot-bypass:static:prove` 进入 per-push：无 `operation` / resolve 失败不得派生分区；`admitSharedModelOperation` 只能在 `if (admissionPartition)` 内调用；`invoke.ts` 不得直连 `acquireModelAdmission` / 0120 过程 / lease 表。隔离命令 `pnpm model-slot-bypass:prove` 已接线：无 `operation` 的 invoke 不写 `ai_model_concurrency_lease`；有 operation 且 max=2 时第三条拒绝、零外呼。本环境无 Docker，**未取得隔离回执**，`releaseEvidence=false`。 | 不把 legacy 缝改成生产 fail-closed；隔离证明不在 per-push；无隔离回执不得写成发布通过；不关闭 `HC-GAP-010`（进程内 `MODEL_MAX_CONCURRENT` 与 0120 交叉） |
 
 ## 8. 当前树落地 / 明确不做
 
-**已落地（文档 + 解析器 + 前端 400 停转 + 押题/诊断 HTTP 400 + HC-GAP-009 证明）**
+**已落地（文档 + 解析器 + 前端 400 停转 + 押题/诊断 HTTP 400 + HC-GAP-009 证明接线）**
 
 - 本复核骨架挂到索引与运行时事实矩阵的 related。
 - 三路 SSE service 共用 `parseLastEventId`；controller 只用返回的 `lastId`。无库证明 `pnpm last-event-id:unit:prove` 进入 per-push CI。`HC-GAP-006`（押题/诊断 HTTP 400）由 `pnpm api:validate` 关闭。`HC-GAP-007`（槽打满）仍开。
 - **`HC-GAP-014` 已关闭（仅前端，#90）**：面试 / 押题 / 诊断流驱动把 HTTP 400 `invalid_last_event_id` 当失败关闭，不是断线。`pnpm web:prove` 断言 open 恰好 1 次、`connection=closed`、`degraded`、不得用同一 `Last-Event-ID` 重试；Next SSE 代理保持 400 而不改写成普通 `stream_unavailable`。不是浏览器实链。押题/诊断 HTTP 400 现由 `api:validate` 覆盖。`releaseEvidence=false`。
-- `HC-GAP-009`：`pnpm model-slot-bypass:static:prove` 进入 per-push。隔离命令 `pnpm model-slot-bypass:prove` 已接线；legacy 无 `operation` 仍是兼容缝，本切片不改生产 fail-closed。
+- **`HC-GAP-009` 证明已接线**：`pnpm model-slot-bypass:static:prove` 在 per-push CI；隔离命令 `pnpm model-slot-bypass:prove` 已接线。本机/本 PR 无隔离回执（`releaseEvidence=false`）。不 fail-close 旧 `invoke` 缝。
 
 **明确不做**
 
