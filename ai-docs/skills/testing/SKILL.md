@@ -43,7 +43,7 @@ related:
 3. **`--live`**：真供应商 HTTP E2E；缺或空白 `MODEL_API_KEY` 必须非零退出
 
 ```bash
-pnpm regression                 # 只跑 always-on
+pnpm regression                 # 只跑 always-on（含 e2e-parity:check / prove）
 pnpm regression --core          # always-on 之后再跑行走骨架
 pnpm regression --live          # always-on 之后再跑 HTTP E2E
 pnpm regression --core --live   # 仍按 always-on → core → live
@@ -65,7 +65,7 @@ pnpm regression --dry-run       # 只打印计划，不执行
 
 ## 改本技能时
 
-改配方、E2E harness 或 golden-tasks 仍走 `AGENTS.md` 生成前门禁。升格 `active` 的条件只写在 [SOP](./sop.md)。e2e-platform 保持 **draft / NOT_READY**，不随本页升格而变成 READY。不把 `relatedCommands` 或 `scoring:eval` 写成 covering；不把 planned golden-task 标成已通过。失败分类账本由 `pnpm e2e-helpers:prove` 覆盖，绿结果缺 `E2E_REVIEW_SUMMARY` 记 `opaque_pass`。
+改配方、E2E harness、e2e 断言 parity 或 golden-tasks 仍走 `AGENTS.md` 生成前门禁。升格 `active` 的条件只写在 [SOP](./sop.md)。e2e-platform 保持 **draft / NOT_READY**，不随本页升格而变成 READY。不把 `relatedCommands` 或 `scoring:eval` 写成 covering；不把 planned golden-task 标成已通过。失败分类账本由 `pnpm e2e-helpers:prove` 覆盖，绿结果缺 `E2E_REVIEW_SUMMARY` 记 `opaque_pass`。测试计划至少含 `pnpm e2e-parity:check` 与 `pnpm e2e-parity:prove`；合法削减只走 [`testing/e2e-parity-baseline.md`](../../testing/e2e-parity-baseline.md) 的 allowlist。
 
 ## 铁律（先读再跑）
 

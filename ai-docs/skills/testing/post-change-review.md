@@ -63,6 +63,7 @@ related:
 - [ ] 用 [layer-selection](./layer-selection.md) 选了层，而不是默认只开页面或只断言 200。
 - [ ] 钱/状态/隔离的并发、恢复、逃逸至少有一条落在集成或 HTTP E2E 主层（`e2e:isolated`），没有全堆在单测；只有 cookie/DOM 才加 Playwright 次层。
 - [ ] 没有用 mock 模型证明生产模型质量。
+- [ ] 若删了 `e2e/` 用例、削弱 `A`/`expect` 或下调 parity floors，已按 [`e2e-parity-baseline.md`](../../testing/e2e-parity-baseline.md) 写 allowlist（含负 delta），而不是改基线假装从来没有。作者改 allowlist 不算自签审核；AI diffs 在 `e2e-parity:check` + 独立审核前不可信。
 
 ## 6. 结论边界
 

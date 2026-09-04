@@ -61,6 +61,7 @@ related:
 - **无 `MODEL_API_KEY`**：不要执行 `pnpm regression --live` 或 `e2e:isolated`（脚本会非零退出）。记 `not_run:live_provider_key_missing`。`not_run` = **没发起** live 命令，不是 live 失败当通过。
 - **有 Key 且触达 `apps/web`**：`--live` 只跑 HTTP `e2e:isolated`。浏览器层另跑 `pnpm -C apps/web build` + `pnpm e2e:ui:isolated`；未跑不得写 UI / cookie / 页面流通过。
 - **`--core` 不是业务 prove 全集**：它只追加行走骨架（`db` / `runtime` / `graph` / `pipeline` / `api:validate`）。`interview:prove`、`commerce:prove` 等永远按矩阵追加。
+- **AI 改过 `e2e/` 或约定 prove**：必须跑 `e2e-parity:check`（always-on 已含）并做独立审核。parity floors / allowlist 削减是审核面；作者改 allowlist 不算自签审核。未跑 parity + 审核前不得信任 AI diffs。
 - **命令非零**：修代码或记 `blocked`，不改 runner、不删假服务守卫、不当 skip-as-pass。
 - **本地绿 ≠ CI 绿**：合并阻断以 `.github/workflows/ci.yml` 的 `verify` 列表为准。
 - **任何「已验证」声明**必须附带诚实模板字段和实际命令列表。禁止只写「regression 绿了」。`releaseEvidence` 必须为 `false`。`pnpm regression --claim-done` / `--ready` 会 `regression_claim_done_forbidden`。

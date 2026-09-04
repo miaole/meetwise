@@ -39,6 +39,7 @@ related:
 16. **默认信任 AI 代码或 AI 输出。** 审核与验证缺一，或把 `aiTrust` 写成 `trusted`，即 [fail-closed 门](./fail-closed-gate.md) `BLOCK`。
 17. **提交或记录真实密钥、`.env`、token、简历原文、录音。** 技能与回执只允许占位名。
 18. **拒绝信任 unverified AI path。** 未核不得写“AI 路径已验证”。`pnpm e2e-static-guards:check` 核对 HTTP E2E 固定清单上的可执行拒绝合同：`questionIdentity` 必须在缺失身份时 `throw`，`full.e2e.ts` 必须 `import` 并 `await driveInterviewToTerminal(`，无评分证据必须落在 `scorelessBound` 分支的 `assessment_unavailable && score === null`。这是静态合同，通过 ≠ AI 路径已验证。假服务禁止；密钥扫描失败即关且不回显命中值。允许多轮核对（multi-round verify），不得用对话摘要代替退出码。
+19. **默认信任 AI 对测试的 diff。** 删掉 `e2e/` 用例、削弱 `expect` / `A(...)`，或下调 parity floors，必须先过 `e2e-parity:check` 与独立审核。合法削减只走 [`testing/e2e-parity-baseline.md`](../../testing/e2e-parity-baseline.md) 的 allowlist；作者改 allowlist 不算自签审核。
 
 ## 允许
 

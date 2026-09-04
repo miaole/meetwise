@@ -54,7 +54,7 @@ gate: blocked = 其余一切
 | 面 | 不能不跑 | 仍不可信 |
 | --- | --- | --- |
 | 重构 | 有 diff 就按所选层跑 | 「只是重构」免测 |
-| 测试 | AI 新写/改过的测试必须被执行；失败先修 | 测试文件在、或 AI 说会过 |
+| 测试 | AI 新写/改过的测试必须被执行；失败先修。AI 改过的 `e2e/` / 约定 prove 还须 `e2e-parity:check`（及 `e2e-parity:prove`）。parity floors / allowlist 削减是审核面；作者改 allowlist 不算自签审核。未跑 parity + 独立审核前，AI diffs 默认不可信 | 测试文件在、或 AI 说会过；未跑 parity 就信 AI 测试 diff |
 | UI | 触达 `apps/web`：必须 `web:prove`，加上 `e2e:ui:isolated` **或** 真实浏览器点路径；两者都没跑则 `verification: blocked:ui` 或 `not_run:<reason>`，不得 `passed` | 单张截图 |
 | 回归 | 默认 `pnpm regression` + 矩阵必须列 | 默认回归绿 = live / 发布 |
 
@@ -91,3 +91,4 @@ gate: blocked = 其余一切
 6. 为绿删测试、关守卫、提交密钥、或把失败改写成 skip-as-pass。
 7. 把 `gate: closed` 或默认 `pnpm regression` 绿写成 CI `verify`、发布证据或 `aiTrust: trusted`。
 8. 同会话自签 `review: passed`（无 `<reviewerId>` 或无 adversarial 留痕）。
+9. 未跑 `e2e-parity:check` 或未独立审核就信任 AI 对测试的 diff；下调 parity floors 却不写可审 allowlist delta。

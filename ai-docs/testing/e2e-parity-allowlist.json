@@ -1,0 +1,234 @@
+{
+  "schemaVersion": 1,
+  "releaseEvidence": false,
+  "entries": [
+    {
+      "id": "E2E-PARITY-20260904-receipt-source-digest-retarget",
+      "path": "scripts/local-e2e-receipt.proof.mjs",
+      "reason": "Fail-closed e2e-platform base retargeted receipt source digests after the resume helper landed; old helper/orchestrator hashes no longer match the current proof body.",
+      "removedTests": [
+        {
+          "kind": "test",
+          "label": "复杂边界：源码摘要覆盖客户端、helpers、编排器和隔离器，迁移清单不为空",
+          "conditionDigest": "sha256:236bcccf05cfa1cb3fec539144d6ecb244c61197668f73a03608c159ae1a8953"
+        },
+        {
+          "kind": "test",
+          "label": "正常：原子回执包含退出码、时长、断言数、源码与迁移清单摘要",
+          "conditionDigest": "sha256:a0052f4d4fb783e6de3fc08d9ee0e9ea358307e67ebf28ac85a6672eacbe290e"
+        }
+      ],
+      "removedAssertions": [
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:8d4ca1ecc8bc802cc892ea02274e97b0b3f50cd893d0d37b0ec9f5702806cb6f"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:5cbce631eb069ad9239123fc5baeee9d5123569396013586a979e8830d35f2bc"
+        }
+      ],
+      "removedFile": false,
+      "testCountDelta": -2,
+      "assertionCountDelta": -2
+    },
+    {
+      "id": "E2E-PARITY-20260904-intg-01-e2e-full-e2e-ts",
+      "path": "e2e/full.e2e.ts",
+      "reason": "Integration of auth/commerce provenance, failure ledger, and directory helpers changed assertion conditions; replacement identities were appended to the baseline rather than lowering floors.",
+      "removedTests": [],
+      "removedAssertions": [
+        {
+          "kind": "A",
+          "label": "[异常] webhook 未知订单 → 404(查不到单不入账)",
+          "conditionDigest": "sha256:46ee2c97ef2db397ca8adb1aff53bcfabecb03d711c60cd862e30dc554b37028"
+        },
+        {
+          "kind": "A",
+          "label": "[异常] webhook 错误签名 → 403(验签 fail-closed)",
+          "conditionDigest": "sha256:b8b13dc71fa18e8c5bb89bb7c3cba941c01c4e1cbaf288da00414031d83e3ca3"
+        },
+        {
+          "kind": "A",
+          "label": "[异常] 额度不足 begin → 402 insufficient_entitlement（不再被 mask 成 500）",
+          "conditionDigest": "sha256:082d0d73dfd15d3b0a3fe4331d5ceb718bdf01e61c6cd1d0917f5f4d4ea79a90"
+        },
+        {
+          "kind": "A",
+          "label": "B端 RLS:另一招聘方看不到他人岗位(租户隔离 ✅)",
+          "conditionDigest": "sha256:c37bd3b5bc0b9b98a5bff0990cd8e25fbf8b988e63e307f240b898fd9a9a3cd8"
+        },
+        {
+          "kind": "A",
+          "label": "B端 RLS:越权取他人岗位 → 404",
+          "conditionDigest": "sha256:46ee2c97ef2db397ca8adb1aff53bcfabecb03d711c60cd862e30dc554b37028"
+        },
+        {
+          "kind": "A",
+          "label": "B端门禁:候选人发岗位 → 403(role=candidate 被 RecruiterGuard 拦)",
+          "conditionDigest": "sha256:b8b13dc71fa18e8c5bb89bb7c3cba941c01c4e1cbaf288da00414031d83e3ca3"
+        },
+        {
+          "kind": "A",
+          "label": "OCR 来源产出可复核画像(${b.chars} chars)、识别至少 1 个非敏感技能且 PII 脱敏(不含明文手机号)",
+          "conditionDigest": "sha256:563ecd7f22548bc77c46c1b98ea33890d026e7d50c783dae9100acb287757c3d"
+        },
+        {
+          "kind": "A",
+          "label": "押题:跑到终态(${quizTerm})——无死胡同 ✅",
+          "conditionDigest": "sha256:c37c4f8ac27c815b02ce7df1a7fb16a33fb4349f47898ea1187f93a6502602a1"
+        },
+        {
+          "kind": "A",
+          "label": "支付 webhook 验签入账 → ${paid.body.result}",
+          "conditionDigest": "sha256:d880fde420a44a128f36a4b7e4d41e82c780859ce2d2d5f265400824af51773d"
+        },
+        {
+          "kind": "A",
+          "label": "注册/登录 → 真 Bearer 令牌",
+          "conditionDigest": "sha256:b249b8240c0b8ce6e5bc7aef322451462abdb48952811f0727772ab749e0eafb"
+        },
+        {
+          "kind": "A",
+          "label": "真实 ASR 回转 TTS 音频 → 可理解转写（${String(transcribedBody.text ?? '').slice(0, 40)}；${transcribed.attempts} 次请求）",
+          "conditionDigest": "sha256:28adb5d6d381be75b28c60c29dd6c1027a0879af65a0a1a81d489b5c0387a6ac"
+        },
+        {
+          "kind": "A",
+          "label": "真实 TTS → 有效 WAV 音频（非本地假实现，${spoken.attempts} 次请求）",
+          "conditionDigest": "sha256:34053e9d42f3477313afa858f012643aa044efc6831e8b8fb8390877e1e90e0e"
+        },
+        {
+          "kind": "A",
+          "label": "诊断:跑到终态(${diagTerm})——无死胡同 ✅",
+          "conditionDigest": "sha256:200c08d6d142eff35a20b25785b822efb9a37c7fc90699f8a4248db52c062473"
+        },
+        {
+          "kind": "A",
+          "label": "面试跑到终态事件(${terminal})——无死胡同 ✅",
+          "conditionDigest": "sha256:f644956997844f60a852ec68b72cf99dc453c321d5d1279190f851ffbe0e0ef7"
+        }
+      ],
+      "removedFile": false,
+      "testCountDelta": 0,
+      "assertionCountDelta": -14
+    },
+    {
+      "id": "E2E-PARITY-20260904-intg-02-e2e-helpers-assert-ts",
+      "path": "e2e/helpers/assert.ts",
+      "reason": "Integration of auth/commerce provenance, failure ledger, and directory helpers changed assertion conditions; replacement identities were appended to the baseline rather than lowering floors.",
+      "removedTests": [],
+      "removedAssertions": [
+        {
+          "kind": "source-digest",
+          "label": "e2e/helpers/assert.ts",
+          "conditionDigest": "sha256:4f72c12295aef4cc831724db5e5b7ed02479bb1ca8b2bfe10c4bc7898c3b728d"
+        }
+      ],
+      "removedFile": false,
+      "testCountDelta": 0,
+      "assertionCountDelta": -1
+    },
+    {
+      "id": "E2E-PARITY-20260904-intg-03-e2e-helpers-e2e-helpers-proof-ts",
+      "path": "e2e/helpers/e2e-helpers.proof.ts",
+      "reason": "Integration of auth/commerce provenance, failure ledger, and directory helpers changed assertion conditions; replacement identities were appended to the baseline rather than lowering floors.",
+      "removedTests": [
+        {
+          "kind": "test",
+          "label": "answerBody 绑定服务端身份 + 答案哈希，不另造 questionId",
+          "conditionDigest": "sha256:0bfe47a805d0848617be7cc7cf7686f08aceb50866225007764f71703f85cc4a"
+        },
+        {
+          "kind": "test",
+          "label": "question identity 拒绝缺失字段，不接受客户端伪造半截身份",
+          "conditionDigest": "sha256:0abad193f1dbaab915bf1063aa18acf27554dbab918285881e3935158858c325"
+        },
+        {
+          "kind": "test",
+          "label": "uidFromToken 读取当前 API 嵌入在第一段的 uid，缺 uid 失败",
+          "conditionDigest": "sha256:646d4a674268765aaadbff4c3b6de3baaf8cd5ca2b519318e75e3e0a430dd576"
+        },
+        {
+          "kind": "test",
+          "label": "支付 webhook HMAC 绑定 orderId:txn:paid，不能换载荷复用签名",
+          "conditionDigest": "sha256:09cb517f6c4fc4f987ea2905cc88a01caaff79b7c39e3124ceb8282cf2f9c4e9"
+        },
+        {
+          "kind": "test",
+          "label": "终态集合包含成功报告与舱壁失败，不能只认任意非空事件",
+          "conditionDigest": "sha256:72372167c3b3754ac604b772eb66e8f2973071ed1e62a17bc074ebd71674657c"
+        }
+      ],
+      "removedAssertions": [
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:ab45a0bb20730b766d2787ac7f156148170719d0f414b9114ed6b3334ae113d1"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:b509615c748e107b4c08afc25b83c9245a4fb3a489eb27ffa551e709cd6debd7"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "q-ready",
+          "conditionDigest": "sha256:4fdfeb9c55670e12bfde863034233d1e6e7b8afcc227d3812d0f48a8c72227ca"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:43a9fb4b5c21bbec82365b160e3301f49b85bed260f9f72ed93b0e59c6d2c82b"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:4e0ec54f1702686ff98ed07fcea6cae8789bc9051d2fc785aa7abdd28fe29c91"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:f1c0d631b93ea0cdd62ef3ba16cde79f4e9ed8e4dfba3a6659682a5ba01220e3"
+        }
+      ],
+      "removedFile": false,
+      "testCountDelta": -5,
+      "assertionCountDelta": -6
+    },
+    {
+      "id": "E2E-PARITY-20260904-intg-04-scripts-local-e2e-receipt-proof-mjs",
+      "path": "scripts/local-e2e-receipt.proof.mjs",
+      "reason": "Integration of auth/commerce provenance, failure ledger, and directory helpers changed assertion conditions; replacement identities were appended to the baseline rather than lowering floors.",
+      "removedTests": [
+        {
+          "kind": "test",
+          "label": "刁钻输入：未知目标、倒流时间与无效断言数均被拒绝",
+          "conditionDigest": "sha256:0a1f69530b62b143abff0489d8c936d6be0d079d66e7a08072b1276de4eb3a3f"
+        },
+        {
+          "kind": "test",
+          "label": "异常：失败退出码仍保留为失败回执，不伪造成通过",
+          "conditionDigest": "sha256:de3d8bee3c4ed6d24d03a6e58bf49fcc698ee32708af41230d6294c40083311e"
+        },
+        {
+          "kind": "test",
+          "label": "正常：原子回执包含退出码、时长、断言数、源码与迁移清单摘要",
+          "conditionDigest": "sha256:2cbd49841aa24995c8dc9d0bb172217c1a0fc7ab990e71aa0961439d66fd46b0"
+        }
+      ],
+      "removedAssertions": [
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:ff598fea9614625de7203615a84221177704fc3210e950f1aeba00ca016a1106"
+        }
+      ],
+      "removedFile": false,
+      "testCountDelta": -3,
+      "assertionCountDelta": -1
+    }
+  ]
+}

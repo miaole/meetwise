@@ -13,15 +13,23 @@ const ROOT = new URL('..', import.meta.url).pathname;
 const REQUIRED = [
   {
     file: 'ai-docs/skills/testing/post-change-review.md',
-    terms: ['生成物默认不可信', '出处', '伪造分数', 'skip-as-pass', 'releaseEvidence', '不得标 READY'],
+    terms: ['生成物默认不可信', '出处', '伪造分数', 'skip-as-pass', 'releaseEvidence', '不得标 READY', 'e2e-parity:check'],
   },
   {
     file: 'ai-docs/skills/testing/honesty-rules.md',
-    terms: ['skip-as-pass', 'releaseEvidence', '未审核生成', '不得标 READY'],
+    terms: ['skip-as-pass', 'releaseEvidence', '未审核生成', '不得标 READY', 'parity floors', 'AI 对测试的 diff'],
+  },
+  {
+    file: 'ai-docs/testing/e2e-parity-baseline.md',
+    terms: ['parity floors', 'AI diffs', 'review', 'fail-closed', 'e2e-parity:check'],
   },
   {
     file: 'ai-docs/skills/testing/sop.md',
-    terms: ['生成物默认不可信', 'skip-as-pass', '不得声称完成', 'releaseEvidence'],
+    terms: ['生成物默认不可信', 'skip-as-pass', '不得声称完成', 'releaseEvidence', 'e2e-parity:check'],
+  },
+  {
+    file: 'ai-docs/skills/testing/fail-closed-gate.md',
+    terms: ['e2e-parity:check', 'parity floors', '作者改 allowlist 不算自签审核', 'AI diffs'],
   },
   {
     file: 'ai-docs/skills/testing/SKILL.md',
@@ -29,7 +37,7 @@ const REQUIRED = [
   },
   {
     file: 'scripts/run-post-change-regression.mjs',
-    terms: ['claimDone: false', 'regression_claim_done_forbidden', 'skip-as-pass', 'readyFromUnreviewedGeneration'],
+    terms: ['claimDone: false', 'regression_claim_done_forbidden', 'skip-as-pass', 'readyFromUnreviewedGeneration', 'e2eParityReview'],
   },
 ];
 

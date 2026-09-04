@@ -42,6 +42,8 @@ export const ALWAYS_ON_REQUIRED = Object.freeze([
   'e2e-runner:prove',
   'e2e-static-guards:check',
   'e2e-static-guards:prove',
+  'e2e-parity:check',
+  'e2e-parity:prove',
   'arch',
   'api:smoke',
 ]);
@@ -294,6 +296,7 @@ export async function main(argv = process.argv.slice(2), processEnv = process.en
     outcome: summarizeOutcome({ wantCore: args.wantCore, wantLive: args.wantLive }),
     claimDone: false,
     reviewGate: 'ai_touched_diff_required',
+    e2eParityReview: 'required',
     skipAsPass: 'forbidden',
     readyFromUnreviewedGeneration: 'forbidden',
     releaseEvidence: false,
@@ -304,7 +307,7 @@ export async function main(argv = process.argv.slice(2), processEnv = process.en
     steps: results,
     durationMs: Date.now() - started,
   })}`);
-  console.log('REGRESSION_CLAIM_DONE forbidden. Review the AI-touched diff (correctness, security, provenance). Commands passing is not READY.');
+  console.log('REGRESSION_CLAIM_DONE forbidden. Review the AI-touched diff (correctness, security, provenance). Commands passing is not READY. e2e-parity:check green is not review.');
   if (!args.wantLive) {
     console.log('live HTTP E2E not requested. After interview/API/web/db changes, run `pnpm regression --live` when MODEL_API_KEY is available; otherwise record not_run.');
   }

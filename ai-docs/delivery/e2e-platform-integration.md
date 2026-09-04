@@ -35,7 +35,7 @@ related:
 | 7 | #61 | `cursor/e2e-failure-class-ledger-e5f7` | 约 `b7b078c` | 已 merge：封闭 `E2E_FAILURE`/`E2E_REVIEW` 账本；不回退 #56 auth 或 #60 identity |
 | 8 | #62 | `cursor/e2e-directory-contract-07f9` | 约 `b7b078c` | 已 merge：可执行目录契约 + planted-violation；母线 SOP 仍是叙事源；脚本不与 5 守卫 `prove` 对调 |
 | 9 | #63 | `cursor/e2e-static-guards-b01f` | 约 `6530171` | 已 merge：假服务共享列表 + 密钥扫描失败即关 + unverified AI path；不回退 #61 ledger / #60 identity / Key trim |
-| 10 | #64 | `cursor/e2e-parity-baseline-f563` | 已基于 `dbcc310` | 待 merge |
+| 10 | #64 | `cursor/e2e-parity-baseline-f563` | 已基于 `dbcc310` | 已 merge：parity floors + allowlist；不回退 always-on 车道合同，不把 parity 绿写成审核 |
 
 未改序原因：#58 改回归入口合同，后续 PR 往 always-on 挂门；#57 只对齐文档分层；#59 收紧 golden 登记；#56/#60/#61 依次加厚 helper；#62/#63/#64 加目录/静态/parity 守卫。
 
@@ -70,6 +70,14 @@ related:
 - `golden-tasks:prove` 加入 `ALWAYS_ON_REQUIRED`，与 `generation-trust:prove` / `e2e-platform:prove` 并存。
 - 诚实规则并入：`relatedCommands` 不是 covering；GT-01..04（`subject=ai-output`）禁止 `mapped`。
 - 丢弃 #59 对回归脚本的旧 `ALWAYS_ON` 数组回退。
+
+### #64
+
+- 采用 `scripts/e2e-parity-check.mjs` / `.proof.mjs` 与 `ai-docs/testing/e2e-parity-baseline.{md,json}` + allowlist。
+- **不**把回归入口退回旧 `ALWAYS_ON` 数组。parity 两门挂进现有 `ALWAYS_ON_REQUIRED`。
+- 文档并集：fail-closed / SOP / honesty / AGENTS 写入 `e2e-parity:check` 与 `parity floors`；作者改 allowlist 不算自签审核。
+- CI `verify` 追加 parity check/prove；不加新的云部署 job。
+- 集成后 helper/场景增长只能**抬高** floors 或写可审 allowlist 负 delta，禁止下调地板假装从来没有。
 
 ### #63
 
@@ -114,7 +122,7 @@ related:
 
 `scripts/run-post-change-regression.mjs` 的 `ALWAYS_ON_REQUIRED`：
 
-`docs:check` · `generation-trust:prove` · `golden-tasks:check` · `golden-tasks:prove` · `e2e-platform:check` · `e2e-platform:prove` · `e2e-platform:layout:prove` · `e2e-helpers:prove` · `e2e-receipt:prove` · `e2e-runner:prove` · `e2e-static-guards:check` · `e2e-static-guards:prove` · `arch` · `api:smoke`
+`docs:check` · `generation-trust:prove` · `golden-tasks:check` · `golden-tasks:prove` · `e2e-platform:check` · `e2e-platform:prove` · `e2e-platform:layout:prove` · `e2e-helpers:prove` · `e2e-receipt:prove` · `e2e-runner:prove` · `e2e-static-guards:check` · `e2e-static-guards:prove` · `e2e-parity:check` · `e2e-parity:prove` · `arch` · `api:smoke`
 
 脚本映射（禁止对调）：`e2e-platform:check` → `scripts/e2e-platform/check.mjs`；`e2e-platform:prove` → `scripts/e2e-platform/prove.mjs`（5 命名守卫）；`e2e-platform:layout:prove` → `scripts/e2e-platform/e2e-platform.proof.mjs`（种植违规）；`e2e-platform:loop` → `scripts/e2e-platform/review-loop.mjs`（`test` 步仍是 `prove`，不是 `layout:prove`）。
 

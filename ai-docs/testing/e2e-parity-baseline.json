@@ -1,0 +1,2131 @@
+{
+  "schemaVersion": 1,
+  "releaseEvidence": false,
+  "scope": "e2e/ test+assertion parity plus agreed critical prove scripts",
+  "floors": {
+    "testCount": 47,
+    "assertionCount": 366
+  },
+  "files": {
+    "e2e/full.e2e.ts": {
+      "testCount": 1,
+      "assertionCount": 74,
+      "tests": [
+        {
+          "kind": "implicit-suite",
+          "label": "",
+          "conditionDigest": "sha256:f361eeafd47ff9974f3703a9838abf373a43d28dd6b17bd26db45b2c6bcc28d1"
+        }
+      ],
+      "assertions": [
+        {
+          "kind": "A",
+          "label": "[兜底] 失败测试面试 begin → 202",
+          "conditionDigest": "sha256:c077a823cab00e5e36ad90fd61f405e7a1de92d7195f445d1b394fd844b9d123"
+        },
+        {
+          "kind": "A",
+          "label": "[兜底] 建失败测试面试 → id(${failIv})",
+          "conditionDigest": "sha256:d54efb92c050939f5f050f94c6ace6ce4708d8e7032718447ca67d7bd4de7f0f"
+        },
+        {
+          "kind": "A",
+          "label": "[兜底] 报告失败 → report_unavailable + quarantined(无死胡同;终态=${failLoop.terminal || 'none'}, status=${rep.status ?? 'none'})",
+          "conditionDigest": "sha256:e04a14dcc74e3d9e342b7fc8efa84abea026b28a63156efc62997a5902a94d59"
+        },
+        {
+          "kind": "A",
+          "label": "[幂等] 重试岗位 start → reused 同一 interviewId(不重复建会话)",
+          "conditionDigest": "sha256:a90c47bdc247be11dd9dc12b0579fc11f7a74e0d762c23d39d2d34b2da730f91"
+        },
+        {
+          "kind": "A",
+          "label": "[异常] webhook 未知订单 → 404(查不到单不入账)",
+          "conditionDigest": "sha256:46ee2c97ef2db397ca8adb1aff53bcfabecb03d711c60cd862e30dc554b37028"
+        },
+        {
+          "kind": "A",
+          "label": "[异常] webhook 错误签名 → 403(验签 fail-closed)",
+          "conditionDigest": "sha256:b8b13dc71fa18e8c5bb89bb7c3cba941c01c4e1cbaf288da00414031d83e3ca3"
+        },
+        {
+          "kind": "A",
+          "label": "[异常] 额度不足 begin → 402 insufficient_entitlement（不再被 mask 成 500）",
+          "conditionDigest": "sha256:082d0d73dfd15d3b0a3fe4331d5ceb718bdf01e61c6cd1d0917f5f4d4ea79a90"
+        },
+        {
+          "kind": "A",
+          "label": "[异常前置] 无额度用户仍可完成简历处理同意",
+          "conditionDigest": "sha256:74ffed4a65f934d29225233229ac0c6fad980577ead45d9680ad77c3dec2e206"
+        },
+        {
+          "kind": "A",
+          "label": "[异常前置] 无额度用户持有合法且本人所属的 resumeId",
+          "conditionDigest": "sha256:484f491b472cd5f61758ea894758fb2b64e8fde21fbab5c0ef8165ecc13feda4"
+        },
+        {
+          "kind": "A",
+          "label": "[异常前置] 第二笔订单可用于错签断言",
+          "conditionDigest": "sha256:19f76292f608d73ed5a6730b9c4de6450ce258213cef5d896fbb9036067d4dc1"
+        },
+        {
+          "kind": "A",
+          "label": "[特殊] 重复投递 → 同 applicationId(幂等不重复建)",
+          "conditionDigest": "sha256:0a847ca02175a0f16d29e85c666bc71c6bdcb16a4e87be356eb92ca937b7867a"
+        },
+        {
+          "kind": "A",
+          "label": "[状态机·可信] 招聘方看到 completed + **服务端推导**分数=${cand?.score}(非自报,跨方 RLS 可读)",
+          "conditionDigest": "sha256:0af0adf2fcf261055a2be6c5f05b00ae70f3498d60c3769fc79b1bc7b7108231"
+        },
+        {
+          "kind": "A",
+          "label": "[状态机·可信] 无评分证据时招聘方只见 assessment_unavailable + score=NULL（不伪造 0 分）",
+          "conditionDigest": "sha256:aabe39f8ad5330d86961b4cc5e533014c24d5aaa8cb017cacb8b7a83d16bdf36"
+        },
+        {
+          "kind": "A",
+          "label": "[状态机·恢复] 评分不可用后显式重试创建新 attempt（旧会话不复活）",
+          "conditionDigest": "sha256:6491a1cd6ea3289ce245066671653c0413df2e058e9f89613e5743e1b65cee5e"
+        },
+        {
+          "kind": "A",
+          "label": "[状态机] start 原子创建岗位专属会话(${String(boundInterviewId).slice(0, 12)})并返回可信跳转",
+          "conditionDigest": "sha256:ef0718f854bad3485a2ac9cd5457cdce219c5bb6c0b75fd032370cf5e42a2f42"
+        },
+        {
+          "kind": "A",
+          "label": "[状态机] 岗位终态后 {} finalize → 200，服务端仅认已绑定 interview(term=${boundLoop.terminal}, outcome=${finalized.outcome ?? 'none'}, status=${r.status}, error=${finalized.error ?? 'none'})",
+          "conditionDigest": "sha256:e55f0b81f452a281ea1d258fad8f7370cd4b96199503524150350dc38fff3f05"
+        },
+        {
+          "kind": "A",
+          "label": "[状态机] 岗位绑定会话 begin → 202",
+          "conditionDigest": "sha256:e7cbfa12bd287fbbcff4ad697afff00ecc330dd4ecc40380550d6a98c3338a5f"
+        },
+        {
+          "kind": "A",
+          "label": "[状态机] 岗位绑定会话经真 worker 到终态(${boundLoop.terminal}; ${boundLoop.questions} 题/${boundLoop.turns} 答)",
+          "conditionDigest": "sha256:2f8cb3257fe508fa783fe2101a12ee9e7d724cbec119b1a7590a316a33c19af7"
+        },
+        {
+          "kind": "A",
+          "label": "[防伪造] finalize 夹带历史 interviewId → 400(strict DTO 拒绝)",
+          "conditionDigest": "sha256:27a5d5a1538ac15676d47c08dbcc5821416cb21c9cb7c40acf4cda867048f5c4"
+        },
+        {
+          "kind": "A",
+          "label": "[防伪造] 未开始岗位绑定面试 finalize → 409(历史面试不可移花接木)",
+          "conditionDigest": "sha256:d1bf99d0635fac73b9f710fd39e752d5d46ed395fd7f1d64fc84b7238634d04f"
+        },
+        {
+          "kind": "A",
+          "label": "begin → 202 受理(${JSON.stringify(await readJson(r)).slice(0, 60)})",
+          "conditionDigest": "sha256:e7cbfa12bd287fbbcff4ad697afff00ecc330dd4ecc40380550d6a98c3338a5f"
+        },
+        {
+          "kind": "A",
+          "label": "B端 RLS:另一招聘方看不到他人岗位(租户隔离 ✅)",
+          "conditionDigest": "sha256:c37bd3b5bc0b9b98a5bff0990cd8e25fbf8b988e63e307f240b898fd9a9a3cd8"
+        },
+        {
+          "kind": "A",
+          "label": "B端 RLS:越权取他人岗位 → 404",
+          "conditionDigest": "sha256:46ee2c97ef2db397ca8adb1aff53bcfabecb03d711c60cd862e30dc554b37028"
+        },
+        {
+          "kind": "A",
+          "label": "B端:同 idempotency-key 换载荷 → 409(不静默覆盖/重复创建)",
+          "conditionDigest": "sha256:d1bf99d0635fac73b9f710fd39e752d5d46ed395fd7f1d64fc84b7238634d04f"
+        },
+        {
+          "kind": "A",
+          "label": "B端:同 idempotency-key 重试复用同一岗位(不重复创建)",
+          "conditionDigest": "sha256:a038c7a24df7dead808b4573a93735e6a8086e0c6884d0c787e99b71ed532dae"
+        },
+        {
+          "kind": "A",
+          "label": "B端:招聘方发岗位 → jobId(${b.id})",
+          "conditionDigest": "sha256:edf82f85ba857e0137fdfc407416805864eb0459b9ecf83148c290ed3ab0af85"
+        },
+        {
+          "kind": "A",
+          "label": "B端:招聘方看到自己的岗位",
+          "conditionDigest": "sha256:85fc075d37cc3fdc245ade21e1e7878d8fe70143c13f1bb86fc80381e91eb626"
+        },
+        {
+          "kind": "A",
+          "label": "B端门禁:候选人发岗位 → 403(role=candidate 被 RecruiterGuard 拦)",
+          "conditionDigest": "sha256:b8b13dc71fa18e8c5bb89bb7c3cba941c01c4e1cbaf288da00414031d83e3ca3"
+        },
+        {
+          "kind": "A",
+          "label": "OCR 成功只确认扣减 1 个额度",
+          "conditionDigest": "sha256:1cbab027df2e18f5ee9f22defb5b25fc35118e56dee247c0f5c4f4e522c9c146"
+        },
+        {
+          "kind": "A",
+          "label": "OCR 来源产出可复核画像(${b.chars} chars)、识别至少 1 个非敏感技能且 PII 脱敏(不含明文手机号)",
+          "conditionDigest": "sha256:563ecd7f22548bc77c46c1b98ea33890d026e7d50c783dae9100acb287757c3d"
+        },
+        {
+          "kind": "A",
+          "label": "PIPL 采集同意 → 200",
+          "conditionDigest": "sha256:74ffed4a65f934d29225233229ac0c6fad980577ead45d9680ad77c3dec2e206"
+        },
+        {
+          "kind": "A",
+          "label": "上传简历 → resumeId(${b.status})",
+          "conditionDigest": "sha256:e2b9b9d3c5750a215f18bb8973c17d909d9adb3712b0890e34ab46892b82dbcb"
+        },
+        {
+          "kind": "A",
+          "label": "下单 pack_10 → orderId(${ordered.body.amountCents}分)",
+          "conditionDigest": "sha256:06310459bf08ce932e634cf2003e974f22ecd853da007496dbb1e4513fc1ed16"
+        },
+        {
+          "kind": "A",
+          "label": "候选人:投递岗位 → applicationId(${b.applicationId})",
+          "conditionDigest": "sha256:b466cfe9a2ff7ad4e645a8f8ddd8da4fd545dcbdb8c52472d222b92118f8b734"
+        },
+        {
+          "kind": "A",
+          "label": "候选人:浏览开放岗位(公开可读)看到岗位",
+          "conditionDigest": "sha256:85fc075d37cc3fdc245ade21e1e7878d8fe70143c13f1bb86fc80381e91eb626"
+        },
+        {
+          "kind": "A",
+          "label": "候选人:看到自己的投递(status=invited,非仅长度)",
+          "conditionDigest": "sha256:ac9b80318a649be009719ed85c6d7a1093c3b2d5781fa978bbbf5c56e88b75d0"
+        },
+        {
+          "kind": "A",
+          "label": "同图重传 → 409 且额度不再扣减",
+          "conditionDigest": "sha256:321a8ef4cfa71816d71524c82007cd431c59ab899cd36b4ac2d08390ecd9cf4e"
+        },
+        {
+          "kind": "A",
+          "label": "图片简历 OCR 全栈 → 摄取(status=${r.status}, outcome=${b.error ?? b.reason ?? 'ok'})",
+          "conditionDigest": "sha256:80803e642ebdb2f9d597df4471581649ad2e12650f3da121e12a2e2b13e9ebd4"
+        },
+        {
+          "kind": "A",
+          "label": "建面试 → interviewId(${interviewId})",
+          "conditionDigest": "sha256:043157b0a017acf7f2fd62ce3fcd8c02a83504c4e5f3392dec586495ba29c425"
+        },
+        {
+          "kind": "A",
+          "label": "报告端点可查 → status=${b.status}",
+          "conditionDigest": "sha256:74ffed4a65f934d29225233229ac0c6fad980577ead45d9680ad77c3dec2e206"
+        },
+        {
+          "kind": "A",
+          "label": "押题:begin → 202 受理",
+          "conditionDigest": "sha256:e7cbfa12bd287fbbcff4ad697afff00ecc330dd4ecc40380550d6a98c3338a5f"
+        },
+        {
+          "kind": "A",
+          "label": "押题:建 → id(${quizId})",
+          "conditionDigest": "sha256:eb8d43ea2662d51192a29e78d37d0f722115412a7bd2a9401cb0439bb91ffa44"
+        },
+        {
+          "kind": "A",
+          "label": "押题:跑到终态(${quizTerm})——无死胡同 ✅",
+          "conditionDigest": "sha256:c37c4f8ac27c815b02ce7df1a7fb16a33fb4349f47898ea1187f93a6502602a1"
+        },
+        {
+          "kind": "A",
+          "label": "招聘方:看到该候选人本人(多方 RLS,candidate=${String(user2Id).slice(0, 8)})",
+          "conditionDigest": "sha256:d187ba1ef6baec832746e0c0c2afa40d6015440fa1780821ed02788d2a9f7cc7"
+        },
+        {
+          "kind": "A",
+          "label": "拿到 interviewId",
+          "conditionDigest": "sha256:481db8ef627eaff20c6579eb0369f19709e5aa47fab4f560203a5be12b4e24e5"
+        },
+        {
+          "kind": "A",
+          "label": "支付 webhook 验签入账 → ${paid.body.result}",
+          "conditionDigest": "sha256:d880fde420a44a128f36a4b7e4d41e82c780859ce2d2d5f265400824af51773d"
+        },
+        {
+          "kind": "A",
+          "label": "注册/登录 → 真 Bearer 令牌",
+          "conditionDigest": "sha256:b249b8240c0b8ce6e5bc7aef322451462abdb48952811f0727772ab749e0eafb"
+        },
+        {
+          "kind": "A",
+          "label": "状态机:报告 status 与终态自洽(终态 ${terminal} → status=${b.status})",
+          "conditionDigest": "sha256:3915cd772ac02ff794a7678598e2befa1a6d8cf3a00920751fa81342f3ee70db"
+        },
+        {
+          "kind": "A",
+          "label": "真实 ASR 回转 TTS 音频 → 可理解转写（${String(transcribedBody.text ?? '').slice(0, 40)}；${transcribed.attempts} 次请求）",
+          "conditionDigest": "sha256:28adb5d6d381be75b28c60c29dd6c1027a0879af65a0a1a81d489b5c0387a6ac"
+        },
+        {
+          "kind": "A",
+          "label": "真实 TTS → 有效 WAV 音频（非本地假实现，${spoken.attempts} 次请求）",
+          "conditionDigest": "sha256:34053e9d42f3477313afa858f012643aa044efc6831e8b8fb8390877e1e90e0e"
+        },
+        {
+          "kind": "A",
+          "label": "至少出了 1 道题(实际 ${questions} 道;事件:${[...kinds].join(',')})",
+          "conditionDigest": "sha256:8327ec148e87dbfcfc9d4083fc643882f2bfa212e62966f55bde3055da785b35"
+        },
+        {
+          "kind": "A",
+          "label": "至少答了 1 题(${turn} 次)",
+          "conditionDigest": "sha256:a2d0387b33d8966a5cf4cedbe27b066cf6508c56b31e94e69079802d1b7887ec"
+        },
+        {
+          "kind": "A",
+          "label": "诊断:begin → 202 受理",
+          "conditionDigest": "sha256:e7cbfa12bd287fbbcff4ad697afff00ecc330dd4ecc40380550d6a98c3338a5f"
+        },
+        {
+          "kind": "A",
+          "label": "诊断:建 → id(${diagId})",
+          "conditionDigest": "sha256:054e28b55222afac31b8311ff482dd1028af92bbc1b441788fe868a15d644aac"
+        },
+        {
+          "kind": "A",
+          "label": "诊断:跑到终态(${diagTerm})——无死胡同 ✅",
+          "conditionDigest": "sha256:200c08d6d142eff35a20b25785b822efb9a37c7fc90699f8a4248db52c062473"
+        },
+        {
+          "kind": "A",
+          "label": "面试跑到终态事件(${terminal})——无死胡同 ✅",
+          "conditionDigest": "sha256:f644956997844f60a852ec68b72cf99dc453c321d5d1279190f851ffbe0e0ef7"
+        },
+        {
+          "kind": "A",
+          "label": "额度到账(${units.availableUnits} 次)",
+          "conditionDigest": "sha256:8907fd62602b3fa176278350526a34a46b8a31d9b0e88ff09c7f82d21a788bf0"
+        },
+        {
+          "kind": "binding",
+          "label": "assert: A",
+          "conditionDigest": "sha256:cb782beb571867ae4d7e5aa5ae5bed0442d4b1d07591657253848f366b4d2402"
+        },
+        {
+          "kind": "A",
+          "label": "[异常] webhook 未知订单 → 404(查不到单不入账)",
+          "conditionDigest": "sha256:abf57562bbf04db1e65e102b87d5bdff58944478015424d18405f8102dd922bf"
+        },
+        {
+          "kind": "A",
+          "label": "[异常] webhook 错误签名 → 403(验签 fail-closed)",
+          "conditionDigest": "sha256:bc6811feb1ec5a375f8d467f0d0906ff3636355f76b5ae1bced8e39af067e6c2"
+        },
+        {
+          "kind": "A",
+          "label": "[状态机] 岗位会话出处审查: AI 分/progress 不是 B 端分",
+          "conditionDigest": "sha256:424cf09a68ffe72c493b9a86422dce7f16c559c2bf79c1a9268c7dced380353c"
+        },
+        {
+          "kind": "A",
+          "label": "data_or_permission",
+          "conditionDigest": "sha256:2fd58ed94befccb4118d0d4b8e3d4b50f5f26ec53c7fa3ed8a6bc2661c0271db"
+        },
+        {
+          "kind": "A",
+          "label": "data_or_permission",
+          "conditionDigest": "sha256:963384c4a7b99b333fef3460a9382ae02624d302b8ce12c66669909ada1d974b"
+        },
+        {
+          "kind": "A",
+          "label": "data_or_permission",
+          "conditionDigest": "sha256:b426b201d8a0c9ff218ccc0a0d957e6510981ddc1e89ad513888bc08b7a4757c"
+        },
+        {
+          "kind": "A",
+          "label": "data_or_permission",
+          "conditionDigest": "sha256:b52538f3655323c06ff30beab5c4aac7434e5b86965c5afdfe237e7c2011cb0a"
+        },
+        {
+          "kind": "A",
+          "label": "provider",
+          "conditionDigest": "sha256:c061c1860b962b71d1bc3749552bba242451323e5e0a91713ba92530752ea0e4"
+        },
+        {
+          "kind": "A",
+          "label": "provider",
+          "conditionDigest": "sha256:c0f2946e6f4658524fd750d92ace343705f9a1c33a3ea65a367817edb55521cd"
+        },
+        {
+          "kind": "A",
+          "label": "provider",
+          "conditionDigest": "sha256:cdaa2dd4e42332190625358b0c88c1b4a97503270a24914d2cb73e11fd9bca78"
+        },
+        {
+          "kind": "A",
+          "label": "worker",
+          "conditionDigest": "sha256:16893082a9a071976970f7c59e82d1421472f8ec8926378851d166ac4f94dae7"
+        },
+        {
+          "kind": "A",
+          "label": "worker",
+          "conditionDigest": "sha256:794fcd4cf562f2b0c8cf32995c9d397ff18007d703c24363d469e1724868248a"
+        },
+        {
+          "kind": "A",
+          "label": "worker",
+          "conditionDigest": "sha256:ccc0cbd60a0518e7ed0e5773b22b1e8fcff4529a393243603f2491b1b042216b"
+        },
+        {
+          "kind": "A",
+          "label": "出处审查: 不把 AI 分/progress 当 B 端分（identities=${provenance.identities.length}, forgedScores=${provenance.forgedScores}）",
+          "conditionDigest": "sha256:5fb8372fff815be47b96ffc71e3de7c8fb4efb7dfe6f3aa9e252ffdb643005c6"
+        },
+        {
+          "kind": "A",
+          "label": "支付 webhook 验签入账 → ${paid.body.result}",
+          "conditionDigest": "sha256:bf6e4fdacdd7d935c9fb7fe3c24660aed32e0f77ba944b9084b6781e1e72a542"
+        },
+        {
+          "kind": "A",
+          "label": "注册/登录 → 真 Bearer 令牌",
+          "conditionDigest": "sha256:eb72bae709caf4a3e27e6d42aaed25cc30e2743da8e06d75cae36e7b8c8aca3a"
+        }
+      ]
+    },
+    "e2e/helpers/assert.ts": {
+      "testCount": 0,
+      "assertionCount": 2,
+      "tests": [],
+      "assertions": [
+        {
+          "kind": "source-digest",
+          "label": "e2e/helpers/assert.ts",
+          "conditionDigest": "sha256:4f72c12295aef4cc831724db5e5b7ed02479bb1ca8b2bfe10c4bc7898c3b728d"
+        },
+        {
+          "kind": "source-digest",
+          "label": "e2e/helpers/assert.ts",
+          "conditionDigest": "sha256:269e61413061627bec45cf5f225518af1f0c913af008020c1835c393e0314f28"
+        }
+      ]
+    },
+    "e2e/helpers/e2e-helpers.proof.ts": {
+      "testCount": 31,
+      "assertionCount": 223,
+      "tests": [
+        {
+          "kind": "test",
+          "label": "answerBody 绑定服务端身份 + 答案哈希，不另造 questionId",
+          "conditionDigest": "sha256:0bfe47a805d0848617be7cc7cf7686f08aceb50866225007764f71703f85cc4a"
+        },
+        {
+          "kind": "test",
+          "label": "OCR fixture 是可读 PNG 且源码含合成手机号哨兵，不是任意字节贴 image/png",
+          "conditionDigest": "sha256:e50121714c0906f47a70c4c3cd5c5cdc9d970fc7ece7ee9ec08f1732c7f8f098"
+        },
+        {
+          "kind": "test",
+          "label": "question identity 拒绝缺失字段，不接受客户端伪造半截身份",
+          "conditionDigest": "sha256:0abad193f1dbaab915bf1063aa18acf27554dbab918285881e3935158858c325"
+        },
+        {
+          "kind": "test",
+          "label": "resume helper 只封装同意/文本/图片/画像，不打日志、不引用 apps/web",
+          "conditionDigest": "sha256:fbac570de98230376ec2e2513b25570fb261eafc7a2ab3e79e9671eb72edcf6a"
+        },
+        {
+          "kind": "test",
+          "label": "SSE 解析只接受 id/event/data 三行，坏 JSON 变成空对象而不是抛穿",
+          "conditionDigest": "sha256:f08415611252cb7b1074f7e53cede5f33c7651d48d6f661d718f435f3b07decf"
+        },
+        {
+          "kind": "test",
+          "label": "uidFromToken 读取当前 API 嵌入在第一段的 uid，缺 uid 失败",
+          "conditionDigest": "sha256:646d4a674268765aaadbff4c3b6de3baaf8cd5ca2b519318e75e3e0a430dd576"
+        },
+        {
+          "kind": "test",
+          "label": "失败分类区分缺 Key、假服务、越权、供应商，未知 5xx 与裸 403 不洗成 BLOCKED",
+          "conditionDigest": "sha256:266efdb2dcf70b165030a5e1e4f5cd5d63af486fec4c6cf1c7f397ffb1569538"
+        },
+        {
+          "kind": "test",
+          "label": "支付 webhook HMAC 绑定 orderId:txn:paid，不能换载荷复用签名",
+          "conditionDigest": "sha256:09cb517f6c4fc4f987ea2905cc88a01caaff79b7c39e3124ceb8282cf2f9c4e9"
+        },
+        {
+          "kind": "test",
+          "label": "终态集合包含成功报告与舱壁失败，不能只认任意非空事件",
+          "conditionDigest": "sha256:72372167c3b3754ac604b772eb66e8f2973071ed1e62a17bc074ebd71674657c"
+        },
+        {
+          "kind": "test",
+          "label": "AI/system 终态必须入账，未分类终态与空 review 不能当通过",
+          "conditionDigest": "sha256:cbbc09421a61a5633dd6e7abb901581af565c97c6adee34900911d6b825cb4b3"
+        },
+        {
+          "kind": "test",
+          "label": "answer_evaluated.score 只作 practice_hint，缺身份则失败，不升格 B 端分",
+          "conditionDigest": "sha256:22382365ac0fb19c9ad23daefe01e50c43f1ccbc558828800b0baec13b850ed3"
+        },
+        {
+          "kind": "test",
+          "label": "answerBody 绑定服务端身份 + 答案哈希，不另造 questionId",
+          "conditionDigest": "sha256:bff890b87565bee267ca70490f02e671ec5d3878be777bfc8d1d0ae92cb1536f"
+        },
+        {
+          "kind": "test",
+          "label": "classify 识别已知 runner/helper code，拒绝只写 E2E 失败",
+          "conditionDigest": "sha256:b4cd2c8dc669146d4e4eef3c71d0428734e572ff62a8769303bb89a737076db7"
+        },
+        {
+          "kind": "test",
+          "label": "conclude/probe 只接受服务端枚举；缺出处不发明，伪造 reason/mode 失败",
+          "conditionDigest": "sha256:d646f05d872d5157e4ad845cb00d504f7e761eaa6637fd111f74b3a90f2552f5"
+        },
+        {
+          "kind": "test",
+          "label": "createOrder/payWebhook/entitlement 走对应 path+method，HMAC 用独立 createHmac 核对，错签不代签",
+          "conditionDigest": "sha256:7b83dff36338b8941abbe756f6f0b8b8b4dae3c941e9000648c1db1d49ab5ab4"
+        },
+        {
+          "kind": "test",
+          "label": "failure ledger 只有 7 个封闭 class，schema 拒绝未知 class / 多余字段 / 不透明 code",
+          "conditionDigest": "sha256:4493c0c81bd1a766268c0df6fc4345967094c6abbffb75669eb77894faee68dd"
+        },
+        {
+          "kind": "test",
+          "label": "full.e2e 源码锁：入账必须 200 且 credited|already，错签 403，未知单 404",
+          "conditionDigest": "sha256:c377dadd60a1b7121b2769bdaa2085faf58a2590a891552506844ab66d921818"
+        },
+        {
+          "kind": "test",
+          "label": "inspectInterviewProvenance 聚合服务端出处，拒绝 progress 伪造分与无身份评分",
+          "conditionDigest": "sha256:276f1428531c45c31c2a61e2c4e2919be71f4c44fc0871a998195bb80bd08698"
+        },
+        {
+          "kind": "test",
+          "label": "P0 review: 不信任 AI 题面/分数/progress；progress 不能当 identity 或 conclude",
+          "conditionDigest": "sha256:8aa77c8685fd7c51f9b5197d124889e55ff8b91042ea755157be7d43d21b115f"
+        },
+        {
+          "kind": "test",
+          "label": "progress 不得携带 numeric score/overall，否则视为伪造分数",
+          "conditionDigest": "sha256:dd02870f9ebec6536835e5b53c0d8e334c75081f0e9544b23da44fe20b7da4ff"
+        },
+        {
+          "kind": "test",
+          "label": "question identity 拒绝缺失字段，不接受客户端伪造半截身份",
+          "conditionDigest": "sha256:d75d6c6e120245e6dd8f13696f9bde1f9052c47f2b9a4c79fa824f5e0fe1dae0"
+        },
+        {
+          "kind": "test",
+          "label": "question identity 拒绝非规范 id 与内嵌字段漂移（伪造/弱绑定）",
+          "conditionDigest": "sha256:8ad515e72d2d267d1a049154353ab147d8b8d96a2839be34bf990855ede27e65"
+        },
+        {
+          "kind": "test",
+          "label": "signup 200 无 token 不回落到 login，也不用 body.userId",
+          "conditionDigest": "sha256:dce340f9ccbea58b3331d9e2f9e39fb9315878eabba27a86a10235c9e80ddfca"
+        },
+        {
+          "kind": "test",
+          "label": "signup 200 非空 token 原样返回，零次 login，role 只在注册体",
+          "conditionDigest": "sha256:a5d1fc40929c9a905085ab2862f19e6c9852196bf7d87d368106c7ecef9cb77e"
+        },
+        {
+          "kind": "test",
+          "label": "signup 非 200 才 login，令牌只取自 login JSON",
+          "conditionDigest": "sha256:c25cb70a4fcb739d14ec8dc21151540d3bf9b82d9b37e6f87adf69e81b00dae3"
+        },
+        {
+          "kind": "test",
+          "label": "signupOrLogin 空凭据只做输入守卫，不发明令牌",
+          "conditionDigest": "sha256:864c4c3f42d5d32c9eb7a52fd44dc349deac621ecd0c59ae35e49f209911157f"
+        },
+        {
+          "kind": "test",
+          "label": "uidFromToken 正例走 domain signToken，三节 JWT 即使 header/payload 都带 uid 也不认",
+          "conditionDigest": "sha256:c3b33086e7135c58eda46708233ff92f8753932440293ab0e57108a4293e0dc0"
+        },
+        {
+          "kind": "test",
+          "label": "多轮不封顶：10 轮仍只信服务端 identity，不把 AI 分当 B 端分",
+          "conditionDigest": "sha256:4e359e2948f920df41c737ecf0d7888b0235fe4dfcaf6aaaf1467d0d88cf33a2"
+        },
+        {
+          "kind": "test",
+          "label": "支付 webhook HMAC 绑定 orderId:txn:paid，换单/换流水/换事件都不能复用签名",
+          "conditionDigest": "sha256:5c1e1fcebb15ea5006e5101cdf31f7005fd252faa7b6c3af3df4f5a42078ab36"
+        },
+        {
+          "kind": "test",
+          "label": "终态集合包含成功报告与舱壁失败，不能只认任意非空事件",
+          "conditionDigest": "sha256:01ff30645c85a6ac9ea2204db63f7c956c34433b6673c36fa7fbe80e81033b47"
+        },
+        {
+          "kind": "test",
+          "label": "隔离 HTTP 绿结果必须有可复核 AI/system ledger，opaque pass 不得 accept",
+          "conditionDigest": "sha256:336318698f0988150393dc1fd07e043f85ce0ae4c3319a2940a2c017c28e3db3"
+        }
+      ],
+      "assertions": [
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:7f7d04867f42ef561c9eefb669593bce9388a399c2c2167b0de6ef765306d12a"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:ab45a0bb20730b766d2787ac7f156148170719d0f414b9114ed6b3334ae113d1"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:b509615c748e107b4c08afc25b83c9245a4fb3a489eb27ffa551e709cd6debd7"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:c84f6d149623ea2034de45fc194e0e6592b44d22600bf13e3faf7bb0f65d2a0f"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:064f69f08872dd0dfab4a68a6bfd71ba03fd53221550a22c06cd06ce7c2bde57"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:21025b9444a887adefbbe814377e84a58fcea17a791696ae33fabb30d46907aa"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:356dee173d2dea87e8089adafea20680f3b65802f0fc671184dbea4cca84a3fc"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:96b8bcfae097661aed4a3147376ae41d50deb03e1eed33e91f7e64cda463fc7d"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:b5dbf0b26275ccaccb9c567ea297c1934ffbb41a9d51a22827dfbfc1cd83a19d"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:b8ffbc02dce358ea436b34da7cc27fba10e206654d306a5b06b5b04872006f14"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:d50e46b096f5c89b31320ad787721ee3fe0b94803f9eb1e32fb6181b3dffbd79"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "BLOCKED_DATA_OR_PERMISSION",
+          "conditionDigest": "sha256:27fee953dfcc190e5d7d549a75af45acc4c64ff1b224448869f5337ba2da1cd8"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "BLOCKED_DATA_OR_PERMISSION",
+          "conditionDigest": "sha256:522422f2e0957a1937aa20df5b5c6278cfe4b07c8f7ae8f3362103093e9c3779"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "BLOCKED_DATA_OR_PERMISSION",
+          "conditionDigest": "sha256:d54dc6c5fc8cbd1e048821c1c47a2ad00d8bbc208c4299c7d895dd3458380b38"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "BLOCKED_LIVE_KEY",
+          "conditionDigest": "sha256:e5293d35a4d0bf74cd5b1e879da888f412e34ef6a9306ce99a70651355d29023"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "FAIL_API",
+          "conditionDigest": "sha256:9b2334bdc3f5904dbd438fe40776524d43f0084d14d0438d13484bd7ccd21c76"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "FAIL_API",
+          "conditionDigest": "sha256:a97c879193e39c8e38b488dfa82b589c24552c263d52d4a95cbeef23107b85c4"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "FAIL_API",
+          "conditionDigest": "sha256:bd0ce227762a71dd684a23c50c50d01ab243c9f1ddb095fa740bf9c5c82d3a26"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "FAIL_CAPABILITY",
+          "conditionDigest": "sha256:2a161c6673b3d0f73a32b3fb43b170efcdc4affd7edcc6aa84e6782455c4b1d4"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "FAIL_CAPABILITY",
+          "conditionDigest": "sha256:3328f985ceccd46ff25dbe49af8f551aca4b8c802dfd94aa9b4f71eb8b465d7d"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "FAIL_CAPABILITY",
+          "conditionDigest": "sha256:df808af297c2eb927638ea2312054408ac7c5720c95133dfa35e18a61ec44e8e"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "FAIL_PROVIDER",
+          "conditionDigest": "sha256:2aa76969f984b211aef377fe7e86477c92610bcb9acdaa6bf2bbc64c9ae38187"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "q-ready",
+          "conditionDigest": "sha256:4fdfeb9c55670e12bfde863034233d1e6e7b8afcc227d3812d0f48a8c72227ca"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "q1",
+          "conditionDigest": "sha256:8c10cfde4fa63f58d8fd806972c026bced16f15b40c117b0ee5fd01818f7a1a0"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "question_ready",
+          "conditionDigest": "sha256:963780c4cf7cdd7001fa72cc428f2c810e9ac1916380e9773d42f2f5e843c22c"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "report_ready",
+          "conditionDigest": "sha256:340fe1a058cecf6eb0d479e2e61929a3330892191810d4c6da4394c63e799729"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "stale_question",
+          "conditionDigest": "sha256:4db27cfe7c79be151bcfc9a33abb14f40762f8d7642bcaa42ac4d302b68d216e"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "user-a",
+          "conditionDigest": "sha256:fdcc1ee53e373460499c9cb98f49c5fa75414498b757c509f9e8414d569f0fe6"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "令牌桶",
+          "conditionDigest": "sha256:8e2ae65791fcfdf70d18e9295945a442e7cac2afa4cf17a5ffc40a7053228b3c"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:49c771422ee85bf2390529832253c6f4e91e40811c59f963b030a3dc5dd86e63"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:8a2d6831cb16cac0abc30e977da0c47eed753edbebde4e865b81b01cc97f0998"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:94b9703b4892aa6792bb4d21b02ddb227ae70591f313fb946064e222991c1f8c"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:c28b751b6ab2e0aae2b0410bee64643bbbfba92cc1930d494bc5c522a767f233"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:f72577aac92784f7a05f3e62de19f9d1d5a80d4497ec846582c6d95c7dda6b8d"
+        },
+        {
+          "kind": "assert.notEqual",
+          "label": "",
+          "conditionDigest": "sha256:6ef8ed47f213da23320c1946f4d91105aff3dd152479ef18cd64eafa3f808c36"
+        },
+        {
+          "kind": "assert.ok",
+          "label": "",
+          "conditionDigest": "sha256:61bf69af885c8ac36e9f66994c9d6ac236d17569f23948efe8d4ca62df2581ca"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:43a9fb4b5c21bbec82365b160e3301f49b85bed260f9f72ed93b0e59c6d2c82b"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:4e0ec54f1702686ff98ed07fcea6cae8789bc9051d2fc785aa7abdd28fe29c91"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:f1c0d631b93ea0cdd62ef3ba16cde79f4e9ed8e4dfba3a6659682a5ba01220e3"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:feb7025a0e56efbbb8fdabe0cf94b0278d5447d53ec25b6289fc6730348d3588"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:05cd17c33451fd5cdb187fc219f72245505fa5849cdb130aa5f470bf93c1a884"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:095330b7522948541919c447c006053814b198757a9a79dff257a030ca32eab2"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:0bc81d0bb3dc2d1a749c9ae5881839d8cd2132f8a794a0ae125d198d872c9671"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:1aab66a321d20e422475e4dad9f7f74eff3ba74a5497e0a5d02916d334d82b88"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:2a5ae6a5493cb5a90a3431242a83cb9a851cda98a8e3cb5768194b65b9f2efb1"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:31e9190562608278a4e952967d543b5eed2e77adfdc9665bfa8cda740cd11824"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:3ceaa7a77539ad2253e979670da3b14a74cbf81780c3ef76c825a20714c18f13"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:43117be2056e22ebe272faf42b9f0ae9ab36631db47aeb50c74a570bf37eb446"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:46f0425180c692d7b327d7a4c45210c2f042c21cdeb8dfe3c43702a17e8a8147"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:4ca2ba6740dea9ab4f6ceb5e0c3470096bc0f9506a61751f4b4316886b309781"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:4e84c636313b640136a34a7a23e757c3fc95cb350a6532d48ddfa4391b41319c"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:4f1a04cd9d973f45a2412ba7451a4388099ad3c674e28740c4d712f8d79d8e93"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:65c6700c2656b1901c1e1e4e9a525e6aa506ebb237ee467bca131adae0a2b61a"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:799450cabffabea651dafb231c935c9bde3c9007c9aeacefbe44c8bc57102c35"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:7e9209c9c987ca2694a5c92075340f218a8d4d356065c80f686235909fa172fc"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:818ef80cef93e400801b6baf6064c3c2c48a28806c89628012118bef072cbc21"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:81bc69bb3a44605d36ebd57f62da3d9febcf76f5814792e8bd6a9ed6f9a0805b"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:8459ed5dd694efe5f3ec7841ec326dbc8ec63320013b400f69f2f61579c3cd84"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:85573a39852ee463aec8913c5655953fde4798ecbba0ace14c0f5b7e3ecac407"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:8dd45e0b82e537146dba5cf932a9cf9ba97323ce05fb0115eba11dfdc78532f9"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:97687b8246bcbca87f0caa1b3b2079656c04685a934b4c348a2422d909702b64"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:9b4b825a98b820c134918f67df0cfef2d170702f1a2a1225a2adf630d4f8c1a1"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:a0bf3f1d328baedba8f2e3107fc680d524d6db1daa1f42111b88898d22a1f364"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:a3856ae6f0135e535a3db74f2b6f57e1a6df117fbc66694e0ef6f1be3762b9d1"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:ad62730bdc92c55faca762e04c17529ad0047ebebdb362c740eb76002f4311d7"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:b99b6cdef14ee215d5ec1bf91795130209a90b60d0908c11f4d73e3d8dee0830"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:ba4fed31922dd03796daa604dfb484597fbff9da3b5fc8eebec1660a93d78f2d"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:bed466aee523a41e0a9c60842c7ad499f8f0555e4d0ac85df73eb0bde91c9307"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:c5d4fb2cd81cdcee193d9608f6dac55e288a804b9704cc65d37cb2f5280bee58"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:dd9debb7045177e53d7e6465c9474bb5113e6786936484675be9921e8ae61fca"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:f20f400142c1ddc9b6c5678a6aa0335ff36dce17e59f1dc06701d8b223964dfa"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "server_payload",
+          "conditionDigest": "sha256:f562358500956d1449008560975c87934025363c4fa97b9159b6fe97b64b8e03"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:05dd0b40a348b38af353a299986ee8d2d60e70aad0602df59cb5d694642ca708"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:0ca8cc8ecbd2011282122fe77ea483bd29f151a5863b99d7cdba46b8fceaaf59"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:117c7a1e4f6355fe855a07da1b84335b54119182d58abf6212a9d05401e1665b"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:16fb8f58285af1d7751fac5bb1e24e2f31411a8e885a148336a53b804373f4f8"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:1846aca3c1a650dc4dc45ecebd0d56ddd762d2ec81d0f4cf0fd107576eebe4ad"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:1c8b6d750beeb50506dfa95b0c28fd4bf0be6d7e8fdc2ac270847855953d3d2c"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:1d508fb013318bec2e101fdf09361c9a0c780b3dbed449feb694e0a4a4059603"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:1ea5fef153c29a574cdbe955a30f786f0e4a12a45475acd70e34be398052cc1a"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:208d71a29deb322cf6442e5bd5a785e8743b2f1f2ec019018a1991b5a29a3847"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:215802500321d2eddd39e7036e0f474ff18e606919a1ca19aa74a5312549c8f7"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:2842ac9b072eb4c29c32780a14291a6246929244190418519667d134542fe8d3"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:2e467a9774e6a411f550d6e72508edfc4a5a919a7a7a562df186c2cd83870c85"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:33ff1344d585dcfe4df0afad20436de609d90b2d6492fb36d8aca7933ef19b9a"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:3a384c28a7b88fc4cc152a1135ac9b89d4f0fcb3b9aa94af169f094438f20b63"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:407e5a13aa2c13dffec3e72bc2e41805b9126e82a8204f4ef51df61d2adb5319"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:50eee9418d48885def71ddb0ced9c7ce9a4114e71d229ce52f6914ea2ae37a15"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:51826dca63a1b890ca04e71825a903ec65f34c6d31a07fb98b50beb779c9c018"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:56c385271dde30c38096ab62d00a2c2de33a2906fc2c0e865e2e1968e689288b"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:65fd14c4115308a682c75374e59afa2d92feff61852137f2ee2147e63f365b1c"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:73ebacca4afa2b2733e9631c17396922d4954b6ce76489f6deb9625438b48f71"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:74c9fb28dc4bffe87e1f5825e9a1602c48706cab885efc9dd13822dfcb5be098"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:7b40e20cb37cdc517894764e17022a5c2a4aa972ef514a31c68e232fda11cabd"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:7d5fb7e0d8c1b9ed4c03a9823f6b0772b5fda27e0139ef65d5ca49d788b98e9d"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:81b2262e38fd2c9970ed96fb8721da1151714d2bbc46a25cca60ace35e28af3a"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:8ae96bc45ce4e0cbe8889a1f927fd9e7b0932f8108bbbf6c11d5915e4611b4d7"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:8b79559ffd9603b92c1841e84ab11da2d9621679d9cd9e1ef6961f33b3658e18"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:92b1edf74eebe56a1d1564414db7d9e94de72ade25f72a3d458e9926c394ef90"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:97add6ce5ef071838db7c8b3e70e26e61d6234453af7bd58e52865a55809003d"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:9847449eda54569f9b8adf8d6088a10a5164dcd4d55f64df80151247d0dbf0f9"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:98feda33db653ea61f6b5b1b927f1fb2d3ec20621aff7339ab873e2ae8d82db2"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:9ec0affa843831b35edcc2d3a8d13f480f3cf5468a9bb6718ffd58540d0cf263"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:a0680129dd0e318e81fa1740e00ad9cef583ec8969c648ba5831f30ef198814c"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:a436cdcdad4a726fff939b2325dbcedde97e2888874eaf53bac42476c44415bc"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:a9c645312996d284b368686550b8b48c2359e796405580aeb3332ac21c619207"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:aa9b30ade93f02d9187b49d58c9d0c85437806781c1016f350d7ba3ebe69d49f"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:aba460a57e9df18556b83f257e3320495a99fb51d029c3d7a8c0923057ca5c4e"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:b25d94e97f6b3729dcef19ce54086406dd830a4b092b6a1a113d9ccb3213337f"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:b7cb7905e77399a1f4bf32cacb55520681314af74beda542d92b009bcdf8cc40"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:b8b6dfd86fe923387d9113ed1188698c8bf30c9601117b4dbc2516683cf8651a"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:d5bba391ec19696faa2ba5438df262760a1d295044b3aaca70b4388414c32d62"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:db087198489afdfec9ada6ff0e803cfc9c00e560c0ecbedda8755334d666fffd"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:db315d506270217e03d36ee9104e1cdd35f590bf75d640647774cfcebc91b11b"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:de7e7f2bdafb4359ce4e882a6760025ed8cf9de87439283421ecd061c713acb7"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:e142a6716a00b54faffa7ecb9554f52b0575dd1c3f70e26308c5bf89046d655f"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:e56e72b586e9112b1eea3af5ef44542760e9ae797b55cd1cbcb40cab645b8550"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:e57fd5c90e75892d817cd529cde3c3e24244f31f196d6567951bb4d61740c072"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:e5c27790414e4ebd1fe1875587bac921c01277ba9850aee56d98f464ed5eb6f0"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:f50cf9801e518c154d1b3b4874aca72be79042edacea61d238314f3a71b450b4"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:f51ab35ba5a8cff6eda5ab187244e57559960af25d8c7f7e0a3d295b32da814b"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:f681a796b2fbaa18a2a40f45fe218fcf61de73bb671886bd7ccfb440c019f129"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:f8d8a3791b39d1beba1781b4b76b5489d09518322ae29941e15c93509e79e6bb"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "answer_evaluated",
+          "conditionDigest": "sha256:313b0dfeed5763206eab3c15c23d2c4a186092d04afddd82e06f710d3c1a7d44"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "Bearer t",
+          "conditionDigest": "sha256:27c24961f1ca751945dd13dd8f5f40211dd891e53c3eb2a05971da1005f8fba4"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "Bearer t",
+          "conditionDigest": "sha256:2960db23b3fe865dc321803e76466bb9ca4708de4d09959e5c30c5060364b6aa"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "deadbeef",
+          "conditionDigest": "sha256:8b2a44b3e629d8fafee9d683987c1e21ec05d47579330965f25368a6ffaeb7d3"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "E2E_FAILURE class=frontend code=web_not_ready",
+          "conditionDigest": "sha256:eff4d8322b306c4a2c6459e92460445081f3aafe3d848146c9599082cb2d5adf"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "E2E_REVIEW_CODES codes=report_unavailable,quiz_ready",
+          "conditionDigest": "sha256:f29d516b73797ab5e98f41e6995541e2d4df8913408fc7ab5da39558713beca0"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "E2E_REVIEW_SUMMARY count=2",
+          "conditionDigest": "sha256:761b7ad8ad439b2855fcbb611331c646ef0870b0631247bba3f3025cb6df5a53"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "GET",
+          "conditionDigest": "sha256:a041d8db5e1fb4e52374a005343f5cc149fe12921b70b409d018b42652b3ac37"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "idem-1",
+          "conditionDigest": "sha256:041e2fe8f3a0db9dc8f48496aa5a02032d465f3fa01256268e663bbece87a881"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "none",
+          "conditionDigest": "sha256:b903c254dac28de482c1cf71402e35681ecdbe3dc46e7c661e3a8063b74f4103"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "ord-1",
+          "conditionDigest": "sha256:103efd515dbe94ed272fde9ab5e211d3e35fd87d4f23838d9dc84a687cea39ce"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "ord-1:txn-1:paid",
+          "conditionDigest": "sha256:13939cc3bc3bf337b386a315f89faeba100fd23978e04b34e9f404a1b7db4983"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "paid",
+          "conditionDigest": "sha256:4c789e83e6bf7a57f92d45624124d4cd6d37d63168b7ae6286fc7b7f5a8e77df"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "POST",
+          "conditionDigest": "sha256:0bbe3d5dc28e6485b0b657ec0b3142899bc59a4c708564abd0ade2e6f35afc5f"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "POST",
+          "conditionDigest": "sha256:19a7989dac9357765e8df61194bdf00d83fe6b0d1677f7002cd91fa4841b698b"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "POST",
+          "conditionDigest": "sha256:5d09c97631a4b71db5fc7c93e4ede0ed5f76ea008928c72765bd89b67073b630"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "POST",
+          "conditionDigest": "sha256:9431cd159b44f4d9ee03d8afef2a0cd173da5f66673de9a787b26f74ccd00960"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "POST",
+          "conditionDigest": "sha256:b44d98211644808002c04e9cdc4be55f8e74fb1d8b09a716fd841720e7aac701"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "practice_hint",
+          "conditionDigest": "sha256:08d70ac3dd08896f93cb589941893359f03f715d2bf730f403e57489b59a2786"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "practice_hint",
+          "conditionDigest": "sha256:4bd25398820f2c96b903557cbf1261f8020ea7f2146bda793ddb569d16459042"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "q-v1-t0-c0",
+          "conditionDigest": "sha256:67334004777ebab2769ebb3bc19d441e0604bddd680ed4f99733be0224d11907"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "q-v10-t9-c0",
+          "conditionDigest": "sha256:595efe149b833e7130bce99b34d11224fab1c17303273d0afef255c92d2010d0"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "q-v3-t2-c0",
+          "conditionDigest": "sha256:4fdfeb9c55670e12bfde863034233d1e6e7b8afcc227d3812d0f48a8c72227ca"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "txn-1",
+          "conditionDigest": "sha256:f5c39221ffb4daf95e4c99c066164c25451111c48ba1f0b7450521638a5ab952"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "user_id-1",
+          "conditionDigest": "sha256:578a0d70a3e89cf3deffecee5b64a5296eb731815c15e38b307a9de446fd42c9"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "user-a",
+          "conditionDigest": "sha256:90375564f8c28662f13efafdcb1d5a22886bf2b0085a084d14abeb4106c5cbfc"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "user-login",
+          "conditionDigest": "sha256:e3f4e9171487d0e9ff26c8be66d52d9d561e7b1620d71e89ed0670a32d7b5091"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "user-signup",
+          "conditionDigest": "sha256:e3f4e9171487d0e9ff26c8be66d52d9d561e7b1620d71e89ed0670a32d7b5091"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "worker",
+          "conditionDigest": "sha256:c016d3b0445277269ae44458e8de514f6538da93e60373e26ea297870e6059c0"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:19d5edaafa8d1da61e7b0b81ba7f076f114422eaff2072caafaf8d08dceb090d"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:1bfe259586673bf1657a3e20697db654b37dca358a9a24ce6b3ab5aa81f006b4"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:52d615ba796cb06372ccd44ce9fa6ef2bb2e2d1dbf9d38bed66c842b2d51d4f8"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:59026ac6446c6570846950602469b3ebd957d6fc0c3c29b1b7b0d7604912a6fe"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:5de0516a4d7ae9260a6f96e7ca9830694aee164892df9f72b43f8c29bcba7972"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:626610914c4147ee788a07e50a823ffe6ffa2c65e8151cd761c50243e183ca1e"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:8d91cebf196b2793dfc76d207cf6b72ab3d23a5cc8733015ee048be7b46fc625"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:95b6e14dd379c18c61e035db42fe6f826deb8df5d4d0e4c5c2fd6bc9e3a9c704"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:a384da36a1b3e24c3bee7b1800993b8b4ae02fabd82a6b037c897ff708ce9b4f"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:aae4d7f08789ef81000142b0675c4375c6523bc3894339ff1c7fd677c5dea2cc"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:ad07e17dcf6ee396b2834577f8ada135db953d4d1fb5aac5516529fd802a5b44"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:b602a3b37915a881aaabea4e04ee35e9598d044aad3dc35ab530b31a7f1ac33d"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:b914faa910fc75da992c4e20dd8557f76a59be0b747493cae5b366ce6c74a202"
+        },
+        {
+          "kind": "assert.notEqual",
+          "label": "",
+          "conditionDigest": "sha256:380f577761a8546a4248ece5f8e50444d776df41606b49c914017f25e6bf46ae"
+        },
+        {
+          "kind": "assert.notEqual",
+          "label": "",
+          "conditionDigest": "sha256:5f32a30957f03908a1cf5be1c36380dc322741a34567021897a04013451f9aa0"
+        },
+        {
+          "kind": "assert.notEqual",
+          "label": "",
+          "conditionDigest": "sha256:7f62fd8a47ffabd8bf3560387ff1e16e29f91829f8f73665c76b842105ed60ab"
+        },
+        {
+          "kind": "assert.notEqual",
+          "label": "",
+          "conditionDigest": "sha256:906e09361259d93acc618bd1a4f52b1245d61ccfbd51fd4d53ffea1e09b9541a"
+        },
+        {
+          "kind": "assert.ok",
+          "label": "",
+          "conditionDigest": "sha256:1505c93b66fce5439ea017e646e686d04ff7e791e1c8b8e9b86b2cd8a9cb38f3"
+        },
+        {
+          "kind": "assert.ok",
+          "label": "",
+          "conditionDigest": "sha256:7a1f4e12e8349a695380f5d2d704557b4a6e53804f1607a57020d5fe5c66c937"
+        },
+        {
+          "kind": "assert.ok",
+          "label": "",
+          "conditionDigest": "sha256:f037ab51002155d3d65d796252dfaae42c4cf149fa163c448e9ee97c1977a95b"
+        },
+        {
+          "kind": "assert.rejects",
+          "label": "",
+          "conditionDigest": "sha256:4a0da5a536fad3b45a1eac0a7b5145b32081d7d688c702e6e560eb8e6642ac44"
+        },
+        {
+          "kind": "assert.rejects",
+          "label": "",
+          "conditionDigest": "sha256:5ca106549f35eab7549edd9e95dfeea596d60ac2cdd4c404180c851642417cad"
+        },
+        {
+          "kind": "assert.rejects",
+          "label": "",
+          "conditionDigest": "sha256:e979fa6e73bd22129a611cbcace85095db723541701c146d3158c64b68a8c78c"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:042ac0fb796e03555b38af83d7b9c0cbb25c2674e0a3c1a52818b61d2ba8f372"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:0881bddda848aeb8b9ccd60c13f660a6e4962cd3f539e4bb07e60b8fae235863"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:2c949136e0e56221a2ba5aa6cee70bf664b663a10b2e50966d28f8052f7e0c83"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:34123eef96ed08ba11872b3d1b5f49b0ef4c55ee58b7d3ad5977febde11459f8"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:343431aa71393d5829bf9c550e3759b6f7bbf3136888ffbeca1323e7470c0d52"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:39444428db60259a5791e53c2aae3690b51880f6d415dd97fd3dbe727ba20417"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:41f7d778dd528e6cb347be52f3b96006a54b5ab486ada2823bbbf2cb6f00fdef"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:424aab63685c3b26b563779d41e9aeb49798ddcdcb1640edafd4ce4db3f1f5a9"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:476d3c554266f58db6542ae56243b8895c8d826fb5b13c6e06ee69175d5cedb7"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:4fe08b76f3e248fbd8284e8a9b69b2b14f2cd450dac7733567895799f0cb13b3"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:508bab54d379c6f42fd87d838927087f158eb98fbe2ba9bae74d93789ca3ebfc"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:5915dcc833f7cb56a2070af37977038230dc3350a963aaa85608a4caee77a048"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:5a6c4d628bfdccdc740dffcf1b50fa7d7cc0f360214161ff427db58178927794"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:65f4728ababb9df964ca055c7811ad2a8402961f90f801e27a4f385c2de24920"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:664b46fa5082c46f184ae594620da90aef69babf5512ac44276d6b7b4b464b84"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:6ed308b842ef910d80f7b699d76d5a3a8bdc5afcf7103e3ab0fc18b9ae35bff6"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:6f1189ebe42180c9c4a72c2b6fda38a346a06c0e15500c7ee99b58bce69d2313"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:7a9650822802ed5a7d583df1f6090e550f0b1697438d920a1264748e1ee82d5e"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:7f47095f68afe9b6e2283e6e6466a85720fd6faa2ee82a3ee664f599c28f52d7"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:8cc64b0c997e8f3ad8d46bfac3a9afd93c5811b17029cd174e31ac5815099af4"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:9fc86f291bdf71f425e50add07bab983c25d98dc2af2c105dd4b6bc01d723d64"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:a5110721e506e6ac45c701f483f6ca8df04ee2c819fcd7ca8e0550fea651d059"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:ada0956590c82e7ceb2b7e111dd6649cffc768269bc7c4ab738bafa07eb169ca"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:afa3b924bc0895eea068ec5829d402340c3eef690c368d946c6190147a288f9c"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:b451b3c8aaf3d789b229acebf38b4ba3935e5fe6f2f3956726d08cf4cfcdcb04"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:be202d7ec9564485344c141476d238ef0e0df196ad55717be9d085a667116e7b"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:c430a6e90b9eccf24fd26b1e889b9b792234ea1b02164d608f2359258a0e331f"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:c4c63574607c3374c80a4a9d5e17d502f0e801dfb9530e2c1273a84e85cc3b5f"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:cab6bdc9c98d5c27e6108ce562253c21af0f115cde1fbaaf68a796a95a05b83b"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:d56525187e9038155ec31cfb98782dee0d0124596fcfd0bbdada8f296485341b"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:d5a224e70beae87c09629ff2d3dcca1c8e29966455506a5a1e8346f87a04218c"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:d5e1706399ee052c1e830718881a14b7b5aeb0e589e251c896b70cddc801c82e"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:df403ba5fca032f401190ebac666568b893cc503a7a8d76ad801243dad8238c5"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:e69ebb4b7193650719c839ed1b1769372d7dee69d578f7567bb0e87d7ce788c9"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:ea4b299ce7cdd2aea437a5713e4e290bdeffeb09bb9ba8195f6e32702b323c22"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:ed80959982b6ec3b3fc074cfd0f35917ceb0b4bc27002e280d49ee00a1d153f7"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:f3224a3015952c9038c0e81c20ca128b2550564eb50ff43c77fd60cc8feda0c7"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:f6837ed45eb2374569867f54e6591f6df82afe3ea30c2f73b52567fd431d7289"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:85573a39852ee463aec8913c5655953fde4798ecbba0ace14c0f5b7e3ecac407"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:208d71a29deb322cf6442e5bd5a785e8743b2f1f2ec019018a1991b5a29a3847"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:50eee9418d48885def71ddb0ced9c7ce9a4114e71d229ce52f6914ea2ae37a15"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:b25d94e97f6b3729dcef19ce54086406dd830a4b092b6a1a113d9ccb3213337f"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:db087198489afdfec9ada6ff0e803cfc9c00e560c0ecbedda8755334d666fffd"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:f681a796b2fbaa18a2a40f45fe218fcf61de73bb671886bd7ccfb440c019f129"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "POST",
+          "conditionDigest": "sha256:b44d98211644808002c04e9cdc4be55f8e74fb1d8b09a716fd841720e7aac701"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "POST",
+          "conditionDigest": "sha256:b44d98211644808002c04e9cdc4be55f8e74fb1d8b09a716fd841720e7aac701"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:8d91cebf196b2793dfc76d207cf6b72ab3d23a5cc8733015ee048be7b46fc625"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:8d91cebf196b2793dfc76d207cf6b72ab3d23a5cc8733015ee048be7b46fc625"
+        }
+      ]
+    },
+    "e2e/helpers/interview.ts": {
+      "testCount": 1,
+      "assertionCount": 4,
+      "tests": [
+        {
+          "kind": "implicit-suite",
+          "label": "",
+          "conditionDigest": "sha256:f361eeafd47ff9974f3703a9838abf373a43d28dd6b17bd26db45b2c6bcc28d1"
+        }
+      ],
+      "assertions": [
+        {
+          "kind": "member.assert",
+          "label": "",
+          "conditionDigest": "sha256:1746513b1248abd37518f2969883fb7286e95f1e91ff756688afcaf5b812fd90"
+        },
+        {
+          "kind": "member.assert",
+          "label": "",
+          "conditionDigest": "sha256:1746513b1248abd37518f2969883fb7286e95f1e91ff756688afcaf5b812fd90"
+        },
+        {
+          "kind": "member.assert",
+          "label": "",
+          "conditionDigest": "sha256:59681cd179b9ff2d00727be0cda628a7fc589b33c81e224c43bb257ee4a25e4c"
+        },
+        {
+          "kind": "member.assert",
+          "label": "",
+          "conditionDigest": "sha256:8902c952042fccce4da4bdf78ee38950dde9539f4c8ee8e8a9797f598ffdc530"
+        }
+      ]
+    },
+    "e2e/performance.e2e.ts": {
+      "testCount": 1,
+      "assertionCount": 11,
+      "tests": [
+        {
+          "kind": "implicit-suite",
+          "label": "",
+          "conditionDigest": "sha256:f361eeafd47ff9974f3703a9838abf373a43d28dd6b17bd26db45b2c6bcc28d1"
+        }
+      ],
+      "assertions": [
+        {
+          "kind": "assert",
+          "label": "commerce/products ${products.total}/${products.total} 为 2xx",
+          "conditionDigest": "sha256:5c28bc63147f6b870f98f86ef9544d2e753934eec2479bcb130acfcd0d72d1cd"
+        },
+        {
+          "kind": "assert",
+          "label": "commerce/products p95=${products.p95Ms}ms < 1000ms (本地回归预算)",
+          "conditionDigest": "sha256:f0b97a60424de16ff26a1ca5f81d79e84fba45915e9da50e73e0a8292ed4a006"
+        },
+        {
+          "kind": "assert",
+          "label": "livez ${health.total}/${health.total} 为 2xx",
+          "conditionDigest": "sha256:17727a9c67c8876f62f8551833c32895f300c393853dfe32c657f2b9f1569a22"
+        },
+        {
+          "kind": "assert",
+          "label": "livez p95=${health.p95Ms}ms < 500ms (本地回归预算)",
+          "conditionDigest": "sha256:da0b6b923d40cb1d9a161c86e33a849a4bd88abbfb2f330b39782785957f90ae"
+        },
+        {
+          "kind": "assert",
+          "label": "resume ingest ${resumes.total}/${resumes.total} 为 2xx",
+          "conditionDigest": "sha256:623c7929313823eed193d5eb4f1ba292b9bea78d3e8ecbbbdeb0bc6fc628a96b"
+        },
+        {
+          "kind": "assert",
+          "label": "resume ingest p95=${resumes.p95Ms}ms < 3000ms (${RESUME_CONCURRENCY} 并发、本地回归预算)",
+          "conditionDigest": "sha256:e9ee5b74b6060e2dabb15f4f0ef95554d8975fff538f59a2e8b6ce6f4a42d34f"
+        },
+        {
+          "kind": "assert",
+          "label": "resume setup consent index=${index} status=${consentResponse.status}",
+          "conditionDigest": "sha256:6b15337fdcdb3c0ef260ddd3ad96a673f60770c7000926da211e3dbe836d8b83"
+        },
+        {
+          "kind": "assert",
+          "label": "resume setup signup index=${index} status=${signupResponse.status}",
+          "conditionDigest": "sha256:74f36fa6b86a2eec005342bb13b1cc119b4d09c3a8b842be53420ab85b4913c2"
+        },
+        {
+          "kind": "assert",
+          "label": "resume setup token index=${index}",
+          "conditionDigest": "sha256:49e10392358ec2677688ab04e92a193d81c5b178b6d19652ef8df3abc469b685"
+        },
+        {
+          "kind": "assert",
+          "label": "signup ${signup.total}/${signup.total} 为 2xx",
+          "conditionDigest": "sha256:34b2afb54f6da08ea7dee2d3f7d2be10cf1a31c1e2ffd024cb167df518ea3b3f"
+        },
+        {
+          "kind": "assert",
+          "label": "signup p95=${signup.p95Ms}ms < 3000ms (4 并发、本地回归预算)",
+          "conditionDigest": "sha256:997ae573d48dc919cc44d80b055ccb1ba654109022bf6223df9890ee8c180c7e"
+        }
+      ]
+    },
+    "scripts/bounded-command.proof.mjs": {
+      "testCount": 1,
+      "assertionCount": 8,
+      "tests": [
+        {
+          "kind": "implicit-suite",
+          "label": "",
+          "conditionDigest": "sha256:f361eeafd47ff9974f3703a9838abf373a43d28dd6b17bd26db45b2c6bcc28d1"
+        }
+      ],
+      "assertions": [
+        {
+          "kind": "assert.equal",
+          "label": "ready",
+          "conditionDigest": "sha256:e0ee8bb50685e05fa0f47ed04203ae953fdfd055f5bd2892ea186504254f8c3a"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "the timed-out command group must not leave its descendant running",
+          "conditionDigest": "sha256:77f203dcafb0e990226f13d4c97271146b983c16ef7bdd15fb9aca1a7fb23c1f"
+        },
+        {
+          "kind": "assert.ok",
+          "label": "timed-out child must not make the runner hang",
+          "conditionDigest": "sha256:56ec9470f9d4dfe95a54e6ba8be7da7eb9442ecdbaf374f5254f403925851564"
+        },
+        {
+          "kind": "assert.rejects",
+          "label": "",
+          "conditionDigest": "sha256:5bc01cd7dfe61bac89e4f03ef71888159cfa1e4144dfa416829deda8861c3007"
+        },
+        {
+          "kind": "expectCode",
+          "label": "bounded_command_exit_nonzero",
+          "conditionDigest": "sha256:d12ccdb92f11f3af3c70ff22c92dc7d8030a6425d7fc660a4350029532877c36"
+        },
+        {
+          "kind": "expectCode",
+          "label": "bounded_command_output_exceeded",
+          "conditionDigest": "sha256:8a78acc090fbcf346c0d030e535901397ea37a94d60199acef909e1d2c37f422"
+        },
+        {
+          "kind": "expectCode",
+          "label": "bounded_command_timeout",
+          "conditionDigest": "sha256:8d56ab9c576f53d228d91c3954a532bb5548bb3c82748beda8c11630813a4843"
+        },
+        {
+          "kind": "expectCode",
+          "label": "bounded_command_timeout",
+          "conditionDigest": "sha256:8e8e54d44c8833253700e77c30ad7194d969bd074ec5b06eb5e5b38eccede82f"
+        }
+      ]
+    },
+    "scripts/local-e2e-receipt.proof.mjs": {
+      "testCount": 12,
+      "assertionCount": 44,
+      "tests": [
+        {
+          "kind": "test",
+          "label": "刁钻输入：未知目标、倒流时间与无效断言数均被拒绝",
+          "conditionDigest": "sha256:0a1f69530b62b143abff0489d8c936d6be0d079d66e7a08072b1276de4eb3a3f"
+        },
+        {
+          "kind": "test",
+          "label": "复杂边界：源码摘要覆盖客户端、helpers、编排器和隔离器，迁移清单不为空",
+          "conditionDigest": "sha256:236bcccf05cfa1cb3fec539144d6ecb244c61197668f73a03608c159ae1a8953"
+        },
+        {
+          "kind": "test",
+          "label": "复杂边界：源码摘要覆盖客户端、helpers、编排器和隔离器，迁移清单不为空",
+          "conditionDigest": "sha256:ce394cd6f8c058f1c8609a88160b413b393aa9e8a36a4e9e44bfb3c1adb74421"
+        },
+        {
+          "kind": "test",
+          "label": "异常：失败退出码仍保留为失败回执，不伪造成通过",
+          "conditionDigest": "sha256:de3d8bee3c4ed6d24d03a6e58bf49fcc698ee32708af41230d6294c40083311e"
+        },
+        {
+          "kind": "test",
+          "label": "正常：原子回执包含退出码、时长、断言数、源码与迁移清单摘要",
+          "conditionDigest": "sha256:2cbd49841aa24995c8dc9d0bb172217c1a0fc7ab990e71aa0961439d66fd46b0"
+        },
+        {
+          "kind": "test",
+          "label": "正常：原子回执包含退出码、时长、断言数、源码与迁移清单摘要",
+          "conditionDigest": "sha256:a0052f4d4fb783e6de3fc08d9ee0e9ea358307e67ebf28ac85a6672eacbe290e"
+        },
+        {
+          "kind": "test",
+          "label": "特殊：同一毫秒的两个运行使用不同文件，不能覆盖旧回执",
+          "conditionDigest": "sha256:8e192ec0200ee51ac522840a0f7a73ad5b52d12aca1a4d35a184b86c7cf31b0b"
+        },
+        {
+          "kind": "test",
+          "label": "逃逸：调用方提供的原始输出不属于回执 schema，秘密不会持久化",
+          "conditionDigest": "sha256:c7ea1e4a88eb424aaa82c1a852cc4817751f0b2757fe85bbd9a81e00850e7b02"
+        },
+        {
+          "kind": "test",
+          "label": "高并发边界：通过与非零退出码不一致时拒绝写入",
+          "conditionDigest": "sha256:5a7ddd9c9ec4d9822942b2e8646841c714fa53da63f16dde9c9d76c05b8d67ae"
+        },
+        {
+          "kind": "test",
+          "label": "刁钻输入：未知目标、倒流时间与无效断言数均被拒绝",
+          "conditionDigest": "sha256:53bb6a14773f596de5141911bebf1f4ff9de0100a969fe50218166a19714b29a"
+        },
+        {
+          "kind": "test",
+          "label": "异常：失败退出码仍保留为失败回执，不伪造成通过",
+          "conditionDigest": "sha256:d49bbbd05087ef63402e2ca0ec5af3da3d1da3de04f5f8ed7cb8b8d6d3800a4b"
+        },
+        {
+          "kind": "test",
+          "label": "正常：原子回执包含退出码、时长、断言数、源码与迁移清单摘要",
+          "conditionDigest": "sha256:ed8082c05058054b1b46a328e842dca86d6f757fb66ad758d079b100274665a3"
+        }
+      ],
+      "assertions": [
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:5c80b9e45b6bfd9012981a788b593ba8221757996349d9587d5373410072ef02"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:8d4ca1ecc8bc802cc892ea02274e97b0b3f50cd893d0d37b0ec9f5702806cb6f"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:ff598fea9614625de7203615a84221177704fc3210e950f1aeba00ca016a1106"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:11434421e3a1f749b9c47d04a3d844bf6aa27a99ae652b1e93b9ab39298c1e99"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:1477a5cebcd3544e2aeae5f0d786bfb08dba62ba25aa92aa840f2eaaea11da64"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:14b4f678bd2a357a596634b41149d6aa28df0e59161a4f14ba8169ab24ebddab"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:1a2cc501645dfb033779cd055e2fb7502105345ef0687524159c30de26e6ad56"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:5cbce631eb069ad9239123fc5baeee9d5123569396013586a979e8830d35f2bc"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:664ad16aa88bbf92eaaf54943ea02cfbe99faed132379d795bbedb6a80039331"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:b99a5b4d52d4d9b0d794ee6ca60f2272bade6e83f31a669089ee5cf842b97332"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:c1db5b9a1cc2fab0387d650463ee7bc5b76921d7667b3f59a79743900eb45479"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:df0ca3ee96215748190c020b20833dfe2f2b786675f128e1e0b770469f4330e1"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:e81f5733a9955c53c78dd3058a8a1bf9207a20c6068c584bd34b54037e80e474"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "failed",
+          "conditionDigest": "sha256:a40332b94c29f7e7c33fb071355601e56724c9286bf6eb1d227e982577a821bf"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "local_untrusted_isolated_proof_receipt",
+          "conditionDigest": "sha256:ac492c26774da992a63b7dde816dec4c02c766c3a2881b95661482c98eb3ad7b"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "passed",
+          "conditionDigest": "sha256:a40332b94c29f7e7c33fb071355601e56724c9286bf6eb1d227e982577a821bf"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "privacy-erasure:prove:raw",
+          "conditionDigest": "sha256:2c5ac85bbfc6caec5ac2c45993f7f33dab5fbf9d7218ba7a60fcf439137b5fd6"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:4b99352b741aa7c6946b29bb6dd838a0947bfc4bcc8e2f5b150d3bc7784b0e50"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:a4d413362b8d9df3d8d1539feccc06af9fbfa3075ea0604739def4eb32671b9d"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:e1f12343e1d356cb2ba85ab6188690f8a037763471f2923d9df21593ff8a6851"
+        },
+        {
+          "kind": "assert.notEqual",
+          "label": "",
+          "conditionDigest": "sha256:372455b7a6ee6b371a9d63ef449a0de5b7c3695a65c1928e49fd845c36bcae1d"
+        },
+        {
+          "kind": "assert.ok",
+          "label": "",
+          "conditionDigest": "sha256:69fa3ade28e35a8dbf7642431c9011e04e6532a94579572380f1f6568ace52ed"
+        },
+        {
+          "kind": "assert.ok",
+          "label": "",
+          "conditionDigest": "sha256:6d90e2e3c8ad51b65128a68c49e9fe0119ccf7c8170666b71a704454941f251c"
+        },
+        {
+          "kind": "assert.ok",
+          "label": "",
+          "conditionDigest": "sha256:ae2c194d833f4739ed16cb38e222bf5187df4ee66da6225341d9941cf73adf73"
+        },
+        {
+          "kind": "assert.rejects",
+          "label": "",
+          "conditionDigest": "sha256:7ec19b80fcc971d4d69b0558da373072bd84b97a8f7b764a05f3ecd83f7d0c88"
+        },
+        {
+          "kind": "rejects",
+          "label": "assertion_count_invalid",
+          "conditionDigest": "sha256:2f61f8cdf53d013924154dd8ac46762330ce6647d5e2123aa13d84ea0dcfb383"
+        },
+        {
+          "kind": "rejects",
+          "label": "local_isolated_receipt_embedder_real_invalid",
+          "conditionDigest": "sha256:ab0b75eaaa2ae5d3e7ff9208a16e96c135eeb12e75945e5d0ea5e5b693bbdb9d"
+        },
+        {
+          "kind": "rejects",
+          "label": "local_isolated_receipt_proof_summary_invalid",
+          "conditionDigest": "sha256:f8fa3d8f82ca9f4f5dba58aa71186c4bafbe642d1ef150a22d9596dfe4a4c57d"
+        },
+        {
+          "kind": "rejects",
+          "label": "local_isolated_receipt_source_path_invalid",
+          "conditionDigest": "sha256:23a62a3426ea069e0097ff1621cf37b3ebb08d6d7b055d2664f9df772a9bdd6e"
+        },
+        {
+          "kind": "rejects",
+          "label": "local_isolated_receipt_target_invalid",
+          "conditionDigest": "sha256:da019109cf5f75db682a3dc705730708685bdda593f0994afaecd990fe464efd"
+        },
+        {
+          "kind": "rejects",
+          "label": "outcome_exit_code_mismatch",
+          "conditionDigest": "sha256:4f95462b34524f77d8a42da163209171256df40e649ef5d2afa5ccb575a2a27a"
+        },
+        {
+          "kind": "rejects",
+          "label": "target_invalid",
+          "conditionDigest": "sha256:3423e726a463b9513db120327fa68b47c16b0efd6a4b6c0c08487a7993ccf000"
+        },
+        {
+          "kind": "rejects",
+          "label": "time_invalid",
+          "conditionDigest": "sha256:cb5477441530f5daa733b815c3b631db5435416251d0cf8501896bc996ae76c7"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:371222491933f5bfd471abdbcff0c644cd39906eb548bb04231eabdea66fe98f"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:3918c79cd1be507e2026eef0e617788fda8ee8716227912e70b06ac05274817c"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:b402f7dc681631a6af5739586c9a3a04937561827d0350196f2d471f4274fdb8"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:f14a433d703f31fc99d81b51164a590ddc86f1d7c29059e65cccf0d5b75b3d5b"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "worker",
+          "conditionDigest": "sha256:aa55fe035e7293bffb0c6b2087e4e716e6fb592548628b491d4f445222edc58d"
+        },
+        {
+          "kind": "rejects",
+          "label": "e2e_failure_record_invalid",
+          "conditionDigest": "sha256:9354914d7f7ddc4cdcfca243d7b3e5e0586acc1ecb58316ebaec188a924b10e2"
+        },
+        {
+          "kind": "rejects",
+          "label": "failure_class_invalid",
+          "conditionDigest": "sha256:4e3e641e40fd22dae8bd50cd780852fc5cb7454c39f6960ddf9a081f94b8435a"
+        },
+        {
+          "kind": "rejects",
+          "label": "failure_class_invalid",
+          "conditionDigest": "sha256:c7844f1a3e72fb7e04bf423858d8b80bc620b164734fd52061dffd9ab12eb4fd"
+        },
+        {
+          "kind": "rejects",
+          "label": "failure_class_on_pass",
+          "conditionDigest": "sha256:cccdb8982324db8f11fb082e0cd5046e8362a4cd0548f2f32d9073f6fc5808bb"
+        },
+        {
+          "kind": "rejects",
+          "label": "review_ledger_required",
+          "conditionDigest": "sha256:3cacb5d4b032484c4bebdbc54861f73f5b7b925990656c0dc37e82078121a187"
+        },
+        {
+          "kind": "rejects",
+          "label": "review_ledger_required",
+          "conditionDigest": "sha256:8b60dbeef110d96b91be59e4cc14aa6fcd651b23193bd77b70f188a15cee3e39"
+        }
+      ]
+    }
+  }
+}

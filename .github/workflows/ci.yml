@@ -58,6 +58,12 @@ jobs:
           pnpm e2e-static-guards:check
           pnpm e2e-static-guards:prove
 
+      # e2e/ 与约定关键 prove 的用例数/断言身份；删除或削弱 expect 失败。不是发布证据。
+      - name: E2E 用例与断言 parity（静态，非发布证据）
+        run: |
+          pnpm e2e-parity:check
+          pnpm e2e-parity:prove
+
       # 公开首页、预览说明与招聘边界：仅检查已审计的文案契约，不证明运行或发布状态。
       - name: 公开文案边界（不替代发布证据）
         run: pnpm -C apps/web prove:public-copy

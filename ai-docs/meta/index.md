@@ -46,6 +46,7 @@ tags:
 - `skills/testing/e2e-platform/README.md`：HTTP E2E 平台 SOP（draft / NOT_READY；`pnpm e2e-platform:prove` 是 5 守卫，不是 `layout:prove`）。
 - `delivery/e2e-platform-integration.md`：E2E 平台集成分支的核实合并顺序、冲突决议与 supersession（draft PR，非 READY）。
 - `testing/golden-tasks/README.md`：第一批 golden tasks 登记（含 planned/unmapped，无假绿）。
+- `testing/e2e-parity-baseline.md`：`e2e/` 与约定关键 prove 的用例/断言身份基线与 parity floors；合法削减只走 allowlist。AI diffs 在 parity + 独立审核前不可信。
 - `testing/e2e-performance-evidence.md`：全量隔离 E2E、本地性能预算与外部检索基准的实跑证据。
 - `testing/rag-retrieval-evaluation-baseline.md`：RAG 检索实跑基线、测试集局限和发布边界。
 - `testing/full-format-rag-evaluation.md`：全格式提取、切块、表格、citation 与检索的数据集、指标和发布协议。
