@@ -141,7 +141,7 @@ related:
 | 权益 | `reserveEntitlement` 先 `ON CONFLICT DO NOTHING` 占坑，再桶 `FOR UPDATE` | 同 key 不二次扣；凑不齐整事务回滚 | 历史 commerce 回执 64 迁移 |
 | 结算 | `settleOutbox` SKIP LOCKED + `settlement_ledger UNIQUE(consumption_id)` | 重跑不双入账 | 不是支付渠道回调证明 |
 
-`0130` 的合同与 `UC-MODEL-001` 验收一致：同键并发供应商派发数 = 1。`current-runtime-truth.md` 把 `runtime:isolated:prove` 记为已覆盖同键双并发与 `0130` wait 语义。`HC-GAP-011` 的具名负例（孤儿 permit → `wait`；两连接无行 → execute=1 且 `wait`/`cached`；清 permit 不得把 calls 变成 2）已单列进 `pnpm runtime:prove` / `pnpm runtime:isolated:prove` / `pnpm runtime:claim-join:prove`。**不**把该行升级为账单或云多副本证据。
+`0130` 的合同与 `UC-MODEL-001` 验收一致：同键并发供应商派发数 = 1。`current-runtime-truth.md` 把 `runtime:isolated:prove` 记为已覆盖同键双并发与 `0130` wait 语义。`HC-GAP-011` 的具名负例（legacy 两路：孤儿 permit 的 claim → `wait`；两连接无行 claim execute=1 且 wait=1；`invoke()` calls=1 且同值；清 permit 不得把 calls 变成 2）已单列进 per-push `pnpm runtime:prove`，隔离门另有 `pnpm runtime:isolated:prove` / `pnpm runtime:claim-join:prove`。**不**把该行升级为账单、0120 槽交叉、lease 接管或云多副本证据。
 
 ## 7. 证明与测试缺口（可执行清单）
 
