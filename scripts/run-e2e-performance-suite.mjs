@@ -9,6 +9,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { createWriteStream } from 'node:fs';
 import { join } from 'node:path';
+import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const steps = [
@@ -80,6 +81,7 @@ function run(args) {
 }
 
 async function main() {
+  assertNoFakeServiceFlags(process.env);
   await mkdir(receiptRoot, { recursive: true });
   logStream = createWriteStream(partialLogPath, { flags: 'wx' });
   const started = Date.now();
