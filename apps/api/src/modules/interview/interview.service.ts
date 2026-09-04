@@ -6,6 +6,7 @@ import { VOICE_EGRESS_DISABLED_ID, type Asr, type Tts, type StreamingTts } from 
 import type { TranscribeDto, TurnDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
 import { RateLimitService } from '../../platform/rate-limit.service';
+import { assertPublicPreviewWritesClosed, PublicPreviewReadOnlyError } from '../../platform/public-preview';
 import { resumeDisplayName } from '../resume/resume-display.ts';
 
 const MAX_AUDIO_BYTES = 10 * 1024 * 1024;   // 10MB 上限(单题语音作答足够;防大文件 DoS)
@@ -84,6 +85,22 @@ export class InterviewService {
     @Inject(VOICE_STREAM_TTS) private readonly streamTts: StreamingTts,
   ) {}
 
+  /**
+   * Fail-closed preview backstop for persisted interview/scoring writes.
+   * HTTP ingress already rejects mutating methods; this blocks a GET or
+   * in-process caller from reaching asPrincipal / enqueue / ScoreCard paths.
+   */
+  private denyPublicPreviewWrite(): void {
+    try {
+      assertPublicPreviewWritesClosed();
+    } catch (error) {
+      if (error instanceof PublicPreviewReadOnlyError) {
+        throw new HttpException({ error: 'public_preview_read_only' }, HttpStatus.SERVICE_UNAVAILABLE);
+      }
+      throw error;
+    }
+  }
+
   /** 语音端点共用限流闸(ASR/TTS 无额度预留 → 防成本 DoS)。超速 → 429。 */
   private voiceGate(principal: string) {
     if (!this.rl.allow(`voice:${principal}`, VOICE_RL.capacity, VOICE_RL.refillPerSec))
@@ -109,7 +126,8 @@ export class InterviewService {
 
   /**
    * The HTTP layer is not the only producer of interview projections, so the
-   * database also has RLS and write-trigger guards (0059).  This helper keeps
+   * database also has RLS and write-trigger guards (0059, privacy fence — not
+   * the public-preview write-gate).  This helper keeps
    * the public contract explicit: a caller that owns a now-fenced interview
    * receives 410, while a missing/cross-owner id remains indistinguishable as
    * 404.  Call it in the same transaction as every interview-owned read or
@@ -130,6 +148,7 @@ export class InterviewService {
 
   // 开始面试:扣额度 + 入队 start job(长编排在 worker 跑,api 薄)。reqId 随 payload 入队 → worker 出队沿用 → 落模型 trace.request_id(全链路一跳到底)。
   begin(principal: string, id: string, resumeId: string, requestId?: string) {
+    this.denyPublicPreviewWrite();
     if (!resumeId) throw new HttpException({ error: 'missing_resume_id' }, HttpStatus.BAD_REQUEST);
     if (!UUID_RE.test(resumeId)) throw new HttpException({ error: 'invalid_resume_id' }, HttpStatus.BAD_REQUEST);
     return this.db.asPrincipal(principal, async (c) => {
@@ -217,6 +236,7 @@ export class InterviewService {
 
   // 提交一题答案:入队 answer job(worker 续图+评分)。text 答案;音频先 ASR 转写再走此端点。
   turn(principal: string, id: string, body: TurnDto, requestId?: string) {
+    this.denyPublicPreviewWrite();
     const turn = body.turn;
     // 共享 Zod 契约是入口；service 仍做上界防御，避免内部调用绕过 pipe。
     if (turn > MAX_TURN || !body.answer.trim()) throw new HttpException({ error: 'invalid_turn' }, HttpStatus.BAD_REQUEST);
@@ -329,6 +349,7 @@ export class InterviewService {
 
   // 题目反馈(赞/踩):收集人对 AI 生成题的质量信号,喂 eval/改进闭环。一题一反馈,可改(UPSERT)。
   async questionFeedback(principal: string, id: string, idx: string, b: { rating?: string; comment?: string }) {
+    this.denyPublicPreviewWrite();
     if (b?.rating !== 'up' && b?.rating !== 'down') throw new HttpException({ error: 'invalid_rating' }, HttpStatus.BAD_REQUEST);
     const qi = Number(idx);
     if (!Number.isInteger(qi) || qi < 0) throw new HttpException({ error: 'invalid_index' }, HttpStatus.BAD_REQUEST);
@@ -343,6 +364,7 @@ export class InterviewService {
 
   // 放弃面试:**退还预留额度**(不漏扣)+ status abandoned。对接 commerce saga release 路径。
   abandon(principal: string, id: string) {
+    this.denyPublicPreviewWrite();
     return this.db.asPrincipal(principal, async (c) => {
       // advisory 锁仅折叠同端点重复点击；与 worker 的真正串行化由
       // abandonInterviewAndRelease 内部在 consumption 行上的 FOR UPDATE + 条件状态 CAS 完成。
@@ -368,6 +390,7 @@ export class InterviewService {
   // **幂等**:同一用户同一时刻只保留一个进行中会话——连点/重复提交不再各插一条(用户实测点 3 次出 3 条 = 这里没幂等)。
   // 未结束(非 completed/abandoned/failed)就复用既有;复用后再 begin 由 begin 的 alreadyBegun 幂等兜住(不重复扣费)。
   async create(principal: string) {
+    this.denyPublicPreviewWrite();
     return this.db.asPrincipal(principal, async (c) => {
       // advisory 事务锁串行化同用户并发"开始面试",防两次点击 check-then-act 竞态各 INSERT 一条。
       await c.query('SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))', [principal, 'iv-create']);
@@ -469,6 +492,7 @@ export class InterviewService {
 
   // 报告重试:失败/隔离的报告重新入队生成(舱壁降级后的用户侧恢复——报告挂了不连累面试,且可重试)。
   async retryReport(principal: string, id: string) {
+    this.denyPublicPreviewWrite();
     const ok = await this.db.asPrincipal(principal, async (c) => {
       await this.guardInterviewPrivacy(c, id);
       const rep = await c.query("SELECT id FROM ai_report WHERE interview_id=$1 AND status IN ('failed','quarantined')", [id]);
@@ -531,6 +555,7 @@ export class InterviewService {
   // 生成能力评估:面试各题 ScoreCard(确定性总分)→ 维度+差距,落库(ready),返回。
   // SCOR-02 消费迁移:得分只读 ScoreCard(practice_eligible/b_review_eligible),legacy answer_evaluated.score 结构性不参与。
   generateAssessment(principal: string, id: string) {
+    this.denyPublicPreviewWrite();
     return this.db.asPrincipal(principal, async (c) => {
       await this.guardInterviewPrivacy(c, id);
       const iv = await c.query('SELECT 1 FROM interview WHERE id=$1', [id]);
@@ -566,6 +591,7 @@ export class InterviewService {
 
   // 学习计划:据评估差距维度生成学习项,落库。需先有评估。
   generateLearningPlan(principal: string, id: string) {
+    this.denyPublicPreviewWrite();
     return this.db.asPrincipal(principal, async (c) => {
       await this.guardInterviewPrivacy(c, id);
       const a = await c.query('SELECT dimensions FROM assessment_report WHERE interview_id=$1', [id]);
@@ -595,6 +621,7 @@ export class InterviewService {
 
   // 标记某学习项完成(留存:打卡学过的)。topic 为键;幂等。
   async completeLearningItem(principal: string, id: string, b: { topic?: string }) {
+    this.denyPublicPreviewWrite();
     if (!b?.topic) throw new HttpException({ error: 'missing_topic' }, HttpStatus.BAD_REQUEST);
     await this.db.asPrincipal(principal, async (c) => {
       await this.guardInterviewPrivacy(c, id);
@@ -605,6 +632,7 @@ export class InterviewService {
 
   // 职业路径:据评估综合分+弱项生成,落库。成长链终点。
   generateCareerPath(principal: string, id: string) {
+    this.denyPublicPreviewWrite();
     return this.db.asPrincipal(principal, async (c) => {
       await this.guardInterviewPrivacy(c, id);
       const a = await c.query('SELECT overall, dimensions FROM assessment_report WHERE interview_id=$1', [id]);

@@ -2,6 +2,7 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { listMyApplications, finalizeApplication, startApplicationInterview, declineInvitation } from '@meetwise/db';
 import type { StartApplicationDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
+import { assertPublicPreviewWritesClosed, PublicPreviewReadOnlyError } from '../../platform/public-preview';
 
 /**
  * 候选人(C 端)申请应用服务。RLS:候选人只见/只改自己的申请(p_party_read + p_candidate_update)。
@@ -20,7 +21,19 @@ export class ApplicationsService {
    * application 是岗位评估的唯一根：同一事务内行锁 application、验证 candidate 的已摄取 resume、
    * 创建/复用唯一 interview，再将四元绑定写回。返回 ID 只来自持久化绑定，不能由浏览器指定。
    */
+  private denyPublicPreviewWrite(): void {
+    try {
+      assertPublicPreviewWritesClosed();
+    } catch (error) {
+      if (error instanceof PublicPreviewReadOnlyError) {
+        throw new HttpException({ error: 'public_preview_read_only' }, HttpStatus.SERVICE_UNAVAILABLE);
+      }
+      throw error;
+    }
+  }
+
   async start(principal: string, appId: string, dto: StartApplicationDto) {
+    this.denyPublicPreviewWrite();
     const r = await this.db.asPrincipal(principal, (c) => startApplicationInterview(c, principal, appId, dto.resumeId));
     if (r.status === 'resume_not_ready')
       throw new HttpException({ error: 'resume_not_ready', message: '请选择一份已完成解析的本人简历' }, HttpStatus.CONFLICT);
@@ -46,6 +59,7 @@ export class ApplicationsService {
   }
 
   async finalize(principal: string, appId: string) {
+    this.denyPublicPreviewWrite();
     // 不接受客户端 interviewId。DB 会验证 application↔interview↔job↔resume↔owner；
     // calibration hold 下任何完成都只能收口为 assessment_unavailable。
     const r = await this.db.asPrincipal(principal, (c) => finalizeApplication(c, principal, appId));

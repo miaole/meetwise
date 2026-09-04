@@ -6,6 +6,7 @@ import { Nav } from '../components/Nav';
 import { PublicPreviewNav } from '../components/PublicPreviewNav';
 import { Toaster } from '../components/ui/sonner';
 import { resolvePublicSiteUrl } from '@/lib/public-site';
+import { resolvePublicPreview } from '@/lib/public-preview';
 
 const SITE = resolvePublicSiteUrl();
 const DESC = 'Meetwise 知面项目预览：围绕真实经历进行简历练习、模拟面试与个人复盘；实际开放能力以页面说明为准。';
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, maximumScale: 5, themeColor: '#B5651D' };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const publicPreview = process.env.MEETWISE_PUBLIC_PREVIEW === '1';
+  const publicPreview = resolvePublicPreview(process.env.MEETWISE_PUBLIC_PREVIEW);
   const previewReleaseDigest = publicPreview ? process.env.MEETWISE_PREVIEW_RELEASE_DIGEST : undefined;
   const locale = await getLocale();          // i18n:locale 取自 cookie
   return (

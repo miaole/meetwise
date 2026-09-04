@@ -54,6 +54,13 @@ jobs:
           pnpm provider-egress:inventory
           pnpm provider-egress:prove
 
+      # 盘点并围栏公开预览可写的面试/评分面；本地 ingress + service proof，不是 ECS/发布证据。
+      - name: 公开预览写门禁清单与围栏（非发布证据）
+        run: |
+          pnpm public-preview-write:inventory
+          pnpm public-preview-write:prove
+          pnpm public-preview-write-gate:prove
+
       # 模块边界 / 包 DAG（跨包 @meetwise/* 经 tsconfig paths 真解析，边界规则真生效；无需 Postgres）
       - name: 架构边界（无环 / 依赖向下 / ai-graphs 纯 / ai-runtime 关口）
         run: pnpm arch

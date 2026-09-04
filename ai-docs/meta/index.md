@@ -28,6 +28,7 @@ tags:
 - `architecture/ai/memory-context-design.md`：记忆分层、上下文封顶、语义压缩目标与实跑边界。
 - `architecture/ai/tool-skill-memory-runtime-design.md`：Tools、Skills 与记忆运行时的当前能力边界、版本化工具平台和受控语义记忆设计。
 - `architecture/ai/provider-egress-inventory.md`：模型、嵌入、语音与签名下载的当前直连出站静态清单；明确不等价于网关隔离或发布证据。
+- `architecture/backend/public-preview-write-inventory.md`：公开预览下能写面试或评分状态的当前写面清单与失败关闭围栏；静态门，不是 ECS 或发布证据。
 - `architecture/ai/rag-corpus-lifecycle.md`：RAG 语料/向量代际、更新删除、蓝绿迁移、影子评测与回滚的当前边界和目标方案。
 - `architecture/ai/rag-funnel-routing.md`：后端、前端、测试、AI 等岗位题域如何冻结到面试，并在题库、检索、缓存和证据读取中硬过滤；同桶确认无合格题时如何受控由 LLM 出题的目标架构。
 - `architecture/ai/rag-production-release-runbook.md`：RAG artifact 定义、量化发布门、稳定灰度、CAS 回滚、tombstone、缓存与灾备演练手册。

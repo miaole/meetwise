@@ -1,4 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
+/** 与 API resolvePublicPreviewMode 对齐：仅精确 '1' 启用预览，未知值 fail-closed。 */
+import { resolvePublicPreview } from './lib/public-preview';
+
+export { resolvePublicPreview } from './lib/public-preview';
 
 /**
  * 服务端路由门(Edge Middleware)，两层：
@@ -15,16 +19,6 @@ function isDisplayPath(pathname: string) {
 }
 
 const protectedPaths = ['/dashboard', '/resume', '/interviews', '/interview', '/report', '/settings', '/notifications', '/billing', '/admin', '/privacy', '/roles', '/jobs', '/recruiter'];
-
-/**
- * fail-closed 预览模式解析：只有精确 '1' 才启用预览；任何其它非空值（'true'/'01'/'1 ' 等）抛错，
- * 而不是静默回退到完整写应用（与 apps/api/src/platform/public-preview.ts 的 resolvePublicPreviewMode 对齐）。
- */
-export function resolvePublicPreview(raw: string | undefined): boolean {
-  if (raw === undefined || raw === '0') return false;
-  if (raw === '1') return true;
-  throw new Error('invalid_meetwise_public_preview');
-}
 
 /** 预览模式需剥离的完整可伪造客户端身份/协议头集合（审计：补齐 x-real-ip/forwarded/cf-connecting-ip/true-client-ip/x-forwarded-proto）。 */
 const STRIPPED_HEADERS = [
