@@ -12,7 +12,7 @@ import { publicSiteHref } from '@/lib/public-site';
 const SITE = publicSiteHref();
 
 export const metadata: Metadata = {
-  description: '知面 Meetwise 项目预览：围绕真实经历进行表达练习与个人复盘；实际开放能力以页面说明为准。',
+  description: '知面 Meetwise：从真实经历出发的 AI 面试准备。自适应面试 Agent、可复盘成长；公开预览不提供支付，也不接收需要删除保证的真实数据。',
   alternates: SITE ? { canonical: '/' } : undefined,
 };
 
@@ -27,12 +27,14 @@ const jsonLd = SITE ? {
 
 export default async function Home() {
   const t = await getTranslations('home');
+  const nav = await getTranslations('nav');
   const stats = [
     { n: t('stat1n'), l: t('stat1l'), w: false },
     { n: t('stat2n'), l: t('stat2l'), w: true },
     { n: t('stat3n'), l: t('stat3l'), w: false },
     { n: t('stat4n'), l: t('stat4l'), w: false },
   ];
+  const path = [1, 2, 3].map((i) => ({ title: t(`path${i}Title`), desc: t(`path${i}Desc`) }));
   const caps = [1, 2, 3, 4, 5, 6].map((i) => ({ mark: t(`cap${i}Mark`), title: t(`cap${i}Title`), desc: t(`cap${i}Desc`) }));
   const bars = [{ l: t('bar1'), w: 62 }, { l: t('bar2'), w: 48 }, { l: t('bar3'), w: 74 }];
 
@@ -75,7 +77,7 @@ export default async function Home() {
             </div>
             <Separator className="mt-5" />
             <div className="mt-5 flex items-center gap-6">
-              <div className="font-serif text-lg font-extrabold tracking-tight text-primary">练习反馈</div>
+              <div className="font-serif text-lg font-extrabold tracking-tight text-primary">{t('cardScore')}</div>
               <div className="flex-1 space-y-2">
                 {bars.map((b) => (
                   <div key={b.l} className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -98,6 +100,21 @@ export default async function Home() {
           </Card>
         ))}
       </div>
+
+      {/* ───── Path:真实经历 → 自适应面试 → 可复盘成长 ───── */}
+      <section>
+        <div className="text-xs font-medium uppercase tracking-wide text-primary">{t('pathEyebrow')}</div>
+        <h2 className="mt-2 max-w-2xl font-serif text-2xl font-extrabold tracking-tight sm:text-3xl">{t('pathH2')}</h2>
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {path.map((step, index) => (
+            <Card key={step.title} className="p-6">
+              <div className="text-xs font-semibold tracking-wide text-primary">0{index + 1}</div>
+              <h3 className="mt-3 font-semibold">{step.title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{step.desc}</p>
+            </Card>
+          ))}
+        </div>
+      </section>
 
       {/* ───── Features ───── */}
       <section>
@@ -136,7 +153,7 @@ export default async function Home() {
           <FooterCol title={t('footProductTitle')} links={[
             { href: '/features', label: t('footFeatures') },
             { href: '/pricing', label: t('footPricing') },
-            { href: '/login', label: t('ctaPrimary') },
+            { href: '/login', label: nav('login') },
           ]} />
           <FooterCol title={t('footSupportTitle')} links={[
             { href: '/faq', label: t('footFaq') },

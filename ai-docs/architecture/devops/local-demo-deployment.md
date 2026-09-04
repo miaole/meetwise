@@ -105,7 +105,7 @@ Web/API/Worker 在本机用 pnpm dev 启动。
 | --- | --- | --- |
 | local | 纯逻辑、静态文档与前端样式开发 | 不接真实数据面；当前不作为云端验证替代 |
 | demo | 历史一键演示兼容路径 | `compose.demo`；不得作为发布或 ECS 验收证据 |
-| preview | 公开、无敏感信息的项目导航目录 | GitHub Pages 纯静态产物；实际入口只在经核验的 HTTPS ECS 环境可用时显示 |
+| preview | 公开、无敏感信息的项目展示目录 | GitHub Pages 发布仓库 `docs/` 静态展示；不是应用运行时。实际应用入口只在经核验的 HTTPS ECS 环境可用时显示 |
 | staging | 联调和回归 | 受控 ECS 运行时 + 受管数据服务；尚未配置，不得宣称可用 |
 | production | 正式使用 | ECS Web/API/Worker + 受管 PostgreSQL/Redis/对象存储；当前不得发布 |
 
@@ -113,7 +113,7 @@ Web/API/Worker 在本机用 pnpm dev 启动。
 
 预览目录：
 
-- 静态目录只包含项目简介、受控入口状态和已核验的 HTTPS 链接；不得包含 API 调用、iframe、环境变量、连接串、令牌、数据服务地址或用户数据。
+- 静态目录（`docs/`）只包含项目简介、合成截图、源码/README 入口和当前能力边界；不得包含 API 调用、iframe、环境变量、连接串、令牌、数据服务地址或用户数据。不得把支付、完整删除、OCR 或语音写成已开放服务。
 - 目录必须由受保护分支的最小权限发布任务生成。没有仓库地址、签名目录清单、ECS 健康回执、不可变镜像摘要和到期时间的入口保持禁用。
 - 目录不是认证层；实际 ECS 预览环境独立执行认证，入口链接不携带 token、query 或 fragment。
 - 首次 controller 安装是单独的 root 信任仪式：先由非 root 用户验证 GitHub Actions 的 controller archive 构件证明，再从已验证 archive 取出 installer；禁止对 checkout、release 目录或任意本机文件直接使用 sudo。controller 之后只接受 root-owned staging archive，并在验签后拒绝链接、特殊成员和路径逃逸。

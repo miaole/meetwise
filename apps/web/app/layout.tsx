@@ -9,7 +9,7 @@ import { resolvePublicSiteUrl } from '@/lib/public-site';
 import { resolvePublicPreview } from '@/lib/public-preview';
 
 const SITE = resolvePublicSiteUrl();
-const DESC = 'Meetwise 知面项目预览：围绕真实经历进行简历练习、模拟面试与个人复盘；实际开放能力以页面说明为准。';
+const DESC = '知面 Meetwise：从真实经历出发的 AI 面试准备。自适应面试 Agent、可复盘成长；实际开放能力以页面说明为准。';
 
 /** 全站 SEO 元数据(服务端注入):title 模板、description、Open Graph、Twitter、canonical、robots。RSC 已让内容可爬,这里补元数据层。 */
 export const metadata: Metadata = {

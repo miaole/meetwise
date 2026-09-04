@@ -21,7 +21,7 @@ export default function PricingPage() {
         <Badge variant="secondary" className="mb-3">预览环境</Badge>
         <h1 className="font-serif text-3xl font-bold tracking-tight">额度功能说明</h1>
         <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-          当前页面只说明项目边界，不提供支付、购买、退款或自动扣费服务。
+          练习次数在产品设计里对应可对账的权益账本，但当前页面只说明项目边界，不提供支付、购买、退款或自动扣费服务。
         </p>
       </header>
 

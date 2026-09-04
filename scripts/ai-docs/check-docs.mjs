@@ -7,6 +7,7 @@ const root = new URL("../..", import.meta.url).pathname;
 
 const requiredFiles = [
   "README.md",
+  "docs/index.html",
   "AGENTS.md",
   "ai-docs/README.md",
   "ai-docs/meta/index.md",
@@ -51,6 +52,7 @@ const requiredFiles = [
 
 const requiredTerms = new Map([
   ["README.md", ["Meetwise", "知面"]],
+  ["docs/index.html", ["真实经历", "自适应面试", "可复盘成长", "合成截图", "不是已经部署的在线服务"]],
   ["AGENTS.md", ["文档先行", "契约先行", "测试先行"]],
   ["ai-docs/product/vision.md", ["面试", "职业路径"]],
   ["ai-docs/architecture/system-blueprint.md", ["Next.js", "NestJS", "LangGraph", "Postgres"]],

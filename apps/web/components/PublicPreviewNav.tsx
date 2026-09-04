@@ -8,7 +8,7 @@ import Link from 'next/link';
  */
 const links = [
   { href: '/', label: '首页' },
-  { href: '/features', label: '功能边界' },
+  { href: '/features', label: '产品能力' },
   { href: '/faq', label: '常见问题' },
   { href: '/legal', label: '数据边界' },
 ];

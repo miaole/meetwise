@@ -33,7 +33,7 @@ export const PUBLIC_TEXT_POLICY_CODES = Object.freeze({
   API_KEY: 'PTP_API_KEY',
 });
 
-const MANAGED_ROOTS = Object.freeze(['ai-docs', 'apps', 'packages', 'scripts', 'docker', 'e2e', '.github', '.claude', 'ops']);
+const MANAGED_ROOTS = Object.freeze(['ai-docs', 'apps', 'packages', 'scripts', 'docker', 'e2e', '.github', '.claude', 'ops', 'docs']);
 const REQUIRED_ROOTS = Object.freeze(['ai-docs', 'apps', 'packages', 'scripts']);
 const ROOT_FILES = new Set(['README.md', 'AGENTS.md', 'CLAUDE.md']);
 const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.tsx', '.mts', '.cts', '.json', '.yaml', '.yml', '.sql', '.sh', '.toml', '.conf', '.service', '.timer', '.html', '.css', '.txt', '.pem', '.py']);
@@ -156,7 +156,7 @@ export function isSyntheticIdentifier(text) {
 // public Markdown roots, not the private agent-skill library under `.claude`.
 // URLs that form part of a configuration example are not a citation, while a
 // rendered external reference is.
-const PUBLISHED_MARKDOWN_ROOTS = Object.freeze(['ai-docs', 'apps', 'packages', 'scripts', 'docker', 'e2e', '.github']);
+const PUBLISHED_MARKDOWN_ROOTS = Object.freeze(['ai-docs', 'apps', 'packages', 'scripts', 'docker', 'e2e', '.github', 'docs']);
 const PUBLISHED_MARKDOWN_REFERENCE_RULES = Object.freeze([
   {
     code: PUBLIC_TEXT_POLICY_CODES.EXTERNAL_REFERENCE_LINK,
