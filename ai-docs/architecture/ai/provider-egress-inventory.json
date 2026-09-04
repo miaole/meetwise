@@ -911,6 +911,16 @@
     },
     {
       "name": "MODEL_API_KEY",
+      "source": "scripts/e2e-platform/no-fake-service.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/e2e-platform/secret-redaction.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
       "source": "scripts/run-e2e-isolated.mjs",
       "class": "test-isolation"
     },
@@ -922,6 +932,11 @@
     {
       "name": "MODEL_API_KEY",
       "source": "scripts/run-e2e.mjs",
+      "class": "live-test-launcher"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/run-post-change-regression.mjs",
       "class": "live-test-launcher"
     },
     {
