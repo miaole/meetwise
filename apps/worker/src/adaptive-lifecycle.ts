@@ -25,7 +25,7 @@ export interface AdaptiveLifecycleDeps {
   deepResearch?: (q: string) => Promise<SourceDoc[]>;
   researchBoundary?: (q: string) => ResearchBoundaryDecision;
   competencyKeywords?: Record<string, string[]>;
-  /** 仅隔离 E2E 可降低真实图的收口轮数；生产调用不传，图保持默认 8 轮。 */
+  /** 仅隔离 E2E 可降低真实图的收口轮数；生产调用不传，图用默认预算(安全天花板 16)并由 decideNext 按覆盖/证据收口。 */
   maxTurns?: number;
   /** consumer 持有的 durable graph ownership；图外写入必须复核，防止过期 worker 继续投影。 */
   fence?: InterviewGraphFence;

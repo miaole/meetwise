@@ -8,3 +8,4 @@ export type {
   SubmittedAnswerRef,
   Turn,
 } from './state.ts';
+export type { DecisionProvenance } from '@meetwise/domain';

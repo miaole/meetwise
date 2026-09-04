@@ -2,6 +2,7 @@ import { Annotation } from '@langchain/langgraph';
 import {
   initMind,
   type CompetencySpec,
+  type DecisionProvenance,
   type InterviewMind,
   type QuestionKind,
 } from '@meetwise/domain';
@@ -127,6 +128,8 @@ export const AdaptiveInterviewState = Annotation.Root({
   stateVersion: Annotation<number>({ reducer: (_, b) => b, default: () => 0 }),
   degraded: Annotation<{ reason: string; turn: number } | null>({ reducer: (_, b) => b, default: () => null }),
   concluded: Annotation<boolean>({ reducer: (_, b) => b, default: () => false }),
+  /** 收尾出处;缺省兼容旧 checkpoint。不含答案原文或证据全文。 */
+  concludeReason: Annotation<DecisionProvenance | null>({ reducer: (_, b) => b, default: () => null }),
 });
 
 export type AdaptiveInterviewGraphState = typeof AdaptiveInterviewState.State;

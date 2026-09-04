@@ -18,20 +18,76 @@ export interface Competency {
   core: boolean;        // 核心能力(规划官 top 1-2):追问上限更高(3 vs 2),硬问题多挖一轮
   behavioral: boolean;  // 行为/软技能槽:题型固定 behavioral(冲突/压力/协作),不接简历
 }
+export interface InterviewSessionSignals {
+  consecutivePivots: number;    // 连续无产出换题(离开仍弱的能力)
+  unresolvedCount: number;      // markUnresolved 次数
+  offRampCount: number;         // 连续低分下车次数
+}
+
+export interface CoverageSnapshot {
+  total: number;
+  probed: number;
+  resolvedStrong: number;
+  coresTotal: number;
+  coresResolved: number;
+  coresWithEvidence: number;
+  evidenceItems: number;        // 计分证据条数(不含未决标记);出处只报计数
+}
+
+export type ConcludeReason =
+  | 'budget_exhausted'
+  | 'all_resolved'
+  | 'coverage_met'
+  | 'early_weak'
+  | 'thrashing'
+  | 'safety_ceiling';
+
+export type AskReason =
+  | 'probe_weak'
+  | 'probe_deepen_strong'
+  | 'pivot_coverage'
+  | 'pivot_offramp';
+
+/** 决策出处:不用答案原文/证据全文,只报 code + 覆盖计数 + 能力名。旧 checkpoint 可缺此字段。 */
+export interface DecisionProvenance {
+  code: ConcludeReason | AskReason;
+  turn: number;
+  maxTurns: number;
+  safetyCeiling: number;
+  coverage: CoverageSnapshot;
+  citedCompetencies: string[];
+  signals: InterviewSessionSignals & { consecutiveLow: number };
+}
+
 export interface InterviewMind {
   competencies: Competency[];   // 目标能力清单(来自岗位匹配 + 简历)
   turn: number;
-  maxTurns: number;             // 预算:总轮数上限(深挖追问也从这里"借",绝不另开不封顶的线程计数 → 无预算黑洞)
+  maxTurns: number;             // 本场预算(夹在 1..SAFETY_CEILING);深挖也从这里借,另有政策可提前收尾
   difficulty: number;           // 1..5 当前难度(随表现自适应)
   current: string | null;       // 当前在探的能力
   clarifyAttempts: number;      // 当前题已澄清(引导重答)几次(防对非作答死缠;每题至多 1 次)
   consecutiveLow: number;       // 当前能力连续低分(真实作答但弱)计数:连续 2 次 → 下车(换题+降难度),反车轮战
+  session?: InterviewSessionSignals;
+  lastDecision?: DecisionProvenance | null;
 }
 export type NextAction =
-  | { kind: 'ask'; competency: string; difficulty: number; mode: 'probe' | 'pivot'; qkind: QuestionKind }   // qkind=题型(确定性规则定,非模型)
-  | { kind: 'conclude'; reason: 'budget_exhausted' | 'all_resolved' };   // all_resolved = 每个能力 要么够强 要么已探到上限
+  | { kind: 'ask'; competency: string; difficulty: number; mode: 'probe' | 'pivot'; qkind: QuestionKind; reason: AskReason; provenance: DecisionProvenance }
+  | { kind: 'conclude'; reason: ConcludeReason; provenance: DecisionProvenance };
+
+/** 结构安全天花板:防无界面谈。不是「默认总问 16 题」,也不是 INT-LONG 的 60/90/120 分钟蓝图。 */
+export const SAFETY_CEILING_TURNS = 16;
+export const DEFAULT_MAX_TURNS = SAFETY_CEILING_TURNS;
+export const MIN_EARLY_TURNS = 2;
+export const EARLY_WEAK_ABORTS = 2;
+export const THRASH_PIVOTS = 3;
+
+export function boundedInterviewTurns(value: number | undefined): number {
+  if (!Number.isInteger(value)) return DEFAULT_MAX_TURNS;
+  return Math.max(1, Math.min(value, SAFETY_CEILING_TURNS));
+}
 
 const CONF_ENOUGH = 0.7;            // 该能力够强 → 不再纠缠
+const CONF_WEAK = 0.4;              // 弱于此时离开该能力算无产出换题
 const PROBE_CAP_CORE = 3;           // 核心能力追问上限(硬问题多挖一轮)
 const PROBE_CAP_NONCORE = 2;        // 非核心能力追问上限(弱也别死磕,换题)
 export const MAX_PROBE = PROBE_CAP_NONCORE;   // 兼容旧 import;= 非核心上限
@@ -39,6 +95,7 @@ const LOW_SCORE = 40;               // 低分阈(<40):与难度下调阈一致
 const OFFRAMP_LOW = 2;              // 连续 2 次低分 → 强制下车(pivot + 降难度一档),绝不把候选人逼到墙角
 const HOOK_CAP = 0.6;              // hasHook=true 时本轮 confidence 贡献封顶(< CONF_ENOUGH):高分也不算"够强",逼既有 probe 路径继续深挖同一能力
 export const MAX_CLARIFY = 1;     // **每题至多澄清 1 次**:原题 + 1 次引导重答;再非作答=探尽未决换题,绝不更多
+const UNRESOLVED_MARKER = '未正面作答/跳过(探尽未决,标弱不再追)';
 const clampDiff = (d: number) => Math.max(1, Math.min(5, d));
 /** 该能力的追问上限(核心 3 / 非核心 2)。markUnresolved/off-ramp 把 depthProbed 顶到这里 → decideNext 必 pivot。 */
 const probeCap = (c: Competency) => (c.core ? PROBE_CAP_CORE : PROBE_CAP_NONCORE);
@@ -62,12 +119,21 @@ export function toCompetencySpecs(names: string[]): CompetencySpec[] {
   return specs;
 }
 
-export function initMind(competencies: (string | CompetencySpec)[], maxTurns = 8): InterviewMind {
+const emptySession = (): InterviewSessionSignals => ({ consecutivePivots: 0, unresolvedCount: 0, offRampCount: 0 });
+
+export function sessionOf(mind: InterviewMind): InterviewSessionSignals {
+  const s = mind.session;
+  const n = (v: unknown) => (typeof v === 'number' && Number.isInteger(v) && v >= 0 ? v : 0);
+  return { consecutivePivots: n(s?.consecutivePivots), unresolvedCount: n(s?.unresolvedCount), offRampCount: n(s?.offRampCount) };
+}
+
+export function initMind(competencies: (string | CompetencySpec)[], maxTurns = DEFAULT_MAX_TURNS): InterviewMind {
   return {
     competencies: competencies.map(toSpec).map((s) => ({
       name: s.name, confidence: 0, depthProbed: 0, evidence: [], core: !!s.core, behavioral: !!s.behavioral,
     })),
-    turn: 0, maxTurns, difficulty: 2, current: null, clarifyAttempts: 0, consecutiveLow: 0,   // warmup:难度从 2 起(先暖场,别一上来就最难)
+    turn: 0, maxTurns: boundedInterviewTurns(maxTurns), difficulty: 2, current: null, clarifyAttempts: 0, consecutiveLow: 0,
+    session: emptySession(), lastDecision: null,
   };
 }
 
@@ -95,7 +161,11 @@ export function ingestAssessment(mind: InterviewMind, competency: string, score:
   // 难度自适应:答得好(本次>0.7)升,答得差(<0.4)降;off-ramp 额外再降一档(别把弱候选人逼到墙角)
   const base = mind.difficulty + (s > 0.7 ? 1 : s < 0.4 ? -1 : 0);
   const difficulty = clampDiff(offRamp ? base - 1 : base);
-  return { ...mind, competencies, difficulty, turn: mind.turn + 1, clarifyAttempts: 0, consecutiveLow: offRamp ? 0 : consec };
+  const session = sessionOf(mind);
+  return {
+    ...mind, competencies, difficulty, turn: mind.turn + 1, clarifyAttempts: 0, consecutiveLow: offRamp ? 0 : consec,
+    session: { ...session, offRampCount: offRamp ? session.offRampCount + 1 : session.offRampCount },
+  };
 }
 
 /* ───────────── 非作答 / 答非所问:确定性感知层(免模型,可 gate、可面试辩护) ───────────── */
@@ -187,9 +257,13 @@ export function markClarify(mind: InterviewMind): InterviewMind {
 export function markUnresolved(mind: InterviewMind, competency: string): InterviewMind {
   const competencies = mind.competencies.map((c) => {
     if (c.name !== competency) return c;
-    return { ...c, confidence: Math.min(c.confidence, 0.2), depthProbed: probeCap(c), evidence: [...c.evidence, '未正面作答/跳过(探尽未决,标弱不再追)'].slice(-6) };
+    return { ...c, confidence: Math.min(c.confidence, 0.2), depthProbed: probeCap(c), evidence: [...c.evidence, UNRESOLVED_MARKER].slice(-6) };
   });
-  return { ...mind, competencies, clarifyAttempts: 0, consecutiveLow: 0, turn: mind.turn + 1 };   // difficulty 不变
+  const session = sessionOf(mind);
+  return {
+    ...mind, competencies, clarifyAttempts: 0, consecutiveLow: 0, turn: mind.turn + 1,
+    session: { ...session, unresolvedCount: session.unresolvedCount + 1 },
+  };
 }
 
 /** 引导语(确定性生成,可解释):说清这题想考什么 + 提示用真实简历经历 + 明确可跳过(无死胡同)。 */
@@ -208,24 +282,101 @@ function pickKind(c: Competency): QuestionKind {
   return c.depthProbed % 2 === 1 ? 'fundamental' : 'scenario';
 }
 
-/** 策略:据能力模型 + 预算决定下一步。确定性、可解释。题型(qkind)亦由确定性规则定,模型只出题面。 */
-export function decideNext(mind: InterviewMind): NextAction {
-  if (mind.turn >= mind.maxTurns) return { kind: 'conclude', reason: 'budget_exhausted' };
-  // 还"值得探"的能力 = 既弱(confidence<阈值)又没探到上限(depthProbed<probeCap);否则它已"探尽",别再死缠
-  const probeable = mind.competencies.filter((c) => c.confidence < CONF_ENOUGH && c.depthProbed < probeCap(c));
-  if (probeable.length === 0) return { kind: 'conclude', reason: 'all_resolved' };   // 全部 够强 或 探尽 → 收尾
+function scoredEvidenceCount(c: Competency): number {
+  return c.evidence.filter((e) => e !== UNRESOLVED_MARKER).length;
+}
 
-  const cur = mind.current ? mind.competencies.find((c) => c.name === mind.current) : null;
-  // 当前能力还弱且没追问够 → 继续追问(probe deeper)
-  if (cur && cur.confidence < CONF_ENOUGH && cur.depthProbed < probeCap(cur)) {
-    return { kind: 'ask', competency: cur.name, difficulty: mind.difficulty, mode: 'probe', qkind: pickKind(cur) };
+function isResolved(c: Competency): boolean {
+  return c.confidence >= CONF_ENOUGH || c.depthProbed >= probeCap(c);
+}
+
+export function interviewCoverage(mind: InterviewMind): CoverageSnapshot {
+  const comps = mind.competencies;
+  const cores = comps.filter((c) => c.core);
+  return {
+    total: comps.length,
+    probed: comps.filter((c) => c.depthProbed > 0).length,
+    resolvedStrong: comps.filter((c) => c.confidence >= CONF_ENOUGH).length,
+    coresTotal: cores.length,
+    coresResolved: cores.filter(isResolved).length,
+    coresWithEvidence: cores.filter((c) => isResolved(c) && scoredEvidenceCount(c) > 0).length,
+    evidenceItems: comps.reduce((n, c) => n + scoredEvidenceCount(c), 0),
+  };
+}
+
+function provenanceOf(mind: InterviewMind, code: ConcludeReason | AskReason, cited: string[]): DecisionProvenance {
+  const session = sessionOf(mind);
+  return {
+    code,
+    turn: mind.turn,
+    maxTurns: mind.maxTurns,
+    safetyCeiling: SAFETY_CEILING_TURNS,
+    coverage: interviewCoverage(mind),
+    citedCompetencies: cited,
+    signals: { ...session, consecutiveLow: mind.consecutiveLow },
+  };
+}
+
+export function rememberDecision(mind: InterviewMind, action: NextAction): InterviewMind {
+  return { ...mind, lastDecision: action.provenance };
+}
+
+/** 策略:覆盖/证据/会话信号决定继续、加深或收尾。确定性、可解释;模型不得写停续。 */
+export function decideNext(mind: InterviewMind): NextAction {
+  const session = sessionOf(mind);
+  const coverage = interviewCoverage(mind);
+  const weakCited = mind.competencies.filter((c) => c.depthProbed > 0 && c.confidence < CONF_ENOUGH).map((c) => c.name);
+  const conclude = (reason: ConcludeReason, cited: string[]): NextAction =>
+    ({ kind: 'conclude', reason, provenance: provenanceOf(mind, reason, cited) });
+  const ask = (c: Competency, mode: 'probe' | 'pivot', reason: AskReason): NextAction =>
+    ({ kind: 'ask', competency: c.name, difficulty: mind.difficulty, mode, qkind: pickKind(c), reason, provenance: provenanceOf(mind, reason, [c.name]) });
+
+  if (mind.turn >= SAFETY_CEILING_TURNS) return conclude('safety_ceiling', weakCited);
+  if (mind.turn >= mind.maxTurns) return conclude('budget_exhausted', weakCited);
+
+  const abortCount = session.unresolvedCount + session.offRampCount;
+  if (mind.turn >= MIN_EARLY_TURNS && coverage.resolvedStrong === 0 && abortCount >= EARLY_WEAK_ABORTS && coverage.probed >= 2) {
+    return conclude('early_weak', weakCited);
   }
-  // 否则换一个最该探的(探得最少、最弱优先)→ pivot。probeable.length>0 已上保证,next 必存在。
+
+  const probeable = mind.competencies.filter((c) => c.confidence < CONF_ENOUGH && c.depthProbed < probeCap(c));
+  const cur = mind.current ? mind.competencies.find((c) => c.name === mind.current) ?? null : null;
+  const stayProbe = !!(cur && cur.confidence < CONF_ENOUGH && cur.depthProbed < probeCap(cur));
+  const willPivot = !stayProbe && probeable.length > 0;
+
+  if (mind.turn >= MIN_EARLY_TURNS && coverage.resolvedStrong === 0 && willPivot && session.consecutivePivots + 1 >= THRASH_PIVOTS) {
+    return conclude('thrashing', weakCited);
+  }
+
+  if (cur && stayProbe) {
+    // 高分被 HOOK_CAP 压在够强线下 = 强答加深,不是另开模型停续。无钩子高分仍一次结算(不过度追问)。
+    const reason: AskReason = cur.confidence < CONF_WEAK ? 'probe_weak' : 'probe_deepen_strong';
+    return ask(cur, 'probe', reason);
+  }
+
+  if (probeable.length === 0) {
+    const met = coverage.coresTotal > 0 && coverage.coresResolved === coverage.coresTotal && coverage.coresWithEvidence === coverage.coresTotal;
+    return conclude(met ? 'coverage_met' : 'all_resolved', mind.competencies.map((c) => c.name));
+  }
+
   const next = [...probeable].sort((a, b) => a.depthProbed - b.depthProbed || a.confidence - b.confidence)[0]!;
-  return { kind: 'ask', competency: next.name, difficulty: mind.difficulty, mode: 'pivot', qkind: pickKind(next) };
+  const offrampPivot = !!(cur && cur.depthProbed >= probeCap(cur) && cur.confidence < CONF_ENOUGH);
+  return ask(next, 'pivot', offrampPivot ? 'pivot_offramp' : 'pivot_coverage');
 }
 
 /** 行动后:记下当前在探的能力(供下一轮 probe 判断)。换能力时清零 consecutiveLow(off-ramp 计数只对一段连续同能力有效)。 */
 export function withCurrent(mind: InterviewMind, competency: string): InterviewMind {
-  return { ...mind, current: competency, consecutiveLow: competency === mind.current ? mind.consecutiveLow : 0 };
+  const switched = competency !== mind.current;
+  const leaving = mind.current ? mind.competencies.find((c) => c.name === mind.current) : undefined;
+  const session = sessionOf(mind);
+  const unproductive = switched && !!leaving && leaving.depthProbed > 0 && leaving.confidence < CONF_WEAK;
+  return {
+    ...mind,
+    current: competency,
+    consecutiveLow: switched ? 0 : mind.consecutiveLow,
+    session: {
+      ...session,
+      consecutivePivots: !switched ? 0 : unproductive ? session.consecutivePivots + 1 : 0,
+    },
+  };
 }

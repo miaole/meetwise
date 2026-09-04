@@ -29,7 +29,7 @@ related:
 | 层 | 当前状态 | 保存什么 | 禁止项 | 生命周期 |
 | --- | --- | --- | --- | --- |
 | L0 原始业务输入 | 已接线 | 当前作答、`answerId/hash`、题目身份 | 不经 SSE 回放原文；不当长期记忆 | 业务保留策略；仅本轮评分读取 |
-| L1 工作记忆 | 已接线 | `pending`、`submitted`、能力状态、题目来源、checkpoint | 完成态 `transcript` 不复制 raw answer | 一场面试，`maxTurns` 默认 8 |
+| L1 工作记忆 | 已接线 | `pending`、`submitted`、能力状态、题目来源、checkpoint、收尾出处 | 完成态 `transcript` 不复制 raw answer | 一场面试；软预算按覆盖计划派生且可上调；绝对杀开关默认 120（平台安全，不是质量政策）；实际轮数由覆盖/证据政策决定 |
 | L2 会话审计 | 已接线 | question ledger（题目账本；C 端已出/已答进度，非 ScoreCard）、事件账本、评分卡与报告聚合 | 进度读题目账本；质量读 ScoreCard/assessment_report；不用 checkpoint 当业务事实源 | 状态机/审计策略决定 |
 | L3 跨会话情景记忆 | 已接线且刻意窄 | 系统生成题目的归一化 `episode` | 不存答案、简历原文、电话转写、模型主观评价 | 面试完成后写入；owner RLS |
 | L4 成长投影 | 已接线且只读 | `assessment_report` 中 `gap=true` 的维度名 | 不把旧分数并入本场；不改难度/confidence | 规划时作为排序 hint |

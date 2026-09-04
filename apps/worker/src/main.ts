@@ -552,7 +552,7 @@ async function bootstrap() {
     graphObserver: langfuse?.graphObserver,
     role: '技术岗',
     // 实时供应商 E2E 不能用本地模型替身。为把浏览器收口测试控制在费用/时间预算内，
-    // 仅临时隔离库允许 1–8 轮的显式上限；任何其他环境都不读取该变量，保持图默认 8 轮。
+    // 仅临时隔离库允许 1–8 轮的显式上限；生产不传 maxTurns，由图默认预算(安全天花板 16)+decideNext 政策收口。
     maxTurns: process.env.E2E_ISOLATED === '1'
       ? boundedIntEnv('E2E_ADAPTIVE_MAX_TURNS', 8, 1, 8)
       : undefined,

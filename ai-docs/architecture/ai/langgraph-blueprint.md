@@ -40,7 +40,7 @@ LangGraph 的持久化、checkpointer、event streaming、interrupt 和 subgraph
 
 ## 当前短流程与目标长时专家面试的边界
 
-当前图适合“当前题 → 当前答 → 当前评估”的有界面试，**不等于**用户可回放的完整面试，也不等于一到两小时专家级面试。现有 checkpoint 用于恢复图的 pending 工作，不是用户可见 transcript；浏览器 SSE 和短期 answer job payload 也不是长期原文存储。当前轮数上限、固定角色和评分边界以 [运行时事实矩阵](../current-runtime-truth.md) 为准。
+当前图适合“当前题 → 当前答 → 当前评估”的有界面试，**不等于**用户可回放的完整面试，也不等于一到两小时专家级面试。现有 checkpoint 用于恢复图的 pending 工作，不是用户可见 transcript；浏览器 SSE 和短期 answer job payload 也不是长期原文存储。短流程长度由覆盖/证据政策决定（安全天花板 16，不是固定八轮），固定角色和评分边界以 [运行时事实矩阵](../current-runtime-truth.md) 为准。
 
 目标设计在 [长时专家面试运行时用例](../../requirements/use-cases/expert-long-interview-runtime.md) 中冻结，当前仍为 `draft`，不得据此描述任何生产能力。它不把“加大 maxTurns”当方案，而是新增四类相互独立的业务事实：
 

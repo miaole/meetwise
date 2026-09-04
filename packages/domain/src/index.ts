@@ -127,10 +127,12 @@ export { deriveGrowth, toGrowthRow } from './growth.ts';
 export type { GrowthRow, GrowthDim, GrowthPoint, GrowthTrend, GrowthView } from './growth.ts';
 
 export {
-  initMind, ingestAssessment, decideNext, withCurrent,
-  isSkip, isNonAnswer, stripScoringManipulation, classifyTurn, markClarify, markUnresolved, clarifyHint, MAX_CLARIFY, MAX_PROBE,
+  initMind, ingestAssessment, decideNext, withCurrent, rememberDecision, interviewCoverage, sessionOf, boundedInterviewTurns,
+  isSkip, isNonAnswer, stripScoringManipulation, classifyTurn, markClarify, markUnresolved, clarifyHint,
+  MAX_CLARIFY, MAX_PROBE, SAFETY_CEILING_TURNS, DEFAULT_MAX_TURNS, MIN_EARLY_TURNS, EARLY_WEAK_ABORTS, THRASH_PIVOTS,
   toCompetencySpecs, BEHAVIORAL_COMPETENCY,
   type InterviewMind, type Competency, type CompetencySpec, type NextAction, type QuestionKind, type TurnSignal, type TurnVerdict,
+  type InterviewSessionSignals, type CoverageSnapshot, type ConcludeReason, type AskReason, type DecisionProvenance,
 } from './adaptive-interview.ts';
 
 export { isVerbatimCopy, validateGrounded, type SourceDoc, type GroundedQuestion, type GroundResult } from './grounded-questions.ts';
