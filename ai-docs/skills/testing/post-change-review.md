@@ -16,7 +16,18 @@ related:
 
 # 变更后审核清单
 
-这是 [变更后 SOP](./sop.md) 的第 1 步。任一项为“未查”则不得声称审核通过。勾完后进入 [选测试层](./layer-selection.md)，不要直接跑 `pnpm regression`。
+这是 [变更后 SOP](./sop.md) 的第 1 步。任一项为“未查”则不得声称审核通过，也**不得声称完成**。勾完后进入 [选测试层](./layer-selection.md)，不要直接跑 `pnpm regression`。
+
+## 0. 生成物默认不可信（P0，先于一切“已完成”）
+
+可以自动化重构、测试、UI 检查和回归；**默认不信任生成代码或模型输出**。`pnpm regression` 绿了只证明 always-on 子集，不是审核通过，更不是 READY。
+
+- [ ] 已审过本 diff 的正确性、安全、出处；没有伪造分数、伪造进度或假终态。
+- [ ] 结论只引用实际命令与退出码；**skip-as-pass 禁止**。缺 Key / 未跑记 `not_run` 或 `blocked`，不得写成通过。
+- [ ] 在受信回执存在之前，`releaseEvidence` 必须是 `false`。本地隔离回执仍不是发布证据。
+- [ ] 未审核生成物**不得标 READY**，不得把 draft / NOT_READY 技能升格，不得写「已完成 / 已验证」代替本清单。
+
+未勾完本节，后面的范围/状态机勾选一律视为“未查”。`pnpm generation-trust:prove` 与 `pnpm regression` 会机械检查本政策仍写在技能与回归入口里；命令绿不能替代本节人工审核。
 
 ## 1. 范围与来源
 

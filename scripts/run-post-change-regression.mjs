@@ -8,6 +8,8 @@
  *          exits non-zero (never skip-as-pass).
  *
  * releaseEvidence is always false. This script does not replace CI verify.
+ * Passing --claim-done / --ready / --done is regression_claim_done_forbidden:
+ * skip-as-pass is forbidden. Unreviewed generation 不得标 READY; local green is NOT_READY.
  */
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
@@ -16,6 +18,12 @@ const ROOT = new URL('..', import.meta.url).pathname;
 const args = new Set(process.argv.slice(2));
 const wantCore = args.has('--core');
 const wantLive = args.has('--live');
+const claimFlags = [...args].filter((flag) => ['--claim-done', '--ready', '--done'].includes(flag));
+if (claimFlags.length) {
+  console.error('regression_claim_done_forbidden');
+  console.error('Generation is untrusted by default. Review the AI-touched diff first. Do not mark READY.');
+  process.exit(2);
+}
 const unknown = [...args].filter((flag) => !['--core', '--live'].includes(flag));
 if (unknown.length) {
   console.error(`regression_unknown_flag:${unknown.join(',')}`);
@@ -24,6 +32,7 @@ if (unknown.length) {
 
 const ALWAYS_ON = [
   ['docs:check', ['docs:check']],
+  ['generation-trust:prove', ['generation-trust:prove']],
   ['golden-tasks:check', ['golden-tasks:check']],
   ['e2e-platform:prove', ['e2e-platform:prove']],
   ['e2e-helpers:prove', ['e2e-helpers:prove']],
@@ -102,12 +111,17 @@ async function main() {
 
   console.log(`\nREGRESSION_SUMMARY ${JSON.stringify({
     outcome: wantLive ? 'passed_always_on_and_http_e2e' : 'passed_always_on_only',
+    claimDone: false,
+    reviewGate: 'ai_touched_diff_required',
+    skipAsPass: 'forbidden',
+    readyFromUnreviewedGeneration: 'forbidden',
     releaseEvidence: false,
     liveE2E: wantLive ? 'http_ran_ui_not_included' : 'not_requested',
     core: wantCore,
     steps: results,
     durationMs: Date.now() - started,
   })}`);
+  console.log('REGRESSION_CLAIM_DONE forbidden. Review the AI-touched diff (correctness, security, provenance). Commands passing is not READY.');
   if (!wantLive) {
     console.log('live HTTP E2E not requested. After interview/API/web/db changes, run `pnpm regression --live` when MODEL_API_KEY is available; otherwise record not_run.');
   }

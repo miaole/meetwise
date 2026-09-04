@@ -21,9 +21,11 @@
 
 ## 完成声明的最小证据
 
-- `pnpm e2e-platform:prove` 退出 0
-- `pnpm regression` 退出 0（或记录哪一步失败）
-- live 若未跑：显式 `not_run`
-- `releaseEvidence: false`
+命令绿不是完成。先走 [变更后审核](../post-change-review.md) 第 0 节（生成物默认不可信）。然后：
+
+- `pnpm generation-trust:prove` 与 `pnpm e2e-platform:prove` 退出 0
+- `pnpm regression` 退出 0（或记录哪一步失败）；`claimDone` 仍为 false
+- live 若未跑：显式 `not_run`（skip-as-pass 禁止）
+- 没有受信回执前 `releaseEvidence: false`；未审核生成物不得标 READY
 
 没有阶段检查点仓库、没有 70 条 MOVE/BRIDGE 清单。本仓库用上述命令当检查点。

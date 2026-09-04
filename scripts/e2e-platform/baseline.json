@@ -14,6 +14,7 @@
     "e2e-helpers:prove",
     "e2e-platform:prove",
     "e2e-receipt:prove",
+    "generation-trust:prove",
     "golden-tasks:check"
   ]
 }

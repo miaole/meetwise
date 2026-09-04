@@ -24,6 +24,8 @@ related:
 
 **状态：`draft`。** draft 只限制对外宣称流程已生产就绪，**不减免步骤**。必须先读完并逐步执行 [变更后 SOP](./sop.md)，不得只跑 `pnpm regression` 就写「已验证」。
 
+**生成物默认不可信。** 重构、测试、UI、回归可以自动化；生成代码与模型输出必须先审正确性、安全、出处，禁止伪造分数/进度。**skip-as-pass 禁止。** 没有受信回执前 `releaseEvidence` 必须为 `false`。未审核生成物不得标 READY。
+
 子清单按 SOP 表格打开，不要在本页另开一套步骤：
 
 - [变更后审核](./post-change-review.md)
@@ -53,3 +55,4 @@ pnpm regression --live   # 仅真供应商 HTTP E2E；无 MODEL_API_KEY 不要�
 - `run-e2e.mjs` 在 `E2E_ISOLATED=1` 且存在 `MODEL_API_KEY` 时才启动；`VOICE_FAKE` / `OCR_FAKE` / `E2E_FAKE_MODEL` 直接失败。
 - 回执恒为 `releaseEvidence=false`。没有受信 runner、不可变对象存储和独立验签，就不能写发布通过。
 - golden-tasks 第一批已建档；未映射到可跑门的条目状态必须是 `planned` 或 `unmapped`，禁止标 `passed`。
+- `pnpm generation-trust:prove` 检查本政策仍写在审核清单与回归入口；绿了也不等于「已完成」。

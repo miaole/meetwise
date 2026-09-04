@@ -29,6 +29,8 @@ related:
 7. **把 Playwright 说成当前 HTTP 全链路实现。** 浏览器层才是 Playwright；HTTP 层是 fetch/SSE。
 8. **把本机性能数字说成线上 SLO。**
 9. **把默认 `pnpm regression` 绿写成触达面必须列已完成、CI `verify` 通过或发布证据。**
+10. **skip-as-pass。** 缺 Key、未跑、失败，只能记 `not_run` / `blocked` / 非零退出，不能改 runner 或删守卫来绿。
+11. **未审核生成物标 READY 或声称完成。** 生成代码 / 模型输出默认不可信。没有走完 [变更后审核](./post-change-review.md) 第 0 节，不得标 READY，也不得把 `releaseEvidence=false` 的绿回归写成完成。受信回执出现之前，`releaseEvidence` 必须保持 `false`。
 
 ## 允许
 
@@ -43,6 +45,9 @@ commands: <实际执行的 pnpm 列表>
 exit: <逐条退出码>
 receipts: <路径或 none>
 releaseEvidence: false
+aiDiffReviewed: yes | no
+claimDone: false
+ready: NOT_READY
 liveE2E: ran | not_run:<reason>
 kind: FAIL_API | FAIL_WORKER | FAIL_DB | FAIL_PROVIDER | FAIL_CAPABILITY | BLOCKED_DATA_OR_PERMISSION | BLOCKED_LIVE_KEY | none
 forgedScores: none | <缺口>
