@@ -309,6 +309,10 @@
         {
           "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
           "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/voice-stream-preview.proof.ts",
+          "class": "local-adapter-test"
         }
       ]
     }
@@ -359,6 +363,11 @@
     {
       "name": "DASHSCOPE_API_KEY",
       "source": "packages/ai-runtime/test/interview-voice-seams.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "packages/ai-runtime/test/voice-stream-preview.proof.ts",
       "class": "test-isolation"
     },
     {
@@ -657,6 +666,11 @@
       "class": "test-isolation"
     },
     {
+      "name": "DASHSCOPE_STREAM_ASR_API_KEY",
+      "source": "packages/ai-runtime/test/voice-stream-preview.proof.ts",
+      "class": "test-isolation"
+    },
+    {
       "name": "DASHSCOPE_STREAM_ASR_MODEL",
       "source": "packages/ai-runtime/src/voice-stream.ts",
       "class": "adapter"
@@ -704,6 +718,11 @@
     {
       "name": "DASHSCOPE_STREAM_TTS_API_KEY",
       "source": "packages/ai-runtime/test/interview-voice-seams.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_API_KEY",
+      "source": "packages/ai-runtime/test/voice-stream-preview.proof.ts",
       "class": "test-isolation"
     },
     {
