@@ -55,6 +55,7 @@ export const OPTIONAL_ALWAYS_ON = Object.freeze([
   'public-preview-write:prove',
   'public-preview-write-gate:prove',
   'interview-answer-submission:prove',
+  'adaptive-length:prove',
 ]);
 
 export const CORE_REQUIRED = Object.freeze([

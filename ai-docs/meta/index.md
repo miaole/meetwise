@@ -85,6 +85,7 @@ tags:
 | AI 编排 | `architecture/ai/langgraph-blueprint.md` | graph、state、checkpoint、eval |
 | 前端架构 | `architecture/frontend/` | 页面、组件、数据流、RSC 边界 |
 | C 端进度/已答题数 | `requirements/use-cases/cend-overview-progress.md` | 题目账本投影、与 ScoreCard 分责 |
+| 自适应面试动态长度 | `requirements/use-cases/adaptive-interview-length.md` | 覆盖/证据驱动；软预算可上调；绝对杀开关默认 120 ≠ `INT-LONG-INTERVIEW-01` |
 | 公开预览写门禁 | `architecture/backend/public-preview-write-inventory.md` | 面试/评分写面清单 + fail-closed；本地 proof ≠ 发布 |
 | INT-TRANSCRIPT-00 隐私诚实 | `architecture/current-runtime-truth.md` | 公开 DELETE 仍 503；无 `/answers`；签发器落地 ≠ 删除权闭合 |
 | RAG-FUNNEL-01A ACL | `rules/backend/qbank-control-definer-sealed-manifest.md` | 31/15/2 闭包 + `0124` 空 principal fail-closed；域 ACL 未接线；≠ routed serving |

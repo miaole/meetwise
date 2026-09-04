@@ -126,11 +126,11 @@ related:
 
 脚本映射（禁止对调）：`e2e-platform:check` → `scripts/e2e-platform/check.mjs`；`e2e-platform:prove` → `scripts/e2e-platform/prove.mjs`（5 命名守卫）；`e2e-platform:layout:prove` → `scripts/e2e-platform/e2e-platform.proof.mjs`（种植违规）；`e2e-platform:loop` → `scripts/e2e-platform/review-loop.mjs`（`test` 步仍是 `prove`，不是 `layout:prove`）。
 
-可选（`package.json` 有脚本才挂）：`public-text-policy:prove` · `quality:traceability:prove` · `provider-egress:prove` · `public-preview-write:prove` · `public-preview-write-gate:prove` · `interview-answer-submission:prove`。
+可选（`package.json` 有脚本才挂）：`public-text-policy:prove` · `quality:traceability:prove` · `provider-egress:prove` · `public-preview-write:prove` · `public-preview-write-gate:prove` · `interview-answer-submission:prove` · `adaptive-length:prove`。
 
-## 相对最新 main 的叠底（#65 + #68 + #69 + #71 + #70）
+## 相对最新 main 的叠底（#65 + #68 + #69 + #71 + #70 + #66）
 
-本分支已叠到 `origin/main` @ `8ac2f39`（#68 → #65 → #69 → #71 → #70 `0125` sink inventory）。`package.json` / `check-docs.mjs` / `run-e2e-isolated.mjs` / `directory-boundaries.md` 自动并集；`meta/index.md` 冲突按并集解。#70 是 main 上已合并的独立切片，**不是**本 PR 的 supersede 对象；本 PR 只 supersede #55–#64。
+本分支已叠到 `origin/main` @ `fc41696`（#68 → #65 → #69 → #71 → #70 `0125` sink inventory → #66 覆盖驱动软预算）。`package.json` / `check-docs.mjs` 自动并集；`meta/index.md` 无冲突（E2E 路由行 + `adaptive-interview-length.md` 并集）。#66 / #70 是 main 上已合并的独立切片，**不是**本 PR 的 supersede 对象；本 PR 只 supersede #55–#64。
 
 | 来源 | 必须保留 |
 | --- | --- |
@@ -140,6 +140,7 @@ related:
 | #69 | 公开 `DELETE /privacy/interview-data/:id` 仍 `503 interview_erasure_authorization_not_available`；无公开 `/answers`；`interview-answer-submission:prove` 冻结 submission/receipt 合同且不进 OpenAPI；签发器/0091 账本 ≠ 删除已开放；预览 `/turn` 503 不是隐私 DELETE 503，也不关闭 `INT-P0-RAW-QUEUE` |
 | #71 | `0124_rag_retrieval_acl_fail_closed.sql` 空 principal → `rag_acl_principal_missing`；QBank definer 闭包 31 函数 / 15 表 / 2 视图已密封；域 `rag-retrieval-acl.ts` 是未接线合同，不是 routed serving 或发布证据；不重开公开删除、不新增 `/answers` |
 | #70 | `0125_memory_vector_chunk_erasure.sql` 把 `vector_chunk.kind='memory'` 纳入账户回执；sink 盘点在 `privacy-deletion-sink-inventory.md`；一份 request `completed` ≠ 账户删除完成；公开 DELETE 仍 503；不删 `kind='qbank'` |
+| #66 | 停续由 `decideNext` 覆盖/证据/空转/加深决定，不是 `turn≥N`；软预算可上调；`absoluteMaxTurns` 默认 120 只防 runaway（60/90/120 档，不是分钟 blueprint）；`MAX_TURN=256` 是 API 刷号护栏；`issued_turns` / `Overview.answered` 谓词不得被长度政策改写；`INT-LONG-INTERVIEW-01` 仍未完成；可选 always-on 挂 `adaptive-length:prove` |
 
 `check-docs.mjs` / `meta/index.md` / 用例目录是并集，不是二选一。
 
@@ -161,7 +162,7 @@ related:
 | `testing/e2e-parity-baseline.md` + JSON/allowlist | floors 48/367；effective 37/342；allowlist 6 条 |
 | `architecture/ai/provider-egress-inventory.{json,md}` | 登记 #62/#63 新增的 7 处 `MODEL_*` / `DASHSCOPE_TEST_*` 引用；`environmentReferenceCount` = 186 |
 
-`docs:check` 把本文件列为 required，并要求出现 `#55`、`#64`、`#69`、`#71`、`#70`、`feature/e2e-platform-integration`、`fail-closed`、`releaseEvidence`、`supersede`。
+`docs:check` 把本文件列为 required，并要求出现 `#55`、`#64`、`#69`、`#71`、`#70`、`#66`、`feature/e2e-platform-integration`、`fail-closed`、`releaseEvidence`、`supersede`。
 
 ## 本轮诚实边界
 
@@ -169,17 +170,17 @@ related:
 aiAuthored: yes
 aiTrust: untrusted
 review: blocked:author_only
-verification: commands_ok
+verification: not_run:restack_onto_66_pending
 commands: pnpm regression
-exit: docs:check=0 generation-trust:prove=0 golden-tasks:check=0 golden-tasks:prove=0 e2e-platform:check=0 e2e-platform:prove=0 e2e-platform:layout:prove=0 e2e-helpers:prove=0 e2e-receipt:prove=0 e2e-runner:prove=0 e2e-static-guards:check=0 e2e-static-guards:prove=0 e2e-parity:check=0 e2e-parity:prove=0 arch=0 api:smoke=0 public-text-policy:prove=0 quality:traceability:prove=0 provider-egress:prove=0 public-preview-write:prove=0 public-preview-write-gate:prove=0 interview-answer-submission:prove=0
+exit: pending
 receipts: none
 claimDone: false
 ready: NOT_READY
-rounds: 6
+rounds: 7
 releaseEvidence: false
 liveE2E: not_run:live_provider_key_missing
 core: not_requested
 secrets: none
 ```
 
-`pnpm regression` 在叠到 `origin/main`（#65+#68+#69+#71+#70）后退出 0（`outcome=passed_always_on`）。这只证明 always-on + 已接线可选静态门，不是 CI `verify`、不是 `--core`、不是 live E2E。#70 的 `memory-vector-chunk-erasure:prove` 与 #71 的 `qbank-handoff-closure:prove` 需要 Docker，未跑。本 PR 只 supersede #55–#64，不 supersede #70。作者不得自签 `review: passed`。不得 `--claim-done`。不得写「本轮局部验证完成」——审核仍是 `blocked:author_only`。
+叠到 `origin/main` @ `fc41696`（含 #66）后的 always-on 尚未在本轮重跑；上一轮绿不能沿用。跑完后才能写 `verification: commands_ok`。这仍不是 CI `verify`、不是 `--core`、不是 live E2E。#70 的 `memory-vector-chunk-erasure:prove` 与 #71 的 `qbank-handoff-closure:prove` 需要 Docker，未跑。本 PR 只 supersede #55–#64，不 supersede #66 / #70。作者不得自签 `review: passed`。不得 `--claim-done`。不得写「本轮局部验证完成」——审核仍是 `blocked:author_only`。
