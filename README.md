@@ -44,7 +44,7 @@ db:prove  runtime:prove  graph:prove  pipeline:prove  api:validate  api:smoke  a
 
 ## 界面一览
 
-> 合成截图，用来看版式。图里的旧按钮文案以本页和项目展示为准。
+> 合成截图，用来看版式。标题、按钮和价格以本页和项目展示为准。
 
 ### 桌面端
 
@@ -56,9 +56,9 @@ db:prove  runtime:prove  graph:prove  pipeline:prove  api:validate  api:smoke  a
 | --- | --- | --- |
 | ![PIPL 同意门](apps/web/docs/screenshots/04a-resume-consent.png) | ![简历解析](apps/web/docs/screenshots/04-resume.png) | ![面试列表](apps/web/docs/screenshots/05-interviews.png) |
 
-| 能力成长曲线 | 定价 | 能力特性 |
-| --- | --- | --- |
-| ![成长曲线](apps/web/docs/screenshots/08-growth.png) | ![定价](apps/web/docs/screenshots/06-pricing.png) | ![能力特性](apps/web/docs/screenshots/07-features.png) |
+| 能力成长曲线 |
+| --- |
+| ![成长曲线](apps/web/docs/screenshots/08-growth.png) |
 
 ---
 

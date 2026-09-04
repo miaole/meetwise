@@ -9,10 +9,6 @@ import {
   Users,
   LineChart,
   ShieldCheck,
-  Route,
-  Database,
-  BadgeCheck,
-  Scale,
   ArrowRight,
   type LucideIcon,
 } from 'lucide-react';
@@ -32,14 +28,12 @@ export const metadata: Metadata = {
 };
 
 const featureIcons: LucideIcon[] = [FileText, Target, Brain, Users, LineChart, ShieldCheck];
-const diffIcons: LucideIcon[] = [Route, Database, BadgeCheck, Scale];
 
 export default async function FeaturesPage() {
   const t = await getTranslations('features');
-  const diffs = [1, 2, 3, 4].map((i) => ({
+  const diffs = [1, 2, 3, 4, 5, 6].map((i) => ({
     title: t(`diff${i}Title`),
     desc: t(`diff${i}Desc`),
-    icon: diffIcons[i - 1],
   }));
   const rec = [1, 2, 3].map((i) => ({
     title: t(`rec${i}Title`),
@@ -59,26 +53,20 @@ export default async function FeaturesPage() {
         <p className="mt-3 text-base leading-relaxed text-muted-foreground">{t('lead')}</p>
       </header>
 
-      <section className="mb-12">
+      <section id="arch" className="mb-12">
         <div className="text-xs font-medium uppercase tracking-wide text-primary">{t('diffEyebrow')}</div>
         <h2 className="mt-2 max-w-2xl text-2xl font-extrabold tracking-tight">{t('diffH2')}</h2>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          {diffs.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Card key={item.title} className="p-5">
-                <div className="mb-3 flex size-9 items-center justify-center rounded-lg bg-accent text-primary">
-                  <Icon className="size-4" aria-hidden />
-                </div>
-                <h3 className="font-semibold">{item.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
-              </Card>
-            );
-          })}
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {diffs.map((item) => (
+            <Card key={item.title} className="p-5">
+              <h3 className="font-semibold">{item.title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
+            </Card>
+          ))}
         </div>
       </section>
 
-      <section className="mb-12">
+      <section id="rec" className="mb-12">
         <div className="text-xs font-medium uppercase tracking-wide text-primary">{t('recEyebrow')}</div>
         <h2 className="mt-2 max-w-2xl text-2xl font-extrabold tracking-tight">{t('recH2')}</h2>
         <div className="mt-6 grid gap-4 md:grid-cols-3">

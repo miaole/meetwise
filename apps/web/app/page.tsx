@@ -36,7 +36,7 @@ export default async function Home() {
   ];
   const path = [1, 2, 3].map((i) => ({ title: t(`path${i}Title`), desc: t(`path${i}Desc`) }));
   const rec = [1, 2, 3].map((i) => ({ title: t(`rec${i}Title`), desc: t(`rec${i}Desc`) }));
-  const arch = [1, 2, 3, 4, 5, 6].map((i) => ({ mark: t(`arch${i}Mark`), title: t(`arch${i}Title`), desc: t(`arch${i}Desc`) }));
+  const arch = [1, 2, 3, 4, 5, 6].map((i) => ({ title: t(`arch${i}Title`), desc: t(`arch${i}Desc`) }));
   const caps = [1, 2, 3, 4, 5, 6].map((i) => ({ mark: t(`cap${i}Mark`), title: t(`cap${i}Title`), desc: t(`cap${i}Desc`) }));
   const bars = [{ l: t('bar1'), w: 62 }, { l: t('bar2'), w: 48 }, { l: t('bar3'), w: 74 }];
 
@@ -57,8 +57,8 @@ export default async function Home() {
           </h1>
           <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-muted-foreground">{t('lead')}</p>
           <div className="mt-7 flex flex-wrap items-center gap-3">
-            <Button asChild size="lg"><Link href="/features">{t('ctaPrimary')}<ArrowRight /></Link></Button>
-            <Button asChild size="lg" variant="outline"><Link href="/features">{t('ctaSecondary')}</Link></Button>
+            <Button asChild size="lg"><Link href="#arch">{t('ctaPrimary')}<ArrowRight /></Link></Button>
+            <Button asChild size="lg" variant="outline"><Link href="#rec">{t('ctaSecondary')}</Link></Button>
           </div>
         </div>
 
@@ -78,7 +78,7 @@ export default async function Home() {
             </div>
             <Separator className="mt-5" />
             <div className="mt-5 flex items-center gap-6">
-              <div className="text-lg font-extrabold tracking-tight text-primary">{t('cardScore')}</div>
+              <div className="text-lg font-extrabold tracking-tight text-primary">68</div>
               <div className="flex-1 space-y-2">
                 {bars.map((b) => (
                   <div key={b.l} className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -103,7 +103,7 @@ export default async function Home() {
       </div>
 
       {/* ───── Path:真实经历 → 自适应面试 → 可复盘成长 ───── */}
-      <section>
+      <section id="path">
         <div className="text-xs font-medium uppercase tracking-wide text-primary">{t('pathEyebrow')}</div>
         <h2 className="mt-2 max-w-2xl text-2xl font-extrabold tracking-tight sm:text-3xl">{t('pathH2')}</h2>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -118,7 +118,7 @@ export default async function Home() {
       </section>
 
       {/* ───── Recruiter / interviewer ───── */}
-      <section>
+      <section id="rec">
         <div className="text-xs font-medium uppercase tracking-wide text-primary">{t('recEyebrow')}</div>
         <h2 className="mt-2 max-w-2xl text-2xl font-extrabold tracking-tight sm:text-3xl">{t('recH2')}</h2>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -133,14 +133,13 @@ export default async function Home() {
       </section>
 
       {/* ───── Architecture highlights ───── */}
-      <section>
+      <section id="arch">
         <div className="text-xs font-medium uppercase tracking-wide text-primary">{t('archEyebrow')}</div>
         <h2 className="mt-2 max-w-2xl text-2xl font-extrabold tracking-tight sm:text-3xl">{t('archH2')}</h2>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {arch.map((item) => (
             <Card key={item.title} className="p-6 transition-colors hover:border-primary">
-              <span className="flex size-9 items-center justify-center rounded-lg bg-accent text-sm font-bold text-primary">{item.mark}</span>
-              <h3 className="mt-4 font-semibold">{item.title}</h3>
+              <h3 className="font-semibold">{item.title}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
             </Card>
           ))}
