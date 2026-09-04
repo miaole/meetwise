@@ -94,6 +94,11 @@ jobs:
       - name: Model slot legacy bypass static guard (no database)
         run: pnpm model-slot-bypass:static:prove
 
+      # SSE 共享 sse:principal 槽（无库 hijack + counting asPrincipal stub）：5 条 200，第 6 条 429；
+      # holders 一个周期 stub 恰 +5，被拒连接不入 2s 环。不是隔离库 / 不是跨副本。
+      - name: SSE shared principal slot 5+1 429 (no database)
+        run: pnpm sse-slot:prove
+
       - name: Web preview gate behavioral proof (real NextRequest, not string match)
         run: pnpm -C apps/web prove:middleware
 

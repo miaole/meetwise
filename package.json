@@ -206,6 +206,7 @@
     "interview-dispatch:unit:prove": "pnpm -C apps/worker prove:interview-dispatch",
     "owner-drain-order:unit:prove": "pnpm -C apps/worker prove:owner-drain-order",
     "last-event-id:unit:prove": "pnpm -C apps/api prove:last-event-id",
+    "sse-slot:prove": "pnpm -C apps/api prove:sse-slot",
     "interview-dispatch:prove": "pnpm -C apps/worker prove:interview-dispatch-pg",
     "interview-dispatch:prove:raw": "pnpm -C apps/worker prove:interview-dispatch-pg",
     "quiz-dual-claim:unit:prove": "pnpm -C apps/worker prove:quiz-dual-claim",
