@@ -21,9 +21,19 @@
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
+import {
+  emitClassifiedE2EFailure,
+  evaluateIsolatedHttpE2E,
+  formatE2EReviewCodes,
+  parseE2EFailureLine,
+  tagE2EFailure,
+} from '../e2e/helpers/failure-class.mjs';
 import { captureBounded } from './bounded-command.mjs';
+import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
 import { writeLocalE2EReceipt, writeLocalIsolatedReceipt } from './local-e2e-receipt.mjs';
 import { withheldOutputSummary } from './withheld-output.mjs';
+
+const LIVE_E2E_TARGETS = new Set(['e2e:prove', 'e2e:ui', 'performance:e2e']);
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const target = process.argv[2] ?? 'e2e:prove';
@@ -1171,8 +1181,8 @@ const inheritedEnv = { ...process.env };
 // A real-model scoring evaluation must never load a developer `.env` or pay
 // for a provider call implicitly. CI/manual operators inject the key into this
 // process; without it no disposable database is even started.
-if (target === 'scoring:eval:raw' && !inheritedEnv.MODEL_API_KEY) {
-  console.log('SKIP scoring:eval:raw: MODEL_API_KEY not injected');
+if (target === 'scoring:eval:raw' && !String(inheritedEnv.MODEL_API_KEY ?? '').trim()) {
+  console.log('SKIP scoring:eval:raw: live_provider_key_not_injected');
   process.exit(0);
 }
 // An operator's shell may contain cloud data-plane credentials. Isolated tests
@@ -1192,6 +1202,7 @@ for (const key of [
   'DASHSCOPE_ASR_MODEL', 'DASHSCOPE_TTS_MODEL', 'DASHSCOPE_EMBED_MODEL', 'DASHSCOPE_RERANK_MODEL', 'DASHSCOPE_VISION_MODEL', 'DASHSCOPE_STREAM_ASR_MODEL', 'DASHSCOPE_STREAM_TTS_MODEL',
 ]) delete inheritedEnv[key];
 for (const key of Object.keys(inheritedEnv)) if (key.startsWith('LANGFUSE_')) delete inheritedEnv[key];
+if (LIVE_E2E_TARGETS.has(target)) assertNoFakeServiceFlags(inheritedEnv);
 const targetToken = randomUUID();
 const baseEnv = {
   ...inheritedEnv,
@@ -1293,11 +1304,21 @@ function runFullE2E(command, args, env = baseEnv) {
     child.stderr.on('data', () => {});
     child.on('error', reject);
     child.on('exit', (code) => {
-      const summary = stdout.match(/^✓ E2E 全栈跑通\((\d+) 断言,[^\n]*$/m);
-      const assertionCount = summary ? Number(summary[1]) : null;
-      if (code === 0 && !Number.isInteger(assertionCount)) return reject(new Error('e2e_success_without_final_assertion_summary'));
-      if (summary) console.log(`E2E_FINAL_SUMMARY assertions=${assertionCount}`);
-      resolve({ code: code ?? 1, assertionCount });
+      const judged = evaluateIsolatedHttpE2E({ exitCode: code ?? 1, stdout });
+      if (judged.reject) return reject(tagE2EFailure(judged.reject.class, judged.reject.code));
+      if (judged.accept) {
+        console.log(`E2E_FINAL_SUMMARY assertions=${judged.assertionCount}`);
+        console.log(`E2E_REVIEW_CLASS_COUNT count=${judged.reviewLedger.length}`);
+        console.log(formatE2EReviewCodes(judged.reviewLedger));
+      } else if (judged.failureClass) {
+        console.log(`E2E_FAILURE_CLASS class=${judged.failureClass}`);
+      }
+      resolve({
+        code: judged.accept ? 0 : (code ?? 1),
+        assertionCount: judged.assertionCount,
+        failureClass: judged.failureClass,
+        reviewLedger: judged.reviewLedger,
+      });
     });
   });
 }
@@ -1374,6 +1395,8 @@ async function main() {
   const startedAt = new Date();
   let targetExitCode = 1;
   let assertionCount = null;
+  let failureClass = null;
+  let reviewLedger = null;
   let proofSummary;
   let embedderReal;
   try {
@@ -1400,6 +1423,8 @@ async function main() {
       const result = await runFullE2E('pnpm', [target], env);
       targetExitCode = result.code;
       assertionCount = result.assertionCount;
+      failureClass = result.failureClass;
+      reviewLedger = result.reviewLedger;
     } else {
       if (isolatedCommand && (target.startsWith('privacy-erasure:') || target.startsWith('resume-erasure:') || target.startsWith('resume-derivative-reference:') || target === 'adaptive-consumer:prove:raw')) {
         const result = await runRedactedProof(isolatedCommand[0], isolatedCommand[1], env);
@@ -1420,6 +1445,11 @@ async function main() {
   } catch (error) {
     failed = true;
     targetExitCode = 1;
+    if (target === 'e2e:prove' || target === 'e2e:ui' || target === 'performance:e2e') {
+      const line = emitClassifiedE2EFailure(error, { class: 'db', code: 'database_not_ready' });
+      const parsed = parseE2EFailureLine(line);
+      if (parsed) failureClass = parsed.class;
+    }
     throw error;
   } finally {
     if (created && failed) await emitFailureDiagnostic();
@@ -1435,6 +1465,8 @@ async function main() {
           startedAt,
           finishedAt: new Date(),
           assertionCount,
+          failureClass,
+          reviewLedger,
         });
         console.log(`LOCAL_E2E_RECEIPT file=${relativePath} release_evidence=false`);
       } catch (error) {
