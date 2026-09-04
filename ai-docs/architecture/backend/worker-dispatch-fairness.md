@@ -21,9 +21,9 @@ related:
 
 ## 1. 要消灭的故障
 
-`WORKER-DISPATCH-001` 把发现等待改成提交后 `wake`。面试 tick 仍曾对 gateway 返回的每个 owner 调用 `drainOwnerJobs`，把该 owner 的全部可领作业顺序抽干。一个 owner 的多条长模型作业会挡住后续 owner（head-of-line）。
+`WORKER-DISPATCH-001` 把发现等待改成提交后 `wake`。面试 tick 仍曾对 gateway 返回的每个 owner 调用 `drainOwnerJobs`，把该 owner 的全部可领作业顺序抽干。一个 owner 的多条长模型作业会挡住后续 owner（head-of-line）。`WORKER-DISPATCH-002` 是本文件记录的公平切片：改调度顺序和每 owner 并发 cap，不是再造一条通知队列。
 
-领取本身已有 `FOR UPDATE SKIP LOCKED`、同面试 running 守卫和 lease CAS。缺口是**调度顺序**和**每 owner 并发 cap**，不是再造一条通知队列。
+领取本身已有 `FOR UPDATE SKIP LOCKED`、同面试 running 守卫和 lease CAS。
 
 ## 2. 当前接线
 
