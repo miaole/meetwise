@@ -175,6 +175,15 @@ const checks = {
     requireText(recruiterTalent, '不提供自动筛选、排名、拒绝或录用决定', 'recruiter talent page');
     forbid(features, ['CRAG', '自动触发再检索', '自主探索'], 'feature claims');
   },
+  'TC-PUBLIC-COPY-E12': () => {
+    forbid(`${features}\n${homeZh}\n${homeEn}`, ['预览版语音可在面试页'], 'features must not claim public-preview interview voice');
+    requireText(homeZh, '公开展示站与公开只读预览不开放语音作答', 'features voice honesty');
+    requireText(homeZh, '不编造内容', 'features fail-closed voice');
+    requireText(homeZh, 'GitHub Pages / Web 公开展示站不接收作答', 'Chinese home answers honesty');
+    requireText(homeEn, 'The GitHub Pages / Web showcase does not accept answers', 'English home answers honesty');
+    requireText(homeZh, '公开只读预览 API 仅允许受控账本 POST', 'Chinese home API allowlist');
+    requireText(homeEn, 'A public-preview API may allow one controlled ledger POST', 'English home API allowlist');
+  },
   'TC-PUBLIC-COPY-E11': () => {
     forbid(`${resume}\n${resumeForms}\n${resumeOcrUi}`, ['求职者', '面试官'], 'resume OCR preview copy');
     forbid(resumeForms, ['OCR 接线中', 'image/*'], 'closed resume file input');

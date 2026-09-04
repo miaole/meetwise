@@ -464,7 +464,7 @@ async function bootstrap() {
   const reportLoop = runReportDispatcher(pool, leaseOwner, reportWorkerDeps(pool, model), jobReconcileIntervalMs);
   // 自适应图是唯一生产面试路径；旧固定题单会持久化原始回答且缺少 graph fence，禁止回退。
   // （principal/模型/query HMAC/k/语料 epoch；不落 query/简历/答案）+ PostgreSQL 权威 epoch/ANN/RLS/账本。
-  // 检索 fail-soft:embedder/题库不可用 → 返 [] → CRAG 优雅降级(用能力出题),不让面试失败。
+  // 检索 miss 可走 CRAG Web + LLM 出题；native embed/rerank miss → generation_unavailable，不发明 stem。
   const rawEmbedder = dashscopeEmbedder();
   const embedder = cachingEmbedder(rawEmbedder, inMemoryEmbeddingStore());
   if (ragCost.mode === 'enforce' && rawEmbedder.id !== ragCost.model) {

@@ -30,7 +30,7 @@ pnpm public-preview-write-gate:prove
 pnpm -C apps/web prove:middleware
 ```
 
-它会拒绝：面试控制器或已纳入范围的申请 `start`/`finalize` 新增 mutating 路由却未登记、Web `interview`/`applications` 树下新增 POST 代理却未登记、`GET` 处理函数写入面试/评分表、登记为 `service-write-fence` 的处理函数缺少 `assertPublicPreviewWritesClosed` / `denyPublicPreviewWrite`、登记为 `preview-controlled-write` 的处理函数缺少 `assertPublicPreviewControlledWriteAllowed`、把清单改成 `enforce` 或 `releaseEvidence=true`。`pnpm public-preview-write:inventory` 校验当前清单；`:prove` 跑克隆清单的负例。
+它会拒绝：面试控制器或已纳入范围的申请 `start`/`finalize` 新增 mutating 路由却未登记（含 `async` handler，如 `/transcribe` `/speak` `/speak/stream`）、Web `interview`/`applications` 树下新增 POST 代理却未登记、`GET` 处理函数写入面试/评分表、登记为 `service-write-fence` 的处理函数缺少 `assertPublicPreviewWritesClosed` / `denyPublicPreviewWrite`、登记为 `preview-controlled-write` 的处理函数缺少 `assertPublicPreviewControlledWriteAllowed`、把清单改成 `enforce` 或 `releaseEvidence=true`。`pnpm public-preview-write:inventory` 校验当前清单；`:prove` 跑克隆清单的负例。
 
 运行时挡板是 NestJS(Fastify) HTTP 方法 allowlist：除受控 `POST /interview/:id/answers` 外，任意 mutating verb 在控制器前 503，**不依赖**本清单才能挡住简历/订单/`decline` 等 scope 外写面。清单只证明 `interview-and-scoring-state` 写面已登记且有第二道服务层、预览受控写或 Web 中间件围栏。
 
@@ -46,7 +46,7 @@ HTTP ingress 在 Fastify `onRequest` 对非 `GET`/`HEAD`/`OPTIONS`（以及预�
 | 服务层写围栏 | 同文件 `assertPublicPreviewWritesClosed`；`InterviewService.denyPublicPreviewWrite`、`ApplicationsService.start`/`finalize` | 已登记的面试/评分写方法在 `asPrincipal` 前失败关闭；不是所有业务 POST 都有这一层。 |
 | 预览受控写 | 同文件 `assertPublicPreviewControlledWriteAllowed`；`InterviewService.submitPreviewAnswer` | 仅 `MEETWISE_PUBLIC_PREVIEW=1` 可写 0092 账本；非预览 404。不是 01 cutover。 |
 | Web 中间件 | `apps/web/middleware.ts` + `apps/web/lib/public-preview.ts` | 非安全方法 503；非展示路径的安全方法 404。 |
-| 静态清单 | 本目录 JSON + `scripts/public-preview-write-inventory.mjs` | 新写面未登记或 GET 写表即失败。 |
+| 静态清单 | 本目录 JSON + `scripts/public-preview-write-inventory.mjs` | 新写面未登记（含 `async` handler）或 GET 写表即失败。 |
 
 ## 维护规则
 

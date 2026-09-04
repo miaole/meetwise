@@ -60,7 +60,7 @@ function joinPath(prefix, route) {
 export function extractMutatingHttpRoutes(source, file) {
   const prefix = controllerPrefix(source);
   const routes = [];
-  const decorator = /@(Post|Put|Patch|Delete)\(([^)]*)\)\s*(?:@[A-Za-z][A-Za-z0-9]*\([^)]*\)\s*)*([A-Za-z][A-Za-z0-9]*)\s*\(/g;
+  const decorator = /@(Post|Put|Patch|Delete)\(([^)]*)\)\s*(?:@[A-Za-z][A-Za-z0-9]*\([^)]*\)\s*)*(?:async\s+)?([A-Za-z][A-Za-z0-9]*)\s*\(/g;
   let match;
   while ((match = decorator.exec(source))) {
     const method = match[1].toUpperCase();
