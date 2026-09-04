@@ -34,6 +34,9 @@ related:
   - ./redemption.md
   - ./interview-history.md
   - ./cend-overview-progress.md
+  - ./adaptive-interview-length.md
+  - ./e2e-parity-baseline.md
+  - ./privacy-deletion-sink-inventory.md
 ---
 
 # 业务用例目录
@@ -117,12 +120,24 @@ related:
 
 ### 横切运行时用例
 
-模型调用、模型操作路由、记忆治理、隐私删除、岗位题域路由、长时专家面试运行时和云测试运行器属于多个领域共用的承重契约，不计入上表按产品域的历史估算；新增或调整模型节点时必须同时满足 `model-invocation-reliability.md` 与 `model-operation-routing.md`，不能因图节点名称或适配器不同而绕过预算、授权、成本和降级验收。长时面试的 transcript、恢复、级别校准、blueprint 和安全围栏必须同时满足 `expert-long-interview-runtime.md`；checkpoint/SSE/job payload 不得被当作用户历史或授权根。涉及后端、前端、测试、AI 等多题域题库时，必须先满足 `rag-funnel-intent-routing.md` 的轨道快照和数据面硬过滤；只有同桶正常完成且确认无合格题，才可按该用例的一次 LLM fallback 生成题。不能用语义相似度、分类建议或 generic fallback 替代隔离。公开预览必须同时满足 `ecs-public-preview-web-ingress.md` 的回环网络、边缘方法门和 release 状态约束，以及 `public-preview-write-gate.md` 的面试/评分写面清单与失败关闭围栏；不得把 Web 页面、静态构建成功或本地 write-gate proof 解释为完整应用发布。
+E2E 用例数/断言 parity 是测试控制面，不计入上表产品域估算，全文见 `e2e-parity-baseline.md`。
+模型调用、模型操作路由、记忆治理、隐私删除、岗位题域路由、长时专家面试运行时和云测试运行器属于多个领域共用的承重契约，不计入上表按产品域的历史估算；新增或调整模型节点时必须同时满足 `model-invocation-reliability.md` 与 `model-operation-routing.md`，不能因图节点名称或适配器不同而绕过预算、授权、成本和降级验收。当前短流程长度政策只维护在 `adaptive-interview-length.md`（覆盖/证据/`decideNext`，软预算可上调，绝对杀开关默认 120 不是质量政策）；把数字从 8 调到 16 或把杀开关调到 120 都不等于 `INT-LONG-INTERVIEW-01`。控制流 weak/thrashing hook 只维护在 `interview-control-signals.md`（`observeInterviewSignals` → `early_weak` / `thrashing`），不是能力等级校准，不关闭 `INT-LEVEL-01`。长时面试的 transcript、恢复、级别校准、blueprint 和安全围栏必须同时满足 `expert-long-interview-runtime.md`；checkpoint/SSE/job payload 不得被当作用户历史或授权根。涉及后端、前端、测试、AI 等多题域题库时，必须先满足 `rag-funnel-intent-routing.md` 的轨道快照和数据面硬过滤；只有同桶正常完成且确认无合格题，才可按该用例的一次 LLM fallback 生成题。不能用语义相似度、分类建议或 generic fallback 替代隔离。公开预览必须同时满足 `ecs-public-preview-web-ingress.md` 的回环网络、边缘方法门和 release 状态约束，以及 `public-preview-write-gate.md` 的面试/评分写面清单与失败关闭围栏；不得把 Web 页面、静态构建成功或本地 write-gate proof 解释为完整应用发布。
 
 | 横切能力 | 文档 | 当前代码口径（不得用目标态覆盖） |
 | --- | --- | --- |
 | 公开预览写门禁 | `public-preview-write-gate.md` | 面试/评分写面清单 + fail-closed；本地 write-gate proof ≠ 发布 |
 | C 端成长主页「已答题数」与列表进度 | `cend-overview-progress.md` | `issued_turns`=`status<>'cancelled'`；`Overview.answered`/`answered_turns`=`status='answered'`；禁止用 ScoreCard 空集把已作答伪装成 0 |
+| INT-TRANSCRIPT-00 隐私诚实 | `expert-long-interview-runtime.md` / `checkpoint-privacy-erasure.md` | 公开 `DELETE /privacy/interview-data/:id` 仍 503；无公开 `/answers`；签发器/0091 账本 ≠ 删除已开放 |
+| RAG-FUNNEL-01A ACL | `rag-funnel-intent-routing.md` | `0124` 空 principal fail-closed；definer 闭包已密封；域 ACL 未接线；≠ routed serving / 发布证据 |
+| 隐私删除 sink 盘点 | `privacy-deletion-sink-inventory.md` | `0125` 只收 `vector_chunk.kind='memory'`；公开 DELETE 仍 503；一份 completed ≠ 账户删除完成 |
+| 自适应面试动态长度 | `adaptive-interview-length.md` | `decideNext` 覆盖/证据/早停/加深；软预算可上调；`absoluteMaxTurns` 默认 120 只防 runaway；≠ `INT-LONG-INTERVIEW-01` |
+| SCOR-00H 消费诚实 | `interview-scoring-measurement.md` | 无 canonical identity 不得伪造 0 / mapped B 端 overall；转写/`POST` 评估/career/SSE 走域闸；GET 不重跑 |
+| 答题双写互斥（0126） | `interview-answer-dual-write-fence.md` | 同一身份禁止 ledger artifact 与带顶层 `answer` 键的 legacy job 并存；`/turn` 无 ledger 时仍写明文；`submitInterviewAnswer` 不是生产 HTTP；≠ `INT-TRANSCRIPT-01`；隔离 prove 需 Docker，不进 always-on |
+| 预览 OCR binding（0127） | `resume-ocr-binding.md` | `resume.ocr.v1` typed seam + 密封 provenance；双旗 `OCR_ENABLED=1`+`OCR_PREVIEW=1` 才可 invoke；生产仍关；≠ `MODEL-OP-01` 关闭；隔离 `ocr:prove` 不进 always-on |
+| 面试公平调度（0128） | `worker-event-driven-dispatch.md` | `WORKER-DISPATCH-002`：owner 量子轮转 + 每 owner 未过期 running cap；进程内 global cap 不是集群锁；押题/诊断/报告仍抽干；静态 `interview-dispatch:unit:prove` 可进可选 always-on；隔离 `interview-dispatch:prove` 需远程 Postgres，不进 always-on |
+| 隐私删除预览路径（0129） | `privacy-erasure-preview-path.md` | 预览版 `POST/GET /privacy/erasure-preview`；生产 DELETE 仍 503；回执 `preview_incomplete` / `productionSloClaimed=false`；静态 domain/contract prove 可进可选 always-on；隔离 `privacy-erasure-preview:prove` 需远程 Postgres，不进 always-on |
+| 面试控制信号（SIGNAL-01 / 0130） | `interview-control-signals.md` | `observeInterviewSignals` 供 `decideNext` 消费 `early_weak` / `thrashing`；`safety_ceiling` 先赢；不是能力等级校准，不关闭 `INT-LEVEL-01`；静态 `adaptive-signals:prove` / `adaptive-signals-graph:prove` 可进可选 always-on；`0130` 同键 claim 串行不是本 hook 的业务证明 |
+| 预览批量语音（#79） | `cend-mock-interview.md` / `voice-capability-boundary.md` | `createInterviewVoiceSeams` 仅 Key+wired 才构造 ASR/TTS；缺 Key/超时/畸形 fail-closed；`/speak/stream` 仍 503；Live E2E 拒 `VOICE_FAKE`/`ASR_FAKE`/`TTS_FAKE`；静态 `interview-voice-seams:prove` 可进可选 always-on；≠ 生产 SLO / 全双工 |
 
 ## 5. 专家级面试官题库（内部使用）
 

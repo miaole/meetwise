@@ -17,14 +17,14 @@ tags:
 
 # 模型供应商出站静态清单
 
-机器可读来源是 [provider-egress-inventory.json](provider-egress-inventory.json)，不可协商的当前适配器/操作基线在 [provider-egress-policy.mjs](../../../scripts/provider-egress-policy.mjs)。它固定登记当前已知的 5 个直接适配器、10 个操作类别、23 个**适配器—来源文件登记对**和 89 个模型配置引用；数值由静态验证输出，代码或配置变化后必须重跑，不能手工改写。
+机器可读来源是 [provider-egress-inventory.json](provider-egress-inventory.json)，不可协商的当前适配器/操作基线在 [provider-egress-policy.mjs](../../../scripts/provider-egress-policy.mjs)。它固定登记当前已知的 5 个直接适配器、10 个操作类别、29 个**适配器—来源文件登记对**和 198 个环境引用；数值由静态验证输出，代码或配置变化后必须重跑，不能手工改写。
 
 | 范围 | 当前静态登记 | 解释 |
 | --- | ---: | --- |
 | 适配器 | 5 | 文本/视觉、嵌入、重排序、HTTP 语音、WebSocket（网络套接字）流式语音。 |
 | 操作 | 10 | chat、视觉 OCR（光学字符识别）、ASR（自动语音识别）、流式 ASR、TTS（文本转语音）、流式 TTS、两类 embedding（嵌入）、rerank（重排序）、供应商签名下载。 |
-| 适配器—来源文件登记对 | 23 | 区分 production-direct（生产直连）、manual（手动）与本地测试；当前 API 语音组合根与所有原始音频手工 smoke 均已 fail-closed。 |
-| 配置引用 | 89 | `MODEL_*`（文本主用/兜底）和 `DASHSCOPE_*`（嵌入、重排序、语音）在 API（应用程序接口）、Worker（后台任务）、测试启动器及适配器中的位置；`DASHSCOPE_TEST_TRANSPORT_OVERRIDES` 仅可用于受控本地 proof。 |
+| 适配器—来源文件登记对 | 29 | 区分 production-direct（生产直连）、manual（手动）与本地测试；含 `interview-voice-seams.ts` 预览批量 ASR/TTS 组合根。流式 `/speak/stream` 仍不可用。 |
+| 环境引用 | 198 | `MODEL_*`（文本主用/兜底）和 `DASHSCOPE_*`（嵌入、重排序、语音）在 API（应用程序接口）、Worker（后台任务）、测试启动器及适配器中的位置；含 `scripts/run-post-change-regression.mjs` 的 live 启动器，以及 E2E 假服务/静态守卫对 `MODEL_TEST_TRANSPORT_OVERRIDES` / `DASHSCOPE_TEST_TRANSPORT_OVERRIDES` 的拒绝合同、`scripts/e2e-platform/review-loop.mjs` 对 `MODEL_API_KEY` 的转发。`DASHSCOPE_TEST_TRANSPORT_OVERRIDES` 仅可用于受控本地 proof。 |
 
 ## 这个门禁能与不能证明什么
 
