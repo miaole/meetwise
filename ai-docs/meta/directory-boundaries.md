@@ -58,6 +58,6 @@ tags:
 - 出题 fail-closed（#67） → `architecture/ai/model-operation-routing.md` + `packages/domain/src/question-generation.ts`。`generation_unavailable` ≠ 已发布；不得另写第二套「出题已兜底」声明
 - 预览答题账本（#80） → `requirements/use-cases/interview-answer-preview-submit.md`。预览 `POST /interview/:id/answers` ≠ `INT-TRANSCRIPT-01`；不得另写第二套「明文已停用 / 生产 /answers 已开放」声明
 - 预览路径诚实闸（#86） → `architecture/current-runtime-truth.md` + `architecture/backend/public-preview-write-inventory.md`。`preview-controlled-write` ≠ 生产 `/answers`；公开预览语音三路由仍 503；检索未命中可走 CRAG Web + LLM，不是 canned-stem；不得再写「远端 main 只有 0120」
-- 高并发复核骨架（#87） → `architecture/backend/high-concurrency-review.md`。五面接线 + `HC-GAP-*` ≠ 容量 SLO / 集群锁；`HC-GAP-004` / `HC-GAP-006` / `HC-GAP-011` / `HC-GAP-014` 已关；`HC-GAP-009` 静态门已接线；隔离 `model-slot-bypass:prove` / `quiz-dual-claim:prove` / `runtime:claim-join:prove` 不进 always-on
+- 高并发复核骨架（#87） → `architecture/backend/high-concurrency-review.md`。五面接线 + `HC-GAP-*` ≠ 容量 SLO / 集群锁；`HC-GAP-002` / `HC-GAP-004` / `HC-GAP-006` / `HC-GAP-011` / `HC-GAP-014` 已关；`HC-GAP-009` 静态门已接线；隔离 `model-slot-bypass:prove` / `quiz-dual-claim:prove` / `runtime:claim-join:prove` 不进 always-on
 - HTTP E2E 可执行目录契约 → `testing/conventions/e2e-directory-contract.md`（叙事 SOP 在 `skills/testing/e2e-platform/`，禁止第三套目录故事）
 - e2e 用例/断言 parity floors → `testing/e2e-parity-baseline.md`
