@@ -1,7 +1,7 @@
 ---
 id: requirements_use_cases_expert_long_interview_runtime
 name: 长时专家面试运行时、完整记录与安全控制面
-description: 为一到两小时专家面试冻结 transcript、恢复、能力等级校准、面试蓝图和 Graph 安全边界；当前为未接线的设计草案。
+description: 为一到两小时专家面试冻结 transcript、恢复、能力等级校准、面试蓝图和 Graph 安全边界。目标契约；00 签发器/账本/合同已在源码落地，公开删除与 01 write route 仍未接线。
 type: requirement
 scope: shared
 level: must
@@ -29,7 +29,7 @@ related:
 
 ## 0. 状态、范围与不能误称的事实
 
-这是目标契约，不是当前实现说明。当前自适应面试图只保存有界工作状态；checkpoint 用于 interrupt/resume，短期 answer job 在终态移除原文，SSE/client state 不保证完整历史。更精确地说，图 checkpoint 不保存 raw answer，但当前 API 在 worker 完成前仍将 raw answer 作为明文 JSON 存在 `interview_job.payload`；它不是 canonical artifact，也不具备完整删除闭环。现有图的轮数上限和实际数据链路以 [运行时事实矩阵](../../architecture/current-runtime-truth.md) 为准。
+这是目标契约，不是当前实现说明。当前自适应面试图只保存有界工作状态；checkpoint 用于 interrupt/resume。短期 answer job 只在任务终态剥离 `interview_job.payload` 字段，这不是全 sink 物理删除，也不是 canonical artifact。SSE/client state 不保证完整历史。图 checkpoint 不保存 raw answer，但当前 API 在 worker 完成前仍将 raw answer 作为明文 JSON 存在该 payload；不具备完整删除闭环。现有图的轮数上限和实际数据链路以 [运行时事实矩阵](../../architecture/current-runtime-truth.md) 为准。
 
 本页的目标是把“能从断点继续一个 graph”升级为“用户能安全复盘一场长面试”，同时避免把所有消息无条件塞进 prompt 或把 LLM 变成权限、等级和终止条件的裁判。
 
@@ -37,14 +37,14 @@ related:
 
 ### 0.1 2026-08-13 独立对抗审查：目标需改序，当前实现被阻断
 
-本轮由数据一致性与 AI/运行时两个独立审查镜头，逐项对照本页、运行时事实矩阵和 API、Worker、Graph、数据库源码完成。结论不是“目标取消”，而是必须先完成 `INT-TRANSCRIPT-00`；`INT-TRANSCRIPT-01` 在该前置未验证前不得落生产代码。以下 finding 均为 `open`，本页、执行清单和 Task Harness 同步保持 `blocked`；没有真实组合根回执时不得改称已实现、生产可用或 E2E 已通过。
+本轮由数据一致性与 AI/运行时两个独立审查镜头，逐项对照本页、运行时事实矩阵和 API、Worker、Graph、数据库源码完成。结论不是“目标取消”，而是必须先完成 `INT-TRANSCRIPT-00`；`INT-TRANSCRIPT-01` 在该前置未验证前不得落生产代码。以下 finding 仍为 `open`：00 的签发器/账本/合同已在源码落地，但公开删除仍 503，且没有真实组合根回执。`INT-TRANSCRIPT-01` 及后续项保持 `blocked`；不得改称已实现、生产可用或 E2E 已通过。事实以 [运行时事实矩阵](../../architecture/current-runtime-truth.md) 为准。
 
 | finding | 级别 / 状态 | 已证实证据 | 最小修复与目标调整 |
 | --- | --- | --- | --- |
-| `INT-P0-ERASURE-AUTH` | P0 / open | `apps/api/src/modules/privacy/privacy.service.ts` 的面试删除固定返回 `503 interview_erasure_authorization_not_available`；`0075_privacy_erasure_authorization_pause.sql` 已撤销旧 destructive 权限；运行时事实矩阵明确逐 sink 删除未闭环。 | 先实施 `INT-TRANSCRIPT-00`：不可伪造、短时、单次、对象/owner/purpose/epoch 绑定的删除授权快照；受约束 deleter、request/target 账本、artifact/draft/item/submission/job/checkpoint/event/cache/trace/provider 等每个 sink 的 receipt。01 的新表、target resolver、receipt 与删后 read=0 必须随同一迁移和真实组合根证明；在此之前真实用户 raw write route 保持 disabled，公开删除入口保持 503。 |
-| `INT-P0-ERASURE-ISSUER` | P0 / open | 现有 API 登录令牌由 `AUTH_SECRET` 的对称 HMAC 签发；未发现独立的隐私删除签发器、受管签名键、`issuerId/keyId/jti` 消费账本或部署注入路径。把同一登录密钥、worker 凭据或可写 GUC 扩展为删除能力，会重新引入可伪造授权根。 | `INT-TRANSCRIPT-00` 先冻结并实现独立 `PrivacyAuthorizationIssuer`：签发/验证身份与 API runtime SQL、worker/deleter、`AUTH_SECRET` 均分离；快照必须含 `issuerId`、`keyId`、短时 `jti`、actor/owner/interview/purpose/privacy epoch、精确 target-set digest、issued/expiry 与单次消费状态。签名/验签/消费、密钥轮换与缺失配置均 fail-closed；未完成前删除入口和 01 真实 raw write route 均保持关闭。 |
-| `INT-P0-RAW-QUEUE` | P0 / open | 现有 legacy `POST /interview/:id/turn` 仍在运行：`interview.service.ts` 将 `body.answer` 放入 answer job；`packages/db/src/interview-jobs.ts` 将 payload JSON 持久化并让 worker 读取，只有 terminal job 才剥离 `answer`。目前没有 artifact/draft/item/snapshot 的业务表。它不是本目标的合规写入路径，也不能被误称为已关闭。 | `INT-TRANSCRIPT-01` 只在 00 验证后开始：其**新增 canonical 写入路径**只写加密 artifact/draft；job、checkpoint、event/SSE、日志与 trace 只持 opaque ref、版本、epoch 和最小状态。上线切换必须先为 legacy `/turn` 建立明确 fence/cutover：它不得再与 01 并行写同一答题事实，也不得成为 response-lost、重登或 transcript 的回退。历史 queued/running payload 走单独 legacy fence，不复制或猜测原文。 |
-| `INT-P0-SUBMISSION-RECOVERY` | P0 / open | 当前 `/turn` 没有消费 HTTP `Idempotency-Key`；浏览器 answer key 只在内存；题目 ledger 只能重放相同 `answerId + SHA-256`，提交响应丢失后换浏览器会得到 stale，不能读回 winner。 | 在 01 前冻结 server-side `InterviewAnswerSubmission` receipt：`clientSubmissionKey + canonical body HMAC + question/state/turn`。同键同体回放同一结果；同键异体冲突；双 tab 不同键只一 winner，另一方只读非敏感 winner 状态；重登可通过 receipt/view 继续。 |
+| `INT-P0-ERASURE-AUTH` | P0 / open | `apps/api/src/modules/privacy/privacy.service.ts` 的面试删除仍固定返回 `503 interview_erasure_authorization_not_available`；`0075` 已撤销旧 destructive 权限。0091 签发器/账本已存在，但 HTTP 未接线。`0096` 已为 event/report/`ai_graph_run` 补 DB rehearsal resolver/purge，worker 仍走 0077 checkpoint 原语，vector/trace/外部面未闭环。 | 公开删除入口保持 503，直到 forged GUC/登录令牌/raw SQL/cross-owner/issuer/key/jti 与恢复用例在真实组合根通过。01 的新 sink resolver、receipt 与删后 read=0 必须随同一迁移证明；此前真实用户 raw write route 保持 disabled。 |
+| `INT-P0-ERASURE-ISSUER` | P0 / open | 独立签发器已在源码：`packages/domain/src/privacy-authorization.ts`（ECDSA P-256 / ES256）+ 迁移 `0091`（`privacy_authorization_snapshot`、`privacy_deletion_receipt`、`privacy_issuer`、issue/consume/claim）。API 登录令牌仍由 `AUTH_SECRET` 对称 HMAC 签发，且**不能**打开删除。尚无部署密钥注入、JWKS 对外发布或真实组合根回执。把同一登录密钥、worker 凭据或可写 GUC 扩展为删除能力，仍会重新引入可伪造授权根。 | 保持身份根分离；签名/验签/消费、密钥轮换与缺失配置均 fail-closed。未取得组合根证据前，删除入口和 01 真实 raw write route 均保持关闭。`releaseEvidence=false`。 |
+| `INT-P0-RAW-QUEUE` | P0 / open | 现有 legacy `POST /interview/:id/turn` 仍在运行：`interview.service.ts` 将 `body.answer` 放入 answer job；`packages/db/src/interview-jobs.ts` 将 payload JSON 持久化并让 worker 读取，只有 terminal job 才剥离 `answer`。`PUBLIC-PREVIEW-WRITE-GATE-01` 仅在 `MEETWISE_PUBLIC_PREVIEW=1` 时对该写 verb 返回 `503 public_preview_read_only`，不关闭非预览 `/turn`，也不新增 `/answers`。树上已有 `0092` 的 `interview_answer_artifact` / `interview_answer_submission` rehearsal 表与 `submitInterviewAnswer` 函数，但公开 API 没有新的 canonical write route；`/turn` 不是本目标的合规写入路径，也不能被误称为已关闭。 | `INT-TRANSCRIPT-01` 只在 00 组合根验证后开始：其**新增公开 canonical 写入路径**只写加密 artifact/draft；job、checkpoint、event/SSE、日志与 trace 只持 opaque ref。上线切换必须先为 legacy `/turn` 建立明确 fence/cutover。历史 queued/running payload 走单独 legacy fence，不复制或猜测原文。 |
+| `INT-P0-SUBMISSION-RECOVERY` | P0 / open | 共享契约已冻结 `InterviewAnswerSubmitResult` / `InterviewAnswerSubmissionReceipt`（不进 OpenAPI）。当前公开 `/turn` 仍不消费该 receipt 合同；浏览器 answer key 只在内存；题目 ledger 只能重放相同 `answerId + SHA-256`，提交响应丢失后换浏览器会得到 stale。 | 01 接线前只保持合同冻结，不开放真实用户 write route。同键同体回放、同键异体冲突、双 tab 一 winner 必须由服务端账本强制；重登只能经 receipt/view 继续。 |
 | `INT-P0-SEC-PERMIT` | P0 / open | 当前模型调用只在派发前作隐私检查；派发后没有 authorization/context/output permit 复核。删除或撤权后的迟到模型输出仍没有目标态要求的 CAS 投影阻断。 | `SEC-GRAPH-01` 与 `MODEL-OP-01` 在任何 artifact 外送、评分、RAG/Web、报告或 memory 写入前完成；派发后 unknown 不自动换模型或重发，迟到输出无 permit 必须丢弃。01 首包禁止所有这些副作用。 |
 | `INT-P0-LEVEL-EVIDENCE` | P0 / open | 当前评分仍是模型整数分和自由 criterion；没有 versioned ScoreCard、rubric evidence、InitialLevelHypothesis 或跨模块 coverage。 | 先完成 `SCOR-01/02`，再进入 `INT-LEVEL-01`。年限、单题、学历/年龄/性别/地域等受保护属性及其代理变量都不得单独决定初始或最终能力等级。 |
 | `INT-P1-SNAPSHOT-SSE` | P1 / open | 当前 transcript 是部分事件投影；SSE 为读 events 后轮询，无 snapshot 与 tail 的同一读取边界。 | 01 冻结 snapshot/cursor 合同：写入 item 与其可见事件必须在同一事务分配 interview 内唯一、单调的 `visibleSeq`；同一 RLS read transaction 取得 watermark `W` 与只含 `visibleSeq <= W` 的 item；tail 仅消费 `visibleSeq > W`，去重只用稳定 item/event id。cursor 绑定 interview、watermark、页位置和 privacy epoch；删除、撤权、过期或 epoch 不符一律返回固定不可枚举 `fenced/invalid`，不能猜测缺失 item。 |
@@ -55,7 +55,7 @@ related:
 
 ### 0.2 真实用户原文写入的双门
 
-`INT-TRANSCRIPT-00` 只冻结并验证未来删除授权、target/receipt 与 submission 行为合同；它不创建 `InterviewAnswerArtifact` 一类 sink，也不授权真实用户原文写入。`INT-TRANSCRIPT-01` 只能在以下两个门都通过时开放真实 write route：
+`INT-TRANSCRIPT-00` 冻结并验证删除授权、target/receipt 与 submission 行为合同；它不授权真实用户原文写入，也不把公开删除从 503 改开。树上已有 `0092` rehearsal 表/函数，那是后续 01/评分 proof 的本地数据面，不是公开 write route。`INT-TRANSCRIPT-01` 只能在以下两个门都通过时开放真实 write route：
 
 1. `00` 的独立 issuer、单次消费、受约束 deleter 与既有 target/sink receipt 已在真实组合根通过；公开删除入口已不再依赖旧的 GUC 或共享登录身份根。
 2. **同一部署迁移**同时安装 01 的 artifact/draft/submission/item/ref-only-job/view sink、target resolver、deletion ledger 与逐 sink receipt，并以真实 HTTP、SSE、RLS 组合根证明删后 read=0、submit×delete 和迟到 worker 均不能恢复或外送原文。
@@ -144,7 +144,7 @@ stateDiagram-v2
 
 `accepted` 只表示用户答题业务事实写入成功，不表示评分、报告或 B 端投影已经成功。`INT-TRANSCRIPT-01` 首包不创建 assessment outbox，也不调用模型、RAG、Web 或 memory；这些能力在其各自前置完成后才能另行接入。提交响应丢失时客户端按同一 submission key 查询 canonical receipt，而不是重新写一份 answer 或重新调用模型。
 
-`AuthorizationSnapshot` 不是普通登录 JWT 的别名。首个可实现版本必须使用独立的 `PrivacyAuthorizationIssuer`，其签名或受管验签材料不进入 API runtime SQL、worker/deleter、浏览器或 `AUTH_SECRET` 的权限域。签发结果至少绑定 `issuerId`、`keyId`、单次 `jti`、actor、owner、interview、purpose、privacy epoch、精确 target-set digest、签发/过期时间；数据库以原子 CAS 消费 `jti`，验证失败、配置缺失、签名键轮换未知或 target digest 漂移都拒绝。此段是 future contract，不表示现有部署已有该签发器。
+`AuthorizationSnapshot` 不是普通登录 JWT 的别名。源码已有独立 `PrivacyAuthorizationIssuer`：签名或受管验签材料不进入 API runtime SQL、worker/deleter、浏览器或 `AUTH_SECRET` 的权限域。签发结果绑定 `issuerId`、`keyId`、单次 `jti`、actor、owner、interview、purpose、privacy epoch、精确 target-set digest、签发/过期时间；0091 账本提供原子 CAS 消费 `jti`。这是本地源码与账本，不是已部署的签发器服务，也不是已开放的公开删除入口。`privacy_issue_authorization_snapshot` 按调用方字段落账，本身不做 JWS 验签；privacy worker 仍走 `0077`，公开删除仍 503。不得把“账本函数存在”说成删除授权已闭合。
 
 `PrivacyAuthorizationIssuer` 的算法与身份根冻结如下：签名用 **ECDSA P-256**（JWS `alg=ES256`），`iss=meetwise-privacy-authz-v1`、`aud=meetwise-deletion-worker`；`kid` 采用版本化命名（如 `privacy-del-2026-01`），JWKS 按 `kid` 轮换——旧 `kid` 仅保留验签直至其签发快照的 `expiresAt` 窗口全部关闭后移除，未知或已吊销 `kid` 一律 fail-closed。这**刻意区别于模型网关** `AuthorizationSnapshot` 的 **Ed25519**（`iss=meetwise-authz-v1`、`aud=meetwise-model-gateway`，见 `model-invocation-reliability.md`）：二者是不同的 issuer/audience/信任边界（隐私删除根 vs 模型命令授权），用不同算法与密钥材料以杜绝密钥复用与跨用途混淆；这是刻意的分离，不是规格未对齐。
 
@@ -169,13 +169,13 @@ stateDiagram-v2
 
 ## 3. UC-INT-TRANSCRIPT-00 · 先建立删除授权与提交接收契约
 
-`INT-TRANSCRIPT-00` 是审查新增的 P0 前置，不能用接口返回 200、GUC 或 worker 身份冒充完成。当前公开删除入口保持 503；本 UC 的工作是先让未来 raw answer 的生命周期可以被安全创建、停止与删除。它冻结 future `InterviewAnswerSubmission`/receipt 行为，但不提前写入 answer artifact、draft、item 或其他 01 sink，也不授权新的 01 canonical raw write；这不等同于停用当前 legacy `/turn`。
+`INT-TRANSCRIPT-00` 是审查新增的 P0 前置，不能用接口返回 200、GUC 或 worker 身份冒充完成。签发器、0091 账本与 submission/receipt 合同已在源码落地；当前公开删除入口仍保持 503。本 UC 冻结 `InterviewAnswerSubmission`/receipt 行为，不授权新的公开 01 canonical raw write；这不等同于停用当前 legacy `/turn`，也不把 0092 rehearsal 表当成已上线 write route。
 
 - **角色 Actor：** 候选人、身份/隐私授权签发方、受约束 privacy deleter、面试 API、面试 worker。
 - **前置 Precondition：** 当前公开删除接口仍 fail-closed；授权签发方不与 app runtime SQL 凭据、worker/deleter 账号、`AUTH_SECRET` 或可写 session GUC 共用身份根。独立 signer/verifier（算法固定 **ECDSA P-256/ES256**，与模型网关 Ed25519 刻意分离）、`issuerId/keyId`、短时单次 `jti` 消费账本及密钥轮换/失效策略均已冻结；任一配置缺失即不能签发或删除。
 - **触发 Trigger：** 用户请求删除面试数据，或系统在接受 raw answer 前验证该对象已有可执行的删除/保留策略。
-- **主流程 Main：**
-  1. 独立 `PrivacyAuthorizationIssuer` 为精确 `actor + owner + interview + purpose + privacyEpoch + target-set digest` 签发带 `issuerId/keyId/jti/issuedAt/expiresAt` 的短时、单次、不可伪造 `AuthorizationSnapshot`；调用方不能自报 owner、scope、epoch、target、issuer 或 key。
+- **主流程 Main（目标态，当前公开删除仍 503）：**
+  1. 独立 `PrivacyAuthorizationIssuer` 为精确 `actor + owner + interview + purpose + privacyEpoch + target-set digest` 签发带 `issuerId/keyId/jti/issuedAt/expiresAt` 的短时、单次 `AuthorizationSnapshot`。目标态要求调用方不能自报 owner、scope、epoch、target、issuer 或 key。当前 `0091` issue 按调用方字段落账、本身不做 JWS 验签；HTTP/worker 未接线该闭合路径。
   2. 数据库在同一受控请求账本中冻结 artifact、draft、submission receipt、transcript item、job reference、checkpoint、event/view cache、trace、模型/provider 和其他外部 target 的枚举；每个 target 有唯一 `(request, kind, source)`。
   3. 仅专用 deleter 可领取带 fence 的 target；其每次读、hydrate、派发和写回均复验当前 authorization、owner、purpose、epoch 与 lease token。未知或不可删除的外部 target 只能 `pending_external`/`failed_cleanup`，不能伪造完成。
   4. 01 上线迁移必须在启用真实用户写入前，向同一 target resolver 注册 artifact、draft、submission、item、ref-only job 和 view/read cache；该迁移同时证明受约束 deleter 可以逐 sink receipt、删后 read=0。任一新 sink 缺失时 write route 保持 disabled，不允许先写后补。
@@ -186,9 +186,9 @@ stateDiagram-v2
   - **E2 并发：** submit、worker hydrate、delete 和 provider late result 同时发生时，privacy fence/epoch 的胜者决定；删除先赢则后续 raw read、模型输入和投影均为 0。
   - **E3 越权：** forged GUC、cross-owner、错误 purpose、过期/已消费 `jti`、错误 issuer/key、错误 target digest、raw SQL 和错误 worker 身份均拒绝且 0 target。
   - **E4 外部失败：** provider/trace/cache 的 receipt unknown 时 request 不能 completed；记录最小错误码并等待受控恢复。
-  - **E5 降级：** 无授权或 sink 清单不完整时不接受新长期 raw artifact，公开删除接口继续 503。
+  - **E5 降级：** 无授权或 sink 清单不完整时不接受新的**公开**长期 raw artifact；公开删除接口继续 503。树上 0092 rehearsal 不是该门的公开 write。
   - **E6 崩溃恢复：** lease 到期后只从持久 target/fence 继续，旧 worker 和迟到结果无权覆盖 terminal/tombstone。
-- **后置 Postcondition：** 00 只产出可审计的 future contract；只有后续 01 的同一部署迁移同时安装新 sink、target 枚举、deletion ledger、receipt 与删后 read=0，并经真实组合根验证后，才可开启真实用户的 `INT-TRANSCRIPT-01` write route。
+- **后置 Postcondition：** 00 在源码落地独立签发器、0091 账本与 submission/receipt 合同；公开删除仍 503，七类 TC 仍 planned/unmapped，无真实组合根回执。这不是已关闭的删除权，也不是已上线 write route。只有后续 01 的同一部署迁移同时安装新 sink、target 枚举、deletion ledger、receipt 与删后 read=0，并经真实组合根验证后，才可开启真实用户的 `INT-TRANSCRIPT-01` write route。
 - **关联：** 删除请求/target 状态机、RLS、CAS、事件账本；`MEM-00` 与现有 privacy pause 规则。
 
 ### UC-INT-TRANSCRIPT-00 七类测试矩阵
@@ -344,7 +344,7 @@ stateDiagram-v2
 
 ## 8. 修订后的实施顺序与明确不做
 
-1. 先完成 `INT-TRANSCRIPT-00`，以真实组合根验证删除授权、target/sink receipt、submission/receipt 合同和删除竞争；在此之前不新增长期 raw answer 存储，也不重开删除入口。
+1. 先完成 `INT-TRANSCRIPT-00`，以真实组合根验证删除授权、target/sink receipt、submission/receipt 合同和删除竞争；在此之前不新增**公开**长期 raw-answer write route，也不重开删除入口。树上 `0092` rehearsal 表/函数不是公开 canonical write。
 2. 再以独立 Task Harness、shared contract、迁移/RLS、状态机和七类测试审查 `INT-TRANSCRIPT-01`。新 schema/target resolver/receipt/删后 read=0 必须与 00 在同一迁移/组合根通过，真实用户 write route 之前一直 disabled；首包只建立 canonical artifact、draft、submission receipt、transcript item 和 view snapshot。不要为“可回显”把 raw answer 塞进 checkpoint、job JSON、SSE、日志或 trace。
 3. 01 验收后独立审查 `INT-RESUME-02`，再处理浏览器重新进入、worker 生命周期、snapshot/SSE UX 和历史 tombstone；不得借恢复功能增加 raw 副本或模型副作用。
 4. `SCOR-01/02` 完成后才进入 `INT-LEVEL-01`；冻结 blueprint、module scheduler、level evidence/coverage 与终止策略后才进入 `INT-LONG-INTERVIEW-01`，不以增加固定轮数替代。

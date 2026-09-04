@@ -22,7 +22,7 @@ tags:
 
 # LangGraph 检查点隐私擦除与状态最小化
 
-> 本文是本次 P0（最高优先级）实现契约。它只覆盖自适应面试的运行态检查点和其直接答案队列载荷；不是“已经完成 OSS/Tair/Langfuse 全数据面删除”的声明。任何外部删除 target（目标）未收到可验证回执时，删除请求必须保持 `pending_external`（等待外部完成）或 `partial_failed`（部分失败）。**当前 `DELETE /privacy/interview-data/:id` 已安全暂停并返回 503**：旧实现将可写的 `app.principal_user` 当成删除授权根，不能抵抗持有 runtime SQL（结构化查询语言）凭据的伪造主体。只有引入独立、短时、单对象、一次性的授权快照签发与验证器后，才可重新开放受理。
+> 本文是本次 P0（最高优先级）实现契约。它只覆盖自适应面试的运行态检查点和其直接答案队列载荷；不是“已经完成 OSS/Tair/Langfuse 全数据面删除”的声明。任何外部删除 target（目标）未收到可验证回执时，删除请求必须保持 `pending_external`（等待外部完成）或 `partial_failed`（部分失败）。**当前 `DELETE /privacy/interview-data/:id` 仍安全暂停并返回 503**：旧实现将可写的 `app.principal_user` 当成删除授权根，不能抵抗持有 runtime SQL（结构化查询语言）凭据的伪造主体。独立 `PrivacyAuthorizationIssuer` 与 0091 账本已在源码落地，但 HTTP 未接线、无部署密钥、无真实组合根回执；登录令牌不能打开删除。只有签发/验签/滥用证明在真实组合根通过后，才可重新开放受理。事实以 [运行时事实矩阵](../../architecture/current-runtime-truth.md) 为准。
 
 ## 1. 问题与范围
 
@@ -112,23 +112,23 @@ stateDiagram-v2
 | 逃逸通道 | `TC-GRAPH-PRIV-PAUSE-U3` | 暂停父请求下被错误插入 `leased` child target | list/claim/purge（列出/领取/清理）全部拒绝，已知 lease token（租约令牌）也不能触发物理 DML（数据操纵语言） |
 | 最小权限 | `TC-GRAPH-PRIV-PAUSE-U4` | `PRIVACY_WORKER_DATABASE_URL` 错挂到 definer owner 成员、拥有复制能力或被误授旧 destructive function | 该连接确能读取 raw target row（原始目标行）的受控反例，以及 `REPLICATION`（逻辑复制）/旧 GUC 函数 ACL（权限控制列表）漂移，都被启动 catalog gate（目录门）拒绝；pool（连接池）关闭、worker 不启动 |
 
-2026-08-10 的最新隔离回执：`pnpm privacy-erasure:prove` 在 78 个迁移上通过 `2/2`（`.tmp/isolated-proof-receipts/2026-08-10T16-51-19-123Z-63986-20996131-b4d8-4dde-abec-6aefbc0dd875.json`，含伪造 victim GUC（受害者主体路由）直接调用的负测）；`pnpm privacy-erasure:http:prove` 在真实 NestJS（服务端框架）HTTP 栈上通过 `4/4`（`.tmp/isolated-proof-receipts/2026-08-10T16-52-26-550Z-64259-86cb9232-c349-47af-9cea-67ae2d339e29.json`）；`pnpm privacy-erasure:pause-upgrade:prove` 在真实 `0075 → 0078` prefix upgrade（迁移前缀升级）上通过 `14/14`（`.tmp/isolated-proof-receipts/2026-08-10T17-00-25-721Z-65658-0d40cd71-4293-47c1-a59b-195eb5f73f98.json`）。三者均为本地、`releaseEvidence=false`。
+2026-08-10 的历史隔离回执：`pnpm privacy-erasure:prove` 在当时 78 个迁移上通过 `2/2`（`.tmp/isolated-proof-receipts/2026-08-10T16-51-19-123Z-63986-20996131-b4d8-4dde-abec-6aefbc0dd875.json`，含伪造 victim GUC（受害者主体路由）直接调用的负测）；`pnpm privacy-erasure:http:prove` 在真实 NestJS（服务端框架）HTTP 栈上通过 `4/4`（`.tmp/isolated-proof-receipts/2026-08-10T16-52-26-550Z-64259-86cb9232-c349-47af-9cea-67ae2d339e29.json`）；`pnpm privacy-erasure:pause-upgrade:prove` 在真实 `0075 → 0078` prefix upgrade（迁移前缀升级）上通过 `14/14`（`.tmp/isolated-proof-receipts/2026-08-10T17-00-25-721Z-65658-0d40cd71-4293-47c1-a59b-195eb5f73f98.json`）。三者均为本地、`releaseEvidence=false`。当前树已有 123 个迁移；HTTP 源码的 503 路径现有 8 个会执行的断言（另有休眠的 202 套件，公开删除仍 503 时不得跑）。无 Docker 时不得用新断言数替换上述历史回执。
 
-重新开放的前置条件是：独立 privacy API（隐私应用程序接口）/worker 身份，签名授权快照至少绑定 `actor/owner/interviewId/privacyEpoch/operation/expiry/idempotencyHash`，JTI（唯一令牌标识）原子消费，且数据库只接受该 capability（能力）创建 request（请求）。GUC（会话配置）只能在授权完成后用于 tenant（租户）路由，绝不能作为授权根。
+重新开放的前置条件是：独立 privacy API（隐私应用程序接口）/worker 身份，签名授权快照至少绑定 `actor/owner/interviewId/privacyEpoch/operation/expiry/idempotencyHash`，JTI（唯一令牌标识）原子消费，且数据库只接受该 capability（能力）创建 request（请求）。当前 `0091` issue 按调用方字段落账、本身不做 JWS 验签；worker 仍走 `0077`。仅把 HTTP 接到现有 issue 函数**不够**重开删除。GUC（会话配置）只能在授权完成后用于 tenant（租户）路由，绝不能作为授权根。
 
 ### 4.2 历史原语与已废弃证据
 
 以下是旧的 checkpoint（检查点）围栏/物理清理原语，保留为将来授权闭环的实现素材，但**当前没有公开或 app_role（应用运行角色）可调用的受理路径**：
 
 - `0048_checkpoint_physical_erasure.sql` 建立 API（应用程序接口）与 worker（后台进程）分离的 `NOLOGIN`（不可登录）数据库角色、请求/target（目标）租约 CAS（比较并交换）和 `checkpoint_writes → checkpoint_blobs → checkpoints` 的物理清理过程。
-- `0076` 的 `authorization_paused` 是历史未完成 target 的终止性安全状态，不是已删除回执；它要求未来授权签发器重新审计，不允许旧 worker 续跑。
-- `0077` 和 `0078` 只修复专用 worker 的最小 dispatch feed（派发提要）可达性、父请求状态约束和错配凭据启动拒绝；它们没有重新开放 API、没有创建 request，也不能替代授权签发器。
+- `0076` 的 `authorization_paused` 是历史未完成 target 的终止性安全状态，不是已删除回执；重新受理必须经独立授权快照验证与人工审计。树上已有 `0091` 签发器/账本，但公开 HTTP 未接线；privacy worker **仍走 `0077` checkpoint 原语**，不得把该路径当作已改走 `0091` 的删除授权根。
+- `0077` 和 `0078` 只修复专用 worker 的最小 dispatch feed（派发提要）可达性、父请求状态约束和错配凭据启动拒绝；它们没有重新开放 API、没有创建 request，也不能替代授权签发器。当前 worker 仍走这些 0077 checkpoint 原语，**没有**改走 `0091` verify→consume→claim。
 - 旧的 `23/23` 与 `10/10` 本地回执使用了已经撤销的 app_role（应用运行角色）受理授权形状，现仅作历史问题定位，**不得**再作为当前实现、隐私删除或发布证据。
 
 尚未实现，因而不得宣称已完成或可发布的范围：
 
-- `DELETE /privacy/interview-data/:id` 与旧 `DELETE /privacy/resume-data` 都处于显式 fail-closed（故障关闭，HTTP 503）状态；前者等待不可伪造授权签发器，后者等待独立的单简历异步删除状态机。两者都不是已完成入口。
-- 已接线范围仅为队列 payload（任务载荷）清空与开放题取消；`AiGraphRun`（图运行记录）、报告、评分投影、`user_memory`（用户记忆）、向量和招聘方可见数据仍未纳入物理删除执行器。它们未有 receipt（回执）前不能视为已删。
+- `DELETE /privacy/interview-data/:id` 与旧 `DELETE /privacy/resume-data` 都处于显式 fail-closed（故障关闭，HTTP 503）状态。前者：独立签发器与 `0091` 账本已在源码落地，但 HTTP 未接线，登录令牌不能打开删除。后者等待独立的单简历异步删除状态机。两者都不是已完成入口。
+- 公开删除仍只证明不能误受理。队列 payload 清空与开放题取消是旧围栏原语。`0096` 已为 `interview_event` / 报告族 / `ai_graph_run` 补 **DB rehearsal** resolver、物理 purge 与 sink receipt，但这不是公开执行器，也未接到 0077 worker。`user_memory`、向量、招聘方可见数据、OSS/Redis/Langfuse 仍无 interview 作用域闭环。未有可验证 receipt 前不能视为已删。
 - OSS（对象存储服务）、Redis/Tair（托管 Redis）、Langfuse（模型观测服务）、备份和灾备尚无回执执行器；因此 PostgreSQL target 完成后 request 必须保持 `pending_external`，不能 `completed`（已完成）。
 - 模型派发前 privacy epoch（隐私世代）已在与 durable dispatch（持久派发）相同的短事务中以布尔围栏验证；上述本地证明覆盖“删除先赢”时供应商调用为 0。反向竞态（派发先赢）尚未建立 provider（供应商）删除/保留回执 target（目标），因此“删除与评分外送竞争”仍是发布阻断项，不能以 checkpoint（检查点）围栏代替。
 - 历史 `TC-GRAPH-PRIV-001-E1…E9` 只能在授权快照重建后重新执行；当前暂停回归只证明不能误受理，不证明删除后旧答题、SSE（服务器发送事件）、报告、评分、学习、职业路径、题目反馈或语音入口的运行态围栏。

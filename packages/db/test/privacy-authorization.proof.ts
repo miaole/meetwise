@@ -16,7 +16,7 @@ import {
 } from '@meetwise/db';
 import {
   canonicalTargetSetDigest, generatePrivacyAuthzKeyPair, signPrivacyAuthorizationSnapshot,
-  verifyPrivacyAuthorizationSnapshot, PrivacyAuthzKeyRegistry, type PrivacyAuthzTarget,
+  verifyPrivacyAuthorizationSnapshot, PrivacyAuthzKeyRegistry, signToken, type PrivacyAuthzTarget,
 } from '@meetwise/domain';
 
 const admin = createPool();
@@ -112,6 +112,8 @@ async function issueSigned(ownerId: string, interviewId: string, epoch: number, 
 const consume = (jti: string) => asPrivacyWorkerExecutor(admin, (c) => consumeAuthorizationSnapshot(c, jti, worker));
 const claim = (ownerId: string, jti: string, targetId: string) =>
   asPrivacyWorkerPrincipal(admin, ownerId, (c) => claimAuthorizationTarget(c, jti, targetId, worker, 60));
+const claimAs = (ownerId: string, jti: string, targetId: string, workerName: string) =>
+  asPrivacyWorkerPrincipal(admin, ownerId, (c) => claimAuthorizationTarget(c, jti, targetId, workerName, 60));
 
 async function main() {
   await assertIsolatedTestTarget(admin);
@@ -422,6 +424,52 @@ async function main() {
       "INSERT INTO privacy_erasure_request(id,owner_user_id,scope,subject_id,idempotency_key_hash,status) VALUES ($1,$2,'interview_data',$3,$4,'completed')",
       [reqM2, owner, 'iv-m2-subject', '6'.repeat(64)],
     )));
+
+  /* ── K. 身份根滥用：AUTH_SECRET / GUC / raw SQL / lease takeover ───────── */
+  const loginToken = signToken(owner, 'auth-secret-reuse-probe', 600, NOW_SEC);
+  const registryK = new PrivacyAuthzKeyRegistry();
+  registryK.activate(KEY.kid, KEY.publicJwk);
+  A('AUTH_SECRET 登录令牌不能验成隐私授权 JWS',
+    verifyPrivacyAuthorizationSnapshot({ jws: loginToken, resolveJwk: registryK.resolve.bind(registryK), nowSec: NOW_SEC }) === null);
+  A('AUTH_SECRET 登录令牌不能当 jti 消费', await rejects(() => consume(loginToken)));
+
+  A('app_role + 伪造 GUC 不能 issue（签发只授 privacy_issuer）',
+    await rejects(() => asPrincipal(admin, owner, (c) => issueAuthorizationSnapshot(c, {
+      jti: signSnapshot(owner, ivA, 3, T()).jti, keyId: KEY.kid, actor: owner, interviewId: ivA,
+      purpose: 'interview_data_erasure', privacyEpoch: 3, targetSetDigest: canonicalTargetSetDigest(T()),
+      expiresAt: new Date(Date.now() + 600_000),
+    }))));
+  A('app_role 不能把自身加成 privacy_issuer',
+    await rejects(() => asPrincipal(admin, owner, (c) => c.query('GRANT privacy_issuer TO app_role'))));
+  A('app_role raw INSERT snapshot 拒绝',
+    await rejects(() => asPrincipal(admin, owner, (c) => c.query(
+      `INSERT INTO privacy_authorization_snapshot
+         (jti,issuer_id,key_id,actor,owner_user_id,interview_id,purpose,privacy_epoch,target_set_digest,status,issued_at,expires_at)
+       VALUES ($1,'meetwise-privacy-authz-v1',$2,$3,$4,$5,'interview_data_erasure',3,$6,'issued',now(),now()+interval '10 minutes')`,
+      ['00000000-0000-4000-8000-0000000000f2', KEY.kid, owner, owner, ivA, canonicalTargetSetDigest(T())],
+    ))));
+  A('app_role raw INSERT receipt 拒绝',
+    await rejects(() => asPrincipal(admin, owner, (c) => c.query(
+      `INSERT INTO privacy_deletion_receipt(request_id,target_id,receipt_kind,receipt_hash,recorded_by)
+       VALUES ($1,$2,'local_erased',$3,$4)`,
+      [reqOk, tgtOk, 'd'.repeat(64), worker],
+    ))));
+
+  const ivLease = '00000000-0000-4000-8000-0000000000f3';
+  const reqLease = '00000000-0000-4000-8000-0000000000f4';
+  const tgtLease = '00000000-0000-4000-8000-0000000000f5';
+  await insertInterview(owner, ivLease);
+  await insertRequest(reqLease, owner, ivLease, 'interview_data', 3, canonicalTargetSetDigest(T()));
+  await insertTarget(tgtLease, reqLease, 'checkpoint_rows', R1);
+  const signedLease = await issueSigned(owner, ivLease, 3, T());
+  await consume(signedLease.jti);
+  const firstLease = await claimAs(owner, signedLease.jti, tgtLease, `${worker}-a`);
+  A('lease takeover 前置: 第一 worker 租约成功', firstLease !== null && firstLease.leaseToken.length > 0);
+  A('未过期租约第二 worker 不可抢', await claimAs(owner, signedLease.jti, tgtLease, `${worker}-b`) === null);
+  await admin.query("UPDATE privacy_deletion_target SET lease_expires_at=now()-interval '1 second' WHERE id=$1", [tgtLease]);
+  const takeover = await claimAs(owner, signedLease.jti, tgtLease, `${worker}-b`);
+  A('租约过期后第二 worker 可接管，旧 worker 不再独占',
+    takeover !== null && takeover.leaseToken.length > 0 && takeover.leaseToken !== firstLease?.leaseToken);
 
   await admin.end();
   console.log(failures === 0

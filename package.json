@@ -135,6 +135,7 @@
     "privacy-authorization:crypto:prove": "pnpm -C packages/domain prove:privacy-authorization",
     "privacy-authorization:prove": "node scripts/run-e2e-isolated.mjs privacy-authorization:prove:raw",
     "privacy-authorization:prove:raw": "pnpm -C packages/db prove:privacy-authorization",
+    "interview-answer-submission:prove": "pnpm -C packages/contracts prove:interview-answer-submission",
     "memory-governance:prove": "node scripts/run-e2e-isolated.mjs memory-governance:prove:raw",
     "memory-governance:prove:raw": "pnpm -C packages/db prove:memory-governance",
     "memory-admission:prove": "node scripts/run-e2e-isolated.mjs memory-admission:prove:raw",

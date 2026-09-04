@@ -11,6 +11,7 @@
 import 'reflect-metadata';
 import { createHash } from 'node:crypto';
 import { asPrincipal, beginCheckpointErasure, createPool, provisionRuntimeLogin } from '@meetwise/db';
+import { generatePrivacyAuthzKeyPair, signPrivacyAuthorizationSnapshot } from '@meetwise/domain';
 
 const admin = createPool();
 const role = `privacy_http_api_${process.pid}`;
@@ -71,8 +72,42 @@ async function main() {
     const paused = await fetch(`${base}/privacy/interview-data/${interviewId}`, {
       method: 'DELETE', headers: { ...authorization, 'idempotency-key': idempotencyKey },
     });
-    A('面试数据删除在缺少不可伪造授权签发器时 fail-closed，不建删除账本',
+    A('AUTH_SECRET 登录令牌不能打开公开删除：issuer 已存在仍固定 503，不建删除账本',
       paused.status === 503 && (await json(paused)).error === 'interview_erasure_authorization_not_available');
+    const replayPaused = await fetch(`${base}/privacy/interview-data/${interviewId}`, {
+      method: 'DELETE', headers: { ...authorization, 'idempotency-key': idempotencyKey },
+    });
+    A('重复 DELETE 仍 503，不因重放建账本',
+      replayPaused.status === 503 && (await json(replayPaused)).error === 'interview_erasure_authorization_not_available');
+
+    const privacyKey = generatePrivacyAuthzKeyPair('privacy-del-http-2026-01');
+    const privacyJws = signPrivacyAuthorizationSnapshot({
+      privateKeyPem: privacyKey.privateKeyPem, kid: privacyKey.kid,
+      actor: signupBody.userId, owner: signupBody.userId, interview: interviewId,
+      purpose: 'interview_data_erasure', privacyEpoch: 1,
+      targets: [{ kind: 'checkpoint_rows', resource: '1'.repeat(64) }],
+      nowSec: Math.floor(Date.now() / 1000), ttlSec: 600,
+    }).jws;
+    const jwsAsBearer = await fetch(`${base}/privacy/interview-data/${interviewId}`, {
+      method: 'DELETE', headers: { authorization: `Bearer ${privacyJws}`, 'idempotency-key': `${idempotencyKey}-jws` },
+    });
+    A('隐私 JWS 不能冒充 AUTH_SECRET 登录令牌：公开删除 401，不建账本',
+      jwsAsBearer.status === 401);
+    const jwsAsHeader = await fetch(`${base}/privacy/interview-data/${interviewId}`, {
+      method: 'DELETE',
+      headers: { ...authorization, 'idempotency-key': `${idempotencyKey}-hdr`, 'x-privacy-authorization': privacyJws },
+    });
+    A('合法登录 + 隐私 JWS 头仍不能打开公开删除（HTTP 未接线 issuer）',
+      jwsAsHeader.status === 503 && (await json(jwsAsHeader)).error === 'interview_erasure_authorization_not_available');
+
+    const canonicalWrite = await fetch(`${base}/interview/${interviewId}/answers`, {
+      method: 'POST',
+      headers: { ...authorization, 'content-type': 'application/json' },
+      body: JSON.stringify({ clientSubmissionKey: 'k1', answer: '不得经新路径落库' }),
+    });
+    A('公开 API 无 01 canonical raw write 路径',
+      canonicalWrite.status === 404 || canonicalWrite.status === 405);
+
     const sideEffects = await admin.query(
       `SELECT
          (SELECT count(*)::int FROM privacy_erasure_request WHERE owner_user_id=$1 AND subject_id=$2) AS requests,
@@ -81,15 +116,14 @@ async function main() {
            WHERE r.owner_user_id=$1 AND r.subject_id=$2) AS targets`,
       [signupBody.userId, interviewId],
     );
-    A('安全暂停不改变 request 或 target，并且低权 app_role 不能绕过数据库入口',
+    A('issuer 时代公开删除仍不改变 request 或 target，低权 app_role 不能绕过数据库入口',
       Number(sideEffects.rows[0]?.requests) === 0 && Number(sideEffects.rows[0]?.targets) === 0
       && await asPrincipal(runtime, signupBody.userId, (c) =>
         beginCheckpointErasure(c, interviewId, 'a'.repeat(64))).then(() => false).catch(() => true));
 
-    // Keep the former active-flow assertions below as a dormant regression
-    // harness.  They become reachable only when a reviewed authorization
-    // snapshot issuer replaces this pause; today continuing would incorrectly
-    // expect a 202 from a deliberately disabled destructive capability.
+    // Public delete stays 503 until composition-root abuse proofs exist.
+    // The dormant 202 harness below must not run: issuer foundation is local
+    // only and must not be mistaken for a reopened destructive HTTP path.
     if (paused.status === 503) return;
 
     const missingKey = await fetch(`${base}/privacy/interview-data/${interviewId}`, {

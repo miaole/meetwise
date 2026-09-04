@@ -549,12 +549,11 @@ export const MemoryAdmissionAuthorization = z.object({
 }).strict();
 export type MemoryAdmissionAuthorization = z.infer<typeof MemoryAdmissionAuthorization>;
 
-/* ───────────── interview answer fact root (INT-TRANSCRIPT-00) ─────────────
- * 答案事实根：面试答案的唯一权威持久化形状（评分/检索/记忆/投影的前置）。与上方两个块
- * 同理，这些形状**仅冻结跨端 schema**，不登记进 apiContract（不进 OpenAPI）——答案提交的
- * HTTP 路径仍复用现有 /interview/{id}/turn（TurnDto），本块承载的是「答案正文加密落库 +
- * 提交回执 + 只读视图 + 删除目标 sink」这些评分前置的契约形状，供评分 worker、SSE 投影
- * 与删除器 codegen 复用。
+/* ───────────── interview answer fact root (INT-TRANSCRIPT-00 合同冻结) ─────────────
+ * 00 只冻结 submission/receipt 与后续 01 形状，不登记进 apiContract（不进 OpenAPI），
+ * 也不授权新的公开 canonical raw write。答案提交的 HTTP 路径仍是 legacy
+ * /interview/{id}/turn（TurnDto，INT-P0-RAW-QUEUE）。0092 rehearsal 表/函数可被后续
+ * 评分/删除 proof 使用，但不能把本块写成已上线 write route。
  *
  * 铁律：所有模型/评分/RAG/Web/memory/B 端投影的副作用为 0——首包只落
  * `accepted_unscored`，正文只进加密 ciphertext（bytea），任何投影只拿 bodyHmac/watermark，

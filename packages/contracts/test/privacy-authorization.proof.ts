@@ -8,8 +8,10 @@
  */
 import { randomUUID } from 'node:crypto';
 import {
-  PrivacyAuthorizationSnapshot, PrivacyAuthzPurpose, PRIVACY_AUTHZ_ISSUER, PRIVACY_AUTHZ_AUDIENCE,
+  PrivacyAuthorizationSnapshot, PrivacyAuthzPurpose, PrivacyDeletionReceipt, PrivacyDeletionReceiptKind,
+  PRIVACY_AUTHZ_ISSUER, PRIVACY_AUTHZ_AUDIENCE, apiContract,
 } from '../src/index.ts';
+import { buildOpenApiDocument } from '../src/openapi.ts';
 
 let n = 0;
 function ok(cond: boolean, msg: string) { if (!cond) { console.error('✗', msg); process.exit(1); } n++; }
@@ -56,5 +58,24 @@ ok(PrivacyAuthzPurpose.safeParse('interview_data_erasure').success
   && PrivacyAuthzPurpose.safeParse('resume_data_erasure').success
   && PrivacyAuthzPurpose.safeParse('account_data_erasure').success
   && !PrivacyAuthzPurpose.safeParse('resume_quiz').success, 'purpose 三枚举自洽、第四值拒绝');
+
+const legalReceipt = {
+  targetId: randomUUID(),
+  receiptKind: 'local_erased',
+  receiptHash: 'a'.repeat(32),
+};
+ok(PrivacyDeletionReceipt.safeParse(legalReceipt).success, '合法逐 sink receipt 全过');
+ok(PrivacyDeletionReceiptKind.options.join(',') === 'local_erased,retention_pending,external_pending,external_confirmed,failed_cleanup',
+  'receipt kind 五枚举冻结');
+ok(!PrivacyDeletionReceipt.safeParse({ ...legalReceipt, receiptKind: 'completed' }).success, '伪造 completed receipt kind 拒绝');
+ok(!PrivacyDeletionReceipt.safeParse({ ...legalReceipt, answer: 'plaintext' }).success, 'receipt strict 拒绝明文答案键');
+ok(!PrivacyDeletionReceipt.safeParse({ ...legalReceipt, targetId: 'not-uuid' }).success, 'receipt targetId 非 uuid 拒绝');
+
+const doc: any = buildOpenApiDocument();
+ok(!apiContract.some((r) => r.path.includes('privacy/interview-data') || r.id.toLowerCase().includes('erasure')),
+  '删除授权/receipt 不登记进 apiContract');
+ok(doc.paths['/privacy/interview-data/{id}'] === undefined
+  && doc.paths['/privacy/interview-data'] === undefined,
+  '公开 OpenAPI 无删除授权写入路径');
 
 console.log(`✓ contracts privacy-authorization 全部通过(${n} 断言)`);
