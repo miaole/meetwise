@@ -129,7 +129,7 @@ CHECK 能插入 ≠ 已有 resolver。占位 sink（`memory_event` / `memory_cac
 | 围栏 | 机制 | 负向验收 |
 | --- | --- | --- |
 | 枚举 | begin 固定插入 `sink='memory_vector_chunk'` | 0093 的 3-sink begin 仍不含此 sink；向量行仍在 |
-| 写围栏 | `kind='memory'` 的 INSERT/UPDATE 在本 sink 账本处于 `fenced` / `purging` / `pending_external` / `completed` / `partial_failed` 时拒绝。0124 **无**撤销函数，故 `completed` 后对该 owner 的 memory 写入是永久拒绝。触发器不拦 DELETE：`app_role` 仍可能自删 memory 行，收据与真实删除者可能脱节（已知缺口）。Worker DELETE RLS 只要求 principal + `kind='memory'` + `privacy_target_id` 非空，**不**绑定 `lease_token`（弱于 0048 checkpoint） | 围栏后迟到 INSERT/UPDATE=0；`kind='qbank'` 仍可走题库控制面；不得把本围栏写成可撤销或 lease-bound 物理删 |
+| 写围栏 | `kind='memory'` 的 INSERT/UPDATE 在本 sink 账本处于 `fenced` / `purging` / `pending_external` / `completed` / `partial_failed` 时拒绝。0124 无撤销函数，故 `completed` 后对该 owner 的 memory 写入是永久拒绝。触发器不拦 DELETE：`app_role` 仍可能自删 memory 行，收据与真实删除者可能脱节（已知缺口）。Worker DELETE RLS 只要求 principal + `kind='memory'` + `privacy_target_id` 非空，不绑定 `lease_token`（弱于 0048 checkpoint） | 围栏后迟到 INSERT/UPDATE=0；`kind='qbank'` 仍可走题库控制面；不得把本围栏写成可撤销或 lease-bound 物理删 |
 | 物理清除 | worker 仅 DELETE `owner=principal AND kind='memory'`，残留≠0 fail-closed | 跨 owner 行=原数；qbank 行=原数 |
 | 公开入口 | 简历/面试 DELETE 保持 503 | 无新 request/target |
 | 完成语义 | 本 sweep 的 request 可 `completed`；**不等于**账户删除完成 | `user_memory` / trace / 外部 sink 仍在清单缺口中 |
