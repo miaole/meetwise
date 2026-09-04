@@ -61,10 +61,12 @@ related:
 ## 5. 测试层是否选对
 
 - [ ] 用 [layer-selection](./layer-selection.md) 选了层，而不是默认只开页面或只断言 200。
-- [ ] 钱/状态/隔离的并发、恢复、逃逸至少有一条落在集成或 E2E，没有全堆在单测。
+- [ ] 钱/状态/隔离的并发、恢复、逃逸至少有一条落在集成或 HTTP E2E 主层（`e2e:isolated`），没有全堆在单测；只有 cookie/DOM 才加 Playwright 次层。
 - [ ] 没有用 mock 模型证明生产模型质量。
 
 ## 6. 结论边界
 
+- [ ] AI 写出的 diff 已经过审核，没有默认信任；验证走多轮门禁（修完再跑受影响的门）。见 [ai-generated-review](../../rules/global/ai-generated-review.md)。
 - [ ] 准备写的验证记录区分：局部合同 / 隔离 prove / 真供应商 E2E / 发布证据。
 - [ ] 不会把 `releaseEvidence=false` 的回执抄进发布说明。
+- [ ] 未写入密钥、真实 `.env`、简历原文或支付秘密。

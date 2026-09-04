@@ -9,7 +9,7 @@
 - 不在没有 PRD、领域模型、接口契约和测试计划的情况下直接生成生产代码；实现前先写清楚测试先行的验收方式。
 - 不暗猜接口，不创造未定义接口；前后端必须由共享契约驱动。
 - 不把 AI 输出直接当事实；所有模型输出必须经过结构化校验和业务校验。
-- 不默认信任 AI 写出的代码、测试或 UI。变更后只走 `ai-docs/skills/testing/sop.md`；能否收束由 `ai-docs/skills/testing/fail-closed-gate.md` 判定（审核 ∧ 验证，缺一阻断，作者不得自签审核，允许多轮）。不提交密钥。
+- **P0：不得默认信任** AI 写出的代码、测试、UI 或文档。变更后只走 `ai-docs/skills/testing/sop.md`；能否收束由 `ai-docs/skills/testing/fail-closed-gate.md` 判定（审核 ∧ 验证，缺一阻断，作者不得自签审核，允许多轮门禁）。长期规则指针见 `ai-docs/rules/global/ai-generated-review.md`。不提交密钥。
 - 不把简历、聊天记录、模型密钥、支付信息写入日志。
 - 不提交真实 `.env`、密钥、简历原文、面试录音或用户敏感数据。
 
@@ -27,8 +27,8 @@
 - `ai-docs/requirements`：具体 epic 和 iteration PRD。
 - `ai-docs/architecture`：长期技术架构、模块划分、LangGraph、部署和观测。
 - `ai-docs/rules`：长期稳定工程约束。
-- `ai-docs/skills`：AI 做某类任务时的工作方法。
-- `ai-docs/testing`：测试策略、golden tasks、E2E 和评测。
+- `ai-docs/skills`：AI 做某类任务时的工作方法。变更后测试入口：`ai-docs/skills/testing/SKILL.md`。
+- `ai-docs/testing`：测试策略（HTTP `e2e:isolated` 主层，Playwright 次层）、TC 规范、golden tasks、E2E 证据和评测。
 - `.tmp`：单次执行工单、harness、临时证据、门禁模板和运行记录（不提交）。
 
 ## 生成前门禁

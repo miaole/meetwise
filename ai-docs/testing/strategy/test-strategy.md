@@ -1,16 +1,22 @@
 ---
 id: testing_strategy
 name: 测试策略
-description: Meetwise 的单元、契约、集成、E2E 和 AI 评测策略。
+description: Meetwise 的单元、契约、集成、E2E 和 AI 评测策略。业务全链路以隔离 HTTP fetch/SSE 为主层，Playwright 只覆盖浏览器层。
 type: testing
 scope: shared
 level: policy
 status: active
 owner: qa
-version: 1
+version: 2
 tags:
   - testing
   - strategy
+related:
+  - ../conventions/test-authoring.md
+  - ../../skills/testing/SKILL.md
+  - ../golden-tasks/README.md
+  - ../e2e-performance-evidence.md
+  - ../../rules/global/ai-generated-review.md
 ---
 
 # 测试策略
@@ -23,10 +29,22 @@ tags:
 | contract | 共享 zod4 schema + schema tests | 前后端接口不漂移 |
 | integration | Supertest + Testcontainers | API + DB + Redis |
 | graph | deterministic fixtures + fake model | LangGraph 状态、分支、恢复 |
-| e2e (HTTP) | `e2e/full.e2e.ts` + `scripts/run-e2e.mjs`（fetch / SSE），入口 `pnpm e2e:isolated` | 真 API + worker + 隔离 Postgres + **真供应商**主链路；不是 Playwright |
-| e2e (browser) | Playwright（`apps/web/e2e-ui/`），入口 `pnpm e2e:ui:isolated` | cookie / middleware / 页面流；需 production Next 与 live Key |
+| e2e (HTTP) **主层** | `e2e/full.e2e.ts` + `scripts/run-e2e.mjs`（fetch / SSE），入口 `pnpm e2e:isolated` | 真 API + worker + 隔离 Postgres + **真供应商**主链路；不是 Playwright |
+| e2e (browser) **次层** | Playwright（`apps/web/e2e-ui/`），入口 `pnpm e2e:ui:isolated` | cookie / middleware / 页面流；需 production Next 与 live Key |
 | ai eval | golden tasks（见 `testing/golden-tasks/`） | 模型输出质量、结构、事实一致性；未映射条目不得标绿 |
 | security | 静态扫描 + 日志检查 | 密钥、PII、XSS、越权 |
+
+## 主层与次层
+
+业务端到端的**主层**是隔离 HTTP E2E：`pnpm e2e:isolated`。客户端是 `e2e/full.e2e.ts` 的 fetch / SSE，覆盖鉴权→简历→交易→面试→报告→B 端的契约、账本和终态事件。它不是 Playwright。
+
+**次层**是浏览器 E2E：`pnpm e2e:ui:isolated`（Playwright，`apps/web/e2e-ui/`）。只证明 cookie、middleware、页面可见性和移动视口渲染。不能用 Playwright 冒充 HTTP 全链路，也不能用 HTTP E2E 冒充 cookie 或 DOM。
+
+写 TC 的层映射见 [test-authoring](../conventions/test-authoring.md)。改完功能后怎么选层、怎么跑门见 [测试技能](../../skills/testing/SKILL.md)。
+
+## AI 产物：审核 + 多轮验证（P0）
+
+[AI 产物必须审核并验证](../../rules/global/ai-generated-review.md)：**不得默认信任** agent 写出的代码/测试/文档，也不得默认信任产品侧模型输出。先审核（对来源、用例、契约），再验证（自动化门禁）。鼓励自动化，且必须**多轮门禁**（生成 → 审核 → 跑门 → 修 → 再跑受影响的门）。收束公式只在 [fail-closed 门](../../skills/testing/fail-closed-gate.md)。一轮 `docs:check` 或单测绿不等于业务全链路过。密钥与敏感数据不得进仓库或日志。
 
 ## MVP 必测路径
 
@@ -41,6 +59,8 @@ tags:
 - 结束并生成报告。
 - 重启服务后恢复未完成会话。
 - 权益扣减和失败退款。
+
+上列路径默认用 HTTP 主层验收（状态机落点、账本、SSE 终态）。只有断言本身依赖浏览器 cookie、页面或移动布局时，才加跑 Playwright 次层。
 
 ## 变更后回归入口
 
@@ -81,6 +101,9 @@ RAG 检索的当前实跑基线、非 happy-path 桶和 pgvector HNSW 复核见 
 - 只用 mock model 证明生产模型质量。
 - 只凭 AI 自评说报告合理。
 - 只测 happy path 不测失败退款和重复请求。
+- 把 Playwright 写成 HTTP 全链路的实现或唯一 E2E。
+- 把 `planned` / `unmapped` golden-task 标成已通过。
+- 默认信任 AI 代码/输出，或用 AI 自评代替审核与多轮门禁。
 
 ## 本地性能回归门
 

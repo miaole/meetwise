@@ -35,7 +35,7 @@ related:
 2. **钱、多租户、终态无死胡同** 在隔离 prove 绿了之后，有 Key 再跑 HTTP E2E。
 3. **只改了 web 组件/RSC/middleware** → `pnpm web:prove`，再视情况 `e2e:ui:isolated`。未改 API 不必付一次完整面试模型账单。这是 [fail-closed 门](./fail-closed-gate.md) 的 UI 面，单张截图不算验证。
 4. **只改了文档** → `pnpm docs:check` + `pnpm golden-tasks:check`。不要声称 E2E 已重跑。
-5. **策略里写 Playwright 的地方** 仅指浏览器层。HTTP 全链路是 `e2e/full.e2e.ts` 的 fetch/SSE 客户端。
+5. **策略里写 Playwright 的地方** 仅指浏览器**次层**。业务全链路**主层**是 `e2e/full.e2e.ts` 的 fetch/SSE 客户端（`pnpm e2e:isolated`）。
 
 ## 与 CI 的关系
 

@@ -35,12 +35,15 @@ tags:
 - `architecture/ai/human-review-design.md`：人工校验、申诉、审核授权、四眼与幂等副作用的当前边界和目标架构。
 - `architecture/ai/research-capability-gate.md`：面试 Agent 的 RAG、受限 Web/deep research 与内部 skills 实际能力边界。
 - `architecture/devops/local-demo-deployment.md`：Docker Compose 本地演示和部署策略。
-- `testing/strategy/test-strategy.md`：测试策略（HTTP E2E 与 Playwright 分层以本文和 runtime 事实为准）。
+- `rules/global/ai-generated-review.md`：长期规则指针——AI 代码/输出必须审核并验证，不得默认信任；收束公式只维护在 `skills/testing/fail-closed-gate.md`。
+- `testing/strategy/test-strategy.md`：测试策略。业务全链路以隔离 HTTP fetch/SSE（`e2e:isolated`）为主层，Playwright 只覆盖浏览器次层；与 runtime 事实冲突时以 runtime 为准。
+- `testing/conventions/test-authoring.md`：用例→TC 编写规范与层映射（HTTP 主 / Playwright 次）。
 - `skills/README.md`：工作方法索引。当前只登记测试技能（draft）。
 - `skills/testing/SKILL.md`：测试技能概述与铁律（`status: draft`）。
 - `skills/testing/sop.md`：变更后审核 → 测试 → 回归仪式；未升格前保持 draft。
 - `skills/testing/fail-closed-gate.md`：P0 fail-closed——AI 产物默认不可信，审核 ∧ 验证缺一阻断。
 - `skills/testing/e2e-platform/README.md`：HTTP E2E 平台 SOP（draft / NOT_READY；`pnpm e2e-platform:prove`）。
+- `delivery/e2e-platform-integration.md`：E2E 平台集成分支的核实合并顺序、冲突决议与 supersession（draft PR，非 READY）。
 - `testing/golden-tasks/README.md`：第一批 golden tasks 登记（含 planned/unmapped，无假绿）。
 - `testing/e2e-performance-evidence.md`：全量隔离 E2E、本地性能预算与外部检索基准的实跑证据。
 - `testing/rag-retrieval-evaluation-baseline.md`：RAG 检索实跑基线、测试集局限和发布边界。
@@ -78,9 +81,9 @@ tags:
 | 后端架构 | `architecture/backend/` | 模块、接口、DB、事务、队列 |
 | 云端部署(CD) | `delivery/lean-cd-deployment.md` | 精简单机 compose 部署、ACR、回滚 |
 | 本地演示 | `architecture/devops/local-demo-deployment.md` | compose、seed、健康检查 |
-| 测试设计 | `testing/strategy/test-strategy.md` | 测试矩阵、golden tasks |
+| 测试设计 | `testing/strategy/test-strategy.md` + `testing/conventions/test-authoring.md` | 分层（HTTP 主 / Playwright 次）、TC 规范、golden tasks |
 | 变更后测试/回归 | `skills/testing/sop.md` | 审核 → 选层 → 跑门 → `pnpm regression` → 出处；概述见 `skills/testing/SKILL.md` |
-| AI 产物验收 | `skills/testing/fail-closed-gate.md` | 默认不可信；审核 ∧ 验证；多轮重开；无密钥 |
+| AI 产物验收 | `skills/testing/fail-closed-gate.md` | 默认不可信；审核 ∧ 验证；多轮重开；无密钥。长期指针 `rules/global/ai-generated-review.md` |
 | 代码生成前确认 | `meta/task-sop.md` 的生成前门禁 | Task Harness |
 
 ## 新增文档规则

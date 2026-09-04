@@ -7,7 +7,7 @@ scope: shared
 level: guide
 status: active
 owner: architecture
-version: 1
+version: 2
 tags:
   - meta
   - boundaries
@@ -32,6 +32,15 @@ tags:
 | `architecture` | 技术上如何长期组织 | 本次任务 todo |
 | `rules` | 长期稳定约束是什么 | 一次性讨论 |
 | `skills` | 这类工作怎么做。测试仪式在 `skills/testing/sop.md` | 产品定义、测试策略正文 |
-| `testing` | 怎么验证（策略、golden tasks、证据） | 实现正文、变更后操作步骤 |
+| `testing` | 怎么验证：策略、TC 规范、golden-tasks、证据 | 实现正文；变更后怎么跑门写在 `skills/testing/` |
 | `delivery` | 怎么发布和复盘 | 需求原文 |
 | `observability` | 怎么观察 AI 和系统质量 | 用户敏感数据 |
+
+## 测试文档落位（一个结论一处）
+
+- 分层与禁止伪验收 → `testing/strategy/test-strategy.md`
+- 如何写 TC、层映射（HTTP 主层 / Playwright 次层） → `testing/conventions/test-authoring.md`
+- 改完功能后审核、选层、跑命令 → `skills/testing/SKILL.md`
+- 实跑回执与结论边界 → `testing/e2e-performance-evidence.md`
+- AI 代码/输出不得默认信任：收束公式 → `skills/testing/fail-closed-gate.md`；长期指针 → `rules/global/ai-generated-review.md`
+- E2E 平台集成分支的核实合并顺序 → `delivery/e2e-platform-integration.md`

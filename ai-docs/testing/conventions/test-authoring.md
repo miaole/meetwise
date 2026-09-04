@@ -12,17 +12,20 @@ related:
   - ../../requirements/use-case-conventions.md
   - ../../skills/testing/SKILL.md
   - ../../skills/testing/sop.md
+  - ../../skills/testing/layer-selection.md
+  - ../../skills/testing/fail-closed-gate.md
   - ../golden-tasks/README.md
+  - ../../rules/global/ai-generated-review.md
 ---
 
 # 测试用例编写规范
 
-> 顺序：**用例 → 测试用例 → 代码**。测试用例从业务用例的 Acceptance + 每条异常流派生，**先于实现代码存在**。已写的实现若没有对应 TC，视为未完成。
+> 顺序：**用例 → 测试用例 → 代码**。测试用例从业务用例的 Acceptance + 每条异常流派生，**先于实现代码存在**。已写的实现若没有对应 TC，视为未完成。AI 代写的 TC/代码同样适用：[不得默认信任](../../rules/global/ai-generated-review.md)，必须审核并走多轮自动化门禁。
 
 ## 1. 覆盖规则
 
 - 每条用例的**主流程**至少 1 个 TC；**每条异常流（E1–E6）各至少 1 个 TC**。只测 happy path = 不合格。
-- 强制负向用例集（缺一不可，对应 test-strategy「禁止假验收」）：
+- 强制负向用例集（缺一不可，对应 test-strategy「禁止伪验收」）：
   - 失败回滚/退款、重复请求幂等、并发 CAS（断言恰一个赢）、越权 RLS=0 行、schema 校验失败、幻觉/歪曲拦截、断线重连不丢不重、依赖失效降级、超时。
 - 断言"业务事实"而非仅 HTTP 200：状态机落点、账本写入、计数、隔离边界。
 
@@ -34,9 +37,13 @@ related:
 | 对外 API 形状 | 契约 | zod4 schema-diff（contracts 包导出对比） |
 | 跨模块 + DB + RLS/CAS/幂等 | 集成 | Supertest + Testcontainers / 真 Postgres |
 | 图编排、interrupt/resume、节点决策 | graph | 确定性 fixture + **fake model** |
-| 端到端关键路径（鉴权→简历→交易→面试→报告→B 端） | e2e HTTP | `pnpm e2e:isolated`：`e2e/full.e2e.ts` fetch/SSE，真供应商，**不是** Playwright |
-| 浏览器 cookie / 页面流 | e2e UI | Playwright：`pnpm e2e:ui:isolated`（`apps/web/e2e-ui/`） |
+| 端到端关键路径（鉴权→简历→交易→面试→报告→B 端） | e2e HTTP **主层** | `pnpm e2e:isolated`：`e2e/full.e2e.ts` fetch/SSE，真供应商，**不是** Playwright |
+| 浏览器 cookie / 页面流 | e2e UI **次层** | Playwright：`pnpm e2e:ui:isolated`（`apps/web/e2e-ui/`） |
 | 模型质量/安全 | ai-eval | golden 任务登记在 `testing/golden-tasks/`；对**真实境内模型**跑的条目不得用 fake 冒充 |
+
+**主/次铁律**：钱、状态机、隔离、SSE 终态的跨进程断言默认落 HTTP 主层。只有断言本身依赖 cookie、middleware、页面可见性或移动布局时才落 Playwright 次层。历史用例表若写 `e2e（Playwright）` 但断言的是账本/状态机，按 HTTP 主层理解，不要再复制该标签。
+
+选层配方见 [layer-selection](../../skills/testing/layer-selection.md)；诚实边界见 [honesty-rules](../../skills/testing/honesty-rules.md)；变更后入口见 [测试技能](../../skills/testing/SKILL.md)。
 
 ## 3. 命名与可追溯
 
@@ -58,4 +65,4 @@ related:
 
 ## 6. 倒挂已有验证
 
-当前已存在 5 个可复跑 gate（`db:prove / runtime:prove / graph:prove / api:validate / pipeline`，共 52 断言）。按本规范，它们的每条断言必须**回挂到一条业务用例的某条 flow**；未挂上的断言要么补用例，要么删除。范例见 [UC-interview-submit-answer](../../requirements/use-cases/UC-interview-submit-answer.md)。
+`pnpm regression` 默认只跑 always-on（见 [run-gates](../../skills/testing/run-gates.md)）。`--core` 是 always-on **之后**的行走骨架：`db:prove`、`runtime:prove`、`graph:prove`、`pipeline:prove`、`api:validate`。按触达面加跑的隔离 prove 列在同一文件。**不要**再引用过时的「5 个 gate / 52 断言」计数，也不要把 `--core` 写成 always-on 全集。每条可复跑断言必须**回挂到一条业务用例的某条 flow**；未挂上的断言要么补用例，要么删除。范例见 [UC-interview-submit-answer](../../requirements/use-cases/UC-interview-submit-answer.md)。
