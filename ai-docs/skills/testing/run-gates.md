@@ -17,7 +17,7 @@ related:
 
 这是 [变更后 SOP](./sop.md) 第 3 步的命令真相。命令清单只维护在本文件；顺序与停步只维护在 SOP。所有会重建 schema 的命令必须走 `scripts/run-e2e-isolated.mjs`（临时 `meetwise-e2e-*` 容器）。不要对开发库跑这些目标。
 
-`package.json` 别名：`pnpm regression:core` = `pnpm regression --core`；`pnpm regression:live` = `pnpm regression --live`。只支持 `--core` / `--live`，其它 flag 会 `regression_unknown_flag`。
+`package.json` 别名：`pnpm regression:core` = `pnpm regression --core`；`pnpm regression:live` = `pnpm regression --live`。只支持 `--core` / `--live`。`--claim-done` / `--ready` / `--done` 会 `regression_claim_done_forbidden`。其它 flag 会 `regression_unknown_flag`。
 
 ## 1. 无供应商 Key 的总是门
 
@@ -25,7 +25,7 @@ related:
 pnpm regression
 ```
 
-默认 **always-on**（`scripts/run-post-change-regression.mjs` 的 `ALWAYS_ON`）：`docs:check`、`golden-tasks:check`、`e2e-platform:prove`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`arch`、`api:smoke`。
+默认 **always-on**（`scripts/run-post-change-regression.mjs` 的 `ALWAYS_ON`）：`docs:check`、`generation-trust:prove`、`golden-tasks:check`、`e2e-platform:prove`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`arch`、`api:smoke`。`generation-trust:prove` 只证明政策仍写在审核清单与回归入口，不证明 diff 已人工审完。
 
 这**不是** [回归矩阵](./regression-selection.md) 的「必须」列，也不含 `interview:prove` / `commerce:prove` 等业务 prove。缺 Docker 不能假装隔离 prove 已跑。
 

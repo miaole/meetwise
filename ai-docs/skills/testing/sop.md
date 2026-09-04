@@ -24,6 +24,8 @@ related:
 
 **状态：`draft`。** draft 只限制对外宣称「测试流程已生产就绪」，**不减免任何步骤**。步骤可照做；本仪式尚未被一次非文档功能改动完整实跑证明。不得把「读过本文」或「`pnpm regression` 绿了」写成发布证据。
 
+**生成物默认不可信。** 自动化重构 / 测试 / UI / 回归可以跑；未审核的生成代码或模型输出不得当成完成。**skip-as-pass 禁止。** 没有受信回执前 `releaseEvidence` 必须为 `false`。未走完审核第 0 节，**不得声称完成**，也不得标 READY。
+
 层定义、MVP 路径和伪验收禁令只维护在 [`testing/strategy/test-strategy.md`](../../testing/strategy/test-strategy.md)。命令与失败语义只维护在 [门禁目录](./run-gates.md)。触达面「必须跑哪些门」只维护在 [回归矩阵](./regression-selection.md)。HTTP harness 目录合同、脱敏与失败分类只维护在 [e2e-platform](./e2e-platform/README.md)（draft / NOT_READY）。本文件只规定**顺序、停步和记录**。
 
 生成前的用例/测试门禁是另一条技能（仓库内 `spec-gate`）；本 SOP 是**改完之后**的仪式，二者不可互相替代。任务总流程仍看 [`meta/task-sop.md`](../../meta/task-sop.md) 的验证门。
@@ -42,7 +44,7 @@ related:
 
 | 步 | 动作 | 详单（不在此重复） | 停步条件 |
 | --- | --- | --- | --- |
-| 1 审核 | 勾完范围 / 状态机 / AI / 隐私 / 选层 / 结论边界 | [变更后审核](./post-change-review.md) | 任一项「未查」→ 不得声称审核通过 |
+| 1 审核 | 先勾「生成物默认不可信」，再勾范围 / 状态机 / AI / 隐私 / 选层 / 结论边界 | [变更后审核](./post-change-review.md) | 第 0 节或任一项「未查」→ 不得声称审核通过，也不得声称完成 |
 | 2 选层 | 按改动性质选 unit / contract / prove / HTTP E2E / UI | [选测试层](./layer-selection.md) | 选错层冒充验收 → 本仪式失败 |
 | 3 执行 | 先默认 `pnpm regression`（**仅 always-on 子集**），再按 diff 跑矩阵「必须」列；按需 `--core` / `--live` / UI | [门禁目录](./run-gates.md) + [回归矩阵](./regression-selection.md) | 见下方「执行停步」 |
 | 4 出处 | 仅当碰到模型 / 评分 / 题面 / 报告 | [出处检查](./ai-provenance.md) | 答不出 operation 绑定时写「绑定未完成」 |
@@ -58,7 +60,7 @@ related:
 - **`--core` 不是业务 prove 全集**：它只追加行走骨架（`db` / `runtime` / `graph` / `pipeline` / `api:validate`）。`interview:prove`、`commerce:prove` 等永远按矩阵追加。
 - **命令非零**：修代码或记 `blocked`，不改 runner、不删假服务守卫、不当 skip-as-pass。
 - **本地绿 ≠ CI 绿**：合并阻断以 `.github/workflows/ci.yml` 的 `verify` 列表为准。
-- **任何「已验证」声明**必须附带诚实模板字段和实际命令列表。禁止只写「regression 绿了」。`releaseEvidence` 必须为 `false`。
+- **任何「已验证」声明**必须附带诚实模板字段和实际命令列表。禁止只写「regression 绿了」。`releaseEvidence` 必须为 `false`。`pnpm regression --claim-done` / `--ready` 会 `regression_claim_done_forbidden`。
 
 ## 最低记录（写进任务说明，不进 `ai-docs`）
 
