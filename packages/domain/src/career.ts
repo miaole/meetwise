@@ -5,7 +5,10 @@
 export interface Milestone { stage: string; goal: string }
 export interface CareerPath { readiness: string; level: 'junior' | 'mid' | 'senior'; milestones: Milestone[] }
 
+function fail(code: string): never { throw Object.assign(new Error(code), { code }); }
+
 export function deriveCareerPath(overall: number, weaknesses: string[]): CareerPath {
+  if (!Number.isInteger(overall) || overall < 0 || overall > 100) fail('insufficient_evidence');
   const level = overall >= 75 ? 'senior' : overall >= 50 ? 'mid' : 'junior';
   const readiness = level === 'senior' ? '可冲刺目标岗位（建议保持手感）' : level === 'mid' ? '需补强后投递' : '基础夯实阶段';
   const milestones: Milestone[] = [];

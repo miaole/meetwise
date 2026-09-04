@@ -197,6 +197,7 @@
     "langfuse:synthetic-trace:smoke": "pnpm -C packages/ai-runtime langfuse:synthetic-trace:smoke",
     "scoring-integrity:prove": "node scripts/run-e2e-isolated.mjs scoring-integrity:prove",
     "scor-00:http:prove": "node scripts/run-e2e-isolated.mjs scor-00:http:prove:raw",
+    "scor-00-honesty:prove": "pnpm -C packages/domain prove:scoring-honesty",
     "scoring-golden:prove": "pnpm -C apps/worker prove:scoring-golden",
     "scoring:eval": "node scripts/run-e2e-isolated.mjs scoring:eval:raw",
     "scoring:eval:raw": "pnpm -C apps/worker exec tsx smoke/scoring-eval.ts",

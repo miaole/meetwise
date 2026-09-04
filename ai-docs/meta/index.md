@@ -59,10 +59,10 @@ tags:
 - `requirements/use-cases/rag-funnel-intent-routing.md`：题库 metadata、自动岗位意图路由、面试 route snapshot、QBank track 硬过滤、同桶无题 LLM fallback 与自由文本漏斗分类的业务用例和验收矩阵。
 - `architecture/ai/model-operation-routing.md`：模型节点矩阵、operation registry、总上下文预算、共享准入与“派发后不换模型”的目标架构及当前接线边界。
 - `architecture/ai/bailian-nonproduction-rollout.md`：百炼非生产工作空间、Key、模型能力 smoke 与 `MODEL-OP` 整改的逐项勾选清单；不含密钥，也不构成生产网关或发布证据。
-- `requirements/use-cases/interview-scoring-measurement.md`：面试评分的版本化 rubric、证据、确定性聚合、校准、复核与 C/B 用途边界。
+- `requirements/use-cases/interview-scoring-measurement.md`：面试评分的版本化 rubric、证据、确定性聚合、校准、复核与 C/B 用途边界；含 `UC-SCOR-00H` 消费面诚实闸（无证据不得伪造分）。
 - `requirements/use-cases/expert-long-interview-runtime.md`：长时专家面试的完整 transcript/恢复、能力等级校准、冻结 blueprint、Graph 安全控制面及其七类验收；当前为设计草案，未接线。
 - `requirements/use-cases/adaptive-interview-length.md`：当前短流程面试图的动态长度（覆盖/证据/早停/加深；软预算可上调；绝对杀开关默认 120 是平台安全，不是质量政策）；不是一到两小时 blueprint。
-- `architecture/ai/scoring-measurement-runtime.md`：当前评分链与伪评分旁路、目标 ScoreCard、难度/覆盖门和评分 operation 的运行时设计。
+- `architecture/ai/scoring-measurement-runtime.md`：当前评分链与伪评分旁路、`SCOR-00H` 消费诚实、目标 ScoreCard、难度/覆盖门和评分 operation 的运行时设计。
 
 ## 任务分流
 

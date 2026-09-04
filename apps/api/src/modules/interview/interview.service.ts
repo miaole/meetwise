@@ -1,7 +1,7 @@
 import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
 import { createHash, randomUUID } from 'node:crypto';
 import { assertInterviewPrivacyActive, reserveEntitlement, enqueueInterviewJob, getReport, abandonInterviewAndRelease, requeueFailedReport, claimInterviewAnswer, listScorableScoreCards } from '@meetwise/db';
-import { deriveAssessment, deriveLearningPlan, deriveCareerPath, resolveOverlongAnswerPolicy } from '@meetwise/domain';
+import { deriveAssessment, deriveLearningPlan, deriveCareerPath, resolveOverlongAnswerPolicy, isTrustedScoreIdentity, requireTrustedPracticeOverall } from '@meetwise/domain';
 import { VOICE_EGRESS_DISABLED_ID, type Asr, type Tts, type StreamingTts } from '@meetwise/ai-runtime';
 import type { TranscribeDto, TurnDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
@@ -19,7 +19,6 @@ const TURN_RL = { capacity: 30, refillPerSec: 0.2 };
 const TERMINAL_INTERVIEW = ['completed', 'abandoned', 'failed'];
 const MAX_TURN = 256;             // turn 号上界(默认绝对杀开关 120 + clarify 冗余;防超大 turn 号刷无限 job)
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const ANSWER_HASH_RE = /^[a-f0-9]{64}$/;
 
 function toInterviewView(row: any) {
   let displayNumber = 0;
@@ -50,18 +49,9 @@ function toInterviewView(row: any) {
 export const VOICE_ASR = Symbol.for('meetwise.VOICE_ASR');
 export const VOICE_TTS = Symbol.for('meetwise.VOICE_TTS');
 export const VOICE_STREAM_TTS = Symbol.for('meetwise.VOICE_STREAM_TTS');
-/** A transcript turn is not a score source unless the worker bound it to the
- * server-issued question and answer identity.  This excludes legacy `/answer`
- * rows without making a best-effort guess.  It deliberately does NOT read
- * `payload.score` — the score authority is ScoreCard (deterministic totals),
- * never the legacy numeric event. */
-function isProvenanceQualified(payload: any): boolean {
-  return typeof payload?.questionId === 'string' && payload.questionId.length > 0
-    && Number.isInteger(Number(payload.stateVersion)) && Number(payload.stateVersion) >= 0
-    && typeof payload.answerId === 'string' && UUID_RE.test(payload.answerId)
-    && typeof payload.answerHash === 'string' && ANSWER_HASH_RE.test(payload.answerHash)
-    && typeof payload.competency === 'string' && payload.competency.length > 0;
-}
+/** Transcript listing uses the domain honesty gate: canonical question identity
+ * plus answer claim.  Event `.score` is never the listing authority — ScoreCard
+ * totals are joined afterwards, and missing cards stay null. */
 /** MIME → DashScope 可识别的 format 字符串(MediaRecorder 常出 audio/webm;codecs=opus / audio/mp4)。 */
 function formatFromMime(mime: string): string {
   const m = (mime || '').toLowerCase();
@@ -515,7 +505,7 @@ export class InterviewService {
     return { ready: true, md };
   }
 
-  // 面试转写:题目 + 各题得分(从图落库题目 + answer_evaluated 事件组装)。
+  // 面试转写:题面/outcome 来自 ledger 对齐的 answer_evaluated；分数只读 ScoreCard，无卡 null（不读 payload.score）。
   transcript(principal: string, id: string) {
     return this.db.asPrincipal(principal, async (c) => {
       await this.guardInterviewPrivacy(c, id);
@@ -544,7 +534,7 @@ export class InterviewService {
       // **E2 修:纯从 answer_evaluated 构建题面/outcome/competency**(每条自带 question/outcome/competency,天然对齐,不再靠 question_ready 序号 vs turn 两套计数 join)。
       //  自适应主线:题面在 answer_evaluated.question(worker 落库)。遗留固定题单:回退 questions[turn] 列。
       const legacy: string[] = iv.rows[0].questions ?? [];
-      return { turns: ev.rows.filter((r: any) => isProvenanceQualified(r.payload)).map((r: any, i: number) => {
+      return { turns: ev.rows.filter((r: any) => isTrustedScoreIdentity(r.payload)).map((r: any, i: number) => {
         const p = r.payload ?? {};
         const t = Number.isInteger(Number(p.turn)) ? Number(p.turn) : i;
         return { index: t, question: p.question || legacy[t] || '', competency: p.competency, score: totalByQuestion.get(p.questionId) ?? null, outcome: p.outcome ?? undefined };
@@ -570,7 +560,13 @@ export class InterviewService {
         competency: card.competency,
         score: card.deterministicTotal,
       }));
-      const a = deriveAssessment(turns);
+      let a: ReturnType<typeof deriveAssessment>;
+      try { a = deriveAssessment(turns); }
+      catch (e) {
+        if ((e as { code?: string }).code === 'score_aggregate_empty')
+          throw new HttpException({ error: 'no_scorable_cards' }, HttpStatus.CONFLICT);
+        throw e;
+      }
       await c.query(
         `INSERT INTO assessment_report(id, owner_user_id, interview_id, status, dimensions, overall)
            VALUES ($1,$2,$3,'ready',$4,$5)
@@ -638,7 +634,15 @@ export class InterviewService {
       const a = await c.query('SELECT overall, dimensions FROM assessment_report WHERE interview_id=$1', [id]);
       if (a.rowCount === 0) throw new HttpException({ error: 'assessment_required' }, HttpStatus.CONFLICT);
       const weaknesses = (a.rows[0].dimensions ?? []).filter((d: any) => d.gap).map((d: any) => d.dimension);
-      const cp = deriveCareerPath(a.rows[0].overall ?? 0, weaknesses);
+      let overall: number;
+      try { overall = requireTrustedPracticeOverall(a.rows[0].overall); }
+      catch (e) {
+        const code = (e as { code?: string }).code;
+        if (code === 'insufficient_evidence' || code === 'score_value_invalid')
+          throw new HttpException({ error: 'insufficient_evidence' }, HttpStatus.CONFLICT);
+        throw e;
+      }
+      const cp = deriveCareerPath(overall, weaknesses);
       await c.query(
         `INSERT INTO career_path(id, owner_user_id, interview_id, readiness, level, milestones)
            VALUES ($1,$2,$3,$4,$5,$6)

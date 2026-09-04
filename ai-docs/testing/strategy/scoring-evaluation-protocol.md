@@ -28,6 +28,8 @@ related:
 
 因此不得使用“100% 高可用”或“模型 100% 准确”描述统计性评分能力。确定性机制可要求零已知违规；模型质量只报告样本数、成功数、跳过数和置信区间。
 
+`SCOR-00H` / `pnpm scor-00-honesty:prove` / `pnpm web:prove` 只证明消费面不伪造 0、不把无 identity 的 event 分当练习 hint、域侧不能把 event/report 升格为 B 端 overall。它们**不是**本协议的测量质量、校准或 golden-task `mapped` 证据，也不能关闭 `scoring:eval`。`releaseEvidence=false`。
+
 ## 1. 当前可运行金标集（`scoring-golden.ts`）
 
 | 桶 | 数量 | 真实评估对象 | 失败判定 |
@@ -93,6 +95,10 @@ pnpm scoring-golden:prove
 pnpm scoring-integrity:prove
 pnpm adaptive-life:prove
 pnpm turn-idempotency:prove
+
+# 消费面诚实闸（不伪造 0 / 无 identity 不展示）：不是质量评测
+pnpm scor-00-honesty:prove
+pnpm web:prove
 
 # nightly/人工触发：需要由 CI/受控 shell 注入真实模型凭据（不读取仓库 `.env`）；命令自行创建一次性隔离 Postgres target
 pnpm scoring:eval

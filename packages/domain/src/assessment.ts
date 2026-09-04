@@ -15,10 +15,12 @@ const GAP = 60;
  * 空集合不是 0 分：它表示本场没有有效评分证据，调用方必须走 unavailable /
  * unscored 路径，不能把系统或供应商故障伪装为候选人的低分。
  */
+function fail(code: string): never { throw Object.assign(new Error(code), { code }); }
+
 export function aggregateScores(scores: readonly number[]): number {
-  if (scores.length === 0) throw new Error('score_aggregate_empty');
+  if (scores.length === 0) fail('score_aggregate_empty');
   if (scores.some((score) => !Number.isInteger(score) || score < 0 || score > 100)) {
-    throw new Error('score_aggregate_invalid_input');
+    fail('score_aggregate_invalid_input');
   }
   return Math.round(scores.reduce((total, score) => total + score, 0) / scores.length);
 }
@@ -29,7 +31,8 @@ export function aggregateScores(scores: readonly number[]): number {
  * 同一能力多题取均分聚合;competency 缺失(老数据/非自适应)才回退问题文本。
  */
 export function deriveAssessment(turns: AssessTurn[]): Assessment {
-  if (!turns.length) return { overall: 0, dimensions: [], weaknesses: [] };
+  // 空集不是 0 分：没有可评分证据必须走 assessment_unavailable / insufficient_evidence。
+  if (!turns.length) fail('score_aggregate_empty');
   const hasComp = turns.some((t) => t.competency?.trim());
   let rows: Array<{ dimension: string; score: number }>;
   if (hasComp) {

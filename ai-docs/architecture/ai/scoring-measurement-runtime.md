@@ -30,7 +30,9 @@ related:
 - 分数可以用于招聘自动决策；
 - 任何旧事件都是合法评分来源。
 
-遗留 `/interview/:id/answer` 的固定 `68` 分旁路已在当前工作树改为统一 `410 legacy_endpoint_disabled`，并从公开 OpenAPI 契约移除；报告、assessment 和 profile 的 ledger 对齐只是**legacy transport 过滤**：题目和事件仍可被普通 runtime 写入，因而它不构成不可变评分事实、测量质量或用途授权。迁移 `0082` 进一步将 B 端申请数值分置空、保持 `assessment_unavailable`，人才库不再提供分数排序。`2026-08-13` 的 `pnpm scor-00:http:prove` 已在完整迁移的隔离 PostgreSQL 中，以独立低权 runtime login 运行真实 Nest/Fastify，验证 C/B、重放、并发、跨主体 legacy 调用的受检副作用增量均为 0。这只是本地组合根的止血验证（`releaseEvidence=false`）：它没有建立 canonical answer artifact、不可变 rubric、专用评分写权限、测量校准或 B 端可比用途，因此不能把既有聚合分称为可信测量结果。
+遗留 `/interview/:id/answer` 的固定 `68` 分旁路已在当前工作树改为统一 `410 legacy_endpoint_disabled`，并从公开 OpenAPI 契约移除；报告、assessment 和 profile 的 ledger 对齐只是**legacy transport 过滤**：题目和事件仍可被普通 runtime 写入，因而它不构成不可变评分事实、测量质量或用途授权。迁移 `0082` 进一步将 B 端申请数值分置空、保持 `assessment_unavailable`，人才库不再提供分数排序。`2026-08-13` 的 `pnpm scor-00:http:prove` 已在完整迁移的隔离 PostgreSQL 中，以独立低权 runtime login 运行真实 Nest/Fastify，验证 C/B、重放、并发、跨主体 legacy 调用的受检副作用增量均为 0。
+
+`SCOR-00H` 在同一止血边界上补了消费面诚实闸（`packages/domain/src/scoring-honesty.ts` + web `practiceHintScore`）：canonical question identity **和** answer claim（`answerId`/`answerHash`/`competency`）才展示练习 hint；空评估抛 `score_aggregate_empty` / API `409 no_scorable_cards` 而不是 `overall=0`；职业路径拒 null overall（`409 insufficient_evidence`）；转写分数只读 `listScorableScoreCards`（当前仍含 `practice_eligible` **和** `b_review_eligible`；生产 graph 通常无卡 → null）。`GET assessment` / `GET career-path` / `GET /profile/growth` / `GET report` / `exportReport` / share 海报 / `POST learning-plan` **不**重跑该闸（历史 `assessment_report.overall` 或 `ai_report.content.overall` 原样可读）。`report_ready.overall` 已是 0..100 整数时 SSE 视图仍可展示（untrusted display）。`refuseMappedBSideScore` 只证明域侧不能把 event/report 升格为 B 端 overall，**不改** worker `eligible` 计数或 `markApplicationNoEligibleScore`（二者仍读 event `.score`）。本地证明为 `pnpm scor-00-honesty:prove` / `pnpm web:prove`（`releaseEvidence=false`），未跑隔离 HTTP 组合根，不能把练习 hint 称为可信测量结果。
 
 ## 2. 目标数据流
 
@@ -94,7 +96,7 @@ flowchart LR
 
 ## 7. 实施顺序
 
-1. `SCOR-00`：移除或固定禁用遗留伪评分接口，并让所有消费面拒绝无 provenance 的历史事件。
+1. `SCOR-00`：移除或固定禁用遗留伪评分接口。`SCOR-00H` 已让转写/`POST` 评估/`POST` 职业路径/SSE 消费面拒绝无 canonical identity 的事件分，并在证据不足时走 `409` / 域 `insufficient_evidence`（不是 0）。`GET` 读路径、worker eligible 计数与 ScoreCard 写路径仍不在本步。
 2. `INT-TRANSCRIPT-00/01`：先在真实组合根闭合 canonical answer artifact、删除授权、逐 sink receipt 和删后 read=0；否则不得创建评分事实。
 3. `SCOR-01/02`：再建立 issue-stage contract、提交后 AnswerVersion/ScoreRequest、immutable QuestionRubric、专用 score-writer、ScoreCard/verifier 与一次性消费者资格切换。
 4. `SCOR-03/04`：将证据抽取纳入 operation registry，补冲突、不确定性、成本与 unknown 语义。

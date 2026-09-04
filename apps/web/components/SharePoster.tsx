@@ -40,8 +40,8 @@ export function SharePoster({
   const [busy, setBusy] = useState(false);
   const [fallback, setFallback] = useState(false);
 
-  // 综合分兜底:即便上游异常给到 NaN/Infinity,也钳为 0–100 整数,海报绝不出现 "NaN"/破环。
-  const safeOverall = Number.isFinite(overall) ? Math.max(0, Math.min(100, Math.round(overall))) : 0;
+  // 缺证据不得伪造成 0。上游 share 页已拒绝非有限 overall；这里再 fail-closed 一次。
+  const safeOverall = Number.isFinite(overall) ? Math.max(0, Math.min(100, Math.round(overall))) : null;
 
   // QR 生成:动态 import 保证 qrcode 只进客户端 bundle、且懒加载;失败也不影响海报展示。
   useEffect(() => {
@@ -109,7 +109,7 @@ export function SharePoster({
           const a = document.createElement('a');
           const objUrl = URL.createObjectURL(blob);
           a.href = objUrl;
-          a.download = `meetwise-report-${safeOverall}.png`;
+          a.download = `meetwise-report-${safeOverall ?? 'unavailable'}.png`;
           document.body.appendChild(a);
           a.click();
           a.remove();
@@ -140,7 +140,7 @@ export function SharePoster({
   const ringStroke = 24;
   const ringR = (ringSize - ringStroke) / 2;
   const ringCirc = 2 * Math.PI * ringR;
-  const ringOffset = ringCirc * (1 - safeOverall / 100);
+  const ringOffset = ringCirc * (1 - (safeOverall ?? 0) / 100);
 
   const barX = 150;
   const barW = 780;
@@ -159,7 +159,7 @@ export function SharePoster({
           viewBox={`0 0 ${W} ${H}`}
           xmlns="http://www.w3.org/2000/svg"
           role="img"
-          aria-label={`知面模拟面试练习反馈海报，反馈数值 ${safeOverall}`}
+          aria-label={safeOverall == null ? '知面模拟面试练习反馈海报，本次评分暂不可用' : `知面模拟面试练习反馈海报，反馈数值 ${safeOverall}`}
           style={{ width: '100%', height: 'auto', display: 'block' }}
         >
           {/* 背景:暖纸底 + 内框发丝线 */}
@@ -198,7 +198,7 @@ export function SharePoster({
             />
           </g>
           <text x={ringCx} y={ringCy + 8} textAnchor="middle" fontFamily={sans} fontSize="104" fontWeight="800" fill="#B5651D">
-            {safeOverall}
+            {safeOverall ?? '—'}
           </text>
           <text x={ringCx} y={ringCy + 54} textAnchor="middle" fontFamily={sans} fontSize="28" fill="#8A8276">
             / 100 本次练习反馈

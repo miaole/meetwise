@@ -186,6 +186,19 @@ export {
   canonicalScoreSpan, scoreSpanDigest, reverifyScoreEvidenceSpan,
   computeDeterministicTotal, computeCoverage, aggregateScoreCards, deriveScoreCardAssessment,
 } from './scoring-aggregation.ts';
+
+// SCOR-00 消费面诚实闸：可信 identity、practice hint、禁止映射 B 端分、证据不足 ≠ 0。
+export {
+  TRUSTED_QUESTION_ID_RE,
+  trustedQuestionIdentity, trustedScoreIdentity, isTrustedScoreIdentity, sameQuestionIdentity,
+  practiceHintFromEvaluated, mapPracticeHintToIdentity, refuseMappedBSideScore,
+  insufficientEvidenceVerdict, isInsufficientEvidence, requireTrustedPracticeOverall,
+  practiceOverallFromScoreCards, finiteScore,
+} from './scoring-honesty.ts';
+export type {
+  TrustedQuestionIdentity, LedgerScoreIdentity, PracticeHint,
+  InsufficientEvidenceVerdict, MappedScoreSource, HonestyScoreCard,
+} from './scoring-honesty.ts';
 export type {
   ScoreSpanOffsetKind, DispositionBand, ScoreSpan, DeterministicCriterion,
   ScoreCardAssessmentInput, ScoreCardAssessment,
