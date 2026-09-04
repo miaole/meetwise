@@ -13,6 +13,8 @@
     "e2e-platform:prove": "node scripts/e2e-platform/prove.mjs",
     "e2e-platform:layout:prove": "node scripts/e2e-platform/e2e-platform.proof.mjs",
     "e2e-platform:loop": "node scripts/e2e-platform/review-loop.mjs",
+    "e2e-static-guards:check": "node scripts/e2e-static-guards.mjs",
+    "e2e-static-guards:prove": "node scripts/e2e-static-guards.proof.mjs",
     "regression": "node scripts/run-post-change-regression.mjs",
     "regression:core": "node scripts/run-post-change-regression.mjs --core",
     "regression:live": "node scripts/run-post-change-regression.mjs --live",

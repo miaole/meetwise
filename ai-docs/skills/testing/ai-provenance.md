@@ -15,7 +15,7 @@ related:
 
 # AI 出处（provenance）检查
 
-这是 [变更后 SOP](./sop.md) 的第 4 步（仅 AI 触达时必做）。模型输出不能当匿名事实。改面试、评分、押题、诊断、报告、OCR、语音时，按下列项核对。未核不得写“AI 路径已验证”。隔离 worker 常注入报告故障，绿的 HTTP E2E **不能**写成 `report_ready` 已稳定，见 [门禁目录](./run-gates.md) §3。
+这是 [变更后 SOP](./sop.md) 的第 4 步（仅 AI 触达时必做）。模型输出不能当匿名事实。改面试、评分、押题、诊断、报告、OCR、语音时，按下列项核对。未核不得写“AI 路径已验证”。隔离 worker 常注入报告故障，绿的 HTTP E2E **不能**写成 `report_ready` 已稳定，见 [门禁目录](./run-gates.md) §3。静态守卫 `pnpm e2e-static-guards:check` 拒绝信任 unverified AI path：核对 HTTP E2E 固定清单上的可执行合同，并禁止假服务、密钥扫描失败即关。通过该守卫 ≠ 出处已验证。出处检查允许多轮核对（multi-round verify），不得用对话摘要代替退出码。
 
 ## 1. 题面身份（question identity）
 

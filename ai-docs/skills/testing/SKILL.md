@@ -61,6 +61,7 @@ pnpm regression --dry-run       # 只打印计划，不执行
 - **multi-round allowed**: review → verify → review again is allowed. A later failing gate reopens review; do not treat the first green as final.
 - **fail-closed**: missing review/verify language, missing Key on `--live`, or a failed step exits non-zero.
 - **no secrets**: do not print keys, résumés, answers, or prompts.
+- **unverified AI path**: `pnpm e2e-static-guards:check` / `prove` refuse trusting unverified AI paths. A green static check is not provenance.
 
 ## 改本技能时
 
@@ -71,7 +72,7 @@ pnpm regression --dry-run       # 只打印计划，不执行
 - **不得默认信任** AI 写出的代码、测试或结论。先审核、再验证；鼓励自动化，必须多轮门禁（见 [ai-generated-review](../../rules/global/ai-generated-review.md)）。不提交密钥或敏感数据。
 - 控制器/页面绿了不算业务完成。断言状态机落点、账本、隔离、终态事件。
 - HTTP 全链路 E2E 是 **主层**：`e2e/full.e2e.ts` + `scripts/run-e2e.mjs`（fetch / SSE），入口 `pnpm e2e:isolated`。Playwright 是 **次层**，只覆盖 `pnpm e2e:ui:isolated` 的浏览器 cookie / 页面流。分层结论在 [test-strategy](../../testing/strategy/test-strategy.md) 与 [test-authoring](../../testing/conventions/test-authoring.md)。
-- `run-e2e.mjs` 在 `E2E_ISOLATED=1` 且存在 `MODEL_API_KEY` 时才启动；`VOICE_FAKE` / `OCR_FAKE` / `E2E_FAKE_MODEL` 直接失败。
+- `run-e2e.mjs` 在 `E2E_ISOLATED=1` 且存在 `MODEL_API_KEY` 时才启动；假服务开关（`VOICE_FAKE` / `OCR_FAKE` / `E2E_FAKE_MODEL` / `ASR_FAKE` / `TTS_FAKE` / `EMBED_FAKE` / `RERANK_FAKE` / `MODEL_TEST_TRANSPORT_OVERRIDES` / `DASHSCOPE_TEST_TRANSPORT_OVERRIDES`）直接失败。静态守卫 `pnpm e2e-static-guards:check` 禁止 runner 漏掉该断言，并对证据/日志 helper（含 `e2e/helpers/` 自动发现）做密钥扫描（失败即关，报告只含路径和规则名，不回显命中值）。同一守卫拒绝信任 unverified AI path：核对 HTTP E2E 固定清单上的可执行合同（服务端 `questionIdentity` 必 throw、`await driveInterviewToTerminal(`、无证据不得写成 0 分）。通过 ≠ 出处已验证。允许多轮核对（multi-round verify），不得用对话摘要代替退出码与回执。
 - 回执恒为 `releaseEvidence=false`。没有受信 runner、不可变对象存储和独立验签，就不能写发布通过。
 - golden-tasks 第一批已建档；未映射到可跑门的条目状态必须是 `planned` 或 `unmapped`，禁止标 `passed`。附近 prove（`relatedCommands`）不是 covering；`scoring:eval` 不得写入 `mappedCommands`。`subject=ai-output`（GT-01..04）禁止 `mapped`。
 - `pnpm generation-trust:prove` 检查本政策仍写在审核清单与回归入口；绿了也不等于「已完成」。

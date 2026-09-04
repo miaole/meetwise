@@ -67,7 +67,7 @@ related:
 功能改动后的审核 → 测试 → 回归仪式见 [`skills/testing/sop.md`](../../skills/testing/sop.md)（`status: draft`）。AI 产物默认不可信，见 [`skills/testing/fail-closed-gate.md`](../../skills/testing/fail-closed-gate.md)。概述见 [`skills/testing/SKILL.md`](../../skills/testing/SKILL.md)。HTTP E2E 平台 SOP（**draft / NOT_READY**；`pnpm e2e-platform:check` / `e2e-platform:prove` / `e2e-platform:layout:prove` 三者不可对调）见 [`skills/testing/e2e-platform/README.md`](../../skills/testing/e2e-platform/README.md)。命令与失败语义见 [`skills/testing/run-gates.md`](../../skills/testing/run-gates.md)。默认 `pnpm regression` 只是 always-on 子集，不是触达面必须列。本页 `status: active` 只表示分层策略生效，不表示 live 全链路或平台 SOP 已 READY。生成物默认不可信：命令绿、未审核的生成 diff 不得标 READY；skip-as-pass 禁止；没有受信回执前 `releaseEvidence` 必须为 `false`。
 
 ```bash
-pnpm regression                 # always-on：无 Key 的文档 / 平台守卫 / helpers / 回执 / 架构 / api smoke（及已存在的静态守卫）
+pnpm regression                 # always-on：无 Key 的文档 / 平台守卫 / helpers / 回执 / 静态守卫 / 架构 / api smoke
 pnpm regression --core          # 先 always-on，再行走骨架隔离 prove（需 Docker）
 pnpm regression --live          # 先 always-on，再真供应商 HTTP E2E；缺 MODEL_API_KEY 非零退出
 pnpm regression --core --live   # 固定顺序 always-on → core → live
@@ -104,6 +104,9 @@ RAG 检索的当前实跑基线、非 happy-path 桶和 pgvector HNSW 复核见 
 - 把 Playwright 写成 HTTP 全链路的实现或唯一 E2E。
 - 把 `planned` / `unmapped` golden-task 标成已通过。
 - 默认信任 AI 代码/输出，或用 AI 自评代替审核与多轮门禁。
+- 在 live E2E runner 打开假服务开关，或删掉 `pnpm e2e-static-guards:check` 所核对的拒绝列表。
+- 证据/日志 helper 回显扫描命中的密钥原文。
+- 把 unverified AI path 写成已验证（本地造题号、客户端评分、无证据写成 0 分）。`pnpm e2e-static-guards:check` 只核对 HTTP E2E 固定清单上的拒绝合同，通过 ≠ 出处已验证。出处未核可以再核对一轮（multi-round verify），不能用对话摘要当通过。
 
 ## 本地性能回归门
 

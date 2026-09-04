@@ -45,7 +45,7 @@ pnpm regression
 pnpm regression --dry-run
 ```
 
-默认 **always-on**（`scripts/run-post-change-regression.mjs` 的 `ALWAYS_ON_REQUIRED`）：`docs:check`、`generation-trust:prove`、`golden-tasks:check`、`golden-tasks:prove`、`e2e-platform:check`、`e2e-platform:prove`、`e2e-platform:layout:prove`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`arch`、`api:smoke`。其中任一条在 `package.json` 缺失 → 非零退出（fail-closed）。`generation-trust:prove` 只证明政策仍写在审核清单与回归入口，不证明 diff 已人工审完。`golden-tasks:prove` 证明登记检查本身 fail-closed，不把 `planned` / `partial` 升成 `mapped`。`e2e-platform:check` 锁 helpers / 场景 / `run-e2e*` 目录；`e2e-platform:prove` 是 5 条命名静态守卫；`e2e-platform:layout:prove` 证明目录检查对种植违规非零，三者不可对调。
+默认 **always-on**（`scripts/run-post-change-regression.mjs` 的 `ALWAYS_ON_REQUIRED`）：`docs:check`、`generation-trust:prove`、`golden-tasks:check`、`golden-tasks:prove`、`e2e-platform:check`、`e2e-platform:prove`、`e2e-platform:layout:prove`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`e2e-static-guards:check`、`e2e-static-guards:prove`、`arch`、`api:smoke`。其中任一条在 `package.json` 缺失 → 非零退出（fail-closed）。`generation-trust:prove` 只证明政策仍写在审核清单与回归入口，不证明 diff 已人工审完。`golden-tasks:prove` 证明登记检查本身 fail-closed，不把 `planned` / `partial` 升成 `mapped`。`e2e-platform:check` 锁 helpers / 场景 / `run-e2e*` 目录；`e2e-platform:prove` 是 5 条命名静态守卫；`e2e-platform:layout:prove` 证明目录检查对种植违规非零，三者不可对调。`e2e-static-guards:check` / `prove` 锁假服务列表、密钥扫描失败即关、以及 unverified AI path 拒绝合同。
 
 若 `package.json` 里还有这些脚本，会自动接上（没有则跳过，不记通过）：`public-text-policy:prove`、`quality:traceability:prove`、`provider-egress:prove`。`quality:governance:check` 仍是 EXEC-00 静态治理门，不挂进 always-on：历史记录引用已删除路径时它会红，不能当成变更后烟雾。入口自身的契约用 `pnpm regression:prove` 验证，不挂进 always-on，避免自举循环。
 
@@ -98,7 +98,7 @@ pnpm regression --live
 
 - `E2E_ISOLATED=1`（由 isolated 包装器注入）
 - `MODEL_API_KEY` 存在且非空白
-- `VOICE_FAKE` / `OCR_FAKE` / `E2E_FAKE_MODEL` 未开启
+- `VOICE_FAKE` / `OCR_FAKE` / `E2E_FAKE_MODEL` / `ASR_FAKE` / `TTS_FAKE` / `EMBED_FAKE` / `RERANK_FAKE` / `MODEL_TEST_TRANSPORT_OVERRIDES` / `DASHSCOPE_TEST_TRANSPORT_OVERRIDES` 未开启（`scripts/e2e-fake-service-flags.mjs`）
 
 客户端是 `e2e/full.e2e.ts`（helpers 在 `e2e/helpers/`），用 fetch + SSE，不是 Playwright。完整面试存活预算 **420 秒**，只证明链路能到终态，不是接口 P95。
 
@@ -153,6 +153,6 @@ AI/系统终态（`report_unavailable`、`assessment_unavailable`、押题/诊�
 - `E2E_FAILURE class=provider code=live_provider_key_missing` 或 `live_provider_key_missing`：没有 Key。记 `not_run`，不要改 runner 去 skip-as-pass。`pnpm regression --live` 在此码上非零退出。
 - `regression_unknown_flag`：未知 flag，退出码 2。
 - `regression_required_script_missing`：必跑脚本不在 `package.json`。
-- `E2E_FAILURE class=provider code=fake_service_mode_forbidden` 或 `fake_service_mode_forbidden`：有人打开了假服务开关。关掉再跑，不要删这条守卫。
+- `E2E_FAILURE class=provider code=fake_service_mode_forbidden` 或 `fake_service_mode_forbidden`：有人打开了假服务开关。关掉再跑，不要删这条守卫。`pnpm e2e-static-guards:check` 会静态核对 runner 仍拒绝同一份列表，并对证据/日志 helper 做密钥扫描（失败即关，不回显命中值）。同一守卫拒绝信任 unverified AI path（本地造题号、客户端评分、无证据写成 0 分）；允许多轮核对（multi-round verify），不得用对话摘要代替退出码与回执。
 - `E2E_FAILURE class=capability code=isolation_required` 或 `e2e_isolation_required`：直接跑了 `pnpm e2e:prove`。必须用 `e2e:isolated`。
 - 子进程 stdout/stderr 默认不进回执。失败时只看退出码、分类行、断言行和 `E2E_PROCESS_OUTPUT_WITHHELD` 字节计数。

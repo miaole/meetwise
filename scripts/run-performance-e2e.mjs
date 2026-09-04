@@ -5,6 +5,7 @@
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { emitClassifiedE2EFailure, tagE2EFailure } from '../e2e/helpers/failure-class.mjs';
+import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const env = {
@@ -33,6 +34,7 @@ if (env.E2E_ISOLATED === '1') {
   env.DATABASE_SSL_MODE = 'disable';
 }
 if (env.E2E_ISOLATED !== '1') throw tagE2EFailure('capability', 'performance_e2e_isolation_required');
+assertNoFakeServiceFlags(env);
 const fakeServiceFlags = ['VOICE_FAKE', 'OCR_FAKE', 'E2E_FAKE_MODEL'].filter((name) => {
   const value = String(env[name] ?? '').trim().toLowerCase();
   return value && value !== '0' && value !== 'false';

@@ -34,7 +34,7 @@ related:
 | 6 | #60 | `cursor/e2e-interview-provenance-526a` | 约 `b7b078c` | 已 merge：规范 questionId + 拒绝伪造分；保留 #56 commerce prove 与母线 golden covering 诚实句 |
 | 7 | #61 | `cursor/e2e-failure-class-ledger-e5f7` | 约 `b7b078c` | 已 merge：封闭 `E2E_FAILURE`/`E2E_REVIEW` 账本；不回退 #56 auth 或 #60 identity |
 | 8 | #62 | `cursor/e2e-directory-contract-07f9` | 约 `b7b078c` | 已 merge：可执行目录契约 + planted-violation；母线 SOP 仍是叙事源；脚本不与 5 守卫 `prove` 对调 |
-| 9 | #63 | `cursor/e2e-static-guards-b01f` | 约 `6530171` | 待 merge |
+| 9 | #63 | `cursor/e2e-static-guards-b01f` | 约 `6530171` | 已 merge：假服务共享列表 + 密钥扫描失败即关 + unverified AI path；不回退 #61 ledger / #60 identity / Key trim |
 | 10 | #64 | `cursor/e2e-parity-baseline-f563` | 已基于 `dbcc310` | 待 merge |
 
 未改序原因：#58 改回归入口合同，后续 PR 往 always-on 挂门；#57 只对齐文档分层；#59 收紧 golden 登记；#56/#60/#61 依次加厚 helper；#62/#63/#64 加目录/静态/parity 守卫。
@@ -71,6 +71,15 @@ related:
 - 诚实规则并入：`relatedCommands` 不是 covering；GT-01..04（`subject=ai-output`）禁止 `mapped`。
 - 丢弃 #59 对回归脚本的旧 `ALWAYS_ON` 数组回退。
 
+### #63
+
+- 采用 `scripts/e2e-fake-service-flags.mjs`、`scripts/e2e-static-guards.mjs` / `.proof.mjs`，以及 runner 对 `assertNoFakeServiceFlags` 的真实 import+call。
+- **不**把 runner 退回 `new Error(...)` 或无 trim 的 `MODEL_API_KEY` 检查。隔离码保持 `e2e_isolation_required` / `e2e_ui_isolation_required` / `performance_e2e_isolation_required`，经 `tagE2EFailure` 入账。
+- 母线 5 守卫仍要在 runner 源码里看见 `VOICE_FAKE` / `OCR_FAKE` / `E2E_FAKE_MODEL` 与 `fake_service_mode_forbidden`，因此保留内联三旗标检查，同时调用共享列表（扩展 ASR/TTS/embed/rerank/transport overrides）。
+- 文档并集：保留 fail-closed / review/verify / HTTP 主层，并写入 `unverified AI path`、`失败即关`、`e2e-static-guards`。
+- `ALWAYS_ON_REQUIRED` 与 CI `verify` 追加 `e2e-static-guards:check` / `prove`；不加新的云部署 job。
+- 不削弱 `questionIdentity` 规范 id，也不把 `scorelessBound` 从 `assessment_unavailable && score === null` 改成伪造 0 分。
+
 ### #62
 
 - 采用 #62 的 `check.mjs` / `core-boundaries.mjs` / `trust-guard.mjs` / `review-loop.mjs` / `review-record.mjs` / `e2e-platform.proof.mjs` 与 `testing/conventions/e2e-directory-contract.md`。
@@ -105,7 +114,7 @@ related:
 
 `scripts/run-post-change-regression.mjs` 的 `ALWAYS_ON_REQUIRED`：
 
-`docs:check` · `generation-trust:prove` · `golden-tasks:check` · `golden-tasks:prove` · `e2e-platform:check` · `e2e-platform:prove` · `e2e-platform:layout:prove` · `e2e-helpers:prove` · `e2e-receipt:prove` · `e2e-runner:prove` · `arch` · `api:smoke`
+`docs:check` · `generation-trust:prove` · `golden-tasks:check` · `golden-tasks:prove` · `e2e-platform:check` · `e2e-platform:prove` · `e2e-platform:layout:prove` · `e2e-helpers:prove` · `e2e-receipt:prove` · `e2e-runner:prove` · `e2e-static-guards:check` · `e2e-static-guards:prove` · `arch` · `api:smoke`
 
 脚本映射（禁止对调）：`e2e-platform:check` → `scripts/e2e-platform/check.mjs`；`e2e-platform:prove` → `scripts/e2e-platform/prove.mjs`（5 命名守卫）；`e2e-platform:layout:prove` → `scripts/e2e-platform/e2e-platform.proof.mjs`（种植违规）；`e2e-platform:loop` → `scripts/e2e-platform/review-loop.mjs`（`test` 步仍是 `prove`，不是 `layout:prove`）。
 

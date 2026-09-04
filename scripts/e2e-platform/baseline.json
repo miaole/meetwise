@@ -15,6 +15,8 @@
     "e2e-platform:check",
     "e2e-platform:prove",
     "e2e-platform:layout:prove",
+    "e2e-static-guards:check",
+    "e2e-static-guards:prove",
     "e2e-receipt:prove",
     "generation-trust:prove",
     "golden-tasks:check"
