@@ -246,7 +246,7 @@ stateDiagram-v2
 
 ## 5. UC-INT-LEVEL-01 · 从非绑定初始假设校准真实能力等级
 
-> **当前代码边界（2026-09-04）：** [UC-INT-LEVEL-SIGNAL-01](./interview-control-signals.md) 已在 `@meetwise/domain` 接线：`observeInterviewSignals` + `decideNext` 可因持续弱/震荡提前 conclude（reason=`early_weak`/`early_thrashing`），图 `decide` 把 reason 写入 `concludeReason`。这是终止 **hook**，不是本用例。本用例仍要求 versioned ScoreCard、跨模块 evidence、`InitialLevelHypothesis` 与 `CompetencyLevelAssessment`；在 `SCOR-01/02` 完成前保持 blocked。图 `HARD_MAX_TURNS` 仍为 8，信号不得抬上限。
+> **当前代码边界（2026-09-04）：** [UC-INT-LEVEL-SIGNAL-01](./interview-control-signals.md) 已在 `@meetwise/domain` 接线：`observeInterviewSignals` + `decideNext` 可因持续弱/震荡提前 conclude（reason=`early_weak`/`early_thrashing`），图 `decide` 把 reason 写入 `concludeReason`。这是终止 **hook**，不是本用例。本用例仍要求 versioned ScoreCard、跨模块 evidence、`InitialLevelHypothesis` 与 `CompetencyLevelAssessment`；在 `SCOR-01/02` 完成前保持 blocked。信号不改写 `maxTurns`；`budget_exhausted` 先赢。轮次预算/钳制属 plan 与动态时长策略，本 hook 不把固定轮数写成产品硬顶。
 
 
 
@@ -284,7 +284,7 @@ stateDiagram-v2
 
 ## 6. UC-INT-LONG-INTERVIEW-01 · 冻结一到两小时专家面试蓝图并安全终止
 
-> **当前代码边界：** 终止仍是短流程：`budget_exhausted`（`turn>=maxTurns`，图硬上限 8）/ `all_resolved`（探尽优先于 `early_*`）/ 控制信号 `early_weak`·`early_thrashing`（同真时 weak 优先）。另有 `evalAnswer` 的 `unscored` / identity-mismatch 不经 `decideNext`、不写 `concludeReason`。这不是 time+coverage+evidence 的 blueprint 终止策略，也不能把 8 调大当作本用例完成。信号合同见 [interview-control-signals.md](./interview-control-signals.md)。
+> **当前代码边界：** 终止仍是短流程：`budget_exhausted`（`turn>=maxTurns`，预算/时长策略先赢）/ `all_resolved`（探尽优先于 `early_*`）/ 控制信号 `early_weak`·`early_thrashing`（同真时 weak 优先）。另有 `evalAnswer` 的 `unscored` / identity-mismatch 不经 `decideNext`、不写 `concludeReason`。这不是 time+coverage+evidence 的 blueprint 终止策略，也不能把调大固定轮数当作本用例完成。信号合同见 [interview-control-signals.md](./interview-control-signals.md)。
 
 
 

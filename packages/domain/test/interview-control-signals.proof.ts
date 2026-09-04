@@ -120,7 +120,7 @@ function thrashMind(): InterviewMind {
 {
   const w = weakAcross(['X', 'Y', 'Z'], 4);
   A('逃: 构造后 turn 已达 maxTurns 且信号为 weak', w.turn >= w.maxTurns && observeInterviewSignals(w).kind === 'weak');
-  A('逃: turn>=maxTurns 覆盖 weak → 仍 budget_exhausted（HARD_MAX/预算先赢）',
+  A('逃: turn>=maxTurns 覆盖 weak → 仍 budget_exhausted（预算先赢）',
     decideNext(w).kind === 'conclude' && decideNext(w).reason === 'budget_exhausted');
   const t = { ...thrashMind(), turn: 16, maxTurns: 16 };
   A('逃: turn>=maxTurns 覆盖 thrashing → 仍 budget_exhausted',

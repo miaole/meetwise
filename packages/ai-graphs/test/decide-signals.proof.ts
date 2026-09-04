@@ -1,4 +1,4 @@
-/** 图 decide hook：concludeReason 透传控制信号；HARD_MAX 仍 8。pnpm adaptive-signals-graph:prove */
+/** 图 decide hook：concludeReason 透传控制信号；预算先赢、信号不抬 maxTurns。pnpm adaptive-signals-graph:prove */
 import { MemorySaver, Command } from '@langchain/langgraph';
 import { decideNext, initMind, ingestAssessment, withCurrent } from '@meetwise/domain';
 import { buildAdaptiveInterviewGraph, createEphemeralAnswerVault } from '../src/index.ts';
@@ -70,7 +70,8 @@ async function hardMax() {
     loadAnswer: vault.loadAnswer,
   });
   const res: any = await g.invoke({}, { configurable: { thread_id: 'signal-hard-max' } });
-  A('HARD_MAX 仍为 8：外部 maxTurns=999 被钳在 8（信号不抬上限）', res.mind.maxTurns === 8);
+  A('信号不抬预算：外部 maxTurns=999 仍被 plan 钳成有限值（本树现实现为 8；数值属时长策略，非 SIGNAL-01 产品硬顶）',
+    res.mind.maxTurns >= 1 && res.mind.maxTurns < 999 && res.mind.maxTurns === 8);
 }
 
 async function concludeReasonPersists() {
@@ -88,14 +89,14 @@ async function concludeReasonPersists() {
   while (res.__interrupt__ && guard++ < 20) {
     res = await g.invoke(new Command({ resume: vault.issue('我在项目里做了限流但讲不清取舍和回滚') }), cfg);
   }
-  A('装配图：持续弱答在 HARD_MAX 内提前收尾且 concludeReason=early_weak',
+  A('装配图：持续弱答在预算内提前收尾且 concludeReason=early_weak',
     res.concluded === true && res.concludeReason === 'early_weak' && res.mind.turn < res.mind.maxTurns && n >= 4);
 }
 
 async function main() {
   await hardMax();
   await concludeReasonPersists();
-  console.log(`\n${fail === 0 ? '✓ 图 decide 控制信号 hook（concludeReason + HARD_MAX=8）全部通过' : '✗ ' + fail + ' 失败'}`);
+  console.log(`\n${fail === 0 ? '✓ 图 decide 控制信号 hook（concludeReason；预算先赢）全部通过' : '✗ ' + fail + ' 失败'}`);
   process.exit(fail === 0 ? 0 : 1);
 }
 main().catch((e) => { console.error('✗', e?.message ?? e); process.exit(1); });
