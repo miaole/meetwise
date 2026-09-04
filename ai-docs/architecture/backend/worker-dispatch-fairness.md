@@ -66,4 +66,5 @@ Cap 计数刻意只含未过期 `running`。同一拍先 reap 再 claim：过期
 
 - 确定性：`pnpm interview-dispatch:unit:prove`（无数据库，面试轮转）。per-push CI `verify` 跑这一条。
 - 确定性：`pnpm owner-drain-order:unit:prove`（无数据库，押题/诊断/报告抽干顺序 `A,A,A,B`）。per-push CI `verify` 跑这一条。不证明远程领取顺序或跨副本。
-- 远程 PostgreSQL：`pnpm interview-dispatch:prove` 只走 `E2E_CLOUD_ISOLATED=1` 的远端库。禁止本地 Docker / loopback。缺远程配置则失败关闭，不得改起本地库。`releaseEvidence=false`。不在 per-push CI。
+- 远程证明门：`pnpm interview-dispatch:gate:prove`（无数据库）。包装器缺远程配置 / isolated profile / loopback / compose 主机名必须非零退出，且不得调用 compose / `run-e2e-isolated`。浅层门不是 cloud attestation。per-push CI `verify` 跑这一条。
+- 远程 PostgreSQL：`pnpm interview-dispatch:prove` 经 `scripts/run-interview-dispatch-prove.mjs`，只走 `E2E_CLOUD_ISOLATED=1` 的远端库。禁止 isolated profile / loopback / compose 主机名 / `DATABASE_URL`。缺远程配置则失败关闭，不得改起本地库。远程成功时写 `.tmp/interview-dispatch-receipts/*.json`（gitignored）。`releaseEvidence=false`。不在 per-push CI。本环境无通过回执。

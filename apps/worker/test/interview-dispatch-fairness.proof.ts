@@ -54,13 +54,28 @@ async function main() {
   let dockerDb = false;
   try { assertInterviewDispatchRemotePostgres({ E2E_ISOLATED: '1', PGHOST: '127.0.0.1', E2E_TEST_CONTAINER: 'meetwise-e2e-x' }); }
   catch (error: any) { dockerDb = error?.message === 'interview_dispatch_prove_forbids_local_docker_db'; }
+  let composeHost = false;
+  try { assertInterviewDispatchRemotePostgres({ E2E_CLOUD_ISOLATED: '1', PGHOST: 'postgres' }); }
+  catch (error: any) { composeHost = error?.message === 'interview_dispatch_prove_forbids_local_docker_db'; }
+  let loopbackAlias = false;
+  try { assertInterviewDispatchRemotePostgres({ E2E_CLOUD_ISOLATED: '1', PGHOST: '127.0.0.2' }); }
+  catch (error: any) { loopbackAlias = error?.message === 'interview_dispatch_prove_forbids_local_docker_db'; }
+  let databaseUrl = false;
+  try { assertInterviewDispatchRemotePostgres({ E2E_CLOUD_ISOLATED: '1', PGHOST: '10.0.0.8', DATABASE_URL: 'postgresql://meetwise@10.0.0.8/meetwise' }); }
+  catch (error: any) { databaseUrl = error?.message === 'interview_dispatch_prove_forbids_database_url'; }
   let missingRemote = false;
   try { assertInterviewDispatchRemotePostgres({}); }
   catch (error: any) { missingRemote = error?.message === 'interview_dispatch_prove_requires_remote_postgres'; }
+  let flagWithoutHost = false;
+  try { assertInterviewDispatchRemotePostgres({ E2E_CLOUD_ISOLATED: '1' }); }
+  catch (error: any) { flagWithoutHost = error?.message === 'interview_dispatch_prove_requires_remote_postgres'; }
   let remoteOk = true;
   try { assertInterviewDispatchRemotePostgres({ E2E_CLOUD_ISOLATED: '1', PGHOST: '10.0.0.8' }); }
   catch { remoteOk = false; }
-  A('DB 证明拒绝本地 Docker/loopback，只接受远程 Postgres 配置', dockerDb && missingRemote && remoteOk);
+  A(
+    '远程配置门拒绝本地 Docker/loopback/DATABASE_URL，只接受远程标记（无库）',
+    dockerDb && composeHost && loopbackAlias && databaseUrl && missingRemote && flagWithoutHost && remoteOk,
+  );
 
   const empty = await fairDrainInterviewOwners({}, [], DEFAULT_INTERVIEW_DISPATCH_BUDGET, async () => 'idle', (value) => value === 'idle');
   A('空 owner 列表不领取', empty.claimed === 0 && empty.idleRounds === 0);

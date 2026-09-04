@@ -72,9 +72,11 @@ jobs:
         run: pnpm arch
 
       # 面试公平轮转合同（无库）：owner 量子、失败关闭预算、retry/idle、切片隔离。
-      # 隔离 PostgreSQL 证明不在 per-push CI（需独立库；releaseEvidence=false）。
+      # 远程 PostgreSQL 证明不在 per-push CI（需 E2E_CLOUD_ISOLATED=1；不得改起本地 Docker）。
       - name: interview dispatch fairness (no database)
         run: pnpm interview-dispatch:unit:prove
+      - name: interview dispatch wrapper gate (no database, not remote SQL)
+        run: pnpm interview-dispatch:gate:prove
 
       # 押题/诊断双连接恰一领（无库）：拒绝本地 Docker / loopback。
       # 隔离 PostgreSQL 证明不在 per-push CI（需 E2E_CLOUD_ISOLATED=1；releaseEvidence=false）。

@@ -1,7 +1,9 @@
 /**
  * Remote PostgreSQL proof for interview dispatch fairness and claim fences.
+ * Invoke via `pnpm interview-dispatch:prove` (wrapper fail-closes first).
  * Requires E2E_CLOUD_ISOLATED=1. Local Docker / loopback is forbidden.
- * releaseEvidence=false.
+ * A pass receipt is written only by the wrapper, not by this file.
+ * releaseEvidence=false. Not per-push CI.
  */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
