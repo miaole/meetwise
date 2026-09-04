@@ -44,6 +44,26 @@ jobs:
       # 文档门禁：必需文件 + 关键术语
       - run: pnpm docs:check
 
+      # E2E 目录契约：helpers / 场景 / run-e2e*。静态、无 Key、不是 live E2E。
+      # check=布局；prove=5 命名守卫；layout:prove=种植违规。三者不可对调。
+      - name: E2E directory contract (not live E2E)
+        run: |
+          pnpm e2e-platform:check
+          pnpm e2e-platform:prove
+          pnpm e2e-platform:layout:prove
+
+      # 静态守卫：live E2E 禁止假服务开关；证据/日志 helper 密钥扫描失败即关，且不回显命中值。
+      - name: E2E static guards (fake-service flags + secret-redaction scan)
+        run: |
+          pnpm e2e-static-guards:check
+          pnpm e2e-static-guards:prove
+
+      # e2e/ 与约定关键 prove 的用例数/断言身份；删除或削弱 expect 失败。不是发布证据。
+      - name: E2E 用例与断言 parity（静态，非发布证据）
+        run: |
+          pnpm e2e-parity:check
+          pnpm e2e-parity:prove
+
       # 预览删除路径源码 pin（无库）：目录/契约/公开 503。不替代隔离库证明。
       - name: 隐私删除预览路径（域/契约 pin，非发布证据）
         run: |
@@ -237,11 +257,7 @@ jobs:
       - name: OCR 简历图片视觉转写（关口双校验 + 按次计费 reserve/confirm/release + PII不入trace + 下游注入门）
         run: pnpm ocr:prove
 
-      # 全栈跨进程 E2E（真 api+worker+db · 鉴权→简历(含图片OCR)→交易→面试真图跑到 report_ready · 32断言）
-      # 不在 per-push CI：run-e2e.mjs 硬性要求 E2E_ISOLATED=1 + 真模型/真视觉 OCR 多把 live key，
-      # per-push 无 secrets 会立即 throw live_provider_key_missing（配 skip-if-absent 则退化成假绿「32 断言」空跑）。
-      # 它是 live-model 层，归 nightly（secrets 门控 + 无 key 显式 skip），非每次提交的确定性门禁。
-
-      # TODO（后续层，按 secrets 门控）：
-      #  - 对抗安全 golden 套件 + ai-eval（对真实境内模型跑，需 secrets）
-      #  - 契约 schema-diff / 覆盖率门 / e2e 黄金路径（把上述全栈 E2E 接进 nightly，配齐 MODEL + DASHSCOPE_VISION 等 secrets）
+      # 全栈跨进程 HTTP E2E（e2e/full.e2e.ts fetch/SSE，不是 Playwright）不在 per-push：
+      # run-e2e.mjs 要求 E2E_ISOLATED=1 + MODEL_API_KEY，缺 Key 必须非零退出。
+      # 禁止 skip-if-absent。nightly.yml 当前也没有跑 e2e:isolated / e2e:ui:isolated。
+      # 本地有 Key 时用 `pnpm regression --live`；浏览器层另需 web production build。

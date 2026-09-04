@@ -772,6 +772,21 @@
       "class": "test-fixture"
     },
     {
+      "name": "DASHSCOPE_TEST_TRANSPORT_OVERRIDES",
+      "source": "scripts/e2e-fake-service-flags.mjs",
+      "class": "test-only-guard"
+    },
+    {
+      "name": "DASHSCOPE_TEST_TRANSPORT_OVERRIDES",
+      "source": "scripts/e2e-static-guards.mjs",
+      "class": "test-only-guard"
+    },
+    {
+      "name": "DASHSCOPE_TEST_TRANSPORT_OVERRIDES",
+      "source": "scripts/e2e-static-guards.proof.mjs",
+      "class": "test-fixture"
+    },
+    {
       "name": "DASHSCOPE_TTS_API_KEY_FINGERPRINT",
       "source": "packages/ai-runtime/src/dashscope-native-config.ts",
       "class": "adapter-configuration"
@@ -1038,6 +1053,21 @@
     },
     {
       "name": "MODEL_API_KEY",
+      "source": "scripts/e2e-platform/no-fake-service.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/e2e-platform/secret-redaction.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/e2e-platform/review-loop.mjs",
+      "class": "live-test-launcher"
+    },
+    {
+      "name": "MODEL_API_KEY",
       "source": "scripts/run-e2e-isolated.mjs",
       "class": "test-isolation"
     },
@@ -1050,6 +1080,16 @@
       "name": "MODEL_API_KEY",
       "source": "scripts/run-e2e.mjs",
       "class": "live-test-launcher"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/run-post-change-regression.mjs",
+      "class": "live-test-launcher"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/run-post-change-regression.proof.mjs",
+      "class": "test-fixture"
     },
     {
       "name": "MODEL_API_KEY",
@@ -1309,6 +1349,21 @@
     {
       "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
       "source": "packages/ai-runtime/test/model-client-dispatch.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "scripts/e2e-fake-service-flags.mjs",
+      "class": "test-only-guard"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "scripts/e2e-static-guards.mjs",
+      "class": "test-only-guard"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "scripts/e2e-static-guards.proof.mjs",
       "class": "test-fixture"
     }
   ],

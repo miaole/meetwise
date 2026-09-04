@@ -29,8 +29,9 @@ tags:
 机器可读对照：
 
 - 域侧签发并集：`packages/domain/src/privacy-authorization.ts` 的 `ALL_PRIVACY_AUTHZ_SINK_KINDS`
-- SQL 侧枚举：`privacy_deletion_target.sink` CHECK 仍以 `0125_memory_vector_chunk_erasure.sql` 为最新扩展。`0124_rag_retrieval_acl_fail_closed.sql`、`0126_interview_answer_dual_write_fence.sql` 与 `0127_resume_ocr_binding_provenance.sql` 已在 main；`0126`/`0127` 不改该 CHECK。`0129_privacy_erasure_preview_path.sql` 也不改该 CHECK。`0128_interview_dispatch_fairness.sql` 已在 main（#77），不改该 CHECK。
+- SQL 侧枚举：`privacy_deletion_target.sink` CHECK 仍以 `0125_memory_vector_chunk_erasure.sql` 为最新扩展。`0124_rag_retrieval_acl_fail_closed.sql`、`0126_interview_answer_dual_write_fence.sql` 与 `0127_resume_ocr_binding_provenance.sql` 已在 main；`0126`/`0127` 不改该 CHECK。`0128_interview_dispatch_fairness.sql` 已在 main（#77），不改该 CHECK。`0129_privacy_erasure_preview_path.sql` 也不改该 CHECK。
 - 预览路径目录：`packages/domain/src/privacy-erasure-preview.ts` 的 `PRIVACY_PREVIEW_SINK_CATALOG`（0125 CHECK 全集 + `user_memory` / `ai_invocation_trace` / `backup_pitr`）
+- 本迭代闭合：`memory_vector_chunk`（`vector_chunk.kind='memory'`）；预览路径是盘点回执，不是生产删除闭合
 
 验证（隔离 PostgreSQL / HTTP 走 `run-e2e-isolated` 或远程 Postgres/Redis 环境变量；本切片禁止 `pnpm db:up` 开发库。无隔离目标时只跑域/契约/静态 pin）：
 
