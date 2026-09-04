@@ -9,6 +9,8 @@ status: active
 owner: product
 related:
   - ../testing/conventions/test-authoring.md
+  - ../testing/strategy/test-strategy.md
+  - ../skills/testing/SKILL.md
   - ../rules/global/status-machine.md
   - ../rules/global/production-invariants.md
 ---
@@ -43,7 +45,7 @@ UC-<module>-<seq> · <标题>
 
 ## 3. 硬规则
 
-1. **异常流是一等内容，不是补充。** 涉及钱/状态/隔离的用例，必须显式写出 E1–E6 中适用的每一条；只写 happy path 的用例**不予通过**（对应测试策略「禁止假验收」）。
+1. **异常流是一等内容，不是补充。** 涉及钱/状态/隔离的用例，必须显式写出 E1–E6 中适用的每一条；只写 happy path 的用例**不予通过**（对应测试策略「禁止伪验收」）。测试层按 [test-authoring](../testing/conventions/test-authoring.md)：业务全链路默认 HTTP `e2e:isolated` 主层，Playwright 只覆盖浏览器次层。
 2. **每条异常流必须落到机制**：指向一个状态机迁移 或 一个[生产不变量](../rules/global/production-invariants.md)原语（CAS/幂等/RLS/事件日志），不能停在"会处理好"。
 3. **后置必须声明状态与账本**：用例结束时对象处于哪个显式 status、写了哪些不可丢账本。
 4. **验收标准必须可测**：每条 Acceptance 能直接转成一个测试断言（见 [test-authoring](../testing/conventions/test-authoring.md)）。
