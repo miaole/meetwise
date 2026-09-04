@@ -3,6 +3,7 @@
  * 不变量(无静默死胡同):任何情形都有出路——report_unavailable→degraded;流断在非终态→reconnecting(自动重连+显式"重连中");
  * 重连耗尽→degraded/error。绝不停在干等无出口的转圈。状态真相在服务端 checkpoint,断线用同一 resultId + Last-Event-ID 续。
  */
+import type { InterviewSignalConcludeReason } from '@meetwise/contracts';
 import type { BusinessEvent, QuestionKind } from './business-events';
 import type { QuestionIdentity } from '../interview/turn-submission';
 import { practiceHintScore } from './scoring-honesty';
@@ -39,6 +40,10 @@ export interface InterviewView {
   connection: ConnectionState;
   /** 已消费的最大事件 id → 断线重连用 Last-Event-ID,不丢不重。 */
   lastEventId: number;
+  /**
+   * INT-LEVEL-SIGNAL-SSE-01 练习控制流收尾理由。只来自 session_concluded，不是分数、不是 phase、不是终态。
+   */
+  signalConcludeReason?: InterviewSignalConcludeReason;
 }
 
 export const initialView: InterviewView = { phase: 'connecting', degraded: false, connection: 'live', lastEventId: 0, turns: [] };
@@ -118,6 +123,11 @@ export function applyEvents(v: InterviewView, events: readonly BusinessEvent[]):
     case 'interview_unavailable': next.phase = 'interview_unavailable'; next.degraded = true; break; // 面试 job 失败终态 → 降级,不死等
     case 'error': next.phase = 'error'; break;
     case 'progress': break;                                  // 仅进度,不改阶段
+    case 'session_concluded': {
+      // 非终态：只记控制流理由。不得改 phase / lastScore / report（不发明分）。
+      next.signalConcludeReason = e.data.concludeReason;
+      break;
+    }
     }
   }
   return next;

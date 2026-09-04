@@ -6,7 +6,7 @@ import { decodeSSE, toBusinessEvent } from '../lib/stream/business-events.ts';
 import {
   reduceInterview, applyEvent, initialView, onStreamClosed, onReconnectExhausted, isTerminal,
 } from '../lib/stream/interview-state.ts';
-import { interviewDisplay, isDeadEnd } from '../lib/view-model.ts';
+import { interviewDisplay, isDeadEnd, signalConcludePracticeCopy } from '../lib/view-model.ts';
 import { makeInterviewApi, type FetchLike, type FetchResponse } from '../lib/api/client.ts';
 import { runInterviewStream, type StreamOpener } from '../lib/stream/interview-stream.ts';
 import type { InterviewView } from '../lib/stream/interview-state.ts';
@@ -561,6 +561,53 @@ async function main() {
     && mapResumeUploadAbort().ok === false
     && mapResumeUploadAbort().error === 'upload_timeout'
     && !mapResumeUploadAbort().message.includes('已识别'));
+
+  section('SIGNAL-SSE：session_concluded 非终态、不发明分、不改 phase');
+  const signalPayload = '{"concludeReason":{"code":"early_weak","turn":4,"citedCompetencies":["并发"]}}';
+  const signalOnly = reduceInterview([toBusinessEvent({ event: 'session_concluded', id: 2, data: signalPayload })!]);
+  A('session_concluded → 写入理由且 phase 仍 connecting（不是新终态）',
+    signalOnly.signalConcludeReason?.code === 'early_weak' && signalOnly.signalConcludeReason.turn === 4
+    && signalOnly.phase === 'connecting' && !isTerminal(signalOnly.phase)
+    && signalOnly.lastScore === undefined && signalOnly.report === undefined);
+  A('畸形 score/band/overall 载荷 → 丢弃事件（strict）',
+    toBusinessEvent({ event: 'session_concluded', id: 3, data: '{"concludeReason":{"code":"early_weak","turn":4,"citedCompetencies":[],"score":0}}' }) === null
+    && toBusinessEvent({ event: 'session_concluded', id: 3, data: '{"concludeReason":{"code":"early_weak","turn":4,"citedCompetencies":[]},"overall":88}' }) === null
+    && toBusinessEvent({ event: 'session_concluded', id: 3, data: '{"concludeReason":{"code":"coverage_met","turn":8,"citedCompetencies":[]}}' }) === null);
+  const signalThenReport = reduceInterview([
+    toBusinessEvent({ event: 'session_concluded', id: 2, data: signalPayload })!,
+    toBusinessEvent({ event: 'report_ready', id: 3, data: '{"overall":74}' })!,
+  ]);
+  A('先理由后报告：理由保留，overall 只由报告事件写入',
+    signalThenReport.signalConcludeReason?.code === 'early_weak' && signalThenReport.phase === 'report_ready'
+    && signalThenReport.report?.overall === 74);
+  const reportThenSignal = reduceInterview([
+    toBusinessEvent({ event: 'report_ready', id: 3, data: '{"overall":74}' })!,
+    toBusinessEvent({ event: 'session_concluded', id: 4, data: '{"concludeReason":{"code":"thrashing","turn":6,"citedCompetencies":["缓存"]}}' })!,
+  ]);
+  A('先报告后理由：overall 不被 reason 改写',
+    reportThenSignal.report?.overall === 74 && reportThenSignal.signalConcludeReason?.code === 'thrashing'
+    && reportThenSignal.phase === 'report_ready');
+  const signalDisp = interviewDisplay(signalThenReport);
+  A('展示含练习控制流、不含等级；report.overall 仍是 74',
+    signalDisp.signalConclude?.code === 'early_weak'
+    && signalDisp.signalConclude.message.includes('练习') && signalDisp.signalConclude.message.includes('控制流')
+    && signalDisp.signalConclude.message.includes('不是能力等级') && signalDisp.signalConclude.message.includes('招聘结论')
+    && signalDisp.report?.overall === 74
+    && signalConcludePracticeCopy('thrashing').includes('换题'));
+  A('session_concluded 后断流：若尚未终态则重连（不把理由当收尾）',
+    onStreamClosed(signalOnly).connection === 'reconnecting');
+  const scoredThenSignal = reduceInterview([
+    toBusinessEvent({ event: 'question_ready', id: 1, data: '{"question":"Q1","competency":"限流","questionId":"q-v1-t0-c0","stateVersion":1,"turn":0}' })!,
+    toBusinessEvent({ event: 'answer_evaluated', id: 2, data: '{"score":80,"questionId":"q-v1-t0-c0","stateVersion":1,"turn":0,"answerId":"11111111-1111-4111-8111-111111111111","answerHash":"' + 'a'.repeat(64) + '","competency":"限流"}' })!,
+    toBusinessEvent({ event: 'session_concluded', id: 3, data: signalPayload })!,
+  ]);
+  const scoredDisp = interviewDisplay(scoredThenSignal);
+  A('已有练习 hint 后再收理由：lastScore 保持 80（不是 0），文案不再承诺下一题',
+    scoredThenSignal.lastScore === 80 && scoredThenSignal.turns[0].score === 80
+    && scoredThenSignal.phase === 'answered' && !isTerminal(scoredThenSignal.phase)
+    && scoredDisp.signalConclude?.code === 'early_weak'
+    && scoredDisp.message.includes('练习反馈') && !scoredDisp.message.includes('下一题')
+    && !scoredDisp.message.includes('本题得分'));
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
   process.exit(failures === 0 ? 0 : 1);

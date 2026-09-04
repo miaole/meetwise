@@ -292,6 +292,11 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
           <Thinking label={display.spinner ? (display.message || 'AI 思考中') : '正在评估你的回答，准备下一题'} />
         </div>
       )}
+      {display.signalConclude && (
+        <p data-testid="signal-conclude-reason" role="status" className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
+          {display.signalConclude.message}
+        </p>
+      )}
       {display.report && (
         <div className="rounded-lg border bg-accent p-4 text-center text-accent-foreground">
           练习完成 · 本次练习反馈 <span className="text-2xl font-extrabold text-primary">{display.report.overall}</span>

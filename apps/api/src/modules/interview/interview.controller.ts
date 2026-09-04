@@ -258,6 +258,7 @@ export class InterviewController {
     let closed = false;
     req.raw.on('close', () => { closed = true; });    // 客户端断开
     const safeWrite = (s: string) => { try { reply.raw.write(s); return true; } catch { closed = true; return false; } };
+    // session_concluded 是练习控制流预览，故意不在终态集合，前端须继续等 report_* / assessment_*。
     const isTerminal = (k: string) => k === 'report_ready' || k === 'report_unavailable' || k === 'assessment_unavailable' || k === 'interview_unavailable' || k === 'error';
     let lastSeq = initial.lastId;
     let done = false;

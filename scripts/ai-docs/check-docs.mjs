@@ -40,6 +40,7 @@ const requiredFiles = [
   "ai-docs/testing/strategy/test-strategy.md",
   "ai-docs/requirements/use-cases/cend-overview-progress.md",
   "ai-docs/requirements/use-cases/interview-control-signals.md",
+  "ai-docs/requirements/use-cases/interview-signal-sse.md",
   "ai-docs/delivery/roadmap.md",
   "docker/compose.dev.yml",
   "docker/compose.demo.yml",
@@ -65,6 +66,7 @@ const requiredTerms = new Map([
   ["ai-docs/observability/observability-strategy.md", ["SLO", "降级", "恢复", "脱敏", "threadId"]],
   ["ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md", ["qbank_control_definer", "FORCE RLS", "fail-closed", "SECURITY DEFINER", "lane(b)", "撤销", "复活"]],
   ["ai-docs/requirements/use-cases/cend-overview-progress.md", ["题目账本", "Overview.answered", "issued_turns", "status <> 'cancelled'", "ScoreCard"]],
+  ["ai-docs/requirements/use-cases/interview-signal-sse.md", ["session_concluded", "early_weak", "thrashing", "不是能力等级", "releaseEvidence=false", "INT-LEVEL-01"]],
   ["ai-docs/architecture/backend/interview-answer-dual-write-cutover.md", [
     "INT-P0-RAW-QUEUE",
     "INT-TRANSCRIPT-01",

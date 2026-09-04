@@ -166,7 +166,7 @@ flowchart TD
 - 调用 LangGraph 时统一把 `thread_id` 作为可恢复会话键写入 configurable；业务侧保留 camelCase `threadId`。
 - 用户回答通过 resume command 继续 graph。
 - 等待用户输入必须由持久化状态表达，不能依赖内存连接。
-- SSE 只负责把 graph events 推给前端，不拥有业务状态。
+- SSE 只负责把 graph events 推给前端，不拥有业务状态。`session_concluded` 是练习控制流预览（`early_weak`/`thrashing`），**不是**终态，也不发明分数。
 
 ## Graph 3：职业路径分析（⬜ 计划态，尚无图实现）
 
@@ -221,6 +221,7 @@ assistant_message_chunk   # 非承载事实、不进业务校验（评分/报告
 question_ready
 waiting_user
 answer_evaluated
+session_concluded   # 练习控制流预览（early_weak/thrashing），非终态，不发明分
 report_generating
 report_ready
 report_unavailable        # 终态；报告舱壁失败，禁止空转

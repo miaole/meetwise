@@ -93,6 +93,22 @@ export const BeginResult = z.object({ accepted: z.boolean(), jobId: z.string().o
 export const TurnResult = z.object({ accepted: z.boolean(), replayed: z.boolean(), jobId: z.string() });
 export type TurnResult = z.infer<typeof TurnResult>;
 /**
+ * INT-LEVEL-SIGNAL-SSE-01 预览投影。
+ * 只允许 early_weak / thrashing；strict 拒绝 score/overall/band。
+ * 不进 OpenAPI：这是 interview_event / SSE kind，不是新 REST 写面。
+ */
+export const SIGNAL_CONCLUDE_CODES = ['early_weak', 'thrashing'] as const;
+export const InterviewSignalConcludeReason = z.object({
+  code: z.enum(SIGNAL_CONCLUDE_CODES),
+  turn: z.number().int().nonnegative(),
+  citedCompetencies: z.array(z.string().min(1).max(64)).max(8),
+}).strict();
+export type InterviewSignalConcludeReason = z.infer<typeof InterviewSignalConcludeReason>;
+export const SessionConcludedPayload = z.object({
+  concludeReason: InterviewSignalConcludeReason,
+}).strict();
+export type SessionConcludedPayload = z.infer<typeof SessionConcludedPayload>;
+/**
  * 当前语音处理的同意版本。它只覆盖“一段本机麦克风音频被即时发送至 ASR”，
  * 不覆盖录音持久化、电话/会议接入、远端音轨或说话人分离。
  */

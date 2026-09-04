@@ -149,6 +149,14 @@ export type {
   InterviewControlSignal, InterviewControlSignalKind, InterviewConcludeReason, InterviewMindSignalView,
 } from './interview-control-signals.ts';
 
+export {
+  projectSignalConcludeReason, sessionConcludedAppend, signalConcludePracticeCopy,
+  SIGNAL_CONCLUDE_CODES, SESSION_CONCLUDED_KIND, SESSION_CONCLUDED_EVENT_KEY,
+} from './interview-signal-conclude.ts';
+export type {
+  SignalConcludeCode, SignalConcludeProjection, SessionConcludedAppend,
+} from './interview-signal-conclude.ts';
+
 export { isVerbatimCopy, validateGrounded, type SourceDoc, type GroundedQuestion, type GroundResult } from './grounded-questions.ts';
 
 export { gradeRetrieval, cragRetrieve, degradedRetrieval, type ScoredRef, type CragAction, type CragVerdict, type CragDeps } from './crag.ts';

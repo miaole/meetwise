@@ -125,6 +125,12 @@ jobs:
         run: pnpm adaptive-signals:prove
       - name: INT-LEVEL 控制信号图 hook（concludeReason provenance；杀开关先赢）
         run: pnpm adaptive-signals-graph:prove
+      - name: SIGNAL-SSE 预览投影（early_weak/thrashing → session_concluded，不发明分）
+        run: pnpm signal-sse:prove
+      - name: SIGNAL-SSE 契约（strict 拒 score/band，不进 OpenAPI）
+        run: pnpm signal-sse-contract:prove
+      - name: SIGNAL-SSE worker 接线（假 append，无 DB）
+        run: pnpm signal-sse-worker:prove
       - name: agent 接地题（检索素材出题 + 版权照搬门）
         run: pnpm grounded:prove
       - name: agent CRAG（检索质量分级 + 纠偏 / 外呼降级）

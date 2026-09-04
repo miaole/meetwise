@@ -54,7 +54,9 @@ type EventEnvelope<T> = {
 | `admin.review.decided` | admin | 来源业务模块 | objectType, objectId, decision | eventId |
 | `data.egress.blocked` | ai-runtime | observability(审计) | principal, target | eventId |
 
-> SSE 业务事件（`question_ready`/`answer_evaluated`/`waiting_user`/`report_ready`，及**终态** `report_unavailable`/`interview_unavailable` 等）是 `InterviewEvent` 有序流（带 `seq`），由 worker 写、api SSE 网关订阅转发（见 langgraph-blueprint Worker→Api 通道）。`assistant_message_chunk`（原 message_delta）非承载事实、不进业务校验、不进本目录的业务事件登记。`InterviewEvent.payload` **禁止顶层 `answer` 键**（`answerId`/`answerHash` 合法）；不要把 TurnDto 展开进账本。机制见 `requirements/use-cases/interview-answer-dual-write-fence.md`，落点见 `backend/interview-answer-dual-write-cutover.md`。
+> SSE 业务事件（`question_ready`/`answer_evaluated`/`waiting_user`/`report_ready`，及**终态** `report_unavailable`/`interview_unavailable` 等）是 `InterviewEvent` 有序流（带 `seq`），由 worker 写、api SSE 网关订阅转发（见 langgraph-blueprint Worker→Api 通道）。`assistant_message_chunk`（原 message_delta）非承载事实、不进业务校验、不进本目录的业务事件登记。
+>
+> **`session_concluded`（非终态，代码已调用，无 IO 证明）：** 图 `concludeReason.code ∈ {early_weak, thrashing}` 时，worker 经 `emitSignalConcludeEvent` → 既有 `appendEvent`。`dedupeKey` / `event_key` = `session_concluded`。本地证明是假 append + 纯域投影，**不是**真实 `interview_event` 行或 SSE 帧。不是 SSE 终态，不发明 overall/band，不是 `INT-LEVEL-01`。见 `requirements/use-cases/interview-signal-sse.md`。`InterviewEvent.payload` **禁止顶层 `answer` 键**（`answerId`/`answerHash` 合法）；不要把 TurnDto 展开进账本。机制见 `requirements/use-cases/interview-answer-dual-write-fence.md`，落点见 `backend/interview-answer-dual-write-cutover.md`。
 >
 > **`interview_unavailable`（终态，已接线）**：面试 job 终态失败（job-death/reap 超 MAX_ATTEMPTS）、中途弃（对账回收孤儿预留），或出题 fail-closed（缺 Key / 超时 / 畸形响应 / critique 失败，`UC-MODEL-ROUTE-04`）时发出。前端据此优雅降级不转圈（无静默死胡同，对称 `report_unavailable`）。出题失败载荷含 `reason` + `provenance{origin,errorCode,invokeError?}`，**不得**另发一条假 `question_ready`。出题 fail-closed 的 `event_key` 固定为 `interview_unavailable:terminal`（reason 只在 payload），同场重放增量 ≤ 1。job-death/abandon 仍用各自既有键，不在本包改。发出方 = `adaptive-lifecycle` / `interview-consumer` / `reaper` / `commerce-reconcile`，均同时把 `Interview` 置终态（`failed`/`abandoned`，避免 create() 复用尸体的 reuse-trap）。
 

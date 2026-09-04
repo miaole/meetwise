@@ -646,6 +646,11 @@ export function VoiceCallPanel({
           </div>
         )}
 
+        {display.signalConclude && (
+          <p data-testid="signal-conclude-reason" role="status" className="w-full rounded-md border bg-muted/40 p-3 text-left text-sm text-muted-foreground">
+            {display.signalConclude.message}
+          </p>
+        )}
         {/* 报告收尾 */}
         {status === 'report' && display.report && (
           <div className="w-full rounded-lg border bg-accent p-5 text-center text-accent-foreground">
