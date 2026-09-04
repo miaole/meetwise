@@ -1,7 +1,7 @@
 ---
 id: requirements_uc_bend_recruiter_architecture_surface
-name: 用例 · B 端招聘方面板：架构说明与申请状态消费
-description: 招聘方/面试官在产品内用人话看到承重设计，并打开岗位申请状态页；只消费已授权的最小状态，不恢复数值分或逐题原文。
+name: 用例 · 内部招聘骨架：架构笔记与申请状态消费
+description: 内部预览骨架用人话记下承重设计，并打开岗位申请状态页；不是求职者/面试官两套对等产品，只消费已授权的最小状态，不恢复数值分或逐题原文。
 type: use-case
 scope: bend
 level: spec
@@ -18,9 +18,9 @@ related:
   - ../../delivery/execution-master-checklist.md
 ---
 
-# B 端招聘方面板 · 架构说明与申请状态消费
+# 内部招聘骨架 · 架构笔记与申请状态消费
 
-> **实现状态（2026-09）** — 本切片只补招聘方 App Router 路由与文案消费。静态 Pages / 营销首页改写交给并行 PR，避免冲突。`releaseEvidence=false`：页面存在不等于企业招聘系统已发布，也不关闭 `SCOR-01…08` 或 `PENDING-PRD-REVIEW-01`。
+> **实现状态（2026-09）** — 本切片只补内部骨架上的架构笔记与申请状态消费。知面不是「求职者 / 面试官」两套对等产品；招聘方产品没有上线。静态 Pages / 营销首页改写交给并行 PR，避免冲突。`releaseEvidence=false`：页面存在不等于企业招聘系统已发布，也不关闭 `SCOR-01…08` 或 `PENDING-PRD-REVIEW-01`。
 >
 > 生成前门禁：任务范围=B 端 `/recruiter/how-it-works` + `/recruiter/jobs/:id/applications/:applicationId` + 列表入口 + 申请分数消费止血；来源=`application-assessment-terminal.md`、`current-runtime-truth.md` B 端行、切片前岗位/人才库只有表格无状态页、C 端「我的投递」曾渲染 `application.score`；明确不做=Pages 重写、新迁移、新评分 API、人工复核工单、数值排序、自动录用、改 `listJobCandidates` 契约；领域对象=`JobPosting`/`JobApplication`（只读投影）；状态机影响=无；契约影响=无（复用既有 list）；数据库影响=无；验证=`pnpm web:prove`、`pnpm -C apps/web prove:public-copy`、`pnpm docs:check`。
 
@@ -28,7 +28,7 @@ related:
 
 | 字段 | 结论 |
 | --- | --- |
-| 任务范围 | 招聘方登录后能读懂「下一题跟着答、进度在服务端、假分入口已关、两边记账分开、检索权限边界（生产接线未完成）」；并能打开某一申请的状态页，只见状态/来源/岗位能力，不见分数和面试原文。 |
+| 任务范围 | 内部预览登录后能读懂「下一题跟着答、进度在服务端、假分入口已关、两边记账分开、检索权限边界（生产接线未完成）」；并能打开某一申请的状态页，只见状态/来源/岗位能力，不见分数和面试原文。不把 B 端写成对等产品面。 |
 | 来源证据 | `UC-ASSESSMENT-001` 已把 B 端收口为 `assessment_unavailable` + `score=NULL`；`listJobCandidates`/`listTalentPool` 查询边界置空 score。切片前招聘方列表行不可点、无状态页；C 端 `/jobs` 曾写 `评分 {app.score}`（本切片已用 `applicationScoreVisible` 关掉渲染）。 |
 | 明确不做 | 不改 `docs/` Pages；不与营销文案 PR 抢同一套首页/features 重写；不加 0124–0128 迁移；不恢复 B 端数字分；不建 `ManualReview`/`DecisionRecord`；不宣称 worker 公平或 RAG ACL 已是生产 SLA。 |
 | 领域对象 | `JobApplication`（只读最小投影）· `JobPosting`（招聘方自有）· 招聘方 principal |
@@ -51,19 +51,19 @@ related:
 | C 端 `listMyApplications` 仍 SELECT `a.score` | DOM 已用 `applicationScoreVisible` 关掉；查询列未删。 |
 | 浏览器全链路发布证据 | 既有 `recruiting-bound` 规格含「查看状态」；本切片不把本地静态门禁标成已发布，也未在本环境跑浏览器。 |
 
-## UC-recruiter-arch-01 · 招聘方用人话看到承重设计
+## UC-recruiter-arch-01 · 内部预览页用人话看到承重设计
 
 **七类**：正✔ 异✔ 特✔ 逃✔ 并✔ 复✔ 刁✔
 
-- **角色 Actor**：招聘方 / 面试官（`role=recruiter`）
-- **前置 Precondition**：已登录且 cookie 角色为招聘方；路由在 `/recruiter` 鉴权名单内。
+- **角色 Actor**：持有 `role=recruiter` cookie 的内部预览账号（不是已上线招聘方产品角色）
+- **前置 Precondition**：已登录且 cookie 为 recruiter；路由在 `/recruiter` 鉴权名单内。
 - **触发 Trigger**：打开 `/recruiter/how-it-works`，或从岗位/人才库进入该说明。
 
 **主流程 Main**
 
 1. RSC 不调业务写接口；只渲染固定说明卡片。
 2. 七项用人话写出，且每项带「现在能当什么用 / 还不能当什么用」：跟着问、服务端进度、可核对的保护、评分诚实、两边分开记账、排队公平的目标与现状、检索权限。
-3. 页脚写明：预览版，不是已上线的招聘或面试官工作流；不构成能力认证；不能自动筛人、排名或决定录用。
+3. 页脚写明：内部架构笔记；知面不是求职者/面试官两套对等产品；招聘方产品没有上线；不构成能力认证；不能自动筛人、排名或决定录用。
 4. 导航「怎么评估」与岗位/人才库互链，避免只有表格没有解释。
 
 **备选流 Alternate**
@@ -86,7 +86,7 @@ related:
 
 **验收 Acceptance**
 
-- 说明页含七项人话标题，且同时出现「预览版」「不提供自动筛选、排名、拒绝或录用决定」与「不构成能力认证」。
+- 说明页含七项人话标题，且同时出现「内部架构笔记」「招聘方产品没有上线」「不提供自动筛选、排名、拒绝或录用决定」与「不构成能力认证」。
 - 禁止：Grok、自动录用已开放、把 Pages 当应用运行时。
 - 「排队」卡片必须写明当前不是高峰容量保证。
 - 「评分」卡片必须写明证据不够不给分、不用 0 分凑数。

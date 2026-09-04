@@ -1,6 +1,6 @@
 /**
- * B 端招聘方表面：状态文案、申请状态查找、架构说明卡片。
- * 评分校准完成前，任何 application.score 都不得变成可见数字。
+ * 内部招聘骨架：状态文案、申请状态查找、架构说明卡片。
+ * 不是已上线的招聘方产品面。评分校准完成前，任何 application.score 都不得变成可见数字。
  */
 
 export const RECRUITER_APPLICATION_MAX_LEN = 48;

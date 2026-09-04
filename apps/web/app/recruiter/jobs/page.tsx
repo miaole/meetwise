@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { JobCreateForm } from './JobCreateForm';
 import { ArchitectureHighlights } from '@/components/recruiter/ArchitectureHighlights';
 
-export const metadata: Metadata = { title: '岗位 · 预览版 · 知面', description: '预览版岗位骨架。不是已上线的招聘工作流。' };
+export const metadata: Metadata = { title: '岗位骨架 · 内部预览 · 知面', description: '内部岗位骨架。不是招聘方产品，也不是第二套产品面。' };
 
 interface Job { id: string; title: string; description: string; competencies: string[]; status: string; created_at: string }
 
@@ -20,8 +20,8 @@ export default async function RecruiterJobsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold"><Building2 className="size-6 text-primary" />岗位 · 预览版</h1>
-        <p className="mt-1 text-muted-foreground">可以发一个岗位骨架、看投递状态。这不是正式招聘系统；候选人练习顺着回答往下问，你看不到原文，也不能据此录用。</p>
+        <h1 className="flex items-center gap-2 text-2xl font-bold"><Building2 className="size-6 text-primary" />岗位骨架 · 内部预览</h1>
+        <p className="mt-1 text-muted-foreground">内部调试用岗位骨架。不是招聘方产品，也不是正式招聘系统；练习顺着回答往下问，这里看不到原文，也不能据此录用。</p>
       </div>
 
       <ArchitectureHighlights compact />

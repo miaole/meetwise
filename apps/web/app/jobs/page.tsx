@@ -52,13 +52,13 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
     <div className="mx-auto max-w-3xl space-y-4">
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold"><Briefcase className="size-6 text-primary" />岗位广场</h1>
-        <p className="mt-1 text-muted-foreground">浏览预览版岗位并投递。这不是正式招聘；投递后会走岗位练习面试，不构成录用评估。</p>
+        <p className="mt-1 text-muted-foreground">浏览练习岗位并投递。这不是正式招聘，对侧列表只是内部骨架，不构成录用评估。</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">招聘中的岗位（{jobs.length}）</CardTitle>
-          <CardDescription>选择岗位投递。预览版招聘方只能看到流程状态，不是正式招聘流程。</CardDescription>
+          <CardDescription>选择岗位投递。对侧只能看到流程状态，不是招聘方产品，也不是正式招聘流程。</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
           {jobsRes === null ? (

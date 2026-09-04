@@ -3,7 +3,7 @@ import { RECRUITER_ARCHITECTURE_HIGHLIGHTS } from '@/lib/recruiter/surface';
 import { Card } from '@/components/ui/card';
 import { RecruiterPreviewNote } from '@/components/recruiter/PreviewNote';
 
-/** 招聘方/面试官可读的承重说明。纯 RSC，无写、无分数。预览版，不是招聘工作流。 */
+/** 内部架构笔记。纯 RSC，无写、无分数。不是招聘方产品，也不是面试官工作流。 */
 export function ArchitectureHighlights({ compact = false }: { compact?: boolean }) {
   const cards = compact
     ? RECRUITER_ARCHITECTURE_HIGHLIGHTS.filter((card) => card.id === 'scoring')
@@ -12,13 +12,13 @@ export function ArchitectureHighlights({ compact = false }: { compact?: boolean 
     <section className="space-y-3" aria-labelledby="recruiter-architecture">
       <div>
         <h2 id="recruiter-architecture" className="text-lg font-semibold">
-          {compact ? '预览版评分边界' : '预览版里能看见什么'}
+          {compact ? '内部笔记：评分边界' : '内部架构笔记'}
         </h2>
         <RecruiterPreviewNote className="mt-1" />
         <p className="mt-1 text-sm text-muted-foreground">
           {compact
-            ? '日常列表只提醒：证据不够就不给分。完整说明（进度、核对、分开记账，以及排队和检索还没交付的部分）在「怎么评估」。'
-            : '用人话说明这场岗位面试怎么走、你现在能看见什么。不构成能力认证，也不提供自动筛选、排名、拒绝或录用决定。'}
+            ? '列表只提醒：证据不够就不给分。完整笔记（进度、核对、分开记账，以及排队和检索还没交付的部分）在架构说明页。'
+            : '用人话记下这场岗位练习怎么走、骨架上能看见什么。不构成能力认证，也不提供自动筛选、排名、拒绝或录用决定。'}
         </p>
       </div>
       <div className={`grid gap-3 ${compact ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
@@ -31,7 +31,7 @@ export function ArchitectureHighlights({ compact = false }: { compact?: boolean 
       </div>
       {compact ? (
         <p className="text-sm">
-          <Link href="/recruiter/how-it-works" className="text-primary hover:underline">看完整说明：进度、核对、分开记账，以及排队和检索还没交付的部分</Link>
+          <Link href="/recruiter/how-it-works" className="text-primary hover:underline">看内部架构笔记：进度、核对、分开记账，以及排队和检索还没交付的部分</Link>
         </p>
       ) : (
         <p className="text-sm text-muted-foreground">

@@ -12,7 +12,7 @@ import { ArchitectureHighlights } from '@/components/recruiter/ArchitectureHighl
 
 const PAGE = 30;          // 人才库可能很大:封顶首屏渲染行数,"加载更多"递增 ?limit
 
-export const metadata: Metadata = { title: '投递列表 · 预览版 · 知面', description: '预览版投递列表。只看流程状态，不是人才库产品，也不能据此招聘。' };
+export const metadata: Metadata = { title: '投递骨架 · 内部预览 · 知面', description: '内部投递列表。不是人才库，也不是招聘方产品。' };
 
 interface Talent {
   id: string; job_id: string; job_title: string; candidate_user_id: string;
@@ -56,8 +56,8 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
       </p>
 
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold"><Database className="size-6 text-primary" />投递列表 · 预览版</h1>
-        <p className="mt-1 text-muted-foreground">在自己的岗位范围内看投递流程状态。不是人才库产品。不展示面试内容或数值评分；不提供自动筛选、排名、拒绝或录用决定。校准完成前没有人工审核工单。</p>
+        <h1 className="flex items-center gap-2 text-2xl font-bold"><Database className="size-6 text-primary" />投递骨架 · 内部预览</h1>
+        <p className="mt-1 text-muted-foreground">内部列表，只看流程状态。不是人才库产品，也不是招聘方产品。不展示面试内容或数值评分；不提供自动筛选、排名、拒绝或录用决定。校准完成前没有人工审核工单。</p>
       </div>
 
       <ArchitectureHighlights compact />

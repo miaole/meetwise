@@ -12,7 +12,7 @@ import { applicationStatusLabel, recruiterAssessmentLabel } from '@/lib/recruite
 
 const PAGE = 30;          // 单岗位候选人封顶首屏渲染,"加载更多"递增 ?limit
 
-export const metadata: Metadata = { title: '岗位投递 · 预览版 · 知面', description: '预览版：查看该岗位投递的流程状态。不是招聘工作流。' };
+export const metadata: Metadata = { title: '岗位投递 · 内部预览 · 知面', description: '内部预览：查看该岗位投递的流程状态。不是招聘方产品。' };
 
 interface Job { id: string; title: string; competencies: string[]; status: string }
 interface Candidate { id: string; candidate_user_id: string; status: string; score: number | null; source?: string }
@@ -42,7 +42,7 @@ export default async function RecruiterJobCandidatesPage({ params, searchParams 
           <h1 className="flex items-center gap-2 text-2xl font-bold"><Users className="size-6 text-primary" />{job?.title ?? '岗位候选人'}</h1>
           {job ? <InviteCandidateDialog jobId={id} /> : null}
         </div>
-        <p className="mt-1 text-muted-foreground">预览版：投递/受邀该岗位的最小流程状态。点「查看状态」只打开状态，不是面试官审卷。看不到面试内容，也不提供数值评分。</p>
+        <p className="mt-1 text-muted-foreground">内部预览：投递/受邀该岗位的最小流程状态。点「查看状态」只打开状态，不是面试官审卷。看不到面试内容，也不提供数值评分。</p>
         {job?.competencies?.length ? (
           <div className="mt-3 flex flex-wrap gap-1">
             {job.competencies.map((s) => <Badge key={s} variant="outline">{s}</Badge>)}
