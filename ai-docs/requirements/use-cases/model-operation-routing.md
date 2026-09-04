@@ -145,7 +145,7 @@ related:
   2. `retrieveAndGenerate` 返回 `QuestionGenerationResult.ok=false` + `QuestionGenerationProvenance{origin:unavailable,errorCode,invokeError}`；禁止 `deterministicQuestionFallback` 冒充模型题。
   3. 图 `genQuestion` 不写 pending；条件边直接 `conclude`。`awaitAnswer` 不会对失败出题 interrupt。
   4. lifecycle 同一 principal 事务：`failInterviewAndRelease` + `interview_unavailable{reason,provenance}`（`event_key=interview_unavailable:terminal`）；`question_ready` 增量 = 0。中途下一题失败时同事务先写 `answer_evaluated`/`answer_unscored`，再终态化，不 `completeInterviewAndConfirm`。
-- **备选流 Alternate：** grounded 首题仍可用批准模板，但 provenance `origin=approved_template`，且不得引用简历原文。评分失败继续 `unscored`，不在本包改分数语义。
+- **备选流 Alternate：** grounded 首题仍可用批准模板，但 provenance `origin=approved_template`，且不得引用简历原文。评分失败继续 `unscored`，不在本包改分数语义。scenario/behavioral 无检索材料时，题面保留、leftover `refs` 丢弃为空（`resolveCitedSources`），不当 `unknown_retrieval_reference`；有检索材料时未知 ref 仍 fail-closed。
 - **异常流 Exception：**
   - **E1 重复：** 同 interview 再投 start/同键出题只回放既有 `interview_unavailable` 或既有 invocation 终态；不得另发明题。机制：事件 `event_key` 幂等 + invocation 幂等键。
   - **E2 并发：** 双 worker 对同一 start 只一条 terminal；失败者 `graph_fence_lost`，ledger/SSE 增量为 0。机制：graph fence CAS。
@@ -167,6 +167,7 @@ related:
 - `TC-MODEL-ROUTE-04-E4` · 隔离 PostgreSQL：出题 invoke 失败 → 无 question_ready、面试 failed、预留 released。
 - `TC-MODEL-ROUTE-04-E5` · worker deps：缺 handler / timeout / schema 失败返回 `ok:false`，题面字符串不出现。
 - `TC-MODEL-ROUTE-04-E6` · 原生适配器：缺 Key / 超时 / 空 content / 非 JSON / 缺字段 → 结构化抛错，零发明转写/向量/排序。
+- `TC-MODEL-ROUTE-04-alt-leftover` · 单元：`knownRefs=[]` 时 leftover refs → `sources=[]` 且不 fail-close；`knownRefs` 非空时未知 ref 仍 `unknown_retrieval_reference`。
 
 ## 实现门禁结论
 

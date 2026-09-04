@@ -6,7 +6,7 @@
 import { z } from 'zod';
 import { normalizeQuestion, type DbPool } from '@meetwise/db';
 import { invoke, promptedModel, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
-import { cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, modelGeneration, unavailableGeneration, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
+import { cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, modelGeneration, unavailableGeneration, resolveCitedSources, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
 import type { AdaptiveDeps } from '@meetwise/ai-graphs';
 import { wasAsked, pastWeakDimensions } from './memory-service.ts';
 import { invokeEvaluationOnce } from './interview-service.ts';
@@ -147,10 +147,8 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           schema: AskSchema,
           businessValidate: (v) => {
             if (isVerbatimCopy(v.q, docs)) return '照搬原文(版权)';
-            // 来源列表是 provenance，不是模型可自由编造的文案。空资料时允许空 refs；有资料时
-            // 任一 ref 都必须精确属于本次 local/web evidence，防“看似有引用”的幻觉审计记录。
-            if (v.refs.some((ref) => !knownRefs.includes(ref))) return 'unknown_retrieval_reference';
-            return null;
+            const cited = resolveCitedSources(knownRefs, v.refs);
+            return cited.ok ? null : cited.reason;
           },
           // 检索素材(material)走 rag 字段独立分账(仍在 <data> 围栏内、受 DATA_BOUNDARY_RULE 保护),不进 buildData 的 userData。
           model: promptedModel(d.model, 'interviewer.ask', { competency, difficulty, kind, resumeFacts: [] }, undefined, material),
@@ -178,7 +176,13 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       }
       if (duplicate)
         return unavailableGeneration('duplicate_question', { operationId: QUESTION_OPERATION_ID, idempotencyKey });
-      return modelGeneration(out.value.q, out.value.refs, { operationId: QUESTION_OPERATION_ID, idempotencyKey });
+      const cited = resolveCitedSources(knownRefs, out.value.refs);
+      if (!cited.ok) {
+        return unavailableGeneration(classifyQuestionGenerationError(`business:${cited.reason}`), {
+          operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: `business:${cited.reason}`,
+        });
+      }
+      return modelGeneration(out.value.q, cited.sources, { operationId: QUESTION_OPERATION_ID, idempotencyKey });
     },
     async assess(question, answer, _competency, turn, identity) {
       // **结构化防评分操纵(红队实测:靠 prompt 让 turbo 自己抵抗不可靠)**:评分前确定性剥离评分元指令/伪造截断标记。

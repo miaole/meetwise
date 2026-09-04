@@ -15,7 +15,7 @@ const base = scriptedModelClient({
   'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发', '缓存'] } }),
   'interviewer.ask': () => ({
     ok: true,
-    raw: { q: `结合你的限流经历聊聊高并发下怎么兼顾吞吐与一致，并说明第 ${++askSeq} 轮验证方法`, refs: ['qbank:a'] },
+    raw: { q: `结合你的限流经历聊聊高并发下怎么兼顾吞吐与一致，并说明第 ${++askSeq} 轮验证方法`, refs: [] },
   }),
   'mock-interview.evaluate': () => ({ ok: true, raw: { score: 88, evidence: [{ criterion: '讲清滑动窗口', quote: '滑动窗口' }] } }),
 });

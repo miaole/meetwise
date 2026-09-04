@@ -7,6 +7,7 @@ import {
   unavailableGeneration,
   approvedTemplateGeneration,
   normalizeQuestionGenerationResult,
+  resolveCitedSources,
 } from '../src/question-generation.ts';
 
 let fail = 0;
@@ -54,6 +55,24 @@ A('合法旧 seam 保留题面且标 origin=model（测试夹具，非生产失�
   (() => {
     const n = normalizeQuestionGenerationResult({ question: '怎么做限流？', sources: ['qbank:a'] });
     return n.ok === true && n.question === '怎么做限流？' && n.provenance.origin === 'model';
+  })());
+
+A('无检索材料时 leftover refs 丢弃为空，不 fail-close',
+  (() => {
+    const r = resolveCitedSources([], ['qbank:a', 'https://allow.example/deep']);
+    return r.ok === true && r.sources.length === 0;
+  })());
+
+A('有检索材料时未知 ref 仍 fail-closed',
+  (() => {
+    const r = resolveCitedSources(['qbank:a'], ['qbank:a', 'qbank:invented']);
+    return r.ok === false && r.reason === 'unknown_retrieval_reference';
+  })());
+
+A('有检索材料时已知 ref 原样保留',
+  (() => {
+    const r = resolveCitedSources(['qbank:a', 'https://allow.example/deep'], ['qbank:a']);
+    return r.ok === true && r.sources.length === 1 && r.sources[0] === 'qbank:a';
   })());
 
 console.log(`\n${fail === 0 ? '✓ question-generation fail-closed classifier passed' : `✗ ${fail} failed`}`);

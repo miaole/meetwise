@@ -158,10 +158,11 @@ export { critiqueQuestion, type QuestionCritique } from './question-critique.ts'
 export {
   QUESTION_GENERATION_ERROR_CODES, QUESTION_GENERATION_ORIGINS,
   classifyQuestionGenerationError, unavailableGeneration, approvedTemplateGeneration, modelGeneration,
-  normalizeQuestionGenerationResult, isQuestionGenerationFailure,
+  normalizeQuestionGenerationResult, isQuestionGenerationFailure, resolveCitedSources,
 } from './question-generation.ts';
 export type {
   QuestionGenerationErrorCode, QuestionGenerationOrigin, QuestionGenerationProvenance, QuestionGenerationResult,
+  CitedSourcesResolution,
 } from './question-generation.ts';
 // 简历多格式提取 + 清洗(PDF/Word/图片→文本)
 export { extractResumeText, cleanResumeText, detectResumeFormat, type ResumeFileFormat } from './resume-extract.ts';

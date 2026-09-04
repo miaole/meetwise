@@ -89,3 +89,24 @@ export function normalizeQuestionGenerationResult(
 export function isQuestionGenerationFailure(result: QuestionGenerationResult): result is Extract<QuestionGenerationResult, { ok: false }> {
   return result.ok === false;
 }
+
+export type CitedSourcesResolution =
+  | { ok: true; sources: string[] }
+  | { ok: false; reason: 'unknown_retrieval_reference' };
+
+/**
+ * Citations are provenance, not free text.
+ * With retrieval evidence, every cited ref must be in this turn's known set.
+ * With no material (scenario/behavioral), leftover citations are stripped —
+ * they must not fail-close a valid stem.
+ */
+export function resolveCitedSources(
+  knownRefs: readonly string[],
+  citedRefs: readonly string[],
+): CitedSourcesResolution {
+  if (knownRefs.length === 0) return { ok: true, sources: [] };
+  if (citedRefs.some((ref) => !knownRefs.includes(ref))) {
+    return { ok: false, reason: 'unknown_retrieval_reference' };
+  }
+  return { ok: true, sources: [...citedRefs] };
+}

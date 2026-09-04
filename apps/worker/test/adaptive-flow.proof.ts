@@ -18,7 +18,7 @@ const base = scriptedModelClient({
   // multi-turn scripted interviewer must emit distinct questions.
   'interviewer.ask': () => ({
     ok: true,
-    raw: { q: `结合你的限流经历谈谈高并发下如何兼顾吞吐与一致性，并说明第 ${++askSeq} 轮验证方法`, refs: ['qbank:a'] },
+    raw: { q: `结合你的限流经历谈谈高并发下如何兼顾吞吐与一致性，并说明第 ${++askSeq} 轮验证方法`, refs: [] },
   }),
   'mock-interview.evaluate': () => ({ ok: true, raw: { score: 88, evidence: [{ criterion: '讲清了滑动窗口', quote: '滑动窗口' }] } }),
 });
