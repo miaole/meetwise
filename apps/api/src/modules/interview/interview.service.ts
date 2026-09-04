@@ -505,7 +505,7 @@ export class InterviewService {
     return { ready: true, md };
   }
 
-  // 面试转写:题目 + 各题得分(从图落库题目 + answer_evaluated 事件组装)。
+  // 面试转写:题面/outcome 来自 ledger 对齐的 answer_evaluated；分数只读 ScoreCard，无卡 null（不读 payload.score）。
   transcript(principal: string, id: string) {
     return this.db.asPrincipal(principal, async (c) => {
       await this.guardInterviewPrivacy(c, id);

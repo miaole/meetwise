@@ -460,6 +460,11 @@ async function main() {
       { score: 99, questionId: 'q-v2-t1-c0', stateVersion: 2, turn: 1 },
       { questionId: 'q-v1-t0-c0', stateVersion: 1, turn: 0 },
     ) === undefined);
+  A('report_ready 非 0..100 整数不写入视图 report（不是伪造 0）',
+    reduceInterview([toBusinessEvent({ event: 'report_ready', id: 1, data: '{"overall":80.5}' })!]).report === undefined
+    && reduceInterview([toBusinessEvent({ event: 'report_ready', id: 1, data: '{"overall":101}' })!]).report === undefined
+    && reduceInterview([toBusinessEvent({ event: 'report_ready', id: 1, data: '{"overall":-1}' })!]).report === undefined
+    && reduceInterview([toBusinessEvent({ event: 'report_ready', id: 1, data: '{"overall":74}' })!]).report?.overall === 74);
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
   process.exit(failures === 0 ? 0 : 1);

@@ -81,7 +81,7 @@ related:
 - **验收 Acceptance**：`pnpm scor-00-honesty:prove`（域七类）与 `pnpm web:prove`（SSE 无身份/缺 answer claim/错题不展示分）。**未**跑隔离 HTTP 对 transcript/assessment/career 的组合根；**不**重跑 `scor-00:http:prove`。不宣称测量质量或发布。`releaseEvidence=false`。
 - **关联**：`GET /interview/:id/transcript`、`POST /interview/:id/assessment`、`POST /interview/:id/career-path`、SSE `answer_evaluated`；ScoreCard、JobApplication；事件日志 + 身份原语；`SCOR-00`、ADR-0020。
 - **七类覆盖**：正常、异常、特殊、逃逸通道、高并发、复杂、刁钻。
-- **明确不做**：不改 worker 完成判定与 `markApplicationNoEligibleScore` 仍读 event.score 的 hint 计数；不在生产 graph 写 ScoreCard；不开放 B 端数值；不把 golden-task / fake model 标成质量通过；不改写 SCOR-01/02 清单状态（生产 writer 仍未接线）；不把 `listScorableScoreCards` 收窄到仅 `practice_eligible`；不给 `GET assessment`/`GET career-path` 补闸；不对 `question_ready` 走 `webTrustedQuestionIdentity`（发题身份仍是可选字段）。
+- **明确不做**：不改 worker 完成判定与 `markApplicationNoEligibleScore` 仍读 event.score 的 hint 计数；不在生产 graph 写 ScoreCard；不开放 B 端数值；不把 golden-task / fake model 标成质量通过；不改写 SCOR-01/02 清单状态（生产 writer 仍未接线）；不把 `listScorableScoreCards` 收窄到仅 `practice_eligible`；不给 `GET assessment`/`GET career-path`/`GET /profile/growth`/`GET report`/`exportReport`/`share` 海报补闸；不对 `POST learning-plan` 跑 `requireTrustedPracticeOverall`；不对 `question_ready` 走 `webTrustedQuestionIdentity`（发题身份仍是可选字段）。这些读路径仍可能展示历史 `assessment_report.overall` / `ai_report.content.overall`（含遗留 0 或非整数）。
 
 ## 2. 领域对象与不可变边界
 
@@ -161,7 +161,7 @@ stateDiagram-v2
 | 子项 | 已发现 | 已实现 | 已验证 | 已关闭 | 关闭验收 |
 | --- | :---: | :---: | :---: | :---: | --- |
 | SCOR-00 关闭公开伪评分旁路 | ☑ | ☑ | ☑ | ☑ | `pnpm scor-00:http:prove` 真实 HTTP 证明 `/answer` 与旧公开 contract 不写事件（C/B、重放、并发、跨主体调用后事件/消费/队列/报告/assessment/B 端申请增量均 0）；随 SCOR-01/02（rubric/measurement 版本）闭合，本项遗留关切解除。 |
-| SCOR-00H 消费面诚实闸 | ☑ | ☑ | ☑ | ☐ | **已验证范围**= domain 21 断言 + `web:prove` SSE 归约，不是隔离 HTTP 组合根。无可信 identity / 空 ScoreCard 不得伪造 0；SSE hint 需 question+answer claim。**未接线**：`GET assessment`/`GET career-path` 不重跑闸；`listScorableScoreCards` 仍含 `b_review_eligible`；`report_ready` 合法整数仍可展示；worker eligible 与 `markApplicationNoEligibleScore` 仍读 event hint。未重跑 `scor-00:http:prove`。`releaseEvidence=false`，不关闭测量/校准，不改 SCOR-01/02 状态。 |
+| SCOR-00H 消费面诚实闸 | ☑ | ☑ | ☑ | ☐ | **已验证范围**= domain 21 断言 + `web:prove` SSE 归约（含 `report_ready` 非整数不入视图），不是隔离 HTTP 组合根。无可信 identity / 空 ScoreCard 不得伪造 0；SSE hint 需 question+answer claim。**未接线**：`GET assessment`/`GET career-path`/`GET /profile/growth`/`GET report`/`exportReport`/`share`/`POST learning-plan` 不重跑闸；`listScorableScoreCards` 仍含 `b_review_eligible`；`report_ready` 合法整数仍可展示；worker eligible 与 `markApplicationNoEligibleScore` 仍读 event hint。未重跑 `scor-00:http:prove`。`releaseEvidence=false`，不关闭测量/校准，不改 SCOR-01/02 状态。 |
 | SCOR-01 版本化 rubric 与两阶段事实根 | ☑ | ☑ | ☑ | ☑ | 迁移 `0100` `scoring_fact_root` + 独立 re-audit PASS：issue 合同 schema 层无 answer* 列（铁律）、submission 才绑 canonical artifact(0092)+HMAC+receipt、supersede 补 rubric/weight 校验 + fence 重校验、跨 owner 读=0、原地 UPDATE/DELETE 拒绝；64 断言全绿。 |
 | SCOR-02 确定性聚合、writer 与消费迁移 | ☑ | ☑ | ☑ | ☑ | 迁移 `0103` `scoring_deterministic_aggregation` + 独立 re-audit PASS：5 处 C 消费面全切 ScoreCard 只读路径、专用 score-writer/permit/verifier、legacy event 聚合=0、跨 owner=0；59 断言全绿。残 LOW：`answer_evaluated.score` 未结构性根除（归 SCOR-03）。 |
 | SCOR-03 证据、冲突与不确定性 | ☑ | ☐ | ☐ | ☐ | 复验答案 span/digest、required coverage、语言/ASR/模型分歧；任一冲突进入 review 或 unscored。 |
