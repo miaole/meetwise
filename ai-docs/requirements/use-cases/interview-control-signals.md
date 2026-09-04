@@ -11,7 +11,7 @@ version: 1
 tags:
   - interview
   - adaptive
-  - int-level
+  - int-level-signal
   - control-signal
 related:
   - ./expert-long-interview-runtime.md
@@ -32,7 +32,7 @@ related:
 | 字段 | 内容 |
 | --- | --- |
 | 任务范围 | 纯域 `observeInterviewSignals` + `decideNext` 消费；图 `concludeReason` hook。 |
-| 来源证据 | `expert-long-interview-runtime.md` UC-INT-LEVEL-01；`adaptive-interview-length.md`；`packages/domain/src/adaptive-interview.ts` 的 `decideNext`。 |
+| 来源证据 | `expert-long-interview-runtime.md` §5 **blocked** 边界（SIGNAL-01 ≠ LEVEL-01）；`adaptive-interview-length.md`；`packages/domain/src/adaptive-interview.ts` 的 `decideNext`。 |
 | 明确不做 | 完整 `INT-LEVEL-01`；ScoreCard/rubric evidence；冻结或改写产品轮次上限；SSE/UI 文案；B 端等级；简历年限/受保护属性入特征。worker / SSE / report 不消费 `concludeReason`。 |
 | 领域对象 | `InterviewMind`（本包消费 `recentScores` / `pivotCount`；`recentDifficulties` 仅由 ingest 持久化，观察函数不读）、`InterviewControlSignal`、`InterviewConcludeReason`。 |
 | 状态机影响 | 分数轨迹 `weak`/`thrashing` 映射为 `early_weak` / `thrashing`。判定序：`safety_ceiling` → 轨迹信号（同真时 weak 优先）→ 会话 abort-count `early_weak` → 连续无产出 pivot `thrashing` → probe/pivot（软预算触顶则 `raise_soft_budget`）→ 无可探时 `coverage_met`/`all_resolved`。`clarify` 续问不消费轨迹信号；仅绝对杀开关时经 `decideNext`。 |
