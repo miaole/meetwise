@@ -42,6 +42,17 @@ const checks = {
     candidate.surfaces = candidate.surfaces.filter((surface) => surface.id !== 'api-interview-turn');
     expectError(candidate, 'http_route_unregistered:POST:/interview/:id/turn:turn');
   },
+  'TC-public-preview-01-E3-unregistered-async-route': () => {
+    const interviewController = readFileSync(resolve(repoRoot, 'apps/api/src/modules/interview/interview.controller.ts'), 'utf8');
+    const routes = extractMutatingHttpRoutes(interviewController, 'apps/api/src/modules/interview/interview.controller.ts');
+    const handlers = new Set(routes.map((route) => route.handler));
+    assert.ok(handlers.has('transcribe'), 'async transcribe must be discovered');
+    assert.ok(handlers.has('speak'), 'async speak must be discovered');
+    assert.ok(handlers.has('speakStream'), 'async speakStream must be discovered');
+    const candidate = clone(manifest);
+    candidate.surfaces = candidate.surfaces.filter((surface) => surface.id !== 'api-interview-transcribe');
+    expectError(candidate, 'http_route_unregistered:POST:/interview/:id/transcribe:transcribe');
+  },
   'TC-public-preview-01-E1-unfenced-public': () => {
     const candidate = clone(manifest);
     const assessment = candidate.surfaces.find((surface) => surface.id === 'api-interview-assessment');
