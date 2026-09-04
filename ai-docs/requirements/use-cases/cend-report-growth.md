@@ -11,11 +11,12 @@ related:
   - ./README.md
   - ../use-case-conventions.md
   - ../../testing/conventions/test-authoring.md
+  - ./cend-overview-progress.md
 ---
 
 # 报告与成长域 · 用例 + 测试用例（评审收口最终版）
 
-> **🔎 实现状态（对齐真实代码 · 2026-07）** — 本文是 TARGET 规格。**✅ 已实现+接线**：报告（report 子图，舱壁隔离、报告失败不阻塞面试）、AssessmentReport、能力曲线/成长档案、career-path 职业路径、learning-plan 学习计划均可跑，且为**确定性派生**（从面试后的 `assessment_report` 事件推导；report:prove 25 断言）。**🟠 关键校正**：**成长/能力曲线的唯一数据源 = `assessment_report`**，**不存在**跨会话记忆/信念驱动的成长推断（“记住你历史弱项做个性化演进”未接线，经审计判为过度设计而暂缓）；文内 `SkillInference` 的“推断/ttl/confidence 演进”当前=单次评估的确定性投影，非跨会话学习。
+> **🔎 实现状态（对齐真实代码 · 2026-07）** — 本文是 TARGET 规格。**✅ 已实现+接线**：报告（report 子图，舱壁隔离、报告失败不阻塞面试）、AssessmentReport、能力曲线/成长档案、career-path 职业路径、learning-plan 学习计划均可跑，且为**确定性派生**（从面试后的 `assessment_report` 事件推导；report:prove 25 断言）。**🟠 关键校正**：**成长/能力曲线的唯一数据源 = `assessment_report`**，**不存在**跨会话记忆/信念驱动的成长推断（“记住你历史弱项做个性化演进”未接线，经审计判为过度设计而暂缓）；文内 `SkillInference` 的“推断/ttl/confidence 演进”当前=单次评估的确定性投影，非跨会话学习。成长主页「已答题数」**不是**本域曲线数据源，走题目账本，见 [cend-overview-progress](./cend-overview-progress.md)；本域 `GrowthView.totals.answered` 仍为可评分 ScoreCard 数。
 
 > 顺序铁律：用例 → 契约 → 状态机 → 测试 → 代码。本文档按对抗评审五问逐条收口：先消解 4 处自相矛盾与状态机缺口（§0），再给 23 条 UC（每条标注七类覆盖、每条异常/刁钻流落到一个机制、验收可测、配齐 TC）。
 > 四原语缩写：**CAS**(条件更新/乐观锁)、**IDEM**(幂等键唯一约束)、**RLS**(principal 绑定 fail-closed)、**LOG**(持久有序事件日志，单调 seq)。

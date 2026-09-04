@@ -32,6 +32,7 @@ const requiredFiles = [
   "ai-docs/rules/ai/structured-output-and-safety.md",
   "ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md",
   "ai-docs/testing/strategy/test-strategy.md",
+  "ai-docs/requirements/use-cases/cend-overview-progress.md",
   "ai-docs/delivery/roadmap.md",
   "docker/compose.dev.yml",
   "docker/compose.demo.yml",
@@ -45,12 +46,13 @@ const requiredTerms = new Map([
   ["AGENTS.md", ["文档先行", "契约先行", "测试先行"]],
   ["ai-docs/product/vision.md", ["面试", "职业路径"]],
   ["ai-docs/architecture/system-blueprint.md", ["Next.js", "NestJS", "LangGraph", "Postgres"]],
-  ["ai-docs/architecture/current-runtime-truth.md", ["已验证", "发布阻断", "LangGraph", "RAG", "Langfuse"]],
+  ["ai-docs/architecture/current-runtime-truth.md", ["已验证", "发布阻断", "LangGraph", "RAG", "Langfuse", "issued_turns", "overview.answered"]],
   ["ai-docs/architecture/ai/langgraph-blueprint.md", ["checkpoint", "thread_id"]],
   ["ai-docs/architecture/devops/local-demo-deployment.md", ["docker compose", "compose.demo.yml"]],
   ["ai-docs/testing/strategy/test-strategy.md", ["contract", "E2E", "golden"]],
   ["ai-docs/observability/observability-strategy.md", ["SLO", "降级", "恢复", "脱敏", "threadId"]],
   ["ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md", ["qbank_control_definer", "FORCE RLS", "fail-closed", "SECURITY DEFINER", "lane(b)", "撤销", "复活"]],
+  ["ai-docs/requirements/use-cases/cend-overview-progress.md", ["题目账本", "Overview.answered", "issued_turns", "status <> 'cancelled'", "ScoreCard"]],
 ]);
 
 // P0 readability contract: expert-interview materials must not assume the reader already knows acronyms.
@@ -106,6 +108,16 @@ const runtimeTruthAssertions = [
     source: "apps/api/src/platform/public-preview.ts",
     sourceTerm: "assertPublicPreviewWritesClosed",
     truthTerm: "公开预览写门禁",
+  },
+  {
+    source: "apps/api/src/modules/profile/profile.service.ts",
+    sourceTerm: "iq.status='answered'",
+    truthTerm: "overview.answered",
+  },
+  {
+    source: "apps/api/src/modules/interview/interview.service.ts",
+    sourceTerm: "iq.status <> 'cancelled'",
+    truthTerm: "issued_turns",
   },
 ];
 

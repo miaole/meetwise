@@ -9,14 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScoreRing } from '@/components/ScoreRing';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { interviewActionLabel, interviewDisplayStatus, interviewProgressLabel, isInterviewEnterable } from '@/lib/interview/progress';
+import { interviewActionLabel, interviewDisplayStatus, interviewProgressLabel, isInterviewEnterable, overviewAnsweredLabel } from '@/lib/interview/progress';
 import { interviewContextTitle, interviewResumeLabel, interviewTimeLabel } from '@/lib/interview/context';
-import { InterviewList, type InterviewView as Interview } from '@meetwise/contracts';
+import { InterviewList, Overview as OverviewSchema, type InterviewView as Interview } from '@meetwise/contracts';
 
 export const metadata = { title: '成长主页 · 知面' };     // App Router Metadata API(SEO,服务端注入)
 
 interface Profile { id: string; email: string; status: string }
-interface Overview { interviewsByStatus: Record<string, number>; answered: number; avgScore: number | null; reportsReady: number }
 
 const STATUS_LABEL: Record<string, string> = {
   created: '待开始', active: '进行中', running: '进行中', waiting_user: '等你作答',
@@ -40,21 +39,23 @@ const QUICK_ACTIONS: Array<{ href: string; t: string; d: string; Icon: typeof Me
 
 /** 真服务端取数:RSC 内并发 await /profile、/profile/overview、/interview,首屏即有数据。 */
 async function GrowthHome() {
-  const [profile, ov, listRaw] = await Promise.all([
+  const [profile, ovRaw, listRaw] = await Promise.all([
     serverGet<Profile>('/profile'),
-    serverGet<Overview>('/profile/overview'),
+    serverGet<unknown>('/profile/overview'),
     serverGet<unknown>('/interview'),
   ]);
 
+  const parsedOverview = OverviewSchema.safeParse(ovRaw);
+  const ov = parsedOverview.success ? parsedOverview.data : null;
   const parsedInterviews = InterviewList.safeParse(listRaw);
   const interviews: Interview[] = parsedInterviews.success ? parsedInterviews.data.interviews : [];
-  const sessions = Object.values(ov?.interviewsByStatus ?? {}).reduce((a, b) => a + b, 0) || interviews.length;
+  const sessions = ov ? Object.values(ov.interviewsByStatus).reduce((a, b) => a + b, 0) : null;
   const recent = interviews.slice(0, 4);
 
   const stats = [
-    { n: ov ? String(ov.answered) : '—', l: '已答题数' },
+    { n: overviewAnsweredLabel(ov), l: '已答题数' },
     { n: ov ? String(ov.reportsReady) : '—', l: '就绪报告' },
-    { n: String(sessions), l: '面试场次' },
+    { n: sessions == null ? '—' : String(sessions), l: '面试场次' },
   ];
 
   return (

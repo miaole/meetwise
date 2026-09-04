@@ -62,7 +62,12 @@ export const TurnDto = z.object({
   answer: z.string().min(1).max(ANSWER_MAX),
 }).strict();
 export type TurnDto = z.infer<typeof TurnDto>;
-/** 面试视图(GET /interview/:id 响应)。 */
+/**
+ * 面试视图(GET /interview 列表项与 GET /interview/:id)。
+ * 进度四字段是题目账本只读投影，不是 ScoreCard：
+ * issued_turns = status<>'cancelled'；answered_turns = status='answered'；
+ * current_turn / processing_turn 分别为 issued / queued 的 max(turn)。
+ */
 export const InterviewView = z.object({
   id: z.string(),
   status: z.string(),
@@ -71,9 +76,13 @@ export const InterviewView = z.object({
   created_at: z.string().datetime().nullable().optional(),
   display_code: z.string().min(1).max(32).optional().default('场次信息同步中'),
   current_question_index: z.number().int().nullable(),
+  /** 已出题数：题目账本 status<>'cancelled'。 */
   issued_turns: z.number().int().nonnegative(),
+  /** 已答题数：题目账本 status='answered'；与 Overview.answered 同一 FILTER。 */
   answered_turns: z.number().int().nonnegative(),
+  /** 当前待答题 turn（status='issued' 的 max）；展示文案 +1。 */
   current_turn: z.number().int().nonnegative().nullable(),
+  /** 处理中 turn（status='queued' 的 max）；展示文案 +1。 */
   processing_turn: z.number().int().nonnegative().nullable(),
 });
 export type InterviewView = z.infer<typeof InterviewView>;
@@ -232,7 +241,8 @@ export const updateSettingsSchema = z.object({
 export type UpdateSettingsDto = z.infer<typeof updateSettingsSchema>;
 export const Overview = z.object({
   interviewsByStatus: z.record(z.string(), z.number()),
-  answered: z.number().int(),
+  /** C 端已答题数：privacy-active 面试上 interview_question.status='answered' 的计数，不是 ScoreCard 张数。 */
+  answered: z.number().int().nonnegative(),
   avgScore: z.number().nullable(),
   reportsReady: z.number().int(),
 });
@@ -251,6 +261,7 @@ export const GrowthView = z.object({
   dimensions: z.array(z.string()),                  // 出现过的全部维度(并集,已排序)
   totals: z.object({
     sessions: z.number().int(),
+    /** 可评分 ScoreCard 张数（文案「累计已评分」），不是成长主页 Overview.answered。 */
     answered: z.number().int(),
     bestScore: z.number().int().nullable(),
     latestScore: z.number().int().nullable(),
@@ -979,13 +990,13 @@ export const apiContract: ContractRoute[] = [
   { id: 'authLogin', method: 'post', path: '/auth/login', summary: '登录', tags: ['auth'], request: Credentials, response: AuthResult },
   { id: 'authSignup', method: 'post', path: '/auth/signup', summary: '注册', tags: ['auth'], request: Credentials, response: AuthResult },
   { id: 'getProfile', method: 'get', path: '/profile', summary: '当前用户资料', tags: ['profile'], auth: true, response: Profile },
-  { id: 'getOverview', method: 'get', path: '/profile/overview', summary: '总览统计', tags: ['profile'], auth: true, response: Overview },
-  { id: 'getGrowth', method: 'get', path: '/profile/growth', summary: '成长档案/能力曲线(读侧聚合)', tags: ['profile'], auth: true, response: GrowthView },
+  { id: 'getOverview', method: 'get', path: '/profile/overview', summary: 'C 端总览：已答题数走题目账本，均分走 ScoreCard', tags: ['profile'], auth: true, response: Overview },
+  { id: 'getGrowth', method: 'get', path: '/profile/growth', summary: '成长档案/能力曲线(totals.answered=可评分卡数)', tags: ['profile'], auth: true, response: GrowthView },
   { id: 'listResume', method: 'get', path: '/resume', summary: '简历列表', tags: ['resume'], auth: true, response: ResumeList },
   { id: 'uploadResume', method: 'post', path: '/resume', summary: '上传简历(文本)', tags: ['resume'], auth: true, request: UploadResumeDto },
   { id: 'uploadResumeFile', method: 'post', path: '/resume/file', summary: '上传简历文件(PDF/Word/图片→提取+清洗)', tags: ['resume'], auth: true, request: UploadResumeFileDto },
-  { id: 'listInterview', method: 'get', path: '/interview', summary: '面试列表', tags: ['interview'], auth: true, response: InterviewList },
-  { id: 'getInterview', method: 'get', path: '/interview/{id}', summary: '面试详情', tags: ['interview'], auth: true, response: InterviewView },
+  { id: 'listInterview', method: 'get', path: '/interview', summary: '面试列表（含题目账本 issued/answered turns）', tags: ['interview'], auth: true, response: InterviewList },
+  { id: 'getInterview', method: 'get', path: '/interview/{id}', summary: '面试详情（含题目账本进度投影）', tags: ['interview'], auth: true, response: InterviewView },
   { id: 'beginInterview', method: 'post', path: '/interview/{id}/begin', summary: '开始面试', tags: ['interview'], auth: true, response: BeginResult },
   { id: 'turnInterview', method: 'post', path: '/interview/{id}/turn', summary: '提交一题答案(绑定服务端问题身份后入队)', tags: ['interview'], auth: true, request: TurnDto, response: TurnResult },
   { id: 'questionFeedback', method: 'post', path: '/interview/{id}/questions/{idx}/feedback', summary: '题目反馈(赞/踩 + 可选评语)', tags: ['interview'], auth: true, request: FeedbackDto },

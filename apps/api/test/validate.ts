@@ -109,7 +109,36 @@ async function validate() {
   await db.pool.query("INSERT INTO job_posting(id,owner_user_id,title,status) VALUES ('JOB-CLOSED-CN','recruiter-context','高级后端研发工程师','open')");
   await db.pool.query("INSERT INTO job_application(id,job_id,recruiter_user_id,candidate_user_id,status,job_title_snapshot) VALUES ('APP-CLOSED-CN','JOB-CLOSED-CN','recruiter-context','userA','invited','高级后端研发工程师')");
   await db.pool.query("UPDATE job_posting SET status='closed' WHERE id='JOB-CLOSED-CN'");
-  await db.pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('R9','userB','active'),('RACE','userA','created'),('BEG1','userA','created')");
+  await db.pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('R9','userB','active'),('RACE','userA','created'),('BEG1','userA','created'),('LEDG','ledgerUser','active'),('LEDGQ','ledgerUser','active')");
+  // 题目账本写守卫要求 session principal = interview owner。隔离池默认绑 userA，
+  // 故跨主体种子必须在同一连接上改 GUC 后再 INSERT。
+  const seedQuestions = async (principal: string, sql: string) => {
+    const client = await db.pool.connect();
+    try {
+      await new Promise((resolve) => setImmediate(resolve));
+      await client.query('BEGIN');
+      await client.query("SELECT set_config('app.principal_user', $1, true)", [principal]);
+      await client.query(sql);
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK').catch(() => {});
+      throw err;
+    } finally {
+      client.release();
+    }
+  };
+  await seedQuestions('userB', `INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question,status)
+    VALUES ('userB','R9','q-v1-t0-c0',1,0,'userB answered 1','answered'),
+           ('userB','R9','q-v2-t1-c0',2,1,'userB answered 2','answered')`);
+  await seedQuestions('ledgerUser', `INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question,status)
+    VALUES ('ledgerUser','LEDG','q-v1-t0-c0',1,0,'ledger answered 1','answered'),
+           ('ledgerUser','LEDG','q-v2-t1-c0',2,1,'ledger answered 2','answered'),
+           ('ledgerUser','LEDG','q-v3-t2-c0',3,2,'ledger answered 3','answered'),
+           ('ledgerUser','LEDG','q-v4-t3-c0',4,3,'ledger issued','issued'),
+           ('ledgerUser','LEDG','q-v5-t5-c0',5,5,'ledger cancelled','cancelled'),
+           ('ledgerUser','LEDGQ','q-v1-t0-c0',1,0,'ledger queued','queued')`);
+  await seedQuestions('userA', `INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question,status)
+    VALUES ('userA','RACE','q-v1-t0-c0',1,0,'userA ledger-only answered','answered')`);
   // R1 是 active(已开面)。v64 契约要求 enqueueInterviewJob(answer) 读到 parent 的
   // (resume_id, resume_privacy_epoch) 与一条 matching v64 start job(0064 的 answer job 触发器
   // 也要求先存在 v64 start)。补全两者,使 /turn 入队 answer job 不再抛 interview_resume_reference_unavailable。
@@ -170,6 +199,12 @@ async function validate() {
     && item.job_title === null && item.resume_display_name?.startsWith('简历 · 后端工程师 · ')
     && item.current_question_index === 0 && item.issued_turns === 1 && item.answered_turns === 0
     && item.current_turn === 0 && item.processing_turn === null));
+  A('面试列表 ASMT 已答投影来自题目账本', r.status === 200 && r.body.interviews?.some((item: any) => item.id === 'ASMT'
+    && item.issued_turns === 2 && item.answered_turns === 2));
+  A('面试列表 RACE 无 ScoreCard 的已答仍投影 answered_turns=1', r.status === 200 && r.body.interviews?.some((item: any) => item.id === 'RACE'
+    && item.issued_turns === 1 && item.answered_turns === 1));
+  const userAListAnsweredEarly = (r.body.interviews ?? []).reduce((n: number, item: any) => n + Number(item.answered_turns ?? 0), 0);
+  A('userA 列表 answered_turns 合计为 ASMT 2 + RACE 1（与卡表 2 故意不等）', userAListAnsweredEarly === 3);
   r = await req('GET', '/resume', { 'x-user-id': 'userA' });
   A('简历列表只返回中文业务名称，不把 UUID 当展示名', r.status === 200 && r.body.resumes?.some((item: any) => item.id === r1ResumeId
     && item.display_name.startsWith('简历 · 后端工程师 · ') && !item.display_name.includes(r1ResumeId)));
@@ -425,9 +460,25 @@ async function validate() {
   const st = await db.pool.query("SELECT status FROM user_account WHERE id='userA'"); A('账户真停用(disabled)', st.rows[0].status === 'disabled');
   // profile/设置 + 简历单删
   r = await req('GET', '/profile', { 'x-user-id': 'userA' }); A('看自己档案(含 email,不含密码)', r.status === 200 && r.body.email === 'ua@x.com' && r.body.password_hash === undefined);
-  // 个人总览/仪表盘(首屏聚合):平均分来自 ASMT 的 80/40 → 60
-  r = await req('GET', '/profile/overview', { 'x-user-id': 'userA' }); A('个人总览:平均分∈[0,100]+答题数≥2+报告就绪≥1+面试分布', r.status === 200 && r.body.avgScore >= 0 && r.body.avgScore <= 100 && r.body.answered >= 2 && r.body.reportsReady >= 1 && typeof r.body.interviewsByStatus === 'object' && Object.keys(r.body.interviewsByStatus).length >= 1);
-  r = await req('GET', '/profile/overview', { 'x-user-id': 'userNoData' }); A('无数据用户总览:avgScore=null 不报错', r.status === 200 && r.body.avgScore === null && r.body.answered === 0);
+  // 个人总览/仪表盘(首屏聚合):平均分仍来自 ASMT ScoreCard 80/40 → 60；已答题数改走题目账本。
+  // userA 账本 3(ASMT 2 + RACE 1) vs 可评分卡 2：若回归 ScoreCard 计数，answered===2 会失败。
+  r = await req('GET', '/profile/overview', { 'x-user-id': 'userA' });
+  const ovA = r;
+  const listA = await req('GET', '/interview', { 'x-user-id': 'userA' });
+  const userAListAnswered = (listA.body.interviews ?? []).reduce((n: number, item: any) => n + Number(item.answered_turns ?? 0), 0);
+  const userACards = await db.pool.query("SELECT count(*)::int n FROM score_card WHERE owner_user_id='userA' AND status IN ('practice_eligible','b_review_eligible')");
+  A('个人总览:均分∈[0,100]+已答题数恰为账本 3(不含 userB/ledgerUser)+报告就绪≥1+面试分布', ovA.status === 200 && ovA.body.avgScore >= 0 && ovA.body.avgScore <= 100 && ovA.body.answered === 3 && ovA.body.reportsReady >= 1 && typeof ovA.body.interviewsByStatus === 'object' && Object.keys(ovA.body.interviewsByStatus).length >= 1);
+  A('个人总览已答题数与同一次列表 answered_turns 合计对齐,且故意不等于可评分卡数', ovA.status === 200 && listA.status === 200 && ovA.body.answered === userAListAnswered && ovA.body.answered !== userACards.rows[0].n && userACards.rows[0].n === 2);
+  r = await req('GET', '/profile/overview', { 'x-user-id': 'userB' });
+  A('userB 总览只计自己的 2 条已答账本,不吃 userA/ScoreCard', r.status === 200 && r.body.answered === 2 && r.body.avgScore === null);
+  r = await req('GET', '/interview', { 'x-user-id': 'ledgerUser' });
+  const ledgerListAnswered = (r.body.interviews ?? []).reduce((n: number, item: any) => n + Number(item.answered_turns ?? 0), 0);
+  A('ledgerUser 列表只把 answered 计入 answered_turns(issued/queued/cancelled 不计)', r.status === 200 && ledgerListAnswered === 3
+    && r.body.interviews?.some((item: any) => item.id === 'LEDG' && item.issued_turns === 4 && item.answered_turns === 3)
+    && r.body.interviews?.some((item: any) => item.id === 'LEDGQ' && item.issued_turns === 1 && item.answered_turns === 0));
+  r = await req('GET', '/profile/overview', { 'x-user-id': 'ledgerUser' });
+  A('无 ScoreCard 时总览已答题数仍为账本 3,不伪装成 0;均分保持 null', r.status === 200 && r.body.answered === 3 && r.body.avgScore === null && r.body.answered === ledgerListAnswered);
+  r = await req('GET', '/profile/overview', { 'x-user-id': 'userNoData' }); A('无数据用户总览:avgScore=null 且已答题数=0', r.status === 200 && r.body.avgScore === null && r.body.answered === 0);
   // F6 回归:模拟旧无校验代码残留的**超大脏 preferences 行**(>4KB),证明白名单投影既不锁死也自愈清洗(审计高危项)。
   await db.pool.query("UPDATE user_account SET preferences=$2::jsonb WHERE id=$1", ['cpUser', JSON.stringify({ junkKey: 'x'.repeat(6000), theme: 'light' })]);
   r = await patchJson('/profile/settings', { 'x-user-id': 'cpUser' }, { preferences: { locale: 'zh' } });

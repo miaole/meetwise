@@ -50,6 +50,7 @@ tags:
 - `requirements/use-cases/expert-interview-coach-rag-ingestion-finetuning.md`：全格式 RAG、数据清洗切块、题库建模与微调专家面试教练材料。
 - `requirements/use-cases/expert-interview-coach-evaluation.md`：面向候选人的 LLM 评测、打分与统计校准深度面试教练材料。
 - `requirements/use-cases/expert-interview-coach-product-reliability.md`：面向候选人的产品、支付、隐私、语音与可靠性深度面试教练材料。
+- `requirements/use-cases/cend-overview-progress.md`：C 端成长主页「已答题数」与面试列表进度对齐题目账本，禁止用 ScoreCard 空集伪装成 0。
 - `requirements/use-cases/resume-erasure-lifecycle.md`：简历擦除的稳定关联、围栏、B 端投影撤销与当前实现边界。
 - `requirements/use-cases/model-invocation-reliability.md`：模型调用的准入、半开熔断、未知结果冻结与对账边界。
 - `requirements/use-cases/model-operation-routing.md`：按业务操作选择文本、视觉、语音、embedding、rerank 和记忆派生能力，并冻结预算、成本、备用与降级语义。
@@ -70,6 +71,7 @@ tags:
 | 业务建模 | `product/domain-models/` | 领域对象、状态机、关系 |
 | AI 编排 | `architecture/ai/langgraph-blueprint.md` | graph、state、checkpoint、eval |
 | 前端架构 | `architecture/frontend/` | 页面、组件、数据流、RSC 边界 |
+| C 端进度/已答题数 | `requirements/use-cases/cend-overview-progress.md` | 题目账本投影、与 ScoreCard 分责 |
 | 后端架构 | `architecture/backend/` | 模块、接口、DB、事务、队列 |
 | 云端部署(CD) | `delivery/lean-cd-deployment.md` | 精简单机 compose 部署、ACR、回滚 |
 | 本地演示 | `architecture/devops/local-demo-deployment.md` | compose、seed、健康检查 |

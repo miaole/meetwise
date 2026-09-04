@@ -12,6 +12,7 @@ related:
   - ./domain-events-catalog.md
   - ./commerce-saga.md
   - ../../rules/global/production-invariants.md
+  - ../../requirements/use-cases/cend-overview-progress.md
 ---
 
 # 后端模块边界与依赖规则
@@ -37,6 +38,8 @@ related:
 > **QuestionBank 下沉到 `content`**（修 H16/#10 归属倒挂）：interview 押题读 `content`（向下依赖），不再 interview→admin 反向依赖 B 端；admin 只对题库做**治理动作/审核工单**，内容归 content。
 >
 > **实现现状（诚实校准）**：题库检索/接地出题机制（CRAG 从 `vector_chunk kind=qbank` 召回真题 → grounded-questions 出题门）已接线，但**语料本身仅 ~32 条自撰起步种子**（`apps/worker/src/qbank-seed.ts`，无版权）。**真正策展/授权题库 + 离线策展灌入管线（版本 pin/采纳双签/PII 泛化）尚未建**（见 production-backlog P1「题库生命周期」❌）——现为 toy corpus，非生产语料。
+>
+> **实现现状（C 端进度读侧，2026-09）**：行走骨架把 `GET /profile/overview` 放在 `apps/api/src/modules/profile`（上表无独立 profile 模块）。`overview.answered` 只读 `interview` 拥有的 `interview_question`；`growth.totals.answered` 只读可评分 ScoreCard。profile 不拥有题目账本或评分卡。口径见 [cend-overview-progress](../../requirements/use-cases/cend-overview-progress.md)。
 
 ## 2. pair 依赖矩阵（默认 deny，只列 allow）
 

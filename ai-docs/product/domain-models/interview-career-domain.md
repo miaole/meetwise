@@ -52,7 +52,7 @@ Admin / Observability  后台治理 / 日志·账本·可观测
 | SkillInference | 不可变推断条目 | skill、level、confidence、evidence、ttl |
 | SkillGap | 能力差距（**派生不落表**，读模型） | roleId、skill、currentLevel、targetLevel、priority |
 | **Interview** | **唯一面试聚合根**（id=threadId=resultId；mode∈{self_practice, candidate_evaluation}） | owner_principal、serviceType、status、version |
-| InterviewQA | 单轮问答（Interview 强一致子实体） | question、answer、referenceAnswer、score、evidence |
+| InterviewQA | 单轮问答（Interview 强一致子实体） | 题目身份、status、answer identity；物理表 `interview_question` 是 C 端已出/已答进度事实。分值在 ScoreCard，不在账本行 |
 | AssessmentReport | 复盘报告（**经 interviewId 引用的独立聚合**） | reportId、interviewId、overallScore、radar、strengths、risks、**summary** |
 | AiGraphRun | AI 图运行（**独立聚合**，独立 version+CAS+异步） | graphName、threadId、status、manifestId、modelCost |
 | InterviewEvent | 持久有序事件账本（单调 seq） | ownerPrincipal、streamKey、seq、kind、payload |
@@ -90,3 +90,4 @@ Admin / Observability  后台治理 / 日志·账本·可观测
 - 报告与主面试流程解耦，可异步重试，报告失败不阻塞主链路。
 - AI 输出保存 prompt version / model / schema version；进业务前双校验（schema + 业务，含真实性歪曲门）。
 - 简历原文为敏感数据，默认不进日志/长期观测；PII 只走境内模型。
+- C 端「已答题数」与列表进度投影自题目账本 `interview_question`，不把 ScoreCard 空集写成 0；均分与成长档案可评分训练量仍只读 ScoreCard。见 [cend-overview-progress](../../requirements/use-cases/cend-overview-progress.md)。

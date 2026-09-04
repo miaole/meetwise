@@ -23,17 +23,22 @@ export class ProfileService {
     return r.rows[0];   // 不含 password_hash
   }
 
-  // 个人总览/仪表盘(首屏):面试分布、答题数、平均分、就绪报告数。全 RLS 限己。
+  // 个人总览/仪表盘(首屏):面试分布、已答题数、平均分、就绪报告数。全 RLS 限己。
   overview(principal: string) {
     return this.db.asPrincipal(principal, async (c: any) => {
-      const iv = await c.query('SELECT status, count(*)::int n FROM interview GROUP BY status');
+      const iv = await c.query('SELECT status, count(*)::int n FROM interview i WHERE interview_privacy_active(i.id) GROUP BY status');
       // 得分权威 = ScoreCard(确定性总分,仅 practice_eligible/b_review_eligible),legacy answer_evaluated.score 结构性不参与。
-      // 全 owner 作用域由 score_card_app_role RLS(FORCE) 兜底,无卡 → avg=null / count=0(fail-closed,无数值)。
-      const sc = await c.query("SELECT avg(deterministic_total) avg, count(*)::int n FROM score_card WHERE status IN ('practice_eligible','b_review_eligible')");
+      // 全 owner 作用域由 score_card_app_role RLS(FORCE) 兜底,无卡 → avg=null(fail-closed,无数值)。
+      const sc = await c.query("SELECT avg(deterministic_total) avg FROM score_card WHERE status IN ('practice_eligible','b_review_eligible')");
       const rp = await c.query("SELECT count(*)::int n FROM ai_report WHERE status='ready'");
+      // C 端「已答题数」= 题目账本已答行(与 GET /interview.answered_turns 同一 FILTER),不是 ScoreCard 张数。
+      // 无卡时仍应反映已作答;issued/queued/cancelled 不计;隐私围栏场次与列表同一谓词排除。
+      const ans = await c.query(
+        "SELECT count(*)::int n FROM interview_question iq WHERE iq.status='answered' AND iq.owner_user_id=current_setting('app.principal_user', true) AND interview_privacy_active(iq.interview_id)",
+      );
       return {
         interviewsByStatus: Object.fromEntries(iv.rows.map((r: any) => [r.status, r.n])),
-        answered: sc.rows[0].n,
+        answered: ans.rows[0].n,
         avgScore: sc.rows[0].avg != null ? Math.round(Number(sc.rows[0].avg)) : null,
         reportsReady: rp.rows[0].n,
       };
@@ -48,7 +53,7 @@ export class ProfileService {
       const rep = await c.query(
         "SELECT interview_id, overall, dimensions, created_at FROM assessment_report WHERE owner_user_id=current_setting('app.principal_user', true) AND status='ready' ORDER BY created_at ASC, interview_id ASC");
       // answered = 可评分 ScoreCard 数(仅 practice_eligible/b_review_eligible),非 legacy answer_evaluated 事件计数;
-      // 无卡 → 0(fail-closed)。RLS(FORCE) 限己,与 overview 同源(score_card 单一真相)。
+      // 无卡 → 0(fail-closed)。成长档案训练量仍以 score_card 为权威;C 端总览已答题数改走题目账本(UC-overview-001)。
       const ans = await c.query("SELECT count(*)::int n FROM score_card WHERE status IN ('practice_eligible','b_review_eligible')");
       return deriveGrowth(rep.rows.map(toGrowthRow), ans.rows[0].n);   // 映射单一真相 toGrowthRow(service 与 proof 同源)
     });

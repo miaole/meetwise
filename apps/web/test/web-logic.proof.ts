@@ -13,7 +13,7 @@ import type { InterviewView } from '../lib/stream/interview-state.ts';
 import { makeFrameCoalescer } from '../lib/stream/frame-coalescer.ts';
 import { interviewTurnWindow } from '../lib/stream/turn-window.ts';
 import { buildTurnSubmission } from '../lib/interview/turn-submission.ts';
-import { interviewActionLabel, interviewDisplayStatus, interviewProgressLabel, isInterviewEnterable } from '../lib/interview/progress.ts';
+import { interviewActionLabel, interviewDisplayStatus, interviewProgressLabel, isInterviewEnterable, overviewAnsweredLabel } from '../lib/interview/progress.ts';
 import { resumeOptionLabel, resumeStatusLabel } from '../lib/resume/display.ts';
 import { interviewContextTitle, interviewResumeLabel, interviewTimeLabel } from '../lib/interview/context.ts';
 
@@ -58,6 +58,9 @@ async function main() {
   A('未知状态 fail-closed，不提供作答入口', interviewActionLabel('future_terminal') === '状态待同步' && !isInterviewEnterable('future_terminal'));
   A('未知状态不伪装成进行中或待答', interviewDisplayStatus({ status: 'future_terminal', issued_turns: 1, current_turn: 0 }) === 'future_terminal' && interviewProgressLabel({ status: 'future_terminal', issued_turns: 1, current_turn: 0 }) === '进度待同步');
   A('有题的 created 派生为进行中展示态', interviewDisplayStatus({ status: 'created', issued_turns: 1, current_turn: 0 }) === 'active');
+  A('总览缺失不把已答题数伪装成 0', overviewAnsweredLabel(null) === '—' && overviewAnsweredLabel(undefined) === '—');
+  A('总览非法 answered 不渲染伪造进度', overviewAnsweredLabel({ answered: -1 }) === '—' && overviewAnsweredLabel({}) === '—');
+  A('总览真实 0 与正数分别可区分', overviewAnsweredLabel({ answered: 0 }) === '0' && overviewAnsweredLabel({ answered: 3 }) === '3');
 
   section('渲染背压：同一动画帧内合并为最后一个视图，取消后绝不提交');
   const animationFrames: Array<() => void> = [];
