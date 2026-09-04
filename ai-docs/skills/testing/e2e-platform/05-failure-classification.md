@@ -1,6 +1,6 @@
 # 05 · 失败分类
 
-不要把失败写成一团“e2e failed”。先标出处，再修。实现：`e2e/helpers/classify-failure.ts`（第一匹配；未知 4xx/5xx 落 `FAIL_API`，避免把缺口洗成 BLOCKED）。Runner 另写封闭账本行 `E2E_FAILURE class=<class> code=<code>`（以及 AI/系统终态的 `E2E_REVIEW`）；`class` 词表与诚实模板 `kind` 的对照只维护在 [`../run-gates.md`](../run-gates.md) §6。隔离码必须是 `e2e_isolation_required` / `e2e_ui_isolation_required` / `performance_e2e_isolation_required`，不能收成短码 `isolation_required`。
+不要把失败写成一团“e2e failed”。先标出处，再修。实现：`e2e/helpers/classify-failure.ts`（第一匹配；未知 4xx/5xx 落 `FAIL_API`，避免把缺口洗成 BLOCKED）。Runner 另写封闭账本行 `E2E_FAILURE class=<class> code=<code>`（以及 AI/系统终态的 `E2E_REVIEW`）；`class` 词表与诚实模板 `kind` 的对照只维护在 [`../run-gates.md`](../run-gates.md) §6。Runner `tagE2EFailure` 必须抛长码 `e2e_isolation_required` / `e2e_ui_isolation_required` / `performance_e2e_isolation_required`（母线 5 守卫扫源码）。`classifyE2EFailure` 入账时可把前缀收成短码 `isolation_required`；那是账本归一化，不是允许 runner 改回短码。
 
 | 种类 | 何时用 | 例子 |
 | --- | --- | --- |

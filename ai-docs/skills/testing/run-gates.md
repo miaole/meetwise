@@ -65,7 +65,7 @@ pnpm api:validate
 
 `--core` 在 always-on **之后**再跑 `CORE`：`db:prove`、`runtime:prove`、`graph:prove`、`pipeline:prove`、`api:validate`。它仍不是业务 prove 全集。
 
-CI `verify` 比这更长，见 `.github/workflows/ci.yml`。合并阻断以 CI 列表为准，不要用本文件的短列表替代。
+CI `verify` 与 always-on **不是同一集合**。`.github/workflows/ci.yml` 的 `verify` 含目录三入口、静态守卫、parity、公开文案、provider-egress、`arch`，以及后续隔离 prove；**不含** `generation-trust:prove`、`golden-tasks:*`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`。合并阻断以 CI 列表为准；变更后最小集仍是本文件的 always-on。CI 绿 ≠ `pnpm regression` 绿。不另加云部署 job。
 
 ## 2. 隔离业务 prove（仍不需要 live 模型质量）
 
@@ -154,5 +154,5 @@ AI/系统终态（`report_unavailable`、`assessment_unavailable`、押题/诊�
 - `regression_unknown_flag`：未知 flag，退出码 2。
 - `regression_required_script_missing`：必跑脚本不在 `package.json`。
 - `E2E_FAILURE class=provider code=fake_service_mode_forbidden` 或 `fake_service_mode_forbidden`：有人打开了假服务开关。关掉再跑，不要删这条守卫。`pnpm e2e-static-guards:check` 会静态核对 runner 仍拒绝同一份列表，并对证据/日志 helper 做密钥扫描（失败即关，不回显命中值）。同一守卫拒绝信任 unverified AI path（本地造题号、客户端评分、无证据写成 0 分）；允许多轮核对（multi-round verify），不得用对话摘要代替退出码与回执。
-- `E2E_FAILURE class=capability code=isolation_required` 或 `e2e_isolation_required`：直接跑了 `pnpm e2e:prove`。必须用 `e2e:isolated`。
+- `E2E_FAILURE class=capability code=e2e_isolation_required`：直接跑了 `pnpm e2e:prove`。必须用 `e2e:isolated`。Runner 抛长码；`classifyE2EFailure` 入账时可能写成短码 `isolation_required`（legacy alias），不要把短码当 runner 合同。
 - 子进程 stdout/stderr 默认不进回执。失败时只看退出码、分类行、断言行和 `E2E_PROCESS_OUTPUT_WITHHELD` 字节计数。

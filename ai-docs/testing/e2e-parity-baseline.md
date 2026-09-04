@@ -15,6 +15,8 @@ owner: qa
 
 `pnpm e2e-parity:check` 静态扫描当前树，和版本化基线对身份与数字 floors。删除用例、注释掉断言、削弱 `A`/`expect` 或下调 floors 必须 **fail-closed**（非零退出）。它**不**执行 `e2e:isolated`，**不**证明模型质量，回执恒为 `releaseEvidence=false`。
 
+当前集成分支冻结数字（随 JSON 更新，禁止手改成旧数）：`floors` **48 / 367**（含已替换旧身份）；effective floors = 扫描 **37 / 342**；allowlist **6** 条。数字以 `e2e-parity-baseline.json` + `e2e-parity-allowlist.json` 和 `pnpm e2e-parity:prove` 的 TC-e2e-parity-01-main 为准。
+
 用例与验收：[`requirements/use-cases/e2e-parity-baseline.md`](../requirements/use-cases/e2e-parity-baseline.md)。机器文件：
 
 | 文件 | 职责 |

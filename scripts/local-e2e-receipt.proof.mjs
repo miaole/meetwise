@@ -89,7 +89,7 @@ try {
 
   await test('复杂边界：源码摘要覆盖客户端、helpers、编排器和隔离器，迁移清单不为空', async () => {
     const { receipt } = await writeLocalE2EReceipt(valid());
-    assert.equal(Object.keys(receipt.sourceDigests).length, 13);
+    assert.equal(Object.keys(receipt.sourceDigests).length, 15);
     assert.ok(receipt.schemaMigrationManifest.count >= 1);
   });
 

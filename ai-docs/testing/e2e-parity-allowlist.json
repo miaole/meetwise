@@ -229,6 +229,28 @@
       "removedFile": false,
       "testCountDelta": -3,
       "assertionCountDelta": -1
+    },
+    {
+      "id": "E2E-PARITY-20260904-intg-05-receipt-source-digest-count",
+      "path": "scripts/local-e2e-receipt.proof.mjs",
+      "reason": "Integration added failure.ts and failure-class.mjs to receipt SOURCE_PATHS; the digest-count assertion and its enclosing test identity were retargeted from 13 to 15 without lowering floors.",
+      "removedTests": [
+        {
+          "kind": "test",
+          "label": "复杂边界：源码摘要覆盖客户端、helpers、编排器和隔离器，迁移清单不为空",
+          "conditionDigest": "sha256:ce394cd6f8c058f1c8609a88160b413b393aa9e8a36a4e9e44bfb3c1adb74421"
+        }
+      ],
+      "removedAssertions": [
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:df0ca3ee96215748190c020b20833dfe2f2b786675f128e1e0b770469f4330e1"
+        }
+      ],
+      "removedFile": false,
+      "testCountDelta": -1,
+      "assertionCountDelta": -1
     }
   ]
 }

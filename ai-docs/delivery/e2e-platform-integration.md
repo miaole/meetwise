@@ -45,7 +45,7 @@ related:
 
 - `scripts/run-post-change-regression.mjs`：采用 #58 的 always-on → `--core` → `--live`、`--dry-run`、可选静态守卫、`REGRESSION_REVIEW_VERIFY_GATE`。**并入**母线 `ALWAYS_ON_REQUIRED` 的 `generation-trust:prove`、`e2e-platform:prove`，以及 `--claim-done` / `--ready` / `--done` → `regression_claim_done_forbidden`。摘要保留 `claimDone: false`、`readyFromUnreviewedGeneration`。
 - 技能文档：保留 fail-closed / SOP / e2e-platform 链接，并写入 #58 要求的 `review/verify`、`automation does not trust AI outputs`、`multi-round allowed`。
-- `provider-egress-inventory`：同时登记 `run-post-change-regression.mjs` 与 `.proof.mjs`；`environmentReferenceCount` 随清单长度更新，禁止手改成旧数。
+- `provider-egress-inventory`：同时登记 `run-post-change-regression.mjs` 与 `.proof.mjs`；本集成再登记 #62/#63 的 `e2e-fake-service-flags.mjs` / `e2e-static-guards*.mjs` / `review-loop.mjs`。`environmentReferenceCount` 随清单长度更新（当前 **186**），禁止手改成旧数。
 
 ### #61
 
@@ -77,7 +77,7 @@ related:
 - **不**把回归入口退回旧 `ALWAYS_ON` 数组。parity 两门挂进现有 `ALWAYS_ON_REQUIRED`。
 - 文档并集：fail-closed / SOP / honesty / AGENTS 写入 `e2e-parity:check` 与 `parity floors`；作者改 allowlist 不算自签审核。
 - CI `verify` 追加 parity check/prove；不加新的云部署 job。
-- 集成后 helper/场景增长只能**抬高** floors 或写可审 allowlist 负 delta，禁止下调地板假装从来没有。本合并把 floors 从 22/155 抬到 47/366（含已替换旧身份）；effective floors = 当前扫描 37/342。替换旧 conditionDigest 的条目写入 allowlist，原因写清是鉴权/出处/账本合同变更，不是 AI self-approval。
+- 集成后 helper/场景增长只能**抬高** floors 或写可审 allowlist 负 delta，禁止下调地板假装从来没有。本合并把 floors 从 22/155 抬到 48/367（含已替换旧身份，含回执 `SOURCE_PATHS` 从 13 增到 15）；effective floors = 当前扫描 37/342。替换旧 conditionDigest 的条目写入 allowlist，原因写清是鉴权/出处/账本/回执覆盖合同变更，不是 AI self-approval。
 
 ### #63
 
@@ -143,7 +143,8 @@ related:
 | `skills/testing/e2e-platform/05-failure-classification.md` | `classifyFailure` 的 `FAIL_*` 与 runner `E2E_FAILURE` 账本对照指向 run-gates §6；隔离码不得收短 |
 | `skills/README.md` / `meta/index.md` / `meta/directory-boundaries.md` | 集成分支、目录契约、parity floors 各只指向一处 |
 | `testing/conventions/e2e-directory-contract.md` | 可执行布局；脚本映射禁止对调 |
-| `testing/e2e-parity-baseline.md` + JSON/allowlist | floors 47/366；effective 37/342；allowlist 5 条 |
+| `testing/e2e-parity-baseline.md` + JSON/allowlist | floors 48/367；effective 37/342；allowlist 6 条 |
+| `architecture/ai/provider-egress-inventory.{json,md}` | 登记 #62/#63 新增的 7 处 `MODEL_*` / `DASHSCOPE_TEST_*` 引用；`environmentReferenceCount` = 186 |
 
 `docs:check` 把本文件列为 required，并要求出现 `#55`、`#64`、`feature/e2e-platform-integration`、`fail-closed`、`releaseEvidence`、`supersede`。
 
@@ -153,10 +154,17 @@ related:
 aiAuthored: yes
 aiTrust: untrusted
 review: blocked:author_only
-verification: 随合并推进填写
+verification: commands_ok
+commands: pnpm regression
+exit: docs:check=0 generation-trust:prove=0 golden-tasks:check=0 golden-tasks:prove=0 e2e-platform:check=0 e2e-platform:prove=0 e2e-platform:layout:prove=0 e2e-helpers:prove=0 e2e-receipt:prove=0 e2e-runner:prove=0 e2e-static-guards:check=0 e2e-static-guards:prove=0 e2e-parity:check=0 e2e-parity:prove=0 arch=0 api:smoke=0 public-text-policy:prove=0 quality:traceability:prove=0 provider-egress:prove=0
+receipts: none
+claimDone: false
+ready: NOT_READY
+rounds: 2
 releaseEvidence: false
 liveE2E: not_run:live_provider_key_missing
+core: not_requested
 secrets: none
 ```
 
-禁止把 always-on 绿写成 CI `verify`、live E2E 或发布证据。不得 `--claim-done`。
+`pnpm regression` 本修订退出 0（`outcome=passed_always_on`）。这只证明 always-on + 已接线可选静态门，不是 CI `verify`、不是 `--core`、不是 live E2E。同 run 对抗式审计已修 provider-egress 漏登与回执 digest 计数；作者不得自签 `review: passed`。不得 `--claim-done`。不得写「本轮局部验证完成」——审核仍是 `blocked:author_only`。

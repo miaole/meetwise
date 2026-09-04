@@ -1,6 +1,6 @@
 # 04 · 证据与脱敏
 
-静态守卫：`scripts/e2e-platform/secret-redaction.mjs`。
+平台脱敏守卫：`scripts/e2e-platform/secret-redaction.mjs`（目录/信任套件的一部分）。假服务完整列表、证据/日志 helper 的密钥扫描（失败即关、不回显命中值）和 unverified AI path 拒绝合同另由 `pnpm e2e-static-guards:check` / `prove` 锁住；命令语义只维护在 [`../run-gates.md`](../run-gates.md)。本页只写回执与日志不得含什么。
 
 ## 回执
 

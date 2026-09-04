@@ -90,11 +90,11 @@ const checks = {
     assert.equal(result.stats.fileCount, 7);
     assert.equal(result.stats.testCount, 37);
     assert.equal(result.stats.assertionCount, 342);
-    assert.equal(result.stats.floors.testCount, 47);
-    assert.equal(result.stats.floors.assertionCount, 366);
+    assert.equal(result.stats.floors.testCount, 48);
+    assert.equal(result.stats.floors.assertionCount, 367);
     assert.equal(result.stats.effectiveFloors.testCount, 37);
     assert.equal(result.stats.effectiveFloors.assertionCount, 342);
-    assert.equal(result.stats.allowlistCount, 5);
+    assert.equal(result.stats.allowlistCount, 6);
   },
 
   'TC-e2e-parity-01-E1': () => {
