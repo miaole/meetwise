@@ -16,6 +16,7 @@ import { buildTurnSubmission } from '../lib/interview/turn-submission.ts';
 import { interviewActionLabel, interviewDisplayStatus, interviewProgressLabel, isInterviewEnterable, overviewAnsweredLabel } from '../lib/interview/progress.ts';
 import { resumeOptionLabel, resumeStatusLabel } from '../lib/resume/display.ts';
 import { interviewContextTitle, interviewResumeLabel, interviewTimeLabel } from '../lib/interview/context.ts';
+import { practiceHintScore, webTrustedQuestionIdentity } from '../lib/stream/scoring-honesty.ts';
 
 /** 把若干 chunk 串成异步流(模拟 ReadableStream 分块)。 */
 async function* streamOf(...chunks: string[]) { for (const c of chunks) yield c; }
@@ -122,7 +123,27 @@ async function main() {
     toBusinessEvent({ event: 'waiting_user', id: 2, data: '{}' })!,
     toBusinessEvent({ event: 'answer_evaluated', id: 3, data: '{"score":80}' })!,
   ]);
-  A('answer_evaluated → phase=answered(settled 显示分数,非"评估中"转圈)', v.phase === 'answered' && v.lastScore === 80);
+  A('answer_evaluated 无可信 identity → phase=answered 但不展示伪造分', v.phase === 'answered' && v.lastScore === undefined);
+  const hinted = reduceInterview([
+    toBusinessEvent({ event: 'question_ready', id: 1, data: '{"question":"Q1","questionId":"q-v1-t0-c0","stateVersion":1,"turn":0}' })!,
+    toBusinessEvent({ event: 'answer_evaluated', id: 2, data: '{"score":80,"questionId":"q-v1-t0-c0","stateVersion":1,"turn":0,"answerId":"11111111-1111-4111-8111-111111111111","answerHash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","competency":"限流"}' })!,
+  ]);
+  A('answer_evaluated 绑 canonical identity + answer claim → practice hint 可展示', hinted.phase === 'answered' && hinted.lastScore === 80 && hinted.turns[0]?.score === 80);
+  const questionOnly = reduceInterview([
+    toBusinessEvent({ event: 'question_ready', id: 1, data: '{"question":"Q1","questionId":"q-v1-t0-c0","stateVersion":1,"turn":0}' })!,
+    toBusinessEvent({ event: 'answer_evaluated', id: 2, data: '{"score":80,"questionId":"q-v1-t0-c0","stateVersion":1,"turn":0}' })!,
+  ]);
+  A('仅有 question identity、缺 answer claim → 不展示 hint', questionOnly.lastScore === undefined);
+  const forgedMap = reduceInterview([
+    toBusinessEvent({ event: 'question_ready', id: 1, data: '{"question":"Q1","questionId":"q-v1-t0-c0","stateVersion":1,"turn":0}' })!,
+    toBusinessEvent({ event: 'answer_evaluated', id: 2, data: '{"score":99,"questionId":"q-v2-t1-c0","stateVersion":2,"turn":1}' })!,
+  ]);
+  A('错题 identity 不得把分数贴到当前题（无 fake mapped score）', forgedMap.phase === 'answered' && forgedMap.lastScore === undefined && forgedMap.turns[0]?.score === undefined);
+  const drifted = reduceInterview([
+    toBusinessEvent({ event: 'question_ready', id: 1, data: '{"question":"Q1","questionId":"q-v1-t0-c0","stateVersion":4,"turn":0}' })!,
+    toBusinessEvent({ event: 'answer_evaluated', id: 2, data: '{"score":88,"questionId":"q-v1-t0-c0","stateVersion":4,"turn":0}' })!,
+  ]);
+  A('canonical id 与 stateVersion 漂移 → 不展示分数', drifted.lastScore === undefined);
   A('lastEventId=3(断线重连用)', v.lastEventId === 3);
   const identityView = reduceInterview([
     toBusinessEvent({ event: 'question_ready', id: 1, data: '{"question":"Q1","questionId":"q-v1-t0-c0","stateVersion":4,"turn":0,"qkind":"grounded"}' })!,
@@ -148,7 +169,7 @@ async function main() {
     toBusinessEvent({ event: 'answer_evaluated', id: 2, data: '{"score":0,"outcome":"unresolved"}' })!,
   ]);
   A('unresolved(跳过/探尽)→ 题标 skipped 且不展示惩罚分(lastScore 非0)', skipReflect.turns[0].skipped === true && skipReflect.turns[0].score === undefined && skipReflect.lastScore === undefined && skipReflect.phase === 'answered');
-  A('普通 answered(无 outcome)仍正常回填分数', applyEvent(reduceInterview([toBusinessEvent({ event: 'question_ready', id: 1, data: '{"question":"Q"}' })!]), toBusinessEvent({ event: 'answer_evaluated', id: 2, data: '{"score":80}' })!).turns[0].score === 80);
+  A('无 identity 的 answered 不回填分数（缺出处 ≠ 80）', applyEvent(reduceInterview([toBusinessEvent({ event: 'question_ready', id: 1, data: '{"question":"Q"}' })!]), toBusinessEvent({ event: 'answer_evaluated', id: 2, data: '{"score":80}' })!).turns[0].score === undefined);
   const deg = applyEvent(reduceInterview([toBusinessEvent({ event: 'waiting_user', id: 5, data: '{}' })!]),
     toBusinessEvent({ event: 'report_unavailable', id: 6, data: '{"reason":"max_attempts_exceeded"}' })!);
   A('report_unavailable → degraded 且退出等待(无限转圈防护)', deg.degraded && deg.phase === 'report_unavailable');
@@ -418,6 +439,27 @@ async function main() {
   A('diagnosis_unavailable → degraded + 重试出口 + 不转圈', (() => { const d = diagnosisDisplay({ phase: 'diagnosis_unavailable', sections: [], rewrites: [], degraded: true, connection: 'live', lastEventId: 0 }); return d.degraded && d.action.kind === 'retry' && !d.spinner; })());
   A('断线重连态 → 显式"重连中"+手动重试出口(不冻结)', (() => { const d = diagnosisDisplay({ phase: 'generating', sections: [], rewrites: [], degraded: false, connection: 'reconnecting', lastEventId: 0 }); return d.action.kind === 'retry' && d.message.includes('重连'); })());
   A('每个诊断状态要么有可读内容、要么有可点操作(都给得出路)', dDisplays.every((d) => d.message.trim().length > 0 || d.action.kind !== 'none'));
+
+  section('SCOR-00H SSE 练习分：只信 canonical identity，缺出处不是 0');
+  A('web identity 拒 q-ready / 漂移',
+    webTrustedQuestionIdentity({ questionId: 'q-ready', stateVersion: 3, turn: 2 }) === undefined
+    && webTrustedQuestionIdentity({ questionId: 'q-v1-t0-c0', stateVersion: 5, turn: 0 }) === undefined
+    && webTrustedQuestionIdentity({ questionId: 'q-v1-t0-c0', stateVersion: 1, turn: 0 })?.questionId === 'q-v1-t0-c0');
+  const boundHint = {
+    score: 0, questionId: 'q-v1-t0-c0', stateVersion: 1, turn: 0,
+    answerId: '11111111-1111-4111-8111-111111111111',
+    answerHash: 'a'.repeat(64), competency: '限流',
+  };
+  A('practice hint 无身份 / 缺 answer claim / 非整数 → undefined（不是 0）',
+    practiceHintScore({ score: 80 }) === undefined
+    && practiceHintScore({ score: 80, questionId: 'q-v1-t0-c0', stateVersion: 1, turn: 0 }) === undefined
+    && practiceHintScore({ ...boundHint, score: 80.5 }) === undefined
+    && practiceHintScore(boundHint) === 0);
+  A('practice hint 贴到另一题 identity → undefined',
+    practiceHintScore(
+      { score: 99, questionId: 'q-v2-t1-c0', stateVersion: 2, turn: 1 },
+      { questionId: 'q-v1-t0-c0', stateVersion: 1, turn: 0 },
+    ) === undefined);
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
   process.exit(failures === 0 ? 0 : 1);

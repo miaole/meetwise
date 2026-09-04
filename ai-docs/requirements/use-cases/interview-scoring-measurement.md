@@ -26,7 +26,7 @@ related:
 
 当前运行时只保存一个模型给出的整数分、自由文本 criterion 与答案引文 span。范围、逐字引文和幂等可以证明链路没有明显格式错误，但不能证明 criterion 与分数的语义正确、题间难度可比较或总分已校准。遗留 `POST /interview/:id/answer` 的固定 `68` 分旁路已关闭，B 端数值分也已进入迁移 `0082` 的暂停方案。`2026-08-13` 的 `pnpm scor-00:http:prove` 在完整 87 个迁移的隔离 PostgreSQL 中，以独立 provision 的低权 runtime login 跑真实 Nest/Fastify HTTP，验证活动 C/B 面试、重放、并发、伪造 body 与跨主体调用均为 `410`，并且事件、队列、消费、报告、assessment 和申请状态/分数增量均为 0。该回执仍为本地 `releaseEvidence=false`：它只关闭公开伪评分旁路的本地组合根验收，不证明评分测量、校准或 B 端可比排序。
 
-`SCOR-00` 只关闭了公开伪评分旁路，不能替代评分事实根。`SCOR-01/02` 目前被 `INT-TRANSCRIPT-00/01` 阻断：在可删除、可复验的 canonical answer artifact、删除授权和逐 sink receipt 经真实组合根验证前，不得创建 ScoreCard 生产迁移或评分写路径。题目发出时答案尚不存在，因此不得把未来的 `answerId/hash/version` 填入“已发题合同”；必须拆成 issue 阶段合同与提交后答案版本/评分请求。
+`SCOR-00` 关闭了公开伪评分旁路；`SCOR-00H` 让转写/评估/职业路径/SSE 在证据或 identity 不足时 fail-closed（不伪造 0、不映射 B 端分）。二者都不能替代评分事实根。`SCOR-01/02` 目前被 `INT-TRANSCRIPT-00/01` 阻断：在可删除、可复验的 canonical answer artifact、删除授权和逐 sink receipt 经真实组合根验证前，不得创建 ScoreCard 生产迁移或评分写路径。题目发出时答案尚不存在，因此不得把未来的 `answerId/hash/version` 填入“已发题合同”；必须拆成 issue 阶段合同与提交后答案版本/评分请求。
 
 在 `SCOR-00`、`SCOR-01`、`SCOR-02` 和 `SCOR-07` 验收前：
 
@@ -53,10 +53,35 @@ related:
   - **E4 失败回滚**：返回 `410` 不发生 reserve、confirm、release 或模型 attempt，无需补偿。
   - **E5 降级**：worker、模型或数据库不可用时仍不把 legacy 请求降级为固定分数；错误边界保持 `410`。
   - **E6 超时/断线重连**：断线重试仍不会产生副作用；客户端只能按新契约恢复当前 question identity。
-- **后置 Postcondition**：遗留端点不改变 Interview、ConsumptionRecord、interview_event、assessment_report、ai_report 或 job_application；真实评分只来自受绑定的 worker scorecard 路径。
+- **后置 Postcondition**：遗留端点不改变 Interview、ConsumptionRecord、interview_event、assessment_report、ai_report 或 job_application。推进面试的唯一公开写路径是 `/turn`；worker 仍写 `answer_evaluated`（含练习 hint `.score`）。ScoreCard 生产写路径未在自适应 graph 启用。
 - **验收 Acceptance**：真 HTTP 测试覆盖活动 C/B 面试的单次、重复和并发 legacy 调用，断言均为 `410`，以及两个调用主体的所有消费账本、事件、消费、报告、assessment/B 端分数的增量均为 0；合法 `/turn` 正常推进。HTTP app 必须使用独立 provision 的低权 runtime login，迁移/fixture 连接不得被当作 production identity 证据。
 - **关联**：`POST /interview/:id/answer`（retired）、`POST /interview/:id/turn`；Interview、ConsumptionRecord、ScoreCard（目标）；事件日志、CAS、principal-scoped 幂等、RLS；`SCOR-P0-001`。
 - **七类覆盖**：正常、异常、特殊、逃逸通道、高并发、复杂、刁钻。
+
+## UC-SCOR-00H · 消费面诚实闸（无证据不得伪造分）
+
+- **角色 Actor**：求职者、B 端招聘方、面试 API、C 端 SSE 归约。
+- **前置 Precondition**：`UC-SCOR-00` 已关闭公开 `/answer` 旁路；C 端仍可能收到 `answer_evaluated.score` 作为 SSE 进度 hint。**设计上** ScoreCard 是练习分权威，但**当前生产自适应 graph 不调用 `writeFinalScoreCard`**，转写/assessment 读卡常为空。B 端申请分仍由迁移 `0082` 置空。worker 完成 `eligible` 计数与 `markApplicationNoEligibleScore` **仍读 event `.score` hint**，本闸未改这两处。
+- **触发 Trigger**：转写/评估/职业路径/SSE 归约要展示或聚合分数，或调用方试图把 event/report 分映射成 B 端 overall。
+- **主流程 Main**：
+  1. 域闸 `packages/domain/src/scoring-honesty.ts`：只接受 canonical `questionId=q-v{stateVersion}-t{turn}-c{n}` 且交叉字段一致，并绑 `answerId`（UUID）+ `answerHash`（64 hex）+ `competency`。
+  2. `answer_evaluated.score` 只可经 `practiceHintFromEvaluated` / web `practiceHintScore` 变成练习 hint；二者都要求 question identity **+ answer claim**。`refuseMappedBSideScore` 是域侧恒失败函数（proof 覆盖），**不拦截** worker 完成判定或 B 端 `markApplicationNoEligibleScore`。
+  3. 空评估：domain 抛 `score_aggregate_empty`；API `409 no_scorable_cards`（不落 `overall=0`）；career `409 insufficient_evidence`。
+  4. 转写只列出 `isTrustedScoreIdentity` 的事件，分数只读 `listScorableScoreCards`（当前仍含 `practice_eligible` **和** `b_review_eligible`），无卡为 `null`，不读 `payload.score`。
+  5. C 端 SSE：弱绑定、漂移、错题、缺 answer claim → 不展示 `lastScore`，相位仍 `answered`。`report_ready.overall` 非 0..100 整数则不写入视图 report；**已是合法整数时仍可展示**（untrusted display，不是测量权威）。
+- **备选流 Alternate**：若已有可评分 ScoreCard，`POST assessment` 走既有 `deriveAssessment`；SSE 仅在 hint 与当前发题 identity **且** answer claim 齐全时展示练习分。生产自适应路径通常无卡，`POST assessment` 保持 `409 no_scorable_cards`。
+- **异常流 Exception**：
+  - **E1 重复请求**：同一 identity 的 practice hint 重放字节等价；不另写 B 端分（幂等 / 事件日志）。
+  - **E2 并发**：错题 identity 贴分 → `forged_mapped_score`；不能与他题 ScoreCard 交叉（CAS/身份原语）。
+  - **E3 越权**：本闸不改变 RLS；跨 owner 读卡仍为 0（既有 ScoreCard RLS）。
+  - **E4 失败回滚**：空集抛错，不落 `assessment_report.overall=0`；career 不把 null 写成 junior。
+  - **E5 降级**：证据不足 → 域 `assessment_unavailable` / `insufficient_evidence`；HTTP 写路径为 `409 no_scorable_cards`（assessment）或 `409 insufficient_evidence`（career），不是把页面自动切到 `assessment_unavailable`。
+  - **E6 超时/断线**：重放无 identity 的历史 `answer_evaluated` 不得补展示分。
+- **后置 Postcondition**：域 `trustedBSideScore` 在本闸恒为 `null`；C 端无身份事件不产生可展示分；空评估 POST 不落 0。`GET assessment` / `GET career-path` **不**重跑该闸（历史行原样返回）。
+- **验收 Acceptance**：`pnpm scor-00-honesty:prove`（域七类）与 `pnpm web:prove`（SSE 无身份/缺 answer claim/错题不展示分）。**未**跑隔离 HTTP 对 transcript/assessment/career 的组合根；**不**重跑 `scor-00:http:prove`。不宣称测量质量或发布。`releaseEvidence=false`。
+- **关联**：`GET /interview/:id/transcript`、`POST /interview/:id/assessment`、`POST /interview/:id/career-path`、SSE `answer_evaluated`；ScoreCard、JobApplication；事件日志 + 身份原语；`SCOR-00`、ADR-0020。
+- **七类覆盖**：正常、异常、特殊、逃逸通道、高并发、复杂、刁钻。
+- **明确不做**：不改 worker 完成判定与 `markApplicationNoEligibleScore` 仍读 event.score 的 hint 计数；不在生产 graph 写 ScoreCard；不开放 B 端数值；不把 golden-task / fake model 标成质量通过；不改写 SCOR-01/02 清单状态（生产 writer 仍未接线）；不把 `listScorableScoreCards` 收窄到仅 `practice_eligible`；不给 `GET assessment`/`GET career-path` 补闸；不对 `question_ready` 走 `webTrustedQuestionIdentity`（发题身份仍是可选字段）。
 
 ## 2. 领域对象与不可变边界
 
@@ -136,6 +161,7 @@ stateDiagram-v2
 | 子项 | 已发现 | 已实现 | 已验证 | 已关闭 | 关闭验收 |
 | --- | :---: | :---: | :---: | :---: | --- |
 | SCOR-00 关闭公开伪评分旁路 | ☑ | ☑ | ☑ | ☑ | `pnpm scor-00:http:prove` 真实 HTTP 证明 `/answer` 与旧公开 contract 不写事件（C/B、重放、并发、跨主体调用后事件/消费/队列/报告/assessment/B 端申请增量均 0）；随 SCOR-01/02（rubric/measurement 版本）闭合，本项遗留关切解除。 |
+| SCOR-00H 消费面诚实闸 | ☑ | ☑ | ☑ | ☐ | **已验证范围**= domain 21 断言 + `web:prove` SSE 归约，不是隔离 HTTP 组合根。无可信 identity / 空 ScoreCard 不得伪造 0；SSE hint 需 question+answer claim。**未接线**：`GET assessment`/`GET career-path` 不重跑闸；`listScorableScoreCards` 仍含 `b_review_eligible`；`report_ready` 合法整数仍可展示；worker eligible 与 `markApplicationNoEligibleScore` 仍读 event hint。未重跑 `scor-00:http:prove`。`releaseEvidence=false`，不关闭测量/校准，不改 SCOR-01/02 状态。 |
 | SCOR-01 版本化 rubric 与两阶段事实根 | ☑ | ☑ | ☑ | ☑ | 迁移 `0100` `scoring_fact_root` + 独立 re-audit PASS：issue 合同 schema 层无 answer* 列（铁律）、submission 才绑 canonical artifact(0092)+HMAC+receipt、supersede 补 rubric/weight 校验 + fence 重校验、跨 owner 读=0、原地 UPDATE/DELETE 拒绝；64 断言全绿。 |
 | SCOR-02 确定性聚合、writer 与消费迁移 | ☑ | ☑ | ☑ | ☑ | 迁移 `0103` `scoring_deterministic_aggregation` + 独立 re-audit PASS：5 处 C 消费面全切 ScoreCard 只读路径、专用 score-writer/permit/verifier、legacy event 聚合=0、跨 owner=0；59 断言全绿。残 LOW：`answer_evaluated.score` 未结构性根除（归 SCOR-03）。 |
 | SCOR-03 证据、冲突与不确定性 | ☑ | ☐ | ☐ | ☐ | 复验答案 span/digest、required coverage、语言/ASR/模型分歧；任一冲突进入 review 或 unscored。 |

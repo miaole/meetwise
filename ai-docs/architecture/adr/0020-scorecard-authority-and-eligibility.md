@@ -51,9 +51,9 @@ related:
 
 `ScoreCard` 是追加版本；更正创建 `supersedes` 新卡，不覆盖旧卡。数据库 verifier 用固定公式从有效 criterion 计算 score、coverage 与状态。
 
-- 只有 `practice_eligible` 可用于 C 端本轮练习反馈。
+- **目标**：只有 `practice_eligible` 可用于 C 端本轮练习反馈。**当前读面** `listScorableScoreCards` 仍含 `practice_eligible` **和** `b_review_eligible`（SCOR-00H 未收窄）。
 - `unscored`、`evidence_invalid`、`review_required`、`calibration_blocked`、`fenced`、`superseded` 和历史 event score 的聚合贡献均为 0，不能被当作零分。
-- 无资格卡时 C 端显示 `assessment_unavailable` / `insufficient_evidence`；report/profile 不得以 event 平均值补回数值。
+- 无资格卡时 **写路径** fail-closed：`POST assessment` → `409 no_scorable_cards`；`POST career-path` → `409 insufficient_evidence`；域助手 `insufficientEvidenceVerdict()` 给出 `assessment_unavailable` / `overall=null`。这**不是** C 端页面自动切到 `assessment_unavailable`（该相位只来自 SSE 事件）。`GET assessment` / `GET career-path` **不**重跑诚实闸。report/profile 不得以 event 平均值补回数值。`SCOR-00H` 已把该消费规则接到域闸：空评估不得落 `overall=0`，SSE 无 canonical identity + answer claim 的 `answer_evaluated.score` 不得展示或贴到错题，`refuseMappedBSideScore` 是域侧恒失败函数（**不拦截** worker eligible 计数或 `markApplicationNoEligibleScore`）。这仍不是 ScoreCard 写路径或校准。
 - B 端继续只读 `assessment_unavailable`、`score=NULL`。即使 future card 为 `practice_eligible`，也必须同时满足独立 CalibrationRelease 与人工复核才可进入 `b_review_eligible`；本 ADR 不授权数值排序、阈值、自动录用或拒绝。
 
 ### 4. 未配置 rubric 的既有题默认 score-excluded
@@ -81,4 +81,4 @@ ScoreCard、ScoreEvidence、report/profile projection、cache、trace 和人工�
 - 首期可能让未配置 rubric 的现有 C 端评分显示为 unavailable；这是有意停止不可信聚合，不是功能回归的隐藏实现。
 - `SCOR-01/02` 的实现前置是 `INT-TRANSCRIPT-00/01` 已在真实组合根证明 canonical artifact、删除 resolver、逐 sink receipt 和删后 read=0。之后的隔离数据库 proof 必须覆盖原始 SQL、旧 worker、跨 owner、并发重放、答案替换、删除/撤权、迟到结果与所有消费者；真实模型质量、校准和 B 端用途不由此证明。
 - 专用 writer 的部署凭据、数据库角色、启动门和删除链是生产配置变更，实施前须有平台/安全复核。
-- 该 ADR 为 `proposed`。除既有未标注题的 `score_excluded` 过渡策略和 score-writer 凭据模型外，仍等待 `INT-TRANSCRIPT-00/01` 的真实数据/删除前置闭合；在此之前不得实现会改变 C 端评分可见性或写入 ScoreCard 的迁移。
+- 该 ADR 为 `proposed`。`SCOR-00H` 只收紧消费面诚实（不展示无出处 event 分、不伪造 0），不写入 ScoreCard，也不恢复 B 端数值。完整 C 端可见性切换、只读 `practice_eligible`、GET 重闸与 score-writer 仍等待 `INT-TRANSCRIPT-00/01` 的真实数据/删除前置闭合。

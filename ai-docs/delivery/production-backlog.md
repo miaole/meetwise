@@ -43,7 +43,7 @@ related:
 | 题库 metadata 与分类/路由 tier | 🟠 后端、前端、测试、AI 等层级题域尚未在摄取/切块、generation 或生产 Worker 中出现：当前固定“技术岗”，题库/检索无 track 硬过滤。先交付 `PRD-TEST-016 / RAG-FUNNEL-01…06` 的 metadata taxonomy、question-aware generation projection、**自动**岗位意图分类/immutable snapshot、SQL/evidence/cache 隔离和 clean no-result 的一次同桶 LLM 出题；该 fallback 必须有 QuestionPlan、独立 provenance/rubric/score policy，且在评分校准前 B 端影响=0。再按 `PRD-TEST-017 / RAG-FUNNEL-07…08` 为其他自由文本复用规则→轻量模型→未决补充信息漏斗。不得给每题无条件加模型分类，也不得把 CRAG 或当前 generic fallback 叫意图分类器/同桶生成。 |
 | ADR 登记册 | ✅ `architecture/adr/README.md` |
 | CI/CD（docs:check+lint+合约+golden gate+demo 黄金路径） | ✅ `architecture/devops/ci-cd.md` |
-| 旧 `/interview/:id/answer` 假评分旁路 | ✅ 本地组合根止血已验证：代码/OpenAPI 将遗留入口固定为 `410`，B 端数值投影/排序已暂停；`pnpm scor-00:http:prove` 在完整迁移、独立低权 runtime login 的真实 HTTP 中验证 C/B、重放、并发、跨主体调用及所有受检副作用为 0。该回执 `releaseEvidence=false`，只证明旁路止血，不是评分闭环；见 `PRD-TEST-001 / SCOR-00`，评分卡、校准与 B 端用途仍由 `SCOR-01…08` 阻断。 |
+| 旧 `/interview/:id/answer` 假评分旁路 | ✅ 本地组合根止血已验证：代码/OpenAPI 将遗留入口固定为 `410`，B 端数值投影/排序已暂停；`pnpm scor-00:http:prove` 在完整迁移、独立低权 runtime login 的真实 HTTP 中验证 C/B、重放、并发、跨主体调用及所有受检副作用为 0。`SCOR-00H` 另接线消费面诚实闸（无 identity / 空评估不得伪造 0；域 `refuseMappedBSideScore` 恒失败，worker/`markApplicationNoEligibleScore` 仍读 event hint；`GET` 不重跑闸；`pnpm scor-00-honesty:prove`）。回执均为 `releaseEvidence=false`，只证明旁路止血与消费诚实，不是评分闭环；见 `PRD-TEST-001 / SCOR-00`，评分卡、校准与 B 端用途仍由 `SCOR-01…08` 阻断。 |
 | 全仓 strict TypeScript gate | 🟠 `packages/db`、`apps/api` 与 `packages/ai-runtime` 的局部 `tsc --noEmit` 可通过；当前 `apps/worker` 全量检查受 LangGraph 依赖缺失及若干 proof 类型错误阻断。尚未建立“所有 workspace（工作区）+ production image（生产镜像）”的单一 CI（持续集成）强制门，不能把局部通过写成全仓发布保证。 |
 
 ## P1 — 重要非演示阻塞

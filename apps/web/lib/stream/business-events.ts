@@ -29,7 +29,16 @@ export const BusinessEvent = z.discriminatedUnion('event', [
   }) }),
   z.object({ event: z.literal('waiting_user'), id: z.number().int(), data: z.record(z.string(), z.unknown()) }),
   // outcome 区分 answered / unresolved(跳过/探尽未决):unresolved 不是"得0分",前端标 skipped、不展示惩罚分;报告侧亦剔除。
-  z.object({ event: z.literal('answer_evaluated'), id: z.number().int(), data: z.object({ score: z.number(), outcome: z.string().optional() }) }),
+  z.object({ event: z.literal('answer_evaluated'), id: z.number().int(), data: z.object({
+    score: z.number(),
+    outcome: z.string().optional(),
+    questionId: z.string().regex(/^q-v\d+-t\d+-c\d+$/).optional(),
+    stateVersion: z.number().int().nonnegative().optional(),
+    turn: z.number().int().nonnegative().optional(),
+    answerId: z.string().uuid().optional(),
+    answerHash: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+    competency: z.string().min(1).optional(),
+  }) }),
   // 引导事件(**非终态**):回答没正面回应本题 → 图已发放一条新的 pending question
   // identity（不是旧题的重放许可），前端必须随事件替换提交令牌，否则重答会被服务端拒绝为 stale。
   z.object({ event: z.literal('clarification_needed'), id: z.number().int(), data: z.object({

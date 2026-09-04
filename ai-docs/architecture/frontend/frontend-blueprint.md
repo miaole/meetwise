@@ -117,7 +117,7 @@ export async function getInterview(id: string): Promise<InterviewView> {
 
 ## 7. SSE：消费业务事件，连接可抛弃
 
-前端订阅的是**业务事件**（`progress`、`question_ready`、`waiting_user`、`answer_evaluated`、`report_ready`、`error`），不是模型 token（见 `langgraph-blueprint.md`）。封装成一个类型化 async-generator hook，全站只有这一处 SSE 解析逻辑：
+前端订阅的是**业务事件**（`progress`、`question_ready`、`waiting_user`、`answer_evaluated`、`report_ready`、`error`），不是模型 token（见 `langgraph-blueprint.md`）。`answer_evaluated.score` 只经 `practiceHintScore`（canonical question identity **加** answer claim）展示练习 hint；缺身份不展示分（不是 0）。`report_ready.overall` 非 0..100 整数不写入视图。这是 `SCOR-00H` 消费诚实，不是测量权威。封装成一个类型化 async-generator hook，全站只有这一处 SSE 解析逻辑：
 
 ```ts
 // lib/stream/useInterviewStream.ts

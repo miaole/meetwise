@@ -5,6 +5,7 @@
  */
 import type { BusinessEvent, QuestionKind } from './business-events';
 import type { QuestionIdentity } from '../interview/turn-submission';
+import { practiceHintScore } from './scoring-honesty';
 
 // 单一真相:所有 phase 列在此,类型从它派生(防止"加了 phase 但测试/类型漏掉"——见 web:prove 遍历 ALL_PHASES)。
 export const ALL_PHASES = ['connecting', 'question', 'waiting_user', 'answered', 'report_ready', 'report_unavailable', 'assessment_unavailable', 'interview_unavailable', 'error'] as const;
@@ -97,12 +98,21 @@ export function applyEvents(v: InterviewView, events: readonly BusinessEvent[]):
         next.lastScore = undefined;   // 不展示惩罚性分数(对齐"跳过不罚",报告侧亦剔除)
         if (idx >= 0) turns[idx] = { ...turns[idx], skipped: true };
       } else {
-        next.lastScore = e.data.score; // settled,显示分数
-        if (idx >= 0) turns[idx] = { ...turns[idx], score: e.data.score };
+        const issued = idx >= 0 ? turns[idx].questionIdentity : next.questionIdentity;
+        const hint = practiceHintScore(e.data, issued);
+        next.lastScore = hint;
+        if (idx >= 0 && hint !== undefined) turns[idx] = { ...turns[idx], score: hint };
       }
       break;
     }
-    case 'report_ready': next.phase = 'report_ready'; next.report = { overall: e.data.overall }; break;
+    case 'report_ready': {
+      next.phase = 'report_ready';
+      const overall = e.data.overall;
+      next.report = (typeof overall === 'number' && Number.isInteger(overall) && overall >= 0 && overall <= 100)
+        ? { overall }
+        : undefined;
+      break;
+    }
     case 'report_unavailable': next.phase = 'report_unavailable'; next.degraded = true; break; // 优雅降级
     case 'assessment_unavailable': next.phase = 'assessment_unavailable'; next.degraded = true; break; // 无可信评分且已释放预留
     case 'interview_unavailable': next.phase = 'interview_unavailable'; next.degraded = true; break; // 面试 job 失败终态 → 降级,不死等
