@@ -128,7 +128,7 @@ Router 选模型的策略：
 1. **coerce**：`asOptionalRecord(raw)` → `readStringField/readNumberField` 把类型归一。两段分离——别让"字段为 null"的检查掩盖"模型违背了契约"这件事。
 2. **schema validate**：Zod 校验结构；失败 → §7 分类处理，**绝不裸 parse 进业务逻辑**。
 3. **business validate**：题目数量符合配额、分数在区间、枚举合法、**无幻觉简历事实**（不仅查"缺失"还查"歪曲"）、grounding/引用存在。
-4. 失败动作：供应商响应已回来但 schema（结构）或业务校验失败时，该次已计费请求落为 `failed`（失败），**不自动重试**；业务侧走可解释错误、`unscored`（未评分）或确定性降级。只有尚未建立派发边界且端点已知不可用时，才允许选择备用端点。
+4. 失败动作：供应商响应已回来但 schema（结构）或业务校验失败时，该次已计费请求落为 `failed`（失败），**不自动重试**；业务侧走可解释错误、`unscored`（未评分），或出题的 `generation_unavailable`（禁止发明题面）。只有尚未建立派发边界且端点已知不可用时，才允许选择备用端点。
 
 ## 7. 重试分类、熔断与幂等
 
@@ -152,7 +152,7 @@ Router 选模型的策略：
 2. **本进程熔断**（`circuitBreaker`，包在限流外）：按端点维度熔断；连续失败即打开。半开期每个进程仅一条探针可派发，其余请求在派发前失败，不让恢复期并发放大供应商故障。
 3. **派发边界**（`invoke` 内）：一旦调用与费用都持久标记 `dispatching`，超时、429、5xx、连接中断及校验失败都不做同键重试；结果未知时冻结为 `unknown`，由对账 Worker 收口。
 4. **跨供应商 failover（故障转移）**（`failoverModel([primary, backup])`，配置驱动）：仅当 primary 在**派发前**已知不可用（例如熔断器打开）时选择 backup（备用端点）。它不是对已派发超时/429/5xx 的秒级重发机制；那样会造成重复调用与重复扣费。
-5. **全挂降级**（最外层，业务侧）：主备都不可用 → 出题可用确定性兜底题；**评分不得使用中性分或默认分**，必须转 `unscored` 并带可审计原因。`unscored` 不进能力画像、不聚合 overall、不生成伪报告，前端收到 `report_unavailable(reason=evaluation_unscored)` 终态事件，**无死胡同、不空转**（见 §12、langgraph-blueprint 的 SSE 终态事件）。评分模型的临时 `quote` 只用于本次逐字校验；`ai_invocation_trace` 仅存 `criterion + start/end + SHA-256`，以解密答案可重验而不记录候选人原话。
+5. **全挂降级**（最外层，业务侧）：主备都不可用 → **出题 fail-closed**：`generation_unavailable`，lifecycle 发 `interview_unavailable{reason,provenance}` 并结束本场，**禁止**把确定性兜底题写成 `question_ready` 冒充模型题（仅 grounded 首题可用批准模板且必须标 `origin=approved_template`，见 `UC-MODEL-ROUTE-04` 与 [运行时事实矩阵](../current-runtime-truth.md)）。**评分不得使用中性分或默认分**，必须转 `unscored` 并带可审计原因。`unscored` 不进能力画像、不聚合 overall、不生成伪报告，前端收到 `report_unavailable(reason=evaluation_unscored)` 终态事件，**无死胡同、不空转**（见 §12、langgraph-blueprint 的 SSE 终态事件）。评分模型的临时 `quote` 只用于本次逐字校验；`ai_invocation_trace` 仅存 `criterion + start/end + SHA-256`，以解密答案可重验而不记录候选人原话。
 
 **启用 backup（第 4 层）**：在 worker 环境配置三个变量 `MODEL_BACKUP_BASE_URL` / `MODEL_BACKUP_API_KEY` / `MODEL_BACKUP_NAME`（`MODEL_BACKUP_NAME` 省略则复用 primary 模型名）。示例见 `docker/env/worker.env.example`。
 

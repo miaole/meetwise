@@ -1,5 +1,6 @@
-import { ExternalHttpStatusError, fetchJsonWithTimeout } from './timeout.ts';
+import { ExternalHttpStatusError, ExternalRequestTimeoutError, ExternalResponseJsonError, fetchJsonWithTimeout } from './timeout.ts';
 import { rejectDashscopeNativeTransportOverride, resolveDashscopeNativeConfig } from './dashscope-native-config.ts';
+import { requireRecord } from './native-response-guard.ts';
 
 /**
  * 重排 seam（cross-encoder 精排）：稠密召回 top-N 后用 gte-rerank-v2 精排到 top-k——召回靠向量、精度靠重排,标准两段式。
@@ -29,12 +30,19 @@ export function dashscopeReranker(cfg: { apiKey?: string; model?: string; url?: 
           body: JSON.stringify({ model, input: { query, documents: docs.map((d) => d.text) }, parameters: { top_n: topN, return_documents: false } }),
         }, { maxBytes: 256 * 1024 });
       } catch (error) {
+        if (error instanceof ExternalRequestTimeoutError) throw new Error('reranker_timeout');
+        if (error instanceof ExternalResponseJsonError) throw new Error('reranker_malformed');
         if (error instanceof ExternalHttpStatusError) throw new Error('rerank_http_' + error.status);
         throw error;
       }
-      // 供应商的 index 也是不可信远端输入；越界项必须丢弃，不能让一次畸形响应中断整次检索。
-      return j.output.results.flatMap((r) => {
-        const doc = docs[r.index];
+      const body = requireRecord(j, 'reranker_malformed');
+      const output = requireRecord(body.output, 'reranker_malformed');
+      if (!Array.isArray(output.results)) throw new Error('reranker_malformed');
+      // 供应商的 index 也是不可信远端输入；越界/缺字段必须丢弃，不能发明 id。
+      return output.results.flatMap((row) => {
+        const r = requireRecord(row, 'reranker_malformed');
+        if (!Number.isSafeInteger(r.index)) throw new Error('reranker_malformed');
+        const doc = docs[r.index as number];
         return doc ? [doc.id] : [];
       });
     },

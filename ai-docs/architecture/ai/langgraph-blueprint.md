@@ -119,7 +119,7 @@ type MeetwiseGraphState = {
 }
 ```
 
-> **拓扑/state 以 [agent-harness.md](./agent-harness.md) §2.3/§5.4 为准**：本文 Graph 2 与上方类型是旧示意；正式拓扑拆 `genQuestion`/`awaitAnswer`(interrupt 重放安全)、删空节点 `decide_next`、补 `degrade` 边、report 走独立 run（非 Send/subgraph）。候选人模式答案不内联文本；当前 queue payload 的短暂 raw answer 例外并不构成认可的长期设计。`0126` 只禁止该明文与 ledger artifact 同身份并存，并禁止 `interview_event` 顶层 `answer`；不移除本例外，也不等于 01。切换图见 [interview-answer-dual-write-cutover.md](../backend/interview-answer-dual-write-cutover.md)。只有 `INT-TRANSCRIPT-00` 的删除授权/receipt 通过、并由 `INT-TRANSCRIPT-01` 的 ref-only migration 在真实组合根验证后，才可移除该例外；00 单独不取代 payload。
+> **拓扑/state 以 [agent-harness.md](./agent-harness.md) §2.3/§5.4 为准**：本文 Graph 2 与上方类型是旧示意；正式拓扑拆 `genQuestion`/`awaitAnswer`(interrupt 重放安全)、删空节点 `decide_next`、补 `degrade` 边、report 走独立 run（非 Send/subgraph）。当前已接线自适应图另有一条 **出题 fail-closed** 边：`genQuestion` 在缺 Key / 超时 / 畸形 / critique 失败时不写 pending、不发明题面，条件边直接 `conclude`，由 lifecycle 投影 `interview_unavailable{reason,provenance}`（`UC-MODEL-ROUTE-04`，事实以 [运行时事实矩阵](../current-runtime-truth.md) 为准）。候选人模式答案不内联文本；当前 queue payload 的短暂 raw answer 例外并不构成认可的长期设计。`0126` 只禁止该明文与 ledger artifact 同身份并存，并禁止 `interview_event` 顶层 `answer`；不移除本例外，也不等于 01。切换图见 [interview-answer-dual-write-cutover.md](../backend/interview-answer-dual-write-cutover.md)。只有 `INT-TRANSCRIPT-00` 的删除授权/receipt 通过、并由 `INT-TRANSCRIPT-01` 的 ref-only migration 在真实组合根验证后，才可移除该例外；00 单独不取代 payload。
 
 ## Graph 1：简历押题
 
@@ -223,6 +223,8 @@ waiting_user
 answer_evaluated
 report_generating
 report_ready
+report_unavailable        # 终态；报告舱壁失败，禁止空转
+interview_unavailable     # 终态；含出题 fail-closed（缺 Key/超时/畸形），不得另发假 question_ready
 error
 ```
 
@@ -246,7 +248,7 @@ error
 - golden task
 - deterministic fixture
 - model cost budget
-- failure fallback
+- failure fallback（出题失败是 `interview_unavailable`+provenance，不是发明题面；评分失败是 `unscored`）
 - trace and run record
 
 ## 第一阶段建议

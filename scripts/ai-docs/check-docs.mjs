@@ -156,6 +156,16 @@ const runtimeTruthAssertions = [
     sourceTerm: "beginPrivacyPreviewErasure",
     truthTerm: "预览版",
   },
+  {
+    source: "packages/domain/src/question-generation.ts",
+    sourceTerm: "QuestionGenerationResult",
+    truthTerm: "出题 fail-closed",
+  },
+  {
+    source: "packages/ai-runtime/src/model-operation-registry.ts",
+    sourceTerm: "generation_unavailable",
+    truthTerm: "generation_unavailable",
+  },
 ];
 
 for (const file of requiredFiles) {

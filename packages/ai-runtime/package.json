@@ -33,6 +33,7 @@
     "prove:estimate-threading-invoke": "tsx test/estimate-threading-invoke.proof.ts",
     "prove:usage-calibration-reconciler": "tsx test/usage-calibration-reconciler.proof.ts",
     "prove:dashscope-native-config": "tsx test/dashscope-native-config.proof.ts",
+    "prove:native-fail-closed": "tsx test/native-fail-closed.proof.ts",
     "prove:text-endpoint-config": "tsx test/text-endpoint-config.proof.ts",
     "prove:vision-endpoint-config": "tsx test/vision-endpoint-config.proof.ts",
     "prove:model-client-dispatch": "tsx test/model-client-dispatch.proof.ts",

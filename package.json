@@ -28,6 +28,8 @@
     "model-output-limit:prove": "pnpm -C packages/ai-runtime prove:model-client-output-limit",
     "context-budget:prove": "pnpm -C packages/ai-runtime prove:context-budget",
     "dashscope-native-config:prove": "pnpm -C packages/ai-runtime prove:dashscope-native-config",
+    "native-fail-closed:prove": "pnpm -C packages/ai-runtime prove:native-fail-closed",
+    "question-generation-fail-closed:prove": "pnpm -C packages/domain prove:question-generation-fail-closed",
     "voice-operation-policy:prove": "pnpm -C apps/api exec tsx test/voice-operation-policy.proof.ts",
     "graph:prove": "pnpm -C apps/worker prove:resume",
     "pipeline:prove": "pnpm -C packages/ai-graphs prove:pipeline",

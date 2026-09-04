@@ -11,8 +11,9 @@ import { AdaptiveInterviewState, type AdaptiveDeps } from './state.ts';
 /**
  * 可恢复自适应图的唯一装配点。
  *
- * 拓扑固定为 plan → decide → genQuestion → awaitAnswer(interrupt) → evalAnswer → decide*。
+ * 拓扑固定为 plan → decide → genQuestion → (pending ? awaitAnswer(interrupt) : conclude) → evalAnswer → decide*。
  * `interrupt()` 所在节点在 resume 时从第一行重放，因此模型调用被隔离在 genQuestion 节点。
+ * 出题失败不写 pending、不发明题面，条件边直接 conclude（UC-MODEL-ROUTE-04）。
  */
 export function buildAdaptiveInterviewGraph(checkpointer: BaseCheckpointSaver<number> | boolean | undefined, deps: AdaptiveDeps) {
   const observed = <T extends (state: any) => any>(node: 'plan' | 'decide' | 'genQuestion' | 'awaitAnswer' | 'evalAnswer' | 'conclude', execute: T) =>
@@ -40,7 +41,11 @@ export function buildAdaptiveInterviewGraph(checkpointer: BaseCheckpointSaver<nu
       (state) => (state.route === 'conclude' ? 'conclude' : 'genQuestion'),
       { genQuestion: 'genQuestion', conclude: 'conclude' },
     )
-    .addEdge('genQuestion', 'awaitAnswer')
+    .addConditionalEdges(
+      'genQuestion',
+      (state) => (state.pending ? 'awaitAnswer' : 'conclude'),
+      { awaitAnswer: 'awaitAnswer', conclude: 'conclude' },
+    )
     .addEdge('awaitAnswer', 'evalAnswer')
     .addConditionalEdges(
       'evalAnswer',

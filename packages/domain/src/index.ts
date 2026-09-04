@@ -155,6 +155,14 @@ export { gradeRetrieval, cragRetrieve, degradedRetrieval, type ScoredRef, type C
 export { classifyInterviewResearchBoundary, type ResearchBoundaryDecision } from './research-policy.ts';
 
 export { critiqueQuestion, type QuestionCritique } from './question-critique.ts';
+export {
+  QUESTION_GENERATION_ERROR_CODES, QUESTION_GENERATION_ORIGINS,
+  classifyQuestionGenerationError, unavailableGeneration, approvedTemplateGeneration, modelGeneration,
+  normalizeQuestionGenerationResult, isQuestionGenerationFailure,
+} from './question-generation.ts';
+export type {
+  QuestionGenerationErrorCode, QuestionGenerationOrigin, QuestionGenerationProvenance, QuestionGenerationResult,
+} from './question-generation.ts';
 // 简历多格式提取 + 清洗(PDF/Word/图片→文本)
 export { extractResumeText, cleanResumeText, detectResumeFormat, type ResumeFileFormat } from './resume-extract.ts';
 

@@ -53,9 +53,9 @@ related:
 | BAILIAN-01 | ☐ | 在控制台核对每个候选模型的可用性、区域、按量计量单位、当前价格版本与上下文窗口 | 只把“模型 ID + 区域 + 价格 revision + 计量单位 + context window”写入受控运行时配置；不得猜测模型名、价格、窗口或把网页价格当永久常量。 |
 | BAILIAN-02 | ☐ | 设置测试总预算、单日/单 run 上限和消费告警 | 预算为小额度；告警接收人可追溯。额度不足时 smoke 标为 `not_run`，不切换到未知模型或 Key。 |
 | BAILIAN-03 | ☐ | 轮换并保存按用途隔离的非生产 Key | 此前出现在聊天中的任何 Key 均视为已暴露，必须先轮换。新 Key 仅进入受管 secret：Worker 文本主、Worker 文本备用、DashScope native 三类分开保存；不注入 `.env.example`、Docker 镜像、CI 输出或回执。 |
-| BAILIAN-04 | ◐ | 静态 endpoint profile registry 已实施；待验证规范 endpoint、TLS 与区域 | 运行时只接受 Beijing public/workspace profile 与受限 workspace id，拒绝旧 URL 环境变量、query、片段、任意备用 URL、redirect 和 production/development override；仍须在轮换后的非生产 workspace 以最小 non-sensitive smoke 核对实际 host、TLS、区域和 Key，之后才可标已验证。 |
+| BAILIAN-04 | ◐ | 静态 endpoint profile registry 已实施；待验证规范 endpoint、TLS 与区域 | 运行时只接受 Beijing public/workspace profile 与受限 workspace id，拒绝旧 URL 环境变量、query、片段、任意备用 URL、redirect 和 production/development override。缺 Key/超时/畸形 body 现抛结构化 `*_not_configured` / `*_timeout` / `*_malformed`（本地 `native-fail-closed:prove`），不得发明转写/向量/排序。仍须在轮换后的非生产 workspace 以最小 non-sensitive smoke 核对实际 host、TLS、区域和 Key，之后才可标已验证。 |
 | BAILIAN-05 | ◐ | 历史固定文本兼容性尝试 | 既有一次性文本兼容性回执只说明当时的 direct request 成功；它不能证明 registry、endpoint allowlist、工作空间隔离、统一网关、生产容量或费用封顶。重启 smoke 前须轮换曾暴露的 Key，并完成 BAILIAN-01…04 的 endpoint/secret/预算门；禁止把用户内容或原始模型输出写入日志。 |
-| BAILIAN-06 | ☐ | 对已获准的专用能力逐项做独立 smoke | 视觉、embedding、ASR、TTS、流式操作分别有自己的数据上限、取消与费用验收；未获准项保持关闭。 |
+| BAILIAN-06 | ☐ | 对已获准的专用能力逐项做独立 smoke | 视觉、embedding、ASR、TTS、流式操作分别有自己的数据上限、取消与费用验收；未获准项保持关闭。本地原生 fail-closed 证明**不是**本项 smoke。 |
 | BAILIAN-07 | ☐ | 轮换/撤销演练 | 旧 Key 失效后，运行时应 fail-closed；回执、日志和仓库中均不存在旧 Key。 |
 
 `BAILIAN-00…07` 的完成只表示**非生产配置已验证**。它不改变 `MODEL-OP-00…04` 的实现状态，也不允许把测试 Key 放进 API/Worker 的生产环境变量。
@@ -66,7 +66,7 @@ related:
 
 | operation 类别 | 当前默认模型名 | 非生产首批 | 前置条件 | 失败时业务结果 |
 | --- | --- | :---: | --- | --- |
-| 固定文本 smoke / 普通文本 | `deepseek-v4-pro`（Qwen `qwen-plus` 为备用） | ☐ | 轮换后的主/备用 Key、模型/价格/窗口核对、`MODEL-OP-00` 和显式输出上限验证 | `not_run` 或确定性模板；不自动换 Key。 |
+| 固定文本 smoke / 普通文本 | `deepseek-v4-pro`（Qwen `qwen-plus` 为备用） | ☐ | 轮换后的主/备用 Key、模型/价格/窗口核对、`MODEL-OP-00` 和显式输出上限验证 | smoke=`not_run`；产品出题=`generation_unavailable`/`interview_unavailable`，不发明题面、不自动换 Key。 |
 | 快速文本分类 / 规划草稿 | `deepseek-v4-flash`（Qwen `qwen-turbo` 为备用） | ☐ | 主/备用模型均须通过能力与价格核对；规则优先、低置信降级 | 保守默认或请求补充信息。 |
 | embedding build/query | `text-embedding-v4` | ◐ | 已授权；recipe/维度/价格 revision 固定；generation 与缓存隔离测试 | 无 RAG；不混用向量空间。 |
 | 视觉 OCR | `qwen-vl-max` | ◐ | typed binding 已落地；预览双旗可 invoke（非 SLO）。生产/enforce/公开只读预览仍 disabled。删除、图像页数预算、`BAILIAN-06` 合成 smoke 未做 | 失败不编造转写；无事实不落画像。 |
@@ -115,7 +115,7 @@ related:
 - `DASHSCOPE_*` 只能驱动 DashScope 原生适配器；`MODEL_*` / `MODEL_BACKUP_*` 只能驱动文本兼容接口。缺少对应变量时必须使该操作不可用，不能跨变量兜底。
 - 模型名、区域、价格 revision、输入/输出或媒体上限是非密配置，但仍必须由运行时 schema 校验，不能由任意调用方覆盖。原生 endpoint 不是环境 URL：只能选择受版本控制的 `DASHSCOPE_ENDPOINT_PROFILE`，必要时填写受限 `DASHSCOPE_WORKSPACE_ID` 让 registry 构造固定 host/path。
 - 备模型不是高可用的默认开关。只有 registry 明确兼容、尚未派发、同区域且同数据等级时才可选用；派发后超时/5xx/响应丢失统一为 `unknown`。
-- 启动时缺少某 operation 的所有必填配置，应只禁用该 operation；不得为了“服务可启动”回退到通用模型或无边界 endpoint。
+- 启动时缺少某 operation 的所有必填配置，应只禁用该 operation；不得为了“服务可启动”回退到通用模型或无边界 endpoint。文本出题缺 Key / 超时 / 畸形响应必须投影 `interview_unavailable`+provenance，禁止确定性兜底题冒充模型题。原生 ASR/TTS/embedding/rerank 缺本能力 Key、超时或畸形 body 抛 `*_not_configured` / `*_timeout` / `*_malformed`，不得发明转写、向量或排序。
 
 ### 6.2 禁止的临时做法
 

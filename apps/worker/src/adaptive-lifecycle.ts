@@ -10,12 +10,46 @@ import {
 import { Command } from '@langchain/langgraph';
 import { buildAdaptiveInterviewGraph, type PendingQuestion } from '@meetwise/ai-graphs';
 import type { ModelClient, GraphObserver } from '@meetwise/ai-runtime';
-import { admitInterviewResume, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision } from '@meetwise/domain';
+import { admitInterviewResume, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision } from '@meetwise/domain';
 import { buildAdaptiveDeps, planCompetencies } from './adaptive-interview-service.ts';
 import { recordAskedQuestions } from './memory-service.ts';
 
 const pendingQuestion = (snap: any): PendingQuestion | undefined =>
   snap.values?.pending ?? snap.tasks?.[0]?.interrupts?.[0]?.value;
+
+export type InterviewGenerationUnavailable = {
+  reason: string;
+  provenance: QuestionGenerationProvenance;
+};
+
+function generationFailureOf(snap: any): InterviewGenerationUnavailable | null {
+  const provenance = snap.values?.generationProvenance as QuestionGenerationProvenance | null | undefined;
+  const degraded = snap.values?.degraded as { reason?: string } | null | undefined;
+  if (provenance?.origin === 'unavailable') {
+    return {
+      reason: provenance.errorCode ?? degraded?.reason ?? 'generation_unavailable',
+      provenance,
+    };
+  }
+  if (typeof degraded?.reason === 'string' && degraded.reason.startsWith('generation_')) {
+    return {
+      reason: degraded.reason,
+      provenance: provenance ?? { origin: 'unavailable', errorCode: 'generation_unavailable' },
+    };
+  }
+  return null;
+}
+
+async function emitGenerationUnavailable(d: AdaptiveLifecycleDeps, failure: InterviewGenerationUnavailable): Promise<void> {
+  await asPrincipal(d.pool, d.owner, async (c) => {
+    await requireCurrentFence(c, d);
+    await failInterviewAndRelease(c, d.owner, d.interviewId);
+    await appendEvent(c, d.owner, d.interviewId, 'interview_unavailable', {
+      reason: failure.reason,
+      provenance: failure.provenance,
+    }, `interview_unavailable:${failure.reason}`);
+  });
+}
 
 export interface AdaptiveLifecycleDeps {
   pool: DbPool; cp: any; owner: string; interviewId: string; model: ModelClient;
@@ -118,8 +152,15 @@ async function persistAndEmitQuestion(d: AdaptiveLifecycleDeps, p: PendingQuesti
   });
 }
 
+export type StartAdaptiveInterviewResult = {
+  question?: string;
+  questionId?: string;
+  stateVersion?: number;
+  unavailable?: InterviewGenerationUnavailable;
+};
+
 /** 开始到第一个纯 awaitAnswer interrupt。重试只会投影同一 question/event，不会重生模型题。 */
-async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string, facts: string[]): Promise<{ question?: string; questionId?: string; stateVersion?: number }> {
+async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string, facts: string[]): Promise<StartAdaptiveInterviewResult> {
   // The planner may know a profile exists, but not its raw facts.  This is a
   // deliberate fail-closed mitigation until fact references have their own
   // artifact/deletion lifecycle.
@@ -137,11 +178,20 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
     snap = await g.getState(cfg);
   }
   const pending = pendingQuestion(snap);
-  if (pending) await persistAndEmitQuestion(d, pending);
-  return { question: pending?.question, questionId: pending?.questionId, stateVersion: pending?.stateVersion };
+  const failure = generationFailureOf(snap);
+  if (failure || !pending) {
+    const unavailable = failure ?? {
+      reason: 'generation_unavailable',
+      provenance: { origin: 'unavailable' as const, errorCode: 'generation_unavailable' as const },
+    };
+    await emitGenerationUnavailable(d, unavailable);
+    return { unavailable };
+  }
+  await persistAndEmitQuestion(d, pending);
+  return { question: pending.question, questionId: pending.questionId, stateVersion: pending.stateVersion };
 }
 
-export function startAdaptiveInterview(d: AdaptiveLifecycleDeps, role: string, facts: string[]): Promise<{ question?: string; questionId?: string; stateVersion?: number }> {
+export function startAdaptiveInterview(d: AdaptiveLifecycleDeps, role: string, facts: string[]): Promise<StartAdaptiveInterviewResult> {
   return runGraph(d, 'start', () => startAdaptiveInterviewImpl(d, role, facts));
 }
 
@@ -191,6 +241,21 @@ async function submitAdaptiveAnswerImpl(
       questionId: next.questionId, stateVersion: next.stateVersion, turn: next.turn,
       question: next.question, competency: next.competency, qkind: next.kind,
     });
+    const generationFailed = generationFailureOf(snap);
+    if (generationFailed) {
+      if (!unscored && typeof last.score === 'number') {
+        await appendEvent(c, d.owner, d.interviewId, 'answer_evaluated', {
+          questionId: input.questionId, stateVersion: last.stateVersion, answerId: input.answerId, answerHash: input.answerHash, turn: input.turn,
+          score: last.score, outcome: last.outcome ?? 'answered', competency: last.competency, question: last.q ?? '',
+        }, `answer_evaluated:${input.questionId}`);
+      } else if (unscored) {
+        await appendEvent(c, d.owner, d.interviewId, 'answer_unscored', {
+          questionId: input.questionId, stateVersion: last.stateVersion, turn: input.turn,
+          reason: last.reason ?? 'evaluation_unavailable', competency: last.competency, question: last.q ?? '',
+        }, `answer_unscored:${input.questionId}`);
+      }
+      return;
+    }
     if (unscored) {
       await appendEvent(c, d.owner, d.interviewId, 'answer_unscored', {
         questionId: input.questionId, stateVersion: last.stateVersion, turn: input.turn,
@@ -221,6 +286,16 @@ async function submitAdaptiveAnswerImpl(
       question: next.question, competency: next.competency, qkind: next.kind,
     }, `question_ready:${next.questionId}`);
   });
+
+  const generationFailed = generationFailureOf(snap);
+  if (generationFailed) {
+    await emitGenerationUnavailable(d, generationFailed);
+    return {
+      score: typeof last.score === 'number' ? last.score : undefined,
+      nextQuestion: undefined, nextQuestionId: undefined,
+      done: true, clarifying: false, degraded: true,
+    };
+  }
 
   if (done) {
     await asPrincipal(d.pool, d.owner, async (c) => {

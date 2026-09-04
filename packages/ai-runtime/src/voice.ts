@@ -2,7 +2,8 @@ import { lookup as dnsLookup } from 'node:dns/promises';
 import { request as httpsRequest, type RequestOptions } from 'node:https';
 import type { ClientRequest, IncomingMessage } from 'node:http';
 import ipaddr from 'ipaddr.js';
-import { ExternalHttpStatusError, ExternalRequestAbortedError, ExternalRequestTimeoutError, fetchJsonWithTimeout } from './timeout.ts';
+import { ExternalHttpStatusError, ExternalRequestAbortedError, ExternalRequestTimeoutError, ExternalResponseJsonError, fetchJsonWithTimeout } from './timeout.ts';
+import { requireNonEmptyText } from './native-response-guard.ts';
 import { rejectDashscopeNativeTransportOverride, resolveDashscopeNativeConfig } from './dashscope-native-config.ts';
 
 /**
@@ -438,17 +439,17 @@ export function dashscopeAsr(cfg: { baseUrl?: string; apiKey?: string; model?: s
           signal: opts?.signal,
         }, { timeoutMs, maxBytes: 256 * 1024 });
         const content = j.choices?.[0]?.message?.content;
-        // Missing/non-string content is not an empty room — inventing a
-        // transcript would hide provider malformation as a successful turn.
-        if (typeof content !== 'string') throw new Error('asr_malformed');
-        return content.trim();
+        // Empty/non-string content is malformation, not a silent empty room.
+        return requireNonEmptyText(content, 'asr_malformed');
       } catch (error: any) {
         // A caller disconnect must remain distinct from a provider deadline:
         // both stop transport work, but only the latter is a 504/retryable
         // dependency failure in product metrics.
         if (error instanceof ExternalRequestAbortedError) throw new AsrAbortedError();
         if (error instanceof ExternalRequestTimeoutError) throw new AsrTimeoutError(timeoutMs);
+        if (error instanceof ExternalResponseJsonError) throw new Error('asr_malformed');
         if (error instanceof ExternalHttpStatusError) throw new Error('asr_http_' + error.status);
+        if (error instanceof Error && error.message === 'asr_malformed') throw error;
         throw error;
       }
     },
@@ -478,13 +479,14 @@ export function dashscopeTts(cfg: { apiKey?: string; model?: string; voice?: str
             body: JSON.stringify({ model, input: { text, voice: opts?.voice ?? defVoice } }), signal: opts?.signal,
           }, { timeoutMs, maxBytes: 256 * 1024 });
           const url = j.output?.audio?.url;
-          if (!url) throw new Error('tts_no_audio_url');
+          if (!url) throw new Error('tts_malformed');
           const audio = await downloadDashscopeTtsAudioWithinAdmission(url, j.output?.audio?.expires_at, { signal: opts?.signal });
           if (!(audio instanceof Uint8Array) || audio.byteLength === 0) throw new Error('tts_malformed');
           return audio;
         } catch (error: any) {
           if (error instanceof ExternalRequestAbortedError) throw ttsDownloadError('aborted');
           if (error instanceof ExternalRequestTimeoutError) throw ttsDownloadError('deadline_exceeded');
+          if (error instanceof ExternalResponseJsonError) throw new Error('tts_malformed');
           if (error instanceof ExternalHttpStatusError) throw new Error('tts_http_' + error.status);
           throw error;
         }
