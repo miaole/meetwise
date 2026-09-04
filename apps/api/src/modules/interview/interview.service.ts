@@ -1,12 +1,17 @@
 import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
 import { createHash, randomUUID } from 'node:crypto';
-import { assertInterviewPrivacyActive, reserveEntitlement, enqueueInterviewJob, getReport, abandonInterviewAndRelease, requeueFailedReport, claimInterviewAnswer, listScorableScoreCards } from '@meetwise/db';
+import { assertInterviewPrivacyActive, reserveEntitlement, enqueueInterviewJob, getReport, abandonInterviewAndRelease, requeueFailedReport, claimInterviewAnswer, listScorableScoreCards, submitInterviewAnswer } from '@meetwise/db';
 import { deriveAssessment, deriveLearningPlan, deriveCareerPath, resolveOverlongAnswerPolicy, isTrustedScoreIdentity, requireTrustedPracticeOverall } from '@meetwise/domain';
 import { VOICE_EGRESS_DISABLED_ID, type Asr, type Tts, type StreamingTts } from '@meetwise/ai-runtime';
-import type { TranscribeDto, TurnDto } from '@meetwise/contracts';
+import type { InterviewAnswerPreviewSubmitDto, InterviewAnswerSubmitResult, TranscribeDto, TurnDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
 import { RateLimitService } from '../../platform/rate-limit.service';
-import { assertPublicPreviewWritesClosed, PublicPreviewReadOnlyError } from '../../platform/public-preview';
+import {
+  assertPublicPreviewControlledWriteAllowed,
+  assertPublicPreviewWritesClosed,
+  PublicPreviewReadOnlyError,
+  PublicPreviewWriteUnavailableError,
+} from '../../platform/public-preview';
 import { resumeDisplayName } from '../resume/resume-display.ts';
 
 const MAX_AUDIO_BYTES = 10 * 1024 * 1024;   // 10MB 上限(单题语音作答足够;防大文件 DoS)
@@ -89,6 +94,36 @@ export class InterviewService {
       }
       throw error;
     }
+  }
+
+  /**
+   * Preview-only ledger submit. Off-preview must look like the route does
+   * not exist (404), so this is not an INT-TRANSCRIPT-01 production write.
+   */
+  private requirePublicPreviewControlledWrite(): void {
+    try {
+      assertPublicPreviewControlledWriteAllowed();
+    } catch (error) {
+      if (error instanceof PublicPreviewWriteUnavailableError) {
+        throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+      }
+      throw error;
+    }
+  }
+
+  private mapAnswerLedgerError(error: any): never {
+    const code = String(error?.code ?? error?.message ?? '');
+    if (code === 'interview_privacy_fenced')
+      throw new HttpException({ error: 'interview_privacy_fenced' }, HttpStatus.GONE);
+    if (code === 'interview_answer_submission_conflict')
+      throw new HttpException({ error: 'interview_answer_submission_conflict' }, HttpStatus.CONFLICT);
+    if (code === 'interview_answer_submission_fenced_or_forbidden')
+      throw new HttpException({ error: 'interview_privacy_fenced' }, HttpStatus.GONE);
+    if (code === 'interview_answer_body_empty' || code === 'interview_answer_state_version_invalid')
+      throw new HttpException({ error: code }, HttpStatus.BAD_REQUEST);
+    if (code === 'interview_answer_artifact_missing' || code === 'interview_answer_receipt_incomplete')
+      throw new HttpException({ error: code }, HttpStatus.CONFLICT);
+    throw error;
   }
 
   /** 语音端点共用限流闸(ASR/TTS 无额度预留 → 防成本 DoS)。超速 → 429。 */
@@ -257,6 +292,61 @@ export class InterviewService {
       if (claim.status === 'conflict') throw new HttpException({ error: 'answer_conflict' }, HttpStatus.CONFLICT);
       const jobId = await enqueueInterviewJob(c, principal, id, 'answer', { ...body, requestId }, turn + 1);
       return { accepted: claim.status === 'accepted', replayed: claim.status === 'replayed', jobId };
+    });
+  }
+
+  /**
+   * Preview-path ledger write. Calls the existing 0092 submitInterviewAnswer
+   * rehearsal. Does not enqueue a plaintext /turn job and is not 01 cutover.
+   */
+  submitPreviewAnswer(principal: string, id: string, body: InterviewAnswerPreviewSubmitDto): Promise<InterviewAnswerSubmitResult> {
+    this.requirePublicPreviewControlledWrite();
+    if (!body.answer.trim()) throw new HttpException({ error: 'interview_answer_body_empty' }, HttpStatus.BAD_REQUEST);
+    const overlong = resolveOverlongAnswerPolicy('interview_route', body.answer.length);
+    if (overlong.accepted === false)
+      throw new HttpException({ error: overlong.policy.errorCode, max: overlong.policy.maxLength }, HttpStatus.PAYLOAD_TOO_LARGE);
+    if (!this.rl.allow(`turn:${principal}`, TURN_RL.capacity, TURN_RL.refillPerSec))
+      throw new HttpException({ error: 'too_many_requests', message: '作答过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);
+    return this.db.asPrincipal(principal, async (c) => {
+      await c.query('SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))', ['preview-answer', id]);
+      const iv = await c.query('SELECT status FROM interview WHERE id=$1', [id]);
+      if (iv.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+      await this.guardInterviewPrivacy(c, id);
+      await this.assertAnswerable(c, id, iv.rows[0].status);
+      const issued = await c.query(
+        `SELECT state_version, status FROM interview_question
+          WHERE interview_id=$1 AND question_id=$2 FOR UPDATE`,
+        [id, body.questionId],
+      );
+      if (issued.rowCount === 0)
+        throw new HttpException({ error: 'question_not_ready' }, HttpStatus.CONFLICT);
+      const row = issued.rows[0];
+      if (Number(row.state_version) !== body.stateVersion || row.status === 'cancelled')
+        throw new HttpException({ error: 'stale_question' }, HttpStatus.CONFLICT);
+      if (row.status !== 'issued')
+        throw new HttpException({ error: 'stale_question' }, HttpStatus.CONFLICT);
+      try {
+        const submitted = await submitInterviewAnswer(c, {
+          interviewId: id,
+          questionId: body.questionId,
+          stateVersion: body.stateVersion,
+          clientSubmissionKey: body.clientSubmissionKey,
+          answer: body.answer,
+          privacyEpoch: 1,
+        });
+        return {
+          interviewId: submitted.interviewId,
+          questionId: submitted.questionId,
+          stateVersion: submitted.stateVersion,
+          clientSubmissionKey: submitted.clientSubmissionKey,
+          canonicalBodyHmac: submitted.canonicalBodyHmac,
+          privacyEpoch: submitted.privacyEpoch,
+          status: 'accepted_unscored',
+          replayed: submitted.replayed,
+        };
+      } catch (error) {
+        this.mapAnswerLedgerError(error);
+      }
     });
   }
 
@@ -672,8 +762,8 @@ export class InterviewService {
    * Legacy fixed-question endpoint deliberately remains as an authenticated
    * 410 instead of disappearing as a 404: old clients get an actionable
    * migration signal, while no caller can create an answer_evaluated event.
-   * The only production answer write path is /turn, whose question identity,
-   * state version and answer hash are revalidated before a worker evaluates it.
+   * Production-like answers still use /turn. Preview may write the rehearsal
+   * ledger via /answers; that path is not INT-TRANSCRIPT-01 cutover.
    */
   async answer(_principal: string, _id: string, _key: string): Promise<never> {
     throw new HttpException({ error: 'legacy_answer_endpoint_disabled', replacement: 'turn' }, HttpStatus.GONE);

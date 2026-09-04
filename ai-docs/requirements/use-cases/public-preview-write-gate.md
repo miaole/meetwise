@@ -9,7 +9,7 @@ owner: platform
 
 ## 目标与范围
 
-公开预览只展示项目界面与能力边界。部署显式启用 `MEETWISE_PUBLIC_PREVIEW=1` 时，任何能写**面试或评分状态**的公开/预览路径必须失败关闭。当前实现分两层语义：**(1) 运行时** NestJS(Fastify) HTTP 方法入站门拒绝一切非 `GET`/`HEAD`/`OPTIONS` 请求（含简历/订单/申请拒绝等清单外写 verb）；**(2) 清单** 只审计 `interview-and-scoring-state` 写面，未登记会使 `pnpm public-preview-write:inventory` 失败，不是运行时的唯一挡板。面试/评分写方法另有服务层 `assertPublicPreviewWritesClosed`；Web 中间件挡代理与 Server Action。该门不替代完整删除、授权、RLS（行级安全）或发布验收。机制已在本仓库接线；治理 TC 仍为 planned/unmapped，本地 proof 不是 ECS（云服务器）或发布证据。
+公开预览只展示项目界面与能力边界。部署显式启用 `MEETWISE_PUBLIC_PREVIEW=1` 时，除一条受控账本写外，任何能写**面试或评分状态**的公开/预览路径必须失败关闭。当前实现分两层语义：**(1) 运行时** NestJS(Fastify) HTTP 方法入站门拒绝一切非 `GET`/`HEAD`/`OPTIONS` 请求，并额外放行 `POST /interview/:id/answers`（预览账本，见 `UC-INT-TRANSCRIPT-PREVIEW-SUBMIT`）；**(2) 清单** 只审计 `interview-and-scoring-state` 写面，未登记会使 `pnpm public-preview-write:inventory` 失败，不是运行时的唯一挡板。其它面试/评分写方法另有服务层 `assertPublicPreviewWritesClosed`；`/answers` 用 `assertPublicPreviewControlledWriteAllowed`（非预览 404）。Web 中间件仍挡代理与 Server Action（本包不加 Web 代理）。该门不替代完整删除、授权、RLS（行级安全）或发布验收，也不等于 `INT-TRANSCRIPT-01`。机制已在本仓库接线；治理 TC 仍为 planned/unmapped，本地 proof 不是 ECS（云服务器）或发布证据。
 
 - 角色 Actor：公开访客、已持有会话的浏览器、API 运行时。
 - 前置 Precondition：公开部署显式配置 `MEETWISE_PUBLIC_PREVIEW=1`；页面、静态目录和运行时使用同一发布清单。
@@ -22,7 +22,7 @@ owner: platform
 | --- | --- |
 | 模式 | `MEETWISE_PUBLIC_PREVIEW=1` 为只读；未设置或 `0` 仅用于非公开受控环境；其他值 **fail-closed**（故障关闭）：API 在 `createApp()` 拒绝启动，Web `resolvePublicPreview`（middleware 与 layout 共用）在解析时抛错，不能静默变成可写应用。 |
 | 拒绝 | 除精确 allowlist 外的**任何** HTTP 方法（包括未来扩展、`COPY`、`MOVE`、`TRACE` 或自定义方法）均在 HTTP ingress 返回 `503` 与固定错误 `public_preview_read_only`。 |
-| 允许 | 只有 `GET`、`HEAD`、`OPTIONS` 可继续到其现有路由；它们不得藉由查询参数或请求体改变面试/评分状态。清单中的 `readOnlyGetHandlers` 若出现写 SQL（结构化查询语言）或入队，静态门失败。 |
+| 允许 | `GET`、`HEAD`、`OPTIONS` 可继续到其现有路由；它们不得藉由查询参数或请求体改变面试/评分状态。另允许预览受控 `POST /interview/:id/answers` 落 0092 账本。清单中的 `readOnlyGetHandlers` 若出现写 SQL（结构化查询语言）或入队，静态门失败。 |
 | 服务层 | `assertPublicPreviewWritesClosed` 在 `InterviewService` 的面试/评分写方法与 `ApplicationsService.start` 进入 `asPrincipal` 之前再次拒绝；未知配置值仍抛 `invalid_meetwise_public_preview`。 |
 | Web | 预览中间件对非安全方法返回同一 `503`；非展示路径（含 `/api/interview/*`、`/interviews`、`/report/:id`、`/jobs`）对 GET 也返回 `404 public_preview_path_unavailable`。 |
 | 账本 | 拒绝请求不写数据库、队列、模型调用、同意记录、订单或审计业务账本；仅保留既有低敏 HTTP 指标。 |
@@ -36,7 +36,7 @@ owner: platform
 2. 访客请求公开展示页或只读端点，现有读取路径按既有认证与授权规则执行。
 3. 访客或已有会话对清单中的面试/评分写面使用非 allowlist HTTP 方法，或进程内调用 `generateAssessment` / `turn` / `create` / `start` 等写方法。
 4. ingress 在控制器和所有副作用之前返回 `503 public_preview_read_only`；若有人绕过 HTTP，服务层围栏在数据库之前抛同一错误。
-5. 请求不会创建面试、答案作业、评分卡、能力评估、申请绑定面试或其他业务账本行。
+5. 除受控 `/answers` 外，请求不会创建面试、答案作业、评分卡、能力评估、申请绑定面试或其他业务账本行。`/answers` 只写 0092 rehearsal 账本，不入队 plaintext `/turn` job。
 
 ## 备选流 Alternate
 

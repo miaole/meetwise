@@ -26,6 +26,7 @@ related:
   - ./rag-funnel-intent-routing.md
   - ./ecs-public-preview-web-ingress.md
   - ./public-preview-write-gate.md
+  - ./interview-answer-preview-submit.md
   - ./marketing-legal-seo.md
   - ./admin-console.md
   - ./interview-modality.md

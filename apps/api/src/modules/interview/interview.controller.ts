@@ -1,8 +1,9 @@
 import { Controller, Get, Post, Param, Query, Req, Res, Headers, Body, UseGuards, HttpCode, HttpStatus, HttpException } from '@nestjs/common';
 import type { FastifyReply } from 'fastify';
-import { TranscribeDto, SpeakDto, TurnDto, FeedbackDto, LearningCompleteDto } from '@meetwise/contracts';
+import { TranscribeDto, SpeakDto, TurnDto, FeedbackDto, LearningCompleteDto, InterviewAnswerPreviewSubmitDto } from '@meetwise/contracts';
 import { InterviewService } from './interview.service';
 import { PrincipalGuard } from '../../platform/principal.guard';
+import { PublicPreviewControlledWriteGuard } from '../../platform/preview-controlled-write.guard';
 import { RateLimitService } from '../../platform/rate-limit.service';
 import { ZodValidationPipe } from '../../platform/zod.pipe';
 
@@ -28,6 +29,19 @@ export class InterviewController {
   @HttpCode(202)
   turn(@Param('id') id: string, @Req() req: any, @Body(new ZodValidationPipe(TurnDto)) body: TurnDto) {
     return this.interviews.turn(req.principal, id, body, req.reqId);   // reqId 透传进 answer job.payload,贯穿到 worker 模型 trace
+  }
+
+  // 预览版账本提交：只在 MEETWISE_PUBLIC_PREVIEW=1 落 0092 rehearsal 账本。
+  // 不是 INT-TRANSCRIPT-01 生产 cutover，也不入队 plaintext /turn job。
+  @Post(':id/answers')
+  @UseGuards(PublicPreviewControlledWriteGuard)
+  @HttpCode(HttpStatus.OK)
+  submitPreviewAnswer(
+    @Param('id') id: string,
+    @Req() req: any,
+    @Body(new ZodValidationPipe(InterviewAnswerPreviewSubmitDto)) body: InterviewAnswerPreviewSubmitDto,
+  ) {
+    return this.interviews.submitPreviewAnswer(req.principal, id, body);
   }
 
   // 语音作答转写:音频(base64)→ ASR 文本。前端塞回作答框,用户可改后再走 /turn(不破 modality-agnostic 内核)。

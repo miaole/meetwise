@@ -6,11 +6,17 @@ import { createApp } from '../src/main.ts';
 import { InterviewService } from '../src/modules/interview/interview.service.ts';
 import { ApplicationsService } from '../src/modules/jobs/applications.service.ts';
 import {
+  assertPublicPreviewControlledWriteAllowed,
   assertPublicPreviewWritesClosed,
   PublicPreviewReadOnlyError,
+  PublicPreviewWriteUnavailableError,
+  isPublicPreviewControlledWrite,
   resolvePublicPreviewMode,
 } from '../src/platform/public-preview.ts';
-import { listPublicHttpWriteSurfaces } from '../../../scripts/public-preview-write-inventory.mjs';
+import {
+  isPreviewControlledWriteSurface,
+  listPublicHttpWriteSurfaces,
+} from '../../../scripts/public-preview-write-inventory.mjs';
 
 const environmentKeys = ['MEETWISE_PUBLIC_PREVIEW', 'NODE_ENV', 'OCR_ENABLED', 'AUTH_SECRET', 'RESUME_ENC_KEY', 'PAY_PROVIDER_SECRET', 'DATABASE_URL'] as const;
 const originalEnvironment = new Map(environmentKeys.map((key) => [key, process.env[key]]));
@@ -68,6 +74,21 @@ async function main() {
   await previewWriteBlocked(() => assertPublicPreviewWritesClosed('1'), 'service fence on exact one');
   assertions += 1;
   assert.throws(() => assertPublicPreviewWritesClosed('true'), /invalid_meetwise_public_preview/);
+  assert.throws(
+    () => assertPublicPreviewControlledWriteAllowed(undefined),
+    (error: unknown) => error instanceof PublicPreviewWriteUnavailableError,
+  );
+  assert.throws(
+    () => assertPublicPreviewControlledWriteAllowed('0'),
+    (error: unknown) => error instanceof PublicPreviewWriteUnavailableError,
+  );
+  assertPublicPreviewControlledWriteAllowed('1');
+  assertions += 3;
+  equal(isPublicPreviewControlledWrite('POST', '/interview/preview-proof/answers'), true, 'preview answers path is the controlled write');
+  equal(isPublicPreviewControlledWrite('POST', '/interview/preview-proof/answers?replay=1'), true, 'query string does not drop the allowlist');
+  equal(isPublicPreviewControlledWrite('POST', '/interview/preview-proof/turn'), false, 'legacy turn is not a controlled write');
+  equal(isPublicPreviewControlledWrite('POST', '/interview/preview-proof/answer'), false, 'legacy singular answer is not a controlled write');
+  equal(isPublicPreviewControlledWrite('DELETE', '/interview/preview-proof/answers'), false, 'non-POST answers stays closed');
 
   process.env.MEETWISE_PUBLIC_PREVIEW = '1';
   let dbCalls = 0;
@@ -80,6 +101,33 @@ async function main() {
   await previewWriteBlocked(() => applications.start('userA', 'app-preview', { resumeId: '11111111-1111-4111-8111-111111111111' } as any), 'application start service fence');
   await previewWriteBlocked(() => applications.finalize('userA', 'app-preview'), 'application finalize service fence');
   equal(dbCalls, 0, 'service fence never reaches asPrincipal or scoring writes');
+
+  const previewDto = {
+    questionId: 'q-v1-t0-c0',
+    stateVersion: 1,
+    clientSubmissionKey: 'preview-key-1',
+    answer: '预览账本正文',
+  };
+  process.env.MEETWISE_PUBLIC_PREVIEW = '0';
+  try {
+    await interviews.submitPreviewAnswer('userA', 'iv-preview', previewDto);
+    assert.fail('non-preview submitPreviewAnswer should 404');
+  } catch (error: any) {
+    const status = typeof error.getStatus === 'function' ? error.getStatus() : error.status;
+    const body = typeof error.getResponse === 'function' ? error.getResponse() : error.response;
+    equal(status, 404, 'non-preview ledger submit is not a production write');
+    equal(typeof body === 'object' ? body.error : body, 'not_found_or_forbidden', 'non-preview uses the fixed 404');
+  }
+  equal(dbCalls, 0, 'non-preview ledger submit never reaches asPrincipal');
+  process.env.MEETWISE_PUBLIC_PREVIEW = '1';
+  try {
+    await interviews.submitPreviewAnswer('userA', 'iv-preview', previewDto);
+    assert.fail('preview ledger submit should reach the db seam');
+  } catch (error: any) {
+    equal(error?.message, 'db_should_not_run', 'preview controlled write is allowed through the read-only fence');
+  }
+  equal(dbCalls, 1, 'preview ledger submit reaches asPrincipal exactly once');
+  dbCalls = 0;
 
   Object.assign(process.env, {
     MEETWISE_PUBLIC_PREVIEW: '1',
@@ -138,9 +186,23 @@ async function main() {
         headers: { authorization: 'Bearer ignored', cookie: 'session=ignored', 'content-type': 'application/json' },
         payload: JSON.stringify({ preview: true }),
       });
+      if (isPreviewControlledWriteSurface(surface)) {
+        equal(response.statusCode !== 503, true, `${surface.method} ${url} is the preview controlled write and must pass ingress`);
+        equal(response.json().error !== 'public_preview_read_only', true, `${surface.id} is not closed as read-only`);
+        continue;
+      }
       equal(response.statusCode, 503, `${surface.method} ${url} is rejected before interview/scoring handlers`);
       equal(response.json().error, 'public_preview_read_only', `${surface.id} uses the fixed public-preview error`);
     }
+
+    const allowed = await fastify.inject({
+      method: 'POST',
+      url: '/interview/preview-proof/answers',
+      headers: { authorization: 'Bearer ignored', cookie: 'session=ignored', 'content-type': 'application/json' },
+      payload: JSON.stringify(previewDto),
+    });
+    equal(allowed.statusCode, 401, 'preview answers reaches auth instead of the read-only gate');
+    equal(allowed.json().error !== 'public_preview_read_only', true, 'preview answers does not use the read-only error');
 
     const concurrent = await Promise.all(Array.from({ length: 20 }, () => fastify.inject({
       method: 'POST',
