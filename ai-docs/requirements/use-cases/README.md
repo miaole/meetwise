@@ -35,6 +35,7 @@ related:
   - ./interview-history.md
   - ./cend-overview-progress.md
   - ./e2e-parity-baseline.md
+  - ./privacy-deletion-sink-inventory.md
 ---
 
 # 业务用例目录
