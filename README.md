@@ -34,6 +34,8 @@ db:prove  runtime:prove  graph:prove  pipeline:prove  api:validate  api:smoke  a
 
 点评给复盘用，不构成能力认证。同一件事不写成两套账。题和材料按可见范围取。
 
+**禁止伪验收**：不能只断言 HTTP 200、不能只跑 happy path、不能用 mock 模型证明生产模型质量、不能 AI 自评自己的报告。**不得默认信任** AI 代码或输出：须审核 + 多轮自动化门禁（`ai-docs/rules/global/ai-generated-review.md`）。
+
 设计说明见 `ai-docs/architecture/adr/`。
 
 ---

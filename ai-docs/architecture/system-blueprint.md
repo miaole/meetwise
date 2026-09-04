@@ -30,7 +30,7 @@ tags:
 | 缓存/队列 | Redis | 限流、短期缓存、任务状态、BullMQ/Graph job |
 | 对象存储 | S3/MinIO | 简历文件、导出报告、语音文件 |
 | 契约 | 共享 zod4 schema + zod-openapi | 防止前后端接口漂移 |
-| 测试 | Vitest/Jest + Supertest + Playwright + AI golden tasks | 覆盖单元、接口、E2E 和模型输出质量 |
+| 测试 | 隔离 prove + HTTP E2E（fetch/SSE，`pnpm e2e:isolated`）+ 浏览器 Playwright（`e2e:ui:isolated`）+ golden-tasks 登记 | 分层见 `testing/strategy/test-strategy.md`；live E2E 不在 per-push |
 | 观测 | OpenTelemetry + Prometheus/Grafana + LangSmith/Langfuse 可选 | trace、成本、graph run、prompt 质量 |
 
 ## 目标仓库结构
