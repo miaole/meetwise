@@ -149,10 +149,11 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
           setVoiceErr(msg); toast.error(msg);                                          // 显式反馈:不静默吞掉这一答
         } else {
           const body = await res.json().catch(() => null) as { text?: unknown } | null;
-          if (typeof body?.text !== 'string') {
+          const text = body?.text;
+          if (typeof text !== 'string') {
             const msg = '语音转写失败，请改用文字作答';
             setVoiceErr(msg); toast.error(msg);
-          } else if (body.text.trim()) setAnswer((a) => (a ? a.trimEnd() + ' ' : '') + body.text.trim());
+          } else if (text.trim()) setAnswer((a) => (a ? a.trimEnd() + ' ' : '') + text.trim());
           else setVoiceErr('没有识别到语音，请重试或改用文字作答');
         }
       } catch { const msg = '语音转写失败，请改用文字作答'; setVoiceErr(msg); toast.error(msg); }

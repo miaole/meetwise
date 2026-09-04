@@ -272,11 +272,12 @@ export function VoiceCallPanel({
       });
       if (!res.ok) throw new Error('tts_unavailable');           // 502 tts_failed / 503 tts_unavailable
       const spoken = await res.json().catch(() => null) as { audioBase64?: unknown; mimeType?: unknown } | null;
-      if (typeof spoken?.audioBase64 !== 'string' || !spoken.audioBase64)
+      const audioBase64 = spoken?.audioBase64;
+      if (typeof audioBase64 !== 'string' || !audioBase64)
         throw new Error('tts_malformed');
       if (gen !== genRef.current || speechAbort.signal.aborted) return;
-      const mimeType = typeof spoken.mimeType === 'string' ? spoken.mimeType : 'audio/wav';
-      audioUrl = URL.createObjectURL(base64ToBlob(spoken.audioBase64, mimeType));
+      const mimeType = typeof spoken?.mimeType === 'string' ? spoken.mimeType : 'audio/wav';
+      audioUrl = URL.createObjectURL(base64ToBlob(audioBase64, mimeType));
       const audio = new Audio(audioUrl);
       audioElRef.current = audio;
       setTtsPhase('playing');
@@ -440,11 +441,12 @@ export function VoiceCallPanel({
       });
       if (!res.ok) { if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写暂不可用,可切回打字继续'); } return; }   // 503/502 → 出路:切回打字
       const body = await res.json().catch(() => null) as { text?: unknown } | null;
-      if (typeof body?.text !== 'string') {
+      const transcribed = body?.text;
+      if (typeof transcribed !== 'string') {
         if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写失败,可切回打字继续'); }
         return;
       }
-      text = body.text;
+      text = transcribed;
     } catch { if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写失败,可切回打字继续'); } return; }
     if (gen !== genRef.current) return;
 
@@ -488,11 +490,11 @@ export function VoiceCallPanel({
       });
       if (!res.ok) { if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写暂不可用,可切回打字继续'); } return; }
       const retryBody = await res.json().catch(() => null) as { text?: unknown } | null;
-      if (typeof retryBody?.text !== 'string') {
+      const text = retryBody?.text;
+      if (typeof text !== 'string') {
         if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写失败,可切回打字继续'); }
         return;
       }
-      const text = retryBody.text;
       if (gen !== genRef.current) return;
       if (!text.trim()) { setHint('还是没听清,可点「说完了」后改用打字'); return; }
       setLastAnswer(text); setStatus('submitting');
