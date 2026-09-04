@@ -44,7 +44,7 @@ related:
 | --- | --- | --- | --- | --- |
 | Worker 公平调度 | `apps/worker/src/interview-dispatch-fairness.ts`；`interview-consumer.ts` 的 tick 走 `fairDrainInterviewOwners`；网关 `0128` `gateway_dispatch_owners('interview')` | 面试 owner 量子轮转；每 owner **未过期** running cap（默认 1，表计数 + advisory lock）；本进程 `WORKER_INTERVIEW_GLOBAL_INFLIGHT`（默认 4）；非法预算启动失败 | 押题 / 诊断 / 报告仍按 owner 抽干；进程内 global cap 不是跨副本锁；即时 wakeup 不是延迟 SLO | `worker-dispatch-fairness.md`、`UC-WORKER-002` |
 | SKIP LOCKED 领取 | `interview-jobs.ts` / `quiz-jobs.ts` / `diagnosis-jobs.ts` / `report.ts` 的 claim SQL；`commerce.ts` `settleOutbox`；`ai_model_reconcile_stale_scoped` | 多领取者对**同一候选行**不互相等待；赢家 CAS 成 running / relayed / unknown | 无行时 `SELECT FOR UPDATE` 锁不住创建竞态（模型 claim 另用 `0130` advisory）；quiz/diagnosis/report **没有**面试那套 owner cap + advisory | 本文件 §3 |
-| SSE 扇出 | 面试 / 押题 / 诊断 `GET :id/events`：catch-up → 2s 轮询 tail；`RateLimitService.acquireSlot('sse:'+principal, 5)` | 账本是真相；连接可丢；三路 service 用 `parseLastEventId` 失败关闭非法游标；每进程每主体最多 5 条长连接；10 分钟封顶 | **不是** LISTEN/NOTIFY 或跨进程扇出；槽是进程内 Map，且在首次 catch-up 查询之后才占槽；押题 / 诊断 HTTP 400 尚未写入 `api:validate` | `frontend-blueprint.md` §7 |
+| SSE 扇出 | 面试 / 押题 / 诊断 `GET :id/events`：catch-up → 2s 轮询 tail；`RateLimitService.acquireSlot('sse:'+principal, 5)` | 账本是真相；连接可丢；三路 service 用 `parseLastEventId` 失败关闭非法游标；`pnpm api:validate` 对三路非法 `Last-Event-ID` 断言 HTTP 400（`HC-GAP-006` 已关）；每进程每主体最多 5 条长连接；10 分钟封顶 | **不是** LISTEN/NOTIFY 或跨进程扇出；槽是进程内 Map，且在首次 catch-up 查询之后才占槽；429 打满与跨副本槽仍开 | `frontend-blueprint.md` §7 |
 | 模型调用槽 | `0120` `ai_model_concurrency_lease` + `admitSharedModelOperation`；另有进程内 `rateLimitedModel` / `MODEL_MAX_CONCURRENT` | 带 `spec.operation` 的路径：共享槽认领失败则 `concurrency_exhausted`，零外呼；释放按 (owner, idempotency) 匹配，不误清他人槽 | 无 `operation` 的 legacy `invoke` **不走** 0120 槽；`MODEL_MAX_CONCURRENT` 仍是进程内；ASR/TTS/embedding 等多条路径仍未共享该槽 | `model-operation-routing.md`、`UC-MODEL-001` |
 | 账本 CAS / 同键 claim-join | `0130` `ai_model_claim_invocation_scoped`；`casTransition`；`appendEvent`；权益 `UNIQUE(owner,idempotency)` + 桶 `FOR UPDATE`；结算 `ON CONFLICT DO NOTHING` | 同键至多一个 execute；孤儿 create-permit 只 `wait`；权益同 key 不二次分配；结算 at-least-once → 入账 exactly-once | `0130` 不证明供应商取消计费；`appendEvent` 的 `hashtext(stream)` 是 32-bit 命名空间，与面试 owner lock / 0126 writer lock / 0130 claim lock 不同键；commerce 回执停在历史 64 迁移 | `UC-MODEL-001`、`commerce-saga.md` |
 
@@ -100,12 +100,12 @@ related:
 
 三路 `*Service.events` 在 **首次 catch-up / hijack 之前** 调用 `parseLastEventId`。非法游标（空串、`Infinity`、小数、`+1`、科学计数、前导零、超安全整数、过长）抛 `400 invalid_last_event_id`，不把 `Number()` 结果喂给 `seq > $2`。缺省 header（`undefined`）才是 `0`（全量重放起点）。Controller 只使用 service 返回的 `lastId`，不再解析 header。
 
-`pnpm api:validate` 对 **面试** HTTP 路径断言 400。押题 / 诊断已接线同一解析器，但 HTTP 400 仍是 `HC-GAP-006`。
+`pnpm api:validate` 对面试 / 押题 / 诊断 HTTP 路径断言同一组非法游标 → 400，且 `Infinity` 不触发 `interview_event` catch-up SQL（不降级为 `seq>0` 全表语义）。`HC-GAP-006` 已关。槽打满 429 仍是 `HC-GAP-007`。该套件需隔离或远程库；禁止 `compose.dev` 本地 Postgres/Redis。本文件不把一次本地绿跑写成发布回执（`releaseEvidence=false`）。
 
 | 命令 | 层 | 覆盖 | 仍缺 |
 | --- | --- | --- | --- |
 | `pnpm last-event-id:unit:prove` | 无库；per-push CI | 解析器：缺省=0；空串拒绝；合法整数；负号/小数/科学计数/前导加号/前导零/`Infinity`/超长 | 不是 HTTP |
-| `pnpm api:validate` | 隔离 HTTP（需库） | **仅面试** `/interview/:id/events` 非法游标 400 | **押题 / 诊断 HTTP 400 未断言**；三路并发槽 429 未用真实 hijack 打满 |
+| `pnpm api:validate` | 隔离 HTTP（需库） | 面试 / 押题 / 诊断 `/…/:id/events` 同一组坏游标 400；`Infinity` 的 catch-up SQL=0 | 三路并发槽 429 未用真实 hijack 打满 |
 | `apps/api/test/validate.ts` `[F5]` | 纯 RateLimitService | 上限 2 时第 3 次 acquire 失败、release 后可再占 | 不是跨进程、不是真实 SSE |
 | `pnpm web:prove` | 前端纯函数 | 解码、Last-Event-ID 续传、终态停转；**HTTP 400 `invalid_last_event_id` 立即停转 / degraded，open=1，不得用同一游标重试**（`HC-GAP-014` 已关） | 不证明 API 槽、轮询或浏览器实链 |
 
@@ -143,7 +143,14 @@ related:
 
 ## 7. 证明与测试缺口（可执行清单）
 
-下列项是持续缺口。§4.1 的共享解析器已接线；前端 400 停转见已关闭的 `HC-GAP-014`；押题/诊断 HTTP 与多副本项仍开。
+下列项是持续缺口。§4.1 的共享解析器已接线。`HC-GAP-006`（押题/诊断 HTTP 400）与 `HC-GAP-014`（前端 400 停转）已关；HTTP 槽打满 / 多副本项仍开。
+
+**已关闭**
+
+| ID | 面 | 关闭命令 | 范围诚实 |
+| --- | --- | --- | --- |
+| `HC-GAP-006` | SSE | `pnpm api:validate` | 押题 / 诊断与面试同一组坏游标（`-1` / `1.5` / `Infinity` / `+1` / 超安全整数 / 过长）HTTP `status=400`、`error=invalid_last_event_id`、不是 `text/event-stream`；`Infinity` 的 `interview_event` catch-up SQL 次数=0（先用合法游标证明计数器会动）。不证明 429 槽打满或跨副本槽（`HC-GAP-007` / `008`）。不是容量 SLO。回执保持 `releaseEvidence=false`。 |
+| `HC-GAP-014` | SSE | `pnpm web:prove` | 已在 `main`（#90）。三路流驱动把 HTTP 400 `invalid_last_event_id` 当失败关闭，open=1，不得用同一游标重试。不是浏览器实链，不是 API HTTP 门。 |
 
 | ID | 面 | 缺口 | 正确层级 | 负例断言（尚未具备或未在 CI） |
 | --- | --- | --- | --- | --- |
@@ -152,7 +159,6 @@ related:
 | `HC-GAP-003` | 公平调度 | 无跨 Worker 副本集群 inflight | 多进程 + 共享库 | 两进程 `globalInflight=4` 时集群 running 可大于 4（今日即如此，需诚实度量而非“修掉”） |
 | `HC-GAP-004` | SKIP LOCKED | quiz/diagnosis 无双连接恰一领的专用合同 | 隔离 PG | 同 owner 两 job 并发 claim 的胜负与副作用=0 |
 | `HC-GAP-005` | SKIP LOCKED | `UC-WORKER-001` 的 rollback 通知=0、20 路 wakeup、重连 drain | 真实 PG NOTIFY | 回滚后 drain 次数不增加；监听恢复立即 drain |
-| `HC-GAP-006` | SSE | 押题/诊断 **HTTP** 非法 `Last-Event-ID` → 400 | `api:validate` 或等价 HTTP | 与面试同一组坏游标，status=400，SQL 比较次数不因 `Infinity` 变成全表语义 |
 | `HC-GAP-007` | SSE | 三路共享 `sse:principal` 槽；无 hijack 打满 5+1 | HTTP 集成 | 第 6 条 429，`asPrincipal` 轮询不增加 |
 | `HC-GAP-008` | SSE | 槽与 2s 轮询均为单进程 | 多 API 副本 | N 副本时可开到 `5N` 条连接（今日即如此） |
 | `HC-GAP-009` | 模型槽 | 0120 槽证明不在 per-push；legacy 无 operation 路径绕过 | 隔离 PG + 静态 | 无 `operation` 的 invoke 不写 `ai_model_concurrency_lease`；有 operation 时第三槽拒绝 |
@@ -168,8 +174,8 @@ related:
 **已落地（文档 + 解析器 + 前端 400 停转）**
 
 - 本复核骨架挂到索引与运行时事实矩阵的 related。
-- 三路 SSE service 共用 `parseLastEventId`；controller 只用返回的 `lastId`。无库证明 `pnpm last-event-id:unit:prove` 进入 per-push CI。`HC-GAP-006`（押题/诊断 HTTP 400）与 `HC-GAP-007`（槽打满）仍开。
-- **`HC-GAP-014` 已关闭（仅前端）**：面试 / 押题 / 诊断流驱动把 HTTP 400 `invalid_last_event_id` 当失败关闭，不是断线。`pnpm web:prove` 断言 open 恰好 1 次、`connection=closed`、`degraded`、不得用同一 `Last-Event-ID` 重试；Next SSE 代理保持 400 而不改写成普通 `stream_unavailable`。不是浏览器实链、不是 `api:validate` 押题/诊断 HTTP（仍 `HC-GAP-006`）。`releaseEvidence=false`。
+- 三路 SSE service 共用 `parseLastEventId`；controller 只用返回的 `lastId`。无库证明 `pnpm last-event-id:unit:prove` 进入 per-push CI。`HC-GAP-006`（押题/诊断 HTTP 400）由 `pnpm api:validate` 关闭。`HC-GAP-007`（槽打满）仍开。
+- **`HC-GAP-014` 已关闭（仅前端，#90）**：面试 / 押题 / 诊断流驱动把 HTTP 400 `invalid_last_event_id` 当失败关闭，不是断线。`pnpm web:prove` 断言 open 恰好 1 次、`connection=closed`、`degraded`、不得用同一 `Last-Event-ID` 重试；Next SSE 代理保持 400 而不改写成普通 `stream_unavailable`。不是浏览器实链。押题/诊断 HTTP 400 现由 `api:validate` 覆盖。`releaseEvidence=false`。
 
 **明确不做**
 
@@ -185,6 +191,7 @@ related:
 pnpm last-event-id:unit:prove
 pnpm interview-dispatch:unit:prove
 pnpm docs:check
+pnpm api:validate   # 三路非法 Last-Event-ID → 400；需隔离或远程库，禁止 compose.dev 本地 Postgres/Redis
 ```
 
 `pnpm api:validate` / `pnpm interview-dispatch:prove` / `pnpm runtime:isolated:prove` 需要隔离或远程库；本环境未取得新回执时保持 `releaseEvidence=false`。

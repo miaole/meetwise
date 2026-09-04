@@ -25,7 +25,7 @@ for i in $(seq 1 30); do docker exec meetwise-postgres-dev pg_isready -U meetwis
 pnpm db:prove      # 四原语：CAS恰一个赢 / 幂等 / RLS越权=0 fail-closed(FORCE) / 事件seq
 pnpm runtime:prove   # 运行内核：invoke双校验·重试·exactly-once / 状态机 / 租约拒并发 / 重启纯DB恢复 / 幻觉拦截
 pnpm graph:prove  # mock-interview 图：interrupt + Postgres checkpointer + 换实例续会话 + 多thread隔离（生产自适应图另跑 pnpm adaptive-graph:prove）
-pnpm api:validate  # 请求路径+SSE：principal注入 / RLS 401·404不泄露存在性 / HTTP幂等 / Last-Event-ID重放
+pnpm api:validate  # 请求路径+SSE：principal注入 / RLS 401·404不泄露存在性 / HTTP幂等 / Last-Event-ID重放 + 押题/诊断非法游标 400
 pnpm pipeline:prove      # resume-quiz 纯图（无 DB/checkpointer）：简历摄取清洗(注入拦截·PII脱敏) → 押题图 → factuality歪曲门（无报告）
 
 # 关停（停 db:up 起的 dev 栈；compose:down 只停 demo 栈，停不到 dev postgres）

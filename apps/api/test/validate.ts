@@ -29,8 +29,20 @@ async function validate() {
   // app.principal_user.  Bind a session principal on every pooled connection so
   // the seeding passes interview_privacy_active()/stream-scope checks; real HTTP
   // requests still override it per-request via DbService.asPrincipal().
+  // Count catch-up SQL (`seq > $2`) so illegal Last-Event-ID cannot silently
+  // become a full-stream scan.  The probe below asserts this counter moves on
+  // a legal cursor; Infinity must leave it at 0.
+  let interviewEventCatchUpQueries = 0;
   db.pool.on('connect', (client) => {
     client.query("SELECT set_config('app.principal_user', 'userA', false)").catch(() => {});
+    const origQuery = client.query.bind(client);
+    client.query = ((...args: any[]) => {
+      const text = typeof args[0] === 'string' ? args[0] : args[0]?.text ?? '';
+      if (/FROM\s+interview_event\s+WHERE\s+stream_key=\$1\s+AND\s+seq>\$2/i.test(text)) {
+        interviewEventCatchUpQueries += 1;
+      }
+      return origQuery(...args);
+    }) as typeof client.query;
   });
   // This harness creates roles and schema objects.  It must never be runnable
   // against a developer database, RDS, or any target without the one-time
@@ -149,6 +161,11 @@ async function validate() {
   await db.pool.query(`INSERT INTO ai_report(owner_user_id,interview_id,status) VALUES ('userA','R1','failed')`);
   await db.pool.query("INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question,status) VALUES ('userA','R1','q-v1-t0-c0',1,0,'R1 current question','issued')");
   await db.pool.query("INSERT INTO interview_event(owner_user_id,stream_key,seq,kind,payload) VALUES ('userA','R1',1,'question_ready','{}')");
+  // Owned quiz/diagnosis streams so illegal Last-Event-ID is asserted on real
+  // HTTP paths (400 before catch-up), not only on a missing-id 404.
+  await db.pool.query("INSERT INTO resume_quiz(id, owner_user_id, status) VALUES ('QZ1','userA','created')");
+  await db.pool.query("INSERT INTO resume_diagnosis(id, owner_user_id, status) VALUES ('DG1','userA','created')");
+  await db.pool.query("INSERT INTO interview_event(owner_user_id,stream_key,seq,kind,payload) VALUES ('userA','QZ1',1,'progress','{}'),('userA','QZ1',2,'quiz_ready','{}'),('userA','DG1',1,'progress','{}'),('userA','DG1',2,'diagnosis_ready','{}')");
   await db.pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ('userA','paid',5.0, now()+interval '300 days')");
   await db.pool.query("INSERT INTO consent_record(id,owner_user_id,purpose,policy_version) VALUES ('c1','userA','resume_processing','v1'),('c2','userB','resume_processing','v1')");
   await db.pool.query('INSERT INTO user_account(id,email,password_hash) VALUES ($1,$2,$3)', ['cpUser','cp@x.com', hashPassword('oldpass12')]);
@@ -548,10 +565,47 @@ async function validate() {
   // HTTP parsers normalize leading/trailing optional whitespace before Nest
   // receives a header, so test a preserved non-canonical representation (+1)
   // rather than asserting on bytes that Fastify correctly removed per RFC.
-  for (const badCursor of ['-1', '1.5', 'Infinity', '+1', '9007199254740992', 'x'.repeat(17)]) {
+  const illegalSseCursors = ['-1', '1.5', 'Infinity', '+1', '9007199254740992', 'x'.repeat(17)];
+  for (const badCursor of illegalSseCursors) {
     const bad = await fetch(base + '/interview/R1/events', { headers: { 'x-user-id': 'userA', 'last-event-id': badCursor } });
     A(`Last-Event-ID=${JSON.stringify(badCursor)} 非法 → 400（不降级为全量重放）`, bad.status === 400);
   }
+  // HC-GAP-006: quiz / diagnosis must reject the same cursor set on HTTP
+  // before catch-up SQL.  A legal cursor first proves the query probe moves.
+  const abortSse = async (path: string, lastId: number) => {
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), 700);
+    try {
+      const res = await fetch(base + path, {
+        headers: { 'x-user-id': 'userA', 'last-event-id': String(lastId) },
+        signal: ac.signal,
+      });
+      if (res.status === 200 && res.body) {
+        const reader = res.body.getReader();
+        try { for (;;) { const { done } = await reader.read(); if (done) break; } }
+        finally { reader.releaseLock(); }
+      }
+      return res.status;
+    } catch { return 0; }
+    finally { clearTimeout(timer); }
+  };
+  interviewEventCatchUpQueries = 0;
+  // lastId=0 + terminal quiz_ready：一次 catch-up 后收口，不进入 2s hold，避免污染后续计数。
+  await abortSse('/quiz/QZ1/events', 0);
+  A('合法 Last-Event-ID=0 触发押题 catch-up SQL（探针可动）', interviewEventCatchUpQueries >= 1);
+  const catchUpAfterLegalQuiz = interviewEventCatchUpQueries;
+  interviewEventCatchUpQueries = 0;
+  for (const path of ['/quiz/QZ1/events', '/diagnosis/DG1/events']) {
+    for (const badCursor of illegalSseCursors) {
+      const bad = await fetch(base + path, { headers: { 'x-user-id': 'userA', 'last-event-id': badCursor } });
+      const ct = bad.headers.get('content-type') || '';
+      const body = await bad.json().catch(() => ({})) as { error?: string };
+      A(`${path} Last-Event-ID=${JSON.stringify(badCursor)} 非法 → 400（不降级为全量重放）`,
+        bad.status === 400 && !ct.includes('text/event-stream') && body.error === 'invalid_last_event_id');
+    }
+  }
+  A('押题/诊断非法游标（含 Infinity）不触发 interview_event catch-up SQL（无全表语义）',
+    interviewEventCatchUpQueries === 0 && catchUpAfterLegalQuiz >= 1);
   const f = await fetch(base + '/interview/R1/events', { headers: { 'x-user-id': 'userB' } });
   A('userB 越权订阅 R1 事件 → 404', f.status === 404);
   const evc = await db.pool.query("SELECT count(*)::int n FROM interview_event WHERE stream_key='R1' AND kind='answer_evaluated'");
