@@ -127,7 +127,7 @@ question plan: planned -> dispatching -> issued | failed | unknown
 
 | 面 | 目标变更 | 当前状态 |
 | --- | --- | --- |
-| 题库摄取/切块 | `QbankQuestionArtifact` 携带完整 `QuestionArtifactMetadata`；每个可检索 mapping 有 `ChunkServingMetadata` 与 `MetadataReviewReceipt`，并在 embedding 前被审核 | **局部实现。** `RAG-FUNNEL-01A` 源码闭包已密封：31 函数 + 15 表 + 2 视图（含 bounded reader、`qbank_retrieval_candidate`/`qbank_visible_ref`、词法 helper、cache/pool trigger）在同一 owner/ACL/RLS/fixed-`search_path` 清单内；`qbank_curator`/`qbank_cache_epoch`/`qbank_visible_ref` 是 request 只读例外。本地 `qbank-handoff-closure:prove` 证明移交前 42501 与 raw-read=0；`0124` 空 principal → `rag_acl_principal_missing`。`releaseEvidence=false`，不是云部署回执。`MetadataReviewReceipt` 表存在但未进入 routed serving。technology/seniority/kind/language 完整 facets 与标准部署 handoff 仍归 `RAG-FUNNEL-01`。 |
+| 题库摄取/切块 | `QbankQuestionArtifact` 携带完整 `QuestionArtifactMetadata`；每个可检索 mapping 有 `ChunkServingMetadata` 与 `MetadataReviewReceipt`，并在 embedding 前被审核 | **局部实现。** `RAG-FUNNEL-01A` 源码闭包已密封：31 函数 + 15 表 + 2 视图（含 bounded reader、`qbank_retrieval_candidate`/`qbank_visible_ref`、词法 helper、cache/pool trigger）在同一 owner/ACL/RLS/fixed-`search_path` 清单内；`qbank_curator`/`qbank_cache_epoch`/`qbank_visible_ref` 是 request 只读例外。本地 `qbank-handoff-closure:prove` 证明移交前 42501 与 raw-read=0；`0124_rag_retrieval_acl_fail_closed.sql` 空 principal → `rag_acl_principal_missing`（并行未合入的 `memory_vector_chunk` 擦除占用 `0125`，本切片保持 `0124`）。`releaseEvidence=false`，不是云部署回执。`MetadataReviewReceipt` 表存在但未进入 routed serving。technology/seniority/kind/language 完整 facets 与标准部署 handoff 仍归 `RAG-FUNNEL-01`。 |
 | generation 构建 | 只为已有 serving metadata 的 question/artifact 构建 question-aware projection/embedding；禁止 source 默认继承 | 未实施；当前 generation 只按 raw `ref_id` 建向量行，没有 scope projection。 |
 | embedding compute cache | 以 data-class/region/visibility scope、exact recipe digest、actual canonical provider-input digest、dimension、transform/chunker 与 schema 组成不透明 key；仅未命中才经持久 attempt/cost 发送 provider；Redis value 只保存有界向量数值、checksum 与完整 HMAC | 未实施；当前只在单 Worker 进程内 `Map` 缓存，Redis/Tair 只缓存 query retrieval hits。 |
 | 岗位创建/编辑 | 创建或修改 `title/description/competencies` 后写 `JobSemanticRevision` 和 route pending；自动路由完成后才具备面试资格 | 未实施；当前创建幂等只覆盖原始字段，没有分类状态。 |
@@ -181,11 +181,11 @@ question plan: planned -> dispatching -> issued | failed | unknown
   - **E2 并发：** 两请求同 binding 并发 resolve，属主谓词不变，不会放出他租户行。机制：RLS + `owner_user_id=principal`。SQL 不校验 session/sticky；跨会话 replay 不是本项数据面承诺。
   - **E3 越权：** 租户 B 用 A 的 binding → `rag_binding_unavailable`；B 读 A 私有 chunk=0。机制：RLS principal。
   - **E4 失败回滚：** 移交前非超级用户 owner 时 bounded reader 为 42501；gate 拒绝分裂 owner。机制：FORCE RLS + catalog fail-closed。
-  - **E5 降级：** 空/空白 principal → `rag_acl_principal_missing`（42501），不得无范围 bind/检索。机制：0124 SQL 入口。
+  - **E5 降级：** 空/空白 principal → `rag_acl_principal_missing`（42501），不得无范围 bind/检索。机制：`0124_rag_retrieval_acl_fail_closed.sql` 入口。
   - **E6 超时/断线：** 中断恢复仍走同一 sealed 函数，不改走 raw SELECT。机制：无旁路入口。
 - **后置 Postcondition：** 密封对象保持单一 definer owner；request raw-read=0（除刻意只读面）；缺 ACL 的检索不返回行。
 - **验收标准 Acceptance：** 移交前 42501 且移交后非 42501；raw relation/view read=0；跨租户 binding/私有行=0；空 principal 抛 `rag_acl_principal_missing`；global 无批准 provenance=0 行。`releaseEvidence=false`。
-- **关联：** `TC-RAG-FUNNEL-01-*`、`principal.ts`、0124、`rag-retrieval-acl.ts`、RLS。
+- **关联：** `TC-RAG-FUNNEL-01-*`、`principal.ts`、`0124_rag_retrieval_acl_fail_closed.sql`、`rag-retrieval-acl.ts`、RLS。
 - **七类覆盖标注：** 正/异/特/逃/并/复/刁。
 
 ### UC-RAG-FUNNEL-02 · 已审核 artifact 建立受 recipe 约束的 generation projection 与 embedding compute cache

@@ -4,11 +4,16 @@
  *
  * 七类：正/异/特/逃/并/复/刁。隔离与缺 ACL 必须能单独失败。
  */
+import { existsSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   RAG_RETRIEVAL_ACL_CODES,
   decideRagRetrievalAcl,
   assertRagRetrievalAcl,
 } from '../src/index.ts';
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 let fail = 0;
 const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) fail++; };
@@ -20,6 +25,11 @@ const ownerA = 'tenant-a';
 const ownerB = 'tenant-b';
 const sessionA = 'interview-a-session';
 const sessionB = 'interview-b-session';
+
+A('编号：本切片占用 0124_rag_retrieval_acl_fail_closed，不抢 0125、不存在 0124_memory_vector_chunk_erasure',
+  existsSync(resolve(root, 'packages/db/migrations/0124_rag_retrieval_acl_fail_closed.sql'))
+  && !existsSync(resolve(root, 'packages/db/migrations/0124_memory_vector_chunk_erasure.sql'))
+  && !existsSync(resolve(root, 'packages/db/migrations/0125_rag_retrieval_acl_fail_closed.sql')));
 
 A('ACL 错误码枚举冻结（域合同，非 SQL 全量抛码）',
   JSON.stringify([...RAG_RETRIEVAL_ACL_CODES]) === JSON.stringify([

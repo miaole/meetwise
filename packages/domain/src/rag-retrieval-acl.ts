@@ -4,7 +4,8 @@
  * 零 IO。本模块给调用方一个 fail-closed 判定面；**不是** PostgreSQL 的第二套
  * 授权根，也尚未被 API/Worker 接线。
  *
- * SQL（0124 / 0073）真实语义只有这些：
+ * SQL（`0124_rag_retrieval_acl_fail_closed.sql` / 0073）真实语义只有这些：
+ * 编号：本切片保持 0124；并行未合入的 `memory_vector_chunk` 擦除占用 0125，不得改号。
  *  - 空或空白 `app.principal_user` → 抛 `rag_acl_principal_missing`（42501）
  *  - 跨租户 binding → `rag_binding_unavailable`（不是本枚举）
  *  - 私有行越权 / global 无批准 provenance → 0 行（不是本枚举抛错）

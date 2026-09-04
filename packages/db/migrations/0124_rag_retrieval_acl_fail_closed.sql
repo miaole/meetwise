@@ -3,6 +3,8 @@
 -- 函数体，不新增对象、不 ALTER OWNER/GRANT。空或空白 app.principal_user 必须
 -- 抛 rag_acl_principal_missing（42501），不得退化为无范围 bind/resolve/search/
 -- evidence。跨租户 binding 仍是 rag_binding_unavailable；无 provenance 仍是 0 行。
+-- 编号：main 最新 0123。本文件保持 0124。并行未合入的 memory_vector_chunk 擦除
+-- 已改用 0125_memory_vector_chunk_erasure.sql，不得与本文件抢号，本文件也不得改到 0125。
 
 CREATE OR REPLACE FUNCTION rag_runtime.rag_bind_query(p_binding_id text,p_sticky_key text,p_ttl_seconds integer)
 RETURNS TABLE(generation_id text,recipe_id text) LANGUAGE plpgsql SECURITY DEFINER

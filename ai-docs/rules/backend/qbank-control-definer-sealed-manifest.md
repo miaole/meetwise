@@ -30,7 +30,7 @@ related:
 
 - **在闭包内（源码已密封）：31 函数 + 15 表 + 2 视图 + 既有 generation 分区/索引。** `QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST` / `TABLE_MANIFEST` / `VIEW_MANIFEST` 与 `0094` + `provisionQbankControlDefiner` 对齐。原 §6.1–6.5（bounded reader、security-definer view、词法 helper、pool/cache/epoch trigger、quarantine/source guard）**已在同一 owner/ACL/RLS/fixed-`search_path` 清单内**，不再是「仍归迁移角色」的缺口。
 - **本地隔离 proof 存在，不是云发布回执。** `packages/db/test/qbank-handoff-closure.proof.ts`（`pnpm qbank-handoff-closure:prove`）覆盖移交前 42501、移交后 catalog gate、低权 ingest、MetadataReviewReceipt 表写入、lane(b) 撤销、二次 provision 重入，以及本轮补上的 bounded reader 非 42501 与 raw relation/view read=0。`releaseEvidence=false`。本机 Docker daemon 不可用时该组合根不会在当前树上重跑；不得把源码密封写成已部署验证。
-- **仍未关闭（不得过度声明）：** 云/标准部署组合根回执；`MetadataReviewReceipt` 进入 routed serving（01）；generation projection / track-local serving（02+）；生产 Worker 仍固定“技术岗”。0124 只把 generic RAG resolve/search/evidence 的空 principal 收成 `rag_acl_principal_missing`，不授权 routed 出题。
+- **仍未关闭（不得过度声明）：** 云/标准部署组合根回执；`MetadataReviewReceipt` 进入 routed serving（01）；generation projection / track-local serving（02+）；生产 Worker 仍固定“技术岗”。`0124_rag_retrieval_acl_fail_closed.sql` 只把 generic RAG resolve/search/evidence 的空 principal 收成 `rag_acl_principal_missing`，不授权 routed 出题。
 
 ---
 
@@ -155,7 +155,9 @@ related:
 
 ## 6. 检索 ACL fail-closed（generic RAG，与 QBank 清单并列）
 
-QBank 密封清单不拥有 generic corpus 函数（那些归 `rag_runtime_definer`）。`0124` 只替换已有 `rag_resolve_query_binding` / `rag_search_bound` / `rag_evidence_bound` 的函数体：空或空白 `app.principal_user` 抛 `rag_acl_principal_missing`（`insufficient_privilege`），不得无范围检索。跨租户 binding 仍是 `rag_binding_unavailable`；global 无批准 provenance 仍是 0 行。域合同在 `packages/domain/src/rag-retrieval-acl.ts`。
+QBank 密封清单不拥有 generic corpus 函数（那些归 `rag_runtime_definer`）。`0124_rag_retrieval_acl_fail_closed.sql` 只替换已有 `rag_bind_query` / `rag_resolve_query_binding` / `rag_search_bound` / `rag_evidence_bound` 的函数体：空或空白 `app.principal_user` 抛 `rag_acl_principal_missing`（`insufficient_privilege`），不得无范围检索。跨租户 binding 仍是 `rag_binding_unavailable`；global 无批准 provenance 仍是 0 行。域合同在 `packages/domain/src/rag-retrieval-acl.ts`。
+
+编号（与并行未合入变更协调，不构成对方已合入的证据）：`main` 最新仍是 `0123_user_facing_context_snapshots.sql`，本切片占用 `0124`。并行隐私删除 sink（`memory_vector_chunk` 擦除）已改用 `0125_memory_vector_chunk_erasure.sql`，不得与本文件抢 `0124`，本文件也不得改号到 `0125`。`0124` 未进 `main`。该并行变更不在本树，不得把 `memory_vector_chunk` 写成已落地。
 
 ---
 
