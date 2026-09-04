@@ -86,7 +86,7 @@ async function main() {
   if (wantLive) {
     const env = loadEnvFile();
     if (!env.MODEL_API_KEY) {
-      console.error('live_provider_key_missing:MODEL_API_KEY');
+      console.error('E2E_FAILURE class=provider code=live_provider_key_missing');
       console.error('regression_live_not_run: set MODEL_API_KEY and rerun `pnpm regression --live`. Do not treat this as pass.');
       process.exit(1);
     }

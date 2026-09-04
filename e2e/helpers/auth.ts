@@ -1,3 +1,4 @@
+import { tagE2EFailure } from './failure.ts';
 import { BASE, jsonHeaders, readJson } from './http.ts';
 
 export type AuthSession = {
@@ -27,7 +28,7 @@ export async function signupOrLogin(email: string, password: string, role?: 'rec
     payload = await readJson(response);
   }
   if (response.status !== 200 || typeof payload.token !== 'string') {
-    throw new Error(`e2e_auth_failed:status=${response.status}`);
+    throw tagE2EFailure('data_or_permission', 'auth_failed');
   }
   return { token: payload.token, headers: jsonHeaders(payload.token), email };
 }
@@ -39,6 +40,6 @@ export async function signupOrLogin(email: string, password: string, role?: 'rec
  */
 export function uidFromToken(token: string): string {
   const uid = JSON.parse(Buffer.from(token.split('.')[0], 'base64').toString()).uid;
-  if (typeof uid !== 'string' || uid.length === 0) throw new Error('e2e_token_uid_missing');
+  if (typeof uid !== 'string' || uid.length === 0) throw tagE2EFailure('data_or_permission', 'token_uid_missing');
   return uid;
 }

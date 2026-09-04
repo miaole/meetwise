@@ -1,3 +1,4 @@
+import { tagE2EFailure } from './failure.ts';
 import { readJson } from './http.ts';
 
 export type LiveGatewayResult = { response: Response; body: any; attempts: number };
@@ -19,10 +20,10 @@ export async function callLiveVoiceGateway(label: string, operation: () => Promi
       if (response.status === 200 || !retryable || attempt === maxAttempts) return last;
       console.warn(`[E2E] ${label} 暂态失败，第 ${attempt}/${maxAttempts} 次: status=${response.status}, error=${String(body?.error ?? body?.message ?? 'unknown').slice(0, 120)}`);
     } catch (error: any) {
-      if (attempt === maxAttempts) throw error;
+      if (attempt === maxAttempts) throw tagE2EFailure('provider', 'voice_gateway_network', error);
       console.warn(`[E2E] ${label} 网络异常，第 ${attempt}/${maxAttempts} 次: ${String(error?.message ?? error).slice(0, 120)}`);
     }
     await new Promise((resolve) => setTimeout(resolve, 1_000 * attempt));
   }
-  throw new Error(`e2e_live_voice_gateway_exhausted:${label}:${last?.response.status ?? 'network'}`);
+  throw tagE2EFailure('provider', 'voice_gateway_exhausted');
 }

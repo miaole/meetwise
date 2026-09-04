@@ -35,7 +35,7 @@ pnpm regression --live   # 真供应商 HTTP E2E；缺 MODEL_API_KEY 必须非�
 | 状态机 | 无 |
 | 契约 | 无 |
 | 数据库 | 无 schema 变更；隔离 E2E 仍走完整迁移 |
-| 测试计划 | `pnpm e2e-helpers:prove`、`pnpm e2e-receipt:prove`、`pnpm golden-tasks:check`、`pnpm docs:check`、`pnpm regression` |
+| 测试计划 | `pnpm e2e-helpers:prove`（含失败分类账本）、`pnpm e2e-receipt:prove`、`pnpm golden-tasks:check`、`pnpm docs:check`、`pnpm regression` |
 | 验证 | 上列命令；`pnpm e2e:isolated` 仅在有 `MODEL_API_KEY` 时 |
 
 ## 铁律（先读再跑）

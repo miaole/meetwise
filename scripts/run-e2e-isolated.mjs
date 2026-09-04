@@ -21,6 +21,7 @@
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
+import { emitClassifiedE2EFailure, parseE2EFailureLine, tagE2EFailure } from '../e2e/helpers/failure-class.mjs';
 import { captureBounded } from './bounded-command.mjs';
 import { writeLocalE2EReceipt, writeLocalIsolatedReceipt } from './local-e2e-receipt.mjs';
 import { withheldOutputSummary } from './withheld-output.mjs';
@@ -1193,6 +1194,15 @@ function runQbankRetrievalEvalProof(command, args, env = baseEnv) {
  * HTTP 全链路会触发真实模型，子进程输出可能含不可信内容。为让运行本身可
  * 复核而不留下敏感原文，只在内存中识别其最终、固定格式的断言摘要并写入回执。
  */
+function lastE2EFailureClass(output) {
+  let found = null;
+  for (const line of String(output).split(/\r?\n/)) {
+    const parsed = parseE2EFailureLine(line);
+    if (parsed) found = parsed.class;
+  }
+  return found;
+}
+
 function runFullE2E(command, args, env = baseEnv) {
   return new Promise((resolve, reject) => {
     let stdout = '';
@@ -1204,9 +1214,16 @@ function runFullE2E(command, args, env = baseEnv) {
     child.on('exit', (code) => {
       const summary = stdout.match(/^✓ E2E 全栈跑通\((\d+) 断言,[^\n]*$/m);
       const assertionCount = summary ? Number(summary[1]) : null;
-      if (code === 0 && !Number.isInteger(assertionCount)) return reject(new Error('e2e_success_without_final_assertion_summary'));
+      const failureClass = lastE2EFailureClass(stdout);
+      if (code === 0 && !Number.isInteger(assertionCount)) {
+        return reject(tagE2EFailure('capability', 'success_without_assertion_summary'));
+      }
+      if (code === 0 && failureClass) {
+        return reject(tagE2EFailure('capability', 'success_with_failure_class'));
+      }
       if (summary) console.log(`E2E_FINAL_SUMMARY assertions=${assertionCount}`);
-      resolve({ code: code ?? 1, assertionCount });
+      if (failureClass) console.log(`E2E_FAILURE_CLASS class=${failureClass}`);
+      resolve({ code: code ?? 1, assertionCount, failureClass });
     });
   });
 }
@@ -1283,6 +1300,7 @@ async function main() {
   const startedAt = new Date();
   let targetExitCode = 1;
   let assertionCount = null;
+  let failureClass = null;
   let proofSummary;
   let embedderReal;
   try {
@@ -1309,6 +1327,7 @@ async function main() {
       const result = await runFullE2E('pnpm', [target], env);
       targetExitCode = result.code;
       assertionCount = result.assertionCount;
+      failureClass = result.failureClass;
     } else {
       if (isolatedCommand && (target.startsWith('privacy-erasure:') || target.startsWith('resume-erasure:') || target.startsWith('resume-derivative-reference:') || target === 'adaptive-consumer:prove:raw')) {
         const result = await runRedactedProof(isolatedCommand[0], isolatedCommand[1], env);
@@ -1329,6 +1348,11 @@ async function main() {
   } catch (error) {
     failed = true;
     targetExitCode = 1;
+    if (target === 'e2e:prove' || target === 'e2e:ui' || target === 'performance:e2e') {
+      const line = emitClassifiedE2EFailure(error, { class: 'db', code: 'database_not_ready' });
+      const parsed = parseE2EFailureLine(line);
+      if (parsed) failureClass = parsed.class;
+    }
     throw error;
   } finally {
     if (created && failed) await emitFailureDiagnostic();
@@ -1344,6 +1368,7 @@ async function main() {
           startedAt,
           finishedAt: new Date(),
           assertionCount,
+          failureClass,
         });
         console.log(`LOCAL_E2E_RECEIPT file=${relativePath} release_evidence=false`);
       } catch (error) {

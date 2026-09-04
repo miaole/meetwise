@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { tagE2EFailure } from './failure.ts';
 import { BASE, readJson } from './http.ts';
 import { readSseEvents } from './sse.ts';
 import type { AssertFn } from './assert.ts';
@@ -21,7 +22,7 @@ export type InterviewLoopResult = {
 /** E2E uses the identity issued on question_ready / clarification_needed. Never invent the current question. */
 export function questionIdentity(payload: any): QuestionIdentity {
   if (typeof payload?.questionId !== 'string' || !Number.isInteger(payload?.stateVersion) || !Number.isInteger(payload?.turn)) {
-    throw new Error('e2e_question_identity_missing');
+    throw tagE2EFailure('data_or_permission', 'question_identity_missing');
   }
   return { questionId: payload.questionId, stateVersion: payload.stateVersion, turn: payload.turn };
 }

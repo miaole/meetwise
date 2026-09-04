@@ -17,6 +17,7 @@ description: 测试与文档的诚实边界：releaseEvidence、假服务、skip
 6. **把 planned / unmapped golden-task 标成 passed。** 登记文件里的 `status` 枚举见 `ai-docs/testing/golden-tasks/README.md`。
 7. **把 Playwright 说成当前 HTTP 全链路实现。** 浏览器层才是 Playwright；HTTP 层是 fetch/SSE。
 8. **把本机性能数字说成线上 SLO。**
+9. **失败只写 `E2E 失败` / `e2e failed`。** 必须带封闭 `E2E_FAILURE class=` 行（`api` / `worker` / `db` / `provider` / `capability` / `data_or_permission` / `frontend`），见 [run-gates.md](./run-gates.md) §6。
 
 ## 允许
 

@@ -7,6 +7,15 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash, createHmac } from 'node:crypto';
 import { paidWebhookSignature } from './commerce.ts';
+import {
+  E2E_FAILURE_CLASSES,
+  E2E_FAILURE_RECORD_SCHEMA,
+  classifyE2EFailure,
+  formatE2EFailure,
+  parseE2EFailure,
+  parseE2EFailureRecord,
+  tagE2EFailure,
+} from './failure.ts';
 import { INTERVIEW_TERMINALS, STALE_QUESTION_ERROR, answerBody, questionIdentity } from './interview.ts';
 import { parseSseBuffer } from './sse.ts';
 import { uidFromToken } from './auth.ts';
@@ -20,9 +29,12 @@ const test = (name: string, fn: () => void) => {
 };
 
 test('question identity 拒绝缺失字段，不接受客户端伪造半截身份', () => {
-  assert.throws(() => questionIdentity({}), /e2e_question_identity_missing/);
-  assert.throws(() => questionIdentity({ questionId: 'q1', stateVersion: 1 }), /e2e_question_identity_missing/);
-  assert.throws(() => questionIdentity({ questionId: 'q1', stateVersion: 1.5, turn: 0 }), /e2e_question_identity_missing/);
+  assert.throws(() => questionIdentity({}), (error) => {
+    assert.deepEqual(parseE2EFailure(error), { class: 'data_or_permission', code: 'question_identity_missing' });
+    return true;
+  });
+  assert.throws(() => questionIdentity({ questionId: 'q1', stateVersion: 1 }), /question_identity_missing/);
+  assert.throws(() => questionIdentity({ questionId: 'q1', stateVersion: 1.5, turn: 0 }), /question_identity_missing/);
   assert.deepEqual(questionIdentity({ questionId: 'q-ready', stateVersion: 3, turn: 2 }), {
     questionId: 'q-ready', stateVersion: 3, turn: 2,
   });
@@ -81,7 +93,51 @@ test('OCR fixture 是可读 PNG 且源码含合成手机号哨兵，不是任意
 test('uidFromToken 读取当前 API 嵌入在第一段的 uid，缺 uid 失败', () => {
   const token = `${Buffer.from(JSON.stringify({ uid: 'user-a', alg: 'HS256' })).toString('base64')}.payload.sig`;
   assert.equal(uidFromToken(token), 'user-a');
-  assert.throws(() => uidFromToken(`${Buffer.from('{}').toString('base64')}.x.y`), /e2e_token_uid_missing/);
+  assert.throws(() => uidFromToken(`${Buffer.from('{}').toString('base64')}.x.y`), (error) => {
+    assert.deepEqual(parseE2EFailure(error), { class: 'data_or_permission', code: 'token_uid_missing' });
+    return true;
+  });
+});
+
+test('failure ledger 只有 7 个封闭 class，schema 拒绝未知 class / 多余字段 / 不透明 code', () => {
+  assert.deepEqual([...E2E_FAILURE_CLASSES], [
+    'api', 'worker', 'db', 'provider', 'capability', 'data_or_permission', 'frontend',
+  ]);
+  assert.deepEqual(E2E_FAILURE_RECORD_SCHEMA.properties.class.enum, [...E2E_FAILURE_CLASSES]);
+  assert.deepEqual(parseE2EFailureRecord({ class: 'worker', code: 'interview_terminal_timeout' }), {
+    class: 'worker', code: 'interview_terminal_timeout',
+  });
+  assert.throws(() => parseE2EFailureRecord({ class: 'e2e', code: 'assertion' }), /e2e_failure_class_invalid/);
+  assert.throws(() => parseE2EFailureRecord({ class: 'api', code: 'e2e_failed' }), /e2e_failure_code_opaque/);
+  assert.throws(() => parseE2EFailureRecord({ class: 'api', code: 'failed' }), /e2e_failure_code_opaque/);
+  assert.throws(() => parseE2EFailureRecord({ class: 'api', code: 'MODEL_API_KEY' }), /e2e_failure_code_invalid/);
+  assert.throws(() => parseE2EFailureRecord({ class: 'api', code: 'assertion', token: 'secret' }), /e2e_failure_record_invalid/);
+  const tagged = tagE2EFailure('frontend', 'web_not_ready');
+  assert.equal(formatE2EFailure(parseE2EFailure(tagged)!), 'E2E_FAILURE class=frontend code=web_not_ready');
+  assert.equal(formatE2EFailure({ class: 'capability', code: 'isolation_required' }).includes('secret'), false);
+});
+
+test('classify 识别已知 runner/helper code，拒绝只写 E2E 失败', () => {
+  assert.deepEqual(classifyE2EFailure(tagE2EFailure('provider', 'live_provider_key_missing')), {
+    class: 'provider', code: 'live_provider_key_missing',
+  });
+  assert.deepEqual(classifyE2EFailure(new Error('e2e_worker_not_ready_before_test')), {
+    class: 'worker', code: 'worker_not_ready_before_test',
+  });
+  assert.deepEqual(classifyE2EFailure(new Error('isolated_postgres_database_not_ready')), {
+    class: 'db', code: 'isolated_postgres_database_not_ready',
+  });
+  assert.deepEqual(classifyE2EFailure(new Error('e2e_isolation_required:use_pnpm_e2e:isolated')), {
+    class: 'capability', code: 'isolation_required',
+  });
+  assert.deepEqual(classifyE2EFailure(tagE2EFailure('capability', 'success_with_failure_class')), {
+    class: 'capability', code: 'success_with_failure_class',
+  });
+  assert.deepEqual(classifyE2EFailure(new Error('e2e_dependency_exited_during_test:worker_exit:1')), {
+    class: 'worker', code: 'worker_exited_during_test',
+  });
+  assert.equal(classifyE2EFailure(new Error('E2E 失败: boom')), null);
+  assert.equal(classifyE2EFailure(new Error('e2e failed')), null);
 });
 
 console.log(`PASS e2e-helpers proof: ${passed} scenarios; releaseEvidence=false`);

@@ -86,7 +86,25 @@ pnpm verify:e2e-performance     # 本地全量子集；含 live HTTP/UI，需要
 
 ## 6. 失败怎么读
 
-- `live_provider_key_missing`：没有 Key。记 `not_run`，不要改 runner 去 skip-as-pass。
-- `fake_service_mode_forbidden`：有人打开了假服务开关。关掉再跑，不要删这条守卫。
-- `e2e_isolation_required`：直接跑了 `pnpm e2e:prove`。必须用 `e2e:isolated`。
-- 子进程 stdout/stderr 默认不进回执。失败时只看退出码、断言行和 `E2E_PROCESS_OUTPUT_WITHHELD` 字节计数。
+失败必须带封闭分类，禁止只报一句 `E2E 失败` / `e2e failed`。helpers 与 runner 写出一行：
+
+`E2E_FAILURE class=<class> code=<code>`
+
+`class` 只有这 7 个（常见 E2E 平台的分层归属，不是产品错误码）：
+
+| class | 何时用 |
+| --- | --- |
+| `api` | HTTP API 进程/请求处理 |
+| `worker` | 后台 worker / 图执行 / 终态超时 |
+| `db` | 库未就绪、迁移失败、连接 |
+| `provider` | 缺 live Key、假服务开关、第三方语音/视觉 |
+| `capability` | 隔离门未开等 harness 能力不足 |
+| `data_or_permission` | 鉴权、额度、RLS、缺失服务端身份 |
+| `frontend` | 浏览器 / Playwright / web 未就绪 |
+
+`code` 是 `[a-z][a-z0-9_]{0,79}` 标识符，禁止 `e2e_failed` / `failed` / `unknown`。行里不写密钥、prompt、答案或连接串。隔离 HTTP 回执在失败时可带 `failureClass`（同上 7 值）；这与 isolated prove 的 `proofSummary.failureClass` 不是同一套词表。
+
+- `E2E_FAILURE class=provider code=live_provider_key_missing`：没有 Key。记 `not_run`，不要改 runner 去 skip-as-pass。
+- `E2E_FAILURE class=provider code=fake_service_mode_forbidden`：有人打开了假服务开关。关掉再跑，不要删这条守卫。
+- `E2E_FAILURE class=capability code=isolation_required`：直接跑了 `pnpm e2e:prove`。必须用 `e2e:isolated`。
+- 子进程 stdout/stderr 默认不进回执。失败时只看退出码、分类行、断言行和 `E2E_PROCESS_OUTPUT_WITHHELD` 字节计数。
