@@ -5,6 +5,7 @@
  */
 import { spawn } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
+import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const env = {
@@ -22,11 +23,7 @@ if (existsSync(ROOT + '.env')) {
     if (m && !env[m[1]]) env[m[1]] = m[2].replace(/^["']|["']$/g, '');
   }
 }
-const fakeServiceFlags = ['VOICE_FAKE', 'OCR_FAKE', 'E2E_FAKE_MODEL'].filter((name) => {
-  const value = String(env[name] ?? '').trim().toLowerCase();
-  return value && value !== '0' && value !== 'false';
-});
-if (fakeServiceFlags.length) throw new Error(`fake_service_mode_forbidden:${fakeServiceFlags.join(',')}`);
+assertNoFakeServiceFlags(env);
 
 const procs = [];
 const spawnProc = (name, cmd, args, cwd = ROOT, extraEnv = {}) => {
