@@ -57,6 +57,7 @@
     "model-op00:prove:raw": "pnpm -C apps/worker prove:model-op00-db-state",
     "model-op00-usage-reconciler:prove": "node scripts/run-e2e-isolated.mjs model-op00-usage-reconciler:prove:raw",
     "model-op00-usage-reconciler:prove:raw": "pnpm -C packages/ai-runtime prove:usage-calibration-reconciler",
+    "model-op01:prove": "pnpm -C packages/domain prove:sealed-ocr-binding && pnpm -C packages/ai-runtime prove:operation-binding && pnpm -C packages/ai-runtime prove:resume-ocr-binding && pnpm -C apps/api prove:ocr-operation-policy",
     "model-op02:prove": "node scripts/run-e2e-isolated.mjs model-op02:prove:raw",
     "model-op02:prove:raw": "pnpm -C packages/ai-runtime prove:model-op02",
     "growth:prove": "node scripts/run-e2e-isolated.mjs growth:prove:raw",

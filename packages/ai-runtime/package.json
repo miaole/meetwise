@@ -23,6 +23,7 @@
     "prove:model-client-output-limit": "tsx test/model-client-output-limit.proof.ts",
     "prove:model-operation-registry": "tsx test/model-operation-registry.proof.ts",
     "prove:operation-binding": "tsx test/operation-binding.proof.ts",
+    "prove:resume-ocr-binding": "tsx test/resume-ocr-binding.proof.ts",
     "prove:component-ledger": "tsx test/context-component-ledger.proof.ts",
     "prove:usage-reconciliation": "tsx test/usage-reconciliation.proof.ts",
     "prove:usage-estimate-threading": "tsx test/usage-estimate-threading.proof.ts",
@@ -46,6 +47,7 @@
     "@langfuse/otel": "5.10.0",
     "@langfuse/tracing": "5.10.0",
     "@meetwise/db": "workspace:*",
+    "@meetwise/domain": "workspace:*",
     "ipaddr.js": "2.4.0",
     "@opentelemetry/sdk-node": "0.221.0",
     "zod": "catalog:"

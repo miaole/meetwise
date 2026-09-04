@@ -11,7 +11,7 @@ CREATE TABLE resume (
   owner_user_id text NOT NULL,
   status text NOT NULL DEFAULT 'uploaded' CHECK (status IN ('uploaded','ingesting','ingested','failed','erasure_fenced','erased')),
   content_sha text,                                            -- erased 墓碑清空；活跃行才参与去重
-  source_kind text NOT NULL DEFAULT 'text',                    -- text|pdf|...（多模态抽取适配器层,本期 text）
+  source_kind text NOT NULL DEFAULT 'text' CHECK (source_kind IN ('text','pdf','image')),
   privacy_epoch bigint NOT NULL DEFAULT 1 CHECK (privacy_epoch >= 1),
   version int NOT NULL DEFAULT 0,
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -42,8 +42,89 @@ CREATE TABLE resume_profile (
   blocked_count int NOT NULL DEFAULT 0,                        -- 被拦的注入行数
   status text NOT NULL DEFAULT 'ok' CHECK (status IN ('ok','needs_review','rejected')),   -- 审阅态:OCR/图片源(尤其伪造证件)恒 needs_review,系统不冒充判真伪(见迁移 0012)
   confidence numeric,                                          -- 画像置信度(视觉抗注入 eval 后续按字段回写;现可空)
-  created_at timestamptz NOT NULL DEFAULT now()
+  ocr_binding jsonb,                                           -- MODEL-OP-01 密封 OCR 出处；无原文/Key
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT resume_profile_ocr_binding_chk CHECK (
+    ocr_binding IS NULL
+    OR (
+      jsonb_typeof(ocr_binding) = 'object'
+      AND ocr_binding->>'operationId' = 'resume.ocr.v1'
+      AND ocr_binding->>'registryVersion' = 'model-op-registry-v1'
+      AND ocr_binding->>'inputKind' = 'vision-ocr'
+      AND ocr_binding->>'capability' = 'vision'
+      AND ocr_binding->>'endpointProfileId' = 'dashscope-cn-beijing'
+      AND ocr_binding->>'region' = 'cn-beijing'
+      AND ocr_binding->>'modelOrRecipe' = 'vision-ocr'
+      AND ocr_binding->>'admissionKey' = 'dashscope-native|cn-beijing|vision-ocr|resume.ocr.v1'
+      AND ocr_binding->>'wired' = 'true'
+      AND ocr_binding->>'mediaDigest' ~ '^[0-9a-f]{64}$'
+      AND NOT (ocr_binding ? 'text')
+      AND NOT (ocr_binding ? 'prompt')
+      AND NOT (ocr_binding ? 'system')
+      AND NOT (ocr_binding ? 'messages')
+      AND NOT (ocr_binding ? 'apiKey')
+      AND NOT (ocr_binding ? 'api_key')
+      AND NOT (ocr_binding ? 'url')
+      AND NOT (ocr_binding ? 'baseUrl')
+      AND NOT (ocr_binding ? 'image')
+      AND NOT (ocr_binding ? 'raw')
+    )
+  )
 );
+
+CREATE OR REPLACE FUNCTION meetwise_resume_ocr_identity_guard()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  kind text;
+  keys text[];
+BEGIN
+  IF TG_TABLE_NAME = 'resume' THEN
+    IF TG_OP = 'UPDATE' AND NEW.source_kind IS DISTINCT FROM OLD.source_kind THEN
+      RAISE EXCEPTION 'resume_source_kind_immutable';
+    END IF;
+    RETURN NEW;
+  END IF;
+
+  IF TG_OP = 'UPDATE' AND NEW.ocr_binding IS DISTINCT FROM OLD.ocr_binding THEN
+    RAISE EXCEPTION 'resume_ocr_binding_immutable';
+  END IF;
+
+  SELECT r.source_kind INTO kind
+    FROM resume r
+   WHERE r.id = NEW.resume_id AND r.owner_user_id = NEW.owner_user_id;
+  IF kind IN ('text', 'pdf') AND NEW.ocr_binding IS NOT NULL THEN
+    RAISE EXCEPTION 'ocr_binding_forbidden_for_non_image';
+  END IF;
+  IF kind = 'image' AND NEW.ocr_binding IS NULL THEN
+    RAISE EXCEPTION 'ocr_binding_required_for_image';
+  END IF;
+  IF NEW.ocr_binding IS NOT NULL THEN
+    SELECT array_agg(k ORDER BY k) INTO keys
+      FROM jsonb_object_keys(NEW.ocr_binding) AS k;
+    IF keys IS DISTINCT FROM ARRAY[
+      'admissionKey','capability','endpointProfileId','inputKind','mediaDigest',
+      'modelOrRecipe','operationId','region','registryVersion','wired'
+    ] THEN
+      RAISE EXCEPTION 'ocr_binding_keys_invalid';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_resume_source_kind_immutable ON resume;
+CREATE TRIGGER trg_resume_source_kind_immutable
+  BEFORE UPDATE ON resume
+  FOR EACH ROW
+  EXECUTE FUNCTION meetwise_resume_ocr_identity_guard();
+
+DROP TRIGGER IF EXISTS trg_resume_ocr_identity_guard ON resume_profile;
+CREATE TRIGGER trg_resume_ocr_identity_guard
+  BEFORE INSERT OR UPDATE ON resume_profile
+  FOR EACH ROW
+  EXECUTE FUNCTION meetwise_resume_ocr_identity_guard();
 
 -- OCR 成功但尚未完成摄取时的短暂恢复材料。只保存加密文本，成功摄取或用户
 -- 行使删除权后即删除；主键同时构成同一用户、同一图片请求的幂等锚。

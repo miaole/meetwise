@@ -19,9 +19,10 @@ x-cloud-runtime-env: &cloud-runtime-env
   PAY_PROVIDER_SECRET: ${PAY_PROVIDER_SECRET:?set PAY_PROVIDER_SECRET from the cloud secret manager}
   RESUME_ENC_KEY: ${RESUME_ENC_KEY:?set RESUME_ENC_KEY from the cloud secret manager}
   RESUME_HASH_SECRET: ${RESUME_HASH_SECRET:?set RESUME_HASH_SECRET from the cloud secret manager}
-  # OCR has no typed MODEL-OP-01 binding yet. Keep the direct API feature
-  # disabled; native provider credentials are worker-only below.
+  # Preview OCR is locked here: NODE_ENV=production + enforce refuse even if
+  # an operator sets OCR_ENABLED/OCR_PREVIEW. Defaults stay 0.
   OCR_ENABLED: ${OCR_ENABLED:-0}
+  OCR_PREVIEW: ${OCR_PREVIEW:-0}
   # Startup rejects values outside 1,000–120,000ms and rejects a transport
   # deadline greater than the gateway deadline.
   MODEL_TIMEOUT_MS: ${MODEL_TIMEOUT_MS:-30000}

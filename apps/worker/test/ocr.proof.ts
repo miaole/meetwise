@@ -8,8 +8,14 @@ import {
   assertIsolatedTestTarget, createPool, asPrincipal, reserveEntitlement, availableUnits,
   persistResumeOcrArtifact, decryptResumeOcrArtifact, deleteResumeOcrArtifact,
 } from '@meetwise/db';
+import { createHash } from 'node:crypto';
 import { visionOcr, scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { ingestResume } from '@meetwise/domain';
+
+const ocrKeyForDataUri = (imageUrl: string) => {
+  const payload = Buffer.from(imageUrl.slice(imageUrl.indexOf(',') + 1), 'base64');
+  return `ocr:${createHash('sha256').update(payload).digest('hex')}`;
+};
 
 const pool = createPool();
 let fail = 0;
@@ -31,17 +37,24 @@ async function main() {
 
   // ── 成功路径：reserve → 视觉转写 → confirm，按次落账 1 笔 ──
   const before = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));
-  const key = 'ocr:hashAAA';
+  const okUri = 'data:image/png;base64,AAAA';
+  const key = ocrKeyForDataUri(okUri);
   await asPrincipal(pool, OWNER, async (c) => {
     const rv = await reserveEntitlement(c, OWNER, key, 'ocr', 1);
     A('④ OCR reserve 成功(非 duplicate)', rv.status === 'reserved');
   });
-  const first = await visionOcr(okVision, pool, OWNER, 'data:image/png;base64,AAAA', key, {
+  const first = await visionOcr(okVision, pool, OWNER, okUri, key, {
     persistValidatedText: (c, text) => persistResumeOcrArtifact(c, OWNER, key, text),
   });
   if (!first.ok) throw new Error('vision should succeed');
   const text = first.text;
   A('④ 视觉转写返回原文(含待脱敏的 PII)', text === OCR_TEXT);
+  A('MODEL-OP-01 成功转写携带密封 provenance（operation/profile/model，无原文）',
+    first.ok === true
+    && first.provenance.operationId === 'resume.ocr.v1'
+    && first.provenance.modelOrRecipe === 'vision-ocr'
+    && first.provenance.endpointProfileId === 'dashscope-cn-beijing'
+    && !('text' in first.provenance));
   const rawArtifact = await asPrincipal(pool, OWNER, (c) => c.query(
     "SELECT encode(ciphertext,'hex') AS ciphertext,key_version FROM resume_ocr_artifact WHERE owner_user_id=$1 AND idempotency_key=$2",
     [OWNER, key],
@@ -65,11 +78,12 @@ async function main() {
   A('⑧ trace.output 不含转写全文/手机号(PII 不入 trace)', !tr.rows[0].o.includes('13800138000') && !tr.rows[0].o.includes('字节跳动'));
 
   // ── 失败路径：视觉转写失败 → release，权益全退,不扣 ──
-  const key2 = 'ocr:hashBBB';
+  const failUri = 'data:image/png;base64,BBBB';
+  const key2 = ocrKeyForDataUri(failUri);
   await asPrincipal(pool, OWNER, async (c) => {
     await reserveEntitlement(c, OWNER, key2, 'ocr', 1);
   });
-  const r = await visionOcr(failVision, pool, OWNER, 'data:image/png;base64,BBBB', key2);
+  const r = await visionOcr(failVision, pool, OWNER, failUri, key2);
   A('失败：视觉转写返回 !ok', !r.ok);
   const rel = await asPrincipal(pool, OWNER, async (c) => {
     const { releaseConsumption } = await import('@meetwise/db');

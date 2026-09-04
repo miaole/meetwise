@@ -76,7 +76,7 @@ export {
   decryptResumeBlob, decryptActiveResumeBlob, contentDigest, RESUME_KEY_VERSION,
   persistResumeOcrArtifact, decryptResumeOcrArtifact, deleteResumeOcrArtifact,
 } from './resume.ts';
-export type { ResumeStatus, IngestedProfile } from './resume.ts';
+export type { ResumeStatus, IngestedProfile, ResumeSourceKind, ResumeOcrBindingSnapshot } from './resume.ts';
 
 // report job ops（报告子图舱壁：持久 job + 状态机 + 租约 + 重试）
 export {

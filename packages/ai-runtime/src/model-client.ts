@@ -253,6 +253,8 @@ export function openAICompatibleClient(cfg: {
   backup?: boolean;
   /** Resolve from the controlled vision profile (专用 DASHSCOPE_VISION_API_KEY) instead of the text primary. */
   vision?: boolean;
+  /** Optional env snapshot for vision profile resolution. Text profiles stay on process.env. */
+  env?: NodeJS.ProcessEnv;
 } = {}): ModelClient {
   // cfg.baseUrl/apiKey 是测试专用 transport override 缝（对齐原生适配器）。生产/开发一律
   // 拒绝，避免文本路由退化成「任意 endpoint」直发客户端（BAILIAN-04 主违例面）。
@@ -260,7 +262,7 @@ export function openAICompatibleClient(cfg: {
   rejectTextTransportOverride(cfg.apiKey);
   // endpoint/key 从版本化 profile 注册表解析成精确 https host/path；旧自由 URL 注入面已被注册表拒绝。
   const resolved = cfg.backup === true ? resolveTextBackupEndpointConfig()
-    : cfg.vision === true ? resolveVisionEndpointConfig()
+    : cfg.vision === true ? resolveVisionEndpointConfig(cfg.env ?? process.env)
     : resolveTextEndpointConfig();
   const baseUrl = cfg.baseUrl ?? resolved.baseUrl;
   const apiKey = cfg.apiKey ?? resolved.apiKey;

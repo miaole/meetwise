@@ -39,8 +39,24 @@ export interface IngestedProfile {
 }
 
 /** 上传：建 resume（幂等去重 by content_sha）+ 落**加密**原文 blob。返回是否去重命中。 */
+export type ResumeSourceKind = 'text' | 'pdf' | 'image';
+
+/** MODEL-OP-01 密封 OCR 快照（无原文/Key）。形状由迁移 0127 CHECK 与 domain parseSealedOcrProvenance 共同收口。 */
+export type ResumeOcrBindingSnapshot = {
+  operationId: string;
+  registryVersion: string;
+  inputKind: string;
+  capability: string;
+  endpointProfileId: string;
+  region: string;
+  modelOrRecipe: string;
+  admissionKey: string;
+  mediaDigest: string;
+  wired: boolean;
+};
+
 export async function createResumeWithBlob(
-  c: Client, owner: string, plaintext: string, sourceKind: 'text' | 'pdf' = 'text',
+  c: Client, owner: string, plaintext: string, sourceKind: ResumeSourceKind = 'text',
 ): Promise<{ resumeId: string; dedup: boolean }> {
   const digest = contentDigest(plaintext);                                  // HMAC,非裸 sha（防确认预言机）
   const ins = await c.query(
@@ -76,6 +92,7 @@ export async function transitionResume(
 /** 持久化结构化 profile：只落脱敏文本 + PII **计数**摘要（连掩码值都不存）。幂等（ON CONFLICT DO NOTHING,重试安全）。 */
 export async function persistResumeProfile(
   c: Client, owner: string, resumeId: string, p: IngestedProfile, status: 'ok' | 'needs_review' | 'rejected' = 'ok',
+  ocrBinding: ResumeOcrBindingSnapshot | null = null,
 ): Promise<void> {
   const structured = { experience: p.experience, skills: p.skills, facts: p.facts }; // ingestResume 已 stripPii
   const piiSummary = p.pii.reduce<Record<string, number>>((m, x) => { m[x.field] = (m[x.field] ?? 0) + 1; return m; }, {});
@@ -90,9 +107,9 @@ export async function persistResumeProfile(
   await c.query(`SAVEPOINT ${savepoint}`);
   try {
     await c.query(
-      `INSERT INTO resume_profile(resume_id, owner_user_id, structured, pii_summary, blocked_count, status)
-       VALUES ($1,$2,$3,$4,$5,$6)`,
-      [resumeId, owner, JSON.stringify(structured), JSON.stringify(piiSummary), p.blocked.length, status],
+      `INSERT INTO resume_profile(resume_id, owner_user_id, structured, pii_summary, blocked_count, status, ocr_binding)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      [resumeId, owner, JSON.stringify(structured), JSON.stringify(piiSummary), p.blocked.length, status, ocrBinding ? JSON.stringify(ocrBinding) : null],
     );
   } catch (error: any) {
     if (error?.code !== '23505') {
@@ -107,8 +124,9 @@ export async function persistResumeProfile(
 /** 原子完成摄取：**同一事务**里落 profile + CAS ingesting→ingested。杜绝"profile 已落但状态卡 ingesting"的非原子缝（审计 P1-6）。 */
 export async function completeIngestion(
   c: Client, owner: string, resumeId: string, p: IngestedProfile, status: 'ok' | 'needs_review' | 'rejected' = 'ok',
+  ocrBinding: ResumeOcrBindingSnapshot | null = null,
 ): Promise<boolean> {
-  await persistResumeProfile(c, owner, resumeId, p, status);
+  await persistResumeProfile(c, owner, resumeId, p, status, ocrBinding);
   return transitionResume(c, owner, resumeId, 'ingesting', 'ingested');
 }
 

@@ -400,6 +400,16 @@ export type { CompressionDeletionSink } from './ctx06-deletion-closure.ts';
 export { MEMORY_VECTOR_CHUNK_DELETION_SINKS } from './memory-vector-chunk-deletion.ts';
 export type { MemoryVectorChunkDeletionSink } from './memory-vector-chunk-deletion.ts';
 
+// MODEL-OP-01 窄切片：面试只消费密封 OCR provenance，禁止图内临时视觉/LLM 转写。
+export {
+  SEALED_OCR_OPERATION_ID, SEALED_OCR_REGISTRY_VERSION, SEALED_OCR_INPUT_KIND, SEALED_OCR_CAPABILITY,
+  SEALED_OCR_ENDPOINT_PROFILE_ID, SEALED_OCR_REGION, SEALED_OCR_MODEL_OR_RECIPE, SEALED_OCR_ADMISSION_KEY,
+  RESUME_SOURCE_KINDS, parseSealedOcrProvenance, admitInterviewResume, refuseInterviewAdHocOcr,
+} from './sealed-ocr-binding.ts';
+export type {
+  ResumeSourceKind, SealedOcrProvenance, InterviewResumeAdmitError, InterviewResumeAdmission,
+} from './sealed-ocr-binding.ts';
+
 // 生命周期触发策略（MEM-09）纯域原语：六触发器（事件落库/候选摘要/强制压缩/长期事实写入/
 // embedding 索引/recall）的「允许触发/必须先满足/不允许触发」显式 enum + 纯函数决策。复用
 // CTX-05 classifyCompressibleRange（边界判定）+ 镜像 CTX-02/CTX-05/MEM-13 显式 enum，不重实现

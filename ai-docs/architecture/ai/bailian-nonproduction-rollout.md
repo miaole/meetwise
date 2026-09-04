@@ -36,7 +36,7 @@ related:
 | 文本备用（仅 Worker） | `MODEL_BACKUP_*`、`MODEL_FAST_BACKUP_*` | 目标为 Qwen `qwen-plus` / `qwen-turbo`。仅主端点在派发前已知不可用时才可选择；主备价格策略不同的 half-open 自动切换尚未实现，不得称为完整高可用。 |
 | 文本成本 | `MODEL_PRIMARY_*`、`MODEL_FAST_*`、`MODEL_BACKUP_*`、`MODEL_FAST_BACKUP_*`、`MODEL_COST_*` | 四个实际模型各需独立价格 revision、输入/输出单价和窗口；default/fast 是各自进程内 admission，不是共享总量。 |
 | embedding | `DASHSCOPE_API_KEY`、`DASHSCOPE_ENDPOINT_PROFILE`、`DASHSCOPE_WORKSPACE_ID`、`DASHSCOPE_EMBED_MODEL`、`RAG_EMBED_*` | 默认 `text-embedding-v4`；endpoint 固定由 profile registry 生成，有 generation/recipe 约束，但尚未进入统一 operation binding。 |
-| 视觉 OCR | `DASHSCOPE_VISION_MODEL` 加受控 OCR binding（未实现） | `MODEL-OP-01` 前所有环境均不得以用户图片/原始输出执行 OCR smoke；`OCR_ENABLED=1` 会拒绝 API 组合根，手动 `vl:smoke` 也固定 fail-closed、不会读取凭据/图片或发网。恢复前必须具备合成 fixture、脱敏回执和 typed binding。 |
+| 视觉 OCR | `DASHSCOPE_VISION_MODEL` + 冻结 `resume.ocr.v1` typed binding（`bindResumeOcr`） | typed binding 与密封 provenance 已落地；**预览双旗**可走通 API `visionOcr`（失败不编造）。**不得**把用户图片 smoke 标成发布证据或视觉 SLO。生产/enforce 仍拒绝组合根。手动 `vl:smoke` 固定 fail-closed、不读凭据/图片、不发网。媒体预算、删除与脱敏回执仍开放。 |
 | rerank | `DASHSCOPE_API_KEY`、`DASHSCOPE_RERANK_*` | 代码适配器存在，但未接入当前 QBank serving 路径；默认保持禁用。 |
 | 批量 ASR/TTS | `DASHSCOPE_API_KEY`、`DASHSCOPE_ASR_MODEL`、`DASHSCOPE_TTS_*` | 适配器与本地取消合同存在，但 API 组合根和手工 live smoke 已统一 disabled；尚无 operation binding、媒体预算、attempt 或删除回执。 |
 | 流式 ASR/TTS | `DASHSCOPE_API_KEY`、`DASHSCOPE_STREAM_*` | 适配器存在，但 API 组合根和手工 live smoke 已统一 disabled；未形成受控流会话或真实端到端证据。 |
@@ -69,7 +69,7 @@ related:
 | 固定文本 smoke / 普通文本 | `deepseek-v4-pro`（Qwen `qwen-plus` 为备用） | ☐ | 轮换后的主/备用 Key、模型/价格/窗口核对、`MODEL-OP-00` 和显式输出上限验证 | `not_run` 或确定性模板；不自动换 Key。 |
 | 快速文本分类 / 规划草稿 | `deepseek-v4-flash`（Qwen `qwen-turbo` 为备用） | ☐ | 主/备用模型均须通过能力与价格核对；规则优先、低置信降级 | 保守默认或请求补充信息。 |
 | embedding build/query | `text-embedding-v4` | ◐ | 已授权；recipe/维度/价格 revision 固定；generation 与缓存隔离测试 | 无 RAG；不混用向量空间。 |
-| 视觉 OCR | `qwen-vl-max` | ☐ | 当前所有环境 disabled；先完成 OCR typed binding、原生凭据/endpoint、删除、权益、图像页数和隐私验收 | 保留原文件/文字输入，不产生简历事实。 |
+| 视觉 OCR | `qwen-vl-max` | ◐ | typed binding 已落地；预览双旗可 invoke（非 SLO）。生产/enforce/公开只读预览仍 disabled。删除、图像页数预算、`BAILIAN-06` 合成 smoke 未做 | 失败不编造转写；无事实不落画像。 |
 | rerank | `gte-rerank-v2` | ◐ | 已授权；真实 serving 路径评测 + registry；当前运行时仍保持禁用 | 使用已授权的 dense/FTS/RRF 结果。 |
 | 批量 ASR | `qwen-audio-3.0-asr-flash` | ☐ | 现 API 默认 ASR 已 disabled；`qwen-audio-turbo-latest` 不能继续假定兼容文本 chat 协议。须先完成正确原生契约、音频时长、取消、费用与删除验收 | 文字输入。 |
 | 批量 TTS | `qwen-tts`（候选兜底 `qwen-audio-3.0-tts-flash`） | ☐ | API 与手工 smoke 均 disabled；下载边界、并发、取消、费用与删除验收后才可逐 operation 启用 | 文字展示。 |
@@ -87,7 +87,7 @@ related:
 | ID | 状态 | 必须完成的改动 | 验收 |
 | --- | :---: | --- | --- |
 | MODEL-OP-00 | blocked | 文本的输出上限/部分预算/价格绑定存在，但 `0085` 的更新围栏可被 direct `INSERT dispatching`、非法 terminal transition 与 identity tamper 绕过。 | 先完成完整 DB state-machine、原子 header upsert、reservation 精确 binding 与真实低权 runtime SQL 负测；此前所有 direct model expansion 停止。 |
-| MODEL-OP-01 | ☐ | 为文本、OCR、ASR、TTS、embedding、rerank、记忆派生建立类型化 operation binding；拒绝 raw prompt、供应商 URL 和未知字段。 | 所有直接适配器经 binding；越权/未登记/超限为零外呼。 |
+| MODEL-OP-01 | ◐ | OCR 窄切片：`resume.ocr.v1` typed binding + 密封 provenance + 面试 fail-closed。ASR/TTS/embedding/rerank 仍 unwired。 | OCR 未登记/缺 binding/URL 媒体外呼=0；不得把本切片写成整项关闭或视觉已启用。 |
 | MODEL-OP-02 | ☐ | 按账号、区域、模型/recipe、tenant/project、operation 建共享容量和费用准入。 | default/fast/API/Worker/语音/embedding 总量不因进程或 client 分裂而扩大。 |
 | MODEL-OP-03 | ☐ | registry 取代手写环境路由；为每个 operation 固定输入/输出/媒体/成本/fallback/unknown 语义。 | 未登记 adapter、endpoint、selector 或 signed download 在生产启动失败；rerank 只有通过真实 serving 评测才启用。 |
 
