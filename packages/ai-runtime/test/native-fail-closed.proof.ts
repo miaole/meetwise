@@ -52,12 +52,12 @@ async function main() {
     })) as typeof fetch;
     A('embedding non-JSON → embedder_malformed',
       await errorOf(() => dashscopeEmbedder({ dim: 2, baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: 'proof-embed-key' }).embed(['x'])) === 'embedder_malformed');
-    A('ASR non-JSON → asr_malformed',
-      await errorOf(() => dashscopeAsr({ baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: 'proof-asr-key', timeoutMs: 200 }).transcribe(new Uint8Array([1]), { format: 'wav' })) === 'asr_malformed');
+    A('ASR non-JSON → external_response_json_invalid (no invented transcript)',
+      await errorOf(() => dashscopeAsr({ baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: 'proof-asr-key', timeoutMs: 200 }).transcribe(new Uint8Array([1]), { format: 'wav' })) === 'external_response_json_invalid');
     A('rerank non-JSON → reranker_malformed',
       await errorOf(() => dashscopeReranker({ url: 'https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank', apiKey: 'proof-rerank-key' }).rerank('q', [{ id: 'one', text: 'doc' }], 1)) === 'reranker_malformed');
-    A('TTS non-JSON → tts_malformed',
-      await errorOf(() => dashscopeTts({ ttsUrl: 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', apiKey: 'proof-tts-key', timeoutMs: 200 }).synthesize('hi')) === 'tts_malformed');
+    A('TTS non-JSON → external_response_json_invalid (no invented audio)',
+      await errorOf(() => dashscopeTts({ ttsUrl: 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', apiKey: 'proof-tts-key', timeoutMs: 200 }).synthesize('hi')) === 'external_response_json_invalid');
 
     globalThis.fetch = (async (input: string | URL | Request) => {
       const url = String(input);

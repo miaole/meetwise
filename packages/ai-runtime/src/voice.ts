@@ -2,7 +2,7 @@ import { lookup as dnsLookup } from 'node:dns/promises';
 import { request as httpsRequest, type RequestOptions } from 'node:https';
 import type { ClientRequest, IncomingMessage } from 'node:http';
 import ipaddr from 'ipaddr.js';
-import { ExternalHttpStatusError, ExternalRequestAbortedError, ExternalRequestTimeoutError, ExternalResponseJsonError, fetchJsonWithTimeout } from './timeout.ts';
+import { ExternalHttpStatusError, ExternalRequestAbortedError, ExternalRequestTimeoutError, fetchJsonWithTimeout } from './timeout.ts';
 import { requireNonEmptyText } from './native-response-guard.ts';
 import { rejectDashscopeNativeTransportOverride, resolveDashscopeNativeConfig } from './dashscope-native-config.ts';
 
@@ -447,7 +447,6 @@ export function dashscopeAsr(cfg: { baseUrl?: string; apiKey?: string; model?: s
         // dependency failure in product metrics.
         if (error instanceof ExternalRequestAbortedError) throw new AsrAbortedError();
         if (error instanceof ExternalRequestTimeoutError) throw new AsrTimeoutError(timeoutMs);
-        if (error instanceof ExternalResponseJsonError) throw new Error('asr_malformed');
         if (error instanceof ExternalHttpStatusError) throw new Error('asr_http_' + error.status);
         if (error instanceof Error && error.message === 'asr_malformed') throw error;
         throw error;
@@ -486,7 +485,6 @@ export function dashscopeTts(cfg: { apiKey?: string; model?: string; voice?: str
         } catch (error: any) {
           if (error instanceof ExternalRequestAbortedError) throw ttsDownloadError('aborted');
           if (error instanceof ExternalRequestTimeoutError) throw ttsDownloadError('deadline_exceeded');
-          if (error instanceof ExternalResponseJsonError) throw new Error('tts_malformed');
           if (error instanceof ExternalHttpStatusError) throw new Error('tts_http_' + error.status);
           throw error;
         }
