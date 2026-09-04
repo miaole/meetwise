@@ -1,11 +1,22 @@
 ---
-name: honesty-rules
+id: skills_testing_honesty_rules
+name: 测试诚实规则
 description: 测试与文档的诚实边界：releaseEvidence、假服务、skip-as-pass、过期回执。
+type: skill
+scope: shared
+level: guide
+status: draft
+owner: qa
+version: 1
+related:
+  - ./sop.md
 ---
 
 # 诚实规则
 
-违反任一条，测试技能视为失败，即使命令退出码为 0。
+这是 [变更后 SOP](./sop.md) 的第 5 步。违反任一条，测试技能视为失败，即使命令退出码为 0。本目录 `status: draft` 时同样适用：draft 不能当跳过诚实边界的理由。默认 `pnpm regression` 绿了只证明 always-on 子集，不是发布证据，也不是矩阵「必须」列已跑完。
+
+`not_run:<reason>` 表示**没有发起**该命令。已经跑了 `--live` 却因缺 Key 非零退出，记 `blocked` / 失败，不要改写成 `not_run` 当通过。
 
 ## 禁止
 
@@ -17,6 +28,7 @@ description: 测试与文档的诚实边界：releaseEvidence、假服务、skip
 6. **把 planned / unmapped golden-task 标成 passed。** 登记文件里的 `status` 枚举见 `ai-docs/testing/golden-tasks/README.md`。
 7. **把 Playwright 说成当前 HTTP 全链路实现。** 浏览器层才是 Playwright；HTTP 层是 fetch/SSE。
 8. **把本机性能数字说成线上 SLO。**
+9. **把默认 `pnpm regression` 绿写成触达面必须列已完成、CI `verify` 通过或发布证据。**
 
 ## 允许
 

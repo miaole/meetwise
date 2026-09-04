@@ -16,7 +16,7 @@
 - `requirements/`：epic 与 iteration PRD。
 - `architecture/`：前端、后端、AI、DevOps、观测等长期架构。
 - `rules/`：长期稳定工程规则。
-- `skills/`：任务型工作方法。测试入口：`skills/testing/SKILL.md`。
+- `skills/`：任务型工作方法。测试概述：`skills/testing/SKILL.md`；变更后仪式：`skills/testing/sop.md`（draft）。
 - `testing/`：测试策略、`golden-tasks/` 登记、E2E 证据和评测。
 - `delivery/`：路线图、发布说明、复盘。
 - `observability/`：AI 运行、prompt 质量、graph 质量和成本观测。
@@ -28,5 +28,5 @@
 3. 当前任务对应的 `requirements/`
 4. 对应范围的 `architecture/`
 5. 对应范围的 `rules/`
-6. 必要时使用 `skills/`
+6. 功能改动后走 `skills/testing/sop.md`（draft）；其他技能按任务选用
 7. 最后补 `testing/` 与 `delivery/`

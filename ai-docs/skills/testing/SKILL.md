@@ -1,42 +1,48 @@
 ---
-name: meetwise-testing
-description: 功能改动后必须走完的审核→测试→回归。选择 unit/contract/prove/E2E，跑隔离门与（有 Key 时的）真供应商 E2E，并检查 AI 出处。禁止把本地绿写成发布证据。
+id: skills_testing_overview
+name: 测试技能概述
+description: 功能改动后必须先执行 sop.md 的审核→测试→回归。默认 pnpm regression 只是 always-on 子集。禁止把本地绿写成发布证据。
+type: skill
+scope: shared
+level: guide
+status: draft
+owner: qa
+version: 1
+related:
+  - ./sop.md
+  - ./post-change-review.md
+  - ./layer-selection.md
+  - ./run-gates.md
+  - ./regression-selection.md
+  - ./ai-provenance.md
+  - ./honesty-rules.md
+  - ../../testing/strategy/test-strategy.md
 ---
 
-# 测试技能 · 审核 → 测试 → 回归
+# 测试技能 · 概述
 
-**每做完一处功能改动，先读本文件，再写“已验证”。** 顺序不可跳：
+**状态：`draft`。** draft 只限制对外宣称流程已生产就绪，**不减免步骤**。必须先读完并逐步执行 [变更后 SOP](./sop.md)，不得只跑 `pnpm regression` 就写「已验证」。
 
-1. [变更审核](./post-change-review.md)
-2. [选测试层](./layer-selection.md)
-3. 按层跑命令：[门禁目录](./run-gates.md)
-4. 按触达面补回归：[回归矩阵](./regression-selection.md)
-5. 若改动碰到模型/评分/题面/报告：[出处检查](./ai-provenance.md)
-6. 写结论前对照：[诚实规则](./honesty-rules.md)
+子清单按 SOP 表格打开，不要在本页另开一套步骤：
 
-总入口命令：
+- [变更后审核](./post-change-review.md)
+- [选测试层](./layer-selection.md)
+- [门禁目录](./run-gates.md)
+- [回归矩阵](./regression-selection.md)
+- [出处检查](./ai-provenance.md)
+- [诚实规则](./honesty-rules.md)
+
+入口命令（与 [门禁目录](./run-gates.md) 同步；默认项**不是**触达面必须列）：
 
 ```bash
-pnpm regression          # 无 Key 也可跑的事后回归（文档 + helper + 回执/运行器证明）
-pnpm regression --core   # 再加行走骨架隔离门（需要 Docker / 临时 Postgres）
-pnpm regression --live   # 真供应商 HTTP E2E；缺 MODEL_API_KEY 必须非零退出。浏览器层需先 `pnpm -C apps/web build` 再 `pnpm e2e:ui:isolated`
+pnpm regression          # always-on：文档 + helper + 回执/运行器 + arch + api:smoke
+pnpm regression --core   # 再加行走骨架隔离门（需要 Docker / 临时 Postgres）；不是 interview/commerce 全集
+pnpm regression --live   # 仅真供应商 HTTP E2E；无 MODEL_API_KEY 不要跑（会非零）。浏览器层另见 SOP
 ```
 
-## 生成前门禁（本技能自身）
+## 改本技能时
 
-改测试配方、E2E harness 或 golden-tasks 时同样适用：
-
-| 字段 | 本轮结论 |
-| --- | --- |
-| 范围 | 测试技能、HTTP E2E helpers、golden-task 登记、策略文档对齐、`pnpm regression` |
-| 来源 | `test-strategy.md`、`test-authoring.md`、`e2e/full.e2e.ts`、`scripts/run-e2e.mjs`、CI `verify` / `nightly` |
-| 明确不做 | 不在无 Key 的 CI 里假绿 live E2E；不把 Playwright 写成 HTTP 全链路的唯一实现；不把 planned golden-task 标成已通过 |
-| 领域对象 | 无业务对象变更 |
-| 状态机 | 无 |
-| 契约 | 无 |
-| 数据库 | 无 schema 变更；隔离 E2E 仍走完整迁移 |
-| 测试计划 | `pnpm e2e-helpers:prove`、`pnpm e2e-receipt:prove`、`pnpm golden-tasks:check`、`pnpm docs:check`、`pnpm regression` |
-| 验证 | 上列命令；`pnpm e2e:isolated` 仅在有 `MODEL_API_KEY` 时 |
+改配方、E2E harness 或 golden-tasks 仍走 `AGENTS.md` 生成前门禁。升格 `active` 的条件只写在 [SOP](./sop.md)。
 
 ## 铁律（先读再跑）
 

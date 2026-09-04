@@ -1,11 +1,22 @@
 ---
-name: post-change-review
+id: skills_testing_post_change_review
+name: 变更后审核清单
 description: 功能 diff 落地后、跑测试前的审核清单。对应 AGENTS.md 的生成前门禁与伪验收禁令。
+type: skill
+scope: shared
+level: guide
+status: draft
+owner: qa
+version: 1
+related:
+  - ./sop.md
+  - ./layer-selection.md
+  - ./honesty-rules.md
 ---
 
 # 变更后审核清单
 
-在 `pnpm regression` 之前走完。任一项为“未查”则不得声称审核通过。
+这是 [变更后 SOP](./sop.md) 的第 1 步。任一项为“未查”则不得声称审核通过。勾完后进入 [选测试层](./layer-selection.md)，不要直接跑 `pnpm regression`。
 
 ## 1. 范围与来源
 

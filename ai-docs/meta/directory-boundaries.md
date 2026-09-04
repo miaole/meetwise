@@ -31,7 +31,7 @@ tags:
 | `requirements` | 这次具体做什么 | 长期工程规则 |
 | `architecture` | 技术上如何长期组织 | 本次任务 todo |
 | `rules` | 长期稳定约束是什么 | 一次性讨论 |
-| `skills` | 这类工作怎么做 | 产品定义 |
-| `testing` | 怎么验证 | 实现正文 |
+| `skills` | 这类工作怎么做。测试仪式在 `skills/testing/sop.md` | 产品定义、测试策略正文 |
+| `testing` | 怎么验证（策略、golden tasks、证据） | 实现正文、变更后操作步骤 |
 | `delivery` | 怎么发布和复盘 | 需求原文 |
 | `observability` | 怎么观察 AI 和系统质量 | 用户敏感数据 |

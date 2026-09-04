@@ -45,3 +45,7 @@
 - 验证命令或阻塞原因
 
 复杂任务按上述字段逐条产出门禁（本地门禁模板见 `.tmp/references/templates/task-harness.md`，不提交）。
+
+## 变更后测试仪式
+
+功能、契约、图、数据库或测试 harness 落地后、写「已验证」之前，必须逐步执行 `ai-docs/skills/testing/sop.md`（审核 → 选层 → always-on `pnpm regression` → 触达面必须列 → 出处 → 记录）。不得只跑 `pnpm regression`。`status: draft` 只限制宣称流程已生产就绪，不减免步骤。概述见 `ai-docs/skills/testing/SKILL.md`。

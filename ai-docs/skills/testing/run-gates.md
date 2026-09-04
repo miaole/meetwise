@@ -1,11 +1,23 @@
 ---
-name: run-gates
+id: skills_testing_run_gates
+name: 测试门禁目录
 description: 隔离 prove、HTTP E2E、浏览器 E2E、性能门的真实命令、依赖和失败语义。
+type: skill
+scope: shared
+level: guide
+status: draft
+owner: qa
+version: 1
+related:
+  - ./sop.md
+  - ./regression-selection.md
 ---
 
 # 怎么跑门禁
 
-所有会重建 schema 的命令必须走 `scripts/run-e2e-isolated.mjs`（临时 `meetwise-e2e-*` 容器）。不要对开发库跑这些目标。
+这是 [变更后 SOP](./sop.md) 第 3 步的命令真相。命令清单只维护在本文件；顺序与停步只维护在 SOP。所有会重建 schema 的命令必须走 `scripts/run-e2e-isolated.mjs`（临时 `meetwise-e2e-*` 容器）。不要对开发库跑这些目标。
+
+`package.json` 别名：`pnpm regression:core` = `pnpm regression --core`；`pnpm regression:live` = `pnpm regression --live`。只支持 `--core` / `--live`，其它 flag 会 `regression_unknown_flag`。
 
 ## 1. 无供应商 Key 的总是门
 
@@ -13,22 +25,17 @@ description: 隔离 prove、HTTP E2E、浏览器 E2E、性能门的真实命令�
 pnpm regression
 ```
 
-默认包含：`docs:check`、`golden-tasks:check`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`arch`、`api:smoke`。缺 Docker 不能假装隔离 prove 已跑。
+默认 **always-on**（`scripts/run-post-change-regression.mjs` 的 `ALWAYS_ON`）：`docs:check`、`golden-tasks:check`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`arch`、`api:smoke`。
 
-行走骨架（本地有 Docker 时）：
+这**不是** [回归矩阵](./regression-selection.md) 的「必须」列，也不含 `interview:prove` / `commerce:prove` 等业务 prove。缺 Docker 不能假装隔离 prove 已跑。
+
+行走骨架追加（本地有 Docker 时）：
 
 ```bash
 pnpm regression --core
-# 等价于依次：
-pnpm docs:check
-pnpm arch
-pnpm db:prove
-pnpm runtime:prove
-pnpm graph:prove
-pnpm pipeline:prove
-pnpm api:validate
-pnpm api:smoke
 ```
+
+`--core` 在 always-on **之后**再跑 `CORE`：`db:prove`、`runtime:prove`、`graph:prove`、`pipeline:prove`、`api:validate`。它仍不是业务 prove 全集。
 
 CI `verify` 比这更长，见 `.github/workflows/ci.yml`。合并阻断以 CI 列表为准，不要用本文件的短列表替代。
 

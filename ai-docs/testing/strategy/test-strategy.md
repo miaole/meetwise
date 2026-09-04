@@ -44,15 +44,9 @@ tags:
 
 ## 变更后回归入口
 
-功能改动后的审核 → 选层 → 跑门配方见 [`ai-docs/skills/testing/SKILL.md`](../../skills/testing/SKILL.md)。
+功能改动后的审核 → 测试 → 回归仪式见 [`skills/testing/sop.md`](../../skills/testing/sop.md)（`status: draft`）。概述见 [`skills/testing/SKILL.md`](../../skills/testing/SKILL.md)。命令与失败语义见 [`skills/testing/run-gates.md`](../../skills/testing/run-gates.md)。默认 `pnpm regression` 只是 always-on 子集，不是触达面必须列。
 
-```bash
-pnpm regression            # 无 Key 的总是门（文档 / helpers / 回执 / 架构 / api smoke）
-pnpm regression --core     # 行走骨架隔离 prove（需 Docker）
-pnpm regression --live     # 真供应商 HTTP E2E；缺 MODEL_API_KEY 非零退出。浏览器层另跑 e2e:ui:isolated（需先构建 web）
-```
-
-per-push CI 跑隔离 prove，**不**跑 `e2e:isolated`。缺 Key 时记录 `not_run`，禁止 skip-as-pass。
+per-push CI 跑隔离 prove，**不**跑 `e2e:isolated`。无 Key 时不要发起 live 命令，记录 `not_run`，禁止 skip-as-pass。
 
 ## AI Golden Tasks
 
