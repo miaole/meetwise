@@ -80,9 +80,9 @@ apps/web/
 | `/interviews` | RSC | 列表进度只渲染 `InterviewView` 账本字段，不另计 ScoreCard |
 | `/growth` | RSC | `totals.answered` 文案「累计已评分」，与 dashboard 已答题数不同源 |
 | `/resume` | RSC + 上传 client 岛 | 文本/PDF 常开。图片 OCR **仅预览**：RSC 读 `isOcrPreviewEnabled`（精确 `OCR_ENABLED=1` 且 `OCR_PREVIEW=1`，生产/enforce/公开预览锁定）再传给表单；关闭态 `accept` 不含图片，Server Action 本地拒绝。失败映射 API `{error}`，**不把 `text`/`transcript` 当成功转写**。API 预览 invoke 与 `0127` 已在 main。`releaseEvidence=false`，不是视觉质量 SLO。 |
-| `/recruiter/jobs` · `/recruiter/talent` | RSC | 招聘方岗位/人才库；评估栏忽略 score；行内「查看复核」 |
-| `/recruiter/how-it-works` | RSC | 面试官/招聘方人话说明：跟着问、服务端进度、可核对保护、评分诚实、分开记账、排队边界、检索权限。无写、无申请数据。 |
-| `/recruiter/jobs/[id]/applications/[applicationId]` | RSC | 只读申请复核。复用候选人列表投影；非法 id / 未命中 → `notFound`；列表失败 →「暂不可用」不猜 404。看不到面试内容，不提供数值评分。 |
+| `/recruiter/jobs` · `/recruiter/talent` | RSC | 招聘方岗位/人才库；评估栏忽略 score；行内「查看状态」。岗位读失败不得说成「还没有候选人」。 |
+| `/recruiter/how-it-works` | RSC | 面试官/招聘方人话说明。跟着问、服务端进度、可核对保护、评分诚实、分开记账是设计取舍；排队公平和检索生产 ACL 明确未交付。无写、无申请数据。 |
+| `/recruiter/jobs/[id]/applications/[applicationId]` | RSC | 只读申请状态。复用候选人列表投影；非法 id / 未命中 / 岗位不存在 → `notFound`；双边传输失败 →「暂不可用」。看不到面试内容，不提供数值评分，不是人工审核工单。 |
 
 ## 4. 路由设计：用嵌套路由，不要 URL-query 状态机
 

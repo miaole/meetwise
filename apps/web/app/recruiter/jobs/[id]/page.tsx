@@ -12,7 +12,7 @@ import { applicationStatusLabel, recruiterAssessmentLabel } from '@/lib/recruite
 
 const PAGE = 30;          // 单岗位候选人封顶首屏渲染,"加载更多"递增 ?limit
 
-export const metadata: Metadata = { title: '岗位候选人 · 招聘方 · 知面', description: '查看投递该岗位的候选人及其评估状态。' };
+export const metadata: Metadata = { title: '岗位候选人 · 招聘方 · 知面', description: '查看投递该岗位的候选人及其流程状态。' };
 
 interface Job { id: string; title: string; competencies: string[]; status: string }
 interface Candidate { id: string; candidate_user_id: string; status: string; score: number | null; source?: string }
@@ -42,7 +42,7 @@ export default async function RecruiterJobCandidatesPage({ params, searchParams 
           <h1 className="flex items-center gap-2 text-2xl font-bold"><Users className="size-6 text-primary" />{job?.title ?? '岗位候选人'}</h1>
           {job ? <InviteCandidateDialog jobId={id} /> : null}
         </div>
-        <p className="mt-1 text-muted-foreground">投递/受邀该岗位的候选人及其最小评估状态。点「查看复核」只打开流程状态；你看不到面试内容，也不提供数值评分。</p>
+        <p className="mt-1 text-muted-foreground">投递/受邀该岗位的候选人及其最小流程状态。点「查看状态」只打开流程状态；你看不到面试内容，也不提供数值评分。</p>
         {job?.competencies?.length ? (
           <div className="mt-3 flex flex-wrap gap-1">
             {job.competencies.map((s) => <Badge key={s} variant="outline">{s}</Badge>)}
@@ -51,10 +51,12 @@ export default async function RecruiterJobCandidatesPage({ params, searchParams 
       </div>
 
       <Card>
-        <CardHeader><CardTitle className="text-lg">候选人{candidates ? `（${candidates.length}）` : ''}</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg">候选人{job && candidates ? `（${candidates.length}）` : ''}</CardTitle></CardHeader>
         <CardContent>
-          {candidates === null ? (
-            <p className="text-sm text-muted-foreground">无候选人或加载失败</p>
+          {jobRes === null ? (
+            <p className="text-sm text-muted-foreground">岗位不存在、无权查看，或暂时读不到。不会把失败说成「还没有候选人」。</p>
+          ) : candidatesRes === null || candidates === null ? (
+            <p className="text-sm text-muted-foreground">候选人列表暂不可用，请稍后重试。失败不会改写申请状态。</p>
           ) : candidates.length === 0 ? (
             <p className="text-sm text-muted-foreground">还没有候选人投递这个岗位。</p>
           ) : (
@@ -66,7 +68,7 @@ export default async function RecruiterJobCandidatesPage({ params, searchParams 
                     <th className="py-2 pr-4 font-medium">来源</th>
                     <th className="py-2 pr-4 font-medium">状态</th>
                     <th className="py-2 font-medium">评估</th>
-                    <th className="py-2 font-medium">复核</th>
+                    <th className="py-2 font-medium">详情</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -79,7 +81,7 @@ export default async function RecruiterJobCandidatesPage({ params, searchParams 
                         <td className="py-3 pr-4"><Badge variant={st.variant}>{st.text}</Badge></td>
                         <td className="py-3 pr-4 text-muted-foreground">{recruiterAssessmentLabel(c.status, c.score)}</td>
                         <td className="py-3">
-                          <Link href={`/recruiter/jobs/${id}/applications/${c.id}`} className="text-primary hover:underline">查看复核</Link>
+                          <Link href={`/recruiter/jobs/${id}/applications/${c.id}`} className="text-primary hover:underline">查看状态</Link>
                         </td>
                       </tr>
                     );

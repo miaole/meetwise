@@ -33,11 +33,11 @@ export default async function RecruiterHowItWorksPage() {
       <Card>
         <CardContent className="space-y-2 p-4 text-sm leading-relaxed text-muted-foreground">
           <p>本页是产品内说明，不是已经部署的企业招聘系统，也不构成能力认证。</p>
-          <p>校准和人工复核工单还没开放。申请复核页只显示必要流程状态，看不到面试内容。</p>
+          <p>校准和人工复核工单还没开放。申请状态页只显示必要流程，看不到面试内容。</p>
           <p>
             去<Link href="/recruiter/jobs" className="text-primary hover:underline">岗位</Link>
             或<Link href="/recruiter/talent" className="text-primary hover:underline">人才库</Link>
-            查看投递；点「查看复核」只打开最小状态，不会出现数值排名。
+            查看投递；点「查看状态」只打开最小流程状态，不会出现数值排名，也不是人工审核后台。
           </p>
         </CardContent>
       </Card>

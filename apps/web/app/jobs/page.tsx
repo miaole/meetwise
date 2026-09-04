@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { applyAction, startApplicationAction, declineApplicationAction } from './actions';
 import { listWindow, withLimitHref } from '@/lib/paginate';
 import { resumeOptionLabel } from '@/lib/resume/display';
+import { applicationScoreVisible } from '@/lib/recruiter/surface';
 import { MyApplications, ResumeList, type ResumeRef as Resume } from '@meetwise/contracts';
 
 const PAGE = 20;          // 岗位广场可能很多:封顶首屏渲染,"加载更多"递增 ?limit
@@ -109,7 +110,8 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
             // `assessment_unavailable` 是无可信分数且已退款的可恢复终态；重试必须显式由
             // 用户发起，服务端会创建新的 attempt，不会复活或覆盖旧会话。
             const startable = app.status === 'invited' || app.status === 'in_progress' || app.status === 'assessment_unavailable';
-            // 申请 score 即使历史非空也不得渲染：B 端校准 hold 下它不是可比较评分。
+            // 申请 score 即使历史非空也不得渲染：校准 hold 下它不是可比较评分。
+            const showScore = applicationScoreVisible(app.score);
             return (
               <div key={app.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3">
                 <span className="text-sm font-medium">
@@ -117,6 +119,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                   {app.source === 'invited' && <Badge variant="secondary" className="ml-2 align-middle">招聘方邀请</Badge>}
                 </span>
                 <div className="flex items-center gap-2">
+                  {showScore ? <span className="text-sm text-muted-foreground">申请分暂不展示</span> : null}
                   <Badge variant={st.variant}>{st.text}</Badge>
                   {/* 岗位面试必须显式选择一份已摄取简历；服务端会把 resume/job/application 原子绑定到唯一会话。 */}
                   {startable && (

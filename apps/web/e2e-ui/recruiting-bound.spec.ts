@@ -121,15 +121,16 @@ test('C→B: real browser binds application to a new interview, completes it, an
   await expect(page.getByText(/面试完成 · 综合评分|报告暂不可用/)).toBeVisible({ timeout: 90_000 });
   await expect.poll(() => finalizeResponses.some((status) => status === 200), { timeout: 15_000 }).toBeTruthy();
 
-  // B 端刷新后只见流程状态，不见候选人的逐题内容或数值分；校准 hold 下终态是待人工复核。
+  // B 端刷新后只见流程状态，不见候选人的逐题内容或数值分；校准 hold 下必须是评分暂不可用，不能回退成已完成。
   await recruiter.reload();
-  await expect(recruiter.getByText(/待人工复核|已完成/).first()).toBeVisible({ timeout: 20_000 });
+  await expect(recruiter.getByText('评分暂不可用').first()).toBeVisible({ timeout: 20_000 });
+  await expect(recruiter.getByText('已完成')).toHaveCount(0);
   await expect(recruiter.getByText(/综合评分|我的回答|评分 \d+/)).toHaveCount(0);
-  const reviewLink = recruiter.getByRole('link', { name: '查看复核' }).first();
-  await expect(reviewLink).toBeVisible();
-  await reviewLink.click();
-  await expect(recruiter.getByRole('heading', { name: '申请复核' })).toBeVisible({ timeout: 20_000 });
+  const statusLink = recruiter.getByRole('link', { name: '查看状态' }).first();
+  await expect(statusLink).toBeVisible();
+  await statusLink.click();
+  await expect(recruiter.getByRole('heading', { name: '申请状态' })).toBeVisible({ timeout: 20_000 });
   await expect(recruiter.getByText(/看不到面试内容/)).toBeVisible();
-  await expect(recruiter.getByText(/综合评分|我的回答/)).toHaveCount(0);
+  await expect(recruiter.getByText(/综合评分|我的回答|已完成/)).toHaveCount(0);
   await recruiterContext.close();
 });

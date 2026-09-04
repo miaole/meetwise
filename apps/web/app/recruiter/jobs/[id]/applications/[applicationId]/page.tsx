@@ -13,7 +13,7 @@ import {
 } from '@/lib/recruiter/surface';
 
 export const metadata: Metadata = {
-  title: '申请复核 · 招聘方 · 知面',
+  title: '申请状态 · 招聘方 · 知面',
   description: '查看岗位申请的必要流程状态。不提供数值评分，也看不到面试内容。',
 };
 
@@ -21,10 +21,10 @@ interface Job { id: string; title: string; competencies: string[]; status: strin
 interface Candidate { id: string; candidate_user_id: string; status: string; score: number | null; source?: string }
 
 /**
- * B 端申请复核：只消费本岗位候选人列表里的最小投影。
- * 列表 API 已在查询边界把 score 置空；本页再忽略 score，避免历史字段回流。
+ * B 端申请状态：只消费本岗位候选人列表里的最小投影。
+ * 列表 API 已在查询边界把 score 置空；本页不把 score 传入评估文案，避免历史字段回流。
  */
-export default async function RecruiterApplicationReviewPage({
+export default async function RecruiterApplicationStatusPage({
   params,
 }: {
   params: Promise<{ id: string; applicationId: string }>;
@@ -38,7 +38,8 @@ export default async function RecruiterApplicationReviewPage({
     serverGet<{ candidates: Candidate[] }>(`/recruiter/jobs/${id}/candidates`),
   ]);
   const job = jobRes && 'job' in jobRes ? jobRes.job : (jobRes as Job | null);
-  if (jobRes === null || candidatesRes === null) {
+  // 两边都失败：分不清 404 和宕机，不能猜成「没有申请」。
+  if (jobRes === null && candidatesRes === null) {
     return (
       <div className="mx-auto max-w-3xl space-y-4">
         <p className="text-sm">
@@ -48,18 +49,35 @@ export default async function RecruiterApplicationReviewPage({
         </p>
         <Card>
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            申请复核暂不可用，请稍后重试。失败不会改写申请状态，也不会补一个分数。
+            申请状态暂不可用，请稍后重试。失败不会改写申请状态，也不会补一个分数。
           </CardContent>
         </Card>
       </div>
     );
   }
-  if (!job) notFound();
+  // 岗位读失败但列表有响应：按越权/不存在收口，不回 200 装成暂不可用。
+  if (jobRes === null || !job) notFound();
+  if (candidatesRes === null) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-4">
+        <p className="text-sm">
+          <Link href={`/recruiter/jobs/${id}`} className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="size-4" />返回岗位候选人
+          </Link>
+        </p>
+        <Card>
+          <CardContent className="py-10 text-center text-sm text-muted-foreground">
+            申请状态暂不可用，请稍后重试。失败不会改写申请状态，也不会补一个分数。
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   const application = findOwnedApplication(candidatesRes.candidates ?? [], applicationId);
   if (!application) notFound();
 
   const st = applicationStatusLabel(application.status);
-  const assessment = recruiterAssessmentLabel(application.status, application.score);
+  const assessment = recruiterAssessmentLabel(application.status);
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
@@ -71,10 +89,10 @@ export default async function RecruiterApplicationReviewPage({
 
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <ClipboardCheck className="size-6 text-primary" />申请复核
+          <ClipboardCheck className="size-6 text-primary" />申请状态
         </h1>
         <p className="mt-1 text-muted-foreground">
-          只显示必要流程状态。看不到面试内容，不提供数值评分，也不能自动拒绝或录用。
+          只显示必要流程状态。看不到面试内容，不提供数值评分，也没有人工审核工单，不能自动拒绝或录用。
         </p>
       </div>
 
@@ -115,7 +133,7 @@ export default async function RecruiterApplicationReviewPage({
       <Card>
         <CardContent className="space-y-2 p-4 text-sm leading-relaxed text-muted-foreground">
           <p>校准完成前，申请分数不会出现在这里。证据不够就不给分，也不会用 0 分凑数。</p>
-          <p>人工复核工单还没开放。「待人工复核」只表示流程停在需要人看的状态，不是已经有审核后台。</p>
+          <p>「评分暂不可用」表示没有可比较的校准分，不是已经有人在审、也不是 0 分。</p>
           <p>
             <Link href="/recruiter/how-it-works" className="text-primary hover:underline">怎么评估 · 完整说明</Link>
             {' · '}

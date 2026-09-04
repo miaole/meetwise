@@ -1,15 +1,16 @@
 /**
- * B 端招聘方表面：状态文案、申请复核查找、架构说明卡片。
+ * B 端招聘方表面：状态文案、申请状态查找、架构说明卡片。
  * 评分校准完成前，任何 application.score 都不得变成可见数字。
  */
 
-export const RECRUITER_APPLICATION_ID = /^app_[A-Za-z0-9-]+$/;
+export const RECRUITER_APPLICATION_MAX_LEN = 48;
+export const RECRUITER_APPLICATION_ID = /^app_[A-Za-z0-9-]{1,40}$/;
 
 export const APPLICATION_STATUS_LABEL: Record<string, { text: string; variant: 'success' | 'outline' | 'destructive' }> = {
   invited: { text: '已邀请', variant: 'outline' },
   in_progress: { text: '面试中', variant: 'outline' },
   completed: { text: '已完成', variant: 'success' },
-  assessment_unavailable: { text: '待人工复核', variant: 'outline' },
+  assessment_unavailable: { text: '评分暂不可用', variant: 'outline' },
   declined: { text: '已婉拒', variant: 'destructive' },
 };
 
@@ -19,7 +20,7 @@ export function applicationStatusLabel(status: string): { text: string; variant:
 
 /** 招聘方评估栏：只解释流程，永不把 score 当数字。 */
 export function recruiterAssessmentLabel(status: string, _score?: number | null): string {
-  if (status === 'assessment_unavailable') return '待人工复核';
+  if (status === 'assessment_unavailable') return '评分暂不可用';
   if (status === 'completed') return '流程已结束 · 不提供数值评分';
   if (status === 'in_progress') return '面试进行中 · 尚无评估结论';
   if (status === 'invited') return '尚未开始岗位面试';
@@ -33,7 +34,7 @@ export function applicationScoreVisible(_score: number | null | undefined): fals
 }
 
 export function isRecruiterApplicationId(id: string): boolean {
-  return RECRUITER_APPLICATION_ID.test(id);
+  return id.length <= RECRUITER_APPLICATION_MAX_LEN && RECRUITER_APPLICATION_ID.test(id);
 }
 
 export function findOwnedApplication<T extends { id: string }>(
@@ -63,7 +64,7 @@ export const RECRUITER_ARCHITECTURE_HIGHLIGHTS: readonly RecruiterArchitectureCa
   {
     id: 'adaptive',
     title: '下一题跟着回答走',
-    body: '不是把题单走完。候选人答到哪，下一问就从哪起。你看到的是这场岗位面试有没有走完，不是一套固定卷面。',
+    body: '不是把题单走完。候选人答到哪，下一问就从哪起。你看到的是这场岗位面试有没有走完，不是一套固定卷面，也不是一到两小时专家面试。',
   },
   {
     id: 'checkpoint',
@@ -87,13 +88,13 @@ export const RECRUITER_ARCHITECTURE_HIGHLIGHTS: readonly RecruiterArchitectureCa
   },
   {
     id: 'fairness',
-    title: '排队按申请分开领',
-    body: '后台按申请领取，目标是不让一家岗位把别人一直压在队头。当前仍有按账号串行处理的限制，不是高峰容量保证。',
+    title: '排队公平还没保证',
+    body: '目标是不让一家岗位把别人一直压在队头。当前仍按账号串行领取，不是高峰容量保证，也不能写成已经分开领完。',
   },
   {
     id: 'acl',
-    title: '检索只在授权范围内',
-    body: '出题用到的材料有权限边界。你看不到候选人自己的练习原文，也看不到别人岗位的材料。',
+    title: '练习原文不会摊开给你',
+    body: '岗位列表和状态页读不到候选人自己的练习原文，也读不到别人的岗位。题库检索权限的生产接线还没完成，不能当成企业材料隔离已经交付。',
   },
 ];
 

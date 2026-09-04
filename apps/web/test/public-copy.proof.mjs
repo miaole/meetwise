@@ -43,6 +43,7 @@ const quizAction = read('apps/web/app/quiz/actions.ts');
 const diagnosisAction = read('apps/web/app/diagnosis/actions.ts');
 const jobsAction = read('apps/web/app/jobs/actions.ts');
 const recruiterInvite = read('apps/web/components/InviteCandidateDialog.tsx');
+const recruiterInviteAction = read('apps/web/app/recruiter/jobs/actions.ts');
 const recruiterTalent = read('apps/web/app/recruiter/talent/page.tsx');
 const recruiterHow = read('apps/web/app/recruiter/how-it-works/page.tsx');
 const recruiterReview = read('apps/web/app/recruiter/jobs/[id]/applications/[applicationId]/page.tsx');
@@ -181,6 +182,35 @@ const checks = {
     requireText(poster, '非能力认证 · 不得用于招聘、资格或录用判断', 'downloadable poster');
     requireText(recruiterTalent, '不提供自动筛选、排名、拒绝或录用决定', 'recruiter talent page');
     forbid(features, ['CRAG', '自动触发再检索', '自主探索'], 'feature claims');
+    requireText(recruiterHow, '怎么评估', 'recruiter architecture page');
+    requireText(recruiterHighlights, '不构成能力认证', 'recruiter architecture highlights');
+    requireText(recruiterHighlights, '不提供自动筛选、排名、拒绝或录用决定', 'recruiter architecture highlights');
+    requireText(recruiterSurface, '下一题跟着回答走', 'recruiter architecture copy');
+    requireText(recruiterSurface, '进度写在服务端', 'recruiter architecture copy');
+    requireText(recruiterSurface, '关键保护可以核对', 'recruiter architecture copy');
+    requireText(recruiterSurface, '证据不够就不给分', 'recruiter architecture copy');
+    requireText(recruiterSurface, '两边分开记账', 'recruiter architecture copy');
+    requireText(recruiterSurface, '排队公平还没保证', 'recruiter architecture copy');
+    requireText(recruiterSurface, '不是高峰容量保证', 'recruiter architecture copy');
+    requireText(recruiterSurface, '练习原文不会摊开给你', 'recruiter architecture copy');
+    requireText(recruiterSurface, '生产接线还没完成', 'recruiter architecture copy');
+    requireText(recruiterSurface, '不会用 0 分凑数', 'recruiter architecture copy');
+    forbid(recruiterHow + recruiterHighlights + recruiterSurface, ['Grok', '生产级可靠', '自动录用已开放', '排队按申请分开领', '检索只在授权范围内'], 'recruiter architecture copy');
+    requireText(recruiterReview, '申请状态', 'recruiter application status page');
+    requireText(recruiterReview, '看不到面试内容', 'recruiter application status page');
+    requireText(recruiterReview, '不提供数值评分', 'recruiter application status page');
+    requireText(recruiterReview, '评分暂不可用', 'recruiter application status page');
+    requireText(recruiterReview, '没有人工审核工单', 'recruiter application status page');
+    forbid(recruiterReview, ['综合评分', '我的回答', '查看复核', '人工复核提示', 'application.score'], 'recruiter application status page');
+    forbid(recruiterInvite + recruiterInviteAction, ['人工复核提示'], 'recruiter invite surfaces');
+    requireText(recruiterInvite, '没有人工审核工单', 'recruiter invite dialog');
+    requireText(recruiterJobCandidates, '查看状态', 'recruiter job candidates');
+    requireText(recruiterJobCandidates, '不会把失败说成「还没有候选人」', 'recruiter job candidates');
+    requireText(recruiterTalent, '查看状态', 'recruiter talent page');
+    requireText(recruiterJobs, 'ArchitectureHighlights', 'recruiter jobs page');
+    requireText(candidateJobs, 'applicationScoreVisible', 'candidate applications consume the score gate');
+    forbid(candidateJobs, ['评分 {'], 'candidate applications must not render application.score');
+    forbid(recruiterJobCandidates + recruiterTalent + recruiterReview, ['评分 {', 'app.score}'], 'recruiter pages must not render application.score');
   },
   'TC-PUBLIC-COPY-E12': () => {
     forbid(`${features}\n${homeZh}\n${homeEn}`, ['预览版语音可在面试页'], 'features must not claim public-preview interview voice');
@@ -237,29 +267,6 @@ const checks = {
     forbid(pagesHtml, ['支付服务已开放', '完整删除已开放', 'OCR 已开放', '语音已开放'], 'Pages showcase');
     forbid(pagesHtml, ['承重件', '四张 LangGraph', 'AI 驱动'], 'Pages brochure tone');
     assert.equal(/https?:\/\/(?:\d{1,3}\.){3}\d{1,3}/.test(pagesHtml), false, 'Pages showcase must not embed a bare IP');
-  },
-  'TC-PUBLIC-COPY-E12': () => {
-    requireText(recruiterHow, '怎么评估', 'recruiter architecture page');
-    requireText(recruiterHighlights, '不构成能力认证', 'recruiter architecture highlights');
-    requireText(recruiterHighlights, '不提供自动筛选、排名、拒绝或录用决定', 'recruiter architecture highlights');
-    requireText(recruiterSurface, '下一题跟着回答走', 'recruiter architecture copy');
-    requireText(recruiterSurface, '进度写在服务端', 'recruiter architecture copy');
-    requireText(recruiterSurface, '关键保护可以核对', 'recruiter architecture copy');
-    requireText(recruiterSurface, '证据不够就不给分', 'recruiter architecture copy');
-    requireText(recruiterSurface, '两边分开记账', 'recruiter architecture copy');
-    requireText(recruiterSurface, '不是高峰容量保证', 'recruiter architecture copy');
-    requireText(recruiterSurface, '检索只在授权范围内', 'recruiter architecture copy');
-    requireText(recruiterSurface, '不会用 0 分凑数', 'recruiter architecture copy');
-    forbid(recruiterHow + recruiterHighlights + recruiterSurface, ['Grok', '生产级可靠', '自动录用已开放'], 'recruiter architecture copy');
-    requireText(recruiterReview, '看不到面试内容', 'recruiter review page');
-    requireText(recruiterReview, '不提供数值评分', 'recruiter review page');
-    requireText(recruiterReview, '待人工复核', 'recruiter review page');
-    forbid(recruiterReview, ['综合评分', '我的回答'], 'recruiter review page');
-    requireText(recruiterJobCandidates, '查看复核', 'recruiter job candidates');
-    requireText(recruiterTalent, '查看复核', 'recruiter talent page');
-    requireText(recruiterJobs, 'ArchitectureHighlights', 'recruiter jobs page');
-    forbid(candidateJobs, ['评分 {'], 'candidate applications must not render application.score');
-    forbid(recruiterJobCandidates + recruiterTalent + recruiterReview, ['评分 {'], 'recruiter pages must not render application.score');
   },
   'TC-PUBLIC-COPY-E10': () => {
     const retiredAssets = [

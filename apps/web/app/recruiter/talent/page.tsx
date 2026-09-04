@@ -39,7 +39,7 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
     { key: 'invited', label: '已邀请' },
     { key: 'in_progress', label: '面试中' },
     { key: 'completed', label: '已完成' },
-    { key: 'assessment_unavailable', label: '待人工复核' },
+    { key: 'assessment_unavailable', label: '评分暂不可用' },
     { key: 'declined', label: '已婉拒' },
   ];
   const hrefWith = (over: Record<string, string>) => {
@@ -57,7 +57,7 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
 
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold"><Database className="size-6 text-primary" />人才库</h1>
-        <p className="mt-1 text-muted-foreground">在经授权的岗位范围内查看候选人的必要流程状态。页面不展示面试内容或数值评分；不提供自动筛选、排名、拒绝或录用决定，任何判断都需人工复核。</p>
+        <p className="mt-1 text-muted-foreground">在经授权的岗位范围内查看候选人的必要流程状态。页面不展示面试内容或数值评分；不提供自动筛选、排名、拒绝或录用决定。校准完成前没有人工审核工单。</p>
       </div>
 
       <ArchitectureHighlights compact />
@@ -92,7 +92,7 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
                     <th className="py-2 pr-4 font-medium">来源</th>
                     <th className="py-2 pr-4 font-medium">状态</th>
                     <th className="py-2 font-medium">评估</th>
-                    <th className="py-2 font-medium">复核</th>
+                    <th className="py-2 font-medium">详情</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -108,7 +108,7 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
                         <td className="py-3 pr-4"><Badge variant={st.variant}>{st.text}</Badge></td>
                         <td className="py-3 pr-4 text-muted-foreground">{recruiterAssessmentLabel(t.status, t.score)}</td>
                         <td className="py-3">
-                          <Link href={`/recruiter/jobs/${t.job_id}/applications/${t.id}`} className="text-primary hover:underline">查看复核</Link>
+                          <Link href={`/recruiter/jobs/${t.job_id}/applications/${t.id}`} className="text-primary hover:underline">查看状态</Link>
                         </td>
                       </tr>
                     );

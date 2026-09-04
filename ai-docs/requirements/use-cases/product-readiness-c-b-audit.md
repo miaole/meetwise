@@ -127,7 +127,7 @@ start(applicationId, idempotencyKey)
 
 ### P0-CB-03：B 端没有可验证的浏览器闭环
 
-当前 B 端相关 UI 有岗位、人才库、人话说明页 `/recruiter/how-it-works` 与申请复核页；浏览器黄金路径规格在 `e2e-ui/recruiting-bound.spec.ts`（含回填后不见逐题内容、可见「查看复核」）。`recruiter:prove` 验证了数据库保护，`neg:bend` 验证了 HTTP 拒绝。本仓库仍不能把该规格或本地静态门禁当成已发布的浏览器闭环证据（`releaseEvidence=false`）。人工复核工单、企业租户和校准分数仍未接线。
+当前 B 端相关 UI 有岗位、人才库、人话说明页 `/recruiter/how-it-works` 与申请状态页；浏览器黄金路径规格在 `e2e-ui/recruiting-bound.spec.ts`（含回填后必须见「评分暂不可用」、不见「已完成」/逐题内容、可见「查看状态」）。`recruiter:prove` 验证了数据库保护，`neg:bend` 验证了 HTTP 拒绝。本仓库仍不能把该规格或本地静态门禁当成已发布的浏览器闭环证据（`releaseEvidence=false`）。人工复核工单、企业租户和校准分数仍未接线。
 
 **最低 E2E 合约（不得 mock 掉 API/DB）**：
 

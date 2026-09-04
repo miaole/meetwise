@@ -79,7 +79,7 @@ tags:
 | AI 编排 | `architecture/ai/langgraph-blueprint.md` | graph、state、checkpoint、eval |
 | 前端架构 | `architecture/frontend/` | 页面、组件、数据流、RSC 边界 |
 | C 端进度/已答题数 | `requirements/use-cases/cend-overview-progress.md` | 题目账本投影、与 ScoreCard 分责 |
-| B 端招聘方说明与申请复核 | `requirements/use-cases/bend-recruiter-architecture-surface.md` | 人话架构说明、只读复核、分数消费门 |
+| B 端招聘方说明与申请状态 | `requirements/use-cases/bend-recruiter-architecture-surface.md` | 人话架构说明、只读申请状态、分数消费门 |
 | 后端架构 | `architecture/backend/` | 模块、接口、DB、事务、队列 |
 | 后端高并发复核 | `architecture/backend/high-concurrency-review.md` | 五面接线、证明缺口、禁止把进程内 cap 写成集群锁 |
 | 面试答题双写/切换 | `architecture/backend/interview-answer-dual-write-cutover.md` | legacy 明文 job / event / ledger 盘点与 01 前互斥围栏（0126，不是 01 完成） |
