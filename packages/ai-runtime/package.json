@@ -13,6 +13,7 @@
     "prove:vstream": "tsx test/voice-stream.proof.ts",
     "prove:voice-reliability": "tsx test/voice-reliability.proof.ts",
     "prove:interview-voice-seams": "tsx test/interview-voice-seams.proof.ts",
+    "prove:voice-stream-preview": "tsx test/voice-stream-preview.proof.ts",
     "smoke:tts-download-live": "tsx scripts/tts-download-live-smoke.ts",
     "prove:metrics": "tsx test/metrics.proof.ts",
     "prove:tools": "tsx test/tools.proof.ts",

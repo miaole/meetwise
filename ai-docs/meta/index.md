@@ -36,6 +36,7 @@ tags:
 - `architecture/ai/full-format-rag-ingestion-and-chunking.md`：PDF/Office/图文/音视频的结构化摄取、切块、citation 回跳、题库关系与发布门。
 - `architecture/ai/human-review-design.md`：人工校验、申诉、审核授权、四眼与幂等副作用的当前边界和目标架构。
 - `architecture/ai/research-capability-gate.md`：面试 Agent 的 RAG、受限 Web/deep research 与内部 skills 实际能力边界。
+- `architecture/ai/voice-capability-boundary.md`：人机双向语音的当前边界；批量 ASR/TTS 预览接线；流式 ASR / 服务端 turn-taking 生产/默认 fail-closed，预览须精确双旗且不得编造转写。
 - `architecture/devops/local-demo-deployment.md`：Docker Compose 本地演示和部署策略。
 - `testing/strategy/test-strategy.md`：测试策略。
 - `testing/e2e-performance-evidence.md`：全量隔离 E2E、本地性能预算与外部检索基准的实跑证据。

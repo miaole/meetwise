@@ -1,23 +1,35 @@
 /**
- * 流式语音(刚需:电话面试低延迟 + 打断 barge-in)。把整句 ASR/TTS 升级为增量流。
- *  - StreamingAsr: 音频流 → 增量转写(partial…→final),边说边出字。
- *  - StreamingTts: 文本 → 音频块流,边合成边播(低延迟,不等整段)。
- *  - **barge-in**: 用户开口(VAD 触发)→ 打断正在播的 TTS(真人对话感)。
- * seam 可换:fake 用于 gate;dashscope 流式(qwen3-asr WebSocket / cosyvoice 流式)是生产实现(下一步接 WS)。
- * 内核不变:最终转写仍只是"答案",喂同一面试图——流式只是边缘 I/O 升级,modality-agnostic 不破。
+ * Streaming voice adapters and a fake-seam turn helper.
+ *
+ * Product composition never wires these live. `dashscopeStreamingAsr` /
+ * `dashscopeStreamingTts` require the OCR-style dual preview flags
+ * (`VOICE_STREAM_ASR_ENABLED=1` + `VOICE_STREAM_ASR_PREVIEW=1`) and refuse
+ * production / enforce / public-preview. A capability Key alone does not
+ * open a WebSocket. Fake helpers exist only for isolated proofs
+ * (`vstream:prove`); they are not browser→API→provider evidence.
+ * Failures must not invent a transcript. `releaseEvidence=false`.
  */
 import { rejectDashscopeNativeTransportOverride, resolveDashscopeNativeConfig } from './dashscope-native-config.ts';
+import { refuseVoiceStreamAsrUnlessPreview, STREAMING_ASR_NOT_CONFIGURED, STREAMING_TTS_NOT_CONFIGURED } from './voice-stream-preview.ts';
 import { VOICE_EGRESS_DISABLED_ID } from './voice.ts';
 
 export interface AsrEvent { text: string; final: boolean }
 export interface StreamingAsr { readonly id: string; transcribeStream(chunks: AsyncIterable<Uint8Array>, signal?: AbortSignal): AsyncIterable<AsrEvent> }
 export interface StreamingTts { readonly id: string; synthesizeStream(text: string, signal?: AbortSignal): AsyncIterable<Uint8Array> }
 
+/** A fail-closed streaming ASR seam for product composition roots. */
+export function disabledStreamingAsr(): StreamingAsr {
+  return Object.freeze({
+    id: VOICE_EGRESS_DISABLED_ID,
+    async *transcribeStream() { throw new Error(STREAMING_ASR_NOT_CONFIGURED); },
+  });
+}
+
 /** A fail-closed streaming TTS seam for product composition roots. */
 export function disabledStreamingTts(): StreamingTts {
   return Object.freeze({
     id: VOICE_EGRESS_DISABLED_ID,
-    async *synthesizeStream() { throw new Error('streaming_tts_not_configured'); },
+    async *synthesizeStream() { throw new Error(STREAMING_TTS_NOT_CONFIGURED); },
   });
 }
 
@@ -47,8 +59,9 @@ export function fakeStreamingTts(chunk = 5): StreamingTts {
 }
 
 /**
- * 真流式 ASR(DashScope 实时 WebSocket,已实测握手通)。协议:连接→run-task→task-started→流式发 PCM→result-generated(增量)→finish-task→task-finished。
- * 把 WS 事件桥成 async generator(边收边 yield),音频发送并发跑。
+ * DashScope realtime ASR adapter. Not product-wired: preview dual flags +
+ * not production-locked are required before any WebSocket. Isolated handshake
+ * notes are not browser→API→provider evidence or a production SLO.
  */
 export function dashscopeStreamingAsr(cfg: { apiKey?: string; url?: string; model?: string; sampleRate?: number } = {}): StreamingAsr {
   rejectDashscopeNativeTransportOverride(cfg.apiKey);
@@ -61,7 +74,8 @@ export function dashscopeStreamingAsr(cfg: { apiKey?: string; url?: string; mode
   return {
     id: model,
     async *transcribeStream(chunks, signal) {
-      if (!apiKey) throw new Error('streaming_asr_not_configured');
+      refuseVoiceStreamAsrUnlessPreview(process.env, STREAMING_ASR_NOT_CONFIGURED);
+      if (!apiKey) throw new Error(STREAMING_ASR_NOT_CONFIGURED);
       const ws = new WebSocket(url, { headers: { Authorization: 'bearer ' + apiKey } } as any);
       const queue: AsrEvent[] = [];
       let done = false, err: Error | null = null, notify: (() => void) | null = null;
@@ -98,8 +112,9 @@ export function dashscopeStreamingAsr(cfg: { apiKey?: string; url?: string; mode
   };
 }
 /**
- * 真流式 TTS(DashScope cosyvoice 实时 WebSocket,已实测出 25KB MP3)。协议:连接→run-task→task-started→continue-task(text)→finish-task;
- * 音频走**二进制帧**(result-generated 仅元数据)。边合成边吐音频块;signal abort 即停(支持 barge-in)。
+ * DashScope realtime TTS adapter. Same preview dual-flag + production lock
+ * as stream ASR. Not wired into interview composition. Isolated byte notes
+ * are not a production SLO or cancellation/deletion receipt.
  */
 export function dashscopeStreamingTts(cfg: { apiKey?: string; url?: string; model?: string; voice?: string; format?: string } = {}): StreamingTts {
   rejectDashscopeNativeTransportOverride(cfg.apiKey);
@@ -117,7 +132,8 @@ export function dashscopeStreamingTts(cfg: { apiKey?: string; url?: string; mode
   return {
     id: model,
     async *synthesizeStream(text, signal) {
-      if (!apiKey) throw new Error('streaming_tts_not_configured');
+      refuseVoiceStreamAsrUnlessPreview(process.env, STREAMING_TTS_NOT_CONFIGURED);
+      if (!apiKey) throw new Error(STREAMING_TTS_NOT_CONFIGURED);
       if (signal?.aborted) return;
       const ws = new WebSocket(url, { headers: { Authorization: 'bearer ' + apiKey } } as any);
       (ws as any).binaryType = 'arraybuffer';

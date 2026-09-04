@@ -24,6 +24,7 @@ const KEY_VARS = [
   'DASHSCOPE_EMBED_API_KEY', 'DASHSCOPE_RERANK_API_KEY',
   'DASHSCOPE_STREAM_ASR_API_KEY', 'DASHSCOPE_STREAM_TTS_API_KEY',
   'DASHSCOPE_API_KEY', 'DASHSCOPE_COMPAT_BASE_URL', 'DASHSCOPE_TTS_URL',
+  'VOICE_STREAM_ASR_ENABLED', 'VOICE_STREAM_ASR_PREVIEW',
 ] as const;
 
 async function main() {
@@ -48,6 +49,11 @@ async function main() {
     A('流式 TTS 预览仍关闭',
       closed.streamTts.id === VOICE_EGRESS_DISABLED_ID
       && await errorOf(() => closed.streamTts.synthesizeStream('x')[Symbol.asyncIterator]().next()) === 'streaming_tts_not_configured');
+    A('流式 ASR / 服务端 turn-taking 组合根始终关闭，不编造转写',
+      closed.streamAsr.id === VOICE_EGRESS_DISABLED_ID
+      && closed.streamAsrConfigured === false
+      && closed.turnTakingConfigured === false
+      && await errorOf(() => closed.streamAsr.transcribeStream((async function* () { yield new Uint8Array([1]); })())[Symbol.asyncIterator]().next()) === 'streaming_asr_not_configured');
 
     A('voice.asr.v1 / voice.tts.v1 已接线；流式与签名下载仍 not_wired',
       resolveModelOperation('voice.asr.v1', 'interview-voice-preview').ok === true
@@ -70,6 +76,18 @@ async function main() {
     const open = createInterviewVoiceSeams();
     A('能力 Key 存在且 operation wired → 组合根标记已配置',
       open.asrConfigured === true && open.ttsConfigured === true);
+    process.env.VOICE_STREAM_ASR_ENABLED = '1';
+    process.env.VOICE_STREAM_ASR_PREVIEW = '1';
+    process.env.DASHSCOPE_STREAM_ASR_API_KEY = 'preview-stream-asr-key';
+    const stillClosedStream = createInterviewVoiceSeams();
+    A('预览双旗 + 流式 Key 仍不把流式 ASR / turn-taking 接到组合根',
+      stillClosedStream.streamAsrConfigured === false
+      && stillClosedStream.turnTakingConfigured === false
+      && stillClosedStream.streamAsr.id === VOICE_EGRESS_DISABLED_ID
+      && fetches === 0);
+    delete process.env.VOICE_STREAM_ASR_ENABLED;
+    delete process.env.VOICE_STREAM_ASR_PREVIEW;
+    delete process.env.DASHSCOPE_STREAM_ASR_API_KEY;
     A('配置态在真正调用前仍零外呼（不预热、不伪造音频）', fetches === 0);
 
     globalThis.fetch = (async () => {

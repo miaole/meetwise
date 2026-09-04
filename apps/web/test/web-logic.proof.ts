@@ -21,6 +21,11 @@ import { interviewActionLabel, interviewDisplayStatus, interviewProgressLabel, i
 import { resumeOptionLabel, resumeStatusLabel } from '../lib/resume/display.ts';
 import { isOcrPreviewEnabled, isOcrPreviewRequested, isProductionOcrLocked } from '../lib/ocr-preview.ts';
 import {
+  isProductionVoiceStreamLocked,
+  isVoiceStreamAsrPreviewEnabled,
+  isVoiceStreamAsrPreviewRequested,
+} from '../lib/voice-stream-preview.ts';
+import {
   RESUME_OCR_PREVIEW_TIMEOUT_MS,
   isPreviewOcrImage,
   isResumeImageUpload,
@@ -650,6 +655,23 @@ async function main() {
     && mapResumeUploadAbort().ok === false
     && mapResumeUploadAbort().error === 'upload_timeout'
     && !mapResumeUploadAbort().message.includes('已识别'));
+
+  section('PRD-TEST-006 流式 ASR 预览旗：精确双旗、生产锁定、不发明转写入口');
+  const voicePreviewEnv = { VOICE_STREAM_ASR_ENABLED: '1', VOICE_STREAM_ASR_PREVIEW: '1' };
+  A('仅精确双旗 1+1 才请求流式 ASR 预览',
+    isVoiceStreamAsrPreviewRequested(voicePreviewEnv)
+    && !isVoiceStreamAsrPreviewRequested({ VOICE_STREAM_ASR_ENABLED: '1' })
+    && !isVoiceStreamAsrPreviewRequested({ VOICE_STREAM_ASR_ENABLED: 'true', VOICE_STREAM_ASR_PREVIEW: '1' })
+    && !isVoiceStreamAsrPreviewRequested({ VOICE_STREAM_ASR_ENABLED: '1', VOICE_STREAM_ASR_PREVIEW: 'true' })
+    && !isVoiceStreamAsrPreviewRequested({}));
+  A('生产 / enforce / 公开预览即使双旗也锁定流式 ASR',
+    isProductionVoiceStreamLocked({ NODE_ENV: 'production' })
+    && isProductionVoiceStreamLocked({ MODEL_COST_ENFORCEMENT: 'enforce' })
+    && isProductionVoiceStreamLocked({ MEETWISE_PUBLIC_PREVIEW: '1' })
+    && !isVoiceStreamAsrPreviewEnabled({ ...voicePreviewEnv, NODE_ENV: 'production' })
+    && !isVoiceStreamAsrPreviewEnabled({ ...voicePreviewEnv, MODEL_COST_ENFORCEMENT: 'enforce' })
+    && !isVoiceStreamAsrPreviewEnabled({ ...voicePreviewEnv, MEETWISE_PUBLIC_PREVIEW: '1' })
+    && isVoiceStreamAsrPreviewEnabled({ ...voicePreviewEnv, NODE_ENV: 'development', MEETWISE_PUBLIC_PREVIEW: '0' }));
 
   section('SIGNAL-SSE：session_concluded 非终态、不发明分、不改 phase');
   const signalPayload = '{"concludeReason":{"code":"early_weak","turn":4,"citedCompetencies":["并发"]}}';

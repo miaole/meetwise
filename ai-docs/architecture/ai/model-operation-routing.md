@@ -112,7 +112,7 @@ related:
 ## 6. 实施顺序与当前阻塞
 
 1. **MODEL-OP-00：止血。** 先以完整数据库状态机消除 invocation 直写绕过，再将总上下文/输出上限真实下传，启动时断言实际模型、价格版本与成本策略一致；以原子 upsert 的 canonical header、固定单 slot、冻结 reservation binding 和数据库围栏把每个逻辑节点的派发上限、attempt 与费用预留原子化。
-2. **MODEL-OP-01：统一入口。** OCR 窄切片 + **预览版**走通：`resume.ocr.v1` typed binding、密封 provenance（身份封印，非 host pin）、面试 fail-closed 授权门；预览双旗可 invoke。生产 `OCR_ENABLED`/`OCR_PREVIEW` 在 production+enforce 下仍关。ASR、TTS、embedding 与其余直连适配器仍待同一 binding/账本/未知语义。此步骤不声称已经实现唯一网关出口或视觉 SLO。
+2. **MODEL-OP-01：统一入口。** OCR 窄切片 + **预览版**走通：`resume.ocr.v1` typed binding、密封 provenance（身份封印，非 host pin）、面试 fail-closed 授权门；预览双旗可 invoke。生产 `OCR_ENABLED`/`OCR_PREVIEW` 在 production+enforce 下仍关。流式 ASR / 服务端 turn-taking 另有精确双旗 `VOICE_STREAM_ASR_ENABLED`+`VOICE_STREAM_ASR_PREVIEW`，生产/默认仍 fail-closed，双旗不是验证、不编造转写。ASR、TTS、embedding 与其余直连适配器仍待同一 binding/账本/未知语义。此步骤不声称已经实现唯一网关出口或视觉 SLO。
 3. **MODEL-OP-02：共享准入与观察。** 将所有能力接入按账号/区域/模型/租户/项目/操作的共享容量与费用视图，并暴露不含正文的观测。
 4. **MODEL-OP-03：registry 取代手工环境路由。** `invoke()` 和所有直接适配器只能解析已批准的 registry binding；rerank 保持禁用直至真实生产路径评测通过。
 5. **MODEL-OP-04：模型网关。** 仅在 `UC-MODEL-002` 的 outbox、授权快照、删除、流会话和网络隔离契约全部落地后，将供应商 Key 收敛为唯一网关持有者。

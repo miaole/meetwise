@@ -24,6 +24,7 @@ const requiredFiles = [
   "ai-docs/architecture/adr/0020-scorecard-authority-and-eligibility.md",
   "ai-docs/requirements/use-cases/interview-scoring-measurement.md",
   "ai-docs/architecture/ai/langgraph-blueprint.md",
+  "ai-docs/architecture/ai/voice-capability-boundary.md",
   "ai-docs/architecture/ai/privacy-deletion-sink-inventory.md",
   "ai-docs/requirements/use-cases/privacy-erasure-preview-path.md",
   "ai-docs/architecture/ai/agent-runtime.md",
@@ -65,6 +66,15 @@ const requiredTerms = new Map([
   ["ai-docs/architecture/adr/0020-scorecard-authority-and-eligibility.md", ["SCOR-00H", "practice_eligible", "insufficient_evidence"]],
   ["ai-docs/requirements/use-cases/interview-scoring-measurement.md", ["UC-SCOR-00H", "SCOR-00H", "insufficient_evidence", "releaseEvidence"]],
   ["ai-docs/architecture/ai/langgraph-blueprint.md", ["checkpoint", "thread_id"]],
+  ["ai-docs/architecture/ai/voice-capability-boundary.md", [
+    "VOICE_STREAM_ASR_ENABLED",
+    "VOICE_STREAM_ASR_PREVIEW",
+    "fail-closed",
+    "不编造转写",
+    "PRD-TEST-006",
+    "turn-taking",
+    "流式 ASR",
+  ]],
   ["ai-docs/architecture/ai/privacy-deletion-sink-inventory.md", ["memory_vector_chunk", "vector_chunk", "user_memory", "ai_invocation_trace", "fail-closed", "privacy_deletion_target", "erasure-preview", "预览版"]],
   ["ai-docs/requirements/use-cases/privacy-erasure-preview-path.md", ["预览版", "preview_incomplete", "productionSloClaimed", "Idempotency-Key"]],
   ["ai-docs/architecture/devops/local-demo-deployment.md", ["docker compose", "compose.demo.yml", "仅面试练习", "招聘不在本预览范围"]],
@@ -210,6 +220,11 @@ const runtimeTruthAssertions = [
     source: "apps/web/lib/recruiter/surface.ts",
     sourceTerm: "applicationScoreVisible",
     truthTerm: "/recruiter/how-it-works",
+  },
+  {
+    source: "packages/ai-runtime/src/voice-stream-preview.ts",
+    sourceTerm: "VOICE_STREAM_ASR_ENABLED",
+    truthTerm: "流式 ASR",
   },
 ];
 

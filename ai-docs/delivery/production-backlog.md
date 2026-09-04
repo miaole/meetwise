@@ -54,7 +54,7 @@ related:
 | 可观测三账本 + 三支柱 | ✅ 策略成文 `observability/observability-strategy.md`；**成本/token 埋点已接线**（`invoke`→`ai_invocation_trace.service/input_tokens/output_tokens/latency_ms`，migration 0011，自库即成本真相，Langfuse 为分析层）。剩余埋点（OTel metrics 导出/告警下钻）随功能续接 |
 | 安全/护栏纵深（输入分类→策略→输出审核→升级→审计；危机/over-refusal/AIGC 备案） | ✅ `rules/ai/safety-defense-in-depth.md` |
 | 题库生命周期（org 私有/裸题富化/版本 pin/采纳双签/PII 泛化） | ❌ `product/question-bank-lifecycle.md` |
-| 人↔AI 语音管线（ASR/TTS/turn-taking/endpointing/延迟/录音同意/B 端不打分） | 🟡 批量 ASR、普通/流式 TTS 与本地取消合同已接线；流式 ASR、服务端 turn-taking、真实抢话与浏览器→API→供应商 E2E 未验证。见 `architecture/ai/voice-capability-boundary.md` 与 `PRD-TEST-006`。 |
+| 人↔AI 语音管线（ASR/TTS/turn-taking/endpointing/延迟/录音同意/B 端不打分） | 🟡 批量 ASR、普通/流式 TTS 与本地取消合同已接线；流式 ASR、服务端 turn-taking、真实抢话与浏览器→API→供应商 E2E 未验证。生产/默认 fail-closed；预览须精确 `VOICE_STREAM_ASR_ENABLED=1`+`VOICE_STREAM_ASR_PREVIEW=1`，仍不接线 live stream、不编造转写。见 `architecture/ai/voice-capability-boundary.md` 与 `PRD-TEST-006`。 |
 | 自主研究 agent（异步/沙箱/有界预算/对抗核实/同意 gate） | ❌ `architecture/ai/research-agent.md` |
 | C 端 PI 同意 + 简历静态加密 + 删除级联 + 境外 egress 守卫 | 🟡 部分在 data-model，需机制化 |
 | 密钥治理 + 泄露 IR（Langfuse key 待轮换） | ❌ `rules/security/secrets-management.md` |

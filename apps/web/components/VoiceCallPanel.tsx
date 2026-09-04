@@ -89,7 +89,9 @@ const STATUS_LABEL: Record<CallStatus, string> = {
   report: '面试完成',
 };
 
-// 流式 TTS(cosyvoice MP3 + MSE)未经真机验证、"起播≠出声"风险高 → 默认关,走已验证的非流式 /speak。真机确认后改 true。
+// Streaming TTS (MSE) is not device-verified. Stream ASR / server turn-taking
+// stay closed even if VOICE_STREAM_ASR_* preview flags are set: those flags
+// do not invent a browser stream path or a transcript. Batch /speak + /transcribe only.
 const ENABLE_STREAMING_TTS = false;
 
 export function VoiceCallPanel({

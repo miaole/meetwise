@@ -41,7 +41,7 @@ async function main() {
   A('barge-in:TTS 被打断(没播完)', r2.ttsInterrupted === true);
   A('打断后仍正常识别用户答(对话不断)', r2.transcript === ANS);
 
-  console.log(`\n${fail === 0 ? '✓ 流式语音(全双工+低延迟+打断+不破内核)全部通过' : '✗ ' + fail + ' 失败'}`);
+  console.log(`\n${fail === 0 ? '✓ streamingVoiceTurn fake-seam contract passed (not product stream ASR / E2E)' : '✗ ' + fail + ' 失败'}`);
   process.exit(fail === 0 ? 0 : 1);
 }
 main();
