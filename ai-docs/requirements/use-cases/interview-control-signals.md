@@ -63,7 +63,7 @@ related:
   3. 若观察为 `weak` → `early_weak`；否则若 `thrashing` → `thrashing`（双真时 weak 优先）。
   4. 否则沿覆盖驱动政策（会话 abort、软预算上调、`coverage_met`/`all_resolved`、probe/pivot）。
   5. 否则沿既有 probe/pivot。图 `decide` 把 reason 写入 `concludeReason`（hook；worker/SSE/report 不读）。`clarify` 续问烧 turn、绕过 `decideNext`，不消费 weak/thrashing。
-- **备选流 Alternate：** 旧 checkpoint 缺 `recentScores` → `kind=none`，不提前终止（weak 也不按 turn/confidence 开火）。分数样本 `<2`（仅 clarify/unresolved、未 ingest）→ `none`。单能力 off-ramp / 一次弱答 / 单能力 hasHook 深挖 / 平稳换题仍 probe 或 pivot，不 conclude。两门均已探尽且观察为 weak 时仍 `all_resolved`。
+- **备选流 Alternate：** 旧 checkpoint 缺 `recentScores` → 观察 `kind=none`（不按缺轨迹开火；会话 abort 仍可独立 `early_weak`）。分数样本 `<2`（仅 clarify/unresolved、未 ingest）→ 观察 `none`。单能力 off-ramp / 一次弱答 / 单能力 hasHook 深挖 / 平稳换题仍 probe 或 pivot，不因本观察 conclude。两门均已探尽且观察为 weak 时轨迹信号先于 `all_resolved` → `early_weak`。
 - **异常流 Exception：**
   - **E1 重复：** 同一 mind 重放 `observeInterviewSignals` / `decideNext` 字节级相同（纯函数；缺幂等键会让“同输入不同输出”漏过）。
   - **E2 并发：** 本层无共享可变状态；20 次并行观察同一冻结 mind 结果全等。真实双 worker 仍靠 graph fence/CAS（本包不重实现）。
@@ -71,7 +71,7 @@ related:
   - **E4 失败回滚：** 本层不写账本；非法 mind（缺 competencies）fail-closed → `none`，不抛、不抬 maxTurns。
   - **E5 降级：** 缺轨迹字段、分数样本不足、或仅 clarify/unresolved 未 ingest → `none`。图级 `unscored`/identity-mismatch 走 `evaluate-answer` 直跳 conclude，不经本四 reason。
   - **E6 超时/断线：** 本层无 IO。恢复后只对账 checkpoint 里的 mind，不补造分数。
-- **后置 Postcondition：** 若经 `decideNext` conclude，reason 为四者之一；`maxTurns` 未被信号改写；无 band/等级写入；`concludeReason` 未被 worker/SSE/report 消费。
+- **后置 Postcondition：** 若经 `decideNext` conclude，reason 为 `ConcludeReason` 之一；`maxTurns` 未被信号改写；无 band/等级写入；`concludeReason` 未被 worker/SSE/report 消费。
 - **验收 Acceptance：**
   - 多能力持续弱且已过最小轮次且分数样本≥2 → `early_weak`，且仍有未探能力时也会停（不再为凑满清单继续问）。
   - 跨能力高/低分翻转≥3 且 `pivotCount≥3` 且无人 `confidence≥0.7` → `thrashing`。
@@ -87,10 +87,10 @@ related:
 
 | 类别 | TC | 必测断言 | 层 |
 | --- | --- | --- | --- |
-| 正 | `TC-INT-LEVEL-SIGNAL-01-main` | 两能力均弱且 `turn≥4` 且分数样本≥2 → `decideNext.reason=early_weak`；跨能力高/低翻转≥3 且 pivot≥3 且无人够强 → `early_thrashing`；双真 → `early_weak`。 | 单元+图（weak 装配图；thrashing 为 decideNode+域，自然 8 轮不作为装配图必达） |
+| 正 | `TC-INT-LEVEL-SIGNAL-01-main` | 两能力均弱且 `turn≥4` 且分数样本≥2 → `decideNext.reason=early_weak`；跨能力高/低翻转≥3 且 pivot≥3 且无人够强 → `thrashing`；双真 → `early_weak`。 | 单元+图（weak 装配图；thrashing 为 decideNode+域，自然满轮不作为装配图必达） |
 | 特 | `TC-INT-LEVEL-SIGNAL-01-S1` | 空清单/`turn=0`/缺 `recentScores`（含 turn≥4 已弱的旧 checkpoint）/CJK 能力名 → `none`；不改 `maxTurns`。 | 单元 |
 | 异 | `TC-INT-LEVEL-SIGNAL-01-E1` | 同一 mind 重放 3 次信号与 `decideNext` 结果 `JSON` 全等。 | 单元 |
-| 逃 | `TC-INT-LEVEL-SIGNAL-01-E3` | `turn>=maxTurns` 覆盖 weak/thrashing → 仍 `budget_exhausted`；`HARD_MAX` 不在本包改写。 | 单元+图 |
+| 逃 | `TC-INT-LEVEL-SIGNAL-01-E3` | `turn>=absoluteMaxTurns` 覆盖 weak/thrashing → 仍 `safety_ceiling`；信号不改写 `maxTurns`。 | 单元+图 |
 | 并 | `TC-INT-LEVEL-SIGNAL-01-E2` | 20 次并行观察同一冻结 mind，结果全等。 | 单元 |
-| 复 | `TC-INT-LEVEL-SIGNAL-01-M1` | 单能力连续低分仍 pivot（off-ramp），不 conclude；两门探尽且观察为 weak → 仍 `all_resolved`；够强路径亦 `all_resolved`。 | 单元 |
+| 复 | `TC-INT-LEVEL-SIGNAL-01-M1` | 单能力连续低分仍 pivot（off-ramp），不 conclude；两门探尽且观察为 weak → `early_weak`（轨迹信号先于 `all_resolved`）；够强路径仍 `all_resolved`。 | 单元 |
 | 刁 | `TC-INT-LEVEL-SIGNAL-01-T1` | 注入 `observedBand=senior`、年限、性别、学校、权重不改变信号；单能力 hasHook 深挖翻转不标 thrashing；平稳换题无翻转不标 thrashing；单题 100 分不单独终止；仅 clarify/unresolved 无 ingest → `none`；weak mind + clarify → 续问且 `concludeReason=null`。 | 单元+图 |

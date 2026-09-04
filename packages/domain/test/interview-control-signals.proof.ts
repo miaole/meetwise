@@ -33,9 +33,10 @@ function thrashMind(): InterviewMind {
 {
   A('enum 锁定 none/weak/thrashing（非布尔汤）',
     INTERVIEW_CONTROL_SIGNAL_KINDS.join(',') === 'none,weak,thrashing');
-  A('conclude reason 含 early_weak/early_thrashing，且保留预算与 all_resolved',
-    INTERVIEW_CONCLUDE_REASONS.includes('early_weak') && INTERVIEW_CONCLUDE_REASONS.includes('early_thrashing')
-    && INTERVIEW_CONCLUDE_REASONS.includes('budget_exhausted') && INTERVIEW_CONCLUDE_REASONS.includes('all_resolved'));
+  A('conclude reason 含 early_weak/thrashing，且保留预算、覆盖、杀开关与 all_resolved',
+    INTERVIEW_CONCLUDE_REASONS.includes('early_weak') && INTERVIEW_CONCLUDE_REASONS.includes('thrashing')
+    && INTERVIEW_CONCLUDE_REASONS.includes('budget_exhausted') && INTERVIEW_CONCLUDE_REASONS.includes('all_resolved')
+    && INTERVIEW_CONCLUDE_REASONS.includes('coverage_met') && INTERVIEW_CONCLUDE_REASONS.includes('safety_ceiling'));
 
   const w = weakAcross(['并发', '缓存', '可靠性']);
   const ws = observeInterviewSignals(w);
@@ -53,8 +54,8 @@ function thrashMind(): InterviewMind {
     ts.kind === 'thrashing' && ts.scoreFlips >= THRASH_MIN_FLIPS && ts.pivotCount >= 3
     && t.recentScores?.length === THRASH_MIN_SAMPLES
     && t.competencies.every((c) => c.confidence < SIGNAL_CONF_ENOUGH));
-  A('正: decideNext 消费 thrashing → early_thrashing',
-    ta.kind === 'conclude' && ta.reason === 'early_thrashing');
+  A('正: decideNext 消费 thrashing → thrashing',
+    ta.kind === 'conclude' && ta.reason === 'thrashing');
 
   const dual = {
     ...t,
@@ -86,9 +87,8 @@ function thrashMind(): InterviewMind {
     ...weakAcross(['并发', '缓存', '可靠性']),
     recentScores: undefined, recentDifficulties: undefined, pivotCount: undefined,
   };
-  A('特: 旧 checkpoint 即使 turn≥4 且两门已弱 → 仍 none（不按缺轨迹开火）',
-    legacyWeak.turn >= WEAK_MIN_TURNS && observeInterviewSignals(legacyWeak).kind === 'none'
-    && decideNext(legacyWeak).kind === 'ask');
+  A('特: 旧 checkpoint 即使 turn≥4 且两门已弱 → 观察仍 none（不按缺轨迹开火）',
+    legacyWeak.turn >= WEAK_MIN_TURNS && observeInterviewSignals(legacyWeak).kind === 'none');
   const cjk = weakAcross(['系统设计', '一致性哈希']);
   A('特: CJK 能力名同样可触发 weak', observeInterviewSignals(cjk).kind === 'weak');
   const before = cjk.maxTurns;
@@ -118,14 +118,15 @@ function thrashMind(): InterviewMind {
 
 /* ── 逃 TC-INT-LEVEL-SIGNAL-01-E3 ── */
 {
-  const w = weakAcross(['X', 'Y', 'Z'], 4);
-  A('逃: 构造后 turn 已达 maxTurns 且信号为 weak', w.turn >= w.maxTurns && observeInterviewSignals(w).kind === 'weak');
-  A('逃: turn>=maxTurns 覆盖 weak → 仍 budget_exhausted（预算先赢）',
-    decideNext(w).kind === 'conclude' && decideNext(w).reason === 'budget_exhausted');
-  const t = { ...thrashMind(), turn: 16, maxTurns: 16 };
-  A('逃: turn>=maxTurns 覆盖 thrashing → 仍 budget_exhausted',
+  const w = { ...weakAcross(['X', 'Y', 'Z'], 16), turn: 120, absoluteMaxTurns: 120 };
+  A('逃: 构造后 turn 已达绝对杀开关且信号为 weak',
+    w.turn >= w.absoluteMaxTurns && observeInterviewSignals(w).kind === 'weak');
+  A('逃: turn>=absoluteMaxTurns 覆盖 weak → 仍 safety_ceiling（杀开关先赢）',
+    decideNext(w).kind === 'conclude' && decideNext(w).reason === 'safety_ceiling');
+  const t = { ...thrashMind(), turn: 120, absoluteMaxTurns: 120 };
+  A('逃: turn>=absoluteMaxTurns 覆盖 thrashing → 仍 safety_ceiling',
     observeInterviewSignals(t).kind === 'thrashing'
-    && decideNext(t).kind === 'conclude' && decideNext(t).reason === 'budget_exhausted');
+    && decideNext(t).kind === 'conclude' && decideNext(t).reason === 'safety_ceiling');
   A('逃: 缺 competencies 的残缺 mind → none（fail-closed 不抛）',
     observeInterviewSignals({ turn: 4 } as never).kind === 'none');
 }
@@ -150,10 +151,10 @@ function thrashMind(): InterviewMind {
     && observeInterviewSignals(done).kind === 'none');
 
   const exhausted = weakAcross(['并发', '缓存']);
-  A('复: 两门均 off-ramp 探尽、观察仍为 weak → all_resolved（探尽优先于 early_*）',
+  A('复: 两门均 off-ramp 探尽、观察仍为 weak → early_weak（轨迹信号先于 all_resolved）',
     observeInterviewSignals(exhausted).kind === 'weak'
     && exhausted.competencies.every((c) => c.depthProbed >= 2)
-    && decideNext(exhausted).kind === 'conclude' && decideNext(exhausted).reason === 'all_resolved');
+    && decideNext(exhausted).kind === 'conclude' && decideNext(exhausted).reason === 'early_weak');
 }
 
 /* ── 刁 TC-INT-LEVEL-SIGNAL-01-T1 ── */
@@ -178,7 +179,7 @@ function thrashMind(): InterviewMind {
   A('刁: 单能力 hasHook 深挖高/低翻转不标 thrashing（无跨能力 pivot）',
     (hook.recentScores?.length ?? 0) >= 4 && observeInterviewSignals(hook).scoreFlips >= 3
     && observeInterviewSignals(hook).kind === 'none'
-    && decideNext(hook).kind === 'ask' && decideNext(hook).reason === undefined);
+    && decideNext(hook).kind === 'ask' && decideNext(hook).mode === 'probe');
   A('刁: hasHook 高分 confidence 封顶，不标 weak',
     (hook.competencies[0]?.confidence ?? 1) >= WEAK_CONFIDENCE_CEILING
     && (hook.competencies[0]?.confidence ?? 1) < SIGNAL_CONF_ENOUGH);
@@ -203,11 +204,10 @@ function thrashMind(): InterviewMind {
   skip = withCurrent(skip, 'N');
   skip = markClarify(skip);
   skip = markUnresolved(skip, 'N');
-  A('刁: 仅 clarify/unresolved 烧 turn≥4 且两门已探、无 ingest → none（不靠假分开火）',
+  A('刁: 仅 clarify/unresolved 烧 turn≥4 且两门已探、无 ingest → 观察 none（不靠假分开火）',
     skip.turn >= WEAK_MIN_TURNS && skip.competencies.filter((c) => c.depthProbed >= 1).length >= 2
-    && (skip.recentScores?.length ?? 0) === 0 && observeInterviewSignals(skip).kind === 'none'
-    && decideNext(skip).kind === 'ask');
+    && (skip.recentScores?.length ?? 0) === 0 && observeInterviewSignals(skip).kind === 'none');
 }
 
-console.log(`\n${fail === 0 ? '✓ INT-LEVEL 控制信号(weak/thrashing → decideNext，预算先赢，非等级)全部通过' : '✗ ' + fail + ' 失败'}`);
+console.log(`\n${fail === 0 ? '✓ INT-LEVEL 控制信号(weak/thrashing → decideNext，杀开关先赢，非等级)全部通过' : '✗ ' + fail + ' 失败'}`);
 process.exit(fail === 0 ? 0 : 1);

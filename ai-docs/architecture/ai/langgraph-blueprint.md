@@ -49,7 +49,7 @@ LangGraph 的持久化、checkpointer、event streaming、interrupt 和 subgraph
 | `InterviewTranscriptItem` / `InterviewAnswerArtifact` | checkpoint 允许工作态重放，SSE 允许重复和断线；二者均不保证用户可见原文、保留期或删除枚举。 | 加密原文只存在 canonical answer artifact；用户可见 item 只引用 canonical record；内部 prompt/CoT/tool payload 不进入 transcript。 |
 | `InterviewViewSnapshot` | 页面先后读 snapshot 和订阅 SSE 时会有竞态。 | 同一 RLS read transaction 固定 `highWatermark` 与可见 item；cursor 绑定 interview/watermark/privacy epoch，客户端只消费其后的 event tail，并按稳定 ID 去重。删除、撤权或 epoch 不符只能得到不可枚举 `fenced/invalid`。 |
 | `InterviewBlueprintSnapshot` | 图 state 不能承担可变岗位、题库和时长策略。 | 冻结 module/time/coverage/route/rubric/prompt/taxonomy 版本、最大题数和终止策略；开始后 job 编辑不改旧面试。 |
-| `CompetencyLevelAssessment` | 工作年限、单题分数和一个 overall score 都不能代表能力等级。 | 初始等级只是 hypothesis；按跨题、跨模块的 rubric evidence 上/下调，输出不确定性和覆盖缺口。当前代码只有 [控制信号 hook](../../requirements/use-cases/interview-control-signals.md)（`early_weak` / `early_thrashing`），**不是**本对象。 |
+| `CompetencyLevelAssessment` | 工作年限、单题分数和一个 overall score 都不能代表能力等级。 | 初始等级只是 hypothesis；按跨题、跨模块的 rubric evidence 上/下调，输出不确定性和覆盖缺口。当前代码只有 [控制信号 hook](../../requirements/use-cases/interview-control-signals.md)（`early_weak` / `thrashing`），**不是**本对象。 |
 
 目标长时图的确定性骨架如下；标有“边界复核”的步骤不是普通 LLM node，而是每次读取、外送和写入前都必须执行的授权/epoch/版本围栏。
 

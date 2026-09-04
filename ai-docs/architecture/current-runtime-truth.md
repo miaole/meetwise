@@ -215,8 +215,8 @@ plan → decide ──┬→ genQuestion → awaitAnswer(interrupt)
 | 证据命令/操作 | 已知结果 | 它证明什么；不证明什么 |
 | --- | --- | --- |
 | `pnpm --dir packages/ai-graphs run prove:adaptive-graph` | 通过 | 自适应图拓扑、interrupt/resume 和异常序列的本地合同；不证明云依赖。 |
-| `pnpm adaptive-signals:prove` | 本包本地证明 | 纯域 `observeInterviewSignals` + `decideNext` 消费 `early_weak` / `early_thrashing`；缺 `recentScores` 的旧 checkpoint fail-closed；分数样本不足不开 weak；thrashing 需 pivot+翻转同时成立；`budget_exhausted` / 探尽 `all_resolved` 覆盖信号；双真 weak 优先；注入 band/年限不改变信号。不证明能力等级、B 端 band、ScoreCard 或云路径。`releaseEvidence=false`。 |
-| `pnpm adaptive-signals-graph:prove` | 本包本地证明 | 图 `decide` 把 reason 写入 `concludeReason`（worker/SSE/report 不读）；weak mind + `clarify` 续问不伪造成 `early_*`；`HARD_MAX_TURNS` 仍为 8；装配图覆盖 `early_weak`。不证明 SSE/UI、动态时长、`INT-LEVEL-01` 或自然 8 轮必达 `early_thrashing`。`releaseEvidence=false`。 |
+| `pnpm adaptive-signals:prove` | 本包本地证明 | 纯域 `observeInterviewSignals` + `decideNext` 消费 `early_weak` / `thrashing`；缺 `recentScores` 的旧 checkpoint 观察 fail-closed；分数样本不足不开 weak；thrashing 需 pivot+翻转同时成立；`safety_ceiling` 先赢；轨迹 weak 先于 `all_resolved`；双真 weak 优先；注入 band/年限不改变信号。不证明能力等级、B 端 band、ScoreCard 或云路径。`releaseEvidence=false`。 |
+| `pnpm adaptive-signals-graph:prove` | 本包本地证明 | 图 `decide` 把 `DecisionProvenance` 写入 `concludeReason`（worker/SSE/report 不读）；weak mind + `clarify` 续问不伪造成 `early_*`；信号不抬 `maxTurns`、不冻结产品轮次上限；装配图覆盖 `early_weak`。不证明 SSE/UI、动态时长或 `INT-LEVEL-01`。`releaseEvidence=false`。 |
 | `pnpm checkpoint-role:prove` | 通过，跨 owner 读取/更新/删除为 0；普通 app_role（应用运行角色）不能撤回，受控测试操作员撤回后旧 epoch（栅栏世代）写入和重新 enrollment（登记）均被拒绝 | checkpoint RLS + thread/epoch 写入栅栏的本地隔离；不证明公开删除授权、历史内容已物理擦除或外部传播。 |
 | `pnpm runtime:isolated:prove` | 通过，37 个隔离 PostgreSQL（关系型数据库）断言，其中 7 个为执行时限/迟到成功/prepare（预派发准备）/非法等待预算回归 | 永不收口的已派发模型调用在 35–40 毫秒测试预算内变为 `unknown/model_execution_timeout`；同幂等键重放与双并发均只派发一次，AbortSignal 会被触发，迟到成功不能写工件或 trace；不证明供应商已取消计费或账单对账。 |
 | `pnpm model-cost:isolated:prove` | 历史本地回执：11 个隔离 PostgreSQL（关系型数据库）断言、86 个迁移，`releaseEvidence=false` | 精确 price revision 预留、缺失/漂移价格拒绝、已派发超时的费用与调用一同为 `unknown`、RPM 准入超时零外呼/零预留。不同 policy 的半开 backup 尚未证明可安全重选；不证明供应商账单或跨副本共享限流。 |

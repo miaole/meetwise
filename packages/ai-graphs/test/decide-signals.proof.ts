@@ -1,4 +1,4 @@
-/** 图 decide hook：concludeReason 透传控制信号；预算先赢、信号不抬 maxTurns。pnpm adaptive-signals-graph:prove */
+/** 图 decide hook：concludeReason 透传控制信号；杀开关先赢、信号不抬 maxTurns。pnpm adaptive-signals-graph:prove */
 import { MemorySaver, Command } from '@langchain/langgraph';
 import { decideNext, initMind, ingestAssessment, withCurrent } from '@meetwise/domain';
 import { buildAdaptiveInterviewGraph, createEphemeralAnswerVault } from '../src/index.ts';
@@ -6,6 +6,14 @@ import { decideNode } from '../src/adaptive-interview/nodes/decide.ts';
 
 let fail = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
+const codeOf = (r: unknown): string | null => {
+  if (r == null) return null;
+  if (typeof r === 'string') return r;
+  if (typeof r === 'object' && 'code' in r && typeof (r as { code: unknown }).code === 'string') {
+    return (r as { code: string }).code;
+  }
+  return null;
+};
 
 function weakMind() {
   let m = initMind([{ name: '并发' }, { name: '缓存' }, { name: '可靠性' }], 16);
@@ -21,8 +29,8 @@ function weakMind() {
   const mind = weakMind();
   A('域侧已是 early_weak（图 hook 的前置）', decideNext(mind).kind === 'conclude' && decideNext(mind).reason === 'early_weak');
   const out = decideNode({ mind, clarify: null } as any);
-  A('图 decide：weak → route=conclude 且 concludeReason=early_weak',
-    out.route === 'conclude' && out.concludeReason === 'early_weak');
+  A('图 decide：weak → route=conclude 且 concludeReason.code=early_weak',
+    out.route === 'conclude' && codeOf(out.concludeReason) === 'early_weak');
 }
 
 {
@@ -32,15 +40,15 @@ function weakMind() {
     m = ingestAssessment(m, name, s, ['翻'], true);
   }
   const out = decideNode({ mind: m, clarify: null } as any);
-  A('图 decide：thrashing → concludeReason=early_thrashing',
-    out.route === 'conclude' && out.concludeReason === 'early_thrashing');
+  A('图 decide：thrashing → concludeReason.code=thrashing',
+    out.route === 'conclude' && codeOf(out.concludeReason) === 'thrashing');
 }
 
 {
-  const mind = { ...weakMind(), turn: 8, maxTurns: 8 };
+  const mind = { ...weakMind(), turn: 120, absoluteMaxTurns: 120 };
   const out = decideNode({ mind, clarify: null } as any);
-  A('图 decide：预算覆盖信号 → concludeReason=budget_exhausted',
-    out.route === 'conclude' && out.concludeReason === 'budget_exhausted');
+  A('图 decide：绝对杀开关覆盖信号 → concludeReason.code=safety_ceiling',
+    out.route === 'conclude' && codeOf(out.concludeReason) === 'safety_ceiling');
 }
 
 {
@@ -61,6 +69,14 @@ function weakMind() {
     && out.concludeReason === null);
 }
 
+{
+  const clarify = { competency: '并发', question: 'Q', hint: 'h', sources: [], critique: [], qkind: 'grounded' as const };
+  const mind = { ...initMind(['并发'], 8, 4), turn: 4, absoluteMaxTurns: 4 };
+  const out = decideNode({ mind, clarify } as any);
+  A('图 decide：clarify 仅在绝对杀开关时收尾 → safety_ceiling',
+    out.route === 'conclude' && codeOf(out.concludeReason) === 'safety_ceiling');
+}
+
 async function hardMax() {
   const vault = createEphemeralAnswerVault();
   const g = buildAdaptiveInterviewGraph(new MemorySaver(), {
@@ -70,8 +86,10 @@ async function hardMax() {
     loadAnswer: vault.loadAnswer,
   });
   const res: any = await g.invoke({}, { configurable: { thread_id: 'signal-hard-max' } });
-  A('信号不抬预算：外部 maxTurns=999 仍被 plan 钳成有限值（本树现实现为 8；数值属时长策略，非 SIGNAL-01 产品硬顶）',
-    res.mind.maxTurns >= 1 && res.mind.maxTurns < 999 && res.mind.maxTurns === 8);
+  A('信号不抬预算：外部 maxTurns=999 仍被 plan 钳成有限值（夹到绝对杀开关，不是产品硬顶 8）',
+    res.mind.maxTurns >= 1 && res.mind.maxTurns < 999
+    && res.mind.maxTurns <= res.mind.absoluteMaxTurns
+    && res.mind.absoluteMaxTurns <= 180);
 }
 
 async function concludeReasonPersists() {
@@ -89,14 +107,14 @@ async function concludeReasonPersists() {
   while (res.__interrupt__ && guard++ < 20) {
     res = await g.invoke(new Command({ resume: vault.issue('我在项目里做了限流但讲不清取舍和回滚') }), cfg);
   }
-  A('装配图：持续弱答在预算内提前收尾且 concludeReason=early_weak',
-    res.concluded === true && res.concludeReason === 'early_weak' && res.mind.turn < res.mind.maxTurns && n >= 4);
+  A('装配图：持续弱答在软预算内提前收尾且 concludeReason.code=early_weak',
+    res.concluded === true && codeOf(res.concludeReason) === 'early_weak' && res.mind.turn < res.mind.maxTurns && n >= 4);
 }
 
 async function main() {
   await hardMax();
   await concludeReasonPersists();
-  console.log(`\n${fail === 0 ? '✓ 图 decide 控制信号 hook（concludeReason；预算先赢）全部通过' : '✗ ' + fail + ' 失败'}`);
+  console.log(`\n${fail === 0 ? '✓ 图 decide 控制信号 hook（concludeReason provenance；杀开关先赢）全部通过' : '✗ ' + fail + ' 失败'}`);
   process.exit(fail === 0 ? 0 : 1);
 }
 main().catch((e) => { console.error('✗', e?.message ?? e); process.exit(1); });
