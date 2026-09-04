@@ -56,15 +56,15 @@ per-push CI 跑隔离 prove，**不**跑 `e2e:isolated`。缺 Key 时记录 `not
 
 ## AI Golden Tasks
 
-第一批已登记在 [`testing/golden-tasks/README.md`](../golden-tasks/README.md)，状态为 `mapped` / `partial` / `planned`，**没有**“已通过”项。
+第一批已登记在 [`testing/golden-tasks/README.md`](../golden-tasks/README.md)，状态为 `mapped` / `partial` / `planned`，**没有**“已通过”项。`relatedCommands` 只表示附近有门，不是 covering。
 
 1. 前端开发岗位 + 有项目简历 -> 生成 8-12 个问题，包含项目深挖。`GT-01` **planned**。
-2. 回答过短 -> 报告应指出表达不足，而不是给高分。`GT-02` **partial**（`scoring-golden:prove`）。
+2. 回答过短 -> 报告应指出表达不足，而不是给高分。`GT-02` **partial**（夹具结构门 / 图 clarify；短答评分与报告文案未覆盖）。
 3. JD 要求 React/Next.js，简历缺 Next.js -> 能力差距必须出现 Next.js。`GT-03` **planned**。
-4. 用户回答“不会” -> 追问策略应转为引导，不应幻觉用户掌握。`GT-04` **partial**。
-5. 模型输出非法 JSON -> validator 拒绝；当前运行时派发后**不**自动重试。`GT-05` **mapped**（`runtime:prove`）。
+4. 用户回答“不会” -> 追问策略应转为引导，不应幻觉用户掌握。`GT-04` **partial**（夹具结构 / 图 clarify；生产 `relevant=false→0` 未覆盖）。
+5. 模型输出非法 JSON -> validator 拒绝；当前运行时派发后**不**自动重试。`GT-05` **partial**（`model-op00-usage-reconciler:prove` 覆盖 schema 失败；非法 JSON 文本走 unknown，`runtime:prove` 不断言本条）。
 6. 评分证据中的 quote 不属于本题答案 -> `unscored`，不得写入 0/50/99 等任何伪造分数。`GT-06` **mapped**（`scoring-integrity:prove`）。
-7. 同 turn 给出不同 answer -> 评分幂等键不同；同答案重放 -> 缓存且不重打模型。`GT-07` **partial**（`turn-idempotency:prove` 覆盖同答案重放）。
+7. 同 turn 给出不同 answer -> 评分幂等键不同；同答案重放 -> 缓存且不重打模型。`GT-07` **mapped**（`turn-idempotency:prove` / `neg:interview` / `scoring-integrity:prove`；无 HTTP→模型组合测）。
 8. 报告模型输出的 overall 与逐题 scores 不同、或 sections/段落重复 -> 拒绝；只允许服务端确定性聚合总分。`GT-08` **mapped**（`scoring-integrity:prove`）。
 
 评分官的真模型评测、置信区间、非 happy-path 桶和绝对分校准边界见 [评分评测与校准发布协议](./scoring-evaluation-protocol.md)。它明确区分“链路不伪造分数”的确定性 proof 与“模型评分有效”的统计证据；未完成双盲人标与公平性切片前，分数不得作为 B 端自动决策。

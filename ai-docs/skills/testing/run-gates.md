@@ -13,7 +13,7 @@ description: 隔离 prove、HTTP E2E、浏览器 E2E、性能门的真实命令�
 pnpm regression
 ```
 
-默认包含：`docs:check`、`golden-tasks:check`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`arch`、`api:smoke`。缺 Docker 不能假装隔离 prove 已跑。
+默认包含：`docs:check`、`golden-tasks:check`、`golden-tasks:prove`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`arch`、`api:smoke`。缺 Docker 不能假装隔离 prove 已跑。
 
 行走骨架（本地有 Docker 时）：
 
@@ -42,7 +42,12 @@ CI `verify` 比这更长，见 `.github/workflows/ci.yml`。合并阻断以 CI �
 | `pnpm commerce:prove` | 额度 FIFO / 并发不超卖 | 真实支付服务商 |
 | `pnpm resume:prove` | 加密、PII 剥离、注入门 | 真视觉 OCR 供应商 |
 | `pnpm scoring-integrity:prove` | quote 失败 → unscored；报告忽略模型 overall | 评分官校准 |
-| `pnpm turn-idempotency:prove` | 同答案 HTTP 重放只落一个 job | 不同答案的业务冲突策略全表 |
+| `pnpm turn-idempotency:prove` | 同答案 HTTP 重放只落一个 job | 评分层缓存 / 不重打模型 |
+| `pnpm neg:interview` | 同题不同 answer hash → 409，不覆盖 | 评分幂等键在 invoke 层的缓存 |
+| `pnpm adaptive-offtopic:prove` | 非作答 → clarify / pivot，不并入掌握分 | 报告文案「掌握 X」或引导话术质量 |
+| `pnpm model-op00-usage-reconciler:prove` | schema 失败 → `schema_validation_failed` | 供应商标量非法 JSON 文本（走 unknown） |
+| `pnpm golden-tasks:check` | 第一批登记诚实：status / 命令 / 文档对齐 | 被映射门本身已跑过 |
+| `pnpm golden-tasks:prove` | 负向夹具：假绿 status / planned 声称命令 / 文档漂移会失败 | 被映射门本身已跑过 |
 | `pnpm web:prove` | SSE 解码、契约客户端、`report_unavailable` 不转圈 | 真浏览器 |
 | `pnpm performance:e2e:isolated` | 本机 health/products/signup/resume 突发预算 | 线上容量 |
 

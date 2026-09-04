@@ -9,5 +9,5 @@ status: planned
 - **status**：`planned`。
 - **夹具（目标）**：JD 写明 React 与 Next.js；简历只有 React，无 Next.js。
 - **期望**：能力差距列表含 Next.js（或等价正式名），不得用“前端框架”含糊掉。
-- **当前**：无诊断/报告差距抽取门覆盖该 JD 对。
+- **相关但不覆盖**：`pnpm diagnosis:prove` 有 match 维度与 factuality，不抽取「JD 必会、简历没有」的技能缺口。
 - **禁止**：在提示词里写死 “must mention Next.js” 然后宣称评测通过。

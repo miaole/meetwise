@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "releaseEvidence": false,
   "batch": "strategy-first-eight",
   "source": "ai-docs/testing/strategy/test-strategy.md",
@@ -9,56 +9,174 @@
       "status": "planned",
       "title": "前端岗项目深挖出题",
       "doc": "ai-docs/testing/golden-tasks/GT-01-frontend-project-deep-dive.md",
-      "mappedCommands": []
+      "evidenceKind": "none",
+      "mappedCommands": [],
+      "covers": [],
+      "uncovered": [
+        "前端开发岗夹具生成 8–12 题",
+        "至少一题绑定简历项目事实",
+        "真模型出题质量（不得用 fake 固定 8 题冒充）"
+      ],
+      "relatedCommands": [
+        {
+          "command": "e2e:isolated",
+          "notCovered": "只断言至少 1 题到终态，不查题量或项目深挖"
+        },
+        {
+          "command": "interview:prove",
+          "notCovered": "自适应 consumer/ledger，不断言 8–12 或项目绑定"
+        },
+        {
+          "command": "quiz:prove",
+          "notCovered": "脚本化 2 道接地题 + fake model，不是前端岗深挖"
+        },
+        {
+          "command": "pipeline:prove",
+          "notCovered": "只证明 factuality 拒幻觉 refs，不是 8–12 或项目深挖"
+        }
+      ]
     },
     {
       "id": "GT-02",
       "status": "partial",
       "title": "过短作答不得高分",
       "doc": "ai-docs/testing/golden-tasks/GT-02-short-answer-not-high-score.md",
-      "mappedCommands": ["scoring-golden:prove"]
+      "evidenceKind": "deterministic-prove",
+      "mappedCommands": ["scoring-golden:prove", "adaptive-offtopic:prove"],
+      "covers": [
+        "金标夹具结构门：相对序含非作答/低档，拒绝缩成 happy-path 小样本（不执行评分）",
+        "自适应图（fake assess）：套话非作答走 clarify，confidence/depth 不增"
+      ],
+      "uncovered": [
+        "短答进入 evaluateAnswer / 真模型后不得高分",
+        "终态报告文案必须写「表达不足」",
+        "真模型短答不得高分的发布级样本量（scoring:eval 仍 inconclusive）"
+      ],
+      "relatedCommands": [
+        {
+          "command": "scoring:eval",
+          "notCovered": "真模型质量层，未达发布样本量，不得当 covering prove"
+        },
+        {
+          "command": "adaptive-degrade:prove",
+          "notCovered": "模型故障 → unscored，不是短答档"
+        }
+      ]
     },
     {
       "id": "GT-03",
       "status": "planned",
       "title": "JD Next.js 能力差距",
       "doc": "ai-docs/testing/golden-tasks/GT-03-jd-nextjs-gap.md",
-      "mappedCommands": []
+      "evidenceKind": "none",
+      "mappedCommands": [],
+      "covers": [],
+      "uncovered": [
+        "JD 写明 React+Next.js、简历只有 React 时，差距列表必须出现 Next.js",
+        "不得用「前端框架」含糊掉缺失技能"
+      ],
+      "relatedCommands": [
+        {
+          "command": "diagnosis:prove",
+          "notCovered": "有 match 维度与 factuality，但不抽取 JD 必会技能缺口"
+        }
+      ]
     },
     {
       "id": "GT-04",
       "status": "partial",
       "title": "不会则引导不幻觉掌握",
       "doc": "ai-docs/testing/golden-tasks/GT-04-unknown-answer-no-hallucination.md",
-      "mappedCommands": ["scoring-golden:prove"]
+      "evidenceKind": "deterministic-prove",
+      "mappedCommands": ["scoring-golden:prove", "adaptive-offtopic:prove"],
+      "covers": [
+        "金标 offtopic/非作答夹具结构与红队标签（不执行评分、不断言 relevant/score）",
+        "自适应图（MemorySaver + fake assess）：「不知道/还是不会」→ clarify 引导语后 pivot，不加深、不并入掌握分"
+      ],
+      "uncovered": [
+        "生产 evaluateAnswer：relevant=false → score=0",
+        "独立 eval 断言引导话术质量",
+        "后续题或报告不得写「候选人掌握 X」"
+      ],
+      "relatedCommands": [
+        {
+          "command": "e2e:isolated",
+          "notCovered": "澄清分支只答「跳过」，不断言引导或不幻觉掌握"
+        }
+      ]
     },
     {
       "id": "GT-05",
-      "status": "mapped",
+      "status": "partial",
       "title": "非法 JSON 拒绝入库",
       "doc": "ai-docs/testing/golden-tasks/GT-05-illegal-json-reject.md",
-      "mappedCommands": ["runtime:prove"]
+      "evidenceKind": "deterministic-prove",
+      "mappedCommands": ["model-op00-usage-reconciler:prove"],
+      "covers": [
+        "schema 不通过的结构化产出 → schema_validation_failed，invocation 记 failed，不进业务 value"
+      ],
+      "uncovered": [
+        "供应商标量非法 JSON 文本：model-client JSON.parse 抛错后记 unknown，不经 validator",
+        "策略原文「并重试」与当前运行时不一致（派发后不自动重试）"
+      ],
+      "relatedCommands": [
+        {
+          "command": "runtime:prove",
+          "notCovered": "证明业务校验拦截与确定性拒绝不重试，不断言 schema_validation_failed / 非法 JSON 文本"
+        }
+      ]
     },
     {
       "id": "GT-06",
       "status": "mapped",
       "title": "quote 不在答案内不得计分",
       "doc": "ai-docs/testing/golden-tasks/GT-06-quote-not-in-answer-unscored.md",
-      "mappedCommands": ["scoring-integrity:prove"]
+      "evidenceKind": "deterministic-prove",
+      "mappedCommands": ["scoring-integrity:prove"],
+      "covers": [
+        "quote 不是本题答案子串 → unscored 或 clarify，不持久化非法 quote，不写 91/99"
+      ],
+      "uncovered": [
+        "真模型在开放题上的引文质量"
+      ],
+      "relatedCommands": []
     },
     {
       "id": "GT-07",
-      "status": "partial",
+      "status": "mapped",
       "title": "答题幂等与不同答案密钥",
       "doc": "ai-docs/testing/golden-tasks/GT-07-turn-idempotency.md",
-      "mappedCommands": ["turn-idempotency:prove"]
+      "evidenceKind": "deterministic-prove",
+      "mappedCommands": ["turn-idempotency:prove", "neg:interview", "scoring-integrity:prove"],
+      "covers": [
+        "同 HTTP 体并发重放只落一个 answer job，ledger 绑定第一次 identity/hash",
+        "已消费 question identity 后再提交不同 answerId/hash → 409 stale_question，不覆盖先到答案",
+        "evaluateAnswer：同答重放缓存且模型只打 1 次；换答走不同 answer SHA-256 幂等键"
+      ],
+      "uncovered": [
+        "HTTP /turn → worker 消费 → evaluateAnswer 缓存的单条组合测未单独立项"
+      ],
+      "relatedCommands": [
+        {
+          "command": "e2e:isolated",
+          "notCovered": "已消费 identity 重放 → 409，不断言评分层缓存或换答幂等键"
+        }
+      ]
     },
     {
       "id": "GT-08",
       "status": "mapped",
       "title": "报告总分仅服务端聚合",
       "doc": "ai-docs/testing/golden-tasks/GT-08-report-server-aggregation.md",
-      "mappedCommands": ["scoring-integrity:prove"]
+      "evidenceKind": "deterministic-prove",
+      "mappedCommands": ["scoring-integrity:prove"],
+      "covers": [
+        "aggregateScores 覆盖模型 overall；拒绝重复 section/段落；空分集合不可当 0 分"
+      ],
+      "uncovered": [
+        "叙事文风或真模型报告可读性"
+      ],
+      "relatedCommands": []
     }
   ]
 }

@@ -28,7 +28,8 @@ description: AI 触达路径的出处检查：题面身份、route/rubric/model 
 | 模型故障 / 超时 | `unscored`，不填中性分 | `pnpm adaptive-degrade:prove` |
 | 报告模型自报 overall | 服务端 `aggregateScores`；拒绝重复 section | `pnpm scoring-integrity:prove` |
 | 无评分证据进 B 端 | `assessment_unavailable` + `score=NULL` | HTTP E2E 岗位收口 |
-| 短答 / 非作答 | 相对序金标，不得高分 | `scoring-golden` / `scoring:eval`（质量层，非 per-push 发布） |
+| 短答 / 非作答 | 相对序金标，不得高分；图上不并入掌握分 | `scoring-golden:prove` / `adaptive-offtopic:prove`；`scoring:eval` 是质量层，非 covering |
+| 非法 JSON / schema 失败 | 结构化产出拒收入库；标量非法 JSON 文本当前为 unknown | `model-op00-usage-reconciler:prove`（`runtime:prove` 不断言本条） |
 
 ## 4. 出处字段（写回执或说明时）
 
