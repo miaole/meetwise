@@ -347,7 +347,7 @@ flowchart TD
 
 **失败与降级。** 相关性模型低置信、操纵片段无法可靠分离、quote 修复仍失败、provider/schema 异常或 max clarification/max turn 已到时，不继续循环。用户侧得到“需要补充/本题未评分/已跳过”的清楚状态，后台记录不可评分原因；分数与弱项模型不更新。若用户重复提交同一 answerId，ledger 返回已处理结果，不能重复扣点或把同一道题再推进一次。
 
-**指标与测试。** 不只测评分相关性：分别报 skip 识别 precision/recall、non-answer→clarify recovery、跑题误判率、`unscored` 占比与原因、操纵文本后 `score_update_count`/`next_question_read_count`/`external_request_count`、每场 resume/出题上限和 transcript PII residual。当前固定 seed 的 96 组多轮 chaos 证明这些生成路径都在 40 次 resume 内收敛、出题不超过 8，且完成态不复制异常原始答案；它不是实际人群质量或 ASR 准确率证明。还要人工标注真实脱敏样本，按 C/B 流量入口、语言、口语/文本、残障辅助输入分桶。
+**指标与测试。** 不只测评分相关性：分别报 skip 识别 precision/recall、non-answer→clarify recovery、跑题误判率、`unscored` 占比与原因、操纵文本后 `score_update_count`/`next_question_read_count`/`external_request_count`、每场 resume/出题上限和 transcript PII residual。当前固定 seed 的 96 组多轮 chaos 证明这些生成路径都在 40 次 resume 内收敛；chaos 把软预算与绝对杀开关同时压到 8 是控费夹具，不是生产长度政策。完成态不复制异常原始答案；它不是实际人群质量或 ASR 准确率证明。还要人工标注真实脱敏样本，按 C/B 流量入口、语言、口语/文本、残障辅助输入分桶。
 
 **最可能的追问反驳。** “把所有可疑答案都判 0 分最安全。”这只是在把系统不确定性转嫁给候选人，并污染之后的自适应出题。安全应来自“无可信证据不产生副作用”：保留可审查的 `unscored/clarify` 状态、一次受限修复与申诉路径，而不是把拒绝算法的失败伪装成能力结论。
 
