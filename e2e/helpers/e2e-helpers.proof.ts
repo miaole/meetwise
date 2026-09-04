@@ -279,7 +279,7 @@ await test('full.e2e 源码锁：入账必须 200 且 credited|already，错签 
   assert.match(scenario, /unknownOrder\.response\.status === 404/);
 });
 
-test('resume helper 只封装同意/文本/图片/画像，不打日志、不引用 apps/web', () => {
+await test('resume helper 只封装同意/文本/图片/画像，不打日志、不引用 apps/web', () => {
   const src = readFileSync(new URL('./resume.ts', import.meta.url), 'utf8');
   assert.match(src, /privacy\/consent/);
   assert.match(src, /\/resume\/file/);
@@ -288,7 +288,7 @@ test('resume helper 只封装同意/文本/图片/画像，不打日志、不引
   assert.equal(src.includes('apps/web'), false);
 });
 
-test('失败分类区分缺 Key、假服务、越权、供应商，未知 5xx 与裸 403 不洗成 BLOCKED', () => {
+await test('失败分类区分缺 Key、假服务、越权、供应商，未知 5xx 与裸 403 不洗成 BLOCKED', () => {
   assert.equal(classifyFailure({ runnerCode: 'live_provider_key_missing:MODEL_API_KEY' }), 'BLOCKED_LIVE_KEY');
   assert.equal(classifyFailure({ error: 'fake_service_mode_forbidden:VOICE_FAKE' }), 'FAIL_CAPABILITY');
   assert.equal(classifyFailure({ error: 'e2e_isolation_required:use_pnpm_e2e:isolated' }), 'FAIL_CAPABILITY');

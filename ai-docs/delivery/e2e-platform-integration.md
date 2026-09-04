@@ -47,6 +47,11 @@ related:
 - 技能文档：保留 fail-closed / SOP / e2e-platform 链接，并写入 #58 要求的 `review/verify`、`automation does not trust AI outputs`、`multi-round allowed`。
 - `provider-egress-inventory`：同时登记 `run-post-change-regression.mjs` 与 `.proof.mjs`；`environmentReferenceCount` 随清单长度更新，禁止手改成旧数。
 
+### #56
+
+- `full.e2e.ts` 保留母线 `classifyFailure`，采用 #56 的 `isWebhookCreditResult` / `postPayWebhook`。
+- helper prove 并入 mock fetch + `signToken` 合同；母线 resume / 失败分类用例改为 `await test`，避免异步 wrapper 漏计。
+
 ### #59
 
 - `golden-tasks:prove` 加入 `ALWAYS_ON_REQUIRED`，与 `generation-trust:prove` / `e2e-platform:prove` 并存。
