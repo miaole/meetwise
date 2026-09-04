@@ -113,7 +113,7 @@ Web/API/Worker 在本机用 pnpm dev 启动。
 
 预览目录：
 
-- 静态目录（`docs/`）只包含预览版项目简介、合成截图、源码/README 入口；必要说明只在页脚。不得包含 API 调用、iframe、环境变量、连接串、令牌、数据服务地址或用户数据。不得把支付或完整删除写成已开放服务，也不得把 OCR/语音写成“未开放不能用”。
+- 静态目录（`docs/`）只包含预览版面试练习简介、合成截图、源码/README 入口；仅面试练习，招聘不在本预览范围。必要说明只在页脚。不得包含 API 调用、iframe、环境变量、连接串、令牌、数据服务地址或用户数据。不得把支付或完整删除写成已开放服务，也不得把 OCR/语音写成“未开放不能用”。
 - 目录必须由受保护分支的最小权限发布任务生成。没有仓库地址、签名目录清单、ECS 健康回执、不可变镜像摘要和到期时间的入口保持禁用。
 - 目录不是认证层；实际 ECS 预览环境独立执行认证，入口链接不携带 token、query 或 fragment。
 - 首次 controller 安装是单独的 root 信任仪式：先由非 root 用户验证 GitHub Actions 的 controller archive 构件证明，再从已验证 archive 取出 installer；禁止对 checkout、release 目录或任意本机文件直接使用 sudo。controller 之后只接受 root-owned staging archive，并在验签后拒绝链接、特殊成员和路径逃逸。
