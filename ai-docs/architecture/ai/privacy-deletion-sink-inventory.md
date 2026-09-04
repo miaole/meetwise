@@ -29,7 +29,7 @@ tags:
 机器可读对照：
 
 - 域侧签发并集：`packages/domain/src/privacy-authorization.ts` 的 `ALL_PRIVACY_AUTHZ_SINK_KINDS`
-- SQL 侧枚举：最新迁移对 `privacy_deletion_target.sink` 的 CHECK（当前为 `0125_memory_vector_chunk_erasure.sql`）。`0124` 与 `0125` 已在 main。本围栏只新增 `0126`，不改 0124/0125。
+- SQL 侧枚举：最新迁移对 `privacy_deletion_target.sink` 的 CHECK（当前为 `0125_memory_vector_chunk_erasure.sql`）。`0124` 与 `0125` 已在 main（#71 / #70）。#74 已在 main 落地 `0126` 答题双写互斥，不改 0124/0125。
 - 本迭代闭合：`memory_vector_chunk`（`vector_chunk.kind='memory'`）
 
 验证（隔离 PostgreSQL 需要容器运行时；无容器时只跑域/静态 pin）：

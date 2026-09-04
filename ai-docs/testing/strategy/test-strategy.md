@@ -1,16 +1,22 @@
 ---
 id: testing_strategy
 name: 测试策略
-description: Meetwise 的单元、契约、集成、E2E 和 AI 评测策略。
+description: Meetwise 的单元、契约、集成、E2E 和 AI 评测策略。业务全链路以隔离 HTTP fetch/SSE 为主层，Playwright 只覆盖浏览器层。
 type: testing
 scope: shared
 level: policy
 status: active
 owner: qa
-version: 1
+version: 2
 tags:
   - testing
   - strategy
+related:
+  - ../conventions/test-authoring.md
+  - ../../skills/testing/SKILL.md
+  - ../golden-tasks/README.md
+  - ../e2e-performance-evidence.md
+  - ../../rules/global/ai-generated-review.md
 ---
 
 # 测试策略
@@ -23,9 +29,22 @@ tags:
 | contract | 共享 zod4 schema + schema tests | 前后端接口不漂移 |
 | integration | Supertest + Testcontainers | API + DB + Redis |
 | graph | deterministic fixtures + fake model | LangGraph 状态、分支、恢复 |
-| e2e | Playwright | 用户主链路 |
-| ai eval | golden tasks | 模型输出质量、结构、事实一致性 |
+| e2e (HTTP) **主层** | `e2e/full.e2e.ts` + `scripts/run-e2e.mjs`（fetch / SSE），入口 `pnpm e2e:isolated` | 真 API + worker + 隔离 Postgres + **真供应商**主链路；不是 Playwright |
+| e2e (browser) **次层** | Playwright（`apps/web/e2e-ui/`），入口 `pnpm e2e:ui:isolated` | cookie / middleware / 页面流；需 production Next 与 live Key |
+| ai eval | golden tasks（见 `testing/golden-tasks/`） | 模型输出质量、结构、事实一致性；未映射条目不得标绿 |
 | security | 静态扫描 + 日志检查 | 密钥、PII、XSS、越权 |
+
+## 主层与次层
+
+业务端到端的**主层**是隔离 HTTP E2E：`pnpm e2e:isolated`。客户端是 `e2e/full.e2e.ts` 的 fetch / SSE，覆盖鉴权→简历→交易→面试→报告→B 端的契约、账本和终态事件。它不是 Playwright。
+
+**次层**是浏览器 E2E：`pnpm e2e:ui:isolated`（Playwright，`apps/web/e2e-ui/`）。只证明 cookie、middleware、页面可见性和移动视口渲染。不能用 Playwright 冒充 HTTP 全链路，也不能用 HTTP E2E 冒充 cookie 或 DOM。
+
+写 TC 的层映射见 [test-authoring](../conventions/test-authoring.md)。改完功能后怎么选层、怎么跑门见 [测试技能](../../skills/testing/SKILL.md)。
+
+## AI 产物：审核 + 多轮验证（P0）
+
+[AI 产物必须审核并验证](../../rules/global/ai-generated-review.md)：**不得默认信任** agent 写出的代码/测试/文档，也不得默认信任产品侧模型输出。先审核（对来源、用例、契约），再验证（自动化门禁）。鼓励自动化，且必须**多轮门禁**（生成 → 审核 → 跑门 → 修 → 再跑受影响的门）。收束公式只在 [fail-closed 门](../../skills/testing/fail-closed-gate.md)。一轮 `docs:check` 或单测绿不等于业务全链路过。密钥与敏感数据不得进仓库或日志。
 
 ## MVP 必测路径
 
@@ -41,18 +60,37 @@ tags:
 - 重启服务后恢复未完成会话。
 - 权益扣减和失败退款。
 
+上列路径默认用 HTTP 主层验收（状态机落点、账本、SSE 终态）。只有断言本身依赖浏览器 cookie、页面或移动布局时，才加跑 Playwright 次层。
+
+## 变更后回归入口
+
+功能改动后的审核 → 测试 → 回归仪式见 [`skills/testing/sop.md`](../../skills/testing/sop.md)（`status: draft`）。AI 产物默认不可信，见 [`skills/testing/fail-closed-gate.md`](../../skills/testing/fail-closed-gate.md)。概述见 [`skills/testing/SKILL.md`](../../skills/testing/SKILL.md)。HTTP E2E 平台 SOP（**draft / NOT_READY**；`pnpm e2e-platform:check` / `e2e-platform:prove` / `e2e-platform:layout:prove` 三者不可对调）见 [`skills/testing/e2e-platform/README.md`](../../skills/testing/e2e-platform/README.md)。命令与失败语义见 [`skills/testing/run-gates.md`](../../skills/testing/run-gates.md)。默认 `pnpm regression` 只是 always-on 子集，不是触达面必须列。本页 `status: active` 只表示分层策略生效，不表示 live 全链路或平台 SOP 已 READY。生成物默认不可信：命令绿、未审核的生成 diff 不得标 READY；skip-as-pass 禁止；没有受信回执前 `releaseEvidence` 必须为 `false`。
+
+```bash
+pnpm regression                 # always-on：无 Key 的文档 / 平台守卫 / helpers / 回执 / 静态守卫 / 架构 / api smoke
+pnpm regression --core          # 先 always-on，再行走骨架隔离 prove（需 Docker）
+pnpm regression --live          # 先 always-on，再真供应商 HTTP E2E；缺 MODEL_API_KEY 非零退出
+pnpm regression --core --live   # 固定顺序 always-on → core → live
+```
+
+浏览器层另跑 `e2e:ui:isolated`（需先构建 web），不在 `pnpm regression` 内。
+
+per-push CI 跑隔离 prove，**不**跑 `e2e:isolated`。无 Key 时不要发起 live 命令，记录 `not_run`，禁止 skip-as-pass。
+
+`e2e/` 与约定关键 prove 脚本的用例数/断言身份由 `pnpm e2e-parity:check` 冻结，并带独立的 parity floors 高水位。删除测试、削弱 `expect`/`A(...)` 或下调 floors 必须非零退出，除非 [`e2e-parity-baseline.md`](../e2e-parity-baseline.md) 里的 allowlist 写下精确旧身份与负 delta。AI diffs 在 parity + 独立审核前默认不可信。这不是覆盖率门，也不是发布证据。
+
 ## AI Golden Tasks
 
-第一批 golden tasks：
+第一批已登记在 [`testing/golden-tasks/README.md`](../golden-tasks/README.md)，状态为 `partial` / `planned`，**没有** `mapped` 或“已通过”项（隔离 covering 门未在本修订实跑；`ai-output` 条目禁止 `mapped`）。`relatedCommands` 只表示附近有门，不是 covering。
 
-1. 前端开发岗位 + 有项目简历 -> 生成 8-12 个问题，包含项目深挖。
-2. 回答过短 -> 报告应指出表达不足，而不是给高分。
-3. JD 要求 React/Next.js，简历缺 Next.js -> 能力差距必须出现 Next.js。
-4. 用户回答“不会” -> 追问策略应转为引导，不应幻觉用户掌握。
-5. 模型输出非法 JSON -> validator 拒绝并重试。
-6. 评分证据中的 quote 不属于本题答案 -> `unscored`，不得写入 0/50/99 等任何伪造分数。
-7. 同 turn 给出不同 answer -> 评分幂等键不同；同答案重放 -> 息缓存且不重打模型。
-8. 报告模型输出的 overall 与逐题 scores 不同、或 sections/段落重复 -> 拒绝；只允许服务端确定性聚合总分。
+1. 前端开发岗位 + 有项目简历 -> 生成 8-12 个问题，包含项目深挖。`GT-01` **planned**。
+2. 回答过短 -> 报告应指出表达不足，而不是给高分。`GT-02` **partial**（夹具结构门 / 图 clarify；短答评分与报告文案未覆盖）。
+3. JD 要求 React/Next.js，简历缺 Next.js -> 能力差距必须出现 Next.js。`GT-03` **planned**。
+4. 用户回答“不会” -> 追问策略应转为引导，不应幻觉用户掌握。`GT-04` **partial**（夹具结构 / 图 clarify；生产 `relevant=false→0` 未覆盖）。
+5. 模型输出非法 JSON -> validator 拒绝；当前运行时派发后**不**自动重试。`GT-05` **partial**（`model-op00-usage-reconciler:prove` 覆盖 schema 失败；非法 JSON 文本走 unknown，`runtime:prove` 不断言本条）。
+6. 评分证据中的 quote 不属于本题答案 -> `unscored`，不得写入 0/50/99 等任何伪造分数。`GT-06` **partial**（`scoring-integrity:prove` 已登记；未实跑隔离 prove 不升 mapped）。
+7. 同 turn 给出不同 answer -> 评分幂等键不同；同答案重放 -> 缓存且不重打模型。`GT-07` **partial**（三门已登记；未实跑隔离 prove 不升 mapped）。
+8. 报告模型输出的 overall 与逐题 scores 不同、或 sections/段落重复 -> 拒绝；只允许服务端确定性聚合总分。`GT-08` **partial**（`scoring-integrity:prove` 已登记；未实跑隔离 prove 不升 mapped）。
 
 评分官的真模型评测、置信区间、非 happy-path 桶和绝对分校准边界见 [评分评测与校准发布协议](./scoring-evaluation-protocol.md)。它明确区分“链路不伪造分数”的确定性 proof 与“模型评分有效”的统计证据；未完成双盲人标与公平性切片前，分数不得作为 B 端自动决策。
 
@@ -65,6 +103,12 @@ RAG 检索的当前实跑基线、非 happy-path 桶和 pgvector HNSW 复核见 
 - 只用 mock model 证明生产模型质量。
 - 只凭 AI 自评说报告合理。
 - 只测 happy path 不测失败退款和重复请求。
+- 把 Playwright 写成 HTTP 全链路的实现或唯一 E2E。
+- 把 `planned` / `unmapped` golden-task 标成已通过。
+- 默认信任 AI 代码/输出，或用 AI 自评代替审核与多轮门禁。
+- 在 live E2E runner 打开假服务开关，或删掉 `pnpm e2e-static-guards:check` 所核对的拒绝列表。
+- 证据/日志 helper 回显扫描命中的密钥原文。
+- 把 unverified AI path 写成已验证（本地造题号、客户端评分、无证据写成 0 分）。`pnpm e2e-static-guards:check` 只核对 HTTP E2E 固定清单上的拒绝合同，通过 ≠ 出处已验证。出处未核可以再核对一轮（multi-round verify），不能用对话摘要当通过。
 
 ## 本地性能回归门
 
