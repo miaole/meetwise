@@ -31,7 +31,7 @@ tags:
 | --- | --- |
 | 任务范围 | 接线已有删除原语：受理预览请求 → 按盘点枚举 sink → 返回诚实回执。面试范围可启动已有 `interview_projection_begin_erasure`（0096）；账户范围可启动已有 `memory_vector_chunk_begin_erasure`（0125）。公开 `DELETE /privacy/interview-data/:id` 与 `DELETE /privacy/resume-data` 保持 503。 |
 | 来源证据 | main #70 / 0125 盘点只做清单+围栏；`PrivacyService` 两入口 503；web `/privacy` 删除按钮 disabled；0096 `interview_projection_begin_erasure` 与 0125 `memory_vector_chunk_begin_erasure` 已授 `app_role`；issuer 未接公开 DELETE。 |
-| 明确不做 | 不重开生产 DELETE；不接线 issuer 为生产授权根；不写 OSS/Redis/Langfuse/备份执行器；不把任一预览回执标 `completed` 或 `productionSloClaimed=true`；不占用 0128（0126/0127 已在 main）；不把公开预览部署（`MEETWISE_PUBLIC_PREVIEW=1`）改成可写。 |
+| 明确不做 | 不重开生产 DELETE；不接线 issuer 为生产授权根；不写 OSS/Redis/Langfuse/备份执行器；不把任一预览回执标 `completed` 或 `productionSloClaimed=true`；不改号 0128（0126/0127/0128 已在 main）；不把公开预览部署（`MEETWISE_PUBLIC_PREVIEW=1`）改成可写。 |
 | 领域对象 | `privacy_preview_request`、`privacy_preview_sink_line`、预览回执、既有 `privacy_erasure_request`（仅作被链接的本地 sweep）。 |
 | 状态机影响 | 预览请求：`inventoried` / `local_fenced`。禁止 `completed`。外部/未闭合 sink 使 `completeness=preview_incomplete`。 |
 | 接口契约影响 | `POST /privacy/erasure-preview`、`GET /privacy/erasure-preview`、`GET /privacy/erasure-preview/:requestId`。形状进 `packages/contracts`，OpenAPI 标明预览版。生产 DELETE 路径仍不进 OpenAPI。 |
