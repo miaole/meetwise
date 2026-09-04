@@ -104,6 +104,7 @@ related:
 ## 9. 隔离与删除规则
 
 - 每受隔离表启用 **Postgres RLS**，谓词含 principalContext + 类型判别 + Membership EXISTS；GUC 用 `SET LOCAL` + 事务级连接池；缓存键含 principal。**SQL 见 DB/RLS 任务**。
+- 预览版删除回执（0129 `privacy_preview_request` / `privacy_preview_sink_line`）只记录盘点与可选本地围栏链接，不是销户级联，也不是跨存储生产删除 SLO。状态与诚实边界见 [状态机](../../rules/global/status-machine.md) 与 [预览路径用例](../../requirements/use-cases/privacy-erasure-preview-path.md)。
 - 级联删除（按实体明确）：
   - 销户(C)：Resume/ResumeVersion、Interview/InterviewEvent、SkillProfile/SkillInference/GrowthProfile/CareerProfile 硬删；Entitlement 留存(标记)供退款审计；AI trace 脱敏。
   - 删租户(B)：Membership、TalentCandidate、候选人 Interview、tenant 语料/岗位。

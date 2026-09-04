@@ -121,6 +121,125 @@ async function main() {
       && await asPrincipal(runtime, signupBody.userId, (c) =>
         beginCheckpointErasure(c, interviewId, 'a'.repeat(64))).then(() => false).catch(() => true));
 
+    const missingPreviewKey = await fetch(`${base}/privacy/erasure-preview`, {
+      method: 'POST',
+      headers: { ...authorization, 'content-type': 'application/json' },
+      body: JSON.stringify({ scope: 'interview_data', subjectId: interviewId }),
+    });
+    A('预览路径缺少 Idempotency-Key 明确拒绝',
+      missingPreviewKey.status === 400 && (await json(missingPreviewKey)).error === 'idempotency_key_missing_or_invalid');
+
+    const previewKey = `preview-http-${process.pid}`;
+    const preview = await fetch(`${base}/privacy/erasure-preview`, {
+      method: 'POST',
+      headers: { ...authorization, 'content-type': 'application/json', 'idempotency-key': previewKey },
+      body: JSON.stringify({ scope: 'interview_data', subjectId: interviewId }),
+    });
+    const previewBody = await json(preview);
+    A('预览路径 202 回执为预览版且未完成，不是生产 SLO',
+      preview.status === 202
+      && previewBody.editionLabel === '预览版'
+      && previewBody.productionSloClaimed === false
+      && previewBody.completeness === 'preview_incomplete'
+      && previewBody.status === 'local_fenced'
+      && Array.isArray(previewBody.sinks) && previewBody.sinks.length >= 22
+      && previewBody.sinks.some((row: { sink: string; disposition: string }) => row.sink === 'user_memory' && row.disposition === 'honest_unresolved'));
+
+    const previewReplay = await fetch(`${base}/privacy/erasure-preview`, {
+      method: 'POST',
+      headers: { ...authorization, 'content-type': 'application/json', 'idempotency-key': previewKey },
+      body: JSON.stringify({ scope: 'interview_data', subjectId: interviewId }),
+    });
+    const previewReplayBody = await json(previewReplay);
+    A('预览同幂等键重放同一 requestId',
+      previewReplay.status === 202 && previewReplayBody.replayed === true && previewReplayBody.requestId === previewBody.requestId);
+
+    const previewGet = await fetch(`${base}/privacy/erasure-preview/${previewBody.requestId}`, { headers: authorization });
+    const previewGetBody = await json(previewGet);
+    A('GET 预览回执同一 request 且生产 DELETE 仍 503',
+      previewGet.status === 200 && previewGetBody.requestId === previewBody.requestId
+      && paused.status === 503);
+
+    const previewList = await fetch(`${base}/privacy/erasure-preview`, { headers: authorization });
+    const previewListBody = await json(previewList);
+    A('预览列表标明预览版且不含生产完成态',
+      previewList.status === 200
+      && previewListBody.editionLabel === '预览版'
+      && previewListBody.productionSloClaimed === false
+      && Array.isArray(previewListBody.items)
+      && previewListBody.items.some((row: { requestId: string }) => row.requestId === previewBody.requestId));
+
+    const resumePreview = await fetch(`${base}/privacy/erasure-preview`, {
+      method: 'POST',
+      headers: { ...authorization, 'content-type': 'application/json', 'idempotency-key': `${previewKey}-resume` },
+      body: JSON.stringify({ scope: 'resume_data' }),
+    });
+    const resumePreviewBody = await json(resumePreview);
+    A('简历预览只盘点：inventoried、无本地 sweep、仍未完成',
+      resumePreview.status === 202
+      && resumePreviewBody.status === 'inventoried'
+      && resumePreviewBody.localSweepRequestId === null
+      && resumePreviewBody.completeness === 'preview_incomplete'
+      && resumePreviewBody.productionSloClaimed === false);
+
+    const otherSignup = await fetch(`${base}/auth/signup`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: `privacy-http-other-${process.pid}@example.test`, password: 'privacy-http-password-2026', role: 'candidate' }),
+    });
+    const otherBody = await json(otherSignup);
+    const otherGet = await fetch(`${base}/privacy/erasure-preview/${previewBody.requestId}`, {
+      headers: { authorization: `Bearer ${otherBody.token}` },
+    });
+    A('跨 owner GET 预览回执 404，不泄露他人盘点',
+      otherSignup.status === 200 && otherGet.status === 404);
+
+    const stillPaused = await fetch(`${base}/privacy/interview-data/${interviewId}`, {
+      method: 'DELETE', headers: { ...authorization, 'idempotency-key': `${idempotencyKey}-after-preview` },
+    });
+    A('预览 202 之后生产 DELETE 仍 503，不把预览当生产开放',
+      stillPaused.status === 503 && (await json(stillPaused)).error === 'interview_erasure_authorization_not_available');
+
+    const rawKeyRows = await admin.query(
+      'SELECT count(*)::int AS count FROM privacy_preview_request WHERE owner_user_id=$1 AND idempotency_key_hash=$2',
+      [signupBody.userId, previewKey],
+    );
+    const hashedRows = await admin.query(
+      `SELECT count(*)::int AS count FROM privacy_preview_request
+        WHERE owner_user_id=$1 AND idempotency_key_hash ~ '^[a-f0-9]{64}$'`,
+      [signupBody.userId],
+    );
+    A('HTTP 原始 Idempotency-Key 不入库，只落 64-hex HMAC',
+      Number(rawKeyRows.rows[0]?.count) === 0 && Number(hashedRows.rows[0]?.count) >= 1);
+
+    const otherPreview = await fetch(`${base}/privacy/erasure-preview`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${otherBody.token}`,
+        'content-type': 'application/json',
+        'idempotency-key': `${previewKey}-other`,
+      },
+      body: JSON.stringify({ scope: 'interview_data', subjectId: interviewId }),
+    });
+    A('跨 owner POST 他人面试预览 404，不建他人盘点',
+      otherPreview.status === 404);
+
+    const fencedTurnAnswer = '预览围栏后不得落库的答案';
+    const fencedTurn = await fetch(`${base}/interview/${interviewId}/turn`, {
+      method: 'POST',
+      headers: { ...authorization, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        questionId: 'q-v1-t0-c0', stateVersion: 1, turn: 0,
+        answerId: '00000000-0000-4000-8000-000000000001',
+        answerHash: createHash('sha256').update(fencedTurnAnswer, 'utf8').digest('hex'),
+        answer: fencedTurnAnswer,
+      }),
+    });
+    const fencedJobs = await admin.query('SELECT count(*)::int AS count FROM interview_job WHERE interview_id=$1', [interviewId]);
+    A('面试预览后 /turn 410 且不写答案 job（0096 围栏副作用）',
+      fencedTurn.status === 410 && (await json(fencedTurn)).error === 'interview_privacy_fenced'
+      && Number(fencedJobs.rows[0]?.count) === 0);
+
     // Public delete stays 503 until composition-root abuse proofs exist.
     // The dormant 202 harness below must not run: issuer foundation is local
     // only and must not be mistaken for a reopened destructive HTTP path.

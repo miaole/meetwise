@@ -509,3 +509,9 @@ export type {
   MemoryVectorChunkErasureTarget, BegunMemoryVectorChunkErasure,
   ClaimedMemoryVectorChunkTarget, PurgedMemoryVectorChunkTarget,
 } from './memory-vector-chunk-erasure.ts';
+
+// 0129：预览版删除路径（request → sink 盘点 → 回执），不宣称生产 SLO。
+export {
+  beginPrivacyPreviewErasure, getPrivacyPreviewReceipt, listPrivacyPreviewReceipts,
+} from './privacy-erasure-preview.ts';
+export type { PrivacyPreviewListRow } from './privacy-erasure-preview.ts';

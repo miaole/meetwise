@@ -398,6 +398,62 @@ export const PrivacyDeletionReceipt = z.object({
 }).strict();
 export type PrivacyDeletionReceipt = z.infer<typeof PrivacyDeletionReceipt>;
 
+/* ───────────── privacy erasure preview path（预览版，非生产删除 SLO） ─────────────
+ * 接线 request → sink 盘点 → 回执。登录令牌可受理预览请求；生产 DELETE 仍 503。
+ * 回执禁止 completed / productionSloClaimed=true。
+ */
+export const PrivacyPreviewScope = z.enum(['interview_data', 'account_data', 'resume_data']);
+export const PrivacyPreviewStatus = z.enum(['inventoried', 'local_fenced']);
+export const PrivacyPreviewDisposition = z.enum([
+  'local_begin_started',
+  'local_begin_available',
+  'placeholder_no_target',
+  'external_pending',
+  'honest_unresolved',
+]);
+export const PrivacyPreviewBeginDto = z.object({
+  scope: PrivacyPreviewScope,
+  subjectId: z.string().min(1).max(128).optional(),
+}).strict();
+export type PrivacyPreviewBeginDto = z.infer<typeof PrivacyPreviewBeginDto>;
+export const PrivacyPreviewSinkLine = z.object({
+  sink: z.string().min(1).max(64),
+  track: z.enum(['interview', 'account', 'resume', 'external', 'adjacent']),
+  disposition: PrivacyPreviewDisposition,
+  inDeletionTargetCheck: z.boolean(),
+}).strict();
+export const PrivacyPreviewReceipt = z.object({
+  requestId: z.string().uuid(),
+  scope: PrivacyPreviewScope,
+  subjectId: z.string().min(1).max(128),
+  status: PrivacyPreviewStatus,
+  edition: z.literal('preview'),
+  editionLabel: z.literal('预览版'),
+  productionSloClaimed: z.literal(false),
+  completeness: z.literal('preview_incomplete'),
+  replayed: z.boolean(),
+  localSweepRequestId: z.string().uuid().nullable(),
+  sinks: z.array(PrivacyPreviewSinkLine).min(1),
+}).strict();
+export type PrivacyPreviewReceipt = z.infer<typeof PrivacyPreviewReceipt>;
+export const PrivacyPreviewListItem = z.object({
+  requestId: z.string().uuid(),
+  scope: PrivacyPreviewScope,
+  subjectId: z.string().min(1).max(128),
+  status: PrivacyPreviewStatus,
+  edition: z.literal('preview'),
+  editionLabel: z.literal('预览版'),
+  productionSloClaimed: z.literal(false),
+  completeness: z.literal('preview_incomplete'),
+}).strict();
+export type PrivacyPreviewListItem = z.infer<typeof PrivacyPreviewListItem>;
+export const PrivacyPreviewList = z.object({
+  editionLabel: z.literal('预览版'),
+  productionSloClaimed: z.literal(false),
+  items: z.array(PrivacyPreviewListItem),
+}).strict();
+export type PrivacyPreviewList = z.infer<typeof PrivacyPreviewList>;
+
 /* ───────────── memory governance (MEM-00) ─────────────
  * 记忆治理的多端契约形状。与上方 privacy 块同理：这些形状**仅冻结跨端 schema**，不登记进
  * apiContract（不进 OpenAPI）——记忆管理/召回的 HTTP 路径仍待产品契约确定，公开端点保持
@@ -1028,6 +1084,9 @@ export const apiContract: ContractRoute[] = [
   { id: 'startApplication', method: 'post', path: '/applications/{id}/start', summary: '创建或复用岗位绑定面试(一对一、不可替换为历史训练)', tags: ['jobs'], auth: true, request: StartApplicationDto, response: ApplicationStartResult },
   { id: 'declineApplication', method: 'post', path: '/applications/{id}/decline', summary: '候选人婉拒邀请(状态机 invited→declined)', tags: ['jobs'], auth: true, response: InviteResult },
   { id: 'finalizeApplication', method: 'post', path: '/applications/{id}/finalize', summary: '确认岗位绑定面试结果(不接受客户端 interviewId)', tags: ['jobs'], auth: true, request: FinalizeApplicationDto, response: ApplicationFinalizeResult },
+  { id: 'privacyPreviewBegin', method: 'post', path: '/privacy/erasure-preview', summary: '预览版删除请求：盘点 sink 并返回诚实回执，不宣称跨存储生产删除 SLO', tags: ['privacy'], auth: true, request: PrivacyPreviewBeginDto, response: PrivacyPreviewReceipt },
+  { id: 'privacyPreviewList', method: 'get', path: '/privacy/erasure-preview', summary: '列出当前用户的预览版删除回执（预览版，非生产完成态）', tags: ['privacy'], auth: true, response: PrivacyPreviewList },
+  { id: 'privacyPreviewGet', method: 'get', path: '/privacy/erasure-preview/{requestId}', summary: '读取预览版删除回执（预览版，非生产完成态）', tags: ['privacy'], auth: true, response: PrivacyPreviewReceipt },
 ];
 
 /* ───────────── RAG-FUNNEL-03 岗位意图路由（跨端冻结 schema，不入 apiContract） ───────────── */

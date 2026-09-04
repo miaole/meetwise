@@ -23,6 +23,7 @@ const requiredFiles = [
   "ai-docs/requirements/use-cases/interview-scoring-measurement.md",
   "ai-docs/architecture/ai/langgraph-blueprint.md",
   "ai-docs/architecture/ai/privacy-deletion-sink-inventory.md",
+  "ai-docs/requirements/use-cases/privacy-erasure-preview-path.md",
   "ai-docs/architecture/ai/agent-runtime.md",
   "ai-docs/architecture/backend/data-model.md",
   "ai-docs/architecture/backend/interview-answer-dual-write-cutover.md",
@@ -56,7 +57,8 @@ const requiredTerms = new Map([
   ["ai-docs/architecture/adr/0020-scorecard-authority-and-eligibility.md", ["SCOR-00H", "practice_eligible", "insufficient_evidence"]],
   ["ai-docs/requirements/use-cases/interview-scoring-measurement.md", ["UC-SCOR-00H", "SCOR-00H", "insufficient_evidence", "releaseEvidence"]],
   ["ai-docs/architecture/ai/langgraph-blueprint.md", ["checkpoint", "thread_id"]],
-  ["ai-docs/architecture/ai/privacy-deletion-sink-inventory.md", ["memory_vector_chunk", "vector_chunk", "user_memory", "ai_invocation_trace", "fail-closed", "privacy_deletion_target"]],
+  ["ai-docs/architecture/ai/privacy-deletion-sink-inventory.md", ["memory_vector_chunk", "vector_chunk", "user_memory", "ai_invocation_trace", "fail-closed", "privacy_deletion_target", "erasure-preview", "预览版"]],
+  ["ai-docs/requirements/use-cases/privacy-erasure-preview-path.md", ["预览版", "preview_incomplete", "productionSloClaimed", "Idempotency-Key"]],
   ["ai-docs/architecture/devops/local-demo-deployment.md", ["docker compose", "compose.demo.yml"]],
   ["ai-docs/testing/strategy/test-strategy.md", ["contract", "E2E", "golden"]],
   ["ai-docs/observability/observability-strategy.md", ["SLO", "降级", "恢复", "脱敏", "threadId"]],
@@ -146,6 +148,11 @@ const runtimeTruthAssertions = [
     source: "packages/db/migrations/0126_interview_answer_dual_write_fence.sql",
     sourceTerm: "interview_answer_legacy_plaintext_fenced",
     truthTerm: "答题双写互斥",
+  },
+  {
+    source: "apps/api/src/modules/privacy/privacy.service.ts",
+    sourceTerm: "beginPrivacyPreviewErasure",
+    truthTerm: "预览版",
   },
 ];
 

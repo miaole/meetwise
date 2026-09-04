@@ -127,9 +127,21 @@ C 端进度是只读投影，不在本对象上发明转换：`issued_turns`=`st
 
 候选人可见的 `upheld` / `overturned` 是 `ReviewDecision.outcome_code` 的映射，不是案件 `status`。人工改判追加新 `AssessmentVersion` / `DecisionRecord` / ledger event，禁止覆盖原记录。
 
+### PrivacyPreviewRequest（预览版删除回执，0129）
+
+枚举：`inventoried · local_fenced`。禁止 `completed`。`production_slo_claimed` 恒为 false，`completeness` 恒为 `preview_incomplete`。这不是生产 `privacy_erasure_request`，也不能经本对象宣称跨存储删除完成。
+
+| from | to | 触发 | 守卫 | 失败动作 |
+| --- | --- | --- | --- | --- |
+| —(insert) | inventoried | `POST /privacy/erasure-preview` 且 `scope=resume_data` | owner 账户存在；幂等键 HMAC 唯一 | 非法 scope / 缺账户 → 拒 |
+| —(insert) | local_fenced | 同入口且 `scope` 为 interview/account，本地 begin 成功 | 同事务链接 0096 / 0125；面试须为本 owner | begin 失败整单回滚 |
+| inventoried / local_fenced | 同状态 | 同 owner+hash 重放 | scope/subject 一致 | 不一致 → 409；不得另写一行 |
+
+并发同一幂等键只保留一行（`UNIQUE(owner, hash)` + `ON CONFLICT` 回读）。非法把 status 写成 `completed` 由 CHECK + trigger 拒绝。
+
 ---
 
-以上五张表是 [生产不变量](./production-invariants.md) 原语 1（CAS）的直接落点；每次转换服务端再校验、写审计、并发用版本号守卫。**测试必须覆盖：合法流转、非法流转（断言 0 行）、重复操作（幂等）、并发（断言恰一个赢）。**
+以上对象是 [生产不变量](./production-invariants.md) 原语 1（CAS）的直接落点；每次转换服务端再校验、写审计、并发用版本号守卫。**测试必须覆盖：合法流转、非法流转（断言 0 行）、重复操作（幂等）、并发（断言恰一个赢）。**
 
 ## 状态机增量（来自用例评审，逐步补全转换表）
 

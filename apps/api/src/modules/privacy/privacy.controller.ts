@@ -1,5 +1,7 @@
 import { Controller, Post, Get, Delete, Body, Req, UseGuards, HttpStatus, HttpCode, Headers, Param } from '@nestjs/common';
+import { PrivacyPreviewBeginDto } from '@meetwise/contracts';
 import { PrincipalGuard } from '../../platform/principal.guard';
+import { ZodValidationPipe } from '../../platform/zod.pipe';
 import { PrivacyService } from './privacy.service';
 
 /**
@@ -26,6 +28,26 @@ export class PrivacyController {
     return this.privacy.export(req.principal);
   }
 
+  @Post('erasure-preview')
+  @HttpCode(HttpStatus.ACCEPTED)
+  beginPreview(
+    @Req() req: any,
+    @Body(new ZodValidationPipe(PrivacyPreviewBeginDto)) body: PrivacyPreviewBeginDto,
+    @Headers('idempotency-key') idempotencyKey?: string,
+  ) {
+    return this.privacy.beginPreview(req.principal, body, idempotencyKey);
+  }
+
+  @Get('erasure-preview')
+  listPreview(@Req() req: any) {
+    return this.privacy.listPreview(req.principal);
+  }
+
+  @Get('erasure-preview/:requestId')
+  getPreview(@Param('requestId') requestId: string, @Req() req: any) {
+    return this.privacy.getPreview(req.principal, requestId);
+  }
+
   @Delete('interview-data/:id')
   @HttpCode(HttpStatus.SERVICE_UNAVAILABLE)
   eraseInterviewData(@Param('id') id: string, @Req() req: any, @Headers('idempotency-key') idempotencyKey?: string) {
@@ -33,7 +55,7 @@ export class PrivacyController {
   }
 
   @Delete('resume-data')
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.SERVICE_UNAVAILABLE)
   deleteResumeData(@Req() req: any) {
     return this.privacy.deleteResumeData(req.principal);
   }

@@ -71,14 +71,21 @@ const checks = {
     requireText(homeEn, 'not a calibrated capability assessment', 'English home copy');
   },
   'TC-PUBLIC-COPY-E1': () => {
+    const privacyAction = read('apps/web/app/privacy/actions.ts');
     forbid(privacy, ['deleteResumeDataAction', '删除我的简历数据'], 'privacy page');
-    requireText(privacy, '删除功能暂未开放', 'privacy page');
+    requireText(privacy, '预览版', 'privacy page');
+    requireText(privacy, '不替代完整数据权利或跨存储生产删除', 'privacy page');
+    requireText(privacy, '生产 `DELETE /privacy/*` 仍关闭', 'privacy page');
     forbid(resume, ['deleteResumeAction', 'pendingLabel="删除中…"'], 'resume page');
     requireText(resume, '删除功能暂未开放', 'resume page');
     forbid(settings, ['deactivateAction', '删除我的数据', '注销中…'], 'settings page');
     requireText(settings, '账户注销暂未开放', 'settings page');
-    assert.equal(existsSync(resolve(repoRoot, 'apps/web/app/privacy/actions.ts')), false, 'privacy deletion action must be absent');
+    assert.equal(existsSync(resolve(repoRoot, 'apps/web/app/privacy/actions.ts')), true, 'preview receipt action must exist');
+    forbid(privacyAction, ['deleteResumeDataAction', '/privacy/resume-data', '/privacy/interview-data'], 'privacy preview action');
+    requireText(privacyAction, '/privacy/erasure-preview', 'privacy preview action');
+    requireText(privacyAction, 'preview_incomplete', 'privacy preview action');
     requireText(faq, '完整的删除、撤回与跨存储回执流程尚未开放', 'FAQ');
+    requireText(faq, '预览版删除回执', 'FAQ');
   },
   'TC-PUBLIC-COPY-E2': () => {
     forbid(pricing, ["serverGet(", "'/billing'", '购买</Link>', '¥'], 'credits page');
