@@ -78,7 +78,7 @@ related:
 ## UC-MODEL-OCR-02 · 预览版图片 OCR 走通（非生产 SLO）
 
 - **角色 Actor：** 候选人（预览/非生产环境）、简历摄取、模型路由器、自适应面试图。
-- **前置 Precondition：** 进程 `OCR_ENABLED=1` 且 `OCR_PREVIEW=1`；`NODE_ENV≠production`；`MODEL_COST_ENFORCEMENT≠enforce`；`MEETWISE_PUBLIC_PREVIEW≠1`；视觉 Key 走 `DASHSCOPE_VISION_API_KEY`；registry `resume.ocr.v1` wired。
+- **前置 Precondition：** 组合根传入的 env snapshot（`createOcrVisionClient(env)` / `isOcrFeatureEnabled(env)`）为 `OCR_ENABLED=1` 且 `OCR_PREVIEW=1`，且该 snapshot 非 `NODE_ENV=production` / `MODEL_COST_ENFORCEMENT=enforce` / `MEETWISE_PUBLIC_PREVIEW=1`。现场无参工厂仍读 `process.env`。进程级 dotenv `MODEL_COST_ENFORCEMENT=enforce` 不得否决已通过预览锁的 observe snapshot。视觉 Key 走 `DASHSCOPE_VISION_API_KEY`；registry `resume.ocr.v1` wired。
 - **触发 Trigger：** 预览环境上传图片简历。
 - **主流程 Main：**
   1. `isOcrFeatureEnabled` 为真 → 进入 `uploadImageViaOcr`；组合根装配可派发的 vision client（专用 profile，非文本 Key）。
@@ -108,5 +108,6 @@ related:
 | `TC-MODEL-OCR-02-特` | API 组合根 | `OCR_ENABLED=true` 或 `OCR_PREVIEW=true` 不能打开。 |
 | `TC-MODEL-OCR-02-逃` | API 组合根 | 禁用态 `requireBoundOperation` 仍零 fetch。 |
 | `TC-MODEL-OCR-02-刁` | API 组合根 | 空 `{text:""}` 原样交给上层业务校验，client 不补事实。 |
-| `TC-MODEL-OCR-02-ambient` | API 组合根 | `process.env.MODEL_COST_ENFORCEMENT=enforce` + 预览 `cfg.env` observe 仍派发 stub fetch（dotenv 隔离）；省略 `cfg.env` 仍尊重 process.env。 |
+| `TC-MODEL-OCR-02-ambient` | API 组合根 | `process.env.MODEL_COST_ENFORCEMENT=enforce` + 预览 `cfg.env` observe 仍派发 stub fetch（dotenv 隔离）。 |
+| `TC-MODEL-OCR-02-omit` | ai-runtime unit | 省略 `cfg.env` 仍尊重 process.env enforce；部分 env（无围栏键）继承进程 enforce；`cfg.env` enforce 在进程 observe 下仍拒未绑定 client。 |
 | `TC-MODEL-OCR-02-E1/E2/E3` | 既有 `ocr:prove`（Docker） | 幂等/并发/RLS 不在本静态门重开。 |

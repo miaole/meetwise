@@ -175,6 +175,35 @@ async function main() {
         omittedPlan?.ready === false && omittedPlan?.error === 'model_operation_policy_required'
         && omittedResult.ok === false && omittedResult.externalOutcome === 'known_not_executed'
         && requestBodies.length === 3);
+
+      const partialEnv = openAICompatibleClient({
+        baseUrl: 'https://model.invalid', apiKey: 'test-only', model: 'partial-env',
+        env: { DASHSCOPE_VISION_API_KEY: 'vision-only' },
+      });
+      const partialPlan = await partialEnv.prepare?.({ service: 'proof.partial-env', system: 'trusted', userData: 'safe fixture' }, 1);
+      const partialResult = await partialEnv.complete({ service: 'proof.partial-env', system: 'trusted', userData: 'safe fixture' }, 1);
+      A('partial cfg.env without fence keys inherits process.env enforce',
+        partialPlan?.ready === false && partialPlan?.error === 'model_operation_policy_required'
+        && partialResult.ok === false && partialResult.externalOutcome === 'known_not_executed'
+        && requestBodies.length === 3);
+
+      const previousEnforcement = process.env.MODEL_COST_ENFORCEMENT;
+      process.env.MODEL_COST_ENFORCEMENT = 'observe';
+      try {
+        const enforceSnapshot = openAICompatibleClient({
+          baseUrl: 'https://model.invalid', apiKey: 'test-only', model: 'enforce-snapshot',
+          env: { NODE_ENV: 'test', MODEL_COST_ENFORCEMENT: 'enforce' },
+        });
+        const enforcePlan = await enforceSnapshot.prepare?.({ service: 'proof.enforce-snapshot', system: 'trusted', userData: 'safe fixture' }, 1);
+        const enforceResult = await enforceSnapshot.complete({ service: 'proof.enforce-snapshot', system: 'trusted', userData: 'safe fixture' }, 1);
+        A('cfg.env enforce still refuses an unbound client when process.env is observe',
+          enforcePlan?.ready === false && enforcePlan?.error === 'model_operation_policy_required'
+          && enforceResult.ok === false && enforceResult.externalOutcome === 'known_not_executed'
+          && requestBodies.length === 3);
+      } finally {
+        if (previousEnforcement === undefined) delete process.env.MODEL_COST_ENFORCEMENT;
+        else process.env.MODEL_COST_ENFORCEMENT = previousEnforcement;
+      }
     } finally {
       if (isolationEnforcement === undefined) delete process.env.MODEL_COST_ENFORCEMENT;
       else process.env.MODEL_COST_ENFORCEMENT = isolationEnforcement;
