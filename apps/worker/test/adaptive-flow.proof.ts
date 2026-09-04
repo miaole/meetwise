@@ -11,9 +11,15 @@ const pool = createPool();
 let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
 const OWNER = 'adaptA', TID = 'adapt-' + Date.now();
 let calls = 0;
+let askSeq = 0;
 const base = scriptedModelClient({
   'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发', '缓存'] } }),
-  'interviewer.ask': () => ({ ok: true, raw: { q: '结合你的限流经历谈谈高并发下如何兼顾吞吐与一致性', refs: ['qbank:a'] } }),
+  // Critique duplicate now fail-closes (no invented replacement stem). A
+  // multi-turn scripted interviewer must emit distinct questions.
+  'interviewer.ask': () => ({
+    ok: true,
+    raw: { q: `结合你的限流经历谈谈高并发下如何兼顾吞吐与一致性，并说明第 ${++askSeq} 轮验证方法`, refs: ['qbank:a'] },
+  }),
   'mock-interview.evaluate': () => ({ ok: true, raw: { score: 88, evidence: [{ criterion: '讲清了滑动窗口', quote: '滑动窗口' }] } }),
 });
 const model: ModelClient = { complete: (r, a) => { calls++; return base.complete(r, a); } };

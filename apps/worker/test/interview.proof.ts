@@ -36,9 +36,10 @@ const RESUME = [
   'Redis、限流、分布式锁',
 ].join('\n');
 
+let askSeq = 0;
 const model: ModelClient = scriptedModelClient({
   'planner.competencies': () => ({ ok: true, raw: { competencies: ['高并发'] } }),
-  'interviewer.ask': () => ({ ok: true, raw: { q: '请说明高并发限流的取舍，并给出验证方法。', refs: [] } }),
+  'interviewer.ask': () => ({ ok: true, raw: { q: `请说明高并发限流的取舍，并给出第 ${++askSeq} 轮验证方法。`, refs: [] } }),
   'mock-interview.evaluate': () => ({ ok: true, raw: { score: 80, evidence: [{ criterion: 'Redis', quote: 'Redis' }] } }),
   'report.generate': () => ({ ok: true, raw: { overall: 80, sections: [{ title: '总评', body: '能说明限流取舍。' }] } }),
 });
