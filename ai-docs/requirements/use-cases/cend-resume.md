@@ -15,7 +15,7 @@ related:
 
 # cend-resume（RES 域）用例 + 测试用例 · 评审收口最终版
 
-> **🔎 实现状态（对齐真实代码 · 2026-09-04）** — 本文是 TARGET 规格。**✅ 已实现+接线**：简历**文本 / PDF 文本层**上传→摄取→PII（个人可识别信息）脱敏→内容 HMAC（带密钥哈希消息认证码）去重→结构化→诊断；**图片简历 OCR 预览版可走通、生产仍 gated off**：`resume.ocr.v1` 与迁移 `0127` 已在 main。预览双旗下 API 走 `invoke()` **只转写**→回灌 `ingestResume`、`reserve→confirm/release`（图字节 HMAC 幂等），失败不编造转写。**🟠 本切片 UC-RES-081**：Web `/resume` 仅在精确双旗且非 production/enforce/公开只读预览时展示图片入口；关闭态不接受图片，失败映射 `{error}` **不编造转写**。本 PR 不新增迁移（`0128`/`0129` 已预约；下一空号 ≥`0130`）。`ocr:prove` 用脚本模型证计费/脱敏，不验证百炼视觉质量、浏览器上传、完整删除或供应商保留期。`releaseEvidence=false`。**🟠 快随（未接线）**：**扫描型 PDF（无文本层）OCR** 见 UC-RES-003 A2。**⬜ 待补**：视觉层抗注入 ai-eval、伪造证件 `NEEDS_REVIEW` 真模型验收。
+> **🔎 实现状态（对齐真实代码 · 2026-09-04）** — 本文是 TARGET 规格。**✅ 已实现+接线**：简历**文本 / PDF 文本层**上传→摄取→PII（个人可识别信息）脱敏→内容 HMAC（带密钥哈希消息认证码）去重→结构化→诊断；**图片简历 OCR 预览版可走通、生产仍 gated off**：`resume.ocr.v1` 与迁移 `0127` 已在 main。预览双旗下 API 走 `invoke()` **只转写**→回灌 `ingestResume`、`reserve→confirm/release`（图字节 HMAC 幂等），失败不编造转写。**🟠 本切片 UC-RES-081**：Web `/resume` 仅在精确双旗且非 production/enforce/公开只读预览时展示图片入口；关闭态不接受图片，失败映射 `{error}` **不编造转写**。本 PR 不新增迁移（`0128` 已在 main；`0129`/`0130` 已占用；下一空号 ≥`0131`）。`ocr:prove` 用脚本模型证计费/脱敏，不验证百炼视觉质量、浏览器上传、完整删除或供应商保留期。`releaseEvidence=false`。**🟠 快随（未接线）**：**扫描型 PDF（无文本层）OCR** 见 UC-RES-003 A2。**⬜ 待补**：视觉层抗注入 ai-eval、伪造证件 `NEEDS_REVIEW` 真模型验收。
 
 > 顺序铁律：用例 → 契约 → 状态机 → 测试 → 代码。本文已按对抗评审五维收口：补齐七类缺口、每条异常/刁钻落到机制（状态机迁移 或 四原语）、验收可测（给阈值/黄金集/0 行断言）、修正测试层映射。
 >
@@ -181,7 +181,7 @@ related:
   - E4 API `ocr_failed` / `ocr_no_content` / `ocr_binding_*` → `{ok:false}` + 固定中文，**不把 `text`/`transcript` 写入 message**
   - E5 生产 / enforce / `MEETWISE_PUBLIC_PREVIEW=1` / 缺旗 → UI 不提供图片路径；若仍提交图片，Action 本地 `image_ocr_unavailable`，零 API 调用
   - E6 超时 → `upload_timeout`，不编造成功
-- **后置**：成功才导航；失败停留表单。Web 不写 ConsumptionRecord；账本仍由 API `ocr:prove` 负责。本切片无新迁移（`0127` 已在 main；`0128`/`0129` 已预约；下一空号 ≥`0130`）
+- **后置**：成功才导航；失败停留表单。Web 不写 ConsumptionRecord；账本仍由 API `ocr:prove` 负责。本切片无新迁移（`0127`/`0128` 已在 main；`0129`/`0130` 已占用；下一空号 ≥`0131`）
 - **验收 Acceptance**：① 仅精确双旗且未锁定 → accept 含 image ② 锁定/缺旗 → accept 无 image 且本地拒绝图片 ③ `ocr_failed` 夹带 `text` → `ok=false` 且 message 不含该 text ④ 空信封 / 缺 error → `ok=false` ⑤ 文案不含「求职者/面试官」、含「不是生产视觉质量承诺」⑥ `pnpm web:prove` + `pnpm -C apps/web prove:public-copy` 绿；`releaseEvidence=false`
 - **关联**：无新契约 endpoint（复用 `POST /resume/file`）；状态机不在 Web 落点；原语：公开预览写门 + 精确 env 旗；隐私：不把转写回显到错误条
 - **七类覆盖标注**：正/异/特/逃/并/复/刁
