@@ -4,6 +4,7 @@ export type AuthSession = {
   token: string;
   headers: Record<string, string>;
   email: string;
+  status: number;
 };
 
 type AuthPayload = { token?: unknown };
@@ -43,7 +44,7 @@ export async function signupOrLogin(email: string, password: string, role?: 'rec
   if (status !== 200 || !token) {
     throw new Error(`e2e_auth_failed:status=${status}`);
   }
-  return { token, headers: jsonHeaders(token), email };
+  return { token, headers: jsonHeaders(token), email, status };
 }
 
 /**
@@ -54,8 +55,9 @@ export async function signupOrLogin(email: string, password: string, role?: 'rec
  */
 export function uidFromToken(token: string): string {
   if (typeof token !== 'string' || token.length === 0) throw new Error('e2e_token_uid_missing');
-  const payloadSegment = token.split('.')[0];
-  if (!payloadSegment) throw new Error('e2e_token_uid_missing');
+  const parts = token.split('.');
+  if (parts.length !== 2 || !parts[0] || !parts[1]) throw new Error('e2e_token_uid_missing');
+  const payloadSegment = parts[0];
   let parsed: { uid?: unknown };
   try {
     parsed = JSON.parse(Buffer.from(payloadSegment, 'base64url').toString());

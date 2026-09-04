@@ -25,7 +25,7 @@ async function main() {
 
   // 1. 注册(或已存在则登录)→ 真 Bearer 令牌
   const session = await signupOrLogin(email, password);
-  A(typeof session.token === 'string' && session.token.length > 0, '注册/登录 → 真 Bearer 令牌');
+  A(session.status === 200 && typeof session.token === 'string' && session.token.length > 0, '注册/登录 → 真 Bearer 令牌');
   const { token, headers: H } = session;
 
   // 2. PIPL 采集同意(上传简历前置)

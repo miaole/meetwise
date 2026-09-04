@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash, createHmac } from 'node:crypto';
-import { isWebhookCreditResult, paidWebhookCanonical, paidWebhookSignature, PAID_WEBHOOK_EVENT, WEBHOOK_CREDIT_RESULTS } from './commerce.ts';
+import { createOrder, isWebhookCreditResult, paidWebhookCanonical, paidWebhookSignature, payWebhook, postPayWebhook, PAID_WEBHOOK_EVENT, WEBHOOK_CREDIT_RESULTS } from './commerce.ts';
 import { INTERVIEW_TERMINALS, STALE_QUESTION_ERROR, answerBody, questionIdentity } from './interview.ts';
 import { parseSseBuffer } from './sse.ts';
 import { signupOrLogin, uidFromToken } from './auth.ts';
@@ -19,9 +19,83 @@ const test = async (name: string, fn: () => void | Promise<void>) => {
   console.log(`PASS e2e-helpers: ${name}`);
 };
 
-await test('signupOrLogin 拒绝空凭据，不发明令牌、不打登录接口', async () => {
-  await assert.rejects(() => signupOrLogin('', 'strongpw123'), /e2e_auth_failed:status=invalid_input/);
-  await assert.rejects(() => signupOrLogin('e2e@x.com', ''), /e2e_auth_failed:status=invalid_input/);
+const encodePayload = (payload: object) => Buffer.from(JSON.stringify(payload)).toString('base64url');
+const sampleToken = (uid: string) => `${encodePayload({ uid, exp: 9_999_999_999, pe: 0 })}.sig`;
+
+function jsonRes(status: number, body: unknown): Response {
+  return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+}
+
+async function withMockFetch(
+  handler: (url: string, init?: RequestInit) => Response | Promise<Response>,
+  fn: () => Promise<void>,
+): Promise<void> {
+  const original = globalThis.fetch;
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => handler(String(input), init)) as typeof fetch;
+  try {
+    await fn();
+  } finally {
+    globalThis.fetch = original;
+  }
+}
+
+async function main() {
+await test('signupOrLogin 空凭据只做输入守卫，不发明令牌', async () => {
+  let fetches = 0;
+  await withMockFetch(async () => {
+    fetches++;
+    return jsonRes(200, { token: sampleToken('should-not-run') });
+  }, async () => {
+    await assert.rejects(() => signupOrLogin('', 'strongpw123'), /e2e_auth_failed:status=invalid_input/);
+    await assert.rejects(() => signupOrLogin('e2e@x.com', ''), /e2e_auth_failed:status=invalid_input/);
+  });
+  assert.equal(fetches, 0);
+});
+
+await test('signup 200 无 token 不回落到 login，也不用 body.userId', async () => {
+  const calls: string[] = [];
+  await withMockFetch(async (url) => {
+    calls.push(url);
+    return jsonRes(200, { userId: 'forged-user', token: '' });
+  }, async () => {
+    await assert.rejects(() => signupOrLogin('e2e@x.com', 'strongpw123'), /e2e_auth_failed:status=200/);
+  });
+  assert.equal(calls.length, 1);
+  assert.match(calls[0] ?? '', /\/auth\/signup$/);
+});
+
+await test('signup 非 200 才 login，令牌只取自 login JSON', async () => {
+  const token = sampleToken('user-login');
+  const calls: string[] = [];
+  await withMockFetch(async (url) => {
+    calls.push(url);
+    if (url.endsWith('/auth/signup')) return jsonRes(409, { error: 'email_taken', token: sampleToken('from-signup') });
+    return jsonRes(200, { token });
+  }, async () => {
+    const session = await signupOrLogin('e2e@x.com', 'strongpw123');
+    assert.equal(session.status, 200);
+    assert.equal(session.token, token);
+    assert.equal(uidFromToken(session.token), 'user-login');
+  });
+  assert.equal(calls.length, 2);
+  assert.match(calls[0] ?? '', /\/auth\/signup$/);
+  assert.match(calls[1] ?? '', /\/auth\/login$/);
+});
+
+await test('signup 200 非空 token 原样返回，零次 login', async () => {
+  const token = sampleToken('user-signup');
+  const calls: string[] = [];
+  await withMockFetch(async (url) => {
+    calls.push(url);
+    return jsonRes(200, { token, userId: 'ignore-me' });
+  }, async () => {
+    const session = await signupOrLogin('e2e@x.com', 'strongpw123', 'recruiter');
+    assert.equal(session.status, 200);
+    assert.equal(session.token, token);
+    assert.notEqual(uidFromToken(session.token), 'ignore-me');
+  });
+  assert.equal(calls.length, 1);
+  assert.match(calls[0] ?? '', /\/auth\/signup$/);
 });
 
 await test('question identity 拒绝缺失字段，不接受客户端伪造半截身份', () => {
@@ -94,37 +168,56 @@ await test('OCR fixture 是可读 PNG 且源码含合成手机号哨兵，不是
   assert.match(readFileSync(new URL('../ocr-fixture.ts', import.meta.url), 'utf8'), /13800138000/);
 });
 
-await test('uidFromToken 读 payload.sig 的 base64url 载荷，不把 JWT header 或空 uid 当身份', () => {
-  const encode = (payload: object) => Buffer.from(JSON.stringify(payload)).toString('base64url');
-  assert.equal(uidFromToken(`${encode({ uid: 'user-a', exp: 9_999_999_999, pe: 0 })}.sig`), 'user-a');
-  assert.equal(uidFromToken(`${encode({ uid: 'user_id-1', exp: 1, pe: 0 })}.sig`), 'user_id-1');
+await test('uidFromToken 读 payload.sig 的 base64url 载荷，三节 JWT 即使 header 带 uid 也不认', () => {
+  assert.equal(uidFromToken(sampleToken('user-a')), 'user-a');
+  assert.equal(uidFromToken(`${encodePayload({ uid: 'user_id-1', exp: 1, pe: 0 })}.sig`), 'user_id-1');
   assert.throws(() => uidFromToken(''), /e2e_token_uid_missing/);
-  assert.throws(() => uidFromToken(`${encode({})}.sig`), /e2e_token_uid_missing/);
-  assert.throws(() => uidFromToken(`${encode({ uid: '' })}.sig`), /e2e_token_uid_missing/);
-  assert.throws(() => uidFromToken(`${encode({ uid: 12 })}.sig`), /e2e_token_uid_missing/);
+  assert.throws(() => uidFromToken(`${encodePayload({})}.sig`), /e2e_token_uid_missing/);
+  assert.throws(() => uidFromToken(`${encodePayload({ uid: '' })}.sig`), /e2e_token_uid_missing/);
+  assert.throws(() => uidFromToken(`${encodePayload({ uid: 12 })}.sig`), /e2e_token_uid_missing/);
   assert.throws(() => uidFromToken('not-json.sig'), /e2e_token_uid_missing/);
-  const jwtHeader = encode({ alg: 'HS256', typ: 'JWT' });
-  assert.throws(() => uidFromToken(`${jwtHeader}.payload.sig`), /e2e_token_uid_missing/);
+  const evilHeader = encodePayload({ uid: 'evil', alg: 'HS256' });
+  assert.throws(() => uidFromToken(`${evilHeader}.payload.sig`), /e2e_token_uid_missing/);
 });
 
-await test('auth/commerce helpers 源码走真 HTTP 边界：不发明令牌、不下发客户端价、不伪造入账', () => {
-  const auth = readFileSync(new URL('./auth.ts', import.meta.url), 'utf8');
-  const commerce = readFileSync(new URL('./commerce.ts', import.meta.url), 'utf8');
+await test('createOrder 请求体只有 productId，payWebhook 只签 paid 且错签不代签', async () => {
+  const seen: Array<{ url: string; body: any; headers: Headers | undefined }> = [];
+  await withMockFetch(async (url, init) => {
+    seen.push({ url, body: JSON.parse(String(init?.body ?? '{}')), headers: init?.headers as Headers | undefined });
+    if (url.endsWith('/commerce/orders')) return jsonRes(200, { orderId: 'ord-1', amountCents: 9900, status: 'created' });
+    return jsonRes(200, { result: 'credited' });
+  }, async () => {
+    const ordered = await createOrder({ authorization: 'Bearer t' }, 'pack_10', 'idem-1');
+    assert.equal(ordered.body.orderId, 'ord-1');
+    const paid = await payWebhook('ord-1', 'txn-1', 'e2e-pay-secret');
+    assert.equal(isWebhookCreditResult(paid.body.result), true);
+    await postPayWebhook('ord-1', 't', 'deadbeef');
+  });
+  assert.deepEqual(seen[0]?.body, { productId: 'pack_10' });
+  assert.equal(seen[1]?.body.providerTxn, 'txn-1');
+  assert.equal(seen[1]?.body.sig, paidWebhookSignature('ord-1', 'txn-1', 'e2e-pay-secret'));
+  assert.notEqual(seen[1]?.body.sig, createHmac('sha256', 'e2e-pay-secret').update('ord-1:txn-1:refunded').digest('hex'));
+  assert.equal(seen[2]?.body.sig, 'deadbeef');
+  assert.notEqual(seen[2]?.body.sig, paidWebhookSignature('ord-1', 't', 'e2e-pay-secret'));
+});
+
+await test('full.e2e 场景仍断 credited|already、错签 403、未知单 404，不把 200 当入账', () => {
   const scenario = readFileSync(new URL('../full.e2e.ts', import.meta.url), 'utf8');
-  assert.match(auth, /\/auth\/signup/);
-  assert.match(auth, /\/auth\/login/);
-  assert.match(auth, /if \(status !== 200\)/);
-  assert.doesNotMatch(auth, /E2E_FAKE|skipAuth|inventedToken/);
-  assert.match(auth, /base64url/);
-  assert.match(commerce, /JSON\.stringify\(\{ productId \}\)/);
-  assert.match(commerce, /\/commerce\/webhook\/pay\//);
-  assert.match(commerce, /PAID_WEBHOOK_EVENT/);
-  assert.doesNotMatch(commerce, /forceCredit|skipPayment|E2E_FAKE_PAY/);
+  assert.match(scenario, /session\.status === 200 && typeof session\.token === 'string' && session\.token\.length > 0/);
+  assert.match(scenario, /ordered\.response\.status === 200 && typeof ordered\.body\.orderId === 'string'/);
   assert.match(scenario, /isWebhookCreditResult\(paid\.body\.result\)/);
+  assert.match(scenario, /\(units\.availableUnits \?\? 0\) >= 1/);
   assert.match(scenario, /postPayWebhook\(ord\.orderId, 't', 'deadbeef'\)/);
   assert.match(scenario, /postPayWebhook\('nope', 't', paidWebhookSignature\('nope', 't'\)\)/);
   assert.match(scenario, /badSig\.response\.status === 403/);
   assert.match(scenario, /unknownOrder\.response\.status === 404/);
+  assert.doesNotMatch(scenario, /forceCredit|skipPayment|E2E_FAKE_PAY/);
 });
 
 console.log(`PASS e2e-helpers proof: ${passed} scenarios; releaseEvidence=false`);
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
