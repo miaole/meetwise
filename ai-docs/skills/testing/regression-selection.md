@@ -26,7 +26,7 @@ description: 按触达面选择必须重跑的隔离 prove 与 E2E，避免只�
 ## 最低事后序列（agent 必须留下命令与退出码）
 
 ```text
-1. 审核清单（post-change-review.md）全部勾完或记录缺口
+1. review/verify：审核清单（post-change-review.md）全部勾完或记录缺口。automation does not trust AI outputs；multi-round allowed
 2. pnpm regression                    # always-on；可用 --dry-run 先看计划
 3. 上表中“必须”列
 4. 若 Docker/Postgres 行走骨架在范围内：pnpm regression --core（仍先跑 always-on）

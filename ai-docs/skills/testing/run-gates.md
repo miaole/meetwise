@@ -9,6 +9,8 @@ description: 隔离 prove、HTTP E2E、浏览器 E2E、性能门的真实命令�
 
 ## 0. 三车道与必跑顺序
 
+**review/verify** gate: `pnpm regression` is automation; **automation does not trust AI outputs**. **multi-round allowed**. Missing this language, a missing Key on `--live`, or a failed step is fail-closed. No secrets in command output.
+
 `pnpm regression` 只有三条车道，**顺序固定**：
 
 1. **always-on**（默认，无 Key、无 Docker）

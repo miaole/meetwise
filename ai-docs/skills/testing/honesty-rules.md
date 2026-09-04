@@ -13,7 +13,7 @@ description: 测试与文档的诚实边界：releaseEvidence、假服务、skip
 2. **在需要 live 供应商时打开假服务。** `VOICE_FAKE`、`OCR_FAKE`、`E2E_FAKE_MODEL` 必须使 runner 失败。不要删守卫来“先绿一下”。
 3. **缺 Key 却报告 live E2E 通过。** 正确写法是 `not_run:live_provider_key_missing`。`pnpm regression --live` 在缺或空白 `MODEL_API_KEY` 时必须非零退出。CI 刻意不把 `e2e:isolated` 放进 per-push，就是为了避免 skip-as-pass。未请求的 `--core` / `--live` 只能写 `not_requested`，不能写通过。
 4. **用过期回执。** 迁移清单数量或最新文件名与当前 `packages/db/migrations/` 不一致时，该 HTTP E2E 回执只是历史记录。
-5. **只断言 HTTP 200、只打开页面、只用 mock 证质量、AI 自评、只测 happy path。**
+5. **只断言 HTTP 200、只打开页面、只用 mock 证质量、AI 自评、只测 happy path。** `pnpm regression` 的 **review/verify** 是命令退出码和回执；**automation does not trust AI outputs**。**multi-round allowed**，不能把一次对话小结当成终验。
 6. **把 planned / unmapped golden-task 标成 passed。** 登记文件里的 `status` 枚举见 `ai-docs/testing/golden-tasks/README.md`。
 7. **把 Playwright 说成当前 HTTP 全链路实现。** 浏览器层才是 Playwright；HTTP 层是 fetch/SSE。
 8. **把本机性能数字说成线上 SLO。**

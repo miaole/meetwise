@@ -12,6 +12,9 @@
  * `package.json` script exists. Required scripts missing from package.json
  * fail closed.
  *
+ * review/verify gate (printed every run; missing skill-doc language fails closed):
+ *   automation does not trust AI outputs; multi-round allowed; secrets: none.
+ *
  * releaseEvidence is always false. This script does not replace CI verify.
  */
 import { spawn } from 'node:child_process';
@@ -48,6 +51,51 @@ export const CORE_REQUIRED = Object.freeze([
 ]);
 
 export const LIVE_REQUIRED = Object.freeze(['e2e:isolated']);
+
+/** Printed and required in skill docs. Missing language is fail-closed. */
+export const REVIEW_VERIFY_REQUIRED_PHRASES = Object.freeze([
+  'review/verify',
+  'automation does not trust AI outputs',
+  'multi-round allowed',
+]);
+
+export const REVIEW_VERIFY_DOCS = Object.freeze([
+  'ai-docs/skills/testing/SKILL.md',
+  'ai-docs/skills/testing/post-change-review.md',
+  'ai-docs/skills/testing/run-gates.md',
+]);
+
+export const REVIEW_VERIFY_GATE = Object.freeze({
+  id: 'regression_review_verify_gate',
+  review: 'ai-docs/skills/testing/post-change-review.md',
+  verify: 'command_exit_and_receipts_not_ai_self_report',
+  trust: 'automation_does_not_trust_ai_outputs',
+  rounds: 'multi_round_allowed',
+  failClosed: true,
+  secrets: 'none',
+  releaseEvidence: false,
+});
+
+export function collectReviewVerifyGateGaps(root = ROOT) {
+  const gaps = [];
+  for (const relative of REVIEW_VERIFY_DOCS) {
+    const path = resolve(root, relative);
+    if (!existsSync(path)) {
+      gaps.push(`missing:${relative}`);
+      continue;
+    }
+    const text = readFileSync(path, 'utf8');
+    for (const phrase of REVIEW_VERIFY_REQUIRED_PHRASES) {
+      if (!text.includes(phrase)) gaps.push(`${relative}:${phrase}`);
+    }
+  }
+  return gaps;
+}
+
+function printReviewVerifyGate() {
+  console.log(`REGRESSION_REVIEW_VERIFY_GATE ${JSON.stringify(REVIEW_VERIFY_GATE)}`);
+  console.log('review/verify: automation does not trust AI outputs; multi-round allowed; fail-closed; secrets: none');
+}
 
 export function parseRegressionArgs(argv) {
   const flags = argv.filter((arg) => arg.startsWith('-'));
@@ -165,6 +213,12 @@ export async function main(argv = process.argv.slice(2), processEnv = process.en
     failClosed(`regression_unknown_flag:${args.unknown.join(',')}`, 2);
   }
 
+  const reviewGaps = collectReviewVerifyGateGaps(ROOT);
+  if (reviewGaps.length) {
+    failClosed(`regression_review_verify_gate_missing:${reviewGaps.join('|')}`);
+  }
+  printReviewVerifyGate();
+
   const scripts = readPackageScripts(ROOT);
   const plan = planRegression({
     wantCore: args.wantCore,
@@ -190,6 +244,7 @@ export async function main(argv = process.argv.slice(2), processEnv = process.en
       steps: plan.steps,
       optionalWired: plan.optionalPresent,
       optionalAbsent: plan.optionalAbsent,
+      reviewVerify: REVIEW_VERIFY_GATE,
       releaseEvidence: false,
       dryRun: true,
     })}`);
@@ -222,6 +277,7 @@ export async function main(argv = process.argv.slice(2), processEnv = process.en
     liveE2E: args.wantLive ? 'http_ran_ui_not_included' : 'not_requested',
     core: args.wantCore ? 'ran' : 'not_requested',
     optionalWired: plan.optionalPresent,
+    reviewVerify: REVIEW_VERIFY_GATE,
     steps: results,
     durationMs: Date.now() - started,
   })}`);

@@ -30,6 +30,16 @@ pnpm regression --dry-run       # 只打印计划，不执行
 
 浏览器层不在本入口内：需先 `pnpm -C apps/web build` 再 `pnpm e2e:ui:isolated`。
 
+## review/verify gate
+
+`pnpm regression` is automation. **automation does not trust AI outputs.** A green command is not “the model said it is fine.”
+
+- **review**: walk [post-change-review.md](./post-change-review.md). Unchecked items cannot be claimed reviewed.
+- **verify**: exit codes and receipts only (schema then business validators). Not AI self-report, not a chat summary.
+- **multi-round allowed**: review → verify → review again is allowed. A later failing gate reopens review; do not treat the first green as final.
+- **fail-closed**: missing review/verify language, missing Key on `--live`, or a failed step exits non-zero.
+- **no secrets**: do not print keys, résumés, answers, or prompts.
+
 ## 生成前门禁（本技能自身）
 
 改测试配方、E2E harness 或 golden-tasks 时同样适用：

@@ -4,8 +4,9 @@
  */
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   ALWAYS_ON_REQUIRED,
@@ -14,6 +15,10 @@ import {
   LANE_ORDER,
   LIVE_REQUIRED,
   OPTIONAL_ALWAYS_ON,
+  REVIEW_VERIFY_DOCS,
+  REVIEW_VERIFY_GATE,
+  REVIEW_VERIFY_REQUIRED_PHRASES,
+  collectReviewVerifyGateGaps,
   parseRegressionArgs,
   planRegression,
   resolveLiveProviderKey,
@@ -132,6 +137,37 @@ test('成功摘要区分 always-on / core / live，从不把未跑车道写成�
   assert.equal(summarizeOutcome({ wantCore: true, wantLive: true }), 'passed_always_on_core_and_http_e2e');
 });
 
+test('review/verify 门禁语言在脚本与技能文档中一致，缺席则 fail-closed', () => {
+  assert.deepEqual([...REVIEW_VERIFY_REQUIRED_PHRASES], [
+    'review/verify',
+    'automation does not trust AI outputs',
+    'multi-round allowed',
+  ]);
+  assert.equal(REVIEW_VERIFY_GATE.trust, 'automation_does_not_trust_ai_outputs');
+  assert.equal(REVIEW_VERIFY_GATE.rounds, 'multi_round_allowed');
+  assert.equal(REVIEW_VERIFY_GATE.failClosed, true);
+  assert.equal(REVIEW_VERIFY_GATE.secrets, 'none');
+  assert.equal(REVIEW_VERIFY_GATE.releaseEvidence, false);
+  assert.deepEqual(collectReviewVerifyGateGaps(ROOT), []);
+  for (const phrase of REVIEW_VERIFY_REQUIRED_PHRASES) {
+    assert.match(skill, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    assert.match(runGates, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+  const fixture = mkdtempSync(join(tmpdir(), 'meetwise-regression-review-'));
+  try {
+    for (const relative of REVIEW_VERIFY_DOCS) {
+      const target = resolve(fixture, relative);
+      mkdirSync(dirname(target), { recursive: true });
+      writeFileSync(target, 'no gate language here\n', 'utf8');
+    }
+    const gaps = collectReviewVerifyGateGaps(fixture);
+    assert.ok(gaps.length >= REVIEW_VERIFY_DOCS.length * REVIEW_VERIFY_REQUIRED_PHRASES.length);
+    assert.ok(gaps.every((gap) => !gap.includes('sk-') && !gap.includes('KEY=')));
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
 test('技能文档与脚本对 always-on / --core / --live 和必跑顺序一致', () => {
   for (const name of ALWAYS_ON_REQUIRED) {
     assert.match(runGates, new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
@@ -167,6 +203,7 @@ await testAsync('--live 无 Key 立即非零退出，不跑、不记通过', asy
   assert.equal(result.code, 1);
   assert.match(result.stderr, /live_provider_key_missing:MODEL_API_KEY/);
   assert.match(result.stderr, /regression_live_not_run/);
+  assert.match(result.stdout, /review\/verify: automation does not trust AI outputs; multi-round allowed/);
   assert.doesNotMatch(`${result.stdout}${result.stderr}`, /REGRESSION_SUMMARY/);
   assert.doesNotMatch(`${result.stdout}${result.stderr}`, /REGRESSION_PLAN/);
   assert.doesNotMatch(`${result.stdout}${result.stderr}`, /========== regression:/);
@@ -189,6 +226,10 @@ await testAsync('--dry-run 列出 always-on（含已存在的可选守卫），�
   assert.equal(plan.dryRun, true);
   assert.deepEqual(plan.order, ['always-on', 'core', 'live']);
   assert.deepEqual(plan.requested, { alwaysOn: true, core: false, live: false });
+  assert.deepEqual(plan.reviewVerify, REVIEW_VERIFY_GATE);
+  assert.match(result.stdout, /REGRESSION_REVIEW_VERIFY_GATE /);
+  assert.match(result.stdout, /review\/verify: automation does not trust AI outputs; multi-round allowed/);
+  assert.match(result.stdout, /secrets: none/);
   for (const name of ALWAYS_ON_REQUIRED) {
     assert.ok(plan.steps.includes(name), `dry-run missing required ${name}`);
   }

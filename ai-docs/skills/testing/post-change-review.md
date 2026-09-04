@@ -5,6 +5,8 @@ description: 功能 diff 落地后、跑测试前的审核清单。对应 AGENTS
 
 # 变更后审核清单
 
+**review/verify** gate: `pnpm regression` is automation; **automation does not trust AI outputs**. **multi-round allowed** — review can run again after verify fails or after a later change. Unchecked items cannot be claimed reviewed. No secrets in the checklist or logs.
+
 在 `pnpm regression` 之前走完。任一项为“未查”则不得声称审核通过。
 
 ## 1. 范围与来源
