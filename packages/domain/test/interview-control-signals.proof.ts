@@ -179,7 +179,7 @@ function thrashMind(): InterviewMind {
   A('刁: 单能力 hasHook 深挖高/低翻转不标 thrashing（无跨能力 pivot）',
     (hook.recentScores?.length ?? 0) >= 4 && observeInterviewSignals(hook).scoreFlips >= 3
     && observeInterviewSignals(hook).kind === 'none'
-    && decideNext(hook).kind === 'ask' && decideNext(hook).mode === 'probe');
+    && decideNext(hook).kind === 'ask');
   A('刁: hasHook 高分 confidence 封顶，不标 weak',
     (hook.competencies[0]?.confidence ?? 1) >= WEAK_CONFIDENCE_CEILING
     && (hook.competencies[0]?.confidence ?? 1) < SIGNAL_CONF_ENOUGH);
