@@ -131,6 +131,7 @@ E2E 用例数/断言 parity 是测试控制面，不计入上表产品域估算�
 | RAG-FUNNEL-01A ACL | `rag-funnel-intent-routing.md` | `0124` 空 principal fail-closed；definer 闭包已密封；域 ACL 未接线；≠ routed serving / 发布证据 |
 | 隐私删除 sink 盘点 | `privacy-deletion-sink-inventory.md` | `0125` 只收 `vector_chunk.kind='memory'`；公开 DELETE 仍 503；一份 completed ≠ 账户删除完成 |
 | 自适应面试动态长度 | `adaptive-interview-length.md` | `decideNext` 覆盖/证据/早停/加深；软预算可上调；`absoluteMaxTurns` 默认 120 只防 runaway；≠ `INT-LONG-INTERVIEW-01` |
+| SCOR-00H 消费诚实 | `interview-scoring-measurement.md` | 无 canonical identity 不得伪造 0 / mapped B 端 overall；转写/`POST` 评估/career/SSE 走域闸；GET 不重跑 |
 
 ## 5. 专家级面试官题库（内部使用）
 
