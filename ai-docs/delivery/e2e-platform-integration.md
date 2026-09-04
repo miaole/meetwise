@@ -28,8 +28,8 @@ related:
 | --- | --- | --- | --- | --- |
 | 1 | #55 母线 | `feature/e2e-testing-skills` @ `dbcc310` | — | 作为 integration 起点（已含 generation-trust、e2e-platform SOP、fail-closed） |
 | 2 | #58 | `cursor/harden-regression-entrypoint-61d4` | 旧于母线 tip（约 `b7b078c`） | 已 merge：车道合同 + review/verify；保留母线 `generation-trust:prove` / `e2e-platform:prove` / `--claim-done` 禁令 |
-| 3 | #57 | `cursor/align-testing-docs-e2e-f3ba` | 旧于母线 tip（约 `b7b078c`） | 进行中：HTTP 主层 / Playwright 次层；`ai-generated-review.md` 收成 fail-closed 指针，不另开公式 |
-| 4 | #59 | `cursor/golden-tasks-registry-71ea` | 约 `b7b078c` | 待 merge |
+| 3 | #57 | `cursor/align-testing-docs-e2e-f3ba` | 旧于母线 tip（约 `b7b078c`） | 已 merge：HTTP 主层 / Playwright 次层；`ai-generated-review.md` 收成 fail-closed 指针 |
+| 4 | #59 | `cursor/golden-tasks-registry-71ea` | 约 `b7b078c` | 已 merge：`golden-tasks:prove` 进 always-on；GT-01..04 禁止 `mapped` |
 | 5 | #56 | `cursor/harden-e2e-auth-commerce-0f82` | 约 `b7b078c` | 待 merge |
 | 6 | #60 | `cursor/e2e-interview-provenance-526a` | 约 `b7b078c` | 待 merge |
 | 7 | #61 | `cursor/e2e-failure-class-ledger-e5f7` | 约 `b7b078c` | 待 merge |
@@ -69,7 +69,7 @@ related:
 
 `scripts/run-post-change-regression.mjs` 的 `ALWAYS_ON_REQUIRED`：
 
-`docs:check` · `generation-trust:prove` · `golden-tasks:check` · `e2e-platform:prove` · `e2e-helpers:prove` · `e2e-receipt:prove` · `e2e-runner:prove` · `arch` · `api:smoke`
+`docs:check` · `generation-trust:prove` · `golden-tasks:check` · `golden-tasks:prove` · `e2e-platform:prove` · `e2e-helpers:prove` · `e2e-receipt:prove` · `e2e-runner:prove` · `arch` · `api:smoke`
 
 可选（`package.json` 有脚本才挂）：`public-text-policy:prove` · `quality:traceability:prove` · `provider-egress:prove`。
 

@@ -64,7 +64,7 @@ pnpm regression --dry-run       # 只打印计划，不执行
 
 ## 改本技能时
 
-改配方、E2E harness 或 golden-tasks 仍走 `AGENTS.md` 生成前门禁。升格 `active` 的条件只写在 [SOP](./sop.md)。e2e-platform 保持 **draft / NOT_READY**，不随本页升格而变成 READY。
+改配方、E2E harness 或 golden-tasks 仍走 `AGENTS.md` 生成前门禁。升格 `active` 的条件只写在 [SOP](./sop.md)。e2e-platform 保持 **draft / NOT_READY**，不随本页升格而变成 READY。不把 `relatedCommands` 或 `scoring:eval` 写成 covering；不把 planned golden-task 标成已通过。
 
 ## 铁律（先读再跑）
 
@@ -73,6 +73,6 @@ pnpm regression --dry-run       # 只打印计划，不执行
 - HTTP 全链路 E2E 是 **主层**：`e2e/full.e2e.ts` + `scripts/run-e2e.mjs`（fetch / SSE），入口 `pnpm e2e:isolated`。Playwright 是 **次层**，只覆盖 `pnpm e2e:ui:isolated` 的浏览器 cookie / 页面流。分层结论在 [test-strategy](../../testing/strategy/test-strategy.md) 与 [test-authoring](../../testing/conventions/test-authoring.md)。
 - `run-e2e.mjs` 在 `E2E_ISOLATED=1` 且存在 `MODEL_API_KEY` 时才启动；`VOICE_FAKE` / `OCR_FAKE` / `E2E_FAKE_MODEL` 直接失败。
 - 回执恒为 `releaseEvidence=false`。没有受信 runner、不可变对象存储和独立验签，就不能写发布通过。
-- golden-tasks 第一批已建档；未映射到可跑门的条目状态必须是 `planned` 或 `unmapped`，禁止标 `passed`。
+- golden-tasks 第一批已建档；未映射到可跑门的条目状态必须是 `planned` 或 `unmapped`，禁止标 `passed`。附近 prove（`relatedCommands`）不是 covering；`scoring:eval` 不得写入 `mappedCommands`。`subject=ai-output`（GT-01..04）禁止 `mapped`。
 - `pnpm generation-trust:prove` 检查本政策仍写在审核清单与回归入口；绿了也不等于「已完成」。
 - **P0 fail-closed（文档门）：** 不默认信任 AI 代码或 AI 输出。审核与验证缺一即阻断；作者不得自签审核；多轮修改必须重开本门。禁止提交密钥。`gate: closed` ≠ runner 绿。

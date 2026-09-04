@@ -33,6 +33,7 @@ export const ALWAYS_ON_REQUIRED = Object.freeze([
   'docs:check',
   'generation-trust:prove',
   'golden-tasks:check',
+  'golden-tasks:prove',
   'e2e-platform:prove',
   'e2e-helpers:prove',
   'e2e-receipt:prove',

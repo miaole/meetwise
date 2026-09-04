@@ -26,14 +26,15 @@ related:
 3. **缺 Key 却报告 live E2E 通过。** 正确写法是 `not_run:live_provider_key_missing`。`pnpm regression --live` 在缺或空白 `MODEL_API_KEY` 时必须非零退出。CI 刻意不把 `e2e:isolated` 放进 per-push，就是为了避免 skip-as-pass。未请求的 `--core` / `--live` 只能写 `not_requested`，不能写通过。
 4. **用过期回执。** 迁移清单数量或最新文件名与当前 `packages/db/migrations/` 不一致时，该 HTTP E2E 回执只是历史记录。
 5. **只断言 HTTP 200、只打开页面、只用 mock 证质量、AI 自评、只测 happy path，或默认信任 AI 代码/输出。** `pnpm regression` 的 **review/verify** 是命令退出码和回执；**automation does not trust AI outputs**。**multi-round allowed**。收束公式见 [fail-closed 门](./fail-closed-gate.md)；长期规则指针 `ai-docs/rules/global/ai-generated-review.md`。不能把一次对话小结当成终验。
-6. **把 planned / unmapped golden-task 标成 passed。** 登记文件里的 `status` 枚举见 `ai-docs/testing/golden-tasks/README.md`。
-7. **把 Playwright 说成当前 HTTP 全链路实现。** 浏览器层才是 Playwright；HTTP 层是 fetch/SSE。
-8. **把本机性能数字说成线上 SLO。**
-9. **把默认 `pnpm regression` 绿写成触达面必须列已完成、CI `verify` 通过或发布证据。**
-10. **skip-as-pass。** 缺 Key、未跑、失败，只能记 `not_run` / `blocked` / 非零退出，不能改 runner 或删守卫来绿。
-11. **未审核生成物标 READY 或声称完成。** 生成代码 / 模型输出默认不可信。没有走完 [变更后审核](./post-change-review.md) 第 0 节，不得标 READY，也不得把 `releaseEvidence=false` 的绿回归写成完成。受信回执出现之前，`releaseEvidence` 必须保持 `false`。
-12. **默认信任 AI 代码或 AI 输出。** 审核与验证缺一，或把 `aiTrust` 写成 `trusted`，即 [fail-closed 门](./fail-closed-gate.md) `BLOCK`。
-13. **提交或记录真实密钥、`.env`、token、简历原文、录音。** 技能与回执只允许占位名。
+6. **把 planned / unmapped golden-task 标成 passed。** 登记文件里的 `status` 枚举见 `ai-docs/testing/golden-tasks/README.md`。`relatedCommands` 只说明附近有门；`scoring:eval` 不得当 covering。`GT-05` 的 `runtime:prove` 绿不等于非法 JSON 已验收。
+7. **把 AI 输出类 golden-task（GT-01..04）标成 `mapped`。** 夹具结构门、fake assess、脚本化出题都不是模型输出质量。这些条目最高 `partial`。升 `mapped` 只适用于 `subject=mechanism`，且必须先实跑 covering 门。
+8. **把 Playwright 说成当前 HTTP 全链路实现。** 浏览器层才是 Playwright；HTTP 层是 fetch/SSE。
+9. **把本机性能数字说成线上 SLO。**
+10. **把默认 `pnpm regression` 绿写成触达面必须列已完成、CI `verify` 通过或发布证据。**
+11. **skip-as-pass。** 缺 Key、未跑、失败，只能记 `not_run` / `blocked` / 非零退出，不能改 runner 或删守卫来绿。
+12. **未审核生成物标 READY 或声称完成。** 生成代码 / 模型输出默认不可信。没有走完 [变更后审核](./post-change-review.md) 第 0 节，不得标 READY，也不得把 `releaseEvidence=false` 的绿回归写成完成。受信回执出现之前，`releaseEvidence` 必须保持 `false`。
+13. **默认信任 AI 代码或 AI 输出。** 审核与验证缺一，或把 `aiTrust` 写成 `trusted`，即 [fail-closed 门](./fail-closed-gate.md) `BLOCK`。
+14. **提交或记录真实密钥、`.env`、token、简历原文、录音。** 技能与回执只允许占位名。
 
 ## 允许
 

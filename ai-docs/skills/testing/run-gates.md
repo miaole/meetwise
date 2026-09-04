@@ -45,7 +45,7 @@ pnpm regression
 pnpm regression --dry-run
 ```
 
-默认 **always-on**（`scripts/run-post-change-regression.mjs` 的 `ALWAYS_ON_REQUIRED`）：`docs:check`、`generation-trust:prove`、`golden-tasks:check`、`e2e-platform:prove`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`arch`、`api:smoke`。其中任一条在 `package.json` 缺失 → 非零退出（fail-closed）。`generation-trust:prove` 只证明政策仍写在审核清单与回归入口，不证明 diff 已人工审完。
+默认 **always-on**（`scripts/run-post-change-regression.mjs` 的 `ALWAYS_ON_REQUIRED`）：`docs:check`、`generation-trust:prove`、`golden-tasks:check`、`golden-tasks:prove`、`e2e-platform:prove`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`arch`、`api:smoke`。其中任一条在 `package.json` 缺失 → 非零退出（fail-closed）。`generation-trust:prove` 只证明政策仍写在审核清单与回归入口，不证明 diff 已人工审完。`golden-tasks:prove` 证明登记检查本身 fail-closed，不把 `planned` / `partial` 升成 `mapped`。
 
 若 `package.json` 里还有这些脚本，会自动接上（没有则跳过，不记通过）：`public-text-policy:prove`、`quality:traceability:prove`、`provider-egress:prove`。`quality:governance:check` 仍是 EXEC-00 静态治理门，不挂进 always-on：历史记录引用已删除路径时它会红，不能当成变更后烟雾。入口自身的契约用 `pnpm regression:prove` 验证，不挂进 always-on，避免自举循环。
 
@@ -77,7 +77,12 @@ CI `verify` 比这更长，见 `.github/workflows/ci.yml`。合并阻断以 CI �
 | `pnpm commerce:prove` | 额度 FIFO / 并发不超卖 | 真实支付服务商 |
 | `pnpm resume:prove` | 加密、PII 剥离、注入门 | 真视觉 OCR 供应商 |
 | `pnpm scoring-integrity:prove` | quote 失败 → unscored；报告忽略模型 overall | 评分官校准 |
-| `pnpm turn-idempotency:prove` | 同答案 HTTP 重放只落一个 job | 不同答案的业务冲突策略全表 |
+| `pnpm turn-idempotency:prove` | 同答案 HTTP 重放只落一个 job | 评分层缓存 / 不重打模型 |
+| `pnpm neg:interview` | 同题不同 answer hash → 409，不覆盖 | 评分幂等键在 invoke 层的缓存 |
+| `pnpm adaptive-offtopic:prove` | 非作答 → clarify / pivot，不并入掌握分 | 报告文案「掌握 X」或引导话术质量 |
+| `pnpm model-op00-usage-reconciler:prove` | schema 失败 → `schema_validation_failed` | 供应商标量非法 JSON 文本（走 unknown） |
+| `pnpm golden-tasks:check` | 第一批登记诚实：status / 命令 / 文档对齐 | 被映射门本身已跑过 |
+| `pnpm golden-tasks:prove` | 负向夹具：假绿 status / planned 声称命令 / 文档漂移会失败 | 被映射门本身已跑过 |
 | `pnpm web:prove` | SSE 解码、契约客户端、`report_unavailable` 不转圈 | 真浏览器 |
 | `pnpm performance:e2e:isolated` | 本机 health/products/signup/resume 突发预算 | 线上容量 |
 
