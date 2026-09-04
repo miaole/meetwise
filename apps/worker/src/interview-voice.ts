@@ -14,10 +14,10 @@ export async function previewVoiceAnswerTurn(
   deps: Omit<VoiceTurnDeps, 'asr' | 'tts'> & Partial<Pick<VoiceTurnDeps, 'asr' | 'tts'>>,
   audioIn: Uint8Array,
 ) {
-  const seams = composeInterviewVoiceSeams();
+  const seams = (deps.asr && deps.tts) ? undefined : composeInterviewVoiceSeams();
   return voiceAnswerTurn({
-    asr: deps.asr ?? seams.asr,
-    tts: deps.tts ?? seams.tts,
+    asr: deps.asr ?? seams!.asr,
+    tts: deps.tts ?? seams!.tts,
     graph: deps.graph,
     cfg: deps.cfg,
   }, audioIn);
