@@ -40,6 +40,22 @@ export type AttributableConclude = {
 
 export type AttributableDecision = AttributableAsk | AttributableConclude;
 
+export type UntrustedDisplay = {
+  kind: string;
+  field: string;
+  trust: 'untrusted_ai_output';
+};
+
+/** P0 review: server identity may be used to answer; AI text/scores/progress never become B-side evidence. */
+export type InterviewProvenanceReview = {
+  identities: QuestionIdentity[];
+  practiceHints: PracticeHint[];
+  attributions: AttributableDecision[];
+  untrustedDisplay: UntrustedDisplay[];
+  trustedBSideScore: null;
+  forgedScores: 'none';
+};
+
 export type InterviewLoopResult = {
   terminal: string;
   questions: number;
@@ -49,6 +65,7 @@ export type InterviewLoopResult = {
   kinds: Set<string>;
   practiceHints: PracticeHint[];
   attributions: AttributableDecision[];
+  provenance: InterviewProvenanceReview;
 };
 
 function isNonNegativeInt(value: unknown): value is number {
@@ -66,6 +83,15 @@ export function questionIdentity(payload: any): QuestionIdentity {
     throw new Error('e2e_question_identity_forged');
   }
   return { questionId: payload.questionId, stateVersion: payload.stateVersion, turn: payload.turn };
+}
+
+/** Progress is not an identity source. Only question_ready / clarification_needed may issue a token. */
+export function questionIdentityFromEvent(event: Pick<SseEvent, 'kind' | 'payload'>): QuestionIdentity {
+  if (event.kind === 'progress') throw new Error('e2e_progress_not_identity');
+  if (event.kind !== 'question_ready' && event.kind !== 'clarification_needed') {
+    throw new Error('e2e_question_identity_wrong_kind');
+  }
+  return questionIdentity(event.payload);
 }
 
 export function answerBody(identity: QuestionIdentity, answer: string) {
@@ -89,10 +115,26 @@ export function practiceHintFromEvaluated(payload: any): PracticeHint {
   return { ...identity, value: payload.score, source: 'answer_evaluated', role: 'practice_hint' };
 }
 
+/**
+ * Interview SSE never yields a B-side score. Practice hints, progress, and
+ * report_ready.overall are untrusted AI/display fields — calling this is the
+ * only helper path that would mint a B-side number, and it always fails.
+ */
+export function refuseBSideScoreFromInterviewStream(source: {
+  from: 'practice_hint' | 'answer_evaluated' | 'progress' | 'report_ready' | 'question_ready';
+  value?: unknown;
+}): never {
+  throw new Error(`e2e_forged_score:${source.from}`);
+}
+
 export function assertPracticeHintNotBSide(hint: PracticeHint): void {
   if (hint.role !== 'practice_hint' || hint.source !== 'answer_evaluated') {
     throw new Error('e2e_forged_score');
   }
+}
+
+export function sameQuestionIdentity(left: QuestionIdentity, right: QuestionIdentity): boolean {
+  return left.questionId === right.questionId && left.stateVersion === right.stateVersion && left.turn === right.turn;
 }
 
 /**
@@ -110,19 +152,20 @@ export function attributableAsk(payload: any): AttributableAsk | null {
   return { kind: 'ask', mode: payload.mode, competency: payload.competency, source: 'server_payload' };
 }
 
+/**
+ * Conclude is attributable only on a dedicated conclude event.
+ * Progress / waiting_user / terminal SSE kinds are never conclude sources.
+ */
 function concludeMarked(event: Pick<SseEvent, 'kind' | 'payload'>): boolean {
-  const payload = event.payload ?? {};
-  return event.kind === 'conclude'
-    || payload.kind === 'conclude'
-    || payload.route === 'conclude'
-    || payload.action === 'conclude'
-    || typeof payload.concludeReason === 'string';
+  if (event.kind === 'progress' || event.kind === 'waiting_user') return false;
+  if ((INTERVIEW_TERMINALS as readonly string[]).includes(event.kind)) return false;
+  return event.kind === 'conclude';
 }
 
 /**
- * Conclude reason is attributable only when the event is marked conclude and
+ * Conclude reason is attributable only when the event kind is conclude and
  * the reason is a domain enum. Terminal SSE reasons (assessment_unavailable,
- * report_unavailable, …) are not conclude reasons and must not be rewritten.
+ * report_unavailable, …) and progress.route are not conclude reasons.
  */
 export function attributableConclude(event: Pick<SseEvent, 'kind' | 'payload'>): AttributableConclude | null {
   if (!concludeMarked(event)) return null;
@@ -144,30 +187,60 @@ export function unscoredReason(payload: any): { identity: QuestionIdentity; reas
   return { identity, reason: payload.reason, source: 'server_payload' };
 }
 
-/** Inspect a batch: reject forged progress scores; collect only server-attributed decisions and practice hints. */
-export function inspectInterviewProvenance(events: SseEvent[]): {
-  practiceHints: PracticeHint[];
-  attributions: AttributableDecision[];
-} {
+/**
+ * P0 provenance review. Trusted: server-issued question identity.
+ * Untrusted: question text, practice hint scores, report overall.
+ * Rejected: scores on progress/question frames; identity or conclude from progress.
+ * Does not invent probe/conclude when the server omitted them. Does not cap rounds.
+ */
+export function reviewInterviewProvenance(events: SseEvent[]): InterviewProvenanceReview {
   rejectForgedProgressScores(events);
+  const identities: QuestionIdentity[] = [];
   const practiceHints: PracticeHint[] = [];
   const attributions: AttributableDecision[] = [];
+  const untrustedDisplay: UntrustedDisplay[] = [];
   for (const event of events) {
+    if (event.kind === 'progress') {
+      if (event.payload?.questionId !== undefined) throw new Error('e2e_progress_not_identity');
+      continue;
+    }
     if (event.kind === 'question_ready' || event.kind === 'clarification_needed') {
-      questionIdentity(event.payload);
+      identities.push(questionIdentityFromEvent(event));
       const ask = attributableAsk(event.payload);
       if (ask) attributions.push(ask);
+      if (typeof event.payload?.question === 'string') {
+        untrustedDisplay.push({ kind: event.kind, field: 'question', trust: 'untrusted_ai_output' });
+      }
     } else if (event.kind === 'answer_evaluated') {
       const hint = practiceHintFromEvaluated(event.payload);
       assertPracticeHintNotBSide(hint);
       practiceHints.push(hint);
+      untrustedDisplay.push({ kind: 'answer_evaluated', field: 'score', trust: 'untrusted_ai_output' });
     } else if (event.kind === 'answer_unscored') {
       unscoredReason(event.payload);
+    } else if (event.kind === 'report_ready' && event.payload?.overall !== undefined) {
+      untrustedDisplay.push({ kind: 'report_ready', field: 'overall', trust: 'untrusted_ai_output' });
     }
     const conclude = attributableConclude(event);
     if (conclude) attributions.push(conclude);
   }
-  return { practiceHints, attributions };
+  return {
+    identities,
+    practiceHints,
+    attributions,
+    untrustedDisplay,
+    trustedBSideScore: null,
+    forgedScores: 'none',
+  };
+}
+
+/** Inspect a batch: reject forged scores; collect only server-attributed decisions and practice hints. */
+export function inspectInterviewProvenance(events: SseEvent[]): {
+  practiceHints: PracticeHint[];
+  attributions: AttributableDecision[];
+} {
+  const review = reviewInterviewProvenance(events);
+  return { practiceHints: review.practiceHints, attributions: review.attributions };
 }
 
 export async function submitTurn(
@@ -216,23 +289,22 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
   let evaluated = 0;
   let terminal = '';
   let currentQuestion: QuestionIdentity | null = null;
+  let lastSubmitted: QuestionIdentity | null = null;
   const kinds = new Set<string>();
-  const practiceHints: PracticeHint[] = [];
-  const attributions: AttributableDecision[] = [];
+  const seen: SseEvent[] = [];
   const started = Date.now();
 
   while (Date.now() - started < deadlineMs) {
     const events = await readSseEvents(`/interview/${options.interviewId}/events`, options.token, lastSeq);
-    inspectInterviewProvenance(events);
+    reviewInterviewProvenance(events);
     for (const event of events) {
       if (event.seq <= lastSeq) continue;
       lastSeq = event.seq;
       kinds.add(event.kind);
+      seen.push(event);
       if (event.kind === 'question_ready') {
         questions++;
-        currentQuestion = questionIdentity(event.payload);
-        const ask = attributableAsk(event.payload);
-        if (ask) attributions.push(ask);
+        currentQuestion = questionIdentityFromEvent(event);
         const submitted = await submitTurn(
           options.interviewId,
           options.headers,
@@ -241,6 +313,7 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
           `${options.interviewId}:question:${currentQuestion.questionId}:answer:${turn}`,
         );
         options.assert(submitted.status === 202, options.questionAcceptedLabel(turn + 1));
+        lastSubmitted = currentQuestion;
         if (options.staleReplayLabel && options.replayConsumedAfterFirstTurn && questions === 1) {
           const stale = await submitTurn(
             options.interviewId,
@@ -254,16 +327,15 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
         turn++;
       } else if (event.kind === 'answer_evaluated') {
         const hint = practiceHintFromEvaluated(event.payload);
-        assertPracticeHintNotBSide(hint);
-        practiceHints.push(hint);
+        if (lastSubmitted && !sameQuestionIdentity(hint, lastSubmitted)) {
+          throw new Error('e2e_evaluated_identity_mismatch');
+        }
         evaluated++;
       } else if (event.kind === 'answer_unscored') {
         unscoredReason(event.payload);
       } else if (event.kind === 'clarification_needed') {
         const staleQuestion = currentQuestion;
-        currentQuestion = questionIdentity(event.payload);
-        const ask = attributableAsk(event.payload);
-        if (ask) attributions.push(ask);
+        currentQuestion = questionIdentityFromEvent(event);
         if (options.staleReplayLabel && staleQuestion) {
           const stale = await submitTurn(
             options.interviewId,
@@ -282,19 +354,21 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
           `${options.interviewId}:question:${currentQuestion.questionId}:answer:${turn}`,
         );
         options.assert(submitted.status === 202, options.clarificationAcceptedLabel);
+        lastSubmitted = currentQuestion;
         turn++;
       } else if ((INTERVIEW_TERMINALS as readonly string[]).includes(event.kind)) {
         terminal = event.kind;
-        const conclude = attributableConclude(event);
-        if (conclude) attributions.push(conclude);
-      } else {
-        const conclude = attributableConclude(event);
-        if (conclude) attributions.push(conclude);
       }
     }
     if (terminal) break;
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
-  return { terminal, questions, turns: turn, evaluated, lastSeq, kinds, practiceHints, attributions };
+  const provenance = reviewInterviewProvenance(seen);
+  return {
+    terminal, questions, turns: turn, evaluated, lastSeq, kinds,
+    practiceHints: provenance.practiceHints,
+    attributions: provenance.attributions,
+    provenance,
+  };
 }

@@ -116,9 +116,12 @@ async function main() {
     staleReplayLabel: '已消费 question identity 重放 → 409 stale_question（不双写/不二次扣费）',
     replayConsumedAfterFirstTurn: true,
   });
-  const { terminal, questions, turns: turn, lastSeq, kinds } = mainLoop;
+  const { terminal, questions, turns: turn, lastSeq, kinds, provenance } = mainLoop;
   A(questions >= 1, `至少出了 1 道题(实际 ${questions} 道;事件:${[...kinds].join(',')})`);
   A(turn >= 1, `至少答了 1 题(${turn} 次)`);
+  A(provenance.trustedBSideScore === null && provenance.forgedScores === 'none'
+    && provenance.identities.length === questions,
+    `出处审查: 不把 AI 分/progress 当 B 端分（identities=${provenance.identities.length}, forgedScores=${provenance.forgedScores}）`);
   if (!terminal) {
     const diagnostic = await readJson(await fetch(`${BASE}/interview/${interviewId}/report`, { headers: H }));
     console.error(`E2E_INTERVIEW_TERMINAL_TIMEOUT interview=${interviewId} elapsedMs=${Date.now() - interviewStartedAt} lastSeq=${lastSeq} questions=${questions} turns=${turn} events=${[...kinds].join(',')} reportStatus=${String(diagnostic.status ?? 'unknown')}`);
@@ -266,6 +269,8 @@ async function main() {
     clarificationAcceptedLabel: '[状态机] 岗位澄清 canonical /turn → 202',
   });
   A(boundLoop.questions >= 1 && boundLoop.turns >= 1 && boundLoop.terminal !== '', `[状态机] 岗位绑定会话经真 worker 到终态(${boundLoop.terminal}; ${boundLoop.questions} 题/${boundLoop.turns} 答)`);
+  A(boundLoop.provenance.trustedBSideScore === null && boundLoop.provenance.identities.length === boundLoop.questions,
+    '[状态机] 岗位会话出处审查: AI 分/progress 不是 B 端分');
   r = await fetch(`${BASE}/applications/${app1}/finalize`, { method: 'POST', headers: H, body: '{}' });
   const finalized = await readJson(r);
   const scorelessBound = boundLoop.terminal === 'assessment_unavailable';

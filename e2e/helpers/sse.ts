@@ -16,20 +16,44 @@ export function parseSseBuffer(buf: string): SseEvent[] {
   return out;
 }
 
-/** Numeric score / overall on a payload. Progress must never carry these. */
-export function payloadHasNumericScore(payload: any): boolean {
-  return typeof payload?.score === 'number' || typeof payload?.overall === 'number';
+const SCORE_KEYS = new Set(['score', 'overall', 'overallScore', 'totalScore', 'deterministic_total']);
+/** Kinds that must never carry a numeric-like score. report_ready.overall is display-only and reviewed separately. */
+const FORBIDDEN_SCORE_KINDS = new Set(['progress', 'question_ready', 'clarification_needed', 'waiting_user', 'answer_unscored']);
+
+function isNumericLike(value: unknown): boolean {
+  if (typeof value === 'number') return Number.isFinite(value);
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed !== '' && Number.isFinite(Number(trimmed));
+  }
+  return false;
 }
 
 /**
- * Progress is UI-only. A numeric score or overall on progress is a forged
- * score — the client must not promote it to practice or B-side evidence.
+ * Numeric-like score/overall on a payload, including string "80", aliases, and one nested object.
+ * Question text with digits is not a score field.
+ */
+export function payloadHasNumericScore(payload: any): boolean {
+  if (!payload || typeof payload !== 'object') return false;
+  for (const [key, value] of Object.entries(payload)) {
+    if (SCORE_KEYS.has(key) && isNumericLike(value)) return true;
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      for (const [innerKey, inner] of Object.entries(value as Record<string, unknown>)) {
+        if (SCORE_KEYS.has(innerKey) && isNumericLike(inner)) return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Progress / question / waiting / unscored frames must not carry scores.
+ * A numeric-like score there is forged — never promote it to practice or B-side evidence.
  */
 export function rejectForgedProgressScores(events: Iterable<SseEvent>): void {
   for (const event of events) {
-    if (event.kind === 'progress' && payloadHasNumericScore(event.payload)) {
-      throw new Error('e2e_forged_progress_score');
-    }
+    if (!FORBIDDEN_SCORE_KINDS.has(event.kind) || !payloadHasNumericScore(event.payload)) continue;
+    throw new Error(event.kind === 'progress' ? 'e2e_forged_progress_score' : 'e2e_forged_score');
   }
 }
 
