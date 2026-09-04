@@ -5,6 +5,7 @@ import type { AssertFn } from './assert.ts';
 
 export const INTERVIEW_TERMINAL_DEADLINE_MS = 420_000;
 export const INTERVIEW_TERMINALS = ['report_ready', 'report_unavailable', 'assessment_unavailable', 'interview_unavailable'] as const;
+export const STALE_QUESTION_ERROR = 'stale_question';
 
 export type QuestionIdentity = { questionId: string; stateVersion: number; turn: number };
 
@@ -59,8 +60,10 @@ export type InterviewLoopOptions = {
   clarificationAnswer?: string;
   questionAcceptedLabel: (turn: number) => string;
   clarificationAcceptedLabel: string;
-  /** When set, replay the previous identity after clarification and assert 409 stale_question. */
+  /** When set, replay a consumed identity and assert 409 stale_question. */
   staleReplayLabel?: string;
+  /** Replay after the first accepted /turn so the check does not depend on a live clarification event. */
+  replayConsumedAfterFirstTurn?: boolean;
 };
 
 /**
@@ -96,6 +99,16 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
           `${options.interviewId}:question:${currentQuestion.questionId}:answer:${turn}`,
         );
         options.assert(submitted.status === 202, options.questionAcceptedLabel(turn + 1));
+        if (options.staleReplayLabel && options.replayConsumedAfterFirstTurn && questions === 1) {
+          const stale = await submitTurn(
+            options.interviewId,
+            options.headers,
+            currentQuestion,
+            '这是一条已消费身份的重放答案',
+            `${options.interviewId}:stale:${currentQuestion.questionId}`,
+          );
+          options.assert(stale.status === 409 && stale.body.error === STALE_QUESTION_ERROR, options.staleReplayLabel);
+        }
         turn++;
       } else if (event.kind === 'answer_evaluated') {
         evaluated++;
@@ -110,7 +123,7 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
             '这是一条已消费身份的重放答案',
             `${options.interviewId}:stale:${staleQuestion.questionId}`,
           );
-          options.assert(stale.status === 409 && stale.body.error === 'stale_question', options.staleReplayLabel);
+          options.assert(stale.status === 409 && stale.body.error === STALE_QUESTION_ERROR, options.staleReplayLabel);
         }
         const submitted = await submitTurn(
           options.interviewId,

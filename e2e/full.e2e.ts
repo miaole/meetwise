@@ -1,7 +1,7 @@
 /**
  * 全栈 E2E(真 HTTP 打真 api + 真 worker + 真 DB):
  * signup → consent → 上传简历 → 建面试 → begin → 轮询 SSE 事件 → 每出题就答 → 直到终态(无死胡同)。
- * 真鉴权(Bearer)、真队列、真 worker 图执行。降级模型模式也必须跑到终态。
+ * 真鉴权(Bearer)、真队列、真 worker 图执行。假模型/假语音/假 OCR 开关会使 runner 失败。
  *
  * 场景编排在本文件；HTTP / 鉴权 / 交易 / SSE / 面试循环 / 语音网关在 e2e/helpers。
  * 运行器仍由 scripts/run-e2e.mjs 强制隔离 + 真实供应商 Key，禁止 VOICE_FAKE/OCR_FAKE/E2E_FAKE_MODEL。
@@ -113,7 +113,8 @@ async function main() {
     questionAnswer: '我会用 Redis SETNX 加随机值做分布式锁,配合 Lua 原子释放和看门狗续期,限流用令牌桶。',
     questionAcceptedLabel: (n) => `第 ${n} 题 canonical /turn → 202`,
     clarificationAcceptedLabel: '澄清后的 canonical /turn → 202',
-    staleReplayLabel: '澄清后重放旧 question identity → 409 stale_question（不双写/不二次扣费）',
+    staleReplayLabel: '已消费 question identity 重放 → 409 stale_question（不双写/不二次扣费）',
+    replayConsumedAfterFirstTurn: true,
   });
   const { terminal, questions, turns: turn, lastSeq, kinds } = mainLoop;
   A(questions >= 1, `至少出了 1 道题(实际 ${questions} 道;事件:${[...kinds].join(',')})`);

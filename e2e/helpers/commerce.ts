@@ -11,8 +11,12 @@ export async function createOrder(headers: Record<string, string>, productId: st
   return { response, body };
 }
 
+export function paidWebhookSignature(orderId: string, providerTxn: string, secret = PAY_SECRET): string {
+  return createHmac('sha256', secret).update(`${orderId}:${providerTxn}:paid`).digest('hex');
+}
+
 export async function payWebhook(orderId: string, providerTxn: string, secret = PAY_SECRET): Promise<any> {
-  const sig = createHmac('sha256', secret).update(`${orderId}:${providerTxn}:paid`).digest('hex');
+  const sig = paidWebhookSignature(orderId, providerTxn, secret);
   const response = await fetch(`${BASE}/commerce/webhook/pay/${orderId}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

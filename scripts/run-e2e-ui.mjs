@@ -1,6 +1,6 @@
 /**
  * 真浏览器 E2E 自启动 runner:起真栈(api + worker + web,production `next start`)→ 等就绪 →
- * 跑 Playwright(headless chromium + iPhone 13 两端)驱动真实 UI → 拆栈。
+ * 跑 Playwright(headless chromium + Pixel 5 两端)驱动真实 UI → 拆栈。
  * 这是 HTTP 层 e2e(run-e2e.mjs)之外的浏览器证据:cookie 鉴权 / middleware 在真实浏览器里端到端跑通。
  * 用法:pnpm e2e:ui(需 docker DB 在跑;web 需已 `pnpm -C apps/web build` 出 .next——本脚本不重新构建,构建太慢)。
  */

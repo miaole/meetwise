@@ -4,10 +4,13 @@
  * providers, scoring quality, or releaseEvidence.
  */
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
-import { answerBody, questionIdentity } from './interview.ts';
+import { readFileSync } from 'node:fs';
+import { createHash, createHmac } from 'node:crypto';
+import { paidWebhookSignature } from './commerce.ts';
+import { INTERVIEW_TERMINALS, STALE_QUESTION_ERROR, answerBody, questionIdentity } from './interview.ts';
 import { parseSseBuffer } from './sse.ts';
 import { uidFromToken } from './auth.ts';
+import { liveOcrResumePngBase64 } from '../ocr-fixture.ts';
 
 let passed = 0;
 const test = (name: string, fn: () => void) => {
@@ -52,6 +55,27 @@ test('SSE 解析只接受 id/event/data 三行，坏 JSON 变成空对象而不�
   assert.equal(events[0]?.payload.questionId, 'q1');
   assert.equal(events[1]?.kind, 'report_ready');
   assert.deepEqual(events[1]?.payload, {});
+});
+
+test('终态集合包含成功报告与舱壁失败，不能只认任意非空事件', () => {
+  assert.deepEqual([...INTERVIEW_TERMINALS], [
+    'report_ready', 'report_unavailable', 'assessment_unavailable', 'interview_unavailable',
+  ]);
+  assert.equal(STALE_QUESTION_ERROR, 'stale_question');
+});
+
+test('支付 webhook HMAC 绑定 orderId:txn:paid，不能换载荷复用签名', () => {
+  const secret = 'e2e-pay-secret';
+  const sig = paidWebhookSignature('ord-1', 'txn-1', secret);
+  assert.equal(sig, createHmac('sha256', secret).update('ord-1:txn-1:paid').digest('hex'));
+  assert.notEqual(sig, paidWebhookSignature('ord-1', 'txn-2', secret));
+});
+
+test('OCR fixture 是可读 PNG 且源码含合成手机号哨兵，不是任意字节贴 image/png', () => {
+  const png = Buffer.from(liveOcrResumePngBase64(), 'base64');
+  assert.deepEqual([...png.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+  assert.ok(png.byteLength > 200);
+  assert.match(readFileSync(new URL('../ocr-fixture.ts', import.meta.url), 'utf8'), /13800138000/);
 });
 
 test('uidFromToken 读取当前 API 嵌入在第一段的 uid，缺 uid 失败', () => {

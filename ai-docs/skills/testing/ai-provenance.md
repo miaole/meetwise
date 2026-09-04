@@ -11,7 +11,7 @@ description: AI 触达路径的出处检查：题面身份、route/rubric/model 
 
 - 答题必须携带服务端在 `question_ready` / `clarification_needed` 发放的 `questionId + stateVersion + turn`。
 - E2E 与浏览器不得用本地计数器冒充当前题。实现：`e2e/helpers/interview.ts` 的 `questionIdentity`。
-- 澄清后重放旧身份必须 `409 stale_question`，且不二次扣费。HTTP E2E 主循环覆盖这一条。
+- 已消费身份重放必须 `409 stale_question`。HTTP E2E 主循环在**第一题 /turn 被受理后**立刻重放，不依赖模型是否发出澄清。澄清事件若出现，仍用新身份作答。
 - 客户端夹带历史 `interviewId` 做岗位 finalize 必须 400；未绑定 finalize 必须 409。
 
 ## 2. 路由 / rubric / 模型绑定

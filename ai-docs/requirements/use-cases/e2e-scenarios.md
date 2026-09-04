@@ -15,7 +15,7 @@ related:
 
 # e2e-scenarios · 端到端用例 + 测试用例（评审收口最终稿）
 
-> **🔎 实现状态（对齐真实代码 · 2026-07）** — 本文是 TARGET 规格。**✅ 已实现+接线**：`pnpm e2e:prove` 自启动全栈跑通黄金路径（真鉴权 + commerce + 简历文本摄取 + worker 图执行→report_ready，含 B 端 RLS，约 17–21 断言）+ 真浏览器 Playwright（chromium+H5）；e2e 曾抓出假 gate 漏的真实 bug（402 死代码 / WEB_ALLOWLIST 未声明 / serverFetch content-type）。**🟠 校正**：黄金路径中“上传简历”仅**文本**路径；“找真题/联网”未启用（本地种子库）；文内 B 端批量、跨设备恢复、四图全闭环里的部分失败/退款/降级分支未全部落为已跑 e2e。核心单链路 e2e 已绿。
+> **🔎 实现状态（对齐真实代码 · 2026-09）** — 本文大量条目仍是 TARGET。当前已接线的 HTTP 全链路是 `pnpm e2e:isolated`（`e2e/full.e2e.ts` fetch/SSE，需 live Key，**不是** Playwright）。浏览器层是 `pnpm e2e:ui:isolated`（Playwright，需 production Next）。隔离 worker 会注入报告故障，主面试终态不必是 `report_ready`。per-push CI 不跑 live E2E。文内“已绿 / fake-model e2e”不得当当前证据。变更后入口见 `ai-docs/skills/testing/SKILL.md`。
 
 > 范围：黄金路径（上传简历→摄取清洗→诊断→押题→模拟面试→报告）+ 关键失败路径（断线 / 退款 / 越权 / 降级）+ 四图正常闭环（resume-quiz · mock-interview · career-path · report）+ B 端批量 + 跨设备恢复，落为 Playwright e2e 场景。
 > 收口原则：每条 UC 标注命中的**七类 case**（正常 / 异常 / 特殊 / 逃逸通道 / 高并发 / 复杂 / 刁钻）；每条异常 / 刁钻流必须落到一个机制——**状态机迁移**或**四承重原语**（CAS / 幂等键 / RLS principal 绑定 / 持久有序事件日志）；验收必须可测；每条 UC 配套测试用例与测试层。
