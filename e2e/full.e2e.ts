@@ -6,13 +6,13 @@
  * 场景编排在本文件；HTTP / 鉴权 / 交易 / 简历 / SSE / 面试循环 / 语音网关在 e2e/helpers。
  * 运行器仍由 scripts/run-e2e.mjs 强制隔离 + 真实供应商 Key，禁止 VOICE_FAKE/OCR_FAKE/E2E_FAKE_MODEL。
  */
-import { createHmac, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { liveOcrResumePngBase64 } from './ocr-fixture.ts';
 import { createAssert } from './helpers/assert.ts';
 import { signupOrLogin, uidFromToken } from './helpers/auth.ts';
 import { classifyFailure } from './helpers/classify-failure.ts';
-import { createOrder, entitlement, payWebhook } from './helpers/commerce.ts';
-import { BASE, PAY_SECRET, readJson } from './helpers/http.ts';
+import { createOrder, entitlement, isWebhookCreditResult, paidWebhookSignature, payWebhook, postPayWebhook } from './helpers/commerce.ts';
+import { BASE, readJson } from './helpers/http.ts';
 import { driveInterviewToTerminal } from './helpers/interview.ts';
 import { consentResumeProcessing, getResumeProfile, uploadImageResume, uploadTextResume } from './helpers/resume.ts';
 import { pollTerminal } from './helpers/sse.ts';
@@ -27,7 +27,7 @@ async function main() {
 
   // 1. 注册(或已存在则登录)→ 真 Bearer 令牌
   const session = await signupOrLogin(email, password);
-  A(typeof session.token === 'string', '注册/登录 → 真 Bearer 令牌');
+  A(session.response.status === 200 && session.status === 200 && typeof session.token === 'string' && session.token.length > 0, '注册/登录 → 真 Bearer 令牌');
   const { token, headers: H } = session;
 
   // 2. PIPL 采集同意(上传简历前置)
@@ -46,7 +46,7 @@ async function main() {
   A(ordered.response.status === 200 && typeof ordered.body.orderId === 'string', `下单 pack_10 → orderId(${ordered.body.amountCents}分)`);
   const txn = `txn_e2e_${tag}_${Date.now()}`;
   const paid = await payWebhook(ordered.body.orderId, txn);
-  A(paid.response.status === 200 && (paid.body.result === 'credited' || paid.body.result === 'already'), `支付 webhook 验签入账 → ${paid.body.result}`);
+  A(paid.response.status === 200 && isWebhookCreditResult(paid.body.result), `支付 webhook 验签入账 → ${paid.body.result}`);
   const units = await entitlement(H);
   A((units.availableUnits ?? 0) >= 1, `额度到账(${units.availableUnits} 次)`);
 
@@ -234,11 +234,10 @@ async function main() {
 
   const { response: order2Res, body: ord } = await createOrder(H, 'pack_10', `${email}:order2`);
   A(order2Res.status === 200 && typeof ord.orderId === 'string', '[异常前置] 第二笔订单可用于错签断言');
-  r = await fetch(`${BASE}/commerce/webhook/pay/${ord.orderId}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ providerTxn: 't', sig: 'deadbeef' }) });
-  A(r.status === 403, '[异常] webhook 错误签名 → 403(验签 fail-closed)');
-  const usig = createHmac('sha256', PAY_SECRET).update('nope:t:paid').digest('hex');
-  r = await fetch(`${BASE}/commerce/webhook/pay/nope`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ providerTxn: 't', sig: usig }) });
-  A(r.status === 404, '[异常] webhook 未知订单 → 404(查不到单不入账)');
+  const badSig = await postPayWebhook(ord.orderId, 't', 'deadbeef');
+  A(badSig.response.status === 403, '[异常] webhook 错误签名 → 403(验签 fail-closed)');
+  const unknownOrder = await postPayWebhook('nope', 't', paidWebhookSignature('nope', 't'));
+  A(unknownOrder.response.status === 404, '[异常] webhook 未知订单 → 404(查不到单不入账)');
 
   const apply2 = await readJson(await fetch(`${BASE}/jobs/${jobId}/apply`, { method: 'POST', headers: H2, body: '{}' }));
   A(apply2.applicationId === applicationId, '[特殊] 重复投递 → 同 applicationId(幂等不重复建)');

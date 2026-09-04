@@ -30,7 +30,7 @@ related:
 | 2 | #58 | `cursor/harden-regression-entrypoint-61d4` | 旧于母线 tip（约 `b7b078c`） | 已 merge：车道合同 + review/verify；保留母线 `generation-trust:prove` / `e2e-platform:prove` / `--claim-done` 禁令 |
 | 3 | #57 | `cursor/align-testing-docs-e2e-f3ba` | 旧于母线 tip（约 `b7b078c`） | 已 merge：HTTP 主层 / Playwright 次层；`ai-generated-review.md` 收成 fail-closed 指针 |
 | 4 | #59 | `cursor/golden-tasks-registry-71ea` | 约 `b7b078c` | 已 merge：`golden-tasks:prove` 进 always-on；GT-01..04 禁止 `mapped` |
-| 5 | #56 | `cursor/harden-e2e-auth-commerce-0f82` | 约 `b7b078c` | 待 merge |
+| 5 | #56 | `cursor/harden-e2e-auth-commerce-0f82` | 约 `b7b078c` | 已 merge：auth/commerce helper 合同 + mock fetch prove；保留母线 `classifyFailure` |
 | 6 | #60 | `cursor/e2e-interview-provenance-526a` | 约 `b7b078c` | 待 merge |
 | 7 | #61 | `cursor/e2e-failure-class-ledger-e5f7` | 约 `b7b078c` | 待 merge |
 | 8 | #62 | `cursor/e2e-directory-contract-07f9` | 约 `b7b078c` | 待 merge；与母线已有 `skills/testing/e2e-platform/` 去重 |
@@ -46,6 +46,12 @@ related:
 - `scripts/run-post-change-regression.mjs`：采用 #58 的 always-on → `--core` → `--live`、`--dry-run`、可选静态守卫、`REGRESSION_REVIEW_VERIFY_GATE`。**并入**母线 `ALWAYS_ON_REQUIRED` 的 `generation-trust:prove`、`e2e-platform:prove`，以及 `--claim-done` / `--ready` / `--done` → `regression_claim_done_forbidden`。摘要保留 `claimDone: false`、`readyFromUnreviewedGeneration`。
 - 技能文档：保留 fail-closed / SOP / e2e-platform 链接，并写入 #58 要求的 `review/verify`、`automation does not trust AI outputs`、`multi-round allowed`。
 - `provider-egress-inventory`：同时登记 `run-post-change-regression.mjs` 与 `.proof.mjs`；`environmentReferenceCount` 随清单长度更新，禁止手改成旧数。
+
+### #59
+
+- `golden-tasks:prove` 加入 `ALWAYS_ON_REQUIRED`，与 `generation-trust:prove` / `e2e-platform:prove` 并存。
+- 诚实规则并入：`relatedCommands` 不是 covering；GT-01..04（`subject=ai-output`）禁止 `mapped`。
+- 丢弃 #59 对回归脚本的旧 `ALWAYS_ON` 数组回退。
 
 ### #57
 
