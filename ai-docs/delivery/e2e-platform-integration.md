@@ -31,7 +31,7 @@ related:
 | 3 | #57 | `cursor/align-testing-docs-e2e-f3ba` | 旧于母线 tip（约 `b7b078c`） | 已 merge：HTTP 主层 / Playwright 次层；`ai-generated-review.md` 收成 fail-closed 指针 |
 | 4 | #59 | `cursor/golden-tasks-registry-71ea` | 约 `b7b078c` | 已 merge：`golden-tasks:prove` 进 always-on；GT-01..04 禁止 `mapped` |
 | 5 | #56 | `cursor/harden-e2e-auth-commerce-0f82` | 约 `b7b078c` | 已 merge：auth/commerce helper 合同 + mock fetch prove；保留母线 `classifyFailure` |
-| 6 | #60 | `cursor/e2e-interview-provenance-526a` | 约 `b7b078c` | 待 merge |
+| 6 | #60 | `cursor/e2e-interview-provenance-526a` | 约 `b7b078c` | 已 merge：规范 questionId + 拒绝伪造分；保留 #56 commerce prove 与母线 golden covering 诚实句 |
 | 7 | #61 | `cursor/e2e-failure-class-ledger-e5f7` | 约 `b7b078c` | 待 merge |
 | 8 | #62 | `cursor/e2e-directory-contract-07f9` | 约 `b7b078c` | 待 merge；与母线已有 `skills/testing/e2e-platform/` 去重 |
 | 9 | #63 | `cursor/e2e-static-guards-b01f` | 约 `6530171` | 待 merge |

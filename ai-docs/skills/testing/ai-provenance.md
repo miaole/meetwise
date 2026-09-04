@@ -20,7 +20,8 @@ related:
 ## 1. 题面身份（question identity）
 
 - 答题必须携带服务端在 `question_ready` / `clarification_needed` 发放的 `questionId + stateVersion + turn`。
-- E2E 与浏览器不得用本地计数器冒充当前题。实现：`e2e/helpers/interview.ts` 的 `questionIdentity`。
+- `questionId` 必须是规范编码 `q-v{stateVersion}-t{turn}-c{clarifyAttempts}`，且内嵌的 version/turn 与同对象字段一致。`q-ready` 或 `q-v1-t0-c0` + `stateVersion:5` 这类弱绑定视为伪造。
+- E2E 与浏览器不得用本地计数器冒充当前题。实现：`e2e/helpers/interview.ts` 的 `questionIdentity`（缺字段 → `e2e_question_identity_missing`；格式/交叉失败 → `e2e_question_identity_forged`）。`progress` 取 identity → `e2e_progress_not_identity`。
 - 已消费身份重放必须 `409 stale_question`。HTTP E2E 主循环在**第一题 /turn 被受理后**立刻重放，不依赖模型是否发出澄清。澄清事件若出现，仍用新身份作答。
 - 客户端夹带历史 `interviewId` 做岗位 finalize 必须 400；未绑定 finalize 必须 409。
 
@@ -40,6 +41,20 @@ related:
 | 无评分证据进 B 端 | `assessment_unavailable` + `score=NULL` | HTTP E2E 岗位收口 |
 | 短答 / 非作答 | 相对序金标，不得高分；图上不并入掌握分 | `scoring-golden:prove` / `adaptive-offtopic:prove`；`scoring:eval` 是质量层，非 covering |
 | 非法 JSON / schema 失败 | 结构化产出拒收入库；标量非法 JSON 文本当前为 unknown | `model-op00-usage-reconciler:prove`（`runtime:prove` 不断言本条） |
+| `progress` 带 numeric `score` / `overall` | 视为伪造分；E2E 抛 `e2e_forged_progress_score`，不得当练习分或 B 端分 | `pnpm e2e-helpers:prove`（`rejectForgedProgressScores`） |
+| `answer_evaluated.score` | 仅 `practice_hint`，必须绑 question identity；不得升格 B 端 overall / 排名 | `pnpm e2e-helpers:prove`（`practiceHintFromEvaluated`） |
+
+HTTP 面试循环（`driveInterviewToTerminal`）不发明分数、不把 progress 当评分账本。本循环也不把产品面试硬封成 8 轮；长度跟服务端。
+
+**P0：面试 SSE 上的模型产出一律不可信。** `reviewInterviewProvenance` 的 `trustedBSideScore` 恒为 `null`。题面文本、`answer_evaluated.score`、`report_ready.overall` 记为 `untrusted_ai_output`。从这些字段或 `progress` 取 B 端分必须走 `refuseBSideScoreFromInterviewStream` 并失败。
+
+## 3b. conclude / probe 出处
+
+- `decideNext` 的 ask `mode` 只允许 `probe` | `pivot`；conclude `reason` 只允许 `budget_exhausted` | `all_resolved`。
+- E2E 只在服务端 **事件 kind 与字段都已发放**时记录出处（`source: server_payload`）。`progress.route` / `progress.concludeReason` **不算** conclude 出处。同能力推断、客户端自写 `timeout` / `deeper` 都算伪造。
+- 终态事件自带的 `reason`（如 `assessment_unavailable` / `report_unavailable`）不是 conclude reason，不得改写。
+- 当前 worker 的 `question_ready` **尚未 emit `mode`**；helper 缺 mode 返回 `null`，不发明 probe。conclude 只认 `event.kind === 'conclude'`。
+- 实现：`reviewInterviewProvenance` / `attributableAsk` / `attributableConclude`。`pnpm e2e-helpers:prove` 覆盖 helper 合同，不代替 live HTTP E2E。
 
 ## 4. 出处字段（写回执或说明时）
 

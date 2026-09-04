@@ -7,8 +7,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash, createHmac } from 'node:crypto';
 import { createOrder, entitlement, isWebhookCreditResult, paidWebhookCanonical, paidWebhookSignature, payWebhook, postPayWebhook, PAID_WEBHOOK_EVENT, WEBHOOK_CREDIT_RESULTS } from './commerce.ts';
-import { INTERVIEW_TERMINALS, STALE_QUESTION_ERROR, answerBody, questionIdentity } from './interview.ts';
-import { parseSseBuffer } from './sse.ts';
+import {
+  INTERVIEW_TERMINALS, STALE_QUESTION_ERROR, answerBody, attributableAsk, attributableConclude,
+  inspectInterviewProvenance, practiceHintFromEvaluated, questionIdentity, questionIdentityFromEvent,
+  refuseBSideScoreFromInterviewStream, reviewInterviewProvenance, unscoredReason,
+} from './interview.ts';
+import { parseSseBuffer, payloadHasNumericScore, rejectForgedProgressScores } from './sse.ts';
 import { signupOrLogin, uidFromToken } from './auth.ts';
 import { classifyFailure } from './classify-failure.ts';
 import { liveOcrResumePngBase64 } from '../ocr-fixture.ts';
@@ -137,17 +141,28 @@ await test('signup 200 非空 token 原样返回，零次 login，role 只在注
 
 await test('question identity 拒绝缺失字段，不接受客户端伪造半截身份', () => {
   assert.throws(() => questionIdentity({}), /e2e_question_identity_missing/);
-  assert.throws(() => questionIdentity({ questionId: 'q1', stateVersion: 1 }), /e2e_question_identity_missing/);
-  assert.throws(() => questionIdentity({ questionId: 'q1', stateVersion: 1.5, turn: 0 }), /e2e_question_identity_missing/);
-  assert.deepEqual(questionIdentity({ questionId: 'q-ready', stateVersion: 3, turn: 2 }), {
-    questionId: 'q-ready', stateVersion: 3, turn: 2,
+  assert.throws(() => questionIdentity({ questionId: 'q-v1-t0-c0', stateVersion: 1 }), /e2e_question_identity_missing/);
+  assert.throws(() => questionIdentity({ questionId: 'q-v1-t0-c0', stateVersion: 1.5, turn: 0 }), /e2e_question_identity_missing/);
+  assert.throws(() => questionIdentity({ questionId: 'q-v1-t0-c0', stateVersion: 1, turn: -1 }), /e2e_question_identity_missing/);
+  assert.deepEqual(questionIdentity({ questionId: 'q-v3-t2-c0', stateVersion: 3, turn: 2 }), {
+    questionId: 'q-v3-t2-c0', stateVersion: 3, turn: 2,
+  });
+});
+
+await test('question identity 拒绝非规范 id 与内嵌字段漂移（伪造/弱绑定）', () => {
+  assert.throws(() => questionIdentity({ questionId: 'q-ready', stateVersion: 3, turn: 2 }), /e2e_question_identity_forged/);
+  assert.throws(() => questionIdentity({ questionId: 'q1', stateVersion: 1, turn: 0 }), /e2e_question_identity_forged/);
+  assert.throws(() => questionIdentity({ questionId: 'q-v1-t0-c0', stateVersion: 5, turn: 0 }), /e2e_question_identity_forged/);
+  assert.throws(() => questionIdentity({ questionId: 'q-v1-t0-c0', stateVersion: 1, turn: 3 }), /e2e_question_identity_forged/);
+  assert.deepEqual(questionIdentity({ questionId: 'q-v12-t9-c1', stateVersion: 12, turn: 9 }), {
+    questionId: 'q-v12-t9-c1', stateVersion: 12, turn: 9,
   });
 });
 
 await test('answerBody 绑定服务端身份 + 答案哈希，不另造 questionId', () => {
-  const identity = { questionId: 'q-ready', stateVersion: 3, turn: 2 };
+  const identity = { questionId: 'q-v3-t2-c0', stateVersion: 3, turn: 2 };
   const body = answerBody(identity, '令牌桶');
-  assert.equal(body.questionId, 'q-ready');
+  assert.equal(body.questionId, 'q-v3-t2-c0');
   assert.equal(body.stateVersion, 3);
   assert.equal(body.turn, 2);
   assert.equal(body.answer, '令牌桶');
@@ -300,6 +315,151 @@ await test('失败分类区分缺 Key、假服务、越权、供应商，未知 
   assert.equal(classifyFailure({ status: 429 }), 'FAIL_PROVIDER');
   assert.equal(classifyFailure({ status: 500 }), 'FAIL_API');
   assert.equal(classifyFailure({ error: 'providerTxn missing' }), 'FAIL_API');
+});
+
+await test('progress 不得携带 numeric score/overall，否则视为伪造分数', () => {
+  assert.equal(payloadHasNumericScore({ stage: 'generating' }), false);
+  assert.equal(payloadHasNumericScore({ question: '限流到 80' }), false);
+  assert.equal(payloadHasNumericScore({ score: 80 }), true);
+  assert.equal(payloadHasNumericScore({ score: '80' }), true);
+  assert.equal(payloadHasNumericScore({ overallScore: 90 }), true);
+  assert.equal(payloadHasNumericScore({ metrics: { score: 80 } }), true);
+  rejectForgedProgressScores([{ seq: 1, kind: 'progress', payload: { stage: 'generating' } }]);
+  assert.throws(
+    () => rejectForgedProgressScores([{ seq: 1, kind: 'progress', payload: { score: 80 } }]),
+    /e2e_forged_progress_score/,
+  );
+  assert.throws(
+    () => rejectForgedProgressScores([{ seq: 1, kind: 'progress', payload: { overall: '90' } }]),
+    /e2e_forged_progress_score/,
+  );
+  assert.throws(
+    () => rejectForgedProgressScores([{
+      seq: 1, kind: 'question_ready',
+      payload: { questionId: 'q-v1-t0-c0', stateVersion: 1, turn: 0, score: 99 },
+    }]),
+    /e2e_forged_score/,
+  );
+});
+
+await test('answer_evaluated.score 只作 practice_hint，缺身份则失败，不升格 B 端分', () => {
+  assert.throws(() => practiceHintFromEvaluated({ score: 88 }), /e2e_question_identity_missing/);
+  const hint = practiceHintFromEvaluated({
+    questionId: 'q-v1-t0-c0', stateVersion: 1, turn: 0, score: 88,
+  });
+  assert.equal(hint.role, 'practice_hint');
+  assert.equal(hint.source, 'answer_evaluated');
+  assert.equal(hint.value, 88);
+  assert.equal(hint.questionId, 'q-v1-t0-c0');
+});
+
+await test('conclude/probe 只接受服务端枚举；缺出处不发明，伪造 reason/mode 失败', () => {
+  assert.equal(attributableAsk({ competency: '并发' }), null);
+  assert.deepEqual(attributableAsk({ mode: 'probe', competency: '并发' }), {
+    kind: 'ask', mode: 'probe', competency: '并发', source: 'server_payload',
+  });
+  assert.throws(() => attributableAsk({ mode: 'deeper', competency: '并发' }), /e2e_ask_attribution_forged/);
+  assert.throws(() => attributableAsk({ mode: 'probe' }), /e2e_ask_attribution_missing/);
+  assert.equal(attributableConclude({ kind: 'assessment_unavailable', payload: { reason: 'no_eligible_scored_answer' } }), null);
+  assert.deepEqual(attributableConclude({ kind: 'conclude', payload: { reason: 'all_resolved' } }), {
+    kind: 'conclude', reason: 'all_resolved', source: 'server_payload',
+  });
+  assert.equal(attributableConclude({ kind: 'progress', payload: { route: 'conclude', concludeReason: 'budget_exhausted' } }), null);
+  assert.equal(attributableConclude({ kind: 'report_ready', payload: { concludeReason: 'all_resolved', overall: 99 } }), null);
+  assert.throws(
+    () => attributableConclude({ kind: 'conclude', payload: { reason: 'timeout' } }),
+    /e2e_conclude_attribution_forged/,
+  );
+  assert.throws(
+    () => attributableConclude({ kind: 'conclude', payload: {} }),
+    /e2e_conclude_attribution_missing/,
+  );
+});
+
+await test('inspectInterviewProvenance 聚合服务端出处，拒绝 progress 伪造分与无身份评分', () => {
+  const ok = inspectInterviewProvenance([
+    { seq: 1, kind: 'progress', payload: { stage: 'generating' } },
+    { seq: 2, kind: 'question_ready', payload: { questionId: 'q-v1-t0-c0', stateVersion: 1, turn: 0, competency: '限流', mode: 'pivot' } },
+    { seq: 3, kind: 'answer_evaluated', payload: { questionId: 'q-v1-t0-c0', stateVersion: 1, turn: 0, score: 70 } },
+    { seq: 4, kind: 'answer_unscored', payload: { questionId: 'q-v2-t1-c0', stateVersion: 2, turn: 1, reason: 'evaluation_unavailable' } },
+    { seq: 5, kind: 'report_unavailable', payload: { reason: 'max_attempts_exceeded' } },
+  ]);
+  assert.equal(ok.practiceHints.length, 1);
+  assert.equal(ok.practiceHints[0]?.role, 'practice_hint');
+  assert.deepEqual(ok.attributions, [{ kind: 'ask', mode: 'pivot', competency: '限流', source: 'server_payload' }]);
+  assert.deepEqual(unscoredReason({ questionId: 'q-v2-t1-c0', stateVersion: 2, turn: 1, reason: 'evaluation_unavailable' }).source, 'server_payload');
+  assert.throws(
+    () => inspectInterviewProvenance([{ seq: 1, kind: 'progress', payload: { score: 99 } }]),
+    /e2e_forged_progress_score/,
+  );
+  assert.throws(
+    () => inspectInterviewProvenance([{ seq: 1, kind: 'answer_evaluated', payload: { score: 99 } }]),
+    /e2e_question_identity_missing/,
+  );
+});
+
+await test('P0 review: 不信任 AI 题面/分数/progress；progress 不能当 identity 或 conclude', () => {
+  assert.throws(
+    () => questionIdentityFromEvent({ kind: 'progress', payload: { questionId: 'q-v1-t0-c0', stateVersion: 1, turn: 0 } }),
+    /e2e_progress_not_identity/,
+  );
+  assert.throws(
+    () => reviewInterviewProvenance([{ seq: 1, kind: 'progress', payload: { questionId: 'q-v1-t0-c0' } }]),
+    /e2e_progress_not_identity/,
+  );
+  const reviewed = reviewInterviewProvenance([
+    { seq: 1, kind: 'progress', payload: { stage: 'generating' } },
+    { seq: 2, kind: 'question_ready', payload: { questionId: 'q-v1-t0-c0', stateVersion: 1, turn: 0, question: '请说明限流', competency: '限流' } },
+    { seq: 3, kind: 'answer_evaluated', payload: { questionId: 'q-v1-t0-c0', stateVersion: 1, turn: 0, score: 88 } },
+    { seq: 4, kind: 'report_ready', payload: { overall: 99 } },
+  ]);
+  assert.equal(reviewed.trustedBSideScore, null);
+  assert.equal(reviewed.forgedScores, 'none');
+  assert.equal(reviewed.identities.length, 1);
+  assert.ok(reviewed.untrustedDisplay.some((item) => item.kind === 'question_ready' && item.field === 'question'));
+  assert.ok(reviewed.untrustedDisplay.some((item) => item.kind === 'answer_evaluated' && item.field === 'score'));
+  assert.ok(reviewed.untrustedDisplay.some((item) => item.kind === 'report_ready' && item.field === 'overall'));
+  assert.throws(
+    () => refuseBSideScoreFromInterviewStream({ from: 'report_ready', value: 99 }),
+    /e2e_forged_score:report_ready/,
+  );
+  assert.throws(
+    () => refuseBSideScoreFromInterviewStream({ from: 'practice_hint', value: reviewed.practiceHints[0]?.value }),
+    /e2e_forged_score:practice_hint/,
+  );
+  assert.throws(
+    () => refuseBSideScoreFromInterviewStream({ from: 'progress', value: 80 }),
+    /e2e_forged_score:progress/,
+  );
+});
+
+await test('多轮不封顶：10 轮仍只信服务端 identity，不把 AI 分当 B 端分', () => {
+  const events = [];
+  for (let turn = 0; turn < 10; turn++) {
+    const stateVersion = turn + 1;
+    const questionId = `q-v${stateVersion}-t${turn}-c0`;
+    events.push({
+      seq: turn * 2 + 1,
+      kind: 'question_ready',
+      payload: { questionId, stateVersion, turn, question: `题${turn}`, competency: turn === 0 ? '限流' : '并发' },
+    });
+    events.push({
+      seq: turn * 2 + 2,
+      kind: 'answer_evaluated',
+      payload: { questionId, stateVersion, turn, score: 50 + turn },
+    });
+  }
+  events.push({ seq: 21, kind: 'report_ready', payload: { overall: 77 } });
+  const reviewed = reviewInterviewProvenance(events);
+  assert.equal(reviewed.identities.length, 10);
+  assert.equal(reviewed.practiceHints.length, 10);
+  assert.equal(reviewed.trustedBSideScore, null);
+  assert.equal(reviewed.identities[9]?.questionId, 'q-v10-t9-c0');
+  assert.equal(reviewed.identities[9]?.turn, 9);
+  assert.throws(
+    () => refuseBSideScoreFromInterviewStream({ from: 'answer_evaluated', value: reviewed.practiceHints[9]?.value }),
+    /e2e_forged_score:answer_evaluated/,
+  );
 });
 
 console.log(`PASS e2e-helpers proof: ${passed} scenarios; releaseEvidence=false`);
