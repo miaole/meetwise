@@ -53,6 +53,7 @@ const recruiterSurface = read('apps/web/lib/recruiter/surface.ts');
 const candidateJobs = read('apps/web/app/jobs/page.tsx');
 const recruiterHighlights = read('apps/web/components/recruiter/ArchitectureHighlights.tsx');
 const recruiterPreviewNote = read('apps/web/components/recruiter/PreviewNote.tsx');
+const loginPage = read('apps/web/app/login/page.tsx');
 const poster = read('apps/web/components/SharePoster.tsx');
 const publicSite = read('apps/web/lib/public-site.ts');
 const readme = read('README.md');
@@ -225,6 +226,9 @@ const checks = {
     requireText(recruiterJobs, '不是招聘方产品', 'recruiter jobs page');
     requireText(candidateJobs, '不是正式招聘', 'candidate jobs page');
     requireText(candidateJobs, '不是招聘方产品', 'candidate jobs page');
+    requireText(loginPage, '内部预览', 'login page');
+    requireText(loginPage, '不是与求职者对等的第二套产品', 'login page');
+    forbid(loginPage, ['求职者 C 端 / 招聘方 B 端'], 'login page');
     requireText(candidateJobs, 'applicationScoreVisible', 'candidate applications consume the score gate');
     forbid(candidateJobs, ['评分 {'], 'candidate applications must not render application.score');
     forbid(recruiterJobCandidates + recruiterTalent + recruiterReview, ['评分 {', 'app.score}'], 'recruiter pages must not render application.score');
