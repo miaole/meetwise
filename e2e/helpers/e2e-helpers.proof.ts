@@ -8,12 +8,20 @@ import { readFileSync } from 'node:fs';
 import { createHash, createHmac } from 'node:crypto';
 import { paidWebhookSignature } from './commerce.ts';
 import {
+  AI_SYSTEM_TERMINAL_REVIEWS,
   E2E_FAILURE_CLASSES,
   E2E_FAILURE_RECORD_SCHEMA,
   classifyE2EFailure,
+  collectE2EReviews,
+  createE2EReviewLedger,
+  evaluateIsolatedHttpE2E,
+  formatE2EReviewCodes,
   formatE2EFailure,
+  formatE2EReview,
   parseE2EFailure,
   parseE2EFailureRecord,
+  parseE2EReviewSummaryCount,
+  reviewAiSystemTerminal,
   tagE2EFailure,
 } from './failure.ts';
 import { INTERVIEW_TERMINALS, STALE_QUESTION_ERROR, answerBody, questionIdentity } from './interview.ts';
@@ -71,7 +79,7 @@ test('SSE 解析只接受 id/event/data 三行，坏 JSON 变成空对象而不�
 
 test('终态集合包含成功报告与舱壁失败，不能只认任意非空事件', () => {
   assert.deepEqual([...INTERVIEW_TERMINALS], [
-    'report_ready', 'report_unavailable', 'assessment_unavailable', 'interview_unavailable',
+    'report_ready', 'report_unavailable', 'assessment_unavailable', 'interview_unavailable', 'error',
   ]);
   assert.equal(STALE_QUESTION_ERROR, 'stale_question');
 });
@@ -138,6 +146,94 @@ test('classify 识别已知 runner/helper code，拒绝只写 E2E 失败', () =>
   });
   assert.equal(classifyE2EFailure(new Error('E2E 失败: boom')), null);
   assert.equal(classifyE2EFailure(new Error('e2e failed')), null);
+});
+
+test('AI/system 终态必须入账，未分类终态与空 review 不能当通过', () => {
+  assert.deepEqual(reviewAiSystemTerminal('report_unavailable'), { class: 'worker', code: 'report_unavailable' });
+  assert.deepEqual(reviewAiSystemTerminal('report_ready'), { class: 'worker', code: 'report_ready' });
+  assert.deepEqual(reviewAiSystemTerminal('assessment_unavailable'), { class: 'worker', code: 'assessment_unavailable' });
+  assert.equal(reviewAiSystemTerminal('not_a_terminal'), null);
+  assert.deepEqual(Object.keys(AI_SYSTEM_TERMINAL_REVIEWS).sort(), [
+    'assessment_unavailable', 'diagnosis_ready', 'diagnosis_unavailable', 'error',
+    'interview_unavailable', 'quiz_ready', 'quiz_unavailable', 'report_ready', 'report_unavailable',
+  ]);
+  const ledger = createE2EReviewLedger();
+  assert.throws(() => ledger.emitSummary(), (error) => {
+    assert.deepEqual(parseE2EFailure(error), { class: 'capability', code: 'opaque_pass' });
+    return true;
+  });
+  ledger.recordTerminal('report_unavailable');
+  ledger.recordTerminal('quiz_ready');
+  assert.throws(() => ledger.recordTerminal('mystery_event'), (error) => {
+    assert.deepEqual(parseE2EFailure(error), { class: 'worker', code: 'unclassified_ai_system_terminal' });
+    return true;
+  });
+  const summary = ledger.emitSummary();
+  assert.equal(summary, 'E2E_REVIEW_SUMMARY count=2');
+  assert.equal(parseE2EReviewSummaryCount(summary), 2);
+  const output = [
+    formatE2EReview({ class: 'worker', code: 'report_unavailable' }),
+    formatE2EReview({ class: 'provider', code: 'voice_transient' }),
+    'E2E_REVIEW_SUMMARY count=2',
+    'token=fixture-token-should-never-be-classified',
+  ].join('\n');
+  const collected = collectE2EReviews(output);
+  assert.deepEqual(collected, [
+    { class: 'worker', code: 'report_unavailable' },
+    { class: 'provider', code: 'voice_transient' },
+  ]);
+  assert.equal(String(JSON.stringify(collected)).includes('fixture-token'), false);
+  assert.equal(parseE2EReviewSummaryCount('E2E_REVIEW_SUMMARY count=0'), null);
+  assert.equal(parseE2EReviewSummaryCount(''), null);
+});
+
+test('隔离 HTTP 绿结果必须有可复核 AI/system ledger，opaque pass 不得 accept', () => {
+  const greenBody = [
+    'E2E_REVIEW class=worker code=report_unavailable',
+    'E2E_REVIEW class=worker code=quiz_ready',
+    'E2E_REVIEW_SUMMARY count=2',
+    '✓ E2E 全栈跑通(83 断言,含异常/特殊/兜底/状态机):鉴权→简历',
+  ].join('\n');
+  const accepted = evaluateIsolatedHttpE2E({ exitCode: 0, stdout: greenBody });
+  assert.equal(accepted.accept, true);
+  assert.equal(accepted.reject, null);
+  assert.equal(accepted.assertionCount, 83);
+  assert.deepEqual(accepted.reviewLedger.map((item) => item.code), ['report_unavailable', 'quiz_ready']);
+  assert.equal(formatE2EReviewCodes(accepted.reviewLedger), 'E2E_REVIEW_CODES codes=report_unavailable,quiz_ready');
+  const opaque = evaluateIsolatedHttpE2E({
+    exitCode: 0,
+    stdout: '✓ E2E 全栈跑通(83 断言,含异常/特殊/兜底/状态机):鉴权→简历',
+  });
+  assert.equal(opaque.accept, false);
+  assert.deepEqual(opaque.reject, { class: 'capability', code: 'opaque_pass' });
+  const noSummary = evaluateIsolatedHttpE2E({
+    exitCode: 0,
+    stdout: 'E2E_REVIEW class=worker code=report_unavailable\n✓ E2E 全栈跑通(1 断言,x)',
+  });
+  assert.deepEqual(noSummary.reject, { class: 'capability', code: 'opaque_pass' });
+  const mismatch = evaluateIsolatedHttpE2E({
+    exitCode: 0,
+    stdout: 'E2E_REVIEW class=worker code=report_unavailable\nE2E_REVIEW_SUMMARY count=2\n✓ E2E 全栈跑通(1 断言,x)',
+  });
+  assert.deepEqual(mismatch.reject, { class: 'capability', code: 'review_summary_mismatch' });
+  const mixed = evaluateIsolatedHttpE2E({
+    exitCode: 0,
+    stdout: 'E2E_FAILURE class=api code=assertion\nE2E_REVIEW class=worker code=report_unavailable\nE2E_REVIEW_SUMMARY count=1\n✓ E2E 全栈跑通(1 断言,x)',
+  });
+  assert.deepEqual(mixed.reject, { class: 'capability', code: 'success_with_failure_class' });
+  const noAssert = evaluateIsolatedHttpE2E({
+    exitCode: 0,
+    stdout: 'E2E_REVIEW class=worker code=report_unavailable\nE2E_REVIEW_SUMMARY count=1',
+  });
+  assert.deepEqual(noAssert.reject, { class: 'capability', code: 'success_without_assertion_summary' });
+  const failed = evaluateIsolatedHttpE2E({
+    exitCode: 1,
+    stdout: 'E2E_REVIEW class=worker code=report_unavailable\nE2E_FAILURE class=worker code=assertion',
+  });
+  assert.equal(failed.accept, false);
+  assert.equal(failed.reject, null);
+  assert.equal(failed.failureClass, 'worker');
+  assert.equal(failed.reviewLedger.length, 1);
 });
 
 console.log(`PASS e2e-helpers proof: ${passed} scenarios; releaseEvidence=false`);

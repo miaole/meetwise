@@ -104,6 +104,12 @@ pnpm verify:e2e-performance     # 本地全量子集；含 live HTTP/UI，需要
 
 `code` 是 `[a-z][a-z0-9_]{0,79}` 标识符，禁止 `e2e_failed` / `failed` / `unknown`。行里不写密钥、prompt、答案或连接串。隔离 HTTP 回执在失败时可带 `failureClass`（同上 7 值）；这与 isolated prove 的 `proofSummary.failureClass` 不是同一套词表。
 
+AI/系统终态（`report_unavailable`、`assessment_unavailable`、押题/诊断 `*_unavailable`、以及对应的 `*_ready`）必须另写：
+
+`E2E_REVIEW class=<class> code=<code>`
+
+收口一行 `E2E_REVIEW_SUMMARY count=N`（N≥1）。**缺 review 摘要的 exit 0 是 opaque pass，隔离包装器按 `capability/opaque_pass` 失败。** 回执的 `reviewLedger` 只存 `{class,code}`，不存原文。`report_unavailable` 仍可以是断言通过（舱壁），但必须可复核，不能只当绿。
+
 - `E2E_FAILURE class=provider code=live_provider_key_missing`：没有 Key。记 `not_run`，不要改 runner 去 skip-as-pass。
 - `E2E_FAILURE class=provider code=fake_service_mode_forbidden`：有人打开了假服务开关。关掉再跑，不要删这条守卫。
 - `E2E_FAILURE class=capability code=isolation_required`：直接跑了 `pnpm e2e:prove`。必须用 `e2e:isolated`。

@@ -28,7 +28,7 @@ pnpm verify:e2e-performance
 
 ### 本地 HTTP E2E 回执契约
 
-`pnpm e2e:isolated` 每次运行都在 `.tmp/e2e-receipts/` 原子写入一个仅本机可信的 JSON（JavaScript 对象表示法）回执。回执固定包含退出码、`passed/failed`、时长、最终断言数、HTTP 客户端（`e2e/full.e2e.ts`、`e2e/helpers/*`、`e2e/ocr-fixture.ts`）、`scripts/run-e2e.mjs`、`scripts/run-e2e-isolated.mjs` 的 SHA-256（安全散列算法）摘要，以及应用前 `packages/db/migrations/` 的数量、最新文件名和整个迁移清单摘要；失败时若 helpers/runner 写出了封闭分类，回执可带 `failureClass`（仅 `api` / `worker` / `db` / `provider` / `capability` / `data_or_permission` / `frontend`）。不保存 stdout（标准输出）、stderr（标准错误）、提示词、回答、令牌、端点或连接串。没有最终摘要或回执写入失败，一律以非零退出码收口。变更后无 Key 回归入口是 `pnpm regression`；真供应商链路仍是 `pnpm e2e:isolated`，缺 Key 不得写成通过。
+`pnpm e2e:isolated` 每次运行都在 `.tmp/e2e-receipts/` 原子写入一个仅本机可信的 JSON（JavaScript 对象表示法）回执。回执固定包含退出码、`passed/failed`、时长、最终断言数、HTTP 客户端（`e2e/full.e2e.ts`、`e2e/helpers/*`、`e2e/ocr-fixture.ts`）、`scripts/run-e2e.mjs`、`scripts/run-e2e-isolated.mjs` 的 SHA-256（安全散列算法）摘要，以及应用前 `packages/db/migrations/` 的数量、最新文件名和整个迁移清单摘要；失败时若 helpers/runner 写出了封闭分类，回执可带 `failureClass`（仅 `api` / `worker` / `db` / `provider` / `capability` / `data_or_permission` / `frontend`）。通过时必须带 `reviewLedger`（同一封闭 `{class,code}`，至少一条 AI/系统终态），缺摘要不得当 opaque pass。不保存 stdout（标准输出）、stderr（标准错误）、提示词、回答、令牌、端点或连接串。没有最终摘要或回执写入失败，一律以非零退出码收口。变更后无 Key 回归入口是 `pnpm regression`；真供应商链路仍是 `pnpm e2e:isolated`，缺 Key 不得写成通过。
 
 该回执的 `releaseEvidence=false` 是强制边界：它不具备 OIDC（开放式身份连接）运行器证明、不可变对象存储或独立验签，不能用于云端发布、简历或质量比较。它只修复“本地运行没有可核验终态”的问题；受信任发布证据仍须走 `quality-assurance-traceability.md` 规定的接收器设计。
 

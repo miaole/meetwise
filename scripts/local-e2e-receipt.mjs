@@ -6,7 +6,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
-import { isE2EFailureClass } from '../e2e/helpers/failure-class.mjs';
+import { isE2EFailureClass, parseE2EFailureRecord } from '../e2e/helpers/failure-class.mjs';
 
 const SOURCE_PATHS = Object.freeze([
   'e2e/full.e2e.ts',
@@ -26,7 +26,21 @@ const SOURCE_PATHS = Object.freeze([
 
 const sha256 = (value) => `sha256:${createHash('sha256').update(value).digest('hex')}`;
 
-function assertReceiptInput({ target, outcome, exitCode, startedAt, finishedAt, assertionCount, failureClass }) {
+function assertReviewLedger(reviewLedger, outcome) {
+  if (reviewLedger === undefined || reviewLedger === null) {
+    if (outcome === 'passed') throw new Error('local_e2e_receipt_review_ledger_required');
+    return;
+  }
+  if (!Array.isArray(reviewLedger) || reviewLedger.length > 32) {
+    throw new Error('local_e2e_receipt_review_ledger_invalid');
+  }
+  if (outcome === 'passed' && reviewLedger.length < 1) {
+    throw new Error('local_e2e_receipt_review_ledger_required');
+  }
+  for (const item of reviewLedger) parseE2EFailureRecord(item);
+}
+
+function assertReceiptInput({ target, outcome, exitCode, startedAt, finishedAt, assertionCount, failureClass, reviewLedger }) {
   if (target !== 'e2e:prove') throw new Error('local_e2e_receipt_target_invalid');
   if (!['passed', 'failed'].includes(outcome)) throw new Error('local_e2e_receipt_outcome_invalid');
   if (!Number.isInteger(exitCode) || exitCode < 0 || exitCode > 255) throw new Error('local_e2e_receipt_exit_code_invalid');
@@ -39,6 +53,7 @@ function assertReceiptInput({ target, outcome, exitCode, startedAt, finishedAt, 
     if (outcome === 'passed') throw new Error('local_e2e_receipt_failure_class_on_pass');
     if (!isE2EFailureClass(failureClass)) throw new Error('local_e2e_receipt_failure_class_invalid');
   }
+  assertReviewLedger(reviewLedger, outcome);
 }
 
 async function sourceDigests(repoRoot, paths = SOURCE_PATHS) {
@@ -94,8 +109,9 @@ export async function writeLocalE2EReceipt({
   finishedAt,
   assertionCount = null,
   failureClass = null,
+  reviewLedger = null,
 }) {
-  assertReceiptInput({ target, outcome, exitCode, startedAt, finishedAt, assertionCount, failureClass });
+  assertReceiptInput({ target, outcome, exitCode, startedAt, finishedAt, assertionCount, failureClass, reviewLedger });
   const root = resolve(repoRoot);
   const outputRoot = resolve(receiptRoot);
   await mkdir(outputRoot, { recursive: true, mode: 0o700 });
@@ -113,6 +129,9 @@ export async function writeLocalE2EReceipt({
     finishedAt: finishedAt.toISOString(),
     assertionCount,
     ...(failureClass ? { failureClass } : {}),
+    ...(Array.isArray(reviewLedger) && reviewLedger.length
+      ? { reviewLedger: reviewLedger.map((item) => parseE2EFailureRecord(item)) }
+      : {}),
     sourceDigests: await sourceDigests(root),
     schemaMigrationManifest: await schemaMigrationManifest(root),
     dataHandling: 'no_output_prompt_answer_token_endpoint_or_connection_string_persisted',

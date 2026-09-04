@@ -21,7 +21,13 @@
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
-import { emitClassifiedE2EFailure, parseE2EFailureLine, tagE2EFailure } from '../e2e/helpers/failure-class.mjs';
+import {
+  emitClassifiedE2EFailure,
+  evaluateIsolatedHttpE2E,
+  formatE2EReviewCodes,
+  parseE2EFailureLine,
+  tagE2EFailure,
+} from '../e2e/helpers/failure-class.mjs';
 import { captureBounded } from './bounded-command.mjs';
 import { writeLocalE2EReceipt, writeLocalIsolatedReceipt } from './local-e2e-receipt.mjs';
 import { withheldOutputSummary } from './withheld-output.mjs';
@@ -1194,15 +1200,6 @@ function runQbankRetrievalEvalProof(command, args, env = baseEnv) {
  * HTTP 全链路会触发真实模型，子进程输出可能含不可信内容。为让运行本身可
  * 复核而不留下敏感原文，只在内存中识别其最终、固定格式的断言摘要并写入回执。
  */
-function lastE2EFailureClass(output) {
-  let found = null;
-  for (const line of String(output).split(/\r?\n/)) {
-    const parsed = parseE2EFailureLine(line);
-    if (parsed) found = parsed.class;
-  }
-  return found;
-}
-
 function runFullE2E(command, args, env = baseEnv) {
   return new Promise((resolve, reject) => {
     let stdout = '';
@@ -1212,18 +1209,21 @@ function runFullE2E(command, args, env = baseEnv) {
     child.stderr.on('data', () => {});
     child.on('error', reject);
     child.on('exit', (code) => {
-      const summary = stdout.match(/^✓ E2E 全栈跑通\((\d+) 断言,[^\n]*$/m);
-      const assertionCount = summary ? Number(summary[1]) : null;
-      const failureClass = lastE2EFailureClass(stdout);
-      if (code === 0 && !Number.isInteger(assertionCount)) {
-        return reject(tagE2EFailure('capability', 'success_without_assertion_summary'));
+      const judged = evaluateIsolatedHttpE2E({ exitCode: code ?? 1, stdout });
+      if (judged.reject) return reject(tagE2EFailure(judged.reject.class, judged.reject.code));
+      if (judged.accept) {
+        console.log(`E2E_FINAL_SUMMARY assertions=${judged.assertionCount}`);
+        console.log(`E2E_REVIEW_CLASS_COUNT count=${judged.reviewLedger.length}`);
+        console.log(formatE2EReviewCodes(judged.reviewLedger));
+      } else if (judged.failureClass) {
+        console.log(`E2E_FAILURE_CLASS class=${judged.failureClass}`);
       }
-      if (code === 0 && failureClass) {
-        return reject(tagE2EFailure('capability', 'success_with_failure_class'));
-      }
-      if (summary) console.log(`E2E_FINAL_SUMMARY assertions=${assertionCount}`);
-      if (failureClass) console.log(`E2E_FAILURE_CLASS class=${failureClass}`);
-      resolve({ code: code ?? 1, assertionCount, failureClass });
+      resolve({
+        code: judged.accept ? 0 : (code ?? 1),
+        assertionCount: judged.assertionCount,
+        failureClass: judged.failureClass,
+        reviewLedger: judged.reviewLedger,
+      });
     });
   });
 }
@@ -1301,6 +1301,7 @@ async function main() {
   let targetExitCode = 1;
   let assertionCount = null;
   let failureClass = null;
+  let reviewLedger = null;
   let proofSummary;
   let embedderReal;
   try {
@@ -1328,6 +1329,7 @@ async function main() {
       targetExitCode = result.code;
       assertionCount = result.assertionCount;
       failureClass = result.failureClass;
+      reviewLedger = result.reviewLedger;
     } else {
       if (isolatedCommand && (target.startsWith('privacy-erasure:') || target.startsWith('resume-erasure:') || target.startsWith('resume-derivative-reference:') || target === 'adaptive-consumer:prove:raw')) {
         const result = await runRedactedProof(isolatedCommand[0], isolatedCommand[1], env);
@@ -1369,6 +1371,7 @@ async function main() {
           finishedAt: new Date(),
           assertionCount,
           failureClass,
+          reviewLedger,
         });
         console.log(`LOCAL_E2E_RECEIPT file=${relativePath} release_evidence=false`);
       } catch (error) {

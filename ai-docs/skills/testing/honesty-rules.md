@@ -18,6 +18,7 @@ description: 测试与文档的诚实边界：releaseEvidence、假服务、skip
 7. **把 Playwright 说成当前 HTTP 全链路实现。** 浏览器层才是 Playwright；HTTP 层是 fetch/SSE。
 8. **把本机性能数字说成线上 SLO。**
 9. **失败只写 `E2E 失败` / `e2e failed`。** 必须带封闭 `E2E_FAILURE class=` 行（`api` / `worker` / `db` / `provider` / `capability` / `data_or_permission` / `frontend`），见 [run-gates.md](./run-gates.md) §6。
+10. **AI/系统失败被绿结果吞掉。** `report_unavailable` / 评分不可用 / 供应商暂态必须进 `E2E_REVIEW` 账本；没有 `E2E_REVIEW_SUMMARY` 的 exit 0 记 `opaque_pass`，不得写成通过。
 
 ## 允许
 

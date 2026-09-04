@@ -11,13 +11,14 @@ import { liveOcrResumePngBase64 } from './ocr-fixture.ts';
 import { createAssert } from './helpers/assert.ts';
 import { signupOrLogin, uidFromToken } from './helpers/auth.ts';
 import { createOrder, entitlement, payWebhook } from './helpers/commerce.ts';
-import { emitClassifiedE2EFailure, emitE2EFailure } from './helpers/failure.ts';
+import { createE2EReviewLedger, emitClassifiedE2EFailure, emitE2EFailure } from './helpers/failure.ts';
 import { BASE, PAY_SECRET, readJson } from './helpers/http.ts';
 import { driveInterviewToTerminal } from './helpers/interview.ts';
 import { pollTerminal } from './helpers/sse.ts';
 import { callLiveVoiceGateway } from './helpers/voice.ts';
 
 const { A, passed } = createAssert();
+const reviews = createE2EReviewLedger();
 
 async function main() {
   const tag = process.env.E2E_TAG ?? 'run';
@@ -125,6 +126,7 @@ async function main() {
     const diagnostic = await readJson(await fetch(`${BASE}/interview/${interviewId}/report`, { headers: H }));
     console.error(`E2E_INTERVIEW_TERMINAL_TIMEOUT interview=${interviewId} elapsedMs=${Date.now() - interviewStartedAt} lastSeq=${lastSeq} questions=${questions} turns=${turn} events=${[...kinds].join(',')} reportStatus=${String(diagnostic.status ?? 'unknown')}`);
   }
+  if (terminal) reviews.recordTerminal(terminal);
   A(terminal !== '', `面试跑到终态事件(${terminal})——无死胡同 ✅`, 'worker');
 
   // 7. 报告端点可查,且 status 与终态一致(不能只断 200——卡在 queued 也会过)
@@ -150,6 +152,7 @@ async function main() {
       clarificationAcceptedLabel: '[兜底] 澄清 canonical /turn → 202',
     });
     const rep = await readJson(await fetch(`${BASE}/interview/${failIv}/report`, { headers: H }));
+    if (failLoop.terminal) reviews.recordTerminal(failLoop.terminal);
     A(failLoop.terminal === 'report_unavailable' && rep.status === 'quarantined',
       `[兜底] 报告失败 → report_unavailable + quarantined(无死胡同;终态=${failLoop.terminal || 'none'}, status=${rep.status ?? 'none'})`);
   }
@@ -161,6 +164,7 @@ async function main() {
   r = await fetch(`${BASE}/quiz/${quizId}/begin`, { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
   A(r.status === 202, '押题:begin → 202 受理');
   const quizTerm = await pollTerminal(`/quiz/${quizId}`, token, ['quiz_ready', 'quiz_unavailable', 'error']);
+  if (quizTerm) reviews.recordTerminal(quizTerm);
   A(quizTerm !== '', `押题:跑到终态(${quizTerm})——无死胡同 ✅`, 'worker');
   let dg: any = await readJson(await fetch(`${BASE}/diagnosis`, { method: 'POST', headers: H, body: '{}' }));
   const diagId = dg.id ?? dg.diagnosisId;
@@ -168,6 +172,7 @@ async function main() {
   r = await fetch(`${BASE}/diagnosis/${diagId}/begin`, { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
   A(r.status === 202, '诊断:begin → 202 受理');
   const diagTerm = await pollTerminal(`/diagnosis/${diagId}`, token, ['diagnosis_ready', 'diagnosis_unavailable', 'error']);
+  if (diagTerm) reviews.recordTerminal(diagTerm);
   A(diagTerm !== '', `诊断:跑到终态(${diagTerm})——无死胡同 ✅`, 'worker');
 
   // 8. B 端(招聘方)+ 多租户 RLS 隔离:发岗位 → 自己可见 → 他人不可见
@@ -267,6 +272,7 @@ async function main() {
     questionAcceptedLabel: () => '[状态机] 岗位 canonical /turn → 202',
     clarificationAcceptedLabel: '[状态机] 岗位澄清 canonical /turn → 202',
   });
+  if (boundLoop.terminal) reviews.recordTerminal(boundLoop.terminal);
   A(boundLoop.questions >= 1 && boundLoop.turns >= 1 && boundLoop.terminal !== '', `[状态机] 岗位绑定会话经真 worker 到终态(${boundLoop.terminal}; ${boundLoop.questions} 题/${boundLoop.turns} 答)`);
   r = await fetch(`${BASE}/applications/${app1}/finalize`, { method: 'POST', headers: H, body: '{}' });
   const finalized = await readJson(r);
@@ -289,6 +295,7 @@ async function main() {
       `[状态机·可信] 招聘方看到 completed + **服务端推导**分数=${cand?.score}(非自报,跨方 RLS 可读)`);
   }
 
+  reviews.emitSummary();
   console.log(`\n✓ E2E 全栈跑通(${passed()} 断言,含异常/特殊/兜底/状态机):鉴权→简历→交易→面试(真agent)→报告→B端多租户→候选人多方RLS闭环 · 终态 ${terminal}`);
 }
 main().catch((e) => {

@@ -46,6 +46,31 @@ export const E2E_FAILURE_LINE_RE = new RegExp(
   `^E2E_FAILURE class=(${E2E_FAILURE_CLASSES.join('|')}) code=([a-z][a-z0-9_]{0,79})$`,
 );
 
+export const E2E_REVIEW_LINE_RE = new RegExp(
+  `^E2E_REVIEW class=(${E2E_FAILURE_CLASSES.join('|')}) code=([a-z][a-z0-9_]{0,79})$`,
+);
+
+export const E2E_REVIEW_SUMMARY_RE = /^E2E_REVIEW_SUMMARY count=([1-9][0-9]?)$/;
+
+const REVIEW_LEDGER_LIMIT = 32;
+
+/**
+ * Closed map of AI/system SSE terminals → ledger class.
+ * Ready terminals are recorded too: a green run that never classified them
+ * is an opaque pass. Unmapped terminals are not guessed.
+ */
+export const AI_SYSTEM_TERMINAL_REVIEWS = Object.freeze({
+  report_ready: { class: 'worker', code: 'report_ready' },
+  report_unavailable: { class: 'worker', code: 'report_unavailable' },
+  assessment_unavailable: { class: 'worker', code: 'assessment_unavailable' },
+  interview_unavailable: { class: 'worker', code: 'interview_unavailable' },
+  quiz_ready: { class: 'worker', code: 'quiz_ready' },
+  quiz_unavailable: { class: 'worker', code: 'quiz_unavailable' },
+  diagnosis_ready: { class: 'worker', code: 'diagnosis_ready' },
+  diagnosis_unavailable: { class: 'worker', code: 'diagnosis_unavailable' },
+  error: { class: 'worker', code: 'terminal_error' },
+});
+
 /**
  * Known runner / helper prefixes → ledger class.
  * Product-specific secret names are intentionally absent.
@@ -92,6 +117,17 @@ const KNOWN_CODE_CLASS = Object.freeze({
   performance_e2e_isolation_required: 'capability',
   success_without_assertion_summary: 'capability',
   success_with_failure_class: 'capability',
+  opaque_pass: 'capability',
+  review_summary_mismatch: 'capability',
+  review_ledger_overflow: 'capability',
+  unclassified_ai_system_terminal: 'worker',
+  report_unavailable: 'worker',
+  assessment_unavailable: 'worker',
+  interview_unavailable: 'worker',
+  quiz_unavailable: 'worker',
+  diagnosis_unavailable: 'worker',
+  terminal_error: 'worker',
+  voice_transient: 'provider',
   e2e_ui_web_not_ready: 'frontend',
   e2e_ui_client_exited: 'frontend',
   web_not_ready: 'frontend',
@@ -206,4 +242,158 @@ export function emitE2EFailure(record) {
 export function emitClassifiedE2EFailure(error, fallback) {
   const record = classifyE2EFailure(error) ?? parseE2EFailureRecord(fallback);
   return emitE2EFailure(record);
+}
+
+export function reviewAiSystemTerminal(terminal) {
+  const mapped = AI_SYSTEM_TERMINAL_REVIEWS[terminal];
+  if (!mapped) return null;
+  return parseE2EFailureRecord(mapped);
+}
+
+export function formatE2EReview(record) {
+  const safe = parseE2EFailureRecord(record);
+  return `E2E_REVIEW class=${safe.class} code=${safe.code}`;
+}
+
+export function parseE2EReviewLine(text) {
+  const source = String(text ?? '');
+  const match = source.match(E2E_REVIEW_LINE_RE) ?? source.match(new RegExp(E2E_REVIEW_LINE_RE.source, 'm'));
+  if (!match) return null;
+  try {
+    return parseE2EFailureRecord({ class: match[1], code: match[2] });
+  } catch {
+    return null;
+  }
+}
+
+export function parseE2EReviewSummaryCount(text) {
+  const source = String(text ?? '');
+  const match = source.match(E2E_REVIEW_SUMMARY_RE) ?? source.match(new RegExp(E2E_REVIEW_SUMMARY_RE.source, 'm'));
+  if (!match) return null;
+  const count = Number(match[1]);
+  return Number.isInteger(count) && count >= 1 && count <= REVIEW_LEDGER_LIMIT ? count : null;
+}
+
+export function lastE2EFailureClass(output) {
+  let found = null;
+  for (const line of String(output ?? '').split(/\r?\n/)) {
+    const parsed = parseE2EFailureLine(line);
+    if (parsed) found = parsed.class;
+  }
+  return found;
+}
+
+export function parseE2EAssertionCount(output) {
+  const match = String(output ?? '').match(/^✓ E2E 全栈跑通\((\d+) 断言,[^\n]*$/m);
+  if (!match) return null;
+  const count = Number(match[1]);
+  return Number.isInteger(count) && count >= 0 ? count : null;
+}
+
+export function formatE2EReviewCodes(reviews) {
+  const codes = reviews.map((item) => parseE2EFailureRecord(item).code);
+  if (codes.length < 1 || codes.length > 32) throw new Error('e2e_review_codes_invalid');
+  return `E2E_REVIEW_CODES codes=${codes.join(',')}`;
+}
+
+/**
+ * Isolated HTTP E2E pass gate. Exit 0 without a reviewable AI/system ledger
+ * is opaque_pass — never accept that as green.
+ */
+export function evaluateIsolatedHttpE2E({ exitCode, stdout }) {
+  const assertionCount = parseE2EAssertionCount(stdout);
+  const failureClass = lastE2EFailureClass(stdout);
+  let reviewLedger = [];
+  try {
+    reviewLedger = collectE2EReviews(stdout);
+  } catch (error) {
+    return {
+      accept: false,
+      reject: parseE2EFailure(error) ?? { class: 'capability', code: 'review_ledger_overflow' },
+      assertionCount,
+      failureClass,
+      reviewLedger: [],
+    };
+  }
+  const reviewCount = parseE2EReviewSummaryCount(stdout);
+  if (exitCode === 0 && !Number.isInteger(assertionCount)) {
+    return { accept: false, reject: { class: 'capability', code: 'success_without_assertion_summary' }, assertionCount, failureClass, reviewLedger };
+  }
+  if (exitCode === 0 && failureClass) {
+    return { accept: false, reject: { class: 'capability', code: 'success_with_failure_class' }, assertionCount, failureClass, reviewLedger };
+  }
+  if (exitCode === 0 && (reviewCount === null || reviewLedger.length < 1)) {
+    return { accept: false, reject: { class: 'capability', code: 'opaque_pass' }, assertionCount, failureClass, reviewLedger };
+  }
+  if (exitCode === 0 && reviewCount !== reviewLedger.length) {
+    return { accept: false, reject: { class: 'capability', code: 'review_summary_mismatch' }, assertionCount, failureClass, reviewLedger };
+  }
+  return {
+    accept: exitCode === 0,
+    reject: null,
+    assertionCount,
+    failureClass,
+    reviewLedger,
+  };
+}
+
+export function collectE2EReviews(output) {
+  const reviews = [];
+  for (const line of String(output ?? '').split(/\r?\n/)) {
+    const parsed = parseE2EReviewLine(line);
+    if (parsed) {
+      if (reviews.length >= REVIEW_LEDGER_LIMIT) throw tagE2EFailure('capability', 'review_ledger_overflow');
+      reviews.push(parsed);
+    }
+  }
+  return reviews;
+}
+
+export function formatE2EReviewSummary(count) {
+  if (!Number.isInteger(count) || count < 1 || count > REVIEW_LEDGER_LIMIT) {
+    throw new Error('e2e_review_summary_count_invalid');
+  }
+  return `E2E_REVIEW_SUMMARY count=${count}`;
+}
+
+let activeReviewLedger = null;
+
+export function emitE2EReview(record) {
+  if (activeReviewLedger) return activeReviewLedger.record(record);
+  const line = formatE2EReview(record);
+  console.log(line);
+  console.error(line);
+  return line;
+}
+
+export function createE2EReviewLedger(limit = REVIEW_LEDGER_LIMIT) {
+  const entries = [];
+  const ledger = {
+    record(record) {
+      const safe = parseE2EFailureRecord(record);
+      if (entries.length >= limit) throw tagE2EFailure('capability', 'review_ledger_overflow');
+      entries.push(safe);
+      const line = formatE2EReview(safe);
+      console.log(line);
+      console.error(line);
+      return safe;
+    },
+    recordTerminal(terminal) {
+      const mapped = reviewAiSystemTerminal(terminal);
+      if (!mapped) throw tagE2EFailure('worker', 'unclassified_ai_system_terminal');
+      return ledger.record(mapped);
+    },
+    snapshot() {
+      return entries.map((entry) => ({ class: entry.class, code: entry.code }));
+    },
+    emitSummary() {
+      if (entries.length < 1) throw tagE2EFailure('capability', 'opaque_pass');
+      const line = formatE2EReviewSummary(entries.length);
+      console.log(line);
+      console.error(line);
+      return line;
+    },
+  };
+  activeReviewLedger = ledger;
+  return ledger;
 }
