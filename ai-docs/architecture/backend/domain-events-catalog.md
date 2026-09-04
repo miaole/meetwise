@@ -54,7 +54,7 @@ type EventEnvelope<T> = {
 | `admin.review.decided` | admin | 来源业务模块 | objectType, objectId, decision | eventId |
 | `data.egress.blocked` | ai-runtime | observability(审计) | principal, target | eventId |
 
-> SSE 业务事件（`question_ready`/`answer_evaluated`/`waiting_user`/`report_ready`，及**终态** `report_unavailable`/`interview_unavailable` 等）是 `InterviewEvent` 有序流（带 `seq`），由 worker 写、api SSE 网关订阅转发（见 langgraph-blueprint Worker→Api 通道）。`assistant_message_chunk`（原 message_delta）非承载事实、不进业务校验、不进本目录的业务事件登记。
+> SSE 业务事件（`question_ready`/`answer_evaluated`/`waiting_user`/`report_ready`，及**终态** `report_unavailable`/`interview_unavailable` 等）是 `InterviewEvent` 有序流（带 `seq`），由 worker 写、api SSE 网关订阅转发（见 langgraph-blueprint Worker→Api 通道）。`assistant_message_chunk`（原 message_delta）非承载事实、不进业务校验、不进本目录的业务事件登记。`InterviewEvent.payload` **禁止顶层 `answer` 键**（`answerId`/`answerHash` 合法）；不要把 TurnDto 展开进账本。机制见 `requirements/use-cases/interview-answer-dual-write-fence.md`，落点见 `backend/interview-answer-dual-write-cutover.md`。
 >
 > **`interview_unavailable`（终态，已接线）**：面试 job 终态失败（job-death/reap 超 MAX_ATTEMPTS）或中途弃（对账回收孤儿预留）时发出，前端据此优雅降级不转圈（无静默死胡同，对称 `report_unavailable`）。发出方 = `interview-consumer` / `reaper` / `commerce-reconcile`，均同时把 `Interview` 置终态（`failed`/`abandoned`，避免 create() 复用尸体的 reuse-trap）。
 

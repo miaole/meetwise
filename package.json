@@ -166,6 +166,8 @@
     "int-transcript-answer-fact-root:prove:raw": "pnpm -C packages/db prove:int-transcript-answer-fact-root",
     "int-transcript-remaining-sinks:prove": "node scripts/run-e2e-isolated.mjs int-transcript-remaining-sinks:prove:raw",
     "int-transcript-remaining-sinks:prove:raw": "pnpm -C packages/db prove:int-transcript-remaining-sinks",
+    "int-answer-dual-write-fence:prove": "node scripts/run-e2e-isolated.mjs int-answer-dual-write-fence:prove:raw",
+    "int-answer-dual-write-fence:prove:raw": "pnpm -C packages/db prove:int-answer-dual-write-fence",
     "privacy-erasure:http:prove": "node scripts/run-e2e-isolated.mjs privacy-erasure:http:prove:raw",
     "privacy-erasure:http:prove:raw": "pnpm -C apps/api prove:privacy-erasure-http",
     "resume-erasure:foundation:prove": "node scripts/run-e2e-isolated.mjs resume-erasure:foundation:prove:raw",

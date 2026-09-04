@@ -38,6 +38,7 @@
     "prove:ctx03-event-source": "tsx test/ctx03-event-source.proof.ts",
     "prove:int-transcript-answer-fact-root": "tsx test/int-transcript-answer-fact-root.proof.ts",
     "prove:int-transcript-remaining-sinks": "tsx test/int-transcript-remaining-sinks.proof.ts",
+    "prove:int-answer-dual-write-fence": "tsx test/int-answer-dual-write-fence.proof.ts",
     "prove:scor-01": "tsx test/scor-01.proof.ts",
     "prove:scor-02": "tsx test/scor-02.proof.ts",
     "prove:scor-03": "tsx test/scor-03.proof.ts",

@@ -97,6 +97,14 @@ export {
 } from './interview-jobs.ts';
 export type { JobKind, ClaimedInterviewJob, ClaimedInterviewJobRequestId, ClaimedInterviewAnswerPayload } from './interview-jobs.ts';
 
+// 答题正文双写互斥（0126 / INT-P0-RAW-QUEUE 围栏，不是 INT-TRANSCRIPT-01）
+export {
+  assertInterviewAnswerLegacyPlaintextAllowed, assertInterviewAnswerLedgerWriteAllowed,
+  plaintextAnswerIdentity, eventPayloadHasRawAnswer, remapInterviewAnswerDualWriteError,
+  INTERVIEW_ANSWER_LEGACY_PLAINTEXT_FENCED, INTERVIEW_ANSWER_LEDGER_DUAL_WRITE_FENCED,
+  INTERVIEW_EVENT_RAW_ANSWER_FENCED,
+} from './interview-answer-dual-write.ts';
+
 export { withInterviewGraphFence, assertInterviewGraphFence, renewInterviewGraphFence, releaseInterviewGraphFence } from './interview-graph-lease.ts';
 export type { InterviewGraphFence } from './interview-graph-lease.ts';
 

@@ -327,7 +327,7 @@ interface ToolDescriptor<A, R> {
 |---|---|---|---|
 | A 标识 | userId/resultId/threadId/serviceType | state（init 写一次） | 标量 |
 | B 控制态 | phase/questionIndex/quota/waitingFor/reportStatus | state（条件边读） | 标量/枚举 |
-| C 内容 | 简历全文/答案全文/报告/题目正文/embedding/无界 messages | 业务表/事件账本/对象存储 | **只放 ref，节点本地水合，绝不写回 state** |
+| C 内容 | 简历全文/答案全文/报告/题目正文/embedding/无界 messages | 业务表/对象存储（现行答案全文在 `interview_job.payload`；ledger artifact 仍非生产 HTTP）。**`interview_event` 禁止顶层 `answer`**，只可写 `answerId`/`answerHash` 等引用，见 [interview-answer-dual-write-cutover.md](../backend/interview-answer-dual-write-cutover.md) | **只放 ref，节点本地水合，绝不写回 state** |
 
 **控制态是账本投影、checkpoint 是可丢缓存**（评审 ⑥ 收敛点）：`questionIndex` = 账本 question 事件计数，`phase/waitingFor` = 末条事件的函数。一旦控制态可从账本重建，迁移/裂脑/并发 resume/换引擎四件事被一个原则统一收掉。要的是"可重建"不变量，不教条式事件溯源。
 
@@ -356,7 +356,7 @@ const mergeById   = (p=[], n=[]) => { const m=new Map(p.map(x=>[x.id,x])); for(c
 state.recentTurns  = 账本的有界缓存（可丢可重建）
 interview_event 账本 = 长历史唯一真相（append-only，PK(result_id, seq)，带 turn_id 幂等键）
 ```
-节点（有 IO）在返回 delta 前把全文经事务性 outbox 写穿账本；reducer（纯）只裁 state 窗口。**resume value（用户答案）只在 evalAnswer 消费→写账本→不进任何 channel**；承认 checkpoint 路径需与账本同级脱敏，不宣称 checkpoint 里绝无答案。
+节点（有 IO）在返回 delta 前把**引用/状态**经事务性 outbox 写穿 `interview_event`；reducer（纯）只裁 state 窗口。**resume value（用户答案）只在 evalAnswer 消费→写入现行业务落点（`interview_job.payload` 明文，或未来未开放 HTTP 的 ledger artifact）→不进任何 channel，也不把原文写进 `interview_event`**；承认 checkpoint 路径需与业务落点同级脱敏，不宣称 checkpoint 里绝无答案。落点与互斥见 [interview-answer-dual-write-cutover.md](../backend/interview-answer-dual-write-cutover.md)。
 
 ### 5.6 state 膨胀护栏（评审 P1）
 

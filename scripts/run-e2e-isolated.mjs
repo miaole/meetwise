@@ -719,6 +719,16 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0092_int_transcript_answer_fact_root.sql',
     'packages/db/migrations/0093_memory_governance.sql',
   ],
+  'int-answer-dual-write-fence:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/int-answer-dual-write-fence.proof.ts',
+    'packages/db/src/interview-answer-dual-write.ts',
+    'packages/db/src/interview-jobs.ts', 'packages/db/src/int-transcript.ts',
+    'packages/db/src/interview-event.ts', 'packages/db/src/index.ts',
+    'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts',
+    'packages/db/migrations/0092_int_transcript_answer_fact_root.sql',
+    'packages/db/migrations/0126_interview_answer_dual_write_fence.sql',
+  ],
   'int-transcript-remaining-sinks:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/int-transcript-remaining-sinks.proof.ts',
@@ -931,6 +941,7 @@ if (![
   'ctx03-event-source:prove:raw',
   'int-transcript-answer-fact-root:prove:raw',
   'int-transcript-remaining-sinks:prove:raw',
+  'int-answer-dual-write-fence:prove:raw',
   'scor-01:prove:raw',
   'scor-02:prove:raw',
   'scor03-evidence-conflict:prove:raw',
@@ -1069,6 +1080,8 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'packages/db', 'prove:int-transcript-answer-fact-root']]
   : target === 'int-transcript-remaining-sinks:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:int-transcript-remaining-sinks']]
+  : target === 'int-answer-dual-write-fence:prove:raw'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:int-answer-dual-write-fence']]
   : target === 'scor-01:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:scor-01']]
   : target === 'scor-02:prove:raw'
@@ -1322,7 +1335,7 @@ async function main() {
     const env = { ...baseEnv, PGPORT: match[1] };
     await waitForPostgres(env);
     console.log(`E2E isolated PostgreSQL: ${container} on 127.0.0.1:${env.PGPORT}`);
-    if (['e2e:prove', 'e2e:ui', 'performance:e2e', 'api:validate', 'recruiter:prove:raw', 'commerce-reconcile:prove:raw', 'model-invocation-reconcile:prove:raw', 'model-op00:prove:raw', 'model-op02:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'scoring-integrity:prove', 'scoring:eval:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'scor-00:http:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'stress:prove:raw', 'memory:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'ocr:prove:raw', 'adaptive-degrade:prove:raw', 'commerce:prove:raw', 'resume:prove:raw', 'rag-generation:prove:raw', 'qbank:prove:raw', 'qbank-pipeline:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-retrieval-eval:prove:raw', 'online-judge-control:prove:raw', 'privacy-authorization:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'memory-vector-chunk-erasure:prove:raw'].includes(target)) {
+    if (['e2e:prove', 'e2e:ui', 'performance:e2e', 'api:validate', 'recruiter:prove:raw', 'commerce-reconcile:prove:raw', 'model-invocation-reconcile:prove:raw', 'model-op00:prove:raw', 'model-op02:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'scoring-integrity:prove', 'scoring:eval:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'scor-00:http:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'stress:prove:raw', 'memory:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'ocr:prove:raw', 'adaptive-degrade:prove:raw', 'commerce:prove:raw', 'resume:prove:raw', 'rag-generation:prove:raw', 'qbank:prove:raw', 'qbank-pipeline:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-retrieval-eval:prove:raw', 'online-judge-control:prove:raw', 'privacy-authorization:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw'].includes(target)) {
       await migrateWithRecovery(env);
     }
     if (target === 'api:validate') env.E2E_PREMIGRATED = '1';

@@ -72,7 +72,7 @@ related:
 
 ## 5. 记忆分层（落表）
 
-- **`InterviewEvent`（单一事件账本真相，修审计 #13）**：`ownerPrincipal`(owner_user_id|owner_tenant_id 恰一非空，**非 userId**——否则 B 端 candidate 无 userId 落不了事实)、streamKey、单调 `seq`、kind、payload——**append-only 不可变**；审计 / SSE 重放 / 推断证据**共用同一份**（统一为这一份，删除原先并存的第二套事件真相）。`Interview.status` 是会话态真相，InterviewEvent 是历史真相。B 端 candidate 的事件仅审计、不喂 C 端专属 SkillInference。
+- **`InterviewEvent`（单一事件账本真相，修审计 #13）**：`ownerPrincipal`(owner_user_id|owner_tenant_id 恰一非空，**非 userId**——否则 B 端 candidate 无 userId 落不了事实)、streamKey、单调 `seq`、kind、payload——**append-only 不可变**；审计 / SSE 重放 / 推断证据**共用同一份**（统一为这一份，删除原先并存的第二套事件真相）。`Interview.status` 是会话态真相，InterviewEvent 是历史真相。B 端 candidate 的事件仅审计、不喂 C 端专属 SkillInference。现行 payload **不得含顶层 `answer`**（`answerId`/`answerHash` 合法）；答题正文落点与互斥见 `backend/interview-answer-dual-write-cutover.md`，不要把本页 `InterviewQA.answer` 逻辑模型当成当前两族正文。
 - `SkillInference`：见 §4（推断层）。
 - 引导层=检索时算，不落表。
 - `SkillInferenceEvidence`(junction)：inferenceId、interviewEventId、contribution——证据用关系表，不用 JSON 数组。
