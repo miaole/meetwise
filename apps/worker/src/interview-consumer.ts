@@ -24,7 +24,7 @@ const requestIdStore: AsyncLocalStorage<string> =
   ((globalThis as unknown as Record<symbol, AsyncLocalStorage<string> | undefined>)[Symbol.for('meetwise.ai-runtime.requestIdContext')] ??= new AsyncLocalStorage<string>());
 export interface ConsumerDeps {
   pool: DbPool; cp: Checkpointer; model: ModelClient; fastModel?: ModelClient; leaseOwner: string;
-  /** 测试可注入计数器；生产使用受控的 decryptActiveResumeBlob（简历解密）实现。 */
+  /** 仅测试观测：start 不再解密原文。生产路径读画像授权门，不调用此 hook。 */
   decryptResume?: typeof decryptActiveResumeBlob;
   // 注入则消费者跑**自适应 agent 图**(生产注真 annSearch/web fetcher;测试注 fake);不注则跑旧固定题单流程。
   // localRetrieve 按 owner 参数化(消费者多 owner;每 job 闭成 owner 专属);webExplore owner 无关(web 抓取)。

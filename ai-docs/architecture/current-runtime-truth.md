@@ -85,7 +85,7 @@ flowchart LR
   A --> Q["durable interview / report / quiz jobs"]
   Q --> K["Worker\n租约、栅栏、重试、对账"]
   K --> G["LangGraph 自适应面试图\nplan → decide → genQuestion → interrupt → evalAnswer → conclude"]
-  G --> M["阿里云百炼模型适配器\nLLM、Embedding、ASR、TTS、视觉 OCR"]
+  G --> M["阿里云百炼模型适配器\nLLM、Embedding、ASR、TTS；视觉 OCR 合同缝/生产 disabled"]
   G --> S["受限研究 skills\nrag.retrieve / web.explore / deep.research"]
   K --> O["Prometheus 指标 + Langfuse v5 OTel\n仅 HMAC 伪名和标量"]
   P --> O

@@ -336,6 +336,8 @@ export async function runMigrateProof(
   A('0124 → resume_profile.ocr_binding 存在且无明文 text 列',
     (await pool.query("SELECT 1 FROM information_schema.columns WHERE table_name='resume_profile' AND column_name='ocr_binding'")).rowCount === 1
     && (await pool.query("SELECT 1 FROM information_schema.columns WHERE table_name='resume_profile' AND column_name='text'")).rowCount === 0);
+  A('0124 → OCR identity pairing/immutability trigger 存在',
+    (await pool.query("SELECT 1 FROM pg_trigger WHERE tgname IN ('trg_resume_ocr_identity_guard','trg_resume_source_kind_immutable')")).rowCount === 2);
   A('0121 → app_role 仅获简历运行时所需的双参数 pgcrypto 能力，PUBLIC 与可选参数重载保持拒绝',
     (await pool.query("SELECT has_function_privilege('app_role','pgp_sym_encrypt(text,text)','EXECUTE') allowed")).rows[0].allowed === true
     && (await pool.query("SELECT has_function_privilege('app_role','pgp_sym_decrypt(bytea,text)','EXECUTE') allowed")).rows[0].allowed === true

@@ -72,6 +72,60 @@ CREATE TABLE resume_profile (
   )
 );
 
+CREATE OR REPLACE FUNCTION meetwise_resume_ocr_identity_guard()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  kind text;
+  keys text[];
+BEGIN
+  IF TG_TABLE_NAME = 'resume' THEN
+    IF TG_OP = 'UPDATE' AND NEW.source_kind IS DISTINCT FROM OLD.source_kind THEN
+      RAISE EXCEPTION 'resume_source_kind_immutable';
+    END IF;
+    RETURN NEW;
+  END IF;
+
+  IF TG_OP = 'UPDATE' AND NEW.ocr_binding IS DISTINCT FROM OLD.ocr_binding THEN
+    RAISE EXCEPTION 'resume_ocr_binding_immutable';
+  END IF;
+
+  SELECT r.source_kind INTO kind
+    FROM resume r
+   WHERE r.id = NEW.resume_id AND r.owner_user_id = NEW.owner_user_id;
+  IF kind IN ('text', 'pdf') AND NEW.ocr_binding IS NOT NULL THEN
+    RAISE EXCEPTION 'ocr_binding_forbidden_for_non_image';
+  END IF;
+  IF kind = 'image' AND NEW.ocr_binding IS NULL THEN
+    RAISE EXCEPTION 'ocr_binding_required_for_image';
+  END IF;
+  IF NEW.ocr_binding IS NOT NULL THEN
+    SELECT array_agg(k ORDER BY k) INTO keys
+      FROM jsonb_object_keys(NEW.ocr_binding) AS k;
+    IF keys IS DISTINCT FROM ARRAY[
+      'admissionKey','capability','endpointProfileId','inputKind','mediaDigest',
+      'modelOrRecipe','operationId','region','registryVersion','wired'
+    ] THEN
+      RAISE EXCEPTION 'ocr_binding_keys_invalid';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_resume_source_kind_immutable ON resume;
+CREATE TRIGGER trg_resume_source_kind_immutable
+  BEFORE UPDATE ON resume
+  FOR EACH ROW
+  EXECUTE FUNCTION meetwise_resume_ocr_identity_guard();
+
+DROP TRIGGER IF EXISTS trg_resume_ocr_identity_guard ON resume_profile;
+CREATE TRIGGER trg_resume_ocr_identity_guard
+  BEFORE INSERT OR UPDATE ON resume_profile
+  FOR EACH ROW
+  EXECUTE FUNCTION meetwise_resume_ocr_identity_guard();
+
 -- OCR 成功但尚未完成摄取时的短暂恢复材料。只保存加密文本，成功摄取或用户
 -- 行使删除权后即删除；主键同时构成同一用户、同一图片请求的幂等锚。
 CREATE TABLE resume_ocr_artifact (

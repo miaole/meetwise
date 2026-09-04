@@ -16,7 +16,7 @@ related:
 
 # 简历 OCR typed binding 与面试封存来源（MODEL-OP-01 窄切片）
 
-> **实现边界（诚实）：** 本用例只关闭「面试依赖密封 OCR、禁止临时视觉/LLM 转写、binding 缺失零外呼、出处可审计」。它**不**启用生产 `OCR_ENABLED=1`，不声称语音/embedding/rerank 已接线，不声称唯一网关或发布证据。OCR 文本仍是不可信输入，必须回灌 `ingestResume`（注入清洗 + PII 脱敏 + 结构化）；出处元数据只证明「哪条 registry binding / 哪档模型配方」产出了转写，不证明转写为真。密封 provenance 是身份标签，**不是**出站 host pin，也不是 invocation↔blob 哈希链。押题/诊断仍解密 blob，不在本切片加 OCR 授权门。`pnpm model-op01:prove` 只覆盖本地静态负向（零 invoke / 画像不可用 / 组合根 kill-switch），不重跑 RLS、ledger 或并发槽。
+> **实现边界（诚实）：** 本用例只关闭「面试依赖密封 OCR、禁止临时视觉/LLM 转写、binding 缺失零外呼、出处为身份标签」。它**不**启用生产 `OCR_ENABLED=1`，不声称语音/embedding/rerank 已接线，不声称唯一网关或发布证据。OCR 文本仍是不可信输入，必须回灌 `ingestResume`（注入清洗 + PII 脱敏 + 结构化）；出处元数据只证明「哪条 registry binding / 哪档模型配方」产出了转写，不证明转写为真，也不是 invocation 回执。密封 provenance 是身份标签，**不是**出站 host pin，也不是 invocation↔blob 哈希链。押题/诊断仍解密 blob，不在本切片加 OCR 授权门。`pnpm model-op01:prove` 只覆盖本地静态负向（零 invoke / 画像不可用 / 组合根 kill-switch），不重跑 RLS、ledger 或并发槽。
 
 ## 生成前门禁
 
@@ -53,7 +53,7 @@ related:
   - **E4 失败回滚/退款：** binding 拒绝、URL 媒体、digest 错配均不占槽、不扣费。OCR 文本 HMAC 去重命中既有 text/pdf（或另一张图）时 release 本图预留，不 confirm。机制：派发前确定性失败 + `known_not_sent`；计费行级仍由 `ocr:prove` 覆盖。
   - **E5 降级：** binding 缺失/未接线/伪造 → 面试 `resumeProfileAvailable=false`，出题降为非 grounded，**绝不**在图内补一次视觉/LLM OCR。机制：registry `fallbackAction=manual_text_entry` + 面试授权门。
   - **E6 超时/断线：** 派发前取消零外呼；派发后 unknown，同键不重发。机制：`UC-MODEL-001`。
-- **后置 Postcondition：** 每次可外发 OCR 有可审计 binding 与 provenance；面试无视觉调用账本；OCR 原文不进 trace/checkpoint。
+- **后置 Postcondition：** 每次可外发 OCR 带 registry 身份封印（非 invocation 回执）；面试无视觉调用账本；OCR 原文不进 trace/checkpoint。
 - **验收 Acceptance：** 未登记/未接线/缺 binding/伪造 provenance/provider URL/未知字段/raw prompt 的视觉外呼=0；图片源无 provenance 时 grounded 题=0；provenance 含 `resume.ocr.v1` + 固定 profile + `modelOrRecipe`，不含原文/Key。
 - **关联：** `UC-MODEL-ROUTE-01`、`UC-RES-003`、CAS/幂等/RLS、`structured-output-and-safety`（模型输出双校验，不信任转写）。
 - **七类覆盖：** 正/异/特/逃/并/复/刁。

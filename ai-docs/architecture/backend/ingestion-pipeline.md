@@ -78,14 +78,14 @@ type ResumeProfile = {
 | 失败 | 处置 |
 |---|---|
 | 文件无法解析 | 可解释错误 + 引导重传，不静默吞 |
-| OCR 低置信 | 标记低置信字段，提示用户确认，不当事实 |
+| OCR 低置信 | **目标态**：标记低置信字段。**当前**：成功图片摄取整份 profile=`needs_review`，无字段级置信；生产 OCR 仍 disabled |
 | 部分解析成功 | 产出结构化 + 显式缺口，不假装完整 |
 | 疑似注入 | 标 `[BLOCKED]` 保留原文给用户删，不自动执行 |
 
 ## 7. 落地阶段
 
 - **Phase 0（骨架 S2）**：PDF 文本层 + docx 解析 → ResumeProfile + PII 闸 + 静态加密 + 注入扫描。够演示"上传简历→看到结构化字段→喂押题"。
-- **Phase 1**：扫描件 OCR + 版面感知分区 + provenance span 完整。
+- **Phase 1（目标，未落地）**：扫描件 OCR + 版面感知分区 + provenance span 完整。当前仅有 `resume.ocr.v1` 身份封印合同缝，生产视觉仍关。
 - **Phase 2**：作品集/图片多模态、GitHub 印证（带同意）。
 
 > **实现现状（诚实校准）**：**已接线跑通**的是**文本/粘贴 + 结构化 + PII（个人可识别信息）闸（NFKC 归一 + 行内/+86/全角脱敏 + ≥11 位数字 fail-closed 兜底）+ 注入拦截 + `pgp_sym_encrypt` 静态加密 + HMAC（带密钥哈希消息认证码）去重 + 复合 FK（外键）同 owner + RLS（行级安全）越权=0**。图片简历 OCR **合同缝已接线、生产未启用**：`resume.ocr.v1` 经 typed binding 封存 provenance（`resume_profile.ocr_binding`，身份封印而非 host pin），面试缺 binding fail-closed；`OCR_ENABLED=1` 仍拒绝 API 组合根（binding 存在也不开），缺失或非 `1` 返回 `422 image_ocr_unavailable`，不会预留额度、创建恢复工件或调用模型。旧 `pnpm ocr:prove` 的脚本模型结果仅用于定位历史计费链与 binding 出处，不能证明视觉能力、浏览器上传、扫描型 PDF 逐页 OCR、完整删除或供应商保留期。PDF 文本层/docx 抽取适配器、版面感知分区、完整 provenance span、多模态/GitHub 印证仍属后续能力。

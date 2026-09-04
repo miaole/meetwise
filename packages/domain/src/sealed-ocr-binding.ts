@@ -125,9 +125,9 @@ export function admitInterviewResume(input: {
 }
 
 /**
- * Explicit refuse for any interview/graph attempt to run OCR itself.
- * There is no successful path: the only legal OCR producer is the resume
- * ingest binding seam.
+ * Helper for a future interview/graph admission seam. Current enforcement
+ * is that interview/quiz/diagnosis must not import or call `visionOcr`;
+ * this function has no successful path and is not yet wired as a runtime gate.
  */
 export function refuseInterviewAdHocOcr(
   _intent: 'vision-ocr' | 'ad-hoc-llm-ocr' | 'raw-image-to-model',
