@@ -189,6 +189,10 @@
           "class": "local-adapter-test"
         },
         {
+          "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
           "source": "apps/worker/test/qbank-retrieval-eval-pg.proof.ts",
           "class": "local-adapter-test"
         }
@@ -229,11 +233,15 @@
         {
           "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
           "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
+          "class": "local-adapter-test"
         }
       ]
     },
-    {
-      "id": "dashscope-http-voice",
+      {
+        "id": "dashscope-http-voice",
       "source": "packages/ai-runtime/src/voice.ts",
       "factory": "dashscopeAsr|dashscopeTts",
       "transports": [
@@ -269,6 +277,10 @@
         },
         {
           "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
           "class": "local-adapter-test"
         }
       ]
@@ -308,6 +320,7 @@
   "providerLiteralFixtureSources": [
     "packages/ai-runtime/test/dashscope-native-config.proof.ts",
     "packages/ai-runtime/test/model-operation-registry.proof.ts",
+    "packages/ai-runtime/test/native-fail-closed.proof.ts",
     "packages/ai-runtime/test/text-endpoint-config.proof.ts",
     "packages/ai-runtime/test/vision-endpoint-config.proof.ts",
     "packages/ai-runtime/test/voice-reliability.proof.ts"
@@ -321,6 +334,11 @@
     {
       "name": "DASHSCOPE_API_KEY",
       "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
       "class": "test-fixture"
     },
     {
@@ -361,6 +379,11 @@
     {
       "name": "DASHSCOPE_ASR_API_KEY",
       "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_ASR_API_KEY",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
       "class": "test-fixture"
     },
     {
@@ -445,6 +468,11 @@
     },
     {
       "name": "DASHSCOPE_EMBED_API_KEY",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_EMBED_API_KEY",
       "source": "scripts/deploy-check.mjs",
       "class": "deployment-contract"
     },
@@ -485,6 +513,11 @@
     },
     {
       "name": "DASHSCOPE_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_ENDPOINT_PROFILE",
       "source": "scripts/deploy-check.mjs",
       "class": "deployment-contract"
     },
@@ -511,6 +544,11 @@
     {
       "name": "DASHSCOPE_RERANK_API_KEY",
       "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_RERANK_API_KEY",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
       "class": "test-fixture"
     },
     {
@@ -605,6 +643,11 @@
     },
     {
       "name": "DASHSCOPE_STREAM_ASR_API_KEY",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_ASR_API_KEY",
       "source": "scripts/deploy-check.mjs",
       "class": "deployment-contract"
     },
@@ -646,6 +689,11 @@
     {
       "name": "DASHSCOPE_STREAM_TTS_API_KEY",
       "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_API_KEY",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
       "class": "test-fixture"
     },
     {
@@ -715,6 +763,11 @@
     },
     {
       "name": "DASHSCOPE_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_TEST_TRANSPORT_OVERRIDES",
       "source": "packages/ai-runtime/test/voice-reliability.proof.ts",
       "class": "test-fixture"
     },
@@ -736,6 +789,11 @@
     {
       "name": "DASHSCOPE_TTS_API_KEY",
       "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_TTS_API_KEY",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
       "class": "test-fixture"
     },
     {
@@ -871,6 +929,11 @@
     {
       "name": "DASHSCOPE_WORKSPACE_ID",
       "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_WORKSPACE_ID",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
       "class": "test-fixture"
     },
     {
