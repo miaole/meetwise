@@ -1,4 +1,4 @@
--- 0127_model_invocation_same_key_claim_join.sql
+-- 0128_model_invocation_same_key_claim_join.sql
 --
 -- Same-key durable claim must have exactly one executor.  0088/0119 serialize
 -- first-create with ai_model_invocation_transition_permit, but two gaps remain:
@@ -15,7 +15,8 @@
 --      interview-answer writer lock.
 --
 -- Contract unchanged: one execute, followers wait/cached/failed/unknown.
--- Do not weaken calls=1.  This is not 0126 and does not renumber it.
+-- Do not weaken calls=1.  0126 (answer dual-write) and 0127 (resume OCR
+-- binding) stay on those numbers.  This slice is 0128 only.
 
 CREATE OR REPLACE FUNCTION ai_model_claim_invocation_scoped(
   p_owner_user_id text,
