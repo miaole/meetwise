@@ -98,6 +98,7 @@ const requiredTerms = new Map([
     "releaseEvidence",
     "HC-GAP-",
     "owner-drain-order:unit:prove",
+    "sse-slot:prove",
   ]],
   ["ai-docs/architecture/backend/interview-answer-dual-write-cutover.md", [
     "INT-P0-RAW-QUEUE",
