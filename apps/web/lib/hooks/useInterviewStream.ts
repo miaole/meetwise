@@ -6,22 +6,17 @@
 import { useEffect, useRef } from 'react';
 import { runInterviewStream } from '../stream/interview-stream';
 import { initialView, type InterviewView } from '../stream/interview-state';
+import { iterateSseBody, lastEventIdHeaderValue } from '../stream/sse-cursor';
 import { interviewDisplay, type Display } from '../view-model';
 import { useFrameCoalescedState } from './useFrameCoalescedState';
 
 /** 打开 SSE 流:走**同源 Next 代理** `/api/interview/:id/events`,浏览器自动带 httpOnly cookie,代理服务端加 Bearer(修审计 P0:不再 x-user-id:'demo')。 */
 async function* openSse(resultId: string, lastEventId: number, signal?: AbortSignal): AsyncGenerator<string> {
   const headers: Record<string, string> = {};
-  if (lastEventId) headers['last-event-id'] = String(lastEventId);
+  const cursor = lastEventIdHeaderValue(lastEventId);
+  if (cursor !== undefined) headers['last-event-id'] = cursor;
   const res = await fetch(`/api/interview/${encodeURIComponent(resultId)}/events`, { headers, signal });
-  if (!res.ok || !res.body) return; // 不把 401/404/502 的正文喂进 SSE 解析器。
-  const reader = res.body.getReader();
-  const dec = new TextDecoder();
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) return;
-    yield dec.decode(value, { stream: true });
-  }
+  yield* iterateSseBody(res); // 400 非法游标抛错 → 驱动停转;401/404/502 空结束 → 驱动重连
 }
 
 export interface UseInterviewStream { view: InterviewView; display: Display; }

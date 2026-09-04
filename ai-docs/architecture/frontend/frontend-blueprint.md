@@ -24,7 +24,7 @@ related:
 
 > 前端是 **Next.js App Router**。本文与 `system-blueprint.md` 的「契约先行、所有用户内容不可信、状态落服务端」一致。
 >
-> **落地状态（apps/web）**：SSE 重连驱动、类型化 API 客户端、Next.js App Router 页面、`InterviewPanel`、`VoiceCallPanel` 和 B/C 端页面均已存在；`runInterviewStream` 使用 Last-Event-ID（最后事件编号）续传、重连上限、buffer（缓冲区）封顶和 AbortSignal（取消信号），视图归约将 `report_unavailable` 表示为降级出口。C 端进度相关路由是 `/dashboard`（成长主页）与 `/interviews`（列表）；`/growth` 是成长档案（`totals.answered`=ScoreCard「累计已评分」，与 dashboard 已答题数不同源）。不是下文目标态的 `history`/`profile`。列表/详情进度文案读 `InterviewView.issued_turns`/`answered_turns`；成长主页「已答题数」读经契约校验的 `Overview.answered`（题目账本，不是 ScoreCard 张数），取数失败显示「—」。均分仍来自 ScoreCard。成长档案页 `totals.answered` 仍为可评分 ScoreCard 数，文案是「累计已评分」，与 dashboard 已答题数不同源。见 [C 端总览进度用例](../../requirements/use-cases/cend-overview-progress.md)。`pnpm web:prove` 覆盖承重纯逻辑，但它不是浏览器、真实 API、语音设备或云环境的发布证明。组件库、页面清单和生产验证状态以 [运行时事实矩阵](../current-runtime-truth.md) 为准。
+> **落地状态（apps/web）**：SSE 重连驱动、类型化 API 客户端、Next.js App Router 页面、`InterviewPanel`、`VoiceCallPanel` 和 B/C 端页面均已存在；`runInterviewStream` 使用 Last-Event-ID（最后事件编号）续传、重连上限、buffer（缓冲区）封顶和 AbortSignal（取消信号），视图归约将 `report_unavailable` 表示为降级出口。C 端进度相关路由是 `/dashboard`（成长主页）与 `/interviews`（列表）；`/growth` 是成长档案（`totals.answered`=ScoreCard「累计已评分」，与 dashboard 已答题数不同源）。不是下文目标态的 `history`/`profile`。列表/详情进度文案读 `InterviewView.issued_turns`/`answered_turns`；成长主页「已答题数」读经契约校验的 `Overview.answered`（题目账本，不是 ScoreCard 张数），取数失败显示「—」。均分仍来自 ScoreCard。成长档案页 `totals.answered` 仍为可评分 ScoreCard 数，文案是「累计已评分」，与 dashboard 已答题数不同源。见 [C 端总览进度用例](../../requirements/use-cases/cend-overview-progress.md)。`pnpm web:prove` 覆盖承重纯逻辑（含 HTTP 400 非法 `Last-Event-ID` 停转 / degraded、不得同游标重试），但它不是浏览器、真实 API、语音设备或云环境的发布证明。组件库、页面清单和生产验证状态以 [运行时事实矩阵](../current-runtime-truth.md) 为准。
 
 ## 1. 选型决策
 
@@ -133,6 +133,8 @@ export function useInterviewStream(resultId: string) {
 ```
 
 **关键设计：SSE 连接是一次性的、可随时断的。** 断线/超时不丢业务状态，因为状态在服务端业务事实与受控 checkpoint 中。这不把 checkpoint 当作用户历史、删除账本或长时 transcript；这些能力仍受 `INT-TRANSCRIPT-00/01` 阻断。ECS 应用运行时必须支持断线后的安全重连，客户端不得把连接存活当作事实。
+
+**非法游标失败关闭（`HC-GAP-014`）**：`Last-Event-ID` 续传只适用于可重放的合法序号。服务端对非法游标返回 HTTP 400 `invalid_last_event_id`。前端（面试 / 押题 / 诊断流驱动 + 同源代理）必须停转并进入 degraded 出口，**不得**把它当成断线、再用同一 `Last-Event-ID` 重连。本地证明=`pnpm web:prove`（纯函数；不是浏览器实链）。401/404/502 仍按可恢复断线处理。
 
 ## 8. 鉴权：middleware + httpOnly cookie
 

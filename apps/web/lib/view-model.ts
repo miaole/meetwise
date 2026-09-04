@@ -3,7 +3,7 @@
  * 这样**承重的 UX-HA 属性(任何状态都不死胡同、不无限转圈、永远有出路)可确定性 gate**,React 组件只是薄渲染器。
  */
 import type { InterviewSignalConcludeReason } from '@meetwise/contracts';
-import type { InterviewView } from './stream/interview-state';
+import { isTerminal, type InterviewView } from './stream/interview-state';
 
 export function signalConcludePracticeCopy(code: InterviewSignalConcludeReason['code']): string {
   if (code === 'early_weak') {
@@ -32,6 +32,14 @@ export function interviewDisplay(v: InterviewView): Display {
   // 连接中断重连 → 永远显式告知"重连中"+可手动重试,绝不冻结
   if (v.connection === 'reconnecting') {
     return { heading: '网络中断', message: '正在用同一面试重连,已答内容不会丢失…', spinner: true, action: { kind: 'retry', label: '手动重试' }, degraded: v.degraded, signalConclude };
+  }
+  // 非法 Last-Event-ID / 重连耗尽：连接已关且非终态 → 失败关闭出口，不当成仍可作答。
+  if (v.degraded && v.connection === 'closed' && !isTerminal(v.phase)) {
+    return {
+      heading: '练习连接已停止',
+      message: '练习连接已停止，不会再用同一续传编号自动重连。可重试本场练习或返回列表。',
+      spinner: false, action: { kind: 'retry', label: '重试' }, degraded: true, signalConclude,
+    };
   }
   switch (v.phase) {
     case 'connecting':

@@ -4,10 +4,12 @@
  * 这正是审计指出的"无静默死胡同只在驱动真调用这些纯函数时才成立"的那个驱动。React effect 只需调它并把 onView 渲染出来。
  *
  * 不变量:① 终态(report_ready/unavailable/error)→ 收尾返回,不再重连;② 非终态断流/传输错 → reconnecting,凭 lastEventId 续(seq>lastId 重放,不丢不重);
- *        ③ 重连耗尽 → degraded 出口,停止;④ 本次连接有进展(收到帧)→ 重置重试计数(健康的 flapping 不误判耗尽)。
+ *        ③ 重连耗尽 → degraded 出口,停止;④ 本次连接有进展(收到帧)→ 重置重试计数(健康的 flapping 不误判耗尽);
+ *        ⑤ HTTP 400 invalid_last_event_id → 立即停转 / degraded,不得用同一游标重试(HC-GAP-014)。
  */
 import { decodeSSE, toBusinessEvent, type BusinessEvent } from './business-events';
 import { applyEvents, initialView, isTerminal, onStreamClosed, onReconnectExhausted, type InterviewView } from './interview-state';
+import { isInvalidLastEventIdError } from './sse-cursor';
 
 /** 打开 SSE 流：真实实现 fetch(url, {headers:{'last-event-id': String(lastEventId)}, signal}) 返回 res.body 的字符串分块异步迭代;
  *  此处注入便于确定性单测。lastEventId>0 时带 Last-Event-ID 头让服务端从 seq>lastEventId 重放;signal 用于卸载取消。 */
@@ -72,7 +74,15 @@ export async function runInterviewStream(opts: RunStreamOpts): Promise<Interview
           if (isTerminal(view.phase)) { view = { ...view, connection: 'closed' }; opts.onView(view); return view; } // 终态收尾
         }
       }
-    } catch { /* 传输错/溢出:当作断流,走重连 */ }
+    } catch (err) {
+      if (opts.signal?.aborted) return view;
+      if (isInvalidLastEventIdError(err)) {
+        view = onReconnectExhausted(view); // 非法游标:失败关闭,不重试同一 Last-Event-ID
+        opts.onView(view);
+        return view;
+      }
+      /* 传输错/溢出:当作断流,走重连 */
+    }
 
     if (opts.signal?.aborted) return view;
     // **真进展(事件 id 推进)才重置连续重试计数**——否则重复重放同一事件的流会无限重连(redelivery≠progress)

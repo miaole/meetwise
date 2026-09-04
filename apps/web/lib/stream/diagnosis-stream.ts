@@ -1,9 +1,11 @@
 /**
  * 简历诊断 SSE 驱动(框架无关,可注入流 + 睡眠单测,不依赖浏览器/React)。与 quiz-stream 同构:
  * decodeSSE(复用通用 SSE 解帧) + 解析 DiagnosisEvent + applyDiagnosisEvent 串成"读流→续状态",并实现断线自动重连(凭 Last-Event-ID)+ 重连耗尽降级。
- * 不变量:① 终态(ready/unavailable/error)→ 收尾返回,不再重连;② 非终态断流 → reconnecting,凭 lastEventId 续;③ 重连耗尽 → degraded 出口。
+ * 不变量:① 终态(ready/unavailable/error)→ 收尾返回,不再重连;② 非终态断流 → reconnecting,凭 lastEventId 续;③ 重连耗尽 → degraded 出口;
+ *        ④ HTTP 400 invalid_last_event_id → 立即停转 / degraded,不得用同一游标重试(HC-GAP-014)。
  */
 import { decodeSSE, type SSEFrame } from './business-events';
+import { isInvalidLastEventIdError } from './sse-cursor';
 import {
   DiagnosisEvent, applyDiagnosisEvent, initialDiagnosisView, isDiagnosisTerminal,
   onDiagnosisStreamClosed, onDiagnosisReconnectExhausted, type DiagnosisViewState,
@@ -64,7 +66,15 @@ export async function runDiagnosisStream(opts: RunDiagnosisStreamOpts): Promise<
           if (isDiagnosisTerminal(view.phase)) { view = { ...view, connection: 'closed' }; opts.onView(view); return view; }
         }
       }
-    } catch { /* 传输错/溢出:当断流,走重连 */ }
+    } catch (err) {
+      if (opts.signal?.aborted) return view;
+      if (isInvalidLastEventIdError(err)) {
+        view = onDiagnosisReconnectExhausted(view);
+        opts.onView(view);
+        return view;
+      }
+      /* 传输错/溢出:当断流,走重连 */
+    }
 
     if (opts.signal?.aborted) return view;
     if (view.lastEventId > startId) attempts = 0;     // 真进展才重置连续重试计数(redelivery≠progress)

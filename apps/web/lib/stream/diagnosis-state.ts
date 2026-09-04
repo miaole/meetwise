@@ -102,6 +102,9 @@ export function diagnosisDisplay(v: DiagnosisViewState): DiagnosisDisplay {
   if (v.connection === 'reconnecting') {
     return { heading: '网络中断', message: '正在重连,已生成的诊断不会丢失…', spinner: true, action: { kind: 'retry', label: '手动重试' }, degraded: v.degraded };
   }
+  if (v.degraded && v.connection === 'closed' && !isDiagnosisTerminal(v.phase)) {
+    return { heading: '诊断连接已停止', message: '诊断连接已停止，不会再用同一续传编号自动重连。可重试或返回列表。', spinner: false, action: { kind: 'retry', label: '重试' }, degraded: true };
+  }
   switch (v.phase) {
     case 'connecting':
       return { heading: '连接诊断', message: '正在建立连接…', spinner: true, action: { kind: 'reconnecting', label: '取消' }, degraded: false };

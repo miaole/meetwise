@@ -1,4 +1,5 @@
 import { getServerToken } from '../../../../../lib/api/server';
+import { sseProxyFailureResponse } from '../../../../../lib/stream/sse-cursor';
 
 /**
  * 同源 SSE 代理(简历诊断事件流)。浏览器同源自动带 httpOnly cookie → 本路由服务端读令牌 → 加 Bearer 透传上游 api 的 SSE 流。
@@ -15,7 +16,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const lastEventId = req.headers.get('last-event-id');
   if (lastEventId) headers['last-event-id'] = lastEventId;     // 续传水位透传
   const upstream = await fetch(`${API}/diagnosis/${encodeURIComponent(id)}/events`, { headers, signal: req.signal });
-  if (!upstream.ok || !upstream.body) return new Response('stream_unavailable', { status: upstream.status || 502 });
+  if (!upstream.ok || !upstream.body) return sseProxyFailureResponse(upstream);
   return new Response(upstream.body, {                          // 透传 SSE 流(ReadableStream)
     status: 200,
     headers: { 'content-type': 'text/event-stream', 'cache-control': 'no-cache, no-transform', connection: 'keep-alive' },
