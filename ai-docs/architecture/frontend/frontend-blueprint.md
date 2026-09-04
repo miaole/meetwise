@@ -132,7 +132,7 @@ export function useInterviewStream(resultId: string) {
 }
 ```
 
-**关键设计：SSE 连接是一次性的、可随时断的。** 断线/超时不丢业务状态，因为状态在服务端业务事实与受控 checkpoint 中。这不把 checkpoint 当作用户历史、删除账本或长时 transcript；这些能力仍受 `INT-TRANSCRIPT-00/01` 阻断。ECS 应用运行时必须支持断线后的安全重连，客户端不得把连接存活当作事实。
+**关键设计：SSE 连接是一次性的、可随时断的。** 断线/超时不丢业务状态，因为状态在服务端业务事实与受控 checkpoint 中。这不把 checkpoint 当作用户历史、删除账本或长时 transcript；这些能力仍受 `INT-TRANSCRIPT-00/01` 阻断。ECS 应用运行时必须支持断线后的安全重连，客户端不得把连接存活当作事实。API 对面试 / 押题 / 诊断非法 `Last-Event-ID` 失败关闭为 HTTP 400（`pnpm api:validate`，`HC-GAP-006` 已关）；前端停转 / degraded，不得同游标重试（`pnpm web:prove`，`HC-GAP-014` 已关）。
 
 **非法游标失败关闭（`HC-GAP-014`）**：`Last-Event-ID` 续传只适用于可重放的合法序号。服务端对非法游标返回 HTTP 400 `invalid_last_event_id`。前端（面试 / 押题 / 诊断流驱动 + 同源代理）必须停转并进入 degraded 出口，**不得**把它当成断线、再用同一 `Last-Event-ID` 重连。本地证明=`pnpm web:prove`（纯函数；不是浏览器实链）。401/404/502 仍按可恢复断线处理。
 

@@ -92,7 +92,7 @@ related:
 |---|---|---|
 | 四原语 | `pnpm db:up && pnpm db:prove` | CAS 恰一个赢 / 幂等去重 / RLS 越权=0 fail-closed / 事件 seq 单调（对真 Postgres） |
 | 运行内核 | `pnpm runtime:prove` | invoke 双校验·重试分类·幂等 exactly-once / 状态机 CAS / 租约拒并发 / **进程重启纯从 DB 恢复（无内存 session）**（19/19） |
-| 请求路径 + SSE（**真 NestJS**） | `pnpm api:validate` | **Fastify + 类型 DI + SWC**（已 re-home，弃手搓 http 与 @Inject 绕法）；principal 注入 / RLS fail-closed（401/404）/ HTTP 幂等 / SSE Last-Event-ID 重放（10/10）。must-smoke #1（NestJS×SWC×Fastify×类型DI）已验证 |
+| 请求路径 + SSE（**真 NestJS**） | `pnpm api:validate` | **Fastify + 类型 DI + SWC**（已 re-home，弃手搓 http 与 @Inject 绕法）；principal 注入 / RLS fail-closed（401/404）/ HTTP 幂等 / SSE Last-Event-ID 重放（面试）+ 押题/诊断非法游标 HTTP 400（`HC-GAP-006`）。must-smoke #1（NestJS×SWC×Fastify×类型DI）已验证 |
 | 真 LangGraph 图 | `pnpm graph:prove` | StateGraph + interrupt 等待用户 + **Postgres checkpointer**：换新实例（模拟重启）从 Postgres 续会话、多 thread 隔离（6/6） |
 | commerce saga | `pnpm commerce:prove` | 共享池 reserve/confirm/release + FIFO + 降级按比例（大余数分账,Σconsume===settled 无分币泄漏）+ 幂等不重扣 + **并发不超卖** + RLS（行级安全）越权=0 + **outbox 真实结算 exactly-once（精确一次）入账本** + **lease（租约）心跳 + 原子回收（无 TOCTOU，检查与使用竞争）** + 数据库容量 CHECK（检查约束）兜底（64 个迁移下 50 断言，本地 `releaseEvidence=false`）。 |
 | 简历摄取 | `pnpm resume:prove` | 原文加密落 blob + 结构化 profile **永不含明文 PII**（NFKC + 行内/+86/全角脱敏 + ≥11 位数字 fail-closed）+ 注入拦截 + 状态机 CAS 原子完成 + HMAC 去重（非裸 sha 预言机）+ 复合 FK 强制同 owner + RLS 越权=0 + 越权解密被拒（64 个迁移、32/32 断言、**经 3 轮安全审计**、本地 `releaseEvidence=false`）；不证明 PDF（可移植文档格式）/音视频/表格解析或完整简历删除。 |

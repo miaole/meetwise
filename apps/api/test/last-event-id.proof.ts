@@ -1,6 +1,7 @@
 /**
  * Fail-closed SSE cursor parser. No database.
  * pnpm last-event-id:unit:prove
+ * HTTP 400 on interview / quiz / diagnosis is `pnpm api:validate` (HC-GAP-006).
  */
 import { HttpException } from '@nestjs/common';
 import { parseLastEventId } from '../src/platform/last-event-id.ts';
