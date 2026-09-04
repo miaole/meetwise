@@ -153,6 +153,32 @@ async function main() {
     }, forbiddenPool, 'proof-owner');
     A('invoke rejects an over-window prepared request before durable claim or reservation', 'error' in invokeOverBudget
       && invokeOverBudget.error === 'model_context_budget_exceeded' && requestBodies.length === 2);
+
+    const isolationEnforcement = process.env.MODEL_COST_ENFORCEMENT;
+    process.env.MODEL_COST_ENFORCEMENT = 'enforce';
+    try {
+      const isolatedObserve = openAICompatibleClient({
+        baseUrl: 'https://model.invalid', apiKey: 'test-only', model: 'isolated-observe',
+        env: { NODE_ENV: 'test', MODEL_COST_ENFORCEMENT: 'observe' },
+      });
+      const isolatedPlan = await isolatedObserve.prepare?.({ service: 'proof.isolated-observe', system: 'trusted', userData: 'safe fixture' }, 1);
+      const isolatedResult = await isolatedObserve.complete({ service: 'proof.isolated-observe', system: 'trusted', userData: 'safe fixture' }, 1);
+      A('cfg.env observe still reaches transport when process.env MODEL_COST_ENFORCEMENT=enforce',
+        isolatedPlan?.ready === true && isolatedResult.ok === true && requestBodies.length === 3);
+
+      const omittedSnapshot = openAICompatibleClient({
+        baseUrl: 'https://model.invalid', apiKey: 'test-only', model: 'omitted-snapshot',
+      });
+      const omittedPlan = await omittedSnapshot.prepare?.({ service: 'proof.omitted-snapshot', system: 'trusted', userData: 'safe fixture' }, 1);
+      const omittedResult = await omittedSnapshot.complete({ service: 'proof.omitted-snapshot', system: 'trusted', userData: 'safe fixture' }, 1);
+      A('omitting cfg.env still honors process.env enforce (production fence unchanged)',
+        omittedPlan?.ready === false && omittedPlan?.error === 'model_operation_policy_required'
+        && omittedResult.ok === false && omittedResult.externalOutcome === 'known_not_executed'
+        && requestBodies.length === 3);
+    } finally {
+      if (isolationEnforcement === undefined) delete process.env.MODEL_COST_ENFORCEMENT;
+      else process.env.MODEL_COST_ENFORCEMENT = isolationEnforcement;
+    }
   } finally {
     globalThis.fetch = originalFetch;
   }

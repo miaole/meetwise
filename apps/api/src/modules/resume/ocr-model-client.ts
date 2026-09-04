@@ -41,6 +41,9 @@ export function createOcrVisionClient(env: NodeJS.ProcessEnv = process.env): Mod
     // Image-unit entitlement (reserve/confirm/release) still wraps visionOcr.
     // requireBoundOperation stays off so a configured Key can dispatch;
     // missing Key / non-https / HTTP errors remain known_not_executed.
+    // The same snapshot must drive the bound-operation fence: ambient
+    // process.env MODEL_COST_ENFORCEMENT=enforce (e.g. regression dotenv)
+    // must not refuse a client that already passed the preview composition lock.
     return openAICompatibleClient({ vision: true, env });
   }
   return openAICompatibleClient({

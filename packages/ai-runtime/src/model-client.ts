@@ -253,7 +253,12 @@ export function openAICompatibleClient(cfg: {
   backup?: boolean;
   /** Resolve from the controlled vision profile (专用 DASHSCOPE_VISION_API_KEY) instead of the text primary. */
   vision?: boolean;
-  /** Optional env snapshot for vision profile resolution. Text profiles stay on process.env. */
+  /**
+   * Optional env snapshot for vision profile resolution **and** the bound-operation
+   * fence (`requiresBoundModelOperation`).  When omitted, both still read
+   * `process.env` so production/enforce behaviour is unchanged.  Text profiles
+   * and NODE_ENV test-transport seams stay on `process.env` (intentionally global).
+   */
   env?: NodeJS.ProcessEnv;
 } = {}): ModelClient {
   // cfg.baseUrl/apiKey 是测试专用 transport override 缝（对齐原生适配器）。生产/开发一律
@@ -279,7 +284,7 @@ export function openAICompatibleClient(cfg: {
   // request, so a caller cannot mutate a policy after admission and make the
   // supplier cap disagree with the ledger reservation.
   const costPolicy = cfg.costPolicy === undefined ? undefined : Object.freeze({ ...cfg.costPolicy });
-  const policyRequired = requiresBoundModelOperation() || cfg.requireBoundOperation === true;
+  const policyRequired = requiresBoundModelOperation(cfg.env ?? process.env) || cfg.requireBoundOperation === true;
   const maxOutputTokens = costPolicy?.maxOutputTokens;
   if (maxOutputTokens !== undefined
     && (!Number.isSafeInteger(maxOutputTokens) || maxOutputTokens < 1 || maxOutputTokens > 1_000_000)) {

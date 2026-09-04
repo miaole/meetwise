@@ -108,4 +108,5 @@ related:
 | `TC-MODEL-OCR-02-特` | API 组合根 | `OCR_ENABLED=true` 或 `OCR_PREVIEW=true` 不能打开。 |
 | `TC-MODEL-OCR-02-逃` | API 组合根 | 禁用态 `requireBoundOperation` 仍零 fetch。 |
 | `TC-MODEL-OCR-02-刁` | API 组合根 | 空 `{text:""}` 原样交给上层业务校验，client 不补事实。 |
+| `TC-MODEL-OCR-02-ambient` | API 组合根 | `process.env.MODEL_COST_ENFORCEMENT=enforce` + 预览 `cfg.env` observe 仍派发 stub fetch（dotenv 隔离）；省略 `cfg.env` 仍尊重 process.env。 |
 | `TC-MODEL-OCR-02-E1/E2/E3` | 既有 `ocr:prove`（Docker） | 幂等/并发/RLS 不在本静态门重开。 |

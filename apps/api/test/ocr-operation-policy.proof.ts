@@ -164,5 +164,35 @@ try {
   globalThis.fetch = originalFetch;
 }
 
+// Ambient dotenv / regression injection must not override a preview observe snapshot.
+// Omitting cfg.env still honors process.env (covered by model-client-output-limit.proof).
+const originalNodeEnv = process.env.NODE_ENV;
+const originalEnforcement = process.env.MODEL_COST_ENFORCEMENT;
+fetches = 0;
+let ambientClient: ReturnType<typeof createOcrVisionClient> | undefined;
+try {
+  process.env.NODE_ENV = 'production';
+  process.env.MODEL_COST_ENFORCEMENT = 'enforce';
+  try {
+    ambientClient = createOcrVisionClient(preview);
+  } catch {
+    ambientClient = undefined;
+  }
+  assert('preview snapshot still boots under ambient process.env production/enforce', ambientClient !== undefined);
+  globalThis.fetch = (async () => {
+    fetches++;
+    throw new Error('preview observe snapshot must still reach transport under ambient enforce');
+  }) as typeof fetch;
+  const ambientFailed = await ambientClient?.complete({
+    service: 'resume.vision', system: 'trusted', userData: 'non-sensitive fixture', images: ['data:image/png;base64,AAAA'],
+  }, 1);
+  assert('preview cfg.env observe still dispatches when process.env MODEL_COST_ENFORCEMENT=enforce (dotenv isolation)',
+    ambientFailed?.ok === false && ambientFailed.externalOutcome === 'unknown' && fetches === 1);
+} finally {
+  globalThis.fetch = originalFetch;
+  if (originalNodeEnv === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = originalNodeEnv;
+  if (originalEnforcement === undefined) delete process.env.MODEL_COST_ENFORCEMENT; else process.env.MODEL_COST_ENFORCEMENT = originalEnforcement;
+}
+
 console.log(failures === 0 ? '✓ OCR operation-policy composition contract passed' : `✗ ${failures} assertion(s) failed`);
 process.exit(failures === 0 ? 0 : 1);
