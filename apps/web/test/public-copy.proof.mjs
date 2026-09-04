@@ -204,8 +204,10 @@ const checks = {
     requireText(recruiterSurface, '两边分开记账', 'recruiter architecture copy');
     requireText(recruiterSurface, '生产作答仍可能写明文任务', 'recruiter architecture copy');
     requireText(recruiterSurface, '不是完整逐题档案', 'recruiter architecture copy');
-    requireText(recruiterSurface, '排队公平还没保证', 'recruiter architecture copy');
+    requireText(recruiterSurface, '面试排队会轮着领', 'recruiter architecture copy');
+    requireText(recruiterSurface, '押题、诊断、报告还是按账号抽干', 'recruiter architecture copy');
     requireText(recruiterSurface, '不是高峰容量保证', 'recruiter architecture copy');
+    forbid(recruiterSurface + recruiterHighlights, ['仍按账号串行领取', '排队公平还没保证'], 'recruiter fairness copy after 0128');
     requireText(recruiterSurface, '练习原文不会摊开给你', 'recruiter architecture copy');
     requireText(recruiterSurface, '生产接线还没完成', 'recruiter architecture copy');
     requireText(recruiterSurface, '不会用 0 分凑数', 'recruiter architecture copy');

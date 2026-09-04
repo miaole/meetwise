@@ -81,7 +81,7 @@ apps/web/
 | `/growth` | RSC | `totals.answered` 文案「累计已评分」，与 dashboard 已答题数不同源 |
 | `/resume` | RSC + 上传 client 岛 | 文本/PDF 常开。图片 OCR **仅预览**：RSC 读 `isOcrPreviewEnabled`（精确 `OCR_ENABLED=1` 且 `OCR_PREVIEW=1`，生产/enforce/公开预览锁定）再传给表单；关闭态 `accept` 不含图片，Server Action 本地拒绝。失败映射 API `{error}`，**不把 `text`/`transcript` 当成功转写**。API 预览 invoke 与 `0127` 已在 main。`releaseEvidence=false`，不是视觉质量 SLO。 |
 | `/recruiter/jobs` · `/recruiter/talent` | RSC | 内部岗位/投递骨架（不是招聘方产品面）；评估栏忽略 score；行内「查看状态」。岗位读失败不得说成「还没有候选人」。 |
-| `/recruiter/how-it-works` | RSC | 内部架构笔记，不是面试官产品说明。跟着问、服务端进度、可核对保护、评分诚实、分开记账是设计取舍；排队公平和检索生产 ACL 明确未交付。无写、无申请数据。 |
+| `/recruiter/how-it-works` | RSC | 内部架构笔记，不是面试官产品说明。跟着问、服务端进度、可核对保护、评分诚实、分开记账是设计取舍；面试队列已轮转（`0128`），押题/诊断/报告与集群锁未交付，不是高峰容量保证；检索生产 ACL 明确未交付。无写、无申请数据。 |
 | `/recruiter/jobs/[id]/applications/[applicationId]` | RSC | 只读申请状态。复用候选人列表投影；非法 id / 未命中 / 岗位不存在 → `notFound`；双边传输失败 →「暂不可用」。看不到面试内容，不提供数值评分，不是人工审核工单。 |
 
 ## 4. 路由设计：用嵌套路由，不要 URL-query 状态机

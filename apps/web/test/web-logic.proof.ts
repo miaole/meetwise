@@ -637,8 +637,10 @@ async function main() {
   A('架构说明七项 id 固定且不含发布承诺', RECRUITER_ARCHITECTURE_IDS.join(',') === 'adaptive,checkpoint,prove,scoring,fence,fairness,acl'
     && RECRUITER_ARCHITECTURE_HIGHLIGHTS.length === 7
     && RECRUITER_ARCHITECTURE_HIGHLIGHTS.every((card) => card.title.length > 0 && !card.body.includes('生产级可靠')));
-  A('公平卡片标题不宣称已经分开领', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'fairness')?.title === '排队公平还没保证');
+  A('公平卡片标题不宣称已经分开领', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'fairness')?.title === '面试排队会轮着领');
   A('公平卡片写明不是高峰容量保证', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'fairness')?.body.includes('不是高峰容量保证') === true);
+  A('公平卡片不再写按账号串行领取', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'fairness')?.body.includes('仍按账号串行领取') === false);
+  A('公平卡片写明押题诊断报告仍抽干', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'fairness')?.body.includes('押题、诊断、报告还是按账号抽干') === true);
   A('ACL 卡片不把检索权限写成已交付', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'acl')?.body.includes('生产接线还没完成') === true);
   A('评分卡片写明不用 0 分凑数', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'scoring')?.body.includes('不会用 0 分凑数') === true);
   A('分开记账卡片不把 0126 写成完整档案', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'fence')?.body.includes('生产作答仍可能写明文任务') === true);

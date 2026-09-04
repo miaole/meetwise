@@ -88,8 +88,8 @@ export const RECRUITER_ARCHITECTURE_HIGHLIGHTS: readonly RecruiterArchitectureCa
   },
   {
     id: 'fairness',
-    title: '排队公平还没保证',
-    body: '目标是不让一家岗位把别人一直压在队头。当前仍按账号串行领取，不是高峰容量保证，也不能写成已经分开领完。',
+    title: '面试排队会轮着领',
+    body: '同一条面试队列不再把一家岗位抽干才轮到下一家。押题、诊断、报告还是按账号抽干。进程里的并发上限不是集群锁，也不是高峰容量保证，本地核对通过不等于已经对外发布。',
   },
   {
     id: 'acl',

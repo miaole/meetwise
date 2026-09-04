@@ -17,7 +17,7 @@ export function ArchitectureHighlights({ compact = false }: { compact?: boolean 
         <RecruiterPreviewNote className="mt-1" />
         <p className="mt-1 text-sm text-muted-foreground">
           {compact
-            ? '列表只提醒：证据不够就不给分。完整笔记（进度、核对、分开记账，以及排队和检索还没交付的部分）在架构说明页。'
+            ? '列表只提醒：证据不够就不给分。完整笔记（进度、核对、分开记账，以及排队边界和检索还没交付的部分）在架构说明页。'
             : '用人话记下这场岗位练习怎么走、骨架上能看见什么。不构成能力认证，也不提供自动筛选、排名、拒绝或录用决定。'}
         </p>
       </div>
@@ -31,11 +31,11 @@ export function ArchitectureHighlights({ compact = false }: { compact?: boolean 
       </div>
       {compact ? (
         <p className="text-sm">
-          <Link href="/recruiter/how-it-works" className="text-primary hover:underline">看内部架构笔记：进度、核对、分开记账，以及排队和检索还没交付的部分</Link>
+          <Link href="/recruiter/how-it-works" className="text-primary hover:underline">看内部架构笔记：进度、核对、分开记账，以及排队边界和检索还没交付的部分</Link>
         </p>
       ) : (
         <p className="text-sm text-muted-foreground">
-          排队公平还没保证：当前仍按账号串行领取。本地核对通过不等于已经对外发布。
+          面试排队会轮着领，但押题、诊断、报告仍按账号抽干。不是高峰容量保证。本地核对通过不等于已经对外发布。
         </p>
       )}
     </section>
