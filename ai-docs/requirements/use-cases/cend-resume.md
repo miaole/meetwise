@@ -15,7 +15,7 @@ related:
 
 # cend-resume（RES 域）用例 + 测试用例 · 评审收口最终版
 
-> **🔎 实现状态（对齐真实代码 · 2026-08-10）** — 本文是 TARGET 规格。**✅ 已实现+接线**：简历**文本 / PDF 文本层**上传→摄取→PII（个人可识别信息）脱敏→内容 HMAC（带密钥哈希消息认证码）去重→结构化→诊断；**图片简历 OCR 预览版可走通、生产仍 gated off**：`resume.ocr.v1` 经 typed binding 封存 provenance（身份封印，非 host pin），面试缺 binding fail-closed；预览双旗下走 `invoke()` **只转写**→回灌 `ingestResume`、`reserve→confirm/release`（图字节 HMAC 幂等；文本去重命中既有非本图简历则 release 不 confirm）、PII 不入 trace。失败不编造转写。生产/enforce/公开只读预览或缺 `OCR_PREVIEW` 拒绝 API 组合根。`ocr:prove` 用脚本模型证计费/脱敏，不验证百炼视觉质量、浏览器上传、完整删除或供应商保留期。**🟠 快随（未接线，非桩）**：**扫描型 PDF（无文本层）OCR** 需 PDF 逐页渲染成图，本期给可解释降级（提示改传图片/文本），见 UC-RES-003 A2。**⬜ 待补**：视觉层抗注入 ai-eval 金集、伪造证件 `NEEDS_REVIEW` 标注等真模型 eval 验收项。
+> **🔎 实现状态（对齐真实代码 · 2026-09-04）** — 本文是 TARGET 规格。**✅ 已实现+接线**：简历**文本 / PDF 文本层**上传→摄取→PII（个人可识别信息）脱敏→内容 HMAC（带密钥哈希消息认证码）去重→结构化→诊断；**图片简历 OCR 预览版可走通、生产仍 gated off**：`resume.ocr.v1` 与迁移 `0127` 已在 main。预览双旗下 API 走 `invoke()` **只转写**→回灌 `ingestResume`、`reserve→confirm/release`（图字节 HMAC 幂等），失败不编造转写。**🟠 本切片 UC-RES-081**：Web `/resume` 仅在精确双旗且非 production/enforce/公开只读预览时展示图片入口；关闭态不接受图片，失败映射 `{error}` **不编造转写**。本 PR 不新增迁移（`0128`/`0129` 已预约；下一空号 ≥`0130`）。`ocr:prove` 用脚本模型证计费/脱敏，不验证百炼视觉质量、浏览器上传、完整删除或供应商保留期。`releaseEvidence=false`。**🟠 快随（未接线）**：**扫描型 PDF（无文本层）OCR** 见 UC-RES-003 A2。**⬜ 待补**：视觉层抗注入 ai-eval、伪造证件 `NEEDS_REVIEW` 真模型验收。
 
 > 顺序铁律：用例 → 契约 → 状态机 → 测试 → 代码。本文已按对抗评审五维收口：补齐七类缺口、每条异常/刁钻落到机制（状态机迁移 或 四原语）、验收可测（给阈值/黄金集/0 行断言）、修正测试层映射。
 >
@@ -169,6 +169,23 @@ related:
 - **后置**：`PARSED` | `PARSE_FAILED`；写 L1/L2/L4/(L6)；OCR 笔 `confirmed`(成功转写) | `released`(失败/降级/kill-switch)
 - **验收**：① 加密 PDF → `PARSE_FAILED(ENCRYPTED)` 且无 Profile、无 Document=NEEDS_REVIEW（断言枚举）② kill-switch 开 → 无 OCR trace、OCR 消费 released、返回 422（终态不 requeue）③ 低清 → Profile=NEEDS_REVIEW 且低置信字段被标记 ④ **正常图片 → PARSED 且 OCR 笔恰 `confirmed` 一笔（按次计费断言）** ⑤ **并发/重传同图字节 → OCR 消费恰 1 笔、视觉模型恰调 1 次（图字节 HMAC 幂等断言）** ⑥ **图内嵌注入金集 → 视觉层 ai-eval 越域/被操纵产出率 ≤ 阈值（非 0 容忍）+ 下游业务校验确定性丢弃越域字段（单元断言）** ⑦ **伪造证件图 → OCR 来源 Profile 恒 `NEEDS_REVIEW`/低置信、系统不输出"真/假"定论（不冒充断言）** ⑧ **OCR 成功 → `ai_invocation_trace.output` 不含转写全文/手机号；`resume_profile.structured` 经 `stripPii` 无明文 PII（与文本路径同保证）**
 - **关联**：契约内部（同步 api，`uploadFile` 复用文本链路，**响应形状不变=`ingested`，零前端/契约改动**）；状态机 Document/Profile/ConsumptionRecord(ocr)；原语 2(幂等=图字节 HMAC)/3(RLS)；逃逸：能力级 kill-switch flag；刁钻→ 视觉层 ai-eval + 下游 `ingestResume` 门；安全：图字节/PII 不入 trace
+
+### UC-RES-081 · 简历页预览 OCR 上传路径（Web；API/`0127` 已在 main）
+**覆盖七类**：正常 · 异常(识别失败不编造) · 特殊(空文件/超限/扩展名) · 逃逸(双旗缺失/生产/公开预览锁定) · 高并发(提交中禁用) · 复杂(Web 开、API 仍 422 漂移) · 刁钻(错误信封夹带假转写)
+- **角色 Actor**：候选人　**前置**：已登录；已授予 `resume_processing` 同意；Web 进程可读 `OCR_ENABLED` / `OCR_PREVIEW` / `NODE_ENV` / `MODEL_COST_ENFORCEMENT` / `MEETWISE_PUBLIC_PREVIEW`
+- **触发 Trigger**：打开 `/resume` 或提交文件表单
+- **主流程 Main**：1) RSC 调 `isOcrPreviewEnabled`（精确 `1`+`1` 且未锁定）2) 预览开 → `accept` 含 png/jpeg/webp + 预览横幅声明「不是生产视觉质量承诺」3) Server Action 对图片用 35s 超时 POST `/resume/file` 4) `res.ok` 才 `{ok:true}` 并硬导航列表；不读取、不展示任何转写字段
+- **备选 Alternate**：A1 预览关 → `accept` 仅 PDF/Word，文案「图片识别未开放」A2 文本粘贴路径不变
+- **异常流 Exception**：
+  - E1 重复提交：`useTransition` pending 禁用按钮（不发第二请求）
+  - E4 API `ocr_failed` / `ocr_no_content` / `ocr_binding_*` → `{ok:false}` + 固定中文，**不把 `text`/`transcript` 写入 message**
+  - E5 生产 / enforce / `MEETWISE_PUBLIC_PREVIEW=1` / 缺旗 → UI 不提供图片路径；若仍提交图片，Action 本地 `image_ocr_unavailable`，零 API 调用
+  - E6 超时 → `upload_timeout`，不编造成功
+- **后置**：成功才导航；失败停留表单。Web 不写 ConsumptionRecord；账本仍由 API `ocr:prove` 负责。本切片无新迁移（`0127` 已在 main；`0128`/`0129` 已预约；下一空号 ≥`0130`）
+- **验收 Acceptance**：① 仅精确双旗且未锁定 → accept 含 image ② 锁定/缺旗 → accept 无 image 且本地拒绝图片 ③ `ocr_failed` 夹带 `text` → `ok=false` 且 message 不含该 text ④ 空信封 / 缺 error → `ok=false` ⑤ 文案不含「求职者/面试官」、含「不是生产视觉质量承诺」⑥ `pnpm web:prove` + `pnpm -C apps/web prove:public-copy` 绿；`releaseEvidence=false`
+- **关联**：无新契约 endpoint（复用 `POST /resume/file`）；状态机不在 Web 落点；原语：公开预览写门 + 精确 env 旗；隐私：不把转写回显到错误条
+- **七类覆盖标注**：正/异/特/逃/并/复/刁
+- **层映射诚实**：钱/账本的 并/复 仍由 main 上的 `ocr:prove` 承担。本切片 逃/刁/异 落 `web:prove`（纯函数）。**不声称浏览器 E2E 视觉质量。**
 
 ### UC-RES-011 · 结构化产出 ResumeProfile + 注入清洗（白字/隐藏文本）
 **覆盖七类**：正常 · 异常 · 复杂(provenance 接地) · 刁钻(白字注入/伪造经历) · 逃逸(结构化降级)
@@ -453,6 +470,16 @@ related:
 - TC-RES-003-ocr-fabricated-review（集成）：伪造证件/学历图 → OCR 来源 Profile 恒 `NEEDS_REVIEW`/低置信，系统**不输出"真/假"定论**（断言不冒充；**不**断言"拦截"）
 - TC-RES-003-ocr-no-pii-trace（集成）：图片 OCR 成功 → `ai_invocation_trace.output` 不含转写全文/手机号（PII 不入 trace 断言）
 - TC-RES-003-ocr-stripped（集成）：OCR 来源 `resume_profile.structured` 无明文手机号（复用 `stripPii`，与文本路径同保证）
+
+### UC-RES-081
+- TC-RES-081-main（单元 `web:prove`）：精确双旗 + 非锁定 → accept 含 image、文案含非生产承诺
+- TC-RES-081-escape（单元）：production / enforce / 公开预览 / 缺旗 → 锁定；关闭态 accept 无 image
+- TC-RES-081-special（单元）：空 mime 靠扩展名判图；PDF/docx 不是图
+- TC-RES-081-fail（单元）：`ocr_failed` / `ocr_no_content` / `image_ocr_unavailable` → `ok=false`
+- TC-RES-081-adversarial（单元）：错误信封夹带 `text`/`transcript`/`ocrText` → message 不含这些字段
+- TC-RES-081-empty（单元）：空信封 / 缺 error → `ok=false`，不伪装成功
+- TC-RES-081-drift（单元）：API 仍 422 时诚实不可用
+- TC-RES-081-copy（静态 `prove:public-copy`）：简历页无「求职者/面试官」营销；无 `image/*` 默认开放
 
 ### UC-RES-011
 - TC-RES-011-inject-unit（单元，**真闸门**）：含白字注入 Profile → 拼装 messages 正文 100% data role、system 无用户内容；改变行为条数=0

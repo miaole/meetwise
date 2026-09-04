@@ -28,6 +28,10 @@ const features = read('apps/web/app/features/page.tsx');
 const faq = read('apps/web/app/faq/page.tsx');
 const privacy = read('apps/web/app/privacy/page.tsx');
 const resume = read('apps/web/app/resume/page.tsx');
+const resumeForms = read('apps/web/app/resume/ResumeUploadForms.tsx');
+const resumeActions = read('apps/web/app/resume/actions.ts');
+const resumeOcrUi = read('apps/web/lib/resume/ocr-preview-ui.ts');
+const resumeOcrPreview = read('apps/web/lib/ocr-preview.ts');
 const settings = read('apps/web/app/settings/page.tsx');
 const pricing = read('apps/web/app/pricing/page.tsx');
 const legal = read('apps/web/app/legal/page.tsx');
@@ -135,6 +139,18 @@ const checks = {
     requireText(poster, '非能力认证 · 不得用于招聘、资格或录用判断', 'downloadable poster');
     requireText(recruiterTalent, '不提供自动筛选、排名、拒绝或录用决定', 'recruiter talent page');
     forbid(features, ['CRAG', '自动触发再检索', '自主探索'], 'feature claims');
+  },
+  'TC-PUBLIC-COPY-E11': () => {
+    forbid(`${resume}\n${resumeForms}\n${resumeOcrUi}`, ['求职者', '面试官'], 'resume OCR preview copy');
+    forbid(resumeForms, ['OCR 接线中', 'image/*'], 'closed resume file input');
+    requireText(resumeOcrUi, '不是生产视觉质量承诺', 'resume OCR preview copy');
+    requireText(resumeOcrUi, '不会编造文字', 'resume OCR preview copy');
+    requireText(resumeOcrUi, '图片识别未开放', 'resume OCR closed copy');
+    requireText(resumeOcrPreview, "OCR_ENABLED === '1' && env.OCR_PREVIEW === '1'", 'resume OCR preview flags');
+    requireText(resumeOcrPreview, "MEETWISE_PUBLIC_PREVIEW === '1'", 'resume OCR public-preview lock');
+    requireText(resumeActions, 'resumeImageRefusedLocally', 'resume file action local refuse');
+    requireText(resumeActions, 'mapResumeUploadError', 'resume file action error mapping');
+    forbid(resumeActions, ['ocr.text', 'transcript'], 'resume file action must not invent transcripts');
   },
   'TC-PUBLIC-COPY-E10': () => {
     const retiredAssets = [

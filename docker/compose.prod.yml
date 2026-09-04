@@ -349,6 +349,10 @@ services:
       # 造成经公网 funnel 自环或失败。
       API_BASE_INTERNAL: http://api:8787
       PORT: "3000"
+      # Production web stays refuse-closed even if an operator exports 1.
+      # isOcrPreviewEnabled also locks on NODE_ENV=production.
+      OCR_ENABLED: ${OCR_ENABLED:-0}
+      OCR_PREVIEW: ${OCR_PREVIEW:-0}
     depends_on:
       api:
         condition: service_healthy

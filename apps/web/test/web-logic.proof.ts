@@ -15,6 +15,19 @@ import { interviewTurnWindow } from '../lib/stream/turn-window.ts';
 import { buildTurnSubmission } from '../lib/interview/turn-submission.ts';
 import { interviewActionLabel, interviewDisplayStatus, interviewProgressLabel, isInterviewEnterable, overviewAnsweredLabel } from '../lib/interview/progress.ts';
 import { resumeOptionLabel, resumeStatusLabel } from '../lib/resume/display.ts';
+import { isOcrPreviewEnabled, isOcrPreviewRequested, isProductionOcrLocked } from '../lib/ocr-preview.ts';
+import {
+  RESUME_OCR_PREVIEW_TIMEOUT_MS,
+  isResumeImageUpload,
+  isUploadTimeoutError,
+  mapResumeUploadAbort,
+  mapResumeUploadError,
+  resumeFileAccept,
+  resumeFileHelpText,
+  resumeImageRefusedLocally,
+  resumeOcrPreviewBanner,
+  resumeUploadCardDescription,
+} from '../lib/resume/ocr-preview-ui.ts';
 import { interviewContextTitle, interviewResumeLabel, interviewTimeLabel } from '../lib/interview/context.ts';
 import { practiceHintScore, webTrustedQuestionIdentity } from '../lib/stream/scoring-honesty.ts';
 
@@ -465,6 +478,71 @@ async function main() {
     && reduceInterview([toBusinessEvent({ event: 'report_ready', id: 1, data: '{"overall":101}' })!]).report === undefined
     && reduceInterview([toBusinessEvent({ event: 'report_ready', id: 1, data: '{"overall":-1}' })!]).report === undefined
     && reduceInterview([toBusinessEvent({ event: 'report_ready', id: 1, data: '{"overall":74}' })!]).report?.overall === 74);
+
+  section('UC-RES-081 简历页预览 OCR：双旗精确、生产/公开预览拒绝、失败不编造转写');
+  const previewEnv = { OCR_ENABLED: '1', OCR_PREVIEW: '1' };
+  A('TC-RES-081-main 仅精确双旗 1+1 才请求预览',
+    isOcrPreviewRequested(previewEnv)
+    && !isOcrPreviewRequested({ OCR_ENABLED: '1' })
+    && !isOcrPreviewRequested({ OCR_ENABLED: 'true', OCR_PREVIEW: '1' })
+    && !isOcrPreviewRequested({ OCR_ENABLED: '1', OCR_PREVIEW: 'true' })
+    && !isOcrPreviewRequested({}));
+  A('TC-RES-081-escape 生产 / enforce / 公开预览即使双旗也锁定',
+    isProductionOcrLocked({ NODE_ENV: 'production' })
+    && isProductionOcrLocked({ MODEL_COST_ENFORCEMENT: 'enforce' })
+    && isProductionOcrLocked({ MEETWISE_PUBLIC_PREVIEW: '1' })
+    && !isOcrPreviewEnabled({ ...previewEnv, NODE_ENV: 'production' })
+    && !isOcrPreviewEnabled({ ...previewEnv, MODEL_COST_ENFORCEMENT: 'enforce' })
+    && !isOcrPreviewEnabled({ ...previewEnv, MEETWISE_PUBLIC_PREVIEW: '1' })
+    && isOcrPreviewEnabled({ ...previewEnv, NODE_ENV: 'development', MEETWISE_PUBLIC_PREVIEW: '0' }));
+  A('TC-RES-081-main 预览才接受图片；关闭态 accept 不含 image',
+    resumeFileAccept(true).includes('image/png')
+    && !resumeFileAccept(false).includes('image')
+    && resumeFileAccept(false).includes('.pdf'));
+  A('TC-RES-081-main 预览文案声明非生产视觉承诺；关闭态不假装可识别',
+    resumeFileHelpText(true).includes('不是生产视觉质量承诺')
+    && resumeFileHelpText(true).includes('不会编造文字')
+    && resumeUploadCardDescription(false).includes('图片识别未在本环境开放')
+    && resumeOcrPreviewBanner().includes('不会编造简历文字')
+    && !resumeFileHelpText(false).includes('求职者')
+    && !resumeFileHelpText(true).includes('面试官'));
+  A('TC-RES-081-special 图片判定看 mime 或扩展名，不以空 mime 放行',
+    isResumeImageUpload('scan.png', '')
+    && isResumeImageUpload('x', 'image/jpeg')
+    && !isResumeImageUpload('cv.pdf', 'application/pdf')
+    && !isResumeImageUpload('cv.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'));
+  A('TC-RES-081-escape 关闭态本地拒绝图片，不把本地拒绝写成成功',
+    resumeImageRefusedLocally().ok === false
+    && resumeImageRefusedLocally().error === 'image_ocr_unavailable'
+    && !resumeImageRefusedLocally().message.includes('已识别'));
+  const invented = { error: 'ocr_failed', text: '伪造的北大博士经历', transcript: '完整转写', ocrText: '手机号13800138000' };
+  const failed = mapResumeUploadError(422, invented);
+  A('TC-RES-081-adversarial ocr_failed 带 text/transcript 也不当成功、不回显转写',
+    failed.ok === false
+    && failed.error === 'ocr_failed'
+    && !failed.message.includes('伪造的北大博士')
+    && !failed.message.includes('完整转写')
+    && !failed.message.includes('13800138000')
+    && failed.message.includes('不会编造识别结果'));
+  A('TC-RES-081-empty 空信封与缺 error 不伪装成功',
+    mapResumeUploadError(500, null).ok === false
+    && mapResumeUploadError(422, {}).ok === false
+    && mapResumeUploadError(422, { text: '空转写也不是成功' }).ok === false
+    && !mapResumeUploadError(422, { text: '空转写也不是成功' }).message.includes('空转写'));
+  A('TC-RES-081-drift API 仍 422 image_ocr_unavailable 时诚实不可用',
+    mapResumeUploadError(422, { error: 'image_ocr_unavailable', hint: 'OCR_ENABLED=1' }).error === 'image_ocr_unavailable'
+    && mapResumeUploadError(422, { error: 'image_ocr_unavailable' }).ok === false
+    && !mapResumeUploadError(422, { error: 'ocr_no_content', text: ' ' }).message.includes('已保存'));
+  A('TC-RES-081-timeout 预览图片超时窗口长于文本提取，仍不是无限等',
+    RESUME_OCR_PREVIEW_TIMEOUT_MS === 35_000
+    && RESUME_OCR_PREVIEW_TIMEOUT_MS > 8_000);
+  A('TC-RES-081-timeout Abort/Timeout 都映射为失败、不编造成功',
+    isUploadTimeoutError(Object.assign(new Error('aborted'), { name: 'AbortError' }))
+    && isUploadTimeoutError(Object.assign(new Error('timed out'), { name: 'TimeoutError' }))
+    && !isUploadTimeoutError(new Error('network'))
+    && mapResumeUploadAbort().ok === false
+    && mapResumeUploadAbort().error === 'upload_timeout'
+    && !mapResumeUploadAbort().message.includes('已识别'));
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
   process.exit(failures === 0 ? 0 : 1);
