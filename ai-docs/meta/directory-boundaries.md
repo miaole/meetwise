@@ -45,5 +45,6 @@ tags:
 - AI 代码/输出不得默认信任：收束公式 → `skills/testing/fail-closed-gate.md`；长期指针 → `rules/global/ai-generated-review.md`
 - E2E 平台集成分支的核实合并顺序 → `delivery/e2e-platform-integration.md`
 - 当前短流程面试长度政策（软预算 + 绝对杀开关） → `requirements/use-cases/adaptive-interview-length.md`；一到两小时 blueprint 仍在 `requirements/use-cases/expert-long-interview-runtime.md`，二者不得写成同一完成项
+- SCOR-00H 消费诚实闸 → `requirements/use-cases/interview-scoring-measurement.md`；不得另写第二套「无证据可伪造 0 分」规则
 - HTTP E2E 可执行目录契约 → `testing/conventions/e2e-directory-contract.md`（叙事 SOP 在 `skills/testing/e2e-platform/`，禁止第三套目录故事）
 - e2e 用例/断言 parity floors → `testing/e2e-parity-baseline.md`
