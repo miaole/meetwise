@@ -52,6 +52,7 @@
     "prove:ctx04-compression-snapshot": "tsx test/ctx04-compression-snapshot.proof.ts",
     "prove:ctx05-concurrency-recovery": "tsx test/ctx05-concurrency-recovery.proof.ts",
     "prove:ctx06-deletion-closure": "tsx test/ctx06-deletion-closure.proof.ts",
+    "prove:memory-vector-chunk-erasure": "tsx test/memory-vector-chunk-erasure.proof.ts",
     "migrate": "tsx src/migrate-cli.ts"
   },
   "dependencies": {

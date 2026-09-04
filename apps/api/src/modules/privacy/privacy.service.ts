@@ -45,6 +45,8 @@ export class PrivacyService {
    * any destructive request can be accepted again.
    */
   eraseInterviewData(_principal: string, _interviewId: string, _idempotencyKey: string | undefined): never {
+    // 公开入口保持 503。0125 只闭合 memory_vector_chunk 向量块 sweep；
+    // inventory §4.2 的 user_memory / ai_invocation_trace / 外部 sink 仍未齐。
     throw new HttpException({ error: 'interview_erasure_authorization_not_available' }, HttpStatus.SERVICE_UNAVAILABLE);
   }
 
@@ -55,6 +57,7 @@ export class PrivacyService {
    * successful response here would be a false privacy-deletion claim.
    */
   deleteResumeData(_principal: string): never {
+    // 同步全量删除会伪称完成。盘点未齐前 fail-closed，见 privacy-deletion-sink-inventory.md。
     throw new HttpException({ error: 'resume_erasure_migration_in_progress' }, HttpStatus.SERVICE_UNAVAILABLE);
   }
 }

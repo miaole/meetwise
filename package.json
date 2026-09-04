@@ -160,6 +160,8 @@
     "ctx05-concurrency-recovery:prove:raw": "pnpm -C packages/db prove:ctx05-concurrency-recovery",
     "ctx06-deletion-closure:prove": "node scripts/run-e2e-isolated.mjs ctx06-deletion-closure:prove:raw",
     "ctx06-deletion-closure:prove:raw": "pnpm -C packages/db prove:ctx06-deletion-closure",
+    "memory-vector-chunk-erasure:prove": "node scripts/run-e2e-isolated.mjs memory-vector-chunk-erasure:prove:raw",
+    "memory-vector-chunk-erasure:prove:raw": "pnpm -C packages/db prove:memory-vector-chunk-erasure",
     "int-transcript-answer-fact-root:prove": "node scripts/run-e2e-isolated.mjs int-transcript-answer-fact-root:prove:raw",
     "int-transcript-answer-fact-root:prove:raw": "pnpm -C packages/db prove:int-transcript-answer-fact-root",
     "int-transcript-remaining-sinks:prove": "node scripts/run-e2e-isolated.mjs int-transcript-remaining-sinks:prove:raw",
