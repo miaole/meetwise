@@ -151,9 +151,11 @@ async function main() {
   /* ───── UC-INT-LENGTH-01 图证明：早停 turn<8 / 深挖 turn>8 / 出处 ───── */
   {
     const skipVault = createEphemeralAnswerVault();
+    let skipAsk = 0;
     const skipGraph = buildAdaptiveInterviewGraph(new MemorySaver(), {
       competencies: ['并发', '缓存', '可靠性'],
-      retrieveAndGenerate: async (competency) => ({ question: `Q[${competency}]`, sources: [] }),
+      // Critique fail-closed (no invented replacement). Stems must be unique and ≥8 chars.
+      retrieveAndGenerate: async (competency) => ({ question: `请说明「${competency}」第 ${++skipAsk} 轮关键取舍与验证`, sources: [] }),
       assess: async () => ({ score: 50, evidence: ['不应评分'], relevant: true }),
       loadAnswer: skipVault.loadAnswer,
     });
@@ -171,13 +173,14 @@ async function main() {
 
   {
     const deepVault = createEphemeralAnswerVault();
+    let deepAsk = 0;
     const deepGraph = buildAdaptiveInterviewGraph(new MemorySaver(), {
       competencies: [
         { name: 'A', core: true }, { name: 'B', core: true },
         { name: 'C', core: false }, { name: '协作与沟通', behavioral: true },
       ],
       maxTurns: 8,
-      retrieveAndGenerate: async (competency) => ({ question: `Q[${competency}]`, sources: [] }),
+      retrieveAndGenerate: async (competency) => ({ question: `请说明「${competency}」第 ${++deepAsk} 轮关键取舍与验证`, sources: [] }),
       assess: async () => ({ score: 95, evidence: ['可深挖钩子'], relevant: true, hasHook: true }),
       loadAnswer: deepVault.loadAnswer,
     });
