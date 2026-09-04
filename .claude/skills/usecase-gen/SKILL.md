@@ -11,7 +11,7 @@ allowed-tools:
 
 # usecase-gen · 业务用例 + 测试用例生成（七类 · 非 happy path · 无玩具代码）
 
-产出一个能力的用例与测试用例。用例写 `ai-docs/requirements/use-cases/<domain>.md`，测试用例按 [test-authoring](../../../ai-docs/testing/conventions/test-authoring.md) 落层。**默认只写 happy path = 直接不合格。**
+产出一个能力的用例与测试用例。用例写 `ai-docs/requirements/use-cases/<domain>.md`，测试用例按 [test-authoring](../../../ai-docs/testing/conventions/test-authoring.md) 落层（HTTP `e2e:isolated` 主层，Playwright 仅浏览器次层）。变更后怎么跑门见 [testing skill](../../../ai-docs/skills/testing/SKILL.md)。生成稿**不得默认信任**，须审核 + 多轮门禁（[ai-generated-review](../../../ai-docs/rules/global/ai-generated-review.md)）。**默认只写 happy path = 直接不合格。**
 
 ## 一、每条 UC 必含字段（缺一不可）
 
@@ -33,7 +33,7 @@ UC-<module>-<seq> · <标题>
 
 | 类 | 含义 | 最小负向断言（至少其一） | 默认测试层 |
 |---|---|---|---|
-| 正 | 正常 | 主流程端到端到终态 | API→e2e / UI→browser |
+| 正 | 正常 | 主流程端到端到终态 | API→HTTP e2e（`e2e:isolated`）/ UI→browser（`e2e:ui:isolated`） |
 | 异 | 异常回滚/退款 | 失败→**退款到账 / 额度归还 / 状态回滚**，断言账本增量 | 集成(真 DB) |
 | 特 | 边界/空/首次/i18n | 空/超长/首次/非英文字符 各 ≥1 | 单元+契约 |
 | 逃 | 降级/fallback/kill-switch/安全终止 | **依赖失效→确定性降级或 fail-closed，不死循环不 5xx 掩码** | E2E/集成 |
@@ -47,8 +47,8 @@ UC-<module>-<seq> · <标题>
 
 ## 三、层映射强制（禁止负向全堆在集成 gate）
 
-- 涉及**钱/状态/隔离**的 `并`/`复`/`逃`/`刁`，至少一条落到 **E2E 或 UI（Playwright）层**做真实跨进程断言，不得只在单测/集成里闭环。
-- 判定：一条负向「集成 proof 绿了、但 E2E/UI 层没有」= 未完成（对应 [test-strategy 禁止假验收](../../../ai-docs/testing/strategy/test-strategy.md)）。
+- 涉及**钱/状态/隔离**的 `并`/`复`/`逃`/`刁`，至少一条落到 **HTTP E2E 主层**（`pnpm e2e:isolated` fetch/SSE）做真实跨进程断言；只有断言依赖 cookie/DOM/middleware 时才加 Playwright 次层。不得只在单测/集成里闭环。
+- 判定：一条负向「集成 proof 绿了、但 HTTP E2E 主层没有」= 未完成（对应 [test-strategy 禁止伪验收](../../../ai-docs/testing/strategy/test-strategy.md)）。
 
 ## 四、无玩具代码检查表（生成时逐条自问，任一命中即回炉）
 
