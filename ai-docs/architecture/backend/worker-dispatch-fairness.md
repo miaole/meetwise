@@ -29,7 +29,7 @@ related:
 
 | 机制 | 代码位置 | 实际保证 | 不保证 |
 | --- | --- | --- | --- |
-| Owner 枚举排序 | `gateway_dispatch_owners('interview')`（迁移 `0128`） | 只返回 owner id；按该 owner 最老可领取/过期 running 行的 `created_at`、再按 owner id 排序。`0124` RAG ACL、`0125` memory_vector_chunk 与 `0126` 答题双写围栏已在 main；`0127` 仍由并行切片占用，本切片不改号 | 不是公平锁、不是容量预留 |
+| Owner 枚举排序 | `gateway_dispatch_owners('interview')`（迁移 `0128`） | 只返回 owner id；按该 owner 最老可领取/过期 running 行的 `created_at`、再按 owner id 排序。`0124` RAG ACL、`0125` memory_vector_chunk、`0126` 答题双写围栏与 `0127` 简历 OCR provenance 已在 main；本切片不改号 | 不是公平锁、不是容量预留 |
 | 量子轮转 | `fairDrainInterviewOwners` | 每次启动对一个 owner 至多一个 `drainOnce`；`pickNext` 在仍有配额的 owner 间轮转。`globalInflight>1` 时多个 owner 的切片可以重叠；某一 owner 的上一片结束后，可以在他人未结束前再拿一片 | 不是“全世界同时只有一个切片”；也不是抽干单个 owner 才轮转 |
 | `idle` / `retry` | `drainInterviewJobOnce` 返回值 | **`idle` 只表示本次 claim 为 null**。隐私围栏后归还、丢租约、graph fence 未取得、`graph_fence_lost` 归还、`markDone` CAS=0 都返回 `retry`，owner 留在本拍轮转里 | `retry` 不是新的作业状态 |
 | 切片失败隔离 | `fairDrainInterviewOwners` | 单个 `drainOnce` 拒绝不会拆掉其他 in-flight 切片；函数先等全部 running 结束再抛出第一个错误 | 不是跨 tick 的补偿事务 |

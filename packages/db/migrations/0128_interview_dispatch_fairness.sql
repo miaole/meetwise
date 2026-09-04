@@ -6,7 +6,8 @@
 -- 0124 on main is RAG retrieval ACL (0124_rag_retrieval_acl_fail_closed.sql).
 -- 0125 on main is memory_vector_chunk erasure (0125_memory_vector_chunk_erasure.sql).
 -- 0126 on main is interview-answer dual-write fence (0126_interview_answer_dual_write_fence.sql).
--- 0127 remains reserved by an in-flight sibling. This rewrite is 0128.
+-- 0127 on main is resume OCR binding provenance (0127_resume_ocr_binding_provenance.sql).
+-- This rewrite is 0128.
 
 CREATE OR REPLACE FUNCTION gateway_dispatch_owners(p_work text)
 RETURNS TABLE(owner_user_id text)
