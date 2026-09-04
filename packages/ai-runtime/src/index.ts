@@ -151,6 +151,8 @@ export {
   downloadDashscopeTtsAudio,
 } from './voice.ts';
 export type { Asr, Tts, TtsDownloadAdmission } from './voice.ts';
+export { createInterviewVoiceSeams } from './interview-voice-seams.ts';
+export type { InterviewVoiceSeams } from './interview-voice-seams.ts';
 // 检索 / RAG（向量化 seam + 混合检索 + 召回度量）
 export { dashscopeEmbedder, fakeEmbedder, cosine } from './embedder.ts';
 export type { Embedder } from './embedder.ts';

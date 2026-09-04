@@ -7,7 +7,7 @@ import { buildMockInterviewGraph } from '@meetwise/ai-graphs';
 import { fakeAsr, fakeTts } from '@meetwise/ai-runtime';
 import { Command } from '@langchain/langgraph';
 import { createCheckpointer } from '../src/main.ts';
-import { voiceAnswerTurn } from '../src/voice-turn.ts';
+import { previewVoiceAnswerTurn } from '../src/interview-voice.ts';
 
 let failures = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) failures++; };
@@ -22,10 +22,10 @@ async function main() {
   const gV = buildMockInterviewGraph(cp, QUESTIONS);
   const cfgV = { configurable: { thread_id: `voice-${run}` } };
   await gV.invoke({}, cfgV);                                          // → interrupt 第1题
-  const t1 = await voiceAnswerTurn({ asr: fakeAsr(ANSWERS[0]!), tts: fakeTts(), graph: gV, cfg: cfgV }, new Uint8Array([1, 2, 3]));
+  const t1 = await previewVoiceAnswerTurn({ asr: fakeAsr(ANSWERS[0]!), tts: fakeTts(), graph: gV, cfg: cfgV }, new Uint8Array([1, 2, 3]));
   A('第1轮:语音答案被 ASR 转写并推进图', t1.transcript === ANSWERS[0]);
   A('第1轮:下一题被 TTS 合成出音频', !!t1.questionAudio && t1.nextQuestion === QUESTIONS[1]);
-  const t2 = await voiceAnswerTurn({ asr: fakeAsr(ANSWERS[1]!), tts: fakeTts(), graph: gV, cfg: cfgV }, new Uint8Array([4, 5, 6]));
+  const t2 = await previewVoiceAnswerTurn({ asr: fakeAsr(ANSWERS[1]!), tts: fakeTts(), graph: gV, cfg: cfgV }, new Uint8Array([4, 5, 6]));
   A('第2轮:答完,会话完成(done)', t2.done && !t2.nextQuestion);
   const snapV = await gV.getState(cfgV);
 

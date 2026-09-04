@@ -20,6 +20,7 @@
     "prove:privacy-erasure-http": "node --import @swc-node/register/esm-register test/privacy-erasure-http.proof.ts",
     "prove:scor-00-http": "node --import @swc-node/register/esm-register test/scor-00-http-db.proof.ts",
     "prove:voice-timeout": "node --import @swc-node/register/esm-register test/voice-timeout.proof.ts",
+    "prove:voice-operation-policy": "tsx test/voice-operation-policy.proof.ts",
     "prove:voice-cancel-http": "tsx test/voice-cancel-http.proof.ts",
     "prove:ocr-operation-policy": "tsx test/ocr-operation-policy.proof.ts",
     "prove:public-preview-write-gate": "node --import ./node_modules/@swc-node/register/esm/esm-register.mjs test/public-preview-write-gate.proof.ts",

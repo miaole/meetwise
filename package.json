@@ -190,6 +190,7 @@
     "failover:prove": "pnpm -C packages/ai-runtime prove:failover",
     "vstream:prove": "pnpm -C packages/ai-runtime prove:vstream",
     "voice-reliability:prove": "pnpm -C packages/ai-runtime prove:voice-reliability",
+    "interview-voice-seams:prove": "pnpm -C packages/ai-runtime prove:interview-voice-seams",
     "voice-timeout:prove": "pnpm -C apps/api prove:voice-timeout",
     "drain:prove": "pnpm -C apps/worker prove:drain",
     "interview-dispatch:unit:prove": "pnpm -C apps/worker prove:interview-dispatch",

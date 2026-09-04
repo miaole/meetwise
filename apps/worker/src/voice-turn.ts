@@ -1,6 +1,7 @@
 /**
  * 语音面试轮次：把 ASR/TTS 包在**同一**面试图外圈。audio → ASR 转写 → 喂图(resume) → 取下一题 → TTS 合成。
  * graph/checkpointer/eval/factuality 与文本路径**完全一致**——语音只在 I/O 边缘。掉线凭 threadId 续会话同样成立。
+ * 预览组合根见 `interview-voice.ts`（`createInterviewVoiceSeams`）；缺 Key 必须显式失败。
  */
 import { Command } from '@langchain/langgraph';
 import type { Asr, Tts } from '@meetwise/ai-runtime';

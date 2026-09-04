@@ -148,8 +148,12 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
           const msg = j?.message ?? '语音转写失败，请改用文字作答';                    // 503 asr_unavailable / 502 asr_failed
           setVoiceErr(msg); toast.error(msg);                                          // 显式反馈:不静默吞掉这一答
         } else {
-          const { text } = await res.json() as { text: string };
-          if (text?.trim()) setAnswer((a) => (a ? a.trimEnd() + ' ' : '') + text.trim());  // 追加,允许多段录;用户可改
+          const body = await res.json().catch(() => null) as { text?: unknown } | null;
+          const text = body?.text;
+          if (typeof text !== 'string') {
+            const msg = '语音转写失败，请改用文字作答';
+            setVoiceErr(msg); toast.error(msg);
+          } else if (text.trim()) setAnswer((a) => (a ? a.trimEnd() + ' ' : '') + text.trim());
           else setVoiceErr('没有识别到语音，请重试或改用文字作答');
         }
       } catch { const msg = '语音转写失败，请改用文字作答'; setVoiceErr(msg); toast.error(msg); }
@@ -221,11 +225,12 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
         <div className="flex items-center gap-3">
           <button
             type="button" onClick={() => setMode('voice')}
-            title="单人语音模式：AI 朗读题目，你通过本机麦克风作答；不接入电话或另一位参与者"
+            title="预览版语音：AI 朗读题目，你通过本机麦克风作答；失败回文字，不接入电话"
             className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium hover:border-primary hover:text-primary"
           >
             <Mic className="size-3.5" />语音模式
           </button>
+          <span className="rounded-md border px-1.5 py-0.5 text-[10px] text-muted-foreground">预览版</span>
           <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
             <span className={`size-1.5 rounded-full ${view.connection === 'live' ? 'animate-pulse bg-primary' : 'bg-muted-foreground'}`} />
             {view.connection === 'live' ? '进行中' : view.connection === 'reconnecting' ? '重连中…' : '已结束'}
@@ -346,9 +351,9 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
           )}
           {voiceConsentPrompt && rec === 'idle' && (
             <section role="dialog" aria-modal="true" aria-labelledby="single-track-consent-title" className="rounded-md border border-primary/30 bg-secondary/50 p-3 text-sm">
-              <h3 id="single-track-consent-title" className="font-medium">启用本机单人语音录入</h3>
+              <h3 id="single-track-consent-title" className="font-medium">启用本机单人语音录入（预览版）</h3>
               <p className="mt-1 leading-relaxed text-muted-foreground">
-                仅采集当前这台设备的一个麦克风片段，并即时发送给转写服务；原始音频不保存。它不是电话或会议接入，不能录入另一位参与者，也不提供说话人分离或逐词时间戳。
+                预览版语音仅采集当前这台设备的一个麦克风片段并发送给转写服务；超时或异常会回到文字，不会编造转写。原始音频不保存。它不是电话或会议接入。
               </p>
               <div className="mt-3 flex gap-2">
                 <button

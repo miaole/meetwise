@@ -437,7 +437,11 @@ export function dashscopeAsr(cfg: { baseUrl?: string; apiKey?: string; model?: s
           ] }] }),
           signal: opts?.signal,
         }, { timeoutMs, maxBytes: 256 * 1024 });
-        return (j.choices?.[0]?.message?.content ?? '').trim();
+        const content = j.choices?.[0]?.message?.content;
+        // Missing/non-string content is not an empty room — inventing a
+        // transcript would hide provider malformation as a successful turn.
+        if (typeof content !== 'string') throw new Error('asr_malformed');
+        return content.trim();
       } catch (error: any) {
         // A caller disconnect must remain distinct from a provider deadline:
         // both stop transport work, but only the latter is a 504/retryable
@@ -475,7 +479,9 @@ export function dashscopeTts(cfg: { apiKey?: string; model?: string; voice?: str
           }, { timeoutMs, maxBytes: 256 * 1024 });
           const url = j.output?.audio?.url;
           if (!url) throw new Error('tts_no_audio_url');
-          return await downloadDashscopeTtsAudioWithinAdmission(url, j.output?.audio?.expires_at, { signal: opts?.signal });
+          const audio = await downloadDashscopeTtsAudioWithinAdmission(url, j.output?.audio?.expires_at, { signal: opts?.signal });
+          if (!(audio instanceof Uint8Array) || audio.byteLength === 0) throw new Error('tts_malformed');
+          return audio;
         } catch (error: any) {
           if (error instanceof ExternalRequestAbortedError) throw ttsDownloadError('aborted');
           if (error instanceof ExternalRequestTimeoutError) throw ttsDownloadError('deadline_exceeded');

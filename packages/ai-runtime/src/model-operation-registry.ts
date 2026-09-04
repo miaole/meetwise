@@ -107,6 +107,25 @@ const WIRED_VISION_OPERATIONS: readonly ModelOperationDefinition[] = [
 ];
 
 /**
+ * Preview interview voice: registry owns batch ASR/TTS node identity so the
+ * composition factory can construct native adapters when capability Keys exist.
+ * `wired` here is not MODEL-OP-02 shared admission (those rows stay blocked)
+ * and is not a production SLO, deletion receipt, or streaming authorization.
+ */
+const WIRED_VOICE_OPERATIONS: readonly ModelOperationDefinition[] = [
+  {
+    operationId: 'voice.asr.v1', inputKind: 'asr', capability: 'asr', maxDispatches: 1,
+    wired: true, admission: { providerAccount: 'dashscope-native', region: 'cn-beijing', modelOrRecipe: 'asr' },
+    meter: 'audio-seconds', fallbackAction: 'text_input',
+  },
+  {
+    operationId: 'voice.tts.v1', inputKind: 'tts', capability: 'tts', maxDispatches: 1,
+    wired: true, admission: { providerAccount: 'dashscope-native', region: 'cn-beijing', modelOrRecipe: 'tts' },
+    meter: 'tts-characters', fallbackAction: 'text_display',
+  },
+];
+
+/**
  * Frozen contracts for capabilities whose adapters remain direct (they bypass
  * invoke() and are not cost-governed yet).  MODEL-OP-01 gives them a typed
  * binding + fixed endpoint profile, but dispatch authorization stays blocked
@@ -129,19 +148,9 @@ const UNWIRED_OPERATIONS: readonly ModelOperationDefinition[] = [
     meter: 'rerank-candidates', fallbackAction: 'keep_retrieval_order',
   },
   {
-    operationId: 'voice.asr.v1', inputKind: 'asr', capability: 'asr', maxDispatches: 1,
-    wired: false, admission: { providerAccount: 'dashscope-native', region: 'cn-beijing', modelOrRecipe: 'asr' },
-    meter: 'audio-seconds', fallbackAction: 'text_input',
-  },
-  {
     operationId: 'voice.asr-stream.v1', inputKind: 'asr-stream', capability: 'asr', maxDispatches: 1,
     wired: false, admission: { providerAccount: 'dashscope-native', region: 'cn-beijing', modelOrRecipe: 'asr-stream' },
     meter: 'audio-seconds', fallbackAction: 'text_input',
-  },
-  {
-    operationId: 'voice.tts.v1', inputKind: 'tts', capability: 'tts', maxDispatches: 1,
-    wired: false, admission: { providerAccount: 'dashscope-native', region: 'cn-beijing', modelOrRecipe: 'tts' },
-    meter: 'tts-characters', fallbackAction: 'text_display',
   },
   {
     operationId: 'voice.tts-stream.v1', inputKind: 'tts-stream', capability: 'tts', maxDispatches: 1,
@@ -156,7 +165,7 @@ const UNWIRED_OPERATIONS: readonly ModelOperationDefinition[] = [
 ];
 
 export const MODEL_OPERATION_REGISTRY: readonly ModelOperationDefinition[] = Object.freeze(
-  [...WIRED_TEXT_OPERATIONS, ...WIRED_VISION_OPERATIONS, ...UNWIRED_OPERATIONS].map((definition) => Object.freeze({
+  [...WIRED_TEXT_OPERATIONS, ...WIRED_VISION_OPERATIONS, ...WIRED_VOICE_OPERATIONS, ...UNWIRED_OPERATIONS].map((definition) => Object.freeze({
     ...definition,
     admission: Object.freeze({ ...definition.admission }),
   })),
