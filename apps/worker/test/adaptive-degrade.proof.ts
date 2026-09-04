@@ -57,10 +57,15 @@ async function main() {
   A('评分外部结果未知 → unscored（不把超时伪造成数值分）',
     unknownEval?.status === 'unscored' && unknownEval.reason === 'evaluation_external_outcome_unknown' && !('score' in unknownEval));
 
-  let timeoutAborts = 0;
+  let evalAborts = 0;
+  let genAborts = 0;
+  let hangPhase: 'eval' | 'gen' = 'eval';
   const hangingModel: ModelClient = {
     complete(_request, _attempt, signal) {
-      signal?.addEventListener('abort', () => { timeoutAborts++; }, { once: true });
+      signal?.addEventListener('abort', () => {
+        if (hangPhase === 'eval') evalAborts++;
+        else genAborts++;
+      }, { once: true });
       return new Promise(() => {});
     },
   };
@@ -76,6 +81,7 @@ async function main() {
       competencies: ['并发'], localRetrieve: async () => [], webExplore: async () => [],
     });
     timedOutEval = await deps4.assess('q', '有效答案', '并发', 0);
+    hangPhase = 'gen';
     timedOutGen = normalizeQuestionGenerationResult(await deps4.retrieveAndGenerate('并发', 3, 0, 0, [], 'fundamental'));
   } finally {
     if (previousExecutionTimeout === undefined) delete process.env.MODEL_EXECUTION_TIMEOUT_MS;
@@ -85,11 +91,11 @@ async function main() {
   }
   A('真实 gateway 执行超时 → 图评分 unscored，AbortSignal 已传到模型适配器',
     timedOutEval?.status === 'unscored' && timedOutEval.reason === 'evaluation_external_outcome_unknown'
-      && !('score' in timedOutEval) && timeoutAborts === 1);
-  A('出题超时 → ok:false + timeout/unknown，不发明题',
+      && !('score' in timedOutEval) && evalAborts === 1);
+  A('出题超时 → ok:false + timeout/unknown，不发明题，AbortSignal 已传到适配器',
     isQuestionGenerationFailure(timedOutGen)
     && (timedOutGen.error === 'provider_timeout' || timedOutGen.error === 'external_outcome_unknown')
-    && !('question' in timedOutGen));
+    && !('question' in timedOutGen) && genAborts === 1);
 
   const malformed = scriptedModelClient({
     'interviewer.ask': () => ({ ok: true, raw: { notAQuestion: true } }),
