@@ -58,6 +58,7 @@ tags:
 - `requirements/use-cases/resume-ocr-binding.md`：MODEL-OP-01 窄切片 + 预览版图片 OCR 走通（双旗）；面试只消费密封 provenance；生产视觉仍关。
 - `requirements/use-cases/worker-event-driven-dispatch.md`：用户可见作业的提交后事件唤醒、低频恢复扫描、通知最小化与多副本领取边界；`UC-WORKER-002` 为面试队列公平轮转与领取幂等围栏。
 - `architecture/backend/worker-dispatch-fairness.md`：面试公平调度的当前接线、进程内预算边界和未交付项。
+- `architecture/backend/high-concurrency-review.md`：Worker 公平调度、SKIP LOCKED 领取、SSE 扇出、模型调用槽与账本 CAS / 同键 claim-join 的复核骨架与证明缺口；不是容量 SLO。
 - `requirements/use-cases/rag-funnel-intent-routing.md`：题库 metadata、自动岗位意图路由、面试 route snapshot、QBank track 硬过滤、同桶无题 LLM fallback 与自由文本漏斗分类的业务用例和验收矩阵。
 - `architecture/ai/model-operation-routing.md`：模型节点矩阵、operation registry、总上下文预算、共享准入与“派发后不换模型”的目标架构及当前接线边界。
 - `architecture/ai/bailian-nonproduction-rollout.md`：百炼非生产工作空间、Key、模型能力 smoke 与 `MODEL-OP` 整改的逐项勾选清单；不含密钥，也不构成生产网关或发布证据。
@@ -79,6 +80,7 @@ tags:
 | 前端架构 | `architecture/frontend/` | 页面、组件、数据流、RSC 边界 |
 | C 端进度/已答题数 | `requirements/use-cases/cend-overview-progress.md` | 题目账本投影、与 ScoreCard 分责 |
 | 后端架构 | `architecture/backend/` | 模块、接口、DB、事务、队列 |
+| 后端高并发复核 | `architecture/backend/high-concurrency-review.md` | 五面接线、证明缺口、禁止把进程内 cap 写成集群锁 |
 | 面试答题双写/切换 | `architecture/backend/interview-answer-dual-write-cutover.md` | legacy 明文 job / event / ledger 盘点与 01 前互斥围栏（0126，不是 01 完成） |
 | 预览版答题账本 | `requirements/use-cases/interview-answer-preview-submit.md` | 预览 `POST /interview/:id/answers` → 0092 rehearsal；受 0126 围栏约束；非 01 cutover |
 | 云端部署(CD) | `delivery/lean-cd-deployment.md` | 精简单机 compose 部署、ACR、回滚 |

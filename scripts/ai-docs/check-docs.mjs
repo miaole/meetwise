@@ -29,6 +29,7 @@ const requiredFiles = [
   "ai-docs/architecture/ai/agent-runtime.md",
   "ai-docs/architecture/backend/data-model.md",
   "ai-docs/architecture/backend/interview-answer-dual-write-cutover.md",
+  "ai-docs/architecture/backend/high-concurrency-review.md",
   "ai-docs/architecture/backend/module-boundaries.md",
   "ai-docs/architecture/backend/rls-isolation.md",
   "ai-docs/architecture/backend/commerce-saga.md",
@@ -71,6 +72,17 @@ const requiredTerms = new Map([
   ["ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md", ["qbank_control_definer", "FORCE RLS", "fail-closed", "SECURITY DEFINER", "lane(b)", "撤销", "复活"]],
   ["ai-docs/requirements/use-cases/cend-overview-progress.md", ["题目账本", "Overview.answered", "issued_turns", "status <> 'cancelled'", "ScoreCard"]],
   ["ai-docs/requirements/use-cases/interview-signal-sse.md", ["session_concluded", "early_weak", "thrashing", "不是能力等级", "releaseEvidence=false", "INT-LEVEL-01"]],
+  ["ai-docs/architecture/backend/high-concurrency-review.md", [
+    "SKIP LOCKED",
+    "fairDrainInterviewOwners",
+    "Last-Event-ID",
+    "parseLastEventId",
+    "0120",
+    "0130",
+    "model-op02:prove",
+    "releaseEvidence",
+    "HC-GAP-",
+  ]],
   ["ai-docs/architecture/backend/interview-answer-dual-write-cutover.md", [
     "INT-P0-RAW-QUEUE",
     "INT-TRANSCRIPT-01",
@@ -166,6 +178,11 @@ const runtimeTruthAssertions = [
     source: "apps/api/src/modules/interview/interview.service.ts",
     sourceTerm: "iq.status <> 'cancelled'",
     truthTerm: "issued_turns",
+  },
+  {
+    source: "apps/api/src/platform/last-event-id.ts",
+    sourceTerm: "invalid_last_event_id",
+    truthTerm: "parseLastEventId",
   },
   {
     source: "packages/db/migrations/0126_interview_answer_dual_write_fence.sql",

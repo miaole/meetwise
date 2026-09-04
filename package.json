@@ -198,6 +198,7 @@
     "voice-timeout:prove": "pnpm -C apps/api prove:voice-timeout",
     "drain:prove": "pnpm -C apps/worker prove:drain",
     "interview-dispatch:unit:prove": "pnpm -C apps/worker prove:interview-dispatch",
+    "last-event-id:unit:prove": "pnpm -C apps/api prove:last-event-id",
     "interview-dispatch:prove": "pnpm -C apps/worker prove:interview-dispatch-pg",
     "interview-dispatch:prove:raw": "pnpm -C apps/worker prove:interview-dispatch-pg",
     "worker-wakeup:prove": "pnpm -C apps/worker prove:job-wakeup",

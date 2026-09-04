@@ -2,6 +2,7 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { reserveEntitlement, enqueueDiagnosisJob, releaseConsumption } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
+import { parseLastEventId } from '../../platform/last-event-id.ts';
 
 /**
  * 简历诊断应用服务(拥有 asPrincipal 事务边界 + 业务编排:advisory 锁、幂等、额度预留、入队、状态机、RLS)。
@@ -93,12 +94,13 @@ export class DiagnosisService {
   }
 
   // SSE 事件取数(replay):复用 interview_event(stream_key=diagnosisId)。返回 null=越权/不存在(404),否则待写入的事件行。
-  events(principal: string, id: string, lastEventId: string) {
-    const lastId = Number(lastEventId ?? 0) || 0;
+  events(principal: string, id: string, lastEventId?: string) {
+    const lastId = parseLastEventId(lastEventId);
     return this.db.asPrincipal(principal, async (c) => {
       const own = await c.query('SELECT 1 FROM resume_diagnosis WHERE id=$1', [id]);
       if (own.rowCount === 0) return null;
-      return (await c.query('SELECT seq,kind,payload FROM interview_event WHERE stream_key=$1 AND seq>$2 ORDER BY seq', [id, lastId])).rows;
+      const rows = (await c.query('SELECT seq,kind,payload FROM interview_event WHERE stream_key=$1 AND seq>$2 ORDER BY seq', [id, lastId])).rows;
+      return { lastId, rows };
     });
   }
 }

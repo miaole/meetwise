@@ -11,6 +11,7 @@ version: 2
 related:
   - ../current-runtime-truth.md
   - ../../requirements/use-cases/worker-event-driven-dispatch.md
+  - ./high-concurrency-review.md
   - ../../rules/global/status-machine.md
   - ../../rules/global/production-invariants.md
 ---

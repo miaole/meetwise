@@ -76,6 +76,10 @@ jobs:
       - name: interview dispatch fairness (no database)
         run: pnpm interview-dispatch:unit:prove
 
+      # SSE Last-Event-ID 失败关闭（无库）：押题/诊断不得把非法游标降级为全量重放。
+      - name: SSE last-event-id fail-closed parser (no database)
+        run: pnpm last-event-id:unit:prove
+
       - name: Web preview gate behavioral proof (real NextRequest, not string match)
         run: pnpm -C apps/web prove:middleware
 
