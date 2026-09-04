@@ -27,6 +27,7 @@ const requiredFiles = [
   "ai-docs/architecture/ai/agent-runtime.md",
   "ai-docs/architecture/backend/data-model.md",
   "ai-docs/architecture/backend/interview-answer-dual-write-cutover.md",
+  "ai-docs/architecture/backend/worker-dispatch-fairness.md",
   "ai-docs/architecture/backend/module-boundaries.md",
   "ai-docs/architecture/backend/rls-isolation.md",
   "ai-docs/architecture/backend/commerce-saga.md",
@@ -42,6 +43,7 @@ const requiredFiles = [
   "ai-docs/requirements/use-cases/cend-overview-progress.md",
   "ai-docs/requirements/use-cases/adaptive-interview-length.md",
   "ai-docs/requirements/use-cases/resume-ocr-binding.md",
+  "ai-docs/requirements/use-cases/worker-event-driven-dispatch.md",
   "ai-docs/meta/task-sop.md",
   "ai-docs/testing/conventions/test-authoring.md",
   "ai-docs/testing/conventions/e2e-directory-contract.md",
@@ -84,7 +86,7 @@ const requiredTerms = new Map([
   ["ai-docs/meta/task-sop.md", ["skills/testing/sop.md", "fail-closed-gate.md"]],
   ["ai-docs/product/vision.md", ["面试", "职业路径"]],
   ["ai-docs/architecture/system-blueprint.md", ["Next.js", "NestJS", "LangGraph", "Postgres"]],
-  ["ai-docs/architecture/current-runtime-truth.md", ["已验证", "发布阻断", "LangGraph", "RAG", "Langfuse", "issued_turns", "overview.answered", "interview_erasure_authorization_not_available", "/answers", "RAG-FUNNEL-01A", "0124_rag_retrieval_acl_fail_closed", "0125_memory_vector_chunk_erasure", "绝对杀开关默认 120", "软预算", "boundedAbsoluteMaxTurns", "INT-LONG-INTERVIEW-01", "SCOR-00H", "0126", "答题双写互斥", "0127", "OCR_PREVIEW", "resume.ocr.v1"]],
+  ["ai-docs/architecture/current-runtime-truth.md", ["已验证", "发布阻断", "LangGraph", "RAG", "Langfuse", "issued_turns", "overview.answered", "interview_erasure_authorization_not_available", "/answers", "RAG-FUNNEL-01A", "0124_rag_retrieval_acl_fail_closed", "0125_memory_vector_chunk_erasure", "绝对杀开关默认 120", "软预算", "boundedAbsoluteMaxTurns", "INT-LONG-INTERVIEW-01", "SCOR-00H", "0126", "答题双写互斥", "0127", "OCR_PREVIEW", "resume.ocr.v1", "WORKER-DISPATCH-002", "0128", "0128_interview_dispatch_fairness", "interview-dispatch:unit:prove"]],
   ["ai-docs/architecture/ai/scoring-measurement-runtime.md", ["SCOR-00H", "insufficient_evidence", "releaseEvidence"]],
   ["ai-docs/architecture/adr/0020-scorecard-authority-and-eligibility.md", ["SCOR-00H", "practice_eligible", "insufficient_evidence"]],
   ["ai-docs/requirements/use-cases/interview-scoring-measurement.md", ["UC-SCOR-00H", "SCOR-00H", "insufficient_evidence", "releaseEvidence"]],
@@ -95,14 +97,14 @@ const requiredTerms = new Map([
   ["ai-docs/rules/global/ai-generated-review.md", ["不得默认信任", "审核", "验证", "多轮门禁", "自动化", "fail-closed-gate.md"]],
   ["ai-docs/testing/conventions/test-authoring.md", ["e2e:isolated", "Playwright", "fetch", "skills/testing", "禁止伪验收"]],
   ["ai-docs/testing/conventions/e2e-directory-contract.md", ["e2e/helpers", "run-e2e", "叙事", "fail-closed", "e2e-platform:check", "e2e-platform:prove", "e2e-platform:layout:prove", "pending_review", "不可信", "多轮"]],
-  ["ai-docs/meta/index.md", ["skills/testing/sop.md", "skills/testing/SKILL.md", "skills/README.md", "fail-closed-gate.md", "test-authoring", "e2e:isolated", "ai-generated-review", "e2e-platform-integration.md", "e2e-directory-contract", "e2e-parity-baseline", "privacy-deletion-sink-inventory.md", "adaptive-interview-length.md", "SCOR-00H", "interview-answer-dual-write-cutover.md", "resume-ocr-binding.md"]],
+  ["ai-docs/meta/index.md", ["skills/testing/sop.md", "skills/testing/SKILL.md", "skills/README.md", "fail-closed-gate.md", "test-authoring", "e2e:isolated", "ai-generated-review", "e2e-platform-integration.md", "e2e-directory-contract", "e2e-parity-baseline", "privacy-deletion-sink-inventory.md", "adaptive-interview-length.md", "SCOR-00H", "interview-answer-dual-write-cutover.md", "resume-ocr-binding.md", "worker-dispatch-fairness.md"]],
   ["ai-docs/skills/testing/SKILL.md", ["pnpm regression", "releaseEvidence", "出处", "status: draft", "fail-closed", "生成物默认不可信", "skip-as-pass", "--core", "--live", "always-on", "review/verify", "automation does not trust AI outputs", "multi-round allowed", "e2e-platform", "e2e-static-guards", "unverified AI path", "e2e-parity:check"]],
   ["ai-docs/skills/testing/sop.md", ["审核", "回归", "status: draft", "releaseEvidence", "always-on", "不减免", "fail-closed-gate.md", "生成物默认不可信", "不得声称完成", "skip-as-pass", "e2e-parity:check"]],
   ["ai-docs/skills/testing/fail-closed-gate.md", ["fail-closed", "不可信", "审核", "验证", "多轮", "UNTRUSTED", "releaseEvidence", "secrets", "aiTrust", "文档门", "e2e-parity:check", "parity floors"]],
   ["ai-docs/skills/testing/post-change-review.md", ["pnpm regression", "未查", "自签", "fail-closed", "生成物默认不可信", "skip-as-pass", "不得标 READY", "review/verify", "automation does not trust AI outputs", "multi-round allowed", "e2e-parity:check", "parity floors"]],
   ["ai-docs/skills/testing/honesty-rules.md", ["releaseEvidence", "aiTrust", "passed_adversarial", "secrets", "未审核生成", "不得标 READY", "unverified AI path", "失败即关", "parity floors"]],
   ["ai-docs/skills/testing/e2e-platform/README.md", ["draft", "PASS_WITH_GAPS", "e2e:isolated", "NOT_READY"]],
-  ["ai-docs/delivery/e2e-platform-integration.md", ["#55", "#64", "#69", "#71", "#70", "#66", "#73", "#74", "#75", "feature/e2e-platform-integration", "fail-closed", "releaseEvidence", "supersede"]],
+  ["ai-docs/delivery/e2e-platform-integration.md", ["#55", "#64", "#69", "#71", "#70", "#66", "#73", "#74", "#75", "#77", "feature/e2e-platform-integration", "fail-closed", "releaseEvidence", "supersede"]],
   ["ai-docs/testing/golden-tasks/README.md", ["GT-01", "planned", "mapped", "partial", "uncovered", "ai-output"]],
   ["ai-docs/testing/e2e-parity-baseline.md", ["allowlist", "fail-closed", "releaseEvidence", "e2e-parity:check", "parity floors", "AI diffs", "review"]],
   ["ai-docs/observability/observability-strategy.md", ["SLO", "降级", "恢复", "脱敏", "threadId"]],
@@ -124,6 +126,8 @@ const requiredTerms = new Map([
   ]],
   ["ai-docs/requirements/use-cases/adaptive-interview-length.md", ["UC-INT-LENGTH-01", "absoluteMaxTurns", "软预算", "INT-LONG-INTERVIEW-01", "releaseEvidence"]],
   ["ai-docs/requirements/use-cases/resume-ocr-binding.md", ["MODEL-OP-01", "OCR_PREVIEW", "resume.ocr.v1", "admitInterviewResume", "0127", "releaseEvidence"]],
+  ["ai-docs/architecture/backend/worker-dispatch-fairness.md", ["WORKER-DISPATCH-002", "0128", "fairDrainInterviewOwners", "interview-dispatch:unit:prove", "releaseEvidence"]],
+  ["ai-docs/requirements/use-cases/worker-event-driven-dispatch.md", ["UC-WORKER-002", "WORKER-DISPATCH-002", "0128", "releaseEvidence"]],
 ]);
 
 // P0 readability contract: expert-interview materials must not assume the reader already knows acronyms.
@@ -224,6 +228,11 @@ const runtimeTruthAssertions = [
     source: "packages/db/migrations/0127_resume_ocr_binding_provenance.sql",
     sourceTerm: "resume.ocr.v1",
     truthTerm: "0127_resume_ocr_binding_provenance",
+  },
+  {
+    source: "packages/db/migrations/0128_interview_dispatch_fairness.sql",
+    sourceTerm: "gateway_dispatch_owners",
+    truthTerm: "0128_interview_dispatch_fairness",
   },
 ];
 

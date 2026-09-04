@@ -92,6 +92,7 @@ tags:
 | 公开预览写门禁 | `architecture/backend/public-preview-write-inventory.md` | 面试/评分写面清单 + fail-closed；本地 proof ≠ 发布 |
 | INT-TRANSCRIPT-00 隐私诚实 | `architecture/current-runtime-truth.md` | 公开 DELETE 仍 503；无 `/answers`；签发器落地 ≠ 删除权闭合 |
 | RAG-FUNNEL-01A ACL | `rules/backend/qbank-control-definer-sealed-manifest.md` | 31/15/2 闭包 + `0124` 空 principal fail-closed；域 ACL 未接线；≠ routed serving |
+| 面试公平调度 | `architecture/backend/worker-dispatch-fairness.md` | `WORKER-DISPATCH-002` / `0128` owner 量子轮转；进程内 global cap ≠ 集群锁 / 延迟 SLO |
 | 后端架构 | `architecture/backend/` | 模块、接口、DB、事务、队列 |
 | 面试答题双写/切换 | `architecture/backend/interview-answer-dual-write-cutover.md` | legacy 明文 job / event / ledger 盘点与 01 前互斥围栏（不是 01 完成） |
 | 云端部署(CD) | `delivery/lean-cd-deployment.md` | 精简单机 compose 部署、ACR、回滚 |

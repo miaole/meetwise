@@ -126,11 +126,11 @@ related:
 
 脚本映射（禁止对调）：`e2e-platform:check` → `scripts/e2e-platform/check.mjs`；`e2e-platform:prove` → `scripts/e2e-platform/prove.mjs`（5 命名守卫）；`e2e-platform:layout:prove` → `scripts/e2e-platform/e2e-platform.proof.mjs`（种植违规）；`e2e-platform:loop` → `scripts/e2e-platform/review-loop.mjs`（`test` 步仍是 `prove`，不是 `layout:prove`）。
 
-可选（`package.json` 有脚本才挂）：`public-text-policy:prove` · `quality:traceability:prove` · `provider-egress:prove` · `public-preview-write:prove` · `public-preview-write-gate:prove` · `interview-answer-submission:prove` · `adaptive-length:prove` · `scor-00-honesty:prove` · `model-op01:prove`。
+可选（`package.json` 有脚本才挂）：`public-text-policy:prove` · `quality:traceability:prove` · `provider-egress:prove` · `public-preview-write:prove` · `public-preview-write-gate:prove` · `interview-answer-submission:prove` · `adaptive-length:prove` · `scor-00-honesty:prove` · `model-op01:prove` · `interview-dispatch:unit:prove`。
 
-## 相对最新 main 的叠底（#65 + #68 + #69 + #71 + #70 + #66 + #73 + #74 + #75）
+## 相对最新 main 的叠底（#65 + #68 + #69 + #71 + #70 + #66 + #73 + #74 + #75 + #77）
 
-本分支已叠到 `origin/main` @ `76d5d0f`（#68 → #65 → #69 → #71 → #70 `0125` → #66 覆盖驱动软预算 → #73 `SCOR-00H` → #74 `0126` 答题双写互斥 → #75 `0127` 预览 OCR binding）。`package.json` / `meta/index.md` 自动并集；`current-runtime-truth.md` 冲突按并集解。#75 / #74 / #73 / #66 / #70 是 main 上已合并的独立切片，**不是**本 PR 的 supersede 对象；本 PR 只 supersede #55–#64。
+本分支已叠到 `origin/main` @ `ad2dd98`（#68 → #65 → #69 → #71 → #70 `0125` → #66 覆盖驱动软预算 → #73 `SCOR-00H` → #74 `0126` 答题双写互斥 → #75 `0127` 预览 OCR binding → #77 `0128` 面试公平调度）。`package.json` / `meta/index.md` / `ci.yml` 自动并集；`current-runtime-truth.md` 按并集解并更正迁移计数为经 `0128` 共 128。#77 / #75 / #74 / #73 / #66 / #70 是 main 上已合并的独立切片，**不是**本 PR 的 supersede 对象；本 PR 只 supersede #55–#64。
 
 | 来源 | 必须保留 |
 | --- | --- |
@@ -144,6 +144,7 @@ related:
 | #73 | `SCOR-00H` 域闸 `isTrustedScoreIdentity` / `requireTrustedPracticeOverall` / `refuseMappedBSideScore`；转写不读 `payload.score`；空评估 `409 no_scorable_cards`；缺 overall career `409 insufficient_evidence`；GET 读路径不重跑该闸；worker 仍可读 event `.score` hint；不伪造 0 分；可选 always-on 挂 `scor-00-honesty:prove`；不得改写 `issued_turns` / `scorelessBound` |
 | #74 | `0126_interview_answer_dual_write_fence.sql` 答题双写互斥：同一身份禁止 ledger artifact 与带顶层 `answer` 键的 legacy job 并存；`interview_event` 拒顶层 `answer`；码为 `interview_answer_legacy_plaintext_fenced` / `interview_answer_ledger_dual_write_fenced` / `interview_event_raw_answer_fenced`。`/turn` 无 ledger 时仍写明文；`submitInterviewAnswer` 不是生产 HTTP；**不是** `INT-TRANSCRIPT-01`。隔离 prove `int-answer-dual-write-fence:prove` 需 Docker，**不进** always-on / `OPTIONAL_ALWAYS_ON`。不重开公开删除、不新增生产 `/answers` |
 | #75 | `0127_resume_ocr_binding_provenance.sql` 预览 OCR binding：`resume.ocr.v1` typed seam + `SealedOcrProvenance`；精确双旗 `OCR_ENABLED=1` **且** `OCR_PREVIEW=1` 才可 invoke；生产 / enforce / `MEETWISE_PUBLIC_PREVIEW=1` 仍拒；失败不编造转写；面试 `admitInterviewResume` 不解密原文。**不是** `MODEL-OP-01` 关闭，不是视觉质量 SLO。可选 always-on 挂静态 `model-op01:prove`；隔离 `ocr:prove` 需远程/CI Postgres，**不进** always-on |
+| #77 | `0128_interview_dispatch_fairness.sql` 面试公平调度：`gateway_dispatch_owners` 按最老等待 owner 排序；tick 量子轮转 `fairDrainInterviewOwners`，不再抽干单 owner；每 owner 未过期 `running` cap 默认 1；进程内 `WORKER_INTERVIEW_GLOBAL_INFLIGHT` 默认 4 **不是**集群锁；`idle`=claim null，隐私归还/丢租约/graph fence/`markDone` CAS=0 为 `retry`。押题/诊断/报告仍抽干。可选 always-on 挂静态 `interview-dispatch:unit:prove`；隔离 `interview-dispatch:prove` 需远程 Postgres，**不进** always-on。不是延迟/容量 SLO |
 
 `check-docs.mjs` / `meta/index.md` / 用例目录是并集，不是二选一。
 
@@ -165,7 +166,7 @@ related:
 | `testing/e2e-parity-baseline.md` + JSON/allowlist | floors 48/367；effective 37/342；allowlist 6 条 |
 | `architecture/ai/provider-egress-inventory.{json,md}` | 登记 #62/#63 新增的 7 处 `MODEL_*` / `DASHSCOPE_TEST_*` 引用；`environmentReferenceCount` = 186 |
 
-`docs:check` 把本文件列为 required，并要求出现 `#55`、`#64`、`#69`、`#71`、`#70`、`#66`、`#73`、`#74`、`#75`、`feature/e2e-platform-integration`、`fail-closed`、`releaseEvidence`、`supersede`。
+`docs:check` 把本文件列为 required，并要求出现 `#55`、`#64`、`#69`、`#71`、`#70`、`#66`、`#73`、`#74`、`#75`、`#77`、`feature/e2e-platform-integration`、`fail-closed`、`releaseEvidence`、`supersede`。
 
 ## 本轮诚实边界
 
@@ -179,11 +180,11 @@ exit: docs:check=0 generation-trust:prove=0 golden-tasks:check=0 golden-tasks:pr
 receipts: none
 claimDone: false
 ready: NOT_READY
-rounds: 11
+rounds: 12
 releaseEvidence: false
 liveE2E: not_run:live_provider_key_missing
 core: not_requested
 secrets: none
 ```
 
-`pnpm regression` 在叠到 `origin/main` @ `76d5d0f`（#65+#68+#69+#71+#70+#66+#73+#74+#75）后退出 0（`outcome=passed_always_on`）。`docs:check` 现为 69 个 required files。这只证明 always-on + 已接线可选静态门（含 `adaptive-length:prove`、`scor-00-honesty:prove`、`model-op01:prove`），不是 CI `verify`、不是 `--core`、不是 live E2E。`ocr:prove` 与 `int-answer-dual-write-fence:prove` 需远程/CI Postgres，未跑、不进 always-on。本 PR 只 supersede #55–#64，不 supersede #75 / #74 / #73 / #66 / #70。作者不得自签 `review: passed`。不得 `--claim-done`。不得写「本轮局部验证完成」——审核仍是 `blocked:author_only`。
+`pnpm regression` 叠到 `origin/main` @ `ad2dd98`（#65+#68+#69+#71+#70+#66+#73+#74+#75+#77）后的 always-on 回执待本轮跑完再填。`docs:check` 现为 71 个 required files（+ `worker-dispatch-fairness.md` + `worker-event-driven-dispatch.md`）。这只证明 always-on + 已接线可选静态门（含 `adaptive-length:prove`、`scor-00-honesty:prove`、`model-op01:prove`、`interview-dispatch:unit:prove`），不是 CI `verify`、不是 `--core`、不是 live E2E。`ocr:prove`、`int-answer-dual-write-fence:prove` 与 `interview-dispatch:prove` 需远程/CI Postgres，未跑、不进 always-on。本 PR 只 supersede #55–#64，不 supersede #77 / #75 / #74 / #73 / #66 / #70。作者不得自签 `review: passed`。不得 `--claim-done`。不得写「本轮局部验证完成」——审核仍是 `blocked:author_only`。

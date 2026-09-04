@@ -134,6 +134,7 @@ E2E 用例数/断言 parity 是测试控制面，不计入上表产品域估算�
 | SCOR-00H 消费诚实 | `interview-scoring-measurement.md` | 无 canonical identity 不得伪造 0 / mapped B 端 overall；转写/`POST` 评估/career/SSE 走域闸；GET 不重跑 |
 | 答题双写互斥（0126） | `interview-answer-dual-write-fence.md` | 同一身份禁止 ledger artifact 与带顶层 `answer` 键的 legacy job 并存；`/turn` 无 ledger 时仍写明文；`submitInterviewAnswer` 不是生产 HTTP；≠ `INT-TRANSCRIPT-01`；隔离 prove 需 Docker，不进 always-on |
 | 预览 OCR binding（0127） | `resume-ocr-binding.md` | `resume.ocr.v1` typed seam + 密封 provenance；双旗 `OCR_ENABLED=1`+`OCR_PREVIEW=1` 才可 invoke；生产仍关；≠ `MODEL-OP-01` 关闭；隔离 `ocr:prove` 不进 always-on |
+| 面试公平调度（0128） | `worker-event-driven-dispatch.md` | `WORKER-DISPATCH-002`：owner 量子轮转 + 每 owner 未过期 running cap；进程内 global cap 不是集群锁；押题/诊断/报告仍抽干；静态 `interview-dispatch:unit:prove` 可进可选 always-on；隔离 `interview-dispatch:prove` 需远程 Postgres，不进 always-on |
 
 ## 5. 专家级面试官题库（内部使用）
 

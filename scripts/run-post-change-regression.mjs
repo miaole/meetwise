@@ -58,6 +58,7 @@ export const OPTIONAL_ALWAYS_ON = Object.freeze([
   'adaptive-length:prove',
   'scor-00-honesty:prove',
   'model-op01:prove',
+  'interview-dispatch:unit:prove',
 ]);
 
 export const CORE_REQUIRED = Object.freeze([

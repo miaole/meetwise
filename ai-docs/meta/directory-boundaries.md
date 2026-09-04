@@ -48,5 +48,6 @@ tags:
 - SCOR-00H 消费诚实闸 → `requirements/use-cases/interview-scoring-measurement.md`；不得另写第二套「无证据可伪造 0 分」规则
 - 答题双写互斥 / 切换图 → `architecture/backend/interview-answer-dual-write-cutover.md`；用例在 `requirements/use-cases/interview-answer-dual-write-fence.md`。0126 围栏 ≠ `INT-TRANSCRIPT-01`，不得另写第二套「明文已停用」声明
 - 预览 OCR binding → `requirements/use-cases/resume-ocr-binding.md`。0127 双旗预览 ≠ 生产视觉 SLO，不得另写第二套「OCR 已上线」声明
+- 面试公平调度 → `architecture/backend/worker-dispatch-fairness.md`；用例在 `requirements/use-cases/worker-event-driven-dispatch.md`。0128 轮转 ≠ 集群全局 inflight / 延迟 SLO，不得另写第二套「调度已公平」声明
 - HTTP E2E 可执行目录契约 → `testing/conventions/e2e-directory-contract.md`（叙事 SOP 在 `skills/testing/e2e-platform/`，禁止第三套目录故事）
 - e2e 用例/断言 parity floors → `testing/e2e-parity-baseline.md`
