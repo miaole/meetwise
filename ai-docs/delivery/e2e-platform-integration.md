@@ -172,9 +172,9 @@ related:
 aiAuthored: yes
 aiTrust: untrusted
 review: blocked:author_only
-verification: pending
+verification: commands_ok
 commands: pnpm regression
-exit: pending
+exit: docs:check=0 generation-trust:prove=0 golden-tasks:check=0 golden-tasks:prove=0 e2e-platform:check=0 e2e-platform:prove=0 e2e-platform:layout:prove=0 e2e-helpers:prove=0 e2e-receipt:prove=0 e2e-runner:prove=0 e2e-static-guards:check=0 e2e-static-guards:prove=0 e2e-parity:check=0 e2e-parity:prove=0 arch=0 api:smoke=0 public-text-policy:prove=0 quality:traceability:prove=0 provider-egress:prove=0 public-preview-write:prove=0 public-preview-write-gate:prove=0 interview-answer-submission:prove=0 adaptive-length:prove=0 scor-00-honesty:prove=0
 receipts: none
 claimDone: false
 ready: NOT_READY
@@ -185,4 +185,4 @@ core: not_requested
 secrets: none
 ```
 
-叠到 `origin/main` @ `c27b039`（#65+#68+#69+#71+#70+#66+#73+#74）后，`pnpm regression` 尚未重跑。本轮诚实边界待 always-on 退出后再改 `verification`。这不是 CI `verify`、不是 `--core`、不是 live E2E。本 PR 只 supersede #55–#64，不 supersede #74 / #73 / #66 / #70。作者不得自签 `review: passed`。不得 `--claim-done`。不得写「本轮局部验证完成」——审核仍是 `blocked:author_only`。
+`pnpm regression` 在叠到 `origin/main` @ `c27b039`（#65+#68+#69+#71+#70+#66+#73+#74）后退出 0（`outcome=passed_always_on`）。`docs:check` 现为 68 个 required files。这只证明 always-on + 已接线可选静态门（含 `adaptive-length:prove` 与 `scor-00-honesty:prove`），不是 CI `verify`、不是 `--core`、不是 live E2E。`int-answer-dual-write-fence:prove` 需 Docker，未跑、不进 always-on。本 PR 只 supersede #55–#64，不 supersede #74 / #73 / #66 / #70。作者不得自签 `review: passed`。不得 `--claim-done`。不得写「本轮局部验证完成」——审核仍是 `blocked:author_only`。
