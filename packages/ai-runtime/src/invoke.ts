@@ -376,6 +376,9 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
   }
   // MODEL-OP-02 准入分区（服务器派生，绝不 caller 供）。仅 operation-scoped 路径；
   // legacy cost-policy-only 调用返回 undefined（走 MODEL-OP-00 账本，不折入共享分区）。
+  // HC-GAP-009：无 operation 时不调用 admitSharedModelOperation，因此不写
+  // ai_model_concurrency_lease。这是显式兼容缝，不是静默扩容；关闭该项靠
+  // model-slot-bypass 静态门 + 隔离 PG 证明，而不是在本切片改生产 fail-closed。
   const admissionPartition = resolveModelAdmissionPartition(spec);
   const requestId = spec.requestId ?? requestIdStore.getStore() ?? null;
   const waitMs = modelInvocationWaitMs(spec);

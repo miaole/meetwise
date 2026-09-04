@@ -12,7 +12,9 @@
  *
  * 显式边界（非静默旁路）：只有 `spec.operation` 路径走此权威；legacy cost-policy-only
  * 调用仍走 MODEL-OP-00 的 ai_cost_reservation 账本（未折入共享分区），这是
- * MODEL-OP-03/04 之前保留的兼容 seam，已在 .tmp pregen-gate 诚实声明。
+ * MODEL-OP-03/04 之前保留的兼容 seam。HC-GAP-009 用静态门 + 隔离 PG 证明：
+ * 无 operation 的 invoke 不写 ai_model_concurrency_lease；有 operation 且
+ * max_concurrency=2 时第三条拒绝。本文件不把该缝改成生产 fail-closed。
  */
 import { randomUUID } from 'node:crypto';
 import {

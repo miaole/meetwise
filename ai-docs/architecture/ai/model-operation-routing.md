@@ -92,6 +92,8 @@ related:
 
 限流和费用预留的分区至少为 `providerAccount + region + modelOrRecipe + tenant/project + operation`。默认模型、快模型、OCR、ASR/TTS、embedding 和 rerank 不得各自悄悄创建独立的“总上限”。进程内舱壁可作为第一层，但只有共享、持久化或网关准入才能叫作跨副本总预算。
 
+**当前接线（HC-GAP-009）：** `invoke()` 只在 `spec.operation` 能派生分区时调用 `admitSharedModelOperation` 并写 `ai_model_concurrency_lease`。无 `operation` 的 legacy / cost-policy-only 调用走 MODEL-OP-00 账本，**不写** 0120 租约。这是显式兼容缝，不是“已经全局限流”，本切片也不把它改成生产 fail-closed。静态门 `pnpm model-slot-bypass:static:prove`（per-push）锁住该守卫；隔离 PG `pnpm model-slot-bypass:prove` 断言无 operation 不改 lease 表、有 operation 且 max=2 时第三条拒绝。隔离命令不在 per-push，无回执时 `releaseEvidence=false`。进程内 `MODEL_MAX_CONCURRENT` 与 0120 的交叉仍是 `HC-GAP-010`。
+
 ### 5.3 失败和替换
 
 | 时点 | 允许动作 | 禁止动作 |
