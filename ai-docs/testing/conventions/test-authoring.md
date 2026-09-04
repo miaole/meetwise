@@ -11,6 +11,7 @@ related:
   - ../strategy/test-strategy.md
   - ../../requirements/use-case-conventions.md
   - ../../skills/testing/SKILL.md
+  - ../../skills/testing/sop.md
   - ../golden-tasks/README.md
 ---
 
@@ -51,7 +52,7 @@ related:
 ## 5. Gate 语义（接 CI）
 
 - 阻断合并的 TC：契约、单元、集成（含 RLS 越权=0/CAS 并发/幂等）、graph fixture、隔离 prove。HTTP/浏览器 live E2E **不是** per-push 阻断门（需 Key；见测试技能）。
-- 变更后命令：`pnpm regression`；触达面加跑见 `ai-docs/skills/testing/regression-selection.md`。
+- 变更后仪式：`ai-docs/skills/testing/sop.md`（draft）。命令：`pnpm regression`；触达面加跑见 `ai-docs/skills/testing/regression-selection.md`。
 - ai-eval 质量回归掉线 = 阻断发布（release-gate）。
 - CI 工作流见 `.github/workflows/ci.yml`；每新增 gate 必须挂在某条 UC 的 Acceptance 上。
 

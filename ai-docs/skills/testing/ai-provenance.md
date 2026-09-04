@@ -1,11 +1,21 @@
 ---
-name: ai-provenance
+id: skills_testing_ai_provenance
+name: AI 出处检查
 description: AI 触达路径的出处检查：题面身份、route/rubric/model 绑定、禁止伪造分数、禁止匿名模型输出。
+type: skill
+scope: shared
+level: guide
+status: draft
+owner: qa
+version: 1
+related:
+  - ./sop.md
+  - ./honesty-rules.md
 ---
 
 # AI 出处（provenance）检查
 
-模型输出不能当匿名事实。改面试、评分、押题、诊断、报告、OCR、语音时，按下列项核对。未核不得写“AI 路径已验证”。
+这是 [变更后 SOP](./sop.md) 的第 4 步（仅 AI 触达时必做）。模型输出不能当匿名事实。改面试、评分、押题、诊断、报告、OCR、语音时，按下列项核对。未核不得写“AI 路径已验证”。隔离 worker 常注入报告故障，绿的 HTTP E2E **不能**写成 `report_ready` 已稳定，见 [门禁目录](./run-gates.md) §3。
 
 ## 1. 题面身份（question identity）
 

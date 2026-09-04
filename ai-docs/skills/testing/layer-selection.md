@@ -1,11 +1,22 @@
 ---
-name: layer-selection
+id: skills_testing_layer_selection
+name: 测试层选择
 description: 按改动性质选择 unit、contract、隔离 prove、HTTP E2E 或浏览器 E2E，禁止用错层冒充验收。
+type: skill
+scope: shared
+level: guide
+status: draft
+owner: qa
+version: 1
+related:
+  - ./sop.md
+  - ./run-gates.md
+  - ../../testing/strategy/test-strategy.md
 ---
 
 # 如何选择测试层
 
-一层只证明该层能证明的事。选层错误等于假验收。
+这是 [变更后 SOP](./sop.md) 的第 2 步。一层只证明该层能证明的事。选层错误等于假验收。选完按 SOP 第 3 步执行（always-on + 矩阵必须列）。
 
 | 改动性质 | 先跑 | 不要用它证明 |
 | --- | --- | --- |

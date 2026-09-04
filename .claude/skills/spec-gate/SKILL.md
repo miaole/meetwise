@@ -26,3 +26,5 @@ allowed-tools:
 ## 不通过怎么办
 
 回退补全用例/测试，不前进。复杂功能方案先过 `/expert-audit`（P0）。
+
+代码落地后必须再执行 [`ai-docs/skills/testing/sop.md`](../../../ai-docs/skills/testing/sop.md)。本技能是生成前的用例/测试门禁，不能替代变更后仪式。
