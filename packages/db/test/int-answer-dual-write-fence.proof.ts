@@ -7,13 +7,13 @@
  *
  *   pnpm int-answer-dual-write-fence:prove
  */
+import { randomUUID } from 'node:crypto';
 import {
   createPool, asPrincipal, assertIsolatedTestTarget,
   submitInterviewAnswer, enqueueInterviewJob, appendEvent, markJobDone,
   createResumeWithBlob, completeIngestion, transitionResume,
   INTERVIEW_ANSWER_LEGACY_PLAINTEXT_FENCED, INTERVIEW_ANSWER_LEDGER_DUAL_WRITE_FENCED,
   INTERVIEW_EVENT_RAW_ANSWER_FENCED,
-  type Client,
 } from '@meetwise/db';
 import { ingestResume } from '@meetwise/domain';
 
@@ -258,19 +258,23 @@ async function main() {
   const ivSql = `dw-sql-${process.pid}`;
   await seedResumeInterview(owner, ivSql, `经历：双写围栏 sql ${process.pid}`);
   await enqueueAnswer(owner, ivSql, 'q-sql', 1);
+  const sqlSubmissionId = randomUUID();
+  const sqlArtifactId = randomUUID();
   A('TC-E3 原始 SQL 插 artifact 被触发器拒',
-    (await rejected(() => asPrincipal(admin, owner, (c: Client) => c.query(
-      `INSERT INTO interview_answer_submission(id,owner_user_id,interview_id,question_id,state_version,client_submission_key,canonical_body_hmac,privacy_epoch)
-       VALUES (gen_random_uuid(),current_setting('app.principal_user',true),$1,'q-sql',1,'sql-key','${'b'.repeat(64)}',1)`,
-      [ivSql],
-    ).then(async () => {
+    (await rejected(() => asPrincipal(admin, owner, async (c) => {
+      await c.query(
+        `INSERT INTO interview_answer_submission(id,owner_user_id,interview_id,question_id,state_version,client_submission_key,canonical_body_hmac,privacy_epoch)
+         VALUES ($1,current_setting('app.principal_user',true),$2,'q-sql',1,'sql-key',$3,1)`,
+        [sqlSubmissionId, ivSql, 'b'.repeat(64)],
+      );
+      // 不 SELECT submission：app_role 对该表无读权限；显式 id 让触发器成为唯一失败点。
       await c.query(
         `INSERT INTO interview_answer_artifact(id,owner_user_id,interview_id,question_id,state_version,submission_id,ciphertext,body_hmac,hmac_key_version,enc_key_version,privacy_epoch)
-         SELECT gen_random_uuid(),current_setting('app.principal_user',true),$1,'q-sql',1,s.id,pgp_sym_encrypt('x','k'),$2,1,1,1
-           FROM interview_answer_submission s WHERE s.client_submission_key='sql-key'`,
-        [ivSql, 'b'.repeat(64)],
+         VALUES ($1,current_setting('app.principal_user',true),$2,'q-sql',1,$3,pgp_sym_encrypt('x','k'),$4,1,1,1)`,
+        [sqlArtifactId, ivSql, sqlSubmissionId, 'b'.repeat(64)],
       );
-    })))) === INTERVIEW_ANSWER_LEDGER_DUAL_WRITE_FENCED);
+    }))) === INTERVIEW_ANSWER_LEDGER_DUAL_WRITE_FENCED
+    && (await countArtifacts(ivSql, 'q-sql')) === 0);
 
   await seedBareInterview(otherOwner, `dw-otheriv-${process.pid}`);
   const cross = await rejected(() => enqueueAnswer(otherOwner, ivLegacy, 'q-legacy', 9));
