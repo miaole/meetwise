@@ -53,7 +53,7 @@ related:
 
 - 正常完成的绑定面试：`Interview=completed`、`Consumption=confirmed`、`JobApplication=assessment_unavailable`、`score=NULL`。
 - 失败的绑定面试：`Interview=failed`、消费按既有释放规则收口、`JobApplication=assessment_unavailable`、`score=NULL`。
-- 两种情形下：岗位列表、人才库、导出、通知和任何 recruiter API 都不消费或显示可比较的数值分。
+- 两种情形下：岗位列表、人才库、导出、通知和任何 recruiter API 都不消费或显示可比较的数值分。招聘方申请状态页（`/recruiter/jobs/:id/applications/:applicationId`）只读该无分状态；C 端「我的投递」也不再渲染申请分数。该 UI 消费门见 `bend-recruiter-architecture-surface.md`，不替代本用例的数据库 hold。
 
 ### 验收标准
 

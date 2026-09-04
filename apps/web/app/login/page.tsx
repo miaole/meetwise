@@ -24,7 +24,7 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <form action={formAction} className="space-y-5">
-            {/* 身份(注册用):求职者 C 端 / 招聘方 B 端 → 登录后进不同首页。
+            {/* recruiter cookie 只进内部预览骨架，不是第二套对等产品。
                 Server Action 从 form data 读 role,故保留隐藏 input 同步 Tabs 选中值。 */}
             <input type="hidden" name="role" value={role} />
             <div className="space-y-2">
@@ -32,9 +32,12 @@ export default function LoginPage() {
               <Tabs value={role} onValueChange={(v) => setRole(v as 'candidate' | 'recruiter')}>
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="candidate">{t('candidate')}</TabsTrigger>
-                  <TabsTrigger value="recruiter">{t('recruiter')}</TabsTrigger>
+                  <TabsTrigger value="recruiter">{t('recruiter')}（内部预览）</TabsTrigger>
                 </TabsList>
               </Tabs>
+              <p className="text-xs leading-5 text-muted-foreground">
+                招聘方入口是内部预览骨架，不是已上线产品，也不是与求职者对等的第二套产品。
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">{t('email')}</Label>

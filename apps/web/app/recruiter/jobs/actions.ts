@@ -32,7 +32,7 @@ export async function createJobAction(formData: FormData): Promise<CreateJobActi
 
 /**
  * 邀请候选人面试(B 端企业纵深):服务端读 cookie 加 Bearer → POST /recruiter/jobs/:id/invite。
- * 页面只呈现最小流程状态与人工复核提示，不以本说明宣称云端隔离或招聘决策能力。候选人邮箱由后端解析为用户 id。
+ * 页面只呈现最小流程状态，不以本说明宣称云端隔离、人工审核工单或招聘决策能力。候选人邮箱由后端解析为用户 id。
  * 返回 {ok,msg} 给 useActionState 渲染反馈(无死胡同:成功/未找到/失败都有文案)。
  */
 export async function inviteCandidateAction(_prev: { ok?: boolean; msg?: string }, formData: FormData): Promise<{ ok?: boolean; msg?: string }> {
@@ -52,5 +52,5 @@ export async function inviteCandidateAction(_prev: { ok?: boolean; msg?: string 
   if (res.status === 404) return { ok: false, msg: '未找到该候选人(需对方已注册为求职者)' };
   if (res.status === 400) return { ok: false, msg: '不能邀请自己 / 参数无效' };
   if (!res.ok) return { ok: false, msg: '邀请失败:' + res.status };
-  return { ok: true, msg: '已邀请，候选人将用同一引擎面试；评分校准完成前你只会看到状态与人工复核提示（不含面试内容）' };
+  return { ok: true, msg: '已邀请，候选人将用同一引擎面试；评分校准完成前你只会看到流程状态（不含面试内容，也没有人工审核工单）' };
 }

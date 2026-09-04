@@ -6,8 +6,9 @@ import { getServerToken, serverGet } from '@/lib/api/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { JobCreateForm } from './JobCreateForm';
+import { ArchitectureHighlights } from '@/components/recruiter/ArchitectureHighlights';
 
-export const metadata: Metadata = { title: '招聘方 · 岗位 · 知面', description: '招聘方发布岗位并按目标能力组织面试。' };
+export const metadata: Metadata = { title: '岗位骨架 · 内部预览 · 知面', description: '内部岗位骨架。不是招聘方产品，也不是第二套产品面。' };
 
 interface Job { id: string; title: string; description: string; competencies: string[]; status: string; created_at: string }
 
@@ -19,9 +20,11 @@ export default async function RecruiterJobsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold"><Building2 className="size-6 text-primary" />招聘方 · 岗位</h1>
-        <p className="mt-1 text-muted-foreground">发布岗位、定义目标能力;候选人面试将据此出题。你只能看到自己的岗位(多租户隔离)。</p>
+        <h1 className="flex items-center gap-2 text-2xl font-bold"><Building2 className="size-6 text-primary" />岗位骨架 · 内部预览</h1>
+        <p className="mt-1 text-muted-foreground">内部调试用岗位骨架。不是招聘方产品，也不是正式招聘系统；练习顺着回答往下问，这里看不到原文，也不能据此录用。</p>
       </div>
+
+      <ArchitectureHighlights compact />
 
       <Card>
         <CardHeader>
@@ -61,7 +64,11 @@ export default async function RecruiterJobsPage() {
         )}
       </section>
 
-      <p className="text-sm"><Link href="/dashboard" className="text-muted-foreground hover:text-foreground">← 返回总览</Link></p>
+      <p className="text-sm">
+        <Link href="/recruiter/how-it-works" className="text-muted-foreground hover:text-foreground">怎么评估</Link>
+        {' · '}
+        <Link href="/recruiter/talent" className="text-muted-foreground hover:text-foreground">投递列表</Link>
+      </p>
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { applyAction, startApplicationAction, declineApplicationAction } from './actions';
 import { listWindow, withLimitHref } from '@/lib/paginate';
 import { resumeOptionLabel } from '@/lib/resume/display';
+import { applicationScoreVisible } from '@/lib/recruiter/surface';
 import { MyApplications, ResumeList, type ResumeRef as Resume } from '@meetwise/contracts';
 
 const PAGE = 20;          // 岗位广场可能很多:封顶首屏渲染,"加载更多"递增 ?limit
@@ -51,13 +52,13 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
     <div className="mx-auto max-w-3xl space-y-4">
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold"><Briefcase className="size-6 text-primary" />岗位广场</h1>
-        <p className="mt-1 text-muted-foreground">浏览招聘中的岗位并投递。投递后将按岗位目标能力安排面试评估。</p>
+        <p className="mt-1 text-muted-foreground">浏览练习岗位并投递。这不是正式招聘，对侧列表只是内部骨架，不构成录用评估。</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">招聘中的岗位（{jobs.length}）</CardTitle>
-          <CardDescription>选择岗位投递申请,招聘方会看到你的投递。</CardDescription>
+          <CardDescription>选择岗位投递。对侧只能看到流程状态，不是招聘方产品，也不是正式招聘流程。</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
           {jobsRes === null ? (
@@ -109,6 +110,8 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
             // `assessment_unavailable` 是无可信分数且已退款的可恢复终态；重试必须显式由
             // 用户发起，服务端会创建新的 attempt，不会复活或覆盖旧会话。
             const startable = app.status === 'invited' || app.status === 'in_progress' || app.status === 'assessment_unavailable';
+            // 申请 score 即使历史非空也不得渲染：校准 hold 下它不是可比较评分。
+            const showScore = applicationScoreVisible(app.score);
             return (
               <div key={app.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3">
                 <span className="text-sm font-medium">
@@ -116,7 +119,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                   {app.source === 'invited' && <Badge variant="secondary" className="ml-2 align-middle">招聘方邀请</Badge>}
                 </span>
                 <div className="flex items-center gap-2">
-                  {app.score !== null && <span className="text-sm text-muted-foreground">评分 {app.score}</span>}
+                  {showScore ? <span className="text-sm text-muted-foreground">申请分暂不展示</span> : null}
                   <Badge variant={st.variant}>{st.text}</Badge>
                   {/* 岗位面试必须显式选择一份已摄取简历；服务端会把 resume/job/application 原子绑定到唯一会话。 */}
                   {startable && (

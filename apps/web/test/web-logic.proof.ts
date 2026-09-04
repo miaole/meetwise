@@ -32,6 +32,15 @@ import {
 } from '../lib/resume/ocr-preview-ui.ts';
 import { interviewContextTitle, interviewResumeLabel, interviewTimeLabel } from '../lib/interview/context.ts';
 import { practiceHintScore, webTrustedQuestionIdentity } from '../lib/stream/scoring-honesty.ts';
+import {
+  applicationScoreVisible,
+  applicationStatusLabel,
+  findOwnedApplication,
+  isRecruiterApplicationId,
+  recruiterAssessmentLabel,
+  RECRUITER_ARCHITECTURE_HIGHLIGHTS,
+  RECRUITER_ARCHITECTURE_IDS,
+} from '../lib/recruiter/surface.ts';
 
 /** 把若干 chunk 串成异步流(模拟 ReadableStream 分块)。 */
 async function* streamOf(...chunks: string[]) { for (const c of chunks) yield c; }
@@ -608,6 +617,33 @@ async function main() {
     && scoredDisp.signalConclude?.code === 'early_weak'
     && scoredDisp.message.includes('练习反馈') && !scoredDisp.message.includes('下一题')
     && !scoredDisp.message.includes('本题得分'));
+
+  section('B 端申请状态：只命中自有 app_ 投影，分数恒不可见');
+  const owned = [
+    { id: 'app_alpha', status: 'assessment_unavailable', score: 68 },
+    { id: 'app_beta', status: 'invited', score: null },
+  ];
+  A('合法自有申请命中', findOwnedApplication(owned, 'app_alpha')?.status === 'assessment_unavailable');
+  A('他岗/未知 id 不命中', findOwnedApplication(owned, 'app_other') === null);
+  A('非 app_ 前缀不命中', findOwnedApplication(owned, 'iv_legacy') === null && !isRecruiterApplicationId('../jobs'));
+  A('注入型 applicationId 不命中', findOwnedApplication(owned, 'app_alpha/../talent') === null && findOwnedApplication(owned, 'app_alpha?x=1') === null);
+  A('超长 applicationId 不命中', !isRecruiterApplicationId(`app_${'a'.repeat(80)}`));
+  A('空列表与非法集不命中', findOwnedApplication(null, 'app_alpha') === null && findOwnedApplication(undefined, 'app_alpha') === null);
+  A('评分暂不可用不是 0 分文案', recruiterAssessmentLabel('assessment_unavailable', 68) === '评分暂不可用' && !recruiterAssessmentLabel('assessment_unavailable', 68).includes('68'));
+  A('历史 completed 仍不提供数值评分', recruiterAssessmentLabel('completed', 90) === '流程已结束 · 不提供数值评分');
+  A('未知状态 fail-closed 为不提供数值评分', recruiterAssessmentLabel('future_terminal') === '不提供数值评分');
+  A('申请分数消费门恒关闭', applicationScoreVisible(68) === false && applicationScoreVisible(null) === false);
+  A('状态标签无死胡同', applicationStatusLabel('declined').text === '已婉拒' && applicationStatusLabel('missing').text === '状态未知');
+  A('架构说明七项 id 固定且不含发布承诺', RECRUITER_ARCHITECTURE_IDS.join(',') === 'adaptive,checkpoint,prove,scoring,fence,fairness,acl'
+    && RECRUITER_ARCHITECTURE_HIGHLIGHTS.length === 7
+    && RECRUITER_ARCHITECTURE_HIGHLIGHTS.every((card) => card.title.length > 0 && !card.body.includes('生产级可靠')));
+  A('公平卡片标题不宣称已经分开领', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'fairness')?.title === '面试排队会轮着领');
+  A('公平卡片写明不是高峰容量保证', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'fairness')?.body.includes('不是高峰容量保证') === true);
+  A('公平卡片不再写按账号串行领取', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'fairness')?.body.includes('仍按账号串行领取') === false);
+  A('公平卡片写明押题诊断报告仍抽干', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'fairness')?.body.includes('押题、诊断、报告还是按账号抽干') === true);
+  A('ACL 卡片不把检索权限写成已交付', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'acl')?.body.includes('生产接线还没完成') === true);
+  A('评分卡片写明不用 0 分凑数', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'scoring')?.body.includes('不会用 0 分凑数') === true);
+  A('分开记账卡片不把 0126 写成完整档案', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'fence')?.body.includes('生产作答仍可能写明文任务') === true);
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
   process.exit(failures === 0 ? 0 : 1);
