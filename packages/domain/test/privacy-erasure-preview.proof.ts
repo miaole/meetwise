@@ -97,9 +97,13 @@ try {
 A('伪造全 sink 已启动被拒', completedForged);
 
 const migration = read('packages/db/migrations/0129_privacy_erasure_preview_path.sql');
+const isolated = read('scripts/run-e2e-isolated.mjs');
 A('0129 存在且禁止 completed / SLO，并链接 0096/0125',
   existsSync(resolve(root, 'packages/db/migrations/0129_privacy_erasure_preview_path.sql'))
+  && existsSync(resolve(root, 'packages/db/migrations/0126_interview_answer_dual_write_fence.sql'))
   && !existsSync(resolve(root, 'packages/db/migrations/0126_privacy_erasure_preview_path.sql'))
+  && isolated.includes("'privacy-erasure-preview:prove:raw'")
+  && isolated.includes("prove:privacy-erasure-preview")
   && migration.includes("CHECK (status IN ('inventoried','local_fenced'))")
   && migration.includes('production_slo_claimed boolean NOT NULL DEFAULT false CHECK (production_slo_claimed = false)')
   && migration.includes('interview_projection_begin_erasure')

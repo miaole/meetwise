@@ -32,7 +32,7 @@ tags:
 - SQL 侧枚举：`privacy_deletion_target.sink` CHECK 仍以 `0125_memory_vector_chunk_erasure.sql` 为最新扩展。`0124_rag_retrieval_acl_fail_closed.sql` 与 `0126_interview_answer_dual_write_fence.sql` 已在 main；`0126` 不改该 CHECK。`0129_privacy_erasure_preview_path.sql` 也不改该 CHECK。
 - 预览路径目录：`packages/domain/src/privacy-erasure-preview.ts` 的 `PRIVACY_PREVIEW_SINK_CATALOG`（0125 CHECK 全集 + `user_memory` / `ai_invocation_trace` / `backup_pitr`）
 
-验证（隔离 PostgreSQL 需要容器运行时；无容器时只跑域/契约/静态 pin）：
+验证（隔离 PostgreSQL / HTTP 走 `run-e2e-isolated` 或远程 Postgres/Redis 环境变量；本切片禁止 `pnpm db:up` 开发库。无隔离目标时只跑域/契约/静态 pin）：
 
 ```bash
 pnpm -C packages/domain prove:privacy-erasure-preview
