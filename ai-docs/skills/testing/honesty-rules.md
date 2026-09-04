@@ -34,6 +34,7 @@ related:
 11. **未审核生成物标 READY 或声称完成。** 生成代码 / 模型输出默认不可信。没有走完 [变更后审核](./post-change-review.md) 第 0 节，不得标 READY，也不得把 `releaseEvidence=false` 的绿回归写成完成。受信回执出现之前，`releaseEvidence` 必须保持 `false`。
 12. **默认信任 AI 代码或 AI 输出。** 审核与验证缺一，或把 `aiTrust` 写成 `trusted`，即 [fail-closed 门](./fail-closed-gate.md) `BLOCK`。
 13. **提交或记录真实密钥、`.env`、token、简历原文、录音。** 技能与回执只允许占位名。
+14. **默认信任 AI 对测试的 diff。** 删掉 `e2e/` 用例、削弱 `expect` / `A(...)`，或下调 parity floors，必须先过 `e2e-parity:check` 与独立审核。合法削减只走 [`testing/e2e-parity-baseline.md`](../../testing/e2e-parity-baseline.md) 的 allowlist；作者改 allowlist 不算自签审核。
 
 ## 允许
 

@@ -54,6 +54,8 @@ pnpm regression --live     # 真供应商 HTTP E2E；缺 MODEL_API_KEY 非零退
 
 per-push CI 跑隔离 prove，**不**跑 `e2e:isolated`。无 Key 时不要发起 live 命令，记录 `not_run`，禁止 skip-as-pass。
 
+`e2e/` 与约定关键 prove 脚本的用例数/断言身份由 `pnpm e2e-parity:check` 冻结。删除测试或削弱 `expect`/`A(...)` 必须非零退出，除非 [`e2e-parity-baseline.md`](../e2e-parity-baseline.md) 里的 allowlist 写下精确旧身份。这不是覆盖率门，也不是发布证据。
+
 ## AI Golden Tasks
 
 第一批已登记在 [`testing/golden-tasks/README.md`](../golden-tasks/README.md)，状态为 `mapped` / `partial` / `planned`，**没有**“已通过”项。

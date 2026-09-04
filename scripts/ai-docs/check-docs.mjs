@@ -53,6 +53,10 @@ const requiredFiles = [
   "ai-docs/skills/testing/e2e-platform/05-failure-classification.md",
   "ai-docs/testing/golden-tasks/README.md",
   "ai-docs/testing/golden-tasks/registry.json",
+  "ai-docs/testing/e2e-parity-baseline.md",
+  "ai-docs/testing/e2e-parity-baseline.json",
+  "ai-docs/testing/e2e-parity-allowlist.json",
+  "ai-docs/requirements/use-cases/e2e-parity-baseline.md",
   "ai-docs/delivery/roadmap.md",
   "docker/compose.dev.yml",
   "docker/compose.demo.yml",
@@ -80,6 +84,7 @@ const requiredTerms = new Map([
   ["ai-docs/skills/testing/honesty-rules.md", ["releaseEvidence", "aiTrust", "passed_adversarial", "secrets", "未审核生成", "不得标 READY"]],
   ["ai-docs/skills/testing/e2e-platform/README.md", ["draft", "PASS_WITH_GAPS", "e2e:isolated", "NOT_READY"]],
   ["ai-docs/testing/golden-tasks/README.md", ["GT-01", "planned", "mapped"]],
+  ["ai-docs/testing/e2e-parity-baseline.md", ["allowlist", "fail-closed", "releaseEvidence", "e2e-parity:check"]],
   ["ai-docs/observability/observability-strategy.md", ["SLO", "降级", "恢复", "脱敏", "threadId"]],
   ["ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md", ["qbank_control_definer", "FORCE RLS", "fail-closed", "SECURITY DEFINER", "lane(b)", "撤销", "复活"]],
 ]);

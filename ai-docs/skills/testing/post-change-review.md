@@ -61,6 +61,7 @@ related:
 - [ ] 用 [layer-selection](./layer-selection.md) 选了层，而不是默认只开页面或只断言 200。
 - [ ] 钱/状态/隔离的并发、恢复、逃逸至少有一条落在集成或 E2E，没有全堆在单测。
 - [ ] 没有用 mock 模型证明生产模型质量。
+- [ ] 若删了 `e2e/` 用例或削弱 `A`/`expect`，已按 [`e2e-parity-baseline.md`](../../testing/e2e-parity-baseline.md) 写 allowlist，而不是改基线假装从来没有。
 
 ## 6. 结论边界
 

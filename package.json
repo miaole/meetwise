@@ -7,6 +7,8 @@
     "docs:check": "node scripts/ai-docs/check-docs.mjs",
     "golden-tasks:check": "node scripts/golden-tasks-check.mjs",
     "generation-trust:prove": "node scripts/generation-trust-check.mjs",
+    "e2e-parity:check": "node scripts/e2e-parity-check.mjs",
+    "e2e-parity:prove": "node scripts/e2e-parity.proof.mjs",
     "e2e-helpers:prove": "node --import tsx e2e/helpers/e2e-helpers.proof.ts",
     "e2e-platform:prove": "node scripts/e2e-platform/prove.mjs",
     "regression": "node scripts/run-post-change-regression.mjs",

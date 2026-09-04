@@ -34,6 +34,8 @@ const ALWAYS_ON = [
   ['docs:check', ['docs:check']],
   ['generation-trust:prove', ['generation-trust:prove']],
   ['golden-tasks:check', ['golden-tasks:check']],
+  ['e2e-parity:check', ['e2e-parity:check']],
+  ['e2e-parity:prove', ['e2e-parity:prove']],
   ['e2e-platform:prove', ['e2e-platform:prove']],
   ['e2e-helpers:prove', ['e2e-helpers:prove']],
   ['e2e-receipt:prove', ['e2e-receipt:prove']],

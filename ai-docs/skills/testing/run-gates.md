@@ -25,8 +25,8 @@ related:
 pnpm regression
 ```
 
-默认 **always-on**（`scripts/run-post-change-regression.mjs` 的 `ALWAYS_ON`）：`docs:check`、`generation-trust:prove`、`golden-tasks:check`、`e2e-platform:prove`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`arch`、`api:smoke`。`generation-trust:prove` 只证明政策仍写在审核清单与回归入口，不证明 diff 已人工审完。
-
+默认 **always-on**（`scripts/run-post-change-regression.mjs` 的 `ALWAYS_ON`）：`docs:check`、`generation-trust:prove`、`golden-tasks:check`、`e2e-parity:check`、`e2e-parity:prove`、`e2e-platform:prove`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`arch`、`api:smoke`。`generation-trust:prove` 只证明政策仍写在审核清单与回归入口，不证明 diff 已人工审完。删除 `e2e/` 用例、削弱 `expect` / `A(...)` 或下调 floors 会在 `e2e-parity:check` 红；合法削减见 [`testing/e2e-parity-baseline.md`](../../testing/e2e-parity-baseline.md)。AI 改过的测试 diff 在 parity + 审核完成前默认不可信。
+```
 这**不是** [回归矩阵](./regression-selection.md) 的「必须」列，也不含 `interview:prove` / `commerce:prove` 等业务 prove。缺 Docker 不能假装隔离 prove 已跑。
 
 行走骨架追加（本地有 Docker 时）：

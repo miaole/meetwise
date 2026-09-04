@@ -39,14 +39,14 @@ related:
 入口命令（与 [门禁目录](./run-gates.md) 同步；默认项**不是**触达面必须列）：
 
 ```bash
-pnpm regression          # always-on：文档 + helper + 回执/运行器 + arch + api:smoke
+pnpm regression          # always-on：文档 + generation-trust + e2e-parity + helper + 回执/运行器 + arch + api:smoke
 pnpm regression --core   # 再加行走骨架隔离门（需要 Docker / 临时 Postgres）；不是 interview/commerce 全集
 pnpm regression --live   # 仅真供应商 HTTP E2E；无 MODEL_API_KEY 不要跑（会非零）。浏览器层另见 SOP
 ```
 
 ## 改本技能时
 
-改配方、E2E harness 或 golden-tasks 仍走 `AGENTS.md` 生成前门禁。升格 `active` 的条件只写在 [SOP](./sop.md)。e2e-platform 保持 **draft / NOT_READY**，不随本页升格而变成 READY。
+改配方、E2E harness、e2e 断言 parity 或 golden-tasks 仍走 `AGENTS.md` 生成前门禁。升格 `active` 的条件只写在 [SOP](./sop.md)。e2e-platform 保持 **draft / NOT_READY**，不随本页升格而变成 READY。测试计划至少含 `pnpm e2e-parity:check` 与 `pnpm e2e-parity:prove`；合法削减只走 [`testing/e2e-parity-baseline.md`](../../testing/e2e-parity-baseline.md) 的 allowlist。
 
 ## 铁律（先读再跑）
 
