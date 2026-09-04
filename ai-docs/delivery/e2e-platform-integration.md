@@ -168,15 +168,15 @@ aiTrust: untrusted
 review: blocked:author_only
 verification: commands_ok
 commands: pnpm regression
-exit: docs:check=0 generation-trust:prove=0 golden-tasks:check=0 golden-tasks:prove=0 e2e-platform:check=0 e2e-platform:prove=0 e2e-platform:layout:prove=0 e2e-helpers:prove=0 e2e-receipt:prove=0 e2e-runner:prove=0 e2e-static-guards:check=0 e2e-static-guards:prove=0 e2e-parity:check=0 e2e-parity:prove=0 arch=0 api:smoke=0 public-text-policy:prove=0 quality:traceability:prove=0 provider-egress:prove=0
+exit: docs:check=0 generation-trust:prove=0 golden-tasks:check=0 golden-tasks:prove=0 e2e-platform:check=0 e2e-platform:prove=0 e2e-platform:layout:prove=0 e2e-helpers:prove=0 e2e-receipt:prove=0 e2e-runner:prove=0 e2e-static-guards:check=0 e2e-static-guards:prove=0 e2e-parity:check=0 e2e-parity:prove=0 arch=0 api:smoke=0 public-text-policy:prove=0 quality:traceability:prove=0 provider-egress:prove=0 public-preview-write:prove=0 public-preview-write-gate:prove=0
 receipts: none
 claimDone: false
 ready: NOT_READY
-rounds: 2
+rounds: 3
 releaseEvidence: false
 liveE2E: not_run:live_provider_key_missing
 core: not_requested
 secrets: none
 ```
 
-`pnpm regression` 本修订退出 0（`outcome=passed_always_on`）。这只证明 always-on + 已接线可选静态门，不是 CI `verify`、不是 `--core`、不是 live E2E。同 run 对抗式审计已修 provider-egress 漏登与回执 digest 计数；作者不得自签 `review: passed`。不得 `--claim-done`。不得写「本轮局部验证完成」——审核仍是 `blocked:author_only`。
+`pnpm regression` 在叠到 `origin/main`（#65+#68）后退出 0（`outcome=passed_always_on`）。这只证明 always-on + 已接线可选静态门（含 #68 write-gate proves），不是 CI `verify`、不是 `--core`、不是 live E2E。作者不得自签 `review: passed`。不得 `--claim-done`。不得写「本轮局部验证完成」——审核仍是 `blocked:author_only`。
