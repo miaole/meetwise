@@ -50,6 +50,10 @@ const readme = read('README.md');
 const pagesHtml = read('docs/index.html');
 const pagesCss = read('docs/styles.css');
 const pagesWorkflow = read('.github/workflows/pages.yml');
+const runtimeTruth = read('ai-docs/architecture/current-runtime-truth.md');
+const frontendBlueprint = read('ai-docs/architecture/frontend/frontend-blueprint.md');
+const localDemo = read('ai-docs/architecture/devops/local-demo-deployment.md');
+const pagesDirectoryChecklist = read('ai-docs/delivery/execution-master-checklist.md');
 const prohibitedAttribution = ['参', '考', '至'].join('');
 const prohibitedAdaptations = [
   ['改', '编', '自'].join(''),
@@ -80,8 +84,10 @@ const checks = {
     requireText(homeEn, 'Real experience → adaptive interview → reviewable growth', 'English home story');
     requireText(pagesHtml, '招聘不在本预览范围', 'Pages hiring out-of-scope');
     requireText(homeZh, '招聘不在本预览范围', 'Chinese home hiring out-of-scope');
+    requireText(homeEn, 'Hiring is out of scope', 'English home hiring out-of-scope');
     assert.equal((pagesHtml.match(/招聘不在本预览范围/g) ?? []).length, 1, 'Pages may state hiring is out of scope once');
-    forbid(`${homeZh}\n${homeEn}\n${features}\n${pagesHtml}\n${readme}`, [
+    forbid(`${homeZh}\n${homeEn}\n${features}\n${pagesHtml}\n${readme}\n${runtimeTruth}\n${frontendBlueprint}\n${localDemo}\n${pagesDirectoryChecklist}`, [
+      '双受众定位',
       '招聘侧是后续方向',
       '招聘侧往后排',
       '不是已经能用来招人',
@@ -190,8 +196,18 @@ const checks = {
     requireText(pagesHtml, '合成截图', 'Pages showcase');
     requireText(pagesHtml, '不提供支付、购买、退款或自动扣费', 'Pages showcase');
     requireText(pagesHtml, 'https://github.com/miaole/meetwise', 'Pages showcase');
+    requireText(runtimeTruth, '仅面试练习', 'Pages runtime truth');
+    requireText(runtimeTruth, '招聘不在本预览范围', 'Pages runtime truth');
+    requireText(frontendBlueprint, '仅面试练习', 'Pages frontend blueprint');
+    requireText(frontendBlueprint, '招聘不在本预览范围', 'Pages frontend blueprint');
+    requireText(localDemo, '仅面试练习', 'Pages local-demo preview directory');
+    requireText(localDemo, '招聘不在本预览范围', 'Pages local-demo preview directory');
+    requireText(pagesDirectoryChecklist, '仅面试练习', 'Pages directory checklist');
+    requireText(pagesDirectoryChecklist, '招聘不在本预览范围', 'Pages directory checklist');
     requireText(pagesWorkflow, "github.ref == 'refs/heads/main'", 'Pages workflow');
     requireText(pagesWorkflow, 'docs/index.html', 'Pages workflow');
+    requireText(pagesWorkflow, "cp docs/index.html docs/styles.css docs/.nojekyll .pages-dist/", 'Pages workflow stages docs/ only');
+    forbid(pagesWorkflow, ['preview-site/', '求职者', '面试官', '双受众'], 'Pages workflow');
     requireText(pagesCss, 'prefers-reduced-motion', 'Pages stylesheet');
     requireText(pagesCss, 'PingFang SC', 'Pages type stack');
     requireText(pagesCss, 'Source Han Sans SC', 'Pages type stack');
