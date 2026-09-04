@@ -29,7 +29,7 @@
     {
       "id": "asr",
       "adapterId": "dashscope-http-voice",
-      "currentAvailability": "disabled-pending-typed-binding"
+      "currentAvailability": "preview-key-gated"
     },
     {
       "id": "stream-asr",
@@ -39,7 +39,7 @@
     {
       "id": "tts",
       "adapterId": "dashscope-http-voice",
-      "currentAvailability": "disabled-pending-typed-binding"
+      "currentAvailability": "preview-key-gated"
     },
     {
       "id": "stream-tts",
@@ -260,6 +260,10 @@
           "class": "local-adapter-test"
         },
         {
+          "source": "packages/ai-runtime/src/interview-voice-seams.ts",
+          "class": "production-runtime"
+        },
+        {
           "source": "packages/ai-runtime/test/voice-reliability.proof.ts",
           "class": "local-adapter-test"
         },
@@ -330,6 +334,16 @@
       "class": "test-isolation"
     },
     {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "apps/api/test/voice-operation-policy.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "packages/ai-runtime/test/interview-voice-seams.proof.ts",
+      "class": "test-isolation"
+    },
+    {
       "name": "DASHSCOPE_ASR_API_KEY_FINGERPRINT",
       "source": "packages/ai-runtime/src/dashscope-native-config.ts",
       "class": "adapter-configuration"
@@ -353,6 +367,16 @@
       "name": "DASHSCOPE_ASR_API_KEY",
       "source": "scripts/deploy-check.mjs",
       "class": "deployment-contract"
+    },
+    {
+      "name": "DASHSCOPE_ASR_API_KEY",
+      "source": "apps/api/test/voice-operation-policy.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_ASR_API_KEY",
+      "source": "packages/ai-runtime/test/interview-voice-seams.proof.ts",
+      "class": "test-isolation"
     },
     {
       "name": "DASHSCOPE_ASR_MODEL",
@@ -395,6 +419,11 @@
       "class": "test-isolation"
     },
     {
+      "name": "DASHSCOPE_COMPAT_BASE_URL",
+      "source": "packages/ai-runtime/test/interview-voice-seams.proof.ts",
+      "class": "test-isolation"
+    },
+    {
       "name": "DASHSCOPE_EMBED_API_KEY_FINGERPRINT",
       "source": "packages/ai-runtime/src/dashscope-native-config.ts",
       "class": "adapter-configuration"
@@ -423,6 +452,11 @@
       "name": "DASHSCOPE_EMBED_API_KEY",
       "source": "apps/worker/test/qbank-retrieval-eval-pg.proof.ts",
       "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_EMBED_API_KEY",
+      "source": "packages/ai-runtime/test/interview-voice-seams.proof.ts",
+      "class": "test-isolation"
     },
     {
       "name": "DASHSCOPE_EMBED_MODEL",
@@ -483,6 +517,11 @@
       "name": "DASHSCOPE_RERANK_API_KEY",
       "source": "scripts/deploy-check.mjs",
       "class": "deployment-contract"
+    },
+    {
+      "name": "DASHSCOPE_RERANK_API_KEY",
+      "source": "packages/ai-runtime/test/interview-voice-seams.proof.ts",
+      "class": "test-isolation"
     },
     {
       "name": "DASHSCOPE_RERANK_MODEL",
@@ -570,6 +609,11 @@
       "class": "deployment-contract"
     },
     {
+      "name": "DASHSCOPE_STREAM_ASR_API_KEY",
+      "source": "packages/ai-runtime/test/interview-voice-seams.proof.ts",
+      "class": "test-isolation"
+    },
+    {
       "name": "DASHSCOPE_STREAM_ASR_MODEL",
       "source": "packages/ai-runtime/src/voice-stream.ts",
       "class": "adapter"
@@ -608,6 +652,11 @@
       "name": "DASHSCOPE_STREAM_TTS_API_KEY",
       "source": "scripts/deploy-check.mjs",
       "class": "deployment-contract"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_API_KEY",
+      "source": "packages/ai-runtime/test/interview-voice-seams.proof.ts",
+      "class": "test-isolation"
     },
     {
       "name": "DASHSCOPE_STREAM_TTS_MODEL",
@@ -695,6 +744,16 @@
       "class": "deployment-contract"
     },
     {
+      "name": "DASHSCOPE_TTS_API_KEY",
+      "source": "apps/api/test/voice-operation-policy.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_TTS_API_KEY",
+      "source": "packages/ai-runtime/test/interview-voice-seams.proof.ts",
+      "class": "test-isolation"
+    },
+    {
       "name": "DASHSCOPE_TTS_MODEL",
       "source": "packages/ai-runtime/src/voice.ts",
       "class": "adapter"
@@ -732,6 +791,11 @@
     {
       "name": "DASHSCOPE_TTS_URL",
       "source": "scripts/run-e2e-isolated.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_TTS_URL",
+      "source": "packages/ai-runtime/test/interview-voice-seams.proof.ts",
       "class": "test-isolation"
     },
     {

@@ -28,8 +28,8 @@ const checks = {
     assert.equal(result.valid, true, result.errors.join('\n'));
     assert.equal(result.stats.adapterCount, 5);
     assert.equal(result.stats.operationCount, 10);
-    assert.equal(result.stats.registeredConsumerSourcePairCount, 28);
-    assert.equal(result.stats.environmentReferenceCount, 175);
+    assert.equal(result.stats.registeredConsumerSourcePairCount, 29);
+    assert.equal(result.stats.environmentReferenceCount, 187);
     assert.equal(result.stats.releaseEvidence, false);
   },
   'TC-MODEL-002-E3-inventory-missing-operation': () => {
