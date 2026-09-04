@@ -17,7 +17,7 @@ const VOICE_RL = { capacity: 40, refillPerSec: 0.3 };
 const TURN_RL = { capacity: 30, refillPerSec: 0.2 };
 // interview 表状态机:created → active →(completed | failed | abandoned)。终态集中一处定义,begin/turn/abandon 守卫共用。
 const TERMINAL_INTERVIEW = ['completed', 'abandoned', 'failed'];
-const MAX_TURN = 64;              // turn 号上界(自适应 maxTurns=8 + clarify/probe 冗余;防超大 turn 号刷无限 job)
+const MAX_TURN = 256;             // turn 号上界(默认绝对杀开关 120 + clarify 冗余;防超大 turn 号刷无限 job)
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ANSWER_HASH_RE = /^[a-f0-9]{64}$/;
 

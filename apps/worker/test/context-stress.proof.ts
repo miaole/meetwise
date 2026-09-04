@@ -98,6 +98,7 @@ function adaptiveDeps(owner: string, model: ModelClient, maxTurns: number): Cons
     adaptive: {
       role: '后端工程师',
       maxTurns,
+      absoluteMaxTurns: maxTurns,
       localRetrieve: async () => [],
       webExplore: async () => [],
     },

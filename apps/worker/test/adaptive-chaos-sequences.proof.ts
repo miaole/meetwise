@@ -32,7 +32,9 @@ async function runScenario(index: number): Promise<{ concluded: boolean; generat
   let generated = 0;
   const answerVault = createEphemeralAnswerVault();
   const deps: AdaptiveDeps = {
-    competencies: ['并发控制', '检索安全', '故障恢复'], maxTurns: 8,
+    // Cost fixture: lock soft + absolute together so raise cannot blow the 8-turn cap.
+    // Not production length policy (prod default absoluteMaxTurns=120).
+    competencies: ['并发控制', '检索安全', '故障恢复'], maxTurns: 8, absoluteMaxTurns: 8,
     retrieveAndGenerate: async (competency, difficulty, _attempt, turn) => {
       generated++;
       return { question: `Q:${competency}:t${turn}:d${difficulty}`, sources: [] };
@@ -64,7 +66,7 @@ async function runScenario(index: number): Promise<{ concluded: boolean; generat
 
 const runs = await Promise.all(Array.from({ length: 96 }, (_, i) => runScenario(i)));
 assert('96 个固定 seed 的异常多轮序列全部在 40 次 resume 内收敛', runs.every((r) => r.concluded && r.steps < 40));
-assert('每个场景出题次数均不超过 maxTurns=8（clarify 不会重调出题模型）', runs.every((r) => r.generated <= 8));
+assert('每个场景出题次数均不超过夹具双锁 8（控费,非生产长度政策；clarify 不重调出题）', runs.every((r) => r.generated <= 8));
 assert('完成态 transcript 不复制任一原始异常回答', runs.every((r) => !r.rawLeaked));
 assert('所有场景均实际走过至少一个问题生成节点', runs.every((r) => r.generated >= 1));
 console.log(`\nchaos matrix: scenarios=${runs.length}; total_generated=${runs.reduce((n, r) => n + r.generated, 0)}; max_resume_steps=${Math.max(...runs.map((r) => r.steps))}`);

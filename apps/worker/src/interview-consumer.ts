@@ -34,8 +34,10 @@ export interface ConsumerDeps {
     /** 有界多源取证；不存在时 CRAG 兼容退回 webExplore。 */
     deepResearch?: (q: string) => Promise<SourceDoc[]>;
     competencyKeywords?: Record<string, string[]>; role?: string;
-    /** 由隔离 E2E 显式传入；生产不传，图的默认轮数不变。 */
+    /** 软预算初值；由隔离 E2E 显式传入。生产不传则按覆盖计划派生。 */
     maxTurns?: number;
+    /** 平台杀开关；E2E 应与软预算一起压低。生产默认 120。 */
+    absoluteMaxTurns?: number;
     /** 仅安全标量的图/节点观测，由 worker 组合根创建。 */
     graphObserver?: GraphObserver;
     /** 仅测试观测：回答路径真正查询脱敏简历画像之前触发。 */
@@ -235,7 +237,7 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
             localRetrieve: research.retrieve, webExplore: research.exploreWeb,
             deepResearch: adaptive.deepResearch ? research.deepResearch : undefined,
             researchBoundary: research.researchBoundary,
-            competencyKeywords: adaptive.competencyKeywords, maxTurns: adaptive.maxTurns, graphObserver: adaptive.graphObserver, fence,
+            competencyKeywords: adaptive.competencyKeywords, maxTurns: adaptive.maxTurns, absoluteMaxTurns: adaptive.absoluteMaxTurns, graphObserver: adaptive.graphObserver, fence,
             onBeforeResumeProfileHydration: adaptive.onBeforeResumeProfileHydration,
           };
           if (job.kind === 'start') {

@@ -25,8 +25,10 @@ export interface AdaptiveLifecycleDeps {
   deepResearch?: (q: string) => Promise<SourceDoc[]>;
   researchBoundary?: (q: string) => ResearchBoundaryDecision;
   competencyKeywords?: Record<string, string[]>;
-  /** 仅隔离 E2E 可降低真实图的收口轮数；生产调用不传，图保持默认 8 轮。 */
+  /** 软预算初值；仅隔离 E2E 可缩短。生产不传，由覆盖计划派生，decideNext 可上调。 */
   maxTurns?: number;
+  /** 平台杀开关；E2E 可压低。生产默认 120，不是质量政策。 */
+  absoluteMaxTurns?: number;
   /** consumer 持有的 durable graph ownership；图外写入必须复核，防止过期 worker 继续投影。 */
   fence?: InterviewGraphFence;
   /** 组合根注入的安全图观测器；ai-graphs 本身不依赖任何观测供应商。 */
@@ -48,7 +50,7 @@ function makeDeps(
 ) {
   return buildAdaptiveDeps({
     pool: d.pool, owner: d.owner, threadId: d.interviewId, model: d.model, fastModel: d.fastModel,
-    competencies, resumeProfileAvailable, localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary, competencyKeywords: d.competencyKeywords, maxTurns: d.maxTurns, graphObserver: d.graphObserver,
+    competencies, resumeProfileAvailable, localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary, competencyKeywords: d.competencyKeywords, maxTurns: d.maxTurns, absoluteMaxTurns: d.absoluteMaxTurns, graphObserver: d.graphObserver,
     loadAnswer: async (reference) => {
       if (!answer || reference.answerId !== answer.answerId)
         throw Object.assign(new Error('answer_artifact_unavailable'), { code: 'answer_artifact_unavailable' });

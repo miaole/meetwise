@@ -1,4 +1,5 @@
 import { END, START, StateGraph, type BaseCheckpointSaver } from '@langchain/langgraph';
+import { DEFAULT_ABSOLUTE_MAX_TURNS } from '@meetwise/domain';
 import { awaitAnswerNode } from './nodes/await-answer.ts';
 import { concludeNode } from './nodes/conclude.ts';
 import { decideNode } from './nodes/decide.ts';
@@ -47,5 +48,6 @@ export function buildAdaptiveInterviewGraph(checkpointer: BaseCheckpointSaver<nu
       { decide: 'decide', conclude: 'conclude' },
     )
     .addEdge('conclude', END)
-    .compile({ checkpointer });
+    // 单段 invoke 结构死循环阀；interrupt resume 会重置计数。整场长度由 soft/absolute 政策决定。
+    .compile({ checkpointer, recursionLimit: Math.min(64, DEFAULT_ABSOLUTE_MAX_TURNS) });
 }

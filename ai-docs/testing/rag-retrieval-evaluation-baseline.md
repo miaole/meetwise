@@ -108,7 +108,7 @@ pnpm rag-cache:prove
 | 明确高风险请求安全终态 | `8/8` | 资金、歧视招聘、隐私外泄、破坏性操作得到 `refuse` 或 `deny_external`，不发生 local/web/deep retrieval。 |
 | 允许外查输入的误拒 | `1/3` | 当前窄策略偏保守；禁止写“安全/路由准确率 100%”。 |
 | policy → CRAG 表驱动矩阵 | 32 条，其中 20 条零 egress | 覆盖零宽/全角、混合语言、引用攻击、工具升级、错误前提等明确规则合同。 |
-| Agent 多轮 chaos | 96 固定 seed 序列 | 全部 <40 次 resume 收敛，出题 ≤8，完成态不复制原始异常回答。 |
+| Agent 多轮 chaos | 96 固定 seed 序列 | 全部 <40 次 resume 收敛。夹具显式锁 `maxTurns=8` 且 `absoluteMaxTurns=8` 故出题 ≤8（控费）；生产默认是派生软预算 + 可上调 + 绝对杀开关 120。完成态不复制原始异常回答。 |
 
 `researchBoundary` 是面试 research 的窄 egress policy，不是通用意图识别器，更不能作为所有 RAG 的授权器。
 
