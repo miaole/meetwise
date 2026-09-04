@@ -7,6 +7,7 @@
     {
       "id": "GT-01",
       "status": "planned",
+      "subject": "ai-output",
       "title": "前端岗项目深挖出题",
       "doc": "ai-docs/testing/golden-tasks/GT-01-frontend-project-deep-dive.md",
       "evidenceKind": "none",
@@ -39,6 +40,7 @@
     {
       "id": "GT-02",
       "status": "partial",
+      "subject": "ai-output",
       "title": "过短作答不得高分",
       "doc": "ai-docs/testing/golden-tasks/GT-02-short-answer-not-high-score.md",
       "evidenceKind": "deterministic-prove",
@@ -66,6 +68,7 @@
     {
       "id": "GT-03",
       "status": "planned",
+      "subject": "ai-output",
       "title": "JD Next.js 能力差距",
       "doc": "ai-docs/testing/golden-tasks/GT-03-jd-nextjs-gap.md",
       "evidenceKind": "none",
@@ -85,6 +88,7 @@
     {
       "id": "GT-04",
       "status": "partial",
+      "subject": "ai-output",
       "title": "不会则引导不幻觉掌握",
       "doc": "ai-docs/testing/golden-tasks/GT-04-unknown-answer-no-hallucination.md",
       "evidenceKind": "deterministic-prove",
@@ -108,6 +112,7 @@
     {
       "id": "GT-05",
       "status": "partial",
+      "subject": "mechanism",
       "title": "非法 JSON 拒绝入库",
       "doc": "ai-docs/testing/golden-tasks/GT-05-illegal-json-reject.md",
       "evidenceKind": "deterministic-prove",
@@ -128,7 +133,8 @@
     },
     {
       "id": "GT-06",
-      "status": "mapped",
+      "status": "partial",
+      "subject": "mechanism",
       "title": "quote 不在答案内不得计分",
       "doc": "ai-docs/testing/golden-tasks/GT-06-quote-not-in-answer-unscored.md",
       "evidenceKind": "deterministic-prove",
@@ -137,13 +143,15 @@
         "quote 不是本题答案子串 → unscored 或 clarify，不持久化非法 quote，不写 91/99"
       ],
       "uncovered": [
-        "真模型在开放题上的引文质量"
+        "真模型在开放题上的引文质量",
+        "本修订未实跑 scoring-integrity:prove（无隔离 Docker）；mapped 需先实跑"
       ],
       "relatedCommands": []
     },
     {
       "id": "GT-07",
-      "status": "mapped",
+      "status": "partial",
+      "subject": "mechanism",
       "title": "答题幂等与不同答案密钥",
       "doc": "ai-docs/testing/golden-tasks/GT-07-turn-idempotency.md",
       "evidenceKind": "deterministic-prove",
@@ -154,7 +162,8 @@
         "evaluateAnswer：同答重放缓存且模型只打 1 次；换答走不同 answer SHA-256 幂等键"
       ],
       "uncovered": [
-        "HTTP /turn → worker 消费 → evaluateAnswer 缓存的单条组合测未单独立项"
+        "HTTP /turn → worker 消费 → evaluateAnswer 缓存的单条组合测未单独立项",
+        "本修订未重跑隔离 prove（无 Docker）；mapped 需先实跑 covering 门"
       ],
       "relatedCommands": [
         {
@@ -165,7 +174,8 @@
     },
     {
       "id": "GT-08",
-      "status": "mapped",
+      "status": "partial",
+      "subject": "mechanism",
       "title": "报告总分仅服务端聚合",
       "doc": "ai-docs/testing/golden-tasks/GT-08-report-server-aggregation.md",
       "evidenceKind": "deterministic-prove",
@@ -174,7 +184,8 @@
         "aggregateScores 覆盖模型 overall；拒绝重复 section/段落；空分集合不可当 0 分"
       ],
       "uncovered": [
-        "叙事文风或真模型报告可读性"
+        "叙事文风或真模型报告可读性",
+        "本修订未实跑 scoring-integrity:prove（无隔离 Docker）；mapped 需先实跑"
       ],
       "relatedCommands": []
     }

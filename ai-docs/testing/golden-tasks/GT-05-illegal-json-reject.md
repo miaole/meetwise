@@ -1,6 +1,7 @@
 ---
 id: GT-05
 status: partial
+subject: mechanism
 ---
 
 # GT-05 · 模型输出非法 JSON → validator 拒绝

@@ -39,6 +39,8 @@ test('current first-batch registry is honest', () => {
   assert.equal(live.registry.releaseEvidence, false);
   assert.equal(live.registry.schemaVersion, 2);
   assert.ok(live.registry.tasks.every((task) => !['passed', 'green', 'release_ready', 'pass'].includes(task.status)));
+  assert.ok(live.registry.tasks.filter((task) => task.subject === 'ai-output').every((task) => task.status !== 'mapped'));
+  assert.ok(live.registry.tasks.every((task) => task.status !== 'mapped'), 'no mapped until isolated covering proves are re-run');
 });
 
 for (const status of ['passed', 'green', 'release_ready', 'pass']) {
@@ -63,7 +65,7 @@ fails(
 
 fails(
   'mapped without covers is rejected',
-  withTask('GT-06', { covers: [] }),
+  withTask('GT-06', { status: 'mapped', covers: [], uncovered: ['still a gap'] }),
   /mapped requires covers/,
 );
 
@@ -139,7 +141,7 @@ fails(
 
 fails(
   'mapped cannot use quality-eval evidenceKind',
-  withTask('GT-06', { evidenceKind: 'quality-eval' }),
+  withTask('GT-06', { status: 'mapped', evidenceKind: 'quality-eval' }),
   /mapped cannot use evidenceKind=quality-eval/,
 );
 
@@ -189,6 +191,24 @@ fails(
     return input;
   })(),
   /test-strategy status drift/,
+);
+
+fails(
+  'ai-output task cannot be mapped',
+  withTask('GT-02', { status: 'mapped' }),
+  /ai-output cannot be mapped/,
+);
+
+fails(
+  'GT-01 cannot be labeled mechanism',
+  withTask('GT-01', { subject: 'mechanism' }),
+  /subject must be ai-output/,
+);
+
+fails(
+  'GT-06 cannot be labeled ai-output',
+  withTask('GT-06', { subject: 'ai-output' }),
+  /subject must be mechanism/,
 );
 
 console.log(`\n✓ golden-tasks check honesty proof: ${passed} cases`);

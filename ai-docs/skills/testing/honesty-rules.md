@@ -15,8 +15,9 @@ description: 测试与文档的诚实边界：releaseEvidence、假服务、skip
 4. **用过期回执。** 迁移清单数量或最新文件名与当前 `packages/db/migrations/` 不一致时，该 HTTP E2E 回执只是历史记录。
 5. **只断言 HTTP 200、只打开页面、只用 mock 证质量、AI 自评、只测 happy path。**
 6. **把 planned / unmapped golden-task 标成 passed。** 登记文件里的 `status` 枚举见 `ai-docs/testing/golden-tasks/README.md`。`relatedCommands` 只说明附近有门；`scoring:eval` 不得当 covering。`GT-05` 的 `runtime:prove` 绿不等于非法 JSON 已验收。
-7. **把 Playwright 说成当前 HTTP 全链路实现。** 浏览器层才是 Playwright；HTTP 层是 fetch/SSE。
-8. **把本机性能数字说成线上 SLO。**
+7. **把 AI 输出类 golden-task（GT-01..04）标成 `mapped`。** 夹具结构门、fake assess、脚本化出题都不是模型输出质量。这些条目最高 `partial`。升 `mapped` 只适用于 `subject=mechanism`，且必须先实跑 covering 门。
+8. **把 Playwright 说成当前 HTTP 全链路实现。** 浏览器层才是 Playwright；HTTP 层是 fetch/SSE。
+9. **把本机性能数字说成线上 SLO。**
 
 ## 允许
 

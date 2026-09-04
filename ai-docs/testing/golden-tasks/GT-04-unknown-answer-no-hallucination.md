@@ -1,11 +1,13 @@
 ---
 id: GT-04
 status: partial
+subject: ai-output
 ---
 
 # GT-04 · 用户回答「不会」→ 引导，不幻觉已掌握
 
 - **策略来源**：第一批第 4 条。
+- **subject**：`ai-output`（不得标 `mapped`；图上 fake assess 不是掌握幻觉已验收）。
 - **status**：`partial`。
 - **已映射**：`pnpm scoring-golden:prove`（offtopic/非作答**夹具结构**与红队标签，不执行评分）；`pnpm adaptive-offtopic:prove`（图行为：「不知道 / 还是不会」→ clarify 引导语，二次非作答 pivot；fake assess，不是生产 `evaluateAnswer`）。
 - **期望**：追问转为引导或换角度，不得在后续题或报告里写“候选人掌握 X”。

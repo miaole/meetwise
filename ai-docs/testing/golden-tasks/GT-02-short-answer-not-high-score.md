@@ -1,11 +1,13 @@
 ---
 id: GT-02
 status: partial
+subject: ai-output
 ---
 
 # GT-02 · 过短作答 → 报告指出表达不足，不得高分
 
 - **策略来源**：第一批第 2 条。
+- **subject**：`ai-output`（不得标 `mapped`；夹具/fake assess 不是短答质量绿）。
 - **status**：`partial`。
 - **已映射**：`pnpm scoring-golden:prove`（夹具结构门：相对序含非作答/低档，**不执行评分**）；`pnpm adaptive-offtopic:prove`（图上套话非作答走 clarify，fake assess，非短答评分）。
 - **相关但不覆盖**：`pnpm scoring:eval`（真模型层，未达发布样本量，inconclusive）；`pnpm adaptive-degrade:prove`（故障 → unscored，不是短答档）。

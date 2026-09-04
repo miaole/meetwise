@@ -14,7 +14,10 @@ export const SCHEMA_VERSION = 2;
 export const ALLOWED_STATUS = new Set(['mapped', 'partial', 'planned', 'unmapped']);
 export const FORBIDDEN_STATUS = new Set(['passed', 'green', 'release_ready', 'pass']);
 export const EVIDENCE_KINDS = new Set(['none', 'deterministic-prove', 'live-e2e', 'quality-eval']);
+export const SUBJECTS = new Set(['ai-output', 'mechanism']);
 export const REQUIRED_IDS = ['GT-01', 'GT-02', 'GT-03', 'GT-04', 'GT-05', 'GT-06', 'GT-07', 'GT-08'];
+/** Strategy lines 1–4 judge model output quality. They may be planned/partial only. */
+export const AI_OUTPUT_IDS = new Set(['GT-01', 'GT-02', 'GT-03', 'GT-04']);
 export const FORBIDDEN_MAPPED_COMMANDS = new Set(['scoring:eval']);
 export const META_MAPPED_COMMANDS = new Set([
   'docs:check', 'golden-tasks:check', 'golden-tasks:prove', 'arch', 'api:smoke',
@@ -94,6 +97,16 @@ export function validateGoldenTasksRegistry(input) {
     if (FORBIDDEN_STATUS.has(String(task.status))) errors.push(`${id} forbids status=${task.status}`);
     if (!ALLOWED_STATUS.has(task.status)) errors.push(`${id} unknown status=${task.status}`);
     if (!EVIDENCE_KINDS.has(task.evidenceKind)) errors.push(`${id} unknown evidenceKind=${task.evidenceKind}`);
+    if (!SUBJECTS.has(task.subject)) errors.push(`${id} unknown subject=${task.subject}`);
+    if (AI_OUTPUT_IDS.has(id) && task.subject !== 'ai-output') {
+      errors.push(`${id} is an AI-output golden task; subject must be ai-output`);
+    }
+    if (!AI_OUTPUT_IDS.has(id) && task.subject === 'ai-output') {
+      errors.push(`${id} is a mechanism task; subject must be mechanism`);
+    }
+    if (task.subject === 'ai-output' && task.status === 'mapped') {
+      errors.push(`${id} ai-output cannot be mapped (fixture/fake-model must not green model output)`);
+    }
 
     if (typeof task.doc !== 'string' || !task.doc.startsWith('ai-docs/testing/golden-tasks/')) {
       errors.push(`${id} doc path invalid`);
@@ -103,6 +116,7 @@ export function validateGoldenTasksRegistry(input) {
       const fm = parseFrontmatter(docs[task.doc]);
       if (fm.id !== task.id) errors.push(`${id} doc frontmatter id=${fm.id ?? 'missing'} !== registry`);
       if (fm.status !== task.status) errors.push(`${id} doc frontmatter status=${fm.status ?? 'missing'} !== ${task.status}`);
+      if (fm.subject !== task.subject) errors.push(`${id} doc frontmatter subject=${fm.subject ?? 'missing'} !== ${task.subject}`);
     }
 
     const mapped = asStringArray(task.mappedCommands, `${id} mappedCommands`, errors);
@@ -214,7 +228,7 @@ export function main(root = ROOT) {
     process.exitCode = 1;
     return errors;
   }
-  console.log('golden-tasks check passed: 8 first-batch entries; schemaVersion=2; releaseEvidence=false; no fake passed status');
+  console.log('golden-tasks check passed: 8 first-batch entries; schemaVersion=2; releaseEvidence=false; ai-output not mapped');
   return [];
 }
 

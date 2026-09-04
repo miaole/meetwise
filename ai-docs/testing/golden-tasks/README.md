@@ -19,14 +19,16 @@ version: 2
 
 | 值 | 含义 |
 | --- | --- |
-| `mapped` | 已有可复跑门覆盖该不变式（通常是确定性 prove，不是真模型质量） |
-| `partial` | 有相关门，但不覆盖策略原文的全部验收 |
+| `mapped` | **仅** `subject=mechanism`，且 covering prove 已对照过源文件；不是真模型质量 |
+| `partial` | 有相关门，但不覆盖策略原文的全部验收。`ai-output` 最高只到这里 |
 | `planned` | 规格已写，尚无对应自动化门 |
 | `unmapped` | 尚未指定门；不得当作通过 |
 
+`subject`：`ai-output`（GT-01..04，模型出题/评分/差距/引导）或 `mechanism`（校验、幂等、聚合）。**`ai-output` 禁止 `mapped`**——夹具结构门和 fake model 不得把模型输出标绿。新升 `mapped` 必须先实跑 covering 门。
+
 禁止的值：`passed`、`green`、`release_ready`、`pass`。质量评测另见 [评分评测协议](../strategy/scoring-evaluation-protocol.md)。
 
-`golden-tasks:check` **不执行** mapped 门，也不用程序核对 `covers` 句子是否等于 proof 断言；那仍靠改登记时对照 proof。它只挡住假绿 status、空 covering、文档漂移、`scoring:eval` / 文档类脚本冒充 covering。
+`golden-tasks:check` **不执行** covering 门，也不用程序核对 `covers` 句子是否等于 proof 断言。它挡住假绿 status、`ai-output` 标 `mapped`、空 covering、文档漂移、`scoring:eval` / 文档类脚本冒充 covering。本批目前**没有** `mapped`：隔离 prove 未在本修订实跑。
 
 机器可读清单：`registry.json`（`schemaVersion=2`）。`pnpm golden-tasks:check` 校验：
 
@@ -35,6 +37,7 @@ version: 2
 - `planned` / `unmapped` 不得声称 `mappedCommands` / `covers`，必须列出 `uncovered`
 - `relatedCommands` 记录附近但不覆盖的门，且必须写明 `notCovered`
 - `scoring:eval` 不得进入 `mappedCommands`（inconclusive 质量层）
+- `subject=ai-output`（GT-01..04）不得为 `mapped`
 - 单页 frontmatter、本表、`test-strategy.md` 的 status 必须一致
 
 `pnpm golden-tasks:prove` 用负向夹具证明上述诚实规则会失败，而不是只绿当前登记。
@@ -46,8 +49,8 @@ version: 2
 | [GT-03](./GT-03-jd-nextjs-gap.md) | JD 要 Next.js、简历没有 → 差距必须出现 Next.js | `planned` | 无岗位差距抽取门。相关：`diagnosis:prove` 有 match 维度，不抽 JD 缺口 |
 | [GT-04](./GT-04-unknown-answer-no-hallucination.md) | 回答「不会」应引导，不幻觉已掌握 | `partial` | 夹具结构 + 图 clarify/pivot。生产 `relevant=false→0` 与报告「掌握 X」仍缺 |
 | [GT-05](./GT-05-illegal-json-reject.md) | 非法 JSON → validator 拒绝 | `partial` | `model-op00-usage-reconciler:prove` 覆盖 schema 失败。非法 JSON 文本走 unknown；`runtime:prove` 不断言本条 |
-| [GT-06](./GT-06-quote-not-in-answer-unscored.md) | 引文不属于本题答案 → unscored，不伪造分 | `mapped` | `scoring-integrity:prove` |
-| [GT-07](./GT-07-turn-idempotency.md) | 同 turn 不同答案密钥不同；同答案重放不重打模型 | `mapped` | `turn-idempotency:prove` + `neg:interview` + `scoring-integrity:prove`。无 HTTP→模型组合测 |
-| [GT-08](./GT-08-report-server-aggregation.md) | 报告 overall 必须服务端聚合 | `mapped` | `scoring-integrity:prove` |
+| [GT-06](./GT-06-quote-not-in-answer-unscored.md) | 引文不属于本题答案 → unscored，不伪造分 | `partial` | `scoring-integrity:prove` 已登记；本修订未实跑隔离 prove |
+| [GT-07](./GT-07-turn-idempotency.md) | 同 turn 不同答案密钥不同；同答案重放不重打模型 | `partial` | 三门已登记；本修订未实跑隔离 prove，不升 `mapped`。无 HTTP→模型组合测 |
+| [GT-08](./GT-08-report-server-aggregation.md) | 报告 overall 必须服务端聚合 | `partial` | `scoring-integrity:prove` 已登记；本修订未实跑隔离 prove |
 
 新增任务：先改本表和 `registry.json`，再写单页。不要只在聊天里宣布“又绿了一条”。
