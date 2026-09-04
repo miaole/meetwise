@@ -8,6 +8,7 @@ const root = new URL("../..", import.meta.url).pathname;
 const requiredFiles = [
   "README.md",
   "docs/index.html",
+  ".github/workflows/pages.yml",
   "AGENTS.md",
   "ai-docs/README.md",
   "ai-docs/meta/index.md",
@@ -52,18 +53,19 @@ const requiredFiles = [
 
 const requiredTerms = new Map([
   ["README.md", ["Meetwise", "知面"]],
-  ["docs/index.html", ["真实经历", "自适应面试", "可复盘成长", "合成截图", "不是已经部署的在线服务"]],
+  ["docs/index.html", ["真实经历", "自适应面试", "可复盘成长", "合成截图", "不是已经部署的在线服务", "招聘不在本预览范围"]],
+  [".github/workflows/pages.yml", ["docs/index.html", "refs/heads/main", "apps/web/docs/screenshots"]],
   ["AGENTS.md", ["文档先行", "契约先行", "测试先行"]],
   ["ai-docs/product/vision.md", ["面试", "职业路径"]],
   ["ai-docs/architecture/system-blueprint.md", ["Next.js", "NestJS", "LangGraph", "Postgres"]],
-  ["ai-docs/architecture/current-runtime-truth.md", ["已验证", "发布阻断", "LangGraph", "RAG", "Langfuse", "issued_turns", "overview.answered", "SCOR-00H", "软预算", "boundedAbsoluteMaxTurns"]],
+  ["ai-docs/architecture/current-runtime-truth.md", ["已验证", "发布阻断", "LangGraph", "RAG", "Langfuse", "issued_turns", "overview.answered", "SCOR-00H", "软预算", "boundedAbsoluteMaxTurns", "仅面试练习"]],
   ["ai-docs/architecture/ai/scoring-measurement-runtime.md", ["SCOR-00H", "insufficient_evidence", "releaseEvidence"]],
   ["ai-docs/architecture/adr/0020-scorecard-authority-and-eligibility.md", ["SCOR-00H", "practice_eligible", "insufficient_evidence"]],
   ["ai-docs/requirements/use-cases/interview-scoring-measurement.md", ["UC-SCOR-00H", "SCOR-00H", "insufficient_evidence", "releaseEvidence"]],
   ["ai-docs/architecture/ai/langgraph-blueprint.md", ["checkpoint", "thread_id"]],
   ["ai-docs/architecture/ai/privacy-deletion-sink-inventory.md", ["memory_vector_chunk", "vector_chunk", "user_memory", "ai_invocation_trace", "fail-closed", "privacy_deletion_target", "erasure-preview", "预览版"]],
   ["ai-docs/requirements/use-cases/privacy-erasure-preview-path.md", ["预览版", "preview_incomplete", "productionSloClaimed", "Idempotency-Key"]],
-  ["ai-docs/architecture/devops/local-demo-deployment.md", ["docker compose", "compose.demo.yml"]],
+  ["ai-docs/architecture/devops/local-demo-deployment.md", ["docker compose", "compose.demo.yml", "仅面试练习", "招聘不在本预览范围"]],
   ["ai-docs/testing/strategy/test-strategy.md", ["contract", "E2E", "golden"]],
   ["ai-docs/observability/observability-strategy.md", ["SLO", "降级", "恢复", "脱敏", "threadId"]],
   ["ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md", ["qbank_control_definer", "FORCE RLS", "fail-closed", "SECURITY DEFINER", "lane(b)", "撤销", "复活"]],
@@ -139,6 +141,11 @@ const runtimeTruthAssertions = [
     source: "apps/api/src/platform/public-preview.ts",
     sourceTerm: "assertPublicPreviewWritesClosed",
     truthTerm: "公开预览写门禁",
+  },
+  {
+    source: "docs/index.html",
+    sourceTerm: "招聘不在本预览范围",
+    truthTerm: "仅面试练习",
   },
   {
     source: "apps/api/src/modules/profile/profile.service.ts",

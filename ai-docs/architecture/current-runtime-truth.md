@@ -48,7 +48,7 @@ related:
 | PR CI | `main` 要求 `trusted-governance-history`、`verify`、`secrets-scan`，最新 main CI 为绿；nightly 真模型项因无 secrets 全部 skip。 | 已验证，但不证明真模型或部署。 |
 | 完整 CD | 远程 `main` 没有 `deploy-full-stack.yml`；本地文件仍未跟踪且依赖多份未跟踪 controller/migration 文件。 | 发布阻断。 |
 | ECS runtime | Web/API/Worker 仍由 legacy systemd 原生 Node 运行；Docker/Compose/CD controller 尚未 provision。 | 已验证现状。 |
-| Pages | 仓库 `docs/` 是预览版静态项目展示（双受众定位、架构亮点、合成截图；必要说明只在页脚），由 `.github/workflows/pages.yml` 在 `main` 上复制 `docs/` + `apps/web/docs/screenshots/` 发布。它不是应用运行时，不启动数据面，也不再使用已删除的 `preview-site/` 签名目录。公网若仍显示旧「预览环境准备中」文案，只说明 Pages 尚未切到该 workflow，不能当成应用部署证据。 | 已接线待验。静态目录与 workflow 在仓库内可核对；公网切换与 GitHub Pages 环境授权不是本文件的发布证据。 |
+| Pages | 仓库 `docs/` 是预览版静态项目展示（仅面试练习、架构亮点、合成截图；必要说明只在页脚；招聘不在本预览范围），由 `.github/workflows/pages.yml` 在 `main` 上复制 `docs/` + `apps/web/docs/screenshots/` 发布。它不是应用运行时，不启动数据面，也不再使用已删除的 `preview-site/` 签名目录。公网若仍显示旧「预览环境准备中」文案或求职者/面试官双角色导航，只说明 Pages 尚未切到该 workflow，不能当成应用部署证据。 | 已接线待验。静态目录与 workflow 在仓库内可核对；公网切换与 GitHub Pages 环境授权不是本文件的发布证据。 |
 | 数据库 | 线上 `meetwise_cloud_test` 已应用 `0121_resume_pgcrypto_runtime_acl`，其 checksum 对应当前候选未跟踪文件；远程 main 只有 `0120`。 | 发布阻断；须先收编精确迁移。 |
 | ACR | 后端候选镜像可解析，配套 Web 镜像不存在；ECS pull 身份/config 未 provision。 | 已接线待验。 |
 | 回滚/E2E | 候选在 publish 前未启动 Web、迁移前未静默全部旧写者、后半程过早丢 rollback、未等待 Pages final exact receipt。 | 发布阻断。 |
