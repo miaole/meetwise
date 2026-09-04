@@ -2,6 +2,20 @@
 import { serverFetch } from '../../lib/api/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { isOcrPreviewEnabled } from '../../lib/ocr-preview';
+import {
+  RESUME_MAX_BYTES,
+  RESUME_OCR_PREVIEW_TIMEOUT_MS,
+  RESUME_TEXT_UPLOAD_TIMEOUT_MS,
+  isPreviewOcrImage,
+  isResumeImageUpload,
+  isUploadTimeoutError,
+  mapResumeUploadAbort,
+  mapResumeUploadError,
+  resumeImageRefusedLocally,
+  resumePreviewFormatRefused,
+  type ResumeUploadFailure,
+} from '../../lib/resume/ocr-preview-ui';
 
 /**
  * 简历相关 Server Actions:在服务端跑、带 httpOnly 令牌调 api、改完 revalidatePath 重渲列表。
@@ -34,30 +48,50 @@ export async function grantConsentAction(): Promise<void> {
  * authoritative list with a new no-store navigation. Calling revalidatePath inside this action made its RSC response
  * wait on an unnecessary render and itself could leave the form pending, so uploads never revalidate server-side.
  */
+async function readUploadFailure(res: Response): Promise<ResumeUploadFailure> {
+  let body: unknown = null;
+  try { body = await res.json(); } catch { /* non-JSON stays mapped as upload_failed */ }
+  return mapResumeUploadError(res.status, body);
+}
+
 export async function uploadResumeAction(formData: FormData): Promise<ResumeUploadActionResult> {
   const text = String(formData.get('text') ?? '');
   if (text.trim().length < 20) return { ok: false, message: '简历正文至少需要 20 个字符。' };
   try {
     // API upload is content-HMAC idempotent. Bound the internal hop: an unavailable API must return a recoverable
     // result to the browser instead of holding React's transition pending forever.
-    assertOk(await serverFetch('/resume', { method: 'POST', body: JSON.stringify({ text }), signal: AbortSignal.timeout(8_000) }));
+    const res = await serverFetch('/resume', { method: 'POST', body: JSON.stringify({ text }), signal: AbortSignal.timeout(RESUME_TEXT_UPLOAD_TIMEOUT_MS) });
+    if (res.status === 401) redirect('/login?expired=1');
+    if (!res.ok) return readUploadFailure(res);
     return { ok: true };
-  } catch {
+  } catch (error) {
+    if (isUploadTimeoutError(error)) return mapResumeUploadAbort();
     return { ok: false, message: '上传暂未完成，请检查网络后重试；不会重复扣费。' };
   }
 }
 
-/** 文件上传(PDF/Word/图片):Server Action 直收 File → base64 → /resume/file(服务端提取+清洗)。 */
+/** 文件上传(PDF/Word/预览图片):Server Action 直收 File → base64 → /resume/file。失败不编造转写。 */
 export async function uploadResumeFileAction(formData: FormData): Promise<ResumeUploadActionResult> {
   const file = formData.get('file') as File | null;
   if (!file || file.size === 0) return { ok: false, message: '请选择要上传的文件。' };
-  if (file.size > 8 * 1024 * 1024) return { ok: false, message: '文件超过 8MB 上限。' };
+  if (file.size > RESUME_MAX_BYTES) return { ok: false, message: '文件超过 8MB 上限。' };
+  const image = isResumeImageUpload(file.name, file.type);
+  if (image && !isOcrPreviewEnabled()) return resumeImageRefusedLocally();
+  if (image && !isPreviewOcrImage(file.name, file.type)) return resumePreviewFormatRefused();
+  const timeoutMs = image ? RESUME_OCR_PREVIEW_TIMEOUT_MS : RESUME_TEXT_UPLOAD_TIMEOUT_MS;
   try {
     const contentBase64 = Buffer.from(await file.arrayBuffer()).toString('base64');
-    assertOk(await serverFetch('/resume/file', { method: 'POST', body: JSON.stringify({ filename: file.name, mimeType: file.type, contentBase64 }), signal: AbortSignal.timeout(8_000) }));
+    const res = await serverFetch('/resume/file', {
+      method: 'POST',
+      body: JSON.stringify({ filename: file.name, mimeType: file.type, contentBase64 }),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    if (res.status === 401) redirect('/login?expired=1');
+    if (!res.ok) return readUploadFailure(res);
     return { ok: true };
-  } catch {
-    return { ok: false, message: '文件上传暂未完成，请检查文件和网络后重试。' };
+  } catch (error) {
+    if (isUploadTimeoutError(error)) return mapResumeUploadAbort();
+    return { ok: false, message: '文件上传暂未完成，请检查文件和网络后重试。不会编造识别结果。' };
   }
 }
 

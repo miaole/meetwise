@@ -125,7 +125,7 @@ related:
 | **上下文记忆 / 语义压缩** | 🟡 **只有有界输入，不是摘要记忆**：当前按服务字符上限截断并加标记，评分只读当前题答；没有 tokenizer 精确预算、版本化摘要、可重放压缩边界或撤回传播。登记为 `PRD-TEST-012`。 |
 | **Web 探索（CRAG 联网 fallback）** | 🟢 **机制已接线且默认开启**：`webExplore`(SSRF 安全 fetch:逐跳重定向复核 + 私网/allowlist 复核 + 硬超时 + fail-soft)已建;`DEFAULT_WEB_ALLOWLIST` 含 6 个官方文档源作 CRAG fallback 外呼(env `WEB_ALLOWLIST` 覆盖,显式空串才关)。**真正未建**:策展题库源表 + 审核门 + 扩召回 + 跨租户投毒断言 |
 | **跨供应商模型 failover** | 🟡 **机制已接线,backup 未配**：`failoverModel` 链已建并接进默认客户端,但需配 `MODEL_BACKUP_*` 才真有第二供应商;未配等价单端点 |
-| **图片简历 OCR（光学字符识别）** | 🟠 **预览版可走通，生产仍 disabled**：`resume.ocr.v1` 经 typed binding + `SealedOcrProvenance`（身份封印）。预览双旗 `OCR_ENABLED=1`+`OCR_PREVIEW=1` 可 bind→`visionOcr`→admit；失败不编造。生产/enforce/公开只读预览或缺旗仍 `422 image_ocr_unavailable`。旧 `ocr:prove` 是脚本模型/计费路径，不能证明百炼视觉质量或发布 SLO。生产恢复仍须媒体预算、token ledger、删除与合成 fixture 脱敏组合根。 |
+| **图片简历 OCR（光学字符识别）** | 🟠 **预览版 API+Web 可走通，生产仍 disabled**：`0127` 已在 main。预览双旗 `OCR_ENABLED=1`+`OCR_PREVIEW=1` 时 API 可 bind→`visionOcr`→admit，Web `/resume` 才接受图片；关闭态不接受 `image/*`，失败不编造转写。生产/enforce/公开只读预览或缺旗仍 `422 image_ocr_unavailable`。不是视觉质量 SLO，`releaseEvidence=false`。媒体预算、token ledger、删除合同、浏览器 E2E 质量仍未关。 |
 | **起步题库语料** | 🟡 **toy corpus**：仅 ~32 条自撰种子;**真正策展/授权题库 + 离线策展灌入管线未建**(P1「题库生命周期」❌) |
 | **容灾备份 / PITR / 只读副本** | ❌ **未配**：模型层 failover 有机制,但 DB 备份/故障转移/演练未落地(部署清单跟进) |
 | Next 渲染壳层 + EventSource 重连驱动 · CI eval gate | 🟠 承重逻辑已 code-validated,壳层/门禁续接 |

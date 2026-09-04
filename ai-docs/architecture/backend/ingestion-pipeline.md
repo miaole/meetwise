@@ -88,6 +88,6 @@ type ResumeProfile = {
 - **Phase 1（目标，未落地）**：扫描件 OCR + 版面感知分区 + provenance span 完整。当前仅有 `resume.ocr.v1` 身份封印合同缝，生产视觉仍关。
 - **Phase 2**：作品集/图片多模态、GitHub 印证（带同意）。
 
-> **实现现状（诚实校准）**：**已接线跑通**的是**文本/粘贴 + 结构化 + PII（个人可识别信息）闸（NFKC 归一 + 行内/+86/全角脱敏 + ≥11 位数字 fail-closed 兜底）+ 注入拦截 + `pgp_sym_encrypt` 静态加密 + HMAC（带密钥哈希消息认证码）去重 + 复合 FK（外键）同 owner + RLS（行级安全）越权=0**。图片简历 OCR **预览版可走通、生产未启用**：`resume.ocr.v1` 经 typed binding 封存 provenance（`resume_profile.ocr_binding`，迁移 0127，身份封印而非 host pin），面试缺 binding fail-closed。精确双旗 `OCR_ENABLED=1`+`OCR_PREVIEW=1` 且非 production/enforce/公开只读预览时走 `visionOcr`；失败不编造转写。生产锁或缺旗返回 `422 image_ocr_unavailable`，不预留额度。不是视觉质量 SLO。旧 `pnpm ocr:prove` 的脚本模型结果仅用于定位历史计费链与 binding 出处，不能证明视觉能力、浏览器上传、扫描型 PDF 逐页 OCR、完整删除或供应商保留期。PDF 文本层/docx 抽取适配器、版面感知分区、完整 provenance span、多模态/GitHub 印证仍属后续能力。
+> **实现现状（诚实校准）**：**已接线跑通**的是**文本/粘贴 + 结构化 + PII（个人可识别信息）闸（NFKC 归一 + 行内/+86/全角脱敏 + ≥11 位数字 fail-closed 兜底）+ 注入拦截 + `pgp_sym_encrypt` 静态加密 + HMAC（带密钥哈希消息认证码）去重 + 复合 FK（外键）同 owner + RLS（行级安全）越权=0**。图片简历 OCR **预览版可走通、生产未启用**：`0127` 已在 main。精确双旗 `OCR_ENABLED=1`+`OCR_PREVIEW=1` 且非 production/enforce/公开只读预览时 API 走 `visionOcr`，Web `/resume` 才开放图片 accept；关闭态本地拒绝图片，失败不编造转写。生产锁或缺旗返回 `422 image_ocr_unavailable`，不预留额度。本切片不新增迁移（`0128`–`0130` 已在 main；下一空号 ≥`0131`）。不是视觉质量 SLO，`releaseEvidence=false`。旧 `pnpm ocr:prove` 的脚本模型结果仅用于定位历史计费链与 binding 出处，不能证明视觉能力、浏览器实操、扫描型 PDF 逐页 OCR、完整删除或供应商保留期。PDF 文本层/docx 抽取适配器、版面感知分区、完整 provenance span、多模态/GitHub 印证仍属后续能力。
 
 DoD：上传 PDF 见结构化字段；原文不入日志；注入样本被标记；幻觉断言能被 provenance 反驳。

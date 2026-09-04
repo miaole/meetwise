@@ -5,6 +5,7 @@ import { uploadResumeAction, uploadResumeFileAction, type ResumeUploadActionResu
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Textarea } from '@/components/ui/textarea';
+import { resumeFileAccept, resumeFileHelpText, resumeOcrPreviewBanner } from '@/lib/resume/ocr-preview-ui';
 
 type UploadAction = (formData: FormData) => Promise<ResumeUploadActionResult>;
 
@@ -56,15 +57,20 @@ function UploadForm({
   );
 }
 
-export function ResumeUploadForms() {
+export function ResumeUploadForms({ ocrPreview }: { ocrPreview: boolean }) {
   return (
     <>
-      <UploadForm action={uploadResumeFileAction} button="提取并上传" className="flex flex-wrap items-center gap-3 rounded-xl border border-dashed bg-secondary/40 p-4">
+      {ocrPreview ? (
+        <p role="note" className="rounded-md border border-border bg-brand-soft/60 px-3 py-2 text-xs text-ink2">
+          {resumeOcrPreviewBanner()}
+        </p>
+      ) : null}
+      <UploadForm action={uploadResumeFileAction} button="提取并上传" className="flex flex-wrap items-center gap-3 rounded-md border border-dashed border-border bg-secondary/40 p-4">
         <input
-          type="file" name="file" accept=".pdf,.doc,.docx,image/*" required
+          type="file" name="file" accept={resumeFileAccept(ocrPreview)} required
           className="text-sm file:mr-3 file:rounded-md file:border file:border-input file:bg-background file:px-3 file:py-1.5 file:text-sm file:font-medium"
         />
-        <span className="w-full text-xs text-muted-foreground sm:w-auto">支持 PDF / Word(.docx)/ 图片(OCR 接线中,先用 PDF/Word)· ≤ 8MB</span>
+        <span className="w-full text-xs text-muted-foreground sm:w-auto">{resumeFileHelpText(ocrPreview)}</span>
       </UploadForm>
 
       <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />或粘贴文本<span className="h-px flex-1 bg-border" /></div>

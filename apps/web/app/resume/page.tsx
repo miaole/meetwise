@@ -9,6 +9,8 @@ import { SubmitButton } from '@/components/ui/SubmitButton';
 import { Badge } from '@/components/ui/badge';
 import { ResumeList, type ResumeRef as Resume } from '@meetwise/contracts';
 import { resumeStatusLabel } from '@/lib/resume/display';
+import { isOcrPreviewEnabled } from '@/lib/ocr-preview';
+import { resumeUploadCardDescription } from '@/lib/resume/ocr-preview-ui';
 
 export const metadata = { title: '简历 · 知面' };
 
@@ -26,6 +28,7 @@ export default async function ResumePage() {
   const parsedResumes = ResumeList.safeParse(data);
   const list: Resume[] | null = data === null ? null : parsedResumes.success ? parsedResumes.data.resumes : null;
   const consented = consent?.consented === true;   // null(取数失败)→ 当未同意,安全默认展示同意门
+  const ocrPreview = isOcrPreviewEnabled();
 
   return (
     <main className="mx-auto max-w-3xl space-y-6">
@@ -54,10 +57,10 @@ export default async function ResumePage() {
       <Card>
         <CardHeader>
           <CardTitle>上传简历</CardTitle>
-          <CardDescription>上传 PDF / Word / 图片文件,或直接粘贴文本——服务端自动提取并清洗。</CardDescription>
+          <CardDescription>{resumeUploadCardDescription(ocrPreview)}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
-          <ResumeUploadForms />
+          <ResumeUploadForms ocrPreview={ocrPreview} />
         </CardContent>
       </Card>
       )}
