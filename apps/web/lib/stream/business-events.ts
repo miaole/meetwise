@@ -3,6 +3,7 @@
  * 与后端 interview_event 的 kind 对齐（见 CLAUDE.md SSE 事件目录）。纯函数,可确定性单测,不依赖 React/浏览器。
  */
 import { z } from 'zod';
+import { SessionConcludedPayload } from '@meetwise/contracts';
 
 /**
  * 题型来自 `packages/domain/src/adaptive-interview.ts`。保留旧值是为了让
@@ -53,6 +54,8 @@ export const BusinessEvent = z.discriminatedUnion('event', [
   // 评分证据不足/评分执行失败：没有可信分数，额度已释放。不得与 report_unavailable 混用；后者的面试已经完成并扣费。
   z.object({ event: z.literal('assessment_unavailable'), id: z.number().int(), data: z.object({ reason: z.string() }).loose() }),
   z.object({ event: z.literal('interview_unavailable'), id: z.number().int(), data: z.object({ reason: z.string() }).loose() }),
+  // INT-LEVEL-SIGNAL-SSE-01：练习控制流收尾理由。非终态；strict 载荷拒绝 score/band。
+  z.object({ event: z.literal('session_concluded'), id: z.number().int(), data: SessionConcludedPayload }),
   z.object({ event: z.literal('error'), id: z.number().int(), data: z.record(z.string(), z.unknown()) }),
 ]);
 export type BusinessEvent = z.infer<typeof BusinessEvent>;

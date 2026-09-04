@@ -65,6 +65,7 @@ tags:
 - `requirements/use-cases/expert-long-interview-runtime.md`：长时专家面试的完整 transcript/恢复、能力等级校准、冻结 blueprint、Graph 安全控制面及其七类验收；当前为设计草案，未接线。UC-INT-LEVEL-SIGNAL-01 控制流 hook 已接线，见 `interview-control-signals.md`。
 - `requirements/use-cases/adaptive-interview-length.md`：当前短流程面试图的动态长度（覆盖/证据/早停/加深；软预算可上调；绝对杀开关默认 120 是平台安全，不是质量政策）；不是一到两小时 blueprint。
 - `requirements/use-cases/interview-control-signals.md`：INT-LEVEL 控制流地基——weak/thrashing 信号供 `decideNext` 消费；`safety_ceiling` 先赢；不是能力等级校准，不关闭 `INT-LEVEL-01`，不冻结产品轮次上限；本地 prove 为 `releaseEvidence=false`。
+- `requirements/use-cases/interview-signal-sse.md`：INT-LEVEL-SIGNAL-01 的 `early_weak` / `thrashing` 经既有 interview 事件/SSE 预览露出；练习自适应控制流，不是 ScoreCard / B 端等级；`releaseEvidence=false`。
 - `architecture/ai/scoring-measurement-runtime.md`：当前评分链与伪评分旁路、`SCOR-00H` 消费诚实、目标 ScoreCard、难度/覆盖门和评分 operation 的运行时设计。
 
 ## 任务分流

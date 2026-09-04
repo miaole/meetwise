@@ -32,7 +32,7 @@ related:
 | 明确不做 | 不实现 `INT-LONG-INTERVIEW-01`（无 60/90/120 分钟 blueprint、无 module scheduler、无新表/迁移）。允许绝对杀开关配置 60/90/120 **档位**，不等于已接线 blueprint。不让模型输出决定停/续。不加 CI/CD。不写密钥。不把回答原文或证据全文写入出处。不把默认可变长称为一到两小时专家面试。 |
 | 领域对象 | `InterviewMind`、`NextAction`、`DecisionProvenance`、`CoverageSnapshot`。不新增支付/权益对象。 |
 | 状态机影响 | 图仍是 `plan→decide→…→conclude`。`concluded=true` 的触发是政策 reason，不是「轮数==N」；`Interview` 业务终态仍由现有 lifecycle 投影。 |
-| 接口契约影响 | 无新 HTTP 契约。图状态 `concludeReason` 为 `DecisionProvenance | null`（审计投影，不含原文）。 |
+| 接口契约影响 | 无新 HTTP 写面。图状态 `concludeReason` 为 `DecisionProvenance | null`（审计投影，不含原文）。`early_weak`/`thrashing` 另经既有 SSE `session_concluded` 预览投影，见 `interview-signal-sse.md`。 |
 | 数据库影响 | 无迁移。checkpoint 多可选字段（`absoluteMaxTurns`、`budgetRaises`、`softBudget`），缺省：绝对杀开关按 120、软预算按 mind.maxTurns。 |
 | 测试计划 | 域证明：早停 / 加深过原 8 / 软预算上调 / 16 不是墙 / 只有高位绝对杀开关硬收尾 / 出处 / 模型信号无效。图证明：`maxTurns=999` 夹到绝对 120（不是 16）；强+钩子路径 `turn>8` 且发生 raise；弱/跳过路径 `turn<8` 收尾且带 reason。 |
 | 验证命令 | `pnpm adaptive:prove` · `pnpm adaptive-redesign:prove` · `pnpm adaptive-length:prove` · `pnpm adaptive-graph:prove` · `pnpm docs:check`。本切片 `releaseEvidence=false`（本地域/图证明，不是发布门）。 |

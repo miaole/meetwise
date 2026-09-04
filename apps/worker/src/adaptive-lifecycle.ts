@@ -13,6 +13,7 @@ import type { ModelClient, GraphObserver } from '@meetwise/ai-runtime';
 import { admitInterviewResume, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision } from '@meetwise/domain';
 import { buildAdaptiveDeps, planCompetencies } from './adaptive-interview-service.ts';
 import { recordAskedQuestions } from './memory-service.ts';
+import { emitSignalConcludeEvent } from './signal-conclude-event.ts';
 
 export type InterviewGenerationUnavailable = {
   reason: string;
@@ -309,6 +310,12 @@ async function submitAdaptiveAnswerImpl(
   if (done) {
     await asPrincipal(d.pool, d.owner, async (c) => {
       await requireCurrentFence(c, d);
+      // INT-LEVEL-SIGNAL-SSE-01：只经投影 append。其他 conclude 码与缺 provenance 不写、不发明分。
+      // 既有 interview_event 路径；event_key 幂等。不是 SSE 终态。
+      await emitSignalConcludeEvent(
+        appendEvent, c, d.owner, d.interviewId,
+        (snap.values as { concludeReason?: unknown } | undefined)?.concludeReason,
+      );
       const evidence = await c.query<{ unscored: number; eligible: number }>(
         `SELECT count(*) FILTER (WHERE kind='answer_unscored')::int AS unscored,
                 count(*) FILTER (

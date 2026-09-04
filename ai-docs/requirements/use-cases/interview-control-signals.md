@@ -25,7 +25,7 @@ related:
 
 > **`INT-LEVEL-SIGNAL-01` ≠ `INT-LEVEL-01`。** 本页是控制流地基，不是能力等级校准本身。不产出 `InitialLevelHypothesis` / `CompetencyLevelAssessment` / B 端 band，也不关闭 `INT-P0-LEVEL-EVIDENCE`。信号兼容覆盖驱动时长（`UC-INT-LENGTH-01`）：`safety_ceiling` 先赢；本包不改写 `maxTurns`，也不把固定轮数写成产品硬顶。
 >
-> **状态：◐ 本地 prove only**（`releaseEvidence=false`）。不关闭 `EXEC-01A` / `INT-LEVEL-01` / `INT-LONG-INTERVIEW-01`。worker 事件 / SSE / report **不读** `concludeReason`。
+> **状态：◐ 本地 prove only**（`releaseEvidence=false`）。不关闭 `EXEC-01A` / `INT-LEVEL-01` / `INT-LONG-INTERVIEW-01`。本切片是控制流写 hook。`early_weak`/`thrashing` 的 SSE 预览见 `interview-signal-sse.md`；报告路径仍不读 `concludeReason`。
 
 ## 任务范围（生成前门禁）
 
@@ -33,7 +33,7 @@ related:
 | --- | --- |
 | 任务范围 | 纯域 `observeInterviewSignals` + `decideNext` 消费；图 `concludeReason` hook。 |
 | 来源证据 | `expert-long-interview-runtime.md` §5 **blocked** 边界（SIGNAL-01 ≠ LEVEL-01）；`adaptive-interview-length.md`；`packages/domain/src/adaptive-interview.ts` 的 `decideNext`。 |
-| 明确不做 | 完整 `INT-LEVEL-01`；ScoreCard/rubric evidence；冻结或改写产品轮次上限；SSE/UI 文案；B 端等级；简历年限/受保护属性入特征。worker / SSE / report 不消费 `concludeReason`。 |
+| 明确不做 | 完整 `INT-LEVEL-01`；ScoreCard/rubric evidence；冻结或改写产品轮次上限；本切片不写 SSE/UI 文案；B 端等级；简历年限/受保护属性入特征。SSE 预览属 `UC-INT-LEVEL-SIGNAL-SSE-01`，不在本页实现。 |
 | 领域对象 | `InterviewMind`（本包消费 `recentScores` / `pivotCount`；`recentDifficulties` 仅由 ingest 持久化，观察函数不读）、`InterviewControlSignal`、`InterviewConcludeReason`。 |
 | 状态机影响 | 分数轨迹 `weak`/`thrashing` 映射为 `early_weak` / `thrashing`。判定序：`safety_ceiling` → 轨迹信号（同真时 weak 优先）→ 会话 abort-count `early_weak` → 连续无产出 pivot `thrashing` → probe/pivot（软预算触顶则 `raise_soft_budget`）→ 无可探时 `coverage_met`/`all_resolved`。`clarify` 续问不消费轨迹信号；仅绝对杀开关时经 `decideNext`。 |
 | 接口契约影响 | 无 HTTP/zod 契约变更。 |
@@ -47,7 +47,7 @@ related:
 | --- | --- | --- |
 | `packages/domain/src/interview-control-signals.ts` | `observeInterviewSignals`：`none` / `weak` / `thrashing`。缺 `recentScores`（旧 checkpoint）→ 两类提前终止均为 `none`。weak：分数样本 `≥2`、`probed≥2`、`turn≥4`、已探 confidence 均 `<0.35`。thrashing：`recentScores.length≥4` 且高/低带（≥70/<40）翻转≥3 **且** `pivotCount≥3`（单能力 hasHook 深挖或平稳换题单独不够）。均要求无人 `confidence≥0.7`。同真时观察函数先返回 `weak`。`recentDifficulties` 只持久化，观察函数不读。本文件不 import `adaptive-interview.ts`（单向 DAG）。 | 不是 `CompetencyLevelAssessment`，不写 band。 |
 | `packages/domain/src/adaptive-interview.ts` `decideNext` | 先 `safety_ceiling`；再 `observeInterviewSignals`；再 abort-count `early_weak`；再 consecutive-pivot `thrashing`；再 probe/pivot；最后覆盖收口。 | 不改写 `maxTurns`；软预算/绝对杀开关属 `UC-INT-LENGTH-01`。 |
-| `packages/ai-graphs/src/adaptive-interview/nodes/decide.ts` | 把 `DecisionProvenance` 写入 `concludeReason`。`clarify` 续问不走信号；仅绝对杀开关时走 `decideNext`。 | worker / SSE / report **不读** `concludeReason`。 |
+| `packages/ai-graphs/src/adaptive-interview/nodes/decide.ts` | 把 `DecisionProvenance` 写入 `concludeReason`。`clarify` 续问不走信号；仅绝对杀开关时走 `decideNext`。 | 本切片不读 `concludeReason`。SSE 预览见 `interview-signal-sse.md`。 |
 | `packages/ai-graphs/src/adaptive-interview/nodes/plan.ts` | `initMind(competencies, maxTurns, absoluteMaxTurns)`；无固定 8 轮产品硬顶。 | 时长数值属覆盖驱动策略；信号不得抬 `maxTurns`。 |
 | `packages/ai-graphs/.../evaluate-answer.ts`（对照，非本包） | `unscored` / identity-mismatch 可直接 `concluded=true`，**不经** `decideNext`，**不写** `concludeReason`。 | 不是 `early_*`；本 UC 只对照列出，不改该通道。 |
 
@@ -55,7 +55,7 @@ related:
 
 ## UC-INT-LEVEL-SIGNAL-01 · 弱/震荡信号供 decideNext 消费
 
-- **角色 Actor：** 自适应决策（纯域）、图 `decide` 节点。worker / SSE / report 不消费 `concludeReason`。
+- **角色 Actor：** 自适应决策（纯域）、图 `decide` 节点。本切片只写 `concludeReason`；SSE 预览见 `interview-signal-sse.md`。
 - **前置 Precondition：** `InterviewMind` 已由 `initMind` / `ingestAssessment` / `markUnresolved` / `withCurrent` 更新；评分只作 0..100 整数轨迹，不作 band。
 - **触发 Trigger：** 每次 `decideNext(mind)`。
 - **主流程 Main：**
@@ -64,7 +64,7 @@ related:
   3. 若观察为 `weak` → `early_weak`；否则若 `thrashing` → `thrashing`（双真时 weak 优先）。
   4. 否则 abort-count → `early_weak`；再否则 consecutive-pivot → `thrashing`。
   5. 否则 probe/pivot（`turn>=maxTurns` 则 `raise_soft_budget`）；无可探 → `coverage_met`/`all_resolved`。
-  6. 图 `decide` 把 `DecisionProvenance` 写入 `concludeReason`（hook；worker/SSE/report 不读）。`clarify` 续问烧 turn、不消费 weak/thrashing；仅 `turn>=absoluteMaxTurns` 时经 `decideNext` → `safety_ceiling`。
+  6. 图 `decide` 把 `DecisionProvenance` 写入 `concludeReason`（hook）。`clarify` 续问烧 turn、不消费 weak/thrashing；仅 `turn>=absoluteMaxTurns` 时经 `decideNext` → `safety_ceiling`。SSE 预览见 `interview-signal-sse.md`。
 - **备选流 Alternate：** 旧 checkpoint 缺 `recentScores` → 观察 `kind=none`（不按缺轨迹开火；会话 abort 仍可独立 `early_weak`）。分数样本 `<2`（仅 clarify/unresolved、未 ingest）→ 观察 `none`。单能力 off-ramp / 一次弱答 / 单能力 hasHook 深挖 / 平稳换题仍 probe 或 pivot，不因本观察 conclude。两门均已探尽且观察为 weak 时轨迹信号先于 `all_resolved` → `early_weak`。
 - **异常流 Exception：**
   - **E1 重复：** 同一 mind 重放 `observeInterviewSignals` / `decideNext` 字节级相同（纯函数；缺幂等键会让“同输入不同输出”漏过）。
@@ -73,7 +73,7 @@ related:
   - **E4 失败回滚：** 本层不写账本；非法 mind（缺 competencies）fail-closed → `none`，不抛、不抬 maxTurns。
   - **E5 降级：** 缺轨迹字段、分数样本不足、或仅 clarify/unresolved 未 ingest → `none`。图级 `unscored`/identity-mismatch 走 `evaluate-answer` 直跳 conclude，不经本包 `ConcludeReason`。
   - **E6 超时/断线：** 本层无 IO。恢复后只对账 checkpoint 里的 mind，不补造分数。
-- **后置 Postcondition：** `decideNext` 返回 `NextAction.reason ∈ ConcludeReason`；图 state `concludeReason` 为 `DecisionProvenance | null`（`code` 承载 reason）。`maxTurns` 未被信号改写；无 band/等级写入；`concludeReason` 未被 worker/SSE/report 消费。
+- **后置 Postcondition：** `decideNext` 返回 `NextAction.reason ∈ ConcludeReason`；图 state `concludeReason` 为 `DecisionProvenance | null`（`code` 承载 reason）。`maxTurns` 未被信号改写；无 band/等级写入。本切片不消费 `concludeReason`；SSE 预览见 `interview-signal-sse.md`。
 - **验收 Acceptance：**
   - 多能力持续弱且已过最小轮次且分数样本≥2 → `early_weak`，且仍有未探能力时也会停（不再为凑满清单继续问）。
   - 跨能力高/低分翻转≥3 且 `pivotCount≥3` 且无人 `confidence≥0.7` → `thrashing`。

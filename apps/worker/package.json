@@ -27,6 +27,7 @@
     "prove:job-wakeup": "tsx test/job-wakeup-listener.proof.ts",
     "prove:adaptive-flow": "tsx test/adaptive-flow.proof.ts",
     "prove:adaptive-life": "tsx test/adaptive-lifecycle.proof.ts",
+    "prove:signal-sse": "tsx test/signal-conclude-event.proof.ts",
     "prove:adaptive-consumer": "tsx test/adaptive-consumer.proof.ts",
     "prove:voice-adaptive": "tsx test/voice-adaptive.proof.ts",
     "prove:qbank": "tsx test/qbank-generation.proof.ts",
