@@ -11,7 +11,7 @@ description: 按触达面选择必须重跑的隔离 prove 与 E2E，避免只�
 
 | 触达路径 | 必须（无 Key） | 有 Key 时再跑 | 明确不够 |
 | --- | --- | --- | --- |
-| `e2e/`、`scripts/run-e2e*.mjs`、`scripts/local-e2e-receipt*` | `pnpm e2e-helpers:prove` `pnpm e2e-receipt:prove` `pnpm e2e-runner:prove` | `pnpm e2e:isolated` | 只改注释却声称全链路重跑 |
+| `e2e/`、`scripts/run-e2e*.mjs`、`scripts/e2e-platform/`、`scripts/local-e2e-receipt*` | `pnpm e2e-platform:check` `pnpm e2e-platform:prove` `pnpm e2e-helpers:prove` `pnpm e2e-receipt:prove` `pnpm e2e-runner:prove` | `pnpm e2e:isolated` | 只改注释却声称全链路重跑 |
 | `packages/db`、`packages/db/migrations` | `pnpm db:prove` `pnpm migrate:prove` `pnpm drift:prove`；相关业务 prove | 当前 schema 上重跑 `e2e:isolated` | 旧迁移回执（迁移数已变） |
 | `apps/api` | `pnpm api:validate` `pnpm api:smoke` + 对应 `neg:*` | `e2e:isolated` | 只 `livez` 200 |
 | `apps/worker`、`packages/ai-graphs` | `pnpm graph:prove` `pnpm interview:prove` 或被改图的 prove | `e2e:isolated` | 单测假模型质量 |

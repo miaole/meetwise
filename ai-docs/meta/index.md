@@ -36,6 +36,7 @@ tags:
 - `architecture/ai/research-capability-gate.md`：面试 Agent 的 RAG、受限 Web/deep research 与内部 skills 实际能力边界。
 - `architecture/devops/local-demo-deployment.md`：Docker Compose 本地演示和部署策略。
 - `testing/strategy/test-strategy.md`：测试策略（HTTP E2E 与 Playwright 分层以本文和 runtime 事实为准）。
+- `testing/conventions/e2e-directory-contract.md`：HTTP E2E 的 helpers / 场景 / `scripts/run-e2e*` 目录契约；静态门 `pnpm e2e-platform:check`。
 - `skills/testing/SKILL.md`：变更后审核 → 选层 → 跑门 → 回归 → AI 出处。
 - `testing/golden-tasks/README.md`：第一批 golden tasks 登记（含 planned/unmapped，无假绿）。
 - `testing/e2e-performance-evidence.md`：全量隔离 E2E、本地性能预算与外部检索基准的实跑证据。

@@ -44,6 +44,12 @@ jobs:
       # 文档门禁：必需文件 + 关键术语
       - run: pnpm docs:check
 
+      # E2E 目录契约：helpers / 场景 / run-e2e*。静态、无 Key、不是 live E2E。
+      - name: E2E directory contract (not live E2E)
+        run: |
+          pnpm e2e-platform:check
+          pnpm e2e-platform:prove
+
       # 公开首页、预览说明与招聘边界：仅检查已审计的文案契约，不证明运行或发布状态。
       - name: 公开文案边界（不替代发布证据）
         run: pnpm -C apps/web prove:public-copy

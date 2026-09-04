@@ -23,7 +23,7 @@ tags:
 | contract | 共享 zod4 schema + schema tests | 前后端接口不漂移 |
 | integration | Supertest + Testcontainers | API + DB + Redis |
 | graph | deterministic fixtures + fake model | LangGraph 状态、分支、恢复 |
-| e2e (HTTP) | `e2e/full.e2e.ts` + `scripts/run-e2e.mjs`（fetch / SSE），入口 `pnpm e2e:isolated` | 真 API + worker + 隔离 Postgres + **真供应商**主链路；不是 Playwright |
+| e2e (HTTP) | `e2e/full.e2e.ts` + `scripts/run-e2e.mjs`（fetch / SSE），入口 `pnpm e2e:isolated` | 真 API + worker + 隔离 Postgres + **真供应商**主链路；不是 Playwright。目录职责见 [E2E 目录契约](../conventions/e2e-directory-contract.md)，静态门 `pnpm e2e-platform:check` |
 | e2e (browser) | Playwright（`apps/web/e2e-ui/`），入口 `pnpm e2e:ui:isolated` | cookie / middleware / 页面流；需 production Next 与 live Key |
 | ai eval | golden tasks（见 `testing/golden-tasks/`） | 模型输出质量、结构、事实一致性；未映射条目不得标绿 |
 | security | 静态扫描 + 日志检查 | 密钥、PII、XSS、越权 |
@@ -47,7 +47,7 @@ tags:
 功能改动后的审核 → 选层 → 跑门配方见 [`ai-docs/skills/testing/SKILL.md`](../../skills/testing/SKILL.md)。
 
 ```bash
-pnpm regression            # 无 Key 的总是门（文档 / helpers / 回执 / 架构 / api smoke）
+pnpm regression            # 无 Key 的总是门（文档 / e2e-platform / helpers / 回执 / 架构 / api smoke）
 pnpm regression --core     # 行走骨架隔离 prove（需 Docker）
 pnpm regression --live     # 真供应商 HTTP E2E；缺 MODEL_API_KEY 非零退出。浏览器层另跑 e2e:ui:isolated（需先构建 web）
 ```

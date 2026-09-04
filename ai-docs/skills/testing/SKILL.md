@@ -28,14 +28,14 @@ pnpm regression --live   # 真供应商 HTTP E2E；缺 MODEL_API_KEY 必须非�
 
 | 字段 | 本轮结论 |
 | --- | --- |
-| 范围 | 测试技能、HTTP E2E helpers、golden-task 登记、策略文档对齐、`pnpm regression` |
-| 来源 | `test-strategy.md`、`test-authoring.md`、`e2e/full.e2e.ts`、`scripts/run-e2e.mjs`、CI `verify` / `nightly` |
-| 明确不做 | 不在无 Key 的 CI 里假绿 live E2E；不把 Playwright 写成 HTTP 全链路的唯一实现；不把 planned golden-task 标成已通过 |
+| 范围 | 测试技能、HTTP E2E helpers、E2E 目录契约、golden-task 登记、策略文档对齐、`pnpm regression` |
+| 来源 | `test-strategy.md`、`test-authoring.md`、`e2e-directory-contract.md`、`e2e/full.e2e.ts`、`scripts/run-e2e.mjs`、CI `verify` / `nightly` |
+| 明确不做 | 不在无 Key 的 CI 里假绿 live E2E；不把 Playwright 写成 HTTP 全链路的唯一实现；不把 planned golden-task 标成已通过；不把其他产品的领域树抄进 `e2e/` |
 | 领域对象 | 无业务对象变更 |
 | 状态机 | 无 |
-| 契约 | 无 |
+| 契约 | 无 API 变更；E2E 目录契约由 `pnpm e2e-platform:check` 静态执行 |
 | 数据库 | 无 schema 变更；隔离 E2E 仍走完整迁移 |
-| 测试计划 | `pnpm e2e-helpers:prove`、`pnpm e2e-receipt:prove`、`pnpm golden-tasks:check`、`pnpm docs:check`、`pnpm regression` |
+| 测试计划 | `pnpm e2e-platform:check`、`pnpm e2e-platform:prove`、`pnpm e2e-helpers:prove`、`pnpm e2e-receipt:prove`、`pnpm golden-tasks:check`、`pnpm docs:check`、`pnpm regression` |
 | 验证 | 上列命令；`pnpm e2e:isolated` 仅在有 `MODEL_API_KEY` 时 |
 
 ## 铁律（先读再跑）

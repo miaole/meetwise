@@ -33,7 +33,7 @@ related:
 | 对外 API 形状 | 契约 | zod4 schema-diff（contracts 包导出对比） |
 | 跨模块 + DB + RLS/CAS/幂等 | 集成 | Supertest + Testcontainers / 真 Postgres |
 | 图编排、interrupt/resume、节点决策 | graph | 确定性 fixture + **fake model** |
-| 端到端关键路径（鉴权→简历→交易→面试→报告→B 端） | e2e HTTP | `pnpm e2e:isolated`：`e2e/full.e2e.ts` fetch/SSE，真供应商，**不是** Playwright |
+| 端到端关键路径（鉴权→简历→交易→面试→报告→B 端） | e2e HTTP | `pnpm e2e:isolated`：`e2e/full.e2e.ts` fetch/SSE，真供应商，**不是** Playwright。场景写 `e2e/*.e2e.ts`，共享原语写 `e2e/helpers/`，见 [E2E 目录契约](./e2e-directory-contract.md) |
 | 浏览器 cookie / 页面流 | e2e UI | Playwright：`pnpm e2e:ui:isolated`（`apps/web/e2e-ui/`） |
 | 模型质量/安全 | ai-eval | golden 任务登记在 `testing/golden-tasks/`；对**真实境内模型**跑的条目不得用 fake 冒充 |
 

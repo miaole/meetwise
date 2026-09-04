@@ -17,7 +17,7 @@
 - `architecture/`：前端、后端、AI、DevOps、观测等长期架构。
 - `rules/`：长期稳定工程规则。
 - `skills/`：任务型工作方法。测试入口：`skills/testing/SKILL.md`。
-- `testing/`：测试策略、`golden-tasks/` 登记、E2E 证据和评测。
+- `testing/`：测试策略、`golden-tasks/` 登记、E2E 目录契约、E2E 证据和评测。
 - `delivery/`：路线图、发布说明、复盘。
 - `observability/`：AI 运行、prompt 质量、graph 质量和成本观测。
 

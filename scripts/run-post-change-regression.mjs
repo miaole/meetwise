@@ -25,6 +25,8 @@ if (unknown.length) {
 const ALWAYS_ON = [
   ['docs:check', ['docs:check']],
   ['golden-tasks:check', ['golden-tasks:check']],
+  ['e2e-platform:check', ['e2e-platform:check']],
+  ['e2e-platform:prove', ['e2e-platform:prove']],
   ['e2e-helpers:prove', ['e2e-helpers:prove']],
   ['e2e-receipt:prove', ['e2e-receipt:prove']],
   ['e2e-runner:prove', ['e2e-runner:prove']],

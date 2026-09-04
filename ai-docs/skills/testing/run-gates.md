@@ -13,7 +13,7 @@ description: 隔离 prove、HTTP E2E、浏览器 E2E、性能门的真实命令�
 pnpm regression
 ```
 
-默认包含：`docs:check`、`golden-tasks:check`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`arch`、`api:smoke`。缺 Docker 不能假装隔离 prove 已跑。
+默认包含：`docs:check`、`golden-tasks:check`、`e2e-platform:check`、`e2e-platform:prove`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`arch`、`api:smoke`。目录契约见 [E2E 目录契约](../../testing/conventions/e2e-directory-contract.md)。缺 Docker 不能假装隔离 prove 已跑。
 
 行走骨架（本地有 Docker 时）：
 
