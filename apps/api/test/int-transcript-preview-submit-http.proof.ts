@@ -1,9 +1,11 @@
 /**
  * Isolated HTTP proof: preview-path submitInterviewAnswer.
  *
- * Requires the isolated runner (full migrations + disposable PostgreSQL).
- * Proves answers land on the 0092 ledger under MEETWISE_PUBLIC_PREVIEW=1,
- * without plaintext /turn jobs and without claiming INT-TRANSCRIPT-01.
+ * Standing: use REMOTE Postgres via env. Never `pnpm db:up` / compose.dev.
+ * The isolated runner may wrap a disposable target; this file does not start
+ * the local development database. Proves answers land on the 0092 ledger
+ * under MEETWISE_PUBLIC_PREVIEW=1, without plaintext /turn jobs and without
+ * claiming INT-TRANSCRIPT-01. 0126 dual-write fence must already be applied.
  * releaseEvidence=false.
  */
 import 'reflect-metadata';

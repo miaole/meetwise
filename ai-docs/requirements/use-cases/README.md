@@ -27,6 +27,7 @@ related:
   - ./ecs-public-preview-web-ingress.md
   - ./public-preview-write-gate.md
   - ./interview-answer-preview-submit.md
+  - ./interview-answer-dual-write-fence.md
   - ./marketing-legal-seo.md
   - ./admin-console.md
   - ./interview-modality.md

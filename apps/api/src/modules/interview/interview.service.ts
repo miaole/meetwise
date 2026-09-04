@@ -123,6 +123,8 @@ export class InterviewService {
       throw new HttpException({ error: code }, HttpStatus.BAD_REQUEST);
     if (code === 'interview_answer_artifact_missing' || code === 'interview_answer_receipt_incomplete')
       throw new HttpException({ error: code }, HttpStatus.CONFLICT);
+    if (code === 'interview_answer_ledger_dual_write_fenced' || code === 'interview_answer_legacy_plaintext_fenced')
+      throw new HttpException({ error: code }, HttpStatus.CONFLICT);
     throw error;
   }
 

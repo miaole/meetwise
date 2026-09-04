@@ -1,9 +1,10 @@
 /**
  * @meetwise/db · 答题正文双写互斥（INT-P0-RAW-QUEUE 围栏，不是 INT-TRANSCRIPT-01）。
  *
- * Legacy `/turn` 仍写 interview_job.payload.answer；ledger submitInterviewAnswer
- * 仍不是生产 HTTP。本模块只调用 0126 的 SECURITY DEFINER 断言，使仓储与触发器
- * 共用同一错误码。不得把成功调用解释成 01 已开放。
+ * Legacy `/turn` 仍写 interview_job.payload.answer。ledger `submitInterviewAnswer`
+ * 可被预览 `POST /interview/:id/answers` 调用，仍不是 INT-TRANSCRIPT-01 生产 HTTP。
+ * 本模块只调用 0126 的 SECURITY DEFINER 断言，使仓储与触发器共用同一错误码。
+ * 不得把成功调用解释成 01 已开放。
  *
  * 明文判定与触发器一致：顶层 `answer` 键存在即进入互斥（含 "" / null / 非 string）。
  * kind 不豁免。questionId / stateVersion 与 SQL 同一套 trim + `^[0-9]+$` 规范。

@@ -12,6 +12,7 @@ related:
   - ../current-runtime-truth.md
   - ../../requirements/use-cases/expert-long-interview-runtime.md
   - ../../requirements/use-cases/interview-answer-dual-write-fence.md
+  - ../../requirements/use-cases/interview-answer-preview-submit.md
   - ./domain-events-catalog.md
 ---
 
@@ -30,7 +31,7 @@ related:
 | Worker hydrate | `loadClaimedInterviewAnswerPayload` 读明文 | `apps/worker/src/interview-consumer.ts` | 是 | 是，lease 内 | 图 checkpoint 只留 `answerId` |
 | Job 终态 | `payload-'answer'` | `markJobDone` / `markJobFailed` | 是 | 剥离明文，保留 identity 字段 | 不是删除 receipt |
 | Event / SSE | `answer_evaluated` 等：`answerId`/`answerHash`/题面/hint 分 | `apps/worker/src/adaptive-lifecycle.ts` → `appendEvent` | 是 | 否（源码无 `answer` 键） | 0126 禁止再写入**顶层** `answer`；嵌套键不拦 |
-| Ledger rehearsal | `interview_answer_submission` + 加密 `interview_answer_artifact` + ref-only `interview_answer_job` | `packages/db/src/int-transcript.ts` `submitInterviewAnswer` | **否**（仅 proof / SCOR rehearsal） | 密文 + keyed HMAC | 不是 01 生产 write route |
+| Ledger rehearsal | `interview_answer_submission` + 加密 `interview_answer_artifact` + ref-only `interview_answer_job` | `packages/db/src/int-transcript.ts` `submitInterviewAnswer`；预览 HTTP 经 `InterviewService.submitPreviewAnswer` | 预览 `POST /interview/:id/answers`（`MEETWISE_PUBLIC_PREVIEW=1`）；非预览 404。**不是** 01 生产 write | 密文 + keyed HMAC | 受 0126 围栏；见 `UC-INT-TRANSCRIPT-PREVIEW-SUBMIT`。proof / SCOR rehearsal 仍可直调 |
 | Transcript GET | 拼 event + ScoreCard | `interview.service.ts` `transcript()` | 读 | 无原文 | 不能当 canonical 回放 |
 
 两条**正文家族**：
@@ -42,7 +43,7 @@ related:
 
 ## 2. 本轮已落地的安全围栏（不是 01）
 
-迁移 `packages/db/migrations/0126_interview_answer_dual_write_fence.sql`，仓储 `packages/db/src/interview-answer-dual-write.ts`。触发器是安全边界；`enqueueInterviewJob` / `submitInterviewAnswer` / `appendEvent` 再调同一断言或先拒，错误码与 raw SQL 一致。编号：`0124` 与 `0125` 已在 `main`（`0124_rag_retrieval_acl_fail_closed.sql`；`0125_memory_vector_chunk_erasure.sql`）。本围栏是 `0126`，不得改号。
+迁移 `packages/db/migrations/0126_interview_answer_dual_write_fence.sql`，仓储 `packages/db/src/interview-answer-dual-write.ts`。触发器是安全边界；`enqueueInterviewJob` / `submitInterviewAnswer` / `appendEvent` 再调同一断言或先拒，错误码与 raw SQL 一致。编号：`0124`/`0125`/`0126` 已在 `main`。预览 `/answers` 走 ledger 断言，不得改 0126 号。
 
 | 机制 | 代码 | 错误码 | 行为 |
 | --- | --- | --- | --- |
