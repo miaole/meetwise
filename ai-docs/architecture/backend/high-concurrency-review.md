@@ -118,12 +118,14 @@ related:
 1. **0120 共享槽**（`ai_model_concurrency_lease`）：`admitSharedModelOperation` 在 durable claim **之后**、`dispatching` **之前**。仅当 `resolveModelAdmissionPartition(spec)` 因 `spec.operation` 得到分区时进入。满额 → `model_concurrency_exhausted`，claim 标 failed，零外呼。释放要求 owner+idempotency 仍匹配。
 2. **进程内** `rateLimitedModel`：`MODEL_MAX_CONCURRENT`（默认 4）+ 可选 RPM。`agent-runtime.md` 仍写“多副本需 Redis/Tair 原子配额”——那是进程内层的边界，**不能用来否定 0120 已存在**，也不能把 0120 说成所有适配器的全局上限。
 
-`invoke.ts` 注释写明：legacy 无 `operation` 的调用不走共享权威。OCR / 语音 / embedding 的 typed binding 与共享槽是否在**生产组合根**接通，以 `current-runtime-truth.md` 与 `model-operation-routing.md` 为准，本文件不另造“已全局限流”。
+`invoke.ts` 注释写明：legacy 无 `operation` 的调用不走共享权威。这是显式兼容缝，**不是**“已经全局限流”。本切片不把该缝改成生产 fail-closed。OCR / 语音 / embedding 的 typed binding 与共享槽是否在**生产组合根**接通，以 `current-runtime-truth.md` 与 `model-operation-routing.md` 为准。
 
 **证明**
 
 | 命令 | 层 | 覆盖 | 缺口 |
 | --- | --- | --- | --- |
+| `pnpm model-slot-bypass:static:prove` | 无库；per-push CI | `resolveModelAdmissionPartition` 无 `operation` 为 undefined；`admitSharedModelOperation` 仅在 `if (admissionPartition)` 内调用一次 | 不读库，不能单独当作 lease 行回执 |
+| `pnpm model-slot-bypass:prove` | 隔离 PG（`packages/ai-runtime/test/model-slot-bypass.proof.ts`） | 无 `operation` 的成功/在途 invoke 不改变 `ai_model_concurrency_lease`；有 operation 且 `max_concurrency=2` 时第三条 `model_concurrency_exhausted`、零外呼、claim=`failed` | 需隔离库；**不在 per-push**；不起 compose.dev / 本地常驻 Docker 库。本环境未取得新回执时 `releaseEvidence=false` |
 | `pnpm model-op02:prove` | 隔离 PG（`packages/ai-runtime/test/model-op02-shared-provider.proof.ts`） | 单测分区 max=2 时第三 acquire 拒绝；释放/过期可复用 | 需隔离库；不在 per-push；不是多 Worker 真副本抢同一生产 operation |
 | `pnpm breaker:prove` | 确定性 | 半开单探针、abort 不晚到外呼 | 不证明 0120 跨副本槽 |
 | `pnpm runtime:isolated:prove` | 隔离 PG | 同键双并发 calls=1；`0130` wait / 不二次 execute | 37 断言登记在 runtime-truth；不证明 0120 槽与 claim-join 的交叉故障 |
@@ -143,7 +145,7 @@ related:
 
 ## 7. 证明与测试缺口（可执行清单）
 
-下列项是持续缺口。§4.1 的共享解析器已接线。`HC-GAP-006`（押题/诊断 HTTP 400）与 `HC-GAP-014`（前端 400 停转）已关；HTTP 槽打满 / 多副本项仍开。
+下列项是持续缺口。§4.1 的共享解析器已接线。`HC-GAP-006`（押题/诊断 HTTP 400）与 `HC-GAP-014`（前端 400 停转）已关；`HC-GAP-009` 证明已接线，见 §7.1；隔离回执未取得前不得写成发布证据。HTTP 槽打满 / 多副本项仍开。
 
 **已关闭**
 
@@ -161,7 +163,6 @@ related:
 | `HC-GAP-005` | SKIP LOCKED | `UC-WORKER-001` 的 rollback 通知=0、20 路 wakeup、重连 drain | 真实 PG NOTIFY | 回滚后 drain 次数不增加；监听恢复立即 drain |
 | `HC-GAP-007` | SSE | 三路共享 `sse:principal` 槽；无 hijack 打满 5+1 | HTTP 集成 | 第 6 条 429，`asPrincipal` 轮询不增加 |
 | `HC-GAP-008` | SSE | 槽与 2s 轮询均为单进程 | 多 API 副本 | N 副本时可开到 `5N` 条连接（今日即如此） |
-| `HC-GAP-009` | 模型槽 | 0120 槽证明不在 per-push；legacy 无 operation 路径绕过 | 隔离 PG + 静态 | 无 `operation` 的 invoke 不写 `ai_model_concurrency_lease`；有 operation 时第三槽拒绝 |
 | `HC-GAP-010` | 模型槽 | 文本 `MODEL_MAX_CONCURRENT` 与 0120 `max_concurrency` 双层，无组合根交叉证明 | 隔离 PG | 共享槽已满时进程内队列不得把调用标成 `dispatching` |
 | `HC-GAP-011` | claim-join | `0130` 已进 `runtime:isolated:prove`；孤儿 permit / 两连接同时无行 的独立用例未单列到 CI 名 | 隔离 PG | 两并发无行 → execute=1 且 `wait`/`cached`，calls 不因清 permit 变成 2 |
 | `HC-GAP-012` | 账本 | commerce / quiz / report / reaper 回执停在 64 迁移 | 当前迁移隔离 PG | 在 **130** 个迁移上重跑后才能引用新回执 |
@@ -169,29 +170,38 @@ related:
 
 `TC-WORKER-001-*`、`TC-WORKER-002-*`（远程）、`TC-MODEL-001-E2` 半开改路等，用例文档已写、治理叶多为 planned/unmapped。不得用本复核文件把它们标成已绑定。
 
+### 7.1 `HC-GAP-009`（证明已接线，隔离回执未跑）
+
+| ID | 关闭物 | 不关闭 |
+| --- | --- | --- |
+| `HC-GAP-009` | 静态门 `pnpm model-slot-bypass:static:prove` 进入 per-push：无 `operation` / resolve 失败不得派生分区；`admitSharedModelOperation` 只能在 `if (admissionPartition)` 内调用；`invoke.ts` 不得直连 `acquireModelAdmission` / 0120 过程 / lease 表。隔离命令 `pnpm model-slot-bypass:prove` 已接线：无 `operation` 的 invoke 不写 `ai_model_concurrency_lease`；有 operation 且 max=2 时第三条拒绝、零外呼。本环境无 Docker，**未取得隔离回执**，`releaseEvidence=false`。 | 不把 legacy 缝改成生产 fail-closed；隔离证明不在 per-push；无隔离回执不得写成发布通过；不关闭 `HC-GAP-010`（进程内 `MODEL_MAX_CONCURRENT` 与 0120 交叉） |
+
 ## 8. 当前树落地 / 明确不做
 
-**已落地（文档 + 解析器 + 前端 400 停转）**
+**已落地（文档 + 解析器 + 前端 400 停转 + 押题/诊断 HTTP 400 + HC-GAP-009 证明接线）**
 
 - 本复核骨架挂到索引与运行时事实矩阵的 related。
 - 三路 SSE service 共用 `parseLastEventId`；controller 只用返回的 `lastId`。无库证明 `pnpm last-event-id:unit:prove` 进入 per-push CI。`HC-GAP-006`（押题/诊断 HTTP 400）由 `pnpm api:validate` 关闭。`HC-GAP-007`（槽打满）仍开。
 - **`HC-GAP-014` 已关闭（仅前端，#90）**：面试 / 押题 / 诊断流驱动把 HTTP 400 `invalid_last_event_id` 当失败关闭，不是断线。`pnpm web:prove` 断言 open 恰好 1 次、`connection=closed`、`degraded`、不得用同一 `Last-Event-ID` 重试；Next SSE 代理保持 400 而不改写成普通 `stream_unavailable`。不是浏览器实链。押题/诊断 HTTP 400 现由 `api:validate` 覆盖。`releaseEvidence=false`。
+- **`HC-GAP-009` 证明已接线**：`pnpm model-slot-bypass:static:prove` 在 per-push CI；隔离命令 `pnpm model-slot-bypass:prove` 已接线。本机/本 PR 无隔离回执（`releaseEvidence=false`）。不 fail-close 旧 `invoke` 缝。
 
 **明确不做**
 
-- 不改领取 SQL、公平调度、0120 槽、`0130`、权益账本。
+- 不改领取 SQL、公平调度、0120 槽语义、`0130`、权益账本。
 - 不加 `0131+` 迁移。
+- 不把无 `operation` 的 legacy invoke 改成生产 fail-closed（除非后续单独立项）。
 - 不把 LISTEN 接到 SSE，不把 `acquireSlot` 挪到首次 catch-up 之前（那是行为变更，不是本切片）。
 - 不实现集群 inflight 或跨副本 SSE 槽。
-- 不重跑、不伪造隔离库回执。
+- 不重跑、不伪造隔离库回执；不起 compose.dev / 本地常驻 Docker 库。
 
 ## 9. 验证命令
 
 ```bash
 pnpm last-event-id:unit:prove
 pnpm interview-dispatch:unit:prove
+pnpm model-slot-bypass:static:prove
 pnpm docs:check
 pnpm api:validate   # 三路非法 Last-Event-ID → 400；需隔离或远程库，禁止 compose.dev 本地 Postgres/Redis
 ```
 
-`pnpm api:validate` / `pnpm interview-dispatch:prove` / `pnpm runtime:isolated:prove` 需要隔离或远程库；本环境未取得新回执时保持 `releaseEvidence=false`。
+`pnpm model-slot-bypass:prove` / `pnpm api:validate` / `pnpm interview-dispatch:prove` / `pnpm runtime:isolated:prove` 需要隔离或远程库；本环境未取得新回执时保持 `releaseEvidence=false`。

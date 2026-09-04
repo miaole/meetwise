@@ -39,6 +39,8 @@
     "prove:vision-endpoint-config": "tsx test/vision-endpoint-config.proof.ts",
     "prove:model-client-dispatch": "tsx test/model-client-dispatch.proof.ts",
     "prove:model-op02": "tsx test/model-op02-shared-provider.proof.ts",
+    "prove:model-slot-bypass": "tsx test/model-slot-bypass.proof.ts",
+    "prove:model-slot-bypass-static": "tsx test/model-slot-bypass.static.proof.ts",
     "offline-eval:contract": "tsx scripts/run-offline-contract-regression.ts",
     "langfuse:datasets:sync": "tsx scripts/sync-langfuse-datasets.ts",
     "langfuse:datasets:verify": "tsx scripts/verify-langfuse-datasets.ts",

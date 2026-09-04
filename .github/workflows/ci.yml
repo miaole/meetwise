@@ -80,6 +80,11 @@ jobs:
       - name: SSE last-event-id fail-closed parser (no database)
         run: pnpm last-event-id:unit:prove
 
+      # HC-GAP-009 静态门（无库）：legacy invoke 无 operation 不得进入 0120 租约。
+      # 隔离 PG 证明 `pnpm model-slot-bypass:prove` 不在 per-push。
+      - name: Model slot legacy bypass static guard (no database)
+        run: pnpm model-slot-bypass:static:prove
+
       - name: Web preview gate behavioral proof (real NextRequest, not string match)
         run: pnpm -C apps/web prove:middleware
 
