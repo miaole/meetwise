@@ -91,7 +91,7 @@ related:
 1. 短事务按 `seq > lastId` 读 `interview_event`（RLS / 所属校验之后）。
 2. `hijack` 写出 catch-up。
 3. **每 2 秒再查一次**；空则写 `: ping`。
-4. 终态事件、客户端断开或 10 分钟到点结束。
+4. 终态事件、客户端断开或 10 分钟到点结束。面试 `session_concluded`（`early_weak`/`thrashing` 练习控制流预览）**不是**终态，流须继续等到 `report_*` / `assessment_*` / `interview_unavailable` / `error`（见 `interview-signal-sse.md`）。
 5. `acquireSlot('sse:' + principal, 5)` / `finally releaseSlot`。槽实现是进程内 `Map`，注释写明多实例要换共享桶。
 
 因此“扇出”只发生在**每个连接自己轮询账本**。没有跨连接 pub/sub，没有把 wakeup 通知当事件载荷。前端用 `Last-Event-ID` 续传；SSE 不持业务真相。
