@@ -10,8 +10,8 @@
  *
  * This module is fail-closed static governance: it rejects unknown fields,
  * raw prompt strings, provider URLs, oversized scalars and free-form model
- * names before any transport exists.  Wiring the concrete adapters behind
- * these bindings remains MODEL-OP-01 work and stays blocked.
+ * names before any transport exists.  `resume.ocr.v1` is resolved through
+ * `bindResumeOcr` / `visionOcr`; other native adapters remain unwired.
  */
 import { z } from 'zod';
 

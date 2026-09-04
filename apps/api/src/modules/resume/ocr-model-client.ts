@@ -1,11 +1,11 @@
 import { assertVisionEndpointKeyFingerprint, openAICompatibleClient, resolveVisionEndpointConfig, type ModelClient } from '@meetwise/ai-runtime';
 
 /**
- * The API used to construct an unrestricted vision client directly.  OCR has
- * not yet completed MODEL-OP-01 (typed binding, media budget, cost policy and
- * deletion contract), so every environment keeps it disabled. This is
- * deliberately a composition-root guard: a later service edit cannot silently
- * turn an existing provider key into an unmetered OCR capability.
+ * Typed OCR binding exists (`resume.ocr.v1` + sealed provenance), but that is
+ * an identity seal — not production vision, media budget, cost policy, or a
+ * deletion contract. Every environment still keeps the composition root
+ * disabled when `OCR_ENABLED=1`. A later service edit cannot silently turn an
+ * existing provider key into an unmetered OCR capability.
  */
 export function isOcrFeatureEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   return env.OCR_ENABLED === '1';
@@ -25,8 +25,9 @@ export function createOcrVisionClient(env: NodeJS.ProcessEnv = process.env): Mod
   return openAICompatibleClient({
     vision: true,
     // A disabled composition remains incapable of dispatching even under a
-    // test/development process environment. MODEL-OP-01 replaces this factory
-    // with a typed vision binding before OCR may be enabled.
+    // test/development process environment. Remaining MODEL-OP-01 work
+    // (media budget, deletion, shared admission) must land before OCR may
+    // be enabled; the typed binding alone does not lift this guard.
     requireBoundOperation: true,
   });
 }

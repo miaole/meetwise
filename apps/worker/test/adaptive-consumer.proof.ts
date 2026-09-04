@@ -113,7 +113,7 @@ async function main() {
     console.error('adaptive-consumer start diagnostic:', diagnostic.rows[0]);
   }
   A('消费 start job → 自适应路径(返回 start)', startDrain === 'start');
-  A('正常 v64 start 正向校准 decrypt hook（解密接缝）确实被调用一次', resumeDecryptions === 1);
+  A('正常 v64 start 只读画像授权门、不解密简历原文', resumeDecryptions === 0);
   let qr = await asPrincipal(pool, OWNER, (c) => c.query("SELECT count(*)::int n FROM interview_event WHERE stream_key=$1 AND kind='question_ready'", [IID]));
   A('start 后发首题 question_ready(经队列→消费者→自适应图)', qr.rows[0].n >= 1);
   A('低置信 RAG 在真实 consumer→graph 路径走有界 deepResearch，未落回浅层 seam', deepCalls === 1 && shallowCalls === 0);

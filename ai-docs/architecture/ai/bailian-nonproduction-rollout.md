@@ -36,7 +36,7 @@ related:
 | 文本备用（仅 Worker） | `MODEL_BACKUP_*`、`MODEL_FAST_BACKUP_*` | 目标为 Qwen `qwen-plus` / `qwen-turbo`。仅主端点在派发前已知不可用时才可选择；主备价格策略不同的 half-open 自动切换尚未实现，不得称为完整高可用。 |
 | 文本成本 | `MODEL_PRIMARY_*`、`MODEL_FAST_*`、`MODEL_BACKUP_*`、`MODEL_FAST_BACKUP_*`、`MODEL_COST_*` | 四个实际模型各需独立价格 revision、输入/输出单价和窗口；default/fast 是各自进程内 admission，不是共享总量。 |
 | embedding | `DASHSCOPE_API_KEY`、`DASHSCOPE_ENDPOINT_PROFILE`、`DASHSCOPE_WORKSPACE_ID`、`DASHSCOPE_EMBED_MODEL`、`RAG_EMBED_*` | 默认 `text-embedding-v4`；endpoint 固定由 profile registry 生成，有 generation/recipe 约束，但尚未进入统一 operation binding。 |
-| 视觉 OCR | `DASHSCOPE_VISION_MODEL` 加受控 OCR binding（未实现） | `MODEL-OP-01` 前所有环境均不得以用户图片/原始输出执行 OCR smoke；`OCR_ENABLED=1` 会拒绝 API 组合根，手动 `vl:smoke` 也固定 fail-closed、不会读取凭据/图片或发网。恢复前必须具备合成 fixture、脱敏回执和 typed binding。 |
+| 视觉 OCR | `DASHSCOPE_VISION_MODEL` + 冻结 `resume.ocr.v1` typed binding（`bindResumeOcr`） | typed binding 与密封 provenance 已落地（身份封印，非出站 host pin）；**生产/非生产均不得**以用户图片或原始输出执行 OCR smoke。`OCR_ENABLED=1` 仍拒绝 API 组合根（binding 存在也不开），手动 `vl:smoke` 固定 fail-closed、不读凭据/图片、不发网。恢复前仍须合成 fixture、脱敏回执、媒体预算与删除合同。 |
 | rerank | `DASHSCOPE_API_KEY`、`DASHSCOPE_RERANK_*` | 代码适配器存在，但未接入当前 QBank serving 路径；默认保持禁用。 |
 | 批量 ASR/TTS | `DASHSCOPE_API_KEY`、`DASHSCOPE_ASR_MODEL`、`DASHSCOPE_TTS_*` | 适配器与本地取消合同存在，但 API 组合根和手工 live smoke 已统一 disabled；尚无 operation binding、媒体预算、attempt 或删除回执。 |
 | 流式 ASR/TTS | `DASHSCOPE_API_KEY`、`DASHSCOPE_STREAM_*` | 适配器存在，但 API 组合根和手工 live smoke 已统一 disabled；未形成受控流会话或真实端到端证据。 |
@@ -87,7 +87,7 @@ related:
 | ID | 状态 | 必须完成的改动 | 验收 |
 | --- | :---: | --- | --- |
 | MODEL-OP-00 | blocked | 文本的输出上限/部分预算/价格绑定存在，但 `0085` 的更新围栏可被 direct `INSERT dispatching`、非法 terminal transition 与 identity tamper 绕过。 | 先完成完整 DB state-machine、原子 header upsert、reservation 精确 binding 与真实低权 runtime SQL 负测；此前所有 direct model expansion 停止。 |
-| MODEL-OP-01 | ☐ | 为文本、OCR、ASR、TTS、embedding、rerank、记忆派生建立类型化 operation binding；拒绝 raw prompt、供应商 URL 和未知字段。 | 所有直接适配器经 binding；越权/未登记/超限为零外呼。 |
+| MODEL-OP-01 | ◐ | OCR 窄切片：`resume.ocr.v1` typed binding + 密封 provenance + 面试 fail-closed。ASR/TTS/embedding/rerank 仍 unwired。 | OCR 未登记/缺 binding/URL 媒体外呼=0；不得把本切片写成整项关闭或视觉已启用。 |
 | MODEL-OP-02 | ☐ | 按账号、区域、模型/recipe、tenant/project、operation 建共享容量和费用准入。 | default/fast/API/Worker/语音/embedding 总量不因进程或 client 分裂而扩大。 |
 | MODEL-OP-03 | ☐ | registry 取代手写环境路由；为每个 operation 固定输入/输出/媒体/成本/fallback/unknown 语义。 | 未登记 adapter、endpoint、selector 或 signed download 在生产启动失败；rerank 只有通过真实 serving 评测才启用。 |
 

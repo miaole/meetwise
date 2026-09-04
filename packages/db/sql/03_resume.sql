@@ -11,7 +11,7 @@ CREATE TABLE resume (
   owner_user_id text NOT NULL,
   status text NOT NULL DEFAULT 'uploaded' CHECK (status IN ('uploaded','ingesting','ingested','failed','erasure_fenced','erased')),
   content_sha text,                                            -- erased 墓碑清空；活跃行才参与去重
-  source_kind text NOT NULL DEFAULT 'text',                    -- text|pdf|...（多模态抽取适配器层,本期 text）
+  source_kind text NOT NULL DEFAULT 'text' CHECK (source_kind IN ('text','pdf','image')),
   privacy_epoch bigint NOT NULL DEFAULT 1 CHECK (privacy_epoch >= 1),
   version int NOT NULL DEFAULT 0,
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -42,7 +42,34 @@ CREATE TABLE resume_profile (
   blocked_count int NOT NULL DEFAULT 0,                        -- 被拦的注入行数
   status text NOT NULL DEFAULT 'ok' CHECK (status IN ('ok','needs_review','rejected')),   -- 审阅态:OCR/图片源(尤其伪造证件)恒 needs_review,系统不冒充判真伪(见迁移 0012)
   confidence numeric,                                          -- 画像置信度(视觉抗注入 eval 后续按字段回写;现可空)
-  created_at timestamptz NOT NULL DEFAULT now()
+  ocr_binding jsonb,                                           -- MODEL-OP-01 密封 OCR 出处；无原文/Key
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT resume_profile_ocr_binding_chk CHECK (
+    ocr_binding IS NULL
+    OR (
+      jsonb_typeof(ocr_binding) = 'object'
+      AND ocr_binding->>'operationId' = 'resume.ocr.v1'
+      AND ocr_binding->>'registryVersion' = 'model-op-registry-v1'
+      AND ocr_binding->>'inputKind' = 'vision-ocr'
+      AND ocr_binding->>'capability' = 'vision'
+      AND ocr_binding->>'endpointProfileId' = 'dashscope-cn-beijing'
+      AND ocr_binding->>'region' = 'cn-beijing'
+      AND ocr_binding->>'modelOrRecipe' = 'vision-ocr'
+      AND ocr_binding->>'admissionKey' = 'dashscope-native|cn-beijing|vision-ocr|resume.ocr.v1'
+      AND ocr_binding->>'wired' = 'true'
+      AND ocr_binding->>'mediaDigest' ~ '^[0-9a-f]{64}$'
+      AND NOT (ocr_binding ? 'text')
+      AND NOT (ocr_binding ? 'prompt')
+      AND NOT (ocr_binding ? 'system')
+      AND NOT (ocr_binding ? 'messages')
+      AND NOT (ocr_binding ? 'apiKey')
+      AND NOT (ocr_binding ? 'api_key')
+      AND NOT (ocr_binding ? 'url')
+      AND NOT (ocr_binding ? 'baseUrl')
+      AND NOT (ocr_binding ? 'image')
+      AND NOT (ocr_binding ? 'raw')
+    )
+  )
 );
 
 -- OCR 成功但尚未完成摄取时的短暂恢复材料。只保存加密文本，成功摄取或用户

@@ -1,8 +1,10 @@
 /**
  * @meetwise/ai-runtime — AI 运行时关口（公共面）。
  * 外部只许从这里 import；router/validators/catalog 是关口内部件，禁深链（.dependency-cruiser.cjs ai-runtime-chokepoint）。
- * 文本受管调用通过 `invoke`；本入口仍导出原生语音、embedding 与 rerank
- * 适配器，后者尚未完成 MODEL-OP-01 typed binding，不能误称为无旁路网关。
+ * 文本受管调用通过 `invoke`。`resume.ocr.v1` 已有 typed binding + 密封 provenance 缝
+ * （身份封印，非出站 host pin），但生产 API OCR 仍 fail-closed（`OCR_ENABLED=1`
+ * 拒绝组合根，binding 存在也不开）。本入口仍导出原生语音、embedding 与 rerank
+ * 适配器，它们尚未完成 MODEL-OP-01 接线，不能误称为无旁路网关。
  */
 export { invoke, resolveModelDeadlineConfig } from './invoke.ts';
 export type { Model, ModelResult, ModelUsage, ModelCostPolicy, ModelCallPlan, ModelAdmission, ModelDeadlineConfig, InvokeSpec, InvokeOutcome } from './invoke.ts';
@@ -84,7 +86,11 @@ export {
 export type {
   ReconcileUsageCalibrationInput, ReconcileUsageCalibrationGroupResult, ReconcileUsageCalibrationResult,
 } from './usage-calibration-reconciler.ts';
-export { visionOcr, MIN_OCR_CHARS } from './resume-ocr.ts';
+export {
+  visionOcr, bindResumeOcr, bindResumeOcrOperation, resumeOcrMediaDigest,
+  MIN_OCR_CHARS, RESUME_OCR_OPERATION_ID,
+} from './resume-ocr.ts';
+export type { ResumeOcrBindDecision, ResumeOcrBindError, VisionOcrResult } from './resume-ocr.ts';
 export { setTracer, getTracer, recordingTracer } from './trace.ts';
 export type { Tracer, ModelCallSpan, ModelCallOutcome } from './trace.ts';
 export { resolveLangfuseConnection } from './langfuse-config.ts';

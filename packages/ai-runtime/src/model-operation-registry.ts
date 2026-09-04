@@ -93,13 +93,10 @@ const WIRED_TEXT_OPERATIONS: readonly ModelOperationDefinition[] = [
 ];
 
 /**
- * MODEL-OP-01 wired the OCR node identity to the registry (`visionOcr` no longer
- * derives its logical node key from the caller's idempotency key).  OCR egress
- * already runs through invoke() with per-call entitlement billing, so
- * `wired: true` reflects "the registry authorizes this node's dispatch"; the
- * composition-root OCR_ENABLED gate plus the vision client's absent cost policy
- * (MODEL-OP-02) still keep production egress fail-closed — `wired` means the
- * node identity is registry-owned, not "no cost governance is required".
+ * MODEL-OP-01 OCR 窄切片：`visionOcr` 先经 `bindResumeOcr` 解析冻结 binding，
+ * 再以 registry 派生的 `resume.ocr.v1` node identity 进入 invoke()。
+ * `wired: true` 表示 registry 授权该节点身份与 binding；生产 egress 仍由
+ * `OCR_ENABLED` 组合根 + 视觉 client 无成本策略（MODEL-OP-02）fail-closed。
  */
 const WIRED_VISION_OPERATIONS: readonly ModelOperationDefinition[] = [
   {

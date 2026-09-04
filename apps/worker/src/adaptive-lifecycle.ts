@@ -10,7 +10,7 @@ import {
 import { Command } from '@langchain/langgraph';
 import { buildAdaptiveInterviewGraph, type PendingQuestion } from '@meetwise/ai-graphs';
 import type { ModelClient, GraphObserver } from '@meetwise/ai-runtime';
-import type { ScoredRef, SourceDoc, CompetencySpec, ResearchBoundaryDecision } from '@meetwise/domain';
+import { admitInterviewResume, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision } from '@meetwise/domain';
 import { buildAdaptiveDeps, planCompetencies } from './adaptive-interview-service.ts';
 import { recordAskedQuestions } from './memory-service.ts';
 
@@ -70,8 +70,8 @@ async function hasResumeProfileFactsForInterview(d: AdaptiveLifecycleDeps): Prom
     // The profile is sensitive derived data.  Read it only through the
     // immutable parent `(resume_id, privacy_epoch)` and the active resume
     // generation, never by a bare resume id left in a historical interview.
-    const parent = await c.query<{ resume_id: string }>(
-      `SELECT i.resume_id::text AS resume_id
+    const parent = await c.query<{ resume_id: string; source_kind: string }>(
+      `SELECT i.resume_id::text AS resume_id, r.source_kind
          FROM interview i
          JOIN resume r ON r.id=i.resume_id AND r.owner_user_id=i.owner_user_id
         WHERE i.id=$1
@@ -84,11 +84,16 @@ async function hasResumeProfileFactsForInterview(d: AdaptiveLifecycleDeps): Prom
     const resumeId = parent.rows[0]?.resume_id;
     if (!resumeId) return false;
     d.onBeforeResumeProfileHydration?.();
-    const profile = await c.query<{ structured: unknown }>(
-      'SELECT structured FROM resume_profile WHERE resume_id=$1 AND owner_user_id=$2', [resumeId, d.owner],
+    const profile = await c.query<{ structured: unknown; ocr_binding: unknown }>(
+      'SELECT structured, ocr_binding FROM resume_profile WHERE resume_id=$1 AND owner_user_id=$2', [resumeId, d.owner],
     );
     const facts = (profile.rows[0]?.structured as { facts?: unknown } | undefined)?.facts;
-    return Array.isArray(facts) && facts.some((value) => typeof value === 'string' && value.trim().length > 0);
+    const admitted = admitInterviewResume({
+      sourceKind: parent.rows[0].source_kind,
+      facts: Array.isArray(facts) ? facts : [],
+      ocrBinding: profile.rows[0]?.ocr_binding ?? undefined,
+    });
+    return admitted.ok === true && admitted.resumeProfileAvailable === true;
   });
 }
 

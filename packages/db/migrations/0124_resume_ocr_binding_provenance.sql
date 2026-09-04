@@ -1,0 +1,40 @@
+-- 0124_resume_ocr_binding_provenance.sql
+--
+-- MODEL-OP-01：图片简历的面试授权只认密封 OCR binding 快照。
+-- 快照不含转写原文、prompt 或 Key；文本/PDF 行保持 ocr_binding IS NULL。
+
+ALTER TABLE resume DROP CONSTRAINT IF EXISTS resume_source_kind_chk;
+ALTER TABLE resume ADD CONSTRAINT resume_source_kind_chk
+  CHECK (source_kind IN ('text', 'pdf', 'image'));
+
+ALTER TABLE resume_profile
+  ADD COLUMN IF NOT EXISTS ocr_binding jsonb;
+
+ALTER TABLE resume_profile DROP CONSTRAINT IF EXISTS resume_profile_ocr_binding_chk;
+ALTER TABLE resume_profile ADD CONSTRAINT resume_profile_ocr_binding_chk
+  CHECK (
+    ocr_binding IS NULL
+    OR (
+      jsonb_typeof(ocr_binding) = 'object'
+      AND ocr_binding->>'operationId' = 'resume.ocr.v1'
+      AND ocr_binding->>'registryVersion' = 'model-op-registry-v1'
+      AND ocr_binding->>'inputKind' = 'vision-ocr'
+      AND ocr_binding->>'capability' = 'vision'
+      AND ocr_binding->>'endpointProfileId' = 'dashscope-cn-beijing'
+      AND ocr_binding->>'region' = 'cn-beijing'
+      AND ocr_binding->>'modelOrRecipe' = 'vision-ocr'
+      AND ocr_binding->>'admissionKey' = 'dashscope-native|cn-beijing|vision-ocr|resume.ocr.v1'
+      AND ocr_binding->>'wired' = 'true'
+      AND ocr_binding->>'mediaDigest' ~ '^[0-9a-f]{64}$'
+      AND NOT (ocr_binding ? 'text')
+      AND NOT (ocr_binding ? 'prompt')
+      AND NOT (ocr_binding ? 'system')
+      AND NOT (ocr_binding ? 'messages')
+      AND NOT (ocr_binding ? 'apiKey')
+      AND NOT (ocr_binding ? 'api_key')
+      AND NOT (ocr_binding ? 'url')
+      AND NOT (ocr_binding ? 'baseUrl')
+      AND NOT (ocr_binding ? 'image')
+      AND NOT (ocr_binding ? 'raw')
+    )
+  );

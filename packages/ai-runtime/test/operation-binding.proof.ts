@@ -7,8 +7,8 @@
  *   2. 三类硬拒绝机械落地：未知字段（strict object 零 passthrough）、raw prompt（无 prompt 形态
  *      字段，内容只以 TypedRef digest 或 bounded 非 prompt 标量承载）、provider URL（深扫 + endpointProfileId 必须等于
  *      固定 profile）。
- *   3. OCR seam 关闭：resume.ocr.v1 已 wired（registry 派生 node identity），且 visionOcr 对
- *      非 data: 媒体早退拒绝（零外呼、零 claim）。
+ *   3. OCR seam：resume.ocr.v1 已 wired；visionOcr 对非 data: 媒体早退拒绝（零外呼、零 claim）。
+ *      密封 provenance 与 binding 缺失 fail-closed 见 resume-ocr-binding.proof.ts。
  */
 import { createHash } from 'node:crypto';
 import type { DbPool } from '@meetwise/db';

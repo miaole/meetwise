@@ -1,4 +1,4 @@
-/** Production composition must not revive OCR before MODEL-OP-01 binds it. */
+/** Production composition must not revive OCR just because a typed binding exists. */
 import { createOcrVisionClient, isOcrFeatureEnabled } from '../src/modules/resume/ocr-model-client.ts';
 
 let failures = 0;
@@ -22,7 +22,7 @@ try {
 } catch (error) {
   rejected = error instanceof Error && error.message === 'ocr_model_operation_unconfigured';
 }
-assert('OCR enabled without MODEL-OP-01 binding fails API composition', rejected);
+assert('OCR_ENABLED=1 still fails API composition after the typed OCR binding exists', rejected);
 
 let nonProductionRejected = false;
 try {
@@ -35,7 +35,7 @@ try {
 } catch (error) {
   nonProductionRejected = error instanceof Error && error.message === 'ocr_model_operation_unconfigured';
 }
-assert('non-production OCR enabled without a typed binding also fails before transport', nonProductionRejected);
+assert('non-production OCR_ENABLED=1 also fails before transport even with a typed binding', nonProductionRejected);
 assert('only the exact OCR_ENABLED=1 value can request the feature',
   isOcrFeatureEnabled({ OCR_ENABLED: '1' }) && !isOcrFeatureEnabled({ OCR_ENABLED: 'true' }) && !isOcrFeatureEnabled({}));
 

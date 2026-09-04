@@ -12,12 +12,13 @@ related:
   - ../../architecture/ai/bailian-nonproduction-rollout.md
   - ./model-invocation-reliability.md
   - ./memory-governance-and-recall.md
+  - ./resume-ocr-binding.md
   - ../../delivery/production-readiness-remediation-register.md
 ---
 
 # 模型操作路由、成本与降级
 
-> **实现状态：** 当前文本 `invoke()` 具备部分持久调用与费用治理；OCR、ASR、TTS、embedding 和 rerank 尚未由统一 operation registry 接管，catalog 也未接入主链。候选 `0088` 已撤销 runtime role 对 invocation 的直写并改由受控过程处理，但尚无真实低权 PostgreSQL 组合根回执，因此 `MODEL-OP-00-DB-STATE-001` 仍阻断本用例。文本主链与 DashScope 原生能力必须使用不同的凭据变量：前者可选择 DeepSeek 主端点和 Qwen 备用端点，后者只认专用 DashScope 凭据，绝不从文本主 Key 隐式继承。原生 URL 已收敛为固定 Beijing endpoint profile 与受限 workspace id 的本地 registry，生产/开发适配器拒绝 key/endpoint override；这只是 `BAILIAN-04` 的静态传输止血，不等于 operation 级最小权限、secret isolation 或统一 registry。OCR 与批量/流式语音的 API 组合根和原始媒体 smoke 当前均 fail-closed；它们不得因为有 Key、模型名或适配器而重新启用。本文件通过后才可改调用入口或使用新的付费 Key 做受控验证。
+> **实现状态：** 当前文本 `invoke()` 具备部分持久调用与费用治理。`resume.ocr.v1` 已切 registry node identity，并经 `bindResumeOcr` / `SealedOcrProvenance` / `admitInterviewResume` 形成 typed binding 与面试 fail-closed 缝（见 `resume-ocr-binding.md`）。该封印是身份标签（operation / profile id / recipe / media digest），**不是**出站 host pin，也不是 invocation↔blob 哈希链；HTTP 仍走注入 `ModelClient`。生产 API OCR 组合根与原始媒体 smoke 仍 fail-closed（`OCR_ENABLED=1` 拒绝装配，binding 存在也不开）。ASR、TTS、embedding 和 rerank 尚未由统一 operation registry 接管，catalog 也未接入主链。`MODEL-OP-00-DB-STATE-001` 已有本地低权回执并独立复审关闭，但 `MODEL-OP-00` 整体（tokenizer 回派发、catalog 主链）仍未关。文本主链与 DashScope 原生能力必须使用不同的凭据变量。原生 URL 已收敛为固定 Beijing endpoint profile；这只是 `BAILIAN-04` 的静态传输止血，不等于 operation 级最小权限、secret isolation 或统一 registry。OCR 合同缝不得被解读为已启用视觉或已完成 `MODEL-OP-01`。
 
 ## 领域对象与状态
 
@@ -134,6 +135,4 @@ related:
 
 ## 实现门禁结论
 
-**规格门仍存在 P0，`MODEL-OP-00` 不得关闭。** 文本子路径会将批准且不可变的 `maxOutputTokens` 下传为供应商 `max_tokens`、拒绝请求模型与策略模型错配，并在 claim/预留/HTTP 之前对已渲染文本、结构化输出 reserve 与图片 reserve 执行有版本的保守窗口预算。文本费用的 price revision 已与数据库价格行精确绑定。`0088` 是待验证候选：它撤销 invocation 直写、改由固定受控过程和私有 permit trigger 执法，并把 header 改为 deterministic upsert；但当前没有真实低权 PostgreSQL 组合根回执，不能说 direct `INSERT dispatching`、非法 terminal、identity tamper 或并发已被关闭。
-
-必须先验证并独立复审：`MODEL-OP-00-DB-STATE-001`（受控 DB 状态机/直写撤权及低权 SQL 负测）、`MODEL-OP-00-HEADER-001`（不同 key 并发 deterministic upsert）和 `MODEL-OP-00-BINDING-001`（header 与 reservation 的 provider/model/region/price revision 精确绑定）。`MODEL-OP-01` 还被 typed registry、服务端 node identity、endpoint allowlist、operation-level secret isolation、OCR/voice/embed/rerank attempt/unknown 语义、共享准入和唯一网关阻断。任何真实百炼调用仍只允许在这些 P0 以外的、显式批准的非生产 text-only 非敏感 smoke；不得把一个标准 API Key、local proof 或环境变量路由当作统一模型治理或发布证据。
+**规格门仍存在 P0，`MODEL-OP-00` / `MODEL-OP-01` 整项均不得关闭。** 文本子路径会将批准且不可变的 `maxOutputTokens` 下传为供应商 `max_tokens`、拒绝请求模型与策略模型错配，并在 claim/预留/HTTP 之前对已渲染文本、结构化输出 reserve 与图片 reserve 执行有版本的保守窗口预算。文本费用的 price revision 已与数据库价格行精确绑定。`MODEL-OP-00-DB-STATE-001` 已独立复审关闭。`MODEL-OP-01` OCR 窄切片（`resume.ocr.v1` typed binding + 密封 provenance + 面试 fail-closed）已接线，见 `resume-ocr-binding.md`；ASR/TTS/embedding/rerank、媒体预算、删除、secret isolation 与唯一网关仍阻断整项。任何真实百炼调用仍只允许在这些 P0 以外的、显式批准的非生产 text-only 非敏感 smoke；不得把一个标准 API Key、local proof 或环境变量路由当作统一模型治理或发布证据。

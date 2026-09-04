@@ -68,7 +68,7 @@ agent 是 **感知→推理→行动 的自适应循环**,跑在持久 substrate
 
 - ✅ **已接线运行**:规划→自适应决策(确定性 gate)→CRAG 检索(本地 qbank ANN,fail-soft)→接地出题→反思→评估,真 qwen 端到端;报告舱壁(独立 worker);invoke 双校验 + 瞬时错误指数退避 + 成本 token 落 `ai_invocation_trace`。
 - 🟡 **机制已建、默认关闭/未接线**:web 探索(`webExplore` 已建,`WEB_ALLOWLIST=[]` 默认空 ⇒ CRAG fallback 只用本地);跨供应商 failover(`failoverModel` 代码在,需 `MODEL_BACKUP_*`,默认单端点);长期记忆(见上)。
-- 🟠 **stub/toy**:图片简历多模态 OCR(qwen-vl)当前是 **stub**——图片简历被拒(`image_ocr_unavailable`,接线中);qbank 为 **~33 条自撰种子题**(非大规模策展题库);`catalog/resolveBinding` 为 `stub:deterministic` 残留骨架,invoke 不消费。
+- 🟠 **stub/toy**:图片简历 OCR 合同缝已接线（`resume.ocr.v1` binding + 密封 provenance，身份封印而非 host pin），生产组合根仍拒图（`OCR_ENABLED=1` 亦拒，`image_ocr_unavailable`）；qbank 为 **~33 条自撰种子题**(非大规模策展题库);`catalog/resolveBinding` 为 `stub:deterministic` 残留骨架,invoke 不消费。
 
 ## 未尽(非架构缺口,属内容/配置)
 

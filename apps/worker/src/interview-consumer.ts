@@ -7,7 +7,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, type DbPool, type InterviewGraphFence } from '@meetwise/db';
 import { getMetrics, METRIC, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
 import type { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
-import { ingestResume, type ScoredRef, type SourceDoc } from '@meetwise/domain';
+import { admitInterviewResume, type ScoredRef, type SourceDoc } from '@meetwise/domain';
 import { startAdaptiveInterview, submitAdaptiveAnswer } from './adaptive-lifecycle.ts';
 import { createInterviewResearchSkills } from './interview-research-skills.ts';
 import { runDrainLoop } from './drain-loop.ts';
@@ -248,9 +248,32 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
             const resumePrivacyEpoch = job.resumePrivacyEpoch;
             if (typeof resumeId !== 'string' || !resumeId || resumePrivacyEpoch === null)
               throw Object.assign(new Error('interview_resume_reference_missing'), { code: 'interview_resume_reference_missing' });
-            const decrypt = d.decryptResume ?? decryptActiveResumeBlob;
-            const raw = await asPrincipal(d.pool, owner, (c) => decrypt(c, owner, resumeId, resumePrivacyEpoch));
-            await startAdaptiveInterview(life, adaptive.role ?? '技术岗', ingestResume(raw).facts);
+            // Start only needs the admission boolean. Read owner-scoped
+            // profile facts + OCR identity — never decrypt the blob, and
+            // never invent `source_kind=text` when the row is missing.
+            const loaded = await asPrincipal(d.pool, owner, async (c) => {
+              const meta = await c.query<{ source_kind: string | null; ocr_binding: unknown; structured: unknown }>(
+                `SELECT r.source_kind, rp.ocr_binding, rp.structured
+                   FROM resume r
+                   LEFT JOIN resume_profile rp ON rp.resume_id=r.id AND rp.owner_user_id=r.owner_user_id
+                  WHERE r.id=$1 AND r.owner_user_id=$2
+                    AND r.status='ingested'
+                    AND r.privacy_epoch=$3`,
+                [resumeId, owner, resumePrivacyEpoch],
+              );
+              return meta.rows[0] ?? null;
+            });
+            const facts = Array.isArray((loaded?.structured as { facts?: unknown } | undefined)?.facts)
+              ? ((loaded!.structured as { facts: unknown[] }).facts).filter((value): value is string => typeof value === 'string')
+              : [];
+            const admitted = loaded?.source_kind
+              ? admitInterviewResume({
+                  sourceKind: loaded.source_kind,
+                  facts,
+                  ocrBinding: loaded.ocr_binding ?? undefined,
+                })
+              : { ok: false as const, resumeProfileAvailable: false as const };
+            await startAdaptiveInterview(life, adaptive.role ?? '技术岗', admitted.ok && admitted.resumeProfileAvailable ? facts : []);
           } else {
             await submitAdaptiveAnswer(life, answerPayload as any);
           }

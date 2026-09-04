@@ -4,9 +4,10 @@ import {
   createResumeWithBlob, transitionResume, completeIngestion, decryptResumeBlob,
   persistResumeOcrArtifact, decryptResumeOcrArtifact, deleteResumeOcrArtifact,
   reserveEntitlement, confirmConsumption, releaseConsumption,
+  type ResumeOcrBindingSnapshot, type ResumeSourceKind,
 } from '@meetwise/db';
-import { ingestResume, extractResumeText } from '@meetwise/domain';
-import { visionOcr, type ModelClient } from '@meetwise/ai-runtime';
+import { ingestResume, extractResumeText, parseSealedOcrProvenance } from '@meetwise/domain';
+import { bindResumeOcr, visionOcr, type ModelClient } from '@meetwise/ai-runtime';
 import type { UploadResumeDto, UploadResumeFileDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
 import { RateLimitService } from '../../platform/rate-limit.service';
@@ -70,15 +71,16 @@ export class ResumeService {
    * 图片简历 OCR(同步走关口,按次计费)。承重(专家审计定稿):
    *  - 计费(决策B,用户拍板):图字节 HMAC 为幂等锚 `ocr:<hmac>`(不用易变 docId),reserve→**只有产出可用画像才 confirmed**;转写失败/无有效内容/结构化失败一律 released(退 OCR 费)。
    *  - 关口:视觉调用只走 invoke()(双校验 + PII 不入 trace + advisory-lock exactly-once)。
-   *  - fail-closed: OCR 尚未有 MODEL-OP-01 typed binding，任何环境都不允许启用；不 reserve、不调用，返回 422。
+   *  - fail-closed: typed binding / 密封 provenance 已落地，但生产组合根仍拒绝 `OCR_ENABLED=1`；不 reserve、不调用，返回 422。
    *  - 时序:响应形状不变(返回 `ingested`/`deduped`),前端与契约零改动。
    */
   private async uploadImageViaOcr(principal: string, buffer: Buffer, dto: UploadResumeFileDto) {
-    if (!isOcrFeatureEnabled()) throw new HttpException({ error: 'image_ocr_unavailable', hint: '图片简历 OCR 暂不可用,请先传 PDF/Word 或粘贴文本' }, HttpStatus.UNPROCESSABLE_ENTITY);   // fail-closed until MODEL-OP-01
+    if (!isOcrFeatureEnabled()) throw new HttpException({ error: 'image_ocr_unavailable', hint: '图片简历 OCR 暂不可用,请先传 PDF/Word 或粘贴文本' }, HttpStatus.UNPROCESSABLE_ENTITY);   // 生产组合根仍 fail-closed；typed binding 是身份封印，不是已启用视觉。
     const imgHash = createHash('sha256').update(buffer).digest('hex');
     const ocrKey = `ocr:${imgHash}`;                                             // 幂等锚 = 图片字节(同图重传/并发不重扣、不重调付费视觉模型)
     const dataUri = `data:${dto.mimeType || 'image/png'};base64,${dto.contentBase64}`;
     let recoveredText: string | null = null;
+    let provenance: ResumeOcrBindingSnapshot | null = null;
 
     // 费用预留是短事务；视觉供应商请求绝不占住数据库事务/连接。
     await this.db.asPrincipal(principal, async (c: any) => {
@@ -116,10 +118,26 @@ export class ResumeService {
         throw new HttpException({ error: 'ocr_failed', reason: ocr.reason, hint: '图片识别失败,请换更清晰的图片或粘贴文本' }, HttpStatus.UNPROCESSABLE_ENTITY);
       }
       text = ocr.text;
+      provenance = ocr.provenance;
+    }
+    if (!provenance) {
+      const resealed = bindResumeOcr(imgHash);
+      if (!resealed.ok) {
+        throw new HttpException({ error: 'ocr_binding_missing', hint: '图片简历缺少已登记 OCR binding,请改传 PDF/Word 或粘贴文本' }, HttpStatus.UNPROCESSABLE_ENTITY);
+      }
+      provenance = resealed.provenance;
     }
 
     // **决策B(用户拍板):只有产出可用画像才扣 OCR 费;转写成功但无有效内容 / 结构化失败 → 一律退还。**
     //  预留在此保持 reserved；加密工件允许中断后的同图重传继续提交，不靠盲目重调视觉模型。
+    const sealed = parseSealedOcrProvenance(provenance);
+    if (!sealed) {
+      await this.db.asPrincipal(principal, async (c: any) => {
+        await releaseConsumption(c, principal, ocrKey);
+        await deleteResumeOcrArtifact(c, principal, ocrKey);
+      });
+      throw new HttpException({ error: 'ocr_binding_invalid', hint: '图片简历缺少可解析的 OCR binding,已退还额度,请改传 PDF/Word 或粘贴文本' }, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
     if (ingestResume(text).facts.length === 0) {                                 // 转写成功但提取不到有效简历事实 → 画像不可用 → 退费
       await this.db.asPrincipal(principal, async (c: any) => {
         await releaseConsumption(c, principal, ocrKey);
@@ -130,8 +148,27 @@ export class ResumeService {
     // 简历写入、权益确认、工件删除必须同一事务：否则任一崩溃窗口都会留下
     // “有画像未扣费”或“已扣费但下次又重调”的不一致。事务失败时保留 artifact+reserve，
     // 重传可从工件继续；不把基础设施故障误判为应退费的业务失败。
+    // 文本 HMAC 去重命中既有 text/pdf（或另一张图）时不得 confirm 本图 OCR 费。
     const structured = await this.db.asPrincipal(principal, async (c: any) => {
-      const saved = await this.uploadInTransaction(c, principal, { text }, 'needs_review');
+      const saved = await this.uploadInTransaction(c, principal, { text }, 'needs_review', { sourceKind: 'image', ocrBinding: sealed });
+      if (saved.status === 'deduped') {
+        const existing = await c.query<{ source_kind: string | null; ocr_binding: unknown }>(
+          `SELECT r.source_kind, rp.ocr_binding
+             FROM resume r
+             LEFT JOIN resume_profile rp ON rp.resume_id=r.id AND rp.owner_user_id=r.owner_user_id
+            WHERE r.id=$1 AND r.owner_user_id=$2`,
+          [saved.resumeId, principal],
+        );
+        const existingSealed = parseSealedOcrProvenance(existing.rows[0]?.ocr_binding);
+        const sameImageIngest = existing.rows[0]?.source_kind === 'image'
+          && existingSealed?.mediaDigest === sealed.mediaDigest;
+        if (!sameImageIngest) {
+          const released = await releaseConsumption(c, principal, ocrKey);
+          if (released.status === 'error') throw Object.assign(new Error(`ocr_release_failed:${released.reason}`), { code: 'ocr_release_failed' });
+          await deleteResumeOcrArtifact(c, principal, ocrKey);
+          return saved;
+        }
+      }
       const confirmed = await confirmConsumption(c, principal, ocrKey);
       if (confirmed.status === 'error') throw Object.assign(new Error(`ocr_confirm_failed:${confirmed.reason}`), { code: 'ocr_confirm_failed' });
       await deleteResumeOcrArtifact(c, principal, ocrKey);
@@ -146,16 +183,19 @@ export class ResumeService {
   }
 
   /** 由普通上传和 OCR 终态事务共用；调用方决定最外层事务，禁止在 OCR 内嵌套独立提交。 */
-  private async uploadInTransaction(c: any, principal: string, dto: UploadResumeDto, profileStatus: 'ok' | 'needs_review' = 'ok') {
+  private async uploadInTransaction(
+    c: any, principal: string, dto: UploadResumeDto, profileStatus: 'ok' | 'needs_review' = 'ok',
+    opts: { sourceKind?: ResumeSourceKind; ocrBinding?: ResumeOcrBindingSnapshot | null } = {},
+  ) {
     // NUL 字节(\u0000)在 Postgres text 类型里非法,直喂 pgp_sym_encrypt 会抛 → 500;简历文本里 NUL 无意义,落库前一律剥除(负测抓到)。
     const text = dto.text.replace(/\u0000/g, '');
     // PIPL 硬门槛:处理简历 PII 前必须先有采集同意,绝不偷偷处理。
     const consent = await c.query("SELECT 1 FROM consent_record WHERE purpose='resume_processing' LIMIT 1");
     if (consent.rowCount === 0) throw new HttpException({ error: 'consent_required', purpose: 'resume_processing' }, HttpStatus.FORBIDDEN);
-    const up = await createResumeWithBlob(c, principal, text);          // 原文加密落库 + 去重
+    const up = await createResumeWithBlob(c, principal, text, opts.sourceKind ?? 'text');
     if (up.dedup) return { resumeId: up.resumeId, status: 'deduped' };
     await transitionResume(c, principal, up.resumeId, 'uploaded', 'ingesting');
-    await completeIngestion(c, principal, up.resumeId, ingestResume(text), profileStatus); // 结构化 + PII 脱敏 → ingested
+    await completeIngestion(c, principal, up.resumeId, ingestResume(text), profileStatus, opts.ocrBinding ?? null);
     return { resumeId: up.resumeId, status: 'ingested' };
   }
 
@@ -182,8 +222,30 @@ export class ResumeService {
     return this.db.asPrincipal(principal, async (c: any) => {
       const raw = await decryptResumeBlob(c, principal, id).catch(() => null);
       if (!raw) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+      const existing = await c.query<{ ocr_binding: unknown }>(
+        `SELECT rp.ocr_binding
+           FROM resume r
+           LEFT JOIN resume_profile rp ON rp.resume_id=r.id AND rp.owner_user_id=r.owner_user_id
+          WHERE r.id=$1 AND r.owner_user_id=$2`,
+        [id, principal],
+      );
+      const ingested = ingestResume(raw);
+      const structured = { experience: ingested.experience, skills: ingested.skills, facts: ingested.facts };
+      const piiSummary = ingested.pii.reduce<Record<string, number>>((m, x) => { m[x.field] = (m[x.field] ?? 0) + 1; return m; }, {});
+      // Refresh facts while the row is still ingested (profile is visible).
+      // Never write ocr_binding here — a reparse must not drop or forge the seal.
+      const refreshed = await c.query(
+        `UPDATE resume_profile
+            SET structured=$3::jsonb, pii_summary=$4::jsonb, blocked_count=$5
+          WHERE resume_id=$1 AND owner_user_id=$2`,
+        [id, principal, JSON.stringify(structured), JSON.stringify(piiSummary), ingested.blocked.length],
+      );
       await c.query("UPDATE resume SET status='ingesting', version=version+1 WHERE id=$1 AND owner_user_id=$2", [id, principal]);
-      await completeIngestion(c, principal, id, ingestResume(raw));            // 重新脱敏+结构化
+      if (refreshed.rowCount === 0) {
+        await completeIngestion(c, principal, id, ingested, 'ok', parseSealedOcrProvenance(existing.rows[0]?.ocr_binding));
+      } else {
+        await transitionResume(c, principal, id, 'ingesting', 'ingested');
+      }
       return { reparsed: true };
     });
   }

@@ -21,7 +21,7 @@ related:
 当前自适应面试图不是“每个节点都调用模型”。`plan`、`decide`、`awaitAnswer`、`conclude` 是确定性状态机；首个 grounded 题由模板给出；空答、跳过和明显套话不进入模型评分。常规出题、正常作答评分、能力规划、报告、押题和诊断才会调用文本模型。记忆当前只做确定性题面判重和弱项投影，并没有长期摘要或语义召回写入。
 
 但当前调用并未按下面的登记册统一执行。文本子路径已有受管局部实现：不可变成本策略会把 `maxOutputTokens` 下传为供应商 `max_tokens`，并在 claim、费用预留和 HTTP 前，以版本化保守估算拒绝超出已渲染 system/user、结构化输出 reserve 和图片 reserve 的请求；它不等同于全操作预算器或供应商 tokenizer。其余缺口如下：
-- OCR、ASR、TTS、embedding 等仍可由 API 或 Worker 的组合根直接构造适配器，未共享同一成本、熔断、路由与调用账本。
+- ASR、TTS、embedding 等仍可由 API 或 Worker 的组合根直接构造适配器，未共享同一成本、熔断、路由与调用账本。OCR 已有 `resume.ocr.v1` 身份封印 + 密封 provenance，但出站仍由注入 `ModelClient` 决定，生产组合根在 `OCR_ENABLED=1` 时拒绝装配。
 - 当前 catalog 是未接入 `invoke()` 主链的骨架；真实选择主要依赖环境变量和调用方手工传入的 client。
 - 默认模型与快模型各自建立进程内限流器；它们不是同一个账号、区域、模型维度的全局容量上限。
 
@@ -86,7 +86,7 @@ related:
 
 **当前局部实现（MODEL-OP-00-CONTEXT-001、MODEL-OP-00-PRICE-001）：** 已批准成本策略的 OpenAI-compatible 文本客户端会在 `prepare` 阶段，以 `utf8-bytes-v1` 对实际渲染的 system、数据围栏、user 内容、图片 descriptor、图片预留和结构化输出 reserve 作保守预算。缺少窗口/估算版本/安全余量、图片无显式 reserve，或超过 `maxInputTokens` / `contextWindow - maxOutput - toolReserve - safetyMargin` 时，在 durable claim、费用预留和 HTTP 请求前拒绝。受管文本策略还冻结 `provider/model/region/priceRevision`、输入/输出上限和当前上下文策略身份；请求摘要、启动时的低权价格行断言及费用 reserve 都使用同一 price revision，不能在派发时选择“当前最新”价格。它不把字节估算称为供应商 tokenizer；`planContextBudget`/`ContextBudgetPlan` 已把渲染输入按组件分账（system/数据围栏/schema reserve/tool reserve/RAG 独立分账，`toolReserve` 计入 `availableInput = contextWindow − maxOutput − toolReserve − safetyMargin`）。snapshot·recent·summary 属 L5 未接线，仍只要进入渲染字段即被总量覆盖。返回 usage 仍仅用于后续校准。
 
-该局部实现不覆盖 OCR、ASR/TTS、embedding、rerank、流式和未带受管策略的遗留调用；production/enforce 环境会在 transport 前拒绝未带受管策略的 OpenAI-compatible client，而 API OCR 在**所有环境**只能以 `OCR_ENABLED=0`（或未设）启动，设为 `1` 即在组合根拒绝。此止血不等于 OCR 已受治理：OCR 的 typed binding、媒体预算、计量、删除与真实验证仍属于 `MODEL-OP-01`。本项仍不完成逻辑节点派发配额与真实 tokenizer 校准（estimate 穿线 + 纯版本化校准模块 + 低估 flag 已建，但异步 reconciler 未接线、校验失败调用不落 estimate 证据，见 checklist 已知缺口）。因此 `MODEL-OP-00` 仍为部分实现，不能作为统一模型治理或发布证据。
+该局部实现不覆盖 ASR/TTS、embedding、rerank、流式和未带受管策略的遗留调用。`resume.ocr.v1` 已有 typed binding + 密封 provenance 缝（`bindResumeOcr` / `admitInterviewResume`）；封印记录的是冻结 identity，**不钉死出站 host**。production/enforce 仍在 transport 前拒绝未带受管策略的 OpenAI-compatible client，且 API OCR 在**所有环境**只能以 `OCR_ENABLED=0`（或未设）启动，设为 `1` 即在组合根拒绝（binding 存在也不开）。此止血加合同缝不等于生产视觉已启用：媒体预算、删除、脱敏视觉回执与真实验证仍开放。本项仍不完成逻辑节点派发配额与真实 tokenizer 校准（estimate 穿线 + 纯版本化校准模块 + 低估 flag 已建，但异步 reconciler 未接线、校验失败调用不落 estimate 证据，见 checklist 已知缺口）。因此 `MODEL-OP-00` 仍为部分实现，不能作为统一模型治理或发布证据。
 
 ### 5.2 准入
 
@@ -107,12 +107,12 @@ related:
 
 因此历史 `pnpm model-invocation-reconcile:prove` 的 raw-SQL 回归仍只是一条局部、本地 `releaseEvidence=false` 证据；本机 Docker daemon 可用后，必须重跑新增的 direct ACL、ACL 漂移 permit、terminal、identity、reservation 与并发组合根。`MODEL-OP-00-DB-STATE-001`、`MODEL-OP-00-HEADER-001` 和 `MODEL-OP-00-BINDING-001` 在这些回归与独立复审前均不关闭。
 
-尚未完成的是把 `logicalNodeKey` 从调用方构造提升为唯一 operation registry 按冻结 binding/version 与业务 revision 重算的授权根，以及让 OCR、语音、embedding、rerank 和所有遗留直连适配器都经过同一种 binding/共享准入。首版仍不允许可配置的“两三次 repair”：无效问题走批准模板或 `generation_unavailable`；评分证据不合格走 `unscored/review_required`。若以后确需第二次供应商调用，它必须是新的 operation 与业务 revision，不能作为本节点 retry。
+六个文本调用面与 `resume.ocr.v1` 已由 registry 派生 node identity；OCR 另经 `bindResumeOcr` 封存 endpoint **identity**（profile id / admission key），出站仍由注入 client + 视觉 endpoint config 决定。尚未完成的是让 ASR、TTS、embedding、rerank 和所有遗留直连适配器都经过同一种 binding/共享准入，以及撤销 `invoke()` 对 legacy `logicalNodeKey` 的兼容入口。首版仍不允许可配置的“两三次 repair”：无效问题走批准模板或 `generation_unavailable`；评分证据不合格走 `unscored/review_required`。若以后确需第二次供应商调用，它必须是新的 operation 与业务 revision，不能作为本节点 retry。
 
 ## 6. 实施顺序与当前阻塞
 
 1. **MODEL-OP-00：止血。** 先以完整数据库状态机消除 invocation 直写绕过，再将总上下文/输出上限真实下传，启动时断言实际模型、价格版本与成本策略一致；以原子 upsert 的 canonical header、固定单 slot、冻结 reservation binding 和数据库围栏把每个逻辑节点的派发上限、attempt 与费用预留原子化。
-2. **MODEL-OP-01：统一入口。** 先让 OCR、ASR、TTS、embedding 与文本调用获得同一种 operation binding、预算、调用账本和明确的未知语义；此步骤不声称已经实现唯一网关出口。
+2. **MODEL-OP-01：统一入口。** OCR 窄切片已落地：`resume.ocr.v1` typed binding、密封 provenance（身份封印，非 host pin）、面试 fail-closed 授权门；生产 `OCR_ENABLED` 仍关。ASR、TTS、embedding 与其余直连适配器仍待同一 binding/账本/未知语义。此步骤不声称已经实现唯一网关出口。
 3. **MODEL-OP-02：共享准入与观察。** 将所有能力接入按账号/区域/模型/租户/项目/操作的共享容量与费用视图，并暴露不含正文的观测。
 4. **MODEL-OP-03：registry 取代手工环境路由。** `invoke()` 和所有直接适配器只能解析已批准的 registry binding；rerank 保持禁用直至真实生产路径评测通过。
 5. **MODEL-OP-04：模型网关。** 仅在 `UC-MODEL-002` 的 outbox、授权快照、删除、流会话和网络隔离契约全部落地后，将供应商 Key 收敛为唯一网关持有者。
