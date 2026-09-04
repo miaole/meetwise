@@ -1,36 +1,30 @@
 # Meetwise · 知面
 
-按你写过的经历练面试：出题、追问、留下能回头看的点评。
+**预览版。** 求职者按真实经历练面试；面试官跟着回答追问。招聘方看岗位和投递，和练习数据分开。
 
-写给求职者、转岗者，以及要练技术面的人。招聘方也能看岗位和投递——和练习数据分开。
+下一题看你怎么答，不是套题模板。进度落在 Postgres，中断了还能接着。关键路径有本地 prove 门可核对。点评给复盘用，不构成能力认证，也不承诺面试、录用或 offer 结果。
 
-不编经历、不代答，也不承诺面试、录用或 offer 结果。
-
-[查看源码](https://github.com/miaole/meetwise) · [项目展示](https://miaole.github.io/meetwise/) · [当前能力边界](#当前能力边界)
+[查看源码](https://github.com/miaole/meetwise) · [项目展示](https://miaole.github.io/meetwise/) · [预览说明](#预览说明)
 
 ---
 
 ## 为什么值得看
 
-下一题跟着你的回答走，练到一半还能接着，关键路径可以用本地命令核对。
+写给求职者和面试官 / 招聘方。卖的是问法、续场、核对和围栏，不是一套宣传词。
 
-### 1. 面试官是 Agent，不是 prompt 链
+### 自适应面试官
 
-- **自适应路由 + 工具调用**：`resume-quiz` / `mock-interview` / `career-path` / `report` 四张 LangGraph 图，按输入动态分流到轻量路由或深度 Agent（`ai-docs/architecture/ai/agent-runtime.md`、`langgraph-blueprint.md`）。
-- **有界的 ReAct 工具循环**：模型决定调工具时，入参先过 zod 校验再执行；循环封顶 `maxSteps`，防无限烧钱。
-- **结构化输出 + 双重校验**：所有模型输出先过 schema、再过业务校验（题数、分值域、枚举合法性、不幻觉简历事实），才进入业务逻辑。schema 失败 → 重试 / 降级 / 可解释报错，绝不裸解析 JSON。
-- **可恢复的长会话**：`threadId = interviewResult.resultId`；检查点持久化到 **Postgres**，等待用户输入表达为持久化状态——**没有内存 session map**，多实例安全、可断点续答。
-- **前端消费业务事件，不消费模型 token**：SSE 只推 `progress` / `question_ready` / `waiting_user` / `answer_evaluated` / `report_ready` / `report_unavailable`；终态失败事件是强制的，UI 优雅降级、绝不空转。
+下一问看你怎么答。不是把题单走完，该深挖的会继续问。
 
-> 每一个「为什么这么设计」都有 ADR 兜底：`ai-docs/architecture/adr/`（含 0015 自适应 Agent 架构、0016 RAG 语料版本控制等）。
+模型输出先过 schema，再过业务校验（题数、分值域、枚举合法性、不幻觉简历事实），才进入业务逻辑。失败就重试、降级或给出可解释报错，不裸解析 JSON。
 
-### 2. 生产高可用是目标，不是口号
+前端消费业务事件，不消费模型 token：`progress`、`question_ready`、`waiting_user`、`answer_evaluated`、`report_ready`、`report_unavailable`。终态失败事件是强制的，界面不会空转。
 
-- **零数据丢失**：权益结算走真实账本（`FOR UPDATE` + CAS 防超卖、FIFO-by-expiry 扣减、精确一次结算流水）；报告生成是隔离后台作业，**报告失败 ≠ 面试失败**（故障隔离 + 租约 + 隔离区 + 退避）。
-- **优雅降级**：模型准入/断路器/并发槽单一权威（`packages/ai-runtime` 的模型出口），熔断打开时确定性拒绝、不产生任何 provider 外呼。
-- **快速恢复**：每个有状态对象用显式 `status` 枚举（不是一堆布尔），状态迁移服务端重新校验；checkpoint 与账户删除走完整回执链路。
+### 场次可接着
 
-### 3. 每个承诺都可复现验证
+进度落在 Postgres，不是记在浏览器里。刷新或换机器也能回来。等待用户输入写成持久化状态，没有内存 session map。
+
+### 能核对
 
 八个门禁全绿，一键 `corepack pnpm <gate>` 跑：
 
@@ -38,15 +32,19 @@
 db:prove  runtime:prove  graph:prove  pipeline:prove  api:validate  api:smoke  arch  docs:check
 ```
 
-另按模块沉淀几十套专项证明门禁：`commerce:prove`（44 断言）、`resume:prove`（24）、`report:prove`（25）、`web:prove`（27）、`e2e:prove`、`security:prove`、`privacy-erasure:prove`、`retrieval:prove`、`adaptive:prove` 等，覆盖支付不超卖、简历安全、报告故障隔离、真浏览器端到端、红队反操纵、删除回执、检索召回。
+另有专项门禁覆盖支付不超卖、简历安全、报告故障隔离、检索召回和自适应追问。打开页面不算验收。不能只断言 HTTP 200、不能只跑 happy path、不能用 mock 模型证明生产模型质量。
 
-**禁止伪验收**：不能只断言 HTTP 200、不能只跑 happy path、不能用 mock 模型证明生产模型质量、不能 AI 自评自己的报告。
+### 分数、隐私和招聘侧围栏
+
+点评给复盘用，不构成能力认证，也不会拿去自动录用。同一件事不会写成两套互相打架的账。题和材料按可见范围取，工人领取也讲公平。招聘方视角和练习数据分开，没有自动筛人、排名或录用决定。
+
+设计说明见 `ai-docs/architecture/adr/`。
 
 ---
 
 ## 界面一览
 
-> 截图使用合成账号与合成记录，仅展示交互与视觉设计；不代表线上服务已开放，也不构成能力认证。
+> 合成截图，用来看版式。图里的旧按钮文案以本页和项目展示为准。
 
 ### 桌面端
 
@@ -83,13 +81,13 @@ ai-docs/      产品、架构、用例、测试与运行时事实说明
 
 **技术栈**：Next.js App Router · NestJS · LangGraphJS · Postgres（+pgvector）· Redis · S3/MinIO。
 
-几条承重的架构约束（不可妥协）：
+几条架构约束：
 
 - **Controller 不编排**，编排落在应用服务层；前后端由共享契约驱动，不做手写的、会漂移的 API 调用。
-- **AI 图不直接改支付/权益**；图状态只承载运行态，业务事实落业务表。
+- **图编排不直接改支付/权益**；图状态只承载运行态，业务事实落业务表。
 - **用户内容一律进数据块**，绝不拼接进系统指令；**模型输出双重校验**后才进业务逻辑。
 - **每个有状态对象用显式 status 枚举**，状态迁移服务端重新校验。
-- **LangGraph 检查点持久化到 Postgres**，等待用户输入表达为持久化状态，不用内存 session map。
+- **检查点持久化到 Postgres**，等待用户输入表达为持久化状态，不用内存 session map。
 
 ---
 
@@ -106,17 +104,11 @@ docker compose -f docker/compose.dev.yml up   # 仅开发基础设施（Postgres
 
 ---
 
-## 当前能力边界
+## 预览说明
 
-GitHub Pages 只发布 `docs/` 项目展示与源码入口，不是已经部署的在线服务，不启动本地数据面服务，也不代理 API、认证、SSE 或任何用户数据。完整应用运行时仍在受控建设与验证中，以下能力不因界面存在即视为可用服务：
+GitHub Pages 只发布 `docs/` 项目展示与源码入口，不是已经部署的在线服务，不启动本地数据面服务，也不代理 API、认证、SSE 或任何用户数据。不提供支付、购买、退款或自动扣费。语音与简历识图陆续开放。
 
-- 支付、购买、退款或自动扣费；
-- 完整删除、撤回同意与跨存储删除回执；
-- 用于招聘、资格、教育评价等有重大影响的数值评分；
-- 需要真实用户数据的 OCR、语音、长期记忆和跨会话召回；
-- 已发布的云端数据面、性能或端到端运行证明。
-
-因此，请勿向预览环境提交真实简历、真实身份信息、录音、密钥或其他需要删除保证的内容。
+请勿提交需要删除保证的真实简历、身份信息、录音或密钥。
 
 ---
 

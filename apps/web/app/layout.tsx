@@ -9,19 +9,19 @@ import { resolvePublicSiteUrl } from '@/lib/public-site';
 import { resolvePublicPreview } from '@/lib/public-preview';
 
 const SITE = resolvePublicSiteUrl();
-const DESC = '知面 Meetwise：按真实经历练面试，留下能回头看的点评。实际开放能力以页面说明为准。';
+const DESC = '知面预览版：求职者按真实经历练面试，面试官跟着回答追问。场次能接着，招聘与练习数据分开。';
 
 /** 全站 SEO 元数据(服务端注入):title 模板、description、Open Graph、Twitter、canonical、robots。RSC 已让内容可爬,这里补元数据层。 */
 export const metadata: Metadata = {
   metadataBase: SITE ?? undefined,
-  title: { default: 'Meetwise 知面 · AI 面试准备', template: '%s · 知面 Meetwise' },
+  title: { default: 'Meetwise 知面 · 预览版', template: '%s · 知面 Meetwise' },
   description: DESC,
-  keywords: ['AI面试', '模拟面试', '面试准备', '简历优化', '技术面试', '押题', '知面', 'Meetwise'],
+  keywords: ['模拟面试', '面试准备', '简历整理', '技术面试', '招聘', '知面', 'Meetwise'],
   applicationName: 'Meetwise 知面',
   authors: [{ name: 'Meetwise' }],
   alternates: SITE ? { canonical: '/' } : undefined,
-  openGraph: { title: 'Meetwise 知面 · AI 面试准备', description: DESC, type: 'website', locale: 'zh_CN', siteName: 'Meetwise 知面', url: SITE?.toString() },
-  twitter: { card: 'summary_large_image', title: 'Meetwise 知面 · AI 面试准备', description: DESC },
+  openGraph: { title: 'Meetwise 知面 · 预览版', description: DESC, type: 'website', locale: 'zh_CN', siteName: 'Meetwise 知面', url: SITE?.toString() },
+  twitter: { card: 'summary_large_image', title: 'Meetwise 知面 · 预览版', description: DESC },
   robots: SITE ? { index: true, follow: true, googleBot: { index: true, follow: true } } : { index: false, follow: false },
 };
 

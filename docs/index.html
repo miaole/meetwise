@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>知面 Meetwise · 按真实经历练面试</title>
-  <meta name="description" content="知面：按你写过的经历出题、追问，练完留下点评。项目展示，不是已经部署的在线服务。">
+  <title>知面 Meetwise · 预览版</title>
+  <meta name="description" content="知面预览版：求职者按真实经历练面试，面试官跟着回答追问。场次能接着，分数有围栏，招聘与练习数据分开。">
   <meta name="robots" content="index,follow">
   <link rel="stylesheet" href="./styles.css">
 </head>
@@ -14,10 +14,10 @@
     <div class="wrap nav-inner">
       <a class="brand" href="#main"><span class="mark" aria-hidden="true"></span>知面</a>
       <nav class="nav-links" aria-label="项目导航">
-        <a href="#path">怎么练</a>
-        <a href="#caps">能练什么</a>
+        <a href="#path">求职者</a>
+        <a href="#rec">面试官</a>
+        <a href="#arch">怎么建的</a>
         <a href="#shots">界面</a>
-        <a href="#bounds">边界</a>
         <a href="https://github.com/miaole/meetwise" rel="noopener noreferrer">源码</a>
       </nav>
       <a class="btn btn-primary btn-sm nav-cta" href="https://github.com/miaole/meetwise/blob/main/README.md" rel="noopener noreferrer">阅读 README</a>
@@ -27,13 +27,12 @@
   <main id="main" class="wrap page stack">
     <section class="hero">
       <div>
-        <p class="eyebrow"><i></i>真实经历 → 自适应面试 → 可复盘成长</p>
-        <h1>把面试准备，做成<em>可回头看的练习</em>。</h1>
-        <p class="lead">按你写过的经历出题，顺着回答往下问，练完留下点评。不编履历，也不承诺面试、录用或 offer。</p>
+        <p class="eyebrow"><i></i>预览版</p>
+        <h1>求职者练得清，面试官<em>问得深</em>。</h1>
+        <p class="lead">下一题跟着回答走，中断了还能接着。求职者留下可复盘的点评；面试官和招聘方用同一套追问看岗位与投递，练习数据分开。</p>
         <div class="cta-row">
           <a class="btn btn-primary" href="https://github.com/miaole/meetwise" rel="noopener noreferrer">查看源码</a>
-          <a class="btn btn-outline" href="#bounds">先看边界</a>
-          <span class="note">项目展示。公开页不收真实简历或回答。</span>
+          <a class="btn btn-outline" href="#arch">看它怎么问</a>
         </div>
       </div>
 
@@ -59,15 +58,15 @@
     </section>
 
     <div class="stats">
-      <div class="stat"><strong>真实经历</strong><p>只练你写过的事</p></div>
-      <div class="stat accent"><strong>跟着问</strong><p>下一题看你怎么答</p></div>
-      <div class="stat"><strong>不编</strong><p>不夸大、不代答</p></div>
-      <div class="stat"><strong>可复盘</strong><p>点评能回头看</p></div>
+      <div class="stat"><strong>跟着问</strong><p>下一题看你怎么答</p></div>
+      <div class="stat accent"><strong>可续场</strong><p>中断了还能接着</p></div>
+      <div class="stat"><strong>可核对</strong><p>关键路径能本地验</p></div>
+      <div class="stat"><strong>招聘方</strong><p>和练习数据分开</p></div>
     </div>
 
     <section id="path">
-      <div class="kicker">怎么练</div>
-      <h2>先把经历说清楚，再一题题练，练完能看见自己卡在哪。</h2>
+      <div class="kicker">求职者</div>
+      <h2>真实经历 → 自适应面试 → 可复盘成长</h2>
       <div class="cards cards-3">
         <article class="card">
           <div class="step">01</div>
@@ -77,68 +76,89 @@
         <article class="card">
           <div class="step">02</div>
           <h3>自适应面试</h3>
-          <p>文字练习会顺着你的回答往下问。公开预览不收真实回答。</p>
+          <p>文字对练会顺着你的回答往下问，不是把题单走完。</p>
         </article>
         <article class="card">
           <div class="step">03</div>
           <h3>可复盘成长</h3>
-          <p>逐题点评给自己看。不构成能力认证，也不能当录用依据。</p>
+          <p>逐题点评给自己看，练完能看见卡在哪。</p>
         </article>
       </div>
     </section>
 
-    <section id="caps">
-      <div class="kicker">能练什么</div>
-      <h2>从整理经历，到对练、点评，再看一遍。</h2>
+    <section id="rec">
+      <div class="kicker">面试官 / 招聘方</div>
+      <h2>同一套追问，岗位和练习分开。</h2>
+      <div class="cards cards-3">
+        <article class="card">
+          <div class="step">01</div>
+          <h3>跟着答追问</h3>
+          <p>该深挖的会继续问。不是固定卷子打完就结束。</p>
+        </article>
+        <article class="card">
+          <div class="step">02</div>
+          <h3>场次能接着</h3>
+          <p>进度写在库里，刷新或换机器也能回来。</p>
+        </article>
+        <article class="card">
+          <div class="step">03</div>
+          <h3>数据分开</h3>
+          <p>练习记录不进招聘筛人。不会自动排名或决定录用。</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="arch">
+      <div class="kicker">怎么建的</div>
+      <h2>问得深、场次稳、对得上、分得清。</h2>
       <div class="cards cards-6">
         <article class="card">
-          <span class="mark-char">简</span>
-          <h3>简历整理</h3>
-          <p>把经历理清楚，标出结构和风险。公开预览不收真实提交。</p>
+          <span class="mark-char">问</span>
+          <h3>自适应面试官</h3>
+          <p>下一问看你怎么答，不是套题模板。</p>
         </article>
         <article class="card">
-          <span class="mark-char">押</span>
-          <h3>练习题</h3>
-          <p>按你的经历和目标岗位来问，不是题海。题库还在收口。</p>
+          <span class="mark-char">续</span>
+          <h3>场次可接着</h3>
+          <p>进度落在 Postgres，不是记在浏览器里。</p>
         </article>
         <article class="card">
-          <span class="mark-char">面</span>
-          <h3>模拟面试</h3>
-          <p>文字对练，下一题跟着你的回答走。语音默认关着。</p>
+          <span class="mark-char">核</span>
+          <h3>能核对</h3>
+          <p>关键路径有本地 prove 门。打开页面不算验收。</p>
         </article>
         <article class="card">
-          <span class="mark-char">报</span>
-          <h3>逐题点评</h3>
-          <p>指出哪里可以补。只供个人复盘，不构成能力认证。</p>
+          <span class="mark-char">分</span>
+          <h3>分数有围栏</h3>
+          <p>点评给复盘用，不构成能力认证，也不会拿去自动录用。</p>
         </article>
         <article class="card">
-          <span class="mark-char">长</span>
-          <h3>练习记录</h3>
-          <p>几次练习留在一起。长期画像还没开。</p>
+          <span class="mark-char">记</span>
+          <h3>写入有双记</h3>
+          <p>同一件事不会写成两套互相打架的账。</p>
         </article>
         <article class="card">
-          <span class="mark-char">企</span>
-          <h3>招聘方视角</h3>
-          <p>岗位和投递分开看。不会自动筛人、排名或决定录用。</p>
+          <span class="mark-char">权</span>
+          <h3>检索有权限</h3>
+          <p>题和材料按可见范围取，工人领取也讲公平。</p>
         </article>
       </div>
     </section>
 
     <section class="statement">
       <div>
-        <h2>不编经历，不夸资历。练习就练你能讲清楚的事。</h2>
+        <h2>下一题跟着你。招聘侧和练习侧分开。</h2>
         <p>点评给自己复盘用，不代表经校准的能力评定，也不能作为招聘、资格或录用决定的依据。</p>
       </div>
       <div>
         <a class="btn btn-primary" href="https://github.com/miaole/meetwise" rel="noopener noreferrer">查看源码</a>
-        <p class="note">不提供支付，也不做自动招聘决策。</p>
       </div>
     </section>
 
     <section id="shots">
       <div class="kicker">界面</div>
       <h2>合成界面一览</h2>
-      <p class="lead">这些是合成截图，用来看版式。不代表线上已经开放，也不构成能力认证。图里若还写着「开始模拟面试」，以本页文案为准。</p>
+      <p class="lead">合成截图，用来看版式。图里的旧按钮文案以本页为准。</p>
       <div class="shots">
         <figure class="card shot">
           <img src="./screenshots/01-landing.png" alt="合成截图：落地页与练习反馈批注卡">
@@ -167,30 +187,17 @@
       </div>
     </section>
 
-    <section id="bounds" class="bounds">
-      <div class="kicker">边界</div>
-      <h2>当前能看什么、不能当什么用</h2>
-      <p>本页是项目展示，不是已经部署的在线服务，不启动本地数据面服务，也不经手你的简历或回答。</p>
-      <ul>
-        <li>不提供支付、购买、退款或自动扣费。</li>
-        <li>完整删除与撤回还没开放。请不要提交需要删除保证的真实材料。</li>
-        <li>点评不是招聘、资格或教育评价分数。</li>
-        <li>图片识别和语音都还没作为可用能力开放。</li>
-      </ul>
-      <p><a href="https://github.com/miaole/meetwise/blob/main/README.md" rel="noopener noreferrer">更完整的说明在 README</a></p>
-    </section>
-
     <footer class="foot">
       <div class="foot-grid">
         <div>
           <div class="foot-brand">知面 Meetwise</div>
-          <p class="foot-desc">按真实经历练面试，留下能回头看的点评。没开放的，不会写成已经能用。</p>
+          <p class="foot-desc">预览版。求职者练面试，面试官追问，招聘与练习分开。</p>
         </div>
         <div class="foot-col">
           产品
           <ul>
-            <li><a href="#caps">能练什么</a></li>
-            <li><a href="#bounds">边界</a></li>
+            <li><a href="#path">求职者</a></li>
+            <li><a href="#rec">面试官</a></li>
             <li><a href="https://github.com/miaole/meetwise" rel="noopener noreferrer">源码</a></li>
           </ul>
         </div>
@@ -199,13 +206,13 @@
           <ul>
             <li><a href="https://github.com/miaole/meetwise/blob/main/README.md" rel="noopener noreferrer">README</a></li>
             <li><a href="#shots">合成截图</a></li>
-            <li><a href="#bounds">数据边界</a></li>
+            <li><a href="#arch">怎么建的</a></li>
           </ul>
         </div>
       </div>
       <div class="foot-bar">
-        <span>© 知面 MEETWISE · MIT</span>
-        <span>真实 · 复盘 · 成长</span>
+        <span>预览版 · © 知面 MEETWISE · MIT</span>
+        <span>本页是项目展示，不是已经部署的在线服务，不启动本地数据面服务。不提供支付、购买、退款或自动扣费。语音与简历识图陆续开放。</span>
       </div>
     </footer>
   </main>

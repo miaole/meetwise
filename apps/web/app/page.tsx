@@ -12,7 +12,7 @@ import { publicSiteHref } from '@/lib/public-site';
 const SITE = publicSiteHref();
 
 export const metadata: Metadata = {
-  description: '知面 Meetwise：按真实经历练面试，留下能回头看的点评。公开预览不提供支付，也不接收需要删除保证的真实数据。',
+  description: '知面预览版：求职者按真实经历练面试，面试官跟着回答追问。场次能接着，招聘与练习数据分开。',
   alternates: SITE ? { canonical: '/' } : undefined,
 };
 
@@ -35,6 +35,8 @@ export default async function Home() {
     { n: t('stat4n'), l: t('stat4l'), w: false },
   ];
   const path = [1, 2, 3].map((i) => ({ title: t(`path${i}Title`), desc: t(`path${i}Desc`) }));
+  const rec = [1, 2, 3].map((i) => ({ title: t(`rec${i}Title`), desc: t(`rec${i}Desc`) }));
+  const arch = [1, 2, 3, 4, 5, 6].map((i) => ({ mark: t(`arch${i}Mark`), title: t(`arch${i}Title`), desc: t(`arch${i}Desc`) }));
   const caps = [1, 2, 3, 4, 5, 6].map((i) => ({ mark: t(`cap${i}Mark`), title: t(`cap${i}Title`), desc: t(`cap${i}Desc`) }));
   const bars = [{ l: t('bar1'), w: 62 }, { l: t('bar2'), w: 48 }, { l: t('bar3'), w: 74 }];
 
@@ -56,8 +58,7 @@ export default async function Home() {
           <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-muted-foreground">{t('lead')}</p>
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <Button asChild size="lg"><Link href="/features">{t('ctaPrimary')}<ArrowRight /></Link></Button>
-            <Button asChild size="lg" variant="outline"><Link href="/legal">{t('ctaSecondary')}</Link></Button>
-            <span className="text-xs text-muted-foreground">{t('free')}</span>
+            <Button asChild size="lg" variant="outline"><Link href="/features">{t('ctaSecondary')}</Link></Button>
           </div>
         </div>
 
@@ -77,7 +78,7 @@ export default async function Home() {
             </div>
             <Separator className="mt-5" />
             <div className="mt-5 flex items-center gap-6">
-              <div className="font-serif text-lg font-extrabold tracking-tight text-primary">{t('cardScore')}</div>
+              <div className="text-lg font-extrabold tracking-tight text-primary">{t('cardScore')}</div>
               <div className="flex-1 space-y-2">
                 {bars.map((b) => (
                   <div key={b.l} className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -95,7 +96,7 @@ export default async function Home() {
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {stats.map((s) => (
           <Card key={s.l} className="p-5">
-            <div className={`font-serif text-[26px] font-extrabold tracking-tight ${s.w ? 'text-primary' : ''}`}>{s.n}</div>
+            <div className={`text-[26px] font-extrabold tracking-tight ${s.w ? 'text-primary' : ''}`}>{s.n}</div>
             <div className="mt-0.5 text-[13px] text-muted-foreground">{s.l}</div>
           </Card>
         ))}
@@ -104,7 +105,7 @@ export default async function Home() {
       {/* ───── Path:真实经历 → 自适应面试 → 可复盘成长 ───── */}
       <section>
         <div className="text-xs font-medium uppercase tracking-wide text-primary">{t('pathEyebrow')}</div>
-        <h2 className="mt-2 max-w-2xl font-serif text-2xl font-extrabold tracking-tight sm:text-3xl">{t('pathH2')}</h2>
+        <h2 className="mt-2 max-w-2xl text-2xl font-extrabold tracking-tight sm:text-3xl">{t('pathH2')}</h2>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {path.map((step, index) => (
             <Card key={step.title} className="p-6">
@@ -116,14 +117,44 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* ───── Recruiter / interviewer ───── */}
+      <section>
+        <div className="text-xs font-medium uppercase tracking-wide text-primary">{t('recEyebrow')}</div>
+        <h2 className="mt-2 max-w-2xl text-2xl font-extrabold tracking-tight sm:text-3xl">{t('recH2')}</h2>
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {rec.map((step, index) => (
+            <Card key={step.title} className="p-6">
+              <div className="text-xs font-semibold tracking-wide text-primary">0{index + 1}</div>
+              <h3 className="mt-3 font-semibold">{step.title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{step.desc}</p>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* ───── Architecture highlights ───── */}
+      <section>
+        <div className="text-xs font-medium uppercase tracking-wide text-primary">{t('archEyebrow')}</div>
+        <h2 className="mt-2 max-w-2xl text-2xl font-extrabold tracking-tight sm:text-3xl">{t('archH2')}</h2>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {arch.map((item) => (
+            <Card key={item.title} className="p-6 transition-colors hover:border-primary">
+              <span className="flex size-9 items-center justify-center rounded-lg bg-accent text-sm font-bold text-primary">{item.mark}</span>
+              <h3 className="mt-4 font-semibold">{item.title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
+            </Card>
+          ))}
+        </div>
+      </section>
+
       {/* ───── Features ───── */}
       <section>
         <div className="text-xs font-medium uppercase tracking-wide text-primary">{t('featEyebrow')}</div>
-        <h2 className="mt-2 max-w-2xl font-serif text-2xl font-extrabold tracking-tight sm:text-3xl">{t('featH2')}</h2>
+        <h2 className="mt-2 max-w-2xl text-2xl font-extrabold tracking-tight sm:text-3xl">{t('featH2')}</h2>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {caps.map((c) => (
             <Card key={c.title} className="p-6 transition-colors hover:border-primary">
-              <span className="flex size-9 items-center justify-center rounded-lg bg-accent font-serif text-sm font-bold text-primary">{c.mark}</span>
+              <span className="flex size-9 items-center justify-center rounded-lg bg-accent text-sm font-bold text-primary">{c.mark}</span>
               <h3 className="mt-4 font-semibold">{c.title}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{c.desc}</p>
             </Card>
@@ -134,12 +165,11 @@ export default async function Home() {
       {/* ───── Deep statement(墨色块)───── */}
       <section className="grid items-center gap-8 rounded-lg bg-foreground p-8 text-background sm:p-12 md:grid-cols-[1.3fr_1fr]">
         <div>
-          <h3 className="font-serif text-2xl font-extrabold leading-snug sm:text-3xl">{t('stmtTitle')}</h3>
+          <h3 className="text-2xl font-extrabold leading-snug sm:text-3xl">{t('stmtTitle')}</h3>
           <p className="mt-4 text-[15px] leading-relaxed text-background/70">{t('stmtP')}</p>
         </div>
         <div>
           <Button asChild size="lg" className="w-full"><Link href="/features">{t('stmtCta')}<ArrowRight /></Link></Button>
-          <p className="mt-3 text-center text-xs text-background/55">{t('stmtNote')}</p>
         </div>
       </section>
 
@@ -147,7 +177,7 @@ export default async function Home() {
       <footer className="space-y-6">
         <div className="grid gap-8 sm:grid-cols-[1.4fr_1fr_1fr]">
           <div>
-            <div className="font-serif text-base font-bold tracking-tight">{t('footBrand')}</div>
+            <div className="text-base font-bold tracking-tight">{t('footBrand')}</div>
             <p className="mt-2 max-w-xs text-[13px] leading-relaxed text-muted-foreground">{t('footDesc')}</p>
           </div>
           <FooterCol title={t('footProductTitle')} links={[
@@ -166,6 +196,7 @@ export default async function Home() {
           <span>{t('footL')}</span>
           <span>{t('footR')}</span>
         </div>
+        <p className="text-xs leading-relaxed text-muted-foreground">{t('footNote')}</p>
       </footer>
     </main>
   );

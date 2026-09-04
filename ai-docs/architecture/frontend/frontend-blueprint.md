@@ -152,7 +152,7 @@ export const config = { matcher: ["/interview/:path*", "/profile", "/history"] }
 
 ## 10. 静态目录与 ECS 应用运行时
 
-- GitHub Pages 只发布 `docs/` 项目展示（定位、差异、合成截图、源码/README 入口与当前边界），不承载 Next Server Actions、cookie、API、SSE 代理或用户数据；它不是实际应用部署，也不是认证边界。截图从 `apps/web/docs/screenshots/` 在发布时复制，必须标明合成，且不得把截图里的旧 CTA 写成现网承诺。
+- GitHub Pages 只发布 `docs/` 预览版项目展示（双受众定位、架构亮点、合成截图、源码/README 入口；必要说明只在页脚），不承载 Next Server Actions、cookie、API、SSE 代理或用户数据。截图从 `apps/web/docs/screenshots/` 在发布时复制，必须标明合成；不得把支付、完整删除写成已开放，也不得把 OCR/语音写成“未开放不能用”。
 - 用户应用、API 与 Worker 由受控 ECS 运行。预览入口必须是固定 HTTPS hostname，并绑定不可变镜像摘要、健康回执和独立访问策略；没有这些证明的目录项保持禁用。
 - **长连接 SSE**：面试可能跨越数分钟到数小时。应用运行时必须把 SSE 断线视为正常路径：客户端使用稳定 cursor/snapshot 重连，服务端业务事实与受控 checkpoint 决定可见状态。不能因静态目录可访问而假设应用连接已经就绪。
 - API 不应被静态目录代理；同源需求只能由经认证的 ECS Web 运行时处理。

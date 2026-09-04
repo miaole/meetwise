@@ -6,7 +6,7 @@ import {
   FileText,
   Target,
   Brain,
-  Mic,
+  Users,
   LineChart,
   ShieldCheck,
   Route,
@@ -27,11 +27,11 @@ const SITE = publicSiteHref();
 export const metadata: Metadata = {
   title: '产品功能 · 知面 Meetwise',
   description:
-    '知面 Meetwise：按真实经历练面试。公开预览不提供支付或自动招聘决定；未开放能力不以已可用方式展示。',
+    '知面预览版：求职者按真实经历练面试，面试官跟着回答追问。场次能接着，招聘与练习数据分开。',
   alternates: SITE ? { canonical: '/features' } : undefined,
 };
 
-const featureIcons: LucideIcon[] = [FileText, Target, Brain, Mic, LineChart, ShieldCheck];
+const featureIcons: LucideIcon[] = [FileText, Target, Brain, Users, LineChart, ShieldCheck];
 const diffIcons: LucideIcon[] = [Route, Database, BadgeCheck, Scale];
 
 export default async function FeaturesPage() {
@@ -40,6 +40,10 @@ export default async function FeaturesPage() {
     title: t(`diff${i}Title`),
     desc: t(`diff${i}Desc`),
     icon: diffIcons[i - 1],
+  }));
+  const rec = [1, 2, 3].map((i) => ({
+    title: t(`rec${i}Title`),
+    desc: t(`rec${i}Desc`),
   }));
   const features = [1, 2, 3, 4, 5, 6].map((i) => ({
     title: t(`f${i}Title`),
@@ -57,7 +61,7 @@ export default async function FeaturesPage() {
 
       <section className="mb-12">
         <div className="text-xs font-medium uppercase tracking-wide text-primary">{t('diffEyebrow')}</div>
-        <h2 className="mt-2 max-w-2xl font-serif text-2xl font-extrabold tracking-tight">{t('diffH2')}</h2>
+        <h2 className="mt-2 max-w-2xl text-2xl font-extrabold tracking-tight">{t('diffH2')}</h2>
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           {diffs.map((item) => {
             const Icon = item.icon;
@@ -71,6 +75,20 @@ export default async function FeaturesPage() {
               </Card>
             );
           })}
+        </div>
+      </section>
+
+      <section className="mb-12">
+        <div className="text-xs font-medium uppercase tracking-wide text-primary">{t('recEyebrow')}</div>
+        <h2 className="mt-2 max-w-2xl text-2xl font-extrabold tracking-tight">{t('recH2')}</h2>
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          {rec.map((item, index) => (
+            <Card key={item.title} className="p-5">
+              <div className="text-xs font-semibold tracking-wide text-primary">0{index + 1}</div>
+              <h3 className="mt-3 font-semibold">{item.title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
+            </Card>
+          ))}
         </div>
       </section>
 
