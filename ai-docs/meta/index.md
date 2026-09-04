@@ -85,6 +85,7 @@ tags:
 | 本地演示 | `architecture/devops/local-demo-deployment.md` | compose、seed、健康检查 |
 | 测试设计 | `testing/strategy/test-strategy.md` + `testing/conventions/test-authoring.md` | 分层（HTTP 主 / Playwright 次）、TC 规范、golden tasks |
 | 变更后测试/回归 | `skills/testing/sop.md` | 审核 → 选层 → 跑门 → `pnpm regression` → 出处；概述见 `skills/testing/SKILL.md` |
+| E2E 平台集成（#55–#64） | `delivery/e2e-platform-integration.md` | 核实合并顺序、冲突决议、supersession；draft / 非 READY |
 | AI 产物验收 | `skills/testing/fail-closed-gate.md` | 默认不可信；审核 ∧ 验证；多轮重开；无密钥。长期指针 `rules/global/ai-generated-review.md` |
 | 代码生成前确认 | `meta/task-sop.md` 的生成前门禁 | Task Harness |
 

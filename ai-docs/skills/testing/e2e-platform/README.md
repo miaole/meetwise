@@ -33,7 +33,7 @@ version: 1
 pnpm e2e-platform:check         # 目录契约 + 信任守卫 + 核心边界
 pnpm e2e-platform:prove         # 5 条命名守卫 + 2 条自测（fail-closed）；不是种植违规套件
 pnpm e2e-platform:layout:prove  # 种植违规必须非零；禁止与 prove 对调
-pnpm regression                 # always-on 含 check / prove / layout:prove + 文档/helpers/回执
+pnpm regression                 # always-on：平台三入口 + 静态守卫 + parity + 文档/helpers/回执（完整名单只维护在 ../run-gates.md）
 pnpm regression --live          # 另加 HTTP E2E；缺 MODEL_API_KEY 非零退出
 ```
 

@@ -77,7 +77,7 @@ related:
 - **不**把回归入口退回旧 `ALWAYS_ON` 数组。parity 两门挂进现有 `ALWAYS_ON_REQUIRED`。
 - 文档并集：fail-closed / SOP / honesty / AGENTS 写入 `e2e-parity:check` 与 `parity floors`；作者改 allowlist 不算自签审核。
 - CI `verify` 追加 parity check/prove；不加新的云部署 job。
-- 集成后 helper/场景增长只能**抬高** floors 或写可审 allowlist 负 delta，禁止下调地板假装从来没有。
+- 集成后 helper/场景增长只能**抬高** floors 或写可审 allowlist 负 delta，禁止下调地板假装从来没有。本合并把 floors 从 22/155 抬到 47/366（含已替换旧身份）；effective floors = 当前扫描 37/342。替换旧 conditionDigest 的条目写入 allowlist，原因写清是鉴权/出处/账本合同变更，不是 AI self-approval。
 
 ### #63
 
@@ -129,6 +129,23 @@ related:
 可选（`package.json` 有脚本才挂）：`public-text-policy:prove` · `quality:traceability:prove` · `provider-egress:prove`。
 
 后续 PR 若往 always-on 加门，必须同步改本表与 [run-gates](../skills/testing/run-gates.md)。
+
+## 文档同步（本分支，非 follow-up）
+
+与代码/脚本不一致的技能页已在本分支改完，禁止再开「文档后补」工单：
+
+| 文件 | 对齐内容 |
+| --- | --- |
+| `skills/testing/run-gates.md` | always-on 名单 = `ALWAYS_ON_REQUIRED`；假服务完整列表；隔离长码 + `tagE2EFailure` |
+| `skills/testing/e2e-platform/README.md` | always-on 含平台三入口 + 静态守卫 + parity；完整名单仍只维护在 run-gates |
+| `skills/testing/e2e-platform/00-overview.md` | 假服务：母线三旗标内联 + `e2e-fake-service-flags.mjs` 扩展列表；无 Key 回归指向 run-gates |
+| `skills/testing/e2e-platform/02-post-change.md` | 第 3 步 / 完成证据含 `e2e-static-guards:*` 与 `e2e-parity:*` |
+| `skills/testing/e2e-platform/05-failure-classification.md` | `classifyFailure` 的 `FAIL_*` 与 runner `E2E_FAILURE` 账本对照指向 run-gates §6；隔离码不得收短 |
+| `skills/README.md` / `meta/index.md` / `meta/directory-boundaries.md` | 集成分支、目录契约、parity floors 各只指向一处 |
+| `testing/conventions/e2e-directory-contract.md` | 可执行布局；脚本映射禁止对调 |
+| `testing/e2e-parity-baseline.md` + JSON/allowlist | floors 47/366；effective 37/342；allowlist 5 条 |
+
+`docs:check` 把本文件列为 required，并要求出现 `#55`、`#64`、`feature/e2e-platform-integration`、`fail-closed`、`releaseEvidence`、`supersede`。
 
 ## 本轮诚实边界
 

@@ -5,7 +5,7 @@
 ```text
 1. 审核          范围 / 状态机 / AI 输入 / RLS / 选层
 2. unit/contract 包内 prove、zod smoke、能在本机确定的断言
-3. isolated      pnpm regression（含 e2e-platform:check / prove / layout:prove）
+3. isolated      pnpm regression（always-on：平台三入口 + 静态守卫 + parity；完整名单只维护在 ../run-gates.md）
                  触达面再加对应 *:prove；骨架用 --core
 4. live（可选）   有 MODEL_API_KEY 才跑 pnpm regression --live
                  浏览器另：pnpm -C apps/web build && pnpm e2e:ui:isolated
@@ -24,6 +24,7 @@
 命令绿不是完成。先走 [变更后审核](../post-change-review.md) 第 0 节（生成物默认不可信）。然后：
 
 - `pnpm generation-trust:prove`、`pnpm e2e-platform:check`、`pnpm e2e-platform:prove`、`pnpm e2e-platform:layout:prove` 退出 0
+- `pnpm e2e-static-guards:check` / `prove`、`pnpm e2e-parity:check` / `prove` 退出 0（always-on 已含；绿 ≠ 出处已核，也 ≠ 审核通过）
 - `pnpm regression` 退出 0（或记录哪一步失败）；`claimDone` 仍为 false
 - live 若未跑：显式 `not_run`（skip-as-pass 禁止）
 - 没有受信回执前 `releaseEvidence: false`；未审核生成物不得标 READY

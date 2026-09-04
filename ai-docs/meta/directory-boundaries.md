@@ -44,3 +44,5 @@ tags:
 - 实跑回执与结论边界 → `testing/e2e-performance-evidence.md`
 - AI 代码/输出不得默认信任：收束公式 → `skills/testing/fail-closed-gate.md`；长期指针 → `rules/global/ai-generated-review.md`
 - E2E 平台集成分支的核实合并顺序 → `delivery/e2e-platform-integration.md`
+- HTTP E2E 可执行目录契约 → `testing/conventions/e2e-directory-contract.md`（叙事 SOP 在 `skills/testing/e2e-platform/`，禁止第三套目录故事）
+- e2e 用例/断言 parity floors → `testing/e2e-parity-baseline.md`
