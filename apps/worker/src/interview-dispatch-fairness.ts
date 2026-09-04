@@ -24,6 +24,18 @@ export function readInterviewDispatchBudget(
   return { perOwnerInflight, globalInflight };
 }
 
+/** DB proofs for this slice use remote Postgres only. Local Docker / loopback is forbidden. */
+export function assertInterviewDispatchRemotePostgres(
+  env: Record<string, string | undefined> = process.env,
+): void {
+  const host = env.PGHOST?.trim();
+  if (env.E2E_ISOLATED === '1' || Boolean(env.E2E_TEST_CONTAINER?.trim())
+    || host === '127.0.0.1' || host === 'localhost') {
+    throw new Error('interview_dispatch_prove_forbids_local_docker_db');
+  }
+  if (env.E2E_CLOUD_ISOLATED !== '1') throw new Error('interview_dispatch_prove_requires_remote_postgres');
+}
+
 function readBoundedInt(
   env: Record<string, string | undefined>, name: string, fallback: number, min: number, max: number,
 ): number {

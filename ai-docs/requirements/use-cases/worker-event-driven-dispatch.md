@@ -88,13 +88,13 @@ owner: architecture
 
 | ID | 层 | 场景 | 关键断言 |
 | --- | --- | --- | --- |
-| `TC-WORKER-002-main` | 确定性单元 + 隔离 PostgreSQL | A 三条、B 一条；gateway 按最老等待给出 `[A,B]` | 单元与隔离领取顺序都是 `A,B,A,A`，不是 `A,A,A,B`。 |
-| `TC-WORKER-002-E1` | 隔离 PostgreSQL | 同 key 重复 enqueue | 行数不增加，返回同一 id。 |
-| `TC-WORKER-002-E2` | 隔离 PostgreSQL | 两连接、同一 owner 两场面试、cap=1 并发 claim | 恰一个 `running`，另一场保持 `queued`。 |
-| `TC-WORKER-002-E3` | 隔离 PostgreSQL | 跨 owner claim；`SET LOCAL ROLE app_role` 且不绑定 principal | 跨 owner=0；无 principal 读 0 行或 RLS 拒绝，受害行仍 `queued`。 |
-| `TC-WORKER-002-E4` | 隔离 PostgreSQL | 非持租 `markDone`/`markFailed`/`requeue` | CAS=0，作业状态与他人 lease 不变。 |
-| `TC-WORKER-002-E5` | 确定性单元 + 隔离 PostgreSQL | cap=1 时同 owner 第二场仍 queued；`0`/`1e1`/`1.0`/倒置预算 | 第二场保持 `queued`；非法 env 抛 `*_invalid`，不静默放大。 |
-| `TC-WORKER-002-E6` | 隔离 PostgreSQL + 确定性单元 | 同面试 seq0 running 时入队并 claim seq1；切片拒绝 | enqueue 成功、claim=null、seq1 保持 `queued`；拒绝的切片等其他 in-flight 结束后再抛出。 |
+| `TC-WORKER-002-main` | 确定性单元 + 远程 PostgreSQL | A 三条、B 一条；gateway 按最老等待给出 `[A,B]` | 单元与远程库领取顺序都是 `A,B,A,A`，不是 `A,A,A,B`。禁止本地 Docker 库。 |
+| `TC-WORKER-002-E1` | 远程 PostgreSQL | 同 key 重复 enqueue | 行数不增加，返回同一 id。 |
+| `TC-WORKER-002-E2` | 远程 PostgreSQL | 两连接、同一 owner 两场面试、cap=1 并发 claim | 恰一个 `running`，另一场保持 `queued`。 |
+| `TC-WORKER-002-E3` | 远程 PostgreSQL | 跨 owner claim；`SET LOCAL ROLE app_role` 且不绑定 principal | 跨 owner=0；无 principal 读 0 行或 RLS 拒绝，受害行仍 `queued`。 |
+| `TC-WORKER-002-E4` | 远程 PostgreSQL | 非持租 `markDone`/`markFailed`/`requeue` | CAS=0，作业状态与他人 lease 不变。 |
+| `TC-WORKER-002-E5` | 确定性单元 + 远程 PostgreSQL | cap=1 时同 owner 第二场仍 queued；`0`/`1e1`/`1.0`/倒置预算 | 第二场保持 `queued`；非法 env 抛 `*_invalid`，不静默放大。 |
+| `TC-WORKER-002-E6` | 远程 PostgreSQL + 确定性单元 | 同面试 seq0 running 时入队并 claim seq1；切片拒绝 | enqueue 成功、claim=null、seq1 保持 `queued`；拒绝的切片等其他 in-flight 结束后再抛出。 |
 
 ## 已知后续项
 

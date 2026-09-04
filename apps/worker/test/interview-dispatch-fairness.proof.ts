@@ -5,7 +5,7 @@
  */
 import {
   DEFAULT_INTERVIEW_DISPATCH_BUDGET, DEFAULT_INTERVIEW_OWNER_LAUNCH_CAP,
-  fairDrainInterviewOwners, readInterviewDispatchBudget,
+  assertInterviewDispatchRemotePostgres, fairDrainInterviewOwners, readInterviewDispatchBudget,
 } from '../src/interview-dispatch-fairness.ts';
 
 let failures = 0;
@@ -50,6 +50,17 @@ async function main() {
   catch (error: any) { decimal = error?.message === 'WORKER_INTERVIEW_PER_OWNER_INFLIGHT_invalid'; }
   A('科学计数法和小数预算失败关闭', scientific && decimal);
   A('缺省预算是 1/4', DEFAULT_INTERVIEW_DISPATCH_BUDGET.perOwnerInflight === 1 && DEFAULT_INTERVIEW_DISPATCH_BUDGET.globalInflight === 4);
+
+  let dockerDb = false;
+  try { assertInterviewDispatchRemotePostgres({ E2E_ISOLATED: '1', PGHOST: '127.0.0.1', E2E_TEST_CONTAINER: 'meetwise-e2e-x' }); }
+  catch (error: any) { dockerDb = error?.message === 'interview_dispatch_prove_forbids_local_docker_db'; }
+  let missingRemote = false;
+  try { assertInterviewDispatchRemotePostgres({}); }
+  catch (error: any) { missingRemote = error?.message === 'interview_dispatch_prove_requires_remote_postgres'; }
+  let remoteOk = true;
+  try { assertInterviewDispatchRemotePostgres({ E2E_CLOUD_ISOLATED: '1', PGHOST: '10.0.0.8' }); }
+  catch { remoteOk = false; }
+  A('DB 证明拒绝本地 Docker/loopback，只接受远程 Postgres 配置', dockerDb && missingRemote && remoteOk);
 
   const empty = await fairDrainInterviewOwners({}, [], DEFAULT_INTERVIEW_DISPATCH_BUDGET, async () => 'idle', (value) => value === 'idle');
   A('空 owner 列表不领取', empty.claimed === 0 && empty.idleRounds === 0);

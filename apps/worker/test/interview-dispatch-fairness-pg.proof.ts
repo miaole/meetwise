@@ -1,6 +1,6 @@
 /**
- * Isolated PostgreSQL proof for interview dispatch fairness and claim fences.
- * Must run via scripts/run-e2e-isolated.mjs after versioned migrations.
+ * Remote PostgreSQL proof for interview dispatch fairness and claim fences.
+ * Requires E2E_CLOUD_ISOLATED=1. Local Docker / loopback is forbidden.
  * releaseEvidence=false.
  */
 import { readFileSync } from 'node:fs';
@@ -11,9 +11,9 @@ import {
   markJobDone, markJobFailed, requeueInterviewJob, transitionResume, MAX_INTERVIEW_JOB_ATTEMPTS,
 } from '@meetwise/db';
 import { ingestResume } from '@meetwise/domain';
-import { fairDrainInterviewOwners } from '../src/interview-dispatch-fairness.ts';
+import { assertInterviewDispatchRemotePostgres, fairDrainInterviewOwners } from '../src/interview-dispatch-fairness.ts';
 
-const pool = createPool();
+let pool: ReturnType<typeof createPool>;
 let failures = 0;
 const A = (name: string, ok: boolean) => {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`);
@@ -61,6 +61,8 @@ async function claimAsLease(owner: string, leaseOwner: string) {
 }
 
 async function main() {
+  assertInterviewDispatchRemotePostgres();
+  pool = createPool();
   await assertIsolatedTestTarget(pool);
   const suffix = `${process.pid}-${Date.now()}`;
   const ownerA = `fair-a-${suffix}`;
