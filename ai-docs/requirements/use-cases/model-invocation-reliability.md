@@ -39,10 +39,10 @@ owner: architecture
 
 - `TC-MODEL-001-main` · 隔离 PostgreSQL（关系型数据库）集成：成功调用的调用/费用终态一致。
 - `TC-MODEL-001-E1` · 隔离 PostgreSQL 集成：同键双并发仅一次供应商派发并回放相同结果。
-- `TC-MODEL-001-E1` 具名负例（`HC-GAP-011`，挂 `pnpm runtime:prove` / `pnpm runtime:isolated:prove` / `pnpm runtime:claim-join:prove`）：
-  - `HC-GAP-011-orphan-permit`：无 invocation 行的 leftover create-permit 只回 `wait`，不 execute、不建行；随后一次 join 才 execute，calls=1。
-  - `HC-GAP-011-concurrent-no-row`：两连接同时无行 → claim execute=1 且 wait=1；invoke calls=1 且两者同值（`wait`/`cached`）。
-  - `HC-GAP-011-orphan-concurrent`：两连接对着 leftover permit 同时 claim-join → calls 不因清 permit 变成 2。
+- `TC-MODEL-001-E1` 具名负例（`HC-GAP-011`；per-push 为 `pnpm runtime:prove`，隔离门为 `pnpm runtime:isolated:prove` / `pnpm runtime:claim-join:prove`）：
+  - `HC-GAP-011-orphan-permit`：无 invocation 行的 leftover create-permit，`claim()` 只回 `wait`（不 execute、不建行、清 permit）；`invoke()` 直接撞上该 permit 仍 calls=1。
+  - `HC-GAP-011-concurrent-no-row`：两连接同时无行 → `claim()` execute=1 且 wait=1；`invoke()` calls=1 且两者同值。
+  - `HC-GAP-011-orphan-concurrent`：两路 `invoke()` 对着 leftover permit → calls 不因清 permit 变成 2。
 - `TC-MODEL-001-E2` · 隔离 PostgreSQL（关系型数据库）集成：两个请求先完成半开纯选路时，恰一条主端点探针外呼，另一条在派发前重选同 scope backup（备用端点）；两条持久幂等键均成功。
 - `TC-MODEL-001-E3` · 隔离 PostgreSQL 集成：跨主体调用记录查询/更新均为 `0` 行或被拒绝。
 - `TC-MODEL-001-E4` · 隔离 PostgreSQL 集成：注入终态事务失败，陈旧记录由对账转 `unknown`，只冻结持久绑定 scope 的费用，重放零外呼；费用配对缺失时整笔回滚并向 drain loop（排空循环）传播失败。

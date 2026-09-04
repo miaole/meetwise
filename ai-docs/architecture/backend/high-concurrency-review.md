@@ -128,7 +128,7 @@ related:
 | `pnpm model-slot-bypass:prove` | 隔离 PG（`packages/ai-runtime/test/model-slot-bypass.proof.ts`） | 无 `operation` 的成功/在途 invoke 不改变 `ai_model_concurrency_lease`；有 operation 且 `max_concurrency=2` 时第三条 `model_concurrency_exhausted`、零外呼、claim=`failed` | 需隔离库；**不在 per-push**；不起 compose.dev / 本地常驻 Docker 库。本环境未取得新回执时 `releaseEvidence=false` |
 | `pnpm model-op02:prove` | 隔离 PG（`packages/ai-runtime/test/model-op02-shared-provider.proof.ts`） | 单测分区 max=2 时第三 acquire 拒绝；释放/过期可复用 | 需隔离库；不在 per-push；不是多 Worker 真副本抢同一生产 operation |
 | `pnpm breaker:prove` | 确定性 | 半开单探针、abort 不晚到外呼 | 不证明 0120 跨副本槽 |
-| `pnpm runtime:isolated:prove` | 隔离 PG | 同键双并发 calls=1；`0130` wait / 不二次 execute；**HC-GAP-011** 具名：孤儿 permit → `wait`、两连接无行 execute=1 + `wait`/`cached` | 内核 37 断言 + 5 条 claim-join 具名断言；不证明 0120 槽与 claim-join 的交叉故障 |
+| `pnpm runtime:isolated:prove` | 隔离 PG | 同键双并发 calls=1；`0130` wait / 不二次 execute；**HC-GAP-011** 具名：孤儿 permit claim→`wait`；两连接无行 claim execute=1+wait=1；invoke calls=1 | 内核 37 断言 + 5 条 claim-join 具名断言；隔离门不在 per-push；不证明 0120 槽与 claim-join 的交叉故障 |
 
 ## 6. 账本 CAS / 同键 claim-join
 
@@ -153,7 +153,7 @@ related:
 | --- | --- | --- | --- |
 | `HC-GAP-004` | SKIP LOCKED | `pnpm quiz-dual-claim:unit:prove`（per-push）；`pnpm quiz-dual-claim:prove`（远程隔离库） | 同 owner 同一押题 / 诊断 job 两连接并发 claim 恰一 `running`，败者 null 且事件/额度/父行增量=0。无库门拒绝本地 Docker / loopback。隔离库命令要求 `E2E_CLOUD_ISOLATED=1`；本文件不登记未跑隔离库回执。不证明 owner 级 cap、公平轮转或发布。诊断与押题同一证明，不另开 follow-up。`releaseEvidence=false`。 |
 | `HC-GAP-006` | SSE | `pnpm api:validate` | 押题 / 诊断与面试同一组坏游标（`-1` / `1.5` / `Infinity` / `+1` / 超安全整数 / 过长）HTTP `status=400`、`error=invalid_last_event_id`、不是 `text/event-stream`；`Infinity` 的 `interview_event` catch-up SQL 次数=0（先用合法游标证明计数器会动）。不证明 429 槽打满或跨副本槽（`HC-GAP-007` / `008`）。不是容量 SLO。回执保持 `releaseEvidence=false`。 |
-| `HC-GAP-011` | claim-join | `pnpm runtime:prove` | 孤儿 leftover create-permit（无 invocation 行）只 `wait`、不 execute、清 permit；两连接同时无行 → execute=1 且 follower `wait`/`cached`；清 permit 后 calls 不得变成 2。具名断言：`HC-GAP-011-orphan-permit`、`HC-GAP-011-concurrent-no-row`、`HC-GAP-011-orphan-concurrent`。也挂 `pnpm runtime:isolated:prove` / `pnpm runtime:claim-join:prove`。不证明供应商取消计费、0120 槽交叉、云多副本。无新迁移。 |
+| `HC-GAP-011` | claim-join | `pnpm runtime:prove` | 单库、legacy 无 cost/operation、两路并发。孤儿 leftover create-permit（无 invocation 行）claim 只 `wait`、不 execute、清 permit；`invoke()` 撞上该 permit 仍 calls=1。两连接同时无行 → claim execute=1 且 wait=1；两路 `invoke()` calls=1 且同值。清 permit 后 calls 不得变成 2。具名：`HC-GAP-011-orphan-permit`、`HC-GAP-011-concurrent-no-row`、`HC-GAP-011-orphan-concurrent`。per-push：`pnpm runtime:prove`（CI Postgres）。隔离门：`pnpm runtime:isolated:prove` / `pnpm runtime:claim-join:prove`（需隔离/远程 env，不在 per-push）。不证明供应商取消计费、0120 槽交叉、billed/`operation` digest、lease 过期接管、云多副本。无新迁移。 |
 | `HC-GAP-014` | SSE | `pnpm web:prove` | 已在 `main`（#90）。三路流驱动把 HTTP 400 `invalid_last_event_id` 当失败关闭，open=1，不得用同一游标重试。不是浏览器实链，不是 API HTTP 门。 |
 
 | ID | 面 | 缺口 | 正确层级 | 负例断言（尚未具备或未在 CI） |

@@ -44,7 +44,10 @@ function sql(rel: string) {
   return readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
 }
 
-/** Same digest invoke() uses for a scripted model with no requestDigest / cost policy. */
+/**
+ * Unbilled legacy seam only (no service, no model.requestDigest, no cost policy).
+ * Must stay aligned with invoke() invocationDigest for that narrow path.
+ */
 function legacyDigest(idempotencyKey: string): string {
   return createHash('sha256').update(JSON.stringify({ legacy: `:${idempotencyKey}` })).digest('hex');
 }
@@ -70,13 +73,14 @@ async function seedOrphanPermit(key: string) {
 }
 
 async function invocationCount(key: string): Promise<number> {
-  const r = await pool.query<{ n: number }>(
+  const r = await asPrincipal(pool, OWNER, (c) => c.query<{ n: number }>(
     'SELECT count(*)::int n FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key=$2',
     [OWNER, key],
-  );
+  ));
   return Number(r.rows[0]?.n ?? 0);
 }
 
+/** Permit table is revoked from app_role; leftover seed/count is superuser-only (not a request path). */
 async function permitCount(key: string): Promise<number> {
   const r = await pool.query<{ n: number }>(
     'SELECT count(*)::int n FROM ai_model_invocation_transition_permit WHERE owner_user_id=$1 AND idempotency_key=$2',
@@ -99,28 +103,33 @@ async function main() {
   await pool.query('TRUNCATE ai_model_dispatch_slot, ai_model_logical_node_header, ai_model_invocation, ai_model_invocation_transition_permit');
 
   section('HC-GAP-011-orphan-permit · leftover create-permit, no invocation row');
-  const orphanKey = 'R1:hc-gap-011-orphan';
-  await seedOrphanPermit(orphanKey);
-  const orphanFirst = await claim(orphanKey);
-  const orphanInvocations = await invocationCount(orphanKey);
-  const orphanPermits = await permitCount(orphanKey);
+  const orphanClaimKey = 'R1:hc-gap-011-orphan-claim';
+  await seedOrphanPermit(orphanClaimKey);
+  const orphanFirst = await claim(orphanClaimKey);
   assert(
-    'HC-GAP-011-orphan-permit: leftover create-permit with no invocation row returns wait, not execute',
-    orphanFirst.action === 'wait' && orphanInvocations === 0 && orphanPermits === 0,
+    'HC-GAP-011-orphan-permit: leftover create-permit with no invocation row returns wait, not execute; row=0; permit cleared',
+    orphanFirst.action === 'wait'
+      && (await invocationCount(orphanClaimKey)) === 0
+      && (await permitCount(orphanClaimKey)) === 0,
   );
 
+  const orphanInvokeKey = 'R1:hc-gap-011-orphan-invoke';
+  await seedOrphanPermit(orphanInvokeKey);
   const orphanModel: Model & { calls: number } = {
     calls: 0,
     async call() { this.calls++; return { ok: true, raw: { question: 'orphan-join 题' } }; },
   };
   const orphanInvoke = await invoke(
-    { idempotencyKey: orphanKey, schema: QSchema, businessValidate: () => null, model: orphanModel },
+    { idempotencyKey: orphanInvokeKey, schema: QSchema, businessValidate: () => null, model: orphanModel },
     pool,
     OWNER,
   );
   assert(
-    'HC-GAP-011-orphan-permit: after wait, a later join executes once (calls=1, not a second dispatch from the cleared permit)',
-    'value' in orphanInvoke && orphanModel.calls === 1 && (await invocationCount(orphanKey)) === 1,
+    'HC-GAP-011-orphan-permit: invoke() that hits leftover permit still ends with calls=1 and one invocation row',
+    'value' in orphanInvoke
+      && orphanModel.calls === 1
+      && (await invocationCount(orphanInvokeKey)) === 1
+      && (await permitCount(orphanInvokeKey)) === 0,
   );
 
   section('HC-GAP-011-concurrent-no-row · two claimants, no row yet');
@@ -147,7 +156,7 @@ async function main() {
     invoke({ idempotencyKey: invokeKey, schema: QSchema, businessValidate: () => null, model: raceModel }, pool, OWNER),
   ]);
   assert(
-    'HC-GAP-011-concurrent-no-row: two invoke() with no row yet → calls=1 and both wait/cached the same value',
+    'HC-GAP-011-concurrent-no-row: two invoke() with no row yet → calls=1 and both return the same value',
     raceModel.calls === 1 && sameInvokeValue(raced[0], raced[1]),
   );
 
@@ -170,10 +179,11 @@ async function main() {
     console.log('  orphan-concurrent outcomes', JSON.stringify(orphanRaced), 'calls', orphanRaceModel.calls);
   }
   assert(
-    'HC-GAP-011-orphan-concurrent: two invoke() against leftover permit → execute/calls=1; follower wait/cached; calls must not become 2 from clearing permit',
+    'HC-GAP-011-orphan-concurrent: two invoke() against leftover permit → calls=1 and same value; calls must not become 2 from clearing permit',
     orphanRaceModel.calls === 1
       && sameInvokeValue(orphanRaced[0], orphanRaced[1])
-      && (await invocationCount(orphanRaceKey)) === 1,
+      && (await invocationCount(orphanRaceKey)) === 1
+      && (await permitCount(orphanRaceKey)) === 0,
   );
 
   console.log(`\n${failures === 0 ? '✓ HC-GAP-011 claim-join named cases passed' : '✗ ' + failures + ' 项失败'}`);
