@@ -157,7 +157,7 @@ related:
 
 QBank 密封清单不拥有 generic corpus 函数（那些归 `rag_runtime_definer`）。`0124_rag_retrieval_acl_fail_closed.sql` 只替换已有 `rag_bind_query` / `rag_resolve_query_binding` / `rag_search_bound` / `rag_evidence_bound` 的函数体：空或空白 `app.principal_user` 抛 `rag_acl_principal_missing`（`insufficient_privilege`），不得无范围检索。跨租户 binding 仍是 `rag_binding_unavailable`；global 无批准 provenance 仍是 0 行。域合同在 `packages/domain/src/rag-retrieval-acl.ts`。
 
-编号：`0124_rag_retrieval_acl_fail_closed.sql` 已在 main（#71 / `e202739`）。本 PR 只新增 `0125_memory_vector_chunk_erasure.sql`，不改 0124。#65 题目账本谓词、#68 公开预览写门禁、#69 公开 DELETE 503 / 无 `/answers` 均保持。`memory_vector_chunk` 仅在 0125 落地后才算进账户回执，不得把 0124 写成已覆盖向量块。
+编号：`0124_rag_retrieval_acl_fail_closed.sql` 已在 main（#71 / `e202739`）。#70 已在 main 落地 `0125_memory_vector_chunk_erasure.sql`，不改 0124。#65 题目账本谓词、#68 公开预览写门禁、#69 公开 DELETE 503 / 无 `/answers` 均保持。`memory_vector_chunk` 仅在 0125 落地后才算进账户回执，不得把 0124 写成已覆盖向量块。
 
 ---
 

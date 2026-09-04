@@ -9,6 +9,7 @@
 - 不在没有 PRD、领域模型、接口契约和测试计划的情况下直接生成生产代码；实现前先写清楚测试先行的验收方式。
 - 不暗猜接口，不创造未定义接口；前后端必须由共享契约驱动。
 - 不把 AI 输出直接当事实；所有模型输出必须经过结构化校验和业务校验。
+- **P0：不得默认信任** AI 写出的代码、测试、UI 或文档。变更后只走 `ai-docs/skills/testing/sop.md`；能否收束由 `ai-docs/skills/testing/fail-closed-gate.md` 判定（审核 ∧ 验证，缺一阻断，作者不得自签审核，允许多轮门禁）。AI 测试 diff 还须过 `e2e-parity:check`（parity floors）与独立审核，步骤只在 `ai-docs/testing/e2e-parity-baseline.md`。长期规则指针见 `ai-docs/rules/global/ai-generated-review.md`。不提交密钥。
 - 不把简历、聊天记录、模型密钥、支付信息写入日志。
 - 不提交真实 `.env`、密钥、简历原文、面试录音或用户敏感数据。
 
@@ -26,8 +27,8 @@
 - `ai-docs/requirements`：具体 epic 和 iteration PRD。
 - `ai-docs/architecture`：长期技术架构、模块划分、LangGraph、部署和观测。
 - `ai-docs/rules`：长期稳定工程约束。
-- `ai-docs/skills`：AI 做某类任务时的工作方法。
-- `ai-docs/testing`：测试策略、golden tasks、E2E 和评测。
+- `ai-docs/skills`：AI 做某类任务时的工作方法。变更后测试入口：`ai-docs/skills/testing/SKILL.md`。
+- `ai-docs/testing`：测试策略（HTTP `e2e:isolated` 主层，Playwright 次层）、TC 规范、golden tasks、E2E 证据和评测。
 - `.tmp`：单次执行工单、harness、临时证据、门禁模板和运行记录（不提交）。
 
 ## 生成前门禁
@@ -45,3 +46,7 @@
 - 验证命令或阻塞原因
 
 复杂任务按上述字段逐条产出门禁（本地门禁模板见 `.tmp/references/templates/task-harness.md`，不提交）。
+
+## 变更后测试仪式
+
+功能、契约、图、数据库或测试 harness 落地后，只走 `ai-docs/skills/testing/sop.md`（审核 → 选层 → always-on `pnpm regression` → 触达面必须列 → 出处 → 记录）。第 5 步用 `ai-docs/skills/testing/fail-closed-gate.md` 收束：AI 产物默认不可信，审核 ∧ 验证缺一即阻断；作者不得自签审核。允许的收束句是「本轮局部验证完成（releaseEvidence: false）」，不得只跑 `pnpm regression` 或写「已验证 / 可合并」。`status: draft` 只限制宣称流程已生产就绪，不减免步骤。概述见 `ai-docs/skills/testing/SKILL.md`。
