@@ -24,7 +24,7 @@ related:
 - **角色 Actor：** 预览部署中的候选人、面试 API、公开预览写门。
 - **前置 Precondition：** 运行时精确 `MEETWISE_PUBLIC_PREVIEW=1`；面试属该 principal、隐私未围栏、已 begin、当前题在题目账本为 `issued` 且 `stateVersion` 匹配；0092 rehearsal 表已安装。客户端不得自报 owner、privacy epoch、artifact 状态或密文。公开预览 Web 仍只读且无 `/api/interview/:id/answers` 代理；演示需已 begin 的种子场次并直打 API，不是访客在展示站交卷。
 - **触发 Trigger：** 候选人对当前题提交一份答案（`clientSubmissionKey` + 正文）。
-- **明确不做：** 不宣称 01 生产 cutover；不登记进 `apiContract` / OpenAPI；不写 plaintext `interview_job.payload.answer`；不调用 `claimInterviewAnswer` / 评分 / 模型 / RAG / memory / B 端投影；不开放公开删除；不新增迁移（`0126`/`0127` 已在 main；不占用 0128）；Web 公开展示站保持只读（本包不加 `/api/interview/:id/answers` 代理）。不跑 `pnpm db:up`。
+- **明确不做：** 不宣称 01 生产 cutover；不登记进 `apiContract` / OpenAPI；不写 plaintext `interview_job.payload.answer`；不调用 `claimInterviewAnswer` / 评分 / 模型 / RAG / memory / B 端投影；不开放公开删除；不新增迁移（`0126`/`0127`/`0128`/`0129` 已在 main；不占用 0130）；`0129` 预览删除是另一条账本，公开预览下仍 503；Web 公开展示站保持只读（本包不加 `/api/interview/:id/answers` 代理）。不跑 `pnpm db:up`。
 
 ## 主流程 Main
 
