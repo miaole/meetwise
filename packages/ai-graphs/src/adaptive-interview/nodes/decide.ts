@@ -2,6 +2,8 @@ import { absoluteMaxOf, decideNext, rememberDecision } from '@meetwise/domain';
 import type { AdaptiveInterviewGraphState } from '../state.ts';
 
 export function decideNode(state: AdaptiveInterviewGraphState) {
+  // clarify 续问不走 observeInterviewSignals：保证每题至多一次引导重答（既有非作答合同）。
+  // 绝对杀开关仍先赢。信号只在非 clarify 路径经 decideNext 消费。
   if (state.clarify) {
     if (state.mind.turn >= absoluteMaxOf(state.mind)) {
       const action = decideNext(state.mind);
@@ -18,6 +20,7 @@ export function decideNode(state: AdaptiveInterviewGraphState) {
         difficulty: state.mind.difficulty,
         qkind: state.clarify.qkind,
       },
+      concludeReason: null,
     };
   }
   const action = decideNext(state.mind);

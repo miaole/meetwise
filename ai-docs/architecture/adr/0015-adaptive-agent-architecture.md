@@ -58,7 +58,7 @@ agent 是 **感知→推理→行动 的自适应循环**,跑在持久 substrate
 - **web 探索**:allowlist 默认空(不乱爬);源/授权由配置;transform 不照搬(版权);失败跳过(降级)。
 - **反思/工具循环**:均有界(≤3 重生成 / maxSteps),防失控烧钱。
 - **成本**:每回合多次模型调用 → Langfuse 成本看板(token 进 span);prompt 动静分离命中供应商缓存降本。
-- **过度追问**:深问 + 答不到点 → confidence 升得慢 → 可能多轮探同一能力;由覆盖/证据政策早停、每能力 probeCap、软预算上调（加深有证据时）以及平台绝对杀开关（默认 120，不是产品硬顶 8 或 16）兜底,不得无界面谈。固定轮数硬顶已废除。
+- **过度追问**:深问 + 答不到点 → confidence 升得慢 → 可能多轮探同一能力;由覆盖/证据政策早停、每能力 probeCap、软预算上调（加深有证据时）以及平台绝对杀开关（默认 120，不是产品硬顶 8 或 16）兜底,不得无界面谈。固定轮数硬顶已废除。`observeInterviewSignals` 的 `weak` 与 `thrashing` 是独立分数轨迹信号（控制流 hook，不是等级）：可 `early_weak` / `thrashing`；同真时 weak 优先；不改写 `maxTurns`。见 `requirements/use-cases/interview-control-signals.md`。
 
 ## 记忆设计裁决(已过两轮专家审计)
 

@@ -130,7 +130,7 @@ export const AdaptiveInterviewState = Annotation.Root({
   stateVersion: Annotation<number>({ reducer: (_, b) => b, default: () => 0 }),
   degraded: Annotation<{ reason: string; turn: number } | null>({ reducer: (_, b) => b, default: () => null }),
   concluded: Annotation<boolean>({ reducer: (_, b) => b, default: () => false }),
-  /** 收尾出处;缺省兼容旧 checkpoint。不含答案原文或证据全文。 */
+  /** 收尾出处;缺省兼容旧 checkpoint。不含答案原文或证据全文。worker/SSE/report 不读。 */
   concludeReason: Annotation<DecisionProvenance | null>({ reducer: (_, b) => b, default: () => null }),
 });
 

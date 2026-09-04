@@ -138,6 +138,17 @@ export {
   type InterviewSessionSignals, type CoverageSnapshot, type ConcludeReason, type AskReason, type DecisionProvenance,
 } from './adaptive-interview.ts';
 
+export {
+  observeInterviewSignals,
+  INTERVIEW_CONTROL_SIGNAL_KINDS, INTERVIEW_CONCLUDE_REASONS,
+  WEAK_MIN_PROBED, WEAK_MIN_TURNS, WEAK_CONFIDENCE_CEILING, SIGNAL_CONF_ENOUGH,
+  THRASH_MIN_SAMPLES, THRASH_MIN_FLIPS, THRASH_MIN_PIVOTS,
+  SCORE_HIGH, SCORE_LOW, SIGNAL_TRAIL_CAP,
+} from './interview-control-signals.ts';
+export type {
+  InterviewControlSignal, InterviewControlSignalKind, InterviewConcludeReason, InterviewMindSignalView,
+} from './interview-control-signals.ts';
+
 export { isVerbatimCopy, validateGrounded, type SourceDoc, type GroundedQuestion, type GroundResult } from './grounded-questions.ts';
 
 export { gradeRetrieval, cragRetrieve, degradedRetrieval, type ScoredRef, type CragAction, type CragVerdict, type CragDeps } from './crag.ts';

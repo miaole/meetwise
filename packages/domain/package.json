@@ -12,6 +12,7 @@
     "prove:adaptive": "tsx test/adaptive-interview.proof.ts",
     "prove:adaptive-redesign": "tsx test/adaptive-redesign.proof.ts",
     "prove:adaptive-length": "tsx test/adaptive-interview-length.proof.ts",
+    "prove:adaptive-signals": "tsx test/interview-control-signals.proof.ts",
     "prove:grounded": "tsx test/grounded-questions.proof.ts",
     "prove:crag": "tsx test/crag.proof.ts",
     "prove:research-policy": "tsx test/research-policy-adversarial.proof.ts",

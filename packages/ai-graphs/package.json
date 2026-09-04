@@ -8,7 +8,8 @@
   },
   "scripts": {
     "prove:pipeline": "tsx test/resume-quiz.proof.ts",
-    "prove:adaptive-graph": "tsx test/adaptive-interview.proof.ts"
+    "prove:adaptive-graph": "tsx test/adaptive-interview.proof.ts",
+    "prove:adaptive-signals": "tsx test/decide-signals.proof.ts"
   },
   "dependencies": {
     "@meetwise/domain": "workspace:*",

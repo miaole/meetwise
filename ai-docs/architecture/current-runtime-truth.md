@@ -16,6 +16,7 @@ related:
   - ./backend/interview-answer-dual-write-cutover.md
   - ../requirements/use-cases/resume-ocr-binding.md
   - ./backend/worker-dispatch-fairness.md
+  - ../requirements/use-cases/interview-control-signals.md
   - ../testing/e2e-performance-evidence.md
   - ../requirements/use-cases/cend-overview-progress.md
 ---
@@ -142,7 +143,8 @@ plan → decide ──┬→ genQuestion → awaitAnswer(interrupt)
 ```
 
 - `plan`：图内只消费已确定的能力维度；简历画像的解析与能力规划发生在图外受控边界，图 state（状态）只持有“画像可用”布尔量。历史弱项只能软偏置能力顺序，不能直接抬高/降低评分。
-- `decide`：依据可持久化的 `mind`（覆盖、证据计数、会话信号、软预算、绝对杀开关、轮次、难度）决定继续、加深、上调软预算或收尾；出处写入 `lastDecision`/`concludeReason`。停续是确定性政策，不是模型裁判。软预算由覆盖计划派生或由调用方给出，证据加深时可上调，**不是**「turn≥N 就停」。绝对杀开关默认 120（`boundedAbsoluteMaxTurns` 允许 60/90/120 档，再高夹到 180；生产 Worker 未接线选档），只防 runaway/成本滥用，不是面试质量政策，也不是 120 分钟面试。弱/空转可在 8 轮前结束；强+钩子可过原 8、也可过 16，直至覆盖满足或绝对杀开关。这**不是** `INT-LONG-INTERVIEW-01`。`releaseEvidence` 对本长度切片为 false。
+- `decide`：依据可持久化的 `mind`（覆盖、证据计数、会话信号、软预算、绝对杀开关、轮次、难度、分数轨迹 `recentScores`、`pivotCount`）决定继续、加深、上调软预算或收尾；出处写入 `lastDecision`/`concludeReason`（`DecisionProvenance`）。停续是确定性政策，不是模型裁判。软预算由覆盖计划派生或由调用方给出，证据加深时可上调，**不是**「turn≥N 就停」。绝对杀开关默认 120（`boundedAbsoluteMaxTurns` 允许 60/90/120 档，再高夹到 180；生产 Worker 未接线选档），只防 runaway/成本滥用，不是面试质量政策，也不是 120 分钟面试。`observeInterviewSignals` 在杀开关之后消费 `weak`/`thrashing` → `early_weak`/`thrashing`（同真时 weak 优先；不改写 `maxTurns`）。另有两条会话级早停：abort-count `early_weak`、consecutive-pivot `thrashing`（均在 probe 之前）。`clarify` 续问不消费轨迹信号。这不是 `CompetencyLevelAssessment`，也不关闭 `INT-LEVEL-01`。弱/空转可在软预算触顶前早停；强+钩子可 `raise_soft_budget` 继续，直至覆盖满足或 `safety_ceiling`（默认 120）。这**不是** `INT-LONG-INTERVIEW-01`。`releaseEvidence` 对本长度切片为 false。详见 [interview-control-signals.md](../requirements/use-cases/interview-control-signals.md)。
+- **当前实际终止面（短流程，不是 blueprint）：** `safety_ceiling` / `coverage_met` / `all_resolved` / `early_weak` / `thrashing` 经 `decideNext`→`concludeReason`（provenance）。`budget_exhausted` 仅枚举兼容，当前 `decideNext` 不产出。另有 `evalAnswer` 的 `unscored` / identity-mismatch 可直接 `concluded=true`，不经本 reason、不写 provenance。worker / SSE / report **不读** `concludeReason`。
 - `genQuestion`：模型调用被放在 interrupt（中断）之前；恢复同一 checkpoint 不会因为 `awaitAnswer` 重放而重复生成题目。
 - `awaitAnswer`：只负责中断和恢复边界。
 - `evalAnswer`：清除 pending/submitted、写评分投影或 `unscored`，再由 `decide` 选择继续/结束。
@@ -213,8 +215,10 @@ plan → decide ──┬→ genQuestion → awaitAnswer(interrupt)
 | 证据命令/操作 | 已知结果 | 它证明什么；不证明什么 |
 | --- | --- | --- |
 | `pnpm --dir packages/ai-graphs run prove:adaptive-graph` | 通过 | 自适应图拓扑、interrupt/resume 和异常序列的本地合同；不证明云依赖。 |
+| `pnpm adaptive-signals:prove` | 本包本地证明 | 纯域 `observeInterviewSignals` + `decideNext` 消费 `early_weak` / `thrashing`；缺 `recentScores` 的旧 checkpoint 观察 fail-closed；分数样本不足不开 weak；thrashing 需 pivot+翻转同时成立；`safety_ceiling` 先赢；轨迹 weak 先于 `all_resolved`；双真 weak 优先；注入 band/年限不改变信号。不证明能力等级、B 端 band、ScoreCard 或云路径。`releaseEvidence=false`。 |
+| `pnpm adaptive-signals-graph:prove` | 本包本地证明 | 图 `decide` 把 `DecisionProvenance` 写入 `concludeReason`（worker/SSE/report 不读）；weak mind + `clarify` 续问不伪造成 `early_*`；信号不抬 `maxTurns`、不冻结产品轮次上限；装配图覆盖 `early_weak`。不证明 SSE/UI、动态时长或 `INT-LEVEL-01`。`releaseEvidence=false`。 |
 | `pnpm checkpoint-role:prove` | 通过，跨 owner 读取/更新/删除为 0；普通 app_role（应用运行角色）不能撤回，受控测试操作员撤回后旧 epoch（栅栏世代）写入和重新 enrollment（登记）均被拒绝 | checkpoint RLS + thread/epoch 写入栅栏的本地隔离；不证明公开删除授权、历史内容已物理擦除或外部传播。 |
-| `pnpm runtime:isolated:prove` | 通过，37 个隔离 PostgreSQL（关系型数据库）断言，其中 7 个为执行时限/迟到成功/prepare（预派发准备）/非法等待预算回归 | 永不收口的已派发模型调用在 35–40 毫秒测试预算内变为 `unknown/model_execution_timeout`；同幂等键重放与双并发均只派发一次，AbortSignal 会被触发，迟到成功不能写工件或 trace；不证明供应商已取消计费或账单对账。 |
+| `pnpm runtime:isolated:prove` | 通过，37 个隔离 PostgreSQL（关系型数据库）断言，其中 7 个为执行时限/迟到成功/prepare（预派发准备）/非法等待预算回归 | 永不收口的已派发模型调用在 35–40 毫秒测试预算内变为 `unknown/model_execution_timeout`；同幂等键重放与双并发均只派发一次，AbortSignal 会被触发，迟到成功不能写工件或 trace。`0130` 把同键 claim 创建用短事务 advisory lock 串起来，孤儿 create-permit 只回 `wait`（不二次 execute、不把 `missing_after_conflict` 当成派发许可）。不证明供应商已取消计费或账单对账。`0126` 答题双写、`0127` 简历 OCR binding、`0128` 派发公平、`0129` 隐私擦除保持原编号。 |
 | `pnpm model-cost:isolated:prove` | 历史本地回执：11 个隔离 PostgreSQL（关系型数据库）断言、86 个迁移，`releaseEvidence=false` | 精确 price revision 预留、缺失/漂移价格拒绝、已派发超时的费用与调用一同为 `unknown`、RPM 准入超时零外呼/零预留。不同 policy 的半开 backup 尚未证明可安全重选；不证明供应商账单或跨副本共享限流。 |
 | `pnpm model-invocation-reconcile:prove` | 历史本地回执：13 个隔离 PostgreSQL（关系型数据库）断言、86 个迁移，`releaseEvidence=false` | 仅证明 raw SQL 的无 slot `claimed → dispatching` 更新被拒绝、以及对账/RLS 局部语义；不证明 direct `INSERT dispatching`、非法 terminal transition、identity tamper 或完整状态机围栏。当前迁移已为 87，必须在 P0 修复后重跑。 |
 | `pnpm breaker:prove` | 通过，13 个确定性断言 | 半开期三并发只允许一个探针外呼，探针取消后 lease（租约）可再次取得；限流排队 abort（中断）后不会在旧槽位释放时晚到外呼，deadline（截止时间）及并发/RPM 配置会 fail-fast（快速失败）；不证明多进程/云 Redis 限流。 |

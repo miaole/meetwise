@@ -49,7 +49,7 @@ async function main() {
 
   // 隔离账本 bootstrap(同 failover-price-policy:01_schema + ai 成本/调用迁移)。
   await pool.query(sql('../../db/sql/01_schema.sql'));
-  for (const f of ['0033_ai_cost_governance.sql', '0035_ai_cost_principal_scope.sql', '0036_ai_text_cost_governance.sql', '0037_ai_model_invocation_durable_claim.sql', '0056_model_invocation_reconcile.sql', '0057_model_invocation_cost_scope.sql', '0083_ai_text_cost_price_revision_binding.sql', '0085_ai_model_logical_node_dispatch_slot.sql', '0088_ai_model_invocation_controlled_state_machine.sql', '0119_usage_reconciliation_wiring.sql']) {
+  for (const f of ['0033_ai_cost_governance.sql', '0035_ai_cost_principal_scope.sql', '0036_ai_text_cost_governance.sql', '0037_ai_model_invocation_durable_claim.sql', '0056_model_invocation_reconcile.sql', '0057_model_invocation_cost_scope.sql', '0083_ai_text_cost_price_revision_binding.sql', '0085_ai_model_logical_node_dispatch_slot.sql', '0088_ai_model_invocation_controlled_state_machine.sql', '0119_usage_reconciliation_wiring.sql', '0130_model_invocation_same_key_claim_join.sql']) {
     await pool.query(sql(`../../db/migrations/${f}`));
   }
   // 价格书(provider/model/region/revision 主键)与预算策略;budget_month 由 reserve 按需建(同 failover-price-policy)。

@@ -60,7 +60,7 @@ DNS rebinding 的“域名解析后连接到私网 IP”不能仅靠 URL hostnam
 
 ## 4. 可计算资源上限
 
-默认软预算由覆盖计划派生，`decideNext` 可按覆盖/证据提前收尾或上调软预算；平台绝对杀开关默认 `DEFAULT_ABSOLUTE_MAX_TURNS=120`（不是产品硬顶 16）。每个 job 仅生成一个 pending question。因此在“每题都低置信且从未早停、一直顶到绝对杀开关”的最坏路径中：
+默认软预算由覆盖计划派生，`decideNext` 可按覆盖/证据提前收尾或上调软预算；平台绝对杀开关默认 `DEFAULT_ABSOLUTE_MAX_TURNS=120`（不是产品硬顶 16）。weak/thrashing 控制信号不改写该预算。每个 job 仅生成一个 pending question。因此在“每题都低置信且从未早停、一直顶到绝对杀开关”的最坏路径中：
 
 - 外呼次数 ≤ `absoluteMaxTurns × 3`；生产默认 ≤ `120 × 3 = 360`；隔离 E2E 把软预算与绝对杀开关同时锁到 1–8，该夹具上界是 `8 × 3 = 24`，不是生产长度证据；
 - 单次 Web 正文取证 ≤ `12,000` 字符，实际传入出题模型的 Web 文本 ≤ `1,600` 字符；
