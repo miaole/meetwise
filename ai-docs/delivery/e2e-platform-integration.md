@@ -183,4 +183,4 @@ core: not_requested
 secrets: none
 ```
 
-`pnpm regression` 在叠到 `origin/main` @ `fc41696`（#65+#68+#69+#71+#70+#66）后退出 0（`outcome=passed_always_on`）。`docs:check` 现为 64 个 required files。这只证明 always-on + 已接线可选静态门（含 `adaptive-length:prove`），不是 CI `verify`、不是 `--core`、不是 live E2E。#70 的 `memory-vector-chunk-erasure:prove` 与 #71 的 `qbank-handoff-closure:prove` 需要 Docker，未跑。本 PR 只 supersede #55–#64，不 supersede #66 / #70。作者不得自签 `review: passed`。不得 `--claim-done`。不得写「本轮局部验证完成」——审核仍是 `blocked:author_only`。
+`pnpm regression` 在叠到 `origin/main` @ `fc41696`（#65+#68+#69+#71+#70+#66）后退出 0（`outcome=passed_always_on`）。`docs:check` 现为 64 个 required files。运行时真值不再把 `0125` 写成「本 PR 新增」，也不再写「main 停在 0123 / 123 个迁移」。这只证明 always-on + 已接线可选静态门（含 `adaptive-length:prove`），不是 CI `verify`、不是 `--core`、不是 live E2E。#70 的 `memory-vector-chunk-erasure:prove` 与 #71 的 `qbank-handoff-closure:prove` 需要 Docker，未跑。本 PR 只 supersede #55–#64，不 supersede #66 / #70。作者不得自签 `review: passed`。不得 `--claim-done`。不得写「本轮局部验证完成」——审核仍是 `blocked:author_only`。
