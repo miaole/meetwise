@@ -56,6 +56,15 @@ async function main() {
       && resolveModelOperation('voice.tts-stream.v1', 'interview-voice-preview').ok === false
       && resolveModelOperation('voice.signed-download.v1', 'interview-voice-preview').ok === false);
 
+    process.env.DASHSCOPE_API_KEY = 'legacy-broad-key';
+    const poisoned = createInterviewVoiceSeams();
+    A('遗留 broad key 不炸组合根，语音仍 fail-closed 且零外呼',
+      poisoned.asrConfigured === false && poisoned.ttsConfigured === false
+      && await errorOf(() => poisoned.asr.transcribe(new Uint8Array([1]), { format: 'wav' })) === 'asr_not_configured'
+      && await errorOf(() => poisoned.tts.synthesize('x')) === 'tts_not_configured'
+      && fetches === 0);
+    delete process.env.DASHSCOPE_API_KEY;
+
     process.env.DASHSCOPE_ASR_API_KEY = 'preview-asr-key';
     process.env.DASHSCOPE_TTS_API_KEY = 'preview-tts-key';
     const open = createInterviewVoiceSeams();

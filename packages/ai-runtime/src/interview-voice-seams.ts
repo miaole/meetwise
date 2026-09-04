@@ -3,11 +3,14 @@
  *
  * Batch ASR/TTS leave the process only after:
  *   1. `voice.asr.v1` / `voice.tts.v1` resolve as wired registry operations;
- *   2. a typed binding pins the frozen Beijing endpoint (no caller URL);
+ *   2. a typed binding accepts the frozen input kind (no caller URL);
  *   3. the matching capability Key is present.
  *
- * Missing Key, unwired operation, or malformed provider output → fail-closed
- * (`*_not_configured` / `*_malformed`). Streaming stays disabled. This is not
+ * Native host comes from the versioned DashScope Beijing profile (adapters
+ * refuse caller key/URL overrides). Missing Key, unwired operation, malformed
+ * provider output, or native-config rejection (legacy broad key / URL override)
+ * → fail-closed (`*_not_configured` / `*_malformed`). A config throw must not
+ * take down text-interview DI. Streaming stays disabled. This is not
  * MODEL-OP-02 shared admission, durable attempt/unknown, or a production SLO.
  */
 import { createHash } from 'node:crypto';
@@ -74,17 +77,48 @@ function failClosedTts(inner: Tts): Tts {
   });
 }
 
+function disabledSeams(): InterviewVoiceSeams {
+  return Object.freeze({
+    asr: disabledAsr(),
+    tts: disabledTts(),
+    streamTts: disabledStreamingTts(),
+    asrConfigured: false,
+    ttsConfigured: false,
+  });
+}
+
 /**
  * Product composition root for interview voice. Tests may inject fake seams
  * directly; this factory is the only path that may construct native adapters.
  */
 export function createInterviewVoiceSeams(env: NodeJS.ProcessEnv = process.env): InterviewVoiceSeams {
-  const native = resolveDashscopeNativeConfig(env);
-  const asrConfigured = Boolean(native.keys.asr) && asrBindingOk();
-  const ttsConfigured = Boolean(native.keys.tts) && ttsBindingOk();
+  let native: ReturnType<typeof resolveDashscopeNativeConfig>;
+  try {
+    native = resolveDashscopeNativeConfig(env);
+  } catch {
+    return disabledSeams();
+  }
+  const wantAsr = Boolean(native.keys.asr) && asrBindingOk();
+  const wantTts = Boolean(native.keys.tts) && ttsBindingOk();
+  let asr = disabledAsr();
+  let tts = disabledTts();
+  let asrConfigured = false;
+  let ttsConfigured = false;
+  if (wantAsr) {
+    try {
+      asr = failClosedAsr(dashscopeAsr());
+      asrConfigured = true;
+    } catch { /* keep disabled: construction must not take down InterviewModule */ }
+  }
+  if (wantTts) {
+    try {
+      tts = failClosedTts(dashscopeTts());
+      ttsConfigured = true;
+    } catch { /* keep disabled: construction must not take down InterviewModule */ }
+  }
   return Object.freeze({
-    asr: asrConfigured ? failClosedAsr(dashscopeAsr()) : disabledAsr(),
-    tts: ttsConfigured ? failClosedTts(dashscopeTts()) : disabledTts(),
+    asr,
+    tts,
     streamTts: disabledStreamingTts(),
     asrConfigured,
     ttsConfigured,

@@ -53,6 +53,14 @@ async function main() {
     const seams = createInterviewVoiceSeams();
     check('composition factory without Keys stays unconfigured',
       seams.asrConfigured === false && seams.ttsConfigured === false);
+    process.env.DASHSCOPE_API_KEY = 'legacy-broad-key';
+    const poisonedAsr = providerFactory(VOICE_ASR)() as Asr;
+    const poisonedTts = providerFactory(VOICE_TTS)() as Tts;
+    check('legacy broad key does not crash InterviewModule factories',
+      await errorOf(() => poisonedAsr.transcribe(new Uint8Array([1]))) === 'asr_not_configured'
+      && await errorOf(() => poisonedTts.synthesize('synthetic text')) === 'tts_not_configured'
+      && fetches === 0);
+    delete process.env.DASHSCOPE_API_KEY;
   } finally {
     globalThis.fetch = originalFetch;
     for (const [name, value] of saved) {
