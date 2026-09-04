@@ -39,6 +39,20 @@ export function requiresBoundModelOperation(env: NodeJS.ProcessEnv = process.env
     || env.MODEL_COST_ENFORCEMENT?.trim().toLowerCase() === 'enforce';
 }
 
+/**
+ * Bound-operation fence env. Omitting `cfgEnv` is identical to `process.env`.
+ * Defined non-blank overlay keys override; `undefined` / blank cannot strip
+ * process production/enforce (spread would treat those as missing triggers).
+ */
+function envForBoundOperationFence(cfgEnv?: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  if (cfgEnv === undefined) return process.env;
+  const merged: NodeJS.ProcessEnv = { ...process.env };
+  for (const [key, value] of Object.entries(cfgEnv)) {
+    if (typeof value === 'string' && value.trim() !== '') merged[key] = value;
+  }
+  return merged;
+}
+
 export interface RenderedContextBudgetPlan {
   estimator: 'utf8-bytes-v1';
   contextWindowTokens: number;
@@ -247,13 +261,26 @@ export function openAICompatibleClient(cfg: {
   apiKey?: string;
   model?: string;
   costPolicy?: ModelCostPolicy;
-  /** A composition root may strengthen (but never weaken) the process fence. */
+  /**
+   * A composition root may strengthen (but never weaken) the process fence.
+   * This flag is OR-only.  `cfg.env` is a separate snapshot: explicit observe
+   * keys may override ambient dotenv for tests/preview composition; missing
+   * fence keys inherit `process.env` and cannot strip production/enforce.
+   */
   requireBoundOperation?: boolean;
   /** Resolve from the controlled backup profile instead of the primary profile. */
   backup?: boolean;
   /** Resolve from the controlled vision profile (专用 DASHSCOPE_VISION_API_KEY) instead of the text primary. */
   vision?: boolean;
-  /** Optional env snapshot for vision profile resolution. Text profiles stay on process.env. */
+  /**
+   * Optional env snapshot. Vision profile resolution is wholesale
+   * (`cfg.env ?? process.env`) so a vision-only snapshot cannot inherit
+   * the text primary key.  The bound-operation fence overlays defined
+   * non-blank keys onto `process.env`; `undefined` / blank / omitted keys
+   * inherit process production/enforce.  Omitting `cfg.env` is identical
+   * to `process.env`.  Text profiles and NODE_ENV test-transport seams
+   * stay on `process.env` (intentionally global).
+   */
   env?: NodeJS.ProcessEnv;
 } = {}): ModelClient {
   // cfg.baseUrl/apiKey 是测试专用 transport override 缝（对齐原生适配器）。生产/开发一律
@@ -279,7 +306,8 @@ export function openAICompatibleClient(cfg: {
   // request, so a caller cannot mutate a policy after admission and make the
   // supplier cap disagree with the ledger reservation.
   const costPolicy = cfg.costPolicy === undefined ? undefined : Object.freeze({ ...cfg.costPolicy });
-  const policyRequired = requiresBoundModelOperation() || cfg.requireBoundOperation === true;
+  const policyRequired = requiresBoundModelOperation(envForBoundOperationFence(cfg.env))
+    || cfg.requireBoundOperation === true;
   const maxOutputTokens = costPolicy?.maxOutputTokens;
   if (maxOutputTokens !== undefined
     && (!Number.isSafeInteger(maxOutputTokens) || maxOutputTokens < 1 || maxOutputTokens > 1_000_000)) {
