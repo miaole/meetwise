@@ -50,7 +50,7 @@ const requiredTerms = new Map([
   ["AGENTS.md", ["文档先行", "契约先行", "测试先行"]],
   ["ai-docs/product/vision.md", ["面试", "职业路径"]],
   ["ai-docs/architecture/system-blueprint.md", ["Next.js", "NestJS", "LangGraph", "Postgres"]],
-  ["ai-docs/architecture/current-runtime-truth.md", ["已验证", "发布阻断", "LangGraph", "RAG", "Langfuse", "issued_turns", "overview.answered", "SCOR-00H"]],
+  ["ai-docs/architecture/current-runtime-truth.md", ["已验证", "发布阻断", "LangGraph", "RAG", "Langfuse", "issued_turns", "overview.answered", "SCOR-00H", "软预算", "boundedAbsoluteMaxTurns"]],
   ["ai-docs/architecture/ai/scoring-measurement-runtime.md", ["SCOR-00H", "insufficient_evidence", "releaseEvidence"]],
   ["ai-docs/architecture/adr/0020-scorecard-authority-and-eligibility.md", ["SCOR-00H", "practice_eligible", "insufficient_evidence"]],
   ["ai-docs/requirements/use-cases/interview-scoring-measurement.md", ["UC-SCOR-00H", "SCOR-00H", "insufficient_evidence", "releaseEvidence"]],
