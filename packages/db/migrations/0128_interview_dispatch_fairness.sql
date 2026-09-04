@@ -3,8 +3,8 @@
 -- Order owners by the oldest claimable/expired-running row so a later owner
 -- with older waiting work is not hidden behind insertion order. This is a
 -- stable scan order, not a lock, quota, or payload channel.
--- 0124–0127 are reserved by other in-flight slices; this function rewrite
--- must not reuse those versions.
+-- 0124 on main is RAG retrieval ACL (0124_rag_retrieval_acl_fail_closed.sql).
+-- 0125–0127 remain reserved by other in-flight slices. This rewrite is 0128.
 
 CREATE OR REPLACE FUNCTION gateway_dispatch_owners(p_work text)
 RETURNS TABLE(owner_user_id text)
