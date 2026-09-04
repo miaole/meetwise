@@ -26,7 +26,7 @@ export const MEMORY_AUTHZ_SINK_KINDS = [
   'memory_event',            // 记忆工件（自由对话 event 的派生源，MEM-00 尚未建表，属未知 locator）
   'memory_summary',          // 摘要树（summary 摘要，MEM-00 尚未建表，属未知 locator）
   'memory_fact',             // 长期事实（memory_fact 表）
-  'memory_embedding',        // 向量/索引 generation（memory_index_generation；DB 无独立向量表，purge 仅删 generation 行）
+  'memory_embedding',        // 向量/索引 generation（memory_index_generation）。vector_chunk.kind=memory 是独立物理表，归 0124 memory_vector_chunk，不在本枚举。
   'memory_cache',            // 检索缓存（MEM-00 尚未建表，属未知 locator）
   'memory_context_snapshot', // 冻结上下文快照（memory_context_snapshot 表）
   'memory_trace',            // 观测 trace（MEM-00 尚未建表，属未知 locator）

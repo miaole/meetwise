@@ -38,6 +38,7 @@ import {
 import { MEMORY_AUTHZ_SINK_KINDS } from './memory-governance.ts';
 import { CONVERSATION_EVENT_SINKS } from './ctx03-event-source.ts';
 import { COMPRESSION_DELETION_SINKS } from './ctx06-deletion-closure.ts';
+import { MEMORY_VECTOR_CHUNK_DELETION_SINKS } from './memory-vector-chunk-deletion.ts';
 
 // iss/aud/purpose/kid/digest 在 contracts 与 domain 各自手写一份，SQL(0091) 还有 issuer_id 的
 // 第三份拷贝。这些常量漂移不会被运行期自动拒绝（签名只绑定 JWS 载荷，不比对 contracts 侧
@@ -85,6 +86,7 @@ const ALL_PRIVACY_AUTHZ_SINK_KINDS: ReadonlySet<string> = new Set([
   ...MEMORY_AUTHZ_SINK_KINDS,
   ...CONVERSATION_EVENT_SINKS,
   ...COMPRESSION_DELETION_SINKS,
+  ...MEMORY_VECTOR_CHUNK_DELETION_SINKS,
 ]);
 
 /** kid 格式：与 contracts 契约 keyId 正则逐值一致（两份手写真相）。漂移不会被运行期自动

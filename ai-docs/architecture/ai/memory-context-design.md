@@ -123,7 +123,7 @@ flowchart LR
 
 每次调用前生成 `ContextSnapshot`，冻结本次实际选中的来源版本、预算、检索策略和渲染 digest。同一轮崩溃恢复必须使用同一 snapshot；新的事件、记忆修订或撤回仅影响下一轮。压缩和 snapshot 写入使用 `(owner, thread, source-range, version)` lease/CAS；CAS 失败直接丢弃计算结果，已派发后的模型不确定结果不自动重发。
 
-现有删除、撤回和外部回执未闭合前，禁止把上述原文、摘要或 embedding 写成跨会话生产数据。完整逐项任务、勾选和关闭证据见 `delivery/production-readiness-remediation-register.md` 的 `MEM-00` 至 `MEM-14`。
+现有删除、撤回和外部回执未闭合前，禁止把上述原文、摘要或 embedding 写成跨会话生产数据。0124 只把 `vector_chunk.kind='memory'` 纳入账户删除回执（sink `memory_vector_chunk`），**不是**完整记忆删除；`user_memory` / trace / 外部副本仍按 `architecture/ai/privacy-deletion-sink-inventory.md` 未闭合。完整逐项任务、勾选和关闭证据见 `delivery/production-readiness-remediation-register.md` 的 `MEM-00` 至 `MEM-14`。
 
 ### L5 目标态的写入、压缩与召回触发
 

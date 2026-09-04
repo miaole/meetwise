@@ -72,7 +72,7 @@ export type { VerifiedToken } from './auth.ts';
 // 隐私删除授权签发器（ECDSA P-256 / ES256 JWS，与模型网关 Ed25519 刻意分离）
 export {
   PRIVACY_AUTHZ_ISSUER, PRIVACY_AUTHZ_AUDIENCE, MAX_PRIVACY_AUTHZ_TTL_SEC, PRIVACY_AUTHZ_PURPOSES,
-  PRIVACY_AUTHZ_KID_RE, PRIVACY_AUTHZ_DIGEST_RE,
+  PRIVACY_AUTHZ_SINK_KINDS, PRIVACY_AUTHZ_KID_RE, PRIVACY_AUTHZ_DIGEST_RE,
   canonicalTargetSetDigest, generatePrivacyAuthzKeyPair, publicKeyFromJwk,
   signPrivacyAuthorizationSnapshot, verifyPrivacyAuthorizationSnapshot, PrivacyAuthzKeyRegistry,
 } from './privacy-authorization.ts';
@@ -379,6 +379,8 @@ export type {
 // 并集（不触碰签/验密码学）。与 0118 迁移的 privacy_deletion_target.sink CHECK 双向 pin。
 export { COMPRESSION_DELETION_SINKS } from './ctx06-deletion-closure.ts';
 export type { CompressionDeletionSink } from './ctx06-deletion-closure.ts';
+export { MEMORY_VECTOR_CHUNK_DELETION_SINKS } from './memory-vector-chunk-deletion.ts';
+export type { MemoryVectorChunkDeletionSink } from './memory-vector-chunk-deletion.ts';
 
 // 生命周期触发策略（MEM-09）纯域原语：六触发器（事件落库/候选摘要/强制压缩/长期事实写入/
 // embedding 索引/recall）的「允许触发/必须先满足/不允许触发」显式 enum + 纯函数决策。复用
