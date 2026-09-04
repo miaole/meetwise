@@ -43,7 +43,7 @@ related:
 
 ## 2. 本轮已落地的安全围栏（不是 01）
 
-迁移 `packages/db/migrations/0126_interview_answer_dual_write_fence.sql`，仓储 `packages/db/src/interview-answer-dual-write.ts`。触发器是安全边界；`enqueueInterviewJob` / `submitInterviewAnswer` / `appendEvent` 再调同一断言或先拒，错误码与 raw SQL 一致。编号：`0124`/`0125`/`0126` 已在 `main`。预览 `/answers` 走 ledger 断言，不得改 0126 号。
+迁移 `packages/db/migrations/0126_interview_answer_dual_write_fence.sql`，仓储 `packages/db/src/interview-answer-dual-write.ts`。触发器是安全边界；`enqueueInterviewJob` / `submitInterviewAnswer` / `appendEvent` 再调同一断言或先拒，错误码与 raw SQL 一致。编号：`0124`/`0125`/`0126`/`0127` 已在 `main`。预览 `/answers` 走 ledger 断言，不得改 0126 号，也不占用 0128。
 
 | 机制 | 代码 | 错误码 | 行为 |
 | --- | --- | --- | --- |
