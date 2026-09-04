@@ -39,6 +39,10 @@ owner: architecture
 
 - `TC-MODEL-001-main` · 隔离 PostgreSQL（关系型数据库）集成：成功调用的调用/费用终态一致。
 - `TC-MODEL-001-E1` · 隔离 PostgreSQL 集成：同键双并发仅一次供应商派发并回放相同结果。
+- `TC-MODEL-001-E1` 具名负例（`HC-GAP-011`，挂 `pnpm runtime:prove` / `pnpm runtime:isolated:prove` / `pnpm runtime:claim-join:prove`）：
+  - `HC-GAP-011-orphan-permit`：无 invocation 行的 leftover create-permit 只回 `wait`，不 execute、不建行；随后一次 join 才 execute，calls=1。
+  - `HC-GAP-011-concurrent-no-row`：两连接同时无行 → claim execute=1 且 wait=1；invoke calls=1 且两者同值（`wait`/`cached`）。
+  - `HC-GAP-011-orphan-concurrent`：两连接对着 leftover permit 同时 claim-join → calls 不因清 permit 变成 2。
 - `TC-MODEL-001-E2` · 隔离 PostgreSQL（关系型数据库）集成：两个请求先完成半开纯选路时，恰一条主端点探针外呼，另一条在派发前重选同 scope backup（备用端点）；两条持久幂等键均成功。
 - `TC-MODEL-001-E3` · 隔离 PostgreSQL 集成：跨主体调用记录查询/更新均为 `0` 行或被拒绝。
 - `TC-MODEL-001-E4` · 隔离 PostgreSQL 集成：注入终态事务失败，陈旧记录由对账转 `unknown`，只冻结持久绑定 scope 的费用，重放零外呼；费用配对缺失时整笔回滚并向 drain loop（排空循环）传播失败。
@@ -47,7 +51,7 @@ owner: architecture
 
 ## 当前实现边界
 
-- `TC-MODEL-001-E1/E6` 已由 `pnpm runtime:isolated:prove` 与 `pnpm model-cost:isolated:prove` 覆盖；它们不证明供应商已取消计费。`0130` 把同键 claim 创建串到短事务 advisory lock 上，无 invocation 行时只 `wait`（清孤儿 permit），不二次 execute。不改 `0126`（答题双写）、`0127`（简历 OCR binding）、`0128`（派发公平）或 `0129`（隐私擦除）。
+- `TC-MODEL-001-E1/E6` 已由 `pnpm runtime:isolated:prove` 与 `pnpm model-cost:isolated:prove` 覆盖；`HC-GAP-011` 具名负例另挂同一 `runtime:prove` 门与 `pnpm runtime:claim-join:prove`。它们不证明供应商已取消计费。`0130` 把同键 claim 创建串到短事务 advisory lock 上，无 invocation 行时只 `wait`（清孤儿 permit），不二次 execute。不改 `0126`（答题双写）、`0127`（简历 OCR binding）、`0128`（派发公平）或 `0129`（隐私擦除）。不新增迁移。
 - 熔断、并发和 RPM 目前均是进程内控制，尚非跨 API/Worker 副本的全局限流；云 Redis/Tair（内存键值服务）数据面验证完成前，不能把它表述为生产容量保证。
 - OCR（光学字符识别）仍有单独的 API 同步调用路径；其完整费用治理和跨副本保护必须单独通过本用例的验收，不得因文本模型通过而默认已通过。
 

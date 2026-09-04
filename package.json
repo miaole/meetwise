@@ -24,6 +24,8 @@
     "db:prove": "pnpm -C packages/db prove",
     "runtime:prove": "pnpm -C packages/ai-runtime prove",
     "runtime:isolated:prove": "node scripts/run-e2e-isolated.mjs runtime:prove:raw",
+    "runtime:claim-join:prove": "node scripts/run-e2e-isolated.mjs runtime:claim-join:prove:raw",
+    "runtime:claim-join:prove:raw": "pnpm -C packages/ai-runtime prove:claim-join-orphan",
     "model-cost:isolated:prove": "node scripts/run-e2e-isolated.mjs model-cost:prove:raw",
     "model-output-limit:prove": "pnpm -C packages/ai-runtime prove:model-client-output-limit",
     "context-budget:prove": "pnpm -C packages/ai-runtime prove:context-budget",
