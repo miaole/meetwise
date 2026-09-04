@@ -48,8 +48,9 @@ try {
 }
 A('表名 vector_chunk 不是合法 sink kind（必须用 memory_vector_chunk）', unknownRejected);
 
-A('迁移号避开 sibling #71 的 0124_rag_retrieval_acl_fail_closed，本 sink 用 0125',
-  existsSync(resolve(root, 'packages/db/migrations/0125_memory_vector_chunk_erasure.sql'))
+A('0124 RAG ACL 已在 main，本 sink 只新增 0125',
+  existsSync(resolve(root, 'packages/db/migrations/0124_rag_retrieval_acl_fail_closed.sql'))
+  && existsSync(resolve(root, 'packages/db/migrations/0125_memory_vector_chunk_erasure.sql'))
   && !existsSync(resolve(root, 'packages/db/migrations/0124_memory_vector_chunk_erasure.sql')));
 
 const migration = read('packages/db/migrations/0125_memory_vector_chunk_erasure.sql');
