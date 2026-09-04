@@ -15,6 +15,7 @@ related:
   - ./run-gates.md
   - ./regression-selection.md
   - ./honesty-rules.md
+  - ./fail-closed-gate.md
   - ./e2e-platform/README.md
   - ../../testing/strategy/test-strategy.md
   - ../../meta/task-sop.md
@@ -25,6 +26,8 @@ related:
 **状态：`draft`。** draft 只限制对外宣称「测试流程已生产就绪」，**不减免任何步骤**。步骤可照做；本仪式尚未被一次非文档功能改动完整实跑证明。不得把「读过本文」或「`pnpm regression` 绿了」写成发布证据。
 
 **生成物默认不可信。** 自动化重构 / 测试 / UI / 回归可以跑；未审核的生成代码或模型输出不得当成完成。**skip-as-pass 禁止。** 没有受信回执前 `releaseEvidence` 必须为 `false`。未走完审核第 0 节，**不得声称完成**，也不得标 READY。
+
+**P0 收束公式**（不是另一套前置仪式）：走完下表后用 [fail-closed 门](./fail-closed-gate.md) 判定能不能写「本轮局部验证完成」。缺审核或缺验证即 `BLOCK`。多轮修改重开本门。本门是文档门；`pnpm generation-trust:prove` 只证明政策仍写在技能里，不是审核通过。
 
 层定义、MVP 路径和伪验收禁令只维护在 [`testing/strategy/test-strategy.md`](../../testing/strategy/test-strategy.md)。命令与失败语义只维护在 [门禁目录](./run-gates.md)。触达面「必须跑哪些门」只维护在 [回归矩阵](./regression-selection.md)。HTTP harness 目录合同、脱敏与失败分类只维护在 [e2e-platform](./e2e-platform/README.md)（draft / NOT_READY）。本文件只规定**顺序、停步和记录**。
 
@@ -38,7 +41,7 @@ related:
 | --- | --- |
 | 错别字且不声称重跑门 | 可记 `skipped:docs-typo`；仍不得写 E2E / prove 通过 |
 | 实质性文档（策略、矩阵、技能、契约说明） | 至少跑默认 `pnpm regression`（含 `docs:check`）；禁止写 E2E / 业务 prove 已重跑 |
-| 代码 / 契约 / 图 / 库 / harness | 下表 1–6 步全走 |
+| 代码 / 契约 / 图 / 库 / harness | 下表 1–5 步；第 5 步用 [fail-closed 门](./fail-closed-gate.md) 收束 |
 
 ## 不可跳过的顺序
 
@@ -48,7 +51,7 @@ related:
 | 2 选层 | 按改动性质选 unit / contract / prove / HTTP E2E / UI | [选测试层](./layer-selection.md) | 选错层冒充验收 → 本仪式失败 |
 | 3 执行 | 先默认 `pnpm regression`（**仅 always-on 子集**），再按 diff 跑矩阵「必须」列；按需 `--core` / `--live` / UI | [门禁目录](./run-gates.md) + [回归矩阵](./regression-selection.md) | 见下方「执行停步」 |
 | 4 出处 | 仅当碰到模型 / 评分 / 题面 / 报告 | [出处检查](./ai-provenance.md) | 答不出 operation 绑定时写「绑定未完成」 |
-| 5 记录 | 用诚实模板写结论 | [诚实规则](./honesty-rules.md) | 缺 `commands` / `exit` / `liveE2E` 或把绿回归写成发布 → 失败 |
+| 5 记录 | 用诚实模板写结论，并用 fail-closed 公式收束 | [诚实规则](./honesty-rules.md) + [fail-closed 门](./fail-closed-gate.md) | 缺 `commands` / `exit` / `liveE2E` / `review` / `verification`，裸 `review: passed`，或 `aiTrust=trusted`，或把绿回归写成发布 → `gate: blocked` |
 
 入口命令只在 [概述](./SKILL.md) 与 [门禁目录](./run-gates.md) 维护。默认 `pnpm regression` **不等于**矩阵「必须」列，也不等于 CI `verify`。
 

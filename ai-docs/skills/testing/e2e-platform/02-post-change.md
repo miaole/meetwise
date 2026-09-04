@@ -28,4 +28,4 @@
 - live 若未跑：显式 `not_run`（skip-as-pass 禁止）
 - 没有受信回执前 `releaseEvidence: false`；未审核生成物不得标 READY
 
-没有阶段检查点仓库、没有 70 条 MOVE/BRIDGE 清单。本仓库用上述命令当检查点。
+没有阶段检查点仓库、没有 70 条 MOVE/BRIDGE 清单。本仓库用上述命令当检查点。写完成句前仍须过 [`../fail-closed-gate.md`](../fail-closed-gate.md)。

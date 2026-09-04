@@ -9,6 +9,7 @@
 - 不在没有 PRD、领域模型、接口契约和测试计划的情况下直接生成生产代码；实现前先写清楚测试先行的验收方式。
 - 不暗猜接口，不创造未定义接口；前后端必须由共享契约驱动。
 - 不把 AI 输出直接当事实；所有模型输出必须经过结构化校验和业务校验。
+- 不默认信任 AI 写出的代码、测试或 UI。变更后只走 `ai-docs/skills/testing/sop.md`；能否收束由 `ai-docs/skills/testing/fail-closed-gate.md` 判定（审核 ∧ 验证，缺一阻断，作者不得自签审核，允许多轮）。不提交密钥。
 - 不把简历、聊天记录、模型密钥、支付信息写入日志。
 - 不提交真实 `.env`、密钥、简历原文、面试录音或用户敏感数据。
 
@@ -48,4 +49,4 @@
 
 ## 变更后测试仪式
 
-功能、契约、图、数据库或测试 harness 落地后、写「已验证」之前，必须逐步执行 `ai-docs/skills/testing/sop.md`（审核 → 选层 → always-on `pnpm regression` → 触达面必须列 → 出处 → 记录）。不得只跑 `pnpm regression`。`status: draft` 只限制宣称流程已生产就绪，不减免步骤。概述见 `ai-docs/skills/testing/SKILL.md`。
+功能、契约、图、数据库或测试 harness 落地后，只走 `ai-docs/skills/testing/sop.md`（审核 → 选层 → always-on `pnpm regression` → 触达面必须列 → 出处 → 记录）。第 5 步用 `ai-docs/skills/testing/fail-closed-gate.md` 收束：AI 产物默认不可信，审核 ∧ 验证缺一即阻断；作者不得自签审核。允许的收束句是「本轮局部验证完成（releaseEvidence: false）」，不得只跑 `pnpm regression` 或写「已验证 / 可合并」。`status: draft` 只限制宣称流程已生产就绪，不减免步骤。概述见 `ai-docs/skills/testing/SKILL.md`。
