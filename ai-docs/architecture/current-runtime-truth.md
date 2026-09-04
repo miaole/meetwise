@@ -46,6 +46,7 @@ related:
 | 数据库 | 线上 `meetwise_cloud_test` 已应用 `0121_resume_pgcrypto_runtime_acl`，其 checksum 对应当前候选未跟踪文件；远程 main 只有 `0120`。 | 发布阻断；须先收编精确迁移。 |
 | ACR | 后端候选镜像可解析，配套 Web 镜像不存在；ECS pull 身份/config 未 provision。 | 已接线待验。 |
 | 回滚/E2E | 候选在 publish 前未启动 Web、迁移前未静默全部旧写者、后半程过早丢 rollback、未等待 Pages final exact receipt。 | 发布阻断。 |
+| 公开预览写门禁 | `MEETWISE_PUBLIC_PREVIEW=1` 时 NestJS(Fastify) `onRequest` 只放行 `GET`/`HEAD`/`OPTIONS`；`InterviewService` 面试/评分写方法与 `ApplicationsService.start`/`finalize` 在 `asPrincipal` 前再失败关闭。写面由 `ai-docs/architecture/backend/public-preview-write-inventory.json` 枚举；未登记或 GET 写表会使 `pnpm public-preview-write:inventory` 失败，`:prove` 只跑清单负例。本地另有 Fastify inject 与 `pnpm -C apps/web prove:middleware`。预览不入队新作业，但不停止已在跑的 worker 评分写；Web 与 API 必须同设精确 `1`，清单不证明编排已锁死。 | 已接线待验。本地 `releaseEvidence=false`，不是 ECS listener、镜像摘要、健康回执或发布证据。`TC-public-preview-01-*` 仍为 planned/unmapped。 |
 
 “CI success”“Pages 200”“release workflow success”分别只证明对应检查，不能互相替代，更不能宣称最新前后端已自动部署。
 
@@ -234,5 +235,6 @@ plan → decide ──┬→ genQuestion → awaitAnswer(interrupt)
 | 4 个合成 Langfuse dataset 同步 | 已完成，数量为 24/48/42/6 | 托管数据集存在；不证明实验、评分、线上趋势或模型质量。 |
 | 阿里云 RDS PostgreSQL 测试控制面 | 固定 `pnpm cloud:smoke --run <run-id>` 仍只允许 `meetwise_cloud_test`、固定 reader（读取者）与 Tair `PING`，并以只读事务执行；它只证明最低私网连通性。历史 `serial-test-only` 代码有本地 ledger/配置合同：系统 TLS（传输层安全）验证、每条连接证书 pin、构建摘要/允许 case 比对、attempt fence、计划资源名、OID（对象标识符）清理和失败回执。当前实际执行体仍是 FC 形态，**不是**已部署 ECS executor；涉及 cluster（集群）角色的迁移和 pgvector 检索 suites 在运行时被拒绝。 | **云端破坏性执行仍为 `blocked`。** 尚无私网 ECS executor、真实 PostgreSQL 的 20 并发、强制中断恢复、foreign sentinel、控制库 ACL、目标实例/VPC（虚拟私有云）控制台证明或完整 TargetGrant（目标授权）验证。证书 pin 不等于控制台实例/VPC attestation（证明）。旧的 migration/vector 私网试跑只能保留为历史，不再作为当前 runner、Docker 退役或发布证据。Tair 写入、OSS、浏览器/API/worker 链路同样未迁移。 |
 | 隔离 E2E 与性能测试 | 历史上在本地 Docker（容器）运行；项目负责人已要求迁移期间不再执行该路径 | Docker 源码保留到对应 ECS suite 连续通过后才可删除；当前不得运行它、不得替换云 PostgreSQL、Redis、OSS、故障切换或生产容量验证。 |
+| `pnpm public-preview-write:inventory` + `pnpm public-preview-write:prove` + `pnpm public-preview-write-gate:prove` + `pnpm -C apps/web prove:middleware` | 工作树本地静态清单、Fastify inject / 服务层 stub 与 Web 中间件行为 proof，`releaseEvidence=false` | 证明当前登记的公开面试/评分写面均有 HTTP 方法门或服务层围栏，且 `POST /interview/:id/turn`、`POST /interview/:id/assessment`、`POST /applications/:id/finalize` 等真实路径在预览下 503、`asPrincipal`=0。不证明 ECS 公开 listener、镜像摘要、健康回执、worker 已停或治理 TC 已升为 required。 |
 
 当前发布结论是：**不得宣称 100% 高可用或生产发布就绪。** 最小阻断项为 checkpoint 原文删除闭环、云 PostgreSQL/Redis/OSS 的真实低权与 TLS（传输层加密）E2E、迁移安全、全格式 RAG 实测、Langfuse 实验/在线 Judge 人工校准、以及生产规模容量和灾难恢复演练。

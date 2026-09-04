@@ -64,6 +64,13 @@ async function main() {
   equal(middleware(req('GET', '/')).status, 200, 'preview GET / (display path) passes');
   equal(middleware(req('GET', '/features')).status, 200, 'preview GET /features passes');
   equal(middleware(req('OPTIONS', '/')).status, 200, 'preview OPTIONS passes');
+  equal(middleware(req('POST', '/api/interview/preview-proof/turn')).status, 503, 'preview POST interview turn proxy is fenced');
+  equal(middleware(req('POST', '/interviews')).status, 503, 'preview POST start-interview action path is fenced');
+  equal(middleware(req('POST', '/report/preview-proof')).status, 503, 'preview POST report retry action path is fenced');
+  equal(middleware(req('POST', '/jobs')).status, 503, 'preview POST application-start action path is fenced');
+  equal(middleware(req('POST', '/api/applications/preview-proof/finalize')).status, 503, 'preview POST application finalize proxy is fenced');
+  res = middleware(req('GET', '/api/interview/preview-proof/turn'));
+  equal(res.status, 404, 'preview GET interview write proxy is path-unavailable, not a write');
 
   // 5. 正常模式：鉴权重定向 + 未受保护放行
   process.env.MEETWISE_PUBLIC_PREVIEW = '0';

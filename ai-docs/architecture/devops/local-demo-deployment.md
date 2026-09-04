@@ -127,7 +127,7 @@ Web/API/Worker 在本机用 pnpm dev 启动。
 
 应用运行时：
 
-- Web、API 与 Worker 部署于受控 ECS；仅 HTTPS Web 入口对外暴露，API 不直出，Worker 没有公网入站。公开预览 listener 必须以精确 `MEETWISE_PUBLIC_PREVIEW=1` 启动，并在应用 ingress allowlist 只读方法；变量缺失或为 `0` 的运行时只能放在私网受控 listener。
+- Web、API 与 Worker 部署于受控 ECS；仅 HTTPS Web 入口对外暴露，API 不直出，Worker 没有公网入站。公开预览 listener 必须以精确 `MEETWISE_PUBLIC_PREVIEW=1` 启动，并在应用 ingress allowlist 只读方法；变量缺失或为 `0` 的运行时只能放在私网受控 listener。公开预览写保护 = 边缘方法门 + Web 中间件 + API 方法门 + 服务层围栏 + 写面清单（见 `architecture/backend/public-preview-write-inventory.md` 与 `requirements/use-cases/public-preview-write-gate.md`）；本地清单/inject proof 不是 ECS listener 或发布证据，也不等于 worker 已停。
 - 数据库、缓存和对象存储只接受 ECS VPC 内的最小网络路径与工作负载身份。
 - 云端数据面测试由独立 ECS executor 执行，使用 run-owned 目标、恢复账本和清理回执；在对应 `CLOUD-TEST-01…05` 通过前，Docker 路由不删除，且不得把本地回执冒充云端通过。
 

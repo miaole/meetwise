@@ -102,6 +102,11 @@ const runtimeTruthAssertions = [
     sourceTerm: "manifest.cases.length !== 120",
     truthTerm: "120 条**合成合同**",
   },
+  {
+    source: "apps/api/src/platform/public-preview.ts",
+    sourceTerm: "assertPublicPreviewWritesClosed",
+    truthTerm: "公开预览写门禁",
+  },
 ];
 
 for (const file of requiredFiles) {
