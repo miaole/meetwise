@@ -72,6 +72,7 @@ export const OPTIONAL_ALWAYS_ON = Object.freeze([
   'model-slot-bypass:static:prove',
   'quiz-dual-claim:unit:prove',
   'owner-drain-order:unit:prove',
+  'sse-slot:prove',
   'native-fail-closed:prove',
   'question-generation-fail-closed:prove',
 ]);
