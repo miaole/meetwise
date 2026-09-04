@@ -176,7 +176,7 @@ exit: docs:check=0 generation-trust:prove=0 golden-tasks:check=0 golden-tasks:pr
 receipts: none
 claimDone: false
 ready: NOT_READY
-rounds: 7
+rounds: 8
 releaseEvidence: false
 liveE2E: not_run:live_provider_key_missing
 core: not_requested
