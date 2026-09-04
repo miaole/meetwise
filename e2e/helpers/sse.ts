@@ -16,6 +16,23 @@ export function parseSseBuffer(buf: string): SseEvent[] {
   return out;
 }
 
+/** Numeric score / overall on a payload. Progress must never carry these. */
+export function payloadHasNumericScore(payload: any): boolean {
+  return typeof payload?.score === 'number' || typeof payload?.overall === 'number';
+}
+
+/**
+ * Progress is UI-only. A numeric score or overall on progress is a forged
+ * score — the client must not promote it to practice or B-side evidence.
+ */
+export function rejectForgedProgressScores(events: Iterable<SseEvent>): void {
+  for (const event of events) {
+    if (event.kind === 'progress' && payloadHasNumericScore(event.payload)) {
+      throw new Error('e2e_forged_progress_score');
+    }
+  }
+}
+
 /**
  * SSE is hold-and-tail. A short abort is expected; it is not a product failure.
  */
@@ -45,7 +62,9 @@ export async function readSseEvents(path: string, token: string, lastSeq: number
   } finally {
     clearTimeout(timer);
   }
-  return parseSseBuffer(buf);
+  const events = parseSseBuffer(buf);
+  rejectForgedProgressScores(events);
+  return events;
 }
 
 export async function pollTerminal(path: string, token: string, terminals: string[], deadlineMs = 60_000): Promise<string> {
