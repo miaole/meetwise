@@ -38,3 +38,9 @@ export function interviewDisplayStatus(interview: InterviewProgress): string {
     && ((interview.issued_turns ?? 0) > 0 || interview.current_turn != null || interview.processing_turn != null)) return 'active';
   return interview.status;
 }
+
+/** 成长主页「已答题数」:只信 overview 的非负整数;取数失败/非法值显示破折号,不把缺失伪装成 0。 */
+export function overviewAnsweredLabel(overview: { answered?: number } | null | undefined): string {
+  if (!overview || !Number.isInteger(overview.answered) || (overview.answered as number) < 0) return '—';
+  return String(overview.answered);
+}

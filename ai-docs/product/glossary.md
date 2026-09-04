@@ -70,7 +70,10 @@ related:
 | 机构 / 成员 | Tenant / Membership | B 端机构与其成员关系 |
 | principalContext | Principal Context | 请求身份上下文(`personal`\|`tenant:<id>`)，RLS 据此判别 |
 | 面试（聚合） | Interview | **唯一面试聚合根**(id=threadId，mode=self_practice\|candidate_evaluation)；取代旧 Session/Result 二分 |
-| 问答 | InterviewQA | 单轮问答（Interview 强一致子实体） |
+| 问答 | InterviewQA | 单轮问答（Interview 强一致子实体）；物理表 `interview_question` |
+| 题目账本 | question ledger | C 端已出/已答进度的业务事实（`interview_question`）；不是 ScoreCard，也不是测量质量根 |
+| 已答题数 | Overview.answered | 成长主页统计：privacy-active 面试上 `status='answered'` 的题目账本行数 |
+| 可评分答题数 | GrowthView.totals.answered | 成长档案「累计已评分」：`practice_eligible`/`b_review_eligible` ScoreCard 张数，不是成长主页已答题数 |
 | 事件账本 | InterviewEvent | 单一 append-only 有序事件真相(单调 seq)，审计/重放/推断证据共用 |
 | 简历 / 版本 | Resume / ResumeVersion | 简历聚合与版本 |
 | 岗位 | Role | 岗位/JD/能力要求(owner+visibility)；取代旧 RoleProfile |

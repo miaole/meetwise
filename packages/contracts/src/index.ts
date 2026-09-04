@@ -232,7 +232,8 @@ export const updateSettingsSchema = z.object({
 export type UpdateSettingsDto = z.infer<typeof updateSettingsSchema>;
 export const Overview = z.object({
   interviewsByStatus: z.record(z.string(), z.number()),
-  answered: z.number().int(),
+  /** C 端已答题数：privacy-active 面试上 interview_question.status='answered' 的计数，不是 ScoreCard 张数。 */
+  answered: z.number().int().nonnegative(),
   avgScore: z.number().nullable(),
   reportsReady: z.number().int(),
 });

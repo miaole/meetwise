@@ -106,7 +106,7 @@ async function GrowthArchive({ limit }: { limit?: string }) {
         <Card className="flex flex-col justify-center p-5">
           <div className="text-[13px] text-muted-foreground">训练量</div>
           <div className="mt-1 text-[30px] font-extrabold tabular-nums">{totals.sessions}<span className="ml-1 text-sm font-normal text-muted-foreground">场</span></div>
-          <div className="mt-0.5 text-xs text-muted-foreground">累计答题 {totals.answered} 道</div>
+          <div className="mt-0.5 text-xs text-muted-foreground">累计已评分 {totals.answered} 道（可计入能力曲线，不是成长主页已答题数）</div>
         </Card>
       </section>
 

@@ -21,7 +21,7 @@ related:
 
 > 前端是 **Next.js App Router**。本文与 `system-blueprint.md` 的「契约先行、所有用户内容不可信、状态落服务端」一致。
 >
-> **落地状态（apps/web）**：SSE 重连驱动、类型化 API 客户端、Next.js App Router 页面、`InterviewPanel`、`VoiceCallPanel` 和 B/C 端页面均已存在；`runInterviewStream` 使用 Last-Event-ID（最后事件编号）续传、重连上限、buffer（缓冲区）封顶和 AbortSignal（取消信号），视图归约将 `report_unavailable` 表示为降级出口。`pnpm web:prove` 覆盖承重纯逻辑，但它不是浏览器、真实 API、语音设备或云环境的发布证明。组件库、页面清单和生产验证状态以 [运行时事实矩阵](../current-runtime-truth.md) 为准。
+> **落地状态（apps/web）**：SSE 重连驱动、类型化 API 客户端、Next.js App Router 页面、`InterviewPanel`、`VoiceCallPanel` 和 B/C 端页面均已存在；`runInterviewStream` 使用 Last-Event-ID（最后事件编号）续传、重连上限、buffer（缓冲区）封顶和 AbortSignal（取消信号），视图归约将 `report_unavailable` 表示为降级出口。C 端实际路由是 `/dashboard`（成长主页）与 `/interviews`（列表），不是下文目标态的 `history`/`profile`。列表/详情进度文案读 `InterviewView.issued_turns`/`answered_turns`；成长主页「已答题数」读经契约校验的 `Overview.answered`（题目账本，不是 ScoreCard 张数），取数失败显示「—」。均分仍来自 ScoreCard。成长档案页 `totals.answered` 仍为可评分 ScoreCard 数，文案是「累计已评分」，与 dashboard 已答题数不同源。见 [C 端总览进度用例](../../requirements/use-cases/cend-overview-progress.md)。`pnpm web:prove` 覆盖承重纯逻辑，但它不是浏览器、真实 API、语音设备或云环境的发布证明。组件库、页面清单和生产验证状态以 [运行时事实矩阵](../current-runtime-truth.md) 为准。
 
 ## 1. 选型决策
 

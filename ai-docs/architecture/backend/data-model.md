@@ -47,6 +47,7 @@ related:
 - `Interview`：id（**= threadId**，见 `CLAUDE.md` 的 `threadId = resultId` 约定）、`mode`(`self_practice`|`candidate_evaluation`)、`owner_user_id|owner_tenant_id`、serviceType、roleId、resumeId、status、reportStatus。
 - **强一致边界仅含 `Interview` + 1—N `InterviewQA`**。`AssessmentReport`(1—1)、`AiGraphRun`(1—N 可重试，共享 threadId) 是**经 interviewId/threadId 引用的独立聚合**（各自独立 version+CAS+异步），**不是 Interview 的强一致子实体**（修审计 #12：1—1/1—N 是聚合间引用基数，非同事务子实体）。
 - C 端 owner=user；B 端 owner=tenant + 关联 `candidateId`。**一条代码路径**。
+- **实现现状（C 端进度，2026-09）**：物理题目账本是 `interview_question`（领域 `InterviewQA`）。`GET /interview` 的 `issued_turns`/`answered_turns` 与 `GET /profile/overview.answered` 都从该表投影（privacy-active；已答=`status='answered'`）。ScoreCard 只服务均分与成长档案可评分训练量，不是「已答题数」事实源，也不是测量质量根。详情见 [cend-overview-progress](../../requirements/use-cases/cend-overview-progress.md) 与 [运行时事实矩阵](../current-runtime-truth.md)。
 
 ### 3.2 Resume（统一简历聚合）
 - `Resume`：id、`owner_user_id|owner_tenant_id`、title、sourceType(upload|ai_generated)、currentVersionId、visibility=private(永远私有)。
