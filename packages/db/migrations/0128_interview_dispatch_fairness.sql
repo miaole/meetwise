@@ -1,8 +1,10 @@
--- 0124_interview_dispatch_fairness.sql
+-- 0128_interview_dispatch_fairness.sql
 -- Interview owner enumeration stays an owner-id-only gateway function.
 -- Order owners by the oldest claimable/expired-running row so a later owner
 -- with older waiting work is not hidden behind insertion order. This is a
 -- stable scan order, not a lock, quota, or payload channel.
+-- 0124–0127 are reserved by other in-flight slices; this function rewrite
+-- must not reuse those versions.
 
 CREATE OR REPLACE FUNCTION gateway_dispatch_owners(p_work text)
 RETURNS TABLE(owner_user_id text)

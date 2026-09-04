@@ -38814,7 +38814,7 @@
       "package.json",
       "packages/contracts/src/index.ts",
       "packages/db/migrations/0123_user_facing_context_snapshots.sql",
-      "packages/db/migrations/0124_interview_dispatch_fairness.sql",
+      "packages/db/migrations/0128_interview_dispatch_fairness.sql",
       "packages/db/package.json",
       "packages/db/src/interview-jobs.ts",
       "packages/db/src/migrate-cli.ts",
@@ -38840,7 +38840,7 @@
       "scripts/run-e2e-isolated.mjs",
       "scripts/synthetic-state-lock.proof.mjs"
      ],
-     "governedPathDigest": "sha256:c8e8ab6d257b390897874455ca79673dc26a9fa86e55c2476044cb35157d0238",
+     "governedPathDigest": "sha256:c26cb9763eb5be5d98ed81221b3e09506e1f585e74bdedee29fd32ad38cd3dbb",
      "harness": {
       "scope": "Interview-dispatch fairness successor: freeze UC-WORKER-002 as planned/unmapped. Inherited P0/P1 findings stay in their prior states. No cluster global lock or releaseEvidence.",
       "sourceEvidenceIds": [
@@ -38863,7 +38863,7 @@
        "append-only static snapshot"
       ],
       "dataEffects": [
-       "0124 interview gateway owner order is oldest waiting created_at then owner id; payload is not returned."
+       "0128 interview gateway owner order is oldest waiting created_at then owner id; payload is not returned."
       ],
       "privacySecurityEffects": [
        "Gateway still returns owner ids only. No resume, answer, or credential is written into dispatch metadata."
@@ -38887,7 +38887,7 @@
       ],
       "authorizationConclusion": "blocked"
      },
-     "harnessDigest": "sha256:7f4d67991e646386eb7c5e0babb86b6a1c8d6cf54abb9dffeb86228be68b5fd7",
+     "harnessDigest": "sha256:36a4151d14acac5eda1149777526255bc0548702765ba45c078082d939891b1f",
      "audit": {
       "lenses": [
        "CD transaction generation and prepare-fence audit",
@@ -38928,7 +38928,7 @@
       "summary": "Static snapshot refresh after interview-dispatch fairness docs and the UC-WORKER-002 baseline expansion. Inherited P0/P1 findings remain unchanged; authorization stays blocked; releaseEvidence=false.",
       "summaryDigest": "sha256:83860b1e676484523ef838924a4346a112ee532264caa5bc694c91aba3718581",
       "decision": "blocked",
-      "reviewScopeDigest": "sha256:377a21ccb4d4fa8d3e972cd34722d58f455777da76a6b3c190d31cecdde4b315",
+      "reviewScopeDigest": "sha256:be73c31e6885bca6188e9eca123abfdc0807a322a430195ea310256d8e0f8978",
       "reviewedFindingIds": [
        "GOV-CD-CURRENT-TARGET-001",
        "GOV-CD-DEPLOY-PRE-MUTATION-001",
@@ -39415,7 +39415,7 @@
       ],
       "expansionJustification": "UC-WORKER-002 面试公平轮转与领取围栏的七类叶子已冻结为 planned/unmapped。它们不进入 required 绑定、passed 分母或 release evidence；进程内 global cap 不是集群锁，押题/诊断/报告公平与云多副本验收仍未交付。"
      },
-     "recordDigest": "sha256:4b446fd618e7286c1702b98bf90285cc1a43fc3d915836087c7b22e6b481ff8b"
+     "recordDigest": "sha256:ef7ec70dbb8ce328d77c3f2e010bc648dd036c9f0d86b1eade881b034b1dfc5f"
     }
 ]
 }

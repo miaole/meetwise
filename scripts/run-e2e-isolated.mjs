@@ -256,7 +256,7 @@ const isolatedReceiptSources = {
     'apps/worker/src/interview-dispatch-fairness.ts',
     'apps/worker/src/interview-consumer.ts',
     'packages/db/src/interview-jobs.ts', 'packages/db/src/gateway-dispatch.ts',
-    'packages/db/migrations/0124_interview_dispatch_fairness.sql',
+    'packages/db/migrations/0128_interview_dispatch_fairness.sql',
   ],
   'stress:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',

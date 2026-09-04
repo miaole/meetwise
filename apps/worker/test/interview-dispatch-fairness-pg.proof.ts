@@ -180,10 +180,10 @@ async function main() {
     (noPrincipalError || noPrincipalRows === 0) && victimStillQueued.rows[0]?.status === 'queued',
   );
 
-  const migration = readFileSync(fileURLToPath(new URL('../../../packages/db/migrations/0124_interview_dispatch_fairness.sql', import.meta.url)), 'utf8');
+  const migration = readFileSync(fileURLToPath(new URL('../../../packages/db/migrations/0128_interview_dispatch_fairness.sql', import.meta.url)), 'utf8');
   const interviewBranch = migration.slice(migration.indexOf("WHEN 'interview' THEN"), migration.indexOf("WHEN 'quiz' THEN"));
   A(
-    '0124 面试枚举按最老等待排序且只投影 owner id',
+    '0128 面试枚举按最老等待排序且只投影 owner id',
     interviewBranch.includes('ORDER BY min(j.created_at) ASC, j.owner_user_id ASC')
       && interviewBranch.includes('SELECT j.owner_user_id::text')
       && !/\bpayload\b/.test(interviewBranch.replace(/--[^\n]*/g, ''))

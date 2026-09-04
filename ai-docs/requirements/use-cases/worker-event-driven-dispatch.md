@@ -81,7 +81,7 @@ owner: architecture
   - **E6 同面试保序/中途停止：** 同面试 seq 不得并行（后序保持 `queued`）；单个 drain 切片拒绝时其他 in-flight 切片先结束；stop 等当前 tick（含在飞并行切片）结束后才退出。机制：同面试 running 守卫 + drain loop 排空。
 - **后置 Postcondition：** 每个 `interview_job` 至多一个未过期 `running` lease；同一面试至多一条未过期 `running`；一 owner 未过期 running 数不超过 per-owner cap；未被领取的作业保持可恢复 `queued` 或过期 `running`。不新增业务状态，不写简历/答案到调度元数据。
 - **验收 Acceptance：** 两 owner（A 三条、B 一条）且 gateway 按最老等待排序时，领取顺序是 `A,B,A,A` 而不是 `A,A,A,B`；两连接对同一 owner 两条作业在 cap=1 时恰一个 `running`；同面试后序在前序 running 时 enqueue 成功且 claim=null、seq1 保持 `queued`；跨 owner / 无 principal 为 0 行；非法预算启动失败；重复 enqueue 行数不增加。不据此宣称集群全局 cap、端到端延迟 SLO 或押题/诊断/报告已公平。
-- **关联：** `apps/worker/src/interview-dispatch-fairness.ts`、`apps/worker/src/interview-consumer.ts`、`packages/db/src/interview-jobs.ts`、`packages/db/migrations/0124_interview_dispatch_fairness.sql`、`ai-docs/architecture/backend/worker-dispatch-fairness.md`；状态机仍是 `queued → running → done|failed`；原语为 CAS、幂等键、RLS、lease。
+- **关联：** `apps/worker/src/interview-dispatch-fairness.ts`、`apps/worker/src/interview-consumer.ts`、`packages/db/src/interview-jobs.ts`、`packages/db/migrations/0128_interview_dispatch_fairness.sql`、`ai-docs/architecture/backend/worker-dispatch-fairness.md`；状态机仍是 `queued → running → done|failed`；原语为 CAS、幂等键、RLS、lease。
 - **七类覆盖：** 正（轮转）、异（丢租约不双处理）、特（单 owner / 空队列）、逃（非法预算 fail-closed / cap 耗尽保持 queued）、并（双副本恰一赢）、复（reap 后公平 drain + 同面试保序）、刁（跨 owner=0 / 通知仍无业务数据）。
 
 ### 测试用例
