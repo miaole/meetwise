@@ -39,6 +39,7 @@ const requiredFiles = [
   "ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md",
   "ai-docs/testing/strategy/test-strategy.md",
   "ai-docs/requirements/use-cases/cend-overview-progress.md",
+  "ai-docs/requirements/use-cases/interview-control-signals.md",
   "ai-docs/delivery/roadmap.md",
   "docker/compose.dev.yml",
   "docker/compose.demo.yml",
@@ -78,6 +79,7 @@ const requiredTerms = new Map([
     "submitInterviewAnswer",
     "enqueueInterviewJob",
   ]],
+  ["ai-docs/requirements/use-cases/interview-control-signals.md", ["observeInterviewSignals", "early_weak", "thrashing", "safety_ceiling", "不是能力等级校准", "INT-LEVEL-01"]],
 ]);
 
 // P0 readability contract: expert-interview materials must not assume the reader already knows acronyms.

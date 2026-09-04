@@ -223,6 +223,8 @@
     "adaptive:prove": "pnpm -C packages/domain prove:adaptive",
     "adaptive-redesign:prove": "pnpm -C packages/domain prove:adaptive-redesign",
     "adaptive-length:prove": "pnpm -C packages/domain prove:adaptive-length",
+    "adaptive-signals:prove": "pnpm -C packages/domain prove:adaptive-signals",
+    "adaptive-signals-graph:prove": "pnpm -C packages/ai-graphs prove:adaptive-signals",
     "grounded:prove": "pnpm -C packages/domain prove:grounded",
     "crag:prove": "pnpm -C packages/domain prove:crag",
     "research-policy:prove": "pnpm -C packages/domain prove:research-policy",

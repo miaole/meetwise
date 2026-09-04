@@ -1,7 +1,7 @@
 ---
 id: requirements_use_cases_expert_long_interview_runtime
 name: 长时专家面试运行时、完整记录与安全控制面
-description: 为一到两小时专家面试冻结 transcript、恢复、能力等级校准、面试蓝图和 Graph 安全边界。目标契约；00 签发器/账本/合同已在源码落地，公开删除与 01 write route 仍未接线。
+description: 为一到两小时专家面试冻结 transcript、恢复、能力等级校准、面试蓝图和 Graph 安全边界。目标契约；00 签发器/账本/合同已在源码落地，公开删除与 01 write route 仍未接线。UC-INT-LEVEL-SIGNAL-01（weak/thrashing → decideNext/concludeReason 控制流 hook）已在代码接线，不构成 CompetencyLevelAssessment 或 B 端 band。
 type: requirement
 scope: shared
 level: must
@@ -21,6 +21,7 @@ related:
   - ../../architecture/ai/memory-context-design.md
   - ../../architecture/ai/model-operation-routing.md
   - ./interview-scoring-measurement.md
+  - ./interview-control-signals.md
   - ./rag-funnel-intent-routing.md
   - ./memory-governance-and-recall.md
   - ./adaptive-interview-length.md
@@ -47,7 +48,7 @@ related:
 | `INT-P0-RAW-QUEUE` | P0 / open | 现有 legacy `POST /interview/:id/turn` 仍在运行：`interview.service.ts` 将 `body.answer` 放入 answer job；`packages/db/src/interview-jobs.ts` 将 payload JSON 持久化并让 worker 读取，只有 terminal job 才剥离 `answer`。`PUBLIC-PREVIEW-WRITE-GATE-01` 仅在 `MEETWISE_PUBLIC_PREVIEW=1` 时对该写 verb 返回 `503 public_preview_read_only`，不关闭非预览 `/turn`，也不新增 `/answers`。树上已有 `0092` 的 `interview_answer_artifact` / `interview_answer_submission` rehearsal 表与 `submitInterviewAnswer` 函数，但公开 API 没有新的 canonical write route；`/turn` 不是本目标的合规写入路径，也不能被误称为已关闭。`0126` 已加对向互斥（artifact 与明文 job 不能同身份并存）和 `interview_event` 禁顶层 `answer`；这不是 queue 已关闭，也不是 01 完成。`0124`/`0125` 已在 `main`（RAG ACL；memory 擦除）；本围栏是 `0126`。盘点见 `architecture/backend/interview-answer-dual-write-cutover.md`。 | `INT-TRANSCRIPT-01` 只在 00 组合根验证后开始：其**新增公开 canonical 写入路径**只写加密 artifact/draft；job、checkpoint、event/SSE、日志与 trace 只持 opaque ref。上线切换必须先按已登记的 cutover 切断 `/turn` 明文 payload：它不得再与 01 并行写同一答题事实，也不得成为 response-lost、重登或 transcript 的回退。历史 queued/running payload 走单独 legacy fence，不复制或猜测原文。 |
 | `INT-P0-SUBMISSION-RECOVERY` | P0 / open | 共享契约已冻结 `InterviewAnswerSubmitResult` / `InterviewAnswerSubmissionReceipt`（不进 OpenAPI）。当前公开 `/turn` 仍不消费该 receipt 合同；浏览器 answer key 只在内存；题目 ledger 只能重放相同 `answerId + SHA-256`，提交响应丢失后换浏览器会得到 stale。 | 01 接线前只保持合同冻结，不开放真实用户 write route。同键同体回放、同键异体冲突、双 tab 一 winner 必须由服务端账本强制；重登只能经 receipt/view 继续。 |
 | `INT-P0-SEC-PERMIT` | P0 / open | 当前模型调用只在派发前作隐私检查；派发后没有 authorization/context/output permit 复核。删除或撤权后的迟到模型输出仍没有目标态要求的 CAS 投影阻断。 | `SEC-GRAPH-01` 与 `MODEL-OP-01` 在任何 artifact 外送、评分、RAG/Web、报告或 memory 写入前完成；派发后 unknown 不自动换模型或重发，迟到输出无 permit 必须丢弃。01 首包禁止所有这些副作用。 |
-| `INT-P0-LEVEL-EVIDENCE` | P0 / open | 当前评分仍是模型整数分和自由 criterion；没有 versioned ScoreCard、rubric evidence、InitialLevelHypothesis 或跨模块 coverage。 | 先完成 `SCOR-01/02`，再进入 `INT-LEVEL-01`。年限、单题、学历/年龄/性别/地域等受保护属性及其代理变量都不得单独决定初始或最终能力等级。 |
+| `INT-P0-LEVEL-EVIDENCE` | P0 / open | 当前评分仍是模型整数分和自由 criterion；没有 versioned ScoreCard、rubric evidence、InitialLevelHypothesis 或跨模块 coverage。`UC-INT-LEVEL-SIGNAL-01` 只落地 weak/thrashing **控制流 hook**（`decideNext` → `early_weak` / `early_thrashing`），**不**构成能力等级或 B 端 band。 | 先完成 `SCOR-01/02`，再进入 `INT-LEVEL-01`。年限、单题、学历/年龄/性别/地域等受保护属性及其代理变量都不得单独决定初始或最终能力等级。控制信号见 [interview-control-signals.md](./interview-control-signals.md)。 |
 | `INT-P1-SNAPSHOT-SSE` | P1 / open | 当前 transcript 是部分事件投影；SSE 为读 events 后轮询，无 snapshot 与 tail 的同一读取边界。 | 01 冻结 snapshot/cursor 合同：写入 item 与其可见事件必须在同一事务分配 interview 内唯一、单调的 `visibleSeq`；同一 RLS read transaction 取得 watermark `W` 与只含 `visibleSeq <= W` 的 item；tail 仅消费 `visibleSeq > W`，去重只用稳定 item/event id。cursor 绑定 interview、watermark、页位置和 privacy epoch；删除、撤权、过期或 epoch 不符一律返回固定不可枚举 `fenced/invalid`，不能猜测缺失 item。 |
 | `INT-P1-BLUEPRINT-ROUTE` | P1 / open | 短流程图已按覆盖/证据/会话信号收口（`UC-INT-LENGTH-01`：软预算可上调，绝对杀开关默认 120 是平台安全，不再是固定八轮/十六轮硬顶）；worker 仍默认“技术岗”。没有 60/90/120 分钟、module、deadline、route/rubric/model/prompt snapshot。允许把杀开关配成 60/90/120 档 ≠ 已接线 blueprint。 | `INT-LONG-INTERVIEW-01` 必须在 `RAG-FUNNEL-03/04` 和版本化评分后独立审查；01 不靠加大固定轮数或调高杀开关交付，不接 RAG/Web。短流程长度政策见 `requirements/use-cases/adaptive-interview-length.md`。 |
 | `INT-P1-MEMORY-TENANCY` | P1 / open | `MEM-00` 未闭合；当前首期只有 owner RLS，尚无可验证 tenant/project/purpose 业务模型。 | 01 明确为 C 端 owner-only，不声称 tenant/project 隔离；transcript 不自动进入 memory。后续跨会话 recall 必须先完成 scope、source、consent、冲突、过期、两阶段过滤/水合和删除 receipt。 |
@@ -166,6 +167,8 @@ stateDiagram-v2
 
 `user_ended | time_budget_exhausted | coverage_satisfied | insufficient_evidence | privacy_fenced | system_unavailable | cancelled`。
 
+**现行代码子集（不是本目标枚举）：** 经 `decideNext` 的 `budget_exhausted` / `all_resolved` / `early_weak` / `early_thrashing`（写入 `concludeReason`，worker/SSE/report 不读）；另有 `evalAnswer` 的 `unscored` / identity-mismatch 直跳 conclude。详见 §6 与 [interview-control-signals.md](./interview-control-signals.md)。
+
 例如，候选人一开始按 1–3 年经验进入 `intermediate hypothesis`，但在 Go 并发、数据库事务和分布式幂等三个 module 中连续给出可验证的高级 evidence，scheduler 必须加一组 promotion probes，而不是因初始年限停止。反过来，宣称高级但核心模块没有足够 evidence 时，结论只能是 `insufficient_evidence/review_required`。这要求大纲和 rubric 先冻结；否则“多问几题”只会把模型漂移和题目难度差异放大。
 
 ## 3. UC-INT-TRANSCRIPT-00 · 先建立删除授权与提交接收契约
@@ -243,6 +246,10 @@ stateDiagram-v2
 
 ## 5. UC-INT-LEVEL-01 · 从非绑定初始假设校准真实能力等级
 
+> **当前代码边界（2026-09-04）：** [UC-INT-LEVEL-SIGNAL-01](./interview-control-signals.md) 已在 `@meetwise/domain` 接线：`observeInterviewSignals` + `decideNext` 可因持续弱/震荡提前 conclude（reason=`early_weak`/`early_thrashing`），图 `decide` 把 reason 写入 `concludeReason`。这是终止 **hook**，不是本用例。本用例仍要求 versioned ScoreCard、跨模块 evidence、`InitialLevelHypothesis` 与 `CompetencyLevelAssessment`；在 `SCOR-01/02` 完成前保持 blocked。图 `HARD_MAX_TURNS` 仍为 8，信号不得抬上限。
+
+
+
 - **角色 Actor：** 候选人、resume parser、面试 planner、评分服务、人工复核者。
 - **前置 Precondition：** interview 已冻结 route、blueprint、rubric 和能力等级定义；简历来源可验证但不含受保护属性推断。
 - **触发 Trigger：** 面试启动、每个有效 assessment 完成、模块结束或面试结论生成。
@@ -276,6 +283,10 @@ stateDiagram-v2
 | 刁钻 | `TC-INT-LEVEL-01-T1` | 单题极高分、互相矛盾 evidence、low-confidence、模型 unknown 均不产生虚假最终等级。 |
 
 ## 6. UC-INT-LONG-INTERVIEW-01 · 冻结一到两小时专家面试蓝图并安全终止
+
+> **当前代码边界：** 终止仍是短流程：`budget_exhausted`（`turn>=maxTurns`，图硬上限 8）/ `all_resolved`（探尽优先于 `early_*`）/ 控制信号 `early_weak`·`early_thrashing`（同真时 weak 优先）。另有 `evalAnswer` 的 `unscored` / identity-mismatch 不经 `decideNext`、不写 `concludeReason`。这不是 time+coverage+evidence 的 blueprint 终止策略，也不能把 8 调大当作本用例完成。信号合同见 [interview-control-signals.md](./interview-control-signals.md)。
+
+
 
 - **角色 Actor：** 候选人、面试 API、面试 scheduler、Graph worker、报告 worker。
 - **前置 Precondition：** route snapshot 已由自动岗位分类器决定；score/rubric、model policy、privacy epoch 和可用 module catalog 已冻结。
@@ -348,7 +359,7 @@ stateDiagram-v2
 1. 先完成 `INT-TRANSCRIPT-00`，以真实组合根验证删除授权、target/sink receipt、submission/receipt 合同和删除竞争；在此之前不新增**公开**长期 raw-answer write route，也不重开删除入口。树上 `0092` rehearsal 表/函数不是公开 canonical write。
 2. 再以独立 Task Harness、shared contract、迁移/RLS、状态机和七类测试审查 `INT-TRANSCRIPT-01`。新 schema/target resolver/receipt/删后 read=0 必须与 00 在同一迁移/组合根通过，真实用户 write route 之前一直 disabled；首包只建立 canonical artifact、draft、submission receipt、transcript item 和 view snapshot。不要为“可回显”把 raw answer 塞进 checkpoint、job JSON、SSE、日志或 trace。
 3. 01 验收后独立审查 `INT-RESUME-02`，再处理浏览器重新进入、worker 生命周期、snapshot/SSE UX 和历史 tombstone；不得借恢复功能增加 raw 副本或模型副作用。
-4. `SCOR-01/02` 完成后才进入 `INT-LEVEL-01`；冻结 blueprint、module scheduler、level evidence/coverage 与终止策略后才进入 `INT-LONG-INTERVIEW-01`，不以增加固定轮数替代。
+4. `SCOR-01/02` 完成后才进入 `INT-LEVEL-01`；冻结 blueprint、module scheduler、level evidence/coverage 与终止策略后才进入 `INT-LONG-INTERVIEW-01`，不以增加固定轮数替代。已落地的 `UC-INT-LEVEL-SIGNAL-01` 只提供 weak/thrashing hook，不能代替本条的等级校准或长时 blueprint。
 5. `RAG-FUNNEL-03/04`、`MODEL-OP-01`、`SEC-GRAPH-01` 和 `MEM-00` 分别闭合后，才将 route snapshot、QuestionPlan、ScoreCard、operation permit、RAG/Web 或 memory 接入真实组合根。
 6. 最后在 `CTX-01…07` 完成后，才为自由对话或跨会话场景启用分层摘要、事实和向量 recall。面试 transcript 不自动成为长期用户记忆。
 

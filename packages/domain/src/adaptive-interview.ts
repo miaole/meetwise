@@ -4,6 +4,7 @@
  *   (追问 probe / 换能力 pivot / 调难度 / 收尾 conclude),而非按 questions[i] 顺序走。
  * 模型只在"行动"步生成具体问题(且应检索真题接地);**决策逻辑在此,确定且可解释**——失败模式可辩。
  */
+import { observeInterviewSignals, SIGNAL_TRAIL_CAP } from './interview-control-signals.ts';
 /** 题型(确定性选择,非模型信号):grounded 简历接地 / fundamental 通用原理 / scenario 开放场景 / behavioral 行为软技能。 */
 export type QuestionKind = 'grounded' | 'fundamental' | 'scenario' | 'behavioral';
 
@@ -75,6 +76,15 @@ export interface InterviewMind {
   consecutiveLow: number;       // 当前能力连续低分(真实作答但弱)计数:连续 2 次 → 下车(换题+降难度),反车轮战
   session?: InterviewSessionSignals;
   lastDecision?: DecisionProvenance | null;
+  /**
+   * 已并入的分数轨迹(0..100)。旧 checkpoint 可缺省；observeInterviewSignals 缺省当空，不提前终止。
+   * 只由 ingestAssessment 追加，clarify/unresolved 不写假分。
+   */
+  recentScores?: number[];
+  /** 每次 ingest 后的难度。仅持久化，当前 observeInterviewSignals 不读；预留给后续扩展。 */
+  recentDifficulties?: number[];
+  /** 换能力次数（current 已有值再切走才 +1；开局第一次选能力不计）。缺省 0。 */
+  pivotCount?: number;
 }
 export type NextAction =
   | { kind: 'ask'; competency: string; difficulty: number; mode: 'probe' | 'pivot'; qkind: QuestionKind; reason: AskReason; provenance: DecisionProvenance; softBudget?: number }
@@ -169,6 +179,7 @@ export function initMind(competencies: (string | CompetencySpec)[], maxTurns?: n
     })),
     turn: 0, maxTurns: soft, absoluteMaxTurns: absolute, budgetRaises: 0, difficulty: 2, current: null, clarifyAttempts: 0, consecutiveLow: 0,
     session: emptySession(), lastDecision: null,
+    recentScores: [], recentDifficulties: [], pivotCount: 0,
   };
 }
 
@@ -201,9 +212,12 @@ export function ingestAssessment(mind: InterviewMind, competency: string, score:
   const base = mind.difficulty + (s > 0.7 ? 1 : s < 0.4 ? -1 : 0);
   const difficulty = clampDiff(offRamp ? base - 1 : base);
   const session = sessionOf(mind);
+  const recentScores = [...(mind.recentScores ?? []), Math.max(0, Math.min(100, score))].slice(-SIGNAL_TRAIL_CAP);
+  const recentDifficulties = [...(mind.recentDifficulties ?? []), difficulty].slice(-SIGNAL_TRAIL_CAP);
   return {
     ...mind, competencies, difficulty, turn: mind.turn + 1, clarifyAttempts: 0, consecutiveLow: offRamp ? 0 : consec,
     session: { ...session, offRampCount: offRamp ? session.offRampCount + 1 : session.offRampCount },
+    recentScores, recentDifficulties,
   };
 }
 
@@ -397,6 +411,11 @@ export function decideNext(mind: InterviewMind): NextAction {
 
   if (mind.turn >= absolute) return conclude('safety_ceiling', weakCited);
 
+  // SIGNAL-01 分数轨迹观察：不改写 maxTurns；绝对杀开关已先赢。同真时 weak 优先于 thrashing。
+  const signal = observeInterviewSignals(mind);
+  if (signal.kind === 'weak') return conclude('early_weak', weakCited);
+  if (signal.kind === 'thrashing') return conclude('thrashing', weakCited);
+
   const abortCount = session.unresolvedCount + session.offRampCount;
   if (mind.turn >= MIN_EARLY_TURNS && coverage.resolvedStrong === 0 && abortCount >= EARLY_WEAK_ABORTS && coverage.probed >= 2) {
     return conclude('early_weak', weakCited);
@@ -430,6 +449,7 @@ export function decideNext(mind: InterviewMind): NextAction {
 /** 行动后:记下当前在探的能力(供下一轮 probe 判断)。换能力时清零 consecutiveLow(off-ramp 计数只对一段连续同能力有效)。 */
 export function withCurrent(mind: InterviewMind, competency: string): InterviewMind {
   const switched = competency !== mind.current;
+  const leftExisting = mind.current != null && competency !== mind.current;
   const leaving = mind.current ? mind.competencies.find((c) => c.name === mind.current) : undefined;
   const session = sessionOf(mind);
   const unproductive = switched && !!leaving && leaving.depthProbed > 0 && leaving.confidence < CONF_WEAK;
@@ -441,5 +461,6 @@ export function withCurrent(mind: InterviewMind, competency: string): InterviewM
       ...session,
       consecutivePivots: !switched ? 0 : unproductive ? session.consecutivePivots + 1 : 0,
     },
+    pivotCount: (mind.pivotCount ?? 0) + (leftExisting ? 1 : 0),
   };
 }

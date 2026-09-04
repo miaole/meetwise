@@ -121,6 +121,10 @@ jobs:
         run: pnpm model-op00:prove
       - name: 面试进程接线（api 入队 → worker 消费循环 → 生命周期 → 报告）
         run: pnpm adaptive:prove
+      - name: INT-LEVEL 控制信号（weak/thrashing → decideNext，预算先赢）
+        run: pnpm adaptive-signals:prove
+      - name: INT-LEVEL 控制信号图 hook（concludeReason + HARD_MAX=8）
+        run: pnpm adaptive-signals-graph:prove
       - name: agent 接地题（检索素材出题 + 版权照搬门）
         run: pnpm grounded:prove
       - name: agent CRAG（检索质量分级 + 纠偏 / 外呼降级）
