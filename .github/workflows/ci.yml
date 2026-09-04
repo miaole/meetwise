@@ -167,6 +167,8 @@ jobs:
           pnpm model-output-limit:prove
           pnpm dashscope-native-config:prove
           pnpm voice-operation-policy:prove
+          pnpm voice-stream-asr-honesty:prove
+          pnpm interview-voice-seams:prove
           pnpm ocr-operation-policy:prove
       - name: agent 语音自适应（modality-agnostic ≡ 文本路径）
         run: pnpm voice-adaptive:prove
@@ -224,7 +226,7 @@ jobs:
           pnpm -C apps/web prove:transcribe-proxy
           pnpm -C apps/api prove:voice-timeout
           pnpm -C apps/api prove:voice-cancel-http
-      - name: 流式语音（增量partial→final · barge-in打断TTS · 低延迟 · modality-agnostic不破内核）
+      - name: 流式语音 fake-seam 合同（不是产品流式 ASR / E2E）
         run: pnpm vstream:prove
       - name: 运行内核（db 四原语 + ai-runtime invoke 双校验·重试·幂等 / 状态机 / 租约 / 可恢复 / 幻觉拦截）
         run: pnpm runtime:prove

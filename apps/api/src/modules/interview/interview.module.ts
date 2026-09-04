@@ -6,7 +6,10 @@ import { InterviewService, VOICE_ASR, VOICE_TTS, VOICE_STREAM_TTS } from './inte
 /**
  * Interview module seam. Batch ASR/TTS construct native adapters only when
  * `voice.asr.v1` / `voice.tts.v1` are wired and the matching capability Key
- * exists. Streaming stays disabled. Tests may inject fake seams directly.
+ * exists. Streaming ASR and server turn-taking stay disabled even when
+ * `VOICE_STREAM_ASR_*` preview flags or stream Keys are present
+ * (`voice.asr-stream.v1` is unwired; PRD-TEST-006 is not verified).
+ * Tests may inject fake seams directly.
  */
 @Module({
   controllers: [InterviewController],

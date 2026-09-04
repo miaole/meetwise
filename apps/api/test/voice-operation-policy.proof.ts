@@ -52,7 +52,10 @@ async function main() {
     check('default API voice providers make zero provider fetches', fetches === 0);
     const seams = createInterviewVoiceSeams();
     check('composition factory without Keys stays unconfigured',
-      seams.asrConfigured === false && seams.ttsConfigured === false);
+      seams.asrConfigured === false && seams.ttsConfigured === false
+      && seams.streamAsrConfigured === false && seams.turnTakingConfigured === false);
+    check('composition stream ASR stays fail-closed before transport',
+      await errorOf(() => seams.streamAsr.transcribeStream((async function* () { yield new Uint8Array([1]); })())[Symbol.asyncIterator]().next()) === 'streaming_asr_not_configured');
     process.env.DASHSCOPE_API_KEY = 'legacy-broad-key';
     const poisonedAsr = providerFactory(VOICE_ASR)() as Asr;
     const poisonedTts = providerFactory(VOICE_TTS)() as Tts;

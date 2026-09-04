@@ -153,6 +153,19 @@ export {
 export type { Asr, Tts, TtsDownloadAdmission } from './voice.ts';
 export { createInterviewVoiceSeams } from './interview-voice-seams.ts';
 export type { InterviewVoiceSeams } from './interview-voice-seams.ts';
+export {
+  isProductionVoiceStreamLocked,
+  isVoiceStreamAsrPreviewRequested,
+  isVoiceStreamAsrPreviewEnabled,
+  assertVoiceStreamAsrPreviewComposition,
+  refuseVoiceStreamAsrUnlessPreview,
+  assertVoiceTurnTakingPreviewAllowed,
+  VOICE_STREAM_ASR_UNCONFIGURED,
+  VOICE_TURN_TAKING_NOT_CONFIGURED,
+  VOICE_TURN_TAKING_UNCONFIGURED,
+  STREAMING_ASR_NOT_CONFIGURED,
+  STREAMING_TTS_NOT_CONFIGURED,
+} from './voice-stream-preview.ts';
 // 检索 / RAG（向量化 seam + 混合检索 + 召回度量）
 export { dashscopeEmbedder, fakeEmbedder, cosine } from './embedder.ts';
 export type { Embedder } from './embedder.ts';
@@ -191,7 +204,7 @@ export {
   ExternalResponseJsonError,
 } from './timeout.ts';
 
-export { fakeStreamingAsr, fakeStreamingTts, disabledStreamingTts, dashscopeStreamingAsr, dashscopeStreamingTts, streamingVoiceTurn } from './voice-stream.ts';
+export { fakeStreamingAsr, fakeStreamingTts, disabledStreamingAsr, disabledStreamingTts, dashscopeStreamingAsr, dashscopeStreamingTts, streamingVoiceTurn } from './voice-stream.ts';
 export type { AsrEvent, StreamingAsr, StreamingTts, StreamTurnHooks } from './voice-stream.ts';
 
 export { createMetrics, setMetrics, getMetrics, registerBaselineMetrics, METRIC, type Metrics } from './metrics.ts';

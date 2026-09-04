@@ -17,7 +17,7 @@ tags:
 
 # 人机双向语音能力边界与升级门
 
-> 这里的“单轨”只描述**目标态**的人侧只采集一个本机麦克风轨道；它不代表 AI 不说话。批量 ASR/TTS 是**预览版**：registry 已接线 `voice.asr.v1` / `voice.tts.v1`，组合根仅在独立能力 Key 存在时构造适配器；缺 Key、超时或畸形响应 fail-closed，不编造转写/音频。流式语音与原始音频手工 smoke 仍 fail-closed。这不是生产 SLO、共享准入或删除回执。
+> 这里的“单轨”只描述**目标态**的人侧只采集一个本机麦克风轨道；它不代表 AI 不说话。批量 ASR/TTS 是**预览版**：registry 已接线 `voice.asr.v1` / `voice.tts.v1`，组合根仅在独立能力 Key 存在时构造适配器；缺 Key、超时或畸形响应 fail-closed，不编造转写/音频。流式 ASR 与服务端 turn-taking **未验证**：生产/默认 fail-closed；预览必须精确双旗 `VOICE_STREAM_ASR_ENABLED=1` 且 `VOICE_STREAM_ASR_PREVIEW=1`，且非 production / `MODEL_COST_ENFORCEMENT=enforce` / `MEETWISE_PUBLIC_PREVIEW=1`。双旗不是验证——`voice.asr-stream.v1` 仍 `wired: false`，组合根不构造 live stream，Key 单独不能开 WebSocket。原始音频手工 smoke 仍 fail-closed。这不是生产 SLO、共享准入或删除回执。见 `PRD-TEST-006`。
 
 ## 当前实现与证据边界（事实，不是路线图）
 
@@ -28,6 +28,7 @@ tags:
 | 浏览器本机单麦克风录音 | 已实现 | `MediaRecorder` + 显式同意门 | 只采集当前设备的人侧单轨 |
 | 片段 ASR（自动语音识别） → 可编辑文本 | 预览接线；缺 Key fail-closed | `POST /interview/:id/transcribe`；畸形/超时不编造转写 | 预览版语音；失败回文字 |
 | 题目 TTS（文本转语音） | 预览接线；缺 Key fail-closed | `/speak` 在 Key 存在时合成；`/speak/stream` 仍不可用 | 预览版播题；失败回文字 |
+| 流式 ASR / 服务端 turn-taking | 未验证；生产/默认 fail-closed | 精确双旗才*请求*预览；生产/enforce/公开预览仍拒。`createInterviewVoiceSeams` 的 `streamAsrConfigured` / `turnTakingConfigured` 恒为 false。`pnpm voice-stream-asr-honesty:prove` | 不得称全双工、已验证抢话或生产 SLO；不得编造转写/分数。`vstream:prove` / `voice-adaptive:prove` 只是 fake-seam 合同 |
 | 本机音量/“在听”动效 | 已实现 | VAD 的 28 根波形条，状态刷新最多 12.5 Hz；`prefers-reduced-motion`（减少动态效果偏好）关闭动画 | 人侧本机麦克风电平，不代表另一位人类说话者 |
 | 远端媒体轨 / PSTN / WebRTC 通话接入 | 未实现 | 无 provider、无远端轨协议 | 不可宣传为电话或会议 |
 | 双人录音 / 说话人分离 / DER | 未实现 | 无双轨样本、无 diarization provider、无 DER 报告 | 不可生成“面试官/候选人”归因 |
@@ -51,8 +52,9 @@ tags:
 
 - 没有 `capture.consent === true`、策略版本不匹配、畸形 base64、或声明 `two_participant_call` 时，Zod 在 ASR 调用前返回 400。
 - 录音仅经同源 API 中转到 ASR；当前应用不把原始片段写入业务数据库或对象存储。
-- 返回值必须含 `capture: { mode: 'single_local_microphone', speakerAttribution: 'not_diarized', wordTimestamps: 'not_available' }`。这是一条能力声明，禁止消费端把它渲染成双人电话记录。
+- 返回值必须含 `capture: { mode: 'single_local_microphone', speakerAttribution: 'not_diarized', wordTimestamps: 'not_available' }`。这是一条能力声明，禁止消费端把它渲染成双人电话记录，也禁止发明招聘方/候选人双角色归因。
 - UI 必须先展示同意范围，再调用 `getUserMedia`。取消或改用文字不会触发权限请求。
+- 流式 ASR / 服务端 turn-taking 的预览请求必须同时满足：`VOICE_STREAM_ASR_ENABLED === '1'`、`VOICE_STREAM_ASR_PREVIEW === '1'`、且未落入生产锁。`true` / `yes` / 仅一把旗 / 仅有 `DASHSCOPE_STREAM_ASR_API_KEY` 都不能打开。即使双旗齐全，产品组合根仍拒绝装配 live stream，直到 `voice.asr-stream.v1` wired 且 `PRD-TEST-006` 有浏览器→API→供应商回执。失败路径不得编造转写或分数。
 
 ## 状态与降级
 
@@ -184,5 +186,6 @@ stateDiagram-v2
 | API | `pnpm api:validate` | 假 ASR 真 HTTP 栈返回能力声明，越权不花 ASR |
 | 负路径 | `pnpm neg:interview` | 未同意/越权/不支持媒体的请求没有模型调用或持久化副作用 |
 | UI | `pnpm web:prove && pnpm e2e:ui` | 同意前不请求麦克风；听音动效有静态 reduced-motion 降级；ASR/Mic 失败有文字出口 |
+| 流式诚实 | `pnpm voice-stream-asr-honesty:prove` | 仅精确双旗请求预览；生产/enforce/公开预览锁定；Key 单独零 WebSocket；组合根 `streamAsrConfigured=false`；`voice.asr-stream.v1` 仍 not_wired；不编造转写 |
 
-真实双人电话/WER/DER 目前没有经授权的媒体接入和数据集，故不属于本轮“已验证”结果。
+真实双人电话/WER/DER 目前没有经授权的媒体接入和数据集，故不属于本轮“已验证”结果。流式 ASR 与服务端 turn-taking 的 fake-seam 绿灯不是产品 E2E。

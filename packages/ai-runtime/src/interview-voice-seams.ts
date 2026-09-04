@@ -10,8 +10,10 @@
  * refuse caller key/URL overrides). Missing Key, unwired operation, malformed
  * provider output, or native-config rejection (legacy broad key / URL override)
  * → fail-closed (`*_not_configured` / `*_malformed`). A config throw must not
- * take down text-interview DI. Streaming stays disabled. This is not
- * MODEL-OP-02 shared admission, durable attempt/unknown, or a production SLO.
+ * take down text-interview DI. Streaming ASR and server turn-taking stay
+ * disabled even when `VOICE_STREAM_ASR_*` preview flags and stream Keys exist:
+ * `voice.asr-stream.v1` is unwired and PRD-TEST-006 is not verified. This is
+ * not MODEL-OP-02 shared admission, durable attempt/unknown, or a production SLO.
  */
 import { createHash } from 'node:crypto';
 import { resolveDashscopeNativeConfig } from './dashscope-native-config.ts';
@@ -20,7 +22,7 @@ import { resolveModelOperationBinding } from './operation-binding.ts';
 import {
   dashscopeAsr, dashscopeTts, disabledAsr, disabledTts, type Asr, type Tts,
 } from './voice.ts';
-import { disabledStreamingTts, type StreamingTts } from './voice-stream.ts';
+import { disabledStreamingAsr, disabledStreamingTts, type StreamingAsr, type StreamingTts } from './voice-stream.ts';
 
 const COMPOSITION_REVISION = 'interview-voice-preview';
 const EMPTY_DIGEST = createHash('sha256').update('meetwise.interview-voice.composition', 'utf8').digest('hex');
@@ -28,9 +30,12 @@ const EMPTY_DIGEST = createHash('sha256').update('meetwise.interview-voice.compo
 export interface InterviewVoiceSeams {
   readonly asr: Asr;
   readonly tts: Tts;
+  readonly streamAsr: StreamingAsr;
   readonly streamTts: StreamingTts;
   readonly asrConfigured: boolean;
   readonly ttsConfigured: boolean;
+  readonly streamAsrConfigured: boolean;
+  readonly turnTakingConfigured: boolean;
 }
 
 function asrBindingOk(): boolean {
@@ -81,9 +86,12 @@ function disabledSeams(): InterviewVoiceSeams {
   return Object.freeze({
     asr: disabledAsr(),
     tts: disabledTts(),
+    streamAsr: disabledStreamingAsr(),
     streamTts: disabledStreamingTts(),
     asrConfigured: false,
     ttsConfigured: false,
+    streamAsrConfigured: false,
+    turnTakingConfigured: false,
   });
 }
 
@@ -119,8 +127,11 @@ export function createInterviewVoiceSeams(env: NodeJS.ProcessEnv = process.env):
   return Object.freeze({
     asr,
     tts,
+    streamAsr: disabledStreamingAsr(),
     streamTts: disabledStreamingTts(),
     asrConfigured,
     ttsConfigured,
+    streamAsrConfigured: false,
+    turnTakingConfigured: false,
   });
 }

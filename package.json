@@ -31,6 +31,7 @@
     "native-fail-closed:prove": "pnpm -C packages/ai-runtime prove:native-fail-closed",
     "question-generation-fail-closed:prove": "pnpm -C packages/domain prove:question-generation-fail-closed",
     "voice-operation-policy:prove": "pnpm -C apps/api exec tsx test/voice-operation-policy.proof.ts",
+    "voice-stream-asr-honesty:prove": "pnpm -C packages/ai-runtime prove:voice-stream-preview",
     "graph:prove": "pnpm -C apps/worker prove:resume",
     "pipeline:prove": "pnpm -C packages/ai-graphs prove:pipeline",
     "api:validate": "node scripts/run-e2e-isolated.mjs api:validate",
