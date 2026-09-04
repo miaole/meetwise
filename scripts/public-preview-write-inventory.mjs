@@ -18,6 +18,14 @@ const ALLOWED_EXPOSURE = new Set(['public-reachable', 'internal-only']);
 const ALLOWED_DISPOSITION = new Set(['fenced', 'not-public']);
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const SERVICE_FENCE_MARKERS = ['denyPublicPreviewWrite(', 'assertPublicPreviewWritesClosed('];
+const PREVIEW_CONTROLLED_WRITE_MARKERS = [
+  'requirePublicPreviewControlledWrite(',
+  'assertPublicPreviewControlledWriteAllowed(',
+];
+
+export function isPreviewControlledWriteSurface(surface) {
+  return Array.isArray(surface?.fences) && surface.fences.includes('preview-controlled-write');
+}
 
 export function inventoryPath(repoRoot) {
   return resolve(repoRoot, DEFAULT_MANIFEST);
@@ -214,6 +222,16 @@ export function validatePublicPreviewWriteInventory(manifest, { repoRoot }) {
       const body = methodBody(service, surface.handler);
       if (!SERVICE_FENCE_MARKERS.some((marker) => body.includes(marker))) {
         errors.push(`service_fence_missing:${surface.id}:${surface.handler}`);
+      }
+    }
+    if (surface.fences.includes('preview-controlled-write')) {
+      const service = readSource(repoRoot, INTERVIEW_SERVICE) ?? '';
+      const body = methodBody(service, surface.handler);
+      if (!PREVIEW_CONTROLLED_WRITE_MARKERS.some((marker) => body.includes(marker))) {
+        errors.push(`preview_controlled_write_missing:${surface.id}:${surface.handler}`);
+      }
+      if (SERVICE_FENCE_MARKERS.some((marker) => body.includes(marker))) {
+        errors.push(`preview_controlled_write_blocked_by_read_only:${surface.id}:${surface.handler}`);
       }
     }
   }

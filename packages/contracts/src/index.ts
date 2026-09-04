@@ -606,10 +606,10 @@ export const MemoryAdmissionAuthorization = z.object({
 export type MemoryAdmissionAuthorization = z.infer<typeof MemoryAdmissionAuthorization>;
 
 /* ───────────── interview answer fact root (INT-TRANSCRIPT-00 合同冻结) ─────────────
- * 00 只冻结 submission/receipt 与后续 01 形状，不登记进 apiContract（不进 OpenAPI），
- * 也不授权新的公开 canonical raw write。答案提交的 HTTP 路径仍是 legacy
- * /interview/{id}/turn（TurnDto，INT-P0-RAW-QUEUE）。0092 rehearsal 表/函数可被后续
- * 评分/删除 proof 使用，但不能把本块写成已上线 write route。
+ * 00 冻结 submission/receipt 与后续 01 形状，不登记进 apiContract（不进 OpenAPI）。
+ * 预览版可另走 HTTP `POST /interview/{id}/answers`（InterviewAnswerPreviewSubmitDto），
+ * 只在 MEETWISE_PUBLIC_PREVIEW=1 下落 0092 rehearsal 账本；这不是 INT-TRANSCRIPT-01
+ * 生产 cutover，也不取代 legacy /interview/{id}/turn（TurnDto，INT-P0-RAW-QUEUE）。
  *
  * 铁律：所有模型/评分/RAG/Web/memory/B 端投影的副作用为 0——首包只落
  * `accepted_unscored`，正文只进加密 ciphertext（bytea），任何投影只拿 bodyHmac/watermark，
@@ -626,6 +626,18 @@ export type InterviewAnswerArtifactStatus = z.infer<typeof InterviewAnswerArtifa
 /** 提交回执状态机：首包 `accepted_unscored`（未评分），删除 fence 后 `fenced`。 */
 export const InterviewAnswerSubmissionStatus = z.enum(['accepted_unscored', 'fenced']);
 export type InterviewAnswerSubmissionStatus = z.infer<typeof InterviewAnswerSubmissionStatus>;
+
+/**
+ * 预览版账本提交请求。客户端不得自报 owner / privacyEpoch / artifact 状态。
+ * 不登记进 apiContract：公开 OpenAPI 仍无 01 canonical write。
+ */
+export const InterviewAnswerPreviewSubmitDto = z.object({
+  questionId: z.string().min(1).max(128),
+  stateVersion: z.number().int().nonnegative(),
+  clientSubmissionKey: z.string().min(1).max(128),
+  answer: z.string().min(1).max(ANSWER_MAX),
+}).strict();
+export type InterviewAnswerPreviewSubmitDto = z.infer<typeof InterviewAnswerPreviewSubmitDto>;
 
 /** 提交结果（幂等）：同 clientSubmissionKey + 同 canonicalBodyHmac → 回放既有回执；异体 → 冲突。 */
 export const InterviewAnswerSubmitResult = z.object({

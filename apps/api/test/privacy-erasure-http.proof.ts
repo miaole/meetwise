@@ -105,7 +105,7 @@ async function main() {
       headers: { ...authorization, 'content-type': 'application/json' },
       body: JSON.stringify({ clientSubmissionKey: 'k1', answer: '不得经新路径落库' }),
     });
-    A('公开 API 无 01 canonical raw write 路径',
+    A('非预览公开 API 无 01 canonical raw write；预览账本路径在本证明保持关闭',
       canonicalWrite.status === 404 || canonicalWrite.status === 405);
 
     const sideEffects = await admin.query(

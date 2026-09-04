@@ -50,6 +50,22 @@ const checks = {
     expectError(candidate, 'surface_unfenced:api-interview-assessment');
     expectError(candidate, 'public_surface_not_fenced:api-interview-assessment');
   },
+  'TC-INT-TRANSCRIPT-PREVIEW-SUBMIT-inventory': () => {
+    const result = validate(manifest);
+    assert.equal(result.valid, true, result.errors.join('\n'));
+    const answers = manifest.surfaces.find((surface) => surface.id === 'api-interview-preview-answers');
+    assert.equal(answers?.path, '/interview/:id/answers');
+    assert.equal(answers?.disposition, 'fenced');
+    assert.ok(answers?.fences.includes('preview-controlled-write'));
+    assert.equal(answers?.fences.includes('service-write-fence'), false);
+    assert.equal(manifest.releaseEvidence, false);
+  },
+  'TC-INT-TRANSCRIPT-PREVIEW-SUBMIT-E5-controlled-write-required': () => {
+    const candidate = clone(manifest);
+    const answers = candidate.surfaces.find((surface) => surface.id === 'api-interview-preview-answers');
+    answers.handler = 'notARealMethod';
+    expectError(candidate, 'preview_controlled_write_missing:api-interview-preview-answers:notARealMethod');
+  },
   'TC-public-preview-01-E6-service-fence-required': () => {
     const candidate = clone(manifest);
     const assessment = candidate.surfaces.find((surface) => surface.id === 'api-interview-assessment');

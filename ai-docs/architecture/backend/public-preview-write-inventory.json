@@ -9,6 +9,7 @@
     "http-method-ingress",
     "web-middleware",
     "service-write-fence",
+    "preview-controlled-write",
     "disabled-no-write",
     "internal-not-public"
   ],
@@ -33,6 +34,7 @@
     "INSERT INTO assessment_report",
     "INSERT INTO score_card",
     "enqueueInterviewJob",
+    "submitInterviewAnswer",
     "writeFinalScoreCard",
     "requeueFailedReport",
     "startApplicationInterview",
@@ -206,6 +208,19 @@
       "writes": ["career_path"],
       "stateClass": "interview",
       "fences": ["http-method-ingress", "service-write-fence"],
+      "disposition": "fenced"
+    },
+    {
+      "id": "api-interview-preview-answers",
+      "kind": "http-route",
+      "exposure": "public-reachable",
+      "method": "POST",
+      "path": "/interview/:id/answers",
+      "source": "apps/api/src/modules/interview/interview.controller.ts",
+      "handler": "submitPreviewAnswer",
+      "writes": ["interview_answer_submission", "interview_answer_artifact", "interview_answer_job"],
+      "stateClass": "interview",
+      "fences": ["http-method-ingress", "preview-controlled-write"],
       "disposition": "fenced"
     },
     {

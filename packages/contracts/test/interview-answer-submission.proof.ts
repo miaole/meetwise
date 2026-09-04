@@ -1,13 +1,14 @@
 /**
  * contracts prove:interview-answer-submission — INT-TRANSCRIPT-00 提交/回执合同冻结。
  *
- * 本包只冻结 future InterviewAnswerSubmission / receipt 行为形状，不登记进 apiContract，
- * 也不授权任何新的 01 canonical raw-answer HTTP 写入路径。同键同体是回放形状；同键异体
- * 冲突由服务端账本判定，契约层只保证两份回执都不能携带正文明文。
+ * 冻结 InterviewAnswerSubmission / receipt 与预览请求 DTO。不登记进 apiContract。
+ * 预览 HTTP 可走 /answers，但 OpenAPI 仍无 01 canonical write。同键同体是回放形状；
+ * 同键异体冲突由服务端账本判定，契约层只保证回执不能携带正文明文。
  */
 import { randomUUID } from 'node:crypto';
 import {
   InterviewAnswerSubmitResult, InterviewAnswerSubmissionReceipt, InterviewAnswerSubmissionStatus,
+  InterviewAnswerPreviewSubmitDto,
   apiContract,
 } from '../src/index.ts';
 import { buildOpenApiDocument } from '../src/openapi.ts';
@@ -66,10 +67,26 @@ ok(!apiContract.some((r) =>
   || r.response === InterviewAnswerSubmitResult
   || r.response === InterviewAnswerSubmissionReceipt),
   'submission/receipt 合同不登记进 apiContract');
+const previewDto = {
+  questionId, stateVersion: 1, clientSubmissionKey: key, answer: '预览账本正文',
+};
+ok(InterviewAnswerPreviewSubmitDto.safeParse(previewDto).success, '预览提交 DTO 合法形状全过');
+ok(!InterviewAnswerPreviewSubmitDto.safeParse({ ...previewDto, privacyEpoch: 1 }).success,
+  '预览 DTO strict 拒绝客户端自报 privacyEpoch');
+ok(!InterviewAnswerPreviewSubmitDto.safeParse({ ...previewDto, owner: 'userA' }).success,
+  '预览 DTO strict 拒绝客户端自报 owner');
+ok(!InterviewAnswerPreviewSubmitDto.safeParse({ ...previewDto, answer: '' }).success,
+  '预览 DTO 拒绝空正文');
+ok(!InterviewAnswerPreviewSubmitDto.safeParse({ ...previewDto, clientSubmissionKey: '' }).success,
+  '预览 DTO 拒绝空 submission key');
+
 ok(doc.paths['/interview/{id}/answers'] === undefined
   && doc.paths['/interview/{id}/submission'] === undefined
   && doc.paths['/interview/{id}/answer-artifact'] === undefined,
-  '公开 OpenAPI 无 01 canonical raw write 路径');
+  '公开 OpenAPI 无 01 canonical raw write 路径（预览 HTTP 不进 apiContract）');
 ok(doc.paths['/interview/{id}/turn']?.post !== undefined, 'legacy /turn 仍是公开作答路径（INT-P0-RAW-QUEUE）');
+ok(!apiContract.some((r) => r.request === InterviewAnswerPreviewSubmitDto
+  || r.response === InterviewAnswerPreviewSubmitDto),
+  '预览提交 DTO 不登记进 apiContract');
 
 console.log(`✓ contracts interview-answer-submission 全部通过(${n} 断言)`);

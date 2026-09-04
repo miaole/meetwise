@@ -15,6 +15,7 @@ tags:
 related:
   - ./expert-long-interview-runtime.md
   - ./UC-interview-submit-answer.md
+  - ./interview-answer-preview-submit.md
   - ../../architecture/backend/interview-answer-dual-write-cutover.md
   - ../../architecture/current-runtime-truth.md
   - ../../rules/global/production-invariants.md
@@ -24,7 +25,7 @@ related:
 
 ## 0. 状态与不能误称的事实
 
-这是 **INT-P0-RAW-QUEUE 的围栏/切换图前置**，不是 `INT-TRANSCRIPT-01`。真实用户 HTTP 仍走 legacy `POST /interview/:id/turn`，仍把明文 `answer` 写入 `interview_job.payload`。ledger 写入（`submitInterviewAnswer` → 加密 artifact）仍不是生产 HTTP 路由。本用例禁止两条路径对同一答题身份并行落同一答题事实，并禁止 `interview_event` 新增顶层原文键。
+这是 **INT-P0-RAW-QUEUE 的围栏/切换图前置**，不是 `INT-TRANSCRIPT-01`。真实用户 HTTP 仍走 legacy `POST /interview/:id/turn`，仍把明文 `answer` 写入 `interview_job.payload`。ledger 写入（`submitInterviewAnswer` → 加密 artifact）在预览下可由 `POST /interview/:id/answers` 调用（`UC-INT-TRANSCRIPT-PREVIEW-SUBMIT`），仍不是 01 生产 HTTP 路由。本用例禁止两条路径对同一答题身份并行落同一答题事实，并禁止 `interview_event` 新增顶层原文键。
 
 不得把本围栏说成：canonical transcript 已上线、删后 read=0 已闭合、plaintext queue 已停用、或 01 真实 write route 已开放。不得把“任意 `kind=answer` 行与 artifact 不能同表存在”说成本用例后置——无 `answer` 键的 answer job 可以与 artifact 并存。
 

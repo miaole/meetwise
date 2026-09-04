@@ -78,7 +78,8 @@ tags:
 | 前端架构 | `architecture/frontend/` | 页面、组件、数据流、RSC 边界 |
 | C 端进度/已答题数 | `requirements/use-cases/cend-overview-progress.md` | 题目账本投影、与 ScoreCard 分责 |
 | 后端架构 | `architecture/backend/` | 模块、接口、DB、事务、队列 |
-| 面试答题双写/切换 | `architecture/backend/interview-answer-dual-write-cutover.md` | legacy 明文 job / event / ledger 盘点与 01 前互斥围栏（不是 01 完成） |
+| 面试答题双写/切换 | `architecture/backend/interview-answer-dual-write-cutover.md` | legacy 明文 job / event / ledger 盘点与 01 前互斥围栏（0126，不是 01 完成） |
+| 预览版答题账本 | `requirements/use-cases/interview-answer-preview-submit.md` | 预览 `POST /interview/:id/answers` → 0092 rehearsal；受 0126 围栏约束；非 01 cutover |
 | 云端部署(CD) | `delivery/lean-cd-deployment.md` | 精简单机 compose 部署、ACR、回滚 |
 | 本地演示 | `architecture/devops/local-demo-deployment.md` | compose、seed、健康检查 |
 | 测试设计 | `testing/strategy/test-strategy.md` | 测试矩阵、golden tasks |

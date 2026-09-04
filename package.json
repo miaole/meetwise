@@ -169,6 +169,8 @@
     "memory-vector-chunk-erasure:prove:raw": "pnpm -C packages/db prove:memory-vector-chunk-erasure",
     "privacy-erasure-preview:prove": "node scripts/run-e2e-isolated.mjs privacy-erasure-preview:prove:raw",
     "privacy-erasure-preview:prove:raw": "pnpm -C packages/db prove:privacy-erasure-preview",
+    "int-transcript-preview-submit:http:prove": "node scripts/run-e2e-isolated.mjs int-transcript-preview-submit:http:prove:raw",
+    "int-transcript-preview-submit:http:prove:raw": "pnpm -C apps/api prove:int-transcript-preview-submit-http",
     "int-transcript-answer-fact-root:prove": "node scripts/run-e2e-isolated.mjs int-transcript-answer-fact-root:prove:raw",
     "int-transcript-answer-fact-root:prove:raw": "pnpm -C packages/db prove:int-transcript-answer-fact-root",
     "int-transcript-remaining-sinks:prove": "node scripts/run-e2e-isolated.mjs int-transcript-remaining-sinks:prove:raw",
