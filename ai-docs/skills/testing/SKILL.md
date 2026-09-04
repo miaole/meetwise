@@ -19,7 +19,7 @@ description: 功能改动后必须走完的审核→测试→回归。选择 uni
 ```bash
 pnpm regression          # 无 Key 也可跑的事后回归（文档 + helper + 回执/运行器证明）
 pnpm regression --core   # 再加行走骨架隔离门（需要 Docker / 临时 Postgres）
-pnpm regression --live   # 真供应商 HTTP/UI E2E；缺 MODEL_API_KEY 必须非零退出，不得 skip-as-pass
+pnpm regression --live   # 真供应商 HTTP E2E；缺 MODEL_API_KEY 必须非零退出。浏览器层需先 `pnpm -C apps/web build` 再 `pnpm e2e:ui:isolated`
 ```
 
 ## 生成前门禁（本技能自身）

@@ -49,7 +49,7 @@ tags:
 ```bash
 pnpm regression            # 无 Key 的总是门（文档 / helpers / 回执 / 架构 / api smoke）
 pnpm regression --core     # 行走骨架隔离 prove（需 Docker）
-pnpm regression --live     # 真供应商 HTTP + 浏览器 E2E；缺 MODEL_API_KEY 非零退出
+pnpm regression --live     # 真供应商 HTTP E2E；缺 MODEL_API_KEY 非零退出。浏览器层另跑 e2e:ui:isolated（需先构建 web）
 ```
 
 per-push CI 跑隔离 prove，**不**跑 `e2e:isolated`。缺 Key 时记录 `not_run`，禁止 skip-as-pass。

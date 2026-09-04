@@ -3,7 +3,9 @@
  *
  * Default: always-on gates that do not need live provider keys.
  * --core : walking-skeleton isolated/local proves (Docker / Postgres as each command requires).
- * --live : HTTP + browser E2E; missing MODEL_API_KEY exits non-zero (never skip-as-pass).
+ * --live : HTTP E2E only (`e2e:isolated`). Browser UI is a separate command
+ *          and needs `pnpm -C apps/web build` first. Missing MODEL_API_KEY
+ *          exits non-zero (never skip-as-pass).
  *
  * releaseEvidence is always false. This script does not replace CI verify.
  */
@@ -88,26 +90,25 @@ async function main() {
       console.error('regression_live_not_run: set MODEL_API_KEY and rerun `pnpm regression --live`. Do not treat this as pass.');
       process.exit(1);
     }
-    for (const [name, pnpmArgs] of [['e2e:isolated', ['e2e:isolated']], ['e2e:ui:isolated', ['e2e:ui:isolated']]]) {
-      const result = await run(name, pnpmArgs, env);
-      results.push(result);
-      if (result.code !== 0) {
-        console.error(`regression_failed:${name}:exit=${result.code}`);
-        process.exit(result.code);
-      }
+    const result = await run('e2e:isolated', ['e2e:isolated'], env);
+    results.push(result);
+    if (result.code !== 0) {
+      console.error(`regression_failed:e2e:isolated:exit=${result.code}`);
+      process.exit(result.code);
     }
+    console.log('browser UI E2E not included. After `pnpm -C apps/web build`, run `pnpm e2e:ui:isolated` separately.');
   }
 
   console.log(`\nREGRESSION_SUMMARY ${JSON.stringify({
-    outcome: 'passed',
+    outcome: wantLive ? 'passed_always_on_and_http_e2e' : 'passed_always_on_only',
     releaseEvidence: false,
-    liveE2E: wantLive ? 'ran' : 'not_requested',
+    liveE2E: wantLive ? 'http_ran_ui_not_included' : 'not_requested',
     core: wantCore,
     steps: results,
     durationMs: Date.now() - started,
   })}`);
   if (!wantLive) {
-    console.log('live E2E not requested. After interview/API/web/db changes, run `pnpm regression --live` when MODEL_API_KEY is available; otherwise record not_run.');
+    console.log('live HTTP E2E not requested. After interview/API/web/db changes, run `pnpm regression --live` when MODEL_API_KEY is available; otherwise record not_run.');
   }
   if (!wantCore) {
     console.log('walking-skeleton core not requested. Use `pnpm regression --core` when Docker/Postgres proves are in scope.');
