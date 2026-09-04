@@ -115,7 +115,7 @@ const requiredTerms = new Map([
   ["ai-docs/skills/testing/post-change-review.md", ["pnpm regression", "未查", "自签", "fail-closed", "生成物默认不可信", "skip-as-pass", "不得标 READY", "review/verify", "automation does not trust AI outputs", "multi-round allowed", "e2e-parity:check", "parity floors"]],
   ["ai-docs/skills/testing/honesty-rules.md", ["releaseEvidence", "aiTrust", "passed_adversarial", "secrets", "未审核生成", "不得标 READY", "unverified AI path", "失败即关", "parity floors"]],
   ["ai-docs/skills/testing/e2e-platform/README.md", ["draft", "PASS_WITH_GAPS", "e2e:isolated", "NOT_READY"]],
-  ["ai-docs/delivery/e2e-platform-integration.md", ["#55", "#64", "#69", "#71", "#70", "#66", "#73", "#74", "#75", "#77", "#82", "#72", "#79", "#83", "#67", "#80", "#84", "#78", "#88", "#86", "#87", "#81", "#90", "feature/e2e-platform-integration", "fail-closed", "releaseEvidence", "supersede"]],
+  ["ai-docs/delivery/e2e-platform-integration.md", ["#55", "#64", "#69", "#71", "#70", "#66", "#73", "#74", "#75", "#77", "#82", "#72", "#79", "#83", "#67", "#80", "#84", "#78", "#88", "#86", "#87", "#81", "#90", "#89", "feature/e2e-platform-integration", "fail-closed", "releaseEvidence", "supersede"]],
   ["ai-docs/testing/golden-tasks/README.md", ["GT-01", "planned", "mapped", "partial", "uncovered", "ai-output"]],
   ["ai-docs/testing/e2e-parity-baseline.md", ["allowlist", "fail-closed", "releaseEvidence", "e2e-parity:check", "parity floors", "AI diffs", "review"]],
   ["ai-docs/observability/observability-strategy.md", ["SLO", "降级", "恢复", "脱敏", "threadId"]],
@@ -244,6 +244,11 @@ const runtimeTruthAssertions = [
     source: "apps/web/lib/stream/sse-cursor.ts",
     sourceTerm: "InvalidLastEventIdError",
     truthTerm: "HC-GAP-014",
+  },
+  {
+    source: "apps/api/test/validate.ts",
+    sourceTerm: "/quiz/QZ1/events",
+    truthTerm: "三条路径断言",
   },
   {
     source: "apps/api/src/modules/privacy/privacy.service.ts",
