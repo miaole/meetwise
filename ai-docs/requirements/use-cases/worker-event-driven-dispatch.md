@@ -102,3 +102,4 @@ owner: architecture
 - 进程内 `WORKER_INTERVIEW_GLOBAL_INFLIGHT` **不是**跨 Worker 副本的集群全局锁。多副本时集群同时 running 数可以超过该值；跨副本硬 cap 属于后续项，不得写成已交付。
 - 模型 operation 预算仍是既有 `invoke` / registry / `MODEL_*` 路径，本用例不改派发后模型身份或费用账本。
 - 真实多副本、真实 commit/rollback 数据面与发布级延迟测量仍为 `releaseEvidence=false`，不得因本用例通过而宣称端到端低延迟或容量保证。
+- 与 SSE 轮询槽、模型共享槽、`0130` claim-join 的交叉缺口只维护在 `architecture/backend/high-concurrency-review.md`，本用例不平行重述。

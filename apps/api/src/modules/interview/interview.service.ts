@@ -6,6 +6,7 @@ import { VOICE_EGRESS_DISABLED_ID, type Asr, type Tts, type StreamingTts } from 
 import type { InterviewAnswerPreviewSubmitDto, InterviewAnswerSubmitResult, TranscribeDto, TurnDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
 import { RateLimitService } from '../../platform/rate-limit.service';
+import { parseLastEventId } from '../../platform/last-event-id.ts';
 import {
   assertPublicPreviewControlledWriteAllowed,
   assertPublicPreviewWritesClosed,
@@ -791,21 +792,8 @@ export class InterviewService {
   }
 
   // SSE 事件取数(replay):返回 null 表示越权/不存在(404),否则返回待写入的事件行。原始流写入胶水留在 controller。
-  /** Parse the resumable SSE cursor fail-closed.  `Number()` accepts values
-   * such as Infinity, decimals and whitespace; feeding those to SQL silently
-   * changes replay semantics and can force expensive full-stream scans. */
-  private parseLastEventId(lastEventId?: string): number {
-    if (lastEventId === undefined) return 0;
-    if (!/^(0|[1-9]\d{0,15})$/.test(lastEventId))
-      throw new HttpException({ error: 'invalid_last_event_id' }, HttpStatus.BAD_REQUEST);
-    const parsed = Number(lastEventId);
-    if (!Number.isSafeInteger(parsed) || parsed < 0)
-      throw new HttpException({ error: 'invalid_last_event_id' }, HttpStatus.BAD_REQUEST);
-    return parsed;
-  }
-
   events(principal: string, id: string, lastEventId?: string) {
-    const lastId = this.parseLastEventId(lastEventId);
+    const lastId = parseLastEventId(lastEventId);
     return this.db.asPrincipal(principal, async (c) => {
       await this.guardInterviewPrivacy(c, id);
       const rows = (await c.query('SELECT seq,kind,payload FROM interview_event WHERE stream_key=$1 AND seq>$2 ORDER BY seq', [id, lastId])).rows;

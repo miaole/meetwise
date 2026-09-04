@@ -25,6 +25,7 @@
     "prove:ocr-operation-policy": "tsx test/ocr-operation-policy.proof.ts",
     "prove:public-preview-write-gate": "node --import ./node_modules/@swc-node/register/esm/esm-register.mjs test/public-preview-write-gate.proof.ts",
     "prove:int-transcript-preview-submit-http": "node --import ./node_modules/@swc-node/register/esm/esm-register.mjs test/int-transcript-preview-submit-http.proof.ts",
+    "prove:last-event-id": "node --import @swc-node/register/esm-register test/last-event-id.proof.ts",
     "prove:resume-reference-http": "node --import @swc-node/register/esm-register test/resume-reference-http.proof.ts",
     "neg:all": "for g in auth commerce resume interview bend input; do node --import @swc-node/register/esm-register test/neg-$g.proof.ts || exit 1; done"
   },

@@ -48,8 +48,8 @@ export class QuizController {
   // 与 interview events 同形:catch-up 重放 → hold 连接轮询 tail 新事件到终态/断开/封顶,带心跳保活(无死胡同)。
   @Get(':id/events')
   async events(@Param('id') id: string, @Req() req: any, @Res() reply: FastifyReply, @Headers('last-event-id') lastEventId: string) {
-    const rows = await this.quizzes.events(req.principal, id, lastEventId);
-    if (rows === null) { reply.code(404).send({ error: 'not_found_or_forbidden' }); return; }
+    const initial = await this.quizzes.events(req.principal, id, lastEventId);
+    if (initial === null) { reply.code(404).send({ error: 'not_found_or_forbidden' }); return; }
     const slotKey = `sse:${req.principal}`;            // per-principal SSE 并发上限(安全审计 F5)
     if (!this.rl.acquireSlot(slotKey, 5)) { reply.code(429).send({ error: 'too_many_streams', message: 'SSE 连接过多,请关闭其它页面后重试' }); return; }
     try {
@@ -59,7 +59,7 @@ export class QuizController {
     req.raw.on('close', () => { closed = true; });    // 客户端断开
     const safeWrite = (s: string) => { try { reply.raw.write(s); return true; } catch { closed = true; return false; } };
     const isTerminal = (k: string) => k === 'quiz_ready' || k === 'quiz_unavailable' || k === 'error';
-    let lastSeq = Number(lastEventId) || 0;
+    let lastSeq = initial.lastId;
     let done = false;
     const emit = (list: Array<{ seq: number; kind: string; payload: unknown }>) => {
       for (const e of list) {
@@ -68,14 +68,14 @@ export class QuizController {
         if (isTerminal(e.kind)) done = true;
       }
     };
-    emit(rows);                                        // 1. 重放 catch-up
+    emit(initial.rows);                                // 1. 重放 catch-up
     const deadline = Date.now() + 10 * 60_000;         // 封顶 10min(防僵尸连接;客户端凭 Last-Event-ID 重连续推)
     while (!done && !closed && Date.now() < deadline) {  // 2. hold + 轮询 tail
       await new Promise((r) => setTimeout(r, 2000));
       if (closed) break;
       const more = await this.quizzes.events(req.principal, id, String(lastSeq)).catch(() => null);
       if (more === null) break;                         // 取数失败 → 收尾(客户端会重连)
-      if (more.length) emit(more);
+      if (more.rows.length) emit(more.rows);
       else if (!safeWrite(': ping\n\n')) break;         // 心跳保活 + 写失败即知断开
     }
     if (!closed) { try { reply.raw.end(); } catch { /* 已断开 */ } }
