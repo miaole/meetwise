@@ -1,6 +1,6 @@
 import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
 import { createHash, randomUUID } from 'node:crypto';
-import { assertInterviewPrivacyActive, reserveEntitlement, enqueueInterviewJob, getReport, abandonInterviewAndRelease, requeueFailedReport, claimInterviewAnswer, listScorableScoreCards, submitInterviewAnswer } from '@meetwise/db';
+import { assertInterviewPrivacyActive, reserveEntitlement, enqueueInterviewJob, getReport, abandonInterviewAndRelease, requeueFailedReport, claimInterviewAnswer, listScorableScoreCards, submitInterviewAnswer, viewInterviewAnswerSnapshot, readbackInterviewAnswerSubmission } from '@meetwise/db';
 import { deriveAssessment, deriveLearningPlan, deriveCareerPath, resolveOverlongAnswerPolicy, isTrustedScoreIdentity, requireTrustedPracticeOverall } from '@meetwise/domain';
 import { VOICE_EGRESS_DISABLED_ID, type Asr, type Tts, type StreamingTts } from '@meetwise/ai-runtime';
 import type { InterviewAnswerPreviewSubmitDto, InterviewAnswerSubmitResult, TranscribeDto, TurnDto } from '@meetwise/contracts';
@@ -313,18 +313,33 @@ export class InterviewService {
       if (iv.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
       await this.guardInterviewPrivacy(c, id);
       await this.assertAnswerable(c, id, iv.rows[0].status);
+      const existing = await readbackInterviewAnswerSubmission(c, body.clientSubmissionKey);
+      if (existing) {
+        if (existing.interviewId !== id || existing.questionId !== body.questionId
+          || existing.stateVersion !== body.stateVersion)
+          throw new HttpException({ error: 'interview_answer_submission_conflict' }, HttpStatus.CONFLICT);
+      }
       const issued = await c.query(
         `SELECT state_version, status FROM interview_question
-          WHERE interview_id=$1 AND question_id=$2 FOR UPDATE`,
+          WHERE owner_user_id=current_setting('app.principal_user', true)
+            AND interview_id=$1 AND question_id=$2 FOR UPDATE`,
         [id, body.questionId],
       );
-      if (issued.rowCount === 0)
-        throw new HttpException({ error: 'question_not_ready' }, HttpStatus.CONFLICT);
-      const row = issued.rows[0];
-      if (Number(row.state_version) !== body.stateVersion || row.status === 'cancelled')
-        throw new HttpException({ error: 'stale_question' }, HttpStatus.CONFLICT);
-      if (row.status !== 'issued')
-        throw new HttpException({ error: 'stale_question' }, HttpStatus.CONFLICT);
+      // Same-key replay must not depend on the live question row (A4/E6).
+      if (!existing) {
+        if (issued.rowCount === 0)
+          throw new HttpException({ error: 'question_not_ready' }, HttpStatus.CONFLICT);
+        const row = issued.rows[0];
+        if (Number(row.state_version) !== body.stateVersion || row.status === 'cancelled')
+          throw new HttpException({ error: 'stale_question' }, HttpStatus.CONFLICT);
+        const snap = await viewInterviewAnswerSnapshot(c, id);
+        const occupied = snap.items.some((item) => item.questionId === body.questionId
+          && item.stateVersion === body.stateVersion && item.status === 'active');
+        if (occupied)
+          throw new HttpException({ error: 'stale_question' }, HttpStatus.CONFLICT);
+        if (row.status !== 'issued')
+          throw new HttpException({ error: 'stale_question' }, HttpStatus.CONFLICT);
+      }
       try {
         const submitted = await submitInterviewAnswer(c, {
           interviewId: id,
@@ -334,6 +349,9 @@ export class InterviewService {
           answer: body.answer,
           privacyEpoch: 1,
         });
+        if (submitted.interviewId !== id || submitted.questionId !== body.questionId
+          || submitted.stateVersion !== body.stateVersion)
+          throw new HttpException({ error: 'interview_answer_submission_conflict' }, HttpStatus.CONFLICT);
         return {
           interviewId: submitted.interviewId,
           questionId: submitted.questionId,
@@ -345,6 +363,7 @@ export class InterviewService {
           replayed: submitted.replayed,
         };
       } catch (error) {
+        if (error instanceof HttpException) throw error;
         this.mapAnswerLedgerError(error);
       }
     });

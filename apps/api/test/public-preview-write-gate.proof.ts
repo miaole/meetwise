@@ -89,6 +89,11 @@ async function main() {
   equal(isPublicPreviewControlledWrite('POST', '/interview/preview-proof/turn'), false, 'legacy turn is not a controlled write');
   equal(isPublicPreviewControlledWrite('POST', '/interview/preview-proof/answer'), false, 'legacy singular answer is not a controlled write');
   equal(isPublicPreviewControlledWrite('DELETE', '/interview/preview-proof/answers'), false, 'non-POST answers stays closed');
+  equal(isPublicPreviewControlledWrite('POST', '/interview/preview-proof/answers/extra'), false, 'answers suffix is not allowlisted');
+  for (const surface of listPublicHttpWriteSurfaces(manifest)) {
+    const allowed = isPublicPreviewControlledWrite(surface.method, substitutePath(surface.path));
+    equal(allowed, isPreviewControlledWriteSurface(surface), `${surface.id} ingress allowlist matches preview-controlled-write fence`);
+  }
 
   process.env.MEETWISE_PUBLIC_PREVIEW = '1';
   let dbCalls = 0;

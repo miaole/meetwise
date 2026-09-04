@@ -14,7 +14,7 @@ owner: platform
 - 角色 Actor：公开访客、已持有会话的浏览器、API 运行时。
 - 前置 Precondition：公开部署显式配置 `MEETWISE_PUBLIC_PREVIEW=1`；页面、静态目录和运行时使用同一发布清单。
 - 触发 Trigger：公开预览收到任意 HTTP 请求，或进程内调用面试/评分写方法。
-- 明确不做：不把该门作为生产删除证明；不允许静态站代理 API；不开放真实简历、回答、音频、订单、同意记录或其他写入；不把本地 proof 当作 ECS（云服务器）listener（监听器）/镜像摘要/健康回执。
+- 明确不做：不把该门作为生产删除证明；不允许静态站代理 API；不开放 `/turn` 明文队列、简历、音频、订单、同意记录或公开删除；**唯一**受控例外是预览 `POST /interview/:id/answers` 落 0092 rehearsal（不是 `INT-TRANSCRIPT-01`）；不把本地 proof 当作 ECS（云服务器）listener（监听器）/镜像摘要/健康回执。
 
 ## 契约与状态机
 

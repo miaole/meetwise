@@ -91,6 +91,18 @@ async function main() {
       replay.status === 200 && replayBody.replayed === true
       && replayBody.canonicalBodyHmac === firstBody.canonicalBodyHmac);
 
+    await admin.query(
+      "UPDATE interview_question SET status='queued' WHERE interview_id=$1 AND question_id=$2",
+      [IID, QUESTION],
+    );
+    const replayAfterQueued = await fetch(`${base}/interview/${IID}/answers`, {
+      method: 'POST', headers, body: JSON.stringify(body),
+    });
+    const replayAfterQueuedBody = await json(replayAfterQueued);
+    A('题目已非 issued 时同 key 仍回放',
+      replayAfterQueued.status === 200 && replayAfterQueuedBody.replayed === true
+      && replayAfterQueuedBody.canonicalBodyHmac === firstBody.canonicalBodyHmac);
+
     const conflict = await fetch(`${base}/interview/${IID}/answers`, {
       method: 'POST', headers, body: JSON.stringify({ ...body, answer: '另一份正文' }),
     });
@@ -105,17 +117,56 @@ async function main() {
     A('跨 owner 提交 404 且不泄露存在性',
       other.status === 404 && (await json(other)).error === 'not_found_or_forbidden');
 
-    const ledger = await admin.query<{ submissions: number; artifacts: number; plaintext_jobs: number; ciphertext_plain: number }>(
+    const secondKey = await fetch(`${base}/interview/${IID}/answers`, {
+      method: 'POST', headers, body: JSON.stringify({ ...body, clientSubmissionKey: `${KEY}-2` }),
+    });
+    A('同题第二把 key 拒绝，不双写 artifact',
+      secondKey.status === 409 && (await json(secondKey)).error === 'stale_question');
+
+    const missingQ = await fetch(`${base}/interview/${IID}/answers`, {
+      method: 'POST', headers, body: JSON.stringify({ ...body, questionId: 'q-missing', clientSubmissionKey: `${KEY}-miss` }),
+    });
+    A('未发题 question_not_ready 且不落新 submission',
+      missingQ.status === 409 && (await json(missingQ)).error === 'question_not_ready');
+
+    const epochBody = await fetch(`${base}/interview/${IID}/answers`, {
+      method: 'POST', headers, body: JSON.stringify({ ...body, privacyEpoch: 9 }),
+    });
+    A('客户端自报 privacyEpoch 400', epochBody.status === 400);
+
+    const ivB = `${IID}_b`;
+    await admin.query(
+      "INSERT INTO interview(id,owner_user_id,status,version,current_question_index,questions) VALUES ($1,$2,'created',0,0,'[]'::jsonb)",
+      [ivB, OWNER],
+    );
+    await admin.query(
+      "INSERT INTO interview_job(owner_user_id,interview_id,kind,seq,payload) VALUES ($1,$2,'start',0,'{}')",
+      [OWNER, ivB],
+    );
+    await admin.query(
+      "INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question,status) VALUES ($1,$2,$3,1,0,'预览题B','issued')",
+      [OWNER, ivB, QUESTION],
+    );
+    const reused = await fetch(`${base}/interview/${ivB}/answers`, {
+      method: 'POST', headers, body: JSON.stringify(body),
+    });
+    A('同 owner 跨面试复用 key 冲突，B 不落账',
+      reused.status === 409 && (await json(reused)).error === 'interview_answer_submission_conflict');
+
+    const ledger = await admin.query<{ submissions: number; artifacts: number; jobs: number; plaintext_jobs: number; ciphertext_plain: number; b_submissions: number }>(
       `SELECT
          (SELECT count(*)::int FROM interview_answer_submission WHERE owner_user_id=$1 AND interview_id=$2) AS submissions,
          (SELECT count(*)::int FROM interview_answer_artifact WHERE owner_user_id=$1 AND interview_id=$2) AS artifacts,
+         (SELECT count(*)::int FROM interview_answer_job WHERE owner_user_id=$1 AND interview_id=$2) AS jobs,
          (SELECT count(*)::int FROM interview_job WHERE interview_id=$2 AND kind='answer' AND payload ? 'answer') AS plaintext_jobs,
-         (SELECT count(*)::int FROM interview_answer_artifact WHERE owner_user_id=$1 AND interview_id=$2 AND ciphertext = convert_to($3,'utf8')) AS ciphertext_plain`,
-      [OWNER, IID, ANSWER],
+         (SELECT count(*)::int FROM interview_answer_artifact WHERE owner_user_id=$1 AND interview_id=$2 AND ciphertext = convert_to($3,'utf8')) AS ciphertext_plain,
+         (SELECT count(*)::int FROM interview_answer_submission WHERE owner_user_id=$1 AND interview_id=$4) AS b_submissions`,
+      [OWNER, IID, ANSWER, ivB],
     );
-    A('账本恰一条 submission/artifact，无 plaintext answer job，密文不是原文',
+    A('账本恰一条 submission/artifact/ref-only job，无 plaintext answer job，密文不是原文，B=0',
       Number(ledger.rows[0]?.submissions) === 1 && Number(ledger.rows[0]?.artifacts) === 1
-      && Number(ledger.rows[0]?.plaintext_jobs) === 0 && Number(ledger.rows[0]?.ciphertext_plain) === 0);
+      && Number(ledger.rows[0]?.jobs) === 1 && Number(ledger.rows[0]?.plaintext_jobs) === 0
+      && Number(ledger.rows[0]?.ciphertext_plain) === 0 && Number(ledger.rows[0]?.b_submissions) === 0);
   } finally {
     await app.close();
     await admin.end();

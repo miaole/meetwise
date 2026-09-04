@@ -21,7 +21,7 @@ related:
 这是本迭代范围，不是 `INT-TRANSCRIPT-01`。目标：在「预览版」让答案落到已有 0092 账本（加密 artifact + submission receipt + ref-only job），使预览可演示受控写入。非预览环境不得把该 HTTP 写成生产 canonical write；legacy `POST /interview/:id/turn` 在预览外仍是 `INT-P0-RAW-QUEUE`。
 
 - **角色 Actor：** 预览部署中的候选人、面试 API、公开预览写门。
-- **前置 Precondition：** 运行时精确 `MEETWISE_PUBLIC_PREVIEW=1`；面试属该 principal、隐私未围栏、已 begin、当前题在题目账本为 `issued` 且 `stateVersion` 匹配；0092 rehearsal 表已安装。客户端不得自报 owner、privacy epoch、artifact 状态或密文。
+- **前置 Precondition：** 运行时精确 `MEETWISE_PUBLIC_PREVIEW=1`；面试属该 principal、隐私未围栏、已 begin、当前题在题目账本为 `issued` 且 `stateVersion` 匹配；0092 rehearsal 表已安装。客户端不得自报 owner、privacy epoch、artifact 状态或密文。公开预览 Web 仍只读且无 `/api/interview/:id/answers` 代理；演示需已 begin 的种子场次并直打 API，不是访客在展示站交卷。
 - **触发 Trigger：** 候选人对当前题提交一份答案（`clientSubmissionKey` + 正文）。
 - **明确不做：** 不宣称 01 生产 cutover；不登记进 `apiContract` / OpenAPI；不写 plaintext `interview_job.payload.answer`；不调用 `claimInterviewAnswer` / 评分 / 模型 / RAG / memory / B 端投影；不开放公开删除；不占用 0124–0128 迁移号；Web 公开展示站保持只读（本包不加 `/api/interview/:id/answers` 代理）。
 
@@ -37,16 +37,17 @@ related:
 ## 备选流 Alternate
 
 - A1. 同 `clientSubmissionKey` + 同正文重放 → `replayed=true`，不新增 artifact/submission。
-- A2. 非预览或未知预览值：该写面不可用（404 或启动 fail-closed）；`/turn` 保持其既有语义。
-- A3. 题目已被 legacy `/turn` 占用（`queued`/`answered`）→ `409 stale_question`，避免双写同一题。
+- A2. 非预览：未登录 `401`；已登录 `404 not_found_or_forbidden`。未知预览值启动 fail-closed。`/turn` 保持其既有语义。
+- A3. 题目已被 legacy `/turn` 占用（`queued`/`answered`）→ `409 stale_question`（挡 turn→answers）。answers→turn 的明文双写由开放中的 `0126` fence 负责，本包不占 0124–0128。
+- A4. 同题已有 active artifact 时，另一把 `clientSubmissionKey` → `409 stale_question`（同题一 winner）。同 key 回放仍成功，即使题目行后来不再是 `issued`。
 
 ## 异常流 Exception
 
 | flow | 场景 | 机制 | 后置 |
 | --- | --- | --- | --- |
 | E1 重复 | 同 key/同体重放 | 幂等键 `UNIQUE(owner, client_submission_key)` | 回放同一 receipt，artifact 计数不增 |
-| E2 并发 | 同题双请求 / 同 key 异体 | 提交唯一键 + 题目行 `FOR UPDATE` | 恰一 winner；异体 `409 interview_answer_submission_conflict` |
-| E3 越权 | 他属主、非预览探测、伪造路径 | RLS + 非预览 404 + 入站方法门 | 跨 owner 0 行；非预览不落账；`/turn` 预览仍 503 |
+| E2 并发 | 同题两把 key / 同 key 异体 | 题目行 `FOR UPDATE` + 已有 artifact 拒绝第二 key；提交唯一键 | 同题恰一 artifact；异体 `409 interview_answer_submission_conflict`；跨面试复用 key `409` |
+| E3 越权 | 他属主、非预览探测、伪造路径 | RLS + 非预览 404 + 入站方法门 | 跨 owner 0 行；已登录非预览 404；`/turn` 预览仍 503 |
 | E4 失败回滚 | 隐私围栏、未 begin、题未发 | 状态机 + privacy fence | 不写 submission/artifact；围栏 → 410 |
 | E5 降级 | 预览关闭、加密/HMAC 前置失败、非法 env | fail-closed | 非预览 404；未知 env 拒启动；不退回 plaintext `/turn` |
 | E6 断线 | 响应丢失后同 key 重试 | 持久 receipt | 只回放，不第二份正文 |
