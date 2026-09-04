@@ -12,7 +12,7 @@ import { publicSiteHref } from '@/lib/public-site';
 const SITE = publicSiteHref();
 
 export const metadata: Metadata = {
-  description: '知面预览版：按真实经历练面试，下一题跟着回答走。招聘侧是后续方向，不是已经能用来招人。',
+  description: '知面预览版：按真实经历练面试。下一题跟着回答走，进度能留下来，点评只供复盘。',
   alternates: SITE ? { canonical: '/' } : undefined,
 };
 
@@ -35,7 +35,6 @@ export default async function Home() {
     { n: t('stat4n'), l: t('stat4l'), w: false },
   ];
   const path = [1, 2, 3].map((i) => ({ title: t(`path${i}Title`), desc: t(`path${i}Desc`) }));
-  const rec = [1, 2, 3].map((i) => ({ title: t(`rec${i}Title`), desc: t(`rec${i}Desc`) }));
   const arch = [1, 2, 3, 4, 5, 6].map((i) => ({ title: t(`arch${i}Title`), desc: t(`arch${i}Desc`) }));
   const caps = [1, 2, 3, 4, 5, 6].map((i) => ({ mark: t(`cap${i}Mark`), title: t(`cap${i}Title`), desc: t(`cap${i}Desc`) }));
   const bars = [{ l: t('bar1'), w: 62 }, { l: t('bar2'), w: 48 }, { l: t('bar3'), w: 74 }];
@@ -57,8 +56,8 @@ export default async function Home() {
           </h1>
           <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-muted-foreground">{t('lead')}</p>
           <div className="mt-7 flex flex-wrap items-center gap-3">
-            <Button asChild size="lg"><Link href="#arch">{t('ctaPrimary')}<ArrowRight /></Link></Button>
-            <Button asChild size="lg" variant="outline"><Link href="#rec">{t('ctaSecondary')}</Link></Button>
+            <Button asChild size="lg"><Link href="#path">{t('ctaPrimary')}<ArrowRight /></Link></Button>
+            <Button asChild size="lg" variant="outline"><Link href="#arch">{t('ctaSecondary')}</Link></Button>
           </div>
         </div>
 
@@ -108,21 +107,6 @@ export default async function Home() {
         <h2 className="mt-2 max-w-2xl text-2xl font-extrabold tracking-tight sm:text-3xl">{t('pathH2')}</h2>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {path.map((step, index) => (
-            <Card key={step.title} className="p-6">
-              <div className="text-xs font-semibold tracking-wide text-primary">0{index + 1}</div>
-              <h3 className="mt-3 font-semibold">{step.title}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{step.desc}</p>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      {/* ───── Recruiter / interviewer ───── */}
-      <section id="rec">
-        <div className="text-xs font-medium uppercase tracking-wide text-primary">{t('recEyebrow')}</div>
-        <h2 className="mt-2 max-w-2xl text-2xl font-extrabold tracking-tight sm:text-3xl">{t('recH2')}</h2>
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
-          {rec.map((step, index) => (
             <Card key={step.title} className="p-6">
               <div className="text-xs font-semibold tracking-wide text-primary">0{index + 1}</div>
               <h3 className="mt-3 font-semibold">{step.title}</h3>

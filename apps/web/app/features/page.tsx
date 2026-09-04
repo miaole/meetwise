@@ -22,8 +22,7 @@ const SITE = publicSiteHref();
 
 export const metadata: Metadata = {
   title: '产品功能 · 知面 Meetwise',
-  description:
-    '知面预览版：按真实经历练面试，下一题跟着回答走。招聘侧是后续方向，不是已经能用来招人。',
+  description: '知面预览版：按真实经历练面试。下一题跟着回答走，进度能留下来，点评只供复盘。',
   alternates: SITE ? { canonical: '/features' } : undefined,
 };
 
@@ -34,10 +33,6 @@ export default async function FeaturesPage() {
   const diffs = [1, 2, 3, 4, 5, 6].map((i) => ({
     title: t(`diff${i}Title`),
     desc: t(`diff${i}Desc`),
-  }));
-  const rec = [1, 2, 3].map((i) => ({
-    title: t(`rec${i}Title`),
-    desc: t(`rec${i}Desc`),
   }));
   const features = [1, 2, 3, 4, 5, 6].map((i) => ({
     title: t(`f${i}Title`),
@@ -60,20 +55,6 @@ export default async function FeaturesPage() {
           {diffs.map((item) => (
             <Card key={item.title} className="p-5">
               <h3 className="font-semibold">{item.title}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      <section id="rec" className="mb-12">
-        <div className="text-xs font-medium uppercase tracking-wide text-primary">{t('recEyebrow')}</div>
-        <h2 className="mt-2 max-w-2xl text-2xl font-extrabold tracking-tight">{t('recH2')}</h2>
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          {rec.map((item, index) => (
-            <Card key={item.title} className="p-5">
-              <div className="text-xs font-semibold tracking-wide text-primary">0{index + 1}</div>
-              <h3 className="mt-3 font-semibold">{item.title}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
             </Card>
           ))}

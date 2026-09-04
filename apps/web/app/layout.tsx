@@ -9,14 +9,14 @@ import { resolvePublicSiteUrl } from '@/lib/public-site';
 import { resolvePublicPreview } from '@/lib/public-preview';
 
 const SITE = resolvePublicSiteUrl();
-const DESC = '知面预览版：按真实经历练面试，下一题跟着回答走。招聘侧是后续方向，不是已经能用来招人。';
+const DESC = '知面预览版：按真实经历练面试。下一题跟着回答走，进度能留下来，点评只供复盘。';
 
 /** 全站 SEO 元数据(服务端注入):title 模板、description、Open Graph、Twitter、canonical、robots。RSC 已让内容可爬,这里补元数据层。 */
 export const metadata: Metadata = {
   metadataBase: SITE ?? undefined,
   title: { default: 'Meetwise 知面 · 预览版', template: '%s · 知面 Meetwise' },
   description: DESC,
-  keywords: ['模拟面试', '面试准备', '简历整理', '技术面试', '招聘', '知面', 'Meetwise'],
+  keywords: ['模拟面试', '面试准备', '简历整理', '技术面试', '知面', 'Meetwise'],
   applicationName: 'Meetwise 知面',
   authors: [{ name: 'Meetwise' }],
   alternates: SITE ? { canonical: '/' } : undefined,

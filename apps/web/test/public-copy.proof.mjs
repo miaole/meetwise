@@ -78,13 +78,30 @@ const checks = {
     requireText(homeEn, 'not a calibrated capability assessment', 'English home copy');
     requireText(homeZh, '真实经历 → 自适应面试 → 可复盘成长', 'Chinese home story');
     requireText(homeEn, 'Real experience → adaptive interview → reviewable growth', 'English home story');
-    requireText(homeZh, '招聘侧是后续方向', 'Chinese home B-side framing');
-    requireText(pagesHtml, '招聘侧是后续方向', 'Pages B-side framing');
-    forbid(`${homeZh}\n${homeEn}\n${pagesHtml}`, [
+    requireText(pagesHtml, '招聘不在本预览范围', 'Pages hiring out-of-scope');
+    requireText(homeZh, '招聘不在本预览范围', 'Chinese home hiring out-of-scope');
+    assert.equal((pagesHtml.match(/招聘不在本预览范围/g) ?? []).length, 1, 'Pages may state hiring is out of scope once');
+    forbid(`${homeZh}\n${homeEn}\n${features}\n${pagesHtml}\n${readme}`, [
+      '招聘侧是后续方向',
+      '招聘侧往后排',
+      '不是已经能用来招人',
+      '求职者练得清',
       '面试官问得深',
       '用同一套追问看岗位',
       'Interviewers and recruiters use the same follow-ups',
-    ], 'B-side oversell');
+      'Recruiting is a later direction',
+      'id="rec"',
+      'href="#rec"',
+    ], 'dual-role / dual-audience marketing');
+    forbid(pagesHtml, [
+      '>求职者<',
+      '>面试官<',
+      'href="#path">求职者',
+      'href="#rec">面试官',
+      'kicker">求职者',
+      'kicker">面试官',
+      'kicker">招聘方向',
+    ], 'Pages dual-role nav');
   },
   'TC-PUBLIC-COPY-E1': () => {
     const privacyAction = read('apps/web/app/privacy/actions.ts');
