@@ -4,7 +4,8 @@
 -- with older waiting work is not hidden behind insertion order. This is a
 -- stable scan order, not a lock, quota, or payload channel.
 -- 0124 on main is RAG retrieval ACL (0124_rag_retrieval_acl_fail_closed.sql).
--- 0125–0127 remain reserved by other in-flight slices. This rewrite is 0128.
+-- 0125 on main is memory_vector_chunk erasure (0125_memory_vector_chunk_erasure.sql).
+-- 0126–0127 remain reserved by other in-flight slices. This rewrite is 0128.
 
 CREATE OR REPLACE FUNCTION gateway_dispatch_owners(p_work text)
 RETURNS TABLE(owner_user_id text)
