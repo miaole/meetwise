@@ -15,6 +15,7 @@ related:
   - ./run-gates.md
   - ./regression-selection.md
   - ./honesty-rules.md
+  - ./e2e-platform/README.md
   - ../../testing/strategy/test-strategy.md
   - ../../meta/task-sop.md
 ---
@@ -23,7 +24,7 @@ related:
 
 **状态：`draft`。** draft 只限制对外宣称「测试流程已生产就绪」，**不减免任何步骤**。步骤可照做；本仪式尚未被一次非文档功能改动完整实跑证明。不得把「读过本文」或「`pnpm regression` 绿了」写成发布证据。
 
-层定义、MVP 路径和伪验收禁令只维护在 [`testing/strategy/test-strategy.md`](../../testing/strategy/test-strategy.md)。命令与失败语义只维护在 [门禁目录](./run-gates.md)。触达面「必须跑哪些门」只维护在 [回归矩阵](./regression-selection.md)。本文件只规定**顺序、停步和记录**。
+层定义、MVP 路径和伪验收禁令只维护在 [`testing/strategy/test-strategy.md`](../../testing/strategy/test-strategy.md)。命令与失败语义只维护在 [门禁目录](./run-gates.md)。触达面「必须跑哪些门」只维护在 [回归矩阵](./regression-selection.md)。HTTP harness 目录合同、脱敏与失败分类只维护在 [e2e-platform](./e2e-platform/README.md)（draft / NOT_READY）。本文件只规定**顺序、停步和记录**。
 
 生成前的用例/测试门禁是另一条技能（仓库内 `spec-gate`）；本 SOP 是**改完之后**的仪式，二者不可互相替代。任务总流程仍看 [`meta/task-sop.md`](../../meta/task-sop.md) 的验证门。
 

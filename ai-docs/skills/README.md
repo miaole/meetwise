@@ -18,5 +18,6 @@ version: 1
 | --- | --- |
 | [testing/sop.md](./testing/sop.md) | 任何功能改动之后必须逐步执行的审核 → 测试 → 回归仪式（draft） |
 | [testing/SKILL.md](./testing/SKILL.md) | 概述与铁律；不能替代 SOP |
+| [testing/e2e-platform/README.md](./testing/e2e-platform/README.md) | HTTP E2E 平台 SOP（draft / PASS_WITH_GAPS）：目录合同、脱敏、失败分类、`pnpm e2e-platform:prove` |
 
 空目录不表示能力已交付。当前只登记了测试技能；`ai/`、`shared/` 在有真实配方前不要占位。

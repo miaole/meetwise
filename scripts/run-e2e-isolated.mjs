@@ -1171,8 +1171,8 @@ const inheritedEnv = { ...process.env };
 // A real-model scoring evaluation must never load a developer `.env` or pay
 // for a provider call implicitly. CI/manual operators inject the key into this
 // process; without it no disposable database is even started.
-if (target === 'scoring:eval:raw' && !inheritedEnv.MODEL_API_KEY) {
-  console.log('SKIP scoring:eval:raw: MODEL_API_KEY not injected');
+if (target === 'scoring:eval:raw' && !String(inheritedEnv.MODEL_API_KEY ?? '').trim()) {
+  console.log('SKIP scoring:eval:raw: live_provider_key_not_injected');
   process.exit(0);
 }
 // An operator's shell may contain cloud data-plane credentials. Isolated tests

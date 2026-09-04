@@ -16,6 +16,7 @@ related:
   - ./regression-selection.md
   - ./ai-provenance.md
   - ./honesty-rules.md
+  - ./e2e-platform/README.md
   - ../../testing/strategy/test-strategy.md
 ---
 
@@ -31,6 +32,7 @@ related:
 - [回归矩阵](./regression-selection.md)
 - [出处检查](./ai-provenance.md)
 - [诚实规则](./honesty-rules.md)
+- [E2E 平台 SOP](./e2e-platform/README.md)（draft / NOT_READY；`pnpm e2e-platform:prove` 可跑，不表示 live E2E READY）
 
 入口命令（与 [门禁目录](./run-gates.md) 同步；默认项**不是**触达面必须列）：
 
@@ -42,7 +44,7 @@ pnpm regression --live   # 仅真供应商 HTTP E2E；无 MODEL_API_KEY 不要�
 
 ## 改本技能时
 
-改配方、E2E harness 或 golden-tasks 仍走 `AGENTS.md` 生成前门禁。升格 `active` 的条件只写在 [SOP](./sop.md)。
+改配方、E2E harness 或 golden-tasks 仍走 `AGENTS.md` 生成前门禁。升格 `active` 的条件只写在 [SOP](./sop.md)。e2e-platform 保持 **draft / NOT_READY**，不随本页升格而变成 READY。
 
 ## 铁律（先读再跑）
 
