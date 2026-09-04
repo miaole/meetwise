@@ -101,7 +101,9 @@ const isolated = read('scripts/run-e2e-isolated.mjs');
 A('0129 存在且禁止 completed / SLO，并链接 0096/0125',
   existsSync(resolve(root, 'packages/db/migrations/0129_privacy_erasure_preview_path.sql'))
   && existsSync(resolve(root, 'packages/db/migrations/0126_interview_answer_dual_write_fence.sql'))
+  && existsSync(resolve(root, 'packages/db/migrations/0127_resume_ocr_binding_provenance.sql'))
   && !existsSync(resolve(root, 'packages/db/migrations/0126_privacy_erasure_preview_path.sql'))
+  && !existsSync(resolve(root, 'packages/db/migrations/0128_privacy_erasure_preview_path.sql'))
   && isolated.includes("'privacy-erasure-preview:prove:raw'")
   && isolated.includes("prove:privacy-erasure-preview")
   && migration.includes("CHECK (status IN ('inventoried','local_fenced'))")
