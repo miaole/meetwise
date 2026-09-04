@@ -4,7 +4,7 @@ import { mkdirSync } from 'node:fs';
 /**
  * 演示截图采集(**非断言测试**,只截图):驱动演示路径并把截图写入未跟踪临时目录。
  * 只用**演示数据**(假邮箱 demo@meetwise.app + 通用简历文本),绝不含任何真实 PII / 密钥 / 个人信息。
- * 由 scripts/capture-screenshots.mjs 起真栈(api+worker+web,E2E_FAKE_MODEL=1)后运行。
+ * 由 scripts/capture-screenshots.mjs 起真栈(api+worker+web)后运行；假服务开关会使采集器失败。
  */
 
 const DIR = '.tmp/demo-screenshots';
