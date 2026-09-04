@@ -36,7 +36,7 @@ const fakeServiceFlags = ['VOICE_FAKE', 'OCR_FAKE', 'E2E_FAKE_MODEL'].filter((na
   return value && value !== '0' && value !== 'false';
 });
 if (fakeServiceFlags.length) throw new Error(`fake_service_mode_forbidden:${fakeServiceFlags.join(',')}`);
-if (!env.MODEL_API_KEY) throw new Error('live_provider_key_missing:MODEL_API_KEY');
+if (!String(env.MODEL_API_KEY ?? '').trim()) throw new Error('live_provider_key_missing:MODEL_API_KEY');
 
 // A previous E2E used fixed 8787/19091 ports.  Two isolated runs then raced:
 // the second runner connected to the first runner's API and reported a false

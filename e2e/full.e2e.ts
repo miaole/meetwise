@@ -3,16 +3,18 @@
  * signup → consent → 上传简历 → 建面试 → begin → 轮询 SSE 事件 → 每出题就答 → 直到终态(无死胡同)。
  * 真鉴权(Bearer)、真队列、真 worker 图执行。假模型/假语音/假 OCR 开关会使 runner 失败。
  *
- * 场景编排在本文件；HTTP / 鉴权 / 交易 / SSE / 面试循环 / 语音网关在 e2e/helpers。
+ * 场景编排在本文件；HTTP / 鉴权 / 交易 / 简历 / SSE / 面试循环 / 语音网关在 e2e/helpers。
  * 运行器仍由 scripts/run-e2e.mjs 强制隔离 + 真实供应商 Key，禁止 VOICE_FAKE/OCR_FAKE/E2E_FAKE_MODEL。
  */
 import { createHmac, randomUUID } from 'node:crypto';
 import { liveOcrResumePngBase64 } from './ocr-fixture.ts';
 import { createAssert } from './helpers/assert.ts';
 import { signupOrLogin, uidFromToken } from './helpers/auth.ts';
+import { classifyFailure } from './helpers/classify-failure.ts';
 import { createOrder, entitlement, payWebhook } from './helpers/commerce.ts';
 import { BASE, PAY_SECRET, readJson } from './helpers/http.ts';
 import { driveInterviewToTerminal } from './helpers/interview.ts';
+import { consentResumeProcessing, getResumeProfile, uploadImageResume, uploadTextResume } from './helpers/resume.ts';
 import { pollTerminal } from './helpers/sse.ts';
 import { callLiveVoiceGateway } from './helpers/voice.ts';
 
@@ -29,12 +31,13 @@ async function main() {
   const { token, headers: H } = session;
 
   // 2. PIPL 采集同意(上传简历前置)
-  let r = await fetch(`${BASE}/privacy/consent`, { method: 'POST', headers: H, body: JSON.stringify({ purpose: 'resume_processing' }) });
+  let r = (await consentResumeProcessing(H)).response;
   A(r.status === 200, 'PIPL 采集同意 → 200');
 
   // 3. 上传简历(加密落库 + 结构化 + PII 脱敏)
-  r = await fetch(`${BASE}/resume`, { method: 'POST', headers: H, body: JSON.stringify({ text: '后端工程师 3 年。负责高并发订单系统,用 Redis 做分布式锁与限流,MySQL 分库分表,消息队列削峰。' }) });
-  let b: any = await readJson(r);
+  const textResume = await uploadTextResume(H, '后端工程师 3 年。负责高并发订单系统,用 Redis 做分布式锁与限流,MySQL 分库分表,消息队列削峰。');
+  r = textResume.response;
+  let b: any = textResume.body;
   A(r.status === 200 && typeof b.resumeId === 'string', `上传简历 → resumeId(${b.status})`);
   const resumeId = b.resumeId;
 
@@ -50,19 +53,21 @@ async function main() {
   // 3c. 图片简历 OCR 全栈：真 HTTP → 真百炼视觉模型 → 计费状态机 → 真 DB。
   const beforeOcr = await entitlement(H);
   const pngB64 = liveOcrResumePngBase64();
-  r = await fetch(`${BASE}/resume/file`, { method: 'POST', headers: H, body: JSON.stringify({ filename: 'r.png', mimeType: 'image/png', contentBase64: pngB64 }) });
-  b = await readJson(r);
+  const ocrUpload = await uploadImageResume(H, { filename: 'r.png', mimeType: 'image/png', contentBase64: pngB64 });
+  r = ocrUpload.response;
+  b = ocrUpload.body;
   A(r.status === 200 && b.ocr === true && b.format === 'image' && typeof b.resumeId === 'string',
     `图片简历 OCR 全栈 → 摄取(status=${r.status}, outcome=${b.error ?? b.reason ?? 'ok'})`);
-  const ocrProfile = await readJson(await fetch(`${BASE}/resume/${b.resumeId}/profile`, { headers: H }));
+  const ocrProfile = await getResumeProfile(H, b.resumeId);
   const structuredOcr = JSON.stringify(ocrProfile.structured ?? {});
   A(Number.isInteger(b.chars) && b.chars >= 20 && ocrProfile.status === 'needs_review' && !structuredOcr.includes('13800138000')
     && /redis|postgresql|typescript|backend/i.test(structuredOcr),
   `OCR 来源产出可复核画像(${b.chars} chars)、识别至少 1 个非敏感技能且 PII 脱敏(不含明文手机号)`);
   const afterOcr = await entitlement(H);
   A(afterOcr.availableUnits === beforeOcr.availableUnits - 1, 'OCR 成功只确认扣减 1 个额度');
-  const duplicateOcr = await fetch(`${BASE}/resume/file`, { method: 'POST', headers: H, body: JSON.stringify({ filename: 'r-repeat.png', mimeType: 'image/png', contentBase64: pngB64 }) });
-  const duplicateOcrBody = await readJson(duplicateOcr);
+  const duplicateOcrUpload = await uploadImageResume(H, { filename: 'r-repeat.png', mimeType: 'image/png', contentBase64: pngB64 });
+  const duplicateOcr = duplicateOcrUpload.response;
+  const duplicateOcrBody = duplicateOcrUpload.body;
   const afterDuplicateOcr = await entitlement(H);
   A(duplicateOcr.status === 409 && duplicateOcrBody.error === 'ocr_duplicate' && afterDuplicateOcr.availableUnits === afterOcr.availableUnits,
     '同图重传 → 409 且额度不再扣减');
@@ -216,10 +221,11 @@ async function main() {
   /* ════════ 专家评审全维度用例:异常 / 特殊 / 兜底 / 状态机 ════════ */
   const noEntitlement = await signupOrLogin(`e2e3_${tag}@x.com`, password);
   const H3 = noEntitlement.headers;
-  r = await fetch(`${BASE}/privacy/consent`, { method: 'POST', headers: H3, body: JSON.stringify({ purpose: 'resume_processing' }) });
+  r = (await consentResumeProcessing(H3)).response;
   A(r.status === 200, '[异常前置] 无额度用户仍可完成简历处理同意');
-  r = await fetch(`${BASE}/resume`, { method: 'POST', headers: H3, body: JSON.stringify({ text: '合成后端工程师简历：三年分布式系统经验，熟悉 PostgreSQL、Redis、限流与消息队列。' }) });
-  const noEntitlementResume = await readJson(r);
+  const noEntitlementUploaded = await uploadTextResume(H3, '合成后端工程师简历：三年分布式系统经验，熟悉 PostgreSQL、Redis、限流与消息队列。');
+  r = noEntitlementUploaded.response;
+  const noEntitlementResume = noEntitlementUploaded.body;
   A(r.status === 200 && typeof noEntitlementResume.resumeId === 'string', '[异常前置] 无额度用户持有合法且本人所属的 resumeId');
   const iv3 = (await readJson(await fetch(`${BASE}/interview`, { method: 'POST', headers: H3, body: '{}' }))).interviewId;
   r = await fetch(`${BASE}/interview/${iv3}/begin`, { method: 'POST', headers: { ...H3, 'resume-id': noEntitlementResume.resumeId }, body: '{}' });
@@ -289,4 +295,14 @@ async function main() {
 
   console.log(`\n✓ E2E 全栈跑通(${passed()} 断言,含异常/特殊/兜底/状态机):鉴权→简历→交易→面试(真agent)→报告→B端多租户→候选人多方RLS闭环 · 终态 ${terminal}`);
 }
-main().catch((e) => { console.error('E2E 失败:', e); process.exit(1); });
+main().catch((e) => {
+  const message = String(e?.message ?? e);
+  const statusMatch = message.match(/\bstatus=(\d{3})\b/);
+  console.error(`E2E_FAILURE_KIND ${classifyFailure({
+    error: message,
+    status: statusMatch ? Number(statusMatch[1]) : undefined,
+    runnerCode: message,
+  })}`);
+  console.error('E2E 失败:', message);
+  process.exit(1);
+});

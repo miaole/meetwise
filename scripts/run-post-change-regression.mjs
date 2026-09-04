@@ -25,6 +25,7 @@ if (unknown.length) {
 const ALWAYS_ON = [
   ['docs:check', ['docs:check']],
   ['golden-tasks:check', ['golden-tasks:check']],
+  ['e2e-platform:prove', ['e2e-platform:prove']],
   ['e2e-helpers:prove', ['e2e-helpers:prove']],
   ['e2e-receipt:prove', ['e2e-receipt:prove']],
   ['e2e-runner:prove', ['e2e-runner:prove']],
@@ -85,7 +86,7 @@ async function main() {
 
   if (wantLive) {
     const env = loadEnvFile();
-    if (!env.MODEL_API_KEY) {
+    if (!String(env.MODEL_API_KEY ?? '').trim()) {
       console.error('live_provider_key_missing:MODEL_API_KEY');
       console.error('regression_live_not_run: set MODEL_API_KEY and rerun `pnpm regression --live`. Do not treat this as pass.');
       process.exit(1);

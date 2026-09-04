@@ -39,6 +39,7 @@ tags:
 - `skills/README.md`：工作方法索引。当前只登记测试技能（draft）。
 - `skills/testing/SKILL.md`：测试技能概述与铁律（`status: draft`）。
 - `skills/testing/sop.md`：变更后审核 → 测试 → 回归仪式；未升格前保持 draft。
+- `skills/testing/e2e-platform/README.md`：HTTP E2E 平台 SOP（draft / NOT_READY；`pnpm e2e-platform:prove`）。
 - `testing/golden-tasks/README.md`：第一批 golden tasks 登记（含 planned/unmapped，无假绿）。
 - `testing/e2e-performance-evidence.md`：全量隔离 E2E、本地性能预算与外部检索基准的实跑证据。
 - `testing/rag-retrieval-evaluation-baseline.md`：RAG 检索实跑基线、测试集局限和发布边界。

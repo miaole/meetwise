@@ -25,7 +25,7 @@ related:
 pnpm regression
 ```
 
-默认 **always-on**（`scripts/run-post-change-regression.mjs` 的 `ALWAYS_ON`）：`docs:check`、`golden-tasks:check`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`arch`、`api:smoke`。
+默认 **always-on**（`scripts/run-post-change-regression.mjs` 的 `ALWAYS_ON`）：`docs:check`、`golden-tasks:check`、`e2e-platform:prove`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`、`arch`、`api:smoke`。
 
 这**不是** [回归矩阵](./regression-selection.md) 的「必须」列，也不含 `interview:prove` / `commerce:prove` 等业务 prove。缺 Docker 不能假装隔离 prove 已跑。
 

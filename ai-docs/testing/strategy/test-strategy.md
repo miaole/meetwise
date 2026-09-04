@@ -44,7 +44,13 @@ tags:
 
 ## 变更后回归入口
 
-功能改动后的审核 → 测试 → 回归仪式见 [`skills/testing/sop.md`](../../skills/testing/sop.md)（`status: draft`）。概述见 [`skills/testing/SKILL.md`](../../skills/testing/SKILL.md)。命令与失败语义见 [`skills/testing/run-gates.md`](../../skills/testing/run-gates.md)。默认 `pnpm regression` 只是 always-on 子集，不是触达面必须列。
+功能改动后的审核 → 测试 → 回归仪式见 [`skills/testing/sop.md`](../../skills/testing/sop.md)（`status: draft`）。概述见 [`skills/testing/SKILL.md`](../../skills/testing/SKILL.md)。HTTP E2E 平台 SOP（**draft / NOT_READY**，`pnpm e2e-platform:prove`）见 [`skills/testing/e2e-platform/README.md`](../../skills/testing/e2e-platform/README.md)。命令与失败语义见 [`skills/testing/run-gates.md`](../../skills/testing/run-gates.md)。默认 `pnpm regression` 只是 always-on 子集，不是触达面必须列。本页 `status: active` 只表示分层策略生效，不表示 live 全链路或平台 SOP 已 READY。
+
+```bash
+pnpm regression            # 无 Key 的总是门（文档 / 平台守卫 / helpers / 回执 / 架构 / api smoke）
+pnpm regression --core     # 行走骨架隔离 prove（需 Docker）
+pnpm regression --live     # 真供应商 HTTP E2E；缺 MODEL_API_KEY 非零退出。浏览器层另跑 e2e:ui:isolated（需先构建 web）
+```
 
 per-push CI 跑隔离 prove，**不**跑 `e2e:isolated`。无 Key 时不要发起 live 命令，记录 `not_run`，禁止 skip-as-pass。
 

@@ -44,5 +44,6 @@ exit: <逐条退出码>
 receipts: <路径或 none>
 releaseEvidence: false
 liveE2E: ran | not_run:<reason>
+kind: FAIL_API | FAIL_WORKER | FAIL_DB | FAIL_PROVIDER | FAIL_CAPABILITY | BLOCKED_DATA_OR_PERMISSION | BLOCKED_LIVE_KEY | none
 forgedScores: none | <缺口>
 ```

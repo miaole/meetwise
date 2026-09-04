@@ -40,9 +40,11 @@ try {
       'e2e/full.e2e.ts',
       'e2e/helpers/assert.ts',
       'e2e/helpers/auth.ts',
+      'e2e/helpers/classify-failure.ts',
       'e2e/helpers/commerce.ts',
       'e2e/helpers/http.ts',
       'e2e/helpers/interview.ts',
+      'e2e/helpers/resume.ts',
       'e2e/helpers/sse.ts',
       'e2e/helpers/voice.ts',
       'e2e/ocr-fixture.ts',
@@ -79,7 +81,7 @@ try {
 
   await test('复杂边界：源码摘要覆盖客户端、helpers、编排器和隔离器，迁移清单不为空', async () => {
     const { receipt } = await writeLocalE2EReceipt(valid());
-    assert.equal(Object.keys(receipt.sourceDigests).length, 11);
+    assert.equal(Object.keys(receipt.sourceDigests).length, 13);
     assert.ok(receipt.schemaMigrationManifest.count >= 1);
   });
 

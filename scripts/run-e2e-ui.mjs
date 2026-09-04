@@ -40,7 +40,7 @@ const fakeServiceFlags = ['VOICE_FAKE', 'OCR_FAKE', 'E2E_FAKE_MODEL'].filter((na
   return value && value !== '0' && value !== 'false';
 });
 if (fakeServiceFlags.length) throw new Error(`fake_service_mode_forbidden:${fakeServiceFlags.join(',')}`);
-if (!env.MODEL_API_KEY) throw new Error('live_provider_key_missing:MODEL_API_KEY');
+if (!String(env.MODEL_API_KEY ?? '').trim()) throw new Error('live_provider_key_missing:MODEL_API_KEY');
 
 // Fixed 8787/19091/3100 lets a parallel UI run attach its browser to another
 // stack.  Each run gets an independent pair/triple and propagates those
@@ -60,10 +60,26 @@ const apiBase = `http://127.0.0.1:${apiPort}`;
 const webBase = `http://127.0.0.1:${webPort}`;
 
 const procs = [];
+const processDiagnostics = new Map();
+const tailAppend = (name, chunk) => {
+  const previous = processDiagnostics.get(name) ?? { chunks: 0, bytes: 0 };
+  processDiagnostics.set(name, { chunks: previous.chunks + 1, bytes: previous.bytes + Buffer.byteLength(String(chunk)) });
+};
+const emitFailureDiagnostics = () => {
+  for (const [name, summary] of processDiagnostics) {
+    if (summary.bytes > 0) console.error(`E2E_PROCESS_OUTPUT_WITHHELD process=${name} chunks=${summary.chunks} bytes=${summary.bytes}`);
+  }
+};
 const spawnProc = (name, cmd, args, cwd = ROOT, extraEnv = {}, forwardOutput = true) => {
   const p = spawn(cmd, args, { cwd, env: { ...env, ...extraEnv }, stdio: ['ignore', 'pipe', 'pipe'] });
-  p.stdout.on('data', (d) => forwardOutput && process.env.E2E_VERBOSE && process.stdout.write(`[${name}] ${d}`));
-  p.stderr.on('data', (d) => forwardOutput && process.env.E2E_VERBOSE && process.stderr.write(`[${name}] ${d}`));
+  p.stdout.on('data', (d) => {
+    tailAppend(`${name}:stdout`, d);
+    if (forwardOutput && process.env.E2E_VERBOSE) process.stdout.write(`[${name}] ${d}`);
+  });
+  p.stderr.on('data', (d) => {
+    tailAppend(`${name}:stderr`, d);
+    if (forwardOutput && process.env.E2E_VERBOSE) process.stderr.write(`[${name}] ${d}`);
+  });
   procs.push(p);
   return p;
 };
@@ -132,7 +148,8 @@ async function main() {
   pw.stdout.on('data', (d) => process.stdout.write(d));
   pw.stderr.on('data', (d) => process.stderr.write(d));
   const code = await new Promise((res) => pw.on('exit', res));
+  if (code !== 0) emitFailureDiagnostics();
   cleanup();
   process.exit(code ?? 1);
 }
-main().catch((e) => { console.error(e); cleanup(); process.exit(1); });
+main().catch((e) => { console.error(e); emitFailureDiagnostics(); cleanup(); process.exit(1); });

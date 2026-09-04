@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "neverWeaken": true,
+  "releaseEvidence": false,
+  "floors": {
+    "e2e/full.e2e.ts": { "pattern": "\\bA\\(", "min": 57 },
+    "e2e/helpers/e2e-helpers.proof.ts": { "pattern": "^test\\(", "min": 9 },
+    "e2e/helpers/interview.ts": { "pattern": "options\\.assert\\(", "min": 4 }
+  },
+  "requiredPackageScripts": [
+    "e2e:isolated",
+    "e2e:ui:isolated",
+    "regression",
+    "e2e-helpers:prove",
+    "e2e-platform:prove",
+    "e2e-receipt:prove",
+    "golden-tasks:check"
+  ]
+}
