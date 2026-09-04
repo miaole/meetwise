@@ -203,7 +203,7 @@ plan → decide ──┬→ genQuestion ──┬→ awaitAnswer(interrupt)
 ## 8. 语音与前端渲染
 
 - 浏览器语音 UI 是预览版人机轮次会话：AI 的 TTS（文本转语音）播放完成或被打断后，浏览器才开启/保持 ASR（自动语音识别）录音并提交同一面试线程。文案标「预览版」；超时/畸形回文字，不编造转写或音频。它不是两个人电话，也不是全双工电话网关。
-- API 组合根经 `createInterviewVoiceSeams()` 接线批量 ASR/TTS：`voice.asr.v1` / `voice.tts.v1` 须 wired 且存在独立能力 Key。Worker `voice-turn.ts` / `interview-voice.ts` 把 `audio → ASR → 图 resume → 下一题 → TTS` 套在同一业务图外，文本和语音共享题目、幂等、权益、checkpoint 和评分边界。未配置必须显式失败，不能把 fake 当线上服务。流式仍关闭。
+- API 组合根经 `createInterviewVoiceSeams()` 接线批量 ASR/TTS：`voice.asr.v1` / `voice.tts.v1` 须 wired 且存在独立能力 Key。Worker `voice-turn.ts` / `interview-voice.ts` 把 `audio → ASR → 图 resume → 下一题 → TTS` 套在同一业务图外，文本和语音共享题目、幂等、权益、checkpoint 和评分边界。未配置必须显式失败，不能把 fake 当线上服务。流式仍关闭。`MEETWISE_PUBLIC_PREVIEW=1` 下 `/transcribe` `/speak` `/speak/stream` 仍 503；本切片只额外放行 `POST /interview/:id/answers`。
 - `VoiceCallPanel` 有 VAD（语音活动检测）状态、回声消除、降噪、播放/录音互斥、reduced-motion（减少动画）样式和中断清理。真实网络抖动、设备兼容、长时录音和并发通话尚无发布级压测证据；`releaseEvidence=false`。
 - SSE 高频更新先进入 reducer（归约器），经 `requestAnimationFrame`（动画帧）合并后再渲染；面试面板保留有限可见窗口，不会把所有历史 token（词元）逐帧塞入 DOM（文档对象模型）。本地浏览器流压力曾验证 20,002 重复 frame（帧）归约为 80 个唯一 DOM 节点；这是特定设备/构建的证据，不是全设备容量承诺。
 
