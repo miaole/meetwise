@@ -1,10 +1,13 @@
 /**
- * Static guards for live E2E runners and evidence/log helpers.
+ * Static guards for live E2E runners, evidence/log helpers, and AI paths.
  *
  * 1. Every live E2E runner must import and call assertNoFakeServiceFlags.
  * 2. Evidence/log helpers are scanned for credential-shaped literals.
  *    Findings report path + rule only. Matched secret values are never printed,
  *    persisted, or included in error codes. Missing/unreadable helpers fail closed.
+ * 3. Unverified AI paths are refused: server-issued question identity, no client
+ *    scoring, no forged zero, and docs must say the path is unverified until checked.
+ *    Multi-round verify is allowed. A chat summary is not a pass.
  *
  * This module reads local files only. It does not execute runners, load .env,
  * or claim releaseEvidence.
@@ -48,6 +51,84 @@ export const REQUIRED_EVIDENCE_HELPER_PATHS = Object.freeze([
   'e2e/helpers/interview.ts',
   'e2e/helpers/sse.ts',
   'e2e/helpers/voice.ts',
+]);
+
+export const REQUIRED_AI_PATH_FILES = Object.freeze([
+  'e2e/helpers/interview.ts',
+  'e2e/helpers/e2e-helpers.proof.ts',
+  'e2e/full.e2e.ts',
+  'ai-docs/skills/testing/ai-provenance.md',
+  'ai-docs/skills/testing/honesty-rules.md',
+  'ai-docs/skills/testing/SKILL.md',
+]);
+
+const REQUIRED_SECRET_SCAN_EXTRA_PATHS = Object.freeze([
+  'e2e/full.e2e.ts',
+  'e2e/helpers/e2e-helpers.proof.ts',
+]);
+
+const AI_PATH_CONTRACTS = Object.freeze([
+  {
+    path: 'e2e/helpers/interview.ts',
+    required: [
+      { rule: 'question_identity_export', pattern: /export function questionIdentity\s*\(/ },
+      { rule: 'question_identity_throw', pattern: /e2e_question_identity_missing/ },
+      { rule: 'server_issued_identity', pattern: /questionIdentity\(event\.payload\)/ },
+      { rule: 'client_does_not_score', pattern: /client does not score/, raw: true },
+      { rule: 'never_invent_question', pattern: /Never invent the current question/, raw: true },
+    ],
+    forbidden: [
+      { rule: 'invented_local_question_id', pattern: /questionId\s*[:=]\s*[`'"][^`'"]*\$\{(?:turn|questions|i|n|index)\b/ },
+    ],
+  },
+  {
+    path: 'e2e/helpers/e2e-helpers.proof.ts',
+    required: [
+      { rule: 'identity_missing_proof', pattern: /e2e_question_identity_missing/ },
+      { rule: 'question_identity_proof', pattern: /questionIdentity\(/ },
+    ],
+    forbidden: [],
+  },
+  {
+    path: 'e2e/full.e2e.ts',
+    required: [
+      { rule: 'interview_helper_import', pattern: /import\s*\{[^}]*\bdriveInterviewToTerminal\b[^}]*\}\s*from\s*['"]\.\/helpers\/interview\.ts['"]/ },
+      { rule: 'interview_helper_call', pattern: /await\s+driveInterviewToTerminal\s*\(/ },
+      { rule: 'scoreless_bound_null_score', pattern: /if\s*\(\s*scorelessBound\s*\)\s*\{\s*A\(\s*cand\?\.status === 'assessment_unavailable' && cand\.score === null\s*,/ },
+    ],
+    forbidden: [
+      { rule: 'invented_local_question_id', pattern: /questionId\s*[:=]\s*[`'"][^`'"]*\$\{(?:turn|questions|i|n|index)\b/ },
+    ],
+  },
+  {
+    path: 'ai-docs/skills/testing/ai-provenance.md',
+    required: [
+      { rule: 'unverified_ai_path_phrase', pattern: /unverified AI path/, raw: true },
+      { rule: 'refuse_unverified_claim', pattern: /未核不得写/, raw: true },
+      { rule: 'question_identity_binding', pattern: /questionIdentity/, raw: true },
+      { rule: 'multi_round_verify', pattern: /multi-round/, raw: true },
+    ],
+    forbidden: [],
+  },
+  {
+    path: 'ai-docs/skills/testing/honesty-rules.md',
+    required: [
+      { rule: 'unverified_ai_path_phrase', pattern: /unverified AI path/, raw: true },
+      { rule: 'multi_round_verify', pattern: /multi-round/, raw: true },
+      { rule: 'fake_service_forbidden', pattern: /假服务/, raw: true },
+      { rule: 'redaction_fail_closed', pattern: /失败即关/, raw: true },
+    ],
+    forbidden: [],
+  },
+  {
+    path: 'ai-docs/skills/testing/SKILL.md',
+    required: [
+      { rule: 'unverified_ai_path_phrase', pattern: /unverified AI path/, raw: true },
+      { rule: 'multi_round_verify', pattern: /multi-round/, raw: true },
+      { rule: 'static_guards_command', pattern: /e2e-static-guards/, raw: true },
+    ],
+    forbidden: [],
+  },
 ]);
 
 const FLAG_MODULE_PATH = 'scripts/e2e-fake-service-flags.mjs';
@@ -153,7 +234,13 @@ function discoverHelperPaths(repoRoot) {
       if (/\.(?:ts|mjs)$/.test(name)) discovered.push(`e2e/helpers/${name}`);
     }
   }
-  return [...new Set([...REQUIRED_EVIDENCE_HELPER_PATHS, ...discovered])].sort();
+  const e2eRoot = resolve(repoRoot, 'e2e');
+  if (existsSync(e2eRoot)) {
+    for (const name of readdirSync(e2eRoot)) {
+      if (/\.e2e\.ts$/.test(name)) discovered.push(`e2e/${name}`);
+    }
+  }
+  return [...new Set([...REQUIRED_EVIDENCE_HELPER_PATHS, ...REQUIRED_SECRET_SCAN_EXTRA_PATHS, ...discovered])].sort();
 }
 
 function discoverRunnerPaths(repoRoot) {
@@ -221,6 +308,85 @@ function scanSecretRedaction({ readSource, helperPaths }, errors) {
   }
 }
 
+function extractExportedFunction(source, name) {
+  const header = source.match(new RegExp(`export(?: async)? function ${name}\\s*\\([^)]*\\)(?:\\s*:\\s*[^{]+)?\\s*\\{`));
+  if (!header || header.index === undefined) return null;
+  const open = header.index + header[0].length - 1;
+  let depth = 0;
+  for (let i = open; i < source.length; i += 1) {
+    if (source[i] === '{') depth += 1;
+    else if (source[i] === '}') {
+      depth -= 1;
+      if (depth === 0) return source.slice(open, i + 1);
+    }
+  }
+  return null;
+}
+
+function countMatches(source, pattern) {
+  const global = new RegExp(pattern.source, pattern.flags.includes('g') ? pattern.flags : `${pattern.flags}g`);
+  return [...source.matchAll(global)].length;
+}
+
+function scanInterviewAiPath(executable, errors) {
+  if (/\b(?:score|overall)\s*:/.test(executable) || /\[['"']score['"']\]\s*:/.test(executable)) {
+    addError(errors, 'unverified_ai_path_trusted', 'e2e/helpers/interview.ts:client_scores_answer');
+  }
+  const identity = extractExportedFunction(executable, 'questionIdentity');
+  if (!identity) {
+    addError(errors, 'unverified_ai_path', 'e2e/helpers/interview.ts:question_identity_export');
+    return;
+  }
+  const throwAt = identity.search(/throw new Error\(['"]e2e_question_identity_missing['"]\)/);
+  if (throwAt < 0) addError(errors, 'unverified_ai_path', 'e2e/helpers/interview.ts:question_identity_throw');
+  if (!/if\s*\(\s*typeof payload\?\.questionId !== 'string'[\s\S]{0,240}throw new Error\(['"]e2e_question_identity_missing['"]\)/.test(identity)) {
+    addError(errors, 'unverified_ai_path', 'e2e/helpers/interview.ts:question_identity_guarded_throw');
+  }
+  const returnAt = identity.search(/return\s*\{\s*questionId:\s*payload\.questionId/);
+  if (returnAt < 0) addError(errors, 'unverified_ai_path', 'e2e/helpers/interview.ts:question_identity_return');
+  if (throwAt >= 0 && returnAt >= 0 && throwAt > returnAt) {
+    addError(errors, 'unverified_ai_path', 'e2e/helpers/interview.ts:question_identity_throw_after_return');
+  }
+  const drive = extractExportedFunction(executable, 'driveInterviewToTerminal');
+  if (!drive || countMatches(drive, /questionIdentity\(event\.payload\)/) < 2) {
+    addError(errors, 'unverified_ai_path', 'e2e/helpers/interview.ts:server_issued_identity');
+  }
+}
+
+function scanFullE2eAiPath(executable, errors) {
+  if (countMatches(executable, /await\s+driveInterviewToTerminal\s*\(/) < 3) {
+    addError(errors, 'unverified_ai_path', 'e2e/full.e2e.ts:interview_helper_call');
+  }
+  if (/if\s*\(\s*false\s*\)[\s\S]{0,120}await\s+driveInterviewToTerminal\s*\(/.test(executable)) {
+    addError(errors, 'unverified_ai_path', 'e2e/full.e2e.ts:interview_helper_dead_call');
+  }
+  if (/(?:async\s+)?function driveInterviewToTerminal\s*\(|(?:const|let|var)\s+driveInterviewToTerminal\s*=/.test(executable)) {
+    addError(errors, 'unverified_ai_path_trusted', 'e2e/full.e2e.ts:interview_helper_shadow');
+  }
+  if (/A\(\s*cand\??\.score === 0/.test(executable) || /if\s*\(\s*scorelessBound\s*\)[\s\S]{0,900}cand\??\.score === 0/.test(executable)) {
+    addError(errors, 'unverified_ai_path_trusted', 'e2e/full.e2e.ts:forged_zero_score');
+  }
+}
+
+function scanUnverifiedAiPathGuards({ readSource }, errors) {
+  for (const path of REQUIRED_AI_PATH_FILES) {
+    const file = readSource(path);
+    if (!file) continue;
+    const raw = file.source;
+    const executable = /\.md$/.test(path) ? raw : stripJsComments(raw);
+    const contract = AI_PATH_CONTRACTS.find((item) => item.path === path);
+    if (!contract) continue;
+    for (const { rule, pattern, raw: useRaw } of contract.required) {
+      if (!pattern.test(useRaw ? raw : executable)) addError(errors, 'unverified_ai_path', `${path}:${rule}`);
+    }
+    for (const { rule, pattern } of contract.forbidden) {
+      if (pattern.test(executable)) addError(errors, 'unverified_ai_path_trusted', `${path}:${rule}`);
+    }
+    if (path === 'e2e/helpers/interview.ts') scanInterviewAiPath(executable, errors);
+    if (path === 'e2e/full.e2e.ts') scanFullE2eAiPath(executable, errors);
+  }
+}
+
 export function evaluateE2eStaticGuards({ sources } = {}) {
   const errors = [];
   if (!isObject(sources)) {
@@ -239,6 +405,7 @@ export function evaluateE2eStaticGuards({ sources } = {}) {
     return { path, source };
   };
   const extraRunners = Object.keys(sources).filter((path) => /^(?:scripts\/run-e2e.*|scripts\/run-performance-e2e|scripts\/capture-screenshots)\.mjs$/.test(path));
+  const extraHelpers = Object.keys(sources).filter((path) => path.startsWith('e2e/helpers/') || /^e2e\/[^/]+\.e2e\.ts$/.test(path));
   scanFakeServiceGuards({
     repoRoot: '',
     readSource,
@@ -246,8 +413,9 @@ export function evaluateE2eStaticGuards({ sources } = {}) {
   }, errors);
   scanSecretRedaction({
     readSource,
-    helperPaths: [...new Set([...REQUIRED_EVIDENCE_HELPER_PATHS, ...Object.keys(sources).filter((path) => path.startsWith('e2e/helpers/'))])].sort(),
+    helperPaths: [...new Set([...REQUIRED_EVIDENCE_HELPER_PATHS, ...REQUIRED_SECRET_SCAN_EXTRA_PATHS, ...extraHelpers])].sort(),
   }, errors);
+  scanUnverifiedAiPathGuards({ readSource }, errors);
   return { valid: errors.length === 0, errors: [...errors].sort(), releaseEvidence: false };
 }
 
@@ -268,6 +436,7 @@ export function scanE2eStaticGuards({ repoRoot } = {}) {
   const readSource = (path) => readWorktreeFile(repoRoot, path, errors);
   scanFakeServiceGuards({ repoRoot, readSource, runnerPaths }, errors);
   scanSecretRedaction({ readSource, helperPaths }, errors);
+  scanUnverifiedAiPathGuards({ readSource }, errors);
   return {
     valid: errors.length === 0,
     errors: [...errors].sort(),
@@ -275,6 +444,7 @@ export function scanE2eStaticGuards({ repoRoot } = {}) {
       runnerCount: runnerPaths.length,
       helperCount: helperPaths.length,
       requiredFlagCount: REQUIRED_FAKE_SERVICE_FLAG_NAMES.length,
+      aiPathCount: REQUIRED_AI_PATH_FILES.length,
     },
     releaseEvidence: false,
   };
@@ -298,5 +468,5 @@ if (invokedDirectly) {
     for (const error of result.errors) console.error(`- ${error}`);
     process.exit(1);
   }
-  console.log(`e2e static guards passed: runners=${result.stats.runnerCount} helpers=${result.stats.helperCount} flags=${result.stats.requiredFlagCount}; releaseEvidence=false`);
+  console.log(`e2e static guards passed: runners=${result.stats.runnerCount} helpers=${result.stats.helperCount} flags=${result.stats.requiredFlagCount} aiPaths=${result.stats.aiPathCount}; releaseEvidence=false`);
 }

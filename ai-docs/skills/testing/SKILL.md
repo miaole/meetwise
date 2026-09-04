@@ -42,6 +42,6 @@ pnpm regression --live   # 真供应商 HTTP E2E；缺 MODEL_API_KEY 必须非�
 
 - 控制器/页面绿了不算业务完成。断言状态机落点、账本、隔离、终态事件。
 - HTTP 全链路 E2E 是 `e2e/full.e2e.ts` + `scripts/run-e2e.mjs`（fetch / SSE），**不是** Playwright。Playwright 只覆盖 `pnpm e2e:ui:isolated` 的浏览器层。
-- `run-e2e.mjs` 在 `E2E_ISOLATED=1` 且存在 `MODEL_API_KEY` 时才启动；假服务开关（`VOICE_FAKE` / `OCR_FAKE` / `E2E_FAKE_MODEL` / `ASR_FAKE` / `TTS_FAKE` / `EMBED_FAKE` / `RERANK_FAKE` / `MODEL_TEST_TRANSPORT_OVERRIDES` / `DASHSCOPE_TEST_TRANSPORT_OVERRIDES`）直接失败。静态守卫 `pnpm e2e-static-guards:check` 禁止 runner 漏掉该断言，并对证据/日志 helper（含 `e2e/helpers/` 自动发现）做密钥扫描（失败即关，报告只含路径和规则名，不回显命中值）。
+- `run-e2e.mjs` 在 `E2E_ISOLATED=1` 且存在 `MODEL_API_KEY` 时才启动；假服务开关（`VOICE_FAKE` / `OCR_FAKE` / `E2E_FAKE_MODEL` / `ASR_FAKE` / `TTS_FAKE` / `EMBED_FAKE` / `RERANK_FAKE` / `MODEL_TEST_TRANSPORT_OVERRIDES` / `DASHSCOPE_TEST_TRANSPORT_OVERRIDES`）直接失败。静态守卫 `pnpm e2e-static-guards:check` 禁止 runner 漏掉该断言，并对证据/日志 helper（含 `e2e/helpers/` 自动发现）做密钥扫描（失败即关，报告只含路径和规则名，不回显命中值）。同一守卫拒绝信任 unverified AI path：核对 HTTP E2E 固定清单上的可执行合同（服务端 `questionIdentity` 必 throw、`await driveInterviewToTerminal(`、无证据不得写成 0 分）。通过 ≠ 出处已验证。允许多轮核对（multi-round verify），不得用对话摘要代替退出码与回执。
 - 回执恒为 `releaseEvidence=false`。没有受信 runner、不可变对象存储和独立验签，就不能写发布通过。
 - golden-tasks 第一批已建档；未映射到可跑门的条目状态必须是 `planned` 或 `unmapped`，禁止标 `passed`。

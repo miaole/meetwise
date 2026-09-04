@@ -23,7 +23,7 @@ description: 功能 diff 落地后、跑测试前的审核清单。对应 AGENTS
 
 - [ ] 用户内容进数据块，未拼进 system instruction。
 - [ ] 模型输出仍先 schema、再业务校验；失败不是默认 50 分。
-- [ ] 题面/评分/报告若被改动，已打开 [出处检查](./ai-provenance.md)。
+- [ ] 题面/评分/报告若被改动，已打开 [出处检查](./ai-provenance.md)。未核不得把 unverified AI path 写成已验证；允许多轮核对（multi-round verify）。
 
 ## 4. 安全与隐私
 

@@ -6,6 +6,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertNoFakeServiceFlags, enabledFakeServiceFlags } from './e2e-fake-service-flags.mjs';
 import {
+  REQUIRED_AI_PATH_FILES,
   REQUIRED_E2E_RUNNER_PATHS,
   REQUIRED_EVIDENCE_HELPER_PATHS,
   evaluateE2eStaticGuards,
@@ -23,6 +24,7 @@ function currentSources() {
   const sources = { 'scripts/e2e-fake-service-flags.mjs': readRepo('scripts/e2e-fake-service-flags.mjs') };
   for (const path of REQUIRED_E2E_RUNNER_PATHS) sources[path] = readRepo(path);
   for (const path of REQUIRED_EVIDENCE_HELPER_PATHS) sources[path] = readRepo(path);
+  for (const path of REQUIRED_AI_PATH_FILES) sources[path] = readRepo(path);
   return sources;
 }
 
@@ -57,8 +59,9 @@ const checks = {
     assert.equal(result.valid, true, result.errors.join('\n'));
     assert.equal(result.releaseEvidence, false);
     assert.ok(result.stats.runnerCount >= REQUIRED_E2E_RUNNER_PATHS.length);
-    assert.equal(result.stats.helperCount, REQUIRED_EVIDENCE_HELPER_PATHS.length);
+    assert.ok(result.stats.helperCount >= REQUIRED_EVIDENCE_HELPER_PATHS.length);
     assert.equal(result.stats.requiredFlagCount, 9);
+    assert.equal(result.stats.aiPathCount, REQUIRED_AI_PATH_FILES.length);
   },
   'TC-TEST-GUARD-001-evaluate-current': () => {
     const result = evaluateE2eStaticGuards({ sources: currentSources() });
@@ -160,6 +163,121 @@ const checks = {
     sources['e2e/helpers/http.ts'] += "\nexport const PAY_SECRET = 'abcdefghijklmnop';\n";
     expectError(evaluateE2eStaticGuards({ sources }), 'credential_pattern:e2e/helpers/http.ts:named_secret_assignment');
     assert.ok(!JSON.stringify(evaluateE2eStaticGuards({ sources })).includes('abcdefghijklmnop'), 'secret echoed in result');
+  },
+  'TC-TEST-GUARD-013-missing-question-identity': () => {
+    const sources = currentSources();
+    sources['e2e/helpers/interview.ts'] = sources['e2e/helpers/interview.ts']
+      .replace('e2e_question_identity_missing', 'e2e_question_identity_optional')
+      .replace('Never invent the current question', 'May invent the current question')
+      .replace('the client does not score', 'the client may score');
+    expectError(evaluateE2eStaticGuards({ sources }), 'unverified_ai_path:e2e/helpers/interview.ts:question_identity_throw');
+    expectError(evaluateE2eStaticGuards({ sources }), 'unverified_ai_path:e2e/helpers/interview.ts:never_invent_question');
+    expectError(evaluateE2eStaticGuards({ sources }), 'unverified_ai_path:e2e/helpers/interview.ts:client_does_not_score');
+    sources['e2e/helpers/interview.ts'] = currentSources()['e2e/helpers/interview.ts']
+      .replace("throw new Error('e2e_question_identity_missing');", "// throw new Error('e2e_question_identity_missing');");
+    expectError(evaluateE2eStaticGuards({ sources }), 'unverified_ai_path:e2e/helpers/interview.ts:question_identity_throw');
+  },
+  'TC-TEST-GUARD-014-forged-zero-score': () => {
+    const sources = currentSources();
+    sources['e2e/full.e2e.ts'] = sources['e2e/full.e2e.ts']
+      .replace('cand.score === null', 'cand.score === 0');
+    expectError(evaluateE2eStaticGuards({ sources }), 'unverified_ai_path:e2e/full.e2e.ts:scoreless_bound_null_score');
+  },
+  'TC-TEST-GUARD-014-dead-score-decoy': () => {
+    const sources = currentSources();
+    sources['e2e/full.e2e.ts'] = sources['e2e/full.e2e.ts'].replace(
+      "if (scorelessBound) {\n    A(cand?.status === 'assessment_unavailable' && cand.score === null,",
+      "if (scorelessBound) {\n    if (false) A(cand?.status === 'assessment_unavailable' && cand.score === null, 'decoy');\n    A(cand?.score === 0,",
+    );
+    expectError(evaluateE2eStaticGuards({ sources }), 'unverified_ai_path:e2e/full.e2e.ts:scoreless_bound_null_score');
+  },
+  'TC-TEST-GUARD-014-void-helper-reference': () => {
+    const sources = currentSources();
+    sources['e2e/full.e2e.ts'] = sources['e2e/full.e2e.ts'].replaceAll(
+      'await driveInterviewToTerminal(',
+      'void driveInterviewToTerminal; const unused = (',
+    );
+    expectError(evaluateE2eStaticGuards({ sources }), 'unverified_ai_path:e2e/full.e2e.ts:interview_helper_call');
+  },
+  'TC-TEST-GUARD-014-evil-import': () => {
+    const sources = currentSources();
+    sources['e2e/full.e2e.ts'] = sources['e2e/full.e2e.ts'].replace(
+      "from './helpers/interview.ts'",
+      "from './helpers/interview-evil.ts'",
+    );
+    expectError(evaluateE2eStaticGuards({ sources }), 'unverified_ai_path:e2e/full.e2e.ts:interview_helper_import');
+  },
+  'TC-TEST-GUARD-014-dead-identity-token': () => {
+    const sources = currentSources();
+    sources['e2e/helpers/interview.ts'] = sources['e2e/helpers/interview.ts'].replace(
+      "throw new Error('e2e_question_identity_missing');",
+      "const unused = 'e2e_question_identity_missing'; return { questionId: 'q-1', stateVersion: 1, turn: 0 };",
+    );
+    expectError(evaluateE2eStaticGuards({ sources }), 'unverified_ai_path:e2e/helpers/interview.ts:question_identity_throw');
+    expectError(evaluateE2eStaticGuards({ sources }), 'unverified_ai_path:e2e/helpers/interview.ts:question_identity_guarded_throw');
+  },
+  'TC-TEST-GUARD-014-client-score-field': () => {
+    const sources = currentSources();
+    sources['e2e/helpers/interview.ts'] = sources['e2e/helpers/interview.ts'].replace(
+      'answerHash: createHash(\'sha256\').update(answer).digest(\'hex\'),',
+      'answerHash: createHash(\'sha256\').update(answer).digest(\'hex\'),\n    score: 99,',
+    );
+    expectError(evaluateE2eStaticGuards({ sources }), 'unverified_ai_path_trusted:e2e/helpers/interview.ts:client_scores_answer');
+  },
+  'TC-TEST-GUARD-014-scoreless-or-true': () => {
+    const sources = currentSources();
+    sources['e2e/full.e2e.ts'] = sources['e2e/full.e2e.ts'].replace(
+      "A(cand?.status === 'assessment_unavailable' && cand.score === null,",
+      "A(cand?.status === 'assessment_unavailable' && cand.score === null || true,",
+    );
+    expectError(evaluateE2eStaticGuards({ sources }), 'unverified_ai_path:e2e/full.e2e.ts:scoreless_bound_null_score');
+  },
+  'TC-TEST-GUARD-014-dead-helper-call': () => {
+    const sources = currentSources();
+    sources['e2e/full.e2e.ts'] = sources['e2e/full.e2e.ts'].replace(
+      'const mainLoop = await driveInterviewToTerminal({',
+      'if (false) await driveInterviewToTerminal({ interviewId: "x", token: "t", headers: {}, assert: () => {}, questionAnswer: "x", questionAcceptedLabel: () => "x", clarificationAcceptedLabel: "x" });\n  const mainLoop = await driveInterviewToTerminal({',
+    );
+    expectError(evaluateE2eStaticGuards({ sources }), 'unverified_ai_path:e2e/full.e2e.ts:interview_helper_dead_call');
+  },
+  'TC-TEST-GUARD-014-shadow-helper': () => {
+    const sources = currentSources();
+    sources['e2e/full.e2e.ts'] += '\nasync function driveInterviewToTerminal() { return { terminal: "report_ready", questions: 1, turns: 1 }; }\n';
+    expectError(evaluateE2eStaticGuards({ sources }), 'unverified_ai_path_trusted:e2e/full.e2e.ts:interview_helper_shadow');
+  },
+  'TC-TEST-GUARD-014-accept-forged-zero': () => {
+    const sources = currentSources();
+    sources['e2e/full.e2e.ts'] = sources['e2e/full.e2e.ts'].replace(
+      "A(cand?.status === 'assessment_unavailable' && cand.score === null,",
+      "A(cand?.status === 'assessment_unavailable' && cand.score === null,\n      'keep');\n    A(cand?.score === 0,",
+    );
+    expectError(evaluateE2eStaticGuards({ sources }), 'unverified_ai_path_trusted:e2e/full.e2e.ts:forged_zero_score');
+  },
+  'TC-TEST-GUARD-015-missing-unverified-phrase': () => {
+    const sources = currentSources();
+    sources['ai-docs/skills/testing/honesty-rules.md'] = sources['ai-docs/skills/testing/honesty-rules.md']
+      .replaceAll('unverified AI path', 'trusted model output')
+      .replaceAll('multi-round', 'single-pass');
+    expectError(evaluateE2eStaticGuards({ sources }), 'unverified_ai_path:ai-docs/skills/testing/honesty-rules.md:unverified_ai_path_phrase');
+    expectError(evaluateE2eStaticGuards({ sources }), 'unverified_ai_path:ai-docs/skills/testing/honesty-rules.md:multi_round_verify');
+  },
+  'TC-TEST-GUARD-016-invented-question-id': () => {
+    const sources = currentSources();
+    sources['e2e/helpers/interview.ts'] += '\nconst invented = { questionId: `q-${turn}` };\n';
+    expectError(evaluateE2eStaticGuards({ sources }), 'unverified_ai_path_trusted:e2e/helpers/interview.ts:invented_local_question_id');
+  },
+  'TC-TEST-GUARD-017-missing-ai-path-file': () => {
+    const sources = currentSources();
+    delete sources['e2e/full.e2e.ts'];
+    expectError(evaluateE2eStaticGuards({ sources }), 'helper_missing:e2e/full.e2e.ts');
+  },
+  'TC-TEST-GUARD-018-secret-in-scenario-never-echoed': () => {
+    const secret = ['sk-', 'live_', 'scenariohelperkeyxx'].join('');
+    const sources = currentSources();
+    sources['e2e/full.e2e.ts'] += `\nexport const leaked = '${secret}';\n`;
+    const result = evaluateE2eStaticGuards({ sources });
+    expectError(result, 'credential_pattern:e2e/full.e2e.ts:sk_style_api_key');
+    assert.ok(!JSON.stringify(result).includes(secret), 'secret echoed in result');
   },
   'TC-TEST-GUARD-012-discovered-helper': async () => {
     const secret = ['sk-', 'live_', 'zyxwvutsrqponmlkjihg'].join('');

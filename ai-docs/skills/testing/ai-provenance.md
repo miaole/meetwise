@@ -5,7 +5,7 @@ description: AI 触达路径的出处检查：题面身份、route/rubric/model 
 
 # AI 出处（provenance）检查
 
-模型输出不能当匿名事实。改面试、评分、押题、诊断、报告、OCR、语音时，按下列项核对。未核不得写“AI 路径已验证”。
+模型输出不能当匿名事实。改面试、评分、押题、诊断、报告、OCR、语音时，按下列项核对。未核不得写“AI 路径已验证”。静态守卫 `pnpm e2e-static-guards:check` 拒绝信任 unverified AI path：核对 HTTP E2E 固定清单上的可执行合同，并禁止假服务、密钥扫描失败即关。通过该守卫 ≠ 出处已验证。出处检查允许多轮核对（multi-round verify），不得用对话摘要代替退出码。
 
 ## 1. 题面身份（question identity）
 

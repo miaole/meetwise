@@ -80,6 +80,7 @@ RAG 检索的当前实跑基线、非 happy-path 桶和 pgvector HNSW 复核见 
 - 只测 happy path 不测失败退款和重复请求。
 - 在 live E2E runner 打开假服务开关，或删掉 `pnpm e2e-static-guards:check` 所核对的拒绝列表。
 - 证据/日志 helper 回显扫描命中的密钥原文。
+- 把 unverified AI path 写成已验证（本地造题号、客户端评分、无证据写成 0 分）。`pnpm e2e-static-guards:check` 只核对 HTTP E2E 固定清单上的拒绝合同，通过 ≠ 出处已验证。出处未核可以再核对一轮（multi-round verify），不能用对话摘要当通过。
 
 ## 本地性能回归门
 

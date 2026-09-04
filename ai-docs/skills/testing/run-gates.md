@@ -87,6 +87,6 @@ pnpm verify:e2e-performance     # 本地全量子集；含 live HTTP/UI，需要
 ## 6. 失败怎么读
 
 - `live_provider_key_missing`：没有 Key。记 `not_run`，不要改 runner 去 skip-as-pass。
-- `fake_service_mode_forbidden`：有人打开了假服务开关。关掉再跑，不要删这条守卫。`pnpm e2e-static-guards:check` 会静态核对 runner 仍拒绝同一份列表，并对证据/日志 helper 做密钥扫描（失败即关，不回显命中值）。
+- `fake_service_mode_forbidden`：有人打开了假服务开关。关掉再跑，不要删这条守卫。`pnpm e2e-static-guards:check` 会静态核对 runner 仍拒绝同一份列表，并对证据/日志 helper 做密钥扫描（失败即关，不回显命中值）。同一守卫拒绝信任 unverified AI path（本地造题号、客户端评分、无证据写成 0 分）；允许多轮核对（multi-round verify），不得用对话摘要代替退出码与回执。
 - `e2e_isolation_required`：直接跑了 `pnpm e2e:prove`。必须用 `e2e:isolated`。
 - 子进程 stdout/stderr 默认不进回执。失败时只看退出码、断言行和 `E2E_PROCESS_OUTPUT_WITHHELD` 字节计数。

@@ -18,12 +18,14 @@ description: 测试与文档的诚实边界：releaseEvidence、假服务、skip
 7. **把 planned / unmapped golden-task 标成 passed。** 登记文件里的 `status` 枚举见 `ai-docs/testing/golden-tasks/README.md`。
 8. **把 Playwright 说成当前 HTTP 全链路实现。** 浏览器层才是 Playwright；HTTP 层是 fetch/SSE。
 9. **把本机性能数字说成线上 SLO。**
+10. **拒绝信任 unverified AI path。** 未核不得写“AI 路径已验证”。`pnpm e2e-static-guards:check` 核对 HTTP E2E 固定清单上的可执行拒绝合同：`questionIdentity` 必须在缺失身份时 `throw`，`full.e2e.ts` 必须 `import` 并 `await driveInterviewToTerminal(`，无评分证据必须落在 `scorelessBound` 分支的 `assessment_unavailable && score === null`。这是静态合同，通过 ≠ AI 路径已验证。假服务禁止；密钥扫描失败即关且不回显命中值。允许多轮核对（multi-round verify），不得用对话摘要代替退出码。
 
 ## 允许
 
 - 在无 Key 环境只跑隔离 prove，并写明 live 未跑。
 - 用 fake model 测图分支与校验器，同时把质量评测留给 nightly / `scoring:eval`。
 - 引用带 SHA-256 与迁移摘要的本地回执，作为“当时这条隔离链到终态”，并写 `releaseEvidence=false`。
+- 出处或守卫第一次未过时再核对一轮（multi-round verify）；仍以退出码和回执为准。
 
 ## 写验证说明的最小模板
 
