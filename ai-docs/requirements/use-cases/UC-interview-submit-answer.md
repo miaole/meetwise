@@ -48,6 +48,6 @@ related:
 - 断线 `Last-Event-ID=N` → 仅重放 seq>N。
 
 ## 关联
-契约：`POST /interview/:id/turn`、`GET /interview/:id/events`。遗留 `POST /interview/:id/answer` 固定返回 `410 legacy_endpoint_disabled`，见 `UC-SCOR-00`。状态机：Interview、ConsumptionRecord。原语：CAS / 幂等键 / RLS / 事件日志（全四条）。安全：用户答案为不可信输入（factuality 歪曲门 + 注入处理）。
+契约：`POST /interview/:id/turn`、`GET /interview/:id/events`。遗留 `POST /interview/:id/answer` 固定返回 `410 legacy_endpoint_disabled`，见 `UC-SCOR-00`。状态机：Interview、ConsumptionRecord。原语：CAS / 幂等键 / RLS / 事件日志（全四条）。安全：用户答案为不可信输入（factuality 歪曲门 + 注入处理）。生产 `/turn` 仍把明文 `answer` 写入 `interview_job.payload`（`INT-P0-RAW-QUEUE` 仍 open）；`interview_event` 禁止顶层 `answer`。互斥与切换不在本页，见 `UC-INT-ANSWER-DUAL-WRITE-FENCE` 与 `architecture/backend/interview-answer-dual-write-cutover.md`。
 
 > 这条用例把当前 `api:validate`/`runtime:prove`/`pipeline:prove` 的相关断言全部挂上了具体业务流——即"测试用例 ↔ 业务用例 ↔ 代码"闭合。其余 capability 按 [use-case-conventions](../use-case-conventions.md) 同样先补用例再写代码。

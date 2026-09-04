@@ -3,6 +3,9 @@
  */
 import type { PoolClient as Client } from 'pg';
 import { assertInterviewPrivacyActive } from './checkpoint-privacy.ts';
+import {
+  assertInterviewAnswerLegacyPlaintextAllowed, plaintextAnswerIdentity, remapInterviewAnswerDualWriteError,
+} from './interview-answer-dual-write.ts';
 
 export type JobKind = 'start' | 'answer';
 const LEASE_SECONDS = 120;
@@ -43,11 +46,23 @@ export async function enqueueInterviewJob(
   const reference = parent.rows[0]!;
   const sourceResumeId = kind === 'start' ? reference.resume_id : null;
   const sourceEpoch = Number(reference.resume_privacy_epoch);
-  const r = await c.query(
-    `INSERT INTO interview_job(owner_user_id, interview_id, kind, seq, payload, resume_id, resume_privacy_epoch, reference_schema_version)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-       ON CONFLICT (owner_user_id, interview_id, kind, seq) DO NOTHING RETURNING id`,
-    [owner, interviewId, kind, seq, JSON.stringify(payload), sourceResumeId, sourceEpoch, INTERVIEW_RESUME_REFERENCE_VERSION]);
+  // 0126 双写互斥：有 ledger artifact 时禁止再持久化顶层 answer 键。kind 不豁免
+  //（start 带 answer 同样拦截）。无 answer 键不受影响。触发器是安全边界；
+  // 这里先调同一 SECURITY DEFINER，错误码与 raw SQL 一致。
+  const identity = plaintextAnswerIdentity(payload);
+  if (identity) {
+    await assertInterviewAnswerLegacyPlaintextAllowed(c, interviewId, identity.questionId, identity.stateVersion);
+  }
+  let r;
+  try {
+    r = await c.query(
+      `INSERT INTO interview_job(owner_user_id, interview_id, kind, seq, payload, resume_id, resume_privacy_epoch, reference_schema_version)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+         ON CONFLICT (owner_user_id, interview_id, kind, seq) DO NOTHING RETURNING id`,
+      [owner, interviewId, kind, seq, JSON.stringify(payload), sourceResumeId, sourceEpoch, INTERVIEW_RESUME_REFERENCE_VERSION]);
+  } catch (error) {
+    remapInterviewAnswerDualWriteError(error);
+  }
   if (r.rowCount === 1) return r.rows[0].id;
   // A unique-key conflict is idempotent only for the same v64 parent epoch.
   // Returning an old v50/NULL row would falsely report a safe retry while the

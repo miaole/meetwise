@@ -18,6 +18,7 @@
 import type { Client } from './principal.ts';
 import { createHmac, randomUUID } from 'node:crypto';
 import { assertInterviewPrivacyActive } from './checkpoint-privacy.ts';
+import { assertInterviewAnswerLedgerWriteAllowed, remapInterviewAnswerDualWriteError } from './interview-answer-dual-write.ts';
 
 const IS_PROD = process.env.NODE_ENV === 'production';
 /** 必需密钥：prod 缺失即 fail-closed 抛错（杜绝静默用 dev 默认 = 加密形同虚设）。 */
@@ -116,6 +117,9 @@ export async function submitInterviewAnswer(c: Client, input: SubmitInterviewAns
 
   await assertInterviewPrivacyActive(c, input.interviewId);   // checkpoint fence（同锁，跨 sink 串行）
   await assertInterviewAnswerFactActive(c, input.interviewId); // answer-artifact fence（本域 resolver）
+  // 0126：legacy `/turn` 已为同身份写过 interview_job 时拒 ledger。这不是 01 生产门，
+  // 只禁止两条正文家族并行。HTTP `/turn` 仍不走本函数。
+  await assertInterviewAnswerLedgerWriteAllowed(c, input.interviewId, input.questionId, input.stateVersion);
 
   const bodyHmac = answerBodyHmac(input.answer);
   const encKey = encKeyForVersion(INTERVIEW_ANSWER_KEY_VERSION);
@@ -147,12 +151,16 @@ export async function submitInterviewAnswer(c: Client, input: SubmitInterviewAns
 
   if (inserted) {
     const artifactId = randomUUID();
-    await c.query(
-      `INSERT INTO interview_answer_artifact(id,owner_user_id,interview_id,question_id,state_version,submission_id,ciphertext,body_hmac,hmac_key_version,enc_key_version,privacy_epoch,status)
-       VALUES ($1,current_setting('app.principal_user', true),$2,$3,$4,$5,pgp_sym_encrypt($6,$7),$8,$9,$10,$11,'active')`,
-      [artifactId, input.interviewId, input.questionId, input.stateVersion, submissionId, input.answer, encKey,
-        bodyHmac, INTERVIEW_ANSWER_KEY_VERSION, INTERVIEW_ANSWER_KEY_VERSION, input.privacyEpoch],
-    );
+    try {
+      await c.query(
+        `INSERT INTO interview_answer_artifact(id,owner_user_id,interview_id,question_id,state_version,submission_id,ciphertext,body_hmac,hmac_key_version,enc_key_version,privacy_epoch,status)
+         VALUES ($1,current_setting('app.principal_user', true),$2,$3,$4,$5,pgp_sym_encrypt($6,$7),$8,$9,$10,$11,'active')`,
+        [artifactId, input.interviewId, input.questionId, input.stateVersion, submissionId, input.answer, encKey,
+          bodyHmac, INTERVIEW_ANSWER_KEY_VERSION, INTERVIEW_ANSWER_KEY_VERSION, input.privacyEpoch],
+      );
+    } catch (error) {
+      remapInterviewAnswerDualWriteError(error);
+    }
     const jobId = randomUUID();
     await c.query(
       `INSERT INTO interview_answer_job(id,owner_user_id,interview_id,question_id,state_version,artifact_ref,status)

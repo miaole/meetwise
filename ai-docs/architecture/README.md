@@ -19,3 +19,5 @@ tags:
 1. `system-blueprint.md`
 2. `ai/langgraph-blueprint.md`
 3. `devops/local-demo-deployment.md`
+
+答题落点（legacy 明文 job / event / ledger）与 `INT-TRANSCRIPT-01` 之前的互斥围栏：`backend/interview-answer-dual-write-cutover.md`。该页不是 01 完成证明。

@@ -25,6 +25,7 @@ const requiredFiles = [
   "ai-docs/architecture/ai/privacy-deletion-sink-inventory.md",
   "ai-docs/architecture/ai/agent-runtime.md",
   "ai-docs/architecture/backend/data-model.md",
+  "ai-docs/architecture/backend/interview-answer-dual-write-cutover.md",
   "ai-docs/architecture/backend/module-boundaries.md",
   "ai-docs/architecture/backend/rls-isolation.md",
   "ai-docs/architecture/backend/commerce-saga.md",
@@ -61,6 +62,20 @@ const requiredTerms = new Map([
   ["ai-docs/observability/observability-strategy.md", ["SLO", "降级", "恢复", "脱敏", "threadId"]],
   ["ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md", ["qbank_control_definer", "FORCE RLS", "fail-closed", "SECURITY DEFINER", "lane(b)", "撤销", "复活"]],
   ["ai-docs/requirements/use-cases/cend-overview-progress.md", ["题目账本", "Overview.answered", "issued_turns", "status <> 'cancelled'", "ScoreCard"]],
+  ["ai-docs/architecture/backend/interview-answer-dual-write-cutover.md", [
+    "INT-P0-RAW-QUEUE",
+    "INT-TRANSCRIPT-01",
+    "interview_job",
+    "interview_answer_artifact",
+    "interview_answer_legacy_plaintext_fenced",
+    "interview_answer_ledger_dual_write_fenced",
+    "interview_event_raw_answer_fenced",
+    "答题双写互斥",
+    "0126",
+    "payload-'answer'",
+    "submitInterviewAnswer",
+    "enqueueInterviewJob",
+  ]],
 ]);
 
 // P0 readability contract: expert-interview materials must not assume the reader already knows acronyms.
@@ -126,6 +141,11 @@ const runtimeTruthAssertions = [
     source: "apps/api/src/modules/interview/interview.service.ts",
     sourceTerm: "iq.status <> 'cancelled'",
     truthTerm: "issued_turns",
+  },
+  {
+    source: "packages/db/migrations/0126_interview_answer_dual_write_fence.sql",
+    sourceTerm: "interview_answer_legacy_plaintext_fenced",
+    truthTerm: "答题双写互斥",
   },
 ];
 
