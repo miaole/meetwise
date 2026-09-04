@@ -125,6 +125,7 @@ E2E 用例数/断言 parity 是测试控制面，不计入上表产品域估算�
 | --- | --- | --- |
 | 公开预览写门禁 | `public-preview-write-gate.md` | 面试/评分写面清单 + fail-closed；本地 write-gate proof ≠ 发布 |
 | C 端成长主页「已答题数」与列表进度 | `cend-overview-progress.md` | `issued_turns`=`status<>'cancelled'`；`Overview.answered`/`answered_turns`=`status='answered'`；禁止用 ScoreCard 空集把已作答伪装成 0 |
+| INT-TRANSCRIPT-00 隐私诚实 | `expert-long-interview-runtime.md` / `checkpoint-privacy-erasure.md` | 公开 `DELETE /privacy/interview-data/:id` 仍 503；无公开 `/answers`；签发器/0091 账本 ≠ 删除已开放 |
 
 ## 5. 专家级面试官题库（内部使用）
 

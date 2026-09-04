@@ -54,6 +54,7 @@ export const OPTIONAL_ALWAYS_ON = Object.freeze([
   'provider-egress:prove',
   'public-preview-write:prove',
   'public-preview-write-gate:prove',
+  'interview-answer-submission:prove',
 ]);
 
 export const CORE_REQUIRED = Object.freeze([

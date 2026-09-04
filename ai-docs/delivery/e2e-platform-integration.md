@@ -126,17 +126,18 @@ related:
 
 脚本映射（禁止对调）：`e2e-platform:check` → `scripts/e2e-platform/check.mjs`；`e2e-platform:prove` → `scripts/e2e-platform/prove.mjs`（5 命名守卫）；`e2e-platform:layout:prove` → `scripts/e2e-platform/e2e-platform.proof.mjs`（种植违规）；`e2e-platform:loop` → `scripts/e2e-platform/review-loop.mjs`（`test` 步仍是 `prove`，不是 `layout:prove`）。
 
-可选（`package.json` 有脚本才挂）：`public-text-policy:prove` · `quality:traceability:prove` · `provider-egress:prove` · `public-preview-write:prove` · `public-preview-write-gate:prove`。
+可选（`package.json` 有脚本才挂）：`public-text-policy:prove` · `quality:traceability:prove` · `provider-egress:prove` · `public-preview-write:prove` · `public-preview-write-gate:prove` · `interview-answer-submission:prove`。
 
-## 相对最新 main 的叠底（#65 + #68）
+## 相对最新 main 的叠底（#65 + #68 + #69）
 
-本分支已叠到 `origin/main` @ `94e31e5`（#68 preview write-gate 后接 #65 ledger predicates）。冲突只解一次，三方都留：
+本分支已叠到 `origin/main` @ `e9d7817`（#68 preview write-gate → #65 ledger predicates → #69 INT-TRANSCRIPT-00 privacy honesty）。`package.json` 与 `scripts/run-e2e-isolated.mjs` 自动并集；冲突只解一次，四方都留：
 
 | 来源 | 必须保留 |
 | --- | --- |
 | 本集成 | `ALWAYS_ON_REQUIRED` 16 项；平台三入口不可对调；parity / static-guards / fail-closed |
 | #65 | C 端 `issued_turns`=`status<>'cancelled'`；`Overview.answered`=`iq.status='answered'`；禁止 ScoreCard 空集伪装成 0 |
 | #68 | `assertPublicPreviewWritesClosed`；CI `public-preview-write:*`；可选 always-on 挂 `public-preview-write:prove` / `public-preview-write-gate:prove` |
+| #69 | 公开 `DELETE /privacy/interview-data/:id` 仍 `503 interview_erasure_authorization_not_available`；无公开 `/answers`；`interview-answer-submission:prove` 冻结 submission/receipt 合同且不进 OpenAPI；签发器/0091 账本 ≠ 删除已开放；预览 `/turn` 503 不是隐私 DELETE 503，也不关闭 `INT-P0-RAW-QUEUE` |
 
 `check-docs.mjs` / `meta/index.md` / 用例目录是并集，不是二选一。
 
@@ -158,7 +159,7 @@ related:
 | `testing/e2e-parity-baseline.md` + JSON/allowlist | floors 48/367；effective 37/342；allowlist 6 条 |
 | `architecture/ai/provider-egress-inventory.{json,md}` | 登记 #62/#63 新增的 7 处 `MODEL_*` / `DASHSCOPE_TEST_*` 引用；`environmentReferenceCount` = 186 |
 
-`docs:check` 把本文件列为 required，并要求出现 `#55`、`#64`、`feature/e2e-platform-integration`、`fail-closed`、`releaseEvidence`、`supersede`。
+`docs:check` 把本文件列为 required，并要求出现 `#55`、`#64`、`#69`、`feature/e2e-platform-integration`、`fail-closed`、`releaseEvidence`、`supersede`。
 
 ## 本轮诚实边界
 
@@ -168,15 +169,15 @@ aiTrust: untrusted
 review: blocked:author_only
 verification: commands_ok
 commands: pnpm regression
-exit: docs:check=0 generation-trust:prove=0 golden-tasks:check=0 golden-tasks:prove=0 e2e-platform:check=0 e2e-platform:prove=0 e2e-platform:layout:prove=0 e2e-helpers:prove=0 e2e-receipt:prove=0 e2e-runner:prove=0 e2e-static-guards:check=0 e2e-static-guards:prove=0 e2e-parity:check=0 e2e-parity:prove=0 arch=0 api:smoke=0 public-text-policy:prove=0 quality:traceability:prove=0 provider-egress:prove=0 public-preview-write:prove=0 public-preview-write-gate:prove=0
+exit: docs:check=0 generation-trust:prove=0 golden-tasks:check=0 golden-tasks:prove=0 e2e-platform:check=0 e2e-platform:prove=0 e2e-platform:layout:prove=0 e2e-helpers:prove=0 e2e-receipt:prove=0 e2e-runner:prove=0 e2e-static-guards:check=0 e2e-static-guards:prove=0 e2e-parity:check=0 e2e-parity:prove=0 arch=0 api:smoke=0 public-text-policy:prove=0 quality:traceability:prove=0 provider-egress:prove=0 public-preview-write:prove=0 public-preview-write-gate:prove=0 interview-answer-submission:prove=0
 receipts: none
 claimDone: false
 ready: NOT_READY
-rounds: 3
+rounds: 4
 releaseEvidence: false
 liveE2E: not_run:live_provider_key_missing
 core: not_requested
 secrets: none
 ```
 
-`pnpm regression` 在叠到 `origin/main`（#65+#68）后退出 0（`outcome=passed_always_on`）。这只证明 always-on + 已接线可选静态门（含 #68 write-gate proves），不是 CI `verify`、不是 `--core`、不是 live E2E。作者不得自签 `review: passed`。不得 `--claim-done`。不得写「本轮局部验证完成」——审核仍是 `blocked:author_only`。
+`pnpm regression` 在叠到 `origin/main`（#65+#68+#69）后退出 0（`outcome=passed_always_on`）。这只证明 always-on + 已接线可选静态门（含 #68 write-gate 与 #69 submission/receipt 合同），不是 CI `verify`、不是 `--core`、不是 live E2E。作者不得自签 `review: passed`。不得 `--claim-done`。不得写「本轮局部验证完成」——审核仍是 `blocked:author_only`。
