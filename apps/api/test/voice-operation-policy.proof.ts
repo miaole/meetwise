@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { MODULE_METADATA } from '@nestjs/common/constants';
 import { InterviewModule } from '../src/modules/interview/interview.module.ts';
 import { VOICE_ASR, VOICE_STREAM_TTS, VOICE_TTS } from '../src/modules/interview/interview.service.ts';
-import type { Asr, StreamingTts, Tts } from '@meetwise/ai-runtime';
+import { createInterviewVoiceSeams, type Asr, type StreamingTts, type Tts } from '@meetwise/ai-runtime';
 
 let failures = 0;
 const check = (name: string, condition: boolean) => {
@@ -29,6 +29,10 @@ function providerFactory(token: symbol): () => unknown {
 }
 
 async function main() {
+  const keyVars = ['DASHSCOPE_ASR_API_KEY', 'DASHSCOPE_TTS_API_KEY', 'DASHSCOPE_API_KEY'] as const;
+  const saved = new Map<string, string | undefined>();
+  for (const name of keyVars) saved.set(name, process.env[name]);
+  for (const name of keyVars) delete process.env[name];
   const originalFetch = globalThis.fetch;
   let fetches = 0;
   globalThis.fetch = (async () => {
@@ -46,8 +50,15 @@ async function main() {
     check('default API streaming TTS provider is fail-closed before transport',
       await errorOf(() => stream.synthesizeStream('synthetic text')[Symbol.asyncIterator]().next()) === 'streaming_tts_not_configured');
     check('default API voice providers make zero provider fetches', fetches === 0);
+    const seams = createInterviewVoiceSeams();
+    check('composition factory without Keys stays unconfigured',
+      seams.asrConfigured === false && seams.ttsConfigured === false);
   } finally {
     globalThis.fetch = originalFetch;
+    for (const [name, value] of saved) {
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
   }
   console.log(`\n${failures === 0 ? '✓ API voice operation policy passed' : `✗ ${failures} assertion(s) failed`}`);
   process.exit(failures === 0 ? 0 : 1);

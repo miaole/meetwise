@@ -75,7 +75,7 @@ async function main() {
   );
   const allowedSeed = Number(policyRows.rows.find((r) => r.admission_status === 'allowed')?.n ?? 0);
   const blockedSeed = Number(policyRows.rows.find((r) => r.admission_status === 'blocked')?.n ?? 0);
-  A('迁移种子：7 个 wired=allowed + 8 个 unwired=blocked（与 registry 逐条对齐）', allowedSeed === 7 && blockedSeed === 8);
+  A('迁移种子：7 个 admission=allowed + 8 个 admission=blocked（共享准入仍未放行预览语音）', allowedSeed === 7 && blockedSeed === 8);
 
   // 7 个 wired operation 的分区都可从 registry 派生（resolve 返回分区）。
   const wiredIds = [

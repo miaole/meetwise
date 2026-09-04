@@ -44,8 +44,8 @@ function toInterviewView(row: any) {
     processing_turn: row.processing_turn,
   };
 }
-// 语音接口由 DI seam 提供。默认组合根固定注入 fail-closed seam；只有后续
-// typed operation binding 才能替换它，service 不硬编码供应商细节。
+// 语音接口由 DI seam 提供。组合根经 registry + 能力 Key 接线批量 ASR/TTS；
+// 缺 Key 或未接线仍 fail-closed。service 不硬编码供应商细节。
 export const VOICE_ASR = Symbol.for('meetwise.VOICE_ASR');
 export const VOICE_TTS = Symbol.for('meetwise.VOICE_TTS');
 export const VOICE_STREAM_TTS = Symbol.for('meetwise.VOICE_STREAM_TTS');
@@ -274,9 +274,11 @@ export class InterviewService {
       return { audioBase64: Buffer.from(audio).toString('base64'), mimeType: 'audio/wav' };
     } catch (e: any) {
       if (String(e?.message) === 'tts_not_configured')
-        throw new HttpException({ error: 'tts_unavailable', message: '语音播报暂未开通，将以文字显示题目' }, HttpStatus.SERVICE_UNAVAILABLE);
+        throw new HttpException({ error: 'tts_unavailable', message: '语音播报暂不可用，将以文字显示题目' }, HttpStatus.SERVICE_UNAVAILABLE);
       if (String(e?.message) === 'tts_download_capacity_exceeded')
         throw new HttpException({ error: 'tts_busy', message: '语音播报繁忙，将以文字显示题目', retryAfterSeconds: 1 }, HttpStatus.SERVICE_UNAVAILABLE);
+      if (String(e?.message) === 'tts_malformed')
+        throw new HttpException({ error: 'tts_failed', message: '语音播报失败，将以文字显示题目' }, HttpStatus.BAD_GATEWAY);
       throw new HttpException({ error: 'tts_failed', message: '语音播报失败，将以文字显示题目' }, HttpStatus.BAD_GATEWAY);
     }
   }
@@ -291,7 +293,7 @@ export class InterviewService {
     // Disabled before hijack/headers: the browser can always fall back to text
     // and no stream transport can be constructed from a broad provider key.
     if (this.streamTts.id === VOICE_EGRESS_DISABLED_ID)
-      throw new HttpException({ error: 'tts_unavailable', message: '语音播报暂未开通，将以文字显示题目' }, HttpStatus.SERVICE_UNAVAILABLE);
+      throw new HttpException({ error: 'tts_unavailable', message: '语音播报暂不可用，将以文字显示题目' }, HttpStatus.SERVICE_UNAVAILABLE);
     return { text: text.slice(0, 2000) };   // 截断防超长 TTS(对齐非流式 speak)
   }
 
@@ -312,6 +314,8 @@ export class InterviewService {
     const format = dto.format?.trim() || formatFromMime(dto.mimeType);
     try {
       const text = await this.asr.transcribe(new Uint8Array(audio), { format, signal: options?.signal });
+      if (typeof text !== 'string')
+        throw new HttpException({ error: 'asr_failed', message: '语音转写失败，请重试或改用文字作答' }, HttpStatus.BAD_GATEWAY);
       // 这不是说话人识别结果：唯一可信事实是请求经过同意、来自本机单轨。
       // 在双轨/电话接入与 DER/WER 验收完成前，显式返回 unavailable，禁止下游伪造候选人/面试官归因。
       return {
@@ -323,9 +327,12 @@ export class InterviewService {
         },
       };
     } catch (e: any) {
+      if (e instanceof HttpException) throw e;
       // 优雅降级:模型未配置 / 转写失败 → 明确错误,前端回落到文字作答(不抛 500,不死胡同)。
       if (String(e?.message) === 'asr_not_configured')
-        throw new HttpException({ error: 'asr_unavailable', message: '语音转写暂未开通，请改用文字作答' }, HttpStatus.SERVICE_UNAVAILABLE);
+        throw new HttpException({ error: 'asr_unavailable', message: '语音转写暂不可用，请改用文字作答' }, HttpStatus.SERVICE_UNAVAILABLE);
+      if (String(e?.message) === 'asr_malformed')
+        throw new HttpException({ error: 'asr_failed', message: '语音转写失败，请重试或改用文字作答' }, HttpStatus.BAD_GATEWAY);
       if (String(e?.message) === 'asr_timeout')
         throw new HttpException({ error: 'asr_timeout', message: '语音转写超时，请重试或改用文字作答' }, HttpStatus.GATEWAY_TIMEOUT);
       // 499 is an internal/client-aborted classification. The response socket

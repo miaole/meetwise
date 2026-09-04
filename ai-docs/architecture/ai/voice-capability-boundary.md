@@ -17,17 +17,17 @@ tags:
 
 # 人机双向语音能力边界与升级门
 
-> 这里的“单轨”只描述**目标态**的人侧只采集一个本机麦克风轨道；它不代表 AI 不说话。批量/流式语音 API 组合根和所有原始音频手工 smoke 现已 fail-closed，当前交付路径仅为文字输入/展示。下述 adapter 取消和下载合同保留为未来逐 operation 接入的前置，不是当前人↔AI 语音已启用的声明。
+> 这里的“单轨”只描述**目标态**的人侧只采集一个本机麦克风轨道；它不代表 AI 不说话。批量 ASR/TTS 是**预览版**：registry 已接线 `voice.asr.v1` / `voice.tts.v1`，组合根仅在独立能力 Key 存在时构造适配器；缺 Key、超时或畸形响应 fail-closed，不编造转写/音频。流式语音与原始音频手工 smoke 仍 fail-closed。这不是生产 SLO、共享准入或删除回执。
 
 ## 当前实现与证据边界（事实，不是路线图）
 
 | 能力 | 当前状态 | 可验证证据 | 对外表述 |
 | --- | --- | --- | --- |
-| 人↔AI 双向回合 | disabled pending `MODEL-OP-01` | 浏览器保留文字回退 UI；TTS/ASR adapter 与 Fastify 断连合同仅为本地适配器测试 | 不得声称支持 AI 播题或用户单轨转写 |
+| 人↔AI 双向回合 | 预览版（批量 ASR/TTS，Key 存在时） | `createInterviewVoiceSeams` + `VoiceCallPanel`；缺 Key/超时/畸形 fail-closed | 可称预览版语音；不得称生产 SLO 或全双工电话 |
 | 用户抢话（barge-in） | 部分实现；非流式取消按 `UC-VOICE-03` 收口中 | 流式 `/speak/stream` 已有连接 close（关闭）→中止；非流式 `/speak` 必须由 `TC-VOICE-03-E6` 的代理/API/适配器全链断言后才可标已验证 | 现阶段不得把“浏览器停止播放”表述成“服务端或供应商已停止” |
 | 浏览器本机单麦克风录音 | 已实现 | `MediaRecorder` + 显式同意门 | 只采集当前设备的人侧单轨 |
-| 片段 ASR（自动语音识别） → 可编辑文本 | disabled pending typed binding | `POST /interview/:id/transcribe` 返回明确不可用 | 文字输入 |
-| 题目 TTS（文本转语音） | disabled pending typed binding | `/speak` 与 `/speak/stream` 返回明确不可用 | 文字展示 |
+| 片段 ASR（自动语音识别） → 可编辑文本 | 预览接线；缺 Key fail-closed | `POST /interview/:id/transcribe`；畸形/超时不编造转写 | 预览版语音；失败回文字 |
+| 题目 TTS（文本转语音） | 预览接线；缺 Key fail-closed | `/speak` 在 Key 存在时合成；`/speak/stream` 仍不可用 | 预览版播题；失败回文字 |
 | 本机音量/“在听”动效 | 已实现 | VAD 的 28 根波形条，状态刷新最多 12.5 Hz；`prefers-reduced-motion`（减少动态效果偏好）关闭动画 | 人侧本机麦克风电平，不代表另一位人类说话者 |
 | 远端媒体轨 / PSTN / WebRTC 通话接入 | 未实现 | 无 provider、无远端轨协议 | 不可宣传为电话或会议 |
 | 双人录音 / 说话人分离 / DER | 未实现 | 无双轨样本、无 diarization provider、无 DER 报告 | 不可生成“面试官/候选人”归因 |

@@ -32,9 +32,9 @@ function chatInput(overrides: Record<string, unknown> = {}) {
 // ── 正常: registry invariants + wired/unwired split.
 A('registry 静态不变量：唯一 id、完整 admission、maxDispatches=1、确定性 fallback',
   validateModelOperationRegistry().length === 0);
-A('七个已接线操作(六文本+一视觉 OCR)与八个未接线 typed contract 全部登记',
-  MODEL_OPERATION_REGISTRY.filter((definition) => definition.wired).length === 7
-  && MODEL_OPERATION_REGISTRY.filter((definition) => !definition.wired).length === 8);
+A('九个已接线操作(六文本+一视觉 OCR+批量 ASR/TTS)与六个未接线 typed contract 全部登记',
+  MODEL_OPERATION_REGISTRY.filter((definition) => definition.wired).length === 9
+  && MODEL_OPERATION_REGISTRY.filter((definition) => !definition.wired).length === 6);
 A('MODEL-OP-02 准入分区含 providerAccount+region+modelOrRecipe+operation 且不由调用方提供',
   new Set(MODEL_OPERATION_REGISTRY.map((definition) => [
     definition.admission.providerAccount, definition.admission.region, definition.admission.modelOrRecipe, definition.operationId,
@@ -72,8 +72,10 @@ A('未登记 operation、未接线 operation 与非法 revision 均确定性拒�
   && reject(resolveModelOperation('voice.tts-stream.v1', 'r1'), 'model_operation_not_wired')
   && reject(resolveModelOperation('interview.question-generation.v1', ''), 'model_operation_revision_invalid')
   && reject(resolveModelOperation('interview.question-generation.v1', 'bad revision\n'), 'model_operation_revision_invalid')
-  // MODEL-OP-01: resume.ocr.v1 已切 registry node identity → wired，不再是 not_wired。
-  && resolveModelOperation('resume.ocr.v1', 'r1').ok === true);
+  // MODEL-OP-01: resume.ocr.v1 与批量 voice.asr/tts 已切 registry node identity → wired。
+  && resolveModelOperation('resume.ocr.v1', 'r1').ok === true
+  && resolveModelOperation('voice.asr.v1', 'r1').ok === true
+  && resolveModelOperation('voice.tts.v1', 'r1').ok === true);
 
 // ── typed input binding: 正常.
 A('chat typed binding 接受契约 id + 对象 digest 引用',

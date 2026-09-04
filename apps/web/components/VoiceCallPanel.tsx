@@ -271,9 +271,12 @@ export function VoiceCallPanel({
         method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text }), signal: speechAbort.signal,
       });
       if (!res.ok) throw new Error('tts_unavailable');           // 502 tts_failed / 503 tts_unavailable
-      const { audioBase64, mimeType } = await res.json() as { audioBase64: string; mimeType?: string };
+      const spoken = await res.json().catch(() => null) as { audioBase64?: unknown; mimeType?: unknown } | null;
+      if (typeof spoken?.audioBase64 !== 'string' || !spoken.audioBase64)
+        throw new Error('tts_malformed');
       if (gen !== genRef.current || speechAbort.signal.aborted) return;
-      audioUrl = URL.createObjectURL(base64ToBlob(audioBase64, mimeType || 'audio/wav'));
+      const mimeType = typeof spoken.mimeType === 'string' ? spoken.mimeType : 'audio/wav';
+      audioUrl = URL.createObjectURL(base64ToBlob(spoken.audioBase64, mimeType));
       const audio = new Audio(audioUrl);
       audioElRef.current = audio;
       setTtsPhase('playing');
@@ -436,7 +439,12 @@ export function VoiceCallPanel({
         }),
       });
       if (!res.ok) { if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写暂不可用,可切回打字继续'); } return; }   // 503/502 → 出路:切回打字
-      text = ((await res.json()) as { text: string }).text ?? '';
+      const body = await res.json().catch(() => null) as { text?: unknown } | null;
+      if (typeof body?.text !== 'string') {
+        if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写失败,可切回打字继续'); }
+        return;
+      }
+      text = body.text;
     } catch { if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写失败,可切回打字继续'); } return; }
     if (gen !== genRef.current) return;
 
@@ -479,7 +487,12 @@ export function VoiceCallPanel({
         }),
       });
       if (!res.ok) { if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写暂不可用,可切回打字继续'); } return; }
-      const text = ((await res.json()) as { text: string }).text ?? '';
+      const retryBody = await res.json().catch(() => null) as { text?: unknown } | null;
+      if (typeof retryBody?.text !== 'string') {
+        if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写失败,可切回打字继续'); }
+        return;
+      }
+      const text = retryBody.text;
       if (gen !== genRef.current) return;
       if (!text.trim()) { setHint('还是没听清,可点「说完了」后改用打字'); return; }
       setLastAnswer(text); setStatus('submitting');
@@ -538,7 +551,7 @@ export function VoiceCallPanel({
     <div className="mx-auto flex min-h-[70vh] max-w-lg flex-col">
       {/* 顶部状态条 */}
       <header className="flex items-center justify-between border-b pb-3">
-        <h2 className="font-serif text-lg">🎙️ 人机双向语音面试</h2>
+        <h2 className="font-serif text-lg">🎙️ 人机双向语音面试 <span className="align-middle text-xs font-normal text-muted-foreground">预览版</span></h2>
         <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
           <span className={`size-1.5 rounded-full ${busyDot ? 'animate-pulse bg-primary' : 'bg-muted-foreground'}`} />
           {STATUS_LABEL[status]}
@@ -587,9 +600,9 @@ export function VoiceCallPanel({
 
         {status === 'consent_required' && (
           <section role="dialog" aria-modal="true" aria-labelledby="voice-consent-title" className="w-full rounded-lg border border-primary/30 bg-secondary/50 p-4 text-left text-sm">
-            <h3 id="voice-consent-title" className="font-medium">确认人机语音处理范围</h3>
+            <h3 id="voice-consent-title" className="font-medium">确认人机语音处理范围（预览版）</h3>
             <p className="mt-2 leading-relaxed text-muted-foreground">
-              语音能力默认关闭。若页面明确开放，它只会采集这台设备当前的一个麦克风片段并发送给转写服务；此页面的开关只能停止后续录音，不能撤回已经发送的片段。它不是电话或会议接入，不能采集另一位参与者的音频，也没有说话人分离、逐词时间戳或双人通话纪要能力。
+              预览版语音只会采集这台设备当前的一个麦克风片段并发送给转写服务；超时或转写异常会回到文字作答，不会编造内容。此页面的开关只能停止后续录音，不能撤回已经发送的片段。它不是电话或会议接入，没有说话人分离或逐词时间戳。
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <button
