@@ -381,6 +381,11 @@
       "class": "test-fixture"
     },
     {
+      "name": "DASHSCOPE_ASR_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
+      "class": "test-isolation"
+    },
+    {
       "name": "DASHSCOPE_ASR_API_KEY",
       "source": "packages/ai-runtime/src/dashscope-native-config.ts",
       "class": "adapter-configuration"
@@ -466,6 +471,11 @@
       "class": "test-fixture"
     },
     {
+      "name": "DASHSCOPE_EMBED_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
+      "class": "test-isolation"
+    },
+    {
       "name": "DASHSCOPE_EMBED_API_KEY",
       "source": "packages/ai-runtime/src/dashscope-native-config.ts",
       "class": "adapter-configuration"
@@ -544,6 +554,11 @@
       "name": "DASHSCOPE_RERANK_API_KEY_FINGERPRINT",
       "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
       "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_RERANK_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
+      "class": "test-isolation"
     },
     {
       "name": "DASHSCOPE_RERANK_API_KEY",
@@ -631,6 +646,11 @@
       "class": "test-fixture"
     },
     {
+      "name": "DASHSCOPE_REVOKED_KEY_FINGERPRINTS",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
+      "class": "test-isolation"
+    },
+    {
       "name": "DASHSCOPE_STREAM_ASR_API_KEY_FINGERPRINT",
       "source": "packages/ai-runtime/src/dashscope-native-config.ts",
       "class": "adapter-configuration"
@@ -639,6 +659,11 @@
       "name": "DASHSCOPE_STREAM_ASR_API_KEY_FINGERPRINT",
       "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
       "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_ASR_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
+      "class": "test-isolation"
     },
     {
       "name": "DASHSCOPE_STREAM_ASR_API_KEY",
@@ -694,6 +719,11 @@
       "name": "DASHSCOPE_STREAM_TTS_API_KEY_FINGERPRINT",
       "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
       "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
+      "class": "test-isolation"
     },
     {
       "name": "DASHSCOPE_STREAM_TTS_API_KEY",
@@ -814,6 +844,11 @@
       "name": "DASHSCOPE_TTS_API_KEY_FINGERPRINT",
       "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
       "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_TTS_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
+      "class": "test-isolation"
     },
     {
       "name": "DASHSCOPE_TTS_API_KEY",
