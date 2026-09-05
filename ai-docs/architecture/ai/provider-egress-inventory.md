@@ -17,14 +17,14 @@ tags:
 
 # 模型供应商出站静态清单
 
-机器可读来源是 [provider-egress-inventory.json](provider-egress-inventory.json)，不可协商的当前适配器/操作基线在 [provider-egress-policy.mjs](../../../scripts/provider-egress-policy.mjs)。它固定登记当前已知的 5 个直接适配器、10 个操作类别、33 个**适配器—来源文件登记对**和 218 个环境引用；数值由静态验证输出，代码或配置变化后必须重跑，不能手工改写。
+机器可读来源是 [provider-egress-inventory.json](provider-egress-inventory.json)，不可协商的当前适配器/操作基线在 [provider-egress-policy.mjs](../../../scripts/provider-egress-policy.mjs)。它固定登记当前已知的 5 个直接适配器、10 个操作类别、33 个**适配器—来源文件登记对**和 222 个环境引用；数值由静态验证输出，代码或配置变化后必须重跑，不能手工改写。
 
 | 范围 | 当前静态登记 | 解释 |
 | --- | ---: | --- |
 | 适配器 | 5 | 文本/视觉、嵌入、重排序、HTTP 语音、WebSocket（网络套接字）流式语音。 |
 | 操作 | 10 | chat、视觉 OCR（光学字符识别）、ASR（自动语音识别）、流式 ASR、TTS（文本转语音）、流式 TTS、两类 embedding（嵌入）、rerank（重排序）、供应商签名下载。 |
 | 适配器—来源文件登记对 | 33 | 区分 production-direct（生产直连）、manual（手动）与本地测试；含 `interview-voice-seams.ts` 预览批量 ASR/TTS 组合根。当前 API 语音组合根与所有原始音频手工 smoke 均已 fail-closed。`packages/ai-runtime/test/native-fail-closed.proof.ts` 只登记为嵌入、重排序、HTTP 语音的 `local-adapter-test`，不调用也不登记流式语音工厂。`packages/ai-runtime/test/voice-stream-preview.proof.ts` 登记为流式语音的 `local-adapter-test`，只证明 fail-closed / dual-flag 拒绝，不构成流式 ASR 已接线。 |
-| 环境引用 | 218 | `MODEL_*`（文本主用/兜底）和 `DASHSCOPE_*`（嵌入、重排序、语音）在 API（应用程序接口）、Worker（后台任务）、测试启动器及适配器中的位置；含 `scripts/run-post-change-regression.mjs` 的 live 启动器，以及 E2E 假服务/静态守卫对 `MODEL_TEST_TRANSPORT_OVERRIDES` / `DASHSCOPE_TEST_TRANSPORT_OVERRIDES` 的拒绝合同、`scripts/e2e-platform/review-loop.mjs` 对 `MODEL_API_KEY` 的转发。`DASHSCOPE_TEST_TRANSPORT_OVERRIDES` 仅可用于受控本地 proof。`native-fail-closed.proof.ts` 登记能力指纹 / 撤销清单仅作 proof 隔离（清掉 regression dotenv 残留），不关生产指纹围栏。 |
+| 环境引用 | 222 | `MODEL_*`（文本主用/兜底）和 `DASHSCOPE_*`（嵌入、重排序、语音）在 API（应用程序接口）、Worker（后台任务）、测试启动器及适配器中的位置；含 `scripts/run-post-change-regression.mjs` 的 live 启动器，以及 E2E 假服务/静态守卫对 `MODEL_TEST_TRANSPORT_OVERRIDES` / `DASHSCOPE_TEST_TRANSPORT_OVERRIDES` 的拒绝合同、`scripts/e2e-platform/review-loop.mjs` 对 `MODEL_API_KEY` 的转发。`DASHSCOPE_TEST_TRANSPORT_OVERRIDES` 仅可用于受控本地 proof。`native-fail-closed.proof.ts` 登记能力指纹 / 撤销清单 / 旧 URL 变量仅作 proof 隔离（清掉 regression dotenv 残留），不关生产指纹或 URL 围栏。 |
 
 ## 这个门禁能与不能证明什么
 

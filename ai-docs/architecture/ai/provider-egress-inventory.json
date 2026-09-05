@@ -447,6 +447,11 @@
     },
     {
       "name": "DASHSCOPE_COMPAT_BASE_URL",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_COMPAT_BASE_URL",
       "source": "packages/ai-runtime/test/voice-reliability.proof.ts",
       "class": "test-isolation"
     },
@@ -614,6 +619,11 @@
       "name": "DASHSCOPE_RERANK_URL",
       "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
       "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_RERANK_URL",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
+      "class": "test-isolation"
     },
     {
       "name": "DASHSCOPE_RERANK_URL",
@@ -787,6 +797,11 @@
     },
     {
       "name": "DASHSCOPE_STREAM_URL",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_URL",
       "source": "packages/ai-runtime/test/voice-reliability.proof.ts",
       "class": "test-isolation"
     },
@@ -909,6 +924,11 @@
       "name": "DASHSCOPE_TTS_URL",
       "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
       "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_TTS_URL",
+      "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
+      "class": "test-isolation"
     },
     {
       "name": "DASHSCOPE_TTS_URL",
