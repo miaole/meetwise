@@ -45,7 +45,7 @@ related:
 
 - `scripts/run-post-change-regression.mjs`：采用 #58 的 always-on → `--core` → `--live`、`--dry-run`、可选静态守卫、`REGRESSION_REVIEW_VERIFY_GATE`。**并入**母线 `ALWAYS_ON_REQUIRED` 的 `generation-trust:prove`、`e2e-platform:prove`，以及 `--claim-done` / `--ready` / `--done` → `regression_claim_done_forbidden`。摘要保留 `claimDone: false`、`readyFromUnreviewedGeneration`。
 - 技能文档：保留 fail-closed / SOP / e2e-platform 链接，并写入 #58 要求的 `review/verify`、`automation does not trust AI outputs`、`multi-round allowed`。
-- `provider-egress-inventory`：同时登记 `run-post-change-regression.mjs` 与 `.proof.mjs`；本集成再登记 #62/#63 的 `e2e-fake-service-flags.mjs` / `e2e-static-guards*.mjs` / `review-loop.mjs`，以及 #67 `native-fail-closed.proof.ts`。`environmentReferenceCount` 随清单长度更新（当前 **211**），禁止手改成旧数。
+- `provider-egress-inventory`：同时登记 `run-post-change-regression.mjs` 与 `.proof.mjs`；本集成再登记 #62/#63 的 `e2e-fake-service-flags.mjs` / `e2e-static-guards*.mjs` / `review-loop.mjs`，以及 #67 `native-fail-closed.proof.ts`。`environmentReferenceCount` 随清单长度更新（当前 **222**），禁止手改成旧数。
 
 ### #61
 
@@ -186,7 +186,7 @@ related:
 | `skills/README.md` / `meta/index.md` / `meta/directory-boundaries.md` | 集成分支、目录契约、parity floors、短流程长度政策各只指向一处 |
 | `testing/conventions/e2e-directory-contract.md` | 可执行布局；脚本映射禁止对调 |
 | `testing/e2e-parity-baseline.md` + JSON/allowlist | floors 48/367；effective 37/342；allowlist 6 条 |
-| `architecture/ai/provider-egress-inventory.{json,md}` | 登记 #62/#63 E2E 引用 + #79 `interview-voice-seams` + #67 `native-fail-closed` + #95 `voice-stream-preview`；`environmentReferenceCount` = 211；consumer pairs = 33 |
+| `architecture/ai/provider-egress-inventory.{json,md}` | 登记 #62/#63 E2E 引用 + #79 `interview-voice-seams` + #67 `native-fail-closed` + #95 `voice-stream-preview`；`environmentReferenceCount` = 222；consumer pairs = 33 |
 
 `docs:check` 把本文件列为 required，并要求出现 `#55`、`#64`、`#69`、`#71`、`#70`、`#66`、`#73`、`#74`、`#75`、`#77`、`#82`、`#72`、`#79`、`#83`、`#67`、`#80`、`#84`、`#78`、`#88`、`#86`、`#87`、`#81`、`#90`、`#89`、`#95`、`#91`、`#93`、`#92`、`#94`、`#98`、`#96`、`#97`、`feature/e2e-platform-integration`、`fail-closed`、`releaseEvidence`、`supersede`。
 

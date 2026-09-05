@@ -1,14 +1,20 @@
 /**
  * TC-MODEL-ROUTE-04-E6: DashScope native adapters fail-closed on missing keys,
  * timeouts and malformed bodies. They must not invent transcripts, vectors or ranks.
+ *
+ * Isolation: `pnpm regression` injects repo-root `.env`. Before assigning proof
+ * keys this process deletes ambient capability fingerprints, the revoked list,
+ * and leftover legacy URL overrides. Otherwise `resolveDashscopeNativeConfig`
+ * (called by every adapter) can turn timeout/malformed cases into
+ * `*_fingerprint_mismatch` or `dashscope_native_endpoint_env_forbidden`.
+ * Production/dev fingerprint and URL fences stay on; this is proof-process
+ * isolation only. releaseEvidence=false.
  */
 import { dashscopeEmbedder } from '../src/embedder.ts';
 import { dashscopeReranker } from '../src/reranker.ts';
 import { dashscopeAsr, dashscopeTts } from '../src/voice.ts';
+import { resolveDashscopeNativeConfig } from '../src/dashscope-native-config.ts';
 import { ExternalRequestTimeoutError } from '../src/timeout.ts';
-
-process.env.NODE_ENV = 'test';
-process.env.DASHSCOPE_TEST_TRANSPORT_OVERRIDES = '1';
 
 let failures = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) failures++; };
@@ -18,16 +24,52 @@ async function errorOf(action: () => Promise<unknown>): Promise<string> {
   catch (error) { return error instanceof Error ? error.message : String(error); }
 }
 
+function syncErrorOf(action: () => unknown): string {
+  try { action(); return 'no_error'; }
+  catch (error) { return error instanceof Error ? error.message : String(error); }
+}
+
+const FINGERPRINT_VARS = [
+  'DASHSCOPE_EMBED_API_KEY_FINGERPRINT', 'DASHSCOPE_RERANK_API_KEY_FINGERPRINT',
+  'DASHSCOPE_ASR_API_KEY_FINGERPRINT', 'DASHSCOPE_TTS_API_KEY_FINGERPRINT',
+  'DASHSCOPE_STREAM_ASR_API_KEY_FINGERPRINT', 'DASHSCOPE_STREAM_TTS_API_KEY_FINGERPRINT',
+  'DASHSCOPE_REVOKED_KEY_FINGERPRINTS',
+] as const;
+
+const LEGACY_URL_VARS = [
+  'DASHSCOPE_COMPAT_BASE_URL', 'DASHSCOPE_RERANK_URL', 'DASHSCOPE_TTS_URL', 'DASHSCOPE_STREAM_URL',
+] as const;
+
 const names = [
+  'NODE_ENV', 'DASHSCOPE_TEST_TRANSPORT_OVERRIDES',
   'DASHSCOPE_EMBED_API_KEY', 'DASHSCOPE_RERANK_API_KEY', 'DASHSCOPE_ASR_API_KEY', 'DASHSCOPE_TTS_API_KEY',
   'DASHSCOPE_STREAM_ASR_API_KEY', 'DASHSCOPE_STREAM_TTS_API_KEY', 'DASHSCOPE_API_KEY',
   'DASHSCOPE_ENDPOINT_PROFILE', 'DASHSCOPE_WORKSPACE_ID',
+  ...LEGACY_URL_VARS,
+  ...FINGERPRINT_VARS,
 ] as const;
 const initial = new Map(names.map((name) => [name, process.env[name]]));
 
 async function main() {
   const originalFetch = globalThis.fetch;
   try {
+    process.env.NODE_ENV = 'test';
+    process.env.DASHSCOPE_TEST_TRANSPORT_OVERRIDES = '1';
+
+    // Document why isolation is required: leftover dotenv fingerprints fail-closed
+    // against proof keys. Fence stays on. Explicit env keeps this one assert
+    // independent of leftover broad key / URL overrides on process.env.
+    process.env.DASHSCOPE_EMBED_API_KEY_FINGERPRINT = 'deadbeefdeadbeef';
+    A('ambient fingerprint + mismatched proof key → dashscope_embed_api_key_fingerprint_mismatch',
+      syncErrorOf(() => resolveDashscopeNativeConfig({
+        DASHSCOPE_EMBED_API_KEY: 'proof-embed-key',
+        DASHSCOPE_EMBED_API_KEY_FINGERPRINT: process.env.DASHSCOPE_EMBED_API_KEY_FINGERPRINT,
+        DASHSCOPE_ENDPOINT_PROFILE: 'cn-beijing-public',
+      })) === 'dashscope_embed_api_key_fingerprint_mismatch');
+
+    for (const name of FINGERPRINT_VARS) delete process.env[name];
+    for (const name of LEGACY_URL_VARS) delete process.env[name];
+
     Object.assign(process.env, {
       DASHSCOPE_EMBED_API_KEY: 'proof-embed-key',
       DASHSCOPE_RERANK_API_KEY: 'proof-rerank-key',
@@ -40,7 +82,7 @@ async function main() {
     globalThis.fetch = (async () => {
       throw new ExternalRequestTimeoutError(50);
     }) as typeof fetch;
-    A('embedding timeout → embedder_timeout, no invented vector',
+    A('after clearing ambient fingerprints and leftover URL overrides, embedding timeout → embedder_timeout',
       await errorOf(() => dashscopeEmbedder({ dim: 2, baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: 'proof-embed-key' }).embed(['x'])) === 'embedder_timeout');
     A('rerank timeout → reranker_timeout, no invented id',
       await errorOf(() => dashscopeReranker({ url: 'https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank', apiKey: 'proof-rerank-key' }).rerank('q', [{ id: 'one', text: 'doc' }], 1)) === 'reranker_timeout');
