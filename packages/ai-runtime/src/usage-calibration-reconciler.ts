@@ -10,8 +10,8 @@
  *    fail-closed 退回未精化估算，绝不猜测、绝不超窗）。
  *
  * 单调性：每组读**全历史**配对（因子只升不降）；同内容同版本、同 batch 同观测幂等（并发批不重复）。
- * 诚实 seam：本模块是域级 reconciler + db wrapper 的真实执行；真实 worker loop 调度（定时/事件触发）
- * 不在本件范围，调用方自选何时触发。
+ * 因子回派发：`planDispatchBudgetWithLatestCalibration` 读最新因子 → 注入 `planDispatchBudgetFromCostPolicy`。
+ * worker 周期调度见 `apps/worker` 的 usage-calibration reconciler（drain-loop）。
  */
 import {
   isKnownEstimatorVersion, reconcileUsage, CALIBRATION_ALGORITHM_VERSION,

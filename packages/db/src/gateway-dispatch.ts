@@ -54,3 +54,11 @@ export async function gatewayCostBudgetSnapshot(pool: DbPool, scopeId: string): 
     unknownCount: Number(row.unknown_count) || 0,
   } : undefined;
 }
+
+/** Only returns principals with estimate↔provider usage pairs eligible for calibration reconcile; no invocation content. */
+export async function gatewayUsageCalibrationOwners(pool: DbPool): Promise<string[]> {
+  const result = await asGateway(pool, (c) =>
+    c.query('SELECT owner_user_id FROM gateway_usage_calibration_owners()'));
+  return result.rows.map((row) => String(row.owner_user_id));
+}
+
