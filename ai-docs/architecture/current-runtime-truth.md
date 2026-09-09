@@ -44,18 +44,30 @@ related:
 
 ## 1.1 GitHub CI/CD 与线上预览事实
 
+> **分层口径（必读）**：「**仓内 CD 契约**」只描述本树已落地的工作流与脚本合同；「**ECS / 线上已验**」只写有运维核验证据的现状。二者不得混写。本树**未证**线上已切 compose；是否已从 legacy systemd 切到 compose，**需运维核验**。权威交叉引用：[`lean-cd-deployment.md`](../delivery/lean-cd-deployment.md)、[`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml)、[`ops/deploy/remote-deploy.sh`](../../ops/deploy/remote-deploy.sh)。
+
+### 仓内 CD 契约（本树可核对）
+
 | 面 | 当前事实 | 状态 |
 | --- | --- | --- |
-| PR CI | `main` 要求 `trusted-governance-history`、`verify`、`secrets-scan`，最新 main CI 为绿；nightly 真模型项因无 secrets 全部 skip。 | 已验证，但不证明真模型或部署。 |
-| 完整 CD | 远程 `main` 没有 `deploy-full-stack.yml`；本地文件仍未跟踪且依赖多份未跟踪 controller/migration 文件。 | 发布阻断。 |
-| ECS runtime | Web/API/Worker 仍由 legacy systemd 原生 Node 运行；Docker/Compose/CD controller 尚未 provision。 | 已验证现状。 |
-| Pages | 仓库 `docs/` 是预览版静态项目展示（仅面试练习、架构亮点、合成截图；必要说明只在页脚；招聘不在本预览范围），由 `.github/workflows/pages.yml` 在 `main` 上复制 `docs/` + `apps/web/docs/screenshots/` 发布。它不是应用运行时，不启动数据面，也不再使用已删除的 `preview-site/` 签名目录。公网若仍显示旧「预览环境准备中」文案或求职者/面试官双角色导航，只说明 Pages 尚未切到该 workflow，不能当成应用部署证据。git `main` 现为 `e4e0d58`（#97 后，含 #89/#91/#92/#93/#94/#95/#96/#98）。四门 130 迁移回执仍钉在产生它们的本 PR CI tip `06b46c4`（run `33867570523`），不是本 tip；#97 / #96 未改这四门 prove 源码或迁移。 | 已接线待验。静态目录与 workflow 在仓库内可核对；公网切换与 GitHub Pages 环境授权不是本文件的发布证据。 |
-| 数据库 | git `main` 最新迁移号为 `0130`（`0124`–`0130` 已在树）。2026-08-20 审计快照曾写线上 `meetwise_cloud_test` 已应用 `0121_resume_pgcrypto_runtime_acl`、当时远程 main 只有 `0120`；那是云库与 git 的滞后记录，**不是**当前 git 事实。线上是否已跟进 `0130` 须重验。 | 发布阻断：云库对齐未在本切片证明。 |
-| ACR | 后端候选镜像可解析，配套 Web 镜像不存在；ECS pull 身份/config 未 provision。 | 已接线待验。 |
-| 回滚/E2E | 候选在 publish 前未启动 Web、迁移前未静默全部旧写者、后半程过早丢 rollback、未等待 Pages final exact receipt。 | 发布阻断。 |
-| 公开预览写门禁 | `MEETWISE_PUBLIC_PREVIEW=1` 时 NestJS(Fastify) `onRequest` 放行 `GET`/`HEAD`/`OPTIONS`，并额外放行受控 `POST /interview/:id/answers`（预览账本提交，`preview-controlled-write`，见 `UC-INT-TRANSCRIPT-PREVIEW-SUBMIT`）。其余 mutating 方法仍 503。`InterviewService` 其它面试/评分写方法与 `ApplicationsService.start`/`finalize` 在 `asPrincipal` 前再失败关闭；`/answers` 走 `assertPublicPreviewControlledWriteAllowed`，非预览固定 404。写面由 `ai-docs/architecture/backend/public-preview-write-inventory.json` 枚举。预览 `/turn` 的 `503 public_preview_read_only` **不是**关闭 `INT-P0-RAW-QUEUE`。非预览 `/turn` 仍写明文 job payload。预览 `/answers` 只落 0092 rehearsal 账本，**不是** `INT-TRANSCRIPT-01` cutover，也不是隐私删除入口。公开删除仍 503。Web 中间件对非安全方法仍 503（本包不加 Web 代理）。公开展示站（Pages / Web 中间件）仍不接收作答：无 `/api/interview/:id/answers` 代理。 | 已接线待验。本地 `releaseEvidence=false`，不是 ECS listener、镜像摘要、健康回执或发布证据。`TC-public-preview-01-*` 仍为 planned/unmapped。 |
+| PR / main CI | `push`/`PR` 走 `.github/workflows/ci.yml`（含 `secrets-scan`、`verify` 等）；`main` 另要求 `trusted-governance-history`（`governance-history.yml`）。CI 绿只证明对应检查，**不**证明部署、真模型或线上 runtime。 | 已验证（CI 路径），不证明部署。 |
+| 精简 CD（当前生效的仓内路径） | `push main` → `ci.yml` 全绿 → `.github/workflows/deploy.yml`（`workflow_run` on `ci` + `completed`/`success`，或 `workflow_dispatch`；仅真仓库、fork/PR 不触凭据）：构建 web + backend 镜像并推 Aliyun ACR，运行时身份为 **`@sha256` digest**（tag 只作定位）→ 临时 Tailscale 节点（ECS 无公网 SSH）→ `scp` `docker/compose.prod.yml` + `compose.prod.override.yml` 到 `/srv/meetwise-compose/` → SSH 执行 `ops/deploy/remote-deploy.sh`：原地改 `.env` 的 `BACKEND_IMAGE`/`WEB_IMAGE` → `docker compose pull` → `run --rm migrate`（幂等，只应用新增）→ `up -d --no-deps --wait` api/worker/web → **任一步失败自动回滚**上一版镜像摘要。原「全栈事务化预览 CD」（`deploy-full-stack.yml` + 多步 token 账本 + 外部签名回执 + Pages 链接态门控 + `meetwise-cd` 控制器）已**退役**，不再代表运行现状。详 [`lean-cd-deployment.md`](../delivery/lean-cd-deployment.md)。 | 已接线（仓内契约）；**不等于**线上已切 compose。 |
+| 部署回执口径 | 成功时 `remote-deploy.sh` 输出 `deploy_ok backend=<registry/...@sha256:…> web=<…@sha256:…>`；健康门槛为 compose 内建 healthcheck（api `/readyz/api`、worker `/readyz/worker`、web `/login`）。**回执 = 镜像 digest + `deploy_ok` + compose health**。这**不是**密码学/外部签名回执，**不是** Pages final exact receipt；也不再以「未等待 Pages final exact receipt」作为发布阻断条件。 | 仓内契约已定义。 |
+| Pages | 仓库 `docs/` 是预览版静态项目展示（仅面试练习、架构亮点、合成截图；必要说明只在页脚；招聘不在本预览范围），由 `.github/workflows/pages.yml` 在 `main` 上复制 `docs/` + `apps/web/docs/screenshots/` 发布。它不是应用运行时，不启动数据面，也不再使用已删除的 `preview-site/` 签名目录。公网若仍显示旧「预览环境准备中」文案或求职者/面试官双角色导航，只说明 Pages 尚未切到该 workflow，不能当成应用部署证据。本 tip 基线为 `c424447`（#100）。四门 130 迁移回执仍钉在产生它们的本 PR CI tip `06b46c4`（run `33867570523`），不是本 tip。 | 已接线待验。静态目录与 workflow 在仓库内可核对；公网切换与 GitHub Pages 环境授权不是本文件的发布证据。 |
+| 数据库（git 树） | git `main` 最新迁移号为 `0130`（`0124`–`0130` 已在树）。线上是否已跟进 `0130` 见下「ECS / 线上已验」，不得用 git 树冒充云库。 | 仓内可核对；云库对齐另列。 |
+| ACR（仓内契约） | `deploy.yml` 以 `@sha256` 内容摘要推送 backend/web；被部署事实即 digest。4G ECS 本地 `next build` 会 OOM，故镜像**必须在 CI 构建**，ACR 是契约上的唯一可拉取源。 | 仓内契约已接线。 |
+| 公开预览写门禁 | `MEETWISE_PUBLIC_PREVIEW=1` 时 NestJS(Fastify) `onRequest` 放行 `GET`/`HEAD`/`OPTIONS`，并额外放行受控 `POST /interview/:id/answers`（预览账本提交，`preview-controlled-write`，见 `UC-INT-TRANSCRIPT-PREVIEW-SUBMIT`）。其余 mutating 方法仍 503。`InterviewService` 其它面试/评分写方法与 `ApplicationsService.start`/`finalize` 在 `asPrincipal` 前再失败关闭；`/answers` 走 `assertPublicPreviewControlledWriteAllowed`，非预览固定 404。写面由 `ai-docs/architecture/backend/public-preview-write-inventory.json` 枚举。预览 `/turn` 的 `503 public_preview_read_only` **不是**关闭 `INT-P0-RAW-QUEUE`。非预览 `/turn` 仍写明文 job payload。预览 `/answers` 只落 0092 rehearsal 账本，**不是** `INT-TRANSCRIPT-01` cutover，也不是隐私删除入口。公开删除仍 503。Web 中间件对非安全方法仍 503（本包不加 Web 代理）。公开展示站（Pages / Web 中间件）仍不接收作答：无 `/api/interview/:id/answers` 代理。 | 已接线待验。本地回执不得写成 ECS listener、镜像摘要、健康回执或发布证据。`TC-public-preview-01-*` 仍为 planned/unmapped。 |
 
-“CI success”“Pages 200”“release workflow success”分别只证明对应检查，不能互相替代，更不能宣称最新前后端已自动部署。
+### ECS / 线上已验（无证据则明示未证）
+
+| 面 | 当前事实 | 状态 |
+| --- | --- | --- |
+| ECS runtime | 仓内已提供 compose 部署路径（`docker/compose.prod.yml`、`remote-deploy.sh`、一次性 `bootstrap-ecs.sh`）。**本树未证**线上已从 legacy systemd 原生 Node 切到 compose；是否已停用旧 `meetwise-*` systemd 单元、是否已有 `/srv/meetwise-compose` 在跑，**需运维核验**。不得把「仓内有 lean compose CD」写成「线上已切 compose」，也不得再把「systemd-only / 无 Compose」写成**唯一**运行时真相。 | 本树未证 / 需运维核验。 |
+| 云库迁移对齐 | 2026-08-20 审计快照曾写线上 `meetwise_cloud_test` 已应用 `0121_resume_pgcrypto_runtime_acl`、当时远程 main 只有 `0120`；那是云库与 git 的滞后记录，**不是**当前 git 事实。线上是否已跟进 `0130` **本树未证，需运维重验**。 | 发布阻断：云库对齐未在本切片证明。 |
+| ACR pull / 机器凭据 | lean CD 假定机器侧已为 `meetwise-deploy` 配置 ACR 登录；线上 pull 身份/config 是否已 provision **需运维核验**。 | 本树未证 / 需运维核验。 |
+| 真实部署回执 | 是否已取得线上 `deploy_ok` + 两端 `@sha256` digest + compose health 通过回执，**本树文档未附**；不得用 CI 绿或 Pages 200 替代。 | 本树未证。 |
+
+“CI success”“Pages 200”“deploy.yml / `deploy_ok`”分别只证明对应检查，不能互相替代：前两者不证明应用已部署；后者在缺少真实线上回执前，也**不能**宣称最新前后端已自动部署到 ECS。
 
 ### 首次术语表
 
