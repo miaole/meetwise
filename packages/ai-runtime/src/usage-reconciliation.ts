@@ -19,7 +19,7 @@
  *  - 未知估算器版本 fail-closed,绝不猜测估算语义。
  *
  * 纯性:无 DB、无网络、无墙钟(`observedAtMs` 由调用方注入,本模块不读 Date.now)。
- * 接线(把估算值串到 invoke、落库)由调用方负责,本模块只给干净的公共 API(因子尚未应用回派发)。
+ * 接线(把估算值串到 invoke、落库、因子回派发)由调用方负责,本模块只给干净的公共 API。
  */
 import { createHash } from 'node:crypto';
 

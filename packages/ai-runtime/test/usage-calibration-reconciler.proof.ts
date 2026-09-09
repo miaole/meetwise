@@ -9,6 +9,7 @@
  *      观测日志落库；低估显式 under_estimated + model_estimate_calibration_underestimated_total 告警（绝不静默）。
  *  P3：resolveLatestCalibratedFactor 读最新因子 → toCalibratedFactor 双校验 → 合法返回 CalibratedFactor，
  *      缺因子/伪造版本/未知 estimator → null（fail-closed 退回未精化）。
+ *      因子回派发：planDispatchBudgetWithLatestCalibration 注入预算；缺因子 calibrated=false，有因子影响 renderedInput。
  *
  * 七类矩阵：
  *  ①正常 全 outcome estimate + 配对不再偏置；②异常 未知 estimator / 非法因子 fail-closed；
@@ -26,7 +27,7 @@ import { assertIsolatedTestTarget, asPrincipal, createPool } from '@meetwise/db'
 import {
   invoke, createMetrics, setMetrics, getMetrics, METRIC,
   reconcileUsageCalibration, resolveLatestCalibratedFactor, toCalibratedFactor,
-  refineEstimate,
+  refineEstimate, planDispatchBudgetWithLatestCalibration, planDispatchBudgetFromCostPolicy,
   type Model, type ModelCostPolicy, type ModelResult,
 } from '../src/index.ts';
 
@@ -97,7 +98,7 @@ async function main() {
   await assertIsolatedTestTarget(pool);
 
   await pool.query(sql('../../db/sql/01_schema.sql'));
-  for (const f of ['0033_ai_cost_governance.sql', '0035_ai_cost_principal_scope.sql', '0036_ai_text_cost_governance.sql', '0037_ai_model_invocation_durable_claim.sql', '0056_model_invocation_reconcile.sql', '0057_model_invocation_cost_scope.sql', '0083_ai_text_cost_price_revision_binding.sql', '0085_ai_model_logical_node_dispatch_slot.sql', '0088_ai_model_invocation_controlled_state_machine.sql', '0119_usage_reconciliation_wiring.sql', '0130_model_invocation_same_key_claim_join.sql']) {
+  for (const f of ['0033_ai_cost_governance.sql', '0035_ai_cost_principal_scope.sql', '0036_ai_text_cost_governance.sql', '0037_ai_model_invocation_durable_claim.sql', '0056_model_invocation_reconcile.sql', '0057_model_invocation_cost_scope.sql', '0083_ai_text_cost_price_revision_binding.sql', '0085_ai_model_logical_node_dispatch_slot.sql', '0088_ai_model_invocation_controlled_state_machine.sql', '0119_usage_reconciliation_wiring.sql', '0130_model_invocation_same_key_claim_join.sql', '0131_usage_calibration_gateway_owners.sql']) {
     await pool.query(sql(`../../db/migrations/${f}`));
   }
   await pool.query(
@@ -209,6 +210,42 @@ async function main() {
   const gHigher = rHigher.ok ? rHigher.groups.find((g) => g.service === SERVICE) : undefined;
   A('⑥ 因子单调不减：追加更高比率后 factor(≈2.2) > 旧(≈1.65)', gHigher?.factor != null && factorA != null && gHigher.factor.factor > factorA.factor && Math.abs(gHigher.factor.factor - 2.2) < 1e-9);
   A('⑥ 缺因子 (空组) → resolveLatestCalibratedFactor null（fail-closed 退回未精化）', (await asPrincipal(pool, OWNER, (c) => resolveLatestCalibratedFactor(c, OWNER, 'empty-svc', MODEL))) === null);
+
+  // ==========================================================================
+  // ⑥b 校准因子影响派发预算（resolveLatest → planDispatchBudget；缺因子未精化，绝不 invent 1.0）
+  // ==========================================================================
+  const budgetCost: ModelCostPolicy = {
+    scopeId: SCOPE, provider: 'p-recon', model: MODEL, region: 'cn-proof', priceRevision: 'recon-r1',
+    maxInputTokens: 50_000, maxOutputTokens: 1_000, contextWindowTokens: 50_000,
+    contextEstimator: 'utf8-bytes-v1', contextSafetyMarginTokens: 100, contextToolReserveTokens: 0,
+  };
+  const budgetComponents = {
+    system: 'S'.repeat(200),
+    permissionSnapshot: 'P'.repeat(50),
+    schema: 'H'.repeat(50),
+    tools: '',
+    userData: 'U'.repeat(400),
+    rag: 'R'.repeat(200),
+    recentTurns: ['T1'.repeat(40), 'T2'.repeat(40)],
+    summary: 'Sum'.repeat(30),
+  };
+  const missingFactorBudget = await asPrincipal(pool, OWNER, (c) =>
+    planDispatchBudgetWithLatestCalibration(c, OWNER, budgetComponents, budgetCost, { service: 'empty-svc', model: MODEL }));
+  const withFactorBudget = await asPrincipal(pool, OWNER, (c) =>
+    planDispatchBudgetWithLatestCalibration(c, OWNER, budgetComponents, budgetCost, { service: SERVICE, model: MODEL }));
+  const explicitUnrefined = planDispatchBudgetFromCostPolicy(budgetComponents, budgetCost, { service: SERVICE, calibration: null });
+  A('⑥b 缺因子 → plan.calibrated=false（未精化，非静默 1.0）',
+    missingFactorBudget.ok && missingFactorBudget.plan.calibrated === false
+    && explicitUnrefined.ok && explicitUnrefined.plan.calibrated === false
+    && missingFactorBudget.plan.renderedInputTokens === explicitUnrefined.plan.renderedInputTokens);
+  A('⑥b 有因子 → plan.calibrated=true 且 renderedInput 随因子变化（≠未精化）',
+    withFactorBudget.ok && withFactorBudget.plan.calibrated === true
+    && explicitUnrefined.ok
+    && withFactorBudget.plan.renderedInputTokens !== explicitUnrefined.plan.renderedInputTokens);
+  // factorA 来自 SERVICE 组（低估历史 → factor>1）；精化后 renderedInput 应 ≥ 未精化。
+  A('⑥b 低估导出因子>1 → 精化预算 renderedInput ≥ 未精化',
+    withFactorBudget.ok && explicitUnrefined.ok
+    && withFactorBudget.plan.renderedInputTokens >= explicitUnrefined.plan.renderedInputTokens);
 
   // ==========================================================================
   // ⑦ 刁钻：空历史 / 零观测(无信号) / 因子版本内容变则版本变

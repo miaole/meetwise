@@ -25,6 +25,8 @@ import {
   admitSharedModelOperation, recordSharedModelOperation, resolveModelAdmissionPartition,
   type SharedModelAdmissionLease, type SharedModelFeeRecord,
 } from './model-admission.ts';
+import { resolveLatestCalibratedFactor } from './usage-calibration-reconciler.ts';
+import { refineEstimate, isKnownEstimatorVersion } from './usage-reconciliation.ts';
 
 const REQID_ALS_KEY = Symbol.for('meetwise.ai-runtime.requestIdContext');
 const COST_SCOPE_ID = /^[A-Za-z0-9._:-]{1,160}$/;
@@ -364,6 +366,26 @@ async function persistTrace(
  * principal-scoped transaction and the remote call holds neither a connection
  * nor an advisory lock.
  */
+
+/**
+ * MODEL-OP-00 P3：因子回派发 — 预算门，不改 claim 落库的未精化 estimate。
+ * 有因子且精化后会击穿 maxInputTokens → fail-closed 拒绝派发；缺因子 → 放行未精化预算。
+ * 绝不 invent factor=1.0；estimate_input_tokens 仍存 utf8-bytes-v1 原估算（对账证据不被反馈回路污染）。
+ */
+async function enforceCalibratedDispatchBudget(
+  pool: DbPool, owner: string, service: string | undefined, plan: ReadyModelCallPlan,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (plan.estimateInputTokens === undefined || !plan.cost?.model || !service) return { ok: true };
+  const estimatorRaw = plan.cost.contextEstimator ?? 'utf8-bytes-v1';
+  if (!isKnownEstimatorVersion(estimatorRaw)) return { ok: true };
+  const factor = await asPrincipal(pool, owner, (c) =>
+    resolveLatestCalibratedFactor(c, owner, service, plan.cost!.model, estimatorRaw));
+  if (!factor) return { ok: true }; // fail-closed 退回未精化：无因子不挡派发
+  const refined = refineEstimate(plan.estimateInputTokens, factor);
+  if (refined > plan.cost.maxInputTokens) return { ok: false, error: 'model_context_budget_exceeded' };
+  return { ok: true };
+}
+
 export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string): Promise<InvokeOutcome<T>> {
   const logicalNodeKey = resolvedLogicalNodeKey(spec);
   if (!logicalNodeKey) {
@@ -419,6 +441,12 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
   if (initialCostPolicyError) {
     span(0, 'deterministic_refusal', 0);
     return { error: initialCostPolicyError };
+  }
+  // MODEL-OP-00 P3：因子回派发预算门。缺因子 fail-closed 未精化；有因子且精化击穿 maxInput → 拒派发。claim estimate 保持未精化。
+  const calibratedBudget = await enforceCalibratedDispatchBudget(pool, owner, spec.service, plan);
+  if (!calibratedBudget.ok) {
+    span(0, 'deterministic_refusal', 0);
+    return { error: calibratedBudget.error };
   }
   // Route selection is pure. Bind the actually selected endpoint policy only
   // after it is known, but still before the durable claim is created.
@@ -512,6 +540,8 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
         break;
       }
       plan = replacement.plan;
+      const recal = await enforceCalibratedDispatchBudget(pool, owner, spec.service, plan);
+      if (!recal.ok) { admissionError = new Error(recal.error); break; }
     }
   }
   if (admissionError) {

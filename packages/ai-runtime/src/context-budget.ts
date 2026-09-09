@@ -319,3 +319,27 @@ export function planDispatchBudget(components: ContextBudgetComponents, policy: 
   const status: ContextBudgetStatus = trimmed.size > 0 ? 'degraded' : 'within_budget';
   return { ok: true, plan: buildPlan(policy, working, originalTokens, trimmed, availableInputTokens, status) };
 }
+
+/**
+ * 因子回派发接线：把 `resolveLatestCalibratedFactor` 的结果（或 null）注入预算策略再跑 `planDispatchBudget`。
+ * 缺因子 / null → 不传 calibration（未精化预算）；绝不静默 invent factor=1.0。
+ */
+export function planDispatchBudgetFromCostPolicy(
+  components: ContextBudgetComponents,
+  costPolicy: ModelCostPolicy,
+  opts: {
+    service?: string;
+    trimOrder?: readonly ContextBudgetComponentId[];
+    allowDegrade?: boolean;
+    /** null/undefined = fail-closed 退回未精化；合法 CalibratedFactor 才精化。 */
+    calibration?: CalibratedFactor | null;
+  } = {},
+): ContextBudgetDecision {
+  const { calibration, ...rest } = opts;
+  const policy = contextBudgetPolicyFromCostPolicy(costPolicy, {
+    ...rest,
+    ...(calibration ? { calibration } : {}),
+  });
+  return planDispatchBudget(components, policy);
+}
+

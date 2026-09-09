@@ -5,6 +5,7 @@
  */
 import { createHash, randomBytes } from 'node:crypto';
 import { resolveModelDeadlineConfig, type Model, type ModelCallPlan, type ModelCostPolicy, type ModelResult } from './invoke.ts';
+import { refineEstimate, type CalibratedFactor } from './usage-reconciliation.ts';
 import { ExternalHttpStatusError, fetchJsonWithTimeout } from './timeout.ts';
 import { getPrompt } from './prompts.ts';
 import { rejectTextTransportOverride, resolveTextBackupEndpointConfig, resolveTextEndpointConfig } from './text-endpoint-config.ts';
@@ -196,8 +197,16 @@ function renderPrompt(req: CompletionRequest, nonce: string) {
  * `userData`; this function budgets the rendered request rather than guessing
  * its business provenance.  Unknown image cost is rejected instead of treated
  * as a free text token.
+ *
+ * Optional `opts.calibration` (from `resolveLatestCalibratedFactor`) refines
+ * byte estimates via `refineEstimate`. Missing/null → unrefined budget
+ * (fail-closed); never invent factor 1.0.
  */
-export function planContextBudget(req: CompletionRequest, policy: ModelCostPolicy): RenderedContextBudgetDecision {
+export function planContextBudget(
+  req: CompletionRequest,
+  policy: ModelCostPolicy,
+  opts: { calibration?: CalibratedFactor | null } = {},
+): RenderedContextBudgetDecision {
   const contextWindowTokens = policy.contextWindowTokens;
   const safetyMarginTokens = policy.contextSafetyMarginTokens;
   const toolReserveTokens = policy.contextToolReserveTokens ?? 0;
@@ -211,25 +220,35 @@ export function planContextBudget(req: CompletionRequest, policy: ModelCostPolic
   }
   const nonce = '0'.repeat(10);
   const rendered = renderPrompt(req, nonce);
-  const systemTokens = byteEstimate(rendered.system);
+  // fail-closed: only apply a real CalibratedFactor; null/undefined keeps the unrefined utf8-bytes-v1 upper bound.
+  const calibration = opts.calibration ?? undefined;
+  const estimate = (raw: number): number => {
+    if (raw < 1 || calibration === undefined) return raw;
+    return refineEstimate(raw, calibration);
+  };
+  const systemTokens = estimate(byteEstimate(rendered.system));
   // 整个 <data> 围栏(含 RAG 段)的字节;RAG 独立分账。byteEstimate 对字符串拼接线性可加,
   // 故 userDataTokens = 围栏总量 − RAG 段,绝不重复计费,也不漏计。
-  const userTextTokens = byteEstimate(rendered.userText);
-  const ragTokens = byteEstimate(rendered.ragText);
-  const userDataTokens = userTextTokens - ragTokens;
+  const userTextRaw = byteEstimate(rendered.userText);
+  const ragRaw = byteEstimate(rendered.ragText);
+  const userDataRaw = userTextRaw - ragRaw;
+  const ragTokens = estimate(ragRaw);
+  const userDataTokens = estimate(userDataRaw);
+  const userTextTokens = userDataTokens + ragTokens;
   const images = req.images?.length ?? 0;
   // The image-array form also has provider-visible structural descriptor
   // bytes.  Count the exact rendered descriptor delta rather than only URL
   // strings; semantic image capacity is covered separately by the required
   // per-image reserve below.
-  const imageDescriptorTokens = images === 0 ? 0 : Math.max(0, byteEstimate(JSON.stringify(rendered.userContent)) - userTextTokens);
+  const imageDescriptorTokens = images === 0 ? 0 : estimate(Math.max(0, byteEstimate(JSON.stringify(rendered.userContent)) - userTextRaw));
   let imageReserveTokens = 0;
   if (images > 0) {
     if (!validPositive(policy.imageInputTokensPerImage))
       return { ok: false, error: 'model_context_image_reserve_missing' };
-    imageReserveTokens = images * policy.imageInputTokensPerImage;
+    imageReserveTokens = estimate(images * policy.imageInputTokensPerImage);
   }
-  const inputTokens = systemTokens + userTextTokens + imageDescriptorTokens + imageReserveTokens + RESPONSE_FORMAT_RESERVE_TOKENS;
+  const responseFormatReserveTokens = estimate(RESPONSE_FORMAT_RESERVE_TOKENS);
+  const inputTokens = systemTokens + userTextTokens + imageDescriptorTokens + imageReserveTokens + responseFormatReserveTokens;
   // 文档公式 availableInput = contextWindow − maxOutput − toolReserve − safetyMargin(此前漏了 toolReserve 减项)。
   const providerInputLimit = contextWindowTokens - policy.maxOutputTokens - toolReserveTokens - safetyMarginTokens;
   if (providerInputLimit < 1 || inputTokens > policy.maxInputTokens || inputTokens > providerInputLimit) {
@@ -249,7 +268,7 @@ export function planContextBudget(req: CompletionRequest, policy: ModelCostPolic
       ragTokens,
       imageDescriptorTokens,
       imageReserveTokens,
-      responseFormatReserveTokens: RESPONSE_FORMAT_RESERVE_TOKENS,
+      responseFormatReserveTokens,
       inputTokens,
     },
   };
@@ -282,6 +301,12 @@ export function openAICompatibleClient(cfg: {
    * stay on `process.env` (intentionally global).
    */
   env?: NodeJS.ProcessEnv;
+  /**
+   * Optional usage-calibration factor for prepare/complete budget checks
+   * (`planContextBudget(..., { calibration })`). Missing/null → unrefined.
+   * Claim evidence still uses the unrefined estimate (see prepare below).
+   */
+  calibration?: CalibratedFactor | null;
 } = {}): ModelClient {
   // cfg.baseUrl/apiKey 是测试专用 transport override 缝（对齐原生适配器）。生产/开发一律
   // 拒绝，避免文本路由退化成「任意 endpoint」直发客户端（BAILIAN-04 主违例面）。
@@ -320,11 +345,17 @@ export function openAICompatibleClient(cfg: {
     costPolicy,
     prepare(req, attempt, signal) {
       if (policyRequired && costPolicy === undefined) return { ready: false, error: 'model_operation_policy_required' };
-      const context = costPolicy === undefined ? undefined : planContextBudget(req, costPolicy);
-      if (context?.ok === false) return { ready: false, error: context.error };
+      // 未精化估算：claim/对账证据权威（绝不被校准因子反馈回路污染）。
+      const unrefined = costPolicy === undefined ? undefined : planContextBudget(req, costPolicy);
+      if (unrefined?.ok === false) return { ready: false, error: unrefined.error };
+      // 有因子时再跑一遍精化预算门：超窗 fail-closed；缺因子不 invent 1.0。
+      if (costPolicy !== undefined && cfg.calibration) {
+        const calibrated = planContextBudget(req, costPolicy, { calibration: cfg.calibration });
+        if (calibrated.ok === false) return { ready: false, error: calibrated.error };
+      }
       // 把派发前保守估算挂到 plan 上：invoke 在 claim 时落 ai_model_invocation.estimate_input_tokens（P1），
       // 覆盖 success/schema-失败/unknown 全 outcome（不再只依赖 !error 的 trace 落库）。
-      return { ready: true, execute: (executionSignal) => client.complete(req, attempt, executionSignal ?? signal), cost: costPolicy, estimateInputTokens: context?.ok === true ? context.plan.inputTokens : undefined };
+      return { ready: true, execute: (executionSignal) => client.complete(req, attempt, executionSignal ?? signal), cost: costPolicy, estimateInputTokens: unrefined?.ok === true ? unrefined.plan.inputTokens : undefined };
     },
     async complete(req, _attempt, executionSignal) {
       if (policyRequired && costPolicy === undefined) {
@@ -341,6 +372,10 @@ export function openAICompatibleClient(cfg: {
       // users, which otherwise would bypass the safe no-send decision.
       const context = costPolicy === undefined ? undefined : planContextBudget(req, costPolicy);
       if (context?.ok === false) return { ok: false, kind: 'deterministic', externalOutcome: 'known_not_executed' };
+      if (costPolicy !== undefined && cfg.calibration) {
+        const calibrated = planContextBudget(req, costPolicy, { calibration: cfg.calibration });
+        if (calibrated.ok === false) return { ok: false, kind: 'deterministic', externalOutcome: 'known_not_executed' };
+      }
       // 注入加固(审计):① 剥离用户数据里伪造的 <data> 标签防越狱出栈;② **分服务长度封顶 + 不可伪造(绑 nonce)截断标记**(capUserData,见上);③ 随机 nonce 围栏(攻击者猜不到闭合);④ system 申明数据块内指令不执行 + 截断标记须带本 nonce 才可信。
       const nonce = randomBytes(8).toString('base64url').slice(0, 10);
       const rendered = renderPrompt(req, nonce);

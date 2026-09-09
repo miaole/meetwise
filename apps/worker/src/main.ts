@@ -25,6 +25,7 @@ import { runInterviewConsumer } from './interview-consumer.ts';
 import { readInterviewDispatchBudget } from './interview-dispatch-fairness.ts';
 import { runCommerceReconciler } from './commerce-reconcile.ts';
 import { runModelInvocationReconciler, resolveModelInvocationReconcileConfig } from './model-invocation-reconcile.ts';
+import { runUsageCalibrationReconciler } from './usage-calibration-reconcile.ts';
 import { runQuizConsumer } from './quiz-consumer.ts';
 import { runDiagnosisConsumer } from './diagnosis-consumer.ts';
 import { ingestQbank, ingestQuestionBankArtifacts } from '@meetwise/db';
@@ -591,6 +592,8 @@ async function bootstrap() {
   // reservation, making the ambiguity observable and preventing a second
   // billable send under the same idempotency key.
   const modelInvocationReconcileLoop = runModelInvocationReconciler(pool, resolveModelInvocationReconcileConfig());
+  // MODEL-OP-00：usage 校准因子周期 reconciler（读 estimate↔usage 配对 → 版本化因子落库；因子回派发由 invoke/budget 路径消费）。
+  const usageCalibrationReconcileLoop = runUsageCalibrationReconciler(pool);
   const privacyErasureLoop = privacyPool ? runCheckpointPrivacyEraser(privacyPool, `${leaseOwner}:privacy`) : undefined;
   // 队列健康 gauge 刷新循环(告警数据源:queued/卡住/DLQ 深度)。低频 15s,查询失败经 drain-loop 兜底不停循环。
   const gaugeLoop = runDrainLoop(() => Promise.all([
@@ -599,7 +602,7 @@ async function bootstrap() {
   const metricsServer = startMetricsExposition({
     ragReady: () => ragCache.available && qbankReadModel.ready,
     workerReady: () => reportLoop.ready() && interviewLoop.ready() && quizLoop.ready() && diagnosisLoop.ready()
-      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && (privacyErasureLoop?.ready() ?? true),
+      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && usageCalibrationReconcileLoop.ready() && (privacyErasureLoop?.ready() ?? true),
   });
   // Start consumers before the optional external embedding build. A failure can only disable local evidence, never
   // turn an infrastructure dependency into an interview/payment availability outage.
@@ -617,8 +620,8 @@ async function bootstrap() {
       void initializeQbankReadModel(qbankControlPool, embedder, qbankReadModel);
     }
   }
-  process.on('SIGTERM', async () => { await jobWakeupListener.stop().catch(() => {}); await Promise.allSettled([Promise.resolve(reportLoop.stop()), interviewLoop.stop(), quizLoop.stop(), diagnosisLoop.stop(), commerceLoop.stop(), modelInvocationReconcileLoop.stop(), privacyErasureLoop?.stop() ?? Promise.resolve(), gaugeLoop.stop(), ragCache.close(), privacyPool?.end() ?? Promise.resolve(), qbankControlPool?.end() ?? Promise.resolve(), ragControlPool?.end() ?? Promise.resolve(), langfuse?.shutdown()]); metricsServer.close(); console.log('drained, exiting'); process.exit(0); });   // 优雅排空在飞 job 再退
-  console.log(`worker ${ragCache.available ? 'ready' : 'degraded'}: event wakeup + ${jobReconcileIntervalMs}ms bounded reconciliation for report/interview/quiz/diagnosis + commerce reconciler + model invocation reconciler + privacy eraser(${privacyErasureLoop ? 'enabled' : 'pending dedicated login'}) + gauge refresh started as`, leaseOwner);
+  process.on('SIGTERM', async () => { await jobWakeupListener.stop().catch(() => {}); await Promise.allSettled([Promise.resolve(reportLoop.stop()), interviewLoop.stop(), quizLoop.stop(), diagnosisLoop.stop(), commerceLoop.stop(), modelInvocationReconcileLoop.stop(), usageCalibrationReconcileLoop.stop(), privacyErasureLoop?.stop() ?? Promise.resolve(), gaugeLoop.stop(), ragCache.close(), privacyPool?.end() ?? Promise.resolve(), qbankControlPool?.end() ?? Promise.resolve(), ragControlPool?.end() ?? Promise.resolve(), langfuse?.shutdown()]); metricsServer.close(); console.log('drained, exiting'); process.exit(0); });   // 优雅排空在飞 job 再退
+  console.log(`worker ${ragCache.available ? 'ready' : 'degraded'}: event wakeup + ${jobReconcileIntervalMs}ms bounded reconciliation for report/interview/quiz/diagnosis + commerce reconciler + model invocation reconciler + usage calibration reconciler + privacy eraser(${privacyErasureLoop ? 'enabled' : 'pending dedicated login'}) + gauge refresh started as`, leaseOwner);
 }
 
 if (process.env.WORKER_BOOTSTRAP === '1') bootstrap();
