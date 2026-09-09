@@ -125,6 +125,8 @@
     "map:eval": "pnpm -C apps/worker exec tsx smoke/map-eval.ts",
     "memory:prove": "node scripts/run-e2e-isolated.mjs memory:prove:raw",
     "memory:prove:raw": "pnpm -C apps/worker prove:memory",
+    "mem00-int00:prove-path": "node scripts/run-mem00-int00-prove-path.mjs",
+    "mem00-int00:prove-path:gate": "node scripts/mem00-int00-prove-path.proof.mjs",
     "deploy:check": "node scripts/validate-prod-compose.mjs && node scripts/deploy-check.mjs",
     "cloud:smoke": "pnpm -C apps/worker cloud:smoke",
     "cloud-readiness:prove": "pnpm -C apps/worker prove:cloud-readiness",
