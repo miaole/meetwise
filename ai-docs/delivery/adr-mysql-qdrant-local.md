@@ -93,7 +93,7 @@ mw-model-op 对 M0/M1：**conditional**（亲自复跑 `mysql-stack:skeleton:pro
 | **M2** | 关系 schema 子集 + 应用层 tenant 原型 | 「隐私不倒退」prove 清单绿；授权根不得静默降级；RLS 代码路径 intact 至 prove 绿 |
 | **M3** | 队列：Redis Streams/PubSub；claim/advisory 对齐 | **Q1–Q5**：本切片=**仅选型文档**（`m3-queue-wakeup-selection.md` + `mysql-stack:m3-queue:prove`）；**不切生产 wakeup**；**不宣称 reconciler 已接/已切**；切流前另需 wakeup prove + Q4 双 reconciler（model-invocation-reconcile **与** usageCalibrationReconciler）prove；**本绿≠已迁**；禁连通绿宣称已切 |
 | **M4** | 向量 → Qdrant；元数据留关系库；**硬门文档** `m4-rag-hard-gates.md`（R1–R5 可行动门；本切片不切向量真相） | **R1–R4** + Qdrant 擦除 sink（recall=0 + 逐 sink receipt）；禁 FULLTEXT 冒充；**本绿≠已迁**；R5 夹具换新仍属 M5 |
-| **M5** | RAG_REDIS 本地 + prove 去 pgvector 夹具 | **R5** 夹具换新或标红；题域隔离门（R4） |
+| **M5** | RAG_REDIS 本地 + prove 去 pgvector 夹具（计划：`m5-pgvector-fixture-retirement-plan.md` + `mysql-stack:m5-fixtures:prove`） | **R5** 夹具换新或标红；题域隔离门（R4）；本切片=仅计划 / **不切向量真相**；**本绿≠已迁** |
 | **M6** | 域切流 | 隐私+RAG 硬门全绿 + 四专家审；禁止自批；不宣称 HA |
 
 ## 回滚 / 遗留
