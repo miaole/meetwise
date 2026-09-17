@@ -8,7 +8,8 @@
  *
  * Prior F2 sealed 01A honesty + remaining-gap classifiers.
  * F6 landed MS1 product consumer → `routedServingConsumerWired=true` (honest).
- * MS2/MS3 remain false · FUNNEL-01 / G-R4-5 STILL OPEN · Ban forge.
+ * F7 landed MS2 product-path facets → `fullFacetsServed=true` (honest).
+ * MS3 remain false · FUNNEL-01 / G-R4-5 STILL OPEN · Ban forge.
  *
  * HARD:
  *   - Ban forging MetadataReviewReceipt serving / claiming FUNNEL-01 closed.
@@ -22,6 +23,10 @@ import {
   isRagFunnel01Closed,
   type PMetaRemainingStatus,
 } from './r4-p-meta-p-r1-remaining.ts';
+import {
+  MS2_FACETS_SERVED_ON_PRODUCT_PATH,
+  MS2_PRODUCT_FACETS_SERVED_ON_PRODUCT_PATH_WIRED,
+} from './r4-p-meta-ms2-facets-product.ts';
 
 /** Secondary facets required for RAG-FUNNEL-01 full facets (architecture). */
 export const REQUIRED_SECONDARY_FACETS = [
@@ -44,11 +49,17 @@ export type PMetaServingRemainingStatus = {
    * F6: true via real product consumer wire.
    */
   routedServingConsumerWired: boolean;
-  /** MS2: all required secondary facets served on routed path — still open. */
+  /**
+   * MS2: all required secondary facets served on routed path.
+   * F7: true via real product-path facet serve.
+   */
   fullFacetsServed: boolean;
   /** Named required facets inventory (honesty). */
   requiredFacets: readonly RequiredSecondaryFacet[];
-  /** Facets actually served on MetadataReviewReceipt routed path — empty while MS2 open. */
+  /**
+   * Facets actually served on MetadataReviewReceipt routed/product path.
+   * F7: equals required set when MS2 wired.
+   */
   facetsServedOnRoutedPath: readonly RequiredSecondaryFacet[];
   /** MS3: standard deploy / combo-root handoff receipt — still open. */
   standardDeployHandoff: boolean;
@@ -58,17 +69,20 @@ export type PMetaServingRemainingStatus = {
 
 /**
  * Honest P-META serving remaining snapshot (MS1–MS3).
- * Aligns with F2 classifyPMetaRemaining; MS1 follows F6 wire; MS2/MS3 stay false.
+ * Aligns with F2 classifyPMetaRemaining; MS1 follows F6; MS2 follows F7; MS3 stays false.
  */
 export function classifyPMetaServingRemaining(
   base: PMetaRemainingStatus = classifyPMetaRemaining(),
 ): PMetaServingRemainingStatus {
+  const ms2 = MS2_PRODUCT_FACETS_SERVED_ON_PRODUCT_PATH_WIRED === true;
   return {
     sourceSealed01A: base.sourceSealed01A,
     routedServingConsumerWired: base.routedServingWired,
     fullFacetsServed: base.fullFacetsServed,
     requiredFacets: REQUIRED_SECONDARY_FACETS,
-    facetsServedOnRoutedPath: [],
+    facetsServedOnRoutedPath: ms2
+      ? (MS2_FACETS_SERVED_ON_PRODUCT_PATH as readonly RequiredSecondaryFacet[])
+      : [],
     standardDeployHandoff: base.standardDeployHandoff,
     local01AHandoffProveExists: true,
   };

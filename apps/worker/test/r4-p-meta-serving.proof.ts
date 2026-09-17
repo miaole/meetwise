@@ -80,6 +80,7 @@ function isHonestyHelper(f: string): boolean {
     || f.endsWith('r4-p-meta-serving-remaining.ts')
     || f.endsWith('r4-p-meta-serving-product-remaining.ts')
     || f.endsWith('r4-p-meta-ms1-product-wire.ts')
+    || f.endsWith('r4-p-meta-ms2-facets-product.ts')
   );
 }
 
@@ -149,13 +150,14 @@ A('MS1 inventory / status still list P-META / G-R4-5 open',
   (/P-META/.test(inventory) || /P-META/.test(status))
   && (/G-R4-5|MetadataReviewReceipt|RAG-FUNNEL-01/.test(status) || /P-META/.test(inventory)));
 
-section('MS2 full facets served (inventory named · path empty)');
-A('MS2 classify: fullFacetsServed=false', serving.fullFacetsServed === false);
+section('MS2 full facets served (F7 product-path serve · plan = served)');
+A('MS2 classify: fullFacetsServed=true (F7)', serving.fullFacetsServed === true);
 A('MS2 requiredFacets = architecture secondary set (6)',
   serving.requiredFacets.length === 6
   && REQUIRED_SECONDARY_FACETS.every((f, i) => serving.requiredFacets[i] === f));
-A('MS2 facetsServedOnRoutedPath empty (still open)',
-  serving.facetsServedOnRoutedPath.length === 0);
+A('MS2 facetsServedOnRoutedPath = required set (F7 served)',
+  serving.facetsServedOnRoutedPath.length === 6
+  && REQUIRED_SECONDARY_FACETS.every((f, i) => serving.facetsServedOnRoutedPath[i] === f));
 A('MS2 architecture names secondary facets set',
   /competency/.test(funnelArch)
   && /technology/.test(funnelArch)
@@ -226,7 +228,7 @@ A('MS4 composition: EXIT=0 ≠ FUNNEL-01/R4 closed ≠ HA', true);
 
 console.log('\n── honesty summary (F3 P-META serving remaining; await post-prove dual) ──');
 console.log(`MS1: routedServingConsumerWired=true (F6 product wire) · ≠ forge`);
-console.log(`MS2: fullFacetsServed=false · required=[${REQUIRED_SECONDARY_FACETS.join(',')}] · served=[]`);
+console.log(`MS2: fullFacetsServed=true · required=[${REQUIRED_SECONDARY_FACETS.join(',')}] · served=required (F7)`);
 console.log(`MS3: standardDeployHandoff=false · local01A prove exists ≠ 01`);
 console.log('MS4: 01A ≠ 01 · ≠ R4 closed · ≠ 题域已隔离 · releaseEvidence=false · sole 恰 5 · no P-R1 flip');
 console.log('EXIT=0 ≠ RAG-FUNNEL-01 closed ≠ R4 closed ≠ HA ≠ suite green.');

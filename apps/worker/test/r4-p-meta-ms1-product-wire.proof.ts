@@ -3,7 +3,7 @@
  *
  *   MS1 — real routed product serving consumer WIRED (admit path · ≠ forge)
  *         · contract.wired=true · routedServingProductConsumerWired=true
- *   MS2 — facetsServedOnProductPath still empty (still open)
+ *   MS2 — facetsServedOnProductPath = required set (F7 landed; this knife still MS1-scoped admit)
  *   MS3 — standardDeployProductHandoff still false (still open)
  *   MS4 — hard pins: 01A ≠ 01 · MS1 alone ≠ FUNNEL-01/R4/R1 closed ·
  *         releaseEvidence=false · ≠HA · ≠ suite green · sole 恰 5 ·
@@ -102,6 +102,7 @@ function isAllowedReceiptMention(f: string): boolean {
     || f.endsWith('r4-p-meta-serving-remaining.ts')
     || f.endsWith('r4-p-meta-serving-product-remaining.ts')
     || f.endsWith('r4-p-meta-ms1-product-wire.ts')
+    || f.endsWith('r4-p-meta-ms2-facets-product.ts')
   );
 }
 
@@ -130,7 +131,7 @@ const FIXTURE_APPROVED: MetadataReviewReceipt = {
   reviewer: 'f6-ms1-product-wire-prove',
 };
 
-console.log('F6 MS1 MetadataReviewReceipt product wire prove — MS1 wired · MS2/MS3 still false · releaseEvidence=false · ≠HA · ≠R4 closed');
+console.log('F6 MS1 MetadataReviewReceipt product wire prove — MS1 wired · MS2 served (F7) · MS3 still false · releaseEvidence=false · ≠HA · ≠R4 closed');
 console.log('EXIT=0 ≠ RAG-FUNNEL-01 closed ≠ G-R4-5 closed ≠ 题域已隔离 · await post-prove dual · Ban forge serving');
 
 section('MS0 static anchors present');
@@ -241,15 +242,18 @@ A('MS1 inventory / status still list P-META / G-R4-5 open',
   (/P-META/.test(inventory) || /P-META/.test(status))
   && (/G-R4-5|MetadataReviewReceipt|RAG-FUNNEL-01/.test(status) || /P-META/.test(inventory)));
 
-section('MS2 product facets still open (plan pinned · served empty)');
+section('MS2 product facets served (F7 · plan pinned · served = required)');
 A('MS2 classify: productFacetServingPlanPinned=true', product.productFacetServingPlanPinned === true);
 A('MS2 requiredFacets = architecture secondary set (6)',
   product.requiredFacets.length === 6
   && REQUIRED_SECONDARY_FACETS.every((f, i) => product.requiredFacets[i] === f));
-A('MS2 facetsServedOnProductPath empty (MS2 still open)',
-  product.facetsServedOnProductPath.length === 0);
-A('MS2 F3 align: fullFacetsServed=false · facetsServedOnRoutedPath empty',
-  serving.fullFacetsServed === false && serving.facetsServedOnRoutedPath.length === 0);
+A('MS2 facetsServedOnProductPath = required set (F7 served)',
+  product.facetsServedOnProductPath.length === 6
+  && REQUIRED_SECONDARY_FACETS.every((f, i) => product.facetsServedOnProductPath[i] === f));
+A('MS2 F3 align: fullFacetsServed=true · facetsServedOnRoutedPath = required',
+  serving.fullFacetsServed === true
+  && serving.facetsServedOnRoutedPath.length === 6
+  && REQUIRED_SECONDARY_FACETS.every((f, i) => serving.facetsServedOnRoutedPath[i] === f));
 A('MS2 architecture names secondary facets set',
   /competency/.test(funnelArch)
   && /technology/.test(funnelArch)
@@ -268,7 +272,7 @@ A('MS3 local handoff prove file present (旁证 ≠ 01)', existsSync(handoffProv
 A('MS3 F3 align: standardDeployHandoff=false', serving.standardDeployHandoff === false);
 
 section('MS4 hard pins (MS1 alone ≠ FUNNEL · ≠ R4 · sole 恰 5 · Ban forge · G-R4-3 parallel)');
-A('MS4 isProductFunnel01Closed=false (MS2/MS3 remain)', isProductFunnel01Closed(product) === false);
+A('MS4 isProductFunnel01Closed=false (MS3 remain)', isProductFunnel01Closed(product) === false);
 A('MS4 isProduct01ANotEqual01=true', isProduct01ANotEqual01(product) === true);
 A('MS4 productAlignsWithF3Serving=true', productAlignsWithF3Serving(product, serving) === true);
 A('MS4 F3 isServingFunnel01Closed=false · isServing01ANotEqual01=true',
@@ -308,9 +312,9 @@ A('MS4 status pins 题域隔离 NOT closed + releaseEvidence=false',
 A('MS4 status mentions F6 / G-R4-5 / MS1 product wire',
   (/F6|p-meta-ms1-product-wire|G-R4-5/.test(status))
   && (/MS1|product wire|G-R4-5|P-META/.test(status)));
-A('MS4 status / harness: G-R4-5 STILL OPEN · MS2/MS3 remain',
+A('MS4 status / harness: G-R4-5 STILL OPEN · MS3 remain',
   (/G-R4-5 STILL OPEN|G-R4-5.*STILL OPEN|STILL OPEN/.test(status) || /G-R4-5 STILL OPEN/.test(harness))
-  && (/MS2|MS3/.test(harness) || /MS2|MS3/.test(status)));
+  && (/MS3/.test(harness) || /MS3/.test(status) || /MS2|MS3/.test(status)));
 A('MS4 pre-exec dual reviews exist · verdict pass (docs gate)',
   (/pass|结论.*pass|\*\*pass\*\*/i.test(preE2e))
   && (/pass|结论.*pass|\*\*pass\*\*/i.test(preRag)));
@@ -337,12 +341,12 @@ spawnProve('r4-p-meta-serving-product', ['r4-p-meta-serving-product:prove']);
 
 console.log('\n── MS1 product wire summary (F6; await post-prove dual) ──');
 console.log(`MS1: routedServingProductConsumerWired=true · contract.wired=true · consumer=${MS1_PRODUCT_SERVING_CONSUMER_ID}`);
-console.log(`MS2: productFacetServingPlanPinned=true · required=[${REQUIRED_SECONDARY_FACETS.join(',')}] · served=[]`);
+console.log(`MS2: productFacetServingPlanPinned=true · required=[${REQUIRED_SECONDARY_FACETS.join(',')}] · served=required (F7)`);
 console.log('MS3: productDeployHandoffChecklistNamed=true · standardDeployProductHandoff=false · local01A prove ≠ 01');
 console.log('MS4: 01A ≠ 01 · MS1 alone ≠ FUNNEL/R4/G-R4-5 closed · G-R4-3 parallel · releaseEvidence=false · sole 恰 5 · no P-R1 flip');
 console.log('EXIT=0 ≠ RAG-FUNNEL-01 closed ≠ R4 closed ≠ HA ≠ suite green ≠ G-R4-5 closed.');
 
 console.log(failures === 0
-  ? '\nOK  r4-p-meta-ms1-product-wire prove (MS1 wired; MS2/MS3 still false; ≠ FUNNEL-01/R4/G-R4-5 closed; releaseEvidence=false)'
+  ? '\nOK  r4-p-meta-ms1-product-wire prove (MS1 wired; MS2 served F7; MS3 still false; ≠ FUNNEL-01/R4/G-R4-5 closed; releaseEvidence=false)'
   : `\nFAIL  r4-p-meta-ms1-product-wire prove (${failures} failures)`);
 process.exit(failures === 0 ? 0 : 1);

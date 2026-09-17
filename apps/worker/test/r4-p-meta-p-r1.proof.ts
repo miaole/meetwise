@@ -128,7 +128,7 @@ section('MR1 P-META remaining (01A ≠ 01 · no routed serving)');
 const meta = classifyPMetaRemaining();
 A('MR1 classify: sourceSealed01A=true (01A inventory)', meta.sourceSealed01A === true);
 A('MR1 classify: routedServingWired=true (F6 MS1 product wire)', meta.routedServingWired === true);
-A('MR1 classify: fullFacetsServed=false', meta.fullFacetsServed === false);
+A('MR1 classify: fullFacetsServed=true (F7 MS2 product facets)', meta.fullFacetsServed === true);
 A('MR1 classify: standardDeployHandoff=false', meta.standardDeployHandoff === false);
 A('MR1 isRagFunnel01Closed=false', isRagFunnel01Closed(meta) === false);
 A('MR1 is01ANotEqual01=true', is01ANotEqual01(meta) === true);
@@ -152,6 +152,7 @@ A('MR1 only honesty helpers + F6 wire name MetadataReviewReceipt in worker src',
     if (f.endsWith('r4-p-meta-serving-remaining.ts')) continue;
     if (f.endsWith('r4-p-meta-serving-product-remaining.ts')) continue;
     if (f.endsWith('r4-p-meta-ms1-product-wire.ts')) continue;
+    if (f.endsWith('r4-p-meta-ms2-facets-product.ts')) continue;
     const body = read(f);
     if (/MetadataReviewReceipt|qbank_metadata_review_receipt|metadata_review_receipt/.test(body)) {
       console.log(`  leak: ${f}`);

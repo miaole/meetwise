@@ -3,7 +3,7 @@
  *
  *   MS1 — product MetadataReviewReceipt serving consumer WIRED by F6 (≠ forge)
  *         · product serving contract NAMED + wired=true (honest after F6)
- *   MS2 — product facet serving plan PINNED · facetsServedOnProductPath empty
+ *   MS2 — product facet serving plan PINNED · facetsServedOnProductPath = required (F7)
  *   MS3 — product deploy handoff checklist NAMED · standardDeployProductHandoff false
  *         · local 01A prove ≠ standard deploy
  *   MS4 — hard pins: 01A ≠ 01 · ≠ FUNNEL-01/R4/R1 closed · releaseEvidence=false ·
@@ -97,6 +97,7 @@ function isHonestyHelper(f: string): boolean {
     || f.endsWith('r4-p-meta-serving-remaining.ts')
     || f.endsWith('r4-p-meta-serving-product-remaining.ts')
     || f.endsWith('r4-p-meta-ms1-product-wire.ts')
+    || f.endsWith('r4-p-meta-ms2-facets-product.ts')
   );
 }
 
@@ -113,7 +114,7 @@ function spawnProve(label: string, args: string[]): number {
 }
 
 console.log('F5 P-META serving product remaining prove — MS1/MS2/MS3/MS4 · releaseEvidence=false · ≠HA · ≠R4 closed');
-console.log('EXIT=0 ≠ RAG-FUNNEL-01 closed ≠ 题域已隔离 · MS1 wired (F6) · MS2/MS3 still false · Ban forge serving');
+console.log('EXIT=0 ≠ RAG-FUNNEL-01 closed ≠ 题域已隔离 · MS1 wired (F6) · MS2 served (F7) · MS3 still false · Ban forge serving');
 
 section('MS0 static anchors present');
 for (const [label, path] of [
@@ -189,16 +190,19 @@ A('MS1 inventory / status still list P-META / G-R4-5 open',
   (/P-META/.test(inventory) || /P-META/.test(status))
   && (/G-R4-5|MetadataReviewReceipt|RAG-FUNNEL-01/.test(status) || /P-META/.test(inventory)));
 
-section('MS2 product facets (plan pinned · served-on-path empty)');
+section('MS2 product facets (plan pinned · served-on-path = required · F7)');
 A('MS2 classify: productFacetServingPlanPinned=true (honest progress)', product.productFacetServingPlanPinned === true);
 A('MS2 requiredFacets = architecture secondary set (6)',
   product.requiredFacets.length === 6
   && REQUIRED_SECONDARY_FACETS.every((f, i) => product.requiredFacets[i] === f)
   && PRODUCT_FACET_SERVING_PLAN.every((f, i) => product.requiredFacets[i] === f));
-A('MS2 facetsServedOnProductPath empty (MS2 still open)',
-  product.facetsServedOnProductPath.length === 0);
-A('MS2 F3 align: fullFacetsServed=false · facetsServedOnRoutedPath empty',
-  serving.fullFacetsServed === false && serving.facetsServedOnRoutedPath.length === 0);
+A('MS2 facetsServedOnProductPath = required set (F7 served)',
+  product.facetsServedOnProductPath.length === 6
+  && REQUIRED_SECONDARY_FACETS.every((f, i) => product.facetsServedOnProductPath[i] === f));
+A('MS2 F3 align: fullFacetsServed=true · facetsServedOnRoutedPath = required',
+  serving.fullFacetsServed === true
+  && serving.facetsServedOnRoutedPath.length === 6
+  && REQUIRED_SECONDARY_FACETS.every((f, i) => serving.facetsServedOnRoutedPath[i] === f));
 A('MS2 architecture names secondary facets set',
   /competency/.test(funnelArch)
   && /technology/.test(funnelArch)
@@ -293,7 +297,7 @@ spawnProve('r4-p-meta-serving', ['r4-p-meta-serving:prove']);
 
 console.log('\n── product remaining summary (F5 P-META serving product; await post-prove dual) ──');
 console.log(`MS1: productServingContractNamed=true · routedServingProductConsumerWired=true (F6) · ≠ forge`);
-console.log(`MS2: productFacetServingPlanPinned=true · required=[${REQUIRED_SECONDARY_FACETS.join(',')}] · served=[]`);
+console.log(`MS2: productFacetServingPlanPinned=true · required=[${REQUIRED_SECONDARY_FACETS.join(',')}] · served=required (F7)`);
 console.log(`MS3: productDeployHandoffChecklistNamed=true · standardDeployProductHandoff=false · local01A prove ≠ 01`);
 console.log('MS4: 01A ≠ 01 · ≠ R4/FUNNEL/R1 closed · G-R4-5 STILL OPEN · G-R4-3 parallel · releaseEvidence=false · sole 恰 5 · no P-R1 flip');
 console.log('EXIT=0 ≠ RAG-FUNNEL-01 closed ≠ R4 closed ≠ HA ≠ suite green ≠ knife product-done.');
