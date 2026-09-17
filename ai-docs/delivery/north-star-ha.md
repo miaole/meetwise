@@ -6,7 +6,7 @@
 > This overlay does **not** claim HA / suite green / releaseEvidence. See `adr-postgres-retained.md`.
 
 > **2026-09-17 (~01:20 PT) · workflow SSOT (W0–W8 · additive)**  
-> **W0** PG retained (**`post_prove_dual_pass`** · dual on `0c95883` · wake provisional overlay after dual) → **W1** PG redundant/obsolete table inventory (**ZERO deletes** · `harness/w1-pg-redundant-table-inventory.md` · REQUEST-ready) → dual → later **W1b** merge/retire migrations (batch prove · **not open** · Dual PASS on W1 ≠ authorize deletes) → then **W2…W8** (**not opened** this turn).  
+> **W0** PG retained (**`post_prove_dual_pass`** · close **`5c2bf9a`** · dual on `0c95883` · wake provisional overlay after dual) → **W1** PG redundant/obsolete table inventory (**ZERO deletes** · **`post_prove_dual_pass`** · dual on `675269c` · `harness/w1-pg-redundant-table-inventory.md`) → later **W1b** merge/retire migrations (batch prove · **not open** · Dual PASS on W1 ≠ authorize deletes) → then **W2…W8** (separate knives · Dual PASS ≠ coding).  
 > Ban DROP in W1 · Ban MySQL/Qdrant cutover revival · Ban claiming W8/HA from W1. F8 MS3 may run parallel and must not block W1.
 
 
@@ -58,7 +58,7 @@
 
 ## 平行轨 — W0–W8 PG-retained workflow（非 HA）
 
-- SSOT：`w0-w8-workflow-status.md` · W0 PG-retained **`post_prove_dual_pass`**（dual on `0c95883` · wake provisional overlay after dual）· W1 inventory · **W2** `harness/w2-resource-sizing-receipts.md`（2c4g vs 4c8g · REQUEST-ready）· **W3** `harness/w3-int-transcript-delete-503-freeze.md`（INT-TRANSCRIPT-01 + DELETE=503 freeze · REQUEST-ready）· W4–W8 not open · Dual PASS ≠ authorize coding · ≠HA · `releaseEvidence=false`
+- SSOT：`w0-w8-workflow-status.md` · W0 PG-retained **`post_prove_dual_pass`**（close **`5c2bf9a`** · dual on `0c95883` · wake provisional overlay after dual）· W1 inventory **`post_prove_dual_pass`**（dual on `675269c` · ZERO DROP · Dual≠W1b）· see SSOT for W2–W5 · W1b/W6–W8 not open · Dual PASS ≠ authorize coding · ≠HA · `releaseEvidence=false`
 
 ## 平行轨 — R5 / sole-stack 诚实（非 HA）
 

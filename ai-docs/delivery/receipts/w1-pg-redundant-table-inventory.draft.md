@@ -1,9 +1,12 @@
-# W1 provisional inventory draft — read-only（≠ DROP list · ≠ W1b authorize）
+# W1 provisional inventory draft — **SUPERSEDED**（provenance only）
 
-**Status**: **provisional draft** · accompanying W1 docs knife · **2026-09-17 (~01:20 PT)**  
+**Status**: **superseded** by formal receipt `receipts/w1-pg-redundant-table-inventory.md` · **`post_prove_dual_pass`**  
+**Date (original draft)**: 2026-09-17 (~01:20 PT) · **Promoted**: 2026-09-17 (~01:35 PT)  
 **releaseEvidence=false** · **≠HA** · **≠suite** · **Ban DROP/TRUNCATE** · Dual PASS on W1 **≠** authorize deletes  
 **Sources (read-only skim)**: `packages/db/migrations/` (~133) · `packages/db/sql/` (~25) · `packages/db/src/` (incl. `retrieval-legacy.ts`) · table-name extract from CREATE TABLE / createTable  
 **Not**: live DB introspection · full call-graph prove · destructive SQL · MySQL/Qdrant cutover
+
+> **Use the formal receipt.** This draft is retained only as provenance. D-01…D-07 remain **hypotheses** · **≠** deletion approval list · **≠** W1b authorize.
 
 ---
 
@@ -12,7 +15,7 @@
 | Object / class | Why |
 |----------------|-----|
 | `checkpoints`, `checkpoint_blobs`, `checkpoint_writes`, `checkpoint_migrations`, `checkpoint_thread_enrollment` | PostgresSaver / LangGraph durability |
-| Active pgvector paths / generation-scoped qbank+rag serving | Retained vector truth (W0) |
+| Active pgvector paths / generation-scoped qbank+rag serving | Retained vector truth (W0) · **HARD RETAIN · not DROP-able** |
 | Privacy / erasure sinks still required (`privacy_*`, memory deletion targets, etc.) | Privacy hard gates |
 | Hot business: `interview*`, commerce/payment, `job_route_*`, `user_account`, RLS principal surfaces | Production paths |
 
@@ -32,16 +35,10 @@
 
 ---
 
-## Artifact plan reminder (later coding knife · still Ban DROP in that knife unless W1b authorized)
-
-Emit markdown/JSON rows with: `table`/`column` · `category` · `evidence` · `usage_signal` · `proposed_next∈{keep,document-only,candidate-for-W1b-review}` · explicit `ban: no-drop-in-w1`.
-
----
-
 ## Non-claims
 
-- Not an approved delete list · not W1b authorize · not HA · not suite · not R4 closed · not MySQL/Qdrant cutover · zero DROP executed
+- Not an approved delete list · not W1b authorize · not HA · not suite · not R4 closed · not MySQL/Qdrant cutover · zero DROP executed · see formal receipt for dual PASS record
 
 ---
 
-*Draft receipt · W1 · 2026-09-17 (~01:20 PT) · provisional · ZERO deletes · Ban DROP · releaseEvidence=false*
+*Draft (superseded) · W1 · 2026-09-17 · provisional provenance · ZERO deletes · Ban DROP · Dual PASS ≠ authorize W1b · releaseEvidence=false*
