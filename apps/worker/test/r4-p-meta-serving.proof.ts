@@ -78,6 +78,7 @@ function isHonestyHelper(f: string): boolean {
   return (
     f.endsWith('r4-p-meta-p-r1-remaining.ts')
     || f.endsWith('r4-p-meta-serving-remaining.ts')
+    || f.endsWith('r4-p-meta-serving-product-remaining.ts')
   );
 }
 
