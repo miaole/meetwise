@@ -1,6 +1,6 @@
 # W0–W8 workflow status（PG-retained parallel track · SSOT）
 
-**Date**: 2026-09-17 (~01:40 PT)  
+**Date**: 2026-09-17 (~01:41 PT)  
 **releaseEvidence=false** · **≠HA** · **≠suite green** · Ban secrets · Ban self-approve  
 **Authority**: meetwise — Postgres (+pgvector + PostgresSaver) retained · MySQL/Qdrant cutover **STOPPED** · Dual PASS ≠ authorize coding · F8/W1 parallel OK
 
@@ -13,7 +13,8 @@
 | **W3** | INT-TRANSCRIPT-01 fact-root + public DELETE=503 freeze docs gate | **`post_prove_dual_pass`** · dual on `3463e9e` · **DELETE=503 freeze** · Ban open DELETE · INT-TRANSCRIPT-01 still frozen/honest · Dual PASS ≠ coding | `harness/w3-int-transcript-delete-503-freeze.md` |
 | **W4** | R2 close-auth REQUEST prep (authorize checklist / receipt) | **`post_prove_dual_pass`** · docs-only · dual on `25833fc` (e2e-ha+rag) · **R2 still NOT closed** · ≠ verbal route-effective · Dual PASS ≠ authorize coding / SSOT flip | `harness/w4-r2-close-authorize-receipt.md` |
 | **W5** | MODEL-OP dual reconciler + wakeup honesty (docs only) | **`post_prove_dual_pass`** · dual on `25833fc` · **docs closed** · **≠ MODEL-OP fake green** · Dual PASS ≠ coding | `harness/w5-model-op-dual-reconciler-wakeup.md` |
-| **W6…W8** | Subsequent schema/stack hygiene (TBD · separate REQUEST) | **NOT open** | — |
+| **W6** | P0-CB + SCOR honesty inventory (docs REQUEST prep) | **OPEN** · **REQUEST-ready / not_run:pre_dual** · **W3 DELETE=503 freeze remains** · Ban SCOR/P0-CB closed · Ban B-side ranking · Dual PASS ≠ coding | `harness/w6-p0-cb-scor-honesty.md` |
+| **W7…W8** | Subsequent E2E/NHP / schema hygiene (TBD · separate REQUEST) | **NOT open** | — |
 
 **Honesty (W0)**: Close commit **`5c2bf9a`** · status **`post_prove_dual_pass`** (dual reviews against knife SHA / HEAD **`0c95883`**). Later tip may include provisional Postgres LISTEN/NOTIFY wake preference overlay (e.g. `32d0724`) — **wake = provisional overlay after dual** · **not a user hard pin** · **does not require wake-patch re-dual**. Redis still orthogonal / not STOPPED. Docs close ≠ coding auth · `releaseEvidence=false` · ≠HA · MySQL/Qdrant STOPPED. **Not**「W0 in dual」.
 
@@ -29,10 +30,13 @@
 
 **Honesty (W5)**: Dual reviews against knife SHA **`25833fc`** (e2e-ha + rag). **W5 docs closed** as `post_prove_dual_pass`. **MODEL-OP not falsely green** — dual reconciler / wakeup cutover / SLO still open; PG LISTEN/NOTIFY provisional retained; Redis wake deferred / orthogonal · **not STOPPED**. Real reconciler wiring needs **separate REQUEST**. Docs close ≠ coding auth · `releaseEvidence=false` · ≠HA · Ban self-approve.
 
-**Hard pins**: Dual PASS ≠ authorize coding · Ban self-approve · PG retained · MySQL/Qdrant STOPPED · F8 parallel noted · Ban claiming HA / W8 closed · **W1 Dual PASS ≠ W1b coding** · **W1b REQUEST-ready / not_run:pre_dual · ZERO DROP · no delete batch · Dual PASS≠coding · HARD RETAIN forbidden in delete** · **W2 sizing ≠ HA / capacity green** · Dual PASS ≠ fake capacity · may retest W2 after W1b · **W3 DELETE=503 freeze** · Ban open DELETE · INT-TRANSCRIPT-01 still frozen · Ban forge on W3 · **Ban claiming R2 closed from W4** · **Ban MODEL-OP fake green from W5 docs close**.
+
+**Honesty (W6)**: **OPEN** · **REQUEST-ready / not_run:pre_dual**. Docs-only P0-CB + SCOR honesty inventory. **Depends on privacy/INT** · **W3 DELETE=503 freeze remains** · INT-TRANSCRIPT-01 still frozen · Ban claiming SCOR-01…08 / P0-CB product closed · Ban B-side ranking / auto-decision · Dual PASS ≠ authorize coding · Ban self-approve · `releaseEvidence=false` · ≠HA.
+
+**Hard pins**: Dual PASS ≠ authorize coding · Ban self-approve · PG retained · MySQL/Qdrant STOPPED · F8 parallel noted · Ban claiming HA / W8 closed · **W1 Dual PASS ≠ W1b coding** · **W1b REQUEST-ready / not_run:pre_dual · ZERO DROP · no delete batch · Dual PASS≠coding · HARD RETAIN forbidden in delete** · **W2 sizing ≠ HA / capacity green** · Dual PASS ≠ fake capacity · may retest W2 after W1b · **W3 DELETE=503 freeze** · Ban open DELETE · INT-TRANSCRIPT-01 still frozen · Ban forge on W3 · **Ban claiming R2 closed from W4** · **Ban MODEL-OP fake green from W5 docs close** · **W6 Ban SCOR/P0-CB closed · W3 DELETE=503 freeze remains**.
 
 **North-star pointer**: `north-star-ha.md` (one-line overlay).
 
 ---
 
-*W0–W8 SSOT · 2026-09-17 (~01:40 PT) · W0 post_prove_dual_pass @5c2bf9a · W1 post_prove_dual_pass (dual on 675269c · ZERO DROP · Dual≠W1b coding · hypotheses≠deletes) · W1b REQUEST-ready / not_run:pre_dual (ZERO DROP · no delete batch · Dual PASS≠coding) · W2 post_prove_dual_pass (sizing≠HA · Dual PASS≠fake capacity · dual on 3463e9e) · W3 post_prove_dual_pass (DELETE=503 freeze · Ban open DELETE · INT-TRANSCRIPT-01 still frozen · dual on 3463e9e) · W4 post_prove_dual_pass (R2 NOT closed) · W5 post_prove_dual_pass (docs only · ≠ MODEL-OP fake green) · releaseEvidence=false · ≠HA · ≠suite · maximize parallel · Dual PASS ≠ coding*
+*W0–W8 SSOT · 2026-09-17 (~01:41 PT) · W0–W5 post_prove_dual_pass · W1b/W6 OPEN REQUEST-ready / not_run:pre_dual · W7–W8 not open · W3 DELETE=503 freeze remains · ZERO DROP · releaseEvidence=false · ≠HA · ≠suite · maximize parallel · Dual PASS ≠ coding*
