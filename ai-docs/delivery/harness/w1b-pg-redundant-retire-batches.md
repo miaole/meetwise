@@ -1,9 +1,9 @@
 # Harness — **W1b** · PG redundant retire/trace batches（ZERO DROP · REQUEST open）
 
-**Status**: **`REQUEST-ready / not_run:pre_dual`**  
-**Date**: 2026-09-17 (~01:40 PT)  
+**Status**: **`executed:awaiting_post_prove_dual`**  
+**Date**: 2026-09-17 (~01:46 PT)  
 **releaseEvidence=false** · **≠HA** · **≠suite green** · **≠ DROP/TRUNCATE** · **≠ delete batch authorized** · **≠ MySQL/Qdrant cutover** · **≠ coding**  
-**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **pending** · **Ban self-approve** · **Dual PASS on W1 ≠ auto-auth W1b coding** · **Dual PASS on W1b ≠ authorize DROP / coding**）  
+**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **PASS** · Batch A/B **executed** · post-prove dual **pending** · **Ban self-approve** · Ban self-write post_prove_dual_pass · **Dual PASS on W1 ≠ auto-auth W1b coding** · **Dual PASS on W1b ≠ authorize DROP / coding**）  
 **Slice**: `../w1b-pg-redundant-retire-batches.slice.md`  
 **Eval**: `../eval/w1b-pg-redundant-retire-batches.eval.md`  
 **Parent W1 formal receipt**: `../receipts/w1-pg-redundant-table-inventory.md`（D-01…D-07 hypotheses · **`post_prove_dual_pass`** · dual on `675269c`）  
@@ -22,7 +22,7 @@
 | **W1 Dual PASS** | Closes W1 inventory only · **≠** auto-authorize W1b coding / DROP |
 | **W1b Dual PASS (if later)** | Docs/trace gate only · **≠** authorize DROP / merge-retire migrations / coding |
 | **Retained** | HARD RETAIN (qbank/pgvector/checkpoints/privacy/hot) **FORBIDDEN** in any delete batch · **non-DROP-able** |
-| **Now** | **`REQUEST-ready / not_run:pre_dual`** · zero coding · zero DROP · Ban inventing DROP targets not in W1 receipt |
+| **Now** | **`executed:awaiting_post_prove_dual`** · Batch A docs done · Batch B trace evidence recorded · ZERO DROP · await parent post-prove dual · Ban self-write post_prove_dual_pass |
 
 ---
 
@@ -94,7 +94,7 @@
 
 | CMD | Status |
 |-----|--------|
-| docs dual only | **`REQUEST-ready / not_run:pre_dual`** · **no prove script** · zero coding · zero DROP |
+| docs/trace execute | **`executed:awaiting_post_prove_dual`** · Batch A+B receipts · **no prove script** · zero DROP · Ban self-write post_prove_dual_pass |
 
 ---
 
@@ -105,3 +105,20 @@ REQUEST open only · not dual PASS · not DROP authorized · not delete batch ·
 ---
 
 *Harness · W1b PG redundant retire/trace batches · 2026-09-17 (~01:40 PT) · REQUEST-ready / not_run:pre_dual · parent W1 post_prove_dual_pass @675269c · releaseEvidence=false · ≠HA · ≠suite · ZERO DROP · no delete batch · Dual PASS on W1 ≠ coding · proposed_next never drop-now · HARD RETAIN forbidden in delete · zero coding*
+
+
+---
+
+## 8. Execution record（this tip · ZERO DROP）
+
+| Batch | Result | Evidence |
+|-------|--------|----------|
+| **A · docs-only** (D-03…D-06) | **done** | `receipts/w1b-batch-a-docs-finalize.md` |
+| **B · trace-first** (D-01/D-02/D-07) | **done** (trace evidence · keep · no deletes) | `receipts/w1b-batch-b-trace-evidence.md` |
+| Delete batch | **not authorized · not executed** | — |
+
+**Status now**: **`executed:awaiting_post_prove_dual`** · Ban self-write `post_prove_dual_pass` · await parent post-prove dual · Dual PASS on W1b (later) ≠ DROP/coding · `releaseEvidence=false` · ≠HA · ≠suite
+
+---
+
+*Harness · W1b · 2026-09-17 (~01:46 PT) · `executed:awaiting_post_prove_dual` · ZERO DROP · no delete batch · Batch A+B executed · Ban self-write post_prove_dual_pass · releaseEvidence=false*

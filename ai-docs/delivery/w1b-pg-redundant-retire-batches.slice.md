@@ -1,10 +1,10 @@
 # Slice — **W1b** · PG redundant retire/trace batches（ZERO DROP）
 
-**Status**: **`REQUEST-ready / not_run:pre_dual`**  
-**Date**: 2026-09-17 (~01:40 PT)  
+**Status**: **`executed:awaiting_post_prove_dual`**  
+**Date**: 2026-09-17 (~01:46 PT)  
 **Authority**: meetwise — W0 PG retained → W1 inventory **`post_prove_dual_pass`** (dual on `675269c`) → **W1b** batched REQUEST（docs/trace only · **ZERO DROP**) → later retire coding only after prove + separate authorize · W2…W8 not opened by this open  
 **releaseEvidence=false** · **≠HA** · **≠suite green** · Ban DROP/TRUNCATE · Ban guessed deletes · Ban inventing DROP targets not in W1 receipt · Dual PASS on W1 ≠ auto-auth W1b coding · Ban self-approve  
-**Experts**: `mw-e2e-ha` + `mw-rag-route` · dual **pending** · not yet dual-sent  
+**Experts**: `mw-e2e-ha` + `mw-rag-route` · pre-exec dual **PASS** · post-prove dual **pending** · Ban self-write post_prove_dual_pass  
 **Honesty**: Most D-rows = document / keep / trace · **NOT** delete · **no delete batch authorized** · `proposed_next` never `drop-now`
 
 ---
@@ -33,6 +33,8 @@ Open W1b REQUEST knife: batch W1 D-01…D-07 into **Batch A docs-only** + **Batc
 | **A · docs-only** | D-03, D-04, D-05, D-06 | Document successor/mig patterns · keep historical MySQL artifacts · keep trust_state honesty |
 | **B · trace-first** | D-01, D-02, D-07 | Usage/call-site prove **before** any retire proposal · still **no DROP** |
 | **Delete** | — | **Not authorized** by this REQUEST |
+| **A result** | D-03…D-06 | **done** · `receipts/w1b-batch-a-docs-finalize.md` |
+| **B result** | D-01/D-02/D-07 | **done** · `receipts/w1b-batch-b-trace-evidence.md` · keep · no DELETE REQUEST flags |
 
 ## Hard pins
 
@@ -42,8 +44,8 @@ Open W1b REQUEST knife: batch W1 D-01…D-07 into **Batch A docs-only** + **Batc
 
 | CMD | Status |
 |-----|--------|
-| docs dual | **`REQUEST-ready / not_run:pre_dual`** · no prove · zero coding · zero DROP |
+| docs/trace execute | **`executed:awaiting_post_prove_dual`** · Batch A+B done · zero DROP · Ban self-write post_prove_dual_pass |
 
 ---
 
-*Slice · W1b · 2026-09-17 (~01:40 PT) · REQUEST-ready / not_run:pre_dual · parent W1 dual on 675269c · releaseEvidence=false · ≠HA · ≠suite · ZERO DROP · no delete batch · Dual PASS on W1 ≠ coding · zero coding*
+*Slice · W1b · 2026-09-17 (~01:46 PT) · `executed:awaiting_post_prove_dual` · parent W1 dual on 675269c · releaseEvidence=false · ≠HA · ≠suite · ZERO DROP · no delete batch · Dual PASS on W1 ≠ coding · zero coding*
