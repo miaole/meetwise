@@ -9,7 +9,8 @@
  * Prior F2 sealed 01A honesty + remaining-gap classifiers.
  * F6 landed MS1 product consumer → `routedServingConsumerWired=true` (honest).
  * F7 landed MS2 product-path facets → `fullFacetsServed=true` (honest).
- * MS3 remain false · FUNNEL-01 / G-R4-5 STILL OPEN · Ban forge.
+ * F8 landed MS3 standard deploy product handoff → `standardDeployHandoff=true` (honest).
+ * Product FUNNEL classifier may be true · Ban dual-claim without dual · ≠ R4 closed · Ban forge.
  *
  * HARD:
  *   - Ban forging MetadataReviewReceipt serving / claiming FUNNEL-01 closed.
@@ -61,7 +62,10 @@ export type PMetaServingRemainingStatus = {
    * F7: equals required set when MS2 wired.
    */
   facetsServedOnRoutedPath: readonly RequiredSecondaryFacet[];
-  /** MS3: standard deploy / combo-root handoff receipt — still open. */
+  /**
+   * MS3: standard deploy / combo-root handoff receipt.
+   * F8: true via real product handoff marker.
+   */
   standardDeployHandoff: boolean;
   /** Local 01A handoff-closure prove exists (旁证 ≠ 01 / ≠ standard deploy). */
   local01AHandoffProveExists: boolean;
@@ -69,7 +73,7 @@ export type PMetaServingRemainingStatus = {
 
 /**
  * Honest P-META serving remaining snapshot (MS1–MS3).
- * Aligns with F2 classifyPMetaRemaining; MS1 follows F6; MS2 follows F7; MS3 stays false.
+ * Aligns with F2 classifyPMetaRemaining; MS1 follows F6; MS2 follows F7; MS3 follows F8.
  */
 export function classifyPMetaServingRemaining(
   base: PMetaRemainingStatus = classifyPMetaRemaining(),

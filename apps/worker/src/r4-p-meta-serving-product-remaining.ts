@@ -11,7 +11,9 @@
  *   `routedServingProductConsumerWired=true` · contract.wired=true (honest).
  * F7 served required secondary facets on product path →
  *   `facetsServedOnProductPath` = required set (honest).
- * MS3 remain false · G-R4-5 / FUNNEL-01 STILL OPEN · Ban forge.
+ * F8 landed MS3 standard deploy product handoff →
+ *   `standardDeployProductHandoff=true` (honest).
+ * Product FUNNEL classifier may be true · Ban dual-claim without dual · ≠ R4 closed · Ban forge.
  *
  * HARD:
  *   - Ban forging MetadataReviewReceipt serving / claiming FUNNEL-01 closed.
@@ -33,6 +35,7 @@ import {
   MS2_FACETS_SERVED_ON_PRODUCT_PATH,
   MS2_PRODUCT_FACETS_SERVED_ON_PRODUCT_PATH_WIRED,
 } from './r4-p-meta-ms2-facets-product.ts';
+import { MS3_STANDARD_DEPLOY_PRODUCT_HANDOFF_WIRED } from './r4-p-meta-ms3-deploy-product.ts';
 
 /**
  * Named product contract for MetadataReviewReceipt serving.
@@ -49,7 +52,7 @@ export const METADATA_REVIEW_RECEIPT_SERVING_PRODUCT_CONTRACT: MetadataReviewRec
     kind: 'MetadataReviewReceiptServingProductContract',
     wired: MS1_METADATA_REVIEW_RECEIPT_PRODUCT_SERVING_CONSUMER_WIRED === true,
     note: MS1_METADATA_REVIEW_RECEIPT_PRODUCT_SERVING_CONSUMER_WIRED
-      ? 'MS1 product consumer wired — MS3 still open · ≠ FUNNEL-01 closed · Ban forge'
+      ? 'MS1 product consumer wired — MS3 product handoff landed · Ban FUNNEL dual-claim without dual · Ban forge'
       : 'Ban forge serving — contract named only; product consumer not wired',
   };
 
@@ -91,7 +94,10 @@ export type PMetaServingProductRemainingStatus = {
   productDeployHandoffChecklistNamed: boolean;
   /** Checklist inventory (named · ≠ evidence). */
   productDeployHandoffChecklist: readonly ProductDeployHandoffChecklistItem[];
-  /** MS3: standard deploy / combo-root product handoff evidence — still open. */
+  /**
+   * MS3: standard deploy / combo-root product handoff evidence.
+   * F8: true via real product handoff marker.
+   */
   standardDeployProductHandoff: boolean;
   /** Local 01A handoff-closure prove exists (旁证 ≠ 01 / ≠ standard deploy). */
   local01AHandoffProveExists: boolean;
@@ -102,12 +108,13 @@ export type PMetaServingProductRemainingStatus = {
 /**
  * Honest P-META serving **product** remaining snapshot (MS1–MS3).
  * Product contract / facet plan / deploy checklist are named (F5 progress).
- * MS1 wired bit follows F6 real consumer · MS2 served follows F7 · MS3 stays false — Ban forge.
+ * MS1 wired bit follows F6 · MS2 served follows F7 · MS3 handoff follows F8 — Ban forge.
  */
 export function classifyPMetaServingProductRemaining(
   serving: PMetaServingRemainingStatus = classifyPMetaServingRemaining(),
 ): PMetaServingProductRemainingStatus {
   const ms2 = MS2_PRODUCT_FACETS_SERVED_ON_PRODUCT_PATH_WIRED === true;
+  const ms3 = MS3_STANDARD_DEPLOY_PRODUCT_HANDOFF_WIRED === true;
   return {
     sourceSealed01A: serving.sourceSealed01A,
     productServingContractNamed: true,
@@ -119,7 +126,7 @@ export function classifyPMetaServingProductRemaining(
       : [],
     productDeployHandoffChecklistNamed: true,
     productDeployHandoffChecklist: PRODUCT_DEPLOY_HANDOFF_CHECKLIST,
-    standardDeployProductHandoff: serving.standardDeployHandoff,
+    standardDeployProductHandoff: ms3 || serving.standardDeployHandoff,
     local01AHandoffProveExists: serving.local01AHandoffProveExists,
     gR43PR1ParallelOpen: true,
   };

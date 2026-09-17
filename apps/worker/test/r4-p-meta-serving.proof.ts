@@ -1,9 +1,9 @@
 /**
  * Knife F3 — P-META **serving remaining** honesty prove (G-R4-5 / MS1–MS4).
  *
- *   MS1 — routed MetadataReviewReceipt serving consumer WIRED by F6 (≠ forge · MS2/MS3 open)
+ *   MS1 — routed MetadataReviewReceipt serving consumer WIRED by F6 (≠ forge)
  *   MS2 — full secondary facets inventory named · served-on-path empty
- *   MS3 — standard deploy handoff still open (local 01A prove ≠ 01)
+ *   MS3 — standard deploy product handoff LANDED by F8 (local 01A prove still 旁证)
  *   MS4 — hard pins: 01A ≠ 01 · ≠ FUNNEL-01/R4 closed · releaseEvidence=false ·
  *         ≠HA · ≠ suite green · sole 恰 5 · no invent Key · no P-R1 flip
  *
@@ -81,6 +81,7 @@ function isHonestyHelper(f: string): boolean {
     || f.endsWith('r4-p-meta-serving-product-remaining.ts')
     || f.endsWith('r4-p-meta-ms1-product-wire.ts')
     || f.endsWith('r4-p-meta-ms2-facets-product.ts')
+    || f.endsWith('r4-p-meta-ms3-deploy-product.ts')
   );
 }
 
@@ -168,8 +169,8 @@ A('MS2 architecture names secondary facets set',
 A('MS2 harness names MS2 / full facets remaining',
   /MS2/.test(harness) && (/full facets|Full facets|完整 facets/i.test(harness)));
 
-section('MS3 standard deploy handoff (local 01A ≠ standard deploy)');
-A('MS3 classify: standardDeployHandoff=false', serving.standardDeployHandoff === false);
+section('MS3 standard deploy handoff (F8 landed · local 01A still 旁证)');
+A('MS3 classify: standardDeployHandoff=true (F8)', serving.standardDeployHandoff === true);
 A('MS3 classify: local01AHandoffProveExists=true', serving.local01AHandoffProveExists === true);
 A('MS3 local handoff prove file present (旁证 ≠ 01)', existsSync(handoffProvePath));
 A('MS3 01A manifest pins local prove ≠ cloud/standard deploy receipt',
@@ -179,11 +180,11 @@ A('MS3 harness names MS3 / deploy handoff remaining',
   /MS3/.test(harness) && (/deploy|handoff|部署/.test(harness)));
 
 section('MS4 hard pins (01A ≠ 01 · ≠ R4 · sole 恰 5)');
-A('MS4 isServingFunnel01Closed=false', isServingFunnel01Closed(serving) === false);
-A('MS4 isServing01ANotEqual01=true', isServing01ANotEqual01(serving) === true);
+A('MS4 isServingFunnel01Closed=true (MS1+MS2+MS3 · Ban dual-claim without dual · ≠ R4)', isServingFunnel01Closed(serving) === true);
+A('MS4 isServing01ANotEqual01=false (product surfaces complete · still ≠ R4)', isServing01ANotEqual01(serving) === false);
 A('MS4 servingAlignsWithF2Remaining=true', servingAlignsWithF2Remaining(serving, f2) === true);
-A('MS4 F2 isRagFunnel01Closed=false · is01ANotEqual01=true',
-  isRagFunnel01Closed(f2) === false && is01ANotEqual01(f2) === true);
+A('MS4 F2 isRagFunnel01Closed=true · is01ANotEqual01=false',
+  isRagFunnel01Closed(f2) === true && is01ANotEqual01(f2) === false);
 A('MS4 harness freezes CMD r4-p-meta-serving:prove',
   /r4-p-meta-serving:prove/.test(harness));
 A('MS4 harness pins ≠ R4 closed · ≠ FUNNEL-01 closed · 01A ≠ 01 · releaseEvidence=false · ≠HA · sole 恰 5',
@@ -229,11 +230,11 @@ A('MS4 composition: EXIT=0 ≠ FUNNEL-01/R4 closed ≠ HA', true);
 console.log('\n── honesty summary (F3 P-META serving remaining; await post-prove dual) ──');
 console.log(`MS1: routedServingConsumerWired=true (F6 product wire) · ≠ forge`);
 console.log(`MS2: fullFacetsServed=true · required=[${REQUIRED_SECONDARY_FACETS.join(',')}] · served=required (F7)`);
-console.log(`MS3: standardDeployHandoff=false · local01A prove exists ≠ 01`);
+console.log(`MS3: standardDeployHandoff=true (F8) · local01A prove exists (旁证)`);
 console.log('MS4: 01A ≠ 01 · ≠ R4 closed · ≠ 题域已隔离 · releaseEvidence=false · sole 恰 5 · no P-R1 flip');
 console.log('EXIT=0 ≠ RAG-FUNNEL-01 closed ≠ R4 closed ≠ HA ≠ suite green.');
 
 console.log(failures === 0
-  ? '\nOK  r4-p-meta-serving prove (MS1/MS2/MS3/MS4; ≠ FUNNEL-01/R4 closed; releaseEvidence=false)'
+  ? '\nOK  r4-p-meta-serving prove (MS1/MS2/MS3/MS4; MS3 landed F8; product FUNNEL classifier true; ≠ R4/HA; Ban dual-claim; releaseEvidence=false)'
   : `\nFAIL  r4-p-meta-serving prove (${failures} failures)`);
 process.exit(failures === 0 ? 0 : 1);

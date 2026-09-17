@@ -1,7 +1,7 @@
 /**
  * Knife F2 — P-META · P-R1 **remaining** honesty prove.
  *
- *   MR1 — P-META: 01A sealed ≠ RAG-FUNNEL-01; MS1 routed serving WIRED (F6); MS2/MS3 still open
+ *   MR1 — P-META: 01A sealed; MS1 WIRED (F6); MS2 served (F7); MS3 handoff (F8); product FUNNEL classifier may be true · Ban dual-claim without dual · ≠ R4
  *         serving / full facets / standard deploy handoff yet
  *   PR1 — P-R1: default fail-closed flag OFF (no flip); legacy「技术岗」still
  *         on; spawn r1-tech-role-fail-closed:prove as contract 旁证 ≠ R1 closed
@@ -129,9 +129,9 @@ const meta = classifyPMetaRemaining();
 A('MR1 classify: sourceSealed01A=true (01A inventory)', meta.sourceSealed01A === true);
 A('MR1 classify: routedServingWired=true (F6 MS1 product wire)', meta.routedServingWired === true);
 A('MR1 classify: fullFacetsServed=true (F7 MS2 product facets)', meta.fullFacetsServed === true);
-A('MR1 classify: standardDeployHandoff=false', meta.standardDeployHandoff === false);
-A('MR1 isRagFunnel01Closed=false', isRagFunnel01Closed(meta) === false);
-A('MR1 is01ANotEqual01=true', is01ANotEqual01(meta) === true);
+A('MR1 classify: standardDeployHandoff=true (F8 MS3 product handoff)', meta.standardDeployHandoff === true);
+A('MR1 isRagFunnel01Closed=true (MS1+MS2+MS3 product surfaces · Ban dual-claim without dual · ≠ R4)', isRagFunnel01Closed(meta) === true);
+A('MR1 is01ANotEqual01=false (product surfaces complete · still ≠ R4 closed)', is01ANotEqual01(meta) === false);
 A('MR1 principal lists qbank_metadata_review_receipt (01A table)',
   /qbank_metadata_review_receipt/.test(principal));
 A('MR1 01A manifest pins 01A ≠ 01 / MetadataReviewReceipt serving still open',
@@ -153,6 +153,7 @@ A('MR1 only honesty helpers + F6 wire name MetadataReviewReceipt in worker src',
     if (f.endsWith('r4-p-meta-serving-product-remaining.ts')) continue;
     if (f.endsWith('r4-p-meta-ms1-product-wire.ts')) continue;
     if (f.endsWith('r4-p-meta-ms2-facets-product.ts')) continue;
+    if (f.endsWith('r4-p-meta-ms3-deploy-product.ts')) continue;
     const body = read(f);
     if (/MetadataReviewReceipt|qbank_metadata_review_receipt|metadata_review_receipt/.test(body)) {
       console.log(`  leak: ${f}`);
