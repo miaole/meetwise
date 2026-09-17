@@ -6,17 +6,17 @@
  *   MS2 = full secondary facets served on that **product** path
  *   MS3 = standard deploy / combo-root **product** handoff receipt
  *
- * Prior F3 sealed **serving honesty** (MS1–MS3 still false · G-R4-5 STILL OPEN).
- * This knife deepens **product remaining** honesty: names product contract /
- * facet plan / deploy checklist as honest progress — it does NOT wire a
- * product serving consumer · does NOT close FUNNEL-01 / R4 / 题域已隔离.
+ * F5 named product contract / facet plan / deploy checklist (honest progress).
+ * F6 wired the real MS1 product serving consumer →
+ *   `routedServingProductConsumerWired=true` · contract.wired=true (honest).
+ * MS2/MS3 remain false · G-R4-5 / FUNNEL-01 STILL OPEN · Ban forge.
  *
  * HARD:
  *   - Ban forging MetadataReviewReceipt serving / claiming FUNNEL-01 closed.
- *   - 01A source seal ≠ 01 closed · product contract named ≠ consumer wired.
+ *   - 01A source seal ≠ 01 closed · MS1 alone ≠ 01 closed.
  *   - No P-R1 default flip · no invent MODEL_API_KEY · releaseEvidence=false.
  *   - ≠HA · sole 恰 5 · EXIT=0 ≠ R4 closed ≠ knife product-done.
- *   - G-R4-3 / P-R1 remains parallel open (not this F5 scope).
+ *   - G-R4-3 / P-R1 remains parallel open (not this F5/F6 scope).
  */
 import {
   REQUIRED_SECONDARY_FACETS,
@@ -26,23 +26,25 @@ import {
   type PMetaServingRemainingStatus,
   type RequiredSecondaryFacet,
 } from './r4-p-meta-serving-remaining.ts';
+import { MS1_METADATA_REVIEW_RECEIPT_PRODUCT_SERVING_CONSUMER_WIRED } from './r4-p-meta-ms1-product-wire.ts';
 
 /**
  * Named product contract for MetadataReviewReceipt serving.
- * **NOT** a wired consumer — Ban forge serving.
+ * F6: wired=true via real product consumer (≠ forge · MS2/MS3 still open).
  */
 export type MetadataReviewReceiptServingProductContract = {
   readonly kind: 'MetadataReviewReceiptServingProductContract';
-  /** Always false on this knife — contract named ≠ wired. */
-  readonly wired: false;
-  readonly note: 'Ban forge serving — contract named only; product consumer not wired';
+  readonly wired: boolean;
+  readonly note: string;
 };
 
 export const METADATA_REVIEW_RECEIPT_SERVING_PRODUCT_CONTRACT: MetadataReviewReceiptServingProductContract =
   {
     kind: 'MetadataReviewReceiptServingProductContract',
-    wired: false,
-    note: 'Ban forge serving — contract named only; product consumer not wired',
+    wired: MS1_METADATA_REVIEW_RECEIPT_PRODUCT_SERVING_CONSUMER_WIRED === true,
+    note: MS1_METADATA_REVIEW_RECEIPT_PRODUCT_SERVING_CONSUMER_WIRED
+      ? 'MS1 product consumer wired — MS2/MS3 still open · ≠ FUNNEL-01 closed · Ban forge'
+      : 'Ban forge serving — contract named only; product consumer not wired',
   };
 
 /** Product facet serving plan pinned to architecture secondary set (≠ served). */
@@ -63,9 +65,12 @@ export type ProductDeployHandoffChecklistItem =
 export type PMetaServingProductRemainingStatus = {
   /** F2/01A: qbank_metadata_review_receipt + control-definer sealed in source. */
   sourceSealed01A: boolean;
-  /** Honest progress: product serving contract is named (≠ wired). */
+  /** Honest progress: product serving contract is named (≠ alone enough for FUNNEL). */
   productServingContractNamed: boolean;
-  /** MS1: product routed MetadataReviewReceipt serving consumer wired — still open. */
+  /**
+   * MS1: product routed MetadataReviewReceipt serving consumer wired.
+   * F6: true via real wire (≠ forge · MS2/MS3 still open · G-R4-5 STILL OPEN).
+   */
   routedServingProductConsumerWired: boolean;
   /** Honest progress: product facet serving plan pinned to required set. */
   productFacetServingPlanPinned: boolean;
@@ -81,14 +86,14 @@ export type PMetaServingProductRemainingStatus = {
   standardDeployProductHandoff: boolean;
   /** Local 01A handoff-closure prove exists (旁证 ≠ 01 / ≠ standard deploy). */
   local01AHandoffProveExists: boolean;
-  /** G-R4-3 / P-R1 remains parallel open (F4 honesty · not this F5). */
+  /** G-R4-3 / P-R1 remains parallel open (F4 honesty · not this F5/F6). */
   gR43PR1ParallelOpen: boolean;
 };
 
 /**
  * Honest P-META serving **product** remaining snapshot (MS1–MS3).
- * Product contract / facet plan / deploy checklist are named (progress).
- * MS1–MS3 wired/served/handoff bits stay false — Ban forge serving.
+ * Product contract / facet plan / deploy checklist are named (F5 progress).
+ * MS1 wired bit follows F6 real consumer · MS2/MS3 stay false — Ban forge.
  */
 export function classifyPMetaServingProductRemaining(
   serving: PMetaServingRemainingStatus = classifyPMetaServingRemaining(),
@@ -108,7 +113,7 @@ export function classifyPMetaServingProductRemaining(
   };
 }
 
-/** FUNNEL-01 product closed iff MS1+MS2+MS3 product surfaces wired. 01A alone ≠ 01. */
+/** FUNNEL-01 product closed iff MS1+MS2+MS3 product surfaces wired. 01A/MS1 alone ≠ 01. */
 export function isProductFunnel01Closed(
   status: PMetaServingProductRemainingStatus = classifyPMetaServingProductRemaining(),
 ): boolean {
@@ -142,6 +147,7 @@ export function productAlignsWithF3Serving(
     && product.requiredFacets.every((f, i) => serving.requiredFacets[i] === f)
     && isProductFunnel01Closed(product) === isServingFunnel01Closed(serving)
     && isProduct01ANotEqual01(product) === isServing01ANotEqual01(serving)
-    && METADATA_REVIEW_RECEIPT_SERVING_PRODUCT_CONTRACT.wired === false
+    && METADATA_REVIEW_RECEIPT_SERVING_PRODUCT_CONTRACT.wired
+      === product.routedServingProductConsumerWired
   );
 }

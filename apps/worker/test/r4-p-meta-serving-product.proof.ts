@@ -1,8 +1,8 @@
 /**
  * Knife F5 — P-META **serving product remaining** prove (G-R4-5 / MS1–MS4).
  *
- *   MS1 — product MetadataReviewReceipt serving consumer still unwired (≠ forge)
- *         · product serving contract NAMED (honest progress)
+ *   MS1 — product MetadataReviewReceipt serving consumer WIRED by F6 (≠ forge)
+ *         · product serving contract NAMED + wired=true (honest after F6)
  *   MS2 — product facet serving plan PINNED · facetsServedOnProductPath empty
  *   MS3 — product deploy handoff checklist NAMED · standardDeployProductHandoff false
  *         · local 01A prove ≠ standard deploy
@@ -96,6 +96,7 @@ function isHonestyHelper(f: string): boolean {
     f.endsWith('r4-p-meta-p-r1-remaining.ts')
     || f.endsWith('r4-p-meta-serving-remaining.ts')
     || f.endsWith('r4-p-meta-serving-product-remaining.ts')
+    || f.endsWith('r4-p-meta-ms1-product-wire.ts')
   );
 }
 
@@ -112,7 +113,7 @@ function spawnProve(label: string, args: string[]): number {
 }
 
 console.log('F5 P-META serving product remaining prove — MS1/MS2/MS3/MS4 · releaseEvidence=false · ≠HA · ≠R4 closed');
-console.log('EXIT=0 ≠ RAG-FUNNEL-01 closed ≠ 题域已隔离 · MS1–MS3 still false · await post-prove dual · Ban forge serving');
+console.log('EXIT=0 ≠ RAG-FUNNEL-01 closed ≠ 题域已隔离 · MS1 wired (F6) · MS2/MS3 still false · Ban forge serving');
 
 section('MS0 static anchors present');
 for (const [label, path] of [
@@ -151,16 +152,16 @@ const envExample = read(workerEnvExample);
 const preE2e = read(preExecE2e);
 const preRag = read(preExecRag);
 
-section('MS1 product MetadataReviewReceipt serving (contract named · consumer still open · ≠ forge)');
+section('MS1 product MetadataReviewReceipt serving (contract named · F6 consumer wired · ≠ forge)');
 const product = classifyPMetaServingProductRemaining();
 const serving = classifyPMetaServingRemaining();
 const f2 = classifyPMetaRemaining();
 A('MS1 classify: sourceSealed01A=true', product.sourceSealed01A === true);
 A('MS1 classify: productServingContractNamed=true (honest progress)', product.productServingContractNamed === true);
-A('MS1 classify: routedServingProductConsumerWired=false (MS1 still open)', product.routedServingProductConsumerWired === false);
-A('MS1 contract.wired=false · Ban forge', METADATA_REVIEW_RECEIPT_SERVING_PRODUCT_CONTRACT.wired === false);
-A('MS1 F3 align: routedServingConsumerWired=false', serving.routedServingConsumerWired === false);
-A('MS1 F2 align: routedServingWired=false', f2.routedServingWired === false);
+A('MS1 classify: routedServingProductConsumerWired=true (F6 MS1 product wire)', product.routedServingProductConsumerWired === true);
+A('MS1 contract.wired=true · honest after F6 real wire', METADATA_REVIEW_RECEIPT_SERVING_PRODUCT_CONTRACT.wired === true);
+A('MS1 F3 align: routedServingConsumerWired=true', serving.routedServingConsumerWired === true);
+A('MS1 F2 align: routedServingWired=true', f2.routedServingWired === true);
 A('MS1 principal lists qbank_metadata_review_receipt (01A table)',
   /qbank_metadata_review_receipt/.test(principal));
 A('MS1 01A manifest pins table ≠ routed serving / 01 still open',
@@ -168,7 +169,9 @@ A('MS1 01A manifest pins table ≠ routed serving / 01 still open',
   && (/RAG-FUNNEL-01/.test(funnel01a))
   && (/MetadataReviewReceipt/.test(funnel01a))
   && (/routed serving|进入 serving|不等于 routed|≠.*01|不是.*01/.test(funnel01a)));
-A('MS1 worker src has NO wired product MetadataReviewReceipt serving consumer', (() => {
+A('MS1 F6 product wire present',
+  existsSync(join(workerRoot, 'src/r4-p-meta-ms1-product-wire.ts')));
+A('MS1 only honesty helpers + F6 wire name MetadataReviewReceipt in worker src', (() => {
   const files = walkTsFiles(join(workerRoot, 'src'));
   for (const f of files) {
     if (isHonestyHelper(f)) continue;
@@ -180,8 +183,8 @@ A('MS1 worker src has NO wired product MetadataReviewReceipt serving consumer', 
   }
   return true;
 })());
-A('MS1 helper Ban forging MetadataReviewReceipt serving',
-  /Ban forging MetadataReviewReceipt|does NOT wire|do NOT close|Ban forge serving/i.test(helper));
+A('MS1 helper Ban forging MetadataReviewReceipt serving / MS1 alone ≠ FUNNEL',
+  /Ban forging MetadataReviewReceipt|Ban forge|do NOT close|MS1 alone|MS2\/MS3 remain/i.test(helper));
 A('MS1 inventory / status still list P-META / G-R4-5 open',
   (/P-META/.test(inventory) || /P-META/.test(status))
   && (/G-R4-5|MetadataReviewReceipt|RAG-FUNNEL-01/.test(status) || /P-META/.test(inventory)));
@@ -289,13 +292,13 @@ section('MS4 F3 serving honesty 旁证 spawn (≠ FUNNEL-01 closed)');
 spawnProve('r4-p-meta-serving', ['r4-p-meta-serving:prove']);
 
 console.log('\n── product remaining summary (F5 P-META serving product; await post-prove dual) ──');
-console.log(`MS1: productServingContractNamed=true · routedServingProductConsumerWired=false · ≠ forge`);
+console.log(`MS1: productServingContractNamed=true · routedServingProductConsumerWired=true (F6) · ≠ forge`);
 console.log(`MS2: productFacetServingPlanPinned=true · required=[${REQUIRED_SECONDARY_FACETS.join(',')}] · served=[]`);
 console.log(`MS3: productDeployHandoffChecklistNamed=true · standardDeployProductHandoff=false · local01A prove ≠ 01`);
 console.log('MS4: 01A ≠ 01 · ≠ R4/FUNNEL/R1 closed · G-R4-5 STILL OPEN · G-R4-3 parallel · releaseEvidence=false · sole 恰 5 · no P-R1 flip');
 console.log('EXIT=0 ≠ RAG-FUNNEL-01 closed ≠ R4 closed ≠ HA ≠ suite green ≠ knife product-done.');
 
 console.log(failures === 0
-  ? '\nOK  r4-p-meta-serving-product prove (MS1/MS2/MS3/MS4; product progress named; MS still false; ≠ FUNNEL-01/R4 closed; releaseEvidence=false)'
+  ? '\nOK  r4-p-meta-serving-product prove (MS1/MS2/MS3/MS4; MS1 wired by F6; MS2/MS3 still false; ≠ FUNNEL-01/R4 closed; releaseEvidence=false)'
   : `\nFAIL  r4-p-meta-serving-product prove (${failures} failures)`);
 process.exit(failures === 0 ? 0 : 1);

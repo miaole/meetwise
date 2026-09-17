@@ -434,6 +434,7 @@
     "r4-p-meta-p-r1:prove": "pnpm -C apps/worker prove:r4-p-meta-p-r1",
     "r4-p-meta-serving:prove": "pnpm -C apps/worker prove:r4-p-meta-serving",
     "r4-p-meta-serving-product:prove": "pnpm -C apps/worker prove:r4-p-meta-serving-product",
+    "r4-p-meta-ms1-product-wire:prove": "pnpm -C apps/worker prove:r4-p-meta-ms1-product-wire",
     "r4-p-r1-fail-closed:prove": "pnpm -C apps/worker prove:r4-p-r1-fail-closed",
     "r2-classify-job-route-prereq:prove": "pnpm -C apps/worker prove:r2-classify-job-route-prereq",
     "r2-p-worker-route-classify:prove": "pnpm -C apps/worker prove:r2-p-worker-route-classify",

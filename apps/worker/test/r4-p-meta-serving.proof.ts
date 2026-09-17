@@ -1,7 +1,7 @@
 /**
  * Knife F3 — P-META **serving remaining** honesty prove (G-R4-5 / MS1–MS4).
  *
- *   MS1 — routed MetadataReviewReceipt serving consumer still unwired (≠ forge)
+ *   MS1 — routed MetadataReviewReceipt serving consumer WIRED by F6 (≠ forge · MS2/MS3 open)
  *   MS2 — full secondary facets inventory named · served-on-path empty
  *   MS3 — standard deploy handoff still open (local 01A prove ≠ 01)
  *   MS4 — hard pins: 01A ≠ 01 · ≠ FUNNEL-01/R4 closed · releaseEvidence=false ·
@@ -79,6 +79,7 @@ function isHonestyHelper(f: string): boolean {
     f.endsWith('r4-p-meta-p-r1-remaining.ts')
     || f.endsWith('r4-p-meta-serving-remaining.ts')
     || f.endsWith('r4-p-meta-serving-product-remaining.ts')
+    || f.endsWith('r4-p-meta-ms1-product-wire.ts')
   );
 }
 
@@ -119,8 +120,8 @@ section('MS1 routed MetadataReviewReceipt serving (still open · ≠ forge)');
 const serving = classifyPMetaServingRemaining();
 const f2 = classifyPMetaRemaining();
 A('MS1 classify: sourceSealed01A=true', serving.sourceSealed01A === true);
-A('MS1 classify: routedServingConsumerWired=false', serving.routedServingConsumerWired === false);
-A('MS1 F2 align: routedServingWired=false', f2.routedServingWired === false);
+A('MS1 classify: routedServingConsumerWired=true (F6 MS1 product wire)', serving.routedServingConsumerWired === true);
+A('MS1 F2 align: routedServingWired=true', f2.routedServingWired === true);
 A('MS1 principal lists qbank_metadata_review_receipt (01A table)',
   /qbank_metadata_review_receipt/.test(principal));
 A('MS1 01A manifest pins table ≠ routed serving / 01 still open',
@@ -128,7 +129,9 @@ A('MS1 01A manifest pins table ≠ routed serving / 01 still open',
   && (/RAG-FUNNEL-01/.test(funnel01a))
   && (/MetadataReviewReceipt/.test(funnel01a))
   && (/routed serving|进入 serving|不等于 routed|≠.*01|不是.*01/.test(funnel01a)));
-A('MS1 worker src has NO product MetadataReviewReceipt serving consumer', (() => {
+A('MS1 F6 product wire present',
+  existsSync(join(workerRoot, 'src/r4-p-meta-ms1-product-wire.ts')));
+A('MS1 only honesty helpers + F6 wire name MetadataReviewReceipt in worker src', (() => {
   const files = walkTsFiles(join(workerRoot, 'src'));
   for (const f of files) {
     if (isHonestyHelper(f)) continue;
@@ -222,7 +225,7 @@ A('MS4 SOLE allowlist 恰 5 · F3 NOT on allowlist', (() => {
 A('MS4 composition: EXIT=0 ≠ FUNNEL-01/R4 closed ≠ HA', true);
 
 console.log('\n── honesty summary (F3 P-META serving remaining; await post-prove dual) ──');
-console.log(`MS1: routedServingConsumerWired=false · no product receipt consumer · ≠ forge`);
+console.log(`MS1: routedServingConsumerWired=true (F6 product wire) · ≠ forge`);
 console.log(`MS2: fullFacetsServed=false · required=[${REQUIRED_SECONDARY_FACETS.join(',')}] · served=[]`);
 console.log(`MS3: standardDeployHandoff=false · local01A prove exists ≠ 01`);
 console.log('MS4: 01A ≠ 01 · ≠ R4 closed · ≠ 题域已隔离 · releaseEvidence=false · sole 恰 5 · no P-R1 flip');
