@@ -1,11 +1,11 @@
-# Eval — **W3** · INT-TRANSCRIPT-01 + DELETE=503 freeze（**`REQUEST-ready / not_run:pre_dual`**）
+# Eval — **W3** · INT-TRANSCRIPT-01 + DELETE=503 freeze（**`post_prove_dual_pass`**）
 
-**Date**: 2026-09-17 (~01:21 PT)  
-**run-status**: **`REQUEST-ready / not_run:pre_dual`** · **zero coding · zero prove this prep** · await pre-exec dual · **Dual PASS ≠ authorize coding** · **Ban forge**  
-**releaseEvidence=false** · **Not HA** · **≠suite green** · **≠ deletion closed** · **≠ INT-TRANSCRIPT-01 cutover**  
+**Date**: 2026-09-17 (~01:36 PT)  
+**run-status**: **`post_prove_dual_pass`** · **zero coding · zero prove this prep** · pre-exec dual **PASS** · **Dual PASS ≠ authorize coding** · **Ban forge** · **DELETE=503 freeze** · **Ban open DELETE** · **INT-TRANSCRIPT-01 still frozen/honest**  
+**releaseEvidence=false** · **Not HA** · **≠suite green** · **≠ deletion closed** · **≠ INT-TRANSCRIPT-01 cutover** · **≠ coding authorized**  
 **Harness**: `ai-docs/delivery/harness/w3-int-transcript-delete-503-freeze.md`  
 **Slice**: `ai-docs/delivery/w3-int-transcript-delete-503-freeze.slice.md`  
-**Dual**: pre-exec REQUEST **drafted** · **not yet dual-sent** · no self-approve
+**Dual**: `reviews/2026-09-17-w3-int-transcript-delete-503-freeze-mw-e2e-ha.md` + `…-mw-rag-route.md` → **pass** · dual SHA **`3463e9e`** · no self-approve
 
 ---
 
@@ -24,9 +24,9 @@ Expert **pre-exec** checklist for W3 privacy freeze docs gate.
 | DELETE=503 freeze | pinned | **pointed** | privacy-erasure-http-503-pin |
 | Ban forge | explicit | **explicit** | harness pins |
 | Existing privacy/INT docs | referenced | **referenced** | harness §2 table |
-| New coding / prove this prep | none | **none** | `not_run:pre_dual` |
+| New coding / prove this prep | none | **none** | docs-only freeze close |
 | F8 / W1 / W2 parallel | noted | **noted** | SSOT |
-| Pre-exec dual | await | **REQUEST drafted · await** | Ban self-approve |
+| Pre-exec dual | PASS both domains | **`post_prove_dual_pass`** · receipts archived · dual SHA `3463e9e` | Ban self-approve · Ban open DELETE · 01 still frozen |
 
 ---
 
@@ -58,8 +58,8 @@ Expert **pre-exec** checklist for W3 privacy freeze docs gate.
 
 ## 5. Non-claims
 
-Not pass · not coding · not 01 cutover · not DELETE released · not forge · not HA · Dual PASS ≠ authorize coding
+Docs close **`post_prove_dual_pass` only** · not coding · not 01 cutover · **DELETE=503 freeze** · **Ban open DELETE** · **INT-TRANSCRIPT-01 still frozen/honest** · not forge · not HA · Dual PASS ≠ authorize coding · `releaseEvidence=false`
 
 ---
 
-*Eval · W3 · 2026-09-17 (~01:21 PT) · REQUEST-ready / not_run:pre_dual · releaseEvidence=false · ≠HA · ≠suite · Ban forge · zero coding*
+*Eval · W3 · 2026-09-17 (~01:36 PT) · post_prove_dual_pass · dual on 3463e9e · DELETE=503 freeze · Ban open DELETE · INT-TRANSCRIPT-01 still frozen/honest · releaseEvidence=false · ≠HA · ≠suite · Ban forge · zero coding*
