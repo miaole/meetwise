@@ -5,9 +5,9 @@
 > Line below that says sole stack = MySQL+Qdrant+Redis is **HISTORICAL / superseded** for relational+vector. Redis wake still separately evaluable.  
 > This overlay does **not** claim HA / suite green / releaseEvidence. See `adr-postgres-retained.md`.
 
-> **2026-09-17 (~01:47 PT) · workflow SSOT (W0–W8 · additive)**  
-> **W0** PG retained (**`post_prove_dual_pass`** · close **`5c2bf9a`** · dual on `0c95883` · wake provisional overlay after dual) → **W1** inventory (**`post_prove_dual_pass`** · ZERO deletes · dual on `675269c`) → **W1b** retire/trace (**`executed:awaiting_post_prove_dual`** · Batch A+B executed · ZERO DROP · no delete batch · Ban self-write post_prove_dual_pass · `harness/w1b-pg-redundant-retire-batches.md`) → **W6** P0-CB+SCOR honesty (**`post_prove_dual_pass`** · dual on `a6ca9e3` · W3 DELETE=503 freeze remains · ≠ product-complete · `harness/w6-p0-cb-scor-honesty.md`) → **W7** E2E/NHP gap-close plan (**`post_prove_dual_pass`** · dual on `b709753` · Ban covered without EXIT · Ban false green · Dual PASS ≠ fake-close matrix · `harness/w7-e2e-nhp-matrix-gap-close.md`) → W2–W5 closed per SSOT · W8 not open · Dual PASS ≠ coding.  
-> Ban DROP in W1/W1b · Ban delete batch · Ban inventing DROP targets · Ban MySQL/Qdrant cutover revival · Ban claiming W8/HA · Ban SCOR/P0-CB product-complete from W6 docs close · Ban covered without EXIT / false green from W7. Dual PASS on W1 ≠ W1b coding.
+> **2026-09-17 (~01:56 PT) · workflow SSOT (W0–W8 · additive)**  
+> **W0** PG retained (**`post_prove_dual_pass`** · close **`5c2bf9a`** · dual on `0c95883` · wake provisional overlay after dual) → **W1** inventory (**`post_prove_dual_pass`** · ZERO deletes · dual on `675269c`) → **W1b** retire/trace (**`post_prove_dual_pass`** · dual on `c378943` · ZERO DROP · no delete batch · Dual ≠ DROP/delete-table · HARD RETAIN intact · `harness/w1b-pg-redundant-retire-batches.md`) → **W6** P0-CB+SCOR honesty (**`post_prove_dual_pass`** · dual on `a6ca9e3` · W3 DELETE=503 freeze remains · ≠ product-complete · `harness/w6-p0-cb-scor-honesty.md`) → **W7** E2E/NHP gap-close plan (**`post_prove_dual_pass`** · dual on `b709753` · Ban covered without EXIT · Ban false green · Dual PASS ≠ fake-close matrix · `harness/w7-e2e-nhp-matrix-gap-close.md`) → W2–W5 closed per SSOT · W8 not open · Dual PASS ≠ coding.  
+> Ban DROP in W1/W1b · Ban delete batch · Ban inventing DROP targets · Ban MySQL/Qdrant cutover revival · Ban claiming W8/HA · Ban SCOR/P0-CB product-complete from W6 docs close · Ban covered without EXIT / false green from W7. Dual PASS on W1 ≠ W1b coding · Dual PASS on W1b ≠ DROP/delete-table.
 
 
 **状态**：目标声明 · **releaseEvidence=false** · **≠HA** · **不得叙事已 HA**
@@ -58,7 +58,7 @@
 
 ## 平行轨 — W0–W8 PG-retained workflow（非 HA）
 
-- SSOT：`w0-w8-workflow-status.md` · W0–W7 **`post_prove_dual_pass`** · **W1b** `harness/w1b-pg-redundant-retire-batches.md`（`executed:awaiting_post_prove_dual` · Batch A+B executed · ZERO DROP · no delete batch · Ban self-write post_prove_dual_pass）· **W6** P0-CB+SCOR `harness/w6-p0-cb-scor-honesty.md`（post_prove_dual_pass · dual on `a6ca9e3` · W3 DELETE=503 freeze remains · ≠ product-complete）· **W7** E2E/NHP gap-close `harness/w7-e2e-nhp-matrix-gap-close.md`（post_prove_dual_pass · dual on `b709753` · Ban covered without EXIT · Ban false green · Dual PASS ≠ fake-close matrix）· W8 not open · Dual PASS ≠ authorize coding · ≠HA · `releaseEvidence=false`
+- SSOT：`w0-w8-workflow-status.md` · W0–W7 + **W1b** **`post_prove_dual_pass`** · **W1b** `harness/w1b-pg-redundant-retire-batches.md`（post_prove_dual_pass · dual on `c378943` · ZERO DROP · no delete batch · Dual ≠ DROP/delete-table · HARD RETAIN intact）· **W6** P0-CB+SCOR `harness/w6-p0-cb-scor-honesty.md`（post_prove_dual_pass · dual on `a6ca9e3` · W3 DELETE=503 freeze remains · ≠ product-complete）· **W7** E2E/NHP gap-close `harness/w7-e2e-nhp-matrix-gap-close.md`（post_prove_dual_pass · dual on `b709753` · Ban covered without EXIT · Ban false green · Dual PASS ≠ fake-close matrix）· W8 not open · Dual PASS ≠ authorize coding · ≠HA · `releaseEvidence=false`
 
 ## 平行轨 — R5 / sole-stack 诚实（非 HA）
 
