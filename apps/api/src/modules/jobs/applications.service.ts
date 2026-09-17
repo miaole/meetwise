@@ -39,6 +39,11 @@ export class ApplicationsService {
       throw new HttpException({ error: 'resume_not_ready', message: '请选择一份已完成解析的本人简历' }, HttpStatus.CONFLICT);
     if (r.status === 'binding_invalid')
       throw new HttpException({ error: 'application_binding_invalid', message: '该申请的面试绑定异常，已停止继续处理' }, HttpStatus.CONFLICT);
+    if (r.status === 'interview_ineligible_route')
+      throw new HttpException({
+        error: 'interview_ineligible_route',
+        message: '该岗位路由尚未就绪，暂不可开始题库面试；请待岗位补充描述并完成路由后再试',
+      }, HttpStatus.CONFLICT);
     if (r.status === 'noop') return { applicationId: appId, status: 'noop' as const };
     // 其余联合分支只可能是 started/reused，先显式收窄再读取持久化会话标识。
     if (r.status !== 'started' && r.status !== 'reused') {

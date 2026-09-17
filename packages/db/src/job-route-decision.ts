@@ -369,3 +369,35 @@ export async function getInterviewRouteSnapshot(c: Client, candidate: string, in
 }
 
 export { TAXONOMY_V1_LEAVES, JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_POLICY_VERSION };
+
+/* ─────────────────────────── Worker claim (route_pending drain) ─────────────────────────── */
+
+export interface JobRoutePendingClaim {
+  jobId: string;
+  revision: number;
+  semanticDigest: string;
+}
+
+/**
+ * Peek the oldest route_pending revision for the current principal (RLS).
+ * Lock is not held across classifyJobRoute — classify re-locks FOR UPDATE and
+ * noops on race. SKIP LOCKED avoids two workers starting the same peek.
+ * Not HA: no lease column; classifyJobRoute state machine is the send fence.
+ */
+export async function listNextJobRoutePending(c: Client): Promise<JobRoutePendingClaim | null> {
+  const r = await c.query(
+    `SELECT job_id, revision, semantic_digest
+       FROM job_semantic_revision
+      WHERE status='route_pending'
+      ORDER BY created_at ASC, revision ASC
+      FOR UPDATE SKIP LOCKED
+      LIMIT 1`,
+  );
+  if (r.rowCount === 0) return null;
+  const row = r.rows[0] as { job_id: string; revision: string | number; semantic_digest: string };
+  return {
+    jobId: row.job_id,
+    revision: Number(row.revision),
+    semanticDigest: row.semantic_digest,
+  };
+}

@@ -53,6 +53,10 @@ export class ResumeService {
       if (e?.code === 'unsupported_file_format') {
         throw new HttpException({ error: 'unsupported_file_format', filename: dto.filename, hint: '该格式尚未接入简历解析；请上传 PDF、Word、图片或纯文本。Excel/PPT/音视频请走全格式知识库摄取管线。' }, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
       }
+      // UC-E2E-015 E1：加密 PDF → 可解释失败，不进入诊断/不计 OCR 费。
+      if (e?.code === 'encrypted') {
+        throw new HttpException({ error: 'encrypted', hint: '文件已加密，无法解析；请解除密码保护后重传或粘贴文本' }, HttpStatus.UNPROCESSABLE_ENTITY);
+      }
       // 图片简历 → OCR 路径(qwen-vl 转写 → 回灌文本链路);转写文本随后与文本简历同一道门(注入清洗/stripPii/结构化)。
       // finally 在 return 前也会执行 → 解析槽恰好释放一次(不在此显式释放,避免并发下双减)。
       if (e?.code === 'image_needs_ocr') return this.uploadImageViaOcr(principal, buffer, dto);

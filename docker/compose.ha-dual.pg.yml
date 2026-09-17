@@ -1,0 +1,90 @@
+# Overlay: Nest-compatible Postgres sidecar for HA dual api-a/api-b auth/session.
+# releaseEvidence=false · Not HA · claimProductionHA=false · ≠ production HA
+#
+# Purpose: close LOCAL Nest business-session sticky-truth (A signup/login token
+# verified on B via shared Postgres + shared AUTH_SECRET). Still ≠ ladder C/D
+# green · ≠ production failover · ≠ sole-stack MySQL replacement.
+#
+# Network honesty (this sandbox):
+#   Container↔container TCP to the sidecar may be blocked (same class as C3
+#   hostpath fallback). DATABASE_URL therefore targets host.docker.internal:54339
+#   (published PG port) via extra_hosts host-gateway — NOT postgres:5432 DNS.
+#   Topology name: sole+PG / dual Nest via host-published Postgres.
+#
+# Prereqs:
+#   1) MEETWISE_HA_DUAL_AUTHORIZED=1 + meetwise-backend:ha-dual-local
+#   2) MEETWISE_HA_NEST_PG_AUTHORIZED=1 (refuse silent PG bring-up)
+#   3) prepare: pnpm ha:prepare:nest-pg  (migrate + provision runtime login)
+#
+# Bring-up:
+#   MEETWISE_HA_DUAL_AUTHORIZED=1 MEETWISE_HA_NEST_PG_AUTHORIZED=1 \
+#     pnpm ha:dual:bring-up -- --compose-pg
+#   MEETWISE_HA_NEST_PG_AUTHORIZED=1 pnpm ha:prove:nest-session -- --prove
+#
+# Local-dev placeholder credentials only (same class as compose.dev / mysql-local).
+# Do NOT read/write .env* · Do NOT merge into compose.prod · Do NOT claim HA.
+#
+# Base compose.ha-dual.yml keeps placeholder DATABASE_URL for /livez-only path;
+# this overlay OVERRIDES DATABASE_URL + AUTH_SECRET for both Nest instances.
+
+name: meetwise-ha-dual
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: meetwise-ha-dual-postgres
+    environment:
+      POSTGRES_DB: meetwise
+      POSTGRES_USER: meetwise
+      POSTGRES_PASSWORD: meetwise_ha_pg_dev_password
+    # Bind all interfaces so containers can reach published port via host-gateway.
+    # Still local-dev only; Not HA; ≠ production exposure claim.
+    ports:
+      - "54339:5432"
+    volumes:
+      - meetwise_ha_dual_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meetwise -d meetwise"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    restart: "no"
+
+  api-a:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8787"
+      NODE_ENV: development
+      INSTANCE_ID: api-a
+      # Runtime login via host-published PG (container DNS postgres:5432 may be TCP-blocked).
+      DATABASE_URL: postgresql://meetwise_ha_runtime:meetwise_ha_runtime_dev_pw@host.docker.internal:54339/meetwise
+      DATABASE_SSL_MODE: disable
+      AUTH_SECRET: meetwise-ha-dual-nest-session-local-dev-secret-not-prod
+      MEETWISE_HA_NEST_PG: "1"
+      MEETWISE_HA_NEST_PG_TOPOLOGY: host_published_pg
+
+  api-b:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8787"
+      NODE_ENV: development
+      INSTANCE_ID: api-b
+      DATABASE_URL: postgresql://meetwise_ha_runtime:meetwise_ha_runtime_dev_pw@host.docker.internal:54339/meetwise
+      DATABASE_SSL_MODE: disable
+      AUTH_SECRET: meetwise-ha-dual-nest-session-local-dev-secret-not-prod
+      MEETWISE_HA_NEST_PG: "1"
+      MEETWISE_HA_NEST_PG_TOPOLOGY: host_published_pg
+
+volumes:
+  meetwise_ha_dual_pg:

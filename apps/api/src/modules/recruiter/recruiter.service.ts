@@ -1,5 +1,8 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { createJob, listJobs, getJob, listJobCandidates, inviteCandidate, listTalentPool, type TalentQuery } from '@meetwise/db';
+import {
+  createJob, listJobs, getJob, listJobCandidates, inviteCandidate, listTalentPool,
+  notifyWorkerJobWakeup, type TalentQuery,
+} from '@meetwise/db';
 import type { CreateJobDto, InviteCandidateDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
 import { RateLimitService } from '../../platform/rate-limit.service';
@@ -8,6 +11,9 @@ import { RateLimitService } from '../../platform/rate-limit.service';
  * 招聘方(B 端)应用服务。多租户:全经 asPrincipal,RLS 按招聘方(principal=owner)隔离——只见自己的岗位/候选人。
  * 企业纵深:邀请候选人用**同一面试引擎**(岗位 competencies 驱动出题),人才库跨自有岗位聚合。
  * who-pays:候选人用自己额度池跑面试(他们的练习);招聘方/AI 图均不直接动 entitlement(邀请只建申请壳)。
+ *
+ * R2 P-API: createJob 后 notifyWorkerJobWakeup → sole Worker route-classify drain。
+ * API **不**调用 classifyJobRoute（Worker 唯一调用方）。closing P-API ≠ R2 关 / ≠ 路由已生效。
  */
 @Injectable()
 export class RecruiterService {
@@ -15,7 +21,14 @@ export class RecruiterService {
 
   async create(principal: string, dto: CreateJobDto, idempotencyKey?: string) {
     try {
-      return await this.db.asPrincipal(principal, (c) => createJob(c, principal, { ...dto, idempotencyKey }));
+      return await this.db.asPrincipal(principal, async (c) => {
+        const job = await createJob(c, principal, { ...dto, idempotencyKey });
+        // Combination root (I3): wake shared worker channel after createJob → route_pending.
+        // Migration 0133 also NOTIFYs on revision insert; double wake is lossy-safe.
+        // Prefer wakeup — do NOT invent an inline classify path that bypasses Worker.
+        await notifyWorkerJobWakeup(c);
+        return job;
+      });
     } catch (error) {
       if ((error as { code?: string })?.code === 'job_idempotency_key_conflict')
         throw new HttpException({ error: 'idempotency_key_conflict' }, HttpStatus.CONFLICT);

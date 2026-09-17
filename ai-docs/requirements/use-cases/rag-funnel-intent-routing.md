@@ -136,7 +136,7 @@ question plan: planned -> dispatching -> issued | failed | unknown
 | 检索数据面 | ANN、词法、RRF、distance、evidence reader 和 cache key 同时接收 route scope | 未实施；当前无 SQL metadata 条件，cache key 无 route digest。 |
 | 桶内无题 fallback | eligibility reader 将 clean `no_eligible_in_scope` 与 degraded/denied/unknown 分开；前者才写 `QuestionPlan`，调用一次 `interviewer.ask.qbank_miss` 并落独立 provenance | 未实施；当前局部未命中会混入 Web/generic 出题，最多多次模型调用。 |
 | 题目/评分投影 | `interview_question`、event、outbox 持久化 track、origin、question/rubric/score-policy contract 和 plan/attempt digest；B 端首期排除 generated fallback | 未实施；当前 ledger 只有题文/能力/题型，生成题会与证据题同等聚合。 |
-| 路由 operation | `job_route_classify` 的类型化 binding、预算、attempt、unknown/降级与可观测性 | 未实施；受 `MODEL-OP-00/01` 前置约束。 |
+| 路由 operation | `job_route_classify`（registry `job.route-classify.v1`）的类型化 binding、预算、attempt、unknown/降级与可观测性 | **MODEL-OP-01 typed binding + admission 已发布**（`bindJobRouteClassify` / `0131`；`pnpm job-route-classify-binding:prove`）。生产 classify Worker/API **仍未接线**（R2 NOT closed）。 |
 | 历史数据 | 未标注 artifact 与已有 interview 均为 `legacy_unrouted`；不能批量模型猜测后直接 serving | 未实施。 |
 
 目标迁移先人工审核每一个 question artifact 和可检索 chunk projection，建立层级 manifest；再在新 generation 验证后激活。没有 leaf metadata、metadata/hash/manifest 不一致或 RLS/过滤不可验证的工件从所有 routed retrieval 中隔离。

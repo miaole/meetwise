@@ -56,8 +56,8 @@ export interface ModelOperationDefinition {
 }
 
 /**
- * Currently wired text operations (the six invoke() call surfaces named by
- * UC-MODEL-ROUTE-02).
+ * Currently wired text operations (UC-MODEL-ROUTE-02 six invoke surfaces +
+ * R2 P-MODEL `job.route-classify.v1`).
  */
 const WIRED_TEXT_OPERATIONS: readonly ModelOperationDefinition[] = [
   {
@@ -89,6 +89,17 @@ const WIRED_TEXT_OPERATIONS: readonly ModelOperationDefinition[] = [
     operationId: 'report.narrative.v1', inputKind: 'chat', capability: 'text-quality', maxDispatches: 1,
     wired: true, admission: { providerAccount: 'dashscope-main', region: 'cn-beijing', modelOrRecipe: 'report' },
     meter: 'text-tokens', fallbackAction: 'report_unavailable',
+  },
+  /**
+   * MODEL-OP-01 R2 P-MODEL：UC `job_route_classify` → registry `job.route-classify.v1`.
+   * Typed chat binding + sealed provenance published; apps still have zero
+   * classifyJobRoute( consumers (P-WORKER/P-API). wired=true authorizes node
+   * identity for a future sole Worker inject; ≠ R2 closed / ≠ 路由已生效.
+   */
+  {
+    operationId: 'job.route-classify.v1', inputKind: 'chat', capability: 'text-small', maxDispatches: 1,
+    wired: true, admission: { providerAccount: 'dashscope-main', region: 'cn-beijing', modelOrRecipe: 'job-route-classifier' },
+    meter: 'text-tokens', fallbackAction: 'route_unresolved',
   },
 ];
 

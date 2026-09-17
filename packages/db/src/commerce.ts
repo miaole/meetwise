@@ -224,6 +224,8 @@ export async function failInterviewAndRelease(c: Client, owner: string, intervie
  * 先在 consumption 行上串行化 release，再条件更新 interview；若完成方已先确认，release 返回
  * `already_confirmed` 并抛错，绝不把 completed 覆盖为 abandoned。created 且从未 reserve 的空壳可直接
  * abandoned，但 UPDATE 同时检查「现在仍不存在消费记录」，堵住 begin 与 abandon 的窗口。
+ * 有消费记录时 CAS 允许集：`created|active|waiting_user`（对齐 UC-E2E-018 active/waiting_user→abandoned）。
+ * 本函数不碰 AiGraphRun（safely_terminated 另轨 · GAP-UC018-GRAPH）。
  */
 export type AbandonInterviewResult = { status: 'abandoned' | 'already_abandoned'; released: 'released' | 'noop' };
 
@@ -252,9 +254,12 @@ export async function abandonInterviewAndRelease(c: Client, owner: string, inter
     });
   }
 
+  // CAS 允许集对齐 UC-E2E-018 主流程：Interview active/waiting_user → abandoned
+  // （created 含 begin 后 worker 置 active 前；waiting_user = 题间等待用户作答）。
+  // 不含 migrating/paused（Interview 业务枚举无此二态；AiGraphRun 另表）。
   const updated = await c.query(
     `UPDATE interview SET status='abandoned', version=version+1
-      WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','active')
+      WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','active','waiting_user')
       RETURNING status`, [interviewId, owner]);
   if (updated.rowCount === 1) return { status: 'abandoned', released: release.status };
 

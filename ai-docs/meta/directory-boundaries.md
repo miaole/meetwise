@@ -59,5 +59,7 @@ tags:
 - 预览答题账本（#80） → `requirements/use-cases/interview-answer-preview-submit.md`。预览 `POST /interview/:id/answers` ≠ `INT-TRANSCRIPT-01`；不得另写第二套「明文已停用 / 生产 /answers 已开放」声明
 - 预览路径诚实闸（#86） → `architecture/current-runtime-truth.md` + `architecture/backend/public-preview-write-inventory.md`。`preview-controlled-write` ≠ 生产 `/answers`；公开预览语音三路由仍 503；检索未命中可走 CRAG Web + LLM，不是 canned-stem；不得再写「远端 main 只有 0120」
 - 高并发复核骨架（#87） → `architecture/backend/high-concurrency-review.md`。五面接线 + `HC-GAP-*` ≠ 容量 SLO / 集群锁；`HC-GAP-001` 关闭的是门 + 回执路径（`interview-dispatch:gate:prove`），不是远程 SQL 绿；`HC-GAP-002` / `HC-GAP-004` / `HC-GAP-006` / `HC-GAP-007` / `HC-GAP-011` / `HC-GAP-012` / `HC-GAP-014` 已关；`HC-GAP-009` 静态门已接线；隔离 `interview-dispatch:prove` / `model-slot-bypass:prove` / `quiz-dual-claim:prove` / `runtime:claim-join:prove` / `quiz:prove` / `reaper:prove` 不进 always-on（#97 把后两门挂进 per-push `verify`，回执钉在 `06b46c4` / `33867570523`）
+- 交付北星硬闸（G1–G6） → `delivery/north-star-hard-gates.md`；HA 目标与证据阶梯 → `delivery/north-star-ha.md`；不得另写第二套「已 HA / covered / 0 BUG 已证」声明
+- E2E/评测覆盖矩阵 + 快乐路径盲区列 → `delivery/e2e-requirement-coverage-matrix.md`；后续 knife 强制 NEG+PERF；不得另写第二套 covered 绿
 - HTTP E2E 可执行目录契约 → `testing/conventions/e2e-directory-contract.md`（叙事 SOP 在 `skills/testing/e2e-platform/`，禁止第三套目录故事）
 - e2e 用例/断言 parity floors → `testing/e2e-parity-baseline.md`

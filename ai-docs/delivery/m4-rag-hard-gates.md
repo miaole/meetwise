@@ -44,10 +44,10 @@
 
 | 面 | 代码位置 / 行为（保留至切流批准） |
 |----|----------------|
-| **Worker「技术岗」硬编码（R1）** | `apps/worker/src/main.ts`：adaptive 依赖注入 `role: '技术岗'`。`apps/worker/src/interview-consumer.ts`：`startAdaptiveInterview(life, adaptive.role ?? '技术岗', …)`。生产启动图仍固定技术岗，非通用多题域出题就绪。 |
-| **classifyJobRoute / route snapshot（R2）** | 合同实现：`packages/db/src/job-route-decision.ts`（`classifyJobRoute`、`snapshotInterviewRoute`、`getInterviewRouteSnapshot`；表 `interview_route_snapshot`）。导出：`packages/db/src/index.ts`。**生产 Worker/API 启动路径未接线** routed serving；本地 RAG-03/04/05 proof 不是生产接线。`docker/env/worker.env.example` 仅文档化 HMAC 等 env 依赖。 |
+| **Worker「技术岗」硬编码（R1）** | 静默硬编码已收口：`adaptive-role-resolve.ts` + `MEETWISE_TECH_ROLE_FAIL_CLOSED`（默认 off=legacy「技术岗」；on=缺 route → `adaptive_role_route_missing`）。`main.ts` 不再注入 `role: '技术岗'`。**默认仍非通用出题就绪**；R2 **wire 已齐** / **overall NOT closed**（≠ 路由已生效）；不宣称 R4。 |
+| **classifyJobRoute / route snapshot（R2）** | 合同实现：`packages/db/src/job-route-decision.ts`（`classifyJobRoute`、`snapshotInterviewRoute`、`getInterviewRouteSnapshot`；表 `interview_route_snapshot`）。导出：`packages/db/src/index.ts`。revision/bind/snapshot 写面 + **P-LOOP** start lazy re-bind；`job.route-classify.v1` **P-MODEL CLOSED**；sole Worker **P-WORKER CLOSED**；**P-API CLOSED**（wakeup + `0133`；`apps/api` 零 classify）；**P-LOOP + P-START + P-FAKE CLOSED（dual-passed）**；**P-LIVE dual receipts pass**（G-R2-7 Key-unset structural classify→bind→snapshot→refuse/allow）；**P-HARNESS/G-R2-8 `pre_exec_dual_pass` / `await_authorize`**。**不得宣称路由生效** / ≠ verbal 生效；R2 **仍 NOT closed**（P-LIVE dual + P-HARNESS pre-exec dual pass；SSOT/prove await separate authorize）。本地 RAG-03/04/05 ≠ 生产。`docker/env/worker.env.example` 文档化 HMAC。诚实钉：`pnpm r2-p-live-route-effective:prove` · `pnpm r2-p-fake-route-classify:prove` · `pnpm r2-p-start-route-classify:prove` · `pnpm r2-p-loop-route-classify:prove` · `pnpm r2-p-api-route-classify:prove` · `pnpm r2-p-worker-route-classify:prove` · `pnpm r2-classify-job-route-prereq:prove`。 |
 | **qbank_serving_scope + hybrid（R3）** | GUC 落点：`packages/db/src/qbank-generation-retrieval.ts` `setServingScope` → `set_config('app.qbank_serving_scope' / 'app.qbank_taxonomy_version', …, true)`；`hybridQbankSearch` 在 dense/lexical/RRF 前调用。词法通道仍绑 PG：`packages/db/migrations/0029_qbank_generation_hybrid_retrieval.sql` / `0106_qbank_track_local_serving_scope.sql`（`to_tsvector('simple', qbank_search_terms(…))` + `plainto_tsquery`）。Track-local seam：`packages/db/src/qbank-track-local-retrieval.ts`（`dispatchTrackLocalRetrieval` → `cachedQbankSearch(…, scope)`）。**禁止**用 MySQL FULLTEXT 冒充该 `to_tsvector` 过滤语义。 |
-| **题域隔离（R4）** | 目标 seam 在 `qbank-track-local-retrieval.ts` / RAG-FUNNEL 合同 proof；**生产 Worker 仍固定技术岗、无 track 硬过滤** → **题域隔离 NOT closed**。显式 **M4/M5 门**：未证明隔离前不得切题库/向量真相。 |
+| **题域隔离（R4）** | 目标 seam 在 `qbank-track-local-retrieval.ts` / RAG-FUNNEL 合同 proof；生产 **partial P-WIRE**（主叶 scope + G-R2-5 fail-closed）；**仍无** `dispatchTrackLocalRetrieval` / wrong_track=0 → **题域隔离 NOT closed**。显式 **M4/M5 门**：未证明隔离前不得切题库/向量真相。FOLLOW post-prove dual-passed；**R4-REAL-WIRE** await dual（不接线）：`REQUEST-2026-09-16-r4-real-wire-mw-{rag-route,e2e-ha}.md` · harness §6c。 |
 | **pgvector 夹具（R5）** | `packages/db/src/retrieval-store.ts` / `retrieval-legacy.ts`（生产向量 ops / `annSearch` / `annSearchLegacy`）。Prove 仍绑 pgvector：`packages/db/test/vectorstore.proof.ts` + `pnpm vectorstore:prove`；`scripts/run-e2e-isolated.mjs`（`E2E_PG_IMAGE` 默认 `pgvector/pgvector:pg16`）；`apps/worker/test/qbank-retrieval-eval-pg.proof.ts` 等。**假绿风险**：本地绿 ≠ RAG 已迁；M5 前须换 Qdrant/新夹具或标红退役。 |
 | **擦除 sink 先例（向量切流前置）** | 关系库侧先例：`packages/db/migrations/0125_memory_vector_chunk_erasure.sql` + `packages/db/src/memory-vector-chunk-erasure.ts` + `pnpm memory-vector-chunk-erasure:prove`（`privacy_deletion_target.sink='memory_vector_chunk'`）。迁 Qdrant 后须登记 **Qdrant as erasure sink**：删后 **recall=0** + **逐 sink receipt**；receipt 形状与关系库 ledger 对齐前 **不得切向量真相**。**元数据留关系库**。 |
 
@@ -57,11 +57,11 @@
 
 ## 2. R1 — Worker「技术岗」硬编码
 
-| 现状 | 门（可行动） | 关闭条件（本切片 **未关**） |
-|------|--------------|---------------------------|
-| `main.ts` / `interview-consumer.ts` 固定或默认 `技术岗` | 去掉硬编码或改为从 **已接线** route snapshot / job metadata **参数化** 前，**不得**宣称通用出题路径就绪 | 生产启动图不再依赖字面量「技术岗」；缺 route 时 fail-closed（不猜桶） |
+| 现状 | 门（可行动） | 关闭条件 |
+|------|--------------|----------|
+| 静默 `role: '技术岗'` / `?? '技术岗'` 已收口到 `apps/worker/src/adaptive-role-resolve.ts`；`main.ts` 不再注入硬编码；`interview-consumer.ts` 经 `resolveAdaptiveInterviewRole` | 默认 **legacy 回退仍开**（`MEETWISE_TECH_ROLE_FAIL_CLOSED` 默认 off）——**不得**宣称通用出题路径就绪 | **R1 未关直至**：生产不再依赖 legacy 默认 **且** R2 接线后 flag-on 有组合根证据；仓库 `pnpm r1-tech-role-fail-closed:prove` 仅证评测合同（`releaseEvidence=false`；**本绿 ≠ R1 closed**） |
 
-**本切片**：只登记缺口；**不改** Worker 出题路径。
+**GAP-RAG-01**：评测 harness + prove **可跑**（`harness/r1-tech-role-fail-closed.md` · `eval/r1-tech-role-fail-closed.eval.md`）；**R1 仍未关**（prove 绿 ≠ closed）；R2 **生产闭环 wire 已齐**（P-MODEL…P-START/P-FAKE dual-passed；G-R2-5），**overall 仍 NOT closed**（≠ 路由已生效；P-LIVE dual 收据齐；仍 ≠ 路由已生效）；**不宣称题域隔离已关（R4）**。等 `mw-rag-route` 审评测集。
 
 ---
 
@@ -72,6 +72,8 @@
 | `classifyJobRoute` / `snapshotInterviewRoute` / `getInterviewRouteSnapshot` 有合同与 isolation proof | **无生产接线不得宣称路由生效** | application 启动事务绑定有效 `JobRouteDecision`；interview 同事务复制 immutable `InterviewRouteSnapshot`；Worker 消费 snapshot 而非固定「技术岗」 |
 
 **本切片**：只钉「生产接线」缺口；**不接线**、不宣称 RAG-FUNNEL-03/04 生产已生效。
+
+**G4 / R2 诚实钉（2026-09-16）**：`harness/r2-classify-job-route.md` · status · eval · `pnpm r2-p-live-route-effective:prove` · `pnpm r2-p-fake-route-classify:prove` · `pnpm r2-p-start-route-classify:prove` · `pnpm r2-p-loop-route-classify:prove` · `pnpm r2-p-api-route-classify:prove` · `pnpm r2-p-worker-route-classify:prove` · `pnpm r2-classify-job-route-prereq:prove`（**prove 绿 ≠ R2 关**；**≠ 路由已生效**；≠ verbal 生效；P-MODEL + P-WORKER + P-API + P-LOOP + P-START + **P-FAKE CLOSED（dual-passed）**；**P-LIVE dual receipts pass** + **P-HARNESS/G-R2-8 `pre_exec_dual_pass` / `await_authorize`** → R2 仍 NOT closed；SSOT pointer flip / prove await separate authorize；双审引用 `reviews/2026-09-16-r2-p-harness-agree-mw-{rag-route,e2e-ha}.md`。）对照 **GAP-RAG-02**。
 
 ---
 
@@ -91,9 +93,11 @@
 
 | 现状 | 门（可行动） | 关闭条件（本切片 **未关**） |
 |------|--------------|---------------------------|
-| track-local seam / wrong_track=0 合同存在于 proof，**非**生产 Worker 接线 | **显式 M4/M5 门**：未证明题域隔离前 **不得切题库/向量真相** | 生产读面 `wrong_track=0`；伪造/缺失 metadata、分类未知、岗位并发修改、旧 checkpoint、cache 回放均零跨域出题；**不宣称题域隔离已关** 直至独立 prove + 专家审 |
+| track-local seam / wrong_track=0 合同存在于 proof；生产 **partial P-WIRE**（`cachedQbankSearch(..., scope?)` + snapshot 主叶）已接线；**G-R2-5 retrieve-side CLOSED**：缺 snapshot fail-closed；仍无 `dispatchTrackLocalRetrieval` / wrong_track=0 证明 | **显式 M4/M5 门**：未证明题域隔离前 **不得切题库/向量真相** | 生产读面 `wrong_track=0`；伪造/缺失 metadata、分类未知、岗位并发修改、旧 checkpoint、cache 回放均零跨域出题；**不宣称题域隔离已关** 直至独立 prove + 专家审 |
 
-**本切片**：**题域隔离 NOT closed**；文档与 prove 必须保留该否定句。
+**本切片**：**题域隔离 NOT closed**；文档与 prove 必须保留该否定句。**partial scoped retrieve ≠ R4 关**。
+
+**G4 诚实钉 + partial P-WIRE（2026-09-10）**：`harness/r4-domain-isolation.md` · status · eval · `pnpm mysql-stack:r4-domain-isolation:prove` · `pnpm g4-production-scoped-retrieve:prove`（**prove 绿 ≠ R4 关**；**≠ wrong_track=0**）。**FOLLOW 2026-09-16**（dispatch-recheck recheck · **await dual before prove**）：`reviews/REQUEST-2026-09-16-g4-dispatch-recheck-FOLLOW-mw-{rag-route,e2e-ha}.md`。对照 **GAP-RAG-04**。
 
 ---
 

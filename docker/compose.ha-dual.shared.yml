@@ -1,0 +1,59 @@
+# Overlay: attach HA dual api-a/api-b to sole-stack MySQL+Redis network.
+# releaseEvidence=false · Not HA · claimProductionHA=false · ≠ production HA
+#
+# Prereqs:
+#   1) sole stack up: docker compose -f docker/compose.mysql-local.yml up -d mysql redis
+#      (network meetwise-mysql-local_default must exist)
+#   2) MEETWISE_HA_DUAL_AUTHORIZED=1 + meetwise-backend:ha-dual-local
+#   3) MEETWISE_HA_SHARED_AUTHORIZED=1 for C3 prove (scripts/ha/prove-shared-state.mjs)
+#
+# Bring-up:
+#   MEETWISE_HA_DUAL_AUTHORIZED=1 MEETWISE_HA_SHARED_AUTHORIZED=1 \
+#     pnpm ha:dual:bring-up -- --compose-shared
+#
+# Nest DATABASE_URL stays a postgres placeholder for /livez pool construction
+# (apps/api createPool is postgres-only). C3 shared prove uses Redis SET/GET
+# A→B + MySQL sole-stack reachability/marker — NOT Nest session/job business path.
+# Local-dev placeholder credentials only (same class as compose.mysql-local.yml).
+# Nest session sticky A→B is NOT proven here — see scripts/ha/prove-nest-session.mjs (PREREQ_GAP).
+# Do NOT read/write .env* · Do NOT merge into compose.prod.
+
+name: meetwise-ha-dual
+
+networks:
+  sole_stack:
+    external: true
+    name: meetwise-mysql-local_default
+
+services:
+  api-a:
+    networks:
+      - default
+      - sole_stack
+    environment:
+      # Shared sole-stack Redis (service DNS name on meetwise-mysql-local_default)
+      REDIS_URL: redis://redis:6379/0
+      MEETWISE_HA_SHARED_REDIS_HOST: redis
+      MEETWISE_HA_SHARED_REDIS_PORT: "6379"
+      # Shared sole-stack MySQL (local-dev placeholders; ≠ production secrets)
+      MEETWISE_HA_SHARED_MYSQL_HOST: mysql
+      MEETWISE_HA_SHARED_MYSQL_PORT: "3306"
+      MEETWISE_HA_SHARED_MYSQL_USER: meetwise
+      MEETWISE_HA_SHARED_MYSQL_PASSWORD: meetwise_dev_password
+      MEETWISE_HA_SHARED_MYSQL_DATABASE: meetwise
+      MEETWISE_HA_SHARED_STACK: sole-mysql-redis
+
+  api-b:
+    networks:
+      - default
+      - sole_stack
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      MEETWISE_HA_SHARED_REDIS_HOST: redis
+      MEETWISE_HA_SHARED_REDIS_PORT: "6379"
+      MEETWISE_HA_SHARED_MYSQL_HOST: mysql
+      MEETWISE_HA_SHARED_MYSQL_PORT: "3306"
+      MEETWISE_HA_SHARED_MYSQL_USER: meetwise
+      MEETWISE_HA_SHARED_MYSQL_PASSWORD: meetwise_dev_password
+      MEETWISE_HA_SHARED_MYSQL_DATABASE: meetwise
+      MEETWISE_HA_SHARED_STACK: sole-mysql-redis

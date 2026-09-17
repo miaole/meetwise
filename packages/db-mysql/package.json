@@ -1,0 +1,7 @@
+{
+  "name": "@meetwise/db-mysql",
+  "version": "0.0.0",
+  "private": true,
+  "description": "MySQL schema skeleton (local compose.mysql-local). Not an RLS equivalent. releaseEvidence=false. Not HA. Not a full PG migration port.",
+  "type": "module"
+}

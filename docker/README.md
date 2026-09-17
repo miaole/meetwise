@@ -26,3 +26,13 @@ pnpm compose:down
 | MinIO Console | `9010` |
 | Mailhog SMTP | `10259` |
 | Mailhog Web | `8029` |
+
+## HA dual (local only · Not HA)
+
+- `compose.ha-dual.skeleton.yml` — skeleton static shape
+- `compose.ha-dual.yml` — real local api-a/api-b (bind-mount + `meetwise-backend:ha-dual-local`)
+- `compose.ha-dual.shared.yml` — C3 overlay attaching dual APIs to sole-stack MySQL/Redis network
+- `Dockerfile.ha-dual` — local image shell for the tag above
+
+**releaseEvidence=false** · **Not HA** · requires `MEETWISE_HA_DUAL_AUTHORIZED=1` + image build via `pnpm ha:dual:build-image`. C3 shared also needs sole-stack up + `MEETWISE_HA_SHARED_AUTHORIZED=1` + `pnpm ha:dual:compose-shared` / `pnpm ha:prove:shared`. See `ai-docs/delivery/harness/ha-track.multi-instance.md`. Do not merge into production topology.
+

@@ -4,7 +4,7 @@
  */
 import { asGateway, type DbPool } from './principal.ts';
 
-export type GatewayDispatchWork = 'interview' | 'quiz' | 'diagnosis' | 'report' | 'commerce';
+export type GatewayDispatchWork = 'interview' | 'quiz' | 'diagnosis' | 'report' | 'commerce' | 'job_route';
 
 export interface GatewayJobGauge {
   queue: 'interview_job' | 'report' | 'quiz_job' | 'diagnosis_job';

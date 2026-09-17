@@ -1,0 +1,25 @@
+{
+  "name": "@meetwise/qdrant-store",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Additive Qdrant vector store + thin vectorstore adapter + opt-in product prove bridges (G2 sub-slices: vectorstore/rag/memory :qdrant:prove) + G5 subject-erase honesty + P16 ledger-receipt schema/map (fail-closed PREREQ). Does not cut pgvector / retrieval-store annSearch. Not production cutover. Not HA. ≠ 0091 ledger writable.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "prove:skeleton": "tsx test/qdrant-store.skeleton.proof.ts",
+    "prove:erase-honesty": "tsx test/qdrant-store.erase-honesty.proof.ts",
+    "prove:vectorstore-adapter": "tsx test/qdrant-vectorstore-adapter.proof.ts",
+    "prove:vectorstore-qdrant": "tsx test/vectorstore-qdrant.proof.ts",
+    "prove:rag-qdrant": "tsx test/rag-qdrant.proof.ts",
+    "prove:memory-qdrant": "tsx test/memory-qdrant.proof.ts",
+    "prove:g5-erasure": "tsx test/qdrant-store.g5-erasure.proof.ts",
+    "prove:g5-ledger-map": "tsx test/qdrant-store.g5-ledger-map.proof.ts"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "tsx": "^4.22.4"
+  }
+}

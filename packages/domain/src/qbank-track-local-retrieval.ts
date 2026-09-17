@@ -14,7 +14,8 @@
  */
 import { createHash } from 'node:crypto';
 import {
-  validatePlannerOutput, JOB_ROUTE_TAXONOMY_VERSION, type JobRouteAllocation,
+  validatePlannerOutput, planInterviewTurn, JOB_ROUTE_TAXONOMY_VERSION,
+  type JobRouteAllocation, type InterviewPlannerOutput,
 } from './job-route-classifier.ts';
 
 /** RAG-04 冻结的检索派发策略版本。改此值 = 改检索派发语义，必须升版本。 */
@@ -133,4 +134,203 @@ export function validateRetrievalPlan(
   if (plan.questionKind != null && (typeof plan.questionKind !== 'string' || !FACET.test(plan.questionKind))) return { ok: false, reason: 'question_kind_invalid' };
 
   return { ok: true };
+}
+
+
+/**
+ * Assemble a full `RetrievalPlan` from a real planner output + snapshot +
+ * generation/recipe identities. Does **not** invent generationId/recipeId and
+ * does **not** stuff snapshot max-bps primary leaf without planner (P-FAKEPLAN).
+ *
+ * Callers must still run `validateRetrievalPlan` (or use
+ * `assembleValidatedRetrievalPlan` which fail-closes).
+ */
+export function buildRetrievalPlanFromPlannerOutput(input: {
+  planner: InterviewPlannerOutput;
+  snapshot: RetrievalPlanSnapshot;
+  generationId: string;
+  recipeId: string;
+  taxonomyVersion?: string;
+  policyVersion?: string;
+  seniority?: string;
+  questionKind?: string;
+}): RetrievalPlan {
+  const taxonomyVersion = input.taxonomyVersion ?? JOB_ROUTE_TAXONOMY_VERSION;
+  const policyVersion = input.policyVersion ?? RETRIEVAL_POLICY_VERSION;
+  const plan: RetrievalPlan = {
+    snapshotId: input.snapshot.interviewId,
+    routeScopeDigest: deriveRouteScopeDigest({
+      routeDigest: input.snapshot.routeDigest,
+      leafTrackId: input.planner.leafTrackId,
+      taxonomyVersion,
+    }),
+    leafTrackId: input.planner.leafTrackId,
+    taxonomyVersion,
+    competencyId: input.planner.competencyId,
+    difficulty: input.planner.difficulty,
+    generationId: input.generationId,
+    recipeId: input.recipeId,
+    policyVersion,
+  };
+  if (input.seniority != null) plan.seniority = input.seniority;
+  if (input.questionKind != null) plan.questionKind = input.questionKind;
+  return plan;
+}
+
+export type AssembleValidatedRetrievalPlanResult =
+  | { ok: true; plan: RetrievalPlan; planner: InterviewPlannerOutput; deficit: number[]; leafIndex: number }
+  | { ok: false; reason: string; stage: 'snapshot' | 'planner' | 'plan' };
+
+/**
+ * Production-capable fail-closed path (P-PLANNER T1–T4 / T6):
+ *   planInterviewTurn → validatePlannerOutput → buildRetrievalPlan → validateRetrievalPlan.
+ *
+ * Missing/illegal snapshot → `route_snapshot_missing` (G-R2-5; never unscoped).
+ * Planner/plan validation failure → no RetrievalPlan (no retrieve; no hard-stuff primary leaf).
+ * Requires real generationId + recipeId shapes (P-FAKEPLAN ban).
+ */
+export function assembleValidatedRetrievalPlan(input: {
+  snapshot: RetrievalPlanSnapshot | null | undefined;
+  deficit: readonly number[];
+  competencyId: string;
+  difficulty: number;
+  generationId: string;
+  recipeId: string;
+  taxonomyVersion?: string;
+  policyVersion?: string;
+  seniority?: string;
+  questionKind?: string;
+}): AssembleValidatedRetrievalPlanResult {
+  if (!input || typeof input !== 'object') {
+    return { ok: false, reason: 'invalid_schema', stage: 'snapshot' };
+  }
+  const snapshot = input.snapshot;
+  if (
+    !snapshot
+    || typeof snapshot !== 'object'
+    || typeof snapshot.interviewId !== 'string'
+    || snapshot.interviewId.length < 1
+    || typeof snapshot.routeDigest !== 'string'
+    || snapshot.routeDigest.length < 1
+    || !Array.isArray(snapshot.allocations)
+    || snapshot.allocations.length === 0
+  ) {
+    return { ok: false, reason: 'route_snapshot_missing', stage: 'snapshot' };
+  }
+
+  // P-FAKEPLAN: refuse to assemble without generation/recipe identities up front.
+  if (typeof input.generationId !== 'string' || input.generationId.length < 1
+    || typeof input.recipeId !== 'string' || input.recipeId.length < 1) {
+    return { ok: false, reason: 'generation_or_recipe_missing', stage: 'plan' };
+  }
+
+  const deficit = Array.isArray(input.deficit) && input.deficit.length === snapshot.allocations.length
+    ? input.deficit
+    : snapshot.allocations.map(() => 0);
+
+  const planned = planInterviewTurn({
+    allocations: snapshot.allocations,
+    deficit,
+    competencyId: input.competencyId,
+    difficulty: input.difficulty,
+  });
+  if (planned.ok === false) {
+    const stage = planned.reason === 'route_snapshot_missing' ? 'snapshot' : 'planner';
+    return { ok: false, reason: planned.reason, stage };
+  }
+
+  const plan = buildRetrievalPlanFromPlannerOutput({
+    planner: planned.output,
+    snapshot,
+    generationId: input.generationId,
+    recipeId: input.recipeId,
+    taxonomyVersion: input.taxonomyVersion,
+    policyVersion: input.policyVersion,
+    seniority: input.seniority,
+    questionKind: input.questionKind,
+  });
+  const validated = validateRetrievalPlan(plan, snapshot);
+  if (validated.ok === false) {
+    return { ok: false, reason: validated.reason, stage: 'plan' };
+  }
+  return {
+    ok: true,
+    plan,
+    planner: planned.output,
+    deficit: planned.deficit,
+    leafIndex: planned.leafIndex,
+  };
+}
+
+
+/**
+ * R4 wrong_track=0 ADV — production-capable assert hooks (pure domain; zero IO).
+ *
+ * Served hits that declare a leaf/track must match the plan leaf. Missing track
+ * metadata counts as wrong (fail-closed). Recheck reasons listed below are the
+ * fail-closed predicates that must never become served/question_ready material.
+ *
+ * Honesty: assert green ≠ R4 closed ≠ NHP-R4-ADV-01 covered; wire green ≠ ADV.
+ */
+export const R4_WRONG_TRACK_RECHECK_REASONS = [
+  'cross_track_or_revoked',
+  'serving_scope_mismatch',
+  'taxonomy_mismatch',
+  'metadata_hash_mismatch',
+  'unreviewed_annotation',
+  'generation_race',
+  'recipe_mismatch',
+  'not_visible',
+] as const;
+
+export type R4WrongTrackRecheckReason = (typeof R4_WRONG_TRACK_RECHECK_REASONS)[number];
+
+export type WrongTrackHit = {
+  ref: string;
+  /** Declared serving leaf/track for this hit when known. */
+  leafTrackId?: string | null;
+  servingScopeId?: string | null;
+};
+
+export function declaredHitTrackId(hit: WrongTrackHit): string | null {
+  const raw = hit.leafTrackId ?? hit.servingScopeId;
+  if (typeof raw !== 'string') return null;
+  const t = raw.trim();
+  return t.length > 0 ? t : null;
+}
+
+/**
+ * Count hits whose declared track differs from the allowed plan leaf.
+ * Missing/empty track metadata counts as wrong (fail-closed; forged/missing metadata).
+ */
+export function countWrongTrackHits(
+  hits: readonly WrongTrackHit[],
+  allowedLeafTrackId: string,
+): number {
+  if (!Array.isArray(hits)) return 0;
+  if (typeof allowedLeafTrackId !== 'string' || allowedLeafTrackId.trim().length < 1) {
+    return hits.length;
+  }
+  const allowed = allowedLeafTrackId.trim();
+  let n = 0;
+  for (const h of hits) {
+    const t = declaredHitTrackId(h);
+    if (t === null || t !== allowed) n++;
+  }
+  return n;
+}
+
+export function assertWrongTrackZero(
+  hits: readonly WrongTrackHit[],
+  allowedLeafTrackId: string,
+): { ok: true; wrongTrack: 0 } | { ok: false; wrongTrack: number } {
+  const wrongTrack = countWrongTrackHits(hits, allowedLeafTrackId);
+  return wrongTrack === 0
+    ? { ok: true, wrongTrack: 0 }
+    : { ok: false, wrongTrack };
+}
+
+export function isFailClosedWrongTrackRecheckReason(reason: string): boolean {
+  return typeof reason === 'string'
+    && (R4_WRONG_TRACK_RECHECK_REASONS as readonly string[]).includes(reason);
 }

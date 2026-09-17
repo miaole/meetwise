@@ -104,6 +104,7 @@
 
 推荐顺序（计划级，非本切片排期承诺）：
 
+0. **双轨显式标记**（`E2E_ISOLATION_STACK=pgvector-legacy` 缺省写入；目标 `mysql-qdrant-redis`）——**禁默认可假绿**；sole 未接线拒假绿；详 `harness/r5-retirement-sole-stack-status.md`。  
 1. **标红**高混淆入口（`vectorstore:prove`、`rag:adversarial:pg-eval`、`qbank-retrieval-eval-pg`、performance suite 中的 pgvector HNSW 行）——降低假绿误读。  
 2. 为 **ANN / hybrid / memory recall** 建 **Qdrant-backed** 最小 prove（与 production serving 切流解耦）。  
 3. 宽 `run-e2e-isolated` 业务 prove：随关系面迁 MySQL 后，**去掉对 pgvector image 的默认依赖**（向量断言拆到 Qdrant prove 或标红跳过）。  

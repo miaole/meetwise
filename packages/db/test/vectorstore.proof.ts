@@ -1,6 +1,15 @@
 /**
+ * NOTE (BUG-FAKE-R5 / marked-red legacy fixture — NOT deleted):
+ *   This prove binds a temporary **pgvector** cluster via `run-e2e-isolated`
+ *   (`E2E_PG_IMAGE` default `pgvector/pgvector:pg16`). EXIT=0 proves legacy
+ *   HNSW/RLS/ANN on that fixture only.
+ *   **假绿风险 / fake-green risk**: local green ≠ RAG migrated ≠ Qdrant/sole-stack.
+ *   **E2E_PG_IMAGE ≠ sole-stack truth** (sole stack = MySQL+Qdrant+Redis).
+ *   releaseEvidence=false · Not HA · 本绿≠已迁 · marked-red ≠ deleted.
+ *
  * 生产向量库证明（真 Postgres + pgvector HNSW）：ANN 检索正确(对齐暴力余弦)、HNSW 索引真被用、RLS 隔离、去重、隐私(不存原文)。
  *   pnpm vectorstore:prove   (临时隔离 pgvector image；不读取开发库残留的 generation schema)
+ *   pnpm vectorstore:prove:legacy  (同入口别名；明示 legacy / R5 假绿面)
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
