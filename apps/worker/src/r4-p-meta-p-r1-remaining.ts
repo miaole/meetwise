@@ -8,7 +8,8 @@
  *            and flag-on needs combo-root evidence. Contract prove ≠ R1 closed.
  *
  * F6 landed MS1 product consumer wire → `routedServingWired=true` (honest).
- * MS2 facets / MS3 deploy remain false · FUNNEL-01 / G-R4-5 STILL OPEN.
+ * F7 landed MS2 product-path facets → `fullFacetsServed=true` (honest).
+ * MS3 deploy remain false · FUNNEL-01 / G-R4-5 STILL OPEN.
  *
  * HARD:
  *   - These classifiers document **remaining** — they do NOT close R1 /
@@ -23,6 +24,7 @@ import {
   LEGACY_TECH_ROLE_DEFAULT,
 } from './adaptive-role-resolve.ts';
 import { MS1_METADATA_REVIEW_RECEIPT_PRODUCT_SERVING_CONSUMER_WIRED } from './r4-p-meta-ms1-product-wire.ts';
+import { MS2_PRODUCT_FACETS_SERVED_ON_PRODUCT_PATH_WIRED } from './r4-p-meta-ms2-facets-product.ts';
 
 /** P-META remaining surface (RAG-FUNNEL-01 vs 01A). */
 export type PMetaRemainingStatus = {
@@ -33,7 +35,10 @@ export type PMetaRemainingStatus = {
    * F6: true via real product consumer wire (≠ forge · MS2/MS3 still open).
    */
   routedServingWired: boolean;
-  /** Full facets on serving path — still open (MS2). */
+  /**
+   * Full facets on serving path.
+   * F7: true via real MS2 product-path facet serve (≠ forge · MS3 still open).
+   */
   fullFacetsServed: boolean;
   /** Standard deploy / combo-root handoff receipt — still open (MS3). */
   standardDeployHandoff: boolean;
@@ -55,13 +60,14 @@ export type PR1RemainingStatus = {
  * Honest P-META remaining snapshot.
  * sourceSealed01A asserted true by inventory (01A done).
  * MS1 routedServingWired follows F6 real product consumer marker.
- * MS2 facets / MS3 deploy stay false until a future knife lands them.
+ * MS2 fullFacetsServed follows F7 real product-path facet serve marker.
+ * MS3 deploy stays false until a future knife lands it.
  */
 export function classifyPMetaRemaining(): PMetaRemainingStatus {
   return {
     sourceSealed01A: true,
     routedServingWired: MS1_METADATA_REVIEW_RECEIPT_PRODUCT_SERVING_CONSUMER_WIRED === true,
-    fullFacetsServed: false,
+    fullFacetsServed: MS2_PRODUCT_FACETS_SERVED_ON_PRODUCT_PATH_WIRED === true,
     standardDeployHandoff: false,
   };
 }

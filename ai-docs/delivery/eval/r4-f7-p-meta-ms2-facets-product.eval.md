@@ -1,21 +1,20 @@
-# Eval — Knife **F7** · **MS2 facets on product path**（**`REQUEST-ready / not_run:pre_dual`**）
+# Eval — Knife **F7** · **MS2 facets on product path**（**`executed:awaiting_post_prove_dual`**）
 
-**Date**: 2026-09-17 (~00:55 PT)  
-**run-status**: **`REQUEST-ready / not_run:pre_dual`** · **zero coding · zero prove** · await pre-exec dual  
-**releaseEvidence=false** · **Not HA** · **≠ R4 closed** · **≠ 题域已隔离** · **≠ R1 closed** · **≠ RAG-FUNNEL-01 closed** · **01A ≠ 01** · **≠ suite green** · **sole 恰 5** · **MS1 wired · MS2 still open · MS3 still false · G-R4-5/P-META serving STILL OPEN** · **G-R4-3 STILL OPEN** · **≠ flip default**  
+**Date**: 2026-09-17 (~01:00 PT)  
+**run-status**: **`executed:awaiting_post_prove_dual`** · prove **EXIT=0** · post-prove REQUEST drafted · **Ban self-approve**  
+**releaseEvidence=false** · **Not HA** · **≠ R4 closed** · **≠ 题域已隔离** · **≠ R1 closed** · **≠ RAG-FUNNEL-01 closed** · **01A ≠ 01** · **≠ suite green** · **sole 恰 5** · **MS1 wired · MS2 served · MS3 still false · G-R4-5/P-META serving STILL OPEN** · **G-R4-3 STILL OPEN** · **≠ flip default**  
 **Harness**: `ai-docs/delivery/harness/r4-f7-p-meta-ms2-facets-product.md`  
 **Slice**: `ai-docs/delivery/r4-f7-p-meta-ms2-facets-product.slice.md`  
 **Parent**: `harness/r4-domain-isolation-status.md` §13 · **G-R4-5 / MS2**  
-**Prior F6**: **`post_prove_dual_pass`**（MS1 wired · MS2/MS3 still false · G-R4-5 STILL OPEN · ≠ FUNNEL-01/R4 closed · Ban forge）  
-**Prior F5**: **`post_prove_dual_pass`**（honesty only · named contract）  
-**Dual**: pre-exec REQUEST **drafted** · **not yet dual-sent** · no self-approve
+**Prior F6**: **`post_prove_dual_pass`**（MS1 wired）  
+**Dual**: pre-exec **PASS** · coding+prove **executed** · post-prove **await** · no self-approve
 
 ---
 
 ## 1. Purpose
 
-Expert **pre-exec** checklist for **MS2 facets on product path**（G-R4-5 / MS2）after F6 dual-closed MS1 wire but left `facetsServedOnProductPath=[]`.  
-**Ban**: treating F7 REQUEST as coding authorize · treating MS2 as FUNNEL-01/R4/G-R4-5 closed · forging serving · claiming 题域已隔离 / HA / suite green · P-R1 flip without authorize · self-approve · inventing prove EXIT.
+Expert **post-prove** checklist for **MS2 facets on product path**（G-R4-5 / MS2）after honest wire + prove EXIT=0.  
+**Ban**: treating MS2 as FUNNEL-01/R4/G-R4-5 closed · forging serving · claiming 题域已隔离 / HA / suite green · P-R1 flip without authorize · self-approve `post_prove_dual_pass` · inventing prove EXIT.
 
 ---
 
@@ -23,12 +22,13 @@ Expert **pre-exec** checklist for **MS2 facets on product path**（G-R4-5 / MS2�
 
 | CMD / action | Expected | Actual | Read |
 |--------------|----------|--------|------|
-| Prior F6 post-prove dual | pass | **pass** · F6=`post_prove_dual_pass` | MS1 wired · MS2/MS3 still false · G-R4-5 STILL OPEN |
-| Prior F5 post-prove dual | pass | **pass** · F5=`post_prove_dual_pass` | honesty only · named contract |
-| F7 harness/slice/eval/REQUEST | drafted | **drafted** | docs only · zero coding |
-| `pnpm r4-p-meta-ms2-facets-product:prove` | not run | **`not_run:pre_dual`** | not implemented |
+| Prior F6 post-prove dual | pass | **pass** · F6=`post_prove_dual_pass` | MS1 wired |
+| F7 pre-exec dual | pass | **pass** · e2e-ha + rag-route | docs gate · Dual PASS ≠ coding authorize（separate authorize landed） |
+| Implement MS2 facets product | wire + proof | **landed** | `r4-p-meta-ms2-facets-product.ts` + proof |
+| `pnpm r4-p-meta-ms2-facets-product:prove` | EXIT=0 | **EXIT=0**（~01:00 PT） | MS1 true · MS2 served · MS3 false · ≠ FUNNEL/R4/G-R4-5 closed |
+| spawn F6 `r4-p-meta-ms1-product-wire:prove` | EXIT=0 | **EXIT=0** | MS2 now true · MS3 false |
 | Implementer self-sign pass | **ban** | **not done** | experts write reviews/ |
-| Pre-exec dual | await | **REQUEST drafted · await** | Ban self-approve |
+| Post-prove dual | await | **REQUEST drafted · await** | Ban self-approve |
 
 ---
 
@@ -37,48 +37,45 @@ Expert **pre-exec** checklist for **MS2 facets on product path**（G-R4-5 / MS2�
 | ID | Eval point | Close R4? | Close FUNNEL-01? |
 |----|------------|-----------|------------------|
 | E1 / MS2 | Required facets served on product path · ≠ forge · MS1 stays true · MS3 stays false | 否 | 否（MS3 remain · **STILL OPEN**） |
-| E2 / MS2-P | 01A ≠ 01 · MS2 alone ≠ FUNNEL-01/G-R4-5 closed · F6 dual ≠ FUNNEL closed · ≠ R4 closed · sole 恰 5 | 否 | 否 |
+| E2 / MS2-P | 01A ≠ 01 · MS2 alone ≠ FUNNEL-01/G-R4-5 closed · ≠ R4 closed · sole 恰 5 | 否 | 否 |
 | E3 | Experts = e2e-ha + rag-route only（no model-op） | 否 | n/a |
-| E4 | CMD `not_run:pre_dual` · zero coding this turn · no self-approve | 否 | n/a |
-| E5 | `releaseEvidence=false` · sole 恰 5 · ≠ HA · ≠ suite green · Ban flip without authorize · Ban R4/FUNNEL/R1/G-R4-5 closed · Ban forge | 否 | n/a |
+| E4 | CMD EXIT=0 · await post-prove dual · no self-approve | 否 | n/a |
+| E5 | `releaseEvidence=false` · sole 恰 5 · ≠ HA · ≠ suite green · Ban flip · Ban R4/FUNNEL/R1/G-R4-5 closed · Ban forge | 否 | n/a |
 | E6 | MS3 deploy + G-R4-3 flip = parallel alt · **not preferred** · Ban flip without authorize | 否 | n/a |
 
 ---
 
-## 4. Fake-green checklist（pre-exec · for experts）
+## 4. Fake-green checklist（post-prove · for experts）
 
-- [ ] Did not treat F7 REQUEST / F6 dual as FUNNEL-01 closed / R4 closed / G-R4-5 closed / MS product-done / forge OK  
-- [ ] Did not treat F6 `post_prove_dual_pass` as FUNNEL-01/G-R4-5 closed（MS2/MS3 remain）  
-- [ ] Did not authorize coding/prove from REQUEST alone without pre-exec dual + meetwise authorize  
-- [ ] Did not invent prove EXIT / self-approve / claim post_prove_dual_pass for F7  
+- [ ] Did not treat F7 EXIT=0 as FUNNEL-01 closed / R4 closed / G-R4-5 closed / MS product-done / forge OK  
+- [ ] Did not treat MS2 served as FUNNEL-01/G-R4-5 closed（MS3 remain）  
+- [ ] Did not self-approve `post_prove_dual_pass`  
+- [ ] Did not invent prove EXIT / claim HA / suite green  
 - [ ] Did not forge MetadataReviewReceipt serving / claim MS3 wired  
-- [ ] Did not claim flip default / open DELETE / sole expand / HA / suite green  
+- [ ] Did not claim flip default / open DELETE / sole expand  
 - [ ] `releaseEvidence=false` · sole 恰 5 · no model-op unless domain need proven  
-- [ ] Agree MS1 stays true · MS2 still open · MS3 still false · G-R4-5 STILL OPEN  
-- [ ] Agree G-R4-3 / P-R1 remains parallel open（not preferred F7 scope · Ban flip without authorize）  
+- [ ] Agree MS1 stays true · MS2 served · MS3 still false · G-R4-5 STILL OPEN  
+- [ ] Agree G-R4-3 / P-R1 remains parallel open（Ban flip without authorize）  
 - [ ] Agree parallel UI Live re-run does **not** block / substitute this F7 knife  
-- [ ] Agree zero coding / zero prove this prep turn
 
 ---
 
-## 5. Expert confirm（pre-exec · awaiting）
+## 5. Expert confirm（post-prove · awaiting）
 
-1. Agree F7 = **MS2 facets on product path**（G-R4-5 / MS2；≠ MS1 re-wire · ≠ MS3 deploy · ≠ P-R1 flip）?  
-2. Agree MS1 stays true · MS3 stays false · MS2 alone ≠ FUNNEL-01/R4/G-R4-5 closed · ≠ forge · ≠ flip without authorize?  
-3. Agree **no** `mw-model-op` REQUEST is correct?  
-4. Agree F6 = `post_prove_dual_pass` satisfies prior gate，but F7 coding still needs **F7 pre-exec dual + authorize**?  
-5. Agree CMD `not_run:pre_dual` · no prove this turn · no coding · no self-approve · `releaseEvidence=false` · ≠ HA · sole 恰 5?  
-6. Agree G-R4-3 / MS3 remain parallel open（not preferred）· Ban flip without authorize · parallel UI Live does not block F7?
+1. Independently re-run `pnpm r4-p-meta-ms2-facets-product:prove` · attach CMD+EXIT?  
+2. Agree MS2 honestly served（`facetsServedOnProductPath` = required · `fullFacetsServed=true` · ≠ forge）· MS1 true · MS3 false?  
+3. Agree EXIT=0 still pins **≠ FUNNEL-01 / ≠ R4 / ≠ 题域已隔离 / ≠ R1 / ≠ G-R4-5 closed / ≠ HA / ≠ suite green**?  
+4. Agree MS2 alone ≠ FUNNEL-01/G-R4-5 closed（MS3 remain）· Ban forge · Ban flip without authorize?  
+5. Agree sole 恰 5 · `releaseEvidence=false` · no model-op · G-R4-3 STILL OPEN?  
+6. Agree **Ban implementer self-approve** · write independent post-prove review?
 
 ---
 
 ## 6. Next
 
-Await expert pre-exec dual **PASS** → then meetwise may authorize coding+prove（**Ban self-approve**）.  
-Even after dual+coding: **still ≠** FUNNEL-01/R4 closed without MS3 · **still ≠** forge · G-R4-3 parallel open · **no flip without authorize**.
-
-Parallel（do not block）：`g7-ui-live-rerun-after-chromium` · MS3 deploy handoff may proceed separately later.
+Await expert post-prove dual **PASS** → then harness may move to `post_prove_dual_pass`（**Ban self-approve**）.  
+Even after dual: **still ≠** FUNNEL-01/R4 closed without MS3 · **still ≠** forge · G-R4-3 parallel open · **no flip without authorize**.
 
 ---
 
-*Eval · F7 MS2 facets on product path · 2026-09-17 (~00:55 PT) · REQUEST-ready / not_run:pre_dual · F6=`post_prove_dual_pass` · MS1 true · MS2/MS3 still open as scoped · G-R4-5 STILL OPEN · G-R4-3 STILL OPEN · releaseEvidence=false · ≠HA · ≠ R4 closed · sole 恰 5 · Ban forge · Ban flip without authorize · Ban self-approve · zero coding*
+*Eval · F7 MS2 facets on product path · 2026-09-17 (~01:00 PT) · executed:awaiting_post_prove_dual · prove EXIT=0 · MS1 true · MS2 served · MS3 still false · G-R4-5 STILL OPEN · G-R4-3 STILL OPEN · releaseEvidence=false · ≠HA · ≠ R4 closed · sole 恰 5 · Ban forge · Ban flip without authorize · Ban self-approve*
