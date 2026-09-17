@@ -1,7 +1,7 @@
 /**
  * Knife F2 — P-META · P-R1 **remaining** honesty prove.
  *
- *   MR1 — P-META: 01A sealed ≠ RAG-FUNNEL-01; no MetadataReviewReceipt routed
+ *   MR1 — P-META: 01A sealed ≠ RAG-FUNNEL-01; MS1 routed serving WIRED (F6); MS2/MS3 still open
  *         serving / full facets / standard deploy handoff yet
  *   PR1 — P-R1: default fail-closed flag OFF (no flip); legacy「技术岗」still
  *         on; spawn r1-tech-role-fail-closed:prove as contract 旁证 ≠ R1 closed
@@ -127,7 +127,7 @@ const envExample = read(workerEnvExample);
 section('MR1 P-META remaining (01A ≠ 01 · no routed serving)');
 const meta = classifyPMetaRemaining();
 A('MR1 classify: sourceSealed01A=true (01A inventory)', meta.sourceSealed01A === true);
-A('MR1 classify: routedServingWired=false (01 still open)', meta.routedServingWired === false);
+A('MR1 classify: routedServingWired=true (F6 MS1 product wire)', meta.routedServingWired === true);
 A('MR1 classify: fullFacetsServed=false', meta.fullFacetsServed === false);
 A('MR1 classify: standardDeployHandoff=false', meta.standardDeployHandoff === false);
 A('MR1 isRagFunnel01Closed=false', isRagFunnel01Closed(meta) === false);
@@ -142,14 +142,19 @@ A('MR1 01A manifest pins 01A ≠ 01 / MetadataReviewReceipt serving still open',
 A('MR1 inventory / status still list P-META / G-R4-5 open',
   (/P-META/.test(inventory) || /P-META/.test(status))
   && (/G-R4-5|MetadataReviewReceipt|RAG-FUNNEL-01/.test(status) || /P-META/.test(inventory)));
-A('MR1 worker src has NO MetadataReviewReceipt routed serving consumer', (() => {
+A('MR1 F6 MS1 product wire present',
+  existsSync(join(workerRoot, 'src/r4-p-meta-ms1-product-wire.ts')));
+A('MR1 only honesty helpers + F6 wire name MetadataReviewReceipt in worker src', (() => {
   const files = walkTsFiles(join(workerRoot, 'src'));
   for (const f of files) {
-    // honesty helpers may name the type in comments — allow F2/F3 remaining helpers only
+    // honesty helpers + F6 real product wire may name the type
     if (f.endsWith('r4-p-meta-p-r1-remaining.ts')) continue;
     if (f.endsWith('r4-p-meta-serving-remaining.ts')) continue;
+    if (f.endsWith('r4-p-meta-serving-product-remaining.ts')) continue;
+    if (f.endsWith('r4-p-meta-ms1-product-wire.ts')) continue;
     const body = read(f);
     if (/MetadataReviewReceipt|qbank_metadata_review_receipt|metadata_review_receipt/.test(body)) {
+      console.log(`  leak: ${f}`);
       return false;
     }
   }
@@ -237,7 +242,7 @@ A('H3 SOLE allowlist 恰 5 · F2 NOT on allowlist', (() => {
 A('H3 composition: EXIT=0 ≠ R1/FUNNEL-01/R4 closed', true);
 
 console.log('\n── honesty summary (F2 P-META·P-R1 remaining; await post-prove dual) ──');
-console.log(`MR1: 01A sealed · routedServing=false · facets=false · deployHandoff=false · FUNNEL-01 open`);
+console.log(`MR1: 01A sealed · routedServing=true (F6 MS1) · facets=false · deployHandoff=false · FUNNEL-01 open`);
 console.log(`PR1: default flag OFF · legacy「技术岗」on · r1 prove exit=${r1Exit} ≠ R1 closed`);
 console.log('H3: ≠ R4 closed · ≠ 题域已隔离 · releaseEvidence=false · sole 恰 5 · no model-op');
 console.log('EXIT=0 ≠ R1 closed ≠ RAG-FUNNEL-01 closed ≠ R4 closed ≠ HA ≠ suite green.');
