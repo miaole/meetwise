@@ -38,7 +38,7 @@ Expert **pre-exec** checklist for the PG-retained direction pin (docs only).
 | E2 | Agree PostgresSaver / checkpoint stays on Postgres | docs agree |
 | E3 | Agree pgvector retained · Qdrant not required sole vector | docs agree · STOPPED knives listed |
 | E4 | Agree ADR mysql relational+vector superseded · successor ADR ok | additive honesty |
-| E5 | Agree Redis wake still separately evaluable · not canceled | orthogonal pin |
+| E5 | Record provisional production wake preference = Postgres LISTEN/NOTIFY; Redis wake evaluation deferred pending a user hard sentence | coordinator suggestion only · not a user hard pin · Redis not STOPPED |
 | E6 | Agree resource sizing is planning envelope only · ≠HA/suite | harness §2 |
 | E7 | Agree `releaseEvidence=false` · Dual PASS ≠ authorize coding · zero coding · F8 untouched | hard pins |
 
@@ -50,7 +50,7 @@ Expert **pre-exec** checklist for the PG-retained direction pin (docs only).
 - [ ] Did not authorize MySQL or Qdrant cutover coding from Dual PASS  
 - [ ] Did not treat branch `feat/mysql-schema-skeleton` as MySQL justification  
 - [ ] Did not stop F8 / commerce / egress / R4 meta  
-- [ ] Did not cancel Redis wake eval  
+- [ ] Did not cancel or STOP Redis wake eval; recorded only the provisional Postgres LISTEN/NOTIFY preference pending a user hard sentence
 - [ ] Did not delete historical MySQL/Qdrant docs (STOPPED pins only)  
 - [ ] Did not invent prove EXIT / self-approve  
 

@@ -2,7 +2,7 @@
 
 **Status**: **`REQUEST-ready / not_run:pre_dual`**  
 **Date**: 2026-09-17 (~01:15 PT)  
-**Authority**: meetwise — **NO** MySQL business DB cutover · **NO** Qdrant vector cutover · retained **Postgres (+pgvector + PostgresSaver / RLS / 0043)** · Redis wake separately evaluable · docs only · Dual PASS ≠ authorize coding · zero coding  
+**Authority**: meetwise — **NO** MySQL business DB cutover · **NO** Qdrant vector cutover · retained **Postgres (+pgvector + PostgresSaver / RLS / 0043)** · provisional production wake preference = **Postgres LISTEN/NOTIFY** · Redis wake evaluation deferred per coordinator suggestion, pending a user hard sentence and not a user hard pin · Redis separately evaluable/not STOPPED · docs only · Dual PASS ≠ authorize coding · zero coding
 **releaseEvidence=false** · **≠HA** · **≠suite green** · Ban branch-name MySQL justification  
 **Experts**: `mw-e2e-ha` + `mw-rag-route` · REQUEST drafted · **not yet dual-sent**
 
@@ -26,7 +26,7 @@ Docs-only pin that relational+checkpoint+vector stay on **Postgres (+pgvector + 
 
 ## Hard pins
 
-- Postgres retained · PostgresSaver stays · pgvector retained · MySQL not sole relational · Qdrant not sole vector · ADR mysql relational+vector superseded · Redis orthogonal · `releaseEvidence=false` · ≠HA · ≠suite · Dual PASS ≠ coding · zero coding · F8 untouched  
+- Postgres retained · PostgresSaver stays · pgvector retained · MySQL not sole relational · Qdrant not sole vector · ADR mysql relational+vector superseded · provisional production wake preference = Postgres LISTEN/NOTIFY · Redis eval deferred pending a user hard sentence, not a user hard pin, and Redis not STOPPED · `releaseEvidence=false` · ≠HA · ≠suite · Dual PASS ≠ coding · zero coding · F8 untouched
 
 ## CMD
 

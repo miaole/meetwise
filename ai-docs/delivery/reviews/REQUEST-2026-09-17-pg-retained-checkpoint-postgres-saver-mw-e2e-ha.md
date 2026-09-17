@@ -5,7 +5,7 @@
 **Date**: 2026-09-17 (~01:15 PT)  
 **releaseEvidence=false** · **≠HA** · **≠suite green** · **≠ MySQL sole relational** · **≠ Qdrant sole vector** · **≠ cutover**  
 **Pair**: `REQUEST-2026-09-17-pg-retained-checkpoint-postgres-saver-mw-rag-route.md`  
-**Hard**: meetwise 2026-09-17 — **NO** business DB → MySQL · **NO** vector → Qdrant · retained **Postgres (+pgvector + PostgresSaver / RLS / 0043)** · Redis wake **orthogonal** · Ban branch-name MySQL justification · **zero coding / zero prove** · **F8 untouched** · Dual PASS ≠ authorize coding · Ban self-approve
+**Hard**: meetwise 2026-09-17 — **NO** business DB → MySQL · **NO** vector → Qdrant · retained **Postgres (+pgvector + PostgresSaver / RLS / 0043)** · provisional production wake preference = **Postgres LISTEN/NOTIFY** · Redis wake evaluation deferred per coordinator suggestion only, **pending a user hard sentence** and **not a user hard pin** · Redis wake remains separately evaluable/not STOPPED · Ban branch-name MySQL justification · **zero coding / zero prove** · **F8 untouched** · Dual PASS ≠ authorize coding · Ban self-approve
 
 ---
 
@@ -29,7 +29,7 @@
 2. MySQL schema / sole-relational cutover knives **STOPPED**（history kept）  
 3. Qdrant replace-pgvector / sole-vector knives **STOPPED**（history kept）  
 4. Resource sizing compares retained vs former MySQL+Qdrant+Redis — **planning envelope only** · ≠HA  
-5. Redis wake still separately evaluable  
+5. Provisional production wake preference = **Postgres LISTEN/NOTIFY**; defer Redis wake evaluation pending a user hard sentence — coordinator suggestion only, **not a user hard pin**, and Redis knives remain not STOPPED
 6. **`not_run:pre_dual`** · zero coding · Dual PASS ≠ authorize coding  
 
 ---
@@ -40,7 +40,7 @@
 2. Agree STOPPED inventory in harness §3 is the right honesty set（history kept · F8/redis-wake not canceled）?  
 3. Agree ADR mysql relational+vector claims superseded · successor `adr-postgres-retained.md` ok（no false history）?  
 4. Agree resource sizing §2 is honest envelope only · ≠HA · ≠suite green · ≠ capacity proof?  
-5. Agree Redis wake remains separately evaluable · not authorized here?  
+5. Record the provisional production wake preference = **Postgres LISTEN/NOTIFY**, with Redis evaluation deferred pending a user hard sentence; agree this is **not a user hard pin** and does not STOP Redis wake knives?
 6. Agree `releaseEvidence=false` · Dual PASS ≠ authorize coding · zero coding · Ban self-approve · Ban branch-name MySQL justification?  
 
 Please write the conclusion to `reviews/`（e.g. `2026-09-17-pg-retained-checkpoint-postgres-saver-mw-e2e-ha.md`）. **Ban** implementer writing pass.

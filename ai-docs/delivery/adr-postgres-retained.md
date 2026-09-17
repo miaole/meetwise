@@ -2,7 +2,7 @@
 
 **Status**: **accepted (direction pin)** · **2026-09-17 (~01:15 PT)** · **releaseEvidence=false** · ≠HA · ≠suite green  
 **Supersedes (partial)**: `adr-mysql-qdrant-local.md` — **relational** sole-MySQL claims · **vector** sole-Qdrant / replace-pgvector claims  
-**Does not cancel**: Redis wake / queue selection as a **separate eval** (orthogonal)
+**Wake note (provisional)**: production preference is to continue **Postgres LISTEN/NOTIFY**. Redis wake evaluation is deferred per coordinator suggestion only, **pending a user hard sentence**; this is **not a user hard pin**, and Redis wake / queue selection remains separately evaluable (orthogonal, not canceled).
 
 ## Decision (hard · meetwise 2026-09-17)
 
@@ -10,7 +10,7 @@
 2. **LangGraph checkpoint**: keep **`PostgresSaver`** / Postgres checkpointer path. Do not replace with MySQL for checkpoint durability.
 3. **Vector / RAG storage**: keep **Postgres pgvector**. **NO** vector cutover to Qdrant as required sole vector truth.
 4. **Not sole cutover targets**: `packages/db-mysql`, `docker/compose.mysql-local.yml`, `@meetwise/qdrant-store` prototypes — historical/experimental only; Ban treating them as sole relational or sole vector truth.
-5. **Redis wake**: still **separately evaluable** (user did not reject); not authorized or canceled by this ADR.
+5. **Wake path (provisional)**: continue **Postgres LISTEN/NOTIFY** for production as a coordinator suggestion; defer Redis wake evaluation pending a user hard sentence. This is **not a user hard pin**, does not claim user hard-pinned Redis rejection, and does not stop Redis wake knives.
 6. **Honesty**: `releaseEvidence=false` · Ban claiming HA / full E2E suite green / controlPlaneClosed from this pin · Dual PASS ≠ authorize coding · Ban implementing MySQL or Qdrant cutover from docs dual alone.
 
 ## Background
@@ -27,6 +27,7 @@ Architecture ADR-0001 / ADR-0003 / ADR-0007 already point at Postgres + checkpoi
 
 - MySQL schema / sole-relational cutover knives → **STOPPED / superseded** (history kept).
 - Qdrant replace-pgvector / sole-vector cutover knives → **STOPPED / superseded** (history kept).
+- Redis wake knives → **not STOPPED**; Redis evaluation is deferred provisionally while the production preference remains Postgres LISTEN/NOTIFY pending a user hard sentence.
 - R1–R4 product RAG / domain-isolation gates remain open as product work — they are **not** authorized as MySQL/Qdrant cutover.
 - F8 MS3 / commerce / egress / R4 meta knives remain on their own tracks (untouched by this ADR).
 - Docs knife: `pg-retained-checkpoint-postgres-saver` (`REQUEST-ready / not_run:pre_dual`, zero coding).
@@ -34,8 +35,8 @@ Architecture ADR-0001 / ADR-0003 / ADR-0007 already point at Postgres + checkpoi
 
 ## Non-claims
 
-- Not HA · not suite green · not releaseEvidence · not Redis wake cutover authorized · not deleting historical MySQL/Qdrant artifacts · not abandoning RLS · not inventing false prior ADR acceptance.
+- Not HA · not suite green · not releaseEvidence · not Redis wake cutover authorized or rejected · provisional LISTEN/NOTIFY preference is not a user hard pin · not deleting historical MySQL/Qdrant artifacts · not abandoning RLS · not inventing false prior ADR acceptance.
 
 ---
 
-*ADR · Postgres retained · 2026-09-17 (~01:15 PT) · releaseEvidence=false · ≠HA · ≠suite green · supersedes mysql-qdrant relational+vector sole claims · Redis wake orthogonal*
+*ADR · Postgres retained · 2026-09-17 (~01:15 PT) · releaseEvidence=false · ≠HA · ≠suite green · supersedes mysql-qdrant relational+vector sole claims · provisional production wake preference = Postgres LISTEN/NOTIFY · Redis eval deferred pending user hard sentence · Redis not STOPPED*

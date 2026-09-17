@@ -5,7 +5,7 @@
 **Date**: 2026-09-17 (~01:15 PT)  
 **releaseEvidence=false** · **≠HA** · **≠suite green** · **≠ MySQL sole relational** · **≠ Qdrant sole vector** · **≠ RAG cutover** · **≠ R4 closed**  
 **Pair**: `REQUEST-2026-09-17-pg-retained-checkpoint-postgres-saver-mw-e2e-ha.md`  
-**Hard**: meetwise 2026-09-17 — vector stays **pgvector** · Ban Qdrant-as-required sole vector · Ban MySQL sole relational · PostgresSaver stays · Redis wake orthogonal · R1–R4 product gates **not** closed by this docs pin · **F8 untouched** · **zero coding / zero prove** · Dual PASS ≠ authorize coding · Ban self-approve
+**Hard**: meetwise 2026-09-17 — vector stays **pgvector** · Ban Qdrant-as-required sole vector · Ban MySQL sole relational · PostgresSaver stays · provisional production wake preference = **Postgres LISTEN/NOTIFY** · Redis wake evaluation deferred per coordinator suggestion only, **pending a user hard sentence** and **not a user hard pin** · Redis wake remains separately evaluable/not STOPPED · R1–R4 product gates **not** closed by this docs pin · **F8 untouched** · **zero coding / zero prove** · Dual PASS ≠ authorize coding · Ban self-approve
 
 ---
 
@@ -40,7 +40,7 @@
 3. Agree this pin **≠** R4 closed · **≠** FUNNEL-01 closed · **≠** RAG quality green?  
 4. Agree ADR mysql vector-cutover claims superseded · successor ADR ok?  
 5. Agree resource sizing ≠ capacity / HA / suite proof?  
-6. Agree Redis wake still separately evaluable · F8 untouched · `releaseEvidence=false` · Dual PASS ≠ authorize coding · zero coding · Ban self-approve?  
+6. Record the provisional production wake preference = **Postgres LISTEN/NOTIFY**, with Redis evaluation deferred pending a user hard sentence; agree this is **not a user hard pin** and does not STOP Redis wake knives · F8 untouched · `releaseEvidence=false` · Dual PASS ≠ authorize coding · zero coding · Ban self-approve?
 
 Please write the conclusion to `reviews/`（e.g. `2026-09-17-pg-retained-checkpoint-postgres-saver-mw-rag-route.md`）. **Ban** implementer writing pass.
 
