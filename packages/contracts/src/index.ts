@@ -24,8 +24,8 @@ export type AuthResult = z.infer<typeof AuthResult>;
 export const UploadResumeDto = z.object({ text: z.string().min(20).max(60_000) });
 export type UploadResumeDto = z.infer<typeof UploadResumeDto>;
 /** 文件上传简历(PDF/Word/图片):base64 内容 + 文件名 + MIME。服务端提取+清洗→结构化。 */
-// 上限:base64 ≤ ~10.7MB(对应 8MB 原文,服务再按 MAX_RESUME_BYTES 解码校验);filename/mimeType ≤255 防超长头。
-const ResumeFileBase64 = z.string().min(1).max(10_700_000)
+// 上限:base64 ≤ ~11.2MB，略高于 8MB 原文的 base64 膨胀，使服务端 MAX_RESUME_BYTES 可返回 413 file_too_large（UC-E2E-015 E4）；filename/mimeType ≤255 防超长头。
+const ResumeFileBase64 = z.string().min(1).max(11_200_000)
   .regex(/^[A-Za-z0-9+/]*={0,2}$/)
   .refine((value) => value.length % 4 === 0, 'base64 padding is invalid');
 export const UploadResumeFileDto = z.object({ filename: z.string().min(1).max(255), mimeType: z.string().max(255).default(''), contentBase64: ResumeFileBase64 });

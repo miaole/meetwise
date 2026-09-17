@@ -1,4 +1,12 @@
 /**
+ * NOTE (BUG-FAKE-R5 / R5-MARKED-RED / fake-green — NOT deleted):
+ *   `pnpm rag:adversarial:pg-eval` (+ `:legacy` alias) is a **non-isolated** leaf:
+ *   it self-provisions a temporary pgvector DB (not via `run-e2e-isolated` banner).
+ *   EXIT=0 / local green ⇒ legacy compatibility recall only.
+ *   **假绿风险**: ≠ production QBank serving / ≠ hybridQbankSearch / ≠ RAG migrated /
+ *   ≠ sole-stack (MySQL+Qdrant+Redis) / ≠ release retrieval SLO.
+ *   releaseEvidence=false · Not HA · 本绿≠已迁 · marked-red ≠ deleted.
+ *
  * 旧 pgvector compatibility evaluation：真实 embedding → 临时独占 PostgreSQL/
  * pgvector（建 HNSW）→ legacy annSearch(RLS + qbank 可见集)。当前 production
  * QBank 已走 generation-aware hybridQbankSearch/题目工件路径；本文件不能验证

@@ -27,6 +27,7 @@
     "prove:model-operation-registry": "tsx test/model-operation-registry.proof.ts",
     "prove:operation-binding": "tsx test/operation-binding.proof.ts",
     "prove:resume-ocr-binding": "tsx test/resume-ocr-binding.proof.ts",
+    "prove:job-route-classify-binding": "tsx test/job-route-classify-binding.proof.ts",
     "prove:component-ledger": "tsx test/context-component-ledger.proof.ts",
     "prove:usage-reconciliation": "tsx test/usage-reconciliation.proof.ts",
     "prove:usage-estimate-threading": "tsx test/usage-estimate-threading.proof.ts",

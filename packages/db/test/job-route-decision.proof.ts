@@ -9,6 +9,8 @@
  * 四条承重原语全部打真 PG 行，绝不用 mock 计数替代：
  *   ① CAS ② principal 作用域幂等 ③ RLS owner/tenant 隔离 ④ 事务 outbox + 单调 eventSeq。
  * 真实模型调用是受控确定性 seam（proof 注入 fake 输出），生产由 MODEL-OP-01 typed binding 接管。
+ * P-FAKE / ≠ R2 closed / ≠ 路由已生效：本 isolation fake modelClassify ≠ 生产 sole Worker
+ * （`createJobRouteModelClassify`）；rag03 绿禁止外推「路由已生效」。
  *
  * pnpm rag03-route:prove   (node scripts/run-e2e-isolated.mjs rag03-route:prove:raw)
  */

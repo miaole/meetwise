@@ -6,7 +6,7 @@
 
 ## 背景
 - 目标拓扑：本地 docker（`docker/compose.mysql-local.yml`）→ 日后腾讯云上海托管 MySQL + Qdrant/Redis。
-- 不新购阿里云 ECS/Tair；本地栈自洽，不阻塞于外部 RDS。
+- 本地 sole stack 自洽；开发/证明不依赖外部托管 RDS 或托管 Redis 作为真相源。
 - 新 seed/fixture 与 prove 夹具按本栈重建；不以外部托管库历史 dump 为迁移源。
 
 ## 决策（当前唯一真相）
