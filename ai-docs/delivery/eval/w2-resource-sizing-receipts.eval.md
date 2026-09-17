@@ -1,11 +1,11 @@
-# Eval — **W2** · Resource sizing receipts（**`REQUEST-ready / not_run:pre_dual`**）
+# Eval — **W2** · Resource sizing receipts（**`post_prove_dual_pass`**）
 
-**Date**: 2026-09-17 (~01:21 PT)  
-**run-status**: **`REQUEST-ready / not_run:pre_dual`** · **zero coding · zero prove** · await pre-exec dual · **Dual PASS ≠ authorize coding**  
-**releaseEvidence=false** · **Not HA** · **≠suite green** · **≠ capacity proof** · **≠ MySQL/Qdrant cutover**  
+**Date**: 2026-09-17 (~01:35 PT)  
+**run-status**: **`post_prove_dual_pass`** · **zero coding · zero prove** · pre-exec dual **PASS** · **Dual PASS ≠ authorize coding** · **sizing ≠ HA / capacity green** · **Dual PASS ≠ fake capacity**  
+**releaseEvidence=false** · **Not HA** · **≠suite green** · **≠ capacity proof** · **≠ MySQL/Qdrant cutover** · **≠ coding authorized**  
 **Harness**: `ai-docs/delivery/harness/w2-resource-sizing-receipts.md`  
 **Slice**: `ai-docs/delivery/w2-resource-sizing-receipts.slice.md`  
-**Dual**: pre-exec REQUEST **drafted** · **not yet dual-sent** · no self-approve
+**Dual**: `reviews/2026-09-17-w2-resource-sizing-receipts-mw-e2e-ha.md` + `…-mw-rag-route.md` → **pass** · dual SHA **`3463e9e`** · no self-approve
 
 ---
 
@@ -26,8 +26,8 @@ Expert **pre-exec** checklist for W2 sizing receipts docs gate.
 | Local/doc sim OK | yes | **yes** | ≠ measured HA |
 | Retest after W1b | noted · not authorized | **noted** | Dual ≠ W1b |
 | F8 / W1 parallel | noted | **noted** | neither blocked |
-| Coding / prove | none | **none** | `not_run:pre_dual` |
-| Pre-exec dual | await | **REQUEST drafted · await** | Ban self-approve |
+| Coding / prove | none | **none** | docs-only close |
+| Pre-exec dual | PASS both domains | **`post_prove_dual_pass`** · receipts archived · dual SHA `3463e9e` | Ban self-approve · Dual PASS ≠ coding · sizing ≠ HA/capacity |
 
 ---
 
@@ -59,8 +59,8 @@ Expert **pre-exec** checklist for W2 sizing receipts docs gate.
 
 ## 5. Non-claims
 
-Not pass · not coding · not HA · not suite · not capacity · not cutover · Dual PASS ≠ authorize coding
+Docs close **`post_prove_dual_pass` only** · not coding · not HA · not suite · not capacity · **sizing ≠ HA / capacity green** · **Dual PASS ≠ fake capacity** · not cutover · Dual PASS ≠ authorize coding · `releaseEvidence=false`
 
 ---
 
-*Eval · W2 · 2026-09-17 (~01:21 PT) · REQUEST-ready / not_run:pre_dual · releaseEvidence=false · ≠HA · ≠suite · zero coding*
+*Eval · W2 · 2026-09-17 (~01:35 PT) · post_prove_dual_pass · dual on 3463e9e · releaseEvidence=false · ≠HA · ≠suite · ≠capacity · sizing≠HA · Dual PASS≠fake capacity · 2c4g vs 4c8g · PG+pgvector+PostgresSaver · zero coding*
