@@ -1,7 +1,7 @@
 # Harness — Local Full-Suite Verification / Execution Plan（G7）
 
-**状态**：suite **`executed:awaiting_post_suite_dual`**（honesty only · 2026-09-17 re-run）· meetwise 【授权执行·G7 全套】W8 part 2 已重跑 · **suite green NOT claimed** · **≠ post_suite_dual_pass**（dual 未齐；禁自批） · `releaseEvidence=false`  
-**日期**：2026-09-17（~02:02–02:07 PDT · G7 full-suite re-exec · awaiting post-suite dual）  
+**状态**：suite **`post_suite_dual_pass`**（honesty only · 2026-09-17 re-run）· meetwise 【授权执行·G7 全套】W8 part 2 已重跑 · post-suite dual **pass**（e2e-ha+rag on receipt SHA **`7509f4f`**）· **suite green NOT claimed** · Dual PASS ≠ self-approve green close · `releaseEvidence=false`  
+**日期**：2026-09-17（~02:02–02:07 PDT run · dual nailed ~02:11 PT）  
 **releaseEvidence=false** · **≠HA** / Not HA · **≠ covered** · **≠ 0 BUG 已证** · **≠ controlPlaneClosed** · **≠ suite green** · **≠ full suite pass**  
 **硬钉**：**EXIT=0 ≠ covered ≠ suite green ≠ full suite pass ≠ HA ≠ 0 BUG** · **R2/R4 still open** · **3×Key-blocked honesty retained** · **Ban false green** · **Ban covered-without-EXIT**  
 **硬闸 SSOT**：`north-star-hard-gates.md` **G7**（policy 已生效）  
@@ -9,10 +9,13 @@
 **切片**：`../g7-full-suite-plan.slice.md` · **Eval**：`../eval/g7-full-suite-plan.eval.md`  
 **执行收据（本刀 · 2026-09-17）**：`receipts/2026-09-17-g7-full-suite-run.md`  
 **执行收据（前序 · 2026-09-16）**：`receipts/2026-09-16-g7-full-suite-run.md`（41×0 / 4×nonzero / 3×Key-blocked · historical）  
-**Post-suite REQUEST（本刀 · 待专家）**：
+**Post-suite REQUEST（本刀）**：
 - `reviews/REQUEST-2026-09-17-g7-full-suite-post-run-mw-e2e-ha.md`
 - `reviews/REQUEST-2026-09-17-g7-full-suite-post-run-mw-rag-route.md`
-**Post-suite dual 审据（本旗）**：**awaiting** · **禁止自批** `post_suite_dual_pass`  
+**Post-suite dual 审据（本旗）**：
+- `reviews/2026-09-17-g7-full-suite-post-run-mw-e2e-ha.md`（**pass** · 收据诚实性 only · **≠ suite green**）
+- `reviews/2026-09-17-g7-full-suite-post-run-mw-rag-route.md`（**pass** · RAG/域隔离诚实 only · **≠ suite green**）
+· dual on receipt SHA **`7509f4f`** · 旗 **`post_suite_dual_pass`**（honesty only）· Dual PASS ≠ self-approve green close · **≠ suite green**  
 **Honesty knives（index · ≠ verification success）**：
 - Index：`../g7-honesty-knives.slice.md`（**`K1+K2+K3+A dual-closed honesty`** · MAIN sole∩scor **untouched**）
 - Hard pins：≠ R2/R4 closed ≠ suite green ≠ HA ≠ 题域已隔离 · sole ≠ retired · **G6 OPEN** · `releaseEvidence=false`
@@ -24,7 +27,7 @@
 | 声明 | 裁定 |
 |------|------|
 | **G7 已生效** | **是** — 门禁条款强制 / policy |
-| **G7 全套已跑通 / suite green** | **否** — suite `executed:awaiting_post_suite_dual`（2026-09-17 re-run · honesty only）· green **NOT claimed** · **EXIT=0 ≠ suite green ≠ full suite pass** |
+| **G7 全套已跑通 / suite green** | **否** — suite `post_suite_dual_pass`（2026-09-17 re-run · honesty only）· green **NOT claimed** · **EXIT=0 ≠ suite green ≠ full suite pass** · Dual PASS ≠ suite green |
 | 本刀目标 | 定义如何站起完整本地环境 + 如何跑 **全部** cases/UCs（含 NEG/FAULT/BOUND/ADV/PERF/LOAD）+ CMD 冻结 + 诚实/假绿禁令 |
 | 本刀禁止 | 任何 suite / prove / `e2e:isolated` / `verify:e2e-performance` / LOAD / 云 TC / HA live；读 `.env*`；改 Worker；commit；自批 pass |
 | 成功唯一标准 | **验证关是成功唯一标准** / The verification gate is the only success standard |
@@ -156,7 +159,7 @@ compose config 静校 / livez 单实例           → ≠ multi-instance / ≠ H
 4. 双域（至少 `mw-e2e-ha` + `mw-rag-route`）对收据套件 **独立审**；实现方 **禁止自批**。  
 5. **仅在此之后** 才可 **裁定**「生产 100% HA」与「0 BUG」是否为真——**裁定 ≠ 自动宣称**；仍须协调授权勾选。
 
-**本刀执行后（2026-09-17 re-run）**：CMD 已跑并出收据 `receipts/2026-09-17-g7-full-suite-run.md` → suite **`executed:awaiting_post_suite_dual`**（honesty only）；退出标准第4项（独立双审）**未达**（REQUEST 已开 · 禁自批）；第5项（裁定 HA/0 BUG）**未达且禁自动宣称** · **suite green NOT claimed** · `releaseEvidence=false` · **45×0 / 0×nonzero / 3×Key-blocked** · **R2/R4 still open** · **EXIT=0 ≠ covered ≠ suite green**。
+**本刀执行后（2026-09-17 re-run）**：CMD 已跑并出收据 `receipts/2026-09-17-g7-full-suite-run.md` → post-suite dual **pass** → suite **`post_suite_dual_pass`**（honesty only）；退出标准第4项（独立双审）**已达（收据诚实性）** · Dual PASS ≠ suite green；第5项（裁定 HA/0 BUG）**未达且禁自动宣称** · **suite green NOT claimed** · `releaseEvidence=false` · **45×0 / 0×nonzero / 3×Key-blocked** · **R2/R4 still open** · **EXIT=0 ≠ covered ≠ suite green** · Dual PASS ≠ self-approve green close。
 
 ---
 
@@ -166,7 +169,7 @@ compose config 静校 / livez 单实例           → ≠ multi-instance / ≠ H
 
 ```bash
 cd /workspace/meetwise
-# === G7 local full-suite · executed:awaiting_post_suite_dual (honesty only; ≠ suite green) · see receipts/2026-09-17-g7-full-suite-run.md ===
+# === G7 local full-suite · post_suite_dual_pass (honesty only; ≠ suite green) · see receipts/2026-09-17-g7-full-suite-run.md · dual on 7509f4f ===
 # --- 0. Prereq stack (plan only; do NOT run this knife) ---
 # docker compose -f docker/compose.mysql-local.yml config   # 静校 ≠ 已起栈
 # # bring-up MySQL+Qdrant+Redis — 另授权；禁读 .env*
@@ -242,7 +245,7 @@ cd /workspace/meetwise
 
 | 本刀状态 | 值 |
 |----------|-----|
-| 执行旗 | **`executed:awaiting_post_suite_dual`**（2026-09-17 re-run · **honesty only** · **≠ suite green** · **≠ post_suite_dual_pass**） |
+| 执行旗 | **`post_suite_dual_pass`**（2026-09-17 re-run · **honesty only** · dual on **`7509f4f`** · **≠ suite green** · Dual PASS ≠ self-approve green close） |
 | suite run | **done** · 45×0 / 0×nonzero / 3×Key-blocked · **≠ suite green** · **≠ full suite pass** |
 | prior 4×nonzero | **今次 EXIT=0**（status pin honesty after K1/K2/K3/A）· **仍 ≠ covered ≠ suite green** |
 | Key-blocked | **3× honesty retained**（禁 invent Key） |
@@ -261,7 +264,7 @@ cd /workspace/meetwise
 |------|------|
 | G7 已生效 → suite green | **forbid** |
 | 刀绿 / dual pass / 单 prove EXIT=0 → 交付成功 | **forbid** |
-| `post_suite_dual_pass` → suite green / full suite pass / HA / 0 BUG | **forbid**（honesty only · 4×nonzero gaps + Key-blocked retained） |
+| `post_suite_dual_pass` → suite green / full suite pass / HA / 0 BUG | **forbid**（honesty only · 45×EXIT0 ≠ suite green · 3×Key-blocked retained · Dual PASS ≠ green close） |
 | Batch1/2 `post_prove_dual_pass` → 全家 covered / G7 齐 | **forbid**（honesty only） |
 | Batch3 `post_prove_dual_pass` / EXIT=0 → covered / 自动并入 G7 绿 | **forbid**（honesty only · ≠ G7 suite green） |
 | HA probe EXIT=0 → 生产 HA / 0 BUG | **forbid**（honesty-not-HA） |
@@ -279,14 +282,14 @@ R4 REAL-WIRE-IMPL / NHP Batch3 / 其他 knives **可继续**；成功叙事 **�
 
 ## 7. 本刀诚实边界
 
-- **已**按 authorize **重跑** §4 inventory（45×EXIT=0 / 0×nonzero / 3×Key-blocked）；旗 **`executed:awaiting_post_suite_dual`**（禁自批 dual pass）；**suite green NOT claimed**。  
-- **硬钉**：**pass ≠ suite green ≠ full suite pass ≠ HA ≠ 0 BUG** · `releaseEvidence=false` · **R2/R4 still open** · **4×nonzero retained as gaps** · **Key-blocked honesty retained**。  
-- **未**读 `.env*`；**未**发明 Key；**未**改 Worker（本刀）；**未** commit；**未** Meridian。  
+- **已**按 authorize **重跑** §4 inventory（45×EXIT=0 / 0×nonzero / 3×Key-blocked）；post-suite dual **pass** → 旗 **`post_suite_dual_pass`**（honesty only · dual on **`7509f4f`**）；**suite green NOT claimed**。  
+- **硬钉**：**pass ≠ suite green ≠ full suite pass ≠ HA ≠ 0 BUG** · `releaseEvidence=false` · **R2/R4 still open** · **3×Key-blocked honesty retained** · Dual PASS ≠ self-approve green close。  
+- **未**读 `.env*`；**未**发明 Key；**未**改 Worker（本刀）；**未** Meridian。  
 - **未**宣称 suite green / covered / HA / 0 BUG / `releaseEvidence=true` / controlPlaneClosed / R2·R4 closed / full suite pass。  
-- G7 = **已生效（policy）**；suite = **`executed:awaiting_post_suite_dual`**（honesty only · **≠** suite green · **≠** post_suite_dual_pass）。  
+- G7 = **已生效（policy）**；suite = **`post_suite_dual_pass`**（honesty only · **≠** suite green · Dual PASS ≠ green close）。  
 - Batch3 既有 = **`post_prove_dual_pass`**；重跑 EXIT=0 **仍 ≠ covered ≠ automatic G7 suite green**。  
 - HA probes = **honesty-not-HA**；privacy-erasure:http = DELETE **503** pin（未开产品 DELETE）。  
 - UC isolated 默认 pgvector → **R5 green-risk**（sole-stack MySQL+Qdrant+Redis 已起 ≠ R5 关）。  
 - 实现方 **禁止自批**；本旗仅反映专家 post-suite dual pass（收据诚实性）。
 
-*Harness · G7 local full-suite · 2026-09-17 ~02:07 PDT · executed:awaiting_post_suite_dual (honesty only) · 45×0/0×nonzero/3×Key-blocked · releaseEvidence=false · ≠HA · ≠ suite green · ≠ full suite pass · ≠ post_suite_dual_pass · R2/R4 open · G7 policy ≠ suite green*
+*Harness · G7 local full-suite · 2026-09-17 · post_suite_dual_pass (honesty only) · dual on 7509f4f · 45×0/0×nonzero/3×Key-blocked · releaseEvidence=false · ≠HA · ≠ suite green · ≠ full suite pass · R2/R4 open · G7 policy ≠ suite green · Dual PASS ≠ self-approve green close*

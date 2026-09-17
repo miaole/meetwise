@@ -1,9 +1,9 @@
 # 评测笔记 — G7 Local Full-Suite Execution Plan（eval-first · docs only）
 
-**日期**：2026-09-16（~19:38 PT · full-suite executed · post-suite dual pass）  
-**run-status**：**`post_suite_dual_pass`**（honesty only；41×0 / 4×nonzero / 3×Key-blocked；**suite green NOT claimed**）  
+**日期**：2026-09-17 tip（re-run dual on **`7509f4f`**）· prior 2026-09-16 (~19:38 PT) historical  
+**run-status**：**`post_suite_dual_pass`**（honesty only；tip **45×0 / 0×nonzero / 3×Key-blocked**；**suite green NOT claimed** · Dual PASS ≠ self-approve green close）  
 **releaseEvidence=false** · **≠HA** · **≠ covered** · **≠ 0 BUG 已证** · **≠ controlPlaneClosed** · **≠ suite green** · **≠ full suite pass**  
-**硬钉**：**pass ≠ suite green ≠ full suite pass ≠ HA ≠ 0 BUG** · **R2/R4 still open** · **4×nonzero retained as gaps** · **Key-blocked honesty retained**  
+**硬钉**：**pass ≠ suite green ≠ full suite pass ≠ HA ≠ 0 BUG** · **R2/R4 still open** · **45×EXIT=0 ≠ suite green** · **Key-blocked honesty retained** · Dual PASS ≠ green close  
 **对照 harness**：`ai-docs/delivery/harness/local-full-suite-verification.md`  
 **对照切片**：`ai-docs/delivery/g7-full-suite-plan.slice.md` · **next** `g7-honesty-knives.slice.md`  
 **硬闸**：`north-star-hard-gates.md` **G7 已生效（policy）** · suite = `post_suite_dual_pass` · **≠ suite green**  
@@ -19,13 +19,17 @@
 - `reviews/2026-09-16-g7-full-suite-plan-mw-e2e-ha.md`（**conditional** · B1 Batch3 状态钉）
 - `reviews/2026-09-16-g7-full-suite-plan-mw-rag-route.md`（**pass** plan-only · ADV deferred nit）
 
-**执行收据**：`receipts/2026-09-16-g7-full-suite-run.md`（41×0 / 4×nonzero / 3×Key-blocked）  
-**Post-suite dual 审据（本旗依据）**：
+**执行收据（tip）**：`receipts/2026-09-17-g7-full-suite-run.md`（**45×0 / 0×nonzero / 3×Key-blocked** · dual on `7509f4f`）  
+**执行收据（prior）**：`receipts/2026-09-16-g7-full-suite-run.md`（41×0 / 4×nonzero / 3×Key-blocked · historical）  
+**Post-suite dual 审据（tip · 本旗依据）**：
+- `reviews/2026-09-17-g7-full-suite-post-run-mw-e2e-ha.md`（**pass** · 收据诚实性 only · **≠ suite green** · on `7509f4f`）
+- `reviews/2026-09-17-g7-full-suite-post-run-mw-rag-route.md`（**pass** · RAG/域隔离诚实 only · **≠ suite green** · on `7509f4f`）
+**Post-suite REQUEST（tip）**：
+- `reviews/REQUEST-2026-09-17-g7-full-suite-post-run-mw-e2e-ha.md`
+- `reviews/REQUEST-2026-09-17-g7-full-suite-post-run-mw-rag-route.md`
+**Post-suite dual 审据（prior 09-16 · historical）**：
 - `reviews/2026-09-16-g7-full-suite-post-run-mw-e2e-ha.md`（**pass** · 收据诚实性 only · **≠ suite green**）
 - `reviews/2026-09-16-g7-full-suite-post-run-mw-rag-route.md`（**pass** · RAG/域隔离诚实 only · **≠ suite green**）
-**Post-suite REQUEST（已覆盖）**：
-- `reviews/REQUEST-2026-09-16-g7-full-suite-post-run-mw-e2e-ha.md`
-- `reviews/REQUEST-2026-09-16-g7-full-suite-post-run-mw-rag-route.md`
 **Honesty knives（opened · REQUEST-ready / not_run:pre_dual · ≠ verification success）**：
 - `g7-honesty-knives.slice.md`
 
@@ -44,7 +48,7 @@
 ## 1. 用途
 
 在 **G7 门禁已生效**、suite = `post_suite_dual_pass`（honesty only）的前提下，登记 **本地全量套件执行计划 + 已跑收据 + post-suite dual**（如何站起 sole-stack、跑哪些家族/矩阵/UC/R2·R4/HA probes、CMD+EXIT、诚实与假绿禁令）。  
-本刀已 authorize 开跑并出收据；post-suite dual **pass**；**禁止**把「G7 已生效 / EXIT=0 / dual / `post_suite_dual_pass`」读成 suite green / full suite pass / 0 BUG / HA / `releaseEvidence=true`；**禁止自批**；**4×nonzero + Key-blocked 不得冲销**。
+本刀已 authorize 开跑并出收据；post-suite dual **pass**（tip on `7509f4f`）；**禁止**把「G7 已生效 / EXIT=0 / dual / `post_suite_dual_pass`」读成 suite green / full suite pass / 0 BUG / HA / `releaseEvidence=true`；**禁止自批**；**45×EXIT=0 ≠ suite green** · **Key-blocked 不得冲销** · Dual PASS ≠ self-approve green close。
 
 ---
 
@@ -89,7 +93,7 @@
 | HA probe 绿 = 生产 HA | **假**（honesty-not-HA） |
 | Batch1/2 post_prove = covered / G7 齐 | **假**（honesty only） |
 | Batch3 EXIT=0 / `post_prove_dual_pass` = covered / G7 自动绿 | **假**（honesty only · B1 对齐） |
-| 4×nonzero / 3×Key-blocked 可冲销为 covered | **forbid**（gaps + honesty retained） |
+| tip 45×EXIT=0 / 3×Key-blocked 可冲销为 covered / suite green | **forbid**（EXIT=0 ≠ suite green · Key-blocked honesty retained · Dual PASS ≠ green close） |
 | R2/R4 closed | **假**（still open） |
 | 可宣称 0 BUG / `releaseEvidence=true` | **forbid** |
 
@@ -119,9 +123,9 @@
 - [ ] 退出标准 = 全栈 + 全 cases/UCs + CMD+EXIT 收据 + 双域独立审  
 - [x] 已跑 §4 inventory（见 receipt）；**suite green NOT claimed**；仍禁抬 HA/0 BUG  
 - [x] post-suite dual **pass**（mw-e2e-ha + mw-rag-route）→ run-status **`post_suite_dual_pass`**；**pass ≠ suite green ≠ full suite pass**  
-- [x] **4×nonzero retained as gaps** · **3×Key-blocked honesty retained** · **R2/R4 still open** · `releaseEvidence=false`  
+- [x] Tip **45×0 / 0×nonzero / 3×Key-blocked**（09-17 on `7509f4f`）· **3×Key-blocked honesty retained** · **R2/R4 still open** · `releaseEvidence=false` · Dual PASS ≠ green close  
 - [x] 实现方 **未**自签 pass；本旗仅对齐专家 dual
 
 ---
 
-*Eval note · G7 full-suite · 2026-09-16 ~19:38 PT · post_suite_dual_pass (honesty only) · 41×0/4×nonzero/3×Key-blocked · releaseEvidence=false · ≠HA · ≠ suite green · ≠ full suite pass · R2/R4 open · suite green NOT claimed*
+*Eval note · G7 full-suite · tip 2026-09-17 · post_suite_dual_pass (honesty only) · dual on 7509f4f · 45×0/0×nonzero/3×Key-blocked · releaseEvidence=false · ≠HA · ≠ suite green · ≠ full suite pass · R2/R4 open · Dual PASS ≠ self-approve green close*

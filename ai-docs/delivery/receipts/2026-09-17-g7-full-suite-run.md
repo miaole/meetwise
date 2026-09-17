@@ -1,7 +1,7 @@
 # Receipt — G7 Local Full-Suite Run（authorized re-exec · W8 part 2）
 
-**状态**：**`executed:awaiting_post_suite_dual`**（honesty only）· meetwise 【授权执行·G7 全套】已重跑 · **suite green NOT claimed** · **≠ post_suite_dual_pass**（dual 未齐；禁自批）  
-**日期**：2026-09-17（~02:02–02:07 PDT run）  
+**状态**：**`post_suite_dual_pass`**（honesty only）· meetwise 【授权执行·G7 全套】已重跑 · post-suite dual **pass**（mw-e2e-ha + mw-rag-route on receipt SHA **`7509f4f`**）· **suite green NOT claimed** · Dual PASS ≠ self-approve green close  
+**日期**：2026-09-17（~02:02–02:07 PDT run · dual nailed ~02:11 PT）  
 **releaseEvidence=false** · **≠HA** / Not HA · **≠ covered** · **≠ 0 BUG 已证** · **≠ controlPlaneClosed** · **≠ suite green** · **≠ full suite pass**  
 **硬钉**：**EXIT=0 ≠ covered ≠ suite green ≠ full suite pass ≠ HA ≠ 0 BUG** · **R2/R4 still open** · **3×Key-blocked honesty retained** · **Ban false green** · **Ban covered-without-EXIT**  
 **G7 policy ≠ this run green** · **Single/all EXIT=0 ≠ suite green**  
@@ -47,7 +47,7 @@
 | **not_run** | **0** (all inventory CMDs attempted or honestly blocked) |
 | **Total rows** | **48** |
 
-**Explicit：suite green NOT claimed.** Status = **`executed:awaiting_post_suite_dual`** only. **45×EXIT=0 ≠ suite green ≠ full suite pass ≠ HA ≠ 0 BUG ≠ covered**. 3×Key-blocked **honesty retained**（禁 invent Key）. **R2/R4 still open**. `releaseEvidence=false`.
+**Explicit：suite green NOT claimed.** Post-suite dual **pass**（收据诚实性）→ 旗 **`post_suite_dual_pass`**；**pass ≠ suite green ≠ full suite pass ≠ HA ≠ 0 BUG ≠ covered**. **45×EXIT=0 ≠ suite green**. 3×Key-blocked **honesty retained**（禁 invent Key）. **R2/R4 still open**. `releaseEvidence=false`. Dual PASS ≠ self-approve green close.
 
 **vs 2026-09-16 receipt**：prior **4×nonzero**（`r2-p-live-route-effective` · `mysql-stack:r4-domain-isolation` · `g6-e2e-iso-blocked` · `scor-00:http`）今次均为 **EXIT=0**（honesty/status pins aligned after K1/K2/K3/A knives · see logs）. **EXIT flip ≠ covered ≠ suite green** — retained as honesty-only; prior gaps closed as *status pin* greens only.
 
@@ -134,17 +134,23 @@
 - privacy-erasure:http EXIT=0 = DELETE **503** pin ≠ erasure product closed · **no DELETE opened** · **≠W1b-delete/DROP**  
 - Defaults **not** flipped · sole-stack healthy ≠ R5 retirement closed  
 - `releaseEvidence=false` forever this knife  
-- ≠ 0 BUG / HA / suite green · **禁**自批 `post_suite_dual_pass`
+- ≠ 0 BUG / HA / suite green · Dual PASS **≠** suite green / full suite pass / HA / 0 BUG · Ban self-approve green close
 
 ---
 
-## 6. Post-suite dual（**awaiting** · REQUEST stubs only）
+## 6. Post-suite dual（**pass** · honesty only · archived）
 
-**REQUEST（本刀新建 · 待专家）**：
+**REQUEST**：
 - `ai-docs/delivery/reviews/REQUEST-2026-09-17-g7-full-suite-post-run-mw-e2e-ha.md`
 - `ai-docs/delivery/reviews/REQUEST-2026-09-17-g7-full-suite-post-run-mw-rag-route.md`
 
-**硬钉**：dual 未齐 → 旗停在 **`executed:awaiting_post_suite_dual`** · **禁止**自称 `post_suite_dual_pass` / suite green / full suite pass / HA / 0 BUG / covered / R2·R4 closed。
+**Dual reviews（独立 · 禁自批）**：
+- `reviews/2026-09-17-g7-full-suite-post-run-mw-e2e-ha.md`（**pass** · 收据诚实性 only · **≠ suite green**）
+- `reviews/2026-09-17-g7-full-suite-post-run-mw-rag-route.md`（**pass** · RAG/域隔离诚实 only · **≠ suite green**）
+
+**Dual on receipt SHA**：`7509f4f728ee45c456d4f6a5ba7a9f888594f86a`（short **`7509f4f`**）
+
+**硬钉**：dual pass → 旗 **`post_suite_dual_pass`**（honesty only）· **仍 ≠** suite green / full suite pass / HA / 0 BUG / covered / R2·R4 closed · Dual PASS ≠ self-approve green close · `releaseEvidence=false`。
 
 ---
 
@@ -153,9 +159,9 @@
 - **NOT** verification success / suite green / covered / controlPlaneClosed / `releaseEvidence=true`  
 - **NOT** HA / 0 BUG / R2 closed / R4 closed / 路由已生效 / sole cutover  
 - **NOT** live e2e family run (Key blocked)  
-- **NOT** `post_suite_dual_pass`（await independent dual）  
+- **IS** `post_suite_dual_pass`（honesty only）· **NOT** suite green / verification success / HA / 0 BUG  
 - **NOT** DROP / W1b-delete  
 
 ---
 
-*Receipt · G7 full-suite re-run · 2026-09-17 ~02:07 PDT · executed:awaiting_post_suite_dual (honesty only) · releaseEvidence=false · ≠HA · ≠ suite green · ≠ full suite pass · R2/R4 open · 45×0 / 0×nonzero / 3×Key-blocked · suite green NOT claimed*
+*Receipt · G7 full-suite re-run · 2026-09-17 ~02:07 PDT run · post_suite_dual_pass (honesty only) · dual on 7509f4f · releaseEvidence=false · ≠HA · ≠ suite green · ≠ full suite pass · R2/R4 open · 45×0 / 0×nonzero / 3×Key-blocked · suite green NOT claimed · Dual PASS ≠ self-approve green close*
