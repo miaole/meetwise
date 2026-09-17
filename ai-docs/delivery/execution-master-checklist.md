@@ -88,6 +88,8 @@ related:
 
 钉：**releaseEvidence=false** · **≠HA** · 全量 E2E 零遗漏（目标）· **100% HA**（目标）· **0 BUG**（硬闸，须证据）。当前均 **未齐**，不得叙事已达成。**成功叙事挂 G7 全量收据**（G7 已生效 ≠ 收据齐，更不得勾 true）。
 
+- [◐] Adaptive-life idempotency CI fix：`post_prove_dual_pass`（`mw-e2e-ha` + `mw-rag-route` independent pass; `pnpm adaptive-life:prove` EXIT=0; HEAD `21672ab`; `releaseEvidence=false`; ≠ suite green/R5/G6/HA）。详见 `harness/adaptive-life-idempotency-ci-fix.md`。
+
 ## 2. 执行顺序总览
 
 ```mermaid
