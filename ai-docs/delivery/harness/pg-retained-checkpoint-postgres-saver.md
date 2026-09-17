@@ -1,13 +1,14 @@
 # Harness — **PG-retained** · Postgres (+pgvector + PostgresSaver)
 
-**Status**: **`REQUEST-ready / not_run:pre_dual`**  
-**Date**: 2026-09-17 (~01:15 PT)  
-**releaseEvidence=false** · **≠HA** · **≠suite green** · **≠ MySQL sole relational** · **≠ Qdrant sole vector** · **≠ cutover authorized**  
-**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec REQUEST pair · **not yet dual-sent** · **zero coding / zero prove** · **Ban self-approve** · **Dual PASS ≠ authorize coding**）  
+**Status**: **`post_prove_dual_pass`**  
+**Date**: 2026-09-17 (~01:31 PT)  
+**releaseEvidence=false** · **≠HA** · **≠suite green** · **≠ MySQL sole relational** · **≠ Qdrant sole vector** · **≠ cutover authorized** · **≠ coding authorized**  
+**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **PASS** · **Ban self-approve** · **Dual PASS ≠ authorize coding** · **zero coding / zero prove**）  
 **Slice**: `../pg-retained-checkpoint-postgres-saver.slice.md`  
 **Eval**: `../eval/pg-retained-checkpoint-postgres-saver.eval.md`  
 **Authority**: meetwise hard ruling 2026-09-17 — **NO** business DB migration to MySQL · **NO** vector cutover to Qdrant · retained = **Postgres (+pgvector + PostgresSaver / RLS / mig 0043)** · provisional production wake preference = continue **Postgres LISTEN/NOTIFY** · Redis wake evaluation deferred per coordinator suggestion only, **pending a user hard sentence** and **not a user hard pin** · Redis wake remains orthogonal / separately evaluable · Ban branch-name justification via `feat/mysql-schema-skeleton`
 **Workflow SSOT**: this knife = **W0** · next = **W1** inventory ZERO deletes (`harness/w1-pg-redundant-table-inventory.md`) → later W1b (not open) → W2…W8 (not open)
+**Honesty**: Dual reviews were against knife SHA / HEAD **`0c95883`**. Tip may include later provisional Postgres LISTEN/NOTIFY wake preference overlay (e.g. `32d0724`) — **wake = provisional overlay after dual** · **not a user hard pin** · **does not require a wake-patch re-dual**. Redis still orthogonal / not STOPPED.
 
 ---
 
@@ -22,9 +23,21 @@
 | **Vector** | Keep **pgvector** · Ban Qdrant-as-required sole vector / replace-pgvector cutover |
 | **ADR** | `adr-mysql-qdrant-local.md` relational+vector claims **superseded** · successor `adr-postgres-retained.md` |
 | **Wake path (provisional)** | Production preference is to continue **Postgres LISTEN/NOTIFY**; Redis wake evaluation is deferred per coordinator suggestion only, **pending a user hard sentence** and **not a user hard pin** · Redis wake knives remain separately evaluable and **not STOPPED** |
-| **Now** | **`REQUEST-ready / not_run:pre_dual`** · zero coding · Dual PASS ≠ authorize coding |
+| **Now** | **`post_prove_dual_pass`** · docs-only close · zero coding · Dual PASS ≠ authorize coding |
 
 ---
+
+
+---
+
+## Dual receipts (pre-exec · archived)
+
+| Expert | Receipt | Verdict |
+|--------|---------|---------|
+| `mw-e2e-ha` | `../reviews/2026-09-17-pg-retained-checkpoint-postgres-saver-mw-e2e-ha.md` | **pass** |
+| `mw-rag-route` | `../reviews/2026-09-17-pg-retained-checkpoint-postgres-saver-mw-rag-route.md` | **pass** |
+
+Dual SHA: **`0c958834087cf48bea3cbff35ed96efee0390575`** (short **`0c95883`**). Later tip overlay (provisional wake wording) is **not** re-dualed coding auth.
 
 ## 1. Pins (must survive dual)
 
@@ -119,14 +132,14 @@ Compare **retained** Postgres(+pgvector+PostgresSaver) vs **former plan** MySQL 
 
 | CMD | Status |
 |-----|--------|
-| docs dual only | **`not_run:pre_dual`** · **no prove script** · zero coding |
+| docs dual only | **`post_prove_dual_pass`** · dual receipts archived · **no prove script** · zero coding |
 
 ---
 
 ## 5. Non-claims
 
-Not pass · not coding authorized · not HA · not suite green · not MySQL cutover · not Qdrant vector cutover · not Redis wake authorized or rejected · provisional wake preference only · not F8 touched · Dual PASS ≠ authorize coding
+Docs close **`post_prove_dual_pass` only** · not coding authorized · not HA · not suite green · not MySQL cutover · not Qdrant vector cutover · not Redis wake authorized or rejected · provisional wake preference only (overlay after dual on `0c95883`) · not F8 touched · Dual PASS ≠ authorize coding · `releaseEvidence=false`
 
 ---
 
-*Harness · PG-retained · 2026-09-17 (~01:15 PT) · REQUEST-ready / not_run:pre_dual · releaseEvidence=false · ≠HA · ≠suite green · Postgres+pgvector+PostgresSaver · Ban MySQL/Qdrant cutover · provisional Postgres LISTEN/NOTIFY preference · Redis eval deferred pending user hard sentence · Redis not STOPPED · Dual PASS ≠ authorize coding · zero coding*
+*Harness · PG-retained · 2026-09-17 (~01:31 PT) · post_prove_dual_pass · dual on 0c95883 · wake provisional overlay after dual (not user hard pin · no wake re-dual) · releaseEvidence=false · ≠HA · ≠suite green · Postgres+pgvector+PostgresSaver · Ban MySQL/Qdrant cutover · Redis eval deferred pending user hard sentence · Redis not STOPPED · Dual PASS ≠ authorize coding · zero coding*

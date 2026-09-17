@@ -1,11 +1,12 @@
-# Eval — **PG-retained** · Postgres (+pgvector + PostgresSaver)（**`REQUEST-ready / not_run:pre_dual`**）
+# Eval — **PG-retained** · Postgres (+pgvector + PostgresSaver)（**`post_prove_dual_pass`**）
 
-**Date**: 2026-09-17 (~01:15 PT)  
-**run-status**: **`REQUEST-ready / not_run:pre_dual`** · **zero coding · zero prove** · await pre-exec dual · **Dual PASS ≠ authorize coding**  
-**releaseEvidence=false** · **Not HA** · **≠suite green** · **≠ MySQL sole relational** · **≠ Qdrant sole vector** · **≠ cutover**  
+**Date**: 2026-09-17 (~01:31 PT)  
+**run-status**: **`post_prove_dual_pass`** · **zero coding · zero prove** · pre-exec dual **PASS** · **Dual PASS ≠ authorize coding**  
+**releaseEvidence=false** · **Not HA** · **≠suite green** · **≠ MySQL sole relational** · **≠ Qdrant sole vector** · **≠ cutover** · **≠ coding authorized**  
 **Harness**: `ai-docs/delivery/harness/pg-retained-checkpoint-postgres-saver.md`  
 **Slice**: `ai-docs/delivery/pg-retained-checkpoint-postgres-saver.slice.md`  
-**Dual**: pre-exec REQUEST **drafted** · **not yet dual-sent** · no self-approve
+**Dual**: `reviews/2026-09-17-pg-retained-checkpoint-postgres-saver-mw-e2e-ha.md` + `…-mw-rag-route.md` → **pass** · dual SHA **`0c95883`** · no self-approve  
+**Honesty**: Dual was on **`0c95883`**; any later provisional wake wording (e.g. tip `32d0724`) is **overlay after dual**, not a user hard pin, and does **not** require wake-patch re-dual. Redis still orthogonal/not STOPPED.
 
 ---
 
@@ -25,8 +26,8 @@ Expert **pre-exec** checklist for the PG-retained direction pin (docs only).
 | ADR mysql relational+vector | superseded note | **additive note** | no false history |
 | Resource sizing section | present | **present** in harness §2 | honest ranges · ≠HA |
 | F8 artifacts | untouched | **untouched** | MS3 still REQUEST-ready |
-| Coding / prove | none | **none** | `not_run:pre_dual` |
-| Pre-exec dual | await | **REQUEST drafted · await** | Ban self-approve |
+| Coding / prove | none | **none** | docs-only close |
+| Pre-exec dual | PASS both domains | **`post_prove_dual_pass`** · receipts archived · dual SHA `0c95883` | Ban self-approve · Dual PASS ≠ coding |
 
 ---
 
@@ -58,8 +59,8 @@ Expert **pre-exec** checklist for the PG-retained direction pin (docs only).
 
 ## 5. Non-claims
 
-Not pass · not coding · not HA · not suite · not cutover · Dual PASS ≠ authorize coding
+Docs close **`post_prove_dual_pass` only** · not coding · not HA · not suite · not cutover · Dual PASS ≠ authorize coding · `releaseEvidence=false`
 
 ---
 
-*Eval · PG-retained · 2026-09-17 (~01:15 PT) · REQUEST-ready / not_run:pre_dual · releaseEvidence=false · ≠HA · ≠suite · zero coding*
+*Eval · PG-retained · 2026-09-17 (~01:31 PT) · post_prove_dual_pass · dual on 0c95883 · wake provisional overlay after dual · releaseEvidence=false · ≠HA · ≠suite · zero coding*

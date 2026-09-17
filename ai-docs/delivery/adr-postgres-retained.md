@@ -1,6 +1,6 @@
 # ADR — Postgres retained (+pgvector + PostgresSaver)
 
-**Status**: **accepted (direction pin)** · **2026-09-17 (~01:15 PT)** · **releaseEvidence=false** · ≠HA · ≠suite green  
+**Status**: **accepted (direction pin)** · **2026-09-17 (~01:31 PT)** · docs knife **`post_prove_dual_pass`** · **releaseEvidence=false** · ≠HA · ≠suite green  
 **Supersedes (partial)**: `adr-mysql-qdrant-local.md` — **relational** sole-MySQL claims · **vector** sole-Qdrant / replace-pgvector claims  
 **Wake note (provisional)**: production preference is to continue **Postgres LISTEN/NOTIFY**. Redis wake evaluation is deferred per coordinator suggestion only, **pending a user hard sentence**; this is **not a user hard pin**, and Redis wake / queue selection remains separately evaluable (orthogonal, not canceled).
 
@@ -30,7 +30,7 @@ Architecture ADR-0001 / ADR-0003 / ADR-0007 already point at Postgres + checkpoi
 - Redis wake knives → **not STOPPED**; Redis evaluation is deferred provisionally while the production preference remains Postgres LISTEN/NOTIFY pending a user hard sentence.
 - R1–R4 product RAG / domain-isolation gates remain open as product work — they are **not** authorized as MySQL/Qdrant cutover.
 - F8 MS3 / commerce / egress / R4 meta knives remain on their own tracks (untouched by this ADR).
-- Docs knife: `pg-retained-checkpoint-postgres-saver` (`REQUEST-ready / not_run:pre_dual`, zero coding).
+- Docs knife: `pg-retained-checkpoint-postgres-saver` (**`post_prove_dual_pass`**, zero coding · dual on `0c95883` · wake provisional overlay after dual · Dual PASS ≠ authorize coding).
 - Next workflow knife (**W1**, docs only): PG redundant/obsolete table inventory — **ZERO deletes** · `harness/w1-pg-redundant-table-inventory.md` · Dual PASS ≠ authorize W1b deletes · W2…W8 not opened.
 
 ## Non-claims
@@ -39,4 +39,4 @@ Architecture ADR-0001 / ADR-0003 / ADR-0007 already point at Postgres + checkpoi
 
 ---
 
-*ADR · Postgres retained · 2026-09-17 (~01:15 PT) · releaseEvidence=false · ≠HA · ≠suite green · supersedes mysql-qdrant relational+vector sole claims · provisional production wake preference = Postgres LISTEN/NOTIFY · Redis eval deferred pending user hard sentence · Redis not STOPPED*
+*ADR · Postgres retained · 2026-09-17 (~01:31 PT) · docs knife post_prove_dual_pass · dual on 0c95883 · wake = provisional overlay after dual (not user hard pin · no wake re-dual) · releaseEvidence=false · ≠HA · ≠suite green · supersedes mysql-qdrant relational+vector sole claims · Redis eval deferred pending user hard sentence · Redis not STOPPED · Dual PASS ≠ coding*
