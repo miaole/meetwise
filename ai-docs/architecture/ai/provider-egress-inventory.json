@@ -1197,6 +1197,11 @@
     },
     {
       "name": "MODEL_API_KEY",
+      "source": "apps/worker/src/r4-p-meta-serving-product-remaining.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
       "source": "apps/worker/src/r4-p-meta-serving-remaining.ts",
       "class": "test-isolation"
     },
@@ -1212,7 +1217,17 @@
     },
     {
       "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-p-meta-ms1-product-wire.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
       "source": "apps/worker/test/r4-p-meta-p-r1.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-p-meta-serving-product.proof.ts",
       "class": "test-isolation"
     },
     {
