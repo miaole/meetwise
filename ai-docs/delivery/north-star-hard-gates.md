@@ -143,8 +143,8 @@ Happy-only `e2e:isolated` / golden EXIT=0 **不得**写成 UC 已 covered。
 ### G7 — Local Full-Suite Verification Gate（本地全量套件验证关）
 
 **状态**：**已生效**（2026-09-16 双域文档闸齐 + meetwise 授权改钉）— 审据：`reviews/2026-09-16-north-star-g7-local-full-suite-mw-e2e-ha.md` · `reviews/2026-09-16-north-star-g7-local-full-suite-mw-rag-route.md`。  
-**硬诚实**：生效 = **门禁条款强制**；**≠** G7 全套已跑通 / suite green；suite = `post_suite_dual_pass`（honesty only；见 `harness/local-full-suite-verification.md`）· **pass ≠ suite green ≠ full suite pass ≠ HA ≠ 0 BUG**；4×nonzero gaps + Key-blocked retained；R2/R4 still open；knife/prove/dual ≠ 成功直至全量成功标准齐。
-**执行计划 + 已跑 + post-suite dual**：`harness/local-full-suite-verification.md` · `g7-full-suite-plan.slice.md` · `eval/g7-full-suite-plan.eval.md` · receipt `receipts/2026-09-16-g7-full-suite-run.md` · post-run `reviews/2026-09-16-g7-full-suite-post-run-mw-e2e-ha.md` + `…-mw-rag-route.md` — 状态 **`post_suite_dual_pass`（honesty only）**；**≠** suite green / full suite pass / HA / 0 BUG；`releaseEvidence=false`。
+**硬诚实**：生效 = **门禁条款强制**；**≠** G7 全套已跑通 / suite green；suite = `post_suite_dual_pass`（honesty only；见 `harness/local-full-suite-verification.md`）· **pass ≠ suite green ≠ full suite pass ≠ HA ≠ 0 BUG**；tip **45×EXIT=0 ≠ suite green** · 3×Key-blocked retained；R2/R4 still open；knife/prove/dual ≠ 成功直至全量成功标准齐；Dual PASS ≠ self-approve green close。
+**执行计划 + 已跑 + post-suite dual（tip）**：`harness/local-full-suite-verification.md` · `g7-full-suite-plan.slice.md` · `eval/g7-full-suite-plan.eval.md` · receipt `receipts/2026-09-17-g7-full-suite-run.md`（**45×0 / 0×nonzero / 3×Key-blocked**）· post-run `reviews/2026-09-17-g7-full-suite-post-run-mw-e2e-ha.md` + `…-mw-rag-route.md` — dual on receipt SHA **`7509f4f`** · 状态 **`post_suite_dual_pass`（honesty only）**；**≠** suite green / full suite pass / HA / 0 BUG；`releaseEvidence=false`。 prior：`receipts/2026-09-16-g7-full-suite-run.md`。
 
 **硬句（中+EN）**：**验证关是成功唯一标准** / **The verification gate is the only success standard.**  
 任务做完 / 刀绿 / dual pass / prove EXIT=0 **≠** 成功；须 **另行**通过本验证关。
@@ -177,7 +177,7 @@ Happy-only `e2e:isolated` / golden EXIT=0 **不得**写成 UC 已 covered。
 
 **本刀禁令**：不跑全量套件当绿关；不把 `harness/local-full-suite-verification.md` 的 `not_run` 写成已执行 / suite green；不得借「G7 已生效」宣称全量套件已跑通或交付已成功。
 
-**执行指针（2026-09-16 ~19:38 PT）**：本地全量套件已 authorize 跑 + post-suite dual **pass** → `post_suite_dual_pass`（honesty only）。见 `harness/local-full-suite-verification.md` · receipt · post-run reviews。**硬钉**：`post_suite_dual_pass` ≠ suite green ≠ full suite pass ≠ 0 BUG ≠ HA；4×nonzero retained；Key-blocked retained；R2/R4 still open；`releaseEvidence=false`。
+**执行指针（2026-09-17 tip · dual on `7509f4f`）**：本地全量套件已 authorize 重跑 + post-suite dual **pass** → `post_suite_dual_pass`（honesty only）。见 `harness/local-full-suite-verification.md` · tip receipt `receipts/2026-09-17-g7-full-suite-run.md` · post-run reviews。**硬钉**：`post_suite_dual_pass` ≠ suite green ≠ full suite pass ≠ 0 BUG ≠ HA；**45×EXIT=0 ≠ suite green**；Key-blocked×3 retained；R2/R4 still open；`releaseEvidence=false`；Dual PASS ≠ self-approve green close。
 
 ---
 
@@ -227,4 +227,4 @@ SSOT 落点：`e2e-requirement-coverage-matrix.md` **§0.5 / §1.0** · 用例�
 - harness / suite：`harness/local-full-suite-verification.md`（gate effective as policy；suite **`post_suite_dual_pass`** honesty only；禁宣称 suite green）。
 - 切片/评测/收据/post-run：`g7-full-suite-plan.slice.md` · `eval/g7-full-suite-plan.eval.md` · `receipts/2026-09-16-g7-full-suite-run.md` · `reviews/2026-09-16-g7-full-suite-post-run-mw-e2e-ha.md` + `…-mw-rag-route.md`。
 
-*G7 授权改钉生效 + full-suite post_suite_dual_pass（honesty only）：Meetwise 交付硬闸 · 2026-09-16 ~19:38 PT · releaseEvidence=false · ≠HA · ≠ suite green · ≠ full suite pass · R2/R4 open · G7 effective as policy ≠ suite green*
+*G7 授权改钉生效 + full-suite post_suite_dual_pass（honesty only）：Meetwise 交付硬闸 · tip 2026-09-17 · dual on 7509f4f · 45×0/0×nonzero/3×Key-blocked · releaseEvidence=false · ≠HA · ≠ suite green · ≠ full suite pass · R2/R4 open · Dual PASS ≠ self-approve green close · G7 effective as policy ≠ suite green*
