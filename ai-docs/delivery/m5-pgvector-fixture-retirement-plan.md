@@ -1,5 +1,15 @@
 # M5 — pgvector prove 夹具退役计划（R5）
 
+> **2026-09-17 (~01:15 PT) · STOPPED / superseded by PG-retained direction**  
+> Meetwise ruling (**hard**): **vector does NOT migrate to Qdrant** — continue **Postgres pgvector**.  
+> Retained truth stack: **Postgres (+pgvector + PostgresSaver)**. Ban replace-pgvector / sole-Qdrant-vector cutover.  
+> Prior status preserved below for history; **do not delete**. Further Qdrant-as-required-vector work on this artifact is **banned**.  
+> MySQL relational cutover likewise superseded; **Redis wake** remains separately evaluable (not canceled).  
+> `releaseEvidence=false` · ≠HA · ≠suite green · Ban implementing vector cutover from this pin · Dual PASS ≠ authorize coding.
+
+**Prior status (historical)**: plan draft · R5 fixture retirement toward sole MySQL+Qdrant+Redis
+
+
 **状态**：plan draft · **releaseEvidence=false** · Not HA · 不宣称 controlPlaneClosed  
 **栈裁定**：**MySQL + Qdrant + Redis** 为架构 **当前唯一真相**（sole stack）；本文件是 **R5 夹具退役计划**，不是向量真相切流、不是生产检索改造。  
 **本切片范围（协调方已确认）**：**仅计划文档** + 静态 `mysql-stack:m5-fixtures:prove`；**不切向量真相** / **不切 pgvector serving** / **不切 qbank 生产路径** / **不改 production retrieval**；**不宣称题域隔离已关**；**不宣称 RAG 已切流 / cutover**。  

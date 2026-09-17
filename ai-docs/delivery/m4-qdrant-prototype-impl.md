@@ -1,5 +1,15 @@
 # M4 — Qdrant client / collection / 擦除 sink 雏形（实现切片）
 
+> **2026-09-17 (~01:15 PT) · STOPPED / superseded by PG-retained direction**  
+> Meetwise ruling (**hard**): **vector does NOT migrate to Qdrant** — continue **Postgres pgvector**.  
+> Retained truth stack: **Postgres (+pgvector + PostgresSaver)**. Ban replace-pgvector / sole-Qdrant-vector cutover.  
+> Prior status preserved below for history; **do not delete**. Further Qdrant-as-required-vector work on this artifact is **banned**.  
+> MySQL relational cutover likewise superseded; **Redis wake** remains separately evaluable (not canceled).  
+> `releaseEvidence=false` · ≠HA · ≠suite green · Ban implementing vector cutover from this pin · Dual PASS ≠ authorize coding.
+
+**Prior status (historical)**: implemented prototype · INFLIGHT:qdrant-store-wip · not vector truth cutover yet
+
+
 **状态**：implemented prototype · **releaseEvidence=false** · Not HA · 不宣称 controlPlaneClosed  
 **栈裁定**：**MySQL + Qdrant + Redis sole stack**（架构唯一真相）。  
 **硬钉**：**不切向量真相**；不删/不禁用 pgvector 活路径（`retrieval-store.ts` `annSearch`、`vectorstore.proof`、`E2E_PG_IMAGE`）。Additive only（独立包）。  

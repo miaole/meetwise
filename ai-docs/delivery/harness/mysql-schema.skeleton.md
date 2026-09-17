@@ -1,5 +1,15 @@
 # Harness — MySQL schema 骨架
 
+> **2026-09-17 (~01:15 PT) · STOPPED / superseded by PG-retained direction**  
+> Meetwise ruling (**hard**): **NO business DB migration to MySQL.** Relational DB + LangGraph checkpoint **keep Postgres** (`PostgresSaver` / RLS / migration **0043** path retained).  
+> `packages/db-mysql` / `compose.mysql-local` are **NOT** sole cutover targets. Ban knives that replace PG business tables with MySQL.  
+> Prior status preserved below for history; **do not delete**. Further MySQL-relational cutover work on this artifact is **banned**.  
+> Qdrant vector cutover likewise superseded (see sibling pins); **Redis wake** remains separately evaluable (not canceled).  
+> `releaseEvidence=false` · ≠HA · ≠suite green · Ban implementing cutover from this pin · Dual PASS ≠ authorize coding.
+
+**Prior status (historical)**: active skeleton harness · review `2026-09-10-mysql-schema-mw-e2e-ha.md` **conditional** · INFLIGHT:mysql-schema-prove / GAP-SCH-01
+
+
 **releaseEvidence=false** · **Not HA** · **本绿 ≠ 已迁 / ≠ cutover**  
 **硬约束**：不删 PG migrations；不弱化 RLS / `principal.ts` `set_config`；不切向量。  
 **应用层 tenant ≠ RLS 等价物**（`owner_user_id` 列就绪 ≠ 授权根已迁）。

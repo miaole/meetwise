@@ -1,5 +1,15 @@
 # Harness — G5 P16 Qdrant receipt → 0091 ledger schema/mapping（fail-closed PREREQ）
 
+> **2026-09-17 (~01:15 PT) · STOPPED / superseded by PG-retained direction**  
+> Meetwise ruling (**hard**): **vector does NOT migrate to Qdrant** — continue **Postgres pgvector**.  
+> Retained truth stack: **Postgres (+pgvector + PostgresSaver)**. Ban replace-pgvector / sole-Qdrant-vector cutover.  
+> Prior status preserved below for history; **do not delete**. Further Qdrant-as-required-vector work on this artifact is **banned**.  
+> MySQL relational cutover likewise superseded; **Redis wake** remains separately evaluable (not canceled).  
+> `releaseEvidence=false` · ≠HA · ≠suite green · Ban implementing vector cutover from this pin · Dual PASS ≠ authorize coding.
+
+**Prior status (historical)**: P16 Qdrant ledger map honesty
+
+
 **状态**：eval-honesty · **releaseEvidence=false** · **Not HA** · **≠ covered** · **≠ cutover** · **≠ privacy covered**  
 **硬句**：**schema/mapping prove ≠ 0091 ledger 可写 / 对齐**；**P16 ≠ 关 G5**；**禁止**把本 EXIT=0 写成公开 DELETE 200/202 / erasure complete / ledger 对齐。  
 **前驱**：`qdrant-g5-erasure-ledger.md`（**P15** subject erase + countable receipt + recall=0）  

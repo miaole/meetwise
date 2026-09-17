@@ -1,5 +1,12 @@
 # Harness — Redis Streams wakeup 最小原型
 
+> **2026-09-17 (~01:15 PT) · orthogonal under PG-retained**  
+> Meetwise ruled **Postgres (+pgvector + PostgresSaver)** retained; MySQL relational + Qdrant vector cutovers **STOPPED**.  
+> **Redis wake remains separately evaluable** — this knife is **NOT** canceled by the PG-retained ruling.  
+> Former framing that required MySQL sole relational / Qdrant sole vector as prereq for wakeup eval is **superseded**; wakeup may be evaluated against the retained Postgres business path.  
+> `releaseEvidence=false` · ≠HA · ≠suite green · Ban treating this note as wakeup cutover authorized.
+
+
 **releaseEvidence=false** · **Not HA** · **本绿 ≠ 已迁**  
 **硬约束**：不切生产 `job-wakeup-listener` / `pg_notify`；新路径默认 flag 关（`MEETWISE_WAKEUP_REDIS_STREAMS=0`）。
 

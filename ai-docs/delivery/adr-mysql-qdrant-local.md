@@ -1,7 +1,17 @@
 # ADR — MySQL + Qdrant + Redis（当前唯一真相栈）
 
-**状态**：draft · **releaseEvidence=false** · 不宣称生产 HA / controlPlaneClosed  
-**栈裁定**：**MySQL 8.0+ + Qdrant + Redis** 为交付与架构文档的 **当前唯一真相**；切流须 prove 绿 + 独立审查，禁止自批。  
+> **2026-09-17 (~01:15 PT) · SUPERSEDED (relational + vector-cutover portions)**  
+> Meetwise hard ruling: **NO business DB migration to MySQL**; **NO vector cutover to Qdrant**.  
+> Retained truth stack: **Postgres (+pgvector + PostgresSaver / RLS / migration 0043 path)**.  
+> Claims in this ADR that assert **MySQL as sole/required relational truth** or **Qdrant as required sole vector** are **superseded**. History preserved — do not invent false prior acceptance.  
+> See successor: `adr-postgres-retained.md`.  
+> **Redis wake** remains separately evaluable (orthogonal; not canceled).  
+> `packages/db-mysql` / `compose.mysql-local` / `@meetwise/qdrant-store` may remain as historical/experimental artifacts — **NOT** sole cutover targets.  
+> `releaseEvidence=false` · ≠HA · ≠suite green · Ban implementing MySQL/Qdrant cutover from this ADR.
+
+
+**状态**：draft · **relational+vector portions SUPERSEDED 2026-09-17** · **releaseEvidence=false** · 不宣称生产 HA / controlPlaneClosed  
+**栈裁定（HISTORICAL · superseded 2026-09-17）**：**MySQL 8.0+ + Qdrant + Redis** 曾被写为唯一真相 — **relational+vector claims superseded**; retained = **Postgres (+pgvector + PostgresSaver)**; Redis wake still separately evaluable；切流须 prove 绿 + 独立审查，禁止自批。  
 **实现方不自批**：合入前须 `mw-privacy-int` / `mw-model-op` / `mw-rag-route` / `mw-e2e-ha` 独立审查 + prove 退出码。
 
 ## 背景

@@ -1,5 +1,15 @@
 # Harness — G1 default isolation switch PREP（清单 / 回滚 · 本轮不翻默认）
 
+> **2026-09-17 (~01:15 PT) · STOPPED / superseded by PG-retained direction**  
+> Meetwise ruling (**hard**): **vector does NOT migrate to Qdrant** — continue **Postgres pgvector**.  
+> Retained truth stack: **Postgres (+pgvector + PostgresSaver)**. Ban replace-pgvector / sole-Qdrant-vector cutover.  
+> Prior status preserved below for history; **do not delete**. Further Qdrant-as-required-vector work on this artifact is **banned**.  
+> MySQL relational cutover likewise superseded; **Redis wake** remains separately evaluable (not canceled).  
+> `releaseEvidence=false` · ≠HA · ≠suite green · Ban implementing vector cutover from this pin · Dual PASS ≠ authorize coding.
+
+**Prior status (historical)**: eval-honesty · G1 OPEN · prep only · default still pgvector-legacy · flip NOT open
+
+
 **状态**：eval-honesty · **releaseEvidence=false** · **Not HA** · **≠ covered** · **≠ cutover** · **≠ migrated** · **G1 仍 OPEN**  
 **平行**：`r5-retirement-sole-stack-status.md` **G1** · `r5-pgvector-fixture-mark-red.md` · `retrieval-backend-qdrant.md`（P14）· dual-pass P8–P15  
 **硬句**：**本切片 = PREP only**（harness / 清单 / 回滚 / 静态 prove）；**FORBIDDEN 本轮翻默认** — `E2E_ISOLATION_STACK` 缺省仍必须写入 `pgvector-legacy`；**本绿 ≠ 已迁**；**本绿 ≠ 默认已切 sole**；**prep landed ≠ flip open**。

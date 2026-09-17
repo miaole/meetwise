@@ -1,5 +1,12 @@
 # M3 — 队列 / Wakeup / Claim / Reconcile 选型（Q1–Q5）
 
+> **2026-09-17 (~01:15 PT) · orthogonal under PG-retained**  
+> Meetwise ruled **Postgres (+pgvector + PostgresSaver)** retained; MySQL relational + Qdrant vector cutovers **STOPPED**.  
+> **Redis wake remains separately evaluable** — this knife is **NOT** canceled by the PG-retained ruling.  
+> Former framing that required MySQL sole relational / Qdrant sole vector as prereq for wakeup eval is **superseded**; wakeup may be evaluated against the retained Postgres business path.  
+> `releaseEvidence=false` · ≠HA · ≠suite green · Ban treating this note as wakeup cutover authorized.
+
+
 **状态**：selection draft · **releaseEvidence=false** · Not HA · 不宣称 controlPlaneClosed  
 **栈裁定**：**MySQL + Qdrant + Redis** 为架构 **当前唯一真相**；本文件写 **目标队列设计选型**，不是旧栈对照 memoir。  
 **本切片范围（协调方已确认）**：**仅选型文档覆盖 Q1–Q5**；**不切生产 wakeup**；**不宣称 MODEL-OP reconciler 已接 / 已切**。  

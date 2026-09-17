@@ -1,5 +1,15 @@
 # Harness — G5 Qdrant erasure ledger honesty（subject erase · countable receipt）
 
+> **2026-09-17 (~01:15 PT) · STOPPED / superseded by PG-retained direction**  
+> Meetwise ruling (**hard**): **vector does NOT migrate to Qdrant** — continue **Postgres pgvector**.  
+> Retained truth stack: **Postgres (+pgvector + PostgresSaver)**. Ban replace-pgvector / sole-Qdrant-vector cutover.  
+> Prior status preserved below for history; **do not delete**. Further Qdrant-as-required-vector work on this artifact is **banned**.  
+> MySQL relational cutover likewise superseded; **Redis wake** remains separately evaluable (not canceled).  
+> `releaseEvidence=false` · ≠HA · ≠suite green · Ban implementing vector cutover from this pin · Dual PASS ≠ authorize coding.
+
+**Prior status (historical)**: P15 Qdrant erasure sink honesty
+
+
 **状态**：eval-honesty · **releaseEvidence=false** · **Not HA** · **≠ covered** · **≠ cutover** · **≠ privacy covered**  
 **硬句**：**recall=0 + countable receipt ≠ 0091 ledger**；**本绿 ≠ 已迁**；**禁止**把本 EXIT=0 写成公开 DELETE 200/202 / erasure complete / ledger 对齐。  
 **平行**：`qdrant-erase-count-honesty.md`（count only）· `privacy-erasure-http-503-pin.md`（公开 DELETE 仍 503）· `r5-retirement-sole-stack-status.md` **G5** · GAP-PRIV-04

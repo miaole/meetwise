@@ -1,5 +1,15 @@
 # M2 — App-level tenant enforcement prototype（实现切片）
 
+> **2026-09-17 (~01:15 PT) · STOPPED / superseded by PG-retained direction**  
+> Meetwise ruling (**hard**): **NO business DB migration to MySQL.** Relational DB + LangGraph checkpoint **keep Postgres** (`PostgresSaver` / RLS / migration **0043** path retained).  
+> `packages/db-mysql` / `compose.mysql-local` are **NOT** sole cutover targets. Ban knives that replace PG business tables with MySQL.  
+> Prior status preserved below for history; **do not delete**. Further MySQL-relational cutover work on this artifact is **banned**.  
+> Qdrant vector cutover likewise superseded (see sibling pins); **Redis wake** remains separately evaluable (not canceled).  
+> `releaseEvidence=false` · ≠HA · ≠suite green · Ban implementing cutover from this pin · Dual PASS ≠ authorize coding.
+
+**Prior status (historical)**: implemented prototype · framed under MySQL+Qdrant+Redis sole stack (additive on `packages/db`; tenant≠RLS still true under PG-retained)
+
+
 **状态**：implemented prototype · **releaseEvidence=false** · Not HA · 不宣称 controlPlaneClosed  
 **栈裁定**：**MySQL + Qdrant + Redis sole stack**（架构唯一真相）；本切片仅落地 **additive** 应用层 tenant 强制原型。  
 **硬约束**：Do NOT delete/weaken RLS、`principal.ts` `set_config`、或 FORCE policies。**应用层 tenant ≠ RLS**；**授权根不得静默降级**。  

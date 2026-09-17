@@ -1,5 +1,15 @@
 # Harness — opt-in minimal memory vector prove via Qdrant（G2 子切片 · P13 · opt-in）
 
+> **2026-09-17 (~01:15 PT) · STOPPED / superseded by PG-retained direction**  
+> Meetwise ruling (**hard**): **vector does NOT migrate to Qdrant** — continue **Postgres pgvector**.  
+> Retained truth stack: **Postgres (+pgvector + PostgresSaver)**. Ban replace-pgvector / sole-Qdrant-vector cutover.  
+> Prior status preserved below for history; **do not delete**. Further Qdrant-as-required-vector work on this artifact is **banned**.  
+> MySQL relational cutover likewise superseded; **Redis wake** remains separately evaluable (not canceled).  
+> `releaseEvidence=false` · ≠HA · ≠suite green · Ban implementing vector cutover from this pin · Dual PASS ≠ authorize coding.
+
+**Prior status (historical)**: P13 Qdrant memory prove path (not default)
+
+
 **状态**：eval-honesty · **releaseEvidence=false** · **Not HA** · **≠ covered** · **≠ cutover** · **≠ memory on Qdrant default** · **G2 仍 GAP**  
 **平行**：`qdrant-rag-prove.md`（P13 sibling）· `qdrant-vectorstore-prove.md`（P12）· `qdrant-vectorstore-adapter.md`（P11）· `r5-retirement-sole-stack-status.md` G2  
 **硬句**：本绿 ≠ 已迁；**standalone package script only（不得入 `SOLE_WIRING_ALLOWLIST`）**；**不得**把本 EXIT=0 写成 `memory*` **默认**已切 Qdrant；**不得**宣称 lean `memory:prove`（episode）或 two-stage recall covered；**不得**切 `E2E_ISOLATION_STACK` 默认离 `pgvector-legacy`。
