@@ -1,13 +1,14 @@
 # Harness — **W4** · R2 close-auth REQUEST prep（authorize checklist / receipt）
 
-**Status**: **`REQUEST-ready / not_run:pre_dual`**  
-**Date**: 2026-09-17 (~01:25 PT)  
-**releaseEvidence=false** · **≠HA** · **≠suite green** · **≠ R2 closed** · **≠ verbal route-effective** · **≠ controlPlaneClosed** · **≠ R1 closed** · **≠ R4 / FUNNEL dual-closed**  
-**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec REQUEST pair · **not yet dual-sent** · **zero coding / zero prove** · **Ban self-approve** · **Dual PASS ≠ authorize coding**）  
+**Status**: **`post_prove_dual_pass`**  
+**Date**: 2026-09-17 (~01:33 PT)  
+**releaseEvidence=false** · **≠HA** · **≠suite green** · **≠ R2 closed** · **≠ verbal route-effective** · **≠ controlPlaneClosed** · **≠ R1 closed** · **≠ R4 / FUNNEL dual-closed** · **≠ coding authorized**  
+**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **PASS** · **Ban self-approve** · **Dual PASS ≠ authorize coding** · **zero coding / zero prove**）  
 **Note**: `mw-model-op` **not** on this REQUEST pair — domain may need model-op **later** if live-Key / MODEL-OP binding honesty is folded in; **not** required for this docs-only close-auth prep  
 **Slice**: `../w4-r2-close-authorize-receipt.slice.md`  
 **Eval**: `../eval/w4-r2-close-authorize-receipt.eval.md`  
-**Authority**: meetwise — docs-only **separate authorize list** for R2 close prep · Ban claiming R2 closed · order after authorize track: **R1 → R4/FUNNEL** · F8 MS3 **may merge** this track **after** its post-prove · PG+pgvector+PostgresSaver retained
+**Authority**: meetwise — docs-only **separate authorize list** for R2 close prep · Ban claiming R2 closed · order after authorize track: **R1 → R4/FUNNEL** · F8 MS3 **may merge** this track **after** its post-prove · PG+pgvector+PostgresSaver retained  
+**Honesty**: Dual reviews against knife SHA **`25833fc`**. Docs close = checklist prep dual only · **R2 still NOT closed** · **no** SSOT flip · Dual PASS ≠ authorize coding / R2 close
 
 ---
 
@@ -19,7 +20,18 @@
 | **What this knife is not** | **Not** coding · **not** prove · **not** SSOT silent flip · **not** claiming R2 closed · **not** verbal「路由已生效」 · **not** R1/R4/FUNNEL close · **not** F8 post-prove self-approve · **not** HA/suite |
 | **R2 closed after Dual PASS here?** | **NO** — Dual PASS ≠ authorize coding · **Ban** claiming R2 closed from this knife |
 | **Separate authorize** | This knife **drafts** the authorize list only · actual close/SSOT flip needs a **later separate authorize** (not self-serve) |
-| **Now** | **`REQUEST-ready / not_run:pre_dual`** · zero coding · Ban self-approve |
+| **Now** | **`post_prove_dual_pass`** · docs-only close · zero coding · Ban self-approve · **R2 NOT closed** |
+
+---
+
+## Dual receipts (pre-exec · archived)
+
+| Expert | Receipt | Verdict |
+|--------|---------|---------|
+| `mw-e2e-ha` | `../reviews/2026-09-17-w4-r2-close-authorize-receipt-mw-e2e-ha.md` | **pass** |
+| `mw-rag-route` | `../reviews/2026-09-17-w4-r2-close-authorize-receipt-mw-rag-route.md` | **pass** |
+
+Dual knife SHA: **`25833fc93a9e1bb6a2337665bd9648fdb9f8ee1c`** (short **`25833fc`**). Docs close only — **≠** R2 closed · **≠** routing already effective · **≠** coding authorized.
 
 ---
 
@@ -28,14 +40,14 @@
 | Artifact | Path | Honest status |
 |----------|------|---------------|
 | Parent harness | `harness/r2-classify-job-route.md` | R2 product wire track · **R2 NOT closed** |
-| Status SSOT | `harness/r2-classify-job-route-status.md` | P-MODEL…P-FAKE CLOSED · G-R2-5 retrieve-side CLOSED · P-LIVE dual receipts pass · P-HARNESS `pre_exec_dual_pass` / `await_authorize` · **≠ verbal 生效** |
+| Status SSOT | `harness/r2-classify-job-route-status.md` | P-MODEL…P-FAKE CLOSED · G-R2-5 retrieve-side CLOSED · P-LIVE dual receipts pass · P-HARNESS `pre_exec_dual_pass` / `await_authorize` · **≠ verbal 生效** · **SSOT not flipped by this W4 close** |
 | Remaining gates inventory | `delivery/r2-remaining-gates.inventory.md` | **`pre_exec_dual_pass` / `await_authorize`** · R2 NOT closed · G-R2-8 named remaining |
 | P-HARNESS / G-R2-8 | `harness/r2-p-harness-agree.md` | **`pre_exec_dual_pass` / `await_authorize`** · dual reviews **pass** · SSOT/prove **await separate authorize** · **forbids** self-declaring R2 closed |
 | P-HARNESS dual reviews | `reviews/2026-09-16-r2-p-harness-agree-mw-{rag-route,e2e-ha}.md` | both **pass** |
 | P-LIVE dual reviews | `reviews/2026-09-16-r2-p-live-route-effective-mw-{model-op,rag-route}.md` | both **pass** · structural only |
 | G7-K1 lifecycle | `harness/g7-k1-r2-p-live-status-lifecycle.md` | lifecycle pin: dual → harness agree → **await authorize** · ≠ verbal |
 | GAP-RAG-02 | `gap-bug-backlog.md` | R2 still NOT closed · await separate authorize |
-| F8 MS3 (parallel) | `harness/r4-f8-p-meta-ms3-deploy-product.md` | **`executed:awaiting_post_prove_dual`** · may **merge** R2 close-auth track **after** post-prove · **Ban** folding F8 green into R2 closed |
+| F8 MS3 (parallel) | `harness/r4-f8-p-meta-ms3-deploy-product.md` | may **merge** R2 close-auth track **after** post-prove · **Ban** folding F8 green into R2 closed |
 
 ### Product / wire gates (G-R2-*) honesty
 
@@ -47,11 +59,11 @@
 | Verbal / narrative 路由已生效 | **open (forbidden)** | Honesty pin only |
 | Live Key invoke | **open / not claimed** | Optional later · **not** required for structural close-auth list |
 | R1 tech-role fail-closed | **open** (separate) | **After** R2-auth in recommended order |
-| R4 / FUNNEL / G-R4-5 | **open** (F8 awaiting post-prove dual) | **After** R1 in recommended order |
+| R4 / FUNNEL / G-R4-5 | **open** | **After** R1 in recommended order |
 | R5 rag03 fixture | **open** | Must not be used as route-effective proof |
 | G7 Local Full-Suite | **draft · not effective** | ≠ R2 close |
 
-**Headline**: R2 is **NOT closed**. Highest-value remaining control-plane step is **separate authorize** after P-HARNESS dual (already pass). This W4 knife **only documents** that checklist — it does **not** perform or claim the authorize.
+**Headline**: R2 is **NOT closed**. Highest-value remaining control-plane step is **separate authorize** after P-HARNESS dual (already pass). This W4 knife **documented** that checklist and closed as **`post_prove_dual_pass`** (docs-only) — it does **not** perform or claim the R2 authorize / SSOT flip.
 
 ---
 
@@ -66,9 +78,9 @@
 | A5 | Remaining-after list: Live Key optional · **R1 next** · R5 fixture · **R4/FUNNEL after R1** · G7 draft | yes | §3 |
 | A6 | F8 MS3 merge rule: may join this track **only after** F8 `post_prove_dual_pass` · Ban using F8 EXIT=0 as R2 closed | yes | pinned |
 | A7 | `releaseEvidence=false` · ≠HA · ≠suite · Dual PASS ≠ authorize coding · Ban self-approve | yes | pinned |
-| A8 | **No** coding / prove run as fake close | yes | `not_run:pre_dual` |
+| A8 | **No** coding / prove run as fake close | yes | docs close only · **R2 NOT closed** |
 
-**Ban**: implementer must **not** write pass · must **not** flip SSOT · must **not** claim R2 closed · must **not** treat Dual PASS on W4 as coding authorize.
+**Ban**: implementer must **not** write R2 pass · must **not** flip SSOT · must **not** claim R2 closed · must **not** treat Dual PASS on W4 as coding authorize. Later real coding (R2 SSOT flip) needs **separate REQUEST**.
 
 ---
 
@@ -76,7 +88,7 @@
 
 | Order | Track | Note |
 |-------|-------|------|
-| 1 | **R2 close-auth** (this prep → later separate authorize) | Still open · Ban claiming closed here |
+| 1 | **R2 close-auth** (this prep closed docs-only → later separate authorize) | Still open · Ban claiming closed here |
 | 2 | **R1** tech-role fail-closed | Separate knife · depends on route honesty |
 | 3 | **R4 / FUNNEL** (incl. F8 MS3 after post-prove) | F8 may **merge** into close-auth narrative **after** post-prove dual · still ≠ R4 closed alone |
 | — | Live Key / G7 / R5 | Orthogonal or later · Ban folding into R2 closed |
@@ -92,6 +104,7 @@
 5. `releaseEvidence=false` · ≠HA · ≠suite green · ≠ controlPlaneClosed  
 6. Zero coding · zero prove · PG+pgvector+PostgresSaver retained  
 7. `mw-model-op` optional later · not on this REQUEST pair  
+8. **No SSOT flip** to R2 closed in this close
 
 ---
 
@@ -99,14 +112,14 @@
 
 | CMD | Status |
 |-----|--------|
-| docs dual only | **`not_run:pre_dual`** · **no prove script** · zero coding |
+| docs dual only | **`post_prove_dual_pass`** · dual receipts archived · knife SHA **`25833fc`** · **no prove script** · zero coding |
 
 ---
 
 ## 6. Non-claims
 
-Not pass · not R2 closed · not verbal 生效 · not coding authorized · not SSOT flipped · not R1/R4/FUNNEL closed · not F8 post-prove self-approve · not HA · not suite · Dual PASS ≠ authorize coding
+Docs close **`post_prove_dual_pass` only** · not R2 closed · not verbal 生效 · not coding authorized · not SSOT flipped · not R1/R4/FUNNEL closed · not F8 post-prove self-approve · not HA · not suite · Dual PASS ≠ authorize coding · `releaseEvidence=false`
 
 ---
 
-*Harness · W4 R2 close-auth REQUEST prep · 2026-09-17 (~01:25 PT) · REQUEST-ready / not_run:pre_dual · releaseEvidence=false · ≠HA · ≠suite · R2 NOT closed · Ban claim R2 closed · Dual PASS ≠ authorize coding · zero coding · Ban self-approve*
+*Harness · W4 R2 close-auth REQUEST prep · 2026-09-17 (~01:33 PT) · post_prove_dual_pass · dual on 25833fc · releaseEvidence=false · ≠HA · ≠suite · R2 NOT closed · Ban claim R2 closed · Dual PASS ≠ authorize coding · zero coding · Ban self-approve*

@@ -1,11 +1,12 @@
-# Eval — **W4** · R2 close-auth REQUEST prep（**`REQUEST-ready / not_run:pre_dual`**）
+# Eval — **W4** · R2 close-auth REQUEST prep（**`post_prove_dual_pass`**）
 
-**Date**: 2026-09-17 (~01:25 PT)  
-**run-status**: **`REQUEST-ready / not_run:pre_dual`** · **zero coding · zero prove** · await pre-exec dual · **Dual PASS ≠ authorize coding**  
-**releaseEvidence=false** · **Not HA** · **≠suite green** · **≠ R2 closed** · **≠ verbal route-effective**  
+**Date**: 2026-09-17 (~01:33 PT)  
+**run-status**: **`post_prove_dual_pass`** · **zero coding · zero prove** · pre-exec dual **PASS** · **Dual PASS ≠ authorize coding** · **R2 NOT closed**  
+**releaseEvidence=false** · **Not HA** · **≠suite green** · **≠ R2 closed** · **≠ verbal route-effective** · **≠ coding authorized**  
 **Harness**: `ai-docs/delivery/harness/w4-r2-close-authorize-receipt.md`  
 **Slice**: `ai-docs/delivery/w4-r2-close-authorize-receipt.slice.md`  
-**Dual**: pre-exec REQUEST **drafted** · **not yet dual-sent** · no self-approve
+**Dual**: `reviews/2026-09-17-w4-r2-close-authorize-receipt-mw-e2e-ha.md` + `…-mw-rag-route.md` → **pass** · knife SHA **`25833fc`** · no self-approve  
+**Honesty**: Dual was on **`25833fc`**; docs close = checklist prep only · **no** R2 SSOT flip · Dual PASS ≠ authorize coding / R2 close
 
 ---
 
@@ -21,10 +22,10 @@ Expert **pre-exec** checklist for W4 docs-only R2 close-auth REQUEST prep.
 | CMD / action | Expected | Actual | Read |
 |--------------|----------|--------|------|
 | R2 inventory honesty | present | **present** (harness §1) | R2 NOT closed · P-HARNESS await_authorize |
-| Separate authorize checklist | drafted | **drafted** (harness §2 A1–A8) | not executed |
+| Separate authorize checklist | drafted | **drafted** (harness §2 A1–A8) | not executed · SSOT not flipped |
 | Order R2-auth → R1 → R4/FUNNEL | pinned | **pinned** | F8 merge-after-post-prove |
-| Coding / prove | none | **none** | `not_run:pre_dual` |
-| Pre-exec dual | await | **REQUEST drafted · await** | Ban self-approve |
+| Coding / prove | none | **none** | docs-only close |
+| Pre-exec dual | PASS both domains | **`post_prove_dual_pass`** · receipts archived · knife SHA `25833fc` | Ban self-approve · Dual PASS ≠ coding · **≠ R2 closed** |
 
 ---
 
@@ -44,19 +45,28 @@ Expert **pre-exec** checklist for W4 docs-only R2 close-auth REQUEST prep.
 
 ## 4. Fake-green checklist（pre-exec · for experts）
 
-- [ ] Did not claim R2 closed / verbal 生效 / controlPlaneClosed  
-- [ ] Did not flip SSOT pointers  
-- [ ] Did not authorize coding from Dual PASS  
-- [ ] Did not treat F8 MS3 prove green as R2 closed  
-- [ ] Did not invent prove EXIT / self-approve  
-- [ ] Did not skip R1 / fold R4 into R2 close  
+- [x] Did not claim R2 closed / verbal 生效 / controlPlaneClosed  
+- [x] Did not flip SSOT pointers  
+- [x] Did not authorize coding from Dual PASS  
+- [x] Did not treat F8 MS3 prove green as R2 closed  
+- [x] Did not invent prove EXIT / self-approve  
+- [x] Did not skip R1 / fold R4 into R2 close  
 
 ---
 
-## 5. Non-claims
+## 5. Dual receipts
 
-Not pass · not R2 closed · not coding · not HA · not suite · Dual PASS ≠ authorize coding
+| Expert | Path | Verdict |
+|--------|------|---------|
+| `mw-e2e-ha` | `ai-docs/delivery/reviews/2026-09-17-w4-r2-close-authorize-receipt-mw-e2e-ha.md` | **pass** |
+| `mw-rag-route` | `ai-docs/delivery/reviews/2026-09-17-w4-r2-close-authorize-receipt-mw-rag-route.md` | **pass** |
 
 ---
 
-*Eval · W4 R2 close-auth REQUEST prep · 2026-09-17 (~01:25 PT) · REQUEST-ready / not_run:pre_dual · releaseEvidence=false · ≠HA · ≠suite · zero coding*
+## 6. Non-claims
+
+Docs close **`post_prove_dual_pass` only** · not R2 closed · not coding · not HA · not suite · Dual PASS ≠ authorize coding · `releaseEvidence=false` · no SSOT flip
+
+---
+
+*Eval · W4 R2 close-auth REQUEST prep · 2026-09-17 (~01:33 PT) · post_prove_dual_pass · dual on 25833fc · R2 NOT closed · releaseEvidence=false · ≠HA · ≠suite · zero coding*
