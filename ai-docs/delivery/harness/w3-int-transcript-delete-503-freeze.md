@@ -1,13 +1,25 @@
 # Harness — **W3** · INT-TRANSCRIPT-01 + DELETE=503 freeze（docs gate）
 
-**Status**: **`REQUEST-ready / not_run:pre_dual`**  
-**Date**: 2026-09-17 (~01:21 PT)  
-**releaseEvidence=false** · **≠HA** · **≠suite green** · **≠ deletion closed** · **≠ INT-TRANSCRIPT-01 coding authorized** · **≠ forge**  
-**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec REQUEST pair · **not yet dual-sent** · **zero coding / zero prove** · **Ban self-approve** · **Dual PASS ≠ authorize coding** · **Ban forge**）  
+**Status**: **`post_prove_dual_pass`**  
+**Date**: 2026-09-17 (~01:36 PT)  
+**releaseEvidence=false** · **≠HA** · **≠suite green** · **≠ deletion closed** · **≠ INT-TRANSCRIPT-01 coding authorized** · **≠ forge** · **≠ coding authorized** · **DELETE=503 freeze** · **Ban open DELETE** · **INT-TRANSCRIPT-01 still frozen/honest**  
+**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **PASS** · **Ban self-approve** · **Dual PASS ≠ authorize coding** · **zero coding / zero prove** · **Ban forge**）  
 **Slice**: `../w3-int-transcript-delete-503-freeze.slice.md`  
 **Eval**: `../eval/w3-int-transcript-delete-503-freeze.eval.md`  
 **Authority**: meetwise W0–W8 SSOT — privacy **fact-root** honesty: **INT-TRANSCRIPT-01** remains blocked until real gates · public **DELETE=503** freeze stays · Ban forge · PG retained · MySQL/Qdrant STOPPED  
 **Parent pointers**: `harness/privacy-erasure-http-503-pin.md` · `execution-master-checklist.md` (`INT-TRANSCRIPT-00/01`) · `gap-bug-backlog.md` GAP-PRIV-02/03 · BUG-PRIV-503 · SSOT `w0-w8-workflow-status.md`
+**Honesty**: Dual reviews against knife SHA **`3463e9e`**. Docs freeze close ≠ coding / DELETE release / 01 cutover · **DELETE=503 freeze** · **Ban open DELETE** · **INT-TRANSCRIPT-01 still frozen/honest**.
+
+---
+
+## Dual receipts (pre-exec · archived)
+
+| Expert | Receipt | Verdict |
+|--------|---------|---------|
+| `mw-e2e-ha` | `../reviews/2026-09-17-w3-int-transcript-delete-503-freeze-mw-e2e-ha.md` | **pass** |
+| `mw-rag-route` | `../reviews/2026-09-17-w3-int-transcript-delete-503-freeze-mw-rag-route.md` | **pass** |
+
+Dual SHA: **`3463e9e1af886518ea456a089c52761d3c7ed5a5`** (short **`3463e9e`**). Docs freeze honesty only · **Ban open DELETE** · **INT-TRANSCRIPT-01 still frozen**.
 
 ---
 
@@ -21,7 +33,7 @@
 | **DELETE=503** | Public `DELETE /privacy/interview-data/:id` **must stay 503** · existing `privacy-erasure:http:prove` pin · Ban narrative「删除已闭环」 |
 | **Ban forge** | Ban inventing dual pass · Ban fake receipts · Ban writing implementer pass · Ban forging sink/read=0 evidence |
 | **Parallel** | F8 MS3 + W1 + W2 may run parallel · neither blocks W3 · W3 must not block F8/W1/W2 |
-| **Now** | **`REQUEST-ready / not_run:pre_dual`** · zero coding this prep |
+| **Now** | **`post_prove_dual_pass`** · docs-only freeze close · zero coding · Dual PASS ≠ authorize coding / DELETE release · INT-TRANSCRIPT-01 still frozen |
 
 ---
 
@@ -67,7 +79,7 @@ If dual PASS: **only** docs freeze agreement. Separately required later (new REQ
 
 | CMD | Status |
 |-----|--------|
-| docs dual only | **`not_run:pre_dual`** · **no new prove this prep** · zero coding · Ban forge |
+| docs dual only | **`post_prove_dual_pass`** · dual receipts archived · SHA `3463e9e` · **no new prove this prep** · zero coding · Ban forge |
 
 (Existing pin CMD for later reference only · not run this prep: `pnpm privacy-erasure:http:prove` — remains the DELETE=503 honesty pin.)
 
@@ -75,8 +87,8 @@ If dual PASS: **only** docs freeze agreement. Separately required later (new REQ
 
 ## 5. Non-claims
 
-Not pass · not coding · not 01 cutover · not DELETE released · not erasure closed · not forge · not HA · not suite · Dual PASS ≠ authorize coding · F8/W1/W2 not blocked
+Docs close **`post_prove_dual_pass` only** · not coding · not 01 cutover · **DELETE=503 freeze** · **Ban open DELETE** · **INT-TRANSCRIPT-01 still frozen/honest** · not erasure closed · not forge · not HA · not suite · Dual PASS ≠ authorize coding · F8/W1/W2 not blocked · `releaseEvidence=false`
 
 ---
 
-*Harness · W3 INT-TRANSCRIPT-01 + DELETE=503 freeze · 2026-09-17 (~01:21 PT) · REQUEST-ready / not_run:pre_dual · releaseEvidence=false · ≠HA · ≠suite · Ban forge · Dual PASS ≠ authorize coding · zero coding*
+*Harness · W3 INT-TRANSCRIPT-01 + DELETE=503 freeze · 2026-09-17 (~01:36 PT) · post_prove_dual_pass · dual on 3463e9e · DELETE=503 freeze · Ban open DELETE · INT-TRANSCRIPT-01 still frozen/honest · releaseEvidence=false · ≠HA · ≠suite · Ban forge · Dual PASS ≠ authorize coding · zero coding*
