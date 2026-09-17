@@ -7,6 +7,7 @@
 **Slice**: `../pg-retained-checkpoint-postgres-saver.slice.md`  
 **Eval**: `../eval/pg-retained-checkpoint-postgres-saver.eval.md`  
 **Authority**: meetwise hard ruling 2026-09-17 — **NO** business DB migration to MySQL · **NO** vector cutover to Qdrant · retained = **Postgres (+pgvector + PostgresSaver / RLS / mig 0043)** · Redis wake **orthogonal / separately evaluable** · Ban branch-name justification via `feat/mysql-schema-skeleton`
+**Workflow SSOT**: this knife = **W0** · next = **W1** inventory ZERO deletes (`harness/w1-pg-redundant-table-inventory.md`) → later W1b (not open) → W2…W8 (not open)
 
 ---
 

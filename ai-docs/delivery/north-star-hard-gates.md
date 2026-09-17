@@ -4,6 +4,9 @@
 > Delivery truth stack for relational+vector = **Postgres (+pgvector + PostgresSaver)**. Former sole-stack MySQL+Qdrant claims **superseded**. Redis wake separately evaluable.  
 > `releaseEvidence=false` · ≠HA · ≠suite green · see `adr-postgres-retained.md`. G1–G7 gate *enforcement* unchanged by this overlay.
 
+> **2026-09-17 (~01:20 PT) · workflow SSOT (W0–W8 · additive)**  
+> Order: **W0** PG retained → **W1** redundant/obsolete inventory (**ZERO deletes**) → dual → later **W1b** (not open) → **W2…W8** (not open). See `harness/w1-pg-redundant-table-inventory.md`. Ban DROP in W1 · Dual PASS ≠ authorize W1b deletes · F8 parallel OK.
+
 
 **状态**：G1–G7 **已生效**（2026-09-16 双域文档闸齐 + meetwise 授权改钉） · **releaseEvidence=false** · **≠HA** / **Not HA** · 不宣称 `controlPlaneClosed=true`  
 **生效钉（G1–G6）**：2026-09-16 经 `mw-e2e-ha` + `mw-rag-route` 双域文档闸齐后，由协调 **授权改钉生效**。落库 / 实现方自书仍 **≠** 自批；矩阵 prove 仍须单独 REQUEST→独立审，**不得**借本文宣称非快乐路径执行面已跑绿 / covered / HA。  

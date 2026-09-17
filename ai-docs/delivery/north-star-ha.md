@@ -5,6 +5,10 @@
 > Line below that says sole stack = MySQL+Qdrant+Redis is **HISTORICAL / superseded** for relational+vector. Redis wake still separately evaluable.  
 > This overlay does **not** claim HA / suite green / releaseEvidence. See `adr-postgres-retained.md`.
 
+> **2026-09-17 (~01:20 PT) · workflow SSOT (W0–W8 · additive)**  
+> **W0** PG retained (in dual) → **W1** PG redundant/obsolete table inventory (**ZERO deletes** · `harness/w1-pg-redundant-table-inventory.md` · REQUEST-ready) → dual → later **W1b** merge/retire migrations (batch prove · **not open** · Dual PASS on W1 ≠ authorize deletes) → then **W2…W8** (**not opened** this turn).  
+> Ban DROP in W1 · Ban MySQL/Qdrant cutover revival · Ban claiming W8/HA from W1. F8 MS3 may run parallel and must not block W1.
+
 
 **状态**：目标声明 · **releaseEvidence=false** · **≠HA** · **不得叙事已 HA**
 **硬闸 SSOT**：`north-star-hard-gates.md`（G1–G7：可核验 · 非快乐路径 · 需求→评测→实现 · 独立审 · 禁假绿 · 性能负载 · **本地全量验证关**；**G7=已生效**（门禁强制；≠ 套件已绿））

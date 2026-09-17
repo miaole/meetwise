@@ -2,6 +2,8 @@
 
 > **2026-09-17 (~01:15 PT) · stack overlay**: retained truth = **Postgres (+pgvector + PostgresSaver)**. Former sole-stack **MySQL + Qdrant + Redis** relational+vector claims **superseded**. See `adr-postgres-retained.md`. Redis wake still separately evaluable. `releaseEvidence=false` · ≠HA · ≠suite green.
 
+> **2026-09-17 (~01:20 PT) · workflow SSOT (W0–W8)**: **W0** PG retained → **W1** PG redundant/obsolete inventory (**ZERO deletes** · REQUEST-ready · `harness/w1-pg-redundant-table-inventory.md`) → dual → later **W1b** (not open) → **W2…W8** (not open). Ban DROP in W1 · Dual PASS ≠ authorize deletes.
+
 **状态**：inventory draft · **releaseEvidence=false** · **Not HA** · 不宣称 `controlPlaneClosed=true`  
 **栈裁定（HISTORICAL overlay）**：**MySQL + Qdrant + Redis** 曾为唯一真相叙事 — **SUPERSEDED** for relational+vector; retained = **Postgres (+pgvector + PostgresSaver)**；实现方不自批。  
 **范围**：从 ADR（隐私不倒退 / R1–R5 / Q1–Q5）、M2–M5、reviews、execution-master-checklist / remediation-register **抽样硬缺口**、已知运行时钉、open PR #101–#107 上下文合成。  
