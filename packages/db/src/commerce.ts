@@ -39,6 +39,10 @@ export async function reserveEntitlement(
 ): Promise<ReserveResult> {
   await assertPrincipal(c, owner);
   if (units < MIN_UNIT) throw Object.assign(new Error('unit_below_minimum'), { code: 'unit_below_minimum', min: MIN_UNIT });
+  // Schema NOT NULL + UNIQUE(owner, key)：空 key 绝不可进 INSERT（undefined→SQL NULL 会炸成约束错，掩盖调用方丢 interviewId）
+  if (typeof idempotencyKey !== 'string' || idempotencyKey.length === 0) {
+    throw Object.assign(new Error('idempotency_key_required'), { code: 'idempotency_key_required' });
+  }
 
   // ① 幂等闸：先占坑,已存在则返回既有,绝不重复分配（同 key 不同 units 也按既有,不二次扣——掩盖客户端 bug,但保不重扣）
   const ins = await c.query(
