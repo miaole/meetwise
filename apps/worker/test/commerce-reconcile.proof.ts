@@ -8,8 +8,11 @@ import { randomUUID } from 'node:crypto';
 import {
   createPool, asPrincipal, reserveEntitlement, confirmConsumption, availableUnits,
   renewReservationLease, DEFAULT_LEASE_SECONDS, assertIsolatedTestTarget,
-  inviteCandidate, startApplicationInterview,
+  inviteCandidate, startApplicationInterview, createJob, classifyJobRoute,
 } from '@meetwise/db';
+
+// Test-only HMAC key for createJob/classifyJobRoute (same pattern as adaptive-life/rag03/r4; not production).
+process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'commerce-reconcile-job-route-input-hmac-proof-key-not-production-01';
 import { commerceReconcileTick, reconcileOwner } from '../src/commerce-reconcile.ts';
 
 const pool = createPool();
@@ -144,23 +147,41 @@ async function main() {
 
   section('⑦ B 端岗位面试的过期预留：评分不可用、释放一次、可创建下一 attempt');
   {
-    const owner = OWN('bound'), recruiter = OWN('bound-rec'), iidPrefix = IID('bound');
-    const jobId = `job-${iidPrefix}`, resumeId = randomUUID();
+    // R2 P-START：无 route_decided → start 拒启 interview_ineligible_route（无 interviewId）。
+    // 旧 raw job_posting INSERT 跳过 semantic revision / classify → reserve(undefined) 炸 NOT NULL idempotency_key。
+    // 诚实最小修：createJob → rule-classify → invite → start，再 reserve 真实 interviewId（同 adaptive-life B）。
+    const owner = OWN('bound'), recruiter = OWN('bound-rec');
+    const resumeId = randomUUID();
     await seedOwner(owner, 2.0);
-    await pool.query("INSERT INTO job_posting(id,owner_user_id,title,competencies,status) VALUES ($1,$2,'后端工程师',$3,'open')", [jobId, recruiter, JSON.stringify(['可靠性'])]);
+    const jobRow = await asPrincipal(pool, recruiter, (c) => createJob(c, recruiter, {
+      title: 'Node.js 服务端工程师',
+      description: '使用 NestJS 构建服务',
+      competencies: ['nestjs', 'express', 'koa'],
+    }));
+    const jobId = jobRow.id;
+    const rev = Number((await pool.query(
+      'SELECT COALESCE(MAX(revision),0)::int AS n FROM job_semantic_revision WHERE job_id=$1', [jobId],
+    )).rows[0].n);
+    const classify = await classifyJobRoute(pool, recruiter, jobId, rev, {
+      modelClassify: async () => { throw new Error('B-side seed must rule-decide; model path unexpected'); },
+    });
+    A('B 端岗位 rule-classified route_decided（start 前置）', classify.status === 'route_decided' && classify.attemptOutcome === 'rule_decided');
     await pool.query("INSERT INTO resume(id,owner_user_id,status,content_sha) VALUES ($1,$2,'ingested',$3)", [resumeId, owner, `reconcile:${owner}`]);
     const app = await asPrincipal(pool, recruiter, (c) => inviteCandidate(c, recruiter, jobId, owner));
-    const first = await asPrincipal(pool, owner, (c) => startApplicationInterview(c, owner, app!.applicationId, resumeId)) as any;
-    await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, first.interviewId, 'mock_interview', 1.0));
-    await expireLease(owner, first.interviewId);
+    const first = await asPrincipal(pool, owner, (c) => startApplicationInterview(c, owner, app!.applicationId, resumeId));
+    const firstInterviewId = (first.status === 'started' || first.status === 'reused') ? first.interviewId : undefined;
+    A('B 端 startApplicationInterview 返回 interviewId', typeof firstInterviewId === 'string' && firstInterviewId.length > 0);
+    if (!firstInterviewId) throw Object.assign(new Error('b_side_start_missing_interview_id'), { code: 'b_side_start_missing_interview_id', start: first });
+    await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, firstInterviewId, 'mock_interview', 1.0));
+    await expireLease(owner, firstInterviewId);
     await commerceReconcileTick(pool);
     const state = (await pool.query('SELECT status,score,interview_id,interview_attempt FROM job_application WHERE id=$1', [app!.applicationId])).rows[0];
     A('B 端过期会话 → assessment_unavailable、score=NULL、指针仍为旧 attempt', state?.status === 'assessment_unavailable'
-      && state?.score === null && state?.interview_id === first.interviewId && Number(state?.interview_attempt) === 1);
+      && state?.score === null && state?.interview_id === firstInterviewId && Number(state?.interview_attempt) === 1);
     A('B 端过期会话的 interview=failed 且额度 released 恰一次',
-      (await asPrincipal(pool, owner, (c) => c.query('SELECT status FROM interview WHERE id=$1', [first.interviewId]))).rows[0]?.status === 'failed'
-      && (await consStatus(owner, first.interviewId)) === 'released'
-      && (await evCount(owner, first.interviewId, 'assessment_unavailable')) === 1);
+      (await asPrincipal(pool, owner, (c) => c.query('SELECT status FROM interview WHERE id=$1', [firstInterviewId]))).rows[0]?.status === 'failed'
+      && (await consStatus(owner, firstInterviewId)) === 'released'
+      && (await evCount(owner, firstInterviewId, 'assessment_unavailable')) === 1);
     const retries = await Promise.all(Array.from({ length: 20 }, () => asPrincipal(pool, owner, (c) => startApplicationInterview(c, owner, app!.applicationId, resumeId))));
     const retryId = (retries.find((x: any) => x.status === 'started' || x.status === 'reused') as any)?.interviewId;
     const retry = (await pool.query('SELECT status,interview_id,interview_attempt,score FROM job_application WHERE id=$1', [app!.applicationId])).rows[0];
