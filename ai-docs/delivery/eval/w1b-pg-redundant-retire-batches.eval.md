@@ -1,7 +1,7 @@
-# Eval — **W1b** · PG redundant retire/trace batches（**`REQUEST-ready / not_run:pre_dual`**）
+# Eval — **W1b** · PG redundant retire/trace batches（**`executed:awaiting_post_prove_dual`**）
 
-**Date**: 2026-09-17 (~01:40 PT)  
-**run-status**: **`REQUEST-ready / not_run:pre_dual`** · dual **pending** · **zero coding · zero DROP · zero prove** · **Dual PASS on W1 ≠ auto-auth W1b coding** · Ban self-approve  
+**Date**: 2026-09-17 (~01:46 PT)  
+**run-status**: **`executed:awaiting_post_prove_dual`** · pre-exec dual **PASS** · Batch A+B **executed** · post-prove dual **pending** · **zero DROP** · **Dual PASS on W1 ≠ auto-auth W1b coding** · Ban self-approve · Ban self-write post_prove_dual_pass  
 **releaseEvidence=false** · **Not HA** · **≠suite green** · **≠ DROP** · **≠ delete batch** · **≠ MySQL/Qdrant cutover** · **≠ W8**  
 **Harness**: `ai-docs/delivery/harness/w1b-pg-redundant-retire-batches.md`  
 **Slice**: `ai-docs/delivery/w1b-pg-redundant-retire-batches.slice.md`  
@@ -27,9 +27,12 @@ Expert **pre-exec** checklist for W1b batched REQUEST open — docs/trace only.
 | DROP / destructive migrate | none | **none** | zero DROP · zero coding |
 | HARD RETAIN | forbidden in delete | **pinned** | qbank/pgvector/checkpoints/privacy/hot |
 | `proposed_next` | never `drop-now` | **pinned** | keep / document-only / candidate-for-trace |
-| REQUEST pair | e2e-ha + rag ready | **ready** | not yet dual-sent |
-| Coding / migrations | none | **none** | REQUEST docs only |
+| REQUEST pair | e2e-ha + rag pre-exec | **PASS** (archived) | post-prove dual pending |
+| Coding / migrations / DROP | none | **none** | Batch A docs + Batch B trace only · ZERO DROP |
 | W1 Dual PASS | ≠ W1b coding auth | **pinned** | Dual PASS ≠ auto-auth |
+| Batch A finalize | D-03…D-06 docs done | **done** | `receipts/w1b-batch-a-docs-finalize.md` |
+| Batch B trace | D-01/D-02/D-07 evidence | **done** | `receipts/w1b-batch-b-trace-evidence.md` · keep · no delete flags |
+| Status honesty | awaiting_post_prove_dual | **set** | Ban self-write post_prove_dual_pass |
 
 ---
 
@@ -37,13 +40,13 @@ Expert **pre-exec** checklist for W1b batched REQUEST open — docs/trace only.
 
 | ID | Eval point | Pass means | Dual |
 |----|------------|------------|------|
-| E1 | Agree W1b open = batched REQUEST from W1 D-01…D-07 · **ZERO DROP** · no delete batch | docs agree | **pending** |
-| E2 | Agree Batch A (D-03…D-06) = docs-only · document successor/mig/history · **not** delete | harness §2 | **pending** |
-| E3 | Agree Batch B (D-01, D-02, D-07) = trace-first · usage prove **before** any retire proposal · still **no DROP** | harness §2 | **pending** |
-| E4 | Agree Dual PASS on **W1 ≠** auto-authorize W1b coding / DROP | hard pin | **pending** |
-| E5 | Agree Dual PASS on **W1b ≠** authorize DROP / coding / merge-retire · separate prove+authorize later | hard pin | **pending** |
-| E6 | Agree HARD RETAIN (qbank/pgvector/checkpoints/privacy/hot) **FORBIDDEN** in any delete batch · **non-DROP-able** | harness §3 | **pending** |
-| E7 | Agree Ban inventing DROP targets not in W1 receipt · `proposed_next` never `drop-now` · MySQL/Qdrant STOPPED · `releaseEvidence=false` · ≠HA · ≠suite · ≠W8 · zero coding · Ban self-approve | hard pins | **pending** |
+| E1 | Agree W1b open = batched REQUEST from W1 D-01…D-07 · **ZERO DROP** · no delete batch | docs agree | **pre-exec PASS · post-prove pending** |
+| E2 | Agree Batch A (D-03…D-06) = docs-only · document successor/mig/history · **not** delete | harness §2 | **pre-exec PASS · post-prove pending** |
+| E3 | Agree Batch B (D-01, D-02, D-07) = trace-first · usage prove **before** any retire proposal · still **no DROP** | harness §2 | **pre-exec PASS · post-prove pending** |
+| E4 | Agree Dual PASS on **W1 ≠** auto-authorize W1b coding / DROP | hard pin | **pre-exec PASS · post-prove pending** |
+| E5 | Agree Dual PASS on **W1b ≠** authorize DROP / coding / merge-retire · separate prove+authorize later | hard pin | **pre-exec PASS · post-prove pending** |
+| E6 | Agree HARD RETAIN (qbank/pgvector/checkpoints/privacy/hot) **FORBIDDEN** in any delete batch · **non-DROP-able** | harness §3 | **pre-exec PASS · post-prove pending** |
+| E7 | Agree Ban inventing DROP targets not in W1 receipt · `proposed_next` never `drop-now` · MySQL/Qdrant STOPPED · `releaseEvidence=false` · ≠HA · ≠suite · ≠W8 · zero coding · Ban self-approve | hard pins | **pre-exec PASS · post-prove pending** |
 
 ---
 
@@ -68,4 +71,4 @@ REQUEST-ready only · not dual PASS · not DROP · not delete batch · not codin
 
 ---
 
-*Eval · W1b · 2026-09-17 (~01:40 PT) · REQUEST-ready / not_run:pre_dual · parent W1 dual on 675269c · releaseEvidence=false · ≠HA · ≠suite · ZERO DROP · no delete batch · Dual PASS on W1 ≠ coding · zero coding*
+*Eval · W1b · 2026-09-17 (~01:46 PT) · `executed:awaiting_post_prove_dual` · parent W1 dual on 675269c · releaseEvidence=false · ≠HA · ≠suite · ZERO DROP · no delete batch · Dual PASS on W1 ≠ coding · zero coding*
