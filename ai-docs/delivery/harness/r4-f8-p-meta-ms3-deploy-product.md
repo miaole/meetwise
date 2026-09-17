@@ -1,13 +1,13 @@
-# Harness — Knife **F8** · **MS3 standard deploy product handoff**（**`executed:awaiting_post_prove_dual`**）
+# Harness — Knife **F8** · **MS3 standard deploy product handoff**（**`post_prove_dual_pass`**）
 
-**Status**: **`executed:awaiting_post_prove_dual`**  
-**Date**: 2026-09-17 (~01:17 PT)  
+**Status**: **`post_prove_dual_pass`**  
+**Date**: 2026-09-17 (~01:34 PT)  
 **releaseEvidence=false** · **≠HA** · **≠ R4 closed** · **≠ 题域已隔离** · **≠ R1 closed** · **≠ FUNNEL-01 dual-closed** · **≠ flip default** · **≠ open DELETE** · **≠ suite green** · **sole 恰 5**  
-**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **PASS** · coding+prove **executed** · post-prove REQUEST drafted · **Ban self-approve `post_prove_dual_pass`**）  
+**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **PASS** · coding+prove **executed** · prove **EXIT=0** · post-prove dual **PASS** · expert re-run prove **EXIT=0** both domains · HEAD `927cfea`）  
 **Parent**: `harness/r4-domain-isolation.md` §2 / §6c.3 · `r4-domain-isolation-status.md` §13 · **G-R4-5 / MS3**  
 **Slice**: `../r4-f8-p-meta-ms3-deploy-product.slice.md`  
 **Eval**: `../eval/r4-f8-p-meta-ms3-deploy-product.eval.md`  
-**Authority**: meetwise — F7 = **`post_prove_dual_pass`**（MS2 facets served · HEAD `cedda0d`）· F8 pre-exec dual **PASS** + authorize coding+prove · **MS3 standard deploy product handoff LANDED**（`standardDeployProductHandoff=true` · ≠ forge）· prove **EXIT=0** · **MS1/MS2 stay true** · product FUNNEL classifier **true**（MS1+MS2+MS3）· **G-R4-5 / FUNNEL dual-claim STILL OPEN**（await post-prove dual · other gates may remain · Ban claiming closed）· **≠ R4 closed** · **releaseEvidence=false** · **Ban forge serving** · **Ban claiming R4/FUNNEL/R1/G-R4-5 dual-closed** · **Ban flip without authorize** · **Ban self-approve**
+**Authority**: meetwise — F7 = **`post_prove_dual_pass`**（MS2 facets served · HEAD `cedda0d`）· F8 pre-exec dual **PASS** + authorize coding+prove · **MS3 standard deploy product handoff LANDED**（`standardDeployProductHandoff=true` · ≠ forge）· prove **EXIT=0** · **post-prove dual PASS**（e2e-ha + rag-route · expert EXIT=0 · HEAD `927cfea`）→ harness **`post_prove_dual_pass`** · **MS1 true · MS2 served · MS3 true** · product FUNNEL classifier **true**（MS1+MS2+MS3）· **G-R4-5 / FUNNEL dual-claim STILL OPEN**（EXPECTED · other gates may remain · Ban claiming closed）· **≠ R4 closed** · **≠ 题域已隔离** · **≠ HA** · **releaseEvidence=false** · **Ban forge serving** · **Ban claiming R4/FUNNEL/R1/G-R4-5 dual-closed** · **Ban flip without authorize** · **Ban self-approve**
 
 ---
 
@@ -16,17 +16,17 @@
 | Statement | Ruling |
 |-----------|--------|
 | **What this knife is** | Land **standard / combo-root product deploy handoff** evidence（MS3 / G-R4-5）after F7 served MS2 facets but left `standardDeployProductHandoff=false` |
-| **What this knife is not** | Not R4 close · not 题域已隔离 · not HA · not suite green · not P-R1 fail-closed flip · not MODEL-OP · **not** forge serving · **not** self-approve `post_prove_dual_pass` · **not** MySQL/Qdrant cutover |
+| **What this knife is not** | Not R4 close · not 题域已隔离 · not HA · not suite green · not P-R1 fail-closed flip · not MODEL-OP · **not** forge serving · **not** G-R4-5/FUNNEL dual-claim closed · **not** MySQL/Qdrant cutover |
 | **Why F8 = MS3 deploy** | F7 closed MS2 facets · left `standardDeployProductHandoff=false` — clearest remaining G-R4-5 gap = **MS3 standard deploy product handoff** |
 | **MS1 pin** | **`routedServingProductConsumerWired=true`** MUST remain true（F6 dual-closed）· ≠ flip back |
 | **MS2 pin** | **`fullFacetsServed=true`** · `facetsServedOnProductPath` = required set（F7 dual-closed）· ≠ flip back |
 | **MS3 after this knife** | `standardDeployProductHandoff=true` via real handoff receipt（checklist：`local_01A_handoff_prove` · `combo_root_receipt` · `standard_or_cloud_deploy_receipt`）· **≠ forge** · **≠ claim R4 closed** |
-| **G-R4-5 / FUNNEL** | Product MS surfaces complete · product FUNNEL classifier **true** · **dual-claim STILL OPEN**（await post-prove dual · other gates may remain · Ban claiming closed）· MS3 alone ≠ R4/题域 closed |
+| **G-R4-5 / FUNNEL** | Product MS surfaces complete · product FUNNEL classifier **true** · **dual-claim STILL OPEN**（EXPECTED · knife dual-done ≠ G-R4-5/FUNNEL dual-claim closed · other gates may remain · Ban claiming closed）· MS3 alone ≠ R4/题域 closed |
 | **G-R4-3** | **STILL OPEN**（parallel · not preferred · Ban flip without authorize） |
 | **01A / product surfaces** | 01A seal + MS1 + MS2 + MS3 product surfaces → product FUNNEL classifier true · **still ≠** claim whole R4 / 题域已隔离 without other gates |
 | **Prior F7** | F7 = **`post_prove_dual_pass`** · MS2 served · HEAD `cedda0d` |
 | **MODEL-OP?** | **Not required** → **no** `mw-model-op` REQUEST |
-| **Now** | Coding+prove **executed** · `pnpm r4-p-meta-ms3-deploy-product:prove` **EXIT=0** · status **`executed:awaiting_post_prove_dual`** · **MS1 true · MS2 served · MS3 true** · **Ban self-approve** |
+| **Now** | Coding+prove **executed** · `pnpm r4-p-meta-ms3-deploy-product:prove` **EXIT=0** · post-prove dual **PASS** · status **`post_prove_dual_pass`** · **MS1 true · MS2 served · MS3 true** · **G-R4-5/FUNNEL dual-claim STILL OPEN** · **≠ R4/题域/HA closed** |
 | **Parallel（do not block）** | chromium → UI Live · G-R4-3 flip · **not** this F8 gate |
 
 ---
@@ -51,15 +51,15 @@
 | **M1** | Harness names MS3 standard deploy product handoff（G-R4-5） | **met** |
 | **M2** | Hard pins incl. Ban forge · `releaseEvidence=false` · sole 恰 5 · MS1/MS2 true · Ban dual-claim without dual · Ban self-approve | **met** |
 | **M3** | Experts = e2e-ha + rag-route only（no model-op） | **met** |
-| **M4** | Prove CMD frozen · EXIT=0 | **met** · prove **EXIT=0** |
+| **M4** | Prove CMD frozen · **executed** · EXIT=0 · expert re-run EXIT=0 | **met**（implementer ~01:17 PT · expert dual ~01:21 PT · HEAD `927cfea`） |
 | **M5** | Coding gate: F1–F7 dual-closed · F8 pre-exec dual + authorize | **met** · coding+prove executed |
-| **M6** | Dual REQUEST · no self-approve · post-prove await | **post-prove REQUEST drafted** · Ban self-approve |
+| **M6** | Post-prove dual · no self-approve · **post-prove dual PASS** | **met** → **`post_prove_dual_pass`** |
 
 ### CMD（executed）
 
 | CMD | Role | Status |
 |-----|------|--------|
-| **`pnpm r4-p-meta-ms3-deploy-product:prove`** | MS3 deploy product prove | **EXIT=0** · MS1 true · MS2 served · MS3 true · ≠ R4/HA · Ban dual-claim |
+| **`pnpm r4-p-meta-ms3-deploy-product:prove`** | MS3 deploy product prove | **EXIT=0** · MS1 true · MS2 served · MS3 true · ≠ R4/HA · Ban dual-claim · expert dual EXIT=0 · HEAD `927cfea` |
 | Prior `pnpm r4-p-meta-ms2-facets-product:prove` | F7 MS2 旁证（spawned） | **EXIT=0** · MS1/MS2 true · MS3 now true |
 | Prior `pnpm r4-p-meta-ms1-product-wire:prove` | F6 MS1 旁证 | **EXIT=0** · MS1 true |
 
@@ -69,11 +69,11 @@
 
 | Stage | Expert | Path | Status |
 |-------|--------|------|--------|
-| pre-exec | `mw-e2e-ha` | `reviews/REQUEST-2026-09-17-r4-f8-p-meta-ms3-deploy-product-mw-e2e-ha.md` | **PASS** · `2026-09-17-r4-f8-…-mw-e2e-ha.md` |
-| pre-exec | `mw-rag-route` | `reviews/REQUEST-2026-09-17-r4-f8-p-meta-ms3-deploy-product-mw-rag-route.md` | **PASS** · `2026-09-17-r4-f8-…-mw-rag-route.md` |
+| pre-exec | `mw-e2e-ha` | `reviews/2026-09-17-r4-f8-p-meta-ms3-deploy-product-mw-e2e-ha.md` | **pass** |
+| pre-exec | `mw-rag-route` | `reviews/2026-09-17-r4-f8-p-meta-ms3-deploy-product-mw-rag-route.md` | **pass** |
 | model-op | — | — | **omitted** |
-| post-prove | `mw-e2e-ha` | `reviews/REQUEST-2026-09-17-r4-f8-p-meta-ms3-deploy-product-post-prove-mw-e2e-ha.md` | **REQUEST drafted** · await |
-| post-prove | `mw-rag-route` | `reviews/REQUEST-2026-09-17-r4-f8-p-meta-ms3-deploy-product-post-prove-mw-rag-route.md` | **REQUEST drafted** · await |
+| post-prove | `mw-e2e-ha` | `reviews/2026-09-17-r4-f8-p-meta-ms3-deploy-product-post-prove-mw-e2e-ha.md` | **pass** · expert prove **EXIT=0** · HEAD `927cfea` · archived `3464bca` |
+| post-prove | `mw-rag-route` | `reviews/2026-09-17-r4-f8-p-meta-ms3-deploy-product-post-prove-mw-rag-route.md` | **pass** · expert prove **EXIT=0** · HEAD `927cfea` · archived earlier `daae05c` |
 
 ---
 
@@ -81,12 +81,13 @@
 
 - **≠ R4 closed** · **≠ 题域已隔离** · **≠ R1 closed** · **≠ FUNNEL-01 dual-closed** · **≠ HA** · **≠ suite green**  
 - **MS1 true** · **MS2 `fullFacetsServed=true`** · **MS3 `standardDeployProductHandoff=true`**  
-- Product FUNNEL classifier **true**（MS1+MS2+MS3）· **G-R4-5 / FUNNEL dual-claim STILL OPEN**（await dual · other gates may remain · Ban claiming closed）  
+- Product FUNNEL classifier **true**（MS1+MS2+MS3）· **G-R4-5 / FUNNEL dual-claim STILL OPEN**（EXPECTED · knife dual-done ≠ dual-claim closed · other gates may remain · Ban claiming closed）  
 - **MS3 alone ≠ R4/题域 closed**  
 - **`releaseEvidence=false`** · ≠HA · sole **恰 5** · no self-approve · no flip default · no open DELETE  
 - **Ban forging MetadataReviewReceipt / deploy handoff** · **Ban claiming R4/FUNNEL/R1/G-R4-5 dual-closed** · **Ban flip without authorize**  
 - no `mw-model-op` · Parallel UI Live / G-R4-3 **do not block** F8  
-- **Ban self-approve of `post_prove_dual_pass`** · **Ban MySQL/Qdrant cutover this knife**
+- **post_prove_dual_pass** · still ≠ R4/题域/FUNNEL/G-R4-5 dual-claim closed · ≠HA · `releaseEvidence=false`  
+- **Ban MySQL/Qdrant cutover this knife**
 
 ---
 
@@ -115,12 +116,12 @@
 | Implement MS3 deploy product handoff | **landed** · `emitStandardDeployProductHandoff` |
 | `pnpm r4-p-meta-ms3-deploy-product:prove` | **EXIT=0**（~01:17 PT） |
 | Honest flags | MS1 true · MS2 served · MS3 true · product FUNNEL classifier true · G-R4-5/FUNNEL dual-claim STILL OPEN · ≠ R4 closed |
-| Post-prove dual | **REQUEST drafted** · **Ban self-approve** |
+| Post-prove dual | **PASS**（e2e-ha + rag-route · expert EXIT=0 · HEAD `927cfea`）→ **`post_prove_dual_pass`** |
 
 **Honest flags**: `routedServingProductConsumerWired=true` · `facetsServedOnProductPath=[competency,technology,difficulty,seniority,kind,language]` · `fullFacetsServed=true` · `standardDeployProductHandoff=true` · product FUNNEL classifier **true** · **G-R4-5 / FUNNEL dual-claim STILL OPEN** · G-R4-3 parallel **STILL OPEN** · **≠ R4 closed**.
 
-**Next**: expert post-prove dual（e2e-ha + rag-route）· **Ban self-approve `post_prove_dual_pass`** · **≠ claim R4/题域/HA closed**.
+**Next**: G-R4-5/FUNNEL dual-claim remains **STILL OPEN**（other gates may remain）· G-R4-3 parallel · **≠ claim R4/题域/HA closed** · **≠ claim FUNNEL/G-R4-5 dual-closed**.
 
 ---
 
-*Harness · F8 MS3 standard deploy product handoff · 2026-09-17 ~01:17 PT · executed:awaiting_post_prove_dual · prove EXIT=0 · MS1 true · MS2 served · MS3 true · product FUNNEL classifier true · G-R4-5/FUNNEL dual-claim STILL OPEN · G-R4-3 STILL OPEN · releaseEvidence=false · ≠HA · ≠ R4 closed · sole 恰 5 · Ban forge · Ban flip without authorize · Ban self-approve*
+*Harness · F8 MS3 standard deploy product handoff · 2026-09-17 (~01:34 PT) · post_prove_dual_pass · prove EXIT=0 · expert dual EXIT=0 · HEAD 927cfea · MS1 true · MS2 served · MS3 true · product FUNNEL classifier true · G-R4-5/FUNNEL dual-claim STILL OPEN · G-R4-3 STILL OPEN · releaseEvidence=false · ≠HA · ≠ R4 closed · ≠ 题域已隔离 · sole 恰 5 · Ban forge · Ban flip without authorize*
