@@ -1,5 +1,12 @@
 # M3 — Redis Streams wakeup 最小原型
 
+> **2026-09-17 (~01:15 PT) · orthogonal under PG-retained**  
+> Meetwise ruled **Postgres (+pgvector + PostgresSaver)** retained; MySQL relational + Qdrant vector cutovers **STOPPED**.  
+> **Redis wake remains separately evaluable** — this knife is **NOT** canceled by the PG-retained ruling.  
+> Former framing that required MySQL sole relational / Qdrant sole vector as prereq for wakeup eval is **superseded**; wakeup may be evaluated against the retained Postgres business path.  
+> `releaseEvidence=false` · ≠HA · ≠suite green · Ban treating this note as wakeup cutover authorized.
+
+
 **状态**：prototype · **releaseEvidence=false** · **Not HA** · **本绿 ≠ 已迁 / ≠ cutover**  
 **选型依据**：`ai-docs/delivery/m3-queue-wakeup-selection.md`（Q1 Redis Streams 优选）  
 **Harness**：`ai-docs/delivery/harness/redis-streams-wakeup.prototype.md`

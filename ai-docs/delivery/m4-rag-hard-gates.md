@@ -1,5 +1,16 @@
 # M4 — RAG / 向量硬门（R1–R5）
 
+> **2026-09-17 (~01:15 PT) · STOPPED / superseded by PG-retained direction**  
+> Meetwise ruling (**hard**): **NO** MySQL business-DB cutover · **NO** Qdrant vector cutover.  
+> Retained truth stack: **Postgres (+pgvector + PostgresSaver / RLS / mig 0043)**.  
+> Former sole-stack claim **MySQL + Qdrant + Redis** is **superseded** for relational + vector portions.  
+> **Redis wake** remains separately evaluable (orthogonal; not canceled by this ruling).  
+> Prior status preserved below; **do not delete**. Ban further sole MySQL-relational / sole Qdrant-vector cutover from this artifact.  
+> `releaseEvidence=false` · ≠HA · ≠suite green · Dual PASS ≠ authorize coding.
+
+**Prior status (historical)**: gates draft · R1–R5 actionable under former sole stack (R1–R4 product gates remain relevant; stack/Qdrant-required/MySQL-relational claims superseded)
+
+
 **状态**：gates draft · **releaseEvidence=false** · Not HA · 不宣称 controlPlaneClosed  
 **栈裁定**：**MySQL + Qdrant + Redis** 为架构 **当前唯一真相**（sole stack）；本文件把 ADR R1–R5 写成 **可行动硬门**，不是旧栈对照 memoir。  
 **本切片范围（协调方已确认）**：**仅硬门文档覆盖 R1–R5** + 静态 `mysql-stack:m4-rag:prove`；**不切向量真相** / **不切 pgvector serving** / **不切 qbank 生产路径**；**不宣称题域隔离已关**；**不宣称 RAG 已切流 / cutover**。  

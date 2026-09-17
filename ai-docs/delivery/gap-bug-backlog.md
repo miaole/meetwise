@@ -1,7 +1,9 @@
-# Gap / Bug Backlog — MySQL+Qdrant+Redis sole stack（P0/P1）
+# Gap / Bug Backlog — P0/P1（PG-retained overlay 2026-09-17）
+
+> **2026-09-17 (~01:15 PT) · stack overlay**: retained truth = **Postgres (+pgvector + PostgresSaver)**. Former sole-stack **MySQL + Qdrant + Redis** relational+vector claims **superseded**. See `adr-postgres-retained.md`. Redis wake still separately evaluable. `releaseEvidence=false` · ≠HA · ≠suite green.
 
 **状态**：inventory draft · **releaseEvidence=false** · **Not HA** · 不宣称 `controlPlaneClosed=true`  
-**栈裁定**：**MySQL + Qdrant + Redis** 为当前唯一真相栈；cutover blocked until proves；实现方不自批。  
+**栈裁定（HISTORICAL overlay）**：**MySQL + Qdrant + Redis** 曾为唯一真相叙事 — **SUPERSEDED** for relational+vector; retained = **Postgres (+pgvector + PostgresSaver)**；实现方不自批。  
 **范围**：从 ADR（隐私不倒退 / R1–R5 / Q1–Q5）、M2–M5、reviews、execution-master-checklist / remediation-register **抽样硬缺口**、已知运行时钉、open PR #101–#107 上下文合成。  
 **非目标**：本文件不实现修复；不 dump 整份 checklist；无 regret memoir / 双跑产品计划叙事。
 
@@ -12,10 +14,10 @@
 | 标记 | 含义 | 证据面 |
 |------|------|--------|
 | **INFLIGHT:tenant-conditional** | 应用层 tenant 原型已合入路径 + prove 绿；mw-privacy-int **conditional**；**≠ RLS 等价 / ≠ cutover** | `packages/db/src/tenant/` · `pnpm --filter @meetwise/db tenant-enforcement:prove` · review `2026-09-10-tenant-enforcement-mw-privacy-int.md` · harness `harness/tenant-enforcement.prototype.md` |
-| **INFLIGHT:mysql-schema-prove** | MySQL schema 骨架 migrate + prove 路径在树；**EXIT=0 ≠ 授权根已迁 ≠ 全量迁移** | `packages/db-mysql/migrations/0001_skeleton.sql` · `pnpm mysql-schema:skeleton:prove` · harness `harness/mysql-schema.skeleton.md` |
-| **INFLIGHT:redis-wakeup-wip** | Redis Streams wakeup **additive** 原型 + flag 默认关；**不切生产 LISTEN/NOTIFY**；Q4 reconciler 仍挡 | `m3-redis-wakeup-prototype.md` · `pnpm worker-wakeup-redis:prove` · harness `harness/redis-streams-wakeup.prototype.md` |
-| **INFLIGHT:qdrant-store-wip** | `@meetwise/qdrant-store` skeleton + erasure receipt 雏形；**不切向量真相**；R1–R5 / R4 题域门仍挡 | `m4-qdrant-prototype-impl.md` · `pnpm qdrant-store:skeleton:prove` · harness `harness/qdrant-store.prototype.md` |
-| **INFLIGHT:pr-docs-gates** | Open PR **#106**（M0–M4 docs gates）、**#107**（M5 fixture retirement plan）— docs-first，非切流 | `gh` open @ 2026-09-10 |
+| **STOPPED:mysql-schema-prove** | **STOPPED / superseded by PG-retained**（was INFLIGHT）· MySQL schema skeleton remains historical; **Ban** replace-PG business tables · EXIT=0 ≠ cutover | harness `mysql-schema.skeleton.md` · review `2026-09-10-mysql-schema-mw-e2e-ha.md` **conditional** · `adr-postgres-retained.md` |
+| **INFLIGHT:redis-wakeup-wip** | Redis Streams wakeup **additive** 原型 + flag 默认关；**不切生产 LISTEN/NOTIFY**；Q4 reconciler 仍挡 · **still separately evaluable under PG-retained**（not canceled） | `m3-redis-wakeup-prototype.md` · `pnpm worker-wakeup-redis:prove` · harness `harness/redis-streams-wakeup.prototype.md` |
+| **STOPPED:qdrant-store-wip** | **STOPPED / superseded by PG-retained**（was INFLIGHT）· vector stays **pgvector**; Ban Qdrant-as-required sole vector · prototype may remain historical | `m4-qdrant-prototype-impl.md` · harness `qdrant-store.prototype.md` · `adr-postgres-retained.md` |
+| **STOPPED:pr-docs-gates** | **STOPPED / superseded by PG-retained** for MySQL+Qdrant cutover docs direction（was INFLIGHT #106/#107）· history kept | #106 M0–M4 gates · #107 M5 retirement plan · successor `adr-postgres-retained.md` / `pg-retained-checkpoint-postgres-saver` |
 | **INFLIGHT:pr-model-op-calib** | Open PR **#102** — calibration → dispatch budget + worker reconciler 接线候选；**≠ Q4 双门已关 / ≠ cutover** | `feat/model-op00-calibration-dispatch` |
 | **INFLIGHT:pr-privacy-prove** | Open PR **#103/#104** — mem00-int00 prove-path honesty + lease-takeover digest 对齐；**不宣称控制面已关**；公开 DELETE 仍 503 | `chore/mem00-int00-prove-path` · `fix/privacy-authorization-lease-takeover` |
 
@@ -52,7 +54,7 @@
 | GAP-PROD-01 | P0 | PRD-TEST-015 / SCOR：无冻结 rubric/cohort/calibration；B 端数值分暂停；依赖 INT-TRANSCRIPT 事实根 | 先 INT-TRANSCRIPT-00/01；再 SCOR-01…08 IssuedQuestionContract + AnswerVersion；校准前无排序/自动决策 | product / privacy | EXEC-01 / SCOR 包（前置 INT） | scor/int transcript prove；公开写门 inventory |
 | GAP-PROD-02 | P0 | C/B 产品审计 P0：申请↔面试无不可替代绑定；同意边界；B 端浏览器闭环不足（`product-readiness-c-b-audit` P0-CB-01…03） | application-bound session/snapshot；目的限定同意/撤回；三主体浏览器矩阵进 CI | product / e2e | P0-CB-01→02→03 顺序 | 浏览器 E2E harness + 现有 HTTP/数据门 |
 | GAP-PROD-03 | P1 | 企业 tenant/席位/账单、ATS 流程、职位透明度、评分公平性等未接线（C/B P1 表） | 未完成项销售/权限标「未提供」；落地须独立 UC+审 | product | 商业化扩面（P0 清零后） | 按 UC 分域 prove |
-| GAP-SCH-01 | P1 | MySQL schema 仅 skeleton（`owner_principal` / `job_queue`）**INFLIGHT:mysql-schema-prove**；~130 PG mig / RLS·DEFINER 未移植 | 按域增量 schema；**不**在隐私硬门未绿时破坏性切「唯一真相库」 | schema | M2+ 域表子集；与 tenant 强制同列 | `harness/mysql-schema.skeleton.md`；域 mig prove（待扩） |
+| GAP-SCH-01 | P1 | **STOPPED / superseded by PG-retained** — MySQL schema skeleton historical（was INFLIGHT:mysql-schema-prove）；~130 PG mig / RLS retained as truth · **Ban** MySQL sole relational cutover | Keep Postgres business schema + RLS; no MySQL replace-PG | schema | closed-as-direction · see `adr-postgres-retained.md` | `harness/mysql-schema.skeleton.md`（STOPPED） |
 
 ---
 
@@ -62,7 +64,7 @@
 |----|-------|------|------|--------|--------|-------------------|
 | BUG-PRIV-503 | P0 | **公开 DELETE=503 必须保持**直至独立 prove+专家审；任何「删除已闭环」叙事均为假 | 维持 HTTP 503 pin；预览路径不得写成生产 SLO / completed | privacy | 冻结项（非功能开发）；放开仅经审 | `pnpm privacy-erasure:http:prove`；preview prove `productionSloClaimed=false` |
 | BUG-PRIV-TENANT | P0 | 误把「每次查询注入 `owner_user_id`」或 tenant helpers 写成已替代 RLS → **授权根静默降级**风险；审查仍挡 cutover | 文档/代码评论钉死 tenant≠RLS；接线绕开 `set_config` 的 PR **block** | privacy | 活门守护 + 审查清单 | `harness/tenant-enforcement.prototype.md`；`git diff` principal.ts 空变更门 |
-| BUG-FAKE-R5 | P0 | **R5 pgvector 夹具假绿**：`vectorstore:prove` / `run-e2e-isolated`（默认 `E2E_PG_IMAGE=pgvector/pgvector:pg16`）/ 多条 rag·memory·qbank prove 本地绿 **≠ RAG 已迁** | Qdrant-backed 夹具 **或** marked-red retirement；性能套件 pgvector 行不得外推迁栈 | rag / e2e | M5 执行切片（计划已有 #107）；先标红高混淆入口 · INFLIGHT mark-red | `harness/r5-pgvector-fixture-mark-red.md` · `e2e-case-inventory.md` · `pnpm mysql-stack:r5-mark-red:prove`；`m5-pgvector-fixture-retirement-plan.md`；`pnpm mysql-stack:m5-fixtures:prove`（计划绿≠夹具已换） |
+| BUG-FAKE-R5 | P0 | **SUPERSEDED cutover reading (2026-09-17)** — under PG-retained, pgvector **is** vector truth; local prove green still **≠** product RAG/R4 closed / HA / suite green. Former "must retire pgvector for Qdrant" direction **STOPPED**. | Honesty: prove EXIT=0 ≠ R4/FUNNEL/HA/suite; Ban Qdrant-required cutover | rag / e2e | direction STOPPED · harness `r5-*` / `m5-*` pinned STOPPED | `harness/r5-pgvector-fixture-mark-red.md`（STOPPED）· `m5-pgvector-fixture-retirement-plan.md`（STOPPED）· `adr-postgres-retained.md` |
 | BUG-FAKE-QBANK-EVAL | P1 | `qbank-retrieval-eval-pg` / `rag-adversarial-pg-eval` 易被误读为生产检索质量（PRD-TEST-003/004）；长问句 lexical AND→0 命中等已暴露 | 改名 legacy 或重建为当前 generation schema；真实 embed 显式旗；词法 AND/OR 单列决策 | rag / e2e | 评测诚实化 + R5 标红同列 | `qbank-retrieval-eval:prove:raw`；adversarial pg-eval |
 | BUG-FAKE-CONN | P0 | mysql-stack skeleton/ping/m2/m3/m4/m5 **文档/连通绿** 被误写成队列/RAG/隐私/reconciler **已迁** | 所有 sole-stack prove 输出钉 **本绿≠已迁 / pass≠cutover**；审查拒绝叙事越权 | e2e / model-op / rag / privacy | 静态钉已在各 `mysql-stack:*:prove`；持续守门 | `pnpm mysql-stack:{skeleton,ping,m2-tenant,m3-queue,m4-rag,m5-fixtures}:prove` |
 | BUG-NOTIFY-REC | P0 | 生产 wakeup 仍依赖 **lossy NOTIFY**；reconcile 未在 sole stack 证明 → 漏唤醒窗口 | Redis Streams hint + **强制** periodic reconcile；旧 `worker-wakeup:prove` 迁栈后标红 | model-op | 与 GAP-MOP-01/03 同列切流 | `harness/redis-streams-wakeup.prototype.md`；双 reconciler prove |
@@ -87,7 +89,8 @@
 | P0 | 22 |
 | P1 | 5 |
 
-**In-flight 覆盖（非另计关闭）**：tenant-conditional · mysql-schema-prove · redis-wakeup-wip · qdrant-store-wip · pr-docs-gates (#106/#107) · pr-model-op-calib (#102) · pr-privacy-prove (#103/#104)。
+**In-flight 覆盖（非另计关闭）**：tenant-conditional · redis-wakeup-wip（orthogonal under PG-retained）· pr-model-op-calib (#102) · pr-privacy-prove (#103/#104)。  
+**STOPPED 2026-09-17（PG-retained）**：mysql-schema-prove · qdrant-store-wip · pr-docs-gates (#106/#107 MySQL+Qdrant cutover docs)。
 
 **复制**：`.tmp/pg-mysql-pivot/gap-bug-backlog.md`（与本文同文；pivot 工作区便利副本）。
 

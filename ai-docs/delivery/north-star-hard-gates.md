@@ -1,5 +1,10 @@
 # 北星硬闸 — 交付 SSOT（七条 · 不可叙事绕过）
 
+> **2026-09-17 (~01:15 PT) · stack overlay (PG-retained)**  
+> Delivery truth stack for relational+vector = **Postgres (+pgvector + PostgresSaver)**. Former sole-stack MySQL+Qdrant claims **superseded**. Redis wake separately evaluable.  
+> `releaseEvidence=false` · ≠HA · ≠suite green · see `adr-postgres-retained.md`. G1–G7 gate *enforcement* unchanged by this overlay.
+
+
 **状态**：G1–G7 **已生效**（2026-09-16 双域文档闸齐 + meetwise 授权改钉） · **releaseEvidence=false** · **≠HA** / **Not HA** · 不宣称 `controlPlaneClosed=true`  
 **生效钉（G1–G6）**：2026-09-16 经 `mw-e2e-ha` + `mw-rag-route` 双域文档闸齐后，由协调 **授权改钉生效**。落库 / 实现方自书仍 **≠** 自批；矩阵 prove 仍须单独 REQUEST→独立审，**不得**借本文宣称非快乐路径执行面已跑绿 / covered / HA。  
 **生效钉（G7）**：2026-09-16 双域文档闸齐（`2026-09-16-north-star-g7-local-full-suite-mw-e2e-ha.md` + `2026-09-16-north-star-g7-local-full-suite-mw-rag-route.md`）+ meetwise **授权改钉** → G7 **已生效**。  
@@ -143,7 +148,7 @@ Happy-only `e2e:isolated` / golden EXIT=0 **不得**写成 UC 已 covered。
 
 | 成功 ≠ | 成功 =（G7 生效后） |
 |--------|---------------------|
-| 单刀 / 切片 knife 绿 | 本地 **全栈** 已拉起（sole-stack 方向：MySQL + Qdrant + Redis + 相关服务） |
+| 单刀 / 切片 knife 绿 | 本地 **全栈** 已拉起（**PG-retained**：Postgres (+pgvector + PostgresSaver) + 相关服务；former MySQL+Qdrant sole 方向 **superseded**；Redis wake orthogonal） |
 | 双域文档审 pass / dual pass  alone | **全部** 矩阵 cases + 业务 UCs **端到端执行**（含非快乐：NEG/FAULT/BOUND/ADV/PERF/LOAD 适用处） |
 | 单点 / 家族 prove `EXIT=0` | 清晰 **CMD+EXIT / CI / 收据** 全量套件回执（可核验、可复现） |
 | 「看起来能跑 / demo 通了」 | 非快乐路径与业务 UC **干净跑通**（失败如实记非零 / blocked / not_run，禁 skip-as-pass） |

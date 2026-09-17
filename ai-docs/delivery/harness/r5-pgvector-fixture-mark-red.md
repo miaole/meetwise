@@ -1,5 +1,15 @@
 # Harness — R5 pgvector 夹具标红（BUG-FAKE-R5 · eval honesty / mark-red）
 
+> **2026-09-17 (~01:15 PT) · STOPPED / superseded by PG-retained direction**  
+> Meetwise ruling (**hard**): **vector does NOT migrate to Qdrant** — continue **Postgres pgvector**.  
+> Retained truth stack: **Postgres (+pgvector + PostgresSaver)**. Ban replace-pgvector / sole-Qdrant-vector cutover.  
+> Prior status preserved below for history; **do not delete**. Further Qdrant-as-required-vector work on this artifact is **banned**.  
+> MySQL relational cutover likewise superseded; **Redis wake** remains separately evaluable (not canceled).  
+> `releaseEvidence=false` · ≠HA · ≠suite green · Ban implementing vector cutover from this pin · Dual PASS ≠ authorize coding.
+
+**Prior status (historical)**: eval-honesty mark-red · push toward sole MySQL+Qdrant+Redis
+
+
 **releaseEvidence=false** · **Not HA** · **本绿 ≠ 已迁 / ≠ cutover** · **local green ≠ HA**  
 **优先级**：评测集诚实化（eval first）— 钉「哪些 prove 不得冒充需求满足」+ 标红证据 + **双轨显式标记**（推动 isolated 默认切 MySQL+Qdrant+Redis）；**不扩生产实现**；不切生产向量路径；不宣称 RAG 已迁。  
 **marked-red ≠ deleted**（不删 pgvector proves）。  

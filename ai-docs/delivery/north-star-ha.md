@@ -1,5 +1,11 @@
 # 北星 — Meetwise 面试平台生产 100% 高可用
 
+> **2026-09-17 (~01:15 PT) · stack overlay (PG-retained)**  
+> Sole relational+vector truth = **Postgres (+pgvector + PostgresSaver)** — **not** MySQL+Qdrant.  
+> Line below that says sole stack = MySQL+Qdrant+Redis is **HISTORICAL / superseded** for relational+vector. Redis wake still separately evaluable.  
+> This overlay does **not** claim HA / suite green / releaseEvidence. See `adr-postgres-retained.md`.
+
+
 **状态**：目标声明 · **releaseEvidence=false** · **≠HA** · **不得叙事已 HA**
 **硬闸 SSOT**：`north-star-hard-gates.md`（G1–G7：可核验 · 非快乐路径 · 需求→评测→实现 · 独立审 · 禁假绿 · 性能负载 · **本地全量验证关**；**G7=已生效**（门禁强制；≠ 套件已绿））
 **并列北星（未齐）**：生产 **100% HA** · **全量 E2E 零遗漏** · **0 BUG**（须证据；不得叙事已达成）
@@ -8,7 +14,7 @@
 生产环境面试平台 **100% 高可用**（可复现证据：多实例 / 故障注入 / prove+EXIT / CI）。**当前 ≠HA**。
 
 ## 当前服务该目标的工作流
-1. Sole stack：MySQL + Qdrant + Redis（本地真相栈）
+1. Sole stack（**SUPERSEDED 2026-09-17 relational+vector**）：曾写 MySQL + Qdrant + Redis — **retained** = **Postgres (+pgvector + PostgresSaver)**；Redis wake orthogonal / separately evaluable
 2. Eval-first：覆盖矩阵诚实推进（禁连通绿冒充 covered）
 3. E2E 目录重构 S0–S4（非 UI 主；LIVE/prove-shell/conn-only）
 4. P0 backlog / 对抗审计（≥2 域）
@@ -49,7 +55,7 @@
 ## 平行轨 — R5 / sole-stack 诚实（非 HA）
 
 - `harness/r5-retirement-sole-stack-status.md` · `harness/r5-pgvector-fixture-mark-red.md`
-- Sole stack = MySQL+Qdrant+Redis；pgvector fixture = R5-MARKED-RED / `E2E_ISOLATION_STACK=pgvector-legacy`
+- Sole stack (**PG-retained 2026-09-17**) = Postgres (+pgvector + PostgresSaver)；former MySQL+Qdrant sole claim superseded；pgvector = retained vector truth（not a forced retirement target）
 - **local green ≠ HA**；HA 仍须 multi-instance + fault-inject（上表 C/D）后才可谈 `releaseEvidence`
 - 静态 `mysql-stack:r5-mark-red:prove` EXIT=0 **≠** fixtures retired **≠** HA
 

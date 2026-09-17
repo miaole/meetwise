@@ -1,5 +1,15 @@
 # Harness — Qdrant erase `deleted_count` 诚实性（count only）
 
+> **2026-09-17 (~01:15 PT) · STOPPED / superseded by PG-retained direction**  
+> Meetwise ruling (**hard**): **vector does NOT migrate to Qdrant** — continue **Postgres pgvector**.  
+> Retained truth stack: **Postgres (+pgvector + PostgresSaver)**. Ban replace-pgvector / sole-Qdrant-vector cutover.  
+> Prior status preserved below for history; **do not delete**. Further Qdrant-as-required-vector work on this artifact is **banned**.  
+> MySQL relational cutover likewise superseded; **Redis wake** remains separately evaluable (not canceled).  
+> `releaseEvidence=false` · ≠HA · ≠suite green · Ban implementing vector cutover from this pin · Dual PASS ≠ authorize coding.
+
+**Prior status (historical)**: Qdrant erase-count honesty pin
+
+
 **releaseEvidence=false** · **Not HA** · **本绿 ≠ 已迁**  
 **硬约束**：不切生产向量真相；不删 pgvector 活路径（`retrieval-store` / `vectorstore:prove` / `E2E_PG_IMAGE`）。  
 **本绿 ≠ 0091 ledger 对齐**：假闭环风险仅对 **`deleted_count` 诚实性** mitigated；**仍 ≠** `privacy_deletion_receipt` / 0091 逐 sink ledger；**切流仍 block**。

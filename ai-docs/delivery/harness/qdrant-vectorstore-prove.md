@@ -1,5 +1,15 @@
 # Harness — product vectorstore prove via Qdrant bridge（G2 子切片 · P12 · opt-in）
 
+> **2026-09-17 (~01:15 PT) · STOPPED / superseded by PG-retained direction**  
+> Meetwise ruling (**hard**): **vector does NOT migrate to Qdrant** — continue **Postgres pgvector**.  
+> Retained truth stack: **Postgres (+pgvector + PostgresSaver)**. Ban replace-pgvector / sole-Qdrant-vector cutover.  
+> Prior status preserved below for history; **do not delete**. Further Qdrant-as-required-vector work on this artifact is **banned**.  
+> MySQL relational cutover likewise superseded; **Redis wake** remains separately evaluable (not canceled).  
+> `releaseEvidence=false` · ≠HA · ≠suite green · Ban implementing vector cutover from this pin · Dual PASS ≠ authorize coding.
+
+**Prior status (historical)**: P12 opt-in Qdrant vectorstore prove path
+
+
 **状态**：eval-honesty · **releaseEvidence=false** · **Not HA** · **≠ covered** · **≠ cutover** · **≠ RAG/memory on Qdrant** · **G2 仍 GAP**  
 **平行**：`qdrant-vectorstore-adapter.md`（P11）· `qdrant-backed-prove-deepen.md` · `r5-retirement-sole-stack-status.md` G2  
 **硬句**：本绿 ≠ 已迁；**不得**把本 EXIT=0 写成 `vectorstore:prove` / `rag*` / `memory*` **默认**已切 Qdrant；**不得**切 `E2E_ISOLATION_STACK` 默认离 `pgvector-legacy`。

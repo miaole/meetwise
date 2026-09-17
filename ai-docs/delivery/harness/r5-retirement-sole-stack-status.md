@@ -1,5 +1,15 @@
 # Status — R5 retirement / sole-stack honesty（north-star parallel）
 
+> **2026-09-17 (~01:15 PT) · STOPPED / superseded by PG-retained direction**  
+> Meetwise ruling (**hard**): **vector does NOT migrate to Qdrant** — continue **Postgres pgvector**.  
+> Retained truth stack: **Postgres (+pgvector + PostgresSaver)**. Ban replace-pgvector / sole-Qdrant-vector cutover.  
+> Prior status preserved below for history; **do not delete**. Further Qdrant-as-required-vector work on this artifact is **banned**.  
+> MySQL relational cutover likewise superseded; **Redis wake** remains separately evaluable (not canceled).  
+> `releaseEvidence=false` · ≠HA · ≠suite green · Ban implementing vector cutover from this pin · Dual PASS ≠ authorize coding.
+
+**Prior status (historical)**: status SSOT · sole stack = MySQL+Qdrant+Redis · G1–G7 gaps
+
+
 **状态**：eval-honesty track · **releaseEvidence=false** · **Not HA** · **≠ covered** · **≠ cutover** · **≠ migrated**  
 **平行北星**：`north-star-ha.md`（HA 证据阶梯）∥ 本文件（sole-stack + R5 夹具退役诚实轨）  
 **栈裁定**：sole stack = **MySQL + Qdrant + Redis**；`E2E_PG_IMAGE` / pgvector fixture **≠** sole-stack 真相。  
