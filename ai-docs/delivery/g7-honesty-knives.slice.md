@@ -87,11 +87,26 @@ Post-suite dual: `reviews/2026-09-16-g7-full-suite-post-run-mw-{e2e-ha,rag-route
 | ID | Knife | Status | Notes |
 |----|-------|--------|-------|
 | **CR** | chromium / UI runner prereq | **`post_prove_dual_pass`** | install/version/smoke EXIT **0/0/0** · Live `e2e:ui:isolated` **`not_run:this_knife`** · post-prove dual **BOTH PASS**（runner-prereq honesty only）· `harness/g7-chromium-ui-runner-prereq.md` · `g7-chromium-ui-runner-prereq.slice.md` · `eval/g7-chromium-ui-runner-prereq.eval.md` · reviews `2026-09-17-g7-chromium-ui-runner-prereq-post-prove-mw-{e2e-ha,rag-route}.md` |
-| **UI′** | UI Live re-run after chromium | **`REQUEST-ready / not_run:pre_dual`** | Key loader path only · `pnpm e2e:ui:isolated` · `g7-ui-live-rerun-after-chromium.*` · REQUEST pair drafted · **zero Live this prep** |
+| **UI′** | UI Live re-run after chromium | **`post_prove_dual_pass:honesty_red`** | Key **set** · chromium **ran** · `pnpm e2e:ui:isolated` EXIT=**1** · post-prove dual **BOTH PASS**（honesty of red-with-chromium+Key）· `g7-ui-live-rerun-after-chromium.*` · reviews `2026-09-17-g7-ui-live-rerun-after-chromium-post-prove-mw-{e2e-ha,rag-route}.md` · **≠** UI green |
 
-**Cross-link**: CR closes **browser binary / runner-start prereq honesty** only. **install/start ≠ suite/G6/R5/UI green**. **A′ honesty_red retained**（Key-set UI EXIT=1 chromium miss **not** rewritten green）. **R5 SEPARATE** · **sole 恰 5** · `releaseEvidence=false`.  
-**Next**: UI′ = authorized `pnpm e2e:ui:isolated` re-run（Key inject via `source /home/box/.meetwise-secrets/load-model-api-key.sh` · NEW_SHELL_STATUS probe · EXIT honesty）· **chromium prereq ≠ UI green** · Ban fake green · R5 isolated still SEPARATE · **no** full trio this knife.
+**Cross-link**: CR closes **browser binary / runner-start prereq honesty** only. **install/start ≠ suite/G6/R5/UI green**. UI′ closes **honesty of red-with-chromium+Key** only（EXIT=1 · ingest/status）· **chromium ran ≠ UI green** · **Key set ≠ UI green**. **A′ honesty_red retained**（Key-set UI EXIT=1 chromium miss **not** rewritten green）. **R5 SEPARATE** · **sole 恰 5** · `releaseEvidence=false`.  
+**UI′ gate**: pre-exec dual pass ⇒ executed · post-prove dual **BOTH PASS** ✅ · status **`post_prove_dual_pass:honesty_red`** · **no re-run** · **no invent Key**.
 
-**Hard pins**: ≠ suite green ≠ G6 closed ≠ R5 closed ≠ UI green ≠ HA · Key set ≠ UI green · install/start ≠ suite/G6/R5/UI green · A′ honesty_red retained · sole 恰 5 · `releaseEvidence=false` · no invent Key · no self-approve · CR dual-closed ≠ UI Live green.
+**Hard pins**: ≠ suite green ≠ G6 closed ≠ R5 closed ≠ UI green ≠ HA · Key set ≠ UI green · chromium prereq ≠ UI green · chromium ran ≠ UI green · A′ honesty_red retained · R5 SEPARATE · sole 恰 5 · `releaseEvidence=false` · no invent Key · no self-approve · CR dual-closed ≠ UI Live green · UI′ honesty_red ≠ UI green.
 
-*Slice addendum · CR chromium prereq · 2026-09-17 ~00:05 PT · post_prove_dual_pass · install/start ≠ suite/G6/R5/UI green · A′ honesty_red retained · sole 恰 5 · releaseEvidence=false · UI′ REQUEST-ready / not_run:pre_dual · Ban fake green*
+*Slice addendum · CR chromium prereq + UI′ honesty_red · 2026-09-17 ~00:21 PT · CR=`post_prove_dual_pass` · UI′=`post_prove_dual_pass:honesty_red` · EXIT=1 · NEW_SHELL_STATUS=set · chromium ran · ≠ suite/G6/R5/UI green · A′ honesty_red retained · sole 恰 5 · releaseEvidence=false · Ban fake green · no invent Key · no re-run*
+
+
+---
+
+## Successor · CI gitleaks FP + egress name register（2026-09-17 ~00:22 PT · dual-closed · CI honesty only）
+
+| ID | Knife | Status | Notes |
+|----|-------|--------|-------|
+| **CI** | gitleaks FP allowlist + egress env-name register（PR #108） | **`post_prove_dual_pass`** | CI gate honesty only · FP allowlist + `MODEL_API_KEY`/`DASHSCOPE_API_KEY` env ***name*** register · `releaseEvidence=false` · post-prove dual **BOTH PASS** · reviews `2026-09-17-ci-gitleaks-egress-fp-fix-post-prove-mw-{e2e-ha,rag-route}.md` · **≠** suite/G6/R5/HA · **≠** product close · **Ban treating CI green as product close** · **no real Key committed** · sole 恰 5 |
+
+**Cross-link**: CI closes **docs/CI gate honesty** for PR #108 only（`.gitleaks.toml` FP allowlist + provider-egress inventory name refs · observe-only）. **FP fix ≠ suite green ≠ R5/G6/HA**. **Ban invent Key** · **never read `.env*`**. HEAD at CI knife execute: `1b03802`.
+
+**Hard pins**: ≠ suite green ≠ G6 closed ≠ R5 closed ≠ HA ≠ sole cutover ≠ R4 closed ≠ product close · `releaseEvidence=false` · env register = ***name*** only · no invent Key · no self-approve · CI dual-closed ≠ product green.
+
+*Slice addendum · CI gitleaks FP + egress · 2026-09-17 ~00:22 PT · post_prove_dual_pass · CI honesty only · FP fix ≠ suite/G6/R5/HA · Ban CI green as product close · sole 恰 5 · releaseEvidence=false · no invent Key*
