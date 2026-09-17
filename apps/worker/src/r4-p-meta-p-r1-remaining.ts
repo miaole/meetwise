@@ -9,7 +9,9 @@
  *
  * F6 landed MS1 product consumer wire → `routedServingWired=true` (honest).
  * F7 landed MS2 product-path facets → `fullFacetsServed=true` (honest).
- * MS3 deploy remain false · FUNNEL-01 / G-R4-5 STILL OPEN.
+ * F8 landed MS3 standard deploy product handoff → `standardDeployHandoff=true` (honest).
+ * Product FUNNEL classifier may be true (MS1+MS2+MS3) · Ban claiming FUNNEL-01/G-R4-5
+ * dual-closed without post-prove dual · other gates may remain · ≠ R4 closed.
  *
  * HARD:
  *   - These classifiers document **remaining** — they do NOT close R1 /
@@ -17,7 +19,7 @@
  *   - No flip of MEETWISE_TECH_ROLE_FAIL_CLOSED default.
  *   - No invent MODEL_API_KEY · releaseEvidence=false · ≠HA · sole 恰 5.
  *   - Ban forging MetadataReviewReceipt serving / claiming R1 closed.
- *   - MS1 alone ≠ FUNNEL-01 closed (MS2/MS3 remain).
+ *   - MS1/MS2 alone ≠ FUNNEL dual-claim closed · MS3 product handoff ≠ R4 closed.
  */
 import {
   isTechRoleFailClosedEnabled,
@@ -25,6 +27,7 @@ import {
 } from './adaptive-role-resolve.ts';
 import { MS1_METADATA_REVIEW_RECEIPT_PRODUCT_SERVING_CONSUMER_WIRED } from './r4-p-meta-ms1-product-wire.ts';
 import { MS2_PRODUCT_FACETS_SERVED_ON_PRODUCT_PATH_WIRED } from './r4-p-meta-ms2-facets-product.ts';
+import { MS3_STANDARD_DEPLOY_PRODUCT_HANDOFF_WIRED } from './r4-p-meta-ms3-deploy-product.ts';
 
 /** P-META remaining surface (RAG-FUNNEL-01 vs 01A). */
 export type PMetaRemainingStatus = {
@@ -32,15 +35,18 @@ export type PMetaRemainingStatus = {
   sourceSealed01A: boolean;
   /**
    * 01/MS1: independent receipt enters routed serving.
-   * F6: true via real product consumer wire (≠ forge · MS2/MS3 still open).
+   * F6: true via real product consumer wire (≠ forge).
    */
   routedServingWired: boolean;
   /**
    * Full facets on serving path.
-   * F7: true via real MS2 product-path facet serve (≠ forge · MS3 still open).
+   * F7: true via real MS2 product-path facet serve (≠ forge).
    */
   fullFacetsServed: boolean;
-  /** Standard deploy / combo-root handoff receipt — still open (MS3). */
+  /**
+   * Standard deploy / combo-root handoff receipt.
+   * F8: true via real MS3 product handoff (≠ forge · ≠ R4 closed · Ban dual-claim without dual).
+   */
   standardDeployHandoff: boolean;
 };
 
@@ -61,14 +67,14 @@ export type PR1RemainingStatus = {
  * sourceSealed01A asserted true by inventory (01A done).
  * MS1 routedServingWired follows F6 real product consumer marker.
  * MS2 fullFacetsServed follows F7 real product-path facet serve marker.
- * MS3 deploy stays false until a future knife lands it.
+ * MS3 standardDeployHandoff follows F8 real product handoff marker.
  */
 export function classifyPMetaRemaining(): PMetaRemainingStatus {
   return {
     sourceSealed01A: true,
     routedServingWired: MS1_METADATA_REVIEW_RECEIPT_PRODUCT_SERVING_CONSUMER_WIRED === true,
     fullFacetsServed: MS2_PRODUCT_FACETS_SERVED_ON_PRODUCT_PATH_WIRED === true,
-    standardDeployHandoff: false,
+    standardDeployHandoff: MS3_STANDARD_DEPLOY_PRODUCT_HANDOFF_WIRED === true,
   };
 }
 

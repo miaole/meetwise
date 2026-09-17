@@ -87,6 +87,7 @@
     "prove:r4-p-meta-serving-product": "tsx test/r4-p-meta-serving-product.proof.ts",
     "prove:r4-p-meta-ms1-product-wire": "tsx test/r4-p-meta-ms1-product-wire.proof.ts",
     "prove:r4-p-meta-ms2-facets-product": "tsx test/r4-p-meta-ms2-facets-product.proof.ts",
+    "prove:r4-p-meta-ms3-deploy-product": "tsx test/r4-p-meta-ms3-deploy-product.proof.ts",
     "prove:r4-p-r1-fail-closed": "tsx test/r4-p-r1-fail-closed.proof.ts",
     "prove:g-r2-5-retrieve-fail-closed": "tsx test/g-r2-5-retrieve-fail-closed.proof.ts",
     "prove:r2-classify-job-route-prereq": "tsx test/r2-classify-job-route-prereq.proof.ts",
