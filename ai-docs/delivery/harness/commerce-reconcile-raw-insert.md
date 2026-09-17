@@ -1,51 +1,53 @@
 # Harness — commerce-reconcile raw `INSERT` / missing `interviewId` latent-risk knife
 
-**Status**: **`REQUEST-ready / not_run:pre_dual`**
-**Date**: 2026-09-17 (~00:44 PT)
-**Scope**: docs-only pre-exec review of the raw job seed and missing-`interviewId` path in `apps/worker/test/commerce-reconcile.proof.ts`.
-**Experts**: `mw-e2e-ha` + `mw-rag-route` · **zero coding / zero prove this prep**
-**releaseEvidence=false** · **≠ suite green** · **≠ HA** · **Ban forge** · **Ban self-approve**
+**Status**: **`executed:awaiting_post_prove_dual`**
+**Date**: 2026-09-17 (~00:57 PT)
+**Scope**: B-side seed in `apps/worker/test/commerce-reconcile.proof.ts` aligned to real createJob → rule-classify → invite → start → reserve(real interviewId).
+**Experts**: `mw-e2e-ha` + `mw-rag-route` · post-prove REQUEST pair drafted · **Ban self-approve**
+**releaseEvidence=false** · **EXIT=0 ≠ suite green ≠ R5/G6/HA** · **Ban forge**
 
-## 1. Latent-risk statement
+## 1. Close-so-far receipt (implementer; not expert pass)
 
-The B-side section currently uses a raw `job_posting` `INSERT` at `apps/worker/test/commerce-reconcile.proof.ts:150`, then calls `inviteCandidate` and `startApplicationInterview` (lines 152–153). This seed can bypass the semantic-revision and route-classification precondition. On the missing-route path, start may return `interview_ineligible_route` without an `interviewId`; the following `reserveEntitlement(..., first.interviewId, ...)` (line 154) then reaches the commerce reservation path without a real interview identifier. This is the same latent shape as the adaptive-life B seed and must be reviewed before any fix is proposed.
+| Item | Receipt |
+|---|---|
+| Pre-exec dual | `reviews/2026-09-17-commerce-reconcile-raw-insert-mw-e2e-ha.md` + `…-mw-rag-route.md` → **pass** (docs gate) |
+| Authorize | meetwise standing · implement + prove |
+| Fix | B-side seed: `createJob` → `classifyJobRoute` (rule) → invite → start → assert non-empty `interviewId` → `reserveEntitlement` |
+| CMD | `pnpm commerce-reconcile:prove` → **EXIT=0** |
+| Post-prove REQUEST | drafted · status remains **awaiting_post_prove_dual** (no self-approve) |
 
-This harness records a risk and acceptance contract only. **It does not implement the commerce-reconcile fix and does not claim the current proof is green.**
+## 2. Root cause / fix (same class as adaptive-life B)
 
-## 2. Expected future shape (not implemented here)
+Raw `job_posting` INSERT skipped semantic revision / classify → `startApplicationInterview` returned `interview_ineligible_route` without `interviewId` → `reserveEntitlement(undefined)` hit `idempotency_key` NOT NULL (or `idempotency_key_required` guard). Honest minimal fix: real R2 prerequisite path; **no** forged `route_decided` / fabricated interview ID. `packages/db` empty-key guard from adaptive-life remains; production routing/qbank/FUNNEL untouched (RAG orthogonal).
 
-A future authorized implementation must make the seed follow the real prerequisite path (`createJob` → semantic revision → real rule classification → invite → start), assert a genuine `route_decided`/`rule_decided` result without forging rows, assert a non-empty returned `interviewId`, and reserve only with that real identifier. The schema and fail-closed commerce contract must not be weakened to hide a missing identifier.
+## 3. Acceptance
 
-## 3. Acceptance for the dual REQUEST
-
-| ID | Criterion | Status now |
+| ID | Criterion | Status |
 |---|---|---|
-| M1 | Raw `job_posting` INSERT and subsequent `startApplicationInterview`/reserve path are named as the latent risk | **met (docs)** |
-| M2 | Missing `interviewId` is treated as a fail-closed precondition failure, not as a nullable success | **met (docs)** |
-| M3 | Future seed contract requires real classify/start and a real non-empty `interviewId` | **met (docs)** |
-| M4 | Ban forge: no direct `route_decided` INSERT, fabricated decision, or fabricated interview ID | **met (docs)** |
-| M5 | Experts are `mw-e2e-ha` + `mw-rag-route`; no self-approve | **REQUEST drafted** |
-| M6 | Prove is frozen but not run; `releaseEvidence=false` | **`not_run:pre_dual`** |
+| M1 | Raw INSERT path removed from B-side seed | **met (code)** |
+| M2 | Missing `interviewId` fail-closed (assert before reserve) | **met (code)** |
+| M3 | Real classify/start + non-empty `interviewId` | **met (code + EXIT=0)** |
+| M4 | Ban forge | **met** |
+| M5 | Experts independent; no self-approve | **REQUEST drafted** |
+| M6 | Prove run; `releaseEvidence=false` | **`executed:awaiting_post_prove_dual` · EXIT=0** |
 
-## 4. Frozen command (not run)
+## 4. Frozen command (executed)
 
 | CMD | Status |
 |---|---|
-| `pnpm -C apps/worker prove:commerce-reconcile` | **`not_run:pre_dual`** · no coding authorized |
+| `pnpm commerce-reconcile:prove` (= isolated `pnpm -C apps/worker prove:commerce-reconcile`) | **EXIT=0** · 2026-09-17 ~00:57 PT |
 
 ## 5. Hard pins / non-claims
 
-- **Ban forge**: do not insert or manufacture `route_decided`, `rule_decided`, semantic revision, or `interviewId` merely to make the proof advance.
-- **releaseEvidence=false** · **≠ suite green** · **≠ HA**; a future local EXIT=0 would still be only this knife's proof.
-- No R5/G6/release or production claims follow from this REQUEST.
-- No `.env*`, secret, credential, or live key is needed or may be read; no key may be invented.
-- This prep changes docs only; it does not modify `apps/worker/test/commerce-reconcile.proof.ts` or implement a fix.
+- **Ban forge** · **Ban self-approve post_prove_dual_pass**
+- **releaseEvidence=false** · **EXIT=0 ≠ suite green ≠ R5/G6/HA**
+- No R5/G6/release or production claims; RAG orthogonal (no production routing/qbank/FUNNEL edits)
+- No `.env*` / secrets read or committed; test-only `RAG_JOB_ROUTE_INPUT_HASH_KEY` literal (non-production)
 
 ## 6. Anchors
 
-- Source: `apps/worker/test/commerce-reconcile.proof.ts:150-154`
-- Proof comment / command: `pnpm -C apps/worker prove:commerce-reconcile`
-- Adaptive precedent: `harness/adaptive-life-idempotency-ci-fix.md`
-- REQUEST pair: `reviews/REQUEST-2026-09-17-commerce-reconcile-raw-insert-mw-e2e-ha.md` and `reviews/REQUEST-2026-09-17-commerce-reconcile-raw-insert-mw-rag-route.md`
+- Source: `apps/worker/test/commerce-reconcile.proof.ts` §⑦
+- Precedent: `harness/adaptive-life-idempotency-ci-fix.md` / commit `21672ab`
+- Post-prove REQUEST: `reviews/REQUEST-2026-09-17-commerce-reconcile-raw-insert-post-prove-mw-e2e-ha.md` + `…-mw-rag-route.md`
 
-*Harness · commerce-reconcile raw INSERT / missing interviewId · 2026-09-17 ~00:44 PT · REQUEST-ready / not_run:pre_dual · releaseEvidence=false · ≠ suite green · ≠ HA · Ban forge · zero coding · await dual*
+*Harness · commerce-reconcile raw INSERT / missing interviewId · 2026-09-17 ~00:57 PT · executed:awaiting_post_prove_dual · EXIT=0 · releaseEvidence=false · ≠ suite green · ≠ HA · Ban forge · Ban self-approve*
