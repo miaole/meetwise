@@ -5,9 +5,9 @@
 > Line below that says sole stack = MySQL+Qdrant+Redis is **HISTORICAL / superseded** for relational+vector. Redis wake still separately evaluable.  
 > This overlay does **not** claim HA / suite green / releaseEvidence. See `adr-postgres-retained.md`.
 
-> **2026-09-17 (~01:40 PT) · workflow SSOT (W0–W8 · additive)**  
-> **W0** PG retained (**`post_prove_dual_pass`** · close **`5c2bf9a`** · dual on `0c95883` · wake provisional overlay after dual) → **W1** PG redundant/obsolete table inventory (**ZERO deletes** · **`post_prove_dual_pass`** · dual on `675269c` · `harness/w1-pg-redundant-table-inventory.md`) → **W1b** PG redundant retire/trace batches (**`REQUEST-ready / not_run:pre_dual`** · ZERO DROP · no delete batch · Dual PASS on W1 ≠ auto-auth coding · `harness/w1b-pg-redundant-retire-batches.md`) → then **W2…W8** (separate knives · Dual PASS ≠ coding).  
-> Ban DROP in W1/W1b · Ban delete batch · Ban inventing DROP targets · Ban MySQL/Qdrant cutover revival · Ban claiming W8/HA from W1b. Dual PASS on W1 ≠ W1b coding.
+> **2026-09-17 (~01:41 PT) · workflow SSOT (W0–W8 · additive)**  
+> **W0** PG retained (**`post_prove_dual_pass`** · close **`5c2bf9a`** · dual on `0c95883` · wake provisional overlay after dual) → **W1** inventory (**`post_prove_dual_pass`** · ZERO deletes · dual on `675269c`) → **W1b** retire/trace (**`REQUEST-ready / not_run:pre_dual`** · ZERO DROP · no delete batch · `harness/w1b-pg-redundant-retire-batches.md`) → **W6** P0-CB+SCOR honesty (**`REQUEST-ready / not_run:pre_dual`** · W3 DELETE=503 freeze remains · `harness/w6-p0-cb-scor-honesty.md`) → W2–W5 closed per SSOT · W7–W8 not open · Dual PASS ≠ coding.  
+> Ban DROP in W1/W1b · Ban delete batch · Ban inventing DROP targets · Ban MySQL/Qdrant cutover revival · Ban claiming W8/HA · Ban SCOR/P0-CB closed from W6. Dual PASS on W1 ≠ W1b coding.
 
 
 **状态**：目标声明 · **releaseEvidence=false** · **≠HA** · **不得叙事已 HA**
@@ -58,7 +58,7 @@
 
 ## 平行轨 — W0–W8 PG-retained workflow（非 HA）
 
-- SSOT：`w0-w8-workflow-status.md` · W0 PG-retained **`post_prove_dual_pass`**（close **`5c2bf9a`** · dual on `0c95883` · wake provisional overlay after dual）· W1 inventory **`post_prove_dual_pass`**（dual on `675269c` · ZERO DROP · Dual≠W1b）· see SSOT for W2–W5 · W1b/W6–W8 not open · Dual PASS ≠ authorize coding · ≠HA · `releaseEvidence=false`
+- SSOT：`w0-w8-workflow-status.md` · W0–W5 **`post_prove_dual_pass`** · **W1b** `harness/w1b-pg-redundant-retire-batches.md`（REQUEST-ready / not_run:pre_dual · ZERO DROP · no delete batch）· **W6** P0-CB+SCOR `harness/w6-p0-cb-scor-honesty.md`（REQUEST-ready / not_run:pre_dual · W3 DELETE=503 freeze remains）· W7–W8 not open · Dual PASS ≠ authorize coding · ≠HA · `releaseEvidence=false`
 
 ## 平行轨 — R5 / sole-stack 诚实（非 HA）
 
