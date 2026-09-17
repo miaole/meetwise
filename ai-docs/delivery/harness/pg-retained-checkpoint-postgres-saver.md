@@ -6,7 +6,7 @@
 **Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec REQUEST pair · **not yet dual-sent** · **zero coding / zero prove** · **Ban self-approve** · **Dual PASS ≠ authorize coding**）  
 **Slice**: `../pg-retained-checkpoint-postgres-saver.slice.md`  
 **Eval**: `../eval/pg-retained-checkpoint-postgres-saver.eval.md`  
-**Authority**: meetwise hard ruling 2026-09-17 — **NO** business DB migration to MySQL · **NO** vector cutover to Qdrant · retained = **Postgres (+pgvector + PostgresSaver / RLS / mig 0043)** · Redis wake **orthogonal / separately evaluable** · Ban branch-name justification via `feat/mysql-schema-skeleton`
+**Authority**: meetwise hard ruling 2026-09-17 — **NO** business DB migration to MySQL · **NO** vector cutover to Qdrant · retained = **Postgres (+pgvector + PostgresSaver / RLS / mig 0043)** · provisional production wake preference = continue **Postgres LISTEN/NOTIFY** · Redis wake evaluation deferred per coordinator suggestion only, **pending a user hard sentence** and **not a user hard pin** · Redis wake remains orthogonal / separately evaluable · Ban branch-name justification via `feat/mysql-schema-skeleton`
 **Workflow SSOT**: this knife = **W0** · next = **W1** inventory ZERO deletes (`harness/w1-pg-redundant-table-inventory.md`) → later W1b (not open) → W2…W8 (not open)
 
 ---
@@ -21,7 +21,7 @@
 | **Checkpoint** | Keep **`PostgresSaver`** / Postgres checkpointer · Ban MySQL checkpoint cutover |
 | **Vector** | Keep **pgvector** · Ban Qdrant-as-required sole vector / replace-pgvector cutover |
 | **ADR** | `adr-mysql-qdrant-local.md` relational+vector claims **superseded** · successor `adr-postgres-retained.md` |
-| **Redis wake** | Still separately evaluable · **not** canceled |
+| **Wake path (provisional)** | Production preference is to continue **Postgres LISTEN/NOTIFY**; Redis wake evaluation is deferred per coordinator suggestion only, **pending a user hard sentence** and **not a user hard pin** · Redis wake knives remain separately evaluable and **not STOPPED** |
 | **Now** | **`REQUEST-ready / not_run:pre_dual`** · zero coding · Dual PASS ≠ authorize coding |
 
 ---
@@ -32,9 +32,10 @@
 2. MySQL **not** sole relational truth · Ban MySQL business cutover knives  
 3. pgvector retained · Qdrant **not** required sole vector · Ban replace-pgvector cutover  
 4. ADR `adr-mysql-qdrant-local` relational **and** vector-cutover claims superseded (additive note; no false history)  
-5. Qdrant/Redis **orthogonal** framing: Qdrant vector cutover STOPPED; Redis wake still eval  
-6. `releaseEvidence=false` · ≠HA · ≠suite green  
-7. Dual PASS ≠ authorize coding · Ban implementing cutover from this docs knife  
+5. Qdrant/Redis **orthogonal** framing: Qdrant vector cutover STOPPED; Redis wake remains separately evaluable and **not STOPPED**
+6. **Provisional wake preference only**: continue Postgres LISTEN/NOTIFY in production; Redis wake evaluation deferred per coordinator suggestion, **pending a user hard sentence** and **not a user hard pin**
+7. `releaseEvidence=false` · ≠HA · ≠suite green
+8. Dual PASS ≠ authorize coding · Ban implementing cutover from this docs knife
 
 ---
 
@@ -48,6 +49,8 @@ Compare **retained** Postgres(+pgvector+PostgresSaver) vs **former plan** MySQL 
 - Interview workload: low–moderate concurrent sessions (order **10s**, not thousands)  
 - Embedding dims typical for current pgvector usage; ANN on Postgres HNSW/IVF class indexes  
 - Checkpoint rows grow with durable threads; business+vector+checkpoint share one Postgres process family  
+- Production wake preference is provisionally the existing Postgres **LISTEN/NOTIFY** path
+- Redis wake evaluation is deferred; any Redis process is only a future evaluation envelope, not an authorized production dependency
 - Former plan assumed **three** data-plane processes (MySQL + Qdrant + Redis) plus app  
 - Numbers below are **rough ranges** for operator planning; **Ban** treating as HA evidence or suite green  
 
@@ -55,7 +58,7 @@ Compare **retained** Postgres(+pgvector+PostgresSaver) vs **former plan** MySQL 
 
 | Resource | Retained: Postgres (+pgvector + PostgresSaver) | Former plan: MySQL + Qdrant + Redis | Notes |
 |----------|-----------------------------------------------|--------------------------------------|-------|
-| **Process count (data plane)** | **1** primary DB process (+ optional Redis if wake eval later) | **3** (MySQL + Qdrant + Redis) | Fewer moving parts locally; wake Redis still optional/orthogonal |
+| **Process count (data plane)** | **1** primary DB process; production wake is provisionally Postgres LISTEN/NOTIFY (Redis evaluation deferred) | **3** (MySQL + Qdrant + Redis) | Fewer moving parts locally; Redis wake remains optional/orthogonal and not STOPPED |
 | **RAM (dev / laptop compose)** | Postgres **2–8 GiB** working set common; start budget **~4 GiB** for DB+indexes+shared_buffers sketch | MySQL **1–4 GiB** + Qdrant **1–4 GiB** + Redis **256 MiB–1 GiB** → often **~3–9 GiB** combined | Combined former plan can exceed single-PG envelope on small hosts |
 | **RAM (small single-host demo)** | Postgres **8–16 GiB** sketch if vectors+checkpoints co-located | MySQL **4–8** + Qdrant **4–8** + Redis **1–2** → **~9–18 GiB** | Co-location trades Qdrant isolation for one larger PG |
 | **CPU** | One DB absorbs relational + ANN + checkpoint WAL | Split CPU across 3 services; Qdrant ANN offloads PG | Split ≠ free HA; scheduling/ops cost rises |
@@ -68,6 +71,7 @@ Compare **retained** Postgres(+pgvector+PostgresSaver) vs **former plan** MySQL 
 
 - Ban claiming these ranges prove production capacity, HA, or suite green  
 - Ban claiming Redis wake is sized/authorized here  
+- Ban presenting the provisional Postgres LISTEN/NOTIFY preference as a user hard pin or claiming user hard-pinned Redis rejection
 - Ban using branch name `feat/mysql-schema-skeleton` as MySQL cutover justification  
 - Ban treating Dual PASS on this knife as coding authorize for any cutover  
 
@@ -107,7 +111,7 @@ Compare **retained** Postgres(+pgvector+PostgresSaver) vs **former plan** MySQL 
 ### Explicitly **not** stopped
 
 - F8 MS3 deploy product · commerce · egress · R4 meta / domain-isolation product knives  
-- Redis wake (`m3-*` / `redis-streams-wakeup`) — **separately evaluable**  
+- Redis wake (`m3-*` / `m3-redis-wakeup-prototype.md`) — **separately evaluable and not STOPPED**; production preference is provisionally Postgres LISTEN/NOTIFY pending a user hard sentence
 
 ---
 
@@ -121,8 +125,8 @@ Compare **retained** Postgres(+pgvector+PostgresSaver) vs **former plan** MySQL 
 
 ## 5. Non-claims
 
-Not pass · not coding authorized · not HA · not suite green · not MySQL cutover · not Qdrant vector cutover · not Redis wake authorized · not F8 touched · Dual PASS ≠ authorize coding
+Not pass · not coding authorized · not HA · not suite green · not MySQL cutover · not Qdrant vector cutover · not Redis wake authorized or rejected · provisional wake preference only · not F8 touched · Dual PASS ≠ authorize coding
 
 ---
 
-*Harness · PG-retained · 2026-09-17 (~01:15 PT) · REQUEST-ready / not_run:pre_dual · releaseEvidence=false · ≠HA · ≠suite green · Postgres+pgvector+PostgresSaver · Ban MySQL/Qdrant cutover · Redis orthogonal · Dual PASS ≠ authorize coding · zero coding*
+*Harness · PG-retained · 2026-09-17 (~01:15 PT) · REQUEST-ready / not_run:pre_dual · releaseEvidence=false · ≠HA · ≠suite green · Postgres+pgvector+PostgresSaver · Ban MySQL/Qdrant cutover · provisional Postgres LISTEN/NOTIFY preference · Redis eval deferred pending user hard sentence · Redis not STOPPED · Dual PASS ≠ authorize coding · zero coding*
