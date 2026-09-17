@@ -1,13 +1,13 @@
 # Harness — **W8** · G7 full-suite honesty（docs REQUEST prep）
 
-**Status**: **`REQUEST-ready / not_run:pre_dual`**  
-**Date**: 2026-09-17 (~01:57 PT)  
+**Status**: **`post_prove_dual_pass`**  
+**Date**: 2026-09-17 (~02:02 PT)  
 **releaseEvidence=false** · **≠HA** · **≠suite green** · **≠ full suite pass** · **gates-in-force ≠ suite-green** · **Ban false green** · **Ban claiming HA/suite green from this REQUEST** · **≠ coding authorized** · **Dual PASS ≠ coding**  
-**Experts**: `mw-e2e-ha` + `mw-rag-route`（REQUEST pair ready · **not yet dual-sent** · **Ban self-approve** · **Dual PASS ≠ authorize coding / prove / suite green / HA** · **zero coding / zero prove / zero suite re-run**）  
+**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **PASS** on knife SHA **`1605936`** · **Ban self-approve beyond authorized docs close** · **Dual PASS ≠ authorize coding / prove / suite green / HA** · **zero coding / zero prove / zero suite re-run**）  
 **Slice**: `../w8-g7-full-suite-honesty.slice.md`  
 **Eval**: `../eval/w8-g7-full-suite-honesty.eval.md`  
 **Authority**: meetwise W0–W8 SSOT — docs-only **G7 full-suite honesty** gate · Dual PASS ≠ authorize coding  
-**Honesty**: Opening REQUEST only · **≠** suite green · **≠** HA · **≠** 0 BUG · prior `post_suite_dual_pass` ≠ suite green
+**Honesty**: Dual reviews against knife SHA **`1605936`**. Docs close = honesty/docs dual only · **≠** suite green · **≠** HA · **≠** 0 BUG · prior `post_suite_dual_pass` ≠ suite green · Dual PASS ≠ coding
 
 ---
 
@@ -15,22 +15,22 @@
 
 | Statement | Ruling |
 |-----------|--------|
-| **What this knife is** | Docs-gate REQUEST prep: reaffirm **G7 gates-in-force ≠ suite-green** honesty by pointing at existing G7 suite / north-star / e2e matrix docs — no re-run, no coding |
-| **What this knife is not** | **Not** coding · **not** prove · **not** re-running `e2e:isolated` / UC / R2/R4 / HA probes as green · **not** flipping suite to green · **not** claiming HA / 0 BUG / `releaseEvidence=true` · **not** W1c-delete / DROP |
+| **What this knife is** | Docs-gate close: reaffirm **G7 gates-in-force ≠ suite-green** honesty by pointing at existing G7 suite / north-star / e2e matrix docs — no re-run, no coding |
+| **What this knife is not** | **Not** coding · **not** prove · **not** re-running `e2e:isolated` / UC / R2/R4 / HA probes as green · **not** flipping suite to green · **not** claiming HA / 0 BUG / `releaseEvidence=true` · **not** W1c-delete / DROP · **not** a green suite receipt |
 | **Gates vs suite** | G1–G7 **gates-in-force** (policy) **≠** suite green · prior suite = `post_suite_dual_pass` (honesty only) · **pass ≠ suite green ≠ full suite pass ≠ HA ≠ 0 BUG** |
 | **False green** | knife green / dual / prove EXIT=0 / `post_suite_dual_pass` / gates-in-force **≠** suite green · **Ban false green** |
-| **Now** | **`REQUEST-ready / not_run:pre_dual`** · docs-only open · zero coding · zero prove · Ban self-approve |
+| **Now** | **`post_prove_dual_pass`** · docs-only close · zero coding · zero prove · zero suite re-run · Ban self-approve beyond docs close |
 
 ---
 
-## Dual receipts (pre-exec)
+## Dual receipts (pre-exec · archived)
 
 | Expert | Receipt | Verdict |
 |--------|---------|---------|
-| `mw-e2e-ha` | REQUEST `../reviews/REQUEST-2026-09-17-w8-g7-full-suite-honesty-mw-e2e-ha.md` | **not_run:pre_dual** |
-| `mw-rag-route` | REQUEST `../reviews/REQUEST-2026-09-17-w8-g7-full-suite-honesty-mw-rag-route.md` | **not_run:pre_dual** |
+| `mw-e2e-ha` | `../reviews/2026-09-17-w8-g7-full-suite-honesty-mw-e2e-ha.md` | **pass** |
+| `mw-rag-route` | `../reviews/2026-09-17-w8-g7-full-suite-honesty-mw-rag-route.md` | **pass** |
 
-No dual conclusion yet · Ban implementer writing pass · Dual PASS (later) ≠ authorize coding · ≠ suite green · ≠ HA.
+Dual knife SHA: **`1605936c032d091968343478b380e6cedd10fe3a`** (short **`1605936`**). Docs close only — **≠** coding authorized · **≠** suite green · **≠** full suite pass · **≠** HA · **≠** 0 BUG · Ban false green · gates-in-force ≠ suite-green · Dual PASS ≠ authorize coding · `releaseEvidence=false`.
 
 ---
 
@@ -55,28 +55,28 @@ No dual conclusion yet · Ban implementer writing pass · Dual PASS (later) ≠ 
 
 ---
 
-## 2. Honesty outline（docs only · this REQUEST）
+## 2. Honesty outline（docs only · this knife）
 
-W8 REQUEST unlocks **only** agreement to hard-pin:
+W8 dual **PASS** unlocks **only** agreement to hard-pin:
 
 1. **gates-in-force ≠ suite-green** — G7 policy effective ≠ suite ran-as-green / delivery success  
 2. Prior `post_suite_dual_pass` = receipt honesty only · **≠** suite green · **≠** full suite pass · **≠** HA · **≠** 0 BUG  
 3. **4×nonzero retained as gaps** · **3×Key-blocked honesty retained** · **R2/R4 still open** (per existing receipt / hard-gates)  
 4. Point at existing G7 suite / north-star / e2e matrix docs · Ban inventing new prove EXIT this prep  
 5. Ban claiming HA / suite green / `releaseEvidence=true` / controlPlaneClosed from this REQUEST  
-6. Dual PASS ≠ authorize coding · Ban self-approve · zero coding · zero suite re-run  
+6. Dual PASS ≠ authorize coding · Ban self-approve beyond docs close · zero coding · zero suite re-run  
 
 **Explicitly out of scope**: W1c-delete · DROP migrations · schema DROP · MySQL/Qdrant revive · application coding.
 
 ---
 
-## 3. Pins (must survive dual)
+## 3. Pins (must survive dual · still binding after close)
 
 1. **gates-in-force ≠ suite-green**  
 2. **Ban false green** · knife/dual/`post_suite_dual_pass`/EXIT=0 ≠ suite green ≠ HA ≠ 0 BUG  
 3. Ban claiming HA / suite green / full suite pass from this REQUEST  
 4. Point at existing G7 suite + north-star + e2e matrix docs · Ban inventing prove EXIT  
-5. `releaseEvidence=false` · Dual PASS ≠ authorize coding · Ban self-approve · zero coding · zero suite re-run  
+5. `releaseEvidence=false` · Dual PASS ≠ authorize coding · Ban self-approve beyond docs close · zero coding · zero suite re-run  
 6. PG retained · MySQL/Qdrant cutover **STOPPED**  
 7. Ban secrets / `.env*`  
 8. Ban W1c-delete / DROP content in this knife  
@@ -87,15 +87,15 @@ W8 REQUEST unlocks **only** agreement to hard-pin:
 
 | CMD | Status |
 |-----|--------|
-| docs dual only | **`not_run:pre_dual`** · REQUEST pair ready · **no prove script** · zero coding · zero suite re-run |
+| docs dual only | **`post_prove_dual_pass`** · dual receipts archived on `1605936` · **no prove script** · zero coding · zero suite re-run |
 | Prior (reference only · not re-run here) | G7 suite receipt 2026-09-16 · post-suite dual · gate-in-force dual — **Ban** treating prior EXIT / `post_suite_dual_pass` as W8 / suite green |
 
 ---
 
 ## 5. Non-claims
 
-REQUEST open **`not_run:pre_dual` only** · not dual pass · not coding authorized · not suite green · not HA · not 0 BUG · Dual PASS ≠ authorize coding · Ban false green · Ban claiming HA/suite green from this REQUEST · `releaseEvidence=false`
+Docs close **`post_prove_dual_pass` only** · not coding authorized · not suite green · not HA · not 0 BUG · Dual PASS ≠ authorize coding · Ban false green · Ban claiming HA/suite green from this REQUEST · Ban self-approve beyond docs close · `releaseEvidence=false` · this knife **≠** green suite receipt
 
 ---
 
-*Harness · W8 G7 full-suite honesty · 2026-09-17 (~01:57 PT) · REQUEST-ready / not_run:pre_dual · gates-in-force ≠ suite-green · Ban false green · releaseEvidence=false · ≠HA · ≠suite · Dual PASS ≠ authorize coding · zero coding*
+*Harness · W8 G7 full-suite honesty · 2026-09-17 (~02:02 PT) · post_prove_dual_pass · dual on 1605936 · gates-in-force ≠ suite-green · Ban false green · releaseEvidence=false · ≠HA · ≠suite · Dual PASS ≠ authorize coding · zero coding*
