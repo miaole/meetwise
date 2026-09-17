@@ -1,10 +1,11 @@
 # Slice — **PG-retained** · Postgres (+pgvector + PostgresSaver)
 
-**Status**: **`REQUEST-ready / not_run:pre_dual`**  
-**Date**: 2026-09-17 (~01:15 PT)  
+**Status**: **`post_prove_dual_pass`**  
+**Date**: 2026-09-17 (~01:31 PT)  
 **Authority**: meetwise — **NO** MySQL business DB cutover · **NO** Qdrant vector cutover · retained **Postgres (+pgvector + PostgresSaver / RLS / 0043)** · provisional production wake preference = **Postgres LISTEN/NOTIFY** · Redis wake evaluation deferred per coordinator suggestion, pending a user hard sentence and not a user hard pin · Redis separately evaluable/not STOPPED · docs only · Dual PASS ≠ authorize coding · zero coding
 **releaseEvidence=false** · **≠HA** · **≠suite green** · Ban branch-name MySQL justification  
-**Experts**: `mw-e2e-ha` + `mw-rag-route` · REQUEST drafted · **not yet dual-sent**
+**Experts**: `mw-e2e-ha` + `mw-rag-route` · pre-exec dual **PASS** (receipts archived)  
+**Honesty**: Dual on **`0c95883`** · tip may include provisional wake overlay (e.g. `32d0724`) — **wake = provisional overlay after dual** · not a user hard pin · no wake-patch re-dual required · Redis still orthogonal/not STOPPED
 
 ---
 
@@ -19,6 +20,8 @@
 | ADR superseded (partial) | `ai-docs/delivery/adr-mysql-qdrant-local.md` |
 | REQUEST · e2e-ha | `reviews/REQUEST-2026-09-17-pg-retained-checkpoint-postgres-saver-mw-e2e-ha.md` |
 | REQUEST · rag-route | `reviews/REQUEST-2026-09-17-pg-retained-checkpoint-postgres-saver-mw-rag-route.md` |
+| Dual receipt · e2e-ha | `reviews/2026-09-17-pg-retained-checkpoint-postgres-saver-mw-e2e-ha.md` → **pass** |
+| Dual receipt · rag-route | `reviews/2026-09-17-pg-retained-checkpoint-postgres-saver-mw-rag-route.md` → **pass** |
 
 ## One-line scope
 
@@ -32,8 +35,8 @@ Docs-only pin that relational+checkpoint+vector stay on **Postgres (+pgvector + 
 
 | CMD | Status |
 |-----|--------|
-| docs dual | **`not_run:pre_dual`** · no prove · zero coding |
+| docs dual | **`post_prove_dual_pass`** · receipts: `reviews/2026-09-17-pg-retained-checkpoint-postgres-saver-mw-e2e-ha.md` + `…-mw-rag-route.md` → **pass** · no prove · zero coding |
 
 ---
 
-*Slice · PG-retained · 2026-09-17 (~01:15 PT) · REQUEST-ready / not_run:pre_dual · releaseEvidence=false · ≠HA · ≠suite · Ban cutover · Dual PASS ≠ authorize coding · zero coding*
+*Slice · PG-retained · 2026-09-17 (~01:31 PT) · post_prove_dual_pass · dual on 0c95883 · wake provisional overlay after dual · releaseEvidence=false · ≠HA · ≠suite · Ban cutover · Dual PASS ≠ authorize coding · zero coding*
