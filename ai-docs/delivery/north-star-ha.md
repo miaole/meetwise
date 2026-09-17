@@ -56,6 +56,10 @@
 - 默认 / stub / 本地 compose 一律 `haStatus: NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false`
 - **禁止**把骨架、stub、授权本地 compose、本地 C3 shared、或本地 C4 fault-inject EXIT=0 写成生产 HA / 阶 C/D 已绿
 
+## 平行轨 — W0–W8 PG-retained workflow（非 HA）
+
+- SSOT：`w0-w8-workflow-status.md` · W0 PG-retained · W1 inventory · **W2** `harness/w2-resource-sizing-receipts.md`（2c4g vs 4c8g · REQUEST-ready）· **W3** `harness/w3-int-transcript-delete-503-freeze.md`（INT-TRANSCRIPT-01 + DELETE=503 freeze · REQUEST-ready）· W4–W8 not open · Dual PASS ≠ authorize coding · ≠HA · `releaseEvidence=false`
+
 ## 平行轨 — R5 / sole-stack 诚实（非 HA）
 
 - `harness/r5-retirement-sole-stack-status.md` · `harness/r5-pgvector-fixture-mark-red.md`
