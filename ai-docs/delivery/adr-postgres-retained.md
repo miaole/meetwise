@@ -30,6 +30,7 @@ Architecture ADR-0001 / ADR-0003 / ADR-0007 already point at Postgres + checkpoi
 - R1–R4 product RAG / domain-isolation gates remain open as product work — they are **not** authorized as MySQL/Qdrant cutover.
 - F8 MS3 / commerce / egress / R4 meta knives remain on their own tracks (untouched by this ADR).
 - Docs knife: `pg-retained-checkpoint-postgres-saver` (`REQUEST-ready / not_run:pre_dual`, zero coding).
+- Next workflow knife (**W1**, docs only): PG redundant/obsolete table inventory — **ZERO deletes** · `harness/w1-pg-redundant-table-inventory.md` · Dual PASS ≠ authorize W1b deletes · W2…W8 not opened.
 
 ## Non-claims
 
