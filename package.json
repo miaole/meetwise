@@ -437,6 +437,8 @@
     "r4-p-meta-ms1-product-wire:prove": "pnpm -C apps/worker prove:r4-p-meta-ms1-product-wire",
     "r4-p-meta-ms2-facets-product:prove": "pnpm -C apps/worker prove:r4-p-meta-ms2-facets-product",
     "r4-p-meta-ms3-deploy-product:prove": "pnpm -C apps/worker prove:r4-p-meta-ms3-deploy-product",
+    "r4-eg1-dual-claim:prove": "pnpm -C apps/worker prove:r4-eg1-dual-claim",
+    "r4-eg2-funnel-covered:prove": "pnpm -C apps/worker prove:r4-eg2-funnel-covered",
     "r4-p-r1-fail-closed:prove": "pnpm -C apps/worker prove:r4-p-r1-fail-closed",
     "r2-classify-job-route-prereq:prove": "pnpm -C apps/worker prove:r2-classify-job-route-prereq",
     "r2-p-worker-route-classify:prove": "pnpm -C apps/worker prove:r2-p-worker-route-classify",
