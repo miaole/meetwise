@@ -4,7 +4,7 @@
 **Date**: 2026-09-17 ~20:04–20:17 PT（execute）· receipt ~20:18 PT  
 **Authority**: meetwise standing authorize · **G7 Key×3 fix iso/UI/perf coding+prove** · pre-exec dual PASS on REQUEST SHA `8de362c`（docs gate）· Dual PASS ≠ already fixed  
 **NEW_SHELL_STATUS**: **set**（authorized `source /home/box/.meetwise-secrets/load-model-api-key.sh` · name-only · **no invent Key** · value **never** printed / echoed / committed）  
-**HEAD（pre-commit tip）**: `1a8b1e9`  
+**Prove / push SHA**: **`a4e3de5`**（`a4e3de583942fb641acb7cf545709f4124034b86`）  
 **releaseEvidence=false** · **≠HA** · **≠ suite green** · **≠ family green** · **≠ covered** · **≠ SLO** · **≠ LOAD** · **≠ R2/R4/G6 closed** · **≠ R5 closed** · **Key set ≠ auto green** · **Ban假绿** · **do NOT wash EXIT=1 into green** · **R5-MARKED-RED retained** · **G6 STILL OPEN** · **Dual ≠ coding** · **no invent Key** · **Ban self-approve dual_pass**
 
 ## What changed（minimal · honest）
