@@ -146,15 +146,15 @@ Post-suite dual: `reviews/2026-09-16-g7-full-suite-post-run-mw-{e2e-ha,rag-route
 
 ---
 
-## Addendum — **Key×3 FreeTierOnly residual**（2026-09-17 · docs REQUEST open）
+## Addendum — **Key×3 FreeTierOnly residual**（2026-09-17 · docs honesty · `post_prove_dual_pass` · residual OPEN）
 
 | ID | Knife | Status | Notes |
 |----|-------|--------|-------|
-| **RES** | Key×3 FreeTierOnly residual | **`REQUEST-ready / not_run:pre_dual`** | Docs only · 403 FreeTierOnly root cause · O1 paid quota / O2 alternate model / O3 stay honesty_red · `harness/g7-key-x3-freetieronly-residual.md` · slice/eval · REQUEST pair mw-e2e-ha + mw-rag-route · prior FIX honesty_red on `a4e3de5` retained · **residual OPEN** · EXIT **1/1/1** retained · Ban claim fixed without Key/quota · Dual PASS ≠ coding · zero coding |
+| **RES** | Key×3 FreeTierOnly residual | **`post_prove_dual_pass`** | Docs honesty · dual BOTH PASS on REQUEST **`5897984`** (e2e-ha+rag) · 403 FreeTierOnly root cause · O1/O2/O3 **not selected / not executed** · `harness/g7-key-x3-freetieronly-residual.md` · slice/eval · reviews `2026-09-17-g7-key-x3-freetieronly-residual-mw-{e2e-ha,rag-route}.md` · prior FIX honesty_red on `a4e3de5` retained · **residual STILL OPEN** · EXIT **1/1/1** retained · Ban claim fixed without Key/quota · Dual PASS ≠ coding · Dual ≠ 已修好 · zero coding |
 
-**Cross-link**: RES = docs REQUEST after FIX honesty_red. **≠** fixed · **≠** suite green · **≠** invent Key/quota.  
-**RES gate**: REQUEST open · await pre-exec dual · Ban self-approve · Ban假绿 · Ban claim fixed without Key/quota evidence.
+**Cross-link**: RES = docs honesty nail after FIX honesty_red + pre-exec dual. **≠** fixed · **≠** suite green · **≠** invent Key/quota · **≠** coding authorize.  
+**RES gate**: Dual BOTH PASS on **`5897984`** · standing authorize **docs nail only** · Ban self-approve beyond this docs nail · Ban假绿 · Ban claim fixed without Key/quota evidence · residual **STILL OPEN**.
 
-**Hard pins**: residual OPEN · EXIT 1/1/1 retained · Ban假绿 · Ban claim fixed without Key/quota · Dual PASS ≠ coding · `releaseEvidence=false` · ≠HA · R5/G6 open · zero coding · Ban secrets / `.env*`.
+**Hard pins**: residual STILL OPEN · EXIT 1/1/1 retained · Ban假绿 · Ban claim fixed without Key/quota · Dual PASS ≠ coding · Dual ≠ 已修好 · O1/O2/O3 not selected/not executed · `releaseEvidence=false` · ≠HA · R5/G6 open · zero coding · Ban secrets / `.env*`.
 
-*Slice addendum · Key×3 FreeTierOnly residual · 2026-09-17 (~20:25 PT) · REQUEST-ready / not_run:pre_dual · residual OPEN · EXIT 1/1/1 retained · Ban假绿 · Ban claim fixed without Key/quota · Dual PASS ≠ coding · releaseEvidence=false · ≠HA · zero coding*
+*Slice addendum · Key×3 FreeTierOnly residual · 2026-09-17 (~20:31 PT) · post_prove_dual_pass · docs honesty · dual on 5897984 · residual OPEN · EXIT 1/1/1 retained · Ban假绿 · Ban claim fixed without Key/quota · Dual PASS ≠ coding · O1/O2/O3 not selected · releaseEvidence=false · ≠HA · zero coding*
