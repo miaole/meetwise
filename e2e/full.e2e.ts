@@ -51,27 +51,34 @@ async function main() {
   const units = await entitlement(H);
   A((units.availableUnits ?? 0) >= 1, `额度到账(${units.availableUnits} 次)`);
 
-  // 3c. 图片简历 OCR 全栈：真 HTTP → 真百炼视觉模型 → 计费状态机 → 真 DB。
-  const beforeOcr = await entitlement(H);
-  const pngB64 = liveOcrResumePngBase64();
-  const ocrUpload = await uploadImageResume(H, { filename: 'r.png', mimeType: 'image/png', contentBase64: pngB64 });
-  r = ocrUpload.response;
-  b = ocrUpload.body;
-  A(r.status === 200 && b.ocr === true && b.format === 'image' && typeof b.resumeId === 'string',
-    `图片简历 OCR 全栈 → 摄取(status=${r.status}, outcome=${b.error ?? b.reason ?? 'ok'})`);
-  const ocrProfile = await getResumeProfile(H, b.resumeId);
-  const structuredOcr = JSON.stringify(ocrProfile.structured ?? {});
-  A(Number.isInteger(b.chars) && b.chars >= 20 && ocrProfile.status === 'needs_review' && !structuredOcr.includes('13800138000')
-    && /redis|postgresql|typescript|backend/i.test(structuredOcr),
-  `OCR 来源产出可复核画像(${b.chars} chars)、识别至少 1 个非敏感技能且 PII 脱敏(不含明文手机号)`, 'provider');
-  const afterOcr = await entitlement(H);
-  A(afterOcr.availableUnits === beforeOcr.availableUnits - 1, 'OCR 成功只确认扣减 1 个额度');
-  const duplicateOcrUpload = await uploadImageResume(H, { filename: 'r-repeat.png', mimeType: 'image/png', contentBase64: pngB64 });
-  const duplicateOcr = duplicateOcrUpload.response;
-  const duplicateOcrBody = duplicateOcrUpload.body;
-  const afterDuplicateOcr = await entitlement(H);
-  A(duplicateOcr.status === 409 && duplicateOcrBody.error === 'ocr_duplicate' && afterDuplicateOcr.availableUnits === afterOcr.availableUnits,
-    '同图重传 → 409 且额度不再扣减');
+  // 3c. 图片简历 OCR 全栈：仅当操作员注入专用 DASHSCOPE_VISION_API_KEY（runner 才开预览双旗）时实跑。
+  // MODEL_API_KEY 默认 DeepSeek 文本 profile，不得冒充百炼视觉 Key（不编造凭据 / Ban假绿）。
+  const visionKeyPresent = Boolean(String(process.env.DASHSCOPE_VISION_API_KEY ?? '').trim());
+  if (!visionKeyPresent) {
+    reviews.record({ class: 'capability', code: 'image_ocr_unavailable' });
+    console.log('⊘ 图片简历 OCR 全栈 → skipped (DASHSCOPE_VISION_API_KEY unset; text MODEL_API_KEY ≠ vision)');
+  } else {
+    const beforeOcr = await entitlement(H);
+    const pngB64 = liveOcrResumePngBase64();
+    const ocrUpload = await uploadImageResume(H, { filename: 'r.png', mimeType: 'image/png', contentBase64: pngB64 });
+    r = ocrUpload.response;
+    b = ocrUpload.body;
+    A(r.status === 200 && b.ocr === true && b.format === 'image' && typeof b.resumeId === 'string',
+      `图片简历 OCR 全栈 → 摄取(status=${r.status}, outcome=${b.error ?? b.reason ?? 'ok'})`);
+    const ocrProfile = await getResumeProfile(H, b.resumeId);
+    const structuredOcr = JSON.stringify(ocrProfile.structured ?? {});
+    A(Number.isInteger(b.chars) && b.chars >= 20 && ocrProfile.status === 'needs_review' && !structuredOcr.includes('13800138000')
+      && /redis|postgresql|typescript|backend/i.test(structuredOcr),
+    `OCR 来源产出可复核画像(${b.chars} chars)、识别至少 1 个非敏感技能且 PII 脱敏(不含明文手机号)`, 'provider');
+    const afterOcr = await entitlement(H);
+    A(afterOcr.availableUnits === beforeOcr.availableUnits - 1, 'OCR 成功只确认扣减 1 个额度');
+    const duplicateOcrUpload = await uploadImageResume(H, { filename: 'r-repeat.png', mimeType: 'image/png', contentBase64: pngB64 });
+    const duplicateOcr = duplicateOcrUpload.response;
+    const duplicateOcrBody = duplicateOcrUpload.body;
+    const afterDuplicateOcr = await entitlement(H);
+    A(duplicateOcr.status === 409 && duplicateOcrBody.error === 'ocr_duplicate' && afterDuplicateOcr.availableUnits === afterOcr.availableUnits,
+      '同图重传 → 409 且额度不再扣减');
+  }
 
   // 4. 建面试
   r = await fetch(`${BASE}/interview`, { method: 'POST', headers: H, body: '{}' });
@@ -80,30 +87,38 @@ async function main() {
   A(r.status === 200 || r.status === 201, `建面试 → interviewId(${interviewId})`);
   A(typeof interviewId === 'string', '拿到 interviewId');
 
-  // 4a. 真实双向语音闭环：百炼 TTS 先播报一条题目，再将返回的 WAV 原样交给百炼 ASR。
-  const voicePrompt = '请用中文回答，如何设计 Redis 令牌桶限流？';
-  const spoken = await callLiveVoiceGateway('TTS', () => fetch(`${BASE}/interview/${interviewId}/speak`, {
-    method: 'POST', headers: H, body: JSON.stringify({ text: voicePrompt }),
-  }));
-  const spokenBody: any = spoken.body;
-  A(spoken.response.status === 200 && spokenBody.mimeType === 'audio/wav'
-    && typeof spokenBody.audioBase64 === 'string' && Buffer.from(spokenBody.audioBase64, 'base64').byteLength > 1_000,
-  `真实 TTS → 有效 WAV 音频（非本地假实现，${spoken.attempts} 次请求）`, 'provider');
-  const transcribed = await callLiveVoiceGateway('ASR', () => fetch(`${BASE}/interview/${interviewId}/transcribe`, {
-    method: 'POST', headers: H,
-    body: JSON.stringify({
-      audioBase64: spokenBody.audioBase64,
-      mimeType: spokenBody.mimeType,
-      capture: { mode: 'single_local_microphone', consent: true, policyVersion: 'voice_ephemeral_v1' },
-    }),
-  }));
-  const transcribedBody: any = transcribed.body;
-  A(transcribed.response.status === 200 && typeof transcribedBody.text === 'string'
-    && /redis|令牌桶|限流/i.test(transcribedBody.text)
-    && transcribedBody.capture?.mode === 'single_local_microphone'
-    && transcribedBody.capture?.speakerAttribution === 'not_diarized'
-    && transcribedBody.capture?.wordTimestamps === 'not_available',
-  `真实 ASR 回转 TTS 音频 → 可理解转写（${String(transcribedBody.text ?? '').slice(0, 40)}；${transcribed.attempts} 次请求）`, 'provider');
+  // 4a. 真实双向语音闭环：仅当 DASHSCOPE_TTS_API_KEY + DASHSCOPE_ASR_API_KEY 均已注入时实跑。
+  // MODEL_API_KEY（DeepSeek 文本）不得冒充百炼语音 Key。
+  const ttsKeyPresent = Boolean(String(process.env.DASHSCOPE_TTS_API_KEY ?? '').trim());
+  const asrKeyPresent = Boolean(String(process.env.DASHSCOPE_ASR_API_KEY ?? '').trim());
+  if (!ttsKeyPresent || !asrKeyPresent) {
+    reviews.record({ class: 'capability', code: 'voice_unavailable' });
+    console.log('⊘ 真实双向语音闭环 → skipped (DASHSCOPE_TTS/ASR_API_KEY unset; text MODEL_API_KEY ≠ voice)');
+  } else {
+    const voicePrompt = '请用中文回答，如何设计 Redis 令牌桶限流？';
+    const spoken = await callLiveVoiceGateway('TTS', () => fetch(`${BASE}/interview/${interviewId}/speak`, {
+      method: 'POST', headers: H, body: JSON.stringify({ text: voicePrompt }),
+    }));
+    const spokenBody: any = spoken.body;
+    A(spoken.response.status === 200 && spokenBody.mimeType === 'audio/wav'
+      && typeof spokenBody.audioBase64 === 'string' && Buffer.from(spokenBody.audioBase64, 'base64').byteLength > 1_000,
+    `真实 TTS → 有效 WAV 音频（非本地假实现，${spoken.attempts} 次请求）`, 'provider');
+    const transcribed = await callLiveVoiceGateway('ASR', () => fetch(`${BASE}/interview/${interviewId}/transcribe`, {
+      method: 'POST', headers: H,
+      body: JSON.stringify({
+        audioBase64: spokenBody.audioBase64,
+        mimeType: spokenBody.mimeType,
+        capture: { mode: 'single_local_microphone', consent: true, policyVersion: 'voice_ephemeral_v1' },
+      }),
+    }));
+    const transcribedBody: any = transcribed.body;
+    A(transcribed.response.status === 200 && typeof transcribedBody.text === 'string'
+      && /redis|令牌桶|限流/i.test(transcribedBody.text)
+      && transcribedBody.capture?.mode === 'single_local_microphone'
+      && transcribedBody.capture?.speakerAttribution === 'not_diarized'
+      && transcribedBody.capture?.wordTimestamps === 'not_available',
+    `真实 ASR 回转 TTS 音频 → 可理解转写（${String(transcribedBody.text ?? '').slice(0, 40)}；${transcribed.attempts} 次请求）`, 'provider');
+  }
 
   // 5. begin(入队 start job;worker 规划 + 出首题)
   r = await fetch(`${BASE}/interview/${interviewId}/begin`, { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
@@ -122,8 +137,8 @@ async function main() {
     staleReplayLabel: '已消费 question identity 重放 → 409 stale_question（不双写/不二次扣费）',
     replayConsumedAfterFirstTurn: true,
   });
-  const { terminal, questions, turns: turn, lastSeq, kinds, provenance } = mainLoop;
-  A(questions >= 1, `至少出了 1 道题(实际 ${questions} 道;事件:${[...kinds].join(',')})`);
+  const { terminal, terminalPayload, questions, turns: turn, lastSeq, kinds, provenance } = mainLoop;
+  A(questions >= 1, `至少出了 1 道题(实际 ${questions} 道;事件:${[...kinds].join(',')}; terminal=${terminal}; reason=${(terminalPayload as any)?.reason ?? 'n/a'})`);
   A(turn >= 1, `至少答了 1 题(${turn} 次)`);
   A(provenance.trustedBSideScore === null && provenance.forgedScores === 'none'
     && provenance.identities.length === questions,

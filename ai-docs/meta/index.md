@@ -55,6 +55,10 @@ tags:
 - `testing/full-format-rag-evaluation.md`：全格式提取、切块、表格、citation 与检索的数据集、指标和发布协议。
 - `delivery/resume-project-highlights.md`：已验证指标、简历项目亮点、面试追问卡与禁止夸大表述。
 - `delivery/production-readiness-remediation-register.md`：测试、评测、演示与真实生产路径不等价时的整改登记、验收和关闭纪律。
+- `delivery/north-star-ha.md`：生产 100% HA 北星目标与证据阶梯；**当前 ≠HA** · `releaseEvidence=false`。
+- `delivery/north-star-hard-gates.md`：交付硬闸 SSOT（G1–G6：可核验 · 非快乐路径 · 需求→评测→实现 · 独立审 · 禁假绿 · 性能负载）。未齐前禁止叙事 HA / covered / 0 BUG 已证。
+- `delivery/impl-review-gate.md`：每切片 harness → 评测/矩阵 → 独立审 → prove → reviews/；实现方禁止自审。
+- `delivery/e2e-requirement-coverage-matrix.md`：需求→用例覆盖真相 + **NEG/FAULT/ADV/PERF 快乐路径盲区列**；后续 knife 必须带 NEG+PERF 列。
 - `delivery/execution-master-checklist.md`：所有已登记未闭环事项的依赖顺序、逐项执行清单和阶段出口；审阅后按此顺序实施。
 - `delivery/lean-cd-deployment.md`：**当前生效**的精简单机 CD——CI 构建镜像(@sha256)→ACR→SSH→compose pull/migrate/up --wait/失败回滚。部署相关首看此文档。
 - `observability/README.md`：AI、Graph、成本和质量观测。
@@ -106,6 +110,8 @@ tags:
 | Pages 预览展示 | `docs/index.html` | 仅面试练习；招聘不在本预览范围；不是应用运行时 / 数据面 / 发布证据 |
 | 云端部署(CD) | `delivery/lean-cd-deployment.md` | 精简单机 compose 部署、ACR、回滚 |
 | 本地演示 | `architecture/devops/local-demo-deployment.md` | compose、seed、健康检查 |
+| 交付硬闸 / 北星 | `delivery/north-star-hard-gates.md` + `delivery/north-star-ha.md` | G1–G6；releaseEvidence=false；≠HA；全量 E2E 零遗漏 / 100% HA / 0 BUG 均为目标或硬闸，当前未齐 |
+| 覆盖矩阵 / 盲区 | `delivery/e2e-requirement-coverage-matrix.md` | 需求→用例；NEG/FAULT/ADV/PERF 强制列；禁假绿 |
 | 测试设计 | `testing/strategy/test-strategy.md` + `testing/conventions/test-authoring.md` | 分层（HTTP 主 / Playwright 次）、TC 规范、golden tasks |
 | 变更后测试/回归 | `skills/testing/sop.md` | 审核 → 选层 → 跑门 → `pnpm regression` → 出处；概述见 `skills/testing/SKILL.md` |
 | E2E 平台集成（#55–#64） | `delivery/e2e-platform-integration.md` | 核实合并顺序、冲突决议、supersession；draft / 非 READY |

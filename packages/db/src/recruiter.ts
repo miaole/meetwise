@@ -144,7 +144,7 @@ export async function applyToJob(c: Client, candidate: string, jobId: string): P
   const applicationId = ((ins.rowCount ?? 0) > 0)
     ? (ins.rows[0].id as string)
     : ((await c.query('SELECT id FROM job_application WHERE job_id=$1 AND candidate_user_id=$2', [jobId, candidate])).rows[0].id as string);  // 幂等复用
-  // RAG-FUNNEL-03：申请事务绑定最新 route_decided 版本（未决岗位不绑定 → 无法 start，优雅降级）。
+  // RAG-FUNNEL-03：申请事务绑定最新 route_decided 版本（未决岗位不绑定 → start 拒启 interview_ineligible_route）。
   await bindApplicationRoute(c, { candidateUserId: candidate, recruiterUserId: recruiter, jobId, applicationId, emitConsumptionEvent: true });
   return { applicationId };
 }
@@ -345,7 +345,7 @@ export async function inviteCandidate(c: Client, recruiter: string, jobId: strin
 
 export type StartApplicationResult =
   | { status: 'started' | 'reused'; interviewId: string; resumeId: string }
-  | { status: 'noop' | 'resume_not_ready' | 'binding_invalid' };
+  | { status: 'noop' | 'resume_not_ready' | 'binding_invalid' | 'interview_ineligible_route' };
 
 /**
  * 创建/取得岗位专属会话。application 行锁把“看绑定→建 interview→回写 application”放在同一事务；
@@ -354,12 +354,12 @@ export type StartApplicationResult =
 export async function startApplicationInterview(c: Client, candidate: string, appId: string, resumeId: string): Promise<StartApplicationResult> {
   await assertPrincipal(c, candidate);
   const app = await c.query(
-    `SELECT id,job_id,job_title_snapshot,status,interview_id,resume_id,interview_attempt
+    `SELECT id,job_id,recruiter_user_id,job_title_snapshot,status,interview_id,resume_id,interview_attempt
        FROM job_application WHERE id=$1 AND candidate_user_id=$2 FOR UPDATE`,
     [appId, candidate],
   );
   if (app.rowCount === 0) return { status: 'noop' }; // 不区分不存在/越权
-  const row = app.rows[0] as { id: string; job_id: string; job_title_snapshot: string; status: string; interview_id: string | null; resume_id: string | null; interview_attempt: number };
+  const row = app.rows[0] as { id: string; job_id: string; recruiter_user_id: string; job_title_snapshot: string; status: string; interview_id: string | null; resume_id: string | null; interview_attempt: number };
   if (row.status === 'completed' || row.status === 'declined') return { status: 'noop' };
 
   if (row.status === 'in_progress' && row.interview_id) {
@@ -391,6 +391,24 @@ export async function startApplicationInterview(c: Client, candidate: string, ap
   );
   if (resume.rowCount !== 1) return { status: 'resume_not_ready' };
 
+  // R2 P-LOOP：启动前再试 bind（关闭 apply/invite 早于 classify 的竞态）。
+  // 若此时已有 route_decided → bound/already_bound；仍未决且无既有 binding → route_not_decided。
+  // R2 P-START 真拒启：无 binding → interview_ineligible_route（fail-closed；不创建 interview）。
+  // 可测等价 unresolved_route_start_count=0：未决路径绝不返回 started。
+  // 已绑定旧 revision 的面试在岗位后续编辑后仍读旧 snapshot，不受影响。
+  await bindApplicationRoute(c, {
+    candidateUserId: candidate,
+    recruiterUserId: row.recruiter_user_id,
+    jobId: row.job_id,
+    applicationId: row.id,
+    emitConsumptionEvent: true,
+  });
+  const binding = await c.query(
+    `SELECT 1 FROM application_route_binding WHERE application_id=$1 AND candidate_user_id=$2`,
+    [row.id, candidate],
+  );
+  if ((binding.rowCount ?? 0) === 0) return { status: 'interview_ineligible_route' };
+
   const interviewId = 'iv_' + randomUUID();
   const nextAttempt = Math.max(0, Number(row.interview_attempt ?? 0)) + 1;
   await c.query(
@@ -407,10 +425,11 @@ export async function startApplicationInterview(c: Client, candidate: string, ap
     [row.id, candidate, interviewId, nextAttempt, resumeId, row.interview_attempt],
   );
   if (updated.rowCount !== 1) throw Object.assign(new Error('application_start_conflict'), { code: 'application_start_conflict' });
-  // RAG-FUNNEL-03：面试启动事务把 binding 复制到不可变 snapshot（仅当已有 route_decided 绑定）。
-  // 无 binding（岗位尚未分类）→ 不落 snapshot，优雅降级为无路由的旧行为，绝不制造死端；
-  // 已绑定旧 revision 的面试在岗位后续编辑后仍读旧 snapshot，不受影响。
-  await snapshotInterviewRoute(c, candidate, interviewId, row.id);
+  const snap = await snapshotInterviewRoute(c, candidate, interviewId, row.id);
+  if (snap.status === 'no_binding') {
+    // Belt-and-suspenders：中途丢 binding → 抛错让 asPrincipal 回滚，避免无 snapshot 启动。
+    throw Object.assign(new Error('interview_ineligible_route'), { code: 'interview_ineligible_route' });
+  }
   return { status: 'started', interviewId, resumeId };
 }
 

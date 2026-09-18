@@ -30,7 +30,9 @@
     "prove:rag-retrieval-acl": "tsx test/rag-retrieval-acl.proof.ts",
     "prove:memory-vector-chunk-deletion": "tsx test/memory-vector-chunk-deletion.proof.ts",
     "prove:sealed-ocr-binding": "tsx test/sealed-ocr-binding.proof.ts",
-    "prove:privacy-erasure-preview": "tsx test/privacy-erasure-preview.proof.ts"
+    "prove:sealed-job-route-classify-binding": "tsx test/sealed-job-route-classify-binding.proof.ts",
+    "prove:privacy-erasure-preview": "tsx test/privacy-erasure-preview.proof.ts",
+    "prove:r4-p-planner-unit": "tsx test/r4-p-planner.proof.ts"
   },
   "dependencies": {
     "mammoth": "^1.12.0",

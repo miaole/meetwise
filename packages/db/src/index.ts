@@ -19,6 +19,17 @@ export {
 } from './principal.ts';
 export type { Client, DbPool, PoolOverrides, RuntimeLoginInput } from './principal.ts';
 export { assertIsolatedTestEnvironment, assertIsolatedTestTarget } from './isolated-test-target.ts';
+
+// App-level tenant enforcement prototype (additive MySQL path).
+// 应用层 tenant ≠ RLS — does not replace asPrincipal / set_config / FORCE RLS.
+export {
+  TenantEnforcementError,
+  requireOwnerUserId,
+  assertTenantPredicate,
+  buildRequiredOwnerFilter,
+  enforceOwnerOnRow,
+} from './tenant/index.ts';
+export type { TenantEnforcementCode } from './tenant/index.ts';
 export { enrollCheckpointThread } from './checkpoint-thread.ts';
 export type { CheckpointThreadEnrollment } from './checkpoint-thread.ts';
 export { revokeCheckpointThread, assertInterviewPrivacyActive, isInterviewPrivacyActive, beginCheckpointErasure, listClaimableCheckpointErasureTargets, claimCheckpointErasureTarget, purgeCheckpointErasureTarget } from './checkpoint-privacy.ts';
@@ -26,7 +37,7 @@ export type { CheckpointErasureRequest, ClaimedCheckpointErasureTarget } from '.
 // 隐私删除授权签发器（INT-TRANSCRIPT-00 账本：单次 jti CAS 消费 + 受约束 claim + 逐 sink receipt）
 export { issueAuthorizationSnapshot, consumeAuthorizationSnapshot, consumeAuthorizationSnapshotBound, claimAuthorizationTarget, recordDeletionReceipt, resolveDeletionReceipt } from './privacy-authorization.ts';
 export type { IssueAuthorizationSnapshotInput, IssuedAuthorizationSnapshot, ConsumedAuthorizationSnapshot, ClaimedAuthorizationTarget, ResolvedDeletionReceipt } from './privacy-authorization.ts';
-export { gatewayDispatchOwners, gatewayModelInvocationOwners, gatewayJobGauges, gatewayCostBudgetSnapshot } from './gateway-dispatch.ts';
+export { gatewayDispatchOwners, gatewayModelInvocationOwners, gatewayUsageCalibrationOwners, gatewayJobGauges, gatewayCostBudgetSnapshot } from './gateway-dispatch.ts';
 export type { GatewayDispatchWork, GatewayJobGauge, GatewayCostBudgetSnapshot } from './gateway-dispatch.ts';
 
 /** 原语②：状态机 CAS——仅当当前态 == from 时迁移到 to 并 version+1，返回是否生效（陈旧落败=0 行）。 */
@@ -88,7 +99,7 @@ export type { ReportStatus } from './report.ts';
 // Commit-delivered, data-free worker wakeup constants.  They are not a queue
 // or authorization mechanism; the durable queue and RLS claim path remain
 // authoritative.
-export { WORKER_JOB_WAKEUP_CHANNEL, WORKER_JOB_WAKEUP_PAYLOAD } from './worker-job-wakeup.ts';
+export { WORKER_JOB_WAKEUP_CHANNEL, WORKER_JOB_WAKEUP_PAYLOAD, WORKER_JOB_WAKEUP_REDIS_STREAM, WORKER_JOB_WAKEUP_REDIS_GROUP, WORKER_JOB_WAKEUP_REDIS_FIELD, notifyWorkerJobWakeup } from './worker-job-wakeup.ts';
 
 // 面试 job 队列（api 入队 / worker 消费）+ 心跳续租 + reaper 收割孤儿 running
 export {
@@ -130,8 +141,21 @@ export {
 
 // 生产向量库（pgvector HNSW）
 export { upsertVectorChunk, annSearch, annSearchLegacy } from './retrieval-store.ts';
+export {
+  RETRIEVAL_VECTOR_BACKEND_ENV,
+  resolveRetrievalVectorBackend,
+  createRetrievalVectorBackend,
+} from './retrieval-backend.ts';
+export type {
+  RetrievalVectorBackendId,
+  RetrievalVectorBackend,
+  PgvectorRetrievalBackend,
+  QdrantRetrievalBackend,
+  ResolveRetrievalVectorBackendOptions,
+  CreateRetrievalVectorBackendOptions,
+} from './retrieval-backend.ts';
 export { activeQbankGeneration, requireActiveQbankGeneration, hybridQbankSearch, qbankEvidenceForRefs, qbankQuestionEvidenceForRefs, qbankQuestionResultsForHits } from './qbank-generation-retrieval.ts';
-export type { QbankActiveGeneration, QbankHybridHit, QbankEvidenceExcerpt, QbankQuestionEvidence, QbankQuestionEvidencePart, QbankQuestionRetrievalResult } from './qbank-generation-retrieval.ts';
+export type { QbankActiveGeneration, QbankHybridHit, QbankEvidenceExcerpt, QbankQuestionEvidence, QbankQuestionEvidencePart, QbankQuestionRetrievalResult, QbankServingScopeInput, QbankRetrievalMode } from './qbank-generation-retrieval.ts';
 
 // qbank ANN 跨实例结果缓存：Redis 热数据面 + PostgreSQL epoch/RLS/外部调用 intent 控制面。
 export { cachedQbankSearch, qbankRetrievalCacheKey, RagCacheDependencyError } from './qbank-retrieval-cache.ts';
@@ -358,13 +382,13 @@ export type {
 // PG 是 route 决策的权威事实源；真实模型外发是受控 seam（归 MODEL-OP-01）。不改检索函数 ACL。
 export {
   JOB_SEMANTIC_REVISION_STATUSES, JOB_ROUTE_ATTEMPT_OUTCOMES,
-  createJobSemanticRevision, classifyJobRoute,
+  createJobSemanticRevision, classifyJobRoute, listNextJobRoutePending,
   bindApplicationRoute, snapshotInterviewRoute, getInterviewRouteSnapshot,
   TAXONOMY_V1_LEAVES, JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_POLICY_VERSION,
 } from './job-route-decision.ts';
 export type {
   JobSemanticRevisionStatus, JobRouteAttemptOutcome, JobRouteModelInput, JobRouteModelClassify,
-  ClassifyJobRouteResult, BindApplicationRouteResult, SnapshotInterviewRouteResult, InterviewRouteSnapshotView,
+  JobRoutePendingClaim, ClassifyJobRouteResult, BindApplicationRouteResult, SnapshotInterviewRouteResult, InterviewRouteSnapshotView,
 } from './job-route-decision.ts';
 
 // RAG-FUNNEL-04 / track-local retrieval dispatch seam（图内 planner 消费）：

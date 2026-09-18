@@ -24,6 +24,10 @@ related:
   - ../requirements/use-cases/expert-long-interview-runtime.md
   - ../requirements/use-cases/cloud-runtime-and-migration.md
   - ../testing/e2e-performance-evidence.md
+  - ./north-star-ha.md
+  - ./north-star-hard-gates.md
+  - ./impl-review-gate.md
+  - ./e2e-requirement-coverage-matrix.md
 ---
 
 # 未闭环能力执行总清单
@@ -50,9 +54,11 @@ related:
 
 1. 对应业务用例、接口、数据对象、状态机和失败语义已经冻结。
 2. 迁移、代码和受控配置落在真实组合根，而不是只落在 smoke、demo、fixture 或导出函数。
-3. 七类用例覆盖正常、异常、边界、逃逸通道、并发、恢复和对抗输入；涉及数据库、HTTP、浏览器或外部服务时使用相应层级的验证。
-4. 运行事实、验收文档、变更记录和外部表述同步，且不夸大本地/模拟回执。
+3. 七类用例覆盖正常、异常、边界、逃逸通道、并发、恢复和对抗输入；涉及数据库、HTTP、浏览器或外部服务时使用相应层级的验证。**仅快乐路径绿 = 假绿**（硬闸 G2）。
+4. 运行事实、验收文档、变更记录和外部表述同步，且不夸大本地/模拟回执。每步须 **CMD+EXIT / CI / 收据**（硬闸 G1；叙事 ≠ 证据）。
 5. 上一项工作包没有遗留会扩大本项权限、数据外送、删除、评分或跨域检索风险的 P0/P1。
+6. 评测用例 + 覆盖矩阵行（含 NEG / FAULT / ADV / PERF）**先于** E2E/prove 实现（硬闸 G3）；实现方不自批，执行前独立专家审（G4）。
+7. `partial` / GAP / conn-only / honesty-pin ≠ covered（G5）；api/web/worker 须可复现压测，本地绿 ≠ 生产容量（G6）。
 
 ### 1.3 现在必须保持的禁止项
 
@@ -64,6 +70,25 @@ related:
 - [ ] 在 `RAG-FUNNEL-01…06` 完成前，不把相似度命中称作题域隔离，不允许“全库找不到就跨桶或联网生成”。
 - [ ] 在 `CLOUD-TEST-01…05` 完成前，不删除 Docker 源码；固定 `meetwise_cloud_test` 只能承担零写入 smoke，不能承载迁移、RLS 或全量 E2E。项目负责人已要求迁移期间**不执行**本地 Docker 数据面路径：保留仅为历史兼容与 ECS 对照，不能成为验证替代。
 - [ ] 在真实浏览器、真实 API、真实供应商链路未取得受控证据前，不将流式语音、云测试、RAG 评测或模型评测称为发布通过。
+- [ ] **北星硬闸**（`north-star-hard-gates.md` G1–G7）：不宣称 HA / `releaseEvidence=true`；不把 happy-only 绿、conn-only、honesty-pin 写成 covered；后续 knife 缺 NEG+PERF 列不得合入；**G7 已生效**（门禁强制）— 刀绿/dual ≠ 成功；无 G7 全量收据禁止宣称 100% HA / 0 BUG；禁宣称 suite green。
+
+### 1.4 北星硬闸（交付 SSOT 指针）
+
+全文：`north-star-hard-gates.md`。本清单不重复展开。执行任何工作包前视为已冻结：
+
+| # | 闸 | 本清单读法 |
+|---|----|------------|
+| G1 | 一切可核验 | 无 CMD+EXIT / CI / 收据 = 未执行；叙事 ≠ 证据 |
+| G2 | 非快乐路径完整 E2E | 负/故障/边界/对抗须进 cases **且**执行；仅快乐绿 = 假绿 |
+| G3 | 需求→评测/矩阵→实现 | 禁止先写绿再回填需求 |
+| G4 | 执行前独立专家审 | 实现方不自批；关键切片双域对抗 |
+| G5 | 禁假绿 | partial/GAP/conn-only/honesty-pin ≠ covered |
+| G6 | 性能+负载 | api/web/worker 可复现压测；本地绿 ≠ 生产容量 |
+| G7 | 本地全量套件验证关 | **已生效**（门禁强制；≠ 套件已绿）；验证关是成功唯一标准；刀绿/dual/prove ≠ 成功；无全量 CMD+EXIT 收据 → forbid 100% HA / 0 BUG / `releaseEvidence=true` |
+
+钉：**releaseEvidence=false** · **≠HA** · 全量 E2E 零遗漏（目标）· **100% HA**（目标）· **0 BUG**（硬闸，须证据）。当前均 **未齐**，不得叙事已达成。**成功叙事挂 G7 全量收据**（G7 已生效 ≠ 收据齐，更不得勾 true）。
+
+- [◐] Adaptive-life idempotency CI fix：`post_prove_dual_pass`（`mw-e2e-ha` + `mw-rag-route` independent pass; `pnpm adaptive-life:prove` EXIT=0; HEAD `21672ab`; `releaseEvidence=false`; ≠ suite green/R5/G6/HA）。详见 `harness/adaptive-life-idempotency-ci-fix.md`。
 
 ## 2. 执行顺序总览
 

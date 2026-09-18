@@ -7,6 +7,7 @@ import { spawn } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
 import { emitClassifiedE2EFailure, emitE2EFailure, tagE2EFailure } from '../e2e/helpers/failure-class.mjs';
 import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
+import { applyLiveE2ECapabilityEnv } from './e2e-live-capability-env.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 // 测试默认密钥:CI 无 .env 也能起(简历加密/去重键)。外部已设则不覆盖。e2e 每次重建 schema,不需跨运行解密,用测试键安全。
@@ -40,6 +41,7 @@ const fakeServiceFlags = ['VOICE_FAKE', 'OCR_FAKE', 'E2E_FAKE_MODEL'].filter((na
 });
 if (fakeServiceFlags.length) throw tagE2EFailure('provider', 'fake_service_mode_forbidden');
 if (!String(env.MODEL_API_KEY ?? '').trim()) throw tagE2EFailure('provider', 'live_provider_key_missing');
+applyLiveE2ECapabilityEnv(env);
 
 // A previous E2E used fixed 8787/19091 ports.  Two isolated runs then raced:
 // the second runner connected to the first runner's API and reported a false

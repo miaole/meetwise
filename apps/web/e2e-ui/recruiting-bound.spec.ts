@@ -69,7 +69,7 @@ test('C→B: real browser binds application to a new interview, completes it, an
   await page.getByRole('button', { name: /我已阅读并同意/ }).click();
   await page.fill('textarea[name="text"]', '后端工程师，熟悉 Redis 限流、幂等订单和可观测性。');
   await page.getByRole('button', { name: '上传简历', exact: true }).click();
-  await expect(page.getByText(/状态:ingested/).first()).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText(/解析完成/).first()).toBeVisible({ timeout: 20_000 });
   const candidateToken = await tokenOf(page.context());
   // 真实支付回调是本用例唯一非 UI 的环境准备：前端不提供「假装支付成功」入口。
   await provisionPaidInterviewCredit(request, candidateToken, suffix);

@@ -4,11 +4,15 @@
  * 三事务式:claim 提交 → 生命周期(模型在各自短事务,经 invoke) → markDone。同面试保序、租约崩溃可重领。
  */
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, type DbPool, type InterviewGraphFence } from '@meetwise/db';
+import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, getInterviewRouteSnapshot, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, type DbPool, type InterviewGraphFence, type QbankServingScopeInput } from '@meetwise/db';
 import { getMetrics, METRIC, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
 import type { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
-import { admitInterviewResume, type ScoredRef, type SourceDoc } from '@meetwise/domain';
+import { admitInterviewResume, degradedRetrieval, type ScoredRef, type SourceDoc } from '@meetwise/domain';
 import { startAdaptiveInterview, submitAdaptiveAnswer } from './adaptive-lifecycle.ts';
+import { isTechRoleFailClosedEnabled, resolveAdaptiveInterviewRole } from './adaptive-role-resolve.ts';
+import { decideRouteSnapshotRetrieve } from './qbank-retrieve-scope.ts';
+import { retrieveViaDispatchTrackLocal, type TrackLocalRetrieveFactory } from './qbank-track-local-retrieve.ts';
+import { productionRequiresTrackLocal } from './production-config.ts';
 import { createInterviewResearchSkills } from './interview-research-skills.ts';
 import { runDrainLoop } from './drain-loop.ts';
 import { startHeartbeat } from './job-heartbeat.ts';
@@ -35,7 +39,17 @@ export interface ConsumerDeps {
   // 注入则消费者跑**自适应 agent 图**(生产注真 annSearch/web fetcher;测试注 fake);不注则跑旧固定题单流程。
   // localRetrieve 按 owner 参数化(消费者多 owner;每 job 闭成 owner 专属);webExplore owner 无关(web 抓取)。
   adaptive?: {
-    localRetrieve: (owner: string, q: string) => Promise<ScoredRef[]>;
+    // Compat/test seam: scoped cachedQbankSearch when trackLocal is absent.
+    // Production main injects trackLocal → REAL-WIRE dispatch path.
+    // Missing snapshot is a retrieval denial, not permission for an unscoped query.
+    // ≠ wrong_track=0; wire green ≠ R4 closed.
+    localRetrieve: (owner: string, q: string, scope?: QbankServingScopeInput) => Promise<ScoredRef[]>;
+    /**
+     * R4 REAL-WIRE-IMPL: when present, consumer retrieve uses
+     * planInterviewTurn → assembleValidatedRetrievalPlan → dispatchTrackLocalRetrieval
+     * (via retrieveViaDispatchTrackLocal). recheck_failed fail-closed; G-R2-5 kept.
+     */
+    trackLocal?: TrackLocalRetrieveFactory;
     webExplore: (q: string) => Promise<SourceDoc[]>;
     /** 有界多源取证；不存在时 CRAG 兼容退回 webExplore。 */
     deepResearch?: (q: string) => Promise<SourceDoc[]>;
@@ -228,7 +242,44 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
       if (d.adaptive) {
         // 存快照：await/lease callback 后 TypeScript 和运行时都不能假设外层可选配置仍是同一对象。
         const adaptive = d.adaptive;
-        const localRetrieve = (q: string) => adaptive.localRetrieve(owner, q);   // 闭成本 owner 专属
+        // R4 REAL-WIRE-IMPL (when adaptive.trackLocal present):
+        //   planInterviewTurn → validate → assemble RetrievalPlan (generationId+recipeId)
+        //   → dispatchTrackLocalRetrieval → recheck (fail-closed on recheck_failed).
+        // G-R2-5: Absent/invalid snapshot → route_snapshot_missing; never unscoped.
+        // Compat/test (no trackLocal): primary-leaf scoped localRetrieve (partial P-WIRE).
+        // P-FAKEPLAN banned. retrieve-side only; P-START separate.
+        // ≠ 题域已隔离; ≠ wrong_track=0; wire green ≠ R4 closed; releaseEvidence=false.
+        const routeSnapForRetrieve = await asPrincipal(d.pool, owner, (c) =>
+          getInterviewRouteSnapshot(c, owner, job.interviewId));
+        const retrieveDecision = decideRouteSnapshotRetrieve(routeSnapForRetrieve);
+        // Weighted-deficit across rag.retrieve calls within this job claim.
+        let trackLocalDeficit: number[] = routeSnapForRetrieve?.allocations?.map(() => 0) ?? [];
+        const localRetrieve = (q: string): Promise<ScoredRef[]> => {
+          if (!retrieveDecision.allowed) {
+            return Promise.resolve([degradedRetrieval(retrieveDecision.reason)]);
+          }
+          if (adaptive.trackLocal) {
+            return retrieveViaDispatchTrackLocal({
+              pool: d.pool,
+              owner,
+              snapshot: routeSnapForRetrieve,
+              query: q,
+              deficit: trackLocalDeficit,
+              deps: adaptive.trackLocal(owner),
+            }).then((out) => {
+              trackLocalDeficit = out.deficit;
+              return out.refs;
+            });
+          }
+          // F1 PS1 deploy-surface: production must not fall back to compat localRetrieve
+          // (partial P-WIRE · no dispatch/recheck). Fail-closed instead of silent leakage shape.
+          // Test/dev without trackLocal may still use scoped localRetrieve.
+          if (productionRequiresTrackLocal(false)) {
+            return Promise.resolve([degradedRetrieval('track_local_required')]);
+          }
+          // Test/compat seam only — production main injects trackLocal.
+          return adaptive.localRetrieve(owner, q, retrieveDecision.scope);
+        };
         // 每次 claim 都新建固定 skill 目录，因此预算不跨 owner/interview/job 共享；模型没有
         // 可控的“工具名→执行器”旁路。一个 job 只推进一个 pending question，RAG/深检索各至多一次。
         const research = createInterviewResearchSkills({
@@ -286,7 +337,23 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
                   ocrBinding: loaded.ocr_binding ?? undefined,
                 })
               : { ok: false as const, resumeProfileAvailable: false as const };
-            await startAdaptiveInterview(life, adaptive.role ?? '技术岗', admitted.ok && admitted.resumeProfileAvailable ? facts : []);
+            // R1 / GAP-RAG-01: resolve role from route snapshot / job metadata; flag-on fail-closed
+            // when missing (no silent 技术岗). Flag-off keeps legacy default inside resolver.
+            // Does not claim R2 snapshot write-path or R4 topic isolation.
+            let roleFromRouteSnapshot: string | undefined;
+            let roleFromJobRouteMetadata: string | undefined;
+            if (isTechRoleFailClosedEnabled()) {
+              // Reuse retrieve-path snapshot load (same interview); R1 ≠ R4 isolation.
+              const snap = routeSnapForRetrieve;
+              const primary = snap?.allocations?.[0]?.leafTrackId;
+              if (typeof primary === 'string' && primary.trim()) roleFromRouteSnapshot = primary.trim();
+            }
+            const role = resolveAdaptiveInterviewRole({
+              roleFromRouteSnapshot,
+              roleFromJobRouteMetadata,
+              roleFromDeps: adaptive.role,
+            });
+            await startAdaptiveInterview(life, role, admitted.ok && admitted.resumeProfileAvailable ? facts : []);
           } else {
             await submitAdaptiveAnswer(life, answerPayload as any);
           }

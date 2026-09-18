@@ -173,7 +173,7 @@ export type {
   CitedSourcesResolution,
 } from './question-generation.ts';
 // 简历多格式提取 + 清洗(PDF/Word/图片→文本)
-export { extractResumeText, cleanResumeText, detectResumeFormat, type ResumeFileFormat } from './resume-extract.ts';
+export { extractResumeText, cleanResumeText, detectResumeFormat, looksLikeEncryptedPdf, type ResumeFileFormat } from './resume-extract.ts';
 
 export { chunkStructuredDocument, type SourceLocator, type DocumentFormat, type ElementKind, type TextElement, type TableElement, type TranscriptElement, type DocumentElement, type StructuredDocument, type ChunkerRecipe, type RagChunk } from './rag-chunking.ts';
 
@@ -202,10 +202,11 @@ export {
   TAXONOMY_V1_LEAVES, JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_POLICY_VERSION,
   JOB_ROUTE_MAX_LEAVES, JOB_ROUTE_MIN_ALLOCATION_BPS, JOB_ROUTE_CONFIDENCE_THRESHOLD_BPS, JOB_ROUTE_MARGIN_THRESHOLD_BPS, JOB_ROUTE_TOTAL_BPS,
   canonicalJobSemanticDigest, classifyJobByRule, validateModelRouteOutput, jobRouteDecisionHash,
-  validatePlannerOutput, nextWeightedDeficitLeaf, planWeightedDeficitRounds,
+  validatePlannerOutput, nextWeightedDeficitLeaf, planWeightedDeficitRounds, planInterviewTurn,
 } from './job-route-classifier.ts';
 export type {
   TaxonomyLeaf, JobRouteAllocation, JobRouteModelOutput, ValidateJobRouteOutputResult, InterviewPlannerOutput,
+  PlanInterviewTurnResult,
 } from './job-route-classifier.ts';
 
 // 评分确定性聚合（SCOR-02）纯域原语：确定性总分公式 + span/digest 文本级复验 + C 端 ScoreCard 评估消费面。
@@ -268,9 +269,14 @@ export type { MemoryAuthorizationVersionInput, MemoryRenderSourceCard } from './
 export {
   RETRIEVAL_POLICY_VERSION, RETRIEVAL_PLAN_STATUSES,
   deriveRouteScopeDigest, deriveRetrievalPlanKey, validateRetrievalPlan,
+  buildRetrievalPlanFromPlannerOutput, assembleValidatedRetrievalPlan,
+  R4_WRONG_TRACK_RECHECK_REASONS, countWrongTrackHits, assertWrongTrackZero,
+  declaredHitTrackId, isFailClosedWrongTrackRecheckReason,
 } from './qbank-track-local-retrieval.ts';
 export type {
   RetrievalPlan, RetrievalPlanStatus, RetrievalPlanSnapshot, ValidateRetrievalPlanResult,
+  AssembleValidatedRetrievalPlanResult,
+  WrongTrackHit, R4WrongTrackRecheckReason,
 } from './qbank-track-local-retrieval.ts';
 
 // track-local 无题时 LLM 同桶生成题（RAG-FUNNEL-05）纯域原语：canonical no-eligible verdict digest +
@@ -450,6 +456,18 @@ export {
 export type {
   ResumeSourceKind, SealedOcrProvenance, InterviewResumeAdmitError, InterviewResumeAdmission,
 } from './sealed-ocr-binding.ts';
+
+// MODEL-OP-01 R2 P-MODEL：UC job_route_classify → sealed job.route-classify.v1 provenance。
+export {
+  SEALED_JOB_ROUTE_CLASSIFY_OPERATION_ID, JOB_ROUTE_CLASSIFY_UC_ALIAS,
+  SEALED_JOB_ROUTE_CLASSIFY_REGISTRY_VERSION, SEALED_JOB_ROUTE_CLASSIFY_INPUT_KIND,
+  SEALED_JOB_ROUTE_CLASSIFY_CAPABILITY, SEALED_JOB_ROUTE_CLASSIFY_ENDPOINT_PROFILE_ID,
+  SEALED_JOB_ROUTE_CLASSIFY_REGION, SEALED_JOB_ROUTE_CLASSIFY_MODEL_OR_RECIPE,
+  SEALED_JOB_ROUTE_CLASSIFY_ADMISSION_KEY, SEALED_JOB_ROUTE_CLASSIFY_PROMPT_CONTRACT,
+  SEALED_JOB_ROUTE_CLASSIFY_PROMPT_VERSION, SEALED_JOB_ROUTE_CLASSIFY_OUTPUT_CONTRACT,
+  parseSealedJobRouteClassifyProvenance,
+} from './sealed-job-route-classify-binding.ts';
+export type { SealedJobRouteClassifyProvenance } from './sealed-job-route-classify-binding.ts';
 
 // 生命周期触发策略（MEM-09）纯域原语：六触发器（事件落库/候选摘要/强制压缩/长期事实写入/
 // embedding 索引/recall）的「允许触发/必须先满足/不允许触发」显式 enum + 纯函数决策。复用

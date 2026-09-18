@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "mode": "observe-only",
   "releaseEvidence": false,
-  "statement": "静态清单只枚举当前仓库已知的模型供应商直接出站，不证明镜像、云网络、密钥分发或唯一出口。",
+  "statement": "\u9759\u6001\u6e05\u5355\u53ea\u679a\u4e3e\u5f53\u524d\u4ed3\u5e93\u5df2\u77e5\u7684\u6a21\u578b\u4f9b\u5e94\u5546\u76f4\u63a5\u51fa\u7ad9\uff0c\u4e0d\u8bc1\u660e\u955c\u50cf\u3001\u4e91\u7f51\u7edc\u3001\u5bc6\u94a5\u5206\u53d1\u6216\u552f\u4e00\u51fa\u53e3\u3002",
   "requiredOperationIds": [
     "chat",
     "vision-ocr",
@@ -240,8 +240,8 @@
         }
       ]
     },
-      {
-        "id": "dashscope-http-voice",
+    {
+      "id": "dashscope-http-voice",
       "source": "packages/ai-runtime/src/voice.ts",
       "factory": "dashscopeAsr|dashscopeTts",
       "transports": [
@@ -368,6 +368,11 @@
     {
       "name": "DASHSCOPE_API_KEY",
       "source": "packages/ai-runtime/test/voice-stream-preview.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "scripts/conn-stack/mysql-stack.sole-wiring.proof.mjs",
       "class": "test-isolation"
     },
     {
@@ -1169,6 +1174,121 @@
       "name": "MODEL_API_KEY",
       "source": "packages/ai-runtime/test/model-client-dispatch.proof.ts",
       "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-010-sse-resume.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-015-resume-ingest-failures.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-018-user-abandon-http.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/src/r4-p-meta-p-r1-remaining.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/src/r4-p-meta-serving-product-remaining.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/src/r4-p-meta-serving-remaining.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/src/r4-p-r1-fail-closed-remaining.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/nhp-r4-adv-covered.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-p-meta-ms1-product-wire.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-p-meta-p-r1.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-p-meta-serving-product.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-p-meta-serving.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-p-r1-fail-closed.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-wrong-track-prod-surface.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/uc-e2e-002-cross-device-lease.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/uc-e2e-011-report-refund.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/uc-e2e-017-orphan-reservation.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/uc-e2e-018-user-abandon.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/uc-e2e-019-report-regenerate.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/eval-uc-e2e-001-002-cite.proof.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/g6-e2e-iso-blocked.proof.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/g7-scor00-sole-fixture.proof.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/uc-e2e-001-live-blocked.proof.mjs",
+      "class": "test-isolation"
     },
     {
       "name": "MODEL_BACKUP_API_KEY_FINGERPRINT",

@@ -4,7 +4,7 @@
  */
 import { asGateway, type DbPool } from './principal.ts';
 
-export type GatewayDispatchWork = 'interview' | 'quiz' | 'diagnosis' | 'report' | 'commerce';
+export type GatewayDispatchWork = 'interview' | 'quiz' | 'diagnosis' | 'report' | 'commerce' | 'job_route';
 
 export interface GatewayJobGauge {
   queue: 'interview_job' | 'report' | 'quiz_job' | 'diagnosis_job';
@@ -53,4 +53,11 @@ export async function gatewayCostBudgetSnapshot(pool: DbPool, scopeId: string): 
     usedMicroCny: Number(row.used_micro_cny),
     unknownCount: Number(row.unknown_count) || 0,
   } : undefined;
+}
+
+/** Only returns principals with estimate↔provider usage pairs eligible for calibration reconcile; no invocation content. */
+export async function gatewayUsageCalibrationOwners(pool: DbPool): Promise<string[]> {
+  const result = await asGateway(pool, (c) =>
+    c.query('SELECT owner_user_id FROM gateway_usage_calibration_owners()'));
+  return result.rows.map((row) => String(row.owner_user_id));
 }
