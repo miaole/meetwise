@@ -1,11 +1,11 @@
 # Slice — **R4/FUNNEL remainder** · G-R4-5/FUNNEL dual-claim STILL OPEN honesty
 
-**Status**: **`REQUEST-ready / not_run:pre_dual`**  
-**Date**: 2026-09-17 (~19:30 PT)  
-**Authority**: meetwise — docs-only honesty · **MS3 true ≠ R4 closed** · **G-R4-5 / FUNNEL dual-claim STILL OPEN** · Dual PASS ≠ authorize coding · zero coding · zero prove · PG+pgvector+PostgresSaver retained  
+**Status**: **`post_prove_dual_pass`**  
+**Date**: 2026-09-17 (~19:45 PT)  
+**Authority**: meetwise — docs-only honesty · **MS3 true ≠ R4 closed** · **MS3 ≠ R4 closed** · **G-R4-5 / FUNNEL dual-claim STILL OPEN** · **R4/FUNNEL STILL OPEN** · Dual PASS ≠ authorize coding · Dual PASS ≠ coding假关 · Ban假绿升格 · Ban elevating honesty to closed · zero coding · zero prove · PG+pgvector+PostgresSaver retained  
 **releaseEvidence=false** · **≠HA** · **≠suite green** · **≠ R4 closed** · **≠ 题域已隔离** · **≠ FUNNEL-01 / G-R4-5 dual-closed** · **≠ R1 closed** · **Ban false green**  
-**Experts**: `mw-e2e-ha` + `mw-rag-route` · **not yet dual-sent** · Ban self-approve  
-**Honesty**: F8 `post_prove_dual_pass` · MS1/MS2/MS3 true · product FUNNEL classifier true · **dual-claim STILL OPEN** · Dual PASS ≠ coding
+**Experts**: `mw-e2e-ha` + `mw-rag-route` · pre-exec dual **PASS** on **`669bca4`** · Ban self-approve beyond docs close  
+**Honesty**: Dual reviews against knife SHA **`669bca4`**. F8 `post_prove_dual_pass` · MS1/MS2/MS3 true · product FUNNEL classifier true · **dual-claim STILL OPEN** · Dual PASS ≠ coding假关 · Ban elevating honesty to closed
 
 ---
 
@@ -24,24 +24,27 @@
 | W0–W8 SSOT | `w0-w8-workflow-status.md` |
 | REQUEST · e2e-ha | `reviews/REQUEST-2026-09-17-r4-funnel-remainder-honesty-mw-e2e-ha.md` |
 | REQUEST · rag-route | `reviews/REQUEST-2026-09-17-r4-funnel-remainder-honesty-mw-rag-route.md` |
+| Review · e2e-ha | `reviews/2026-09-17-r4-funnel-remainder-honesty-mw-e2e-ha.md` · **pass** |
+| Review · rag-route | `reviews/2026-09-17-r4-funnel-remainder-honesty-mw-rag-route.md` · **pass** |
 
 ## One-line scope
 
-Docs-only: hard-pin **G-R4-5 / FUNNEL dual-claim STILL OPEN** after F8 MS3 true; **MS3 true ≠ R4 closed ≠ 题域已隔离 ≠ FUNNEL dual-closed**; Ban false green; Dual PASS ≠ coding.
+Docs-only dual close: hard-pin **G-R4-5 / FUNNEL dual-claim STILL OPEN** after F8 MS3 true; **MS3 true ≠ R4 closed ≠ 题域已隔离 ≠ FUNNEL dual-closed**; **R4/FUNNEL STILL OPEN**; Ban false green; Ban假绿升格; Ban elevating honesty to closed; Dual PASS ≠ coding假关.
 
 ## Hard pins
 
-- **MS3 true ≠ R4 closed** · **G-R4-5/FUNNEL dual-claim STILL OPEN** · Ban claiming dual-closed from F8 / this REQUEST  
-- Ban false green · F8 EXIT=0 / dual ≠ R4 / 题域 / FUNNEL closed  
+- **MS3 true ≠ R4 closed** · **MS3 ≠ R4 closed** · **G-R4-5/FUNNEL dual-claim STILL OPEN** · **R4/FUNNEL STILL OPEN** · Ban claiming dual-closed / R4 closed / FUNNEL closed from F8 / this docs close  
+- Ban false green · Ban假绿升格 · Ban elevating honesty to closed · F8 EXIT=0 / dual ≠ R4 / 题域 / FUNNEL closed  
 - G-R4-3 STILL OPEN (parallel) · R1/R2 still open PREREQ honesty  
-- Dual PASS ≠ authorize coding · Ban self-approve · zero coding · zero prove · `releaseEvidence=false` · ≠HA · ≠suite · PG retained · MySQL/Qdrant STOPPED
+- Dual PASS ≠ authorize coding · Dual PASS ≠ coding假关 · Ban self-approve beyond docs close · zero coding · zero prove · `releaseEvidence=false` · ≠HA · ≠suite · PG retained · MySQL/Qdrant STOPPED  
+- Do NOT claim R4 closed, FUNNEL closed, or MS3 closes R4
 
 ## CMD
 
 | CMD | Status |
 |-----|--------|
-| docs dual | **`not_run:pre_dual`** · no prove · zero coding |
+| docs dual | **`post_prove_dual_pass`** · dual on `669bca4` · no prove · zero coding |
 
 ---
 
-*Slice · R4/FUNNEL remainder honesty · 2026-09-17 (~19:30 PT) · REQUEST-ready / not_run:pre_dual · MS3 true ≠ R4 closed · G-R4-5/FUNNEL dual-claim STILL OPEN · Ban false green · releaseEvidence=false · ≠HA · Dual PASS ≠ authorize coding · zero coding*
+*Slice · R4/FUNNEL remainder honesty · 2026-09-17 (~19:45 PT) · post_prove_dual_pass · dual on 669bca4 · MS3 true ≠ R4 closed · G-R4-5/FUNNEL dual-claim STILL OPEN · R4/FUNNEL STILL OPEN · Ban false green · Ban假绿升格 · Ban elevating honesty to closed · Dual PASS ≠ coding假关 · releaseEvidence=false · ≠HA · Dual PASS ≠ authorize coding · zero coding*
