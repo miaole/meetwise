@@ -1,16 +1,29 @@
-# Harness — **G-R4-5 dual-claim / 题域隔离 residual**（docs REQUEST open · **residual OPEN**）
+# Harness — **G-R4-5 dual-claim / 题域隔离 residual**（docs honesty · **`post_prove_dual_pass`** · **residual OPEN**）
 
-**Status**: **`REQUEST-ready / not_run:pre_dual`**  
-**Date**: 2026-09-17 (~20:28 PT)  
-**releaseEvidence=false** · **≠HA** · **≠suite green** · **G-R4-5 STILL OPEN** · **R4/FUNNEL product STILL OPEN** · **MS3 ≠ R4 closed** · **≠ 题域已隔离** · **≠ dual-claim closed** · **≠ coding authorized** · **Ban假关** · **Ban invent FUNNEL-01…08 covered** · **Dual PASS ≠ coding** · **Ban self-approve**  
-**Experts (REQUEST pair)**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **await** · Dual PASS ≠ coding · Ban self-approve）  
+**Status**: **`post_prove_dual_pass`**（docs honesty only · pre-exec dual **BOTH PASS** · **residual STILL OPEN** · **≠ dual-claim closed** · **≠ 题域已隔离** · **≠ R4/FUNNEL product closed** · **≠ coding**）  
+**Date**: 2026-09-17 (~20:37 PT) · REQUEST open ~20:28 PT · pre-exec dual BOTH PASS ~20:34–20:35 PT · standing authorize docs nail  
+**releaseEvidence=false** · **≠HA** · **≠suite green** · **G-R4-5 STILL OPEN** · **R4/FUNNEL product STILL OPEN** · **MS3 ≠ R4 closed** · **≠ 题域已隔离** · **≠ dual-claim closed** · **≠ coding authorized** · **Ban假关** · **Ban invent FUNNEL-01…08 covered** · **Dual PASS ≠ coding** · **Ban self-approve beyond this docs nail**  
+**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **BOTH PASS** on REQUEST SHA **`e919ddf`** · standing authorize **docs nail only** · **Ban self-approve beyond this docs nail**）  
 **Prior L4 explicit-close**: `harness/r4-funnel-explicit-close-ssot-flip.md` · **`post_prove_dual_pass`** · dual on prove **`1a8b1e9`** · tip nail **`cc0d913`** · EXIT **5×0** · **L5 no-op** · **product SSOT NOT flipped** · **≠** this residual knife · **≠** wash L4 into R4 product closed  
 **Prior prove dual_pass**: `harness/r4-funnel-real-close.md` · dual on **`105b264`** · tip **`d994c36`** · **≠** this knife · Ban wash  
 **Prior honesty rem**: `harness/r4-funnel-remainder-honesty.md` · dual on **`669bca4`** · tip **`42f77c1`** · **≠** this knife · Ban elevating honesty to closed  
 **Slice**: `../g-r4-5-dual-claim-domain-isolation-residual.slice.md`  
 **Eval**: `../eval/g-r4-5-dual-claim-domain-isolation-residual.eval.md`  
-**Authority**: meetwise — docs-only REQUEST open to list **evidence gaps** blocking G-R4-5 dual-claim / 题域隔离 close · Ban secrets / `.env*` · Meridian banned · No force-push  
-**Honesty**: L4 `cc0d913` / prove `1a8b1e9` = explicit-close prove honesty only · **≠** R4/FUNNEL product closed · **≠** G-R4-5 closed · Dual PASS here ≠ coding · residual **OPEN**
+**Authority**: meetwise — standing authorize **docs honesty nail** after pre-exec dual · status **`post_prove_dual_pass`** · residual **STILL OPEN** · Ban secrets / `.env*` · Meridian banned · No force-push  
+**Honesty**: Dual PASS on REQUEST **`e919ddf`** = **docs honesty of residual OPEN** · **≠** dual-claim closed · **≠** 题域已隔离 · **≠** R4/FUNNEL product closed · Dual PASS ≠ coding · L4 `cc0d913` / prove `1a8b1e9` retained as prove honesty ≠ product close · residual **OPEN**
+
+---
+
+## Dual receipts (archived)
+
+| Expert | Receipt | Verdict |
+|--------|---------|---------|
+| `mw-e2e-ha` (pre-exec) | `../reviews/2026-09-17-g-r4-5-dual-claim-domain-isolation-residual-mw-e2e-ha.md` | **pass** (docs gate) on REQUEST **`e919ddf`** |
+| `mw-rag-route` (pre-exec) | `../reviews/2026-09-17-g-r4-5-dual-claim-domain-isolation-residual-mw-rag-route.md` | **pass** (docs gate) on REQUEST **`e919ddf`** |
+
+REQUEST stubs (historical): `REQUEST-2026-09-17-g-r4-5-dual-claim-domain-isolation-residual-mw-{e2e-ha,rag-route}.md`
+
+**Note**: This knife is **docs-only**. There is **no** coding · **no** prove re-run · **no** post-prove dual. Status `post_prove_dual_pass` here = **docs honesty after pre-exec dual** · residual **OPEN** · **≠** dual-claim / 题域 / R4 product closed.
 
 ---
 
@@ -18,18 +31,18 @@
 
 | Statement | Ruling |
 |-----------|--------|
-| **What this knife is** | Docs-only REQUEST: list evidence gaps for **G-R4-5 dual-claim / 题域隔离** close · dual pre-exec REQUEST pair · residual honesty |
+| **What this knife is** | Docs honesty nail: evidence gaps EG1–EG6 documented · pre-exec dual BOTH PASS · status **`post_prove_dual_pass`** · residual **STILL OPEN** |
 | **What this knife is not** | **Not** coding · **not** prove · **not** claiming R4/FUNNEL product closed · **not** claiming 题域已隔离 · **not** claiming dual-claim closed · **not** inventing FUNNEL-01…08 covered · **not** washing L4 `cc0d913` / prove `1a8b1e9` into product close |
 | **≠ L4 explicit-close knife** | **YES** — L4 tip **`cc0d913`** · prove **`1a8b1e9`** · EXIT **5×0** · **`post_prove_dual_pass`** · L5 no-op · **product SSOT NOT flipped** · **R4/FUNNEL product STILL OPEN** |
 | **≠ honesty rem / real-close prove wash** | **YES** — honesty rem `42f77c1`/`669bca4` · real-close `105b264`/`d994c36` · Ban wash either into product close |
 | **L4 dual_pass ⇒ R4 product closed?** | **NO** — Ban wash L4 into R4 product closed · **MS3 ≠ R4 closed** |
-| **Dual PASS here ⇒ coding?** | **NO** — Dual PASS ≠ coding · waits **standing authorize after dual** |
+| **This dual_pass ⇒ dual-claim / 题域 / coding?** | **NO** — Dual PASS = docs honesty of residual OPEN · **≠ coding** · **≠ dual-claim closed** · **≠ 题域已隔离** |
 | **G-R4-5 / R4/FUNNEL product** | **STILL OPEN** · Ban假关 |
-| **Now** | **`REQUEST-ready / not_run:pre_dual`** · zero coding · zero prove · residual **OPEN** · `releaseEvidence=false` |
+| **Now** | **`post_prove_dual_pass`** · residual **OPEN** · zero coding · zero prove · `releaseEvidence=false` |
 
 ---
 
-## 1. Evidence gaps（block dual-claim / 题域隔离 close）
+## 1. Evidence gaps（block dual-claim / 题域隔离 close · **STILL OPEN**）
 
 | # | Gap | Source / pointer | Honest read |
 |---|-----|------------------|-------------|
@@ -44,7 +57,7 @@
 
 ---
 
-## 2. Explicit ≠ prior knives（must survive dual）
+## 2. Explicit ≠ prior knives（must survive）
 
 | Prior knife | SHA pins | Role | This residual |
 |-------------|----------|------|---------------|
@@ -55,44 +68,43 @@
 
 ---
 
-## 3. Lifecycle（draft · not executed）
+## 3. Lifecycle（L1 nailed · residual OPEN · L2–L5 not executed）
 
-| Phase | Gate | This open |
+| Phase | Gate | This nail |
 |-------|------|-----------|
-| **L0** | REQUEST pair open · `REQUEST-ready / not_run:pre_dual` | **this commit** |
-| **L1** | Pre-exec dual (`mw-e2e-ha` + `mw-rag-route`) · Ban self-approve | **await coordinator send** |
-| **L2** | **Standing authorize** after dual · Dual PASS ≠ coding | **not yet** |
-| **L3** | Standing coding + prove（later · if authorized）· Ban invent EXIT · Ban假关 · Ban invent FUNNEL covered | **forbidden until L2** |
-| **L4** | Post-prove dual · Ban self-approve · Ban wash into product close | **forbidden until L3** |
-| **L5** | **Only then** any SSOT claim · Ban product close without evidence gaps closed | **forbidden until L4 + evidence** |
-
-**Hard**: REQUEST → pre-exec dual → standing coding+prove (later) → post-prove → **only then** any SSOT claim.
+| **L0** | REQUEST pair open · `REQUEST-ready / not_run:pre_dual` | **done** · REQUEST SHA **`e919ddf`** |
+| **L1** | Pre-exec dual (`mw-e2e-ha` + `mw-rag-route`) · Ban self-approve | **done** · BOTH **pass** on **`e919ddf`** · authorized docs nail **`post_prove_dual_pass`** |
+| **L2** | **Standing authorize** coding after dual · Dual PASS ≠ coding | **not executed** · this authorize = **docs nail only** · **≠** coding authorize |
+| **L3** | Standing coding + prove（if authorized）· Ban invent EXIT · Ban假关 · Ban invent FUNNEL covered | **forbidden** · Ban claim closed without evidence gaps closed |
+| **L4** | Post-prove dual · Ban wash into product close | **forbidden** · no prove this knife |
+| **L5** | **Only then** any SSOT claim · Ban product close without evidence gaps closed | **forbidden** · residual **STILL OPEN** |
+| **Residual** | G-R4-5 dual-claim / 题域隔离 / R4/FUNNEL product | **STILL OPEN** · Ban假关 · Ban claim dual-claim / 题域已关 |
 
 ---
 
-## 4. Pins（must survive dual）
+## 4. Pins（must survive · Ban假关）
 
-1. **G-R4-5 STILL OPEN** · **R4/FUNNEL product STILL OPEN** · **MS3 ≠ R4 closed**  
+1. **G-R4-5 STILL OPEN** · **R4/FUNNEL product STILL OPEN** · **MS3 ≠ R4 closed** · residual **OPEN**  
 2. **≠ L4 explicit-close** `cc0d913` / prove `1a8b1e9` · Ban wash L4 into R4 product closed  
 3. **≠ honesty rem** `42f77c1`/`669bca4` · **≠ real-close** `105b264`/`d994c36` · Ban wash  
 4. Evidence gaps EG1–EG6 listed · Ban invent FUNNEL-01…08 covered · Ban 题域已隔离 · Ban dual-claim假关  
-5. **Ban假关** · **Dual PASS ≠ coding** · Ban self-approve  
+5. **Ban假关** · **Dual PASS ≠ coding** · Ban self-approve beyond this docs nail  
 6. **`releaseEvidence=false`** · **≠HA** · ≠suite green  
-7. Lifecycle: REQUEST → pre-exec dual → standing coding+prove (later) → post-prove → only then any SSOT claim  
-8. Zero coding / zero prove this open · Ban secrets / `.env*` · Meridian banned · force-push banned  
-9. L5 no-op on L4 retained · product SSOT **NOT** flipped · Ban elevating honesty / prove dual_pass to closed  
+7. Lifecycle: L0+L1 done · this authorize = docs nail only · L2–L5 coding/prove/SSOT **not** executed  
+8. Zero coding / zero prove this nail · Ban secrets / `.env*` · Meridian banned · force-push banned  
+9. L5 no-op on L4 retained · product SSOT **NOT** flipped · Ban elevating honesty / prove dual_pass / this dual_pass to closed  
 
 ---
 
-## 5. Prove CMD honesty（frozen · not run this open）
+## 5. Prove CMD honesty（frozen · **not run** this nail）
 
 | CMD | Run status now | Honest read |
 |-----|----------------|-------------|
-| `pnpm mysql-stack:r4-domain-isolation:prove` | **`not_run:await_authorize`** | Prior L4 EXIT=0 ≠ 题域已隔离 · Ban invent green close |
-| `pnpm r4-p-meta-ms3-deploy-product:prove` | **`not_run:await_authorize`** | MS3 ≠ R4 closed · G-R4-5 STILL OPEN |
-| `pnpm r4-p-meta-ms2-facets-product:prove` | **`not_run:await_authorize`** | ≠ dual-claim closed |
-| `pnpm r4-p-meta-ms1-product-wire:prove` | **`not_run:await_authorize`** | ≠ dual-claim closed |
-| `pnpm mysql-stack:m4-rag:prove` | **`not_run:await_authorize`** | ≠ product close |
+| `pnpm mysql-stack:r4-domain-isolation:prove` | **`not_run:no_coding_authorize`** | Prior L4 EXIT=0 ≠ 题域已隔离 · Ban invent green close |
+| `pnpm r4-p-meta-ms3-deploy-product:prove` | **`not_run:no_coding_authorize`** | MS3 ≠ R4 closed · G-R4-5 STILL OPEN |
+| `pnpm r4-p-meta-ms2-facets-product:prove` | **`not_run:no_coding_authorize`** | ≠ dual-claim closed |
+| `pnpm r4-p-meta-ms1-product-wire:prove` | **`not_run:no_coding_authorize`** | ≠ dual-claim closed |
+| `pnpm mysql-stack:m4-rag:prove` | **`not_run:no_coding_authorize`** | ≠ product close |
 | Dual-claim / FUNNEL-01…08 evidence | **missing · STILL OPEN** | Ban forge · Ban假关 |
 | Product SSOT flip | **forbidden under evidence gaps** | Ban silent flip |
 
@@ -100,8 +112,8 @@
 
 ## 6. Non-claims
 
-Not R4/FUNNEL product closed · not G-R4-5 dual-closed · not 题域已隔离 · not invent FUNNEL-01…08 covered · not MS3 closes R4 · not wash L4 `cc0d913`/`1a8b1e9` into product close · not wash honesty rem / real-close into closed · not coding authorized · not HA · not suite · Dual PASS ≠ coding · Ban假关 · `releaseEvidence=false` · G-R4-5 **STILL OPEN** · R4/FUNNEL product **STILL OPEN**
+Not R4/FUNNEL product closed · not G-R4-5 dual-closed · not 题域已隔离 · not invent FUNNEL-01…08 covered · not MS3 closes R4 · not wash L4 `cc0d913`/`1a8b1e9` into product close · not wash honesty rem / real-close into closed · not coding authorized · not HA · not suite · Dual PASS ≠ coding ≠ dual-claim/题域已关 · Ban假关 · `releaseEvidence=false` · G-R4-5 **STILL OPEN** · R4/FUNNEL product **STILL OPEN** · residual **OPEN**
 
 ---
 
-*Harness · G-R4-5 dual-claim / 题域隔离 residual · 2026-09-17 (~20:28 PT) · REQUEST-ready / not_run:pre_dual · residual OPEN · ≠ L4 cc0d913/1a8b1e9 · ≠ honesty rem · ≠ real-close wash · G-R4-5 STILL OPEN · R4/FUNNEL product STILL OPEN · MS3 ≠ R4 closed · Ban假关 · Ban invent FUNNEL-01…08 covered · Dual PASS ≠ coding · releaseEvidence=false · ≠HA · zero coding · Ban self-approve*
+*Harness · G-R4-5 dual-claim / 题域隔离 residual · 2026-09-17 (~20:37 PT) · post_prove_dual_pass · docs honesty · dual on e919ddf · residual OPEN · ≠ L4 cc0d913/1a8b1e9 · ≠ honesty rem · ≠ real-close wash · G-R4-5 STILL OPEN · R4/FUNNEL product STILL OPEN · MS3 ≠ R4 closed · Ban假关 · Ban invent FUNNEL-01…08 covered · Ban claim dual-claim / 题域已关 · Dual PASS ≠ coding · releaseEvidence=false · ≠HA · zero coding · Ban self-approve beyond this docs nail*
