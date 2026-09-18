@@ -142,3 +142,19 @@ Post-suite dual: `reviews/2026-09-16-g7-full-suite-post-run-mw-{e2e-ha,rag-route
 **Hard pins**: Key set ≠ auto/suite green · 未洗绿 · Ban假绿 · do NOT wash EXIT=1 into green · Dual PASS ≠ 已修好 · FreeTierOnly residual OPEN · R5-MARKED-RED retained · G6 STILL OPEN · Dual ≠ coding · A″ retained · `releaseEvidence=false` · no invent Key · Ban secrets / `.env*` · Ban self-approve.
 
 *Slice addendum · Key×3 fix iso/UI/perf · 2026-09-17 (~20:23 PT) · post_prove_dual_pass:honesty_red · dual on a4e3de5 · tip 5f591ea · EXIT 1/1/1 · FreeTierOnly residual OPEN · NEW_SHELL_STATUS=set · releaseEvidence=false · ≠HA · Key set ≠ auto/suite green · Ban假绿 · Dual ≠ 已修好 · R5-MARKED-RED · G6 STILL OPEN · Dual ≠ coding · A″ retained · no invent Key · no re-run*
+
+
+---
+
+## Addendum — **Key×3 FreeTierOnly residual**（2026-09-17 · docs REQUEST open）
+
+| ID | Knife | Status | Notes |
+|----|-------|--------|-------|
+| **RES** | Key×3 FreeTierOnly residual | **`REQUEST-ready / not_run:pre_dual`** | Docs only · 403 FreeTierOnly root cause · O1 paid quota / O2 alternate model / O3 stay honesty_red · `harness/g7-key-x3-freetieronly-residual.md` · slice/eval · REQUEST pair mw-e2e-ha + mw-rag-route · prior FIX honesty_red on `a4e3de5` retained · **residual OPEN** · EXIT **1/1/1** retained · Ban claim fixed without Key/quota · Dual PASS ≠ coding · zero coding |
+
+**Cross-link**: RES = docs REQUEST after FIX honesty_red. **≠** fixed · **≠** suite green · **≠** invent Key/quota.  
+**RES gate**: REQUEST open · await pre-exec dual · Ban self-approve · Ban假绿 · Ban claim fixed without Key/quota evidence.
+
+**Hard pins**: residual OPEN · EXIT 1/1/1 retained · Ban假绿 · Ban claim fixed without Key/quota · Dual PASS ≠ coding · `releaseEvidence=false` · ≠HA · R5/G6 open · zero coding · Ban secrets / `.env*`.
+
+*Slice addendum · Key×3 FreeTierOnly residual · 2026-09-17 (~20:25 PT) · REQUEST-ready / not_run:pre_dual · residual OPEN · EXIT 1/1/1 retained · Ban假绿 · Ban claim fixed without Key/quota · Dual PASS ≠ coding · releaseEvidence=false · ≠HA · zero coding*
