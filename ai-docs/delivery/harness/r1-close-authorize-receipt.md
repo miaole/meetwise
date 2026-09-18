@@ -1,13 +1,13 @@
 # Harness — **R1 close** · R1 gate close-path REQUEST prep（docs checklist）
 
-**Status**: **`REQUEST-ready / not_run:pre_dual`**  
-**Date**: 2026-09-17 (~19:30 PT)  
+**Status**: **`post_prove_dual_pass`**  
+**Date**: 2026-09-17 (~19:40 PT)  
 **releaseEvidence=false** · **≠HA** · **≠suite green** · **≠ R1 closed** · **≠ R2 closed** · **≠ R4 / FUNNEL dual-closed** · **≠ flip default** · **≠ coding authorized** · **Ban false green** · **Dual PASS ≠ coding**  
-**Experts**: `mw-e2e-ha` + `mw-rag-route`（**not yet dual-sent** · **Ban self-approve** · **Dual PASS ≠ authorize coding** · **zero coding / zero prove**）  
+**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **PASS** · **Ban self-approve** · **Dual PASS ≠ authorize coding** · **zero coding / zero prove**）  
 **Slice**: `../r1-close-authorize-receipt.slice.md`  
 **Eval**: `../eval/r1-close-authorize-receipt.eval.md`  
 **Authority**: meetwise — docs-only **R1 close-path checklist** pointing at existing R1 harness · Ban claiming R1 closed · PG+pgvector+PostgresSaver retained  
-**Honesty**: **G-R4-3 / P-R1 STILL OPEN** · F4 `post_prove_dual_pass` ≠ R1 closed · `pnpm r1-tech-role-fail-closed:prove` EXIT=0 ≠ R1 closed
+**Honesty**: Dual reviews against knife SHA **`2316bbc`**. Docs close = checklist prep dual only · **R1 still NOT closed** · **G-R4-3 / P-R1 STILL OPEN** · F4 `post_prove_dual_pass` ≠ R1 closed · `pnpm r1-tech-role-fail-closed:prove` EXIT=0 ≠ R1 closed · Dual PASS ≠ authorize coding / flip default / R1 close · real R1 close needs **separate REQUEST**
 
 ---
 
@@ -18,7 +18,18 @@
 | **What this knife is** | Docs-only REQUEST prep: inventory existing R1 gate artifacts + draft a **separate close-path authorize checklist** for a *future* R1 close decision · point `harness/r1-tech-role-fail-closed.md` + F4 honesty |
 | **What this knife is not** | **Not** coding · **not** prove · **not** flipping fail-closed default · **not** claiming R1 closed · **not** R2/R4/FUNNEL close · **not** HA/suite · **not** false green |
 | **R1 closed after Dual PASS here?** | **NO** — Dual PASS ≠ authorize coding · **Ban** claiming R1 closed from this knife |
-| **Now** | **`REQUEST-ready / not_run:pre_dual`** · docs-only · zero coding · Ban self-approve |
+| **Now** | **`post_prove_dual_pass`** · docs-only close · zero coding · Ban self-approve · **R1 NOT closed** · **G-R4-3 STILL OPEN** |
+
+---
+
+## Dual receipts (pre-exec · archived)
+
+| Expert | Receipt | Verdict |
+|--------|---------|---------|
+| `mw-e2e-ha` | `../reviews/2026-09-17-r1-close-authorize-receipt-mw-e2e-ha.md` | **pass** |
+| `mw-rag-route` | `../reviews/2026-09-17-r1-close-authorize-receipt-mw-rag-route.md` | **pass** |
+
+Dual knife SHA: **`2316bbce47dcaf155a5c577105064356a4e89a65`** (short **`2316bbc`**). Docs close only — **≠** R1 closed · **≠** flip default · **≠** coding authorized · **≠** G-R4-3 closed.
 
 ---
 
@@ -44,7 +55,7 @@
 | C3 | Default-on / no silent legacy 技术岗 (PR1-C) · Ban flip without authorize | **still open** · Ban flip here |
 | C4 | R2 close-auth / route honesty order respected (W4) | inventory · R2 still NOT closed |
 | C5 | Explicit ≠ R4/FUNNEL/HA/suite from R1 alone | pinned |
-| C6 | Separate authorize + dual before any “R1 closed” SSOT flip | **this checklist drafts only** · not executed |
+| C6 | Separate authorize + dual before any “R1 closed” SSOT flip | **this checklist drafted + dual-passed** · close **not executed** · needs **separate REQUEST** |
 
 ---
 
@@ -58,9 +69,9 @@
 | A4 | Ban flip `MEETWISE_TECH_ROLE_FAIL_CLOSED` default without authorize | yes | pinned |
 | A5 | Order: R2-auth → R1 → R4/FUNNEL | yes | pinned |
 | A6 | `releaseEvidence=false` · ≠HA · ≠suite · Dual PASS ≠ coding · Ban self-approve | yes | pinned |
-| A7 | **No** coding / prove as fake close this prep | yes | docs only |
+| A7 | **No** coding / prove as fake close this prep | yes | docs only · **R1 NOT closed** |
 
-**Ban**: implementer must **not** write R1 pass-close · must **not** flip default · must **not** claim R1 closed · must **not** treat Dual PASS as coding authorize.
+**Ban**: implementer must **not** write R1 pass-close · must **not** flip default · must **not** claim R1 closed · must **not** treat Dual PASS as coding authorize. Later real R1 close needs **separate REQUEST**.
 
 ---
 
@@ -73,6 +84,7 @@
 5. Dual PASS ≠ authorize coding · Ban self-approve · zero coding · zero prove  
 6. `releaseEvidence=false` · ≠HA · ≠suite · PG retained · MySQL/Qdrant STOPPED  
 7. Ban secrets / `.env*`
+8. **No product close** — real R1 close-auth / SSOT flip needs **separate REQUEST**
 
 ---
 
@@ -80,15 +92,15 @@
 
 | CMD | Status |
 |-----|--------|
-| docs dual only | **`not_run:pre_dual`** · **no prove script this knife** · zero coding |
+| docs dual only | **`post_prove_dual_pass`** · dual receipts archived · knife SHA **`2316bbc`** · **no prove script this knife** · zero coding |
 | Prior (reference only · not re-run as close) | `pnpm r1-tech-role-fail-closed:prove` · `pnpm r4-p-r1-fail-closed:prove` — **Ban** treating prior EXIT as R1 closed |
 
 ---
 
 ## 5. Non-claims
 
-Not R1 closed · not flip authorized · not coding · not HA · not suite · Dual PASS ≠ authorize coding · Ban false green · Ban self-approve · `releaseEvidence=false`
+Not R1 closed · not flip authorized · not coding · not HA · not suite · Dual PASS ≠ authorize coding · Ban false green · Ban self-approve · `releaseEvidence=false` · G-R4-3 STILL OPEN · real close needs separate REQUEST
 
 ---
 
-*Harness · R1 close authorize receipt · 2026-09-17 (~19:30 PT) · REQUEST-ready / not_run:pre_dual · R1 NOT closed · Ban false green · releaseEvidence=false · ≠HA · Dual PASS ≠ authorize coding · zero coding · Ban self-approve*
+*Harness · R1 close authorize receipt · 2026-09-17 (~19:40 PT) · post_prove_dual_pass · dual on 2316bbc · R1 NOT closed · G-R4-3 STILL OPEN · Ban false green · releaseEvidence=false · ≠HA · Dual PASS ≠ authorize coding · zero coding · Ban self-approve*
