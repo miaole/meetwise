@@ -1,14 +1,14 @@
 # Harness — G7 · **Key×3 fix**（iso / UI / perf · REQUEST open · docs only）
 
-**Status**: **`REQUEST-ready / not_run:pre_dual`**  
+**Status**: **`executed:awaiting_post_prove_dual`**  
 **Date**: 2026-09-17 (~19:55 PT)  
 **releaseEvidence=false** · **≠HA** · **≠ suite green** · **≠ fixed** · **≠ coding authorized** · **Ban假绿** · **Ban claim fixed without EXIT** · **Dual PASS ≠ coding** · **Key×3 honesty dual_pass ≠ suite green**  
-**Experts (REQUEST pair)**: `mw-e2e-ha` + `mw-rag-route`（**not yet dual-sent** · **Ban self-approve** · **Dual PASS ≠ authorize coding** · coding/prove waits **standing authorize after dual** · **zero coding / zero prove yet**）  
+**Experts (REQUEST pair)**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual PASS · standing authorize used · coding+prove **executed** · **awaiting post-prove dual** · **Ban self-write post_prove_dual_pass**）  
 **Prior A″ honesty**: `harness/g7-key-x3-rerun.md` · **`post_prove_dual_pass:honesty_red`** · dual on **`e697c81`** · EXIT **1/1/1** · **retained**（this knife = **fix REQUEST** · **≠** rewrite honesty_red → green）  
 **Slice**: `../g7-key-x3-fix-iso-ui-perf.slice.md`  
 **Eval**: `../eval/g7-key-x3-fix-iso-ui-perf.eval.md`  
 **Authority**: meetwise — docs-only REQUEST open to fix the three Key×3 reds · Ban假绿 · Dual PASS ≠ coding · Ban claim fixed without EXIT · Ban secrets / `.env*`  
-**Honesty**: Prior Key×3 honesty dual_pass on `e697c81` **≠** suite green · **≠** already fixed · this open = REQUEST prep only · **no coding this commit**
+**Honesty**: Prior Key×3 honesty dual_pass on `e697c81` **≠** suite green · **≠** already fixed · standing authorize used · coding+prove **executed** · EXIT **1/1/1** · awaiting post-prove dual · **Ban假绿**
 
 ---
 
@@ -21,7 +21,7 @@
 | **Prior A″ dual_pass ⇒ fixed?** | **NO** — Key×3 honesty dual_pass ≠ suite green ≠ authorize coding |
 | **Dual PASS here ⇒ coding?** | **NO** — Dual PASS ≠ coding · waits **standing authorize after dual** |
 | **Claim fixed without EXIT?** | **Ban** · Ban假绿 |
-| **Now** | **`REQUEST-ready / not_run:pre_dual`** · zero coding · zero prove · `releaseEvidence=false` |
+| **Now** | **`executed:awaiting_post_prove_dual`** · zero coding · zero prove · `releaseEvidence=false` |
 
 ---
 
@@ -41,7 +41,7 @@
 
 | Phase | Gate | This open |
 |-------|------|-----------|
-| **L0** | REQUEST pair open · `not_run:pre_dual` | **this commit** |
+| **L0** | REQUEST pair open · `executed:awaiting_post_prove_dual` | **this commit** |
 | **L1** | Pre-exec dual (`mw-e2e-ha` + `mw-rag-route`) · Ban self-approve | **await coordinator send** |
 | **L2** | **Standing authorize** after dual · Dual PASS ≠ coding | **not yet** |
 | **L3** | Standing coding + prove（frozen trio re-run）· Ban invent EXIT · Ban假绿 | **forbidden until L2** |
@@ -78,4 +78,11 @@ Not fixed · not coding authorized · not suite/family green · not G6 closed ·
 
 ---
 
-*Harness · G7 Key×3 fix iso/UI/perf · 2026-09-17 (~19:55 PT) · REQUEST-ready / not_run:pre_dual · Ban假绿 · Dual PASS ≠ coding · Key×3 honesty dual_pass ≠ suite green · releaseEvidence=false · ≠HA · ≠ suite green · zero coding · Ban self-approve*
+*Harness · G7 Key×3 fix iso/UI/perf · 2026-09-17 (~19:55 PT) · REQUEST-ready / executed:awaiting_post_prove_dual · Ban假绿 · Dual PASS ≠ coding · Key×3 honesty dual_pass ≠ suite green · releaseEvidence=false · ≠HA · ≠ suite green · zero coding · Ban self-approve*
+
+
+---
+
+## Execute note（2026-09-17 ~20:18 PT）
+
+**Status**: **`executed:awaiting_post_prove_dual`** · frozen trio re-run · EXIT **1 / 1 / 1** · receipt `receipts/2026-09-17-g7-key-x3-fix-iso-ui-perf.md` · **Ban** self-write `post_prove_dual_pass` · **Ban假绿** · FreeTierOnly residual on live chat · UI ingest/stream/golden fixes landed but **≠ suite green** · R5/G6 open · `releaseEvidence=false` · ≠HA

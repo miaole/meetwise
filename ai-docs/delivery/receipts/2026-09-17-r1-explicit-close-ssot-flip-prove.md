@@ -1,10 +1,10 @@
 # Receipt — R1 explicit close / SSOT flip prove（CMD+EXIT）
 
-**Date**: 2026-09-17 (~20:05 PT) · execute under standing authorize  
+**Date**: 2026-09-17 (~20:13 PT) · execute ~20:05 PT · post-prove dual BOTH PASS · nail authorized  
 **Knife**: `harness/r1-explicit-close-ssot-flip.md`  
-**Status**: **`executed:awaiting_post_prove_dual`** · Ban self-write `post_prove_dual_pass`  
-**Authority**: meetwise standing authorize **R1 explicit close / SSOT flip coding+prove** after pre-exec dual on REQUEST SHA **`ae8d640`**  
-**releaseEvidence=false** · **≠HA** · **≠suite green** · **R1 STILL OPEN** · **G-R4-3 STILL OPEN** · **≠ R1 closed** · **≠ flip default** · **SSOT NOT flipped** · Ban 假关 · Ban false green · Ban secrets · No force-push · PG retained · Ban self-approve · Ban self-write `post_prove_dual_pass`  
+**Status after nail**: **`post_prove_dual_pass`** · dual on prove SHA **`da20c09`** · Ban wash into R1 product closed  
+**Authority**: meetwise standing authorize **R1 explicit close / SSOT flip coding+prove** after pre-exec dual on REQUEST SHA **`ae8d640`** · post-prove dual BOTH PASS · authorized docs nail  
+**releaseEvidence=false** · **≠HA** · **≠suite green** · **R1 STILL OPEN** · **G-R4-3 STILL OPEN** · **≠ R1 closed** · **≠ flip default** · **SSOT NOT flipped** · Ban 假关 · Ban false green · Ban secrets · No force-push · PG retained · Ban self-approve  
 **≠ prove dual_pass knife**（`r1-real-close-ssot-flip` · `0deb5fb` / tip `30d93dc` · already `post_prove_dual_pass` · prove honesty only · R1 product NOT closed · SSOT NOT flipped）  
 **≠ docs knife**（`r1-close-authorize-receipt` · `f9119fe` / dual `2316bbc`）
 
@@ -35,13 +35,13 @@
 |------|--------|
 | PR1-B production / combo-root flag-on evidence | **missing · STILL OPEN** |
 | PR1-C default-on / no-legacy path | **missing · STILL OPEN** · Ban flip `MEETWISE_TECH_ROLE_FAIL_CLOSED` default |
-| SSOT flip targets (harness §4) | **NOT flipped** · L5 waits **post-prove dual + explicit close authorize** |
+| SSOT flip targets (harness §4) | **NOT flipped** · L5 waits **explicit close authorize** |
 
 ---
 
 ## SSOT flip summary
 
-**No SSOT flip this execute.** Targets remain plan-only:
+**No SSOT flip this nail.** Targets remain plan-only:
 
 - `harness/r1-tech-role-fail-closed.md` — **NOT flipped**
 - `harness/r4-f4-p-r1-fail-closed.md` · G-R4-3 — **NOT flipped** · **G-R4-3 STILL OPEN**
@@ -53,14 +53,14 @@
 
 ---
 
-## Post-prove dual（awaiting · Ban self-write）
+## Post-prove dual（BOTH PASS · nailed）
 
-| Expert | REQUEST stub | Verdict |
-|--------|--------------|---------|
-| `mw-e2e-ha` | `reviews/REQUEST-2026-09-17-r1-explicit-close-ssot-flip-post-prove-mw-e2e-ha.md` | **awaiting** |
-| `mw-rag-route` | `reviews/REQUEST-2026-09-17-r1-explicit-close-ssot-flip-post-prove-mw-rag-route.md` | **awaiting** |
+| Expert | Review | Verdict |
+|--------|--------|---------|
+| `mw-e2e-ha` | `reviews/2026-09-17-r1-explicit-close-ssot-flip-post-prove-mw-e2e-ha.md` | **pass** on **`da20c09`** |
+| `mw-rag-route` | `reviews/2026-09-17-r1-explicit-close-ssot-flip-post-prove-mw-rag-route.md` | **pass** on **`da20c09`** |
 
-**Status**: **`executed:awaiting_post_prove_dual`** · EXIT **3×0** · Ban 假关 · Ban self-approve · **Ban self-write `post_prove_dual_pass`** · Ban wash into R1 closed · **R1 STILL OPEN** · **G-R4-3 STILL OPEN** · **SSOT NOT flipped** · `releaseEvidence=false`
+**Status after nail**: **`post_prove_dual_pass`** · dual on prove SHA **`da20c09`** · Ban wash into R1 product closed  
 
 ---
 
@@ -73,7 +73,7 @@
 - Ban 假关 · Dual ≠ 假关  
 - **SSOT NOT flipped**  
 - `releaseEvidence=false` · ≠HA · ≠suite  
-- Ban self-approve · Ban self-write `post_prove_dual_pass`  
+- Ban self-approve  
 - Ban secrets / `.env*` · Ban Meridian · Ban force-push  
 
 ---
@@ -82,9 +82,8 @@
 
 - Not R1 product closed · not G-R4-3 closed · not HA · not suite  
 - Not claim closed from prove dual_pass / docs knife · not flip default · not SSOT flipped  
-- Ban 假关 · Ban false green · Ban wash prove EXIT=0 / prior dual_pass into R1 closed  
-- Implementer did **not** write `post_prove_dual_pass`
+- Ban 假关 · Ban false green · Ban wash `post_prove_dual_pass` into R1 closed
 
 ---
 
-*Receipt · R1 explicit-close SSOT-flip prove · 2026-09-17 (~20:05 PT) · EXIT 3×0 · executed:awaiting_post_prove_dual · ≠ prove dual_pass 0deb5fb/30d93dc · ≠ docs knife f9119fe/2316bbc · R1 STILL OPEN · G-R4-3 STILL OPEN · SSOT NOT flipped · releaseEvidence=false · ≠HA · ≠suite · Ban假关 · Ban self-write post_prove_dual_pass*
+*Receipt · R1 explicit-close SSOT-flip prove · 2026-09-17 (~20:13 PT) · EXIT 3×0 · post_prove_dual_pass · dual on da20c09 · ≠ prove dual_pass 0deb5fb/30d93dc · ≠ docs knife f9119fe/2316bbc · R1 STILL OPEN · G-R4-3 STILL OPEN · SSOT NOT flipped · releaseEvidence=false · ≠HA · ≠suite · Ban假关 · Ban self-approve*

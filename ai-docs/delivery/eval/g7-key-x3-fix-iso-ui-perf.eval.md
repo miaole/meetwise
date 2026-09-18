@@ -1,7 +1,7 @@
-# Eval — G7 · **Key×3 fix** iso/UI/perf（**`not_run:pre_dual`**）
+# Eval — G7 · **Key×3 fix** iso/UI/perf（**`executed:awaiting_post_prove_dual`**）
 
 **Date**: 2026-09-17 (~19:55 PT)  
-**run-status**: **`REQUEST-ready / not_run:pre_dual`** · **zero coding · zero prove** · **Dual PASS ≠ authorize coding** · **Ban假绿** · **Ban claim fixed without EXIT** · **Key×3 honesty dual_pass ≠ suite green**  
+**run-status**: **`executed:awaiting_post_prove_dual`** · **coding+prove ran · EXIT 1/1/1 · awaiting post-prove dual** · **Dual PASS ≠ authorize coding** · **Ban假绿** · **Ban claim fixed without EXIT** · **Key×3 honesty dual_pass ≠ suite green**  
 **releaseEvidence=false** · **≠HA** · **≠ suite green** · **≠ fixed** · **≠ coding authorized**  
 **Harness**: `ai-docs/delivery/harness/g7-key-x3-fix-iso-ui-perf.md`  
 **Slice**: `ai-docs/delivery/g7-key-x3-fix-iso-ui-perf.slice.md`  
@@ -24,7 +24,7 @@ Expert **pre-exec** checklist for Key×3 **fix** REQUEST open（iso / UI / perf�
 | Lifecycle REQUEST→dual→authorize→coding→prove | drafted | **drafted** (harness §2) | not executed |
 | Prove CMD table | frozen not_run | **frozen** (harness §4) | await standing authorize |
 | Coding / prove | none | **none** | docs REQUEST open only |
-| Pre-exec dual | not yet | **`not_run:pre_dual`** | Ban self-approve · Dual PASS ≠ coding |
+| Pre-exec dual | not yet | **`executed:awaiting_post_prove_dual`** | Ban self-approve · Dual PASS ≠ coding |
 
 ---
 
@@ -58,4 +58,11 @@ Expert **pre-exec** checklist for Key×3 **fix** REQUEST open（iso / UI / perf�
 
 ---
 
-*Eval · G7 Key×3 fix iso/UI/perf · 2026-09-17 (~19:55 PT) · REQUEST-ready / not_run:pre_dual · Ban假绿 · Dual PASS ≠ coding · Key×3 honesty dual_pass ≠ suite green · releaseEvidence=false · ≠HA · ≠ suite green · zero coding*
+*Eval · G7 Key×3 fix iso/UI/perf · 2026-09-17 (~19:55 PT) · REQUEST-ready / executed:awaiting_post_prove_dual · Ban假绿 · Dual PASS ≠ coding · Key×3 honesty dual_pass ≠ suite green · releaseEvidence=false · ≠HA · ≠ suite green · zero coding*
+
+
+---
+
+## Execute note（2026-09-17 ~20:18 PT）
+
+**Status**: **`executed:awaiting_post_prove_dual`** · frozen trio re-run · EXIT **1 / 1 / 1** · receipt `receipts/2026-09-17-g7-key-x3-fix-iso-ui-perf.md` · **Ban** self-write `post_prove_dual_pass` · **Ban假绿** · FreeTierOnly residual on live chat · UI ingest/stream/golden fixes landed but **≠ suite green** · R5/G6 open · `releaseEvidence=false` · ≠HA

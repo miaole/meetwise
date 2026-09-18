@@ -23,7 +23,7 @@ test('10k SSE replay with exact redelivery keeps a unique 80-turn DOM window and
   expect(questions).toHaveLength(80);
   expect(new Set(questions).size).toBe(80);
   expect(questions).toEqual(Array.from({ length: 80 }, (_, i) => `压力回放题 ${9921 + i}`));
-  await expect(page.getByText(/面试完成 · 综合评分/)).toBeVisible();
+  await expect(page.getByText(/练习完成 · 本次练习反馈/)).toBeVisible();
   // A deliberately broad ceiling catches a regression to per-event O(n²) work without pretending to be a device
   // or production SLO. The exact elapsed time is emitted by Playwright's report rather than hidden in the test.
   expect(Date.now() - started).toBeLessThan(15_000);
