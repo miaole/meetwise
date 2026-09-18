@@ -2,7 +2,7 @@
 
 **releaseEvidence=false** · **Not HA** · **本绿 ≠ R2 已关 as HA** · **R2 structural CLOSED**（classify→bind→snapshot→refuse/allow + dual+authorize+prove）· **R2 NOT closed** as HA/suite/verbal/controlPlane/R4/FUNNEL · **≠ 路由已生效** · **≠ verbal 生效** · **≠ 题域已隔离 / R4** · **≠ FUNNEL dual-closed** · **≠ controlPlaneClosed** · **≠ suite green** · sole **恰 5** 不扩  
 **对照**：`m4-rag-hard-gates.md` §R2 · `gap-bug-backlog.md` GAP-RAG-02 · `harness/r2-classify-job-route-status.md` · `eval/r2-classify-job-route.eval.md` · knife `harness/r2-ssot-flip-real-close.md` · G4 `r4-domain-isolation` P-R2
-**P-HARNESS/G-R2-8 pointer**: **authorized + SSOT flipped**（retired `await_authorize`）；P-HARNESS dual (both pass): `reviews/2026-09-16-r2-p-harness-agree-mw-{rag-route,e2e-ha}.md` · real-close dual (both pass on `c3092c1`): `reviews/2026-09-17-r2-ssot-flip-real-close-mw-{e2e-ha,rag-route}.md`  
+**P-HARNESS/G-R2-8 pointer**: **authorized + SSOT flipped**（retired `await_authorize`）；P-HARNESS dual (both pass): `reviews/2026-09-16-r2-p-harness-agree-mw-{rag-route,e2e-ha}.md` · real-close pre-exec dual (both pass on `c3092c1`): `reviews/2026-09-17-r2-ssot-flip-real-close-mw-{e2e-ha,rag-route}.md` · post-prove dual (both pass on `5671982`): `reviews/2026-09-17-r2-ssot-flip-real-close-post-prove-mw-{e2e-ha,rag-route}.md` · knife **`post_prove_dual_pass`**  
 **双审（P-LIVE 已齐）**：`mw-model-op` + `mw-rag-route` · 实现方禁止自批 · 前序 P-MODEL / P-WORKER / P-API / P-LOOP / P-START / **P-FAKE（dual-passed）**；G-R2-5 retrieve-side CLOSED
 
 ---

@@ -2,9 +2,10 @@
 
 **Date**: 2026-09-17 (~19:45 PT)  
 **Scope**: `/workspace/meetwise` delivery docs · SSOT flip under standing authorize after dual on `c3092c1`  
-**Knife status**: real-close **`executed:awaiting_post_prove_dual`** · P-HARNESS **`authorized` / SSOT flipped**（retired `await_authorize`）  
+**Knife status**: real-close **`post_prove_dual_pass`** on **`5671982`** · P-HARNESS **`authorized` / SSOT flipped**（retired `await_authorize`）  
 **Dual reviews (P-HARNESS both pass)**: `reviews/2026-09-16-r2-p-harness-agree-mw-{rag-route,e2e-ha}.md`  
-**Dual reviews (real-close both pass)**: `reviews/2026-09-17-r2-ssot-flip-real-close-mw-{e2e-ha,rag-route}.md`  
+**Dual reviews (real-close pre-exec both pass)**: `reviews/2026-09-17-r2-ssot-flip-real-close-mw-{e2e-ha,rag-route}.md`  
+**Dual reviews (real-close post-prove both pass on `5671982`)**: `reviews/2026-09-17-r2-ssot-flip-real-close-post-prove-mw-{e2e-ha,rag-route}.md`  
 **releaseEvidence=false** · **≠HA** / Not HA · **R2 structural CLOSED** · **R2 NOT closed** as HA/suite/verbal/controlPlane/R4/FUNNEL · **≠ route verbally effective** · **≠ R4** · **≠ FUNNEL dual-closed** · **≠ claim controlPlaneClosed** · sole **恰 5** 不扩  
 **Hard gates**: G1–G6 **effective** · **G7 = draft only** (Local Full-Suite Verification · **not effective**)  
 **Do not interfere**: R4 REAL-WIRE track · Ban false close 题域/FUNNEL/R4
@@ -58,7 +59,7 @@
 | G-R2-5 | retrieve-side closed |
 | P-LIVE | dual-passed structural · ≠ verbal |
 | P-HARNESS | dual-passed · **authorized + SSOT flipped** |
-| real-close / SSOT flip | dual pass on `c3092c1` · standing authorize · **`executed:awaiting_post_prove_dual`** |
+| real-close / SSOT flip | pre-exec dual on `c3092c1` · standing authorize · prove EXIT 6×0 · post-prove dual on **`5671982`** · **`post_prove_dual_pass`** |
 
 ---
 

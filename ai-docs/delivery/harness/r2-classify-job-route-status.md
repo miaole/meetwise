@@ -1,9 +1,9 @@
 # Status — R2 `classifyJobRoute` 生产接线（GAP-RAG-02 · G4 P-R2）
 
 **状态**：P-MODEL + P-WORKER + P-API + P-LOOP + P-START + **P-FAKE CLOSED（dual-passed）** · **G-R2-5 retrieve-side CLOSED** · **P-LIVE CLOSED（dual-passed structural）** · **P-HARNESS/G-R2-8 AUTHORIZED + SSOT flipped**（standing authorize after dual on `c3092c1` · **≠ await_authorize**）· **R2 structural CLOSED**（classify→bind→snapshot→refuse/allow + dual+authorize+prove）· **R2 NOT closed** as HA / suite / verbal-effective / controlPlane / R4 / FUNNEL · **≠ 路由已生效** · **≠ verbal 生效** · **releaseEvidence=false** · **Not HA** · **≠ R4 / 题域已隔离** · **≠ FUNNEL dual-closed** · **≠ controlPlaneClosed** · **≠ suite green** · **≠ cutover** · **≠ flip default** · **≠ open DELETE** · sole allowlist **恰 5** 不扩 · PG+pgvector+PostgresSaver retained  
-**硬句**：**R2 structural CLOSED** ≠ verbal 生效≠ HA ≠ suite ≠ controlPlaneClosed ≠ R4/FUNNEL；**pass ≠ R2 已关 as HA**；禁止口头「生效」；实现方禁止自批；本刀 SSOT flip status = **`executed:awaiting_post_prove_dual`**（**不**自写 `post_prove_dual_pass`）。  
+**硬句**：**R2 structural CLOSED** ≠ verbal 生效≠ HA ≠ suite ≠ controlPlaneClosed ≠ R4/FUNNEL；**pass ≠ R2 已关 as HA**；禁止口头「生效」；实现方禁止自批；本刀 SSOT flip status = **`post_prove_dual_pass`**（post-prove dual BOTH PASS on prove SHA **`5671982`** · EXIT **6×0**）。  
 **对照**：`harness/r2-classify-job-route.md` · `eval/r2-classify-job-route.eval.md` · knife `harness/r2-ssot-flip-real-close.md`  
-**P-HARNESS/G-R2-8 pointer**: **authorized + SSOT flipped**（retired `await_authorize`）；pre-exec dual (both pass): `reviews/2026-09-16-r2-p-harness-agree-mw-rag-route.md` · `reviews/2026-09-16-r2-p-harness-agree-mw-e2e-ha.md` · real-close dual (both pass on `c3092c1`): `reviews/2026-09-17-r2-ssot-flip-real-close-mw-{e2e-ha,rag-route}.md` · `m4-rag-hard-gates.md` §R2 · GAP-RAG-02 · G4 `r4-domain-isolation-status.md` G-R4-4 / P-R2
+**P-HARNESS/G-R2-8 pointer**: **authorized + SSOT flipped**（retired `await_authorize`）；pre-exec dual (both pass): `reviews/2026-09-16-r2-p-harness-agree-mw-rag-route.md` · `reviews/2026-09-16-r2-p-harness-agree-mw-e2e-ha.md` · real-close pre-exec dual (both pass on `c3092c1`): `reviews/2026-09-17-r2-ssot-flip-real-close-mw-{e2e-ha,rag-route}.md` · post-prove dual (both pass on `5671982`): `reviews/2026-09-17-r2-ssot-flip-real-close-post-prove-mw-{e2e-ha,rag-route}.md` · `m4-rag-hard-gates.md` §R2 · GAP-RAG-02 · G4 `r4-domain-isolation-status.md` G-R4-4 / P-R2
 
 ---
 
@@ -40,7 +40,7 @@
 | G-R2-5 | Worker retrieve 缺 snapshot 仍 unscoped | **retrieve-side CLOSED** | **否** |
 | G-R2-6 | **P-FAKE** 规则-only / 缺 MODEL-OP 假绿宣称 | **CLOSED（dual-passed）** | **否** |
 | G-R2-7 | **P-LIVE** measurable refuse/allow receipt | **CLOSED（dual-passed structural）** · **仍 ≠ 路由已生效 / verbal** | **否（本缺口）**；verbal ban survives |
-| G-R2-8 | **P-HARNESS** harness agree / SSOT flip | **AUTHORIZED + SSOT flipped**（standing authorize after dual `c3092c1`）· knife **`executed:awaiting_post_prove_dual`** | **否（await_authorize retired）**；await post-prove dual on flip knife |
+| G-R2-8 | **P-HARNESS** harness agree / SSOT flip | **AUTHORIZED + SSOT flipped**（standing authorize after dual `c3092c1`）· knife **`post_prove_dual_pass`** on **`5671982`** | **否（await_authorize retired）**；post-prove dual BOTH PASS |
 
 **Remaining-after（≠ folded into R2 structural close）**: Live Key optional · **R1 next** · R5 fixture · **R4/FUNNEL after R1** · G7 ≠ R2 close · sole **恰 5** 不扩
 
@@ -84,7 +84,7 @@
 
 | 专家 | REQUEST / receipt | 审什么 |
 |------|-------------------|--------|
-| `mw-e2e-ha` + `mw-rag-route` | `2026-09-17-r2-ssot-flip-real-close-mw-*`（both **pass** on `c3092c1`） | real-close / SSOT flip REQUEST · Dual PASS ≠ coding until standing authorize |
+| `mw-e2e-ha` + `mw-rag-route` | pre-exec `2026-09-17-r2-ssot-flip-real-close-mw-*`（pass on `c3092c1`）· post-prove `…-post-prove-mw-*`（pass on **`5671982`**） | real-close / SSOT flip · **`post_prove_dual_pass`** · Ban假关 · ≠ verbal/HA/suite/R4/FUNNEL |
 | `mw-model-op` + `mw-rag-route` | P-LIVE dual **pass** | structural refuse/allow |
 | `mw-rag-route` + `mw-e2e-ha` | P-HARNESS dual **pass** | harness agree |
 | Prior P-* | see historical REQUEST rows | P-MODEL…P-FAKE |
@@ -93,13 +93,13 @@
 
 ---
 
-## 6. G7-K1 / real-close honesty（2026-09-17 ~19:45 PT）
+## 6. G7-K1 / real-close honesty（2026-09-17 ~19:50 PT）
 
 | 项 | 裁定 |
 |----|------|
-| Lifecycle | dual → harness agree → **standing authorize** → **SSOT flip executed** → prove → **awaiting_post_prove_dual** |
-| Prove | `pnpm r2-p-live-route-effective:prove` · prereq · fake · g-r2-5 · related · **≠** verbal route-effective |
-| R2 | **structural CLOSED** · **R2 NOT closed** as HA/suite/verbal/controlPlane/R4/FUNNEL · `releaseEvidence=false` · **Not HA** |
-| Knife | `harness/r2-ssot-flip-real-close.md` · status **`executed:awaiting_post_prove_dual`** · **Ban** self-write `post_prove_dual_pass` |
+| Lifecycle | dual → harness agree → **standing authorize** → **SSOT flip executed** → prove EXIT **6×0** → **post-prove dual BOTH PASS** → **`post_prove_dual_pass`** |
+| Prove | `pnpm r2-p-live-route-effective:prove` · prereq · fake · g-r2-5 · related · **≠** verbal route-effective · SHA **`5671982`** |
+| R2 | **structural CLOSED** · **R2 NOT closed** as HA/suite/verbal/controlPlane/R4/FUNNEL · `releaseEvidence=false` · **Not HA** · **Ban假关** |
+| Knife | `harness/r2-ssot-flip-real-close.md` · status **`post_prove_dual_pass`** · dual on **`5671982`** · ≠ W4 masquerade |
 
-*Status · R2 · SSOT flip authorized+executed · 2026-09-17 ~19:45 PT · R2 structural CLOSED · R2 NOT closed as HA/suite/verbal/controlPlane/R4/FUNNEL · releaseEvidence=false · ≠HA · ≠suite · sole 恰5 · awaiting_post_prove_dual*
+*Status · R2 · SSOT flip post_prove_dual_pass · 2026-09-17 ~19:50 PT · dual on 5671982 · EXIT 6×0 · R2 structural CLOSED · R2 NOT closed as HA/suite/verbal/controlPlane/R4/FUNNEL · releaseEvidence=false · ≠HA · ≠suite · sole 恰5 · Ban假关*
