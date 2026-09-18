@@ -126,3 +126,19 @@ Post-suite dual: `reviews/2026-09-16-g7-full-suite-post-run-mw-{e2e-ha,rag-route
 **Hard pins**: Key set ≠ suite green · ≠HA · Ban假绿 · do NOT wash EXIT=1 into green · R5-MARKED-RED retained · G6 STILL OPEN · Dual ≠ coding · Dual PASS ≠ suite green · A/A′ retained · `releaseEvidence=false` · no invent Key · Ban secrets / `.env*`.
 
 *Slice addendum · A″ Key×3 re-run · 2026-09-17 ~19:50 PT · post_prove_dual_pass:honesty_red · dual on e697c81 · EXIT 1/1/1 · NEW_SHELL_STATUS=set · releaseEvidence=false · ≠HA · Key set ≠ suite green · Ban假绿 · R5-MARKED-RED · G6 STILL OPEN · Dual ≠ coding · A/A′ retained · no invent Key · no re-run*
+
+
+---
+
+## Addendum — **Key×3 fix** iso/UI/perf（2026-09-17 · standing authorize · honesty_red）
+
+| ID | Knife | Status | Notes |
+|----|-------|--------|-------|
+| **FIX** | Key×3 fix（iso / UI / perf） | **`post_prove_dual_pass:honesty_red`** | EXIT **1/1/1** · Key **set** · FreeTierOnly residual **OPEN** · post-prove dual **BOTH PASS** on `a4e3de5` · tip `5f591ea` · `harness/g7-key-x3-fix-iso-ui-perf.md` · slice/eval · receipt `2026-09-17-g7-key-x3-fix-iso-ui-perf.md` · reviews `2026-09-17-g7-key-x3-fix-iso-ui-perf-post-prove-mw-{e2e-ha,rag-route}.md` |
+
+**Cross-link**: FIX = standing-authorize coding+prove attempt after A″ honesty_red. UI ingest/stream/golden partial · live path still FreeTierOnly. **A″ honesty_red retained**（not rewritten green）. **Key set ≠ auto/suite green** · **≠HA** · **未洗绿** · **Ban假绿** · **Dual ≠ 已修好** · **R5-MARKED-RED retained** · **G6 STILL OPEN** · `releaseEvidence=false`.  
+**FIX gate**: execute under standing authorize · post-prove dual **BOTH PASS** ✅ · status **`post_prove_dual_pass:honesty_red`** · **no re-run** · **no invent Key** · Ban claim fixed without Key/quota evidence.
+
+**Hard pins**: Key set ≠ auto/suite green · 未洗绿 · Ban假绿 · do NOT wash EXIT=1 into green · Dual PASS ≠ 已修好 · FreeTierOnly residual OPEN · R5-MARKED-RED retained · G6 STILL OPEN · Dual ≠ coding · A″ retained · `releaseEvidence=false` · no invent Key · Ban secrets / `.env*` · Ban self-approve.
+
+*Slice addendum · Key×3 fix iso/UI/perf · 2026-09-17 (~20:23 PT) · post_prove_dual_pass:honesty_red · dual on a4e3de5 · tip 5f591ea · EXIT 1/1/1 · FreeTierOnly residual OPEN · NEW_SHELL_STATUS=set · releaseEvidence=false · ≠HA · Key set ≠ auto/suite green · Ban假绿 · Dual ≠ 已修好 · R5-MARKED-RED · G6 STILL OPEN · Dual ≠ coding · A″ retained · no invent Key · no re-run*

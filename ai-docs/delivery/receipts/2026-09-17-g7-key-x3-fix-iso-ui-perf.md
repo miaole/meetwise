@@ -1,11 +1,12 @@
 # Receipt — G7 · **Key×3 fix**（iso / UI / perf · standing authorize · frozen trio）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（**Ban** implementer self-writing `post_prove_dual_pass`）  
-**Date**: 2026-09-17 ~20:04–20:17 PT（execute）· receipt ~20:18 PT  
-**Authority**: meetwise standing authorize · **G7 Key×3 fix iso/UI/perf coding+prove** · pre-exec dual PASS on REQUEST SHA `8de362c`（docs gate）· Dual PASS ≠ already fixed  
+**Status**: **`post_prove_dual_pass:honesty_red`**（post-prove dual **BOTH PASS** · honesty of red-with-Key-set + partial UI · **≠** suite green · **≠ fixed**）  
+**Date**: 2026-09-17 ~20:04–20:17 PT（execute）· tip pin ~20:19 PT · post-prove dual ~20:20–20:21 PT · nail ~20:23 PT  
+**Authority**: meetwise standing authorize · **G7 Key×3 fix iso/UI/perf coding+prove** · pre-exec dual PASS on REQUEST SHA `8de362c`（docs gate）· Dual PASS ≠ already fixed · post-prove dual BOTH PASS · Ban self-approve  
 **NEW_SHELL_STATUS**: **set**（authorized `source /home/box/.meetwise-secrets/load-model-api-key.sh` · name-only · **no invent Key** · value **never** printed / echoed / committed）  
 **Prove / push SHA**: **`a4e3de5`**（`a4e3de583942fb641acb7cf545709f4124034b86`）  
-**releaseEvidence=false** · **≠HA** · **≠ suite green** · **≠ family green** · **≠ covered** · **≠ SLO** · **≠ LOAD** · **≠ R2/R4/G6 closed** · **≠ R5 closed** · **Key set ≠ auto green** · **Ban假绿** · **do NOT wash EXIT=1 into green** · **R5-MARKED-RED retained** · **G6 STILL OPEN** · **Dual ≠ coding** · **no invent Key** · **Ban self-approve dual_pass**
+**Tip at dual**: **`5f591ea`**（`docs(delivery): pin G7 Key×3 fix receipt to prove SHA a4e3de5` · `a4e3de5` ancestor）  
+**releaseEvidence=false** · **≠HA** · **≠ suite green** · **≠ family green** · **≠ covered** · **≠ SLO** · **≠ LOAD** · **≠ R2/R4/G6 closed** · **≠ R5 closed** · **≠ fixed** · **Key set ≠ auto green** · **未洗绿** · **Ban假绿** · **do NOT wash EXIT=1 into green** · **R5-MARKED-RED retained** · **G6 STILL OPEN** · **Dual ≠ coding** · **Dual PASS ≠ 已修好** · **FreeTierOnly residual OPEN** · **no invent Key** · **Ban self-approve dual_pass as green**
 
 ## What changed（minimal · honest）
 
@@ -38,11 +39,11 @@
 
 ## Pins
 
-- **Ban假绿** · EXIT **1/1/1** retained · **Ban claim fixed without EXIT evidence**  
+- **Ban假绿** · **未洗绿** · EXIT **1/1/1** retained · **Ban claim fixed without EXIT / Key+quota evidence**  
 - **Key set ≠ auto green** · FreeTierOnly proves Key-set ≠ suite green  
 - Prior A″ honesty_red on `e697c81` **retained**（this knife = fix attempt + fresh prove · **≠** rewrite honesty_red → green）  
 - **releaseEvidence=false** · **≠HA** · **≠ suite green**  
-- **Ban** self-writing `post_prove_dual_pass` · status stays **`executed:awaiting_post_prove_dual`**  
+- Post-prove dual **BOTH PASS** → status **`post_prove_dual_pass:honesty_red`** · dual on **`a4e3de5`** · tip **`5f591ea`** · **Dual PASS ≠ 已修好**  
 - `.env*` **not read / not printed** · Key value **never** echoed · **no commit secrets** · Meridian banned · force-push banned
 
 ## Artifact paths（local · not committed）
@@ -52,15 +53,17 @@
 - `.tmp/g7-key-x3-fix-20260917/03-verify-e2e-performance.log` + `EXIT-03-verify-e2e-performance.txt`
 - `.tmp/e2e-receipts/2026-09-18T03-13-11-573Z-2254679-58841060-e0b0-4526-8f28-f842c9e25e3b.json`（iso · failed/api · capability OCR/voice）
 
-## Post-prove REQUEST stubs（await experts · Ban self-pass）
+## Post-prove dual（BOTH PASS · archived）
 
-| Expert | REQUEST stub |
-|--------|----------------|
-| `mw-e2e-ha` | `reviews/REQUEST-2026-09-17-g7-key-x3-fix-iso-ui-perf-post-prove-mw-e2e-ha.md` |
-| `mw-rag-route` | `reviews/REQUEST-2026-09-17-g7-key-x3-fix-iso-ui-perf-post-prove-mw-rag-route.md` |
+| Expert | Review | Verdict |
+|--------|--------|---------|
+| `mw-e2e-ha` | `reviews/2026-09-17-g7-key-x3-fix-iso-ui-perf-post-prove-mw-e2e-ha.md` | **pass**（honesty/EXIT only） |
+| `mw-rag-route` | `reviews/2026-09-17-g7-key-x3-fix-iso-ui-perf-post-prove-mw-rag-route.md` | **pass**（honesty_red only） |
 
-**Harness / eval / slice**: `harness/g7-key-x3-fix-iso-ui-perf.md` · `eval/g7-key-x3-fix-iso-ui-perf.eval.md` · `g7-key-x3-fix-iso-ui-perf.slice.md` → status **`executed:awaiting_post_prove_dual`**
+**Harness / eval / slice**: `harness/g7-key-x3-fix-iso-ui-perf.md` · `eval/g7-key-x3-fix-iso-ui-perf.eval.md` · `g7-key-x3-fix-iso-ui-perf.slice.md` → status **`post_prove_dual_pass:honesty_red`**
+
+**Next**: FreeTierOnly residual REQUEST（docs only）· Ban claim fixed without new Key/quota evidence · EXIT 1/1/1 retained until new evidence
 
 ---
 
-*Receipt · G7 Key×3 fix iso/UI/perf · 2026-09-17 ~20:04–20:17 PT execute · EXIT 1/1/1 · NEW_SHELL_STATUS=set · executed:awaiting_post_prove_dual · releaseEvidence=false · ≠HA · ≠ suite/family green · Key set ≠ auto green · Ban假绿 · R5-MARKED-RED · G6 STILL OPEN · FreeTierOnly residual · Dual ≠ coding · Ban self-approve dual_pass · no invent Key*
+*Receipt · G7 Key×3 fix iso/UI/perf · 2026-09-17 ~20:04–20:17 PT execute · nail ~20:23 PT · EXIT 1/1/1 · NEW_SHELL_STATUS=set · post_prove_dual_pass:honesty_red · dual on a4e3de5 · tip 5f591ea · releaseEvidence=false · ≠HA · ≠ suite/family green · Key set ≠ auto green · Ban假绿 · 未洗绿 · R5-MARKED-RED · G6 STILL OPEN · FreeTierOnly residual OPEN · Dual ≠ coding ≠ 已修好 · Ban self-approve · no invent Key*

@@ -1,18 +1,19 @@
-# Eval — G7 · **Key×3 fix** iso/UI/perf（**`executed:awaiting_post_prove_dual`**）
+# Eval — G7 · **Key×3 fix** iso/UI/perf（**`post_prove_dual_pass:honesty_red`**）
 
-**Date**: 2026-09-17 (~19:55 PT)  
-**run-status**: **`executed:awaiting_post_prove_dual`** · **coding+prove ran · EXIT 1/1/1 · awaiting post-prove dual** · **Dual PASS ≠ authorize coding** · **Ban假绿** · **Ban claim fixed without EXIT** · **Key×3 honesty dual_pass ≠ suite green**  
-**releaseEvidence=false** · **≠HA** · **≠ suite green** · **≠ fixed** · **≠ coding authorized**  
+**Date**: 2026-09-17 (~20:23 PT)  
+**run-status**: **`post_prove_dual_pass:honesty_red`** · coding+prove ran · EXIT **1/1/1** · post-prove dual **BOTH PASS** · honesty of red · **≠** suite green · **≠ fixed** · **Dual PASS ≠ 已修好** · **Ban假绿** · **未洗绿** · **Key set ≠ auto/suite green** · **FreeTierOnly residual OPEN**  
+**releaseEvidence=false** · **≠HA** · **≠ suite green** · **≠ fixed** · **R5-MARKED-RED** · **G6 STILL OPEN** · **Ban self-approve**  
 **Harness**: `ai-docs/delivery/harness/g7-key-x3-fix-iso-ui-perf.md`  
 **Slice**: `ai-docs/delivery/g7-key-x3-fix-iso-ui-perf.slice.md`  
-**Honesty**: REQUEST open only · prior A″ `post_prove_dual_pass:honesty_red` on `e697c81` retained · Dual PASS ≠ coding
+**Receipt**: `ai-docs/delivery/receipts/2026-09-17-g7-key-x3-fix-iso-ui-perf.md`  
+**Honesty**: post-prove dual BOTH PASS on prove SHA **`a4e3de5`** · tip **`5f591ea`** · prior A″ `post_prove_dual_pass:honesty_red` on `e697c81` retained · Dual PASS ≠ coding ≠ 已修好
 
 ---
 
 ## 1. Purpose
 
-Expert **pre-exec** checklist for Key×3 **fix** REQUEST open（iso / UI / perf）.  
-**Ban**: claiming fixed · claiming suite green · treating prior honesty dual_pass as green · Dual PASS as coding authorize · inventing EXIT · washing EXIT=1 → green · self-approve · secrets / `.env*`
+Expert **post-prove** honesty checklist for Key×3 **fix** prove（iso / UI / perf）.  
+**Ban**: claiming fixed · claiming suite green · washing EXIT=1 → green · treating Dual PASS as 已修好 · inventing EXIT · self-approve · secrets / `.env*`
 
 ---
 
@@ -20,11 +21,12 @@ Expert **pre-exec** checklist for Key×3 **fix** REQUEST open（iso / UI / perf�
 
 | CMD / action | Expected | Actual | Read |
 |--------------|----------|--------|------|
-| Cite A″ EXIT 1/1/1 three reds | present | **present** (harness §1) | honesty retained · ≠ fixed |
-| Lifecycle REQUEST→dual→authorize→coding→prove | drafted | **drafted** (harness §2) | not executed |
-| Prove CMD table | frozen not_run | **frozen** (harness §4) | await standing authorize |
-| Coding / prove | none | **none** | docs REQUEST open only |
-| Pre-exec dual | not yet | **`executed:awaiting_post_prove_dual`** | Ban self-approve · Dual PASS ≠ coding |
+| Cite A″ EXIT 1/1/1 three reds | present | **present** | honesty retained · ≠ fixed |
+| Frozen trio prove | EXIT recorded | **1 / 1 / 1** | FreeTierOnly residual · Ban假绿 |
+| UI partial (ingest/stream/golden) | honest | **10p/2f/10s** | ≠ suite/UI green |
+| Pre-exec dual | PASS | **PASS** on `8de362c` | Dual ≠ coding |
+| Post-prove dual | BOTH PASS honesty | **BOTH PASS** on `a4e3de5` / tip `5f591ea` | Dual ≠ 已修好 · status honesty_red |
+| Status nail | honesty_red | **`post_prove_dual_pass:honesty_red`** | Ban wash to green |
 
 ---
 
@@ -32,37 +34,42 @@ Expert **pre-exec** checklist for Key×3 **fix** REQUEST open（iso / UI / perf�
 
 | ID | Eval point | Pass means |
 |----|------------|------------|
-| E1 | Agree three reds scoped: iso api/pgvector-legacy · UI ingested timeout · perf HTTP E2E | harness §1 |
-| E2 | Agree prior A″ honesty dual_pass ≠ suite green ≠ already fixed | hard pin |
-| E3 | Agree Dual PASS ≠ coding · Ban假绿 · Ban claim fixed without EXIT | hard pin |
-| E4 | Agree lifecycle: REQUEST → pre-exec dual → standing authorize → coding+prove → post-prove dual | harness §2 |
-| E5 | Agree prove CMDs `not_run:await_authorize` · Ban invent EXIT | harness §4 |
-| E6 | Agree `releaseEvidence=false` · ≠HA · ≠ suite green · R5/G6 open until evidence · zero coding | pins |
+| E1 | Agree EXIT **1/1/1** verified vs artifacts · Ban wash to green | receipt + dual reviews |
+| E2 | Agree Key set ≠ auto/suite green · FreeTierOnly residual OPEN | hard pin |
+| E3 | Agree Dual PASS ≠ coding ≠ 已修好 · Ban假绿 · 未洗绿 | hard pin |
+| E4 | Agree UI partial ≠ suite green · R5-MARKED-RED · G6 STILL OPEN | hard pin |
+| E5 | Agree prior A″ honesty_red retained · this ≠ rewrite A″→green | hard pin |
+| E6 | Agree `releaseEvidence=false` · ≠HA · Ban self-approve · status honesty_red | pins |
 
 ---
 
-## 4. Fake-green checklist（pre-exec · for experts）
+## 4. Fake-green checklist（post-prove · closed）
 
-- [ ] Did not claim fixed / suite green / G6 closed / R5 retired / HA  
-- [ ] Did not treat A″ honesty dual_pass as suite green  
-- [ ] Did not authorize coding from Dual PASS  
-- [ ] Did not invent prove EXIT / wash EXIT=1 → green  
-- [ ] Did not read `.env*` / invent Key / commit secrets  
-- [ ] Agree `releaseEvidence=false` · Ban假绿 · Dual PASS ≠ coding  
+- [x] Did not claim fixed / suite green / G6 closed / R5 retired / HA  
+- [x] Did not wash EXIT=1 → green · EXIT **1/1/1** retained  
+- [x] Did not treat Dual PASS as 已修好 / coding authorize for residual  
+- [x] Did not invent prove EXIT / invent Key  
+- [x] Did not read `.env*` / commit secrets  
+- [x] Agree status **`post_prove_dual_pass:honesty_red`** · FreeTierOnly residual OPEN · `releaseEvidence=false`
 
 ---
 
 ## 5. Dual receipts
 
-（await pre-exec dual · Ban implementer writing pass）
+| Expert | Path | Verdict |
+|--------|------|---------|
+| `mw-e2e-ha` post-prove | `reviews/2026-09-17-g7-key-x3-fix-iso-ui-perf-post-prove-mw-e2e-ha.md` | **pass** (honesty/EXIT) |
+| `mw-rag-route` post-prove | `reviews/2026-09-17-g7-key-x3-fix-iso-ui-perf-post-prove-mw-rag-route.md` | **pass** (honesty_red) |
 
 ---
 
-*Eval · G7 Key×3 fix iso/UI/perf · 2026-09-17 (~19:55 PT) · REQUEST-ready / executed:awaiting_post_prove_dual · Ban假绿 · Dual PASS ≠ coding · Key×3 honesty dual_pass ≠ suite green · releaseEvidence=false · ≠HA · ≠ suite green · zero coding*
+## Gate
 
+1. Standing authorize · coding+prove ✅  
+2. EXIT **1/1/1** recorded ✅ · FreeTierOnly residual documented ✅  
+3. ⇒ **post-prove dual** ✅ — both **pass**（honesty of red-with-Key-set）· dual on **`a4e3de5`** · tip **`5f591ea`** · status **`post_prove_dual_pass:honesty_red`**  
+4. Agree Dual **BOTH PASS** · Dual ≠ coding ≠ 已修好 · Ban假绿 · **no re-run**
 
 ---
 
-## Execute note（2026-09-17 ~20:18 PT）
-
-**Status**: **`executed:awaiting_post_prove_dual`** · frozen trio re-run · EXIT **1 / 1 / 1** · receipt `receipts/2026-09-17-g7-key-x3-fix-iso-ui-perf.md` · **Ban** self-write `post_prove_dual_pass` · **Ban假绿** · FreeTierOnly residual on live chat · UI ingest/stream/golden fixes landed but **≠ suite green** · R5/G6 open · `releaseEvidence=false` · ≠HA
+*Eval · G7 Key×3 fix iso/UI/perf · 2026-09-17 (~20:23 PT) · post_prove_dual_pass:honesty_red · dual on a4e3de5 · tip 5f591ea · EXIT 1/1/1 · FreeTierOnly residual OPEN · Key set ≠ auto/suite green · Ban假绿 · Dual ≠ 已修好 · R5-MARKED-RED · G6 STILL OPEN · releaseEvidence=false · ≠HA · Ban self-approve · no invent Key · no re-run*
