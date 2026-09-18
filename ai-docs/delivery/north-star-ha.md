@@ -13,9 +13,12 @@
 > **R2-SSOT** `harness/r2-ssot-flip-real-close.md` · **`executed:awaiting_post_prove_dual`** · standing authorize after dual on `c3092c1` · SSOT flipped off `await_authorize` · prove receipt · **R2 structural CLOSED** · **R2 NOT closed** as HA/suite/verbal/controlPlane/R4/FUNNEL · **≠ verbal 生效** · **≠ W4** · Ban self-write `post_prove_dual_pass` · Ban false green · sole 恰5 · `releaseEvidence=false` · ≠HA · ≠suite.
 
 
+> **2026-09-17 (~19:55 PT) · R4/FUNNEL rem honesty docs close (additive)**  
+> **R4/FUNNEL rem** `harness/r4-funnel-remainder-honesty.md` · **`post_prove_dual_pass`** · dual on `669bca4` (e2e-ha+rag) · **MS3 true ≠ R4 closed** · **MS3 ≠ R4 closed** · **G-R4-5/FUNNEL dual-claim STILL OPEN** · **R4/FUNNEL STILL OPEN** · Ban false green · Ban假绿升格 · Ban elevating honesty to closed · Dual PASS ≠ coding假关 · Dual PASS ≠ authorize coding · zero coding · zero prove · `releaseEvidence=false` · ≠HA · ≠suite · Do NOT claim R4/FUNNEL closed or MS3 closes R4.
+
 > **2026-09-17 (~19:33 PT) · parallel REQUEST opens (additive · docs prep)**  
-> **R1-close** `harness/r1-close-authorize-receipt.md` · **R4/FUNNEL rem** `harness/r4-funnel-remainder-honesty.md` · **W1b-delete honesty** `harness/w1b-delete-honesty.md` · **MODEL-OP-wire** `harness/model-op-real-reconciler-wiring.md` — all **`REQUEST-ready / not_run:pre_dual`**.  
-> Pins: R1 NOT closed · Ban flip default · **MS3 true ≠ R4 closed** · **G-R4-5/FUNNEL dual-claim STILL OPEN** · **no delete batch authorized / candidates none or need more prove** · **ZERO DROP** · Dual ≠ DROP · **≠ W5** · PG LISTEN provisional · Redis deferred · Dual PASS ≠ coding · Ban false green · zero coding · `releaseEvidence=false` · ≠HA · ≠suite.
+> **R1-close** `harness/r1-close-authorize-receipt.md` · **W1b-delete honesty** `harness/w1b-delete-honesty.md` · **MODEL-OP-wire** `harness/model-op-real-reconciler-wiring.md` — remaining **`REQUEST-ready / not_run:pre_dual`** where not otherwise closed (R4 rem = `post_prove_dual_pass` on `669bca4`).  
+> Pins: R1 NOT closed · Ban flip default · **MS3 true ≠ R4 closed** · **G-R4-5/FUNNEL dual-claim STILL OPEN** · **R4/FUNNEL STILL OPEN** · **MS3 ≠ R4 closed** · Ban假绿升格 · **no delete batch authorized / candidates none or need more prove** · **ZERO DROP** · Dual ≠ DROP · **≠ W5** · PG LISTEN provisional · Redis deferred · Dual PASS ≠ coding · Ban false green · zero coding · `releaseEvidence=false` · ≠HA · ≠suite.
 
 
 **状态**：目标声明 · **releaseEvidence=false** · **≠HA** · **不得叙事已 HA**
