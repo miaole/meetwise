@@ -8,6 +8,7 @@ import { spawn } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
 import { emitClassifiedE2EFailure, emitE2EFailure, tagE2EFailure } from '../e2e/helpers/failure-class.mjs';
 import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
+import { applyLiveE2ECapabilityEnv } from './e2e-live-capability-env.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const env = {
@@ -44,6 +45,7 @@ const fakeServiceFlags = ['VOICE_FAKE', 'OCR_FAKE', 'E2E_FAKE_MODEL'].filter((na
 });
 if (fakeServiceFlags.length) throw tagE2EFailure('provider', 'fake_service_mode_forbidden');
 if (!String(env.MODEL_API_KEY ?? '').trim()) throw tagE2EFailure('provider', 'live_provider_key_missing');
+applyLiveE2ECapabilityEnv(env);
 
 // Fixed 8787/19091/3100 lets a parallel UI run attach its browser to another
 // stack.  Each run gets an independent pair/triple and propagates those

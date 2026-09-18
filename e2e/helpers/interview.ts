@@ -58,6 +58,8 @@ export type InterviewProvenanceReview = {
 
 export type InterviewLoopResult = {
   terminal: string;
+  /** Safe diagnostic only: terminal event payload (reason/provenance). Never includes secrets. */
+  terminalPayload: unknown;
   questions: number;
   turns: number;
   evaluated: number;
@@ -288,6 +290,7 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
   let questions = 0;
   let evaluated = 0;
   let terminal = '';
+  let terminalPayload: any = null;
   let currentQuestion: QuestionIdentity | null = null;
   let lastSubmitted: QuestionIdentity | null = null;
   const kinds = new Set<string>();
@@ -358,6 +361,7 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
         turn++;
       } else if ((INTERVIEW_TERMINALS as readonly string[]).includes(event.kind)) {
         terminal = event.kind;
+        terminalPayload = event.payload ?? null;
       }
     }
     if (terminal) break;
@@ -366,7 +370,7 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
 
   const provenance = reviewInterviewProvenance(seen);
   return {
-    terminal, questions, turns: turn, evaluated, lastSeq, kinds,
+    terminal, terminalPayload, questions, turns: turn, evaluated, lastSeq, kinds,
     practiceHints: provenance.practiceHints,
     attributions: provenance.attributions,
     provenance,
