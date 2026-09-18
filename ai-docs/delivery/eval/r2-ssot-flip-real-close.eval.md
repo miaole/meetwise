@@ -1,18 +1,18 @@
-# Eval — **R2 real close / SSOT flip**（**`not_run:pre_dual`**）
+# Eval — **R2 real close / SSOT flip**（**`executed:awaiting_post_prove_dual`**)
 
-**Date**: 2026-09-17 (~19:29 PT)  
-**run-status**: **`REQUEST-ready / not_run:pre_dual`** · **zero coding · zero prove · no SSOT flip yet** · **Dual PASS ≠ authorize coding** · **R2 NOT closed until prove+authorize** · **Ban false green**  
-**releaseEvidence=false** · **Not HA** · **≠suite green** · **≠ R2 closed** · **≠ verbal route-effective** · **≠ coding authorized**  
+**Date**: 2026-09-17 (~19:40 PT)  
+**run-status**: **`executed:awaiting_post_prove_dual`** · SSOT flipped under standing authorize · prove recorded · **Ban self-write `post_prove_dual_pass`** · **Ban false green**  
+**releaseEvidence=false** · **Not HA** · **≠suite green** · **R2 structural CLOSED** · **R2 NOT closed** as HA/suite/verbal/controlPlane/R4/FUNNEL · **≠ verbal route-effective**  
 **Harness**: `ai-docs/delivery/harness/r2-ssot-flip-real-close.md`  
 **Slice**: `ai-docs/delivery/r2-ssot-flip-real-close.slice.md`  
-**Honesty**: REQUEST open only · **≠ W4** (W4 already `post_prove_dual_pass` with R2 NOT closed) · Dual PASS ≠ authorize coding / SSOT flip / R2 close
+**Honesty**: **≠ W4** · standing authorize after dual on `c3092c1` · await post-prove dual experts
 
 ---
 
 ## 1. Purpose
 
-Expert **pre-exec** checklist for R2 **real close / SSOT flip** REQUEST open.  
-**Ban**: claiming R2 closed · verbal 生效 · SSOT silent flip · treating Dual PASS as coding authorize · inventing prove EXIT · self-approve · false green · conflating with W4.
+Post-execute checklist for experts reviewing the SSOT flip + prove receipt.  
+**Ban**: verbal 生效 · HA/suite · controlPlaneClosed · false close R4/FUNNEL/题域 · self-write post_prove_dual_pass · invent EXIT · self-approve.
 
 ---
 
@@ -20,12 +20,10 @@ Expert **pre-exec** checklist for R2 **real close / SSOT flip** REQUEST open.
 
 | CMD / action | Expected | Actual | Read |
 |--------------|----------|--------|------|
-| Point at existing R2 status/harness SSOT | present | **present** (harness §1) | R2 NOT closed · P-HARNESS await_authorize |
-| Prove-await-authorize checklist | drafted | **drafted** (harness §2 P1–P10) | not executed · SSOT not flipped |
-| Prove CMD table | frozen not_run | **frozen** (harness §3) | await standing authorize |
-| SSOT flip target list | plan only | **plan only** (harness §4) | **NOT flipped** |
-| Coding / prove / SSOT flip | none | **none** | docs REQUEST open only |
-| Pre-exec dual | not yet | **`not_run:pre_dual`** | Ban self-approve · Dual PASS ≠ coding · **≠ R2 closed** |
+| Pre-exec dual on `c3092c1` | both pass | **pass** | Dual ≠ coding; standing authorize used |
+| SSOT flip targets | flipped | **flipped** | await_authorize retired |
+| Prove CMDs | EXIT table in receipt | see receipt | Ban invent EXIT |
+| Knife status | awaiting_post_prove_dual | **yes** | Ban self-write post_prove_dual_pass |
 
 ---
 
@@ -33,43 +31,44 @@ Expert **pre-exec** checklist for R2 **real close / SSOT flip** REQUEST open.
 
 | ID | Eval point | Pass means |
 |----|------------|------------|
-| E1 | Agree ≠ W4: W4 = docs close-auth prep already dual-passed · this = real close / SSOT flip REQUEST | distinct knife |
-| E2 | Agree inventory pointers: status · parent · P-HARNESS · remaining inventory · W4 · G7-K1 | harness §1 |
-| E3 | Agree R2 NOT closed until **prove + standing authorize** · Ban claim R2 closed from Dual PASS | hard pin |
-| E4 | Agree Dual PASS ≠ authorize coding · coding / SSOT flip waits standing authorize after dual | Ban self-serve flip |
-| E5 | Agree ≠ verbal route-effective · Ban false green · `releaseEvidence=false` · ≠HA · ≠suite | honesty |
-| E6 | Agree prove CMDs `not_run:await_authorize` · Ban invent EXIT | harness §3 |
-| E7 | Agree SSOT flip targets listed · **not flipped** this open · zero coding | harness §4 |
-| E8 | Agree order after real close-auth: R1 → R4/FUNNEL · Live Key/G7/R5 orthogonal | pin |
+| E1 | ≠ W4 | distinct knife |
+| E2 | SSOT flipped off await_authorize honestly | status/parent/P-HARNESS/inventory/eval/m4/GAP |
+| E3 | R2 structural CLOSED language honest + R2 NOT closed as HA/suite/verbal/controlPlane/R4/FUNNEL | hard pin |
+| E4 | Prove CMD+EXIT recorded · Ban invent | receipt |
+| E5 | ≠ verbal · Ban false green · releaseEvidence=false · ≠HA · ≠suite | honesty |
+| E6 | Ban false close 题域/FUNNEL/R4 | pin |
+| E7 | Status `executed:awaiting_post_prove_dual` · not self-written post_prove_dual_pass | pin |
+| E8 | Remaining-after R1→R4/FUNNEL · sole 恰5 · PG retained | pin |
 
 ---
 
-## 4. Fake-green checklist（pre-exec · for experts）
+## 4. Fake-green checklist（post-prove · for experts）
 
-- [ ] Did not claim R2 closed / verbal 生效 / controlPlaneClosed  
-- [ ] Did not flip SSOT pointers  
-- [ ] Did not authorize coding from Dual PASS  
-- [ ] Did not conflate Dual PASS with standing authorize  
-- [ ] Did not invent prove EXIT / self-approve  
-- [ ] Did not treat W4 `post_prove_dual_pass` as R2 closed  
-- [ ] Did not skip R1 / fold R4/G7 into R2 close  
-- [ ] Did not claim HA / suite green  
+- [ ] Did not claim verbal 生效 / HA / suite / controlPlaneClosed  
+- [ ] Did not false-close R4 / FUNNEL / 题域  
+- [ ] Did not invent prove EXIT  
+- [ ] Did not self-write post_prove_dual_pass  
+- [ ] Did not conflate with W4 docs close  
+- [ ] Did not expand sole allowlist beyond 恰 5  
+- [ ] Confirmed PG+pgvector+PostgresSaver retained  
 
 ---
 
 ## 5. Dual receipts
 
-| Expert | Path | Verdict |
-|--------|------|---------|
-| `mw-e2e-ha` | `reviews/REQUEST-2026-09-17-r2-ssot-flip-real-close-mw-e2e-ha.md` → conclusion TBD | **not_run:pre_dual** |
-| `mw-rag-route` | `reviews/REQUEST-2026-09-17-r2-ssot-flip-real-close-mw-rag-route.md` → conclusion TBD | **not_run:pre_dual** |
+| Phase | Expert | Path | Verdict |
+|-------|--------|------|---------|
+| pre-exec | `mw-e2e-ha` | `reviews/2026-09-17-r2-ssot-flip-real-close-mw-e2e-ha.md` | **pass** |
+| pre-exec | `mw-rag-route` | `reviews/2026-09-17-r2-ssot-flip-real-close-mw-rag-route.md` | **pass** |
+| post-prove | `mw-e2e-ha` | REQUEST stub → conclusion TBD | **awaiting** |
+| post-prove | `mw-rag-route` | REQUEST stub → conclusion TBD | **awaiting** |
 
 ---
 
 ## 6. Non-claims
 
-REQUEST open only · not pass · not R2 closed · not coding · not HA · not suite · Dual PASS ≠ authorize coding · Ban false green · `releaseEvidence=false` · no SSOT flip · ≠ W4
+Not post_prove_dual_pass · not verbal 生效 · not HA · not suite · not R4/FUNNEL/题域 closed · Ban false green · `releaseEvidence=false`
 
 ---
 
-*Eval · R2 real close / SSOT flip · 2026-09-17 (~19:29 PT) · not_run:pre_dual · ≠ W4 · R2 NOT closed until prove+authorize · releaseEvidence=false · ≠HA · ≠suite · Ban false green · zero coding · no SSOT flip yet*
+*Eval · R2 real close / SSOT flip · 2026-09-17 (~19:40 PT) · executed:awaiting_post_prove_dual · ≠ W4 · releaseEvidence=false · ≠HA · ≠suite · Ban false green · Ban self-write post_prove_dual_pass*
