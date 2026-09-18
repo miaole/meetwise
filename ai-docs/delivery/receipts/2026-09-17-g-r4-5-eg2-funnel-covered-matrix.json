@@ -1,0 +1,69 @@
+{
+  "kind": "RagFunnel0108CoveredMatrix",
+  "rows": [
+    {
+      "id": "RAG-FUNNEL-01A",
+      "status": "source_sealed",
+      "basis": "01A source seal + qbank-handoff-closure prove inventory (checklist [x] · releaseEvidence=false)",
+      "inventCoveredForbidden": true
+    },
+    {
+      "id": "RAG-FUNNEL-01",
+      "status": "product_surfaces_true",
+      "basis": "MS1+MS2+MS3 product surfaces true (F6/F7/F8) · dual-claim evidence path ≠ invent covered · checklist 01 still [ ] until authorized SSOT",
+      "inventCoveredForbidden": true
+    },
+    {
+      "id": "RAG-FUNNEL-02A",
+      "status": "not_covered",
+      "basis": "immutable generation/projection + canonical embedding recipe not evidenced · Ban invent covered",
+      "inventCoveredForbidden": true
+    },
+    {
+      "id": "RAG-FUNNEL-02B",
+      "status": "not_covered",
+      "basis": "durable embedding compute cache not evidenced · Ban invent covered",
+      "inventCoveredForbidden": true
+    },
+    {
+      "id": "RAG-FUNNEL-03",
+      "status": "not_covered",
+      "basis": "JobRouteDecision classifier production path not evidenced · Ban invent covered",
+      "inventCoveredForbidden": true
+    },
+    {
+      "id": "RAG-FUNNEL-04",
+      "status": "not_covered",
+      "basis": "track-local scoped retrieval production close not evidenced · Ban invent covered",
+      "inventCoveredForbidden": true
+    },
+    {
+      "id": "RAG-FUNNEL-05",
+      "status": "not_covered",
+      "basis": "same-leaf LLM generation on clean miss not evidenced · Ban invent covered",
+      "inventCoveredForbidden": true
+    },
+    {
+      "id": "RAG-FUNNEL-06",
+      "status": "not_covered",
+      "basis": "route-scope cache/provenance/revoke not evidenced · Ban invent covered",
+      "inventCoveredForbidden": true
+    },
+    {
+      "id": "RAG-FUNNEL-07",
+      "status": "not_covered",
+      "basis": "free-text allowlisted scope funnel not evidenced · Ban invent covered",
+      "inventCoveredForbidden": true
+    },
+    {
+      "id": "RAG-FUNNEL-08",
+      "status": "not_covered",
+      "basis": "production-equivalent eval matrix not evidenced · Ban invent covered",
+      "inventCoveredForbidden": true
+    }
+  ],
+  "coveredCount": 0,
+  "inventCovered": false,
+  "releaseEvidence": false,
+  "note": "EG2 FUNNEL-01…08 covered matrix — Ban invent covered · ≠ R4/题域 closed · await post-prove dual"
+}

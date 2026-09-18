@@ -88,6 +88,8 @@
     "prove:r4-p-meta-ms1-product-wire": "tsx test/r4-p-meta-ms1-product-wire.proof.ts",
     "prove:r4-p-meta-ms2-facets-product": "tsx test/r4-p-meta-ms2-facets-product.proof.ts",
     "prove:r4-p-meta-ms3-deploy-product": "tsx test/r4-p-meta-ms3-deploy-product.proof.ts",
+    "prove:r4-eg1-dual-claim": "tsx test/r4-eg1-dual-claim-evidence.proof.ts",
+    "prove:r4-eg2-funnel-covered": "tsx test/r4-eg2-funnel-covered-matrix.proof.ts",
     "prove:r4-p-r1-fail-closed": "tsx test/r4-p-r1-fail-closed.proof.ts",
     "prove:g-r2-5-retrieve-fail-closed": "tsx test/g-r2-5-retrieve-fail-closed.proof.ts",
     "prove:r2-classify-job-route-prereq": "tsx test/r2-classify-job-route-prereq.proof.ts",
