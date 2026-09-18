@@ -13,6 +13,11 @@
 > **R2-SSOT** `harness/r2-ssot-flip-real-close.md` · **`REQUEST-ready / not_run:pre_dual`** · prove-await-authorize checklist · points at existing R2 status/harness SSOT · **≠ W4** (W4 already `post_prove_dual_pass` · R2 NOT closed) · **R2 NOT closed until prove+authorize** · Dual PASS ≠ authorize coding · standing authorize after dual · **Ban false green** · **no SSOT flip yet** · zero coding · `releaseEvidence=false` · ≠HA · ≠suite.
 
 
+> **2026-09-17 (~19:33 PT) · parallel REQUEST opens (additive · docs prep)**  
+> **R1-close** `harness/r1-close-authorize-receipt.md` · **R4/FUNNEL rem** `harness/r4-funnel-remainder-honesty.md` · **W1b-delete honesty** `harness/w1b-delete-honesty.md` · **MODEL-OP-wire** `harness/model-op-real-reconciler-wiring.md` — all **`REQUEST-ready / not_run:pre_dual`**.  
+> Pins: R1 NOT closed · Ban flip default · **MS3 true ≠ R4 closed** · **G-R4-5/FUNNEL dual-claim STILL OPEN** · **no delete batch authorized / candidates none or need more prove** · **ZERO DROP** · Dual ≠ DROP · **≠ W5** · PG LISTEN provisional · Redis deferred · Dual PASS ≠ coding · Ban false green · zero coding · `releaseEvidence=false` · ≠HA · ≠suite.
+
+
 **状态**：目标声明 · **releaseEvidence=false** · **≠HA** · **不得叙事已 HA**
 **硬闸 SSOT**：`north-star-hard-gates.md`（G1–G7：可核验 · 非快乐路径 · 需求→评测→实现 · 独立审 · 禁假绿 · 性能负载 · **本地全量验证关**；**G7=已生效**（门禁强制；≠ 套件已绿））
 **并列北星（未齐）**：生产 **100% HA** · **全量 E2E 零遗漏** · **0 BUG**（须证据；不得叙事已达成）
