@@ -1,19 +1,19 @@
-# Eval — **G-R4-5 evidence close**（**`executed:awaiting_post_prove_dual`**）
+# Eval — **G-R4-5 evidence close**（**`post_prove_dual_pass`**）
 
-**Date**: 2026-09-17 (~20:48 PT)  
-**run-status**: **`executed:awaiting_post_prove_dual`** · standing coding+prove under authorize · prove EXIT **5×0** · coding=none · **Ban self-write `post_prove_dual_pass`** · **G-R4-5 STILL OPEN** · **题域 STILL OPEN** · **R4/FUNNEL product STILL OPEN** · **MS3 ≠ R4 closed** · Ban假关 · Ban invent FUNNEL-01…08 covered · Ban claim closed from EXIT=0 alone  
+**Date**: 2026-09-17 (~20:55 PT)  
+**run-status**: **`post_prove_dual_pass`** · standing coding+prove under authorize · prove EXIT **5×0** · coding=none · post-prove dual BOTH PASS on tip **`ae99258`** · **G-R4-5 STILL OPEN** · **题域 STILL OPEN** · **R4/FUNNEL product STILL OPEN** · **MS3 ≠ R4 closed** · Ban假关 · Ban invent FUNNEL-01…08 covered · Ban claim closed from EXIT=0 alone · Ban wash this dual_pass into closed  
 **releaseEvidence=false** · **≠HA** · **≠suite green** · **≠ residual honesty wash** · **≠ L4 wash**  
 **Harness**: `ai-docs/delivery/harness/g-r4-5-evidence-close.md`  
 **Slice**: `ai-docs/delivery/g-r4-5-evidence-close.slice.md`  
 **Receipt**: `ai-docs/delivery/receipts/2026-09-17-g-r4-5-evidence-close-prove.md`  
-**Honesty**: L3 executed · L4 awaiting · L5 forbidden · residual honesty `a6d733d`/`e919ddf` retained OPEN · L4 `cc0d913`/`1a8b1e9` retained as prove honesty ≠ product close · EXIT=0 ≠ closed
+**Honesty**: L0–L4 done · L5 lifecycle-only · product SSOT NOT flipped · residual honesty `a6d733d`/`e919ddf` retained OPEN · L4 `cc0d913`/`1a8b1e9` retained as prove honesty ≠ product close · EXIT=0 ≠ closed · this dual_pass ≠ closed
 
 ---
 
 ## 1. Purpose
 
-Expert **post-prove** checklist for G-R4-5 **evidence close** standing coding+prove.  
-**Ban**: claiming R4/FUNNEL product closed · claiming 题域已隔离 · claiming dual-claim closed · inventing FUNNEL-01…08 covered · washing residual honesty `a6d733d` into closed · washing L4 `cc0d913`/`1a8b1e9` into product close · treating EXIT=0 as product close · self-approve · self-write `post_prove_dual_pass` · secrets / `.env*`
+Expert **post-prove** checklist for G-R4-5 **evidence close** standing coding+prove — now **nailed** after dual BOTH PASS.  
+**Ban**: claiming R4/FUNNEL product closed · claiming 题域已隔离 · claiming dual-claim closed · inventing FUNNEL-01…08 covered · washing residual honesty `a6d733d` into closed · washing L4 `cc0d913`/`1a8b1e9` into product close · treating EXIT=0 / this dual_pass as product close · self-approve beyond this nail · secrets / `.env*`
 
 ---
 
@@ -29,8 +29,9 @@ Expert **post-prove** checklist for G-R4-5 **evidence close** standing coding+pr
 | `pnpm r4-p-meta-ms1-product-wire:prove` | 0 | **0** | ≠ dual-claim closed |
 | `pnpm mysql-stack:m4-rag:prove` | 0 | **0** | §R4 doc gate ≠ product close |
 | Dual-claim / FUNNEL-01…08 evidence | missing | **missing · STILL OPEN** | Ban forge |
-| Product SSOT flip | not flipped | **NOT flipped** | L5 forbidden under gaps |
-| Status | awaiting post-prove dual | **`executed:awaiting_post_prove_dual`** | Ban self-write `post_prove_dual_pass` |
+| Product SSOT flip | not flipped | **NOT flipped** | L5 lifecycle-only · product forbidden under gaps |
+| Post-prove dual on tip `ae99258` | BOTH pass | **pass** (e2e-ha + rag-route) | ≠ G-R4-5 / dual-claim / 题域 / R4 closed |
+| Status | post_prove_dual_pass | **`post_prove_dual_pass`** | Ban wash into product close |
 
 ---
 
@@ -42,23 +43,23 @@ Expert **post-prove** checklist for G-R4-5 **evidence close** standing coding+pr
 | E2 | Agree **≠** residual honesty tip `a6d733d` / dual `e919ddf` · Ban wash · residual dual_pass retained | harness §0/§2 |
 | E3 | Agree **≠** L4 tip `cc0d913` / prove `1a8b1e9` · Ban wash into R4 product closed | harness §0/§2 |
 | E4 | Agree **≠** honesty rem / ≠ real-close · Ban wash | harness §2 |
-| E5 | Agree **G-R4-5 STILL OPEN** · **题域 STILL OPEN** · **R4/FUNNEL product STILL OPEN** · **MS3 ≠ R4 closed** · Ban假关 · Ban invent FUNNEL-01…08 covered · Ban claim closed from EXIT=0 alone | hard pin |
-| E6 | Agree L3 done · L4 awaiting · L5 forbidden · Ban self-write `post_prove_dual_pass` · `releaseEvidence=false` · ≠HA · coding=none | harness §3/§4 |
+| E5 | Agree **G-R4-5 STILL OPEN** · **题域 STILL OPEN** · **R4/FUNNEL product STILL OPEN** · **MS3 ≠ R4 closed** · Ban假关 · Ban invent FUNNEL-01…08 covered · Ban claim closed from EXIT=0 alone · Ban wash this dual_pass into closed | hard pin |
+| E6 | Agree L0–L4 done · L5 lifecycle-only · product SSOT NOT flipped · `releaseEvidence=false` · ≠HA · coding=none · dual BOTH PASS on `ae99258` | harness §3/§4 |
 
 ---
 
-## 4. Fake-close checklist（post-prove · for experts）
+## 4. Fake-close checklist（post-nail · for readers）
 
-- [ ] Did not claim R4/FUNNEL product closed / 题域已隔离 / dual-claim closed / FUNNEL-01…08 covered / G-R4-5 closed  
-- [ ] Did not wash residual honesty `a6d733d` into dual-claim / 题域 / R4 closed  
-- [ ] Did not wash L4 `cc0d913`/`1a8b1e9` into product close  
-- [ ] Did not wash honesty rem / real-close prove into closed  
-- [ ] Did not claim MS3 closes R4  
-- [ ] Did not treat prove EXIT=0 as product / dual-claim / 题域 close  
-- [ ] Did not invent prove EXIT / invent FUNNEL covered / self-approve / self-write `post_prove_dual_pass`  
-- [ ] Did not flip product SSOT  
-- [ ] Did not read `.env*` / commit secrets  
-- [ ] Agree G-R4-5 STILL OPEN · 题域 STILL OPEN · R4/FUNNEL product STILL OPEN · MS3 ≠ R4 closed · residual dual_pass retained · `releaseEvidence=false` · Ban假关  
+- [x] Did not claim R4/FUNNEL product closed / 题域已隔离 / dual-claim closed / FUNNEL-01…08 covered / G-R4-5 closed  
+- [x] Did not wash residual honesty `a6d733d` into dual-claim / 题域 / R4 closed  
+- [x] Did not wash L4 `cc0d913`/`1a8b1e9` into product close  
+- [x] Did not wash honesty rem / real-close prove into closed  
+- [x] Did not claim MS3 closes R4  
+- [x] Did not treat prove EXIT=0 / this dual_pass as product / dual-claim / 题域 close  
+- [x] Did not invent prove EXIT / invent FUNNEL covered  
+- [x] Did not flip product SSOT  
+- [x] Did not read `.env*` / commit secrets  
+- [x] Agree G-R4-5 STILL OPEN · 题域 STILL OPEN · R4/FUNNEL product STILL OPEN · MS3 ≠ R4 closed · residual dual_pass retained · EG1–EG6 STILL OPEN · `releaseEvidence=false` · Ban假关  
 
 ---
 
@@ -68,9 +69,9 @@ Expert **post-prove** checklist for G-R4-5 **evidence close** standing coding+pr
 |-------|--------|------|---------|
 | pre-exec | `mw-e2e-ha` | `reviews/2026-09-17-g-r4-5-evidence-close-mw-e2e-ha.md` | **pass** |
 | pre-exec | `mw-rag-route` | `reviews/2026-09-17-g-r4-5-evidence-close-mw-rag-route.md` | **pass** |
-| post-prove | `mw-e2e-ha` | REQUEST stub → conclusion TBD | **awaiting** |
-| post-prove | `mw-rag-route` | REQUEST stub → conclusion TBD | **awaiting** |
+| post-prove | `mw-e2e-ha` | `reviews/2026-09-17-g-r4-5-evidence-close-post-prove-mw-e2e-ha.md` | **pass** on **`ae99258`** |
+| post-prove | `mw-rag-route` | `reviews/2026-09-17-g-r4-5-evidence-close-post-prove-mw-rag-route.md` | **pass** on **`ae99258`** |
 
 ---
 
-*Eval · G-R4-5 evidence close · 2026-09-17 (~20:48 PT) · executed:awaiting_post_prove_dual · EXIT 5×0 · Ban self-nail post_prove_dual_pass · EG STILL OPEN · ≠ residual honesty wash a6d733d · ≠ L4 cc0d913/1a8b1e9 · G-R4-5 STILL OPEN · 题域 STILL OPEN · R4/FUNNEL product STILL OPEN · MS3 ≠ R4 closed · Ban假关 · Ban invent FUNNEL-01…08 covered · Ban claim closed from EXIT=0 · releaseEvidence=false · ≠HA*
+*Eval · G-R4-5 evidence close · 2026-09-17 (~20:55 PT) · post_prove_dual_pass · dual on ae99258 · EXIT 5×0 · EG STILL OPEN · ≠ residual honesty wash a6d733d · ≠ L4 cc0d913/1a8b1e9 · G-R4-5 STILL OPEN · 题域 STILL OPEN · R4/FUNNEL product STILL OPEN · MS3 ≠ R4 closed · Ban假关 · Ban invent FUNNEL-01…08 covered · Ban claim closed from EXIT=0 · Ban wash this dual_pass into closed · L5 lifecycle-only · product SSOT NOT flipped · releaseEvidence=false · ≠HA*
