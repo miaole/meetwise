@@ -339,9 +339,10 @@ A('MS4 harness Ban forge · Ban self-approve · omits mw-model-op · G-R4-3 para
   && (/Ban self-approve|awaiting_post_prove|post-prove/i.test(harness))
   && (/no.*mw-model-op|omit.*model-op|no model-op/i.test(harness))
   && (/G-R4-3|P-R1/.test(harness) && (/parallel|not preferred|Ban flip/i.test(harness))));
-A('MS4 status awaiting_post_prove_dual · Ban self-approve post_prove_dual_pass · G-R4-5/FUNNEL dual-claim STILL OPEN',
-  (/executed:awaiting_post_prove_dual|awaiting_post_prove_dual/.test(status) || /executed:awaiting_post_prove_dual|awaiting_post_prove_dual/.test(harness))
-  && (/Ban self-approve|awaiting_post_prove/i.test(harness) || /Ban self-approve/i.test(status))
+A('MS4 F8 harness post_prove_dual_pass · Ban self-approve · G-R4-5/FUNNEL dual-claim STILL OPEN',
+  // F8 landed post_prove_dual_pass (9f361f4) · dual-claim STILL OPEN · Ban self-approve retained · ≠ R4/FUNNEL closed
+  /post_prove_dual_pass/.test(harness)
+  && (/Ban self-approve|awaiting_post_prove|post-prove/i.test(harness) || /Ban self-approve/i.test(status))
   && (/G-R4-5 STILL OPEN|FUNNEL.*STILL OPEN|STILL OPEN/.test(status) || /G-R4-5 STILL OPEN|FUNNEL may|STILL OPEN/.test(harness)));
 A('MS4 F7 harness post_prove_dual_pass (prior MS2)',
   /post_prove_dual_pass/.test(f7Harness));
