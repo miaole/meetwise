@@ -9,6 +9,7 @@
 **Parent / prior**: G7-A Key-blocked×3 honesty · `harness/g7-key-blocked-x3-honesty.md`（**`post_change_dual_pass` · honesty for unset era · retained**）  
 **Cross-link**: A′ live path executed with authorized Key loader · **A remains the unset-era honesty pin**（not deleted · not rewritten as green）  
 **Complement**: `harness/g6-e2e-iso-blocked.md` · K3 G6 backlog cite · whitelist / inventory  
+**Later A″**: `harness/g7-key-x3-rerun.md`（`post_prove_dual_pass:honesty_red` · dual on `e697c81` · fresh Key×3 row · **this A′ historical honesty_red_key_set retained** · **not** rewritten green）  
 **Authority**: meetwise — Live Key×3 executed · post-prove dual **BOTH PASS** · **no self-approve** · **no re-run**
 
 ---

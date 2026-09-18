@@ -110,3 +110,19 @@ Post-suite dual: `reviews/2026-09-16-g7-full-suite-post-run-mw-{e2e-ha,rag-route
 **Hard pins**: ≠ suite green ≠ G6 closed ≠ R5 closed ≠ HA ≠ sole cutover ≠ R4 closed ≠ product close · `releaseEvidence=false` · env register = ***name*** only · no invent Key · no self-approve · CI dual-closed ≠ product green.
 
 *Slice addendum · CI gitleaks FP + egress · 2026-09-17 ~00:22 PT · post_prove_dual_pass · CI honesty only · FP fix ≠ suite/G6/R5/HA · Ban CI green as product close · sole 恰 5 · releaseEvidence=false · no invent Key*
+
+
+---
+
+## Addendum — **A″ Key×3 re-run**（2026-09-17 · standing authorize）
+
+| ID | Knife | Status | Notes |
+|----|-------|--------|-------|
+| **A″** | Key×3 re-run（frozen trio） | **`post_prove_dual_pass:honesty_red`** | EXIT **1/1/1** · Key **set** · post-prove dual **BOTH PASS** on `e697c81` · `harness/g7-key-x3-rerun.md` · `g7-key-x3-rerun.slice.md` · `eval/g7-key-x3-rerun.eval.md` · receipt `2026-09-17-g7-key-x3-rerun.md` · reviews `2026-09-17-g7-key-x3-rerun-post-prove-mw-{e2e-ha,rag-route}.md` |
+
+**Cross-link**: A″ = **fresh** Key×3 honesty row after standing authorize. **A unset + A′ honesty_red_key_set retained**（not rewritten green）. **Key set ≠ suite green** · **≠HA** · **Ban假绿** · **R5-MARKED-RED retained** · **G6 STILL OPEN** · **Dual ≠ coding** · `releaseEvidence=false`.  
+**A″ gate**: execute under standing authorize · post-prove dual **BOTH PASS** ✅ · status **`post_prove_dual_pass:honesty_red`** · **no re-run** · **no invent Key**.
+
+**Hard pins**: Key set ≠ suite green · ≠HA · Ban假绿 · do NOT wash EXIT=1 into green · R5-MARKED-RED retained · G6 STILL OPEN · Dual ≠ coding · Dual PASS ≠ suite green · A/A′ retained · `releaseEvidence=false` · no invent Key · Ban secrets / `.env*`.
+
+*Slice addendum · A″ Key×3 re-run · 2026-09-17 ~19:50 PT · post_prove_dual_pass:honesty_red · dual on e697c81 · EXIT 1/1/1 · NEW_SHELL_STATUS=set · releaseEvidence=false · ≠HA · Key set ≠ suite green · Ban假绿 · R5-MARKED-RED · G6 STILL OPEN · Dual ≠ coding · A/A′ retained · no invent Key · no re-run*
