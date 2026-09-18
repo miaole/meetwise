@@ -1,14 +1,14 @@
-# Harness — **MODEL-OP real reconciler wiring**（coding REQUEST · ≠ W5 docs close）
+# Harness — **MODEL-OP real reconciler wiring**（coding+prove · ≠ W5 docs close）
 
-**Status**: **`post_prove_dual_pass`**（**prep/docs gate only**）  
-**Date**: 2026-09-17 (~19:42 PT)  
-**releaseEvidence=false** · **≠HA** · **≠suite green** · **≠ SLO green** · **≠ MODEL-OP fake green** · **≠ reconciler/wakeup cutover claimed** · **≠ already wired** · **Ban false green** · **Dual prep ≠ already wired**  
-**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **PASS** · **Ban self-approve** · Dual prep ≠ already wired · prep Dual PASS ≠ claim reconciler wired）  
+**Status**: **`executed:awaiting_post_prove_dual`**  
+**Date**: 2026-09-17 (~19:44 PT)  
+**releaseEvidence=false** · **≠HA** · **≠suite green** · **≠ SLO green** · **≠ MODEL-OP fake green** · **≠ reconciler/wakeup cutover claimed** · **≠ W5 masquerade** · **Ban false green**  
+**Experts**: `mw-e2e-ha` + `mw-rag-route`（prep dual **PASS** on `0137f39` · standing authorize coding+prove · **Ban self-write `post_prove_dual_pass`**)  
 **Note**: `mw-model-op` optional later for domain cutover honesty · not required on this REQUEST pair  
 **Slice**: `../model-op-real-reconciler-wiring.slice.md`  
 **Eval**: `../eval/model-op-real-reconciler-wiring.eval.md`  
-**Authority**: meetwise — **real dual-reconciler / wakeup coding REQUEST** · **≠ W5 docs close** · prod **PG LISTEN/NOTIFY provisional** · **Redis deferred** · PG retained  
-**Honesty**: Dual reviews against knife SHA **`0137f39`**. Prep/docs gate close only · **Dual prep ≠ already wired** · W5 dual on `25833fc` = docs honesty only · **≠ W5 masquerade** · coding/wiring needs **standing authorize** (separate from this prep Dual) · `releaseEvidence=false`
+**Authority**: meetwise — standing authorize **MODEL-OP-wire** after prep dual on `0137f39` · real dual-reconciler / wakeup wiring · prod **PG LISTEN/NOTIFY provisional** · **Redis deferred** · PG retained  
+**Honesty**: Prep dual on **`0137f39`** · coding+prove executed · Dual prep ≠ already wired (satisfied via standing authorize) · **await post-prove dual** · **do NOT self-write `post_prove_dual_pass`** · ≠ W5 masquerade · PG LISTEN retained · Redis deferred · Ban false green · `releaseEvidence=false`
 
 ---
 
@@ -16,10 +16,10 @@
 
 | Expert | Receipt | Verdict |
 |--------|---------|---------|
-| `mw-e2e-ha` | `../reviews/2026-09-17-model-op-real-reconciler-wiring-mw-e2e-ha.md` | **pass** |
-| `mw-rag-route` | `../reviews/2026-09-17-model-op-real-reconciler-wiring-mw-rag-route.md` | **pass** |
+| `mw-e2e-ha` | `../reviews/2026-09-17-model-op-real-reconciler-wiring-mw-e2e-ha.md` | **pass** (prep/docs gate) |
+| `mw-rag-route` | `../reviews/2026-09-17-model-op-real-reconciler-wiring-mw-rag-route.md` | **pass** (prep/docs gate) |
 
-Dual knife SHA: **`0137f39b23e97adf1d6d1a956afa37133d0f6ee5`** (short **`0137f39`**). Prep/docs gate only — **≠** already wired · **≠** W5 redo · **≠** Redis cutover · **≠** MODEL-OP fake green · **≠** HA/suite · `releaseEvidence=false`.
+Prep dual knife SHA: **`0137f39`**. Prep close SHA_A: **`d92d42b`**.
 
 ---
 
@@ -27,69 +27,55 @@ Dual knife SHA: **`0137f39b23e97adf1d6d1a956afa37133d0f6ee5`** (short **`0137f39
 
 | Statement | Ruling |
 |-----------|--------|
-| **What this knife is** | Coding REQUEST knife: after dual+**standing authorize**, implement/wire dual reconciler + wakeup honesty path under PG-retained · **≠** re-closing W5 docs |
-| **What this knife is not** | **Not** W5 docs close redo · **not** Redis cutover · **not** claiming MODEL-OP / SLO / HA green · **not** claiming already wired from prep Dual · **not** removing PG LISTEN · **not** MySQL/Qdrant reopen |
-| **W5 relationship** | W5 = docs honesty **`post_prove_dual_pass`** · **≠** coding auth · this knife = the **separate coding REQUEST** W5 pointed at · **≠ W5 masquerade** |
-| **Prod wakeup** | Keep **PG LISTEN/NOTIFY** (`meetwise_worker_wakeup_v1`) **provisional** |
-| **Redis wake** | **Deferred** · orthogonal · **not STOPPED** · Ban cutover claim here |
-| **Now** | **`post_prove_dual_pass`** · **prep/docs gate only** · Dual prep ≠ already wired · Ban self-approve · Ban false green |
+| **What this knife is** | Standing-authorized coding+prove: wire dual reconciler (invocation + usage-calibration) on worker path · keep PG LISTEN provisional · Redis deferred |
+| **What this knife is not** | **Not** W5 docs close redo · **not** Redis cutover · **not** claiming MODEL-OP / SLO / HA green · **not** removing PG LISTEN · **not** MySQL/Qdrant reopen · **not** self-written `post_prove_dual_pass` |
+| **W5 relationship** | W5 = docs honesty · **≠** coding auth · this knife = separate coding REQUEST · **≠ W5 masquerade** |
+| **Prod wakeup** | Keep **PG LISTEN/NOTIFY** (`meetwise_worker_wakeup_v1`) **provisional** · Ban delete |
+| **Redis wake** | **Deferred** · orthogonal · **not STOPPED** · Ban cutover claim · Ban claim STOPPED removed incorrectly |
+| **Now** | **`executed:awaiting_post_prove_dual`** · Ban self-write post_prove_dual_pass · Ban false green |
 
 ---
 
-## 1. Prior inventory（W5 + M3 · pointers）
+## 1. Coding executed（standing authorize）
 
-| Artifact | Honesty |
-|----------|---------|
-| W5 harness/slice/eval | Docs closed · ≠ MODEL-OP fake green · coding needs separate REQUEST (**this**) |
-| M3 selection | Selection only · 不切生产 wakeup · 不宣称 reconciler 已接/已切 |
-| `model-invocation-reconcile` | Prove possible · ≠ production cutover |
-| `usageCalibrationReconciler` / model-op00 | 同列 · ≠ 已接生产主链 |
-| `job-wakeup-listener` + NOTIFY | **Provisional prod keep** |
-| Redis Streams prototype | Flag-off · deferred cutover · not STOPPED |
-| GAP-MOP-01…03 / BUG-NOTIFY-REC | Still open honesty · Ban SLO forge |
-
----
-
-## 2. Planned coding scope（AFTER standing authorize · **not claimed by prep Dual**）
-
-| Face | Planned work | Hard ban |
-|------|--------------|----------|
-| Dual reconciler | Wire/integrate invocation reconcile + usage-calibration reconciler on worker path with honest prove | Ban forge SLO · Ban claim cutover without evidence · Ban claim already wired from prep Dual |
-| Wakeup | Keep PG LISTEN/NOTIFY provisional; improve reconcile coverage for lossy NOTIFY | Ban delete PG listener · Ban Redis-only force |
+| Face | Work done | Hard ban retained |
+|------|-----------|-------------------|
+| Dual reconciler | `runModelInvocationReconciler` retained · **`runUsageCalibrationReconciler`** wired into worker `main.ts` drain/stop/ready · `gateway_usage_calibration_owners` migration **0134** + DB helper | Ban forge SLO · Ban claim MODEL-OP closed / cutover without evidence |
+| Wakeup | PG LISTEN path **retained** (`startWorkerJobWakeupListener`) · Redis Streams still flag-off additive | Ban delete PG listener · Ban Redis-only force |
 | Redis | Remain deferred / additive flag-off | Ban Redis cutover claim · Ban claim STOPPED removed incorrectly |
-| Evidence | `releaseEvidence=false` until separate authorize | Ban HA/suite green |
-
-**Prep Dual**: documents scope + REQUEST honesty · **Dual prep ≠ already wired**.
+| Evidence | `releaseEvidence=false` | Ban HA/suite green |
 
 ---
 
-## 3. Pins (must survive dual + coding)
+## 2. Pins (must survive post-prove dual)
 
-1. **≠ W5 docs close / ≠ W5 masquerade** · this is separate coding REQUEST  
+1. **≠ W5 docs close / ≠ W5 masquerade**  
 2. Prod wakeup = **PG LISTEN/NOTIFY provisional** · Ban remove without authorize  
-3. **Redis wake deferred** · not STOPPED · ≠ cutover this knife  
-4. Dual reconciler 同列 · wiring green ≠ MODEL-OP fake green ≠ SLO ≠ cutover claimed without evidence  
-5. **Dual prep ≠ already wired** · prep Dual PASS ≠ claim reconciler already wired · Ban self-approve  
-6. Coding only after dual PASS **and** explicit/standing authorize · Ban false green  
-7. `releaseEvidence=false` · ≠HA · ≠suite · PG retained · MySQL/Qdrant STOPPED  
-8. Ban secrets / `.env*`
+3. **Redis wake deferred** · not STOPPED · ≠ cutover  
+4. Dual reconciler 同列 · wiring prove EXIT ≠ MODEL-OP fake green ≠ SLO ≠ cutover claimed  
+5. **Ban self-write `post_prove_dual_pass`** · status stays `executed:awaiting_post_prove_dual` until experts  
+6. `releaseEvidence=false` · ≠HA · ≠suite · PG retained · MySQL/Qdrant STOPPED  
+7. Ban secrets / `.env*`
 
 ---
 
-## 4. CMD
+## 3. CMD + EXIT（coding phase · recorded）
 
-| CMD | Status |
-|-----|--------|
-| docs dual (prep gate) | **`post_prove_dual_pass`** · receipts archived · knife SHA **`0137f39`** · Dual prep ≠ already wired |
-| Planned after standing authorize | `pnpm model-invocation-reconcile:prove` · `pnpm model-op00-usage-reconciler:prove` · `pnpm worker-wakeup:prove` — **Ban** treating prior EXIT as MODEL-OP closed / this knife green / already wired from prep Dual |
-| Redis prove (reference) | `pnpm worker-wakeup-redis:prove` — deferred · ≠ cutover |
+| CMD | EXIT | Honesty |
+|-----|------|---------|
+| `pnpm model-invocation-reconcile:prove` | **0** | ≠ MODEL-OP closed · ≠ SLO · ≠ cutover |
+| `pnpm model-op00-usage-reconciler:prove` | **0** | ≠ MODEL-OP closed · ≠ SLO · ≠ cutover |
+| `pnpm worker-wakeup:prove` | **0** | PG LISTEN retained · ≠ Redis cutover |
+| `pnpm worker-wakeup-redis:prove` | **not run** | deferred · ≠ cutover |
 
----
-
-## 5. Non-claims
-
-Not W5 redo · not already wired from prep Dual · not Redis cutover · not SLO/MODEL-OP fake green · Dual prep ≠ already wired · Ban false green · Ban self-approve · `releaseEvidence=false` · ≠HA
+Receipt: `../receipts/2026-09-17-model-op-real-reconciler-wiring-prove.md`
 
 ---
 
-*Harness · MODEL-OP real reconciler wiring · 2026-09-17 (~19:42 PT) · post_prove_dual_pass · prep/docs gate only · dual on 0137f39 · ≠ W5 masquerade · Dual prep ≠ already wired · PG LISTEN provisional · Redis deferred · Ban false green · releaseEvidence=false · ≠HA · Ban self-approve*
+## 4. Non-claims
+
+Not W5 redo · not Redis cutover · not SLO/MODEL-OP fake green · not HA/suite · Ban false green · Ban self-write `post_prove_dual_pass` · `releaseEvidence=false` · ≠HA · await post-prove dual
+
+---
+
+*Harness · MODEL-OP real reconciler wiring · 2026-09-17 (~19:44 PT) · executed:awaiting_post_prove_dual · prep dual on 0137f39 · SHA_A d92d42b · ≠ W5 masquerade · PG LISTEN provisional · Redis deferred · Ban false green · releaseEvidence=false · ≠HA · Ban self-write post_prove_dual_pass*
