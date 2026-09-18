@@ -1,11 +1,11 @@
 # Slice — **MODEL-OP real reconciler wiring**（coding+prove · ≠ W5 docs close）
 
-**Status**: **`executed:awaiting_post_prove_dual`**  
-**Date**: 2026-09-17 (~19:44 PT)  
-**Authority**: meetwise — standing authorize after prep dual on `0137f39` · real dual-reconciler / wakeup wiring · **≠ W5 masquerade** · prod **PG LISTEN/NOTIFY provisional keep** · **Redis wake deferred** · PG+pgvector+PostgresSaver retained  
+**Status**: **`post_prove_dual_pass`**  
+**Date**: 2026-09-17 (~19:50 PT)  
+**Authority**: meetwise — standing authorize after prep dual on `0137f39` · coding+prove SHA_B `6cd621c` · post-prove dual PASS · nail `post_prove_dual_pass` · real dual-reconciler / wakeup wiring · **≠ W5 masquerade** · prod **PG LISTEN/NOTIFY provisional keep** · **Redis wake deferred** · PG+pgvector+PostgresSaver retained  
 **releaseEvidence=false** · **≠HA** · **≠suite green** · **≠ SLO green** · **≠ MODEL-OP fake green** · **≠ reconciler/wakeup cutover claimed** · **Ban false green**  
-**Experts**: `mw-e2e-ha` + `mw-rag-route` · prep dual **PASS** · **Ban self-write `post_prove_dual_pass`** · note `mw-model-op` optional later  
-**Honesty**: Prep dual on **`0137f39`** · coding+prove executed · await post-prove dual · Ban self-write `post_prove_dual_pass` · PG LISTEN retained · Redis deferred · Ban false green
+**Experts**: `mw-e2e-ha` + `mw-rag-route` · prep dual **PASS** · post-prove dual **PASS** on `6cd621c` · note `mw-model-op` optional later  
+**Honesty**: Prep dual on **`0137f39`** · SHA_A **`d92d42b`** · coding+prove **`6cd621c`** · post-prove dual **PASS** · EXIT 0/0/0 · redis not run (deferred) · PG LISTEN retained · Redis deferred · Ban假绿 · Dual PASS ≠ MODEL-OP closed / cutover / SLO / HA
 
 ---
 
@@ -23,12 +23,12 @@
 | W0–W8 SSOT | `w0-w8-workflow-status.md` |
 | Prep dual · e2e-ha | `reviews/2026-09-17-model-op-real-reconciler-wiring-mw-e2e-ha.md` → **pass** |
 | Prep dual · rag-route | `reviews/2026-09-17-model-op-real-reconciler-wiring-mw-rag-route.md` → **pass** |
-| Post-prove REQUEST · e2e-ha | `reviews/REQUEST-2026-09-17-model-op-real-reconciler-wiring-post-prove-mw-e2e-ha.md` |
-| Post-prove REQUEST · rag-route | `reviews/REQUEST-2026-09-17-model-op-real-reconciler-wiring-post-prove-mw-rag-route.md` |
+| Post-prove · e2e-ha | `reviews/2026-09-17-model-op-real-reconciler-wiring-post-prove-mw-e2e-ha.md` → **pass** |
+| Post-prove · rag-route | `reviews/2026-09-17-model-op-real-reconciler-wiring-post-prove-mw-rag-route.md` → **pass** |
 
 ## One-line scope
 
-Standing-authorized coding+prove: wire dual reconciler (invocation + usage-calibration) on worker · keep PG LISTEN provisional · Redis deferred · Ban false green / SLO forge · **await post-prove dual** · Ban self-write `post_prove_dual_pass`.
+Standing-authorized coding+prove: wire dual reconciler (invocation + usage-calibration) on worker · keep PG LISTEN provisional · Redis deferred · Ban false green / SLO forge · post-prove dual PASS nail · Dual PASS ≠ MODEL-OP closed.
 
 ## Hard pins
 
@@ -36,7 +36,7 @@ Standing-authorized coding+prove: wire dual reconciler (invocation + usage-calib
 - Prod wakeup = **PG LISTEN/NOTIFY provisional** · Ban remove  
 - **Redis wake deferred** · not STOPPED · ≠ cutover  
 - Dual reconciler 同列 · prove EXIT ≠ cutover ≠ SLO ≠ MODEL-OP fake green  
-- **Ban self-write `post_prove_dual_pass`** · status = `executed:awaiting_post_prove_dual`  
+- Status = **`post_prove_dual_pass`** · dual on **`6cd621c`** · Dual PASS ≠ MODEL-OP closed / HA / suite  
 - `releaseEvidence=false` · ≠HA · ≠suite · Ban false green · PG retained · MySQL/Qdrant STOPPED
 
 ## CMD
@@ -46,7 +46,8 @@ Standing-authorized coding+prove: wire dual reconciler (invocation + usage-calib
 | `pnpm model-invocation-reconcile:prove` | **0** |
 | `pnpm model-op00-usage-reconciler:prove` | **0** |
 | `pnpm worker-wakeup:prove` | **0** |
+| `pnpm worker-wakeup-redis:prove` | **not run** (deferred) |
 
 ---
 
-*Slice · MODEL-OP real reconciler wiring · 2026-09-17 (~19:44 PT) · executed:awaiting_post_prove_dual · prep dual on 0137f39 · ≠ W5 masquerade · PG LISTEN provisional · Redis deferred · Ban false green · releaseEvidence=false · ≠HA · Ban self-write post_prove_dual_pass*
+*Slice · MODEL-OP real reconciler wiring · 2026-09-17 (~19:50 PT) · post_prove_dual_pass · dual on 6cd621c · EXIT 0/0/0 · redis not run (deferred) · ≠ W5 masquerade · PG LISTEN provisional · Redis deferred · Ban假绿 · releaseEvidence=false · ≠HA · ≠ MODEL-OP closed*
