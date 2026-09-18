@@ -1,11 +1,12 @@
 # Harness — R2 **P-HARNESS / G-R2-8** (harness agree · control-plane honesty)
 
-**Status**: **`authorized` / SSOT flipped**（retired `await_authorize` · standing authorize after dual on `c3092c1` · real-close knife **`executed:awaiting_post_prove_dual`**)  
+**Status**: **`authorized` / SSOT flipped**（retired `await_authorize` · standing authorize after dual on `c3092c1` · real-close knife **`post_prove_dual_pass`** on **`5671982`**)  
 **Date**: 2026-09-17 (~19:45 PT) · prior pre-exec dual 2026-09-16 (~19:15 PT)  
 **releaseEvidence=false** · **Not HA** · **≠ covered** · **R2 structural CLOSED** · **R2 NOT closed** as HA/suite/verbal/controlPlane/R4/FUNNEL · **≠ verbal route-effective** · **≠ R4** · **≠ FUNNEL dual-closed** · **≠ controlPlaneClosed** · **≠ suite green** · sole **恰 5**  
 **Experts (pre-exec dual PASS)**: `mw-rag-route` + `mw-e2e-ha`  
 **Dual reviews (both pass)**: `ai-docs/delivery/reviews/2026-09-16-r2-p-harness-agree-mw-rag-route.md` · `ai-docs/delivery/reviews/2026-09-16-r2-p-harness-agree-mw-e2e-ha.md`  
-**Real-close dual (both pass on `c3092c1`)**: `reviews/2026-09-17-r2-ssot-flip-real-close-mw-{e2e-ha,rag-route}.md`  
+**Real-close pre-exec dual (both pass on `c3092c1`)**: `reviews/2026-09-17-r2-ssot-flip-real-close-mw-{e2e-ha,rag-route}.md`  
+**Real-close post-prove dual (both pass on `5671982`)**: `reviews/2026-09-17-r2-ssot-flip-real-close-post-prove-mw-{e2e-ha,rag-route}.md`  
 **Parent**: `harness/r2-classify-job-route.md` · `harness/r2-classify-job-route-status.md` · `eval/r2-classify-job-route.eval.md`  
 **Inventory**: `delivery/r2-remaining-gates.inventory.md`  
 **Prior**: P-MODEL…P-FAKE dual-passed · G-R2-5 retrieve-side CLOSED · **P-LIVE dual-passed** · **P-HARNESS dual-passed** · **standing authorize → SSOT flip executed**
@@ -72,7 +73,7 @@ This knife's honesty path is now **authorized + flipped**; real-close knife awai
 | `pnpm g4-dispatch-recheck-prereq:prove` | **0** | optional related | ≠ R4 |
 | `pnpm mysql-stack:r4-domain-isolation:prove` | **0** | optional related | ≠ domain isolated |
 | `pnpm mysql-stack:m4-rag:prove` | **0** | optional related | §R2 doc gate |
-| Doc-honesty / SSOT sync | n/a | **executed under standing authorize** | real-close knife `executed:awaiting_post_prove_dual` |
+| Doc-honesty / SSOT sync | n/a | **executed under standing authorize** | real-close knife `post_prove_dual_pass` on `5671982` |
 
 **Ban**: self-serve flip without standing authorize (already satisfied). Verbal 生效 / HA / suite / controlPlaneClosed / R4/FUNNEL still forbidden.
 
