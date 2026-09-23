@@ -1,0 +1,14 @@
+{
+  "kind": "ComboRootFlagOnProductionEvidence",
+  "comboRootFlagOnEvidence": true,
+  "comboRootMainWired": true,
+  "interviewConsumerFlagOnRouteResolveWired": true,
+  "flagOnWithRouteAccepted": true,
+  "flagOnWithoutRouteFailClosed": true,
+  "noSilentTechRoleInjectAtComboRoot": true,
+  "gR43Closed": false,
+  "r1ProductClosed": false,
+  "pr1BProductClosed": false,
+  "releaseEvidence": false,
+  "note": "PR1-B combo-root/flag-on production evidence — emitted · ≠ PR1-B/G-R4-3/R1 product closed · Ban forge · await post-prove dual"
+}

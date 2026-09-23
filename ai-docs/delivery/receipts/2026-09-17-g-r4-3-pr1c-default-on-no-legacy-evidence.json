@@ -1,0 +1,15 @@
+{
+  "kind": "DefaultOnNoLegacyPathEvidence",
+  "defaultOnNoLegacyPathEvidence": true,
+  "noLegacyPathUnderExplicitFlagOn": true,
+  "legacyPathStillWhenFlagOff": true,
+  "failClosedDefaultStill0": true,
+  "defaultFlipped": false,
+  "workerEnvExampleStill0": true,
+  "emptyEnvFailClosedOff": true,
+  "gR43Closed": false,
+  "r1ProductClosed": false,
+  "pr1CProductClosed": false,
+  "releaseEvidence": false,
+  "note": "PR1-C default-on/no-legacy path evidence — default still 0 · ≠ flip · ≠ PR1-C/G-R4-3/R1 product closed · Ban forge · await post-prove dual"
+}
