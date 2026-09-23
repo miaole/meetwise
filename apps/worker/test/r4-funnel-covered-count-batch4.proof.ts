@@ -6,7 +6,7 @@
  *   - Emit evidence · update matrix 07/08→covered only when assessors affirm.
  *   - EXIT=0 = honest emit (partial ok · prefer keep-6/7 over invent-8).
  *   - Ban invent coveredCount=8 · Ban wash product closed · Ban docs-only fake cover.
- *   - harness status = executed:awaiting_post_prove_dual · Ban self-nail dual_pass.
+ *   - harness status = post_prove_dual_pass · Ban invent flags · Ban second knife · Ban invent coveredCount=8.
  *
  * HARD:
  *   - r4ProductClosed/funnelProductClosed/gR45Closed remain false
@@ -82,7 +82,7 @@ function read(p: string) {
 
 console.log('G-R4-5 / FUNNEL coveredCount Batch4 07+08 true-cover prove');
 console.log(
-  'EXIT=0 = honest true-cover emit for 07+08 under authorize · Ban invent coveredCount=8 · executed:awaiting_post_prove_dual · product flags false',
+  'EXIT=0 = honest true-cover emit for 07+08 under authorize · Ban invent coveredCount=8 · post_prove_dual_pass · product flags false',
 );
 
 section('B0 anchors');
@@ -90,10 +90,10 @@ A('B0 emitter wired', R4_FUNNEL_COVERED_COUNT_BATCH4_EMITTER_WIRED === true);
 A('B0 free-text funnel marker wired', FREE_TEXT_ALLOWLISTED_SCOPE_FUNNEL_WIRED === true);
 A('B0 harness present', existsSync(harnessPath));
 A('B0 slice present', existsSync(slicePath));
-A('B0 harness status executed:awaiting_post_prove_dual + Ban invent flags false', (() => {
+A('B0 harness status post_prove_dual_pass + Ban invent flags false', (() => {
   const h = read(harnessPath);
-  return /\*\*Status\*\*: \*\*`executed:awaiting_post_prove_dual`/.test(h)
-    && !/\*\*Status\*\*: \*\*`post_prove_dual_pass`/.test(h)
+  return /\*\*Status\*\*: \*\*`post_prove_dual_pass`/.test(h)
+    && !/\*\*Status\*\*: \*\*`executed:awaiting_post_prove_dual`/.test(h)
     && /r4ProductClosed=false/.test(h)
     && /funnelProductClosed=false/.test(h)
     && /gR45Closed=false/.test(h)
@@ -239,14 +239,14 @@ A('B5 evidence json written', existsSync(receiptJson));
 writeFileSync(eg2Json, `${JSON.stringify(matrix, null, 2)}\n`, 'utf8');
 A('B5 eg2 matrix json updated', existsSync(eg2Json));
 
-const nowLabel = '2026-09-23 (~11:10 PT)';
+const nowLabel = '2026-09-23 (~11:17 PT)';
 const mdLines = [
   '# RAG-FUNNEL-01…08 covered matrix（EG2 + Batch1 + Batch2 + Batch2b + Batch3 + Batch3b + Batch4 · Ban invent covered）',
   '',
-  `**Status**: honest inventory emitted · **EG2 STILL OPEN** · **Batch4 executed:awaiting_post_prove_dual** · coveredCount **${matrix.coveredCount}** · 07=${covered07 ? 'covered' : 'not_covered'} · 08=${covered08 ? 'covered' : 'not_covered'} · **≠ invent covered** · \`releaseEvidence=false\` · ≠HA`,
+  `**Status**: honest inventory emitted · **EG2 STILL OPEN** · **Batch4 post_prove_dual_pass** · coveredCount **${matrix.coveredCount}**（6→7 honesty）· 07=${covered07 ? 'covered' : 'not_covered'} · 08=${covered08 ? 'covered' : 'not_covered'} · **≠ invent covered** · \`releaseEvidence=false\` · ≠HA`,
   `**Date**: ${nowLabel}`,
   '**Emitter**: `apps/worker/src/r4-eg2-funnel-covered-matrix.ts` (Batch1+Batch2+Batch2b+Batch3+Batch3b+Batch4-aware) · Batch4 `apps/worker/src/r4-funnel-covered-count-batch4.ts` · prove `pnpm r4-funnel-covered-count-batch4:prove` / `pnpm r4-eg2-funnel-covered:prove`',
-  '**Hard**: Ban invent FUNNEL covered · Ban invent coveredCount=8 · Batch1 may elevate **03/04** · Batch2/Batch2b may elevate **02A/02B** · Batch3/Batch3b may elevate **05/06** · Batch4 may elevate **07/08** when assessors affirm · Ban flip checklist SSOT · ≠ R4/题域/G-R4-5 product closed · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · Ban self-nail post_prove_dual_pass · Ban second knife',
+  '**Hard**: Ban invent FUNNEL covered · Ban invent coveredCount=8 · Batch1 may elevate **03/04** · Batch2/Batch2b may elevate **02A/02B** · Batch3/Batch3b may elevate **05/06** · Batch4 may elevate **07/08** when assessors affirm · Ban flip checklist SSOT · ≠ R4/题域/G-R4-5 product closed · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · post_prove_dual_pass · Ban invent coveredCount=8 · Ban second knife · Ban wash into product-closed',
   '',
   '| ID | Status | Basis |',
   '|----|--------|-------|',
@@ -264,9 +264,9 @@ const mdLines = [
   '## Non-claims',
   '',
   '- Not product close · not gR45Closed · Ban invent coveredCount=8 · Ban docs-only fake cover · Ban wash Batch3b 85be7ad/9aa1be4 · Batch3 bd3a800/e468de9 · Batch2b ddfb64d/824e072 · Batch2 0a980e6/5593226 · Batch1 5519078/bd15172 · product-close 1c2ed8c · EG3 7be1a55',
-  '- Ban MS3=R4 · Ban self-nail post_prove_dual_pass · Ban invent · Ban second knife',
+  '- Ban MS3=R4 · Ban wash this dual_pass into product closed · Ban invent coveredCount=8 · Ban invent · Ban second knife · Ban opening 08 wire/eval',
   '',
-  `*Matrix · EG2+Batch1+Batch2+Batch2b+Batch3b+Batch4 · ${nowLabel} · coveredCount=${matrix.coveredCount} · Ban invent covered · releaseEvidence=false · executed:awaiting_post_prove_dual*`,
+  `*Matrix · EG2+Batch1+Batch2+Batch2b+Batch3b+Batch4 · ${nowLabel} · coveredCount=${matrix.coveredCount} · Ban invent covered · releaseEvidence=false · post_prove_dual_pass*`,
   '',
 ];
 writeFileSync(mdPath, mdLines.join('\n'), 'utf8');
@@ -275,7 +275,7 @@ A('B5 matrix md written', existsSync(mdPath));
 const proveLines = [
   '# Prove — G-R4-5 / FUNNEL coveredCount Batch4（07+08 true-cover）',
   '',
-  '**Status**: `executed:awaiting_post_prove_dual` · Ban invent · Ban invent coveredCount=8 · Ban self-nail post_prove_dual_pass · product flags false',
+  '**Status**: `post_prove_dual_pass` · prior `executed:awaiting_post_prove_dual` recorded · Ban invent · Ban invent coveredCount=8 · product flags false',
   `**Date**: ${nowLabel}`,
   '**CMD**: `pnpm r4-funnel-covered-count-batch4:prove` + `pnpm r4-eg2-funnel-covered:prove`',
   `**coveredCount**: **${matrix.coveredCount}** (before Batch4 baseline **6** · expect 6→8 if both affirmed · Ban invent coveredCount=8)`,
@@ -297,7 +297,7 @@ const proveLines = [
   '## Non-claims',
   '',
   '- Not product close · not gR45Closed · Ban invent coveredCount=8 · Ban wash Batch3b 85be7ad/9aa1be4 · Batch3 bd3a800/e468de9 · Batch2b · Batch2 · Batch1 · product-close · EG3',
-  '- Ban MS3=R4 · Ban self-nail post_prove_dual_pass · Ban invent · Ban second knife',
+  '- Ban MS3=R4 · Ban wash this dual_pass into product closed · Ban invent coveredCount=8 · Ban invent · Ban second knife · Ban opening 08 wire/eval',
   '',
 ];
 writeFileSync(proveMd, proveLines.join('\n'), 'utf8');
@@ -311,13 +311,13 @@ A('B5 roundtrip coveredCountInvented=false', roundtrip.coveredCountInvented === 
 A('B5 roundtrip batch4Only=true', roundtrip.batch4Only === true);
 
 section('B6 hard pins');
-A('B6 ≠ invent coveredCount=8 · ≠ flip product flags · executed:awaiting_post_prove_dual', true);
+A('B6 ≠ invent coveredCount=8 · ≠ flip product flags · post_prove_dual_pass', true);
 A('B6 ≠ wash Batch3b 85be7ad/9aa1be4 · Batch3 bd3a800/e468de9 · Batch2b · Batch2 · Batch1 · product-close · EG3', true);
-A('B6 Ban MS3=R4 · Ban invent · Ban docs-only fake cover · releaseEvidence=false · Ban self-nail dual_pass', true);
+A('B6 Ban MS3=R4 · Ban invent · Ban docs-only fake cover · releaseEvidence=false · Ban wash dual_pass into product closed', true);
 
 console.log(
   failures === 0
-    ? `\nOK  r4-funnel-covered-count-batch4 prove (honest emit · coveredCount=${matrix.coveredCount} · 07=${covered07} 08=${covered08} · 02A/02B/03/04/05/06 retained · product flags false · Ban invent coveredCount=8 · executed:awaiting_post_prove_dual · releaseEvidence=false)`
+    ? `\nOK  r4-funnel-covered-count-batch4 prove (honest emit · coveredCount=${matrix.coveredCount} · 07=${covered07} 08=${covered08} · 02A/02B/03/04/05/06 retained · product flags false · Ban invent coveredCount=8 · post_prove_dual_pass · releaseEvidence=false)`
     : `\nFAIL  r4-funnel-covered-count-batch4 prove (${failures} failures)`,
 );
 process.exit(failures === 0 ? 0 : 1);

@@ -16,7 +16,7 @@
  *   - 本刀不翻 r4ProductClosed / funnelProductClosed / gR45Closed.
  *   - Ban invent coveredCount=8 · prefer honest keep-6/7 over invent-8.
  *   - Ban docs-only fake cover · Ban wash Batch3b 85be7ad/9aa1be4 · Batch3 · Batch2b · Batch2 · Batch1 · product-close · EG3.
- *   - Ban MS3=R4 · Ban self-nail post_prove_dual_pass · releaseEvidence=false · ≠HA.
+ *   - Ban MS3=R4 · post_prove_dual_pass · Ban invent coveredCount=8 · releaseEvidence=false · ≠HA.
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -65,7 +65,7 @@ export type FunnelCoveredCountBatch4Evidence = {
   readonly gR45Closed: false;
   readonly ms3EqualsR4Closed: false;
   readonly releaseEvidence: false;
-  readonly note: 'G-R4-5 / FUNNEL coveredCount Batch4 — true-cover 07+08 under authorize · honest assessor elevation only · Ban invent coveredCount=8 · Ban docs-only fake cover · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · Ban wash Batch3b 85be7ad/9aa1be4 · Ban wash Batch3 bd3a800/e468de9 · Ban MS3=R4 · Ban self-nail post_prove_dual_pass · await post-prove dual';
+  readonly note: 'G-R4-5 / FUNNEL coveredCount Batch4 — true-cover 07+08 under authorize · honest assessor elevation only · Ban invent coveredCount=8 · Ban docs-only fake cover · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · Ban wash Batch3b 85be7ad/9aa1be4 · Ban wash Batch3 bd3a800/e468de9 · Ban MS3=R4 · post_prove_dual_pass · prior executed:awaiting_post_prove_dual recorded · Ban opening 08 wire/eval';
 };
 
 function workerSrcDir(): string {
@@ -327,7 +327,7 @@ export function emitFunnelCoveredCountBatch4Evidence(): FunnelCoveredCountBatch4
     gR45Closed: false,
     ms3EqualsR4Closed: false,
     releaseEvidence: false,
-    note: 'G-R4-5 / FUNNEL coveredCount Batch4 — true-cover 07+08 under authorize · honest assessor elevation only · Ban invent coveredCount=8 · Ban docs-only fake cover · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · Ban wash Batch3b 85be7ad/9aa1be4 · Ban wash Batch3 bd3a800/e468de9 · Ban MS3=R4 · Ban self-nail post_prove_dual_pass · await post-prove dual',
+    note: 'G-R4-5 / FUNNEL coveredCount Batch4 — true-cover 07+08 under authorize · honest assessor elevation only · Ban invent coveredCount=8 · Ban docs-only fake cover · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · Ban wash Batch3b 85be7ad/9aa1be4 · Ban wash Batch3 bd3a800/e468de9 · Ban MS3=R4 · post_prove_dual_pass · prior executed:awaiting_post_prove_dual recorded · Ban opening 08 wire/eval',
   };
 }
 
