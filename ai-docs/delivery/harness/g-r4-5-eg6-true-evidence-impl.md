@@ -1,9 +1,9 @@
-# Harness — **G-R4-5 EG6 true-evidence / impl**（docs REQUEST · **`REQUEST-ready / not_run:pre_dual`** · EG6 **STILL OPEN**）
+# Harness — **G-R4-5 EG6 true-evidence / impl**（standing coding+prove · **`executed:awaiting_post_prove_dual`** · EG6 **STILL OPEN**）
 
-**Status**: **`REQUEST-ready / not_run:pre_dual`**（实现方预写 · **not yet dual-sent** · **Ban自批 pass** · Dual PASS ≠ coding · **≠ EG6 closed** · **≠ MS3=R4 closed** · **≠ R4 closed from MS3** · **≠ product SSOT flipped** · **≠ any EG closed** · **≠ dual-claim closed** · **≠ 题域已隔离** · **≠ R4/FUNNEL product closed** · **≠ wrong_track product closed** · **≠ coding** · **≠ prove**）  
-**Date**: 2026-09-23 (~05:08 PT)  
-**releaseEvidence=false** · **≠HA** · **≠suite green** · **G-R4-5 STILL OPEN** · **题域 STILL OPEN** · **R4/FUNNEL product STILL OPEN** · **MS3 ≠ R4 closed** · **EG1 STILL OPEN** · **EG2 STILL OPEN** · **EG3 STILL OPEN** · **EG4 STILL OPEN** · **EG5 STILL OPEN** · **EG6 STILL OPEN** · Ban假关 · Ban invent coveredCount · Ban invent FUNNEL covered · Ban forge receipts · Ban claim R4 closed from MS3 · Ban silent product SSOT flip · Ban claim EG6/MS3=R4/R4 closed from EXIT=0 · Ban wash EG5 dual_pass tip nail **`e099276`** / dual on **`6058462`** / EG4 tip nail **`3cefebf`** / dual on **`ec90b6d`** / EG3 tip nail **`62c0e2f`** / dual on **`c18e28f`** / EG1+EG2 tip nail **`08f7499`** / prove tip **`ffb2a9b`** / residual **`e23c5fd`** / evidence-close **`b4a8ede`** / 5×0 into EG6/题域/R4 closed · **Ban idle re-prove of EG1/EG2/EG3/EG4/EG5 CMDs (`pnpm r4-eg1-dual-claim:prove` / `pnpm r4-eg2-funnel-covered:prove` / `pnpm r4-eg3-domain-isolation-product:prove` / `pnpm r4-eg4-wrong-track-product:prove` / `pnpm r4-eg5-product-ssot:prove`) as fake EG6 close** · **Ban idle re-run of the same 5×meta prove as fake close** · Ban wash EG5 nail / prove tip · **Dual PASS ≠ coding** · Ban self-approve · Ban Cloud Agent · Ban自批 product close · `eg5ProductClosed=false` · `productSsotFlipped=false` · `eg6ProductClosed=false` · `ms3EqualsR4Closed=false` · `releaseEvidence=false`  
-**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **not yet run** · Ban self-approve · experts write their own review receipts at named paths below）  
+**Status**: **`executed:awaiting_post_prove_dual`**（standing authorize after pre-exec dual BOTH PASS on REQUEST tip **`b777ff8`** · EG6 true-evidence coding+prove **executed** · EXIT **1×0** · **NOT** `post_prove_dual_pass` · Ban self-nail · **≠ EG6 closed** · **≠ MS3=R4 closed** · **≠ R4 closed from MS3** · **≠ product SSOT flipped** · **≠ any EG closed** · **≠ dual-claim closed** · **≠ 题域已隔离** · **≠ R4/FUNNEL product closed**）  
+**Date**: 2026-09-23 (~05:16 PT) · REQUEST open ~05:08 PT · pre-exec dual BOTH PASS ~05:12 PT on **`b777ff8`** · standing coding+prove ~05:16 PT  
+**releaseEvidence=false** · **≠HA** · **≠suite green** · **G-R4-5 STILL OPEN** · **题域 STILL OPEN** · **R4/FUNNEL product STILL OPEN** · **MS3 ≠ R4 closed** · **EG1 STILL OPEN** · **EG2 STILL OPEN** · **EG3 STILL OPEN** · **EG4 STILL OPEN** · **EG5 STILL OPEN** · **EG6 STILL OPEN** · Ban假关 · Ban invent coveredCount · Ban invent FUNNEL covered · Ban forge receipts · Ban claim R4 closed from MS3 · Ban claiming R4 closed from MS3 · Ban silent product SSOT flip · Ban claim EG6/MS3=R4/R4 closed from EXIT=0 · Ban wash EG5 dual_pass tip nail **`e099276`** / dual on **`6058462`** / EG4 tip nail **`3cefebf`** / dual on **`ec90b6d`** / EG3 tip nail **`62c0e2f`** / dual on **`c18e28f`** / EG1+EG2 tip nail **`08f7499`** / prove tip **`ffb2a9b`** / residual **`e23c5fd`** / evidence-close **`b4a8ede`** / 5×0 into EG6/题域/R4 closed · **Ban idle re-prove of EG1/EG2/EG3/EG4/EG5 CMDs (`pnpm r4-eg1-dual-claim:prove` / `pnpm r4-eg2-funnel-covered:prove` / `pnpm r4-eg3-domain-isolation-product:prove` / `pnpm r4-eg4-wrong-track-product:prove` / `pnpm r4-eg5-product-ssot:prove`) as fake EG6 close** · **Ban idle re-run of the same 5×meta prove as fake close** · Ban wash EG5 nail / prove tip · Ban self-approve `post_prove_dual_pass` · Ban Cloud Agent · Ban自批 product close · `eg5ProductClosed=false` · `productSsotFlipped=false` · `eg6ProductClosed=false` · `ms3EqualsR4Closed=false` · `releaseEvidence=false` · product SSOT **NOT** flipped  
+**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **BOTH PASS** on REQUEST SHA **`b777ff8`** · standing authorize coding+prove · post-prove dual **awaiting** · Ban self-approve）  
 **Prior EG5 true-evidence / impl**: `harness/g-r4-5-eg5-true-evidence-impl.md` · **`post_prove_dual_pass`** · tip nail **`e099276`** · dual on tip **`6058462`** · EXIT **1×0** · EG5 product SSOT flip authorize honesty evidence emitted · **EG5 STILL OPEN** (`eg5ProductClosed=false` · `productSsotFlipped=false`) · **retained** · **≠** wash into EG6/题域/R4 closed · Ban idle re-prove EG5 as fake EG6 close · Ban wash EG5 nail / prove tip  
 **Prior EG4 true-evidence / impl**: `harness/g-r4-5-eg4-true-evidence-impl.md` · **`post_prove_dual_pass`** · tip nail **`3cefebf`** · dual on tip **`ec90b6d`** · EXIT **1×0** · EG4 wrong_track production honesty evidence emitted · **EG4 STILL OPEN** (`eg4ProductClosed=false` · `wrongTrackProductClosed=false`) · **retained** · Ban idle re-prove EG4 as fake EG6 close  
 **Prior EG3 true-evidence / impl**: `harness/g-r4-5-eg3-true-evidence-impl.md` · **`post_prove_dual_pass`** · tip nail **`62c0e2f`** · dual on tip **`c18e28f`** · EXIT **1×0** · EG3 product evidence emitted · **EG3 STILL OPEN** (`eg3ProductClosed=false` · `domainIsolationClosed=false`) · **retained** · Ban idle re-prove EG3 as fake EG6 close  
@@ -14,20 +14,21 @@
 **Prior L4 explicit-close**: `harness/r4-funnel-explicit-close-ssot-flip.md` · tip **`cc0d913`** · prove **`1a8b1e9`** · EXIT **5×0** · L5 no-op · product SSOT **NOT** flipped · Ban wash  
 **Prior honesty rem / real-close**: honesty rem `42f77c1/669bca4` · real-close `105b264/d994c36` · **≠** this knife · Ban wash  
 **Slice**: `../g-r4-5-eg6-true-evidence-impl.slice.md`  
-**Eval**: `../eval/g-r4-5-eg6-true-evidence-impl.eval.md`（experts / later · **not** this open）  
-**Authority**: meetwise — docs-only **G-R4-5 EG6 true-evidence / impl REQUEST** open · zero coding · zero prove this open · Ban secrets / `.env*` · Meridian banned · No force-push · Ban Cloud Agent · Ban self-approve  
-**Honesty**: This REQUEST = next true-evidence slice for **EG6 alone** (MS3≠R4 pin retention · deferred-as-product honesty · Ban claiming R4 closed from MS3 · Ban假关) · acceptance criteria + intended dedicated prove emitter path **later** (after dual + standing authorize) · Dual PASS ≠ coding · Ban假关 · Ban wash `e099276`/`6058462` / `3cefebf`/`ec90b6d` / `62c0e2f`/`c18e28f` / `08f7499`/`ffb2a9b` / `e23c5fd` / `b4a8ede` / 5×0 into EG6 closed · **Ban idle re-prove EG1/EG2/EG3/EG4/EG5 as fake EG6 close** · Ban idle re-run of same 5×meta as fake close · Ban wash EG5 nail / prove tip · product SSOT **NOT** flipped · `eg6ProductClosed=false` · `ms3EqualsR4Closed=false`
+**Eval**: `../eval/g-r4-5-eg6-true-evidence-impl.eval.md`  
+**Receipt**: `../receipts/2026-09-23-g-r4-5-eg6-true-evidence-prove.md`  
+**Authority**: meetwise — standing authorize **coding+prove** after pre-exec dual BOTH PASS on REQUEST **`b777ff8`** · EG6-specific prove EXIT **1×0** · leave **`executed:awaiting_post_prove_dual`** · Ban self-write `post_prove_dual_pass` · Ban secrets / `.env*` · Meridian banned · No force-push · Ban Cloud Agent  
+**Honesty**: Pre-exec dual PASS ≠ coding假关 · EG6 MS3≠R4 pin retention honesty evidence **emitted** · EXIT=0 = evidence emitted ≠ EG6 closed ≠ MS3=R4 closed ≠ R4 closed from MS3 ≠ dual-claim closed ≠ 题域已隔离 ≠ R4/FUNNEL product closed · Ban claim R4 closed from MS3 · Ban idle re-prove EG1/EG2/EG3/EG4/EG5 / 5×meta as fake close · product SSOT **NOT** flipped · `eg6ProductClosed=false` · `ms3EqualsR4Closed=false` · `productSsotFlipped=false` · `releaseEvidence=false`
 
 ---
 
-## Dual receipts（paths named · experts write）
+## Dual receipts
 
-| Expert | Receipt path（named · **not pre-written**） | Verdict |
-|--------|---------------------------------------------|---------|
-| `mw-e2e-ha` (pre-exec) | `../reviews/REQUEST-2026-09-23-g-r4-5-eg6-true-evidence-impl-mw-e2e-ha.md` | **REQUEST-ready / not_run:pre_dual** · Ban自批 · expert writes |
-| `mw-rag-route` (pre-exec) | `../reviews/REQUEST-2026-09-23-g-r4-5-eg6-true-evidence-impl-mw-rag-route.md` | **REQUEST-ready / not_run:pre_dual** · Ban自批 · expert writes |
-
-**Note**: This knife is **docs-only**. There is **no** coding · **no** prove · **no** post-prove dual this open. Status = **REQUEST-ready / not_run:pre_dual**. Dual PASS (later) ≠ coding ≠ EG6 closed ≠ MS3=R4 closed ≠ R4 closed from MS3 ≠ dual-claim/题域/R4 closed. Review stubs **not** pre-filled — experts write at the named paths.
+| Expert | Receipt | Verdict |
+|--------|---------|---------|
+| `mw-e2e-ha` (pre-exec) | `../reviews/REQUEST-2026-09-23-g-r4-5-eg6-true-evidence-impl-mw-e2e-ha.md` | **pass** (docs gate) on REQUEST **`b777ff8`** |
+| `mw-rag-route` (pre-exec) | `../reviews/REQUEST-2026-09-23-g-r4-5-eg6-true-evidence-impl-mw-rag-route.md` | **pass** (docs gate) on REQUEST **`b777ff8`** |
+| `mw-e2e-ha` (post-prove) | `../reviews/REQUEST-2026-09-23-g-r4-5-eg6-true-evidence-impl-post-prove-mw-e2e-ha.md` | **REQUEST / 待审** · Ban自批 |
+| `mw-rag-route` (post-prove) | `../reviews/REQUEST-2026-09-23-g-r4-5-eg6-true-evidence-impl-post-prove-mw-rag-route.md` | **REQUEST / 待审** · Ban自批 |
 
 ---
 
@@ -35,40 +36,40 @@
 
 | Statement | Ruling |
 |-----------|--------|
-| **What this knife is** | Docs REQUEST open: **EG6 alone** true-evidence / impl · **MS3≠R4 pin retention / deferred-as-product honesty** acceptance (Ban claiming R4 closed from MS3 · Ban假关) · intended dedicated prove emitter path (**later** after dual + standing authorize) · status **`REQUEST-ready / not_run:pre_dual`** |
-| **What this knife is not** | **Not** coding · **not** prove · **not** claiming EG6 / MS3=R4 closed / R4 closed from MS3 / product SSOT flipped / any EG / dual-claim / 题域 / wrong_track / R4/FUNNEL product closed · **not** inventing coveredCount / FUNNEL covered · **not** forging receipts · **not** idle re-prove of EG1/EG2/EG3/EG4/EG5 CMDs as fake EG6 close · **not** washing EG5 dual_pass `e099276`/`6058462` · **not** washing EG4 dual_pass `3cefebf`/`ec90b6d` · **not** washing EG3 dual_pass `62c0e2f`/`c18e28f` · **not** washing EG1+EG2 dual_pass `08f7499`/`ffb2a9b` · **not** washing residual `e23c5fd` · **not** washing evidence-close `b4a8ede` / 5×0 · **not** idle re-run of the same 5×meta prove as fake close · **not** product SSOT flip this open |
+| **What this knife is** | Standing-authorized EG6 true-evidence coding+prove · EXIT **1×0** · dedicated `pnpm r4-eg6-ms3-ne-r4:prove` emitted MS3≠R4 pin retention honesty evidence · status **`executed:awaiting_post_prove_dual`** · EG6 **STILL OPEN** · **MS3 ≠ R4 closed** · product SSOT **NOT** flipped |
+| **What this knife is not** | **Not** claiming EG6 / MS3=R4 closed / R4 closed from MS3 / product SSOT flipped / any EG / dual-claim / 题域 / wrong_track / R4/FUNNEL product closed · **not** inventing coveredCount / FUNNEL covered · **not** forging receipts · **not** idle re-prove of EG1/EG2/EG3/EG4/EG5 CMDs as fake EG6 close · **not** idle re-run of the same 5×meta prove as fake close · **not** washing EG5 dual_pass `e099276`/`6058462` · **not** washing EG4 dual_pass `3cefebf`/`ec90b6d` · **not** washing EG3 dual_pass `62c0e2f`/`c18e28f` · **not** washing EG1+EG2 dual_pass `08f7499`/`ffb2a9b` · **not** washing residual `e23c5fd` · **not** washing evidence-close `b4a8ede` / 5×0 · **not** `post_prove_dual_pass` (Ban self-nail) |
 | **≠ EG5 dual_pass wash** | **YES** — tip nail **`e099276`** · dual on **`6058462`** · EXIT **1×0** · EG5 evidence emitted · EG5 **STILL OPEN** · **retained** · Ban wash into EG6/题域/R4 closed · Ban idle re-prove EG5 as fake EG6 close · Ban wash EG5 nail / prove tip |
-| **≠ EG4 dual_pass wash** | **YES** — tip nail **`3cefebf`** · dual on **`ec90b6d`** · EXIT **1×0** · EG4 evidence emitted · EG4 **STILL OPEN** · **retained** · Ban wash into EG6/题域/R4 closed · Ban idle re-prove EG4 as fake EG6 close |
+| **≠ EG4 dual_pass wash** | **YES** — tip nail **`3cefebf`** · dual on **`ec90b6d`** · EXIT **1×0** · EG4 evidence emitted · EG4 **STILL OPEN** · **retained** · Ban idle re-prove EG4 as fake EG6 close |
 | **≠ EG3 dual_pass wash** | **YES** — tip nail **`62c0e2f`** · dual on **`c18e28f`** · EXIT **1×0** · EG3 evidence emitted · EG3 **STILL OPEN** · **retained** · Ban idle re-prove EG3 as fake EG6 close |
 | **≠ EG1+EG2 dual_pass wash** | **YES** — tip nail **`08f7499`** · dual on **`ffb2a9b`** · EXIT **2×0** · EG1/EG2 evidence emitted · EG1/EG2 **STILL OPEN** · **retained** · Ban idle re-prove EG1/EG2 as fake EG6 close |
 | **≠ residual honesty wash** | **YES** — tip **`e23c5fd`** · dual **`04c6ed1`** · residual **STILL OPEN** · EG1–EG6 **STILL OPEN** · **retained** · Ban wash |
 | **≠ evidence-close dual_pass wash** | **YES** — tip **`b4a8ede`** · prove **`ae99258`** · EXIT **5×0** · L5 lifecycle-only · EG **STILL OPEN** · **retained** · Ban wash 5×EXIT=0 · **Ban idle re-run of the same 5×meta prove as fake close** |
 | **≠ residual honesty wash (earlier)** | **YES** — tip **`a6d733d`** · dual **`e919ddf`** · **retained** · Ban wash |
 | **≠ L4 explicit-close** | **YES** — tip **`cc0d913`** · prove **`1a8b1e9`** · EXIT **5×0** · L5 no-op · product SSOT **NOT** flipped · Ban wash into R4 product closed |
-| **EG5 EXIT 1×0 / EG4 EXIT 1×0 / EG3 EXIT 1×0 / EG1+EG2 EXIT 2×0 / 5×EXIT=0 / dual_pass `b4a8ede` / residual `e23c5fd` / EG5 dual_pass / EG4 dual_pass / EG3 dual_pass / EG1+EG2 dual_pass ⇒ EG6 / MS3=R4 / 题域 / R4 closed?** | **NO** — Ban假关 · Ban claim R4 closed from MS3 · Ban claim closed from EXIT=0 alone · Ban idle re-prove EG1/EG2/EG3/EG4/EG5 / 5×meta as fake close · Ban wash EG5 nail / prove tip |
+| **EG5 EXIT 1×0 / EG4 EXIT 1×0 / EG3 EXIT 1×0 / EG1+EG2 EXIT 2×0 / 5×EXIT=0 / dual_pass `b4a8ede` / residual `e23c5fd` / EG5 dual_pass / EG4 dual_pass / EG3 dual_pass / EG1+EG2 dual_pass / this EXIT=0 ⇒ EG6 / MS3=R4 / 题域 / R4 closed?** | **NO** — Ban假关 · Ban claim R4 closed from MS3 · Ban claim closed from EXIT=0 alone · Ban idle re-prove EG1/EG2/EG3/EG4/EG5 / 5×meta as fake close · Ban wash EG5 nail / prove tip |
 | **G-R4-5 / 题域 / R4/FUNNEL product** | **STILL OPEN** · **MS3 ≠ R4 closed** · Ban假关 |
-| **Now** | **`REQUEST-ready / not_run:pre_dual`** · docs only · EG6 **STILL OPEN** · zero coding · zero prove · product SSOT **NOT** flipped · `eg6ProductClosed=false` · `ms3EqualsR4Closed=false` · `releaseEvidence=false` |
+| **Now** | **`executed:awaiting_post_prove_dual`** · EG6 evidence **emitted** · EG6 **STILL OPEN** · Ban self-nail `post_prove_dual_pass` · product SSOT **NOT** flipped · `eg6ProductClosed=false` · `ms3EqualsR4Closed=false` · `productSsotFlipped=false` · `releaseEvidence=false` |
 
 ---
 
-## 1. EG6 acceptance · why prior EXIT=0 / dual_pass does **not** close · this REQUEST
+## 1. EG6 acceptance · why prior EXIT=0 / dual_pass does **not** close · this execute
 
-| # | Gap | Acceptance criteria（true evidence） | Why prior EXIT=0 / dual_pass does **not** close | This REQUEST |
+| # | Gap | Acceptance criteria（true evidence） | Why prior EXIT=0 / dual_pass does **not** close | This execute |
 |---|-----|--------------------------------------|--------------------------------------------------|--------------|
-| **EG6** | **MS3≠R4 pin retention / deferred-as-product honesty** | Honest MS3≠R4 pin retention · deferred-as-product honesty · Ban claiming R4 closed from MS3 · dedicated EG6 prove emitter under authorize (**later**) · EXIT=0 = evidence emitted ≠ EG6/MS3=R4/R4 closed · Ban假关 | MS3 true ≠ R4 closed · meta MS3 prove ≠ R4 product closed · EG1–EG5 evidence emitted ≠ R4/EG6 closed · Ban elevating prior dual_pass nails to R4/EG6 closed | **Docs REQUEST open** · EG6 **alone** · intended dedicated prove emitter path **later** · `eg6ProductClosed=false` · `ms3EqualsR4Closed=false` · Ban idle re-prove EG1–EG5 as fake EG6 close · Ban wash EG5 nail / prove tip · **EG6 STILL OPEN** |
+| **EG6** | **MS3≠R4 pin retention / deferred-as-product honesty** | Honest MS3≠R4 pin retention · deferred-as-product honesty · Ban claiming R4 closed from MS3 · dedicated EG6 prove emitter under authorize · EXIT=0 = evidence emitted ≠ EG6/MS3=R4/R4 closed · Ban假关 | MS3 true ≠ R4 closed · meta MS3 prove ≠ R4 product closed · EG1–EG5 evidence emitted ≠ R4/EG6 closed · Ban elevating prior dual_pass nails to R4/EG6 closed | **Emitted**: `receipts/2026-09-23-g-r4-5-eg6-ms3-ne-r4-evidence.json` via `pnpm r4-eg6-ms3-ne-r4:prove` EXIT=0 · `eg6ProductClosed=false` · `ms3EqualsR4Closed=false` · `productSsotFlipped=false` · Ban claim R4 closed from MS3 · Ban idle re-prove EG1–EG5 as fake EG6 close · Ban wash EG5 nail / prove tip · **EG6 STILL OPEN** · **MS3 ≠ R4 closed** |
 | **EG5** (prior · retained OPEN) | Product SSOT flip authorize | Evidence **already emitted** · `eg5ProductClosed=false` · `productSsotFlipped=false` | N/A | **retained OPEN** · Ban idle re-prove as fake EG6 close · Ban wash EG5 nail / prove tip |
 | **EG4** (prior · retained OPEN) | wrong_track production honesty | Evidence **already emitted** · `eg4ProductClosed=false` · `wrongTrackProductClosed=false` | N/A | **retained OPEN** · Ban idle re-prove as fake EG6 close |
 | **EG3** (prior · retained OPEN) | 题域隔离 product | Evidence **already emitted** · `eg3ProductClosed=false` · `domainIsolationClosed=false` | N/A | **retained OPEN** · Ban idle re-prove as fake EG6 close |
 | **EG1** (prior · retained OPEN) | dual-claim | Evidence **already emitted** · `gR45DualClaimClosed=false` | N/A | **retained OPEN** · Ban idle re-prove as fake EG6 close |
 | **EG2** (prior · retained OPEN) | FUNNEL covered matrix | Matrix **already emitted** · `coveredCount=0` | N/A | **retained OPEN** · Ban invent coveredCount · Ban idle re-prove as fake EG6 close |
 
-**Ban**: invent coveredCount · invent FUNNEL-01…08 covered · forge receipts · claim R4 closed from MS3 · claim EG6/MS3=R4/product closed · claim 题域已隔离 · claim dual-claim closed · claim wrong_track closed · claim R4/FUNNEL product closed · claim any EG closed from EXIT=0 / dual_pass `b4a8ede` / residual `e23c5fd` / EG5 dual_pass `e099276`/`6058462` / EG4 dual_pass `3cefebf`/`ec90b6d` / EG3 dual_pass `62c0e2f`/`c18e28f` / EG1+EG2 dual_pass `08f7499`/`ffb2a9b` · **Ban idle re-prove of EG1/EG2/EG3/EG4/EG5 CMDs as fake EG6 close** · **Ban idle re-run of the same 5×meta prove as fake close** · Ban wash EG5 nail / prove tip · Ban自批 product close · Dual PASS ≠ coding
+**Ban**: invent coveredCount · invent FUNNEL-01…08 covered · forge receipts · claim R4 closed from MS3 · claim EG6/MS3=R4/product closed · claim 题域已隔离 · claim dual-claim closed · claim wrong_track closed · claim R4/FUNNEL product closed · claim any EG closed from EXIT=0 / dual_pass `b4a8ede` / residual `e23c5fd` / EG5 dual_pass `e099276`/`6058462` / EG4 dual_pass `3cefebf`/`ec90b6d` / EG3 dual_pass `62c0e2f`/`c18e28f` / EG1+EG2 dual_pass `08f7499`/`ffb2a9b` / this EXIT=0 · **Ban idle re-prove of EG1/EG2/EG3/EG4/EG5 CMDs as fake EG6 close** · **Ban idle re-run of the same 5×meta prove as fake close** · Ban wash EG5 nail / prove tip · Ban自批 product close
 
-**Dedicated prove pattern（later · not this open）**:
+**Dedicated prove pattern（this execute）**:
 
 | CMD | Role | Honest read when EXIT=0 |
 |-----|------|-------------------------|
-| dedicated EG6 emitter (e.g. `pnpm r4-eg6-ms3-ne-r4:prove` · name TBD later) | EG6 dedicated emitter · MS3≠R4 pin retention / deferred-as-product honesty true evidence | **evidence emitted ≠ EG6 closed ≠ MS3=R4 closed ≠ R4 closed** · Ban forge · Ban假关 · Ban claim R4 closed from MS3 |
+| `pnpm r4-eg6-ms3-ne-r4:prove` | EG6 dedicated emitter · MS3≠R4 pin retention / deferred-as-product honesty true evidence | **evidence emitted ≠ EG6 closed ≠ MS3=R4 closed ≠ R4 closed** · Ban forge · Ban假关 · Ban claim R4 closed from MS3 |
 | `pnpm r4-eg5-product-ssot:prove` | Prior EG5 · **retained** | **not** EG6 close · Ban idle re-prove as fake EG6 close · Ban wash EG5 nail / prove tip |
 | `pnpm r4-eg4-wrong-track-product:prove` | Prior EG4 · **retained** | **not** EG6 close · Ban idle re-prove as fake EG6 close |
 | `pnpm r4-eg3-domain-isolation-product:prove` | Prior EG3 · **retained** | **not** EG6 close · Ban idle re-prove as fake EG6 close |
@@ -89,7 +90,7 @@
 
 ## 2. Explicit ≠ prior knives（must survive）
 
-| Prior knife | SHA pins | Role | This EG6 true-evidence/impl REQUEST |
+| Prior knife | SHA pins | Role | This EG6 true-evidence/impl execute |
 |-------------|----------|------|-------------------------------------|
 | **EG5 true-evidence / impl** | tip nail **`e099276`** · dual on **`6058462`** · EXIT **1×0** | EG5 product SSOT flip authorize honesty evidence emitted · EG5 **STILL OPEN** · **`post_prove_dual_pass`** | **≠** wash into EG6/题域/R4 closed · **retained** · Ban idle re-prove EG5 as fake EG6 close · Ban wash EG5 nail / prove tip |
 | **EG4 true-evidence / impl** | tip nail **`3cefebf`** · dual on **`ec90b6d`** · EXIT **1×0** | EG4 wrong_track production honesty evidence emitted · EG4 **STILL OPEN** · **`post_prove_dual_pass`** | **≠** wash · **retained** · Ban idle re-prove EG4 as fake EG6 close |
@@ -105,19 +106,19 @@
 
 ---
 
-## 3. Lifecycle（L0 this open · L1–L5 not run）
+## 3. Lifecycle（L0–L3 done · L4 awaiting · L5 forbidden）
 
 | Phase | Gate | This open |
 |-------|------|-----------|
-| **L0** | REQUEST pair open · `REQUEST-ready / not_run:pre_dual` | **this open** · docs only |
-| **L1** | Pre-exec dual (`mw-e2e-ha` + `mw-rag-route`) · Ban self-approve | **not_run** · named paths below |
-| **L2** | Standing authorize after dual · Dual PASS ≠ coding | **not_run** · Dual PASS ≠ coding |
-| **L3** | Standing coding + prove · Ban invent EXIT · Ban假关 · Ban claim R4 closed from MS3 · **Ban idle re-prove EG1–EG5 / 5×meta as fake close** | **not_run** · zero coding · zero prove |
-| **L4** | Post-prove dual · Ban wash into EG6/MS3=R4/题域/R4 closed | **not_run** |
-| **L5** | **Only then** any SSOT claim · Ban product close without EG6 true evidence | **forbidden** this open · product SSOT **NOT** flipped |
+| **L0** | REQUEST pair open | **done** · tip **`b777ff8`** |
+| **L1** | Pre-exec dual (`mw-e2e-ha` + `mw-rag-route`) · Ban self-approve | **done** · BOTH PASS on **`b777ff8`** |
+| **L2** | Standing authorize after dual · Dual PASS ≠ coding | **done** · standing authorize coding+prove |
+| **L3** | Standing coding + prove · Ban invent EXIT · Ban假关 · Ban claim R4 closed from MS3 · **Ban idle re-prove EG1–EG5 / 5×meta as fake close** | **done** · dedicated `pnpm r4-eg6-ms3-ne-r4:prove` EXIT **1×0** · evidence emitted |
+| **L4** | Post-prove dual · Ban wash into EG6/MS3=R4/题域/R4 closed | **awaiting** · stubs named · Ban self-nail |
+| **L5** | **Only then** any SSOT claim · Ban product close without EG6 true evidence | **forbidden** this open · product SSOT **NOT** flipped · Ban self-nail `post_prove_dual_pass` |
 | **Residual** | G-R4-5 dual-claim / 题域隔离 / wrong_track / R4/FUNNEL product / EG1–EG6 | **STILL OPEN** · Ban假关 · **MS3 ≠ R4 closed** |
 
-**Hard**: REQUEST → pre-exec dual → standing authorize → true-evidence coding/prove → post-prove dual → **only then** any SSOT · Dual PASS ≠ coding · Ban idle re-prove EG1–EG5 / 5×meta as fake close · Ban claim R4 closed from MS3 · Ban wash EG5 nail / prove tip · product close still forbidden under EG6 STILL OPEN.
+**Hard**: REQUEST → pre-exec dual → standing authorize → true-evidence coding/prove → post-prove dual → **only then** any SSOT · Dual PASS ≠ coding · Ban idle re-prove EG1–EG5 / 5×meta as fake close · Ban claim R4 closed from MS3 · Ban wash EG5 nail / prove tip · product close still forbidden under EG6 STILL OPEN · Ban self-nail `post_prove_dual_pass`.
 
 ---
 
@@ -133,20 +134,20 @@
 8. **≠ residual honesty wash** tip `a6d733d` / dual `e919ddf` · **retained**  
 9. **≠ L4 explicit-close** `cc0d913` / prove `1a8b1e9` · Ban wash L4 into R4 product closed  
 10. **≠ honesty rem** `42f77c1/669bca4` · **≠ real-close** `105b264/d994c36` · Ban wash  
-11. EG6 acceptance: MS3≠R4 pin retention · deferred-as-product honesty · Ban claiming R4 closed from MS3 · dedicated EG6 prove emitter **later** · EXIT=0 = evidence emitted ≠ EG6/MS3=R4/R4 closed · Ban假关 · `eg6ProductClosed=false` · `ms3EqualsR4Closed=false`  
+11. EG6 acceptance: MS3≠R4 pin retention · deferred-as-product honesty · Ban claiming R4 closed from MS3 · dedicated EG6 prove emitter **executed** · EXIT=0 = evidence emitted ≠ EG6/MS3=R4/R4 closed · Ban假关 · `eg6ProductClosed=false` · `ms3EqualsR4Closed=false` · `productSsotFlipped=false`  
 12. Ban invent coveredCount · Ban invent FUNNEL covered · Ban forge receipts · Ban假关 · Ban self-approve · Ban Cloud Agent · Ban自批 product close · Ban claim R4 closed from MS3 · Dual PASS ≠ coding  
 13. **`releaseEvidence=false`** · **≠HA** · ≠suite green  
-14. Lifecycle: L0 this open · L1–L5 coding/prove/SSOT **not** executed · zero coding · zero prove  
+14. Lifecycle: L0–L3 done · L4 awaiting post-prove dual · L5 SSOT **forbidden** · Ban self-nail `post_prove_dual_pass`  
 15. Ban secrets / `.env*` · Meridian banned · force-push banned  
-16. Product SSOT **NOT** flipped · Ban elevating 5×0 / dual_pass `b4a8ede` / residual `e23c5fd` / EG5 dual_pass / EG4 dual_pass / EG3 dual_pass / EG1+EG2 dual_pass / MS3 true to closed  
+16. Product SSOT **NOT** flipped · Ban elevating 5×0 / dual_pass `b4a8ede` / residual `e23c5fd` / EG5 dual_pass / EG4 dual_pass / EG3 dual_pass / EG1+EG2 dual_pass / MS3 true / this EXIT=0 to closed  
 
 ---
 
-## 5. Prove CMD honesty（this open · **not_run** · priors retained）
+## 5. Prove CMD honesty（this execute · EXIT 1×0 · priors retained）
 
 | CMD | Run status now | Honest read |
 |-----|----------------|-------------|
-| dedicated EG6 prove emitter | **`not_run:no_coding_authorize`** · path later | evidence emitted ≠ EG6/MS3=R4/R4 closed · Ban claim R4 closed from MS3 · Ban假关 · `eg6ProductClosed=false` · `ms3EqualsR4Closed=false` |
+| `pnpm r4-eg6-ms3-ne-r4:prove` | **EXIT 0** this execute | evidence emitted ≠ EG6/MS3=R4/R4 closed · Ban claim R4 closed from MS3 · Ban假关 · `eg6ProductClosed=false` · `ms3EqualsR4Closed=false` · `productSsotFlipped=false` · `releaseEvidence=false` |
 | `pnpm r4-p-meta-ms3-deploy-product:prove` | prior EXIT=0 retained · **not re-run as EG6 close** | **MS3 ≠ R4 closed** · Ban claim R4 closed from MS3 · Ban idle re-run as fake close |
 | `pnpm mysql-stack:r4-domain-isolation:prove` | prior EXIT=0 on `ae99258` retained · **not re-run as EG6 close** | ≠ 题域已隔离 · ≠ EG6 close · Ban idle re-run as fake close |
 | `pnpm r4-p-meta-ms2-facets-product:prove` | prior EXIT=0 retained · **not re-run** | ≠ dual-claim closed · Ban idle re-run as fake close |
@@ -158,14 +159,14 @@
 | `pnpm r4-eg4-wrong-track-product:prove` | prior EXIT=0 on `ec90b6d` retained · **not re-run as EG6 close** | EG4 evidence retained · EG4 STILL OPEN · Ban idle re-prove as fake EG6 close |
 | `pnpm r4-eg5-product-ssot:prove` | prior EXIT=0 on `6058462` retained · **not re-run as EG6 close** | EG5 evidence retained · EG5 STILL OPEN · Ban idle re-prove as fake EG6 close · Ban wash EG5 nail / prove tip |
 | Product SSOT flip | **forbidden this open** | Ban silent flip · Ban自批 product close · product SSOT **NOT** flipped |
-| Status | **`REQUEST-ready / not_run:pre_dual`** | Dual PASS ≠ coding · Ban自批 |
+| Status | **`executed:awaiting_post_prove_dual`** | Ban self-nail `post_prove_dual_pass` · EXIT=0 ≠ EG6/MS3=R4/R4 closed |
 
 ---
 
 ## 6. Non-claims
 
-Not EG6 closed · not MS3=R4 closed · not R4 closed from MS3 · not product SSOT flipped · not EG1 closed · not EG2 closed · not EG3 closed · not EG4 closed · not EG5 closed · not any EG closed · not 题域已隔离 · not wrong_track product closed · not R4/FUNNEL product closed · not G-R4-5 dual-closed · not invent coveredCount · not invent FUNNEL-01…08 covered · not forge receipts · not MS3 closes R4 · not wash EG5 dual_pass `e099276`/`6058462` into EG6 closed · not wash EG4 dual_pass `3cefebf`/`ec90b6d` into EG6 closed · not wash EG3 dual_pass `62c0e2f`/`c18e28f` into EG6 closed · not wash EG1+EG2 dual_pass `08f7499`/`ffb2a9b` into EG6 closed · not wash residual dual_pass `e23c5fd` into closed · not wash evidence-close dual_pass `b4a8ede` / EXIT 5×0 into closed · not wash residual honesty `a6d733d`/`e919ddf` · not wash L4 `cc0d913`/`1a8b1e9` into product close · not wash honesty rem / real-close into closed · not idle re-prove of EG1/EG2/EG3/EG4/EG5 as fake EG6 close · not idle re-run of same 5×meta prove as fake close · not silent product SSOT flip · not coding · not prove · not HA · not suite · not claim closed from EXIT=0 alone · Dual PASS ≠ coding ≠ EG6/MS3=R4/R4 closed · Ban假关 · Ban自批 product close · `releaseEvidence=false` · `eg6ProductClosed=false` · `ms3EqualsR4Closed=false` · G-R4-5 **STILL OPEN** · 题域 **STILL OPEN** · R4/FUNNEL product **STILL OPEN** · **MS3 ≠ R4 closed** · EG1 **STILL OPEN** · EG2 **STILL OPEN** · EG3 **STILL OPEN** · EG4 **STILL OPEN** · EG5 **STILL OPEN** · EG6 **STILL OPEN** · EG5 dual_pass **retained OPEN** · EG4 dual_pass **retained OPEN** · EG3 dual_pass **retained OPEN** · EG1+EG2 dual_pass **retained OPEN** · residual honesty dual_pass **retained OPEN** · evidence-close dual_pass **retained OPEN** · product SSOT **NOT** flipped
+Not EG6 closed · not MS3=R4 closed · not R4 closed from MS3 · not product SSOT flipped · not EG1 closed · not EG2 closed · not EG3 closed · not EG4 closed · not EG5 closed · not any EG closed · not 题域已隔离 · not wrong_track product closed · not R4/FUNNEL product closed · not G-R4-5 dual-closed · not invent coveredCount · not invent FUNNEL-01…08 covered · not forge receipts · not MS3 closes R4 · not wash EG5 dual_pass `e099276`/`6058462` into EG6 closed · not wash EG4 dual_pass `3cefebf`/`ec90b6d` into EG6 closed · not wash EG3 dual_pass `62c0e2f`/`c18e28f` into EG6 closed · not wash EG1+EG2 dual_pass `08f7499`/`ffb2a9b` into EG6 closed · not wash residual dual_pass `e23c5fd` into closed · not wash evidence-close dual_pass `b4a8ede` / EXIT 5×0 into closed · not wash residual honesty `a6d733d`/`e919ddf` · not wash L4 `cc0d913`/`1a8b1e9` into product close · not wash honesty rem / real-close into closed · not idle re-prove of EG1/EG2/EG3/EG4/EG5 as fake EG6 close · not idle re-run of same 5×meta prove as fake close · not silent product SSOT flip · not HA · not suite · not claim closed from EXIT=0 alone · not self-nail `post_prove_dual_pass` · Dual PASS ≠ coding ≠ EG6/MS3=R4/R4 closed · Ban假关 · Ban自批 product close · `releaseEvidence=false` · `eg6ProductClosed=false` · `ms3EqualsR4Closed=false` · `productSsotFlipped=false` · G-R4-5 **STILL OPEN** · 题域 **STILL OPEN** · R4/FUNNEL product **STILL OPEN** · **MS3 ≠ R4 closed** · EG1 **STILL OPEN** · EG2 **STILL OPEN** · EG3 **STILL OPEN** · EG4 **STILL OPEN** · EG5 **STILL OPEN** · EG6 **STILL OPEN** · EG5 dual_pass **retained OPEN** · EG4 dual_pass **retained OPEN** · EG3 dual_pass **retained OPEN** · EG1+EG2 dual_pass **retained OPEN** · residual honesty dual_pass **retained OPEN** · evidence-close dual_pass **retained OPEN** · product SSOT **NOT** flipped
 
 ---
 
-*Harness · G-R4-5 EG6 true-evidence / impl · 2026-09-23 (~05:08 PT) · REQUEST-ready / not_run:pre_dual · docs only · EG6 alone · MS3≠R4 pin retention / deferred-as-product honesty acceptance · dedicated EG6 prove emitter later · ≠ EG5 wash e099276/6058462 · ≠ EG4 wash 3cefebf/ec90b6d · ≠ EG3 wash 62c0e2f/c18e28f · ≠ EG1+EG2 wash 08f7499/ffb2a9b · ≠ residual wash e23c5fd · ≠ evidence-close wash b4a8ede · Ban idle re-prove EG1/EG2/EG3/EG4/EG5 as fake EG6 close · Ban idle re-run of same 5×meta prove as fake close · Ban wash EG5 nail / prove tip · Ban claim R4 closed from MS3 · Dual PASS ≠ coding · G-R4-5 STILL OPEN · 题域 STILL OPEN · R4/FUNNEL product STILL OPEN · MS3 ≠ R4 closed · EG1 STILL OPEN · EG2 STILL OPEN · EG3 STILL OPEN · EG4 STILL OPEN · EG5 STILL OPEN · EG6 STILL OPEN · eg6ProductClosed=false · ms3EqualsR4Closed=false · Ban假关 · Ban invent coveredCount · Ban forge receipts · Ban自批 product close · releaseEvidence=false · ≠HA · Ban Cloud Agent · zero coding · zero prove*
+*Harness · G-R4-5 EG6 true-evidence / impl · 2026-09-23 (~05:16 PT) · executed:awaiting_post_prove_dual · EXIT 1×0 · EG6 alone · MS3≠R4 pin retention honesty evidence emitted via `pnpm r4-eg6-ms3-ne-r4:prove` · ≠ EG5 wash e099276/6058462 · ≠ EG4 wash 3cefebf/ec90b6d · ≠ EG3 wash 62c0e2f/c18e28f · ≠ EG1+EG2 wash 08f7499/ffb2a9b · ≠ residual wash e23c5fd · ≠ evidence-close wash b4a8ede · Ban idle re-prove EG1/EG2/EG3/EG4/EG5 as fake EG6 close · Ban idle re-run of same 5×meta prove as fake close · Ban wash EG5 nail / prove tip · Ban claim R4 closed from MS3 · Ban self-nail post_prove_dual_pass · G-R4-5 STILL OPEN · 题域 STILL OPEN · R4/FUNNEL product STILL OPEN · MS3 ≠ R4 closed · EG1 STILL OPEN · EG2 STILL OPEN · EG3 STILL OPEN · EG4 STILL OPEN · EG5 STILL OPEN · EG6 STILL OPEN · eg6ProductClosed=false · ms3EqualsR4Closed=false · productSsotFlipped=false · Ban假关 · Ban invent coveredCount · Ban forge receipts · Ban自批 product close · releaseEvidence=false · ≠HA · Ban Cloud Agent*
