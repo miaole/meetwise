@@ -1,0 +1,126 @@
+{
+  "knife": "ha-d2b-live-gha-probe-multi-artifact",
+  "datePT": "2026-09-23 (~15:49–15:55 PT)",
+  "requestTip": "231018760f84df6c4ca5a8640748d9146833a97b",
+  "requestTipShort": "2310187",
+  "preExecDual": {
+    "e2eHaTip": "c3d99ea5b9028483c3daf5730f2ceaa6f3431bb5",
+    "e2eHaShort": "c3d99ea",
+    "ragRouteTip": "af51ad9f1c62f5367f9561e875f48f4f2353d755",
+    "ragRouteShort": "af51ad9",
+    "verdict": "BOTH_PASS",
+    "note": "e2e-ha tip is c3d99ea (NOT d7000ca) — RECEIPT AMEND"
+  },
+  "parentD2Nail": "d79519d0005960bd85b9ce1cc01e968bace12315",
+  "parentD2NailShort": "d79519d",
+  "d2ProvePin": "901541059db20ef9adaa2016947925fe254906c5",
+  "d2ProvePinShort": "9015410",
+  "d1Nail": "b72c7c4523b5c96b60bb6a9fab4a6dbad6176bca",
+  "d1NailShort": "b72c7c4",
+  "branch": "feat/mysql-schema-skeleton",
+  "workflowPath": ".github/workflows/ha-probe-multi.yml",
+  "trigger": "workflow_dispatch",
+  "triggerCmd": "gh workflow run ha-probe-multi.yml --ref feat/mysql-schema-skeleton",
+  "liveGhaRunId": 35930389740,
+  "liveGhaRunUrl": "https://github.com/miaole/meetwise/actions/runs/35930389740",
+  "runHeadSha": "c3d99ea5b9028483c3daf5730f2ceaa6f3431bb5",
+  "jobName": "stub probe + honesty EXIT=1 + artifact",
+  "jobConclusion": "success",
+  "runConclusion": "success",
+  "artifact": {
+    "name": "ha-probe-multi-receipt",
+    "id": 10781320550,
+    "actionsDownloadUrl": "https://github.com/miaole/meetwise/actions/runs/35930389740/artifacts/10781320550",
+    "apiUrl": "https://api.github.com/repos/miaole/meetwise/actions/artifacts/10781320550",
+    "archiveDownloadUrl": "https://api.github.com/repos/miaole/meetwise/actions/artifacts/10781320550/zip",
+    "actionsArtifactsTab": "https://github.com/miaole/meetwise/actions/runs/35930389740#artifacts",
+    "recordingHonesty": "real GitHub Actions upload-artifact log + gh api artifacts list; Ban invent"
+  },
+  "exitTable": [
+    {
+      "cmd": "gh auth status",
+      "exit": 0,
+      "result": "authenticated"
+    },
+    {
+      "cmd": "gh workflow run ha-probe-multi.yml --ref feat/mysql-schema-skeleton",
+      "exit": 0,
+      "result": "dispatched",
+      "runId": 35930389740
+    },
+    {
+      "cmd": "pnpm ha:probe:multi -- --with-bring-up-stub --with-fault-inject (in GHA)",
+      "exit": 0,
+      "result": "stub EXIT=0",
+      "honestRead": "CI-safe stub only; still NOT_HA; ≠ 阶 D; ≠ production HA"
+    },
+    {
+      "cmd": "pnpm ha:probe:multi -- --require-evidence (in GHA)",
+      "exit": 1,
+      "result": "honesty fail-closed SUCCESS",
+      "honestRead": "EXIT=1 treated as SUCCESS by job; Ban wash to pass"
+    },
+    {
+      "cmd": "upload-artifact ha-probe-multi-receipt",
+      "exit": 0,
+      "result": "uploaded",
+      "artifactId": 10781320550
+    },
+    {
+      "cmd": "job conclusion",
+      "exit": 0,
+      "result": "success",
+      "honestRead": "≠ 阶 D · ≠ production HA"
+    }
+  ],
+  "logSnippets": [
+    "CMD=node .../scripts/ha/probe.multi.mjs EXIT=0",
+    "stub probe EXIT=0 — CI-safe stub only; still NOT_HA; ≠ 阶 D; ≠ production HA",
+    "require-evidence exit code: 1",
+    "EXIT=1 = honesty fail-closed SUCCESS — Ban wash to pass",
+    "haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false",
+    "Artifact download URL: https://github.com/miaole/meetwise/actions/runs/35930389740/artifacts/10781320550"
+  ],
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "ladderCD": "STILL_NOT_GREEN",
+  "localD1EqualsLadderD": false,
+  "d2WorkflowEqualsLadderD": false,
+  "ciStubEqualsLadderD": false,
+  "artifactUrlEqualsLadderD": false,
+  "productionHA": false,
+  "d3OutOfScope": true,
+  "gR45Closed": true,
+  "coveredCount": 8,
+  "ms3EqualsR4Closed": false,
+  "status": "executed:awaiting_post_prove_dual",
+  "banSelfNailPostProveDualPass": true,
+  "retainedPriors": {
+    "d1Nail": "b72c7c4",
+    "d1ProveTip": "65526ac",
+    "d1ProveLand": "1f020fd",
+    "d2Nail": "d79519d",
+    "d2Docs": "50e35ba",
+    "d2ProvePin": "9015410",
+    "c3bNail": "beaedc9",
+    "c3c4Nail": "358a5cf",
+    "gR45Nail": "6ded589",
+    "gR45Prove": "ba1b8aa"
+  },
+  "bans": [
+    "Ban invent GHA/artifact URL",
+    "Ban claim artifact URL = 阶 D / production HA",
+    "Ban wash D1/D2/C3b/C3+C4/G-R4-5 into 阶 D/HA",
+    "Ban secrets / .env* / test-results / Keys",
+    "Ban Meridian · Cloud Agents · self-nail · next knife · D3",
+    "Ban claim 阶 D / 阶 C/D green",
+    "Ban flip releaseEvidence",
+    "Ban wash --require-evidence EXIT=1 into green"
+  ],
+  "proveBaseHeadShort": "c3d99ea",
+  "proveBaseHeadFull": "c3d99ea5b9028483c3daf5730f2ceaa6f3431bb5",
+  "proveTipShort": null,
+  "proveTipFull": null,
+  "note": "proveTip filled after commit; second commit may pin SHA in harness"
+}
