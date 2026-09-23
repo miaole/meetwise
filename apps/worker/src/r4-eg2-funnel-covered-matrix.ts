@@ -10,7 +10,7 @@
  *     production-path pins (Ban invent).
  *   - Batch2 / Batch2b (G-R4-5 / FUNNEL coveredCount Batch2 + Batch2b 02B wire):
  *     FUNNEL-02A / FUNNEL-02B may elevate to `covered` when live Batch2 assessors
- *     affirm production-path pins (Batch2b wires productionConsumerWired · Ban invent · Ban elevating 05–08).
+ *     affirm production-path pins (Batch2b wires productionConsumerWired · Ban invent · Batch3 may elevate 05/06 when assessors affirm · Ban elevating 07/08).
  *   - FUNNEL-01 may report `product_surfaces_true` via MS1+MS2+MS3 · still
  *     **≠ invent covered** · dual-claim evidence ≠ covered elevation.
  *   - 01A may report `source_sealed` (checklist [x] / seal) · ≠ invent 01…08 covered.
@@ -38,6 +38,10 @@ import {
   isFunnel02ACovered,
   isFunnel02BCovered,
 } from './r4-funnel-covered-count-batch2.ts';
+import {
+  isFunnel05Covered,
+  isFunnel06Covered,
+} from './r4-funnel-covered-count-batch3.ts';
 
 /** Covered-status vocabulary (Ban invent covered). */
 export type FunnelCoveredStatus =
@@ -62,7 +66,7 @@ export type RagFunnel0108CoveredMatrix = {
   readonly coveredCount: number;
   readonly inventCovered: false;
   readonly releaseEvidence: false;
-  readonly note: 'EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B when assessors affirm · ≠ R4/题域 closed · await post-prove dual';
+  readonly note: 'EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B · Batch3 may elevate 05/06 when assessors affirm · Ban elevating 07/08 · ≠ R4/题域 closed · await post-prove dual';
 };
 
 const FUNNEL_IDS_01_08 = [
@@ -83,6 +87,8 @@ const ALLOW_COVERED_IDS = new Set([
   'RAG-FUNNEL-02B',
   'RAG-FUNNEL-03',
   'RAG-FUNNEL-04',
+  'RAG-FUNNEL-05',
+  'RAG-FUNNEL-06',
 ]);
 
 /**
@@ -124,6 +130,8 @@ export function emitRagFunnel0108CoveredMatrix(): RagFunnel0108CoveredMatrix {
   const funnel02BCovered = isFunnel02BCovered();
   const funnel03Covered = isFunnel03Covered();
   const funnel04Covered = isFunnel04Covered();
+  const funnel05Covered = isFunnel05Covered();
+  const funnel06Covered = isFunnel06Covered();
 
   const row02A: FunnelCoveredMatrixRow = funnel02ACovered
     ? {
@@ -184,14 +192,30 @@ export function emitRagFunnel0108CoveredMatrix(): RagFunnel0108CoveredMatrix {
     row02B,
     row03,
     row04,
-    notCovered(
-      'RAG-FUNNEL-05',
-      'same-leaf LLM generation on clean miss not evidenced · Ban invent covered',
-    ),
-    notCovered(
-      'RAG-FUNNEL-06',
-      'route-scope cache/provenance/revoke not evidenced · Ban invent covered',
-    ),
+    (funnel05Covered
+      ? {
+          id: 'RAG-FUNNEL-05',
+          status: 'covered' as const,
+          basis:
+            'Batch3 true-cover: same-leaf LLM generation on clean miss evidenced (domain QuestionPlan + db dispatchQbankMissGeneration + clean no_eligible_in_scope gate + no QBank pollution/score-excluded + production consumer wiring) · Ban invent',
+          inventCoveredForbidden: true,
+        }
+      : notCovered(
+          'RAG-FUNNEL-05',
+          'same-leaf LLM generation on clean miss not evidenced on production consumer path · Ban invent covered',
+        )),
+    (funnel06Covered
+      ? {
+          id: 'RAG-FUNNEL-06',
+          status: 'covered' as const,
+          basis:
+            'Batch3 true-cover: route-scope cache/provenance/revoke evidenced (domain digest + retrieval/singleflight keys + durable negative cache + epoch supersede + hit revalidate + distinct from embedding compute + production consumer wiring) · Ban invent',
+          inventCoveredForbidden: true,
+        }
+      : notCovered(
+          'RAG-FUNNEL-06',
+          'route-scope cache/provenance/revoke not evidenced on production consumer path · Ban invent covered',
+        )),
     notCovered(
       'RAG-FUNNEL-07',
       'free-text allowlisted scope funnel not evidenced · Ban invent covered',
@@ -210,7 +234,7 @@ export function emitRagFunnel0108CoveredMatrix(): RagFunnel0108CoveredMatrix {
     coveredCount,
     inventCovered: false,
     releaseEvidence: false,
-    note: 'EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B when assessors affirm · ≠ R4/题域 closed · await post-prove dual',
+    note: 'EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B · Batch3 may elevate 05/06 when assessors affirm · Ban elevating 07/08 · ≠ R4/题域 closed · await post-prove dual',
   };
 }
 
@@ -237,6 +261,8 @@ export function isHonestFunnelCoveredMatrix(
     if (row.id === 'RAG-FUNNEL-02B' && !isFunnel02BCovered()) return false;
     if (row.id === 'RAG-FUNNEL-03' && !isFunnel03Covered()) return false;
     if (row.id === 'RAG-FUNNEL-04' && !isFunnel04Covered()) return false;
+    if (row.id === 'RAG-FUNNEL-05' && !isFunnel05Covered()) return false;
+    if (row.id === 'RAG-FUNNEL-06' && !isFunnel06Covered()) return false;
     if (row.inventCoveredForbidden !== true) return false;
   }
 
@@ -246,15 +272,24 @@ export function isHonestFunnelCoveredMatrix(
     if (row.inventCoveredForbidden !== true) return false;
   }
 
-  // 05–08 must remain not_covered (Ban invent).
-  for (const id of [
-    'RAG-FUNNEL-05',
-    'RAG-FUNNEL-06',
-    'RAG-FUNNEL-07',
-    'RAG-FUNNEL-08',
-  ] as const) {
+  // 07/08 must remain not_covered (Ban invent). 05/06 may be covered only when Batch3 assessors affirm.
+  for (const id of ['RAG-FUNNEL-07', 'RAG-FUNNEL-08'] as const) {
     const row = matrix.rows.find((r) => r.id === id);
     if (!row || row.status !== 'not_covered') return false;
+  }
+
+  const row05 = matrix.rows.find((r) => r.id === 'RAG-FUNNEL-05');
+  const row06 = matrix.rows.find((r) => r.id === 'RAG-FUNNEL-06');
+  if (!row05 || !row06) return false;
+  if (isFunnel05Covered()) {
+    if (row05.status !== 'covered') return false;
+  } else if (row05.status === 'covered') {
+    return false;
+  }
+  if (isFunnel06Covered()) {
+    if (row06.status !== 'covered') return false;
+  } else if (row06.status === 'covered') {
+    return false;
   }
 
   // 02A/02B/03/04: covered only when assessor affirms; else not_covered.
