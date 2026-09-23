@@ -1,0 +1,22 @@
+{
+  "kind": "GR43R1ProductCloseEvidence",
+  "productCloseEvidence": true,
+  "failClosedDefaultStill0": false,
+  "defaultFlipped": true,
+  "emptyEnvFailClosedOn": true,
+  "workerEnvExampleNow1": true,
+  "noLegacyUnderProductDefault": true,
+  "legacyOptOutWhenExplicit0": true,
+  "comboRootFlagOnEvidenceRetained": true,
+  "defaultOnNoLegacyPathEvidenceRetained": true,
+  "authorizedSsotPinsPresent": true,
+  "gR43ProductClosed": true,
+  "r1ProductClosed": true,
+  "r4ProductClosed": false,
+  "funnelProductClosed": false,
+  "domainIsolationClosed": false,
+  "gR45Closed": false,
+  "eg1ThroughEg6Closed": false,
+  "releaseEvidence": false,
+  "note": "G-R4-3 / R1 product close — default flipped · gR43ProductClosed/r1ProductClosed under authorize · ≠ R4/FUNNEL/题域/G-R4-5/EG closed · Ban forge · Ban self-nail post_prove_dual_pass · await post-prove dual"
+}

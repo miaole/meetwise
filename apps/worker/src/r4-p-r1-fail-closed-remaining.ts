@@ -2,7 +2,7 @@
  * Knife F4 — P-R1 **fail-closed remaining** honesty classifiers (G-R4-3 / PR1-A–D).
  *
  * Inventory (r4-domain-isolation §2 / §6c.3 · G-R4-3 · GAP-RAG-01 / m4 §R1):
- *   PR1-A = legacy「技术岗」default-on (MEETWISE_TECH_ROLE_FAIL_CLOSED default OFF)
+ *   PR1-A = legacy「技术岗」when flag explicitly OFF (product default ON after G-R4-3/R1 flip)
  *   PR1-B = fail-closed flag-on / combo-root evidence (true only from real evidence · ≠ flip default · ≠ product closed)
  *   PR1-C = default-on / no-legacy path evidence (true only from real evidence · Ban silent flip · ≠ R1 closed)
  *   PR1-D = hard pins (≠ R1/R4 closed · releaseEvidence=false · sole 恰 5 ·
@@ -13,7 +13,7 @@
  * it does NOT close R1 / R4 / 题域已隔离 · does NOT flip default.
  *
  * HARD:
- *   - No flip of MEETWISE_TECH_ROLE_FAIL_CLOSED default.
+ *   - Default flip only under G-R4-3 / R1 product-close authorize (this module observes live default).
  *   - Ban claiming R1 closed / R4 closed / 题域已隔离.
  *   - Contract prove green ≠ R1 closed ≠ combo-root evidence alone closes product.
  *   - comboRootFlagOnEvidence / defaultOnNoLegacyPathEvidence true **only** from
@@ -35,7 +35,7 @@ import { hasDefaultOnNoLegacyPathEvidence } from './r4-pr1c-default-on-no-legacy
 
 /** PR1-A–D fail-closed remaining surface (deepened vs F2 PR1). */
 export type PR1FailClosedRemainingStatus = {
-  /** Empty-env default of fail-closed flag (must stay false — no flip). */
+  /** Empty-env default of fail-closed flag (true after G-R4-3 / R1 product-close flip). */
   failClosedFlagDefaultOn: boolean;
   /** Legacy default string still documented for flag-off path. */
   legacyDefaultLabel: string;
@@ -56,7 +56,7 @@ export type PR1FailClosedRemainingStatus = {
   contractHarnessExists: boolean;
   /**
    * PR1-C: default-on / no-legacy path evidence —
-   * true **only** when live assessor passes · default still 0 · Ban silent flip.
+   * true **only** when live assessor passes · post-flip default ON · Ban forge still-0.
    * Evidence ≠ PR1-C product closed ≠ R1 closed.
    */
   defaultOnNoLegacyPathEvidence: boolean;
@@ -93,7 +93,7 @@ export function classifyPR1FailClosedRemaining(
 /**
  * R1 closed only when production no longer depends on legacy default AND
  * combo-root flag-on evidence exists AND fail-closed default is on —
- * not this knife (always false here: default still 0 · r1Closed forced false).
+ * not this F4 classifier alone (r1Closed forced false · product close via dedicated knife).
  */
 export function isPR1FailClosedR1Closed(
   status: PR1FailClosedRemainingStatus = classifyPR1FailClosedRemaining(),

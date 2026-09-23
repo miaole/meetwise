@@ -445,6 +445,7 @@
     "r4-eg6-ms3-ne-r4:prove": "pnpm -C apps/worker prove:r4-eg6-ms3-ne-r4",
     "r4-pr1b-combo-root:prove": "pnpm -C apps/worker prove:r4-pr1b-combo-root",
     "r4-pr1c-no-legacy:prove": "pnpm -C apps/worker prove:r4-pr1c-no-legacy",
+    "r4-pr1-product-close:prove": "pnpm -C apps/worker prove:r4-pr1-product-close",
     "r4-p-r1-fail-closed:prove": "pnpm -C apps/worker prove:r4-p-r1-fail-closed",
     "r2-classify-job-route-prereq:prove": "pnpm -C apps/worker prove:r2-classify-job-route-prereq",
     "r2-p-worker-route-classify:prove": "pnpm -C apps/worker prove:r2-p-worker-route-classify",
