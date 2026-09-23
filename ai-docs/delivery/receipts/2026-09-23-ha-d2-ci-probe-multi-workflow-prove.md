@@ -1,4 +1,4 @@
-**Prove tip**: *(pinned in follow-up docs commit to land SHA)* · parent / REQUEST tip `dad775f` / `dad775f0261ad35f86dcbdf7affd01c9cb68ad9a`
+undefined `dad775f` / `dad775f0261ad35f86dcbdf7affd01c9cb68ad9a`
 
 # Prove receipt — **HA D2 CI probe:multi workflow**
 

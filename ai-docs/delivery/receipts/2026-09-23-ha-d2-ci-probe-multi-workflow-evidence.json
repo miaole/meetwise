@@ -1,6 +1,6 @@
 {
   "knife": "ha-d2-ci-probe-multi-workflow",
-  "datePT": "2026-09-23 (~15:27–15:35 PT)",
+  "datePT": "2026-09-23 (~15:27\u201315:35 PT)",
   "requestTip": "dad775f0261ad35f86dcbdf7affd01c9cb68ad9a",
   "requestTipShort": "dad775f",
   "preExecDual": {
@@ -9,8 +9,8 @@
     "ragRouteTip": "4724ce3",
     "verdict": "BOTH_PASS"
   },
-  "proveTipShort": "TBD_AFTER_LAND",
-  "proveTipFull": "TBD_AFTER_LAND",
+  "proveTipShort": "2186ad7",
+  "proveTipFull": "2186ad7b46f22c06f620bbe0c08499be6392d6bb",
   "branch": "feat/mysql-schema-skeleton",
   "workflowPath": ".github/workflows/ha-probe-multi.yml",
   "haStatus": "NOT_HA",
@@ -37,7 +37,7 @@
       "cmd": "node js-yaml parse .github/workflows/ha-probe-multi.yml",
       "exit": 0,
       "result": "YAML_PARSE_OK",
-      "honestRead": "static only · ≠ HA · ≠ 阶 D"
+      "honestRead": "static only \u00b7 \u2260 HA \u00b7 \u2260 \u9636 D"
     },
     {
       "cmd": "package.json scripts[\"ha:probe:multi\"]",
@@ -56,13 +56,13 @@
       "cmd": "pnpm ha:probe:multi -- --require-evidence",
       "exit": 1,
       "result": "FAIL honesty fail-closed",
-      "honestRead": "EXIT=1 honesty SUCCESS · Ban wash to pass · Ban flip to pass"
+      "honestRead": "EXIT=1 honesty SUCCESS \u00b7 Ban wash to pass \u00b7 Ban flip to pass"
     },
     {
       "cmd": "pnpm ha:probe:multi -- --with-bring-up-stub --with-fault-inject",
       "exit": 0,
       "result": "EXIT_0_with_local_compose_pollution_note",
-      "honestRead": "local leftover compose dual polluted stub fault (A stayed up); GHA clean runner designed for pure stub; still NOT_HA · ≠ 阶 D · ≠ production HA"
+      "honestRead": "local leftover compose dual polluted stub fault (A stayed up); GHA clean runner designed for pure stub; still NOT_HA \u00b7 \u2260 \u9636 D \u00b7 \u2260 production HA"
     },
     {
       "cmd": "live GHA workflow_dispatch / PR run",
@@ -83,16 +83,20 @@
     "gR45Prove": "ba1b8aa"
   },
   "bans": [
-    "Ban claim 阶 D / 阶 C/D green",
+    "Ban claim \u9636 D / \u9636 C/D green",
     "Ban production HA / failover",
-    "Ban CI stub green = 阶 D",
+    "Ban CI stub green = \u9636 D",
     "Ban flip releaseEvidence",
-    "Ban wash D1/C3b/C3+C4 tips into 阶 D",
+    "Ban wash D1/C3b/C3+C4 tips into \u9636 D",
     "Ban wash G-R4-5 into HA",
     "Ban wash --require-evidence EXIT=1 into green",
     "Ban self-nail post_prove_dual_pass",
     "Ban secrets / .env*",
     "Ban Meridian / Cloud Agent / second knife",
     "D3 production probe OUT OF SCOPE"
-  ]
+  ],
+  "proveLand": "2186ad7b46f22c06f620bbe0c08499be6392d6bb",
+  "proveLandShort": "2186ad7",
+  "pinHeadShort": "f9fbb94",
+  "pinHeadFull": "f9fbb94973230157efbf49f791cac2b6f985a630"
 }
