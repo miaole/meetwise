@@ -1,0 +1,166 @@
+{
+  "knife": "ha-local-c3-c4-authorized-prove",
+  "datePT": "2026-09-23 (~14:20 PT)",
+  "baseTip": "a32da0377a16f311399ad03b0befc973b2866081",
+  "baseTipShort": "a32da03",
+  "branch": "feat/mysql-schema-skeleton",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "ladderCD": "STILL_NOT_GREEN",
+  "gR45Closed": true,
+  "coveredCount": 8,
+  "ms3EqualsR4Closed": false,
+  "status": "executed:awaiting_post_prove_dual",
+  "banSelfNailPostProveDualPass": true,
+  "cmds": [
+    {
+      "cmd": "pnpm ha:dual:build-image",
+      "exit": 0,
+      "result": "IMAGE_BUILT",
+      "honestRead": "local image tag meetwise-backend:ha-dual-local; ≠ dual up; ≠ HA; ≠ 阶 C green"
+    },
+    {
+      "cmd": "MEETWISE_HA_DUAL_AUTHORIZED=1 MEETWISE_HA_SHARED_AUTHORIZED=1 pnpm ha:dual:compose-shared",
+      "exit": 0,
+      "result": "DUAL_COMPOSE_SHARED_UP",
+      "honestRead": "dual Nest /livez + sole-stack network; still NOT_HA; ≠ production HA"
+    },
+    {
+      "cmd": "MEETWISE_HA_SHARED_AUTHORIZED=1 pnpm ha:prove:shared -- --prove",
+      "exit": 0,
+      "result": "SHARED_OK",
+      "sharedOk": true,
+      "sharedPath": "shared_backend_hostpath",
+      "honestRead": "C3 local shared OK via shared_backend_hostpath; still NOT_HA; ≠ 阶 C green; ≠ Nest session"
+    },
+    {
+      "cmd": "MEETWISE_HA_FAULT_AUTHORIZED=1 pnpm ha:fault-inject -- --kill --with-shared-survivor",
+      "exit": 0,
+      "result": "COMPOSE_FAULT_SHARED_PARTIAL",
+      "faultInject": "COMPOSE_A_DOWN_B_UP",
+      "sharedState": "SHARED_OK_SURVIVOR",
+      "honestRead": "C4 local compose kill A + B livez + survivor shared; still NOT_HA; ≠ production failover; 阶 C/D STILL NOT GREEN"
+    }
+  ],
+  "resultLabels": [
+    "SHARED_OK",
+    "FAULT_OK"
+  ],
+  "gapPins": [],
+  "note": "local EXIT=0 ≠ 阶 C/D green ≠ production HA; Dual PASS ≠ HA green; Ban wash G-R4-5 6ded589/ba1b8aa; Ban self-nail post_prove_dual_pass",
+  "localEvidenceDirGitignored": ".tmp/ha-evidence/",
+  "localEvidenceFiles": [
+    "shared-state-A-write.json",
+    "shared-state-B-read.json",
+    "kill-A.receipt.json",
+    "B-still-serving.receipt.json",
+    "fault-shared-survivor.receipt.json"
+  ],
+  "embeddedReceipts": {
+    "shared-state-A-write.json": {
+      "status": "OK",
+      "at": "2026-09-23T21:19:50.352Z",
+      "via": "meetwise-ha-dual-api-a",
+      "sharedPath": "shared_backend_hostpath",
+      "redis": {
+        "key": "meetwise:ha:c3:shared-probe",
+        "op": "SET",
+        "ok": true,
+        "redisUrl": "redis://redis:6379/0",
+        "note": "SET on sole redis backend that api-a REDIS_URL targets (CC TCP blocked)"
+      },
+      "mysql": {
+        "table": "ha_c3_shared_probe",
+        "written_by": "api-a-wiring",
+        "ok": true
+      },
+      "wiring": {
+        "soleNetwork": "meetwise-mysql-local_default",
+        "envParity": true,
+        "dnsRedisMysql": true
+      },
+      "tokenPrefix": "c3-010a9",
+      "haStatus": "NOT_HA",
+      "releaseEvidence": false,
+      "claimProductionHA": false,
+      "note": "C3 local shared write — ≠ Nest business session; ≠ production HA"
+    },
+    "shared-state-B-read.json": {
+      "status": "OK",
+      "at": "2026-09-23T21:19:50.352Z",
+      "via": "meetwise-ha-dual-api-b",
+      "sharedPath": "shared_backend_hostpath",
+      "redis": {
+        "key": "meetwise:ha:c3:shared-probe",
+        "op": "GET",
+        "ok": true,
+        "valueMatch": true,
+        "redisUrl": "redis://redis:6379/0",
+        "note": "GET on sole redis backend that api-b REDIS_URL targets (same URL as A)"
+      },
+      "mysql": {
+        "table": "ha_c3_shared_probe",
+        "ok": true
+      },
+      "haStatus": "NOT_HA",
+      "releaseEvidence": false,
+      "claimProductionHA": false,
+      "note": "C3 local shared read visible across dual wiring — ≠ Nest business session; ≠ production HA"
+    },
+    "kill-A.receipt.json": {
+      "method": "docker-stop-api-a",
+      "at": "2026-09-23T21:20:04.705Z",
+      "portA": 18787,
+      "portB": 18788,
+      "aDown": true,
+      "bStillServing": true,
+      "containerA": "meetwise-ha-dual-api-a",
+      "containerB": "meetwise-ha-dual-api-b",
+      "composeFile": "/workspace/projects/meetwise/docker/compose.ha-dual.yml",
+      "sharedOverlay": "/workspace/projects/meetwise/docker/compose.ha-dual.shared.yml",
+      "haStatus": "NOT_HA",
+      "releaseEvidence": false,
+      "claimProductionHA": false,
+      "note": "C4 compose kill receipt — Not production failover; Not HA; releaseEvidence=false"
+    },
+    "B-still-serving.receipt.json": {
+      "port": 18788,
+      "status": 200,
+      "ok": true,
+      "instanceId": "",
+      "at": "2026-09-23T21:20:04.706Z",
+      "haStatus": "NOT_HA",
+      "releaseEvidence": false
+    },
+    "fault-shared-survivor.receipt.json": {
+      "status": "OK",
+      "at": "2026-09-23T21:20:04.704Z",
+      "survivor": "meetwise-ha-dual-api-b",
+      "sharedPath": "shared_backend_hostpath_survivor",
+      "redis": {
+        "key": "meetwise:ha:c4:fault-survivor",
+        "setOk": true,
+        "getOk": true,
+        "redisUrl": "redis://redis:6379/0"
+      },
+      "mysql": {
+        "table": "ha_c3_shared_probe",
+        "ok": true
+      },
+      "wiring": {
+        "soleNetwork": "meetwise-mysql-local_default",
+        "bOnSole": true
+      },
+      "tokenPrefix": "c4-dbe11",
+      "haStatus": "NOT_HA",
+      "releaseEvidence": false,
+      "claimProductionHA": false,
+      "note": "C4 post-fault shared survivor — A down; sole Redis/MySQL still reachable for B wiring; ≠ Nest session; ≠ production HA"
+    }
+  },
+  "proveTip": "397e787897a63fd27747165c5d42defcc9fc432d",
+  "proveTipShort": "397e787",
+  "parent": "a32da0377a16f311399ad03b0befc973b2866081",
+  "parentShort": "a32da03"
+}
