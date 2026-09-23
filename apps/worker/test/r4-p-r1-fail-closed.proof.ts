@@ -2,8 +2,8 @@
  * Knife F4 — P-R1 **fail-closed remaining** honesty prove (G-R4-3 / PR1-A–D).
  *
  *   PR1-A — legacy「技术岗」default-on (flag default OFF · production depends on legacy)
- *   PR1-B — flag-on contract unit exists · combo-root evidence still missing · ≠ flip
- *   PR1-C — spawn r1-tech-role-fail-closed:prove as contract 旁证 ≠ R1 closed
+ *   PR1-B — flag-on contract unit exists · combo-root production evidence (live assessor) · ≠ flip · ≠ product closed
+ *   PR1-C — default-on/no-legacy path evidence (default still 0) + spawn r1 prove 旁证 ≠ R1 closed
  *   PR1-D — hard pins: ≠ R1/R4 closed · releaseEvidence=false · ≠HA · ≠ suite green ·
  *           sole 恰 5 · no invent Key · no self-approve · G-R4-5 parallel open
  *
@@ -143,7 +143,7 @@ A('PR1-A helper Ban flipping default / Ban claiming R1 closed',
 
 section('PR1-B flag-on contract · combo-root evidence remaining');
 A('PR1-B classify: flagOnContractUnitExists=true', fc.flagOnContractUnitExists === true);
-A('PR1-B classify: comboRootFlagOnEvidence=false (still missing)', fc.comboRootFlagOnEvidence === false);
+A('PR1-B classify: comboRootFlagOnEvidence=true (real production evidence · ≠ product closed)', fc.comboRootFlagOnEvidence === true);
 A('PR1-B unit: flag-on + no route → adaptive_role_route_missing', (() => {
   try {
     resolveAdaptiveInterviewRole({}, { MEETWISE_TECH_ROLE_FAIL_CLOSED: '1' });
@@ -177,6 +177,7 @@ A('PR1-B role resolver documents default off + ≠ R1/R4 closed',
 
 section('PR1-C r1 contract 旁证 ≠ R1 closed');
 A('PR1-C classify: contractHarnessExists=true', fc.contractHarnessExists === true);
+A('PR1-C classify: defaultOnNoLegacyPathEvidence=true (evidence · default still 0 · ≠ product closed)', fc.defaultOnNoLegacyPathEvidence === true);
 A('PR1-C classify: r1Closed=false', fc.r1Closed === false);
 A('PR1-C isPR1FailClosedR1Closed=false', isPR1FailClosedR1Closed(fc) === false);
 A('PR1-C isR1Closed(F2)=false', isR1Closed(f2) === false);
@@ -244,7 +245,7 @@ A('PR1-D composition: EXIT=0 ≠ R1/R4 closed · ≠ flip authorized', true);
 
 console.log('\n── honesty summary (F4 P-R1 fail-closed remaining; await post-prove dual) ──');
 console.log(`PR1-A: default flag OFF · legacy「技术岗」on · productionDependsOnLegacy=true`);
-console.log(`PR1-B: flagOnContractUnit=true · comboRootFlagOnEvidence=false · no flip`);
+console.log(`PR1-B: flagOnContractUnit=true · comboRootFlagOnEvidence=true (evidence · ≠ product closed) · no flip`);
 console.log(`PR1-C: r1 prove exit=${r1Exit} ≠ R1 closed · aligns with F2 PR1`);
 console.log('PR1-D: ≠ R1/R4 closed · ≠ 题域已隔离 · releaseEvidence=false · sole 恰 5 · G-R4-5 parallel open');
 console.log('EXIT=0 ≠ R1 closed ≠ R4 closed ≠ HA ≠ suite green ≠ flip authorized.');

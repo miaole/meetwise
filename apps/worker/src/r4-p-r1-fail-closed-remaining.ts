@@ -3,8 +3,8 @@
  *
  * Inventory (r4-domain-isolation §2 / §6c.3 · G-R4-3 · GAP-RAG-01 / m4 §R1):
  *   PR1-A = legacy「技术岗」default-on (MEETWISE_TECH_ROLE_FAIL_CLOSED default OFF)
- *   PR1-B = fail-closed flag-on / combo-root evidence remaining (≠ flip default)
- *   PR1-C = r1-tech-role-fail-closed contract 旁证 ≠ R1 closed
+ *   PR1-B = fail-closed flag-on / combo-root evidence (true only from real evidence · ≠ flip default · ≠ product closed)
+ *   PR1-C = default-on / no-legacy path evidence (true only from real evidence · Ban silent flip · ≠ R1 closed)
  *   PR1-D = hard pins (≠ R1/R4 closed · releaseEvidence=false · sole 恰 5 ·
  *           G-R4-5 parallel open · no flip without authorize)
  *
@@ -15,7 +15,10 @@
  * HARD:
  *   - No flip of MEETWISE_TECH_ROLE_FAIL_CLOSED default.
  *   - Ban claiming R1 closed / R4 closed / 题域已隔离.
- *   - Contract prove green ≠ R1 closed ≠ combo-root evidence.
+ *   - Contract prove green ≠ R1 closed ≠ combo-root evidence alone closes product.
+ *   - comboRootFlagOnEvidence / defaultOnNoLegacyPathEvidence true **only** from
+ *     real assessors (Ban forge / Ban silent hardcode true).
+ *   - Evidence emit ≠ PR1-B/C product closed ≠ G-R4-3 closed (same as EG1/EG2).
  *   - No invent MODEL_API_KEY · releaseEvidence=false · ≠HA · sole 恰 5.
  */
 import {
@@ -27,6 +30,8 @@ import {
   isTechRoleFailClosedEnabled,
   LEGACY_TECH_ROLE_DEFAULT,
 } from './adaptive-role-resolve.ts';
+import { hasComboRootFlagOnProductionEvidence } from './r4-pr1b-combo-root-flag-on-evidence.ts';
+import { hasDefaultOnNoLegacyPathEvidence } from './r4-pr1c-default-on-no-legacy-evidence.ts';
 
 /** PR1-A–D fail-closed remaining surface (deepened vs F2 PR1). */
 export type PR1FailClosedRemainingStatus = {
@@ -38,14 +43,24 @@ export type PR1FailClosedRemainingStatus = {
   productionDependsOnLegacyDefault: boolean;
   /**
    * PR1-B: unit/contract flag-on path exists (r1 prove E4–E6) —
-   * ≠ combo-root / compose / production flag-on evidence.
+   * ≠ product close by itself.
    */
   flagOnContractUnitExists: boolean;
-  /** PR1-B: combo-root / production flag-on evidence — still missing. */
+  /**
+   * PR1-B: combo-root / production flag-on evidence —
+   * true **only** when live assessor passes (Ban forge hardcode).
+   * Evidence ≠ PR1-B product closed ≠ G-R4-3 closed.
+   */
   comboRootFlagOnEvidence: boolean;
   /** PR1-C: contract harness + prove exist (旁证 ≠ closed). */
   contractHarnessExists: boolean;
-  /** R1 closed claim — always false on this knife. */
+  /**
+   * PR1-C: default-on / no-legacy path evidence —
+   * true **only** when live assessor passes · default still 0 · Ban silent flip.
+   * Evidence ≠ PR1-C product closed ≠ R1 closed.
+   */
+  defaultOnNoLegacyPathEvidence: boolean;
+  /** R1 closed claim — always false on this knife (Ban product close from evidence alone). */
   r1Closed: boolean;
   /** PR1-D: G-R4-5 / P-META serving remains parallel open (not this F4). */
   gR45PMetaServingParallelOpen: boolean;
@@ -54,7 +69,7 @@ export type PR1FailClosedRemainingStatus = {
 /**
  * Honest P-R1 fail-closed remaining snapshot (PR1-A–D).
  * Aligns with F2 classifyPR1Remaining default-off / legacy / r1Closed=false;
- * adds production-depends-on-legacy + combo-root-missing honesty.
+ * combo-root / no-legacy evidence bits come from live assessors only.
  */
 export function classifyPR1FailClosedRemaining(
   env: NodeJS.ProcessEnv = {},
@@ -67,8 +82,9 @@ export function classifyPR1FailClosedRemaining(
     productionDependsOnLegacyDefault:
       !flagDefaultOn && base.legacyDefaultLabel === LEGACY_TECH_ROLE_DEFAULT,
     flagOnContractUnitExists: true,
-    comboRootFlagOnEvidence: false,
+    comboRootFlagOnEvidence: hasComboRootFlagOnProductionEvidence(),
     contractHarnessExists: base.contractHarnessExists,
+    defaultOnNoLegacyPathEvidence: hasDefaultOnNoLegacyPathEvidence(),
     r1Closed: false,
     gR45PMetaServingParallelOpen: true,
   };
@@ -76,7 +92,8 @@ export function classifyPR1FailClosedRemaining(
 
 /**
  * R1 closed only when production no longer depends on legacy default AND
- * combo-root flag-on evidence exists — not this knife (always false here).
+ * combo-root flag-on evidence exists AND fail-closed default is on —
+ * not this knife (always false here: default still 0 · r1Closed forced false).
  */
 export function isPR1FailClosedR1Closed(
   status: PR1FailClosedRemainingStatus = classifyPR1FailClosedRemaining(),
