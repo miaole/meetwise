@@ -122,5 +122,7 @@
   "proveBaseHeadFull": "c3d99ea5b9028483c3daf5730f2ceaa6f3431bb5",
   "proveTipShort": "0c5e7d5",
   "proveTipFull": "0c5e7d559521e344df3b662fb2b5243b22e57b52",
-  "note": "proveTip filled after commit; second commit may pin SHA in harness"
+  "note": "prove land 0c5e7d5; tip pin commit updates proveTip* to pin HEAD; Ban self-nail; NOT_HA",
+  "proveLandShort": "0c5e7d5",
+  "proveLandFull": "0c5e7d559521e344df3b662fb2b5243b22e57b52"
 }
