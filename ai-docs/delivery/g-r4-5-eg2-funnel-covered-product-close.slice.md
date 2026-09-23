@@ -1,11 +1,11 @@
-# Slice — **G-R4-5 / EG2 funnel-covered product close**（docs REQUEST · **`REQUEST-ready / not_run:pre_dual`** · RAG-FUNNEL-01…08 covered matrix face）
+# Slice — **G-R4-5 / EG2 funnel-covered product close**（docs REQUEST · **`pre_dual_pass`** · Dual≠coding · HOLD await AUTHORIZE · RAG-FUNNEL-01…08 covered matrix face）
 
-**Status**: **`REQUEST-ready / not_run:pre_dual`**（实现方预写 · **not yet dual-sent** · **Ban自批 pass** · Dual PASS ≠ coding · **≠ eg2ProductClosed** · **≠ gR45Closed** · **≠ silent flip** · **≠ coding** · **≠ prove** · **≠ SSOT flip this open** · **≠ invent coveredCount** · **≠ auto-flip gR45Closed**）  
-**Date**: 2026-09-23 (~13:32 PT)  
+**Status**: **`pre_dual_pass`**（pre-exec dual **BOTH PASS** on REQUEST tip **`7c1bad1`** · Dual≠coding · **HOLD** await standing AUTHORIZE coding+prove · **≠ eg2ProductClosed** · **≠ gR45Closed** · **≠ silent flip** · **≠ coding** · **≠ prove** · **≠ SSOT flip this nail** · **≠ invent coveredCount** · **≠ auto-flip gR45Closed** · Ban second knife）  
+**Date**: 2026-09-23 (~13:40 PT) · REQUEST tip **`7c1bad1`** · pre_dual nail  
 **Base / HEAD**: EG1 nail **`88277ee`** / full `88277ee097cc70680f78a1a6bd07e18c827c17ae` · branch `feat/mysql-schema-skeleton`  
 **Authority**: meetwise — docs-only **G-R4-5 / EG2 funnel-covered product close REQUEST** open · zero coding · zero prove · zero flip · Ban假关 · Ban invent coveredCount · Ban forge · Ban silent flip · Ban flip `gR45Closed` · Ban flip eg1/`gR45DualClaimClosed`/r4/funnel/eg3–eg6/`ms3EqualsR4Closed` · Ban wash EG1 product **`88277ee`**/**`4a0877d`** · EG1+EG2 evidence **`08f7499`**/**`ffb2a9b`** · Batch4b **`f802f02`**/**`0e58386`** · EG6 **`315570d`**/**`757fbe1`** · EG5 **`33f457b`**/**`7f59b95`** · EG4 **`ce09850`**/**`0a34933`** · R4·FUNNEL **`2b38e18`**/**`14e9e2c`** · EG3 **`7be1a55`**/**`5b3c854`** · Ban MS3=R4 · Ban empty meta · Ban idle re-run only `pnpm r4-eg2-funnel-covered:prove` · Ban secrets / `.env*` · Ban auto-flip `gR45Closed` if EG2 closes later · Dual not pinged by implementer · **G-R4-5 STILL OPEN**  
 **releaseEvidence=false** · **≠HA** · **≠suite green** · **≠ coding authorized** · **≠ EG1 product wash** · **≠ Batch4b wash into EG2 product** · Dual PASS ≠ coding · Ban self-approve · Ban Cloud Agent · Ban Meridian · Ban自批 product close · Key×3 O3 honesty_red **非阻塞** · `eg2ProductClosed=false` · `eg1ProductClosed=true` **retained** · `gR45DualClaimClosed=true` **retained** · `gR45Closed=false` · `r4ProductClosed=true` · `funnelProductClosed=true` **retained** · `domainIsolationClosed=true` · `eg3ProductClosed=true` **retained** · `eg4ProductClosed=true` · `wrongTrackProductClosed=true` **retained** · `eg5ProductClosed=true` · `productSsotFlipped=true` **retained** · `eg6ProductClosed=true` **retained** · `ms3EqualsR4Closed=false` **retained** · coveredCount **8** (Batch4b **`f802f02`** · **not invented**)  
-**Experts**: `mw-e2e-ha` + `mw-rag-route` · pre-exec dual **not_run** · Ban自批 · experts write reviews at named paths · Dual not pinged by implementer
+**Experts**: `mw-e2e-ha` + `mw-rag-route` · pre-exec dual **BOTH PASS** on tip **`7c1bad1`** · Dual≠coding · HOLD await AUTHORIZE · Ban自批 coding/prove/flip
 
 ---
 
@@ -25,8 +25,8 @@
 | Prior R4·FUNNEL product-close reassess | `harness/g-r4-5-r4-funnel-product-close-reassess.md` · tip nail **`2b38e18`** · prove **`14e9e2c`** · `r4ProductClosed=true` · `funnelProductClosed=true` · `gR45Closed=false` · **retained** · Ban flip r4/funnel/`gR45Closed` this knife |
 | Prior EG3 product close | `harness/g-r4-5-eg3-domain-isolation-product-close.md` · tip nail **`7be1a55`** · prove **`5b3c854`** · EG3 product closed under authorize · Ban wash into EG2 |
 | Parent / SSOT | GAP-RAG-04 · m4 §R4 · w0-w8 · product-ssot / EG2 harness · **EG2 / G-R4-5 STILL OPEN** · **MS3 ≠ R4 closed** · coveredCount **8** retained |
-| REQUEST · e2e-ha (named · expert writes) | `reviews/REQUEST-2026-09-23-g-r4-5-eg2-funnel-covered-product-close-mw-e2e-ha.md` · **REQUEST-ready / not_run:pre_dual** |
-| REQUEST · rag-route (named · expert writes) | `reviews/REQUEST-2026-09-23-g-r4-5-eg2-funnel-covered-product-close-mw-rag-route.md` · **REQUEST-ready / not_run:pre_dual** |
+| REQUEST · e2e-ha (pre-exec BOTH PASS) | `reviews/REQUEST-2026-09-23-g-r4-5-eg2-funnel-covered-product-close-mw-e2e-ha.md` · **pass** on tip **`7c1bad1`** |
+| REQUEST · rag-route (pre-exec BOTH PASS) | `reviews/REQUEST-2026-09-23-g-r4-5-eg2-funnel-covered-product-close-mw-rag-route.md` · **pass** on tip **`7c1bad1`** |
 
 ## One-line scope
 
@@ -42,11 +42,11 @@ Docs REQUEST open: **G-R4-5 / EG2 funnel-covered product close** · RAG-FUNNEL-0
 
 | CMD | Status |
 |-----|--------|
-| docs REQUEST open | **`REQUEST-ready / not_run:pre_dual`** · G-R4-5 / EG2 funnel-covered product close acceptance · dedicated emitter path later |
-| pre-exec dual | **`not_run:pre_dual`** · Ban自批 · experts write at named paths · Dual not pinged by implementer |
+| docs REQUEST · pre_dual_pass | **`pre_dual_pass`** · Dual≠coding · HOLD await AUTHORIZE · G-R4-5 / EG2 funnel-covered product close acceptance · dedicated emitter path later |
+| pre-exec dual | **BOTH PASS** on tip **`7c1bad1`** · Dual≠coding · Ban自批 coding/prove/flip |
 | standing coding / flip / prove / SSOT | **`not_run:no_coding_authorize`** · Ban silent flip · Dual PASS ≠ coding · Dual PASS ≠ next knife auto-authorize · Ban flip `gR45Closed` · Ban invent coveredCount · Ban auto-flip `gR45Closed` |
 | planned prove (later) | proposed `pnpm r4-eg2-funnel-covered-product-close:prove` (create later under authorize) · **+** `pnpm mysql-stack:r4-domain-isolation:prove` · EXIT expected **2×0** · EXIT=0 ≠ G-R4-5 all closed ≠ HA · Ban idle re-run only `pnpm r4-eg2-funnel-covered:prove` |
 
 ---
 
-*Slice · G-R4-5 / EG2 funnel-covered product close · 2026-09-23 (~13:32 PT) · REQUEST-ready / not_run:pre_dual · docs only · base 88277ee · eg2ProductClosed=false · eg1ProductClosed=true retained · gR45DualClaimClosed=true retained · gR45Closed=false · r4/funnel/EG3–EG6 product flags retained · ms3EqualsR4Closed=false retained · coveredCount 8 (Batch4b f802f02 · not invented) · ≠ EG1 product wash 88277ee/4a0877d · ≠ EG1+EG2 evidence wash 08f7499/ffb2a9b · ≠ Batch4b wash f802f02/0e58386 · ≠ EG6 wash 315570d/757fbe1 · ≠ EG5 wash 33f457b/7f59b95 · ≠ EG4 wash ce09850/0a34933 · ≠ R4·FUNNEL wash 2b38e18/14e9e2c · ≠ EG3 wash 7be1a55/5b3c854 · Ban silent flip · Ban invent coveredCount · Ban MS3=R4 · Ban empty meta prove · Ban flip gR45Closed · Ban idle re-run only pnpm r4-eg2-funnel-covered:prove as fake product close · Ban auto-flip gR45Closed if EG2 closes later · EG2/G-R4-5 STILL OPEN · Dual PASS ≠ coding · Dual PASS ≠ next knife auto-authorize · Key×3 O3 honesty_red非阻塞 · releaseEvidence=false · ≠HA · zero coding · zero prove · zero flip · Dual not pinged by implementer*
+*Slice · G-R4-5 / EG2 funnel-covered product close · 2026-09-23 (~13:40 PT) · pre_dual_pass · Dual≠coding · HOLD await AUTHORIZE · tip 7c1bad1 · base 88277ee · eg2ProductClosed=false · eg1ProductClosed=true retained · gR45DualClaimClosed=true retained · gR45Closed=false · r4/funnel/EG3–EG6 product flags retained · ms3EqualsR4Closed=false retained · coveredCount 8 (Batch4b f802f02 · not invented) · ≠ EG1 product wash 88277ee/4a0877d · ≠ EG1+EG2 evidence wash 08f7499/ffb2a9b · ≠ Batch4b wash f802f02/0e58386 · ≠ EG6 wash 315570d/757fbe1 · ≠ EG5 wash 33f457b/7f59b95 · ≠ EG4 wash ce09850/0a34933 · ≠ R4·FUNNEL wash 2b38e18/14e9e2c · ≠ EG3 wash 7be1a55/5b3c854 · Ban silent flip · Ban invent coveredCount · Ban MS3=R4 · Ban empty meta prove · Ban flip gR45Closed · Ban idle re-run only pnpm r4-eg2-funnel-covered:prove as fake product close · Ban auto-flip gR45Closed if EG2 closes later · EG2/G-R4-5 STILL OPEN · Dual PASS ≠ coding · Dual PASS ≠ next knife auto-authorize · Key×3 O3 honesty_red非阻塞 · releaseEvidence=false · ≠HA · zero coding · zero prove · zero flip · Dual not pinged by implementer*
