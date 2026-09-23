@@ -8,9 +8,9 @@
  *   - Batch1 (G-R4-5 / FUNNEL coveredCount Batch1 under authorize): FUNNEL-03 /
  *     FUNNEL-04 may elevate to `covered` when live Batch1 assessors affirm
  *     production-path pins (Ban invent).
- *   - Batch2 (G-R4-5 / FUNNEL coveredCount Batch2 under authorize): FUNNEL-02A /
- *     FUNNEL-02B may elevate to `covered` when live Batch2 assessors affirm
- *     production-path pins (Ban invent · Ban elevating 05–08).
+ *   - Batch2 / Batch2b (G-R4-5 / FUNNEL coveredCount Batch2 + Batch2b 02B wire):
+ *     FUNNEL-02A / FUNNEL-02B may elevate to `covered` when live Batch2 assessors
+ *     affirm production-path pins (Batch2b wires productionConsumerWired · Ban invent · Ban elevating 05–08).
  *   - FUNNEL-01 may report `product_surfaces_true` via MS1+MS2+MS3 · still
  *     **≠ invent covered** · dual-claim evidence ≠ covered elevation.
  *   - 01A may report `source_sealed` (checklist [x] / seal) · ≠ invent 01…08 covered.
@@ -62,7 +62,7 @@ export type RagFunnel0108CoveredMatrix = {
   readonly coveredCount: number;
   readonly inventCovered: false;
   readonly releaseEvidence: false;
-  readonly note: 'EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2 may elevate 02A/02B when assessors affirm · ≠ R4/题域 closed · await post-prove dual';
+  readonly note: 'EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B when assessors affirm · ≠ R4/题域 closed · await post-prove dual';
 };
 
 const FUNNEL_IDS_01_08 = [
@@ -143,7 +143,7 @@ export function emitRagFunnel0108CoveredMatrix(): RagFunnel0108CoveredMatrix {
         id: 'RAG-FUNNEL-02B',
         status: 'covered',
         basis:
-          'Batch2 true-cover: durable embedding compute cache evidenced (HMAC cache identity + resolve/claim/validate + db export + production consumer wiring) · Ban invent',
+          'Batch2/Batch2b true-cover: durable embedding compute cache evidenced (HMAC cache identity + resolve/claim/validate + db export + production consumer wiring) · Ban invent',
         inventCoveredForbidden: true,
       }
     : notCovered(
@@ -210,7 +210,7 @@ export function emitRagFunnel0108CoveredMatrix(): RagFunnel0108CoveredMatrix {
     coveredCount,
     inventCovered: false,
     releaseEvidence: false,
-    note: 'EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2 may elevate 02A/02B when assessors affirm · ≠ R4/题域 closed · await post-prove dual',
+    note: 'EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B when assessors affirm · ≠ R4/题域 closed · await post-prove dual',
   };
 }
 

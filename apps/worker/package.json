@@ -95,6 +95,7 @@
     "prove:r4-funnel-product-close": "tsx test/r4-funnel-product-close.proof.ts",
     "prove:r4-funnel-covered-count-batch1": "tsx test/r4-funnel-covered-count-batch1.proof.ts",
     "prove:r4-funnel-covered-count-batch2": "tsx test/r4-funnel-covered-count-batch2.proof.ts",
+    "prove:r4-funnel-covered-count-batch2b-02b-wire": "tsx test/r4-funnel-covered-count-batch2b-02b-wire.proof.ts",
     "prove:r4-eg4-wrong-track-product": "tsx test/r4-eg4-wrong-track-product-evidence.proof.ts",
     "prove:r4-eg5-product-ssot": "tsx test/r4-eg5-product-ssot-evidence.proof.ts",
     "prove:r4-eg6-ms3-ne-r4": "tsx test/r4-eg6-ms3-ne-r4-evidence.proof.ts",

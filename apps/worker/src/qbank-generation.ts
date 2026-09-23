@@ -6,7 +6,16 @@
  * traffic switch after row-count + epoch validation inside a DB transaction.
  */
 import { createHash, randomUUID } from 'node:crypto';
-import { asQbankControlExecutor, type DbPool } from '@meetwise/db';
+import {
+  asQbankControlExecutor,
+  resolveEmbeddingCompute,
+  EMBEDDING_COMPUTE_GLOBAL_QBANK_SCOPE,
+  type DbPool,
+  type ExactEmbeddingRecipe,
+  type EmbeddingComputeCostReservation,
+  type EmbeddingComputeValueStore,
+  type EmbeddingComputeLockBackend,
+} from '@meetwise/db';
 import type { Embedder } from '@meetwise/ai-runtime';
 
 const CHUNKER_VERSION = 'whole-qbank-item:v1';
@@ -34,6 +43,72 @@ export interface QbankGenerationResult {
   generationId?: string;
   chunkCount: number;
   unrebuildableLegacyRefs?: string[];
+}
+
+/**
+ * Optional durable embedding *compute* cache seams (RAG-FUNNEL-02B).
+ * When supplied, document embeddings during generation resolve through
+ * `resolveEmbeddingCompute` (HMAC cache identity + durable fill) before the
+ * caller's projection write. Absent seams keep the legacy direct embedder path
+ * (fail-closed for compute cache — never invent vectors / never pretend durable).
+ */
+export type QbankEmbeddingComputeCacheSeams = {
+  recipe: ExactEmbeddingRecipe;
+  costReservation: EmbeddingComputeCostReservation;
+  valueStore: EmbeddingComputeValueStore;
+  lockBackend: EmbeddingComputeLockBackend;
+  waitMs?: number;
+  leaseSeconds?: number;
+  dispatchLeaseSeconds?: number;
+};
+
+/**
+ * Canonical provider-input bytes for the compute cache: NFC + trim matches
+ * NORMALIZATION_VERSION (`utf8-nfc-trim:v1`). GenerationId/route/owner never enter.
+ */
+function canonicalProviderInputBytes(content: string): Uint8Array {
+  const normalized = content.normalize('NFC').trim();
+  if (!normalized) throw new Error('qbank_generation_empty_canonical_provider_input');
+  return new TextEncoder().encode(normalized);
+}
+
+/**
+ * Production consumer of `resolveEmbeddingCompute`: one controlled resolve per
+ * frozen fact. A hit reuses the unowned float32 vector; a miss fills durably.
+ * The caller still performs projection write + activation validation.
+ */
+async function embedFactsViaDurableComputeCache(
+  pool: DbPool,
+  embedder: Embedder,
+  facts: QbankFact[],
+  seams: QbankEmbeddingComputeCacheSeams,
+): Promise<number[][]> {
+  const out: number[][] = [];
+  for (const fact of facts) {
+    const bytes = canonicalProviderInputBytes(fact.content);
+    const resolution = await resolveEmbeddingCompute(pool, {
+      scope: EMBEDDING_COMPUTE_GLOBAL_QBANK_SCOPE,
+      recipe: seams.recipe,
+      canonicalProviderInputBytes: bytes,
+      costReservation: seams.costReservation,
+      valueStore: seams.valueStore,
+      lockBackend: seams.lockBackend,
+      waitMs: seams.waitMs,
+      leaseSeconds: seams.leaseSeconds,
+      dispatchLeaseSeconds: seams.dispatchLeaseSeconds,
+      embed: async (canonicalProviderInputBytes) => {
+        const text = new TextDecoder().decode(canonicalProviderInputBytes);
+        const vectors = await embedder.embed([text]);
+        const vector = vectors[0];
+        if (!vector) {
+          throw Object.assign(new Error('embedding_compute_provider_empty'), { code: 'embedding_compute_provider_empty' });
+        }
+        return vector;
+      },
+    });
+    out.push(resolution.vector);
+  }
+  return out;
 }
 
 const stableHash = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -79,7 +154,7 @@ export function qbankEmbeddingRecipe(embedder: Embedder): QbankEmbeddingRecipe {
  * integrity-upgrade proof); once the projection schema exists they are always
  * present or the build fails closed.
  */
-type QbankFact = {
+interface QbankFact {
   refId: string;
   contentHash: string;
   content: string;
@@ -266,7 +341,7 @@ async function insertGenerationRows(pool: DbPool, generationId: string, facts: Q
  * new source.  A builder may run at boot or under an explicitly authorised
  * rebuild job; activation still validates the snapshot epoch in PostgreSQL.
  */
-export async function ensureActiveQbankGeneration(pool: DbPool, embedder: Embedder): Promise<QbankGenerationResult | undefined> {
+export async function ensureActiveQbankGeneration(pool: DbPool, embedder: Embedder, computeCache?: QbankEmbeddingComputeCacheSeams): Promise<QbankGenerationResult | undefined> {
   if (!await generationSchemaPresent(pool)) return undefined;
   const recipe = qbankEmbeddingRecipe(embedder);
   await persistRecipe(pool, recipe);
@@ -293,7 +368,12 @@ export async function ensureActiveQbankGeneration(pool: DbPool, embedder: Embedd
     // Network I/O deliberately occurs outside DB transactions/leases. The generation is invisible until activation.
     // A shared cut repeats its content once per reviewed leaf, so the embedding
     // list length equals the projection count, not the distinct-ref count.
-    const vectors = await embedder.embed(snapshot.facts.map((f) => f.content));
+    // RAG-FUNNEL-02B: when durable compute-cache seams are supplied, each fact
+    // resolves through resolveEmbeddingCompute (HMAC identity + fill intent) —
+    // process-local cachingEmbedder alone ≠ durable compute cache (Ban invent).
+    const vectors = computeCache
+      ? await embedFactsViaDurableComputeCache(pool, embedder, snapshot.facts, computeCache)
+      : await embedder.embed(snapshot.facts.map((f) => f.content));
     if (vectors.length !== snapshot.facts.length) throw new Error('qbank_generation_embedding_count_mismatch');
     await insertGenerationRows(pool, generationId, snapshot.facts, vectors, projection);
     await asQbankControlExecutor(pool, (c) => c.query('SELECT qbank_validate_generation($1)', [generationId]));
