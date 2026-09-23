@@ -164,8 +164,8 @@
       "note": "C4 post-fault shared survivor — A down; sole Redis/MySQL still reachable for B wiring; ≠ Nest session; ≠ production HA"
     }
   },
-  "proveTip": "5a1bffb838835028e960d62b81d18f0e9466cff9",
-  "proveTipShort": "5a1bffb",
+  "proveTip": "5b98a6535a90ce7f3eda2b70c7d3361c8568d970",
+  "proveTipShort": "5b98a65",
   "parent": "a32da0377a16f311399ad03b0befc973b2866081",
   "parentShort": "a32da03",
   "fixNote": "fault-inject.mjs: docker stop -t5 → docker kill (SIGKILL); waitPostFault now requires container Running=false + livez-down with 3 consecutive confirms; one re-kill if A resurrects. Root cause of mw-rag-route BLOCK on 72d2b93: A /livez still 200 after stop (SIGTERM grace and/or concurrent compose re-bring-up). Fix path: scripts/ha/fault-inject.mjs",
