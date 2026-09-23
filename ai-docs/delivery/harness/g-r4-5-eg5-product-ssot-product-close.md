@@ -1,33 +1,30 @@
-# Harness — **G-R4-5 / EG5 product SSOT product close**（`eg5ProductClosed` / `productSsotFlipped` under authorize · docs REQUEST · **`pre_dual_pass`** · Dual≠coding · HOLD await standing AUTHORIZE coding+prove · product **STILL OPEN**）
+# Harness — **G-R4-5 / EG5 product SSOT product close**（`eg5ProductClosed` / `productSsotFlipped` under authorize · **`executed:awaiting_post_prove_dual`** · prior **`pre_dual_pass`** recorded · Ban self-nail）
 
-**Status**: **`pre_dual_pass`**（pre-exec dual **BOTH PASS** on REQUEST tip **`95b3dd2`** / full `95b3dd20307d10169ca3ed01c14125aa3678be0a` · Dual≠coding · **HOLD** await standing AUTHORIZE coding+prove · **≠ eg5ProductClosed** · **≠ productSsotFlipped** · **≠ gR45Closed** · **≠ silent flip** · **≠ coding** · **≠ prove** · **≠ SSOT flip this nail** · **≠ flip gR45Closed / r4/funnel / eg3/eg4 flags this knife** · **≠ G-R4-5 all closed** · **≠ closing EG1/2/6 this knife** · Ban second knife · Ban wash e099276/6058462）  
-**Date**: 2026-09-23 (~12:37 PT) · REQUEST open ~12:30 PT · pre-exec dual BOTH PASS on **`95b3dd2`** · this nail ~12:37 PT  
-**Base / REQUEST tip**: **`95b3dd2`** / full `95b3dd20307d10169ca3ed01c14125aa3678be0a` · branch `feat/mysql-schema-skeleton`  
-**releaseEvidence=false** · **≠HA** · **≠suite green** · **EG5 / product SSOT product STILL OPEN** · **G-R4-5 STILL OPEN** · **MS3 ≠ R4 closed** · EG1/2/6 product **NOT** closed by this knife · Ban假关 · Ban invent coveredCount · Ban forge receipts · Ban silent flip `eg5ProductClosed` / `productSsotFlipped` · Ban flip `gR45Closed` / `r4ProductClosed` / `funnelProductClosed` / `eg3ProductClosed` / `domainIsolationClosed` / `eg4ProductClosed` / `wrongTrackProductClosed` this knife · Ban claim EG5/product-SSOT/G-R4-5 closed from this dual · Ban wash EG5 evidence tip **`e099276`** / dual **`6058462`** into product closed without dedicated prove · Ban wash EG4 tip **`ce09850`** / prove **`0a34933`** into EG5/gR45 · Ban wash R4·FUNNEL tip **`2b38e18`** / prove **`14e9e2c`** into EG5/gR45 · Ban wash EG3 tip **`7be1a55`** / prove **`5b3c854`** into EG5 · Ban MS3=R4 · Ban empty meta prove · Ban idle re-run EG5 evidence / covered-path / meta alone as fake product close · Dual PASS ≠ coding · Dual PASS ≠ next knife auto-authorize · Ban self-approve · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Ban second knife · Key×3 O3 honesty_red **非阻塞** · `eg5ProductClosed=false` · `productSsotFlipped=false` · `gR45Closed=false` · `r4ProductClosed=true` · `funnelProductClosed=true` **retained** · `domainIsolationClosed=true` · `eg3ProductClosed=true` **retained** · `eg4ProductClosed=true` · `wrongTrackProductClosed=true` **retained** · coveredCount **not invented** · `releaseEvidence=false`  
-**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **BOTH PASS** on REQUEST tip **`95b3dd2`** · Dual≠coding · HOLD await standing AUTHORIZE · Ban自批 coding/prove/flip）  
-**Prior EG5 true-evidence / impl（OPEN evidence · retained）**: `harness/g-r4-5-eg5-true-evidence-impl.md` · **`post_prove_dual_pass`** · tip nail **`e099276`** · dual on **`6058462`** · EXIT **1×0** · product SSOT flip authorize honesty evidence emitted · **EG5 STILL OPEN** · `eg5ProductClosed=false` · `productSsotFlipped=false` · **retained** · Ban wash dual_pass into product closed without this prove  
-**Prior EG4 product close（CLOSED prior · retained · ≠ wash）**: `harness/g-r4-5-eg4-wrong-track-product-close.md` · tip nail **`ce09850`** · prove **`0a34933`** · EXIT **2×0** · `eg4ProductClosed=true` · `wrongTrackProductClosed=true` · **retained** · Ban wash into EG5/gR45 · Ban flip EG4 flags this knife  
-**Prior EG3 product close（CLOSED prior · retained · ≠ wash）**: `harness/g-r4-5-eg3-domain-isolation-product-close.md` · tip nail **`7be1a55`** · prove **`5b3c854`** · EXIT **2×0** · `domainIsolationClosed=true` · `eg3ProductClosed=true` · **retained** · Ban wash into EG5 · Ban flip EG3 flags this knife  
-**Prior R4·FUNNEL product-close reassess（CLOSED lifecycle · retained · ≠ wash）**: `harness/g-r4-5-r4-funnel-product-close-reassess.md` · **`post_prove_dual_pass`** · tip nail **`2b38e18`** · prove tip **`14e9e2c`** · EXIT **2×0** · `r4ProductClosed=true` · `funnelProductClosed=true` · `gR45Closed=false` · **retained** · Ban wash into EG5/gR45 · **Ban flip r4/funnel/`gR45Closed` this knife**  
-**Prior EG1+EG2 / EG6 / residual / evidence-close**: retained OPEN · Ban wash · Ban closing EG1/2/6 this knife  
-**Why（cite）**: W4 = R2→R1→R4/FUNNEL · R4/FUNNEL product face closed under authorize at tip **`2b38e18`** · EG3 product face closed at tip **`7be1a55`** · EG4 wrong-track product face closed at tip **`ce09850`** · next orthogonal product face = **EG5 product SSOT** · prior EG5 evidence tip **`e099276`** / dual **`6058462`** keeps flags **false** · Ban elevating evidence dual_pass to product closed without dedicated product-close prove · pre-exec dual BOTH PASS = docs gate only  
+**Status**: **`executed:awaiting_post_prove_dual`**（standing authorize after pre-exec dual BOTH PASS on REQUEST tip **`95b3dd2`** · prior **`pre_dual_pass`** recorded on tip **`50924b2`** · Dual≠coding · coding+honest flip+prove **executed** · EXIT **2×0** · **honest flip**: `eg5ProductClosed=true` · `productSsotFlipped=true` · **`gR45Closed=false`** · **G-R4-5 STILL OPEN** · Ban flip gR45 · `r4ProductClosed=true` **retained** · `funnelProductClosed=true` **retained** · EG3 `domainIsolationClosed=true`/`eg3ProductClosed=true` **retained** · EG4 `eg4ProductClosed=true`/`wrongTrackProductClosed=true` **retained** · **NOT** `post_prove_dual_pass` · **Ban self-nail** · Dual PASS ≠ next knife auto-authorize · Ban second knife）  
+**Date**: 2026-09-23 (~12:45 PT) · REQUEST open ~12:30 PT · pre-exec dual BOTH PASS on **`95b3dd2`** · pre_dual_pass nail **`50924b2`** · standing coding+prove ~12:45 PT  
+**Base / REQUEST tip**: **`95b3dd2`** / full `95b3dd20307d10169ca3ed01c14125aa3678be0a` · pre_dual nail **`50924b2`** / full `50924b2769a562327cc489dd8ca00483121b5bfb` · branch `feat/mysql-schema-skeleton`  
+**releaseEvidence=false** · **≠HA** · **≠suite green** · **EG5 / product SSOT product face closed under authorize** · `eg5ProductClosed=true` · `productSsotFlipped=true` · `gR45Closed=false` · `r4ProductClosed=true` **retained** · `funnelProductClosed=true` **retained** · `domainIsolationClosed=true` **retained** · `eg3ProductClosed=true` **retained** · `eg4ProductClosed=true` **retained** · `wrongTrackProductClosed=true` **retained** · coveredCount **not invented** · **G-R4-5 STILL OPEN** · **MS3 ≠ R4 closed** · EG1/2/6 product **NOT** closed by this knife · Ban假关 · Ban invent coveredCount · Ban forge · Ban wash EG5 evidence tip **`e099276`** / dual **`6058462`** into product closed without this prove · Ban wash EG4 tip **`ce09850`** / prove **`0a34933`** into EG5/gR45 · Ban wash R4·FUNNEL tip **`2b38e18`** / prove **`14e9e2c`** into EG5/gR45 · Ban wash EG3 tip **`7be1a55`** / prove **`5b3c854`** into EG5 · Ban flip `gR45Closed` / r4/funnel / eg3/eg4 · Ban MS3=R4 · Ban empty meta prove · Ban idle re-run EG5 evidence / covered-path / meta alone as fake product close · Ban closing EG1/2/6 · Ban self-approve · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Ban self-nail `post_prove_dual_pass` · Key×3 O3 honesty_red **非阻塞** · Dual PASS ≠ next knife auto-authorize  
+**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **BOTH PASS** on REQUEST tip **`95b3dd2`** · prior **`pre_dual_pass`** recorded · standing authorize coding+flip+prove · post-prove dual **awaiting** · Ban self-nail `post_prove_dual_pass`）  
+**Prior EG5 true-evidence / impl（OPEN evidence · retained）**: tip nail **`e099276`** · dual on **`6058462`** · EXIT **1×0** · evidence emitted · **retained OPEN evidence** · Ban wash into product closed without this prove · Ban idle re-run as fake close  
+**Prior EG4 product close（CLOSED prior · retained · ≠ wash）**: tip nail **`ce09850`** · prove **`0a34933`** · EXIT **2×0** · `eg4ProductClosed=true` · `wrongTrackProductClosed=true` · **retained** · Ban wash into EG5/gR45 · Ban flip EG4 flags this knife  
+**Prior EG3 product close（CLOSED prior · retained · ≠ wash）**: tip nail **`7be1a55`** · prove **`5b3c854`** · EXIT **2×0** · `domainIsolationClosed=true` · `eg3ProductClosed=true` · **retained** · Ban wash into EG5 · Ban flip EG3 flags this knife  
+**Prior R4·FUNNEL product-close reassess（CLOSED lifecycle · retained · ≠ wash）**: tip nail **`2b38e18`** · prove tip **`14e9e2c`** · EXIT **2×0** · `r4ProductClosed=true` · `funnelProductClosed=true` · `gR45Closed=false` · **retained** · **Ban flip r4/funnel/`gR45Closed` this knife**  
 **Slice**: `../g-r4-5-eg5-product-ssot-product-close.slice.md`  
-**Eval**: `../eval/g-r4-5-eg5-product-ssot-product-close.eval.md`（experts / later · **not** this nail）  
-**Authority**: meetwise — docs-only **G-R4-5 / EG5 product SSOT product close** pre_dual_pass nail · Dual≠coding · **HOLD** await standing AUTHORIZE coding+prove · zero coding · zero prove · zero flip this nail · Ban secrets / `.env*` · Meridian banned · No force-push · Ban Cloud Agent · Ban self-approve · Ban silent flip · Ban second knife  
-**Honesty**: Pre-exec dual BOTH PASS on tip **`95b3dd2`** = docs gate eligibility only · Dual≠coding · HOLD await standing AUTHORIZE · If later authorized + evidence sufficient → honest flip `eg5ProductClosed` / `productSsotFlipped` · else honest non-flip · **Ban** flip `gR45Closed` / r4/funnel / eg3/eg4 flags this knife · Dual PASS ≠ next knife auto-authorize · Ban假关 · Ban wash `e099276`/`6058462` / `ce09850`/`0a34933` / `2b38e18`/`14e9e2c` / `7be1a55`/`5b3c854` · product SSOT for EG5 **NOT** flipped this nail · flags **NOT** flipped this nail · `eg5ProductClosed=false` · `productSsotFlipped=false` · `gR45Closed=false` · **G-R4-5 STILL OPEN** · Ban invent EXIT · Ban claim product closed
+**Authority**: meetwise — **AUTHORIZED: G-R4-5 / EG5 product SSOT product close — eg5ProductClosed/productSsotFlipped under authorize · coding + dedicated prove + honest SSOT on tip `95b3dd2` / pre_dual `50924b2`.** Standing authorize after pre-exec dual BOTH PASS tip **`95b3dd2`** / full `95b3dd20307d10169ca3ed01c14125aa3678be0a` · prior **`pre_dual_pass`** recorded · Dual≠coding · Ban secrets / `.env*` · Meridian banned · No force-push · Ban Cloud Agent · Ban self-approve · Ban self-nail `post_prove_dual_pass`  
+**Honesty**: `eg5ProductClosed=true` · `productSsotFlipped=true` under authorize for **this knife only** · dedicated `pnpm r4-eg5-product-ssot-product-close:prove` + production-scoped `pnpm mysql-stack:r4-domain-isolation:prove` EXIT **2×0** · retained `pnpm r4-eg5-product-ssot:prove` evidence path · **Ban** flip `gR45Closed` / r4/funnel / eg3/eg4 · retain EG3 + EG4 + r4/funnel product flags · Ban invent coveredCount · Ban MS3=R4 · Ban empty meta · Ban self-nail `post_prove_dual_pass` · `releaseEvidence=false`
 
 ---
 
-## Dual receipts（pre-exec BOTH PASS · docs gate）
+## Dual receipts
 
-| Expert | Receipt path | Verdict |
-|--------|--------------|---------|
-| `mw-e2e-ha` (pre-exec) | `../reviews/REQUEST-2026-09-23-g-r4-5-eg5-product-ssot-product-close-mw-e2e-ha.md` | **pass** (docs gate · alone≠dual) on REQUEST tip **`95b3dd2`** / full `95b3dd20307d10169ca3ed01c14125aa3678be0a` |
-| `mw-rag-route` (pre-exec) | `../reviews/REQUEST-2026-09-23-g-r4-5-eg5-product-ssot-product-close-mw-rag-route.md` | **pass** (docs gate) on REQUEST tip **`95b3dd2`** / full `95b3dd20307d10169ca3ed01c14125aa3678be0a` |
+| Expert | Receipt | Verdict |
+|--------|---------|---------|
+| `mw-e2e-ha` (pre-exec) | `../reviews/REQUEST-2026-09-23-g-r4-5-eg5-product-ssot-product-close-mw-e2e-ha.md` | **pass** (docs gate · alone≠dual) on REQUEST **`95b3dd2`** · prior **`pre_dual_pass`** |
+| `mw-rag-route` (pre-exec) | `../reviews/REQUEST-2026-09-23-g-r4-5-eg5-product-ssot-product-close-mw-rag-route.md` | **pass** (docs gate) on REQUEST **`95b3dd2`** · prior **`pre_dual_pass`** |
+| `mw-e2e-ha` (post-prove) | `../reviews/REQUEST-2026-09-23-g-r4-5-eg5-product-ssot-product-close-post-prove-mw-e2e-ha.md` | **REQUEST / 待审** · Ban自批 |
+| `mw-rag-route` (post-prove) | `../reviews/REQUEST-2026-09-23-g-r4-5-eg5-product-ssot-product-close-post-prove-mw-rag-route.md` | **REQUEST / 待审** · Ban自批 |
 
-**Pre-exec dual BOTH PASS narrative（this nail · `pre_dual_pass`）**: Expert-written reviews on REQUEST tip **`95b3dd2`** / full `95b3dd20307d10169ca3ed01c14125aa3678be0a` both **PASS** (docs gate). Dual≠coding · **HOLD** await standing AUTHORIZE coding+prove · Ban flip `eg5ProductClosed`/`productSsotFlipped`/`gR45Closed`/r4/funnel/eg3/eg4 this nail · Ban wash EG5 `e099276`/`6058462` · Ban wash EG4 `ce09850`/`0a34933` · Ban wash R4·FUNNEL `2b38e18`/`14e9e2c` · Ban wash EG3 `7be1a55`/`5b3c854` · Ban second knife · Ban invent EXIT · Ban claim product closed · `releaseEvidence=false` · **G-R4-5 STILL OPEN**.
-
-**Note**: This nail is **docs-only**. There is **no** coding · **no** prove · **no** flag flip · **no** SSOT flip · **no** post-prove dual this nail. Status = **`pre_dual_pass`**. Dual PASS ≠ coding ≠ flip ≠ eg5ProductClosed ≠ productSsotFlipped ≠ gR45Closed ≠ G-R4-5 closed. HOLD until meetwise AUTHORIZED coding+prove.
+**Pre-exec dual BOTH PASS narrative（folded · prior `pre_dual_pass`）**: Expert-written reviews on REQUEST tip **`95b3dd2`** both **PASS** (docs gate). Dual≠coding · HOLD await authorize. Standing AUTHORIZE coding+prove arrived · L3 executed → **`executed:awaiting_post_prove_dual`**.
 
 ---
 
@@ -35,94 +32,84 @@
 
 | Statement | Ruling |
 |-----------|--------|
-| **What this knife is** | Docs REQUEST + pre-exec dual BOTH PASS nail: **G-R4-5 / EG5 product SSOT product close** · flip `eg5ProductClosed` / `productSsotFlipped` **only under standing authorize** · intended dedicated product-close prove (**later** after standing authorize) · if evidence sufficient → honest flip · else honest non-flip · status **`pre_dual_pass`** · Dual≠coding · HOLD |
-| **What this knife is not** | **Not** coding · **not** prove · **not** flipping flags this nail · **not** silent flip · **not** flipping `gR45Closed` / r4/funnel / eg3/eg4 · **not** claiming EG5/product-SSOT/G-R4-5 product closed · **not** inventing coveredCount · **not** inventing EXIT · **not** forging receipts · **not** washing EG5 `e099276`/`6058462` or EG4 `ce09850`/`0a34933` or R4·FUNNEL `2b38e18`/`14e9e2c` or EG3 `7be1a55`/`5b3c854` into wrong closes · **not** MS3=R4 · **not** empty meta prove · **not** idle re-run of EG5 evidence / covered-path / meta alone as fake product close · **not** closing EG1/2/6 · **not** next knife auto-authorize · **not** second knife · **not** HA · **not** suite green |
-| **≠ EG5 evidence wash** | **YES** — tip **`e099276`** · dual **`6058462`** · EXIT **1×0** · evidence emitted · EG5 **STILL OPEN** · `eg5ProductClosed=false` · `productSsotFlipped=false` · **retained OPEN evidence** · Ban wash into product closed without this prove |
-| **≠ EG4 product close wash** | **YES** — tip nail **`ce09850`** · prove **`0a34933`** · `eg4ProductClosed=true` · `wrongTrackProductClosed=true` · `gR45Closed=false` · **retained** · Ban wash into EG5/gR45 · **Ban flip eg4/wrongTrack/`gR45Closed` this knife** |
-| **≠ R4·FUNNEL reassess wash** | **YES** — tip nail **`2b38e18`** · prove **`14e9e2c`** · `r4ProductClosed=true` · `funnelProductClosed=true` · `gR45Closed=false` · **retained** · Ban wash into EG5/gR45 · **Ban flip r4/funnel/`gR45Closed` this knife** |
-| **≠ EG3 product close wash** | **YES** — tip **`7be1a55`** · prove **`5b3c854`** · `domainIsolationClosed=true` · `eg3ProductClosed=true` · **retained** · Ban wash into EG5 closed |
-| **EG5 / product SSOT / G-R4-5** | **STILL OPEN** · **MS3 ≠ R4 closed** · Ban wash this dual into those closes · Ban closing EG1/2/6 this knife |
-| **Key×3 O3 honesty_red** | **非阻塞** this REQUEST |
-| **Now** | **`pre_dual_pass`** · Dual≠coding · HOLD await standing AUTHORIZE · zero coding · zero prove · zero flip · `eg5ProductClosed=false` · `productSsotFlipped=false` · `gR45Closed=false` · r4/funnel/EG3/EG4 product flags **retained** · coveredCount **not invented** · `releaseEvidence=false` |
+| **What this knife is** | Standing-authorized G-R4-5 / EG5 product SSOT product close · honest flip `eg5ProductClosed` / `productSsotFlipped` + dedicated prove + authorized SSOT · prior **`pre_dual_pass`** recorded · status **`executed:awaiting_post_prove_dual`** · `eg5ProductClosed=true` · `productSsotFlipped=true` under authorize |
+| **What this knife is not** | **Not** `post_prove_dual_pass` (Ban self-nail) · **not** flipping `gR45Closed` / r4/funnel / eg3/eg4 · **not** invent coveredCount · **not** wash EG5 `e099276`/`6058462` or EG4 `ce09850`/`0a34933` or R4·FUNNEL `2b38e18`/`14e9e2c` or EG3 `7be1a55`/`5b3c854` · **not** MS3=R4 · **not** empty meta · **not** closing EG1/2/6 · **not** next knife auto-authorize · **not** second knife |
+| **Flags** | `eg5ProductClosed=true` · `productSsotFlipped=true` · `gR45Closed=false` · `r4ProductClosed=true` **retained** · `funnelProductClosed=true` **retained** · `domainIsolationClosed=true` **retained** · `eg3ProductClosed=true` **retained** · `eg4ProductClosed=true` **retained** · `wrongTrackProductClosed=true` **retained** · coveredCount **not invented** · `releaseEvidence=false` |
+| **G-R4-5** | **STILL OPEN** · **MS3 ≠ R4 closed** · Ban wash · Ban flip `gR45Closed` |
+| **Key×3 O3 honesty_red** | **非阻塞** |
+| **Now** | **`executed:awaiting_post_prove_dual`** · EXIT **2×0** · Ban self-nail · await post-prove dual |
 
 ---
 
-## 1. Acceptance · why prior EXIT=0 / dual_pass does **not** close · this REQUEST
+## 1. Acceptance executed under authorize
 
-| # | Gap | Acceptance criteria（product close · later under authorize） | Why prior EXIT=0 / dual_pass does **not** close | This nail |
-|---|-----|--------------------------------------------------------------|--------------------------------------------------|-----------|
-| **A1** | Pre-exec dual | Pre-exec dual `mw-e2e-ha` + `mw-rag-route` **BOTH PASS** on REQUEST tip **before** any coding / flip | N/A | **done** · BOTH PASS on **`95b3dd2`** · Dual≠coding · status **`pre_dual_pass`** |
-| **A2** | Authorized flag flip | Only under **standing authorize** · if evidence sufficient → honest flip `eg5ProductClosed` / `productSsotFlipped` · else honest non-flip · **Ban** flip `gR45Closed` / `r4ProductClosed` / `funnelProductClosed` / eg3/eg4 flags · Ban silent flip · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Ban wash EG5 evidence / EG4 / R4·FUNNEL / EG3 tips · Ban MS3=R4 · Ban invent coveredCount · Ban closing EG1/2/6 | Prior EG5 evidence keeps `eg5ProductClosed=false` · `productSsotFlipped=false` · Ban elevating evidence to flip | **HOLD** · flip **forbidden this nail** · EG5 flags remain **false** · r4/funnel/EG3/EG4 **retained** |
-| **A3** | Dedicated product-close prove | Dedicated product-close prove EXIT **0** · proposed `pnpm r4-eg5-product-ssot-product-close:prove` **or** extend existing `pnpm r4-eg5-product-ssot:prove` · EXIT=0 ≠ G-R4-5 all closed ≠ HA · Ban empty meta prove · Ban claim from covered-path alone | EG5 EXIT 1×0 = evidence only · ≠ product close · Ban idle re-run as fake close · Ban covered-path / meta alone | Intended dedicated / extended CMD **later under authorize** · Ban invent EXIT |
-| **A4** | Non-claims / Ban wash | EXIT=0 ≠ G-R4-5 / EG1/2/6 all closed · Ban invent coveredCount · Ban wash EG5 `e099276`/`6058462` · Ban wash EG4 `ce09850`/`0a34933` into EG5/gR45 · Ban wash R4·FUNNEL `2b38e18`/`14e9e2c` into EG5/gR45 · Ban wash EG3 `7be1a55`/`5b3c854` · Ban MS3=R4 · Ban flip `gR45Closed` this knife | Prior dual_pass nails ≠ those product closes | Hard-pinned this nail |
-| **A5** | Authorized SSOT touch | SSOT touch **only** authorized: **GAP-RAG-04** / **m4 §R4** / **w0-w8** / product-ssot / EG5 harness · `releaseEvidence=false` · ≠HA · ≠suite green · retain EG3 + EG4 + r4/funnel product flags | Prior knives did **not** flip EG5 product SSOT | SSOT **NOT** flipped this nail · touch only later under authorize |
-| **A6** | Post-prove dual → nail → STOP | post-prove dual BOTH PASS → nail → commit+push → **STOP** · no second knife · Dual PASS ≠ next knife auto-authorize | N/A this nail | Later · single knife · STOP |
-| **A7** | Key×3 O3 | Key×3 O3 honesty_red **非阻塞** | Honesty_red retained open elsewhere | Non-blocker this REQUEST |
+| # | Gap | Status this execute |
+|---|-----|---------------------|
+| **A1** | Pre-exec dual BOTH PASS on **`95b3dd2`** | **done** · e2e-ha + rag-route · prior **`pre_dual_pass`** recorded · Dual≠coding |
+| **A2** | Authorized flag flip | **done** · honest flip `eg5ProductClosed=true` · `productSsotFlipped=true` · **Ban** flip `gR45Closed` / `r4ProductClosed` / `funnelProductClosed` / eg3/eg4 · retain EG3 + EG4 + r4/funnel |
+| **A3** | Dedicated + production-scoped proves EXIT 0 | **done** · `pnpm r4-eg5-product-ssot-product-close:prove` + `pnpm mysql-stack:r4-domain-isolation:prove` · EXIT **2×0** · Ban empty meta prove · Ban idle re-run EG5 evidence alone |
+| **A4** | Non-claims / Ban wash | **pinned** · Ban wash `e099276`/`6058462` · Ban wash `ce09850`/`0a34933` into EG5/gR45 · Ban wash `2b38e18`/`14e9e2c` · Ban wash `7be1a55`/`5b3c854` · Ban MS3=R4 · Ban invent coveredCount · Ban closing EG1/2/6 |
+| **A5** | Authorized SSOT | **done** · GAP-RAG-04 / m4 §R4 / w0-w8 / product-ssot / EG5 harness / this harness+receipts |
+| **A6** | Post-prove dual → nail → STOP | **awaiting** · Ban self-nail · Dual PASS ≠ next knife auto-authorize · no second knife |
+| **A7** | Key×3 O3 | **非阻塞** |
 
-**Ban**: invent coveredCount · invent EXIT · forge receipts · silent flip · claim EG5/product-SSOT/G-R4-5 product closed from EXIT=0 / this dual / prior dual_pass · wash EG5 `e099276`/`6058462` · wash EG4 `ce09850`/`0a34933` into EG5/gR45 · wash R4·FUNNEL `2b38e18`/`14e9e2c` into EG5/gR45 · wash EG3 `7be1a55`/`5b3c854` · flip `gR45Closed` / r4/funnel / eg3/eg4 this knife · closing EG1/2/6 · MS3=R4 · empty meta prove · idle re-run EG5 evidence / covered-path / meta alone as fake product close · Dual PASS ≠ coding · Dual PASS ≠ next knife auto-authorize · Ban自批 product close · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Ban second knife this nail
+**Ban**: invent coveredCount · forge receipts · silent flip beyond authorize · flip `gR45Closed`/r4/funnel/eg3/eg4 · claim G-R4-5 all closed from EXIT=0 · wash EG5 `e099276`/`6058462` · wash EG4 `ce09850`/`0a34933` · wash R4·FUNNEL `2b38e18`/`14e9e2c` · wash EG3 `7be1a55`/`5b3c854` · MS3=R4 · empty meta prove · idle re-run EG5 evidence alone as fake product close · closing EG1/2/6 · Dual PASS ≠ next knife auto-authorize · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Ban second knife · Ban self-nail `post_prove_dual_pass`
 
-**Dedicated prove pattern（later under authorize · not this nail）**:
-
-| CMD | Role | Honest read when EXIT=0 |
-|-----|------|-------------------------|
-| `pnpm r4-eg5-product-ssot-product-close:prove` (proposed) **or** extend `pnpm r4-eg5-product-ssot:prove` | EG5 / product SSOT product-close prove after authorized flip + SSOT | **EXIT=0 under authorize ≠ auto-claim closed without nail** · ≠ G-R4-5 all closed · ≠ HA · Ban forge · Ban假关 · Ban silent flip · Ban empty meta · Ban flip `gR45Closed` |
-| prior `pnpm r4-eg5-product-ssot:prove` | Prior EG5 evidence · **retained** | **not** product close alone · Ban claim product SSOT product closed from evidence alone |
-| prior EG1–EG6 / covered-path / meta proves | Prior evidence · **retained** | Ban idle re-run alone as fake product / G-R4-5 close · Ban empty meta prove · Ban closing EG1/2/6 this knife |
+**Honest flip rationale**: Prior EG5 authorize-honesty evidence tip **`e099276`** / dual **`6058462`** (EXIT 1×0 · flags false retained as OPEN evidence) + prior product faces EG3/EG4/R4·FUNNEL closed under authorize + standing AUTHORIZE after pre-exec dual BOTH PASS on **`95b3dd2`** → evidence **sufficient** for this knife's dedicated product-close flip of **only** `eg5ProductClosed`/`productSsotFlipped`. ≠ elevating evidence dual_pass alone · ≠ idle re-run evidence CMD · ≠ wash prior tips.
 
 ---
 
-## 2. Explicit ≠ prior knives（must retain · Ban wash）
+## 2. Explicit ≠ prior knives（must survive）
 
-| Knife | Tips | Ruling | This nail |
-|-------|------|--------|-----------|
-| **EG5 true-evidence / impl** | tip nail **`e099276`** · dual **`6058462`** · EXIT **1×0** | evidence emitted · EG5 **STILL OPEN** · `eg5ProductClosed=false` · `productSsotFlipped=false` · **`post_prove_dual_pass`** | **≠** wash into product closed · **retained OPEN evidence** · Ban idle re-run as fake close |
+| Prior knife | SHA pins | Role | This REQUEST |
+|-------------|----------|------|--------------|
+| **EG5 true-evidence / impl** | tip nail **`e099276`** · dual **`6058462`** · EXIT **1×0** | evidence emitted · **retained OPEN evidence** | **≠** wash into product closed without this prove · Ban idle re-run as fake close |
 | **EG4 product close** | tip nail **`ce09850`** · prove **`0a34933`** · EXIT **2×0** | `eg4ProductClosed=true` · `wrongTrackProductClosed=true` · `gR45Closed=false` · **retained** | **≠** wash into EG5/gR45 · **Ban flip eg4/wrongTrack/`gR45Closed` this knife** |
 | **R4·FUNNEL product-close reassess** | tip nail **`2b38e18`** · prove **`14e9e2c`** · EXIT **2×0** | `r4ProductClosed=true` · `funnelProductClosed=true` · `gR45Closed=false` · **retained** | **≠** wash into EG5/gR45 · **Ban flip r4/funnel/`gR45Closed` this knife** |
-| **EG3 product close** | tip nail **`7be1a55`** · prove **`5b3c854`** · EXIT **2×0** | `domainIsolationClosed=true` · `eg3ProductClosed=true` · **retained** | **≠** wash into EG5 closed · Ban flip EG3 flags |
+| **EG3 product close** | tip nail **`7be1a55`** · prove **`5b3c854`** · EXIT **2×0** | `domainIsolationClosed=true` · `eg3ProductClosed=true` · **retained** | **≠** wash into EG5 · Ban flip EG3 |
 | **EG1+EG2 / EG6 / residual / evidence-close** | various | **STILL OPEN** | Ban wash · Ban closing EG1/2/6 this knife |
-| **G-R4-5 product all-closed** | — | **STILL OPEN** · `gR45Closed=false` | EXIT=0 this knife later ≠ G-R4-5 all closed · **MS3 ≠ R4 closed** · Ban flip `gR45Closed` |
+| **G-R4-5 product all-closed** | — | **STILL OPEN** · `gR45Closed=false` | EXIT=0 this knife ≠ G-R4-5 all closed · **MS3 ≠ R4 closed** · Ban flip `gR45Closed` |
 
 ---
 
-## 3. Lifecycle（L0–L1 done · L2–L5 HOLD）
+## 3. Lifecycle（L0–L3 done · L4–L5 awaiting · Ban self-nail）
 
-| Phase | Gate | This nail |
-|-------|------|-----------|
-| **L0** | REQUEST pair open · `REQUEST-ready / not_run:pre_dual` | **done** · tip **`95b3dd2`** |
-| **L1** | Pre-exec dual (`mw-e2e-ha` + `mw-rag-route`) BOTH PASS · Ban self-approve | **done** · BOTH PASS on **`95b3dd2`** · status **`pre_dual_pass`** · Dual≠coding |
-| **L2** | Standing authorize after dual · Dual PASS ≠ coding | **HOLD** · await standing AUTHORIZE |
-| **L3** | Standing coding + honest flip-or-non-flip + prove · Ban silent flip · Ban invent EXIT · Ban invent coveredCount · Ban flip `gR45Closed`/r4/funnel/eg3/eg4 | **not_run** · HOLD |
-| **L4** | Post-prove dual BOTH PASS · Dual PASS ≠ next knife auto-authorize | **not_run** |
-| **L5** | Authorized lifecycle nail + authorized SSOT only (GAP-RAG-04 / m4 §R4 / w0-w8 / product-ssot / EG5 harness) · commit+push · **STOP** · no second knife | **not_run** · EG5 product SSOT **NOT** flipped this nail |
+| Phase | Gate | This execute |
+|-------|------|--------------|
+| **L0** | REQUEST pair open | **done** · tip **`95b3dd2`** |
+| **L1** | Pre-exec dual BOTH PASS on **`95b3dd2`** | **done** · prior **`pre_dual_pass`** recorded · nail **`50924b2`** |
+| **L2** | Standing authorize | **done** · meetwise AUTHORIZED · Dual≠coding |
+| **L3** | Standing coding + honest flip + prove | **done** · EXIT **2×0** |
+| **L4** | Post-prove dual BOTH PASS | **awaiting** · Ban self-nail |
+| **L5** | Authorized lifecycle nail + STOP | **awaiting** · Ban self-nail `post_prove_dual_pass` · no second knife |
 
 ---
 
 ## 4. Pins
 
-- **EG5 / product SSOT product STILL OPEN** · **G-R4-5 STILL OPEN** · **MS3 ≠ R4 closed** · `eg5ProductClosed=false` · `productSsotFlipped=false` · `gR45Closed=false` · `r4ProductClosed=true` · `funnelProductClosed=true` **retained** · `domainIsolationClosed=true` · `eg3ProductClosed=true` **retained** · `eg4ProductClosed=true` · `wrongTrackProductClosed=true` **retained** · coveredCount **not invented**
-- Ban wash EG5 tip **`e099276`** / dual **`6058462`** · Ban wash EG4 tip **`ce09850`** / prove **`0a34933`** into EG5/gR45 · Ban wash R4·FUNNEL tip **`2b38e18`** / prove **`14e9e2c`** into EG5/gR45 · Ban wash EG3 tip **`7be1a55`** / prove **`5b3c854`** · Ban flip `gR45Closed` / r4/funnel / eg3/eg4 this knife · Ban closing EG1/2/6 · Ban MS3=R4 · Ban empty meta prove · Ban invent EXIT
-- Dual PASS ≠ coding · Dual PASS ≠ next knife auto-authorize · Ban silent flip · Ban自批 · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Ban second knife · Key×3 O3 honesty_red **非阻塞** · `releaseEvidence=false` · ≠HA · ≠suite green
-- SSOT later (under authorize only): GAP-RAG-04 / m4 §R4 / w0-w8 / product-ssot / EG5 harness
-- REQUEST tip retained **`95b3dd2`** / full `95b3dd20307d10169ca3ed01c14125aa3678be0a` · pre-exec dual BOTH PASS recorded
+- `eg5ProductClosed=true` · `productSsotFlipped=true` under authorize · `gR45Closed=false` · `r4ProductClosed=true` **retained** · `funnelProductClosed=true` **retained** · `domainIsolationClosed=true` **retained** · `eg3ProductClosed=true` **retained** · `eg4ProductClosed=true` **retained** · `wrongTrackProductClosed=true` **retained** · coveredCount **not invented** · `releaseEvidence=false` · ≠HA
+- **G-R4-5 STILL OPEN** · **MS3 ≠ R4 closed** · EG1/2/6 product **NOT** closed by this knife
+- Ban wash EG5 tip **`e099276`** / dual **`6058462`** · Ban wash EG4 tip **`ce09850`** / prove **`0a34933`** into EG5/gR45 · Ban wash R4·FUNNEL tip **`2b38e18`** / prove **`14e9e2c`** into EG5/gR45 · Ban wash EG3 tip **`7be1a55`** / prove **`5b3c854`** · Ban flip `gR45Closed` / r4/funnel / eg3/eg4 · Ban empty meta · Ban MS3=R4
+- Dual PASS ≠ next knife auto-authorize · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Ban second knife · Ban self-nail `post_prove_dual_pass` · Key×3 O3 honesty_red **非阻塞**
+- SSOT authorized: GAP-RAG-04 / m4 §R4 / w0-w8 / product-ssot / EG5 harness / this harness+receipts
+- REQUEST tip retained **`95b3dd2`** · pre_dual nail **`50924b2`** · prove tip = this commit · EXIT **2×0**
 
 ---
 
-## 5. Prove CMD honesty（frozen this nail · HOLD coding）
+## 5. Prove CMD honesty
 
-| CMD | Status this nail |
-|-----|------------------|
-| docs REQUEST + pre_dual_pass nail | **`pre_dual_pass`** · Dual≠coding · HOLD |
-| pre-exec dual | **BOTH PASS** on tip **`95b3dd2`** · Ban自批 coding |
-| standing coding / flip / prove / SSOT | **`not_run:HOLD_authorize`** · Ban silent flip · Dual PASS ≠ coding · Ban flip `gR45Closed`/r4/funnel/eg3/eg4 |
-| intended dedicated prove (later) | proposed `pnpm r4-eg5-product-ssot-product-close:prove` **or** extend `pnpm r4-eg5-product-ssot:prove` · EXIT=0 later under authorize ≠ auto product closed without nail · ≠ G-R4-5 all closed · ≠ HA · Ban invent EXIT |
-| retained prior proves | EG5 evidence + prior meta/covered-path · Ban idle re-run alone as fake product/G-R4-5 close · Ban empty meta prove |
+| CMD | EXIT this execute | Honest read |
+|-----|-------------------|-------------|
+| `pnpm r4-eg5-product-ssot-product-close:prove` | **0** | dedicated product-close · `eg5ProductClosed=true` · `productSsotFlipped=true` this knife only · Ban flip gR45/r4/funnel/eg3/eg4 · Ban invent coveredCount |
+| `pnpm mysql-stack:r4-domain-isolation:prove` | **0** | production-scoped honesty · EG5 product-face closed under authorize · ≠ G-R4-5 all closed · ≠ invent coveredCount |
+| `pnpm r4-eg5-product-ssot:prove` (retained) | retained evidence path | prior evidence tip **`e099276`** · Ban idle re-run alone as fake product close |
 
 ---
 
 ## 6. Non-claims
 
-- Not coding · not prove · not flip · not claiming EG5/product-SSOT/G-R4-5 product closed · not inventing coveredCount · not inventing EXIT · not washing `e099276`/`6058462`/`ce09850`/`0a34933`/`2b38e18`/`14e9e2c`/`7be1a55`/`5b3c854` · not flipping `gR45Closed`/r4/funnel/eg3/eg4 · not closing EG1/2/6 · not MS3=R4 · not empty meta prove · not HA · not suite green · not `releaseEvidence=true` · not second knife · Dual PASS ≠ coding · Dual PASS ≠ next knife auto-authorize · **HOLD** await standing AUTHORIZE
+- Not flipping `gR45Closed`/r4/funnel/eg3/eg4 · not invent coveredCount · not washing `e099276`/`6058462`/`ce09850`/`0a34933`/`2b38e18`/`14e9e2c`/`7be1a55`/`5b3c854` · not MS3=R4 · not empty meta · not closing EG1/2/6 · not HA · not suite green · not `releaseEvidence=true` · not second knife · not self-nail `post_prove_dual_pass` · Dual PASS ≠ next knife auto-authorize · **G-R4-5 STILL OPEN**
 
 ---
 
-*Harness · G-R4-5 / EG5 product SSOT product close · 2026-09-23 (~12:37 PT) · pre_dual_pass · REQUEST tip 95b3dd2 · Dual BOTH PASS · Dual≠coding · HOLD await standing AUTHORIZE coding+prove · Ban flip · Ban wash EG5 e099276/6058462 · Ban wash EG4 ce09850/0a34933 into EG5/gR45 · Ban wash R4·FUNNEL 2b38e18/14e9e2c into EG5/gR45 · Ban wash EG3 7be1a55/5b3c854 · Ban flip gR45Closed/r4/funnel/eg3/eg4 · Ban second knife · Ban invent EXIT · Ban claim product closed · eg5ProductClosed=false · productSsotFlipped=false · gR45Closed=false · r4/funnel/EG3/EG4 product flags retained · coveredCount not invented · EG5/product-SSOT/G-R4-5 STILL OPEN · Key×3 O3 honesty_red非阻塞 · releaseEvidence=false · ≠HA · zero coding · zero prove · zero flip*
+*Harness · G-R4-5 / EG5 product SSOT product close · 2026-09-23 (~12:45 PT) · executed:awaiting_post_prove_dual · prior pre_dual_pass · REQUEST tip 95b3dd2 · pre_dual 50924b2 · EXIT 2×0 · eg5ProductClosed=true · productSsotFlipped=true · gR45Closed=false · r4/funnel/EG3/EG4 retained · Ban flip gR45/r4/funnel/eg3/eg4 · Ban wash EG5 e099276/6058462 · Ban wash EG4 ce09850/0a34933 · Ban wash R4·FUNNEL 2b38e18/14e9e2c · Ban wash EG3 7be1a55/5b3c854 · Ban MS3=R4 · Ban invent coveredCount · Ban empty meta · Ban self-nail post_prove_dual_pass · G-R4-5 STILL OPEN · Dual PASS ≠ next knife auto-authorize · Ban second knife · Key×3 O3 honesty_red非阻塞 · releaseEvidence=false · ≠HA*

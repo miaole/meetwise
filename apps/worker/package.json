@@ -103,6 +103,7 @@
     "prove:r4-eg4-wrong-track-product": "tsx test/r4-eg4-wrong-track-product-evidence.proof.ts",
     "prove:r4-eg4-wrong-track-product-close": "tsx test/r4-eg4-wrong-track-product-close.proof.ts",
     "prove:r4-eg5-product-ssot": "tsx test/r4-eg5-product-ssot-evidence.proof.ts",
+    "prove:r4-eg5-product-ssot-product-close": "tsx test/r4-eg5-product-ssot-product-close.proof.ts",
     "prove:r4-eg6-ms3-ne-r4": "tsx test/r4-eg6-ms3-ne-r4-evidence.proof.ts",
     "prove:r4-pr1b-combo-root": "tsx test/r4-pr1b-combo-root-flag-on-evidence.proof.ts",
     "prove:r4-pr1c-no-legacy": "tsx test/r4-pr1c-default-on-no-legacy-evidence.proof.ts",
