@@ -38,6 +38,7 @@ import { runRouteClassifyConsumer } from './route-classify-consumer.ts';
 import { ingestQbank, ingestQuestionBankArtifacts } from '@meetwise/db';
 import { QBANK_ARTIFACTS, QBANK_SEED } from './qbank-seed.ts';
 import { ensureActiveQbankGeneration, qbankEmbeddingRecipe } from './qbank-generation.ts';
+import { resolveQbankEmbeddingComputeSeams } from './qbank-embedding-compute-seams.ts';
 import { budgetedQbankEmbedding, resolveRagCostGovernance } from './rag-cost-governance.ts';
 import { resolveModelCostGovernance, verifyModelCostGovernance } from './model-cost-governance.ts';
 import { RedisQbankRetrievalCache, UnavailableQbankRetrievalCache, isProductionEnvironment, resolveRagRedisCacheConfig } from './rag-redis-cache.ts';
@@ -255,16 +256,26 @@ async function initializeQbankReadModel(controlPool: ReturnType<typeof createPoo
         const seeded = await ingestQuestionBankArtifacts(controlPool, QBANK_ARTIFACTS, embedder);
         console.log(`qbank question artifacts seeded/reconciled: questions=${seeded.questionCount} chunks=${seeded.chunkCount}`);
       }
-      const generation = await ensureActiveQbankGeneration(controlPool, embedder);
-      if (generation?.status === 'blocked_unrebuildable_legacy') {
-        console.error(`qbank generation BLOCKED: ${generation.unrebuildableLegacyRefs?.length ?? 0}${(generation.unrebuildableLegacyRefs?.length ?? 0) >= 101 ? '+' : ''} visible legacy refs lack approved reconstructible text; local RAG fail-closed until operator reimports them`);
-        return;
-      }
-      if (generation) {
-        // `ensureActiveQbankGeneration` returns activated/reused. A prior active/exists spelling left retrieval
-        // disabled after a normal worker restart, despite a valid active pointer in Postgres.
-        state.ready = generation.status === 'activated' || generation.status === 'reused';
-        console.log(`qbank generation ${generation.status}: ${generation.generationId ?? '-'} chunks=${generation.chunkCount} recipe=${generation.recipe.id}`);
+      // RAG-FUNNEL-02B: durable embedding compute cache production consumer.
+      // Prefer path with recipe digests / HMAC identity — generation embeds through
+      // resolveEmbeddingCompute when exact recipe + HMAC keys + Redis seams resolve.
+      // Fail-closed: missing seams keep direct embedder (never invent durable hits).
+      const computeResolved = await resolveQbankEmbeddingComputeSeams(qbankEmbeddingRecipe(embedder));
+      try {
+        const generation = await ensureActiveQbankGeneration(controlPool, embedder, computeResolved?.seams);
+        if (generation?.status === 'blocked_unrebuildable_legacy') {
+          console.error(`qbank generation BLOCKED: ${generation.unrebuildableLegacyRefs?.length ?? 0}${(generation.unrebuildableLegacyRefs?.length ?? 0) >= 101 ? '+' : ''} visible legacy refs lack approved reconstructible text; local RAG fail-closed until operator reimports them`);
+          return;
+        }
+        if (generation) {
+          // `ensureActiveQbankGeneration` returns activated/reused. A prior active/exists spelling left retrieval
+          // disabled after a normal worker restart, despite a valid active pointer in Postgres.
+          state.ready = generation.status === 'activated' || generation.status === 'reused';
+          const computeNote = computeResolved ? 'compute-cache=wired' : 'compute-cache=direct-embed';
+          console.log(`qbank generation ${generation.status}: ${generation.generationId ?? '-'} chunks=${generation.chunkCount} recipe=${generation.recipe.id} ${computeNote}`);
+        }
+      } finally {
+        await computeResolved?.close().catch(() => undefined);
       }
       return;
     }

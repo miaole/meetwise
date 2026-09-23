@@ -2,11 +2,12 @@
   "kind": "FunnelCoveredCountBatch2Evidence",
   "batch2Only": true,
   "funnel02ACovered": true,
-  "funnel02BCovered": false,
+  "funnel02BCovered": true,
   "coveredIds": [
-    "RAG-FUNNEL-02A"
+    "RAG-FUNNEL-02A",
+    "RAG-FUNNEL-02B"
   ],
-  "batch2CoveredCount": 1,
+  "batch2CoveredCount": 2,
   "coveredCountInvented": false,
   "funnel02AAssessor": {
     "recipeCanonicalFieldsPresent": true,
@@ -22,10 +23,10 @@
     "claimFillAndValidatePresent": true,
     "distinctFromRetrievalCache": true,
     "dbExportsComputeCache": true,
-    "productionConsumerWired": false
+    "productionConsumerWired": true
   },
   "funnel02ARefuseReason": null,
-  "funnel02BRefuseReason": "production_consumer_not_wired_worker_or_generation",
+  "funnel02BRefuseReason": null,
   "r4ProductClosed": false,
   "funnelProductClosed": false,
   "gR45Closed": false,

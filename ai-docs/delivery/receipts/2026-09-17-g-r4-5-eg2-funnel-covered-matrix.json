@@ -21,8 +21,8 @@
     },
     {
       "id": "RAG-FUNNEL-02B",
-      "status": "not_covered",
-      "basis": "durable embedding compute cache not evidenced on production consumer path · Ban invent covered",
+      "status": "covered",
+      "basis": "Batch2/Batch2b true-cover: durable embedding compute cache evidenced (HMAC cache identity + resolve/claim/validate + db export + production consumer wiring) · Ban invent",
       "inventCoveredForbidden": true
     },
     {
@@ -62,8 +62,8 @@
       "inventCoveredForbidden": true
     }
   ],
-  "coveredCount": 3,
+  "coveredCount": 4,
   "inventCovered": false,
   "releaseEvidence": false,
-  "note": "EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2 may elevate 02A/02B when assessors affirm · ≠ R4/题域 closed · await post-prove dual"
+  "note": "EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B when assessors affirm · ≠ R4/题域 closed · await post-prove dual"
 }
