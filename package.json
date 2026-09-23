@@ -441,6 +441,7 @@
     "r4-eg2-funnel-covered:prove": "pnpm -C apps/worker prove:r4-eg2-funnel-covered",
     "r4-eg3-domain-isolation-product:prove": "pnpm -C apps/worker prove:r4-eg3-domain-isolation-product",
     "r4-eg3-domain-isolation-product-close:prove": "pnpm -C apps/worker prove:r4-eg3-domain-isolation-product-close",
+    "r4-funnel-product-close:prove": "pnpm -C apps/worker prove:r4-funnel-product-close",
     "r4-eg4-wrong-track-product:prove": "pnpm -C apps/worker prove:r4-eg4-wrong-track-product",
     "r4-eg5-product-ssot:prove": "pnpm -C apps/worker prove:r4-eg5-product-ssot",
     "r4-eg6-ms3-ne-r4:prove": "pnpm -C apps/worker prove:r4-eg6-ms3-ne-r4",
