@@ -1,3 +1,5 @@
+**Prove tip**: `94b05b6` / `94b05b68c66c29996242477bf6e27a5f2966a3c5` · parent `72d2b93`
+
 # Prove receipt — **HA local C3+C4 authorized-prove** (fix+re-prove after rag-route BLOCK)
 
 **Date**: 2026-09-23 (~14:29 PT)
