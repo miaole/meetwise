@@ -49,6 +49,8 @@
 | **C4** fault-inject | **本地路径已落** · 默认可 **PREREQ** | `ha:fault-inject`（`fault-inject.mjs`）：授权后 `docker stop` api-a、B `/livez`、可选 `--with-shared-survivor`（sole Redis/MySQL）；无 `MEETWISE_HA_FAULT_AUTHORIZED` → **PREREQ_GAP**；`--require-fault` → EXIT=1；stub 仍可用 `ha:fault-inject:stub`；**≠** 生产 failover |
 | **D1–D3** `ha:probe`+CI+独立审 | **Local D1 done** · **D2 workflow+static done** · **D2b = live CI artifact (real URL)** · **D3 OUT OF SCOPE** · 阶 C/D **STILL NOT GREEN** | Local D1 nail `b72c7c4` · D2 nail `d79519d` / pin `9015410` · D2b live run **https://github.com/miaole/meetwise/actions/runs/35930389740** · artifact **`ha-probe-multi-receipt`** (API `https://api.github.com/repos/miaole/meetwise/actions/artifacts/10781320550` · Actions download `https://github.com/miaole/meetwise/actions/runs/35930389740/artifacts/10781320550`) · stub EXIT=0 · `--require-evidence` EXIT=1 honesty SUCCESS · **`haStatus=NOT_HA`** · **Ban claim 阶 D from artifact URL alone** · Ban claim production HA · D3 production probe **OUT OF SCOPE** |
 
+**D2b lifecycle sync**: live artifact URL is recorded above; Local D1/D2 are done; D3 is **OUT OF SCOPE**; post-prove dual is **BOTH PASS** (`mw-e2e-ha` `ec75d12`, `mw-rag-route` `24be709`); status **`post_prove_dual_pass`** · nail tip = this commit. These receipts do **not** claim 阶 D/HA; 阶 C/D **STILL NOT GREEN**; artifact URL alone is not 阶 D; retain `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false`.
+
 **本地 C3 Redis/MySQL prove ≠ 阶 C 绿。** 本地 Nest PG session LOCAL_OK **≠** 生产 HA **≠** 阶 C/D 绿 **≠** `releaseEvidence=true`。未齐真故障注入生产级 + CI + 独立审生产回执 → 阶 C/D = **未绿**；保持 NOT_HA。  
 **C1/C3/C3b 路径落地 ≠ 批准阶 C 绿 ≠ `releaseEvidence=true`。**
 
