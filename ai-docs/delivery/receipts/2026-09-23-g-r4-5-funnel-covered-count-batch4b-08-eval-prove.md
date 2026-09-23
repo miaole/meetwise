@@ -1,6 +1,6 @@
 # Prove — G-R4-5 / FUNNEL coveredCount Batch4b（08 eval true-cover）
 
-**Status**: `executed:awaiting_post_prove_dual` · Ban invent · Ban invent coveredCount=8 · Ban self-nail post_prove_dual_pass · product flags false
+**Status**: `post_prove_dual_pass` · prior `executed:awaiting_post_prove_dual` recorded · Ban invent · Ban invent coveredCount=8 · product flags false
 **Date**: 2026-09-23 (~11:30 PT)
 **CMD**: `pnpm r4-funnel-covered-count-batch4b-08-eval:prove` + `pnpm r4-eg2-funnel-covered:prove`
 **coveredCount**: **8** (before Batch4b baseline **7** · expect 7→8 if affirmed · Ban invent coveredCount=8)
@@ -24,4 +24,4 @@
 ## Non-claims
 
 - Not product close · not gR45Closed · Ban invent coveredCount=8 · Ban wash Batch4 9b8b9a7/b0f5c50 · Batch3b 85be7ad/9aa1be4 · Batch3 · Batch2b · Batch2 · Batch1 · product-close · EG3
-- Ban MS3=R4 · Ban self-nail post_prove_dual_pass · Ban invent · Ban second knife · covering 08 ≠ product closed
+- Ban MS3=R4 · Ban wash this dual_pass into product closed · Ban invent · Ban second knife · Ban opening next knife（R4·FUNNEL product close）· covering 08 ≠ product closed

@@ -13,9 +13,9 @@
  * HARD:
  *   - 本刀不翻 r4ProductClosed / funnelProductClosed / gR45Closed.
  *   - Ban wash Batch4 9b8b9a7/b0f5c50 · Batch3b 85be7ad/9aa1be4 · Batch3 · Batch2b · Batch2 · Batch1 · product-close · EG3.
- *   - Ban MS3=R4 · Ban self-nail post_prove_dual_pass · releaseEvidence=false · ≠HA.
+ *   - Ban MS3=R4 · post_prove_dual_pass · Ban invent · releaseEvidence=false · ≠HA.
  *   - Ban docs-only fake cover — eval wire must produce+bind receipts (real run).
- *   - Status after emit = executed:awaiting_post_prove_dual.
+ *   - Status after nail = post_prove_dual_pass · prior executed:awaiting_post_prove_dual recorded.
  *   - covering 08 ≠ product closed / ≠ G-R4-5 closed.
  */
 import {
@@ -50,7 +50,7 @@ export type FunnelCoveredCountBatch4b08EvalEvidence = {
   readonly gR45Closed: false;
   readonly ms3EqualsR4Closed: false;
   readonly releaseEvidence: false;
-  readonly note: 'G-R4-5 / FUNNEL coveredCount Batch4b 08 eval — true-cover 08 under authorize · honest assessor elevation only when production-equivalent eval matrix evidenced · Ban invent coveredCount=8 · Ban docs-only fake cover · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · Ban wash Batch4 9b8b9a7/b0f5c50 · Ban wash Batch3b 85be7ad/9aa1be4 · Ban MS3=R4 · Ban self-nail post_prove_dual_pass · covering 08 ≠ product closed · await post-prove dual';
+  readonly note: 'G-R4-5 / FUNNEL coveredCount Batch4b 08 eval — true-cover 08 under authorize · honest assessor elevation only when production-equivalent eval matrix evidenced · Ban invent coveredCount=8 · Ban docs-only fake cover · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · Ban wash Batch4 9b8b9a7/b0f5c50 · Ban wash Batch3b 85be7ad/9aa1be4 · Ban MS3=R4 · post_prove_dual_pass · prior executed:awaiting_post_prove_dual recorded · covering 08 ≠ product closed · Ban opening next knife（R4·FUNNEL product close）';
 };
 
 /**
@@ -80,7 +80,7 @@ export function emitFunnelCoveredCountBatch4b08EvalEvidence(
     gR45Closed: false,
     ms3EqualsR4Closed: false,
     releaseEvidence: false,
-    note: 'G-R4-5 / FUNNEL coveredCount Batch4b 08 eval — true-cover 08 under authorize · honest assessor elevation only when production-equivalent eval matrix evidenced · Ban invent coveredCount=8 · Ban docs-only fake cover · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · Ban wash Batch4 9b8b9a7/b0f5c50 · Ban wash Batch3b 85be7ad/9aa1be4 · Ban MS3=R4 · Ban self-nail post_prove_dual_pass · covering 08 ≠ product closed · await post-prove dual',
+    note: 'G-R4-5 / FUNNEL coveredCount Batch4b 08 eval — true-cover 08 under authorize · honest assessor elevation only when production-equivalent eval matrix evidenced · Ban invent coveredCount=8 · Ban docs-only fake cover · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · Ban wash Batch4 9b8b9a7/b0f5c50 · Ban wash Batch3b 85be7ad/9aa1be4 · Ban MS3=R4 · post_prove_dual_pass · prior executed:awaiting_post_prove_dual recorded · covering 08 ≠ product closed · Ban opening next knife（R4·FUNNEL product close）',
   };
 }
 
