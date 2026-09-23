@@ -47,7 +47,7 @@
 | **C3** 共享态 A 写 B 读 | **本地路径已落** · 默认可 **PREREQ** | `--compose-shared` + `ha:prove:shared -- --prove`：优先 in-container Redis A→B；若环境 container↔container TCP 被阻则 **shared_backend_hostpath**（sole redis/mysql exec + A/B env 对等 + DNS）；收据 `shared-state-A-write.json` / `shared-state-B-read.json`；**≠** Nest 业务 session/job；**≠** 生产 HA |
 | **C3b** Nest 业务 session A→B | **本地路径已落** · 默认可 **PREREQ** | `compose.ha-dual.pg.yml` + `ha:prepare:nest-pg` + `--compose-pg` + `ha:prove:nest-session -- --prove`：A signup/login token → B `GET /profile`；成功 → `nestSessionOk=true` + `nest-session.OK.json`；**仍** `haStatus=NOT_HA` · `releaseEvidence=false`；无授权/无 PG → **PREREQ_GAP**；`--require-session` → EXIT=1；**≠** 生产 HA · **≠** 阶 C 绿 |
 | **C4** fault-inject | **本地路径已落** · 默认可 **PREREQ** | `ha:fault-inject`（`fault-inject.mjs`）：授权后 `docker stop` api-a、B `/livez`、可选 `--with-shared-survivor`（sole Redis/MySQL）；无 `MEETWISE_HA_FAULT_AUTHORIZED` → **PREREQ_GAP**；`--require-fault` → EXIT=1；stub 仍可用 `ha:fault-inject:stub`；**≠** 生产 failover |
-| **D1–D3** `ha:probe`+CI+独立审 | **未开** | 今日仅 `ha:probe:multi`（仍 NOT_HA）；无 CI job；本切片不自审 |
+| **D1–D3** `ha:probe`+CI+独立审 | **Local D1 done** · **D2 workflow+static done** · **D2b = live CI artifact (real URL)** · **D3 OUT OF SCOPE** · 阶 C/D **STILL NOT GREEN** | Local D1 nail `b72c7c4` · D2 nail `d79519d` / pin `9015410` · D2b live run **https://github.com/miaole/meetwise/actions/runs/35930389740** · artifact **`ha-probe-multi-receipt`** (API `https://api.github.com/repos/miaole/meetwise/actions/artifacts/10781320550` · Actions download `https://github.com/miaole/meetwise/actions/runs/35930389740/artifacts/10781320550`) · stub EXIT=0 · `--require-evidence` EXIT=1 honesty SUCCESS · **`haStatus=NOT_HA`** · **Ban claim 阶 D from artifact URL alone** · Ban claim production HA · D3 production probe **OUT OF SCOPE** |
 
 **本地 C3 Redis/MySQL prove ≠ 阶 C 绿。** 本地 Nest PG session LOCAL_OK **≠** 生产 HA **≠** 阶 C/D 绿 **≠** `releaseEvidence=true`。未齐真故障注入生产级 + CI + 独立审生产回执 → 阶 C/D = **未绿**；保持 NOT_HA。  
 **C1/C3/C3b 路径落地 ≠ 批准阶 C 绿 ≠ `releaseEvidence=true`。**
@@ -163,7 +163,7 @@ pnpm ha:probe:multi -- --with-bring-up-stub --with-fault-inject
 3. fault-inject：A down 后 B 仍服务 — **本地 compose kill 收据可证**（`kill-A.receipt.json` / `B-still-serving.receipt.json`；可选 `fault-shared-survivor.receipt.json`）；**≠** 生产 failover；stub 收据 **仅**证明探针机械  
 4. 探针 RECEIPT 全文（含 `releaseEvidence: false`）  
 5. 独立审查 ≥2 域（实现方禁止自审）  
-6. （阶 D）CI artifact URL  
+6. （阶 D ladder receipt）CI artifact URL — **D2b live recorded** `https://github.com/miaole/meetwise/actions/runs/35930389740` · artifact `ha-probe-multi-receipt` · **Ban claim 阶 D / production HA from artifact URL alone** · 阶 C/D **STILL NOT GREEN** · D3 **OUT OF SCOPE**  
 
 缺任一 → **NOT_HA** · `releaseEvidence=false`。
 
@@ -178,7 +178,7 @@ pnpm ha:probe:multi -- --with-bring-up-stub --with-fault-inject
 - [x] C3 本地 shared 路径（compose-shared + prove-shared-state + probe sharedOk）落盘；默认可 PREREQ  
 - [x] Nest session prove 工具落盘（`ha:prove:nest-session`）且诚实 **GAP/PREREQ**（**≠** closed）  
 - [ ] ~~Nest 业务 session A→B 已证~~ → **仍 GAP**（Postgres PREREQ；sole MySQL 不够）  
-- [ ] ~~阶 C/D prove 绿~~ → **未开**（本地 C3 ≠ 阶 C 齐套；Nest 业务 session 未证；D 未开；**不自批**）  
+- [ ] ~~阶 C/D prove 绿~~ → **STILL NOT GREEN**（本地 C3 ≠ 阶 C 齐套；Nest 业务 session LOCAL ≠ 阶 C；D1/D2/D2b live CI artifact recorded ≠ 阶 D green；**Ban claim 阶 D from artifact URL alone**；D3 OUT OF SCOPE；**不自批**）  
 - [ ] ~~生产 HA~~ → **禁止宣称**
 
 ## 审查
