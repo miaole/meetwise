@@ -39,14 +39,14 @@
     },
     {
       "id": "RAG-FUNNEL-05",
-      "status": "not_covered",
-      "basis": "same-leaf LLM generation on clean miss not evidenced on production consumer path · Ban invent covered",
+      "status": "covered",
+      "basis": "Batch3 true-cover: same-leaf LLM generation on clean miss evidenced (domain QuestionPlan + db dispatchQbankMissGeneration + clean no_eligible_in_scope gate + no QBank pollution/score-excluded + production consumer wiring) · Ban invent",
       "inventCoveredForbidden": true
     },
     {
       "id": "RAG-FUNNEL-06",
-      "status": "not_covered",
-      "basis": "route-scope cache/provenance/revoke not evidenced on production consumer path · Ban invent covered",
+      "status": "covered",
+      "basis": "Batch3 true-cover: route-scope cache/provenance/revoke evidenced (domain digest + retrieval/singleflight keys + durable negative cache + epoch supersede + hit revalidate + distinct from embedding compute + production consumer wiring) · Ban invent",
       "inventCoveredForbidden": true
     },
     {
@@ -62,7 +62,7 @@
       "inventCoveredForbidden": true
     }
   ],
-  "coveredCount": 4,
+  "coveredCount": 6,
   "inventCovered": false,
   "releaseEvidence": false,
   "note": "EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B · Batch3 may elevate 05/06 when assessors affirm · Ban elevating 07/08 · ≠ R4/题域 closed · await post-prove dual"

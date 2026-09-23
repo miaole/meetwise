@@ -1,0 +1,39 @@
+{
+  "kind": "FunnelCoveredCountBatch3b0506WireEvidence",
+  "batch3bOnly": true,
+  "funnel05Covered": true,
+  "funnel06Covered": true,
+  "coveredIds": [
+    "RAG-FUNNEL-05",
+    "RAG-FUNNEL-06"
+  ],
+  "batch3bCoveredCount": 2,
+  "coveredCountInvented": false,
+  "funnel05ProductionConsumerWired": true,
+  "funnel06ProductionConsumerWired": true,
+  "funnel05Assessor": {
+    "domainQuestionPlanPresent": true,
+    "dbDispatchMissGenerationPresent": true,
+    "cleanMissGateOnly": true,
+    "noQbankPollutionScoreExcluded": true,
+    "dbExportsMissGeneration": true,
+    "productionConsumerWired": true
+  },
+  "funnel06Assessor": {
+    "domainRouteScopeDigestPresent": true,
+    "retrievalAndSingleflightKeysPresent": true,
+    "durableNegativeCachePresent": true,
+    "epochSupersedeAndHitRevalidatePresent": true,
+    "distinctFromEmbeddingComputeCache": true,
+    "dbExportsRouteScopeCache": true,
+    "productionConsumerWired": true
+  },
+  "funnel05RefuseReason": null,
+  "funnel06RefuseReason": null,
+  "r4ProductClosed": false,
+  "funnelProductClosed": false,
+  "gR45Closed": false,
+  "ms3EqualsR4Closed": false,
+  "releaseEvidence": false,
+  "note": "G-R4-5 / FUNNEL coveredCount Batch3b 05/06 wire — true-cover 05+06 under authorize · honest assessor elevation only when productionConsumerWired · Ban invent · Ban docs-only fake cover · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · Ban wash Batch3 bd3a800/e468de9 · Ban wash Batch2b ddfb64d/824e072 · Ban MS3=R4 · Ban self-nail post_prove_dual_pass · Ban elevating 07/08 · await post-prove dual"
+}
