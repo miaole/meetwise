@@ -1,59 +1,82 @@
-# Prove receipt — **HA local C3+C4 authorized-prove**
+# Prove receipt — **HA local C3+C4 authorized-prove** (fix+re-prove after rag-route BLOCK)
 
-**Date**: 2026-09-23 (~14:20 PT)  
-**Base / REQUEST tip**: **`a32da03`** / full `a32da0377a16f311399ad03b0befc973b2866081`  
-**Prove tip**: **`7a27a24`** / full `7a27a24810afe5edd369bb8ba7fe47e9d60be105` · parent **`a32da03`** / `a32da0377a16f311399ad03b0befc973b2866081`
-**Branch**: `feat/mysql-schema-skeleton`  
-**Authority**: meetwise — **AUTHORIZED coding+prove** for knife HA local C3+C4 authorized-prove · standing after pre-exec dual BOTH PASS · Ban secrets / `.env*` · Ban Meridian · Ban Cloud Agent · **Ban self-nail `post_prove_dual_pass`** · Ban claim 阶 C/D green · Ban production HA / failover · Ban flip `releaseEvidence` · Ban wash G-R4-5 tip `6ded589` / prove `ba1b8aa` into HA · Ban wash skeleton/stub EXIT=0 into HA · Ban invent green / forge receipts · Ban second knife  
-**Harness**: `harness/ha-local-c3-c4-authorized-prove.md` · status **`executed:awaiting_post_prove_dual`**（**NOT** `post_prove_dual_pass`）  
-**haStatus=NOT_HA** · **releaseEvidence=false** · **claimProductionHA=false** · 阶 C/D **STILL NOT GREEN** · ≠ production HA · Dual PASS ≠ HA green · local EXIT=0 ≠ 阶 C/D green  
+**Date**: 2026-09-23 (~14:29 PT)
+**Parent / prior tip**: **`72d2b93`** / full `72d2b93c19f181d27dc14baa074af887f69f6cbf`
+**Branch**: `feat/mysql-schema-skeleton`
+**Authority**: meetwise — **AUTHORIZED fix+re-prove** after post-prove **BLOCK** by `mw-rag-route` on tip `72d2b93` · Ban secrets / `.env*` · Ban Meridian · Ban Cloud Agent · **Ban self-nail `post_prove_dual_pass`** · Ban claim 阶 C/D green · Ban production HA / failover · Ban flip `releaseEvidence` · Ban wash G-R4-5 tip `6ded589` / prove `ba1b8aa` into HA · Ban wash skeleton/stub EXIT=0 into HA · Ban invent green / forge receipts · Ban second knife
+**Harness**: `harness/ha-local-c3-c4-authorized-prove.md` · status **`executed:awaiting_post_prove_dual`**（**NOT** `post_prove_dual_pass` · fresh）
+**haStatus=NOT_HA** · **releaseEvidence=false** · **claimProductionHA=false** · 阶 C/D **STILL NOT GREEN** · ≠ production HA · Dual PASS ≠ HA green · local EXIT=0 ≠ 阶 C/D green
 **Prior G-R4-5 retained（≠ wash into HA）**: nail **`6ded589`** · prove **`ba1b8aa`** · `gR45Closed=true` · coveredCount **8** · `ms3EqualsR4Closed=false` · eg1–eg6/r4/funnel retained · `releaseEvidence=false`
 
 ---
 
-## Pre-exec dual（experts · already on disk · included for tip honesty）
+## Why fix (cite BLOCK)
 
-| Expert | Receipt | Verdict |
-|--------|---------|---------|
-| `mw-e2e-ha` | `reviews/REQUEST-2026-09-23-ha-local-c3-c4-authorized-prove-mw-e2e-ha.md` | **PASS** |
-| `mw-rag-route` | `reviews/REQUEST-2026-09-23-ha-local-c3-c4-authorized-prove-mw-rag-route.md` | **PASS** |
+`mw-rag-route` post-prove receipt `reviews/REQUEST-2026-09-23-ha-local-c3-c4-authorized-prove-post-prove-mw-rag-route.md` · tip `72d2b93` · independent CMD4:
+`MEETWISE_HA_FAULT_AUTHORIZED=1 pnpm ha:fault-inject -- --kill --with-shared-survivor`
+→ **EXIT=1** · `COMPOSE_INCOMPLETE` · after `docker stop api-a`, A `/livez` still **200** · `aDown=false`.
+Claimed 4×0 on `72d2b93` **NOT** independently reproduced. `mw-e2e-ha` post-prove PASS alone on `72d2b93` · **alone≠dual** · nail HOLD.
 
-Pre-exec dual BOTH PASS ≠ coding auto · ≠ HA green · ≠ 阶 C/D green · ≠ production HA · ≠ next knife auto-authorize.
+**Root cause (diagnose)**: `docker stop -t 5` leaves a SIGTERM grace window where Nest `/livez` can still answer 200; concurrent compose re-bring-up (RestartCount=0) can also resurrect A before probes settle. `waitPostFault` previously only polled livez for ~4.5s without inspecting `State.Running` or re-killing.
+
+**Fix (files)**: `scripts/ha/fault-inject.mjs`
+1. `--kill` path uses `docker kill` (SIGKILL) instead of `docker stop -t 5`.
+2. `waitPostFault` requires `Running=false` **and** livez-down, with **3 consecutive** confirms (~15s window).
+3. If A container resurrects mid-wait, **one** re-kill then continue; receipt records `aContainerRunning` / `rekillUsed` / `aLivezOk`.
 
 ---
 
-## CMD+EXIT（exact order · honest）
+## Pre-exec dual（historical · REQUEST tip）
+
+| Expert | Receipt | Verdict |
+|--------|---------|---------|
+| `mw-e2e-ha` | `reviews/REQUEST-2026-09-23-ha-local-c3-c4-authorized-prove-mw-e2e-ha.md` | **PASS** (pre-exec) |
+| `mw-rag-route` | `reviews/REQUEST-2026-09-23-ha-local-c3-c4-authorized-prove-mw-rag-route.md` | **PASS** (pre-exec) |
+
+## Post-prove dual on parent `72d2b93`（history · not this tip）
+
+| Expert | Receipt | Verdict |
+|--------|---------|---------|
+| `mw-e2e-ha` | `reviews/REQUEST-2026-09-23-ha-local-c3-c4-authorized-prove-post-prove-mw-e2e-ha.md` | **PASS alone** · alone≠dual |
+| `mw-rag-route` | `reviews/REQUEST-2026-09-23-ha-local-c3-c4-authorized-prove-post-prove-mw-rag-route.md` | **BLOCK** (CMD4 EXIT=1) |
+
+This tip lands fix+re-prove only. Status = **`executed:awaiting_post_prove_dual`**. **Ban self-nail**. Fresh **BOTH-domain** post-prove required on **new** tip.
+
+---
+
+## CMD+EXIT（exact order · honest · this re-prove ~14:28–14:29 PT）
 
 | # | CMD | EXIT | Result label | Honest read |
 |---|-----|------|--------------|-------------|
-| 1 | `pnpm ha:dual:build-image` | **0** | `IMAGE_BUILT` | local image tag · ≠ dual up · ≠ HA · ≠ 阶 C green |
-| 2 | `MEETWISE_HA_DUAL_AUTHORIZED=1 MEETWISE_HA_SHARED_AUTHORIZED=1 pnpm ha:dual:compose-shared` | **0** | `DUAL_COMPOSE_SHARED_UP` | dual Nest `/livez` + sole-stack network · **still** `haStatus=NOT_HA` · `releaseEvidence=false` · ≠ production HA |
-| 3 | `MEETWISE_HA_SHARED_AUTHORIZED=1 pnpm ha:prove:shared -- --prove` | **0** | `SHARED_OK` | `sharedOk=true` · `sharedPath=shared_backend_hostpath`（in-container Redis A→B TCP timed out · honest hostpath fallback）· **still NOT_HA** · ≠ 阶 C green · ≠ Nest business session |
-| 4 | `MEETWISE_HA_FAULT_AUTHORIZED=1 pnpm ha:fault-inject -- --kill --with-shared-survivor` | **0** | `COMPOSE_FAULT_SHARED_PARTIAL` / `SHARED_OK_SURVIVOR` | A down + B `/livez` 200 + survivor shared · **still NOT_HA** · ≠ production failover · 阶 C/D **STILL NOT GREEN** |
+| 1 | `pnpm ha:dual:build-image` | **0** | `IMAGE_BUILT` | local image · ≠ HA · ≠ 阶 C green |
+| 2 | `MEETWISE_HA_DUAL_AUTHORIZED=1 MEETWISE_HA_SHARED_AUTHORIZED=1 pnpm ha:dual:compose-shared` | **0** | `DUAL_COMPOSE_SHARED_UP` | dual Nest `/livez` + sole-stack · **still** NOT_HA |
+| 3 | `MEETWISE_HA_SHARED_AUTHORIZED=1 pnpm ha:prove:shared -- --prove` | **0** | `SHARED_OK`（`sharedPath=shared_backend_hostpath`） | C3 local shared · still NOT_HA · ≠ 阶 C green |
+| 4 | `MEETWISE_HA_FAULT_AUTHORIZED=1 pnpm ha:fault-inject -- --kill --with-shared-survivor` | **0** | `COMPOSE_FAULT_SHARED_PARTIAL` / `SHARED_OK_SURVIVOR` · method `docker-kill-api-a` · **`aDown=true`** | C4 local fault · still NOT_HA · ≠ production failover |
 
-**Result labels**: `SHARED_OK` · `FAULT_OK`（local）  
-**GAP pins**: **none** this run（no invent SHARED_OK / fault green — receipts from live authorize path）  
-**Prereq bring-up（documented · not invent）**: `docker compose -f docker/compose.mysql-local.yml up -d mysql redis` → sole network `meetwise-mysql-local_default` healthy before CMD2.
+**Independent post-CMD4 verify**: A `/livez` **000** · A `Running=false` · B `/livez` **200** · kill receipt `aDown=true` · survivor `status=OK`.
+**GAP pins**: **none** this run.
+**Prereq**: `docker compose -f docker/compose.mysql-local.yml up -d mysql redis` (sole network healthy) before CMD2.
 
 ---
 
 ## Evidence
 
-- JSON summary: `receipts/2026-09-23-ha-local-c3-c4-authorized-prove-evidence.json`（embeds key local receipt bodies）  
-- Local runtime evidence dir（**gitignored** `.tmp/`）: `.tmp/ha-evidence/`  
-  - `shared-state-A-write.json` · `shared-state-B-read.json`  
-  - `kill-A.receipt.json` · `B-still-serving.receipt.json` · `fault-shared-survivor.receipt.json`  
-- All embedded / local receipts hard-pin `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false`
+- JSON summary: `receipts/2026-09-23-ha-local-c3-c4-authorized-prove-evidence.json`
+- Local runtime (gitignored `.tmp/`): `.tmp/ha-evidence/`
+  - `shared-state-A-write.json` · `shared-state-B-read.json`
+  - `kill-A.receipt.json` · `B-still-serving.receipt.json` · `fault-shared-survivor.receipt.json`
+- All receipts hard-pin `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false`
 
 ---
 
 ## Non-claims / Ban
 
-- **≠** claim 阶 C/D green · **≠** production HA / failover · **≠** flip `releaseEvidence` to true  
-- **≠** wash G-R4-5 tip `6ded589` / prove `ba1b8aa` into HA · **≠** wash skeleton/stub EXIT=0 into HA  
-- **≠** invent green / forge EXIT · Dual PASS ≠ HA green · local EXIT=0 ≠ 阶 C/D green ≠ production HA  
-- **Ban self-nail `post_prove_dual_pass`** · STOP for post-prove dual · no second knife · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*`
+- **≠** claim 阶 C/D green · **≠** production HA / failover · **≠** flip `releaseEvidence`
+- **≠** wash G-R4-5 tip `6ded589` / prove `ba1b8aa` into HA · **≠** wash skeleton/stub EXIT=0 into HA
+- **≠** invent green / forge EXIT · Dual PASS ≠ HA green · local EXIT=0 ≠ 阶 C/D green ≠ production HA
+- **Ban self-nail `post_prove_dual_pass`** · STOP for **fresh** post-prove dual on **this new tip** · no second knife · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*`
+- e2e-ha alone PASS on `72d2b93` **≠** dual · **≠** nail
 
 ---
 
-*Prove receipt · HA local C3+C4 authorized-prove · 2026-09-23 (~14:20 PT) · EXIT 4×0 · SHARED_OK + FAULT_OK local · executed:awaiting_post_prove_dual · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · 阶 C/D STILL NOT GREEN · Ban self-nail · STOP*
+*Prove receipt · HA local C3+C4 authorized-prove · fix+re-prove · 2026-09-23 (~14:29 PT) · EXIT 4×0 · aDown=true · SHARED_OK + FAULT_OK local · executed:awaiting_post_prove_dual · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · 阶 C/D STILL NOT GREEN · Ban self-nail · STOP*

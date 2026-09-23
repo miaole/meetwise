@@ -9,7 +9,7 @@
  *   (default)              → assess; if dual compose up + FAULT auth → kill path;
  *                            else if stub pid / dual stub livez → defer stub;
  *                            else PREREQ_GAP EXIT=0
- *   --kill / --compose-kill→ docker stop meetwise-ha-dual-api-a (api-b stays)
+ *   --kill / --compose-kill→ docker kill meetwise-ha-dual-api-a (api-b stays; SIGKILL)
  *   --network-half         → disconnect api-a from sole_stack network (A livez may
  *                            still answer; shared path half-broken for A)
  *   --with-shared-survivor → after kill, prove sole Redis/MySQL still reachable
@@ -210,19 +210,52 @@ async function wait(ms) {
 }
 
 async function waitPostFault() {
-  let a;
-  let b;
+  // Harden vs SIGTERM grace + concurrent compose re-bring-up:
+  // require container Running=false AND livez-down, with consecutive confirms.
+  // If A container resurrects mid-wait, re-kill once then continue observing.
+  let a = { ok: true, status: 0, instanceId: '' };
+  let b = { ok: false, status: 0, instanceId: '' };
   let ok = false;
-  for (let i = 0; i < 30; i++) {
-    await wait(150);
+  let consecutive = 0;
+  let rekillUsed = false;
+  const needConsecutive = 3;
+  const maxRounds = 60; // ~15s at 250ms
+  for (let i = 0; i < maxRounds; i++) {
+    await wait(250);
+    const aRunning = containerRunning(CONTAINER_A);
+    if (aRunning) {
+      consecutive = 0;
+      if (!rekillUsed) {
+        const rk = dockerOk(['kill', CONTAINER_A]);
+        note(
+          're-kill api-a (resurrected during wait)',
+          rk.status === 0,
+          rk.stderr.slice(0, 80) || 'killed',
+        );
+        rekillUsed = true;
+        continue;
+      }
+    }
     a = await probe(PORT_A);
     b = await probe(PORT_B);
-    if (!a.ok && b.ok) {
-      ok = true;
-      break;
+    const aDown = !a.ok && !aRunning;
+    if (aDown && b.ok) {
+      consecutive += 1;
+      if (consecutive >= needConsecutive) {
+        ok = true;
+        break;
+      }
+    } else {
+      consecutive = 0;
     }
   }
-  return { a, b, ok };
+  return {
+    a,
+    b,
+    ok,
+    aContainerRunning: containerRunning(CONTAINER_A),
+    rekillUsed,
+  };
 }
 
 function finish(exit, fields, cmdExtra = '') {
@@ -576,30 +609,52 @@ async function main() {
     return;
   }
 
-  // Default / --kill: docker stop api-a
-  const stop = dockerOk(['stop', '-t', '5', CONTAINER_A]);
-  note('docker stop api-a', stop.status === 0, stop.stderr.slice(0, 80) || 'stopped');
+  // Default / --kill: docker kill api-a (SIGKILL) — avoid SIGTERM grace race
+  // where /livez can still answer 200 during `docker stop -t N`, and shrink the
+  // window where a concurrent compose up can resurrect A before probes settle.
+  method = 'docker-kill-api-a';
+  const stop = dockerOk(['kill', CONTAINER_A]);
+  note('docker kill api-a', stop.status === 0, stop.stderr.slice(0, 80) || 'killed');
   if (stop.status !== 0) {
-    finish(1, {
-      result: 'FAIL',
-      faultInject: 'KILL_FAILED',
-      sharedState: 'GAP',
-      method,
-      ladderC4,
-      gap: stop.stderr || 'docker stop failed',
-      note: 'Not HA; releaseEvidence=false',
-    }, '--kill');
-    return;
+    // Fallback: already-exited container → docker kill fails; treat as down if so.
+    const alreadyDown = containerExists(CONTAINER_A) && !containerRunning(CONTAINER_A);
+    if (!alreadyDown) {
+      finish(1, {
+        result: 'FAIL',
+        faultInject: 'KILL_FAILED',
+        sharedState: 'GAP',
+        method,
+        ladderC4,
+        gap: stop.stderr || 'docker kill failed',
+        note: 'Not HA; releaseEvidence=false',
+      }, '--kill');
+      return;
+    }
+    note('api-a already exited before kill', true, 'treat as down');
   }
 
-  const { a: a1, b: b1, ok: postOk } = await waitPostFault();
-  note('post A down', !a1.ok, `A status=${a1.status} (expect down)`);
+  const {
+    a: a1,
+    b: b1,
+    ok: postOk,
+    aContainerRunning,
+    rekillUsed,
+  } = await waitPostFault();
+  note(
+    'post A down',
+    !a1.ok && !aContainerRunning,
+    `A status=${a1.status} running=${aContainerRunning} (expect down)`,
+  );
   note(
     'post B still serving',
     b1.ok,
     `B status=${b1.status}${b1.instanceId ? ` id=${b1.instanceId}` : ''}`,
   );
-  note('post-fault A down / B up', postOk, `A=${a1.status} B=${b1.status}`);
+  note(
+    'post-fault A down / B up',
+    postOk,
+    `A=${a1.status} B=${b1.status} runningA=${aContainerRunning} rekill=${rekillUsed}`,
+  );
 
   let sharedOk = false;
   let sharedState = 'NOT_PROVEN';
@@ -629,12 +684,16 @@ async function main() {
     sharedState = 'GAP';
   }
 
+  const aDownFinal = !a1.ok && !aContainerRunning;
   const killPath = writeEvidence('kill-A.receipt.json', {
     method,
     at: new Date().toISOString(),
     portA: PORT_A,
     portB: PORT_B,
-    aDown: !a1.ok,
+    aDown: aDownFinal,
+    aLivezOk: a1.ok,
+    aContainerRunning,
+    rekillUsed,
     bStillServing: b1.ok,
     containerA: CONTAINER_A,
     containerB: CONTAINER_B,
