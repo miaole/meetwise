@@ -1,0 +1,9 @@
+# REQUEST — **UC-E2E-018 full.e2e abandon inclusion · GAP-UC018-FULL-E2E** · pre-exec · mw-e2e-ha
+
+**Status**: **PENDING / REQUEST-ready / not_run:pre_dual**（named path · **not pre-filled** · **Ban自批 pass**）  
+**Expert**: `mw-e2e-ha`（writes this review）  
+**Pair**: `REQUEST-2026-09-23-uc-e2e-018-full-e2e-abandon-mw-rag-route.md`  
+**Knife**: `harness/uc-e2e-018-full-e2e-abandon-inclusion.md` · status **`REQUEST-ready / not_run:pre_dual`**  
+**Hard**: Dual PASS ≠ coding · Dual PASS ≠ UC-E2E-018 covered · Dual PASS ≠ next knife auto-authorize · **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban假绿 · Ban invent green · Ban claim UC-E2E-018 covered · matrix stays **partial** · Ban close §1b #2 GRAPH / #3 TTL / #5 UI / #6 sole-stack R5 this knife · Ban wash prior D2b nail **`7fddebe`** / HA / liveGhaRunUrl into E2E covered · Ban wash `uc018:abandon:*` EXIT=0 into covered / full.e2e included · Ban reopen D2b · Ban coding · Ban prove · Ban full.e2e edits this open · Ban flip `releaseEvidence` · cite parent `harness/uc-e2e-018-user-abandon.md` §1b #1 · `GAP-UC018-FULL-E2E` · intended later: explicit TC in `full.e2e.ts` / `e2e:isolated`（auth→begin reserve→`POST /interview/:id/abandon`→abandoned+released+cannot resume）· update parent harness+eval+matrix honesty to close **`GAP-UC018-FULL-E2E` only** · prove CMD: retain `uc018:abandon:*` EXIT=0 + new full.e2e path EXIT=0 with receipts · `gR45Closed=true` **retained** · coveredCount **8** retained · `ms3EqualsR4Closed=false` **retained** · eg1–eg6/r4/funnel **retained** · prior UC-018 partial + D2b **`7fddebe`** **retained** · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Ban D3 · Ban cloud buy · Ban自批 · Key×3 FreeTier out of scope · Dual not pinged by implementer · ask domain review of harness/scope/CMD honesty · Ban coding until dual+authorize
+
+*(Expert writes full pre-exec review here. Implementer does not pre-fill pass.)*
