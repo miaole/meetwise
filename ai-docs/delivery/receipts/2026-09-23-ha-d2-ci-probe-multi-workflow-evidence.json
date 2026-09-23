@@ -1,0 +1,98 @@
+{
+  "knife": "ha-d2-ci-probe-multi-workflow",
+  "datePT": "2026-09-23 (~15:27–15:35 PT)",
+  "requestTip": "dad775f0261ad35f86dcbdf7affd01c9cb68ad9a",
+  "requestTipShort": "dad775f",
+  "preExecDual": {
+    "e2eHaTip": "10d205360dd318220cde337df42b75d170170a58",
+    "e2eHaShort": "10d2053",
+    "ragRouteTip": "4724ce3",
+    "verdict": "BOTH_PASS"
+  },
+  "proveTipShort": "TBD_AFTER_LAND",
+  "proveTipFull": "TBD_AFTER_LAND",
+  "branch": "feat/mysql-schema-skeleton",
+  "workflowPath": ".github/workflows/ha-probe-multi.yml",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "ladderCD": "STILL_NOT_GREEN",
+  "localD1EqualsLadderD": false,
+  "ciStubEqualsLadderD": false,
+  "productionHA": false,
+  "gR45Closed": true,
+  "coveredCount": 8,
+  "ms3EqualsR4Closed": false,
+  "status": "executed:awaiting_post_prove_dual",
+  "banSelfNailPostProveDualPass": true,
+  "artifactUploadDocumented": true,
+  "liveGhaRunUrl": null,
+  "artifactUrlPattern": {
+    "actionsRunArtifactsTab": "https://github.com/<owner>/<repo>/actions/runs/<run_id>#artifacts",
+    "api": "GET /repos/<owner>/<repo>/actions/runs/<run_id>/artifacts",
+    "artifactName": "ha-probe-multi-receipt"
+  },
+  "cmds": [
+    {
+      "cmd": "node js-yaml parse .github/workflows/ha-probe-multi.yml",
+      "exit": 0,
+      "result": "YAML_PARSE_OK",
+      "honestRead": "static only · ≠ HA · ≠ 阶 D"
+    },
+    {
+      "cmd": "package.json scripts[\"ha:probe:multi\"]",
+      "exit": 0,
+      "result": "SCRIPT_OK",
+      "honestRead": "flags retained in probe.multi.mjs"
+    },
+    {
+      "cmd": "actionlint",
+      "exit": null,
+      "run": false,
+      "result": "skip_not_installed",
+      "honestRead": "Ban invent green from skip"
+    },
+    {
+      "cmd": "pnpm ha:probe:multi -- --require-evidence",
+      "exit": 1,
+      "result": "FAIL honesty fail-closed",
+      "honestRead": "EXIT=1 honesty SUCCESS · Ban wash to pass · Ban flip to pass"
+    },
+    {
+      "cmd": "pnpm ha:probe:multi -- --with-bring-up-stub --with-fault-inject",
+      "exit": 0,
+      "result": "EXIT_0_with_local_compose_pollution_note",
+      "honestRead": "local leftover compose dual polluted stub fault (A stayed up); GHA clean runner designed for pure stub; still NOT_HA · ≠ 阶 D · ≠ production HA"
+    },
+    {
+      "cmd": "live GHA workflow_dispatch / PR run",
+      "exit": null,
+      "run": false,
+      "result": "not_run",
+      "liveGhaRunUrl": null,
+      "honestRead": "Ban inventing live artifact URL"
+    }
+  ],
+  "retainedPriors": {
+    "d1Nail": "b72c7c4",
+    "d1ProveTip": "65526ac",
+    "d1ProveLand": "1f020fd",
+    "c3bNail": "beaedc9",
+    "c3c4Nail": "358a5cf",
+    "gR45Nail": "6ded589",
+    "gR45Prove": "ba1b8aa"
+  },
+  "bans": [
+    "Ban claim 阶 D / 阶 C/D green",
+    "Ban production HA / failover",
+    "Ban CI stub green = 阶 D",
+    "Ban flip releaseEvidence",
+    "Ban wash D1/C3b/C3+C4 tips into 阶 D",
+    "Ban wash G-R4-5 into HA",
+    "Ban wash --require-evidence EXIT=1 into green",
+    "Ban self-nail post_prove_dual_pass",
+    "Ban secrets / .env*",
+    "Ban Meridian / Cloud Agent / second knife",
+    "D3 production probe OUT OF SCOPE"
+  ]
+}
