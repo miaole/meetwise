@@ -1,13 +1,25 @@
-# REQUEST — **HA D2b live GHA probe:multi artifact URL** · pre-exec · mw-e2e-ha
+# REQUEST — **HA D2b live GHA probe:multi artifact URL** · pre-exec · mw-e2e-ha（独立重审 · re-own）
 
-**Expert**: `mw-e2e-ha`（primary for HA · independent pre-exec）  
-**Pair**: `REQUEST-2026-09-23-ha-d2b-live-gha-probe-multi-artifact-mw-rag-route.md`（peer · not this receipt）  
-**Date**: 2026-09-23 (~15:45 PT)  
+**Expert**: `mw-e2e-ha`（primary for HA · independent pre-exec · **re-own after integrity repair**）  
+**Pair**: `REQUEST-2026-09-23-ha-d2b-live-gha-probe-multi-artifact-mw-rag-route.md`（peer · not this receipt · alone≠dual）  
+**Date**: 2026-09-23 (~15:48 PT)  
 **Knife**: HA D2b live GHA probe:multi artifact URL  
-**Cited**: `harness/ha-d2b-live-gha-probe-multi-artifact.md` · `ha-d2b-live-gha-probe-multi-artifact.slice.md` · `harness/ha-track.multi-instance.md` · `.github/workflows/ha-probe-multi.yml`（READ-ONLY）  
-**Claimed tip / HEAD (MUST MATCH)**: `231018760f84df6c4ca5a8640748d9146833a97b` / `2310187`  
-**Parent / prior D2 nail**: `d79519d` · branch claimed `feat/mysql-schema-skeleton`  
-**Status claimed**: `REQUEST-ready / not_run:pre_dual`
+**Cited（fresh re-read · not rubber-stamp）**: `harness/ha-d2b-live-gha-probe-multi-artifact.md` · `ha-d2b-live-gha-probe-multi-artifact.slice.md` · `harness/ha-track.multi-instance.md` · `.github/workflows/ha-probe-multi.yml`（READ-ONLY · Ban edit · Ban dispatch）  
+**REQUEST tip（review against）**: `231018760f84df6c4ca5a8640748d9146833a97b` / `2310187`  
+**Parent D2 nail**: `d79519d` must be ancestor · branch `feat/mysql-schema-skeleton`  
+**Status claimed by REQUEST**: `REQUEST-ready / not_run:pre_dual`
+
+---
+
+## Integrity note（强制 · Dual integrity repair）
+
+| Item | Ruling |
+|------|--------|
+| Prior commit `d7000ca` | Author/Committer was **`mw-rag-route`** · shared-box git identity pollution · filename claimed mw-e2e-ha but **NOT mw-e2e-ha owned** |
+| Prior receipt | Treated as **NOT** mw-e2e-ha · **Do NOT rubber-stamp** peer wording |
+| This file | **Independently re-owned by mw-e2e-ha** · body rewritten from harness/slice/track/YAML evidence |
+| alone≠dual | Dual **NOT** closed by polluted `d7000ca` · peer receipt ≠ this primary HA receipt |
+| This re-own | **Primary HA independent PASS/BLOCK** · Dual still requires both domains · Dual PASS ≠ coding · Dual PASS ≠ dispatch · Dual PASS ≠ nail |
 
 ---
 
@@ -16,19 +28,22 @@
 | Key | Value |
 |-----|-------|
 | **Verdict** | **PASS** |
-| **blockers** | **无阻塞** |
+| **blockers** | **无阻塞**（docs-only pre-exec · scope/pins/YAML honesty 对齐） |
 | **authorizeCoding** | **false** · Do NOT authorize coding |
 | **authorizeDispatch** | **false** · Do NOT dispatch · Ban `gh workflow run` |
-| **authorizeNail** | **false** · Do NOT nail |
+| **authorizeNail** | **false** · Do NOT nail · Ban harness self-nail |
 | **inventUrl** | **false** · Ban invent GHA / artifact URL |
-| **liveGhaRunUrl** | **null**（this open） |
+| **liveGhaRunUrl** | **null**（this open · honesty） |
 | **haStatus** | **NOT_HA** |
 | **releaseEvidence** | **false** |
 | **claimProductionHA** | **false** |
 | **阶 C/D** | **STILL NOT GREEN** |
-| **Dual PASS ≠ coding** | **YES**（alone ≠ dual · Dual PASS ≠ dispatch · Dual PASS ≠ nail） |
+| **Dual PASS ≠ coding** | **YES** |
+| **Dual PASS ≠ dispatch** | **YES** |
+| **Dual PASS ≠ nail** | **YES** |
+| **alone≠dual** | **YES** · this PASS alone ≠ dual closed |
 
-**Explicit**: Do NOT authorize coding · Do NOT dispatch · Do NOT nail · Do NOT invent URL · Dual PASS ≠ coding · Dual PASS ≠ dispatch · alone ≠ dual · Ban自批 · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Ban D3 · Ban cloud buy · Ban claim 阶 D green / production HA.
+**Explicit**: Do NOT authorize coding · Do NOT dispatch · Do NOT nail · Do NOT invent URL · Ban自批 · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Ban D3 · Ban cloud buy · Ban wash D1/`b72c7c4` · D2/`d79519d`/`9015410` into 阶 D · Ban claim artifact URL alone = 阶 D / production HA.
 
 ---
 
@@ -36,161 +51,154 @@
 
 | Check | Observed | Ruling |
 |-------|----------|--------|
-| `git rev-parse HEAD` | `231018760f84df6c4ca5a8640748d9146833a97b` | **MATCH** tip |
-| short | `2310187` | **MATCH** |
-| branch live | `feat/mysql-schema-skeleton` · tracks `origin/feat/mysql-schema-skeleton` | **MATCH** claimed |
-| parent D2 nail `d79519d` ancestor | `d79519d0005960bd85b9ce1cc01e968bace12315` · `merge-base --is-ancestor` → YES | **PASS** |
-| tip message | `docs(ha): REQUEST HA D2b live GHA probe:multi artifact (pre_dual)` | REQUEST open · not prove · not nail |
+| REQUEST tip（review content） | `231018760f84df6c4ca5a8640748d9146833a97b` / `2310187` | **review against** this tip |
+| HEAD before this re-own | `d7000ca022e64f132211a6aa0e343979d13a6f4e`（polluted Author mw-rag-route） | noted · overwritten by this commit |
+| `merge-base --is-ancestor 2310187 HEAD` | YES | **PASS** |
+| `merge-base --is-ancestor d79519d HEAD` | YES · `d79519d0005960bd85b9ce1cc01e968bace12315` | **PASS** |
+| branch live | `feat/mysql-schema-skeleton` | **MATCH** |
+| tip message（2310187） | `docs(ha): REQUEST HA D2b live GHA probe:multi artifact (pre_dual)` | REQUEST open · not prove · not nail · not dispatch |
 
-**Gate**: tip mismatch would FORCE **BLOCK**. Observed **MATCH** → gate clear.
-
----
-
-## 2. Scope this knife（docs REQUEST only）
-
-| In | Out |
-|----|-----|
-| Pre-exec dual on D2b **live GHA artifact URL** REQUEST（docs） | Coding / prove this open |
-| Read-only verify prior D2 workflow land (`.github/workflows/ha-probe-multi.yml`) | Edit workflow · Ban edit |
-| Acknowledge intended **later**（ONLY after BOTH dual PASS + AUTHORIZE）: real `workflow_dispatch` · record **real** run URL + artifact URL for `ha-probe-multi-receipt` | `gh workflow run` / any dispatch this open |
-| Keep `liveGhaRunUrl=null` this open | Invent URL / invent green |
-| Job honesty named: stub EXIT 0 · `--require-evidence` EXIT=1 = SUCCESS | Flip EXIT=1 to pass / wash EXIT=1 into green |
-| Sync ha-track honesty **later**: Local D1 done · D2 workflow+static done · D2b = live CI artifact · **D3 OUT OF SCOPE** · 阶 C/D STILL NOT GREEN | Claim 阶 D / 阶 C/D green · production HA / failover · cloud buy · D3 |
-| Hard-retain pins | Wash prior D1/`b72c7c4` · D2/`d79519d`/`9015410`/`50e35ba` into 阶 D · wash G-R4-5 into HA |
-
-**One-line**: This open = docs REQUEST review only. Prior D2 workflow is **read-only prerequisite**. This knife later = live dispatch + URL record — **not** this receipt · **not** auto-unlocked by Dual PASS alone.
-
-**Ban claim**: artifact URL alone ≠ 阶 D · ≠ production HA · CI stub green ≠ 阶 D · Local D1 done ≠ 阶 D · D2 workflow+static done ≠ 阶 D.
+**Gate**: tip / parent D2 ancestor / branch **clear**. Mismatch would FORCE **BLOCK**.
 
 ---
 
-## 3. Harness + slice consistency（read）
+## 2. Scope this knife（docs REQUEST only · independent）
 
-| Source | Status / pins | Consistent? |
-|--------|---------------|-------------|
-| `harness/ha-d2b-live-gha-probe-multi-artifact.md` | `REQUEST-ready / not_run:pre_dual` · base `d79519d` · `liveGhaRunUrl=null` · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · D2b live artifact · Ban invent URL · Dual≠coding | **YES** |
-| `ha-d2b-live-gha-probe-multi-artifact.slice.md` | same pins · scope table · CMD not_run · D3 OOS · Ban wash priors | **YES** |
-| Lifecycle L0 this open · L1–L5 not_run | harness §3 · slice Hard pins | **YES** — coding/dispatch/nail **not** opened |
-| Acceptance A1–A9 | dual before coding · real GHA later · real URL only · honesty EXIT=1 · ladder sync · Ban wash · retain priors · STOP · D3 OOS | **YES** |
-
-**No scope creep** to 阶 D green / D3 / production HA / invent URL / flip releaseEvidence in REQUEST pair.
+| Dimension | Independent read |
+|-----------|------------------|
+| What D2b is | live GHA artifact URL knife · real run of existing `ha-probe-multi.yml` · artifact name `ha-probe-multi-receipt` · **real** run/artifact URL later under authorize |
+| This open | **pre-exec docs only** · `REQUEST-ready / not_run:pre_dual` · zero coding · zero prove · zero `workflow_dispatch` · zero invent URL · zero HA claim |
+| Not this open | coding · prove · dispatch · invent URL · nail · flip `releaseEvidence` · claim 阶 D / production HA · D3 production probe · cloud buy · Meridian · Cloud Agent · secrets / `.env*` |
+| Dual meaning | Dual PASS ≠ coding · Dual PASS ≠ dispatch · Dual PASS ≠ nail · Dual PASS ≠ HA green · Dual PASS ≠ next knife auto-authorize · alone≠dual |
 
 ---
 
-## 4. Prior workflow READ-ONLY（`.github/workflows/ha-probe-multi.yml`）
+## 3. Hard pins（must survive · Ban假绿）
 
-| Item | Observed | Ruling |
-|------|----------|--------|
-| `on.workflow_dispatch` | present `{}` | **OK** for later prefer-dispatch · **not run** this open |
-| `pull_request.paths` | workflow / `scripts/ha/**` / `package.json` | honest PR path exists · still ≠ invent live URL |
-| secrets / `.env*` | Install step: `pnpm install --frozen-lockfile` · explicit **no secrets / no .env*** | **OK** · Ban print `.env*` |
-| permissions | `contents: read` | least privilege · **OK** |
-| Stub probe | `pnpm ha:probe:multi -- --with-bring-up-stub --with-fault-inject` · expect EXIT 0 | named · **not run** |
-| Honesty fail-closed | step `Honesty --require-evidence — assert EXIT=1` · `ec==1` → job `exit 0` · else `::error` + `exit 1` | **PRESENT** · EXIT=1 = SUCCESS · Ban flip |
-| Artifact name | `ha-probe-multi-receipt` · `actions/upload-artifact` · path `.tmp/ha-ci-probe-artifact/` | **MATCH** harness/slice |
-| Summary JSON | `liveGhaRunUrl: null` · haStatus NOT_HA · releaseEvidence false · claimProductionHA false · Ban invent note | **OK** |
-| Final pin | echoes NOT_HA · pattern URL only · Ban invent / Ban wash EXIT=1 / Ban claim workflow land = 阶 D | **OK** |
-| Edit this open | **none** | Ban edit · confirmed read-only |
-| Dispatch this open | **none** | Ban `gh workflow run` · confirmed |
-
-**Honesty path named · not run**: fail-closed `--require-evidence` EXIT=1 → SUCCESS is **in YAML**. This review does **not** execute probe · does **not** dispatch · does **not** invent live run/artifact URL.
+| Pin | Observed in harness+slice | Ruling |
+|-----|---------------------------|--------|
+| `haStatus` | **NOT_HA** | **PASS** · Ban flip |
+| `releaseEvidence` | **false** | **PASS** · Ban flip |
+| `claimProductionHA` | **false** | **PASS** · Ban flip |
+| 阶 C/D | **STILL NOT GREEN** | **PASS** · Ban claim green |
+| `liveGhaRunUrl` | **null** until AUTHORIZED prove | **PASS** · Ban invent |
+| Ban wash D1 `b72c7c4` | retained · Local D1 done ≠ 阶 D | **PASS** |
+| Ban wash D2 `d79519d` / `9015410` / `50e35ba` | retained · D2 workflow+static done ≠ 阶 D | **PASS** |
+| `gR45Closed` | **true** retained | **PASS** |
+| `coveredCount` | **8** retained | **PASS** |
+| `ms3EqualsR4Closed` | **false** retained | **PASS** |
+| Ban Meridian / Cloud Agent / secrets / `.env*` / D3 / cloud buy | hard-pinned harness+slice | **PASS** |
 
 ---
 
-## 5. ha-track cite（`harness/ha-track.multi-instance.md`）
+## 4. Workflow READ-ONLY spot-check（`.github/workflows/ha-probe-multi.yml`）
 
-| Cite | Read | This REQUEST |
-|------|------|--------------|
-| 阶 C/D prove | **未绿** · 禁止勾 releaseEvidence=true · 禁止叙事 production HA | **retained** · STILL NOT GREEN |
-| D1–D3 row（track table） | still summarizes D ladder as incomplete / not self-green | harness A5: **later** sync honesty — Local D1 done · D2 workflow+static done · D2b = live CI artifact · D3 OOS · 阶 C/D STILL NOT GREEN · **not edited this open** |
-| Receipt #6 | （阶 D）CI artifact URL · 缺任一 → NOT_HA | D2b = live URL receipt **later** · URL alone ≠ 阶 D green · Ban invent this open |
-| `--require-evidence` | fail-closed EXIT=1 | matches workflow honesty · Ban wash to green |
-| `pnpm ha:probe:multi` | package.json script → `node scripts/ha/probe.multi.mjs` | spot-check READ-ONLY · **not run** |
+**Ban edit · Ban dispatch · Ban `gh workflow run` · named honesty only · not run.**
 
-**Note**: Track row lag vs D1/D2 closed knives is acknowledged as **later ladder sync** under authorize — **not** a BLOCK for REQUEST-ready docs dual. Ban claiming track lag means 阶 D green.
+| YAML fact | Evidence | Ruling |
+|-----------|----------|--------|
+| `name` | `ha-probe-multi` | present |
+| triggers | `workflow_dispatch: {}` + `pull_request` path filters | present · **not dispatched this open** |
+| permissions | `contents: read` | least privilege OK |
+| stub probe | `pnpm ha:probe:multi -- --with-bring-up-stub --with-fault-inject` · expect EXIT **0** | CI-safe stub · still NOT_HA · ≠ 阶 D |
+| honesty | `pnpm ha:probe:multi -- --require-evidence` · expect EXIT **1** · job treats EXIT=1 as SUCCESS | **EXIT=1→SUCCESS honesty named · not run** |
+| Ban wash EXIT=1 | explicit in step comments + final pin | **PASS** |
+| artifact | `actions/upload-artifact` · name **`ha-probe-multi-receipt`** · path `.tmp/ha-ci-probe-artifact/` | design present · live URL **none** |
+| summary JSON pins | `haStatus: NOT_HA` · `releaseEvidence: false` · `claimProductionHA: false` · `liveGhaRunUrl: null` · `gR45Closed: true` · `coveredCount: 8` · `ms3EqualsR4Closed: false` · `ladderCD: STILL_NOT_GREEN` | **MATCH** hard pins |
+| secrets / `.env*` | Install step: no secrets · no `.env*` · Ban reading env | **PASS** · unread |
 
----
-
-## 6. package.json spot-check（READ-ONLY · Ban run probe）
-
-| Script | Binding | This open |
-|--------|---------|-----------|
-| `ha:probe:multi` | `node scripts/ha/probe.multi.mjs` | named in workflow · **NOT RUN** |
-| prove / dispatch | N/A | Ban `pnpm ha:probe:multi` · Ban GHA dispatch |
+**Honesty ruling**: YAML names `--require-evidence` EXIT=1 as fail-closed SUCCESS. This is **named · not executed** this open. Ban washing EXIT=1 into green · Ban flipping to pass.
 
 ---
 
-## 7. Hard-retain table（Ban wash）
+## 5. Track ladder honesty（`ha-track.multi-instance.md`）
 
-| Pin / prior | Value | Wash into 阶 D / HA? |
-|-------------|-------|----------------------|
-| `haStatus` | **NOT_HA** | Ban flip |
-| `releaseEvidence` | **false** | Ban flip |
-| `claimProductionHA` | **false** | Ban claim |
-| 阶 C/D | **STILL NOT GREEN** | Ban claim green |
-| `liveGhaRunUrl` | **null** this open | Ban invent |
-| Prior D1 nail | `b72c7c4` · prove `65526ac` · land `1f020fd` · `post_prove_dual_pass` | **≠** wash into 阶 D · Local D1 done ≠ 阶 D |
-| Prior D2 nail | `d79519d` · docs `50e35ba` · pin `9015410` · land `2186ad7` · workflow landed · liveGhaRunUrl=null | **≠** wash into 阶 D · D2 workflow+static done ≠ 阶 D |
-| Prior C3b | `beaedc9` / `4da46d5` / `a32c071` | **≠** wash into 阶 D |
-| Prior C3+C4 | `358a5cf` / `16e8379` | **≠** wash into 阶 D · Ban claim 阶 C from C3+C4 alone |
-| G-R4-5 | `gR45Closed=true` · coveredCount **8** · `ms3EqualsR4Closed=false` · tips `6ded589`/`ba1b8aa` | **retained** · **≠** wash into HA |
-| skeleton / stub / CI stub / artifact URL alone | mechanical ≠ HA | **≠** wash into 阶 D / HA |
-| `--require-evidence` EXIT=1 | honesty SUCCESS | Ban wash into green · Ban flip to pass |
+| Cite | Independent note |
+|------|------------------|
+| Receipt list #6 | （阶 D）CI artifact URL — this knife’s later target under authorize |
+| Ladder table D1–D3 row | Track text still shows **未开** in summary row · harness/slice claim Local D1 done + D2 workflow+static done as prior knives · **ladder sync is later L3 work · not this open** |
+| Release / HA | `releaseEvidence=false` · Not HA · 阶 C/D prove **未绿** · Ban勾 releaseEvidence=true |
+| `--require-evidence` | fail-closed EXIT=1 retained in track CMD table |
+
+**Ruling**: Cite track for D2b = live CI artifact receipt · Ban claim 阶 D from artifact URL alone · Ban claim track path-land = 阶 C/D green · D3 **OUT OF SCOPE**.
 
 ---
 
-## 8. Dual / authority fences（critical）
+## 6. package.json READ-ONLY spot-check
 
-| Statement | Ruling |
-|-----------|--------|
-| Dual PASS ≠ coding | **YES** · this PASS does **not** authorize coding |
-| Dual PASS ≠ dispatch | **YES** · Ban `gh workflow run` · Ban workflow_dispatch this open |
-| Dual PASS ≠ nail | **YES** · Ban nail / Ban harness self-nail |
-| alone ≠ dual | **YES** · peer `mw-rag-route` must write own receipt · Ban自批 |
-| Dual PASS ≠ HA green / 阶 C/D green / next knife auto-authorize | **YES** |
-| Ban Cloud Agent · Ban Meridian · Ban secrets · Ban D3 · Ban cloud buy · Ban invent GHA URLs | **YES** |
-| Ban signing rag-route · Ban authorizing coding in commit body as unlocked | **YES** |
+| Script | Present | Ruling |
+|--------|---------|--------|
+| `ha:probe:multi` | `node scripts/ha/probe.multi.mjs` | exists · **not run** |
+| `ha-track:multi:prove` | present | not run |
+| `ha:fault-inject` | present | not run |
+
+No probe run · no prove · no workflow dispatch · no Cloud Agent · no Meridian · unread `.env*`.
 
 ---
 
-## 9. Docs-only confirm（what this expert did / did not）
+## 7. Acceptance A1–A9 vs this open（independent）
 
-| Did | Did not |
-|-----|---------|
-| `git rev-parse HEAD` · ancestry · branch verify | edit `.github/workflows/ha-probe-multi.yml` |
-| Read harness · slice · ha-track · workflow YAML | `gh workflow run` / any GHA dispatch |
-| Spot-check `package.json` script binding | run `pnpm ha:probe:multi` / any prove |
-| Write **this** review receipt only | invent liveGhaRunUrl / artifact URL |
-| Hard-retain pins · Ban wash | flip releaseEvidence · claim HA / 阶 D green |
-| | Cloud Agent · Meridian · read `.env*` into report · nail · authorize coding · ping mw-core · D3 · cloud buy |
-
----
-
-## 10. Blockers / PASS criteria map
-
-| Criterion | Result |
-|-----------|--------|
-| HEAD == tip `2310187…` | **PASS** |
-| harness+slice consistent · D2b live-artifact scope clear | **PASS** |
-| `liveGhaRunUrl=null` this open | **PASS** |
-| honesty path present in prior workflow YAML | **PASS** |
-| hard-retain pins present | **PASS** |
-| Ban wash / Ban 阶 D green / Ban invent URL / Ban secrets | **PASS** |
-| Dual≠coding · Dual≠dispatch · Dual≠nail · alone≠dual | **PASS** |
-| no blockers forcing BLOCK | **无阻塞** |
-| tip mismatch / scope creep / invent URL / missing hard-retain / wash into 阶 D / would authorize coding or dispatch | **not observed** |
+| # | Criterion | This open |
+|---|-----------|-----------|
+| A1 | Pre-exec dual BOTH PASS before coding/prove/dispatch | This receipt = **mw-e2e-ha independent PASS** · peer separate · alone≠dual · Dual not closed by polluted commit |
+| A2 | Trigger real GHA | **not_run** · Ban dispatch this open |
+| A3 | Capture **real** run + artifact URL | **not_run** · `liveGhaRunUrl=null` · Ban invent |
+| A4 | Job honesty confirm EXIT=0 stub + EXIT=1 honesty | **named in YAML · not run** |
+| A5 | Ladder sync honesty | **not edited** this open |
+| A6 | Non-claims / Ban wash | **hard-pinned** · PASS |
+| A7 | Retain D1/D2/C3b/C3+C4/G-R4-5 | **retained** · Ban wash into 阶 D / HA |
+| A8 | Lifecycle → nail → STOP | L0 this open · L1–L5 **not_run** |
+| A9 | OOS: D3 · cloud buy · UC lift · Key×3 · flip require-evidence · claim artifact=阶 D | **out of scope** |
 
 ---
 
-## 11. Final
+## 8. Explicit ≠ prior knives（Ban wash）
 
-**Verdict: PASS** · **blockers: 无阻塞**
+| Knife | Tip | Ruling |
+|-------|-----|--------|
+| HA D2 CI probe:multi | `d79519d` / `50e35ba` / `9015410` | workflow+static done · liveGhaRunUrl=null · ≠ 阶 D · **retained** |
+| HA local D1 | `b72c7c4` / `65526ac` / `1f020fd` | Local D1 done ≠ 阶 D · **retained** |
+| HA local C3b | `beaedc9` | still NOT_HA · **retained** |
+| HA local C3+C4 | `358a5cf` | still NOT_HA · **retained** |
+| G-R4-5 | `6ded589` / `ba1b8aa` | `gR45Closed=true` · coveredCount 8 · `ms3EqualsR4Closed=false` · ≠HA · **retained** |
+| CI stub / artifact URL alone | — | ≠ 阶 D · ≠ production HA |
 
-This is a **docs-only** pre-exec receipt for HA D2b live GHA probe:multi artifact URL. Prior D2 workflow land is a read-only prerequisite. Live dispatch + real URL record are **later** under BOTH dual PASS **and** explicit AUTHORIZE — **not** unlocked by this PASS alone.
+---
 
-- tip/HEAD **MATCH** `231018760f84df6c4ca5a8640748d9146833a97b`
-- `liveGhaRunUrl=null` · `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false`
-- 阶 C/D **STILL NOT GREEN** · D3 **OUT OF SCOPE**
-- Do **NOT** authorize coding · Do **NOT** dispatch · Do **NOT** nail · Do **NOT** invent URL
+## 9. Forbidden actions this expert did **not** do
 
-*mw-e2e-ha · pre-exec · 2026-09-23 (~15:45 PT) · PASS · docs-only · STOP*
+- Rubber-stamp peer text without re-read  
+- Leave Author as mw-rag-route  
+- Authorize coding · dispatch GHA · invent URL · nail  
+- Meridian · Cloud Agent · print / read `.env*` · edit workflow · run prove  
+- Flip `releaseEvidence` · claim HA / 阶 D green · ping mw-core  
+- Claim Dual closed by polluted `d7000ca`
+
+---
+
+## 10. Final pin block
+
+```
+Verdict=PASS
+blockers=none
+authorizeCoding=false
+authorizeDispatch=false
+authorizeNail=false
+liveGhaRunUrl=null
+haStatus=NOT_HA
+releaseEvidence=false
+claimProductionHA=false
+ladderCD=STILL_NOT_GREEN
+gR45Closed=true
+coveredCount=8
+ms3EqualsR4Closed=false
+alone≠dual=true
+Dual≠coding=true
+Dual≠dispatch=true
+Dual≠nail=true
+integrity=re-owned_by_mw-e2e-ha_after_d7000ca_pollution
+```
+
+---
+
+*mw-e2e-ha · independent pre-exec re-own · HA D2b live GHA probe:multi artifact · 2026-09-23 (~15:48 PT) · REQUEST tip 2310187 · parent D2 d79519d ancestor · branch feat/mysql-schema-skeleton · docs-only · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · liveGhaRunUrl=null · Ban invent URL · Ban dispatch · Ban coding authorize · Ban nail · Ban Meridian · Ban Cloud Agent · Ban secrets/.env* · Ban D3 · Ban cloud buy · Ban wash b72c7c4/d79519d/9015410 into 阶 D · 阶 C/D STILL NOT GREEN · EXIT=1→SUCCESS honesty named not run · alone≠dual · Dual NOT closed by polluted d7000ca · this file independently re-owned by mw-e2e-ha · STOP*
