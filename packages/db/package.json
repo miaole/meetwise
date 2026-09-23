@@ -62,7 +62,8 @@
     "prove:privacy-erasure-preview": "tsx test/privacy-erasure-preview.proof.ts",
     "migrate": "tsx src/migrate-cli.ts",
     "prove:uc002-lease": "tsx test/uc-e2e-002-cross-device-lease.proof.ts",
-    "prove:retrieval-backend-qdrant": "tsx test/retrieval-backend-qdrant.proof.ts"
+    "prove:retrieval-backend-qdrant": "tsx test/retrieval-backend-qdrant.proof.ts",
+    "prove:uc018-graph": "tsx test/uc-e2e-018-graph-safely-terminated.proof.ts"
   },
   "dependencies": {
     "pg": "catalog:",
