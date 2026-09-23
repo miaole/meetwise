@@ -1,9 +1,9 @@
-# Harness — **G-R4-5 / FUNNEL coveredCount Batch3**（true-cover **only** `RAG-FUNNEL-05` + `RAG-FUNNEL-06` · docs REQUEST · **`REQUEST-ready / not_run:pre_dual`** · coveredCount **STILL 4** · awaiting_pre_exec_dual）
+# Harness — **G-R4-5 / FUNNEL coveredCount Batch3**（true-cover **only** `RAG-FUNNEL-05` + `RAG-FUNNEL-06` · docs REQUEST · **`executed:awaiting_post_prove_dual`** · coveredCount **4** honest · awaiting_post_prove_dual）
 
-**Status**: **`REQUEST-ready / not_run:pre_dual`**（≡ **awaiting_pre_exec_dual** · 实现方预写 · **not yet dual-sent** · **Ban自批 pass** · Dual PASS ≠ coding · Coding forbidden until dual BOTH PASS + standing AUTHORIZE · **≠ r4ProductClosed** · **≠ funnelProductClosed** · **≠ gR45Closed** · **≠ silent flip** · **≠ coding** · **≠ prove** · **≠ matrix status flip this open** · **≠ invent coveredCount** · **≠ invent 05/06 covered this open** · **≠ R4/FUNNEL product closed** · **≠ G-R4-5 all closed** · Ban wash Batch2b tip nail **`ddfb64d`** / prove **`824e072`** · Ban wash Batch2 tip **`0a980e6`** / prove **`5593226`** · Ban wash Batch1 tip **`5519078`** / prove **`bd15172`** · Ban wash product-close tip **`1c2ed8c`** honesty · Ban wash EG3 / rem·SSOT·EXPLICIT / R1 / EG3 evidence · Ban Batch4 parallel · Ban second knife）  
+**Status**: **`executed:awaiting_post_prove_dual`**（standing authorize after pre-exec dual BOTH PASS on REQUEST tip **`e3161b4`** · L3 coding+dedicated prove done · honest assessors · 05/06 elevate **only when affirmed** · Ban invent · Ban self-nail `post_prove_dual_pass` · `batch3Only=true` · `coveredCountInvented=false` · **本刀不翻** product flags · Ban wash Batch2b **`ddfb64d`**/`824e072` · Ban MS3=R4 · Ban elevating 07/08 · Ban Batch4 parallel · Ban second knife · await post-prove dual）  
 **Date**: 2026-09-23 (~10:05 PT) · base tip **`ddfb64d`** / `ddfb64db23524e0449d662c48842fbc60738581c`  
 **releaseEvidence=false** · **≠HA** · **≠suite green** · **R4/FUNNEL product STILL OPEN** · **G-R4-5 STILL OPEN** · **MS3 ≠ R4 closed** · coveredCount **4** retained (**Ban invent** · Batch1 03/04 + Batch2 02A + Batch2b 02B · 05–08 **still not_covered**) · matrix `RAG-FUNNEL-05`/`06` **still not_covered** · `RAG-FUNNEL-02A`/`02B`/`03`/`04` **covered** retained · Ban假关 · Ban invent coveredCount · Ban forge receipts · Ban silent flip `r4ProductClosed` / `funnelProductClosed` / `gR45Closed` · **本刀不翻** `r4ProductClosed` / `funnelProductClosed` / `gR45Closed`（product close is a **separate** knife · tip nail **`1c2ed8c`** honesty non-flip retained） · Ban claim R4/FUNNEL/G-R4-5 closed from this REQUEST · Ban wash Batch2b tip nail **`ddfb64d`** / prove **`824e072`** / coveredCount **4** into invent 05/06 covered · Ban wash Batch2 tip **`0a980e6`** / prove **`5593226`** · Ban wash Batch1 tip **`5519078`** / prove **`bd15172`** · Ban wash product-close tip **`1c2ed8c`** / prove **`139dac9`** · Ban wash EG3 product-close tip **`7be1a55`** / prove **`5b3c854`** · Ban wash rem tip **`42f77c1`** / dual **`669bca4`** · SSOT/real-close tip **`d994c36`** / dual **`105b264`** · EXPLICIT prove **`1a8b1e9`** / REQUEST **`133d952`** · Ban wash R1 tip **`9fec7c7`** / dual **`72233a0`** · Ban wash EG3 evidence tip **`62c0e2f`** / dual **`c18e28f`** · Ban MS3=R4 · Ban Dual PASS=coding · Dual PASS ≠ next knife auto-authorize · Ban self-approve · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Ban second knife · Ban Batch4 parallel · Key×3 O3 honesty_red **非阻塞** · `r4ProductClosed=false` · `funnelProductClosed=false` · `gR45Closed=false` · coveredCount **4** (matrix · **Ban invent** · Batch2b retained) · `domainIsolationClosed` / `eg3ProductClosed` **retained** from EG3 tip **`7be1a55`** · `releaseEvidence=false`  
-**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **not yet run** · Ban self-approve · experts write their own review receipts at named paths below）  
+**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **BOTH PASS** on tip **`e3161b4`** · Ban self-approve · post-prove dual **not_run** · Ban self-nail）  
 **Knife**: true-cover **only** **`RAG-FUNNEL-05`** + **`RAG-FUNNEL-06`** — 05 = same-leaf LLM generation on clean miss (`QuestionPlan` / clean `no_eligible_in_scope` only · Ban invent) · 06 = route-scope cache/provenance/revoke (retrieval-result/negative cache · singleflight · epoch · metrics · provenance with route-scope/taxonomy/generation digest · Ban invent) · **later under authorize only** · dedicated prove may emit `status=covered` for **05 and/or 06 only** when production path truly wired · if production path not wired → honest refuse / keep `not_covered` · only then update matrix and let coveredCount honestly increase (**expect 4→6 if both affirmed** · else keep **4** or **5** · **Ban invent**) · Coding forbidden until dual BOTH PASS + standing AUTHORIZE  
 **Prior Batch2b（CLOSED lifecycle · retained · ≠ wash）**: tip nail **`ddfb64d`** · prove tip **`824e072`** · EXIT **2×0** · coveredCount **4** · `RAG-FUNNEL-02B` **covered** · `productionConsumerWired=true` · 02A/03/04 **covered** retained · 05–08 **not_covered** · **`post_prove_dual_pass`** · **retained** · Ban wash into Batch3 invent 05/06 covered · Ban invent coveredCount=5/6 this open  
 **Prior Batch2（CLOSED lifecycle · retained · ≠ wash）**: tip nail **`0a980e6`** · prove tip **`5593226`** · EXIT **2×0** · coveredCount **3** honest partial · 02A **covered** · 02B refused then · **`post_prove_dual_pass`** · **retained** · Ban wash  
@@ -27,10 +27,10 @@
 
 | Expert | Receipt path（named · **not pre-filled**） | Verdict |
 |--------|---------------------------------------------|---------|
-| `mw-e2e-ha` (pre-exec) | `../reviews/REQUEST-2026-09-23-g-r4-5-funnel-covered-count-batch3-mw-e2e-ha.md` | **REQUEST-ready / not_run:pre_dual** · Ban自批 · expert writes |
-| `mw-rag-route` (pre-exec) | `../reviews/REQUEST-2026-09-23-g-r4-5-funnel-covered-count-batch3-mw-rag-route.md` | **REQUEST-ready / not_run:pre_dual** · Ban自批 · expert writes |
+| `mw-e2e-ha` (pre-exec) | `../reviews/REQUEST-2026-09-23-g-r4-5-funnel-covered-count-batch3-mw-e2e-ha.md` | **PASS** (pre-exec docs gate · tip `e3161b4`) · Ban自批 |
+| `mw-rag-route` (pre-exec) | `../reviews/REQUEST-2026-09-23-g-r4-5-funnel-covered-count-batch3-mw-rag-route.md` | **PASS** (pre-exec docs gate · tip `e3161b4`) · Ban自批 |
 
-**Note**: This knife is **docs-only**. There is **no** coding · **no** prove · **no** flag flip · **no** matrix status flip · **no** coveredCount invent · **no** invent 05/06 covered · **no** post-prove dual this open. Status = **REQUEST-ready / not_run:pre_dual**（awaiting_pre_exec_dual）. Dual PASS (later) ≠ coding ≠ flip ≠ covered invent ≠ r4ProductClosed ≠ funnelProductClosed ≠ gR45Closed ≠ R4/FUNNEL/G-R4-5 closed. Coding forbidden until dual BOTH PASS + standing AUTHORIZE. Review stubs **not** pre-filled — experts write at the named paths. Coordinator pulls pre-exec — no dual ping required this open.
+**Note**: Pre-exec dual BOTH PASS on tip **`e3161b4`** · standing AUTHORIZE · L3 coding+dedicated prove done · status **`executed:awaiting_post_prove_dual`**. Honest assessors refused 05/06 elevation (`production_path_not_wired_*` · Ban invent) · coveredCount **4** retained · 07/08 not elevated · product flags false · Ban self-nail `post_prove_dual_pass` · await post-prove dual · Ban second knife · Ban Batch4 parallel.
 
 ---
 
@@ -38,7 +38,7 @@
 
 | Statement | Ruling |
 |-----------|--------|
-| **What this knife is** | Docs REQUEST open: **G-R4-5 / FUNNEL coveredCount Batch3** · true-cover **only** **`RAG-FUNNEL-05` + `RAG-FUNNEL-06`** · dedicated prove (**later** after dual + standing authorize) may emit `status=covered` for 05 and/or 06 only when production path affirmed · only then update matrix / coveredCount (**expect 4→6 if both affirmed** · else keep 4 or 5 · Ban invent) · status **`REQUEST-ready / not_run:pre_dual`** |
+| **What this knife is** | Docs REQUEST open: **G-R4-5 / FUNNEL coveredCount Batch3** · true-cover **only** **`RAG-FUNNEL-05` + `RAG-FUNNEL-06`** · dedicated prove (**later** after dual + standing authorize) may emit `status=covered` for 05 and/or 06 only when production path affirmed · only then update matrix / coveredCount (**expect 4→6 if both affirmed** · else keep 4 or 5 · Ban invent) · status **`executed:awaiting_post_prove_dual`** |
 | **What this knife is not** | **Not** coding · **not** prove · **not** flipping flags this open · **not** flipping matrix 05/06 this open · **not** inventing coveredCount · **not** inventing 05/06 covered · **not** elevating 07/08 · **not** silent flip · **not** claiming R4/FUNNEL/G-R4-5 product closed · **not** washing Batch2b **`ddfb64d`**/`824e072` · Batch2 **`0a980e6`**/`5593226` · Batch1 **`5519078`**/`bd15172` · product-close **`1c2ed8c`** / EG3 **`7be1a55`** / rem·SSOT·EXPLICIT / R1 / EG3 evidence into covered · **not** MS3=R4 · **not** Dual PASS=coding · **not** flipping `r4ProductClosed`/`funnelProductClosed`/`gR45Closed` · **not** HA · **not** suite green · **not** Batch4 parallel · **not** second knife |
 | **本刀不翻** | `r4ProductClosed` / `funnelProductClosed` / `gR45Closed` — product close is a **separate** knife · tip **`1c2ed8c`** honesty non-flip **retained** |
 | **≠ Batch2b wash** | **YES** — tip nail **`ddfb64d`** · prove tip **`824e072`** · coveredCount **4** · 02B covered · Ban wash into invent 05/06 |
@@ -52,7 +52,7 @@
 | **Matrix 07/08** | **not_covered** · Ban elevate this knife |
 | **R4/FUNNEL / G-R4-5** | **STILL OPEN** · **MS3 ≠ R4 closed** · Ban wash this REQUEST into those closes |
 | **Key×3 O3 honesty_red** | **非阻塞** this REQUEST |
-| **Now** | **`REQUEST-ready / not_run:pre_dual`** · awaiting_pre_exec_dual · base tip **`ddfb64d`** · coveredCount **4** · 05/06 **not_covered** · product flags **false** · zero coding · zero prove · zero flip · Ban second knife |
+| **Now** | **`executed:awaiting_post_prove_dual`** · REQUEST tip **`e3161b4`** · standing authorize · dedicated prove EXIT · coveredCount **4** honest · 05/06 **not_covered** (production consumer not wired · Ban invent) · product flags **false** · Ban self-nail post_prove_dual_pass · Ban second knife · await post-prove dual |
 
 ---
 
@@ -60,7 +60,7 @@
 
 | # | Gate | Acceptance | Why now | This open |
 |---|------|------------|---------|-----------|
-| **A1** | Docs REQUEST honesty | Docs-only Batch3 REQUEST · status **`REQUEST-ready / not_run:pre_dual`** · Ban invent · **本刀不翻** product flags · Ban wash Batch2b **`ddfb64d`**/`824e072` | Batch2b closed · coveredCount **4** · 05/06 **not_covered** | **this open** |
+| **A1** | Docs REQUEST honesty | Batch3 REQUEST · status **`executed:awaiting_post_prove_dual`** · Ban invent · **本刀不翻** product flags · Ban wash Batch2b **`ddfb64d`**/`824e072` | Batch2b closed · coveredCount **4** · 05/06 **not_covered** honest refuse | **done** |
 | **A2** | Dedicated true-cover prove | Only under **standing authorize** dedicated prove for **`RAG-FUNNEL-05`+`06`** · may emit `status=covered` for **05 and/or 06 only** when production path wired · else honest refuse · Ban invent · Ban forge · Ban silent matrix flip · Ban wash priors into covered · keep flags **false** · **本刀不翻** product flags | Matrix 05/06 not_covered · emitter refuses 05–08 | **Docs REQUEST** · prove/matrix update **forbidden this open** · coveredCount remains **4** |
 | **A3** | Honest matrix / coveredCount update | Update matrix 05/06 → `covered` **only when** dedicated prove truly emits · coveredCount honest increase (**expect 4→6 if both affirmed** · else keep 4 or 5) · **Ban invent** · Ban elevating 07/08 | Batch2b elevated 02B only · 05–08 **not_covered** · Ban invent | Intended matrix/count update **later** · Ban invent this open |
 | **A4** | Non-claims / Ban wash | EXIT=0 ≠ invent covered · Ban wash Batch2b **`ddfb64d`**/`824e072` · Batch2 **`0a980e6`**/`5593226` · Batch1 **`5519078`**/`bd15172` · product-close **`1c2ed8c`** · EG3 **`7be1a55`** · rem/SSOT/EXPLICIT · R1 · EG3 evidence · Ban MS3=R4 · Ban Dual PASS=coding · **本刀不翻** product flags | Prior dual_pass / honesty / Batch2b ≠ FUNNEL-05/06 covered | Hard-pinned this REQUEST |
@@ -102,12 +102,12 @@
 
 | Phase | Gate | This open |
 |-------|------|-----------|
-| **L0** | REQUEST pair open · `REQUEST-ready / not_run:pre_dual` · base tip **`ddfb64d`** | **this open** |
-| **L1** | Pre-exec dual (`mw-e2e-ha` + `mw-rag-route`) · Ban self-approve | **not_run** · awaiting_pre_exec_dual |
-| **L2** | Standing authorize after dual · Dual PASS ≠ coding · Coding forbidden until dual BOTH PASS + standing AUTHORIZE | **not_run** |
-| **L3** | Standing coding + dedicated true-cover prove · Ban invent EXIT · Ban invent coveredCount · Ban silent matrix flip · **本刀不翻** product flags | **not_run** |
-| **L4** | Post-prove dual BOTH PASS · Dual PASS ≠ next knife auto-authorize | **not_run** |
-| **L5** | Authorized lifecycle nail + honest matrix/coveredCount update only when prove emits · commit+push · **STOP** · no second knife | **not_run** · matrix **NOT** flipped this open · flags **NOT** flipped |
+| **L0** | REQUEST pair open · base tip **`ddfb64d`** · REQUEST tip **`e3161b4`** | **done** |
+| **L1** | Pre-exec dual (`mw-e2e-ha` + `mw-rag-route`) · Ban self-approve | **done** · BOTH PASS on tip **`e3161b4`** |
+| **L2** | Standing authorize after dual · Dual PASS ≠ coding · Coding forbidden until dual BOTH PASS + standing AUTHORIZE | **done** · standing AUTHORIZE |
+| **L3** | Standing coding + dedicated true-cover prove · Ban invent EXIT · Ban invent coveredCount · Ban silent matrix flip · **本刀不翻** product flags | **done** · dedicated prove · honest emit · status **`executed:awaiting_post_prove_dual`** |
+| **L4** | Post-prove dual BOTH PASS · Dual PASS ≠ next knife auto-authorize | **not_run** · awaiting_post_prove_dual · Ban self-nail |
+| **L5** | Authorized lifecycle nail after post-prove dual · commit+push · **STOP** · no second knife | **not_run** · Ban self-nail · flags **NOT** flipped |
 
 ---
 
@@ -129,9 +129,9 @@
 
 | CMD | Status this open |
 |-----|------------------|
-| docs REQUEST open | **`REQUEST-ready / not_run:pre_dual`** · awaiting_pre_exec_dual |
-| pre-exec dual | **`not_run:pre_dual`** · Ban自批 · experts write at named paths · coordinator pulls |
-| standing coding / prove / matrix update | **`not_run:no_coding_authorize`** · Ban silent flip · Dual PASS ≠ coding · Coding forbidden until dual BOTH PASS + standing AUTHORIZE · **本刀不翻** product flags |
+| docs REQUEST open | **`executed:awaiting_post_prove_dual`** · coding+prove done · await post-prove dual |
+| pre-exec dual | **BOTH PASS** on tip **`e3161b4`** · Ban自批 |
+| standing coding / prove / matrix update | **`executed:awaiting_post_prove_dual`** · dedicated prove ran · honest matrix · Ban invent · **本刀不翻** product flags · Ban self-nail post_prove_dual_pass |
 | intended dedicated prove (later) | `pnpm r4-funnel-covered-count-batch3:prove` · EXIT=0 later under authorize ≠ invent covered · may set 05/06 covered only if production path affirmed · coveredCount honest (**expect 4→6 if both affirmed**) · ≠ flip product flags · ≠ G-R4-5 all closed · ≠ HA |
 | intended EG2 Batch3-aware (later) | `pnpm r4-eg2-funnel-covered:prove` · EXIT=0 = honest matrix · Ban invent other IDs |
 | retained prior proves / dual_pass | Batch2b / Batch2 / Batch1 / product-close / EG3 / rem/SSOT/EXPLICIT · Ban wash into invent covered |
@@ -145,4 +145,4 @@
 
 ---
 
-*Harness · G-R4-5 / FUNNEL coveredCount Batch3 · 2026-09-23 (~10:05 PT) · REQUEST-ready / not_run:pre_dual · awaiting_pre_exec_dual · docs only · true-cover RAG-FUNNEL-05+06 later · base tip ddfb64d · coveredCount=4 Ban invent · 02A/02B/03/04 covered retained · 05/06 still not_covered · r4ProductClosed=false · funnelProductClosed=false · gR45Closed=false · 本刀不翻 product flags · Ban wash Batch2b ddfb64d/824e072 · Ban wash Batch2 0a980e6/5593226 · Ban wash Batch1 5519078/bd15172 · Ban wash product-close 1c2ed8c · Ban MS3=R4 · Ban Dual PASS=coding · R4/FUNNEL/G-R4-5 STILL OPEN · Dual PASS ≠ coding · Coding forbidden until dual+authorize · Key×3 O3 honesty_red非阻塞 · releaseEvidence=false · ≠HA · zero coding · zero prove · zero flip · Ban Batch4 parallel · Ban second knife*
+*Harness · G-R4-5 / FUNNEL coveredCount Batch3 · 2026-09-23 (~10:20 PT) · executed:awaiting_post_prove_dual · REQUEST tip e3161b4 · standing authorize · true-cover RAG-FUNNEL-05+06 · honest assessors · Ban invent · Ban self-nail post_prove_dual_pass · coveredCount honest (expect 4→6 if both affirmed else keep 4/5) · 02A/02B/03/04 covered retained · 07/08 not_covered · r4ProductClosed=false · funnelProductClosed=false · gR45Closed=false · batch3Only=true · coveredCountInvented=false · 本刀不翻 product flags · Ban wash Batch2b ddfb64d/824e072 · Ban wash Batch2 0a980e6/5593226 · Ban wash Batch1 5519078/bd15172 · Ban wash product-close 1c2ed8c · Ban MS3=R4 · R4/FUNNEL/G-R4-5 STILL OPEN · Key×3 O3 honesty_red非阻塞 · releaseEvidence=false · ≠HA · Ban Batch4 parallel · Ban second knife · await post-prove dual*
