@@ -27,14 +27,14 @@
     },
     {
       "id": "RAG-FUNNEL-03",
-      "status": "not_covered",
-      "basis": "JobRouteDecision classifier production path not evidenced · Ban invent covered",
+      "status": "covered",
+      "basis": "Batch1 true-cover: JobRouteDecision production path evidenced (contracts+domain+db+route-classify consumer+main · R2 structural CLOSED cited ≠ invent) · Ban invent",
       "inventCoveredForbidden": true
     },
     {
       "id": "RAG-FUNNEL-04",
-      "status": "not_covered",
-      "basis": "track-local scoped retrieval production close not evidenced · Ban invent covered",
+      "status": "covered",
+      "basis": "Batch1 true-cover: track-local scoped retrieval production evidenced (helper+db+domain+REAL-WIRE main inject+consumer+fail-closed scope · cite EG3 ≠ wash) · Ban invent",
       "inventCoveredForbidden": true
     },
     {
@@ -62,8 +62,8 @@
       "inventCoveredForbidden": true
     }
   ],
-  "coveredCount": 0,
+  "coveredCount": 2,
   "inventCovered": false,
   "releaseEvidence": false,
-  "note": "EG2 FUNNEL-01…08 covered matrix — Ban invent covered · ≠ R4/题域 closed · await post-prove dual"
+  "note": "EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 when assessors affirm · ≠ R4/题域 closed · await post-prove dual"
 }
