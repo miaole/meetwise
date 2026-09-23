@@ -10,7 +10,7 @@
 
 | # | 已证明 | 证据 / CMD | 不得外推 |
 |---|--------|------------|----------|
-| P1 | **EG3 domainIsolationClosed=true under authorize** · **R4/FUNNEL product face closed under authorize** · **EG4 wrongTrackProductClosed=true under authorize** · **G-R4-5 / gR45Closed=false STILL OPEN**（M4/M5 门） | m4-rag-hard-gates §R4；GAP-RAG-04；本 status；`pnpm r4-eg3-domain-isolation-product-close:prove`；`pnpm r4-eg4-wrong-track-product-close:prove`；`mysql-stack:r4-domain-isolation:prove` | ≠ G-R4-5 all closed；≠ invent coveredCount；≠ wrong_track=0 invent；≠ 可切题库/向量 |
+| P1 | **EG3 domainIsolationClosed=true under authorize** · **R4/FUNNEL product face closed under authorize** · **EG4 wrongTrackProductClosed=true under authorize** · **G-R4-5 / gR45Closed=true aggregate closed under authorize**（live `canHonestlyFlip` · ≠HA · ≠ cutover · ≠ suite · pass ≠ R4 · M4/M5 门） | m4-rag-hard-gates §R4；GAP-RAG-04；本 status；`pnpm r4-eg3-domain-isolation-product-close:prove`；`pnpm r4-eg4-wrong-track-product-close:prove`；`mysql-stack:r4-domain-isolation:prove` | ≠ G-R4-5 all closed；≠ invent coveredCount；≠ wrong_track=0 invent；≠ 可切题库/向量 |
 | P2 | 合同 track-local seam **存在**于 `qbank-track-local-retrieval.ts` | 源码 + rag04 proof | ≠ Worker 已接线；≠ wrong_track=0 生产 |
 | P3 | prove-shell `rag04-track-local:prove` 库存已登记且标红读法 | harness §1.1 | 绿 ≠ R4；属 R5 假绿夹具族 |
 | P4 | 生产 Worker retrieve：**REAL-WIRE**（trackLocal→dispatch）+ G-R2-5；compat 仍保留 scoped `localRetrieve` | `qbank-track-local-retrieve.ts` + consumer/main + `r4-real-wire-impl:prove` | wire ≠ R4 关；≠ wrong_track=0 |
