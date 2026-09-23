@@ -1,11 +1,11 @@
-# Slice — **HA local C3b Nest-session authorized-prove**（docs REQUEST · **`REQUEST-ready / not_run:pre_dual`** · local C3b Nest business session A→B evidence receipts under authorize flag）
+# Slice — **HA local C3b Nest-session authorized-prove**（authorized prove · **`executed:awaiting_post_prove_dual`** · local C3b Nest business session A→B evidence receipts under authorize flag）
 
-**Status**: **`REQUEST-ready / not_run:pre_dual`**（实现方预写 · **not yet dual-sent** · **Ban自批 pass** · Dual PASS ≠ coding · Dual PASS ≠ HA green · Dual PASS ≠ next knife auto-authorize · **≠ coding** · **≠ prove** · **≠ claim 阶 C/D green** · **≠ production HA / failover** · **≠ flip `releaseEvidence`** · **≠ wash prior C3+C4 `358a5cf`/`16e8379` into 阶 C green / production HA** · **≠ wash G-R4-5 `6ded589`/`ba1b8aa` into HA** · **≠ wash skeleton/stub EXIT=0 into HA** · **≠ invent green** · **≠假绿** · Explicit ≠ wash C3+C4 / skeleton / stub into 阶 C）  
-**Date**: 2026-09-23 (~14:39 PT)  
-**Base / HEAD**: prior HA local C3+C4 nail **`358a5cf`** / full `358a5cfef4ff13b7ed815ed6701ca0a190864dec` · branch `feat/mysql-schema-skeleton`  
-**Authority**: meetwise — docs-only **HA local C3b Nest-session authorized-prove REQUEST** open · zero coding · zero prove · zero HA claim · Ban假绿 · Ban invent green · Ban forge · Ban claim 阶 C/D green · Ban production HA / failover · Ban flip `releaseEvidence` · Ban wash prior C3+C4 **`358a5cf`**/**`16e8379`** into 阶 C green / production HA · Ban wash G-R4-5 **`6ded589`**/**`ba1b8aa`** into HA · Ban wash skeleton/stub EXIT=0 into HA · Ban secrets / `.env*` · Dual not pinged by implementer · **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban claim 阶 C from this knife alone  
-**haStatus=NOT_HA** · **releaseEvidence=false** · **claimProductionHA=false** · **≠HA** · **≠suite green** · **≠ production topology** · **≠ 阶 C/D green** · **≠ coding authorized** · Dual PASS ≠ coding · Ban self-approve · Ban Cloud Agent · Ban Meridian · Ban自批 HA · Key×3 FreeTier **out of scope** · `gR45Closed=true` **retained** · coveredCount **8** retained · `ms3EqualsR4Closed=false` **retained** · eg1–eg6 / r4 / funnel product flags **retained** · prior C3+C4 **`post_prove_dual_pass`** **retained** · `releaseEvidence=false` **retained** · ≠HA  
-**Experts**: `mw-e2e-ha` + `mw-rag-route` · pre-exec dual **not_run** · Ban自批 · experts write reviews at named paths · Dual not pinged by implementer
+**Status**: **`executed:awaiting_post_prove_dual`**（authorized coding+prove landed · EXIT **3×0** · `nestSessionOk=true` LOCAL · **NOT** `post_prove_dual_pass` · **Ban self-nail** · Dual PASS ≠ coding · Dual PASS ≠ HA green · Dual PASS ≠ next knife auto-authorize · **≠ claim 阶 C/D green** · **≠ production HA / failover** · **≠ flip `releaseEvidence`** · **≠ wash prior C3+C4 `358a5cf`/`16e8379` into 阶 C green / production HA** · **≠ wash G-R4-5 `6ded589`/`ba1b8aa` into HA** · **≠ wash skeleton/stub EXIT=0 into HA** · **≠ invent green** · **≠假绿** · Explicit ≠ wash C3+C4 / skeleton / stub into 阶 C · STOP for post-prove dual）  
+**Date**: 2026-09-23 (~14:45 PT)  
+**Base / REQUEST tip**: **`5c71530`** / full `5c7153048ee0cb9477035daeaab8a252d7c79650` · branch `feat/mysql-schema-skeleton`  
+**Authority**: meetwise — **AUTHORIZED** local C3b Nest-session prove under env authorize · Ban假绿 · Ban invent green · Ban forge · Ban claim 阶 C/D green · Ban production HA / failover · Ban flip `releaseEvidence` · Ban wash prior C3+C4 **`358a5cf`**/**`16e8379`** into 阶 C green / production HA · Ban wash G-R4-5 **`6ded589`**/**`ba1b8aa`** into HA · Ban wash skeleton/stub EXIT=0 into HA · Ban secrets / `.env*` · **Ban self-nail** · **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban claim 阶 C from this knife alone  
+**haStatus=NOT_HA** · **releaseEvidence=false** · **claimProductionHA=false** · **≠HA** · **≠suite green** · **≠ production topology** · **≠ 阶 C/D green** · Dual PASS ≠ HA green · Ban self-approve · Ban Cloud Agent · Ban Meridian · Ban自批 HA · Key×3 FreeTier **out of scope** · `gR45Closed=true` **retained** · coveredCount **8** retained · `ms3EqualsR4Closed=false` **retained** · eg1–eg6 / r4 / funnel product flags **retained** · prior C3+C4 **`post_prove_dual_pass`** **retained** · `releaseEvidence=false` **retained** · ≠HA  
+**Experts**: `mw-e2e-ha` + `mw-rag-route` · pre-exec dual **BOTH PASS** · post-prove dual **awaiting** · Ban自批
 
 ---
 
@@ -15,39 +15,43 @@
 |------|------|
 | This slice | `ai-docs/delivery/ha-local-c3b-nest-session-authorized-prove.slice.md` |
 | Harness | `ai-docs/delivery/harness/ha-local-c3b-nest-session-authorized-prove.md` |
-| Eval | `ai-docs/delivery/eval/ha-local-c3b-nest-session-authorized-prove.eval.md`（later / experts · **not** this open） |
-| Must cite HA ladder | `harness/ha-track.multi-instance.md` · **C3b** `MEETWISE_HA_NEST_PG_AUTHORIZED` · `compose.ha-dual.pg.yml` · `ha:prepare:nest-pg` · `ha:dual:compose-pg` · `ha:prove:nest-session -- --prove` · default PREREQ_GAP · local nestSessionOk 可 true 仍 `haStatus=NOT_HA` |
+| Prove receipt | `receipts/2026-09-23-ha-local-c3b-nest-session-authorized-prove-prove.md` |
+| Evidence JSON | `receipts/2026-09-23-ha-local-c3b-nest-session-authorized-prove-evidence.json` |
+| Eval | `ai-docs/delivery/eval/ha-local-c3b-nest-session-authorized-prove.eval.md`（later / experts · **not** this tip） |
+| Must cite HA ladder | `harness/ha-track.multi-instance.md` · **C3b** `MEETWISE_HA_NEST_PG_AUTHORIZED` · `compose.ha-dual.pg.yml` · `ha:prepare:nest-pg` · `ha:dual:compose-pg` · `ha:prove:nest-session -- --prove` · local nestSessionOk 可 true 仍 `haStatus=NOT_HA` |
 | Prior HA local C3+C4 | tip nail **`358a5cf`** · prove **`16e8379`** · prove land **`94b05b6`** · EXIT **4×0** · `post_prove_dual_pass` · still NOT_HA · 阶 C/D STILL NOT GREEN · **retained** · Ban wash into 阶 C green / production HA |
 | Prior G-R4-5 product close | tip nail **`6ded589`** · prove **`ba1b8aa`** · EXIT **2×0** · `gR45Closed=true` · coveredCount **8** · `ms3EqualsR4Closed=false` · eg1–eg6/r4/funnel **retained** · `releaseEvidence=false` · ≠HA · **retained** · Ban wash into HA |
 | Parent / stance | **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · 阶 C/D **STILL NOT GREEN** · production HA **NOT claimed** |
-| REQUEST · e2e-ha (named · expert writes) | `reviews/REQUEST-2026-09-23-ha-local-c3b-nest-session-authorized-prove-mw-e2e-ha.md` · **REQUEST-ready / not_run:pre_dual** |
-| REQUEST · rag-route (named · expert writes) | `reviews/REQUEST-2026-09-23-ha-local-c3b-nest-session-authorized-prove-mw-rag-route.md` · **REQUEST-ready / not_run:pre_dual** |
+| REQUEST · e2e-ha | `reviews/REQUEST-2026-09-23-ha-local-c3b-nest-session-authorized-prove-mw-e2e-ha.md` · **PASS** (pre-exec) |
+| REQUEST · rag-route | `reviews/REQUEST-2026-09-23-ha-local-c3b-nest-session-authorized-prove-mw-rag-route.md` · **PASS** (pre-exec) |
 
 ## One-line scope
 
-Docs REQUEST open: **HA local C3b Nest-session authorized-prove** · local evidence receipts for ladder **C3b Nest business session A→B** under explicit env authorize flag（`MEETWISE_HA_NEST_PG_AUTHORIZED` · cite `ha-track.multi-instance.md` · `compose.ha-dual.pg.yml` · `ha:prepare:nest-pg` · `ha:dual:compose-pg` · `ha:prove:nest-session -- --prove`）· intended later（under authorize）land reproducible CMD+EXIT receipts for prepare:nest-pg / compose-pg / prove:nest-session · expect **`nestSessionOk`** when authorized · If PREREQ_GAP unavoidable → honest pin GAP · Ban假绿 · do NOT invent green · Ban claim 阶 C/D green · Ban production HA / failover · Ban flip `releaseEvidence` · Ban wash prior C3+C4 `358a5cf`/`16e8379` into 阶 C · Ban wash G-R4-5 `6ded589`/`ba1b8aa` into HA · Ban wash skeleton/stub EXIT=0 into HA · Explicit ≠ wash C3+C4 / skeleton / stub into 阶 C · post-prove dual BOTH PASS → nail → STOP · Dual PASS ≠ next knife auto-authorize · Dual PASS ≠ coding · Dual PASS ≠ HA green · Key×3 FreeTier out of scope · retain prior C3+C4 / `gR45Closed=true` / coveredCount **8** / `ms3EqualsR4Closed=false` / eg1–eg6/r4/funnel · **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban claim 阶 C from this knife alone · zero coding · zero prove · zero HA claim · Dual not pinged by implementer.
+Authorized prove: **HA local C3b Nest-session** · landed CMD+EXIT for `ha:prepare:nest-pg` / `ha:dual:compose-pg` / `ha:prove:nest-session -- --prove` under `MEETWISE_HA_NEST_PG_AUTHORIZED` + `MEETWISE_HA_DUAL_AUTHORIZED` · **`nestSessionOk=true` LOCAL** · EXIT **3×0** · GAP pins **none** · status **`executed:awaiting_post_prove_dual`** · Ban self-nail · Ban claim 阶 C/D green · Ban production HA / failover · Ban flip `releaseEvidence` · Ban wash prior C3+C4 `358a5cf`/`16e8379` into 阶 C · Ban wash G-R4-5 `6ded589`/`ba1b8aa` into HA · Ban wash skeleton/stub EXIT=0 into HA · Explicit ≠ wash C3+C4 / skeleton / stub into 阶 C · Dual PASS ≠ next knife · Dual PASS ≠ HA green · retain prior C3+C4 / `gR45Closed=true` / coveredCount **8** / `ms3EqualsR4Closed=false` / eg1–eg6/r4/funnel · **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban claim 阶 C from this knife alone · STOP for post-prove dual.
 
 ## Hard pins
 
-- **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · 阶 C/D **STILL NOT GREEN** · production HA **NOT claimed** · ≠ wash prior C3+C4 `358a5cf`/`16e8379` into 阶 C green / production HA · ≠ wash G-R4-5 `6ded589`/`ba1b8aa` · ≠ wash skeleton/stub EXIT=0 into HA · Explicit ≠ wash C3+C4 / skeleton / stub into 阶 C · Ban invent green · Ban假绿 · Ban claim 阶 C/D green · Ban production HA / failover · Ban flip `releaseEvidence` · Dual PASS ≠ coding · Dual PASS ≠ HA green · Dual PASS ≠ next knife auto-authorize · `gR45Closed=true` **retained** · coveredCount **8** retained · `ms3EqualsR4Closed=false` **retained** · eg1–eg6/r4/funnel **retained** · prior C3+C4 **retained** · Ban self-approve · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Key×3 FreeTier **out of scope** · Ban claim 阶 C from this knife alone · Dual not pinged by implementer
-- Lifecycle: L0 this open · L1–L5 coding/prove/HA-claim **not** executed · post-prove → nail → STOP · no second knife · local nestSessionOk ≠ production HA · ≠ 阶 C green
-- Acceptance later: pre-exec dual BOTH PASS → standing authorize → authorized local C3b Nest-session CMD+EXIT receipts（or honest PREREQ_GAP）→ post-prove dual BOTH PASS → lifecycle nail → STOP · **Ban假绿** · **Ban invent green** · **Ban claim 阶 C/D** · **Ban production HA**
+- **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · 阶 C/D **STILL NOT GREEN** · production HA **NOT claimed** · ≠ wash prior C3+C4 `358a5cf`/`16e8379` into 阶 C green / production HA · ≠ wash G-R4-5 `6ded589`/`ba1b8aa` · ≠ wash skeleton/stub EXIT=0 into HA · Explicit ≠ wash C3+C4 / skeleton / stub into 阶 C · Ban invent green · Ban假绿 · Ban claim 阶 C/D green · Ban production HA / failover · Ban flip `releaseEvidence` · Dual PASS ≠ coding · Dual PASS ≠ HA green · Dual PASS ≠ next knife auto-authorize · `gR45Closed=true` **retained** · coveredCount **8** retained · `ms3EqualsR4Closed=false` **retained** · eg1–eg6/r4/funnel **retained** · prior C3+C4 **retained** · Ban self-approve · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Key×3 FreeTier **out of scope** · Ban claim 阶 C from this knife alone · **Ban self-nail**
+- Lifecycle: L0–L3 executed · L4 post-prove dual **awaiting** · L5 nail **not_run** · local nestSessionOk ≠ production HA · ≠ 阶 C green
+- Status = **`executed:awaiting_post_prove_dual`** · **NOT** `post_prove_dual_pass`
 
 ## Scope
 
-| In scope（later under authorize · not this open） | Out of scope |
-|--------------------------------------------------|--------------|
-| `MEETWISE_HA_NEST_PG_AUTHORIZED` · `compose.ha-dual.pg.yml` · `ha:prepare:nest-pg` · `ha:dual:compose-pg` · `ha:prove:nest-session -- --prove` · expect nestSessionOk when authorized · honest PREREQ_GAP if blocked | cloud buy · production topology · CI HA job · D1–D3 · UC covered-lift · Key×3 FreeTier · Ban claim 阶 C from this knife alone · coding/prove this open · flip releaseEvidence · invent green |
+| In scope（this tip） | Out of scope |
+|---------------------|--------------|
+| `MEETWISE_HA_NEST_PG_AUTHORIZED` · `compose.ha-dual.pg.yml` · `ha:prepare:nest-pg` · `ha:dual:compose-pg` · `ha:prove:nest-session -- --prove` · nestSessionOk landed · honest GAP if blocked | cloud buy · production topology · CI HA job · D1–D3 · UC covered-lift · Key×3 FreeTier · Ban claim 阶 C from this knife alone · flip releaseEvidence · invent green · self-nail |
 
 ## CMD
 
-| CMD | Status |
-|-----|--------|
-| docs REQUEST open | **`REQUEST-ready / not_run:pre_dual`** · HA local C3b Nest-session authorized-prove acceptance · cite `ha-track.multi-instance.md` C3b |
-| pre-exec dual | **`not_run:pre_dual`** · Ban自批 · experts write at named paths · Dual not pinged by implementer |
-| standing coding / authorize / prove | **`not_run:no_coding_authorize`** · Ban invent green · Dual PASS ≠ coding · Dual PASS ≠ HA green · Dual PASS ≠ next knife auto-authorize · Ban假绿 · Ban claim 阶 C/D · Ban production HA |
-| planned prove (later) | `pnpm ha:prepare:nest-pg` · `MEETWISE_HA_DUAL_AUTHORIZED=1 MEETWISE_HA_NEST_PG_AUTHORIZED=1 pnpm ha:dual:compose-pg` · `pnpm ha:prove:nest-session -- --prove` · expect nestSessionOk when authorized · EXIT=0 / nestSessionOk local ≠ 阶 C/D green ≠ HA · If PREREQ_GAP → honest pin GAP · Ban假绿 |
+| CMD | EXIT / Status |
+|-----|---------------|
+| pre-exec dual | **PASS** both · tip `5c71530` |
+| `MEETWISE_HA_NEST_PG_AUTHORIZED=1 pnpm ha:prepare:nest-pg` | **EXIT=0** · `NEST_PG_READY` |
+| `MEETWISE_HA_DUAL_AUTHORIZED=1 MEETWISE_HA_NEST_PG_AUTHORIZED=1 pnpm ha:dual:compose-pg` | **EXIT=0** · `DUAL_COMPOSE_PG_UP` |
+| `pnpm ha:prove:nest-session -- --prove` | **EXIT=0** · `NEST_SESSION_LOCAL_OK` · **`nestSessionOk=true`** |
+| `pnpm ha:dual:build-image` | **not run**（image already present） |
+| post-prove dual | **awaiting** · Ban self-nail |
 
 ---
 
-*Slice · HA local C3b Nest-session authorized-prove · 2026-09-23 (~14:39 PT) · REQUEST-ready / not_run:pre_dual · docs only · base 358a5cf · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · cite ha-track.multi-instance.md C3b · prior C3+C4 358a5cf/16e8379 retained · gR45Closed=true retained · coveredCount 8 retained · ms3EqualsR4Closed=false retained · eg1–eg6/r4/funnel retained · ≠ wash C3+C4 358a5cf/16e8379 into 阶 C green / production HA · ≠ wash G-R4-5 6ded589/ba1b8aa into HA · ≠ wash skeleton/stub EXIT=0 into HA · Explicit ≠ wash C3+C4 / skeleton / stub into 阶 C · Ban invent green · Ban假绿 · Ban claim 阶 C/D green · Ban production HA/failover · Ban flip releaseEvidence · Dual PASS ≠ coding · Dual PASS ≠ HA green · Dual PASS ≠ next knife auto-authorize · Key×3 FreeTier out of scope · Ban claim 阶 C from this knife alone · zero coding · zero prove · zero HA claim · Dual not pinged by implementer*
+*Slice · HA local C3b Nest-session authorized-prove · 2026-09-23 (~14:45 PT) · executed:awaiting_post_prove_dual · parent 5c71530 · EXIT 3×0 · nestSessionOk=true LOCAL · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · cite ha-track.multi-instance.md C3b · prior C3+C4 358a5cf/16e8379 retained · gR45Closed=true retained · coveredCount 8 retained · ms3EqualsR4Closed=false retained · eg1–eg6/r4/funnel retained · ≠ wash C3+C4 358a5cf/16e8379 into 阶 C green / production HA · ≠ wash G-R4-5 6ded589/ba1b8aa into HA · ≠ wash skeleton/stub EXIT=0 into HA · Explicit ≠ wash C3+C4 / skeleton / stub into 阶 C · Ban invent green · Ban假绿 · Ban claim 阶 C/D green · Ban production HA/failover · Ban flip releaseEvidence · Dual PASS ≠ coding · Dual PASS ≠ HA green · Dual PASS ≠ next knife auto-authorize · Key×3 FreeTier out of scope · Ban claim 阶 C from this knife alone · Ban self-nail · STOP for post-prove dual*
