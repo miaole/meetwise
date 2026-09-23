@@ -1,51 +1,37 @@
-# REQUEST — **G-R4-3 / R1 product close** **post-prove** → mw-e2e-ha
+# REQUEST / 审查归档指针 — **G-R4-3 / R1 product close** **post-prove** · mw-e2e-ha
 
-**Status**: **REQUEST / 待审**（实现方预写；**禁止自批 pass**）  
+**Status**: **pass 已写**（post-prove honesty gate only）· 全文见下方路径  
 **Expert**: `mw-e2e-ha`  
-**Date**: 2026-09-23 (~07:55 PT) · post-prove  
-**releaseEvidence=false** · **≠HA** · **≠suite green** · `gR43ProductClosed=true` · `r1ProductClosed=true` under authorize · `failClosedDefaultStill0=false` · `defaultFlipped=true` · **G-R4-5 STILL OPEN** · **题域 STILL OPEN** · **R4/FUNNEL product STILL OPEN** · **MS3 ≠ R4 closed** · **EG1–EG6 STILL OPEN** · Ban假关 R4 · Ban invent coveredCount · Ban forge · Ban claim closed from EXIT=0 alone as lifecycle nail · Ban wash EG6 tip **`9b1c83e`** / dual **`3e82f14`** / PR1 tip **`77c83ce`** into R4 · Ban self-nail `post_prove_dual_pass`  
-**Pair**: `REQUEST-2026-09-23-g-r4-3-r1-product-close-post-prove-mw-rag-route.md`  
-**Hard**: standing authorize after pre-exec dual on REQUEST tip **`147b9d1`** · product-close prove EXIT **4×0** ≠ R4/FUNNEL/题域/G-R4-5/EG closed · Ban self-approve · Ban secrets · No force · Dual PASS ≠ next R4/FUNNEL auto-authorize  
-**Knife**: `harness/g-r4-3-r1-product-close.md` · status **`executed:awaiting_post_prove_dual`** · **实现方不写** pass review · **Ban self-write `post_prove_dual_pass`**
+**Date**: 2026-09-23 ~08:00 PT  
+**Tip**: **`72233a0`** · REQUEST tip **`147b9d1`** · pre-exec BOTH PASS  
+**Harness**: was **`executed:awaiting_post_prove_dual`** at review time · Ban自批 beyond authorized lifecycle nail · Dual PASS ≠ next R4/FUNNEL auto-authorize
+
+## Full review
+
+`ai-docs/delivery/reviews/2026-09-23-g-r4-3-r1-product-close-post-prove-mw-e2e-ha.md`
+
+## Verdict（一句话）
+
+**pass** — 独立复跑 4×prove **EXIT 4×0** · JSON 诚实（`gR43ProductClosed=true` · `r1ProductClosed=true` · `defaultFlipped=true` · `failClosedDefaultStill0=false` · orthogonal R4/FUNNEL/题域/gR45/EG **false** · `releaseEvidence=false`）· **≠** R4/FUNNEL/题域/G-R4-5/EG closed · Ban wash EG6 `9b1c83e`/`3e82f14` · PR1 `77c83ce` into R4 · alone ≠ dual。
+
+## Hard pins（must survive）
+
+- Tip **`72233a0`** = HEAD · CMD 4× named prove · **EXIT 4×0**（本审独立复跑）
+- `gR43ProductClosed=true` · `r1ProductClosed=true` · `defaultFlipped=true` · `failClosedDefaultStill0=false` under authorize（this knife only）
+- Orthogonal closed flags **false** · `releaseEvidence=false`
+- Ban wash EG6 tip **`9b1c83e`** / dual **`3e82f14`** · PR1 tip **`77c83ce`** into R4
+- Ban invent coveredCount · Ban forge · Ban Cloud Agent · ≠HA
+- Dual PASS ≠ next R4/FUNNEL auto-authorize · Ban自批 beyond authorized lifecycle nail · **alone ≠ dual** · 须 `mw-rag-route` 独立
+- **R4 / FUNNEL / 题域 / G-R4-5 / EG1–EG6 STILL OPEN**
+
+## Pair
+
+`reviews/REQUEST-2026-09-23-g-r4-3-r1-product-close-post-prove-mw-rag-route.md` — **须独立**；本审不代签。
+
+## Blockers
+
+本域 post-prove honesty：**无阻塞**。R4/FUNNEL/题域/G-R4-5/EG close：**仍 OPEN**。
 
 ---
 
-## Contra
-
-| File | Role |
-|------|------|
-| `harness/g-r4-3-r1-product-close.md` | Knife harness · `executed:awaiting_post_prove_dual` |
-| `receipts/2026-09-23-g-r4-3-r1-product-close-prove.md` | CMD+EXIT table |
-| `receipts/2026-09-23-g-r4-3-r1-product-close-evidence.json` | product-close evidence flags |
-| Pre-exec dual | `REQUEST-2026-09-23-g-r4-3-r1-product-close-mw-e2e-ha.md` + `…-mw-rag-route.md` · **pass** on `147b9d1` |
-| Prior PR1 | tip **`77c83ce`** retained · Ban wash into R4 |
-| Prior EG6 | tip **`9b1c83e`** / **`3e82f14`** · EG6 **STILL OPEN** |
-
----
-
-## Stance（mw-e2e-ha）
-
-1. Standing authorize coding+flip+prove after pre-exec dual on `147b9d1`.  
-2. Dedicated + retained proves EXIT **4×0** · default flipped · `gR43ProductClosed=true` / `r1ProductClosed=true` under authorize · **≠** R4/FUNNEL/题域/G-R4-5/EG closed.  
-3. Ban wash EG6 / PR1 into R4 · Ban invent coveredCount · Ban forge.  
-4. Knife remains **`executed:awaiting_post_prove_dual`** until experts write pass — **Ban** implementer self-write `post_prove_dual_pass`.  
-5. Dual PASS ≠ next R4/FUNNEL auto-authorize · Key×3 O3 honesty_red **非阻塞**.
-
-本 REQUEST **不是** pass；实现方禁止自批。
-
----
-
-## Post-prove CMD+EXIT（实现方）
-
-| CMD | EXIT | 诚实读法 |
-|-----|------|----------|
-| `pnpm r4-pr1-product-close:prove` | **0** | product-close evidence · this knife only · Ban self-nail dual_pass |
-| `pnpm r4-pr1b-combo-root:prove` | **0** | retained PR1-B |
-| `pnpm r4-pr1c-no-legacy:prove` | **0** | retained PR1-C · failClosedDefaultStill0=false honest |
-| `pnpm r1-tech-role-fail-closed:prove` | **0** | retained R1 contract · product default ON |
-
----
-
-## Please answer
-
-独立复跑 dedicated prove · 核对 JSON flags · 裁定 post-prove honesty gate only · **alone≠dual** · 禁止把本 pass 读成 R4/FUNNEL/题域/G-R4-5/EG closed · 禁止自批 `post_prove_dual_pass`。
+*REQUEST stub · mw-e2e-ha · G-R4-3 / R1 product close post-prove · 2026-09-23 ~08:00 PT · pass honesty only · tip 72233a0 · EXIT 4×0 · Ban自批 beyond authorized lifecycle nail · alone≠dual · Dual PASS≠next R4/FUNNEL auto-authorize · releaseEvidence=false · ≠HA*
