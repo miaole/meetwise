@@ -1,4 +1,4 @@
-**Prove tip**: `6219819` / `62198199a540f37874bc794eb608934ce7eb9050` · parent `5c71530`
+**Prove tip**: `a32c071` / `a32c07175ec42b087f8a7efd0ca25046b3a90a25` · parent `5c71530`
 
 # Prove receipt — **HA local C3b Nest-session authorized-prove**
 
