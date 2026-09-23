@@ -1,6 +1,6 @@
 # Harness / 评测集 — R4 题域隔离（GAP-RAG-04 · G4）
 
-**releaseEvidence=false** · **Not HA** · **本绿 ≠ 已迁 / ≠ cutover** · **pass ≠ R4/FUNNEL/G-R4-5 all closed** · **EG3 / 题域 isolation product face closed under authorize**（`domainIsolationClosed=true` · `eg3ProductClosed=true`）· **R4/FUNNEL product face closed under authorize**（`r4ProductClosed=true` · `funnelProductClosed=true`）· **EG4 / wrong-track product face closed under authorize**（`eg4ProductClosed=true` · `wrongTrackProductClosed=true`）· **≠ invent coveredCount** · **≠ wrong_track=0 invent** · **MS3 ≠ R4** · **gR45Closed=false**  
+**releaseEvidence=false** · **Not HA** · **本绿 ≠ 已迁 / ≠ cutover** · **pass ≠ R4/FUNNEL/G-R4-5 all closed** · **EG3 / 题域 isolation product face closed under authorize**（`domainIsolationClosed=true` · `eg3ProductClosed=true`）· **R4/FUNNEL product face closed under authorize**（`r4ProductClosed=true` · `funnelProductClosed=true`）· **EG4 / wrong-track product face closed under authorize**（`eg4ProductClosed=true` · `wrongTrackProductClosed=true`）· **EG5 / product SSOT product face closed under authorize**（`eg5ProductClosed=true` · `productSsotFlipped=true`）· **≠ invent coveredCount** · **≠ wrong_track=0 invent** · **MS3 ≠ R4** · **gR45Closed=false**  
 **对照**：`m4-rag-hard-gates.md` §R4 · `gap-bug-backlog.md` GAP-RAG-04 · `harness/r4-domain-isolation-status.md` · `eval/r4-domain-isolation.eval.md`  
 **待审专家**：`mw-rag-route` + `mw-e2e-ha`（双域；实现方禁止自批）
 
@@ -10,7 +10,7 @@
 
 | 声明 | 裁定 |
 |------|------|
-| **R4 是否已关？** | **否。G-R4-5 STILL OPEN · gR45Closed=false。** EG3 / 题域 isolation product face **closed under authorize**（`domainIsolationClosed=true` · `eg3ProductClosed=true`）· R4/FUNNEL product face **closed under authorize**（`r4ProductClosed=true` · `funnelProductClosed=true`）· EG4 / wrong-track product face **closed under authorize**（`eg4ProductClosed=true` · `wrongTrackProductClosed=true` · knife `g-r4-5-eg4-wrong-track-product-close`）。本 harness 仍钉「≠ G-R4-5 all closed · ≠ invent coveredCount · ≠ wrong_track=0 invent · MS3 ≠ R4 · Ban flip gR45Closed」；**不得**把 prove EXIT=0 写成 G-R4-5 all closed |
+| **R4 是否已关？** | **否。G-R4-5 STILL OPEN · gR45Closed=false。** EG3 / 题域 isolation product face **closed under authorize**（`domainIsolationClosed=true` · `eg3ProductClosed=true`）· R4/FUNNEL product face **closed under authorize**（`r4ProductClosed=true` · `funnelProductClosed=true`）· EG4 / wrong-track product face **closed under authorize**（`eg4ProductClosed=true` · `wrongTrackProductClosed=true` · knife `g-r4-5-eg4-wrong-track-product-close`）· EG5 / product SSOT product face **closed under authorize**（`eg5ProductClosed=true` · `productSsotFlipped=true` · knife `g-r4-5-eg5-product-ssot-product-close`）。本 harness 仍钉「≠ G-R4-5 all closed · ≠ invent coveredCount · ≠ wrong_track=0 invent · MS3 ≠ R4 · Ban flip gR45Closed」；**不得**把 prove EXIT=0 写成 G-R4-5 all closed |
 | **可关闭的子切片？** | **partial P-WIRE**（scoped call path）可登记；**仍非** wrong_track=0 / R4 关。产品未就绪时 **禁止假绿关闸** |
 | **R1 / R2** | **PREREQ 仍开**：R1 legacy「技术岗」默认仍在；R2 **wire 已齐** / **overall NOT closed**（≠ 路由已生效；P-LIVE dual 收据齐；仍 ≠ 路由已生效）；缺 snapshot → retrieve-side fail-closed（G-R2-5） |
 | **RAG-FUNNEL-01 metadata** | **PREREQ 仍开**：无独立 `MetadataReviewReceipt` serving；01A 源码密封 ≠ 01 关闭 |
