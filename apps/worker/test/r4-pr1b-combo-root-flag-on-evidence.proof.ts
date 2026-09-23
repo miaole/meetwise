@@ -90,7 +90,7 @@ section('B3 classifier reflects evidence · product still OPEN');
 const fc = classifyPR1FailClosedRemaining({});
 A('B3 classify comboRootFlagOnEvidence=true', fc.comboRootFlagOnEvidence === true);
 A('B3 classify r1Closed=false', fc.r1Closed === false);
-A('B3 classify failClosedFlagDefaultOn=false (no flip)', fc.failClosedFlagDefaultOn === false);
+A('B3 classify failClosedFlagDefaultOn=true (product-close flip)', fc.failClosedFlagDefaultOn === true);
 A('B3 ≠ claim PR1-B product closed from emit alone', true);
 A('B3 ≠ idle 3×prove as close', true);
 

@@ -1,15 +1,18 @@
 /**
- * G-R4-3 PR1-C — default-on / **no-legacy** path evidence emitter (Ban silent flip).
+ * G-R4-3 PR1-C — default-on / **no-legacy** path evidence emitter
+ * (post G-R4-3 / R1 product-close flip · honest flags).
  *
- * Honest path:
+ * Honest path AFTER authorized default flip:
  *   - Documents + verifies the no-legacy (fail-closed ON) code path exists at the
  *     combo-root / resolver / consumer surfaces.
- *   - Proves empty-env + worker.env.example default remain **0** (Ban silent flip).
- *   - Exercises no-legacy behavior only under explicit runtime flag=1 (not product default).
+ *   - Proves empty-env + worker.env.example default are **ON** (`failClosedDefaultStill0=false`
+ *     · `defaultFlipped=true`) — Ban forge "still 0" after flip.
+ *   - Exercises no-legacy behavior under product default (empty env) and explicit flag=1.
+ *   - Legacy path retained only under explicit flag=0 opt-out.
  *
  * HARD:
- *   - Evidence emit ≠ PR1-C product closed · ≠ G-R4-3 closed · ≠ R1 product closed.
- *   - Ban silent flip MEETWISE_TECH_ROLE_FAIL_CLOSED default · Ban claim closed from EXIT=0.
+ *   - Evidence emit ≠ invent R4/FUNNEL/题域/G-R4-5/EG closed.
+ *   - Ban forge failClosedDefaultStill0=true after flip · Ban claim R4 closed from EXIT=0.
  *   - Ban idle re-run of the same 3×prove as fake close — this is the PR1-C-specific path.
  *   - releaseEvidence=false · ≠HA.
  */
@@ -29,32 +32,33 @@ export const PR1C_DEFAULT_ON_NO_LEGACY_EVIDENCE_KIND =
 
 export type DefaultOnNoLegacyPathEvidence = {
   readonly kind: typeof PR1C_DEFAULT_ON_NO_LEGACY_EVIDENCE_KIND;
-  /** No-legacy path exists (flag-on behavior) without flipping product default. */
+  /** No-legacy path exists under product default (fail-closed ON). */
   readonly defaultOnNoLegacyPathEvidence: true;
+  readonly noLegacyPathUnderProductDefault: true;
   readonly noLegacyPathUnderExplicitFlagOn: true;
-  readonly legacyPathStillWhenFlagOff: true;
-  /** Honesty: product default still 0 · not flipped. */
-  readonly failClosedDefaultStill0: true;
-  readonly defaultFlipped: false;
-  readonly workerEnvExampleStill0: true;
-  readonly emptyEnvFailClosedOff: true;
-  /** Explicit non-claims. */
-  readonly gR43Closed: false;
-  readonly r1ProductClosed: false;
-  readonly pr1CProductClosed: false;
+  readonly legacyPathStillWhenFlagExplicitOff: true;
+  /** Honesty AFTER authorized flip. */
+  readonly failClosedDefaultStill0: false;
+  readonly defaultFlipped: true;
+  readonly workerEnvExampleNow1: true;
+  readonly emptyEnvFailClosedOn: true;
+  /** Explicit non-claims (orthogonal products). */
+  readonly r4ProductClosed: false;
+  readonly gR45Closed: false;
+  readonly domainIsolationClosed: false;
   readonly releaseEvidence: false;
-  readonly note: 'PR1-C default-on/no-legacy path evidence — default still 0 · ≠ flip · ≠ PR1-C/G-R4-3/R1 product closed · Ban forge · await post-prove dual';
+  readonly note: 'PR1-C default-on/no-legacy path evidence — default flipped · failClosedDefaultStill0=false · ≠ R4/FUNNEL/题域/G-R4-5 closed · Ban forge · await post-prove dual';
 };
 
 export type Pr1cEvidenceFailure = {
   readonly kind: 'Pr1cDefaultOnNoLegacyEvidenceFailure';
   readonly emitted: false;
   readonly reason:
-    | 'empty_env_not_off'
-    | 'worker_env_example_not_0'
+    | 'empty_env_not_on'
+    | 'worker_env_example_not_1'
     | 'no_legacy_path_missing'
-    | 'legacy_path_broken_when_flag_off'
-    | 'default_appears_flipped';
+    | 'legacy_path_broken_when_flag_explicit_off'
+    | 'default_not_flipped';
 };
 
 export type Pr1cEvidenceResult =
@@ -71,121 +75,128 @@ function readWorkerEnvExample(): string {
   return existsSync(p) ? readFileSync(p, 'utf8') : '';
 }
 
-export function assessDefaultOnNoLegacyPathEvidence(): {
-  emptyEnvFailClosedOff: boolean;
-  workerEnvExampleStill0: boolean;
-  noLegacyPathUnderExplicitFlagOn: boolean;
-  legacyPathStillWhenFlagOff: boolean;
-  defaultFlipped: boolean;
-} {
-  const emptyEnvFailClosedOff = isTechRoleFailClosedEnabled({}) === false;
-
-  const envExample = readWorkerEnvExample();
-  const workerEnvExampleStill0 =
-    /MEETWISE_TECH_ROLE_FAIL_CLOSED\s*=\s*0/.test(envExample)
-    && !/MEETWISE_TECH_ROLE_FAIL_CLOSED\s*=\s*1/.test(envExample);
-
-  let noLegacyPathUnderExplicitFlagOn = false;
+function assertNoLegacyPath(env: NodeJS.ProcessEnv): boolean {
   try {
-    resolveAdaptiveInterviewRole({}, { MEETWISE_TECH_ROLE_FAIL_CLOSED: '1' });
-    noLegacyPathUnderExplicitFlagOn = false;
+    resolveAdaptiveInterviewRole({}, env);
+    return false;
   } catch (e) {
     const failClosed =
       (e as { code?: string }).code === ADAPTIVE_ROLE_ROUTE_MISSING;
     const withRoute =
       resolveAdaptiveInterviewRole(
         { roleFromRouteSnapshot: 'no-legacy-path' },
-        { MEETWISE_TECH_ROLE_FAIL_CLOSED: '1' },
+        env,
       ) === 'no-legacy-path';
-    // no-legacy = no silent 技术岗 under flag-on; deps alone must NOT bypass
     let depsAloneFailClosed = false;
     try {
       resolveAdaptiveInterviewRole(
         { roleFromDeps: LEGACY_TECH_ROLE_DEFAULT },
-        { MEETWISE_TECH_ROLE_FAIL_CLOSED: '1' },
+        env,
       );
       depsAloneFailClosed = false;
     } catch (e2) {
       depsAloneFailClosed =
         (e2 as { code?: string }).code === ADAPTIVE_ROLE_ROUTE_MISSING;
     }
-    noLegacyPathUnderExplicitFlagOn = failClosed && withRoute && depsAloneFailClosed;
+    return failClosed && withRoute && depsAloneFailClosed;
   }
+}
 
-  const legacyPathStillWhenFlagOff =
+export function assessDefaultOnNoLegacyPathEvidence(): {
+  emptyEnvFailClosedOn: boolean;
+  workerEnvExampleNow1: boolean;
+  noLegacyPathUnderProductDefault: boolean;
+  noLegacyPathUnderExplicitFlagOn: boolean;
+  legacyPathStillWhenFlagExplicitOff: boolean;
+  defaultFlipped: boolean;
+} {
+  const emptyEnvFailClosedOn = isTechRoleFailClosedEnabled({}) === true;
+
+  const envExample = readWorkerEnvExample();
+  const workerEnvExampleNow1 =
+    /MEETWISE_TECH_ROLE_FAIL_CLOSED\s*=\s*1/.test(envExample)
+    && !/MEETWISE_TECH_ROLE_FAIL_CLOSED\s*=\s*0/.test(envExample);
+
+  const noLegacyPathUnderProductDefault = assertNoLegacyPath({});
+  const noLegacyPathUnderExplicitFlagOn = assertNoLegacyPath({
+    MEETWISE_TECH_ROLE_FAIL_CLOSED: '1',
+  });
+
+  const legacyPathStillWhenFlagExplicitOff =
     resolveAdaptiveInterviewRole({}, { MEETWISE_TECH_ROLE_FAIL_CLOSED: '0' })
-      === LEGACY_TECH_ROLE_DEFAULT
-    && resolveAdaptiveInterviewRole({}, {}) === LEGACY_TECH_ROLE_DEFAULT;
+      === LEGACY_TECH_ROLE_DEFAULT;
 
-  // Default appears flipped only if empty-env enables fail-closed (Ban silent flip).
-  const defaultFlipped = isTechRoleFailClosedEnabled({}) === true;
+  const defaultFlipped = emptyEnvFailClosedOn && workerEnvExampleNow1;
 
   return {
-    emptyEnvFailClosedOff,
-    workerEnvExampleStill0,
+    emptyEnvFailClosedOn,
+    workerEnvExampleNow1,
+    noLegacyPathUnderProductDefault,
     noLegacyPathUnderExplicitFlagOn,
-    legacyPathStillWhenFlagOff,
+    legacyPathStillWhenFlagExplicitOff,
     defaultFlipped,
   };
 }
 
-/** True only when no-legacy path evidence is honest AND default still 0. */
+/** True only when no-legacy path evidence is honest AND default flipped. */
 export function hasDefaultOnNoLegacyPathEvidence(): boolean {
   const a = assessDefaultOnNoLegacyPathEvidence();
   return (
-    a.emptyEnvFailClosedOff
-    && a.workerEnvExampleStill0
+    a.emptyEnvFailClosedOn
+    && a.workerEnvExampleNow1
+    && a.noLegacyPathUnderProductDefault
     && a.noLegacyPathUnderExplicitFlagOn
-    && a.legacyPathStillWhenFlagOff
-    && a.defaultFlipped === false
+    && a.legacyPathStillWhenFlagExplicitOff
+    && a.defaultFlipped === true
   );
 }
 
 export function emitDefaultOnNoLegacyPathEvidence(): Pr1cEvidenceResult {
   const a = assessDefaultOnNoLegacyPathEvidence();
-  if (!a.emptyEnvFailClosedOff || a.defaultFlipped) {
+  if (!a.emptyEnvFailClosedOn || !a.defaultFlipped) {
     return {
       kind: 'Pr1cDefaultOnNoLegacyEvidenceFailure',
       emitted: false,
-      reason: a.defaultFlipped ? 'default_appears_flipped' : 'empty_env_not_off',
+      reason: a.defaultFlipped ? 'empty_env_not_on' : 'default_not_flipped',
     };
   }
-  if (!a.workerEnvExampleStill0) {
+  if (!a.workerEnvExampleNow1) {
     return {
       kind: 'Pr1cDefaultOnNoLegacyEvidenceFailure',
       emitted: false,
-      reason: 'worker_env_example_not_0',
+      reason: 'worker_env_example_not_1',
     };
   }
-  if (!a.noLegacyPathUnderExplicitFlagOn) {
+  if (!a.noLegacyPathUnderProductDefault || !a.noLegacyPathUnderExplicitFlagOn) {
     return {
       kind: 'Pr1cDefaultOnNoLegacyEvidenceFailure',
       emitted: false,
       reason: 'no_legacy_path_missing',
     };
   }
-  if (!a.legacyPathStillWhenFlagOff) {
+  if (!a.legacyPathStillWhenFlagExplicitOff) {
     return {
       kind: 'Pr1cDefaultOnNoLegacyEvidenceFailure',
       emitted: false,
-      reason: 'legacy_path_broken_when_flag_off',
+      reason: 'legacy_path_broken_when_flag_explicit_off',
     };
   }
 
   const evidence: DefaultOnNoLegacyPathEvidence = {
     kind: PR1C_DEFAULT_ON_NO_LEGACY_EVIDENCE_KIND,
     defaultOnNoLegacyPathEvidence: true,
+    noLegacyPathUnderProductDefault: true,
     noLegacyPathUnderExplicitFlagOn: true,
-    legacyPathStillWhenFlagOff: true,
-    failClosedDefaultStill0: true,
-    defaultFlipped: false,
-    workerEnvExampleStill0: true,
-    emptyEnvFailClosedOff: true,
-    gR43Closed: false,
-    r1ProductClosed: false,
-    pr1CProductClosed: false,
+    legacyPathStillWhenFlagExplicitOff: true,
+    failClosedDefaultStill0: false,
+    defaultFlipped: true,
+    workerEnvExampleNow1: true,
+    emptyEnvFailClosedOn: true,
+    r4ProductClosed: false,
+    gR45Closed: false,
+    domainIsolationClosed: false,
     releaseEvidence: false,
-    note: 'PR1-C default-on/no-legacy path evidence — default still 0 · ≠ flip · ≠ PR1-C/G-R4-3/R1 product closed · Ban forge · await post-prove dual',
+    note: 'PR1-C default-on/no-legacy path evidence — default flipped · failClosedDefaultStill0=false · ≠ R4/FUNNEL/题域/G-R4-5 closed · Ban forge · await post-prove dual',
   };
   return { emitted: true, evidence };
 }

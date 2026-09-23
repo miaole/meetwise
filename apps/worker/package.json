@@ -96,6 +96,7 @@
     "prove:r4-eg6-ms3-ne-r4": "tsx test/r4-eg6-ms3-ne-r4-evidence.proof.ts",
     "prove:r4-pr1b-combo-root": "tsx test/r4-pr1b-combo-root-flag-on-evidence.proof.ts",
     "prove:r4-pr1c-no-legacy": "tsx test/r4-pr1c-default-on-no-legacy-evidence.proof.ts",
+    "prove:r4-pr1-product-close": "tsx test/r4-pr1-product-close.proof.ts",
     "prove:r4-p-r1-fail-closed": "tsx test/r4-p-r1-fail-closed.proof.ts",
     "prove:g-r2-5-retrieve-fail-closed": "tsx test/g-r2-5-retrieve-fail-closed.proof.ts",
     "prove:r2-classify-job-route-prereq": "tsx test/r2-classify-job-route-prereq.proof.ts",

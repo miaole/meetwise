@@ -2,16 +2,16 @@
  * R1 / GAP-RAG-01 — adaptive interview role resolution.
  *
  * HARD:
- * - Default (flag off) preserves legacy「技术岗」fallback so production starts
- *   are not cut recklessly while R2 route snapshot write-path is still unwired.
- * - Flag on (`MEETWISE_TECH_ROLE_FAIL_CLOSED=1|true|on`): missing route snapshot
- *   / job route metadata → throw `adaptive_role_route_missing` (fail-closed;
- *   no silent 技术岗 guess-bucket).
- * - Does NOT claim R2 production wiring (application binding / snapshot write).
- * - Does NOT claim R4 topic isolation closed.
+ * - Default ON after G-R4-3 / R1 product-close flip (`MEETWISE_TECH_ROLE_FAIL_CLOSED`
+ *   unset/blank → fail-closed). Explicit `0|false|off` restores legacy「技术岗」opt-out.
+ * - Flag on (default or `1|true|on`): missing route snapshot / job route metadata →
+ *   throw `adaptive_role_route_missing` (fail-closed; no silent 技术岗 guess-bucket).
+ * - Does NOT claim R2 production wiring (application binding / snapshot write) beyond
+ *   prior structural CLOSED pins.
+ * - Does NOT claim R4 topic isolation closed · releaseEvidence=false · ≠HA.
  */
 export const MEETWISE_TECH_ROLE_FAIL_CLOSED_ENV = 'MEETWISE_TECH_ROLE_FAIL_CLOSED';
-/** Documented legacy default only — used when fail-closed flag is OFF. */
+/** Documented legacy default only — used when fail-closed flag is explicitly OFF. */
 export const LEGACY_TECH_ROLE_DEFAULT = '技术岗';
 export const ADAPTIVE_ROLE_ROUTE_MISSING = 'adaptive_role_route_missing';
 
@@ -28,10 +28,14 @@ export type AdaptiveRoleSources = {
   roleFromDeps?: string | null;
 };
 
-/** Default off. Only exact-ish truthy tokens enable fail-closed. */
+/**
+ * Product default ON (G-R4-3 / R1 product close).
+ * Exact `0|false|off` disables to legacy path. Unset/blank/`1|true|on`/other → on.
+ */
 export function isTechRoleFailClosedEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   const raw = env[MEETWISE_TECH_ROLE_FAIL_CLOSED_ENV]?.trim().toLowerCase();
-  return raw === '1' || raw === 'true' || raw === 'on';
+  if (raw === '0' || raw === 'false' || raw === 'off') return false;
+  return true;
 }
 
 function nonBlank(value: string | null | undefined): string | undefined {
@@ -42,7 +46,7 @@ function nonBlank(value: string | null | undefined): string | undefined {
 
 /**
  * Resolve the role string passed into startAdaptiveInterview.
- * Prefer route snapshot → job route metadata → (legacy only) deps → legacy default.
+ * Prefer route snapshot → job route metadata → (legacy only when flag off) deps → legacy default.
  */
 export function resolveAdaptiveInterviewRole(
   sources: AdaptiveRoleSources = {},
