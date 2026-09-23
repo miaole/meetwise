@@ -1,0 +1,17 @@
+{
+  "kind": "ProductSsotAuthorizeEvidence",
+  "productSsotAuthorizeEvidence": true,
+  "eg1ThroughEg4EvidencePresent": true,
+  "productSsotSurfacesNotFlipped": true,
+  "eg5HarnessPinsStillOpen": true,
+  "statusPinsProductNotClosed": true,
+  "priorEgEvidenceAloneDoesNotAuthorizeFlip": true,
+  "metaProveAloneDoesNotClose": true,
+  "eg5ProductClosed": false,
+  "productSsotFlipped": false,
+  "gR45Closed": false,
+  "r4ProductClosed": false,
+  "domainIsolationClosed": false,
+  "releaseEvidence": false,
+  "note": "EG5 product SSOT flip authorize honesty evidence — emitted · ≠ EG5/product SSOT flipped/G-R4-5/R4/题域 closed · Ban forge · Ban silent flip · Ban claim from EG1–EG4 / meta prove alone · await post-prove dual"
+}
