@@ -1,7 +1,7 @@
 # Prove receipt — **HA D2b live GHA probe:multi artifact URL**
 
 **Prove land**: **`0c5e7d5`** / `0c5e7d559521e344df3b662fb2b5243b22e57b52`  
-**Prove tip**: **`0c5e7d5`** / `0c5e7d559521e344df3b662fb2b5243b22e57b52` (pin commit follows)  
+**Prove tip**: **** /   
 **Date**: 2026-09-23 (~15:49–15:55 PT)  
 **REQUEST tip**: **`2310187`** / full `231018760f84df6c4ca5a8640748d9146833a97b`  
 **Pre-exec dual BOTH PASS**: e2e-ha tip **`c3d99ea`** / full `c3d99ea5b9028483c3daf5730f2ceaa6f3431bb5` · rag-route tip **`af51ad9`** / full `af51ad9f1c62f5367f9561e875f48f4f2353d755`  

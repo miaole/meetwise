@@ -120,8 +120,8 @@
   ],
   "proveBaseHeadShort": "c3d99ea",
   "proveBaseHeadFull": "c3d99ea5b9028483c3daf5730f2ceaa6f3431bb5",
-  "proveTipShort": "e04231b",
-  "proveTipFull": "e04231b90e2c8f8feeb801ebb2c24a1d050f9751",
+  "proveTipShort": "894c61f",
+  "proveTipFull": "894c61f850b3c051d30bfc1ad34106954cb60cb4",
   "note": "prove land 0c5e7d5; tip pin commit updates proveTip* to pin HEAD; Ban self-nail; NOT_HA",
   "proveLandShort": "0c5e7d5",
   "proveLandFull": "0c5e7d559521e344df3b662fb2b5243b22e57b52"
