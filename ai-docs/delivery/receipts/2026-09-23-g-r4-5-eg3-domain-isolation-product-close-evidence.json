@@ -1,0 +1,21 @@
+{
+  "kind": "Eg3DomainIsolationProductCloseEvidence",
+  "productCloseEvidence": true,
+  "trackLocalRetrieveDispatchWired": true,
+  "mainInjectsTrackLocal": true,
+  "consumerConsumesTrackLocal": true,
+  "retrieveScopeFailClosedMissingSnapshot": true,
+  "priorEg3EvidenceRetained": true,
+  "authorizedSsotPinsPresent": true,
+  "domainIsolationClosed": true,
+  "eg3ProductClosed": true,
+  "gR45Closed": false,
+  "r4ProductClosed": false,
+  "funnelProductClosed": false,
+  "funnelCoveredAllClosed": false,
+  "coveredCountInvented": false,
+  "ms3EqualsR4Closed": false,
+  "wrongTrackZeroInvented": false,
+  "releaseEvidence": false,
+  "note": "G-R4-5 / EG3 题域 isolation product close — domainIsolationClosed/eg3ProductClosed under authorize · ≠ R4/FUNNEL/G-R4-5 all closed · Ban invent coveredCount · Ban MS3=R4 · Ban wash 62c0e2f/c18e28f / 9fec7c7/72233a0 · Ban self-nail post_prove_dual_pass · await post-prove dual"
+}

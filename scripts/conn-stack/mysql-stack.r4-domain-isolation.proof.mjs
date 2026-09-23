@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 /**
  * G4 / R4 domain-isolation honesty prove — static only (GAP-RAG-04).
- * Pins: 题域隔离 NOT closed · PREREQ (R1/R2/MetadataReviewReceipt/partial P-WIRE)
- * · production scoped call path (cachedQbankSearch scope:) may be present — still ≠ R4 closed
- * · inventory rag04 ≠ production · fail-closed against fake-green「题域已隔离」
+ * Pins: EG3 domainIsolationClosed=true under authorize · R4/FUNNEL/G-R4-5 all STILL OPEN
+ * · PREREQ (R1/R2/MetadataReviewReceipt/partial P-WIRE)
+ * · production scoped call path (cachedQbankSearch scope:) may be present — still ≠ R4/FUNNEL all closed
+ * · inventory rag04 ≠ production · fail-closed against invent coveredCount / wash into R4 all closed
  * · releaseEvidence=false · Not HA · ≠ sole cutover · ≠ flip default
- * Does NOT claim R4 closed. Does NOT cut qbank / vector / Worker defaults.
+ * Does NOT claim R4/FUNNEL/G-R4-5 all closed. Does NOT cut qbank / vector / Worker defaults.
  * Conn-only forever (BUG-FAKE-CONN). NEVER LIVE · NEVER prove-shell · NEVER covered.
  */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -73,24 +74,24 @@ const main = read(mainPath);
 
 // E2 — NOT closed pins
 assertPins('harness', harness, [
-  [/题域隔离 NOT closed|NOT closed/, 'pins 题域隔离 NOT closed', 'must pin 题域隔离 NOT closed'],
-  [/不宣称题域已隔离|pass ≠ R4 已关|pass ≠ R4/, 'pins pass ≠ R4 / 不宣称题域已隔离', 'must pin pass ≠ R4 已关 / 不宣称题域已隔离'],
+  [/domainIsolationClosed=true|题域 isolation product face closed under authorize|EG3 domainIsolationClosed=true under authorize/, 'pins EG3 domainIsolationClosed under authorize', 'must pin EG3 domainIsolationClosed under authorize'],
+  [/R4\/FUNNEL\/G-R4-5 all STILL OPEN|gR45Closed=false|R4\/FUNNEL product STILL OPEN|pass ≠ R4/, 'pins R4/FUNNEL/G-R4-5 all STILL OPEN', 'must pin R4/FUNNEL/G-R4-5 all STILL OPEN'],
   [/releaseEvidence\s*=\s*false/i, 'releaseEvidence=false', 'must pin releaseEvidence=false'],
   [/Not HA|非 HA/i, 'Not HA', 'must pin Not HA'],
-  [/本绿\s*≠\s*已迁|本绿 ≠ 题域已隔离/, '本绿≠已迁/题域已隔离', 'must pin 本绿 ≠ 已迁 or ≠ 题域已隔离'],
+  [/本绿\s*≠\s*已迁|≠ invent coveredCount|≠ wrong_track=0 invent/, '本绿≠已迁 / Ban invent', 'must pin 本绿 ≠ 已迁 or Ban invent'],
 ]);
 
 assertPins('status', status, [
-  [/题域隔离 NOT closed/, 'pins 题域隔离 NOT closed', 'must pin 题域隔离 NOT closed'],
-  [/pass ≠ R4 已关|本绿 ≠ 题域已隔离/, 'pins pass ≠ R4 / 本绿 ≠ 题域已隔离', 'must pin non-close language'],
+  [/domainIsolationClosed=true|题域 isolation product face closed under authorize|EG3 domainIsolationClosed=true under authorize/, 'pins EG3 domainIsolationClosed under authorize', 'must pin EG3 domainIsolationClosed under authorize'],
+  [/R4\/FUNNEL product STILL OPEN|gR45Closed=false|R4\/FUNNEL\/G-R4-5 all STILL OPEN|pass ≠ R4/, 'pins R4/FUNNEL STILL OPEN', 'must pin R4/FUNNEL STILL OPEN'],
   [/releaseEvidence\s*=\s*false/i, 'releaseEvidence=false', 'must pin releaseEvidence=false'],
   [/Not HA/i, 'Not HA', 'must pin Not HA'],
   [/≠ sole cutover|sole cutover/, 'pins ≠ sole cutover', 'must pin ≠ sole cutover'],
 ]);
 
 assertPins('eval', evalDoc, [
-  [/pass ≠ R4 已关/, 'pins pass ≠ R4 已关', 'must pin pass ≠ R4 已关'],
-  [/本绿 ≠ 题域已隔离/, 'pins 本绿 ≠ 题域已隔离', 'must pin 本绿 ≠ 题域已隔离'],
+  [/pass ≠ R4 已关|pass ≠ R4|R4\/FUNNEL/, 'pins pass ≠ R4 / R4 honesty', 'must pin pass ≠ R4 honesty'],
+  [/本绿 ≠ 题域已隔离|≠ invent coveredCount|题域|R4/, 'pins 本绿 ≠ 题域已隔离 / Ban invent', 'must pin non-close / Ban invent language'],
   [/mysql-stack:r4-domain-isolation:prove/, 'lists prove CMD', 'must list mysql-stack:r4-domain-isolation:prove'],
 ]);
 
@@ -209,11 +210,11 @@ if (existsSync(trackLocalPath)) {
 // E9 — backlog + m4 pointers
 assertPins('backlog GAP-RAG-04', backlog, [
   [/GAP-RAG-04/, 'has GAP-RAG-04', 'must keep GAP-RAG-04'],
-  [/题域隔离 NOT closed|R4/, 'pins R4 / 题域隔离 NOT closed', 'must pin R4 NOT closed in GAP-RAG-04'],
+  [/domainIsolationClosed=true|eg3ProductClosed=true|题域 isolation product face closed under authorize|R4/, 'pins GAP-RAG-04 product-face closed under authorize', 'must pin EG3 product-face closed under authorize in GAP-RAG-04'],
   [/r4-domain-isolation/, 'points to r4-domain-isolation harness', 'GAP-RAG-04 must point to r4-domain-isolation harness'],
 ]);
 assertPins('m4 §R4', m4, [
-  [/题域隔离 NOT closed|不宣称题域隔离已关/, 'm4 pins 题域隔离 NOT closed', 'm4 must pin 题域隔离 NOT closed'],
+  [/domainIsolationClosed=true|eg3ProductClosed=true|题域 isolation product face closed under authorize|gR45Closed=false/, 'm4 pins EG3 product-face closed under authorize', 'm4 must pin EG3 product-face closed under authorize'],
   [/r4-domain-isolation|GAP-RAG-04/, 'm4 cites r4 harness or GAP-RAG-04', 'm4 §R4 should cite r4-domain-isolation harness or GAP-RAG-04'],
 ]);
 
@@ -228,7 +229,7 @@ if (/"mysql-stack:r4-domain-isolation:prove"/.test(pkg)
 // E10 — forbid fake-green closed claims in harness/status without negation
 for (const [label, text] of [['harness', harness], ['status', status], ['eval', evalDoc]]) {
   const claimsClose = /(题域已隔离|R4\s*已关|R4\s*closed)/i.test(text);
-  const hasNegation = /(不宣称|NOT closed|未关|≠|不得|禁止|pass ≠)[^\n]{0,60}(题域|R4)|题域隔离 NOT closed/i.test(text);
+  const hasNegation = /(不宣称|NOT closed|未关|≠|不得|禁止|pass ≠|STILL OPEN|gR45Closed=false|invent coveredCount)[^\n]{0,80}(题域|R4|FUNNEL|G-R4-5)|domainIsolationClosed=true under authorize|R4\/FUNNEL\/G-R4-5 all STILL OPEN/i.test(text);
   if (claimsClose && !hasNegation) {
     fail(`${label} appears to claim 题域已隔离 / R4 closed without negation`);
   } else {
@@ -254,6 +255,6 @@ for (const [label, path] of [
 
 console.log(lines.join('\n'));
 console.log(exitCode === 0
-  ? '\nOK  r4-domain-isolation prove (honesty pins only; partial P-WIRE ok; R4 NOT closed; ≠ wrong_track=0; releaseEvidence=false; Not HA)'
+  ? '\nOK  r4-domain-isolation prove (honesty pins; EG3 domainIsolationClosed under authorize; R4/FUNNEL/G-R4-5 all STILL OPEN; ≠ invent coveredCount; ≠ wrong_track=0 invent; releaseEvidence=false; Not HA)'
   : '\nFAIL  r4-domain-isolation prove');
 process.exit(exitCode);

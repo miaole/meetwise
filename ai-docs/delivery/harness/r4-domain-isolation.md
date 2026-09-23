@@ -1,6 +1,6 @@
 # Harness / 评测集 — R4 题域隔离（GAP-RAG-04 · G4）
 
-**releaseEvidence=false** · **Not HA** · **本绿 ≠ 已迁 / ≠ cutover** · **pass ≠ R4 已关** · **≠ 题域已隔离**  
+**releaseEvidence=false** · **Not HA** · **本绿 ≠ 已迁 / ≠ cutover** · **pass ≠ R4/FUNNEL/G-R4-5 all closed** · **EG3 / 题域 isolation product face closed under authorize**（`domainIsolationClosed=true` · `eg3ProductClosed=true`）· **≠ invent coveredCount** · **≠ wrong_track=0 invent** · **MS3 ≠ R4**  
 **对照**：`m4-rag-hard-gates.md` §R4 · `gap-bug-backlog.md` GAP-RAG-04 · `harness/r4-domain-isolation-status.md` · `eval/r4-domain-isolation.eval.md`  
 **待审专家**：`mw-rag-route` + `mw-e2e-ha`（双域；实现方禁止自批）
 
@@ -10,7 +10,7 @@
 
 | 声明 | 裁定 |
 |------|------|
-| **R4 是否已关？** | **否。题域隔离 NOT closed。** 本 harness 只验收「库存 + PREREQ + fail-closed 钉」；**不得**把 prove EXIT=0 写成「题域已隔离」 |
+| **R4 是否已关？** | **否。R4/FUNNEL product STILL OPEN · gR45Closed=false。** EG3 / 题域 isolation product face **closed under authorize**（`domainIsolationClosed=true` · `eg3ProductClosed=true` · knife `g-r4-5-eg3-domain-isolation-product-close`）。本 harness 仍钉「≠ R4/FUNNEL/G-R4-5 all closed · ≠ invent coveredCount · ≠ wrong_track=0 invent · MS3 ≠ R4」；**不得**把 prove EXIT=0 写成 R4/FUNNEL/G-R4-5 all closed |
 | **可关闭的子切片？** | **partial P-WIRE**（scoped call path）可登记；**仍非** wrong_track=0 / R4 关。产品未就绪时 **禁止假绿关闸** |
 | **R1 / R2** | **PREREQ 仍开**：R1 legacy「技术岗」默认仍在；R2 **wire 已齐** / **overall NOT closed**（≠ 路由已生效；P-LIVE dual 收据齐；仍 ≠ 路由已生效）；缺 snapshot → retrieve-side fail-closed（G-R2-5） |
 | **RAG-FUNNEL-01 metadata** | **PREREQ 仍开**：无独立 `MetadataReviewReceipt` serving；01A 源码密封 ≠ 01 关闭 |
@@ -36,7 +36,7 @@
 | `pnpm g4-dispatch-recheck-prereq:prove` | 静态：Worker 零 dispatch；合同 seam+recheck 仍在；产品阻塞钉 | **honesty PREREQ**；绿 ≠ full wire；≠ R4 关 |
 | `pnpm r2-classify-job-route-prereq:prove` | 静态：Inventory + API=0 / Worker sole；wire 齐后仍钉 overall NOT closed | **R2 honesty PREREQ**；绿 ≠ R2 关；≠ 路由已生效 |
 | `pnpm rag03-route:prove` / `rag05-qbank-miss:prove` / `rag06-route-scope-cache:prove` | 路由/miss/cache 合同 | 同族 PG 夹具；≠ 生产 routed serving |
-| `pnpm mysql-stack:m4-rag:prove` | R1–R5 硬门文档静态钉（含「题域隔离 NOT closed」） | conn-only；**≠** 隔离已证 |
+| `pnpm mysql-stack:m4-rag:prove` | R1–R5 硬门文档静态钉（含「EG3 domainIsolationClosed=true under authorize · R4/FUNNEL/G-R4-5 all STILL OPEN」） | conn-only；**≠** 隔离已证 |
 | `pnpm r1-tech-role-fail-closed:prove` | R1 flag/legacy 合同 | **零** wrong_track 断言；≠ R4 |
 
 ### 1.2 生产路径（当前 GAP 事实）
@@ -84,7 +84,7 @@
 | ID | 测什么 | 期望 |
 |----|--------|------|
 | **E1** | harness / status / eval / prove 脚本存在 | 路径存在 |
-| **E2** | 文档钉 `题域隔离 NOT closed` / `不宣称题域已隔离` / `pass ≠ R4 已关` | 正则命中 |
+| **E2** | 文档钉 `EG3 domainIsolationClosed=true under authorize · R4/FUNNEL/G-R4-5 all STILL OPEN` / `不宣称题域已隔离` / `pass ≠ R4 已关` | 正则命中 |
 | **E3** | 文档钉 PREREQ：R1、R2、MetadataReviewReceipt / RAG-FUNNEL-01、P-WIRE partial/full | 命中 |
 | **E4** | 文档钉 `releaseEvidence=false` · Not HA · 本绿≠已迁 · ≠ sole cutover | 命中 |
 | **E5** | 库存列出 `rag04-track-local:prove` 且标 **≠ 生产 / ≠ R4 关** | 命中 |
