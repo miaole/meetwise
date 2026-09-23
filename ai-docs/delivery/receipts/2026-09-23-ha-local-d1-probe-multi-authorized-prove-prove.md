@@ -1,4 +1,4 @@
-**Prove tip**: `5230fbf` / `5230fbf` · parent `0fb9cd8`
+**Prove tip**: `1f020fd` / `1f020fd2aa5fa09de4620fe93803ea2cc8155a54` · parent `0fb9cd8`
 
 # Prove receipt — **HA local D1 probe:multi authorized-prove**
 
