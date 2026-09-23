@@ -35,6 +35,10 @@ import { runUsageCalibrationReconciler } from './usage-calibration-reconcile.ts'
 import { runQuizConsumer } from './quiz-consumer.ts';
 import { runDiagnosisConsumer } from './diagnosis-consumer.ts';
 import { runRouteClassifyConsumer } from './route-classify-consumer.ts';
+import {
+  FREE_TEXT_ALLOWLISTED_SCOPE_FUNNEL_WIRED,
+  runFreeTextAllowlistedScopeFunnel,
+} from './free-text-route-funnel.ts';
 import { ingestQbank, ingestQuestionBankArtifacts } from '@meetwise/db';
 import { QBANK_ARTIFACTS, QBANK_SEED } from './qbank-seed.ts';
 import { ensureActiveQbankGeneration, qbankEmbeddingRecipe } from './qbank-generation.ts';
@@ -609,6 +613,19 @@ async function bootstrap() {
   const diagnosisLoop = runDiagnosisConsumer({ pool, model, leaseOwner }, jobReconcileIntervalMs);
   // R2 P-WORKER: sole route_pending → classifyJobRoute via MODEL-OP binding (≠ R2 closed; P-API may remain).
   const routeClassifyLoop = runRouteClassifyConsumer({ pool, model }, jobReconcileIntervalMs);
+  // RAG-FUNNEL-07: free-text allowlisted scope funnel production consumer (request-path).
+  // Callers supply goal once; typed decision only suggests allowlisted track — no read/tool/retrieval grant.
+  // Real import of runFreeTextAllowlistedScopeFunnel ( Ban docs-only fake cover ).
+  const freeTextAllowlistedScopeFunnel = {
+    wired: FREE_TEXT_ALLOWLISTED_SCOPE_FUNNEL_WIRED,
+    run: runFreeTextAllowlistedScopeFunnel,
+  };
+  if (!freeTextAllowlistedScopeFunnel.wired) {
+    throw new Error('free_text_allowlisted_scope_funnel_not_wired');
+  }
+  console.log('free-text allowlisted scope funnel: wired (request-path · suggest allowlisted track only · no retrieval grant)');
+  // Keep live production binding (assessor pins runFreeTextAllowlistedScopeFunnel on main).
+  void freeTextAllowlistedScopeFunnel.run;
   // This is a dedicated, otherwise-idle PG session. It never performs RLS
   // work or claims jobs: every notification merely coalesces a normal drain
   // across all queue classes. Notifications contain no job or tenant data.

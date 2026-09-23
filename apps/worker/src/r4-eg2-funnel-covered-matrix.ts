@@ -10,7 +10,7 @@
  *     production-path pins (Ban invent).
  *   - Batch2 / Batch2b (G-R4-5 / FUNNEL coveredCount Batch2 + Batch2b 02B wire):
  *     FUNNEL-02A / FUNNEL-02B may elevate to `covered` when live Batch2 assessors
- *     affirm production-path pins (Batch2b wires productionConsumerWired · Ban invent · Batch3 may elevate 05/06 when assessors affirm · Ban elevating 07/08).
+ *     affirm production-path pins (Batch2b wires productionConsumerWired · Ban invent · Batch3 may elevate 05/06 when assessors affirm · Batch4 may elevate 07/08 when assessors affirm).
  *   - FUNNEL-01 may report `product_surfaces_true` via MS1+MS2+MS3 · still
  *     **≠ invent covered** · dual-claim evidence ≠ covered elevation.
  *   - 01A may report `source_sealed` (checklist [x] / seal) · ≠ invent 01…08 covered.
@@ -42,6 +42,10 @@ import {
   isFunnel05Covered,
   isFunnel06Covered,
 } from './r4-funnel-covered-count-batch3.ts';
+import {
+  isFunnel07Covered,
+  isFunnel08Covered,
+} from './r4-funnel-covered-count-batch4.ts';
 
 /** Covered-status vocabulary (Ban invent covered). */
 export type FunnelCoveredStatus =
@@ -66,7 +70,7 @@ export type RagFunnel0108CoveredMatrix = {
   readonly coveredCount: number;
   readonly inventCovered: false;
   readonly releaseEvidence: false;
-  readonly note: 'EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B · Batch3 may elevate 05/06 when assessors affirm · Ban elevating 07/08 · ≠ R4/题域 closed · await post-prove dual';
+  readonly note: 'EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B · Batch3 may elevate 05/06 when assessors affirm · Batch4 may elevate 07/08 when assessors affirm · ≠ R4/题域 closed · await post-prove dual';
 };
 
 const FUNNEL_IDS_01_08 = [
@@ -89,6 +93,8 @@ const ALLOW_COVERED_IDS = new Set([
   'RAG-FUNNEL-04',
   'RAG-FUNNEL-05',
   'RAG-FUNNEL-06',
+  'RAG-FUNNEL-07',
+  'RAG-FUNNEL-08',
 ]);
 
 /**
@@ -132,6 +138,8 @@ export function emitRagFunnel0108CoveredMatrix(): RagFunnel0108CoveredMatrix {
   const funnel04Covered = isFunnel04Covered();
   const funnel05Covered = isFunnel05Covered();
   const funnel06Covered = isFunnel06Covered();
+  const funnel07Covered = isFunnel07Covered();
+  const funnel08Covered = isFunnel08Covered();
 
   const row02A: FunnelCoveredMatrixRow = funnel02ACovered
     ? {
@@ -216,14 +224,30 @@ export function emitRagFunnel0108CoveredMatrix(): RagFunnel0108CoveredMatrix {
           'RAG-FUNNEL-06',
           'route-scope cache/provenance/revoke not evidenced on production consumer path · Ban invent covered',
         )),
-    notCovered(
-      'RAG-FUNNEL-07',
-      'free-text allowlisted scope funnel not evidenced · Ban invent covered',
-    ),
-    notCovered(
-      'RAG-FUNNEL-08',
-      'production-equivalent eval matrix not evidenced · Ban invent covered',
-    ),
+    (funnel07Covered
+      ? {
+          id: 'RAG-FUNNEL-07',
+          status: 'covered' as const,
+          basis:
+            'Batch4 true-cover: free-text allowlisted scope funnel evidenced (domain digest/rule/hash + db classifyFreeTextScope + no privilege expansion + worker request-path production consumer · only suggests allowlisted track · no read/tool grant) · Ban invent',
+          inventCoveredForbidden: true,
+        }
+      : notCovered(
+          'RAG-FUNNEL-07',
+          'free-text allowlisted scope funnel not evidenced · Ban invent covered',
+        )),
+    (funnel08Covered
+      ? {
+          id: 'RAG-FUNNEL-08',
+          status: 'covered' as const,
+          basis:
+            'Batch4 true-cover: production-equivalent eval matrix evidenced (multi-lang holdout + per-leaf Recall@K + wrong-track=0 + P95/cost thresholds + release receipts bound) · Ban invent',
+          inventCoveredForbidden: true,
+        }
+      : notCovered(
+          'RAG-FUNNEL-08',
+          'production-equivalent eval matrix not evidenced · Ban invent covered',
+        )),
   ];
 
   const coveredCount = rows.filter((r) => r.status === 'covered').length;
@@ -234,7 +258,7 @@ export function emitRagFunnel0108CoveredMatrix(): RagFunnel0108CoveredMatrix {
     coveredCount,
     inventCovered: false,
     releaseEvidence: false,
-    note: 'EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B · Batch3 may elevate 05/06 when assessors affirm · Ban elevating 07/08 · ≠ R4/题域 closed · await post-prove dual',
+    note: 'EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B · Batch3 may elevate 05/06 when assessors affirm · Batch4 may elevate 07/08 when assessors affirm · ≠ R4/题域 closed · await post-prove dual',
   };
 }
 
@@ -263,6 +287,8 @@ export function isHonestFunnelCoveredMatrix(
     if (row.id === 'RAG-FUNNEL-04' && !isFunnel04Covered()) return false;
     if (row.id === 'RAG-FUNNEL-05' && !isFunnel05Covered()) return false;
     if (row.id === 'RAG-FUNNEL-06' && !isFunnel06Covered()) return false;
+    if (row.id === 'RAG-FUNNEL-07' && !isFunnel07Covered()) return false;
+    if (row.id === 'RAG-FUNNEL-08' && !isFunnel08Covered()) return false;
     if (row.inventCoveredForbidden !== true) return false;
   }
 
@@ -272,15 +298,12 @@ export function isHonestFunnelCoveredMatrix(
     if (row.inventCoveredForbidden !== true) return false;
   }
 
-  // 07/08 must remain not_covered (Ban invent). 05/06 may be covered only when Batch3 assessors affirm.
-  for (const id of ['RAG-FUNNEL-07', 'RAG-FUNNEL-08'] as const) {
-    const row = matrix.rows.find((r) => r.id === id);
-    if (!row || row.status !== 'not_covered') return false;
-  }
-
+  // 05/06/07/08 may be covered only when Batch3/Batch4 assessors affirm (Ban invent).
   const row05 = matrix.rows.find((r) => r.id === 'RAG-FUNNEL-05');
   const row06 = matrix.rows.find((r) => r.id === 'RAG-FUNNEL-06');
-  if (!row05 || !row06) return false;
+  const row07 = matrix.rows.find((r) => r.id === 'RAG-FUNNEL-07');
+  const row08 = matrix.rows.find((r) => r.id === 'RAG-FUNNEL-08');
+  if (!row05 || !row06 || !row07 || !row08) return false;
   if (isFunnel05Covered()) {
     if (row05.status !== 'covered') return false;
   } else if (row05.status === 'covered') {
@@ -289,6 +312,16 @@ export function isHonestFunnelCoveredMatrix(
   if (isFunnel06Covered()) {
     if (row06.status !== 'covered') return false;
   } else if (row06.status === 'covered') {
+    return false;
+  }
+  if (isFunnel07Covered()) {
+    if (row07.status !== 'covered') return false;
+  } else if (row07.status === 'covered') {
+    return false;
+  }
+  if (isFunnel08Covered()) {
+    if (row08.status !== 'covered') return false;
+  } else if (row08.status === 'covered') {
     return false;
   }
 

@@ -447,6 +447,7 @@
     "r4-funnel-covered-count-batch2b-02b-wire:prove": "pnpm -C apps/worker prove:r4-funnel-covered-count-batch2b-02b-wire",
     "r4-funnel-covered-count-batch3:prove": "pnpm -C apps/worker prove:r4-funnel-covered-count-batch3",
     "r4-funnel-covered-count-batch3b-05-06-wire:prove": "pnpm -C apps/worker prove:r4-funnel-covered-count-batch3b-05-06-wire",
+    "r4-funnel-covered-count-batch4:prove": "pnpm -C apps/worker prove:r4-funnel-covered-count-batch4",
     "r4-eg4-wrong-track-product:prove": "pnpm -C apps/worker prove:r4-eg4-wrong-track-product",
     "r4-eg5-product-ssot:prove": "pnpm -C apps/worker prove:r4-eg5-product-ssot",
     "r4-eg6-ms3-ne-r4:prove": "pnpm -C apps/worker prove:r4-eg6-ms3-ne-r4",

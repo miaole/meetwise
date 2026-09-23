@@ -1,7 +1,7 @@
-# Slice — **G-R4-5 / FUNNEL coveredCount Batch4（07+08 true-cover）**（**`REQUEST-ready / not_run:pre_dual`** · coveredCount **6** · 07/08 **not_covered**）
+# Slice — **G-R4-5 / FUNNEL coveredCount Batch4（07+08 true-cover）**（**`executed:awaiting_post_prove_dual`** · coveredCount honest · Ban invent coveredCount=8）
 
-**Status**: **`REQUEST-ready / not_run:pre_dual`**（≡ **awaiting_pre_exec_dual** · docs only · Dual PASS ≠ coding · Coding forbidden until dual BOTH PASS + standing AUTHORIZE · R4/FUNNEL/G-R4-5 **STILL OPEN** · Ban invent · Ban invent coveredCount=8 · Ban docs-only fake cover · **本刀不翻** product flags · Ban wash Batch3b **`85be7ad`**/`9aa1be4` · Ban wash Batch3 **`bd3a800`**/`e468de9` · Ban second knife · STOP）
-**Date**: 2026-09-23 (~11:00 PT) · base tip **`85be7ad`** · prove tip retained **`9aa1be4`** · Batch3b REQUEST **`5c8f1ff`**
+**Status**: **`executed:awaiting_post_prove_dual`**（standing authorize · L3 coding+prove done · Ban self-nail `post_prove_dual_pass` · R4/FUNNEL/G-R4-5 **STILL OPEN** · Ban invent · Ban invent coveredCount=8 · Ban docs-only fake cover · **本刀不翻** product flags · Ban wash Batch3b **`85be7ad`**/`9aa1be4` · Ban wash Batch3 **`bd3a800`**/`e468de9` · Ban second knife · STOP）
+**Date**: 2026-09-23 (~11:10 PT) · REQUEST tip **`1e8edcd`** · prove tip = this commit · Batch3b nail retained **`85be7ad`** / prove **`9aa1be4`**
 **Authority**: meetwise — docs-only **G-R4-5 / FUNNEL coveredCount Batch4 07+08 true-cover REQUEST** open · true-cover **only** **`RAG-FUNNEL-07` + `RAG-FUNNEL-08`** · Ban假关 · Ban invent · Ban invent coveredCount=8 · Ban docs-only fake cover · Ban wash Batch3b tip nail **`85be7ad`** / prove **`9aa1be4`** · Ban wash Batch3 / Batch2b / Batch2 / Batch1 / product-close / EG3 · Ban MS3=R4 · **本刀不翻** product flags · Ban secrets / `.env*` · Ban second knife · STOP
 **releaseEvidence=false** · **≠HA** · **≠suite green** · Dual PASS ≠ coding · Dual PASS ≠ next knife auto-authorize · Ban self-approve · Ban Cloud Agent · Ban Meridian · Ban自批 · Key×3 O3 honesty_red **非阻塞** · `r4ProductClosed=false` · `funnelProductClosed=false` · `gR45Closed=false` · coveredCount **6** · 02A/02B/03/04/05/06 **covered** · 07/08 **not_covered** · `domainIsolationClosed`/`eg3ProductClosed` retained
 **Experts**: `mw-e2e-ha` + `mw-rag-route` · pre-exec dual **not_run** · Ban自批
@@ -58,13 +58,13 @@ Docs REQUEST: **G-R4-5 / FUNNEL coveredCount Batch4（07+08 true-cover）** · t
 
 | CMD | Status |
 |-----|--------|
-| docs REQUEST open | **`REQUEST-ready / not_run:pre_dual`** · G-R4-5 / FUNNEL coveredCount Batch4 07+08 true-cover · true-cover later |
-| pre-exec dual | **`not_run:pre_dual`** · Ban自批 · experts write at named paths · coordinator pulls |
-| standing coding / prove / matrix | **`not_run:no_coding_authorize`** · Ban silent flip · Dual PASS ≠ coding · Ban Dual PASS=coding · Coding forbidden until dual+authorize · **本刀不翻** product flags · Ban docs-only fake cover · Ban invent coveredCount=8 |
+| docs REQUEST open | **`executed:awaiting_post_prove_dual`** · G-R4-5 / FUNNEL coveredCount Batch4 07+08 true-cover · Ban self-nail dual_pass |
+| pre-exec dual | **done** · BOTH PASS on tip **`1e8edcd`** · Ban自批 |
+| standing coding / prove / matrix | **done** · Ban invent coveredCount=8 · Ban docs-only fake cover · **本刀不翻** product flags · await post-prove dual |
 | planned prove (later) | `pnpm r4-funnel-covered-count-batch4:prove` · EXIT=0 ≠ invent coveredCount ≠ invent coveredCount=8 ≠ G-R4-5 all closed ≠ HA · may set 07/08 covered only if true-cover evidenced+affirmed · else refuse · coveredCount honest (**expect 6→8 if both affirmed**) |
 | planned EG2 Batch4-aware (later) | `pnpm r4-eg2-funnel-covered:prove` · EXIT=0 = honest matrix · Ban invent other IDs |
 | coveredCount / matrix 07+08 / 02A+02B+03+04+05+06 | **6** / **not_covered** / **covered** · Ban invent · Ban invent coveredCount=8 · **NOT** flipped this open |
 
 ---
 
-*Slice · G-R4-5 / FUNNEL coveredCount Batch4 07+08 true-cover · 2026-09-23 (~11:00 PT) · REQUEST-ready / not_run:pre_dual · awaiting_pre_exec_dual · docs only · true-cover RAG-FUNNEL-07+08 later · Ban invent coveredCount=8 · if not achievable → not_covered+refuse · base tip 85be7ad · prove tip retained 9aa1be4 · coveredCount=6 Ban invent · 02A/02B/03/04/05/06 covered retained · 07/08 still not_covered · r4ProductClosed=false · funnelProductClosed=false · gR45Closed=false · 本刀不翻 product flags · Ban wash Batch3b 85be7ad/9aa1be4 · Ban wash Batch3 bd3a800/e468de9 · Ban MS3=R4 · Ban Dual PASS=coding · R4/FUNNEL/G-R4-5 STILL OPEN · Dual PASS ≠ coding · Coding forbidden until dual+authorize · Key×3 O3 honesty_red非阻塞 · releaseEvidence=false · ≠HA · zero coding · zero prove · zero flip · Ban second knife · STOP*
+*Slice · G-R4-5 / FUNNEL coveredCount Batch4 07+08 true-cover · 2026-09-23 (~11:10 PT) · executed:awaiting_post_prove_dual · Ban self-nail post_prove_dual_pass · Ban invent coveredCount=8 · if not achievable → not_covered+refuse · REQUEST tip 1e8edcd · prove tip=this commit · coveredCount honest · r4ProductClosed=false · funnelProductClosed=false · gR45Closed=false · 本刀不翻 product flags · Ban wash Batch3b 85be7ad/9aa1be4 · Ban wash Batch3 bd3a800/e468de9 · Ban MS3=R4 · R4/FUNNEL/G-R4-5 STILL OPEN · Key×3 O3 honesty_red非阻塞 · releaseEvidence=false · ≠HA · Ban second knife · STOP*

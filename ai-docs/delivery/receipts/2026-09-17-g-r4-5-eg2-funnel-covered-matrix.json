@@ -51,8 +51,8 @@
     },
     {
       "id": "RAG-FUNNEL-07",
-      "status": "not_covered",
-      "basis": "free-text allowlisted scope funnel not evidenced · Ban invent covered",
+      "status": "covered",
+      "basis": "Batch4 true-cover: free-text allowlisted scope funnel evidenced (domain digest/rule/hash + db classifyFreeTextScope + no privilege expansion + worker request-path production consumer · only suggests allowlisted track · no read/tool grant) · Ban invent",
       "inventCoveredForbidden": true
     },
     {
@@ -62,8 +62,8 @@
       "inventCoveredForbidden": true
     }
   ],
-  "coveredCount": 6,
+  "coveredCount": 7,
   "inventCovered": false,
   "releaseEvidence": false,
-  "note": "EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B · Batch3 may elevate 05/06 when assessors affirm · Ban elevating 07/08 · ≠ R4/题域 closed · await post-prove dual"
+  "note": "EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B · Batch3 may elevate 05/06 when assessors affirm · Batch4 may elevate 07/08 when assessors affirm · ≠ R4/题域 closed · await post-prove dual"
 }

@@ -1,0 +1,36 @@
+{
+  "kind": "FunnelCoveredCountBatch4Evidence",
+  "batch4Only": true,
+  "funnel07Covered": true,
+  "funnel08Covered": false,
+  "coveredIds": [
+    "RAG-FUNNEL-07"
+  ],
+  "batch4CoveredCount": 1,
+  "coveredCountInvented": false,
+  "funnel07ProductionConsumerWired": true,
+  "funnel07Assessor": {
+    "domainFreeTextRoutePresent": true,
+    "dbClassifyFreeTextScopePresent": true,
+    "noPrivilegeExpansionPinned": true,
+    "dbExportsFreeTextRoute": true,
+    "productionConsumerWired": true,
+    "noRetrievalGrantOnFunnel": true
+  },
+  "funnel08Assessor": {
+    "multiLangHoldoutPresent": true,
+    "perLeafRecallReported": false,
+    "wrongTrackZeroHardAssert": false,
+    "p95CostThresholdsPreRegistered": false,
+    "releaseReceiptsBound": false,
+    "notLocalFakeAlone": false
+  },
+  "funnel07RefuseReason": null,
+  "funnel08RefuseReason": "production-equivalent eval matrix not evidenced",
+  "r4ProductClosed": false,
+  "funnelProductClosed": false,
+  "gR45Closed": false,
+  "ms3EqualsR4Closed": false,
+  "releaseEvidence": false,
+  "note": "G-R4-5 / FUNNEL coveredCount Batch4 — true-cover 07+08 under authorize · honest assessor elevation only · Ban invent coveredCount=8 · Ban docs-only fake cover · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · Ban wash Batch3b 85be7ad/9aa1be4 · Ban wash Batch3 bd3a800/e468de9 · Ban MS3=R4 · Ban self-nail post_prove_dual_pass · await post-prove dual"
+}
