@@ -1,8 +1,8 @@
 # Prove receipt — G-R4-5 / FUNNEL coveredCount Batch1
 
-**Date**: 2026-09-23 (~09:10 PT)
+**Date**: 2026-09-23 (~09:13 PT)
 **CMD**: `pnpm r4-funnel-covered-count-batch1:prove`
-**Status**: `executed:awaiting_post_prove_dual` · Ban self-nail post_prove_dual_pass
+**Status**: `post_prove_dual_pass` · prove tip bd15172 · Ban invent · product flags false
 **FUNNEL-03 covered**: true
 **FUNNEL-04 covered**: true
 **coveredCount**: 2
@@ -15,4 +15,4 @@
 ## Non-claims
 
 - Not product close · not gR45Closed · Ban invent · Ban wash 1c2ed8c/7be1a55/rem·SSOT·EXPLICIT
-- Ban MS3=R4 · Ban self-nail post_prove_dual_pass · await post-prove dual
+- Ban MS3=R4 · Ban invent · Ban wash this dual_pass into product closed · Ban second knife
