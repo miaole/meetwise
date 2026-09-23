@@ -1,9 +1,9 @@
 # RAG-FUNNEL-01…08 covered matrix（EG2 + Batch1 + Batch2 + Batch2b + Batch3 + Batch3b + Batch4 + Batch4b · Ban invent covered）
 
-**Status**: honest inventory emitted · **EG2 STILL OPEN** · **Batch4b executed:awaiting_post_prove_dual** · coveredCount **8** · 08=covered · **≠ invent covered** · `releaseEvidence=false` · ≠HA
-**Date**: 2026-09-23 (~11:30 PT)
+**Status**: honest inventory emitted · **EG2 STILL OPEN** · **Batch4b post_prove_dual_pass** · coveredCount **8**（**7→8**）· 08=covered · refuse cleared · **≠ invent covered** · `releaseEvidence=false` · ≠HA
+**Date**: 2026-09-23 (~11:38 PT)
 **Emitter**: `apps/worker/src/r4-eg2-funnel-covered-matrix.ts` (Batch1+Batch2+Batch2b+Batch3+Batch3b+Batch4+Batch4b-aware) · Batch4b `apps/worker/src/r4-funnel-covered-count-batch4b-08-eval.ts` · eval wire `apps/worker/src/production-equivalent-funnel-08-eval.ts` · prove `pnpm r4-eg2-funnel-covered:prove` / `pnpm r4-funnel-covered-count-batch4b-08-eval:prove`
-**Hard**: Ban invent FUNNEL covered · Ban invent coveredCount=8 · Batch1 may elevate **03/04** · Batch2/Batch2b may elevate **02A/02B** · Batch3/Batch3b may elevate **05/06** · Batch4 may elevate **07/08** · Batch4b may elevate **08** when production-equivalent eval matrix evidenced+affirmed · Ban flip checklist SSOT · ≠ R4/题域/G-R4-5 product closed · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · Ban self-nail post_prove_dual_pass · covering 08 ≠ product closed
+**Hard**: Ban invent FUNNEL covered · Ban invent coveredCount=8 · Batch1 may elevate **03/04** · Batch2/Batch2b may elevate **02A/02B** · Batch3/Batch3b may elevate **05/06** · Batch4 may elevate **07/08** · Batch4b may elevate **08** when production-equivalent eval matrix evidenced+affirmed · Ban flip checklist SSOT · ≠ R4/题域/G-R4-5 product closed · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · post_prove_dual_pass · Ban invent · Ban second knife · Ban wash into product-closed · covering 08 ≠ product closed
 
 | ID | Status | Basis |
 |----|--------|-------|
@@ -18,7 +18,7 @@
 | `RAG-FUNNEL-07` | **covered** | Batch4 true-cover: free-text allowlisted scope funnel evidenced (domain digest/rule/hash + db classifyFreeTextScope + no privilege expansion + worker request-path production consumer · only suggests allowlisted track · no read/tool grant) · Ban invent |
 | `RAG-FUNNEL-08` | **covered** | Batch4/Batch4b true-cover: production-equivalent eval matrix evidenced (multi-lang holdout + per-leaf Recall@K + wrong-track=0 + P95/cost thresholds + release receipts bound · Batch4b eval wire) · Ban invent |
 
-**coveredCount**: 8 (honest · Ban invent · Batch1 03/04 + Batch2 02A + Batch2b 02B + Batch3b 05/06 + Batch4 07 + Batch4b 08 when affirmed)
+**coveredCount**: 8 (honest · Ban invent · Batch1 03/04 + Batch2 02A + Batch2b 02B + Batch3b 05/06 + Batch4 **07** + Batch4b **08** · refuse cleared)
 
 ## Batch4b result（under authorize · Ban invent · Ban docs-only fake cover）
 
@@ -30,6 +30,6 @@
 - Not EG2 closed · not invent FUNNEL covered · not R4/FUNNEL product closed · not 题域已隔离 · not G-R4-5 dual-closed · covering 08 ≠ product closed
 - product_surfaces_true on FUNNEL-01 ≠ covered elevation · source_sealed on 01A ≠ 01…08 covered
 - 本刀不翻 `r4ProductClosed` / `funnelProductClosed` / `gR45Closed` · Ban wash Batch4 9b8b9a7/b0f5c50 · Batch3b 85be7ad/9aa1be4 · Batch1 5519078/bd15172 · product-close 1c2ed8c · EG3 7be1a55
-- Checklist SSOT **NOT** flipped this knife · Ban self-nail post_prove_dual_pass · Ban invent coveredCount=8
+- Checklist SSOT **NOT** flipped this knife · Ban wash this dual_pass into product closed · Ban invent · covering 08 ≠ product closed
 
-*Matrix · EG2+Batch1+Batch2+Batch2b+Batch3b+Batch4+Batch4b · 2026-09-23 (~11:30 PT) · coveredCount=8 · Ban invent covered · releaseEvidence=false · executed:awaiting_post_prove_dual*
+*Matrix · EG2+Batch1+Batch2+Batch2b+Batch3b+Batch4+Batch4b · 2026-09-23 (~11:38 PT) · coveredCount=8 · Ban invent covered · releaseEvidence=false · post_prove_dual_pass*
