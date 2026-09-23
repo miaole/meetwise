@@ -2,7 +2,7 @@
 
 **Date**: 2026-09-23 (~14:20 PT)  
 **Base / REQUEST tip**: **`a32da03`** / full `a32da0377a16f311399ad03b0befc973b2866081`  
-**Prove tip**: **`397e787`** / full `397e787897a63fd27747165c5d42defcc9fc432d` · parent **`a32da03`** / full `a32da0377a16f311399ad03b0befc973b2866081`
+**Prove tip**: **`7a27a24`** / full `7a27a24810afe5edd369bb8ba7fe47e9d60be105` · parent **`a32da03`** / `a32da0377a16f311399ad03b0befc973b2866081`
 **Branch**: `feat/mysql-schema-skeleton`  
 **Authority**: meetwise — **AUTHORIZED coding+prove** for knife HA local C3+C4 authorized-prove · standing after pre-exec dual BOTH PASS · Ban secrets / `.env*` · Ban Meridian · Ban Cloud Agent · **Ban self-nail `post_prove_dual_pass`** · Ban claim 阶 C/D green · Ban production HA / failover · Ban flip `releaseEvidence` · Ban wash G-R4-5 tip `6ded589` / prove `ba1b8aa` into HA · Ban wash skeleton/stub EXIT=0 into HA · Ban invent green / forge receipts · Ban second knife  
 **Harness**: `harness/ha-local-c3-c4-authorized-prove.md` · status **`executed:awaiting_post_prove_dual`**（**NOT** `post_prove_dual_pass`）  
