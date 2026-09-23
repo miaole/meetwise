@@ -1,6 +1,6 @@
-# Harness — **UC-E2E-018 AiGraphRun safely_terminated**（§1b #2 · `GAP-UC018-GRAPH` · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · Ban claim UC-E2E-018 covered · matrix stays **partial** · Ban wash FULL-E2E / D2b/`7fddebe` / HA / liveGhaRunUrl into E2E covered）
+# Harness — **UC-E2E-018 AiGraphRun safely_terminated**（§1b #2 · `GAP-UC018-GRAPH` · AUTHORIZED coding+prove · **`executed:awaiting_post_prove_dual`** · Ban claim UC-E2E-018 covered · matrix stays **partial** · Ban wash FULL-E2E / D2b/`7fddebe` / HA / liveGhaRunUrl into E2E covered）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（实现方预写 · **not yet dual-sent** · **Ban自批 pass** · Dual PASS ≠ coding · Dual PASS ≠ UC-E2E-018 covered · Dual PASS ≠ next knife auto-authorize · **≠ coding** · **≠ prove** · **≠ graph/product edits this open** · **≠ claim UC-E2E-018 covered** · **≠ claim matrix covered / full suite covered** · **≠ close §1b #3 TTL / #5 UI / #6 sole-stack R5** · **≠ wash prior FULL-E2E nail `c36b032` / D2b/`7fddebe` / HA / liveGhaRunUrl into UC covered** · **≠ invent green** · matrix **partial** retained）  
+**Status**: **`executed:awaiting_post_prove_dual`**（AUTHORIZED coding+prove landed · pre-exec dual PASS `dc0e1fd`+`d1f1f69` · **awaiting post-prove dual** · **Ban自钉 `post_prove_dual_pass`** · Dual PASS ≠ UC-E2E-018 covered · Dual PASS ≠ next knife · **GAP-UC018-GRAPH CLOSED only** · matrix **partial** · **≠ claim UC covered** · **≠ close §1b #3 TTL / #5 UI / #6 sole-stack** · Ban wash FULL-E2E/`c36b032` / D2b/`7fddebe` / HA / liveGhaRunUrl · Ban invent green · pins retained）  
 **Date**: 2026-09-23 (~16:29 PT)  
 **Base / parent tip**: FULL-E2E abandon nail **`c36b032`** / full `c36b032b4db5ddfa89dc6295395f4ac928b96583`（`GAP-UC018-FULL-E2E` **CLOSED** · matrix still **partial** · Ban claim UC covered · Ban wash FULL-E2E into covered）· prior HA D2b nail **`7fddebe`** CLOSED · Ban reopen D2b · Ban wash HA into E2E covered · branch `feat/mysql-schema-skeleton`  
 **Knife name**: **UC-E2E-018 AiGraphRun safely_terminated · GAP-UC018-GRAPH**（§1b #2 only）  
@@ -14,8 +14,8 @@
 **Slice**: `../uc-e2e-018-graph-safely-terminated.slice.md`  
 **Eval**: existing `../eval/uc-e2e-018-user-abandon.eval.md`（update in **coding** phase only · **not** this open · Ban rewrite as covered now）  
 **Parent harness（update in coding phase · not this open）**: `harness/uc-e2e-018-user-abandon.md` — will be updated when AUTHORIZED coding lands AiGraphRun terminal + prove CMD(s) + matrix honesty for `GAP-UC018-GRAPH` only · **do not** rewrite product flags as covered now  
-**Authority**: meetwise — **docs REQUEST open only** for **UC-E2E-018 AiGraphRun safely_terminated · GAP-UC018-GRAPH** · status `draft:awaiting_pre_exec_dual` · Ban secrets / `.env*` · Meridian banned · No force-push · Ban Cloud Agent · Ban self-approve · Ban self-nail · Ban silent UC covered claim · Ban coding until dual+authorize · Ban messaging dual reviewers（coordinator dispatches）  
-**Honesty**: This open = **document for later coding** of §1b #2 only · zero product/graph edits · zero prove · zero claim UC-E2E-018 covered · matrix **partial** · Dual PASS ≠ coding · Dual PASS ≠ UC covered · Dual PASS ≠ next knife · Ban wash FULL-E2E/`c36b032` / D2b/`7fddebe` / HA / liveGhaRunUrl into E2E covered · **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · status `draft:awaiting_pre_exec_dual` · Ban self-nail · STOP until dual+authorize
+**Authority**: meetwise — **docs REQUEST open only** for **UC-E2E-018 AiGraphRun safely_terminated · GAP-UC018-GRAPH** · status `executed:awaiting_post_prove_dual` · Ban secrets / `.env*` · Meridian banned · No force-push · Ban Cloud Agent · Ban self-approve · Ban self-nail · Ban silent UC covered claim · Ban coding until dual+authorize · Ban messaging dual reviewers（coordinator dispatches）  
+**Honesty**: This open = **document for later coding** of §1b #2 only · zero product/graph edits · zero prove · zero claim UC-E2E-018 covered · matrix **partial** · Dual PASS ≠ coding · Dual PASS ≠ UC covered · Dual PASS ≠ next knife · Ban wash FULL-E2E/`c36b032` / D2b/`7fddebe` / HA / liveGhaRunUrl into E2E covered · **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · status `executed:awaiting_post_prove_dual` · Ban self-nail · STOP until dual+authorize
 
 ---
 
@@ -23,10 +23,10 @@
 
 | Expert | Receipt path（named · **not pre-filled**） | Status |
 |--------|---------------------------------------------|--------|
-| `mw-e2e-ha` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-graph-safely-terminated-mw-e2e-ha.md` | **PENDING / draft:awaiting_pre_exec_dual** |
-| `mw-rag-route` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-graph-safely-terminated-mw-rag-route.md` | **PENDING / draft:awaiting_pre_exec_dual** |
+| `mw-e2e-ha` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-graph-safely-terminated-mw-e2e-ha.md` | **PRE-EXEC PASS**（`dc0e1fd` / `d1f1f69`）· post-prove dual **PENDING** |
+| `mw-rag-route` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-graph-safely-terminated-mw-rag-route.md` | **PRE-EXEC PASS**（`dc0e1fd` / `d1f1f69`）· post-prove dual **PENDING** |
 
-**Note**: Implementer does **not** pre-fill pass. Dual **not** pinged by implementer（coordinator dispatches）. Ban自批. Dual PASS ≠ coding · Dual PASS ≠ UC-E2E-018 covered · Dual PASS ≠ next knife auto-authorize.
+**Note**: Pre-exec dual BOTH PASS. Post-prove dual **PENDING**（coordinator dispatches；Ban implementer ping；Ban自钉 `post_prove_dual_pass`）. Dual PASS ≠ UC covered · Dual PASS ≠ next knife.
 
 ---
 
@@ -34,7 +34,7 @@
 
 | Statement | Ruling |
 |-----------|--------|
-| **What this knife is** | Docs REQUEST open: **UC-E2E-018 AiGraphRun safely_terminated · GAP-UC018-GRAPH** · scope **ONLY §1b #2** · document for later coding: on user abandon, AiGraphRun `safe_terminating`→`safely_terminated`（or documented equivalent）+ 业务事实保全 · Integration and/or E2E prove CMD(s) that **nail the graph terminal state**（not wash from abandon HTTP alone）· update parent harness + eval + matrix honesty to close **`GAP-UC018-GRAPH` only** · prove CMD plan named · Ban假绿 · status **`draft:awaiting_pre_exec_dual`** |
+| **What this knife is** | Docs REQUEST open: **UC-E2E-018 AiGraphRun safely_terminated · GAP-UC018-GRAPH** · scope **ONLY §1b #2** · document for later coding: on user abandon, AiGraphRun `safe_terminating`→`safely_terminated`（or documented equivalent）+ 业务事实保全 · Integration and/or E2E prove CMD(s) that **nail the graph terminal state**（not wash from abandon HTTP alone）· update parent harness + eval + matrix honesty to close **`GAP-UC018-GRAPH` only** · prove CMD plan named · Ban假绿 · status **`executed:awaiting_post_prove_dual`** |
 | **What this knife is not** | **Not** coding · **not** prove · **not** graph/product edits this open · **not** claiming UC-E2E-018 covered · **not** claiming matrix covered · **not** closing §1b #3 TTL / #5 UI / #6 sole-stack R5 · **not** washing FULL-E2E/`c36b032` / D2b/`7fddebe` / HA / liveGhaRunUrl into E2E covered · **not** washing `uc018:abandon:*` / full-e2e EXIT=0 into GRAPH closed / UC covered · **not** inventing green · **not** cloud buy · **not** D3 · **not** Meridian · **not** Cloud Agent · **not** secrets / `.env*` · **not** second knife · **not** self-nail · **not** reopen D2b · **not** UC covered-lift |
 | **≠ wash FULL-E2E into GRAPH / UC covered** | **YES** — parent tip **`c36b032`** FULL-E2E nail CLOSED · matrix still **partial** · **≠** AiGraphRun terminal · **≠** UC-E2E-018 covered · **retained** · Ban wash |
 | **≠ wash abandon HTTP / db prove into GRAPH** | **YES** — existing prove EXIT=0 = Interview abandoned+released only · commerce **explicitly does not touch** AiGraphRun · **retained** · Ban wash |
@@ -42,7 +42,7 @@
 | **haStatus / releaseEvidence / claimProductionHA** | **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban flip this open · Ban假绿 |
 | **Matrix / UC covered** | UC-E2E-018 stays **partial** · Ban claim covered this knife · even after later §1b #2 close, #3/#5/#6 keep matrix **partial** |
 | **Parent harness rewrite** | `uc-e2e-018-user-abandon.md` **not** rewritten as covered now · coding-phase update only · Ban product-flag flip this open |
-| **Now** | **`draft:awaiting_pre_exec_dual`** · docs only · zero coding · zero prove · zero graph edits · Ban claim UC covered · Ban wash FULL-E2E/D2b/HA into E2E · Dual not pinged |
+| **Now** | **`executed:awaiting_post_prove_dual`** · coding+prove EXIT=0 landed · GAP-UC018-GRAPH closed only · matrix **partial** · Ban claim UC covered · Ban self-nail · awaiting post-prove dual |
 
 ---
 
@@ -93,10 +93,10 @@
 
 | Phase | Gate | This REQUEST |
 |-------|------|--------------|
-| **L0** | REQUEST pair open · `draft:awaiting_pre_exec_dual` | **THIS OPEN** · parent **`c36b032`** · docs only |
-| **L1** | Pre-exec dual (`mw-e2e-ha` + `mw-rag-route`) · Ban self-approve · coordinator dispatches | **awaiting_pre_exec_dual** · Ban自批 · Dual not pinged by implementer |
-| **L2** | AUTHORIZED coding+prove | **blocked** until dual BOTH PASS + authorize · Ban coding this open |
-| **L3** | awaiting_post_prove | later |
+| **L0** | REQUEST pair open · `executed:awaiting_post_prove_dual` | DONE · tip `25d1900` |
+| **L1** | Pre-exec dual (`mw-e2e-ha` + `mw-rag-route`) · Ban self-approve · coordinator dispatches | **PASS** · `dc0e1fd` + `d1f1f69` |
+| **L2** | AUTHORIZED coding+prove | **DONE** · AiGraphRun terminal + `uc018:graph:prove` + retained proves EXIT=0 |
+| **L3** | awaiting_post_prove | **THIS STATUS** · `executed:awaiting_post_prove_dual` · Ban self-nail |
 | **L4** | post-prove dual | later |
 | **L5** | AUTHORIZED nail → `post_prove_dual_pass` → STOP | later · close **GAP-UC018-GRAPH only** · matrix stays **partial** · Ban claim UC covered |
 
@@ -106,11 +106,11 @@
 
 | CMD | Expect later | This open |
 |-----|--------------|-----------|
-| `pnpm uc018:abandon:prove` | EXIT **0** retained | **not_run** |
-| `pnpm uc018:abandon:http:prove` | EXIT **0** retained | **not_run** |
-| `pnpm uc018:abandon:full-e2e:prove` | EXIT **0** retained（FULL-E2E already CLOSED） | **not_run** |
+| `pnpm uc018:abandon:prove` | EXIT **0** retained | **ran EXIT=0**（coding tip） |
+| `pnpm uc018:abandon:http:prove` | EXIT **0** retained | **ran EXIT=0**（coding tip） |
+| `pnpm uc018:abandon:full-e2e:prove` | EXIT **0** retained（FULL-E2E already CLOSED） | **ran EXIT=0**（coding tip） |
 | New graph-terminal prove CMD(s)（named in coding） | EXIT **0** + receipts asserting AiGraphRun terminal（later） | **not_run** · Ban graph edits |
-| `pnpm eval-harness-matrix-cite:prove` | EXIT **0**（cite honesty） | **not_run** |
+| `pnpm eval-harness-matrix-cite:prove` | EXIT **0**（cite honesty） | **ran EXIT=0**（coding tip） |
 
 ```bash
 # PLANNED ONLY — Ban run this open · Ban coding until dual+authorize
@@ -154,4 +154,4 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 
 ---
 
-*Harness · UC-E2E-018 AiGraphRun safely_terminated · GAP-UC018-GRAPH · §1b #2 only · 2026-09-23 (~16:29 PT) · draft:awaiting_pre_exec_dual · docs only · parent c36b032 · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount 8 · ms3EqualsR4Closed=false · Ban claim UC covered · matrix partial · Ban wash FULL-E2E/D2b/HA into E2E · Ban coding until dual+authorize · STOP*
+*Harness · UC-E2E-018 AiGraphRun safely_terminated · GAP-UC018-GRAPH · §1b #2 only · 2026-09-23 (~16:29 PT) · executed:awaiting_post_prove_dual · GAP-UC018-GRAPH closed only · matrix partial · parent c36b032 · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount 8 · ms3EqualsR4Closed=false · Ban claim UC covered · matrix partial · Ban wash FULL-E2E/D2b/HA into E2E · Ban self-nail post_prove_dual_pass · STOP*

@@ -112,6 +112,8 @@
     "uc018:abandon:http:prove": "node scripts/run-e2e-isolated.mjs uc018:abandon:http:prove:raw",
     "uc018:abandon:http:prove:raw": "pnpm -C apps/api prove:uc018-abandon-http",
     "uc018:abandon:full-e2e:prove": "E2E_UC018_ABANDON_ONLY=1 node scripts/run-e2e-isolated.mjs e2e:prove",
+    "uc018:graph:prove": "node scripts/run-e2e-isolated.mjs uc018:graph:prove:raw",
+    "uc018:graph:prove:raw": "pnpm -C packages/db prove:uc018-graph",
     "uc011:report-refund:prove": "node scripts/run-e2e-isolated.mjs uc011:report-refund:prove:raw",
     "uc011:report-refund:prove:raw": "pnpm -C packages/db prove:uc011-report-refund",
     "uc011:report-refund:http:prove": "node scripts/run-e2e-isolated.mjs uc011:report-refund:http:prove:raw",

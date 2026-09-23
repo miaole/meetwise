@@ -27,7 +27,7 @@ const { A, done } = mkAssert('uc018:abandon:http');
 
 console.log('UC-E2E-018 user-abandon HTTP prove · releaseEvidence=false · Not HA');
 console.log('NOTE: 本绿≠全链路 E2E covered；≠ matrix covered；HTTP mouth only；fixture=pgvector → green-risk/R5');
-console.log('NOTE: remaining→covered: AiGraphRun safely_terminated · TTL sweeper · UI · sole-stack (waiting_user + FULL-E2E closed; matrix stays partial)');
+console.log('NOTE: remaining→covered: TTL sweeper · UI · sole-stack (waiting_user + FULL-E2E + GRAPH closed; matrix stays partial)');
 
 // Minimal privacy-active stubs (0058 not in _neg-harness). Owner match only; no erasure fence.
 await h.pool.query(`
@@ -258,9 +258,9 @@ await h.pool.query(
 // ── Honesty pins: still ≠ covered ──
 console.log('\n──────── GAP pins (抬 covered 仍缺) ────────');
 console.log('CLOSED GAP-UC018-WAITING-USER: abandon CAS = created|active|waiting_user + H-waiting-user prove');
-console.log('PIN   GAP-UC018-GRAPH: abandonInterviewAndRelease 不碰 AiGraphRun → safely_terminated 未钉（本切片不实现）');
+console.log('CLOSED_GAP_UC018_GRAPH: see pnpm uc018:graph:prove；AiGraphRun safely_terminated + 业务事实保全已钉（本 HTTP prove 仍 ≠ graph assert；≠ covered）');
 console.log('PIN   GAP-UC018-TTL: TTL sweeper→abandoned 属 commerce-reconcile 旁证 ≠ 本 prove（本切片不实现）');
-console.log('CLOSED GAP-UC018-FULL-E2E: e2e/full.e2e.ts 显式 abandon TC + pnpm uc018:abandon:full-e2e:prove（E2E_UC018_ABANDON_ONLY=1）；矩阵仍 partial · ≠ covered · UI/GRAPH/TTL/sole-stack 仍开');
+console.log('CLOSED GAP-UC018-FULL-E2E: e2e/full.e2e.ts 显式 abandon TC + pnpm uc018:abandon:full-e2e:prove（E2E_UC018_ABANDON_ONLY=1）；CLOSED GAP-UC018-GRAPH: pnpm uc018:graph:prove；矩阵仍 partial · ≠ covered · UI/TTL/sole-stack 仍开');
 A('honesty: HTTP prove 绿 ≠ UC-E2E-018 covered（FULL-E2E+waiting_user 已关；GRAPH/TTL/UI/sole-stack 仍缺 → partial）', true);
 
 await done();
