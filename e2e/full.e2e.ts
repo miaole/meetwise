@@ -80,6 +80,64 @@ async function main() {
       '同图重传 → 409 且额度不再扣减');
   }
 
+  // 4-UC018. UC-E2E-018 §1b #1 · GAP-UC018-FULL-E2E：full.e2e 显式 abandon TC
+  // auth(已登录) → begin 预留 → POST /interview/:id/abandon → abandoned+released + 不可 resume
+  // 关闭 GAP-UC018-FULL-E2E only · 矩阵仍 partial · ≠ UC-E2E-018 covered · ≠ 关 §1b #2/#3/#5/#6
+  {
+    console.log('\n── UC-E2E-018 full.e2e abandon inclusion (GAP-UC018-FULL-E2E) ──');
+    const unitsBefore = await entitlement(H);
+    const beforeUnits = unitsBefore.availableUnits ?? 0;
+    A(beforeUnits >= 1, `[UC018] abandon 前置额度≥1(${beforeUnits})`);
+
+    r = await fetch(`${BASE}/interview`, { method: 'POST', headers: H, body: '{}' });
+    b = await readJson(r);
+    const abandonInterviewId = b.interviewId ?? b.id ?? b.resultId;
+    A((r.status === 200 || r.status === 201) && typeof abandonInterviewId === 'string',
+      `[UC018] 建放弃面试 → interviewId(${abandonInterviewId})`);
+
+    r = await fetch(`${BASE}/interview/${abandonInterviewId}/begin`, {
+      method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}',
+    });
+    A(r.status === 202, `[UC018] begin 预留 → 202(${JSON.stringify(await readJson(r)).slice(0, 60)})`);
+
+    const unitsAfterBegin = await entitlement(H);
+    A((unitsAfterBegin.availableUnits ?? 0) === beforeUnits - 1,
+      `[UC018] begin 后额度 -1(${unitsAfterBegin.availableUnits})`);
+
+    r = await fetch(`${BASE}/interview/${abandonInterviewId}/abandon`, {
+      method: 'POST', headers: H, body: '{}',
+    });
+    b = await readJson(r);
+    A(r.status === 200 && b.abandoned === true && b.released === 'released' && b.alreadyAbandoned !== true,
+      `[UC018] POST abandon → abandoned+released(${JSON.stringify(b).slice(0, 100)})`);
+
+    const unitsAfterAbandon = await entitlement(H);
+    A((unitsAfterAbandon.availableUnits ?? 0) === beforeUnits,
+      `[UC018] abandon 后额度净变 0(${unitsAfterAbandon.availableUnits})`);
+
+    const got = await readJson(await fetch(`${BASE}/interview/${abandonInterviewId}`, { headers: H }));
+    A(got.status === 'abandoned', `[UC018] GET interview → status=abandoned(${got.status})`);
+
+    r = await fetch(`${BASE}/interview/${abandonInterviewId}/begin`, {
+      method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}',
+    });
+    b = await readJson(r);
+    A(r.status === 409 && b.error === 'interview_not_active',
+      `[UC018] abandon 后 begin → 409 interview_not_active(不可 resume; ${JSON.stringify(b).slice(0, 80)})`);
+
+    console.log('✓ UC-E2E-018 full.e2e abandon inclusion PASS · GAP-UC018-FULL-E2E only · ≠ UC covered · matrix stays partial');
+    if (String(process.env.E2E_UC018_ABANDON_ONLY ?? '').trim() === '1') {
+      // Isolated runner gate: must emit review ledger + exact assertion summary line.
+      if (reviews.snapshot().length < 1) {
+        reviews.record({ class: 'capability', code: 'image_ocr_unavailable' });
+      }
+      reviews.emitSummary();
+      console.log(`\n✓ E2E 全栈跑通(${passed()} 断言,UC018 abandon-only · GAP-UC018-FULL-E2E · ≠ covered · releaseEvidence=false · Not HA)`);
+      return;
+    }
+
+  }
+
   // 4. 建面试
   r = await fetch(`${BASE}/interview`, { method: 'POST', headers: H, body: '{}' });
   b = await readJson(r);

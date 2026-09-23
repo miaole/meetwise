@@ -12,7 +12,7 @@
 
 eval-first：交付 **可执行** A1–A3 集成断言（`@meetwise/db` `abandonInterviewAndRelease`）+ **真 HTTP** `POST /interview/:id/abandon`（产品口已存在）。无 `MODEL_API_KEY`。  
 **禁止**因本文件 / prove 绿而把矩阵写成 `covered`。最多 **partial**。  
-**本绿 ≠ 全链路 E2E covered**，直至 `full.e2e.ts` / `e2e:isolated` 纳入 abandon 场景且 harness §1b 缺口关闭。
+**本绿 ≠ 全链路 E2E covered**。`GAP-UC018-FULL-E2E` 已关（full.e2e 显式 abandon TC）；harness §1b #2/#3/#5/#6 仍开 → 矩阵 **partial** · **≠ covered**。
 
 ---
 
@@ -20,9 +20,10 @@ eval-first：交付 **可执行** A1–A3 集成断言（`@meetwise/db` `abandon
 
 | CMD | 期望 EXIT | 实测 | 读法 |
 |-----|-----------|------|------|
-| `pnpm uc018:abandon:prove` | **0** | **0**（2026-09-10 ~02:27 PT；A1–A3+A-waiting-user PASS；R5；receipt `.tmp/isolated-proof-receipts/2026-09-10T09-27-27-246Z-…`） | 集成绿 → 矩阵 **partial**；≠ covered；§1b#4 关 |
-| `pnpm uc018:abandon:http:prove` | **0** | **0**（2026-09-10 ~02:27 PT；46 PASS H1–H3+H-waiting-user+H-authz；真 `@Post(':id/abandon')`；R5；receipt `.tmp/isolated-proof-receipts/2026-09-10T09-27-36-587Z-…`） | HTTP 口绿；仍 ≠ covered；privacy stub；§1b#4 关 / #2#3 仍缺 |
-| `pnpm eval-harness-matrix-cite:prove` | **0** | **0**（2026-09-10 ~02:27 PT；UC-E2E-018 partial not covered；§1b pins） | harness+eval 引用矩阵行；≠业务 covered |
+| `pnpm uc018:abandon:prove` | **0** | **0**（2026-09-23 ~16:15 PDT re-prove；A1–A3+A-waiting-user PASS；R5） | 集成绿 → 矩阵 **partial**；≠ covered；§1b#4 关 |
+| `pnpm uc018:abandon:http:prove` | **0** | **0**（2026-09-23 ~16:17 PDT re-prove；46 PASS；FULL-E2E pin CLOSED；R5） | HTTP 口绿；FULL-E2E 已关；仍 ≠ covered；#2/#3/#5/#6 仍缺 |
+| `pnpm uc018:abandon:full-e2e:prove` | **0** | **0**（2026-09-23 ~16:17 PDT；assertions=14；R5；receipt `.tmp/e2e-receipts/2026-09-23T23-17-24-726Z-1101171-dbf25328-ec65-49b5-891f-730eb92e0827.json`） | full.e2e abandon TC；关 `GAP-UC018-FULL-E2E` only；仍 ≠ covered；R5 |
+| `pnpm eval-harness-matrix-cite:prove` | **0** | **0**（2026-09-23 ~16:17 PDT；UC-E2E-018 partial not covered；§1b pins） | harness+eval 引用矩阵行；≠业务 covered |
 
 复跑：
 
@@ -31,6 +32,7 @@ cd /workspace/meetwise
 # 无 MODEL_API_KEY；需 Docker isolated PG
 pnpm uc018:abandon:prove ; echo EXIT=$?
 pnpm uc018:abandon:http:prove ; echo EXIT=$?
+pnpm uc018:abandon:full-e2e:prove ; echo EXIT=$?
 pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 ```
 
@@ -57,9 +59,9 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 | H-waiting-user | HTTP waiting_user+reserved → 200 + released；begin→409 | **否**（聚焦 HTTP；关 §1b#4） |
 | H-authz | 404/401/409 守卫 | 否 |
 
-**仍 gap 于 covered（见 harness §1b）**：`full.e2e` 场景纳入；`AiGraphRun safely_terminated`（本切片不实现）；TTL sweeper 专用钉（本切片不实现）；UI；sole-stack 去 R5。
+**仍 gap 于 covered（见 harness §1b）**：`AiGraphRun safely_terminated`（#2）；TTL sweeper 专用钉（#3）；UI（#5）；sole-stack 去 R5（#6）。
 
-**本波已关**：§1b#4 `waiting_user` CAS（`created|active|waiting_user`）+ A/H-waiting-user prove。
+**已关**：§1b#4 `waiting_user` CAS；**§1b#1 `GAP-UC018-FULL-E2E`**（full.e2e 显式 abandon TC）。矩阵仍 **partial** · **≠ covered**。
 
 ---
 
@@ -67,7 +69,7 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 
 - [ ] 未把 prove 绿写成 **UC-E2E-018 covered**
 - [ ] 未把 `commerce:prove` / `commerce-reconcile:prove` / `neg:interview` 冒充本 UC
-- [ ] 未把 `uc018:abandon:http:prove` 绿写成 full.e2e 已含 / covered
+- [ ] 未把 `uc018:abandon:http:prove` / `uc018:abandon:full-e2e:prove` 绿写成 UC-E2E-018 covered（FULL-E2E 已关仍 partial）
 - [ ] 未把 isolated/pgvector 绿写成 sole-stack / HA
 - [ ] 矩阵最多 **partial**（非假 covered）
 - [ ] 钉 `本绿≠全链路 E2E covered` / `releaseEvidence=false` / `Not HA`
@@ -76,5 +78,5 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 ## 5. 专家请回答
 
 1. A1–A3 + H1–H3 是否足以**维持**矩阵 **partial**（仍明示 ≠ covered）？  
-2. 下一刀是否优先 `full.e2e` 纳入，还是 `AiGraphRun safely_terminated` / TTL 专用钉？（waiting_user CAS 本波已关）  
+2. 下一刀是否优先 `AiGraphRun safely_terminated`（#2）还是 TTL 专用钉（#3）？（waiting_user + FULL-E2E 已关；矩阵仍 partial）  
 3. 结论写入 `reviews/`，含「仍 ≠ covered」明示；**禁止**作者自签升 covered。
