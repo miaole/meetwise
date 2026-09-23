@@ -91,6 +91,7 @@
     "prove:r4-eg1-dual-claim": "tsx test/r4-eg1-dual-claim-evidence.proof.ts",
     "prove:r4-eg1-dual-claim-product-close": "tsx test/r4-eg1-dual-claim-product-close.proof.ts",
     "prove:r4-eg2-funnel-covered": "tsx test/r4-eg2-funnel-covered-matrix.proof.ts",
+    "prove:r4-eg2-funnel-covered-product-close": "tsx test/r4-eg2-funnel-covered-product-close.proof.ts",
     "prove:r4-eg3-domain-isolation-product": "tsx test/r4-eg3-domain-isolation-product-evidence.proof.ts",
     "prove:r4-eg3-domain-isolation-product-close": "tsx test/r4-eg3-domain-isolation-product-close.proof.ts",
     "prove:r4-funnel-product-close": "tsx test/r4-funnel-product-close.proof.ts",
