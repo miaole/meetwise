@@ -5,7 +5,7 @@
  * Route exists: interview.controller `@Post(':id/abandon')` → abandonInterviewAndRelease.
  *
  * Seeds reserve via @meetwise/db (same CAS as begin); asserts HTTP response + DB
- * + entitlement net-zero. No MODEL_API_KEY. No UI / full.e2e.
+ * + entitlement net-zero. No MODEL_API_KEY. No UI. full.e2e abandon = separate uc018:abandon:full-e2e:prove.
  *
  * Fixture note: `_neg-harness` does not load migration 0058. This prove installs a
  * **minimal** `interview_privacy_active` / `assert_interview_privacy_active` stub so
@@ -27,7 +27,7 @@ const { A, done } = mkAssert('uc018:abandon:http');
 
 console.log('UC-E2E-018 user-abandon HTTP prove · releaseEvidence=false · Not HA');
 console.log('NOTE: 本绿≠全链路 E2E covered；≠ matrix covered；HTTP mouth only；fixture=pgvector → green-risk/R5');
-console.log('NOTE: remaining→covered: AiGraphRun safely_terminated · TTL sweeper · full.e2e/UI (waiting_user CAS closed this slice)');
+console.log('NOTE: remaining→covered: AiGraphRun safely_terminated · TTL sweeper · UI · sole-stack (waiting_user + FULL-E2E closed; matrix stays partial)');
 
 // Minimal privacy-active stubs (0058 not in _neg-harness). Owner match only; no erasure fence.
 await h.pool.query(`
@@ -260,7 +260,7 @@ console.log('\n──────── GAP pins (抬 covered 仍缺) ───�
 console.log('CLOSED GAP-UC018-WAITING-USER: abandon CAS = created|active|waiting_user + H-waiting-user prove');
 console.log('PIN   GAP-UC018-GRAPH: abandonInterviewAndRelease 不碰 AiGraphRun → safely_terminated 未钉（本切片不实现）');
 console.log('PIN   GAP-UC018-TTL: TTL sweeper→abandoned 属 commerce-reconcile 旁证 ≠ 本 prove（本切片不实现）');
-console.log('PIN   GAP-UC018-FULL-E2E: 未进 full.e2e.ts / e2e:isolated 场景矩阵；UI 点放弃未测');
-A('honesty: HTTP prove 绿 ≠ UC-E2E-018 covered（GRAPH/TTL/FULL-E2E 仍缺；waiting_user 已关）', true);
+console.log('CLOSED GAP-UC018-FULL-E2E: e2e/full.e2e.ts 显式 abandon TC + pnpm uc018:abandon:full-e2e:prove（E2E_UC018_ABANDON_ONLY=1）；矩阵仍 partial · ≠ covered · UI/GRAPH/TTL/sole-stack 仍开');
+A('honesty: HTTP prove 绿 ≠ UC-E2E-018 covered（FULL-E2E+waiting_user 已关；GRAPH/TTL/UI/sole-stack 仍缺 → partial）', true);
 
 await done();
