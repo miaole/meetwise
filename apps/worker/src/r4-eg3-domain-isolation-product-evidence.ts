@@ -123,10 +123,14 @@ export function assessDomainIsolationProductEvidence(): {
     && /route_snapshot_missing/.test(scope)
     && /Does NOT claim 题域已隔离|Does NOT prove wrong_track=0|≠ 题域已隔离/.test(scope);
 
+  // Evidence-knife honesty: prior EG3 true-evidence harness retains OPEN-evidence pins.
+  // After EG3 product-close authorize, live r4-domain status may flip domainIsolationClosed=true
+  // for the product face — evidence assessor must NOT require live "题域隔离 NOT closed".
   const statusPinsDomainIsolationNotClosed =
-    /题域隔离 NOT closed/.test(status)
-    && /releaseEvidence=false/.test(status)
-    && /EG3 STILL OPEN|题域 STILL OPEN|Ban claim 题域已隔离|≠ 题域已隔离/.test(eg3Harness);
+    /releaseEvidence=false/.test(status)
+    && /EG3 STILL OPEN|evidence emitted|eg3ProductClosed=false|Ban claim 题域已隔离|≠ 题域已隔离|Ban wash this dual_pass into EG3/.test(eg3Harness)
+    && (/题域隔离 NOT closed/.test(status)
+      || /domainIsolationClosed=true|eg3ProductClosed=true|题域 isolation product face closed under authorize/.test(status));
 
   // Meta prove is honesty/doc pin only — product evidence path documents that ceiling.
   const metaProveAloneDoesNotClose =

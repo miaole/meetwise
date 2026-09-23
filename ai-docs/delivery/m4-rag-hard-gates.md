@@ -27,7 +27,7 @@
 |----|------|
 | M4 本切片交付 | **仅硬门文档覆盖 R1–R5** + 静态 `mysql-stack:m4-rag:prove` |
 | 向量 / serving / qbank | **不切向量真相**；**不切 pgvector serving**；**不切 qbank 生产路径**（`retrieval-store` / `hybridQbankSearch` / `annSearch` 等代码本切片不动） |
-| 题域 / RAG | **不宣称题域隔离已关**；**不宣称 RAG 已切流**；**pass ≠ cutover** |
+| 题域 / RAG | **EG3 domainIsolationClosed under authorize**；**≠ R4/FUNNEL/G-R4-5 all closed**；**不宣称 RAG 已切流**；**pass ≠ cutover** |
 | 擦除 | **Qdrant as erasure sink**（删后 **recall=0** + **逐 sink receipt**）须在向量切流前证明；**metadata stays relational** |
 | 证据 | `releaseEvidence=false`；Not HA；不勾 `controlPlaneClosed=true` |
 | 栈 | **MySQL+Qdrant+Redis sole stack**；**cutover blocked until proves** |
@@ -58,7 +58,7 @@
 | **Worker「技术岗」硬编码（R1）** | 静默硬编码已收口：`adaptive-role-resolve.ts` + `MEETWISE_TECH_ROLE_FAIL_CLOSED`（**产品默认 ON**=缺 route → `adaptive_role_route_missing`；精确 `0/false/off`=legacy opt-out · `defaultFlipped=true`）。`main.ts` 不再注入 `role: '技术岗'`。**R1 product closed under G-R4-3/R1 product-close authorize**（awaiting post-prove dual · Ban self-nail）· R2 **structural CLOSED** retained · **R2 NOT closed** as HA/suite/verbal/controlPlane/R4/FUNNEL · **不宣称 R4** · `releaseEvidence=false` · ≠HA。 |
 | **classifyJobRoute / route snapshot（R2）** | 合同实现：`packages/db/src/job-route-decision.ts`（`classifyJobRoute`、`snapshotInterviewRoute`、`getInterviewRouteSnapshot`；表 `interview_route_snapshot`）。导出：`packages/db/src/index.ts`。revision/bind/snapshot 写面 + **P-LOOP** start lazy re-bind；`job.route-classify.v1` **P-MODEL CLOSED**；sole Worker **P-WORKER CLOSED**；**P-API CLOSED**（wakeup + `0133`；`apps/api` 零 classify）；**P-LOOP + P-START + P-FAKE CLOSED（dual-passed）**；**P-LIVE CLOSED（dual-passed）**（G-R2-7 Key-unset structural classify→bind→snapshot→refuse/allow）；**P-HARNESS/G-R2-8 authorized + SSOT flipped**（retired `await_authorize` · standing authorize after dual on `c3092c1`）。**不得宣称路由生效** / ≠ verbal 生效；**R2 structural CLOSED** · **R2 NOT closed** as HA/suite/verbal/controlPlane/R4/FUNNEL。本地 RAG-03/04/05 ≠ 生产。`docker/env/worker.env.example` 文档化 HMAC。诚实钉：`pnpm r2-p-live-route-effective:prove` · `pnpm r2-p-fake-route-classify:prove` · `pnpm r2-p-start-route-classify:prove` · `pnpm r2-p-loop-route-classify:prove` · `pnpm r2-p-api-route-classify:prove` · `pnpm r2-p-worker-route-classify:prove` · `pnpm r2-classify-job-route-prereq:prove`。 |
 | **qbank_serving_scope + hybrid（R3）** | GUC 落点：`packages/db/src/qbank-generation-retrieval.ts` `setServingScope` → `set_config('app.qbank_serving_scope' / 'app.qbank_taxonomy_version', …, true)`；`hybridQbankSearch` 在 dense/lexical/RRF 前调用。词法通道仍绑 PG：`packages/db/migrations/0029_qbank_generation_hybrid_retrieval.sql` / `0106_qbank_track_local_serving_scope.sql`（`to_tsvector('simple', qbank_search_terms(…))` + `plainto_tsquery`）。Track-local seam：`packages/db/src/qbank-track-local-retrieval.ts`（`dispatchTrackLocalRetrieval` → `cachedQbankSearch(…, scope)`）。**禁止**用 MySQL FULLTEXT 冒充该 `to_tsvector` 过滤语义。 |
-| **题域隔离（R4）** | 目标 seam 在 `qbank-track-local-retrieval.ts` / RAG-FUNNEL 合同 proof；生产 **partial P-WIRE**（主叶 scope + G-R2-5 fail-closed）；**仍无** `dispatchTrackLocalRetrieval` / wrong_track=0 → **题域隔离 NOT closed**。显式 **M4/M5 门**：未证明隔离前不得切题库/向量真相。FOLLOW post-prove dual-passed；**R4-REAL-WIRE** await dual（不接线）：`REQUEST-2026-09-16-r4-real-wire-mw-{rag-route,e2e-ha}.md` · harness §6c。 |
+| **题域隔离（R4）** | **EG3 / 题域 isolation product face closed under authorize**（`domainIsolationClosed=true` · `eg3ProductClosed=true`）· track-local REAL-WIRE + G-R2-5 retained · **≠ R4/FUNNEL product all closed** · **≠ gR45Closed** · **≠ invent coveredCount** · **≠ wrong_track=0 invent** · **MS3 ≠ R4** · 显式 **M4/M5 门** retained · `releaseEvidence=false` · ≠HA · knife `harness/g-r4-5-eg3-domain-isolation-product-close.md`。 |
 | **pgvector 夹具（R5）** | `packages/db/src/retrieval-store.ts` / `retrieval-legacy.ts`（生产向量 ops / `annSearch` / `annSearchLegacy`）。Prove 仍绑 pgvector：`packages/db/test/vectorstore.proof.ts` + `pnpm vectorstore:prove`；`scripts/run-e2e-isolated.mjs`（`E2E_PG_IMAGE` 默认 `pgvector/pgvector:pg16`）；`apps/worker/test/qbank-retrieval-eval-pg.proof.ts` 等。**假绿风险**：本地绿 ≠ RAG 已迁；M5 前须换 Qdrant/新夹具或标红退役。 |
 | **擦除 sink 先例（向量切流前置）** | 关系库侧先例：`packages/db/migrations/0125_memory_vector_chunk_erasure.sql` + `packages/db/src/memory-vector-chunk-erasure.ts` + `pnpm memory-vector-chunk-erasure:prove`（`privacy_deletion_target.sink='memory_vector_chunk'`）。迁 Qdrant 后须登记 **Qdrant as erasure sink**：删后 **recall=0** + **逐 sink receipt**；receipt 形状与关系库 ledger 对齐前 **不得切向量真相**。**元数据留关系库**。 |
 
@@ -100,15 +100,15 @@
 
 ---
 
-## 5. R4 — 题域隔离 NOT closed → 显式 M4/M5 门
+## 5. R4 — EG3 / 题域 isolation product face closed under authorize · R4/FUNNEL/G-R4-5 all STILL OPEN → 显式 M4/M5 门
 
 | 现状 | 门（可行动） | 关闭条件（本切片 **未关**） |
 |------|--------------|---------------------------|
-| track-local seam / wrong_track=0 合同存在于 proof；生产 **partial P-WIRE**（`cachedQbankSearch(..., scope?)` + snapshot 主叶）已接线；**G-R2-5 retrieve-side CLOSED**：缺 snapshot fail-closed；仍无 `dispatchTrackLocalRetrieval` / wrong_track=0 证明 | **显式 M4/M5 门**：未证明题域隔离前 **不得切题库/向量真相** | 生产读面 `wrong_track=0`；伪造/缺失 metadata、分类未知、岗位并发修改、旧 checkpoint、cache 回放均零跨域出题；**不宣称题域隔离已关** 直至独立 prove + 专家审 |
+| track-local REAL-WIRE + G-R2-5 retrieve-side CLOSED retained；**EG3 / 题域 isolation product face closed under authorize**（`domainIsolationClosed=true` · `eg3ProductClosed=true` · `harness/g-r4-5-eg3-domain-isolation-product-close.md` · `executed:awaiting_post_prove_dual` · Ban self-nail）；prior EG3 evidence tip `62c0e2f` retained | **显式 M4/M5 门**：`gR45Closed=false` · **≠ R4/FUNNEL product all closed** · **≠ invent coveredCount / FUNNEL-01…08 covered** · **≠ wrong_track=0 invent** · **MS3 ≠ R4** · 未满足前 **不得切题库/向量真相** | 题域 isolation product face closed under authorize；不得宣称 R4/FUNNEL/G-R4-5 all closed / invent coveredCount / wash prior tips · `releaseEvidence=false` · ≠HA |
 
-**本切片**：**题域隔离 NOT closed**；文档与 prove 必须保留该否定句。**partial scoped retrieve ≠ R4 关**。
+**本切片**：**EG3 / 题域 isolation product face closed under authorize**（`domainIsolationClosed=true` · `eg3ProductClosed=true`）；**R4/FUNNEL product STILL OPEN** · **G-R4-5 STILL OPEN**（`gR45Closed=false`）· Ban invent coveredCount · Ban wash EG3 `62c0e2f`/`c18e28f` or R1 `9fec7c7`/`72233a0` into R4 all closed · **partial scoped retrieve ≠ R4/FUNNEL all closed**。
 
-**G4 诚实钉 + partial P-WIRE（2026-09-10）**：`harness/r4-domain-isolation.md` · status · eval · `pnpm mysql-stack:r4-domain-isolation:prove` · `pnpm g4-production-scoped-retrieve:prove`（**prove 绿 ≠ R4 关**；**≠ wrong_track=0**）。**FOLLOW 2026-09-16**（dispatch-recheck recheck · **await dual before prove**）：`reviews/REQUEST-2026-09-16-g4-dispatch-recheck-FOLLOW-mw-{rag-route,e2e-ha}.md`。对照 **GAP-RAG-04**。
+**G4 诚实钉 + product-close under authorize（2026-09-23）**：`harness/g-r4-5-eg3-domain-isolation-product-close.md` · `harness/r4-domain-isolation.md` · status · `pnpm r4-eg3-domain-isolation-product-close:prove` · `pnpm mysql-stack:r4-domain-isolation:prove`（**prove 绿 ≠ R4/FUNNEL/G-R4-5 all closed**；**≠ invent coveredCount**；**≠ wrong_track=0 invent**）。对照 **GAP-RAG-04**。
 
 ---
 
