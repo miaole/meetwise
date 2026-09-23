@@ -15,14 +15,14 @@
     },
     {
       "id": "RAG-FUNNEL-02A",
-      "status": "not_covered",
-      "basis": "immutable generation/projection + canonical embedding recipe not evidenced · Ban invent covered",
+      "status": "covered",
+      "basis": "Batch2 true-cover: immutable generation/projection + canonical embedding recipe evidenced (qbankEmbeddingRecipe fields + ensureActiveQbankGeneration + db projection + main immutable path + track-local projection consume + recipe query identity) · Ban invent",
       "inventCoveredForbidden": true
     },
     {
       "id": "RAG-FUNNEL-02B",
       "status": "not_covered",
-      "basis": "durable embedding compute cache not evidenced · Ban invent covered",
+      "basis": "durable embedding compute cache not evidenced on production consumer path · Ban invent covered",
       "inventCoveredForbidden": true
     },
     {
@@ -62,8 +62,8 @@
       "inventCoveredForbidden": true
     }
   ],
-  "coveredCount": 2,
+  "coveredCount": 3,
   "inventCovered": false,
   "releaseEvidence": false,
-  "note": "EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 when assessors affirm · ≠ R4/题域 closed · await post-prove dual"
+  "note": "EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2 may elevate 02A/02B when assessors affirm · ≠ R4/题域 closed · await post-prove dual"
 }
