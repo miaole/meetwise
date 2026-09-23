@@ -10,7 +10,7 @@
  *     production-path pins (Ban invent).
  *   - Batch2 / Batch2b (G-R4-5 / FUNNEL coveredCount Batch2 + Batch2b 02B wire):
  *     FUNNEL-02A / FUNNEL-02B may elevate to `covered` when live Batch2 assessors
- *     affirm production-path pins (Batch2b wires productionConsumerWired · Ban invent · Batch3 may elevate 05/06 when assessors affirm · Batch4 may elevate 07/08 when assessors affirm).
+ *     affirm production-path pins (Batch2b wires productionConsumerWired · Ban invent · Batch3 may elevate 05/06 when assessors affirm · Batch4 may elevate 07/08 when assessors affirm · Batch4b may elevate 08).
  *   - FUNNEL-01 may report `product_surfaces_true` via MS1+MS2+MS3 · still
  *     **≠ invent covered** · dual-claim evidence ≠ covered elevation.
  *   - 01A may report `source_sealed` (checklist [x] / seal) · ≠ invent 01…08 covered.
@@ -70,7 +70,7 @@ export type RagFunnel0108CoveredMatrix = {
   readonly coveredCount: number;
   readonly inventCovered: false;
   readonly releaseEvidence: false;
-  readonly note: 'EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B · Batch3 may elevate 05/06 when assessors affirm · Batch4 may elevate 07/08 when assessors affirm · ≠ R4/题域 closed · await post-prove dual';
+  readonly note: 'EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B · Batch3 may elevate 05/06 when assessors affirm · Batch4 may elevate 07/08 when assessors affirm · Batch4b may elevate 08 when production-equivalent eval evidenced · ≠ R4/题域 closed · await post-prove dual';
 };
 
 const FUNNEL_IDS_01_08 = [
@@ -241,7 +241,7 @@ export function emitRagFunnel0108CoveredMatrix(): RagFunnel0108CoveredMatrix {
           id: 'RAG-FUNNEL-08',
           status: 'covered' as const,
           basis:
-            'Batch4 true-cover: production-equivalent eval matrix evidenced (multi-lang holdout + per-leaf Recall@K + wrong-track=0 + P95/cost thresholds + release receipts bound) · Ban invent',
+            'Batch4/Batch4b true-cover: production-equivalent eval matrix evidenced (multi-lang holdout + per-leaf Recall@K + wrong-track=0 + P95/cost thresholds + release receipts bound · Batch4b eval wire) · Ban invent',
           inventCoveredForbidden: true,
         }
       : notCovered(
@@ -258,7 +258,7 @@ export function emitRagFunnel0108CoveredMatrix(): RagFunnel0108CoveredMatrix {
     coveredCount,
     inventCovered: false,
     releaseEvidence: false,
-    note: 'EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B · Batch3 may elevate 05/06 when assessors affirm · Batch4 may elevate 07/08 when assessors affirm · ≠ R4/题域 closed · await post-prove dual',
+    note: 'EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B · Batch3 may elevate 05/06 when assessors affirm · Batch4 may elevate 07/08 when assessors affirm · Batch4b may elevate 08 when production-equivalent eval evidenced · ≠ R4/题域 closed · await post-prove dual',
   };
 }
 

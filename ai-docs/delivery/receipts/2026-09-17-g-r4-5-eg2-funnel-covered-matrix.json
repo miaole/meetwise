@@ -57,13 +57,13 @@
     },
     {
       "id": "RAG-FUNNEL-08",
-      "status": "not_covered",
-      "basis": "production-equivalent eval matrix not evidenced · Ban invent covered",
+      "status": "covered",
+      "basis": "Batch4/Batch4b true-cover: production-equivalent eval matrix evidenced (multi-lang holdout + per-leaf Recall@K + wrong-track=0 + P95/cost thresholds + release receipts bound · Batch4b eval wire) · Ban invent",
       "inventCoveredForbidden": true
     }
   ],
-  "coveredCount": 7,
+  "coveredCount": 8,
   "inventCovered": false,
   "releaseEvidence": false,
-  "note": "EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B · Batch3 may elevate 05/06 when assessors affirm · Batch4 may elevate 07/08 when assessors affirm · ≠ R4/题域 closed · await post-prove dual"
+  "note": "EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B · Batch3 may elevate 05/06 when assessors affirm · Batch4 may elevate 07/08 when assessors affirm · Batch4b may elevate 08 when production-equivalent eval evidenced · ≠ R4/题域 closed · await post-prove dual"
 }

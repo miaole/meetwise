@@ -61,9 +61,9 @@ function read(p: string) {
   return existsSync(p) ? readFileSync(p, 'utf8') : '';
 }
 
-console.log('EG2 FUNNEL-01…08 covered matrix prove (Batch1+Batch2+Batch2b+Batch3+Batch3b+Batch4-aware)');
+console.log('EG2 FUNNEL-01…08 covered matrix prove (Batch1+Batch2+Batch2b+Batch3+Batch3b+Batch4+Batch4b-aware)');
 console.log(
-  'EXIT=0 = honest matrix emitted · Ban invent covered · Batch1 03/04 · Batch2/Batch2b 02A/02B · Batch3 05/06 · Batch4 07/08 when affirmed · Ban invent coveredCount=8 · ≠ EG2/R4/题域 closed · releaseEvidence=false',
+  'EXIT=0 = honest matrix emitted · Ban invent covered · Batch1 03/04 · Batch2/Batch2b 02A/02B · Batch3 05/06 · Batch4 07/08 · Batch4b 08 when affirmed · Ban invent coveredCount=8 · ≠ EG2/R4/题域 closed · releaseEvidence=false',
 );
 
 section('M0 anchors');
@@ -175,29 +175,34 @@ mkdirSync(receiptDir, { recursive: true });
 writeFileSync(jsonPath, `${JSON.stringify(matrix, null, 2)}\n`, 'utf8');
 A('M2 json receipt written', existsSync(jsonPath));
 
-const nowLabel = '2026-09-23 (~11:10 PT)';
+const nowLabel = '2026-09-23 (~11:30 PT)';
 const mdLines = [
-  '# RAG-FUNNEL-01…08 covered matrix（EG2 + Batch1 + Batch2 · Ban invent covered）',
+  '# RAG-FUNNEL-01…08 covered matrix（EG2 + Batch1 + Batch2 + Batch2b + Batch3 + Batch3b + Batch4 + Batch4b · Ban invent covered）',
   '',
-  '**Status**: honest inventory emitted · **EG2 STILL OPEN** · **Batch2 under authorize** · **≠ invent covered** · `releaseEvidence=false` · ≠HA',
+  `**Status**: honest inventory emitted · **EG2 STILL OPEN** · **Batch4b executed:awaiting_post_prove_dual** · coveredCount **${matrix.coveredCount}** · 08=${live08 ? 'covered' : 'not_covered'} · **≠ invent covered** · \`releaseEvidence=false\` · ≠HA`,
   `**Date**: ${nowLabel}`,
-  '**Emitter**: `apps/worker/src/r4-eg2-funnel-covered-matrix.ts` (Batch1+Batch2+Batch2b+Batch3+Batch3b+Batch4-aware) · Batch1 `apps/worker/src/r4-funnel-covered-count-batch1.ts` · Batch2 `apps/worker/src/r4-funnel-covered-count-batch2.ts` · Batch2b `apps/worker/src/r4-funnel-covered-count-batch2b-02b-wire.ts` · prove `pnpm r4-eg2-funnel-covered:prove` / `pnpm r4-funnel-covered-count-batch2:prove`',
-  '**Hard**: Ban invent FUNNEL covered · Batch1 may elevate **03/04** · Batch2/Batch2b may elevate **02A/02B** when assessors affirm · Ban flip checklist SSOT · ≠ R4/题域/G-R4-5 product closed · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · Ban self-nail post_prove_dual_pass',
+  '**Emitter**: `apps/worker/src/r4-eg2-funnel-covered-matrix.ts` (Batch1+Batch2+Batch2b+Batch3+Batch3b+Batch4+Batch4b-aware) · Batch4b `apps/worker/src/r4-funnel-covered-count-batch4b-08-eval.ts` · eval wire `apps/worker/src/production-equivalent-funnel-08-eval.ts` · prove `pnpm r4-eg2-funnel-covered:prove` / `pnpm r4-funnel-covered-count-batch4b-08-eval:prove`',
+  '**Hard**: Ban invent FUNNEL covered · Ban invent coveredCount=8 · Batch1 may elevate **03/04** · Batch2/Batch2b may elevate **02A/02B** · Batch3/Batch3b may elevate **05/06** · Batch4 may elevate **07/08** · Batch4b may elevate **08** when production-equivalent eval matrix evidenced+affirmed · Ban flip checklist SSOT · ≠ R4/题域/G-R4-5 product closed · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · Ban self-nail post_prove_dual_pass · covering 08 ≠ product closed',
   '',
   '| ID | Status | Basis |',
   '|----|--------|-------|',
   ...matrix.rows.map((r) => `| \`${r.id}\` | **${r.status}** | ${r.basis} |`),
   '',
-  `**coveredCount**: ${matrix.coveredCount} (honest · Ban invent · Batch1 03/04 + Batch2/Batch2b 02A/02B when affirmed)`,
+  `**coveredCount**: ${matrix.coveredCount} (honest · Ban invent · Batch1 03/04 + Batch2 02A + Batch2b 02B + Batch3b 05/06 + Batch4 07 + Batch4b 08 when affirmed)`,
+  '',
+  '## Batch4b result（under authorize · Ban invent · Ban docs-only fake cover）',
+  '',
+  `- **RAG-FUNNEL-08**: **${live08 ? 'covered' : 'not_covered'}**${live08 ? ' · production-equivalent eval matrix evidenced' : ''}`,
+  `- **02A/02B/03/04/05/06/07**: covered retained`,
   '',
   '## Non-claims',
   '',
-  '- Not EG2 closed · not invent FUNNEL covered beyond Batch1/Batch2/Batch2b-affirmed IDs · not R4/FUNNEL product closed · not 题域已隔离 · not G-R4-5 dual-closed',
+  '- Not EG2 closed · not invent FUNNEL covered · not R4/FUNNEL product closed · not 题域已隔离 · not G-R4-5 dual-closed · covering 08 ≠ product closed',
   '- product_surfaces_true on FUNNEL-01 ≠ covered elevation · source_sealed on 01A ≠ 01…08 covered',
-  '- 本刀不翻 `r4ProductClosed` / `funnelProductClosed` / `gR45Closed` · Ban wash Batch1 5519078/bd15172 · product-close 1c2ed8c · EG3 7be1a55',
-  '- Checklist SSOT **NOT** flipped this knife · Ban self-nail post_prove_dual_pass',
+  '- 本刀不翻 `r4ProductClosed` / `funnelProductClosed` / `gR45Closed` · Ban wash Batch4 9b8b9a7/b0f5c50 · Batch3b 85be7ad/9aa1be4 · Batch1 5519078/bd15172 · product-close 1c2ed8c · EG3 7be1a55',
+  '- Checklist SSOT **NOT** flipped this knife · Ban self-nail post_prove_dual_pass · Ban invent coveredCount=8',
   '',
-  `*Matrix · EG2+Batch1+Batch2 · ${nowLabel} · Ban invent covered · releaseEvidence=false*`,
+  `*Matrix · EG2+Batch1+Batch2+Batch2b+Batch3b+Batch4+Batch4b · ${nowLabel} · coveredCount=${matrix.coveredCount} · Ban invent covered · releaseEvidence=false · executed:awaiting_post_prove_dual*`,
   '',
 ];
 writeFileSync(mdPath, mdLines.join('\n'), 'utf8');
@@ -208,11 +213,11 @@ A('M2 md has FUNNEL-01…08 rows', /RAG-FUNNEL-08/.test(read(mdPath)) && /RAG-FU
 section('M3 hard pins');
 A('M3 ≠ claim EG2 closed from emit alone', true);
 A('M3 ≠ idle 5×meta as close', true);
-A('M3 Ban invent covered · Ban R4/题域 closed · Batch1+Batch2+Batch2b+Batch3+Batch3b+Batch4-aware honesty', true);
+A('M3 Ban invent covered · Ban R4/题域 closed · Batch1+Batch2+Batch2b+Batch3+Batch3b+Batch4+Batch4b-aware honesty', true);
 
 console.log(
   failures === 0
-    ? `\nOK  r4-eg2-funnel-covered-matrix prove (honest matrix emitted; coveredCount=${matrix.coveredCount}; Ban invent covered; Batch1+Batch2+Batch2b+Batch3+Batch3b+Batch4-aware; ≠ EG2/R4/题域 closed; releaseEvidence=false)`
+    ? `\nOK  r4-eg2-funnel-covered-matrix prove (honest matrix emitted; coveredCount=${matrix.coveredCount}; Ban invent covered; Batch1+Batch2+Batch2b+Batch3+Batch3b+Batch4+Batch4b-aware; ≠ EG2/R4/题域 closed; releaseEvidence=false)`
     : `\nFAIL  r4-eg2-funnel-covered-matrix prove (${failures} failures)`,
 );
 process.exit(failures === 0 ? 0 : 1);
