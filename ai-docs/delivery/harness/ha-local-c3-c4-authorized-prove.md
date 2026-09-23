@@ -1,9 +1,9 @@
 # Harness — **HA local C3+C4 authorized-prove**（local evidence receipts · ladder **C3 shared + C4 fault-inject** · under explicit env authorize flags · **`executed:awaiting_post_prove_dual`** · **`haStatus=NOT_HA`** · Ban假绿 · Ban claim 阶 C/D green · Ban production HA / failover · **Ban self-nail `post_prove_dual_pass`**）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（authorized local C3+C4 CMD+EXIT receipts landed · **NOT** `post_prove_dual_pass` · Ban self-nail · STOP for post-prove dual · Dual PASS ≠ coding · Dual PASS ≠ HA green · Dual PASS ≠ next knife auto-authorize · **≠ claim 阶 C/D green** · **≠ production HA / failover** · **≠ flip `releaseEvidence`** · **≠ wash G-R4-5 tip `6ded589`/`ba1b8aa` into HA** · **≠ wash skeleton/stub EXIT=0 into HA** · **≠ invent green**）  
-**Date**: 2026-09-23 (~14:20 PT)  
+**Status**: **`executed:awaiting_post_prove_dual`**（fix · authorized local C3+C4 CMD+EXIT receipts re-landed after fault-inject fix · **NOT** `post_prove_dual_pass` · Ban self-nail · STOP for **fresh** post-prove dual · Dual PASS ≠ coding · Dual PASS ≠ HA green · Dual PASS ≠ next knife auto-authorize · **≠ claim 阶 C/D green** · **≠ production HA / failover** · **≠ flip `releaseEvidence`** · **≠ wash G-R4-5 tip `6ded589`/`ba1b8aa` into HA** · **≠ wash skeleton/stub EXIT=0 into HA** · **≠ invent green**）
+**Date**: 2026-09-23 (~14:29 PT) · **fix+re-prove** after `mw-rag-route` BLOCK on parent tip
 **Base / REQUEST tip**: **`a32da03`** / full `a32da0377a16f311399ad03b0befc973b2866081` · branch `feat/mysql-schema-skeleton`  
-**Prove tip**: **`7a27a24`** / full `7a27a24810afe5edd369bb8ba7fe47e9d60be105` · parent **`a32da03`** / full `a32da0377a16f311399ad03b0befc973b2866081`
+**Prove tip (parent / prior pin)**: **`72d2b93`** / full `72d2b93c19f181d27dc14baa074af887f69f6cbf` · **this commit = fix+re-prove tip** · Ban self-nail
 **haStatus=NOT_HA** · **releaseEvidence=false** · **claimProductionHA=false** · **≠HA** · **≠suite green** · **≠ production topology** · **≠ 阶 C/D green** · Ban假绿 · Ban invent green · Ban forge receipts · Ban claim production HA / failover · Ban flip `releaseEvidence` to true · Ban wash G-R4-5 nail **`6ded589`** / prove **`ba1b8aa`** into HA · Ban wash skeleton / stub EXIT=0 into HA · Dual PASS ≠ coding · Dual PASS ≠ HA green · Dual PASS ≠ next knife auto-authorize · Ban self-approve · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Ban second knife · Ban self-nail · Key×3 FreeTier **out of scope** · `gR45Closed=true` **retained** · coveredCount **8** retained · `ms3EqualsR4Closed=false` **retained** · eg1–eg6 / r4 / funnel product flags **retained** · `releaseEvidence=false` **retained** · ≠HA  
 **Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **BOTH PASS** on REQUEST tip `a32da03` · Ban self-approve · post-prove dual **awaiting** · Ban self-nail）  
 **Must cite（HA ladder docs · C3 shared + C4 fault-inject authorize flags）**: `harness/ha-track.multi-instance.md` — C3 local shared path needs `--compose-shared` + `MEETWISE_HA_SHARED_AUTHORIZED`（+ dual compose auth `MEETWISE_HA_DUAL_AUTHORIZED` / image via `ha:dual:build-image`）· C4 local fault-inject needs `MEETWISE_HA_FAULT_AUTHORIZED` · default without auth → **PREREQ_GAP** · **local sharedOk / local fault receipt still `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false`** · 本地 C3 Redis/MySQL prove ≠ 阶 C 绿 · 本地 C4 compose kill ≠ 生产 failover · 阶 C/D prove **未绿**  
@@ -50,7 +50,7 @@
 |---|-----|------------|----------|
 | **A1** | Pre-exec dual | Pre-exec dual `mw-e2e-ha` + `mw-rag-route` **BOTH PASS** on REQUEST tip **before** coding / prove | **PASS** both · tip `a32da03` |
 | **A2** | Authorize flags | Explicit env authorize: C3 → `MEETWISE_HA_DUAL_AUTHORIZED` + `MEETWISE_HA_SHARED_AUTHORIZED` + image/`ha:dual:build-image` + `--compose-shared` · C4 → `MEETWISE_HA_FAULT_AUTHORIZED` · Ban secrets / `.env*` · Ban Cloud Agent · Ban Meridian | **used** on this tip |
-| **A3** | Reproducible CMD+EXIT receipts | Land CMD+EXIT for build-image / compose-shared / prove:shared / fault-inject · EXIT=0 local ≠ 阶 C/D green ≠ production HA · If PREREQ_GAP → honest pin GAP · Ban假绿 | **landed** · EXIT **4×0** · labels `SHARED_OK` + `FAULT_OK` · GAP pins **none** |
+| **A3** | Reproducible CMD+EXIT receipts | Land CMD+EXIT for build-image / compose-shared / prove:shared / fault-inject · EXIT=0 local ≠ 阶 C/D green ≠ production HA · If PREREQ_GAP → honest pin GAP · Ban假绿 | **re-landed** after fault-inject fix · EXIT **4×0** · `aDown=true` · labels `SHARED_OK` + `FAULT_OK` · GAP pins **none** |
 | **A4** | Non-claims / Ban wash | Ban claim 阶 C/D green · Ban production HA / failover · Ban flip `releaseEvidence` · Ban wash G-R4-5 · Ban wash skeleton/stub · keep `haStatus=NOT_HA` · `claimProductionHA=false` | **retained** |
 | **A5** | Retain prior G-R4-5 | Retain `gR45Closed=true` · coveredCount **8** · `ms3EqualsR4Closed=false` · eg1–eg6/r4/funnel · `releaseEvidence=false` · ≠HA | **retained** |
 | **A6** | Post-prove dual → nail → STOP | post-prove dual BOTH PASS → nail → commit+push → **STOP** · Ban self-nail this tip | **awaiting** · status **`executed:awaiting_post_prove_dual`** · **Ban self-nail** |
@@ -58,21 +58,22 @@
 
 ---
 
-## 5. Prove CMD honesty（landed · 2026-09-23 ~14:18–14:20 PT）
+## 5. Prove CMD honesty（fix+re-prove landed · 2026-09-23 ~14:28–14:29 PT）
 
 | CMD | EXIT | Result | Honest read |
 |-----|------|--------|-------------|
 | `pnpm ha:dual:build-image` | **0** | `IMAGE_BUILT` | local image · ≠ HA · ≠ 阶 C green |
 | `MEETWISE_HA_DUAL_AUTHORIZED=1 MEETWISE_HA_SHARED_AUTHORIZED=1 pnpm ha:dual:compose-shared` | **0** | `DUAL_COMPOSE_SHARED_UP` | C3 path up · still NOT_HA · ≠ production HA |
 | `MEETWISE_HA_SHARED_AUTHORIZED=1 pnpm ha:prove:shared -- --prove` | **0** | `SHARED_OK`（`sharedPath=shared_backend_hostpath`） | C3 shared local · still NOT_HA · ≠ 阶 C green · Ban假绿 |
-| `MEETWISE_HA_FAULT_AUTHORIZED=1 pnpm ha:fault-inject -- --kill --with-shared-survivor` | **0** | `COMPOSE_FAULT_SHARED_PARTIAL` / `SHARED_OK_SURVIVOR` | C4 local fault · still NOT_HA · ≠ production failover · Ban假绿 |
-| prior skeleton / stub paths | retained | Ban wash into HA | — |
+| `MEETWISE_HA_FAULT_AUTHORIZED=1 pnpm ha:fault-inject -- --kill --with-shared-survivor` | **0** | `COMPOSE_FAULT_SHARED_PARTIAL` / `SHARED_OK_SURVIVOR` · method `docker-kill-api-a` · **`aDown=true`** | C4 local fault · still NOT_HA · ≠ production failover · Ban假绿 |
 
-**Prereq**: `docker compose -f docker/compose.mysql-local.yml up -d mysql redis`（sole network `meetwise-mysql-local_default` healthy）before compose-shared.  
+**Fix（this tip）**: `scripts/ha/fault-inject.mjs` — `docker stop -t 5` → `docker kill`（SIGKILL）; `waitPostFault` requires `Running=false` + livez-down with 3 consecutive confirms + one re-kill if A resurrects. Addresses `mw-rag-route` BLOCK on parent tip（CMD4 EXIT=1 · A `/livez` still 200 / `aDown=false`）.  
+**Independent verify**: post-kill A `/livez` not 200 · `aDown=true` · B `/livez` 200 · shared survivor OK.  
+**Prereq**: `docker compose -f docker/compose.mysql-local.yml up -d mysql redis`（sole network healthy）before compose-shared.  
 **GAP pins**: **none**.  
-**Hard**: local EXIT=0 ≠ 阶 C/D green ≠ production HA · `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false`.
+**Hard**: local EXIT=0 ≠ 阶 C/D green ≠ production HA · `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false`.  
+**Post-prove dual**: **fresh awaiting** on **this new tip** · `mw-e2e-ha` alone PASS on parent ≠ dual · Ban self-nail `post_prove_dual_pass`.
 
----
 
 ## 3. Lifecycle（L3 executed · L4 awaiting）
 
@@ -105,4 +106,4 @@
 
 ---
 
-*Harness · HA local C3+C4 authorized-prove · 2026-09-23 (~14:20 PT) · executed:awaiting_post_prove_dual · EXIT 4×0 · SHARED_OK + FAULT_OK local · base a32da03 · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · cite harness/ha-track.multi-instance.md · gR45Closed=true retained · coveredCount 8 retained · ms3EqualsR4Closed=false retained · eg1–eg6/r4/funnel retained · ≠ wash G-R4-5 6ded589/ba1b8aa into HA · ≠ wash skeleton/stub EXIT=0 into HA · Ban claim 阶 C/D green · Ban production HA/failover · Ban flip releaseEvidence · Ban invent green · Ban假绿 · Dual PASS ≠ coding · Dual PASS ≠ HA green · Dual PASS ≠ next knife auto-authorize · Ban Cloud Agent · Ban Meridian · Ban secrets/.env* · Ban second knife · Ban self-nail post_prove_dual_pass · STOP*
+*Harness · HA local C3+C4 authorized-prove · 2026-09-23 (~14:29 PT) · executed:awaiting_post_prove_dual（fresh） · EXIT 4×0 · aDown=true · SHARED_OK + FAULT_OK local · fault-inject docker-kill harden · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · cite harness/ha-track.multi-instance.md · gR45Closed=true retained · coveredCount 8 retained · ms3EqualsR4Closed=false retained · eg1–eg6/r4/funnel retained · ≠ wash G-R4-5 6ded589/ba1b8aa into HA · ≠ wash skeleton/stub EXIT=0 into HA · Ban claim 阶 C/D green · Ban production HA/failover · Ban flip releaseEvidence · Ban invent green · Ban假绿 · Dual PASS ≠ coding · Dual PASS ≠ HA green · Dual PASS ≠ next knife auto-authorize · Ban Cloud Agent · Ban Meridian · Ban secrets/.env* · Ban second knife · Ban self-nail post_prove_dual_pass · STOP*

@@ -1,6 +1,6 @@
 {
   "knife": "ha-local-c3-c4-authorized-prove",
-  "datePT": "2026-09-23 (~14:20 PT)",
+  "datePT": "2026-09-23 (~14:29 PT)",
   "baseTip": "a32da0377a16f311399ad03b0befc973b2866081",
   "baseTipShort": "a32da03",
   "branch": "feat/mysql-schema-skeleton",
@@ -40,6 +40,8 @@
       "result": "COMPOSE_FAULT_SHARED_PARTIAL",
       "faultInject": "COMPOSE_A_DOWN_B_UP",
       "sharedState": "SHARED_OK_SURVIVOR",
+      "aDown": true,
+      "method": "docker-kill-api-a",
       "honestRead": "C4 local compose kill A + B livez + survivor shared; still NOT_HA; ≠ production failover; 阶 C/D STILL NOT GREEN"
     }
   ],
@@ -48,7 +50,7 @@
     "FAULT_OK"
   ],
   "gapPins": [],
-  "note": "local EXIT=0 ≠ 阶 C/D green ≠ production HA; Dual PASS ≠ HA green; Ban wash G-R4-5 6ded589/ba1b8aa; Ban self-nail post_prove_dual_pass",
+  "note": "RE-PROVE after mw-rag-route BLOCK on tip 72d2b93 (CMD4 EXIT=1 COMPOSE_INCOMPLETE aDown=false). Fix landed in scripts/ha/fault-inject.mjs. Fresh 4×0. local EXIT=0 ≠ 阶 C/D green ≠ production HA; Dual PASS ≠ HA green; Ban wash G-R4-5 6ded589/ba1b8aa; Ban self-nail post_prove_dual_pass; mw-e2e-ha post-prove PASS alone on 72d2b93 retained as history · alone≠dual · nail HOLD",
   "localEvidenceDirGitignored": ".tmp/ha-evidence/",
   "localEvidenceFiles": [
     "shared-state-A-write.json",
@@ -60,7 +62,7 @@
   "embeddedReceipts": {
     "shared-state-A-write.json": {
       "status": "OK",
-      "at": "2026-09-23T21:19:50.352Z",
+      "at": "2026-09-23T21:28:42.192Z",
       "via": "meetwise-ha-dual-api-a",
       "sharedPath": "shared_backend_hostpath",
       "redis": {
@@ -80,7 +82,7 @@
         "envParity": true,
         "dnsRedisMysql": true
       },
-      "tokenPrefix": "c3-010a9",
+      "tokenPrefix": "c3-71f4f",
       "haStatus": "NOT_HA",
       "releaseEvidence": false,
       "claimProductionHA": false,
@@ -88,7 +90,7 @@
     },
     "shared-state-B-read.json": {
       "status": "OK",
-      "at": "2026-09-23T21:19:50.352Z",
+      "at": "2026-09-23T21:28:42.192Z",
       "via": "meetwise-ha-dual-api-b",
       "sharedPath": "shared_backend_hostpath",
       "redis": {
@@ -109,11 +111,14 @@
       "note": "C3 local shared read visible across dual wiring — ≠ Nest business session; ≠ production HA"
     },
     "kill-A.receipt.json": {
-      "method": "docker-stop-api-a",
-      "at": "2026-09-23T21:20:04.705Z",
+      "method": "docker-kill-api-a",
+      "at": "2026-09-23T21:28:57.818Z",
       "portA": 18787,
       "portB": 18788,
       "aDown": true,
+      "aLivezOk": false,
+      "aContainerRunning": false,
+      "rekillUsed": false,
       "bStillServing": true,
       "containerA": "meetwise-ha-dual-api-a",
       "containerB": "meetwise-ha-dual-api-b",
@@ -129,13 +134,13 @@
       "status": 200,
       "ok": true,
       "instanceId": "",
-      "at": "2026-09-23T21:20:04.706Z",
+      "at": "2026-09-23T21:28:57.818Z",
       "haStatus": "NOT_HA",
       "releaseEvidence": false
     },
     "fault-shared-survivor.receipt.json": {
       "status": "OK",
-      "at": "2026-09-23T21:20:04.704Z",
+      "at": "2026-09-23T21:28:57.817Z",
       "survivor": "meetwise-ha-dual-api-b",
       "sharedPath": "shared_backend_hostpath_survivor",
       "redis": {
@@ -152,7 +157,7 @@
         "soleNetwork": "meetwise-mysql-local_default",
         "bOnSole": true
       },
-      "tokenPrefix": "c4-dbe11",
+      "tokenPrefix": "c4-f701b",
       "haStatus": "NOT_HA",
       "releaseEvidence": false,
       "claimProductionHA": false,
@@ -162,5 +167,8 @@
   "proveTip": "7a27a24810afe5edd369bb8ba7fe47e9d60be105",
   "proveTipShort": "7a27a24",
   "parent": "a32da0377a16f311399ad03b0befc973b2866081",
-  "parentShort": "a32da03"
+  "parentShort": "a32da03",
+  "fixNote": "fault-inject.mjs: docker stop -t5 → docker kill (SIGKILL); waitPostFault now requires container Running=false + livez-down with 3 consecutive confirms; one re-kill if A resurrects. Root cause of mw-rag-route BLOCK on 72d2b93: A /livez still 200 after stop (SIGTERM grace and/or concurrent compose re-bring-up). Fix path: scripts/ha/fault-inject.mjs",
+  "parentTip": "72d2b93c19f181d27dc14baa074af887f69f6cbf",
+  "parentTipShort": "72d2b93"
 }
