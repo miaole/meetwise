@@ -440,6 +440,7 @@
     "r4-eg1-dual-claim:prove": "pnpm -C apps/worker prove:r4-eg1-dual-claim",
     "r4-eg1-dual-claim-product-close:prove": "pnpm -C apps/worker prove:r4-eg1-dual-claim-product-close",
     "r4-eg2-funnel-covered:prove": "pnpm -C apps/worker prove:r4-eg2-funnel-covered",
+    "r4-eg2-funnel-covered-product-close:prove": "pnpm -C apps/worker prove:r4-eg2-funnel-covered-product-close",
     "r4-eg3-domain-isolation-product:prove": "pnpm -C apps/worker prove:r4-eg3-domain-isolation-product",
     "r4-eg3-domain-isolation-product-close:prove": "pnpm -C apps/worker prove:r4-eg3-domain-isolation-product-close",
     "r4-funnel-product-close:prove": "pnpm -C apps/worker prove:r4-funnel-product-close",
