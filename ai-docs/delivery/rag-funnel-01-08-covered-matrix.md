@@ -1,9 +1,9 @@
 # RAG-FUNNEL-01…08 covered matrix（EG2 + Batch1 · Ban invent covered）
 
 **Status**: honest inventory emitted · **EG2 STILL OPEN** · **Batch1 under authorize** · **≠ invent covered** · `releaseEvidence=false` · ≠HA
-**Date**: 2026-09-23 (~09:10 PT)
-**Emitter**: `apps/worker/src/r4-eg2-funnel-covered-matrix.ts` (Batch1-aware) · Batch1 `apps/worker/src/r4-funnel-covered-count-batch1.ts` · prove `pnpm r4-eg2-funnel-covered:prove` / `pnpm r4-funnel-covered-count-batch1:prove`
-**Hard**: Ban invent FUNNEL covered · Batch1 may elevate **03/04 only** when assessors affirm · Ban flip checklist SSOT · ≠ R4/题域/G-R4-5 product closed · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · await post-prove dual
+**Date**: 2026-09-23 (~09:13 PT)
+**Emitter**: `apps/worker/src/r4-eg2-funnel-covered-matrix.ts` (Batch1-aware) · Batch1 `apps/worker/src/r4-funnel-covered-count-batch1.ts` · prove `pnpm r4-funnel-covered-count-batch1:prove` / `pnpm r4-eg2-funnel-covered:prove`
+**Hard**: Ban invent FUNNEL covered · Batch1 may elevate **03/04 only** when assessors affirm · Ban flip checklist SSOT · ≠ R4/题域/G-R4-5 product closed · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · post_prove_dual_pass · Ban second knife
 
 | ID | Status | Basis |
 |----|--------|-------|
@@ -25,6 +25,6 @@
 - Not EG2 closed · not invent FUNNEL covered beyond Batch1-affirmed 03/04 · not R4/FUNNEL product closed · not 题域已隔离 · not G-R4-5 dual-closed
 - product_surfaces_true on FUNNEL-01 ≠ covered elevation · source_sealed on 01A ≠ 01…08 covered
 - 本刀不翻 `r4ProductClosed` / `funnelProductClosed` / `gR45Closed` · Ban wash product-close 1c2ed8c / EG3 7be1a55
-- Checklist SSOT **NOT** flipped this knife · Ban self-nail post_prove_dual_pass
+- Checklist SSOT **NOT** flipped this knife · Ban wash this dual_pass into product closed
 
-*Matrix · EG2+Batch1 · 2026-09-23 (~09:10 PT) · Ban invent covered · releaseEvidence=false*
+*Matrix · EG2+Batch1 · 2026-09-23 (~09:13 PT) · Ban invent covered · releaseEvidence=false · post_prove_dual_pass*
