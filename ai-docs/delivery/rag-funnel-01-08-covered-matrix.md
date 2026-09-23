@@ -1,9 +1,9 @@
 # RAG-FUNNEL-01…08 covered matrix（EG2 + Batch1 + Batch2 + Batch2b · Ban invent covered）
 
-**Status**: honest inventory emitted · **EG2 STILL OPEN** · **Batch2b under authorize** · **≠ invent covered** · `releaseEvidence=false` · ≠HA
-**Date**: 2026-09-23 (~09:50 PT)
+**Status**: honest inventory emitted · **EG2 STILL OPEN** · **Batch2b post_prove_dual_pass** · **≠ invent covered** · `releaseEvidence=false` · ≠HA
+**Date**: 2026-09-23 (~10:00 PT)
 **Emitter**: `apps/worker/src/r4-eg2-funnel-covered-matrix.ts` (Batch1+Batch2+Batch2b-aware) · Batch1 `apps/worker/src/r4-funnel-covered-count-batch1.ts` · Batch2 `apps/worker/src/r4-funnel-covered-count-batch2.ts` · Batch2b `apps/worker/src/r4-funnel-covered-count-batch2b-02b-wire.ts` · prove `pnpm r4-funnel-covered-count-batch2b-02b-wire:prove` / `pnpm r4-eg2-funnel-covered:prove`
-**Hard**: Ban invent FUNNEL covered · Batch1 may elevate **03/04** · Batch2/Batch2b may elevate **02A/02B** when assessors affirm · Ban flip checklist SSOT · ≠ R4/题域/G-R4-5 product closed · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · executed:awaiting_post_prove_dual · Ban self-nail post_prove_dual_pass · Ban second knife
+**Hard**: Ban invent FUNNEL covered · Batch1 may elevate **03/04** · Batch2/Batch2b may elevate **02A/02B** when assessors affirm · Ban flip checklist SSOT · ≠ R4/题域/G-R4-5 product closed · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · post_prove_dual_pass · Ban second knife
 
 | ID | Status | Basis |
 |----|--------|-------|
@@ -25,6 +25,6 @@
 - Not EG2 closed · not invent FUNNEL covered beyond Batch1/Batch2/Batch2b-affirmed IDs · not R4/FUNNEL product closed · not 题域已隔离 · not G-R4-5 dual-closed
 - product_surfaces_true on FUNNEL-01 ≠ covered elevation · source_sealed on 01A ≠ 01…08 covered
 - 本刀不翻 `r4ProductClosed` / `funnelProductClosed` / `gR45Closed` · Ban wash Batch2 0a980e6/5593226 · Batch1 5519078/bd15172 · product-close 1c2ed8c · EG3 7be1a55
-- Checklist SSOT **NOT** flipped this knife · Ban second knife · Ban self-nail post_prove_dual_pass · executed:awaiting_post_prove_dual
+- Checklist SSOT **NOT** flipped this knife · Ban second knife · post_prove_dual_pass · Ban wash Batch2 0a980e6/5593226
 
-*Matrix · EG2+Batch1+Batch2+Batch2b · 2026-09-23 (~09:50 PT) · Ban invent covered · releaseEvidence=false · executed:awaiting_post_prove_dual*
+*Matrix · EG2+Batch1+Batch2+Batch2b · 2026-09-23 (~10:00 PT) · Ban invent covered · releaseEvidence=false · post_prove_dual_pass*
