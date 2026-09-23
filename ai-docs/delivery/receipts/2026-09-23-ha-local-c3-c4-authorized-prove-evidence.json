@@ -159,8 +159,8 @@
       "note": "C4 post-fault shared survivor — A down; sole Redis/MySQL still reachable for B wiring; ≠ Nest session; ≠ production HA"
     }
   },
-  "proveTip": "397e787897a63fd27747165c5d42defcc9fc432d",
-  "proveTipShort": "397e787",
+  "proveTip": "7a27a24810afe5edd369bb8ba7fe47e9d60be105",
+  "proveTipShort": "7a27a24",
   "parent": "a32da0377a16f311399ad03b0befc973b2866081",
   "parentShort": "a32da03"
 }
