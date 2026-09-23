@@ -1,0 +1,22 @@
+{
+  "kind": "R4FunnelProductCloseEvidence",
+  "productCloseAttemptedUnderAuthorize": true,
+  "productCloseFlipped": false,
+  "evidenceInsufficient": true,
+  "coveredCount": 0,
+  "coveredCountInvented": false,
+  "funnel02Through08NotCovered": true,
+  "matrixHonestyRetained": true,
+  "eg3FlagsRetained": true,
+  "authorizedSsotPinsPresent": true,
+  "orthogonalNotClaimedClosed": true,
+  "r4ProductClosed": false,
+  "funnelProductClosed": false,
+  "gR45Closed": false,
+  "domainIsolationClosed": true,
+  "eg3ProductClosed": true,
+  "eg1ThroughEg6ProductClosedByThisKnife": false,
+  "ms3EqualsR4Closed": false,
+  "releaseEvidence": false,
+  "note": "G-R4-5 / R4·FUNNEL product close — authorized attempt · evidence insufficient (coveredCount=0 · FUNNEL-02A…08 not_covered) · r4ProductClosed/funnelProductClosed NOT flipped · Ban invent coveredCount · Ban假关 · Ban wash EG3/R1/FUNNEL rem·SSOT·EXPLICIT · Ban MS3=R4 · Ban self-nail post_prove_dual_pass · await post-prove dual"
+}
