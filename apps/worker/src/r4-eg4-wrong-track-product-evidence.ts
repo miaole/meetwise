@@ -118,13 +118,19 @@ export function assessWrongTrackProductEvidence(): {
     && /'wrong_track'/.test(trackLocal)
     && /TRACK_LOCAL_OBS_OUTCOMES/.test(trackLocal);
 
+  // Evidence-knife honesty: prior EG4 true-evidence harness retains OPEN-evidence pins.
+  // After EG4 product-close authorize, live r4-domain status may flip wrongTrackProductClosed=true
+  // for the product face — evidence assessor must NOT require live "wrong_track not closed".
   const statusPinsWrongTrackNotClosed =
-    (/wrong_track|题域隔离 NOT closed|releaseEvidence=false/.test(status)
-      || /≠ wrong_track=0 production fully closed|≠ production wrong_track=0 fully closed/.test(f1Harness))
-    && /EG4 STILL OPEN|wrong_track production honesty|Ban forge|Ban claim from covered-path/.test(
+    /releaseEvidence=false/.test(eg4Harness)
+    && /EG4 STILL OPEN|wrong_track production honesty|eg4ProductClosed=false|Ban forge|Ban claim from covered-path|Ban wash this dual_pass into EG4/.test(
       eg4Harness,
     )
-    && /releaseEvidence=false/.test(eg4Harness);
+    && (/wrong_track|题域隔离 NOT closed|releaseEvidence=false/.test(status)
+      || /≠ wrong_track=0 production fully closed|≠ production wrong_track=0 fully closed/.test(f1Harness)
+      || /eg4ProductClosed=true|wrongTrackProductClosed=true|EG4 \/ wrong-track product face closed under authorize/.test(
+        status,
+      ));
 
   // Covered-path / NHP / F1 alone ≠ EG4 / wrong_track product close.
   const coveredPathAloneDoesNotClose =

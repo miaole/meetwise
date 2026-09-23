@@ -450,6 +450,7 @@
     "r4-funnel-covered-count-batch4:prove": "pnpm -C apps/worker prove:r4-funnel-covered-count-batch4",
     "r4-funnel-covered-count-batch4b-08-eval:prove": "pnpm -C apps/worker prove:r4-funnel-covered-count-batch4b-08-eval",
     "r4-eg4-wrong-track-product:prove": "pnpm -C apps/worker prove:r4-eg4-wrong-track-product",
+    "r4-eg4-wrong-track-product-close:prove": "pnpm -C apps/worker prove:r4-eg4-wrong-track-product-close",
     "r4-eg5-product-ssot:prove": "pnpm -C apps/worker prove:r4-eg5-product-ssot",
     "r4-eg6-ms3-ne-r4:prove": "pnpm -C apps/worker prove:r4-eg6-ms3-ne-r4",
     "r4-pr1b-combo-root:prove": "pnpm -C apps/worker prove:r4-pr1b-combo-root",

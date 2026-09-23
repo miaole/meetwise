@@ -1,0 +1,23 @@
+{
+  "kind": "Eg4WrongTrackProductCloseEvidence",
+  "productCloseEvidence": true,
+  "enforceWrongTrackZeroOnServedWired": true,
+  "productionRequiresTrackLocalFailClosed": true,
+  "observeTrackLocalWrongTrackOutcome": true,
+  "priorEg4EvidenceRetained": true,
+  "authorizedSsotPinsPresent": true,
+  "eg4ProductClosed": true,
+  "wrongTrackProductClosed": true,
+  "gR45Closed": false,
+  "r4ProductClosed": true,
+  "funnelProductClosed": true,
+  "domainIsolationClosed": true,
+  "eg3ProductClosed": true,
+  "eg1ThroughEg2Eg5Eg6ClosedByThisKnife": false,
+  "coveredCountInvented": false,
+  "ms3EqualsR4Closed": false,
+  "wrongTrackZeroInvented": false,
+  "emptyMetaAloneDoesNotClose": true,
+  "releaseEvidence": false,
+  "note": "G-R4-5 / EG4 wrong-track product close — eg4ProductClosed/wrongTrackProductClosed under authorize · Ban flip gR45Closed/r4/funnel · retain EG3+r4/funnel · Ban wash 3cefebf/ec90b6d / 2b38e18/14e9e2c / 7be1a55/5b3c854 · Ban empty meta · Ban MS3=R4 · Ban self-nail post_prove_dual_pass · await post-prove dual"
+}
