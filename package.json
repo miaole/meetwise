@@ -120,6 +120,7 @@
     "uc018:sole:prove": "node scripts/uc-e2e-018-sole-stack-pg-retained.proof.mjs",
     "uc018:covered-lift:prove": "node scripts/uc-e2e-018-covered-lift.proof.mjs",
     "uc018:covered-lift-reassess:prove": "node scripts/uc-e2e-018-covered-lift-reassess.proof.mjs",
+    "uc018:covered-criterion:prove": "node scripts/uc-e2e-018-covered-criterion.proof.mjs",
     "uc018:adv:prove": "node scripts/run-e2e-isolated.mjs uc018:adv:prove:raw",
     "uc018:adv:prove:raw": "pnpm -C apps/api prove:uc018-adv",
     "uc018:perf-load:prove": "node scripts/run-e2e-isolated.mjs uc018:perf-load:prove:raw",
