@@ -70,7 +70,7 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 
 **仍 gap 于 covered（见 harness §1b + covered-lift）**：covered-lift assessed · **canHonestlyFlip=false** · refuse ADV was **blind** · now ADV **partial**（`uc018:adv:prove`）· **ADV alone ≠ covered** · Ban假关。UI（#5）+ sole PG-retained（#6 · `GAP-UC018-SOLE` CLOSED）已关 · **UI alone ≠ covered** · **#6 alone ≠ covered** · Ban wash SOLE/ADV alone into covered。
 
-**已关**：§1b#4 `waiting_user` CAS；**§1b#1 `GAP-UC018-FULL-E2E`**；**§1b#2 `GAP-UC018-GRAPH`**；**§1b#3 `GAP-UC018-TTL`**；**§1b#5 `GAP-UC018-UI`**（`pnpm uc018:ui:prove`）；**§1b#6 `GAP-UC018-SOLE`**（`pnpm uc018:sole:prove` · PG-retained · Ban MySQL/Qdrant sole-wiring）。矩阵仍 **partial** · **UI alone ≠ covered** · **#6 alone ≠ covered** · **ADV alone ≠ covered** · **≠ UC-E2E-018 covered** · covered-lift **canHonestlyFlip=false**（ADV was **blind** · now **partial**）· Ban假关。
+**已关**：§1b#4 `waiting_user` CAS；**§1b#1 `GAP-UC018-FULL-E2E`**；**§1b#2 `GAP-UC018-GRAPH`**；**§1b#3 `GAP-UC018-TTL`**；**§1b#5 `GAP-UC018-UI`**（`pnpm uc018:ui:prove`）；**§1b#6 `GAP-UC018-SOLE`**（`pnpm uc018:sole:prove` · PG-retained · Ban MySQL/Qdrant sole-wiring）。矩阵仍 **partial** · **UI alone ≠ covered** · **#6 alone ≠ covered** · **ADV alone ≠ covered** · **≠ UC-E2E-018 covered** · covered-lift **canHonestlyFlip=false**（ADV was **blind** · now **partial** · `GAP-UC018-ADV` **CLOSED** · knife `post_prove_dual_pass` · prove tip `bdc5993` · post-prove dual `5690779`/`9300d48`）· Ban假关 · Ban wash ADV into covered · Ban flip §1.1 · Ban claim PERF/LOAD closed。
 
 ---
 
