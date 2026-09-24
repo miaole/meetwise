@@ -44,7 +44,7 @@ See JSON `liveLogDigests` (sha256 + retained `.tmp/g7-step3/*` paths; secret-sca
 
 ## Code tip (offline fix round)
 
-`57b78fc` / `57b78fc86e57186ab65669f315fb90c5f0a74eb0` — offline proves EXIT 0 at this SHA.
+`82981ff` / `82981ff86e57186ab65669f315fb90c5f0a74eb0` — offline proves EXIT 0 at this SHA.
 
 ## Stop
 

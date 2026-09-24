@@ -3,8 +3,8 @@
   "line": "C",
   "step": 3,
   "kind": "g7-freetier-reprove-post-mw-model-op-fail-fix-round-offline",
-  "tipShaShort": "57b78fc",
-  "tipShaFull": "57b78fc86e57186ab65669f315fb90c5f0a74eb0",
+  "tipShaShort": "82981ff",
+  "tipShaFull": "82981ff1f5798f44a40b564031d532f94c842e4d",
   "keyFingerprint": "d26808ef",
   "actualSpendCny": null,
   "consoleSpendReadCny": 0,
@@ -66,7 +66,7 @@
   ],
   "ccConfirmed": false,
   "ccNote": "C-C separated but OPEN: perf dies at steps[3] on the provenance assertion; SLO unconfirmed. Not claimed green.",
-  "offlineProvesAtCodeSha": "57b78fc86e57186ab65669f315fb90c5f0a74eb0",
+  "offlineProvesAtCodeSha": "82981ff1f5798f44a40b564031d532f94c842e4d",
   "integration": [
     {
       "cmd": "pnpm -C packages/ai-runtime prove:g7-freetier-reprove-guard",
