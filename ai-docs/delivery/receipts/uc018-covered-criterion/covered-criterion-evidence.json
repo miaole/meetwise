@@ -3,7 +3,7 @@
   "gap": "GAP-UC018-COVERED-CRITERION",
   "command": "pnpm uc018:covered-criterion:prove",
   "exit": 0,
-  "runnerCommitSha": "28dc25947baad0f3a377d2961fa38fb6a25b915b",
+  "runnerCommitSha": "b97de26e25f71bef357585ed98153897d31f1af3",
   "boundPinId": "waiting_user-CAS",
   "refuseEnum": [
     "PERF-LOCAL-ONLY",
@@ -20,7 +20,8 @@
     "STATUS-NOT-COVERED",
     "MISSING-NHP",
     "STUB-STACK",
-    "PROVE-FAIL"
+    "PROVE-FAIL",
+    "OPEN-GAP-UNKNOWN"
   ],
   "fixtureResults": [
     {
@@ -29,6 +30,15 @@
       "expectedFlip": true,
       "gotFlip": true,
       "reasons": []
+    },
+    {
+      "id": "FX-ALLPASS-NO-EXIT",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "MISSING-RECEIPT"
+      ]
     },
     {
       "id": "FX-COMMITTED-MISSING",
@@ -40,12 +50,30 @@
       ]
     },
     {
+      "id": "FX-DUAL-FENCED",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "MISSING-DUAL"
+      ]
+    },
+    {
       "id": "FX-DUAL-ONE",
       "ok": true,
       "expectedFlip": false,
       "gotFlip": false,
       "reasons": [
         "DUAL-ONE"
+      ]
+    },
+    {
+      "id": "FX-DUAL-QUOTED",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "MISSING-DUAL"
       ]
     },
     {
@@ -173,7 +201,17 @@
       "expectedFlip": false,
       "gotFlip": false,
       "reasons": [
-        "OPEN-GAP"
+        "OPEN-GAP",
+        "S11-NOT-MET"
+      ]
+    },
+    {
+      "id": "FX-OPENGAPS-MISSING",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "OPEN-GAP-UNKNOWN"
       ]
     },
     {
@@ -201,6 +239,16 @@
       "gotFlip": false,
       "reasons": [
         "S11-NOT-MET"
+      ]
+    },
+    {
+      "id": "FX-S11-STATUS-CASE-ONLY",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "S11-NOT-MET",
+        "CASE-ONLY"
       ]
     },
     {
@@ -266,6 +314,15 @@
       "reasons": [
         "UNCOMMITTED-RUNNER"
       ]
+    },
+    {
+      "id": "FX-VERIFIEDSHA-MISMATCH",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "UNCOMMITTED-RUNNER"
+      ]
     }
   ],
   "realVerdict": {
@@ -279,7 +336,8 @@
       "MISSING-DUAL",
       "IMPL-ONLY",
       "PERF-LOCAL-ONLY",
-      "OPEN-GAP"
+      "OPEN-GAP",
+      "S11-NOT-MET"
     ],
     "columns": {
       "NEG": {
@@ -324,6 +382,7 @@
         "reasons": [
           "STATUS-NOT-COVERED",
           "UNCOMMITTED-RUNNER",
+          "MISSING-RECEIPT",
           "MISSING-DUAL",
           "STUB-STACK",
           "IMPL-ONLY",
@@ -336,6 +395,7 @@
         "reasons": [
           "STATUS-NOT-COVERED",
           "UNCOMMITTED-RUNNER",
+          "MISSING-RECEIPT",
           "MISSING-DUAL",
           "STUB-STACK",
           "IMPL-ONLY",
@@ -445,7 +505,8 @@
         "STUB-STACK",
         "IMPL-ONLY",
         "PERF-LOCAL-ONLY",
-        "OPEN-GAP"
+        "OPEN-GAP",
+        "S11-NOT-MET"
       ],
       "canHonestlyFlip": false
     },
@@ -463,7 +524,8 @@
         "PROVE-FAIL",
         "IMPL-ONLY",
         "PERF-LOCAL-ONLY",
-        "OPEN-GAP"
+        "OPEN-GAP",
+        "S11-NOT-MET"
       ],
       "canHonestlyFlip": false
     },
@@ -480,7 +542,8 @@
         "STUB-STACK",
         "IMPL-ONLY",
         "PERF-LOCAL-ONLY",
-        "OPEN-GAP"
+        "OPEN-GAP",
+        "S11-NOT-MET"
       ],
       "canHonestlyFlip": false
     },
@@ -497,13 +560,14 @@
         "STUB-STACK",
         "IMPL-ONLY",
         "PERF-LOCAL-ONLY",
-        "OPEN-GAP"
+        "OPEN-GAP",
+        "S11-NOT-MET"
       ],
       "canHonestlyFlip": false
     }
   ],
   "businessPathMet": true,
-  "datePT": "9/23/2026, 8:56:13 PM PT",
+  "datePT": "9/23/2026, 9:03:34 PM PT",
   "haStatus": "NOT_HA",
   "releaseEvidence": false,
   "claimProductionHA": false,
@@ -574,10 +638,10 @@
       "file": "assertCleanPorcelain"
     }
   ],
-  "fixRound": "fix-round-3-committed-positive-dual-strict-dirty-tmp",
+  "fixRound": "fix-round-4-invariant-fence-verifiedSha-allPass-author-liftDirty",
   "mutationSummary": {
-    "total": 405,
-    "falseCount": 405,
+    "total": 423,
+    "falseCount": 423,
     "survivors": [],
     "allowlist": [
       {
@@ -586,30 +650,18 @@
       },
       {
         "path": "/^columns\\.(NEG|FAULT|BOUND|ADV)\\.receipts\\.capacityRepresentative$/",
-        "justification": "capacityRepresentative consulted only for PERF/LOAD columns"
+        "justification": "capacityRepresentative consulted only for PERF/LOAD columns (isCapacityRepresentative)"
       },
       {
         "path": "/^columns\\.(NEG|FAULT|BOUND|ADV)\\.receipts\\.targetEnv$/",
         "justification": "targetEnv consulted only via isCapacityRepresentative for PERF/LOAD"
       },
       {
-        "path": "/^columns\\.[A-Z]+\\.prove\\.cmd$/",
-        "justification": "MISSING-RECEIPT OR requires cmd OR gitSha when status=covered; either alone suffices"
-      },
-      {
-        "path": "/^columns\\.[A-Z]+\\.prove\\.gitSha$/",
-        "justification": "same OR with prove.cmd \u2014 deleting gitSha alone while cmd remains still satisfies presence check"
-      },
-      {
         "path": "/^columns\\.[A-Z]+\\.receipts\\.implementerOnly$/",
-        "justification": "fail-closed only on === true; absence/false means not-implementer (correct positive-proof asymmetry)"
-      },
-      {
-        "path": "section11.status",
-        "justification": "only case-only status adds a reason; covered/other absence does not gate canHonestlyFlip"
+        "justification": "fail-closed only on === true; absence means not-implementer (positive-proof asymmetry for the bad flag)"
       }
     ],
-    "allowlistHits": 84
+    "allowlistHits": 45
   },
   "dualParse": {
     "marker": "/^(?:\\*\\*)?Verdict(?:\\*\\*)?:\\s*(?:\\*\\*)?(PASS|FAIL)(?:\\*\\*)?\\s*$/m",
@@ -617,12 +669,39 @@
     "realE2eHaCoveredCriterionPostProve": "must not be PASS (trailing commentary / no strict EOL marker after retract)"
   },
   "rangeDisclosure": {
-    "note": "Range 4a8a085..4706c4b on origin included other lines product commits (Line B/C). Line A evidence = individual commits only.",
+    "note": "C-RANGE-PRODUCT-R3: Line A evidence = individual commits only; ranges may include other lines",
+    "otherLinesInRange": [
+      {
+        "sha": "994e83a",
+        "subject": "feat(g7): Line C FreeTierOnly re-prove guards"
+      },
+      {
+        "sha": "9e55109",
+        "subject": "fix(privacy): UC052 post-prove B1 tsc + FAULT harden + dirty guard"
+      },
+      {
+        "sha": "3c4847a",
+        "subject": "fix(privacy): UC052 FAULT-04 exact per-sink statuses"
+      },
+      {
+        "sha": "8602cea",
+        "subject": "docs(delivery): nail UC-052 deletion partial (Line B)"
+      },
+      {
+        "sha": "7219f8f",
+        "subject": "fix(g7): allocate shared cost ledger"
+      },
+      {
+        "sha": "cc8050d",
+        "subject": "feat(g7): wire FreeTierOnly guards"
+      }
+    ],
     "lineACommits": [
-      "4a8a085ba31400b389b288e42557324a769cb5af",
-      "4224e7386cb19b6bc948a24e76c2ae5ecd44a53a",
-      "4706c4b447d33777f4339080e5812ba19d531693",
-      "28dc25947baad0f3a377d2961fa38fb6a25b915b"
+      "4a8a085",
+      "28dc259",
+      "10bf0c0",
+      "843b8ca",
+      "b97de26"
     ]
   },
   "pendingNailGaps": [
@@ -633,35 +712,35 @@
     {
       "cmd": "pnpm uc018:covered-criterion:prove",
       "exit": 0,
-      "timePT": "2026-09-23 20:56:34 PT",
-      "runnerCommitSha": "28dc25947baad0f3a377d2961fa38fb6a25b915b",
-      "note": "second run also EXIT=0; porcelain clean after tmp-only write"
+      "runs": 2,
+      "timePT": "2026-09-23 21:03:59 PT",
+      "runnerCommitSha": "b97de26e25f71bef357585ed98153897d31f1af3",
+      "note": "2nd run no DIRTY_TREE"
     },
     {
       "cmd": "pnpm uc018:covered-lift-reassess:prove",
       "exit": 0,
-      "timePT": "2026-09-23 20:56:34 PT",
-      "runnerCommitSha": "28dc25947baad0f3a377d2961fa38fb6a25b915b"
+      "timePT": "2026-09-23 21:03:59 PT",
+      "runnerCommitSha": "b97de26e25f71bef357585ed98153897d31f1af3",
+      "note": "tmp-only write + dirty refuse"
     },
     {
       "cmd": "pnpm uc018:adv:prove",
       "exit": 0,
-      "timePT": "2026-09-23 20:56:34 PT",
-      "runnerCommitSha": "28dc25947baad0f3a377d2961fa38fb6a25b915b"
+      "timePT": "2026-09-23 21:03:59 PT",
+      "runnerCommitSha": "b97de26e25f71bef357585ed98153897d31f1af3"
     },
     {
       "cmd": "pnpm eval-harness-matrix-cite:prove",
       "exit": 0,
-      "timePT": "2026-09-23 20:56:34 PT",
-      "runnerCommitSha": "28dc25947baad0f3a377d2961fa38fb6a25b915b"
+      "timePT": "2026-09-23 21:03:59 PT",
+      "runnerCommitSha": "b97de26e25f71bef357585ed98153897d31f1af3"
     }
   ],
-  "dualColumnDelta": {
-    "PERF": "MISSING-DUAL (perf-load post-prove reviews lack strict EOL Verdict: PASS|FAIL marker)",
-    "LOAD": "MISSING-DUAL (same)",
-    "NEG": "dual PASS/PASS retained (sole-stack post-prove clean markers)",
-    "BOUND": "dual PASS/PASS retained",
-    "ADV": "dual PASS/PASS retained",
-    "FAULT": "dual PASS/PASS retained; gitSha via requestTip"
+  "gitAuthorBinding": {
+    "status": "enforced",
+    "e2eHa": "mw-e2e-ha <mw-e2e-ha@meetwise.local>",
+    "ragRoute": "mw-rag-route <mw-rag-route@meetwise.local>",
+    "note": "Distinct identities \u2014 role\u2194latest-author match required; mismatch \u21d2 MISSING-DUAL"
   }
 }
