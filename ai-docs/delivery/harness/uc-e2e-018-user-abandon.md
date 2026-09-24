@@ -48,7 +48,7 @@
 | ~~`full.e2e.ts` / `e2e:isolated` 场景矩阵纳入~~ **CLOSED**（`GAP-UC018-FULL-E2E` · full.e2e 显式 abandon TC + `pnpm uc018:abandon:full-e2e:prove`） | 已关 · 矩阵仍 **partial**（#2/#3/#5/#6）· **≠ covered** |
 | ~~`AiGraphRun → safely_terminated`~~ **CLOSED**（`GAP-UC018-GRAPH` · `abandonInterviewAndRelease` → `safe_terminating`→`safely_terminated` + 业务事实保全 + `pnpm uc018:graph:prove`） | 已关 · 矩阵仍 **partial**（#5/#6）· **≠ covered** |
 | ~~TTL sweeper → abandoned~~ **CLOSED**（`GAP-UC018-TTL` · `pnpm uc018:ttl:prove`；旁证 `commerce-reconcile:prove` 仍 ≠ UC covered） | 已关 · 矩阵仍 **partial**（#5/#6）· **≠ covered** |
-| UI「点放弃」 | NON-UI 优先；Playwright 降次 |
+| UI「点放弃」（`GAP-UC018-UI` **OPEN** · §1b #5） | NON-UI 优先；Playwright 降次；**不可单独升 covered** · REQUEST `harness/uc-e2e-018-ui-abandon.md` |
 | 完整黄金路径 UC-E2E-001 | 另轨；需 Key |
 
 ---
@@ -63,10 +63,10 @@
 | 2 | ~~放弃时 `AiGraphRun`：`safe_terminating`→`safely_terminated`（或等价）+ 业务事实保全集成/E2E 钉~~ **CLOSED**（`pnpm uc018:graph:prove` / `packages/db/test/uc-e2e-018-graph-safely-terminated.proof.ts`；abandon 路径两步 CAS + 事件/题目/面试行保全） | was 主流程图终态 · `GAP-UC018-GRAPH` · **已关** · 矩阵仍 **partial** |
 | 3 | ~~TTL sweeper 专用钉：租约过期孤儿 → abandoned + released（与用户主动放弃同终态口径）~~ **CLOSED**（`pnpm uc018:ttl:prove` / `apps/worker/test/uc-e2e-018-ttl-sweeper-abandon.proof.ts`；TTL tick → `abandonInterviewAndRelease` 同终态口径；`commerce-reconcile:prove` 仍为旁证 ≠ 本钉） | was TTL · `GAP-UC018-TTL` · **已关** · 矩阵仍 **partial** |
 | 4 | ~~`waiting_user` CAS 放弃口 + prove~~ **CLOSED**（本波：CAS=`created\|active\|waiting_user` + A/H-waiting-user） | was `GAP-UC018-WAITING-USER` · **已关** |
-| 5 | UI：面试中「放弃」触发 → 同上 HTTP 合同（`e2e:ui:isolated` 次层；不可单独升 covered） | 触发/后置 |
+| 5 | UI：面试中「放弃」触发 → 同上 HTTP 合同（`e2e:ui:isolated` 次层；不可单独升 covered）· **`GAP-UC018-UI` OPEN**（REQUEST `harness/uc-e2e-018-ui-abandon.md` · status `draft:awaiting_pre_exec_dual` · Ban claim UC covered · Ban wash TTL/GRAPH/FULL-E2E/HTTP into UI closed） | 触发/后置 · `GAP-UC018-UI` |
 | 6 | sole-stack 夹具（MySQL+Qdrant+Redis）替换默认 pgvector isolated，去掉 **R5 green-risk** 后才可讨论发布级 covered | 矩阵 §0 / R5 |
 
-**本切片已关 §1b#4（waiting_user）**；**已关 §1b#1（`GAP-UC018-FULL-E2E`）**；**已关 §1b#2（`GAP-UC018-GRAPH` · `uc018:graph:prove`）**；**已关 §1b#3（`GAP-UC018-TTL` · `uc018:ttl:prove`）**；仍明确不做：上表 #5/#6 实现；把旁证 prove / full.e2e/graph/ttl 绿写成 covered；把矩阵升 covered。
+**本切片已关 §1b#4（waiting_user）**；**已关 §1b#1（`GAP-UC018-FULL-E2E`）**；**已关 §1b#2（`GAP-UC018-GRAPH` · `uc018:graph:prove`）**；**已关 §1b#3（`GAP-UC018-TTL` · `uc018:ttl:prove`）**；**§1b#5 `GAP-UC018-UI` 仍 OPEN**（docs REQUEST `harness/uc-e2e-018-ui-abandon.md` · `draft:awaiting_pre_exec_dual` · UI alone ≠ covered）；仍明确不做：上表 #5/#6 实现升 covered；把旁证 prove / full.e2e/graph/ttl 绿写成 UI closed / covered；把矩阵升 covered。
 
 ---
 
@@ -115,6 +115,7 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 | 「full.e2e abandon TC 绿 = UC-E2E-018 covered」 | **假绿**。仅关 `GAP-UC018-FULL-E2E`；TTL+#5/#6 中 #5/#6 仍开（TTL 已另钉）→ 矩阵 **partial** |
 | 「uc018:graph:prove 绿 = UC-E2E-018 covered」 | **假绿**。仅关 `GAP-UC018-GRAPH`；#5 UI / #6 sole-stack 仍开（TTL 已另钉）→ 矩阵 **partial** |
 | 「uc018:ttl:prove 绿 = UC-E2E-018 covered」 / 「commerce-reconcile:prove 绿 = TTL/UC covered」 | **假绿**。仅关 `GAP-UC018-TTL`；#5 UI / #6 sole-stack 仍开 → 矩阵 **partial**；commerce-reconcile 旁证 ≠ TTL 专用钉 |
+| 「UI Playwright / e2e:ui:isolated 绿 = UC-E2E-018 covered」 / 「HTTP abandon 绿 = UI closed」 | **假绿**。仅关 `GAP-UC018-UI`（later）；#6 sole-stack 仍开 → 矩阵 **partial**；**UI alone ≠ covered**；Ban wash HTTP/full-e2e/graph/ttl into UI closed |
 
 ---
 
