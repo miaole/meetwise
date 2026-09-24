@@ -8,7 +8,7 @@
       ],
       "prove": {
         "cmd": "pnpm uc018:x:prove",
-        "exit": null,
+        "exit": 0,
         "gitSha": "abc1234deadbeef",
         "committed": true,
         "shaMatchesCommitted": true,
@@ -16,7 +16,7 @@
         "staleSha": false
       },
       "dual": {
-        "e2eHa": "PASS",
+        "e2eHa": null,
         "ragRoute": "PASS"
       },
       "stack": {

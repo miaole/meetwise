@@ -8,12 +8,11 @@
       ],
       "prove": {
         "cmd": "pnpm uc018:x:prove",
-        "exit": null,
+        "exit": 0,
         "gitSha": "abc1234deadbeef",
         "committed": true,
         "shaMatchesCommitted": true,
-        "uncommitted": false,
-        "staleSha": false
+        "uncommitted": false
       },
       "dual": {
         "e2eHa": "PASS",

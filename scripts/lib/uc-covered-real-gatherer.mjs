@@ -29,8 +29,9 @@
  *     (receipt present but EXIT dropped → null → MISSING-RECEIPT; nonzero → PROVE-FAIL)
  *
  *   gitSha:
- *     receipt.gitSha | receipt.proveTip | receipt.runnerCommitSha | receipt.commitSha
+ *     receipt.gitSha | proveTip | runnerCommitSha | commitSha | requestTip
  *     | harness "**Prove tip**:" / "prove tip **`sha`**" citation
+ *     (same precedence as GRAPH tipOk — Ban inventing when all absent)
  *
  *   committed / shaMatchesCommitted:
  *     git cat-file -e <sha>^{commit} AND git merge-base --is-ancestor <sha> HEAD
@@ -43,7 +44,8 @@
  *
  *   dual:
  *     receipt.dual.{e2eHa,ragRoute}
- *     | review receipt files Verdict PASS under reviews/
+ *     | review files via dualFromReviewFiles — strict last `Verdict: PASS|FAIL` line
+ *       (optional **bold** only; no trailing junk); role from path suffix only
  */
 import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -187,9 +189,20 @@ function pickExitFromReceipt(receipt, cmd) {
   if (receipt.allPass === false) return 1;
   return null;
 }
+/**
+ * Tip SHA precedence (aligned with GRAPH tipOk wiring):
+ *   gitSha | proveTip | runnerCommitSha | commitSha | requestTip
+ * First non-empty wins. Ban inventing SHA when all absent.
+ */
 function pickGitSha(receipt) {
   if (!receipt || typeof receipt !== 'object') return null;
-  const s = receipt.gitSha || receipt.proveTip || receipt.runnerCommitSha || receipt.commitSha || null;
+  const s =
+    receipt.gitSha ||
+    receipt.proveTip ||
+    receipt.runnerCommitSha ||
+    receipt.commitSha ||
+    receipt.requestTip ||
+    null;
   return s ? String(s).trim() : null;
 }
 function parseSoleStack(soleStack) {
@@ -230,34 +243,70 @@ function pickStack(receipt) {
     qdrant: undefined,
   };
 }
-function dualFromReviewFiles(paths) {
+/**
+ * Strict machine-readable dual verdict line (B-DUAL-PASS-PRIORITY / B-DUAL-CROSS-ROLE).
+ *
+ * Marker regex (documented):
+ *   /^(?:\*\*)?Verdict(?:\*\*)?:\s*(?:\*\*)?(PASS|FAIL)(?:\*\*)?\s*$/m
+ * - Optional markdown bold around the words Verdict and PASS|FAIL only.
+ * - NO trailing commentary on the same line (so `**Verdict**: **PASS**（…）` does NOT match).
+ * - Last matching line in the file wins (append / retraction).
+ * - Unparseable / no marker ⇒ null (caller → MISSING-DUAL). Ban heuristic PASS/FAIL fallback.
+ *
+ * Role binding: ONLY from this file's own path suffix
+ *   (`-mw-e2e-ha.md` / `-mw-rag-route.md` or `/mw-e2e-ha` / `/mw-rag-route` in path).
+ * Never from body / first-500-chars peer-name mentions (Ban cross-role).
+ */
+export const REVIEW_VERDICT_LINE_RE =
+  /^(?:\*\*)?Verdict(?:\*\*)?:\s*(?:\*\*)?(PASS|FAIL)(?:\*\*)?\s*$/m;
+
+export function parseReviewFileVerdict(text) {
+  if (!text || typeof text !== 'string') return null;
+  let last = null;
+  const lines = text.split(/\r?\n/);
+  for (const line of lines) {
+    const m = line.match(/^(?:\*\*)?Verdict(?:\*\*)?:\s*(?:\*\*)?(PASS|FAIL)(?:\*\*)?\s*$/);
+    if (m) last = m[1] === 'PASS' || m[1] === 'FAIL' ? m[1] : null;
+  }
+  return last;
+}
+
+export function roleFromReviewPath(filePath) {
+  const base = String(filePath || '').replace(/\\/g, '/');
+  const name = base.split('/').pop() || base;
+  // Path/filename suffix only — Ban body-text role inference
+  if (/-mw-e2e-ha\.md$/i.test(name) || /\/mw-e2e-ha\//i.test(base)) return 'e2eHa';
+  if (/-mw-rag-route\.md$/i.test(name) || /\/mw-rag-route\//i.test(base)) return 'ragRoute';
+  return null;
+}
+
+export function dualFromReviewFiles(paths) {
   let e2eHa = null;
   let ragRoute = null;
   for (const p of paths) {
     const text = readText(p);
     if (!text) continue;
-    const isE2e = /mw-e2e-ha/i.test(p) || /mw-e2e-ha/i.test(text.slice(0, 500));
-    const isRag = /mw-rag-route/i.test(p) || /mw-rag-route/i.test(text.slice(0, 500));
-    const pass =
-      /\*\*Verdict\*\*:\s*\*\*PASS\*\*/i.test(text) ||
-      /\*\*PASS\*\*\s*[（(]/i.test(text) ||
-      /^\*\*Status\*\*:\s*\*\*PASS\*\*/im.test(text);
-    const fail = /\*\*FAIL\*\*/.test(text) && !pass;
-    const verdict = pass ? 'PASS' : fail ? 'FAIL' : null;
-    if (isE2e && verdict) e2eHa = verdict;
-    if (isRag && verdict) ragRoute = verdict;
+    const role = roleFromReviewPath(p);
+    if (!role) continue; // unknown role file → ignore (fail closed for that slot)
+    const verdict = parseReviewFileVerdict(text);
+    if (verdict == null) continue; // unparseable → leave slot null → MISSING-DUAL
+    if (role === 'e2eHa') e2eHa = verdict;
+    if (role === 'ragRoute') ragRoute = verdict;
   }
   return { e2eHa, ragRoute };
 }
 function shaFlags(root, sha) {
+  // Always emit explicit booleans (never leave uncommitted/staleSha undefined) so
+  // evaluator positive-proof (uncommitted === false / staleSha === false) works on real input.
   if (!sha) return { gitSha: null, committed: false, shaMatchesCommitted: false, uncommitted: true, staleSha: false };
   const exists = gitCommitExists(root, sha);
   const ancestor = exists && gitIsAncestor(root, sha);
+  const committed = exists && ancestor;
   return {
     gitSha: sha,
-    committed: exists && ancestor,
-    shaMatchesCommitted: exists && ancestor,
-    uncommitted: !exists || !ancestor,
+    committed,
+    shaMatchesCommitted: committed,
+    uncommitted: !committed,
     staleSha: exists && !ancestor,
   };
 }
@@ -343,7 +392,7 @@ export function gatherRealUc018(opts) {
   let faultReceipt = null;
   let faultReceiptNote = 'no dedicated FAULT prove receipt';
   if (graphReceipt && typeof graphReceipt === 'object') {
-    const tip = graphReceipt.requestTip || graphReceipt.gitSha || null;
+    const tip = pickGitSha(graphReceipt);
     const tipOk = tip ? gitCommitExists(root, tip) && gitIsAncestor(root, tip) : false;
     const hasCmdExit =
       (graphReceipt.cmds && typeof graphReceipt.cmds['uc018:graph:prove'] === 'number') ||

@@ -85,10 +85,10 @@ function dualVerdict(dual) {
   const b = dual?.ragRoute;
   const pass = (v) => v === 'PASS' || v === true || v === 'pass';
   const present = (v) => v != null && v !== '' && v !== 'PENDING' && v !== 'pending';
-  if (!present(a) && !present(b)) return 'missing';
-  if (!present(a) || !present(b)) return 'one';
+  // Incomplete pair (any slot absent/unparseable) ⇒ missing — Ban treating null+PASS as DUAL-ONE
+  if (!present(a) || !present(b)) return 'missing';
   if (pass(a) && pass(b)) return 'both';
-  if (pass(a) || pass(b)) return 'one';
+  if (pass(a) || pass(b)) return 'one'; // both present, exactly one PASS (e.g. PASS+FAIL)
   return 'missing';
 }
 
@@ -100,7 +100,8 @@ export function isCapacityRepresentative(receipts, dual) {
   if (!receipts || receipts.capacityRepresentative !== true) return false;
   if (isLocalEnv(receipts.targetEnv)) return false;
   if (dualVerdict(dual) !== 'both') return false;
-  if (receipts.evidenceOfRecord === false) return false;
+  // positive-proof: absent/undef eor must not count as capacity-ok
+  if (receipts.evidenceOfRecord !== true) return false;
   return true;
 }
 
@@ -134,13 +135,16 @@ function evaluateColumn(colName, col, requiredNhps) {
     }
   }
 
-  // 3. prove at committed SHA EXIT=0
-  if (prove.staleSha === true) {
+  // 3. prove at committed SHA EXIT=0 — positive-proof (Ban default-met on absent flags)
+  // staleSha must be === false; committed/shaMatchesCommitted === true; uncommitted === false.
+  // Receipt absent → MISSING-RECEIPT (handled below); flags absent with present receipt → UNCOMMITTED-RUNNER / STALE-SHA.
+  if (prove.staleSha !== false) {
     pushUnique(reasons, REFUSE_REASONS.STALE_SHA);
-  } else if (
-    prove.committed === false ||
-    prove.uncommitted === true ||
-    prove.shaMatchesCommitted === false
+  }
+  if (
+    prove.committed !== true ||
+    prove.shaMatchesCommitted !== true ||
+    prove.uncommitted !== false
   ) {
     pushUnique(reasons, REFUSE_REASONS.UNCOMMITTED_RUNNER);
   }
@@ -178,7 +182,8 @@ function evaluateColumn(colName, col, requiredNhps) {
   } else if (receipts.evidenceOfRecord !== true) {
     pushUnique(reasons, REFUSE_REASONS.MISSING_RECEIPT);
   }
-  if (receipts.missing === true || receipts.present === false) {
+  // present must be === true; missing must be === false (positive-proof; absent ≠ present)
+  if (receipts.missing !== false || receipts.present !== true) {
     pushUnique(reasons, REFUSE_REASONS.MISSING_RECEIPT);
   }
 

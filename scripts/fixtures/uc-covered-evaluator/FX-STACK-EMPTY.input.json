@@ -11,7 +11,9 @@
         "exit": 0,
         "gitSha": "abc1234deadbeef",
         "committed": true,
-        "shaMatchesCommitted": true
+        "shaMatchesCommitted": true,
+        "uncommitted": false,
+        "staleSha": false
       },
       "dual": {
         "e2eHa": "PASS",
@@ -22,7 +24,9 @@
         "evidenceOfRecord": true,
         "implementerOnly": false,
         "capacityRepresentative": false,
-        "targetEnv": "staging-4c8g"
+        "targetEnv": "staging-4c8g",
+        "present": true,
+        "missing": false
       }
     },
     "FAULT": {
@@ -35,7 +39,9 @@
         "exit": 0,
         "gitSha": "abc1234deadbeef",
         "committed": true,
-        "shaMatchesCommitted": true
+        "shaMatchesCommitted": true,
+        "uncommitted": false,
+        "staleSha": false
       },
       "dual": {
         "e2eHa": "PASS",
@@ -52,7 +58,9 @@
         "evidenceOfRecord": true,
         "implementerOnly": false,
         "capacityRepresentative": false,
-        "targetEnv": "staging-4c8g"
+        "targetEnv": "staging-4c8g",
+        "present": true,
+        "missing": false
       }
     },
     "BOUND": {
@@ -65,7 +73,9 @@
         "exit": 0,
         "gitSha": "abc1234deadbeef",
         "committed": true,
-        "shaMatchesCommitted": true
+        "shaMatchesCommitted": true,
+        "uncommitted": false,
+        "staleSha": false
       },
       "dual": {
         "e2eHa": "PASS",
@@ -82,7 +92,9 @@
         "evidenceOfRecord": true,
         "implementerOnly": false,
         "capacityRepresentative": false,
-        "targetEnv": "staging-4c8g"
+        "targetEnv": "staging-4c8g",
+        "present": true,
+        "missing": false
       }
     },
     "ADV": {
@@ -95,7 +107,9 @@
         "exit": 0,
         "gitSha": "abc1234deadbeef",
         "committed": true,
-        "shaMatchesCommitted": true
+        "shaMatchesCommitted": true,
+        "uncommitted": false,
+        "staleSha": false
       },
       "dual": {
         "e2eHa": "PASS",
@@ -112,7 +126,9 @@
         "evidenceOfRecord": true,
         "implementerOnly": false,
         "capacityRepresentative": false,
-        "targetEnv": "staging-4c8g"
+        "targetEnv": "staging-4c8g",
+        "present": true,
+        "missing": false
       }
     },
     "PERF": {
@@ -125,7 +141,9 @@
         "exit": 0,
         "gitSha": "abc1234deadbeef",
         "committed": true,
-        "shaMatchesCommitted": true
+        "shaMatchesCommitted": true,
+        "uncommitted": false,
+        "staleSha": false
       },
       "dual": {
         "e2eHa": "PASS",
@@ -142,7 +160,9 @@
         "evidenceOfRecord": true,
         "implementerOnly": false,
         "capacityRepresentative": true,
-        "targetEnv": "staging-4c8g"
+        "targetEnv": "staging-4c8g",
+        "present": true,
+        "missing": false
       }
     },
     "LOAD": {
@@ -155,7 +175,9 @@
         "exit": 0,
         "gitSha": "abc1234deadbeef",
         "committed": true,
-        "shaMatchesCommitted": true
+        "shaMatchesCommitted": true,
+        "uncommitted": false,
+        "staleSha": false
       },
       "dual": {
         "e2eHa": "PASS",
@@ -172,7 +194,9 @@
         "evidenceOfRecord": true,
         "implementerOnly": false,
         "capacityRepresentative": true,
-        "targetEnv": "staging-4c8g"
+        "targetEnv": "staging-4c8g",
+        "present": true,
+        "missing": false
       }
     }
   },
