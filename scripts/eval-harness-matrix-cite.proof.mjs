@@ -16,7 +16,7 @@ const units = [
     id: 'privacy-erasure-http-503-pin',
     harness: 'ai-docs/delivery/harness/privacy-erasure-http-503-pin.md',
     evalDoc: 'ai-docs/delivery/eval/privacy-erasure-http-503-pin.eval.md',
-    rowIds: ['UC-E2E-050', 'PRIVACY-HTTP', 'GAP-PRIV-02', 'BUG-PRIV-503'],
+    rowIds: ['UC-E2E-050–052', 'PRIVACY-HTTP', 'GAP-PRIV-02', 'BUG-PRIV-503'],
     mustPins: [
       [/DELETE\s*=\s*503|DELETE.*503/i, 'DELETE=503'],
       [/本绿\s*≠\s*产品删除闭环/, '本绿≠产品删除闭环'],
@@ -352,6 +352,63 @@ else pass(`matrix present: ${matrixPath}`);
 
 const matrix = existsSync(matrixPath) ? readFileSync(matrixPath, 'utf8') : '';
 
+
+/** En-dash (U+2013) vs ASCII hyphen: explicit alternates only — no loose normalize. */
+function rowIdVariants(id) {
+  const EN = '\u2013';
+  const HY = '-';
+  const out = new Set([id]);
+  if (id.includes(EN)) out.add(id.split(EN).join(HY));
+  if (id.includes(HY)) out.add(id.split(HY).join(EN));
+  return [...out];
+}
+
+/** First-column cells from markdown table rows (exact strings). */
+function parseMatrixRowIdCells(matrixText) {
+  const cells = [];
+  for (const line of matrixText.split('\n')) {
+    const m = /^\|\s*([^|]+?)\s*\|/.exec(line);
+    if (!m) continue;
+    const cell = m[1].trim();
+    if (!cell || /^[-:\s|]+$/.test(cell)) continue;
+    if (cell === '需求/能力ID' || cell.startsWith('---')) continue;
+    cells.push(cell);
+  }
+  return cells;
+}
+
+/**
+ * Exact matrix row-id match: first cell equals want (or en/hyphen variant),
+ * or cell is `want（…）` / `want (…)` annotation suffix — NOT substring of a longer UC id.
+ */
+function matrixHasExactRowId(cells, want) {
+  for (const v of rowIdVariants(want)) {
+    for (const cell of cells) {
+      if (cell === v) return true;
+      if (cell.startsWith(v + '（') || cell.startsWith(v + ' (')) return true;
+      // Merged display form used by 031/032: `UC-E2E-031 / 032`
+      if (cell.startsWith(v + ' /')) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Doc cite must include the row id as a whole token.
+ * `UC-E2E-050` must NOT match inside `UC-E2E-050–052` (digit/en-dash/hyphen continuation banned).
+ */
+function textCitesExactRowId(text, want) {
+  for (const v of rowIdVariants(want)) {
+    const esc = v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(esc + '(?![0-9\\u2013\\-])');
+    if (re.test(text)) return true;
+  }
+  return false;
+}
+
+
+const matrixRowIdCells = matrix ? parseMatrixRowIdCells(matrix) : [];
+
 for (const u of units) {
   const hPath = join(root, u.harness);
   const ePath = join(root, u.evalDoc);
@@ -365,13 +422,13 @@ for (const u of units) {
   const both = h + '\n' + e;
 
   for (const row of u.rowIds) {
-    if (both.includes(row)) pass(`${u.id}: cites matrix row ${row}`);
+    if (textCitesExactRowId(both, row)) pass(`${u.id}: cites matrix row ${row}`);
     else fail(`${u.id}: must cite matrix row ${row}`);
     // Matrix should point back at harness when privacy / 017 updated
     if (matrix.includes(u.harness) || matrix.includes(u.harness.replace(/^ai-docs\/delivery\//, ''))) {
       pass(`${u.id}: matrix points at harness path`);
-    } else if (matrix.includes(row)) {
-      // soft: row exists; path pointer checked once per unit below
+    } else if (matrixHasExactRowId(matrixRowIdCells, row)) {
+      // soft: exact row id cell exists; path pointer checked once per unit below
     }
   }
 
@@ -399,6 +456,43 @@ for (const u of units) {
   }
   if (/产品删除闭环已|删除已闭环|erasure complete/i.test(both) && !/≠.*产品删除闭环|假绿|不得/.test(both)) {
     fail(`${u.id}: must not claim deletion closed without 本绿≠ pin`);
+  }
+}
+
+
+// Exact row-id matching self-test (Ban substring false-positive)
+{
+  const fakeMatrix = [
+    '| UC-E2E-050–052 | **partial** |',
+    '| UC-E2E-040–043 | **gap** |',
+    '| UC-E2E-015 | **partial** |',
+  ].join('\n');
+  const cells = parseMatrixRowIdCells(fakeMatrix);
+  if (matrixHasExactRowId(cells, 'UC-E2E-050–052') && matrixHasExactRowId(cells, 'UC-E2E-050-052')) {
+    pass('row-id exact: en-dash/hyphen variants of UC-E2E-050–052');
+  } else {
+    fail('row-id exact: must accept en-dash and hyphen variants of merged id');
+  }
+  if (!matrixHasExactRowId(cells, 'UC-E2E-050')) {
+    pass('row-id exact: UC-E2E-050 does NOT match cell UC-E2E-050–052');
+  } else {
+    fail('row-id exact: substring UC-E2E-050 must not match UC-E2E-050–052');
+  }
+  if (!matrixHasExactRowId(cells, 'UC-E2E-040')) {
+    pass('row-id exact: UC-E2E-040 does NOT match cell UC-E2E-040–043');
+  } else {
+    fail('row-id exact: substring UC-E2E-040 must not match UC-E2E-040–043');
+  }
+  if (!matrixHasExactRowId(cells, 'UC-E2E-0500') && !textCitesExactRowId('see UC-E2E-050–052 here', 'UC-E2E-050')) {
+    pass('row-id exact: negative UC-E2E-0500 / cite boundary');
+  } else {
+    fail('row-id exact: negative self-test failed');
+  }
+  // Live matrix: privacy aggregated id present; bare UC-E2E-050 absent as first cell
+  if (matrix && matrixHasExactRowId(matrixRowIdCells, 'UC-E2E-050–052') && !matrixHasExactRowId(matrixRowIdCells, 'UC-E2E-050')) {
+    pass('live matrix: UC-E2E-050–052 exact; bare UC-E2E-050 absent');
+  } else if (matrix) {
+    fail('live matrix: expected exact UC-E2E-050–052 row and no bare UC-E2E-050 first-cell');
   }
 }
 
