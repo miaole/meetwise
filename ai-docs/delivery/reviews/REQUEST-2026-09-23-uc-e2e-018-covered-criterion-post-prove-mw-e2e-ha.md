@@ -572,3 +572,122 @@ Round-2 dual priority/cross-role + DIRTY self-write **fixed** at `28dc259` / rec
 
 *Receipt append · mw-e2e-ha · UC018 covered-criterion r3 FAIL @10bf0c0 / 28dc259 · 2026-09-23 ~21:00 PT · STOP*
 Verdict: FAIL
+
+---
+
+## r4 · RE-REVIEW · mw-e2e-ha · runner `b97de26` / receipts `585006b` · 2026-09-23 ~21:08 PT
+
+**Role**: adversarial evidence-honesty (Line A covered-criterion) · alone≠dual · do not sign for mw-rag-route  
+**Scope**: `/workspace/meetwise` only · branch `feat/mysql-schema-skeleton` · receipt-only touch · no product · no `.env*` · no Meridian  
+**Claims under test**: both r3 blockers fixed; fence/quote strip; flip⇒reasons=[]; verifiedSha===prove.gitSha; allPass≠exit0; C-NO-GIT-AUTHOR; C-LIFT-DIRTY-TRACKED; mutations 423/423 allowlist 4; real flip false
+
+### Tips / ancestry (Task 1)
+
+| Check | Result | EXIT |
+| --- | --- | --- |
+| `git fetch` | ok | 0 |
+| `b97de26` ancestor of `585006b` | **yes** (`merge-base --is-ancestor` → 0) | 0 |
+| both on `origin/feat/mysql-schema-skeleton` | **yes** | 0 |
+| `git diff --name-only b97de26..585006b` | **docs/receipts only** (4 paths: harness tip + 2 evidence JSON + prove.md) | 0 |
+| receipts `runnerCommitSha` | `b97de26e25f71bef357585ed98153897d31f1af3` == `b97de26` | 0 |
+| `843b8ca` | Line-A product fix (flip↔reasons + s11 whitelist + FX-S11/OPENGAPS + allowlist trim); **ancestor of `b97de26`**; superseded as tip by receipts `@b97de26` — nothing still pins tip=`843b8ca` | 0 |
+| range `28dc259..585006b` other-line SHAs | evidence discloses 994e83a / 9e55109 / 3c4847a / 8602cea / 7219f8f / cc8050d; **missing** product/other-line `fc8429c` (g7) + `41cffea` (UC-052 Line B docs) → **C-RANGE incomplete** | 0 |
+
+Full SHAs: `b97de26e25f71bef357585ed98153897d31f1af3` · `585006b2012d5e4ae230126aecedbc286e2a3da2` · `843b8ca18ea852e5279ce395ec2b3454d39d4ab0` · `28dc25947baad0f3a377d2961fa38fb6a25b915b`
+
+### Worktree prove CMD|EXIT (Task 2) · `/workspace/mw-rv-585006b` @ `585006b` clean
+
+| CMD | EXIT | Key outputs |
+| --- | --- | --- |
+| `git worktree add /workspace/mw-rv-585006b 585006b` | 0 | CLEAN detached |
+| `pnpm install --frozen-lockfile` | 0 | CLEAN after |
+| `pnpm uc018:covered-criterion:prove` (1) | **0** | 423/423 · allowlist 4 · FX-S11-STATUS-CASE-ONLY→false · real `canHonestlyFlip=false` reasons=STATUS-NOT-COVERED,UNCOMMITTED-RUNNER,MISSING-RECEIPT,CASE-ONLY,STUB-STACK,MISSING-DUAL,IMPL-ONLY,PERF-LOCAL-ONLY,OPEN-GAP,S11-NOT-MET · pins OK · tmp-only write · no DIRTY_TREE |
+| `pnpm uc018:covered-criterion:prove` (2) | **0** | same · porcelain CLEAN |
+| `pnpm uc018:covered-lift-reassess:prove` | **0** | non-flip · PERF-LOCAL-ONLY · dirty refuse PASS · tmp-only |
+| `pnpm uc018:adv:prove` | **0** | 76 ADV cases · ADV alone ≠ covered |
+| `pnpm eval-harness-matrix-cite:prove` | **0** | UC-E2E-018 partial retained |
+| Dirty README | n/a | worktree CLEAN — no refuse trip needed |
+| `git worktree remove` | (end) | |
+
+### Fix verification file:line (Task 3) · source via `git show b97de26:<path>`
+
+| Claim | Cite | Verified? |
+| --- | --- | --- |
+| flip requires reasons empty (+ s11 `covered` + openGaps explicit []) | `scripts/lib/uc-covered-evaluator.mjs` L268–303 (`reasons.length===0` in flip; L279–286 / L300–303 force false + throw) | **YES** — no path returns flip true with reasons |
+| `assertFlipReasonsInvariant` over fixtures AND mutations | prove L200–202 (each fixture); L363/L375 (each mutation; inv fail → survivor → FAIL) + real L526 | **YES** — asserts, not print-only |
+| Fence/quote strip triple-backtick / tilde / indent / `>` | gatherer `stripMarkdownNonProse` L265–277; `parseReviewFileVerdict` L280–288 | **PARTIAL** — claimed cases OK; **new holes** below |
+| FX-DUAL-FENCED/QUOTED → MISSING-DUAL | prove PASS both; fixtures expected false | **YES** |
+| verifiedSha bound to prove.gitSha | gatherer `shaFlags` L348–370: cat-file + merge-base on **same** `sha` → `gitSha`/`verifiedSha`; evaluator L153–160 requires bind | **YES** |
+| allPass alone ≠ EXIT 0 | `pickExitFromReceipt` L180–189 ignores allPass → null; evaluator L163–164 → MISSING-RECEIPT; FX-ALLPASS-NO-EXIT | **YES** |
+| C-NO-GIT-AUTHOR | path suffix `roleFromReviewPath` L291–296 + `latestCommitAuthor` = `git log -1 --format='%an <%ae>' -- <file>` L300–311 + `authorMatchesRole` L314–318; mismatch → leave slot null → MISSING-DUAL | **YES** (enforced) |
+| Bulk-author risk (e.g. 9477046 mw-rag-route) | If latest touch ≠ role author → slot null → MISSING-DUAL (**conservative OK**) | noted |
+| Peer fake `-c user.name=mw-e2e-ha` | Author string only — **inherent residual**, not blocker | residual |
+| C-LIFT-DIRTY-TRACKED | lift proof L72 assertClean; L324–342 tmp-only + dirty probe DIRTY_TREE; prove EXIT=0 | **YES** |
+
+### Parser edge tests (temp inputs · Task 3)
+
+| Input | parsed | Ruling |
+| --- | --- | --- |
+| fenced triple-backtick PASS | null | OK strip |
+| fenced tilde PASS | null | OK |
+| 4-space indent PASS | null | OK |
+| blockquote `> Verdict: PASS` | null | OK |
+| inline backticks mid-line | null | OK (no line-start match) |
+| single-line HTML comment | null | OK (line ≠ marker) |
+| **multiline HTML comment with bare PASS line** | **PASS** | **BLOCKER launder** — HTML comments not stripped |
+| unterminated opening fence only + PASS | **PASS** | **BLOCKER launder** — close required by strip regex L269 |
+| unterminated fence then prose FAIL | FAIL | last-wins (not strip) |
+| CRLF / trailing spaces | PASS | OK |
+| lowercase `verdict: pass` | null | OK (case-sensitive marker) |
+| real unfenced PASS / FAIL after fence | PASS / FAIL | OK |
+
+gapClosedInText: `GAP-X is NOT CLOSED` → false; `not yet CLOSED` → false; `GAP-X is CLOSED` → true; Ban/不得 windows skip — **prior fix intact**.
+
+### Allowlist rulings (Task 4) · 4 items · section11.status **removed**
+
+| # | path | Temp-input | Ruling |
+| --- | --- | --- | --- |
+| 1 | `ucId` | delete → flip stays true | **LEGIT** (unused metadata) |
+| 2 | NEG/FAULT/BOUND/ADV `capacityRepresentative` | NEG delete → true; PERF delete → false+PERF-LOCAL-ONLY | **LEGIT** |
+| 3 | NEG/FAULT/BOUND/ADV `targetEnv` | FAULT delete → true | **LEGIT** |
+| 4 | any column `implementerOnly` | delete false → true; set true → IMPL-ONLY | **LEGIT** (documented ===true asymmetry; EOR still positive-proof) |
+
+FX-S11-STATUS-CASE-ONLY → flip false reasons S11-NOT-MET,CASE-ONLY · **not allowlisted** · r3 B-S11-STATUS-FAIL-OPEN **FIXED**.
+
+### Fail-open hunt (Task 5)
+
+- `COLUMNS.every` over fixed six; missing column object → evaluateColumn defaults blind → meetsCovered false (no throw) — fail-closed.
+- `??` / `||` defaults on prove/dual/stack/receipts → empty objects then positive-proof (`!== true` / `=== false`) — prior B-EOR / B-STACK / committed flags intact.
+- `latestCommitAuthor` catch → null → MISSING-DUAL fail-closed.
+- Prior fixes intact: S11 case-only, openGaps absent, fenced/quoted FX, allPass, verifiedSha mismatch, EXIT absent.
+- **New**: HTML multiline comment + unterminated fence dual laundering (above).
+- Residual (not blocker): `dualVerdict` accepts lowercase `pass`/bool true (evaluator L88) while parser emits PASS|FAIL only; author `-c` spoof.
+
+### Blockers vs conditions · pins (Task 6)
+
+**r3 blockers status**
+- B-S11-STATUS-FAIL-OPEN — **FIXED** (evaluator L258–276 + L278–303; allowlist #7 gone)
+- B-DUAL-FENCE-COUNTED (claimed fence/indent/blockquote shapes) — **FIXED** for those shapes
+
+**r4 blockers (new)**
+1. **B-DUAL-HTML-ML-COMMENT** — multiline HTML comment body line counted (`stripMarkdownNonProse` does not strip HTML comments; gatherer L265–277 / parse L280–288). Same laundering class as r3 fence.
+2. **B-DUAL-UNTERMINATED-FENCE** — opening fence without close is **not** stripped (L269 requires close); PASS inside counts as real.
+
+**Conditions**
+- C-NO-GIT-AUTHOR — **enforced**; residual spoof via `-c user.name` (inherent)
+- C-RANGE-PRODUCT — partially disclosed; **incomplete** for `fc8429c` / `41cffea` in `28dc259..585006b`
+- C-PROVE-GITSHA-UNUSED / C-PROVE-CMD-OR / C-ALLPASS-EXIT0 / C-LIFT-DIRTY-TRACKED — **verified fixed/held**
+
+**Pins (evidence + live prove)**  
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · UC-018/§1.1 partial · real flip false · Ban invent covered · Ban flip §1.1  
+alone≠dual · this review PASS≠covered≠nail · do not sign mw-rag-route
+
+### Chinese 3-line
+
+1. r3 两阻塞（s11 case-only 不挡 flip；围栏内 Verdict 计入）已修；423/423、allowlist 4、real flip=false、pins 不变。  
+2. 新阻塞：多行 HTML 注释内严格 Verdict 行仍计入；未闭合围栏不剥离 → 可洗 PASS。  
+3. 裁定 **FAIL** · alone≠dual · 不代签 mw-rag-route · 本审 PASS≠covered≠nail。
+
+*Receipt append · mw-e2e-ha · UC018 covered-criterion r4 FAIL @585006b / b97de26 · 2026-09-23 ~21:08 PT · STOP*
+
+Verdict: FAIL
