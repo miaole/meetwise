@@ -498,8 +498,8 @@ Verdict: FAIL
 | 尝试 | 结果 |
 |------|------|
 | 缩进 4 空格 / `>` blockquote / ``` / ~~~ fence | null · PASS |
-| `<!-- Verdict: PASS -->` 单行 | null · PASS |
-| **`<!--\nVerdict: PASS\n-->` 多行 HTML 注释** | **got=PASS · BYPASS · BLOCKER** |
+| 单行 HTML 注释包裹的 PASS 行（注释起止标记 · 不写字面量） | null · PASS |
+| **多行 HTML 注释包裹的 PASS 行（注释起止标记 · 不写字面量）** | **got=PASS · BYPASS · BLOCKER** |
 | trailing / lower / 全角冒号 / ZWSP | null · PASS |
 | CRLF 真 PASS | PASS · OK |
 | PASS then FAIL | FAIL · OK |
@@ -520,7 +520,7 @@ Verdict: FAIL
 
 ### Blockers
 
-1. **FAIL**：`stripMarkdownNonProse` 未剥离 HTML comment · 多行 `<!-- … Verdict: PASS … -->` 仍计 PASS（`uc-covered-real-gatherer.mjs` `:265–278`）。须 strip `<!--...-->`（含跨行）后再匹配。
+1. **FAIL**：`stripMarkdownNonProse` 未剥离 HTML comment · 多行 HTML 注释包裹的 PASS 行仍计 PASS（`uc-covered-real-gatherer.mjs` 当时 `:265–278`）。须剥离 HTML 注释块（含跨行）后再匹配。
 
 ### Nail
 
@@ -537,4 +537,89 @@ Verdict: FAIL
 **mw-rag-route** · 2026-09-23 (~21:10 PT) · re-review r4 · blocker=HTML-comment Verdict bypass · APPEND-ONLY
 
 Verdict: FAIL
+
+---
+
+## Re-review r5 (22790a8/971bb80)
+
+**Date**: 2026-09-23 (~21:18 PT)  
+**Verdict**: **PASS**（r4 HTML 注释 bypass 已关 · last-line-only + HTML/fence 防御 · 本文件已中和 r4 字面注释样例以免自毒）  
+**Expert**: `mw-rag-route` · Ban invent covered · Ban假关 · alone≠dual · **Dual PASS ≠ covered ≠ nail ≠ §1.1 flip**
+
+### Commits（Author meetwise-core · tip 祖先 · 单目的）
+
+| SHA | Subject |
+|-----|---------|
+| `4e39b78` / `4e39b783e7bc1b7d6ef8242f471c67379257965d` | r5 last-line Verdict parser + HTML comment defense |
+| `476d1fd` / `476d1fd259c4ba80a378d441b28626d44b0be4c2` | prove expect sole dual MISSING under last-line |
+| `22790a8` / `22790a8dfb23604c4f47574b91d178e737f946a5` | r5b unterminated-fence + HTML-ML |
+| `07659ee` | receipts @476d1fd（中间） |
+| `971bb80` / `971bb80ca1c71fc60f14189d5e8a4ce57c1afd90` | receipts prove @22790a8 · JSON+prove.md runner **MATCH** |
+
+**Worktree**: `/workspace/wt-mwrr-22790a8` @ `971bb80` · 后 remove+prune
+
+### Receipt-fix approach
+
+Gatherer 用 **精确路径**（非 glob）：`…covered-criterion-post-prove-mw-rag-route.md`。故在本文件内中和，不另开 r5 文件。
+
+**本提交对既有 r4 节的最小改写**（历史 SHA `f4abf1b` 仍为权威原貌）：
+- 原表格/ blocker 中含字面 HTML 注释起止标记 + 其内 `Verdict: PASS` 的三处样例 → 改为散文「多行/单行 HTML 注释包裹的 PASS 行（不写字面量）」
+- 语义不变 · 仅为 parser 防御 · 避免整文件被 `htmlCommentDefenseFails` 判 null
+- 未改其他章节正文
+
+### CMD|EXIT（@ 971bb80）
+
+| CMD | EXIT |
+|-----|------|
+| `pnpm uc018:covered-criterion:prove` | **0** · false · MISSING-DUAL 等 · invariant OK · .tmp-only |
+| `pnpm uc018:covered-lift-reassess:prove` | **0** |
+| `pnpm uc018:adv:prove` | **0** · 76 · REAL pgvector |
+| `pnpm eval-harness-matrix-cite:prove` | **0** |
+
+### Parser contract（`uc-covered-real-gatherer.mjs` ~:246–340）
+
+- 仅 **最后非空行**（去尾空白/CR）匹配 `^(\*\*)?Verdict: (PASS|FAIL)(\*\*)?$` · 粗体成对
+- 全文任意未闭合 HTML 注释起止 / 注释块内含 Verdict 行 → **null**
+- 未闭合 ```/~~~ fence → **null**
+- 角色：path suffix + latest git author
+
+### Break attempts（/tmp · 自 22790a8 模块）
+
+| 尝试 | 结果 |
+|------|------|
+| 末行真 PASS/FAIL / CRLF / 尾空白 / 成对粗体 / front-matter | 正确 PASS/FAIL |
+| 缩进 4 空格末行 / blockquote / 表格单元格 / 未闭合 fence / 不成对粗体 | null |
+| PASS 后跟 ZWSP 行 / PASS 后接 ZWSP 字符 | null |
+| 已闭合无 Verdict 的注释 + 末行 PASS | PASS（不过严） |
+| 早先注释内含 PASS + 末行 FAIL | null（fail-closed · 见下） |
+| setext 下划线在 Verdict 后 | null（下划线成末行） |
+| 未闭合 details + 末行 PASS | PASS（details≠注释 · nail 可选） |
+| evil author | slot null |
+
+**null⇒阻 flip**：ALL-MET 双槽 null → false + **MISSING-DUAL**（已证）。故「被注毒的 FAIL」变 null 只会 MISSING-DUAL，**绝不变 PASS**。
+
+### Mutation / invariant
+
+- 宣称 423/423 · allowlist 4 · 本轮抽检 ALL-MET true · null dual false · FX HTML/HIDDEN/TRAILING/DETAILS/UNBALANCED/UNTERMINATED/HTML-ML → MISSING-DUAL · invariant OK
+
+### Blockers
+
+**无。**（r4 HTML 多行注释 bypass 已关 · 本文件注释样例已中和 · prove EXIT=0 · 真 PG）
+
+### Nail
+
+1. 未闭合 details 不 fail-closed（末行 PASS 仍计）— 可选加固
+2. 注释内曾有 Verdict 会 null 掉其后真 FAIL（fail-closed 保守 · 审者勿在注释写 Verdict）
+3. PERF/LOAD 旧 dual 无末行严格 Verdict → MISSING-DUAL（backfill knife）
+
+### Pins / PG / secret / cleanup
+
+- pins HOLD · Dual PASS ≠ covered ≠ nail ≠ §1.1 flip  
+- **PG real YES** · secret **CLEAN** · worktree **已移除**
+
+### signature（r5）
+
+**mw-rag-route** · 2026-09-23 (~21:18 PT) · re-review r5 · PASS · APPEND-ONLY + r4 样例中和披露
+
+Verdict: PASS
 
