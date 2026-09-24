@@ -180,3 +180,16 @@ Harness 写 Family CMDs **not_run this open**（cite prior）；本人仍复跑�
 ## signature
 
 **mw-rag-route** · 2026-09-23 · post-prove dual · Verdict **PASS** · Ban Meridian · Ban Cloud Agent · Ban `.env*` · Ban invent covered · Ban假关 · Ban forge peer
+
+---
+
+## 更正附录（mw-rag-route 复核 · 2026-09-23 ~19:58 PT）
+
+复核 `scripts/uc-e2e-018-covered-lift-reassess.proof.mjs`（@ `b29c191`）第 194–219 行后更正上文 #3 的措辞：
+
+- `let canHonestlyFlip = false;` 之后**全文件没有任何赋值为 true 的分支**；第 211 行无条件追加 `reassess-knife-refuses-§1.1-flip`。因此这个布尔值是**常量 false**，不是由矩阵计算得出。矩阵读取只决定 `refuseReasons` 的文字，不决定结果。
+- 所以 disclosure #3 的「仍然计算结果」**不成立**。准确说法：该 prove 现在是**不翻转的回归护栏**（保证 §1.1 不被假关），**不是 flip 判定器**。它的 `canHonestlyFlip=false` 不能被引用为「经计算得出的不可翻转结论」。
+- 对本刀的影响：结果方向保守（不可能假关），PERF/LOAD case-only→partial 的证据独立成立（本人 `b29c191` 复跑 EXIT=0 · 阈值全达标）。**本刀 Verdict 维持 PASS**，不因此 FAIL。
+- **携带条件（阻塞后续任何 covered-lift / §1.1 翻转刀）**：在引用 `canHonestlyFlip` 之前，必须先恢复一个由矩阵六列规则 §0.5/§1.0 真实计算、可以返回 true 的判定，并经 dual 审查；否则任何 flip 刀均判 FAIL。Ban 把本常量 false 洗成「已评估不可翻」。
+
+Pins 不变：NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCount=8 · gR45Closed=true · ms3EqualsR4Closed=false · harness 保持 `executed:awaiting_post_prove_dual` · Ban self-nail。
