@@ -37,6 +37,12 @@ export const REFUSE_REASONS = Object.freeze({
   PROVE_FAIL: 'PROVE-FAIL',
   /** section11.openGaps absent / not an array (Ban default-to-empty) */
   OPEN_GAP_UNKNOWN: 'OPEN-GAP-UNKNOWN',
+  /**
+   * Machine backfill present but not usable as evidence (proveExit≠0, missing
+   * proveExit, or failed required fields). Ban silent legacy fallback that looks green.
+   * ENUM CHANGE: 16 → 17 (disclose).
+   */
+  BACKFILL_FAILED: 'BACKFILL-FAILED',
 });
 
 Object.freeze(REFUSE_REASONS);
@@ -159,6 +165,12 @@ function evaluateColumn(colName, col, requiredNhps) {
       pushUnique(reasons, REFUSE_REASONS.UNCOMMITTED_RUNNER);
     }
   }
+  // Backfill fail-closed (D-B): present but unusable overlay → BACKFILL-FAILED
+  // (no silent legacy green). Independent of PROVE-FAIL / MISSING-RECEIPT.
+  if (receipts.backfillFailed === true) {
+    pushUnique(reasons, REFUSE_REASONS.BACKFILL_FAILED);
+  }
+
   // EXIT tri-state: null/absent → MISSING-RECEIPT; nonzero → PROVE-FAIL; 0 → ok
   if (prove.exit == null) {
     pushUnique(reasons, REFUSE_REASONS.MISSING_RECEIPT);

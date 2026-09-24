@@ -4,12 +4,17 @@
  * Mechanism: structural fields + SHA-256 digest of the captured prove log file.
  * Limits (disclosed): not cryptographic authentication of the emitter process;
  * an attacker with write access to both JSON and log can forge a matching pair.
+ * GAP-BACKFILL-EMITTER-UNAUTHENTICATED (harness + receipt README · Ban SSOT backlog until nail).
  * Purpose: refuse *hand-written* / prose-pasted JSON that lacks a real log binding
  * or invents fields without an on-disk log digest match.
  */
 import { createHash } from 'node:crypto';
 import { readFileSync, existsSync } from 'node:fs';
 import { isAbsolute, join } from 'node:path';
+import {
+  validateStackSources,
+  validateImageDigests,
+} from './uc018-receipt-backfill-facts.mjs';
 
 export const EMITTED_BY = 'uc018-receipt-backfill-emit';
 
@@ -33,6 +38,8 @@ const REQUIRED = [
   'logPath',
   'stdoutDigest',
   'disclosure',
+  'stack',
+  'imageDigests',
 ];
 
 /**
@@ -61,6 +68,13 @@ export function validateMachineEmittedReceipt(receipt, opts = {}) {
   if (!/EOR@targetSha ≠ proven at tip/i.test(String(receipt.disclosure))) {
     return { ok: false, reason: 'disclosure-missing-eor-clause' };
   }
+
+  const stackV = validateStackSources(receipt.stack);
+  if (!stackV.ok) return stackV;
+
+  const imgV = validateImageDigests(receipt.imageDigests);
+  if (!imgV.ok) return imgV;
+
   const requireLog = opts.requireLogFile !== false;
   if (!requireLog) return { ok: true };
 
@@ -83,12 +97,23 @@ export function validateMachineEmittedReceipt(receipt, opts = {}) {
   return { ok: true };
 }
 
-/** Soft check for gatherer (log may be gitignored under .tmp — allow missing log if digest present + emittedBy). */
+/**
+ * Structural shape for a machine backfill candidate.
+ * exit must be an integer (0 or nonzero). Missing exit ⇒ false.
+ * Preferability (exit===0) is enforced by readReceiptPreferBackfill, not here.
+ */
 export function isBackfillReceiptShape(receipt) {
   if (!receipt || typeof receipt !== 'object') return false;
   if (receipt.emittedBy !== EMITTED_BY) return false;
-  if (typeof receipt.exit !== 'number') return false;
+  if (typeof receipt.exit !== 'number' || !Number.isInteger(receipt.exit)) return false;
   if (!receipt.targetSha || !receipt.wrapperSha || !receipt.ranAt) return false;
   if (!receipt.stdoutDigest || !receipt.logPath) return false;
+  if (!receipt.stack || typeof receipt.stack !== 'object') return false;
+  if (!receipt.imageDigests || typeof receipt.imageDigests !== 'object') return false;
   return true;
+}
+
+/** Preferable evidence: shape OK + proveExit === 0. */
+export function isPreferableBackfillReceipt(receipt) {
+  return isBackfillReceiptShape(receipt) && receipt.exit === 0;
 }

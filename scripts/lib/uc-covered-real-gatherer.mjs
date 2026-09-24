@@ -48,7 +48,12 @@
  *       (optional **bold** only; no trailing junk); role from path suffix only
  */
 import { execSync } from 'node:child_process';
-import { isBackfillReceiptShape } from './uc018-receipt-backfill-guard.mjs';
+import {
+  isBackfillReceiptShape,
+  isPreferableBackfillReceipt,
+  EMITTED_BY,
+} from './uc018-receipt-backfill-guard.mjs';
+import { unwrapStackValue } from './uc018-receipt-backfill-facts.mjs';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { UC018_BOUND_PIN_ID, UC018_REQUIRED_NHP } from './uc-covered-evaluator.mjs';
@@ -221,13 +226,14 @@ function parseSoleStack(soleStack) {
 }
 function pickStack(receipt) {
   if (receipt?.stack && typeof receipt.stack === 'object') {
-    // Tri-state passthrough — do not coerce absent fields
+    // Unwrap sourced {value,source} facts; legacy flat booleans still work.
+    // 'unobserved' → undefined (evaluator fail-closed STUB-STACK).
     return {
-      postgres: receipt.stack.postgres,
-      postgresSaver: receipt.stack.postgresSaver,
-      memorySaver: receipt.stack.memorySaver,
-      mysql: receipt.stack.mysql,
-      qdrant: receipt.stack.qdrant,
+      postgres: unwrapStackValue(receipt.stack.postgres),
+      postgresSaver: unwrapStackValue(receipt.stack.postgresSaver),
+      memorySaver: unwrapStackValue(receipt.stack.memorySaver),
+      mysql: unwrapStackValue(receipt.stack.mysql),
+      qdrant: unwrapStackValue(receipt.stack.qdrant),
     };
   }
   if (receipt?.soleStack) {
@@ -456,13 +462,42 @@ export const WAITING_USER_BACKFILL_STATUS = 'MISSING-EVIDENCE';
  */
 export function readReceiptPreferBackfill(receiptRoot, backfillFile, legacyRel) {
   const backfillRel = `uc018-receipt-backfill/${backfillFile}`;
-  const bf = readJson(join(receiptRoot, backfillRel));
-  if (bf && isBackfillReceiptShape(bf)) {
-    return { ...bf, _path: backfillRel, _source: 'backfill' };
+  const backfillAbs = join(receiptRoot, backfillRel);
+  const bfExists = existsSync(backfillAbs);
+  const bf = bfExists ? readJson(backfillAbs) : null;
+
+  // Fail-closed: a present backfill file that is not preferable MUST NOT fall
+  // back to legacy (Ban silent green). Flag BACKFILL-FAILED for the evaluator.
+  if (bfExists) {
+    if (isPreferableBackfillReceipt(bf)) {
+      return { ...bf, _path: backfillRel, _source: 'backfill', _backfillFailed: false };
+    }
+    const exitMissing = !(bf && typeof bf.exit === 'number' && Number.isInteger(bf.exit));
+    const failReason = exitMissing
+      ? 'missing-or-invalid-proveExit'
+      : (bf && bf.exit !== 0)
+        ? 'prove-exit-nonzero'
+        : (!bf || bf.emittedBy !== EMITTED_BY)
+          ? 'emittedBy-or-shape-invalid'
+          : 'shape-invalid';
+    return {
+      ...(bf && typeof bf === 'object' ? bf : {}),
+      _path: backfillRel,
+      _source: 'backfill-failed',
+      _backfillFailed: true,
+      _backfillFailReason: failReason,
+      // Force non-green evidence flags (no silent legacy wash)
+      evidenceOfRecord: false,
+      implementerOnly: false,
+      present: true,
+      missing: true,
+      exit: exitMissing ? null : bf.exit,
+    };
   }
+
   const legacy = readJson(join(receiptRoot, legacyRel));
   if (legacy && typeof legacy === 'object') {
-    return { ...legacy, _path: legacyRel, _source: 'legacy' };
+    return { ...legacy, _path: legacyRel, _source: 'legacy', _backfillFailed: false };
   }
   return null;
 }
@@ -612,6 +647,8 @@ export function gatherRealUc018(opts) {
         targetEnv,
         present: receiptPresent,
         missing: !receiptPresent,
+        backfillFailed: receipt?._backfillFailed === true,
+        backfillFailReason: receipt?._backfillFailReason || null,
       },
       _sources: {
         receiptPath: receipt?._path || null,
