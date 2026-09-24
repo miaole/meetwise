@@ -35,6 +35,7 @@ import {
   gatherRealUc018,
   toEvaluateInput,
   gapClosedInText,
+  assertCleanPorcelain,
 } from './lib/uc-covered-real-gatherer.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -173,7 +174,7 @@ const fixtureIds = readdirSync(fixtureDir)
   .filter((f) => f.endsWith('.input.json'))
   .map((f) => f.replace(/\.input\.json$/, ''))
   .sort();
-if (fixtureIds.length < 14) fail(`expected ≥14 fixtures, got ${fixtureIds.length}`);
+if (fixtureIds.length < 18) fail(`expected ≥18 fixtures, got ${fixtureIds.length}`);
 
 for (const id of fixtureIds) {
   const input = JSON.parse(read(join(fixtureDir, `${id}.input.json`)));
@@ -220,6 +221,89 @@ try {
   fail('anti-tautology runtime: evaluate should reject input.expected');
 } catch {
   pass('anti-tautology runtime: evaluate rejects input.expected');
+}
+
+// gapClosedInText: positive CLOSED / 已关 vs negation/prohibition windows (不得/禁止/Ban/不可/未/not)
+{
+  const pos = [
+    ['GAP-UC018-FULL-E2E … CLOSED (done)', 'GAP-UC018-FULL-E2E', true],
+    ['CLOSED before id: CLOSED · GAP-UC018-GRAPH', 'GAP-UC018-GRAPH', true],
+    ['已关 · GAP-UC018-TTL retained', 'GAP-UC018-TTL', true],
+    ['GAP-UC018-UI 已关', 'GAP-UC018-UI', true],
+    ['**CLOSED**（GAP-UC018-SOLE）', 'GAP-UC018-SOLE', true],
+  ];
+  const neg = [
+    ['不得写已关 · GAP-UC018-COVERED-CRITERION', 'GAP-UC018-COVERED-CRITERION', false],
+    ['禁止 CLOSED GAP-UC018-FULL-E2E 宣称', 'GAP-UC018-FULL-E2E', false],
+    ['Ban CLOSED GAP-UC018-GRAPH wash', 'GAP-UC018-GRAPH', false],
+    ['不可已关 GAP-UC018-TTL', 'GAP-UC018-TTL', false],
+    ['未 CLOSED · GAP-UC018-UI', 'GAP-UC018-UI', false],
+    ['not closed GAP-UC018-SOLE', 'GAP-UC018-SOLE', false],
+  ];
+  let gapOk = true;
+  for (const [text, id, want] of [...pos, ...neg]) {
+    const got = gapClosedInText(text, id);
+    if (got !== want) {
+      fail(`gapClosedInText(${JSON.stringify(text)}, ${id}) got ${got} want ${want}`);
+      gapOk = false;
+    }
+  }
+  if (gapOk) pass('gapClosedInText: positive CLOSED/已关 + negation Ban/不得/禁止/不可/未/not');
+}
+
+// Undefined-means-fail: delete each required field one-at-a-time from FX-ALL-MET → never flip true
+{
+  const allMetInput = JSON.parse(read(join(fixtureDir, 'FX-ALL-MET.input.json')));
+  const requiredDeletes = [
+    ['NEG.prove.exit', (o) => { delete o.columns.NEG.prove.exit; }],
+    ['NEG.stack', (o) => { delete o.columns.NEG.stack; }],
+    ['NEG.stack.postgres', (o) => { delete o.columns.NEG.stack.postgres; }],
+    ['NEG.stack.postgresSaver', (o) => { delete o.columns.NEG.stack.postgresSaver; }],
+    ['NEG.receipts.evidenceOfRecord', (o) => { delete o.columns.NEG.receipts.evidenceOfRecord; }],
+    ['NEG.dual.e2eHa', (o) => { delete o.columns.NEG.dual.e2eHa; }],
+    ['NEG.dual.ragRoute', (o) => { o.columns.NEG.dual.ragRoute = null; }],
+    ['NEG.prove.committed', (o) => { o.columns.NEG.prove.committed = false; }],
+    ['section11.businessPathMet', (o) => { o.section11.businessPathMet = false; }],
+  ];
+  let umfOk = true;
+  for (const [label, mut] of requiredDeletes) {
+    const clone = JSON.parse(JSON.stringify(allMetInput));
+    mut(clone);
+    const v = evaluate(clone);
+    if (v.canHonestlyFlip === true) {
+      fail(`undefined-means-fail: ${label} still flipped true`);
+      umfOk = false;
+    }
+    if (label.startsWith('NEG.') && v.columns.NEG?.meetsCovered === true) {
+      fail(`undefined-means-fail: ${label} left NEG.meetsCovered=true`);
+      umfOk = false;
+    }
+  }
+  if (umfOk) pass('undefined-means-fail: deleting required fields never flips true / NEG MET');
+}
+
+// Porcelain guard: clean OK; dirty refuses
+{
+  try {
+    assertCleanPorcelain(root);
+    pass('porcelain: clean tree accepted');
+  } catch (e) {
+    fail(`porcelain: expected clean at prove time, got ${e.message.split('\\n')[0]}`);
+  }
+  const dirtyPath = join(root, '.tmp-porcelain-dirty-probe-uc018.txt');
+  try {
+    writeFileSync(dirtyPath, 'dirty-probe\\n');
+    let threw = false;
+    try {
+      assertCleanPorcelain(root);
+    } catch (e) {
+      threw = e.code === 'DIRTY_TREE' || /DIRTY_TREE/.test(e.message);
+    }
+    if (threw) pass('porcelain: dirty tree refuses (DIRTY_TREE)');
+    else fail('porcelain: dirty tree should refuse');
+  } finally {
+    try { rmSync(dirtyPath, { force: true }); } catch { /* */ }
+  }
 }
 
 // Real gatherer
@@ -280,7 +364,7 @@ function runNeg(label, mutate, expectReason) {
       cpSync(join(srcReceipts, 'uc018-perf-load/README.md'), join(dstReceipts, 'uc018-perf-load/README.md'));
     }
     mutate(dstReceipts);
-    const g = gatherRealUc018({ root, receiptRoot: dstReceipts });
+    const g = gatherRealUc018({ root, receiptRoot: dstReceipts, skipPorcelainCheck: true });
     const v = evaluate(toEvaluateInput(g));
     const ok =
       v.canHonestlyFlip === false &&
@@ -301,8 +385,26 @@ runNeg('drop-ADV-exit', (dst) => {
   const j = JSON.parse(readFileSync(p, 'utf8'));
   delete j.exit;
   delete j.exitCode;
+  delete j.exits;
+  delete j.cmds;
+  delete j.allPass;
   writeFileSync(p, JSON.stringify(j, null, 2) + '\n');
-}, REFUSE_REASONS.PROVE_FAIL);
+}, REFUSE_REASONS.MISSING_RECEIPT); // null/absent exit ⇒ MISSING-RECEIPT (not PROVE-FAIL)
+
+runNeg('nonzero-ADV-exit', (dst) => {
+  const p = join(dst, '2026-09-23-uc-e2e-018-adv-evidence.json');
+  const j = JSON.parse(readFileSync(p, 'utf8'));
+  j.exit = 7;
+  writeFileSync(p, JSON.stringify(j, null, 2) + '\n');
+}, REFUSE_REASONS.PROVE_FAIL); // recorded nonzero ⇒ PROVE-FAIL
+
+runNeg('wipe-ADV-stack', (dst) => {
+  const p = join(dst, '2026-09-23-uc-e2e-018-adv-evidence.json');
+  const j = JSON.parse(readFileSync(p, 'utf8'));
+  delete j.stack;
+  delete j.soleStack;
+  writeFileSync(p, JSON.stringify(j, null, 2) + '\n');
+}, REFUSE_REASONS.STUB_STACK);
 
 runNeg('nonexistent-ADV-sha', (dst) => {
   const p = join(dst, '2026-09-23-uc-e2e-018-adv-evidence.json');
@@ -358,7 +460,21 @@ const evidence = {
   ms3EqualsR4Closed: false,
   banInventCovered: true,
   banFlipSection11: true,
-  fixRound: 'C-GATHERER-REAL-INPUT',
+  failClosedAudit: [
+    { field: 'prove.exit', before: 'null/absent treated as PROVE-FAIL (or soft 0)', after: 'null/absent → MISSING-RECEIPT; nonzero → PROVE-FAIL', file: 'uc-covered-evaluator.mjs:~147-151' },
+    { field: 'stack.postgres|postgresSaver', before: 'undefined passed badStack===false (fail-open MET)', after: '!== true → STUB-STACK', file: 'uc-covered-evaluator.mjs:~166-172' },
+    { field: 'stack.memorySaver|mysql|qdrant', before: 'undefined coerced/ignored', after: '!== false → STUB-STACK', file: 'uc-covered-evaluator.mjs:~166-172' },
+    { field: 'receipts.evidenceOfRecord', before: 'gatherer soft-defaulted true when receipt present', after: 'absent → false → MISSING-RECEIPT', file: 'uc-covered-real-gatherer.mjs:pickEvidenceFlags + evaluator:~175-179' },
+    { field: 'parseSoleStack postgresSaver', before: 'inferred from postgres+pgvector', after: 'explicit PostgresSaver token only', file: 'uc-covered-real-gatherer.mjs:parseSoleStack' },
+    { field: 'pickStack absent', before: 'empty/undefined fields treated as MET', after: 'all undefined → STUB-STACK', file: 'uc-covered-real-gatherer.mjs:pickStack' },
+    { field: 'NEG/BOUND dual', before: 'hardcoded dual null', after: 'wired sole-stack+waiting-user review Verdict', file: 'gatherRealUc018' },
+    { field: 'FAULT dual+receipt', before: 'receipt null + dual null', after: 'GRAPH evidence if tip committed+cmds parseable else MISSING-RECEIPT; dual from graph post-prove', file: 'gatherRealUc018' },
+    { field: 'gapClosedInText', before: '已关/CLOSED matched under 不得写已关 / Ban / 禁止', after: 'banNear window skips negation/prohibition', file: 'gapClosedInText' },
+    { field: 'porcelain', before: 'no check', after: 'non-empty porcelain → DIRTY_TREE refuse', file: 'assertCleanPorcelain' },
+  ],
+  fixRound: 'fix-round-2-stack-eor-fault-exit-gapClosed-dual',
+  pendingNailGaps: ['GAP-UC018-RECEIPT-BACKFILL'],
+  receiptBackfillNote: 'GAP-UC018-RECEIPT-BACKFILL deferred to nail-time (Ban hand-writing JSON from prose)',
 };
 writeFileSync(join(tmpDir, 'covered-criterion-evidence.json'), JSON.stringify(evidence, null, 2) + '\n');
 writeFileSync(join(receiptDir, 'covered-criterion-evidence.json'), JSON.stringify(evidence, null, 2) + '\n');
