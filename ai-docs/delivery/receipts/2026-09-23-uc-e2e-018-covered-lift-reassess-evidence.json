@@ -3,14 +3,14 @@
   "gap": "GAP-UC018-COVERED-LIFT-REASSESS",
   "status": "executed:awaiting_post_prove_dual",
   "canHonestlyFlip": false,
-  "refuseReason": "PERF/LOAD blind (matrix §0.5/§1.0 · no NHP-018-PERF/LOAD · Ban假关 · Ban invent covered)",
+  "refuseReason": "PERF/LOAD partial ≠ UC covered (matrix §0.5/§1.0 · Ban假关 · Ban invent covered · covered-lift=separate later knife)",
   "columns": {
     "NEG": "partial",
     "FAULT": "partial",
     "BOUND": "partial",
     "ADV": "partial",
-    "PERF": "blind",
-    "LOAD": "blind"
+    "PERF": "partial",
+    "LOAD": "partial"
   },
   "matrixUc018": "partial",
   "uc018Covered": false,
@@ -53,5 +53,5 @@
     "requestTip": "5434c14",
     "codingBase": "6fac200"
   },
-  "datePT": "9/23/2026, 7:23:11 PM PT"
+  "datePT": "9/23/2026, 7:47:55 PM PT"
 }

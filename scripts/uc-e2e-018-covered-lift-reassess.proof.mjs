@@ -151,51 +151,69 @@ const col = {
   ADV: cellStatus(row101[4]),
 };
 
-// --- PERF/LOAD: no NHP-018-PERF/LOAD rows + matrix §1.0/§1.1 honesty ---
+// --- PERF/LOAD: report live column state · still refuse §1.1 flip (partial ≠ covered) ---
+// Disclosure: AUTHORIZED GAP-UC018-PERF-LOAD may elevate NHP-018-PERF/LOAD to partial.
+// This reassess prove MUST report the new column state and MUST still refuse any §1.1 flip
+// in this knife (PERF/LOAD partial ≠ UC covered · covered-lift = separate later knife).
 const hasNhp018Perf = /NHP-018-PERF/i.test(nhp);
 const hasNhp018Load = /NHP-018-LOAD/i.test(nhp);
-const matrixPerfLoadBlind =
-  /PERF\/LOAD still blind/i.test(matrix) ||
-  /PERF\/LOAD 分面 \*\*零 covered\*\*/.test(matrix) ||
-  (/UC-E2E-018[^\n]{0,400}PERF\/LOAD still blind/i.test(matrix));
-// §1.0.2 has no dedicated UC-E2E-018 PERF/LOAD row (money group 011/017/019 blind nearby)
-const section102Has018 = /\| UC-E2E-018[^\n]*\|[^\n]*PERF/i.test(matrix) ||
-  /\| UC-E2E-018 \|[^\n]*PERF_api/i.test(matrix);
-const perfBlind = !hasNhp018Perf && (matrixPerfLoadBlind || !section102Has018);
-const loadBlind = !hasNhp018Load && (matrixPerfLoadBlind || !section102Has018);
-col.PERF = perfBlind ? 'blind' : 'partial';
-col.LOAD = loadBlind ? 'blind' : 'partial';
+const nhpPerfPartial = /NHP-018-PERF-01[\s\S]{0,400}?\|\s*\*\*partial\*\*/i.test(nhp);
+const nhpLoadPartial = /NHP-018-LOAD-01[\s\S]{0,400}?\|\s*\*\*partial\*\*/i.test(nhp);
+const nhpPerfCaseOnly = /NHP-018-PERF-01[\s\S]{0,400}?case-only/i.test(nhp) && !nhpPerfPartial;
+const nhpLoadCaseOnly = /NHP-018-LOAD-01[\s\S]{0,400}?case-only/i.test(nhp) && !nhpLoadPartial;
+const section102Row = matrix.match(/\| UC-E2E-018（abandon） \|([^|]+)\|([^|]+)\|([^|]+)\|/);
+const cell102 = (c) => {
+  const s = String(c || '');
+  if (/\*\*partial\*\*/i.test(s)) return 'partial';
+  if (/case-only/i.test(s)) return 'case-only';
+  if (/\*\*blind\*\*|blind/i.test(s)) return 'blind';
+  return 'blind';
+};
+col.PERF = nhpPerfPartial || cell102(section102Row?.[1]) === 'partial'
+  ? 'partial'
+  : nhpPerfCaseOnly || cell102(section102Row?.[1]) === 'case-only'
+    ? 'case-only'
+    : hasNhp018Perf
+      ? 'case-only'
+      : 'blind';
+col.LOAD = nhpLoadPartial || cell102(section102Row?.[3]) === 'partial'
+  ? 'partial'
+  : nhpLoadCaseOnly || cell102(section102Row?.[3]) === 'case-only'
+    ? 'case-only'
+    : hasNhp018Load
+      ? 'case-only'
+      : 'blind';
 
 note(`columns NEG=${col.NEG} FAULT=${col.FAULT} BOUND=${col.BOUND} ADV=${col.ADV} PERF=${col.PERF} LOAD=${col.LOAD}`);
 
-if (hasNhp018Perf) fail('Ban invent NHP-018-PERF row without AUTHORIZED PERF knife evidence');
-else pass('NHP matrix: no NHP-018-PERF row (PERF remains blind · Ban invent)');
-if (hasNhp018Load) fail('Ban invent NHP-018-LOAD row without AUTHORIZED LOAD knife evidence');
-else pass('NHP matrix: no NHP-018-LOAD row (LOAD remains blind · Ban invent)');
+if (hasNhp018Perf) pass(`NHP matrix: NHP-018-PERF present · status=${col.PERF} (AUTHORIZED PERF/LOAD knife may elevate · Ban invent covered)`);
+else pass('NHP matrix: no NHP-018-PERF row (PERF remains blind)');
+if (hasNhp018Load) pass(`NHP matrix: NHP-018-LOAD present · status=${col.LOAD} (AUTHORIZED PERF/LOAD knife may elevate · Ban invent covered)`);
+else pass('NHP matrix: no NHP-018-LOAD row (LOAD remains blind)');
 
-// --- canHonestlyFlip: ALL six columns non-blind (§0.5/§1.0) ---
-let canHonestlyFlip = true;
+// --- canHonestlyFlip: six-column non-blind is necessary but NOT sufficient ---
+// PERF/LOAD partial ≠ UC covered. This reassess knife NEVER flips §1.1.
+let canHonestlyFlip = false;
 const refuseReasons = [];
 const required = ['NEG', 'FAULT', 'BOUND', 'ADV', 'PERF', 'LOAD'];
 for (const k of required) {
   if (!isNonBlind(col[k])) {
-    canHonestlyFlip = false;
     refuseReasons.push(`${k} ${col[k] || 'blind'}`);
   }
 }
-// Reinforce ADV alone ≠ covered even if ADV non-blind
-if (col.ADV === 'partial' && (col.PERF === 'blind' || col.LOAD === 'blind')) {
-  canHonestlyFlip = false;
-  if (!refuseReasons.some((r) => /PERF|LOAD/.test(r))) {
-    refuseReasons.push('PERF/LOAD blind');
-  }
+if (col.PERF === 'partial' || col.LOAD === 'partial' || col.PERF === 'case-only' || col.LOAD === 'case-only') {
+  refuseReasons.push('PERF/LOAD partial≠covered');
 }
-
+if (col.ADV === 'partial' && (col.PERF === 'blind' || col.LOAD === 'blind')) {
+  if (!refuseReasons.some((r) => /PERF|LOAD/.test(r))) refuseReasons.push('PERF/LOAD blind');
+}
+// Hard refuse for this knife regardless of column greenness
+refuseReasons.push('reassess-knife-refuses-§1.1-flip');
 const refuseReason =
-  refuseReasons.length === 0
-    ? null
+  refuseReasons.some((r) => /partial≠covered/i.test(r))
+    ? 'PERF/LOAD partial ≠ UC covered (matrix §0.5/§1.0 · Ban假关 · Ban invent covered · covered-lift=separate later knife)'
     : refuseReasons.some((r) => /PERF|LOAD/.test(r))
-      ? 'PERF/LOAD blind (matrix §0.5/§1.0 · no NHP-018-PERF/LOAD · Ban假关 · Ban invent covered)'
+      ? 'PERF/LOAD residual blocks covered flip (Ban假关 · Ban invent covered)'
       : refuseReasons.join(' · ');
 
 note(`assessment canHonestlyFlip=${canHonestlyFlip}${refuseReason ? ` refuse=${refuseReason}` : ''}`);
@@ -303,9 +321,9 @@ for (const [label, text] of [
 ]) {
   assertPins(label, text, [
     [/GAP-UC018-COVERED-LIFT-REASSESS/, 'names GAP-UC018-COVERED-LIFT-REASSESS', 'must name GAP-UC018-COVERED-LIFT-REASSESS'],
-    [/executed:awaiting_post_prove_dual/, 'status executed:awaiting_post_prove_dual', 'must be executed:awaiting_post_prove_dual (Ban self-nail / Ban post_prove_dual_pass)'],
+    [/executed:awaiting_post_prove_dual|post_prove_dual_pass/, 'status executed:awaiting_post_prove_dual or post_prove_dual_pass (CLOSED nail retained)', 'must be executed:awaiting_post_prove_dual or retained post_prove_dual_pass (Ban invent covered)'],
     [/canHonestlyFlip\s*=\s*false|canHonestlyFlip:\s*false|\*\*canHonestlyFlip\*\*.*false|canHonestlyFlip\*\*=\*\*false/i, 'records canHonestlyFlip=false', 'must record canHonestlyFlip=false (PERF/LOAD blind)'],
-    [/PERF\/LOAD[^\n]{0,60}blind|refuse[^\n]{0,80}PERF\/LOAD/i, 'refuse PERF/LOAD blind', 'must record refuse PERF/LOAD blind'],
+    [/PERF\/LOAD[^\n]{0,80}blind|PERF\/LOAD partial\s*≠|refuse[^\n]{0,80}PERF\/LOAD|partial ≠ UC covered/i, 'refuse PERF/LOAD residual / partial≠covered', 'must record refuse PERF/LOAD blind or partial≠covered'],
     [/releaseEvidence\s*=\s*false/i, 'releaseEvidence=false', 'must pin releaseEvidence=false'],
     [/haStatus=NOT_HA|Not HA/i, 'NOT_HA', 'must pin haStatus=NOT_HA'],
     [/claimProductionHA\s*=\s*false/i, 'claimProductionHA=false', 'must pin claimProductionHA=false'],
@@ -323,10 +341,13 @@ for (const [label, text] of [
     [/27dd6ae/, 'cites ADV tip', 'must cite 27dd6ae'],
     [/abfbbc0/, 'cites prior non-flip', 'must cite abfbbc0'],
   ]);
-  if (/post_prove_dual_pass/.test(text) && !/Ban self-nail|awaiting_post_prove/.test(text)) {
-    fail(`${label}: Ban self-nail — must not claim post_prove_dual_pass this coding open`);
-  } else {
+  // CLOSED reassess nail may already be post_prove_dual_pass; Ban invent covered / Ban §1.1 flip remains.
+  if (/post_prove_dual_pass/.test(text)) {
+    pass(`${label}: lifecycle post_prove_dual_pass retained (CLOSED reassess nail · Ban reopen as covered flip)`);
+  } else if (/executed:awaiting_post_prove_dual/.test(text)) {
     pass(`${label}: lifecycle executed:awaiting_post_prove_dual (Ban self-nail)`);
+  } else {
+    fail(`${label}: must retain executed:awaiting_post_prove_dual or post_prove_dual_pass`);
   }
   if (canHonestlyFlip === false) {
     if (/UC-E2E-018[^\n]{0,40}\*\*covered\*\*/.test(text) && !/Ban.*covered|≠.*covered|stay.*partial|stays \*\*partial\*\*|stay \*\*partial\*\*/i.test(text)) {
@@ -363,9 +384,14 @@ if (canHonestlyFlip) {
   else fail('matrix §1.0: expected UC-E2E-018 ADV **partial** or **blind** under non-flip');
   if (col.PERF === 'blind' && col.LOAD === 'blind') {
     pass('matrix §1.0: PERF/LOAD **blind** (refuse pin live · Ban claim PERF/LOAD closed)');
+  } else if ((col.PERF === 'partial' || col.PERF === 'case-only') && (col.LOAD === 'partial' || col.LOAD === 'case-only')) {
+    pass(`matrix §1.0: PERF/LOAD **${col.PERF}/${col.LOAD}** reported (AUTHORIZED elevate ok · still ≠ UC covered · Ban假关)`);
   } else {
-    fail('expected PERF/LOAD blind under this reassess non-flip (Ban invent green)');
+    fail(`unexpected PERF/LOAD state PERF=${col.PERF} LOAD=${col.LOAD}`);
   }
+  // Hard: canHonestlyFlip must remain false in this reassess knife
+  if (canHonestlyFlip) fail('reassess knife must keep canHonestlyFlip=false (Ban假关)');
+  else pass('reassess knife: canHonestlyFlip=false retained (PERF/LOAD partial ≠ covered)');
 }
 
 assertPins('matrix', matrix, [
