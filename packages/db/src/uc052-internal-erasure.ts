@@ -6,7 +6,10 @@
  * oss/redis/langfuse as retention_pending → happy terminal pending_external.
  */
 import { createHash, createHmac } from 'node:crypto';
-import type { Client } from './principal.ts';
+import type { Client, DbPool } from './principal.ts';
+
+/** Pool or txn client — both expose .query used by admin helpers. */
+type Sql = DbPool | Client;
 import {
   purgeInterviewProjectionTarget,
 } from './int-transcript-projection.ts';
@@ -66,7 +69,7 @@ function digestFromTargets(targets: Array<{ sink: string; resourceHmac: string }
 }
 
 export async function attachExternalRetentionPendingTargets(
-  c: Client,
+  c: Sql,
   requestId: string,
   interviewId: string,
   idempotencyKeyHash: string,
@@ -97,7 +100,7 @@ export async function attachExternalRetentionPendingTargets(
   );
 }
 
-export async function loadRequestTargets(c: Client, requestId: string): Promise<Uc052ErasureTarget[]> {
+export async function loadRequestTargets(c: Sql, requestId: string): Promise<Uc052ErasureTarget[]> {
   const rows = await c.query<{ id: string; sink: string; resource_hmac: string; status: string }>(
     `SELECT id, sink, resource_hmac, status FROM privacy_deletion_target WHERE request_id = $1::uuid ORDER BY sink`,
     [requestId],
@@ -110,7 +113,7 @@ export async function loadRequestTargets(c: Client, requestId: string): Promise<
   }));
 }
 
-export async function loadRequestStatus(c: Client, requestId: string): Promise<string> {
+export async function loadRequestStatus(c: Sql, requestId: string): Promise<string> {
   const r = await c.query<{ status: string }>(
     `SELECT status FROM privacy_erasure_request WHERE id = $1::uuid`,
     [requestId],
@@ -121,7 +124,7 @@ export async function loadRequestStatus(c: Client, requestId: string): Promise<s
 }
 
 /** Mirror 0096 L576–583 CASE so FAULT paths without a final purge still settle status. */
-export async function reassessRequestStatus(c: Client, requestId: string): Promise<string> {
+export async function reassessRequestStatus(c: Sql, requestId: string): Promise<string> {
   await c.query(
     `UPDATE privacy_erasure_request AS r
         SET status = CASE
@@ -145,7 +148,7 @@ export interface RunAuthorizedInterviewErasureInput {
   /** Short-lived executor txn around consume only (avoid idle-in-transaction timeout). */
   consume: <T>(fn: (c: Client) => Promise<T>) => Promise<T>;
   asWorkerPrincipal: <T>(owner: string, fn: (c: Client) => Promise<T>) => Promise<T>;
-  admin: Client;
+  admin: DbPool;
   owner: string;
   interviewId: string;
   keys: Uc052SignKeys;
@@ -246,7 +249,7 @@ export async function runAuthorizedInterviewErasure(
 }
 
 export async function retryFailedLocalTarget(input: {
-  admin: Client;
+  admin: DbPool;
   asWorkerPrincipal: <T>(owner: string, fn: (c: Client) => Promise<T>) => Promise<T>;
   owner: string;
   jti: string;
