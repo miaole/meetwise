@@ -74,7 +74,7 @@ Ancestry（`994e83a`→`3424dc1`，含中间 docs `320e919`）均在 `origin/fea
 
 ### GAP-G7-E2E-REPORT-MAX-ATTEMPTS — **有真实日志**
 
-- **Log**: `runfull-stdout-debug.txt:45` → `terminal=report_unavailable; reason=max_attempts_exceeded`
+- **Log**: `.tmp/g7-step3/runfull-stdout-debug.txt:45` → `terminal=report_unavailable; reason=max_attempts_exceeded`
 - **Source**: `apps/worker/src/report-worker.ts:67` → `appendEvent(..., 'report_unavailable', { reason: 'max_attempts_exceeded' })`
 - **Model**: 同窗 ledger 全为 `qwen3.8-flash`（无 fallback）→ 报告重试耗尽发生在 **free-model** 路径上；属 secondary（出题已发生后的终态）
 
@@ -83,7 +83,7 @@ Ancestry（`994e83a`→`3424dc1`，含中间 docs `320e919`）均在 `origin/fea
 ## 3) (b) C-C HARD perf root-cause separation
 
 - **Fail step**: `scripts/run-e2e-performance-suite.mjs` steps[3]=`HTTP full E2E`（suite 共 **27** steps）
-- **Log**: `live-verify-e2e-performance.log:189` `========== HTTP full E2E ==========`；`:206` `e2e_performance_suite_failed:HTTP full E2E:exit=1`
+- **Log**: `.tmp/g7-step3/live-verify-e2e-performance.log:189` `========== HTTP full E2E ==========`；`:206` `e2e_performance_suite_failed:HTTP full E2E:exit=1`
 - **Inner class**: 与 GAP-PROVENANCE 同源（`e2e:isolated` EXIT 1 / assertion identities）——**不是** 403 FreeTierOnly、**不是** migrate 失败（migrate PASS 段在同 log 前部）、**不是** perf threshold/burst 叶子
 - **Root-cause class（本审裁定）**: free-model 会话形状/断言（clarification 计入 identities）导致 HTTP full E2E 红；**已从证据分离**，但 **C-C「perf SLO / 生产模型确认」仍未闭合**（`ccConfirmed=false` 与 docs receipt 一致）
 - **Ruling**: C-C = **SEPARATED（根因类已识别） / still OPEN as confirmed** —— 不得称为 C-C closed
@@ -114,7 +114,7 @@ Ancestry（`994e83a`→`3424dc1`，含中间 docs `320e919`）均在 `origin/fea
 
 - 机器收据：`runnerCommitSha=3424dc19e69cbe96b0a69d57743f4be4ed1988ba` · `porcelainClean=true`（主 isolated `04-13-04`）· per-call `actualModel`+timestamps · `runCostCapCny=5` · `actualSpendCny=null` · `keyFingerprint=d26808ef` only
 - Docs receipt（`5b2243e`）：聚合 25 calls / token in=13579 out=8833 · 无 raw key/DSN/bearer（本审 grep）
-- **Path**: live receipt 落在 `docs/delivery/`；惯例与 gatherer（`scripts/lib/uc-covered-real-gatherer.mjs:450`）权威根为 **`ai-docs/delivery/receipts/`**（既有 `ai-docs/delivery/receipts/g7-key-x3-freetieronly-reprove/`）
+- **Path**: live receipt 落在 `docs/delivery/`；惯例与 gatherer（`scripts/lib/uc-covered-real-gatherer.mjs:425`）权威根为 **`ai-docs/delivery/receipts/`**（既有 `ai-docs/delivery/receipts/g7-key-x3-freetieronly-reprove/`）
 - **Ruling**: **CONDITION** — mirror/move 到 `ai-docs/delivery/receipts/g7-key-x3-freetieronly-reprove/`，保持单源；docs 字段名建议对齐 `runnerCommitSha`
 
 ---
