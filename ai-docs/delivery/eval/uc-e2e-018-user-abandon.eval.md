@@ -12,7 +12,7 @@
 
 eval-first：交付 **可执行** A1–A3 集成断言（`@meetwise/db` `abandonInterviewAndRelease`）+ **真 HTTP** `POST /interview/:id/abandon`（产品口已存在）。无 `MODEL_API_KEY`。  
 **禁止**因本文件 / prove 绿而把矩阵写成 `covered`。最多 **partial**。  
-**本绿 ≠ 全链路 E2E covered**。`GAP-UC018-FULL-E2E`+#2 `GAP-UC018-GRAPH`+#3 `GAP-UC018-TTL`+#5 `GAP-UC018-UI`+#6 `GAP-UC018-SOLE`（PG-retained）已关；**#6 alone ≠ covered** → 矩阵仍 **partial** · **≠ covered**。covered-lift assessed（`pnpm uc018:covered-lift:prove` · **canHonestlyFlip=false** · refuse ADV was **blind** at `abfbbc0` · now §1.0 ADV **partial** via `pnpm uc018:adv:prove` · **ADV alone ≠ covered** · Ban假关 · Ban wash SOLE/ADV alone into covered）。
+**本绿 ≠ 全链路 E2E covered**。`GAP-UC018-FULL-E2E`+#2 `GAP-UC018-GRAPH`+#3 `GAP-UC018-TTL`+#5 `GAP-UC018-UI`+#6 `GAP-UC018-SOLE`（PG-retained）已关；**#6 alone ≠ covered** → 矩阵仍 **partial** · **≠ covered**。covered-lift assessed（`pnpm uc018:covered-lift:prove` · **canHonestlyFlip=false** · refuse ADV was **blind** at `abfbbc0` · now §1.0 ADV **partial** via `pnpm uc018:adv:prove` tip `27dd6ae` · **ADV alone ≠ covered** · Ban假关 · Ban wash SOLE/ADV alone into covered）· **covered-lift-reassess REQUEST OPEN**（`harness/uc-e2e-018-covered-lift-reassess.md` · `draft:awaiting_pre_exec_dual` · **canHonestlyFlip TBD** · Ban invent covered · Ban flip §1.1 this open）。
 
 ---
 
@@ -42,6 +42,8 @@ pnpm uc018:ttl:prove ; echo EXIT=$?
 pnpm uc018:ui:prove ; echo EXIT=$?
 pnpm uc018:sole:prove ; echo EXIT=$?
 pnpm uc018:covered-lift:prove ; echo EXIT=$?
+# plan only · not_run this open:
+# pnpm uc018:covered-lift-reassess:prove ; echo EXIT=$?
 pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 ```
 
@@ -68,9 +70,9 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 | H-waiting-user | HTTP waiting_user+reserved → 200 + released；begin→409 | **否**（聚焦 HTTP；关 §1b#4） |
 | H-authz | 404/401/409 守卫 | 否 |
 
-**仍 gap 于 covered（见 harness §1b + covered-lift）**：covered-lift assessed · **canHonestlyFlip=false** · refuse ADV was **blind** · now ADV **partial**（`uc018:adv:prove`）· **ADV alone ≠ covered** · Ban假关。UI（#5）+ sole PG-retained（#6 · `GAP-UC018-SOLE` CLOSED）已关 · **UI alone ≠ covered** · **#6 alone ≠ covered** · Ban wash SOLE/ADV alone into covered。
+**仍 gap 于 covered（见 harness §1b + covered-lift + covered-lift-reassess）**：covered-lift assessed · **canHonestlyFlip=false** · refuse ADV was **blind** · now ADV **partial**（`uc018:adv:prove` tip `27dd6ae`）· **ADV alone ≠ covered** · Ban假关 · **covered-lift-reassess REQUEST OPEN** · **canHonestlyFlip TBD**。UI（#5）+ sole PG-retained（#6 · `GAP-UC018-SOLE` CLOSED）已关 · **UI alone ≠ covered** · **#6 alone ≠ covered** · Ban wash SOLE/ADV alone into covered。
 
-**已关**：§1b#4 `waiting_user` CAS；**§1b#1 `GAP-UC018-FULL-E2E`**；**§1b#2 `GAP-UC018-GRAPH`**；**§1b#3 `GAP-UC018-TTL`**；**§1b#5 `GAP-UC018-UI`**（`pnpm uc018:ui:prove`）；**§1b#6 `GAP-UC018-SOLE`**（`pnpm uc018:sole:prove` · PG-retained · Ban MySQL/Qdrant sole-wiring）。矩阵仍 **partial** · **UI alone ≠ covered** · **#6 alone ≠ covered** · **ADV alone ≠ covered** · **≠ UC-E2E-018 covered** · covered-lift **canHonestlyFlip=false**（ADV was **blind** · now **partial** · `GAP-UC018-ADV` **CLOSED** · knife `post_prove_dual_pass` · prove tip `bdc5993` · post-prove dual `5690779`/`9300d48`）· Ban假关 · Ban wash ADV into covered · Ban flip §1.1 · Ban claim PERF/LOAD closed。
+**已关**：§1b#4 `waiting_user` CAS；**§1b#1 `GAP-UC018-FULL-E2E`**；**§1b#2 `GAP-UC018-GRAPH`**；**§1b#3 `GAP-UC018-TTL`**；**§1b#5 `GAP-UC018-UI`**（`pnpm uc018:ui:prove`）；**§1b#6 `GAP-UC018-SOLE`**（`pnpm uc018:sole:prove` · PG-retained · Ban MySQL/Qdrant sole-wiring）。矩阵仍 **partial** · **UI alone ≠ covered** · **#6 alone ≠ covered** · **ADV alone ≠ covered** · **≠ UC-E2E-018 covered** · covered-lift **canHonestlyFlip=false**（ADV was **blind** · now **partial** · `GAP-UC018-ADV` **CLOSED** · tip `27dd6ae` · knife `post_prove_dual_pass` · prove tip `bdc5993` · post-prove dual `5690779`/`9300d48`）· **covered-lift-reassess REQUEST OPEN**（`harness/uc-e2e-018-covered-lift-reassess.md` · `draft:awaiting_pre_exec_dual` · **canHonestlyFlip TBD**）· Ban假关 · Ban wash ADV into covered · Ban flip §1.1 · Ban claim PERF/LOAD closed。
 
 ---
 
@@ -78,7 +80,7 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 
 - [ ] 未把 prove 绿写成 **UC-E2E-018 covered**
 - [ ] 未把 `commerce:prove` / `commerce-reconcile:prove` / `neg:interview` 冒充本 UC
-- [ ] 未把 `uc018:abandon:http:prove` / `uc018:abandon:full-e2e:prove` / `uc018:graph:prove` / `uc018:ttl:prove` / `uc018:ui:prove` / `uc018:sole:prove` / `uc018:covered-lift:prove` / `uc018:adv:prove` / `commerce-reconcile:prove` 绿写成 UC-E2E-018 covered（FULL-E2E+GRAPH+TTL+UI+SOLE+ADV 已关/partial 仍 §1.1 partial · UI alone ≠ covered · #6 alone ≠ covered · ADV alone ≠ covered · canHonestlyFlip=false）
+- [ ] 未把 `uc018:abandon:http:prove` / `uc018:abandon:full-e2e:prove` / `uc018:graph:prove` / `uc018:ttl:prove` / `uc018:ui:prove` / `uc018:sole:prove` / `uc018:covered-lift:prove` / `uc018:adv:prove` / `commerce-reconcile:prove` 绿写成 UC-E2E-018 covered（FULL-E2E+GRAPH+TTL+UI+SOLE+ADV 已关/partial 仍 §1.1 partial · UI alone ≠ covered · #6 alone ≠ covered · ADV alone ≠ covered · prior canHonestlyFlip=false · reassess OPEN · canHonestlyFlip TBD）
 - [ ] 未把 MySQL/Qdrant `e2e-isolation:sole-*:prove` / `mysql-stack:*` 绿写成 `GAP-UC018-SOLE` / UC covered
 - [ ] 未把 isolated/pgvector 绿写成 MySQL/Qdrant sole cutover / HA（PG-retained = production-aligned sole per `adr-postgres-retained.md`）
 - [ ] 矩阵最多 **partial**（非假 covered）
@@ -88,5 +90,5 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 ## 5. 专家请回答
 
 1. A1–A3 + H1–H3 是否足以**维持**矩阵 **partial**（仍明示 ≠ covered）？  
-2. §1b #1–#6 已关 + covered-lift assessed：**canHonestlyFlip=false**（refuse ADV was **blind** · now ADV **partial** · **ADV alone ≠ covered**）→ 矩阵仍 **partial** · Ban假关 · Ban wash SOLE/ADV alone into covered  
+2. §1b #1–#6 已关 + covered-lift assessed：**canHonestlyFlip=false**（refuse ADV was **blind** · now ADV **partial** tip `27dd6ae` · **ADV alone ≠ covered**）→ 矩阵仍 **partial** · **covered-lift-reassess REQUEST OPEN** · **canHonestlyFlip TBD** · Ban假关 · Ban wash SOLE/ADV alone into covered · Ban invent covered  
 3. 结论写入 `reviews/`，含「仍 ≠ covered」明示；**禁止**作者自签升 covered。
