@@ -1702,6 +1702,20 @@ const baseEnv = {
   PGPASSWORD: 'meetwise_dev_password',
   PGDATABASE: 'meetwise',
 };
+// Line C G7: allocate shared ledger on the isolated parent so api/worker children
+// and the parent receipt writer all see the same path.
+if (String(baseEnv.G7_FREETIER_REPROVE ?? '').trim() === '1') {
+  if (!String(baseEnv.G7_RUN_COST_LEDGER_PATH ?? '').trim()) {
+    const ledgerDir = `${ROOT}/.tmp/g7-ledgers`;
+    mkdirSync(ledgerDir, { recursive: true });
+    baseEnv.G7_RUN_COST_LEDGER_PATH = `${ledgerDir}/g7-${process.pid}-${Date.now()}.ndjson`;
+  }
+  baseEnv.G7_PORCELAIN_CLEAN = String(baseEnv.G7_PORCELAIN_CLEAN ?? '0');
+}
+
+if (baseEnv.G7_RUN_COST_LEDGER_PATH) process.env.G7_RUN_COST_LEDGER_PATH = baseEnv.G7_RUN_COST_LEDGER_PATH;
+if (baseEnv.G7_FREETIER_REPROVE) process.env.G7_FREETIER_REPROVE = baseEnv.G7_FREETIER_REPROVE;
+
 
 function capture(command, args, env = baseEnv, cwd = ROOT, timeoutMs = 15_000) {
   return captureBounded(command, args, { cwd, env, timeoutMs });
