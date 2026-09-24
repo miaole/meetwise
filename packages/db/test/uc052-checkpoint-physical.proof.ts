@@ -43,8 +43,13 @@ const REQUIRED_CASES = [
   'NHP-052-CKPT-ZERO',
   'NHP-052-CKPT-RACE',
   'NHP-052-CKPT-RACE-TRIGGER',
+  'NHP-CKPT-UNSEALED-NEG-EPOCH',
+  'NHP-CKPT-UNSEALED-NEG-DIGEST',
+  'NHP-CKPT-UNSEALED-NEG-BOTH',
+  'HP-CKPT-SEALED-CLAIM',
   'HP-052-CKPT-01',
   'C-DIGEST-JWS',
+  'C-CASECOUNT',
 ] as const;
 
 const admin = createPool();
@@ -659,6 +664,146 @@ async function main() {
       `purge=${settled[0]?.status} write=${settled[1]?.status} counts=${JSON.stringify(after)}`);
   }
 
+
+  /* ── NHP-CKPT-UNSEALED-NEG-*: claim before seal / NULL epoch|digest · 0091 L369-374 ── */
+  async function snapRequest(requestId: string) {
+    const r = await admin.query<{
+      privacy_epoch: string | null; target_set_digest: string | null; status: string; version: string;
+    }>(
+      `SELECT privacy_epoch::text, target_set_digest, status, version::text
+         FROM privacy_erasure_request WHERE id=$1::uuid`, [requestId],
+    );
+    return r.rows[0]!;
+  }
+  async function snapTargets(requestId: string) {
+    const r = await admin.query<{ target_id: string; sink: string; status: string; lease_token: string | null }>(
+      `SELECT id::text AS target_id, sink::text AS sink, status::text AS status, lease_token::text AS lease_token
+         FROM privacy_deletion_target WHERE request_id=$1::uuid ORDER BY sink`,
+      [requestId],
+    );
+    return r.rows.map((t) => ({ id: t.target_id, sink: t.sink, status: t.status, lease: t.lease_token }));
+  }
+  async function runUnsealedClaimNeg(mode: 'epoch' | 'digest' | 'both'): Promise<{
+    ok: boolean; detail: string;
+  }> {
+    const iv = randomUUID();
+    await prepareSubject(saver, owner, iv, `unsealed-${mode}-${iv.slice(0, 8)}`);
+    const begun = await asPrivacyApiOwner(owner, (c) => beginCheckpointErasure(c, iv, nextHash()));
+    const beforeReq = await snapRequest(begun.requestId);
+    const beforeTargets = JSON.stringify(await snapTargets(begun.requestId));
+
+    let privacyEpoch = 21;
+    let targetSetDigest = 'a'.repeat(64);
+    if (mode === 'both') {
+      // begin leaves both NULL — do not seal
+      if (beforeReq.privacy_epoch != null || beforeReq.target_set_digest != null) {
+        return { ok: false, detail: 'precondition: begin must leave epoch/digest NULL' };
+      }
+    } else {
+      const sealed = await sealCheckpointErasureAuthz(admin, begun.requestId, privacyEpoch);
+      targetSetDigest = sealed.targetSetDigest;
+      if (mode === 'epoch') {
+        await admin.query(`UPDATE privacy_erasure_request SET privacy_epoch = NULL, updated_at = now() WHERE id=$1::uuid`, [begun.requestId]);
+      } else {
+        await admin.query(`UPDATE privacy_erasure_request SET target_set_digest = NULL, updated_at = now() WHERE id=$1::uuid`, [begun.requestId]);
+      }
+    }
+
+    const targets = await loadRequestTargets(admin, begun.requestId);
+    const signed = signPrivacyAuthorizationSnapshot({
+      privateKeyPem: keys.privateKeyPem, kid: keys.kid, actor: owner, owner, interview: iv,
+      purpose: 'interview_data_erasure', privacyEpoch, targets: targets.map((t) => ({ kind: t.sink, resource: t.resourceHmac })),
+      nowSec: NOW_SEC, ttlSec: 600,
+    });
+    // Force signed digest to the value we intend for claim snapshot when both-NULL
+    // (issue stores digest separately; claim compares request columns to snap).
+    await asIssuer(owner, (c) => issueAuthorizationSnapshot(c, {
+      jti: signed.jti, keyId: keys.kid, actor: owner, interviewId: iv,
+      purpose: 'interview_data_erasure', privacyEpoch, targetSetDigest: mode === 'both' ? signed.targetSetDigest : targetSetDigest,
+      expiresAt: new Date(signed.expiresAtMs),
+    }));
+    const registry = new PrivacyAuthzKeyRegistry();
+    registry.activate(keys.kid, keys.publicJwk);
+    const verified = verifyPrivacyAuthorizationSnapshot({
+      jws: signed.jws, resolveJwk: registry.resolve.bind(registry), nowSec: NOW_SEC,
+    });
+    if (!verified) return { ok: false, detail: 'jws verify failed unexpectedly' };
+    await asPrivacyWorkerExecutor(admin, (c) => consumeAuthorizationSnapshotBound(c, verified, worker));
+
+    let errMsg = '';
+    let sqlState = '';
+    let claimed = false;
+    try {
+      const lease = await asPrivacyWorkerPrincipal(admin, owner, (c) =>
+        claimAuthorizationTarget(c, signed.jti, begun.checkpointTargetId, worker, 60));
+      claimed = !!lease?.leaseToken;
+    } catch (e: any) {
+      errMsg = String(e?.message ?? e);
+      sqlState = String(e?.code ?? '');
+    }
+
+    const afterReq = await snapRequest(begun.requestId);
+    const afterTargets = JSON.stringify(await snapTargets(begun.requestId));
+    const expectMsg = mode === 'digest'
+      ? 'privacy_authorization_digest_mismatch'
+      : 'privacy_authorization_epoch_mismatch';
+    const refused = !claimed && sqlState === '42501' && errMsg.includes(expectMsg);
+    const unchanged = beforeTargets === afterTargets
+      && afterReq.status === beforeReq.status
+      && (mode === 'both'
+        ? afterReq.privacy_epoch == null && afterReq.target_set_digest == null
+        : true);
+    return {
+      ok: refused && unchanged,
+      detail: `sqlState=${sqlState} msgHas=${errMsg.includes(expectMsg)} claimed=${claimed} unchanged=${unchanged} expect=${expectMsg}`,
+    };
+  }
+
+  {
+    const id = 'NHP-CKPT-UNSEALED-NEG-EPOCH';
+    const r = await runUnsealedClaimNeg('epoch');
+    A(id, r.ok, r.detail);
+  }
+  {
+    const id = 'NHP-CKPT-UNSEALED-NEG-DIGEST';
+    const r = await runUnsealedClaimNeg('digest');
+    A(id, r.ok, r.detail);
+  }
+  {
+    const id = 'NHP-CKPT-UNSEALED-NEG-BOTH';
+    const r = await runUnsealedClaimNeg('both');
+    A(id, r.ok, r.detail);
+  }
+
+  /* ── HP-CKPT-SEALED-CLAIM: positive control · sealed claim succeeds ── */
+  {
+    const id = 'HP-CKPT-SEALED-CLAIM';
+    const iv = randomUUID();
+    await prepareSubject(saver, owner, iv, `sealed-claim-${iv.slice(0, 8)}`);
+    const begun = await asPrivacyApiOwner(owner, (c) => beginCheckpointErasure(c, iv, nextHash()));
+    const sealed = await sealCheckpointErasureAuthz(admin, begun.requestId, 22);
+    const signed = signPrivacyAuthorizationSnapshot({
+      privateKeyPem: keys.privateKeyPem, kid: keys.kid, actor: owner, owner, interview: iv,
+      purpose: 'interview_data_erasure', privacyEpoch: 22,
+      targets: sealed.targets.map((t) => ({ kind: t.sink, resource: t.resourceHmac })),
+      nowSec: NOW_SEC, ttlSec: 600,
+    });
+    await asIssuer(owner, (c) => issueAuthorizationSnapshot(c, {
+      jti: signed.jti, keyId: keys.kid, actor: owner, interviewId: iv,
+      purpose: 'interview_data_erasure', privacyEpoch: 22, targetSetDigest: sealed.targetSetDigest,
+      expiresAt: new Date(signed.expiresAtMs),
+    }));
+    const registry = new PrivacyAuthzKeyRegistry();
+    registry.activate(keys.kid, keys.publicJwk);
+    const verified = verifyPrivacyAuthorizationSnapshot({
+      jws: signed.jws, resolveJwk: registry.resolve.bind(registry), nowSec: NOW_SEC,
+    });
+    await asPrivacyWorkerExecutor(admin, (c) => consumeAuthorizationSnapshotBound(c, verified!, worker));
+    const lease = await asPrivacyWorkerPrincipal(admin, owner, (c) =>
+      claimAuthorizationTarget(c, signed.jti, begun.checkpointTargetId, worker, 60));
+    A(id, !!lease?.leaseToken && !!verified, `lease=${!!lease?.leaseToken}`);
+  }
+
   /* ── C-DIGEST-JWS: Disclosure 2 — sealed digest ≡ JWS signed digest · full target set ── */
   {
     const id = 'C-DIGEST-JWS';
@@ -738,9 +883,14 @@ async function main() {
       `before=${JSON.stringify(before)} after=${JSON.stringify(after)} deleted=${result.deletedCount} req=${result.requestStatus} getEmpty=${getEmpty} putRefused=${putRefused}`);
   }
 
-  /* ── C-CASECOUNT ── */
-  const missing = REQUIRED_CASES.filter((c) => !seen.has(c));
-  A('C-CASECOUNT', missing.length === 0, missing.length ? `missing=${missing.join(',')}` : 'all present');
+  /* ── C-CASECOUNT exact == (missing OR extra → FAIL) ── */
+  {
+    const expectedOthers = REQUIRED_CASES.filter((c) => c !== 'C-CASECOUNT');
+    const missing = expectedOthers.filter((c) => !seen.has(c));
+    const extra = [...seen].filter((c) => !(expectedOthers as readonly string[]).includes(c));
+    A('C-CASECOUNT', missing.length === 0 && extra.length === 0,
+      missing.length || extra.length ? `missing=${missing.join(',')} extra=${extra.join(',')}` : 'exact match');
+  }
 
   console.log(JSON.stringify({
     line: 'B',

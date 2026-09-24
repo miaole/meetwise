@@ -807,6 +807,16 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0091_privacy_authorization_issuer.sql',
     'packages/db/migrations/0096_int_transcript_remaining_sinks.sql',
   ],
+  'uc052:pool-role-leak:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/uc052-pool-role-leak.proof.ts',
+    'apps/worker/src/checkpoint-principal.ts',
+    'apps/worker/src/main.ts',
+    'packages/db/src/principal.ts',
+    'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0045_checkpoint_thread_rls.sql',
+    'packages/db/migrations/0047_checkpoint_privacy_fence.sql',
+  ],
   'privacy-authorization:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/privacy-authorization.proof.ts',
@@ -1313,7 +1323,7 @@ if (![
   'model-op02:prove:raw',
   'model-slot-bypass:prove:raw',
   'privacy-authorization:prove:raw',
-  'uc052:internal-erasure:prove:raw', 'uc052:checkpoint-physical:prove:raw',
+  'uc052:internal-erasure:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw',
   'memory-governance:prove:raw',
   'memory-admission:prove:raw',
   'memory-fact-adjudication:prove:raw',
@@ -1495,6 +1505,8 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'packages/db', 'prove:uc052-internal-erasure']]
   : target === 'uc052:checkpoint-physical:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:uc052-checkpoint-physical']]
+  : target === 'uc052:pool-role-leak:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:uc052-pool-role-leak']]
   : target === 'privacy-authorization:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:privacy-authorization']]
   : target === 'memory-governance:prove:raw'
@@ -1879,19 +1891,33 @@ async function emitFailureDiagnostic() {
   console.error(`ISOLATED_POSTGRES_OUTPUT_WITHHELD container=${container} ${withheldOutputSummary('state', state)} ${withheldOutputSummary('logs', logs)}`);
 }
 
-async function waitForPostgres(env) {
+async function waitForPostgres(env, { consecutive = 3, label = 'boot' } = {}) {
   // Docker 的 Postgres entrypoint（入口脚本）会先起一个临时 postmaster 执行
   // initdb，再创建 POSTGRES_DB 并重启正式实例。`pg_isready` 在临时实例阶段也
   // 可能返回成功，然而 meetwise 库尚不存在，宿主 TCP 连接会被中断。只能把
   // “目标库可查询”作为 ready 条件，不能把“进程已监听”当 ready。
-  for (let attempt = 0; attempt < 60; attempt++) {
+  //
+  // GAP-PRIV-AUTHZ-PROVE-FLAKE: historical first-run @69de818 saw migrate EXIT=0
+  // then prove `connect ECONNREFUSED` on assertIsolatedTestTarget (log:
+  // /tmp/privacy-authz-prove.log). Require N consecutive host+in-container
+  // SELECT 1 successes and re-probe after migrate (see call sites) so a brief
+  // postmaster bounce cannot pass a single probe then refuse the prove.
+  let streak = 0;
+  for (let attempt = 0; attempt < 90; attempt++) {
     try {
       await capture('docker', ['exec', container, 'psql', '-v', 'ON_ERROR_STOP=1', '-U', 'meetwise', '-d', 'meetwise', '-Atqc', 'SELECT 1'], baseEnv, ROOT, 5_000);
       if (env) await probeHostSql(env);
-      return;
-    } catch { await sleep(1_000); }
+      streak += 1;
+      if (streak >= consecutive) {
+        console.log(`E2E_POSTGRES_READY label=${label} consecutive=${streak} attempt=${attempt + 1}`);
+        return;
+      }
+    } catch {
+      streak = 0;
+      await sleep(1_000);
+    }
   }
-  throw new Error('isolated_postgres_database_not_ready');
+  throw new Error(`isolated_postgres_database_not_ready:${label}`);
 }
 
 async function migrateWithRecovery(env) {
@@ -2031,8 +2057,10 @@ async function main() {
     await waitForPostgres(env);
     console.log(`E2E isolated PostgreSQL: ${container} on 127.0.0.1:${env.PGPORT}`);
     if (['e2e:prove', 'e2e:ui', 'performance:e2e', 'api:validate', 'recruiter:prove:raw', 'commerce-reconcile:prove:raw', 'model-invocation-reconcile:prove:raw', 'model-op00:prove:raw', 'model-op02:prove:raw', 'model-slot-bypass:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'scoring-integrity:prove', 'scoring:eval:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'scor-00:http:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'stress:prove:raw', 'memory:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'ocr:prove:raw', 'adaptive-degrade:prove:raw', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc011:report-refund:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc002:lease:prove:raw', 'resume:prove:raw', 'rag-generation:prove:raw', 'qbank:prove:raw', 'qbank-pipeline:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-retrieval-eval:prove:raw', 'online-judge-control:prove:raw', 'privacy-authorization:prove:raw',
-  'uc052:internal-erasure:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw'].includes(target)) {
+  'uc052:internal-erasure:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw'].includes(target)) {
       await migrateWithRecovery(env);
+      // Re-attest host SQL after migrate (flake: migrate green → prove ECONNREFUSED).
+      await waitForPostgres(env, { consecutive: 3, label: 'post-migrate' });
     }
     if (target === 'api:validate') env.E2E_PREMIGRATED = '1';
     if (target === 'e2e:prove') {

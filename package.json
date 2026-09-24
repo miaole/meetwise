@@ -270,6 +270,8 @@
     "uc052:internal-erasure:prove:raw": "pnpm -C packages/db prove:uc052-internal-erasure",
     "uc052:checkpoint-physical:prove": "node scripts/run-e2e-isolated.mjs uc052:checkpoint-physical:prove:raw",
     "uc052:checkpoint-physical:prove:raw": "pnpm -C packages/db prove:uc052-checkpoint-physical",
+    "uc052:pool-role-leak:prove": "node scripts/run-e2e-isolated.mjs uc052:pool-role-leak:prove:raw",
+    "uc052:pool-role-leak:prove:raw": "pnpm -C apps/worker prove:uc052-pool-role-leak",
     "interview-answer-submission:prove": "pnpm -C packages/contracts prove:interview-answer-submission",
     "memory-governance:prove": "node scripts/run-e2e-isolated.mjs memory-governance:prove:raw",
     "memory-governance:prove:raw": "pnpm -C packages/db prove:memory-governance",
