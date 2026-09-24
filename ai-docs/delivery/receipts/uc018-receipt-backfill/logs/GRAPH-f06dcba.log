@@ -1,0 +1,85 @@
+=== pnpm install --frozen-lockfile EXIT=0 ===
+Scope: all 12 workspace projects
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +606
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 606, reused 606, downloaded 0, added 605
+Progress: resolved 606, reused 606, downloaded 0, added 606, done
+
+devDependencies:
++ @types/node 26.0.1
++ dependency-cruiser 18.0.0
++ esbuild 0.28.1
++ tsx 4.22.4
++ turbo 2.10.0
++ typescript 6.0.3
+
+╭ Warning ─────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│   Ignored build scripts: @parcel/watcher, @swc/core, esbuild, protobufjs,    │
+│   sharp.                                                                     │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+│   to run scripts.                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Done in 1.9s using pnpm v10.18.0
+
+
+
+=== pnpm uc018:graph:prove EXIT=0 ===
+
+> meetwise@0.1.0 uc018:graph:prove /workspace/meetwise-lineA-backfill/f06dcba
+> node scripts/run-e2e-isolated.mjs uc018:graph:prove:raw
+
+E2E isolated PostgreSQL: meetwise-e2e-1850074-1790224543580 on 127.0.0.1:33013
+
+> @meetwise/db@0.0.0 migrate /workspace/meetwise-lineA-backfill/f06dcba/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=134 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+
+> @meetwise/db@0.0.0 prove:uc018-graph /workspace/meetwise-lineA-backfill/f06dcba/packages/db
+> tsx test/uc-e2e-018-graph-safely-terminated.proof.ts
+
+UC-E2E-018 GRAPH safely_terminated prove · GAP-UC018-GRAPH · releaseEvidence=false · Not HA
+NOTE: 本绿 closes GAP-UC018-GRAPH only；≠ UC-E2E-018 covered；matrix stays partial
+NOTE: §1b #3 TTL / #5 UI / #6 sole-stack remain OPEN；Ban wash abandon HTTP/full.e2e into GRAPH
+
+──────── G1 · active AiGraphRun + 业务事实 → abandon → safely_terminated + 事实保全 ────────
+PASS  G1 abandon → abandoned
+PASS  G1 released=released
+PASS  G1 interview=abandoned
+PASS  G1 AiGraphRun=safely_terminated
+PASS  G1 lease cleared
+PASS  G1 interview_event retained
+PASS  G1 interview_question retained
+PASS  G1 额度净变 0
+
+──────── G2 · waiting_user AiGraphRun → safely_terminated ────────
+PASS  G2 abandon → abandoned
+PASS  G2 AiGraphRun=safely_terminated
+
+──────── G3 · 无 AiGraphRun 空壳 abandon 仍成功（graph noop） ────────
+PASS  G3 abandon → abandoned
+PASS  G3 released=noop
+PASS  G3 无 graph 行
+
+──────── G4 · 已 safely_terminated 再 abandon 幂等保持终态 ────────
+PASS  G4 first → safely_terminated
+PASS  G4 second → already_abandoned
+PASS  G4 still safely_terminated
+
+──────── G5 · 已在 safe_terminating 的 run → abandon 推进到 safely_terminated ────────
+PASS  G5 → safely_terminated
+
+✓ UC-E2E-018 GRAPH safely_terminated asserts passed (GAP-UC018-GRAPH only; ≠ covered; matrix partial)
+CLOSED_GAP_UC018_GRAPH: abandonInterviewAndRelease → AiGraphRun safely_terminated + 业务事实保全；dedicated uc018:graph:prove
+PIN   matrix stays partial · ≠ UC-E2E-018 covered
+PIN   GAP-UC018-TTL / UI / sole-stack still OPEN
+PIN   haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCount=8 · gR45Closed=true · ms3EqualsR4Closed=false
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-09-24T04-35-53-887Z-1850074-b232a2ac-0b46-477c-90c9-59541ec0c995.json release_evidence=false
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; intended sole default=mysql-qdrant-redis) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — NOT sole-stack truth (sole stack = MySQL+Qdrant+Redis). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+

@@ -1,0 +1,54 @@
+{
+  "knife": "UC-E2E-018-RECEIPT-BACKFILL",
+  "gap": "GAP-UC018-RECEIPT-BACKFILL",
+  "key": "ADV",
+  "emittedBy": "uc018-receipt-backfill-emit",
+  "ranAt": "2026-09-24T04:37:37.060Z",
+  "targetSha": "bdc59931566a5d269fa169e47460378eb2102716",
+  "wrapperSha": "74338070c3ad6d1b96af868eb109f837c9b0958b",
+  "runnerCommitSha": "bdc59931566a5d269fa169e47460378eb2102716",
+  "gitSha": "bdc59931566a5d269fa169e47460378eb2102716",
+  "cmd": "pnpm uc018:adv:prove",
+  "exit": 0,
+  "cmds": {
+    "uc018:adv:prove": 0
+  },
+  "exits": {
+    "uc018:adv:prove": 0
+  },
+  "installExit": 0,
+  "logPath": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/ADV-bdc5993.log",
+  "stdoutDigest": "fd0b8aaa569f71b28d4dff511bbd677a926ef9160f98e9af8a981b2aa246ae80",
+  "nodeVersion": "v20.19.2",
+  "pnpmVersion": "10.18.0",
+  "imageDigests": {
+    "pgvector/pgvector:pg16": [
+      "pgvector/pgvector@sha256:ccc6e83d6e35e931dc7c5def2022729d5a6c370318d099181995567ff1fb4d6b"
+    ],
+    "redis:7-alpine": [
+      "redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499"
+    ],
+    "minio/minio:latest": [],
+    "mailhog/mailhog:v1.0.1": [],
+    "_runningMeetwiseImages": [
+      "meetwise-backend:ha-dual-local",
+      "mysql:8.4",
+      "redis:7-alpine"
+    ]
+  },
+  "stack": {
+    "memorySaver": false,
+    "mysql": true,
+    "qdrant": false
+  },
+  "targetEnv": "docker-isolated",
+  "capacityRepresentative": false,
+  "evidenceOfRecord": true,
+  "implementerOnly": false,
+  "disclosure": "EOR@targetSha ≠ proven at tip (code drift). Machine-emitted backfill at recorded ancestor SHA; Ban tip-substitution; Ban hand-write JSON from prose.",
+  "waitingUser": "MISSING-EVIDENCE",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "coveredCountRetained": 8
+}
