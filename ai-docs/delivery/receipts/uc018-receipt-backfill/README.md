@@ -18,3 +18,20 @@
 
 - Guard is **HMAC-free**: a writer who can forge a matching **JSON + log** pair (digest match) can pass structural validation.
 - Registered here and in `ai-docs/delivery/harness/uc-e2e-018-receipt-backfill.md` only · **Ban** SSOT backlog edit until knife nail.
+
+## wrapperSha chronology
+
+| Wave | wrapperSha | Meaning |
+|------|------------|---------|
+| Prove-wave (attempts 1–7) | **`7433807`** | Tip emitter commit when the seven target proves were actually re-run in worktrees and logs/JSON first written. |
+| Format re-emit (attempts 8+) | **`61c3fcb`** (then later tip SHAs) | Tip emitter commit when JSON was **rebuilt from committed logs** (`--mode=reemit-from-log`) — no prove re-run. `ranAt` preserved from first emit; `reemittedAt` records the format upgrade. |
+
+`wrapperSha` = tip commit of the **emitter code** that wrote the JSON · `targetSha` / `runnerCommitSha` = historical prove SHA · **EOR@targetSha ≠ proven at tip**.
+
+## Stack source=`static-doc`
+
+SOLE ADR PASS lines (e.g. `pins PostgresSaver`) emit `source: static-doc`. Gatherer `unwrapStackValue` **rejects** static-doc as a runtime stack observation → evaluator **STUB-STACK** stays honest (Ban counting docs pins as stack MET).
+
+## imageDigest `prior-docker-inspect`
+
+Re-emitted digests carry `source: prior-docker-inspect`, `liveObservation: false`, and `priorCapturedAt` (first-wave capture time). They are **not** live per-run docker observations.

@@ -85,6 +85,7 @@ function emptySourcedStack() {
 
 function buildReceiptBody({
   installExit, proveExit, logBody, nodeV, pnpmV, priorImageDigests,
+  digestMode = 'reemit', priorCapturedAt = null,
 }) {
   // Always write/overwrite log when logBody provided; reemit keeps existing bytes
   if (logBody != null) {
@@ -99,7 +100,12 @@ function buildReceiptBody({
   const cmds = {};
   cmds[cmd] = exit;
   const stack = parseStackFromLog(logText, { logRel });
-  const imageDigests = buildImageDigests(logText, priorImageDigests || {}, { logRel });
+  const imageDigests = buildImageDigests(logText, priorImageDigests || {}, {
+    logRel,
+    mode: digestMode,
+    priorCapturedAt,
+    liveCapturedAt: digestMode === 'live' ? ranAt : null,
+  });
   const targetEnvFact = parseTargetEnvFromLog(logText, { logRel });
   const capFact = capacityRepresentativeFact();
 
@@ -147,13 +153,13 @@ function buildReceiptBody({
       source: 'policy-C-PERF-CAP-PARTIAL',
     };
   }
-  // soleStack only when log-parse produced postgresSaver:true (sourced; not hardcoded)
+  // soleStack from static ADR pins (source=static-doc; Ban runtime stack MET)
   if (key === 'SOLE' && stack.postgresSaver?.value === true && stack.postgres?.value === true) {
     receipt.soleStack = {
       value: 'Postgres+pgvector+PostgresSaver',
-      source: 'log-parse',
+      source: 'static-doc',
       logFile: logRel,
-      note: 'derived from adr-postgres-retained PASS lines; Ban invent without log markers',
+      note: 'ADR pins in static sole prove; unwrapStackValue rejects static-doc as runtime MET',
     };
   }
   return receipt;
@@ -209,6 +215,15 @@ if (mode === 'reemit-from-log') {
       .pop()
       ?.match(/EXIT=(\d+)/)?.[1] ?? 1);
 
+  // priorCapturedAt: first-wave live inspect time (original ranAt), else inherited
+  let priorCap = prior.ranAt || null;
+  const prevImg = prior.imageDigests || {};
+  for (const ent of Object.values(prevImg)) {
+    if (ent && typeof ent === 'object' && (ent.priorCapturedAt || ent.capturedAt)) {
+      priorCap = ent.priorCapturedAt || ent.capturedAt;
+      break;
+    }
+  }
   const receipt = buildReceiptBody({
     installExit: prior.installExit ?? 0,
     proveExit: exitResolved,
@@ -216,11 +231,14 @@ if (mode === 'reemit-from-log') {
     nodeV: prior.nodeVersion ?? null,
     pnpmV: prior.pnpmVersion ?? null,
     priorImageDigests: prior.imageDigests || {},
+    digestMode: 'reemit',
+    priorCapturedAt: priorCap,
   });
   // Preserve original ranAt from first emit if present; record reemit in attempts
   if (prior.ranAt) receipt.ranAt = prior.ranAt;
   receipt.reemittedAt = ranAt;
-  receipt.reemitNote = 'format upgrade: sourced stack + imageDigest fields from committed log; prove not re-run';
+  receipt.reemitNote =
+    'format upgrade: static-doc stack + prior-docker-inspect digests from committed log; prove not re-run; wrapperSha=tip emitter (≠ prove-wave 7433807)';
   finalizeReceipt(receipt, { phase: 'reemit-from-log', priorExit: prior.exit ?? null });
   process.exit(0);
 }
@@ -308,6 +326,7 @@ try {
         proveExit: install.status ?? 1,
         logBody: installLog,
         nodeV, pnpmV, priorImageDigests: imageDigestsPre,
+        digestMode: 'live',
       });
       finalizeReceipt(receipt, { phase: 'install-fail' });
     } else {
@@ -324,6 +343,7 @@ try {
         proveExit: prove.status ?? 1,
         logBody: proveLog,
         nodeV, pnpmV, priorImageDigests: imageDigestsRaw,
+        digestMode: 'live',
       });
       finalizeReceipt(receipt, { phase: 'prove' });
     }
