@@ -105,12 +105,24 @@ async function schemaMigrationManifest(repoRoot) {
 function optionalG7Fields(input) {
   if (!input || input.g7FreetierReprove !== true) return {};
   const calls = Array.isArray(input.calls) ? input.calls : [];
+  if (input.requireCalls !== false && calls.length < 1) {
+    throw new Error('local_e2e_receipt_g7_calls_required');
+  }
   for (const c of calls) {
     if (!c || typeof c.actualModel !== 'string' || !c.actualModel.trim()) {
       throw new Error('local_e2e_receipt_g7_actual_model_required');
     }
     if (c.actualModel === 'deepseek-v4-pro' && input.allowDeepseekV4ProTest !== true) {
       throw new Error('local_e2e_receipt_g7_model_banned:deepseek-v4-pro');
+    }
+    const declared = new Set([
+      'qwen3.8-flash','qwen3.8-max','qwen3.8-27b','qwen3.8-omni-flash','qwen3.7-flash',
+      'qwen-plus','deepseek-v4-flash','qwen-turbo','qwen-max','qwen-vl-max',
+      'text-embedding-v4','paraformer-realtime-v2',
+    ]);
+    if (input.allowDeepseekV4ProTest === true) declared.add('deepseek-v4-pro');
+    if (!declared.has(c.actualModel)) {
+      throw new Error(`local_e2e_receipt_g7_model_undeclared:${c.actualModel}`);
     }
   }
   return {

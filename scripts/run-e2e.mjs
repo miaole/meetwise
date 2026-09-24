@@ -4,7 +4,7 @@
  * 用法:pnpm e2e:isolated（包装器注入 E2E_ISOLATED=1）。缺 MODEL_API_KEY 或打开假服务开关会立即失败，不会降级成假绿。
  */
 import { spawn } from 'node:child_process';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, mkdirSync } from 'node:fs';
 import { emitClassifiedE2EFailure, emitE2EFailure, tagE2EFailure } from '../e2e/helpers/failure-class.mjs';
 import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
 import { applyLiveE2ECapabilityEnv } from './e2e-live-capability-env.mjs';
@@ -41,6 +41,19 @@ const fakeServiceFlags = ['VOICE_FAKE', 'OCR_FAKE', 'E2E_FAKE_MODEL'].filter((na
 });
 if (fakeServiceFlags.length) throw tagE2EFailure('provider', 'fake_service_mode_forbidden');
 if (!String(env.MODEL_API_KEY ?? '').trim()) throw tagE2EFailure('provider', 'live_provider_key_missing');
+
+// Line C G7 FreeTierOnly re-prove (Step3): free-first + shared ¥5 ledger across api/worker processes.
+if (String(env.G7_FREETIER_REPROVE ?? process.env.G7_FREETIER_REPROVE ?? '').trim() === '1') {
+  env.G7_FREETIER_REPROVE = '1';
+  if (String(env.G7_PAID_FALLBACK_ENABLED ?? process.env.G7_PAID_FALLBACK_ENABLED ?? '').trim() === '1') {
+    env.G7_PAID_FALLBACK_ENABLED = '1';
+  }
+  if (!String(env.G7_RUN_COST_LEDGER_PATH ?? '').trim()) {
+    const ledgerDir = `${ROOT}/.tmp/g7-ledgers`;
+    mkdirSync(ledgerDir, { recursive: true });
+    env.G7_RUN_COST_LEDGER_PATH = `${ledgerDir}/g7-${process.pid}-${Date.now()}.ndjson`;
+  }
+}
 applyLiveE2ECapabilityEnv(env);
 
 // A previous E2E used fixed 8787/19091 ports.  Two isolated runs then raced:

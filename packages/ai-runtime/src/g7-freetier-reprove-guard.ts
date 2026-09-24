@@ -6,6 +6,8 @@
  * releaseEvidence stays false; free-model green ≠ production-model / perf-SLO evidence.
  */
 import { createHash } from 'node:crypto';
+import { openSync, closeSync, readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from 'node:fs';
+import { dirname } from 'node:path';
 
 export const G7_RUN_COST_CAP_CNY = 5;
 export const G7_PRICE_BOOK_CITATION = 'console-reported by user via coordinator 2026-09-23' as const;
@@ -318,4 +320,71 @@ export function buildG7ReceiptFields(args: {
     asr: asrPathStatus(),
     releaseEvidence: false,
   };
+}
+
+/** Cross-process ¥5 run cap: api+worker share one NDJSON ledger file (G7_RUN_COST_LEDGER_PATH). */
+export type G7SharedLedgerSnapshot = G7RunCostState;
+
+function sleepMs(ms: number): void {
+  const end = Date.now() + ms;
+  while (Date.now() < end) {
+    /* busy-wait; ledger critical section is tiny */
+  }
+}
+
+export function resolveG7LedgerPath(env: NodeJS.ProcessEnv = process.env): string {
+  const p = String(env.G7_RUN_COST_LEDGER_PATH ?? '').trim();
+  if (!p) throw new Error('g7_cost_ledger_path_missing');
+  return p;
+}
+
+export function readG7SharedLedger(env: NodeJS.ProcessEnv = process.env): G7SharedLedgerSnapshot {
+  const path = resolveG7LedgerPath(env);
+  const capCny = Number(env.G7_RUN_COST_CAP_CNY ?? G7_RUN_COST_CAP_CNY);
+  if (!existsSync(path)) return { runningCostCny: 0, calls: [], capCny };
+  const lines = readFileSync(path, 'utf8').split('\n').map((l) => l.trim()).filter(Boolean);
+  const calls: G7CallRecord[] = [];
+  let runningCostCny = 0;
+  for (const line of lines) {
+    const row = JSON.parse(line) as G7CallRecord;
+    calls.push(row);
+    runningCostCny += row.estimatedCostCny;
+  }
+  return { runningCostCny, calls, capCny };
+}
+
+export function recordG7CallToSharedLedger(
+  call: Omit<G7CallRecord, 'estimatedCostCny'> & { estimatedCostCny?: number },
+  env: NodeJS.ProcessEnv = process.env,
+): G7SharedLedgerSnapshot {
+  const path = resolveG7LedgerPath(env);
+  mkdirSync(dirname(path), { recursive: true });
+  const lock = `${path}.lock`;
+  const started = Date.now();
+  while (true) {
+    let fd: number | undefined;
+    try {
+      fd = openSync(lock, 'wx');
+      const current = existsSync(path)
+        ? readG7SharedLedger(env)
+        : { runningCostCny: 0, calls: [] as G7CallRecord[], capCny: Number(env.G7_RUN_COST_CAP_CNY ?? G7_RUN_COST_CAP_CNY) };
+      const next = recordCallAndAccumulateCost(current, call, env);
+      const payload = `${next.calls.map((c) => JSON.stringify(c)).join('\n')}${next.calls.length ? '\n' : ''}`;
+      writeFileSync(path, payload, 'utf8');
+      return next;
+    } catch (error) {
+      const err = error as NodeJS.ErrnoException;
+      if (err?.code === 'EEXIST') {
+        if (Date.now() - started > 5000) throw new Error('g7_cost_ledger_lock_timeout');
+        sleepMs(5);
+        continue;
+      }
+      throw error;
+    } finally {
+      if (fd !== undefined) {
+        try { closeSync(fd); } catch { /* ignore */ }
+        try { unlinkSync(lock); } catch { /* ignore */ }
+      }
+    }
+  }
 }
