@@ -3,7 +3,7 @@
   "gap": "GAP-UC018-COVERED-LIFT-REASSESS",
   "status": "executed:awaiting_post_prove_dual",
   "canHonestlyFlip": false,
-  "refuseReason": "PERF/LOAD partial ≠ UC covered (matrix §0.5/§1.0 · Ban假关 · Ban invent covered · covered-lift=separate later knife)",
+  "refuseReason": "PERF-LOCAL-ONLY (local/docker-isolated PERF/LOAD ≠ capacity-representative · Ban假关 · Ban invent covered)",
   "columns": {
     "NEG": "partial",
     "FAULT": "partial",
@@ -53,5 +53,5 @@
     "requestTip": "5434c14",
     "codingBase": "6fac200"
   },
-  "datePT": "9/23/2026, 7:47:55 PM PT"
+  "datePT": "9/23/2026, 8:43:15 PM PT"
 }
