@@ -91,8 +91,16 @@
 | NHP-033-ADV-01 | 033 | ADV | api | 七类越权未齐补集 | 系统化矩阵 | **partial**（未齐） | harness §1b |
 | NHP-033-BOUND-01 | 033 | BOUND | api | X10 burst | 稳定拒；**≠** 容量 SLO | **partial**/**gap**(PERF) | X10 |
 | NHP-033-FAULT-01 | 033 | FAULT | worker | A3 live worker 越权 | job RLS 闭环 | **blind**→**case-only** | W1≠闭环 |
-| NHP-050-NEG-01 | 050–052 | NEG | api | DELETE 公开擦除 | **必须 503**（honesty-pin） | **partial**/honesty-pin | privacy-erasure:http |
-| NHP-050-FAULT-01 | 050–052 | FAULT | worker | 擦除中途故障 | 不假 erased；可对账 | **blind**→**case-only** | ≠ 删除闭环 |
+| NHP-050-NEG-01 | 050–052 | NEG | api | DELETE 公开擦除 | **必须 503**（honesty-pin） | **partial**/honesty-pin | privacy-erasure:http + uc052 NEG-01 |
+| NHP-050-NEG-02 | 050–052 | NEG | worker/db | forged JWS / GUC-only claim | refuse · zero side effects | **partial** | `uc052:internal-erasure:prove` @`3c4847a` · EOR `08d54f8`/`3e39c1e` |
+| NHP-050-NEG-03 | 050–052 | NEG | worker/db | cross-tenant claim | refuse · other subject intact | **partial** | same |
+| NHP-050-FAULT-01 | 050–052 | FAULT | worker | 擦除中途单 sink fail | target `failed` · req `pending_external` · retry → erased | **partial** | same · Ban `partial_failed`/`completed` |
+| NHP-050-FAULT-02 | 050–052 | FAULT | worker | begin replay idempotency | same requestId · same projection target ids | **partial** | same |
+| NHP-050-FAULT-03 | 050–052 | FAULT | worker | fence-revive after purge | write rejected · admin read=0 | **partial** | same |
+| NHP-050-FAULT-04 | 050–052 | FAULT | worker | epoch/digest drift mid-flight | claim refuse · req **`=== purging`** | **partial** | same · Ban `completed`/`partial_failed` |
+| NHP-050-FAULT-05 | 050–052 | FAULT | worker | already-erased re-request | no duplicate effective erasure · first ledger stable | **partial** | same · optional follow-up: second-req explicit no-op |
+| NHP-050-BOUND-01 | 050–052 | BOUND | worker | concurrent claim lease | winners=1 · no deadlock · single ledger | **partial** | same · 0091 lease |
+| HP-050-01 | 050–052 | HP | worker | happy internal authorized erasure | locals admin read=0 · externals `retention_pending` · req `pending_external` | **partial** | same · **≠ covered** · ≠ open DELETE · fence-only checkpoint |
 | NHP-040-BOUND-01 | 040–043 | BOUND | api | 席位 CAS / 批 partial_failed | 状态机载重 | **gap** | 静态 G-GAP |
 | NHP-027-NEG-01 | 027 | NEG | api | 申诉口未开放 | blocked/honest gap 钉 | **gap**/blocked | 产品未接线 |
 | NHP-028-FAULT-01 | 028 | FAULT | api | persistTrace 失败 | 主链路不阻塞（目标）；现 gap | **gap** | 静态 G-GAP |
@@ -143,7 +151,7 @@
 | PERF 用终态秒数 | 420s 存活预算冒充 API/worker SLO | 分面 PERF_api / LOAD_worker 独立列 |
 | F1–F5 / X10 / 413 | 单点边界冒充负载 | LOAD 列独立；保持 blind/case-only |
 | R2/R5 prove 绿 | 路由已生效 / 召回 SLO | RAG 行 gap/green-risk；mw-rag-route 审 |
-| DELETE=503 pin | 删除已闭环 | honesty-pin；NHP-050-FAULT case-only |
+| DELETE=503 pin | 删除已闭环 | honesty-pin retained；UC-052 deletion **partial** ≠ 闭环 ≠ covered；NHP-050-* proven → **partial** |
 | 云/HA stub | 生产容量 / HA | blocked / Not HA |
 | **UI 支付拒绝** | 未具名易被读成 001/011 已覆盖 | **显式 gap/out-of-scope**：NHP-UI-PAY-NEG-01 |
 | **云 kill / 跨 AZ** | 未具名易被读成云行 blocked=已隐含 | **显式 gap/out-of-scope**：NHP-CLOUD-KILL-FAULT-01 |

@@ -1,8 +1,8 @@
-# Harness — **UC-E2E-050–052 privacy erasure**（Line B · r3 · `GAP-PRIV-ERASURE-CLOSURE` · public DELETE=503 honesty pin ≠ deletion closure · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · Dual experts **`mw-privacy-int` + `mw-e2e-ha`** · **Ban** open public DELETE · **Ban** invent covered · **Ban** wash 503 pin into deletion closed · **Ban** cite Line A / UC-018 evidence · **Ban** MySQL/Qdrant cutover · **Ban** claim suite green / HA）
+# Harness — **UC-E2E-050–052 privacy erasure**（Line B · r3 · `GAP-PRIV-ERASURE-CLOSURE` · public DELETE=503 honesty pin ≠ deletion closure · docs REQUEST · **`post_prove_dual_pass`** · Dual experts **`mw-privacy-int` + `mw-e2e-ha`** · **Ban** open public DELETE · **Ban** invent covered · **Ban** wash 503 pin into deletion closed · **Ban** cite Line A / UC-018 evidence · **Ban** MySQL/Qdrant cutover · **Ban** claim suite green / HA）
 
 **Line**: **B**（privacy UC-E2E-050–052 · parallel allowed · **must not** touch Line A files `uc-e2e-018-*` / `scripts/lib/uc-covered-evaluator*` / `uc018*` proves）  
 **Revision**: **r3**（2026-09-23 ~20:30 PT · r2 dual: e2e-ha PASS `79d9191`/`dc3e17a` · privacy-int r2 FAIL `bfa1189` — **B1/B2/B3 CLOSED** · new **B4** FAULT-01 `partial_failed` unreachable · Ban coding until dual re-PASS）  
-**Status**: **`draft:awaiting_pre_exec_dual`**（r3 修订 · **awaiting dual re-review** · **Ban自批 pass** · Dual PASS ≠ coding · Dual PASS ≠ UC-E2E-050/051/052 covered · Dual PASS ≠ open public DELETE · Dual PASS ≠ next knife auto-authorize · **≠ coding** · **≠ prove** this open · **≠ apply Step 0 now**）  
+**Status**: **`post_prove_dual_pass`**（Line B nail · UC-052 deletion first knife · Ban invent covered · Ban open DELETE · Ban next knife auto-authorize）  
 **Date**: 2026-09-23 (~20:30 PT)  
 **Base / parent tip**: REQUEST parent **`f07663a`** / full `f07663ae6b3279eaa9aa1ec9dca2216a62ff4379`（**must remain ancestor**）· L0 tip `cd5a4de` · r2 tip `8fecc3d` · dual tips `dc3e17a`/`79d9191` / `2bbebff`/`bfa1189` · branch `feat/mysql-schema-skeleton`（**historical name only** · Ban MySQL cutover justification）  
 **Knife name**: **UC-E2E-050–052 privacy erasure · GAP-PRIV-ERASURE-CLOSURE**（L0 inventory + Step 0 plan + first-knife plan + NHP + prove CMD · **NOT** flip matrix · **NOT** open DELETE · **NOT** claim deletion closed）  
@@ -12,7 +12,7 @@
 **Must cite**: `apps/api/src/modules/privacy/privacy.controller.ts` · `privacy.service.ts` · `apps/api/test/privacy-erasure-http.proof.ts` · `harness/privacy-erasure-http-503-pin.md` · `architecture/ai/privacy-deletion-sink-inventory.md` · `architecture/current-runtime-truth.md` · `production-readiness-remediation-register.md` · `harness/w3-int-transcript-delete-503-freeze.md` · `packages/domain/src/privacy-authorization.ts` · `packages/db/test/privacy-authorization.proof.ts`（**RED on this branch**）· migrations `0047`/`0058`/`0075`/`0091`/`0096`/`0125`/`0129` · PR **#104** fixture-only fix · matrix §1.0/§1.1 · NHP-050-NEG-01 · GAP-PRIV-02 · BUG-PRIV-503 · Ban cite Line A  
 **Slice**: `../uc-e2e-050-052-privacy-erasure.slice.md`  
 **Authority**: meetwise — **docs REQUEST r3 only** · Ban secrets / `.env*` · Meridian banned · No force-push · Ban Cloud Agent · Ban self-approve · Ban coding until dual+authorize · Ban apply Step 0 until dual re-PASS + authorize · Ban messaging dual · Ban MySQL/Qdrant cutover · Ban invent covered · Ban open public DELETE · Ban edit shared SSOT this REQUEST — deltas **to be applied at nail** only  
-**Honesty**: docs r3 · status `draft:awaiting_pre_exec_dual` · GAP **OPEN** · public DELETE stays **503** · authz baseline **RED** until Step 0 · happy/FAULT terminal request **`pending_external`** · Ban request `completed` · Ban expect reachable request `partial_failed` this knife · **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban coding · Ban prove · Ban flip covered · STOP after push
+**Honesty**: status **`post_prove_dual_pass`** · **UC-052 deletion = partial**（≠ covered · ≠ UC-050/051/export）· public DELETE stays **503** · happy terminal **`pending_external`** · FAULT-04 terminal **`purging`** · Ban `completed` · Ban expect reachable request `partial_failed` · checkpoint_rows **fence-only** · externals **retention_pending** · **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · `gR45Closed=true` · coveredCount **8** · `ms3EqualsR4Closed=false` · PG-retained · Ban invent covered · Ban open DELETE
 
 ---
 
@@ -157,7 +157,7 @@ INT-TRANSCRIPT-00 local issuer/ledger ◐ · **01 blocked** · W3 freeze · `pri
 | Rule | Citation | Ruling |
 |------|----------|--------|
 | Begin seeds external targets | `0096_int_transcript_remaining_sinks.sql` **L207–215**（also 0058 L217–223）`FOREACH … ['oss','redis','langfuse']` → status **`retention_pending`** | External targets **must** stay `retention_pending` this knife · Ban write `local_erased` / `external_confirmed` without async confirmer |
-| Completion guard | `0091_privacy_authorization_issuer.sql` **L516–543** `assert_privacy_erasure_request_completed_guard`：`completed` iff **every** target `status='erased'` AND no `external_pending`/`failed_cleanup` receipts | With retention_pending externals present → **cannot** honest-`completed` |
+| Completion guard | `0091_privacy_authorization_issuer.sql` **L516–545** `assert_privacy_erasure_request_completed_guard`：`completed` iff **every** target `status='erased'` AND no `external_pending`/`failed_cleanup` receipts | With retention_pending externals present → **cannot** honest-`completed` |
 | Reassess CASE order（exact） | `0096_int_transcript_remaining_sinks.sql` **L576–583**：① `pending`/`leased` → `purging` · ② `external_pending` receipt → `pending_external` · ③ **`retention_pending` target → `pending_external`** · ④ `failed_cleanup` receipt → `partial_failed` · ⑤ `failed` target → `partial_failed` · ⑥ ELSE `completed` | Because begin always seeds oss/redis/langfuse as `retention_pending`（L207–215）, branch ③ fires **before** ④/⑤ → request **`partial_failed` unreachable** this knife |
 | Named gap | **`GAP-PRIV-REQUEST-STATUS-MASKS-LOCAL-FAIL`** | At **request** level cannot distinguish 「external pending」vs「local failed」· truth = **per-target** ledger |
 | Digest/JWS | Canonical `target_set_digest` covers **full** (sink, resource_hmac) set including externals | **Ban** trimming targets/digest to shrink scope · scope narrow only at **purge** layer |
@@ -272,7 +272,7 @@ Receipt root（plan）: `ai-docs/delivery/receipts/uc050-052-privacy-erasure/` �
 | Line | **B** |
 | Revision | **r3** |
 | Base SHA | **`f07663a`** / `f07663ae6b3279eaa9aa1ec9dca2216a62ff4379` |
-| Status | **`draft:awaiting_pre_exec_dual`** |
+| Status | **`post_prove_dual_pass`** |
 | `haStatus` | **NOT_HA** |
 | `releaseEvidence` | **false** |
 | `claimProductionHA` | **false** |
@@ -281,7 +281,7 @@ Receipt root（plan）: `ai-docs/delivery/receipts/uc050-052-privacy-erasure/` �
 | `ms3EqualsR4Closed` | **false** |
 | Stack | **PG-retained** |
 | Public DELETE | **503** |
-| Happy / FAULT request terminal | **`pending_external`** · Ban `completed` · Ban expect reachable `partial_failed` |
+| Happy / FAULT request terminal | happy **`pending_external`** · FAULT-04 **`purging`** · Ban `completed` · Ban expect reachable `partial_failed` |
 | Prove CMD | **`uc052:internal-erasure:prove`** |
 | Line A | **untouched** |
 
@@ -309,4 +309,23 @@ STOP after push · no messaging dual · no coding · no Step 0 apply.
 | **NHP-050-FAULT-04** | Real terminal after mid-flight epoch/digest drift **refuse** (locals still `pending`/`leased`, no purge) is request status **`purging`**, not `pending_external`. Cite `0096_int_transcript_remaining_sinks.sql` **L576–583** CASE arm ①：`pending`/`leased` → `purging` **before** arm ③ `retention_pending` → `pending_external`. Externals may already be `retention_pending`; CASE priority still yields **`purging`**. Ban `completed` · Ban `partial_failed`. Prove must assert `status==='purging'` + locals remain `pending` + externals `retention_pending` + claim refused. |
 
 Prior §4 table row L209 text retained for history; this addendum is authoritative for FAULT-04 terminal.
+
+---
+
+## Nail 2026-09-23 PT · `post_prove_dual_pass`（UC-052 deletion first knife）
+
+| Field | Value |
+|-------|-------|
+| **Status** | **`post_prove_dual_pass`** |
+| **Prove SHA** | `3c4847a` / `3c4847a498105c7fbd609967a2050a4cd3002290` |
+| **Evidence of record** | Reviewers' independent runs @ `3c4847a` · `mw-privacy-int` **`08d54f8`**（r2 PASS after CONDITIONAL `71c6305`）· `mw-e2e-ha` **`3e39c1e`**（supersedes FAIL `088cf51`） |
+| **Supporting receipts** | implementer `6a4140d` / prior `b0db484` — **not** evidence of record |
+| **Step 0** | `4643c02` ≡ PR #104 `f0f52bd` · `privacy-authorization:prove` EXIT=0 |
+| **Matrix** | **Only UC-052 deletion** → **partial** · Ban UC-050 kill-switch / UC-051 PII / export / any `covered` |
+| **NHP** | NHP-050-FAULT-01…05 · NEG-01…03 · BOUND-01 · HP-050-01 → **partial**（proven） |
+| **0091 guard** | `assert_privacy_erasure_request_completed_guard` **L516–545**（verified） |
+| **Honest limits** | checkpoint_rows **fence-only**（no physical purge）· oss/redis/langfuse stay **`retention_pending`** · request happy=`pending_external` · FAULT-04=`purging` |
+| **Optional follow-up（non-blocking）** | Explicit assert that FAULT-05 second request is a no-op |
+| **Pins** | NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503 |
+| **Ban** | open DELETE · invent covered · Line A / Line C edits · next knife auto-open |
 
