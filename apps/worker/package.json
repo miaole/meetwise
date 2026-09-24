@@ -65,6 +65,7 @@
     "build:cloud-test-fc": "node ../../scripts/build-cloud-test-fc.mjs",
     "cloud:smoke": "tsx smoke/cloud-readiness.ts",
     "cloud:test": "tsx smoke/cloud-test-serial.ts",
+    "prove:uc052-pool-role-leak": "tsx test/uc052-pool-role-leak.proof.ts",
     "prove:checkpoint-runtime-role": "tsx test/checkpointer-runtime-role.proof.ts",
     "prove:checkpoint-privacy-erasure": "tsx test/checkpoint-privacy-erasure.proof.ts",
     "prove:privacy-erasure-pause-upgrade": "tsx test/privacy-erasure-pause-upgrade.proof.ts",
