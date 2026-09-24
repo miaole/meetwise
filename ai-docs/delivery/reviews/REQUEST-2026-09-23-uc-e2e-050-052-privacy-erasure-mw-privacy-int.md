@@ -63,3 +63,45 @@ FAIL ≠ 否定方向；任何结论 ≠ coding 授权 ≠ UC covered ≠ DELETE
 ## 结论
 
 **FAIL（pre-exec）**。方向（内部 issuer 授权、公开 DELETE 保持 503、PG only、gap 清单诚实）可取；B1–B3 修完后复审可转 PASS。本回执 ≠ coding 授权 ≠ UC-E2E-052 covered ≠ DELETE 开放 ≠ 0091 ledger 闭环。
+
+---
+
+## r2 re-review（append-only · 2026-09-23 ~20:30 PT · tip `8fecc3d`）
+
+**r2 verdict**: **FAIL（pre-exec r2 · B1–B3 已关 · 新阻塞 B4 一条 · 仅需改文档期望）**
+
+### 阻塞项逐条核对
+
+| ID | r2 文本 | 核对 | 结论 |
+|----|---------|------|------|
+| B1 | §1.4 标 RED、禁称 real green；§2 Step 0 = PR #104 fixture-only，EXIT=0 @ committed SHA 前禁擦除代码 | `git show f0f52bd --stat`：仅 `packages/db/test/privacy-authorization.proof.ts` **+5/−0**（`tgtLeaseOss`/`tgtLeaseRedis` 两常量 + 注释 + 两条 `insertTarget`）。与 harness 描述一致，确为 fixture-only；未含产品/迁移/HTTP | **关闭** |
+| B2 | §3.2 happy 终态 `pending_external`、禁 `completed`、外部仅 `retention_pending`、全量 canonical digest、禁裁剪 | 见行号核对；语义正确 | **关闭** |
+| B3 | 改名 `uc052:internal-erasure:prove`，禁与 `privacy-erasure:prove` 互引 | harness + slice 全文 grep `privacy:erasure:prove` 无残留 | **关闭** |
+| C1–C6 | §3.4 成功标准表逐条映射 | 映射完整；C1 引 0096 L224–227 正确 | 已纳入 |
+
+### 行号核对（本地 migrations，与 `8fecc3d` 同文件）
+
+| 引用 | 实际 | 结论 |
+|------|------|------|
+| 0096 L207–214 | L207 `FOREACH … ['oss','redis','langfuse']` 至 L213 `'retention_pending'`，L214 `);`，`END LOOP` 在 L215 | ✔（差 1 行，可接受） |
+| 0058 L217–223 | 同构 FOREACH，L223 `'retention_pending'` | ✔ |
+| 0091 L516–543 | L516 为 no-forge-completed 注释头，函数体至 L545 `RETURN NEW` | ✔（近似） |
+| 0096 L575–583 | L574–575 注释，L576 `UPDATE`，L578–583 CASE | ✔（近似） |
+| 0096 L224–227 | L223 REVOKE PUBLIC；L227 `REVOKE EXECUTE … FROM app_role` | ✔ |
+| `run-e2e-isolated.mjs:1606` | 该行含 `(sole stack = MySQL+Qdrant+Redis)` | ✔ N1 命名 gap 成立 |
+
+### 新阻塞
+
+- **B4 FAULT-01 期望状态与 DB 真相矛盾**：r2 §3.1(5) 与 NHP-050-FAULT-01 写"一个本地 sink 失败 ⇒ request **`partial_failed`**"。但最新 reassess CASE（`0096` L578–582）顺序为：`pending/leased`→`purging`；`external_pending` receipt→`pending_external`；**`retention_pending` target→`pending_external`**；之后才是 `failed_cleanup`/`failed`→`partial_failed`。interview_data begin 总会种 3 个 `retention_pending` 外部 target（0096 L207–215），所以首刀里 **request 永远到不了 `partial_failed`**，本地失败时会停在 `pending_external`。
+  - 后果：按现文写的 prove 要么必红，要么诱使实现方改 reassess 迁移或裁掉外部 target（后者违反 B2）。
+  - 修法（二选一，须写进 harness）：**(a，推荐)** FAULT-01 期望改为：失败 target `status='failed'`（ledger 可见）+ request **≠ `completed`**（按 0096 CASE 为 `pending_external`）+ 其余本地 sink 已擦且 admin read=0 + 重试后 failed target 可重 claim（0091 claim 允许 `failed`）；并声明 request 层无法区分"外部待定"与"本地失败"是**命名 gap**。**(b)** 若必须 `partial_failed`，则把 reassess 顺序改动列为首刀内的迁移变更，单独过双审——不建议放首刀。
+  - 同理检查 FAULT-04 / FAULT-05 若断言 request status，须与同一 CASE 一致。
+
+### 非阻塞
+
+- 行号偏差 ≤2 行，建议 nail 时改为精确区间（0096 L207–215、0091 L516–545、0096 L576–583）。
+- `GAP-PRIV-AUDIT-RETENTION`、`GAP-E2E-ISO-BANNER-PG-RETAINED` 命名合理，接受。
+
+### r2 结论
+
+**FAIL（r2）**：B1/B2/B3 关闭，Step 0 确认 fixture-only；唯一阻塞 B4（FAULT-01 `partial_failed` 在现有 DB 逻辑下不可达）。改掉该期望即可 r3 PASS。Pins 保持：NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE 503。本结论 ≠ coding 授权 ≠ Step 0 应用授权 ≠ UC covered。
