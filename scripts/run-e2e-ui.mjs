@@ -5,9 +5,10 @@
  * 用法:pnpm e2e:ui(需 docker DB 在跑;web 需已 `pnpm -C apps/web build` 出 .next——本脚本不重新构建,构建太慢)。
  */
 import { spawn } from 'node:child_process';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, mkdirSync } from 'node:fs';
 import { emitClassifiedE2EFailure, emitE2EFailure, tagE2EFailure } from '../e2e/helpers/failure-class.mjs';
 import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
+import { applyLiveE2ECapabilityEnv } from './e2e-live-capability-env.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const env = {
@@ -44,6 +45,20 @@ const fakeServiceFlags = ['VOICE_FAKE', 'OCR_FAKE', 'E2E_FAKE_MODEL'].filter((na
 });
 if (fakeServiceFlags.length) throw tagE2EFailure('provider', 'fake_service_mode_forbidden');
 if (!String(env.MODEL_API_KEY ?? '').trim()) throw tagE2EFailure('provider', 'live_provider_key_missing');
+
+// Line C G7 FreeTierOnly re-prove (Step3): free-first + shared ¥5 ledger across api/worker processes.
+if (String(env.G7_FREETIER_REPROVE ?? process.env.G7_FREETIER_REPROVE ?? '').trim() === '1') {
+  env.G7_FREETIER_REPROVE = '1';
+  if (String(env.G7_PAID_FALLBACK_ENABLED ?? process.env.G7_PAID_FALLBACK_ENABLED ?? '').trim() === '1') {
+    env.G7_PAID_FALLBACK_ENABLED = '1';
+  }
+  if (!String(env.G7_RUN_COST_LEDGER_PATH ?? '').trim()) {
+    const ledgerDir = `${ROOT}/.tmp/g7-ledgers`;
+    mkdirSync(ledgerDir, { recursive: true });
+    env.G7_RUN_COST_LEDGER_PATH = `${ledgerDir}/g7-${process.pid}-${Date.now()}.ndjson`;
+  }
+}
+applyLiveE2ECapabilityEnv(env);
 
 // Fixed 8787/19091/3100 lets a parallel UI run attach its browser to another
 // stack.  Each run gets an independent pair/triple and propagates those
@@ -117,16 +132,26 @@ const waitForApiDatabase = async (tries = 60) => {
 const REG = '@swc-node/register/esm-register';
 const NEXT_BIN = ROOT + 'apps/web/node_modules/next/dist/bin/next';
 async function main() {
-  console.log('E2E-UI: 启 api + worker…');
+  // E2E_UI_SKIP_WORKER=1：只启 api+web（不启 worker）。用于 UC018 UI abandon 等「预留下立刻点放弃」
+  // 专用钉——避免 worker 秒级 fail-closed 把会话打成 failed，与 UI 放弃点击竞态。
+  // 默认仍启 worker（全量 e2e:ui 不变）。Skip worker ≠ 假绿；本门仍打真 UI→真 HTTP abandon 合同。
+  const skipWorker = String(env.E2E_UI_SKIP_WORKER ?? '').trim() === '1';
+  console.log(skipWorker ? 'E2E-UI: 启 api（skip worker · UC018 UI abandon 专用）…' : 'E2E-UI: 启 api + worker…');
   const api = spawnProc('api', 'node', ['--import', REG, 'src/main.ts'], ROOT + 'apps/api', { PORT: String(apiPort) });
-  const worker = spawnProc('worker', 'node', ['--import', REG, 'src/main.ts'], ROOT + 'apps/worker', { WORKER_BOOTSTRAP: '1', WEB_ALLOWLIST: '', WORKER_METRICS_PORT: String(workerMetricsPort) });
+  const worker = skipWorker
+    ? null
+    : spawnProc('worker', 'node', ['--import', REG, 'src/main.ts'], ROOT + 'apps/worker', { WORKER_BOOTSTRAP: '1', WEB_ALLOWLIST: '', WORKER_METRICS_PORT: String(workerMetricsPort) });
   if (!(await waitFor(`${apiBase}/livez`, 'api', 40))) { cleanup(); process.exit(1); }
   if (!(await waitForApiDatabase())) { emitE2EFailure({ class: 'db', code: 'database_not_ready' }); cleanup(); process.exit(1); }
-  await sleep(3000);   // 给 worker 消费循环就绪
-  if (worker.exitCode !== null) throw tagE2EFailure('worker', 'worker_exited_before_test');
+  if (!skipWorker) {
+    await sleep(3000);   // 给 worker 消费循环就绪
+    if (worker.exitCode !== null) throw tagE2EFailure('worker', 'worker_exited_before_test');
+  }
   if (api.exitCode !== null) throw tagE2EFailure('api', 'api_exited_before_test');
-  const workerReady = await fetch(`http://127.0.0.1:${workerMetricsPort}/readyz/worker`).then((r) => r.ok).catch(() => false);
-  if (!workerReady) throw tagE2EFailure('worker', 'worker_not_ready');
+  if (!skipWorker) {
+    const workerReady = await fetch(`http://127.0.0.1:${workerMetricsPort}/readyz/worker`).then((r) => r.ok).catch(() => false);
+    if (!workerReady) throw tagE2EFailure('worker', 'worker_not_ready');
+  }
 
   console.log(`E2E-UI: 启 web(production next start, :${webPort})…`);
   // 假设 .next 已构建(构建太慢,不在此重建)。next start 直接服务 .next + 静态资源。

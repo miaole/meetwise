@@ -13,23 +13,36 @@ import { buildMockInterviewGraph } from '@meetwise/ai-graphs';
 import { webExplore, deepExplore, createSafeFetch, degradedRetrieval, type AllowedSource, type RawFetch } from '@meetwise/domain';
 import {
   createPool, resolveDatabaseConnectionString, asPrincipal, asQbankControlExecutor, assertQbankControlExecutorIdentity, assertQbankControlDefinerOwnership, activeQbankGeneration, cachedQbankSearch, gatewayCostBudgetSnapshot, gatewayJobGauges,
-  qbankEvidenceForRefs, qbankQuestionResultsForHits, listScorableScoreCards, type GatewayCostBudgetSnapshot,
+  qbankEvidenceForRefs, qbankQuestionResultsForHits, listScorableScoreCards, type GatewayCostBudgetSnapshot, type QbankServingScopeInput,
 } from '@meetwise/db';
 import { createLangfuseV5Runtime, resolveLangfuseConnection, resolveModelDeadlineConfig, resolveDashscopeNativeConfig, setTracer, dashscopeEmbedder, cachingEmbedder, inMemoryEmbeddingStore, getMetrics, registerBaselineMetrics, METRIC, type Embedder, type ModelClient } from '@meetwise/ai-runtime';
 import { assertLegacyInterviewGraphDisabled } from './production-config.ts';
 import { runDrainLoop } from './drain-loop.ts';
 import { startWorkerJobWakeupListener } from './job-wakeup-listener.ts';
+import {
+  createWakeupRedisClient,
+  isRedisStreamsWakeupEnabled,
+  resolveWakeupRedisUrl,
+  startWorkerJobWakeupRedisListener,
+} from './worker-job-wakeup-redis.ts';
 import { defaultModelClient, fastModelClient, reportGenerator } from './interview-service.ts';
 import { runReportDispatcher, type ReportWorkerDeps } from './report-worker.ts';
 import { runInterviewConsumer } from './interview-consumer.ts';
 import { readInterviewDispatchBudget } from './interview-dispatch-fairness.ts';
 import { runCommerceReconciler } from './commerce-reconcile.ts';
 import { runModelInvocationReconciler, resolveModelInvocationReconcileConfig } from './model-invocation-reconcile.ts';
+import { runUsageCalibrationReconciler } from './usage-calibration-reconcile.ts';
 import { runQuizConsumer } from './quiz-consumer.ts';
 import { runDiagnosisConsumer } from './diagnosis-consumer.ts';
+import { runRouteClassifyConsumer } from './route-classify-consumer.ts';
+import {
+  FREE_TEXT_ALLOWLISTED_SCOPE_FUNNEL_WIRED,
+  runFreeTextAllowlistedScopeFunnel,
+} from './free-text-route-funnel.ts';
 import { ingestQbank, ingestQuestionBankArtifacts } from '@meetwise/db';
 import { QBANK_ARTIFACTS, QBANK_SEED } from './qbank-seed.ts';
 import { ensureActiveQbankGeneration, qbankEmbeddingRecipe } from './qbank-generation.ts';
+import { resolveQbankEmbeddingComputeSeams } from './qbank-embedding-compute-seams.ts';
 import { budgetedQbankEmbedding, resolveRagCostGovernance } from './rag-cost-governance.ts';
 import { resolveModelCostGovernance, verifyModelCostGovernance } from './model-cost-governance.ts';
 import { RedisQbankRetrievalCache, UnavailableQbankRetrievalCache, isProductionEnvironment, resolveRagRedisCacheConfig } from './rag-redis-cache.ts';
@@ -247,16 +260,26 @@ async function initializeQbankReadModel(controlPool: ReturnType<typeof createPoo
         const seeded = await ingestQuestionBankArtifacts(controlPool, QBANK_ARTIFACTS, embedder);
         console.log(`qbank question artifacts seeded/reconciled: questions=${seeded.questionCount} chunks=${seeded.chunkCount}`);
       }
-      const generation = await ensureActiveQbankGeneration(controlPool, embedder);
-      if (generation?.status === 'blocked_unrebuildable_legacy') {
-        console.error(`qbank generation BLOCKED: ${generation.unrebuildableLegacyRefs?.length ?? 0}${(generation.unrebuildableLegacyRefs?.length ?? 0) >= 101 ? '+' : ''} visible legacy refs lack approved reconstructible text; local RAG fail-closed until operator reimports them`);
-        return;
-      }
-      if (generation) {
-        // `ensureActiveQbankGeneration` returns activated/reused. A prior active/exists spelling left retrieval
-        // disabled after a normal worker restart, despite a valid active pointer in Postgres.
-        state.ready = generation.status === 'activated' || generation.status === 'reused';
-        console.log(`qbank generation ${generation.status}: ${generation.generationId ?? '-'} chunks=${generation.chunkCount} recipe=${generation.recipe.id}`);
+      // RAG-FUNNEL-02B: durable embedding compute cache production consumer.
+      // Prefer path with recipe digests / HMAC identity — generation embeds through
+      // resolveEmbeddingCompute when exact recipe + HMAC keys + Redis seams resolve.
+      // Fail-closed: missing seams keep direct embedder (never invent durable hits).
+      const computeResolved = await resolveQbankEmbeddingComputeSeams(qbankEmbeddingRecipe(embedder));
+      try {
+        const generation = await ensureActiveQbankGeneration(controlPool, embedder, computeResolved?.seams);
+        if (generation?.status === 'blocked_unrebuildable_legacy') {
+          console.error(`qbank generation BLOCKED: ${generation.unrebuildableLegacyRefs?.length ?? 0}${(generation.unrebuildableLegacyRefs?.length ?? 0) >= 101 ? '+' : ''} visible legacy refs lack approved reconstructible text; local RAG fail-closed until operator reimports them`);
+          return;
+        }
+        if (generation) {
+          // `ensureActiveQbankGeneration` returns activated/reused. A prior active/exists spelling left retrieval
+          // disabled after a normal worker restart, despite a valid active pointer in Postgres.
+          state.ready = generation.status === 'activated' || generation.status === 'reused';
+          const computeNote = computeResolved ? 'compute-cache=wired' : 'compute-cache=direct-embed';
+          console.log(`qbank generation ${generation.status}: ${generation.generationId ?? '-'} chunks=${generation.chunkCount} recipe=${generation.recipe.id} ${computeNote}`);
+        }
+      } finally {
+        await computeResolved?.close().catch(() => undefined);
       }
       return;
     }
@@ -486,7 +509,17 @@ async function bootstrap() {
   const safeFetch = createSafeFetch(rawFetch, WEB_ALLOWLIST, { timeoutMs: 8000 });
   assertLegacyInterviewGraphDisabled(process.env);
   const adaptive = {
-    localRetrieve: async (owner: string, q: string) => {
+    // R4 REAL-WIRE-IMPL: production retrieve prefers trackLocal → dispatchTrackLocalRetrieval
+    // (planner → assemble RetrievalPlan with generationId/recipeId → recheck fail-closed).
+    // localRetrieve remains compat/test seam (scoped cachedQbankSearch when trackLocal absent).
+    // ≠ wrong_track=0; wire green ≠ R4 closed; releaseEvidence=false · Not HA.
+    trackLocal: (owner: string) => ({
+      embedderVersion: `${embedder.id}:dim=${embedder.dim}:recipe=${qbankRecipe.id}:retrieval=${retrievalMode}:v1`,
+      k: 12,
+      cache: ragCache,
+      embed: budgetedQbankEmbedding(pool, owner, ragCost.mode === 'enforce' ? rawEmbedder : embedder, ragCost),
+    }),
+    localRetrieve: async (owner: string, q: string, scope?: QbankServingScopeInput) => {
       const started = performance.now();
       try {
         if (!qbankReadModel.ready) {
@@ -503,6 +536,8 @@ async function bootstrap() {
           embedderVersion: `${embedder.id}:dim=${embedder.dim}:recipe=${qbankRecipe.id}:retrieval=${retrievalMode}:v1`,
           qbankRecipeId: qbankRecipe.id,
           retrievalMode,
+          // Track-local serving scope (optional). Bound into cache key + SET LOCAL GUC.
+          scope,
           cache: ragCache,
           // Strict mode intentionally uses the unwrapped provider adapter: the durable result cache already removes
           // repeated query calls, and a local cache hit must not reserve a second external-cost ledger entry.
@@ -518,7 +553,7 @@ async function bootstrap() {
         if (questionArtifactSchema) {
           // A question is never represented by the one matching chunk. Resolve hits to a complete published
           // artifact under a second active-generation/ACL check, without first reading unused raw chunk text.
-          const result = await asPrincipal(pool, owner, (c) => qbankQuestionResultsForHits(c, qbankRecipe.id, hits, 420));
+          const result = await asPrincipal(pool, owner, (c) => qbankQuestionResultsForHits(c, qbankRecipe.id, hits, 420, scope));
           if (result.length) {
             observeRagRetrieval(retrievalMode, 'ok', cached.cacheStatus, Math.round(performance.now() - started), result.length);
             return result;
@@ -557,7 +592,9 @@ async function bootstrap() {
       })).docs
       : undefined,
     graphObserver: langfuse?.graphObserver,
-    role: '技术岗',
+    // R1 / GAP-RAG-01: do NOT inject silent「技术岗」. Role is resolved at start via
+    // resolveAdaptiveInterviewRole (legacy default only when MEETWISE_TECH_ROLE_FAIL_CLOSED is off).
+    // Missing route + flag on → adaptive_role_route_missing (fail-closed). Not R2 wiring / not R4.
     // 实时供应商 E2E 不能用本地模型替身。隔离库把软预算和绝对杀开关一起压到 1–8 控费；
     // 生产不传：软预算按覆盖计划派生，decideNext 可上调；绝对杀开关默认 120。
     maxTurns: process.env.E2E_ISOLATED === '1'
@@ -574,6 +611,21 @@ async function bootstrap() {
   const quizLoop = runQuizConsumer({ pool, model, leaseOwner }, jobReconcileIntervalMs);
   // 简历诊断(resume-diagnosis)消费循环:api 入队 generate job → 本消费者跑图/模型 → 业务事件经 SSE 回前端。
   const diagnosisLoop = runDiagnosisConsumer({ pool, model, leaseOwner }, jobReconcileIntervalMs);
+  // R2 P-WORKER: sole route_pending → classifyJobRoute via MODEL-OP binding (≠ R2 closed; P-API may remain).
+  const routeClassifyLoop = runRouteClassifyConsumer({ pool, model }, jobReconcileIntervalMs);
+  // RAG-FUNNEL-07: free-text allowlisted scope funnel production consumer (request-path).
+  // Callers supply goal once; typed decision only suggests allowlisted track — no read/tool/retrieval grant.
+  // Real import of runFreeTextAllowlistedScopeFunnel ( Ban docs-only fake cover ).
+  const freeTextAllowlistedScopeFunnel = {
+    wired: FREE_TEXT_ALLOWLISTED_SCOPE_FUNNEL_WIRED,
+    run: runFreeTextAllowlistedScopeFunnel,
+  };
+  if (!freeTextAllowlistedScopeFunnel.wired) {
+    throw new Error('free_text_allowlisted_scope_funnel_not_wired');
+  }
+  console.log('free-text allowlisted scope funnel: wired (request-path · suggest allowlisted track only · no retrieval grant)');
+  // Keep live production binding (assessor pins runFreeTextAllowlistedScopeFunnel on main).
+  void freeTextAllowlistedScopeFunnel.run;
   // This is a dedicated, otherwise-idle PG session. It never performs RLS
   // work or claims jobs: every notification merely coalesces a normal drain
   // across all queue classes. Notifications contain no job or tenant data.
@@ -582,7 +634,38 @@ async function bootstrap() {
     interviewLoop.wake();
     quizLoop.wake();
     diagnosisLoop.wake();
+    routeClassifyLoop.wake();
   }, { closePoolOnStop: true });
+  // Additive Redis Streams wakeup prototype (M3). Default off via
+  // MEETWISE_WAKEUP_REDIS_STREAMS=0 — never replaces the PG LISTEN session above.
+  const redisWakeupEnabled = isRedisStreamsWakeupEnabled();
+  const redisWakeupUrl = resolveWakeupRedisUrl();
+  let jobWakeupRedisClient: Awaited<ReturnType<typeof createWakeupRedisClient>> | undefined;
+  let jobWakeupRedisListener = startWorkerJobWakeupRedisListener(null, () => {}, { enabled: false, consumer: 'disabled' });
+  if (redisWakeupEnabled) {
+    if (!redisWakeupUrl) {
+      console.warn('MEETWISE_WAKEUP_REDIS_STREAMS enabled but MEETWISE_WAKEUP_REDIS_URL missing; Redis wakeup skipped (PG LISTEN unchanged)');
+    } else {
+      try {
+        jobWakeupRedisClient = await createWakeupRedisClient(redisWakeupUrl);
+        const wakeAll = () => {
+          reportLoop.wake();
+          interviewLoop.wake();
+          quizLoop.wake();
+          diagnosisLoop.wake();
+          routeClassifyLoop.wake();
+        };
+        jobWakeupRedisListener = startWorkerJobWakeupRedisListener(jobWakeupRedisClient, wakeAll, {
+          enabled: true,
+          consumer: `${leaseOwner}:redis-wakeup`,
+        });
+        console.log('worker wakeup: Redis Streams path enabled (additive; PG LISTEN still active)');
+      } catch {
+        console.warn('Redis Streams wakeup connect failed; continuing with PG LISTEN only');
+        jobWakeupRedisListener = startWorkerJobWakeupRedisListener(null, () => {}, { enabled: false, consumer: 'disabled' });
+      }
+    }
+  }
   // **商务对账兜底(C1)**:周期回收租约过期的孤儿预留(中途弃/进程崩→退额度回池,零泄漏) + 把 confirm 投的结算 outbox 真实入账本。
   // 无它则:弃面试的预留永久挂 reserved 漏额度、结算账本永不落。多实例安全(sweep 行锁 + settle SKIP LOCKED,幂等)。
   const commerceLoop = runCommerceReconciler(pool);
@@ -591,6 +674,9 @@ async function bootstrap() {
   // reservation, making the ambiguity observable and preventing a second
   // billable send under the same idempotency key.
   const modelInvocationReconcileLoop = runModelInvocationReconciler(pool, resolveModelInvocationReconcileConfig());
+  // MODEL-OP-wire：usage 校准因子周期 reconciler（读 estimate↔usage 配对 → 版本化因子落库）。
+  // Dual reconciler 同列 · ≠ MODEL-OP fake green / ≠ SLO / ≠ Redis cutover / PG LISTEN retained.
+  const usageCalibrationReconcileLoop = runUsageCalibrationReconciler(pool);
   const privacyErasureLoop = privacyPool ? runCheckpointPrivacyEraser(privacyPool, `${leaseOwner}:privacy`) : undefined;
   // 队列健康 gauge 刷新循环(告警数据源:queued/卡住/DLQ 深度)。低频 15s,查询失败经 drain-loop 兜底不停循环。
   const gaugeLoop = runDrainLoop(() => Promise.all([
@@ -599,7 +685,8 @@ async function bootstrap() {
   const metricsServer = startMetricsExposition({
     ragReady: () => ragCache.available && qbankReadModel.ready,
     workerReady: () => reportLoop.ready() && interviewLoop.ready() && quizLoop.ready() && diagnosisLoop.ready()
-      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && (privacyErasureLoop?.ready() ?? true),
+      && routeClassifyLoop.ready()
+      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && usageCalibrationReconcileLoop.ready() && (privacyErasureLoop?.ready() ?? true),
   });
   // Start consumers before the optional external embedding build. A failure can only disable local evidence, never
   // turn an infrastructure dependency into an interview/payment availability outage.
@@ -617,8 +704,8 @@ async function bootstrap() {
       void initializeQbankReadModel(qbankControlPool, embedder, qbankReadModel);
     }
   }
-  process.on('SIGTERM', async () => { await jobWakeupListener.stop().catch(() => {}); await Promise.allSettled([Promise.resolve(reportLoop.stop()), interviewLoop.stop(), quizLoop.stop(), diagnosisLoop.stop(), commerceLoop.stop(), modelInvocationReconcileLoop.stop(), privacyErasureLoop?.stop() ?? Promise.resolve(), gaugeLoop.stop(), ragCache.close(), privacyPool?.end() ?? Promise.resolve(), qbankControlPool?.end() ?? Promise.resolve(), ragControlPool?.end() ?? Promise.resolve(), langfuse?.shutdown()]); metricsServer.close(); console.log('drained, exiting'); process.exit(0); });   // 优雅排空在飞 job 再退
-  console.log(`worker ${ragCache.available ? 'ready' : 'degraded'}: event wakeup + ${jobReconcileIntervalMs}ms bounded reconciliation for report/interview/quiz/diagnosis + commerce reconciler + model invocation reconciler + privacy eraser(${privacyErasureLoop ? 'enabled' : 'pending dedicated login'}) + gauge refresh started as`, leaseOwner);
+  process.on('SIGTERM', async () => { await jobWakeupListener.stop().catch(() => {}); await jobWakeupRedisListener.stop().catch(() => {}); await jobWakeupRedisClient?.close().catch(() => {}); await Promise.allSettled([Promise.resolve(reportLoop.stop()), interviewLoop.stop(), quizLoop.stop(), diagnosisLoop.stop(), routeClassifyLoop.stop(), commerceLoop.stop(), modelInvocationReconcileLoop.stop(), usageCalibrationReconcileLoop.stop(), privacyErasureLoop?.stop() ?? Promise.resolve(), gaugeLoop.stop(), ragCache.close(), privacyPool?.end() ?? Promise.resolve(), qbankControlPool?.end() ?? Promise.resolve(), ragControlPool?.end() ?? Promise.resolve(), langfuse?.shutdown()]); metricsServer.close(); console.log('drained, exiting'); process.exit(0); });   // 优雅排空在飞 job 再退
+  console.log(`worker ${ragCache.available ? 'ready' : 'degraded'}: event wakeup + ${jobReconcileIntervalMs}ms bounded reconciliation for report/interview/quiz/diagnosis/route-classify + commerce reconciler + model invocation reconciler + usage calibration reconciler + privacy eraser(${privacyErasureLoop ? 'enabled' : 'pending dedicated login'}) + gauge refresh started as`, leaseOwner);
 }
 
 if (process.env.WORKER_BOOTSTRAP === '1') bootstrap();

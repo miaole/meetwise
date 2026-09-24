@@ -1,4 +1,10 @@
 /**
+ * NOTE (BUG-FAKE-R5 / R5-MARKED-RED / fake-green — NOT deleted):
+ *   `qbank-retrieval-eval-pg` / `prove:qbank-retrieval-eval` binds isolated **PostgreSQL/pgvector**
+ *   (`E2E_PG_IMAGE`). EXIT=0 ⇒ pipeline mechanical correctness on that fixture only.
+ *   **假绿风险**: ≠ production retrieval quality / ≠ release召回 SLO / ≠ RAG migrated /
+ *   ≠ sole-stack truth. releaseEvidence=false · Not HA · 本绿≠已迁 · marked-red ≠ deleted.
+ *
  * QBank holdout 评测 — 真实 generation-aware 检索路径（PRD-TEST-003）。
  *
  * 与 `apps/worker/smoke/qbank-retrieval-eval.ts`（内存 buildBm25/denseRank/rrf 的 worker-shaped 近似）不同，

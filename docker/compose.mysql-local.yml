@@ -1,0 +1,56 @@
+# Local mysql + redis + qdrant skeleton. Not production. Not HA.
+# releaseEvidence=false. Local-dev placeholder credentials only (same class as compose.dev.yml).
+name: meetwise-mysql-local
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: meetwise-mysql-local
+    environment:
+      MYSQL_DATABASE: meetwise
+      MYSQL_USER: meetwise
+      MYSQL_PASSWORD: meetwise_dev_password
+      MYSQL_ROOT_PASSWORD: meetwise_root_dev_password
+    ports:
+      - "33069:3306"
+    volumes:
+      - meetwise_mysql_local:/var/lib/mysql
+    command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci"]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-umeetwise", "-pmeetwise_dev_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: meetwise-redis-mysql-local
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "63809:6379"
+    volumes:
+      - meetwise_redis_mysql_local:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  qdrant:
+    image: qdrant/qdrant:v1.13.2
+    container_name: meetwise-qdrant-local
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - meetwise_qdrant_local:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/6333 && echo -e \"GET /readyz HTTP/1.0\\r\\n\\r\\n\" >&3 && cat <&3 | head -1 | grep -q 200'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  meetwise_mysql_local:
+  meetwise_redis_mysql_local:
+  meetwise_qdrant_local:

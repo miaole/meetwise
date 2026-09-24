@@ -6,9 +6,11 @@
   "scripts": {
     "prove": "tsx test/web-logic.proof.ts",
     "prove:public-copy": "node test/public-copy.proof.mjs",
+    "prove:uc003-i18n-locale": "node test/uc-e2e-003-i18n-locale.proof.mjs",
     "prove:speak-proxy": "tsx test/speak-proxy.proof.ts",
     "prove:transcribe-proxy": "tsx test/transcribe-proxy.proof.ts",
     "prove:middleware": "tsx test/web-middleware.proof.ts",
+    "prove:application-start-error": "tsx test/application-start-error.proof.ts",
     "dev": "next dev",
     "build": "next build",
     "start": "next start"

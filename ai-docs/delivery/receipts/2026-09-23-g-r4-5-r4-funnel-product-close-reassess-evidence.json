@@ -1,0 +1,22 @@
+{
+  "kind": "R4FunnelProductCloseEvidence",
+  "productCloseAttemptedUnderAuthorize": true,
+  "productCloseFlipped": true,
+  "evidenceInsufficient": false,
+  "coveredCount": 8,
+  "coveredCountInvented": false,
+  "funnel02Through08AllCovered": true,
+  "matrixHonestyRetained": true,
+  "eg3FlagsRetained": true,
+  "authorizedSsotPinsPresent": true,
+  "r4ProductClosed": true,
+  "funnelProductClosed": true,
+  "gR45Closed": false,
+  "domainIsolationClosed": true,
+  "eg3ProductClosed": true,
+  "eg1ThroughEg6ProductClosedByThisKnife": false,
+  "ms3EqualsR4Closed": false,
+  "releaseEvidence": false,
+  "archivePriorNonFlipRetained": true,
+  "note": "G-R4-5 / R4·FUNNEL product-close reassess — authorized honest flip · live matrix coveredCount=8 · FUNNEL-02A…08 covered · r4ProductClosed=true · funnelProductClosed=true · gR45Closed=false (default do NOT auto-flip) · retain EG3 domainIsolationClosed/eg3ProductClosed · ARCHIVE prior non-flip da185d9/139dac9/1c2ed8c retained · Ban invent coveredCount · Ban wash Batch4b f802f02/0e58386 · Ban MS3=R4 · Ban self-nail post_prove_dual_pass · await post-prove dual · releaseEvidence=false · ≠HA"
+}

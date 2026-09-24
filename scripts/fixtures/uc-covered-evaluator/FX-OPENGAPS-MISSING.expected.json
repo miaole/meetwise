@@ -1,0 +1,6 @@
+{
+  "canHonestlyFlip": false,
+  "mustIncludeReasons": [
+    "OPEN-GAP-UNKNOWN"
+  ]
+}

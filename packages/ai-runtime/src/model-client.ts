@@ -3,12 +3,25 @@
  * 接真模型只换本文件的实现,关口(invoke 双校验/派发边界/幂等 trace)、图、业务都不动——易变技术藏在 seam 后(10 年)。
  * 安全铁律落地:**不可信用户数据进 user 的 <data> 块,绝不拼进 system 指令**(防注入越权)。
  */
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { resolveModelDeadlineConfig, type Model, type ModelCallPlan, type ModelCostPolicy, type ModelResult } from './invoke.ts';
 import { ExternalHttpStatusError, fetchJsonWithTimeout } from './timeout.ts';
 import { getPrompt } from './prompts.ts';
 import { rejectTextTransportOverride, resolveTextBackupEndpointConfig, resolveTextEndpointConfig } from './text-endpoint-config.ts';
 import { resolveVisionEndpointConfig } from './vision-endpoint-config.ts';
+import {
+  assertModelAllowedForTest,
+  assertModelApiKeyPresent,
+  bounded429BackoffMs,
+  classifyProviderError,
+  finalizeG7ReservationOnSharedLedger,
+  isG7FreetierReproveEnabled,
+  releaseG7ReservationOnSharedLedger,
+  reserveG7CallOnSharedLedger,
+  resolveG7TestProfile,
+  selectPaidFallback,
+} from './g7-freetier-reprove-guard.ts';
+import { installG7OutboundInterceptor, withG7OutboundAllow } from './g7-outbound-interceptor.ts';
 
 export interface CompletionRequest {
   service: string;       // 逻辑服务 key(catalog 解析模型/提示词版本)
@@ -313,7 +326,7 @@ export function openAICompatibleClient(cfg: {
     && (!Number.isSafeInteger(maxOutputTokens) || maxOutputTokens < 1 || maxOutputTokens > 1_000_000)) {
     throw new Error('model_output_token_limit_invalid');
   }
-  if (costPolicy !== undefined && model !== costPolicy.model) {
+  if (costPolicy !== undefined && model !== costPolicy.model && !isG7FreetierReproveEnabled(process.env)) {
     throw new Error('model_cost_policy_model_mismatch');
   }
   const client: ModelClient = {
@@ -341,48 +354,154 @@ export function openAICompatibleClient(cfg: {
       // users, which otherwise would bypass the safe no-send decision.
       const context = costPolicy === undefined ? undefined : planContextBudget(req, costPolicy);
       if (context?.ok === false) return { ok: false, kind: 'deterministic', externalOutcome: 'known_not_executed' };
-      // 注入加固(审计):① 剥离用户数据里伪造的 <data> 标签防越狱出栈;② **分服务长度封顶 + 不可伪造(绑 nonce)截断标记**(capUserData,见上);③ 随机 nonce 围栏(攻击者猜不到闭合);④ system 申明数据块内指令不执行 + 截断标记须带本 nonce 才可信。
+
+      const g7 = isG7FreetierReproveEnabled(process.env);
+      if (g7) {
+        assertModelApiKeyPresent(process.env);
+        installG7OutboundInterceptor(process.env);
+      }
+
+      let activeModel = model;
+      let fallbackInfo: {
+        triggerErrorClass: 'FreeTierOnly' | 'quota_exhausted' | 'capability_unsupported';
+        fromModel: string;
+        toModel: string;
+      } | undefined;
+      if (g7) assertModelAllowedForTest(activeModel, process.env);
+
       const nonce = randomBytes(8).toString('base64url').slice(0, 10);
       const rendered = renderPrompt(req, nonce);
       const chatUrl = `${baseUrl}/chat/completions`;
-      try {
-        const j = await fetchJsonWithTimeout<{ choices?: { message?: { content?: string } }[]; usage?: { prompt_tokens?: number; completion_tokens?: number } }>(chatUrl, {
-          method: 'POST',
-          redirect: 'error',   // 3xx 即拒绝：文本路由绝不跟随重定向（防 SSRF 跳内网）
-          signal: executionSignal,
-          headers: { 'content-type': 'application/json', authorization: `Bearer ${apiKey}` },
-          body: JSON.stringify({
-            model,
-            ...(maxOutputTokens === undefined ? {} : { max_tokens: maxOutputTokens }),
-            response_format: { type: 'json_object' },                          // 结构化输出,交 invoke 的 schema 双校验
-            ...(SERVICE_TEMPERATURE[req.service] !== undefined ? { temperature: SERVICE_TEMPERATURE[req.service] } : {}),   // 约束性任务钉低温求稳(评分一致性源头);未映射服务不设=供应商默认(零回归)
-            messages: [
-              // **分层为可缓存前缀**:system = 稳定指令,**不含每请求变化的 nonce**(否则前缀每次都变、供应商 prompt 缓存全失效)。
-              //  nonce 只活在下方 user 消息的围栏标签里 → 安全性不丢(攻击者仍猜不到本场标签去闭合),而 system 前缀字节稳定、可被缓存。
-              { role: 'system', content: rendered.system },
-              { role: 'user', content: rendered.userContent },                 // 不可信数据:剥标签+封顶+nonce 围栏(+可选图片),绝不拼进 system;nonce 在此(<data-${nonce}>)
-            ],
-          }),
-        }, { timeoutMs: resolveModelDeadlineConfig().transportTimeoutMs, maxBytes: 1024 * 1024 });
-        const content = j.choices?.[0]?.message?.content;
-        if (!content) return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
-        // 保守估算(byteEstimate 字节上界)与供应商上报 usage 配对带回,供 invoke 对账判断是否低估(绝不静默)。
-        // 估算在 prepare 已算(planContextBudget 用固定 10 字符 nonce 渲染);真正派发的随机 nonce 同为 10 字节,
-        // 故估算字节量与实发请求一致。供应商未上报 usage 时保持 undefined(交给 invoke 的保守封顶 fallback,不伪造对账证据)。
-        const estimateInputTokens = context?.ok === true ? context.plan.inputTokens : undefined;
-        const usage = j.usage
-          ? { inputTokens: j.usage.prompt_tokens ?? 0, outputTokens: j.usage.completion_tokens ?? 0, estimateInputTokens }
-          : undefined;
-        return { ok: true, raw: JSON.parse(content), usage };                  // 带 token usage(成本观测);真伪交 invoke schema+业务校验
-      } catch (error) {
-        // 429/408/425/5xx 是已派发后的外部结果不明；其余明确 4xx 才能证明未执行。
-        // invoke() 会把前者冻结为 unknown，绝不以同一幂等键自动重试或切换备用端点。
-        if (error instanceof ExternalHttpStatusError) {
-          const transient = error.status >= 500 || error.status === 429 || error.status === 408 || error.status === 425;
-          return { ok: false, kind: transient ? 'transient' : 'deterministic', externalOutcome: transient ? 'unknown' : 'known_not_executed' };
+      const startedAt = new Date().toISOString();
+      let attempt429 = 0;
+      let reservationId: string | undefined;
+
+      const estimatedInputTokens = context?.ok === true ? context.plan.inputTokens : Math.max(64, Math.ceil((rendered.system.length + rendered.userContent.length) / 4));
+      const maxOut = maxOutputTokens ?? 2048;
+
+      const dispatchOnce = async (dispatchModel: string) => fetchJsonWithTimeout<{
+        model?: string;
+        choices?: { message?: { content?: string } }[];
+        usage?: { prompt_tokens?: number; completion_tokens?: number };
+      }>(chatUrl, {
+        method: 'POST',
+        redirect: 'error',   // 3xx 即拒绝：文本路由绝不跟随重定向（防 SSRF 跳内网）
+        signal: executionSignal,
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: dispatchModel,
+          ...(maxOutputTokens === undefined ? {} : { max_tokens: maxOutputTokens }),
+          response_format: { type: 'json_object' },
+          ...(SERVICE_TEMPERATURE[req.service] !== undefined ? { temperature: SERVICE_TEMPERATURE[req.service] } : {}),
+          messages: [
+            { role: 'system', content: rendered.system },
+            { role: 'user', content: rendered.userContent },
+          ],
+        }),
+      }, { timeoutMs: resolveModelDeadlineConfig().transportTimeoutMs, maxBytes: 1024 * 1024 });
+
+      const reserveFor = (dispatchModel: string) => {
+        if (!g7) return;
+        if (reservationId) {
+          releaseG7ReservationOnSharedLedger(reservationId, process.env);
+          reservationId = undefined;
         }
-        return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
-      } // 网络/超时/解析失败 → 结果不明，禁止重发
+        const reserved = reserveG7CallOnSharedLedger({
+          model: dispatchModel,
+          estimatedInputTokens,
+          maxOutputTokens: maxOut,
+        }, process.env);
+        reservationId = reserved.reservationId;
+      };
+
+      if (g7) reserveFor(activeModel);
+
+      while (true) {
+        try {
+          const j = g7
+            ? await withG7OutboundAllow(() => dispatchOnce(activeModel))
+            : await dispatchOnce(activeModel);
+          const content = j.choices?.[0]?.message?.content;
+          if (!content) {
+            if (g7 && reservationId) { releaseG7ReservationOnSharedLedger(reservationId, process.env); reservationId = undefined; }
+            return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
+          }
+          const estimateInputTokens = context?.ok === true ? context.plan.inputTokens : undefined;
+          const usage = j.usage
+            ? { inputTokens: j.usage.prompt_tokens ?? 0, outputTokens: j.usage.completion_tokens ?? 0, estimateInputTokens }
+            : undefined;
+          const finishedAt = new Date().toISOString();
+          if (g7) {
+            const actualModel = typeof j.model === 'string' && j.model.trim() ? j.model.trim() : '';
+            if (!actualModel) throw new Error('g7_actual_model_missing_from_provider_response');
+            assertModelAllowedForTest(actualModel, process.env);
+            if (!reservationId) throw new Error('g7_reservation_missing_before_finalize');
+            finalizeG7ReservationOnSharedLedger(reservationId, {
+              callId: randomUUID(),
+              actualModel,
+              inputTokens: usage?.inputTokens ?? 0,
+              outputTokens: usage?.outputTokens ?? 0,
+              startedAt,
+              finishedAt,
+              fallback: fallbackInfo,
+              evidenceClass: fallbackInfo ? 'paid_fallback' : 'free_quota_wiring_only',
+            }, process.env);
+            reservationId = undefined;
+            return { ok: true, raw: JSON.parse(content), usage, actualModel };
+          }
+          return { ok: true, raw: JSON.parse(content), usage };
+        } catch (error) {
+          if (g7 && error instanceof ExternalHttpStatusError && error.status === 429) {
+            try {
+              const wait = bounded429BackoffMs(attempt429);
+              attempt429 += 1;
+              await new Promise((r) => setTimeout(r, wait));
+              continue;
+            } catch {
+              if (reservationId) { releaseG7ReservationOnSharedLedger(reservationId, process.env); reservationId = undefined; }
+              return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
+            }
+          }
+          if (g7 && error instanceof ExternalHttpStatusError && !fallbackInfo) {
+            const trigger = classifyProviderError(`${error.message} ${error.bodySnippet ?? ''}`);
+            if (trigger) {
+              const profile = resolveG7TestProfile(process.env);
+              try {
+                const selected = selectPaidFallback({
+                  fromModel: activeModel,
+                  triggerErrorClass: trigger,
+                  paidFallbackEnabled: profile.paidFallbackEnabled,
+                });
+                assertModelAllowedForTest(selected.toModel, process.env);
+                fallbackInfo = {
+                  triggerErrorClass: selected.triggerErrorClass,
+                  fromModel: selected.fromModel,
+                  toModel: selected.toModel,
+                };
+                activeModel = selected.toModel;
+                reserveFor(activeModel);
+                continue;
+              } catch (fallbackError) {
+                const msg = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+                if (reservationId) { releaseG7ReservationOnSharedLedger(reservationId, process.env); reservationId = undefined; }
+                if (msg.startsWith('g7_')) throw fallbackError;
+              }
+            }
+          }
+          if (g7 && reservationId) {
+            releaseG7ReservationOnSharedLedger(reservationId, process.env);
+            reservationId = undefined;
+          }
+          if (error instanceof ExternalHttpStatusError) {
+            const transient = error.status >= 500 || error.status === 429 || error.status === 408 || error.status === 425;
+            return { ok: false, kind: transient ? 'transient' : 'deterministic', externalOutcome: transient ? 'unknown' : 'known_not_executed' };
+          }
+          if (g7 && error instanceof Error && error.message.startsWith('g7_')) {
+            throw error;
+          }
+          return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
+        }
+      }
     },
   };
   return client;

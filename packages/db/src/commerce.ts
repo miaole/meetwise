@@ -39,6 +39,10 @@ export async function reserveEntitlement(
 ): Promise<ReserveResult> {
   await assertPrincipal(c, owner);
   if (units < MIN_UNIT) throw Object.assign(new Error('unit_below_minimum'), { code: 'unit_below_minimum', min: MIN_UNIT });
+  // Schema NOT NULL + UNIQUE(owner, key)：空 key 绝不可进 INSERT（undefined→SQL NULL 会炸成约束错，掩盖调用方丢 interviewId）
+  if (typeof idempotencyKey !== 'string' || idempotencyKey.length === 0) {
+    throw Object.assign(new Error('idempotency_key_required'), { code: 'idempotency_key_required' });
+  }
 
   // ① 幂等闸：先占坑,已存在则返回既有,绝不重复分配（同 key 不同 units 也按既有,不二次扣——掩盖客户端 bug,但保不重扣）
   const ins = await c.query(
@@ -224,8 +228,39 @@ export async function failInterviewAndRelease(c: Client, owner: string, intervie
  * 先在 consumption 行上串行化 release，再条件更新 interview；若完成方已先确认，release 返回
  * `already_confirmed` 并抛错，绝不把 completed 覆盖为 abandoned。created 且从未 reserve 的空壳可直接
  * abandoned，但 UPDATE 同时检查「现在仍不存在消费记录」，堵住 begin 与 abandon 的窗口。
+ * 有消费记录时 CAS 允许集：`created|active|waiting_user`（对齐 UC-E2E-018 active/waiting_user→abandoned）。
+ * 成功放弃（含 already_abandoned 幂等）时同步将同 thread 的 AiGraphRun
+ * `safe_terminating`→`safely_terminated`（状态机两步；清 lease）；不删 interview_event /
+ * interview_question / interview 行（业务事实独立保全 · GAP-UC018-GRAPH）。
  */
 export type AbandonInterviewResult = { status: 'abandoned' | 'already_abandoned'; released: 'released' | 'noop' };
+
+/** UC-E2E-018 §1b #2：abandon 成功后把该面试 thread 上非终态 AiGraphRun 安全终止。
+ * 两步 CAS：非终态→safe_terminating（清 lease）→safely_terminated。无 run 则 noop。
+ * 不 DELETE 业务事实行。已 safely_terminated / completed / failed 的 run 不动。 */
+async function safelyTerminateAiGraphRunsOnAbandon(c: Client, owner: string, interviewId: string): Promise<void> {
+  await c.query(
+    `UPDATE ai_graph_run
+        SET status='safe_terminating', lease_owner=NULL, lease_expires_at=NULL, version=version+1
+      WHERE owner_user_id=$1 AND thread_id=$2
+        AND status IN ('created','active','waiting_user','migrating','paused','quarantined')`,
+    [owner, interviewId],
+  );
+  await c.query(
+    `UPDATE ai_graph_run
+        SET status='safely_terminated', lease_owner=NULL, lease_expires_at=NULL, version=version+1
+      WHERE owner_user_id=$1 AND thread_id=$2
+        AND status='safe_terminating'`,
+    [owner, interviewId],
+  );
+}
+
+async function finishAbandon(
+  c: Client, owner: string, interviewId: string, result: AbandonInterviewResult,
+): Promise<AbandonInterviewResult> {
+  await safelyTerminateAiGraphRunsOnAbandon(c, owner, interviewId);
+  return result;
+}
 
 export async function abandonInterviewAndRelease(c: Client, owner: string, interviewId: string): Promise<AbandonInterviewResult> {
   await assertPrincipal(c, owner);
@@ -244,23 +279,31 @@ export async function abandonInterviewAndRelease(c: Client, owner: string, inter
              WHERE ec.owner_user_id=$2 AND ec.idempotency_key=$1
           )
         RETURNING status`, [interviewId, owner]);
-    if (empty.rowCount === 1) return { status: 'abandoned', released: 'noop' };
+    if (empty.rowCount === 1) return finishAbandon(c, owner, interviewId, { status: 'abandoned', released: 'noop' });
     const current = await c.query('SELECT status FROM interview WHERE id=$1 AND owner_user_id=$2', [interviewId, owner]);
-    if (current.rowCount === 1 && current.rows[0].status === 'abandoned') return { status: 'already_abandoned', released: 'noop' };
+    if (current.rowCount === 1 && current.rows[0].status === 'abandoned') {
+      return finishAbandon(c, owner, interviewId, { status: 'already_abandoned', released: 'noop' });
+    }
     throw Object.assign(new Error(`interview_abandon_conflict:${current.rows[0]?.status ?? 'not_found'}`), {
       code: 'interview_abandon_conflict', status: current.rows[0]?.status ?? 'not_found',
     });
   }
 
+  // CAS 允许集对齐 UC-E2E-018 主流程：Interview active/waiting_user → abandoned
+  // （created 含 begin 后 worker 置 active 前；waiting_user = 题间等待用户作答）。
+  // 不含 migrating/paused（Interview 业务枚举无此二态；AiGraphRun 另表，见 finishAbandon）。
   const updated = await c.query(
     `UPDATE interview SET status='abandoned', version=version+1
-      WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','active')
+      WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','active','waiting_user')
       RETURNING status`, [interviewId, owner]);
-  if (updated.rowCount === 1) return { status: 'abandoned', released: release.status };
+  if (updated.rowCount === 1) {
+    return finishAbandon(c, owner, interviewId, { status: 'abandoned', released: release.status });
+  }
 
   const current = await c.query('SELECT status FROM interview WHERE id=$1 AND owner_user_id=$2', [interviewId, owner]);
-  if (current.rowCount === 1 && current.rows[0].status === 'abandoned' && release.status === 'noop')
-    return { status: 'already_abandoned', released: 'noop' };
+  if (current.rowCount === 1 && current.rows[0].status === 'abandoned' && release.status === 'noop') {
+    return finishAbandon(c, owner, interviewId, { status: 'already_abandoned', released: 'noop' });
+  }
   // 与 complete 对称：0 行时抛错，外层事务回滚本次 release，维持账本与 interview 一致。
   throw Object.assign(new Error(`interview_abandon_conflict:${current.rows[0]?.status ?? 'not_found'}`), {
     code: 'interview_abandon_conflict', status: current.rows[0]?.status ?? 'not_found',

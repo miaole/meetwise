@@ -27,6 +27,7 @@
     "prove:model-operation-registry": "tsx test/model-operation-registry.proof.ts",
     "prove:operation-binding": "tsx test/operation-binding.proof.ts",
     "prove:resume-ocr-binding": "tsx test/resume-ocr-binding.proof.ts",
+    "prove:job-route-classify-binding": "tsx test/job-route-classify-binding.proof.ts",
     "prove:component-ledger": "tsx test/context-component-ledger.proof.ts",
     "prove:usage-reconciliation": "tsx test/usage-reconciliation.proof.ts",
     "prove:usage-estimate-threading": "tsx test/usage-estimate-threading.proof.ts",
@@ -46,7 +47,10 @@
     "langfuse:datasets:sync": "tsx scripts/sync-langfuse-datasets.ts",
     "langfuse:datasets:verify": "tsx scripts/verify-langfuse-datasets.ts",
     "langfuse:synthetic-trace:smoke": "tsx scripts/langfuse-synthetic-trace-smoke.ts",
-    "prove:model-cost": "tsx test/model-cost-governance.proof.ts"
+    "prove:model-cost": "tsx test/model-cost-governance.proof.ts",
+    "prove:g7-freetier-reprove-guard": "tsx test/g7-freetier-reprove-guard.proof.ts",
+    "prove:g7-freetier-reprove-client": "tsx test/g7-freetier-reprove-client.proof.ts",
+    "prove:g7-freetier-reprove-paths": "tsx test/g7-freetier-reprove-paths.proof.ts"
   },
   "dependencies": {
     "@langfuse/client": "5.10.0",

@@ -17,6 +17,23 @@ export interface PromptTemplate {
 }
 
 const REGISTRY: Record<string, PromptTemplate> = {
+  // R2 P-WORKER / MODEL-OP job.route-classify.v1：岗位意图路由小模型。
+  // 只读 <data> 内 title/description/competencies；输出严格 leaf allocations（bps 和=10000）。
+  // 禁止发明 taxonomy 外 leaf；不确定 → reasonCodes 非空（known_not_sent）。
+  'job.route-classify.v1': {
+    service: 'job.route-classify.v1', version: 'p.v1',
+    system: '你是岗位意图路由分类器。仅依据 <data> 内岗位标题、描述与能力要求，从允许的 taxonomy leaf 中分配权重。'
+      + '允许 leaf 仅限 <data> 列出的 taxonomyLeaves。allocations 的 allocationBps 为整数且总和必须恰为 10000；'
+      + '每项 >= 500；最多 4 个不同 leaf。confidenceBps/marginBps 为 0..10000 整数；'
+      + 'marginBps 必须等于最高权重与次高权重之差（仅 1 个 leaf 时 marginBps=10000）。'
+      + '若无法自信分类，返回空 allocations 与非空 reasonCodes（例如 ambiguous / low_confidence），不要猜测。'
+      + '只返回 JSON: {"allocations":[{"leafTrackId":"backend/nodejs","allocationBps":10000}],"confidenceBps":8000,"marginBps":10000,"reasonCodes":[]}',
+    buildData: (v) => {
+      const comps = Array.isArray(v.competencies) ? (v.competencies as string[]).join(', ') : String(v.competencies ?? '');
+      return `taxonomyLeaves:${String(v.taxonomyLeaves ?? '')}\ntitle:${String(v.title ?? '')}\ndescription:${String(v.description ?? '')}\ncompetencies:${comps}`;
+    },
+  },
+
   'resume-quiz.generate': {
     service: 'resume-quiz.generate', version: 'v1',
     system: '你是资深技术面试官。仅依据 <data> 内的简历事实出 3 道训练问题,严禁编造简历中不存在的技能或经历;每题的 refs 必须是简历里出现过的关键词原文。只返回 JSON: {"items":[{"q":"题目","refs":["关键词"]}]}',

@@ -3,9 +3,12 @@
 import { fileURLToPath } from 'node:url';
 import { MemorySaver } from '@langchain/langgraph';
 import { randomUUID } from 'node:crypto';
-import { createPool, asPrincipal, reserveEntitlement, appendEvent, answerHash, claimInterviewAnswer, loadMigrations, runMigrations, inviteCandidate, startApplicationInterview } from '@meetwise/db';
+import { createPool, asPrincipal, reserveEntitlement, appendEvent, answerHash, claimInterviewAnswer, loadMigrations, runMigrations, inviteCandidate, startApplicationInterview, createJob, classifyJobRoute } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { startAdaptiveInterview, submitAdaptiveAnswer, type AdaptiveLifecycleDeps } from '../src/adaptive-lifecycle.ts';
+
+// Test-only HMAC key for createJob/classifyJobRoute (same pattern as rag03/r4 proofs; not production).
+process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'adaptive-life-job-route-input-hmac-proof-key-not-production-01';
 
 const pool = createPool();
 let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
@@ -94,25 +97,42 @@ async function main() {
   A('计分集只消费 worker identity，旁路事件不计入报告综合分', scored.rows.every((r: any) => r.s !== 0) && scored.rows.length === qualified.rows[0].n && allEvals.rows[0].n === qualified.rows[0].n + 1);
 
   console.log('\n──── B 端全 unresolved 收口证明 ────');
+  // R2 P-START：无 route_decided → start 拒启 interview_ineligible_route（无 interviewId）。
+  // 旧 raw job_posting INSERT 跳过 semantic revision / classify → reserve(undefined) 炸 NOT NULL idempotency_key。
+  // 诚实最小修：createJob → rule-classify → invite → start，再 reserve 真实 interviewId。
   const noScoreRecruiter = `life-no-score-rec-${Date.now()}`;
-  const noScoreJob = `life-no-score-job-${Date.now()}`;
   const noScoreResume = randomUUID();
-  await pool.query("INSERT INTO job_posting(id,owner_user_id,title,competencies,status) VALUES ($1,$2,'后端工程师',$3,'open')", [noScoreJob, noScoreRecruiter, JSON.stringify(['并发'])]);
+  const noScoreJobRow = await asPrincipal(pool, noScoreRecruiter, (c) => createJob(c, noScoreRecruiter, {
+    title: 'Node.js 服务端工程师',
+    description: '使用 NestJS 构建服务',
+    competencies: ['nestjs', 'express', 'koa'],
+  }));
+  const noScoreJob = noScoreJobRow.id;
+  const noScoreRev = Number((await pool.query(
+    'SELECT COALESCE(MAX(revision),0)::int AS n FROM job_semantic_revision WHERE job_id=$1', [noScoreJob],
+  )).rows[0].n);
+  const noScoreClassify = await classifyJobRoute(pool, noScoreRecruiter, noScoreJob, noScoreRev, {
+    modelClassify: async () => { throw new Error('B-side seed must rule-decide; model path unexpected'); },
+  });
+  A('B 端岗位 rule-classified route_decided（start 前置）', noScoreClassify.status === 'route_decided' && noScoreClassify.attemptOutcome === 'rule_decided');
   await pool.query("INSERT INTO resume(id,owner_user_id,status,content_sha) VALUES ($1,$2,'ingested',$3)", [noScoreResume, OWNER, `life-no-score:${IID}`]);
   const noScoreApplication = await asPrincipal(pool, noScoreRecruiter, (c) => inviteCandidate(c, noScoreRecruiter, noScoreJob, OWNER));
-  const noScoreStart = await asPrincipal(pool, OWNER, (c) => startApplicationInterview(c, OWNER, noScoreApplication!.applicationId, noScoreResume)) as any;
-  await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, noScoreStart.interviewId, 'mock_interview', 1.0));
-  const noScoreDeps: AdaptiveLifecycleDeps = { ...d, cp: new MemorySaver(), interviewId: noScoreStart.interviewId };
+  const noScoreStart = await asPrincipal(pool, OWNER, (c) => startApplicationInterview(c, OWNER, noScoreApplication!.applicationId, noScoreResume));
+  const noScoreInterviewId = (noScoreStart.status === 'started' || noScoreStart.status === 'reused') ? noScoreStart.interviewId : undefined;
+  A('B 端 startApplicationInterview 返回 interviewId', typeof noScoreInterviewId === 'string' && noScoreInterviewId.length > 0);
+  if (!noScoreInterviewId) throw Object.assign(new Error('b_side_start_missing_interview_id'), { code: 'b_side_start_missing_interview_id', start: noScoreStart });
+  await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, noScoreInterviewId, 'mock_interview', 1.0));
+  const noScoreDeps: AdaptiveLifecycleDeps = { ...d, cp: new MemorySaver(), interviewId: noScoreInterviewId };
   const noScoreFirst = await startAdaptiveInterview(noScoreDeps, '后端工程师', ['限流改造']);
   let noScoreQuestionId = noScoreFirst.questionId!;
   let noScoreDone = false;
   for (let guard = 0; !noScoreDone && guard < 12; guard++) {
     const row = await asPrincipal(pool, OWNER, async (c) => (await c.query(
-      'SELECT state_version,turn FROM interview_question WHERE interview_id=$1 AND question_id=$2', [noScoreStart.interviewId, noScoreQuestionId],
+      'SELECT state_version,turn FROM interview_question WHERE interview_id=$1 AND question_id=$2', [noScoreInterviewId, noScoreQuestionId],
     )).rows[0]);
     const skipped = '跳过';
     const input = { questionId: noScoreQuestionId, stateVersion: Number(row.state_version), turn: Number(row.turn), answerId: randomUUID(), answerHash: answerHash(skipped), answer: skipped };
-    A(`B 端 skip 回合 ${guard} 的 identity 被接受`, (await asPrincipal(pool, OWNER, (c) => claimInterviewAnswer(c, OWNER, noScoreStart.interviewId, input))).status === 'accepted');
+    A(`B 端 skip 回合 ${guard} 的 identity 被接受`, (await asPrincipal(pool, OWNER, (c) => claimInterviewAnswer(c, OWNER, noScoreInterviewId, input))).status === 'accepted');
     const outcome = await submitAdaptiveAnswer(noScoreDeps, input);
     noScoreDone = outcome.done;
     if (!noScoreDone) noScoreQuestionId = outcome.nextQuestionId!;
@@ -126,10 +146,10 @@ async function main() {
        FROM interview i
        JOIN job_application ja ON ja.id=i.application_id
        LEFT JOIN entitlement_consumption ec ON ec.owner_user_id=i.owner_user_id AND ec.idempotency_key=i.id
-      WHERE i.id=$1`, [noScoreStart.interviewId],
+      WHERE i.id=$1`, [noScoreInterviewId],
   )).rows[0];
   const noScoreEvents = await asPrincipal(pool, OWNER, (c) => c.query(
-    "SELECT count(*)::int AS n FROM interview_event WHERE stream_key=$1 AND kind='answer_evaluated' AND COALESCE(payload->>'outcome','answered')='unresolved'", [noScoreStart.interviewId],
+    "SELECT count(*)::int AS n FROM interview_event WHERE stream_key=$1 AND kind='answer_evaluated' AND COALESCE(payload->>'outcome','answered')='unresolved'", [noScoreInterviewId],
   ));
   A('全 skip/unresolved 的 B 端真实 graph 可收尾（不无限澄清）', noScoreDone === true && Number(noScoreEvents.rows[0].n) >= 1);
   A('全 unresolved → completed+confirmed，但申请 scoreless 终态、无报告 job、终态事件恰一', noScoreState?.interview_status === 'completed'

@@ -1,0 +1,146 @@
+{
+  "knife": "ha-local-d1-probe-multi-authorized-prove",
+  "datePT": "2026-09-23 (~15:00–15:03 PT)",
+  "baseTip": "0fb9cd8c470409694bdf37d62bbe3c433797e6ca",
+  "baseTipShort": "0fb9cd8",
+  "branch": "feat/mysql-schema-skeleton",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "ladderCD": "STILL_NOT_GREEN",
+  "ladderD": "D1_local_probe_multi_receipts_only; D1-D3_track_not_open; Ban_claim_阶_D_green; Ban_CI_artifact",
+  "gR45Closed": true,
+  "coveredCount": 8,
+  "ms3EqualsR4Closed": false,
+  "priorC3bNail": "beaedc9",
+  "priorC3bProve": "4da46d5",
+  "priorC3bProveLand": "a32c071",
+  "priorC3C4Nail": "358a5cf",
+  "priorC3C4Prove": "16e8379",
+  "status": "executed:awaiting_post_prove_dual",
+  "banSelfNailPostProveDualPass": true,
+  "probeMultiResult": "DUAL_SHARED_PARTIAL",
+  "sharedOk": true,
+  "sharedPath": "shared_backend_hostpath",
+  "faultResult": "COMPOSE_FAULT_SHARED_PARTIAL",
+  "faultSharedState": "SHARED_OK_SURVIVOR",
+  "requireEvidenceFailReason": "local evidence seen but production topology/CI/review missing — refuse HA; use without --require-evidence for stub partial",
+  "cmds": [
+    {
+      "cmd": "pnpm ha:dual:build-image",
+      "exit": null,
+      "run": false,
+      "reason": "image tag meetwise-backend:ha-dual-local already present; bring-up did not require rebuild",
+      "honestRead": "≠ dual up · ≠ HA · ≠ 阶 D green"
+    },
+    {
+      "cmd": "MEETWISE_HA_DUAL_AUTHORIZED=1 MEETWISE_HA_SHARED_AUTHORIZED=1 pnpm ha:dual:compose-shared",
+      "exit": 0,
+      "result": "DUAL_COMPOSE_SHARED_UP",
+      "mode": "COMPOSE_HA_DUAL_SHARED",
+      "portA": 18787,
+      "portB": 18788,
+      "imageTag": "meetwise-backend:ha-dual-local",
+      "honestRead": "dual Nest + sole-stack network up; livez A/B 200; still NOT_HA; ≠ production HA; ≠ 阶 D green"
+    },
+    {
+      "cmd": "MEETWISE_HA_DUAL_AUTHORIZED=1 MEETWISE_HA_SHARED_AUTHORIZED=1 MEETWISE_HA_FAULT_AUTHORIZED=1 pnpm ha:probe:multi -- --with-shared --with-fault-inject",
+      "exit": 0,
+      "result": "DUAL_SHARED_PARTIAL",
+      "sharedOk": true,
+      "sharedPath": "shared_backend_hostpath",
+      "faultInject": "COMPOSE_A_DOWN_B_UP",
+      "sharedState": "SHARED_OK_SURVIVOR",
+      "method": "docker-kill-api-a",
+      "aDown": true,
+      "ladder": "C2_partial_possible; C3_shared=local_redis_mysql_prove; C4_fault=local_compose_kill_A+shared_survivor; D=not_open",
+      "haStatus": "NOT_HA",
+      "releaseEvidence": false,
+      "claimProductionHA": false,
+      "honestRead": "local D1 probe:multi EXIT=0 with shared+fault; still NOT_HA; releaseEvidence=false; ≠ 阶 D green; ≠ CI green; ≠ production HA"
+    },
+    {
+      "cmd": "pnpm ha:probe:multi -- --require-evidence",
+      "exit": 1,
+      "result": "FAIL",
+      "requireEvidence": true,
+      "failReason": "local evidence seen but production topology/CI/review missing — refuse HA; use without --require-evidence for stub partial",
+      "haStatus": "NOT_HA",
+      "releaseEvidence": false,
+      "claimProductionHA": false,
+      "honestRead": "honesty pin EXIT=1 fail-closed SUCCESS — Ban washing EXIT=1 into green · Ban flipping --require-evidence to pass · 即便 local sharedOk 仍拒生产 HA / 缺 CI·审"
+    }
+  ],
+  "buildImage": {
+    "cmd": "pnpm ha:dual:build-image",
+    "run": false,
+    "reason": "image tag meetwise-backend:ha-dual-local already present; bring-up did not require rebuild",
+    "exit": null
+  },
+  "resultLabels": [
+    "DUAL_COMPOSE_SHARED_UP",
+    "DUAL_SHARED_PARTIAL",
+    "REQUIRE_EVIDENCE_FAIL_CLOSED_EXIT_1"
+  ],
+  "gapPins": [],
+  "authorizeFlagsUsed": [
+    "MEETWISE_HA_DUAL_AUTHORIZED=1",
+    "MEETWISE_HA_SHARED_AUTHORIZED=1",
+    "MEETWISE_HA_FAULT_AUTHORIZED=1"
+  ],
+  "note": "AUTHORIZED local D1 probe:multi prove on tip 0fb9cd8. compose-shared EXIT=0 · probe:multi --with-shared --with-fault-inject EXIT=0 · --require-evidence EXIT=1 (honesty fail-closed). Still haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · 阶 C/D STILL NOT GREEN · D1–D3 track 未开 · Ban claim 阶 D green · Ban CI artifact · Ban wash beaedc9/358a5cf/16e8379/4da46d5 into 阶 D · Ban wash require-evidence EXIT=1 into green · Ban self-nail post_prove_dual_pass · STOP for post-prove dual.",
+  "localEvidenceDirGitignored": ".tmp/ha-evidence/",
+  "localEvidenceFiles": [
+    "shared-state-A-write.json",
+    "shared-state-B-read.json",
+    "kill-A.receipt.json",
+    "B-still-serving.receipt.json",
+    "fault-shared-survivor.receipt.json"
+  ],
+  "embeddedReceipts": {
+    "shared-state-A-write.json": {
+      "status": "OK",
+      "at": "2026-09-23T22:01:40.428Z",
+      "sharedPath": "shared_backend_hostpath",
+      "tokenPrefix": "c3-d0540",
+      "haStatus": "NOT_HA",
+      "releaseEvidence": false,
+      "claimProductionHA": false
+    },
+    "shared-state-B-read.json": {
+      "status": "OK",
+      "at": "2026-09-23T22:01:40.428Z",
+      "sharedPath": "shared_backend_hostpath",
+      "haStatus": "NOT_HA",
+      "releaseEvidence": false,
+      "claimProductionHA": false
+    },
+    "kill-A.receipt.json": {
+      "method": "docker-kill-api-a",
+      "at": "2026-09-23T22:01:46.625Z",
+      "aDown": true,
+      "haStatus": "NOT_HA",
+      "releaseEvidence": false,
+      "claimProductionHA": false
+    },
+    "B-still-serving.receipt.json": {
+      "status": 200,
+      "at": "2026-09-23T22:01:46.625Z",
+      "haStatus": "NOT_HA",
+      "releaseEvidence": false
+    },
+    "fault-shared-survivor.receipt.json": {
+      "status": "OK",
+      "at": "2026-09-23T22:01:46.624Z",
+      "sharedPath": "shared_backend_hostpath_survivor",
+      "tokenPrefix": "c4-01d2a",
+      "haStatus": "NOT_HA",
+      "releaseEvidence": false,
+      "claimProductionHA": false
+    }
+  },
+  "proveTip": "1f020fd2aa5fa09de4620fe93803ea2cc8155a54",
+  "proveTipShort": "1f020fd",
+  "parentTip": "0fb9cd8c470409694bdf37d62bbe3c433797e6ca",
+  "parentTipShort": "0fb9cd8"
+}

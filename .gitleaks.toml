@@ -1,0 +1,24 @@
+# Meetwise gitleaks config
+# FP allowlist · not real secrets (script names / Key-unset honesty docs).
+# Do NOT use this file to hide real credentials.
+
+title = "Meetwise gitleaks"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "FP allowlist · not real secrets (pnpm prove:uc0xx script names; G6 Key-unset honesty docs)"
+# Paths that only document prove script names or Key-unset honesty (no credentials).
+paths = [
+  '''(^|/)ai-docs/delivery/harness/r5-retirement-sole-stack-status\.md$''',
+  '''(^|/)ai-docs/delivery/harness/uc-e2e-015-resume-ingest-failures\.md$''',
+  '''(^|/)ai-docs/delivery/harness/uc-e2e-025-stale-quiz-expiry\.md$''',
+  '''(^|/)apps/api/test/uc-e2e-015-resume-ingest-failures\.proof\.ts$''',
+]
+# Matched "secrets" are pnpm script suffixes / honesty phrases, not API keys.
+regexes = [
+  '''(?i)uc0\d{2}[-a-z0-9]+''',
+  '''(?i)Key-unset\s+e2e''',
+  '''(?i)prove:uc0\d{2}[-a-z0-9]*''',
+]

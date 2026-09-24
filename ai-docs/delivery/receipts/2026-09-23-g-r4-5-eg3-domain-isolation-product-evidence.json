@@ -1,0 +1,17 @@
+{
+  "kind": "DomainIsolationProductEvidence",
+  "domainIsolationProductEvidence": true,
+  "trackLocalRetrieveDispatchWired": true,
+  "mainInjectsTrackLocal": true,
+  "consumerConsumesTrackLocal": true,
+  "retrieveScopeFailClosedMissingSnapshot": true,
+  "statusPinsDomainIsolationNotClosed": true,
+  "metaProveAloneDoesNotClose": true,
+  "wrongTrackZeroProductProven": false,
+  "eg3ProductClosed": false,
+  "domainIsolationClosed": false,
+  "gR45Closed": false,
+  "r4ProductClosed": false,
+  "releaseEvidence": false,
+  "note": "EG3 domain-isolation product evidence — emitted · ≠ EG3/题域/G-R4-5/R4 closed · Ban forge · Ban claim from meta prove alone · await post-prove dual"
+}

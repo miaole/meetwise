@@ -1,0 +1,94 @@
+{
+  "knife": "ha-local-c3b-nest-session-authorized-prove",
+  "datePT": "2026-09-23 (~14:44\u201314:45 PT)",
+  "baseTip": "5c7153048ee0cb9477035daeaab8a252d7c79650",
+  "baseTipShort": "5c71530",
+  "branch": "feat/mysql-schema-skeleton",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "ladderCD": "STILL_NOT_GREEN",
+  "gR45Closed": true,
+  "coveredCount": 8,
+  "ms3EqualsR4Closed": false,
+  "priorC3C4Nail": "358a5cf",
+  "priorC3C4Prove": "16e8379",
+  "status": "executed:awaiting_post_prove_dual",
+  "banSelfNailPostProveDualPass": true,
+  "nestSessionOk": true,
+  "cmds": [
+    {
+      "cmd": "MEETWISE_HA_NEST_PG_AUTHORIZED=1 pnpm ha:prepare:nest-pg",
+      "exit": 0,
+      "result": "NEST_PG_READY",
+      "nestPgReady": true,
+      "honestRead": "PG migrate+runtime for Nest session path; still NOT_HA; \u2260 dual up; \u2260 \u9636 C green; \u2260 production HA"
+    },
+    {
+      "cmd": "MEETWISE_HA_DUAL_AUTHORIZED=1 MEETWISE_HA_NEST_PG_AUTHORIZED=1 pnpm ha:dual:compose-pg",
+      "exit": 0,
+      "result": "DUAL_COMPOSE_PG_UP",
+      "mode": "COMPOSE_HA_DUAL_PG",
+      "portA": 18787,
+      "portB": 18788,
+      "imageTag": "meetwise-backend:ha-dual-local",
+      "honestRead": "dual Nest + PG sidecar up; livez A/B 200; still NOT_HA; \u2260 production HA; \u2260 \u9636 C green"
+    },
+    {
+      "cmd": "pnpm ha:prove:nest-session -- --prove",
+      "exit": 0,
+      "result": "NEST_SESSION_LOCAL_OK",
+      "nestSessionOk": true,
+      "path": "A_signup_token\u2192B_profile + A_login_token\u2192B_profile",
+      "honestRead": "LOCAL Nest sticky session A\u2192B via shared Postgres+AUTH_SECRET; still NOT_HA; \u2260 \u9636 C green; \u2260 production HA; Dual PASS \u2260 HA green"
+    }
+  ],
+  "buildImage": {
+    "cmd": "pnpm ha:dual:build-image",
+    "run": false,
+    "reason": "image tag meetwise-backend:ha-dual-local already present; bring-up did not require rebuild",
+    "exit": null
+  },
+  "resultLabels": [
+    "NEST_PG_READY",
+    "DUAL_COMPOSE_PG_UP",
+    "NEST_SESSION_LOCAL_OK"
+  ],
+  "gapPins": [],
+  "note": "AUTHORIZED local C3b Nest-session prove on tip 5c71530. EXIT 3\u00d70. nestSessionOk=true LOCAL. Still haStatus=NOT_HA \u00b7 releaseEvidence=false \u00b7 claimProductionHA=false \u00b7 \u9636 C/D STILL NOT GREEN. Ban wash 358a5cf/16e8379 into \u9636 C \u00b7 Ban wash 6ded589/ba1b8aa into HA \u00b7 Ban self-nail post_prove_dual_pass \u00b7 STOP for post-prove dual.",
+  "localEvidenceDirGitignored": ".tmp/ha-evidence/",
+  "localEvidenceFiles": [
+    "nest-pg-prepare.json",
+    "nest-session.OK.json"
+  ],
+  "embeddedReceipts": {
+    "nest-pg-prepare.json": {
+      "status": "OK",
+      "at": "2026-09-23T21:44:58.760Z",
+      "nestPgReady": true,
+      "host": "127.0.0.1",
+      "port": 54339,
+      "runtimeUser": "meetwise_ha_runtime",
+      "haStatus": "NOT_HA",
+      "releaseEvidence": false,
+      "claimProductionHA": false
+    },
+    "nest-session.OK.json": {
+      "status": "OK",
+      "at": "2026-09-23T21:45:30.351Z",
+      "nestSessionOk": true,
+      "path": "A_signup_token\u2192B_profile + A_login_token\u2192B_profile",
+      "userId": "2448551f-514f-4fe4-bdfb-770820df6cfa",
+      "email": "ha-nest-session-56670e974137@meetwise.local",
+      "portA": 18787,
+      "portB": 18788,
+      "haStatus": "NOT_HA",
+      "releaseEvidence": false,
+      "claimProductionHA": false
+    }
+  },
+  "proveTip": "a32c07175ec42b087f8a7efd0ca25046b3a90a25",
+  "proveTipShort": "a32c071",
+  "parentTip": "5c7153048ee0cb9477035daeaab8a252d7c79650",
+  "parentTipShort": "5c71530"
+}

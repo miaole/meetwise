@@ -1,4 +1,6 @@
 /**
+ * NOTE (BUG-FAKE-R5): multiple pgvector-bound steps are LEGACY/R5-MARKED-RED — green ≠ RAG migrated ≠ sole-stack (E2E_PG_IMAGE ≠ sole-stack truth).
+ * Marked leaves include vectorstore + memory + rag-generation/corpus/qbank-control (+ cache) where they bind PG/pgvector.
  * 可复现的本地全量 E2E/性能门。
  *
  * 所有会写 DB 的步骤都使用临时隔离 PostgreSQL，或由 proof 自建独占库；真实模型/公开数据集
@@ -26,16 +28,16 @@ const steps = [
   ['HTTP turn idempotency', ['exec', 'node', 'scripts/run-e2e-isolated.mjs', 'turn-idempotency:prove']],
   ['long-context pressure', ['exec', 'node', 'scripts/run-e2e-isolated.mjs', 'stress:prove']],
   ['context window boundary', ['window:prove']],
-  ['memory isolation and retention boundary', ['memory:prove']],
+  ['LEGACY/R5-MARKED-RED memory isolation on pgvector fixture (≠ RAG migrated / ≠ sole-stack)', ['memory:prove']],
   ['single-track voice capability contract', ['exec', 'node', 'scripts/run-e2e-isolated.mjs', 'voice:prove']],
   ['adaptive graph latency routing', ['exec', 'node', 'scripts/run-e2e-isolated.mjs', 'adaptive-latency:prove']],
   ['scoring and report integrity', ['exec', 'node', 'scripts/run-e2e-isolated.mjs', 'scoring-integrity:prove']],
   ['scoring non-happy-path fixture', ['scoring-golden:prove']],
-  ['pgvector HNSW compatibility proof', ['vectorstore:prove']],
-  ['RAG immutable generation', ['rag-generation:prove']],
-  ['RAG generic corpus version control', ['rag-corpus-version:prove']],
-  ['RAG approved source / least-privilege control plane', ['qbank-control-role:prove']],
-  ['RAG cache anti-stampede', ['rag-cache:prove']],
+  ['LEGACY/R5-MARKED-RED pgvector HNSW compatibility (≠ RAG migrated / ≠ sole-stack)', ['vectorstore:prove']],
+  ['LEGACY/R5-MARKED-RED RAG immutable generation on PG fixture (≠ RAG migrated / ≠ sole-stack)', ['rag-generation:prove']],
+  ['LEGACY/R5-MARKED-RED RAG corpus version on PG fixture (≠ RAG migrated / ≠ sole-stack)', ['rag-corpus-version:prove']],
+  ['LEGACY/R5-MARKED-RED qbank control-role on PG fixture (≠ RAG migrated / ≠ sole-stack)', ['qbank-control-role:prove']],
+  ['LEGACY/R5-MARKED-RED RAG/qbank cache on pgvector fixture (≠ RAG migrated / ≠ sole-stack)', ['rag-cache:prove']],
   ['retrieval algorithms and adversarial fixture', ['retrieval:prove']],
   ['RAG adversarial fixture', ['rag:adversarial:fixture:prove']],
   ['research capability policy', ['crag:prove']],

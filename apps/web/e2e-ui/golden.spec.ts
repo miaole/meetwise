@@ -12,7 +12,14 @@ test('golden path: landing → signup → cookie auth lets protected pages rende
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toContainText(/知面|Meetwise/);
   // 登录入口(hero 按钮或导航):用 href 锚定,避免文案差异
-  await expect(page.locator('a[href="/login"]').first()).toBeVisible();
+  const loginCta = page.locator('a[href="/login"]:visible, a[href="/login"][class*="btn"], a[href="/login"]').filter({ has: page.locator(':visible') }).first();
+  // On narrow viewports the chrome nav clone can stay in the accessibility tree but CSS-hidden;
+  // require a actually painted login entry (hero or open menu), not a display:none duplicate.
+  if (await page.locator('a[href="/login"]:visible').count() === 0) {
+    const menu = page.getByRole('button', { name: /菜单|Menu|导航|Open/i });
+    if (await menu.count()) await menu.first().click();
+  }
+  await expect(page.locator('a[href="/login"]:visible').first()).toBeVisible();
 
   // 2) 进登录页,注册(唯一邮箱)
   await page.goto('/login');
@@ -43,7 +50,7 @@ test('golden path: landing → signup → cookie auth lets protected pages rende
   await expect(page.locator('textarea[name="text"]')).toBeVisible({ timeout: 20_000 });   // 同意后上传表单出现(粘贴框)
   await page.fill('textarea[name="text"]', '后端工程师 3 年。用 Redis 令牌桶限流,分布式锁 Lua 原子释放,MySQL 分库分表,消息队列削峰。');
   await page.getByRole('button', { name: '上传简历', exact: true }).click();
-  await expect(page.getByText(/状态:ingested/).first()).toBeVisible({ timeout: 20_000 });   // 上传成功,列表出现已摄取简历
+  await expect(page.getByText(/解析完成/).first()).toBeVisible({ timeout: 20_000 });   // 上传成功,列表出现已摄取简历
 
   await page.getByRole('link', { name: '面试', exact: true }).click();
   await page.waitForURL('**/interviews', { timeout: 20_000 });

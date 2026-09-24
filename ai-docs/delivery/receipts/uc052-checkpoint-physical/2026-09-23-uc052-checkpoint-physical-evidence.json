@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc052:checkpoint-physical:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "cmd": "pnpm uc052:checkpoint-physical:prove",
+  "runnerGitSha": "69de8180f5f2aa059191f67c32dad89d07bbcbed",
+  "runnerGitShaShort": "69de818",
+  "codeCommits": [
+    "3e42d16c2847689f6e8f2d6b0b986e70ad406b0e",
+    "69de8180f5f2aa059191f67c32dad89d07bbcbed"
+  ],
+  "releaseEvidence": false,
+  "haStatus": "NOT_HA",
+  "claimProductionHA": false,
+  "coveredCount": 8,
+  "line": "B",
+  "knife": "GAP-PRIV-CHECKPOINT-FENCE-ONLY",
+  "revive": "refused/empty",
+  "raceInterleave": "FOR UPDATE barrier on checkpoints+blobs+writes while privacy_purge_checkpoint_target blocked; concurrent real saver.put/putWrites; then COMMIT hold",
+  "disclosure2": {
+    "beginNoEpochDigest": "packages/db/migrations/0096_int_transcript_remaining_sinks.sql L147-218",
+    "claimNeedsEpochDigest": "packages/db/migrations/0091_privacy_authorization_issuer.sql L369-383",
+    "seal": "packages/db/src/uc052-checkpoint-physical.ts sealCheckpointErasureAuthz",
+    "jwsEqSealedAssert": "runAuthorizedCheckpointPhysicalPurge signed.targetSetDigest === sealed.targetSetDigest",
+    "proveCase": "C-DIGEST-JWS"
+  },
+  "cases": {
+    "NHP-052-CKPT-FAULT-01": "pass",
+    "NHP-052-CKPT-FAULT-02": "pass",
+    "NHP-052-CKPT-FAULT-03": "pass",
+    "NHP-052-CKPT-NEG-01": "pass",
+    "NHP-052-CKPT-NEG-02": "pass",
+    "NHP-052-CKPT-NEG-03": "pass",
+    "NHP-052-CKPT-BOUND-01": "pass",
+    "NHP-052-CKPT-ZERO": "pass",
+    "NHP-052-CKPT-RACE": "pass",
+    "NHP-052-CKPT-RACE-TRIGGER": "pass",
+    "C-DIGEST-JWS": "pass",
+    "HP-052-CKPT-01": "pass",
+    "C-CASECOUNT": "pass"
+  },
+  "tsc": {
+    "packagesDbNoEmitErrors": 6,
+    "baseline": 6,
+    "newErrors": 0
+  },
+  "regression": {
+    "uc052:internal-erasure:prove": 0,
+    "privacy-authorization:prove": 0
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "durationMs": 11267,
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:331174527eefeefc246e8d7637632f2dd970848fbb31d971f946a1a2fbca947a",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/uc052-checkpoint-physical.proof.ts": "sha256:c96fa9fd11dcc81132b7628cab97731e497dbdd6290806a2c6665ac10450a38c",
+    "packages/db/src/uc052-checkpoint-physical.ts": "sha256:dbfa2d428e208cac6f4b67ad4f9d1b136bd1c5d7c58f4e5992f3dc8d36368286",
+    "packages/db/src/uc052-internal-erasure.ts": "sha256:c720d2ec6d9dc4dbfd31e6497a2ce97ef0d05c6d471d029418ec7800ae19238c",
+    "packages/db/src/checkpoint-privacy.ts": "sha256:ff26728f71a9c6d2aae078e8bf542c7a5a402245086854af99e202bcb332574e",
+    "apps/worker/src/checkpoint-principal.ts": "sha256:be6d3f06446a100e8224b48ac4416d5b724190f71d1e241f113f0688b3a7dd74",
+    "packages/db/src/privacy-authorization.ts": "sha256:0deef7f737f90b70b2b27d57d1a2d7ae8d1cfd3b92d6a8397c3fd928e784385a",
+    "packages/db/src/principal.ts": "sha256:63bd6f093a24cbd744ce80cd9abf67023832ece2648354ed5ae4fd8ccb228ab3",
+    "packages/db/src/isolated-test-target.ts": "sha256:e85ed22fc4e6c2f6539305878a205994a8b81c1e21f5aa68684eff33af0522af",
+    "packages/domain/src/privacy-authorization.ts": "sha256:e586d751f78a505f44bfc264830de9ced7a8b0af5d3e405e5ab4b3584cad912b",
+    "apps/api/src/modules/privacy/privacy.service.ts": "sha256:193fc2636c5f9dac12e47b0882713aebdf11d0871f4f886448d70bbe0b323559",
+    "packages/db/migrations/0048_checkpoint_physical_erasure.sql": "sha256:eb9c9cf28f8424c0233d8c0512f86386bfff44945fe2fc3a4ab524e1e15a5adc",
+    "packages/db/migrations/0078_privacy_worker_parent_request_guard.sql": "sha256:a9c6bea9d1446e17063f3a8a136d288fcc4fdc37140dd8503deeab3fc2a24ff7",
+    "packages/db/migrations/0091_privacy_authorization_issuer.sql": "sha256:4a5f80269101b871e37f0cc27019ca590e91f243bcf6a51e4bb0bf6c866e5a4a",
+    "packages/db/migrations/0096_int_transcript_remaining_sinks.sql": "sha256:94e8adee972f328cfd1ec63bde1bf2216d462b7eac092c133ca1e9246a8646a2"
+  },
+  "schemaMigrationManifest": {
+    "count": 134,
+    "latest": "0134_usage_calibration_gateway_owners.sql",
+    "digest": "sha256:8dce517cceaa13a6bfa02560aac0fd202201fb85b1b6232e46c65aff22dda255"
+  }
+}

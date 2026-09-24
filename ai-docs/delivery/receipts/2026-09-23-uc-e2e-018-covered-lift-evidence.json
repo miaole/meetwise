@@ -1,0 +1,43 @@
+{
+  "knife": "UC-E2E-018-covered-lift",
+  "gap": "GAP-UC018-COVERED-LIFT",
+  "status": "executed:awaiting_post_prove_dual",
+  "canHonestlyFlip": false,
+  "refuseReason": "matrix §1.0 ADV for UC-E2E-018 is still **blind** (six-column honesty residual · Ban假关) · PERF/LOAD facets remain blind/not elevated for suite (orthogonal residual · reinforces non-flip)",
+  "matrixUc018": "partial",
+  "uc018Covered": false,
+  "section1bAllClosed": true,
+  "section1bTips": {
+    "#1 FULL-E2E": "c36b032",
+    "#2 GRAPH": "08650ea",
+    "#3 TTL": "d698282",
+    "#4 waiting_user": "CLOSED",
+    "#5 UI": "1990b12",
+    "#6 SOLE": "aa968b1"
+  },
+  "familyCmds": [
+    "uc018:covered-lift:prove",
+    "uc018:sole:prove",
+    "uc018:abandon:prove",
+    "uc018:abandon:http:prove",
+    "uc018:abandon:full-e2e:prove",
+    "uc018:graph:prove",
+    "uc018:ttl:prove",
+    "uc018:ui:prove",
+    "eval-harness-matrix-cite:prove"
+  ],
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "coveredCountRetained": 8,
+  "banInventCoveredCount9": true,
+  "banWashSoleAloneIntoCovered": true,
+  "banMysqlQdrantCutover": true,
+  "preExecDual": {
+    "mw-rag-route": "b5b0b92",
+    "mw-e2e-ha": "20ef465",
+    "requestTip": "a7e6b95"
+  },
+  "parentSoleNail": "aa968b1",
+  "datePT": "9/23/2026, 6:59:49 PM PT"
+}

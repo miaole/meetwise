@@ -4,7 +4,8 @@ import { redirect } from 'next/navigation';
 
 /** Server Action:选简历 → POST /interview 创建 → /begin(resume-id 头)启动 → 服务端跳转进会话。
  *  对齐 startQuizAction:逐步校验,失败给明确出口(回列表带错 / 去登录 / 明确不可用),
- *  绝不静默跳进 /interview/undefined 这种死会话页(无死胡同)。 */
+ *  绝不静默跳进 /interview/undefined 这种死会话页(无死胡同)。
+ *  begin 非 2xx（除已处理的 402）也必须回列表带错——禁止带着未预留的空壳进会话页（UC-E2E-018 UI abandon 前置）。 */
 export async function startInterviewAction(formData: FormData) {
   const resumeId = String(formData.get('resumeId') ?? '');
   if (!resumeId) return;
@@ -15,5 +16,7 @@ export async function startInterviewAction(formData: FormData) {
   if (!interviewId) redirect('/interviews?error=create_failed');
   const begin = await serverFetch('/interview/' + interviewId + '/begin', { method: 'POST', headers: { 'resume-id': resumeId } });
   if (begin.status === 402) redirect('/interviews?error=credits_unavailable');
+  if (begin.status === 401) redirect('/login?expired=1');
+  if (!begin.ok) redirect('/interviews?error=begin_failed');            // begin 失败 → 回列表,不进未预留死会话
   redirect('/interview/' + interviewId);
 }

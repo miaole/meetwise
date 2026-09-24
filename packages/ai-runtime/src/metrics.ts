@@ -110,6 +110,14 @@ export function registerBaselineMetrics(m: Metrics = getMetrics()): void {
   for (const outcome of ['ok', 'not_ready', 'budget_exhausted', 'policy_missing', 'price_missing', 'unknown', 'claim_timeout', 'cache_dependency_unavailable', 'cache_value_invalid', 'internal_error']) {
     m.inc(METRIC.ragRetrievalTotal, { outcome, mode: 'dense' }, 0);
   }
+  // F1 production-surface: track-local / wrong_track observability baselines (mode=track_local).
+  for (const outcome of [
+    'ok', 'route_snapshot_missing', 'planner_query_invalid', 'generation_unavailable',
+    'wrong_track', 'recheck_failed', 'cache_replay_degraded', 'cache_replay_empty',
+    'track_local_required', 'dispatch_rejected', 'degraded',
+  ]) {
+    m.inc(METRIC.ragRetrievalTotal, { outcome, mode: 'track_local' }, 0);
+  }
   for (const cacheStatus of ['hit', 'miss', 'none', 'unavailable', 'invalid']) m.inc(METRIC.ragCacheTotal, { status: cacheStatus }, 0);
   for (const operation of ['get', 'lock', 'renew', 'publish', 'release']) {
     m.observe(METRIC.ragRedisCommandLatencyMs, 0, { operation });

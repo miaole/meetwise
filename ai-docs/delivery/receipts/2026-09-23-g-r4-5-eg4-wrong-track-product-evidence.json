@@ -1,0 +1,17 @@
+{
+  "kind": "WrongTrackProductEvidence",
+  "wrongTrackProductEvidence": true,
+  "enforceWrongTrackZeroOnServedWired": true,
+  "productionRequiresTrackLocalFailClosed": true,
+  "observeTrackLocalWrongTrackOutcome": true,
+  "statusPinsWrongTrackNotClosed": true,
+  "coveredPathAloneDoesNotClose": true,
+  "metaProveAloneDoesNotClose": true,
+  "eg4ProductClosed": false,
+  "wrongTrackProductClosed": false,
+  "gR45Closed": false,
+  "r4ProductClosed": false,
+  "domainIsolationClosed": false,
+  "releaseEvidence": false,
+  "note": "EG4 wrong_track production honesty evidence — emitted · ≠ EG4/wrong_track/G-R4-5/R4/题域 closed · Ban forge · Ban claim from covered-path / meta prove alone · await post-prove dual"
+}

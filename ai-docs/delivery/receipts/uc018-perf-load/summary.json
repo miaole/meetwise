@@ -1,0 +1,166 @@
+{
+  "knife": "UC-E2E-018-PERF-LOAD",
+  "gap": "GAP-UC018-PERF-LOAD",
+  "gitSha": "8c7ee0c1532e04467296dccb1797520124fbebce",
+  "command": "pnpm uc018:perf-load:prove",
+  "caps": {
+    "enforced": true,
+    "method": "docker --cpus=2 --memory=4g",
+    "declared": {
+      "cpus": 2,
+      "memoryGiB": 4
+    },
+    "pg": {
+      "container": "meetwise-e2e-1480094-1790217962244",
+      "HostConfig": {
+        "NanoCpus": 2000000000,
+        "Memory": 4294967296
+      },
+      "ok": true
+    },
+    "api": {
+      "container": "meetwise-uc018-perf-api-1480412-1790217965990",
+      "HostConfig": {
+        "NanoCpus": 2000000000,
+        "Memory": 4294967296
+      },
+      "ok": true
+    },
+    "expected": {
+      "NanoCpus": 2000000000,
+      "Memory": 4294967296
+    },
+    "blocker": null
+  },
+  "capsEnforced": true,
+  "methodFreezeAncestorRequired": true,
+  "perfRuns": [
+    {
+      "run": 1,
+      "caseId": "NHP-018-PERF-01",
+      "N": 100,
+      "c": 10,
+      "warmup": 10,
+      "p50": 25.170615,
+      "p95": 57.216481,
+      "p99": 71.850129,
+      "errorCount": 0,
+      "timeoutCount": 0,
+      "errorRate": 0,
+      "passed": true,
+      "missReasons": [],
+      "start": "2026-09-24T02:46:13.627Z",
+      "end": "2026-09-24T02:46:14.199Z"
+    },
+    {
+      "run": 2,
+      "caseId": "NHP-018-PERF-01",
+      "N": 100,
+      "c": 10,
+      "warmup": 10,
+      "p50": 18.897345,
+      "p95": 48.289118,
+      "p99": 66.923185,
+      "errorCount": 0,
+      "timeoutCount": 0,
+      "errorRate": 0,
+      "passed": true,
+      "missReasons": [],
+      "start": "2026-09-24T02:46:14.492Z",
+      "end": "2026-09-24T02:46:14.931Z"
+    },
+    {
+      "run": 3,
+      "caseId": "NHP-018-PERF-01",
+      "N": 100,
+      "c": 10,
+      "warmup": 10,
+      "p50": 17.61872,
+      "p95": 46.655617,
+      "p99": 67.432922,
+      "errorCount": 0,
+      "timeoutCount": 0,
+      "errorRate": 0,
+      "passed": true,
+      "missReasons": [],
+      "start": "2026-09-24T02:46:15.205Z",
+      "end": "2026-09-24T02:46:15.635Z"
+    }
+  ],
+  "loadRuns": [
+    {
+      "run": 1,
+      "caseId": "NHP-018-LOAD-01",
+      "N": 50,
+      "c": 20,
+      "warmup": 10,
+      "p50": 48.559231,
+      "p95": 127.948505,
+      "p99": 141.895458,
+      "errorCount": 0,
+      "timeoutCount": 0,
+      "errorRate": 0,
+      "passed": true,
+      "missReasons": [],
+      "start": "2026-09-24T02:46:14.200Z",
+      "end": "2026-09-24T02:46:14.491Z",
+      "doubleReleaseCount": 0,
+      "stuckReservationCount": 0,
+      "stuckGraphCount": 0
+    },
+    {
+      "run": 2,
+      "caseId": "NHP-018-LOAD-01",
+      "N": 50,
+      "c": 20,
+      "warmup": 10,
+      "p50": 35.108741,
+      "p95": 103.026034,
+      "p99": 119.899081,
+      "errorCount": 0,
+      "timeoutCount": 0,
+      "errorRate": 0,
+      "passed": true,
+      "missReasons": [],
+      "start": "2026-09-24T02:46:14.931Z",
+      "end": "2026-09-24T02:46:15.205Z",
+      "doubleReleaseCount": 0,
+      "stuckReservationCount": 0,
+      "stuckGraphCount": 0
+    },
+    {
+      "run": 3,
+      "caseId": "NHP-018-LOAD-01",
+      "N": 50,
+      "c": 20,
+      "warmup": 10,
+      "p50": 35.838042,
+      "p95": 92.851954,
+      "p99": 103.204368,
+      "errorCount": 0,
+      "timeoutCount": 0,
+      "errorRate": 0,
+      "passed": true,
+      "missReasons": [],
+      "start": "2026-09-24T02:46:15.636Z",
+      "end": "2026-09-24T02:46:15.925Z",
+      "doubleReleaseCount": 0,
+      "stuckReservationCount": 0,
+      "stuckGraphCount": 0
+    }
+  ],
+  "allPass": true,
+  "elevateEligible": true,
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "note": "PERF/LOAD partial ≠ UC covered · §1.1 stays partial · local ≠ capacity ≠ HA",
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor",
+    "cpuCount": 8,
+    "memTotalBytes": 16791158784,
+    "kernel": "6.12.94+",
+    "platform": "linux",
+    "node": "v20.20.2"
+  }
+}

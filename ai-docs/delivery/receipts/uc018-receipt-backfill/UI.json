@@ -1,0 +1,116 @@
+{
+  "knife": "UC-E2E-018-RECEIPT-BACKFILL",
+  "gap": "GAP-UC018-RECEIPT-BACKFILL",
+  "key": "UI",
+  "emittedBy": "uc018-receipt-backfill-emit",
+  "ranAt": "2026-09-24T04:36:13.284Z",
+  "targetSha": "e88d386ea946918668d8e073edc7f33521fe33d9",
+  "wrapperSha": "61c3fcb62efed6c176a2a13da58f6b95d1759aee",
+  "runnerCommitSha": "e88d386ea946918668d8e073edc7f33521fe33d9",
+  "gitSha": "e88d386ea946918668d8e073edc7f33521fe33d9",
+  "cmd": "pnpm uc018:ui:prove",
+  "exit": 1,
+  "cmds": {
+    "uc018:ui:prove": 1
+  },
+  "exits": {
+    "uc018:ui:prove": 1
+  },
+  "installExit": 0,
+  "logPath": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/UI-e88d386.log",
+  "stdoutDigest": "6fb9515f5b2ae5c7e3d0e2f0327f1a41dfdb51a5d7243bf2f28ed110e8749365",
+  "nodeVersion": "v20.19.2",
+  "pnpmVersion": "10.18.0",
+  "imageDigests": {
+    "pgvector/pgvector:pg16": {
+      "imageDigest": "sha256:ccc6e83d6e35e931dc7c5def2022729d5a6c370318d099181995567ff1fb4d6b",
+      "started": true,
+      "source": "docker-inspect",
+      "cite": {
+        "logLine": 35,
+        "matched": "E2E isolated PostgreSQL: meetwise-e2e-1852154-1790224576927 on 127.0.0.1:33015",
+        "note": "run-e2e-isolated disposable PG (not docker/compose.dev.yml minio/mailhog)"
+      },
+      "logFile": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/UI-e88d386.log"
+    },
+    "redis:7-alpine": {
+      "imageDigest": "not-started",
+      "started": false,
+      "source": "log-parse",
+      "cite": {
+        "note": "isolated e2e / sole static do not start redis:7-alpine (compose.dev declares it; not used by these proves)"
+      },
+      "logFile": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/UI-e88d386.log"
+    },
+    "minio/minio:latest": {
+      "imageDigest": "not-started",
+      "started": false,
+      "source": "log-parse",
+      "cite": {
+        "compose": "docker/compose.dev.yml:36 image: minio/minio:latest",
+        "note": "declared in compose.dev but run-e2e-isolated does not start minio; log has no minio"
+      },
+      "logFile": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/UI-e88d386.log"
+    },
+    "mailhog/mailhog:v1.0.1": {
+      "imageDigest": "not-started",
+      "started": false,
+      "source": "log-parse",
+      "cite": {
+        "compose": "docker/compose.dev.yml:54 image: mailhog/mailhog:v1.0.1",
+        "note": "declared in compose.dev but run-e2e-isolated does not start mailhog; log has no mailhog"
+      },
+      "logFile": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/UI-e88d386.log"
+    }
+  },
+  "stack": {
+    "postgres": {
+      "value": true,
+      "source": "log-parse",
+      "logFile": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/UI-e88d386.log",
+      "line": 35,
+      "regex": "E2E isolated PostgreSQL:",
+      "matched": "E2E isolated PostgreSQL: meetwise-e2e-1852154-1790224576927 on 127.0.0.1:33015"
+    },
+    "postgresSaver": {
+      "value": "unobserved",
+      "source": "unobserved"
+    },
+    "memorySaver": {
+      "value": "unobserved",
+      "source": "unobserved"
+    },
+    "mysql": {
+      "value": "unobserved",
+      "source": "unobserved"
+    },
+    "qdrant": {
+      "value": "unobserved",
+      "source": "unobserved"
+    }
+  },
+  "targetEnv": "docker-isolated",
+  "targetEnvSource": {
+    "value": "docker-isolated",
+    "source": "log-parse",
+    "logFile": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/UI-e88d386.log",
+    "line": 35,
+    "regex": "E2E isolated PostgreSQL:"
+  },
+  "capacityRepresentative": false,
+  "capacityRepresentativeSource": {
+    "value": false,
+    "source": "policy-C-PERF-CAP-PARTIAL",
+    "note": "local/docker-isolated backfill · Ban elevate · C-PERF-CAP-PARTIAL"
+  },
+  "evidenceOfRecord": true,
+  "implementerOnly": false,
+  "disclosure": "EOR@targetSha ≠ proven at tip (code drift). Machine-emitted backfill at recorded ancestor SHA; Ban tip-substitution; Ban hand-write JSON from prose. GAP-BACKFILL-EMITTER-UNAUTHENTICATED: HMAC-free JSON+log digest pair is forgeable.",
+  "waitingUser": "MISSING-EVIDENCE",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "coveredCountRetained": 8,
+  "reemittedAt": "2026-09-24T04:50:35.414Z",
+  "reemitNote": "format upgrade: sourced stack + imageDigest fields from committed log; prove not re-run"
+}
