@@ -267,7 +267,7 @@ async function main() {
       factory: 'createCheckpointer(connection, true) + PGPOOL_MAX=1',
       disclosure: {
         setLocalAlone: 'FAIL — PostgresSaver autocommit pool.query has no txn',
-        primaryFix: 'RESET ROLE + clear 3 GUCs on release; destroy on reset failure',
+        primaryFix: 'SET ROLE NONE + clear 3 GUCs on release; destroy on reset failure (RESET/DISCARD restore -c role=app_role)',
       },
     }));
   } finally {

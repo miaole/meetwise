@@ -2063,6 +2063,16 @@ async function main() {
       await waitForPostgres(env, { consecutive: 3, label: 'post-migrate' });
     }
     if (target === 'api:validate') env.E2E_PREMIGRATED = '1';
+    // Final host+container SELECT 1 immediately before prove spawn (GAP-PRIV-AUTHZ-PROVE-FLAKE).
+    // Cold ledger reproduced ECONNREFUSED after post-migrate ready when the container/proxy
+    // vanished (state_bytes=29); re-attest and confirm container still running.
+    {
+      const still = await capture('docker', ['inspect', '--format', '{{.State.Running}}', container], baseEnv, ROOT, 5_000).catch(() => 'false');
+      if (String(still).trim() !== 'true') {
+        throw new Error(`isolated_postgres_container_not_running_before_prove:${String(still).trim()}`);
+      }
+      await waitForPostgres(env, { consecutive: 3, label: 'pre-prove' });
+    }
     if (target === 'e2e:prove') {
       const result = await runFullE2E('pnpm', [target], env);
       targetExitCode = result.code;
