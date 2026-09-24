@@ -790,6 +790,22 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0091_privacy_authorization_issuer.sql',
     'packages/db/migrations/0096_int_transcript_remaining_sinks.sql',
   ],
+  'uc052:checkpoint-physical:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/uc052-checkpoint-physical.proof.ts',
+    'packages/db/src/uc052-checkpoint-physical.ts',
+    'packages/db/src/uc052-internal-erasure.ts',
+    'packages/db/src/checkpoint-privacy.ts',
+    'packages/db/src/privacy-authorization.ts',
+    'packages/db/src/principal.ts',
+    'packages/db/src/isolated-test-target.ts',
+    'packages/domain/src/privacy-authorization.ts',
+    'apps/api/src/modules/privacy/privacy.service.ts',
+    'packages/db/migrations/0048_checkpoint_physical_erasure.sql',
+    'packages/db/migrations/0078_privacy_worker_parent_request_guard.sql',
+    'packages/db/migrations/0091_privacy_authorization_issuer.sql',
+    'packages/db/migrations/0096_int_transcript_remaining_sinks.sql',
+  ],
   'privacy-authorization:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/privacy-authorization.proof.ts',
@@ -1296,7 +1312,7 @@ if (![
   'model-op02:prove:raw',
   'model-slot-bypass:prove:raw',
   'privacy-authorization:prove:raw',
-  'uc052:internal-erasure:prove:raw',
+  'uc052:internal-erasure:prove:raw', 'uc052:checkpoint-physical:prove:raw',
   'memory-governance:prove:raw',
   'memory-admission:prove:raw',
   'memory-fact-adjudication:prove:raw',
@@ -1476,6 +1492,8 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove:model-slot-bypass']]
   : target === 'uc052:internal-erasure:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:uc052-internal-erasure']]
+  : target === 'uc052:checkpoint-physical:prove:raw'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:uc052-checkpoint-physical']]
   : target === 'privacy-authorization:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:privacy-authorization']]
   : target === 'memory-governance:prove:raw'
@@ -2012,7 +2030,7 @@ async function main() {
     await waitForPostgres(env);
     console.log(`E2E isolated PostgreSQL: ${container} on 127.0.0.1:${env.PGPORT}`);
     if (['e2e:prove', 'e2e:ui', 'performance:e2e', 'api:validate', 'recruiter:prove:raw', 'commerce-reconcile:prove:raw', 'model-invocation-reconcile:prove:raw', 'model-op00:prove:raw', 'model-op02:prove:raw', 'model-slot-bypass:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'scoring-integrity:prove', 'scoring:eval:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'scor-00:http:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'stress:prove:raw', 'memory:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'ocr:prove:raw', 'adaptive-degrade:prove:raw', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc011:report-refund:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc002:lease:prove:raw', 'resume:prove:raw', 'rag-generation:prove:raw', 'qbank:prove:raw', 'qbank-pipeline:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-retrieval-eval:prove:raw', 'online-judge-control:prove:raw', 'privacy-authorization:prove:raw',
-  'uc052:internal-erasure:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw'].includes(target)) {
+  'uc052:internal-erasure:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw'].includes(target)) {
       await migrateWithRecovery(env);
     }
     if (target === 'api:validate') env.E2E_PREMIGRATED = '1';
