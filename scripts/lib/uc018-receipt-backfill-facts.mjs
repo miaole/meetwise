@@ -31,16 +31,38 @@ export function unobservedFact() {
 /**
  * Unwrap sourced or legacy flat stack field for evaluator booleans.
  * 'unobserved' / missing → undefined (fail-closed STUB-STACK).
+ * source=static-doc is NOT a runtime observation → always undefined
+ * (Ban counting ADR prose pins as stack MET).
  */
 export function unwrapStackValue(fact) {
   if (fact == null) return undefined;
   if (typeof fact === 'object' && 'value' in fact) {
+    const source = fact.source;
+    if (source === 'static-doc') return undefined;
     const v = fact.value;
     if (v === 'unobserved' || v === undefined || v === null) return undefined;
     return v;
   }
   if (fact === 'unobserved') return undefined;
   return fact;
+}
+
+/** Runtime-observation sources that may count toward stack MET. */
+export const RUNTIME_STACK_SOURCES = Object.freeze([
+  'log-parse',
+  'docker-inspect',
+]);
+
+export function isRuntimeStackSource(source) {
+  return RUNTIME_STACK_SOURCES.includes(source);
+}
+
+/** Image digest from a prior emit — not a live per-run observation. */
+export function isLiveImageDigestEntry(entry) {
+  if (!entry || typeof entry !== 'object') return false;
+  if (entry.liveObservation === false) return false;
+  if (entry.source === 'prior-docker-inspect') return false;
+  return entry.source === 'docker-inspect' && entry.liveObservation === true;
 }
 
 /** Find 1-based line index matching regex; return { line, text } or null. */
@@ -178,50 +200,78 @@ function isFloatingTag(imageRef) {
 }
 
 /**
- * Build imageDigests map. Prefer prior digest strings when re-emitting; else docker inspect arrays.
+ * Build imageDigests map.
  * @param {string} logText
  * @param {Record<string, unknown>} [priorDigests] legacy map image→string[]|object
- * @param {{ logRel?: string }} [opts]
+ * @param {{ logRel?: string, mode?: 'live'|'reemit', priorCapturedAt?: string|null, liveCapturedAt?: string|null }} [opts]
+ *
+ * Re-emit / reused digests → source=prior-docker-inspect + priorCapturedAt + liveObservation=false
+ * (Ban counting as a live per-run docker observation).
+ * Live prove inspect → source=docker-inspect + liveObservation=true + capturedAt.
  */
 export function buildImageDigests(logText, priorDigests = {}, opts = {}) {
   const { started, cites } = servicesStartedFromLog(logText);
+  const mode = opts.mode === 'live' ? 'live' : 'reemit';
   const out = {};
   for (const img of TRACKED_IMAGES) {
     const wasStarted = started[img] === true;
     const prior = priorDigests[img];
     let priorDigestStr = null;
+    let inheritedPriorAt = null;
     if (Array.isArray(prior) && prior.length > 0) {
       const first = String(prior[0]);
       const m = first.match(/@?(sha256:[a-f0-9]+)/i);
       priorDigestStr = m ? m[1] : first;
     } else if (prior && typeof prior === 'object' && prior.imageDigest) {
       const d = prior.imageDigest;
-      if (typeof d === 'string' && d.startsWith('sha256:')) priorDigestStr = d;
+      if (typeof d === 'string' && (d.startsWith('sha256:') || d === 'unpinned' || d === 'unobserved' || d === 'not-started')) {
+        if (d.startsWith('sha256:')) priorDigestStr = d;
+      }
+      inheritedPriorAt = prior.priorCapturedAt || prior.capturedAt || null;
     }
 
     let imageDigest;
     let source;
+    let liveObservation = false;
+    let priorCapturedAt = null;
+    let capturedAt = null;
+
     if (!wasStarted) {
       imageDigest = 'not-started';
       source = 'log-parse';
-    } else if (priorDigestStr) {
+      liveObservation = false;
+    } else if (priorDigestStr && mode === 'reemit') {
+      imageDigest = priorDigestStr;
+      source = 'prior-docker-inspect';
+      liveObservation = false;
+      priorCapturedAt = inheritedPriorAt || opts.priorCapturedAt || null;
+    } else if (priorDigestStr && mode === 'live') {
+      // Fresh inspect arrays passed as priorDigests in prove mode
       imageDigest = priorDigestStr;
       source = 'docker-inspect';
+      liveObservation = true;
+      capturedAt = opts.liveCapturedAt || new Date().toISOString();
     } else if (isFloatingTag(img)) {
       imageDigest = 'unpinned';
       source = 'compose-declared-floating';
+      liveObservation = false;
     } else {
       imageDigest = 'unobserved';
       source = 'log-parse';
+      liveObservation = false;
     }
 
-    out[img] = {
+    const entry = {
       imageDigest,
       started: wasStarted,
       source,
+      liveObservation,
       cite: cites[img],
       logFile: opts.logRel || null,
     };
+    if (priorCapturedAt) entry.priorCapturedAt = priorCapturedAt;
+    if (capturedAt) entry.capturedAt = capturedAt;
+    out[img] = entry;
   }
   return out;
 }

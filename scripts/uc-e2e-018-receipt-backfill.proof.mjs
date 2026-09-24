@@ -15,7 +15,10 @@ import {
   isBackfillReceiptShape,
   isPreferableBackfillReceipt,
 } from './lib/uc018-receipt-backfill-guard.mjs';
-import { stackFact, unobservedFact, TRACKED_IMAGES } from './lib/uc018-receipt-backfill-facts.mjs';
+import {
+  stackFact, unobservedFact, TRACKED_IMAGES,
+  unwrapStackValue, isLiveImageDigestEntry,
+} from './lib/uc018-receipt-backfill-facts.mjs';
 import { REFUSE_REASONS, evaluate } from './lib/uc-covered-evaluator.mjs';
 
 const root = process.cwd();
@@ -241,6 +244,78 @@ else pass('isPreferableBackfillReceipt false for exit=1');
   if (r2 && r2.note === 'legacy would look green') fail('D-B missing exit silently fell back to legacy');
   else pass('D-B missing exit no silent legacy fallback');
 }
+
+
+// ── Fixtures: PERF/LOAD README bleed (mw-rag-route FAIL @629f956) ──
+{
+  const g = await import('./lib/uc-covered-real-gatherer.mjs');
+  const legacyBleed =
+    '**implementer pre-commit runs · not evidence of record**\n' +
+    'These implementer files are retained · uncommitted runner\n';
+
+  // Backfill: own EOR fields only — even if labelText carries legacy README, Ban bleed
+  const bfReceipt = {
+    emittedBy: EMITTED_BY,
+    implementerOnly: false,
+    evidenceOfRecord: true,
+    exit: 0,
+    _source: 'backfill',
+  };
+  const bfFlags = g.pickEvidenceFlags(bfReceipt, legacyBleed);
+  if (bfFlags.implementerOnly === false && bfFlags.evidenceOfRecord === true) {
+    pass('FX-BACKFILL-NO-README-BLEED: backfill PERF/LOAD not IMPL-ONLY (expected)');
+  } else {
+    fail(`FX-BACKFILL-NO-README-BLEED got impl=${bfFlags.implementerOnly} eor=${bfFlags.evidenceOfRecord} want impl=false eor=true`);
+  }
+
+  // Legacy: same README label MUST still mark IMPL-ONLY
+  const legacyReceipt = {
+    implementerOnly: false,
+    evidenceOfRecord: true,
+    exit: 0,
+    _source: 'legacy',
+  };
+  const legFlags = g.pickEvidenceFlags(legacyReceipt, legacyBleed);
+  if (legFlags.implementerOnly === true && legFlags.evidenceOfRecord === false) {
+    pass('FX-LEGACY-README-IMPL-ONLY: legacy PERF/LOAD still IMPL-ONLY (expected)');
+  } else {
+    fail(`FX-LEGACY-README-IMPL-ONLY got impl=${legFlags.implementerOnly} eor=${legFlags.evidenceOfRecord} want impl=true eor=false`);
+  }
+}
+
+// (a) static-doc must not count as runtime stack MET
+{
+  const fact = stackFact(true, 'static-doc', { line: 68 });
+  if (unwrapStackValue(fact) === undefined) {
+    pass('(a) unwrapStackValue(static-doc postgresSaver:true) → undefined (STUB-STACK honest)');
+  } else {
+    fail('(a) static-doc incorrectly unwrapped to ' + unwrapStackValue(fact));
+  }
+}
+
+// (b) prior-docker-inspect is not live
+{
+  const prior = {
+    imageDigest: 'sha256:abc',
+    source: 'prior-docker-inspect',
+    liveObservation: false,
+    priorCapturedAt: '2026-09-24T04:38:14.481Z',
+  };
+  if (!isLiveImageDigestEntry(prior)) {
+    pass('(b) prior-docker-inspect not counted as live per-run observation');
+  } else {
+    fail('(b) prior-docker-inspect wrongly live');
+  }
+  const live = {
+    imageDigest: 'sha256:abc',
+    source: 'docker-inspect',
+    liveObservation: true,
+    capturedAt: '2026-09-24T04:38:14.481Z',
+  };
+  if (isLiveImageDigestEntry(live)) pass('(b) live docker-inspect still live');
+  else fail('(b) live docker-inspect not live');
+}
+
 
 rmSync(tmp, { recursive: true, force: true });
 

@@ -40,6 +40,13 @@ Each re-run emits tracked receipt JSON:
 
  Dual reviewers append **strict last-line** `Verdict: PASS` or `Verdict: FAIL` on their review files（last-non-empty-line contract from COVERED-CRITERION）.
 
+
+## wrapperSha · prove-wave vs re-emit
+
+- **Prove-wave** attempts (`attempts.jsonl` rows 1–7): `wrapperSha=**7433807**` — emitter tip when target proves were actually executed.
+- **Re-emit from logs** (format upgrades · no prove re-run): JSON `wrapperSha` = tip emitter at re-emit time (e.g. **`61c3fcb`** for D-A/D-B sourced-stack upgrade; later tips for subsequent format fixes). Original `ranAt` retained · `reemittedAt` appended · attempts **append-only**.
+- Ban conflating re-emit wrapperSha with prove-wave evidence.
+
 ## Disclosed limit — GAP-BACKFILL-EMITTER-UNAUTHENTICATED
 
 - Emitter/guard bind receipt JSON to prove log via **SHA-256 digest only** (HMAC-free).

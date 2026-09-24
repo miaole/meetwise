@@ -173,7 +173,21 @@ function pickCapacityRepresentative(receipt) {
   if (receipt.capacityRepresentative === false) return false;
   return null;
 }
-function pickEvidenceFlags(receipt, labelText) {
+/**
+ * Evidence-of-record / implementer-only flags.
+ * Backfill overlays (`_source === 'backfill'`): judge SOLELY by the receipt's own
+ * fields (implementerOnly / evidenceOfRecord). Ban legacy README / labelText bleed
+ * (mw-rag-route FAIL @629f956 · PERF/LOAD silent-brown).
+ * Legacy (and non-backfill): label heuristics still apply to the receipt they describe.
+ */
+export function pickEvidenceFlags(receipt, labelText) {
+  if (receipt?._source === 'backfill') {
+    const implementerOnly = receipt?.implementerOnly === true;
+    let evidenceOfRecord = receipt?.evidenceOfRecord ?? receipt?.evidence?.ofRecord;
+    if (evidenceOfRecord == null) evidenceOfRecord = false;
+    if (implementerOnly) evidenceOfRecord = false;
+    return { implementerOnly, evidenceOfRecord: evidenceOfRecord === true };
+  }
   const label = `${labelText || ''}\n${receipt?.note || ''}\n${receipt?.disclosure || ''}`;
   const labeledImpl = /not evidence of record|implementer pre-commit|uncommitted runner/i.test(label);
   const implementerOnly = receipt?.implementerOnly === true || labeledImpl;
@@ -709,7 +723,10 @@ export function gatherRealUc018(opts) {
       cmd: 'uc018:perf-load:prove',
       harnessText: perfHarness,
       receipt: perfSummary ? { ...perfSummary, _path: perfSummary._path || 'uc018-perf-load/summary.json' } : null,
-      labelText: perfReadme + '\n' + (perfSummary?.note || ''),
+      // README/label heuristics ONLY for legacy receipt they describe (Ban bleed onto backfill)
+      labelText: perfSummary?._source === 'legacy'
+        ? (perfReadme + '\n' + (perfSummary?.note || ''))
+        : (perfSummary?.note || ''),
       dual: perfDual,
     }),
     LOAD: buildCol({
@@ -719,7 +736,9 @@ export function gatherRealUc018(opts) {
       cmd: 'uc018:perf-load:prove',
       harnessText: perfHarness,
       receipt: perfSummary ? { ...perfSummary, _path: perfSummary._path || 'uc018-perf-load/summary.json' } : null,
-      labelText: perfReadme + '\n' + (perfSummary?.note || ''),
+      labelText: perfSummary?._source === 'legacy'
+        ? (perfReadme + '\n' + (perfSummary?.note || ''))
+        : (perfSummary?.note || ''),
       dual: perfDual,
     }),
   };
