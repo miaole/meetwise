@@ -135,13 +135,19 @@ function evaluateColumn(colName, col, requiredNhps) {
   }
 
   // 3. prove at committed SHA EXIT=0
-  if (prove.committed === false || prove.uncommitted === true) {
+  if (prove.staleSha === true) {
+    pushUnique(reasons, REFUSE_REASONS.STALE_SHA);
+  } else if (
+    prove.committed === false ||
+    prove.uncommitted === true ||
+    prove.shaMatchesCommitted === false
+  ) {
     pushUnique(reasons, REFUSE_REASONS.UNCOMMITTED_RUNNER);
   }
-  if (prove.staleSha === true || prove.shaMatchesCommitted === false) {
-    pushUnique(reasons, REFUSE_REASONS.STALE_SHA);
-  }
-  if (prove.exit != null && Number(prove.exit) !== 0) {
+  if (prove.exit == null) {
+    // Fail closed: missing EXIT is not a silent pass
+    pushUnique(reasons, REFUSE_REASONS.PROVE_FAIL);
+  } else if (Number(prove.exit) !== 0) {
     pushUnique(reasons, REFUSE_REASONS.PROVE_FAIL);
   }
   if (!prove.cmd && !prove.gitSha && status === 'covered') {

@@ -1,0 +1,190 @@
+{
+  "ucId": "UC-E2E-018",
+  "columns": {
+    "NEG": {
+      "status": "covered",
+      "nhpIds": [
+        "NHP-018-NEG-01"
+      ],
+      "prove": {
+        "cmd": "pnpm uc018:x:prove",
+        "exit": 1,
+        "gitSha": "abc1234deadbeef",
+        "committed": true,
+        "shaMatchesCommitted": true
+      },
+      "dual": {
+        "e2eHa": "PASS",
+        "ragRoute": "PASS"
+      },
+      "stack": {
+        "postgres": true,
+        "postgresSaver": true,
+        "memorySaver": false,
+        "mysql": false,
+        "qdrant": false
+      },
+      "receipts": {
+        "evidenceOfRecord": true,
+        "implementerOnly": false,
+        "capacityRepresentative": false,
+        "targetEnv": "staging-4c8g"
+      }
+    },
+    "FAULT": {
+      "status": "covered",
+      "nhpIds": [
+        "NHP-018-FAULT-01"
+      ],
+      "prove": {
+        "cmd": "pnpm uc018:x:prove",
+        "exit": 0,
+        "gitSha": "abc1234deadbeef",
+        "committed": true,
+        "shaMatchesCommitted": true
+      },
+      "dual": {
+        "e2eHa": "PASS",
+        "ragRoute": "PASS"
+      },
+      "stack": {
+        "postgres": true,
+        "postgresSaver": true,
+        "memorySaver": false,
+        "mysql": false,
+        "qdrant": false
+      },
+      "receipts": {
+        "evidenceOfRecord": true,
+        "implementerOnly": false,
+        "capacityRepresentative": false,
+        "targetEnv": "staging-4c8g"
+      }
+    },
+    "BOUND": {
+      "status": "covered",
+      "nhpIds": [
+        "waiting_user-CAS"
+      ],
+      "prove": {
+        "cmd": "pnpm uc018:x:prove",
+        "exit": 0,
+        "gitSha": "abc1234deadbeef",
+        "committed": true,
+        "shaMatchesCommitted": true
+      },
+      "dual": {
+        "e2eHa": "PASS",
+        "ragRoute": "PASS"
+      },
+      "stack": {
+        "postgres": true,
+        "postgresSaver": true,
+        "memorySaver": false,
+        "mysql": false,
+        "qdrant": false
+      },
+      "receipts": {
+        "evidenceOfRecord": true,
+        "implementerOnly": false,
+        "capacityRepresentative": false,
+        "targetEnv": "staging-4c8g"
+      }
+    },
+    "ADV": {
+      "status": "covered",
+      "nhpIds": [
+        "NHP-018-ADV-01"
+      ],
+      "prove": {
+        "cmd": "pnpm uc018:x:prove",
+        "exit": 0,
+        "gitSha": "abc1234deadbeef",
+        "committed": true,
+        "shaMatchesCommitted": true
+      },
+      "dual": {
+        "e2eHa": "PASS",
+        "ragRoute": "PASS"
+      },
+      "stack": {
+        "postgres": true,
+        "postgresSaver": true,
+        "memorySaver": false,
+        "mysql": false,
+        "qdrant": false
+      },
+      "receipts": {
+        "evidenceOfRecord": true,
+        "implementerOnly": false,
+        "capacityRepresentative": false,
+        "targetEnv": "staging-4c8g"
+      }
+    },
+    "PERF": {
+      "status": "covered",
+      "nhpIds": [
+        "NHP-018-PERF-01"
+      ],
+      "prove": {
+        "cmd": "pnpm uc018:x:prove",
+        "exit": 0,
+        "gitSha": "abc1234deadbeef",
+        "committed": true,
+        "shaMatchesCommitted": true
+      },
+      "dual": {
+        "e2eHa": "PASS",
+        "ragRoute": "PASS"
+      },
+      "stack": {
+        "postgres": true,
+        "postgresSaver": true,
+        "memorySaver": false,
+        "mysql": false,
+        "qdrant": false
+      },
+      "receipts": {
+        "evidenceOfRecord": true,
+        "implementerOnly": false,
+        "capacityRepresentative": true,
+        "targetEnv": "staging-4c8g"
+      }
+    },
+    "LOAD": {
+      "status": "covered",
+      "nhpIds": [
+        "NHP-018-LOAD-01"
+      ],
+      "prove": {
+        "cmd": "pnpm uc018:x:prove",
+        "exit": 0,
+        "gitSha": "abc1234deadbeef",
+        "committed": true,
+        "shaMatchesCommitted": true
+      },
+      "dual": {
+        "e2eHa": "PASS",
+        "ragRoute": "PASS"
+      },
+      "stack": {
+        "postgres": true,
+        "postgresSaver": true,
+        "memorySaver": false,
+        "mysql": false,
+        "qdrant": false
+      },
+      "receipts": {
+        "evidenceOfRecord": true,
+        "implementerOnly": false,
+        "capacityRepresentative": true,
+        "targetEnv": "staging-4c8g"
+      }
+    }
+  },
+  "section11": {
+    "status": "covered",
+    "businessPathMet": true,
+    "openGaps": []
+  }
+}
