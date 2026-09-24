@@ -173,3 +173,100 @@
 **总判**：Item1 FAIL → **FAIL**。闭合 B1/B2 前 **Ban coding / Ban SSOT nail / Ban invent covered / Ban open DELETE**。
 
 Verdict: FAIL
+
+---
+
+## Item 1 re-review（matrix annotation + cite script · mw-e2e-ha）
+
+**Reviewer**: `mw-e2e-ha` · **Date**: 2026-09-23 (~21:20 PT)  
+**Scope**: Line B Item 1 only · clears prior **B1-MATRIX** / **B2-CITE** · **≠** knife coding auth · **≠** mw-privacy-int dual（peer r2 `bf3ced1` 不代签）  
+**Tips under review**: docs `d147ea1` + `b55b222` · script `4ebdc28` + `89ae929` + `e09d56e`  
+**Baseline prior FAIL**: receipt @`2bc9da9` tip then `41cffea` · last line `Verdict: FAIL`
+
+### Tips / chain / origin
+
+| Tip | Full SHA | Files (name-status) | Product code? |
+|-----|----------|---------------------|---------------|
+| `d147ea1` | `d147ea1de47179e7ab4e418fd95a54a5c69aff77` | `M ai-docs/delivery/e2e-requirement-coverage-matrix.md` | **NO** |
+| `b55b222` | `b55b222fee9c64a2c4c1afe49c0dfa30db8f65e3` | `M …/e2e-requirement-coverage-matrix.md` | **NO** |
+| `4ebdc28` | `4ebdc283dc30a1d1803e422d5d727a9d2a6b0671` | `M scripts/eval-harness-matrix-cite.proof.mjs` | **NO** |
+| `89ae929` | `89ae9299d1e9cec911854de657eff1a3446577fe` | `M scripts/eval-harness-matrix-cite.proof.mjs` | **NO** |
+| `e09d56e` | `e09d56e74cd6f58cf4ef3efa3573b03448f5fc77` | `M scripts/eval-harness-matrix-cite.proof.mjs` | **NO** |
+
+- `git fetch` EXIT=0 · `41cffea..e09d56e` **includes** all five claimed commits (plus unrelated Line A / peer receipts in between) · `e09d56e` **ancestor of** `origin/feat/mysql-schema-skeleton` (**on origin** YES).
+- Worktree: `git worktree add /workspace/mw-rv-e09d56e e09d56e` · parity WT `/workspace/mw-rv-41cffea` @`41cffea` · removed after prove.
+
+### CMD|EXIT（clean WT @e09d56e）
+
+| CMD | EXIT | Key |
+|-----|------|-----|
+| `pnpm install --frozen-lockfile` | **0** | lock up to date |
+| `pnpm eval-harness-matrix-cite:prove` | **0** | live 050–052 NEG=`honesty-pin` FAULT=`gap` BOUND=`blind` ADV=`blind` · row-id exact PASS · UC-018 conservative≡legacy PASS |
+| `pnpm eval-uc-e2e-001-002-cite:prove` | **0** | static cite |
+| `pnpm uc018:covered-lift-reassess:prove` | **0** | `columns NEG=partial FAULT=partial BOUND=partial ADV=partial PERF=partial LOAD=partial` |
+| `pnpm uc018:covered-criterion:prove` | **0** | `canHonestlyFlip=false` · pins retained |
+| `pnpm uc018:adv:prove` | **0** | 76 ADV cases green · ADV alone ≠ covered |
+| Rank-parser self-tests | **embedded in cite prove** | assert via `fail()`→`exitCode=1`（非 print-only） |
+| Adversarial mutation (temp): honesty-pin rank ≥ partial | **1** | FAIL `STATUS_RANK: honesty-pin < partial` · FAIL live NEG |
+| Adversarial mutation (temp): `cellStatusConservative`→always `partial` | **1** | FAIL merged gap/blind/honesty-pin · FAIL unparseable→unknown · FAIL live facets |
+| Manual prefix/min probes (node inline) | **0** | 16/16 · `UC-E2E-05` / `UC-E2E-050` fail-closed vs `050–052` · garbage/`??`/`||`→`unknown` |
+
+### UC-018 parity（Line A shared surface）
+
+| Surface | @`41cffea` | @`e09d56e` | Diff? |
+|---------|------------|------------|-------|
+| Matrix §1.0.1 `| UC-E2E-018 |` cells | identical text | identical | **NONE** (`diff` empty) |
+| `uc018:covered-lift-reassess:prove` printed columns | `NEG=partial FAULT=partial BOUND=partial ADV=partial PERF=partial LOAD=partial` EXIT=0 | same string EXIT=0 | **NONE** |
+| `cellStatus` in `uc-e2e-018-covered-lift-reassess.proof.mjs` | legacy first-hit | **byte-identical** function body | **NONE** |
+| Cite `cellStatusLegacy018` vs `cellStatusConservative` on live UC-018 NEG/FAULT/BOUND/ADV | n/a（pre-`4ebdc28` cite had **no** facet parser；`both.includes` only） | all four **partial≡partial** | **NO reading change** for UC-018 inputs |
+| Cite `both.includes(row)` | present @`41cffea` / `4ebdc28^` L368 | **removed**；replaced by `textCitesExactRowId` / `matrixHasExactRowId` | cite mechanics changed；**UC-018 column statuses unchanged** |
+
+**UC-018 parity result**: **PASS / no unexplained change**. New conservative parser is asserted ≡ legacy018 on UC-018 plain + live facet cells (`scripts/eval-harness-matrix-cite.proof.mjs` ~L606–648 @`e09d56e`).
+
+### Matrix reading（§1.0.1 L124 @`e09d56e` via `git show`）
+
+Human-readable cells（annotation closes bare-partial wash）:
+
+| Facet | Cell text (abbrev) | Human min residual | Parser |
+|-------|--------------------|--------------------|--------|
+| NEG | `**partial**（**UC-052 deletion only**; 050/051 still **partial**/honesty-pin）` | 050/051 **honesty-pin**（not elevated 052-only partial） | **honesty-pin** |
+| FAULT | `… still **gap**` | 050/051 **gap** | **gap** |
+| BOUND | `… still **blind**` | 050/051 **blind** | **blind** |
+| ADV | `**blind**` | **blind** | **blind** |
+
+- **B1 cleared**: outer `partial` no longer readable as “050/051 all partial” without reading the UC-052-only + still-residual clause；parser mins to residual（conservative）.
+- Evidence consistency: UC-052 deletion elevated only after dual EOR `3e39c1e`/`08d54f8`（objects present）· Ban elevate UC-050/051/export · public DELETE **503** · §1.1 stays **partial（UC-052 deletion only）** · coveredCount **8**.
+- **`honesty-pin`**: defined in matrix §0.5 legend（L45 + L76 @`e09d56e`）· “静态诚实钉 … 本绿 ≠ 已关”.
+- Rank `honesty-pin`(4) **strictly below** `partial`(5): **conservative**（min(partial,honesty-pin)=honesty-pin）· asserted in cite self-test.
+- **PERF/LOAD**: §1.0.2 has **no** UC-E2E-050–052 row at `41cffea` **or** `e09d56e`（pre-existing absence；implicit blind / §1.0.3 “无一行全绿”）· **not** a reopen of B1/B2.
+
+### Cite script source review（`scripts/eval-harness-matrix-cite.proof.mjs` @`e09d56e`）
+
+- **Exact row id**: `rowIdVariants` only swaps digit-range separators en-dash↔hyphen（L357–365）· `matrixHasExactRowId` equality / annotation suffix / ` /` merge（L385–394）· **not** substring · self-test: `UC-E2E-050` **does not** match cell `UC-E2E-050–052`；prefix `UC-E2E-05` fail-closed（manual probe）.
+- **`textCitesExactRowId`**: regex + `(?![0-9\u2013\-])` bans continuation inside merged id（L400–407）.
+- **`both.includes`**: **gone**（B2 cleared）.
+- **Min-rank**: `STATUS_RANK` unknown<blind<gap<case-only<honesty-pin<partial<covered（L418–425）· `cellStatusConservative` collects still-residuals + bold/word hits · `minStatus`（L452–471）.
+- **Unparseable → unknown**（lowest）· empty/`??`/`||`/garbage cannot become partial/covered（probes + self-test L605）.
+- **Fail-open hunt**: no default `'partial'` · no `.every` on empty · `partial→covered` mins to **partial**（conservative）· residual: `\bpartial\b` also matches English **"not partial"**（same shape as legacy018 L433）—**live matrix vocabulary unused**；logged as **C-WORD-NEG** residual，**not** B1/B2 reopen.
+- Tests **assert** via `fail()` setting `exitCode=1`（L347）· mutations above prove EXIT=1 on regression.
+
+### Blockers / conditions
+
+| ID | Status |
+|----|--------|
+| **B1-MATRIX** | **CLEARED**（per-cell UC-052-only + residual annotation · parser mins） |
+| **B2-CITE** | **CLEARED**（exact row id · conservative cellStatus · tests） |
+| **New Item1 blockers** | **NONE** |
+| **C-WORD-NEG** | Residual note only（word-boundary “not partial”） |
+| Knife-plan conditions（prior PASS-with-conditions） | **STILL BIND coding** · not waived by this Item1 PASS: **C-SQL-3TABLE**, **C-ZERO-CKPT**, **C-REVIVE/C-RACE**, **C-FAULT-CASE/C-LEDGER**（0096 L576–583）, **C-AUTHZ**, **C-CASECOUNT/PORCELAIN/SHA/TSC(baseline 6)**, **C-NO-DIGEST-TRIM** |
+| mw-privacy-int dual | **Do not sign** · peer r2 PASS is their receipt only |
+
+### Pins（restated · unchanged）
+
+`haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false` · `gR45Closed=true` · `coveredCount=8` · `ms3EqualsR4Closed=false` · **PG-retained** · **DELETE=503** · **UC-018/§1.1 partial** · **alone≠dual**
+
+### Item1 verdict scope
+
+**PASS** clears **B1/B2 only**. Knife coding authorization remains subject to knife-plan conditions + mw-privacy-int dual. Ban invent covered · Ban open DELETE · Ban wash privacy-erasure:prove as checkpoint gap.
+
+Verdict: PASS
