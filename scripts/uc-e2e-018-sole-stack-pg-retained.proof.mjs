@@ -100,6 +100,7 @@ const requiredScripts = [
   'uc018:graph:prove',
   'uc018:ttl:prove',
   'uc018:ui:prove',
+  'uc018:adv:prove',
 ];
 for (const s of requiredScripts) {
   if (scripts[s]) pass(`package.json lists ${s}`);

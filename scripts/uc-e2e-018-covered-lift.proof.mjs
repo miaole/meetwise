@@ -136,15 +136,28 @@ const perfLoadBlindResidual =
   /PERF\/LOAD 分面 \*\*零 covered\*\*/.test(matrix) ||
   /PERF\/LOAD[^\n]*blind/i.test(matrix);
 
+const advIsPartial = /\*\*partial\*\*/.test(advCell) || /\bpartial\b/.test(advCell);
 let canHonestlyFlip = true;
 const refuseReasons = [];
+// Historical refuse at covered-lift nail abfbbc0 was ADV **blind**. After GAP-UC018-ADV
+// coding+prove, §1.0 ADV may be **partial** — ADV alone still ≠ UC covered (Ban wash).
 if (advIsBlind || advBlind) {
   canHonestlyFlip = false;
   refuseReasons.push(
     'matrix §1.0 ADV for UC-E2E-018 is still **blind** (six-column honesty residual · Ban假关)',
   );
+} else if (advIsPartial) {
+  canHonestlyFlip = false;
+  refuseReasons.push(
+    'matrix §1.0 ADV elevated **partial** (NHP-018-ADV-01 executed) but **ADV alone ≠ covered** (Ban wash ADV into §1.1 · Ban假关)',
+  );
+} else {
+  // Unknown ADV cell → refuse invent covered
+  canHonestlyFlip = false;
+  refuseReasons.push('matrix §1.0 ADV cell not green-covered (Ban invent covered)');
 }
-if (perfLoadBlindResidual && !canHonestlyFlip) {
+if (perfLoadBlindResidual) {
+  canHonestlyFlip = false;
   refuseReasons.push(
     'PERF/LOAD facets remain blind/not elevated for suite (orthogonal residual · reinforces non-flip)',
   );
@@ -159,7 +172,7 @@ const refuseReason = refuseReasons.join(' · ') || null;
 note(`assessment canHonestlyFlip=${canHonestlyFlip}${refuseReason ? ` refuse=${refuseReason}` : ''}`);
 
 if (!canHonestlyFlip) {
-  pass('assessment: canHonestlyFlip=false (ADV blind residual blocks elevate)');
+  pass('assessment: canHonestlyFlip=false (ADV alone ≠ covered / residuals block elevate)');
 } else {
   pass('assessment: canHonestlyFlip=true (six-column honesty allows elevate)');
 }
@@ -243,9 +256,9 @@ for (const [label, text] of [
 ]) {
   assertPins(label, text, [
     [/GAP-UC018-COVERED-LIFT/, 'names GAP-UC018-COVERED-LIFT', 'must name GAP-UC018-COVERED-LIFT'],
-    [/executed:awaiting_post_prove_dual/, 'status executed:awaiting_post_prove_dual', 'must be executed:awaiting_post_prove_dual (not post_prove_dual_pass)'],
-    [/canHonestlyFlip\s*=\s*false|canHonestlyFlip:\s*false|\*\*canHonestlyFlip\*\*.*false|canHonestlyFlip\*\*=\*\*false/i, 'records canHonestlyFlip=false', 'must record canHonestlyFlip=false (ADV blind)'],
-    [/ADV[^\n]{0,40}\*\*blind\*\*|§1\.0 ADV.*blind|ADV still \*\*blind\*\*/i, 'cites ADV blind refuse', 'must cite matrix §1.0 ADV blind as refuse'],
+    [/executed:awaiting_post_prove_dual|post_prove_dual_pass/, 'status executed or post_prove_dual_pass', 'must be executed:awaiting_post_prove_dual or post_prove_dual_pass (CLOSED nail)'],
+    [/canHonestlyFlip\s*=\s*false|canHonestlyFlip:\s*false|\*\*canHonestlyFlip\*\*.*false|canHonestlyFlip\*\*=\*\*false/i, 'records canHonestlyFlip=false', 'must record canHonestlyFlip=false (ADV alone ≠ covered)'],
+    [/ADV[^\n]{0,80}\*\*blind\*\*|§1\.0 ADV.*blind|ADV still \*\*blind\*\*|ADV alone\s*≠|ADV alone ≠ covered|NHP-018-ADV-01/i, 'cites ADV refuse / ADV alone ≠ covered', 'must cite ADV blind historical refuse or ADV alone ≠ covered'],
     [/releaseEvidence\s*=\s*false/i, 'releaseEvidence=false', 'must pin releaseEvidence=false'],
     [/haStatus=NOT_HA|Not HA/i, 'NOT_HA', 'must pin haStatus=NOT_HA'],
     [/claimProductionHA\s*=\s*false/i, 'claimProductionHA=false', 'must pin claimProductionHA=false'],
@@ -260,10 +273,10 @@ for (const [label, text] of [
     [/d698282/, 'cites TTL tip', 'must cite d698282'],
     [/1990b12/, 'cites UI tip', 'must cite 1990b12'],
   ]);
-  if (/\*\*`?post_prove_dual_pass`?\*\*/.test(text) && !/executed:awaiting_post_prove_dual/.test(text)) {
-    fail(`${label}: must NOT self-nail post_prove_dual_pass`);
+  if (/post_prove_dual_pass/.test(text) || /executed:awaiting_post_prove_dual/.test(text)) {
+    pass(`${label}: lifecycle status recorded (post_prove_dual_pass CLOSED nail or awaiting)`);
   } else {
-    pass(`${label}: not self-nailed to post_prove_dual_pass`);
+    fail(`${label}: must record executed:awaiting_post_prove_dual or post_prove_dual_pass`);
   }
   if (canHonestlyFlip === false) {
     if (/UC-E2E-018[^\n]{0,40}\*\*covered\*\*/.test(text) && !/Ban.*covered|≠.*covered|stay.*partial|stays \*\*partial\*\*/i.test(text)) {
@@ -305,9 +318,10 @@ if (canHonestlyFlip) {
   } else {
     fail('matrix: UC-E2E-018 must stay **partial** when canHonestlyFlip=false');
   }
-  // ADV still blind
+  // ADV: historical refuse was blind; after GAP-UC018-ADV may be partial — either keeps canHonestlyFlip=false
   if (advIsBlind) pass('matrix §1.0: UC-E2E-018 ADV still **blind** (refuse pin live)');
-  else fail('matrix §1.0: expected UC-E2E-018 ADV **blind** for non-flip refuse');
+  else if (advIsPartial) pass('matrix §1.0: UC-E2E-018 ADV **partial** (NHP-018-ADV-01 · ADV alone ≠ covered)');
+  else fail('matrix §1.0: expected UC-E2E-018 ADV **blind** or **partial** under non-flip');
 }
 
 assertPins('matrix', matrix, [
@@ -317,8 +331,8 @@ assertPins('matrix', matrix, [
 ]);
 
 // Prefer matrix also names covered-lift / canHonestlyFlip when non-flip assessed
-if (/canHonestlyFlip|covered-lift|GAP-UC018-COVERED-LIFT|ADV.*blind/i.test(matrix)) {
-  pass('matrix: names covered-lift / canHonestlyFlip / ADV blind honesty');
+if (/canHonestlyFlip|covered-lift|GAP-UC018-COVERED-LIFT|ADV.*blind|NHP-018-ADV-01|ADV alone/i.test(matrix)) {
+  pass('matrix: names covered-lift / canHonestlyFlip / ADV honesty');
 } else {
   note('matrix: optional covered-lift name soft (row still partial)');
 }
@@ -326,7 +340,7 @@ if (/canHonestlyFlip|covered-lift|GAP-UC018-COVERED-LIFT|ADV.*blind/i.test(matri
 // --- Parent harness ---
 assertPins('parent-harness', parent, [
   [/canHonestlyFlip\s*=\s*false|canHonestlyFlip:\s*false|canHonestlyFlip\*\*=\*\*false|\*\*canHonestlyFlip=false\*\*/i, 'records canHonestlyFlip=false', 'must record canHonestlyFlip=false'],
-  [/ADV[^\n]{0,60}\*\*blind\*\*|§1\.0 ADV.*blind/i, 'cites ADV blind', 'must cite ADV blind refuse'],
+  [/ADV[^\n]{0,80}\*\*blind\*\*|§1\.0 ADV.*blind|ADV alone\s*≠|ADV alone ≠ covered|NHP-018-ADV-01/i, 'cites ADV refuse / ADV alone ≠ covered', 'must cite ADV blind refuse or ADV alone ≠ covered'],
   [/\bpartial\b/i, 'pins partial', 'must pin matrix partial'],
   [/#6 alone\s*≠|Ban wash SOLE|SOLE alone ≠ covered/i, 'Ban wash SOLE alone into covered', 'must Ban wash SOLE alone'],
   [/uc018:covered-lift:prove/, 'lists uc018:covered-lift:prove', 'must list uc018:covered-lift:prove'],
@@ -344,13 +358,13 @@ assertPins('eval', evalDoc, [
   [/#6 alone\s*≠|Ban wash SOLE|SOLE alone ≠ covered/i, 'Ban wash SOLE alone', 'must Ban wash SOLE alone'],
   [/releaseEvidence\s*=\s*false/i, 'releaseEvidence=false', 'must pin releaseEvidence=false'],
   [/Not HA/i, 'Not HA', 'must pin Not HA'],
-  [/ADV[^\n]{0,60}\*\*blind\*\*|§1\.0 ADV.*blind/i, 'cites ADV blind', 'must cite ADV blind'],
+  [/ADV[^\n]{0,80}\*\*blind\*\*|§1\.0 ADV.*blind|ADV alone\s*≠|ADV alone ≠ covered|NHP-018-ADV-01/i, 'cites ADV refuse / ADV alone ≠ covered', 'must cite ADV blind or ADV alone ≠ covered'],
 ]);
 
 // --- Backlog ---
 assertPins('backlog', backlog, [
   [/018[^\n]*partial/i, '018 still partial', '018 must stay partial'],
-  [/canHonestlyFlip\s*=\s*false|canHonestlyFlip:\s*false|ADV.*blind/i, '018 names non-flip / ADV blind', '018 must name canHonestlyFlip=false or ADV blind'],
+  [/canHonestlyFlip\s*=\s*false|canHonestlyFlip:\s*false|ADV.*blind|ADV alone|NHP-018-ADV-01/i, '018 names non-flip / ADV honesty', '018 must name canHonestlyFlip=false or ADV alone ≠ covered'],
   [/uc018:covered-lift:prove|covered-lift|GAP-UC018-COVERED-LIFT/i, 'names covered-lift', 'must name covered-lift'],
 ]);
 

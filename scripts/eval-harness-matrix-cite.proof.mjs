@@ -76,6 +76,7 @@ const units = [
       [/uc018:ui:prove/, 'lists uc018:ui:prove'],
       [/uc018:sole:prove/, 'lists uc018:sole:prove'],
       [/uc018:covered-lift:prove/, 'lists uc018:covered-lift:prove'],
+      [/uc018:adv:prove/, 'lists uc018:adv:prove'],
       [/canHonestlyFlip\s*=\s*false|canHonestlyFlip:\s*false/i, 'pins canHonestlyFlip=false'],
       [/ADV[^\n]{0,60}\*\*blind\*\*|§1\.0 ADV.*blind/i, 'pins ADV blind refuse'],
       [/GAP-UC018-SOLE/, 'pins GAP-UC018-SOLE'],
