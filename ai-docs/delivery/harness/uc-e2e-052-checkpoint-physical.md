@@ -1,8 +1,8 @@
-# Harness — **UC-E2E-052 checkpoint physical purge**（Line B · `GAP-PRIV-CHECKPOINT-FENCE-ONLY` · public DELETE=503 retained · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · Dual **`mw-privacy-int` + `mw-e2e-ha`** · **Ban** open DELETE · **Ban** invent covered · **Ban** wash `privacy-erasure:prove` alone into this gap closed · **Ban** Line A / Line C · **Ban** MySQL/Qdrant cutover · **Ban** claim suite green / HA）
+# Harness — **UC-E2E-052 checkpoint physical purge**（Line B · `GAP-PRIV-CHECKPOINT-FENCE-ONLY` · public DELETE=503 retained · nail · **`post_prove_dual_pass`** · Dual **`mw-privacy-int` + `mw-e2e-ha`** · **Ban** open DELETE · **Ban** invent covered · **Ban** wash `privacy-erasure:prove` alone into this gap closed · **Ban** Line A / Line C · **Ban** MySQL/Qdrant cutover · **Ban** claim suite green / HA）
 
 **Line**: **B**（privacy · next knife after UC-052 internal erasure nail `8602cea` · **must not** touch Line A `uc-e2e-018-*` / Line C G7）  
 **Revision**: **r0**（2026-09-23 ~21:00 PT）  
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs only · **Ban自批** · Dual PASS ≠ coding · Dual PASS ≠ UC covered · Dual PASS ≠ open DELETE · Dual PASS ≠ auto-authorize coding）  
+**Status**: **`post_prove_dual_pass`**（nail · prove `69de818` · receipts `c549d20` · dual EOR `118e28f`/`2e743b2` · Ban invent covered · Ban open DELETE · Ban wash into UC covered）  
 **Date**: 2026-09-23 (~21:00 PT)  
 **Base / parent tip**: **`21780af`** / full `21780af7a098fe7d8116b2be038b8698e15991b3`（**must remain ancestor**）· prior nail `8602cea` · prove tip `3c4847a` · branch `feat/mysql-schema-skeleton`（historical · Ban MySQL cutover）  
 **Knife name**: **UC-E2E-052 · GAP-PRIV-CHECKPOINT-FENCE-ONLY**（physical purge of LangGraph checkpoint tables on real PG · closes fence-only honesty hole left by UC-052 first knife）  
@@ -123,7 +123,7 @@
 
 | Pin | Value |
 |-----|-------|
-| Status | **`draft:awaiting_pre_exec_dual`** |
+| Status | **`post_prove_dual_pass`** |
 | `haStatus` | **NOT_HA** |
 | `releaseEvidence` | **false** |
 | `claimProductionHA` | **false** |
@@ -155,4 +155,20 @@ STOP after push · no messaging dual · no coding · no SSOT edit this tip.
 3. Orchestration: `sealCheckpointErasureAuthz` (`packages/db/src/uc052-checkpoint-physical.ts`) computes `canonicalTargetSetDigest` over the **full** live target set (checkpoint_rows + interview_job_payload + oss/redis/langfuse) then UPDATEs both columns; `runAuthorizedCheckpointPhysicalPurge` signs that digest and asserts `signed.targetSetDigest === sealed.targetSetDigest` before issue/verify/consume/0091 claim.
 
 **Ban**: trim sinks to greener digest · Ban invent covered · Ban open DELETE.
+
+---
+
+## Nail evidence（`post_prove_dual_pass`）
+
+| Field | Value |
+|-------|-------|
+| Prove SHA | **`69de818`** / `69de8180f5f2aa059191f67c32dad89d07bbcbed` |
+| Receipts | **`c549d20`** |
+| Dual EOR | mw-privacy-int **`118e28f`** · mw-e2e-ha **`2e743b2`** BOTH PASS |
+| CMD | `pnpm uc052:checkpoint-physical:prove` EXIT=0 |
+| Matrix | §1.0.1 / §1.1 **partial**（UC-052 deletion + checkpoint physical）· **≠ covered** |
+| No-revive | **DB fence/trigger**（0047）· FOR UPDATE barrier = **extra stress only** · **NOTE-RACE-REFUSE-VIA-FENCE** |
+| Cite known RED | `eval-harness-matrix-cite:prove` EXIT=1（UC-018 facet[2] · Line A · non-blocker） |
+| Open follow-ups | `GAP-UC052-POOL-ROLE-LEAK` · `NOTE-CKPT-UNSEALED-CLAIM-NEG` · `GAP-PRIV-AUTHZ-PROVE-FLAKE` |
+| Pins | NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503 |
 

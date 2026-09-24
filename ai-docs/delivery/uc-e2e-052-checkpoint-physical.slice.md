@@ -1,7 +1,7 @@
-# Slice — **UC-E2E-052 checkpoint physical purge**（Line B · `GAP-PRIV-CHECKPOINT-FENCE-ONLY` · **`draft:awaiting_pre_exec_dual`** · Dual **`mw-privacy-int` + `mw-e2e-ha`** · Ban open DELETE · Ban invent covered · Ban shared SSOT this tip）
+# Slice — **UC-E2E-052 checkpoint physical purge**（Line B · `GAP-PRIV-CHECKPOINT-FENCE-ONLY` · **`post_prove_dual_pass`** · Dual **`mw-privacy-int` + `mw-e2e-ha`** · Ban open DELETE · Ban invent covered · Ban shared SSOT this tip）
 
 **Line**: **B** · **Revision**: **r0**  
-**Status**: **`draft:awaiting_pre_exec_dual`**  
+**Status**: **`post_prove_dual_pass`** · prove `69de818` · dual `118e28f`/`2e743b2` · receipts `c549d20`  
 **Date**: 2026-09-23 (~21:00 PT)  
 **Base**: **`21780af`** / `21780af7a098fe7d8116b2be038b8698e15991b3` · prior nail `8602cea`  
 **Authority**: docs REQUEST only · `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false` · `gR45Closed=true` · coveredCount **8** · `ms3EqualsR4Closed=false` · PG-retained · DELETE **503**  
