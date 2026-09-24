@@ -200,3 +200,134 @@
 ---
 
 **STOP** · Ban coding · Ban prove · Ban flip covered · Ban open DELETE · Ban sign peer.
+
+---
+
+## r2 — PRE-EXEC RE-REVIEW（tip `8fecc3d` · 2026-09-23 ~20:24 PT）
+
+**Expert**: `mw-e2e-ha` · docs gate only · **≠ coding** · **≠ prove** · **≠ authorize coding** · **不代签** `mw-privacy-int`  
+**Reviewed tip**: `8fecc3d68cc4bf3b49a8cacee084a3c4ded0068b` / `8fecc3d`  
+**Tip author/subject**: `meetwise-core` · `docs(privacy): revise UC-E2E-050-052 Line B REQUEST r2 (pre_dual)`  
+**r1 tip / receipt**: `cd5a4de` / PASS `dc3e17a`  
+**Working HEAD at gate**: may advance（Line A parallel）· review via `git show 8fecc3d:<path>` only
+
+### 0. Verdict（r2）
+
+| Key | Value |
+|-----|-------|
+| **Verdict** | **PASS**（r1 PASS 在 `8fecc3d` 上**仍成立** · CONDITIONS 已折叠进 harness/slice · 残留 1 条编码期 COND） |
+| **blockers** | **无阻塞** |
+| **authorizeCoding** | **false** |
+| **authorizeProve** | **false** |
+| **authorizeNail** | **false** |
+| **claimUc050051052Covered** | **false** |
+| **openPublicDelete** | **false** · DELETE **503** |
+| **haStatus** | **NOT_HA** |
+| **releaseEvidence** | **false** |
+| **claimProductionHA** | **false** |
+| **gR45Closed** | **true** |
+| **coveredCount** | **8** |
+| **ms3EqualsR4Closed** | **false** |
+| **Stack** | **PG-retained** |
+| **Public DELETE** | **503** |
+| **alone≠dual** | **YES** · privacy-int r1 FAIL `2bbebff` · **r2 未代审/不代签** |
+| **Dual re-PASS ≠ coding** | **YES** |
+
+**Explicit**: Do NOT authorize coding · Do NOT run planned prove · Do NOT apply Step 0 · Do NOT open DELETE · Do NOT flip covered · Ban sign peer.
+
+### 1. Tip / ancestry / scope checks
+
+| Check | Observed | Ruling |
+|-------|----------|--------|
+| `8fecc3d` exists | `8fecc3d68cc4bf3b49a8cacee084a3c4ded0068b` | **YES** |
+| On origin | `origin/feat/mysql-schema-skeleton` contains tip | **YES** |
+| `cd5a4de` ancestor of `8fecc3d` | `git merge-base --is-ancestor` EXIT=0 | **YES** |
+| `f07663a` ancestor of tip | EXIT=0 | **YES** |
+| Tip commit files | **only** harness + slice（2 ai-docs） | **docs-only PASS** |
+| Claim「harness + slice only」 | tip commit **true** | **PASS** |
+| Range `cd5a4de..8fecc3d` | **FLAG**：含 Line A UC018 scripts/fixtures/`package.json`/receipts（41 files）· **非** Line B 范围 · Ban wash | **FLAG · 非阻塞** |
+| Matrix / product code in tip | none | **PASS** |
+
+### 2. CMD\|EXIT（r2 recorded）
+
+1. `git fetch origin` → **EXIT:0**
+2. `git rev-parse --verify 8fecc3d^{commit}` → `8fecc3d68c…` **EXIT:0**
+3. `git rev-parse --verify cd5a4de^{commit}` → `cd5a4de874…` **EXIT:0**
+4. `git merge-base --is-ancestor cd5a4de 8fecc3d` → **EXIT:0**（YES）
+5. `git branch -r --contains 8fecc3d` → `origin/feat/mysql-schema-skeleton` **EXIT:0**
+6. `git log -1 --format=… 8fecc3d` → meetwise-core · docs(privacy) r2 **EXIT:0**
+7. `git diff cd5a4de 8fecc3d --stat` / `--name-status` → 41 files（含 Line A）**EXIT:0** · **FLAG**
+8. `git show 8fecc3d --stat` → **2 files** harness+slice **EXIT:0**
+9. `git show 8fecc3d:ai-docs/delivery/harness/uc-e2e-050-052-privacy-erasure.md` → **EXIT:0**
+10. `git show 8fecc3d:ai-docs/delivery/uc-e2e-050-052-privacy-erasure.slice.md` → **EXIT:0**
+11. `git show 8fecc3d:package.json`（privacy/uc052 script keys）→ `uc052:internal-erasure:prove` **ABSENT** · `privacy-erasure:prove` **PRESENT** **EXIT:0**
+12. `git merge-base --is-ancestor f07663a 8fecc3d` → **EXIT:0**
+13. `gh pr view 104` → OPEN · +5/−0 · **only** `packages/db/test/privacy-authorization.proof.ts` · head `f0f52bd` **EXIT:0**
+14. `git show f0f52bd --stat` → fixture-only **EXIT:0**
+15. `git diff 8fecc3d f0f52bd -- packages/db/test/privacy-authorization.proof.ts` → lease 段缺 oss/redis peers（Step 0 仍必要）**EXIT:0**
+16. banner `scripts/run-e2e-isolated.mjs` L1606 `sole stack = MySQL+Qdrant+Redis` 仍在 · SOLE_STACK multi-site **EXIT:0**
+17. 0096 L207–214 / L579–580 · 0091 L516–558 completion guard cites 抽查 **EXIT:0**
+18. 0058/0059 fence migrations 存在 **EXIT:0**
+
+### 3. Condition mapping table（r1 CONDITIONS → r2 · file:line @ `8fecc3d` harness unless noted）
+
+| Cond | Mapping | Status | Cite |
+|------|---------|--------|------|
+| **C-CASECOUNT** | requiredCaseIds + skip→non-zero EXIT；§4 枚举 9 NHP + HP | **mapped** | harness L32 · L189 · L203–214 · slice L57 |
+| **C-SQL-PER-SINK** | admin SELECT count=0 · Ban receipt/`deleted_count`；FAULT-01→`failed`/`partial_failed`；sink 名列于 §1.5；**未**逐表写出具体 SQL 文本 | **partial** | L33 · L111 · L185 · L205 · slice L53 |
+| **C-ALREADY-ERASED** | **NHP-050-FAULT-05** already-erased re-request | **mapped** | L34 · L190 · L209 · slice L58 |
+| **C-BOUND-HARDEN** | BOUND-01：lease 独占/过期接管/旧 token 禁写 receipt · no deadlock · single ledger · no dup targets | **mapped** | L31 · L188 · L212 · slice L56 |
+| **C-UNCOMMITTED** | receipts 记 committed git SHA · uncommitted ≠ EOR | **mapped** | L36 · L191 · L201 · slice L59 |
+| **C-SCRIPT-NAME** | prove = **`uc052:internal-erasure:prove`** · Ban wash `privacy-erasure:prove`；package.json @ tip：新名 ABSENT（plan）· 旧名 PRESENT · **无撞名** | **mapped** | L25 · L126 · L192 · L222–224 · slice L60 · package.json scripts |
+| **C-MATRIX-NAIL** | nail 仅 UC-052 deletion / NHP-050-* · Ban export/050/051/covered · 503 retained | **mapped** | L38 · L168–177 · L193 · L258 · slice L61 |
+| **C-NON-PG** | redis/oss/langfuse/backups/Qdrant never counted erased · stay gap | **mapped** | L39 · L112–114 · L194 · L232 · slice L62 |
+| **Audit retention** | **GAP-PRIV-AUDIT-RETENTION** named · Ban wash covered | **mapped（disclosed gap OK）** | L40 · L195 · L236 · slice L63 |
+
+### 4. Regression check（vs r1 NHP）
+
+| Case | r2 present? | Cite | Notes |
+|------|-------------|------|-------|
+| FAULT-01 | **YES** | L205 | + ledger `failed` / request `partial_failed` |
+| FAULT-02 | **YES** | L206 | idempotency retained |
+| NEG-01 | **YES** | L213 | `privacy-erasure:http:prove` · DELETE 503 |
+| NEG-02 | **YES** | L210 | expanded C2 subcases |
+| NEG-03 | **YES** | L211 | rewritten DB/claim（no HTTP 401/403/404） |
+| BOUND-01 | **YES** | L212 | hardened lease+concurrent |
+| HP-050-01 last | **YES** | L214 | happy **last** · terminal `pending_external` |
+
+**Regression ruling**: **无回归** · 主族齐全 · happy last 保留。
+
+### 5. New-item findings
+
+| Item | Finding | Ruling |
+|------|---------|--------|
+| Happy terminal **`pending_external`** | 与 0096 L207–214 种 `retention_pending` 外部 sink + 0091 completion guard（全 target `erased` 才 `completed`）+ 0096 L579–580 重估路径一致 · HP-050-01 Ban `completed` · Ban 宣称外部已擦 | **consistent PASS** |
+| FAULT-03 fence-revive | purge 后 revive 被 0058/0059 拒 · admin read 仍 0 · 迁移真实存在 | **DB-level plan OK**（docs） |
+| FAULT-04 epoch-drift | mid-flight epoch/digest drift → refuse · no false completed | **concrete enough**（docs） |
+| Step 0 gate | `privacy-authorization:prove` EXIT=0 @ committed SHA **before** erasure code · Ban apply now | **mapped** L130–141 · L225 |
+| PR #104 scope | gh：+5/−0 · **仅** `privacy-authorization.proof.ts` 插 oss/redis peers · **不改** product authz 语义 | **fixture-only PASS** · Ban product drift |
+| Authz baseline @ tip | lease fixture 仍只插 `checkpoint_rows`（相对 f0f52bd）→ RED 仍真 · Step 0 仍必要 | **honest** |
+| **GAP-E2E-ISO-BANNER-PG-RETAINED** | L1606 横幅仍写 MySQL+Qdrant=sole · SOLE_STACK 多点编码 · **named gap · 非 Step 0** · Ban 作栈真相 | **disclosed OK** · 本 prove 须走 **LEGACY/PG** 隔离；横幅**不**等价功能盲区，但 SOLE 误接线风险须编码期避开（非本开阻塞） |
+| **GAP-PRIV-AUDIT-RETENTION** | 命名 gap · Ban 洗 covered | **acceptable disclosed gap** |
+
+### 6. Blockers vs CONDITIONS（r2）
+
+**阻塞项**: **无**
+
+**CONDITIONS（残留 · 编码/prove 期 · ≠ 本开授权）**:
+1. **C-SQL-PER-SINK（residual / partial）**: 文档已钉 admin read=0 + sink 名 + FAULT-01 ledger，但**未**逐物理表列出具体 SQL；编码时须对 `checkpoint_rows` / `interview_job_payload` / `event` / `report` / `ai_graph_run` / `interview_answer_artifact` **各写一条** SELECT/tombstone 断言 + ledger status（禁仅通用措辞）。
+2. （保留提醒）prove 接线须 **PG/LEGACY** via `run-e2e-isolated` · Ban SOLE_STACK/MySQL/Qdrant 路径（对齐 GAP-E2E-ISO-BANNER 披露）。
+
+其余 r1 CONDITIONS（CASECOUNT / ALREADY-ERASED / BOUND-HARDEN / UNCOMMITTED / SCRIPT-NAME / MATRIX-NAIL / NON-PG / audit gap）→ **已 mapped**。
+
+### 7. Pins（retained）
+
+`haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false` · `gR45Closed=true` · `coveredCount=8` · `ms3EqualsR4Closed=false` · **PG-retained** · public DELETE=**503** · alone≠dual · Dual PASS ≠ coding ≠ covered ≠ open DELETE。
+
+### 8. 三行中文摘要（r2）
+
+1. **Verdict=PASS @ `8fecc3d`**：tip 在 origin · `cd5a4de` 祖先 · tip 本身仅 harness+slice · r1 CONDITIONS 已折叠 · 无新阻塞 · **不授权编码**。  
+2. **残留 COND**：C-SQL-PER-SINK 仍 partial（缺逐表 SQL 文本）· 编码期补齐；横幅 gap 已披露，prove 须 PG 隔离。  
+3. **alone≠dual**：不代签 privacy-int · happy=`pending_external` 与 0096/0091 一致 · Step 0=PR#104 fixture-only · DELETE=503/pins 保留。
+
+**STOP** · Ban coding · Ban prove · Ban Step 0 apply · Ban flip covered · Ban open DELETE · Ban sign peer.
