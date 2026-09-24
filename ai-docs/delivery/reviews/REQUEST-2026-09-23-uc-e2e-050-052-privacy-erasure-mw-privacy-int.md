@@ -105,3 +105,28 @@ FAIL ≠ 否定方向；任何结论 ≠ coding 授权 ≠ UC covered ≠ DELETE
 ### r2 结论
 
 **FAIL（r2）**：B1/B2/B3 关闭，Step 0 确认 fixture-only；唯一阻塞 B4（FAULT-01 `partial_failed` 在现有 DB 逻辑下不可达）。改掉该期望即可 r3 PASS。Pins 保持：NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE 503。本结论 ≠ coding 授权 ≠ Step 0 应用授权 ≠ UC covered。
+
+---
+
+## r3 re-review（append-only · 2026-09-23 ~20:35 PT · tip `1f263f7`）
+
+**r3 verdict**: **PASS（pre-exec · 仅限文档计划）**
+
+### 核对
+
+- **范围**：`1f263f7` 只改 harness + slice 两个文件（+86/−87），没有迁移或代码；`bfa1189` 是它的祖先；本回执未被实现方改动。
+- **B4 关闭**：§3.1(5)、NHP-050-FAULT-01、C3/C-SQL-PER-SINK 的断言现在是：失败 target `status='failed'`，request 不是 `completed`（是 `pending_external`），禁止把 `partial_failed` 当成可达的期望，其余本地 sink 用 admin 查 read=0，重试后失败 target 重新 claim 到 `erased`，request 保持 `pending_external`。和 0096 L576–583 的 CASE 顺序一致（`retention_pending` 判定在 `failed` 之前）。重新 claim 可行：0091 claim 允许 `status IN ('pending','leased','failed')`（L399）。
+- **FAULT-04 / FAULT-05 / HP-050-01** 都已对齐：request 期望为 `pending_external`，禁止 `completed` 和 `partial_failed`。
+- **命名 gap** `GAP-PRIV-REQUEST-STATUS-MASKS-LOCAL-FAIL` 已登记（request 层看不出本地失败，真相以逐 target ledger 为准），并列进 nail 时的 backlog 增量。
+- **Step 0 来源**记录为 PR #104 `f0f52bd`（full SHA 一致），只动 fixture，+5/−0。
+- B1/B2/B3 保持关闭；C1–C6 保持映射。
+
+### 非阻塞
+
+- 0091 guard 引用仍写 L516–543，实际函数体到 L545 `RETURN NEW`；nail 时顺手改。
+
+### 仍然成立的前提（本 PASS 不改变）
+
+- 第 0 步要单独授权后才能应用，而且必须在已提交的 SHA 上拿到 `pnpm privacy-authorization:prove` EXIT=0，之后才能写擦除代码；在那之前授权基线仍然是 RED。
+- 本 PASS ≠ 编码授权 ≠ Step 0 应用授权 ≠ UC-E2E-052 covered ≠ 公开 DELETE 开放 ≠ 0091 ledger 闭环。
+- Pins：NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE 503。
