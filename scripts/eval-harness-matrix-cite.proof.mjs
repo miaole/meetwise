@@ -408,6 +408,89 @@ function textCitesExactRowId(text, want) {
 }
 
 
+
+/**
+ * Coverage-status rank (low = weaker / more conservative).
+ * honesty-pin: pin green ≠ product closed — ranked strictly below partial so
+ * min(partial, honesty-pin) = honesty-pin for merged-row residuals.
+ * unknown: fail-closed lowest.
+ */
+const STATUS_RANK = Object.freeze({
+  unknown: 0,
+  blind: 1,
+  gap: 2,
+  'case-only': 3,
+  'honesty-pin': 4,
+  partial: 5,
+  covered: 6,
+});
+
+/** Legacy UC-018-style first-hit parser (covered-lift-reassess L107–114 shape). */
+function cellStatusLegacy018(cell) {
+  const c = (cell || '').trim();
+  if (/\*\*blind\*\*|\bblind\b/i.test(c) && !/\*\*partial\*\*|\*\*covered\*\*/.test(c)) return 'blind';
+  if (/\*\*covered\*\*/.test(c)) return 'covered';
+  if (/\*\*partial\*\*|\bpartial\b/i.test(c)) return 'partial';
+  if (/\*\*gap\*\*|\bgap\b/i.test(c)) return 'gap';
+  if (/not_run|case-only|blocked/i.test(c)) return 'blind';
+  return 'unknown';
+}
+
+function statusRank(s) {
+  return Object.prototype.hasOwnProperty.call(STATUS_RANK, s) ? STATUS_RANK[s] : STATUS_RANK.unknown;
+}
+
+function minStatus(a, b) {
+  return statusRank(a) <= statusRank(b) ? a : b;
+}
+
+/**
+ * Conservative cell parse for merged/annotated matrix cells.
+ * Collects outer bold/word statuses + explicit `still <status>` residuals;
+ * returns MINIMUM rank. Unparseable ⇒ unknown (fail closed), never invent partial.
+ */
+function cellStatusConservative(cell) {
+  const c = (cell || '').trim();
+  if (!c) return 'unknown';
+  const found = [];
+  const stillRe = /still\s+(\*\*)?(blind|gap|case-only|honesty-pin|partial|covered)\b/gi;
+  let m;
+  while ((m = stillRe.exec(c)) !== null) {
+    found.push(m[2].toLowerCase());
+  }
+  if (/still[^\n]{0,40}honesty-pin/i.test(c)) found.push('honesty-pin');
+  for (const name of ['covered', 'partial', 'honesty-pin', 'case-only', 'gap', 'blind']) {
+    const re = new RegExp('\\*\\*' + name.replace('-', '\\-') + '\\*\\*|\\b' + name.replace('-', '\\-') + '\\b', 'i');
+    if (re.test(c)) found.push(name);
+  }
+  if (found.length === 0) {
+    if (/not_run|blocked/i.test(c)) return 'blind';
+    return 'unknown';
+  }
+  let cur = found[0];
+  for (const s of found.slice(1)) cur = minStatus(cur, s);
+  return cur;
+}
+
+function parseSection101Facets(matrixText, ucId) {
+  const variants = rowIdVariants(ucId);
+  for (const v of variants) {
+    const esc = v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp('\\|\\s*' + esc + '\\s*\\|([^|\\n]+)\\|([^|\\n]+)\\|([^|\\n]+)\\|([^|\\n]+)\\|');
+    const m = matrixText.match(re);
+    if (m) {
+      return {
+        NEG: cellStatusConservative(m[1]),
+        FAULT: cellStatusConservative(m[2]),
+        BOUND: cellStatusConservative(m[3]),
+        ADV: cellStatusConservative(m[4]),
+        raw: { NEG: m[1], FAULT: m[2], BOUND: m[3], ADV: m[4] },
+      };
+    }
+  }
+  return null;
+}
+
 const matrixRowIdCells = matrix ? parseMatrixRowIdCells(matrix) : [];
 
 for (const u of units) {
@@ -494,6 +577,75 @@ for (const u of units) {
     pass('live matrix: UC-E2E-050–052 exact; bare UC-E2E-050 absent');
   } else if (matrix) {
     fail('live matrix: expected exact UC-E2E-050–052 row and no bare UC-E2E-050 first-cell');
+  }
+}
+
+
+// Conservative cellStatus + live UC-E2E-050–052 facet parse
+{
+  const eq = (a, b, label) => {
+    if (a === b) pass(label);
+    else fail(`${label} (got ${a} want ${b})`);
+  };
+  // Ordering / honesty-pin mapping
+  eq(STATUS_RANK['honesty-pin'] < STATUS_RANK.partial, true, 'STATUS_RANK: honesty-pin < partial');
+  eq(STATUS_RANK.unknown < STATUS_RANK.blind, true, 'STATUS_RANK: unknown lowest');
+  eq(minStatus('partial', 'gap'), 'gap', 'minStatus(partial,gap)=gap');
+  eq(minStatus('partial', 'honesty-pin'), 'honesty-pin', 'minStatus(partial,honesty-pin)=honesty-pin');
+  eq(minStatus('partial', 'blind'), 'blind', 'minStatus(partial,blind)=blind');
+  // Merged annotated cells → 050/051 residual MINIMUM, not outer partial
+  eq(cellStatusConservative(' **partial**（**UC-052 deletion only**; 050/051 still **gap**） '), 'gap',
+    'merged FAULT-like: still gap ⇒ gap (not partial)');
+  eq(cellStatusConservative(' **partial**（**UC-052 deletion only**; 050/051 still **blind**） '), 'blind',
+    'merged BOUND-like: still blind ⇒ blind (not partial)');
+  eq(cellStatusConservative(' **partial**（**UC-052 deletion only**; 050/051 still **partial**/honesty-pin） '), 'honesty-pin',
+    'merged NEG-like: still partial/honesty-pin ⇒ honesty-pin (min)');
+  eq(cellStatusConservative(' **blind** '), 'blind', 'bare blind');
+  eq(cellStatusConservative(' **partial** '), 'partial', 'bare partial');
+  eq(cellStatusConservative('??? no status ???'), 'unknown', 'unparseable ⇒ unknown fail-closed');
+  // UC-018 plain cells: conservative ≡ legacy018
+  const plain018 = [' **partial** ', ' **partial**（CAS waiting_user） ', ' **blind** ', ' **gap** '];
+  let uc018Eq = true;
+  for (const cell of plain018) {
+    if (cellStatusConservative(cell) !== cellStatusLegacy018(cell)
+      && !(cell.includes('CAS') && cellStatusLegacy018(cell) === 'partial' && cellStatusConservative(cell) === 'partial')) {
+      // CAS annotation has no "still" residual — both should be partial
+    }
+    if (cellStatusConservative(cell) !== cellStatusLegacy018(cell)) {
+      // For CAS cell: conservative may also see only partial
+      const a = cellStatusConservative(cell);
+      const b = cellStatusLegacy018(cell);
+      if (a !== b) { uc018Eq = false; fail(`UC-018 equality mismatch on ${JSON.stringify(cell)}: ${a} vs ${b}`); }
+    }
+  }
+  if (uc018Eq) {
+    for (const cell of plain018) {
+      eq(cellStatusConservative(cell), cellStatusLegacy018(cell), `UC-018 equality: ${cell.trim().slice(0, 24)}`);
+    }
+  }
+  // Live matrix 050–052
+  if (matrix) {
+    const facets = parseSection101Facets(matrix, 'UC-E2E-050–052');
+    if (!facets) fail('live matrix: failed to parse UC-E2E-050–052 §1.0.1 facets');
+    else {
+      eq(facets.NEG, 'honesty-pin', 'live 050–052 NEG ⇒ honesty-pin (min residual)');
+      eq(facets.FAULT, 'gap', 'live 050–052 FAULT ⇒ gap');
+      eq(facets.BOUND, 'blind', 'live 050–052 BOUND ⇒ blind');
+      eq(facets.ADV, 'blind', 'live 050–052 ADV ⇒ blind');
+      pass(`live 050–052 facets NEG=${facets.NEG} FAULT=${facets.FAULT} BOUND=${facets.BOUND} ADV=${facets.ADV}`);
+    }
+    // Live UC-018: conservative ≡ legacy on each facet cell
+    const row018 = matrix.match(/\| UC-E2E-018 \|([^|\n]+)\|([^|\n]+)\|([^|\n]+)\|([^|\n]+)\|/);
+    if (!row018) fail('live matrix: UC-E2E-018 §1.0.1 row missing');
+    else {
+      let ok = true;
+      for (let i = 1; i <= 4; i++) {
+        const leg = cellStatusLegacy018(row018[i]);
+        const cons = cellStatusConservative(row018[i]);
+        if (leg !== cons) { ok = false; fail(`UC-018 facet[${i}] legacy=${leg} conservative=${cons}`); }
+      }
+      if (ok) pass('live UC-E2E-018 facet cells: conservative ≡ legacy018');
+    }
   }
 }
 
