@@ -17,7 +17,8 @@
  * EXIT 0 when assessment is honest and docs match (honest non-flip with refuse pin is success).
  * Ban假关 · Ban invent covered · Ban suite green / HA / R5 retired globally · Ban MySQL/Qdrant
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { assertCleanPorcelain } from './lib/uc-covered-real-gatherer.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -67,6 +68,13 @@ const FAMILY_CMDS = [
 ];
 
 let exitCode = 0;
+try {
+  assertCleanPorcelain(root);
+} catch (e) {
+  console.error(e.message);
+  process.exit(1);
+}
+
 const lines = [];
 function fail(msg) {
   lines.push(`FAIL  ${msg}`);
@@ -313,12 +321,29 @@ const evidence = {
   },
   datePT: new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }) + ' PT',
 };
-const evidencePath = join(receiptDir, '2026-09-23-uc-e2e-018-covered-lift-reassess-evidence.json');
+// C-LIFT-DIRTY-TRACKED: write ONLY gitignored .tmp during prove (tracked copy = receipts commit)
 const tmpEvidencePath = join(tmpDir, 'uc018-covered-lift-reassess-canHonestlyFlip.json');
-writeFileSync(evidencePath, JSON.stringify(evidence, null, 2) + '\n');
 writeFileSync(tmpEvidencePath, JSON.stringify(evidence, null, 2) + '\n');
-pass(`wrote receipt: ${evidencePath.replace(root + '/', '')}`);
-pass(`wrote tmp receipt: ${tmpEvidencePath.replace(root + '/', '')}`);
+pass(`wrote tmp receipt only: ${tmpEvidencePath.replace(root + '/', '')}`);
+try {
+  assertCleanPorcelain(root);
+  pass('porcelain after lift-reassess tmp-only write: clean (no DIRTY_TREE self-trip)');
+} catch (e) {
+  fail(`porcelain after lift write: ${e.message.split('\n')[0]}`);
+}
+// Negative: dirty tree refuses
+{
+  const probe = join(root, '.tmp-lift-porcelain-probe-uc018.txt');
+  try {
+    writeFileSync(probe, 'dirty\n');
+    let threw = false;
+    try { assertCleanPorcelain(root); } catch (e) { threw = e.code === 'DIRTY_TREE' || /DIRTY_TREE/.test(e.message); }
+    if (threw) pass('lift porcelain: dirty tree refuses (DIRTY_TREE)');
+    else fail('lift porcelain: dirty tree should refuse');
+  } finally {
+    try { rmSync(probe, { force: true }); } catch { /* */ }
+  }
+}
 
 // --- §1b #1–#6 CLOSED cite ---
 for (const item of SECTION1B) {

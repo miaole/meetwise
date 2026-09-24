@@ -17,8 +17,8 @@
         "verifiedSha": "abc1234deadbeef"
       },
       "dual": {
-        "e2eHa": "PASS",
-        "ragRoute": "PASS"
+        "e2eHa": null,
+        "ragRoute": null
       },
       "stack": {
         "postgres": true,
@@ -73,7 +73,9 @@
     },
     "BOUND": {
       "status": "covered",
-      "nhpIds": [],
+      "nhpIds": [
+        "waiting_user-CAS"
+      ],
       "prove": {
         "cmd": "pnpm uc018:x:prove",
         "exit": 0,

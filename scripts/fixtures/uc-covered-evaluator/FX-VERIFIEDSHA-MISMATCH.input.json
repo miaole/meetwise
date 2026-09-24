@@ -14,7 +14,7 @@
         "shaMatchesCommitted": true,
         "uncommitted": false,
         "staleSha": false,
-        "verifiedSha": "abc1234deadbeef"
+        "verifiedSha": "deadbeefdeadbeefdeadbeefdeadbeefdeadbee"
       },
       "dual": {
         "e2eHa": "PASS",
@@ -73,7 +73,9 @@
     },
     "BOUND": {
       "status": "covered",
-      "nhpIds": [],
+      "nhpIds": [
+        "waiting_user-CAS"
+      ],
       "prove": {
         "cmd": "pnpm uc018:x:prove",
         "exit": 0,
