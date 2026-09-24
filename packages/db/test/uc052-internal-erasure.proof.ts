@@ -296,17 +296,18 @@ async function main() {
     const status = await reassessRequestStatus(admin, begun.requestId);
     const afterTargets = await loadRequestTargets(admin, begun.requestId);
     const bySink = Object.fromEntries(afterTargets.map((x) => [x.sink, x.status]));
-    const localsPending = ['event', 'ai_graph_run', 'report', 'checkpoint_rows']
-      .every((s) => bySink[s] === 'pending');
-    const externalsRp = ['oss', 'redis', 'langfuse']
-      .every((s) => bySink[s] === 'retention_pending');
+    // Exact post-drift ledger: purgeable locals still pending; checkpoint fence already erased at begin (0096 §C).
+    const localsPending = ['event', 'ai_graph_run', 'report'].every((s) => bySink[s] === 'pending');
+    const checkpointFenced = bySink['checkpoint_rows'] === 'erased';
+    const externalsRp = ['oss', 'redis', 'langfuse'].every((s) => bySink[s] === 'retention_pending');
     A(id,
       claimRejected
       && status === 'purging'
       && !bannedRequestTerminal(status)
       && localsPending
+      && checkpointFenced
       && externalsRp,
-      `claimRejected=${claimRejected} req=${status} localsPending=${localsPending} externalsRp=${externalsRp}`);
+      `claimRejected=${claimRejected} req=${status} localsPending=${localsPending} ckpt=${bySink['checkpoint_rows']} externalsRp=${externalsRp}`);
   }
 
   /* ── NHP-050-FAULT-05: already-erased re-request ── */
