@@ -1,45 +1,37 @@
-# Harness — **UC-E2E-018 PERF/LOAD**（`GAP-UC018-PERF-LOAD` · **NHP-018-PERF-01** + **NHP-018-LOAD-01** · docs REQUEST · **`executed:awaiting_post_prove_dual`** · Ban elevate PERF/LOAD to **partial** this open · Ban invent covered · Ban flip §1.1 covered · PERF/LOAD partial ≠ UC covered · Ban claim production capacity / HA · Ban tuning thresholds after seeing results · Ban n/a to dodge capacity · Ban wash ADV/SOLE/reassess into covered · Ban skip to UC-011 · Ban MySQL/Qdrant cutover · Ban claim suite green / HA / R5 retired globally · Ban second knife）
+# Harness — **UC-E2E-018 PERF/LOAD**（`GAP-UC018-PERF-LOAD` · **NHP-018-PERF-01** + **NHP-018-LOAD-01** · AUTHORIZED nail · **`post_prove_dual_pass`** · **GAP CLOSED** · NHP PERF+LOAD **partial** · §1.0 PERF/LOAD **partial** THIS UC only · §1.1 stays **partial** · **PERF/LOAD partial ≠ UC covered** · Ban invent covered · Ban flip §1.1 covered · Ban claim production capacity / HA · Ban wash ADV/SOLE/reassess into covered · Ban skip to UC-011 · Ban MySQL/Qdrant cutover · Ban claim suite green / HA / R5 retired globally · Ban second knife · Ban next REQUEST）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（AUTHORIZED coding+prove DONE · `pnpm uc018:perf-load:prove` EXIT=0 · Method freeze Step A **`8c7ee0c`** ancestor of receipts · NHP-018-PERF-01+LOAD-01 **case-only→partial** · matrix §1.0 PERF/LOAD **partial** · §1.1 stays **partial** · **PERF/LOAD partial ≠ UC covered** · Ban invent covered · Ban假关 · Ban claim production capacity/HA · awaiting post-prove dual · Ban self-nail · Ban messaging dual）
-**Date**: 2026-09-23 (~19:35 PT)
-**Base / parent tip**: HEAD / REQUEST parent **`24d350f`** / full `24d350fd96ac2282e5234d1c269065de5bbecdc2`（**post-nail docs-only typo commit** · 1-line parent harness typo fix · **must remain ancestor of this REQUEST tip** · pre-exec dual **MUST** audit docs-only · see §0b）· sits on reassess nail **`0b7a218`** / full `0b7a218d6e32b7461aa7ce85e03e7f805f1aac06`（`GAP-UC018-COVERED-LIFT-REASSESS` CLOSED as **honest non-flip assessment only** · `post_prove_dual_pass` · **canHonestlyFlip=false** · refuse：**PERF/LOAD blind** · §1.1 stays **partial** · Ban invent covered · Ban假关 · **must remain ancestor** · cite `harness/uc-e2e-018-covered-lift-reassess.md`）· ADV nail **`27dd6ae`** CLOSED · prior covered-lift **`abfbbc0`** retained · prior SOLE **`aa968b1`** · UI **`1990b12`** · TTL **`d698282`** · GRAPH **`08650ea`** · FULL-E2E **`c36b032`** · waiting_user CLOSED · HA D2b **`7fddebe`** CLOSED · Ban reopen priors · Ban wash HA into E2E covered · branch `feat/mysql-schema-skeleton`（**historical name only** · Ban MySQL cutover justification）
-**Knife name**: **UC-E2E-018 PERF/LOAD · GAP-UC018-PERF-LOAD · NHP-018-PERF-01 + NHP-018-LOAD-01**（THIS UC · PERF+LOAD columns only · **NOT** invent covered · **NOT** wash PERF/LOAD partial into covered · **NOT** suite green / HA / R5 retired globally · **Ban skip to UC-011** while UC-018 still partial≠covered · Ban second knife）
-**Critical stack pin（user 2026-09-17 · `adr-postgres-retained.md`）**: Retained sole = **Postgres (+pgvector + PostgresSaver)** · **Ban** MySQL business cutover · **Ban** Qdrant-as-required-vector / replace-pgvector · SOLE CLOSED under PG-retained at **`aa968b1`** · STOPPED R5 cutover harnesses remain STOPPED · Ban reopen Qdrant-required
-**haStatus=NOT_HA** · **releaseEvidence=false** · **claimProductionHA=false** · **≠HA** · **≠suite green** · **≠ UC-E2E-018 covered this open** · **≠ R5 retired globally** · Ban假绿 · Ban invent green · Ban invent covered · Ban forge receipts · Ban claim production HA / failover · Ban flip `releaseEvidence` to true · Ban flip matrix §1.1 UC-E2E-018 to **covered** this open · Ban wash SOLE/`aa968b1` / UI/`1990b12` / TTL/`d698282` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / waiting_user / HTTP/`uc018:abandon:*` / covered-lift/`abfbbc0` / ADV/`27dd6ae` / reassess/`0b7a218` / D2b/`7fddebe` / HA / liveGhaRunUrl / PERF/LOAD alone into UC covered · Dual PASS ≠ coding · Dual PASS ≠ covered flip · Dual PASS ≠ next knife auto-authorize · Ban self-approve · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Ban second knife · Ban self-nail · Ban D3 / cloud buy · Key×3 FreeTier **out of scope** · `gR45Closed=true` **retained** · coveredCount **8** retained · `ms3EqualsR4Closed=false` **retained** · eg1–eg6 / r4 / funnel product flags **retained** · prior reassess / ADV / covered-lift / SOLE/UI/TTL/GRAPH/FULL-E2E/D2b **`post_prove_dual_pass`** **retained** · `releaseEvidence=false` **retained** · liveGhaRunUrl from D2b **orthogonal retained** · ≠ wash into E2E covered · ≠HA
-**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **not yet run** · Ban self-approve · experts write their own review receipts at named paths below · Dual not pinged by implementer · coordinator dispatches dual）
-**Must cite（PERF/LOAD residual · reassess refuse PERF/LOAD blind · case-only register）**: parent tip **`24d350f`**（docs-only typo · §0b）· reassess nail **`0b7a218`** · `harness/uc-e2e-018-covered-lift-reassess.md` refuse：**PERF/LOAD blind** · matrix §0.5 / §1.0 · `testing/e2e-performance-evidence.md` · `adr-postgres-retained.md` · §1b #1–#6 all CLOSED · ADV/`27dd6ae` **partial** · **ADV alone ≠ covered** · Family CMDs retained · Ban invent green this open · `eval/uc-e2e-018-user-abandon.eval.md` · `e2e-requirement-coverage-matrix.md` row UC-E2E-018 §1.1 **partial** · P0-8 · Ban invent covered · Ban wash PERF/LOAD alone into covered · Ban claim suite green / HA / R5 retired globally · Ban skip to UC-011 · Ban post-hoc threshold retune · Ban n/a to dodge capacity · local PERF/LOAD ≠ production capacity ≠ HA
-**Prior reassess（CLOSED honest non-flip · retained · must be ancestor）**: tip nail **`0b7a218`** · `GAP-UC018-COVERED-LIFT-REASSESS` CLOSED as honest non-flip only · **canHonestlyFlip=false** · refuse：**PERF/LOAD blind** · matrix **partial** · **≠ UC covered** · **retained** · Ban wash · Ban reopen · **must be ancestor of this REQUEST tip**（via `24d350f`）
-**Prior ADV / covered-lift / SOLE / UI / TTL / GRAPH / FULL-E2E / waiting_user / D2b（CLOSED · retained · ≠ wash）**: tips **`27dd6ae`** / **`abfbbc0`** / **`aa968b1`** / **`1990b12`** / **`d698282`** / **`08650ea`** / **`c36b032`** / waiting_user / **`7fddebe`** · each CLOSED only · matrix **partial** · Ban wash · Ban reopen
-**Why（cite）**: covered-lift-reassess at **`0b7a218`** refused flip solely because matrix §0.5/§1.0 PERF/LOAD for UC-E2E-018 were **blind** · this knife = **docs REQUEST only** to (1) register **NHP-018-PERF-01**（PERF · api）+ **NHP-018-LOAD-01**（LOAD · worker/api）with command + load shape + **declared thresholds** + receipt path · (2) honesty-touch matrix §1.0 PERF/LOAD **blind→case-only**（register case · **not** elevate to **partial** this open）· (3) name dedicated prove plan `pnpm uc018:perf-load:prove` on **local isolated** stack（run-e2e-isolated pattern）for later AUTHORIZED coding+prove → elevate §1.0 PERF/LOAD **case-only→partial**（THIS UC only）· (4) **PERF/LOAD partial ≠ UC covered** · Ban invent covered · Ban flip §1.1 covered · Ban claim production capacity / HA · Ban skip to UC-011 · Ban coding this open · any covered-lift decision = **separate later knife**
+**Status**: **`post_prove_dual_pass`**（AUTHORIZED coding+prove + post-prove dual BOTH PASS · `GAP-UC018-PERF-LOAD` **CLOSED** · **NHP-018-PERF-01** + **NHP-018-LOAD-01** **partial** · matrix §1.0 PERF/LOAD **partial** THIS UC only · §1.1 stays **partial** · **PERF/LOAD partial ≠ UC covered** · Ban invent covered · Ban假关 · Ban claim production capacity/HA · Dual PASS ≠ invent covered · Dual PASS ≠ next knife · STOP）
+**Date**: 2026-09-23 (~20:00 PT)
+**Prove tip**: **`b29c191`** / full `b29c191543dfbe7c1afa4278c550340a3339f295`（`feat(e2e): UC018 PERF/LOAD prove + elevate case-only→partial` · Method freeze Step A **`8c7ee0c`** / full `8c7ee0c1532e04467296dccb1797520124fbebce` **is ancestor**）
+**Post-prove dual（evidence of record）**:
+| Expert | Tip short / full | Receipt | Verdict |
+|--------|------------------|---------|---------|
+| `mw-e2e-ha` | **`1745bee`** / `1745bee67d6d2023509dfc685b48d37db1eaa78e` · correction append **`bdf921e`** / `bdf921ef3117486ec917b93b1d3429217b923a1d`（retract #3 「仍计算」· PASS stands） | `../reviews/REQUEST-2026-09-23-uc-e2e-018-perf-load-post-prove-mw-e2e-ha.md` | **PASS** |
+| `mw-rag-route` | **`37c89dc`** / `37c89dc6ebd483e133137311cee343b4e1297894` · correction **`e33dd63`** / `e33dd63f91fd60dd7523e1f8a12c8dd5111c419a`（canHonestlyFlip = constant false） | `../reviews/REQUEST-2026-09-23-uc-e2e-018-perf-load-post-prove-mw-rag-route.md` | **PASS** |
+**Evidence of record = reviewers' independent runs at `b29c191`**（cite numbers below）· implementer tracked receipts under `ai-docs/delivery/receipts/uc018-perf-load/` carry `gitSha=8c7ee0c` from an **uncommitted runner** at run time → **implementer pre-commit runs · not evidence of record**（retained · do not delete · see receipt README）
+**Base / parent tip**: sits on reassess nail **`0b7a218`** / full `0b7a218d6e32b7461aa7ce85e03e7f805f1aac06`（`GAP-UC018-COVERED-LIFT-REASSESS` CLOSED as honest non-flip assessment only · **at prove tip `5cddb53`** · **canHonestlyFlip was computed** · refuse then：**PERF/LOAD blind** · **must remain ancestor**）· ADV **`27dd6ae`** · covered-lift **`abfbbc0`** · SOLE **`aa968b1`** · UI **`1990b12`** · TTL **`d698282`** · GRAPH **`08650ea`** · FULL-E2E **`c36b032`** · waiting_user CLOSED · HA D2b **`7fddebe`** CLOSED · Ban reopen · Ban wash · branch `feat/mysql-schema-skeleton`（historical · Ban MySQL cutover）
+**Knife name**: **UC-E2E-018 PERF/LOAD · GAP-UC018-PERF-LOAD · NHP-018-PERF-01 + NHP-018-LOAD-01**（THIS UC · PERF+LOAD columns only · **GAP CLOSED** · **NOT** invent covered · **NOT** wash PERF/LOAD partial into covered · Ban skip to UC-011 · Ban second knife · Ban next REQUEST）
+**Critical stack pin**: `adr-postgres-retained.md` · retained sole = **Postgres (+pgvector + PostgresSaver)** · **Ban** MySQL business cutover · **Ban** Qdrant-as-required-vector · PG-retained · STOPPED R5 cutover harnesses remain STOPPED
+**haStatus=NOT_HA** · **releaseEvidence=false** · **claimProductionHA=false** · **≠HA** · **≠suite green** · **≠ UC-E2E-018 covered** · **≠ R5 retired globally** · Ban假绿 · Ban invent covered · Ban forge receipts · Ban flip `releaseEvidence` · Ban flip §1.1 to **covered** · Ban wash SOLE/UI/TTL/GRAPH/FULL-E2E/HTTP/covered-lift/ADV/reassess/D2b/HA/PERF alone into UC covered · Dual PASS ≠ invent covered · Dual PASS ≠ next knife · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Ban second knife · Ban next REQUEST · `gR45Closed=true` **retained** · coveredCount **8** retained · `ms3EqualsR4Closed=false` **retained** · eg1–eg6 / r4 / funnel **retained** · prior nails **`post_prove_dual_pass`** **retained**
+**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec BOTH PASS · `64cc57c` / `4964dc2` · post-prove BOTH PASS · `1745bee`+`bdf921e` / `37c89dc`+`e33dd63` · Ban自批 · Dual PASS ≠ next knife）
+**Must cite**: prove tip **`b29c191`** · Step A **`8c7ee0c`** · post-prove **`1745bee`** / **`37c89dc`**+**`e33dd63`** · Method freeze thresholds unchanged · `testing/e2e-performance-evidence.md` · `adr-postgres-retained.md` · matrix §0.5/§1.0 · §1.1 **partial** · P0-8 · Ban invent covered · Ban claim production capacity / HA · Ban skip to UC-011
 **Slice**: `../uc-e2e-018-perf-load.slice.md`
-**Eval**: plan-in-harness · cite existing `../eval/uc-e2e-018-user-abandon.eval.md` · Ban invent prove green · Ban rewrite as covered / PERF partial now
-**Parent harness（honesty touch this open · Ban flip covered）**: `harness/uc-e2e-018-user-abandon.md` — name **PERF/LOAD REQUEST OPEN** · cite reassess refuse PERF/LOAD blind · tip `0b7a218` · status `draft:awaiting_pre_exec_dual` · matrix business stays **partial** · Ban claim UC covered · Ban invent covered · Ban wash PERF/LOAD into covered · Ban skip to UC-011
-**Authority**: meetwise — **docs REQUEST open only** for **UC-E2E-018 PERF/LOAD · GAP-UC018-PERF-LOAD · NHP-018-PERF-01 + NHP-018-LOAD-01** · status `draft:awaiting_pre_exec_dual` · Ban secrets / `.env*` · Meridian banned · No force-push · Ban Cloud Agent · Ban self-approve · Ban self-nail · Ban silent UC covered claim · Ban coding until dual+authorize · Ban messaging dual reviewers（coordinator dispatches） · Ban MySQL/Qdrant cutover · Ban invent covered · Ban flip §1.1 covered · Ban elevate PERF/LOAD to partial this open
-**Honesty**: docs REQUEST of PERF/LOAD only · status `draft:awaiting_pre_exec_dual` · `GAP-UC018-PERF-LOAD` **OPEN** · **NHP-018-PERF-01** + **NHP-018-LOAD-01** registered **blind→case-only** · **PERF/LOAD case-only ≠ covered** · matrix business **partial** · Ban claim UC-E2E-018 covered · Ban invent covered · Ban wash PERF/LOAD/ADV/SOLE/reassess/D2b/HA into covered · **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban coding · Ban prove · Ban flip covered · Ban claim production capacity · STOP after push
+**Parent harness（honesty touch）**: `harness/uc-e2e-018-user-abandon.md` — name **PERF/LOAD post_prove_dual_pass** · GAP CLOSED · NHP PERF+LOAD **partial** · §1.1 stays **partial** · Ban invent covered · Ban skip to UC-011
+**Authority**: meetwise — AUTHORIZED nail for **UC-E2E-018 PERF/LOAD · GAP-UC018-PERF-LOAD** · status `post_prove_dual_pass` · Ban secrets / `.env*` · Meridian banned · No force-push · Ban Cloud Agent · Ban invent covered · Ban flip §1.1 · Ban second knife · Ban next REQUEST
+**Honesty**: AUTHORIZED nail · status `post_prove_dual_pass` · `GAP-UC018-PERF-LOAD` **CLOSED** · **NHP-018-PERF-01**+**NHP-018-LOAD-01** **partial** · §1.0 PERF/LOAD **partial** THIS UC only · §1.1 **partial** · **PERF/LOAD partial ≠ covered** · local PERF/LOAD ≠ capacity ≠ HA · **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · STOP · no next REQUEST
 
 ---
 
-## 0b. Parent tip `24d350f` · docs-only typo audit（pre-exec MUST verify）
+## Dual receipts（named · recorded）
 
-| Field | Value |
-|-------|-------|
-| Short / full | **`24d350f`** / `24d350fd96ac2282e5234d1c269065de5bbecdc2` |
-| Subject | `docs(e2e): fix UC018 reassess nail parent harness typo` |
-| Author | `meetwise-core <meetwise-core@users.noreply.github.com>` |
-| Role | **post-nail docs-only typo commit**（1-line parent harness typo fix）· sits on nail **`0b7a218`** · **not** a product / prove / coding change |
-| `git show --stat 24d350f` file list | **1 file** · `ai-docs/delivery/harness/uc-e2e-018-user-abandon.md` · `1 file changed, 1 insertion(+), 1 deletion(-)` |
-| Pre-exec dual duty | Confirm tip is **docs-only** · confirm `0b7a218` is ancestor · Ban treat typo commit as new product knife |
+| Expert | Receipt path | Status |
+|--------|--------------|--------|
+| pre-exec `mw-e2e-ha` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-perf-load-mw-e2e-ha.md` | **PASS** · tip **`64cc57c`** |
+| pre-exec `mw-rag-route` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-perf-load-mw-rag-route.md` | **PASS** · tip **`4964dc2`**（subject template `PASS\|FAIL` quirk · body PASS） |
+| post-prove `mw-e2e-ha` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-perf-load-post-prove-mw-e2e-ha.md` | **PASS** · tip **`1745bee`** · correction **`bdf921e`** · prove tip **`b29c191`** |
+| post-prove `mw-rag-route` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-perf-load-post-prove-mw-rag-route.md` | **PASS** · tip **`37c89dc`** · correction **`e33dd63`** · prove tip **`b29c191`** |
 
----
-
-## Dual receipts（named · not pre-filled）
-
-| Expert | Receipt path（named · **not pre-filled**） | Status |
-|--------|---------------------------------------------|--------|
-| `mw-e2e-ha` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-perf-load-mw-e2e-ha.md` | **PENDING / draft:awaiting_pre_exec_dual** |
-| `mw-rag-route` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-perf-load-mw-rag-route.md` | **PENDING / draft:awaiting_pre_exec_dual** |
-
-**Note**: Implementer does **not** pre-fill pass · Dual **not** pinged by implementer · coordinator dispatches · Ban自批 · Dual PASS ≠ coding · Dual PASS ≠ UC-E2E-018 covered · Dual PASS ≠ PERF/LOAD partial · Dual PASS ≠ matrix §1.1 flip · Dual PASS ≠ next knife auto-authorize · Dual PASS ≠ invent covered.
+**Note**: post-prove dual BOTH PASS · nail tip = this commit · Dual PASS ≠ UC-E2E-018 covered · Dual PASS ≠ §1.1 flip · Dual PASS ≠ invent covered · Dual PASS ≠ next knife · Ban自批.
 
 ---
 
@@ -47,155 +39,157 @@
 
 | Statement | Ruling |
 |-----------|--------|
-| **What this knife is** | Docs REQUEST open for **UC-E2E-018 PERF/LOAD · GAP-UC018-PERF-LOAD · NHP-018-PERF-01 + NHP-018-LOAD-01** · close reassess refuse residual（PERF/LOAD **blind**）by registering PERF+LOAD cases with **thresholds declared now** · plan `pnpm uc018:perf-load:prove` · later under authorize: elevate §1.0 PERF/LOAD **case-only→partial**（THIS UC only）· **PERF/LOAD partial ≠ UC covered** · Ban wash into covered · Ban flip §1.1 covered · status **`draft:awaiting_pre_exec_dual`** |
-| **What this knife is not** | **Not** coding · **not** prove · **not** invent covered · **not** flip §1.1 covered · **not** elevate PERF/LOAD to **partial** this open · **not** claim production capacity / HA · **not** retune thresholds after results · **not** skip to UC-011 · **not** MySQL/Qdrant cutover · **not** G1 flip · **not** claiming suite green / HA / R5 retired globally · **not** washing ADV/SOLE/reassess/D2b/HA into covered · **not** inventing green · **not** cloud buy · **not** D3 · **not** Meridian · **not** Cloud Agent · **not** secrets / `.env*` · **not** second knife · **not** self-nail · **not** reopen reassess/`0b7a218` / ADV/`27dd6ae` / covered-lift/`abfbbc0` / SOLE/UI/TTL/GRAPH/FULL-E2E/D2b · **not** reopen STOPPED R5 cutover · **not** a covered-lift knife（separate later） |
-| **NHP-018-PERF-01（register this open）** | PERF · api · abandon latency under reproducible shape · status **blind→case-only** · Ban elevate to **partial** this open · Ban invent prove green |
-| **NHP-018-LOAD-01（register this open）** | LOAD · worker/api · concurrent abandon+release+graph safe-terminate · status **blind→case-only** · Ban elevate to **partial** this open |
-| **PERF/LOAD partial ≠ UC covered** | **YES** — registering / later proving PERF/LOAD **≠** flip §1.1 to covered · Ban wash |
-| **local ≠ production ≠ HA** | **YES** — cite `testing/e2e-performance-evidence.md` · local ms/RPS = single-dev regression budget · **≠** P95/P99 online SLO · **≠** capacity · **≠** HA · Ban claimProductionHA |
-| **Ban post-hoc retune / Ban n/a dodge** | Thresholds **frozen in this harness now** · Ban retune after seeing results · Ban write n/a to dodge capacity（matrix §0.5/§1.0） |
-| **haStatus / releaseEvidence / claimProductionHA** | **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban flip this open · Ban假绿 |
-| **Matrix / UC covered** | UC-E2E-018 §1.1 stays **partial** this open · Ban claim covered · Ban假关 · any covered-lift = separate later knife |
-| **Parent harness rewrite** | Honesty touch：name **PERF/LOAD REQUEST OPEN** · cite reassess refuse PERF/LOAD blind · **not** rewritten as covered · Ban invent covered · Ban skip to UC-011 |
-| **Now** | **`draft:awaiting_pre_exec_dual`** · docs only · GAP-UC018-PERF-LOAD OPEN · NHP PERF+LOAD case-only · matrix business partial · Ban claim UC covered · Ban invent covered · Ban coding · STOP after push |
+| **What this knife is** | AUTHORIZED coding+prove + post-prove dual BOTH PASS + AUTHORIZED nail for **UC-E2E-018 PERF/LOAD · GAP-UC018-PERF-LOAD · NHP-018-PERF-01 + NHP-018-LOAD-01** · elevate §1.0 PERF/LOAD **case-only→partial**（THIS UC only）· **GAP CLOSED** · status **`post_prove_dual_pass`** · STOP |
+| **What this knife is not** | **Not** invent covered · **not** flip §1.1 covered · **not** claim production capacity / HA · **not** wash PERF/LOAD into covered · **not** skip to UC-011 · **not** MySQL/Qdrant cutover · **not** suite green / R5 retired globally · **not** a covered-lift knife（separate later）· **not** next REQUEST |
+| **NHP-018-PERF-01** | PERF · api · **partial** · post_prove_dual_pass · Ban wash into §1.1 covered |
+| **NHP-018-LOAD-01** | LOAD · worker/api taxonomy · **partial** · measured path = capped API（release+graph safe-terminate inside capped API）· **`workerCapEnforced=false`**（no separately capped worker）· Ban wash into covered |
+| **PERF/LOAD partial ≠ UC covered** | **YES** · §1.1 stays **partial** · Ban wash |
+| **local ≠ capacity ≠ HA** | **YES** · cite `testing/e2e-performance-evidence.md` · p99 at N=100 statistically weak（disclosed）· Ban claimProductionHA |
+| **haStatus / releaseEvidence / claimProductionHA** | **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban flip |
+| **Matrix / UC covered** | UC-E2E-018 §1.1 stays **partial** · Ban invent covered · Ban假关 · covered-lift = separate later knife |
+| **Now** | **`post_prove_dual_pass`** · GAP CLOSED · NHP PERF+LOAD **partial** · §1.0 PERF/LOAD **partial** · §1.1 **partial** · Ban invent covered · STOP · no next REQUEST |
 
 ---
 
-## 1. Acceptance · PERF/LOAD only（document for later coding · Ban invent covered）
+## 1. Nail record · HARD pins（AUTHORIZED）
 
-| # | Gap | Acceptance criteria（later under AUTHORIZED coding+prove · **not this open**） | Why priors do **not** auto-close PERF/LOAD / covered | This REQUEST |
-|---|-----|--------------------------------------------------------------------------------|-----------------------------------------------------|--------------|
-| **A1** | Pre-exec dual | Pre-exec dual `mw-e2e-ha` + `mw-rag-route` **BOTH PASS** on REQUEST tip **before** any coding / prove / PERF elevate | N/A | **PENDING** · Ban自批 |
-| **A2** | Register NHP-018-PERF-01 + NHP-018-LOAD-01 | Case IDs + command + shape + **declared thresholds** + receipt paths registered in `non-happy-path-perf-load-case-matrix.md` · status **blind→case-only** | Registration ≠ execution · ≠ partial · ≠ covered | **registered this open** · Ban elevate to partial |
-| **A3** | Matrix §1.0 PERF/LOAD honesty | §1.0 / §1.0.2 UC-E2E-018 PERF/LOAD columns **case-only** · Ban elevate to **partial** this open · Ban flip §1.1 covered · Ban claim production capacity | Writing REQUEST ≠ PERF partial · ≠ UC covered | **honesty touch this open** · case-only only |
-| **A4** | Dedicated PERF/LOAD prove | Later: `pnpm uc018:perf-load:prove` EXIT=**0** under authorize on **local isolated** stack → elevate matrix §1.0 PERF/LOAD **case-only→partial**（THIS UC only）· EXIT=0 **only if** thresholds met · raw receipts at named paths · Ban invent green · Ban wash into §1.1 covered | Prior HTTP/ADV/reassess proves ≠ PERF/LOAD closed · Ban elevate this open | **CMD plan named** · Ban run this open |
-| **A5** | Thresholds frozen now | Declare p50/p95/p99 + error rate + load shape + resource caps **before** run · Ban post-hoc retune · Ban n/a dodge | Silent thresholds = capacity steal | **declared §1b this open** |
-| **A6** | Non-claims / Ban wash | Ban invent covered · Ban flip §1.1 covered · Ban elevate PERF/LOAD to partial this open · Ban claim production capacity / HA · Ban claim suite green / R5 retired globally · Ban MySQL/Qdrant cutover · Ban skip to UC-011 · Ban wash priors into covered · keep `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false` | PERF/LOAD alone ≠ covered · reassess non-flip ≠ covered | Hard-pinned this REQUEST |
-| **A7** | Retain priors + PG-retained ADR | Retain reassess **`0b7a218`** + ADV/`27dd6ae` + covered-lift/`abfbbc0` + SOLE/UI/TTL/GRAPH/FULL-E2E/waiting_user/D2b + `adr-postgres-retained.md` · Ban reopen · Ban wash into covered | Prior dual_pass ≠ PERF closed · ≠ UC covered | Retained · not flipped |
-| **A8** | Lifecycle → STOP | REQUEST → pre-exec dual → AUTHORIZED coding+prove → awaiting_post_prove → post-prove dual → AUTHORIZED nail → `post_prove_dual_pass` → **STOP** · no second knife · Dual PASS ≠ next knife · Dual PASS ≠ invent covered · covered-lift = **separate later knife** | N/A | L0 this open · L2+ blocked until dual+authorize |
-| **A9** | Out of scope | Invent covered · flip §1.1 · elevate PERF/LOAD partial this open · claim production capacity / HA · retune thresholds after results · skip to UC-011 · MySQL/Qdrant · Meridian · Cloud Agent · D3 · cloud buy · secrets / `.env*` · coding this open · covered-lift knife | N/A | Pinned OOS |
+### 1.0 Status · GAP · columns
 
-**Ban**: invent green · invent covered · forge receipts · claim UC-E2E-018 covered · flip §1.1 covered · elevate PERF/LOAD to partial this open · claim production capacity / HA · claim suite green · claim R5 retired globally · implement MySQL/Qdrant cutover · skip to UC-011 · wash SOLE/UI/TTL/GRAPH/FULL-E2E/HTTP/covered-lift/ADV/reassess/D2b/HA/PERF alone into covered · flip `releaseEvidence` · Dual PASS ≠ invent covered · Dual PASS ≠ next knife · Ban自批 · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Ban second knife · Ban假绿 · Ban假关 · Ban D3 / cloud buy · Ban reopen reassess / ADV / covered-lift / SOLE / UI / TTL / GRAPH / FULL-E2E / D2b / STOPPED R5 · Ban messaging dual · Ban wash PERF/LOAD alone = covered · Ban post-hoc threshold retune · Ban n/a to dodge capacity · Ban next REQUEST after this open until dual lifecycle · Ban covered-lift in THIS knife
+| Pin | Value |
+|-----|-------|
+| Status | **`post_prove_dual_pass`** |
+| GAP-UC018-PERF-LOAD | **CLOSED** |
+| NHP-018-PERF-01 | **partial** |
+| NHP-018-LOAD-01 | **partial** |
+| §1.0 PERF/LOAD | **partial** THIS UC only |
+| §1.1 UC-E2E-018 | stays **partial** · Ban flip |
+| PERF/LOAD partial ≠ UC covered | **YES** |
 
-### 1b. Declared thresholds · shapes · receipts（FROZEN now · Ban post-hoc retune）
+### 1.1 Evidence of record（reviewers · `b29c191`）
 
-Cite: `testing/e2e-performance-evidence.md`（本地毫秒/RPS = 单机回归预算 · **≠** 线上 P95/P99 SLO · **≠** 容量 · **≠** HA）· matrix §0.5/§1.0（PERF/LOAD 缺列 = blind/not_run · **禁止** n/a 偷关容量）· cloud THR shape used as **convention only**（≠ cloud buy · ≠ THR-CLOUD-v1 claim）.
+**Evidence of record = reviewers' independent runs at `b29c191`**（mw-e2e-ha `1745bee`；mw-rag-route `37c89dc` + correction `e33dd63`）.
 
-**Resource caps（local isolated · declared）**: ≤ **2 vCPU** · ≤ **4 GiB** mem · sole stack = Postgres(+pgvector+PostgresSaver) via `run-e2e-isolated` pattern · Ban cloud buy / D3.
+#### mw-e2e-ha independent · tip `1745bee` · HEAD=`b29c191` · EXIT=0 · caps NanoCpus=2e9 Memory=4GiB
 
-| Case | Facet | Command（later） | Load shape | Expectation（EXIT=0 only if met） | Receipt path | Status this open |
-|------|-------|------------------|------------|----------------------------------|--------------|------------------|
-| **NHP-018-PERF-01** | PERF · **api** | `pnpm uc018:perf-load:prove`（PERF facet） | `POST /api/interview/:id/abandon` · **N=100** requests · **concurrency=10** · local isolated | **p50 ≤ 250ms** · **p95 ≤ 750ms** · **p99 ≤ 1500ms** · **error_rate ≤ 0.5%** · `releaseEvidence=false` · **≠** production SLO | `.tmp/uc018-perf-load-receipts/` + `ai-docs/delivery/receipts/uc018-perf-load/` | **partial**（prove EXIT=0 · awaiting_post_prove_dual） |
-| **NHP-018-LOAD-01** | LOAD · **worker/api** | `pnpm uc018:perf-load:prove`（LOAD facet） | concurrent **abandon + release + graph safe-terminate** · **N=50** interviews · **concurrency=20** · batch complete or ≥60s | **no double-release** · **no stuck reservations** · **error_rate ≤ 1%** · throughput recorded · `releaseEvidence=false` · **≠** HA | `.tmp/uc018-perf-load-receipts/` + `ai-docs/delivery/receipts/uc018-perf-load/` | **partial**（prove EXIT=0 · awaiting_post_prove_dual） |
+| Facet | Run | p50 | p95 | p99 | err | dbl/stuck | passed |
+|-------|-----|-----|-----|-----|-----|-----------|--------|
+| PERF | 1 | 22.850 | 64.109 | 114.877 | 0 | — | true |
+| PERF | 2 | 18.024 | 52.366 | 64.672 | 0 | — | true |
+| PERF | 3 | 18.139 | 43.579 | 68.583 | 0 | — | true |
+| LOAD | 1–3 | — | — | — | 0 | 0 / 0 | true |
 
-**Elevate rule（later authorize only）**: on prove EXIT=0 + dual post-prove PASS → elevate PERF/LOAD **case-only→partial** for **THIS UC only** · **PERF/LOAD partial ≠ UC covered** · §1.1 stays **partial** · any covered-lift = **separate later knife**.
+#### mw-rag-route independent · tip `37c89dc`（+`e33dd63`）· HEAD=`b29c191` · EXIT=0 · caps same
+
+| Facet | Run | p50 | p95 | p99 | err | dbl/stuck | passed |
+|-------|-----|-----|-----|-----|-----|-----------|--------|
+| PERF | 1 | 22.6 | 66.5 | 93.7 | 0 | — | true |
+| PERF | 2 | 20.2 | 41.9 | 61.7 | 0 | — | true |
+| PERF | 3 | 20.2 | 45.1 | 76.3 | 0 | — | true |
+| LOAD | 1–3 | — | — | — | 0 | 0 / 0 | true |
+
+### 1.2 Implementer receipts · **not evidence of record**
+
+Tracked mirrors `ai-docs/delivery/receipts/uc018-perf-load/*` · `gitSha=8c7ee0c…` · **implementer pre-commit runs · not evidence of record**（runner was uncommitted at implementer run · landed in tip `b29c191`）· **retained · do not delete** · label file `receipts/uc018-perf-load/README.md`. Elevate eligibility rests on tip code + dual re-run at `b29c191`.
+
+### 1.3 Cap pin · `workerCapEnforced=false`
+
+| Pin | Value |
+|-----|-------|
+| **workerCapEnforced** | **`false`** |
+| Meaning | No separately capped `apps/worker` container |
+| Measured surface | Release + graph safe-terminate execute **inside the capped API container**（+ capped isolated PG）via `abandonInterviewAndRelease` · Promise `workers` = client concurrency only |
+| Caps | Docker `--cpus=2 --memory=4g` · NanoCpus=2e9 · Memory=4GiB on **PG + API** · `enforced=true` for measured surface |
+| Ban | Ban claim separate worker was capped · Ban elevate to capacity/HA |
+
+### 1.4 Regression pin · `canHonestlyFlip` at `b29c191` = **constant-false no-flip guard · not an assessment**
+
+| Fact | Record |
+|------|--------|
+| At reassess prove **`5cddb53`** | `let canHonestlyFlip = true` then set `false` on failing columns · **was a real computable assessment** · refuse then：**PERF/LOAD blind** · nail `0b7a218` honest non-flip assessment is about **that** tip |
+| At prove tip **`b29c191`** | `scripts/uc-e2e-018-covered-lift-reassess.proof.mjs` changed so `canHonestlyFlip` is initialised **`false`** and **never set `true`** · unconditional hard refuse `reassess-knife-refuses-§1.1-flip` · true-branch unreachable |
+| Ruling | At `b29c191`，`canHonestlyFlip` is a **constant-false no-flip guard, not an assessment** |
+| Ban | **Ban** citing it as 「assessed, cannot flip」 / 「经计算得出的不可翻转」 / 「still computes from matrix」 |
+| Corrections | mw-rag-route `e33dd63` + mw-e2e-ha `bdf921e` retract earlier 「仍计算」wording · PASS stands |
+
+### 1.5 Carried condition（blocks later covered-lift / §1.1 flip）
+
+Any later covered-lift or §1.1 flip knife **must first** restore a **real computable six-column evaluator** that **can return `true`**, with a **written criterion** for when a column counts as covered, and **pass dual**；otherwise that knife **FAIL**s. Ban wash constant-false into 「已评估不可翻」. Ban invent covered from PERF/LOAD partial alone.
+
+### 1.6 Other hard pins retained
+
+| Pin | Value |
+|-----|-------|
+| local PERF/LOAD ≠ capacity ≠ HA | **YES** |
+| p99 at N=100 | statistically weak（nearest-rank ≈ single near-worst sample）· disclosed |
+| haStatus | **NOT_HA** |
+| releaseEvidence | **false** |
+| claimProductionHA | **false** |
+| gR45Closed | **true** |
+| coveredCount | **8** |
+| ms3EqualsR4Closed | **false** |
+| PG-retained | **YES** · Ban MySQL/Qdrant cutover |
+| Thresholds vs freeze / `30943df` | **UNCHANGED** · PERF N=100 c=10 p50≤250 p95≤750 p99≤1500 err≤0.5% · LOAD N=50 c=20 err≤1% no-dbl no-stuck |
 
 ---
 
-## Method freeze（AUTHORIZED coding+prove · frozen BEFORE any load run · Ban post-hoc retune）
+## 2. Acceptance（nail recorded）
 
-> **Freeze tip rule**: this Method freeze section MUST be committed+pushed as its **own** docs-only commit **before** any `uc018:perf-load:prove` run. That Step A SHA **must be an ancestor** of every receipt `gitSha`. Ban edit method / N / c / thresholds / warmup / percentile / clock after seeing results. A threshold miss ⇒ EXIT≠0 · stay case-only · honest outcome.
+| # | Gap | This nail |
+|---|-----|-----------|
+| **A1** | Pre-exec dual BOTH PASS | **PASS** · `64cc57c` + `4964dc2` |
+| **A2** | Register NHP PERF+LOAD | **DONE** · elevated **partial** |
+| **A3** | Matrix §1.0 PERF/LOAD honesty | **DONE** · **partial** THIS UC only · §1.1 stays **partial** |
+| **A4** | `pnpm uc018:perf-load:prove` EXIT=0 | **DONE** · prove tip `b29c191` · dual re-run EXIT=0 |
+| **A5** | Thresholds frozen · Ban post-hoc retune | **HOLD** · Method freeze `8c7ee0c` ancestor |
+| **A6** | Non-claims / Ban wash | Hard-pinned · see §1 |
+| **A7** | Retain priors + PG-retained | Retained |
+| **A8** | Lifecycle → STOP | **PASS** · post-prove dual BOTH PASS · nail this commit · STOP · no next REQUEST |
+| **A9** | Out of scope | Invent covered · §1.1 flip · capacity/HA · skip UC-011 · MySQL/Qdrant · Meridian · Cloud Agent · secrets · next REQUEST · covered-lift knife |
 
-### Percentile method
-- **nearest-rank**: for quantile `q` over `n` sorted ascending latency samples, p = value at rank **`ceil(q·n)`** (1-indexed). Example: n=100 → p50 = sample[50], p95 = sample[95], **p99 = sample[99]** (= the 99th of 100, i.e. near-worst).
-- **Disclosure（统计弱）**: at **N=100**, nearest-rank **p99 = the single 99th-rank sample**（approaches the worst sample）· statistically weak · **≠** production SLO claim · Ban wash into capacity/HA.
+---
 
-### Clock
-- **Client-side end-to-end wall clock per request**: `process.hrtime.bigint()`（or equivalent）wrapped around the **full HTTP round trip**（fetch start → response headers+body consumed / error）.
-- Server-internal timings **do not** count toward p50/p95/p99.
+## 3. Method freeze（retained · Ban post-hoc retune）
 
-### Timeouts → errors
-- Per-request timeout: **10_000 ms**（10s）.
-- Timeout **counts as an error**（included in `error_rate`; also tracked separately as `timeoutCount` in receipts）.
-- Timed-out samples are **excluded** from latency percentile populations（latency stats over successful completes only）· errors/timeouts still count against error_rate thresholds.
+Step A **`8c7ee0c`** · nearest-rank · client hrtime · timeout 10s=error · warmup 10 excluded · 3 runs all-must-pass · p99 weakness disclosed · caps Docker `--cpus=2 --memory=4g` · N/c/thresholds UNCHANGED from REQUEST.
 
-### Warmup
-- Warmup count: **10** requests（same mouth · same auth fixtures · not necessarily identical N pool）.
-- Warmup **excluded** from latency stats and from error_rate denominators of the measured N.
+---
 
-### Repeat runs
-- **repeat runs = 3**（independent measured batches; fresh seed IDs each run）.
-- **EVERY** run must meet **all** thresholds for its case.
-- **Any** miss on any run ⇒ prove **EXIT≠0** · PERF/LOAD stay **case-only** · Ban elevate.
-
-### Declared shapes / thresholds（UNCHANGED from §1b · Ban retune）
-| Case | N | c | Thresholds |
-|------|---|---|------------|
-| **NHP-018-PERF-01** | 100 | 10 | p50≤250ms · p95≤750ms · p99≤1500ms · err≤0.5% · abandon HTTP only |
-| **NHP-018-LOAD-01** | 50 | 20 | abandon+release+graph safe-terminate · no double-release · no stuck reservations · err≤1% |
-
-### Resource caps
-- Declared: ≤ **2 vCPU** · ≤ **4 GiB** mem for the measured surface（API prove process and isolated PG where enforceable）.
-- **Enforcement method（authorize coding）**: Docker `--cpus=2 --memory=4g` on the isolated Postgres container **and** on the Node prove/API process container（or equivalent cgroup v2 `cpu.max` / `memory.max`）. Record evidence in each receipt: `docker inspect` → `HostConfig.NanoCpus` / `HostConfig.Memory` and/or cgroup `cpu.max` / `memory.max`.
-- If caps **cannot** be enforced on the machine: **do not fake** · treat as **failure to elevate**（EXIT≠0 · stay case-only）· disclose blocker in receipt + harness.
-
-### Receipt paths
-| Kind | Path |
-|------|------|
-| Raw（untracked · may hold machine detail · still Ban secrets） | `.tmp/uc018-perf-load-receipts/` |
-| Tracked redacted mirror | `ai-docs/delivery/receipts/uc018-perf-load/*.json` |
-
-Each receipt includes: git SHA（Step A must be ancestor）· command · caps evidence · N · c · warmup · raw latencies or histogram · p50/p95/p99 · error + timeout counts · start/end timestamps · machine info（cpu model/count · mem · kernel）. **Ban** tokens / DSNs / passwords / cookies / env dumps. Grep tracked mirrors for secrets before commit.
-
-### Pre-exec dual note（harness honesty · Ban edit reviewer receipts）
-- REQUEST tip **`30943df`**. Pre-exec dual BOTH PASS recorded at:
-  - `mw-rag-route` tip **`4964dc2`** — **commit subject literally** `review(uc018-perf-load): mw-rag-route pre-exec PASS|FAIL`（template `PASS|FAIL` **not replaced** in subject）· **receipt body Verdict = PASS** · implementer notes this quirk · **does not edit** the reviewer receipt.
-  - `mw-e2e-ha` tip **`64cc57c`** — subject/body PASS.
-- Dual PASS ≠ coding alone · coding requires standing AUTHORIZE · Dual PASS ≠ invent covered · Dual PASS ≠ §1.1 flip.
-
-### Non-claims retained under freeze
-local PERF/LOAD ≠ capacity ≠ HA · partial ≠ covered · §1.1 stays partial · covered-lift = separate later knife · `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false` · `gR45Closed=true` · coveredCount=8 · `ms3EqualsR4Closed=false` · PG-retained · Ban self-nail · Ban messaging dual · Ban second knife · Ban post-hoc retune · Ban n/a dodge.
-
-## 2. Prove plan（AUTHORIZED · **executed** · EXIT=0）
+## 4. Prove CMD（executed · dual re-run PASS）
 
 ```bash
-# EXECUTED
-pnpm uc018:perf-load:prove  # EXIT=0
-# Method freeze Step A 8c7ee0c ancestor · caps Docker --cpus=2 --memory=4g (NanoCpus=2e9 Memory=4GiB)
-# receipts: .tmp/uc018-perf-load-receipts/ + ai-docs/delivery/receipts/uc018-perf-load/
-# Ban invent green · Ban post-hoc retune · Ban claim production capacity / HA · PERF/LOAD partial ≠ covered
+pnpm uc018:perf-load:prove  # EXIT=0 at b29c191 · dual independent re-runs EXIT=0
 ```
 
-Family CMDs cite prior EXIT=0 only · **not_run** this open: `uc018:abandon:*` / graph / ttl / ui / sole / covered-lift / adv / covered-lift-reassess / `eval-harness-matrix-cite:prove`.
+Family CMDs cite prior EXIT=0 · retained.
 
 ---
 
-## 3. Explicit ≠ prior knives（must retain · Ban wash）
+## 5. Lifecycle（nail recorded · STOP）
 
-| Knife | Tips | Ruling |
-|-------|------|--------|
-| **UC-E2E-018 covered-lift-reassess** | **`0b7a218`**（via `24d350f`） | CLOSED honest non-flip · refuse PERF/LOAD blind · retained · must be ancestor |
-| **UC-E2E-018 ADV** | **`27dd6ae`** | CLOSED · §1.0 ADV **partial** · ADV alone ≠ covered · retained |
-| **UC-E2E-018 covered-lift** | **`abfbbc0`** | honest non-flip · refuse ADV was blind · retained |
-| **SOLE / UI / TTL / GRAPH / FULL-E2E** | `aa968b1` / `1990b12` / `d698282` / `08650ea` / `c36b032` | each CLOSED only · ≠ wash |
-| **HA D2b** | **`7fddebe`** | still NOT_HA · releaseEvidence=false · ≠ wash |
-| **PG-retained ADR** | `adr-postgres-retained.md` | Ban MySQL/Qdrant cutover |
-| **§1.1 covered / production capacity / HA / R5 retired** | — | **NOT claimed** · Ban假关 |
-
----
-
-## 4. Lifecycle（this open = L0 only）
-
-| Phase | This open |
+| Phase | This nail |
 |-------|-----------|
-| L0 REQUEST `draft:awaiting_pre_exec_dual` | DONE · tip `30943df` |
-| L1 Pre-exec dual | DONE BOTH PASS · `mw-rag-route` `4964dc2`（subject PASS\|FAIL template quirk · body PASS）· `mw-e2e-ha` `64cc57c` |
-| L2 AUTHORIZED coding+prove | **DONE** · Method freeze Step A `8c7ee0c` · prove EXIT=0 · elevate PERF/LOAD **partial** |
-| L3 awaiting_post_prove_dual | **THIS OPEN** · Ban self-nail · Ban messaging dual |
-| L4–L5 post-prove dual / nail | **not** this open |
+| L0 REQUEST | DONE · tip `30943df` |
+| L1 Pre-exec dual | DONE · `64cc57c` / `4964dc2` |
+| L2 AUTHORIZED coding+prove | DONE · Step A `8c7ee0c` · prove tip `b29c191` · elevate PERF/LOAD **partial** |
+| L3 awaiting_post_prove | superseded |
+| L4 post-prove dual | BOTH PASS · `1745bee`(+`bdf921e`) / `37c89dc`(+`e33dd63`) |
+| L5 AUTHORIZED nail → `post_prove_dual_pass` → STOP | **current** · `GAP-UC018-PERF-LOAD` **CLOSED** · §1.1 stays **partial** · Ban invent covered · Ban next REQUEST |
 
 ---
 
-## 5. Hard retain
+## 6. Hard retain
 
 - **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`**
 - **`gR45Closed=true`** · **coveredCount=8** · **`ms3EqualsR4Closed=false`**
 - Matrix §1.1 UC-E2E-018 **partial** · Ban假关 · Ban invent covered
-- §1.0 PERF/LOAD **partial**（THIS UC only · prove EXIT=0）· **≠** UC covered · Ban claim production capacity
+- §1.0 PERF/LOAD **partial**（THIS UC only）· **≠** UC covered · Ban claim production capacity
+- **workerCapEnforced=false** · release+safe-terminate inside capped API
+- **canHonestlyFlip @ b29c191** = constant-false no-flip guard · **not** an assessment · Ban 「assessed, cannot flip」
+- Carried condition：later covered-lift / §1.1 flip must restore computable six-column evaluator that can return true + written covered criterion + dual PASS · else FAIL
 - Retained sole = **Postgres (+pgvector + PostgresSaver)** · Ban MySQL/Qdrant cutover
+- Evidence of record = dual independent runs at `b29c191` · implementer receipts = **not evidence of record**
 - Prior nails reassess/`0b7a218` · ADV/`27dd6ae` · covered-lift/`abfbbc0` · SOLE/`aa968b1` · UI/TTL/GRAPH/FULL-E2E · D2b/`7fddebe` **retained**
-- Parent tip **`24d350f`** docs-only typo · pre-exec MUST audit
 
 ---
 
-*Harness · UC-E2E-018 PERF/LOAD · GAP-UC018-PERF-LOAD · NHP-018-PERF-01 + NHP-018-LOAD-01 · 2026-09-23 (~19:46 PT) · executed:awaiting_post_prove_dual · Step A method freeze 8c7ee0c · prove EXIT=0 · §1.0 PERF/LOAD partial · §1.1 partial · PERF/LOAD partial ≠ covered · coveredCount 8 · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · Ban invent covered · Ban post-hoc retune · Ban skip to UC-011 · STOP after push*
+*Harness · UC-E2E-018 PERF/LOAD · GAP-UC018-PERF-LOAD · NHP-018-PERF-01 + NHP-018-LOAD-01 · 2026-09-23 (~20:00 PT) · post_prove_dual_pass · GAP CLOSED · prove tip b29c191 · Step A 8c7ee0c · post-prove dual 1745bee(+bdf921e)/37c89dc(+e33dd63) · evidence of record = dual runs · implementer receipts not evidence of record · NHP PERF+LOAD partial · §1.0 PERF/LOAD partial · §1.1 partial · workerCapEnforced=false · canHonestlyFlip@b29c191 constant-false no-flip guard not assessment · local ≠ capacity ≠ HA · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount 8 · ms3EqualsR4Closed=false · PG-retained · Ban invent covered · Ban skip to UC-011 · Ban next REQUEST · STOP*
