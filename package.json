@@ -491,7 +491,9 @@
     "ha:prove:nest-session": "node scripts/ha/prove-nest-session.mjs",
     "ha:prepare:nest-pg": "node scripts/ha/prepare-nest-pg.mjs",
     "ha:dual:compose-pg": "node scripts/ha/bring-up-dual.mjs --compose-pg",
-    "ha:dual:compose-shared": "node scripts/ha/bring-up-dual.mjs --compose-shared"
+    "ha:dual:compose-shared": "node scripts/ha/bring-up-dual.mjs --compose-shared",
+    "uc018:receipt-backfill:prove": "node scripts/uc-e2e-018-receipt-backfill.proof.mjs",
+    "uc018:receipt-backfill:emit": "node scripts/uc018-receipt-backfill-emit.mjs"
   },
   "devDependencies": {
     "@types/node": "catalog:",

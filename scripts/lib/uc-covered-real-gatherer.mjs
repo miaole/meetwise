@@ -48,6 +48,7 @@
  *       (optional **bold** only; no trailing junk); role from path suffix only
  */
 import { execSync } from 'node:child_process';
+import { isBackfillReceiptShape } from './uc018-receipt-backfill-guard.mjs';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { UC018_BOUND_PIN_ID, UC018_REQUIRED_NHP } from './uc-covered-evaluator.mjs';
@@ -442,6 +443,30 @@ export function assertCleanPorcelain(root) {
 /**
  * @param {{ root: string, receiptRoot?: string, reviewsRoot?: string, harnessRoot?: string, skipPorcelainCheck?: boolean }} opts
  */
+
+/** waiting_user historical backfill: fail-closed (C-WAITING-USER-RULE). */
+export const WAITING_USER_BACKFILL_STATUS = 'MISSING-EVIDENCE';
+
+/**
+ * Prefer machine-emitted backfill overlay; never mutate legacy files.
+ * Legacy remains untouched on disk; gatherer reads backfill first when shape-valid.
+ * @param {string} receiptRoot
+ * @param {string} backfillFile e.g. 'SOLE.json'
+ * @param {string} legacyRel e.g. '2026-09-23-uc-e2e-018-sole-stack-pg-retained-evidence.json'
+ */
+export function readReceiptPreferBackfill(receiptRoot, backfillFile, legacyRel) {
+  const backfillRel = `uc018-receipt-backfill/${backfillFile}`;
+  const bf = readJson(join(receiptRoot, backfillRel));
+  if (bf && isBackfillReceiptShape(bf)) {
+    return { ...bf, _path: backfillRel, _source: 'backfill' };
+  }
+  const legacy = readJson(join(receiptRoot, legacyRel));
+  if (legacy && typeof legacy === 'object') {
+    return { ...legacy, _path: legacyRel, _source: 'legacy' };
+  }
+  return null;
+}
+
 export function gatherRealUc018(opts) {
   const root = opts.root;
   if (!opts.skipPorcelainCheck) {
@@ -470,9 +495,23 @@ export function gatherRealUc018(opts) {
   const hasBoundNhp = /NHP-018-BOUND-/i.test(nhp);
   const boundIsWaitingUser = /CAS waiting_user|waiting_user/i.test(row101?.[3] || '');
 
-  const soleReceipt = readJson(join(receiptRoot, '2026-09-23-uc-e2e-018-sole-stack-pg-retained-evidence.json'));
-  const advReceipt = readJson(join(receiptRoot, '2026-09-23-uc-e2e-018-adv-evidence.json'));
-  const perfSummary = readJson(join(receiptRoot, 'uc018-perf-load/summary.json'));
+  // C-GATHERER-PATH-WIRE: prefer uc018-receipt-backfill/*.json overlays (machine-emitted);
+  // legacy paths retained as fallback · Ban overwriting legacy · Ban duplicated SSOT writes
+  const soleReceipt = readReceiptPreferBackfill(
+    receiptRoot,
+    'SOLE.json',
+    '2026-09-23-uc-e2e-018-sole-stack-pg-retained-evidence.json',
+  );
+  const advReceipt = readReceiptPreferBackfill(
+    receiptRoot,
+    'ADV.json',
+    '2026-09-23-uc-e2e-018-adv-evidence.json',
+  );
+  const perfSummary = readReceiptPreferBackfill(
+    receiptRoot,
+    'PERF-LOAD.json',
+    'uc018-perf-load/summary.json',
+  );
   const perfReadme = readText(join(receiptRoot, 'uc018-perf-load/README.md')) || '';
 
   const advDual = dualFromReviewFiles([
@@ -496,7 +535,11 @@ export function gatherRealUc018(opts) {
     ragRoute: soleDual.ragRoute || waitingDual.ragRoute || null,
   };
   // FAULT: GRAPH evidence only if committed tip + parseable cmds; else MISSING-RECEIPT
-  const graphReceipt = readJson(join(receiptRoot, '2026-09-23-uc-e2e-018-graph-safely-terminated-evidence.json'));
+  const graphReceipt = readReceiptPreferBackfill(
+    receiptRoot,
+    'GRAPH.json',
+    '2026-09-23-uc-e2e-018-graph-safely-terminated-evidence.json',
+  );
   const graphDual = dualFromReviewFiles([
     join(reviewsRoot, 'REQUEST-2026-09-23-uc-e2e-018-graph-safely-terminated-post-prove-mw-e2e-ha.md'),
     join(reviewsRoot, 'REQUEST-2026-09-23-uc-e2e-018-graph-safely-terminated-post-prove-mw-rag-route.md'),
@@ -512,7 +555,7 @@ export function gatherRealUc018(opts) {
     if (hasCmdExit && tipOk) {
       faultReceipt = {
         ...graphReceipt,
-        _path: '2026-09-23-uc-e2e-018-graph-safely-terminated-evidence.json',
+        _path: graphReceipt._path || '2026-09-23-uc-e2e-018-graph-safely-terminated-evidence.json',
       };
       faultReceiptNote =
         'wired GRAPH evidence (tip ' + tip + ' committed+ancestor; cmds present; no stack => STUB-STACK)';
@@ -588,7 +631,7 @@ export function gatherRealUc018(opts) {
       nhpIds: ['NHP-018-NEG-01'],
       cmd: 'uc018:abandon:http:prove',
       harnessText: parentHarness,
-      receipt: soleReceipt ? { ...soleReceipt, _path: 'sole-stack-pg-retained-evidence.json' } : null,
+      receipt: soleReceipt ? { ...soleReceipt, _path: soleReceipt._path || 'sole-stack-pg-retained-evidence.json' } : null,
       labelText: '',
       dual: negBoundDual,
     }),
@@ -608,7 +651,7 @@ export function gatherRealUc018(opts) {
       nhpIds: boundIsWaitingUser ? [UC018_BOUND_PIN_ID] : [],
       cmd: 'uc018:abandon:prove',
       harnessText: parentHarness,
-      receipt: soleReceipt ? { ...soleReceipt, _path: 'sole-stack-pg-retained-evidence.json' } : null,
+      receipt: soleReceipt ? { ...soleReceipt, _path: soleReceipt._path || 'sole-stack-pg-retained-evidence.json' } : null,
       labelText: '',
       dual: negBoundDual,
     }),
@@ -618,7 +661,7 @@ export function gatherRealUc018(opts) {
       nhpIds: ['NHP-018-ADV-01'],
       cmd: 'uc018:adv:prove',
       harnessText: advHarness,
-      receipt: advReceipt ? { ...advReceipt, _path: '2026-09-23-uc-e2e-018-adv-evidence.json' } : null,
+      receipt: advReceipt ? { ...advReceipt, _path: advReceipt._path || '2026-09-23-uc-e2e-018-adv-evidence.json' } : null,
       labelText: '',
       dual: advDual,
     }),
@@ -628,7 +671,7 @@ export function gatherRealUc018(opts) {
       nhpIds: ['NHP-018-PERF-01'],
       cmd: 'uc018:perf-load:prove',
       harnessText: perfHarness,
-      receipt: perfSummary ? { ...perfSummary, _path: 'uc018-perf-load/summary.json' } : null,
+      receipt: perfSummary ? { ...perfSummary, _path: perfSummary._path || 'uc018-perf-load/summary.json' } : null,
       labelText: perfReadme + '\n' + (perfSummary?.note || ''),
       dual: perfDual,
     }),
@@ -638,7 +681,7 @@ export function gatherRealUc018(opts) {
       nhpIds: ['NHP-018-LOAD-01'],
       cmd: 'uc018:perf-load:prove',
       harnessText: perfHarness,
-      receipt: perfSummary ? { ...perfSummary, _path: 'uc018-perf-load/summary.json' } : null,
+      receipt: perfSummary ? { ...perfSummary, _path: perfSummary._path || 'uc018-perf-load/summary.json' } : null,
       labelText: perfReadme + '\n' + (perfSummary?.note || ''),
       dual: perfDual,
     }),
@@ -671,6 +714,7 @@ export function gatherRealUc018(opts) {
       boundPin: UC018_BOUND_PIN_ID,
       hasBoundNhp,
       boundCell: cellStatus(row101?.[3]),
+      waitingUserBackfill: WAITING_USER_BACKFILL_STATUS,
       openGaps,
       businessPathMet,
       faultReceiptNote,
