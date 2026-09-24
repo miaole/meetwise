@@ -1,12 +1,12 @@
-# Harness — **UC-E2E-018 sole-stack PG-retained**（§1b #6 · `GAP-UC018-SOLE` · AUTHORIZED coding+prove · **`executed:awaiting_post_prove_dual`** · Ban claim UC-E2E-018 covered · matrix stays **partial** · Ban MySQL/Qdrant cutover · Ban wash UI/`1990b12` / TTL/`d698282` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / HTTP/`uc018:abandon:*` / D2b/`7fddebe` / HA / liveGhaRunUrl / R5 mark-red / sole-wiring into #6 closed / UC covered）
+# Harness — **UC-E2E-018 sole-stack PG-retained**（§1b #6 · `GAP-UC018-SOLE` · AUTHORIZED coding+prove · **`post_prove_dual_pass`** · Ban claim UC-E2E-018 covered · matrix stays **partial** · Ban MySQL/Qdrant cutover · Ban wash UI/`1990b12` / TTL/`d698282` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / HTTP/`uc018:abandon:*` / D2b/`7fddebe` / HA / liveGhaRunUrl / R5 mark-red / sole-wiring into #6 closed / UC covered）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（AUTHORIZED coding+prove landed · GAP-UC018-SOLE CLOSED only under PG-retained · matrix **partial** · **#6 alone ≠ covered** · Ban claim UC-E2E-018 covered · Ban wash MySQL/Qdrant sole-wiring / UI/TTL/GRAPH/FULL-E2E into #6 / UC covered · Ban invent green · Ban self-nail `post_prove_dual_pass` · awaiting post-prove dual · STOP）
-**Date**: 2026-09-23 (~17:52 PT)
+**Status**: **`post_prove_dual_pass`**（AUTHORIZED coding+prove landed · post-prove dual BOTH PASS · GAP-UC018-SOLE CLOSED only under PG-retained · matrix **partial** · **#6 alone ≠ covered** · Ban claim UC-E2E-018 covered · Ban wash MySQL/Qdrant sole-wiring / UI/TTL/GRAPH/FULL-E2E into #6 / UC covered · Ban invent green · Ban HA / releaseEvidence / suite green / global R5 retired · Ban MySQL/Qdrant cutover · STOP）
+**Date**: 2026-09-23 (~18:16 PT)
 **Base / parent tip**: UI abandon nail **`1990b12`** / full `1990b1266400ff93182c040c61b7b30c4830f1ed`（`GAP-UC018-UI` **CLOSED** · matrix still **partial** · Ban claim UC covered · Ban wash UI into #6 closed / covered · **must be ancestor of this REQUEST tip**）· prior TTL nail **`d698282`** / full `d698282f0dc5835573a84d1fb885ad03104a2a88`（`GAP-UC018-TTL` **CLOSED** · retained · Ban wash）· prior GRAPH nail **`08650ea`** / full `08650ea37a7c8b120d6f8187ba40a47fc741daae`（`GAP-UC018-GRAPH` **CLOSED** · retained · Ban wash）· prior FULL-E2E nail **`c36b032`** / full `c36b032b4db5ddfa89dc6295395f4ac928b96583`（`GAP-UC018-FULL-E2E` **CLOSED** · retained · Ban wash）· prior HA D2b nail **`7fddebe`** CLOSED · Ban reopen D2b · Ban wash HA into E2E covered · branch `feat/mysql-schema-skeleton`（**historical name only** · Ban MySQL cutover justification）
 **Knife name**: **UC-E2E-018 sole-stack PG-retained · GAP-UC018-SOLE**（§1b #6 only · **re-align under PG-retained** · **NOT** MySQL+Qdrant+Redis replace-pgvector）
 **Critical stack pin（user 2026-09-17 · `adr-postgres-retained.md`）**: Retained sole truth = **Postgres (+pgvector + PostgresSaver)** · **Ban** MySQL business cutover · **Ban** Qdrant-as-required-vector / replace-pgvector · Parent harness §1b #6 **legacy** text（MySQL+Qdrant+Redis replace pgvector）is **SUPERSEDED** — this knife **re-aligns** §1b #6 under PG-retained · R5 mark-red / sole-retirement harnesses are **STOPPED/superseded** for cutover · **do not reopen** Qdrant-required path
 **haStatus=NOT_HA** · **releaseEvidence=false** · **claimProductionHA=false** · **≠HA** · **≠suite green** · **≠ UC-E2E-018 covered** · **≠ R5 retired globally** · Ban假绿 · Ban invent green · Ban forge receipts · Ban claim production HA / failover · Ban flip `releaseEvidence` to true · Ban claim UC-E2E-018 covered · Ban claim matrix covered · Ban wash UI/`1990b12` / TTL/`d698282` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / HTTP/`uc018:abandon:*` / D2b/`7fddebe` / HA / liveGhaRunUrl into #6 closed / UC covered · Ban wash MySQL/Qdrant sole-wiring / `mysql-stack:*` / `e2e-isolation:sole-*:prove` EXIT=0 into `GAP-UC018-SOLE` closed · Ban wash prior `uc018:abandon:*` / `uc018:ui:prove` / `uc018:ttl:prove` / `uc018:graph:prove` / `uc018:abandon:full-e2e:prove` EXIT=0 into #6 closed / UC covered · Dual PASS ≠ coding · Dual PASS ≠ UC covered · Dual PASS ≠ next knife auto-authorize · Ban self-approve · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Ban second knife · Ban self-nail · Ban D3 / cloud buy · Key×3 FreeTier **out of scope** · `gR45Closed=true` **retained** · coveredCount **8** retained · `ms3EqualsR4Closed=false` **retained** · eg1–eg6 / r4 / funnel product flags **retained** · prior UI **`post_prove_dual_pass`** **retained** · prior TTL **`post_prove_dual_pass`** **retained** · prior GRAPH **`post_prove_dual_pass`** **retained** · prior FULL-E2E **`post_prove_dual_pass`** **retained** · prior D2b **`post_prove_dual_pass`** **retained** · `releaseEvidence=false` **retained** · liveGhaRunUrl from D2b **orthogonal retained** · ≠ wash into E2E covered · ≠HA
-**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **BOTH PASS** retained · post-prove dual **awaiting** · Ban self-approve · Ban self-nail · Dual not pinged by implementer · coordinator dispatches dual）
+**Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual PASS retained · post-prove dual BOTH PASS · `7f4e189` + `dd9fa56` · Ban self-approve · receipts recorded）
 **Must cite（UC-018 ladder · §1b · PG-retained）**: `adr-postgres-retained.md` · `harness/uc-e2e-018-user-abandon.md` §1b **#6** — **re-aligned** sole-stack = default isolated **Postgres+pgvector**（retained production-aligned）· **`GAP-UC018-SOLE` CLOSED**（this knife · #6 alone ≠ covered）· matrix **partial** · db/HTTP/full.e2e/graph/ttl/UI already green · **≠ covered** · §1b #1 `GAP-UC018-FULL-E2E` **CLOSED** prior（`c36b032`）· §1b #2 `GAP-UC018-GRAPH` **CLOSED** prior（`08650ea`）· §1b #3 `GAP-UC018-TTL` **CLOSED** prior（`d698282`）· §1b #4 waiting_user **CLOSED** prior · §1b #5 `GAP-UC018-UI` **CLOSED** prior（`1990b12`）· §1b #6 `GAP-UC018-SOLE` **CLOSED** · STOPPED `harness/r5-retirement-sole-stack-status.md` / `harness/r5-pgvector-fixture-mark-red.md`（MySQL+Qdrant cutover **superseded** · Ban reopen）· `eval/uc-e2e-018-user-abandon.eval.md` · `e2e-requirement-coverage-matrix.md` row UC-E2E-018 **partial** · P0-8 · `e2e-covered-path-backlog.md` 018 · Ban wash UI/TTL/GRAPH/FULL-E2E/HTTP into #6 closed · Ban wash MySQL/Qdrant sole-wiring as this gap · **#6 alone ≠ UC covered**
 **Prior UC-E2E-018 user-abandon（CLOSED partial ladder · retained · ≠ wash into covered / #6）**: `harness/uc-e2e-018-user-abandon.md` · db `uc018:abandon:prove` + HTTP `uc018:abandon:http:prove` · waiting_user CAS closed · matrix **partial** · **≠ covered** · **retained** · Ban wash into #6 closed / UC covered
 **Prior FULL-E2E abandon inclusion（CLOSED prior · retained · ≠ wash into UC covered / #6）**: `harness/uc-e2e-018-full-e2e-abandon-inclusion.md` · tip nail **`c36b032`** / full `c36b032b4db5ddfa89dc6295395f4ac928b96583` · `post_prove_dual_pass` · `GAP-UC018-FULL-E2E` **CLOSED only** · matrix still **partial** · **≠ UC-E2E-018 covered** · **≠ sole PG-retained dedicated nail** · **retained** · Ban wash into #6 / UC covered
@@ -15,23 +15,25 @@
 **Prior UI abandon（CLOSED prior · retained · ≠ wash into UC covered / #6 · must be ancestor）**: `harness/uc-e2e-018-ui-abandon.md` · tip nail **`1990b12`** / full `1990b1266400ff93182c040c61b7b30c4830f1ed` · `post_prove_dual_pass` · `GAP-UC018-UI` **CLOSED only** · matrix still **partial** · **≠ UC-E2E-018 covered** · **≠ sole PG-retained dedicated nail** · **retained** · Ban wash into #6 / UC covered · **must be ancestor of this REQUEST tip**
 **Prior HA D2b live GHA（CLOSED prior · retained · ≠ wash into E2E covered）**: tip nail **`7fddebe`** · `post_prove_dual_pass` · still **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · liveGhaRunUrl orthogonal on HA track · **≠ UC-E2E-018 covered** · **≠ #6 closed** · **retained** · Ban wash into E2E covered · **do not reopen D2b**
 **STOPPED R5 cutover harnesses（cite · Ban reopen Qdrant-required / MySQL sole）**: `harness/r5-retirement-sole-stack-status.md` · `harness/r5-pgvector-fixture-mark-red.md` · **STOPPED / superseded by PG-retained** · historical MySQL+Qdrant+Redis sole narrative **not** UC-018 #6 close condition · Ban reopen mark-red cutover path as this knife's acceptance
-**Why（cite）**: Parent UC harness §1b #6 legacy text required MySQL+Qdrant+Redis fixture swap to discuss covered — **SUPERSEDED** by `adr-postgres-retained.md`（2026-09-17）· this knife = **AUTHORIZED coding+prove** to (1) **re-write** §1b #6 acceptance: sole-stack for this UC = default isolated **Postgres+pgvector**（retained production-aligned）· (2) **remove** false close-condition that UC-018 needs mysql-qdrant-redis fixture swap · (3) **plan** dedicated honesty prove later asserting UC-018 abandon family proves **cite PG-retained sole** · Ban wash MySQL/Qdrant sole-wiring EXIT as this gap · Ban wash UI/TTL/GRAPH/FULL-E2E alone as #6 closed · close **`GAP-UC018-SOLE` only** · matrix stays **partial** · Ban claim UC covered this knife alone · Ban claim HA / releaseEvidence / suite green / R5 retired globally · Ban self-nail
+**Why（cite）**: Parent UC harness §1b #6 re-aligned under PG-retained（`adr-postgres-retained.md`）· sole-stack for this UC = default isolated **Postgres+pgvector**（retained production-aligned）· dedicated `pnpm uc018:sole:prove` **EXIT=0** · Ban wash MySQL/Qdrant sole-wiring EXIT as this gap · Ban wash UI/TTL/GRAPH/FULL-E2E alone as #6 closed · this nail closes **`GAP-UC018-SOLE` only** · matrix stays **partial** · **#6 alone ≠ UC covered** · Ban claim UC covered · Ban claim HA / releaseEvidence / suite green / R5 retired globally · Ban MySQL/Qdrant cutover
 **Slice**: `../uc-e2e-018-sole-stack-pg-retained.slice.md`
-**Eval**: existing `../eval/uc-e2e-018-user-abandon.eval.md`（update in **coding** phase only · **not** this open · Ban rewrite as covered now）
-**Parent harness（honesty · Ban flip covered）**: `harness/uc-e2e-018-user-abandon.md` — §1b #6 **PG-retained sole** · **`GAP-UC018-SOLE` CLOSED** · matrix stays **partial** · Ban claim UC covered · Ban restore MySQL+Qdrant as #6 close condition · `pnpm uc018:sole:prove` landed
-**Authority**: meetwise — AUTHORIZED coding+prove landed for **UC-E2E-018 sole-stack PG-retained · GAP-UC018-SOLE** · status `executed:awaiting_post_prove_dual` · Ban secrets / `.env*` · Meridian banned · No force-push · Ban Cloud Agent · Ban self-approve · Ban self-nail · Ban silent UC covered claim · Ban messaging dual reviewers（coordinator dispatches） · Ban MySQL/Qdrant cutover
-**Honesty**: AUTHORIZED coding+prove of §1b #6 only · **re-align under PG-retained** · status `executed:awaiting_post_prove_dual` · `GAP-UC018-SOLE` **CLOSED**（本刀 only） · matrix **partial** · **#6 alone ≠ covered** · Ban claim UC-E2E-018 covered · Ban wash UI/`1990b12` / TTL/`d698282` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / HTTP/abandon / D2b/`7fddebe` / HA / liveGhaRunUrl / MySQL-Qdrant sole-wiring into #6 / E2E covered · **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban self-nail · Ban cutover · STOP awaiting post-prove dual
+**Eval**: existing `../eval/uc-e2e-018-user-abandon.eval.md`（cite honesty · matrix remains **partial** · Ban rewrite as covered）
+**Parent harness（honesty retained · Ban flip covered）**: `harness/uc-e2e-018-user-abandon.md` — §1b #6 **PG-retained sole** · **`GAP-UC018-SOLE` CLOSED only** · matrix stays **partial** · **#6 alone ≠ covered** · Ban claim UC covered · Ban restore MySQL+Qdrant as #6 close condition · verified still accurate at nail · Ban flip UC covered
+**Authority**: meetwise — AUTHORIZED coding+prove landed for **UC-E2E-018 sole-stack PG-retained · GAP-UC018-SOLE** · status `post_prove_dual_pass` · Ban secrets / `.env*` · Meridian banned · No force-push · Ban Cloud Agent · Ban self-approve · Ban self-nail · Ban silent UC covered claim · Ban messaging dual reviewers（coordinator dispatches） · Ban MySQL/Qdrant cutover
+**Honesty**: AUTHORIZED coding+prove of §1b #6 only · **re-align under PG-retained** · post-prove dual BOTH PASS (`7f4e189` / `dd9fa56`) · status `post_prove_dual_pass` · `GAP-UC018-SOLE` **CLOSED**（本刀 only） · matrix **partial** · **#6 alone ≠ covered** · Ban claim UC-E2E-018 covered · Ban wash UI/`1990b12` / TTL/`d698282` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / HTTP/abandon / D2b/`7fddebe` / HA / liveGhaRunUrl / MySQL-Qdrant sole-wiring into #6 / E2E covered · **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban HA / releaseEvidence / suite green / global R5 retired · Ban MySQL/Qdrant cutover · STOP
 
 ---
 
-## Dual receipts（named · not pre-filled）
+## Dual receipts（post-prove · recorded）
 
 | Expert | Receipt path（named · **not pre-filled**） | Status |
 |--------|---------------------------------------------|--------|
-| `mw-e2e-ha` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-sole-stack-pg-retained-mw-e2e-ha.md` | **PENDING / draft:awaiting_pre_exec_dual** |
-| `mw-rag-route` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-sole-stack-pg-retained-mw-rag-route.md` | **PENDING / draft:awaiting_pre_exec_dual** |
+| `mw-e2e-ha` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-sole-stack-pg-retained-post-prove-mw-e2e-ha.md` | **PASS** · tip **`dd9fa56`** |
+| `mw-rag-route` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-sole-stack-pg-retained-post-prove-mw-rag-route.md` | **PASS** · tip **`7f4e189`** |
 
-**Note**: Implementer does **not** pre-fill pass · Dual **not** pinged by implementer · coordinator dispatches · Ban自批 · Dual PASS ≠ coding · Dual PASS ≠ UC-E2E-018 covered · Dual PASS ≠ next knife auto-authorize · Dual PASS ≠ MySQL/Qdrant cutover authorize.
+**Note**: Post-prove dual is independently recorded by both experts. Implementer does not sign either receipt. Dual PASS ≠ coding · Dual PASS ≠ UC-E2E-018 covered · Dual PASS ≠ next knife auto-authorize · Dual PASS ≠ MySQL/Qdrant cutover authorize.
+
+**Observation（honesty only · do not block）**: e2e-ha post-prove recorded one `uc018:ui:prove` timeout flake（EXIT=1 · Playwright 180000ms on `textarea[name="text"]` at `/resume`）then retry EXIT=0 · retain as observation · **Ban wash into SOLE fail** · dedicated `uc018:sole:prove` EXIT=0 unaffected.
 
 ---
 
@@ -39,8 +41,8 @@
 
 | Statement | Ruling |
 |-----------|--------|
-| **What this knife is** | AUTHORIZED coding+prove landed for **UC-E2E-018 sole-stack PG-retained · GAP-UC018-SOLE** · scope **ONLY §1b #6** · **re-align** acceptance under PG-retained · honesty CMD `pnpm uc018:sole:prove` asserting UC-018 abandon family proves **cite PG-retained sole**（default isolated Postgres+pgvector）· close **`GAP-UC018-SOLE` only** · Ban claim UC covered · matrix stays **partial** · **#6 alone ≠ covered** · status **`executed:awaiting_post_prove_dual`** · Ban self-nail |
-| **What this knife is not** | **Not** a next knife · **not** claiming UC-E2E-018 covered · **not** MySQL business cutover · **not** Qdrant-as-required-vector / replace-pgvector · **not** G1 flip isolation default to mysql · **not** claiming UC-E2E-018 covered · **not** claiming matrix covered · **not** claiming R5 retired globally · **not** washing UI/`1990b12` / TTL/`d698282` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / HTTP/`uc018:abandon:*` / D2b/`7fddebe` / HA / liveGhaRunUrl into #6 closed / E2E covered · **not** washing MySQL/Qdrant sole-wiring EXIT into `GAP-UC018-SOLE` closed · **not** inventing green · **not** cloud buy · **not** D3 · **not** Meridian · **not** Cloud Agent · **not** secrets / `.env*` · **not** second knife · **not** self-nail · **not** reopen UI / TTL / GRAPH / FULL-E2E / D2b · **not** reopen STOPPED R5 cutover · **not** UC covered-lift |
+| **What this knife is** | AUTHORIZED coding+prove landed for **UC-E2E-018 sole-stack PG-retained · GAP-UC018-SOLE** · scope **ONLY §1b #6** · **re-align** acceptance under PG-retained · dedicated `pnpm uc018:sole:prove` **EXIT=0** asserting UC-018 abandon family proves **cite PG-retained sole**（default isolated Postgres+pgvector）· post-prove dual BOTH PASS · close **`GAP-UC018-SOLE` only** · Ban claim UC covered · matrix stays **partial** · **#6 alone ≠ covered** · status **`post_prove_dual_pass`** |
+| **What this knife is not** | **Not** a next knife · **not** claiming UC-E2E-018 covered · **not** MySQL business cutover · **not** Qdrant-as-required-vector / replace-pgvector · **not** G1 flip isolation default to mysql · **not** claiming UC-E2E-018 covered · **not** claiming matrix covered · **not** claiming R5 retired globally · **not** washing UI/`1990b12` / TTL/`d698282` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / HTTP/`uc018:abandon:*` / D2b/`7fddebe` / HA / liveGhaRunUrl into #6 closed / E2E covered · **not** washing MySQL/Qdrant sole-wiring EXIT into `GAP-UC018-SOLE` closed · **not** inventing green · **not** cloud buy · **not** D3 · **not** Meridian · **not** Cloud Agent · **not** secrets / `.env*` · **not** second knife · **not** self-nail · **not** reopen UI / TTL / GRAPH / FULL-E2E / D2b · **not** reopen STOPPED R5 cutover · **not** UC covered-lift · **not** HA / releaseEvidence / suite green |
 | **PG-retained sole（hard）** | Sole truth for this UC = **Postgres (+pgvector + PostgresSaver)** per `adr-postgres-retained.md` · Ban MySQL sole relational · Ban Qdrant sole vector |
 | **Legacy §1b #6 SUPERSEDED** | Parent harness legacy text（MySQL+Qdrant+Redis replace pgvector to discuss covered）**removed as close-condition** this open · **re-written** to PG-retained sole |
 | **≠ wash MySQL/Qdrant sole-wiring into #6** | **YES** — `mysql-stack:*` / `e2e-isolation:sole-*:prove` / Qdrant allowlist EXIT=0 = historical/experimental · **≠** `GAP-UC018-SOLE` · Ban wash · Ban reopen as required path |
@@ -54,8 +56,8 @@
 | **#6 alone ≠ UC covered** | **YES** — even after later `GAP-UC018-SOLE` close, Ban claim UC-E2E-018 covered from this knife alone · matrix may stay **partial** · Ban elevating to covered without separate covered-lift authorize |
 | **haStatus / releaseEvidence / claimProductionHA** | **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban flip this open · Ban假绿 |
 | **Matrix / UC covered** | UC-E2E-018 stays **partial** · Ban claim covered this knife · even after later §1b #6 close, Ban claim covered without separate authorize |
-| **Parent harness rewrite** | Honesty：§1b #6 **PG-retained sole** · **`GAP-UC018-SOLE` CLOSED** · **not** rewritten as covered · Ban product-flag flip · Ban restore MySQL+Qdrant close-condition |
-| **Now** | **`executed:awaiting_post_prove_dual`** · coding+prove landed · GAP-UC018-SOLE CLOSED（only） · matrix partial · **#6 alone ≠ covered** · Ban claim UC covered · Ban self-nail · Ban cutover · STOP awaiting post-prove dual |
+| **Parent harness rewrite** | Honesty retained：§1b #6 **PG-retained sole** · **`GAP-UC018-SOLE` CLOSED only** · matrix remains **partial** · **not** rewritten as UC covered · **#6 alone ≠ covered** · Ban product-flag flip · Ban restore MySQL+Qdrant close-condition · Ban flip UC covered |
+| **Now** | **`post_prove_dual_pass`** · coding+prove landed · dedicated `uc018:sole:prove` EXIT=0 · post-prove dual BOTH PASS · GAP-UC018-SOLE CLOSED（only） · matrix partial · **#6 alone ≠ covered** · Ban claim UC covered · Ban cutover · STOP |
 
 ---
 
@@ -70,7 +72,7 @@
 | **A5** | Prove CMD plan | Later: retain existing `uc018:abandon:prove` + `uc018:abandon:http:prove` + `uc018:abandon:full-e2e:prove` + `uc018:graph:prove` + `uc018:ttl:prove` + `uc018:ui:prove` EXIT=**0** + **new dedicated sole PG-retained honesty** prove CMD(s) EXIT=**0** with receipts · Ban假绿 · Ban wash UI/TTL alone · Ban wash MySQL/Qdrant sole-wiring | Prior prove green ≠ sole dedicated · sole-wiring ≠ PG-retained UC nail | **CMD plan named** · Ban run this open |
 | **A6** | Non-claims / Ban wash | Ban claim UC-E2E-018 covered · Ban claim matrix covered · Ban claim R5 retired globally · Ban MySQL/Qdrant cutover · Ban G1 flip · Ban wash UI/`1990b12` / TTL/`d698282` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / HTTP/`uc018:abandon:*` / D2b/`7fddebe` / HA / liveGhaRunUrl / MySQL-Qdrant sole-wiring into #6 closed / E2E covered · keep `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false` · **#6 alone ≠ covered** | UI / TTL / GRAPH / FULL-E2E / HTTP / waiting_user / D2b / sole-wiring ≠ covered / ≠ #6 | Hard-pinned this REQUEST |
 | **A7** | Retain prior UC-018 partial + UI + TTL + GRAPH + FULL-E2E + D2b HA + PG-retained ADR | Retain parent UC harness partial + waiting_user CLOSED + FULL-E2E CLOSED at **`c36b032`** · GRAPH CLOSED at **`08650ea`** · TTL CLOSED at **`d698282`** · UI CLOSED at **`1990b12`** · retain D2b nail **`7fddebe`** CLOSED · retain `adr-postgres-retained.md` · Ban reopen UI/TTL/GRAPH/FULL-E2E/D2b · Ban reopen STOPPED R5 cutover · Ban wash into E2E covered | Prior dual_pass ≠ UC covered · ≠ #6 | Retained · not flipped |
-| **A8** | Post-prove dual → nail → STOP | Lifecycle: REQUEST → pre-exec dual → AUTHORIZED coding+prove → awaiting_post_prove → post-prove dual → AUTHORIZED nail → `post_prove_dual_pass` → **STOP** · no second knife · Dual PASS ≠ next knife · Dual PASS ≠ UC covered · close **GAP-UC018-SOLE only** · matrix stays **partial** | N/A this open | Named · Ban coding until dual+authorize |
+| **A8** | Post-prove dual → nail → STOP | Lifecycle: REQUEST → pre-exec dual → AUTHORIZED coding+prove → awaiting_post_prove → post-prove dual → `post_prove_dual_pass` → **STOP** · no second knife · Dual PASS ≠ next knife · Dual PASS ≠ UC covered · close **GAP-UC018-SOLE only** · matrix stays **partial** | N/A this open | **PASS** · `7f4e189` + `dd9fa56` · STOP |
 | **A9** | Out of scope | MySQL/Qdrant cutover coding · G1 flip · UC covered-lift · Meridian · Cloud Agent · D3 · cloud buy · secrets / `.env*` · reopen UI/`1990b12` · reopen TTL/`d698282` · reopen GRAPH/`08650ea` · reopen FULL-E2E/`c36b032` · reopen D2b · reopen STOPPED R5 cutover · Key×3 FreeTier · wash UI/TTL/GRAPH/FULL-E2E/HTTP/HA/sole-wiring into covered · claim R5 retired globally | N/A | Pinned out of scope |
 
 **Ban**: invent green · forge receipts · claim UC-E2E-018 covered · claim matrix covered · claim R5 retired globally · implement MySQL/Qdrant cutover · flip G1 isolation default to mysql · wash UI/`1990b12` / TTL/`d698282` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / HTTP/`uc018:abandon:*` / D2b/`7fddebe` / HA / liveGhaRunUrl / MySQL-Qdrant sole-wiring into #6 closed / E2E covered · wash `uc018:abandon:*` / full-e2e / graph / ttl / ui into #6 closed / UC covered · flip `releaseEvidence` · Dual PASS ≠ coding · Dual PASS ≠ UC covered · Dual PASS ≠ next knife auto-authorize · Dual PASS ≠ cutover authorize · Ban自批 · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Ban second knife · Ban self-nail · Ban假绿 · Ban coding until dual+authorize · Ban D3 / cloud buy · Ban reopen UI / TTL / GRAPH / FULL-E2E / D2b / STOPPED R5 · Ban messaging dual reviewers · Ban claim #6 alone = UC covered · Ban restore MySQL+Qdrant as #6 close-condition
@@ -110,20 +112,20 @@
 
 ---
 
-## 3. Lifecycle（L0 this open · Ban coding until dual+authorize）
+## 3. Lifecycle（nail recorded · STOP）
 
 | Phase | Gate | This REQUEST |
 |-------|------|--------------|
-| **L0** | REQUEST pair open | landed · parent **`1990b12`** · §1b #6 re-aligned PG-retained |
-| **L1** | Pre-exec dual (`mw-e2e-ha` + `mw-rag-route`) | **PASS** retained（`7e29e28` / `31e7eff`）· Ban自批 |
-| **L2** | AUTHORIZED coding+prove | **landed** · `pnpm uc018:sole:prove` + honesty docs · Ban cutover |
-| **L3** | awaiting_post_prove | **THIS** · status `executed:awaiting_post_prove_dual` · Ban self-nail |
-| **L4** | post-prove dual | awaiting · coordinator dispatches · Ban messaging dual |
-| **L5** | AUTHORIZED nail → `post_prove_dual_pass` → STOP | later · close **GAP-UC018-SOLE only** already (coding) · matrix stays **partial** · Ban claim UC covered · Ban claim R5 retired globally · Ban self-nail |
+| **L0** | REQUEST | done · `e6d10c5` · parent **`1990b12`** · §1b #6 re-aligned PG-retained |
+| **L1** | Pre-exec dual | BOTH PASS retained · `7e29e28` + `31e7eff` |
+| **L2** | AUTHORIZED coding+prove | landed · prove tip `23f98d3` · `pnpm uc018:sole:prove` EXIT=0 |
+| **L3** | awaiting_post_prove | landed · superseded by post-prove dual |
+| **L4** | post-prove dual | BOTH PASS · `7f4e189` + `dd9fa56` |
+| **L5** | `post_prove_dual_pass` → STOP | **current** · close **GAP-UC018-SOLE only** · matrix stays **partial** · Ban claim UC covered · **#6 alone ≠ covered** · Ban claim R5 retired globally |
 
 ---
 
-## 4. CMD（honesty · AUTHORIZED coding+prove）
+## 4. CMD（honesty · recorded receipts）
 
 | CMD | Expect | This prove tip |
 |-----|--------|----------------|
@@ -152,15 +154,40 @@
 
 ---
 
-## 5. Hard retain（must survive dual）
+## 5. Hard pins（repeat）
 
 - **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`**
 - **`gR45Closed=true`** · **coveredCount=8** · **`ms3EqualsR4Closed=false`**
-- Matrix UC-E2E-018 **partial** · Ban flip covered this knife
+- Ban claim **UC-E2E-018 covered** · matrix stays **partial** · **#6 alone ≠ covered**
+- Close: **`GAP-UC018-SOLE` only (closed in this nail)** · Ban HA / releaseEvidence / suite green / global R5 retired · Ban MySQL/Qdrant cutover
 - Retained sole = **Postgres (+pgvector + PostgresSaver)** · Ban MySQL/Qdrant cutover
-- STOPPED R5 cutover harnesses remain STOPPED · Ban reopen
+- STOPPED R5 cutover harnesses remain STOPPED · Ban reopen · Ban claim R5 retired globally
 - Prior nails UI/`1990b12` · TTL/`d698282` · GRAPH/`08650ea` · FULL-E2E/`c36b032` · D2b/`7fddebe` **retained** · Ban reopen · Ban wash
+- Ban additional coding · Ban additional prove · STOP
+- Ban Meridian · Ban Cloud Agent · Ban secrets / `.env*` · Ban D3 · Ban cloud buy · Ban second knife · Ban self-nail
+- Dual PASS ≠ coding · Dual PASS ≠ UC covered · Dual PASS ≠ next knife
+- Parent harness honesty retained: `GAP-UC018-SOLE` CLOSED only · matrix partial · Ban rewrite as UC covered
 
 ---
 
-*Harness · UC-E2E-018 sole-stack PG-retained · GAP-UC018-SOLE · §1b #6 only · 2026-09-23 · executed:awaiting_post_prove_dual · GAP-UC018-SOLE CLOSED only · parent 1990b12 · adr-postgres-retained · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount 8 · ms3EqualsR4Closed=false · Ban claim UC covered · matrix partial · #6 alone ≠ covered · Ban MySQL/Qdrant cutover · Ban wash UI/TTL/GRAPH/FULL-E2E/HTTP/D2b/HA/sole-wiring into E2E · Ban self-nail · STOP awaiting_post_prove_dual*
+*Harness · UC-E2E-018 sole-stack PG-retained · GAP-UC018-SOLE · §1b #6 only · 2026-09-23 (~18:16 PT) · post_prove_dual_pass · coding+prove landed · parent 1990b12 · prove tip 23f98d3 · post-prove dual 7f4e189/dd9fa56 · adr-postgres-retained · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount 8 · ms3EqualsR4Closed=false · Ban claim UC covered · matrix partial · #6 alone ≠ covered · Ban MySQL/Qdrant cutover · Ban wash UI/TTL/GRAPH/FULL-E2E/HTTP/D2b/HA/sole-wiring into E2E · STOP*
+
+---
+
+## Prove tip（nail base · must be ancestor）
+
+- **Prove tip**: `23f98d3` / `23f98d3a206c12a975de9fe4bf7c053757257ccf`
+- **Dedicated CMD**: `pnpm uc018:sole:prove` **EXIT=0**
+- **REQUEST**: `e6d10c5` · pre-exec rag `7e29e28` · e2e-ha `31e7eff` · parent UI `1990b12`
+- **Post-prove dual**: rag `7f4e189` / e2e-ha `dd9fa56`
+
+## Nail record（post-prove dual PASS · STOP）
+
+- **Prove tip**: `23f98d3` / `23f98d3a206c12a975de9fe4bf7c053757257ccf`; `pnpm uc018:sole:prove` **EXIT=0**.
+- **Post-prove dual receipts**: `reviews/REQUEST-2026-09-23-uc-e2e-018-sole-stack-pg-retained-post-prove-mw-rag-route.md` (**PASS**, tip `7f4e189`) and `reviews/REQUEST-2026-09-23-uc-e2e-018-sole-stack-pg-retained-post-prove-mw-e2e-ha.md` (**PASS**, tip `dd9fa56`).
+- **Honesty**: **GAP-UC018-SOLE CLOSED only** · matrix **partial** · **#6 alone ≠ covered** · Ban claim UC-E2E-018 covered · Ban HA / releaseEvidence / suite green / global R5 retired · Ban MySQL/Qdrant cutover.
+- **Hard retains**: `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false` · `gR45Closed=true` · `coveredCount=8` · `ms3EqualsR4Closed=false`.
+- **Parent honesty**: §1b #6 CLOSED under PG-retained · verified still accurate · Ban flip UC covered.
+- **Observation（honesty only · do not block）**: e2e-ha recorded one `uc018:ui:prove` timeout flake then retry EXIT=0 · retain · Ban wash into SOLE fail.
+
+**STOP — do not open the next knife.**
