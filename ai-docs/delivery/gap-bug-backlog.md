@@ -45,6 +45,11 @@
 | GAP-PRIV-02 | P0 | 公开 `DELETE /privacy/interview-data/:id` **必须保持 503**（冻结）；0129 仅预览盘点、`preview_incomplete` | 独立 prove + 专家审批准前 **不得放开**；放开时须 issuer/lease + 逐 sink receipt + 删后 read=0 | privacy | 保持 503 pin；INT-TRANSCRIPT-01 / erasure HTTP 切流另包 | `pnpm privacy-erasure:http:prove`（含 DELETE=503 pin）；`harness/privacy-erasure-http-503-pin.md`；`eval/privacy-erasure-http-503-pin.eval.md`；`privacy-erasure-preview:*` |
 | GAP-PRIV-03 | P0 | **INT-TRANSCRIPT** 控制面未关：00 ◐（issuer/账本合同本地）；01 blocked；legacy `/turn` 仍可写明文 job payload；不得宣称完整面试记录 / 控制面已关 | 01：同一部署迁移装 canonical artifact + target resolver + deletion ledger + 逐 sink receipt + 删后 read=0；真实 HTTP/SSE 组合根；此前真实 write disabled | privacy / product | INT-TRANSCRIPT-01 release gates（依赖 00）；dual-write cutover 切断明文 payload | checklist `INT-TRANSCRIPT-00/01` prove 路径；`pnpm int-answer-dual-write-fence:prove`；`mem00-int00:prove-path`（#103） |
 | GAP-PRIV-04 | P0 | 向量/题库 chunk 擦除：关系库有 `memory_vector_chunk` 先例；Qdrant **尚未**登记为可证明擦除 sink。**P15** subject erase + countable receipt + recall=0 已钉；**P16** schema/mapping + fail-closed PREREQ 已钉（`g5-ledger-map:prove`）— **仍 ≠ 0091 可写/对齐** / 公开 DELETE 仍 503 | Qdrant **as erasure sink**：删后 **recall=0** + **逐 sink receipt** **对齐 0091 ledger**；metadata stays relational；对齐前 **不得切向量真相** | privacy / rag | M4+ erasure sink 合同对齐 → privacy+rag 双审 | `harness/qdrant-g5-erasure-ledger.md` · `harness/qdrant-g5-ledger-map.md` · `harness/qdrant-store.prototype.md`；`pnpm qdrant-store:g5-erasure:prove`；`pnpm qdrant-store:g5-ledger-map:prove`；`pnpm memory-vector-chunk-erasure:prove` |
+| GAP-PRIV-REQUEST-STATUS-MASKS-LOCAL-FAIL | P1 | 0096 CASE 先判 `retention_pending`→`pending_external`，本地 target `failed` **不会**把 request 推到可达的 `partial_failed`；FAULT-01 须钉 target=`failed` + request=`pending_external` | 文档/prove 诚实；勿期望 request `partial_failed` this knife；未来若改 CASE 须 dual | privacy | UC-052 nail `post_prove_dual_pass` · tip `3c4847a` | `harness/uc-e2e-050-052-privacy-erasure.md`；`pnpm uc052:internal-erasure:prove` |
+| GAP-PRIV-AUDIT-RETENTION | P1 | 审计/deletion-fact 行可能保留；内容可清 · **Ban** claim 审计全擦除进 covered | 保留审计保留策略诚实；擦除闭环证明不含 audit wipe | privacy | 与 UC-052 nail 同列登记 | harness § C-NON-PG / Audit retention |
+| GAP-E2E-ISO-BANNER-PG-RETAINED | P1 | `run-e2e-isolated.mjs` R5-MARKED-RED banner 仍写 MySQL+Qdrant+Redis 为 intended sole · **≠** `adr-postgres-retained` 真相 | 收据/审查 **不得** 引用该 banner 作 stack truth；SOLE_STACK 对齐另包 | e2e / privacy | Line B N1 · named gap | `adr-postgres-retained.md`；`scripts/run-e2e-isolated.mjs` |
+| GAP-PRIV-EXTERNAL-SINK-RETENTION | P0 | UC-052 first knife：oss/redis/langfuse 目标保持 **`retention_pending`** · request happy=`pending_external` · **Ban** count-as-erased | 外部 sink 异步确认/真实 purge 另刀；对齐 0091 completed guard | privacy | after internal knife | `uc052:internal-erasure:prove` HP；0091 L516–545 |
+| GAP-PRIV-CHECKPOINT-FENCE-ONLY | P1 | `checkpoint_rows` 在 projection begin 以 **fence `erased`** 锚定（0096 §C）· **本刀无物理 checkpoint purge** | 独立 checkpoint 擦除流另包；Ban 把 fence 写成物理删闭环 | privacy | after internal knife | 0096 §C；uc052 perSinkSql honesty |
 | GAP-RAG-01 | P0 | **R1 product closed under authorize**（G-R4-3 / R1 product-close knife · `executed:awaiting_post_prove_dual` · Ban self-nail `post_prove_dual_pass`）。`MEETWISE_TECH_ROLE_FAIL_CLOSED` **产品默认 ON**（`defaultFlipped=true` · `failClosedDefaultStill0=false`）；缺 route → `adaptive_role_route_missing`；精确 `0/false/off` = legacy opt-out。PR1-B combo-root + PR1-C no-legacy evidence retained。**≠ R4/FUNNEL/题域/G-R4-5/EG closed** · `releaseEvidence=false` · ≠HA | 产品默认 fail-closed；legacy 仅显式 opt-out；不得宣称 R4/题域已关 | rag / product | post-prove dual BOTH PASS before lifecycle nail · Dual PASS ≠ next R4/FUNNEL auto-authorize | `harness/g-r4-3-r1-product-close.md`；`harness/r1-tech-role-fail-closed.md`；`pnpm r4-pr1-product-close:prove`；`pnpm r1-tech-role-fail-closed:prove` |
 | GAP-RAG-02 | P0 | `classifyJobRoute` / route snapshot **生产闭环 wire 已齐** + **P-START 真拒启（dual-passed）** + **P-FAKE CLOSED（dual-passed）** + **P-LIVE CLOSED（dual-passed structural）** + **P-HARNESS/G-R2-8 authorized + SSOT flipped**（retired `await_authorize` · standing authorize after dual on `c3092c1`）— **R2 structural CLOSED**（classify→bind→snapshot→refuse/allow + dual+authorize+prove）；**R2 仍 NOT closed** as HA/suite/verbal/controlPlane/R4/FUNNEL；P-MODEL+P-WORKER+P-API+P-LOOP+P-START+P-FAKE CLOSED（dual-passed）；G-R2-5 retrieve-side CLOSED；P-LIVE：Key-unset structural → **≠ 路由已生效** / ≠ verbal 生效；本地 RAG-03/04/05 ≠ 生产；knife **`post_prove_dual_pass`** on **`5671982`** · EXIT **6×0** | P-LIVE + P-HARNESS + real-close pre-exec + post-prove 双审已 pass；SSOT flipped under standing authorize；不得假称路由已生效 / verbal 生效 / HA / suite / controlPlaneClosed；Ban假关 | rag | remaining-after：**R1 next** · R4/FUNNEL after R1 · Live Key/G7/R5 orthogonal；不伪关题域隔离；Ban false green | `harness/r2-classify-job-route.md`；`harness/r2-ssot-flip-real-close.md`；`pnpm r2-p-live-route-effective:prove`；`pnpm r2-p-fake-route-classify:prove`；`pnpm r2-p-start-route-classify:prove`；`pnpm r2-p-loop-route-classify:prove`；`pnpm r2-p-api-route-classify:prove`；`pnpm r2-p-worker-route-classify:prove`；`pnpm r2-classify-job-route-prereq:prove`；`reviews/2026-09-17-r2-ssot-flip-real-close-mw-{e2e-ha,rag-route}.md`；`reviews/2026-09-17-r2-ssot-flip-real-close-post-prove-mw-{e2e-ha,rag-route}.md`；现有 `rag03-route:prove` 须换夹具或标红（R5） |
 | GAP-RAG-03 | P0 | `qbank_serving_scope` + hybrid 过滤落在 PG GUC + `to_tsvector` — **R3**；**禁止 MySQL FULLTEXT 冒充** | 定案过滤落点（Qdrant payload / 关系元数据 join）+ 词法等价（Qdrant 全文或应用 BM25）；Top-K 前硬过滤 prove | rag / schema | R3 过滤落点 ADR 补丁 + prove | hybrid/qbank prove 换 Qdrant 夹具；禁 FULLTEXT 假等价门 |
@@ -82,14 +87,14 @@
 
 | 区段 | 行数（数据行） |
 |------|----------------|
-| A. 需求/产品设计缺口 | **16** |
+| A. 需求/产品设计缺口 | **21** |
 | B. 遗留 BUG/假绿/审查阻塞 | **11** |
-| **合计 P0/P1 库存行** | **27** |
+| **合计 P0/P1 库存行** | **32** |
 
-| 优先级拆分（合计 27） | 计数 |
+| 优先级拆分（合计 32） | 计数 |
 |----------------------|------|
-| P0 | 22 |
-| P1 | 5 |
+| P0 | 23 |
+| P1 | 9 |
 
 **In-flight 覆盖（非另计关闭）**：tenant-conditional · redis-wakeup-wip（orthogonal under PG-retained）· pr-model-op-calib (#102) · pr-privacy-prove (#103/#104)。  
 **STOPPED 2026-09-17（PG-retained）**：mysql-schema-prove · qdrant-store-wip · pr-docs-gates (#106/#107 MySQL+Qdrant cutover docs)。
