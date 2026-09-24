@@ -65,8 +65,13 @@ const wtPath = join(worktreeBase, targetSha.slice(0, 7));
 mkdirSync(join(receiptDir, 'logs'), { recursive: true });
 mkdirSync(worktreeBase, { recursive: true });
 
-// Tip hygiene
-const tipDirty = porcelain(tipRoot);
+// Tip hygiene — allow untracked backfill outputs / .tmp (this knife's emit products)
+const tipDirty = porcelain(tipRoot).filter((line) => {
+  const path = line.replace(/^\?\? /, '').replace(/^[ MADRCU]{1,2} /, '').trim();
+  if (path.startsWith('ai-docs/delivery/receipts/uc018-receipt-backfill')) return false;
+  if (path.startsWith('.tmp/')) return false;
+  return true;
+});
 if (tipDirty.length) {
   console.error('DIRTY_TREE tip:', tipDirty.slice(0, 20).join('\n'));
   process.exit(3);
