@@ -169,3 +169,21 @@ Ban invent covered · Ban self-nail · Ban secrets/.env* · Ban Meridian · Ban 
 1. 复跑 covered-criterion/reassess/matrix-cite=0；ADV 在 worktree 因 isolated PG 未就绪失败、主仓 scripts=aa958e7 复跑=0；收据 tip 声称 runner=1cae8f6 与源码/实算一致。  
 2. 亲读 evaluator：enum 冻结、local/docker 永不 capacityRepresentative、FX-ALL-MET 真分支可达、真实矩阵算出 false 且含 PERF-LOCAL-ONLY；D1–D3 非阻塞，D4 缺 STUB/PROVE fixture 为 nail 条件。  
 3. 裁定 **PASS**（有 CONDITIONS）· 不升 coveredCount=8 · NOT_HA · releaseEvidence=false · Dual≠covered≠nail。
+
+---
+
+## 追加（append-only · 2026-09-23 · mw-e2e-ha 亲读 gatherer）· 新增 NAIL-BLOCKING 条件 C-GATHERER-REAL-INPUT
+
+独立 `git show 1cae8f6:scripts/uc-e2e-018-covered-criterion.proof.mjs`（EXIT 0）逐行复核 gatherer `colFrom`：
+- `:307` `const capacityRepresentative = false; // real UC-018: local only`、`:306` `targetEnv` 按 `isPerfLoad` 字面量写成 `'docker-isolated'`：**不从回执读取**。评估器 `uc-covered-evaluator.mjs:99–105` 可达 true，但真实输入路径对 PERF/LOAD **恒 false**，即使日后有云端回执也翻不动，除非改代码。方向保守，但属于「真实路径常量」。
+- `:313` `exit: opts.exit ?? (nhpRow ? 0 : null)`：有 NHP 行就**推定 EXIT=0**，不是读 prove 结果。
+- `:315–316` `committed: true`、`shaMatchesCommitted: true`：**字面量**，未核 runner 是否已提交。
+- `:321–327` `stack: { postgres: true, postgresSaver: true, … }`、`:333` `present: true`：**字面量**。
+- `:356/:361/:367` gitSha 为字面量（`bdc5993`/`b29c191`）。
+
+结论：六条 keep-partial 逃逸里，「未提交 runner」「PROVE-FAIL」「STUB-STACK」在**真实 UC-018 输入**上是**断言，不是采集**，只在 fixture 上被证明。当前真实判定仍为 false（有 STATUS-NOT-COVERED/CASE-ONLY/PERF-LOCAL-ONLY 等独立理由），所以**现在不会造成假关**，本档 **PASS 维持**（评估器本身纯、可达、enum 冻结，这些都成立）。但以下是 **nail 前阻塞条件**：
+- **C-GATHERER-REAL-INPUT**：gatherer 必须从已跟踪回执（`ai-docs/delivery/receipts/**`）与 git 读取 `targetEnv`、`capacityRepresentative`、`exit`、`gitSha`、`committed`/`shaMatchesCommitted`（`git merge-base --is-ancestor` + 工作树干净）以及 `stack`。缺失时必须是 fail-closed（写入 MISSING/PROVE-FAIL/STUB-STACK），不得默认 true/0。
+- nail 文案不得声称「真实 UC-018 的六逃逸均已计算」，直到满足 C-GATHERER-REAL-INPUT。
+- 更正本档前文：本档对「gatherer capacity hardcode」只有一行描述，没有定性。现在定性为**真实路径常量 + 若干反保守字面量**。
+
+Pins 不变：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · UC-018/§1.1 partial · alone≠dual。
