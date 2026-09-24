@@ -169,8 +169,27 @@ async function seedSubject(interviewId: string, ownerId = owner): Promise<void> 
   await insertReportFixtures(ownerId, interviewId);
 }
 
+function bannedRequestTerminal(status: string): boolean {
+  return status === 'completed' || status === 'partial_failed';
+}
+
+function targetFingerprint(targets: Array<{ sink: string; targetId: string; status?: string }>): string {
+  return targets.map((t) => `${t.sink}:${t.targetId}:${t.status ?? ''}`).sort().join('|');
+}
+
+async function receiptCount(requestId: string): Promise<number> {
+  const r = await admin.query<{ n: string }>(
+    `SELECT count(*)::text AS n FROM privacy_deletion_receipt WHERE request_id=$1::uuid`, [requestId]);
+  return Number(r.rows[0]?.n ?? -1);
+}
+
 async function main() {
   await assertIsolatedTestTarget(admin);
+  const porcelain = execFileSync('git', ['status', '--porcelain'], { encoding: 'utf8' }).trim();
+  if (porcelain) {
+    console.error('C-UNCOMMITTED refuse: dirty worktree\n' + porcelain);
+    process.exit(1);
+  }
   const gitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   console.log(`UC052_INTERNAL_ERASURE_PROVE gitSha=${gitSha} line=B`);
 
@@ -189,8 +208,7 @@ async function main() {
     A(id,
       failed?.status === 'failed'
       && status === 'pending_external'
-      && status !== 'completed'
-      && status !== 'partial_failed'
+      && !bannedRequestTerminal(status)
       && eventZero && graphZero,
       `req=${status} report=${failed?.status} event=${await eventCount(iv)} graph=${await graphCount(iv)}`);
     // retry re-claim
@@ -213,17 +231,21 @@ async function main() {
     await seedSubject(iv);
     const key = nextHash();
     const first = await erase({ interviewId: iv, keyHash: key, epoch: 4 });
-    const targets1 = (await loadRequestTargets(admin, first.requestId)).map((t) => t.targetId).sort().join(',');
-    // second begin with same key via projection = replay
+    const firstProjIds = first.targets
+      .filter((x) => x.sink !== 'oss' && x.sink !== 'redis' && x.sink !== 'langfuse')
+      .map((x) => x.targetId).sort().join(',');
+    // second begin with same key via projection = replay → same request + same target ids
     const replay = await asPrincipal(admin, owner, (c) =>
       beginInterviewProjectionErasure(c, iv, key, 4));
-    const targets2 = replay.targets.map((t) => t.targetId).sort().join(',');
+    const replayIds = replay.targets.map((x) => x.targetId).sort().join(',');
     A(id,
       replay.replayed === true
+      && replay.requestId === first.requestId
       && first.requestStatus === 'pending_external'
-      && targets1.split(',').length >= 4,
-      `replayed=${replay.replayed} req=${first.requestStatus}`);
-    void targets2;
+      && !bannedRequestTerminal(first.requestStatus)
+      && firstProjIds === replayIds
+      && replayIds.split(',').length === 4,
+      `replayed=${replay.replayed} sameReq=${replay.requestId === first.requestId} idsMatch=${firstProjIds === replayIds}`);
   }
 
   /* ── NHP-050-FAULT-03: fence-revive after purge ── */
@@ -272,9 +294,19 @@ async function main() {
         asPrivacyWorkerPrincipal(admin, owner, (c) => claimAuthorizationTarget(c, signedBad.jti, eventT.targetId, worker, 60)));
     }
     const status = await reassessRequestStatus(admin, begun.requestId);
+    const afterTargets = await loadRequestTargets(admin, begun.requestId);
+    const bySink = Object.fromEntries(afterTargets.map((x) => [x.sink, x.status]));
+    const localsPending = ['event', 'ai_graph_run', 'report', 'checkpoint_rows']
+      .every((s) => bySink[s] === 'pending');
+    const externalsRp = ['oss', 'redis', 'langfuse']
+      .every((s) => bySink[s] === 'retention_pending');
     A(id,
-      claimRejected && status !== 'completed' && status !== 'partial_failed',
-      `claimRejected=${claimRejected} req=${status}`);
+      claimRejected
+      && status === 'purging'
+      && !bannedRequestTerminal(status)
+      && localsPending
+      && externalsRp,
+      `claimRejected=${claimRejected} req=${status} localsPending=${localsPending} externalsRp=${externalsRp}`);
   }
 
   /* ── NHP-050-FAULT-05: already-erased re-request ── */
@@ -284,16 +316,30 @@ async function main() {
     await seedSubject(iv);
     const key = nextHash();
     const first = await erase({ interviewId: iv, keyHash: key, epoch: 7 });
-    const second = await erase({ interviewId: iv, keyHash: nextHash(), epoch: 8 }).then(
-      () => 'created',
-      () => 'refused',
+    const fingerBefore = targetFingerprint(await loadRequestTargets(admin, first.requestId));
+    const receiptsBefore = await receiptCount(first.requestId);
+    const secondResult = await erase({ interviewId: iv, keyHash: nextHash(), epoch: 8 }).then(
+      (r) => ({ outcome: 'created' as const, requestId: r.requestId }),
+      () => ({ outcome: 'refused' as const, requestId: null as string | null }),
     );
-    // Second subject erasure with new key may create new request or refuse; either ok if no double-purge corruption
+    const fingerAfter = targetFingerprint(await loadRequestTargets(admin, first.requestId));
+    const receiptsAfter = await receiptCount(first.requestId);
     const eventStillZero = (await eventCount(iv)) === 0;
+    const graphStillZero = (await graphCount(iv)) === 0;
+    const reportStillZero = (await reportCount(iv)) === 0;
     const status = await loadRequestStatus(admin, first.requestId);
+    // New request allowed, but first-request ledger + receipts must be unchanged (no duplicate effective erasure)
+    const firstLedgerStable = fingerBefore === fingerAfter && receiptsBefore === receiptsAfter;
+    const noDupEffective = secondResult.outcome === 'refused'
+      || (secondResult.requestId !== null && secondResult.requestId !== first.requestId && firstLedgerStable)
+      || (secondResult.requestId === first.requestId && firstLedgerStable);
     A(id,
-      eventStillZero && status === 'pending_external' && status !== 'completed' && status !== 'partial_failed',
-      `second=${second} req=${status}`);
+      eventStillZero && graphStillZero && reportStillZero
+      && status === 'pending_external'
+      && !bannedRequestTerminal(status)
+      && firstLedgerStable
+      && noDupEffective,
+      `second=${secondResult.outcome} sameReq=${secondResult.requestId === first.requestId} ledgerStable=${firstLedgerStable} receipts=${receiptsBefore}->${receiptsAfter} req=${status}`);
   }
 
   /* ── NHP-050-NEG-02: unauthorized (forged JWS / no verify) ── */
@@ -431,8 +477,7 @@ async function main() {
       targets.find((t) => t.sink === s)?.status === 'retention_pending');
     A(id,
       result.requestStatus === 'pending_external'
-      && result.requestStatus !== 'completed'
-      && result.requestStatus !== 'partial_failed'
+      && !bannedRequestTerminal(result.requestStatus)
       && localsOk && externalsOk
       && (await eventCount(iv)) === 0
       && (await graphCount(iv)) === 0
@@ -455,7 +500,7 @@ async function main() {
     perSinkSql: {
       event: 'SELECT count(*) FROM interview_event WHERE stream_key=$interviewId  -- expect 0',
       ai_graph_run: 'SELECT count(*) FROM ai_graph_run WHERE thread_id=$interviewId  -- expect 0',
-      report: 'SELECT count(*) FROM ai_report WHERE interview_id=$interviewId  -- expect 0',
+      report: 'SELECT count(*) FROM ai_report+assessment_report+learning_plan+learning_progress+career_path+question_feedback WHERE interview_id=$interviewId  -- expect 0',
       checkpoint_rows: 'fence-only erased at begin (no physical checkpoint purge this knife)',
       oss_redis_langfuse: "status='retention_pending' on privacy_deletion_target",
     },

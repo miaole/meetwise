@@ -297,3 +297,16 @@ Receipt root（plan）: `ai-docs/delivery/receipts/uc050-052-privacy-erasure/` �
 | **L2+** | Erasure coding/prove only after Step 0 green + authorize |
 
 STOP after push · no messaging dual · no coding · no Step 0 apply.
+
+---
+
+## Addendum 2026-09-23 PT · post-prove C-HARNESS-FAULT04（append-only · do not rewrite §4 L209）
+
+**Source**: mw-e2e-ha post-prove `088cf51` @ prove tip `6d6e11b`.
+
+| ID | Correction |
+|----|------------|
+| **NHP-050-FAULT-04** | Real terminal after mid-flight epoch/digest drift **refuse** (locals still `pending`/`leased`, no purge) is request status **`purging`**, not `pending_external`. Cite `0096_int_transcript_remaining_sinks.sql` **L576–583** CASE arm ①：`pending`/`leased` → `purging` **before** arm ③ `retention_pending` → `pending_external`. Externals may already be `retention_pending`; CASE priority still yields **`purging`**. Ban `completed` · Ban `partial_failed`. Prove must assert `status==='purging'` + locals remain `pending` + externals `retention_pending` + claim refused. |
+
+Prior §4 table row L209 text retained for history; this addendum is authoritative for FAULT-04 terminal.
+
