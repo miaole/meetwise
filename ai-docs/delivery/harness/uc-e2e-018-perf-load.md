@@ -92,6 +92,60 @@ Cite: `testing/e2e-performance-evidence.md`（本地毫秒/RPS = 单机回归预
 
 ---
 
+## Method freeze（AUTHORIZED coding+prove · frozen BEFORE any load run · Ban post-hoc retune）
+
+> **Freeze tip rule**: this Method freeze section MUST be committed+pushed as its **own** docs-only commit **before** any `uc018:perf-load:prove` run. That Step A SHA **must be an ancestor** of every receipt `gitSha`. Ban edit method / N / c / thresholds / warmup / percentile / clock after seeing results. A threshold miss ⇒ EXIT≠0 · stay case-only · honest outcome.
+
+### Percentile method
+- **nearest-rank**: for quantile `q` over `n` sorted ascending latency samples, p = value at rank **`ceil(q·n)`** (1-indexed). Example: n=100 → p50 = sample[50], p95 = sample[95], **p99 = sample[99]** (= the 99th of 100, i.e. near-worst).
+- **Disclosure（统计弱）**: at **N=100**, nearest-rank **p99 = the single 99th-rank sample**（approaches the worst sample）· statistically weak · **≠** production SLO claim · Ban wash into capacity/HA.
+
+### Clock
+- **Client-side end-to-end wall clock per request**: `process.hrtime.bigint()`（or equivalent）wrapped around the **full HTTP round trip**（fetch start → response headers+body consumed / error）.
+- Server-internal timings **do not** count toward p50/p95/p99.
+
+### Timeouts → errors
+- Per-request timeout: **10_000 ms**（10s）.
+- Timeout **counts as an error**（included in `error_rate`; also tracked separately as `timeoutCount` in receipts）.
+- Timed-out samples are **excluded** from latency percentile populations（latency stats over successful completes only）· errors/timeouts still count against error_rate thresholds.
+
+### Warmup
+- Warmup count: **10** requests（same mouth · same auth fixtures · not necessarily identical N pool）.
+- Warmup **excluded** from latency stats and from error_rate denominators of the measured N.
+
+### Repeat runs
+- **repeat runs = 3**（independent measured batches; fresh seed IDs each run）.
+- **EVERY** run must meet **all** thresholds for its case.
+- **Any** miss on any run ⇒ prove **EXIT≠0** · PERF/LOAD stay **case-only** · Ban elevate.
+
+### Declared shapes / thresholds（UNCHANGED from §1b · Ban retune）
+| Case | N | c | Thresholds |
+|------|---|---|------------|
+| **NHP-018-PERF-01** | 100 | 10 | p50≤250ms · p95≤750ms · p99≤1500ms · err≤0.5% · abandon HTTP only |
+| **NHP-018-LOAD-01** | 50 | 20 | abandon+release+graph safe-terminate · no double-release · no stuck reservations · err≤1% |
+
+### Resource caps
+- Declared: ≤ **2 vCPU** · ≤ **4 GiB** mem for the measured surface（API prove process and isolated PG where enforceable）.
+- **Enforcement method（authorize coding）**: Docker `--cpus=2 --memory=4g` on the isolated Postgres container **and** on the Node prove/API process container（or equivalent cgroup v2 `cpu.max` / `memory.max`）. Record evidence in each receipt: `docker inspect` → `HostConfig.NanoCpus` / `HostConfig.Memory` and/or cgroup `cpu.max` / `memory.max`.
+- If caps **cannot** be enforced on the machine: **do not fake** · treat as **failure to elevate**（EXIT≠0 · stay case-only）· disclose blocker in receipt + harness.
+
+### Receipt paths
+| Kind | Path |
+|------|------|
+| Raw（untracked · may hold machine detail · still Ban secrets） | `.tmp/uc018-perf-load-receipts/` |
+| Tracked redacted mirror | `ai-docs/delivery/receipts/uc018-perf-load/*.json` |
+
+Each receipt includes: git SHA（Step A must be ancestor）· command · caps evidence · N · c · warmup · raw latencies or histogram · p50/p95/p99 · error + timeout counts · start/end timestamps · machine info（cpu model/count · mem · kernel）. **Ban** tokens / DSNs / passwords / cookies / env dumps. Grep tracked mirrors for secrets before commit.
+
+### Pre-exec dual note（harness honesty · Ban edit reviewer receipts）
+- REQUEST tip **`30943df`**. Pre-exec dual BOTH PASS recorded at:
+  - `mw-rag-route` tip **`4964dc2`** — **commit subject literally** `review(uc018-perf-load): mw-rag-route pre-exec PASS|FAIL`（template `PASS|FAIL` **not replaced** in subject）· **receipt body Verdict = PASS** · implementer notes this quirk · **does not edit** the reviewer receipt.
+  - `mw-e2e-ha` tip **`64cc57c`** — subject/body PASS.
+- Dual PASS ≠ coding alone · coding requires standing AUTHORIZE · Dual PASS ≠ invent covered · Dual PASS ≠ §1.1 flip.
+
+### Non-claims retained under freeze
+local PERF/LOAD ≠ capacity ≠ HA · partial ≠ covered · §1.1 stays partial · covered-lift = separate later knife · `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false` · `gR45Closed=true` · coveredCount=8 · `ms3EqualsR4Closed=false` · PG-retained · Ban self-nail · Ban messaging dual · Ban second knife · Ban post-hoc retune · Ban n/a dodge.
+
 ## 2. Prove plan（later authorize · **not_run** this open）
 
 ```bash
