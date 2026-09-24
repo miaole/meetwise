@@ -206,12 +206,12 @@ async function main() {
   const gitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   console.log(`UC052_CHECKPOINT_PHYSICAL_PROVE gitSha=${gitSha} line=B`);
 
-  // setup() on admin-backed saver (DDL-capable / migrations already applied in isolate).
-  // Then PrincipalBoundCheckpointPool + PostgresSaver for real put/putWrites/getTuple (Ban MemorySaver).
-  const setupSaver = new PostgresSaver(admin as unknown as ConstructorParameters<typeof PostgresSaver>[0]);
+  // Dedicated pool for PostgresSaver so PrincipalBoundCheckpointPool session SET ROLE
+  // cannot pollute the admin pool used for ledger/seal/COUNT asserts.
+  const saverPool = createPool();
+  const setupSaver = new PostgresSaver(saverPool as unknown as ConstructorParameters<typeof PostgresSaver>[0]);
   await setupSaver.setup();
-  // Do NOT end admin pool — shared with proof.
-  const saver = new PostgresSaver(new PrincipalBoundCheckpointPool(admin).asPool());
+  const saver = new PostgresSaver(new PrincipalBoundCheckpointPool(saverPool).asPool());
   if (typeof saver.put !== 'function' || typeof saver.putWrites !== 'function') {
     console.error('C-SAVER refuse: PostgresSaver API missing put/putWrites');
     process.exit(1);
@@ -770,7 +770,7 @@ async function main() {
     : `\n✗ ${failures} assertion failures`);
   process.exit(failures === 0 ? 0 : 1);
   } finally {
-    // Ban ending shared admin pool via PrincipalBoundCheckpointPool.end
+    await saverPool.end().catch(() => undefined);
   }
 }
 
