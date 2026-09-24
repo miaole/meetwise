@@ -210,3 +210,140 @@ Worktrees: `/workspace/mw-rv-4643c02` @`4643c02` · `/workspace/mw-rv-6d6e11b` @
 ---
 
 *mw-e2e-ha · POST-PROVE · Verdict **FAIL** · B1 tsc · tips above · Ban 代签 privacy-int*
+
+---
+
+## 7. Fix-round POST-PROVE re-review @`3c4847a`（mw-e2e-ha · 2026-09-23 ~20:56 PT）
+
+**Scope**: prove tip `3c4847a498105c7fbd609967a2050a4cd3002290` · fix `9e55109` · receipts `6a4140d` · baseline `4643c02`  
+**Pair**: mw-privacy-int **不代签** · alone≠dual  
+**Prior**: this file @`088cf51` Verdict **FAIL**（B1 + conditions）· **本轮证据支持 supersede → PASS**（非因 coordinator 要求 flip）
+
+### 7.0 Verdict（fix round）
+
+| Key | Value |
+|-----|-------|
+| **Verdict** | **PASS** |
+| **088cf51 FAIL superseded?** | **YES** — B1 closed · all listed conditions closed by evidence |
+| **blockers** | **none** |
+| **conditions** | **none open**（见 §7.5） |
+| **authorizeNail** | **false** |
+| **claimUc050051052Covered** | **false** · only UC-052 deletion column may →partial **after BOTH duals PASS** · this alone ≠ dual |
+| **openPublicDelete** | **false** · DELETE **503** |
+| **haStatus** | **NOT_HA** |
+| **releaseEvidence** | **false** |
+| **claimProductionHA** | **false** |
+| **gR45Closed** | **true** |
+| **coveredCount** | **8** |
+| **ms3EqualsR4Closed** | **false** |
+| **PG-retained** | **true** |
+| **alone≠dual** | **true** |
+
+**3-line 中文摘要**:
+1. B1 关闭：`tsc -p packages/db` @`3c4847a` = 6 = baseline `4643c02`，error-set diff 空，uc052 文件 0 错；src 改动经 esbuild 转译 JS diff 空 = type-only。
+2. 条件全关：FAULT-04 严断言 `purging`+per-sink；FAULT-05 first-ledger/receipts 稳定接受 `second=created`；FAULT-02 idsMatch；harness append-only；porcelain dirty guard EXIT=1。
+3. 两次 prove + privacy-authorization + uc018:adv 均 EXIT 0；pins 全保留；alone≠dual · Ban 洗 covered / Ban 开 DELETE。
+
+### 7.1 Ancestry / receipts（Task 1）
+
+| Check | Result | EXIT |
+|-------|--------|------|
+| `git fetch` | ok | 0 |
+| ancestry `6d6e11b → 9e55109 → 3c4847a → 6a4140d` | all `merge-base --is-ancestor` **0** | 0 |
+| all on `origin/feat/mysql-schema-skeleton` | **yes** | 0 |
+| `6a4140d` files | UC052 fixround evidence.json + prove.md only | 0 |
+| `git diff 3c4847a 6a4140d --name-only` | + intervening G7 receipt via `320e919`；`6a4140d` 本身仅 UC052 docs | 0 |
+| evidence `runnerGitSha` / prove.md tip | **`3c4847a498105c7fbd609967a2050a4cd3002290`** | 0 |
+
+### Files per commit
+
+| SHA | Subject | Files |
+|-----|---------|-------|
+| `9e55109` | B1 tsc + FAULT harden + dirty guard | harness append · `packages/db/src/uc052-internal-erasure.ts` · prove |
+| `3c4847a` | FAULT-04 exact per-sink | prove only |
+| `6a4140d` | fixround receipts EXIT=0 | evidence.json + prove.md |
+
+### 7.2 Type-only verdict（Task 2）
+
+**Method**: (1) `git show 9e55109 -- packages/db/src` 人工审阅；(2) `npx esbuild` 分别转译 `6d6e11b` vs `9e55109` 的 `uc052-internal-erasure.ts` → JS `diff` **空**（DIFF_EXIT=0）。
+
+**Result**: **TYPE-ONLY PASS**  
+- 仅 `import type` 增 `DbPool` · `type Sql = DbPool \| Client` · 参数注解 `Client`→`Sql` · `admin: Client`→`admin: DbPool`  
+- **无** runtime 表达式 / SQL / 条件 / 导出值变更  
+- esbuild A/B EXIT 0 · JS identical
+
+### 7.3 CMD \| EXIT（Task 3 · worktrees）
+
+Worktrees: `/workspace/mw-rv-3c4847a` @`3c4847a` · `/workspace/mw-rv-4643c02` @`4643c02` · removed after.
+
+| CMD | Where | EXIT | Notes |
+|-----|-------|------|-------|
+| `pnpm install --frozen-lockfile` | mw-rv-3c4847a | **0** | |
+| `pnpm uc052:internal-erasure:prove` #1 | 3c4847a | **0** | all PASS · FAULT-04 `req=purging localsPending=true ckpt=erased externalsRp=true` · FAULT-05 `second=created ledgerStable=true receipts=3->3` · FAULT-02 `idsMatch=true` · BOUND winners=1 · gitSha=`3c4847a…` |
+| `pnpm uc052:internal-erasure:prove` #2 | 3c4847a | **0** | stable · identical |
+| `git status --porcelain` after prove ×2 | 3c4847a | **0** | **empty** · prove **不自写** tracked → guard 不自绊 |
+| `pnpm privacy-authorization:prove` | 3c4847a | **0** | |
+| `pnpm uc018:adv:prove` | 3c4847a | **0** | 76 ADV |
+| `pnpm exec tsc -p packages/db --noEmit` | 3c4847a | **2** | **6** errors · **0** in uc052 |
+| `pnpm install --frozen-lockfile` | mw-rv-4643c02 | **0** | |
+| `pnpm exec tsc -p packages/db --noEmit` | 4643c02 | **2** | **6** errors |
+| tsc error-set `diff`（normalize `file:line:TScode`） | base vs 3c4847a | **0** | **identical** · delta **0** |
+| dirty guard：改 tracked `packages/db/src/uc052-internal-erasure.ts` 再 prove | 3c4847a | **1** | `C-UNCOMMITTED refuse: dirty worktree` · then `git checkout --` |
+| worktree remove | | **0** | |
+
+### tsc error-set（identical）
+
+```
+packages/db/test/privacy-erasure-preview.proof.ts:161:TS2532
+packages/db/test/qbank-handoff-closure.proof.ts:223:TS2345
+packages/db/test/qbank-handoff-closure.proof.ts:228:TS2345
+packages/domain/src/adaptive-interview.ts:113:TS2345
+packages/domain/src/interview-control-signals.ts:103:TS18047
+packages/domain/src/privacy-erasure-preview.ts:159:TS2345
+```
+
+### Suppressions（proof @`3c4847a`）
+
+| Pattern | Count | Judgment |
+|---------|-------|----------|
+| `@ts-ignore` / `@ts-expect-error` | **0** | |
+| `as any` | **0** | |
+| `e: any`（NEG-01 catch HTTP shape） | **1** L453 | 非 Pool/PoolClient 压制 · **honest** |
+| non-null `failed!` | **1** L218 | 断言后取出 · OK |
+| src suppressions | **0** | B1 以 `Sql`/`DbPool` 正当拓宽 · **非** `as any` 掩盖 |
+
+### 7.4 Source asserts（Task 4 · `git show 3c4847a:packages/db/test/uc052-internal-erasure.proof.ts`）
+
+| Cond | file:line | Finding | Closed? |
+|------|-----------|---------|---------|
+| **C-UNCOMMITTED** | L188–192 | `git status --porcelain` non-empty → `process.exit(1)` · live dirty EXIT **1** | **YES** |
+| **C-HARNESS-FAULT04** | harness diff `6d6e11b..9e55109` | **additions only** after EOF · §4 L209 原文保留 · Addendum 权威 `purging` + 0096 L578 | **YES** |
+| **C-FAULT04-ASSERT-SOFT** | proof L296–310 | `status === 'purging'` · `localsPending` event/ai_graph_run/report=`pending` · `checkpoint_rows==='erased'` · externals `retention_pending` · `claimRejected` · `!bannedRequestTerminal` | **YES** |
+| **C-FAULT05-LEDGER** | proof L320–343 | `second=created` **可接受**：`firstLedgerStable`（fingerprint+receipts）· subject still 0 · `noDupEffective` · **非** duplicate effective erasure on first ledger | **YES** |
+| **C-FAULT02-TARGET-IDS** | proof L234–247 | `firstProjIds === replayIds` · length 4 · `sameReq` · `replayed===true` | **YES** |
+| **C-CASECOUNT** | L28–39 / L489–491 | REQUIRED_CASES 10 · missing→fail | **YES**（intact） |
+| **C-BOUND** | L432–440 | `Promise.all` 两路 `asPrivacyWorkerPrincipal` · winners=1 · eventTargets=1（同 6d6e11b 语义） | **YES** |
+| **C-SQL-PER-SINK / C-NON-PG / ckpt fence** | L493–507 / HP | disclosed · HP L430–431 区仍在 · fence-only honesty | **YES** |
+
+**Fail-open hunt**: 无 `?? true` · `.every` 作用于固定非空 sink 名列表（缺键→false→fail-closed）· `rejects()` 仅负向 · FAULT-04 `verified` 假则 `claimRejected` 假→断言失败 · 无 env skip / try-catch 吞绿。
+
+### 7.5 Blockers / Conditions / Pins / Matrix
+
+**Blockers**: none（**B1 CLOSED**）
+
+**Conditions**: all prior **CLOSED**（§7.4）
+
+**Pins retained**: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · alone≠dual
+
+**Matrix**: 仅 UC-052 deletion 可在 **双审均 PASS** 后 case-only→partial · **本文件 alone ≠ dual** · Ban export/050/051/covered。
+
+### 7.6 Tips
+
+1. Await **mw-privacy-int** fix-round dual · Ban cite this PASS as dual green。
+2. Matrix move only after both duals · Ban wash UC-050/051/export/covered。
+3. Retain DELETE=503 · Ban open public erase · Ban claimProductionHA。
+4. Optional residual（非条件）：FAULT-05 可再断言 second-request target 行 no-op；当前 first-ledger+subject-zero 已足够关 C-FAULT05-LEDGER。
+
+---
+
+*mw-e2e-ha · POST-PROVE fix-round · Verdict **PASS** · 088cf51 FAIL **superseded** · Ban 代签 privacy-int*
