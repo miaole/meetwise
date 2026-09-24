@@ -331,3 +331,153 @@
 3. **alone≠dual**：不代签 privacy-int · happy=`pending_external` 与 0096/0091 一致 · Step 0=PR#104 fixture-only · DELETE=503/pins 保留。
 
 **STOP** · Ban coding · Ban prove · Ban Step 0 apply · Ban flip covered · Ban open DELETE · Ban sign peer.
+
+
+---
+
+## r3 — PRE-EXEC RE-REVIEW（tip `1f263f7` · 2026-09-23 ~20:29 PT）
+
+**Expert**: `mw-e2e-ha` · docs gate only · **≠ coding** · **≠ prove** · **≠ authorize coding** · **不代签** `mw-privacy-int`  
+**Reviewed tip**: `1f263f764043beca4a13c10054e4f36dfa785e58` / `1f263f7`  
+**Tip author/subject**: `meetwise-core` · `docs(privacy): revise UC-E2E-050-052 Line B REQUEST r3 (pre_dual)`  
+**r1 / r2 tips + receipts**: r1 `cd5a4de` PASS `dc3e17a` · r2 `8fecc3d` PASS `79d9191`  
+**Claimed tip scope**: harness + slice only · **verified tip commit**  
+**Working HEAD at gate**: may advance（privacy-int r3 `f51dcd4` on origin ahead）· review via `git show 1f263f7:<path>` + independent migration read
+
+### 0. Verdict（r3）
+
+| Key | Value |
+|-----|-------|
+| **Verdict** | **PASS**（r2 PASS 在 `1f263f7` 上**仍成立** · B4/`partial_failed` 不可达修正正确 · gap 诚实披露 · 无新阻塞 · 残留 C-SQL-PER-SINK） |
+| **blockers** | **无阻塞** |
+| **authorizeCoding** | **false** |
+| **authorizeProve** | **false** |
+| **authorizeNail** | **false** |
+| **claimUc050051052Covered** | **false** |
+| **openPublicDelete** | **false** · DELETE **503** |
+| **haStatus** | **NOT_HA** |
+| **releaseEvidence** | **false** |
+| **claimProductionHA** | **false** |
+| **gR45Closed** | **true** |
+| **coveredCount** | **8** |
+| **ms3EqualsR4Closed** | **false** |
+| **Stack** | **PG-retained** |
+| **Public DELETE** | **503** |
+| **alone≠dual** | **YES** · privacy-int 已自写 r3 PASS `f51dcd4` · **本开不代签** |
+| **Dual re-PASS ≠ coding** | **YES** |
+
+**Explicit**: Do NOT authorize coding · Do NOT run planned prove · Do NOT apply Step 0 · Do NOT open DELETE · Do NOT flip covered · Ban sign peer.
+
+### 1. Tip / ancestry / scope checks
+
+| Check | Observed | Ruling |
+|-------|----------|--------|
+| `1f263f7` exists | `1f263f764043beca4a13c10054e4f36dfa785e58` · `git cat-file -t` = commit | **YES** |
+| On origin | `origin/feat/mysql-schema-skeleton` contains tip（origin tip later = privacy-int `f51dcd4`） | **YES** |
+| `8fecc3d` ancestor of `1f263f7` | `git merge-base --is-ancestor` EXIT=0 | **YES** |
+| `f07663a` ancestor of tip | EXIT=0 | **YES** |
+| Tip commit files | **only** harness + slice（2 ai-docs）· `git diff-tree` | **docs-only PASS** |
+| Claim「harness+slice only」 | tip commit **true** · no `scripts/`/`src/`/`package.json`/matrix | **PASS** |
+| Range `8fecc3d..1f263f7` Line B restricted | **M** harness · **M** slice only（`--` path restrict） | **PASS** |
+| Range unrestricted | also intermediate review/UC018 docs（not tip claim）· **FLAG note · 非阻塞** · Ban wash into Line B tip | **FLAG · 非阻塞** |
+| Non-docs in tip | **NONE** | **PASS** |
+
+### 2. CMD|EXIT（r3 recorded）
+
+1. `git fetch origin` → **EXIT:0**
+2. `git rev-parse HEAD` → `1f263f7…` **EXIT:0**（gate start；origin later `f51dcd4`）
+3. `git cat-file -t 1f263f7` → `commit` **EXIT:0**
+4. `git merge-base --is-ancestor 8fecc3d 1f263f7` → **EXIT:0**（YES）
+5. `git merge-base --is-ancestor f07663a 1f263f7` → **EXIT:0**
+6. `git branch -r --contains 1f263f7` → `origin/feat/mysql-schema-skeleton` **EXIT:0**
+7. `git show --stat 1f263f7` → **2 files** harness+slice · +86/−87 **EXIT:0**
+8. `git diff-tree --no-commit-id --name-status -r 1f263f7` → `M`×2 ai-docs **EXIT:0**
+9. `git diff 8fecc3d 1f263f7 --name-status -- <harness> <slice>` → `M`×2 **EXIT:0**
+10. `git diff 8fecc3d 1f263f7 -- <harness> <slice>`（full content）→ **EXIT:0**
+11. `find packages/db -name '*0096*'` → `packages/db/migrations/0096_int_transcript_remaining_sinks.sql` **EXIT:0**
+12. Independent Read migration L550–598（CASE L576–583 · seeds L207–215）→ **EXIT:0**
+13. `git show 1f263f7:<harness>` + `rg -n` NHP/CASE/GAP cites → **EXIT:0**
+14. `git show 1f263f7:<slice>` + `rg -n` → **EXIT:0**
+15. `git diff-tree … 1f263f7 | rg -v '^ai-docs/'` → empty / NO_NON_DOCS **EXIT:0**
+16. `git log -1 --format=… 1f263f7` → meetwise-core · docs(privacy) r3 **EXIT:0**
+
+### 3. 0096 CASE independent reading（B4 core）
+
+**File**: `packages/db/migrations/0096_int_transcript_remaining_sinks.sql`
+
+**CASE order（exact · L576–583）**:
+1. L578 · `pending`/`leased` target → request **`purging`**
+2. L579 · `external_pending` receipt → **`pending_external`**
+3. L580 · `retention_pending` target → **`pending_external`**
+4. L581 · `failed_cleanup` receipt → **`partial_failed`**
+5. L582 · `failed` target → **`partial_failed`**
+6. L583 · ELSE → **`completed`**
+
+**Seeds（L207–215）**: begin always inserts oss/redis/langfuse targets with `status='retention_pending'`.
+
+**Finding**: Branch ③（`retention_pending` → `pending_external`）is evaluated **before** branches ④/⑤（`partial_failed`）。While those external targets remain `retention_pending`（this knife · Ban trim / Ban clear externals）, request status **`partial_failed` is truly unreachable**. A local target can still be `status='failed'` in the ledger while the request row stays **`pending_external`**.
+
+**Ruling**: harness/slice B4 rewrite（Ban expect reachable request `partial_failed` · assert ledger target `failed` + request `pending_external`）**matches migration truth**. **PASS**.
+
+### 4. Per-case assertion check（@ tip harness）
+
+| Case | Request / ledger expectation @ r3 | Detects local fail? | Ruling |
+|------|-----------------------------------|---------------------|--------|
+| **FAULT-01** | ledger failing target `status='failed'` · request **`pending_external`**（≠ completed）· Ban request `partial_failed` · other locals admin read=0 · retry re-claim → erased · request stays `pending_external`（L152 · L206 · L186） | **YES** · prove asserts **ledger target failed** · fault not masked | **CORRECT** |
+| **FAULT-04** | request ≠ completed · stays `pending_external` · Ban `partial_failed`（L209） | N/A（drift refuse） | **aligned PASS** |
+| **FAULT-05** | if request exists stays `pending_external` · Ban `completed`/`partial_failed`（L210） | N/A | **aligned PASS** |
+| **HP-050-01** | request **`pending_external`** · Ban `completed` · Ban `partial_failed`（L165）· local sinks admin read=0 · externals `retention_pending`（L215）· **does NOT assert** ledger `status='failed'` | Happy = **no** local failed · pending_external **only** due to external sinks | **CORRECT** · not wrongly asserting failed |
+| FAULT-02 / FAULT-03 / NEG-01 / NEG-02 / NEG-03 / BOUND-01 | intent unchanged（L207–208 · L211–214） | — | **no regression** |
+
+### 5. GAP-PRIV-REQUEST-STATUS-MASKS-LOCAL-FAIL ruling
+
+| Check | Finding | Ruling |
+|-------|---------|--------|
+| Real product issue? | **YES** · request-level status cannot distinguish「external pending」vs「local failed」while externals stay `retention_pending`（CASE L580 before L582） | **real** |
+| Disclosed as gap（not washed）? | Named **`GAP-PRIV-REQUEST-STATUS-MASKS-LOCAL-FAIL`** · harness L162 · L239 · register plan L261 · slice stays-gap · Ban treat as prove-pass wash | **honest disclose PASS** |
+| Consequence | API/status consumers **cannot** see local fail from request status alone · truth = **per-target ledger** | noted |
+| Prove blind spot? | **NO** · as long as prove asserts ledger target `failed`（FAULT-01 does）· gap is **product/API later** · not first-knife prove hole | **acceptable product gap · later** · Ban wash into covered |
+
+### 6. Regression + case-count cites（vs r2）
+
+| Case / cond | Still present? | New cite @ `1f263f7` harness |
+|-------------|----------------|------------------------------|
+| FAULT-01 | **YES**（status mask aligned） | L152 · L206 · L186 |
+| FAULT-02 | **YES** unchanged intent | L207 |
+| FAULT-03 | **YES** unchanged intent | L208 |
+| FAULT-04 | **YES**（request status aligned） | L209 |
+| FAULT-05 | **YES**（request status aligned） | L210 |
+| NEG-02 | **YES** | L211 |
+| NEG-03 | **YES** | L212 |
+| BOUND-01 | **YES** | L213 · L189 · L31 |
+| NEG-01 | **YES** · DELETE 503 | L214 |
+| HP-050-01 last | **YES** · happy last | L215 · L165 |
+| **C-CASECOUNT** | **YES** | L28 · L190 · L223（§4 enum L206–215） |
+| **C-UNCOMMITTED** | **YES** | L32 · L192 |
+| **C-MATRIX-NAIL** | **YES** | L34 · L194 · L260 |
+| **C-NON-PG** | **YES** | L35 · L195 |
+| **C-SQL-PER-SINK** | **partial residual** | L29 · L186 · L206 · L223 |
+
+**Regression ruling**: **无回归** · 全 NHP ids 在 · happy last · case-count 执行线仍在 · FAULT-02/03 · NEG-01/02/03 · BOUND-01 意图未削。
+
+### 7. Blockers vs CONDITIONS（r3）
+
+**阻塞项**: **无**
+
+**CONDITIONS（残留 · 编码/prove 期 · ≠ 本开授权）**:
+1. **C-SQL-PER-SINK（residual / partial）**: 仍未逐物理表写出具体 SQL 文本；编码时须对 `checkpoint_rows` / `interview_job_payload` / `event` / `report` / `ai_graph_run` / `interview_answer_artifact` 各写 SELECT/tombstone + ledger status；FAULT-01 = target `failed` + request `pending_external`（≠ completed · Ban `partial_failed`）。
+2. （保留提醒）prove 接线须 **PG/LEGACY** via `run-e2e-isolated` · Ban SOLE_STACK/MySQL/Qdrant 路径。
+
+其余 r2 已 mapped CONDITIONS 保持 mapped。**GAP-PRIV-REQUEST-STATUS-MASKS-LOCAL-FAIL** = disclosed product gap · **not** a new blocker · **not** prove blind spot.
+
+### 8. Pins（retained）
+
+`haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false` · `gR45Closed=true` · `coveredCount=8` · `ms3EqualsR4Closed=false` · **PG-retained** · public DELETE=**503** · alone≠dual · Dual PASS ≠ coding ≠ covered ≠ open DELETE。
+
+### 9. 三行中文摘要（r3）
+
+1. **Verdict=PASS @ `1f263f7`**：tip 在 origin · `8fecc3d` 祖先 · tip 仅 harness+slice · 0096 CASE 证实 `partial_failed` 不可达 · FAULT 钉 ledger `failed`+request `pending_external` · HP 不误钉 failed。  
+2. **无阻塞 · 残留 COND**：C-SQL-PER-SINK 仍 partial；`GAP-PRIV-REQUEST-STATUS-MASKS-LOCAL-FAIL` 为真实产品缺口且已诚实披露（非 prove 盲区）。  
+3. **alone≠dual**：不代签 privacy-int · 不授权编码/prove/Step0 · DELETE=503/pins 保留。
+
+**STOP** · Ban coding · Ban prove · Ban Step 0 apply · Ban flip covered · Ban open DELETE · Ban sign peer.
