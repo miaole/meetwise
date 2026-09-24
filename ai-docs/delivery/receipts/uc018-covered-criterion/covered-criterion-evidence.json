@@ -522,5 +522,33 @@
   ],
   "receiptBackfillNote": "GAP-UC018-RECEIPT-BACKFILL deferred to nail-time (Ban hand-writing JSON from prose)",
   "rebaseNote": "pre-push rebase rewrote local f7f804b \u2192 origin 4a8a085; evidence re-proven at clean 4a8a085; this commit supersedes 03449a8 receipt that cited stale f7f804b",
-  "priorReceiptTipSuperseded": "03449a8"
+  "priorReceiptTipSuperseded": "03449a8",
+  "siblingProves": [
+    {
+      "cmd": "pnpm uc018:adv:prove",
+      "exit": 0,
+      "timePT": "2026-09-23 20:46:51 PT",
+      "headSha": "4224e7386cb19b6bc948a24e76c2ae5ecd44a53a",
+      "headShaShort": "4224e73",
+      "runnerCommitSha": "4a8a085ba31400b389b288e42557324a769cb5af",
+      "runnerCommitShaShort": "4a8a085",
+      "porcelain": "clean",
+      "note": "Prior EXIT=1 was env (no node_modules \u2192 isolated_postgres_database_not_ready). Re-ran after pnpm install --frozen-lockfile; node_modules gitignored; docker used ephemeral PG 127.0.0.1:32946 (no stop of Line B/C HA/mysql containers). scripts/ unchanged vs 4a8a085.",
+      "isolatedPg": "meetwise-e2e-1659538-1790221592450 on 127.0.0.1:32946",
+      "localReceipt": ".tmp/isolated-proof-receipts/2026-09-24T03-46-41-565Z-1659538-598eab1f-f5e8-4146-8611-5abc2dc9de09.json"
+    }
+  ],
+  "advProveAtRunner": {
+    "cmd": "pnpm uc018:adv:prove",
+    "exit": 0,
+    "timePT": "2026-09-23 20:46:51 PT",
+    "headSha": "4224e7386cb19b6bc948a24e76c2ae5ecd44a53a",
+    "headShaShort": "4224e73",
+    "runnerCommitSha": "4a8a085ba31400b389b288e42557324a769cb5af",
+    "runnerCommitShaShort": "4a8a085",
+    "porcelain": "clean",
+    "note": "Prior EXIT=1 was env (no node_modules \u2192 isolated_postgres_database_not_ready). Re-ran after pnpm install --frozen-lockfile; node_modules gitignored; docker used ephemeral PG 127.0.0.1:32946 (no stop of Line B/C HA/mysql containers). scripts/ unchanged vs 4a8a085.",
+    "isolatedPg": "meetwise-e2e-1659538-1790221592450 on 127.0.0.1:32946",
+    "localReceipt": ".tmp/isolated-proof-receipts/2026-09-24T03-46-41-565Z-1659538-598eab1f-f5e8-4146-8611-5abc2dc9de09.json"
+  }
 }
