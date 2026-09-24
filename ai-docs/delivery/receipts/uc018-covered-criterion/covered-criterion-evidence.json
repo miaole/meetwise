@@ -3,7 +3,7 @@
   "gap": "GAP-UC018-COVERED-CRITERION",
   "command": "pnpm uc018:covered-criterion:prove",
   "exit": 0,
-  "runnerCommitSha": "476d1fd259c4ba80a378d441b28626d44b0be4c2",
+  "runnerCommitSha": "22790a8dfb23604c4f47574b91d178e737f946a5",
   "boundPinId": "waiting_user-CAS",
   "refuseEnum": [
     "PERF-LOCAL-ONLY",
@@ -86,6 +86,15 @@
       ]
     },
     {
+      "id": "FX-DUAL-HTML-ML",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "MISSING-DUAL"
+      ]
+    },
+    {
       "id": "FX-DUAL-ONE",
       "ok": true,
       "expectedFlip": false,
@@ -132,6 +141,15 @@
     },
     {
       "id": "FX-DUAL-UNBALANCED-BOLD",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "MISSING-DUAL"
+      ]
+    },
+    {
+      "id": "FX-DUAL-UNTERMINATED-FENCE",
       "ok": true,
       "expectedFlip": false,
       "gotFlip": false,
@@ -616,7 +634,7 @@
     }
   ],
   "businessPathMet": true,
-  "datePT": "9/23/2026, 9:10:25 PM PT",
+  "datePT": "9/23/2026, 9:13:27 PM PT",
   "haStatus": "NOT_HA",
   "releaseEvidence": false,
   "claimProductionHA": false,
@@ -687,7 +705,7 @@
       "file": "assertCleanPorcelain"
     }
   ],
-  "fixRound": "fix-round-5-last-line-verdict-html-defense",
+  "fixRound": "fix-round-5b-unterminated-fence-html-ml-author-limit",
   "mutationSummary": {
     "total": 423,
     "falseCount": 423,
@@ -713,100 +731,42 @@
     "allowlistHits": 45
   },
   "dualParse": {
-    "marker": "/^(\\*\\*)?Verdict: (PASS|FAIL)(\\*\\*)?$/ last-non-empty-line only; HTML comment defense",
+    "marker": "/^(\\*\\*)?Verdict: (PASS|FAIL)(\\*\\*)?$/ last-non-empty-line; HTML comment + unterminated fence defenses",
     "roleFrom": "path suffix -mw-e2e-ha.md / -mw-rag-route.md only",
     "realE2eHaCoveredCriterionPostProve": "must not be PASS (trailing commentary / no strict EOL marker after retract)"
   },
   "rangeDisclosure": {
-    "note": "Line A evidence = individual commits only",
-    "lineA": [
-      "4e39b783e7bc1b7d6ef8242f471c67379257965d",
-      "476d1fd259c4ba80a378d441b28626d44b0be4c2"
+    "note": "4a8a085..4706c4b on origin may include other lines product commits; Line A evidence = individual commits only",
+    "lineACommitsExample": [
+      "4a8a085",
+      "4224e73",
+      "4706c4b"
     ],
-    "otherLinesSince585006b": [
+    "missingRangeShasDisclosed": [
       {
-        "sha": "e09d56e",
-        "subject": "fix(e2e): conservative min cellStatus for UC-E2E-050\u2013052 cite"
+        "sha": "fc8429c",
+        "line": "C",
+        "subjectHint": "fix(g7): repair run-e2e module syntax and force free-first pins"
       },
       {
-        "sha": "b55b222",
-        "subject": "docs(matrix): fix 050\u2013052 NEG residual to partial/honesty-pin"
-      },
-      {
-        "sha": "89ae929",
-        "subject": "fix(e2e): cite rowIdVariants only swap digit-range separators"
-      },
-      {
-        "sha": "4ebdc28",
-        "subject": "fix(e2e): exact matrix row-id cite (UC-E2E-050\u2013052)"
-      },
-      {
-        "sha": "d147ea1",
-        "subject": "docs(matrix): annotate UC-E2E-050\u2013052 cells UC-052-only (Line B)"
-      },
-      {
-        "sha": "2bc9da9",
-        "subject": "review(e2e): UC-052 checkpoint physical pre-exec FAIL"
-      },
-      {
-        "sha": "c0f0a51",
-        "subject": "review(privacy): UC052 checkpoint-physical pre-exec FAIL"
-      },
-      {
-        "sha": "f4abf1b",
-        "subject": "review(uc018-covered-criterion): mw-rag-route re-review r4 FAIL"
-      },
-      {
-        "sha": "09af271",
-        "subject": "review(e2e): UC018 covered-criterion r4 FAIL (mw-e2e-ha)"
+        "sha": "41cffea",
+        "line": "B",
+        "subjectHint": "docs(privacy): REQUEST UC-052 checkpoint physical (Line B L0)"
       }
+    ],
+    "priorCRangeProduct": [
+      "994e83a",
+      "9e55109",
+      "3c4847a",
+      "8602cea"
     ]
   },
   "pendingNailGaps": [
     "GAP-UC018-RECEIPT-BACKFILL"
   ],
   "receiptBackfillNote": "GAP-UC018-RECEIPT-BACKFILL deferred to nail-time (Ban hand-writing JSON from prose)",
-  "siblingProves": [
-    {
-      "cmd": "pnpm uc018:covered-criterion:prove",
-      "exit": 0,
-      "runs": 2,
-      "timePT": "2026-09-23 21:10:48 PT",
-      "runnerCommitSha": "476d1fd259c4ba80a378d441b28626d44b0be4c2"
-    },
-    {
-      "cmd": "pnpm uc018:covered-lift-reassess:prove",
-      "exit": 0,
-      "timePT": "2026-09-23 21:10:48 PT",
-      "runnerCommitSha": "476d1fd259c4ba80a378d441b28626d44b0be4c2"
-    },
-    {
-      "cmd": "pnpm uc018:adv:prove",
-      "exit": 0,
-      "timePT": "2026-09-23 21:10:48 PT",
-      "runnerCommitSha": "476d1fd259c4ba80a378d441b28626d44b0be4c2"
-    },
-    {
-      "cmd": "pnpm eval-harness-matrix-cite:prove",
-      "exit": 0,
-      "timePT": "2026-09-23 21:10:48 PT",
-      "runnerCommitSha": "476d1fd259c4ba80a378d441b28626d44b0be4c2",
-      "citeScriptTip": "e09d56e"
-    }
-  ],
-  "parserRule": {
-    "regex": "/^(\\*\\*)?Verdict: (PASS|FAIL)(\\*\\*)?$/",
-    "scope": "last non-empty line only (trim trailing ws/CR)",
-    "bold": "balanced both-or-neither",
-    "htmlDefense": "unclosed <!-- OR Verdict: PASS|FAIL inside <!--...--> \u21d2 null",
-    "removed": "stripMarkdownNonProse fence/quote/indent stripping (no-op stub retained)"
+  "knownLimit": {
+    "gitAuthorRoleBinding": "path-suffix + git log author is tamper-evident in review only, not cryptographic; spoofable via git -c user.name/user.email"
   },
-  "dualColumnDelta": {
-    "NEG": "MISSING-DUAL (sole last-line not Verdict)",
-    "BOUND": "MISSING-DUAL",
-    "ADV": "MISSING-DUAL",
-    "FAULT": "MISSING-DUAL (graph last-line not Verdict)",
-    "PERF": "MISSING-DUAL",
-    "LOAD": "MISSING-DUAL"
-  }
+  "stubRemoved": "stripMarkdownNonProse"
 }

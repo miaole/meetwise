@@ -399,7 +399,7 @@ coveredCount=**8** · haStatus=**NOT_HA** · releaseEvidence=**false** · claimP
 | cite script | ran `e09d56e` on origin (Line B) |
 | Missing range SHAs (disclose) | `fc8429c` (Line C) · `41cffea` (Line B) · plus prior C-RANGE-PRODUCT list `994e83a` / `9e55109` / `3c4847a` / `8602cea` (+ g7) · Line A = individual commits only |
 
-## Fix round 5b · unterminated fence + HTML-ML · (runner SHA after this commit)
+## Fix round 5b · unterminated fence + HTML-ML · runner `22790a8`
 
 | Item | Result |
 | --- | --- |
