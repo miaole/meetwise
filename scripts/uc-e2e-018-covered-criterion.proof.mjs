@@ -41,7 +41,6 @@ import {
   roleFromReviewPath,
   dualFromReviewFiles,
   pickExitFromReceipt,
-  stripMarkdownNonProse,
   latestCommitAuthor,
   authorMatchesRole,
 } from './lib/uc-covered-real-gatherer.mjs';
@@ -182,7 +181,7 @@ const fixtureIds = readdirSync(fixtureDir)
   .filter((f) => f.endsWith('.input.json'))
   .map((f) => f.replace(/\.input\.json$/, ''))
   .sort();
-if (fixtureIds.length < 28) fail(`expected ≥28 fixtures, got ${fixtureIds.length}`);
+if (fixtureIds.length < 33) fail(`expected ≥33 fixtures, got ${fixtureIds.length}`);
 
 for (const id of fixtureIds) {
   const input = JSON.parse(read(join(fixtureDir, `${id}.input.json`)));
@@ -454,6 +453,27 @@ function setPath(root, path, mode) {
   if (parseReviewFileVerdict(quoted) != null) fail(`FX-DUAL-QUOTED got ${parseReviewFileVerdict(quoted)} want null`);
   else pass('FX-DUAL-QUOTED: PASS only in blockquote ⇒ null (not met)');
 
+  const htmlMultiline = read(join(dualFix, 'FX-DUAL-HTML-COMMENT-MULTILINE.md'));
+  const hidden = read(join(dualFix, 'FX-DUAL-HIDDEN-PASS-AFTER-FAIL.md'));
+  const trailing = read(join(dualFix, 'FX-DUAL-TRAILING-TEXT.md'));
+  const details = read(join(dualFix, 'FX-DUAL-DETAILS-BLOCK.md'));
+  const unbalanced = read(join(dualFix, 'FX-DUAL-UNBALANCED-BOLD.md'));
+  for (const [label, text] of [
+    ['FX-DUAL-HTML-COMMENT-MULTILINE', htmlMultiline],
+    ['FX-DUAL-HIDDEN-PASS-AFTER-FAIL', hidden],
+    ['FX-DUAL-TRAILING-TEXT', trailing],
+    ['FX-DUAL-DETAILS-BLOCK', details],
+    ['FX-DUAL-UNBALANCED-BOLD', unbalanced],
+  ]) {
+    const v = parseReviewFileVerdict(text);
+    if (v != null) fail(`${label} got ${v} want null (last-line-only + HTML defense)`);
+    else pass(`${label}: null (not met)`);
+  }
+  // blocker repro from mw-rag-route f4abf1b
+  if (parseReviewFileVerdict('Verdict: FAIL\n<!--\nVerdict: PASS\n-->') != null) {
+    fail('HTML multiline comment still parsed a verdict');
+  } else pass('blocker repro: Verdict FAIL + HTML-comment PASS ⇒ null');
+
   // C-ALLPASS-EXIT0
   if (pickExitFromReceipt({ allPass: true }, 'uc018:x:prove') != null) {
     fail('allPass:true without exit must yield null exit');
@@ -669,10 +689,10 @@ const evidence = {
     { field: 'gapClosedInText', before: '已关/CLOSED matched under 不得写已关 / Ban / 禁止', after: 'banNear window skips negation/prohibition', file: 'gapClosedInText' },
     { field: 'porcelain', before: 'no check', after: 'non-empty porcelain → DIRTY_TREE refuse', file: 'assertCleanPorcelain' },
   ],
-  fixRound: 'fix-round-4-invariant-fence-verifiedSha-allPass-author-liftDirty',
+  fixRound: 'fix-round-5-last-line-verdict-html-defense',
   mutationSummary: globalThis.__uc018MutationSummary || null,
   dualParse: {
-    marker: '/^(?:\\*\\*)?Verdict(?:\\*\\*)?:\\s*(?:\\*\\*)?(PASS|FAIL)(?:\\*\\*)?\\s*$/m',
+    marker: '/^(\\*\\*)?Verdict: (PASS|FAIL)(\\*\\*)?$/ last-non-empty-line only; HTML comment defense',
     roleFrom: 'path suffix -mw-e2e-ha.md / -mw-rag-route.md only',
     realE2eHaCoveredCriterionPostProve: 'must not be PASS (trailing commentary / no strict EOL marker after retract)',
   },

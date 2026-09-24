@@ -1,8 +1,5 @@
 # Review fixture FX-DUAL-FENCED
-Prose has no verdict.
-
 ```text
-**Verdict**: **PASS**
+Verdict: PASS
 ```
-
-Only fenced PASS above.
+Only fenced PASS above — last line is not Verdict.
