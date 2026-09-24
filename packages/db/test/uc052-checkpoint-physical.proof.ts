@@ -527,13 +527,13 @@ async function main() {
     const before = await ckptCounts(iv);
     const result = await erase({ threadId: iv, keyHash: nextHash(), epoch: 12 });
     const after = await ckptCounts(iv);
-    const sinks = new Set(result.targets.map((t) => t.sink));
-    // C-NO-DIGEST-TRIM / C5: full set retained
+    const sinkNames = result.targets.map((t) => String(t.sink));
+    // C-NO-DIGEST-TRIM / C5: full set retained (includes interview_job_payload from begin)
     const expectedSinks = ['checkpoint_rows', 'interview_job_payload', 'oss', 'redis', 'langfuse'];
-    const fullSet = expectedSinks.every((s) => sinks.has(s));
-    const ckpt = result.targets.find((t) => t.sink === 'checkpoint_rows');
+    const fullSet = expectedSinks.every((s) => sinkNames.includes(s));
+    const ckpt = result.targets.find((t) => String(t.sink) === 'checkpoint_rows');
     const externalsOk = ['oss', 'redis', 'langfuse'].every(
-      (s) => result.targets.find((t) => t.sink === s)?.status === 'retention_pending');
+      (s) => result.targets.find((t) => String(t.sink) === s)?.status === 'retention_pending');
     // migrations table untouched (not per-thread)
     const mig = await admin.query<{ n: string }>(`SELECT count(*)::text AS n FROM checkpoint_migrations`);
     A(id,
@@ -545,7 +545,7 @@ async function main() {
       && !bannedTerminal(result.requestStatus)
       && fullSet && externalsOk
       && Number(mig.rows[0]?.n) >= 0,
-      `before=${JSON.stringify(before)} after=${JSON.stringify(after)} deleted=${result.deletedCount} req=${result.requestStatus} sinks=${[...sinks].sort().join(',')}`);
+      `before=${JSON.stringify(before)} after=${JSON.stringify(after)} deleted=${result.deletedCount} req=${result.requestStatus} sinks=${[...sinkNames].sort().join(',')}`);
   }
 
   /* ── C-CASECOUNT ── */
