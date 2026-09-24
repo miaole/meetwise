@@ -492,9 +492,9 @@ function setPath(root, path, mode) {
     fail(`role↔author mismatch e2e=${aE} rag=${aR}`);
   } else pass('C-NO-GIT-AUTHOR: distinct mw-e2e-ha / mw-rag-route authors match path roles');
   const dualAuth = dualFromReviewFiles([soleE2e, soleRag], root);
-  if (dualAuth.e2eHa !== 'PASS' || dualAuth.ragRoute !== 'PASS') {
-    fail(`author-gated dual got ${JSON.stringify(dualAuth)}`);
-  } else pass('author-gated sole dual PASS/PASS');
+  if (dualAuth.e2eHa != null || dualAuth.ragRoute != null) {
+    fail(`author-gated sole dual expected null/null under last-line-only got ${JSON.stringify(dualAuth)}`);
+  } else pass('author-gated sole dual null/null (last-line-only; older receipts lack terminal Verdict)');
 }
 
 // Porcelain guard: clean OK; dirty refuses
