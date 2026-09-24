@@ -42,9 +42,20 @@ Dual PASS ≠ coding ≠ covered ≠ nail · alone ≠ dual · 不代签 peers�
 | 10 | Read harness + slice + receipt stub + matrix §0.5/§1.0/§1.1 + W2 sizing + W0 §2 + `testing/e2e-performance-evidence.md` §3 | 0（read-only） |
 | 11 | `rg` sizing / PERF / reason / UC-018（matrix + harnesses） | 0 |
 | 12 | `find` sizing / matrix paths | 0 |
-| 13 | （本收据 commit / push 见文末 verify） | — |
+| 13 | `git add` **only** e2e-ha receipt · `git commit`（intended sole file） | 0（**race**: index 已 staged peer `mw-rag-route` receipt → commit `9477046` **2 files** · Ban forge peer intent） |
+| 14 | `git pull --rebase origin feat/mysql-schema-skeleton` | 0 |
+| 15 | `git push origin HEAD` → `5afd399..9477046` | 0 |
+| 16 | `git log -1 --format='%H %an <%ae> %s'` @ `9477046` | 0（**honesty pin**: `%an` 被共享盒并发写成 `mw-rag-route` · subject 为本审 PASS · **e2e-ha 正文 = 本专家** · rag-route 正文 = peer · alone≠dual · 不代签） |
+| 17 | `git branch -r --contains HEAD` → `origin/feat/mysql-schema-skeleton` | 0 |
+| 18 | 本 follow-up：`git config user.name/email mw-e2e-ha` 重钉 · **仅** amend-note 本收据 attribution · **不**改 peer 文件 · **不** force-push | 0（本 commit） |
 
-**未执行**：coding · prove · `pnpm uc018:*` · 任何实现写 · 未读 `.env*` · 未碰 Meridian。
+**未执行**：coding · prove · `pnpm uc018:*` · 任何实现写 · 未读 `.env*` · 未碰 Meridian · **未** force-push。
+
+### Attribution honesty（共享盒竞态 · 非假签）
+
+- Receipt SHA **`9477046`** / full `94770465cb08fd4f6c90e7e649037325d29df131` 同时落地了本审 + peer `mw-rag-route` 收据（index 竞态），`%an` 显示 `mw-rag-route`。
+- **本文件正文作者 = `mw-e2e-ha`**；peer 文件正文作者 = `mw-rag-route`。Subject `…PASS (mw-e2e-ha)` **不**代表代写/代签 peer。
+- alone ≠ dual · Dual PASS ≠ coding ≠ covered ≠ nail。后续 commit 仅纠本收据 CMD 表，不改 peer 内容。
 
 ---
 
@@ -148,4 +159,4 @@ NEG/FAULT/ADV 有具名 NHP（NHP-018-NEG-01 / FAULT-01 / ADV-01）。BOUND 稍�
 2. sizing SSOT **存在**（W2 2c4g/4c8g + W0 §2）；容量代表环境可经后续云刀达到，但 coding 须防「本地 2c4g 数字撞 W2」洗白。  
 3. 无阻塞；条件含 reason enum、constant-TRUE/反重言守卫、以及 prove 时真实矩阵须算出 false+PERF-LOCAL-ONLY；本刀不翻 coveredCount=8。
 
-*mw-e2e-ha · pre-exec · 2026-09-23 (~20:09 PT) · tip 5afd399 · PASS · 无阻塞*
+*mw-e2e-ha · pre-exec · 2026-09-23 (~20:09 PT) · tip 5afd399 · receipt 9477046 (+attribution follow-up) · PASS · 无阻塞 · on-origin YES*
