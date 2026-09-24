@@ -187,3 +187,117 @@ Ban invent covered · Ban self-nail · Ban secrets/.env* · Ban Meridian · Ban 
 - 更正本档前文：本档对「gatherer capacity hardcode」只有一行描述，没有定性。现在定性为**真实路径常量 + 若干反保守字面量**。
 
 Pins 不变：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · UC-018/§1.1 partial · alone≠dual。
+
+---
+
+## 追加（append-only · 2026-09-23 ~20:36 PT · mw-e2e-ha）· C-GATHERER-REAL-INPUT fix-round 再审 @45a7bc1 / runner ca1c8a5
+
+**Agent**: mw-e2e-ha（adversarial · POST-PROVE RE-REVIEW · C-GATHERER-REAL-INPUT）  
+**Tips**: runner `ca1c8a5` / full `ca1c8a5b6848e0237a5f405113fc1dc4ed526e5d` · receipts tip `45a7bc1` / full `45a7bc1f829bde75bf6a4afdae4ed74387571bee`  
+**Ancestry**: `git merge-base --is-ancestor ca1c8a5 45a7bc1` EXIT=0 · both on `origin/feat/mysql-schema-skeleton`  
+**Verdict（本追加）**: **PASS** · C-GATHERER-REAL-INPUT **CLOSE** · CONDITIONS（非阻塞）· **≠** UC-E2E-018 covered · alone≠dual · 不代签 peer
+
+### Tips / diff claim
+
+| Check | Result |
+|-------|--------|
+| `ca1c8a5` ancestor of `45a7bc1` | **YES** EXIT=0 |
+| both on origin | **YES** `origin/feat/mysql-schema-skeleton` |
+| `git diff ca1c8a5 45a7bc1 --stat` docs/receipts only? | **NO** · 5 files: harness+slice+2 receipts **+** `packages/db/test/privacy-authorization.proof.ts`（+5 lines lease target digest 同构）· **disclose**: tip message `docs(e2e):…` 不完全准确 |
+| tracked receipt `runnerCommitSha` @45a7bc1 | **`ca1c8a5b6848e0237a5f405113fc1dc4ed526e5d`** · MATCH runner |
+| worktree | `git worktree add /workspace/mw-review-45a7bc1 45a7bc1` · `pnpm install --frozen-lockfile` EXIT=0 · removed after |
+
+### CMD|EXIT（this session · worktree unless noted）
+
+| CMD | EXIT | Key output |
+|-----|------|------------|
+| `git fetch` | **0** | — |
+| `git rev-parse ca1c8a5` / `45a7bc1` | **0** / **0** | tips exist |
+| `git merge-base --is-ancestor ca1c8a5 45a7bc1` | **0** | ancestor OK |
+| `pnpm install --frozen-lockfile` | **0** | lockfile up to date |
+| `pnpm uc018:covered-criterion:prove` | **0** | FX-ALL-MET true · FX-STUB-STACK/FX-PROVE-FAIL PASS · guards PASS · gatherer-literal PASS · **REAL** `canHonestlyFlip=false` reasons=`STATUS-NOT-COVERED,UNCOMMITTED-RUNNER,MISSING-DUAL,CASE-ONLY,PROVE-FAIL,MISSING-RECEIPT,IMPL-ONLY,PERF-LOCAL-ONLY,OPEN-GAP` · businessPathMet=true · real-input neg drop-ADV-exit→PROVE-FAIL · nonexistent-ADV-sha→UNCOMMITTED-RUNNER |
+| `pnpm uc018:covered-lift-reassess:prove` | **0** | canHonestlyFlip=false · refuse PERF-LOCAL-ONLY · matrix UC-018 **partial** |
+| `pnpm uc018:adv:prove` | **0** | 76 ADV PASS · isolated PG ready this run（no flake）· ADV alone ≠ covered |
+| `pnpm eval-harness-matrix-cite:prove` | **0** | UC-E2E-018 **partial**（not covered） |
+| `git status --porcelain`（after proves） | **0**（cmd） · dirty=2 | **only** tracked evidence self-writes: `uc018-covered-criterion/covered-criterion-evidence.json` + `…covered-lift-reassess-evidence.json` · **no** scripts/package.json/packages dirty |
+| capacity probe `isCapacityRepresentative({capacityRepresentative:true,targetEnv:'docker-isolated',…}, dual both)` | — | **false** · PERF/LOAD still PERF-LOCAL-ONLY |
+| `git worktree remove` | **0** | cleaned |
+
+Per-column REAL reasons（session）:
+- **NEG**: STATUS-NOT-COVERED, UNCOMMITTED-RUNNER, MISSING-DUAL · exit=0 · gitSha=null · dual null · sole receipt present · stack from soleStack
+- **FAULT**: CASE-ONLY, UNCOMMITTED-RUNNER, PROVE-FAIL, MISSING-DUAL, MISSING-RECEIPT · receipt=null
+- **BOUND**: STATUS-NOT-COVERED, UNCOMMITTED-RUNNER, MISSING-DUAL · same sole receipt as NEG
+- **ADV**: STATUS-NOT-COVERED only · exit=0 · gitSha=bdc5993（harness tip）· dual PASS/PASS · committed=true
+- **PERF/LOAD**: STATUS-NOT-COVERED, UNCOMMITTED-RUNNER, IMPL-ONLY, PERF-LOCAL-ONLY · targetEnv=docker-isolated（from caps.method）· implementerOnly=true
+
+### Literal-by-literal（former C-GATHERER nails · `git show ca1c8a5:scripts/lib/uc-covered-real-gatherer.mjs`）
+
+| Former literal | Now sourced from | Fail-closed if missing? | Cite |
+|----------------|------------------|-------------------------|------|
+| `targetEnv='docker-isolated'` by isPerfLoad | `pickTargetEnv(receipt)` · receipt.targetEnv/envClass/environment/env **or** derive caps.method `/docker/i` → docker-isolated · **never invent staging/prod** | null → local via evaluator `isLocalEnv` | gatherer `:137–148`, `:294` |
+| `capacityRepresentative=false` hardcoded | `pickCapacityRepresentative` · only true if receipt claim true；else `capacityClaim===true` → false | absent → false（not invent true） | `:149–156`, `:295–298` |
+| `exit` default 0 if NHP row | receipt `exit`/`exitCode`/`exits[cmd]`/`allPass`；receipt present+missing exit → **null**；harness CMD\|EXIT **only if receipt absent** | null → evaluator PROVE-FAIL `:147–149` | gatherer `:166–174`, `:299–301` · evaluator `:147–151` |
+| `committed:true` / `shaMatchesCommitted:true` | `shaFlags` ← `git cat-file -e <sha>^{commit}` + `git merge-base --is-ancestor <sha> HEAD`（cwd=root） | no sha → committed=false uncommitted=true → UNCOMMITTED-RUNNER | `:122–135`, `:235–245`, `:305–311` · evaluator `:140–145` |
+| `stack.postgres:true` etc literals | `pickStack` ← receipt.stack **or** parse soleStack string | absent → undefined fields（see remaining hunt） | `:181–214`, `:312` |
+| `present:true` | `receiptPresent = receipt != null` | missing → present=false → MISSING-RECEIPT | `:292`, `:333–334` · evaluator `:175–176` |
+| literal gitSha bdc5993/b29c191 | `pickGitSha(receipt)` then harness `parseProveTipSha` | null → UNCOMMITTED-RUNNER | `:176–179`, `:108–119`, `:302–304` |
+| dual from harness regex | ADV/PERF/LOAD: `dualFromReviewFiles` reading reviews/ PASS markers；NEG/FAULT/BOUND: **hardcoded `{e2eHa:null,ragRoute:null}`** | null dual → MISSING-DUAL | `:216–234`, `:281–288`, `:356/:366/:376` |
+| implementerOnly regex | receipt.implementerOnly **or** label/README `/not evidence of record\|implementer pre-commit\|uncommitted runner/i` | forces uncommitted + eor=false | `:157–164`, `:306–310` |
+| evidenceOfRecord | receipt fields；**soft default** `!implementerOnly && receipt!=null` if absent | implementerOnly → false | `:161–164` |
+| businessPathMet | `gapClosedInText`（CLOSED-before/after + 已关） | false → S11-NOT-MET；session **true** | `:85–95`, `:417–422` |
+
+### Remaining-literal / soft-default hunt
+
+| Finding | Severity | Note |
+|---------|----------|------|
+| NEG/FAULT/BOUND `dual: { e2eHa: null, ragRoute: null }` literals `:356/:366/:376` | CONDITION | Fail-closed（MISSING-DUAL）· **not** invent PASS；但 SOLE post-prove dual markdown **存在**（`…sole-stack-pg-retained-post-prove-mw-e2e-ha.md` / `…mw-rag-route.md` · Verdict PASS）— gatherer **未接线** · ≠「证据不存在」 |
+| `evidenceOfRecord` soft default true when receipt present `:162` | CONDITION | Prefer absent→false fail-closed |
+| Header claim「absent stack → STUB-STACK」vs evaluator `postgres===false` only `:163–169` | CONDITION | undefined stack **does not** trip STUB-STACK（ADV stack={} this run still only STATUS-NOT-COVERED） |
+| **No `git status --porcelain` check** in gatherer/prove | CONDITION vs original C-GATHERER 文案「工作树干净」 | git ancestor checks **are** real；porcelain check **absent** in code · reviewer porcelain after prove = evidence self-write only |
+| No remaining `committed:true` / `present:true` / `capacityRepresentative=false` object literals in `gatherRealUc018` body | OK | guardGathererLiterals PASS |
+| No hardcoded PASS/SHAs on real column path | OK | dual PASS only from review file parse |
+
+### Rulings · new fail-closed reasons
+
+1. **UNCOMMITTED-RUNNER（NEG/BOUND）** — **correct fail-closed · evidence not machine-readable for SHA**（非 gatherer「找错字段」的纯 bug）。sole JSON **存在**但 **无** `gitSha`/`proveTip`/`runnerCommitSha`/`commitSha`；parent harness 有 CMD\|EXIT=0 但无 parseable `**Prove tip**:` → gitSha=null → uncommitted。同批 FULL-E2E/GRAPH/TTL/UI JSON 同样缺 SHA 字段。**≠** markdown 不存在（reviews/ 有 dual）。
+2. **MISSING-DUAL（NEG/BOUND）** — **mixed**：evaluator 对 null dual → MISSING-DUAL **正确**；但 gatherer **硬编码** dual=null，**未读**已存在的 SOLE dual reviews → 报告「证据缺 dual」偏「未接线 / 非机器可读 dual 字段」，不是「reviews 目录空」。FAULT 同（无 FAULT receipt）。
+3. **PROVE-FAIL + MISSING-RECEIPT（FAULT）** — **correct**：FAULT `receipt:null` · exit null · case-only · 无机器可读 FAULT prove 回执。
+4. **GAP-UC018-RECEIPT-BACKFILL** — **应登记**于本 nail（CONDITION / follow-on）。**Backfill 必须另开 knife**（双审）· 在**记录的 prove SHA** 复跑 proves 生成机器可读 JSON（gitSha/exit/stack/dual/targetEnv/capacityRepresentative）· **Ban** 从旧 prose 手写 JSON 转录。nail 只登记 gap + 契约字段名；不在本 gatherer 刀内偷写历史回执。
+
+### Blockers vs CONDITIONS
+
+**Blockers: 无。** C-GATHERER-REAL-INPUT 原钉（真实路径字面量 invent true/0/committed）已移除；缺失 fail-closed；real-input negatives 在 temp copies 断言具体 reason；anti-tautology / constant-TRUE/FALSE / b29c191 trip / gatherer-literal / FX-STUB-STACK+FX-PROVE-FAIL / businessPathMet fix / capacity+docker still false — 全部本会话验证。
+
+**CONDITIONS（非阻塞）**:
+1. 登记 **GAP-UC018-RECEIPT-BACKFILL**（nail）· backfill **own knife** + dual · Ban hand-write JSON from prose。
+2. 可选：NEG/BOUND 接线 SOLE dual review 文件（或要求 sole receipt.dual 机器字段）— 区分「未接线」vs「证据缺」。
+3. `evidenceOfRecord` 缺省改为 fail-closed false；stack absent → 显式 STUB-STACK（与 header 一致）或改 header。
+4. 补 porcelain-clean 检查 **或** 收窄 C-GATHERER 文案（当前仅 ancestor，无 porcelain）。
+5. disclose：`45a7bc1` 含 `privacy-authorization.proof.ts` · 非纯 docs/receipts。
+6. harness 仍列 `GAP-UC018-COVERED-CRITERION` open → REAL reasons 含 OPEN-GAP（self-ref · 钉死后关）· 可接受。
+
+### Pins（restated）
+
+| Pin | Value |
+|-----|-------|
+| haStatus | **NOT_HA** |
+| releaseEvidence | **false** |
+| claimProductionHA | **false** |
+| gR45Closed | **true** |
+| coveredCount | **8** |
+| ms3EqualsR4Closed | **false** |
+| stack | **PG-retained** |
+| UC-018 / §1.1 | **partial** · not flipped |
+
+Ban invent covered · Ban self-nail · Ban .env* · Ban Meridian · alone≠dual · Dual PASS ≠ covered ≠ nail · 不代签 peer。
+
+### Verdict
+
+**PASS** · **C-GATHERER-REAL-INPUT CLOSED** · CONDITIONS above · REAL still false with MORE fail-closed reasons（诚实）· **≠** UC covered。
+
+### 三行中文摘要
+1. worktree@45a7bc1 四 prove 全 EXIT=0（含 ADV）；收据 runnerCommitSha=ca1c8a5；真实 verdict 仍 false，且多了 UNCOMMITTED-RUNNER/MISSING-DUAL/PROVE-FAIL/MISSING-RECEIPT（fail-closed）。  
+2. 亲读 gatherer：旧字面量已改为回执+git；缺 exit/sha → PROVE-FAIL/UNCOMMITTED；docker+capacityRepresentative:true 仍 false；neg 在临时副本断言通过；仍有 dual=null 硬编码、eor 软默认、无 porcelain 检查、45a7bc1 夹带 privacy proof.ts。  
+3. 裁定 **PASS（C-GATHERER 关闭）**· 登记 GAP-UC018-RECEIPT-BACKFILL 作 follow-on 刀（禁手写 JSON）· pins 不变 · alone≠dual。
+
+*Receipt append · mw-e2e-ha · C-GATHERER-REAL-INPUT re-review · 2026-09-23 ~20:36 PT · PASS @45a7bc1 / ca1c8a5 · STOP*
