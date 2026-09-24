@@ -142,7 +142,8 @@ export interface RunAuthorizedInterviewErasureInput {
   /** Already-committed begin + attachExternal result. */
   preBegun: { requestId: string; privacyEpoch: number };
   issue: (fn: (c: Client) => Promise<void>) => Promise<void>;
-  consumeClient: Client;
+  /** Short-lived executor txn around consume only (avoid idle-in-transaction timeout). */
+  consume: <T>(fn: (c: Client) => Promise<T>) => Promise<T>;
   asWorkerPrincipal: <T>(owner: string, fn: (c: Client) => Promise<T>) => Promise<T>;
   admin: Client;
   owner: string;
@@ -158,7 +159,7 @@ export async function runAuthorizedInterviewErasure(
   input: RunAuthorizedInterviewErasureInput,
 ): Promise<Uc052InternalErasureResult> {
   const {
-    preBegun, issue, consumeClient, asWorkerPrincipal, admin,
+    preBegun, issue, consume, asWorkerPrincipal, admin,
     owner, interviewId, keys, workerId,
     nowSec = Math.floor(Date.now() / 1000), ttlSec = 600, failSink,
   } = input;
@@ -201,7 +202,7 @@ export async function runAuthorizedInterviewErasure(
     throw Object.assign(new Error('uc052_jws_verify_failed'), { code: 'uc052_jws_verify_failed' });
   }
 
-  await consumeAuthorizationSnapshotBound(consumeClient, verified, workerId);
+  await consume((c) => consumeAuthorizationSnapshotBound(c, verified, workerId));
 
   const purgedLocalSinks: string[] = [];
   for (const t of sealedTargets) {

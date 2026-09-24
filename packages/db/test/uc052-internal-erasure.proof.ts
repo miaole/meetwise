@@ -145,21 +145,19 @@ async function erase(opts: {
   const begun = await asPrincipal(admin, o, (c) =>
     beginInterviewProjectionErasure(c, opts.interviewId, opts.keyHash, opts.epoch));
   await attachExternalRetentionPendingTargets(admin, begun.requestId, opts.interviewId, opts.keyHash);
-  // Phase 2: authorize + purge
-  return asPrivacyWorkerExecutor(admin, async (consumeClient) => {
-    return runAuthorizedInterviewErasure({
-      preBegun: { requestId: begun.requestId, privacyEpoch: opts.epoch },
-      issue: (fn) => asIssuer(o, fn),
-      consumeClient,
-      asWorkerPrincipal: (own, fn) => asPrivacyWorkerPrincipal(admin, own, fn),
-      admin,
-      owner: o,
-      interviewId: opts.interviewId,
-      keys,
-      workerId: worker,
-      nowSec: NOW_SEC,
-      failSink: opts.failSink,
-    });
+  // Phase 2: authorize + purge (consume opens its own short executor txn)
+  return runAuthorizedInterviewErasure({
+    preBegun: { requestId: begun.requestId, privacyEpoch: opts.epoch },
+    issue: (fn) => asIssuer(o, fn),
+    consume: (fn) => asPrivacyWorkerExecutor(admin, fn),
+    asWorkerPrincipal: (own, fn) => asPrivacyWorkerPrincipal(admin, own, fn),
+    admin,
+    owner: o,
+    interviewId: opts.interviewId,
+    keys,
+    workerId: worker,
+    nowSec: NOW_SEC,
+    failSink: opts.failSink,
   });
 }
 
@@ -445,7 +443,6 @@ async function main() {
   /* ── C-CASECOUNT ── */
   const missing = REQUIRED_CASES.filter((c) => !seen.has(c));
   A('C-CASECOUNT', missing.length === 0, missing.length ? `missing=${missing.join(',')}` : 'all present');
-  if (missing.length) failures++;
 
   // Per-sink SQL assert summary (C-SQL-PER-SINK)
   console.log(JSON.stringify({
