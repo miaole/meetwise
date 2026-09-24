@@ -22,5 +22,28 @@ export function applyLiveE2ECapabilityEnv(env) {
     if (!String(env.OCR_ENABLED ?? '').trim()) env.OCR_ENABLED = '1';
     if (!String(env.OCR_PREVIEW ?? '').trim()) env.OCR_PREVIEW = '1';
   }
+
+  // Line C G7 FreeTierOnly re-prove: free-first pins (no silent paid). When
+  // G7_FREETIER_REPROVE=1, force dashscope-cn-beijing + qwen3.8-flash free profile.
+  // Paid fallback stays OFF unless G7_PAID_FALLBACK_ENABLED=1 (still allowlist-only).
+  if (String(env.G7_FREETIER_REPROVE ?? '').trim() === '1') {
+    env.MODEL_ENDPOINT_PROFILE = 'dashscope-cn-beijing';
+    if (!String(env.MODEL_NAME ?? '').trim() || String(env.MODEL_NAME).includes('deepseek-v4-pro')) {
+      env.MODEL_NAME = String(env.G7_FREE_PRIMARY_MODEL ?? 'qwen3.8-flash').trim() || 'qwen3.8-flash';
+    }
+    if (!String(env.MODEL_FAST_NAME ?? '').trim() || String(env.MODEL_FAST_NAME).includes('deepseek-v4-pro')) {
+      env.MODEL_FAST_NAME = String(env.G7_FREE_FAST_MODEL ?? 'qwen3.8-flash').trim() || 'qwen3.8-flash';
+    }
+    if (String(env.MODEL_NAME) === 'deepseek-v4-pro' && String(env.ALLOW_DEEPSEEK_V4_PRO_TEST ?? '').trim() !== '1') {
+      throw new Error('g7_model_banned_without_approval:deepseek-v4-pro');
+    }
+    // Hard-guard for Step2 free-only runs: refuse any paid model when fallback disabled.
+    if (String(env.G7_PAID_FALLBACK_ENABLED ?? '0').trim() !== '1') {
+      const paid = new Set(['qwen-plus', 'deepseek-v4-flash', 'deepseek-v4-pro', 'qwen-turbo', 'qwen-max']);
+      if (paid.has(String(env.MODEL_NAME ?? '').trim())) {
+        throw new Error(`g7_paid_model_forbidden_while_fallback_disabled:${env.MODEL_NAME}`);
+      }
+    }
+  }
   return env;
 }

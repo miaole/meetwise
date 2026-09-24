@@ -47,7 +47,8 @@
     "langfuse:datasets:sync": "tsx scripts/sync-langfuse-datasets.ts",
     "langfuse:datasets:verify": "tsx scripts/verify-langfuse-datasets.ts",
     "langfuse:synthetic-trace:smoke": "tsx scripts/langfuse-synthetic-trace-smoke.ts",
-    "prove:model-cost": "tsx test/model-cost-governance.proof.ts"
+    "prove:model-cost": "tsx test/model-cost-governance.proof.ts",
+    "prove:g7-freetier-reprove-guard": "tsx test/g7-freetier-reprove-guard.proof.ts"
   },
   "dependencies": {
     "@langfuse/client": "5.10.0",

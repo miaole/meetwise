@@ -101,6 +101,33 @@ async function schemaMigrationManifest(repoRoot) {
  * Atomically writes one local-only receipt.  `assertionCount` is optional: a
  * missing final summary is explicit rather than guessed from source text.
  */
+
+function optionalG7Fields(input) {
+  if (!input || input.g7FreetierReprove !== true) return {};
+  const calls = Array.isArray(input.calls) ? input.calls : [];
+  for (const c of calls) {
+    if (!c || typeof c.actualModel !== 'string' || !c.actualModel.trim()) {
+      throw new Error('local_e2e_receipt_g7_actual_model_required');
+    }
+    if (c.actualModel === 'deepseek-v4-pro' && input.allowDeepseekV4ProTest !== true) {
+      throw new Error('local_e2e_receipt_g7_model_banned:deepseek-v4-pro');
+    }
+  }
+  return {
+    g7FreetierReprove: true,
+    runnerCommitSha: input.runnerCommitSha ?? null,
+    porcelainClean: input.porcelainClean === true,
+    keyFingerprint: input.keyFingerprint ?? null,
+    estimatedCostCny: input.estimatedCostCny ?? null,
+    actualSpendCny: input.actualSpendCny ?? null, // console-only; Ban fabrication
+    runCostCapCny: input.runCostCapCny ?? 5,
+    calls,
+    evidenceLabel: input.evidenceLabel ?? 'free-tier model; not production-model evidence; not perf SLO evidence',
+    asr: input.asr ?? { status: 'skip_prereq', gapId: 'GAP-MODEL-ASR-QWEN-AUDIO-TURBO-STATUS', countedAsPass: false },
+  };
+}
+
+
 export async function writeLocalE2EReceipt({
   repoRoot,
   receiptRoot,
@@ -112,6 +139,7 @@ export async function writeLocalE2EReceipt({
   assertionCount = null,
   failureClass = null,
   reviewLedger = null,
+  g7 = null,
 }) {
   assertReceiptInput({ target, outcome, exitCode, startedAt, finishedAt, assertionCount, failureClass, reviewLedger });
   const root = resolve(repoRoot);
@@ -138,6 +166,7 @@ export async function writeLocalE2EReceipt({
     schemaMigrationManifest: await schemaMigrationManifest(root),
     dataHandling: 'no_output_prompt_answer_token_endpoint_or_connection_string_persisted',
     releaseEvidence: false,
+    ...optionalG7Fields(g7),
   };
   await writeFile(temporaryPath, `${JSON.stringify(receipt, null, 2)}\n`, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
   await rename(temporaryPath, finalPath);

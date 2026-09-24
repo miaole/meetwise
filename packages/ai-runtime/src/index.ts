@@ -217,3 +217,5 @@ export type { AsrEvent, StreamingAsr, StreamingTts, StreamTurnHooks } from './vo
 export { createMetrics, setMetrics, getMetrics, registerBaselineMetrics, METRIC, type Metrics } from './metrics.ts';
 
 export { toolRegistry, runToolLoop, type Tool, type ToolRegistry, type ToolStep, type ToolDecision } from './tools.ts';
+
+export * from './g7-freetier-reprove-guard.ts';
