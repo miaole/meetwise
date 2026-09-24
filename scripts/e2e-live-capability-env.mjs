@@ -31,6 +31,14 @@ export function applyLiveE2ECapabilityEnv(env) {
     if (!String(env.G7_RUN_COST_LEDGER_PATH ?? '').trim()) {
       throw new Error('g7_cost_ledger_path_missing');
     }
+    // G7 e2e-only: R1 MEETWISE_TECH_ROLE_FAIL_CLOSED defaults ON and e2e fixtures
+    // do not write InterviewRouteSnapshot, so start dies with adaptive_role_route_missing
+    // before any model call. Opt out ONLY when G7 is on and the operator has not
+    // already set the flag — production default remains fail-closed. This is NOT
+    // R1/R2 close evidence and is disclosed on the Step3 receipt.
+    if (!String(env.MEETWISE_TECH_ROLE_FAIL_CLOSED ?? '').trim()) {
+      env.MEETWISE_TECH_ROLE_FAIL_CLOSED = '0';
+    }
     // Always pin free-first when G7 is on (no silent keep of paid MODEL_NAME).
     env.MODEL_NAME = String(env.G7_FREE_PRIMARY_MODEL ?? 'qwen3.8-flash').trim() || 'qwen3.8-flash';
     env.MODEL_FAST_NAME = String(env.G7_FREE_FAST_MODEL ?? 'qwen3.8-flash').trim() || 'qwen3.8-flash';

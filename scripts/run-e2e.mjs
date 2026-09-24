@@ -4,7 +4,7 @@
  * 用法:pnpm e2e:isolated（包装器注入 E2E_ISOLATED=1）。缺 MODEL_API_KEY 或打开假服务开关会立即失败，不会降级成假绿。
  */
 import { spawn } from 'node:child_process';
-import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { readFileSync, existsSync, mkdirSync } from 'node:fs';
 import { emitClassifiedE2EFailure, emitE2EFailure, tagE2EFailure } from '../e2e/helpers/failure-class.mjs';
 import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
 import { applyLiveE2ECapabilityEnv } from './e2e-live-capability-env.mjs';
@@ -130,23 +130,6 @@ async function main() {
     try { const r = await fetch(`${apiBase}/livez`); if (r.ok) { up = true; break; } } catch {}
   }
   if (!up) {
-    try {
-      mkdirSync(`${ROOT}/.tmp/g7-step3`, { recursive: true });
-      writeFileSync(`${ROOT}/.tmp/g7-step3/api-not-ready-debug.json`, JSON.stringify({
-        apiPort, workerMetricsPort, apiBase,
-        hasModelKey: Boolean(String(env.MODEL_API_KEY ?? '').trim()),
-        hasPgHost: Boolean(env.PGHOST), hasPgPort: Boolean(env.PGPORT),
-        pgHost: env.PGHOST ?? null, pgPort: env.PGPORT ?? null,
-        g7: env.G7_FREETIER_REPROVE ?? null,
-        ledger: Boolean(String(env.G7_RUN_COST_LEDGER_PATH ?? '').trim()),
-        modelName: env.MODEL_NAME ?? null,
-        endpointProfile: env.MODEL_ENDPOINT_PROFILE ?? null,
-        apiExit: api.exitCode, workerExit: worker.exitCode,
-        diagnostics: Object.fromEntries(processDiagnostics),
-      }, null, 2));
-    } catch (e) {
-      console.error(`G7_DEBUG_WRITE_FAILED reason=${e instanceof Error ? e.message : 'unknown'}`);
-    }
     emitE2EFailure({ class: 'api', code: 'api_not_ready' }); cleanup(); process.exit(1);
   }
   if (!(await waitForApiDatabase())) { emitE2EFailure({ class: 'db', code: 'database_not_ready' }); cleanup(); process.exit(1); }
