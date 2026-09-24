@@ -5,7 +5,7 @@
   "emittedBy": "uc018-receipt-backfill-emit",
   "ranAt": "2026-09-24T04:35:55.311Z",
   "targetSha": "549da9c13af1a87c42282122f7f11b246b4550b2",
-  "wrapperSha": "74338070c3ad6d1b96af868eb109f837c9b0958b",
+  "wrapperSha": "61c3fcb62efed6c176a2a13da58f6b95d1759aee",
   "runnerCommitSha": "549da9c13af1a87c42282122f7f11b246b4550b2",
   "gitSha": "549da9c13af1a87c42282122f7f11b246b4550b2",
   "cmd": "pnpm uc018:ttl:prove",
@@ -22,33 +22,95 @@
   "nodeVersion": "v20.19.2",
   "pnpmVersion": "10.18.0",
   "imageDigests": {
-    "pgvector/pgvector:pg16": [
-      "pgvector/pgvector@sha256:ccc6e83d6e35e931dc7c5def2022729d5a6c370318d099181995567ff1fb4d6b"
-    ],
-    "redis:7-alpine": [
-      "redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499"
-    ],
-    "minio/minio:latest": [],
-    "mailhog/mailhog:v1.0.1": [],
-    "_runningMeetwiseImages": [
-      "meetwise-backend:ha-dual-local",
-      "mysql:8.4",
-      "redis:7-alpine"
-    ]
+    "pgvector/pgvector:pg16": {
+      "imageDigest": "sha256:ccc6e83d6e35e931dc7c5def2022729d5a6c370318d099181995567ff1fb4d6b",
+      "started": true,
+      "source": "docker-inspect",
+      "cite": {
+        "logLine": 36,
+        "matched": "E2E isolated PostgreSQL: meetwise-e2e-1851117-1790224559177 on 127.0.0.1:33014",
+        "note": "run-e2e-isolated disposable PG (not docker/compose.dev.yml minio/mailhog)"
+      },
+      "logFile": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/TTL-549da9c.log"
+    },
+    "redis:7-alpine": {
+      "imageDigest": "not-started",
+      "started": false,
+      "source": "log-parse",
+      "cite": {
+        "note": "isolated e2e / sole static do not start redis:7-alpine (compose.dev declares it; not used by these proves)"
+      },
+      "logFile": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/TTL-549da9c.log"
+    },
+    "minio/minio:latest": {
+      "imageDigest": "not-started",
+      "started": false,
+      "source": "log-parse",
+      "cite": {
+        "compose": "docker/compose.dev.yml:36 image: minio/minio:latest",
+        "note": "declared in compose.dev but run-e2e-isolated does not start minio; log has no minio"
+      },
+      "logFile": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/TTL-549da9c.log"
+    },
+    "mailhog/mailhog:v1.0.1": {
+      "imageDigest": "not-started",
+      "started": false,
+      "source": "log-parse",
+      "cite": {
+        "compose": "docker/compose.dev.yml:54 image: mailhog/mailhog:v1.0.1",
+        "note": "declared in compose.dev but run-e2e-isolated does not start mailhog; log has no mailhog"
+      },
+      "logFile": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/TTL-549da9c.log"
+    }
   },
   "stack": {
-    "memorySaver": false,
-    "mysql": true,
-    "qdrant": false
+    "postgres": {
+      "value": true,
+      "source": "log-parse",
+      "logFile": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/TTL-549da9c.log",
+      "line": 36,
+      "regex": "E2E isolated PostgreSQL:",
+      "matched": "E2E isolated PostgreSQL: meetwise-e2e-1851117-1790224559177 on 127.0.0.1:33014"
+    },
+    "postgresSaver": {
+      "value": "unobserved",
+      "source": "unobserved"
+    },
+    "memorySaver": {
+      "value": "unobserved",
+      "source": "unobserved"
+    },
+    "mysql": {
+      "value": "unobserved",
+      "source": "unobserved"
+    },
+    "qdrant": {
+      "value": "unobserved",
+      "source": "unobserved"
+    }
   },
   "targetEnv": "docker-isolated",
+  "targetEnvSource": {
+    "value": "docker-isolated",
+    "source": "log-parse",
+    "logFile": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/TTL-549da9c.log",
+    "line": 36,
+    "regex": "E2E isolated PostgreSQL:"
+  },
   "capacityRepresentative": false,
+  "capacityRepresentativeSource": {
+    "value": false,
+    "source": "policy-C-PERF-CAP-PARTIAL",
+    "note": "local/docker-isolated backfill · Ban elevate · C-PERF-CAP-PARTIAL"
+  },
   "evidenceOfRecord": true,
   "implementerOnly": false,
-  "disclosure": "EOR@targetSha ≠ proven at tip (code drift). Machine-emitted backfill at recorded ancestor SHA; Ban tip-substitution; Ban hand-write JSON from prose.",
+  "disclosure": "EOR@targetSha ≠ proven at tip (code drift). Machine-emitted backfill at recorded ancestor SHA; Ban tip-substitution; Ban hand-write JSON from prose. GAP-BACKFILL-EMITTER-UNAUTHENTICATED: HMAC-free JSON+log digest pair is forgeable.",
   "waitingUser": "MISSING-EVIDENCE",
   "haStatus": "NOT_HA",
   "releaseEvidence": false,
   "claimProductionHA": false,
-  "coveredCountRetained": 8
+  "coveredCountRetained": 8,
+  "reemittedAt": "2026-09-24T04:50:35.266Z",
+  "reemitNote": "format upgrade: sourced stack + imageDigest fields from committed log; prove not re-run"
 }
