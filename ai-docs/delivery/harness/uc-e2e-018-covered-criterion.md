@@ -319,3 +319,19 @@ coveredCount=**8** · haStatus=**NOT_HA** · releaseEvidence=**false** · claimP
 
 *Fix-round · C-GATHERER-REAL-INPUT · runner `ca1c8a5` · 2026-09-23 (~20:32 PT) · Ban self-nail · STOP after push*
 
+
+## Fix round 2 (stack / EOR / exit / gapClosed / dual) · runner tip below
+
+| Item | Result |
+| --- | --- |
+| Stack rule | postgres/postgresSaver `=== true` AND memorySaver/mysql/qdrant `=== false`; else **STUB-STACK** (receipt absent → **MISSING-RECEIPT**) |
+| Fixtures | `FX-STACK-MISSING` / `FX-STACK-EMPTY` / `FX-EOR-MISSING` / `FX-EXIT-MISSING` / `FX-EXIT-ABSENT` / `FX-PROVE-FAIL` |
+| FAULT exit | null/absent → **MISSING-RECEIPT**; recorded nonzero → **PROVE-FAIL** |
+| FAULT GRAPH | wired only if tip committed+ancestor AND `cmds.uc018:graph:prove` parseable; else stay MISSING-RECEIPT + disclose |
+| gapClosedInText | Ban windows: 不得/禁止/Ban/不可/未/not · `不得写已关` must not count closed |
+| NEG/BOUND dual | sole-stack + waiting-user post-prove reviews (fail closed if missing) |
+| Porcelain | non-empty `git status --porcelain` → DIRTY_TREE refuse |
+| Receipt backfill | **out of scope** · `GAP-UC018-RECEIPT-BACKFILL` nail-time only |
+| Real verdict | `canHonestlyFlip=false` · reasons include STUB-STACK / MISSING-RECEIPT / PERF-LOCAL-ONLY / OPEN-GAP · duals PASS where reviews exist |
+
+*Ban invent covered · Ban flip §1.1 · Ban hand-write receipt JSON from prose · STOP after push*
