@@ -39,16 +39,5 @@
     "requestTip": "a7e6b95"
   },
   "parentSoleNail": "aa968b1",
-  "datePT": "9/23/2026, 6:36:40 PM PT",
-  "exits": {
-    "uc018:covered-lift:prove": 0,
-    "uc018:sole:prove": 0,
-    "uc018:abandon:prove": 0,
-    "uc018:abandon:http:prove": 0,
-    "uc018:abandon:full-e2e:prove": 0,
-    "uc018:graph:prove": 0,
-    "uc018:ttl:prove": 0,
-    "uc018:ui:prove": 0,
-    "eval-harness-matrix-cite:prove": 0
-  }
+  "datePT": "9/23/2026, 6:59:49 PM PT"
 }

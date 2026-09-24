@@ -63,7 +63,7 @@
 | NHP-017-LOAD-w-01 | 017 | LOAD | worker | 大量孤儿预占回收 | 回收完成+无漏扣；收据 | **blind**→**case-only** | — |
 | NHP-018-NEG-01 | 018 | NEG | api | abandon 后复活尝试 | 拒；∉进行中 | **partial** | uc018 http |
 | NHP-018-FAULT-01 | 018 | FAULT | worker | safe_terminating 注入 | 图安全终态；额度 released | **blind**→**case-only** | — |
-| NHP-018-ADV-01 | 018 | ADV | api | abandon 对抗：replay / tamper body / cross-tenant abandon / forged auth / inject against `POST /api/interview/:id/abandon` | 拒或幂等安全；无跨租户写；无假 released；不泄露他用户；无双放 | **blind**→**case-only** | REQUEST OPEN `harness/uc-e2e-018-adv.md` · Ban elevate to **partial** this open · Ban invent prove green · ADV alone ≠ covered · mirror NHP-002-ADV-01 / NHP-011-ADV-01 |
+| NHP-018-ADV-01 | 018 | ADV | api | abandon 对抗：replay / tamper body / cross-tenant abandon / forged auth / inject against `POST /api/interview/:id/abandon` | 拒或幂等安全；无跨租户写；无假 released；不泄露他用户；无双放 | **case-only**→**partial**（executed） | `pnpm uc018:adv:prove` EXIT=0 · harness `harness/uc-e2e-018-adv.md` · `executed:awaiting_post_prove_dual` · **ADV alone ≠ covered** · Ban wash ADV into §1.1 · Ban claim PERF/LOAD closed · mirror NHP-002-ADV-01 / NHP-011-ADV-01 |
 | NHP-019-FAULT-01 | 019 | FAULT | api | retry∥release 并发 | 无 released∧regen 非法组合 | **partial** | uc019 prove |
 | NHP-019-BOUND-01 | 019 | BOUND | api | retry 幂等 | 单 regen 轨 | **partial** | 同上 |
 | NHP-019-NEG-01 | 019 | NEG | api | quarantine regen | 404/可解释 GAP 钉 | **partial** | H3/H4 |

@@ -17,6 +17,7 @@
     "prove:uc002-http": "node --import @swc-node/register/esm-register test/uc-e2e-002-cross-device-http.proof.ts",
     "prove:uc033-cross-user-authz": "node --import @swc-node/register/esm-register test/uc-e2e-033-cross-user-authz.proof.ts",
     "prove:uc018-abandon-http": "node --import @swc-node/register/esm-register test/uc-e2e-018-user-abandon-http.proof.ts",
+    "prove:uc018-adv": "node --import @swc-node/register/esm-register test/uc-e2e-018-adv.proof.ts",
     "prove:uc011-report-refund-http": "node --import @swc-node/register/esm-register test/uc-e2e-011-report-refund-http.proof.ts",
     "prove:uc019-report-regenerate-http": "node --import @swc-node/register/esm-register test/uc-e2e-019-report-regenerate-http.proof.ts",
     "neg:interview": "node --import @swc-node/register/esm-register test/neg-interview.proof.ts",
