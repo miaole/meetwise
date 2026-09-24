@@ -428,3 +428,24 @@ Parent harness 无 `不得写已关` 字面 · 今日 `businessPathMet=true` 与
 **mw-rag-route** · 2026-09-23 (~21:00 PT) · re-review r3 · 无 blocker · APPEND-ONLY · Ban Meridian · Ban Cloud Agent · Ban `.env*`
 
 Verdict: PASS
+
+## Re-review r3 · 更正（mw-rag-route 本人复核源码后撤回上方 r3 PASS）
+
+复核 `28dc259:scripts/lib/uc-covered-evaluator.mjs` :232–246：
+
+- :240–242 当 `section11.status === 'case-only'` 时写入 `CASE-ONLY` refuse reason；
+- 但 :246 `canHonestlyFlip = allColsMet && s11.businessPathMet === true && openGaps.length === 0` **不看 reasons、不看 status**。
+
+后果：六列全部 meetsCovered、businessPathMet=true、无 openGaps，但 matrix §1.1 单元仍是 case-only 时，evaluator 返回 **`canHonestlyFlip=true` 且 reasons 含 `CASE-ONLY`**。这是自相矛盾的输出，而且 true 分支在 §1.1 SSOT 仍为 case-only 时可达，属于假关风险，落在本刀要堵的 true 路径上。上一轮子审把它列成了 nail（「status case-only reason↔flip mismatch」），本人判为 **BLOCKER**。
+
+修法（任选其一，建议两者都做）：
+1. `canHonestlyFlip` 另加 `reasons.length === 0`（即任何 refuse reason 都会阻止翻转），或显式要求 `s11.status` 为正向枚举（非 case-only、非 partial）；
+2. 新增 FX-S11-STATUS-CASE-ONLY：ALL-MET + `section11.status='case-only'` 必须返回 false，并带 `CASE-ONLY`；再加一条全局不变量断言：`canHonestlyFlip === true` 时 `reasons` 必须为空。
+
+nail（非阻塞，维持）：`openGaps` 缺失在 evaluator 里等同于 `[]`（:233）属于「缺失即达标」；真实 gatherer（:533）总是会构造数组，所以真实路径不受影响，但应改为缺失时 fail-closed 或补 fixture。其余 r3 结论（四个 prove EXIT=0、真实 PG、白名单 1–5 裁定、严格 parser、PERF/LOAD MISSING-DUAL 归补录刀）不变。
+
+Pins 不变：NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained。未写 covered，未翻 §1.1。
+
+**mw-rag-route** · 2026-09-23 (~21:05 PT) · r3 更正 · APPEND-ONLY · 以本行下方的严格 Verdict 为准
+
+Verdict: FAIL
