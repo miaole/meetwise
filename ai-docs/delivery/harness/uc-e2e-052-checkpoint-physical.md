@@ -144,3 +144,15 @@
 | `mw-e2e-ha` | `../reviews/REQUEST-2026-09-23-uc-e2e-052-checkpoint-physical-mw-e2e-ha.md` |
 
 STOP after push · no messaging dual · no coding · no SSOT edit this tip.
+
+---
+
+## Disclosure 2 — seal `privacy_epoch` + `target_set_digest` after begin（coding note）
+
+**Why seal is required (not a digest wash):**
+1. `privacy_begin_checkpoint_erasure` (`packages/db/migrations/0096_int_transcript_remaining_sinks.sql` **L147–218**) creates the request + pending `checkpoint_rows` + externals and sets `status='fenced'` **without** writing `privacy_epoch` or `target_set_digest`.
+2. `privacy_authorization_claim_target` (`packages/db/migrations/0091_privacy_authorization_issuer.sql` **L369–383**) fail-closes when `request_epoch`/`request_digest` are NULL or disagree with the consumed snapshot, and re-checks the **live** target-set digest against the sealed digest.
+3. Orchestration: `sealCheckpointErasureAuthz` (`packages/db/src/uc052-checkpoint-physical.ts`) computes `canonicalTargetSetDigest` over the **full** live target set (checkpoint_rows + interview_job_payload + oss/redis/langfuse) then UPDATEs both columns; `runAuthorizedCheckpointPhysicalPurge` signs that digest and asserts `signed.targetSetDigest === sealed.targetSetDigest` before issue/verify/consume/0091 claim.
+
+**Ban**: trim sinks to greener digest · Ban invent covered · Ban open DELETE.
+

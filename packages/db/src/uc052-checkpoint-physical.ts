@@ -51,7 +51,19 @@ export interface Uc052CheckpointPhysicalResult {
   fenceEpoch: number | null;
 }
 
-/** Seal privacy_epoch + target_set_digest so 0091 claim can re-verify (begin does not set them). */
+/**
+ * Seal privacy_epoch + target_set_digest so 0091 claim can re-verify.
+ *
+ * Why (Disclosure 2):
+ * - `privacy_begin_checkpoint_erasure` (0096 L147–218) INSERTs the request with
+ *   only owner/scope/subject/idempotency/status and fences without setting
+ *   `privacy_epoch` or `target_set_digest`.
+ * - `privacy_authorization_claim_target` (0091 L369–383) rejects when
+ *   `request_epoch` IS NULL / mismatches snapshot, or `request_digest` IS NULL /
+ *   mismatches snapshot, or live target-set digest drifts from the sealed digest.
+ * Therefore the authorized path must seal both columns from the full live target
+ * set (C-NO-DIGEST-TRIM) before JWS sign / issue / consume / 0091 claim.
+ */
 export async function sealCheckpointErasureAuthz(
   c: Sql,
   requestId: string,

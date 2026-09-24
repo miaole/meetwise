@@ -796,6 +796,7 @@ const isolatedReceiptSources = {
     'packages/db/src/uc052-checkpoint-physical.ts',
     'packages/db/src/uc052-internal-erasure.ts',
     'packages/db/src/checkpoint-privacy.ts',
+    'apps/worker/src/checkpoint-principal.ts',
     'packages/db/src/privacy-authorization.ts',
     'packages/db/src/principal.ts',
     'packages/db/src/isolated-test-target.ts',

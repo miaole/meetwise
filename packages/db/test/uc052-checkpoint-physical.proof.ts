@@ -1,14 +1,17 @@
 /**
  * UC-E2E-052 · GAP-PRIV-CHECKPOINT-FENCE-ONLY prove.
- * Real PG + PostgresSaver tables. Ban MemorySaver. Ban completed wash.
+ * Real PG + real PostgresSaver API (setup/put/putWrites/getTuple). Ban MemorySaver.
  * C-CASECOUNT: skip/missing → EXIT≠0. Porcelain dirty → EXIT≠0.
+ *
+ * Disclosure 2: seal privacy_epoch+target_set_digest after begin — see harness §Disclosure 2
+ * and packages/db/src/uc052-checkpoint-physical.ts sealCheckpointErasureAuthz.
  */
 import { randomUUID } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
+import { emptyCheckpoint, uuid6 } from '@langchain/langgraph-checkpoint';
 import {
   createPool, asPrincipal, asPrivacyWorkerPrincipal, asPrivacyWorkerExecutor,
-  assertIsolatedTestTarget, enrollCheckpointThread, type Client, type DbPool,
+  assertIsolatedTestTarget, enrollCheckpointThread, type Client,
 } from '@meetwise/db';
 import {
   generatePrivacyAuthzKeyPair, signPrivacyAuthorizationSnapshot,
@@ -24,6 +27,10 @@ import {
 import {
   issueAuthorizationSnapshot, consumeAuthorizationSnapshotBound, claimAuthorizationTarget,
 } from '../src/privacy-authorization.ts';
+import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
+import {
+  withCheckpointAccess, PrincipalBoundCheckpointPool, type CheckpointAccess,
+} from '../../../apps/worker/src/checkpoint-principal.ts';
 
 const REQUIRED_CASES = [
   'NHP-052-CKPT-FAULT-01',
@@ -35,7 +42,9 @@ const REQUIRED_CASES = [
   'NHP-052-CKPT-BOUND-01',
   'NHP-052-CKPT-ZERO',
   'NHP-052-CKPT-RACE',
+  'NHP-052-CKPT-RACE-TRIGGER',
   'HP-052-CKPT-01',
+  'C-DIGEST-JWS',
 ] as const;
 
 const admin = createPool();
@@ -111,57 +120,35 @@ async function ckptCounts(threadId: string): Promise<{ checkpoints: number; blob
 function allZero(c: { checkpoints: number; blobs: number; writes: number }): boolean {
   return c.checkpoints === 0 && c.blobs === 0 && c.writes === 0;
 }
-
-/** Seed three physical tables via admin GUCs (same schema PostgresSaver uses). */
-async function seedCheckpointRows(ownerId: string, threadId: string, fenceEpoch: number, marker: string): Promise<void> {
-  const c = await admin.connect();
-  try {
-    await c.query("SELECT set_config('app.principal_user',$1,false)", [ownerId]);
-    await c.query("SELECT set_config('app.checkpoint_thread_id',$1,false)", [threadId]);
-    await c.query("SELECT set_config('app.checkpoint_epoch',$1,false)", [String(fenceEpoch)]);
-    await c.query(
-      `INSERT INTO checkpoints(thread_id,checkpoint_ns,checkpoint_id,checkpoint,metadata)
-       VALUES ($1,'',$2,$3::jsonb,'{}'::jsonb)
-       ON CONFLICT DO NOTHING`,
-      [threadId, `cp-${marker.slice(0, 8)}`, JSON.stringify({ marker })],
-    );
-    await c.query(
-      `INSERT INTO checkpoint_blobs(thread_id,checkpoint_ns,channel,version,type,blob)
-       VALUES ($1,'','ch-${marker.slice(0, 8)}','1','json',convert_to($2,'UTF8'))
-       ON CONFLICT DO NOTHING`,
-      [threadId, marker],
-    );
-    await c.query(
-      `INSERT INTO checkpoint_writes(thread_id,checkpoint_ns,checkpoint_id,task_id,idx,channel,type,blob)
-       VALUES ($1,'',$2,'task-1',0,'ch-${marker.slice(0, 8)}','json',convert_to($3,'UTF8'))
-       ON CONFLICT DO NOTHING`,
-      [threadId, `cp-${marker.slice(0, 8)}`, marker],
-    );
-  } finally { c.release(); }
+function allPositive(c: { checkpoints: number; blobs: number; writes: number }): boolean {
+  return c.checkpoints > 0 && c.blobs > 0 && c.writes > 0;
 }
 
-/** Live PostgresSaver put (real saver path · Ban MemorySaver as evidence). */
-async function saverPut(ownerId: string, threadId: string, fenceEpoch: number, marker: string): Promise<void> {
-  const saver = new PostgresSaver(admin as unknown as ConstructorParameters<typeof PostgresSaver>[0]);
-  // PostgresSaver.put uses its pool; install GUCs on a session-bound approach via raw SQL
-  // when the saver pool is the admin pool without principal binding. Prefer SQL seed for
-  // durable rows, then use saver.list/getTuple after purge to prove resume refuse.
-  await seedCheckpointRows(ownerId, threadId, fenceEpoch, marker);
-  void saver;
-}
+type Saver = PostgresSaver;
 
-async function trySaverRewrite(ownerId: string, threadId: string, fenceEpoch: number): Promise<boolean> {
-  // Attempt a post-purge write through the fence trigger (app_role + GUCs).
-  // Returns true if the write was REJECTED (desired after purge/fence).
-  return rejects(() => asPrincipal(admin, ownerId, async (c) => {
-    await c.query("SELECT set_config('app.checkpoint_thread_id',$1,true)", [threadId]);
-    await c.query("SELECT set_config('app.checkpoint_epoch',$1,true)", [String(fenceEpoch)]);
-    await c.query(
-      `INSERT INTO checkpoints(thread_id,checkpoint_ns,checkpoint_id,checkpoint,metadata)
-       VALUES ($1,'','revive-attempt','{"x":1}'::jsonb,'{}'::jsonb)`,
-      [threadId],
-    );
-  }));
+/** Real PostgresSaver put + putWrites so all three physical tables are populated. */
+async function saverSeed(
+  saver: Saver, access: CheckpointAccess, marker: string,
+): Promise<{ config: { configurable: { thread_id: string; checkpoint_ns: string; checkpoint_id: string } } }> {
+  const checkpoint = emptyCheckpoint();
+  checkpoint.id = uuid6(Date.now());
+  checkpoint.ts = new Date().toISOString();
+  checkpoint.channel_values = { privacy_marker: marker };
+  checkpoint.channel_versions = { privacy_marker: 1 };
+  const config = { configurable: { thread_id: access.threadId, checkpoint_ns: '' } };
+  const newVersions = { privacy_marker: 1 };
+  const next = await withCheckpointAccess(access, () =>
+    saver.put(config, checkpoint, { source: 'input', step: -1, parents: {} }, newVersions));
+  const writeConfig = {
+    configurable: {
+      thread_id: access.threadId,
+      checkpoint_ns: '',
+      checkpoint_id: String(next.configurable?.checkpoint_id ?? checkpoint.id),
+    },
+  };
+  await withCheckpointAccess(access, () =>
+    saver.putWrites(writeConfig, [['privacy_marker', marker]], `task-${marker.slice(0, 8)}`));
+  return { config: writeConfig as any };
 }
 
 async function erase(opts: {
@@ -185,15 +172,28 @@ async function erase(opts: {
   });
 }
 
-async function prepareSubject(ownerId: string, threadId: string, marker: string): Promise<number> {
+async function prepareSubject(
+  saver: Saver, ownerId: string, threadId: string, marker: string,
+): Promise<{ fenceEpoch: number; access: CheckpointAccess }> {
   await insertInterview(ownerId, threadId);
   const enrolled = await asPrincipal(admin, ownerId, (c) => enrollCheckpointThread(c, ownerId, threadId));
-  await saverPut(ownerId, threadId, enrolled.fenceEpoch, marker);
-  return enrolled.fenceEpoch;
+  const access: CheckpointAccess = {
+    owner: ownerId, threadId: enrolled.threadId, fenceEpoch: enrolled.fenceEpoch,
+  };
+  await saverSeed(saver, access, marker);
+  const counts = await ckptCounts(threadId);
+  if (!allPositive(counts)) {
+    throw Object.assign(new Error('saver_seed_incomplete'), { code: 'saver_seed_incomplete', counts });
+  }
+  return { fenceEpoch: enrolled.fenceEpoch, access };
 }
 
 function bannedTerminal(status: string): boolean {
   return status === 'completed' || status === 'partial_failed';
+}
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise((r) => setTimeout(r, ms));
 }
 
 async function main() {
@@ -206,22 +206,27 @@ async function main() {
   const gitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   console.log(`UC052_CHECKPOINT_PHYSICAL_PROVE gitSha=${gitSha} line=B`);
 
-  // Confirm PostgresSaver ctor is live (not MemorySaver).
-  const saverProbe = new PostgresSaver(admin as unknown as ConstructorParameters<typeof PostgresSaver>[0]);
-  if (!saverProbe || typeof (saverProbe as any).put !== 'function') {
-    console.error('C-SAVER refuse: PostgresSaver unavailable');
+  // setup() on admin-backed saver (DDL-capable / migrations already applied in isolate).
+  // Then PrincipalBoundCheckpointPool + PostgresSaver for real put/putWrites/getTuple (Ban MemorySaver).
+  const setupSaver = new PostgresSaver(admin as unknown as ConstructorParameters<typeof PostgresSaver>[0]);
+  await setupSaver.setup();
+  // Do NOT end admin pool — shared with proof.
+  const saver = new PostgresSaver(new PrincipalBoundCheckpointPool(admin).asPool());
+  if (typeof saver.put !== 'function' || typeof saver.putWrites !== 'function') {
+    console.error('C-SAVER refuse: PostgresSaver API missing put/putWrites');
     process.exit(1);
   }
 
+  try {
   /* ── NHP-052-CKPT-FAULT-01: mid-purge fail → failed · re-claimable · not falsely erased ── */
   {
     const id = 'NHP-052-CKPT-FAULT-01';
     const iv = randomUUID();
     const marker = `fault01-${iv.slice(0, 8)}`;
-    await prepareSubject(owner, iv, marker);
+    await prepareSubject(saver, owner, iv, marker);
     const before = await ckptCounts(iv);
     const result = await erase({ threadId: iv, keyHash: nextHash(), epoch: 3, failBeforePurge: true });
-    const ckpt = (await loadRequestTargets(admin, result.requestId)).find((t) => t.sink === 'checkpoint_rows');
+    const ckpt = (await loadRequestTargets(admin, result.requestId)).find((t) => String(t.sink) === 'checkpoint_rows');
     const afterFail = await ckptCounts(iv);
     const retry = await retryFailedCheckpointPhysicalTarget({
       admin,
@@ -229,9 +234,9 @@ async function main() {
       owner, jti: result.jti, checkpointTargetId: result.checkpointTargetId, workerId: worker,
     });
     const afterRetry = await ckptCounts(iv);
-    const ckptAfter = (await loadRequestTargets(admin, result.requestId)).find((t) => t.sink === 'checkpoint_rows');
+    const ckptAfter = (await loadRequestTargets(admin, result.requestId)).find((t) => String(t.sink) === 'checkpoint_rows');
     A(id,
-      before.checkpoints >= 1 && before.blobs >= 1 && before.writes >= 1
+      allPositive(before)
       && ckpt?.status === 'failed'
       && result.requestStatus === 'pending_external'
       && !bannedTerminal(result.requestStatus)
@@ -242,38 +247,63 @@ async function main() {
       `failStatus=${ckpt?.status} req=${result.requestStatus} retryReq=${retry.requestStatus} after=${JSON.stringify(afterRetry)}`);
   }
 
-  /* ── NHP-052-CKPT-FAULT-02: fence-revive after physical purge ── */
+  /* ── NHP-052-CKPT-FAULT-02: fence-revive via real saver getTuple/put after physical purge ── */
   {
     const id = 'NHP-052-CKPT-FAULT-02';
     const iv = randomUUID();
     const marker = `fault02-${iv.slice(0, 8)}`;
-    const epoch = await prepareSubject(owner, iv, marker);
+    const { access } = await prepareSubject(saver, owner, iv, marker);
     const result = await erase({ threadId: iv, keyHash: nextHash(), epoch: 4 });
     const after = await ckptCounts(iv);
-    const writeRejected = await trySaverRewrite(owner, iv, epoch);
-    // Also try with post-fence epoch from result
-    const writeRejected2 = result.fenceEpoch != null
-      ? await trySaverRewrite(owner, iv, result.fenceEpoch)
-      : true;
+    const cfg = { configurable: { thread_id: iv, checkpoint_ns: '' } };
+    let getTupleResult: 'empty' | 'present' | 'threw' = 'empty';
+    try {
+      const tup = await withCheckpointAccess(access, () => saver.getTuple(cfg));
+      getTupleResult = tup === undefined ? 'empty' : 'present';
+    } catch { getTupleResult = 'threw'; }
+    let putResult: 'refused' | 'REVIVED' = 'refused';
+    try {
+      const cp = emptyCheckpoint();
+      cp.id = uuid6(Date.now());
+      cp.channel_values = { revive: true };
+      cp.channel_versions = { revive: 1 };
+      await withCheckpointAccess(access, () =>
+        saver.put(cfg, cp, { source: 'input', step: -1, parents: {} }, { revive: 1 }));
+      const afterPut = await ckptCounts(iv);
+      if (afterPut.checkpoints > 0 || afterPut.blobs > 0 || afterPut.writes > 0) {
+        putResult = 'REVIVED';
+      }
+    } catch {
+      putResult = 'refused';
+    }
     const stillZero = await ckptCounts(iv);
+    const reviveOk = (getTupleResult === 'empty' || getTupleResult === 'threw')
+      && putResult === 'refused'
+      && allZero(stillZero);
+    if (putResult === 'REVIVED') {
+      A(id, false, `PRODUCT_GAP saver REVIVED thread counts=${JSON.stringify(stillZero)}`);
+      console.error('C-REVIVE PRODUCT_GAP: real PostgresSaver.put succeeded after purge and rows returned');
+      failures++;
+      console.log(JSON.stringify({ line: 'B', revive: 'REVIVED', gitSha, stop: true }));
+      process.exit(1);
+    }
     A(id,
-      allZero(after) && writeRejected && writeRejected2 && allZero(stillZero)
+      allZero(after) && reviveOk
       && result.requestStatus === 'pending_external'
       && !bannedTerminal(result.requestStatus),
-      `counts=${JSON.stringify(after)} writeRejected=${writeRejected}/${writeRejected2} req=${result.requestStatus}`);
+      `counts=${JSON.stringify(after)} getTuple=${getTupleResult} put=${putResult} req=${result.requestStatus}`);
   }
 
   /* ── NHP-052-CKPT-FAULT-03: idempotent re-purge ── */
   {
     const id = 'NHP-052-CKPT-FAULT-03';
     const iv = randomUUID();
-    await prepareSubject(owner, iv, `fault03-${iv.slice(0, 8)}`);
+    await prepareSubject(saver, owner, iv, `fault03-${iv.slice(0, 8)}`);
     const first = await erase({ threadId: iv, keyHash: nextHash(), epoch: 5 });
     const receiptsBefore = await admin.query<{ n: string }>(
       `SELECT count(*)::text AS n FROM privacy_deletion_receipt
         WHERE request_id=$1::uuid AND target_id=$2::uuid AND receipt_kind='local_erased'`,
       [first.requestId, first.checkpointTargetId]);
-    // Second purge on already-erased target: deletedCount=0, no storm, counts stay 0
     const replayOk = await asPrivacyWorkerPrincipal(admin, owner, async (c) => {
       const r = await c.query<{ deleted_count: string; status: string; request_status: string }>(
         `SELECT deleted_count::text, status, request_status FROM privacy_purge_checkpoint_target($1::uuid, gen_random_uuid())`,
@@ -299,12 +329,10 @@ async function main() {
   {
     const id = 'NHP-052-CKPT-NEG-01';
     const iv = randomUUID();
-    await prepareSubject(owner, iv, `neg01-${iv.slice(0, 8)}`);
+    await prepareSubject(saver, owner, iv, `neg01-${iv.slice(0, 8)}`);
     const before = await ckptCounts(iv);
-    // app_role cannot begin
     const beginRejected = await rejects(() => asPrincipal(admin, owner, (c) =>
       beginCheckpointErasure(c, iv, nextHash())));
-    // forged GUC-only begin as app_role
     const forgedRejected = await (async () => {
       const c = await admin.connect();
       try {
@@ -319,12 +347,10 @@ async function main() {
         return true;
       } finally { c.release(); }
     })();
-    // Direct purge without authz claim
     const begun = await asPrivacyApiOwner(owner, (c) => beginCheckpointErasure(c, iv, nextHash()));
     await sealCheckpointErasureAuthz(admin, begun.requestId, 7);
     const bypassPurgeRejected = await rejects(() => asPrivacyWorkerPrincipal(admin, owner, (c) =>
       purgeCheckpointErasureTarget(c, begun.checkpointTargetId, randomUUID())));
-    // Forged JWS (wrong key) must fail verify before consume
     const badKey = generatePrivacyAuthzKeyPair('uc052-ckpt-forged');
     const targets = await loadRequestTargets(admin, begun.requestId);
     const digest = canonicalTargetSetDigest(targets.map((t) => ({ kind: t.sink, resource: t.resourceHmac })));
@@ -334,7 +360,6 @@ async function main() {
       targets: targets.map((t) => ({ kind: t.sink, resource: t.resourceHmac })),
       nowSec: NOW_SEC, ttlSec: 600,
     });
-    // issue under real kid then verify with registry that has real public key → forged sig fails
     await asIssuer(owner, (c) => issueAuthorizationSnapshot(c, {
       jti: forged.jti, keyId: keys.kid, actor: owner, interviewId: iv,
       purpose: 'interview_data_erasure', privacyEpoch: 7, targetSetDigest: digest,
@@ -352,6 +377,7 @@ async function main() {
     A(id,
       beginRejected && forgedRejected && bypassPurgeRejected
       && verified === null
+      && allPositive(before)
       && after.checkpoints === before.checkpoints
       && after.blobs === before.blobs
       && after.writes === before.writes
@@ -359,31 +385,28 @@ async function main() {
       `beginRej=${beginRejected} forgedRej=${forgedRejected} bypassRej=${bypassPurgeRejected} jws=${verified === null} grant=${grant.rows[0]?.has}`);
   }
 
-  /* ── NHP-052-CKPT-NEG-02: cross-tenant · B counts unchanged before/after ── */
+  /* ── NHP-052-CKPT-NEG-02: cross-tenant · B seeded via real saver · counts unchanged ── */
   {
     const id = 'NHP-052-CKPT-NEG-02';
     const ivA = randomUUID();
     const ivB = randomUUID();
-    await prepareSubject(owner, ivA, `neg02a-${ivA.slice(0, 8)}`);
-    await prepareSubject(otherOwner, ivB, `neg02b-${ivB.slice(0, 8)}`);
+    await prepareSubject(saver, owner, ivA, `neg02a-${ivA.slice(0, 8)}`);
+    await prepareSubject(saver, otherOwner, ivB, `neg02b-${ivB.slice(0, 8)}`);
     const beforeB = await ckptCounts(ivB);
     const begunB = await asPrivacyApiOwner(otherOwner, (c) => beginCheckpointErasure(c, ivB, nextHash()));
     await sealCheckpointErasureAuthz(admin, begunB.requestId, 8);
-    // A tries to claim B's target under A's principal after forging a snapshot for A on B's thread — must fail
     const crossClaimRejected = await rejects(async () => {
-      // Owner A cannot claim B's target
       await asPrivacyWorkerPrincipal(admin, owner, (c) =>
         claimCheckpointErasureTarget(c, begunB.checkpointTargetId, worker, 60));
     });
-    // Full erase of A must not touch B
     await erase({ threadId: ivA, keyHash: nextHash(), epoch: 8 });
     const afterB = await ckptCounts(ivB);
     A(id,
       crossClaimRejected
+      && allPositive(beforeB)
       && beforeB.checkpoints === afterB.checkpoints
       && beforeB.blobs === afterB.blobs
-      && beforeB.writes === afterB.writes
-      && beforeB.checkpoints >= 1,
+      && beforeB.writes === afterB.writes,
       `beforeB=${JSON.stringify(beforeB)} afterB=${JSON.stringify(afterB)} crossRej=${crossClaimRejected}`);
   }
 
@@ -414,7 +437,7 @@ async function main() {
   {
     const id = 'NHP-052-CKPT-BOUND-01';
     const iv = randomUUID();
-    await prepareSubject(owner, iv, `bound01-${iv.slice(0, 8)}`);
+    await prepareSubject(saver, owner, iv, `bound01-${iv.slice(0, 8)}`);
     const result = await (async () => {
       const begun = await asPrivacyApiOwner(owner, (c) => beginCheckpointErasure(c, iv, nextHash()));
       const sealed = await sealCheckpointErasureAuthz(admin, begun.requestId, 9);
@@ -442,7 +465,7 @@ async function main() {
         asPrivacyWorkerPrincipal(admin, owner, (c) =>
           claimAuthorizationTarget(c, signed.jti, begun.checkpointTargetId, `${worker}-b`, 60)),
       ]);
-      return { a, b, begun, signed };
+      return { a, b };
     })();
     const winners = [result.a, result.b].filter((x) => x && x.leaseToken);
     A(id, winners.length === 1, `winners=${winners.length}`);
@@ -457,7 +480,7 @@ async function main() {
     const before = await ckptCounts(iv);
     const result = await erase({ threadId: iv, keyHash: nextHash(), epoch: 10 });
     const after = await ckptCounts(iv);
-    const ckpt = result.targets.find((t) => t.sink === 'checkpoint_rows');
+    const ckpt = result.targets.find((t) => String(t.sink) === 'checkpoint_rows');
     A(id,
       before.checkpoints === 0 && before.blobs === 0 && before.writes === 0
       && allZero(after)
@@ -468,12 +491,13 @@ async function main() {
       `deleted=${result.deletedCount} status=${ckpt?.status} req=${result.requestStatus}`);
   }
 
-  /* ── NHP-052-CKPT-RACE: live saver write mid-purge must not leave residual / false erased ── */
+  /* ── NHP-052-CKPT-RACE: real saver.put/putWrites mid-purge (FOR UPDATE barrier) ── */
   {
     const id = 'NHP-052-CKPT-RACE';
     const iv = randomUUID();
     const marker = `race-${iv.slice(0, 8)}`;
-    const fenceEpoch = await prepareSubject(owner, iv, marker);
+    const { access } = await prepareSubject(saver, owner, iv, marker);
+    const before = await ckptCounts(iv);
     const begun = await asPrivacyApiOwner(owner, (c) => beginCheckpointErasure(c, iv, nextHash()));
     const sealed = await sealCheckpointErasureAuthz(admin, begun.requestId, 11);
     const signed = signPrivacyAuthorizationSnapshot({
@@ -495,7 +519,124 @@ async function main() {
     await asPrivacyWorkerExecutor(admin, (c) => consumeAuthorizationSnapshotBound(c, verified, worker));
     const claimed = await asPrivacyWorkerPrincipal(admin, owner, (c) =>
       claimAuthorizationTarget(c, signed.jti, begun.checkpointTargetId, worker, 60));
-    // Pin race: concurrent revive write while purge runs
+
+    // Deterministic interleaving: HOLD locks all three physical tables FOR UPDATE so
+    // privacy_purge_checkpoint_target's DELETEs block. While purge is waiting, run
+    // real saver.put + putWrites. Then COMMIT hold → purge proceeds.
+    // interleaveForce=row-FOR-UPDATE-barrier-on-checkpoints+blobs+writes
+    const hold = await admin.connect();
+    let racePut: 'refused' | 'ok' | 'REVIVED' = 'refused';
+    let purgeStatus: string = 'pending';
+    try {
+      await hold.query('BEGIN');
+      await hold.query('SELECT 1 FROM checkpoints WHERE thread_id=$1 FOR UPDATE', [iv]);
+      await hold.query('SELECT 1 FROM checkpoint_blobs WHERE thread_id=$1 FOR UPDATE', [iv]);
+      await hold.query('SELECT 1 FROM checkpoint_writes WHERE thread_id=$1 FOR UPDATE', [iv]);
+
+      const purgeP = asPrivacyWorkerPrincipal(admin, owner, (c) =>
+        purgeCheckpointErasureTarget(c, begun.checkpointTargetId, claimed!.leaseToken));
+      // Give purge time to enter and block on our row locks.
+      await sleep(80);
+
+      const cfg = { configurable: { thread_id: iv, checkpoint_ns: '' } };
+      try {
+        const cp = emptyCheckpoint();
+        cp.id = uuid6(Date.now());
+        cp.channel_values = { race_mid: marker };
+        cp.channel_versions = { race_mid: 1 };
+        await withCheckpointAccess(access, () =>
+          saver.put(cfg, cp, { source: 'loop', step: 0, parents: {} }, { race_mid: 1 }));
+        await withCheckpointAccess(access, () =>
+          saver.putWrites(
+            { configurable: { thread_id: iv, checkpoint_ns: '', checkpoint_id: cp.id } },
+            [['race_mid', marker]],
+            `race-task-${marker.slice(0, 8)}`,
+          ));
+        racePut = 'ok';
+      } catch {
+        racePut = 'refused';
+      }
+
+      await hold.query('COMMIT');
+      const purged = await purgeP;
+      purgeStatus = 'fulfilled';
+      void purged;
+    } catch (e) {
+      await hold.query('ROLLBACK').catch(() => undefined);
+      purgeStatus = 'failed';
+      throw e;
+    } finally {
+      hold.release();
+    }
+
+    const after = await ckptCounts(iv);
+    // Post-purge real saver revive check
+    let postGet: 'empty' | 'present' | 'threw' = 'empty';
+    try {
+      const tup = await withCheckpointAccess(access, () =>
+        saver.getTuple({ configurable: { thread_id: iv, checkpoint_ns: '' } }));
+      postGet = tup === undefined ? 'empty' : 'present';
+    } catch { postGet = 'threw'; }
+    let postPut: 'refused' | 'REVIVED' = 'refused';
+    try {
+      const cp = emptyCheckpoint();
+      cp.id = uuid6(Date.now());
+      cp.channel_values = { post: 1 };
+      cp.channel_versions = { post: 1 };
+      await withCheckpointAccess(access, () =>
+        saver.put({ configurable: { thread_id: iv, checkpoint_ns: '' } }, cp,
+          { source: 'input', step: -1, parents: {} }, { post: 1 }));
+      const c2 = await ckptCounts(iv);
+      if (!allZero(c2)) postPut = 'REVIVED';
+    } catch { postPut = 'refused'; }
+
+    if (postPut === 'REVIVED' || (racePut === 'ok' && !allZero(after))) {
+      console.error(`C-RACE PRODUCT_GAP racePut=${racePut} postPut=${postPut} after=${JSON.stringify(after)}`);
+      A(id, false, `REVIVED racePut=${racePut} postPut=${postPut}`);
+      process.exit(1);
+    }
+
+    const ckpt = (await loadRequestTargets(admin, begun.requestId)).find((t) => String(t.sink) === 'checkpoint_rows');
+    const req = await loadRequestStatus(admin, begun.requestId);
+    A(id,
+      allPositive(before)
+      && purgeStatus === 'fulfilled'
+      && allZero(after)
+      && (postGet === 'empty' || postGet === 'threw')
+      && postPut === 'refused'
+      && ckpt?.status === 'erased'
+      && req === 'pending_external'
+      && !bannedTerminal(req),
+      `interleave=FOR_UPDATE_barrier racePut=${racePut} postGet=${postGet} postPut=${postPut} counts=${JSON.stringify(after)}`);
+  }
+
+  /* ── NHP-052-CKPT-RACE-TRIGGER: extra fence-trigger INSERT race (retained) ── */
+  {
+    const id = 'NHP-052-CKPT-RACE-TRIGGER';
+    const iv = randomUUID();
+    const marker = `trig-${iv.slice(0, 8)}`;
+    const { access, fenceEpoch } = await prepareSubject(saver, owner, iv, marker);
+    const begun = await asPrivacyApiOwner(owner, (c) => beginCheckpointErasure(c, iv, nextHash()));
+    const sealed = await sealCheckpointErasureAuthz(admin, begun.requestId, 13);
+    const signed = signPrivacyAuthorizationSnapshot({
+      privateKeyPem: keys.privateKeyPem, kid: keys.kid, actor: owner, owner, interview: iv,
+      purpose: 'interview_data_erasure', privacyEpoch: 13,
+      targets: sealed.targets.map((t) => ({ kind: t.sink, resource: t.resourceHmac })),
+      nowSec: NOW_SEC, ttlSec: 600,
+    });
+    await asIssuer(owner, (c) => issueAuthorizationSnapshot(c, {
+      jti: signed.jti, keyId: keys.kid, actor: owner, interviewId: iv,
+      purpose: 'interview_data_erasure', privacyEpoch: 13, targetSetDigest: signed.targetSetDigest,
+      expiresAt: new Date(signed.expiresAtMs),
+    }));
+    const registry = new PrivacyAuthzKeyRegistry();
+    registry.activate(keys.kid, keys.publicJwk);
+    const verified = verifyPrivacyAuthorizationSnapshot({
+      jws: signed.jws, resolveJwk: registry.resolve.bind(registry), nowSec: NOW_SEC,
+    })!;
+    await asPrivacyWorkerExecutor(admin, (c) => consumeAuthorizationSnapshotBound(c, verified, worker));
+    const claimed = await asPrivacyWorkerPrincipal(admin, owner, (c) =>
+      claimAuthorizationTarget(c, signed.jti, begun.checkpointTargetId, worker, 60));
     const raceWrite = asPrincipal(admin, owner, async (c) => {
       await c.query("SELECT set_config('app.checkpoint_thread_id',$1,true)", [iv]);
       await c.query("SELECT set_config('app.checkpoint_epoch',$1,true)", [String(fenceEpoch)]);
@@ -509,13 +650,46 @@ async function main() {
       purgeCheckpointErasureTarget(c, begun.checkpointTargetId, claimed!.leaseToken));
     const settled = await Promise.allSettled([purgeP, raceWrite]);
     const after = await ckptCounts(iv);
-    const ckpt = (await loadRequestTargets(admin, begun.requestId)).find((t) => t.sink === 'checkpoint_rows');
+    const ckpt = (await loadRequestTargets(admin, begun.requestId)).find((t) => String(t.sink) === 'checkpoint_rows');
     const req = await loadRequestStatus(admin, begun.requestId);
-    const purgeOk = settled[0]?.status === 'fulfilled';
+    void access;
     A(id,
-      purgeOk && allZero(after) && ckpt?.status === 'erased'
+      settled[0]?.status === 'fulfilled' && allZero(after) && ckpt?.status === 'erased'
       && req === 'pending_external' && !bannedTerminal(req),
-      `purge=${settled[0]?.status} write=${settled[1]?.status} counts=${JSON.stringify(after)} ckpt=${ckpt?.status}`);
+      `purge=${settled[0]?.status} write=${settled[1]?.status} counts=${JSON.stringify(after)}`);
+  }
+
+  /* ── C-DIGEST-JWS: Disclosure 2 — sealed digest ≡ JWS signed digest · full target set ── */
+  {
+    const id = 'C-DIGEST-JWS';
+    const iv = randomUUID();
+    await prepareSubject(saver, owner, iv, `digest-${iv.slice(0, 8)}`);
+    const begun = await asPrivacyApiOwner(owner, (c) => beginCheckpointErasure(c, iv, nextHash()));
+    // Before seal: epoch/digest must be NULL (begin does not set them — 0096 L147–218)
+    const pre = await admin.query<{ privacy_epoch: string | null; target_set_digest: string | null }>(
+      `SELECT privacy_epoch::text, target_set_digest FROM privacy_erasure_request WHERE id=$1::uuid`,
+      [begun.requestId],
+    );
+    const sealed = await sealCheckpointErasureAuthz(admin, begun.requestId, 14);
+    const live = canonicalTargetSetDigest(
+      sealed.targets.map((t) => ({ kind: t.sink, resource: t.resourceHmac })),
+    );
+    const signed = signPrivacyAuthorizationSnapshot({
+      privateKeyPem: keys.privateKeyPem, kid: keys.kid, actor: owner, owner, interview: iv,
+      purpose: 'interview_data_erasure', privacyEpoch: 14,
+      targets: sealed.targets.map((t) => ({ kind: t.sink, resource: t.resourceHmac })),
+      nowSec: NOW_SEC, ttlSec: 600,
+    });
+    const sinkNames = sealed.targets.map((t) => String(t.sink)).sort();
+    const expected = ['checkpoint_rows', 'interview_job_payload', 'langfuse', 'oss', 'redis'];
+    A(id,
+      pre.rows[0]?.privacy_epoch == null
+      && pre.rows[0]?.target_set_digest == null
+      && sealed.targetSetDigest === live
+      && signed.targetSetDigest === sealed.targetSetDigest
+      && expected.every((s) => sinkNames.includes(s))
+      && sealed.targets.length === 5,
+      `preEpochNull=${pre.rows[0]?.privacy_epoch == null} preDigNull=${pre.rows[0]?.target_set_digest == null} jwsEq=${signed.targetSetDigest === sealed.targetSetDigest} sinks=${sinkNames.join(',')}`);
   }
 
   /* ── HP-052-CKPT-01: happy last · three-table admin=0 · pending_external · full digest ── */
@@ -523,29 +697,45 @@ async function main() {
     const id = 'HP-052-CKPT-01';
     const iv = randomUUID();
     const marker = `hp-${iv.slice(0, 8)}`;
-    await prepareSubject(owner, iv, marker);
+    const { access } = await prepareSubject(saver, owner, iv, marker);
     const before = await ckptCounts(iv);
     const result = await erase({ threadId: iv, keyHash: nextHash(), epoch: 12 });
     const after = await ckptCounts(iv);
     const sinkNames = result.targets.map((t) => String(t.sink));
-    // C-NO-DIGEST-TRIM / C5: full set retained (includes interview_job_payload from begin)
     const expectedSinks = ['checkpoint_rows', 'interview_job_payload', 'oss', 'redis', 'langfuse'];
     const fullSet = expectedSinks.every((s) => sinkNames.includes(s));
     const ckpt = result.targets.find((t) => String(t.sink) === 'checkpoint_rows');
     const externalsOk = ['oss', 'redis', 'langfuse'].every(
       (s) => result.targets.find((t) => String(t.sink) === s)?.status === 'retention_pending');
-    // migrations table untouched (not per-thread)
+    // Post-happy real saver getTuple/put must stay empty/refused
+    let getEmpty = true;
+    try {
+      const tup = await withCheckpointAccess(access, () =>
+        saver.getTuple({ configurable: { thread_id: iv, checkpoint_ns: '' } }));
+      getEmpty = tup === undefined;
+    } catch { getEmpty = true; }
+    const putRefused = await rejects(() => withCheckpointAccess(access, async () => {
+      const cp = emptyCheckpoint();
+      cp.id = uuid6(Date.now());
+      cp.channel_values = { x: 1 };
+      cp.channel_versions = { x: 1 };
+      await saver.put({ configurable: { thread_id: iv, checkpoint_ns: '' } }, cp,
+        { source: 'input', step: -1, parents: {} }, { x: 1 });
+    }));
     const mig = await admin.query<{ n: string }>(`SELECT count(*)::text AS n FROM checkpoint_migrations`);
     A(id,
-      before.checkpoints >= 1 && before.blobs >= 1 && before.writes >= 1
+      allPositive(before)
       && after.checkpoints === 0 && after.blobs === 0 && after.writes === 0
       && ckpt?.status === 'erased'
       && result.deletedCount >= 1
       && result.requestStatus === 'pending_external'
       && !bannedTerminal(result.requestStatus)
       && fullSet && externalsOk
+      && getEmpty && putRefused
+      && result.targetSetDigest === canonicalTargetSetDigest(
+        result.targets.map((t) => ({ kind: t.sink, resource: t.resourceHmac })))
       && Number(mig.rows[0]?.n) >= 0,
-      `before=${JSON.stringify(before)} after=${JSON.stringify(after)} deleted=${result.deletedCount} req=${result.requestStatus} sinks=${[...sinkNames].sort().join(',')}`);
+      `before=${JSON.stringify(before)} after=${JSON.stringify(after)} deleted=${result.deletedCount} req=${result.requestStatus} getEmpty=${getEmpty} putRefused=${putRefused}`);
   }
 
   /* ── C-CASECOUNT ── */
@@ -560,6 +750,13 @@ async function main() {
     haStatus: 'NOT_HA',
     cases: Object.fromEntries([...caseStatus.entries()]),
     required: REQUIRED_CASES,
+    raceInterleave: 'FOR UPDATE barrier on checkpoints+blobs+writes while privacy_purge_checkpoint_target blocked; concurrent real saver.put/putWrites; then COMMIT hold',
+    disclosure2: {
+      beginNoEpochDigest: '0096 L147-218',
+      claimNeedsEpochDigest: '0091 L369-383',
+      seal: 'packages/db/src/uc052-checkpoint-physical.ts sealCheckpointErasureAuthz',
+      jwsEqSealed: 'runAuthorizedCheckpointPhysicalPurge asserts signed.targetSetDigest === sealed.targetSetDigest',
+    },
     perTableSql: {
       checkpoints: 'SELECT count(*) FROM checkpoints WHERE thread_id=$thread  -- expect 0',
       checkpoint_blobs: 'SELECT count(*) FROM checkpoint_blobs WHERE thread_id=$thread  -- expect 0',
@@ -572,6 +769,9 @@ async function main() {
     ? '\n✓ UC052 checkpoint physical prove PASS'
     : `\n✗ ${failures} assertion failures`);
   process.exit(failures === 0 ? 0 : 1);
+  } finally {
+    // Ban ending shared admin pool via PrincipalBoundCheckpointPool.end
+  }
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

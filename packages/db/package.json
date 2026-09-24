@@ -78,6 +78,7 @@
     "@types/node": "catalog:",
     "@meetwise/domain": "workspace:*",
     "@meetwise/contracts": "workspace:*",
-    "@langchain/langgraph-checkpoint-postgres": "catalog:langchain"
+    "@langchain/langgraph-checkpoint-postgres": "catalog:langchain",
+    "@langchain/langgraph-checkpoint": "1.1.3"
   }
 }
