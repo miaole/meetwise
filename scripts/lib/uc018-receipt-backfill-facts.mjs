@@ -104,7 +104,7 @@ export function parseStackFromLog(logText, { logRel = null } = {}) {
   const isolatedPg = findLogLine(logText, /E2E isolated PostgreSQL:/);
 
   if (solePg) {
-    stack.postgres = stackFact(true, 'log-parse', {
+    stack.postgres = stackFact(true, 'static-doc', {
       logFile,
       line: solePg.line,
       regex: 'PASS\\\\s+adr-postgres-retained:\\\\s+names Postgres',
@@ -122,7 +122,7 @@ export function parseStackFromLog(logText, { logRel = null } = {}) {
   }
 
   if (solePgSaver) {
-    stack.postgresSaver = stackFact(true, 'log-parse', {
+    stack.postgresSaver = stackFact(true, 'static-doc', {
       logFile,
       line: solePgSaver.line,
       regex: 'PASS\\\\s+adr-postgres-retained:\\\\s+pins PostgresSaver',
@@ -137,7 +137,7 @@ export function parseStackFromLog(logText, { logRel = null } = {}) {
   stack.memorySaver = unobservedFact();
 
   if (soleBanMysql) {
-    stack.mysql = stackFact(false, 'log-parse', {
+    stack.mysql = stackFact(false, 'static-doc', {
       logFile,
       line: soleBanMysql.line,
       regex: 'PASS\\\\s+adr-postgres-retained:\\\\s+Ban MySQL business cutover',
@@ -148,7 +148,7 @@ export function parseStackFromLog(logText, { logRel = null } = {}) {
   }
 
   if (soleBanQdrant) {
-    stack.qdrant = stackFact(false, 'log-parse', {
+    stack.qdrant = stackFact(false, 'static-doc', {
       logFile,
       line: soleBanQdrant.line,
       regex: 'PASS\\\\s+adr-postgres-retained:\\\\s+Ban Qdrant-as-required-vector',
