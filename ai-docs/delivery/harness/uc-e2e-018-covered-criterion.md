@@ -438,3 +438,8 @@ Path-suffix + `git log -1` author match (`mw-e2e-ha` / `mw-rag-route`) is **tamp
 | Hard Ban | Ban writing **covered** · Ban flip UC-018 / §1.1 · Ban invent covered · Nail final · no further commits this knife |
 
 *AUTHORIZED nail · UC-E2E-018 COVERED-CRITERION · GAP CLOSED · post_prove_dual_pass · runner 22790a8 · dual fc7dc24/6d2841c · Ban invent covered · STOP*
+
+### Cite prove · D2 FAULT case-only（post-nail）
+
+Nail `17e7654` set matrix §1.0.1 UC-018 **FAULT → case-only** (NHP-018-FAULT-01 authoritative).  
+`pnpm eval-harness-matrix-cite:prove` live facet check now expects **conservative=case-only** for FAULT; does **not** require `cellStatusLegacy018`≡conservative on that cell (`legacy018` historically collapses `case-only→blind`). NEG/BOUND/ADV still require equality. Ban silence / Ban status loosen / Ban invent covered.

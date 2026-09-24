@@ -634,17 +634,37 @@ for (const u of units) {
       eq(facets.ADV, 'blind', 'live 050–052 ADV ⇒ blind');
       pass(`live 050–052 facets NEG=${facets.NEG} FAULT=${facets.FAULT} BOUND=${facets.BOUND} ADV=${facets.ADV}`);
     }
-    // Live UC-018: conservative ≡ legacy on each facet cell
+    // Live UC-018 facets.
+    // D2 (COVERED-CRITERION nail 17e7654): FAULT cell is authoritative **case-only**
+    // (NHP-018-FAULT-01). cellStatusLegacy018 collapses case-only→blind (historical);
+    // conservative keeps case-only. Require FAULT=case-only via conservative; keep
+    // legacy≡conservative only on NEG/BOUND/ADV (still plain partial). Ban silencing.
     const row018 = matrix.match(/\| UC-E2E-018 \|([^|\n]+)\|([^|\n]+)\|([^|\n]+)\|([^|\n]+)\|/);
     if (!row018) fail('live matrix: UC-E2E-018 §1.0.1 row missing');
     else {
+      const faultCons = cellStatusConservative(row018[2]);
+      if (faultCons !== 'case-only') {
+        fail(`UC-018 facet[2] FAULT want case-only (D2/NHP-018-FAULT-01) got ${faultCons}`);
+      } else {
+        pass('live UC-018 FAULT ⇒ case-only (D2 · NHP-018-FAULT-01 authoritative)');
+      }
+      // Disclose: legacy018(case-only)=blind ≠ conservative; not an equality target for FAULT
+      const faultLeg = cellStatusLegacy018(row018[2]);
+      if (faultLeg === 'blind') {
+        pass('disclose: legacy018 maps FAULT case-only→blind (historical collapse; not SSOT)');
+      } else {
+        fail(`expected legacy018(FAULT case-only)→blind got ${faultLeg}`);
+      }
       let ok = true;
-      for (let i = 1; i <= 4; i++) {
+      for (const i of [1, 3, 4]) {
         const leg = cellStatusLegacy018(row018[i]);
         const cons = cellStatusConservative(row018[i]);
-        if (leg !== cons) { ok = false; fail(`UC-018 facet[${i}] legacy=${leg} conservative=${cons}`); }
+        if (leg !== cons) {
+          ok = false;
+          fail(`UC-018 facet[${i}] legacy=${leg} conservative=${cons}`);
+        }
       }
-      if (ok) pass('live UC-E2E-018 facet cells: conservative ≡ legacy018');
+      if (ok) pass('live UC-E2E-018 NEG/BOUND/ADV: conservative ≡ legacy018');
     }
   }
 }
