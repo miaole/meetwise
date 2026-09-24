@@ -36,6 +36,9 @@ import {
   toEvaluateInput,
   gapClosedInText,
   assertCleanPorcelain,
+  parseReviewFileVerdict,
+  roleFromReviewPath,
+  dualFromReviewFiles,
 } from './lib/uc-covered-real-gatherer.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -174,7 +177,7 @@ const fixtureIds = readdirSync(fixtureDir)
   .filter((f) => f.endsWith('.input.json'))
   .map((f) => f.replace(/\.input\.json$/, ''))
   .sort();
-if (fixtureIds.length < 18) fail(`expected ≥18 fixtures, got ${fixtureIds.length}`);
+if (fixtureIds.length < 22) fail(`expected ≥22 fixtures, got ${fixtureIds.length}`);
 
 for (const id of fixtureIds) {
   const input = JSON.parse(read(join(fixtureDir, `${id}.input.json`)));
@@ -251,35 +254,194 @@ try {
   if (gapOk) pass('gapClosedInText: positive CLOSED/已关 + negation Ban/不得/禁止/不可/未/not');
 }
 
-// Undefined-means-fail: delete each required field one-at-a-time from FX-ALL-MET → never flip true
+// Permanent leaf-mutation test (committed): every leaf × {delete, undefined, null} ⇒ flip false
+// Explicit allowlist ONLY for leaves evaluate() does not consult (printed + disclosed).
+const MUTATION_ALLOWLIST = [
+  {
+    path: 'ucId',
+    justification: 'metadata string unused by evaluate(); not a coverage gate',
+  },
+  {
+    path: /^columns\.(NEG|FAULT|BOUND|ADV)\.receipts\.capacityRepresentative$/,
+    justification: 'capacityRepresentative consulted only for PERF/LOAD columns',
+  },
+  {
+    path: /^columns\.(NEG|FAULT|BOUND|ADV)\.receipts\.targetEnv$/,
+    justification: 'targetEnv consulted only via isCapacityRepresentative for PERF/LOAD',
+  },
+  {
+    path: /^columns\.[A-Z]+\.prove\.cmd$/,
+    justification: 'MISSING-RECEIPT OR requires cmd OR gitSha when status=covered; either alone suffices',
+  },
+  {
+    path: /^columns\.[A-Z]+\.prove\.gitSha$/,
+    justification: 'same OR with prove.cmd — deleting gitSha alone while cmd remains still satisfies presence check',
+  },
+  {
+    path: /^columns\.[A-Z]+\.receipts\.implementerOnly$/,
+    justification: 'fail-closed only on === true; absence/false means not-implementer (correct positive-proof asymmetry)',
+  },
+  {
+    path: 'section11.status',
+    justification: 'only case-only status adds a reason; covered/other absence does not gate canHonestlyFlip',
+  },
+];
+function mutationAllowlisted(path) {
+  return MUTATION_ALLOWLIST.some((a) =>
+    typeof a.path === 'string' ? a.path === path : a.path.test(path),
+  );
+}
+function collectLeaves(node, prefix, out) {
+  if (node === null || typeof node !== 'object') {
+    out.push({ path: prefix, value: node });
+    return;
+  }
+  if (Array.isArray(node)) {
+    for (let i = 0; i < node.length; i++) {
+      const p = `${prefix}[${i}]`;
+      if (node[i] !== null && typeof node[i] === 'object') collectLeaves(node[i], p, out);
+      else out.push({ path: p, value: node[i] });
+    }
+    return;
+  }
+  for (const k of Object.keys(node)) {
+    const p = prefix ? `${prefix}.${k}` : k;
+    const v = node[k];
+    if (v !== null && typeof v === 'object') collectLeaves(v, p, out);
+    else out.push({ path: p, value: v });
+  }
+}
+function setPath(root, path, mode) {
+  // mode: 'delete' | 'undefined' | 'null'
+  const segs = [];
+  path.replace(/([^[.\]]+)|\[(\d+)\]/g, (_, key, idx) => {
+    segs.push(idx !== undefined ? Number(idx) : key);
+    return '';
+  });
+  let cur = root;
+  for (let i = 0; i < segs.length - 1; i++) {
+    cur = cur[segs[i]];
+    if (cur == null || typeof cur !== 'object') return false;
+  }
+  const last = segs[segs.length - 1];
+  if (mode === 'delete') {
+    if (Array.isArray(cur) && typeof last === 'number') cur.splice(last, 1);
+    else delete cur[last];
+  } else if (mode === 'undefined') {
+    cur[last] = undefined;
+  } else {
+    cur[last] = null;
+  }
+  return true;
+}
 {
   const allMetInput = JSON.parse(read(join(fixtureDir, 'FX-ALL-MET.input.json')));
-  const requiredDeletes = [
-    ['NEG.prove.exit', (o) => { delete o.columns.NEG.prove.exit; }],
-    ['NEG.stack', (o) => { delete o.columns.NEG.stack; }],
-    ['NEG.stack.postgres', (o) => { delete o.columns.NEG.stack.postgres; }],
-    ['NEG.stack.postgresSaver', (o) => { delete o.columns.NEG.stack.postgresSaver; }],
-    ['NEG.receipts.evidenceOfRecord', (o) => { delete o.columns.NEG.receipts.evidenceOfRecord; }],
-    ['NEG.dual.e2eHa', (o) => { delete o.columns.NEG.dual.e2eHa; }],
-    ['NEG.dual.ragRoute', (o) => { o.columns.NEG.dual.ragRoute = null; }],
-    ['NEG.prove.committed', (o) => { o.columns.NEG.prove.committed = false; }],
-    ['section11.businessPathMet', (o) => { o.section11.businessPathMet = false; }],
-  ];
-  let umfOk = true;
-  for (const [label, mut] of requiredDeletes) {
-    const clone = JSON.parse(JSON.stringify(allMetInput));
-    mut(clone);
-    const v = evaluate(clone);
-    if (v.canHonestlyFlip === true) {
-      fail(`undefined-means-fail: ${label} still flipped true`);
-      umfOk = false;
-    }
-    if (label.startsWith('NEG.') && v.columns.NEG?.meetsCovered === true) {
-      fail(`undefined-means-fail: ${label} left NEG.meetsCovered=true`);
-      umfOk = false;
+  const baseline = evaluate(JSON.parse(JSON.stringify(allMetInput)));
+  if (baseline.canHonestlyFlip !== true) {
+    fail(`FX-ALL-MET baseline must be true before mutation test (got false reasons=${baseline.reasons.join(',')})`);
+  } else pass('FX-ALL-MET baseline canHonestlyFlip=true (anti-tautology)');
+
+  const leaves = [];
+  collectLeaves(allMetInput, '', leaves);
+  let total = 0;
+  let falseCount = 0;
+  const survivors = [];
+  const allowlistHits = [];
+  for (const { path: leafPath } of leaves) {
+    if (!leafPath) continue;
+    for (const mode of ['delete', 'undefined', 'null']) {
+      total++;
+      const clone = JSON.parse(JSON.stringify(allMetInput));
+      setPath(clone, leafPath, mode);
+      // JSON.stringify drops undefined — re-apply undefined after parse clone for undefined mode
+      if (mode === 'undefined') {
+        const clone2 = JSON.parse(JSON.stringify(allMetInput));
+        setPath(clone2, leafPath, 'undefined');
+        const v = evaluate(clone2);
+        const ok = v.canHonestlyFlip === false;
+        if (ok) falseCount++;
+        else if (mutationAllowlisted(leafPath)) {
+          falseCount++; // counted as expected allowlisted survivor
+          allowlistHits.push({ path: leafPath, mode, flip: true });
+        } else {
+          survivors.push({ path: leafPath, mode, reasons: v.reasons, columns: Object.fromEntries(Object.entries(v.columns).map(([k, c]) => [k, c.meetsCovered])) });
+        }
+        continue;
+      }
+      const v = evaluate(clone);
+      const ok = v.canHonestlyFlip === false;
+      if (ok) falseCount++;
+      else if (mutationAllowlisted(leafPath)) {
+        falseCount++;
+        allowlistHits.push({ path: leafPath, mode, flip: true });
+      } else {
+        survivors.push({ path: leafPath, mode, reasons: v.reasons });
+      }
     }
   }
-  if (umfOk) pass('undefined-means-fail: deleting required fields never flips true / NEG MET');
+  note(`leaf-mutation: ${falseCount}/${total} mutations false (allowlist hits=${allowlistHits.length})`);
+  if (survivors.length > 0) {
+    for (const s of survivors.slice(0, 40)) {
+      fail(`leaf-mutation SURVIVOR flip=true path=${s.path} mode=${s.mode} reasons=${(s.reasons || []).join(',')}`);
+    }
+  } else {
+    pass(`leaf-mutation: ${falseCount}/${total} mutations false (0 unallowlisted survivors)`);
+  }
+  note(`mutation allowlist (${MUTATION_ALLOWLIST.length}): ${MUTATION_ALLOWLIST.map((a) => typeof a.path === 'string' ? a.path : a.path.toString()).join(' | ')}`);
+  // stash for evidence
+  globalThis.__uc018MutationSummary = { total, falseCount, survivors, allowlist: MUTATION_ALLOWLIST.map((a) => ({ path: String(a.path), justification: a.justification })), allowlistHits: allowlistHits.length };
+}
+
+
+// Dual parser: strict Verdict line + path-only role (B-DUAL-PASS-PRIORITY / B-DUAL-CROSS-ROLE)
+{
+  const dualFix = join(root, 'scripts/fixtures/uc-covered-dual');
+  const retracted = read(join(dualFix, 'FX-DUAL-RETRACTED.md'));
+  const singlePeer = read(join(dualFix, 'FX-DUAL-SINGLE-FILE-NAMES-PEER-mw-rag-route.md'));
+  const vRet = parseReviewFileVerdict(retracted);
+  if (vRet !== 'FAIL') fail(`FX-DUAL-RETRACTED parser got ${vRet} want FAIL (latest Verdict wins)`);
+  else pass('FX-DUAL-RETRACTED: PASS then FAIL ⇒ FAIL');
+
+  const rolePeer = roleFromReviewPath(join(dualFix, 'FX-DUAL-SINGLE-FILE-NAMES-PEER-mw-rag-route.md'));
+  if (rolePeer !== 'ragRoute') fail(`single-file role got ${rolePeer} want ragRoute`);
+  const dualPeer = dualFromReviewFiles([join(dualFix, 'FX-DUAL-SINGLE-FILE-NAMES-PEER-mw-rag-route.md')]);
+  if (dualPeer.e2eHa != null) fail(`cross-role: e2eHa should be null got ${dualPeer.e2eHa}`);
+  if (dualPeer.ragRoute !== 'PASS') fail(`rag slot want PASS got ${dualPeer.ragRoute}`);
+  else pass('FX-DUAL-SINGLE-FILE-NAMES-PEER: body names mw-e2e-ha but path-only ⇒ e2eHa=null (MISSING-DUAL if used alone)');
+
+  const realE2e = join(root, 'ai-docs/delivery/reviews/REQUEST-2026-09-23-uc-e2e-018-covered-criterion-post-prove-mw-e2e-ha.md');
+  const realV = parseReviewFileVerdict(read(realE2e));
+  if (realV === 'PASS') fail('real e2e-ha retracted covered-criterion receipt must NOT parse as PASS');
+  else pass(`real e2e-ha retracted receipt verdict=${realV} (not PASS)`);
+
+  // Mutate dual-parser inputs: delete/null verdict markers ⇒ not PASS / not dual-met
+  const baseDualText = '**Verdict**: **PASS**  \n';
+  const mutatedTexts = [
+    ['delete-marker', ''],
+    ['null-like-empty', '\n\n'],
+    ['trail-junk-PASS', '**Verdict**: **PASS**（ok）\n'],
+    ['prose-FAIL-only', '## 改判 FAIL\n**FAIL**\n'],
+  ];
+  let dualMutOk = true;
+  for (const [label, text] of mutatedTexts) {
+    const v = parseReviewFileVerdict(text);
+    if (v === 'PASS') {
+      fail(`dual-parser mutation ${label} still PASS`);
+      dualMutOk = false;
+    }
+  }
+  // delete role binding: path without suffix ⇒ null role ⇒ dual slots stay null
+  const noRole = dualFromReviewFiles([]); // empty
+  if (noRole.e2eHa != null || noRole.ragRoute != null) {
+    fail('empty dualFromReviewFiles should be null/null');
+    dualMutOk = false;
+  }
+  const weirdPath = dualFromReviewFiles([join(dualFix, 'FX-DUAL-RETRACTED.md')]); // no -mw-* suffix
+  if (weirdPath.e2eHa != null || weirdPath.ragRoute != null) {
+    fail('path without role suffix must not fill dual slots');
+    dualMutOk = false;
+  } else pass('dual-parser: path without -mw-e2e-ha/-mw-rag-route suffix ⇒ no slots filled');
+  if (dualMutOk) pass('dual-parser mutations: deleted/junk/prose markers ⇒ not PASS');
 }
 
 // Porcelain guard: clean OK; dirty refuses
@@ -472,13 +634,60 @@ const evidence = {
     { field: 'gapClosedInText', before: '已关/CLOSED matched under 不得写已关 / Ban / 禁止', after: 'banNear window skips negation/prohibition', file: 'gapClosedInText' },
     { field: 'porcelain', before: 'no check', after: 'non-empty porcelain → DIRTY_TREE refuse', file: 'assertCleanPorcelain' },
   ],
-  fixRound: 'fix-round-2-stack-eor-fault-exit-gapClosed-dual',
+  fixRound: 'fix-round-3-committed-positive-dual-strict-dirty-tmp',
+  mutationSummary: globalThis.__uc018MutationSummary || null,
+  dualParse: {
+    marker: '/^(?:\\*\\*)?Verdict(?:\\*\\*)?:\\s*(?:\\*\\*)?(PASS|FAIL)(?:\\*\\*)?\\s*$/m',
+    roleFrom: 'path suffix -mw-e2e-ha.md / -mw-rag-route.md only',
+    realE2eHaCoveredCriterionPostProve: 'must not be PASS (trailing commentary / no strict EOL marker after retract)',
+  },
+  rangeDisclosure: {
+    note: '4a8a085..4706c4b on origin may include other lines product commits; Line A evidence = individual commits only',
+    lineACommitsExample: ['4a8a085', '4224e73', '4706c4b'],
+  },
   pendingNailGaps: ['GAP-UC018-RECEIPT-BACKFILL'],
   receiptBackfillNote: 'GAP-UC018-RECEIPT-BACKFILL deferred to nail-time (Ban hand-writing JSON from prose)',
 };
-writeFileSync(join(tmpDir, 'covered-criterion-evidence.json'), JSON.stringify(evidence, null, 2) + '\n');
-writeFileSync(join(receiptDir, 'covered-criterion-evidence.json'), JSON.stringify(evidence, null, 2) + '\n');
-pass('wrote receipts under receipts/uc018-covered-criterion/ + .tmp/');
+// C-DIRTY-SELF-WRITE fix: write ONLY to gitignored .tmp during prove (tracked copy = receipts commit step)
+const evidencePath = join(tmpDir, 'covered-criterion-evidence.json');
+writeFileSync(evidencePath, JSON.stringify(evidence, null, 2) + '\n');
+// prove.md SHA from SAME variable as JSON runnerCommitSha (Ban hand-edit drift)
+const proveMd = `# UC-E2E-018 COVERED-CRITERION · prove receipt (fix-round 3)
+
+**Status**: \`executed:awaiting_post_prove_dual\`
+**Date**: ${evidence.datePT}
+**Runner commit**: \`${headSha.slice(0, 7)}\` / full \`${headSha}\`
+**Command**: \`pnpm uc018:covered-criterion:prove\` EXIT=${exitCode}
+**Porcelain at prove**: clean (evidence written only under gitignored \`.tmp/\`)
+
+## CMD|EXIT
+
+| CMD | EXIT |
+|-----|------|
+| \`pnpm uc018:covered-criterion:prove\` | **${exitCode}** |
+
+## Dual parse (strict)
+
+- Marker: last line matching \`^(:**)?Verdict(:**)?:\\s*(:**)?(PASS|FAIL)(:**)?\\s*$\` (optional bold; **no trailing junk**)
+- Role: path suffix \`-mw-e2e-ha.md\` / \`-mw-rag-route.md\` only
+- Real e2e-ha covered-criterion post-prove retracted receipt: **not PASS**
+
+## Pins
+
+coveredCount=8 · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · ms3EqualsR4Closed=false · PG-retained · Ban invent covered · Ban flip §1.1
+
+*Tracked copy of this receipt is committed in the separate receipts commit (not written to tracked paths during prove).*
+`;
+writeFileSync(join(tmpDir, 'covered-criterion-prove.md'), proveMd);
+pass('wrote gitignored .tmp evidence+prove.md (runnerCommitSha=' + headSha.slice(0, 7) + ')');
+
+// Re-run porcelain: after tmp-only write, tree must stay clean; second assert must not DIRTY_TREE
+try {
+  assertCleanPorcelain(root);
+  pass('porcelain after tmp-only evidence write: still clean (no DIRTY_TREE self-trip)');
+} catch (e) {
+  fail(`porcelain after tmp write: ${e.message.split('\n')[0]}`);
+}
 
 console.log(lines.join('\n'));
 console.log(`\nCMD=pnpm uc018:covered-criterion:prove EXIT=${exitCode}`);
