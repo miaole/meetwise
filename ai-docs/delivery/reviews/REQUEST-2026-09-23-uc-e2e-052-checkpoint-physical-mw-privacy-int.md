@@ -124,3 +124,77 @@ NOT_HA · `releaseEvidence=false` · `claimProductionHA=false` · public DELETE=
 **Overall**：任一项 FAIL → 总判 FAIL。Item 1 闭合（docs-only SSOT + cite 精确化）前 **Ban 编码授权**。
 
 Verdict: FAIL
+
+---
+
+## r2 · Item 1 复审（B1/B2 修复后）· 2026-09-23 21:12 PDT
+
+| 字段 | 值 |
+|------|----|
+| 角色 | `mw-privacy-int` |
+| 相对 | r1=`c0f0a51` Overall **FAIL**（B1 裸 partial · B2 cite 子串 `UC-E2E-050`）· Item 2 已 **PASS**（C1–C5 仍约束） |
+| 修复 tip | **`e09d56e`**（`d147ea1`/`b55b222` 矩阵标注 · `4ebdc28`/`89ae929` cite 精确行号 · `e09d56e` 聚合格 min 保守解析） |
+| 工作树 | `/workspace/wt-pi-r2-item1` @ `e09d56e`（detached） |
+
+### 范围 `c0f0a51..e09d56e`
+
+| 路径 | 类 |
+|------|----|
+| `ai-docs/delivery/e2e-requirement-coverage-matrix.md` | 矩阵 docs（B1） |
+| `scripts/eval-harness-matrix-cite.proof.mjs` | cite 脚本（B2 + min/unknown） |
+| `ai-docs/delivery/reviews/REQUEST-2026-09-23-uc-e2e-052-checkpoint-physical-mw-e2e-ha.md` | 对端 pre-exec 收据（非本角） |
+| `ai-docs/delivery/reviews/REQUEST-2026-09-23-uc-e2e-018-covered-criterion-post-prove-mw-rag-route.md` | Line A 旁路收据（非本刀） |
+
+**无** `packages/**` / `apps/**` / `**/migrations/**` 变更。
+
+### CMD \| SHA \| EXIT（本机 @`e09d56e`）
+
+| CMD | SHA | EXIT |
+|-----|-----|------|
+| `pnpm eval-harness-matrix-cite:prove` | `e09d56e` | **0** |
+| `pnpm eval-uc-e2e-001-002-cite:prove` | `e09d56e` | **0** |
+| `pnpm uc018:covered-lift-reassess:prove` | `e09d56e` | **0**（UC-018 未抬 covered） |
+
+### §1.0.1 `UC-E2E-050–052` 活行（L124）
+
+- NEG：`**partial**（**UC-052 deletion only**; 050/051 still **partial**/honesty-pin）`
+- FAULT：`**partial**（**UC-052 deletion only**; 050/051 still **gap**）`
+- BOUND：`**partial**（**UC-052 deletion only**; 050/051 still **blind**）`
+- ADV：`**blind**`
+- 备注：**≠ covered** · coveredCount **8** · Ban 抬升 050/051
+
+每一被 052 证据抬升的格均标明 **仅 UC-052 deletion**，且 050/051 仍为 residual（honesty-pin / gap / blind）。**无 covered 宣称。**
+
+机读（cite `cellStatusConservative` + min）：活 facets = NEG **honesty-pin** · FAULT **gap** · BOUND **blind** · ADV **blind**（prove 自检 PASS）。
+
+#### 与「格面仍写 partial / 机读为 gap」是否矛盾？
+
+不构成过度宣称：外层 `partial` 承认聚合行上有 052 deletion 证据；括号 residual + **取 min** 把机读压到 050/051 诚实底线。FAULT 机读为 **`gap`**（尽管 052 已有 FAULT 证据）= **保守偏低**，可接受；**不是**把 050/051 抬成 partial/covered。
+
+### 脚本差分要点（已读）
+
+- 行号匹配：`matrixHasExactRowId` / `textCitesExactRowId` — **精确**首格/整词；`UC-E2E-050` **不**匹配 `UC-E2E-050–052`；`rowIds` 已为 `UC-E2E-050–052`。
+- 状态：多 token **取 min**；不可解析 → **`unknown`（rank 最低）** fail-closed，**不计** partial/covered。
+- 负向自检：子串 / bare 场景内置；另做本地变异（见下）。
+
+### 本地变异测试（改副本 → 跑 prove → 还原）
+
+| 变异 | 操作 | EXIT | 观测 |
+|------|------|------|------|
+| A | FAULT 格改为裸 `**partial**` | **1** | `FAULT ⇒ gap (got partial want gap)` |
+| B | 行 id 改为裸 `UC-E2E-050` | **1** | `expected exact UC-E2E-050–052 … no bare UC-E2E-050` |
+| 还原后 | 恢复矩阵 | **0** | worktree 无残留 diff |
+
+### Item 1 裁定
+
+**B1/B2 已解除** → Item 1 **PASS**。
+
+Item 2 仍为 r1 **PASS**，编码条件 **C1–C5 仍约束**（授权唯一入口 · 三表 admin=0 · fence-revive · 账本顺序 · 无 digest 裁剪）。
+
+### Overall r2
+
+Item 1 PASS ∧ Item 2 PASS（C1–C5）⇒ **Overall PASS**。可进入编码授权流程（仍须遵守 C1–C5；Ban 未授权开 DELETE / invent covered）。
+
+*mw-privacy-int · pre-exec r2 · Item1 复审 · 独立复跑*
+
+Verdict: PASS
