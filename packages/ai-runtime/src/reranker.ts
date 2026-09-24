@@ -1,6 +1,7 @@
 import { ExternalHttpStatusError, ExternalRequestTimeoutError, ExternalResponseJsonError, fetchJsonWithTimeout } from './timeout.ts';
 import { rejectDashscopeNativeTransportOverride, resolveDashscopeNativeConfig } from './dashscope-native-config.ts';
 import { requireRecord } from './native-response-guard.ts';
+import { assertG7UnguardedPathDisabled } from './g7-freetier-reprove-guard.ts';
 
 /**
  * 重排 seam（cross-encoder 精排）：稠密召回 top-N 后用 gte-rerank-v2 精排到 top-k——召回靠向量、精度靠重排,标准两段式。
@@ -21,6 +22,8 @@ export function dashscopeReranker(cfg: { apiKey?: string; model?: string; url?: 
   return {
     id: model,
     async rerank(query, docs, topN) {
+
+      assertG7UnguardedPathDisabled('rerank');
       if (!apiKey) throw new Error('reranker_not_configured');
       if (!docs.length) return [];
       let j: { output: { results: { index: number; relevance_score: number }[] } };

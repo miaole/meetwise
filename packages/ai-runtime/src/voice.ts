@@ -3,6 +3,7 @@ import { request as httpsRequest, type RequestOptions } from 'node:https';
 import type { ClientRequest, IncomingMessage } from 'node:http';
 import ipaddr from 'ipaddr.js';
 import { ExternalHttpStatusError, ExternalRequestAbortedError, ExternalRequestTimeoutError, fetchJsonWithTimeout } from './timeout.ts';
+import { assertG7UnguardedPathDisabled } from './g7-freetier-reprove-guard.ts';
 import { requireNonEmptyText } from './native-response-guard.ts';
 import { rejectDashscopeNativeTransportOverride, resolveDashscopeNativeConfig } from './dashscope-native-config.ts';
 
@@ -426,6 +427,7 @@ export function dashscopeAsr(cfg: { baseUrl?: string; apiKey?: string; model?: s
     throw new Error('invalid_asr_timeout');
   return {
     async transcribe(audio, opts) {
+      assertG7UnguardedPathDisabled('asr');
       if (!baseUrl || !apiKey) throw new Error('asr_not_configured');
       const fmt = opts?.format ?? 'mp3';
       const b64 = Buffer.from(audio).toString('base64');
@@ -469,6 +471,7 @@ export function dashscopeTts(cfg: { apiKey?: string; model?: string; voice?: str
   if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1) throw new Error('invalid_tts_timeout');
   return {
     async synthesize(text, opts) {
+      assertG7UnguardedPathDisabled('tts');
       if (!apiKey) throw new Error('tts_not_configured');
       const releaseAdmission = await acquireTtsAdmission(cfg.admission ?? defaultTtsDownloadAdmission, opts?.signal);
       try {

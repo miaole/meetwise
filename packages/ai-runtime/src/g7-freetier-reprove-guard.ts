@@ -10,6 +10,11 @@ import { openSync, closeSync, readFileSync, writeFileSync, existsSync, mkdirSync
 import { dirname } from 'node:path';
 
 export const G7_RUN_COST_CAP_CNY = 5;
+/** Free models are ¥0 — token/call caps still bound a G7 run across processes. */
+export const G7_RUN_TOKEN_CAP_DEFAULT = 2_000_000;
+export const G7_RUN_CALL_CAP_DEFAULT = 200;
+export const G7_DISABLED_PATHS = ['embed', 'rerank', 'asr', 'tts', 'asr_stream', 'tts_stream'] as const;
+export type G7DisabledPath = (typeof G7_DISABLED_PATHS)[number];
 export const G7_PRICE_BOOK_CITATION = 'console-reported by user via coordinator 2026-09-23' as const;
 export const G7_ASR_GAP_ID = 'GAP-MODEL-ASR-QWEN-AUDIO-TURBO-STATUS' as const;
 export const G7_ALLOW_PRO_FLAG = 'ALLOW_DEEPSEEK_V4_PRO_TEST' as const;
@@ -44,13 +49,18 @@ export const G7_CONSOLE_PRICE_BOOK: Readonly<Record<string, G7PriceRow>> = Objec
   'qwen-turbo': { kind: 'token', inputCnyPer1M: 0.3, outputCnyPer1M: 0.6 },
   'qwen-max': { kind: 'token', inputCnyPer1M: 2.4, outputCnyPer1M: 9.6 },
   'qwen-vl-max': { kind: 'token', inputCnyPer1M: 1.6, outputCnyPer1M: 4 },
-  'text-embedding-v4': { kind: 'embed', inputCnyPer1M: 0.5 },
-  'paraformer-realtime-v2': { kind: 'audio_sec', cnyPerSec: 0.00024 },
   'qwen3.8-flash': { kind: 'token', inputCnyPer1M: 0, outputCnyPer1M: 0, freeQuota: true },
   'qwen3.8-max': { kind: 'token', inputCnyPer1M: 0, outputCnyPer1M: 0, freeQuota: true },
   'qwen3.8-27b': { kind: 'token', inputCnyPer1M: 0, outputCnyPer1M: 0, freeQuota: true },
   'qwen3.8-omni-flash': { kind: 'token', inputCnyPer1M: 0, outputCnyPer1M: 0, freeQuota: true },
   'qwen3.7-flash': { kind: 'token', inputCnyPer1M: 0, outputCnyPer1M: 0, freeQuota: true },
+  // Side-path models (priced even when G7 hard-disables the path):
+  'text-embedding-v4': { kind: 'embed', inputCnyPer1M: 0.5 },
+  'gte-rerank-v2': { kind: 'embed', inputCnyPer1M: 0.5 },
+  'qwen-audio-turbo-latest': { kind: 'audio_sec', cnyPerSec: 0.00024 },
+  'qwen-tts': { kind: 'audio_sec', cnyPerSec: 0.0002 },
+  'paraformer-realtime-v2': { kind: 'audio_sec', cnyPerSec: 0.00024 },
+  'cosyvoice-v1': { kind: 'audio_sec', cnyPerSec: 0.0002 },
 });
 
 export type G7CallRecord = {
@@ -171,7 +181,11 @@ export function assertModelAllowedForTest(model: string, env: NodeJS.ProcessEnv 
     || model === 'qwen-max'
     || model === 'qwen-vl-max'
     || model === 'text-embedding-v4'
+    || model === 'gte-rerank-v2'
+    || model === 'qwen-audio-turbo-latest'
+    || model === 'qwen-tts'
     || model === 'paraformer-realtime-v2'
+    || model === 'cosyvoice-v1'
     || (isDeepseekV4ProTestApproved(env) && model === 'deepseek-v4-pro');
   if (!declared) throw new Error(`g7_model_undeclared:${model}`);
   assertPriceBookHasModel(model);
@@ -346,7 +360,12 @@ export function readG7SharedLedger(env: NodeJS.ProcessEnv = process.env): G7Shar
   const calls: G7CallRecord[] = [];
   let runningCostCny = 0;
   for (const line of lines) {
-    const row = JSON.parse(line) as G7CallRecord;
+    const parsed = JSON.parse(line) as { row?: string; estimatedCostCny?: number };
+    // Skip reservation/release rows — settled calls only (compat for existing proofs).
+    if (parsed.row === 'reservation' || parsed.row === 'release') continue;
+    if (parsed.row && parsed.row !== 'call') continue;
+    const row = parsed as unknown as G7CallRecord;
+    if (typeof row.estimatedCostCny !== 'number' || typeof (row as { actualModel?: string }).actualModel !== 'string') continue;
     calls.push(row);
     runningCostCny += row.estimatedCostCny;
   }
@@ -388,3 +407,235 @@ export function recordG7CallToSharedLedger(
     }
   }
 }
+
+
+/** G7 hard-disable for native paths that do not go through openAICompatibleClient. */
+export function assertG7UnguardedPathDisabled(path: G7DisabledPath, env: NodeJS.ProcessEnv = process.env): void {
+  if (!isG7FreetierReproveEnabled(env)) return;
+  throw new Error(`g7_path_disabled:${path}`);
+}
+
+export function resolveG7RunTokenCap(env: NodeJS.ProcessEnv = process.env): number {
+  const n = Number(env.G7_RUN_TOKEN_CAP ?? G7_RUN_TOKEN_CAP_DEFAULT);
+  if (!Number.isFinite(n) || n < 1) throw new Error('g7_run_token_cap_invalid');
+  return n;
+}
+
+export function resolveG7RunCallCap(env: NodeJS.ProcessEnv = process.env): number {
+  const n = Number(env.G7_RUN_CALL_CAP ?? G7_RUN_CALL_CAP_DEFAULT);
+  if (!Number.isFinite(n) || n < 1) throw new Error('g7_run_call_cap_invalid');
+  return n;
+}
+
+export type G7ReservationRecord = {
+  readonly row: 'reservation';
+  readonly reservationId: string;
+  readonly model: string;
+  readonly reservedCostCny: number;
+  readonly reservedInputTokens: number;
+  readonly reservedOutputTokens: number;
+  readonly createdAt: string;
+};
+
+export type G7ReleaseRecord = {
+  readonly row: 'release';
+  readonly reservationId: string;
+  readonly at: string;
+};
+
+export type G7LedgerRow =
+  | (G7CallRecord & { readonly row?: 'call' })
+  | G7ReservationRecord
+  | G7ReleaseRecord;
+
+export type G7SharedLedgerView = G7RunCostState & {
+  readonly reservedCostCny: number;
+  readonly activeReservationCount: number;
+  readonly totalTokens: number;
+  readonly callCount: number;
+  readonly tokenCap: number;
+  readonly callCap: number;
+  readonly activeReservations: readonly G7ReservationRecord[];
+};
+
+function withG7LedgerLock<T>(env: NodeJS.ProcessEnv, fn: (path: string) => T): T {
+  const path = resolveG7LedgerPath(env);
+  mkdirSync(dirname(path), { recursive: true });
+  const lock = `${path}.lock`;
+  const started = Date.now();
+  while (true) {
+    let fd: number | undefined;
+    try {
+      fd = openSync(lock, 'wx');
+      return fn(path);
+    } catch (error) {
+      const err = error as NodeJS.ErrnoException;
+      if (err?.code === 'EEXIST') {
+        if (Date.now() - started > 5000) throw new Error('g7_cost_ledger_lock_timeout');
+        sleepMs(5);
+        continue;
+      }
+      throw error;
+    } finally {
+      if (fd !== undefined) {
+        try { closeSync(fd); } catch { /* ignore */ }
+        try { unlinkSync(lock); } catch { /* ignore */ }
+      }
+    }
+  }
+}
+
+function readG7LedgerRows(path: string): G7LedgerRow[] {
+  if (!existsSync(path)) return [];
+  return readFileSync(path, 'utf8').split('\n').map((l) => l.trim()).filter(Boolean).map((line) => JSON.parse(line) as G7LedgerRow);
+}
+
+function writeG7LedgerRows(path: string, rows: readonly G7LedgerRow[]): void {
+  const payload = `${rows.map((r) => JSON.stringify(r)).join('\n')}${rows.length ? '\n' : ''}`;
+  writeFileSync(path, payload, 'utf8');
+}
+
+export function inspectG7SharedLedger(env: NodeJS.ProcessEnv = process.env): G7SharedLedgerView {
+  const path = resolveG7LedgerPath(env);
+  return inspectG7SharedLedgerUnlocked(path, env);
+}
+
+/** Reserve BEFORE dispatch. Refuses when settled+reserved+estimate would exceed ¥cap, token cap, or call cap. */
+export function reserveG7CallOnSharedLedger(
+  args: {
+    model: string;
+    estimatedInputTokens: number;
+    maxOutputTokens: number;
+    reservationId?: string;
+  },
+  env: NodeJS.ProcessEnv = process.env,
+): G7ReservationRecord {
+  assertModelAllowedForTest(args.model, env);
+  const reservedCostCny = estimateCallCostCny({
+    model: args.model,
+    inputTokens: Math.max(0, args.estimatedInputTokens),
+    outputTokens: Math.max(0, args.maxOutputTokens),
+  });
+  const reservation: G7ReservationRecord = {
+    row: 'reservation',
+    reservationId: args.reservationId ?? `rsv_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
+    model: args.model,
+    reservedCostCny,
+    reservedInputTokens: Math.max(0, args.estimatedInputTokens),
+    reservedOutputTokens: Math.max(0, args.maxOutputTokens),
+    createdAt: new Date().toISOString(),
+  };
+  return withG7LedgerLock(env, (path) => {
+    const view = inspectG7SharedLedger(env);
+    if (view.callCount + view.activeReservationCount + 1 > view.callCap) {
+      throw new Error(`g7_call_cap_exceeded:CALL_CAP:count=${view.callCount + view.activeReservationCount}:cap=${view.callCap}`);
+    }
+    const nextTokens = view.totalTokens + reservation.reservedInputTokens + reservation.reservedOutputTokens;
+    if (nextTokens > view.tokenCap) {
+      throw new Error(`g7_token_cap_exceeded:TOKEN_CAP:tokens=${nextTokens}:cap=${view.tokenCap}`);
+    }
+    const nextCost = view.runningCostCny + view.reservedCostCny + reservation.reservedCostCny;
+    if (nextCost > view.capCny) {
+      throw new Error(`g7_cost_cap_exceeded:COST_CAP:running=${nextCost}:cap=${view.capCny}`);
+    }
+    const rows = readG7LedgerRows(path);
+    rows.push(reservation);
+    writeG7LedgerRows(path, rows);
+    return reservation;
+  });
+}
+
+export function releaseG7ReservationOnSharedLedger(
+  reservationId: string,
+  env: NodeJS.ProcessEnv = process.env,
+): void {
+  withG7LedgerLock(env, (path) => {
+    const rows = readG7LedgerRows(path);
+    rows.push({ row: 'release', reservationId, at: new Date().toISOString() });
+    writeG7LedgerRows(path, rows);
+  });
+}
+
+/** After a successful call: release reservation and append settled call (reconcile with actual usage). */
+export function finalizeG7ReservationOnSharedLedger(
+  reservationId: string,
+  call: Omit<G7CallRecord, 'estimatedCostCny'> & { estimatedCostCny?: number },
+  env: NodeJS.ProcessEnv = process.env,
+): G7SharedLedgerView {
+  return withG7LedgerLock(env, (path) => {
+    assertModelAllowedForTest(call.actualModel, env);
+    const estimatedCostCny = call.estimatedCostCny ?? estimateCallCostCny({
+      model: call.actualModel,
+      inputTokens: call.inputTokens,
+      outputTokens: call.outputTokens,
+      audioSeconds: call.audioSeconds,
+    });
+    const rows = readG7LedgerRows(path);
+    rows.push({ row: 'release', reservationId, at: new Date().toISOString() });
+    const full = Object.freeze({ ...call, estimatedCostCny, row: 'call' as const });
+    rows.push(full as G7LedgerRow);
+    // Soft reconcile: refuse only if settled cost alone exceeds cap (reserve already held the bound).
+    let settled = 0;
+    for (const r of rows) {
+      if ((r as { row?: string }).row === 'call' || (!(r as { row?: string }).row && typeof (r as G7CallRecord).estimatedCostCny === 'number' && typeof (r as G7CallRecord).actualModel === 'string')) {
+        if ((r as { row?: string }).row === 'reservation' || (r as { row?: string }).row === 'release') continue;
+        if ((r as { row?: string }).row && (r as { row?: string }).row !== 'call') continue;
+        if (typeof (r as G7CallRecord).estimatedCostCny === 'number' && typeof (r as G7CallRecord).actualModel === 'string') {
+          settled += (r as G7CallRecord).estimatedCostCny;
+        }
+      }
+    }
+    const capCny = Number(env.G7_RUN_COST_CAP_CNY ?? G7_RUN_COST_CAP_CNY);
+    if (settled > capCny) {
+      throw new Error(`g7_cost_cap_exceeded:COST_CAP:running=${settled}:cap=${capCny}`);
+    }
+    writeG7LedgerRows(path, rows);
+    // Build view without re-entering the lock.
+    return inspectG7SharedLedgerUnlocked(path, env);
+  });
+}
+
+function inspectG7SharedLedgerUnlocked(path: string, env: NodeJS.ProcessEnv): G7SharedLedgerView {
+  const capCny = Number(env.G7_RUN_COST_CAP_CNY ?? G7_RUN_COST_CAP_CNY);
+  const tokenCap = resolveG7RunTokenCap(env);
+  const callCap = resolveG7RunCallCap(env);
+  const rows = readG7LedgerRows(path);
+  const calls: G7CallRecord[] = [];
+  const released = new Set<string>();
+  for (const row of rows) {
+    if ((row as G7ReleaseRecord).row === 'release') released.add((row as G7ReleaseRecord).reservationId);
+  }
+  const activeReservations: G7ReservationRecord[] = [];
+  let runningCostCny = 0;
+  let totalTokens = 0;
+  for (const row of rows) {
+    if ((row as G7ReservationRecord).row === 'reservation') {
+      const r = row as G7ReservationRecord;
+      if (!released.has(r.reservationId)) {
+        activeReservations.push(r);
+        totalTokens += r.reservedInputTokens + r.reservedOutputTokens;
+      }
+      continue;
+    }
+    if ((row as G7ReleaseRecord).row === 'release') continue;
+    const call = row as G7CallRecord;
+    if (typeof call.estimatedCostCny !== 'number' || typeof call.actualModel !== 'string') continue;
+    calls.push(call);
+    runningCostCny += call.estimatedCostCny;
+    totalTokens += (call.inputTokens ?? 0) + (call.outputTokens ?? 0);
+  }
+  const reservedCostCny = activeReservations.reduce((s, r) => s + r.reservedCostCny, 0);
+  return {
+    runningCostCny,
+    calls,
+    capCny,
+    reservedCostCny,
+    activeReservationCount: activeReservations.length,
+    totalTokens,
+    callCount: calls.length,
+    tokenCap,
+    callCap,
+    activeReservations,
+  };
+}
+

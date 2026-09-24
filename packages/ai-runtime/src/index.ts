@@ -219,3 +219,4 @@ export { createMetrics, setMetrics, getMetrics, registerBaselineMetrics, METRIC,
 export { toolRegistry, runToolLoop, type Tool, type ToolRegistry, type ToolStep, type ToolDecision } from './tools.ts';
 
 export * from './g7-freetier-reprove-guard.ts';
+export { g7OutboundAllowDepth, withG7OutboundAllow, installG7OutboundInterceptor, uninstallG7OutboundInterceptor } from './g7-outbound-interceptor.ts';
