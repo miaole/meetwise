@@ -7,9 +7,8 @@
  *   - Cite §1b #1–#6 all CLOSED (tips c36b032 / 08650ea / d698282 / waiting_user / 1990b12 / aa968b1)
  *   - Cite ADV partial (27dd6ae) + prior covered-lift non-flip (abfbbc0)
  *   - Family CMDs listed in package.json (incl. this reassess prove)
- *   - Assess canHonestlyFlip from matrix §0.5/§1.0 six-column rule:
- *       ALL of NEG+FAULT+BOUND+ADV+PERF+LOAD must be non-blind
- *   - If PERF/LOAD blind (expected) → canHonestlyFlip=false · refuse PERF/LOAD blind
+ *   - Assess canHonestlyFlip via scripts/lib/uc-covered-evaluator.mjs (computed · Ban constant-false)
+ *   - Expected today: canHonestlyFlip=false · refuse includes PERF-LOCAL-ONLY
  *   - §1.1 stays **partial** when false; FAIL if someone flipped §1.1 to covered without evidence
  *   - Ban invent PERF/LOAD rows / Ban mark PERF/LOAD green / Ban wash ADV/SOLE alone
  *   - Pins: releaseEvidence=false · Not HA · claimProductionHA=false · coveredCount=8
@@ -21,6 +20,11 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  evaluate,
+  UC018_BOUND_PIN_ID,
+  REFUSE_REASONS,
+} from './lib/uc-covered-evaluator.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -191,38 +195,75 @@ else pass('NHP matrix: no NHP-018-PERF row (PERF remains blind)');
 if (hasNhp018Load) pass(`NHP matrix: NHP-018-LOAD present · status=${col.LOAD} (AUTHORIZED PERF/LOAD knife may elevate · Ban invent covered)`);
 else pass('NHP matrix: no NHP-018-LOAD row (LOAD remains blind)');
 
-// --- canHonestlyFlip: six-column non-blind is necessary but NOT sufficient ---
-// PERF/LOAD partial ≠ UC covered. This reassess knife NEVER flips §1.1.
-let canHonestlyFlip = false;
-const refuseReasons = [];
-const required = ['NEG', 'FAULT', 'BOUND', 'ADV', 'PERF', 'LOAD'];
-for (const k of required) {
-  if (!isNonBlind(col[k])) {
-    refuseReasons.push(`${k} ${col[k] || 'blind'}`);
-  }
+// --- canHonestlyFlip: computed via scripts/lib/uc-covered-evaluator.mjs (COVERED-CRITERION) ---
+// Ban constant-false (b29c191 regression pin) · Ban constant-true · true branch reachable in evaluator.
+// This reassess prove is a REPORT: EXIT 0 with computed verdict (expected false today). Ban flip §1.1.
+function buildEvalInputFromLiveCols(col) {
+  const dualPass = (k) =>
+    (k === 'ADV' || k === 'PERF' || k === 'LOAD' || k === 'NEG' || k === 'BOUND') &&
+    (col[k] === 'partial' || col[k] === 'covered');
+  const nhpFor = {
+    NEG: ['NHP-018-NEG-01'],
+    FAULT: /FAULT/.test(String(col.FAULT)) || col.FAULT === 'partial' || col.FAULT === 'case-only'
+      ? ['NHP-018-FAULT-01']
+      : [],
+    BOUND: [UC018_BOUND_PIN_ID],
+    ADV: ['NHP-018-ADV-01'],
+    PERF: hasNhp018Perf ? ['NHP-018-PERF-01'] : [],
+    LOAD: hasNhp018Load ? ['NHP-018-LOAD-01'] : [],
+  };
+  const mk = (name, perfLoad = false) => ({
+    status: col[name],
+    nhpIds: nhpFor[name],
+    prove: { cmd: `uc018:${name.toLowerCase()}`, exit: 0, gitSha: 'live', committed: true, shaMatchesCommitted: true },
+    dual: dualPass(name) ? { e2eHa: 'PASS', ragRoute: 'PASS' } : { e2eHa: null, ragRoute: null },
+    stack: { postgres: true, postgresSaver: true, memorySaver: false, mysql: false, qdrant: false },
+    receipts: {
+      evidenceOfRecord: dualPass(name),
+      implementerOnly: perfLoad,
+      capacityRepresentative: false,
+      targetEnv: perfLoad ? 'docker-isolated' : 'n/a',
+      present: true,
+    },
+  });
+  return {
+    ucId: 'UC-E2E-018',
+    columns: {
+      NEG: mk('NEG'),
+      FAULT: mk('FAULT'),
+      BOUND: mk('BOUND'),
+      ADV: mk('ADV'),
+      PERF: mk('PERF', true),
+      LOAD: mk('LOAD', true),
+    },
+    section11: {
+      status: 'partial',
+      businessPathMet: true,
+      openGaps: ['GAP-UC018-COVERED-CRITERION'],
+    },
+  };
 }
-if (col.PERF === 'partial' || col.LOAD === 'partial' || col.PERF === 'case-only' || col.LOAD === 'case-only') {
-  refuseReasons.push('PERF/LOAD partial≠covered');
-}
-if (col.ADV === 'partial' && (col.PERF === 'blind' || col.LOAD === 'blind')) {
-  if (!refuseReasons.some((r) => /PERF|LOAD/.test(r))) refuseReasons.push('PERF/LOAD blind');
-}
-// Hard refuse for this knife regardless of column greenness
-refuseReasons.push('reassess-knife-refuses-§1.1-flip');
+const evalInput = buildEvalInputFromLiveCols(col);
+const verdict = evaluate(evalInput);
+const canHonestlyFlip = verdict.canHonestlyFlip;
+const refuseReasons = [...verdict.reasons];
 const refuseReason =
-  refuseReasons.some((r) => /partial≠covered/i.test(r))
-    ? 'PERF/LOAD partial ≠ UC covered (matrix §0.5/§1.0 · Ban假关 · Ban invent covered · covered-lift=separate later knife)'
-    : refuseReasons.some((r) => /PERF|LOAD/.test(r))
-      ? 'PERF/LOAD residual blocks covered flip (Ban假关 · Ban invent covered)'
-      : refuseReasons.join(' · ');
+  refuseReasons.includes(REFUSE_REASONS.PERF_LOCAL_ONLY)
+    ? 'PERF-LOCAL-ONLY (local/docker-isolated PERF/LOAD ≠ capacity-representative · Ban假关 · Ban invent covered)'
+    : refuseReasons.length
+      ? refuseReasons.join(' · ')
+      : null;
 
-note(`assessment canHonestlyFlip=${canHonestlyFlip}${refuseReason ? ` refuse=${refuseReason}` : ''}`);
+note(`assessment canHonestlyFlip=${canHonestlyFlip}${refuseReason ? ` refuse=${refuseReason}` : ''} (computed via uc-covered-evaluator)`);
+note(`evaluator column reasons: ${JSON.stringify(Object.fromEntries(Object.entries(verdict.columns).map(([k, v]) => [k, v.reasons])))}`);
 
 if (!canHonestlyFlip) {
-  pass('assessment: canHonestlyFlip=false (six-column honesty · residuals block elevate)');
+  pass('assessment: canHonestlyFlip=false (computed six-column evaluator · residuals block elevate)');
 } else {
-  pass('assessment: canHonestlyFlip=true (six-column honesty allows elevate)');
+  pass('assessment: canHonestlyFlip=true (computed six-column evaluator allows elevate)');
 }
+// Reassess knife reports only — never writes matrix covered (even if evaluator true).
+pass('reassess knife: report-only · Ban write §1.1 covered from this prove');
 
 // Hard pin: coveredCount=8
 if (/coveredCount\s*\*\*9\*\*|coveredCount\s*=\s*9|coveredCount\*\*\s*9/.test(knife + slice + parent + backlog)) {

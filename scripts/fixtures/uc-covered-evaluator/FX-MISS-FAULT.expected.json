@@ -1,0 +1,7 @@
+{
+  "canHonestlyFlip": false,
+  "mustIncludeReasons": [
+    "CASE-ONLY"
+  ],
+  "failColumn": "FAULT"
+}

@@ -1,0 +1,7 @@
+{
+  "canHonestlyFlip": false,
+  "mustIncludeReasons": [
+    "MISSING-NHP"
+  ],
+  "failColumn": "BOUND"
+}
