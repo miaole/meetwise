@@ -385,3 +385,17 @@ coveredCount=**8** · haStatus=**NOT_HA** · releaseEvidence=**false** · claimP
 | mutation | **423/423** · allowlist: ucId · non-PERF/LOAD capacity/targetEnv · implementerOnly |
 
 *Ban invent covered · Ban flip §1.1 · STOP*
+
+
+## Fix round 5 · last-line Verdict + HTML defense · runner `476d1fd`
+
+| Item | Result |
+| --- | --- |
+| Parser | last non-empty line `/^(\*\*)?Verdict: (PASS\|FAIL)(\*\*)?$/` balanced bold |
+| HTML | unclosed `<!--` or Verdict inside comment ⇒ null |
+| Removed | fence/quote/indent strip matching path |
+| Dual columns | all six **MISSING-DUAL** (older reviews lack terminal Verdict line) |
+| mutation | **423/423** |
+| cite script | ran `e09d56e` on origin (Line B) |
+
+*Ban invent covered · Ban flip §1.1 · STOP*
