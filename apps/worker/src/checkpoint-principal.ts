@@ -71,7 +71,13 @@ async function cleanupCheckpointPrincipalSession(
     await testCleanupOverride(client);
     return;
   }
-  await client.query('RESET ROLE');
+  // DISCARD ALL: RESET ROLE + drop session GUCs/prepared state. Required because
+  // createCheckpointer adds `-c role=app_role` at connect; RESET ROLE alone can
+  // leave current_user=app_role when the role GUC remains. DISCARD ALL must not
+  // run inside an open transaction — callers ROLLBACK first on abort paths.
+  // If this throws, installReleaseCleanup destroys the connection.
+  await client.query('DISCARD ALL');
+  // Belt: explicit clears if a future PG build softens DISCARD GUC coverage.
   for (const key of GUC_KEYS) {
     await client.query('SELECT set_config($1, $2, false)', [key, '']);
   }
