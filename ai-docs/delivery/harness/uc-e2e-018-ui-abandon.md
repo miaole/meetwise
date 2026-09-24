@@ -1,12 +1,12 @@
-# Harness — **UC-E2E-018 UI abandon**（§1b #5 · `GAP-UC018-UI` · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · Ban claim UC-E2E-018 covered · matrix stays **partial** · Ban wash TTL/`d698282` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / HTTP/`uc018:abandon:*` / D2b/`7fddebe` / HA / liveGhaRunUrl into UI closed / UC covered）
+# Harness — **UC-E2E-018 UI abandon**（§1b #5 · `GAP-UC018-UI` · docs REQUEST · **`executed:awaiting_post_prove_dual`** · Ban claim UC-E2E-018 covered · matrix stays **partial** · Ban wash TTL/`d698282` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / HTTP/`uc018:abandon:*` / D2b/`7fddebe` / HA / liveGhaRunUrl into UI closed / UC covered）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（实现方预写 · **not yet dual-sent** · **Ban自批 pass** · Dual PASS ≠ coding · Dual PASS ≠ UC-E2E-018 covered · Dual PASS ≠ next knife auto-authorize · **≠ coding** · **≠ prove** · **≠ UI/product/Playwright edits this open** · **≠ claim UC-E2E-018 covered** · **≠ claim matrix covered / full suite covered** · **≠ close §1b #6 sole-stack R5** · **≠ wash TTL nail `d698282` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / HTTP abandon proves / D2b/`7fddebe` / HA / liveGhaRunUrl into `GAP-UC018-UI` closed / UC covered** · **≠ invent green** · matrix **partial** retained · **UI alone ≠ UC covered**（parent: 次层；不可单独升 covered））  
+**Status**: **`executed:awaiting_post_prove_dual`**（AUTHORIZED coding+prove landed · GAP-UC018-UI CLOSED only · matrix **partial** · UI alone ≠ covered · #6 OPEN · Ban claim UC-E2E-018 covered · Ban wash prior proves into UC covered · Ban invent green · Ban self-nail `post_prove_dual_pass` · awaiting post-prove dual · STOP）
 **Date**: 2026-09-23 (~17:19 PT)  
 **Base / parent tip**: TTL sweeper abandon nail **`d698282`** / full `d698282f0dc5835573a84d1fb885ad03104a2a88`（`GAP-UC018-TTL` **CLOSED** · matrix still **partial** · Ban claim UC covered · Ban wash TTL into UI closed / covered · **must be ancestor of this REQUEST tip**）· prior GRAPH nail **`08650ea`** / full `08650ea37a7c8b120d6f8187ba40a47fc741daae`（`GAP-UC018-GRAPH` **CLOSED** · retained · Ban wash）· prior FULL-E2E nail **`c36b032`** / full `c36b032b4db5ddfa89dc6295395f4ac928b96583`（`GAP-UC018-FULL-E2E` **CLOSED** · retained · Ban wash）· prior HA D2b nail **`7fddebe`** CLOSED · Ban reopen D2b · Ban wash HA into E2E covered · branch `feat/mysql-schema-skeleton`  
 **Knife name**: **UC-E2E-018 UI abandon · GAP-UC018-UI**（§1b #5 only）  
 **haStatus=NOT_HA** · **releaseEvidence=false** · **claimProductionHA=false** · **≠HA** · **≠suite green** · **≠ UC-E2E-018 covered** · **≠ UI path already proven dedicated** · Ban假绿 · Ban invent green · Ban forge receipts · Ban claim production HA / failover · Ban flip `releaseEvidence` to true · Ban claim UC-E2E-018 covered · Ban claim matrix covered · Ban wash TTL/`d698282` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / HTTP/`uc018:abandon:*` / D2b/`7fddebe` / HA / liveGhaRunUrl into UI closed / UC covered · Ban wash prior `uc018:abandon:*` / `uc018:abandon:full-e2e:prove` / `uc018:graph:prove` / `uc018:ttl:prove` EXIT=0 into UI closed / UC covered · Dual PASS ≠ coding · Dual PASS ≠ UC covered · Dual PASS ≠ next knife auto-authorize · Ban self-approve · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Ban second knife · Ban self-nail · Ban D3 / cloud buy · Key×3 FreeTier **out of scope** · `gR45Closed=true` **retained** · coveredCount **8** retained · `ms3EqualsR4Closed=false` **retained** · eg1–eg6 / r4 / funnel product flags **retained** · prior TTL **`post_prove_dual_pass`** **retained** · prior GRAPH **`post_prove_dual_pass`** **retained** · prior FULL-E2E **`post_prove_dual_pass`** **retained** · prior D2b **`post_prove_dual_pass`** **retained** · `releaseEvidence=false` **retained** · liveGhaRunUrl from D2b **orthogonal retained** · ≠ wash into E2E covered · ≠HA  
 **Experts**: `mw-e2e-ha` + `mw-rag-route`（pre-exec dual **not yet run** · Ban self-approve · experts write their own review receipts at named paths below · Dual not pinged by implementer · coordinator dispatches dual）  
-**Must cite（UC-018 ladder · §1b）**: `harness/uc-e2e-018-user-abandon.md` §1b **#5** — matrix **partial** · db/HTTP/full.e2e/graph/ttl already green · **≠ covered** · §1b #1 `GAP-UC018-FULL-E2E` **CLOSED** prior（`c36b032`）· §1b #2 `GAP-UC018-GRAPH` **CLOSED** prior（`08650ea`）· §1b #3 `GAP-UC018-TTL` **CLOSED** prior（`d698282`）· §1b #4 waiting_user **CLOSED** prior · §1b #5 UI **`GAP-UC018-UI` OPEN**（this knife）· §1b #6 sole-stack R5 **OPEN** · `eval/uc-e2e-018-user-abandon.eval.md` · `e2e-requirement-coverage-matrix.md` row UC-E2E-018 **partial** · P0-8 · `e2e-covered-path-backlog.md` 018 · Ban wash TTL/GRAPH/FULL-E2E/HTTP/abandon proves into UI closed · **UI alone ≠ UC covered**（次层；不可单独升 covered）  
+**Must cite（UC-018 ladder · §1b）**: `harness/uc-e2e-018-user-abandon.md` §1b **#5** — matrix **partial** · db/HTTP/full.e2e/graph/ttl already green · **≠ covered** · §1b #1 `GAP-UC018-FULL-E2E` **CLOSED** prior（`c36b032`）· §1b #2 `GAP-UC018-GRAPH` **CLOSED** prior（`08650ea`）· §1b #3 `GAP-UC018-TTL` **CLOSED** prior（`d698282`）· §1b #4 waiting_user **CLOSED** prior · §1b #5 UI **`GAP-UC018-UI` CLOSED**（this knife · UI alone ≠ covered）· §1b #6 sole-stack R5 **OPEN** · `eval/uc-e2e-018-user-abandon.eval.md` · `e2e-requirement-coverage-matrix.md` row UC-E2E-018 **partial** · P0-8 · `e2e-covered-path-backlog.md` 018 · Ban wash TTL/GRAPH/FULL-E2E/HTTP/abandon proves into UI closed · **UI alone ≠ UC covered**（次层；不可单独升 covered）  
 **Prior UC-E2E-018 user-abandon（CLOSED partial ladder · retained · ≠ wash into covered / UI）**: `harness/uc-e2e-018-user-abandon.md` · db `uc018:abandon:prove` + HTTP `uc018:abandon:http:prove` · waiting_user CAS closed · matrix **partial** · **≠ covered** · **retained** · Ban wash into UI closed / UC covered  
 **Prior FULL-E2E abandon inclusion（CLOSED prior · retained · ≠ wash into UC covered / UI）**: `harness/uc-e2e-018-full-e2e-abandon-inclusion.md` · tip nail **`c36b032`** / full `c36b032b4db5ddfa89dc6295395f4ac928b96583` · `post_prove_dual_pass` · `GAP-UC018-FULL-E2E` **CLOSED only** · matrix still **partial** · **≠ UC-E2E-018 covered** · **≠ UI dedicated nail** · **retained** · Ban wash into UI / UC covered  
 **Prior GRAPH safely_terminated（CLOSED prior · retained · ≠ wash into UC covered / UI）**: `harness/uc-e2e-018-graph-safely-terminated.md` · tip nail **`08650ea`** / full `08650ea37a7c8b120d6f8187ba40a47fc741daae` · `post_prove_dual_pass` · `GAP-UC018-GRAPH` **CLOSED only** · matrix still **partial** · **≠ UC-E2E-018 covered** · **≠ UI dedicated nail** · **retained** · Ban wash into UI / UC covered  
@@ -15,9 +15,9 @@
 **Why（cite）**: Parent UC harness §1b #5 still open — UI path: in-interview 「放弃」trigger → **same HTTP contract as abandon**（`abandoned`+`released` · irreversible）· prefer `e2e:ui:isolated` / Playwright **dedicated** prove CMD(s) · HTTP/full.e2e/graph/ttl abandon green **≠** dedicated UI UC-018 path · **UI alone ≠ UC covered**（次层；不可单独升 covered）· this knife = **docs REQUEST only** to scope later coding that closes **`GAP-UC018-UI` only** · Ban elevating TTL/GRAPH/FULL-E2E/HTTP/abandon / D2b HA / liveGhaRunUrl to UC-E2E-018 covered · Ban invent green · Ban coding this open · matrix stays **partial** even after later GAP-UC018-UI close · §1b #6 remains open  
 **Slice**: `../uc-e2e-018-ui-abandon.slice.md`  
 **Eval**: existing `../eval/uc-e2e-018-user-abandon.eval.md`（update in **coding** phase only · **not** this open · Ban rewrite as covered now）  
-**Parent harness（honesty touch this open · Ban flip covered）**: `harness/uc-e2e-018-user-abandon.md` — name **`GAP-UC018-UI` OPEN** at §1b #5 · matrix stays **partial** · Ban claim UC covered · full coding-phase update later when AUTHORIZED UI nail + prove CMD(s) land  
-**Authority**: meetwise — **docs REQUEST open only** for **UC-E2E-018 UI abandon · GAP-UC018-UI** · status `draft:awaiting_pre_exec_dual` · Ban secrets / `.env*` · Meridian banned · No force-push · Ban Cloud Agent · Ban self-approve · Ban self-nail · Ban silent UC covered claim · Ban coding until dual+authorize · Ban messaging dual reviewers（coordinator dispatches）  
-**Honesty**: docs REQUEST of §1b #5 only · status `draft:awaiting_pre_exec_dual` · `GAP-UC018-UI` **OPEN** · matrix **partial** · #6 OPEN · Ban claim UC-E2E-018 covered · Ban wash TTL/`d698282` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / HTTP/abandon / D2b/`7fddebe` / HA / liveGhaRunUrl into UI closed / E2E covered · **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban coding · Ban prove · STOP after push
+**Parent harness（honesty touch this open · Ban flip covered）**: `harness/uc-e2e-018-user-abandon.md` — close **`GAP-UC018-UI` only** at §1b #5 · matrix stays **partial** · Ban claim UC covered · full coding-phase update later when AUTHORIZED UI nail + prove CMD(s) land  
+**Authority**: meetwise — **docs REQUEST open only** for **UC-E2E-018 UI abandon · GAP-UC018-UI** · status `executed:awaiting_post_prove_dual` · Ban secrets / `.env*` · Meridian banned · No force-push · Ban Cloud Agent · Ban self-approve · Ban self-nail · Ban silent UC covered claim · Ban coding until dual+authorize · Ban messaging dual reviewers（coordinator dispatches）  
+**Honesty**: AUTHORIZED coding+prove of §1b #5 only · status `executed:awaiting_post_prove_dual` · `GAP-UC018-UI` **CLOSED**（本刀 only） · matrix **partial** · UI alone ≠ covered · #6 OPEN · Ban claim UC-E2E-018 covered · Ban wash TTL/GRAPH/FULL-E2E/HTTP/D2b/HA into E2E covered · **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban self-nail · STOP
 
 ---
 
@@ -25,8 +25,8 @@
 
 | Expert | Receipt path（named · **not pre-filled**） | Status |
 |--------|---------------------------------------------|--------|
-| `mw-e2e-ha` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-ui-abandon-mw-e2e-ha.md` | **PENDING / draft:awaiting_pre_exec_dual** |
-| `mw-rag-route` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-ui-abandon-mw-rag-route.md` | **PENDING / draft:awaiting_pre_exec_dual** |
+| `mw-e2e-ha` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-ui-abandon-mw-e2e-ha.md` | **PASS**（pre-exec retained） |
+| `mw-rag-route` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-ui-abandon-mw-rag-route.md` | **PASS**（pre-exec retained） |
 
 **Note**: Implementer does **not** pre-fill pass · Dual **not** pinged by implementer · coordinator dispatches · Ban自批 · Dual PASS ≠ coding · Dual PASS ≠ UC-E2E-018 covered · Dual PASS ≠ next knife auto-authorize.
 
@@ -36,7 +36,7 @@
 
 | Statement | Ruling |
 |-----------|--------|
-| **What this knife is** | Docs REQUEST open for **UC-E2E-018 UI abandon · GAP-UC018-UI** · scope **ONLY §1b #5** · document for later：in-interview 「放弃」trigger → same HTTP contract as abandon（`abandoned`+`released` · irreversible）· prefer `e2e:ui:isolated` / Playwright dedicated prove CMD(s) · later close **`GAP-UC018-UI` only** · Ban claim UC covered · matrix stays **partial** even after later close · **UI alone ≠ UC covered** · status **`draft:awaiting_pre_exec_dual`** |
+| **What this knife is** | Docs REQUEST open for **UC-E2E-018 UI abandon · GAP-UC018-UI** · scope **ONLY §1b #5** · document for later：in-interview 「放弃」trigger → same HTTP contract as abandon（`abandoned`+`released` · irreversible）· prefer `e2e:ui:isolated` / Playwright dedicated prove CMD(s) · later close **`GAP-UC018-UI` only** · Ban claim UC covered · matrix stays **partial** even after later close · **UI alone ≠ UC covered** · status **`executed:awaiting_post_prove_dual`** |
 | **What this knife is not** | **Not** coding · **not** prove · **not** claiming UC-E2E-018 covered · **not** claiming matrix covered · **not** closing §1b #6 sole-stack R5 · **not** washing TTL/`d698282` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / HTTP/`uc018:abandon:*` / D2b/`7fddebe` / HA / liveGhaRunUrl into UI closed / E2E covered · **not** washing `uc018:abandon:*` / full-e2e / graph / ttl EXIT=0 into UI closed / UC covered · **not** inventing green · **not** cloud buy · **not** D3 · **not** Meridian · **not** Cloud Agent · **not** secrets / `.env*` · **not** second knife · **not** self-nail · **not** reopen TTL / GRAPH / FULL-E2E / D2b · **not** UC covered-lift |
 | **≠ wash TTL into UI / UC covered** | **YES** — parent tip **`d698282`** TTL nail CLOSED · matrix still **partial** · **≠** UI dedicated · **≠** UC-E2E-018 covered · **retained** · Ban wash · Ban reopen TTL |
 | **≠ wash GRAPH into UI / UC covered** | **YES** — tip **`08650ea`** GRAPH nail CLOSED · matrix still **partial** · **≠** UI dedicated · **≠** UC covered · **retained** · Ban wash · Ban reopen GRAPH |
@@ -47,7 +47,7 @@
 | **haStatus / releaseEvidence / claimProductionHA** | **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban flip this open · Ban假绿 |
 | **Matrix / UC covered** | UC-E2E-018 stays **partial** · Ban claim covered this knife · even after later §1b #5 close, #6 keeps matrix **partial** |
 | **Parent harness rewrite** | Honesty touch only：name **`GAP-UC018-UI` OPEN** · **not** rewritten as covered · Ban product-flag flip this open |
-| **Now** | **`draft:awaiting_pre_exec_dual`** · docs only · GAP-UC018-UI OPEN · matrix partial · #6 OPEN · Ban claim UC covered · Ban coding · STOP after push |
+| **Now** | **`executed:awaiting_post_prove_dual`** · docs only · GAP-UC018-UI CLOSED（only） · matrix partial · #6 OPEN · Ban claim UC covered · Ban coding · STOP after push |
 
 ---
 
@@ -55,7 +55,7 @@
 
 | # | Gap | Acceptance criteria（later under AUTHORIZED coding+prove · **not this open**） | Why priors do **not** auto-close | This REQUEST |
 |---|-----|--------------------------------------------------------------------------------|----------------------------------|--------------|
-| **A1** | Pre-exec dual | Pre-exec dual `mw-e2e-ha` + `mw-rag-route` **BOTH PASS** on REQUEST tip **before** any coding / prove / UI edit | N/A | **PENDING** · Ban自批 |
+| **A1** | Pre-exec dual | Pre-exec dual `mw-e2e-ha` + `mw-rag-route` **BOTH PASS** on REQUEST tip **before** any coding / prove / UI edit | N/A | **PASS** retained（`ca57ece` / `136ff14`）· Ban自批 |
 | **A2** | UI abandon trigger → HTTP contract | Later: in-interview 「放弃」UI trigger → Interview=`abandoned` + entitlement=`released`（**same HTTP contract as abandon** · irreversible）· create()/begin must not resume corpse | HTTP `uc018:abandon:http:prove` ≠ UI trigger path · parent §1b #5 OPEN | **docs only this open** · Ban coding |
 | **A3** | Dedicated UI prove（prefer Playwright） | Later: prefer `e2e:ui:isolated` / Playwright **dedicated** prove CMD(s) assert UI 「放弃」→ abandoned+released under UC-018 contract（not wash from HTTP/full-e2e/graph/ttl EXIT=0 alone）· receipts required | Prior HTTP / full-e2e / graph / ttl EXIT=0 ≠ dedicated UI UC nail | **docs only this open** · Ban claim covered |
 | **A4** | Parent harness + eval + matrix honesty | Later: update `harness/uc-e2e-018-user-abandon.md` + `eval/uc-e2e-018-user-abandon.eval.md` + matrix row honesty: close **`GAP-UC018-UI` only** · matrix stays **partial** · Ban claim UC covered · **UI alone ≠ covered** | Writing REQUEST ≠ gap closed | **honesty name OPEN this open** · Ban rewrite as UC covered |
@@ -102,7 +102,7 @@
 
 | Phase | Gate | This REQUEST |
 |-------|------|--------------|
-| **L0** | REQUEST pair open · `draft:awaiting_pre_exec_dual` | **THIS OPEN** · parent **`d698282`** · docs only |
+| **L0** | REQUEST pair open · `executed:awaiting_post_prove_dual` | **THIS OPEN** · parent **`d698282`** · docs only |
 | **L1** | Pre-exec dual (`mw-e2e-ha` + `mw-rag-route`) · Ban self-approve · coordinator dispatches | **awaiting_pre_exec_dual** · Ban自批 · Dual not pinged by implementer |
 | **L2** | AUTHORIZED coding+prove | **blocked** until dual BOTH PASS + authorize · Ban coding this open |
 | **L3** | awaiting_post_prove | later |
@@ -120,7 +120,7 @@
 | `pnpm uc018:abandon:full-e2e:prove` | EXIT **0** retained（FULL-E2E already CLOSED） | **not_run** |
 | `pnpm uc018:graph:prove` | EXIT **0** retained（GRAPH already CLOSED） | **not_run** |
 | `pnpm uc018:ttl:prove` | EXIT **0** retained（TTL already CLOSED） | **not_run** |
-| New dedicated UI prove CMD(s)（named in coding · prefer `e2e:ui:isolated` / Playwright） | EXIT **0** + receipts asserting in-interview 「放弃」→ abandoned+released（same HTTP contract · irreversible）（later） | **not_run** · Ban UI/Playwright edits |
+| `pnpm uc018:ui:prove`（`E2E_UI_GREP=UC018-UI-abandon` → `e2e:ui:isolated` / Playwright dedicated） | EXIT **0** + receipts asserting in-interview 「放弃」→ abandoned+released（same HTTP contract · irreversible） | **REQUIRED this knife** |
 | `pnpm eval-harness-matrix-cite:prove` | EXIT **0**（cite honesty） | **not_run** |
 
 ```bash
@@ -131,9 +131,7 @@ pnpm uc018:abandon:http:prove ; echo EXIT=$?
 pnpm uc018:abandon:full-e2e:prove ; echo EXIT=$?
 pnpm uc018:graph:prove ; echo EXIT=$?
 pnpm uc018:ttl:prove ; echo EXIT=$?
-# later: dedicated UI prove CMD(s) asserting in-interview 「放弃」
-#   → abandoned + released (same HTTP contract · irreversible)
-# prefer: pnpm e2e:ui:isolated / Playwright dedicated path ; echo EXIT=$?
+pnpm uc018:ui:prove ; echo EXIT=$?   # E2E_UI_GREP=UC018-UI-abandon → e2e:ui:isolated / Playwright
 pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 ```
 
@@ -171,4 +169,21 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 
 ---
 
-*Harness · UC-E2E-018 UI abandon · GAP-UC018-UI · §1b #5 only · 2026-09-23 (~17:19 PT) · draft:awaiting_pre_exec_dual · docs only · parent d698282 · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount 8 · ms3EqualsR4Closed=false · Ban claim UC covered · matrix partial · UI alone ≠ covered · Ban wash TTL/GRAPH/FULL-E2E/HTTP/D2b/HA into E2E · Ban coding until dual+authorize · STOP*
+*Harness · UC-E2E-018 UI abandon · GAP-UC018-UI · §1b #5 only · 2026-09-23 (~17:19 PT) · executed:awaiting_post_prove_dual · docs only · parent d698282 · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount 8 · ms3EqualsR4Closed=false · Ban claim UC covered · matrix partial · UI alone ≠ covered · Ban wash TTL/GRAPH/FULL-E2E/HTTP/D2b/HA into E2E · Ban coding until dual+authorize · STOP*
+
+
+---
+
+## Prove results（this coding · 2026-09-23 ~17:40–17:45 PT）
+
+| CMD | EXIT | Honest read |
+|-----|------|-------------|
+| `pnpm uc018:ui:prove` | **0** | closes `GAP-UC018-UI` only · **UI alone ≠ covered** · matrix **partial** · R5 |
+| `pnpm uc018:abandon:prove` | **0** | retained · ≠ covered · ≠ UI alone |
+| `pnpm uc018:abandon:http:prove` | **0** | retained · ≠ covered · ≠ UI |
+| `pnpm uc018:abandon:full-e2e:prove` | **0** | retained FULL-E2E CLOSED · ≠ covered · ≠ UI |
+| `pnpm uc018:graph:prove` | **0** | retained GRAPH CLOSED · ≠ covered · ≠ UI |
+| `pnpm uc018:ttl:prove` | **0** | retained TTL CLOSED · ≠ covered · ≠ UI |
+| `pnpm eval-harness-matrix-cite:prove` | **0** | cite · UC-E2E-018 **partial** not covered |
+
+**Status**: `executed:awaiting_post_prove_dual` · Ban self-nail `post_prove_dual_pass` · Ban claim UC covered · Ban close #6 · STOP

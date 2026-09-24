@@ -24,6 +24,7 @@ eval-first：交付 **可执行** A1–A3 集成断言（`@meetwise/db` `abandon
 | `pnpm uc018:abandon:http:prove` | **0** | **0**（2026-09-23 ~16:43 PDT re-prove；46 PASS；FULL-E2E+GRAPH CLOSED；R5） | HTTP 口绿；FULL-E2E+GRAPH 已关；仍 ≠ covered；#3/#5/#6 仍缺 |
 | `pnpm uc018:abandon:full-e2e:prove` | **0** | **0**（2026-09-23 ~16:17 PDT；assertions=14；R5；receipt `.tmp/e2e-receipts/2026-09-23T23-17-24-726Z-1101171-dbf25328-ec65-49b5-891f-730eb92e0827.json`） | full.e2e abandon TC；关 `GAP-UC018-FULL-E2E` only；仍 ≠ covered；R5 |
 | `pnpm uc018:graph:prove` | **0** | **0**（2026-09-23 ~16:43 PDT；G1–G5 PASS；R5；receipt `.tmp/isolated-proof-receipts/2026-09-23T23-43-32-710Z-1148868-d7a3c9f0-51bc-4f76-8095-2bc8af21daf4.json`） | AiGraphRun safely_terminated + 业务事实保全；关 `GAP-UC018-GRAPH` only；仍 ≠ covered；R5 |
+| `pnpm uc018:ui:prove` | **0** | in-interview 「放弃」→ abandoned+released；关 `GAP-UC018-UI` only；**UI alone ≠ covered**；矩阵仍 **partial**；R5 |
 | `pnpm uc018:ttl:prove` | **0** | **0**（2026-09-23 ~17:07 PDT；T1–T4 PASS；R5；receipt `.tmp/isolated-proof-receipts/2026-09-24T00-07-25-065Z-1193730-984d0ca8-bd96-4717-81fd-83a8f137f9e9.json`） | 租约过期孤儿 → abandoned+released；关 `GAP-UC018-TTL` only；仍 ≠ covered；R5；Ban wash commerce-reconcile |
 | `pnpm eval-harness-matrix-cite:prove` | **0** | **0**（2026-09-23 ~16:17 PDT；UC-E2E-018 partial not covered；§1b pins） | harness+eval 引用矩阵行；≠业务 covered |
 
@@ -37,6 +38,7 @@ pnpm uc018:abandon:http:prove ; echo EXIT=$?
 pnpm uc018:abandon:full-e2e:prove ; echo EXIT=$?
 pnpm uc018:graph:prove ; echo EXIT=$?
 pnpm uc018:ttl:prove ; echo EXIT=$?
+pnpm uc018:ui:prove ; echo EXIT=$?
 pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 ```
 
@@ -63,9 +65,9 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 | H-waiting-user | HTTP waiting_user+reserved → 200 + released；begin→409 | **否**（聚焦 HTTP；关 §1b#4） |
 | H-authz | 404/401/409 守卫 | 否 |
 
-**仍 gap 于 covered（见 harness §1b）**：UI（#5）；sole-stack 去 R5（#6）。
+**仍 gap 于 covered（见 harness §1b）**：sole-stack 去 R5（#6）。UI（#5）已关 · **UI alone ≠ covered**。
 
-**已关**：§1b#4 `waiting_user` CAS；**§1b#1 `GAP-UC018-FULL-E2E`**；**§1b#2 `GAP-UC018-GRAPH`**（`pnpm uc018:graph:prove`）；**§1b#3 `GAP-UC018-TTL`**（`pnpm uc018:ttl:prove`）。矩阵仍 **partial** · **≠ covered**。
+**已关**：§1b#4 `waiting_user` CAS；**§1b#1 `GAP-UC018-FULL-E2E`**；**§1b#2 `GAP-UC018-GRAPH`**；**§1b#3 `GAP-UC018-TTL`**；**§1b#5 `GAP-UC018-UI`**（`pnpm uc018:ui:prove`）。**#6 sole-stack 仍 OPEN**。矩阵仍 **partial** · **UI alone ≠ covered** · **≠ UC-E2E-018 covered**。
 
 ---
 
@@ -73,7 +75,7 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 
 - [ ] 未把 prove 绿写成 **UC-E2E-018 covered**
 - [ ] 未把 `commerce:prove` / `commerce-reconcile:prove` / `neg:interview` 冒充本 UC
-- [ ] 未把 `uc018:abandon:http:prove` / `uc018:abandon:full-e2e:prove` / `uc018:graph:prove` / `uc018:ttl:prove` / `commerce-reconcile:prove` 绿写成 UC-E2E-018 covered（FULL-E2E+GRAPH+TTL 已关仍 partial）
+- [ ] 未把 `uc018:abandon:http:prove` / `uc018:abandon:full-e2e:prove` / `uc018:graph:prove` / `uc018:ttl:prove` / `uc018:ui:prove` / `commerce-reconcile:prove` 绿写成 UC-E2E-018 covered（FULL-E2E+GRAPH+TTL+UI 已关仍 partial · UI alone ≠ covered）
 - [ ] 未把 isolated/pgvector 绿写成 sole-stack / HA
 - [ ] 矩阵最多 **partial**（非假 covered）
 - [ ] 钉 `本绿≠全链路 E2E covered` / `releaseEvidence=false` / `Not HA`
