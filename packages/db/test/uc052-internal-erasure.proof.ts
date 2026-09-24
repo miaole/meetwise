@@ -141,23 +141,24 @@ async function erase(opts: {
   interviewId: string; keyHash: string; epoch: number; failSink?: 'event' | 'ai_graph_run' | 'report'; ownerId?: string;
 }) {
   const o = opts.ownerId ?? owner;
-  return asPrincipal(admin, o, async (beginClient) => {
-    return asPrivacyWorkerExecutor(admin, async (consumeClient) => {
-      return runAuthorizedInterviewErasure({
-        beginClient,
-        issue: (fn) => asIssuer(o, fn),
-        consumeClient,
-        asWorkerPrincipal: (own, fn) => asPrivacyWorkerPrincipal(admin, own, fn),
-        admin,
-        owner: o,
-        interviewId: opts.interviewId,
-        idempotencyKeyHash: opts.keyHash,
-        privacyEpoch: opts.epoch,
-        keys,
-        workerId: worker,
-        nowSec: NOW_SEC,
-        failSink: opts.failSink,
-      });
+  // Phase 1: begin (commits) then admin attaches externals + reseals digest.
+  const begun = await asPrincipal(admin, o, (c) =>
+    beginInterviewProjectionErasure(c, opts.interviewId, opts.keyHash, opts.epoch));
+  await attachExternalRetentionPendingTargets(admin, begun.requestId, opts.interviewId, opts.keyHash);
+  // Phase 2: authorize + purge
+  return asPrivacyWorkerExecutor(admin, async (consumeClient) => {
+    return runAuthorizedInterviewErasure({
+      preBegun: { requestId: begun.requestId, privacyEpoch: opts.epoch },
+      issue: (fn) => asIssuer(o, fn),
+      consumeClient,
+      asWorkerPrincipal: (own, fn) => asPrivacyWorkerPrincipal(admin, own, fn),
+      admin,
+      owner: o,
+      interviewId: opts.interviewId,
+      keys,
+      workerId: worker,
+      nowSec: NOW_SEC,
+      failSink: opts.failSink,
     });
   });
 }
