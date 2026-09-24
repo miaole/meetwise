@@ -335,3 +335,91 @@ Diff `scripts/uc-e2e-018-covered-criterion.proof.mjs`:
 *Post-prove · mw-e2e-ha · GAP-UC018-RECEIPT-BACKFILL · tip e9ccfbe · 2026-09-23 ~21:58 PT · Ban Meridian · Ban .env* · Ban peer-sign · STOP*
 
 Verdict: PASS
+
+---
+
+# POST-PROVE correction · mw-e2e-ha lead（adversarial · flip PASS→FAIL）
+
+**Agent**: `mw-e2e-ha` · **Date**: 2026-09-23 (~22:01 PT)  
+**Tip**: `e9ccfbe` / `e9ccfbe15b12cd767602e49f103b0b77cbb6bc63`  
+**Prior post-prove**: `0f95062` PASS — **too lenient** on SOLE D-A + PERF unreproduced claim  
+**Append-only**: prior sections untouched（incl. prior last-line `Verdict: PASS`）· last-line-wins  
+**Pins retained**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · PERF local partial  
+**alone≠dual** · 不代签 mw-rag-route · PASS≠covered/nail
+
+## Flip rationale
+
+Prior PASS downgraded SOLE static→observed laundering to CONDITION and marked PERF PASS despite fresh EXIT≠claim. Lead correction: **B-SOLE-STATIC-COUNTED = BLOCKER**; PERF unreproduced-on-first cannot be per-SHA PASS under C-DUAL-FROM-FRESH.
+
+## 1. B-SOLE-STATIC-COUNTED（BLOCKER）
+
+Knife D-A（`61c3fcb` + coordinator + ha lean **NO**）: stack facts must be observed · static/doc ADR lines must **not** be counted as live stack.
+
+| Check | Cite | Finding |
+|-------|------|---------|
+| No services started | SOLE receipt `imageDigests.pgvector.started=false` · log has no `E2E isolated PostgreSQL` | static prove |
+| Source label | `SOLE.json` `stack.postgresSaver.source` = **`log-parse`** | **mislabeled**（want `static-doc` / doc-derived） |
+| Matched line | SOLE log L68 `PASS  adr-postgres-retained: pins PostgresSaver` · `facts.mjs:65–111` solePgSaver regex | ADR honesty line · **not** live PostgresSaver |
+| Gatherer counts | covered-criterion NOTE NEG/BOUND `stack={"postgres":true,"postgresSaver":true,"mysql":false,"qdrant":false}` · `unwrapStackValue` → true | **counted as observed stack fact** |
+| targetEnv | `static-docs` | correctly admits static · does **not** excuse counting |
+| memorySaver | `unobserved` → STUB-STACK still trips · `canHonestlyFlip=false` | mitigates flip · **does not** clear D-A laundering |
+
+**BLOCKER B-SOLE-STATIC-COUNTED**: mislabeled `log-parse` **+** gatherer counts static ADR `postgresSaver=true` as observed. Required fix: `source=static-doc`（or equivalent）**and** gatherer must **not** count it as observed stack（leave unobserved / exclude from STUB-STACK true-branch）；`memorySaver` unobserved stays STUB.
+
+## 2. PERF-LOAD@b29c191 · teardown investigation + attempt2
+
+### Attempt1 root cause（cite）
+
+Log `/workspace/mw-rv-bf-results/PERF-LOAD-prove.log`:
+
+- L17–20: PERF/LOAD run1+run2 `passed=true`
+- L22–37: `throw er; // Unhandled 'error' event` · **`Error: Connection terminated unexpectedly`** on `pg/lib/client.js`（emitted on Client）
+- L42–43: `ELIFECYCLE Command failed with exit code 1` · `RAW_EXIT=1`
+- **No** `SUMMARY allPass` / no run3 — crash **mid-prove**（after run2 of declared runs=3）
+
+Exit path: `uc018:perf-load:prove` → `run-e2e-isolated.mjs` → `uc018-perf-load-capped-child.mjs` · child `docker start -a` of proof container · capped-child `process.exit(start.status ?? 1)`（`scripts/uc018-perf-load-capped-child.mjs:202–204`）. Unhandled pg Client error ⇒ Node non-zero ⇒ **prove itself returns 1**. **Not** post-SUMMARY isolator teardown wash — failure is **inside** prove exit path.
+
+Note: `fatal: not a git repository: …/worktrees/mw-rv-bf-b29c191` also appears in attempt1 **and** in claimed EXIT=0 log（receipt log tail）**and** attempt2 green — **not** the differentiating root cause.
+
+### Attempt2（exactly one more · clean wt · frozen · fresh isol PG · live inspect）
+
+| Field | Value |
+|-------|-------|
+| Worktree | `/workspace/mw-rv-bf-perf2-b29c191` @ `b29c191` · porcelain 0 · `pnpm install --frozen-lockfile` EXIT=0 |
+| LIVE image | `pgvector/pgvector@sha256:ccc6e83d…fb4d6b` · container inspect Id=`sha256:9b05db12…` |
+| Isol PG | `meetwise-e2e-1935146-1790226020641` on `127.0.0.1:33046` |
+| Result | run1–3 all `passed=true` · `SUMMARY allPass=true` · **RAW_EXIT=0** |
+
+### PERF per-SHA line（C-DUAL-FROM-FRESH）
+
+- PERF-LOAD@b29c191: FAIL-UNREPRODUCED-ON-FIRST (attempt1=1, attempt2=0) — condition C-PERF-TEARDOWN
+
+Still **local partial** · Ban elevate · C-PERF-CAP-PARTIAL retained. **Not** B-PERF-FRESH-MISMATCH（attempt2 reproduced 0）.
+
+## 3. C-IMAGE-DIGEST（condition · retained）
+
+Digest must be captured **LIVE per run** from the **actual container** in the run log. Current emitter host `docker image inspect` / re-emit priorDigestStr labeled `docker-inspect` without RepoDigests in committed prove logs — **CONDITION**（pinned pg16；redis/minio/mailhog never started）.
+
+## 4. Corrected overall / per-SHA
+
+**Blockers**: **B-SOLE-STATIC-COUNTED**  
+**Conditions**: C-IMAGE-DIGEST · C-PERF-TEARDOWN（attempt1=1 attempt2=0）· GAP-HMAC · PERF README labelText bleed（fail-closed）
+
+- FULL-E2E@85d36c7: PASS
+- GRAPH@f06dcba: PASS
+- TTL@549da9c: PASS
+- UI@e88d386: PASS（honest FAIL / web_not_ready）
+- SOLE@23f98d3: FAIL（B-SOLE-STATIC-COUNTED）
+- ADV@bdc5993: PASS
+- PERF-LOAD@b29c191: FAIL-UNREPRODUCED-ON-FIRST (attempt1=1, attempt2=0) — condition C-PERF-TEARDOWN
+- waiting_user: PASS（MISSING）
+
+## Chinese 3-line
+
+1. 纠正：SOLE 静态 ADR 的 postgresSaver 被标 `log-parse` 且 gatherer 计入 observed stack = **B-SOLE-STATIC-COUNTED 阻塞**（D-A）。  
+2. PERF attempt1=1（prove 内 pg Client unhandled `Connection terminated`，非 SUMMARY 后 teardown）；attempt2=0 → C-PERF-TEARDOWN 条件，仍 local partial。  
+3. 总裁定 **FAIL** · ≠covered≠钉牌 · alone≠dual · coveredCount=8 · NOT_HA。
+
+*Correction · mw-e2e-ha · GAP-UC018-RECEIPT-BACKFILL · tip e9ccfbe · 2026-09-23 ~22:01 PT · Ban Meridian · Ban .env* · Ban peer-sign · STOP*
+
+Verdict: FAIL
