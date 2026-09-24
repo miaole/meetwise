@@ -691,3 +691,104 @@ alone≠dual · this review PASS≠covered≠nail · do not sign mw-rag-route
 *Receipt append · mw-e2e-ha · UC018 covered-criterion r4 FAIL @585006b / b97de26 · 2026-09-23 ~21:08 PT · STOP*
 
 Verdict: FAIL
+
+---
+
+## RE-REVIEW r5 · mw-e2e-ha · @971bb80 / runner 22790a8 · 2026-09-23 ~21:20 PT
+
+### Tips (Task 1)
+
+- `git fetch` EXIT=0; branch `feat/mysql-schema-skeleton`.
+- Ancestry on origin: `4e39b78` → `476d1fd` → `22790a8` → `971bb80` (merge-base --is-ancestor all yes). Intervening commits (61f7fa3, 3424dc1, 07659ee, bf3ced1) are other-line docs/fixes; Line A evidence = individual commits only.
+- Diff `22790a8..971bb80`: **docs/receipts only** (`covered-criterion-prove.md`, `covered-criterion-evidence.json`, harness md bump). Receipt `runnerCommitSha` = `22790a8dfb23604c4f47574b91d178e737f946a5`.
+- Runner files: **scripts + fixtures + harness docs only** (no `apps/` / product code). `4e39b78` gatherer+evaluator+fixtures; `476d1fd` proof expect tweak; `22790a8` unterminated-fence + HTML-ML defenses + fixtures.
+- Range disclosure: `fc8429c` (Line C) · `41cffea` (Line B) + prior `994e83a` / `9e55109` / `3c4847a` / `8602cea` (+ g7) now listed in prove receipt + harness fix-round 5/5b. Completes r4 C-RANGE incomplete condition for those two SHAs.
+- Spoofable-author residual documented harness L417 (Known limit, not blocker).
+
+### CMD|EXIT (Task 2 · clean worktree `/workspace/mw-rv-971bb80` @971bb80)
+
+| CMD | EXIT |
+|-----|------|
+| `git worktree add /workspace/mw-rv-971bb80 971bb80` | **0** |
+| `pnpm install --frozen-lockfile` | **0** |
+| `pnpm uc018:covered-criterion:prove` ×2 | **0** / **0** |
+| `pnpm uc018:covered-lift-reassess:prove` | **0** |
+| `pnpm uc018:adv:prove` | **0** |
+| `pnpm eval-harness-matrix-cite:prove` | **0** |
+| `pnpm eval-uc-e2e-001-002-cite:prove` | **0** |
+| leaf-mutation | **423/423** false · allowlist **4** LEGIT unchanged |
+| real `canHonestlyFlip` | **false** (STATUS-NOT-COVERED, UNCOMMITTED-RUNNER, MISSING-RECEIPT, MISSING-DUAL, …) |
+| README dirty | **no** · porcelain clean after (`.tmp/` gitignored only) |
+
+Key prove notes: FX-DUAL-UNTERMINATED-FENCE / FX-DUAL-HTML-ML → MISSING-DUAL; author-gated sole dual null/null (last-line-only; older receipts lack terminal strict line); flip↔reasons invariant OK; pins restated.
+
+### Parser source @22790a8 (Task 3)
+
+`scripts/lib/uc-covered-real-gatherer.mjs`:
+- L246–264 contract comment: last-non-empty-line only; bold balanced; earlier scan **defense-only** → can only yield null (never PASS from earlier content).
+- L265 `REVIEW_VERDICT_LINE_RE`
+- L267–290 `htmlCommentDefenseFails` — unclosed HTML comment opener **or** any strict-verdict-shaped text inside a comment block → true → parse null
+- L292–315 `unterminatedFenceFails` — open ``` / ~~~ without close → true → parse null
+- L322–342 `parseReviewFileVerdict` — defenses first, then last non-empty line match only
+- Dead `stripMarkdownNonProse` **absent** (confirmed via `git show 22790a8:…`)
+
+### Parser edge-test table (Task 3 · /tmp only · ALL OK EXIT=0)
+
+| ID | Input (words) | Expected | Got |
+|----|---------------|----------|-----|
+| a | last line = strict PASS | PASS | PASS |
+| b | last line = strict FAIL | FAIL | FAIL |
+| c | strict PASS on 2nd-to-last; trailing prose last | null | null |
+| d | last line inside unclosed fence | null | null |
+| e | last line inside unclosed multi-line HTML comment opener | null | null |
+| f | CRLF + trailing spaces on strict PASS | PASS | PASS |
+| g_bal | bold-wrapped balanced strict PASS | PASS | PASS |
+| g_unbal | bold open without close | null | null |
+| h_lower | lowercase pass | null | null |
+| h_extra | extra text after PASS token | null | null |
+| i | blockquote marker + strict line | null | null |
+| j | trailing blank lines after strict PASS | PASS | PASS |
+| k | empty file | null | null |
+| l | fence closed on 2nd-to-last; strict PASS last | PASS | PASS |
+
+### Real-receipt effect (Task 4)
+
+- Gatherer wires dual paths (ADV/PERF/SOLE/GRAPH/waiting-user post-prove pair files only — L478–502). **Line B** receipts (UC-052 checkpoint-physical, internal-erasure, privacy-int) are **not** in those path lists → not ingested by this gatherer (note only).
+- Older UC-018 post-prove dual files (ADV, PERF/LOAD, SOLE, GRAPH, UI, TTL, FULL-E2E, covered-lift*, waiting-user, …) → `parseReviewFileVerdict` = **null** (no terminal strict line) → column dual slots null → **MISSING-DUAL**. Fail-closed; does **not** flip anything toward covered (`canHonestlyFlip` stays false).
+- This file pre-append: last line was strict FAIL → parse **FAIL** (r4). Peer rag-route post-prove ends with strict FAIL but body contains closed HTML comments that embed strict-verdict-shaped examples → defense returns **null** (fail-closed; cannot launder via comment examples). Backfill knife needed for honest dual PASS/FAIL pairs at recorded SHAs — Ban hand-writing JSON from prose.
+
+### Fail-open re-hunt (Task 5 · brief)
+
+- flip↔reasons invariant still asserted (proof + real path).
+- stack / EOR / exit / capacity / porcelain / verifiedSha checks intact in evaluator + proof.
+- allowlist **4** unchanged LEGIT (`ucId`; capacity/targetEnv on NEG|FAULT|BOUND|ADV; implementerOnly).
+- No new fail-open found in last-line contract: defenses only produce null; PASS requires exact last non-empty line.
+
+### Blockers vs conditions · pins (Task 6)
+
+**r4 blockers**
+1. B-DUAL-HTML-ML-COMMENT — **FIXED** (L267–290 + FX-DUAL-HTML-ML → MISSING-DUAL)
+2. B-DUAL-UNTERMINATED-FENCE — **FIXED** (L292–315 + FX-DUAL-UNTERMINATED-FENCE → MISSING-DUAL)
+
+**r2–r3** prior blockers remain FIXED (held under re-prove).
+
+**Conditions**
+- C-RANGE-PRODUCT / missing `fc8429c`·`41cffea` — **disclosed** (complete vs r4 incomplete)
+- C-NO-GIT-AUTHOR — **enforced**; residual `-c user.name` spoof = documented Known limit harness L417 (not blocker)
+- C-GATHERER-REAL-INPUT — **closed** by last-line-only + defenses (this PASS)
+
+**This PASS**: closes C-GATHERER-REAL-INPUT and r2–r4 dual-parser blockers · **NOT covered** · **NOT nail**. Nail must register **GAP-UC018-RECEIPT-BACKFILL** (own knife: re-run dual at recorded SHAs; Ban hand-writing JSON from prose).
+
+**Pins**  
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · UC-018/§1.1 partial · Ban invent covered · Ban flip §1.1  
+alone≠dual · do not sign mw-rag-route
+
+### Chinese 3-line
+
+1. r5 末行-only 契约落地：未闭合围栏/HTML 注释防御仅能产出 null；423/423、allowlist 4、real flip=false。  
+2. 旧 UC-018 post-prove 回执 → MISSING-DUAL（fail-closed 回填刀）；range `fc8429c`/`41cffea` 已披露；作者 spoof 为已知限。  
+3. 裁定 **PASS** · 关闭 C-GATHERER-REAL-INPUT 与 r2–r4 阻塞 · ≠covered≠nail · alone≠dual · 不代签 mw-rag-route。
+
+*Receipt append · mw-e2e-ha · UC018 covered-criterion r5 PASS @971bb80 / runner 22790a8 · 2026-09-23 ~21:20 PT · STOP*
+
+Verdict: PASS
