@@ -4,10 +4,9 @@
  * C-CASECOUNT exact ==. Ban SET LOCAL-only wash. Ban hand-made pg.Client pool.
  */
 import { execFileSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
 import {
   assertIsolatedTestTarget, asPrincipal, createPool, enrollCheckpointThread,
-  loadMigrations, provisionRuntimeLogin, runMigrations,
+  provisionRuntimeLogin,
 } from '@meetwise/db';
 import { createCheckpointer } from '../src/main.ts';
 import {
@@ -92,8 +91,7 @@ async function main() {
   const gitSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   console.log(`UC052_POOL_ROLE_LEAK_PROVE gitSha=${gitSha} line=B runnerCommitSha=${gitSha}`);
 
-  await admin.query('DROP TABLE IF EXISTS schema_migrations CASCADE');
-  await runMigrations(admin, loadMigrations(fileURLToPath(new URL('../../../packages/db/migrations', import.meta.url))));
+  // Isolator already migrated (uc052:pool-role-leak:prove:raw allowlist). Ban re-migrate.
   await provisionRuntimeLogin(admin, { roleName: role, password });
 
   const port = process.env.PGPORT ?? '54329';
