@@ -140,3 +140,66 @@
 ---
 
 *mw-privacy-int · POST-PROVE · 独立复跑 · 不采信 mw-core 口头声明*
+
+---
+
+## r2 · 复审（阻断项 B1 修复后）· 2026-09-23 20:50 PDT
+
+| 字段 | 值 |
+|------|----|
+| 角色 | `mw-privacy-int` |
+| 相对 | r1=`71c6305` **CONDITIONAL**（唯一阻断 B1：uc052 proof 新增 25 条 tsc） |
+| 修复提交 | `9e55109`（harness 补丁 + src 类型放宽 + proof 收紧）· prove tip **`3c4847a`**（proof only） |
+| mw-core 收据 | `6a4140d` |
+| 工作树 | `/workspace/wt-pi-r2-prove`@`3c4847a` · `/workspace/wt-pi-r2-step0`@`4643c02`（detached） |
+
+### CMD \| SHA \| EXIT（本机复跑）
+
+| CMD | SHA | EXIT | 备注 |
+|-----|-----|------|------|
+| `pnpm uc052:internal-erasure:prove` | `3c4847a` | **0** | 11/11 PASS · **零 skip** · FAULT-04 `req=purging` |
+| `pnpm privacy-authorization:prove` | `3c4847a` | **0** | tip 回归 |
+| `pnpm privacy-erasure:http:prove` | `3c4847a` | **0** | 19 pass · **DELETE 仍 503** |
+| `pnpm --filter @meetwise/db exec tsc --noEmit` | `4643c02` | **2** | 6 条既有 |
+| `pnpm --filter @meetwise/db exec tsc --noEmit` | `3c4847a` | **2** | **同 6 条 · 无新增 · uc052 文件 0 错** |
+| `tsc -p packages/db --noEmit` | `4643c02` / `3c4847a` | **2** / **2** | 两边错误集归一化后 **全等** |
+
+### case 观测（`uc052:internal-erasure:prove` @`3c4847a`）
+
+全部 PASS、无 skip：FAULT-01…05 · NEG-02/03/01 · BOUND-01 · HP-050-01 · C-CASECOUNT。  
+FAULT-04 日志：`claimRejected=true req=purging localsPending=true ckpt=erased externalsRp=true`。
+
+### tsc 差分
+
+- Step0 与 tip：**各 6 条、集合相同**（domain×3 + privacy-erasure-preview.proof + qbank-handoff×2）。
+- **uc052 src/proof：0 条错误**。
+- **相对 Step0：0 条新增** → r1 阻断 B1 **已解除**。
+
+### src 是否 type-only（`git diff 6d6e11b 3c4847a -- packages/db/src/`）
+
+**是。** 仅：`import type { Client, DbPool }`、`type Sql = DbPool \| Client`、若干参数注解 `Client`→`Sql`/`DbPool`。无运行时分支/SQL/控制流变更。
+
+### proof / harness 收紧（实读）
+
+- FAULT-04：**显式** `status === 'purging'`，并断言 locals=`pending`、checkpoint=`erased`、externals=`retention_pending`。
+- porcelain dirty worktree → EXIT 1。
+- FAULT-02：同 requestId + 同 target id 集；FAULT-05：首单 ledger/receipts 稳定、无重复有效擦除。
+- Harness：**append-only** 补丁（`9e55109` +13 行）声明 FAULT-04 权威终态为 `purging`（0096 CASE ① 优先于 retention→pending_external）；**未改写** §4 L209 原文，**未削弱**其他断言。
+
+### Pins / 范围
+
+| Pin | 结果 |
+|-----|------|
+| `releaseEvidence=false` | ✓（本机 JSON + `6a4140d` fixround evidence） |
+| `haStatus=NOT_HA` · `claimProductionHA=false` | ✓ |
+| 无「本 UC covered」宣称 | ✓（`coveredCount=8` 仍为矩阵既有 pin） |
+| 外部 `retention_pending` | ✓ |
+| 公开 DELETE=503 | ✓（NEG-01 + http prove） |
+| 修复区间无新路由 / 无 GRANT / 无 migration | ✓（仅 harness 追加、db src 类型、db proof） |
+
+### VERDICT r2: **PASS**
+
+B1 已清除；prove 全绿；tsc 与 Step0 对齐且 uc052 零错；src 为类型-only；pins 守住。  
+非阻断备注：harness L209 历史行仍保留旧文案，以 addendum 为权威——可接受。
+
+*mw-privacy-int · POST-PROVE r2 · 独立复跑 · 不采信 mw-core 口头声明*
