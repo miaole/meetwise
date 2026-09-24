@@ -112,4 +112,28 @@ Not UC-E2E-018 covered · not §1.1 flip · not column covered elevate · not pr
 *Slice update · executed:awaiting_post_prove_dual · runner `1cae8f6` · 2026-09-23 (~20:15 PT)*
 
 
+
+---
+
+## Fix-round C-GATHERER-REAL-INPUT（runner `ca1c8a5`）
+
+**Status**: **`executed:awaiting_post_prove_dual`**
+
+| CMD | EXIT |
+|-----|------|
+| `pnpm uc018:covered-criterion:prove` | **0** |
+| `pnpm uc018:covered-lift-reassess:prove` | **0** |
+| `pnpm uc018:adv:prove` | **0** |
+| `pnpm eval-harness-matrix-cite:prove` | **0** |
+
+- Runner: `ca1c8a5` / `ca1c8a5b6848e0237a5f405113fc1dc4ed526e5d`
+- Real verdict: `canHonestlyFlip=false` · reasons include **PERF-LOCAL-ONLY** + IMPL-ONLY + UNCOMMITTED-RUNNER + …（computed from receipts+git · no literals）
+- businessPathMet: **true**（已关 / CLOSED-before-id）
+- New FX: STUB-STACK · PROVE-FAIL · real-input neg PASS
+- Literals removed: targetEnv / capacityRepresentative / exit-default-0 / committed:true / stack literals / present:true / gitSha literals → receipt+git reads（see harness §10）
+- Pins: coveredCount=8 · NOT_HA · releaseEvidence=false · claimProductionHA=false · Ban invent covered · Ban §1.1 flip · Ban self-nail · D1–D3 nail-only
+
+*Slice fix-round · runner `ca1c8a5` · 2026-09-23 (~20:32 PT)*
+
+
 *Slice · UC-E2E-018 COVERED-CRITERION · GAP-UC018-COVERED-CRITERION · 2026-09-23 (~20:04 PT) · executed:awaiting_post_prove_dual · f886ea5 · b29c191 · 5cddb53 · local PERF/LOAD cap at partial · evaluator scripts/lib/uc-covered-evaluator.mjs · prove pnpm uc018:covered-criterion:prove · expected canHonestlyFlip=false · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount 8 · ms3EqualsR4Closed=false · Ban invent covered · Ban flip §1.1 · Ban skip to UC-011 · STOP after push*

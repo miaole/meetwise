@@ -3,7 +3,7 @@
   "gap": "GAP-UC018-COVERED-CRITERION",
   "command": "pnpm uc018:covered-criterion:prove",
   "exit": 0,
-  "runnerCommitSha": "1cae8f6a738a5424ba2f79e11d5457667c7ab0a9",
+  "runnerCommitSha": "ca1c8a5b6848e0237a5f405113fc1dc4ed526e5d",
   "boundPinId": "waiting_user-CAS",
   "refuseEnum": [
     "PERF-LOCAL-ONLY",
@@ -131,6 +131,15 @@
       ]
     },
     {
+      "id": "FX-PROVE-FAIL",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "PROVE-FAIL"
+      ]
+    },
+    {
       "id": "FX-S11-NOT-MET",
       "ok": true,
       "expectedFlip": false,
@@ -147,37 +156,58 @@
       "reasons": [
         "STALE-SHA"
       ]
+    },
+    {
+      "id": "FX-STUB-STACK",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "STUB-STACK"
+      ]
     }
   ],
   "realVerdict": {
     "canHonestlyFlip": false,
     "reasons": [
       "STATUS-NOT-COVERED",
+      "UNCOMMITTED-RUNNER",
+      "MISSING-DUAL",
       "CASE-ONLY",
+      "PROVE-FAIL",
+      "MISSING-RECEIPT",
+      "IMPL-ONLY",
       "PERF-LOCAL-ONLY",
-      "OPEN-GAP",
-      "S11-NOT-MET"
+      "OPEN-GAP"
     ],
     "columns": {
       "NEG": {
         "status": "partial",
         "meetsCovered": false,
         "reasons": [
-          "STATUS-NOT-COVERED"
+          "STATUS-NOT-COVERED",
+          "UNCOMMITTED-RUNNER",
+          "MISSING-DUAL"
         ]
       },
       "FAULT": {
         "status": "case-only",
         "meetsCovered": false,
         "reasons": [
-          "CASE-ONLY"
+          "CASE-ONLY",
+          "UNCOMMITTED-RUNNER",
+          "PROVE-FAIL",
+          "MISSING-DUAL",
+          "MISSING-RECEIPT"
         ]
       },
       "BOUND": {
         "status": "partial",
         "meetsCovered": false,
         "reasons": [
-          "STATUS-NOT-COVERED"
+          "STATUS-NOT-COVERED",
+          "UNCOMMITTED-RUNNER",
+          "MISSING-DUAL"
         ]
       },
       "ADV": {
@@ -192,6 +222,8 @@
         "meetsCovered": false,
         "reasons": [
           "STATUS-NOT-COVERED",
+          "UNCOMMITTED-RUNNER",
+          "IMPL-ONLY",
           "PERF-LOCAL-ONLY"
         ]
       },
@@ -200,6 +232,8 @@
         "meetsCovered": false,
         "reasons": [
           "STATUS-NOT-COVERED",
+          "UNCOMMITTED-RUNNER",
+          "IMPL-ONLY",
           "PERF-LOCAL-ONLY"
         ]
       }
@@ -212,7 +246,7 @@
     "openGaps": [
       "GAP-UC018-COVERED-CRITERION"
     ],
-    "businessPathMet": false,
+    "businessPathMet": true,
     "parsedStatuses": {
       "NEG": "partial",
       "FAULT": "case-only",
@@ -220,6 +254,44 @@
       "ADV": "partial",
       "PERF": "partial",
       "LOAD": "partial"
+    },
+    "sources": {
+      "NEG": {
+        "receiptPath": "sole-stack-pg-retained-evidence.json",
+        "harnessCmdExit": 0,
+        "targetEnvSource": "absent",
+        "capacitySource": "absent"
+      },
+      "FAULT": {
+        "receiptPath": null,
+        "harnessCmdExit": null,
+        "targetEnvSource": "absent",
+        "capacitySource": "absent"
+      },
+      "BOUND": {
+        "receiptPath": "sole-stack-pg-retained-evidence.json",
+        "harnessCmdExit": 0,
+        "targetEnvSource": "absent",
+        "capacitySource": "absent"
+      },
+      "ADV": {
+        "receiptPath": "2026-09-23-uc-e2e-018-adv-evidence.json",
+        "harnessCmdExit": 0,
+        "targetEnvSource": "absent",
+        "capacitySource": "absent"
+      },
+      "PERF": {
+        "receiptPath": "uc018-perf-load/summary.json",
+        "harnessCmdExit": 0,
+        "targetEnvSource": "docker --cpus=2 --memory=4g",
+        "capacitySource": "absent"
+      },
+      "LOAD": {
+        "receiptPath": "uc018-perf-load/summary.json",
+        "harnessCmdExit": 0,
+        "targetEnvSource": "docker --cpus=2 --memory=4g",
+        "capacitySource": "absent"
+      }
     }
   },
   "pins": {
@@ -242,9 +314,47 @@
     ],
     "constantTruePass": true,
     "antiTautologyPass": true,
-    "reassessNotConstantFalse": true
+    "reassessNotConstantFalse": true,
+    "gathererLiteralPass": true
   },
-  "datePT": "9/23/2026, 8:15:35 PM PT",
+  "realInputNegativeTests": [
+    {
+      "label": "drop-ADV-exit",
+      "ok": true,
+      "expectReason": "PROVE-FAIL",
+      "gotReasons": [
+        "STATUS-NOT-COVERED",
+        "UNCOMMITTED-RUNNER",
+        "MISSING-DUAL",
+        "CASE-ONLY",
+        "PROVE-FAIL",
+        "MISSING-RECEIPT",
+        "IMPL-ONLY",
+        "PERF-LOCAL-ONLY",
+        "OPEN-GAP"
+      ],
+      "canHonestlyFlip": false
+    },
+    {
+      "label": "nonexistent-ADV-sha",
+      "ok": true,
+      "expectReason": "UNCOMMITTED-RUNNER",
+      "gotReasons": [
+        "STATUS-NOT-COVERED",
+        "UNCOMMITTED-RUNNER",
+        "MISSING-DUAL",
+        "CASE-ONLY",
+        "PROVE-FAIL",
+        "MISSING-RECEIPT",
+        "IMPL-ONLY",
+        "PERF-LOCAL-ONLY",
+        "OPEN-GAP"
+      ],
+      "canHonestlyFlip": false
+    }
+  ],
+  "businessPathMet": true,
+  "datePT": "9/23/2026, 8:32:02 PM PT",
   "haStatus": "NOT_HA",
   "releaseEvidence": false,
   "claimProductionHA": false,
@@ -253,7 +363,9 @@
   "ms3EqualsR4Closed": false,
   "banInventCovered": true,
   "banFlipSection11": true,
-  "runnerCommitShaShort": "1cae8f6",
+  "fixRound": "C-GATHERER-REAL-INPUT",
+  "runnerCommitShaShort": "ca1c8a5",
+  "status": "executed:awaiting_post_prove_dual",
   "cmdExitTable": [
     {
       "cmd": "pnpm uc018:covered-criterion:prove",
@@ -276,5 +388,35 @@
       "exit": "SKIPPED (heavy · not required)"
     }
   ],
-  "status": "executed:awaiting_post_prove_dual"
+  "literalsRemoved": [
+    {
+      "was": "targetEnv = isPerfLoad ? 'docker-isolated' : 'n/a' (~:306)",
+      "now": "pickTargetEnv(receipt) · targetEnv|envClass|caps.method→docker-isolated"
+    },
+    {
+      "was": "capacityRepresentative = false (~:307)",
+      "now": "pickCapacityRepresentative(receipt) · capacityRepresentative|capacity.representative (absent→false via ===true check)"
+    },
+    {
+      "was": "exit: opts.exit ?? (nhpRow ? 0 : null) (~:313)",
+      "now": "receipt.exit|exitCode|exits[cmd]|allPass; harness CMD|EXIT only if receipt absent"
+    },
+    {
+      "was": "committed: true / shaMatchesCommitted: true (~:315-316)",
+      "now": "git cat-file -e sha^{commit} + git merge-base --is-ancestor sha HEAD; implementer-only→forced uncommitted"
+    },
+    {
+      "was": "stack: { postgres:true, postgresSaver:true, … } (~:321-327)",
+      "now": "receipt.stack.* | parse receipt.soleStack (absent→undefined→STUB-STACK)"
+    },
+    {
+      "was": "present: true (~:333)",
+      "now": "present: receipt!=null (missing→MISSING-RECEIPT)"
+    },
+    {
+      "was": "gitSha: 'bdc5993'|'b29c191' literals (~:356/361/367)",
+      "now": "receipt.gitSha|proveTip|runnerCommitSha|commitSha | harness **Prove tip** / prove tip **`sha`**"
+    }
+  ],
+  "porcelainAtProve": "(empty — Line A only; shared checkout clean)"
 }

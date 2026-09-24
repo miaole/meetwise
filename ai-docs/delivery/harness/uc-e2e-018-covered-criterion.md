@@ -1,7 +1,7 @@
 # Harness — **UC-E2E-018 COVERED-CRITERION**（`GAP-UC018-COVERED-CRITERION` · restore computable six-column evaluator · written partial→covered criterion · docs REQUEST · **`executed:awaiting_post_prove_dual`** · **Ban** flip UC-018 / §1.1 to **covered** this knife · **Ban** invent covered · **Ban** wash constant-false into 「已评估不可翻」· **Ban** claim production capacity / HA · **Ban** skip to UC-011 · **Ban** MySQL/Qdrant cutover · **Ban** claim suite green / HA / R5 retired globally · **Ban** second knife as covered-lift）
 
 **Status**: **`executed:awaiting_post_prove_dual`**（实现方预写 · **not yet dual-sent** · **Ban自批 pass** · Dual PASS ≠ coding · Dual PASS ≠ UC-E2E-018 covered · Dual PASS ≠ §1.1 flip · Dual PASS ≠ next knife auto-authorize · **≠ coding** · **≠ prove** · **≠ invent covered** · matrix §1.1 **partial** retained · this knife = **criterion + evaluator restore plan only** · any real flip = **separate later knife with dual**）
-**Date**: 2026-09-23 (~20:15 PT) · coding+prove at runner `1cae8f6`
+**Date**: 2026-09-23 (~20:32 PT) · fix-round C-GATHERER-REAL-INPUT at runner `ca1c8a5` (prior coding `1cae8f6`)
 **Base / parent tip**: HEAD / REQUEST parent **`f886ea5`** / full `f886ea5961c437587519a5c7a628cc4295b8fb22`（`docs(e2e): nail UC018 PERF/LOAD post-prove dual pass` · **must remain ancestor of this REQUEST tip** · `git merge-base --is-ancestor f886ea5 HEAD` **YES**）· sits on PERF/LOAD nail evidence · prove tip **`b29c191`** / full `b29c191543dfbe7c1afa4278c550340a3339f295`（**regression pin**: `canHonestlyFlip` = **constant-false no-flip guard, not an assessment** · Ban 「assessed, cannot flip」）· reassess prove tip **`5cddb53`** / full `5cddb53b0d66432a1a605cf3de796d595aaa6d2a`（**canHonestlyFlip was computed** · refuse then：**PERF/LOAD blind**）· reassess nail **`0b7a218`** · ADV **`27dd6ae`** · covered-lift **`abfbbc0`** · SOLE **`aa968b1`** · UI **`1990b12`** · TTL **`d698282`** · GRAPH **`08650ea`** · FULL-E2E **`c36b032`** · waiting_user CLOSED · HA D2b **`7fddebe`** CLOSED · Ban reopen priors · Ban wash · branch `feat/mysql-schema-skeleton`（**historical name only** · Ban MySQL cutover justification）
 **Knife name**: **UC-E2E-018 COVERED-CRITERION · GAP-UC018-COVERED-CRITERION**（written partial→covered criterion per column + restore computable six-column evaluator that **CAN** return `true` · adversarial fixtures · prove plan · **NOT** flip UC-018 covered · **NOT** flip §1.1 · Ban skip to UC-011 · Ban second knife as covered-lift）
 **Critical stack pin（`adr-postgres-retained.md`）**: Retained sole = **Postgres (+pgvector + PostgresSaver)** · **Ban** MySQL business cutover · **Ban** Qdrant-as-required-vector · Ban MemorySaver / stub as covered evidence · STOPPED R5 cutover harnesses remain STOPPED
@@ -259,3 +259,63 @@ This is an **expectation** for the future real-matrix run after evaluator lands 
 
 
 *Harness · UC-E2E-018 COVERED-CRITERION · GAP-UC018-COVERED-CRITERION · 2026-09-23 (~20:04 PT) · executed:awaiting_post_prove_dual · nail f886ea5 · b29c191 constant-false regression pin · 5cddb53 computed · local PERF/LOAD cap at partial · evaluator scripts/lib/uc-covered-evaluator.mjs · prove plan pnpm uc018:covered-criterion:prove · expected real verdict canHonestlyFlip=false · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount 8 · ms3EqualsR4Closed=false · PG-retained · Ban invent covered · Ban flip §1.1 · Ban skip to UC-011 · STOP after push*
+
+---
+
+## 10. Fix-round · C-GATHERER-REAL-INPUT（runner `ca1c8a5`）
+
+**Status**: **`executed:awaiting_post_prove_dual`** · Ban self-nail · Ban invent covered · Ban flip §1.1
+
+| Field | Value |
+|-------|-------|
+| Runner commit | **`ca1c8a5`** / full `ca1c8a5b6848e0237a5f405113fc1dc4ed526e5d` |
+| Module | `scripts/lib/uc-covered-real-gatherer.mjs` + `uc-covered-evaluator.mjs` |
+| Prove | `pnpm uc018:covered-criterion:prove` |
+| Real verdict | **`canHonestlyFlip=false`** · STATUS-NOT-COVERED · UNCOMMITTED-RUNNER · MISSING-DUAL · CASE-ONLY · PROVE-FAIL · MISSING-RECEIPT · IMPL-ONLY · **PERF-LOCAL-ONLY** · OPEN-GAP |
+| businessPathMet | **true**（CLOSED-before-id / 已关 fix · was false-negative S11-NOT-MET） |
+| Receipts | `../receipts/uc018-covered-criterion/` |
+
+### Literals removed → now-read source
+
+| Was (in `colFrom` ~1cae8f6) | Now reads |
+|-------------------------------|-----------|
+| `targetEnv = isPerfLoad ? 'docker-isolated' : 'n/a'` | `receipt.targetEnv` \| `envClass` \| `environment.targetEnv` \| derive `caps.method`→`docker-isolated` · **never invent non-local** |
+| `capacityRepresentative = false` | `receipt.capacityRepresentative` \| `capacity.representative` \| `capacityRepresentativeClaim`（absent → not true; future cloud flips with NO code change） |
+| `exit: opts.exit ?? (nhpRow ? 0 : null)` | `receipt.exit` \| `exitCode` \| `exits[cmd]` \| `allPass`; harness CMD\|EXIT **only if receipt absent**; receipt present + EXIT dropped → null → **PROVE-FAIL** |
+| `committed: true` / `shaMatchesCommitted: true` | `git cat-file -e <sha>^{commit}` + `git merge-base --is-ancestor <sha> HEAD`; implementer-only label → forced uncommitted |
+| `stack: { postgres:true, postgresSaver:true, memorySaver:false, mysql:false, qdrant:false }` | `receipt.stack.*` \| parse `receipt.soleStack`; absent → undefined → **STUB-STACK** |
+| `present: true` | `present: receipt != null`（missing → **MISSING-RECEIPT**） |
+| `gitSha: 'bdc5993'` / `'b29c191'` literals | `receipt.gitSha` \| `proveTip` \| `runnerCommitSha` \| `commitSha` \| harness `**Prove tip**` / `prove tip **\`sha\`**` |
+
+### Receipt field contract（future cloud · no code change）
+
+See header of `scripts/lib/uc-covered-real-gatherer.mjs`: `targetEnv`, `capacityRepresentative`, `evidenceOfRecord`, `implementerOnly`, `exit`/`exits`/`allPass`, `gitSha`/`proveTip`/`runnerCommitSha`, `stack`/`soleStack`, `dual` or review PASS files.
+
+### CMD|EXIT（fix-round @ `ca1c8a5`）
+
+| CMD | EXIT |
+|-----|------|
+| `pnpm uc018:covered-criterion:prove` | **0** |
+| `pnpm uc018:covered-lift-reassess:prove` | **0** |
+| `pnpm uc018:adv:prove` | **0** |
+| `pnpm eval-harness-matrix-cite:prove` | **0** |
+| `pnpm uc018:perf-load:prove` | SKIPPED |
+
+### New fixtures + real-input neg
+
+| Item | Result |
+|------|--------|
+| FX-STUB-STACK | false + STUB-STACK |
+| FX-PROVE-FAIL | false + PROVE-FAIL |
+| neg drop-ADV-exit (temp copy) | false + PROVE-FAIL |
+| neg nonexistent-ADV-sha (temp copy) | false + UNCOMMITTED-RUNNER |
+| gatherer-literal guard | PASS（no `capacityRepresentative=false` / `committed:true` / `present:true` in real-input branch） |
+| b29c191 constant-FALSE | TRIPS |
+| businessPathMet | true（was false under old GAP…CLOSED-within-40 regex） |
+
+### Pins retained
+
+coveredCount=**8** · haStatus=**NOT_HA** · releaseEvidence=**false** · claimProductionHA=**false** · gR45Closed=**true** · ms3EqualsR4Closed=**false** · PG-retained · **no** UC-018/§1.1 flip · **no** `covered` written · D1–D3 deferred to nail
+
+*Fix-round · C-GATHERER-REAL-INPUT · runner `ca1c8a5` · 2026-09-23 (~20:32 PT) · Ban self-nail · STOP after push*
+
