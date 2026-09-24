@@ -1,7 +1,7 @@
-# Harness — **UC-E2E-018 COVERED-CRITERION**（`GAP-UC018-COVERED-CRITERION` · restore computable six-column evaluator · written partial→covered criterion · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · **Ban** flip UC-018 / §1.1 to **covered** this knife · **Ban** invent covered · **Ban** wash constant-false into 「已评估不可翻」· **Ban** claim production capacity / HA · **Ban** skip to UC-011 · **Ban** MySQL/Qdrant cutover · **Ban** claim suite green / HA / R5 retired globally · **Ban** second knife as covered-lift）
+# Harness — **UC-E2E-018 COVERED-CRITERION**（`GAP-UC018-COVERED-CRITERION` · restore computable six-column evaluator · written partial→covered criterion · docs REQUEST · **`executed:awaiting_post_prove_dual`** · **Ban** flip UC-018 / §1.1 to **covered** this knife · **Ban** invent covered · **Ban** wash constant-false into 「已评估不可翻」· **Ban** claim production capacity / HA · **Ban** skip to UC-011 · **Ban** MySQL/Qdrant cutover · **Ban** claim suite green / HA / R5 retired globally · **Ban** second knife as covered-lift）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（实现方预写 · **not yet dual-sent** · **Ban自批 pass** · Dual PASS ≠ coding · Dual PASS ≠ UC-E2E-018 covered · Dual PASS ≠ §1.1 flip · Dual PASS ≠ next knife auto-authorize · **≠ coding** · **≠ prove** · **≠ invent covered** · matrix §1.1 **partial** retained · this knife = **criterion + evaluator restore plan only** · any real flip = **separate later knife with dual**）
-**Date**: 2026-09-23 (~20:04 PT)
+**Status**: **`executed:awaiting_post_prove_dual`**（实现方预写 · **not yet dual-sent** · **Ban自批 pass** · Dual PASS ≠ coding · Dual PASS ≠ UC-E2E-018 covered · Dual PASS ≠ §1.1 flip · Dual PASS ≠ next knife auto-authorize · **≠ coding** · **≠ prove** · **≠ invent covered** · matrix §1.1 **partial** retained · this knife = **criterion + evaluator restore plan only** · any real flip = **separate later knife with dual**）
+**Date**: 2026-09-23 (~20:15 PT) · coding+prove at runner `1cae8f6`
 **Base / parent tip**: HEAD / REQUEST parent **`f886ea5`** / full `f886ea5961c437587519a5c7a628cc4295b8fb22`（`docs(e2e): nail UC018 PERF/LOAD post-prove dual pass` · **must remain ancestor of this REQUEST tip** · `git merge-base --is-ancestor f886ea5 HEAD` **YES**）· sits on PERF/LOAD nail evidence · prove tip **`b29c191`** / full `b29c191543dfbe7c1afa4278c550340a3339f295`（**regression pin**: `canHonestlyFlip` = **constant-false no-flip guard, not an assessment** · Ban 「assessed, cannot flip」）· reassess prove tip **`5cddb53`** / full `5cddb53b0d66432a1a605cf3de796d595aaa6d2a`（**canHonestlyFlip was computed** · refuse then：**PERF/LOAD blind**）· reassess nail **`0b7a218`** · ADV **`27dd6ae`** · covered-lift **`abfbbc0`** · SOLE **`aa968b1`** · UI **`1990b12`** · TTL **`d698282`** · GRAPH **`08650ea`** · FULL-E2E **`c36b032`** · waiting_user CLOSED · HA D2b **`7fddebe`** CLOSED · Ban reopen priors · Ban wash · branch `feat/mysql-schema-skeleton`（**historical name only** · Ban MySQL cutover justification）
 **Knife name**: **UC-E2E-018 COVERED-CRITERION · GAP-UC018-COVERED-CRITERION**（written partial→covered criterion per column + restore computable six-column evaluator that **CAN** return `true` · adversarial fixtures · prove plan · **NOT** flip UC-018 covered · **NOT** flip §1.1 · Ban skip to UC-011 · Ban second knife as covered-lift）
 **Critical stack pin（`adr-postgres-retained.md`）**: Retained sole = **Postgres (+pgvector + PostgresSaver)** · **Ban** MySQL business cutover · **Ban** Qdrant-as-required-vector · Ban MemorySaver / stub as covered evidence · STOPPED R5 cutover harnesses remain STOPPED
@@ -11,8 +11,8 @@
 **Carried condition（from PERF/LOAD nail · blocks later covered-lift / §1.1 flip）**: Any later covered-lift or §1.1 flip knife **must first** restore a **real computable six-column evaluator** that **can return `true`**, with a **written criterion** for when a column counts as covered, and **pass dual**; otherwise that knife **FAIL**s. **This knife is exactly that restore REQUEST**（docs L0）· coding+prove of evaluator = later under authorize · **still Ban** flipping UC-018/§1.1 in the evaluator knife itself.
 **Slice**: `../uc-e2e-018-covered-criterion.slice.md`
 **Parent harness（honesty touch later under authorize · Ban flip covered this open）**: `harness/uc-e2e-018-user-abandon.md` — name COVERED-CRITERION REQUEST OPEN · cite `f886ea5` / `b29c191` regression pin / `5cddb53` · matrix business stays **partial** · Ban invent covered
-**Authority**: meetwise — **docs REQUEST open only** for **UC-E2E-018 COVERED-CRITERION · GAP-UC018-COVERED-CRITERION** · status `draft:awaiting_pre_exec_dual` · Ban secrets / `.env*` · Meridian banned · No force-push · Ban Cloud Agent · Ban self-approve · Ban self-nail · Ban silent UC covered claim · Ban coding until dual+authorize · Ban messaging dual reviewers（coordinator dispatches） · Ban MySQL/Qdrant cutover · Ban invent covered · Ban flip §1.1 covered
-**Honesty**: docs REQUEST of covered-criterion + evaluator restore plan only · status `draft:awaiting_pre_exec_dual` · `GAP-UC018-COVERED-CRITERION` **OPEN** · **does NOT** flip UC-018 / §1.1 · expected real-matrix `canHonestlyFlip=false`（expectation · not a run result yet）· **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban coding · Ban prove · Ban flip covered · STOP after push
+**Authority**: meetwise — **docs REQUEST open only** for **UC-E2E-018 COVERED-CRITERION · GAP-UC018-COVERED-CRITERION** · status `executed:awaiting_post_prove_dual` · Ban secrets / `.env*` · Meridian banned · No force-push · Ban Cloud Agent · Ban self-approve · Ban self-nail · Ban silent UC covered claim · Ban coding until dual+authorize · Ban messaging dual reviewers（coordinator dispatches） · Ban MySQL/Qdrant cutover · Ban invent covered · Ban flip §1.1 covered
+**Honesty**: docs REQUEST of covered-criterion + evaluator restore plan only · status `executed:awaiting_post_prove_dual` · `GAP-UC018-COVERED-CRITERION` **OPEN** · **does NOT** flip UC-018 / §1.1 · real-matrix `canHonestlyFlip=false`（computed at runner `1cae8f6` · reasons include PERF-LOCAL-ONLY）· **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban flip covered · Ban self-nail · STOP after push
 
 ---
 
@@ -20,8 +20,8 @@
 
 | Expert | Receipt path（named · **not pre-filled**） | Status |
 |--------|---------------------------------------------|--------|
-| `mw-e2e-ha` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-covered-criterion-mw-e2e-ha.md` | **PENDING / draft:awaiting_pre_exec_dual** |
-| `mw-rag-route` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-covered-criterion-mw-rag-route.md` | **PENDING / draft:awaiting_pre_exec_dual** |
+| `mw-e2e-ha` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-covered-criterion-mw-e2e-ha.md` | **pre_exec_dual_pass** · post-prove **PENDING** |
+| `mw-rag-route` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-covered-criterion-mw-rag-route.md` | **pre_exec_dual_pass** · post-prove **PENDING** |
 
 **Note**: Implementer does **not** pre-fill pass · Dual **not** pinged by implementer · coordinator dispatches · Ban自批 · Dual PASS ≠ coding · Dual PASS ≠ UC-E2E-018 covered · Dual PASS ≠ matrix §1.1 flip · Dual PASS ≠ next knife auto-authorize · Dual PASS ≠ invent covered.
 
@@ -38,7 +38,7 @@
 | **Computed tip `5cddb53`** | Historical honest assessment（`let canHonestlyFlip = true` then set false on failing columns）· refuse then PERF/LOAD blind · **target shape to restore** |
 | **local PERF/LOAD cap** | **local isolated PERF/LOAD caps at `partial`** · **cannot** satisfy column **`covered`** for PERF/LOAD unless a **capacity-representative environment receipt** exists（defined §1）· cite `testing/e2e-performance-evidence.md` §3 · therefore **UC-018 cannot become covered on local evidence alone** |
 | **Expected real-matrix verdict（expectation · not a result yet）** | `canHonestlyFlip=false` with **computed** reasons（e.g. all six columns **partial** not **covered** · PERF/LOAD **local-only cap**） |
-| **Now** | **`draft:awaiting_pre_exec_dual`** · GAP OPEN · Ban coding · Ban prove · Ban flip · STOP after push |
+| **Now** | **`executed:awaiting_post_prove_dual`** · GAP OPEN · coding+prove landed at runner · Ban flip · Ban self-nail · STOP after push / dual |
 
 ---
 
@@ -191,9 +191,9 @@ This is an **expectation** for the future real-matrix run after evaluator lands 
 
 | Phase | This open |
 |-------|-----------|
-| L0 REQUEST `draft:awaiting_pre_exec_dual` | **THIS OPEN** · parent/nail `f886ea5` · docs only · criterion + evaluator plan |
-| L1 Pre-exec dual | awaiting · Ban自批 · coordinator dispatches |
-| L2 AUTHORIZED coding+prove（evaluator + fixtures + prove CMD） | **blocked** until dual+authorize · **Ban** §1.1 flip |
+| L0 REQUEST | parent/nail `f886ea5` · docs REQUEST · pre-exec dual PASS |
+| L1 Pre-exec dual | **PASS** (`9477046`/`f07663a`) · Ban自批 |
+| L2 AUTHORIZED coding+prove（evaluator + fixtures + prove CMD） | **DONE** at runner `1cae8f6` · status `executed:awaiting_post_prove_dual` · **Ban** §1.1 flip |
 | L3–L5 post-prove / nail | **not** this open · covered-lift elevate = **separate later knife** |
 
 ---
@@ -210,4 +210,52 @@ This is an **expectation** for the future real-matrix run after evaluator lands 
 
 ---
 
-*Harness · UC-E2E-018 COVERED-CRITERION · GAP-UC018-COVERED-CRITERION · 2026-09-23 (~20:04 PT) · draft:awaiting_pre_exec_dual · nail f886ea5 · b29c191 constant-false regression pin · 5cddb53 computed · local PERF/LOAD cap at partial · evaluator scripts/lib/uc-covered-evaluator.mjs · prove plan pnpm uc018:covered-criterion:prove · expected real verdict canHonestlyFlip=false · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount 8 · ms3EqualsR4Closed=false · PG-retained · Ban invent covered · Ban flip §1.1 · Ban skip to UC-011 · STOP after push*
+
+---
+
+## 9. Executed prove（implementer · runner `1cae8f6`）
+
+**Status**: **`executed:awaiting_post_prove_dual`** · Ban self-nail · Ban invent covered · Ban flip §1.1 · Dual post-prove awaiting coordinator dispatch
+
+| Field | Value |
+|-------|-------|
+| Runner commit | **`1cae8f6`** / full `1cae8f6a738a5424ba2f79e11d5457667c7ab0a9` |
+| Prove tip (this receipt commit) | _(commit #2 after this harness update)_ |
+| Module | `scripts/lib/uc-covered-evaluator.mjs` |
+| Prove | `pnpm uc018:covered-criterion:prove` |
+| BOUND pin | **`waiting_user-CAS`**（NHP matrix has **no** `NHP-018-BOUND-*` · matrix §1.0.1 BOUND = CAS waiting_user · §1b#4 `GAP-UC018-WAITING-USER` CLOSED） |
+| Refuse enum (frozen) | PERF-LOCAL-ONLY · CASE-ONLY · OPEN-GAP · IMPL-ONLY · UNCOMMITTED-RUNNER · MISSING-DUAL · DUAL-ONE · STALE-SHA · MISSING-RECEIPT · S11-NOT-MET · HAPPY-ONLY · STATUS-NOT-COVERED · MISSING-NHP · STUB-STACK · PROVE-FAIL |
+| capacityRepresentative | true **ONLY** non-local targetEnv **AND** dual EOR · local/docker-isolated **NEVER**（even if caps = W2 2c4g/4c8g）· cite `harness/w2-resource-sizing-receipts.md` ~:32 · `harness/pg-retained-checkpoint-postgres-saver.md` §2 |
+| Real verdict | **`canHonestlyFlip=false`** · reasons include **PERF-LOCAL-ONLY** + STATUS-NOT-COVERED + CASE-ONLY(FAULT) + OPEN-GAP + S11-NOT-MET |
+| Receipts | `../receipts/uc018-covered-criterion/covered-criterion-evidence.json` · `covered-criterion-prove.md` |
+
+### CMD\|EXIT
+
+| CMD | EXIT |
+|-----|------|
+| `pnpm uc018:covered-criterion:prove` | **0** |
+| `pnpm uc018:covered-lift-reassess:prove` | **0** |
+| `pnpm uc018:adv:prove` | **0** |
+| `pnpm eval-harness-matrix-cite:prove` | **0** |
+| `pnpm uc018:perf-load:prove` | SKIPPED（heavy · not required） |
+
+### Guards
+
+| Guard | Result |
+|-------|--------|
+| constant-FALSE vs `git show b29c191:…reassess.proof.mjs` | **TRIPS**（init false ~196 + unconditional refuse ~211） |
+| constant-FALSE on rewired reassess | **PASS**（does not trip） |
+| constant-TRUE on evaluator | **PASS** |
+| anti-tautology | **PASS**（evaluator rejects `input.expected` · no expected fixture reads） |
+
+### Pins retained
+
+- **no** UC-018 / §1.1 flip · **no** `covered` written anywhere
+- coveredCount=**8** · haStatus=**NOT_HA** · releaseEvidence=**false** · claimProductionHA=**false**
+- gR45Closed=**true** · ms3EqualsR4Closed=**false** · PG-retained
+- GAP-UC018-COVERED-CRITERION still **OPEN** until post-prove dual + nail
+
+*Harness update · executed:awaiting_post_prove_dual · runner `1cae8f6` · 2026-09-23 (~20:15 PT) · Ban self-nail · Ban invent covered · STOP after push*
+
+
+*Harness · UC-E2E-018 COVERED-CRITERION · GAP-UC018-COVERED-CRITERION · 2026-09-23 (~20:04 PT) · executed:awaiting_post_prove_dual · nail f886ea5 · b29c191 constant-false regression pin · 5cddb53 computed · local PERF/LOAD cap at partial · evaluator scripts/lib/uc-covered-evaluator.mjs · prove plan pnpm uc018:covered-criterion:prove · expected real verdict canHonestlyFlip=false · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount 8 · ms3EqualsR4Closed=false · PG-retained · Ban invent covered · Ban flip §1.1 · Ban skip to UC-011 · STOP after push*

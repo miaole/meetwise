@@ -1,0 +1,280 @@
+{
+  "knife": "UC-E2E-018-covered-criterion",
+  "gap": "GAP-UC018-COVERED-CRITERION",
+  "command": "pnpm uc018:covered-criterion:prove",
+  "exit": 0,
+  "runnerCommitSha": "1cae8f6a738a5424ba2f79e11d5457667c7ab0a9",
+  "boundPinId": "waiting_user-CAS",
+  "refuseEnum": [
+    "PERF-LOCAL-ONLY",
+    "CASE-ONLY",
+    "OPEN-GAP",
+    "IMPL-ONLY",
+    "UNCOMMITTED-RUNNER",
+    "MISSING-DUAL",
+    "DUAL-ONE",
+    "STALE-SHA",
+    "MISSING-RECEIPT",
+    "S11-NOT-MET",
+    "HAPPY-ONLY",
+    "STATUS-NOT-COVERED",
+    "MISSING-NHP",
+    "STUB-STACK",
+    "PROVE-FAIL"
+  ],
+  "fixtureResults": [
+    {
+      "id": "FX-ALL-MET",
+      "ok": true,
+      "expectedFlip": true,
+      "gotFlip": true,
+      "reasons": []
+    },
+    {
+      "id": "FX-DUAL-ONE",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "DUAL-ONE"
+      ]
+    },
+    {
+      "id": "FX-IMPL-ONLY",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "MISSING-DUAL",
+        "IMPL-ONLY"
+      ]
+    },
+    {
+      "id": "FX-MISS-ADV",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "STATUS-NOT-COVERED"
+      ]
+    },
+    {
+      "id": "FX-MISS-BOUND",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "MISSING-NHP"
+      ]
+    },
+    {
+      "id": "FX-MISS-FAULT",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "CASE-ONLY"
+      ]
+    },
+    {
+      "id": "FX-MISS-LOAD",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "STATUS-NOT-COVERED"
+      ]
+    },
+    {
+      "id": "FX-MISS-NEG",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "STATUS-NOT-COVERED"
+      ]
+    },
+    {
+      "id": "FX-MISS-PERF",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "STATUS-NOT-COVERED"
+      ]
+    },
+    {
+      "id": "FX-MISSING-RECEIPT",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "MISSING-RECEIPT"
+      ]
+    },
+    {
+      "id": "FX-OPEN-GAP",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "OPEN-GAP"
+      ]
+    },
+    {
+      "id": "FX-PERF-LOCAL-ONLY",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "PERF-LOCAL-ONLY"
+      ]
+    },
+    {
+      "id": "FX-S11-NOT-MET",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "S11-NOT-MET"
+      ]
+    },
+    {
+      "id": "FX-STALE-SHA",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "STALE-SHA"
+      ]
+    }
+  ],
+  "realVerdict": {
+    "canHonestlyFlip": false,
+    "reasons": [
+      "STATUS-NOT-COVERED",
+      "CASE-ONLY",
+      "PERF-LOCAL-ONLY",
+      "OPEN-GAP",
+      "S11-NOT-MET"
+    ],
+    "columns": {
+      "NEG": {
+        "status": "partial",
+        "meetsCovered": false,
+        "reasons": [
+          "STATUS-NOT-COVERED"
+        ]
+      },
+      "FAULT": {
+        "status": "case-only",
+        "meetsCovered": false,
+        "reasons": [
+          "CASE-ONLY"
+        ]
+      },
+      "BOUND": {
+        "status": "partial",
+        "meetsCovered": false,
+        "reasons": [
+          "STATUS-NOT-COVERED"
+        ]
+      },
+      "ADV": {
+        "status": "partial",
+        "meetsCovered": false,
+        "reasons": [
+          "STATUS-NOT-COVERED"
+        ]
+      },
+      "PERF": {
+        "status": "partial",
+        "meetsCovered": false,
+        "reasons": [
+          "STATUS-NOT-COVERED",
+          "PERF-LOCAL-ONLY"
+        ]
+      },
+      "LOAD": {
+        "status": "partial",
+        "meetsCovered": false,
+        "reasons": [
+          "STATUS-NOT-COVERED",
+          "PERF-LOCAL-ONLY"
+        ]
+      }
+    }
+  },
+  "realMeta": {
+    "boundPin": "waiting_user-CAS",
+    "hasBoundNhp": false,
+    "boundCell": "partial",
+    "openGaps": [
+      "GAP-UC018-COVERED-CRITERION"
+    ],
+    "businessPathMet": false,
+    "parsedStatuses": {
+      "NEG": "partial",
+      "FAULT": "case-only",
+      "BOUND": "partial",
+      "ADV": "partial",
+      "PERF": "partial",
+      "LOAD": "partial"
+    }
+  },
+  "pins": {
+    "noUc018Flip": true,
+    "noSection11Flip": true,
+    "noCoveredWritten": true,
+    "coveredCount": 8,
+    "haStatus": "NOT_HA",
+    "releaseEvidence": false,
+    "claimProductionHA": false,
+    "gR45Closed": true,
+    "ms3EqualsR4Closed": false,
+    "stack": "PG-retained"
+  },
+  "guards": {
+    "b29c191Trips": true,
+    "b29c191Findings": [
+      "canHonestlyFlip initialised false with no true/computed assignment (b29c191 ~196)",
+      "unconditional refuseReasons.push('reassess-knife-refuses-…')"
+    ],
+    "constantTruePass": true,
+    "antiTautologyPass": true,
+    "reassessNotConstantFalse": true
+  },
+  "datePT": "9/23/2026, 8:15:35 PM PT",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "coveredCount": 8,
+  "gR45Closed": true,
+  "ms3EqualsR4Closed": false,
+  "banInventCovered": true,
+  "banFlipSection11": true,
+  "runnerCommitShaShort": "1cae8f6",
+  "cmdExitTable": [
+    {
+      "cmd": "pnpm uc018:covered-criterion:prove",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm uc018:covered-lift-reassess:prove",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm uc018:adv:prove",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm eval-harness-matrix-cite:prove",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm uc018:perf-load:prove",
+      "exit": "SKIPPED (heavy · not required)"
+    }
+  ],
+  "status": "executed:awaiting_post_prove_dual"
+}
