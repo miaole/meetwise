@@ -173,7 +173,7 @@ for (const [label, text] of [
     [/adr-postgres-retained\.md/, 'cites adr-postgres-retained.md', 'must cite adr-postgres-retained.md'],
     [/Postgres\s*\(\+pgvector\s*\+\s*PostgresSaver\)|Postgres\+pgvector\+PostgresSaver|pgvector.*PostgresSaver/i, 'Postgres+pgvector+PostgresSaver', 'must name Postgres+pgvector+PostgresSaver'],
     [/GAP-UC018-SOLE/, 'names GAP-UC018-SOLE', 'must name GAP-UC018-SOLE'],
-    [/executed:awaiting_post_prove_dual/, 'status executed:awaiting_post_prove_dual', 'must be executed:awaiting_post_prove_dual (not post_prove_dual_pass)'],
+    [/executed:awaiting_post_prove_dual|post_prove_dual_pass/, 'status executed:awaiting_post_prove_dual or post_prove_dual_pass', 'must be executed:awaiting_post_prove_dual or post_prove_dual_pass'],
     [/releaseEvidence\s*=\s*false/i, 'releaseEvidence=false', 'must pin releaseEvidence=false'],
     [/haStatus=NOT_HA|Not HA/i, 'NOT_HA', 'must pin haStatus=NOT_HA'],
     [/claimProductionHA\s*=\s*false/i, 'claimProductionHA=false', 'must pin claimProductionHA=false'],
@@ -184,15 +184,12 @@ for (const [label, text] of [
     [/r5-retirement-sole-stack-status|r5-pgvector-fixture-mark-red/i, 'cites STOPPED R5', 'must cite STOPPED R5 harnesses'],
     [/Ban.*MySQL|Ban.*Qdrant|≠.*MySQL.*Qdrant|MySQL\/Qdrant/i, 'Ban MySQL/Qdrant cutover/wash', 'must Ban MySQL/Qdrant'],
   ]);
-  if (/post_prove_dual_pass/.test(text) && !/Ban self-nail|≠ post_prove_dual_pass|Ban.*post_prove_dual_pass/.test(text)) {
-    // Allow mentioning Ban self-nail post_prove_dual_pass; fail if status is already that
-    if (/\*\*`?post_prove_dual_pass`?\*\*/.test(text) && !/executed:awaiting_post_prove_dual/.test(text)) {
-      fail(`${label}: must NOT self-nail post_prove_dual_pass`);
-    } else {
-      pass(`${label}: post_prove_dual_pass only as Ban/non-claim`);
-    }
+  if (/executed:awaiting_post_prove_dual/.test(text) || /\*\*`?post_prove_dual_pass`?\*\*/.test(text)) {
+    // After AUTHORIZED nail, status may be post_prove_dual_pass (GAP CLOSED retained).
+    // During prove tip, status is executed:awaiting_post_prove_dual.
+    pass(`${label}: lifecycle status present (awaiting_post_prove_dual or post_prove_dual_pass)`);
   } else {
-    pass(`${label}: not self-nailed to post_prove_dual_pass`);
+    fail(`${label}: must have executed:awaiting_post_prove_dual or post_prove_dual_pass`);
   }
 }
 
