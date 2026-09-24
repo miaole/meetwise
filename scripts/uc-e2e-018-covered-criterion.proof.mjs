@@ -30,6 +30,7 @@ import {
   UC018_BOUND_PIN_ID,
   COLUMN_NAMES,
   LOCAL_ENV_CLASSES,
+  assertFlipReasonsInvariant,
 } from './lib/uc-covered-evaluator.mjs';
 import {
   gatherRealUc018,
@@ -177,7 +178,7 @@ const fixtureIds = readdirSync(fixtureDir)
   .filter((f) => f.endsWith('.input.json'))
   .map((f) => f.replace(/\.input\.json$/, ''))
   .sort();
-if (fixtureIds.length < 22) fail(`expected ≥22 fixtures, got ${fixtureIds.length}`);
+if (fixtureIds.length < 24) fail(`expected ≥24 fixtures, got ${fixtureIds.length}`);
 
 for (const id of fixtureIds) {
   const input = JSON.parse(read(join(fixtureDir, `${id}.input.json`)));
@@ -191,9 +192,18 @@ for (const id of fixtureIds) {
     continue;
   }
   let ok = true;
+  try {
+    assertFlipReasonsInvariant(got);
+  } catch (e) {
+    fail(`${id}: flip↔reasons invariant: ${e.message}`);
+    ok = false;
+  }
   if (expected.canHonestlyFlip === true) {
     if (got.canHonestlyFlip !== true) {
       fail(`${id}: expected canHonestlyFlip=true got false reasons=${got.reasons.join(',')}`);
+      ok = false;
+    } else if (got.reasons.length !== 0) {
+      fail(`${id}: true flip must have empty reasons got ${got.reasons.join(',')}`);
       ok = false;
     } else pass(`${id}: canHonestlyFlip=true`);
   } else {
@@ -263,27 +273,15 @@ const MUTATION_ALLOWLIST = [
   },
   {
     path: /^columns\.(NEG|FAULT|BOUND|ADV)\.receipts\.capacityRepresentative$/,
-    justification: 'capacityRepresentative consulted only for PERF/LOAD columns',
+    justification: 'capacityRepresentative consulted only for PERF/LOAD columns (isCapacityRepresentative)',
   },
   {
     path: /^columns\.(NEG|FAULT|BOUND|ADV)\.receipts\.targetEnv$/,
     justification: 'targetEnv consulted only via isCapacityRepresentative for PERF/LOAD',
   },
   {
-    path: /^columns\.[A-Z]+\.prove\.cmd$/,
-    justification: 'MISSING-RECEIPT OR requires cmd OR gitSha when status=covered; either alone suffices',
-  },
-  {
-    path: /^columns\.[A-Z]+\.prove\.gitSha$/,
-    justification: 'same OR with prove.cmd — deleting gitSha alone while cmd remains still satisfies presence check',
-  },
-  {
     path: /^columns\.[A-Z]+\.receipts\.implementerOnly$/,
-    justification: 'fail-closed only on === true; absence/false means not-implementer (correct positive-proof asymmetry)',
-  },
-  {
-    path: 'section11.status',
-    justification: 'only case-only status adds a reason; covered/other absence does not gate canHonestlyFlip',
+    justification: 'fail-closed only on === true; absence means not-implementer (positive-proof asymmetry for the bad flag)',
   },
 ];
 function mutationAllowlisted(path) {
@@ -358,6 +356,7 @@ function setPath(root, path, mode) {
         const clone2 = JSON.parse(JSON.stringify(allMetInput));
         setPath(clone2, leafPath, 'undefined');
         const v = evaluate(clone2);
+        try { assertFlipReasonsInvariant(v); } catch (e) { survivors.push({ path: leafPath, mode, inv: e.message }); continue; }
         const ok = v.canHonestlyFlip === false;
         if (ok) falseCount++;
         else if (mutationAllowlisted(leafPath)) {
@@ -369,6 +368,7 @@ function setPath(root, path, mode) {
         continue;
       }
       const v = evaluate(clone);
+      try { assertFlipReasonsInvariant(v); } catch (e) { survivors.push({ path: leafPath, mode, inv: e.message }); continue; }
       const ok = v.canHonestlyFlip === false;
       if (ok) falseCount++;
       else if (mutationAllowlisted(leafPath)) {
@@ -490,6 +490,8 @@ for (const c of COLUMN_NAMES) {
 }
 note(`meta=${JSON.stringify(gathered._meta)}`);
 
+try { assertFlipReasonsInvariant(realVerdict); pass('real UC-018 flip↔reasons invariant OK'); }
+catch (e) { fail(`real UC-018 invariant: ${e.message}`); }
 if (realVerdict.canHonestlyFlip !== false) fail('real UC-018 must evaluate canHonestlyFlip=false (Ban invent covered)');
 else pass('real UC-018 canHonestlyFlip=false (computed)');
 if (!realVerdict.reasons.includes(REFUSE_REASONS.PERF_LOCAL_ONLY)) {
@@ -634,7 +636,7 @@ const evidence = {
     { field: 'gapClosedInText', before: '已关/CLOSED matched under 不得写已关 / Ban / 禁止', after: 'banNear window skips negation/prohibition', file: 'gapClosedInText' },
     { field: 'porcelain', before: 'no check', after: 'non-empty porcelain → DIRTY_TREE refuse', file: 'assertCleanPorcelain' },
   ],
-  fixRound: 'fix-round-3-committed-positive-dual-strict-dirty-tmp',
+  fixRound: 'fix-round-4-flip-reasons-invariant-s11-opengaps-cmd',
   mutationSummary: globalThis.__uc018MutationSummary || null,
   dualParse: {
     marker: '/^(?:\\*\\*)?Verdict(?:\\*\\*)?:\\s*(?:\\*\\*)?(PASS|FAIL)(?:\\*\\*)?\\s*$/m',

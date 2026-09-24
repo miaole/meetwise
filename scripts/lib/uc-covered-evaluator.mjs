@@ -3,7 +3,7 @@
  * evaluate(input) → { canHonestlyFlip, columns, reasons }
  *
  * Ban: constant-false / constant-true / reading fixture expected outputs.
- * True branch reachable when all columns meetCovered + §1.1 business path + no open GAP.
+ * True branch: all columns meetCovered + §1.1 businessPathMet + openGaps=[] + status covered + reasons empty.
  *
  * BOUND pin (UC-018): NHP matrix has NO NHP-018-BOUND-*; BOUND evidence =
  * CAS waiting_user (§1b#4 / GAP-UC018-WAITING-USER CLOSED · matrix §1.0.1 cell
@@ -35,6 +35,8 @@ export const REFUSE_REASONS = Object.freeze({
   STUB_STACK: 'STUB-STACK',
   /** prove EXIT ≠ 0 */
   PROVE_FAIL: 'PROVE-FAIL',
+  /** section11.openGaps absent / not an array (Ban default-to-empty) */
+  OPEN_GAP_UNKNOWN: 'OPEN-GAP-UNKNOWN',
 });
 
 Object.freeze(REFUSE_REASONS);
@@ -154,7 +156,10 @@ function evaluateColumn(colName, col, requiredNhps) {
   } else if (Number(prove.exit) !== 0) {
     pushUnique(reasons, REFUSE_REASONS.PROVE_FAIL);
   }
-  if (!prove.cmd && !prove.gitSha && status === 'covered') {
+  // Positive-proof: both cmd and gitSha required (Ban OR that allowlisted either away)
+  const cmdOk = typeof prove.cmd === 'string' && prove.cmd.trim().length > 0;
+  const shaOk = typeof prove.gitSha === 'string' && prove.gitSha.trim().length > 0;
+  if (!cmdOk || !shaOk) {
     pushUnique(reasons, REFUSE_REASONS.MISSING_RECEIPT);
   }
 
@@ -230,28 +235,62 @@ export function evaluate(input) {
   }
 
   const s11 = input.section11 || {};
-  const openGaps = Array.isArray(s11.openGaps) ? s11.openGaps.filter(Boolean) : [];
-  if (openGaps.length > 0) {
+  // openGaps must be an explicit array (Ban absent ≡ [])
+  const openGapsPresent = Object.prototype.hasOwnProperty.call(s11, 'openGaps') && Array.isArray(s11.openGaps);
+  const openGaps = openGapsPresent ? s11.openGaps.filter(Boolean) : null;
+  if (!openGapsPresent) {
+    pushUnique(reasons, REFUSE_REASONS.OPEN_GAP_UNKNOWN);
+  } else if (openGaps.length > 0) {
     pushUnique(reasons, REFUSE_REASONS.OPEN_GAP);
   }
   if (s11.businessPathMet !== true) {
     pushUnique(reasons, REFUSE_REASONS.S11_NOT_MET);
   }
-  if (s11.status && String(s11.status).toLowerCase() === 'case-only') {
-    pushUnique(reasons, REFUSE_REASONS.CASE_ONLY);
+  // Positive whitelist: only matrix/column enum value `covered` counts as §1.1 met.
+  // Absent / partial / case-only / blind / gap / unknown → S11-NOT-MET (+ CASE-ONLY when case-only).
+  const s11Status = String(s11.status || '').toLowerCase();
+  if (s11Status !== 'covered') {
+    pushUnique(reasons, REFUSE_REASONS.S11_NOT_MET);
+    if (s11Status === 'case-only') {
+      pushUnique(reasons, REFUSE_REASONS.CASE_ONLY);
+    }
   }
 
   const allColsMet = COLUMNS.every((c) => columns[c].meetsCovered === true);
-  // True branch: reachable when all six meetCovered AND §1.1 business path AND no open GAP.
-  const canHonestlyFlip = allColsMet && s11.businessPathMet === true && openGaps.length === 0;
+  // True branch: all six meetCovered AND §1.1 business path AND openGaps=[] AND status covered AND no refuse reasons.
+  let canHonestlyFlip =
+    allColsMet &&
+    s11.businessPathMet === true &&
+    openGapsPresent &&
+    openGaps.length === 0 &&
+    s11Status === 'covered' &&
+    reasons.length === 0;
+
+  // Global invariant: canHonestlyFlip===true ⇒ reasons empty; reasons non-empty ⇒ false
+  if (reasons.length > 0) {
+    canHonestlyFlip = false;
+  }
+  if (canHonestlyFlip === true && reasons.length > 0) {
+    throw new Error('invariant violated: canHonestlyFlip=true with non-empty reasons');
+  }
+  if (reasons.length > 0 && canHonestlyFlip !== false) {
+    throw new Error('invariant violated: non-empty reasons but canHonestlyFlip!==false');
+  }
 
   if (!canHonestlyFlip) {
     // Ensure at least one UC-level reason when false
     if (reasons.length === 0) {
       if (!allColsMet) pushUnique(reasons, REFUSE_REASONS.STATUS_NOT_COVERED);
+      else if (!openGapsPresent) pushUnique(reasons, REFUSE_REASONS.OPEN_GAP_UNKNOWN);
       else if (openGaps.length > 0) pushUnique(reasons, REFUSE_REASONS.OPEN_GAP);
       else pushUnique(reasons, REFUSE_REASONS.S11_NOT_MET);
     }
+  }
+
+  // Re-assert after possible reason backfill
+  if (reasons.length > 0) canHonestlyFlip = false;
+  if (canHonestlyFlip === true && reasons.length !== 0) {
+    throw new Error('invariant violated after backfill: canHonestlyFlip=true with reasons');
   }
 
   return {
@@ -259,6 +298,22 @@ export function evaluate(input) {
     columns,
     reasons,
   };
+}
+
+/** Assert global flip↔reasons invariant (also used by prove). */
+export function assertFlipReasonsInvariant(result) {
+  if (!result || typeof result !== 'object') {
+    throw new Error('assertFlipReasonsInvariant: result required');
+  }
+  const { canHonestlyFlip, reasons } = result;
+  const list = Array.isArray(reasons) ? reasons : [];
+  if (canHonestlyFlip === true && list.length > 0) {
+    throw new Error(`invariant: canHonestlyFlip=true but reasons=${list.join(',')}`);
+  }
+  if (list.length > 0 && canHonestlyFlip !== false) {
+    throw new Error(`invariant: reasons non-empty but canHonestlyFlip=${canHonestlyFlip}`);
+  }
+  return true;
 }
 
 export const COLUMN_NAMES = COLUMNS;
