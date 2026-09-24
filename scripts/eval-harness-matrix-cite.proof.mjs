@@ -358,8 +358,9 @@ function rowIdVariants(id) {
   const EN = '\u2013';
   const HY = '-';
   const out = new Set([id]);
-  if (id.includes(EN)) out.add(id.split(EN).join(HY));
-  if (id.includes(HY)) out.add(id.split(HY).join(EN));
+  // Explicit range-separator swap only between digits (050–052), Ban global hyphen rewrite of UC-E2E-*.
+  out.add(id.replace(/(\d)-(\d)/g, `$1${EN}$2`));
+  out.add(id.replace(new RegExp(`(\d)${EN}(\d)`, 'g'), `$1${HY}$2`));
   return [...out];
 }
 
