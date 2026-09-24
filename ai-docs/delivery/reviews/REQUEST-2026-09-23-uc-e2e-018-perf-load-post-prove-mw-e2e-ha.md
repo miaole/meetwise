@@ -202,3 +202,17 @@ Residual honesty notes（**not** blockers）：impl tracked receipts still show 
 
 **PASS** — UC-E2E-018 PERF/LOAD post-prove（mw-e2e-ha）· tip `b29c191` MATCH · independent prove EXIT=0 · 3/3 PASS · disclosures #1–#3 无阻塞裁定 · pins retained · §1.1 stays partial · Ban self-nail · alone≠dual。
 
+
+---
+
+## 更正（append-only · 2026-09-23 · mw-e2e-ha）· 撤回 #3「仍计算」结论
+
+- **撤回**：本档 #3 称 `uc018:covered-lift-reassess:prove` 在 `b29c191`「仍由 matrix+NHP 计算、非硬编码」——**错误，撤回**。
+- **事实**（独立复核 `git show b29c191:scripts/uc-e2e-018-covered-lift-reassess.proof.mjs`，EXIT 0）：
+  - `:196` `let canHonestlyFlip = false;`，其后**无任何赋值为 true**；`refuseReasons` 仅作说明文本，不影响 `canHonestlyFlip`。
+  - `:211` 无条件 `refuseReasons.push('reassess-knife-refuses-§1.1-flip')`。
+  - 结论：在 `b29c191`，`canHonestlyFlip` 为**常量 false**，`:224` 的 true 分支不可达。
+- 对照：在 reassess 钉 `5cddb53` 时为 `:177` `let canHonestlyFlip = true`，`:182/:188` 按条件置 false——当时确为计算，本席 `7f57243` 的 reassess post-prove 结论不受影响。
+- 发现归属：mw-rag-route `e33dd63`（本席漏检，未独立读到赋值语义）。
+- **影响**：方向保守，只能拒翻、不可能造成假关；本档 **PASS 维持**，但 #3 改判为「refuse 结论正确 · 实现为常量 · 非计算」。**非阻塞条件**：任何后续 covered-lift 刀须恢复可计算判定（写明 partial→covered 的可计算准则），不得沿用常量 false 或以常量 true 冒充。
+- Pins 不变：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCount=8 · gR45Closed=true · ms3EqualsR4Closed=false · §1.1 partial · alone≠dual · 不代签同伴。
