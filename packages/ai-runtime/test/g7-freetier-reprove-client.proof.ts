@@ -83,7 +83,7 @@ async function main() {
     process.env.MODEL_NAME = 'qwen3.8-flash';
     writeFileSync(ledgerPath, '');
     let seenModelInBody: string | undefined;
-    globalThis.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+    globalThis.fetch = (async (_input: Parameters<typeof fetch>[0] | URL, init?: RequestInit) => {
       const body = JSON.parse(String(init?.body ?? '{}')) as { model?: string };
       seenModelInBody = body.model;
       return new Response(JSON.stringify({
@@ -105,7 +105,7 @@ async function main() {
 
     writeFileSync(ledgerPath, '');
     let calls = 0;
-    globalThis.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+    globalThis.fetch = (async (_input: Parameters<typeof fetch>[0] | URL, init?: RequestInit) => {
       calls += 1;
       const body = JSON.parse(String(init?.body ?? '{}')) as { model?: string };
       if (calls === 1) {

@@ -14,11 +14,14 @@ import {
   assertModelApiKeyPresent,
   bounded429BackoffMs,
   classifyProviderError,
+  finalizeG7ReservationOnSharedLedger,
   isG7FreetierReproveEnabled,
-  recordG7CallToSharedLedger,
+  releaseG7ReservationOnSharedLedger,
+  reserveG7CallOnSharedLedger,
   resolveG7TestProfile,
   selectPaidFallback,
 } from './g7-freetier-reprove-guard.ts';
+import { installG7OutboundInterceptor, withG7OutboundAllow } from './g7-outbound-interceptor.ts';
 
 export interface CompletionRequest {
   service: string;       // 逻辑服务 key(catalog 解析模型/提示词版本)
@@ -353,7 +356,10 @@ export function openAICompatibleClient(cfg: {
       if (context?.ok === false) return { ok: false, kind: 'deterministic', externalOutcome: 'known_not_executed' };
 
       const g7 = isG7FreetierReproveEnabled(process.env);
-      if (g7) assertModelApiKeyPresent(process.env);
+      if (g7) {
+        assertModelApiKeyPresent(process.env);
+        installG7OutboundInterceptor(process.env);
+      }
 
       let activeModel = model;
       let fallbackInfo: {
@@ -368,6 +374,10 @@ export function openAICompatibleClient(cfg: {
       const chatUrl = `${baseUrl}/chat/completions`;
       const startedAt = new Date().toISOString();
       let attempt429 = 0;
+      let reservationId: string | undefined;
+
+      const estimatedInputTokens = context?.ok === true ? context.plan.inputTokens : Math.max(64, Math.ceil((rendered.system.length + rendered.userContent.length) / 4));
+      const maxOut = maxOutputTokens ?? 2048;
 
       const dispatchOnce = async (dispatchModel: string) => fetchJsonWithTimeout<{
         model?: string;
@@ -390,11 +400,32 @@ export function openAICompatibleClient(cfg: {
         }),
       }, { timeoutMs: resolveModelDeadlineConfig().transportTimeoutMs, maxBytes: 1024 * 1024 });
 
+      const reserveFor = (dispatchModel: string) => {
+        if (!g7) return;
+        if (reservationId) {
+          releaseG7ReservationOnSharedLedger(reservationId, process.env);
+          reservationId = undefined;
+        }
+        const reserved = reserveG7CallOnSharedLedger({
+          model: dispatchModel,
+          estimatedInputTokens,
+          maxOutputTokens: maxOut,
+        }, process.env);
+        reservationId = reserved.reservationId;
+      };
+
+      if (g7) reserveFor(activeModel);
+
       while (true) {
         try {
-          const j = await dispatchOnce(activeModel);
+          const j = g7
+            ? await withG7OutboundAllow(() => dispatchOnce(activeModel))
+            : await dispatchOnce(activeModel);
           const content = j.choices?.[0]?.message?.content;
-          if (!content) return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
+          if (!content) {
+            if (g7 && reservationId) { releaseG7ReservationOnSharedLedger(reservationId, process.env); reservationId = undefined; }
+            return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
+          }
           const estimateInputTokens = context?.ok === true ? context.plan.inputTokens : undefined;
           const usage = j.usage
             ? { inputTokens: j.usage.prompt_tokens ?? 0, outputTokens: j.usage.completion_tokens ?? 0, estimateInputTokens }
@@ -404,7 +435,8 @@ export function openAICompatibleClient(cfg: {
             const actualModel = typeof j.model === 'string' && j.model.trim() ? j.model.trim() : '';
             if (!actualModel) throw new Error('g7_actual_model_missing_from_provider_response');
             assertModelAllowedForTest(actualModel, process.env);
-            recordG7CallToSharedLedger({
+            if (!reservationId) throw new Error('g7_reservation_missing_before_finalize');
+            finalizeG7ReservationOnSharedLedger(reservationId, {
               callId: randomUUID(),
               actualModel,
               inputTokens: usage?.inputTokens ?? 0,
@@ -414,6 +446,7 @@ export function openAICompatibleClient(cfg: {
               fallback: fallbackInfo,
               evidenceClass: fallbackInfo ? 'paid_fallback' : 'free_quota_wiring_only',
             }, process.env);
+            reservationId = undefined;
             return { ok: true, raw: JSON.parse(content), usage, actualModel };
           }
           return { ok: true, raw: JSON.parse(content), usage };
@@ -425,6 +458,7 @@ export function openAICompatibleClient(cfg: {
               await new Promise((r) => setTimeout(r, wait));
               continue;
             } catch {
+              if (reservationId) { releaseG7ReservationOnSharedLedger(reservationId, process.env); reservationId = undefined; }
               return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
             }
           }
@@ -445,12 +479,18 @@ export function openAICompatibleClient(cfg: {
                   toModel: selected.toModel,
                 };
                 activeModel = selected.toModel;
+                reserveFor(activeModel);
                 continue;
               } catch (fallbackError) {
                 const msg = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+                if (reservationId) { releaseG7ReservationOnSharedLedger(reservationId, process.env); reservationId = undefined; }
                 if (msg.startsWith('g7_')) throw fallbackError;
               }
             }
+          }
+          if (g7 && reservationId) {
+            releaseG7ReservationOnSharedLedger(reservationId, process.env);
+            reservationId = undefined;
           }
           if (error instanceof ExternalHttpStatusError) {
             const transient = error.status >= 500 || error.status === 429 || error.status === 408 || error.status === 425;

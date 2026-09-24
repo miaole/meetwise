@@ -12,6 +12,7 @@
 import { rejectDashscopeNativeTransportOverride, resolveDashscopeNativeConfig } from './dashscope-native-config.ts';
 import { refuseVoiceStreamAsrUnlessPreview, STREAMING_ASR_NOT_CONFIGURED, STREAMING_TTS_NOT_CONFIGURED } from './voice-stream-preview.ts';
 import { VOICE_EGRESS_DISABLED_ID } from './voice.ts';
+import { assertG7UnguardedPathDisabled } from './g7-freetier-reprove-guard.ts';
 
 export interface AsrEvent { text: string; final: boolean }
 export interface StreamingAsr { readonly id: string; transcribeStream(chunks: AsyncIterable<Uint8Array>, signal?: AbortSignal): AsyncIterable<AsrEvent> }
@@ -50,6 +51,7 @@ export function fakeStreamingTts(chunk = 5): StreamingTts {
   return {
     id: 'fake-stream-tts',
     async *synthesizeStream(text, signal) {
+      assertG7UnguardedPathDisabled('tts_stream');
       for (let i = 0; i < text.length; i += chunk) {
         if (signal?.aborted) return;                                  // 被打断 → 立即停播
         yield new TextEncoder().encode(text.slice(i, i + chunk));
@@ -74,6 +76,7 @@ export function dashscopeStreamingAsr(cfg: { apiKey?: string; url?: string; mode
   return {
     id: model,
     async *transcribeStream(chunks, signal) {
+      assertG7UnguardedPathDisabled('asr_stream');
       refuseVoiceStreamAsrUnlessPreview(process.env, STREAMING_ASR_NOT_CONFIGURED);
       if (!apiKey) throw new Error(STREAMING_ASR_NOT_CONFIGURED);
       const ws = new WebSocket(url, { headers: { Authorization: 'bearer ' + apiKey } } as any);
@@ -132,6 +135,7 @@ export function dashscopeStreamingTts(cfg: { apiKey?: string; url?: string; mode
   return {
     id: model,
     async *synthesizeStream(text, signal) {
+      assertG7UnguardedPathDisabled('tts_stream');
       refuseVoiceStreamAsrUnlessPreview(process.env, STREAMING_TTS_NOT_CONFIGURED);
       if (!apiKey) throw new Error(STREAMING_TTS_NOT_CONFIGURED);
       if (signal?.aborted) return;
