@@ -31,12 +31,9 @@ export function applyLiveE2ECapabilityEnv(env) {
     if (!String(env.G7_RUN_COST_LEDGER_PATH ?? '').trim()) {
       throw new Error('g7_cost_ledger_path_missing');
     }
-    if (!String(env.MODEL_NAME ?? '').trim() || String(env.MODEL_NAME).includes('deepseek-v4-pro')) {
-      env.MODEL_NAME = String(env.G7_FREE_PRIMARY_MODEL ?? 'qwen3.8-flash').trim() || 'qwen3.8-flash';
-    }
-    if (!String(env.MODEL_FAST_NAME ?? '').trim() || String(env.MODEL_FAST_NAME).includes('deepseek-v4-pro')) {
-      env.MODEL_FAST_NAME = String(env.G7_FREE_FAST_MODEL ?? 'qwen3.8-flash').trim() || 'qwen3.8-flash';
-    }
+    // Always pin free-first when G7 is on (no silent keep of paid MODEL_NAME).
+    env.MODEL_NAME = String(env.G7_FREE_PRIMARY_MODEL ?? 'qwen3.8-flash').trim() || 'qwen3.8-flash';
+    env.MODEL_FAST_NAME = String(env.G7_FREE_FAST_MODEL ?? 'qwen3.8-flash').trim() || 'qwen3.8-flash';
     if (String(env.MODEL_NAME) === 'deepseek-v4-pro' && String(env.ALLOW_DEEPSEEK_V4_PRO_TEST ?? '').trim() !== '1') {
       throw new Error('g7_model_banned_without_approval:deepseek-v4-pro');
     }
