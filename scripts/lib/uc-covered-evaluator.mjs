@@ -150,6 +150,15 @@ function evaluateColumn(colName, col, requiredNhps) {
   ) {
     pushUnique(reasons, REFUSE_REASONS.UNCOMMITTED_RUNNER);
   }
+  // C-PROVE-GITSHA-UNUSED: flags must bind to the same SHA string that was verified
+  {
+    const a = typeof prove.verifiedSha === 'string' ? prove.verifiedSha.trim().toLowerCase() : '';
+    const b = typeof prove.gitSha === 'string' ? prove.gitSha.trim().toLowerCase() : '';
+    const bound = a && b && (a === b || a.startsWith(b) || b.startsWith(a));
+    if (!bound) {
+      pushUnique(reasons, REFUSE_REASONS.UNCOMMITTED_RUNNER);
+    }
+  }
   // EXIT tri-state: null/absent → MISSING-RECEIPT; nonzero → PROVE-FAIL; 0 → ok
   if (prove.exit == null) {
     pushUnique(reasons, REFUSE_REASONS.MISSING_RECEIPT);

@@ -40,6 +40,10 @@ import {
   parseReviewFileVerdict,
   roleFromReviewPath,
   dualFromReviewFiles,
+  pickExitFromReceipt,
+  stripMarkdownNonProse,
+  latestCommitAuthor,
+  authorMatchesRole,
 } from './lib/uc-covered-real-gatherer.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -178,7 +182,7 @@ const fixtureIds = readdirSync(fixtureDir)
   .filter((f) => f.endsWith('.input.json'))
   .map((f) => f.replace(/\.input\.json$/, ''))
   .sort();
-if (fixtureIds.length < 24) fail(`expected ≥24 fixtures, got ${fixtureIds.length}`);
+if (fixtureIds.length < 28) fail(`expected ≥28 fixtures, got ${fixtureIds.length}`);
 
 for (const id of fixtureIds) {
   const input = JSON.parse(read(join(fixtureDir, `${id}.input.json`)));
@@ -442,6 +446,35 @@ function setPath(root, path, mode) {
     dualMutOk = false;
   } else pass('dual-parser: path without -mw-e2e-ha/-mw-rag-route suffix ⇒ no slots filled');
   if (dualMutOk) pass('dual-parser mutations: deleted/junk/prose markers ⇒ not PASS');
+
+  const fenced = read(join(dualFix, 'FX-DUAL-FENCED.md'));
+  const quoted = read(join(dualFix, 'FX-DUAL-QUOTED.md'));
+  if (parseReviewFileVerdict(fenced) != null) fail(`FX-DUAL-FENCED got ${parseReviewFileVerdict(fenced)} want null`);
+  else pass('FX-DUAL-FENCED: PASS only inside fence ⇒ null (not met)');
+  if (parseReviewFileVerdict(quoted) != null) fail(`FX-DUAL-QUOTED got ${parseReviewFileVerdict(quoted)} want null`);
+  else pass('FX-DUAL-QUOTED: PASS only in blockquote ⇒ null (not met)');
+
+  // C-ALLPASS-EXIT0
+  if (pickExitFromReceipt({ allPass: true }, 'uc018:x:prove') != null) {
+    fail('allPass:true without exit must yield null exit');
+  } else pass('C-ALLPASS-EXIT0: allPass:true alone ⇒ null exit (MISSING-RECEIPT)');
+  if (pickExitFromReceipt({ allPass: true, exit: 0 }, 'uc018:x:prove') !== 0) {
+    fail('explicit exit:0 must still win over allPass');
+  } else pass('explicit exit:0 retained with allPass');
+
+  // C-NO-GIT-AUTHOR: distinct identities observed — enforce role↔author
+  const soleE2e = join(root, 'ai-docs/delivery/reviews/REQUEST-2026-09-23-uc-e2e-018-sole-stack-pg-retained-post-prove-mw-e2e-ha.md');
+  const soleRag = join(root, 'ai-docs/delivery/reviews/REQUEST-2026-09-23-uc-e2e-018-sole-stack-pg-retained-post-prove-mw-rag-route.md');
+  const aE = latestCommitAuthor(root, soleE2e);
+  const aR = latestCommitAuthor(root, soleRag);
+  note(`C-NO-GIT-AUTHOR authors: e2e-ha=${aE} · rag-route=${aR}`);
+  if (!authorMatchesRole(aE, 'e2eHa') || !authorMatchesRole(aR, 'ragRoute')) {
+    fail(`role↔author mismatch e2e=${aE} rag=${aR}`);
+  } else pass('C-NO-GIT-AUTHOR: distinct mw-e2e-ha / mw-rag-route authors match path roles');
+  const dualAuth = dualFromReviewFiles([soleE2e, soleRag], root);
+  if (dualAuth.e2eHa !== 'PASS' || dualAuth.ragRoute !== 'PASS') {
+    fail(`author-gated dual got ${JSON.stringify(dualAuth)}`);
+  } else pass('author-gated sole dual PASS/PASS');
 }
 
 // Porcelain guard: clean OK; dirty refuses
@@ -636,7 +669,7 @@ const evidence = {
     { field: 'gapClosedInText', before: '已关/CLOSED matched under 不得写已关 / Ban / 禁止', after: 'banNear window skips negation/prohibition', file: 'gapClosedInText' },
     { field: 'porcelain', before: 'no check', after: 'non-empty porcelain → DIRTY_TREE refuse', file: 'assertCleanPorcelain' },
   ],
-  fixRound: 'fix-round-4-flip-reasons-invariant-s11-opengaps-cmd',
+  fixRound: 'fix-round-4-invariant-fence-verifiedSha-allPass-author-liftDirty',
   mutationSummary: globalThis.__uc018MutationSummary || null,
   dualParse: {
     marker: '/^(?:\\*\\*)?Verdict(?:\\*\\*)?:\\s*(?:\\*\\*)?(PASS|FAIL)(?:\\*\\*)?\\s*$/m',

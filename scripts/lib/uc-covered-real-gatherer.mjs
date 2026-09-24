@@ -177,7 +177,7 @@ function pickEvidenceFlags(receipt, labelText) {
   if (implementerOnly) evidenceOfRecord = false;
   return { implementerOnly, evidenceOfRecord: evidenceOfRecord === true };
 }
-function pickExitFromReceipt(receipt, cmd) {
+export function pickExitFromReceipt(receipt, cmd) {
   if (!receipt || typeof receipt !== 'object') return null;
   if (typeof receipt.exit === 'number') return receipt.exit;
   if (typeof receipt.exitCode === 'number') return receipt.exitCode;
@@ -185,8 +185,7 @@ function pickExitFromReceipt(receipt, cmd) {
   if (cmd && receipt.exits && typeof receipt.exits[`pnpm ${cmd}`] === 'number') return receipt.exits[`pnpm ${cmd}`];
   if (cmd && receipt.cmds && typeof receipt.cmds[cmd] === 'number') return receipt.cmds[cmd];
   if (cmd && receipt.cmds && typeof receipt.cmds[`pnpm ${cmd}`] === 'number') return receipt.cmds[`pnpm ${cmd}`];
-  if (receipt.allPass === true) return 0;
-  if (receipt.allPass === false) return 1;
+  // C-ALLPASS-EXIT0: Ban inventing EXIT from allPass boolean — require explicit exit/exitCode/exits/cmds
   return null;
 }
 /**
@@ -256,15 +255,33 @@ function pickStack(receipt) {
  * Role binding: ONLY from this file's own path suffix
  *   (`-mw-e2e-ha.md` / `-mw-rag-route.md` or `/mw-e2e-ha` / `/mw-rag-route` in path).
  * Never from body / first-500-chars peer-name mentions (Ban cross-role).
+ * Strip fenced/indent code + blockquotes before matching (B-DUAL-FENCE-COUNTED).
+ * When root provided: latest git author must match role (mw-e2e-ha / mw-rag-route).
  */
 export const REVIEW_VERDICT_LINE_RE =
   /^(?:\*\*)?Verdict(?:\*\*)?:\s*(?:\*\*)?(PASS|FAIL)(?:\*\*)?\s*$/m;
 
+/** Strip fenced/indent code + blockquotes before Verdict match (B-DUAL-FENCE-COUNTED). */
+export function stripMarkdownNonProse(text) {
+  if (!text) return '';
+  let t = String(text);
+  // Fenced ``` / ~~~ blocks (opening fence line through closing fence)
+  t = t.replace(/^ {0,3}(`{3,}|~{3,})[^\n]*\n[\s\S]*?^ {0,3}\1[^\n]*$/gm, '\n');
+  // Blockquote lines
+  t = t.replace(/^>[^\n]*$/gm, '');
+  // Indented code blocks (line starts with 4 spaces or tab)
+  t = t
+    .split(/\r?\n/)
+    .filter((line) => !/^(?: {4}|\t)/.test(line))
+    .join('\n');
+  return t;
+}
+
 export function parseReviewFileVerdict(text) {
   if (!text || typeof text !== 'string') return null;
+  const prose = stripMarkdownNonProse(text);
   let last = null;
-  const lines = text.split(/\r?\n/);
-  for (const line of lines) {
+  for (const line of prose.split(/\r?\n/)) {
     const m = line.match(/^(?:\*\*)?Verdict(?:\*\*)?:\s*(?:\*\*)?(PASS|FAIL)(?:\*\*)?\s*$/);
     if (m) last = m[1] === 'PASS' || m[1] === 'FAIL' ? m[1] : null;
   }
@@ -274,43 +291,84 @@ export function parseReviewFileVerdict(text) {
 export function roleFromReviewPath(filePath) {
   const base = String(filePath || '').replace(/\\/g, '/');
   const name = base.split('/').pop() || base;
-  // Path/filename suffix only — Ban body-text role inference
   if (/-mw-e2e-ha\.md$/i.test(name) || /\/mw-e2e-ha\//i.test(base)) return 'e2eHa';
   if (/-mw-rag-route\.md$/i.test(name) || /\/mw-rag-route\//i.test(base)) return 'ragRoute';
   return null;
 }
 
-export function dualFromReviewFiles(paths) {
+/** Latest commit author touching file: `Name <email>`. */
+export function latestCommitAuthor(root, filePath) {
+  if (!root || !filePath) return null;
+  try {
+    const out = execSync(`git log -1 --format='%an <%ae>' -- ${filePath}`, {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    return out || null;
+  } catch {
+    return null;
+  }
+}
+
+export function authorMatchesRole(author, role) {
+  if (!author || !role) return false;
+  if (role === 'e2eHa') return /mw-e2e-ha/i.test(author);
+  if (role === 'ragRoute') return /mw-rag-route/i.test(author);
+  return false;
+}
+
+/**
+ * @param {string[]} paths
+ * @param {string} [root] — required for C-NO-GIT-AUTHOR (role↔latest-author). Absent root ⇒ path-only (tests).
+ */
+export function dualFromReviewFiles(paths, root) {
   let e2eHa = null;
   let ragRoute = null;
   for (const p of paths) {
     const text = readText(p);
     if (!text) continue;
     const role = roleFromReviewPath(p);
-    if (!role) continue; // unknown role file → ignore (fail closed for that slot)
+    if (!role) continue;
+    if (root) {
+      const author = latestCommitAuthor(root, p);
+      if (!authorMatchesRole(author, role)) {
+        // Fail closed: wrong/missing author ⇒ leave slot null (MISSING-DUAL)
+        continue;
+      }
+    }
     const verdict = parseReviewFileVerdict(text);
-    if (verdict == null) continue; // unparseable → leave slot null → MISSING-DUAL
+    if (verdict == null) continue;
     if (role === 'e2eHa') e2eHa = verdict;
     if (role === 'ragRoute') ragRoute = verdict;
   }
   return { e2eHa, ragRoute };
 }
+
 function shaFlags(root, sha) {
-  // Always emit explicit booleans (never leave uncommitted/staleSha undefined) so
-  // evaluator positive-proof (uncommitted === false / staleSha === false) works on real input.
-  if (!sha) return { gitSha: null, committed: false, shaMatchesCommitted: false, uncommitted: true, staleSha: false };
+  // Emit verifiedSha bound to the SHA actually cat-file + ancestor-checked when committed.
+  if (!sha) {
+    return {
+      gitSha: null,
+      verifiedSha: null,
+      committed: false,
+      shaMatchesCommitted: false,
+      uncommitted: true,
+      staleSha: false,
+    };
+  }
   const exists = gitCommitExists(root, sha);
   const ancestor = exists && gitIsAncestor(root, sha);
   const committed = exists && ancestor;
   return {
     gitSha: sha,
+    verifiedSha: committed ? sha : null,
     committed,
     shaMatchesCommitted: committed,
     uncommitted: !committed,
     staleSha: exists && !ancestor,
   };
 }
-
 /** Fail closed if working tree is dirty (non-empty porcelain). Ignored paths = gitignored only. */
 export function assertCleanPorcelain(root) {
   const out = execSync('git status --porcelain', { cwd: root, encoding: 'utf8' });
@@ -366,19 +424,19 @@ export function gatherRealUc018(opts) {
   const advDual = dualFromReviewFiles([
     join(reviewsRoot, 'REQUEST-2026-09-23-uc-e2e-018-adv-post-prove-mw-e2e-ha.md'),
     join(reviewsRoot, 'REQUEST-2026-09-23-uc-e2e-018-adv-post-prove-mw-rag-route.md'),
-  ]);
+  ], root);
   const perfDual = dualFromReviewFiles([
     join(reviewsRoot, 'REQUEST-2026-09-23-uc-e2e-018-perf-load-post-prove-mw-e2e-ha.md'),
     join(reviewsRoot, 'REQUEST-2026-09-23-uc-e2e-018-perf-load-post-prove-mw-rag-route.md'),
-  ]);
+  ], root);
   // NEG/BOUND: sole-stack + waiting-user post-prove reviews (fail closed if missing)
   const soleDual = dualFromReviewFiles([
     join(reviewsRoot, 'REQUEST-2026-09-23-uc-e2e-018-sole-stack-pg-retained-post-prove-mw-e2e-ha.md'),
     join(reviewsRoot, 'REQUEST-2026-09-23-uc-e2e-018-sole-stack-pg-retained-post-prove-mw-rag-route.md'),
-  ]);
+  ], root);
   const waitingDual = dualFromReviewFiles([
     join(reviewsRoot, '2026-09-10-uc-e2e-018-waiting-user-mw-e2e-ha.md'),
-  ]);
+  ], root);
   const negBoundDual = {
     e2eHa: soleDual.e2eHa || waitingDual.e2eHa || null,
     ragRoute: soleDual.ragRoute || waitingDual.ragRoute || null,
@@ -388,7 +446,7 @@ export function gatherRealUc018(opts) {
   const graphDual = dualFromReviewFiles([
     join(reviewsRoot, 'REQUEST-2026-09-23-uc-e2e-018-graph-safely-terminated-post-prove-mw-e2e-ha.md'),
     join(reviewsRoot, 'REQUEST-2026-09-23-uc-e2e-018-graph-safely-terminated-post-prove-mw-rag-route.md'),
-  ]);
+  ], root);
   let faultReceipt = null;
   let faultReceiptNote = 'no dedicated FAULT prove receipt';
   if (graphReceipt && typeof graphReceipt === 'object') {
@@ -431,6 +489,7 @@ export function gatherRealUc018(opts) {
       sha.shaMatchesCommitted = false;
       sha.uncommitted = true;
       sha.staleSha = false;
+      sha.verifiedSha = null;
     }
     const stack = pickStack(receipt);
     return {
@@ -440,6 +499,7 @@ export function gatherRealUc018(opts) {
         cmd: cmd || null,
         exit,
         gitSha: sha.gitSha,
+        verifiedSha: sha.verifiedSha,
         committed: sha.committed,
         shaMatchesCommitted: sha.shaMatchesCommitted,
         uncommitted: sha.uncommitted,

@@ -13,7 +13,8 @@
         "committed": true,
         "shaMatchesCommitted": true,
         "uncommitted": false,
-        "staleSha": false
+        "staleSha": false,
+        "verifiedSha": "abc1234deadbeef"
       },
       "dual": {
         "e2eHa": "PASS",
@@ -47,7 +48,8 @@
         "committed": true,
         "shaMatchesCommitted": true,
         "uncommitted": false,
-        "staleSha": false
+        "staleSha": false,
+        "verifiedSha": "abc1234deadbeef"
       },
       "dual": {
         "e2eHa": "PASS",
@@ -81,7 +83,8 @@
         "committed": true,
         "shaMatchesCommitted": true,
         "uncommitted": false,
-        "staleSha": false
+        "staleSha": false,
+        "verifiedSha": "abc1234deadbeef"
       },
       "dual": {
         "e2eHa": "PASS",
@@ -115,7 +118,8 @@
         "committed": true,
         "shaMatchesCommitted": false,
         "staleSha": true,
-        "uncommitted": false
+        "uncommitted": false,
+        "verifiedSha": "abc1234deadbeef"
       },
       "dual": {
         "e2eHa": "PASS",
@@ -149,7 +153,8 @@
         "committed": true,
         "shaMatchesCommitted": true,
         "uncommitted": false,
-        "staleSha": false
+        "staleSha": false,
+        "verifiedSha": "abc1234deadbeef"
       },
       "dual": {
         "e2eHa": "PASS",
@@ -183,7 +188,8 @@
         "committed": true,
         "shaMatchesCommitted": true,
         "uncommitted": false,
-        "staleSha": false
+        "staleSha": false,
+        "verifiedSha": "abc1234deadbeef"
       },
       "dual": {
         "e2eHa": "PASS",
