@@ -1,0 +1,7 @@
+{
+  "canHonestlyFlip": false,
+  "mustIncludeReasons": [
+    "CASE-ONLY",
+    "S11-NOT-MET"
+  ]
+}
