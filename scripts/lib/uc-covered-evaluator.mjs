@@ -144,9 +144,9 @@ function evaluateColumn(colName, col, requiredNhps) {
   ) {
     pushUnique(reasons, REFUSE_REASONS.UNCOMMITTED_RUNNER);
   }
+  // EXIT tri-state: null/absent → MISSING-RECEIPT; nonzero → PROVE-FAIL; 0 → ok
   if (prove.exit == null) {
-    // Fail closed: missing EXIT is not a silent pass
-    pushUnique(reasons, REFUSE_REASONS.PROVE_FAIL);
+    pushUnique(reasons, REFUSE_REASONS.MISSING_RECEIPT);
   } else if (Number(prove.exit) !== 0) {
     pushUnique(reasons, REFUSE_REASONS.PROVE_FAIL);
   }
@@ -159,18 +159,24 @@ function evaluateColumn(colName, col, requiredNhps) {
   if (dv === 'missing') pushUnique(reasons, REFUSE_REASONS.MISSING_DUAL);
   else if (dv === 'one') pushUnique(reasons, REFUSE_REASONS.DUAL_ONE);
 
-  // 5. stack
+  // 5. stack — tri-state fail-closed (B-STACK-FAIL-OPEN):
+  // postgres/postgresSaver must be === true; memorySaver/mysql/qdrant must be === false.
+  // undefined/null/absent ⇒ STUB-STACK (never default-to-met).
+  const stackObj = stack && typeof stack === 'object' ? stack : {};
   const badStack =
-    stack.memorySaver === true ||
-    stack.mysql === true ||
-    stack.qdrant === true ||
-    stack.postgres === false ||
-    stack.postgresSaver === false;
+    stackObj.postgres !== true ||
+    stackObj.postgresSaver !== true ||
+    stackObj.memorySaver !== false ||
+    stackObj.mysql !== false ||
+    stackObj.qdrant !== false;
   if (badStack) pushUnique(reasons, REFUSE_REASONS.STUB_STACK);
 
-  // 6. receipts / implementer-only
-  if (receipts.implementerOnly === true && receipts.evidenceOfRecord !== true) {
+  // 6. receipts / EOR — tri-state fail-closed (B-EOR-FAIL-OPEN):
+  // evidenceOfRecord must be === true; absent/false ⇒ MISSING-RECEIPT (or IMPL-ONLY if labeled).
+  if (receipts.implementerOnly === true) {
     pushUnique(reasons, REFUSE_REASONS.IMPL_ONLY);
+  } else if (receipts.evidenceOfRecord !== true) {
+    pushUnique(reasons, REFUSE_REASONS.MISSING_RECEIPT);
   }
   if (receipts.missing === true || receipts.present === false) {
     pushUnique(reasons, REFUSE_REASONS.MISSING_RECEIPT);

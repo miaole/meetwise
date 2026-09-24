@@ -26,7 +26,7 @@
  *     receipt.exit | receipt.exitCode | receipt.exits[<cmd>]
  *     | receipt.allPass === true → 0 / === false → 1
  *     | harness CMD|EXIT ONLY when receipt file absent
- *     (receipt present but EXIT dropped → null → PROVE-FAIL)
+ *     (receipt present but EXIT dropped → null → MISSING-RECEIPT; nonzero → PROVE-FAIL)
  *
  *   gitSha:
  *     receipt.gitSha | receipt.proveTip | receipt.runnerCommitSha | receipt.commitSha
@@ -81,19 +81,30 @@ function parseNhpRow(nhpText, id) {
   return { id, status, row };
 }
 
-/** CLOSED before or after GAP id; also Chinese 已关 (reviewer note on false-negative). */
+/** CLOSED before/after GAP id + 已关; Ban/不得/禁止/不可/未/not windows do NOT count as closed. */
 export function gapClosedInText(text, gapId) {
   if (!text) return false;
   const escaped = gapId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return [
+  const patterns = [
     new RegExp(escaped + '[^\\n]{0,120}CLOSED', 'i'),
     new RegExp('CLOSED[^\\n]{0,120}' + escaped, 'i'),
     new RegExp('已关[^\\n]{0,160}' + escaped, 'i'),
     new RegExp(escaped + '[^\\n]{0,80}已关', 'i'),
     new RegExp('\\*\\*CLOSED\\*\\*[（(][^)）\\n]{0,60}' + escaped, 'i'),
-  ].some((re) => re.test(text));
+  ];
+  const banNear = /不得|禁止|\bBan\b|不可|未|不得写已关|\bnot\b|not\s+closed|≠\s*closed/i;
+  for (const re of patterns) {
+    const r = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g');
+    let m;
+    while ((m = r.exec(text)) !== null) {
+      const from = Math.max(0, m.index - 48);
+      const window = text.slice(from, m.index + m[0].length + 16);
+      if (banNear.test(window)) continue;
+      return true;
+    }
+  }
+  return false;
 }
-
 export function parseHarnessCmdExit(harnessText, cmd) {
   if (!harnessText || !cmd) return null;
   const esc = cmd.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -158,8 +169,9 @@ function pickEvidenceFlags(receipt, labelText) {
   const label = `${labelText || ''}\n${receipt?.note || ''}\n${receipt?.disclosure || ''}`;
   const labeledImpl = /not evidence of record|implementer pre-commit|uncommitted runner/i.test(label);
   const implementerOnly = receipt?.implementerOnly === true || labeledImpl;
+  // B-EOR-FAIL-OPEN: absent ⇒ false (never soft-default true)
   let evidenceOfRecord = receipt?.evidenceOfRecord ?? receipt?.evidence?.ofRecord;
-  if (evidenceOfRecord == null) evidenceOfRecord = !implementerOnly && receipt != null;
+  if (evidenceOfRecord == null) evidenceOfRecord = false;
   if (implementerOnly) evidenceOfRecord = false;
   return { implementerOnly, evidenceOfRecord: evidenceOfRecord === true };
 }
@@ -169,6 +181,8 @@ function pickExitFromReceipt(receipt, cmd) {
   if (typeof receipt.exitCode === 'number') return receipt.exitCode;
   if (cmd && receipt.exits && typeof receipt.exits[cmd] === 'number') return receipt.exits[cmd];
   if (cmd && receipt.exits && typeof receipt.exits[`pnpm ${cmd}`] === 'number') return receipt.exits[`pnpm ${cmd}`];
+  if (cmd && receipt.cmds && typeof receipt.cmds[cmd] === 'number') return receipt.cmds[cmd];
+  if (cmd && receipt.cmds && typeof receipt.cmds[`pnpm ${cmd}`] === 'number') return receipt.cmds[`pnpm ${cmd}`];
   if (receipt.allPass === true) return 0;
   if (receipt.allPass === false) return 1;
   return null;
@@ -181,30 +195,33 @@ function pickGitSha(receipt) {
 function parseSoleStack(soleStack) {
   if (!soleStack || typeof soleStack !== 'string') return null;
   const s = soleStack.toLowerCase();
-  const postgres = /postgres/.test(s);
-  const postgresSaver = /postgressaver|saver/.test(s) || (postgres && /pgvector/.test(s));
+  // Explicit tokens only — Ban inferring postgresSaver from postgres+pgvector alone (:185 removed)
+  const postgres = s.includes('postgres');
+  const postgresSaver = /postgressaver/.test(s);
   return {
-    postgres,
-    postgresSaver,
-    memorySaver: /memorysaver/.test(s),
-    mysql: /mysql/.test(s),
-    qdrant: /qdrant/.test(s),
+    postgres: postgres ? true : undefined,
+    postgresSaver: postgresSaver ? true : undefined,
+    memorySaver: /memorysaver/.test(s) ? true : false,
+    mysql: /mysql/.test(s) ? true : false,
+    qdrant: /qdrant/.test(s) ? true : false,
   };
 }
 function pickStack(receipt) {
   if (receipt?.stack && typeof receipt.stack === 'object') {
+    // Tri-state passthrough — do not coerce absent fields
     return {
       postgres: receipt.stack.postgres,
       postgresSaver: receipt.stack.postgresSaver,
-      memorySaver: receipt.stack.memorySaver === true,
-      mysql: receipt.stack.mysql === true,
-      qdrant: receipt.stack.qdrant === true,
+      memorySaver: receipt.stack.memorySaver,
+      mysql: receipt.stack.mysql,
+      qdrant: receipt.stack.qdrant,
     };
   }
   if (receipt?.soleStack) {
     const p = parseSoleStack(receipt.soleStack);
     if (p) return p;
   }
+  // Absent → all undefined (evaluator ⇒ STUB-STACK)
   return {
     postgres: undefined,
     postgresSaver: undefined,
@@ -245,11 +262,30 @@ function shaFlags(root, sha) {
   };
 }
 
+/** Fail closed if working tree is dirty (non-empty porcelain). Ignored paths = gitignored only. */
+export function assertCleanPorcelain(root) {
+  const out = execSync('git status --porcelain', { cwd: root, encoding: 'utf8' });
+  const dirty = out.split('\n').map((l) => l.trimEnd()).filter(Boolean);
+  if (dirty.length > 0) {
+    const err = new Error(
+      `DIRTY_TREE: git status --porcelain non-empty (${dirty.length} lines). Refuse gather/prove.\n` +
+        dirty.slice(0, 30).join('\n'),
+    );
+    err.code = 'DIRTY_TREE';
+    err.dirty = dirty;
+    throw err;
+  }
+  return true;
+}
+
 /**
- * @param {{ root: string, receiptRoot?: string, reviewsRoot?: string, harnessRoot?: string }} opts
+ * @param {{ root: string, receiptRoot?: string, reviewsRoot?: string, harnessRoot?: string, skipPorcelainCheck?: boolean }} opts
  */
 export function gatherRealUc018(opts) {
   const root = opts.root;
+  if (!opts.skipPorcelainCheck) {
+    assertCleanPorcelain(root);
+  }
   const receiptRoot = opts.receiptRoot || join(root, 'ai-docs/delivery/receipts');
   const reviewsRoot = opts.reviewsRoot || join(root, 'ai-docs/delivery/reviews');
   const harnessRoot = opts.harnessRoot || join(root, 'ai-docs/delivery/harness');
@@ -286,6 +322,44 @@ export function gatherRealUc018(opts) {
     join(reviewsRoot, 'REQUEST-2026-09-23-uc-e2e-018-perf-load-post-prove-mw-e2e-ha.md'),
     join(reviewsRoot, 'REQUEST-2026-09-23-uc-e2e-018-perf-load-post-prove-mw-rag-route.md'),
   ]);
+  // NEG/BOUND: sole-stack + waiting-user post-prove reviews (fail closed if missing)
+  const soleDual = dualFromReviewFiles([
+    join(reviewsRoot, 'REQUEST-2026-09-23-uc-e2e-018-sole-stack-pg-retained-post-prove-mw-e2e-ha.md'),
+    join(reviewsRoot, 'REQUEST-2026-09-23-uc-e2e-018-sole-stack-pg-retained-post-prove-mw-rag-route.md'),
+  ]);
+  const waitingDual = dualFromReviewFiles([
+    join(reviewsRoot, '2026-09-10-uc-e2e-018-waiting-user-mw-e2e-ha.md'),
+  ]);
+  const negBoundDual = {
+    e2eHa: soleDual.e2eHa || waitingDual.e2eHa || null,
+    ragRoute: soleDual.ragRoute || waitingDual.ragRoute || null,
+  };
+  // FAULT: GRAPH evidence only if committed tip + parseable cmds; else MISSING-RECEIPT
+  const graphReceipt = readJson(join(receiptRoot, '2026-09-23-uc-e2e-018-graph-safely-terminated-evidence.json'));
+  const graphDual = dualFromReviewFiles([
+    join(reviewsRoot, 'REQUEST-2026-09-23-uc-e2e-018-graph-safely-terminated-post-prove-mw-e2e-ha.md'),
+    join(reviewsRoot, 'REQUEST-2026-09-23-uc-e2e-018-graph-safely-terminated-post-prove-mw-rag-route.md'),
+  ]);
+  let faultReceipt = null;
+  let faultReceiptNote = 'no dedicated FAULT prove receipt';
+  if (graphReceipt && typeof graphReceipt === 'object') {
+    const tip = graphReceipt.requestTip || graphReceipt.gitSha || null;
+    const tipOk = tip ? gitCommitExists(root, tip) && gitIsAncestor(root, tip) : false;
+    const hasCmdExit =
+      (graphReceipt.cmds && typeof graphReceipt.cmds['uc018:graph:prove'] === 'number') ||
+      (graphReceipt.exits && typeof graphReceipt.exits['uc018:graph:prove'] === 'number');
+    if (hasCmdExit && tipOk) {
+      faultReceipt = {
+        ...graphReceipt,
+        _path: '2026-09-23-uc-e2e-018-graph-safely-terminated-evidence.json',
+      };
+      faultReceiptNote =
+        'wired GRAPH evidence (tip ' + tip + ' committed+ancestor; cmds present; no stack => STUB-STACK)';
+    } else {
+      faultReceiptNote =
+        'GRAPH evidence present but not wired (tipOk=' + tipOk + ' hasCmdExit=' + hasCmdExit + ') => MISSING-RECEIPT';
+    }
+  }
 
   function buildCol({ statusCell, nhpRow, nhpIds, cmd, harnessText, receipt, labelText, dual }) {
     const status = nhpRow?.status && nhpRow.status !== 'unknown' ? nhpRow.status : cellStatus(statusCell);
@@ -353,17 +427,17 @@ export function gatherRealUc018(opts) {
       harnessText: parentHarness,
       receipt: soleReceipt ? { ...soleReceipt, _path: 'sole-stack-pg-retained-evidence.json' } : null,
       labelText: '',
-      dual: { e2eHa: null, ragRoute: null },
+      dual: negBoundDual,
     }),
     FAULT: buildCol({
       statusCell: row101?.[2],
       nhpRow: nhpFault,
       nhpIds: nhpFault ? ['NHP-018-FAULT-01'] : [],
-      cmd: null,
+      cmd: faultReceipt ? 'uc018:graph:prove' : null,
       harnessText: parentHarness,
-      receipt: null,
+      receipt: faultReceipt,
       labelText: '',
-      dual: { e2eHa: null, ragRoute: null },
+      dual: faultReceipt ? graphDual : { e2eHa: null, ragRoute: null },
     }),
     BOUND: buildCol({
       statusCell: row101?.[3],
@@ -373,7 +447,7 @@ export function gatherRealUc018(opts) {
       harnessText: parentHarness,
       receipt: soleReceipt ? { ...soleReceipt, _path: 'sole-stack-pg-retained-evidence.json' } : null,
       labelText: '',
-      dual: { e2eHa: null, ragRoute: null },
+      dual: negBoundDual,
     }),
     ADV: buildCol({
       statusCell: row101?.[4],
@@ -436,6 +510,15 @@ export function gatherRealUc018(opts) {
       boundCell: cellStatus(row101?.[3]),
       openGaps,
       businessPathMet,
+      faultReceiptNote,
+      dualSources: {
+        NEG: 'sole-stack-pg-retained-post-prove + waiting-user reviews',
+        FAULT: faultReceipt ? 'graph-safely-terminated-post-prove' : 'none (MISSING-DUAL)',
+        BOUND: 'sole-stack-pg-retained-post-prove + waiting-user reviews',
+        ADV: 'adv-post-prove',
+        PERF: 'perf-load-post-prove',
+        LOAD: 'perf-load-post-prove',
+      },
       parsedStatuses: Object.fromEntries(
         ['NEG', 'FAULT', 'BOUND', 'ADV', 'PERF', 'LOAD'].map((c) => [c, columns[c].status]),
       ),
