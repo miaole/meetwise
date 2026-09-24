@@ -181,7 +181,7 @@ const fixtureIds = readdirSync(fixtureDir)
   .filter((f) => f.endsWith('.input.json'))
   .map((f) => f.replace(/\.input\.json$/, ''))
   .sort();
-if (fixtureIds.length < 33) fail(`expected ≥33 fixtures, got ${fixtureIds.length}`);
+if (fixtureIds.length < 35) fail(`expected ≥35 fixtures, got ${fixtureIds.length}`);
 
 for (const id of fixtureIds) {
   const input = JSON.parse(read(join(fixtureDir, `${id}.input.json`)));
@@ -474,6 +474,13 @@ function setPath(root, path, mode) {
     fail('HTML multiline comment still parsed a verdict');
   } else pass('blocker repro: Verdict FAIL + HTML-comment PASS ⇒ null');
 
+  const unterminated = read(join(dualFix, 'FX-DUAL-UNTERMINATED-FENCE.md'));
+  const htmlMl = read(join(dualFix, 'FX-DUAL-HTML-ML.md'));
+  if (parseReviewFileVerdict(unterminated) != null) fail('FX-DUAL-UNTERMINATED-FENCE must be null');
+  else pass('FX-DUAL-UNTERMINATED-FENCE: open fence + last-line Verdict: PASS ⇒ null');
+  if (parseReviewFileVerdict(htmlMl) != null) fail('FX-DUAL-HTML-ML must be null');
+  else pass('FX-DUAL-HTML-ML: multi-line HTML comment with Verdict ⇒ null');
+
   // C-ALLPASS-EXIT0
   if (pickExitFromReceipt({ allPass: true }, 'uc018:x:prove') != null) {
     fail('allPass:true without exit must yield null exit');
@@ -689,7 +696,7 @@ const evidence = {
     { field: 'gapClosedInText', before: '已关/CLOSED matched under 不得写已关 / Ban / 禁止', after: 'banNear window skips negation/prohibition', file: 'gapClosedInText' },
     { field: 'porcelain', before: 'no check', after: 'non-empty porcelain → DIRTY_TREE refuse', file: 'assertCleanPorcelain' },
   ],
-  fixRound: 'fix-round-5-last-line-verdict-html-defense',
+  fixRound: 'fix-round-5b-unterminated-fence-html-ml-author-limit',
   mutationSummary: globalThis.__uc018MutationSummary || null,
   dualParse: {
     marker: '/^(\\*\\*)?Verdict: (PASS|FAIL)(\\*\\*)?$/ last-non-empty-line only; HTML comment defense',

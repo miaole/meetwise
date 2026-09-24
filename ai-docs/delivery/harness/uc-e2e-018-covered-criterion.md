@@ -381,7 +381,7 @@ coveredCount=**8** · haStatus=**NOT_HA** · releaseEvidence=**false** · claimP
 | allPass | alone ≠ EXIT 0 · FX-ALLPASS-NO-EXIT |
 | C-NO-GIT-AUTHOR | **enforced** · distinct `mw-e2e-ha` / `mw-rag-route` authors |
 | C-LIFT-DIRTY | lift-reassess porcelain + tmp-only · dirty refuse PASS |
-| C-RANGE-PRODUCT | 994e83a / 9e55109 / 3c4847a / 8602cea (+ g7) disclosed · Line A = individual commits |
+| C-RANGE-PRODUCT | 994e83a / 9e55109 / 3c4847a / 8602cea (+ g7) · **fc8429c** (Line C) · **41cffea** (Line B) disclosed · Line A = individual commits |
 | mutation | **423/423** · allowlist: ucId · non-PERF/LOAD capacity/targetEnv · implementerOnly |
 
 *Ban invent covered · Ban flip §1.1 · STOP*
@@ -397,5 +397,21 @@ coveredCount=**8** · haStatus=**NOT_HA** · releaseEvidence=**false** · claimP
 | Dual columns | all six **MISSING-DUAL** (older reviews lack terminal Verdict line) |
 | mutation | **423/423** |
 | cite script | ran `e09d56e` on origin (Line B) |
+| Missing range SHAs (disclose) | `fc8429c` (Line C) · `41cffea` (Line B) · plus prior C-RANGE-PRODUCT list `994e83a` / `9e55109` / `3c4847a` / `8602cea` (+ g7) · Line A = individual commits only |
+
+## Fix round 5b · unterminated fence + HTML-ML · (runner SHA after this commit)
+
+| Item | Result |
+| --- | --- |
+| Fixtures | **FX-DUAL-UNTERMINATED-FENCE** · **FX-DUAL-HTML-ML** ⇒ null / MISSING-DUAL |
+| Fence defense | unterminated ``` / ~~~ ⇒ null (like unclosed `<!--`) |
+| Stub | removed no-op `stripMarkdownNonProse` |
+| Author limit | see Known limit below (not blocker) |
+| Missing range SHAs | `fc8429c` (Line C) · `41cffea` (Line B) disclosed with prior list |
 
 *Ban invent covered · Ban flip §1.1 · STOP*
+
+
+### Known limit (not blocker) · git-author role binding
+
+Path-suffix + `git log -1` author match (`mw-e2e-ha` / `mw-rag-route`) is **tamper-evident in review only**, not cryptographic. An actor can spoof with `git -c user.name=… -c user.email=…`. Residual risk accepted; Ban treating author check as a security boundary.
