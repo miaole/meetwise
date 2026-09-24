@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 /**
  * Prove: machine-only emitter guard refuses hand-written / edited JSON.
- * Also asserts gatherer prefers uc018-receipt-backfill overlays when valid.
+ * Also asserts gatherer prefers uc018-receipt-backfill overlays when valid,
+ * and fail-closes (BACKFILL-FAILED) when proveExit≠0 or proveExit missing —
+ * Ban silent legacy green.
  */
 import { writeFileSync, mkdirSync, rmSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -11,7 +13,10 @@ import {
   sha256Text,
   validateMachineEmittedReceipt,
   isBackfillReceiptShape,
+  isPreferableBackfillReceipt,
 } from './lib/uc018-receipt-backfill-guard.mjs';
+import { stackFact, unobservedFact, TRACKED_IMAGES } from './lib/uc018-receipt-backfill-facts.mjs';
+import { REFUSE_REASONS, evaluate } from './lib/uc-covered-evaluator.mjs';
 
 const root = process.cwd();
 let failed = 0;
@@ -25,6 +30,23 @@ const logBody = 'synthetic prove log line\nEXIT=0\n';
 writeFileSync(logPath, logBody);
 const digest = createHash('sha256').update(logBody, 'utf8').digest('hex');
 
+function sourcedStackOk() {
+  return {
+    postgres: stackFact(true, 'log-parse', { line: 1, regex: 'synthetic' }),
+    postgresSaver: stackFact(true, 'log-parse', { line: 1, regex: 'synthetic' }),
+    memorySaver: stackFact(false, 'log-parse', { line: 1, regex: 'synthetic' }),
+    mysql: stackFact(false, 'log-parse', { line: 1, regex: 'synthetic' }),
+    qdrant: stackFact(false, 'log-parse', { line: 1, regex: 'synthetic' }),
+  };
+}
+function imageDigestsOk() {
+  const o = {};
+  for (const img of TRACKED_IMAGES) {
+    o[img] = { imageDigest: 'not-started', started: false, source: 'log-parse' };
+  }
+  return o;
+}
+
 const good = {
   emittedBy: EMITTED_BY,
   ranAt: new Date().toISOString(),
@@ -36,6 +58,8 @@ const good = {
   logPath,
   stdoutDigest: digest,
   disclosure: 'EOR@targetSha ≠ proven at tip (code drift).',
+  stack: sourcedStackOk(),
+  imageDigests: imageDigestsOk(),
 };
 {
   const v = validateMachineEmittedReceipt(good, { root });
@@ -83,12 +107,40 @@ const good = {
   else fail('prose JSON unexpectedly accepted');
 }
 
+// D-A: stack fact without source rejected
+{
+  const bad = {
+    ...good,
+    stack: {
+      ...sourcedStackOk(),
+      postgresSaver: true, // hardcoded bare boolean — no source
+    },
+  };
+  const v = validateMachineEmittedReceipt(bad, { root });
+  if (!v.ok && String(v.reason).includes('source')) pass('stack fact without source rejected (' + v.reason + ')');
+  else fail('expected stack-source reject got ' + JSON.stringify(v));
+}
+
+// D-A / images: missing imageDigest field rejected
+{
+  const imgs = imageDigestsOk();
+  delete imgs['minio/minio:latest'].imageDigest;
+  const bad = { ...good, imageDigests: imgs };
+  const v = validateMachineEmittedReceipt(bad, { root });
+  if (!v.ok && String(v.reason).includes('imageDigest')) pass('missing imageDigest field rejected (' + v.reason + ')');
+  else fail('expected imageDigest-field-missing got ' + JSON.stringify(v));
+}
+
 if (!isBackfillReceiptShape(good)) fail('isBackfillReceiptShape false for good');
 else pass('isBackfillReceiptShape true for good');
 if (isBackfillReceiptShape({ exit: 0 })) fail('shape too loose');
 else pass('isBackfillReceiptShape false for thin object');
+if (!isPreferableBackfillReceipt(good)) fail('preferable false for exit=0 good');
+else pass('isPreferableBackfillReceipt true for exit=0');
+if (isPreferableBackfillReceipt({ ...good, exit: 1 })) fail('preferable true for exit=1');
+else pass('isPreferableBackfillReceipt false for exit=1');
 
-// Gatherer helper import (path wiring exists)
+// Gatherer D-B cases
 {
   const g = await import('./lib/uc-covered-real-gatherer.mjs');
   if (typeof g.readReceiptPreferBackfill !== 'function') {
@@ -96,11 +148,98 @@ else pass('isBackfillReceiptShape false for thin object');
   } else {
     pass('gatherer exports readReceiptPreferBackfill');
   }
-  if (typeof g.WAITING_USER_BACKFILL_STATUS !== 'string') {
-    fail('missing WAITING_USER_BACKFILL_STATUS');
-  } else if (g.WAITING_USER_BACKFILL_STATUS !== 'MISSING-EVIDENCE') {
+  if (g.WAITING_USER_BACKFILL_STATUS !== 'MISSING-EVIDENCE') {
     fail('WAITING_USER_BACKFILL_STATUS=' + g.WAITING_USER_BACKFILL_STATUS);
   } else pass('waiting_user = MISSING-EVIDENCE constant');
+
+  const recvRoot = join(tmp, 'receipts');
+  mkdirSync(join(recvRoot, 'uc018-receipt-backfill'), { recursive: true });
+  const legacyRel = 'legacy-green.json';
+  writeFileSync(join(recvRoot, legacyRel), JSON.stringify({
+    exit: 0,
+    gitSha: 'd'.repeat(40),
+    evidenceOfRecord: true,
+    note: 'legacy would look green',
+  }));
+
+  // Case 1: exit=1 backfill must NOT be preferred; flag BACKFILL-FAILED path
+  const failBf = {
+    ...good,
+    exit: 1,
+    logPath: 'uc018-receipt-backfill/exit1.log',
+  };
+  const exit1Log = join(recvRoot, 'uc018-receipt-backfill/exit1.log');
+  writeFileSync(exit1Log, logBody);
+  failBf.stdoutDigest = createHash('sha256').update(logBody, 'utf8').digest('hex');
+  failBf.logPath = exit1Log; // absolute ok for shape; gatherer only checks shape fields
+  // gatherer uses relative under receipt root — write relative path receipt
+  const failBfDisk = {
+    ...failBf,
+    logPath: 'uc018-receipt-backfill/exit1.log',
+    stdoutDigest: createHash('sha256').update(logBody, 'utf8').digest('hex'),
+  };
+  writeFileSync(join(recvRoot, 'uc018-receipt-backfill/EXIT1.json'), JSON.stringify(failBfDisk));
+  // Fix: readReceiptPreferBackfill joins receiptRoot + backfillRel file name
+  writeFileSync(join(recvRoot, 'uc018-receipt-backfill/CASE-EXIT1.json'), JSON.stringify(failBfDisk));
+  const r1 = g.readReceiptPreferBackfill(recvRoot, 'CASE-EXIT1.json', legacyRel);
+  if (r1 && r1._backfillFailed === true && r1._source === 'backfill-failed' && r1.exit === 1) {
+    pass('D-B exit=1 backfill not preferred (flagged backfill-failed)');
+  } else {
+    fail('D-B exit=1 expected backfill-failed got ' + JSON.stringify({
+      source: r1?._source, failed: r1?._backfillFailed, exit: r1?.exit, eor: r1?.evidenceOfRecord,
+    }));
+  }
+  if (r1 && r1.evidenceOfRecord === true) fail('D-B exit=1 must not keep evidenceOfRecord=true');
+  else pass('D-B exit=1 evidenceOfRecord forced false');
+  // Must not wash to legacy exit 0
+  if (r1 && r1.note === 'legacy would look green') fail('D-B exit=1 silently fell back to legacy');
+  else pass('D-B exit=1 no silent legacy fallback');
+
+  // Evaluator surfaces BACKFILL-FAILED
+  const col = {
+    status: 'partial',
+    nhpIds: ['NHP-018-NEG-01'],
+    prove: { cmd: 'x', exit: 1, gitSha: 'a'.repeat(40), committed: true, shaMatchesCommitted: true, uncommitted: false, staleSha: false },
+    dual: { e2eHa: 'PASS', ragRoute: 'PASS' },
+    stack: { postgres: true, postgresSaver: true, memorySaver: false, mysql: false, qdrant: false },
+    receipts: {
+      evidenceOfRecord: false,
+      implementerOnly: false,
+      capacityRepresentative: false,
+      targetEnv: 'docker-isolated',
+      present: true,
+      missing: true,
+      backfillFailed: true,
+    },
+  };
+  // Use evaluate with minimal input — call evaluateColumn via evaluate
+  const ev = evaluate({
+    columns: {
+      NEG: col, FAULT: col, BOUND: col, ADV: col, PERF: col, LOAD: col,
+    },
+    section11: { businessPathMet: false, openGaps: ['GAP-X'], status: 'partial' },
+  });
+  const reasons = ev.reasons || [];
+  if (reasons.includes(REFUSE_REASONS.BACKFILL_FAILED) || reasons.includes('BACKFILL-FAILED')) {
+    pass('D-B evaluator emits BACKFILL-FAILED reason');
+  } else {
+    fail('D-B missing BACKFILL-FAILED in reasons=' + reasons.join(','));
+  }
+
+  // Case 2: missing proveExit
+  const miss = { ...failBfDisk };
+  delete miss.exit;
+  writeFileSync(join(recvRoot, 'uc018-receipt-backfill/CASE-NOEXIT.json'), JSON.stringify(miss));
+  const r2 = g.readReceiptPreferBackfill(recvRoot, 'CASE-NOEXIT.json', legacyRel);
+  if (r2 && r2._backfillFailed === true && r2._backfillFailReason === 'missing-or-invalid-proveExit') {
+    pass('D-B missing proveExit flagged backfill-failed');
+  } else {
+    fail('D-B missing proveExit got ' + JSON.stringify({
+      source: r2?._source, failed: r2?._backfillFailed, reason: r2?._backfillFailReason, exit: r2?.exit,
+    }));
+  }
+  if (r2 && r2.note === 'legacy would look green') fail('D-B missing exit silently fell back to legacy');
+  else pass('D-B missing exit no silent legacy fallback');
 }
 
 rmSync(tmp, { recursive: true, force: true });

@@ -40,6 +40,14 @@ Each re-run emits tracked receipt JSON:
 
  Dual reviewers append **strict last-line** `Verdict: PASS` or `Verdict: FAIL` on their review files（last-non-empty-line contract from COVERED-CRITERION）.
 
+## Disclosed limit — GAP-BACKFILL-EMITTER-UNAUTHENTICATED
+
+- Emitter/guard bind receipt JSON to prove log via **SHA-256 digest only** (HMAC-free).
+- An attacker with write access to **both** the JSON and the log can forge a matching pair → structural validation passes.
+- Purpose remains: refuse *hand-written* / prose-pasted JSON without a real log binding — **not** cryptographic authentication of the emitter process.
+- Registered in this harness + `ai-docs/delivery/receipts/uc018-receipt-backfill/README.md` only · **Ban** SSOT `gap-bug-backlog` edit until post-prove nail.
+- Related gatherer pin (D-B): backfill with `proveExit≠0` / missing required fields → **BACKFILL-FAILED** (refuse enum) · Ban silent legacy green.
+
 ## Follow-up（small · in-scope if dual agrees）
 
 - **`GAP-EVAL-PARSER-DETAILS-UNCLOSED`**: unclosed `<details>` before last line ⇒ null · fixture **FX-DUAL-DETAILS-UNCLOSED** · plus `unparseable reviewer file` diagnostic
