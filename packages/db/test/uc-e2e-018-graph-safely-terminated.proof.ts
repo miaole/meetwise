@@ -96,7 +96,7 @@ async function main() {
   await assertIsolatedTestTarget(pool);
   console.log('UC-E2E-018 GRAPH safely_terminated prove · GAP-UC018-GRAPH · releaseEvidence=false · Not HA');
   console.log('NOTE: 本绿 closes GAP-UC018-GRAPH only；≠ UC-E2E-018 covered；matrix stays partial');
-  console.log('NOTE: §1b #3 TTL / #5 UI / #6 sole-stack remain OPEN；Ban wash abandon HTTP/full.e2e into GRAPH');
+  console.log('NOTE: §1b #3 TTL CLOSED via uc018:ttl:prove；#5 UI / #6 sole-stack remain OPEN；Ban wash abandon HTTP/full.e2e/ttl into GRAPH/UC covered');
 
   section('G1 · active AiGraphRun + 业务事实 → abandon → safely_terminated + 事实保全');
   {
@@ -187,7 +187,7 @@ async function main() {
     : `✗ ${fail} UC-E2E-018 GRAPH asserts failed`}`);
   console.log('CLOSED_GAP_UC018_GRAPH: abandonInterviewAndRelease → AiGraphRun safely_terminated + 业务事实保全；dedicated uc018:graph:prove');
   console.log('PIN   matrix stays partial · ≠ UC-E2E-018 covered');
-  console.log('PIN   GAP-UC018-TTL / UI / sole-stack still OPEN');
+  console.log('PIN   GAP-UC018-TTL CLOSED via uc018:ttl:prove；UI+sole-stack still OPEN → matrix partial / sole-stack still OPEN');
   console.log('PIN   haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCount=8 · gR45Closed=true · ms3EqualsR4Closed=false');
   await pool.end();
   process.exit(fail ? 1 : 0);

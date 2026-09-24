@@ -10,7 +10,7 @@
  *   pnpm -C packages/db prove:uc018-abandon   (raw; needs isolated DATABASE_URL)
  *
  * Matrix may rise to **partial** only when this file's asserts run green.
- * Do NOT claim covered: HTTP mouth prove is separate (uc018:abandon:http:prove); full.e2e CLOSED; AiGraphRun safely_terminated CLOSED via uc018:graph:prove; TTL/UI/sole-stack still gap (waiting_user+#1+#2 closed).
+ * Do NOT claim covered: HTTP mouth prove is separate (uc018:abandon:http:prove); full.e2e CLOSED; graph CLOSED; TTL CLOSED via uc018:ttl:prove; UI/sole-stack still gap (waiting_user+#1+#2+#3 closed).
  *
  * Cite: e2e-scenarios.md UC-E2E-018 A1/A2/A3 · matrix row UC-E2E-018
  */
@@ -210,9 +210,9 @@ async function main() {
     ? '✓ UC-E2E-018 A1–A3 + A-waiting-user integration asserts passed (partial ladder only; ≠ covered; ≠ e2e:isolated; ≠ HTTP abandon)'
     : `✗ ${fail} UC-E2E-018 asserts failed`}`);
   console.log('CLOSED: GAP-UC018-WAITING-USER — abandon CAS now created|active|waiting_user + A-waiting-user prove');
-  console.log('CLOSED_GAP_UC018_FULL_E2E: see pnpm uc018:abandon:full-e2e:prove / e2e/full.e2e.ts；GRAPH closed via uc018:graph:prove；TTL + UI + sole-stack still gap → matrix partial ≠ covered');
-  console.log('CLOSED_GAP_UC018_GRAPH: see pnpm uc018:graph:prove；AiGraphRun safely_terminated + 业务事实保全已钉；TTL+UI+sole-stack still gap → matrix partial ≠ covered');
-  console.log('PIN   GAP-UC018-TTL: TTL sweeper→abandoned 属 commerce-reconcile 旁证 ≠ 本 prove');
+  console.log('CLOSED_GAP_UC018_FULL_E2E: see pnpm uc018:abandon:full-e2e:prove / e2e/full.e2e.ts；GRAPH via uc018:graph:prove；TTL via uc018:ttl:prove；UI + sole-stack still gap → matrix partial ≠ covered');
+  console.log('CLOSED_GAP_UC018_GRAPH: see pnpm uc018:graph:prove；AiGraphRun safely_terminated + 业务事实保全已钉；TTL closed via uc018:ttl:prove；UI+sole-stack still gap → matrix partial ≠ covered');
+  console.log('CLOSED_GAP_UC018_TTL: see pnpm uc018:ttl:prove；TTL sweeper→abandoned+released 已钉；本 prove 仍 ≠ TTL dedicated；UI+sole-stack still gap → matrix partial ≠ covered');
   await pool.end();
   process.exit(fail ? 1 : 0);
 }

@@ -5,12 +5,12 @@
  * 一拍 = 枚举有"待回收"的 owner(租约过期的孤儿预留 或 pending 结算 outbox) → 每 owner 各跑 reconcile:
  *   ① sweepExpiredReservations:回收租约已过期(=进程崩/用户弃)的孤儿预留 → 退额度回池(原子 UPDATE 复核 lease,与心跳续约无 TOCTOU)。
  *   ② settleOutbox:把 confirm 投的 settlement_proposed 真实入结算账本(FOR UPDATE SKIP LOCKED + UNIQUE ON CONFLICT → exactly-once)。
- * 被回收的 mock_interview 孤儿预留 → 补发 interview_unavailable 终态事件(无静默死胡同;仅 append 事件账本,不臆造 interview 状态机新值)。
+ * 被回收的 mock_interview 孤儿预留 → abandonInterviewAndRelease 同用户放弃终态口径(Interview=abandoned + 已释放额度 + AiGraphRun safely_terminated) + 补发 interview_unavailable(无静默死胡同)。
  *
  * 幂等/多实例安全:sweep 的 `WHERE status='reserved' AND lease<now RETURNING` 行锁 + settle 的 SKIP LOCKED 使并发/重叠拍不重复处理;
  * 已 released 的不会二次进 swept → 终态事件 exactly-once。一个 owner 抛不拖垮整拍;整拍从不抛(否则 drain-loop 会停)。
  */
-import { asPrincipal, gatewayDispatchOwners, reconcile, appendEvent, failInterviewAndRelease, markApplicationAssessmentUnavailable, type DbPool } from '@meetwise/db';
+import { asPrincipal, gatewayDispatchOwners, reconcile, appendEvent, failInterviewAndRelease, abandonInterviewAndRelease, markApplicationAssessmentUnavailable, type DbPool } from '@meetwise/db';
 import { runDrainLoop } from './drain-loop.ts';
 
 /** 枚举有"待回收"的 owner：网关只能返回 owner id；每个 owner 的对账仍在 RLS 事务内。
@@ -48,9 +48,20 @@ export async function reconcileOwner(pool: DbPool, owner: string): Promise<Recon
           if (marked !== 'updated' && marked !== 'replayed') throw Object.assign(new Error(`reconcile_application_recovery_${marked}`), { code: 'reconcile_application_recovery_conflict' });
           await appendEvent(c, owner, s.idempotencyKey, 'assessment_unavailable', { reason: 'reservation_expired' }, 'assessment_unavailable:reservation_expired');
         } else {
-          await c.query(
-            "UPDATE interview SET status='abandoned', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status NOT IN ('completed','abandoned','failed')",
-            [s.idempotencyKey, owner]);
+          // UC-E2E-018 §1b #3 / GAP-UC018-TTL: same terminal口径 as user abandon —
+          // Interview=abandoned + entitlement already released by reconcile sweep +
+          // AiGraphRun safely_terminated via abandonInterviewAndRelease (not raw UPDATE).
+          // Ban wash: commerce-reconcile:prove 旁证 alone ≠ this dedicated path closed.
+          try {
+            await abandonInterviewAndRelease(c, owner, s.idempotencyKey);
+          } catch (e: any) {
+            // Missing/non-CAS row: keep release (same txn) and soft-set abandoned when possible
+            // so create() cannot reuse a half-dead corpse (same terminal口 as abandon).
+            if (e?.code !== 'interview_abandon_conflict' && e?.code !== 'interview_release_failed') throw e;
+            await c.query(
+              "UPDATE interview SET status='abandoned', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status NOT IN ('completed','abandoned','failed')",
+              [s.idempotencyKey, owner]);
+          }
           await appendEvent(c, owner, s.idempotencyKey, 'interview_unavailable', { reason: 'abandoned' });
         }
         abandoned++;
