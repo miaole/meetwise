@@ -367,3 +367,21 @@ coveredCount=**8** · haStatus=**NOT_HA** · releaseEvidence=**false** · claimP
 | Receipt backfill | still out · GAP-UC018-RECEIPT-BACKFILL |
 
 *Ban invent covered · Ban flip §1.1 · STOP*
+
+
+## Fix round 4 · runner `b97de26` / `b97de26e25f71bef357585ed98153897d31f1af3`
+
+| Item | Result |
+| --- | --- |
+| flip↔reasons | canHonestlyFlip⇒reasons=[] · non-empty⇒false · assertFlipReasonsInvariant |
+| section11.status | whitelist **`covered`** only · else S11-NOT-MET (+ CASE-ONLY) |
+| openGaps absent | **OPEN-GAP-UNKNOWN** |
+| B-DUAL-FENCE | strip ```/~~~ / indent / `>` before Verdict · FX-DUAL-FENCED/QUOTED |
+| verifiedSha | must match gitSha · FX-VERIFIEDSHA-MISMATCH |
+| allPass | alone ≠ EXIT 0 · FX-ALLPASS-NO-EXIT |
+| C-NO-GIT-AUTHOR | **enforced** · distinct `mw-e2e-ha` / `mw-rag-route` authors |
+| C-LIFT-DIRTY | lift-reassess porcelain + tmp-only · dirty refuse PASS |
+| C-RANGE-PRODUCT | 994e83a / 9e55109 / 3c4847a / 8602cea (+ g7) disclosed · Line A = individual commits |
+| mutation | **423/423** · allowlist: ucId · non-PERF/LOAD capacity/targetEnv · implementerOnly |
+
+*Ban invent covered · Ban flip §1.1 · STOP*

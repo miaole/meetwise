@@ -3,7 +3,7 @@
   "gap": "GAP-UC018-COVERED-LIFT-REASSESS",
   "status": "executed:awaiting_post_prove_dual",
   "canHonestlyFlip": false,
-  "refuseReason": "PERF-LOCAL-ONLY (local/docker-isolated PERF/LOAD ≠ capacity-representative · Ban假关 · Ban invent covered)",
+  "refuseReason": "PERF-LOCAL-ONLY (local/docker-isolated PERF/LOAD \u2260 capacity-representative \u00b7 Ban\u5047\u5173 \u00b7 Ban invent covered)",
   "columns": {
     "NEG": "partial",
     "FAULT": "partial",
@@ -53,5 +53,7 @@
     "requestTip": "5434c14",
     "codingBase": "6fac200"
   },
-  "datePT": "9/23/2026, 8:56:13 PM PT"
+  "datePT": "9/23/2026, 9:03:35 PM PT",
+  "runnerCommitSha": "b97de26e25f71bef357585ed98153897d31f1af3",
+  "coveredCriterionFixRound4": true
 }
