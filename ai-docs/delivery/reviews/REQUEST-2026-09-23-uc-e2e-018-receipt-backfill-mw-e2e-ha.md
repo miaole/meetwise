@@ -173,3 +173,165 @@ Optional follow-up `FX-DUAL-DETAILS-UNCLOSED` / C-WORD-NEG: register-only OK · 
 *Pre-exec · mw-e2e-ha · GAP-UC018-RECEIPT-BACKFILL · REQUEST @402f242 · 2026-09-23 ~21:40 PT · Ban Meridian · Ban .env* · Ban peer-sign · STOP*
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual · UC-E2E-018 RECEIPT-BACKFILL · mw-e2e-ha（C-DUAL-FROM-FRESH · Ban peer-sign）
+
+**Agent**: `mw-e2e-ha`（adversarial Meetwise E2E evidence-honesty · Line A knife `GAP-UC018-RECEIPT-BACKFILL`）  
+**REQUEST tip**: `402f242` · **Package tip**: `e9ccfbe` / full `e9ccfbe15b12cd767602e49f103b0b77cbb6bc63`  
+**Pre-exec PASS receipt**: `2f87800`（conditions C-* binding）  
+**Parent nail**: `17e7654` COVERED-CRITERION CLOSED  
+**Date**: 2026-09-23 (~21:58 PT)  
+**Scope**: `/workspace/meetwise` only · branch `feat/mysql-schema-skeleton` · Ban Meridian · Ban `.env*` · Ban product edit · touch only this review · **alone≠dual** · 不代签 `mw-rag-route`  
+**Pins retained**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503  
+**PASS ≠ covered/nail/next knife · alone≠dual**
+
+## 0. Overall
+
+| Key | Value |
+|-----|-------|
+| **Overall** | **PASS**（evidence honest · conditions non-blocking · no R1/R2 loosen · digests recomputable · no tip-sub） |
+| **blockers** | **NONE** |
+| **conditions** | C-IMAGE-DIGEST（reused host `docker image inspect` · not LIVE container-in-run-log）· D-A SOLE static ADR→`postgresSaver:true` counted（source=`log-parse` not static/doc-derived；`memorySaver` unobserved → STUB-STACK retained）· PERF fresh EXIT≠claim（1 vs 0）· GAP-BACKFILL-EMITTER-UNAUTHENTICATED（HMAC-free forge with matching log；prove rejects prose）· PERF labelText bleed（legacy README forces implementerOnly — fail-closed） |
+
+## 1. Ancestry / on-origin / package files
+
+| Check | Result |
+|-------|--------|
+| `git fetch` · `e9ccfbe` ancestor of HEAD / origin | **YES** |
+| Package commits | `b515e69` emitter+guard+gatherer wire · `2f0d4a6` untracked allow · `8e6532e` cite FAULT · `7433807` covered-criterion dual PASS · `11fac99` receipts+logs · `61c3fcb` sourced stack/imageDigest+fail-closed · `e9ccfbe` re-emit |
+| Product in **package** commits | **NO**（scripts/ai-docs/package.json only）. Intervening Line-C G7 `82981ff` touches `apps/web`+`packages/ai-runtime` — **out of this knife package** · flagged · not attributed to backfill commits |
+| attempts.jsonl 7→14 | **append-only** · `11fac99` 7 lines prefix-equal · `e9ccfbe` +7 `phase=reemit-from-log` · UI proveExit=1 retained · no prior-line edits/deletes |
+
+## 2. Receipt/log integrity（read myself · Ban trust implementer summary）
+
+| SHA / key | runnerCommitSha==SHA | frozen-lock in log | fresh DB banner | porcelain note | EXIT（receipt） | stdoutDigest recomputed |
+|-----------|----------------------|-------------------|-----------------|----------------|----------------|-------------------------|
+| FULL-E2E@85d36c7 | YES | YES L1 EXIT=0 | YES L35 isol PG | worktree path in log | 0 | **MATCH** `9fb7c80e…21fe267` |
+| GRAPH@f06dcba | YES | YES | YES L36 | OK | 0 | **MATCH** `02fa79f8…a9851a` |
+| TTL@549da9c | YES | YES | YES L36 | OK | 0 | **MATCH** `bf33080b…a4f6f9` |
+| UI@e88d386 | YES | YES | YES L35 | OK | **1** `web_not_ready` | **MATCH** `6fb9515f…749365` |
+| SOLE@23f98d3 | YES | YES | **no** PG（static） | OK | 0 | **MATCH** `b278b339…b54355` |
+| ADV@bdc5993 | YES | YES | YES L36 | OK | 0 | **MATCH** `fd0b8aaa…246ae80` |
+| PERF-LOAD@b29c191 | YES | YES | YES L37 | OK | 0 | **MATCH** `3003c976…7bf85d` |
+
+`waitingUser` field on all receipts = `MISSING-EVIDENCE`（not invented SHA）.
+
+## 3. Independent fresh re-verify（C-DUAL-FROM-FRESH）
+
+Worktrees `/workspace/mw-rv-bf-<sha>` · `pnpm install --frozen-lockfile` · serial · remove worktree+**new** e2e containers after each. LIVE host image digest observed: `pgvector/pgvector@sha256:ccc6e83d6e35e931dc7c5def2022729d5a6c370318d099181995567ff1fb4d6b`（matches receipt string）.
+
+| Key | Claim EXIT | My fresh EXIT | Match? | Notes |
+|-----|------------|---------------|--------|-------|
+| FULL-E2E@85d36c7 `uc018:abandon:full-e2e:prove` | 0 | **0** | YES | isol PG started · redis/minio/mailhog not started by prove |
+| GRAPH@f06dcba `uc018:graph:prove` | 0 | **0** | YES | |
+| TTL@549da9c `uc018:ttl:prove` | 0 | **0** | YES | |
+| UI@e88d386 `uc018:ui:prove` | 1 | **1** | YES | `E2E_FAILURE class=frontend code=web_not_ready` · **no retry-until-green** |
+| SOLE@23f98d3 `uc018:sole:prove` | 0 | **0** | YES | static · no disposable PG from this prove |
+| ADV@bdc5993 `uc018:adv:prove` | 0 | **0** | YES | |
+| PERF-LOAD@b29c191 `uc018:perf-load:prove` | 0 | **1** | **NO** | runs p50/p95 passed then `Connection terminated unexpectedly` on PG teardown · **not** timeout（~21s）· **1 attempt only**（C-NO-RETRY-WASH）· receipt log still honest EXIT=0 |
+
+### Tip `e9ccfbe` clean worktree
+
+| CMD | EXIT |
+|-----|------|
+| `pnpm uc018:receipt-backfill:prove` | **0** |
+| `pnpm uc018:covered-criterion:prove` | **0** · `canHonestlyFlip=false`（**computed** · constant-FALSE guard trips on b29c191 · reasons include PERF-LOCAL-ONLY,STUB-STACK,CASE-ONLY,MISSING-DUAL,S11-NOT-MET,…）· coveredCount=8 |
+| `pnpm eval-harness-matrix-cite:prove` | **0** · live UC-018 FAULT ⇒ **case-only**（D2） |
+
+## 4. C-IMAGE-DIGEST
+
+- Committed prove logs contain **no** `docker inspect` / RepoDigests lines — only `E2E isolated PostgreSQL: …` banners.
+- Emitter `collectImageDigestsRaw`（`scripts/uc018-receipt-backfill-emit.mjs:270–286`）runs host `docker image inspect <tag>` pre/post prove — **not** inspect of the container ID from the run log.
+- `buildImageDigests`（`scripts/lib/uc018-receipt-backfill-facts.mjs:186–226`）on re-emit **prefers priorDigestStr** and labels `source: 'docker-inspect'` even when reused — **misleading**.
+- redis / minio:latest / mailhog: **never started** at any SHA（receipt `started:false` / `not-started` · logs have no start lines）— **confirmed**.
+- pgvector tag is **pinned** `pg16`（not floating）→ reused host digest = **CONDITION**（not blocker）. Floating `minio:latest` unused → OK.
+
+## 5. R1 / R2
+
+### R1 `8e6532e` cite FAULT（D2）
+
+Diff `scripts/eval-harness-matrix-cite.proof.mjs`: drop legacy≡conservative on FAULT facet；require conservative FAULT=`case-only`；disclose legacy018 collapse case-only→blind；keep equality on NEG/BOUND/ADV only.
+
+**Ruling**: **tighter / equivalent**（aligns nail `17e7654` FAULT case-only · no status loosen）. **not BLOCKER**.
+
+### R2 `7433807` covered-criterion after nail
+
+Diff `scripts/uc-e2e-018-covered-criterion.proof.mjs`:
+- real e2e-ha receipt: `must NOT parse PASS` → `must parse PASS`（post-nail dual fc7dc24）
+- NHP BOUND: expect **absent** → expect **present**（D1 NHP-018-BOUND-01）
+- BOUND pin note text updated
+
+**Ruling**: **equivalent / alignment**（updates asserts to post-nail SSOT · BOUND presence is **tighter** · does not broaden acceptance of red states）. Suspicious class watched · **not looser** · **not BLOCKER**.
+
+`wrapperSha`: `git rev-parse HEAD` at emit（`emit.mjs:67`）· receipts carry real `61c3fcb62efed6c176a2a13da58f6b95d1759aee` / prior attempts `7433807…` · **not a constant** · `git cat-file -e` OK.
+
+## 6. SOLE / D-A（postgresSaver）
+
+- Log L65–70: `uc018:sole:prove is static PG-retained honesty` + `PASS adr-postgres-retained: pins PostgresSaver`.
+- Receipt `targetEnv=static-docs` ✓ · `imageDigests.pgvector.started=false` ✓.
+- `stack.postgresSaver={value:true, source:'log-parse', …}` — **NOT** labeled static/doc-derived.
+- Gatherer unwraps to `postgresSaver:true` for NEG/BOUND（cite covered-criterion NOTE stack）— **counted as stack fact**.
+- Mitigations: `memorySaver` stays `unobserved` → evaluator **STUB-STACK**；`canHonestlyFlip=false`.
+- **Ruling**: coordinator lean **NO** as observed stack · **CONDITION D-A residual**（mislabeled + counted；fail-closed via memorySaver）. Ban treat as live PostgresSaver observation.
+
+## 7. C-GATHERER-PATH-WIRE / C-SCHEMA-GATHERER-ALIGN
+
+- `readReceiptPreferBackfill` `:463–503` reads `uc018-receipt-backfill/{SOLE,ADV,PERF-LOAD,GRAPH}.json` first.
+- UI exit=1 → `isPreferableBackfillReceipt=false` → `_backfillFailed` / BACKFILL-FAILED path（D-B）· **UI not counted green**（UI also not a column overlay path）.
+- `waitingUserBackfill=MISSING-EVIDENCE` constant `:454` · meta confirms.
+- coveredCount pin restated **8** · tip prove confirms.
+- PERF: backfill preferable+valid · but gatherer `labelText` includes legacy `uc018-perf-load/README.md`「implementer pre-commit · not evidence of record」→ forces `implementerOnly=true`（fail-closed · CONDITION bleed）.
+
+## 8. C-EMITTER-MACHINE-ONLY
+
+- Tip prove EXIT=0: rejects hand `emittedBy` · edited `stdoutDigest` · missing EOR clause · runner≠target · prose JSON · unsourced stack · missing imageDigest field.
+- Log hash bound in receipt（`validateMachineEmittedReceipt` digest recompute）.
+- Disclosed GAP HMAC-free forgeability with matching log+JSON — **CONDITION**（registered）· not silent.
+
+## 9. Per-SHA strict verdicts（evidence honesty）
+
+- FULL-E2E@85d36c7: PASS
+- GRAPH@f06dcba: PASS
+- TTL@549da9c: PASS
+- UI@e88d386: PASS（honest FAIL / web_not_ready / exit=1 retained）
+- SOLE@23f98d3: PASS（+ D-A CONDITION on stack label）
+- ADV@bdc5993: PASS
+- PERF-LOAD@b29c191: PASS（receipt↔committed log EXIT=0）· CONDITION fresh EXIT=1
+- waiting_user: PASS（MISSING · Ban invent）
+
+## 10. Conditions status（pre-exec C-*）
+
+| Condition | Status |
+|-----------|--------|
+| C-FROZEN-LOCK | **MET**（per-SHA install in committed logs + my re-verify） |
+| C-IMAGE-DIGEST | **CONDITION**（reused host inspect · not live-in-run-log；pinned pg16；redis/minio/mailhog never started） |
+| C-FRESH-DB | **MET**（isol PG per prove · unique ports in logs） |
+| C-WORKTREE-HYGIENE | **MET**（runnerCommitSha===targetSha · clean wt） |
+| C-FAIL-HONEST | **MET**（UI exit=1 retained · PERF claim not retuned after my red） |
+| C-NO-RETRY-WASH | **MET**（attempts append-only · my PERF single attempt） |
+| C-NO-TIP-SUB | **MET** |
+| C-EMITTER-MACHINE-ONLY | **MET**（prove rejects hand JSON）· CONDITION GAP-HMAC |
+| C-SCHEMA-GATHERER-ALIGN | **MET**（sourced stack + imageDigests + exit/cmd/sha） |
+| C-GATHERER-PATH-WIRE | **MET**（overlays read） |
+| C-WAITING-USER-RULE | **MET** |
+| C-PERF-CAP-PARTIAL | **MET**（capacityRepresentative=false · PERF-LOCAL-ONLY in reasons） |
+| C-DUAL-FROM-FRESH | **MET**（this review） |
+| C-APPEND-ONLY-REVIEWS | **MET**（this section append · prior `Verdict: PASS` untouched · last-line wins） |
+| C-COVERED-COUNT-8 | **MET** |
+| C-CMD-SUITE | **MET**（primary dedicated CMDs re-run） |
+
+## Blockers
+
+**None.**
+
+## Chinese 3-line
+
+1. 七 SHA 回填收据与日志 digest 可复算；UI exit=1/`web_not_ready` 诚实保留；waiting_user=MISSING；attempts 7→14 仅追加；tip 三 prove 全 0 且 `canHonestlyFlip=false`（非常假）。  
+2. 条件非阻塞：镜像 digest 为宿主 image inspect/重放（非跑内 container LIVE 入日志）；SOLE 静态 ADR 的 postgresSaver 被算进 stack（D-A）；PERF 我方复跑 EXIT=1≠声称 0。  
+3. 裁定 **PASS** · ≠covered≠钉牌≠下一刀 · alone≠dual · 不代签 mw-rag-route · coveredCount=8 · NOT_HA。
+
+*Post-prove · mw-e2e-ha · GAP-UC018-RECEIPT-BACKFILL · tip e9ccfbe · 2026-09-23 ~21:58 PT · Ban Meridian · Ban .env* · Ban peer-sign · STOP*
+
+Verdict: PASS
