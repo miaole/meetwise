@@ -8,7 +8,6 @@
 import { createHash, createHmac } from 'node:crypto';
 import type { Client } from './principal.ts';
 import {
-  beginInterviewProjectionErasure,
   purgeInterviewProjectionTarget,
 } from './int-transcript-projection.ts';
 import {
@@ -140,15 +139,14 @@ export async function reassessRequestStatus(c: Client, requestId: string): Promi
 }
 
 export interface RunAuthorizedInterviewErasureInput {
-  beginClient: Client;
+  /** Already-committed begin + attachExternal result. */
+  preBegun: { requestId: string; privacyEpoch: number };
   issue: (fn: (c: Client) => Promise<void>) => Promise<void>;
   consumeClient: Client;
   asWorkerPrincipal: <T>(owner: string, fn: (c: Client) => Promise<T>) => Promise<T>;
   admin: Client;
   owner: string;
   interviewId: string;
-  idempotencyKeyHash: string;
-  privacyEpoch: number;
   keys: Uc052SignKeys;
   workerId: string;
   nowSec?: number;
@@ -160,21 +158,17 @@ export async function runAuthorizedInterviewErasure(
   input: RunAuthorizedInterviewErasureInput,
 ): Promise<Uc052InternalErasureResult> {
   const {
-    beginClient, issue, consumeClient, asWorkerPrincipal, admin,
-    owner, interviewId, idempotencyKeyHash, privacyEpoch, keys, workerId,
+    preBegun, issue, consumeClient, asWorkerPrincipal, admin,
+    owner, interviewId, keys, workerId,
     nowSec = Math.floor(Date.now() / 1000), ttlSec = 600, failSink,
   } = input;
 
-  const begun = await beginInterviewProjectionErasure(
-    beginClient, interviewId, idempotencyKeyHash, privacyEpoch,
-  );
-
-  await attachExternalRetentionPendingTargets(admin, begun.requestId, interviewId, idempotencyKeyHash);
-  const sealedTargets = await loadRequestTargets(admin, begun.requestId);
+  const privacyEpoch = preBegun.privacyEpoch;
+  const sealedTargets = await loadRequestTargets(admin, preBegun.requestId);
   const sealedDigest = digestFromTargets(sealedTargets);
   const reqDig = await admin.query<{ target_set_digest: string }>(
     `SELECT target_set_digest FROM privacy_erasure_request WHERE id = $1::uuid`,
-    [begun.requestId],
+    [preBegun.requestId],
   );
   if (reqDig.rows[0]?.target_set_digest !== sealedDigest) {
     throw Object.assign(new Error('uc052_digest_mismatch_after_attach'), { code: 'uc052_digest_mismatch_after_attach' });
@@ -236,14 +230,14 @@ export async function runAuthorizedInterviewErasure(
     purgedLocalSinks.push(t.sink);
   }
 
-  const requestStatus = await reassessRequestStatus(admin, begun.requestId);
+  const requestStatus = await reassessRequestStatus(admin, preBegun.requestId);
 
   return {
-    requestId: begun.requestId,
+    requestId: preBegun.requestId,
     requestStatus,
     privacyEpoch,
     targetSetDigest: sealedDigest,
-    targets: await loadRequestTargets(admin, begun.requestId),
+    targets: await loadRequestTargets(admin, preBegun.requestId),
     purgedLocalSinks,
     jti: signed.jti,
     jws: signed.jws,
