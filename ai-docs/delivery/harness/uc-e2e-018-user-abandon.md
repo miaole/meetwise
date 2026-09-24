@@ -15,8 +15,8 @@
 | 现有覆盖 | 矩阵可升 **partial**（`uc018:abandon:prove` + `uc018:abandon:http:prove` 真跑绿）；**不得**写 covered |
 | 本切片 | 可执行 **A1 / A1-shell / A2 / A3 / A-created-reserved / A-waiting-user**（db）+ **H1 / H1-shell / H2 / H3 / H-waiting-user / H-authz**（HTTP 真口） |
 | 另轨 | `commerce:prove`（abandon×confirm 并发）/ `commerce-reconcile:prove`（TTL 旁证 only · **≠** `GAP-UC018-TTL` 专用钉；专用钉=`uc018:ttl:prove`）/ `neg:interview` abandon 负路径 **≠** 本 UC 专用验收（可旁证，勿冒充） |
-| 假绿禁令 | 不得把本绿写成「UC-E2E-018 covered」；FULL-E2E+GRAPH+TTL+UI 已关仍 ≠ covered（#6 `GAP-UC018-SOLE` 仍开 · PG-retained） |
-| 本绿≠全链路 E2E covered | **必须钉死**；`GAP-UC018-FULL-E2E`+#2 GRAPH+#3 TTL+#5 UI 已关 · 仍缺 §1b #6 `GAP-UC018-SOLE`（PG-retained）→ 矩阵 **partial** · **≠ covered** |
+| 假绿禁令 | 不得把本绿写成「UC-E2E-018 covered」；FULL-E2E+GRAPH+TTL+UI+#6 SOLE(PG-retained) 已关仍 ≠ covered（**#6 alone ≠ covered** · 矩阵仍 **partial**） |
+| 本绿≠全链路 E2E covered | **必须钉死**；`GAP-UC018-FULL-E2E`+#2 GRAPH+#3 TTL+#5 UI+#6 `GAP-UC018-SOLE`（PG-retained）已关 · **#6 alone ≠ covered** → 矩阵仍 **partial** · **≠ covered** · Ban elevating without separate covered-lift authorize |
 
 专家：`mw-e2e-ha`（+ 若额度账本关键切片则第二域）。禁止作者自签 covered。
 
@@ -48,7 +48,8 @@
 | ~~`full.e2e.ts` / `e2e:isolated` 场景矩阵纳入~~ **CLOSED**（`GAP-UC018-FULL-E2E` · full.e2e 显式 abandon TC + `pnpm uc018:abandon:full-e2e:prove`） | 已关 · 矩阵仍 **partial**（#6）· **≠ covered** |
 | ~~`AiGraphRun → safely_terminated`~~ **CLOSED**（`GAP-UC018-GRAPH` · `abandonInterviewAndRelease` → `safe_terminating`→`safely_terminated` + 业务事实保全 + `pnpm uc018:graph:prove`） | 已关 · 矩阵仍 **partial**（#6）· **≠ covered** |
 | ~~TTL sweeper → abandoned~~ **CLOSED**（`GAP-UC018-TTL` · `pnpm uc018:ttl:prove`；旁证 `commerce-reconcile:prove` 仍 ≠ UC covered） | 已关 · 矩阵仍 **partial**（#6）· **≠ covered** |
-| ~~UI「点放弃」~~ **CLOSED**（`GAP-UC018-UI` · in-interview 「放弃」→ same HTTP abandon contract + `pnpm uc018:ui:prove` / Playwright） | 已关 · 矩阵仍 **partial**（#6）· **UI alone ≠ covered** · **≠ UC covered** |
+| ~~UI「点放弃」~~ **CLOSED**（`GAP-UC018-UI` · in-interview 「放弃」→ same HTTP abandon contract + `pnpm uc018:ui:prove` / Playwright） | 已关 · 矩阵仍 **partial** · **UI alone ≠ covered** · **≠ UC covered** |
+| ~~sole-stack PG-retained~~ **CLOSED**（`GAP-UC018-SOLE` · `pnpm uc018:sole:prove` · default isolated Postgres+pgvector · `adr-postgres-retained.md` · Ban MySQL/Qdrant sole-wiring as evidence） | 已关 · 矩阵仍 **partial** · **#6 alone ≠ covered** · **≠ UC covered** |
 | 完整黄金路径 UC-E2E-001 | 另轨；需 Key |
 
 ---
@@ -64,9 +65,9 @@
 | 3 | ~~TTL sweeper 专用钉：租约过期孤儿 → abandoned + released（与用户主动放弃同终态口径）~~ **CLOSED**（`pnpm uc018:ttl:prove` / `apps/worker/test/uc-e2e-018-ttl-sweeper-abandon.proof.ts`；TTL tick → `abandonInterviewAndRelease` 同终态口径；`commerce-reconcile:prove` 仍为旁证 ≠ 本钉） | was TTL · `GAP-UC018-TTL` · **已关** · 矩阵仍 **partial** |
 | 4 | ~~`waiting_user` CAS 放弃口 + prove~~ **CLOSED**（本波：CAS=`created\|active\|waiting_user` + A/H-waiting-user） | was `GAP-UC018-WAITING-USER` · **已关** |
 | 5 | ~~UI：面试中「放弃」触发 → 同上 HTTP 合同~~ **CLOSED**（`GAP-UC018-UI` · `pnpm uc018:ui:prove` / `E2E_UI_GREP=UC018-UI-abandon` → `e2e:ui:isolated` Playwright；in-interview 「放弃」→ abandoned+released · irreversible；**UI alone ≠ covered**） | was 触发/后置 · `GAP-UC018-UI` · **已关** · 矩阵仍 **partial**（#6）· **≠ covered** |
-| 6 | **sole-stack PG-retained**（默认 isolated **Postgres+pgvector** · retained production-aligned · `adr-postgres-retained.md`）须有诚实 prove 钉 UC-018 abandon 家族 **cite PG-retained sole** · **Ban** MySQL/Qdrant sole-wiring 冒充本缺 · **Ban** 以 mysql-qdrant-redis 夹具替换为关闭条件（legacy SUPERSEDED）· **`GAP-UC018-SOLE` OPEN**（REQUEST `harness/uc-e2e-018-sole-stack-pg-retained.md` · status `draft:awaiting_pre_exec_dual`）· STOPPED R5 MySQL+Qdrant cutover harnesses superseded · **#6 alone ≠ UC covered** · 矩阵仍 **partial** | was 矩阵 §0 / R5 legacy · **re-aligned** PG-retained · `GAP-UC018-SOLE` |
+| 6 | ~~**sole-stack PG-retained**~~ **CLOSED**（默认 isolated **Postgres+pgvector** · retained production-aligned · `adr-postgres-retained.md` · `pnpm uc018:sole:prove` 诚实钉 UC-018 abandon 家族 **cite PG-retained sole** · **Ban** MySQL/Qdrant sole-wiring 冒充本缺 · **Ban** 以 mysql-qdrant-redis 夹具替换为关闭条件（legacy SUPERSEDED）· **`GAP-UC018-SOLE` CLOSED**（knife `harness/uc-e2e-018-sole-stack-pg-retained.md` · status `executed:awaiting_post_prove_dual`）· STOPPED R5 MySQL+Qdrant cutover harnesses superseded · **#6 alone ≠ UC covered** · 矩阵仍 **partial**） | was 矩阵 §0 / R5 legacy · **re-aligned** PG-retained · `GAP-UC018-SOLE` **CLOSED only** · **≠ UC covered** |
 
-**本切片已关 §1b#4（waiting_user）**；**已关 §1b#1（`GAP-UC018-FULL-E2E`）**；**已关 §1b#2（`GAP-UC018-GRAPH` · `uc018:graph:prove`）**；**已关 §1b#3（`GAP-UC018-TTL` · `uc018:ttl:prove`）**；**已关 §1b#5（`GAP-UC018-UI` · `uc018:ui:prove`）**；**§1b#6 `GAP-UC018-SOLE` 仍 OPEN**（docs REQUEST `harness/uc-e2e-018-sole-stack-pg-retained.md` · `draft:awaiting_pre_exec_dual` · **re-aligned PG-retained** · sole = 默认 isolated Postgres+pgvector · Ban MySQL/Qdrant cutover · Ban wash MySQL/Qdrant sole-wiring / UI/TTL/GRAPH/FULL-E2E alone as #6 closed · cite `adr-postgres-retained.md` · STOPPED `harness/r5-retirement-sole-stack-status.md` / `r5-pgvector-fixture-mark-red.md`）；**UI alone ≠ covered**；**#6 alone ≠ covered**；矩阵仍 **partial** · **≠ UC-E2E-018 covered**；Ban wash UI/HTTP/full-e2e/graph/ttl 绿写成 covered；Ban close #6 this knife；Ban claim R5 retired globally。
+**本切片已关 §1b#4（waiting_user）**；**已关 §1b#1（`GAP-UC018-FULL-E2E`）**；**已关 §1b#2（`GAP-UC018-GRAPH` · `uc018:graph:prove`）**；**已关 §1b#3（`GAP-UC018-TTL` · `uc018:ttl:prove`）**；**已关 §1b#5（`GAP-UC018-UI` · `uc018:ui:prove`）**；**已关 §1b#6（`GAP-UC018-SOLE` · `uc018:sole:prove` · PG-retained · knife `harness/uc-e2e-018-sole-stack-pg-retained.md` · `executed:awaiting_post_prove_dual`）**；sole = 默认 isolated Postgres+pgvector · Ban MySQL/Qdrant cutover · Ban wash MySQL/Qdrant sole-wiring / UI/TTL/GRAPH/FULL-E2E alone as #6 closed · cite `adr-postgres-retained.md` · STOPPED `harness/r5-retirement-sole-stack-status.md` / `r5-pgvector-fixture-mark-red.md`；**UI alone ≠ covered**；**#6 alone ≠ covered**；矩阵仍 **partial** · **≠ UC-E2E-018 covered**；Ban wash UI/HTTP/full-e2e/graph/ttl/sole 绿写成 covered；Ban claim R5 retired globally；Ban elevating to covered without separate covered-lift authorize。
 
 ---
 
@@ -81,6 +82,7 @@
 | `pnpm uc018:graph:prove` | **0** | AiGraphRun `safe_terminating`→`safely_terminated` + 业务事实保全；关 `GAP-UC018-GRAPH` only；**仍 ≠ covered**；R5 |
 | `pnpm uc018:ui:prove` | **0** | in-interview 「放弃」→ abandoned+released；关 `GAP-UC018-UI` only；**UI alone ≠ covered**；矩阵仍 **partial**；R5 |
 | `pnpm uc018:ttl:prove` | **0** | 租约过期孤儿 → abandoned+released（+graph safely_terminated）；关 `GAP-UC018-TTL` only；**仍 ≠ covered**；R5；Ban wash commerce-reconcile 旁证 |
+| `pnpm uc018:sole:prove` | **0** | 静态诚实：UC-018 abandon 家族 **cite PG-retained sole**；关 `GAP-UC018-SOLE` only；**#6 alone ≠ covered**；矩阵仍 **partial**；Ban wash MySQL/Qdrant sole-wiring |
 | `pnpm eval-harness-matrix-cite:prove` | **0** | 静态：harness+eval 引用 `UC-E2E-018`；≠业务 covered |
 
 ```bash
@@ -93,6 +95,7 @@ pnpm uc018:abandon:full-e2e:prove ; echo EXIT=$?
 pnpm uc018:graph:prove ; echo EXIT=$?
 pnpm uc018:ttl:prove ; echo EXIT=$?
 pnpm uc018:ui:prove ; echo EXIT=$?
+pnpm uc018:sole:prove ; echo EXIT=$?
 pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 ```
 
@@ -112,13 +115,13 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 |-----------|----------|
 | 「commerce:prove 绿了所以 018 covered」 | **假绿**。另轨并发 ≠ UC-E2E-018 A1–A3/H* 专用 |
 | 「uc018:abandon:prove 绿 = covered」 | **假绿**。最多 **partial**；缺 §1b |
-| 「uc018:abandon:http:prove 绿 = covered / full.e2e 已含」 | **假绿**。聚焦 HTTP 口 ≠ full.e2e 场景矩阵；仍缺 #6 `GAP-UC018-SOLE`（PG-retained）（waiting_user+FULL-E2E+GRAPH+TTL+UI 已关） |
+| 「uc018:abandon:http:prove 绿 = covered / full.e2e 已含」 | **假绿**。聚焦 HTTP 口 ≠ full.e2e 场景矩阵；FULL-E2E+GRAPH+TTL+UI+#6 SOLE 已关仍 **partial** · **#6 alone ≠ covered** |
 | 「写了 harness 所以 gap 关闭为 covered」 | **假绿**。partial ≠ covered |
-| 「full.e2e abandon TC 绿 = UC-E2E-018 covered」 | **假绿**。仅关 `GAP-UC018-FULL-E2E`；#6 `GAP-UC018-SOLE` 仍开（TTL+#5 UI 已另钉）→ 矩阵 **partial** |
-| 「uc018:graph:prove 绿 = UC-E2E-018 covered」 | **假绿**。仅关 `GAP-UC018-GRAPH`；#6 `GAP-UC018-SOLE` 仍开（TTL+#5 UI 已另钉）→ 矩阵 **partial** |
-| 「uc018:ttl:prove 绿 = UC-E2E-018 covered」 / 「commerce-reconcile:prove 绿 = TTL/UC covered」 | **假绿**。仅关 `GAP-UC018-TTL`；#6 `GAP-UC018-SOLE` 仍开（#5 UI 已另钉）→ 矩阵 **partial**；commerce-reconcile 旁证 ≠ TTL 专用钉 |
-| 「UI Playwright / e2e:ui:isolated 绿 = UC-E2E-018 covered」 / 「HTTP abandon 绿 = UI closed」 | **假绿**。仅关 `GAP-UC018-UI`；#6 `GAP-UC018-SOLE` 仍开 → 矩阵 **partial**；**UI alone ≠ covered**；Ban wash HTTP/full-e2e/graph/ttl into UI closed |
-| 「MySQL+Qdrant+Redis sole-wiring / `e2e-isolation:sole-*:prove` 绿 = #6 / UC covered」 / 「UI/TTL/GRAPH/FULL-E2E 绿 = `GAP-UC018-SOLE` closed」 / 「R5 mark-red EXIT=0 = R5 retired globally」 | **假绿**。§1b #6 **re-aligned PG-retained**（`adr-postgres-retained.md`）· sole = 默认 isolated Postgres+pgvector · **Ban** MySQL/Qdrant sole-wiring 冒充本缺 · **Ban** wash UI/`1990b12`/TTL/GRAPH/FULL-E2E alone as #6 closed · `GAP-UC018-SOLE` **OPEN**（REQUEST `harness/uc-e2e-018-sole-stack-pg-retained.md`）· STOPPED R5 cutover harnesses superseded · 矩阵仍 **partial** · **#6 alone ≠ covered** · Ban claim R5 retired globally · Ban restore mysql-qdrant-redis as close-condition |
+| 「full.e2e abandon TC 绿 = UC-E2E-018 covered」 | **假绿**。仅关 `GAP-UC018-FULL-E2E`；#6 已另钉仍 **#6 alone ≠ covered** → 矩阵 **partial** |
+| 「uc018:graph:prove 绿 = UC-E2E-018 covered」 | **假绿**。仅关 `GAP-UC018-GRAPH`；#6 已另钉仍 **#6 alone ≠ covered** → 矩阵 **partial** |
+| 「uc018:ttl:prove 绿 = UC-E2E-018 covered」 / 「commerce-reconcile:prove 绿 = TTL/UC covered」 | **假绿**。仅关 `GAP-UC018-TTL`；#6 已另钉仍 **#6 alone ≠ covered** → 矩阵 **partial**；commerce-reconcile 旁证 ≠ TTL 专用钉 |
+| 「UI Playwright / e2e:ui:isolated 绿 = UC-E2E-018 covered」 / 「HTTP abandon 绿 = UI closed」 | **假绿**。仅关 `GAP-UC018-UI`；#6 已另钉仍 **#6 alone ≠ covered** → 矩阵 **partial**；**UI alone ≠ covered**；Ban wash HTTP/full-e2e/graph/ttl into UI closed |
+| 「MySQL+Qdrant+Redis sole-wiring / `e2e-isolation:sole-*:prove` 绿 = #6 / UC covered」 / 「UI/TTL/GRAPH/FULL-E2E 绿 = `GAP-UC018-SOLE` closed」 / 「`uc018:sole:prove` 绿 = UC-E2E-018 covered」 / 「R5 mark-red EXIT=0 = R5 retired globally」 | **假绿**。§1b #6 **CLOSED under PG-retained**（`adr-postgres-retained.md` · `pnpm uc018:sole:prove`）· sole = 默认 isolated Postgres+pgvector · **Ban** MySQL/Qdrant sole-wiring 冒充本缺 · **Ban** wash UI/`1990b12`/TTL/GRAPH/FULL-E2E alone as #6 closed · `GAP-UC018-SOLE` **CLOSED only** · **#6 alone ≠ covered** · 矩阵仍 **partial** · Ban claim UC covered · Ban claim R5 retired globally · Ban restore mysql-qdrant-redis as close-condition · STOPPED `harness/r5-retirement-sole-stack-status.md` / `r5-pgvector-fixture-mark-red.md` |
 
 ---
 
@@ -128,7 +131,7 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 |----|----------------------|------------|
 | UC-E2E-018 | **partial**（db A1–A3+A-waiting-user + HTTP H*+H-waiting-user）；**≠ covered** | `harness/uc-e2e-018-user-abandon.md` |
 | 评测说明 | `eval/uc-e2e-018-user-abandon.eval.md` | 引用矩阵行 ID |
-| P0-8 | 集成+HTTP+**full.e2e abandon**+**graph**+**ttl**+**UI** prove 已挂（含 waiting_user CAS + FULL-E2E + GRAPH + TTL + `GAP-UC018-UI`）；**`GAP-UC018-SOLE` OPEN**（§1b #6 **PG-retained** re-align · Ban MySQL/Qdrant cutover） | 见矩阵 §3 · harness §1b · 仍 **partial** · UI alone ≠ covered · #6 alone ≠ covered |
+| P0-8 | 集成+HTTP+**full.e2e abandon**+**graph**+**ttl**+**UI**+**sole PG-retained** prove 已挂（含 waiting_user CAS + FULL-E2E + GRAPH + TTL + `GAP-UC018-UI` + `GAP-UC018-SOLE` · `pnpm uc018:sole:prove`）；§1b #6 **CLOSED under PG-retained** · Ban MySQL/Qdrant cutover | 见矩阵 §3 · harness §1b · 仍 **partial** · UI alone ≠ covered · **#6 alone ≠ covered** · ≠ UC covered |
 
 ## 5. 审查
 
