@@ -32,7 +32,7 @@
 | 003 | 错误码 en 映射产品接线；热库去硬编码 zh；Playwright locale=en DOM |
 | 010 | HTTP R-mid live-tail→LED 已挂（`uc010:sse-resume:prove`）；仍缺 full.e2e mid-interview 断线；A3；UI 重连；0058 去 stub；跨副本槽（harness §1b） |
 | 011 | HTTP 额度断言已挂（`uc011:report-refund:http:prove` H1–H5 / `GET /commerce/entitlement`）；H5 钉 refund-callback **产品缺失**+§1b#1 抬 covered 前置；仍缺 refund-callback 产品口；balance-ui；fail HTTP mouth；full.e2e；wallet 契约（harness §1b） |
-| 018 | HTTP + **full.e2e abandon** + **graph** + **ttl** + **UI abandon** + **sole PG-retained** prove 已挂（FULL-E2E+GRAPH+TTL+UI+`GAP-UC018-SOLE` CLOSED under PG-retained · `pnpm uc018:sole:prove`）；仍 **partial≠covered** · **#6 alone ≠ covered** · Ban claim UC covered（waiting_user+#1+#2+#3+#5+#6 已关；harness §1b） |
+| 018 | HTTP + **full.e2e abandon** + **graph** + **ttl** + **UI abandon** + **sole PG-retained** prove 已挂（FULL-E2E+GRAPH+TTL+UI+`GAP-UC018-SOLE` CLOSED under PG-retained · `pnpm uc018:sole:prove` · tip **`aa968b1`**）；仍 **partial≠covered** · **#6 alone ≠ covered** · Ban claim UC covered（waiting_user+#1+#2+#3+#5+#6 已关；harness §1b）· covered-lift REQUEST OPEN `harness/uc-e2e-018-covered-lift.md` · `draft:awaiting_pre_exec_dual` · Ban invent covered · Ban flip covered this open |
 | 019 | HTTP regenerate；regenerateAttempt；A3 产品路径 |
 | 033 | worker principal；cache/trace；七类高并发；独立 full.e2e |
 | 050–052 | DELETE 保持 503 直至独立审；导出/擦除闭环另包 |
@@ -41,7 +41,7 @@
 实现方不自批；每片 harness→prove→≥2 域对抗→reviews/。
 
 ## partial→covered 执行序（2026-09-10 协调确认）
-1. UC-018 covered-lift（UI + sole PG-retained CLOSED · FULL-E2E+GRAPH+TTL+waiting_user 已关；仍 **partial≠covered** · **#6 alone ≠ covered** · Ban claim covered without authorize）
+1. UC-018 covered-lift（UI + sole PG-retained CLOSED · FULL-E2E+GRAPH+TTL+waiting_user 已关；仍 **partial≠covered** · **#6 alone ≠ covered** · Ban claim covered without authorize · REQUEST OPEN `harness/uc-e2e-018-covered-lift.md` · `draft:awaiting_pre_exec_dual` · Ban invent covered · Ban flip covered this open）
 2. UC-011 refund-callback 产品口 / balance-ui（HTTP H1–H5 已挂；H5=GAP+PREREQ ≠ 产品口；仍 ≠ covered）
 3. UC-002 HTTP 双 session + Last-Event-ID（`uc002:http:prove` 已挂 GET+LED；仍缺 HTTP lease mouth → ≠ covered）
 4. UC-010 full.e2e mid-SSE / A3（HTTP R-mid 已挂；仍 ≠ covered）
