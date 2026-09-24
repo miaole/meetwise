@@ -87,11 +87,11 @@ async function insertEvent(ownerId: string, interviewId: string, seq: number, ki
   ));
 }
 async function insertGraphRun(ownerId: string, interviewId: string): Promise<void> {
-  await admin.query(
-    `INSERT INTO ai_graph_run(run_id, owner_user_id, thread_id, status, graph_name)
-     VALUES ($1, $2, $3, 'completed', 'interview')`,
-    [randomUUID(), ownerId, interviewId],
-  );
+  await asPrincipal(admin, ownerId, (c) => c.query(
+    `INSERT INTO ai_graph_run(graph_name, thread_id, owner_user_id, status)
+     VALUES ('mock-interview', $1, current_setting('app.principal_user', true), 'completed')`,
+    [interviewId],
+  ));
 }
 async function insertReportFixtures(ownerId: string, interviewId: string): Promise<void> {
   await asPrincipal(admin, ownerId, async (c) => {
@@ -100,16 +100,16 @@ async function insertReportFixtures(ownerId: string, interviewId: string): Promi
        VALUES (current_setting('app.principal_user', true), $1)`, [interviewId]);
     await c.query(
       `INSERT INTO assessment_report(id, owner_user_id, interview_id)
-       VALUES ($1, current_setting('app.principal_user', true), $2)`, [`ar-${interviewId.slice(0, 8)}`, interviewId]);
+       VALUES ($1, current_setting('app.principal_user', true), $2)`, [randomUUID(), interviewId]);
     await c.query(
       `INSERT INTO learning_plan(id, owner_user_id, interview_id)
-       VALUES ($1, current_setting('app.principal_user', true), $2)`, [`lp-${interviewId.slice(0, 8)}`, interviewId]);
+       VALUES ($1, current_setting('app.principal_user', true), $2)`, [randomUUID(), interviewId]);
     await c.query(
       `INSERT INTO learning_progress(owner_user_id, interview_id, topic)
        VALUES (current_setting('app.principal_user', true), $1, 'topic-1')`, [interviewId]);
     await c.query(
       `INSERT INTO career_path(id, owner_user_id, interview_id, readiness, level)
-       VALUES ($1, current_setting('app.principal_user', true), $2, 'mid', 'senior')`, [`cp-${interviewId.slice(0, 8)}`, interviewId]);
+       VALUES ($1, current_setting('app.principal_user', true), $2, 'mid', 'senior')`, [randomUUID(), interviewId]);
     await c.query(
       `INSERT INTO question_feedback(owner_user_id, interview_id, question_index, rating)
        VALUES (current_setting('app.principal_user', true), $1, 0, 'up')`, [interviewId]);
