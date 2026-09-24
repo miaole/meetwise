@@ -261,6 +261,6 @@ console.log('CLOSED GAP-UC018-WAITING-USER: abandon CAS = created|active|waiting
 console.log('CLOSED_GAP_UC018_GRAPH: see pnpm uc018:graph:prove；AiGraphRun safely_terminated + 业务事实保全已钉（本 HTTP prove 仍 ≠ graph assert；≠ covered）');
 console.log('CLOSED_GAP_UC018_TTL: see pnpm uc018:ttl:prove；本 HTTP prove 仍 ≠ TTL dedicated；UI+sole-stack still gap → matrix partial ≠ covered');
 console.log('CLOSED GAP-UC018-FULL-E2E: e2e/full.e2e.ts 显式 abandon TC + pnpm uc018:abandon:full-e2e:prove；CLOSED GAP-UC018-GRAPH: pnpm uc018:graph:prove；CLOSED GAP-UC018-TTL: pnpm uc018:ttl:prove；矩阵仍 partial · ≠ covered · UI/sole-stack 仍开');
-A('honesty: HTTP prove 绿 ≠ UC-E2E-018 covered（FULL-E2E+waiting_user 已关；GRAPH/TTL/UI/sole-stack 仍缺 → partial）', true);
+A('honesty: HTTP prove 绿 ≠ UC-E2E-018 covered（FULL-E2E+waiting_user+GRAPH+TTL+UI 已关；sole-stack 仍缺 → partial · UI alone ≠ covered）', true);
 
 await done();

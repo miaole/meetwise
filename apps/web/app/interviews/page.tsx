@@ -50,6 +50,11 @@ export default async function InterviewsPage({ searchParams }: { searchParams: P
           创建面试失败,请稍后重试;若反复出现请确认额度与网络。
         </p>
       )}
+      {error === 'begin_failed' && (
+        <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+          启动面试失败（未预留额度）,请稍后重试;不会进入空会话。
+        </p>
+      )}
 
       <Card>
         <CardHeader>

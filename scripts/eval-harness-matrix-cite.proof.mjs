@@ -73,6 +73,7 @@ const units = [
       [/≠\s*covered|不得.*covered|假绿/i, '≠ covered'],
       [/uc018:abandon:prove/, 'lists uc018:abandon:prove'],
       [/uc018:abandon:http:prove/, 'lists uc018:abandon:http:prove'],
+      [/uc018:ui:prove/, 'lists uc018:ui:prove'],
       [/抬到 covered|§1b|抬 covered/i, 'pins 抬 covered / §1b'],
       [/releaseEvidence\s*=\s*false/i, 'releaseEvidence=false'],
       [/Not HA|非 HA/i, 'Not HA'],
