@@ -3,7 +3,7 @@
   "gap": "GAP-UC018-COVERED-CRITERION",
   "command": "pnpm uc018:covered-criterion:prove",
   "exit": 0,
-  "runnerCommitSha": "f7f804b45a316ae11b8962013f452d0254ca8658",
+  "runnerCommitSha": "4a8a085ba31400b389b288e42557324a769cb5af",
   "boundPinId": "waiting_user-CAS",
   "refuseEnum": [
     "PERF-LOCAL-ONLY",
@@ -366,7 +366,7 @@
     "b29c191Trips": true,
     "b29c191Findings": [
       "canHonestlyFlip initialised false with no true/computed assignment (b29c191 ~196)",
-      "unconditional refuseReasons.push('reassess-knife-refuses-…')"
+      "unconditional refuseReasons.push('reassess-knife-refuses-\u2026')"
     ],
     "constantTruePass": true,
     "antiTautologyPass": true,
@@ -445,7 +445,7 @@
     }
   ],
   "businessPathMet": true,
-  "datePT": "9/23/2026, 8:43:11 PM PT",
+  "datePT": "9/23/2026, 8:45:11 PM PT",
   "haStatus": "NOT_HA",
   "releaseEvidence": false,
   "claimProductionHA": false,
@@ -458,25 +458,25 @@
     {
       "field": "prove.exit",
       "before": "null/absent treated as PROVE-FAIL (or soft 0)",
-      "after": "null/absent → MISSING-RECEIPT; nonzero → PROVE-FAIL",
+      "after": "null/absent \u2192 MISSING-RECEIPT; nonzero \u2192 PROVE-FAIL",
       "file": "uc-covered-evaluator.mjs:~147-151"
     },
     {
       "field": "stack.postgres|postgresSaver",
       "before": "undefined passed badStack===false (fail-open MET)",
-      "after": "!== true → STUB-STACK",
+      "after": "!== true \u2192 STUB-STACK",
       "file": "uc-covered-evaluator.mjs:~166-172"
     },
     {
       "field": "stack.memorySaver|mysql|qdrant",
       "before": "undefined coerced/ignored",
-      "after": "!== false → STUB-STACK",
+      "after": "!== false \u2192 STUB-STACK",
       "file": "uc-covered-evaluator.mjs:~166-172"
     },
     {
       "field": "receipts.evidenceOfRecord",
       "before": "gatherer soft-defaulted true when receipt present",
-      "after": "absent → false → MISSING-RECEIPT",
+      "after": "absent \u2192 false \u2192 MISSING-RECEIPT",
       "file": "uc-covered-real-gatherer.mjs:pickEvidenceFlags + evaluator:~175-179"
     },
     {
@@ -488,7 +488,7 @@
     {
       "field": "pickStack absent",
       "before": "empty/undefined fields treated as MET",
-      "after": "all undefined → STUB-STACK",
+      "after": "all undefined \u2192 STUB-STACK",
       "file": "uc-covered-real-gatherer.mjs:pickStack"
     },
     {
@@ -505,14 +505,14 @@
     },
     {
       "field": "gapClosedInText",
-      "before": "已关/CLOSED matched under 不得写已关 / Ban / 禁止",
+      "before": "\u5df2\u5173/CLOSED matched under \u4e0d\u5f97\u5199\u5df2\u5173 / Ban / \u7981\u6b62",
       "after": "banNear window skips negation/prohibition",
       "file": "gapClosedInText"
     },
     {
       "field": "porcelain",
       "before": "no check",
-      "after": "non-empty porcelain → DIRTY_TREE refuse",
+      "after": "non-empty porcelain \u2192 DIRTY_TREE refuse",
       "file": "assertCleanPorcelain"
     }
   ],
@@ -520,5 +520,7 @@
   "pendingNailGaps": [
     "GAP-UC018-RECEIPT-BACKFILL"
   ],
-  "receiptBackfillNote": "GAP-UC018-RECEIPT-BACKFILL deferred to nail-time (Ban hand-writing JSON from prose)"
+  "receiptBackfillNote": "GAP-UC018-RECEIPT-BACKFILL deferred to nail-time (Ban hand-writing JSON from prose)",
+  "rebaseNote": "pre-push rebase rewrote local f7f804b \u2192 origin 4a8a085; evidence re-proven at clean 4a8a085; this commit supersedes 03449a8 receipt that cited stale f7f804b",
+  "priorReceiptTipSuperseded": "03449a8"
 }

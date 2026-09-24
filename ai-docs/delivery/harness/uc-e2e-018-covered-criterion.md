@@ -320,7 +320,7 @@ coveredCount=**8** · haStatus=**NOT_HA** · releaseEvidence=**false** · claimP
 *Fix-round · C-GATHERER-REAL-INPUT · runner `ca1c8a5` · 2026-09-23 (~20:32 PT) · Ban self-nail · STOP after push*
 
 
-## Fix round 2 (stack / EOR / exit / gapClosed / dual) · runner tip below
+## Fix round 2 (stack / EOR / exit / gapClosed / dual) · runner tip `4a8a085` / full `4a8a085ba31400b389b288e42557324a769cb5af`
 
 | Item | Result |
 | --- | --- |
