@@ -1,0 +1,57 @@
+{
+  "knife": "UC-E2E-018-covered-lift-reassess",
+  "gap": "GAP-UC018-COVERED-LIFT-REASSESS",
+  "status": "executed:awaiting_post_prove_dual",
+  "canHonestlyFlip": false,
+  "refuseReason": "PERF/LOAD blind (matrix §0.5/§1.0 · no NHP-018-PERF/LOAD · Ban假关 · Ban invent covered)",
+  "columns": {
+    "NEG": "partial",
+    "FAULT": "partial",
+    "BOUND": "partial",
+    "ADV": "partial",
+    "PERF": "blind",
+    "LOAD": "blind"
+  },
+  "matrixUc018": "partial",
+  "uc018Covered": false,
+  "section1bAllClosed": true,
+  "section1bTips": {
+    "#1 FULL-E2E": "c36b032",
+    "#2 GRAPH": "08650ea",
+    "#3 TTL": "d698282",
+    "#4 waiting_user": "CLOSED",
+    "#5 UI": "1990b12",
+    "#6 SOLE": "aa968b1"
+  },
+  "advPartialTip": "27dd6ae",
+  "priorCoveredLiftNonFlipTip": "abfbbc0",
+  "familyCmds": [
+    "uc018:covered-lift-reassess:prove",
+    "uc018:covered-lift:prove",
+    "uc018:adv:prove",
+    "uc018:sole:prove",
+    "uc018:abandon:prove",
+    "uc018:abandon:http:prove",
+    "uc018:abandon:full-e2e:prove",
+    "uc018:graph:prove",
+    "uc018:ttl:prove",
+    "uc018:ui:prove",
+    "eval-harness-matrix-cite:prove"
+  ],
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "coveredCountRetained": 8,
+  "banInventCoveredCount9": true,
+  "banWashAdvAloneIntoCovered": true,
+  "banWashSoleAloneIntoCovered": true,
+  "banClaimPerfLoadClosed": true,
+  "banMysqlQdrantCutover": true,
+  "preExecDual": {
+    "mw-rag-route": "1a0a1a9",
+    "mw-e2e-ha": "6fac200",
+    "requestTip": "5434c14",
+    "codingBase": "6fac200"
+  },
+  "datePT": "9/23/2026, 7:23:11 PM PT"
+}
