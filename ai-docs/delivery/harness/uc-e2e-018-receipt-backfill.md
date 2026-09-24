@@ -77,3 +77,10 @@ Each re-run emits tracked receipt JSON:
 NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=**8** · ms3EqualsR4Closed=false · PG-retained · Ban invent covered · Ban writing covered · Ban flip §1.1 · STOP after push
 
 *Harness · UC-E2E-018 RECEIPT-BACKFILL · GAP-UC018-RECEIPT-BACKFILL · draft:awaiting_pre_exec_dual · parent nail 17e7654 · Ban invent covered · STOP*
+
+## Implementer / reviewer boundary（binding）
+
+- **Implementers must not touch reviewer files** (`reviews/*-mw-e2e-ha.md` / `*-mw-rag-route.md`). Latest git author×path-role binding ⇒ foreign edit → slot null → MISSING-DUAL.
+- Reviewers append **fresh** strict last-line `Verdict: PASS|FAIL` **per SHA** after re-verifying the machine-emitted backfill · **append-only** · Ban converting old prose into Verdict.
+- Disclosure on every backfill receipt: **EOR@targetSha ≠ proven at tip** (code drift).
+- waiting_user = **MISSING-EVIDENCE** (fail-closed) · Ban inventing a historical tip.
