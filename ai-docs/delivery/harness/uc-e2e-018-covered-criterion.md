@@ -335,3 +335,19 @@ coveredCount=**8** · haStatus=**NOT_HA** · releaseEvidence=**false** · claimP
 | Real verdict | `canHonestlyFlip=false` · reasons include STUB-STACK / MISSING-RECEIPT / PERF-LOCAL-ONLY / OPEN-GAP · duals PASS where reviews exist |
 
 *Ban invent covered · Ban flip §1.1 · Ban hand-write receipt JSON from prose · STOP after push*
+
+
+### Sibling prove re-run · `uc018:adv:prove` @ runner `4a8a085`
+
+| Field | Value |
+| --- | --- |
+| CMD | `pnpm uc018:adv:prove` |
+| EXIT | **0** |
+| time PT | 2026-09-23 20:46:51 PT |
+| HEAD (receipt tip at run) | `4224e73` / `4224e7386cb19b6bc948a24e76c2ae5ecd44a53a` |
+| runnerCommitSha | `4a8a085` / `4a8a085ba31400b389b288e42557324a769cb5af` |
+| porcelain | clean (`git diff 4a8a085 HEAD -- scripts/` empty; `node_modules` gitignored) |
+| prior fail | EXIT=1 env only — missing `node_modules` → `isolated_postgres_database_not_ready` (not ADV regression) |
+| docker | ephemeral PG `127.0.0.1:32946`; did not stop Line B/C HA/mysql/redis containers |
+
+*Ban invent covered · Ban flip §1.1 · STOP*
