@@ -1,6 +1,6 @@
-# Slice — **UC-E2E-018 PERF/LOAD**（docs REQUEST · **`draft:awaiting_pre_exec_dual`** · `GAP-UC018-PERF-LOAD` · **NHP-018-PERF-01** + **NHP-018-LOAD-01** · Ban elevate PERF/LOAD to **partial** this open · Ban invent covered · Ban flip §1.1 covered · PERF/LOAD partial ≠ UC covered · Ban claim production capacity / HA · Ban tuning thresholds after results · Ban n/a to dodge capacity · Ban wash ADV/SOLE/reassess into covered · Ban skip to UC-011 · Ban MySQL/Qdrant cutover · Ban claim suite green / HA / R5 retired globally · Ban second knife）
+# Slice — **UC-E2E-018 PERF/LOAD**（docs REQUEST · **`executed:awaiting_post_prove_dual`** · `GAP-UC018-PERF-LOAD` · **NHP-018-PERF-01** + **NHP-018-LOAD-01** · Ban elevate PERF/LOAD to **partial** this open · Ban invent covered · Ban flip §1.1 covered · PERF/LOAD partial ≠ UC covered · Ban claim production capacity / HA · Ban tuning thresholds after results · Ban n/a to dodge capacity · Ban wash ADV/SOLE/reassess into covered · Ban skip to UC-011 · Ban MySQL/Qdrant cutover · Ban claim suite green / HA / R5 retired globally · Ban second knife）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（实现方预写 · **not yet dual-sent** · **Ban自批 pass** · Dual PASS ≠ coding · Dual PASS ≠ UC-E2E-018 covered · Dual PASS ≠ PERF/LOAD partial · Dual PASS ≠ matrix §1.1 flip · Dual PASS ≠ next knife auto-authorize · **≠ coding** · **≠ prove** · **≠ invent covered** · **≠ invent green** · **≠假绿** · **≠假关** · matrix business **partial** retained · §1.0 PERF/LOAD **blind→case-only** registration only）
+**Status**: **`executed:awaiting_post_prove_dual`**（AUTHORIZED coding+prove DONE · `pnpm uc018:perf-load:prove` EXIT=0 · Method freeze `8c7ee0c` · NHP PERF+LOAD **partial** · §1.0 PERF/LOAD **partial** · §1.1 stays **partial** · **PERF/LOAD partial ≠ UC covered** · Ban invent covered · Ban假关 · awaiting post-prove dual）
 **Date**: 2026-09-23 (~19:35 PT)
 **Base / parent tip**: **`24d350f`** / full `24d350fd96ac2282e5234d1c269065de5bbecdc2`（**post-nail docs-only typo commit** · 1 file `harness/uc-e2e-018-user-abandon.md` · +1/−1 · pre-exec MUST audit docs-only）· sits on reassess nail **`0b7a218`** / full `0b7a218d6e32b7461aa7ce85e03e7f805f1aac06`（`GAP-UC018-COVERED-LIFT-REASSESS` CLOSED as honest non-flip · **canHonestlyFlip=false** · refuse：**PERF/LOAD blind** · matrix **partial** · **≠ UC covered** · Ban invent covered · Ban假关 · **must be ancestor**）· ADV **`27dd6ae`** CLOSED · covered-lift **`abfbbc0`** retained · SOLE **`aa968b1`** · UI **`1990b12`** · TTL **`d698282`** · GRAPH **`08650ea`** · FULL-E2E **`c36b032`** · waiting_user CLOSED · HA D2b **`7fddebe`** CLOSED · Ban reopen · Ban wash HA into E2E · branch `feat/mysql-schema-skeleton`（historical · Ban MySQL cutover）
 **Authority**: meetwise — **docs REQUEST open only** · status `draft:awaiting_pre_exec_dual` · Ban secrets / `.env*` · Meridian banned · Ban Cloud Agent · Ban self-approve · Ban self-nail · Ban coding until dual+authorize · Ban invent covered · Ban flip §1.1 covered · Ban elevate PERF/LOAD to partial this open · Ban wash PERF/LOAD/ADV/SOLE/reassess/D2b/HA into covered · Ban skip to UC-011 · Ban messaging dual reviewers（coordinator dispatches）· **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`**
@@ -41,8 +41,8 @@ Docs REQUEST open: **UC-E2E-018 PERF/LOAD · GAP-UC018-PERF-LOAD · NHP-018-PERF
 
 | Case | Shape | Thresholds | Receipt |
 |------|-------|------------|---------|
-| **NHP-018-PERF-01** | abandon HTTP · N=100 · c=10 · ≤2vCPU/4GiB | p50≤250ms · p95≤750ms · p99≤1500ms · err≤0.5% | `.tmp/uc018-perf-load-receipts/nhp-018-perf-01.json` |
-| **NHP-018-LOAD-01** | concurrent abandon+release+graph · N=50 · c=20 | no double-release · no stuck reservations · err≤1% | `.tmp/uc018-perf-load-receipts/nhp-018-load-01.json` |
+| **NHP-018-PERF-01** | abandon HTTP · N=100 · c=10 · ≤2vCPU/4GiB | p50≤250ms · p95≤750ms · p99≤1500ms · err≤0.5% · **partial** | `.tmp/` + `ai-docs/delivery/receipts/uc018-perf-load/` |
+| **NHP-018-LOAD-01** | concurrent abandon+release+graph · N=50 · c=20 | no double-release · no stuck · err≤1% · **partial** | `.tmp/` + `ai-docs/delivery/receipts/uc018-perf-load/` |
 
 local ≠ production capacity ≠ HA · Ban post-hoc retune · Ban n/a dodge.
 
@@ -79,13 +79,12 @@ Implementer does **not** pre-fill pass · Dual **not** pinged by implementer · 
 
 | Phase | This open |
 |-------|-----------|
-| L0 REQUEST `draft:awaiting_pre_exec_dual` | **THIS OPEN** · parent `24d350f` on nail `0b7a218` · docs only · NHP PERF+LOAD register + prove plan |
-| L1 Pre-exec dual | awaiting · Ban自批 · coordinator dispatches |
-| L2 AUTHORIZED coding+prove | **blocked** until dual+authorize |
-| L3–L5 post-prove / nail / covered-lift | **not** this open · covered-lift = separate later knife |
+| L0–L2 REQUEST + pre-exec dual + AUTHORIZED prove | DONE · prove EXIT=0 · PERF/LOAD **partial** |
+| L3 awaiting_post_prove_dual | **THIS OPEN** · Ban self-nail · Ban messaging dual |
+| L4–L5 post-prove / nail / covered-lift | **not** this open · covered-lift = separate later knife |
 
 ## Non-claims
 
 Not UC-E2E-018 covered · not matrix/full-suite covered · not invent covered · not §1.1 flip · not PERF/LOAD partial this open · not production capacity / HA · not MySQL/Qdrant cutover · not G1 flip · not release evidence · not R5 retired globally · not a wash of ADV/SOLE/reassess/D2b/HA/abandon proves · not PERF/LOAD alone = covered · not skip to UC-011 · not a covered-lift knife · not a next knife after STOP without dual lifecycle.
 
-*Slice · UC-E2E-018 PERF/LOAD · GAP-UC018-PERF-LOAD · NHP-018-PERF-01 + NHP-018-LOAD-01 · 2026-09-23 (~19:35 PT) · draft:awaiting_pre_exec_dual · parent 24d350f · nail 0b7a218 · §1.0 PERF/LOAD case-only · §1.1 partial · adr-postgres-retained · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount 8 · ms3EqualsR4Closed=false · Ban wash PERF/LOAD into covered · Ban skip to UC-011 · STOP after push*
+*Slice · UC-E2E-018 PERF/LOAD · GAP-UC018-PERF-LOAD · NHP-018-PERF-01 + NHP-018-LOAD-01 · 2026-09-23 (~19:46 PT) · executed:awaiting_post_prove_dual · Step A 8c7ee0c · prove EXIT=0 · §1.0 PERF/LOAD partial · §1.1 partial · PERF/LOAD partial ≠ covered · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount 8 · ms3EqualsR4Closed=false · Ban wash PERF/LOAD into covered · Ban skip to UC-011 · STOP after push*
