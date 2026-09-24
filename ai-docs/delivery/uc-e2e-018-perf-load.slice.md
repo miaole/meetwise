@@ -46,6 +46,20 @@ Docs REQUEST open: **UC-E2E-018 PERF/LOAD · GAP-UC018-PERF-LOAD · NHP-018-PERF
 
 local ≠ production capacity ≠ HA · Ban post-hoc retune · Ban n/a dodge.
 
+## Method freeze（mirror · full SSOT = harness · Ban post-hoc retune）
+
+- Percentile: **nearest-rank** · p = sorted[ceil(q·n)]（1-indexed）
+- Clock: client-side e2e wall clock · `hrtime` around full HTTP round trip
+- Timeout: **10s** · timeouts count as errors
+- Warmup: **10** · excluded from stats
+- Repeat runs: **3** · every run must pass · any miss ⇒ EXIT≠0
+- N/c/thresholds: **UNCHANGED**（PERF N=100 c=10 · LOAD N=50 c=20）
+- Disclosure: at N=100 nearest-rank p99 ≈ single near-worst sample · statistically weak
+- Receipts: raw `.tmp/uc018-perf-load-receipts/` + tracked `ai-docs/delivery/receipts/uc018-perf-load/*.json`
+- Caps: ≤2 vCPU / 4 GiB · enforce via Docker `--cpus=2 --memory=4g`（or cgroup）· record evidence · cannot enforce ⇒ fail elevate
+- Pre-exec: tip `30943df` · `mw-rag-route` `4964dc2` subject template `PASS|FAIL` not replaced · body PASS（note only · Ban edit receipt）· `mw-e2e-ha` `64cc57c` PASS
+- Step A freeze commit MUST be ancestor of every receipt · Ban load before Step A push
+
 ## Scope
 
 | In scope（later under authorize · not this open） | Out of scope |
