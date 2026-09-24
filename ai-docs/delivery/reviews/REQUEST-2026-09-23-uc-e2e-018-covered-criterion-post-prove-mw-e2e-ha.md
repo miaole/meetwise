@@ -301,3 +301,23 @@ Ban invent covered · Ban self-nail · Ban .env* · Ban Meridian · alone≠dual
 3. 裁定 **PASS（C-GATHERER 关闭）**· 登记 GAP-UC018-RECEIPT-BACKFILL 作 follow-on 刀（禁手写 JSON）· pins 不变 · alone≠dual。
 
 *Receipt append · mw-e2e-ha · C-GATHERER-REAL-INPUT re-review · 2026-09-23 ~20:36 PT · PASS @45a7bc1 / ca1c8a5 · STOP*
+
+---
+
+## 改判（append-only · 2026-09-23 · mw-e2e-ha 亲读 ca1c8a5）· gatherer 复审 **PASS → FAIL**：C-GATHERER-REAL-INPUT **未关闭**
+
+上节（`15be441`）判「PASS · C-GATHERER-REAL-INPUT CLOSED（附条件）」。我逐行复核后**撤回**，原因是它和本席在 `479cce5` 写下的条件原文冲突。原文要求：「缺失时必须 fail-closed……不得默认 true/0」。独立 `git show ca1c8a5:<path>`（EXIT 0）发现以下两处直接违反：
+
+1. **缺 stack 被当作达标**：`scripts/lib/uc-covered-real-gatherer.mjs:208–214`：receipt 既没有 `stack` 也没有 `soleStack` 时，返回全部 `undefined`。而 `scripts/lib/uc-covered-evaluator.mjs:163–169` 的 `badStack` 只在 `=== true` 或 `=== false` 时才命中，`undefined` 不会触发 STUB-STACK，所以缺失被视为达标，属于 fail-open。另外 `:185` 仅凭 `postgres && /pgvector/` 就推出 `postgresSaver=true`，属于弱推断。同伴 mw-rag-route 的阻塞项与此一致（本席独立复核，不代签）。
+2. **evidenceOfRecord 软默认 true**：`uc-covered-real-gatherer.mjs:161–162`：`evidenceOfRecord == null` 时，只要 receipt 存在且没有 implementer 标签，就被置为 true。这是缺失默认 true，属于 fail-open。
+
+其余剩余项维持为条件：NEG/FAULT/BOUND 的 `dual=null` 是硬编码（`:356/:366/:376`；方向保守，但应读取 review 文件）；gatherer 没有 porcelain 检查；`45a7bc1` 夹带了非 docs 文件 `packages/db/test/privacy-authorization.proof.ts`（Line B 的文件，需披露，不得混入 Line A 证据）。
+
+**阻塞项（nail 前必须修）**：
+- B-STACK-FAIL-OPEN：stack 字段缺失或 `undefined` 时，必须命中 STUB-STACK（或 MISSING-RECEIPT）；去掉 pgvector 推断 postgresSaver。须补 fixture：`FX-STACK-MISSING` 期望 false + STUB-STACK。
+- B-EOR-FAIL-OPEN：`evidenceOfRecord` 缺失时必须为 false（或命中 MISSING-DUAL / MISSING-RECEIPT）。须补 fixture：`FX-EOR-MISSING` 期望 false。
+
+**维持的裁定**：四条 prove 复跑 EXIT 全为 0（见上节）。NEG/BOUND 的 UNCOMMITTED-RUNNER 是真实缺口；MISSING-DUAL 是接线缺口；FAULT 的 PROVE-FAIL / MISSING-RECEIPT 判定正确。在 nail 中登记 GAP-UC018-RECEIPT-BACKFILL，回填单独成刀并走双审，禁止从旧 prose 手写 JSON。
+
+真实判定目前仍为 false，所以**不存在当下的假关**，但本刀的目的就是「真实路径可计算且 fail-closed」，所以改判 FAIL。
+Pins：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · UC-018/§1.1 partial · alone≠dual。
