@@ -91,3 +91,7 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 1. A1–A3 + H1–H3 是否足以**维持**矩阵 **partial**（仍明示 ≠ covered）？  
 2. §1b #1–#6 已关 + covered-lift assessed：**canHonestlyFlip=false**（refuse ADV was **blind** · now ADV **partial** tip `27dd6ae` · **ADV alone ≠ covered**）→ 矩阵仍 **partial** · **covered-lift-reassess nailed** · **canHonestlyFlip=false** · refuse：**PERF/LOAD blind** · Ban假关 · Ban wash SOLE/ADV alone into covered · Ban invent covered  
 3. 结论写入 `reviews/`，含「仍 ≠ covered」明示；**禁止**作者自签升 covered。
+
+## COVERED-CRITERION nail
+
+**COVERED-CRITERION nailed** `harness/uc-e2e-018-covered-criterion.md` · `GAP-UC018-COVERED-CRITERION` **CLOSED** · status `post_prove_dual_pass` · runner `22790a8` · receipts `971bb80` · post-prove dual `fc7dc24`/`6d2841c` BOTH PASS · evaluator `scripts/lib/uc-covered-evaluator.mjs` + gatherer · last-line Verdict · mutation **423/423** · flip⇒empty-reasons · `b29c191` constant-false retired · reassess calls evaluator · real UC-018 `canHonestlyFlip=false` · UC-018/§1.1 stay **partial** · Ban invent covered · D1 **NHP-018-BOUND-01** **partial** · D2 FAULT **case-only** · follow-ups `GAP-UC018-RECEIPT-BACKFILL` · `GAP-EVAL-PARSER-DETAILS-UNCLOSED` · C-WORD-NEG

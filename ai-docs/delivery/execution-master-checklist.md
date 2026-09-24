@@ -416,3 +416,9 @@ flowchart TD
 - [ ] 云测试是否提供项目独占、可重置的 RDS target；若否，Docker 保持为数据库隔离基线。
 - [ ] 百炼测试空间的模型能力、预算、告警和秘密轮换责任人是否按 `BAILIAN-00…07` 明确登记。
 - [ ] 长期记忆是否是近期产品范围；若否，`EXEC-06` 保持设计/验证储备，面试继续使用有界 lean memory。
+
+### UC-E2E-018 COVERED-CRITERION（2026-09-23 nail）
+
+- [x] `GAP-UC018-COVERED-CRITERION` **CLOSED** · `post_prove_dual_pass` · runner `22790a8` · dual `fc7dc24`/`6d2841c`
+- UC-E2E-018 / §1.1 stay **partial** · coveredCount **8** · Ban invent covered · Ban writing covered
+- Follow-up: `GAP-UC018-RECEIPT-BACKFILL`（own dual knife）

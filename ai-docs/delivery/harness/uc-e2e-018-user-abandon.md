@@ -142,3 +142,9 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 - `mw-e2e-ha`：确认未把 partial 写成 covered；确认 `本绿≠全链路 E2E covered`；确认 HTTP prove 打的是真 `@Post(':id/abandon')` 而非 stub route
 - 额度账本关键切片可加第二域；本文件钉集成+HTTP 合同 + 命令
 - **禁止作者自签 covered**；须双审后才可讨论升阶
+
+## Honesty touch · COVERED-CRITERION nail（2026-09-23）
+
+**COVERED-CRITERION nailed** `harness/uc-e2e-018-covered-criterion.md` · `GAP-UC018-COVERED-CRITERION` **CLOSED** · status `post_prove_dual_pass` · runner `22790a8` · receipts `971bb80` · post-prove dual `fc7dc24`/`6d2841c` BOTH PASS · evaluator `scripts/lib/uc-covered-evaluator.mjs` + gatherer · last-line Verdict · mutation **423/423** · flip⇒empty-reasons · `b29c191` constant-false retired · reassess calls evaluator · real UC-018 `canHonestlyFlip=false` · UC-018/§1.1 stay **partial** · Ban invent covered · D1 **NHP-018-BOUND-01** **partial** · D2 FAULT **case-only** · follow-ups `GAP-UC018-RECEIPT-BACKFILL` · `GAP-EVAL-PARSER-DETAILS-UNCLOSED` · C-WORD-NEG
+
+*Parent harness · Ban invent covered · UC-E2E-018 stays partial · STOP*

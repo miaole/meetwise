@@ -23,6 +23,16 @@
 | **INFLIGHT:pr-model-op-calib** | Open PR **#102** — calibration → dispatch budget + worker reconciler 接线候选；**≠ Q4 双门已关 / ≠ cutover** | `feat/model-op00-calibration-dispatch` |
 | **INFLIGHT:pr-privacy-prove** | Open PR **#103/#104** — mem00-int00 prove-path honesty + lease-takeover digest 对齐；**不宣称控制面已关**；公开 DELETE 仍 503 | `chore/mem00-int00-prove-path` · `fix/privacy-authorization-lease-takeover` |
 
+
+### UC-E2E-018 follow-ups（COVERED-CRITERION nail · 2026-09-23）
+
+| ID | P | 缺口 | 处置/验收 | 域 | 下一刀 | 证据 |
+|----|---|------|-----------|----|--------|------|
+| GAP-UC018-COVERED-CRITERION | P0 | ~~六列 covered 准则 + 可计算 evaluator~~ **CLOSED** | `post_prove_dual_pass` · runner `22790a8` · dual `fc7dc24`/`6d2841c` · UC-018/§1.1 **partial** · Ban invent covered | e2e | closed · next = RECEIPT-BACKFILL REQUEST | `harness/uc-e2e-018-covered-criterion.md` |
+| GAP-UC018-RECEIPT-BACKFILL | P0 | 早期 UC-018 prove 缺 machine-readable receipts / 严格 last-line Verdict → evaluator 见 MISSING-* | 在 recorded SHA 干净 worktree 重跑各 prove；emit `{gitSha,exit,stack,caps,evidenceOfRecord,runAt}`；双审 last-line Verdict；Ban hand-write JSON from prose；SHA mismatch / nonzero = 记录不重调 | e2e | L0 REQUEST next | nail cites RECEIPT-BACKFILL |
+| GAP-EVAL-PARSER-DETAILS-UNCLOSED | P1 | 未闭合 `<details>` 在 last-line 前 ⇒ 应收 null；缺 `unparseable reviewer file` 诊断 | fixture FX-DUAL-DETAILS-UNCLOSED + diagnostic follow-up | e2e | with RECEIPT-BACKFILL if small | covered-criterion r5b known follow-up |
+| C-WORD-NEG | P2 | `\bpartial\b` 误匹配 「not partial」 | word-boundary / negation-aware status parse | e2e | follow-up | covered-criterion review residual |
+
 ### Open PR 上下文（可见 · 非合入授权）
 
 | PR | 标题（摘要） | 与本 backlog 关系 |
