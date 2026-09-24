@@ -321,3 +321,125 @@ Ban invent covered · Ban self-nail · Ban .env* · Ban Meridian · alone≠dual
 
 真实判定目前仍为 false，所以**不存在当下的假关**，但本刀的目的就是「真实路径可计算且 fail-closed」，所以改判 FAIL。
 Pins：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · UC-018/§1.1 partial · alone≠dual。
+
+---
+
+## Round 2（append-only · 2026-09-23 · mw-e2e-ha 亲读 runner `4a8a085` / receipts `4224e73`+`4706c4b`）
+
+### Tips
+| tip | full | role |
+|-----|------|------|
+| `4a8a085` | `4a8a085ba31400b389b288e42557324a769cb5af` | runner（code） |
+| `4224e73` | `4224e7386cb19b6bc948a24e76c2ae5ecd44a53a` | covered-criterion re-prove receipts |
+| `4706c4b` | `4706c4b447d33777f4339080e5812ba19d531693` | ADV append receipts |
+| `03449a8` | `03449a8b3b6be5f41270f21758d669fefb73d2b5` | voided pre-rebase receipt citing `f7f804b` |
+| `f7f804b` | `f7f804b45a316ae11b8962013f452d0254ca8658` | voided pre-rebase runner twin（same subject as 4a8a085；**not** ancestor of 4a8a085） |
+
+Ancestry: `git merge-base --is-ancestor 4a8a085 4224e73` EXIT=0；`… 4a8a085 4706c4b` EXIT=0；both on `origin/feat/mysql-schema-skeleton`.
+Receipts `runnerCommitSha` == `4a8a085ba31400b389b288e42557324a769cb5af`（4224e73 + 4706c4b JSON）.
+
+`git diff 4a8a085 4706c4b --stat`：**NOT docs/receipts only** — range also contains unrelated product commits (`994e83a` g7 FreeTier guards · `packages/ai-runtime/**` · `docker/env/worker.env.example` · `scripts/e2e-live-capability-env.mjs` · `scripts/local-e2e-receipt.mjs`). Receipt commits themselves (`4224e73`/`4706c4b`) are docs/receipts only. **CONDITION**（disclose range pollution；do not treat range as pure evidence tip）.
+
+### CMD|EXIT（worktree `/workspace/mw-rv-4706c4b` @4706c4b · clean before each prove）
+
+| CMD | EXIT | Key outputs |
+|-----|------|-------------|
+| `git fetch` | 0 | |
+| `git worktree add /workspace/mw-rv-4706c4b 4706c4b` | 0 | detached 4706c4b · porcelain=0 |
+| `pnpm install --frozen-lockfile` | 0 | |
+| `pnpm uc018:covered-criterion:prove` | **0** | FX-ALL-MET true · FX-STACK-MISSING/EMPTY · FX-EOR-MISSING · FX-EXIT-MISSING/ABSENT PASS · porcelain clean+dirty-probe PASS · **REAL** `canHonestlyFlip=false` reasons=`STATUS-NOT-COVERED,UNCOMMITTED-RUNNER,MISSING-RECEIPT,CASE-ONLY,STUB-STACK,IMPL-ONLY,PERF-LOCAL-ONLY,OPEN-GAP` · per-col dual invented PASS/PASS（see dual hunt）· pins retained |
+| re-run covered-criterion after self-write | **1** | `DIRTY_TREE` · `M …/covered-criterion-evidence.json`（self-write） |
+| `pnpm uc018:covered-lift-reassess:prove` | **0** | canHonestlyFlip=false · refuse=PERF-LOCAL-ONLY · matrix partial |
+| `pnpm uc018:adv:prove` | **0** | 76/76 · honesty ADV≠covered · porcelain=0（no tracked self-write） |
+| `pnpm eval-harness-matrix-cite:prove` | **0** | UC-E2E-018 stays partial · releaseEvidence=false |
+| DIRTY_TREE manual（append README comment） | **1** | `DIRTY_TREE: … M README.md` at gatherer `:270` / gather `:287` |
+| `git cat-file -e f7f804b^{commit}` | **0** | object still in store |
+| `git merge-base --is-ancestor f7f804b 4a8a085` | **1** | **not** ancestor（rebase twin） |
+
+After covered-criterion / lift-reassess：porcelain shows modified evidence JSON → second prove refuses DIRTY_TREE until `git checkout -- <evidence>`. **CONDITION**（operational self-friction；not false-true）.
+
+### Old-item fix table（`git show 4a8a085:<path>` · file:line）
+
+| Old item | Status | New cite |
+|----------|--------|----------|
+| B-STACK-FAIL-OPEN（gatherer returned all-undefined；evaluator only `===true/===false`） | **FIXED** | evaluator `:166–172` `!== true` / `!== false` → STUB-STACK；gatherer `pickStack` `:209–231` still may emit all-undefined，but evaluator now fail-closed |
+| Saver inference `postgres+pgvector→postgresSaver` | **FIXED** | gatherer `parseSoleStack` `:198–200` explicit `/postgressaver/` only；comment Ban inference |
+| B-EOR-FAIL-OPEN（EOR absent→true） | **FIXED** | gatherer `pickEvidenceFlags` `:172–176` absent⇒false；evaluator `:178–179` `evidenceOfRecord !== true` → MISSING-RECEIPT |
+| NEG/BOUND/FAULT dual=null hardcoded | **FIXED（wiring）** | gatherer `:325–336` / FAULT `:339–341` read review files；**but parser fail-open — new blocker** |
+| No porcelain check | **FIXED** | `assertCleanPorcelain` `:266–278`；gather `:287`；proof probe PASS |
+| null exit → not refused | **FIXED** | evaluator `:148–149` `prove.exit == null` → MISSING-RECEIPT；fixtures FX-EXIT-MISSING/ABSENT PASS |
+| Fixtures FX-STACK-MISSING/EMPTY · FX-EOR-MISSING · FX-EXIT-* | **FIXED** | proof PASS list；under `scripts/fixtures/uc-covered-evaluator/` |
+| Real verdict must stay false | **HOLD** | canHonestlyFlip=false |
+| capacityRepresentative local guard | **INTACT** | `isCapacityRepresentative` + `isLocalEnv`（null/'' → local）· docker-isolated still PERF-LOCAL-ONLY |
+| Six columns required（missing object） | **OK fail-closed** | `evaluate` loops frozen `COLUMNS`；missing `columnsIn[c]` → blind/empty → reasons；`meetsCovered===true` required；not skipped |
+| GAP-UC018-RECEIPT-BACKFILL | **CONDITION retained** | still follow-on knife；Ban hand-write JSON |
+| 45a7bc1 Line B privacy proof sneak | **n/a this tip** | runner 4a8a085 range disclose separate product files（above） |
+
+### Fail-open hunt results
+
+#### Closed / OK
+- Stack tri-state；EOR absent→false；exit null→MISSING-RECEIPT；Saver inference removed；DIRTY_TREE；`COLUMNS.every` uses evaluated objects；`[].every` on required NHP guarded by `nhpIds.length===0` branch；capacity local guard；gapClosedInText has Ban/不得/禁止 windows（fixtures PASS）.
+
+#### NEW BLOCKER — B-DUAL-PASS-PRIORITY + B-DUAL-CROSS-ROLE
+`dualFromReviewFiles` `4a8a085:scripts/lib/uc-covered-real-gatherer.mjs:233–250`:
+
+1. **PASS beats FAIL**：`pass = Verdict/Status PASS patterns OR \`**PASS**\s*[（(]\``；`fail = /\*\*FAIL\*\*/ && !pass`。Concrete：file with `**Verdict**: **PASS**` then later `**Verdict**: **FAIL**` → **PASS**（synthetic test）. File with `**Verdict**: **FAIL**` and prose `**PASS** (` → **PASS**.
+2. **No latest-verdict**：first/any PASS wins；retraction ignored.
+3. **Cross-role contamination**：`isE2e/isRag` true if path **or** `text.slice(0,500)` matches peer name. One rag-route file mentioning both agents in header sets **both** e2eHa+ragRoute. Observed：PERF ha table `\| **Verdict** \| **PASS** \|` does **not** match colon regex（verdict null alone），but rag-route file with `**PASS**（` + head500hasBoth → gatherer emits dual PASS/PASS for PERF/LOAD.
+4. **This receipt’s own FAIL retraction** uses `**PASS → FAIL**` / prose `改判 FAIL` without standalone `**FAIL**` → `/\*\*FAIL\*\*/` false；parser still **PASS**（passHits≥1）.
+5. **Reachable false dual-met**：suppresses MISSING-DUAL/DUAL-ONE on NEG/BOUND/ADV/PERF/LOAD（session REAL columns show `dual={"e2eHa":"PASS","ragRoute":"PASS"}` and dual reasons absent）. Hypothetical-but-reachable：FX-ALL-MET-quality other fields + contaminated dual PASS/PASS → canHonestlyFlip true while peer review actually FAIL/retracted. **BLOCKER**（alone≠dual honesty）.
+
+Evaluator `dualVerdict` `:83–92`：FAIL+FAIL → `'missing'`（fail-closed）；PASS+FAIL → `'one'`（OK）— damage is **gatherer inventing PASS**.
+
+#### CONDITIONS（not false-true alone）
+- **C-DIRTY-SELF-WRITE**：prove writes tracked evidence → re-prove DIRTY_TREE until restore. Refuse is correct；workflow friction.
+- **C-RANGE-PRODUCT**：`4a8a085..4706c4b` includes non-receipt product code.
+- **C-ALLPASS-EXIT0**：`pickExitFromReceipt` `:186` `allPass===true → 0`（trust receipt boolean）.
+- **C-PARSESOLE-POSTGRES-WITHOUT-SAVER**：`postgres:true, postgresSaver:undefined` → STUB-STACK（fail-closed OK）.
+- **C-GAP-UC018-RECEIPT-BACKFILL** + open GAP-UC018-COVERED-CRITERION self-ref OPEN-GAP.
+
+### f7f804b ruling
+- `git cat-file -e f7f804b^{commit}` **EXIT=0**（object retained）.
+- `git merge-base --is-ancestor f7f804b 4a8a085` **EXIT=1**（rebase twin，same subject message；**not** on tip ancestry）.
+- Citations：prose/`rebaseNote` in `covered-criterion-evidence.json:524` only；**not** used as gatherer `gitSha` input on 4706c4b tip.
+- `03449a8` receipt cited voided runner `f7f804b` — **superseded** by `4224e73` @`4a8a085`. If a receipt still pointed gatherer at `f7f804b` as prove tip：object exists so would **not** auto UNCOMMITTED-RUNNER via missing object；ancestor check vs HEAD may still mark stale/uncommitted depending on graph. **No live gatherer dependency found** on tip receipts.
+
+### DIRTY_TREE test result
+- Built-in proof probe：PASS（temp file refuse）.
+- Self-write evidence：re-run EXIT=1 DIRTY_TREE.
+- Manual README touch：EXIT=1 DIRTY_TREE @ gatherer `:270`.
+- Does **not** false-trigger on clean tree；**does** trigger after own evidence write（CONDITION）.
+
+### Blockers / Conditions
+**Blockers**
+1. **B-DUAL-PASS-PRIORITY**：PASS pattern anywhere overrides FAIL；no last-verdict / retraction semantics.
+2. **B-DUAL-CROSS-ROLE**：peer-name in path or first 500 chars lets one file fill both dual slots；table Verdict format mismatch + rag `**PASS**（` invents both-PASS.
+
+**Conditions**
+1. C-DIRTY-SELF-WRITE  
+2. C-RANGE-PRODUCT（4a8a085..4706c4b）  
+3. C-ALLPASS-EXIT0  
+4. C-GAP-UC018-RECEIPT-BACKFILL（nail follow-on）  
+5. f7f804b object retained but prose-only on tip（disclose）
+
+### Pins（restated · alone≠dual · 不代签 mw-rag-route）
+| Pin | Value |
+|-----|-------|
+| haStatus | **NOT_HA** |
+| releaseEvidence | **false** |
+| claimProductionHA | **false** |
+| gR45Closed | **true** |
+| coveredCount | **8** |
+| ms3EqualsR4Closed | **false** |
+| stack | **PG-retained** |
+| UC-018 / §1.1 | **partial** · not flipped |
+
+### Verdict
+**FAIL** — old B-STACK / B-EOR / exit-null / Saver-inference / dual-null-hardcode / porcelain gaps **fixed** at `4a8a085`；REAL `canHonestlyFlip=false` holds；**but** dual review parser fail-open（PASS-priority + cross-role）is a new nail-blocking honesty defect（alone≠dual）.
+
+### 三行中文摘要
+1. runner `4a8a085` 上旧 B-STACK/B-EOR/exit/Saver/porcelain/dual 空硬编码已修；四 prove+matrix EXIT 符合预期；真实 canHonestlyFlip=false。  
+2. 新阻塞：dual 解析「任一 PASS 压过 FAIL」且文首 500 字角色名串线，能把单文件/已撤回 PASS 收成双 PASS（本收据改判 FAIL 仍被读成 PASS）。  
+3. 裁定 **FAIL** · pins 不变 · DIRTY_TREE 自写 evidence 为 CONDITION · 不代签 peer。
+
+*Receipt append · mw-e2e-ha · UC018 covered-criterion gatherer round2 FAIL @4706c4b / 4a8a085 · 2026-09-23 ~21:05 PT · STOP*
