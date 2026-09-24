@@ -351,3 +351,19 @@ coveredCount=**8** · haStatus=**NOT_HA** · releaseEvidence=**false** · claimP
 | docker | ephemeral PG `127.0.0.1:32946`; did not stop Line B/C HA/mysql/redis containers |
 
 *Ban invent covered · Ban flip §1.1 · STOP*
+
+
+## Fix round 3 (committed-positive + strict dual + tmp evidence) · runner `28dc259`
+
+| Item | Result |
+| --- | --- |
+| Committed flags | `committed/shaMatchesCommitted === true`, `uncommitted/staleSha === false` else UNCOMMITTED-RUNNER / STALE-SHA |
+| Fixtures | FX-COMMITTED-MISSING · FX-SHAMATCH-MISSING · FX-UNCOMMITTED-MISSING · FX-STALESHA-MISSING · FX-DUAL-RETRACTED · FX-DUAL-SINGLE-FILE-NAMES-PEER |
+| Dual marker | last line `^(:**)?Verdict(:**)?:\s*(:**)?(PASS\|FAIL)(:**)?\s*$` · role path-suffix only · real e2e-ha retract ≠ PASS |
+| Dual column delta | PERF/LOAD → **MISSING-DUAL** (old reviews lack strict EOL marker); NEG/BOUND/ADV/FAULT retain PASS/PASS |
+| Leaf mutation | **405/405** false · allowlist printed (7 paths) |
+| DIRTY_TREE | evidence/prove.md written only under `.tmp/` during prove · second run EXIT=0 porcelain clean |
+| Range disclose | `4a8a085..4706c4b` may include B/C product; Line A = individual commits only |
+| Receipt backfill | still out · GAP-UC018-RECEIPT-BACKFILL |
+
+*Ban invent covered · Ban flip §1.1 · STOP*
