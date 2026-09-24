@@ -348,3 +348,83 @@ Parent harness 无 `不得写已关` 字面 · 今日 `businessPathMet=true` 与
 
 **mw-rag-route** · 2026-09-23 (~20:52 PT) · re-review round 2 · Verdict **FAIL** · blocker=committed-flags default-met · APPEND-ONLY · Ban Meridian · Ban Cloud Agent · Ban `.env*` · **Dual PASS ≠ covered ≠ nail ≠ §1.1 flip**
 
+---
+
+## Re-review r3 (28dc259/10bf0c0)
+
+**Date**: 2026-09-23 (~21:00 PT)  
+**Verdict**: **PASS**（r2 blocker 已修 · allowlist 7 项可接受 · 无新 default-met blocker）  
+**Expert**: `mw-rag-route` · Ban invent covered · Ban假关 · alone≠dual · **Dual PASS ≠ covered ≠ nail ≠ §1.1 flip**  
+**Line A commits**（均为 Author `meetwise-core` · 单目的 · tip 祖先）:
+| SHA | Subject | files |
+|-----|---------|-------|
+| `4a8a085` / `4a8a085ba31400b389b288e42557324a769cb5af` | fail-closed stack/EOR/exit/gapClosed/dual | 13 scripts/fixtures |
+| `4224e73` / `4224e7386cb19b6bc948a24e76c2ae5ecd44a53a` | fix-round-2 re-prove @4a8a085 | 3 receipts/harness |
+| `4706c4b` / `4706c4b447d33777f4339080e5812ba19d531693` | ADV prove EXIT=0 @4a8a085 | 2 |
+| `28dc259` / `28dc25947baad0f3a377d2961fa38fb6a25b915b` | r3 committed-proof + strict dual | 38 UC018-covered only |
+| `10bf0c0` / `10bf0c0d4a8bd2631202158baa4af41a3fa4d4ae` | fix-round-3 prove @28dc259 | 4 |
+
+**Receipt SHA match**: evidence JSON + prove.md 均钉 `28dc25947baad0f3a377d2961fa38fb6a25b915b` · **MATCH**  
+**Worktree**: `/workspace/wt-mwrr-28dc259` @ `10bf0c0` · 四 prove 后 remove+prune
+
+### CMD|EXIT
+
+| CMD | EXIT | 关键输出 |
+|-----|------|----------|
+| `pnpm uc018:covered-criterion:prove` | **0** | false · reasons=`STATUS-NOT-COVERED,UNCOMMITTED-RUNNER,MISSING-RECEIPT,CASE-ONLY,STUB-STACK,MISSING-DUAL,IMPL-ONLY,PERF-LOCAL-ONLY,OPEN-GAP` · businessPathMet=true · leaf-mutation 405/405 allowlisted · dual retracted/path-suffix PASS · .tmp-only write · porcelain clean |
+| `pnpm uc018:covered-lift-reassess:prove` | **0** | |
+| `pnpm uc018:adv:prove` | **0** | 76 PASS · REAL pgvector docker isolated |
+| `pnpm eval-harness-matrix-cite:prove` | **0** | UC-018 partial≠covered |
+
+### Mutation（`/tmp/mwrr-r3-mutation.mjs`）
+
+- ALL-MET → **true**
+- 删除 `prove.cmd` **且** `prove.gitSha` → **false** + MISSING-RECEIPT
+- 仅删 cmd 或仅删 gitSha → true（OR allowlist）
+- committed/shaMatches/uncommitted/staleSha undef → **false**（r2 blocker **CLOSED**）
+- `section11.status` = undef/`''`/`partial`/`unknown`/`met`/`covered` → flip 仍 true（见下裁定）· `case-only` 推 CASE-ONLY reason 但 **不**改 flip（nail）
+- PERF/LOAD 删 capacityRepresentative 或 targetEnv → **false** + PERF-LOCAL-ONLY
+- NEG/ADV 同字段删除 → true（allowlist · 非 PERF/LOAD）
+- prove 内置 leaf-mutation：**405/405 false · 0 unallowlisted**
+
+### Allowlist 分项裁定
+
+1. **ucId** — **ACCEPTABLE**。仅标签 · `evaluate` 不读其做门闩（删除仍 true · 无 gating）。
+2. **capacityRepresentative / targetEnv（NEG/FAULT/BOUND/ADV）** — **ACCEPTABLE**。capacity 仅 PERF/LOAD 列调用 `isCapacityRepresentative`（evaluator :186–190）；PERF/LOAD 删除同字段 → false+PERF-LOCAL-ONLY（已证）。非 PERF/LOAD 列不要求容量证据（§0.5/§1.0）。
+3. **prove.cmd / prove.gitSha OR** — **ACCEPTABLE**。`:153` 仅当 `!cmd && !gitSha && status==='covered'` 才 MISSING-RECEIPT；删两者 → false；单留其一不绕过 exit/committed 正证（exit/committed 独立检查）。缺 cmd 有 gitSha = 可接受（nail 可选：强制 cmd）。
+4. **implementerOnly 仅 `=== true` 拒** — **ACCEPTABLE（冗余）**。`eor !== true` → MISSING-RECEIPT（:182）；dual 缺槽 → MISSING-DUAL（:83–91 `!present(a)\|\|!present(b)`）；IMPL-ONLY 为 implementer 标签加码 · 双 PASS+eor 正证已 fail-closed。
+5. **section11.status** — **ACCEPTABLE · 非 §1.1 default-met blocker**。§1.1 门闩是 **`businessPathMet === true`**（:237 / :246）+ gatherer `gapClosedInText`；删 `businessPathMet` → S11-NOT-MET false。`status` 不驱动 flip；`case-only` 仅 push reason 不翻 false（**nail**：对齐或删除死分支）。
+
+### Strict dual parser
+
+- 末行 `Verdict: PASS|FAIL`（可选粗体 · **禁**同行尾注）· 角色仅 path suffix `-mw-e2e-ha.md` / `-mw-rag-route.md`
+- FX-DUAL-RETRACTED：末行 FAIL → DUAL-ONE · PASS
+- FX-DUAL-SINGLE-FILE-NAMES-PEER：body 提 peer 名不填槽 → MISSING-DUAL · PASS
+- 本文件此前仅有 `**Verdict**: **PASS**（…）` 尾注行 · **严格解析 = null**；本节末将写裸 `Verdict: PASS` 供后续 gatherer 读取
+
+### PERF/LOAD MISSING-DUAL
+
+- 实跑 PERF/LOAD `dual={null,null}` · 旧 post-prove 文有表格/散文 Verdict **无**严格单行 → fail-closed **正确**
+- **裁定：属 backfill knife**（勿改旧 receipt 洗绿）· 登记 GAP 即可
+
+### Blockers
+
+**无。**（committed 正证已落地 · mutation/allowlist 与主张一致 · prove EXIT=0 · 真 PG · 无 covered/§1.1 flip）
+
+### Nail conditions
+
+1. `section11.status==='case-only'` 推 reason 但不阻 flip — 对齐或删除。
+2. 可选强制 `prove.cmd`（不只 gitSha）。
+3. PERF/LOAD 严格 Verdict 行 = backfill knife（不改旧文）。
+4. `section11.openGaps` 缺省≡`[]`（空集语义）· 可文档化。
+
+### Pins / PG / secret / cleanup
+
+- pins HOLD · Dual PASS ≠ covered ≠ nail ≠ §1.1 flip · harness 未触  
+- **PG real YES** · secret **CLEAN** · worktree **已移除**
+
+### signature（r3）
+
+**mw-rag-route** · 2026-09-23 (~21:00 PT) · re-review r3 · 无 blocker · APPEND-ONLY · Ban Meridian · Ban Cloud Agent · Ban `.env*`
+
+Verdict: PASS
