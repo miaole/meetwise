@@ -169,7 +169,7 @@ if (!gB29.trips) fail('constant-FALSE guard must TRIP on b29c191 reassess proof 
 else pass(`constant-FALSE guard TRIPS on b29c191: ${gB29.findings.join('; ')}`);
 
 pass(`refuse enum (${REFUSE_REASON_LIST.length}): ${REFUSE_REASON_LIST.join(', ')}`);
-pass(`BOUND pin id: ${UC018_BOUND_PIN_ID} (NHP matrix has no NHP-018-BOUND-* · CAS waiting_user)`);
+pass(`BOUND pin id: ${UC018_BOUND_PIN_ID} (D1 NHP-018-BOUND-01 registered partial · CAS waiting_user)`);
 pass(`LOCAL_ENV_CLASSES: ${LOCAL_ENV_CLASSES.join(', ')}`);
 
 const gLit = guardGathererLiterals(gathererSrc);
@@ -414,8 +414,9 @@ function setPath(root, path, mode) {
 
   const realE2e = join(root, 'ai-docs/delivery/reviews/REQUEST-2026-09-23-uc-e2e-018-covered-criterion-post-prove-mw-e2e-ha.md');
   const realV = parseReviewFileVerdict(read(realE2e));
-  if (realV === 'PASS') fail('real e2e-ha retracted covered-criterion receipt must NOT parse as PASS');
-  else pass(`real e2e-ha retracted receipt verdict=${realV} (not PASS)`);
+  // Post-nail dual BOTH PASS (fc7dc24/6d2841c): last-line Verdict: PASS is authoritative
+  if (realV !== 'PASS') fail(`real e2e-ha post-prove dual must parse PASS got ${realV}`);
+  else pass('real e2e-ha post-prove dual Verdict: PASS (nail dual)');
 
   // Mutate dual-parser inputs: delete/null verdict markers ⇒ not PASS / not dual-met
   const baseDualText = '**Verdict**: **PASS**  \n';
@@ -533,8 +534,8 @@ const gathered = gatherRealUc018({ root });
 const realInput = toEvaluateInput(gathered);
 const realVerdict = evaluate(realInput);
 
-if (gathered._meta?.hasBoundNhp) note('NHP matrix unexpectedly lists NHP-018-BOUND-*');
-else pass('NHP matrix: no NHP-018-BOUND-* (BOUND pin = waiting_user-CAS)');
+if (gathered._meta?.hasBoundNhp) pass('NHP matrix: NHP-018-BOUND-* present (D1 · partial)');
+else fail('NHP matrix: expected NHP-018-BOUND-01 after D1 nail');
 
 note('═══ REAL UC-018 COMPUTED VERDICT ═══');
 note(`canHonestlyFlip=${realVerdict.canHonestlyFlip}`);
