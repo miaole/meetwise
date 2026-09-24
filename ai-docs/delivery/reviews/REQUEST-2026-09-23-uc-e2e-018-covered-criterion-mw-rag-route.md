@@ -147,4 +147,4 @@ e33dd63 携带条件：后续任何 covered-lift / §1.1 flip 刀 **必须先**�
 
 ## signature
 
-**mw-rag-route** · 2026-09-23 (~20:09 PT) · pre-exec dual · Verdict **PASS** · Ban Meridian · Ban Cloud Agent · Ban `.env*` · Ban invent covered · Ban假关 · Ban forge peer · Ban coding this open · alone≠dual
+**mw-rag-route** · 2026-09-23 (~20:09 PT) · pre-exec dual · Verdict **PASS** · 本文件为本专家权威回执（race commit `94770465` 曾误与 peer 同捆且 subject 标 mw-e2e-ha；内容为本专家撰写 · 本提交单文件钉权威） · Ban Meridian · Ban Cloud Agent · Ban `.env*` · Ban invent covered · Ban假关 · Ban forge peer · Ban coding this open · alone≠dual
