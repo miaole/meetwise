@@ -3,7 +3,7 @@
   "gap": "GAP-UC018-COVERED-CRITERION",
   "command": "pnpm uc018:covered-criterion:prove",
   "exit": 0,
-  "runnerCommitSha": "4a8a085ba31400b389b288e42557324a769cb5af",
+  "runnerCommitSha": "28dc25947baad0f3a377d2961fa38fb6a25b915b",
   "boundPinId": "waiting_user-CAS",
   "refuseEnum": [
     "PERF-LOCAL-ONLY",
@@ -31,12 +31,39 @@
       "reasons": []
     },
     {
+      "id": "FX-COMMITTED-MISSING",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "UNCOMMITTED-RUNNER"
+      ]
+    },
+    {
       "id": "FX-DUAL-ONE",
       "ok": true,
       "expectedFlip": false,
       "gotFlip": false,
       "reasons": [
         "DUAL-ONE"
+      ]
+    },
+    {
+      "id": "FX-DUAL-RETRACTED",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "DUAL-ONE"
+      ]
+    },
+    {
+      "id": "FX-DUAL-SINGLE-FILE-NAMES-PEER",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "MISSING-DUAL"
       ]
     },
     {
@@ -136,6 +163,7 @@
       "expectedFlip": false,
       "gotFlip": false,
       "reasons": [
+        "UNCOMMITTED-RUNNER",
         "MISSING-RECEIPT"
       ]
     },
@@ -176,6 +204,15 @@
       ]
     },
     {
+      "id": "FX-SHAMATCH-MISSING",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "UNCOMMITTED-RUNNER"
+      ]
+    },
+    {
       "id": "FX-STACK-EMPTY",
       "ok": true,
       "expectedFlip": false,
@@ -199,6 +236,16 @@
       "expectedFlip": false,
       "gotFlip": false,
       "reasons": [
+        "STALE-SHA",
+        "UNCOMMITTED-RUNNER"
+      ]
+    },
+    {
+      "id": "FX-STALESHA-MISSING",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
         "STALE-SHA"
       ]
     },
@@ -210,6 +257,15 @@
       "reasons": [
         "STUB-STACK"
       ]
+    },
+    {
+      "id": "FX-UNCOMMITTED-MISSING",
+      "ok": true,
+      "expectedFlip": false,
+      "gotFlip": false,
+      "reasons": [
+        "UNCOMMITTED-RUNNER"
+      ]
     }
   ],
   "realVerdict": {
@@ -220,6 +276,7 @@
       "MISSING-RECEIPT",
       "CASE-ONLY",
       "STUB-STACK",
+      "MISSING-DUAL",
       "IMPL-ONLY",
       "PERF-LOCAL-ONLY",
       "OPEN-GAP"
@@ -239,7 +296,6 @@
         "meetsCovered": false,
         "reasons": [
           "CASE-ONLY",
-          "UNCOMMITTED-RUNNER",
           "STUB-STACK",
           "MISSING-RECEIPT"
         ]
@@ -268,6 +324,7 @@
         "reasons": [
           "STATUS-NOT-COVERED",
           "UNCOMMITTED-RUNNER",
+          "MISSING-DUAL",
           "STUB-STACK",
           "IMPL-ONLY",
           "PERF-LOCAL-ONLY"
@@ -279,6 +336,7 @@
         "reasons": [
           "STATUS-NOT-COVERED",
           "UNCOMMITTED-RUNNER",
+          "MISSING-DUAL",
           "STUB-STACK",
           "IMPL-ONLY",
           "PERF-LOCAL-ONLY"
@@ -445,7 +503,7 @@
     }
   ],
   "businessPathMet": true,
-  "datePT": "9/23/2026, 8:45:11 PM PT",
+  "datePT": "9/23/2026, 8:56:13 PM PT",
   "haStatus": "NOT_HA",
   "releaseEvidence": false,
   "claimProductionHA": false,
@@ -516,39 +574,94 @@
       "file": "assertCleanPorcelain"
     }
   ],
-  "fixRound": "fix-round-2-stack-eor-fault-exit-gapClosed-dual",
+  "fixRound": "fix-round-3-committed-positive-dual-strict-dirty-tmp",
+  "mutationSummary": {
+    "total": 405,
+    "falseCount": 405,
+    "survivors": [],
+    "allowlist": [
+      {
+        "path": "ucId",
+        "justification": "metadata string unused by evaluate(); not a coverage gate"
+      },
+      {
+        "path": "/^columns\\.(NEG|FAULT|BOUND|ADV)\\.receipts\\.capacityRepresentative$/",
+        "justification": "capacityRepresentative consulted only for PERF/LOAD columns"
+      },
+      {
+        "path": "/^columns\\.(NEG|FAULT|BOUND|ADV)\\.receipts\\.targetEnv$/",
+        "justification": "targetEnv consulted only via isCapacityRepresentative for PERF/LOAD"
+      },
+      {
+        "path": "/^columns\\.[A-Z]+\\.prove\\.cmd$/",
+        "justification": "MISSING-RECEIPT OR requires cmd OR gitSha when status=covered; either alone suffices"
+      },
+      {
+        "path": "/^columns\\.[A-Z]+\\.prove\\.gitSha$/",
+        "justification": "same OR with prove.cmd \u2014 deleting gitSha alone while cmd remains still satisfies presence check"
+      },
+      {
+        "path": "/^columns\\.[A-Z]+\\.receipts\\.implementerOnly$/",
+        "justification": "fail-closed only on === true; absence/false means not-implementer (correct positive-proof asymmetry)"
+      },
+      {
+        "path": "section11.status",
+        "justification": "only case-only status adds a reason; covered/other absence does not gate canHonestlyFlip"
+      }
+    ],
+    "allowlistHits": 84
+  },
+  "dualParse": {
+    "marker": "/^(?:\\*\\*)?Verdict(?:\\*\\*)?:\\s*(?:\\*\\*)?(PASS|FAIL)(?:\\*\\*)?\\s*$/m",
+    "roleFrom": "path suffix -mw-e2e-ha.md / -mw-rag-route.md only",
+    "realE2eHaCoveredCriterionPostProve": "must not be PASS (trailing commentary / no strict EOL marker after retract)"
+  },
+  "rangeDisclosure": {
+    "note": "Range 4a8a085..4706c4b on origin included other lines product commits (Line B/C). Line A evidence = individual commits only.",
+    "lineACommits": [
+      "4a8a085ba31400b389b288e42557324a769cb5af",
+      "4224e7386cb19b6bc948a24e76c2ae5ecd44a53a",
+      "4706c4b447d33777f4339080e5812ba19d531693",
+      "28dc25947baad0f3a377d2961fa38fb6a25b915b"
+    ]
+  },
   "pendingNailGaps": [
     "GAP-UC018-RECEIPT-BACKFILL"
   ],
   "receiptBackfillNote": "GAP-UC018-RECEIPT-BACKFILL deferred to nail-time (Ban hand-writing JSON from prose)",
-  "rebaseNote": "pre-push rebase rewrote local f7f804b \u2192 origin 4a8a085; evidence re-proven at clean 4a8a085; this commit supersedes 03449a8 receipt that cited stale f7f804b",
-  "priorReceiptTipSuperseded": "03449a8",
   "siblingProves": [
+    {
+      "cmd": "pnpm uc018:covered-criterion:prove",
+      "exit": 0,
+      "timePT": "2026-09-23 20:56:34 PT",
+      "runnerCommitSha": "28dc25947baad0f3a377d2961fa38fb6a25b915b",
+      "note": "second run also EXIT=0; porcelain clean after tmp-only write"
+    },
+    {
+      "cmd": "pnpm uc018:covered-lift-reassess:prove",
+      "exit": 0,
+      "timePT": "2026-09-23 20:56:34 PT",
+      "runnerCommitSha": "28dc25947baad0f3a377d2961fa38fb6a25b915b"
+    },
     {
       "cmd": "pnpm uc018:adv:prove",
       "exit": 0,
-      "timePT": "2026-09-23 20:46:51 PT",
-      "headSha": "4224e7386cb19b6bc948a24e76c2ae5ecd44a53a",
-      "headShaShort": "4224e73",
-      "runnerCommitSha": "4a8a085ba31400b389b288e42557324a769cb5af",
-      "runnerCommitShaShort": "4a8a085",
-      "porcelain": "clean",
-      "note": "Prior EXIT=1 was env (no node_modules \u2192 isolated_postgres_database_not_ready). Re-ran after pnpm install --frozen-lockfile; node_modules gitignored; docker used ephemeral PG 127.0.0.1:32946 (no stop of Line B/C HA/mysql containers). scripts/ unchanged vs 4a8a085.",
-      "isolatedPg": "meetwise-e2e-1659538-1790221592450 on 127.0.0.1:32946",
-      "localReceipt": ".tmp/isolated-proof-receipts/2026-09-24T03-46-41-565Z-1659538-598eab1f-f5e8-4146-8611-5abc2dc9de09.json"
+      "timePT": "2026-09-23 20:56:34 PT",
+      "runnerCommitSha": "28dc25947baad0f3a377d2961fa38fb6a25b915b"
+    },
+    {
+      "cmd": "pnpm eval-harness-matrix-cite:prove",
+      "exit": 0,
+      "timePT": "2026-09-23 20:56:34 PT",
+      "runnerCommitSha": "28dc25947baad0f3a377d2961fa38fb6a25b915b"
     }
   ],
-  "advProveAtRunner": {
-    "cmd": "pnpm uc018:adv:prove",
-    "exit": 0,
-    "timePT": "2026-09-23 20:46:51 PT",
-    "headSha": "4224e7386cb19b6bc948a24e76c2ae5ecd44a53a",
-    "headShaShort": "4224e73",
-    "runnerCommitSha": "4a8a085ba31400b389b288e42557324a769cb5af",
-    "runnerCommitShaShort": "4a8a085",
-    "porcelain": "clean",
-    "note": "Prior EXIT=1 was env (no node_modules \u2192 isolated_postgres_database_not_ready). Re-ran after pnpm install --frozen-lockfile; node_modules gitignored; docker used ephemeral PG 127.0.0.1:32946 (no stop of Line B/C HA/mysql containers). scripts/ unchanged vs 4a8a085.",
-    "isolatedPg": "meetwise-e2e-1659538-1790221592450 on 127.0.0.1:32946",
-    "localReceipt": ".tmp/isolated-proof-receipts/2026-09-24T03-46-41-565Z-1659538-598eab1f-f5e8-4146-8611-5abc2dc9de09.json"
+  "dualColumnDelta": {
+    "PERF": "MISSING-DUAL (perf-load post-prove reviews lack strict EOL Verdict: PASS|FAIL marker)",
+    "LOAD": "MISSING-DUAL (same)",
+    "NEG": "dual PASS/PASS retained (sole-stack post-prove clean markers)",
+    "BOUND": "dual PASS/PASS retained",
+    "ADV": "dual PASS/PASS retained",
+    "FAULT": "dual PASS/PASS retained; gitSha via requestTip"
   }
 }
