@@ -14,9 +14,9 @@
 |------|------|
 | 现有覆盖 | 矩阵可升 **partial**（`uc018:abandon:prove` + `uc018:abandon:http:prove` 真跑绿）；**不得**写 covered |
 | 本切片 | 可执行 **A1 / A1-shell / A2 / A3 / A-created-reserved / A-waiting-user**（db）+ **H1 / H1-shell / H2 / H3 / H-waiting-user / H-authz**（HTTP 真口） |
-| 另轨 | `commerce:prove`（abandon×confirm 并发）/ `commerce-reconcile:prove`（TTL 置 abandoned）/ `neg:interview` abandon 负路径 **≠** 本 UC 专用验收（可旁证，勿冒充） |
-| 假绿禁令 | 不得把本绿写成「UC-E2E-018 covered」；FULL-E2E+GRAPH 已关仍 ≠ covered（#3/#5/#6 仍开） |
-| 本绿≠全链路 E2E covered | **必须钉死**；`GAP-UC018-FULL-E2E`+#2 GRAPH 已关 · 仍缺 §1b #3/#5/#6 → 矩阵 **partial** · **≠ covered** |
+| 另轨 | `commerce:prove`（abandon×confirm 并发）/ `commerce-reconcile:prove`（TTL 旁证 only · **≠** `GAP-UC018-TTL` 专用钉；专用钉=`uc018:ttl:prove`）/ `neg:interview` abandon 负路径 **≠** 本 UC 专用验收（可旁证，勿冒充） |
+| 假绿禁令 | 不得把本绿写成「UC-E2E-018 covered」；FULL-E2E+GRAPH+TTL 已关仍 ≠ covered（#5/#6 仍开） |
+| 本绿≠全链路 E2E covered | **必须钉死**；`GAP-UC018-FULL-E2E`+#2 GRAPH+#3 TTL 已关 · 仍缺 §1b #5/#6 → 矩阵 **partial** · **≠ covered** |
 
 专家：`mw-e2e-ha`（+ 若额度账本关键切片则第二域）。禁止作者自签 covered。
 
@@ -46,8 +46,8 @@
 | 非目标 | 原因 |
 |--------|------|
 | ~~`full.e2e.ts` / `e2e:isolated` 场景矩阵纳入~~ **CLOSED**（`GAP-UC018-FULL-E2E` · full.e2e 显式 abandon TC + `pnpm uc018:abandon:full-e2e:prove`） | 已关 · 矩阵仍 **partial**（#2/#3/#5/#6）· **≠ covered** |
-| ~~`AiGraphRun → safely_terminated`~~ **CLOSED**（`GAP-UC018-GRAPH` · `abandonInterviewAndRelease` → `safe_terminating`→`safely_terminated` + 业务事实保全 + `pnpm uc018:graph:prove`） | 已关 · 矩阵仍 **partial**（#3/#5/#6）· **≠ covered** |
-| TTL sweeper → abandoned | 属 `commerce-reconcile` / worker；旁证 ≠ 本 prove；本切片不实现；`GAP-UC018-TTL` |
+| ~~`AiGraphRun → safely_terminated`~~ **CLOSED**（`GAP-UC018-GRAPH` · `abandonInterviewAndRelease` → `safe_terminating`→`safely_terminated` + 业务事实保全 + `pnpm uc018:graph:prove`） | 已关 · 矩阵仍 **partial**（#5/#6）· **≠ covered** |
+| ~~TTL sweeper → abandoned~~ **CLOSED**（`GAP-UC018-TTL` · `pnpm uc018:ttl:prove`；旁证 `commerce-reconcile:prove` 仍 ≠ UC covered） | 已关 · 矩阵仍 **partial**（#5/#6）· **≠ covered** |
 | UI「点放弃」 | NON-UI 优先；Playwright 降次 |
 | 完整黄金路径 UC-E2E-001 | 另轨；需 Key |
 
@@ -61,12 +61,12 @@
 |---|------------------------|-----------------|
 | 1 | ~~`full.e2e.ts` / `e2e:isolated` **显式** TC：鉴权→begin 预留→`POST /interview/:id/abandon`→abandoned+released+不可 resume~~ **CLOSED**（`e2e/full.e2e.ts` 4-UC018 + `pnpm uc018:abandon:full-e2e:prove` / `E2E_UC018_ABANDON_ONLY=1`；HTTP prove 仍 ≠ covered） | was A1/A2 · `GAP-UC018-FULL-E2E` · **已关** · 矩阵仍 **partial** |
 | 2 | ~~放弃时 `AiGraphRun`：`safe_terminating`→`safely_terminated`（或等价）+ 业务事实保全集成/E2E 钉~~ **CLOSED**（`pnpm uc018:graph:prove` / `packages/db/test/uc-e2e-018-graph-safely-terminated.proof.ts`；abandon 路径两步 CAS + 事件/题目/面试行保全） | was 主流程图终态 · `GAP-UC018-GRAPH` · **已关** · 矩阵仍 **partial** |
-| 3 | TTL sweeper 专用钉：租约过期孤儿 → abandoned + released（与用户主动放弃同终态口径；`commerce-reconcile:prove` 旁证不够） | TTL · `GAP-UC018-TTL` |
+| 3 | ~~TTL sweeper 专用钉：租约过期孤儿 → abandoned + released（与用户主动放弃同终态口径）~~ **CLOSED**（`pnpm uc018:ttl:prove` / `apps/worker/test/uc-e2e-018-ttl-sweeper-abandon.proof.ts`；TTL tick → `abandonInterviewAndRelease` 同终态口径；`commerce-reconcile:prove` 仍为旁证 ≠ 本钉） | was TTL · `GAP-UC018-TTL` · **已关** · 矩阵仍 **partial** |
 | 4 | ~~`waiting_user` CAS 放弃口 + prove~~ **CLOSED**（本波：CAS=`created\|active\|waiting_user` + A/H-waiting-user） | was `GAP-UC018-WAITING-USER` · **已关** |
 | 5 | UI：面试中「放弃」触发 → 同上 HTTP 合同（`e2e:ui:isolated` 次层；不可单独升 covered） | 触发/后置 |
 | 6 | sole-stack 夹具（MySQL+Qdrant+Redis）替换默认 pgvector isolated，去掉 **R5 green-risk** 后才可讨论发布级 covered | 矩阵 §0 / R5 |
 
-**本切片已关 §1b#4（waiting_user）**；**已关 §1b#1（`GAP-UC018-FULL-E2E`）**；**已关 §1b#2（`GAP-UC018-GRAPH` · `uc018:graph:prove`）**；仍明确不做：上表 #3/#5/#6 实现；把旁证 prove / full.e2e/graph 绿写成 covered；把矩阵升 covered。
+**本切片已关 §1b#4（waiting_user）**；**已关 §1b#1（`GAP-UC018-FULL-E2E`）**；**已关 §1b#2（`GAP-UC018-GRAPH` · `uc018:graph:prove`）**；**已关 §1b#3（`GAP-UC018-TTL` · `uc018:ttl:prove`）**；仍明确不做：上表 #5/#6 实现；把旁证 prove / full.e2e/graph/ttl 绿写成 covered；把矩阵升 covered。
 
 ---
 
@@ -79,6 +79,7 @@
 | `pnpm uc018:abandon:prove:raw` / `…:http:prove:raw`（仅经 isolated 子进程） | **0** | raw：`pnpm -C packages/db prove:uc018-abandon` / `pnpm -C apps/api prove:uc018-abandon-http` |
 | `pnpm uc018:abandon:full-e2e:prove` | **0** | full.e2e 显式 abandon TC（`E2E_UC018_ABANDON_ONLY=1` → isolated `e2e:prove`）；关 `GAP-UC018-FULL-E2E` only；**仍 ≠ covered**；R5 |
 | `pnpm uc018:graph:prove` | **0** | AiGraphRun `safe_terminating`→`safely_terminated` + 业务事实保全；关 `GAP-UC018-GRAPH` only；**仍 ≠ covered**；R5 |
+| `pnpm uc018:ttl:prove` | **0** | 租约过期孤儿 → abandoned+released（+graph safely_terminated）；关 `GAP-UC018-TTL` only；**仍 ≠ covered**；R5；Ban wash commerce-reconcile 旁证 |
 | `pnpm eval-harness-matrix-cite:prove` | **0** | 静态：harness+eval 引用 `UC-E2E-018`；≠业务 covered |
 
 ```bash
@@ -89,6 +90,7 @@ pnpm uc018:abandon:prove ; echo EXIT=$?
 pnpm uc018:abandon:http:prove ; echo EXIT=$?
 pnpm uc018:abandon:full-e2e:prove ; echo EXIT=$?
 pnpm uc018:graph:prove ; echo EXIT=$?
+pnpm uc018:ttl:prove ; echo EXIT=$?
 pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 ```
 
@@ -110,8 +112,9 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 | 「uc018:abandon:prove 绿 = covered」 | **假绿**。最多 **partial**；缺 §1b |
 | 「uc018:abandon:http:prove 绿 = covered / full.e2e 已含」 | **假绿**。聚焦 HTTP 口 ≠ full.e2e 场景矩阵；仍缺 TTL/UI/sole-stack（waiting_user+FULL-E2E+GRAPH 已关） |
 | 「写了 harness 所以 gap 关闭为 covered」 | **假绿**。partial ≠ covered |
-| 「full.e2e abandon TC 绿 = UC-E2E-018 covered」 | **假绿**。仅关 `GAP-UC018-FULL-E2E`；#3/#5/#6 仍开 → 矩阵 **partial** |
-| 「uc018:graph:prove 绿 = UC-E2E-018 covered」 | **假绿**。仅关 `GAP-UC018-GRAPH`；#3 TTL / #5 UI / #6 sole-stack 仍开 → 矩阵 **partial** |
+| 「full.e2e abandon TC 绿 = UC-E2E-018 covered」 | **假绿**。仅关 `GAP-UC018-FULL-E2E`；TTL+#5/#6 中 #5/#6 仍开（TTL 已另钉）→ 矩阵 **partial** |
+| 「uc018:graph:prove 绿 = UC-E2E-018 covered」 | **假绿**。仅关 `GAP-UC018-GRAPH`；#5 UI / #6 sole-stack 仍开（TTL 已另钉）→ 矩阵 **partial** |
+| 「uc018:ttl:prove 绿 = UC-E2E-018 covered」 / 「commerce-reconcile:prove 绿 = TTL/UC covered」 | **假绿**。仅关 `GAP-UC018-TTL`；#5 UI / #6 sole-stack 仍开 → 矩阵 **partial**；commerce-reconcile 旁证 ≠ TTL 专用钉 |
 
 ---
 
@@ -121,7 +124,7 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 |----|----------------------|------------|
 | UC-E2E-018 | **partial**（db A1–A3+A-waiting-user + HTTP H*+H-waiting-user）；**≠ covered** | `harness/uc-e2e-018-user-abandon.md` |
 | 评测说明 | `eval/uc-e2e-018-user-abandon.eval.md` | 引用矩阵行 ID |
-| P0-8 | 集成+HTTP+**full.e2e abandon**+**graph** prove 已挂（含 waiting_user CAS + `GAP-UC018-FULL-E2E` + `GAP-UC018-GRAPH`）；TTL / UI / sole-stack 仍缺 | 见矩阵 §3 · harness §1b · 仍 **partial** |
+| P0-8 | 集成+HTTP+**full.e2e abandon**+**graph**+**ttl** prove 已挂（含 waiting_user CAS + `GAP-UC018-FULL-E2E` + `GAP-UC018-GRAPH` + `GAP-UC018-TTL`）；UI / sole-stack 仍缺 | 见矩阵 §3 · harness §1b · 仍 **partial** |
 
 ## 5. 审查
 

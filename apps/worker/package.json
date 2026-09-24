@@ -17,6 +17,7 @@
     "prove:ocr": "tsx test/ocr.proof.ts",
     "prove:reaper": "tsx test/reaper.proof.ts",
     "prove:commerce-reconcile": "tsx test/commerce-reconcile.proof.ts",
+    "prove:uc018-ttl": "tsx test/uc-e2e-018-ttl-sweeper-abandon.proof.ts",
     "prove:model-invocation-reconcile": "tsx test/model-invocation-reconcile.proof.ts",
     "prove:model-op00-db-state": "tsx test/model-op00-db-state.proof.ts",
     "prove:security": "tsx test/security.proof.ts",

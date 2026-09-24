@@ -1,6 +1,6 @@
-# Harness — **UC-E2E-018 TTL sweeper abandon**（§1b #3 · `GAP-UC018-TTL` · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · Ban claim UC-E2E-018 covered · matrix stays **partial** · Ban wash `commerce-reconcile:prove` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / D2b/`7fddebe` / HA / liveGhaRunUrl into E2E covered）
+# Harness — **UC-E2E-018 TTL sweeper abandon**（§1b #3 · `GAP-UC018-TTL` · docs REQUEST · **`executed:awaiting_post_prove_dual`** · Ban claim UC-E2E-018 covered · matrix stays **partial** · Ban wash `commerce-reconcile:prove` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / D2b/`7fddebe` / HA / liveGhaRunUrl into E2E covered）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（实现方预写 · **not yet dual-sent** · **Ban自批 pass** · Dual PASS ≠ coding · Dual PASS ≠ UC-E2E-018 covered · Dual PASS ≠ next knife auto-authorize · **≠ coding** · **≠ prove** · **≠ TTL/product/worker edits this open** · **≠ claim UC-E2E-018 covered** · **≠ claim matrix covered / full suite covered** · **≠ close §1b #5 UI / #6 sole-stack R5** · **≠ wash `commerce-reconcile:prove` 旁证 into `GAP-UC018-TTL` closed / UC covered** · **≠ wash prior GRAPH nail `08650ea` / FULL-E2E nail `c36b032` / D2b/`7fddebe` / HA / liveGhaRunUrl into UC covered** · **≠ invent green** · matrix **partial** retained）  
+**Status**: **`executed:awaiting_post_prove_dual`**（AUTHORIZED coding+prove landed · Ban self-nail `post_prove_dual_pass` · GAP-UC018-TTL closed only · matrix **partial** · #5/#6 OPEN · STOP until post-prove dual）
 **Date**: 2026-09-23 (~16:55 PT)  
 **Base / parent tip**: GRAPH safely_terminated nail **`08650ea`** / full `08650ea37a7c8b120d6f8187ba40a47fc741daae`（`GAP-UC018-GRAPH` **CLOSED** · matrix still **partial** · Ban claim UC covered · Ban wash GRAPH into covered）· prior FULL-E2E nail **`c36b032`** / full `c36b032b4db5ddfa89dc6295395f4ac928b96583`（`GAP-UC018-FULL-E2E` **CLOSED** · retained · Ban wash）· prior HA D2b nail **`7fddebe`** CLOSED · Ban reopen D2b · Ban wash HA into E2E covered · branch `feat/mysql-schema-skeleton`  
 **Knife name**: **UC-E2E-018 TTL sweeper abandon · GAP-UC018-TTL**（§1b #3 only）  
@@ -15,8 +15,8 @@
 **Slice**: `../uc-e2e-018-ttl-sweeper-abandon.slice.md`  
 **Eval**: existing `../eval/uc-e2e-018-user-abandon.eval.md`（update in **coding** phase only · **not** this open · Ban rewrite as covered now）  
 **Parent harness（update in coding phase · not this open）**: `harness/uc-e2e-018-user-abandon.md` — will be updated when AUTHORIZED coding lands TTL dedicated nail + prove CMD(s) + matrix honesty for `GAP-UC018-TTL` only · **do not** rewrite product flags as covered now  
-**Authority**: meetwise — **docs REQUEST open only** for **UC-E2E-018 TTL sweeper abandon · GAP-UC018-TTL** · status `draft:awaiting_pre_exec_dual` · Ban secrets / `.env*` · Meridian banned · No force-push · Ban Cloud Agent · Ban self-approve · Ban self-nail · Ban silent UC covered claim · Ban coding until dual+authorize · Ban messaging dual reviewers（coordinator dispatches）  
-**Honesty**: This open = **document for later coding** of §1b #3 only · zero product/TTL/worker edits · zero prove · zero claim UC-E2E-018 covered · matrix **partial** · Dual PASS ≠ coding · Dual PASS ≠ UC covered · Dual PASS ≠ next knife · Ban wash `commerce-reconcile:prove` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / D2b/`7fddebe` / HA / liveGhaRunUrl into E2E covered · **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · status `draft:awaiting_pre_exec_dual` · Ban self-nail · STOP until dual+authorize
+**Authority**: meetwise — **docs REQUEST open only** for **UC-E2E-018 TTL sweeper abandon · GAP-UC018-TTL** · status `executed:awaiting_post_prove_dual` · Ban secrets / `.env*` · Meridian banned · No force-push · Ban Cloud Agent · Ban self-approve · Ban self-nail · Ban silent UC covered claim · Ban coding until dual+authorize · Ban messaging dual reviewers（coordinator dispatches）  
+**Honesty**: This open = **document for later coding** of §1b #3 only · zero product/TTL/worker edits · zero prove · zero claim UC-E2E-018 covered · matrix **partial** · Dual PASS ≠ coding · Dual PASS ≠ UC covered · Dual PASS ≠ next knife · Ban wash `commerce-reconcile:prove` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / D2b/`7fddebe` / HA / liveGhaRunUrl into E2E covered · **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · status `executed:awaiting_post_prove_dual` · Ban self-nail · STOP until dual+authorize
 
 ---
 
@@ -24,8 +24,8 @@
 
 | Expert | Receipt path（named · **not pre-filled**） | Status |
 |--------|---------------------------------------------|--------|
-| `mw-e2e-ha` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-ttl-sweeper-abandon-mw-e2e-ha.md` | **PENDING / draft:awaiting_pre_exec_dual** |
-| `mw-rag-route` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-ttl-sweeper-abandon-mw-rag-route.md` | **PENDING / draft:awaiting_pre_exec_dual** |
+| `mw-e2e-ha` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-ttl-sweeper-abandon-mw-e2e-ha.md` | **pre-exec PASS retained** · post-prove dual **PENDING** |
+| `mw-rag-route` | `../reviews/REQUEST-2026-09-23-uc-e2e-018-ttl-sweeper-abandon-mw-rag-route.md` | **pre-exec PASS retained** · post-prove dual **PENDING** |
 
 **Note**: Implementer does **not** pre-fill pass. Dual **not** pinged by implementer（coordinator dispatches）. Ban自批. Dual PASS ≠ coding · Dual PASS ≠ UC-E2E-018 covered · Dual PASS ≠ next knife auto-authorize.
 
@@ -35,7 +35,7 @@
 
 | Statement | Ruling |
 |-----------|--------|
-| **What this knife is** | Docs REQUEST open: **UC-E2E-018 TTL sweeper abandon · GAP-UC018-TTL** · scope **ONLY §1b #3** · document for later coding: lease-expired orphan → `abandoned` + `released`（**same terminal口径 as user abandon**）· Integration and/or E2E **dedicated** prove CMD(s) that **nail the TTL path**（not wash from `commerce-reconcile:prove` 旁证 alone）· update parent harness + eval + matrix honesty to close **`GAP-UC018-TTL` only** · prove CMD plan named · Ban假绿 · status **`draft:awaiting_pre_exec_dual`** |
+| **What this knife is** | Docs REQUEST open: **UC-E2E-018 TTL sweeper abandon · GAP-UC018-TTL** · scope **ONLY §1b #3** · document for later coding: lease-expired orphan → `abandoned` + `released`（**same terminal口径 as user abandon**）· Integration and/or E2E **dedicated** prove CMD(s) that **nail the TTL path**（not wash from `commerce-reconcile:prove` 旁证 alone）· update parent harness + eval + matrix honesty to close **`GAP-UC018-TTL` only** · prove CMD plan named · Ban假绿 · status **`executed:awaiting_post_prove_dual`** |
 | **What this knife is not** | **Not** coding · **not** prove · **not** TTL/product/worker edits this open · **not** claiming UC-E2E-018 covered · **not** claiming matrix covered · **not** closing §1b #5 UI / #6 sole-stack R5 · **not** washing `commerce-reconcile:prove` into TTL closed / UC covered · **not** washing GRAPH/`08650ea` / FULL-E2E/`c36b032` / D2b/`7fddebe` / HA / liveGhaRunUrl into E2E covered · **not** washing `uc018:abandon:*` / full-e2e / graph EXIT=0 into TTL closed / UC covered · **not** inventing green · **not** cloud buy · **not** D3 · **not** Meridian · **not** Cloud Agent · **not** secrets / `.env*` · **not** second knife · **not** self-nail · **not** reopen GRAPH / FULL-E2E / D2b · **not** UC covered-lift |
 | **≠ wash commerce-reconcile into TTL / UC covered** | **YES** — `pnpm commerce-reconcile:prove` is **旁证 alone ≠ this gap closed** · parent harness §1b #3 + §0 另轨 explicitly ban冒充 · **retained** · Ban wash |
 | **≠ wash GRAPH into TTL / UC covered** | **YES** — parent tip **`08650ea`** GRAPH nail CLOSED · matrix still **partial** · **≠** TTL dedicated · **≠** UC-E2E-018 covered · **retained** · Ban wash · Ban reopen GRAPH |
@@ -45,7 +45,7 @@
 | **haStatus / releaseEvidence / claimProductionHA** | **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban flip this open · Ban假绿 |
 | **Matrix / UC covered** | UC-E2E-018 stays **partial** · Ban claim covered this knife · even after later §1b #3 close, #5/#6 keep matrix **partial** |
 | **Parent harness rewrite** | `uc-e2e-018-user-abandon.md` **not** rewritten as covered now · coding-phase update only · Ban product-flag flip this open |
-| **Now** | **`draft:awaiting_pre_exec_dual`** · docs only · zero coding · zero prove · zero TTL/worker edits · Ban claim UC covered · Ban wash commerce-reconcile/GRAPH/FULL-E2E/D2b/HA into E2E · Dual not pinged |
+| **Now** | **`executed:awaiting_post_prove_dual`** · docs only · zero coding · zero prove · zero TTL/worker edits · Ban claim UC covered · Ban wash commerce-reconcile/GRAPH/FULL-E2E/D2b/HA into E2E · Dual not pinged |
 
 ---
 
@@ -100,7 +100,7 @@
 
 | Phase | Gate | This REQUEST |
 |-------|------|--------------|
-| **L0** | REQUEST pair open · `draft:awaiting_pre_exec_dual` | **THIS OPEN** · parent **`08650ea`** · docs only |
+| **L0** | REQUEST pair open · `executed:awaiting_post_prove_dual` | **THIS OPEN** · parent **`08650ea`** · docs only |
 | **L1** | Pre-exec dual (`mw-e2e-ha` + `mw-rag-route`) · Ban self-approve · coordinator dispatches | **awaiting_pre_exec_dual** · Ban自批 · Dual not pinged by implementer |
 | **L2** | AUTHORIZED coding+prove | **blocked** until dual BOTH PASS + authorize · Ban coding this open |
 | **L3** | awaiting_post_prove | later |
@@ -168,4 +168,6 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 
 ---
 
-*Harness · UC-E2E-018 TTL sweeper abandon · GAP-UC018-TTL · §1b #3 only · 2026-09-23 (~16:55 PT) · draft:awaiting_pre_exec_dual · docs only · parent 08650ea · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount 8 · ms3EqualsR4Closed=false · Ban claim UC covered · matrix partial · Ban wash commerce-reconcile/GRAPH/FULL-E2E/D2b/HA into E2E · Ban coding until dual+authorize · STOP*
+*Harness · UC-E2E-018 TTL sweeper abandon · GAP-UC018-TTL · §1b #3 only · 2026-09-23 (~16:55 PT) · executed:awaiting_post_prove_dual · GAP-UC018-TTL closed only · matrix partial · parent 08650ea · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount 8 · ms3EqualsR4Closed=false · Ban claim UC covered · matrix partial · Ban wash commerce-reconcile/GRAPH/FULL-E2E/D2b/HA into E2E · Ban self-nail post_prove_dual_pass · Ban claim UC covered · #5/#6 OPEN · STOP*
+
+*Status after AUTHORIZED coding+prove: `executed:awaiting_post_prove_dual` · Ban self-nail · Ban claim UC covered · GAP-UC018-TTL closed only · matrix partial · #5/#6 OPEN · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · STOP*
