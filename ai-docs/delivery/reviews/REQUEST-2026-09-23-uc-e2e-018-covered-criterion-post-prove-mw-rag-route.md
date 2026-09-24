@@ -259,3 +259,92 @@ Parent harness 无 `不得写已关` 字面 · 今日 `businessPathMet=true` 与
 
 **mw-rag-route** · 2026-09-23 (~20:40 PT) · C-GATHERER-REAL-INPUT re-review · Verdict **FAIL** · blocker=missing-stack default-to-met · APPEND-ONLY 本节 · Ban Meridian · Ban Cloud Agent · Ban `.env*`
 
+---
+
+## Re-review round 2 (4a8a085/4706c4b)
+
+**Date**: 2026-09-23 (~20:52 PT)  
+**Verdict**: **FAIL**（blocker：`prove.committed` / `uncommitted` / `shaMatchesCommitted` 缺省仍可 MET · 非 positive-proof）  
+**Expert**: `mw-rag-route` · Ban invent covered · Ban假关 · alone≠dual · **Dual PASS ≠ covered ≠ nail ≠ §1.1 flip**  
+**Tips**: runner `4a8a085` / full `4a8a085ba31400b389b288e42557324a769cb5af` Author `meetwise-core` · receipts `4224e73` / full `4224e7386cb19b6bc948a24e76c2ae5ecd44a53a` + ADV append `4706c4b` / full `4706c4b447d33777f4339080e5812ba19d531693` Author `meetwise-core` · evidence `runnerCommitSha=4a8a085` **MATCH**  
+**Worktree**: `/workspace/wt-mwrr-4a8a085` @ `4706c4b` · `pnpm install --frozen-lockfile` · 四 prove 后 remove --force + prune · 主树仅本 append
+
+### f7f804b / 03449a8 stale SHA
+
+| 检查 | 结果 |
+|------|------|
+| `git merge-base --is-ancestor f7f804b origin/feat/mysql-schema-skeleton` | **fail**（非 tip 祖先） |
+| 本地 `git cat-file -t f7f804b` | 可能仍存 **orphaned** 对象（本机 cat 曾成功）· **非** origin 证据链 |
+| tip `git grep f7f804b` | **仅** `covered-criterion-evidence.json:524` `rebaseNote`：「rewrote local f7f804b → origin 4a8a085 · supersedes 03449a8」 |
+| `03449a8` | 曾把 `runnerCommitSha` 写成 `f7f804b…` · 已被 `4224e73`/`4706c4b` 以 `4a8a085` 重证取代 |
+
+**裁定：ACCEPTABLE（void/superseded）** · tip 无 live `runnerCommitSha`/`gitSha` 消费 `f7f804b` · gatherer/evaluator 不读该 orphan · **非 blocker**。
+
+### CMD|EXIT（@ worktree 4706c4b · porcelain=0）
+
+| CMD | EXIT | 关键输出 |
+|-----|------|----------|
+| `pnpm uc018:covered-criterion:prove` | **0** | `canHonestlyFlip=false` · reasons=`STATUS-NOT-COVERED,UNCOMMITTED-RUNNER,MISSING-RECEIPT,CASE-ONLY,STUB-STACK,IMPL-ONLY,PERF-LOCAL-ONLY,OPEN-GAP` · `businessPathMet=true` · FAULT wired GRAPH tip `25d1900` · porcelain clean accepted + dirty DIRTY_TREE refuse · FX-STACK-*/EOR/EXIT/PROVE PASS |
+| `pnpm uc018:covered-lift-reassess:prove` | **0** | false · PERF-LOCAL-ONLY · §1.1 partial |
+| `pnpm uc018:adv:prove` | **0** | 76 PASS · **REAL** `pgvector/pgvector:pg16` docker ephemeral |
+| `pnpm eval-harness-matrix-cite:prove` | **0** | UC-018 partial ≠ covered |
+
+### Field-removal mutation（`/tmp/mwrr-field-removal.mjs` · 不入仓）
+
+- **ALL-MET → true**（true 分支可达）
+- 对六列逐字段 delete/undef（status/stack/exit/committed-forced-false/dual/eor/present/nhpIds）+ s11/openGaps/capacity：**89/89 PASS**（flip=false）· **0 blocker from that table**
+- **额外探针（BLOCKER）**：仅删除 `prove.committed` / `uncommitted` / `shaMatchesCommitted` / `staleSha`（保留 exit=0、stack 全绿、eor=true、dual both）→ **`canHonestlyFlip=true`** · reasons=`[]`
+
+### 字段检查分类（evaluator / gatherer）
+
+| 字段 | file:line | 分类 |
+|------|-----------|------|
+| status === covered | evaluator :116–125 | fail-closed（≠covered → reason） |
+| NHP ids 正向包含 | :127–134 | fail-closed |
+| stack postgres/Saver **!== true**；mem/mysql/qdrant **!== false** | :163–172 | **fail-closed**（本轮已修 · 先验 PASS） |
+| exit == null → MISSING-RECEIPT；!==0 → PROVE-FAIL | :147–151 | fail-closed |
+| dual missing/one | :157–160 | fail-closed |
+| eor **!== true** → MISSING-RECEIPT | :175–179 | fail-closed |
+| present/missing | :180–182 | fail-closed |
+| capacityRepresentative **=== true** + non-local + dual both | :99–104 | 大体 fail-closed；**`evidenceOfRecord === false` 才拒 · undef 仍可 capOk=true**（nail；列级 eor 已拦 meetsCovered） |
+| businessPathMet **=== true** | :232 / :235 | fail-closed |
+| openGaps length | :222–224 | fail-closed |
+| gapClosedInText + banNear | gatherer :85–110 | fail-closed（不得写已关/未关/Ban/尚未关闭/not closed **PASS**） |
+| DIRTY_TREE porcelain | gatherer :assertCleanPorcelain ~271 | fail-closed（prove 测 clean accept + dirty refuse） |
+| **committed / shaMatchesCommitted** | evaluator :140–145 | **default-met BLOCKER**：仅在 `=== false` / `uncommitted === true` 时拒 · **缺省 undefined 不拒** |
+| FAULT ← GRAPH `25d1900` | gatherer :337–360 + columns FAULT | **真实接线**（tipOk+cmds.graph=0 → wired；无 stack → STUB-STACK） |
+| NEG/BOUND dual | sole+waiting reviews :318–328 | fail-closed 读取 · dual PASS 本跑 |
+| pg+pgvector→Saver 推断 | parseSoleStack :196–210 | **已移除** · 仅 `/postgressaver/` 显式 token |
+
+### Fixtures / regex
+
+- `FX-STACK-MISSING` / `FX-STACK-EMPTY` / `FX-EOR-MISSING` / `FX-EXIT-MISSING` / `FX-EXIT-ABSENT` / `FX-PROVE-FAIL` / `FX-STUB-STACK` / `FX-ALL-MET`：**全部 PASS**（期望 reason 命中）
+- gapClosed 否定含 `不得写已关` · `未关` · `Ban假关` · `尚未关闭` · `not closed`：**全部 PASS**
+
+### FAULT / DIRTY_TREE
+
+- FAULT：`faultReceiptNote=wired GRAPH evidence (tip 25d1900 committed+ancestor; cmds present; no stack => STUB-STACK)` · dual graph post-prove PASS · exit=0 from `cmds['uc018:graph:prove']` · **非**伪造 nonzero
+- DIRTY_TREE：clean accept · dirty refuse · 本跑 porcelain=0 未误拒
+
+### Blockers
+
+1. **FAIL**：evaluator 对 `prove.committed` / `shaMatchesCommitted` **未**要求 `=== true`（:140–145）· 字段缺省 → 仍可 ALL-MET true（独立复现）。须改为 positive-proof（例：`committed !== true \|\| shaMatchesCommitted !== true` → UNCOMMITTED-RUNNER；无 sha 同理）。
+
+### Nail conditions（非本 FAIL 主因 · 可并修）
+
+1. `isCapacityRepresentative`：`evidenceOfRecord` 应 `!== true` 即拒（今日仅 `=== false`）。
+2. `pickGitSha` 未读 GRAPH `requestTip` → FAULT/NEG 常 `gitSha=null`→UNCOMMITTED（保守 · 可纳 `requestTip`）。
+3. `covered-criterion-prove.md` 文首仍钉 `ca1c8a5` · 与 evidence `4a8a085` 漂移（以 JSON `runnerCommitSha` 为准 · 文档对齐 nail）。
+4. 旧刀机读字段补齐（stack/eor/gitSha）仍属 **separate knife** / GAP-UC018-RECEIPT-BACKFILL。
+
+### Pins / PG / secret / cleanup
+
+- pins HOLD · §1.1 partial · 无 covered flip · harness 未触  
+- **PG real YES**（adv docker `pgvector/pgvector:pg16`）  
+- secret scan：本节仅禁令措辞 · **CLEAN**  
+- worktree **已移除** · 主树仅本文件 append
+
+### signature（r2）
+
+**mw-rag-route** · 2026-09-23 (~20:52 PT) · re-review round 2 · Verdict **FAIL** · blocker=committed-flags default-met · APPEND-ONLY · Ban Meridian · Ban Cloud Agent · Ban `.env*` · **Dual PASS ≠ covered ≠ nail ≠ §1.1 flip**
+
