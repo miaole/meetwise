@@ -1,32 +1,34 @@
-# UC052 checkpoint physical prove receipt (Line B)
+# UC052 checkpoint physical prove receipt (Line B) — saver fix round
 
 **Knife**: GAP-PRIV-CHECKPOINT-FENCE-ONLY
 **CMD**: pnpm uc052:checkpoint-physical:prove
 **EXIT**: 0
-**Runner SHA**: 3b9ab17 / 3b9ab17a5d2a4d28336524308fa1e7d577276050
-**Code tips**: 775710f (feat) · 3b9ab17 (tsc fix)
-**Date**: 2026-09-23 (~21:20 PT)
+**Runner SHA**: 69de818 / 69de8180f5f2aa059191f67c32dad89d07bbcbed
+**Code tips**: 3e42d16 (real PostgresSaver seed+race) · 69de818 (saver pool isolation)
+**Date**: 2026-09-23 (~21:25 PT)
+
+## Revive
+
+getTuple=empty · put=refused · three-table COUNT=0 (FAULT-02 / RACE / HP). Not REVIVED.
+
+## Race interleaving
+
+FOR UPDATE barrier on checkpoints + checkpoint_blobs + checkpoint_writes holds purge DELETEs;
+concurrent real PostgresSaver.put/putWrites runs while purge is blocked; then COMMIT hold;
+purge completes. Extra case NHP-052-CKPT-RACE-TRIGGER retains fence-trigger INSERT race.
+
+## Disclosure 2 (seal after begin)
+
+- begin does not set privacy_epoch/target_set_digest: 0096 L147-218
+- 0091 claim requires them + live digest match: 0091 L369-383
+- sealCheckpointErasureAuthz + signed.targetSetDigest === sealed.targetSetDigest (C-DIGEST-JWS PASS)
 
 ## Cases
 
-All REQUIRED pass: FAULT-01/02/03 · NEG-01/02/03 · BOUND-01 · ZERO · RACE · HP-052-CKPT-01 · C-CASECOUNT.
+All REQUIRED pass including C-DIGEST-JWS · RACE · RACE-TRIGGER · HP.
 
 ## Gates
 
-| Gate | Result |
-|------|--------|
-| Three-table admin COUNT=0 | PASS (HP + FAULT-02/03/RACE) |
-| NEG-02 cross-tenant before/after | PASS |
-| Public DELETE 503 | PASS (NEG-03) |
-| app_role begin GRANT | false |
-| Request terminal | pending_external (Ban completed) |
-| tsc -p packages/db --noEmit | 6 = baseline · zero new |
-| uc052:internal-erasure:prove | EXIT=0 |
-| privacy-authorization:prove | EXIT=0 |
-| porcelain at prove | clean |
-
-## Pins retained
-
-NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCount=8 · PG-retained · DELETE=503 · Ban invent covered · Ban SSOT edit this tip
+tsc 6=baseline · internal-erasure EXIT=0 · privacy-authorization EXIT=0 · porcelain clean · releaseEvidence=false
 
 STOP after receipts · no messaging.

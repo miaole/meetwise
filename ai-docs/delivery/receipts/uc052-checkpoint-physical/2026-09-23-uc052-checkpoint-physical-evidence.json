@@ -5,11 +5,11 @@
   "outcome": "passed",
   "exitCode": 0,
   "cmd": "pnpm uc052:checkpoint-physical:prove",
-  "runnerGitSha": "3b9ab17a5d2a4d28336524308fa1e7d577276050",
-  "runnerGitShaShort": "3b9ab17",
+  "runnerGitSha": "69de8180f5f2aa059191f67c32dad89d07bbcbed",
+  "runnerGitShaShort": "69de818",
   "codeCommits": [
-    "775710f4c622036caa9305c7f9d552c919dd6822",
-    "3b9ab17a5d2a4d28336524308fa1e7d577276050"
+    "3e42d16c2847689f6e8f2d6b0b986e70ad406b0e",
+    "69de8180f5f2aa059191f67c32dad89d07bbcbed"
   ],
   "releaseEvidence": false,
   "haStatus": "NOT_HA",
@@ -17,6 +17,15 @@
   "coveredCount": 8,
   "line": "B",
   "knife": "GAP-PRIV-CHECKPOINT-FENCE-ONLY",
+  "revive": "refused/empty",
+  "raceInterleave": "FOR UPDATE barrier on checkpoints+blobs+writes while privacy_purge_checkpoint_target blocked; concurrent real saver.put/putWrites; then COMMIT hold",
+  "disclosure2": {
+    "beginNoEpochDigest": "packages/db/migrations/0096_int_transcript_remaining_sinks.sql L147-218",
+    "claimNeedsEpochDigest": "packages/db/migrations/0091_privacy_authorization_issuer.sql L369-383",
+    "seal": "packages/db/src/uc052-checkpoint-physical.ts sealCheckpointErasureAuthz",
+    "jwsEqSealedAssert": "runAuthorizedCheckpointPhysicalPurge signed.targetSetDigest === sealed.targetSetDigest",
+    "proveCase": "C-DIGEST-JWS"
+  },
   "cases": {
     "NHP-052-CKPT-FAULT-01": "pass",
     "NHP-052-CKPT-FAULT-02": "pass",
@@ -27,6 +36,8 @@
     "NHP-052-CKPT-BOUND-01": "pass",
     "NHP-052-CKPT-ZERO": "pass",
     "NHP-052-CKPT-RACE": "pass",
+    "NHP-052-CKPT-RACE-TRIGGER": "pass",
+    "C-DIGEST-JWS": "pass",
     "HP-052-CKPT-01": "pass",
     "C-CASECOUNT": "pass"
   },
@@ -40,14 +51,15 @@
     "privacy-authorization:prove": 0
   },
   "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
-  "durationMs": 10831,
+  "durationMs": 11267,
   "sourceDigests": {
-    "scripts/run-e2e-isolated.mjs": "sha256:049c1dc6f5dc790a582a1a31f4300334f5d672b270995c0082bb404f0818b55f",
+    "scripts/run-e2e-isolated.mjs": "sha256:331174527eefeefc246e8d7637632f2dd970848fbb31d971f946a1a2fbca947a",
     "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
-    "packages/db/test/uc052-checkpoint-physical.proof.ts": "sha256:17b81f064324913db39530c8b3e79fba849ed08dc3a0b20261a07624a38a332b",
-    "packages/db/src/uc052-checkpoint-physical.ts": "sha256:d2b51e9ca35324ad476cd66852009e50c5e18253e940b7e560c8bd7b97e1216e",
+    "packages/db/test/uc052-checkpoint-physical.proof.ts": "sha256:c96fa9fd11dcc81132b7628cab97731e497dbdd6290806a2c6665ac10450a38c",
+    "packages/db/src/uc052-checkpoint-physical.ts": "sha256:dbfa2d428e208cac6f4b67ad4f9d1b136bd1c5d7c58f4e5992f3dc8d36368286",
     "packages/db/src/uc052-internal-erasure.ts": "sha256:c720d2ec6d9dc4dbfd31e6497a2ce97ef0d05c6d471d029418ec7800ae19238c",
     "packages/db/src/checkpoint-privacy.ts": "sha256:ff26728f71a9c6d2aae078e8bf542c7a5a402245086854af99e202bcb332574e",
+    "apps/worker/src/checkpoint-principal.ts": "sha256:be6d3f06446a100e8224b48ac4416d5b724190f71d1e241f113f0688b3a7dd74",
     "packages/db/src/privacy-authorization.ts": "sha256:0deef7f737f90b70b2b27d57d1a2d7ae8d1cfd3b92d6a8397c3fd928e784385a",
     "packages/db/src/principal.ts": "sha256:63bd6f093a24cbd744ce80cd9abf67023832ece2648354ed5ae4fd8ccb228ab3",
     "packages/db/src/isolated-test-target.ts": "sha256:e85ed22fc4e6c2f6539305878a205994a8b81c1e21f5aa68684eff33af0522af",
@@ -62,6 +74,5 @@
     "count": 134,
     "latest": "0134_usage_calibration_gateway_owners.sql",
     "digest": "sha256:8dce517cceaa13a6bfa02560aac0fd202201fb85b1b6232e46c65aff22dda255"
-  },
-  "isolatedReceiptId": "2026-09-24T04-20-17-740Z-1784832-a2bfab99-c85b-4fa2-9d27-5ab67912bc78"
+  }
 }
