@@ -1,0 +1,9 @@
+# REQUEST — **UC-E2E-018 covered-lift · GAP-UC018-COVERED-LIFT** · pre-exec · mw-e2e-ha
+
+**Status**: **PENDING / draft:awaiting_pre_exec_dual / not_run:pre_dual**（named path · **not pre-filled** · **Ban自批 pass**）  
+**Expert**: `mw-e2e-ha`（writes this review）  
+**Pair**: `REQUEST-2026-09-23-uc-e2e-018-covered-lift-mw-rag-route.md`  
+**Knife**: `harness/uc-e2e-018-covered-lift.md` · status **`draft:awaiting_pre_exec_dual`**  
+**Hard**: Dual PASS ≠ coding · Dual PASS ≠ UC-E2E-018 covered · Dual PASS ≠ matrix flip · Dual PASS ≠ next knife auto-authorize · **`haStatus=NOT_HA`** · **`releaseEvidence=false`** · **`claimProductionHA=false`** · Ban假绿 · Ban invent green · Ban invent covered · Ban假关 · Ban claim UC-E2E-018 covered this open · matrix stays **partial** · Ban wash SOLE/`aa968b1` / UI/`1990b12` / TTL/`d698282` / GRAPH/`08650ea` / FULL-E2E/`c36b032` / waiting_user / HTTP/`uc018:abandon:*` / D2b/`7fddebe` / HA into covered · Ban reopen SOLE · Ban coding · Ban prove · Ban flip matrix this open · Ban flip `releaseEvidence` · cite `e2e-covered-path-backlog.md` § partial→covered 执行序 **#1** · parent `harness/uc-e2e-018-user-abandon.md` §1b · `adr-postgres-retained.md` · inventory §1b #1–#6 all CLOSED · intended later: `pnpm uc018:covered-lift:prove` + **canHonestlyFlip** · flip **partial→covered**（THIS UC only）**only if** affirmed · else stay **partial** + refuse pin · `gR45Closed=true` **retained** · coveredCount **8** retained · `ms3EqualsR4Closed=false` **retained** · eg1–eg6/r4/funnel **retained** · prior SOLE **`aa968b1`** + UI/TTL/GRAPH/FULL-E2E + D2b **retained** · Ban Cloud Agent · Ban Meridian · Ban secrets / `.env*` · Ban D3 · Ban cloud buy · Ban自批 · Key×3 FreeTier out of scope · Dual not pinged by implementer · ask domain review of harness/scope/CMD honesty · Ban coding until dual+authorize
+
+*(Expert writes full pre-exec review here. Implementer does not pre-fill pass.)*
