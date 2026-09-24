@@ -127,3 +127,110 @@ Dual PASS ≠ coding ≠ covered ≠ nail · Ban hand-write JSON from prose · B
 **mw-rag-route** · 2026-09-23 (~21:35 PT) · RECEIPT-BACKFILL pre-exec PASS
 
 Verdict: PASS
+
+---
+
+## Post-prove dual（e9ccfbe · package b515e69…e9ccfbe）
+
+**Date**: 2026-09-23 (~21:55 PT)  
+**Verdict**: **FAIL**（真实 blocker：PERF/LOAD gatherer 用 legacy README 污染 machine backfill → 假 implementerOnly）  
+**Expert**: `mw-rag-route` · alone ≠ dual · 不代签 peer · Ban invent covered · Dual PASS ≠ nail  
+**REQUEST**: `402f242` · tip evidence `e9ccfbe`（本机 tip 其后；核验以 e9ccfbe 为准）
+
+### Package（meetwise-core · 祖先）
+
+| SHA | Role |
+|-----|------|
+| `b515e69` | emitter/guard/gatherer/prove/harness |
+| `2f0d4a6` | emit 忽略 untracked backfill 输出 |
+| `8e6532e` | R1 cite FAULT case-only |
+| `7433807` | R2 covered-criterion expect dual PASS + D1 BOUND · **prove-wave wrapper** |
+| `11fac99` | 7 receipts + logs |
+| `61c3fcb` | D-A sourced stack · D-B BACKFILL-FAILED · enum 16→17 |
+| `e9ccfbe` | re-emit from committed logs（attempts 7–14 · 无 prove 重跑）· JSON `wrapperSha`=**61c3fcb** |
+
+披露：attempts.jsonl 首波 `wrapperSha=7433807`；e9ccfbe 再 emit 后 JSON `wrapperSha=61c3fcb`（format upgrade）· 接受并记下 · **≠** tip 证明。
+
+### 独立重跑（干净 worktree · 已 remove）
+
+| Key | targetSha | 声称 exit | 本审重跑 | digest≡JSON | notes |
+|-----|-----------|-----------|----------|-------------|-------|
+| SOLE | `23f98d3` | 0 | **0**（wt `/workspace/wt-mwrr-sole-23f98d3`） | **yes** | 静态 ADR prove |
+| UI | `e88d386` | 1 | **1** · `web_not_ready` · 无 `.next` | **yes** | BACKFILL-FAILED / 不计入成功 |
+| GRAPH | `f06dcba` | 0 | （未重跑服务） | **yes** | 日志可再解析 stack |
+| TTL | `549da9c` | 0 | — | **yes** | |
+| FULL-E2E | `85d36c7` | 0 | — | **yes** | |
+| ADV | `bdc5993` | 0 | — | **yes** | |
+| PERF-LOAD | `b29c191` | 0 | — | **yes** | 见 blocker |
+| waiting_user | — | MISSING-EVIDENCE | 确认常量 | — | 未自造 SHA |
+
+全部 7 份：`emittedBy=uc018-receipt-backfill-emit` · `ranAt`/`targetSha`/`wrapperSha` 齐 · `validateMachineEmittedReceipt` **ok** · 自 committed log 重算 `stdoutDigest` **全匹配** · GRAPH stack 再解析与 JSON **一致**（非手写）。
+
+### Tip proves @ `e9ccfbe`（`/workspace/meetwise-lineA` · porcelain clean）
+
+| CMD | EXIT |
+|-----|------|
+| `pnpm uc018:receipt-backfill:prove` | **0** |
+| `pnpm uc018:covered-criterion:prove` | **0** · `canHonestlyFlip=false` · MISSING-RECEIPT **gone** · MISSING-DUAL **remains** · mutation **423/423** |
+| `pnpm eval-harness-matrix-cite:prove` | **0** |
+
+脏树：`assertCleanPorcelain` → **DIRTY_TREE** 拒 covered-criterion gather（已实测）。receipt-backfill prove 本身不查 porcelain（依赖 CC 路径）。
+
+### R1 / R2（期望变更）
+
+| Rule | Commit | Ruling |
+|------|--------|--------|
+| R1 | `8e6532e` | cite：FAULT 要求 conservative **case-only**（D2）· 披露 legacy→blind · NEG/BOUND/ADV 仍 ≡ · **更紧/等价 · 未放松** · **PASS** |
+| R2 | `7433807` | covered-criterion：真 dual 须 PASS；NHP-018-BOUND-* 须存在（D1）· **对齐 nail · 未放松** · **PASS** |
+
+### Disclosure rulings
+
+**(a) SOLE postgresSaver=true**  
+- 来源：log 行「PASS adr-postgres-retained: pins PostgresSaver」（SOLE-23f98d3.log:68）· `source=log-parse` · **无** runtime 服务。  
+- `unwrapStackValue` → **true** · NEG/BOUND stack 出现 `postgresSaver:true`（仍因 memorySaver unobserved 整体 **STUB-STACK**）。  
+- **裁定**：不满足「runtime stack」诚实 · 应标 `static-doc` / unobserved 且 **不得** 当作 runtime met · 当前为 **硬化条件**（未单独升本刀唯一 FAIL 因仍 STUB-STACK · 但必须修）。
+
+**(b) pgvector imageDigest**  
+- 再 emit 时复用 prior digest · `source` 仍写 `docker-inspect` · **无** priorCapturedAt / non-live 标签。  
+- **裁定**：仅当标注 prior/non-live+时间戳才可接受 · 现状 **条件** · 非本轮唯一 blocker。
+
+### Pre-exec conditions check
+
+| Cond | Result |
+|------|--------|
+| ranAt/targetSha/wrapperSha | **yes**（JSON；prove-wave 见 attempts `7433807`） |
+| EOR@targetSha ≠ tip | disclosure 含条款 · guard 强制 |
+| dirty-tree refuse | CC **yes** |
+| implementer 未改 reviewer | `402f242..e9ccfbe` 仅审者 pre-exec 提交触碰本双文件 |
+| 矩阵/pins | UC-018/§1.1 **partial** · coveredCount **8** · NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed · ms3EqualsR4Closed=false |
+| GAP-BACKFILL-EMITTER-UNAUTHENTICATED | harness + README **已披露**（backlog 延至 nail） |
+| 原 receipts 未覆盖 | `402f242..e9ccfbe` legacy evidence JSON **无 diff** · 仅新目录 + attempts 追加 |
+
+### Blockers
+
+1. **FAIL · PERF/LOAD README bleed**：`gatherRealUc018` 对 PERF/LOAD 设 `labelText = perfReadme + …` · README 含「implementer pre-commit / not evidence of record」· 即使 preferred overlay 为 `uc018-receipt-backfill/PERF-LOAD.json`（`evidenceOfRecord:true` · `exit:0` · machine-emitted）仍被 `pickEvidenceFlags` 判 **implementerOnly=true** → eor 强 false · **UNCOMMITTED-RUNNER + IMPL-ONLY**。机器回填被假标 implementer · **Ban silent green 的反面：silent brown**。须：backfill preferred 时 **勿** 并入 legacy README 标签 · 或 README 仅绑定 legacy path。
+
+### Conditions（非本轮唯一 FAIL · 须 follow-up）
+
+1. SOLE static ADR → postgresSaver runtime true（见上）  
+2. re-emit imageDigest source 应标 prior/non-live + 捕获时间  
+3. dual 旧审文件无末行严格 Verdict → MISSING-DUAL（本刀预期 · 审者另追加）
+
+### Nail
+
+- UI `web_not_ready` 诚实记 exit=1 · preferable=false · 不洗绿 · **OK**  
+- waiting_user MISSING-EVIDENCE · **OK**  
+- mutation 423/423 · invariant OK · **OK**
+
+### Pins / secret / cleanup
+
+- pins HOLD · Ban invent covered · Ban §1.1 flip  
+- secret **CLEAN** · worktrees **已移除**  
+- Dual PASS ≠ nail · alone ≠ dual
+
+### signature（post-prove）
+
+**mw-rag-route** · 2026-09-23 (~21:55 PT) · RECEIPT-BACKFILL post-prove **FAIL**
+
+Verdict: FAIL
+
