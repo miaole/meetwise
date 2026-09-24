@@ -443,3 +443,132 @@ Evaluator `dualVerdict` `:83–92`：FAIL+FAIL → `'missing'`（fail-closed）�
 3. 裁定 **FAIL** · pins 不变 · DIRTY_TREE 自写 evidence 为 CONDITION · 不代签 peer。
 
 *Receipt append · mw-e2e-ha · UC018 covered-criterion gatherer round2 FAIL @4706c4b / 4a8a085 · 2026-09-23 ~21:05 PT · STOP*
+
+---
+
+## Re-review r3 · mw-e2e-ha · covered-criterion (Line A) · @10bf0c0 / runner 28dc259 · 2026-09-23 ~21:00 PT
+
+**Role**: mw-e2e-ha · adversarial evidence-honesty · alone≠dual · 不代签 mw-rag-route  
+**Tips**: `origin/feat/mysql-schema-skeleton`=`74cf87e` (peer r3 already on tip) · claim tip=`10bf0c0` · runner=`28dc259` · prior round2 tip=`dd2f3ce` · prior runner=`4a8a085`
+
+### Task1 · ancestry / disclosure
+| Check | Result | EXIT |
+|-------|--------|------|
+| `git fetch` | ok | 0 |
+| `28dc259` ancestor of `10bf0c0` | yes (`merge-base --is-ancestor`) | 0 |
+| both on `origin/feat/mysql-schema-skeleton` | yes | 0 |
+| `git diff 28dc259 10bf0c0 --stat` | **docs/receipts only** (4 files: harness md + lift evidence + covered-criterion evidence/prove.md) | 0 |
+| receipts `runnerCommitSha` | `28dc25947baad0f3a377d2961fa38fb6a25b915b` | — |
+| range `4a8a085..10bf0c0` | 14 commits (reviews + Line B/C product + Line A fix/receipts) | 0 |
+
+**Disclosure vs range**: evidence `rangeDisclosure.lineACommits` = `{4a8a085,4224e73,4706c4b,28dc259}` + vague note about Line B/C in `4a8a085..4706c4b`.  
+**Undisclosed product SHAs still in range** (CONDITION C-RANGE-PRODUCT-R3): `994e83a` feat(g7) FreeTierOnly · `9e55109`/`3c4847a` UC052 privacy product. Note text not updated to `..10bf0c0`; Line A docs `03449a8`/`10bf0c0`/`dd2f3ce` omitted from `lineACommits` list (docs-only, lower severity).
+
+### Task2 · clean worktree proves @10bf0c0
+Worktree `/workspace/mw-rv-10bf0c0` @ `10bf0c0` · `pnpm install --frozen-lockfile` EXIT=0 · `.tmp/` gitignored (`.gitignore:15`).
+
+| CMD | EXIT | Key output |
+|-----|------|------------|
+| `pnpm uc018:covered-criterion:prove` #1 | 0 | leaf-mutation **405/405**; dual FX retracted/single-peer PASS; real `canHonestlyFlip=false`; reasons include PERF-LOCAL-ONLY,OPEN-GAP,…; wrote `.tmp/uc018-covered-criterion/*` only; porcelain clean after |
+| `pnpm uc018:covered-criterion:prove` #2 | 0 | **no DIRTY_TREE**; porcelain still clean (C-DIRTY-SELF-WRITE fixed for this knife) |
+| `pnpm uc018:covered-lift-reassess:prove` | 0 | canHonestlyFlip=false retained; **but** dirtied tracked `ai-docs/delivery/receipts/2026-09-23-uc-e2e-018-covered-lift-reassess-evidence.json` → restored via `git checkout --` (C-LIFT-DIRTY-TRACKED) |
+| `pnpm eval-harness-matrix-cite:prove` | 0 | UC-E2E-018 partial≠covered |
+| `pnpm uc018:adv:prove` | 0 | 76 cases green; pins ADV alone≠covered; receipt under `.tmp/isolated-proof-receipts/` |
+| Mutation (inside covered-criterion prove) | 0 | **405/405** · allowlistHits=84 · 7-entry allowlist printed |
+| DIRTY_TREE sanity: `echo >> README.md` then prove | **1** | `DIRTY_TREE: … M README.md` refuse (`assertCleanPorcelain` :315–323) · restored |
+| `git check-ignore -v .tmp/uc018-covered-criterion/…` | 0 | ignored |
+| worktree remove `--force` | 0 | cleaned |
+
+### Task3 · dual parser source @28dc259 (`uc-covered-real-gatherer.mjs`)
+**Regex** (`REVIEW_VERDICT_LINE_RE` :261; applied per-line :268):  
+`/^(?:\*\*)?Verdict(?:\*\*)?:\s*(?:\*\*)?(PASS|FAIL)(?:\*\*)?\s*$/`  
+- Anchored full line · optional `**` around Verdict and PASS/FAIL only · **no** trailing commentary · case-sensitive PASS/FAIL · last matching line wins (:263–272).  
+- Tolerates `**Verdict**: **PASS**` · rejects `Verdict: PASS (with conditions)` and `**Verdict**: **PASS**（…）` (trail junk → null).  
+- **Does NOT strip markdown fences** — a bare machine line inside a ``` fence still matches (see test d).
+
+**Role binding** (`roleFromReviewPath` :273–281): filename suffix `-mw-e2e-ha.md` / `-mw-rag-route.md` (or path segment) **only**. Body / first-500 peer names ignored. **No git-author check** (C-NO-GIT-AUTHOR): any committer can drop a file named `…-mw-e2e-ha.md` with a strict last-line PASS.
+
+**Which files per column** (`gatherRealUc018` :366–391): knife **post-prove** paths — ADV→`…-adv-post-prove-…`, PERF/LOAD→`…-perf-load-post-prove-…`, NEG/BOUND→sole-stack-pg-retained-post-prove (+ waiting-user ha fallback via `||` :383–385), FAULT→graph-safely-terminated-post-prove if tip wired. **Not** covered-criterion-post-prove files for the six columns (correct knife binding).
+
+**Latest-wins**: confirmed FX-DUAL-RETRACTED + synthetic (a)/(b). Prior B-DUAL-PASS-PRIORITY / B-DUAL-CROSS-ROLE **fixed**.
+
+#### Parser tests (temp fixtures · EXIT=0)
+| ID | Setup | Result |
+|----|-------|--------|
+| (a) PASS then FAIL | last=FAIL · dual FAIL+PASS | **not met** (DUAL-ONE path) ✓ |
+| (b) FAIL then PASS | last=PASS · dual PASS+PASS | **met** ✓ append re-review |
+| (c) no marker | prose PASS only | e2eHa=null → **MISSING-DUAL** ✓ |
+| (d) fence | ``` / Verdict: PASS / ``` only | **PASS counted** → **B-DUAL-FENCE-COUNTED** |
+| (d2) `> Verdict: PASS` then FAIL | quoted ignored | FAIL ✓ |
+| (d3) bold / trail junk | bold OK; junk → null | ✓ |
+| (e) only rag file | e2eHa=null | **MISSING-DUAL** ✓ |
+| (f) real covered-criterion post-prove ha @tip | matchCount=0 (line6/198 have trail junk / non-strict label) | **null** (not PASS) ✓ · FX-DUAL-RETRACTED / SINGLE-FILE-NAMES-PEER fixtures also not invent PASS |
+
+Note: after this r3 append, gatherer will read **this file's last strict line** as ha slot for any column that points here — covered-criterion columns do **not** point here today; still keep last line honest.
+
+### Task4 · mutation allowlist rulings (7)
+| # | Path | What mutation does | Why survivor | Ruling | Evidence |
+|---|------|--------------------|--------------|--------|----------|
+| 1 | `ucId` | delete/null metadata | evaluate never reads | **LEGIT** | evaluator has no ucId gate |
+| 2 | `columns.(NEG\|FAULT\|BOUND\|ADV).receipts.capacityRepresentative` | flip claim on non-PERF/LOAD | only PERF/LOAD call `isCapacityRepresentative` :191–195 | **LEGIT** | design correct |
+| 3 | `columns.(NEG\|FAULT\|BOUND\|ADV).receipts.targetEnv` | same | only via capacity helper for PERF/LOAD | **LEGIT** | design correct |
+| 4 | `columns.*.prove.cmd` | delete cmd alone | MISSING-RECEIPT OR is `!cmd && !gitSha` :155–157; gitSha alone suffices | **LEGIT** (soft) / **C-PROVE-CMD-OR** | missing **both** → MISSING-RECEIPT; cmd-only absent still flip=true on FX-ALL-MET |
+| 5 | `columns.*.prove.gitSha` | delete/garbage sha string | same OR; **evaluate never cat-file/merge-base the string** — trusts `committed`/`uncommitted`/`staleSha` flags | **LEGIT** vs flags · **C-PROVE-GITSHA-UNUSED** | null/garbage sha + forged flags true → flip **true**; flags false → UNCOMMITTED-RUNNER |
+| 6 | `columns.*.receipts.implementerOnly` | delete/null/false | fail-closed only on `=== true` :179–181 | **LEGIT** | positive-proof asymmetry correct |
+| 7 | `section11.status` | delete / set gap/blind/not_met/covered | only `case-only` pushes CASE_ONLY :239–241; **`canHonestlyFlip` ignores status entirely** (`allColsMet && businessPathMet && openGaps.length===0` :244–246) | **FAIL-OPEN** | Direct test: status=`case-only` ⇒ `{flip:true, reasons:["CASE-ONLY"]}`; status=`gap`/`not_met`/absent ⇒ flip **true**. S11 business path gate is **`businessPathMet`** (absent/false ⇒ S11-NOT-MET ✓ FX-S11-NOT-MET). Coordinator suspicion **confirmed**: allowlist hides ornamental status field; even CASE_ONLY reason does not block flip. |
+
+### Task5 · fail-open re-hunt
+**New / confirmed**
+1. **B-S11-STATUS-FAIL-OPEN** — `section11.status` ornamental; CASE_ONLY reason without flip=false (`evaluator.mjs` :239–246).  
+2. **B-DUAL-FENCE-COUNTED** — no fence-stripping in `parseReviewFileVerdict` :263–272; last fenced strict line can override prior FAIL.  
+3. C-NO-GIT-AUTHOR · C-PROVE-GITSHA-UNUSED · C-PROVE-CMD-OR · C-RANGE-PRODUCT-R3 · C-LIFT-DIRTY-TRACKED · C-ALLPASS-EXIT0 (`pickExitFromReceipt` still `allPass===true → 0` :193) · dualVerdict accepts boolean/`pass` lowercase :86 (gatherer emits PASS/FAIL strings today).
+
+**Prior fixes intact @28dc259**
+- stack tri-state `!== true` / `!== false` :167–176  
+- EOR `evidenceOfRecord !== true` :182–184; gatherer absent⇒false :175–178  
+- null exit ⇒ MISSING-RECEIPT :152–154  
+- capacity local guard + dual EOR :99–105  
+- porcelain DIRTY_TREE :315–336  
+- dual last-strict + path-suffix role (B-DUAL-PASS-PRIORITY / B-DUAL-CROSS-ROLE closed)  
+- evidence write `.tmp/` only (this knife)
+
+`COLUMNS.every` over fixed 6 names — empty input columns ⇒ not all met (fail-closed). `negBoundDual` `||` :383–385 — FAIL string is truthy (OK); null falls through to waiting-user review (by design).
+
+### Task6 · pins (restated · alone≠dual · 不代签 peer)
+| Pin | Value |
+|-----|-------|
+| haStatus | NOT_HA |
+| releaseEvidence | false |
+| claimProductionHA | false |
+| gR45Closed | true |
+| coveredCount | 8 |
+| ms3EqualsR4Closed | false |
+| stack | PG-retained |
+| UC-018 / §1.1 | partial · not flipped |
+| real canHonestlyFlip | false (OPEN-GAP + column refuses) |
+
+### Blockers (r3)
+1. **B-S11-STATUS-FAIL-OPEN** — `section11.status` (incl. `case-only`) does not gate `canHonestlyFlip`; mutation allowlist entry #7 is fail-open camouflage.  
+2. **B-DUAL-FENCE-COUNTED** — fenced/code-block strict verdict lines counted; last-wins can launder PASS from quoted peer fence.
+
+### Conditions (r3)
+1. C-NO-GIT-AUTHOR (path suffix only)  
+2. C-RANGE-PRODUCT-R3 (994e83a / 9e55109 / 3c4847a undisclosed by SHA; note stale)  
+3. C-PROVE-GITSHA-UNUSED / C-PROVE-CMD-OR  
+4. C-LIFT-DIRTY-TRACKED (sibling knife)  
+5. C-ALLPASS-EXIT0 retained  
+6. Prior C-DIRTY-SELF-WRITE **closed** for covered-criterion (tmp-only)
+
+### Accidental strict-marker note
+Earlier body lines `**Verdict**: **PASS**（…）` (L6) and `**Verdict（本追加）**: **PASS** · …` (L198) and r2 `### Verdict` / prose **FAIL** **do not** match the strict EOL regex (trail junk / non-exact label). Pre-append `parseReviewFileVerdict` ⇒ null. This r3 last line is the sole strict marker.
+
+### Verdict
+Round-2 dual priority/cross-role + DIRTY self-write **fixed** at `28dc259` / receipts `10bf0c0`; proves×2 + lift + matrix + adv + 405/405 green; pins hold; **but** S11 status fail-open + dual fence count remain nail-blocking honesty defects.
+
+### 三行中文摘要
+1. runner `28dc259`/收据 `10bf0c0`：双 PASS 优先与跨角色、自写 DIRTY 已修；四 prove+matrix+ADV 与 405/405 符合；真实 canHonestlyFlip=false。  
+2. 新阻塞：`section11.status`（含 case-only）不挡 flip（allowlist 掩盖）；代码块内严格 Verdict 行仍计入且 last-wins。  
+3. 裁定 **FAIL** · pins 不变 · alone≠dual · 不代签 mw-rag-route。
+
+*Receipt append · mw-e2e-ha · UC018 covered-criterion r3 FAIL @10bf0c0 / 28dc259 · 2026-09-23 ~21:00 PT · STOP*
+Verdict: FAIL
