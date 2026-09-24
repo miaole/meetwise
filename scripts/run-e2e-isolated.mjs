@@ -38,8 +38,8 @@
  *   pnpm runtime-role:prove      # 应用登录最小权限/RLS proof（绝不触碰开发库）
  */
 import { spawn } from 'node:child_process';
-import { randomUUID } from 'node:crypto';
-import { mkdirSync, writeFileSync, renameSync } from 'node:fs';
+import { randomUUID, createHash } from 'node:crypto';
+import { mkdirSync, writeFileSync, renameSync, readFileSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import {
   emitClassifiedE2EFailure,
@@ -52,6 +52,39 @@ import { captureBounded } from './bounded-command.mjs';
 import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
 import { writeLocalE2EReceipt, writeLocalIsolatedReceipt } from './local-e2e-receipt.mjs';
 import { withheldOutputSummary } from './withheld-output.mjs';
+
+
+function loadG7ReceiptFromLedger(env) {
+  if (String(env.G7_FREETIER_REPROVE ?? '').trim() !== '1') return null;
+  const ledgerPath = String(env.G7_RUN_COST_LEDGER_PATH ?? '').trim();
+  if (!ledgerPath) throw new Error('g7_cost_ledger_path_missing');
+  let calls = [];
+  let estimatedCostCny = 0;
+  if (existsSync(ledgerPath)) {
+    const lines = readFileSync(ledgerPath, 'utf8').split('\n').map((l) => l.trim()).filter(Boolean);
+    for (const line of lines) {
+      const row = JSON.parse(line);
+      calls.push(row);
+      estimatedCostCny += Number(row.estimatedCostCny ?? 0);
+    }
+  }
+  // Fingerprint only — never persist key material.
+  const key = String(env.MODEL_API_KEY ?? '').trim();
+  const keyFingerprint = key
+    ? createHash('sha256').update(key, 'utf8').digest('hex').slice(0, 8)
+    : null;
+  return {
+    g7FreetierReprove: true,
+    runnerCommitSha: env.G7_RUNNER_COMMIT_SHA ?? null,
+    porcelainClean: String(env.G7_PORCELAIN_CLEAN ?? '') === '1',
+    keyFingerprint,
+    estimatedCostCny,
+    actualSpendCny: null,
+    runCostCapCny: Number(env.G7_RUN_COST_CAP_CNY ?? 5),
+    calls,
+    evidenceLabel: 'free-tier model; not production-model evidence; not perf SLO evidence',
+  };
+}
 
 const LIVE_E2E_TARGETS = new Set(['e2e:prove', 'e2e:ui', 'performance:e2e']);
 
@@ -2007,6 +2040,8 @@ async function main() {
     if (created) await capture('docker', ['rm', '-f', container]).catch(() => {});
     if (target === 'e2e:prove') {
       try {
+        const g7Base = loadG7ReceiptFromLedger(process.env);
+        const g7 = g7Base ? { ...g7Base, requireCalls: !failed } : null;
         const { relativePath } = await writeLocalE2EReceipt({
           repoRoot: ROOT,
           receiptRoot: join(ROOT, '.tmp', 'e2e-receipts'),
@@ -2018,6 +2053,7 @@ async function main() {
           assertionCount,
           failureClass,
           reviewLedger,
+          g7,
         });
         console.log(`LOCAL_E2E_RECEIPT file=${relativePath} release_evidence=false`);
       } catch (error) {

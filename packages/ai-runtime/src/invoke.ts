@@ -57,7 +57,7 @@ export type ModelUsage = {
 };
 /** `known_not_executed` requires an explicit negative response from the endpoint. Omission means unknown. */
 export type ModelResult =
-  | { ok: true; raw: unknown; usage?: ModelUsage }
+  | { ok: true; raw: unknown; usage?: ModelUsage; actualModel?: string }
   | { ok: false; kind: 'transient' | 'deterministic'; externalOutcome?: 'known_not_executed' | 'unknown' };
 
 /** Pricing and budget identity attached to a selected endpoint, never to a user supplied prompt. */

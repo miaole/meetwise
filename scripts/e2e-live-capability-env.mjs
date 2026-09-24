@@ -28,6 +28,9 @@ export function applyLiveE2ECapabilityEnv(env) {
   // Paid fallback stays OFF unless G7_PAID_FALLBACK_ENABLED=1 (still allowlist-only).
   if (String(env.G7_FREETIER_REPROVE ?? '').trim() === '1') {
     env.MODEL_ENDPOINT_PROFILE = 'dashscope-cn-beijing';
+    if (!String(env.G7_RUN_COST_LEDGER_PATH ?? '').trim()) {
+      throw new Error('g7_cost_ledger_path_missing');
+    }
     if (!String(env.MODEL_NAME ?? '').trim() || String(env.MODEL_NAME).includes('deepseek-v4-pro')) {
       env.MODEL_NAME = String(env.G7_FREE_PRIMARY_MODEL ?? 'qwen3.8-flash').trim() || 'qwen3.8-flash';
     }
