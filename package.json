@@ -266,6 +266,8 @@
     "privacy-erasure-preview:contract:prove": "pnpm -C packages/contracts prove:privacy-erasure-preview",
     "privacy-authorization:prove": "node scripts/run-e2e-isolated.mjs privacy-authorization:prove:raw",
     "privacy-authorization:prove:raw": "pnpm -C packages/db prove:privacy-authorization",
+    "uc052:internal-erasure:prove": "node scripts/run-e2e-isolated.mjs uc052:internal-erasure:prove:raw",
+    "uc052:internal-erasure:prove:raw": "pnpm -C packages/db prove:uc052-internal-erasure",
     "interview-answer-submission:prove": "pnpm -C packages/contracts prove:interview-answer-submission",
     "memory-governance:prove": "node scripts/run-e2e-isolated.mjs memory-governance:prove:raw",
     "memory-governance:prove:raw": "pnpm -C packages/db prove:memory-governance",

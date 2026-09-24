@@ -34,6 +34,7 @@
     "tenant-enforcement:prove": "tsx test/tenant-enforcement.proof.ts",
     "prove:isolated-target": "tsx test/isolated-test-target.proof.ts",
     "prove:privacy-authorization": "tsx test/privacy-authorization.proof.ts",
+    "prove:uc052-internal-erasure": "tsx test/uc052-internal-erasure.proof.ts",
     "prove:memory-governance": "tsx test/memory-governance.proof.ts",
     "prove:memory-admission": "tsx test/memory-admission.proof.ts",
     "prove:memory-fact-adjudication": "tsx test/memory-fact-adjudication.proof.ts",

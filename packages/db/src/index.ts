@@ -539,3 +539,4 @@ export {
   beginPrivacyPreviewErasure, getPrivacyPreviewReceipt, listPrivacyPreviewReceipts,
 } from './privacy-erasure-preview.ts';
 export type { PrivacyPreviewListRow } from './privacy-erasure-preview.ts';
+export * from './uc052-internal-erasure.ts';
