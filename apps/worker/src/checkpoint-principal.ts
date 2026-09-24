@@ -60,7 +60,7 @@ const GUC_KEYS = ['app.principal_user', 'app.checkpoint_thread_id', 'app.checkpo
  * PostgresSaver mixes autocommit `pool.query` (no BEGIN) with explicit-txn
  * `pool.connect` writes. SET LOCAL / set_config(..., true) alone is therefore
  * an automatic FAIL on the read path. Session SET ROLE + set_config(..., false)
- * must stay; hygiene is RESET ROLE + clear the three GUCs before the client
+ * must stay; hygiene is SET ROLE NONE + clear the three GUCs before the client
  * returns to the pool. If reset throws, destroy the connection so a privileged
  * session never re-enters the pool.
  */
@@ -71,13 +71,12 @@ async function cleanupCheckpointPrincipalSession(
     await testCleanupOverride(client);
     return;
   }
-  // DISCARD ALL: RESET ROLE + drop session GUCs/prepared state. Required because
-  // createCheckpointer adds `-c role=app_role` at connect; RESET ROLE alone can
-  // leave current_user=app_role when the role GUC remains. DISCARD ALL must not
-  // run inside an open transaction — callers ROLLBACK first on abort paths.
-  // If this throws, installReleaseCleanup destroys the connection.
-  await client.query('DISCARD ALL');
-  // Belt: explicit clears if a future PG build softens DISCARD GUC coverage.
+  // createCheckpointer adds `-c role=app_role` at connect. Empirically on PG16:
+  //   RESET ROLE     → NO-OP (current_user stays app_role; startup role GUC sticks)
+  //   DISCARD ALL    → RESTORES startup `-c role=app_role` (undoes a prior NONE)
+  //   SET ROLE NONE  → current_user = session_user, role GUC = none  ← required
+  // Ban DISCARD ALL / RESET ROLE as the sole cleanup for this façade.
+  await client.query('SET ROLE NONE');
   for (const key of GUC_KEYS) {
     await client.query('SELECT set_config($1, $2, false)', [key, '']);
   }
@@ -123,7 +122,7 @@ function installReleaseCleanup(client: any): { releaseAsync: () => Promise<void>
  * session setting. The database's FORCE RLS policies then apply to all saver
  * reads, writes and deletes, including its hidden subqueries.
  *
- * On release: RESET ROLE + clear principal GUCs (see cleanupCheckpointPrincipalSession).
+ * On release: SET ROLE NONE + clear principal GUCs (see cleanupCheckpointPrincipalSession).
  * Ban relying on SET LOCAL alone — PostgresSaver autocommit pool.query has no txn.
  */
 export class PrincipalBoundCheckpointPool {
