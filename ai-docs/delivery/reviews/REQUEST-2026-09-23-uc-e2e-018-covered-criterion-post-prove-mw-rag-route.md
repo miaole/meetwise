@@ -449,3 +449,92 @@ Pins 不变：NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45
 **mw-rag-route** · 2026-09-23 (~21:05 PT) · r3 更正 · APPEND-ONLY · 以本行下方的严格 Verdict 为准
 
 Verdict: FAIL
+
+---
+
+## Re-review r4 (b97de26/585006b)
+
+**Date**: 2026-09-23 (~21:10 PT)  
+**Verdict**: **FAIL**（blocker：HTML 多行注释内 `Verdict: PASS` 仍被解析为 PASS · fence/strip 未覆盖 HTML comment）  
+**Expert**: `mw-rag-route` · Ban invent covered · Ban假关 · alone≠dual · **Dual PASS ≠ covered ≠ nail ≠ §1.1 flip**  
+**Tips**: runner `b97de26` / full `b97de26e25f71bef357585ed98153897d31f1af3` Author meetwise-core · receipts `585006b` / full `585006b2012d5e4ae230126aecedbc286e2a3da2` Author meetwise-core · JSON+prove.md runner **MATCH**  
+**843b8ca**: intermediate Author meetwise-core · tip 仅 lineage/`rebase` 旁引 + 无关 privacy 审查提及 · **非** `runnerCommitSha` · gatherer 不消费为证据 · **ACCEPTABLE superseded**  
+**Worktree**: `/workspace/wt-mwrr-b97de26` @ `585006b` · 后 remove+prune
+
+### CMD|EXIT
+
+| CMD | EXIT | 关键 |
+|-----|------|------|
+| `pnpm uc018:covered-criterion:prove` | **0** | false · reasons 含 STATUS-NOT-COVERED,UNCOMMITTED-RUNNER,MISSING-RECEIPT,CASE-ONLY,STUB-STACK,MISSING-DUAL,IMPL-ONLY,PERF-LOCAL-ONLY,OPEN-GAP,S11-NOT-MET · invariant OK · .tmp-only |
+| `pnpm uc018:covered-lift-reassess:prove` | **0** | dirty DIRTY_TREE refuse PASS · clean accept |
+| `pnpm uc018:adv:prove` | **0** | 76 · REAL pgvector docker |
+| `pnpm eval-harness-matrix-cite:prove` | **0** | |
+
+### Flip logic（`uc-covered-evaluator.mjs`）
+
+- Positive §1.1 status enum：**仅** `covered`（大小写不敏感 · `:261–267`）· **不含** case-only/partial/unknown/empty/met
+- flip 条件 `:270–276`：`allColsMet && businessPathMet===true && openGapsPresent && openGaps.length===0 && s11Status==='covered' && reasons.length===0`
+- **Invariant 在代码内强制**：`reasons.length>0 ⇒ flip=false`（:279–280,:300）+ **throw** 若 true∧reasons（:282–286,:301–302）+ `assertFlipReasonsInvariant`（:312+）· **非**仅测断言
+- openGaps 缺省/非数组 → `OPEN-GAP-UNKNOWN`（:248–251）· **已修** r3 nail
+
+### Mutation（`/tmp/mwrr-r4-audit.mjs`）
+
+- ALL-MET **true** · reasons=[] · invariant OK
+- status undef/''/case-only/partial/unknown/PARTIAL/met → **false**；`covered`/`COVERED` → true；`' covered '`（含空格）→ false（过严 nail）
+- openGaps delete/null/string/{} → OPEN-GAP-UNKNOWN false；`[GAP]` → OPEN-GAP；`[]` → true
+- case-only → false + S11-NOT-MET|CASE-ONLY（**r3 blocker CLOSED** · 不再 true+reasons）
+- leaf delete stillTrue ⊆ 4-item allowlist · invBreak=0 · true⇒reasons empty 全覆盖
+- PERF cap delete → false；NEG cap delete → true（allowlist）
+
+### Allowlist（4）裁定
+
+1. **ucId** — ACCEPTABLE（标签 · 无门闩）
+2. **capacity/targetEnv on NEG/FAULT/BOUND/ADV** — ACCEPTABLE（capacity 仅 PERF/LOAD；PERF 删除失败已证）
+3. **implementerOnly** — ACCEPTABLE（仅 ===true 加 IMPL-ONLY；eor/dual 已正证 fail-closed）
+4. （cmd/gitSha OR 已移除 · 现两者皆需 `:169–173`）
+
+### Dual break attempts
+
+| 尝试 | 结果 |
+|------|------|
+| 缩进 4 空格 / `>` blockquote / ``` / ~~~ fence | null · PASS |
+| `<!-- Verdict: PASS -->` 单行 | null · PASS |
+| **`<!--\nVerdict: PASS\n-->` 多行 HTML 注释** | **got=PASS · BYPASS · BLOCKER** |
+| trailing / lower / 全角冒号 / ZWSP | null · PASS |
+| CRLF 真 PASS | PASS · OK |
+| PASS then FAIL | FAIL · OK |
+| (b) 最新 author≠role（evil） | slot null · PASS |
+| (c) 早 impl、最新 reviewer | 取最新 author → PASS · OK |
+| (d) 同捆 race：e2e-ha 文件 author=mw-rag-route | e2eHa **null**（拒跨角色）· fail-closed OK |
+
+### Binding / allPass / lift dirty
+
+- `verifiedSha === prove.gitSha`（前缀相容）· 否则 UNCOMMITTED-RUNNER · FX-VERIFIEDSHA-MISMATCH PASS
+- `allPass` 不再发明 exit · `pickExitFromReceipt` 仅数值字段 · FX-ALLPASS-NO-EXIT → MISSING-RECEIPT PASS
+- lift-reassess：dirty → DIRTY_TREE refuse PASS
+
+### Parser on our file（pre-append @585006b）
+
+- `parseReviewFileVerdict` → **FAIL**（74cf87e 严格行）
+- `latestCommitAuthor` → mw-rag-route · dual slot ragRoute=FAIL · role=ragRoute **OK**
+
+### Blockers
+
+1. **FAIL**：`stripMarkdownNonProse` 未剥离 HTML comment · 多行 `<!-- … Verdict: PASS … -->` 仍计 PASS（`uc-covered-real-gatherer.mjs` `:265–278`）。须 strip `<!--...-->`（含跨行）后再匹配。
+
+### Nail
+
+1. status `' covered '`（首尾空白）不过正证 · 可选 trim
+2. PERF/LOAD 旧 dual 无严格行 → MISSING-DUAL（backfill knife · 勿改旧文）
+
+### Pins / PG / secret / cleanup
+
+- pins HOLD · Dual PASS ≠ covered ≠ nail ≠ §1.1 flip  
+- **PG real YES** · secret **CLEAN** · worktree **已移除**
+
+### signature（r4）
+
+**mw-rag-route** · 2026-09-23 (~21:10 PT) · re-review r4 · blocker=HTML-comment Verdict bypass · APPEND-ONLY
+
+Verdict: FAIL
+
