@@ -253,18 +253,16 @@ function pickStack(receipt) {
  * Defense in depth:
  *   - unclosed `<!--` anywhere ⇒ null
  *   - any `Verdict:` line inside an HTML comment block ⇒ null
+ *   - unterminated markdown fence (``` / ~~~) ⇒ null (Verdict would be inside code)
  *
- * Removed: markdown fence/quote/indent stripping code path.
+ * Removed: markdown fence/quote/indent stripping code path (and the no-op stub).
  *
  * Role binding unchanged: path suffix + (when root given) latest git author
  * must match mw-e2e-ha / mw-rag-route. Unparseable ⇒ MISSING-DUAL.
+ * Known limit (not blocker): git-author can be spoofed via `git -c user.name/email`;
+ * path+author is tamper-evident in review only, not cryptographic.
  */
 export const REVIEW_VERDICT_LINE_RE = /^(\*\*)?Verdict: (PASS|FAIL)(\*\*)?$/;
-
-/** @deprecated removed round 5 — kept as no-op export only if tests import; prefer parseReviewFileVerdict. */
-export function stripMarkdownNonProse(text) {
-  return text == null ? '' : String(text);
-}
 
 function htmlCommentDefenseFails(text) {
   // Unclosed <!-- (last <!-- after last -->)
@@ -291,6 +289,32 @@ function htmlCommentDefenseFails(text) {
   return false;
 }
 
+/** Unterminated ``` / ~~~ fence anywhere ⇒ fail closed (like unclosed <!--). */
+function unterminatedFenceFails(text) {
+  const lines = String(text).split(/\r?\n/);
+  let open = null; // { ch: '`'| '~', len: number }
+  for (const raw of lines) {
+    const line = raw.replace(/\r$/, '');
+    const m = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+    if (!m) continue;
+    const fence = m[1];
+    const ch = fence[0];
+    const len = fence.length;
+    const info = m[2] || '';
+    if (!open) {
+      // opening fence: backtick fences cannot contain backticks in info string
+      if (ch === '`' && info.includes('`')) continue;
+      open = { ch, len };
+      continue;
+    }
+    // closing: same char, length >= open, info must be empty (whitespace only)
+    if (ch === open.ch && len >= open.len && info.trim() === '') {
+      open = null;
+    }
+  }
+  return open != null;
+}
+
 /**
  * Verdict ONLY from the last non-empty line of the raw file.
  * @returns {'PASS'|'FAIL'|null}
@@ -298,6 +322,7 @@ function htmlCommentDefenseFails(text) {
 export function parseReviewFileVerdict(text) {
   if (!text || typeof text !== 'string') return null;
   if (htmlCommentDefenseFails(text)) return null;
+  if (unterminatedFenceFails(text)) return null;
 
   const lines = text.split(/\r?\n/);
   let lastNonEmpty = null;
