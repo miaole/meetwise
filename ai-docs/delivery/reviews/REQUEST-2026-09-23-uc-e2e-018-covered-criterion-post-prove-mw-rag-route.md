@@ -160,3 +160,102 @@ Mutation：`openGaps=[]` → 仍 `canHonestlyFlip=false` 且无 `OPEN-GAP`。
 ## signature
 
 **mw-rag-route** · 2026-09-23 (~20:25 PT) · post-prove dual · Verdict **PASS** · 单文件本 receipt · harness 未触 · tree 将 clean · Ban Meridian · Ban Cloud Agent · Ban `.env*` · Ban invent covered · Ban假关 · Ban forge peer · **Dual PASS ≠ covered ≠ nail ≠ §1.1 flip** · alone≠dual
+
+---
+
+## Re-review · C-GATHERER-REAL-INPUT (ca1c8a5/45a7bc1)
+
+**Date**: 2026-09-23 (~20:40 PT)  
+**Verdict**: **FAIL**（blocker：missing stack **default-to-met** · 与「absent→STUB-STACK」主张不符）  
+**Expert**: `mw-rag-route` · Ban invent covered · Ban假关 · alone≠dual · **Dual PASS ≠ covered ≠ nail ≠ §1.1 flip**  
+**Tips**: runner `ca1c8a5` / full `ca1c8a5b6848e0237a5f405113fc1dc4ed526e5d` Author `meetwise-core` · receipts `45a7bc1` / full `45a7bc1f829bde75bf6a4afdae4ed74387571bee` Author `meetwise-core` · receipt claims runner=`ca1c8a5` **MATCH** · peer nail-blocking `479cce5` noted  
+**Worktree**: `git worktree add /workspace/wt-mwrr-ca1c8a5 45a7bc1` · `pnpm install --frozen-lockfile` · 四 prove 后 `worktree remove --force` + prune · **主 worktree 未扰**
+
+### CMD|EXIT（@ worktree 45a7bc1）
+
+| CMD | EXIT | 关键输出 |
+|-----|------|----------|
+| `pnpm uc018:covered-criterion:prove` | **0** | `canHonestlyFlip=false` · reasons=`STATUS-NOT-COVERED,UNCOMMITTED-RUNNER,MISSING-DUAL,CASE-ONLY,PROVE-FAIL,MISSING-RECEIPT,IMPL-ONLY,PERF-LOCAL-ONLY,OPEN-GAP` · `businessPathMet=true` · FX-STUB-STACK/FX-PROVE-FAIL PASS · FX-ALL-MET true |
+| `pnpm uc018:covered-lift-reassess:prove` | **0** | canHonestlyFlip=false · PERF-LOCAL-ONLY · §1.1 partial |
+| `pnpm uc018:adv:prove` | **0** | 76 PASS · isolated `releaseEvidence=false` · **REAL** `pgvector/pgvector:pg16` via `run-e2e-isolated` |
+| `pnpm eval-harness-matrix-cite:prove` | **0** | UC-E2E-018 partial ≠ covered |
+
+### Gatherer audit（`scripts/lib/uc-covered-real-gatherer.mjs`）
+
+| 字段 | 来源（file:line） | hardcode? | fail-closed? |
+|------|-------------------|-----------|--------------|
+| `capacityRepresentative` | `capacityClaim === true` :298–298 · `pickCapacityRepresentative` :149–156 | **无**字面 `false` 赋给对象（absent→false via `=== true`） | **YES** absent≠true |
+| `targetEnv` | `pickTargetEnv` :137–148 · caps.method docker→docker-isolated | **无**字面 `docker-isolated` 常量赋列 | **YES** absent→null |
+| `exit` | receipt `exit`/`exitCode`/`exits[cmd]`/`allPass` :166–174 · else harness CMD|EXIT :299–301 | **无** `exit ?? 0` | **YES** null→evaluator PROVE-FAIL :147–149 |
+| `committed` / sha | `git cat-file` + `merge-base --is-ancestor` :122–135 · `shaFlags` :235–245 | **无** `committed:true` | **YES** 无 sha→uncommitted |
+| `stack` | `pickStack` :194–214 · absent→`undefined` 字段 | **无** `postgres:true` 字面 | **NO — BLOCKER**（见下） |
+| `present`/`missing` | `receipt != null` :292 · :333–334 | **无** `present:true` | **YES** |
+
+**P2 residual hardcodes（本轮）**: **无** capacity/stack/sha/exit 字面残留于 real-path 对象构造。注释 L297 提及 `capacityRepresentative: false` 仅为说明 · 非代码字面。
+
+### BLOCKER — missing stack default-to-met
+
+- Gatherer 主张（文件头 :39–42）：`absent → undefined fields → STUB-STACK`。
+- Evaluator `badStack`（`uc-covered-evaluator.mjs` :157–163）仅在 `postgres === false` / `postgresSaver === false` / MemorySaver/MySQL/Qdrant true 时拒；**`undefined` 不触发**。
+- 独立复现：ALL-MET 输入将 stack 全设 `undefined` → `canHonestlyFlip=true` · reasons=`[]`。
+- Real ADV 列：`stack={}`（adv evidence 无 stack/soleStack）· 仅 `STATUS-NOT-COVERED` · **未**出 STUB-STACK。
+- **裁定**：对 missing stack **default-to-met** = 本 re-review **FAIL blocker**（与 C-GATHERER「missing fail-closed」主张矛盾）。须 evaluator 将 `postgres!==true \|\| postgresSaver!==true`（或等价）纳入 STUB-STACK。
+
+### `gapClosedInText` regex（:85–95）
+
+| 样本 | 期望 | 实得 | 裁定 |
+|------|------|------|------|
+| `GAP-… **CLOSED**` / `CLOSED（GAP-…）` / `已关 · GAP` / `GAP…已关` | true | true | OK |
+| `未关 GAP-…` / `GAP-… 未关` / `Ban假关 · GAP` | false | false | OK |
+| `不得写已关 · GAP-UC018-FULL-E2E remains OPEN` | **false** | **true** | **FP**（`已关[^\n]{0,160}id` 吞掉「不得写已关」） |
+
+Parent harness 无 `不得写已关` 字面 · 今日 `businessPathMet=true` 与 §1b#1–#6 真 CLOSED/已关一致 · **非本 blocker** · **nail**：排除否定语境（未关/不得写已关/Ban假关）。
+
+### Fixtures
+
+- `FX-STUB-STACK`：ADV `memorySaver:true`+`postgres:false` → false + STUB-STACK · **PASS**
+- `FX-PROVE-FAIL`：NEG `exit:1` → false + PROVE-FAIL · **PASS**
+- `FX-ALL-MET` true · temp-copy all-met on real-shape keys → true · **true 分支仍可达**
+
+### Extra reasons 分列裁定
+
+| 列/原因 | 裁定 | 证据 |
+|---------|------|------|
+| NEG **UNCOMMITTED-RUNNER** | **genuine（fail-closed）** | NEG 绑 `sole-stack-…-evidence.json`（:354）· 该 JSON **无** `gitSha` → `shaFlags` 无 sha → uncommitted :236；exit=0 来自 sole `exits[uc018:abandon:http:prove]` · 非假 EXIT |
+| NEG **MISSING-DUAL** | **gatherer wiring 缺口（nail）** | dual 硬传 `{null,null}` :356；存在历史 dual 文如 `2026-09-10-uc-e2e-018-http-abandon-mw-e2e-ha.md` 未读 |
+| BOUND **UNCOMMITTED-RUNNER** | **genuine（同 sole 无 gitSha）** | :374 同 sole receipt |
+| BOUND **MISSING-DUAL** | **gatherer wiring 缺口（nail）** | dual null :376；waiting_user dual 文存在未读 |
+| FAULT **PROVE-FAIL** | **null→PROVE-FAIL 语义 · 非 nonzero EXIT 实录** | FAULT `receipt:null` `cmd:null` :358–366 → `exit=null` → evaluator :147–149 推 PROVE-FAIL；**无** tracked nonzero EXIT。相关 GRAPH evidence `2026-09-23-uc-e2e-018-graph-safely-terminated-evidence.json` 含 `cmds.uc018:graph:prove:0` **未接线** → wiring 缺口（nail）· 非「伪造失败码」 |
+| FAULT **MISSING-RECEIPT** | **genuine（对本 gatherer 路径）** | FAULT 显式 `receipt:null`；GRAPH 收据存在但未映射为 FAULT 列 |
+
+### Receipt backfill 裁定
+
+**单独 knife（非 nail）**。为 NEG/BOUND/FAULT 等旧刀补齐 machine-readable 字段（gitSha/stack/dual/exit）需在 committed runner 重跑 prove + dual 审那些收据 = **新证据**。Nail 仅可 **登记缺口** +（可选）把已存在 GRAPH 收据线到 FAULT / 修 dual 路径（SSOT 对齐 · 不发明新绿）。
+
+### Blockers
+
+1. **FAIL**：missing/`undefined` stack **不**触发 STUB-STACK → default-to-met（evaluator :157–163 vs gatherer 主张 :39–42）。
+
+### Nail conditions（非本轮通过条件 · 供修复刀）
+
+1. Evaluator：absent stack → STUB-STACK（`postgres!==true \|\| postgresSaver!==true`）。
+2. `gapClosedInText`：拒「不得写已关 / 未关 / Ban假关」假阳性。
+3. NEG/BOUND：接专用收据或至少读 http/waiting_user dual 审；勿长期借 sole 冒充 NEG 收据（exit 碰巧有 · sha 无）。
+4. FAULT：接线 `graph-safely-terminated-evidence.json` + graph post-prove dual（或登记「无 FAULT 机读收据」缺口）。
+5. 机读收据字段补齐 = **separate knife**（见上）。
+
+### Pins / harness
+
+- pins HOLD · UC-018 **partial** · 无 covered / §1.1 flip（本专家未改 matrix/harness）
+- harness 状态未触 · **Dual PASS ≠ covered ≠ nail ≠ §1.1 flip**
+
+### PG real / secret / cleanup
+
+- **PG real YES**（adv → run-e2e-isolated → pgvector:pg16）
+- secret scan：本节仅文档禁令措辞 · **CLEAN**
+- worktree `/workspace/wt-mwrr-ca1c8a5` **已 remove --force + prune** · 主树未为本审改其他文件
+
+### signature（re-review）
+
+**mw-rag-route** · 2026-09-23 (~20:40 PT) · C-GATHERER-REAL-INPUT re-review · Verdict **FAIL** · blocker=missing-stack default-to-met · APPEND-ONLY 本节 · Ban Meridian · Ban Cloud Agent · Ban `.env*`
+
