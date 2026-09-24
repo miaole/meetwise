@@ -1,6 +1,3 @@
 # Review fixture FX-DUAL-QUOTED
-Prose has no verdict.
-
-> **Verdict**: **PASS**
-
-Only blockquoted PASS above.
+> Verdict: PASS
+Only blockquoted PASS above — last line is not Verdict.

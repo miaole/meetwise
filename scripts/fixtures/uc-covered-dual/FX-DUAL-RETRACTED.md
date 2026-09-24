@@ -1,5 +1,6 @@
 # Review fixture FX-DUAL-RETRACTED
-**Verdict**: **PASS**
+Earlier line (ignored under last-line-only):
+Verdict: PASS
 
-## Append retraction
-**Verdict**: **FAIL**
+## Append retraction — last non-empty line wins
+Verdict: FAIL

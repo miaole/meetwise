@@ -243,49 +243,78 @@ function pickStack(receipt) {
   };
 }
 /**
- * Strict machine-readable dual verdict line (B-DUAL-PASS-PRIORITY / B-DUAL-CROSS-ROLE).
+ * Strict machine-readable dual verdict (round 5 — last-line-only).
  *
- * Marker regex (documented):
- *   /^(?:\*\*)?Verdict(?:\*\*)?:\s*(?:\*\*)?(PASS|FAIL)(?:\*\*)?\s*$/m
- * - Optional markdown bold around the words Verdict and PASS|FAIL only.
- * - NO trailing commentary on the same line (so `**Verdict**: **PASS**（…）` does NOT match).
- * - Last matching line in the file wins (append / retraction).
- * - Unparseable / no marker ⇒ null (caller → MISSING-DUAL). Ban heuristic PASS/FAIL fallback.
+ * Exact last-non-empty-line regex (after trimming trailing whitespace/CR):
+ *   /^(\*\*)?Verdict: (PASS|FAIL)(\*\*)?$/
+ * Bold must be balanced (both `**` or neither). No scanning earlier lines.
+ * Retraction = last line is FAIL.
  *
- * Role binding: ONLY from this file's own path suffix
- *   (`-mw-e2e-ha.md` / `-mw-rag-route.md` or `/mw-e2e-ha` / `/mw-rag-route` in path).
- * Never from body / first-500-chars peer-name mentions (Ban cross-role).
- * Strip fenced/indent code + blockquotes before matching (B-DUAL-FENCE-COUNTED).
- * When root provided: latest git author must match role (mw-e2e-ha / mw-rag-route).
+ * Defense in depth:
+ *   - unclosed `<!--` anywhere ⇒ null
+ *   - any `Verdict:` line inside an HTML comment block ⇒ null
+ *
+ * Removed: markdown fence/quote/indent stripping code path.
+ *
+ * Role binding unchanged: path suffix + (when root given) latest git author
+ * must match mw-e2e-ha / mw-rag-route. Unparseable ⇒ MISSING-DUAL.
  */
-export const REVIEW_VERDICT_LINE_RE =
-  /^(?:\*\*)?Verdict(?:\*\*)?:\s*(?:\*\*)?(PASS|FAIL)(?:\*\*)?\s*$/m;
+export const REVIEW_VERDICT_LINE_RE = /^(\*\*)?Verdict: (PASS|FAIL)(\*\*)?$/;
 
-/** Strip fenced/indent code + blockquotes before Verdict match (B-DUAL-FENCE-COUNTED). */
+/** @deprecated removed round 5 — kept as no-op export only if tests import; prefer parseReviewFileVerdict. */
 export function stripMarkdownNonProse(text) {
-  if (!text) return '';
-  let t = String(text);
-  // Fenced ``` / ~~~ blocks (opening fence line through closing fence)
-  t = t.replace(/^ {0,3}(`{3,}|~{3,})[^\n]*\n[\s\S]*?^ {0,3}\1[^\n]*$/gm, '\n');
-  // Blockquote lines
-  t = t.replace(/^>[^\n]*$/gm, '');
-  // Indented code blocks (line starts with 4 spaces or tab)
-  t = t
-    .split(/\r?\n/)
-    .filter((line) => !/^(?: {4}|\t)/.test(line))
-    .join('\n');
-  return t;
+  return text == null ? '' : String(text);
 }
 
+function htmlCommentDefenseFails(text) {
+  // Unclosed <!-- (last <!-- after last -->)
+  let i = 0;
+  let depthOpenAt = -1;
+  while (i < text.length) {
+    const open = text.indexOf('<!--', i);
+    const close = text.indexOf('-->', i);
+    if (open < 0 && close < 0) break;
+    if (open >= 0 && (close < 0 || open < close)) {
+      depthOpenAt = open;
+      i = open + 4;
+      const nextClose = text.indexOf('-->', i);
+      if (nextClose < 0) return true; // unclosed
+      const block = text.slice(open, nextClose + 3);
+      if (/Verdict:\s*(PASS|FAIL)/i.test(block)) return true;
+      i = nextClose + 3;
+      depthOpenAt = -1;
+      continue;
+    }
+    // stray -->
+    i = close + 3;
+  }
+  return false;
+}
+
+/**
+ * Verdict ONLY from the last non-empty line of the raw file.
+ * @returns {'PASS'|'FAIL'|null}
+ */
 export function parseReviewFileVerdict(text) {
   if (!text || typeof text !== 'string') return null;
-  const prose = stripMarkdownNonProse(text);
-  let last = null;
-  for (const line of prose.split(/\r?\n/)) {
-    const m = line.match(/^(?:\*\*)?Verdict(?:\*\*)?:\s*(?:\*\*)?(PASS|FAIL)(?:\*\*)?\s*$/);
-    if (m) last = m[1] === 'PASS' || m[1] === 'FAIL' ? m[1] : null;
+  if (htmlCommentDefenseFails(text)) return null;
+
+  const lines = text.split(/\r?\n/);
+  let lastNonEmpty = null;
+  for (const line of lines) {
+    // trim trailing whitespace + CR only for emptiness / match prep
+    const trimmedEnd = line.replace(/[ \t\f\v]+$/g, '').replace(/\r$/, '');
+    if (trimmedEnd.trim().length === 0) continue;
+    lastNonEmpty = trimmedEnd;
   }
-  return last;
+  if (lastNonEmpty == null) return null;
+
+  const m = lastNonEmpty.match(/^(\*\*)?Verdict: (PASS|FAIL)(\*\*)?$/);
+  if (!m) return null;
+  const openBold = m[1] === '**';
+  const closeBold = m[3] === '**';
+  if (openBold !== closeBold) return null; // unbalanced bold
+  return m[2] === 'PASS' || m[2] === 'FAIL' ? m[2] : null;
 }
 
 export function roleFromReviewPath(filePath) {

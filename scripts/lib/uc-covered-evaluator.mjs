@@ -109,7 +109,7 @@ export function isCapacityRepresentative(receipts, dual) {
 
 function evaluateColumn(colName, col, requiredNhps) {
   const reasons = [];
-  const status = String(col?.status || 'blind').toLowerCase();
+  const status = String(col?.status || 'blind').trim().toLowerCase();
   const nhpIds = Array.isArray(col?.nhpIds) ? col.nhpIds.map(String) : [];
   const prove = col?.prove || {};
   const dual = col?.dual || {};
@@ -257,7 +257,7 @@ export function evaluate(input) {
   }
   // Positive whitelist: only matrix/column enum value `covered` counts as §1.1 met.
   // Absent / partial / case-only / blind / gap / unknown → S11-NOT-MET (+ CASE-ONLY when case-only).
-  const s11Status = String(s11.status || '').toLowerCase();
+  const s11Status = String(s11.status || '').trim().toLowerCase();
   if (s11Status !== 'covered') {
     pushUnique(reasons, REFUSE_REASONS.S11_NOT_MET);
     if (s11Status === 'case-only') {
