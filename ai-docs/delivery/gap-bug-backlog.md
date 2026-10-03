@@ -186,3 +186,14 @@
 - This live nail is a new section. It does not rewrite or weaken the offline FR3 section from `210f4c0` (`offlineProvesAtCodeSha`=`b1d7b22` only, `g7SuiteGreen=false`, trio OPEN). J nail `10e8dc2`, I2 nail `e09a39f`, F r4 harness cites, and CLOSED UC-052 rows stay as written.
 - keyFingerprint=`d26808ef` only (already in the receipt). No key value.
 - Evidence: `reviews/2026-10-02-g7-linec-post-live-mw-model-op.md` · `reviews/REQUEST-2026-10-02-g7-post-live-mw-e2e-ha.md` · `receipts/g7-linec-live-2026-10-02/2026-10-02-line-c-chat-live-receipt.md`.
+
+### UC-018 UI tip re-run（2026-10-02 SSOT nail · `post_prove_dual_pass`）
+
+- **UC018-UI-TIP-RERUN** · status **`post_prove_dual_pass`**. This nail records the new tip receipt only. It is not a status flip. Implementer does not self-approve.
+- Dual PASS on origin `feat/mysql-schema-skeleton` (both commits confirmed present before this nail): mw-rag-route `544d369` / `544d369fd88d30daccae8ed03326bdea62c34bcd` · mw-e2e-ha `4ba000c` / `4ba000c63d9d7d92798a3db2949af874c3b0fcb2`.
+- Code/prove SHA `057701c` / `057701c42c5e263aabf95a18a13bfd9a5249a0cd`. Receipt commit `52815fb` / `52815fb1b81b2401dc01b88d700101283d2f137b`.
+- New receipt `ai-docs/delivery/receipts/uc018-ui-tip-rerun/UI.json` · `pnpm uc018:ui:prove` EXIT 0 at `057701c` only. Evidence for this nail is that tip receipt only (`evidenceOfRecord=false` on the receipt). Historical `ai-docs/delivery/receipts/uc018-receipt-backfill/UI.json` stays exit 1 at `e88d386` (`web_not_ready`) and was not rewritten.
+- UC-018 and §1.1 stay **partial**. coveredCount=8. Ban covered flip. Do not write covered.
+- Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+- This commit does not pre-claim the post-commit EXIT table. Line D waiting-user section from `018d692` stays as written. Sibling sections, if present, stay intact.
+- Evidence: `reviews/REQUEST-2026-10-02-uc018-ui-failure-backfill-mw-rag-route.md` · `reviews/REQUEST-2026-10-02-uc018-ui-tip-rerun-post-prove-mw-e2e-ha.md` · `harness/uc018-ui-failure-backfill.md` · `receipts/uc018-ui-tip-rerun/UI.json`.
