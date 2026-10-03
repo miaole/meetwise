@@ -145,6 +145,7 @@
     "uc033:cross-user-authz:prove:raw": "pnpm -C apps/api prove:uc033-cross-user-authz",
     "uc025:stale-quiz-expiry:prove": "node scripts/run-e2e-isolated.mjs uc025:stale-quiz-expiry:prove:raw",
     "uc025:stale-quiz-expiry:prove:raw": "pnpm -C apps/api prove:uc025-stale-quiz-expiry",
+    "uc025:nhp-neg:prove": "node apps/api/test/uc-e2e-025-nhp-neg.proof.mjs",
     "uc004:career-path:prove": "node scripts/run-e2e-isolated.mjs uc004:career-path:prove:raw",
     "uc004:career-path:prove:raw": "pnpm -C apps/api prove:uc004-career-path",
     "uc028:trace-fail-open:prove": "node scripts/run-e2e-isolated.mjs uc028:trace-fail-open:prove:raw",

@@ -40,6 +40,7 @@
     "prove:resume-reference-http": "node --import @swc-node/register/esm-register test/resume-reference-http.proof.ts",
     "neg:all": "for g in auth commerce resume interview bend input; do node --import @swc-node/register/esm-register test/neg-$g.proof.ts || exit 1; done",
     "prove:uc025-stale-quiz-expiry": "node test/uc-e2e-025-stale-quiz-expiry.proof.mjs",
+    "prove:uc025-nhp-neg": "node test/uc-e2e-025-nhp-neg.proof.mjs",
     "prove:uc004-career-path": "node test/uc-e2e-004-career-path.proof.mjs",
     "prove:uc028-trace-fail-open": "node test/uc-e2e-028-trace-ledger-fail-open.proof.mjs",
     "prove:uc027-manual-review-appeal": "node test/uc-e2e-027-manual-review-appeal.proof.mjs",
