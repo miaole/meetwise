@@ -103,3 +103,53 @@ Trio stays **OPEN 1/1/1**. `g7SuiteGreen=false`. R1 **OPEN**. Disclosure-1 **OPE
 3. 两处非阻断瑕疵（stub「此后 A″」时序措辞、harness §6 表格管道符）登记 Conditions C-2/C-5；本 PASS = docs gate 半签，alone ≠ dual，待 `mw-e2e-ha` 独立同审 + 协调方另行授权，Dual PASS ≠ coding ≠ nail。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual · Line L docs 执行产物复验 · G7 trio/disclosure/techrole honesty · mw-model-op（docs 对齐刀 · 本刀无 prove · 复验对象=文档产物与诚实性）
+
+**Reviewer**: `mw-model-op`（独立审查 · 非实现方 · Ban self-approve · alone ≠ dual · 不代签 `mw-e2e-ha`）
+**Review date**: 2026-10-03
+**Worktree**: `/Users/miaole/Desktop/golucky/meetwise-rv-lp-model-op`（branch `rv/lp-model-op`，自 `line/l-g7-honesty` @ `13fbeec`）
+**被审 tip**: `13fbeec`（`13fbeecfd6c1172aa2caa0d8e18675057d4eb61f` · `docs(model-op): EXEC G7 trio/disclosure/techrole honesty offline alignment (awaiting_post_prove_dual)` · 4 files +147/−16）
+**授权链核实**: REQUEST `56d9b3d`（tree-identical mirror `0345315`）→ pre-exec dual **BOTH PASS**（mw-model-op @`b8dfb62` 05:32 PT + mw-e2e-ha @`a474ca4` 05:41 PT）→ 执行 commit `13fbeec` 05:53 PT（提交时序：dual 均先于执行，无自批）。
+
+## 检查表（file:line 证据 · 本 worktree @ 13fbeec 实读）
+
+1. **包完整性**：`git show --stat 13fbeec` = 恰 4 文件（`g7-trio-disclosure-techrole-honesty.slice.md` · `harness/g7-trio-current-state-alignment.md` 新增 88 行 · `harness/g7-trio-disclosure-techrole-honesty.md` 修改 · `harness/g7-trio-offline-receipt-index-alignment.md` 新增 41 行）+147/−16；`git diff --name-only 0345315 13fbeec` 仅此 4 文件——零代码、零 `package.json`、零 SSOT（backlog / checklist / 矩阵）、零收据（含归档收据）触碰。
+2. **时序更正（model-op C-2 / e2e-ha C-1 落地）**：current-state §2 表 + 收据索引「时序更正声明」与归档收据原文逐字对上——A″ `receipts/2026-09-17-g7-key-x3-rerun.md:3,8`（execute ~19:29–19:37 PT · prove/dual `e697c81`）早于 FIX `receipts/2026-09-17-g7-key-x3-fix-iso-ui-perf.md:3,7-8`（execute ~20:04–20:17 PT · prove `a4e3de5` · tip at dual `5f591ea`）；erratum 模式 = 原文引用（本 stub:33「此后 A″」）+ 更正声明落新产物，stub 与两份归档收据零改写（均不在 13fbeec diff 内）；§2 第 4 条显式消解「A″ 先于 FIX」与「末次 trio 实跑 = FIX」的表面张力（execute 顺序 vs 时间轴位置），无自相矛盾；材料事实不变（两者均 EXIT **1/1/1** · `post_prove_dual_pass:honesty_red` retained · 均早于 `b1d7b22`）。
+3. **not_run 全量覆盖（current-state §3）**：trio 三条 CMD 逐行 `OPEN` + `not_run:no_coding_authorize` + 历史 EXIT **1/1/1** retained；一切 `*:prove`（含 offline 单元 prove）not run this knife 且标注 FR3 @`b1d7b22` offline EXIT=0 ≠ trio 证据；真实模型 API 调用 **0 次**（chat/embed/rerank/asr/tts/stream 全族）；Key 动作 **0 次**（无加载 / 无 NEW_SHELL_STATUS probe / 无 fingerprint / 无 `.env*` 读取）；`actualSpendCny=null`。收据索引「索引级 not_run 汇总」与 §3 一致（自 FIX 后 trio 零实跑）。
+4. **状态原值保持（current-state 头部 / §4 / §5 · 索引 Non-claims · slice/harness 脚注）**：`g7SuiteGreen=false` · `r1Closed=false` · Disclosure-1 **OPEN**（`MEETWISE_TECH_ROLE_FAIL_CLOSED=0` never counts toward R1 · 持续披露）· `techRoleFailClosedOptOutG7Only=true` · trio OPEN 1/1/1 · Pins 8 项原值——与 SSOT 现行（`gap-bug-backlog.md:128` · `execution-master-checklist.md:492` @`0345315`，本审实读逐字一致）无漂移；全文无「已可翻绿 / 距绿一步 / 绿在望」暗示（§4 显式 Ban）。
+5. **未来授权跑纪律**：current-state §4 逐 attempt CMD+EXIT+时间戳（含失败 attempt）、记录实跑 code SHA（receipt commit ≠ prove SHA 惯例）、禁 retry-to-green / 禁只留绿 attempt / 禁把 EXIT=1 洗成 flake、引用行号一律附 @SHA——与 e2e-ha C-2 / model-op C-4 要求一致，已钉。
+6. **@SHA 纪律（wiring 行号独立复数）**：`git show <SHA>:package.json | grep -n` 实测 @`320c07b` 与 @`0345315` = `e2e:prove`:238 · `e2e:ui`:239 · `e2e:isolated`:240 · `e2e:ui:isolated`:241 · `verify:e2e-performance`:244；@`0cf8591` 与 @`8dde8e3` = :240/:241/:242/:243/:246（漂移 **+2**）——与 current-state §1 表及 harness §1 表逐字一致；最新 origin tip `8cd5ed2`（含 `8dde8e3`）实测行号不变，漂移披露 fetch-now 仍为真。
+7. **执行边界**：零 prove（索引显式「非 run receipt」· 无新 run receipt 文件）、零 push（`git branch -r --contains 13fbeec` 为空）、零代码；slice Products 表登记（新增 2 行 L2 产物指针）与 harness §6 双审 SHA 登记（L1 行 @`b8dfb62`/`a474ca4`）如实。
+
+## 条件裁决（pre-exec dual mw-model-op C-1~C-6 · 逐条）
+
+| 条件 | 要求 | 裁决 |
+|------|------|------|
+| **C-1 双签** | pre-exec dual 齐后方执行 · implementer 不自批 | **满足**——mw-model-op @`b8dfb62`（05:32 PT，PASS）+ mw-e2e-ha @`a474ca4`（05:41 PT，Verdict: PASS）均先于执行 `13fbeec`（05:53 PT）；origin cherry-pick 镜像 `a5a5675` / `a7afd9d` 在案；本 POST-PROVE dual 即 docs 产物双签的 model-op 补位 |
+| **C-2 时序更正** | A″→FIX 顺序落 docs · 禁改写归档 | **满足**——§2 + 索引声明一律 A″→FIX；erratum 登记而非改写 stub/收据；两表述无矛盾 |
+| **C-3 口径保持** | 常量原值 · 禁翻绿暗示 | **满足**——全部 retained 原值；§4/§5 显式 Ban 翻绿叙事 |
+| **C-4 未来跑纪律** | 逐 attempt 记录 · 禁 retry-to-green | **满足**——current-state §4 全量钉死（含失败 attempt / 实跑 code SHA / 禁洗 flake） |
+| **C-5 管道符** | harness §6 表格排版修正 · 不改语义 | **满足**——:125「登记 \| 另行授权」→「登记 · 另行授权」，行渲染 3 列正常，语义未变 |
+| **C-6 base 漂移备案** | 行号附 @SHA · 漂移如实披露 | **满足**——base `320c07b`/`0345315` 钉定 + `0cf8591`/`8dde8e3` +2 实测一致；补记：origin tip 现为 `8cd5ed2`，行号实测不变 |
+
+## Blockers
+
+无。
+
+## Conditions（后续刀沿用 · 非阻断）
+
+- **C-A（nail 另授权）**：SSOT 登记（backlog G7 段 / checklist G7 段 / 覆盖矩阵）仍须协调方另行授权且 additive（「G7 FR3 nail section from `210f4c0` … stay as written」惯例）；本刀零 SSOT diff 不构成先例豁免。
+- **C-B（时序口径延续）**：后续所有 docs / nail 措辞一律 A″（2026-09-17 ~19:29–19:37 PT）→ FIX（~20:04–20:17 PT）；「末次 trio 实跑 = FIX」仅指时间轴位置；禁止复活本 stub:33「此后 A″」时序倒置措辞。
+- **C-C（行号时效）**：origin tip 已前移至 `8cd5ed2`（本审 fetch-now 实测 package.json 行号与披露一致）；后续引用行号继续一律附 @SHA 或按当 tip 重核。
+- **C-D（fresh CMD+EXIT 前禁翻绿）**：`g7SuiteGreen` 在 trio 三条新鲜 CMD+EXIT @ committed SHA + dual 之前保持 false；`not_run:no_coding_authorize` 语义不得漂移；EXIT=0 ≠ covered ≠ suite green ≠ HA ≠ R1 证据。
+
+## 中文三行摘要
+
+1. 执行包 `13fbeec` 恰 4 个 docs 文件（+147/−16）：trio 现状对齐 + 离线收据索引两新产物与归档收据原文（A″ `e697c81` 19:29–19:37 PT → FIX `a4e3de5` 20:04–20:17 PT）逐字对上，时序更正以 erratum 落地，stub 与归档收据零改写。
+2. not_run 全量覆盖（trio 1/1/1 · live 0 次 · Key 0 次 · `actualSpendCny=null`）、状态常量原值（`g7SuiteGreen=false` / `r1Closed=false` / Disclosure-1 OPEN）、SSOT/代码/收据零 diff、零 prove 零 push 均实证；wiring 行号 @SHA 独立复数（base :238/:239/:240/:241/:244 · 漂移 +2 → :240/:241/:242/:243/:246）与披露一致。
+3. pre-exec C-1~C-6 全部满足，Blockers 无；本 PASS = docs 产物 POST-PROVE dual 的 mw-model-op 半签——alone ≠ dual，不代签 `mw-e2e-ha`，nail 与任何 trio 实跑仍须协调方另行授权，禁假绿不变。
+
+Verdict: PASS
