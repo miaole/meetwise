@@ -21,7 +21,7 @@
 
 `e2e-requirement-coverage-matrix.md:119`（§1.0.1）row **`UC-E2E-014 / 026`**: NEG **partial** · FAULT **partial** · BOUND **partial**（入账幂等）· ADV **gap** · 读法「重放/篡改七类未全铺」。`:177`（§1.1）:「主路径 covered-ish；重放/篡改七类未全铺」。
 
-`ai-docs/requirements/use-cases/e2e-scenarios.md` UC-E2E-026（:528 起）: E-伪造签名「验签 fail-closed → 拒绝、不改状态、告警」（:536）· E-篡改金额「验签 + 服务端金额复核 → 双拦不入账」（:537）· E-重放「幂等键去重 + 验签兜底 → 不重复发放」（:538）；验收 A1 伪造签名被拒、PaymentOrder 不变 · A2 篡改金额不入账 · A3 重放不二次发放（:542）；后置「非法回调零副作用，审计落 GuardrailHit/安全日志」（:539）；TC-E2E-026-forged-sig / tamper-amount / replay（:544-546）。UC-E2E-014（:518 起）: A1 重复回调仅充值一次 · A2 金额不符不入账并告警 · 重复/乱序回调幂等键。
+`ai-docs/requirements/use-cases/e2e-scenarios.md` UC-E2E-026（:528 起）: E-伪造签名「验签 fail-closed → 拒绝、不改状态、告警」（:536）· E-篡改金额「验签 + 服务端金额复核 → 双拦不入账」（:537）· E-重放「幂等键去重 + 验签兜底 → 不重复发放」（:538）；验收 A1 伪造签名被拒、PaymentOrder 不变 · A2 篡改金额不入账 · A3 重放不二次发放（:540@b790b45；pre-exec dual mw-rag-route 非阻塞修正：原引 :542 漂移 2 行，内容一字未错）；后置「非法回调零副作用，审计落 GuardrailHit/安全日志」（:539）；TC-E2E-026-forged-sig / tamper-amount / replay（:544-546）。UC-E2E-014（:518 起）: A1 重复回调仅充值一次 · A2 金额不符不入账并告警 · 重复/乱序回调幂等键。
 
 `scripts/run-e2e-isolated.mjs` 头注口径:「local green ≠ HA · need multi-instance + fault-inject for releaseEvidence」。
 
