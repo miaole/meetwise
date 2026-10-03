@@ -639,3 +639,14 @@ flowchart TD
 - 本刀零产品改动；UC-052 stays **partial**；coveredCount=**8**；公开 DELETE=**503**；`apps/worker/src/checkpoint-principal.ts` 未碰；`e2e-requirement-coverage-matrix.md` 未动。
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
 - The A' oneshot-disagreement section and the A' FINAL HONEST CLOSE section above stay as written. Sibling sections stay: B'' `a66e1d1`, B' `76d2bc3`, C' `0652a08`, D' `e0842d0`. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+### C'' GAP-UC004-FAIL-A3 / NHP-004-FAULT-01 FAULT real evidence NAIL（2026-10-03 SSOT nail · `post_prove_dual_pass` · EXIT=1 honest · row stays gap）
+
+- [x] REQUEST `f44d8da` / `f44d8daf3a2eb385d423d0d0d4d8aa2c477cddf6`（docs-only）· pre-exec dual PASS: mw-rag-route `bcc7bed` + mw-e2e-ha `a2da2f1`。
+- [x] prove（协调方 coding+prove 授权后）: `pnpm uc004:career-path-fault:prove` **EXIT=1**（run4 证据完整版；4 attempts: `ATTEMPT-0-CONTROL:0` `ATTEMPT-1-FI2-STATEMENT-TIMEOUT:0` `ATTEMPT-2-FI1-CONNECTION-BREAK:1` `ATTEMPT-3-FI3-GRAPH-FAIL:1`；one-shot；runs 1-2 bootstrap 中断 0 attempts 如实入账；run3 两处探针缺陷原样保留、未 retry-to-green）· 双审 fresh re-run 同形复现 EXIT=1。
+- [x] post-prove dual PASS: mw-rag-route `aafdffbe` + mw-e2e-ha `4d8dc5d`（独立复验：包完整性恰 5 文件零产品源码、F1/F2/F3 实测核验、FI-1 缺陷双证闭合、Ban invent fix 合规）。
+- [x] NAIL（本 commit）: SSOT 追加 —— backlog FAULT 真证据段 + 新缺陷条目 `GAP-PRINCIPAL-POOL-NO-ERROR-LISTENER`（P1 · OPEN）· 矩阵 UC-E2E-004 行加注（行状态不动）· 本节。nail tip = 本 commit（prove 包重放 `0cb9b3d`）。
+- [ ] `GAP-UC004-FAIL-A3` / `NHP-004-FAULT-01` FAULT column **stays gap** · A3 **not closed** · coveredCount=**8**. FI-2 全绿仅覆盖超时单类，不得外推为全故障类。FI-3 可达须产品接线（另刀）。FI-1 缺陷修复须独立产品刀（`GAP-PRINCIPAL-POOL-NO-ERROR-LISTENER` OPEN）。
+- [ ] Not UC-018. Not UC-052. Not UC-025. Do not treat `pnpm uc004:career-path:prove` EXIT 0 as A3 closed；`pnpm uc004:career-path-fault:prove` EXIT=1 也不是 close。Ban inventing a fix. Ban product coding. Ban flipping any SSOT row.
+- Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+- The C' `post_pre_exec_dual_pass` section and the FINAL NAIL section above stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
