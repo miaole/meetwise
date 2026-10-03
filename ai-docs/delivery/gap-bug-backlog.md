@@ -154,3 +154,15 @@
 - No covered flip. No cloud buy. No product code. No package.json edit. Harness/slice left as REQUEST wrote them.
 - G7 FR3 nail section from `210f4c0` and I2 nail `e09a39f` (pre_exec_dual_pass, missing script has no EXIT) are unchanged. CLOSED gaps including `GAP-UC052-POOL-ROLE-LEAK` and `NOTE-CKPT-UNSEALED-CLAIM-NEG` stay CLOSED.
 - Evidence: `reviews/REQUEST-2026-10-02-ha-d3-prepurchase-quote-mw-e2e-ha.md` · `harness/ha-d3-prepurchase-quote.md` · `ha-d3-prepurchase-quote.slice.md`.
+
+### GAP-UC018-WAITING-USER tip（2026-10-02 SSOT nail · `post_prove_dual_pass`）
+
+- **GAP-UC018-WAITING-USER** · status **`post_prove_dual_pass`** for the new tip run. This nail is not a status flip and not evidence of record. Implementer does not self-approve.
+- Dual PASS on origin `feat/mysql-schema-skeleton` (both commits confirmed ancestors before this nail): mw-rag-route `c4e4373` / `c4e437323cc666a85212ba8060339e5ebe69dac2` · mw-e2e-ha `119d358` / `119d358e73dc8188066ba78ad929b14bed4d5f8a`.
+- Code/prove SHA `6fde895` / `6fde8959ec70d23a595ffcea02d62ab10a3a5762`. Receipt commit `559f972` / `559f972f87fe89af33424d5e5bc5428edbb7144e`.
+- WAITING_USER tip receipts exist under `receipts/uc018-waiting-user-tip/`. `evidenceOfRecord=false`. The tip run is not evidence of record. waiting_user stays MISSING-EVIDENCE. Do not pick a historical tip. Do not rewrite historical backfill receipts or JSON.
+- UC-018 and §1.1 stay **partial**. coveredCount=8. Do not write covered. Do not flip a status.
+- Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503. Do not claim production HA.
+- This commit does not pre-claim the post-commit EXIT table. Harness/slice left as the REQUEST wrote them.
+- J section `10e8dc2`, I2 nail `e09a39f`, G7 FR3 from `210f4c0`, and CLOSED UC-052 rows stay as written. Sibling sections (Line C / E / H / G), if present, stay intact.
+- Evidence: `reviews/REQUEST-2026-10-02-gap-uc018-waiting-user-tip-mw-rag-route.md` · `reviews/REQUEST-2026-10-02-gap-uc018-waiting-user-post-prove-mw-e2e-ha.md` · `harness/gap-uc018-waiting-user-tip.md` · `gap-uc018-waiting-user-tip.slice.md` · `receipts/uc018-waiting-user-tip/waiting-user-tip.json`.
