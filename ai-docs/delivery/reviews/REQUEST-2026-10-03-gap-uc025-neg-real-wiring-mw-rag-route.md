@@ -102,3 +102,78 @@ Dual PASS ≠ coding ≠ nail · No coding is authorized by this stub. 预执行
 3. 条件放行：C-1 防 proof 首匹配截断陷阱（quiz 标识须落在未改 proof 实际读取文本内，否则停手上报）、C-2 锚点走新增迁移+`sql/20` 镜像、C-3 token/status 收敛、C-4 额度序、C-5 EXIT 纪律、C-6 旧行为保持；alone ≠ dual，本 PASS 待 mw-e2e-ha 同审后方成 dual，不代签、不授权 coding、不跑 prove、不 push。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual · **GAP-UC025-NEG-01 real wiring** · mw-rag-route（独立复验 · 禁自批 · alone ≠ dual · 不代签 mw-e2e-ha）
+
+**Reviewer**: `mw-rag-route`（adversarial RAG/route/题库隔离 reviewer）
+**被审包**: branch `origin/line/b2-uc025-wiring` · tip **`6e5252a`**（`6e5252ad57304352198b614dd4e3d14de128f04a`）= `6cbaf04`（真接线，5 文件 +40/−6，author mw-core）+ `6e5252a`（2 receipts）；REQUEST `8084f09`（origin main，与分支 `cfc0c28` 同文）；预执行双审：rag `8613a3a` PASS + e2e-ha `36f583a` PASS（两 commit 均实证在库，`8613a3a` 版 review 文件末行 `Verdict: PASS` 实查）。
+**审查 worktree**: `/Users/miaole/Desktop/golucky/meetwise-rv-b2p-rag-route`（branch `rv/b2p-rag-route` @ `origin/line/b2-uc025-wiring` · 一切 git 写操作仅在本 worktree 本 commit · 禁 push）。
+**审查方式**: git 只读 diff 验证 + 源码 file:line 静态核查 + **fresh re-run 恰好一次**（`pnpm install --frozen-lockfile` 后首跑即录 EXIT，无重试、无 wash）。
+
+## 0. 包完整性（C-DUAL-FROM-FRESH 前置）
+
+- [x] `git log --oneline cfc0c28..6e5252a` = 恰 2 commit（`6cbaf04` 真接线 + `6e5252a` receipts），无夹带。
+- [x] **proof 零改动**: `git diff f44d8da 6cbaf04 -- apps/api/test/uc-e2e-025-nhp-neg.proof.mjs` = **0 字节**；`cfc0c28..6e5252a` 全包范围该文件 diff 亦 **0 字节**。改 proof = 直接 FAIL → 未触发。
+- [x] 实现范围 `cfc0c28..6cbaf04` = 恰好申报的 5 文件 +40/−6：`apps/api/src/modules/interview/interview.controller.ts`（+6/−2）、`apps/api/src/modules/interview/interview.service.ts`（+20/−1）、`apps/worker/src/quiz-lifecycle.ts`（+9/−3）、`packages/db/migrations/0135_resume_quiz_freshness_anchor.sql`（新增 +6）、`packages/db/sql/20_resume_quiz.sql`（+1）；`cfc0c28..6e5252a` 另仅 +2 receipts（pre-wiring / real-wiring prove）。零越界文件。
+- [x] `0007_resume_quiz.sql` **零 diff**（0 字节、0 commit）、全包 diff 无任何新增 DROP 语句（仅注释文字提及「绝不 DROP」）。
+- [x] 矩阵 / SSOT / `coveredCount=8` / UC-018 / UC-052 / UC-004 / flake 行：全包 diff 零触碰。
+
+## 1. Fresh re-run（C-DUAL-FROM-FRESH · 恰好一次）
+
+- **环境**: node v22.19.0 · pnpm 10.18.0 · worktree HEAD `6e5252ad5730…` · `pnpm install --frozen-lockfile` → Done（attempts=1 安装）。
+- **CMD**: `pnpm uc025:nhp-neg:prove`（root `package.json:148` = `node apps/api/test/uc-e2e-025-nhp-neg.proof.mjs`）
+- **EXIT**: **0**（`PROCESS_EXIT=0` · 第 1 次尝试即得，attempts=1，禁重试条款遵守）
+- **实测读数**（与 real-wiring receipt 的 verbatim 记录**逐字一致**）:
+  - `inventory acceptsQuiz=true realStaleReject=true resume_quiz_expiry_column=false`
+  - `contracts_stale_token=false`
+  - `PASS  NHP-025-NEG-01  interview begin throws a stale-quiz HttpException` / `ROW_STILL_GAP … matrix not flipped`（行保持 gap，未升格）
+- **比对结论**: fresh EXIT 0 == receipt 声称 EXIT 0（attempts=1 一致）；两处诚实读数（`resume_quiz_expiry_column=false` 读 0007、`contracts_stale_token=false` 读 contracts）均为 proof 非门项（门 = `acceptsQuiz && realReject`，proof :71），不构成矛盾。
+
+## 2. 预执行 binding 条件逐条裁决
+
+| 条件 | 裁决 | 证据（file:line） |
+|------|------|-------------------|
+| **rag C-1**：未改 proof 实测 acceptsQuiz=true（service 首匹配=完整签名）；quiz 标识走 service 第 5 形参 | **MET** | proof diff 双区间 0 字节（§0）；fresh 实测 acceptsQuiz=true；service 全文**首个** `begin(` 匹配 = `interview.service.ts:179` 完整 5 参签名 `begin(principal, id, resumeId, requestId?, sourceQuizId?)`（无嵌套括号，`[^)]*` 不截断——pre-exec C-1 警示的 controller 首匹配截断陷阱被可靠路径规避）；controller `interview.controller.ts:24` `@Headers('quiz-id') quizId?: string` 透传为第 5 实参，双窗口均命中 |
+| **rag C-2 / e2e-ha C-1**：迁移走新增非破坏迁移 + 20 镜像；0007 未动、无 DROP；已迁移库与新库都得到锚点列 | **MET** | 新增 `packages/db/migrations/0135_resume_quiz_freshness_anchor.sql:6` = `ALTER TABLE resume_quiz ADD COLUMN IF NOT EXISTS expires_at timestamptz`（非破坏、无 DROP）；`packages/db/sql/20_resume_quiz.sql:16` 镜像补列（新库重放得同列）；`0007` 零 diff 零 commit（已迁移库不重写历史）；已迁移库经 0135 得列 + service `:206-207` `expires_at != null` 才判过期（NULL 旧工件不假拒）；worker ready CAS 同事务写真锚点（`quiz-lifecycle.ts:54-58`） |
+| **rag C-3**：token/status 收敛唯一 stale_quiz+CONFLICT，receipt 记实际值 | **MET** | 唯一对外 token/status = `throw new HttpException({ error: 'stale_quiz' }, HttpStatus.CONFLICT)` @ `interview.service.ts:209`（409）；begin 路径无第二 stale token 混发（缺工件/非本人工件走独立语义 `not_found_or_forbidden` 404 @ `:203-204`，非 stale 族）；receipt `2026-10-03-uc025-nhp-neg-real-wiring-prove.md` Honesty notes 记实值「stale_quiz + 409 CONFLICT」 |
+| **rag C-4**：stale 拒绝先于扣额度（reserveEntitlement）与入队（enqueueInterviewJob）；receipt 记代码位置 | **MET** | 顺序实证（同一 begin 事务体内）：advisory lock `:184` → `FOR UPDATE` `:185` → `interview_not_active` 守卫 `:192-194` → **stale 块 `:199-210`（throw @ `:209`）** → resume 绑定 `:218` 起 → `reserveEntitlement` `:271` → `enqueueInterviewJob` `:279`；begin 体内唯一 catch `:272-275` 只映射 `insufficient_entitlement`→402 且其余原样重抛、位于 stale 检查**之后**——无任何 catch 吞该 throw；receipt Honesty notes 记录上述位置与顺序 |
+| **rag C-5**（pre-exec 原条目，一并裁决）：EXIT 纪律——receipt 记实际 EXIT 与读数、不预claim、不动矩阵/SSOT/coveredCount、post-prove dual 不覆写 stub | **MET** | receipt 记实际 `EXIT: 0（PROCESS_EXIT=0 · attempts=1）` 与 acceptsQuiz/realStaleReject 实值，无预claim措辞；§0 实证矩阵/SSOT/coveredCount=8 零触碰；本 POST-PROVE 段为 append-only 追加于 stub 之后，stub 原文一字未动 |
+| **rag C-6**：无 quiz 工件时 begin 行为与今日一致（sourceQuizId 缺省整块跳过） | **MET** | `if (sourceQuizId)` @ `interview.service.ts:199` 整块守卫：header 缺省 → controller 形参 `quizId?: string` 缺省 undefined → service 第 5 形参 falsy → 不读 `resume_quiz`、不强制、不做 widen，resume-only 语义与接线前一致；controller `:21` 注释自证该行为契约 |
+
+**6/6 MET，0 UNMET。**
+
+## 3. Fail-trigger audit（红线逐条）
+
+- 改 proof 正则/布尔洗绿？→ **否**（双区间 diff 0 字节；fresh 复跑用未改 proof 命中 EXIT 0）。
+- stub / 死旗标 throw / 插串命中正则 / 布尔翻 true？→ **否**：真 HTTP header → 真形参透传 → owner-scoped SQL 真读 `status,expires_at` → 对**持久化锚点**真比较 → 真 `HttpException`；worker 侧 ready CAS 同事务写真 `expires_at`（非读时硬编码 `now()+N` 冒充锚点）。
+- catch 吞异常？→ **否**（§2 C-4 证据：唯一 catch 在 stale 检查之后且仅映射 402、其余重抛）。
+- 顺序造假（先扣额度再校验）？→ **否**（stale throw `:209` < `reserveEntitlement` `:271` < `enqueueInterviewJob` `:279`，stale 输入不耗额度不入队）。
+- widen（quiz 改强制入参）？→ **否**（可选 header、缺省整块跳过）。
+- owner-scoped 缺失？→ **否**（`db.asPrincipal(principal,…)` RLS 事务内 + SQL 显式 `owner_user_id=$2`，与 `quiz.service.ts` 形状一致）。
+- SSOT / 矩阵 / coveredCount / UC-018 / UC-052 / UC-004 / flake 触碰？→ **否**（§0 diff 实证）。
+- 冒领旧 `uc025:stale-quiz-expiry:prove` EXIT 0？→ **否**（receipt 明文「与本案无关」）。
+- alone 冒签 dual？→ **否**（本段仅 mw-rag-route 单专家；mw-e2e-ha post-prove 段未代签、未覆写）。
+
+**Fail-trigger 命中：0。**
+
+## 4. Blockers
+
+无。
+
+## 5. Conditions（C-* · 移交后续回合 · 违反即追责依据）
+
+- **C-A（dual 完成条件）**: `GAP-UC025-NEG-01` 的 OPEN→关闭须待 **mw-e2e-ha 的 post-prove dual 同审 PASS**（alone ≠ dual）；本 PASS 不代签、不免除 peer 审。
+- **C-B（行保持）**: EXIT 0 = case pass ≠ covered ≠ nail ≠ SSOT flip；`UC-E2E-025` 行保持 **gap**（§1.0.1 NEG 列），FAULT/BOUND/ADV 保持 not-run；`coveredCount=8` 不动；Pins 原值不改口。
+- **C-C（contracts 未登记）**: `contracts_stale_token=false` 为诚实读数（`packages/contracts` 未登记 stale token）；后续 HTTP 断言若需 contracts 层登记，须另立 REQUEST，不得在本刀顺手改。
+- **C-D（TTL 产品决策留痕）**: 新鲜度窗口 `QUIZ_FRESH_TTL_MS=7d`（`quiz-lifecycle.ts:17`）为产品决策常量，调整须改代码并留痕，不得以数据/配置漂移绕过审查。
+- **C-E（本审边界）**: 本审未改任何产品/proof/SSOT 文件；git 写操作仅限本 worktree 本 commit（review 文件 append）；禁 push。
+
+## 6. 中文三行摘要
+
+1. 被审包 `origin/line/b2-uc025-wiring` tip `6e5252a` 包完整性实证：恰 2 commit、实现范围恰 5 文件 +40/−6、proof `uc-e2e-025-nhp-neg.proof.mjs` 双区间 diff 0 字节、`0007` 零 diff、无 DROP、矩阵/SSOT/coveredCount=8 零触碰。
+2. fresh re-run 恰好一次（`pnpm install --frozen-lockfile` 后首跑）：`pnpm uc025:nhp-neg:prove` → **EXIT=0**、acceptsQuiz=true、realStaleReject=true，与 real-wiring receipt 逐字一致；静态核查 stale_quiz throw（`interview.service.ts:209`）位于 `interview_not_active` 守卫后、resume 绑定前、先于 `reserveEntitlement`(:271)/`enqueueInterviewJob`(:279)，唯一 catch 不吞、owner-scoped（RLS+`owner_user_id`）、0135 非破坏迁移 + `sql/20` 镜像双路得锚点列、NULL 锚点不假拒、无工件时整块跳过行为不变——预执行 6 条件全 MET，fail-trigger 红线零命中。
+3. Verdict **PASS**（mw-rag-route 单专家 post-prove dual）：`GAP-UC025-NEG-01` 关闭与 `UC-E2E-025` 行升格仍待 mw-e2e-ha 同审（alone ≠ dual，不代签），EXIT 0 ≠ covered ≠ nail ≠ SSOT flip；本审 append-only、不 push、无 Blockers。
+
+Verdict: PASS
