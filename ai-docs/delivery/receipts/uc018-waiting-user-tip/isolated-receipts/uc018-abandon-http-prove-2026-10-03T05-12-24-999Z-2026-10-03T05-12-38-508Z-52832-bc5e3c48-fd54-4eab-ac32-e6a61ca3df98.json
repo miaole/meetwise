@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc018:abandon:http:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 5045,
+  "startedAt": "2026-10-03T05:12:33.463Z",
+  "finishedAt": "2026-10-03T05:12:38.508Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:61cdc6c3d21c7d6d32d1b8216ff35db4c7c418eab7842ede70986289b16c4087",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/api/test/uc-e2e-018-user-abandon-http.proof.ts": "sha256:d92d37edefb8c5248923814955e022f711551b6648828629dea7d82d7815768f",
+    "apps/api/test/_neg-harness.ts": "sha256:7687c5a9decd08d2789d1e2c0be3c2c44eed8d2e47ae02a45e0cc0b46f38279e",
+    "apps/api/src/modules/interview/interview.controller.ts": "sha256:979ba608740728a8148beafcd50c2fb206cda65aea78545490e61b8fdcc0a65b",
+    "apps/api/src/modules/interview/interview.service.ts": "sha256:6e3ad1595b552a3112335df03ee876d0a6b9e590b795d1a0893dfbbf139382b5",
+    "packages/db/src/commerce.ts": "sha256:8c71b620bd465a43324573fe4797c80b122b897456ea26c04c1bdeb5cfb6dab7"
+  },
+  "schemaMigrationManifest": {
+    "count": 134,
+    "latest": "0134_usage_calibration_gateway_owners.sql",
+    "digest": "sha256:8dce517cceaa13a6bfa02560aac0fd202201fb85b1b6232e46c65aff22dda255"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

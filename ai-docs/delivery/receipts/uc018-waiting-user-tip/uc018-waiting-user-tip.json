@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_waiting_user_tip_run_receipt",
+  "knife": "GAP-UC018-WAITING-USER-TIP",
+  "runId": "2026-10-03T05-14-11-505Z",
+  "emittedBy": "scripts/uc018-waiting-user-tip-emit.mjs",
+  "emitterSha256": "sha256:77487c3a5c79c06e339e7de17e096c28f2f6879dd7831a661aa288fc38746841",
+  "gitSha": "e34ae548969ca59d445f0c98f1ab0292497ec97a",
+  "runnerCommitSha": "e34ae548969ca59d445f0c98f1ab0292497ec97a",
+  "targetSha": "e34ae548969ca59d445f0c98f1ab0292497ec97a",
+  "wrapperSha": "e34ae548969ca59d445f0c98f1ab0292497ec97a",
+  "branch": "line/d-waiting-user",
+  "exit": 0,
+  "exits": {
+    "uc018:abandon:prove": 0,
+    "uc018:abandon:http:prove": 0
+  },
+  "cmds": [
+    "uc018:abandon:prove",
+    "uc018:abandon:http:prove"
+  ],
+  "runAt": "2026-10-03T05:14:25.623Z",
+  "ranAt": "2026-10-03T05:14:25.623Z",
+  "ranAtTz": "UTC",
+  "historicalTip": false,
+  "evidenceOfRecord": false,
+  "evidenceKind": "new-evidence-not-backfill",
+  "cWaitingUserRule": {
+    "rule": "C-WAITING-USER-RULE",
+    "classification": "new-evidence-not-backfill",
+    "note": "Fresh run at the branch tip at execution (coordinator-authorized baseline). NOT a historical backfill; no banned historical SHA used; waitingUser stays MISSING-EVIDENCE in the backfill SSOT — only this new receipt records tip-run evidence."
+  },
+  "backfill": {
+    "dirUsed": false,
+    "filesModified": 0,
+    "existingEmitterReused": false,
+    "note": "Self-contained emitter; receipt lives in a NEW directory; uc018-receipt-backfill/** untouched."
+  },
+  "stack": {
+    "isolationStack": {
+      "value": "pgvector-legacy",
+      "source": "R5-MARKED-RED banner in run logs"
+    },
+    "image": {
+      "value": "pgvector/pgvector:pg16",
+      "source": "E2E_PG_IMAGE banner in run logs (wrapper default)"
+    },
+    "imageRepoDigests": {
+      "value": [
+        "pgvector/pgvector@sha256:7b822b0aac60967beb1ea5e576b8602c94c300a157d187f385ae3e0da199b90a",
+        "docker.m.daocloud.io/pgvector/pgvector@sha256:7b822b0aac60967beb1ea5e576b8602c94c300a157d187f385ae3e0da199b90a"
+      ],
+      "source": "docker image inspect at run time"
+    },
+    "imageAcquisition": {
+      "value": "pulled via docker.m.daocloud.io (docker.io registry-1.docker.io unreachable from this host); RepoDigests identical for docker.io and mirror refs; local tag pgvector/pgvector:pg16 created from same bytes",
+      "source": ".tmp/line-d-logs/docker-pull-pg16.log + docker image inspect"
+    },
+    "containers": [
+      {
+        "cmd": "uc018:abandon:prove",
+        "container": "meetwise-e2e-54380-1791004452772",
+        "hostPort": 65474,
+        "source": "E2E isolated PostgreSQL banner in run log"
+      },
+      {
+        "cmd": "uc018:abandon:http:prove",
+        "container": "meetwise-e2e-55152-1791004460575",
+        "hostPort": 65499,
+        "source": "E2E isolated PostgreSQL banner in run log"
+      }
+    ],
+    "disposableIsolation": {
+      "uniqueContainerName": {
+        "value": true,
+        "source": "wrapper meetwise-e2e-<pid>-<epochms> + observed two distinct names"
+      },
+      "dynamicHostPort": {
+        "value": true,
+        "source": "wrapper -p 127.0.0.1::5432 + observed distinct ports"
+      },
+      "sharedVolumes": {
+        "value": false,
+        "source": "scripts/run-e2e-isolated.mjs docker run has no -v mounts"
+      },
+      "removedAfterRun": {
+        "value": true,
+        "source": "wrapper --rm + finally docker rm -f"
+      }
+    },
+    "pgRetained": {
+      "value": true,
+      "source": "pin echo (PG-retained); fixture is PostgreSQL/pgvector"
+    },
+    "emptyStackIsNotMet": "any claim field without a source above must be treated UNMET"
+  },
+  "caps": {
+    "enforced": {
+      "value": false,
+      "source": "scripts/run-e2e-isolated.mjs applies docker caps only to uc018:perf-load:prove:raw"
+    },
+    "note": "This run is not a capacity prove (harness NHP-5/6: Ban elevate)."
+  },
+  "nodeVersion": "v22.22.3",
+  "pnpmVersion": "10.18.0",
+  "installExit": 0,
+  "logs": [
+    {
+      "cmd": "uc018:abandon:prove",
+      "path": "ai-docs/delivery/receipts/uc018-waiting-user-tip/logs/emitter-2026-10-03T05-14-11-505Z-uc018-abandon-prove.log",
+      "sha256": "sha256:d2286f2111e50742d7d56b62a8edcf11499a9eb24109f9a1a6e7d6fb926324e7",
+      "exit": 0
+    },
+    {
+      "cmd": "uc018:abandon:http:prove",
+      "path": "ai-docs/delivery/receipts/uc018-waiting-user-tip/logs/emitter-2026-10-03T05-14-11-505Z-uc018-abandon-http-prove.log",
+      "sha256": "sha256:aadd9c27eb4a5fce3b22dc9b86e6200aa7a25c51a11032d92a314c739fa4c0f5",
+      "exit": 0
+    }
+  ],
+  "isolatedReceipts": [
+    {
+      "cmd": "uc018:abandon:prove",
+      "path": "ai-docs/delivery/receipts/uc018-waiting-user-tip/isolated-receipts/uc018-abandon-prove-2026-10-03T05-14-11-505Z-2026-10-03T05-14-20-213Z-54380-83bc24be-be1c-47f8-bc29-497959fa8511.json",
+      "sha256": "sha256:58ca04defdd8e42ff57eb59d3ee35528223369a7a1357644507d46591c03eeb2"
+    },
+    {
+      "cmd": "uc018:abandon:http:prove",
+      "path": "ai-docs/delivery/receipts/uc018-waiting-user-tip/isolated-receipts/uc018-abandon-http-prove-2026-10-03T05-14-11-505Z-2026-10-03T05-14-25-594Z-55152-7851c5f6-8322-4e13-911a-1750bf9b551c.json",
+      "sha256": "sha256:4f287514f93cc6f8ee6a9125fd9259bbd6d7fd8bf1dc4293e724ec574758a462"
+    }
+  ],
+  "attemptsPath": "ai-docs/delivery/receipts/uc018-waiting-user-tip/attempts.jsonl",
+  "attemptsSummary": {
+    "totalRows": 18,
+    "rowsByPhase": {
+      "fail-closed": 1,
+      "manual-pre-emitter": 6,
+      "emitter-install": 3,
+      "emitter-prove": 6,
+      "emitter-crash": 2
+    },
+    "note": "all attempts recorded (including fail-closed and crashed runs); no retry-to-green"
+  },
+  "originTipDrift": {
+    "observedOriginTip": "58c003156c3fc69505ecb3daa2e3dad25f4a6dfc",
+    "headProved": "e34ae548969ca59d445f0c98f1ab0292497ec97a",
+    "headIsOriginTipAtRun": false,
+    "note": "Observed honestly, not asserted: origin ref had advanced past the coordinator-authorized baseline (3d7063f) at execution time (concurrent lines). This run proves at this line branch tip at execution (built on the authorized baseline); no historical prove tip was substituted."
+  },
+  "pins": {
+    "haStatus": "NOT_HA",
+    "releaseEvidence": false,
+    "claimProductionHA": false,
+    "gR45Closed": true,
+    "coveredCount": 8,
+    "ms3EqualsR4Closed": false,
+    "publicDeleteStatus": 503,
+    "stackPin": "PG-retained",
+    "matrixRowUcE2e018Status": "partial",
+    "matrixFileSha256AtRun": "sha256:a27d408806918add340132afc7814c92fd6f2733169730f0a0bb761af8a655c0",
+    "ssotEditedByThisRun": false
+  },
+  "disclosure": "NEW EVIDENCE ≠ BACKFILL (C-WAITING-USER-RULE). Machine-emitted by scripts/uc018-waiting-user-tip-emit.mjs (self-contained; does not call or modify uc018-receipt-backfill emitter/libs). evidenceOfRecord stays false until post-prove dual. exit values recorded as run; nonzero would be recorded as-is (none washed). EXIT=0 ≠ product green ≠ HA ≠ covered ≠ UC-E2E-018 covered; matrix §1.1 stays partial; coveredCount stays 8. GAP-BACKFILL-EMITTER-UNAUTHENTICATED applies: JSON is not HMAC-signed; verify against committed log digests.",
+  "environmentBlockages": [
+    {
+      "kind": "docker-daemon-not-running-at-start",
+      "resolution": "started Docker Desktop (open -a Docker); daemon 29.1.3"
+    },
+    {
+      "kind": "docker.io-registry-unreachable",
+      "detail": "docker pull pgvector/pgvector:pg16 → \"context deadline exceeded\" (registry-1.docker.io); no system proxy",
+      "resolution": "pulled identical image via docker.m.daocloud.io mirror; digest sha256:7b822b0aac60967beb1ea5e576b8602c94c300a157d187f385ae3e0da199b90a matches across docker.io and mirror repo refs; canonical local tag created",
+      "logPath": ".tmp/line-d-logs/docker-pull-pg16.log"
+    }
+  ]
+}

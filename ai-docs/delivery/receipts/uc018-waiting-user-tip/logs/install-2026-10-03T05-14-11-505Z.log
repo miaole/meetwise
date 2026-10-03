@@ -1,0 +1,17 @@
+=== pnpm install --frozen-lockfile EXIT=0 ===
+Scope: all 12 workspace projects
+Lockfile is up to date, resolution step is skipped
+Already up to date
+
+╭ Warning ─────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│   Ignored build scripts: @parcel/watcher, @swc/core, esbuild, protobufjs,    │
+│   sharp.                                                                     │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+│   to run scripts.                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Done in 665ms using pnpm v10.18.0
+
+

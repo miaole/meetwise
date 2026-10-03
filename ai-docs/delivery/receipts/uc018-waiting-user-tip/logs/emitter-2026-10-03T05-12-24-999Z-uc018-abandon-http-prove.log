@@ -1,0 +1,88 @@
+=== emitter attempt: pnpm uc018:abandon:http:prove | HEAD=51568d28c55f2b53e7104305a8b14fbc6a5de289 | start=2026-10-03T05:12:33.154Z ===
+
+> meetwise@0.1.0 uc018:abandon:http:prove /Users/miaole/Desktop/golucky/meetwise-line-d
+> node scripts/run-e2e-isolated.mjs uc018:abandon:http:prove:raw
+
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-52832-1791004353460 on 127.0.0.1:65324
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc018-abandon-http /Users/miaole/Desktop/golucky/meetwise-line-d/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-018-user-abandon-http.proof.ts
+
+UC-E2E-018 user-abandon HTTP prove · releaseEvidence=false · Not HA
+NOTE: 本绿≠全链路 E2E covered；≠ matrix covered；HTTP mouth only；fixture=pgvector → green-risk/R5
+NOTE: remaining→covered: UI · sole-stack (waiting_user + FULL-E2E + GRAPH + TTL closed; matrix stays partial)
+PIN   GAP-UC018-PRIVACY-STUB: minimal privacy-active stub (≠ 0058 fence covered)
+PIN   GAP-UC018-LIST-SCHEMA-STUB: job_title_snapshot additive (≠ 0123 snapshot covered)
+
+──────── H1 · HTTP active+reserved abandon ────────
+PASS  H1 reserve → reserved
+PASS  H1 预留后额度 -1
+PASS  H1 POST abandon → 200
+PASS  H1 body.abandoned=true
+PASS  H1 body.released=released
+PASS  H1 body.alreadyAbandoned≠true
+PASS  H1 interview=abandoned
+PASS  H1 consumption=released
+PASS  H1 额度净变 0（回补）
+
+──────── H1-shell · HTTP created 空壳 abandon ────────
+PASS  H1-shell POST → 200
+PASS  H1-shell abandoned=true
+PASS  H1-shell released=noop
+PASS  H1-shell interview=abandoned
+PASS  H1-shell 额度不变
+
+──────── H2 · HTTP 二次 abandon + begin 拒复活 ────────
+PASS  H2 setup abandon → 200
+PASS  H2 二次 → 200
+PASS  H2 二次 alreadyAbandoned=true
+PASS  H2 二次 released=noop（不双退）
+PASS  H2 额度不二次回补
+PASS  H2 仍 abandoned
+PASS  H2 begin abandoned → 409 interview_not_active（不可复活）
+
+──────── H3 · HTTP get/list + create 不复用 abandoned ────────
+PASS  H3 abandon dead → 200
+PASS  H3 DB dead=abandoned
+PASS  H3 GET dead → 200 abandoned（终态仍可读）
+PASS  H3 list?status=abandoned → 200
+PASS  H3 list abandoned 含 dead
+PASS  H3 list abandoned 不含 live
+PASS  H3 create → 200
+PASS  H3 create 不复用 abandoned dead
+PASS  H3 create 复用进行中（reused 或新开均可，只要 ≠ dead）
+
+──────── H-waiting-user · HTTP waiting_user+reserved abandon ────────
+PASS  H-waiting-user reserve → reserved
+PASS  H-waiting-user 预留后额度 -1
+PASS  H-waiting-user POST abandon → 200
+PASS  H-waiting-user body.abandoned=true
+PASS  H-waiting-user body.released=released
+PASS  H-waiting-user body.alreadyAbandoned≠true
+PASS  H-waiting-user interview=abandoned
+PASS  H-waiting-user consumption=released
+PASS  H-waiting-user 额度净变 0（回补）
+PASS  H-waiting-user begin abandoned → 409 interview_not_active
+
+──────── H-authz / terminal ────────
+PASS  H-authz 越权 userB→userA → 404
+PASS  H-authz 未鉴权 → 401
+PASS  H-authz 不存在 → 404
+PASS  H-terminal completed → 409
+PASS  H-terminal failed → 409
+
+──────── GAP pins (抬 covered 仍缺) ────────
+CLOSED GAP-UC018-WAITING-USER: abandon CAS = created|active|waiting_user + H-waiting-user prove
+CLOSED_GAP_UC018_GRAPH: see pnpm uc018:graph:prove；AiGraphRun safely_terminated + 业务事实保全已钉（本 HTTP prove 仍 ≠ graph assert；≠ covered）
+CLOSED_GAP_UC018_TTL: see pnpm uc018:ttl:prove；本 HTTP prove 仍 ≠ TTL dedicated；UI+sole-stack still gap → matrix partial ≠ covered
+CLOSED GAP-UC018-FULL-E2E: e2e/full.e2e.ts 显式 abandon TC + pnpm uc018:abandon:full-e2e:prove；CLOSED GAP-UC018-GRAPH: pnpm uc018:graph:prove；CLOSED GAP-UC018-TTL: pnpm uc018:ttl:prove；矩阵仍 partial · ≠ covered · UI/sole-stack 仍开
+PASS  honesty: HTTP prove 绿 ≠ UC-E2E-018 covered（FULL-E2E+waiting_user+GRAPH+TTL+UI 已关；sole-stack 仍缺 → partial · UI alone ≠ covered）
+
+✓ uc018:abandon:http: 46 条负路径用例全绿
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-03T05-12-38-508Z-52832-bc5e3c48-fd54-4eab-ac32-e6a61ca3df98.json release_evidence=false
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; intended sole default=mysql-qdrant-redis) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — NOT sole-stack truth (sole stack = MySQL+Qdrant+Redis). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+
+=== pnpm uc018:abandon:http:prove EXIT=0 ===

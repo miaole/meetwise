@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc018:abandon:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 7438,
+  "startedAt": "2026-10-03T05:14:12.775Z",
+  "finishedAt": "2026-10-03T05:14:20.213Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:61cdc6c3d21c7d6d32d1b8216ff35db4c7c418eab7842ede70986289b16c4087",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/uc-e2e-018-user-abandon.proof.ts": "sha256:cd9468dd4f40f5e64771a5c8af6be63010665313b00e1a05a0a299364f8c7090",
+    "packages/db/src/commerce.ts": "sha256:8c71b620bd465a43324573fe4797c80b122b897456ea26c04c1bdeb5cfb6dab7",
+    "packages/db/migrations/0001_baseline.sql": "sha256:a467e51954d935a40909d86d322c8f83b5da51f69c80085906ae0869cef2a8b9"
+  },
+  "schemaMigrationManifest": {
+    "count": 134,
+    "latest": "0134_usage_calibration_gateway_owners.sql",
+    "digest": "sha256:8dce517cceaa13a6bfa02560aac0fd202201fb85b1b6232e46c65aff22dda255"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}
