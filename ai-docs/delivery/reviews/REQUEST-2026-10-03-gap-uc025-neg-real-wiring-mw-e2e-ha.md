@@ -91,3 +91,75 @@ Dual PASS ≠ coding ≠ nail · No coding is authorized by this stub. 预执行
 3. 无 Blocker；附条件 C-1 迁移锚点须覆盖已迁移库（新非破坏迁移+镜像，防 500 假拒绝）、C-2 post-prove 双审须查主路径无 catch 吞与入参真消费且先于扣额度、C-3 EXIT 0 不关 GAP 不升行、C-4 父 tip 标注差一位（材料性声明已验证为真）；Verdict PASS，本段仅 docs gate，不授权 coding/prove，不代签 mw-rag-route。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual — GAP-UC025-NEG-01 real wiring · mw-e2e-ha（append-only · 独立复验）
+
+**Status**: **POST-PROVE dual PASS**（独立复验 · 不信任实现方摘要 · alone ≠ dual · 不代签 mw-rag-route）
+**被审包 tip**: `6e5252a`（`line/b2-uc025-wiring` 已推 origin）· 被审接线 commit `6cbaf04`（author mw-core）· 预收据 `cfc0c28` · base `f3cf84c` · REQUEST 双审基线 `8084f09`（见 C-5）
+**Reviewer worktree**: `rv/b2p-e2e-ha` @ `6e5252a`（fresh worktree · 本审零写代码文件）
+**Date**: 2026-10-03
+
+## 1. 包完整性（cmd+exit 复现）
+
+- `git diff f3cf84c cfc0c28 --name-status` → 恰 4 docs（slice/harness/两 pre-exec review stub），零代码。EXIT 0。
+- `git diff cfc0c28 6cbaf04 --name-status` → **恰好申报 5 文件**：`interview.controller.ts`（M）、`interview.service.ts`（M）、`quiz-lifecycle.ts`（M）、`migrations/0135_resume_quiz_freshness_anchor.sql`（A）、`sql/20_resume_quiz.sql`（M）。无其他。EXIT 0。
+- `git diff 6cbaf04 6e5252a --name-status` → 恰 2 receipts（pre-wiring + real-wiring）。EXIT 0。
+- **proof 洗绿检查**：`git diff f44d8da 6cbaf04 -- apps/api/test/uc-e2e-025-nhp-neg.proof.mjs` = **空**；且全包 `f3cf84c 6e5252a` 同路径亦空。**proof 一字未动**。
+- SSOT 零 diff（全包）：`e2e-requirement-coverage-matrix.md` / `e2e-covered-path-backlog.md` / `execution-master-checklist.md` / `production-backlog.md` / `gap-bug-backlog.md` 全空。矩阵未升行、coveredCount=8 未动、GAP-UC025-NEG-01 在 backlog:203 仍 **stays OPEN**。
+
+## 2. fresh re-run（C-DUAL-FROM-FRESH · 恰好一次 · 禁重试已遵守）
+
+- 前置：worktree 内 `pnpm install --frozen-lockfile` EXIT 0。
+- **CMD**: `pnpm uc025:nhp-neg:prove`（runner = `node apps/api/test/uc-e2e-025-nhp-neg.proof.mjs`）
+- **实测 EXIT = 0**（PROCESS_EXIT=0 · 第 1 次尝试 · 无重试 · attempts=1）
+- 关键输出（本机 worktree @ `6e5252a` 实跑逐行）：
+  - `releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · DELETE=503`
+  - `inventory acceptsQuiz=true realStaleReject=true resume_quiz_expiry_column=false`
+  - `contracts_stale_token=false`
+  - `PASS  NHP-025-NEG-01  interview begin throws a stale-quiz HttpException`
+  - `ROW_STILL_GAP  UC-E2E-025 §1.0.1 NEG was not flipped. The row is still gap.`
+- 与 receipt `2026-10-03-uc025-nhp-neg-real-wiring-prove.md` 比对：**EXIT 0 == 0**，双门读数逐项一致，两非门读数（`resume_quiz_expiry_column=false` / `contracts_stale_token=false`）也逐项一致 → **可复现，无 wash**。pre-receipt（EXIT 1 @ `cfc0c28`，acceptsQuiz=false/realStaleReject=false）与 post-receipt 构成诚实前后对偶。
+
+## 3. evidence-honesty 核查（reviewer 亲读代码，不信摘要）
+
+- **stale throw 位置**：`interview.service.ts:209` `throw new HttpException({ error: 'stale_quiz' }, HttpStatus.CONFLICT)`，位于 `db.asPrincipal` 事务体内 begin 主路径：`interview_not_active` 守卫(:191)之后、resume 绑定块(:228-248)之前、**先于** `reserveEntitlement`(:271) 与 `enqueueInterviewJob`(:279)。✅
+- **无局部 catch 吞**：begin 体内唯一 try/catch(:271-275) 只映射 `insufficient_entitlement`→402 且 `throw e` 原样重抛，且位于 :209 **之后**，物理上接不到该 throw；controller begin handler(:20-22) 直返 promise，controller 全部 try/catch 均在 SSE/TTS 端点(63-284)，不涉 begin → 异常直达 Nest 异常层 = 真 409。✅
+- **入参真消费（非解析即弃）**：owner-scoped 真读 `SELECT status, expires_at FROM resume_quiz WHERE id=$1 AND owner_user_id=$2`(:200-203)，RLS 事务内；status!=='ready' 或 expires_at≤now 才拒。controller `@Headers('quiz-id')` 真透传 service 第 5 形参。✅
+- **NULL 不假拒（pre-exec C-1）**：`quizExpired = expires_at != null && …`(:206-207) —— NULL 锚点不判过期，已迁移库旧工件/无锚点不被 500/假拒。✅
+- **锚点写入（worker 侧）**：`quiz-lifecycle.ts` ready CAS 同事务写 `expires_at=now()+QUIZ_FRESH_TTL_MS(7d)`，被 abandon/并发改态则 0 行回滚不交付。✅
+- **迁移三径**：`0135` = `ADD COLUMN IF NOT EXISTS`（非破坏，无 DROP）→ 已迁移库增量得锚点列；`0007_resume_quiz.sql` 全包零 diff（禁原地重写被遵守）；`sql/20_resume_quiz.sql` 镜像补列（重放型新库同得列）。✅
+- **receipts verbatim**：两 receipt 均记实际值（pre=1/post=0）、attempts=1 无重试声明、SHA 齐全、输出块与 proof 真实打印格式一致；`Not a close` 一节显式不关 GAP、不升行、不动 coveredCount —— **无 preclaim**。✅
+
+## 4. Fail-trigger audit
+
+| Trigger | 结果 |
+|---|---|
+| 改 proof 洗绿 | 无（全包零 diff） |
+| 改 SSOT/矩阵升行/coveredCount 动 | 无（五 SSOT 文件零 diff，backlog GAP 仍 OPEN） |
+| preclaim（EXIT 0 写成 covered/关 GAP/升行） | 无（receipt `Not a close` + ROW_STILL_GAP 实打印） |
+| 局部 catch 吞 stale throw | 无（唯一 catch 映射 insufficient_entitlement 且原样重抛，位于 throw 之后） |
+| 原地重写 0007 | 无（零 diff；走 0135 增量 + 20 镜像） |
+| stub/死旗标/布尔翻转 | 无（双门 regex 命中真实源码：controller+service 签名含 quiz-id/quizId，service 体真 throw） |
+| fresh EXIT 与 receipt 不一致 | 无（0 == 0，双门逐项一致） |
+| 重试/wash | 无（恰好一次，首跑即得） |
+
+## 5. Blockers
+
+无。
+
+## 6. Conditions（C-*）
+
+- **C-1（pre-exec C-1 · 本审已验证满足）**: 锚点列双径覆盖（0135 增量 + 20 镜像）、NULL 不当过期拒。已逐条验证为真；后续改动不得回退。
+- **C-2（pre-exec C-2 · 本审已验证满足）**: stale throw 主路径无吞、入参 owner-scoped 真消费、先于扣额度/入队。已逐条验证为真。
+- **C-3（pre-exec C-3 · 保持）**: EXIT 0 ≠ covered ≠ nail ≠ 关 GAP。`GAP-UC025-NEG-01` 仍 OPEN，其 OPEN→关闭属 nail 阶段协调方授权，实现方未擅关（本审确认）；`UC-E2E-025` 行保持 gap；FAULT/BOUND/ADV 保持 not-run。
+- **C-5（本审新增 · 文档卫生非实质）**: 申报称预执行双审 `8613a3a`(rag)+`36f583a`(e2e-ha) 在 "origin main"；实测两 commit（含 REQUEST `8084f09`）位于 `origin/feat/mysql-schema-skeleton`，origin/main 历史从未含该 review 路径（main 疑 squash 合入）。**材料性声明已验证为真**（两 commit 存在、均 `Verdict: PASS`、内容与本刀对应），故比照 pre-exec C-4 先例不构成 FAIL；后续申报请引用精确分支+SHA。
+
+## 中文三行摘要
+
+1. 独立复验 `6e5252a` 包：接线 commit 恰 5 文件、proof 与五 SSOT 全包零 diff，fresh 恰一次实跑 `pnpm uc025:nhp-neg:prove` EXIT=0（acceptsQuiz=true · realStaleReject=true · ROW_STILL_GAP），与 receipt EXIT 0 及双门读数逐项一致，无重试无 wash。
+2. 亲读源码验证：`stale_quiz` 409 真抛于 `interview.service.ts:209` 主路径，先于扣额度(:271)/入队(:279)，唯一 catch 只映射 insufficient_entitlement 且原样重抛；controller quiz-id 真收真透传，owner-scoped 真读 resume_quiz，worker ready 同事务写 7d expires_at；0135 非破坏 + 0007 零改 + 20 镜像，NULL 锚点不假拒已迁移库。
+3. 无 Blocker；九项 pins 原值、GAP-UC025-NEG-01 仍 OPEN 未被实现方擅关（关闭属 nail 阶段协调方）、EXIT 0 不升行不关 GAP；附 C-5 文档卫生条件（预执行双审 commit 实在 `origin/feat/mysql-schema-skeleton` 而非申报的 origin main，材料性为真不构成 FAIL）；Verdict PASS，alone ≠ dual，不代签 mw-rag-route。
+
+Verdict: PASS
