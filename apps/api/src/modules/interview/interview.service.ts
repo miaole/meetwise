@@ -175,7 +175,8 @@ export class InterviewService {
   }
 
   // 开始面试:扣额度 + 入队 start job(长编排在 worker 跑,api 薄)。reqId 随 payload 入队 → worker 出队沿用 → 落模型 trace.request_id(全链路一跳到底)。
-  begin(principal: string, id: string, resumeId: string, requestId?: string) {
+  // GAP-UC025-NEG-01 真接线:第 5 形参 sourceQuizId 为可选源押题工件(controller header quiz-id 透传)。
+  begin(principal: string, id: string, resumeId: string, requestId?: string, sourceQuizId?: string) {
     this.denyPublicPreviewWrite();
     if (!resumeId) throw new HttpException({ error: 'missing_resume_id' }, HttpStatus.BAD_REQUEST);
     if (!UUID_RE.test(resumeId)) throw new HttpException({ error: 'invalid_resume_id' }, HttpStatus.BAD_REQUEST);
@@ -189,6 +190,24 @@ export class InterviewService {
       //   终态(completed/failed/abandoned)绝不可再 begin(不可复活、不可二次扣额)。
       if (TERMINAL_INTERVIEW.includes(cur.rows[0].status))
         throw new HttpException({ error: 'interview_not_active', status: cur.rows[0].status }, HttpStatus.CONFLICT);
+
+      // GAP-UC025-NEG-01 真接线:begin 携带源押题工件时,owner-scoped 真消费该工件(RLS + owner_user_id 双限),
+      // stale/未 ready → 在**扣额度(reserveEntitlement)与入队(enqueueInterviewJob)之前**抛真实 HttpException
+      // (stale_quiz,409 CONFLICT)。此 throw 无局部 catch 吞(下方唯一 catch 只映射 insufficient_entitlement 且原样重抛),
+      // 经 Nest 异常层映射为真 409。expires_at 为 NULL(0135 前旧工件/无锚点)不得当过期拒(e2e-ha C-1:已迁移库不假拒)。
+      // 不带 sourceQuizId → 完全跳过本块,行为与接线前逐字节一致(rag C-6)。
+      if (sourceQuizId) {
+        const quiz = await c.query(
+          'SELECT status, expires_at FROM resume_quiz WHERE id=$1 AND owner_user_id=$2',
+          [sourceQuizId, principal],
+        );
+        if (quiz.rowCount === 0)
+          throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+        const quizExpired = quiz.rows[0].expires_at != null
+          && new Date(quiz.rows[0].expires_at).getTime() <= Date.now();
+        if (quiz.rows[0].status !== 'ready' || quizExpired)
+          throw new HttpException({ error: 'stale_quiz' }, HttpStatus.CONFLICT);
+      }
 
       // A new C-side start must bind its source in a typed, owner-checked
       // column before any quota reservation or queue write.  B-side sessions

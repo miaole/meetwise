@@ -17,10 +17,12 @@ export class InterviewController {
   constructor(private readonly interviews: InterviewService, private readonly rl: RateLimitService) {}
 
   // 开始面试:扣额度 + 入队 start job(长编排在 worker 跑,api 薄)。202 已受理。
+  // 可选 header quiz-id 携带源押题工件(GAP-UC025-NEG-01 真接线):真收真透传,由 service owner-scoped 消费;
+  // 不带 quiz-id → 与今日行为完全一致(简历直启,不强制 quiz,不做 widen)。
   @Post(':id/begin')
   @HttpCode(202)
-  begin(@Param('id') id: string, @Req() req: any, @Headers('resume-id') resumeId: string) {
-    return this.interviews.begin(req.principal, id, resumeId, req.reqId);   // reqId 透传进 job.payload,贯穿到 worker 模型 trace
+  begin(@Param('id') id: string, @Req() req: any, @Headers('resume-id') resumeId: string, @Headers('quiz-id') quizId?: string) {
+    return this.interviews.begin(req.principal, id, resumeId, req.reqId, quizId);   // reqId 透传进 job.payload,贯穿到 worker 模型 trace
   }
 
   // 提交一题答案:入队 answer job(worker 续图+评分),202。text 答案;音频先 ASR 转写再走此端点。
