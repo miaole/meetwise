@@ -69,3 +69,45 @@ Dual PASS ≠ coding ≠ covered ≠ nail · No coding is authorized by this stu
 **mw-rag-route** · 2026-10-02 (~21:07 PT) · emitter HMAC pre-exec **PASS** @ `11f1016`（条件化）
 
 Verdict: PASS
+
+
+---
+
+## 事后审 · `a19b6cf` / `b118390` · 2026-10-02 (~21:33 PT)
+
+**Expert**: `mw-rag-route` · alone ≠ dual · 只追加 · 不改实现 · 不 nail  
+**代码**: `a19b6cf` 只改三文件：`scripts/uc018-receipt-backfill-emit.mjs`、`scripts/lib/uc018-receipt-backfill-guard.mjs`、`scripts/uc-e2e-018-receipt-backfill.proof.mjs`。  
+**收据**: `b118390` 只加 `receipts/gap-backfill-emitter-unauthenticated/` 的 json、md、log。  
+facts 与 evaluator 的 blob 在 `a19b6cf^` 与 `a19b6cf` 相同。矩阵不在这两笔里。点名 SHA 是 origin 祖先。
+
+### 密钥
+
+密钥只来自进程环境 `MEETWISE_UC018_BACKFILL_HMAC_KEY`（guard `:26`，缺密钥 emit `:70-71` exit 8）。三文件无默认密钥字面量、无 dotenv、无读 `.env`。`a19b6cf` 树内无已跟踪 `.env`。仓库里该变量名只出现在 emitter/guard 的说明与常量名，没有把密钥写进树。**CLEAN**。
+
+### 本审重跑
+
+干净 worktree @ `a19b6cf`：
+
+| CMD | 本审 EXIT |
+|-----|-----------|
+| `pnpm uc018:receipt-backfill:prove` | **0** |
+
+prove 实际打到失败关闭，不是空转：missing tag、bad tag、truncated tag、mutated JSON、mutated log、无钥改 JSON+log、缺密钥、另一把密钥的 tag，全部 PASS 为拒绝。七份历史 JSON（含 UI.json）判为 `unsigned-historical` 且 `signed=false`。并检查 emitter/guard 无默认密钥、不读 `.env`。
+
+### 历史 UI
+
+`uc018-receipt-backfill/UI.json` 在 `a19b6cf^` 与 `b118390` 的 blob 相同。仍是 `exit=1` @ `e88d386`，无 `emitterHmac`。旧收据未被改写成已签名。
+
+### 裁定
+
+**PASS**（条件仍在）。范围未越出三文件。失败关闭有用例。历史收据仍未签名。不 nail。UC-018 / §1.1 仍 **partial**。pins 未改口（收据写 NOT_HA、releaseEvidence=false、claimProductionHA=false、gR45Closed=true、coveredCount=8、ms3EqualsR4Closed=false）。
+
+### 仍有效的条件
+
+HMAC 绿 ≠ covered ≠ HA。未签名历史收据不得事后当成已签名。Dual PASS ≠ nail。
+
+### signature
+
+**mw-rag-route** · 2026-10-02 (~21:33 PT) · emitter HMAC post-prove **PASS** @ `a19b6cf` / `b118390` · 本审 EXIT 0 · 不 nail
+
+Verdict: PASS
