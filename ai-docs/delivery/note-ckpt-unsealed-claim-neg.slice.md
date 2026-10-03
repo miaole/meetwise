@@ -1,22 +1,32 @@
-# Slice — **NOTE-CKPT-UNSEALED-CLAIM-NEG**（docs REQUEST · **`draft:awaiting_pre_exec_dual`** · coding after Line B）
+# Slice — **NOTE-CKPT-UNSEALED-CLAIM-NEG**（docs-only rewrite · implementation knife retired · **`draft:awaiting_re_pre_exec`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**
-**Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
-**Date**: 2026-10-02 (~21:00 PT)
-**Base**: series open **`315870e`**
-**Authority**: meetwise — L0 docs only · Ban coding · Ban secrets / `.env*`
-**Pins**: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
+**Status**: **`draft:awaiting_re_pre_exec`**
+**Reviewers**: `mw-privacy-int` and `mw-e2e-ha`
+**Supersedes**: implementation scope of `a1a06ab`
+**Authority**: meetwise — documentation only; no product code, no prove run, no nail
+**Knife disposition**: retire `NOTE-CKPT-UNSEALED-CLAIM-NEG` as an implementation knife. Do not authorize a second implementation.
 
-## One-line
+## Existing four cases
 
-Three DB-layer negatives（NULL epoch, NULL digest, both）plus a sealed positive control. Refusal is SQLSTATE `42501` and no writes. Coding waits until Line B pool-role-leak is nailed. Do not edit the principal file in parallel with B.
+All four cases are already in `uc052:checkpoint-physical`; the remaining scope is to document them, not to implement or rerun them.
 
-## Products
+- NULL epoch — `packages/db/test/uc052-checkpoint-physical.proof.ts:763–766` (`NHP-CKPT-UNSEALED-NEG-EPOCH`)
+- NULL digest — `packages/db/test/uc052-checkpoint-physical.proof.ts:768–771` (`NHP-CKPT-UNSEALED-NEG-DIGEST`)
+- both NULL — `packages/db/test/uc052-checkpoint-physical.proof.ts:773–776` (`NHP-CKPT-UNSEALED-NEG-BOTH`)
+- sealed positive control — `packages/db/test/uc052-checkpoint-physical.proof.ts:780–804` (`HP-CKPT-SEALED-CLAIM`)
 
-| Role | Path |
-|------|------|
-| Harness | `harness/note-ckpt-unsealed-claim-neg.md` |
-| Dual privacy-int | `reviews/REQUEST-2026-10-02-note-ckpt-unsealed-claim-neg-mw-privacy-int.md` |
-| Dual e2e-ha | `reviews/REQUEST-2026-10-02-note-ckpt-unsealed-claim-neg-mw-e2e-ha.md` |
+The shared refusal/no-write assertion, including SQLSTATE `42501`, is already at `packages/db/test/uc052-checkpoint-physical.proof.ts:750–758`.
 
-*Slice · UNSEALED-CLAIM-NEG · draft:awaiting_pre_exec_dual · STOP*
+## Pins and prohibitions
+
+- External retention: **`retention_pending`**.
+- Do not edit `apps/worker/src/checkpoint-principal.ts`.
+- Do not edit `packages/db/test/uc052-checkpoint-physical.proof.ts`.
+- Do not edit the coverage matrix, gap backlog, or execution checklist.
+- Public DELETE stays **503**.
+
+**Pins**: `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false` · `gR45Closed=true` · `coveredCount=8` · `ms3EqualsR4Closed=false` · **PG-retained** · external retention **`retention_pending`** · public DELETE **503**.
+
+Existing review stubs are left unchanged. Await re-pre-exec by `mw-privacy-int` and `mw-e2e-ha`.
+
+*Slice · NOTE-CKPT-UNSEALED-CLAIM-NEG · draft:awaiting_re_pre_exec · docs-only · STOP*
