@@ -234,3 +234,95 @@ Verdict: PASS
 
 Verdict: FAIL
 
+
+
+---
+
+## 再审 · HOLD 解除 · tip `b82b9bc` · 2026-10-02 (~21:01 PT)
+
+**Expert**: `mw-rag-route` · alone ≠ dual · 不代签 peer · 不抬 UC-018 / §1.1  
+**Tip**: `b82b9bc`（docs dispatch；本包祖先 `43824c6` · `00d53ed` · `2673960` · `c295731`）  
+**上轮**: `629f956` **FAIL**（PERF/LOAD README bleed → 假 UNCOMMITTED-RUNNER / IMPL-ONLY）· 本段只追加  
+**工作树**: `/workspace/wt-mwrr-uc018-b82b9bc` detached `b82b9bc` · porcelain clean · 跑完已删除
+
+### (1) static-doc 不得当作已观察栈
+
+- `unwrapStackValue`：`scripts/lib/uc018-receipt-backfill-facts.mjs:37-41` · `source === 'static-doc'` **直接返回 undefined**（不返回 `value: true`）。
+- gatherer 解包：`scripts/lib/uc-covered-real-gatherer.mjs:241-251`（`postgresSaver: unwrapStackValue(...)` 在 `:247`）。
+- 栈检查：`scripts/lib/uc-covered-evaluator.mjs:192-202` · `postgresSaver !== true`（以及 postgres 非 true / memorySaver·mysql·qdrant 非 false）⇒ **STUB-STACK**。
+- 实据：`SOLE.json:77-83` `postgresSaver.value=true` 且 `source=static-doc`（log `SOLE-23f98d3.log:68` ADR 行）。干净树 `gatherRealUc018` 后 NEG/BOUND 选用 `uc018-receipt-backfill/SOLE.json`，解包后五键均为 undefined，`badStack=true`，列原因含 **STUB-STACK**。**未**把 static-doc 计为 runtime MET。
+- prove 夹具同步 PASS：`(a) unwrapStackValue(static-doc postgresSaver:true) → undefined`。
+
+**裁定**：上轮条件 (a) **已修**。STUB-STACK **保留且预期**（不是洗绿）。
+
+### (2) README bleed（夹具 + 实收据，不是注释）
+
+- backfill 只看自身字段：`pickEvidenceFlags` `scripts/lib/uc-covered-real-gatherer.mjs:183-189`（`_source === 'backfill'` 时 **忽略** labelText）。
+- legacy 仍吃 README：同文件 `:191-193`（`not evidence of record|implementer pre-commit|uncommitted runner` ⇒ implementerOnly，eor 强制 false）。
+- PERF/LOAD 的 labelText **仅** `_source === 'legacy'` 才拼 README：`:726-729` 与 `:739-741`。legacy README 仍含该句：`ai-docs/delivery/receipts/uc018-perf-load/README.md:3`。
+- 本审复现（同一 README 全文）：backfill `PERF-LOAD.json` ⇒ `implementerOnly=false` · `evidenceOfRecord=true`；`_source=legacy` 且字段自称 eor ⇒ `implementerOnly=true` · `evidenceOfRecord=false`。
+- 实 gather：PERF 与 LOAD `receiptPath=uc018-receipt-backfill/PERF-LOAD.json` · impl=false · eor=true · `committed=true` · `uncommitted=false`。列原因 **无** IMPL-ONLY、**无** UNCOMMITTED-RUNNER。
+- prove 夹具：`FX-BACKFILL-NO-README-BLEED` 与 `FX-LEGACY-README-IMPL-ONLY` 均 PASS（`scripts/uc-e2e-018-receipt-backfill.proof.mjs:249-283`）。
+
+**裁定**：上轮 blocker **已修**。旧 README-only 路径仍是 implementerOnly。
+
+### (3) 三证独立重跑（不采信 mw-core 声称的 EXIT）
+
+干净 worktree @ `b82b9bc`：
+
+| CMD | 本审 EXIT |
+|-----|-----------|
+| `pnpm uc018:receipt-backfill:prove` | **0** |
+| `pnpm uc018:covered-criterion:prove` | **0** |
+| `pnpm eval-harness-matrix-cite:prove` | **0** |
+
+- `canHonestlyFlip` **false**（必须保持）。`REAL_VERDICT` 原因：`STATUS-NOT-COVERED,MISSING-DUAL,STUB-STACK,CASE-ONLY,PERF-LOCAL-ONLY,S11-NOT-MET`。
+- **UNCOMMITTED-RUNNER / IMPL-ONLY 已从实矩阵消失**（上轮假棕已消除）。
+- 叶变异在 covered-criterion prove 内：**423/423** false（allowlist hits=45，0 未放行幸存者）。
+- cite prove：矩阵 UC-E2E-018 **partial（not covered）** · `releaseEvidence=false`。
+- §1.1 行 `e2e-requirement-coverage-matrix.md:173` 状态单元格仍 **partial**。gatherer `section11.status=partial`。**无 status lift**。
+
+### (4) 七 SHA digest 抽查
+
+自 committed log 重算 SHA-256 ≡ JSON `stdoutDigest`（全匹配）。`wrapperSha` 均为 `00d53ed299e3db252486ac5ce1c4790adde69979`。`reemitNote` 写明 prove **not** re-run。
+
+| Key | targetSha | exit | digest≡log |
+|-----|-----------|------|------------|
+| FULL-E2E | `85d36c7` | 0 | yes `9fb7c80e5a3d…` |
+| GRAPH | `f06dcba` | 0 | yes `02fa79f84abe…` |
+| TTL | `549da9c` | 0 | yes `bf33080b2e5f…` |
+| UI | `e88d386` | **1** | yes `6fb9515f5b2a…` |
+| SOLE | `23f98d3` | 0 | yes `b278b3391823…` |
+| ADV | `bdc5993` | 0 | yes `fd0b8aaa569f…` |
+| PERF-LOAD | `b29c191` | 0 | yes `3003c976708a…` |
+
+- UI exit=1 **保留且不计入成功**：`isPreferableBackfillReceipt` 对 exit=1 为 false（prove PASS）；`readReceiptPreferBackfill` `:489-508` 标 `_source=backfill-failed` · eor 强制 false · **无** silent legacy green。attempts 该行 `proveExit=1` · `priorExit=1`。
+- `waitingUser` 七份均为 **MISSING-EVIDENCE**（常量 `WAITING_USER_BACKFILL_STATUS`，gatherer `:468`）。未自造 SHA。
+- attempts.jsonl：`629f956` 时 14 行前缀 **逐字节未改**；其后只追加 7 行 `phase=reemit-from-log` · `wrapperSha=00d53ed`。append-only。
+- legacy：`629f956..b82b9bc` 对 `receipts/2026-09-23*` 与 `uc018-perf-load/` **无 diff**。未覆盖旧收据。
+- **C-PERF-TEARDOWN**：README `:39-41` 写明 attempt1 EXIT 1（pg Client terminated）、attempt2 EXIT 0、**未**再跑复现、**不得**用第二次 exit 洗第一次；PERF/LOAD 仍 local partial。JSON/attempts 是 `reemit-from-log` + `priorExit=0`，对应已入库 log 的历史 `EXIT=0`（`PERF-LOAD-b29c191.log:31`），`reemitNote` 明确 prove not re-run。**没有**假装一次新的洗绿重跑。
+
+### (5) prior-digest 条件 · pins · 审者文件
+
+- 已启动的 pgvector 条目：`source=prior-docker-inspect` · `liveObservation=false` · `priorCapturedAt` = 首波 `ranAt`（PERF-LOAD 为 `2026-09-24T04:38:14.481Z`）。`isLiveImageDigestEntry` `facts.mjs:60-66` 对 prior-docker-inspect 返回 false。
+- 该标签 **不**进入栈布尔（evaluator 只看解包后的 true/false），**不**把任一列打成 meetsCovered。`c295731` 将其记为未关闭 CONDITION。**不因此 FAIL**（未翻转 stack 或 covered 事实）。live-per-run 仍是披露条件。
+- pins 未改口：收据七份 `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false` · `coveredCountRetained=8`。harness `uc-e2e-018-receipt-backfill.md:7` 仍 `gR45Closed=true` · coveredCount **8** · `ms3EqualsR4Closed=false`。本包相对 `629f956` 的 harness diff 只追加 wrapperSha 说明（+7 行），**无** pin 翻转。矩阵文件无 diff。
+- `629f956..b82b9bc` 无人改本 rag-route 审文件。review 路径上仅 peer `mw-e2e-ha` 改了 **自己的** 文件（`0f95062` · `0d42e2c`）。无 implementer 改审者文件。
+
+### Blockers
+
+无。上轮 blocker（README bleed）与条件 (a)（static-doc 被当成 runtime 栈）均已关闭且由本审重跑证实。
+
+### Conditions（不挡本刀 PASS · 不抬 covered）
+
+1. **STUB-STACK** 仍在（static-doc 拒绝 + 其余键 unobserved）· 预期。  
+2. imageDigest prior/non-live 已标注带 `priorCapturedAt`；**live-per-run 仍开放**（`c295731`）· 未洗栈/covered。  
+3. **C-PERF-TEARDOWN** 披露保留：attempt1=1 不被 attempt2=0 洗掉 · 本包未重跑 PERF。  
+4. 实矩阵仍 `MISSING-DUAL` · `PERF-LOCAL-ONLY` · `CASE-ONLY` · `S11-NOT-MET` · `STATUS-NOT-COVERED`。`canHonestlyFlip=false`。UC-018 / §1.1 **partial**。  
+5. `GAP-BACKFILL-EMITTER-UNAUTHENTICATED`（HMAC-free）仍披露。Dual PASS ≠ nail。
+
+### signature（re-review）
+
+**mw-rag-route** · 2026-10-02 (~21:01 PT) · RECEIPT-BACKFILL re-review **PASS** @ `b82b9bc` · 三证 EXIT 0/0/0 · flip 仍 false
+
+Verdict: PASS
