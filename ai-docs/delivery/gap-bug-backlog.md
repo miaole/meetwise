@@ -130,3 +130,16 @@
 - Receipt label `g7_hard_disabled` is a mapped not_run label. Runtime throws `g7_path_disabled:<capability>`. Behavior already fail-closed. Do not change code.
 - Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered. actualSpendCny stays null. No invented spend. Do not start live.
 - Evidence: `reviews/2026-10-02-g7-key-x3-freetieronly-fixround3-mw-model-op.md` · `reviews/REQUEST-2026-10-02-g7-key-x3-fix-round3-re-review-mw-e2e-ha.md` · `receipts/g7-key-x3-freetieronly-reprove/2026-09-23-line-c-step3-g7-freetier-live-receipt.md`.
+
+### MODEL-OP spend-ledger offline I2（2026-10-02 SSOT nail · pre_exec_dual_pass）
+
+- **MODEL-OP-I2-PRE-EXEC-DUAL** · status **`pre_exec_dual_pass`** for the docs REQUEST `8ea17f7` / `8ea17f7835edc0543f17277f1c2fc951a6e52695`. This nail is not coding authorization and not a prove. Implementer does not self-approve.
+- Dual PASS on origin `feat/mysql-schema-skeleton` (both commits confirmed present before this nail): mw-model-op `e8c1892` / `e8c1892757e186111c92a1a76daa345aad73fa65` · mw-e2e-ha `cd38adc` / `cd38adc528fa25cba83ebc691e0e351c37054cfc`.
+- Named only in the I2 harness. This nail did not run them and records no exit code for them: `pnpm -C packages/ai-runtime prove:g7-freetier-reprove-guard` · `pnpm -C packages/ai-runtime prove:g7-freetier-reprove-client` · `pnpm -C packages/ai-runtime prove:g7-freetier-reprove-paths`.
+- `pnpm model-op-spend-ledger-offline-i2:prove` does not exist yet. This nail did not add it, did not edit `package.json`, and does not claim EXIT 0 for it. The missing script was not added and has no EXIT.
+- Ban G7 green. Ban MODEL-OP closed. Ban reconciler cutover. No live calls. No outbound interceptor, model-client, invoke, g7-bootstrap, or api/worker main edits.
+- `actualSpendCny=null`. No invented spend.
+- Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
+- No MODEL-OP row already existed in `e2e-requirement-coverage-matrix.md`. This nail does not add one and does not flip any matrix status.
+- G7 FR3 nail section from `210f4c0` and other CLOSED rows are unchanged.
+- Evidence: `reviews/2026-10-02-line-i2-model-op-ledger-offline-mw-model-op.md` · `reviews/REQUEST-2026-10-02-model-op-spend-ledger-offline-i2-mw-e2e-ha.md` · `harness/model-op-spend-ledger-offline-i2.md` · `model-op-spend-ledger-offline-i2.slice.md`.

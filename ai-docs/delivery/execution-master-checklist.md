@@ -451,3 +451,13 @@ flowchart TD
 - Residual FreeTier quota gap **CLOSED** (quota-403 removed only) is not suite green.
 - Receipt label `g7_hard_disabled` is a mapped not_run label. Runtime throws `g7_path_disabled:<capability>`. Behavior already fail-closed. Do not change code.
 - Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered. actualSpendCny stays null. No invented spend. Do not start live.
+
+### MODEL-OP spend-ledger offline I2（2026-10-02 SSOT nail · pre_exec_dual_pass）
+
+- [x] **`pre_exec_dual_pass`** recorded for the docs REQUEST `8ea17f7` / `8ea17f7835edc0543f17277f1c2fc951a6e52695`. Dual already issued: mw-model-op `e8c1892` / `e8c1892757e186111c92a1a76daa345aad73fa65` · mw-e2e-ha `cd38adc` / `cd38adc528fa25cba83ebc691e0e351c37054cfc`. Both confirmed on origin before this nail. This checklist entry registers that dual. Implementer does not self-approve. This is not coding authorization and not a prove.
+- Named only. This nail did not run them and records no exit code for them: `prove:g7-freetier-reprove-guard` · `prove:g7-freetier-reprove-client` · `prove:g7-freetier-reprove-paths` (`pnpm -C packages/ai-runtime` …).
+- `pnpm model-op-spend-ledger-offline-i2:prove` does not exist yet. This nail did not add it and did not edit `package.json`. The missing script was not added and has no EXIT. Do not claim EXIT 0 for it.
+- Ban G7 green. Ban MODEL-OP closed. Ban reconciler cutover. No live calls.
+- `actualSpendCny=null`. No invented spend.
+- Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
+- No MODEL-OP row already existed in the coverage matrix. This nail does not add one. G7 FR3 section from `210f4c0` and other CLOSED rows stay as written.
