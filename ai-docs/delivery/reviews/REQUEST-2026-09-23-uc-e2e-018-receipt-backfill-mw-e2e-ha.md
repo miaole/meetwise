@@ -423,3 +423,73 @@ Digest must be captured **LIVE per run** from the **actual container** in the ru
 *Correction · mw-e2e-ha · GAP-UC018-RECEIPT-BACKFILL · tip e9ccfbe · 2026-09-23 ~22:01 PT · Ban Meridian · Ban .env* · Ban peer-sign · STOP*
 
 Verdict: FAIL
+
+---
+
+# RE-REVIEW · mw-e2e-ha（HOLD lifted · B-SOLE-STATIC-COUNTED）
+
+**Agent**: `mw-e2e-ha` · **Date**: 2026-10-02 (~21:08 PT)  
+**Authorized tip**: `b82b9bc` / `b82b9bca7b701a9f3da000f03f3fb8aa038ae44b` · ancestor of `origin/feat/mysql-schema-skeleton` after `git fetch`  
+**Prior correction**: `0d42e2c` / `0d42e2c4eaf4e537b80de894e20434be6f79fb1a` last-line `Verdict: FAIL` · blocker **B-SOLE-STATIC-COUNTED**  
+**Fix commits on origin + ancestors of tip**: `43824c6` / `43824c652233e7d258b953a6b4606b8326f6abb9` · `00d53ed` / `00d53ed299e3db252486ac5ce1c4790adde69979` · `2673960` / `26739606dfe17d27dd1c470c10ec91ee02a378f3` · `c295731` / `c2957313121b3d4c2df5294757912ea5611f9380`  
+**Append-only**: prior sections untouched（incl. prior last-lines）· last-line-wins  
+**Pins retained**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503  
+**alone≠dual** · 不代签 mw-rag-route · PASS≠covered≠nail · **STUB-STACK remains**（本 PASS ≠ stack observed）
+
+## 1. Range `e9ccfbe..b82b9bc` · product flag
+
+Knife-relevant: `43824c6` facts/gatherer/emit/README · `00d53ed` ADR `stackFact` source `static-doc` · `2673960` re-emit JSON · `c295731` README disclosure · `b82b9bc` docs dispatch only.
+
+**Product present in the linear range（not this knife · not edited · not signed）**: `ee08ed5` `0143cd0` `71ec253` `apps/worker/src/checkpoint-principal.ts` · `366e82d` `3d0c71e` `apps/worker/test/uc052-pool-role-leak.proof.ts` · `ee08ed5` `packages/db/test/uc052-checkpoint-physical.proof.ts` · `ee08ed5` `apps/worker/package.json` + root `package.json` · `ee08ed5` `3d0c71e` `scripts/run-e2e-isolated.mjs`. Flag only.
+
+## 2. B-SOLE-STATIC-COUNTED · cleared
+
+| Check | Cite | Finding |
+|-------|------|---------|
+| Emitted source exactly `static-doc` | `ai-docs/delivery/receipts/uc018-receipt-backfill/SOLE.json:77-83` `stack.postgresSaver.value=true` `source=static-doc`（postgres `:71` · mysql `:91` · qdrant `:99`）· `soleStack.source=static-doc` via `scripts/uc018-receipt-backfill-emit.mjs:157-162` | **not** `log-parse` |
+| Emit site | `scripts/lib/uc018-receipt-backfill-facts.mjs:124-130` `stackFact(true, 'static-doc', …)`（`00d53ed`）· memorySaver `:137` `unobservedFact()` | ADR pin labeled static-doc |
+| Gatherer excludes it | `unwrapStackValue` `scripts/lib/uc018-receipt-backfill-facts.mjs:41` `if (source === 'static-doc') return undefined` · called `scripts/lib/uc-covered-real-gatherer.mjs:246-247` | **not counted** as observed |
+| Evaluator STUB | `scripts/lib/uc-covered-evaluator.mjs:192-202` undefined ≠ `postgresSaver===true` / `memorySaver===false` → `STUB-STACK` | memorySaver unobserved stays STUB |
+| Live gather @ tip | covered-criterion NOTE NEG/BOUND `receiptPath=uc018-receipt-backfill/SOLE.json` **`stack={}`** reasons include `STUB-STACK` | postgresSaver **not** `true` |
+
+`isRuntimeStackSource` (`facts.mjs:56-57`) is an allowlist the gatherer does **not** call; the exclusion that actually runs is `unwrapStackValue` `:41`. Re-emitted `wrapperSha=00d53ed` · JSON written by `2673960` · `reemittedAt=2026-10-03T03:52:18.529Z` = 2026-10-02 20:52 PT. stdoutDigest recomputed SHA-256(`logs/SOLE-23f98d3.log`)=`b278b3391823f9ebe0890e8869c960c530579fe744fed0428b44a0b2e2b54355` **match**. Same recomputation **match** for FULL-E2E/GRAPH/TTL/UI/ADV/PERF-LOAD logs. UI `UI.json:12` **exit=1** retained（not washed）.
+
+**Blocker B-SOLE-STATIC-COUNTED: cleared.** Historical per-SHA table in the `0d42e2c` section stands（seven SHAs not re-run）.
+
+## 3. Tip proves @ `b82b9bc` worktree `/workspace/mw-rv-bf-rr`（removed）
+
+`pnpm install --frozen-lockfile` EXIT=0. Proves are node/static（no `run-e2e-isolated`）· **no isolated PG started** · no containers left. Porcelain empty before install and after proves（`node_modules` ignored）.
+
+| CMD | EXIT | Claim |
+|-----|------|-------|
+| `pnpm uc018:receipt-backfill:prove` | **0** | 0 · match · includes `unwrapStackValue(static-doc postgresSaver:true) → undefined` and `FX-BACKFILL-NO-README-BLEED` |
+| `pnpm uc018:covered-criterion:prove` | **0** | 0 · match |
+| `pnpm eval-harness-matrix-cite:prove` | **0** | 0 · match |
+
+`canHonestlyFlip` is **computed**, not a constant: `scripts/lib/uc-covered-evaluator.mjs:282-288` (`allColsMet && businessPathMet && openGaps.length===0 && s11Status==='covered' && reasons.length===0`) then forced false at `:291-292` and `:312` when reasons nonempty. Run output: `NOTE canHonestlyFlip=false` · `REAL_VERDICT canHonestlyFlip=false reasons=STATUS-NOT-COVERED,MISSING-DUAL,STUB-STACK,CASE-ONLY,PERF-LOCAL-ONLY,S11-NOT-MET` · prove line `real UC-018 canHonestlyFlip=false (computed)`. **STUB-STACK still labeled.**
+
+## 4. `43824c6` label-bleed · real
+
+Diff is in tip: `pickEvidenceFlags` backfill branch judges only `implementerOnly` / `evidenceOfRecord` and **does not** read `labelText` (`uc-covered-real-gatherer.mjs:183-189`). PERF/LOAD `labelText` concatenates the legacy README **only** when `_source==='legacy'` (`:727-729`, `:739-741`). Prove: `FX-BACKFILL-NO-README-BLEED` PASS and `FX-LEGACY-README-IMPL-ONLY` PASS. Real PERF column `implementerOnly=false` `eor=true` `PERF-LOCAL-ONLY` still present（not silent-green）. **Label-bleed condition closed by code.** GAP-HMAC **not** closed（README HMAC-free disclosure still the guard）.
+
+## 5. Conditions kept open（prose does not close them）
+
+| ID | Status |
+|----|--------|
+| C-PERF-TEARDOWN | **CONDITION** · `README.md:39-41`（`c295731`）records attempt1 EXIT 1（pg Client terminated inside prove）· attempt2 EXIT 0 · "Do not claim the second exit washes the first". Not re-run. Receipt `PERF-LOAD.json:12` exit=0 is the committed-log EOR, **not** a wash of attempt1. |
+| C-IMAGE-DIGEST | **CONDITION** · `PERF-LOAD.json:26-29` `source=prior-docker-inspect` `liveObservation=false`. `isLiveImageDigestEntry` `facts.mjs:61-65` rejects that. README `:41` says live-per-run stays open. **Not closed on prose.** |
+| GAP-HMAC | **CONDITION** · emitter still SHA-256 JSON+log only |
+
+## 6. Blockers
+
+**None** on B-SOLE. Tip EXIT agrees with the claim. PERF/UI not washed. STUB-STACK remains.
+
+## Chinese 3-line
+
+1. B-SOLE 已修：SOLE `postgresSaver.source=static-doc`（`SOLE.json:79`），`unwrapStackValue` `:41` 返回 undefined，tip gather NEG `stack={}`，不计入 observed。  
+2. 三 prove EXIT 0 与声称一致；`canHonestlyFlip` 由 evaluator `:282` 计算为 false；STUB-STACK 仍在；UI exit=1 未洗绿。  
+3. 总裁定 **PASS**（≠covered≠钉牌≠stack 已观测）· 条件仍开：C-PERF-TEARDOWN、C-IMAGE-DIGEST、GAP-HMAC · alone≠dual · NOT_HA · coveredCount=8。
+
+*Re-review · mw-e2e-ha · GAP-UC018-RECEIPT-BACKFILL · tip b82b9bc · 2026-10-02 ~21:08 PT · Ban Meridian · Ban .env* · Ban peer-sign · STOP*
+
+Verdict: PASS
