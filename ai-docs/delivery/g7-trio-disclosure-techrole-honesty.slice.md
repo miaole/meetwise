@@ -1,6 +1,6 @@
 # Slice — G7 · **trio / Disclosure-1 / TECH_ROLE=0 ≠ R1 honesty**（Line L · docs-only REQUEST · **`draft:awaiting_pre_exec_dual`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（docs REQUEST open · **≠ fixed** · **≠ coding** · **≠ prove** · **Ban live** · Ban自批 · 禁假绿 suite 声明）
+**Status**: **`executed:awaiting_post_prove_dual`**（docs 执行阶段完成 · awaiting post-prove dual · **not a pass** · docs REQUEST open · **≠ fixed** · **≠ coding** · **≠ prove** · **Ban live** · Ban自批 · 禁假绿 suite 声明）
 **Date**: 2026-10-03
 **Authority**: meetwise — Line L docs only · 本刀默认离线文档+收据对齐 · Dual PASS ≠ coding · Ban假绿 · 禁假绿 suite 声明 · **禁改 SSOT 行（nail 阶段才改）** · **禁 retry-to-green** · EXIT **1/1/1** retained · Ban secrets / `.env*`
 **releaseEvidence=false** · **haStatus=NOT_HA** · **claimProductionHA=false** · **g7SuiteGreen=false** · **r1Closed=false** · **≠ suite green** · **≠ HA**
@@ -16,8 +16,10 @@
 |------|------|
 | This slice | `ai-docs/delivery/g7-trio-disclosure-techrole-honesty.slice.md` |
 | Harness | `ai-docs/delivery/harness/g7-trio-disclosure-techrole-honesty.md` |
-| REQUEST · model-op | `reviews/REQUEST-2026-10-03-g7-trio-disclosure-techrole-honesty-mw-model-op.md` |
-| REQUEST · e2e-ha | `reviews/REQUEST-2026-10-03-g7-trio-disclosure-techrole-honesty-mw-e2e-ha.md` |
+| REQUEST · model-op | `reviews/REQUEST-2026-10-03-g7-trio-disclosure-techrole-honesty-mw-model-op.md`（pre-exec dual PASS @`b8dfb62`） |
+| REQUEST · e2e-ha | `reviews/REQUEST-2026-10-03-g7-trio-disclosure-techrole-honesty-mw-e2e-ha.md`（pre-exec dual PASS @`a474ca4`） |
+| L2 执行产物 · trio 现状对齐 | `harness/g7-trio-current-state-alignment.md`（含 A″→FIX 时序更正 + not_run 覆盖） |
+| L2 执行产物 · 离线收据索引对齐 | `harness/g7-trio-offline-receipt-index-alignment.md`（index only · 非 run receipt · 零新证据） |
 | 诚实刀具索引（parent） | `g7-honesty-knives.slice.md` · `g7-full-suite-plan.slice.md` |
 | SSOT 现行段（只读本刀） | `gap-bug-backlog.md` G7 FR3 / Line C live 段 · `execution-master-checklist.md` G7 段 |
 
@@ -54,4 +56,4 @@ Line L：G7 遗留 honesty——冻结 trio（`e2e:isolated` / `e2e:ui:isolated`
 
 ---
 
-*Slice · G7 trio/disclosure/TECH_ROLE honesty · Line L · 2026-10-03 · draft:awaiting_pre_exec_dual · dual mw-model-op+mw-e2e-ha · trio OPEN 1/1/1 retained · Disclosure-1 OPEN · TECH_ROLE=0 ≠ R1 · Ban live · 禁假绿 · g7SuiteGreen=false · releaseEvidence=false · zero coding · zero prove*
+*Slice · G7 trio/disclosure/TECH_ROLE honesty · Line L · 2026-10-03 · executed:awaiting_post_prove_dual（docs 执行阶段完成 · not a pass）· dual mw-model-op@`b8dfb62`+mw-e2e-ha@`a474ca4` PASS · trio OPEN 1/1/1 retained · Disclosure-1 OPEN · TECH_ROLE=0 ≠ R1 · Ban live · 禁假绿 · g7SuiteGreen=false · releaseEvidence=false · zero coding · zero prove*
