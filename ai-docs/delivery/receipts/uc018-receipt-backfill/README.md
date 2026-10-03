@@ -35,3 +35,7 @@ SOLE ADR PASS lines (e.g. `pins PostgresSaver`) emit `source: static-doc`. Gathe
 ## imageDigest `prior-docker-inspect`
 
 Re-emitted digests carry `source: prior-docker-inspect`, `liveObservation: false`, and `priorCapturedAt` (first-wave capture time). They are **not** live per-run docker observations.
+
+## Reviewer finding — C-PERF-TEARDOWN
+
+C-PERF-TEARDOWN: reviewer recorded PERF-LOAD attempt1 EXIT 1 because mid-prove the pg Client terminated; attempt2 EXIT 0. Not reproduced by re-running. PERF/LOAD stays local partial. Do not claim the second exit washes the first. imageDigest prior-docker-inspect + priorCapturedAt is not a live per-run observation; live-per-run stays an open CONDITION (not closed).
