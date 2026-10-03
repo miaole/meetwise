@@ -1,0 +1,29 @@
+
+> meetwise@0.1.0 uc052:pool-role-leak:prove /workspace/meetwise-lineB
+> node scripts/run-e2e-isolated.mjs uc052:pool-role-leak:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; intended sole default=mysql-qdrant-redis) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — NOT sole-stack truth (sole stack = MySQL+Qdrant+Redis). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-1273218-1790999634204 on 127.0.0.1:32768
+
+> @meetwise/db@0.0.0 migrate /workspace/meetwise-lineB/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=134 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:uc052-pool-role-leak /workspace/meetwise-lineB/apps/worker
+> tsx test/uc052-pool-role-leak.proof.ts
+
+UC052_POOL_ROLE_LEAK_PROVE gitSha=9b39a20d6b53d10ac95be880037a3e716126f715 line=B runnerCommitSha=9b39a20d6b53d10ac95be880037a3e716126f715
+UC052_POOL_FACTORY name=PrincipalBoundCheckpointPool maxEnv=1
+PASS  NHP-POOL-NEG-01 · pid1=147 after={"pid":147,"currentUser":"pool_leak_rt_1274145","sessionUser":"pool_leak_rt_1274145","principal":null,"threadId":null,"epoch":null} samePid=true clean=true
+PASS  NHP-POOL-FAULT-ABORT · pid1=147 after={"pid":147,"currentUser":"pool_leak_rt_1274145","sessionUser":"pool_leak_rt_1274145","principal":null,"threadId":null,"epoch":null}
+PASS  NHP-POOL-FAULT-RESET-DESTROY · pidBefore=147 afterPid=148 destroyed=true
+PASS  HP-POOL-01 · duringB={"pid":148,"currentUser":"app_role","sessionUser":"pool_leak_rt_1274145","principal":"pool-leak-b-1274145","threadId":"pool-leak-thread-b-1274145","epoch":"1"}
+PASS  C-CASECOUNT · exact match
+{"line":"B","knife":"GAP-UC052-POOL-ROLE-LEAK","gitSha":"9b39a20d6b53d10ac95be880037a3e716126f715","runnerCommitSha":"9b39a20d6b53d10ac95be880037a3e716126f715","releaseEvidence":false,"haStatus":"NOT_HA","cases":{"NHP-POOL-NEG-01":"pass","NHP-POOL-FAULT-ABORT":"pass","NHP-POOL-FAULT-RESET-DESTROY":"pass","HP-POOL-01":"pass","C-CASECOUNT":"pass"},"required":["NHP-POOL-NEG-01","NHP-POOL-FAULT-ABORT","NHP-POOL-FAULT-RESET-DESTROY","HP-POOL-01","C-CASECOUNT"],"factory":"createCheckpointer(connection, true) + PGPOOL_MAX=1","disclosure":{"setLocalAlone":"FAIL — PostgresSaver autocommit pool.query has no txn","primaryFix":"SET ROLE NONE + clear 3 GUCs on release; destroy on reset failure (RESET/DISCARD restore -c role=app_role)"}}
+
+✓ UC052 pool-role-leak prove PASS
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-03T03-54-06-416Z-1273218-b3058eb8-493c-455b-b0a6-e5b8267a9988.json release_evidence=false
