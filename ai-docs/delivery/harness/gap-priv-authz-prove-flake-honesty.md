@@ -1,6 +1,6 @@
-# Harness — **GAP-PRIV-AUTHZ-PROVE-FLAKE honesty**（root-cause honesty knife · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · gap stays OPEN）
+# Harness — **GAP-PRIV-AUTHZ-PROVE-FLAKE honesty**（root-cause honesty knife · docs REQUEST · **`post_pre_exec_dual_pass`** · gap stays OPEN）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban self-approve · Ban coding · this commit is not coding authorization）
+**Status**: **`post_pre_exec_dual_pass`**（L0 docs REQUEST only · Ban self-approve · Ban coding · this commit is not coding authorization）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-02 (~22:00 PT)
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`58c0031`** / full `58c003156c3fc69505ecb3daa2e3dad25f4a6dfc`（Line F docs nail · not a prove tip）
@@ -45,4 +45,24 @@ A later, separately authorized knife may capture the **first-run** failure of `p
 
 NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=**8** · ms3EqualsR4Closed=false · PG-retained · public DELETE stays **503** · gap stays OPEN · STOP
 
-*Harness · GAP-PRIV-AUTHZ-PROVE-FLAKE · draft:awaiting_pre_exec_dual · OPEN mitigated/cause-unknown · STOP*
+*Harness · GAP-PRIV-AUTHZ-PROVE-FLAKE · post_pre_exec_dual_pass · OPEN mitigated/cause-unknown · STOP*
+## Post pre-exec dual（2026-10-02 nail · honesty docs · not a close）
+
+**Status**: **`post_pre_exec_dual_pass`**. This is honesty docs, not a close of the gap. Implementer does not self-approve.
+
+Dual PASS on origin `feat/mysql-schema-skeleton` (both commits confirmed ancestors before this nail):
+
+- mw-privacy-int `a38f351` / `a38f351e4f1a9b71e6d4e35ead7cc1f59ce30d09` · `reviews/REQUEST-2026-10-02-linea-authz-flake-honesty-pre-exec-mw-privacy-int.md`
+- mw-e2e-ha `67f6a16` / `67f6a168c515f9340d36fb139b793e2fa327127b` · `reviews/REQUEST-2026-10-02-gap-priv-authz-prove-flake-pre-mw-e2e-ha.md`
+
+Base REQUEST `031ad36` / `031ad36f7db01189e9754fd8e37a4b9fff5c6dd2`.
+
+`GAP-PRIV-AUTHZ-PROVE-FLAKE` stays **OPEN**, mitigated/cause-unknown. Not fixed. Not root-caused.
+
+Ban retry-to-green. Ban treating one EXIT 0, or v2 20/20 (cold_v2 10/10 and warm_v2 10/10), as closed or root-caused. Ban UC-052 product edits, including `apps/worker/src/checkpoint-principal.ts`. This nail does not run `pnpm privacy-authorization:prove`. Do not flip UC-018. Do not flip UC-052. UC-052 stays **partial**. Do not write covered.
+
+Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+
+Sections above this heading stay as the REQUEST wrote them, except the status phrase, which this nail sets to `post_pre_exec_dual_pass`. A green cite of this nail does not close the gap and does not flip UC-018.
+
+*Nail · GAP-PRIV-AUTHZ-PROVE-FLAKE · post_pre_exec_dual_pass · OPEN mitigated/cause-unknown · STOP*
