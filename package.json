@@ -139,6 +139,8 @@
     "uc002:http:prove:raw": "pnpm -C apps/api prove:uc002-http",
     "uc015:ingest-failures:prove": "node scripts/run-e2e-isolated.mjs uc015:ingest-failures:prove:raw",
     "uc015:ingest-failures:prove:raw": "pnpm -C apps/api prove:uc015-ingest-failures",
+    "uc014:webhook-adv:prove": "node scripts/run-e2e-isolated.mjs uc014:webhook-adv:prove:raw",
+    "uc014:webhook-adv:prove:raw": "pnpm -C apps/api prove:uc014-webhook-adv",
     "uc010:sse-resume:prove": "node scripts/run-e2e-isolated.mjs uc010:sse-resume:prove:raw",
     "uc010:sse-resume:prove:raw": "pnpm -C apps/api prove:uc010-sse-resume",
     "uc033:cross-user-authz:prove": "node scripts/run-e2e-isolated.mjs uc033:cross-user-authz:prove:raw",
