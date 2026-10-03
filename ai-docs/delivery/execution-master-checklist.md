@@ -441,3 +441,13 @@ flowchart TD
 - [ ] C-IMAGE-DIGEST live-per-run stays an open CONDITION (prior-docker-inspect is not live)
 - C-PERF-TEARDOWN disclosed (attempt1 EXIT 1, pg Client terminated mid-prove; attempt2 EXIT 0; not washed; PERF/LOAD stays local partial)
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503
+
+### G7 Key×3 FreeTierOnly FR3（2026-10-02 SSOT nail · offline dual_pass）
+
+- [x] **FR3 offline dual_pass** recorded. Dual already issued: mw-model-op `bcfc98a` · mw-e2e-ha `4e453f1`. This checklist entry registers that dual. Implementer does not self-approve. Not G7 green.
+- `offlineProvesAtCodeSha` = `b1d7b22` / `b1d7b22b8773c9a826ae5e15e000465be3d61720` only. Receipt `3d7063f` / `3d7063f9335398b776a89327c5131382b8629c55` is not the prove SHA.
+- Retraction: `05cb79f` and `3b7ea46` are not the same product tree. `6045a4b` / `315870e` retargeted the pointer without a re-run. Tautology `res.ok === false || true` removed in `b1d7b22`.
+- `g7SuiteGreen=false`. Trio **OPEN** 1/1/1. R1 **OPEN**. `MEETWISE_TECH_ROLE_FAIL_CLOSED=0` (TECH_ROLE=0) is not R1.
+- Residual FreeTier quota gap **CLOSED** (quota-403 removed only) is not suite green.
+- Receipt label `g7_hard_disabled` is a mapped not_run label. Runtime throws `g7_path_disabled:<capability>`. Behavior already fail-closed. Do not change code.
+- Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered. actualSpendCny stays null. No invented spend. Do not start live.
