@@ -21,6 +21,7 @@ import { getTracer, type ModelCallOutcome } from './trace.ts';
 import { getMetrics, METRIC } from './metrics.ts';
 import { withAbortTimeout } from './timeout.ts';
 import { resolveModelOperation } from './model-operation-registry.ts';
+import type { CalibratedFactor } from './usage-reconciliation.ts';
 import {
   admitSharedModelOperation, recordSharedModelOperation, resolveModelAdmissionPartition,
   type SharedModelAdmissionLease, type SharedModelFeeRecord,
@@ -89,6 +90,14 @@ export interface ModelCostPolicy {
   contextToolReserveTokens?: number;
   /** Required per-image reserve when a billable text/vision request carries images. */
   imageInputTokensPerImage?: number;
+  /**
+   * Optional usage-calibration factor. When set, `planContextBudget` (the real
+   * chat path) refines token estimates and requires `calibrationBoundModel`
+   * to equal `model` (fail-closed under G7 / whenever bound is present).
+   */
+  calibration?: CalibratedFactor;
+  /** Model the calibration factor was derived from; must equal `model`. */
+  calibrationBoundModel?: string;
 }
 
 /** A pre-dispatch admission lease (for example, one rate-limit slot). */

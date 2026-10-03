@@ -20,8 +20,10 @@ import {
   reserveG7CallOnSharedLedger,
   resolveG7TestProfile,
   selectPaidFallback,
+  assertCalibrationModelMatch,
 } from './g7-freetier-reprove-guard.ts';
 import { installG7OutboundInterceptor, withG7OutboundAllow } from './g7-outbound-interceptor.ts';
+import { refineEstimate } from './usage-reconciliation.ts';
 
 export interface CompletionRequest {
   service: string;       // 逻辑服务 key(catalog 解析模型/提示词版本)
@@ -211,6 +213,17 @@ function renderPrompt(req: CompletionRequest, nonce: string) {
  * as a free text token.
  */
 export function planContextBudget(req: CompletionRequest, policy: ModelCostPolicy): RenderedContextBudgetDecision {
+  // REAL chat-path calibration gate (complete @ :336/:355 call this — NOT planDispatchBudget).
+  // Under G7, any calibration requires bound+dispatch match; outside G7, assert whenever
+  // calibration or calibrationBoundModel is present.
+  if (policy.calibration !== undefined || policy.calibrationBoundModel !== undefined) {
+    const g7 = isG7FreetierReproveEnabled(process.env);
+    if (g7 || policy.calibration !== undefined || policy.calibrationBoundModel !== undefined) {
+      const bound = policy.calibrationBoundModel;
+      if (!bound) throw new Error('g7_calibration_bound_model_required_for_plan_context_budget');
+      assertCalibrationModelMatch(bound, policy.model);
+    }
+  }
   const contextWindowTokens = policy.contextWindowTokens;
   const safetyMarginTokens = policy.contextSafetyMarginTokens;
   const toolReserveTokens = policy.contextToolReserveTokens ?? 0;
@@ -224,18 +237,23 @@ export function planContextBudget(req: CompletionRequest, policy: ModelCostPolic
   }
   const nonce = '0'.repeat(10);
   const rendered = renderPrompt(req, nonce);
-  const systemTokens = byteEstimate(rendered.system);
+  const estimateTokens = (text: string): number => {
+    const raw = byteEstimate(text);
+    if (text.length === 0) return 0;
+    return policy.calibration ? refineEstimate(raw, policy.calibration) : raw;
+  };
+  const systemTokens = estimateTokens(rendered.system);
   // 整个 <data> 围栏(含 RAG 段)的字节;RAG 独立分账。byteEstimate 对字符串拼接线性可加,
   // 故 userDataTokens = 围栏总量 − RAG 段,绝不重复计费,也不漏计。
-  const userTextTokens = byteEstimate(rendered.userText);
-  const ragTokens = byteEstimate(rendered.ragText);
+  const userTextTokens = estimateTokens(rendered.userText);
+  const ragTokens = estimateTokens(rendered.ragText);
   const userDataTokens = userTextTokens - ragTokens;
   const images = req.images?.length ?? 0;
   // The image-array form also has provider-visible structural descriptor
   // bytes.  Count the exact rendered descriptor delta rather than only URL
   // strings; semantic image capacity is covered separately by the required
   // per-image reserve below.
-  const imageDescriptorTokens = images === 0 ? 0 : Math.max(0, byteEstimate(JSON.stringify(rendered.userContent)) - userTextTokens);
+  const imageDescriptorTokens = images === 0 ? 0 : Math.max(0, estimateTokens(JSON.stringify(rendered.userContent)) - userTextTokens);
   let imageReserveTokens = 0;
   if (images > 0) {
     if (!validPositive(policy.imageInputTokensPerImage))

@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./g7-bootstrap": "./src/g7-bootstrap.ts",
+    "./g7-bootstrap.ts": "./src/g7-bootstrap.ts"
   },
   "scripts": {
     "prove": "tsx test/runtime-kernel.proof.ts && tsx test/claim-join-orphan.proof.ts",
@@ -50,7 +52,8 @@
     "prove:model-cost": "tsx test/model-cost-governance.proof.ts",
     "prove:g7-freetier-reprove-guard": "tsx test/g7-freetier-reprove-guard.proof.ts",
     "prove:g7-freetier-reprove-client": "tsx test/g7-freetier-reprove-client.proof.ts",
-    "prove:g7-freetier-reprove-paths": "tsx test/g7-freetier-reprove-paths.proof.ts"
+    "prove:g7-freetier-reprove-paths": "tsx test/g7-freetier-reprove-paths.proof.ts",
+    "prove:g7-freetier-fix-round2": "tsx test/g7-freetier-fix-round2.proof.ts"
   },
   "dependencies": {
     "@langfuse/client": "5.10.0",
