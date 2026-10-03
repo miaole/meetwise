@@ -2,7 +2,8 @@
  * 真浏览器 E2E 自启动 runner:起真栈(api + worker + web,production `next start`)→ 等就绪 →
  * 跑 Playwright(headless chromium + Pixel 5 两端)驱动真实 UI → 拆栈。
  * 这是 HTTP 层 e2e(run-e2e.mjs)之外的浏览器证据:cookie 鉴权 / middleware 在真实浏览器里端到端跑通。
- * 用法:pnpm e2e:ui(需 docker DB 在跑;web 需已 `pnpm -C apps/web build` 出 .next——本脚本不重新构建,构建太慢)。
+ * 用法:pnpm e2e:ui(需 docker DB 在跑)。没有 apps/web/.next/BUILD_ID 时先 `next build` 再 `next start`。
+ * 已有生产构建则不重建(构建太慢)。缺构建直接 start 的 web_not_ready 仍是失败;补构建不改写历史 exit。
  */
 import { spawn } from 'node:child_process';
 import { readFileSync, existsSync, mkdirSync } from 'node:fs';
@@ -153,8 +154,28 @@ async function main() {
     if (!workerReady) throw tagE2EFailure('worker', 'worker_not_ready');
   }
 
+  // Recorded blocker: next start with no production build → web_not_ready.
+  // Build only when BUILD_ID is absent. Do not rebuild a tree that already has one.
+  const nextBuildId = ROOT + 'apps/web/.next/BUILD_ID';
+  if (!existsSync(nextBuildId)) {
+    console.log('E2E-UI: 无 .next/BUILD_ID，先 next build 再 next start…');
+    const build = spawnProc('web-build', 'node', [NEXT_BIN, 'build'], ROOT + 'apps/web', {
+      PORT: String(webPort),
+      API_BASE_INTERNAL: apiBase,
+      NEXT_PUBLIC_API_BASE: apiBase,
+      E2E_UI_STRESS: '1',
+    });
+    const buildCode = await new Promise((res) => build.on('exit', res));
+    if (buildCode !== 0 || !existsSync(nextBuildId)) {
+      emitFailureDiagnostics();
+      emitE2EFailure({ class: 'frontend', code: 'web_not_ready' });
+      cleanup();
+      process.exit(buildCode && buildCode !== 0 ? buildCode : 1);
+    }
+  }
+
   console.log(`E2E-UI: 启 web(production next start, :${webPort})…`);
-  // 假设 .next 已构建(构建太慢,不在此重建)。next start 直接服务 .next + 静态资源。
+  // 已有 .next/BUILD_ID(或刚由上面的 next build 写出)。next start 直接服务 .next + 静态资源。
   spawnProc('web', 'node', [NEXT_BIN, 'start', '-p', String(webPort)], ROOT + 'apps/web', {
     PORT: String(webPort),
     API_BASE_INTERNAL: apiBase,
