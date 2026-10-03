@@ -197,3 +197,14 @@
 - Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
 - This commit does not pre-claim the post-commit EXIT table. Line D waiting-user section from `018d692` stays as written. Sibling sections, if present, stay intact.
 - Evidence: `reviews/REQUEST-2026-10-02-uc018-ui-failure-backfill-mw-rag-route.md` · `reviews/REQUEST-2026-10-02-uc018-ui-tip-rerun-post-prove-mw-e2e-ha.md` · `harness/uc018-ui-failure-backfill.md` · `receipts/uc018-ui-tip-rerun/UI.json`.
+
+### UC-E2E-025 NEG honesty nail（2026-10-02 SSOT nail · failed prove, not a close）
+
+- **GAP-UC025-NEG-01** · stays **OPEN**. This is an honesty nail of a failed prove, not a close. Implementer does not self-approve.
+- Dual reviews PASS on origin `feat/mysql-schema-skeleton` (both commits confirmed present before this nail): mw-rag-route `04f6d33` / `04f6d331e877ef3cbff8f434c015becda730e71e` · mw-e2e-ha `86228ac` / `86228acf5233f3df8eee147020c33606a210ae4b`.
+- Code SHA `0271ee4` / `0271ee4649b1b94b833587f2f900b22f80863f32`. Receipt commit `f47f155` / `f47f15562a6645caab6ad44a0f95a5c2d59e5baa`.
+- `pnpm uc025:nhp-neg:prove` EXIT 1. Interview begin does not take a quiz artifact and does not throw a stale-quiz HttpException. NEG column only. The row stays **gap**. FAULT / BOUND / ADV not run. Ban wash-green. Do not write covered.
+- This commit does not edit UC-018 or UC-052 rows. Sibling sections (Line E, Line D, Line C), if present, stay intact.
+- Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+- This commit does not pre-claim the post-commit EXIT table. An expected EXIT 1 on `pnpm uc025:nhp-neg:prove` is the honesty result, not a green prove.
+- Evidence: `reviews/REQUEST-2026-10-02-uc-e2e-025-nhp-mw-rag-route.md` · `reviews/REQUEST-2026-10-02-uc-e2e-025-nhp-neg-post-prove-mw-e2e-ha.md` · `harness/uc-e2e-025-nhp.md` · `receipts/uc-e2e-025-nhp/2026-10-02-uc025-nhp-neg-prove.md`.

@@ -505,3 +505,13 @@ flowchart TD
 - UC-018 and §1.1 stay **partial**. coveredCount=8. Ban covered flip. Do not write covered. UI alone is not a status flip.
 - Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
 - This commit does not pre-claim the post-commit EXIT of `pnpm uc018:ui:prove` or `pnpm eval-harness-matrix-cite:prove`. Line D waiting-user section from `018d692`, J section `10e8dc2`, I2 nail `e09a39f`, and G7 FR3 from `210f4c0` stay as written. Sibling sections, if present, stay intact.
+
+### UC-E2E-025 NEG honesty nail（2026-10-02 SSOT nail · failed prove, not a close）
+
+- [x] Honesty nail of a failed prove, not a close. Dual reviews PASS and were confirmed on origin before this nail: mw-rag-route `04f6d33` / `04f6d331e877ef3cbff8f434c015becda730e71e` · mw-e2e-ha `86228ac` / `86228acf5233f3df8eee147020c33606a210ae4b`. Implementer does not self-approve. This is not a gap close.
+- Code SHA `0271ee4` / `0271ee4649b1b94b833587f2f900b22f80863f32`. Receipt commit `f47f155` / `f47f15562a6645caab6ad44a0f95a5c2d59e5baa`.
+- Receipt records `pnpm uc025:nhp-neg:prove` EXIT 1 at that code SHA. GAP-UC025-NEG-01 stays **OPEN**: interview begin does not take a quiz artifact and does not throw a stale-quiz HttpException (`acceptsQuiz=false` · `realStaleReject=false`). EXIT 1 is the unwired mark, not a product refusal.
+- §1.0.1 NEG column stays **gap**. FAULT / BOUND / ADV were not run and were not edited. The matrix row stays **gap**. Ban wash-green. Do not write covered.
+- This commit does not edit UC-018 or UC-052 rows. Line E tip section, Line D waiting-user section, and Line C live section stay as written.
+- Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+- This commit does not pre-claim the post-commit EXIT of `pnpm uc025:nhp-neg:prove` or `pnpm eval-harness-matrix-cite:prove`. The receipt EXIT 1 is the recorded prove, not a wash to 0.
