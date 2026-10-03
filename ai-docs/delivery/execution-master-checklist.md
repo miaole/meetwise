@@ -515,3 +515,14 @@ flowchart TD
 - This commit does not edit UC-018 or UC-052 rows. Line E tip section, Line D waiting-user section, and Line C live section stay as written.
 - Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
 - This commit does not pre-claim the post-commit EXIT of `pnpm uc025:nhp-neg:prove` or `pnpm eval-harness-matrix-cite:prove`. The receipt EXIT 1 is the recorded prove, not a wash to 0.
+
+### GAP-BACKFILL-EMITTER-UNAUTHENTICATED（2026-10-02 SSOT nail · `post_prove_dual_pass`）
+
+- [x] **`post_prove_dual_pass`** recorded for HMAC fail-closed. Dual already issued and confirmed on origin before this nail: mw-rag-route `440640f` / `440640f72af5008a27629e2ae48988742bd1c06f` · mw-e2e-ha `310917a` / `310917a1339124796d9b6a4b21ff709356260105`. Implementer does not self-approve. Not a UC-018 status flip.
+- Code SHA `a19b6cf` / `a19b6cf178bfe264fe2e2e7894b64a2021c07b00`. Receipt commit `b118390` / `b118390aee90d4fc367c6be63994569e046f6b67`.
+- Receipt records `pnpm uc018:receipt-backfill:prove` EXIT 0 at the code SHA. This nail is docs. Do not claim the nail SHA is the prove SHA.
+- Key is process env `MEETWISE_UC018_BACKFILL_HMAC_KEY` only. No default key. No `.env`. No key in the tree.
+- Legacy seven backfill JSON files were not rewritten: unsigned-historical, signed false, no emitterHmac. Missing tag, bad tag, and missing key fail closed.
+- UC-018 stays **partial**. Ban covered flip. Do not write covered. coveredCount=8.
+- Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+- This commit does not pre-claim the post-commit EXIT table. Line E tip section, Line H NEG honesty section, Line D waiting-user section, and Line C live section stay as written.
