@@ -1,6 +1,6 @@
-# Harness — **GAP-UC004-FAIL-A3 NHP**（UC-E2E-004 FAULT column · docs REQUEST · **`post_pre_exec_dual_pass`** · row stays gap）
+# Harness — **GAP-UC004-FAIL-A3 NHP**（UC-E2E-004 FAULT column · docs REQUEST · **`post_prove_dual_pass`** · **FINAL NAIL** · row stays gap）
 
-**Status**: **`post_pre_exec_dual_pass`**（L0 docs REQUEST only · Ban self-approve · Ban coding · this commit is not coding authorization）
+**Status**: **`post_prove_dual_pass`** · **FINAL NAIL** for the docs status only（row stays gap · A3 is not closed · Ban self-approve · Ban inventing a fix · Ban product code · this commit is not a close）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-02 (~22:00 PT)
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`58c0031`** / full `58c003156c3fc69505ecb3daa2e3dad25f4a6dfc`
@@ -38,7 +38,7 @@ Not UC-018. Not UC-052. Not interview begin. Not `pnpm privacy-authorization:pro
 
 NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=**8** · ms3EqualsR4Closed=false · PG-retained · public DELETE stays **503** · row stays gap · STOP
 
-*Harness · GAP-UC004-FAIL-A3 · NHP-004-FAULT-01 · post_pre_exec_dual_pass · STOP*
+*Harness · GAP-UC004-FAIL-A3 · NHP-004-FAULT-01 · post_prove_dual_pass · FINAL NAIL · FAULT gap · STOP*
 ## Post pre-exec dual（2026-10-02 nail · docs status · row stays gap）
 
 **Status**: **`post_pre_exec_dual_pass`**. This records the dual. It does not close A3. Implementer does not self-approve.
@@ -59,3 +59,22 @@ Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR4
 Sections above this heading stay as the REQUEST wrote them, except the status phrase, which this nail sets to `post_pre_exec_dual_pass`. A green cite does not close A3 and does not flip any row.
 
 *Nail · GAP-UC004-FAIL-A3 · NHP-004-FAULT-01 · post_pre_exec_dual_pass · FAULT gap · STOP*
+
+## FINAL NAIL（2026-10-02 · post-prove dual · docs status only · row stays gap）
+
+**Status**: **`post_prove_dual_pass`**. **FINAL NAIL** for the docs status only. A3 is not closed. Implementer does not self-approve.
+
+Post-prove dual PASS on origin `feat/mysql-schema-skeleton`. Both commits reviewed nail `0807d27` / `0807d2729bd38d4f6b37add0196f819cb51247d2`:
+
+- mw-rag-route `97c3dcf` / `97c3dcff5ca372dfccf8ea2be9d87f2a195848ea` · `reviews/REQUEST-2026-10-02-gap-uc004-fail-a3-nhp-post-mw-rag-route.md`
+- mw-e2e-ha `99e549c` / `99e549ca1edb1e818d5131bbc66a9912119ccd9e` · `reviews/REQUEST-2026-10-02-gap-uc004-fail-a3-nhp-post-mw-e2e-ha.md`
+
+`GAP-UC004-FAIL-A3` / `NHP-004-FAULT-01`: the FAULT column stays **gap**. The UC-E2E-004 row stays **gap**. A3 is not closed. Not UC-018. Not UC-052. Not UC-025.
+
+Do not treat `pnpm uc004:career-path:prove` EXIT 0 as A3 closed. Ban inventing a fix. Ban product code. Ban flipping any SSOT row. Do not write covered. Do not flip UC-018. Do not flip UC-052.
+
+Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+
+The post_pre_exec section above stays as that earlier nail wrote it. A green cite does not close A3 and does not flip any row.
+
+*FINAL NAIL · GAP-UC004-FAIL-A3 · NHP-004-FAULT-01 · post_prove_dual_pass · FAULT gap · A3 not closed · STOP*
