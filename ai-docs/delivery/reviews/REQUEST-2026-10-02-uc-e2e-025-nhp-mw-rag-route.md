@@ -69,3 +69,44 @@ Dual PASS ≠ coding ≠ covered ≠ nail · No coding is authorized by this stu
 **mw-rag-route** · 2026-10-02 (~21:07 PT) · UC-E2E-025 NHP pre-exec **PASS** @ `a05c485`（条件化）
 
 Verdict: PASS
+
+
+---
+
+## 事后审 · `0271ee4` / `f47f155` · 2026-10-02 (~21:33 PT)
+
+**Expert**: `mw-rag-route` · alone ≠ dual · 只追加 · 不改实现 · 不 nail  
+**代码**: `0271ee4` 增加 `pnpm uc025:nhp-neg:prove` → `apps/api/test/uc-e2e-025-nhp-neg.proof.mjs`，并改 025 harness/slice 与两个 package.json。不含矩阵、evaluator、UC-018、UC-052、审者文件。  
+**收据**: `f47f155` 只加 `ai-docs/delivery/receipts/uc-e2e-025-nhp/2026-10-02-uc025-nhp-neg-prove.md`。  
+点名 SHA 是 origin 祖先。按这两笔审。
+
+### 本审重跑
+
+干净 worktree @ `0271ee4`：
+
+| CMD | 本审 EXIT |
+|-----|-----------|
+| `pnpm uc025:nhp-neg:prove` | **1** |
+
+输出：`acceptsQuiz=false` `realStaleReject=false` `GAP-UC025-NEG-01` `ROW_STILL_GAP`。并写明非 0 不是产品拒绝（拒绝未实现），也不是旧的 `uc025:stale-quiz-expiry:prove` EXIT 0。
+
+### 对照
+
+- 收据写 **EXIT 1**，SHA `0271ee4`，行仍是 gap。没有写成 exit 0。  
+- `e2e-requirement-coverage-matrix.md` 在 `0271ee4^` 与 `f47f155` 的 blob 相同。§1.0.1 行仍是 NEG/FAULT/BOUND **gap**、ADV **blind**；§1.1 仍 **gap**。  
+- harness 状态字改成 `coded:neg_gap_unwired`，正文仍写「the row is still gap」，没有把行升成 partial/covered。  
+- 文件清单没有 UC-E2E-018 / UC-E2E-052。pins 原文保持 NOT_HA、releaseEvidence=false、claimProductionHA=false、gR45Closed=true、coveredCount=8、ms3EqualsR4Closed=false。
+
+### 裁定
+
+**PASS**（诚实钉，不是产品通过）。EXIT 1 被如实记下，行仍 gap，没有洗绿。不 nail。
+
+### 仍有效的条件
+
+产品 reject 仍未接线。FAULT/BOUND/ADV 未跑。EXIT 1 ≠ covered。旧 mark-red EXIT 0 ≠ 本用例通过。UC-018 / §1.1 仍 partial（本刀未碰）。
+
+### signature
+
+**mw-rag-route** · 2026-10-02 (~21:33 PT) · UC-025 NEG post-prove **PASS** @ `0271ee4` / `f47f155` · 本审 EXIT 1 · 行仍 gap · 不 nail
+
+Verdict: PASS
