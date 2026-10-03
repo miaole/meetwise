@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "kind": "g7-linec-live-chat-allow-ticket",
+  "line": "C",
+  "nailParent": "210f4c0dfd14b0c4eb37ae335a3868b51c636517",
+  "codeSha": "542c0646d1635b0a3a28c5d821ad50bc6ea625a3",
+  "codeShaShort": "542c064",
+  "receiptCommitIsNotCodeSha": true,
+  "porcelainAtRun": true,
+  "ranAt": "2026-10-02T21:27:52-07:00",
+  "finishedAt": "2026-10-02T21:27:55-07:00",
+  "cmd": "packages/ai-runtime/node_modules/.bin/tsx /tmp/g7-linec-live.mts",
+  "cwd": "packages/ai-runtime",
+  "exit": 0,
+  "runner": "existing openAICompatibleClient complete() allow-ticket chat path (packages/ai-runtime/src/model-client.ts). No runner/config commit: caps and hard-disable already on this SHA. Full pnpm e2e:isolated was not run because worker embed/rerank entrypoints would be invoked.",
+  "envNames": {
+    "G7_FREETIER_REPROVE": "1",
+    "G7_PAID_FALLBACK_ENABLED": "0",
+    "G7_FREE_PRIMARY_MODEL": "qwen3.8-flash",
+    "MODEL_NAME_FOR_CHAT": "qwen3.8-flash",
+    "MODEL_ENDPOINT_PROFILE": "dashscope-cn-beijing",
+    "G7_RUN_COST_CAP_CNY": "5",
+    "G7_RUN_TOKEN_CAP": "2000000",
+    "G7_RUN_CALL_CAP": "200",
+    "ALLOW_DEEPSEEK_V4_PRO_TEST": "unset",
+    "G7_RUN_COST_LEDGER_PATH": ".tmp/g7-ledgers/2026-10-02-linec-live-chat.ndjson",
+    "MEETWISE_TECH_ROLE_FAIL_CLOSED": "unset"
+  },
+  "keyFingerprint": "d26808ef",
+  "keySource": "/home/box/.meetwise-secrets/load-model-api-key.sh",
+  "deepseekV4Pro": {
+    "flag": "unset",
+    "guard": "g7_model_banned_without_approval:deepseek-v4-pro",
+    "client": "g7_model_banned_without_approval:deepseek-v4-pro",
+    "fetchDelta": 0,
+    "bypassed": false
+  },
+  "calls": [
+    {
+      "callId": "d03cf49a-c513-4412-93b8-1c48ab90d21a",
+      "actualModel": "qwen3.8-flash",
+      "inputTokens": 190,
+      "outputTokens": 37,
+      "estimatedCostCny": 0,
+      "evidenceClass": "free_quota_wiring_only",
+      "startedAt": "2026-10-03T04:27:52.318Z",
+      "finishedAt": "2026-10-03T04:27:55.201Z",
+      "chatFetchDelta": 1
+    }
+  ],
+  "estimatedCostCny": 0,
+  "estimateNote": "price-book free-quota estimate only; not a console figure",
+  "actualSpendCny": null,
+  "consoleRead": "not_read",
+  "consoleNote": "No Bailian console read was available. actualSpendCny stays null. Estimated 0 is not actual spend.",
+  "notRun": [
+    {
+      "capability": "embed",
+      "status": "not_run",
+      "reason": "g7_hard_disabled"
+    },
+    {
+      "capability": "rerank",
+      "status": "not_run",
+      "reason": "g7_hard_disabled"
+    },
+    {
+      "capability": "asr",
+      "status": "not_run",
+      "reason": "g7_hard_disabled"
+    },
+    {
+      "capability": "tts",
+      "status": "not_run",
+      "reason": "g7_hard_disabled"
+    },
+    {
+      "capability": "asr_stream",
+      "status": "not_run",
+      "reason": "g7_hard_disabled"
+    },
+    {
+      "capability": "tts_stream",
+      "status": "not_run",
+      "reason": "g7_hard_disabled"
+    }
+  ],
+  "trio": [
+    {
+      "cmd": "pnpm e2e:isolated",
+      "exit": 1,
+      "thisRun": "not_re_run"
+    },
+    {
+      "cmd": "pnpm e2e:ui:isolated",
+      "exit": 1,
+      "thisRun": "not_re_run"
+    },
+    {
+      "cmd": "pnpm verify:e2e-performance",
+      "exit": 1,
+      "thisRun": "not_re_run"
+    }
+  ],
+  "pins": {
+    "haStatus": "NOT_HA",
+    "releaseEvidence": false,
+    "claimProductionHA": false,
+    "gR45Closed": true,
+    "coveredCount": 8,
+    "coveredWritten": false,
+    "ms3EqualsR4Closed": false,
+    "pgRetained": true,
+    "publicDelete": 503,
+    "r1Closed": false,
+    "techRoleFailClosed": "unset",
+    "techRoleIsNotR1": true,
+    "g7SuiteGreen": false,
+    "nail": false,
+    "selfApprove": false
+  },
+  "caps": {
+    "cny": 5,
+    "tokens": 2000000,
+    "calls": 200,
+    "observedCalls": 1,
+    "observedTokens": 227,
+    "stoppedBeforeExceeding": true
+  },
+  "g7SuiteGreen": false,
+  "stop": "STOP for post-live dual (mw-model-op + mw-e2e-ha). No self-approve. No SSOT nail."
+}
