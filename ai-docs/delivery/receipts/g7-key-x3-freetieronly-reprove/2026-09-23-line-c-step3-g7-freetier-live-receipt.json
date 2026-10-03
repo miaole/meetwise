@@ -3,8 +3,8 @@
   "line": "C",
   "step": 3,
   "kind": "g7-freetier-reprove-post-mw-model-op-fail-fix-round-offline",
-  "tipShaShort": "3b7ea46",
-  "tipShaFull": "3b7ea46e7eecccabbf40e58a880e97e61877eb0f",
+  "tipShaShort": "b1d7b22",
+  "tipShaFull": "b1d7b22b8773c9a826ae5e15e000465be3d61720",
   "keyFingerprint": "d26808ef",
   "actualSpendCny": null,
   "consoleSpendReadCny": 0,
@@ -31,7 +31,8 @@
     "trioOpen": true,
     "ccOpen": true,
     "g7SuiteGreen": false,
-    "nail": false
+    "nail": false,
+    "publicDelete": 503
   },
   "disclosure1": {
     "id": "Disclosure-1",
@@ -66,7 +67,7 @@
   ],
   "ccConfirmed": false,
   "ccNote": "C-C separated but OPEN: perf dies at steps[3] on the provenance assertion; SLO unconfirmed. Not claimed green.",
-  "offlineProvesAtCodeSha": "3b7ea46e7eecccabbf40e58a880e97e61877eb0f",
+  "offlineProvesAtCodeSha": "b1d7b22b8773c9a826ae5e15e000465be3d61720",
   "integration": [
     {
       "cmd": "pnpm -C packages/ai-runtime prove:g7-freetier-reprove-guard",
@@ -360,5 +361,21 @@
     "calibration": "packages/ai-runtime/src/model-client.ts:215 planContextBudget → :224 assertCalibrationModelMatch; used from :354 prepare / :373 complete",
     "bootstrap": "packages/ai-runtime/src/g7-bootstrap.ts:7 installG7OutboundInterceptor; apps/api/src/main.ts:2; apps/worker/src/main.ts:9"
   },
-  "rebaseNote": "tipSha retargeted after pull --rebase onto origin/feat/mysql-schema-skeleton (content-identical code tree)"
+  "rebaseNote": "6045a4b and 315870e set tipSha and offlineProvesAtCodeSha to 3b7ea46 without a re-run. The runs recorded in those receipt commits were at 05cb79f. 05cb79f vs 3b7ea46 is not the same product tree. git diff 05cb79f 3b7ea46 excluding ai-docs and docs is 7 files, 201 insertions, 26 deletions (apps/worker/src/checkpoint-principal.ts, apps/worker/test/uc052-pool-role-leak.proof.ts, scripts/lib/uc-covered-real-gatherer.mjs, scripts/lib/uc018-receipt-backfill-facts.mjs, scripts/run-e2e-isolated.mjs, scripts/uc-e2e-018-receipt-backfill.proof.mjs, scripts/uc018-receipt-backfill-emit.mjs). FR2 patch-id may match; the trees are not identical. tipSha and offlineProvesAtCodeSha now point at b1d7b22b8773c9a826ae5e15e000465be3d61720, git rev-parse HEAD at the time the offline proves were run, not at the receipt commit.",
+  "g7HardDisabledEmission": {
+    "emitted": false,
+    "runtimeToken": "g7_path_disabled:<capability>",
+    "receiptToken": "g7_hard_disabled",
+    "mapping": "Receipt rows keep reason g7_hard_disabled as the mapped label for not_run embed/rerank/asr/tts/asr_stream/tts_stream. This round did not change assertG7UnguardedPathDisabled; the thrown string is still g7_path_disabled:<capability>. Changing that string would touch the outbound disable contract beyond a label, so it was skipped."
+  },
+  "proveTipHonesty": {
+    "ranAtCodeSha": "b1d7b22b8773c9a826ae5e15e000465be3d61720",
+    "ranAtCodeShaShort": "b1d7b22",
+    "receiptCommitIsNotProveSha": true,
+    "retargetWithoutRerun": "6045a4b and 315870e set tipSha and offlineProvesAtCodeSha to 3b7ea46 without a re-run. The runs recorded in those receipt commits were at 05cb79f.",
+    "productTree": "05cb79f vs 3b7ea46 is not the same product tree. git diff 05cb79f 3b7ea46 excluding ai-docs and docs is 7 files, 201 insertions, 26 deletions (apps/worker/src/checkpoint-principal.ts, apps/worker/test/uc052-pool-role-leak.proof.ts, scripts/lib/uc-covered-real-gatherer.mjs, scripts/lib/uc018-receipt-backfill-facts.mjs, scripts/run-e2e-isolated.mjs, scripts/uc-e2e-018-receipt-backfill.proof.mjs, scripts/uc018-receipt-backfill-emit.mjs). FR2 patch-id may match; the trees are not identical.",
+    "e2eHaOfflineRerun": "mw-e2e-ha re-ran FR2 offline at 3b7ea46 with EXIT 0. That fact is not contradicted. The bug corrected here is the receipt pointer retarget, not that re-run.",
+    "tautology": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts dispatch assertion is res.ok === false with the fail-open || true removed, in code commit b1d7b22, which is the SHA these offline proves were run at.",
+    "nhpR4": "pnpm -C apps/worker prove:nhp-r4-adv-covered EXIT 1 is the pinned expected fail COVERED_PATH_GAP, not needs-PG, and was not rewritten to pass."
+  }
 }
