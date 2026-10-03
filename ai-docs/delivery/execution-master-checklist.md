@@ -526,3 +526,15 @@ flowchart TD
 - UC-018 stays **partial**. Ban covered flip. Do not write covered. coveredCount=8.
 - Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
 - This commit does not pre-claim the post-commit EXIT table. Line E tip section, Line H NEG honesty section, Line D waiting-user section, and Line C live section stay as written.
+
+### Line F unsealed SSOT align（2026-10-02 SSOT nail · pre_exec_dual_pass）
+
+- [x] **`pre_exec_dual_pass`** recorded for the docs tip `ff43d63` / `ff43d630d83100f0089b7d0a96f1e72a58beeda9` (REQUEST `a24382b` / `a24382b6ae10464e2b7abcc957bec43ef2868061`). Dual already issued: mw-privacy-int `6440755` / `64407556070d6b7611226505f363c5e001c45be6` · mw-e2e-ha `45b0ea7` / `45b0ea7be2dd226851fbbee838c489a7036f1e29`. Both confirmed on origin before this nail. This checklist entry registers that dual. Implementer does not self-approve. This is not coding authorization and not a prove.
+- Cite + retire of `NOTE-CKPT-UNSEALED-CLAIM-NEG` is complete: the NOTE is **CLOSED** by the existing proof cases inside `uc052:checkpoint-physical:prove`, not by a new implementation.
+- Prove/code SHA for EXIT 0 remains `ab96a02` / `ab96a0299d8836a635077f8bf9b61a7891aa583f`. Nail `119d6c0` is an older docs nail only. `9b39a20` is range-diff-equal to `ab96a02` but is not on origin. Never attach EXIT 0 to `ff43d63` or `119d6c0`.
+- Ban coding `apps/worker/src/checkpoint-principal.ts`. Ban a second unsealed NEG implementation.
+- [ ] `GAP-PRIV-AUTHZ-PROVE-FLAKE` stays **OPEN** · mitigated/cause-unknown (not fixed).
+- UC-052 stays **partial**. coveredCount=8. Public DELETE stays 503. Do not write covered. Do not flip UC-018.
+- Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained.
+- Pool slice one-line cite updated from stale L51–54 to cleanup path L79 / L80–82 / L101–103 (confirmed in ts; ts not edited). Harness r5 text left unchanged.
+- Sibling sections stay intact: D `018d692` waiting-user · C `2f23ed3` live · J `10e8dc2` · I2 `e09a39f` · offline FR3 `210f4c0` · and any E/H/G sections that have landed. CLOSED UC-052 rows stay CLOSED.
