@@ -48,3 +48,51 @@ harness `:10`：本开档不授权 coding；coding 是下一刀，而且只在 L
 4. 不代签 privacy-int。
 
 Verdict: PASS
+
+---
+
+# RE-PRE-EXEC · rewrite `a24382b` · mw-e2e-ha
+
+**Status**: re-pre-exec **PASS**（有条件）· alone≠dual · 不代签 `mw-privacy-int`
+**Expert**: `mw-e2e-ha`
+**被审 SHA**: `a24382b6ae10464e2b7abcc957bec43ef2868061`（`a24382b`，docs(privacy) rewrite）
+**基线 tip**: `3d7063f9335398b776a89327c5131382b8629c55`（`a24382b` 是其祖先，EXIT=0）
+**Worktree**: `/Users/miaole/Desktop/golucky/meetwise-rv-f-e2e-ha`（branch `rv/f-e2e-ha`）
+**Date**: 2026-10-02（PT）
+**本 PASS**: ≠ dual · ≠ 开工许可 · ≠ UC-052 covered · 本线 docs-only **永久无 coding**
+
+## 检查表（file:line 证据）
+
+| # | 项 | 证据 | 结果 |
+|---|-----|------|------|
+| 1 | 祖先关系 | `git merge-base --is-ancestor a24382b HEAD` EXIT=0 @ `3d7063f` | ✓ |
+| 2 | docs-only | `git show --name-status a24382b` 仅 `ai-docs/delivery/harness/note-ckpt-unsealed-claim-neg.md` + `ai-docs/delivery/note-ckpt-unsealed-claim-neg.slice.md`；无产品代码/迁移/route/package.json/principal/SSOT 触碰 | ✓ |
+| 3 | 引证零漂移 | `git log a24382b..HEAD -- packages/db/test/uc052-checkpoint-physical.proof.ts packages/db/migrations/0091_privacy_authorization_issuer.sql` 为空；引证在 @`a24382b` 与 @`3d7063f` 同样有效 | ✓ |
+| 4 | 负例精确性未放宽 | `packages/db/migrations/0091_privacy_authorization_issuer.sql:369–371` epoch 先判（NULL → `privacy_authorization_epoch_mismatch` · `42501`）；`:372–374` digest（NULL → `privacy_authorization_digest_mismatch` · `42501`）。harness:15–18 / slice:13–16 陈述与此一致：refusal + unchanged rows；both 先 epoch；未放宽接受面 | ✓ |
+| 5 | 引证逐一实测相符 | EPOCH=`proof.ts:763–766` · DIGEST=`:768–771` · BOTH=`:773–776`（both→epoch 文案 `:747–749`）· 正控=`:780–804`（lease 断言 `:804`）· 共享断言 `sqlState==='42501'`+拒绝文案+unchanged=`:750–758` | ✓ |
+| 6 | 无 evidence 洗白 | 矩阵 `ai-docs/delivery/e2e-requirement-coverage-matrix.md:124`/`:182`：UC-052 仍 **partial / ≠ covered**、coveredCount **8**、externals **`retention_pending`**、DELETE **503**；`a24382b` 未触碰矩阵/backlog/checklist；harness:29 "do not flip coverage or invent a covered result"、:26 "pin, not completion evidence" | ✓ |
+| 7 | 退役≠放宽 | harness:7/:11/:20/:22（"documentary only; do not rerun or extend the proof" · "No product code, migration, route, test, prove run, or nail is in scope"）、:27–:28（principal/proof 文件保持不变）、:34（no self-approve）· slice:6–7/:11/:18/:24/:30。比旧 C1（等 Line B nail 才许 coding）**更严**：本线永久无 coding | ✓ |
+| 8 | Pins 8+1 原值 | harness:26/:30/:32 · slice:22/:26/:28：`haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false` · `gR45Closed=true` · `coveredCount=8` · `ms3EqualsR4Closed=false` · PG-retained · 公开 DELETE=**503** · external retention **`retention_pending`**；与 SSOT 现值一致 | ✓ |
+
+## Nit（非 blocker）
+
+共享断言的 `expectMsg` 计算在 `proof.ts:747–749`，紧邻 harness:20 所引区间 `750–758` 之前；区间起点写 747 更精确。断言语句本身均在区间内，语义相符，不构成 blocker。
+
+## Blockers
+
+无。
+
+## Conditions（binding）
+
+- **C1-NO-CODING-THIS-LINE-PERMANENT**: 重写后本线（NOTE-CKPT-UNSEALED-CLAIM-NEG）实现刀已退役：本线**永久**无 coding、无 prove、无 nail；两份 docs、`apps/worker/src/checkpoint-principal.ts`、`packages/db/test/uc052-checkpoint-physical.proof.ts` 保持原样。恢复实现范围或对两份 docs 的实质语义变更必须开**新 REQUEST** 并重新双审（协议性状态位翻转 draft→dual-pass 不在此限，但不得引入新语义）。任何未来实现刀仍受旧 C1 前置：coding 只在 Line B `GAP-UC052-POOL-ROLE-LEAK` **nail** 之后；`49ef158` post-prove PASS ≠ nail。
+- **C2-NEG-PRECISION**: 若未来重开负例实现：NULL epoch / NULL digest / both 三案；SQLSTATE 正好 `42501`；both 仍走 epoch 文案；无状态变化（`claimed=false` / `unchanged=true`）；只断言 throws / `rejects()` 不算过。
+- **C3-PINS-FROZEN**: 8+1 pins 不动（见检查表 #8）。UC-052 ≠ covered；coveredCount=8；三 SSOT（e2e-requirement-coverage-matrix / e2e-covered-path-backlog / execution-master-checklist）不得由本线改动。
+- **C4-ALONE-NOT-DUAL**: 本 PASS 仅 `mw-e2e-ha` 单签；不代签 `mw-privacy-int`。dual 成立需 privacy-int 对 `a24382b` 的独立 re-pre-exec 收据（其上轮 S5/S6 是否闭合由其自行判定）。
+
+## 中文三行摘要
+
+1. `a24382b` 纯文档化、零实现面：退役补测刀，四案 file:line 引证逐一实测相符，与 0091 的 SQLSTATE/文案语义一致，负例精确性未放宽。
+2. 无洗白：矩阵 UC-052 仍 partial/≠ covered、coveredCount=8、externals `retention_pending`、公开 DELETE=503 原值；8+1 pins 齐全且 "pin, not completion evidence" 表述诚实。
+3. 旧条件重述更严（本线永久无 coding，恢复实现须新 REQUEST 且仍受 Line B nail 前置）；单签 PASS，dual 待 `mw-privacy-int` 独立复审。
+
+Verdict: PASS
