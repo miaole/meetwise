@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import '@meetwise/ai-runtime/g7-bootstrap';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';

@@ -6,6 +6,7 @@
  *
  * 骨架：当前给出组合根装配点；真实的队列消费/续跑循环 S5 落（见 production-backlog）。
  */
+import '@meetwise/ai-runtime/g7-bootstrap';
 import { hostname } from 'node:os';
 import { createServer, type Server } from 'node:http';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
