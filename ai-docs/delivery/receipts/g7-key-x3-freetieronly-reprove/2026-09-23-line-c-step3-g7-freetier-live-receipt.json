@@ -3,8 +3,8 @@
   "line": "C",
   "step": 3,
   "kind": "g7-freetier-reprove-post-mw-model-op-fail-fix-round-offline",
-  "tipShaShort": "05cb79f",
-  "tipShaFull": "05cb79f6d687a693d8b6a44d20d7cf1e25cfaa5d",
+  "tipShaShort": "3b7ea46",
+  "tipShaFull": "3b7ea46e7eecccabbf40e58a880e97e61877eb0f",
   "keyFingerprint": "d26808ef",
   "actualSpendCny": null,
   "consoleSpendReadCny": 0,
@@ -66,7 +66,7 @@
   ],
   "ccConfirmed": false,
   "ccNote": "C-C separated but OPEN: perf dies at steps[3] on the provenance assertion; SLO unconfirmed. Not claimed green.",
-  "offlineProvesAtCodeSha": "05cb79f6d687a693d8b6a44d20d7cf1e25cfaa5d",
+  "offlineProvesAtCodeSha": "3b7ea46e7eecccabbf40e58a880e97e61877eb0f",
   "integration": [
     {
       "cmd": "pnpm -C packages/ai-runtime prove:g7-freetier-reprove-guard",
@@ -359,5 +359,6 @@
   "callChain": {
     "calibration": "packages/ai-runtime/src/model-client.ts:215 planContextBudget → :224 assertCalibrationModelMatch; used from :354 prepare / :373 complete",
     "bootstrap": "packages/ai-runtime/src/g7-bootstrap.ts:7 installG7OutboundInterceptor; apps/api/src/main.ts:2; apps/worker/src/main.ts:9"
-  }
+  },
+  "rebaseNote": "tipSha retargeted after pull --rebase onto origin/feat/mysql-schema-skeleton (content-identical code tree)"
 }
