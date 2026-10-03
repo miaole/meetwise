@@ -12,6 +12,7 @@ CREATE TABLE resume_quiz (
   privacy_epoch bigint,                                     -- 删除围栏世代；与 typed resume_id 成对写入
   questions jsonb NOT NULL DEFAULT '[]',                     -- [{q, refs}] 已过 factuality 歪曲门的题目
   report jsonb,                                              -- {score, grounded, summary} 图 make_report 节点派生
+  expires_at timestamptz,                                    -- GAP-UC025-NEG-01 新鲜度锚点:worker ready 时写 now()+TTL;增量侧 0135;NULL=无锚点不得当过期
   version int NOT NULL DEFAULT 0,
   created_at timestamptz NOT NULL DEFAULT now()
 );
