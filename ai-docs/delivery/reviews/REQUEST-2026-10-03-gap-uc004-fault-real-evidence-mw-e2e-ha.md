@@ -106,3 +106,70 @@ Row **`UC-E2E-004`** FAULT column stays gap. Case `NHP-004-FAULT-01` stays gap. 
 3. 无 Blockers，附 4 条 Conditions（隔离壳注册、attempts 全记录禁 retry-to-green、F3 账本实测快照不得假设、行语义冻结）；本审 docs gate only，未执行 prove、未改产品与 SSOT；alone ≠ dual，不代签 mw-rag-route。
 
 Verdict: PASS
+
+# POST-PROVE dual 审查 · **mw-e2e-ha**（adversarial evidence-honesty · 独立复验）
+
+**Reviewer**: `mw-e2e-ha`（独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-c2p-e2e-ha` @ `e09978d9b6fcee5aeb13d7ae491ed4721c8c6e16`，分支 `rv/c2p-e2e-ha` ← `line/c2-uc004-fault`）· **Date**: 2026-10-03 · 审对象 = prove 提交 `e09978d`（5 files +489/−1）。alone ≠ dual，不代签 mw-rag-route。
+
+## A. 包完整性（独立复核）
+
+- `git show --stat e09978d` = 恰 **5 申报文件**：proof `apps/api/test/uc-e2e-004-career-path-fault.proof.ts`（新增 347 行）+ receipt md + root `package.json`（×2 script）+ `apps/api/package.json`（×1 script）+ `scripts/run-e2e-isolated.mjs`（×3 注册：allowlist / migrate 白名单 / `isolatedReceiptSources`）。**零产品源码触碰**（`apps/api/src/**`、`packages/**` 无 diff）→ Ban invent fix 成立。
+- **SSOT 三件零 diff**：`git diff 3dfea02..e09978d` 在 `ai-docs/delivery/` 下仅新增 receipt。SSOT 三件（e2e-requirement-coverage-matrix / execution-master-checklist / gap-bug-backlog）相对 origin/main 的全部 diff 均来自 pre-exec dual 已 PASS 的 `3dfea02`（REQUEST docs），prove 提交零翻行。实测钉行：`UC-E2E-004` 整行 **gap**（matrix:115/173）、`NHP-004-FAULT-01` **stays gap**（backlog:249/253）、coveredCount=**8**。
+- **UC-018/052/025 零触碰**：migrate 白名单行为整行重写，逐字节比对 uc052 段 **UNCHANGED**，delta 恰为 37 字节 `,'uc004:career-path-fault:prove:raw'` 追加；allowlist / receipt sources 均纯新增，无任何 uc018/uc052/uc025 语义修改。
+- **机器回执一致性**：`.tmp/isolated-proof-receipts/`（line-c2 worktree）4 份全录：`11-46-06`（run1）/`11-50-36`（run2）/`11-52-31-702Z`（run3）/`11-57-22-333Z`（run4），EXIT 均 1、`releaseEvidence=false`。11 项 sourceDigests 中**产品文件 digest 四次运行逐字节恒定**（principal `63bd6f09…`、interview.service `6e3ad159…` 等）→ 无中途改产品。提交的 proof.ts sha256 `97e9655b…` 与 run4 回执 digest **相等**；receipt md §3/§Appendix 的 ATTEMPT/EVIDENCE 行与 run3/run4 机器回执声称的 stdout 逐项一致（F1 精确状态码+响应体、F2 双证、F3 全行快照、FI-1 stderr tail）。
+
+## B. Fresh re-run（C-DUAL-FROM-FRESH · 恰好一次 · 禁重试遵守）
+
+- CMD: `pnpm install --frozen-lockfile`（Done 8.3s）→ **恰好一次** `pnpm uc004:career-path-fault:prove` → **EXIT=1**（stderr 侧 `PROVE_EXIT=1`）。
+- 隔离壳自管：随机容器 `meetwise-e2e-44529-1791029930435` @ `127.0.0.1:52677`（动态端口）；`ISOLATED_TARGET_ATTESTATION ok loopback+nonce verified`；migrations applied=134。本地已有 pgvector:pg16（daocloud 镜像 digest `sha256:7b822b0a…`），壳为 `docker run` 直启、无 docker.io 依赖。
+- 4 attempts 逐项复现 run4（same shape, zero deviation）：
+  | # | id | exit | 关键实测（本次 fresh run） |
+  |---|----|------|--------------------------|
+  | 1 | ATTEMPT-0-CONTROL | **0** | POST=200 · sql_rows=1 · GET=200 · ledger before===after 净变 0 |
+  | 2 | ATTEMPT-1-FI2-STATEMENT-TIMEOUT | **0** | durationMs=**15012**≈产品 15s 超时 · F1=500 `{"error":"internal_error"}` · F2 rows=**0** + GET **404** `{"error":"not_found"}` · F3 快照逐行相等净变 0 · server_alive=true · graph_run_rows=0 |
+  | 3 | ATTEMPT-2-FI1-CONNECTION-BREAK | **1** | blocked_pid 命中 · terminated=true · HTTP 无响应 `transport_closed:UND_ERR_SOCKET` · **API 子进程 exit_code=1**（stderr：`Emitted 'error' event on Client instance` @ pg@8.22.0 client.js:199/417 `Connection terminated unexpectedly`）· rows=0 · GET 侧 unreachable:ECONNREFUSED · 净变 0 |
+  | 4 | ATTEMPT-3-FI3-GRAPH-FAIL | **1 UNREACHABLE** | interview.service.ts:**749** `generateCareerPath` 同步 derive（:**764** `deriveCareerPath`）· region graph-wire regex=false · ai-graphs index.ts 非注释 career 行=**0**（:3 为注释）· career 图文件=none · `ai_graph_run` career-path rows=**0**（未伪造） |
+- `ATTEMPTS_LEDGER attempts=4 one_shot=true retry_to_green=false exits=CONTROL:0 FI2:0 FI1:1 FI3:1` — 与 run4 完全一致 → **可复现**。fresh 机器回执 `.tmp/isolated-proof-receipts/2026-10-03T12-19-17-716Z-44529-5759ad39-2982-460c-9395-07e38e35defd.json`，sourceDigests 与 run4 逐字节相同。
+
+## C. 条件裁决表
+
+| 条件 | 裁决 | 依据（独立验证，非采信实现方自述） |
+|------|------|------|
+| C-1 隔离壳三处注册 + 随机容器/动态端口 | **PASS** | diff 见 3 处注册；fresh run 容器名含 pid+ts、端口 52677≠run4 的 50369；attestation loopback+nonce 实际执行 |
+| C-2 attempts 全记录 · 中断如实入账 · 无 retry-to-green | **PASS** | run1/2 bootstrap 中断（11.9s/7.5s，0 attempts）如实入 receipt §1；run3 两处探针缺陷**原样保留**（未抹除、未重跑至绿）；run3/run4/fresh 终 EXIT 同为 1，无绿可追；ledger one_shot=true |
+| C-3 F1/F2/F3 实测化 | **PASS** | F1 精确状态码+体落 EVIDENCE；F2=SQL 直查 rows + HTTP GET 双证；F3=entitlement_bucket/consumption/payment_order 全行 before/after JSON 快照（非 D1 口径假设），run4 附录与 fresh run 均实测落盘 |
+| C-4 行语义冻结（EXIT0/1 均不翻行 · A3 未关 · 未伪造 · mark-red 未替代） | **PASS** | prove 提交零 SSOT diff；A3 NOT close 文案在 proof+receipt 原样保留；graph_run_rows=0 实测（Ban 伪造遵守）；「静态 mark-red prove 互不替代」NOTE 保留于 proof.ts:26 + receipt §4.5 |
+| Ban invent fix | **PASS** | 5 文件中零产品源码；FI-1 崩溃缺陷**未修**，仅记录（正确方向） |
+| EXIT 契约 | **PASS** | EXIT0 需四 attempt 全 0 且 FI-3 可达观察 failed+降级+重试+额度不变；FI-3 结构性不可达 → EXIT1 是**唯一诚实值**；fresh EXIT=1 符合预测，无形态偏离 |
+
+## D. FI-1 缺陷定性（证据链闭合验证）
+
+实测 stderr（`Emitted 'error' event on Client instance` → uncaught → child exit_code=1）+ 本方独立 grep：`packages/db/src/principal.ts` 池构造（`createPool` @ :837，`new Pool` @ :838）**零 `pool.on('error')` 监听**（grep exit=1，全文件无 on('error')/uncaughtException 兜底）。链条闭合：后端被终止 → pg Client 'error' → pg-pool idleListener `pool.emit('error')` → 无监听器 → uncaughtException → 进程退出。**结论：「A3 降级契约在连接断下不成立」由运行时+静态双证据支撑**；修复属产品刀（须另刀授权），本 prove 不修 = Ban invent fix 合规。此缺陷应作为 `NHP-004-FAULT-01` 的核心 gap 内容留在 backlog。
+
+## E. Fail-trigger audit（触发即 FAIL 的情形 · 全部未触发）
+
+1. fresh re-run EXIT0 或崩溃形态不同 → 实测 EXIT=1、四 attempt 形态与 run4 逐项一致。未触发。
+2. run1/2 中断隐瞒或 run3 探针缺陷被洗白 → receipt §1/§3 全披露且机器回执可对账。未触发。
+3. 伪造 `AiGraphRun=failed` 凑 FI-3 → rows=0 实测且 proof 明言 Ban 伪造。未触发。
+4. 借 prove 顺手修产品（principal.ts 加 error 监听等）→ 11 项 digest 四次运行恒定 + commit 零产品源码。未触发。
+5. SSOT 翻行 / coveredCount 变化 / 碰 UC-018/052/025 → prove 提交零 SSOT diff、白名单 delta=37 字节纯追加。未触发。
+6. EXIT1 记成 flake / 用静态 mark-red EXIT0 替代运行时故障证据 → receipt 明文 Ban 且双证并存。未触发。
+
+## F. Blockers
+
+无。
+
+## G. Conditions（PASS 附带条件）
+
+1. 本 PASS = post-prove dual 中 mw-e2e-ha 一票；**alone ≠ dual**，须 mw-rag-route 独立签署后方可交协调方；A3 关闭最终须协调方授权，本审查不关闭 A3、不翻任何 SSOT 行。
+2. `NHP-004-FAULT-01` 与 `UC-E2E-004` FAULT 列 **stays gap**（EXIT=1 语义如实保留）；coveredCount=8、releaseEvidence=false、haStatus=NOT_HA 等 pins 原值。
+3. FI-1（pg 池无 error 监听 → 连接断即进程崩溃）为真实产品可用性缺陷，修复必须走独立产品刀 + 授权；Ban 在 review/ prove 层顺手修。
+4. FI-2 已证「超时类依赖故障下可解释降级+无污染+账本净变 0」为真证据，但仅覆盖 statement_timeout 单类，不得外推为全故障类 covered。
+
+## 中文三行摘要
+
+1. 独立 fresh 复跑 `pnpm uc004:career-path-fault:prove` 恰好一次，EXIT=1，四 attempt（对照 0 / 超时 0 / 连接断 1 / 图失败不可达 1）与 run4 逐项一致，可复现。
+2. 包完整性通过：恰 5 文件零产品源码、SSOT 三件零 diff、UC-018/052/025 零触碰、run1-4 机器回执全披露，run3 探针缺陷原样保留无 retry-to-green。
+3. FI-1 崩溃链（principal.ts:837 池零 error 监听 → uncaught → exit 1）双证闭合且未修产品（Ban invent fix 合规）；EXIT=1 诚实保留 gap，A3 不关，待 peer 独立签署与协调方授权。
+
+Verdict: PASS
