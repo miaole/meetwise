@@ -8,7 +8,7 @@ NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true ·
 
 ## Parent / tip
 - Parent fix-round-1 code: `82981ff1f5798f44a40b564031d532f94c842e4d` (`git rev-parse` verified)
-- This fix-round-2 code tip: `05cb79f6d687a693d8b6a44d20d7cf1e25cfaa5d` (`05cb79f`) — offline proves at this SHA
+- This fix-round-2 code tip: `3b7ea46e7eecccabbf40e58a880e97e61877eb0f` (`3b7ea46`) — offline proves at this SHA
 
 ## Disclosure-1
 G7 e2e `MEETWISE_TECH_ROLE_FAIL_CLOSED=0` — non-production role path; never counts toward R1.
