@@ -1,6 +1,6 @@
-# Harness — **GAP-UC025-NEG-01 product wiring**（revised REQUEST · named miss only · docs · **`draft:awaiting_pre_exec_dual`** · row stays gap）
+# Harness — **GAP-UC025-NEG-01 product wiring**（revised REQUEST · named miss only · docs · **`post_pre_exec_dual_pass`** · row stays gap）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（revised REQUEST · prior pre-exec is not a dual · Ban self-approve · this commit does not authorize editing the proof and does not authorize implementing the product wiring）
+**Status**: **`post_pre_exec_dual_pass`**（docs status nail · not a product nail · Ban self-approve · this PASS is not coding permission, not a proof edit, and not product wiring · next step is post-prove dual, which this commit does not perform）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-02 (~22:00 PT original REQUEST · revision ~22:30 PT)
 **Revision base**: `origin/feat/mysql-schema-skeleton` **`ad37bbb`** / full `ad37bbb3115e5836f79c9b2c4dde0420e250de61`（after A'/C'/D' nails · not a prove tip）
@@ -55,4 +55,25 @@ Prior files stay on disk and are not overwritten: `reviews/REQUEST-2026-10-02-ga
 
 NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=**8** · ms3EqualsR4Closed=false · PG-retained · public DELETE stays **503** · row stays gap · STOP
 
-*Harness · GAP-UC025-NEG-01 revised REQUEST · draft:awaiting_pre_exec_dual · EXIT 1 locked until real wiring · not a close · not coding authorization · STOP*
+*Harness · GAP-UC025-NEG-01 revised REQUEST · post_pre_exec_dual_pass · EXIT 1 locked until real wiring · not a close · not coding authorization · STOP*
+
+## Post pre-exec dual（2026-10-02 docs status nail · not a product nail · EXIT 1 stays）
+
+**Status**: **`post_pre_exec_dual_pass`**. Docs status nail only. Not a product nail. Implementer does not self-approve. This PASS is not coding permission, not a proof edit, and not product wiring. The next step is post-prove dual, which this commit does not perform.
+
+Pre-exec dual PASS on origin `feat/mysql-schema-skeleton`. Both commits reviewed tip `3ee28d3` / `3ee28d376a3031fcb064d3b7ca05e103d799eb81`:
+
+- mw-rag-route `80bf022` / `80bf022fdf9f3ab48cb523a788d86c3bcb30993e` · `reviews/REQUEST-2026-10-02-gap-uc025-neg-wiring-revise-mw-rag-route.md`
+- mw-e2e-ha `5403c2b` / `5403c2b678d60e031ba235f989bd33b25a5e866a` · `reviews/REQUEST-2026-10-02-gap-uc025-neg-wiring-revise-mw-e2e-ha.md`
+
+FAIL `6fe3bfd` / `6fe3bfd62a15e3ea3396c3e506d7123969f20f95` stays in the text. That earlier mw-e2e-ha pre-exec is **FAIL** and is not overwritten.
+
+Lock, unchanged: `pnpm uc025:nhp-neg:prove` STAYS EXIT 1 until `acceptsQuiz` and `realStaleReject` are both real product wiring, not a stub and not a boolean flipped to true.
+
+Ban wash-green. Ban covered. Not UC-018. Not UC-052. UC-052 stays **partial**. Do not flip UC-018. The UC-E2E-025 row stays **gap**. `GAP-UC025-NEG-01` stays **OPEN**. This commit does not edit the three SSOT files.
+
+Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+
+The revised REQUEST text above stays, except the status phrase, which this nail sets to `post_pre_exec_dual_pass`. A green cite does not wire the product and does not turn EXIT 1 into 0.
+
+*Nail · GAP-UC025-NEG-01 · post_pre_exec_dual_pass · EXIT 1 locked · not product wiring · next is post-prove dual · STOP*
