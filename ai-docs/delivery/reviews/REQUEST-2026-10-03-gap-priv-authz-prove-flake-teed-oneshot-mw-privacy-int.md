@@ -96,3 +96,74 @@ Ban coding · Ban push · Ban force-push · Ban self-approve · Ban secrets / `.
 3. mw-privacy-int 侧 PRE-EXEC dual PASS（C-1~C-6 为约束条件，C-1 要求脚本头按顶层头行计数而非裸子串）；alone ≠ dual，不代签 mw-e2e-ha，实际 prove 仍须协调方授权后按唯一 CMD 执行一次。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual — mw-privacy-int（attempt-2 · EXIT=0）
+
+**Status**: post-prove 机检完成（append-only 追加，上方 pre-exec stub 原文未动）
+**Reviewed tip**: `0c0ab169ab6c7b2a5f2ef092766462ec562fa201`（branch `line/a2-priv-authz-flake`，attempt-2 产物提交）
+**Review worktree**: `/Users/miaole/Desktop/golucky/meetwise-rv-a2p-privacy-int` · branch `rv/a2p-privacy-int`（审查方独立 worktree）
+**Date**: 2026-10-03 · **Expert**: `mw-privacy-int`（只认命令 + EXIT + 可复现证据；下表全部为独立机检，不信任实现方摘要）
+
+## 机检结果（independent · reproducible）
+
+| # | 检查 | 命令/口径 | 结果 |
+|---|------|-----------|------|
+| M1 | 包完整性 | `git show --stat 0c0ab16`；`git diff --name-status 6673042 0c0ab16` | 恰 3 文件（receipt.md +82 / json +16 / log +74 = +172），全在 `ai-docs/delivery/receipts/gap-priv-authz-prove-flake/`；diff 全清单零产品/SSOT 文件 |
+| M2 | log 行数 | `git show 0c0ab16:…teed-oneshot-attempt-2.log \| wc -l` | **74**（与申报一致） |
+| M3 | 末非空行 | `awk 'NF{last=$0} END{print last}'` + `cat -e` | **第 74 行，逐字 `PROCESS_EXIT=0`**（无尾随空白）；其前第 73 行空行与 CMD `printf '\nPROCESS_EXIT=%s\n'` 的前导 `\n` 吻合 → `tee -a` 追加的结构证据，非手补 |
+| M4 | `PROCESS_EXIT=` 唯一性 | `grep -n 'PROCESS_EXIT='` | 全文件恰 1 处（第 74 行） |
+| M5 | 首非空行（从头 tee） | `awk 'NF{print NR": "$0; exit}'` | 第 2 行 `> meetwise@0.1.0 privacy-authorization:prove /Users/miaole/Desktop/golucky/meetwise-line-a2`（第 1 行为 pnpm 前导空行；输出自调用 banner 起完整无截断迹象） |
+| M6 | 顶层头行计数（C-1） | `grep -c '^> meetwise@'`（行锚），辅以子串口径 | **1**（行锚与子串两种口径均=1，无口径歧义） |
+| M7 | `ELIFECYCLE`（C-2，n=0 口径） | `grep -c ELIFECYCLE` | **0**（EXIT=0 应无，与契约一致） |
+| M8 | 断言面 | `grep -c '^PASS'` / `grep -c '^FAIL'` | **51 / 0** |
+| M9 | 单跑证据 | 容器名 uniq、脚本块计数 | 容器 `meetwise-e2e-41747-1791029257903` 恰 1 次；顶层头 1、migrate 块 1、prove 块 1、runner receipt 1；与 attempt-1 容器（`meetwise-e2e-1569581-1791005205958`）不同 → 真实独立新跑，非重贴 attempt-1 |
+| M10 | JSON schema（对照 harness L60-77） | 14 字段逐一比对 | 全齐：attempt=2 · command=`pnpm privacy-authorization:prove` · proveSha=`6673042f8bcd…`（独立 `git rev-parse 6673042` 复核=全 SHA）· **`"exit"` 逐字 =0** · **`"processExitLine"` 逐字 =`"PROCESS_EXIT=0"`** · teeFromStart=true · attempt1FilesUntouched=true · gapStatus=OPEN · cause=unknown · mitigation=mitigated/cause-unknown · notClosed=true · notRootCaused=true · oneGreenIsNotAClose=true · retryToGreenBanned=true |
+| M11 | attempt-1 冻结锚（C-3） | `git rev-parse 6673042:…` vs `git rev-parse 0c0ab16:…` | json `8cc9db56079a60fc6410472632dbf4899952c9c2` / log `e8d0fbe4bf5d0cb5d8819adda7b69c7a68b39c77`，跑前跑后**零漂移** |
+| M12 | attempt-2 blob 锚（本审登记） | `git ls-tree 0c0ab16` | log `9b1341444425c4172d8a9cd02e5d8415a94a4084` / json `3919bf579addf264b2eff3625fef7397bf1d7123`（与实现方申报一致；**锚后再变 = FAIL**，见 C-P1） |
+| M13 | 文件 SHA256 | `shasum -a 256`（git show 落盘后计算，且与 worktree 内文件一致） | log `136996dc582abf8ce469343a18f2de2729d56ee40d8f769dd633b967fee08987`（=申报）· json `2350e16bb6d472afbe726e285576f1b98ce68f062ec990d5791d27def9e488a5`（=receipt 申报） |
+| M14 | attempt-3 / 越界文件 | `git ls-tree -r --name-only 0c0ab16` | 无 attempt-3 文件；diff 无 receipts 目录外文件 |
+
+## EXIT 一致性三角
+
+log 第 74 行字面 `PROCESS_EXIT=0` ≡ JSON `"exit": 0` + `"processExitLine": "PROCESS_EXIT=0"` ≡ receipt「EXIT = 0（绿）」——**三者同一真实值 `0`**。`3811cf1` 缺陷（attempt-1 log 72 行零 EXIT 痕迹、JSON 独写 exit:0、双审不能同意）**本次已实际补齐**：log 与 JSON 现承载同一可引用退出码，双审可据此同意。
+
+## 条件裁决（pre-exec C-1~C-6）
+
+| 条件 | 裁决 | 依据 |
+|------|------|------|
+| C-1 头行计数口径 | **PASS** | 行锚 `^> meetwise@` =1，子串口径亦 =1（M6） |
+| C-2 EXIT 引用口径 | **PASS** | n=0：无 `ELIFECYCLE`（M7）；末非空行逐字 `PROCESS_EXIT=0` 且唯一（M3/M4） |
+| C-3 锚复核 | **PASS** | attempt-1 双 blob 跑前跑后零漂移（M11） |
+| C-4 不关口 | **PASS** | JSON gapStatus=OPEN · cause=unknown · notClosed/notRootCaused=true；receipt canHonestlyFlip=false；`6673042..0c0ab16` 零 SSOT diff（M1） |
+| C-5 双 PASS + 协调方授权 | **PASS** | 本审独立复核 `31d3b31`（mw-privacy-int，末行 `Verdict: PASS`）+ `376aa8e`（mw-e2e-ha，末行 `Verdict: PASS`）均在对象库且末行为 PASS；授权记录在协调方侧（meetwise bot），执行形态由 receipt CMD + JSON teeFromStart 自证，本审未发现偏离唯一 CMD 形态的迹象 |
+| C-6 落点唯一 / 无 attempt-3 | **PASS** | log 头路径 = `/Users/miaole/Desktop/golucky/meetwise-line-a2`（唯一授权 worktree）；M14 无 attempt-3 |
+
+## 诚实性审视
+
+- **就绪轮询**：`E2E_POSTGRES_READY` boot=4 / post-migrate=3 / pre-prove=3 为**同一跑内**三阶段就绪探针（harness 明文「不算第二跑」），receipt 如实单列为准备阶段，未伪装为多跑、未隐藏。本跑一次通过、未复现 attempt-1 时代 ECONNREFUSED/23505，receipt 明示「不构成根因结论，cause 仍 unknown」——如实。
+- **断言面**：attempt-2 = 51 PASS / 0 FAIL；本审独立计数 attempt-1 log 亦 = **51 PASS / 0 FAIL**——断言面一致，attempt-1 缺陷确仅在 EXIT 证据，无未披露的断言面差异。
+- **无事后改写迹象**：tee 自首字节（M5，pnpm banner 在最前）；`PROCESS_EXIT` 行前空行与 printf 格式吻合（M3）；attempt-1 冻结锚零漂移（M11）；容器名唯一且异于 attempt-1（M9）；`PROCESS_EXIT=` 全文件唯一（M4）。
+- **绿 ≠ 关**：单次 teed EXIT=0 不构成 root-cause 钉死；gap 保持 OPEN / mitigated-cause-unknown；九项 pins 原值（本审未核对 SSOT 正文改动——本提交零 SSOT diff 已由 M1 覆盖）。
+
+## Blockers
+
+无。
+
+## Conditions（mw-privacy-int 登记 · 违反即本 Verdict 作废/转 FAIL）
+
+1. **C-P1 attempt-2 blob 锚**：`teed-oneshot-attempt-2.log` = `9b1341444425c4172d8a9cd02e5d8415a94a4084`；`teed-oneshot-attempt-2.json` = `3919bf579addf264b2eff3625fef7397bf1d7123`。**锚后再变 = FAIL**（含 amend / rebase 重写 / 内容级修改）。
+2. **C-P2 attempt-1 永久冻结**：`oneshot-attempt-1.json` = `8cc9db56079a60fc6410472632dbf4899952c9c2` / `oneshot-attempt-1.log` = `e8d0fbe4bf5d0cb5d8819adda7b69c7a68b39c77`；任何漂移（含 forge `PROCESS_EXIT` 到旧 attempt-1）= FAIL。
+3. **C-P3 gap 状态**：`GAP-PRIV-AUTHZ-PROVE-FLAKE` 保持 **OPEN / mitigated-cause-unknown** 直至真根因钉死；单次/多次绿均不得 flip；`canHonestlyFlip=false` 维持；UC-052 stays partial、coveredCount=8、public DELETE=503。
+4. **C-P4 恰好一次**：无 attempt-3、无 retry-to-green；再跑必须新 REQUEST + 新预执行双审。
+5. **C-P5 alone ≠ dual**：本 Verdict 仅为 **mw-privacy-int 单方** post-prove 结论；**不代签 mw-e2e-ha**；dual 成立须 mw-e2e-ha 独立机检并自出 PASS；任何 SSOT flip 仅在 dual PASS + 协调方授权后。
+6. **C-P6 零产品/SSOT**：本刀维持零 `apps/` / `packages/` / `package.json` / migrations / scripts / SSOT 改动（M1 口径持续适用）。
+
+## 中文摘要（3 行）
+
+1. attempt-2 teed log 74 行、末非空行（第 74 行）逐字 `PROCESS_EXIT=0` 且全文件唯一，与 JSON `"exit":0`/`"processExitLine"` 及 receipt 三角同值，51 PASS / 0 FAIL——`3811cf1` 的 EXIT 证据缺陷已实际补齐，双审可同意。
+2. attempt-1 冻结锚零漂移（json `8cc9db56…` / log `e8d0fbe4…`），无 attempt-3、无第二跑痕迹（容器名唯一且异于 attempt-1），就绪轮询如实呈现为同跑内准备阶段，零产品/SSOT 改动，gap 保持 OPEN / mitigated-cause-unknown。
+3. 预执行 C-1~C-6 全 PASS；本审登记 attempt-2 blob 锚（log `9b13414…` / json `3919bf5…`，锚后再变=FAIL）；alone ≠ dual，不代签 mw-e2e-ha。
+
+Verdict: PASS
