@@ -547,3 +547,12 @@ flowchart TD
 - Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
 - This commit does not pre-claim the post-commit EXIT of `pnpm eval-harness-matrix-cite:prove`. A green cite does not close this gap and does not flip UC-018.
 - The Line F section above stays as written. Sibling sections stay intact. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+### GAP-UC004-FAIL-A3 / NHP-004-FAULT-01（2026-10-02 SSOT nail · `post_pre_exec_dual_pass` · row stays gap）
+
+- [x] **`post_pre_exec_dual_pass`** recorded for the docs status. Dual already issued and confirmed ancestors of origin before this nail: mw-rag-route `68ba979` / `68ba979874dfaa2669cee847b2aadb35691a3d50` · mw-e2e-ha `4107de2` / `4107de2479906269864416815c4d4992159c3dfa`. Base REQUEST `9a644bd` / `9a644bd360c5b78f66240d8524e6502ef178fa80`. Implementer does not self-approve. This is not a close and not a fix.
+- [ ] `GAP-UC004-FAIL-A3` / `NHP-004-FAULT-01` FAULT column stays **gap**. UC-E2E-004 row stays **gap**.
+- Not UC-018. Not UC-052. Not UC-025. Do not treat `pnpm uc004:career-path:prove` EXIT 0 as A3 closed. Ban inventing a fix. Ban product coding. Ban flipping any SSOT row.
+- Do not write covered. Do not flip UC-018. Do not flip UC-052. coveredCount=8.
+- Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+- This commit does not pre-claim the post-commit EXIT of `pnpm eval-harness-matrix-cite:prove`. A green cite does not close A3 and does not flip any row.
+- The A' section above stays as written. Line F and sibling sections stay intact. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.

@@ -246,3 +246,14 @@
 - This commit does not pre-claim the post-commit EXIT of `pnpm eval-harness-matrix-cite:prove`. A green cite does not close this gap and does not flip UC-018.
 - The Line F section above stays as written. Sibling sections (Line E / H / G / D / C), if present, stay intact. CLOSED UC-052 rows stay CLOSED. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
 - Evidence: `reviews/REQUEST-2026-10-02-linea-authz-flake-honesty-pre-exec-mw-privacy-int.md` · `reviews/REQUEST-2026-10-02-gap-priv-authz-prove-flake-pre-mw-e2e-ha.md` · `harness/gap-priv-authz-prove-flake-honesty.md` · `gap-priv-authz-prove-flake-honesty.slice.md`.
+### GAP-UC004-FAIL-A3 / NHP-004-FAULT-01（2026-10-02 SSOT nail · `post_pre_exec_dual_pass` · row stays gap）
+
+- **GAP-UC004-FAIL-A3** · docs-nail status **`post_pre_exec_dual_pass`**. The FAULT column stays **gap**. The UC-E2E-004 row stays **gap**. This is not a close. Implementer does not self-approve.
+- Dual PASS on origin `feat/mysql-schema-skeleton` (both commits confirmed ancestors before this nail): mw-rag-route `68ba979` / `68ba979874dfaa2669cee847b2aadb35691a3d50` · mw-e2e-ha `4107de2` / `4107de2479906269864416815c4d4992159c3dfa`.
+- Base REQUEST `9a644bd` / `9a644bd360c5b78f66240d8524e6502ef178fa80`. Case id `NHP-004-FAULT-01` stays **gap**.
+- Not UC-018. Not UC-052. Not UC-025. Do not treat `pnpm uc004:career-path:prove` EXIT 0 as A3 closed. Ban inventing a fix. Ban product coding. Ban flipping any SSOT row.
+- Do not write covered. Do not flip UC-018. Do not flip UC-052. coveredCount=8.
+- Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+- This commit does not pre-claim the post-commit EXIT of `pnpm eval-harness-matrix-cite:prove`. A green cite does not close A3 and does not flip any row.
+- The A' GAP-PRIV-AUTHZ-PROVE-FLAKE honesty section above stays as written (gap stays OPEN). Line F / E / H / G sections stay intact. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+- Evidence: `reviews/REQUEST-2026-10-02-gap-uc004-fail-a3-nhp-mw-rag-route.md` · `reviews/REQUEST-2026-10-02-uc004-fault-pre-mw-e2e-ha.md` · `harness/gap-uc004-fail-a3-nhp.md` · `gap-uc004-fail-a3-nhp.slice.md`.

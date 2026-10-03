@@ -1,6 +1,6 @@
-# Harness — **GAP-UC004-FAIL-A3 NHP**（UC-E2E-004 FAULT column · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · row stays gap）
+# Harness — **GAP-UC004-FAIL-A3 NHP**（UC-E2E-004 FAULT column · docs REQUEST · **`post_pre_exec_dual_pass`** · row stays gap）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban self-approve · Ban coding · this commit is not coding authorization）
+**Status**: **`post_pre_exec_dual_pass`**（L0 docs REQUEST only · Ban self-approve · Ban coding · this commit is not coding authorization）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-02 (~22:00 PT)
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`58c0031`** / full `58c003156c3fc69505ecb3daa2e3dad25f4a6dfc`
@@ -38,4 +38,24 @@ Not UC-018. Not UC-052. Not interview begin. Not `pnpm privacy-authorization:pro
 
 NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=**8** · ms3EqualsR4Closed=false · PG-retained · public DELETE stays **503** · row stays gap · STOP
 
-*Harness · GAP-UC004-FAIL-A3 · NHP-004-FAULT-01 · draft:awaiting_pre_exec_dual · STOP*
+*Harness · GAP-UC004-FAIL-A3 · NHP-004-FAULT-01 · post_pre_exec_dual_pass · STOP*
+## Post pre-exec dual（2026-10-02 nail · docs status · row stays gap）
+
+**Status**: **`post_pre_exec_dual_pass`**. This records the dual. It does not close A3. Implementer does not self-approve.
+
+Dual PASS on origin `feat/mysql-schema-skeleton` (both commits confirmed ancestors before this nail):
+
+- mw-rag-route `68ba979` / `68ba979874dfaa2669cee847b2aadb35691a3d50` · `reviews/REQUEST-2026-10-02-gap-uc004-fail-a3-nhp-mw-rag-route.md`
+- mw-e2e-ha `4107de2` / `4107de2479906269864416815c4d4992159c3dfa` · `reviews/REQUEST-2026-10-02-uc004-fault-pre-mw-e2e-ha.md`
+
+Base REQUEST `9a644bd` / `9a644bd360c5b78f66240d8524e6502ef178fa80`.
+
+`GAP-UC004-FAIL-A3` / `NHP-004-FAULT-01`: the FAULT column stays **gap**. The UC-E2E-004 row stays **gap**. Not UC-018. Not UC-052. Not UC-025.
+
+Do not treat `pnpm uc004:career-path:prove` EXIT 0 as A3 closed. Ban inventing a fix. Ban product coding. Ban flipping any SSOT row. Do not write covered. Do not flip UC-018. Do not flip UC-052.
+
+Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+
+Sections above this heading stay as the REQUEST wrote them, except the status phrase, which this nail sets to `post_pre_exec_dual_pass`. A green cite does not close A3 and does not flip any row.
+
+*Nail · GAP-UC004-FAIL-A3 · NHP-004-FAULT-01 · post_pre_exec_dual_pass · FAULT gap · STOP*
