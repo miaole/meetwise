@@ -9,7 +9,7 @@
 
 ## One-line scope
 
-Product-fix `PrincipalBoundCheckpointPool` session SET ROLE leak（L51–54）+ explicit unsealed-claim NEG + root-cause `privacy-authorization:prove` first-run flake（Ban retry-to-green）.
+Product-fix `PrincipalBoundCheckpointPool` cleanup path **L79** `SET ROLE NONE`, **L80–82** three GUC clears, **L101–103** destroy-on-reset（matching harness `harness/uc-e2e-052-pool-role-leak.md`）+ explicit unsealed-claim NEG + root-cause `privacy-authorization:prove` first-run flake（Ban retry-to-green）.
 
 ## NHP
 
