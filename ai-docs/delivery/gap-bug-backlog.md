@@ -298,3 +298,12 @@
 - This knife is **STOP**. A later, separate REQUEST would be required before anyone is authorized to run a first prove whose log is teed with `PROCESS_EXIT` from the start. This commit does not run that prove and does not authorize coding. Do not touch uc025, uc004, uc018, `apps/worker/src/checkpoint-principal.ts`, or any proof.
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
 - Sibling sections stay: D' `e0842d0`, C' `0652a08`, B' `e57d0cc`, Line F, and the earlier A' honesty section. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+### B' GAP-UC025-NEG-01 wiring revise FINAL NAIL（2026-10-02 SSOT nail · `post_prove_dual_pass` · row stays gap）
+
+- **GAP-UC025-NEG-01** · docs-status **`post_prove_dual_pass`** · **FINAL NAIL** for the docs only. Not a product nail. Not coding permission. A future wiring knife needs a new REQUEST. Implementer does not self-approve.
+- Post-prove dual PASS on origin `feat/mysql-schema-skeleton`. Both commits reviewed nail tip `e57d0cc` / `e57d0cc4e960a5bc25fdd32254e1de86c01aefdc`: mw-rag-route `ea6717b` / `ea6717b5df760aadabeab87641ab8a033e07fbc2` · mw-e2e-ha `d7966bf` / `d7966bf850678683c9733df96abee3ccc3ff2310`.
+- FAIL `6fe3bfd` / `6fe3bfd62a15e3ea3396c3e506d7123969f20f95` stays in the text.
+- `pnpm uc025:nhp-neg:prove` STAYS EXIT 1 until `acceptsQuiz` and `realStaleReject` are both real product wiring, not a stub and not a boolean flipped to true. This commit does not run that prove. Do not edit `apps/api/test/uc-e2e-025-nhp-neg.proof.mjs`. Do not implement begin quiz or stale reject.
+- Ban wash-green. Ban covered. UC-E2E-025 row stays **gap**. `GAP-UC025-NEG-01` stays **OPEN**. Not UC-018. Not UC-052. Do not change the UC-018 row, the UC-004 row, or the `GAP-PRIV-AUTHZ-PROVE-FLAKE` row.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+- The A' oneshot-disagreement paragraph above stays as written. Sibling sections D' `e0842d0`, C' `0652a08`, B' `e57d0cc`, and Line F stay. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
