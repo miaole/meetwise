@@ -1,0 +1,72 @@
+
+> @meetwise/web@0.0.0 build /Users/miaole/Desktop/golucky/meetwise-e88d386-ui/apps/web
+> next build
+
+   ▲ Next.js 15.5.19
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 5.3s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/27) ...
+   Generating static pages (6/27) 
+   Generating static pages (13/27) 
+   Generating static pages (20/27) 
+ ✓ Generating static pages (27/27)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                               Size  First Load JS
+┌ ƒ /                                                    825 B         118 kB
+├ ƒ /_not-found                                          206 B         102 kB
+├ ƒ /admin                                               206 B         102 kB
+├ ƒ /api/applications/[id]/finalize                      206 B         102 kB
+├ ƒ /api/diagnosis/[id]/events                           206 B         102 kB
+├ ƒ /api/interview/[id]/abandon                          206 B         102 kB
+├ ƒ /api/interview/[id]/events                           206 B         102 kB
+├ ƒ /api/interview/[id]/speak                            206 B         102 kB
+├ ƒ /api/interview/[id]/speak/stream                     206 B         102 kB
+├ ƒ /api/interview/[id]/transcribe                       206 B         102 kB
+├ ƒ /api/interview/[id]/turn                             206 B         102 kB
+├ ƒ /api/privacy/export                                  206 B         102 kB
+├ ƒ /api/quiz/[id]/events                                206 B         102 kB
+├ ƒ /billing                                             172 B         106 kB
+├ ƒ /dashboard                                         2.38 kB         117 kB
+├ ƒ /diagnosis                                          2.5 kB         117 kB
+├ ƒ /diagnosis/[id]                                    6.78 kB         150 kB
+├ ƒ /faq                                                3.6 kB         123 kB
+├ ƒ /features                                          2.38 kB         117 kB
+├ ƒ /growth                                            2.38 kB         117 kB
+├ ƒ /interview/[resultId]                              16.1 kB         165 kB
+├ ƒ /interviews                                        2.97 kB         117 kB
+├ ƒ /jobs                                              2.98 kB         117 kB
+├ ƒ /legal                                               172 B         106 kB
+├ ƒ /login                                             4.07 kB         137 kB
+├ ƒ /notifications                                      2.5 kB         117 kB
+├ ƒ /pricing                                             826 B         106 kB
+├ ƒ /privacy                                           5.11 kB         119 kB
+├ ƒ /quiz                                               2.5 kB         117 kB
+├ ƒ /quiz/[id]                                         5.73 kB         149 kB
+├ ƒ /recruiter/how-it-works                              823 B         106 kB
+├ ƒ /recruiter/jobs                                    4.51 kB         119 kB
+├ ƒ /recruiter/jobs/[id]                               3.14 kB         131 kB
+├ ƒ /recruiter/jobs/[id]/applications/[applicationId]    826 B         106 kB
+├ ƒ /recruiter/talent                                    823 B         106 kB
+├ ƒ /report/[id]                                        1.7 kB         119 kB
+├ ƒ /report/[id]/share                                 5.53 kB         120 kB
+├ ƒ /resume                                            3.95 kB         118 kB
+├ ○ /robots.txt                                          206 B         102 kB
+├ ƒ /roles                                               802 B         103 kB
+├ ƒ /settings                                          3.66 kB         124 kB
+└ ○ /sitemap.xml                                         206 B         102 kB
++ First Load JS shared by all                           102 kB
+  ├ chunks/2915-446651c3ca5c474a.js                      46 kB
+  ├ chunks/96a052cc-0882c9730e15c9ca.js                54.2 kB
+  └ other shared chunks (total)                        2.03 kB
+
+
+ƒ Middleware                                           32.8 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

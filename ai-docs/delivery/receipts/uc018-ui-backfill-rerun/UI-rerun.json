@@ -1,0 +1,75 @@
+{
+  "knife": "UC-E2E-018-UI-FAILURE-BACKFILL-RERUN",
+  "key": "UI-rerun",
+  "emittedBy": "uc018-ui-backfill-rerun.mjs",
+  "attempt": 2,
+  "ranAt": "2026-10-03T05:10:34.887Z",
+  "finishedAt": "2026-10-03T05:12:19.842Z",
+  "targetSha": "e88d386ea946918668d8e073edc7f33521fe33d9",
+  "wrapperSha": "257c073a808c20a91f6df02b013965f7747f016f",
+  "runnerCommitSha": "e88d386ea946918668d8e073edc7f33521fe33d9",
+  "gitSha": "e88d386ea946918668d8e073edc7f33521fe33d9",
+  "worktreeKind": "independent per-SHA detached worktree",
+  "cmd": "pnpm uc018:ui:prove",
+  "exit": 0,
+  "cmds": {
+    "uc018:ui:prove": 0
+  },
+  "exits": {
+    "uc018:ui:prove": 0
+  },
+  "installExit": 0,
+  "buildExit": 0,
+  "addedBuildStep": "pnpm -C apps/web build (disclosed; the recorded SHA runner lacks it)",
+  "logPath": "ai-docs/delivery/receipts/uc018-ui-backfill-rerun/logs/attempt2-prove.log",
+  "installLogPath": "ai-docs/delivery/receipts/uc018-ui-backfill-rerun/logs/attempt2-install.log",
+  "buildLogPath": "ai-docs/delivery/receipts/uc018-ui-backfill-rerun/logs/attempt2-web-build.log",
+  "stdoutDigest": "cc3213f9653214141b3887af435026db455e8de4f931a045cc3c959b0edce284",
+  "nodeVersion": "v22.22.3",
+  "pnpmVersion": "10.18.0",
+  "pgImage": {
+    "image": "pgvector/pgvector:pg16",
+    "imageDigest": "sha256:7b822b0aac60967beb1ea5e576b8602c94c300a157d187f385ae3e0da199b90a",
+    "architecture": "arm64",
+    "started": true,
+    "source": "live-docker-image-inspect",
+    "liveObservation": true
+  },
+  "stack": {
+    "postgres": {
+      "value": true,
+      "source": "log-parse",
+      "line": 6,
+      "regex": "E2E isolated PostgreSQL:",
+      "matched": "E2E isolated PostgreSQL: meetwise-e2e-51114-1791004310492 on 127.0.0.1:65201"
+    },
+    "postgresSaver": {
+      "value": "unobserved",
+      "source": "unobserved"
+    },
+    "memorySaver": {
+      "value": "unobserved",
+      "source": "unobserved"
+    },
+    "mysql": {
+      "value": "unobserved",
+      "source": "unobserved"
+    },
+    "qdrant": {
+      "value": "unobserved",
+      "source": "unobserved"
+    }
+  },
+  "targetEnv": "docker-isolated",
+  "capacityRepresentative": false,
+  "e2eFailureLines": [],
+  "evidenceOfRecord": true,
+  "implementerOnly": false,
+  "disclosure": "NEW EVIDENCE, not a backfill overwrite: old uc018-receipt-backfill/UI.json (exit=1, web_not_ready) is untouched and stays exit=1. Environment repair = the exact missing `next build` step the recorded SHA runner lacks (harness-sanctioned) + disposable pg container image pulled via registry mirror (digest recorded from live docker inspect). EXIT=0 here ≠ historical exit was 0 ≠ covered ≠ HA ≠ releaseEvidence. All attempts in attempts.jsonl (append-only).",
+  "waitingUser": "POST-PROVE-DUAL",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "coveredCountRetained": 8,
+  "attemptsPath": "attempts.jsonl"
+}
