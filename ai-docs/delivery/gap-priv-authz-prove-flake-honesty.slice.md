@@ -40,3 +40,18 @@ Receipt `ai-docs/delivery/receipts/gap-priv-authz-prove-flake/oneshot-attempt-1.
 `GAP-PRIV-AUTHZ-PROVE-FLAKE` stays **OPEN**, mitigated/cause-unknown. Not fixed. Not closed. Not root-caused. One green is not a close. SSOT files were not edited by this supplement.
 
 *Slice oneshot · attempt=1 · EXIT=0 · OPEN mitigated/cause-unknown · STOP*
+## Oneshot post-prove disagreement
+
+e2e-ha post-prove **FAIL** `3811cf1` / `3811cf1b47d3c3a939c2077b9c7386ab036069e6`. attempt-1 JSON says `"exit": 0`, but `oneshot-attempt-1.log` has no `EXIT=`, no exit code, and no `ELIFECYCLE`. JSON and log do not agree. The oneshot does not yet satisfy post-prove.
+
+privacy PASS `7601503` / `76015037f54a185b2359d565f2151049f00936a1` alone is not a dual.
+
+attempt-1 files stay as they are. This commit does not forge `PROCESS_EXIT` onto the old log. Attempt-2 authorization is revoked. No attempt-2 file in this commit.
+
+`GAP-PRIV-AUTHZ-PROVE-FLAKE` stays **OPEN**, mitigated/cause-unknown. Not fixed. Not closed. Not root-caused.
+
+This knife is **STOP**. A later, separate REQUEST would be required before anyone is authorized to run a first prove whose log is teed with `PROCESS_EXIT` from the start. This commit does not run that prove and does not authorize coding.
+
+Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+
+*Slice honesty · GAP-PRIV-AUTHZ-PROVE-FLAKE stays OPEN · no prove was run · STOP*

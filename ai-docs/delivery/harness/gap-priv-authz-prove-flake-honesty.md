@@ -79,3 +79,22 @@ Sections above this heading stay as the REQUEST wrote them, except the status ph
 `GAP-PRIV-AUTHZ-PROVE-FLAKE` stays **OPEN**, mitigated/cause-unknown. Not fixed. Not closed. Not root-caused. One green is not a close. cause remains unknown. This supplement does not edit product code, does not touch UC-052 product files, and does not edit the three SSOT files.
 
 *Oneshot · attempt=1 · EXIT=0 · GAP-PRIV-AUTHZ-PROVE-FLAKE stays OPEN · mitigated/cause-unknown · STOP*
+## Oneshot post-prove disagreement（2026-10-02 ~22:36 PT · honesty docs · STOP · not a close）
+
+e2e-ha post-prove **FAIL** `3811cf1` / `3811cf1b47d3c3a939c2077b9c7386ab036069e6` · `reviews/REQUEST-2026-10-02-gap-priv-authz-prove-flake-oneshot-post-mw-e2e-ha.md`.
+
+attempt-1 JSON `ai-docs/delivery/receipts/gap-priv-authz-prove-flake/oneshot-attempt-1.json` says `"exit": 0`. The log `ai-docs/delivery/receipts/gap-priv-authz-prove-flake/oneshot-attempt-1.log` has no `EXIT=`, no exit code, and no `ELIFECYCLE`. JSON and log do not agree. The oneshot does not yet satisfy post-prove.
+
+privacy PASS `7601503` / `76015037f54a185b2359d565f2151049f00936a1` alone is not a dual.
+
+attempt-1 files stay as they are. This commit does not forge `PROCESS_EXIT` onto the old log. It does not modify `oneshot-attempt-1.json` or `oneshot-attempt-1.log`. The previous authorization to re-run the prove as attempt-2 is revoked. This commit does not add an attempt-2 file.
+
+`GAP-PRIV-AUTHZ-PROVE-FLAKE` stays **OPEN**, mitigated/cause-unknown. Not fixed. Not closed. Not root-caused.
+
+This knife is **STOP**. A later, separate REQUEST would be required before anyone is authorized to run a first prove whose log is teed with `PROCESS_EXIT` from the start. This commit does not run that prove and does not authorize coding. Do not run `pnpm privacy-authorization:prove`. Do not touch uc025, uc004, uc018, `apps/worker/src/checkpoint-principal.ts`, or any proof.
+
+Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+
+The oneshot attempt-1 section above stays as the supplement wrote it. This section records the disagreement. It does not change the backlog row. Sibling sections D' `e0842d0`, C' `0652a08`, B' `e57d0cc`, and Line F stay.
+
+*Honesty · oneshot does not satisfy post-prove · GAP-PRIV-AUTHZ-PROVE-FLAKE stays OPEN · no prove was run · STOP*

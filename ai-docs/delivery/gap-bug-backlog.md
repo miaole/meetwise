@@ -289,3 +289,12 @@
 - This commit does not pre-claim the post-commit EXIT of `pnpm eval-harness-matrix-cite:prove`. A green cite does not close A3 and does not flip any row.
 - The earlier C' `post_pre_exec_dual_pass` paragraph and the D' FINAL NAIL paragraph above stay as written. A' section stays as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
 - Evidence: `reviews/REQUEST-2026-10-02-gap-uc004-fail-a3-nhp-post-mw-rag-route.md` · `reviews/REQUEST-2026-10-02-gap-uc004-fail-a3-nhp-post-mw-e2e-ha.md` · `harness/gap-uc004-fail-a3-nhp.md` · `gap-uc004-fail-a3-nhp.slice.md`.
+### GAP-PRIV-AUTHZ-PROVE-FLAKE oneshot disagreement（2026-10-02 SSOT note · STOP · gap stays OPEN）
+
+- e2e-ha post-prove **FAIL** `3811cf1` / `3811cf1b47d3c3a939c2077b9c7386ab036069e6`. attempt-1 JSON `receipts/gap-priv-authz-prove-flake/oneshot-attempt-1.json` says `"exit": 0`, but `oneshot-attempt-1.log` has no `EXIT=`, no exit code, and no `ELIFECYCLE`. JSON and log do not agree. The oneshot does not yet satisfy post-prove.
+- privacy PASS `7601503` / `76015037f54a185b2359d565f2151049f00936a1` alone is not a dual.
+- attempt-1 files stay as they are. This commit does not forge `PROCESS_EXIT` onto the old log. It does not modify `oneshot-attempt-1.json` or `oneshot-attempt-1.log`. Attempt-2 authorization is revoked.
+- `GAP-PRIV-AUTHZ-PROVE-FLAKE` stays **OPEN**, mitigated/cause-unknown. Not fixed. Not closed. Not root-caused. The existing backlog row is not changed by this paragraph.
+- This knife is **STOP**. A later, separate REQUEST would be required before anyone is authorized to run a first prove whose log is teed with `PROCESS_EXIT` from the start. This commit does not run that prove and does not authorize coding. Do not touch uc025, uc004, uc018, `apps/worker/src/checkpoint-principal.ts`, or any proof.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+- Sibling sections stay: D' `e0842d0`, C' `0652a08`, B' `e57d0cc`, Line F, and the earlier A' honesty section. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
