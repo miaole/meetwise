@@ -143,3 +143,14 @@
 - No MODEL-OP row already existed in `e2e-requirement-coverage-matrix.md`. This nail does not add one and does not flip any matrix status.
 - G7 FR3 nail section from `210f4c0` and other CLOSED rows are unchanged.
 - Evidence: `reviews/2026-10-02-line-i2-model-op-ledger-offline-mw-model-op.md` · `reviews/REQUEST-2026-10-02-model-op-spend-ledger-offline-i2-mw-e2e-ha.md` · `harness/model-op-spend-ledger-offline-i2.md` · `model-op-spend-ledger-offline-i2.slice.md`.
+
+### HA D3 pre-purchase quote（2026-10-02 SSOT nail · pre_exec_pass）
+
+- **HA-D3-PREPURCHASE-QUOTE** · status **`pre_exec_pass`** for the docs REQUEST `5cd6cbc` / `5cd6cbc5d5e6f79a901fde28769c4405370132b0`. This nail is not coding authorization, not a prove, not a purchase authorization, and not HA. Implementer does not self-approve.
+- Assigned PASS on origin `feat/mysql-schema-skeleton` (confirmed present before this nail): mw-e2e-ha `57a779d` / `57a779d34dd020359fc1e7aa33482970b2e4b701`. Second reviewer **not assigned**. Alone ≠ dual.
+- Quote worksheet only: capacity / price / selection notes. Price cells **UNQUOTED**. ¥0 spent. Purchase count 0. Ban invent prices, instance types, or quotes. Ban buy cloud. Local compose limits are not a cloud invoice.
+- `claimProductionHA=false`. haStatus=**NOT_HA**. releaseEvidence=**false**. Does not open D3. Does not claim 阶 D green. D3 production probe remains OUT OF SCOPE. Quote (including UNQUOTED placeholders) is not availability evidence.
+- Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered. Do not flip covered.
+- No covered flip. No cloud buy. No product code. No package.json edit. Harness/slice left as REQUEST wrote them.
+- G7 FR3 nail section from `210f4c0` and I2 nail `e09a39f` (pre_exec_dual_pass, missing script has no EXIT) are unchanged. CLOSED gaps including `GAP-UC052-POOL-ROLE-LEAK` and `NOTE-CKPT-UNSEALED-CLAIM-NEG` stay CLOSED.
+- Evidence: `reviews/REQUEST-2026-10-02-ha-d3-prepurchase-quote-mw-e2e-ha.md` · `harness/ha-d3-prepurchase-quote.md` · `ha-d3-prepurchase-quote.slice.md`.
