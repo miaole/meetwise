@@ -1,0 +1,43 @@
+{
+  "knife": "GAP-BACKFILL-EMITTER-UNAUTHENTICATED",
+  "line": "G",
+  "request": "11f1016d5c02e7336dfc8abb94c1f3dd67a21841",
+  "dualPass": [
+    "b80506abfe466003662dc43c9a810bbbe3001c8b",
+    "b3bb4a0035c2ccb679eb789f21a059eda480e69b"
+  ],
+  "codeSha": "a19b6cf178bfe264fe2e2e7894b64a2021c07b00",
+  "proveSha": "a19b6cf178bfe264fe2e2e7894b64a2021c07b00",
+  "cmd": "pnpm uc018:receipt-backfill:prove",
+  "exit": 0,
+  "log": "logs/uc018-receipt-backfill-prove-a19b6cf.log",
+  "note": "Re-run after pull --rebase replayed the HMAC commit onto origin/feat/mysql-schema-skeleton (119d358). prove SHA is the code SHA actually run. Scripts at prove time match this code SHA. Legacy backfill JSON was not rewritten.",
+  "legacyClassification": "unsigned-historical",
+  "legacySigned": false,
+  "legacyFiles": [
+    "ai-docs/delivery/receipts/uc018-receipt-backfill/ADV.json",
+    "ai-docs/delivery/receipts/uc018-receipt-backfill/FULL-E2E.json",
+    "ai-docs/delivery/receipts/uc018-receipt-backfill/GRAPH.json",
+    "ai-docs/delivery/receipts/uc018-receipt-backfill/PERF-LOAD.json",
+    "ai-docs/delivery/receipts/uc018-receipt-backfill/SOLE.json",
+    "ai-docs/delivery/receipts/uc018-receipt-backfill/TTL.json",
+    "ai-docs/delivery/receipts/uc018-receipt-backfill/UI.json"
+  ],
+  "historicalReceiptsRewritten": false,
+  "keyInTree": false,
+  "keySource": "process env MEETWISE_UC018_BACKFILL_HMAC_KEY; prove sets a random in-process fixture and does not write it",
+  "dotenvRead": false,
+  "defaultKey": false,
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "gR45Closed": true,
+  "coveredCount": 8,
+  "coveredFlipped": false,
+  "ms3EqualsR4Closed": false,
+  "pgRetained": true,
+  "publicDelete": 503,
+  "uc018StatusUntouched": true,
+  "nail": false,
+  "postProve": "STOP"
+}
