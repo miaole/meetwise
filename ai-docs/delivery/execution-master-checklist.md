@@ -461,3 +461,11 @@ flowchart TD
 - `actualSpendCny=null`. No invented spend.
 - Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
 - No MODEL-OP row already existed in the coverage matrix. This nail does not add one. G7 FR3 section from `210f4c0` and other CLOSED rows stay as written.
+
+### HA D3 pre-purchase quote（2026-10-02 SSOT nail · pre_exec_pass）
+
+- [x] **`pre_exec_pass`** recorded for the docs REQUEST `5cd6cbc` / `5cd6cbc5d5e6f79a901fde28769c4405370132b0`. Assigned reviewer only: mw-e2e-ha `57a779d` / `57a779d34dd020359fc1e7aa33482970b2e4b701` (confirmed on origin before this nail). Second reviewer **not assigned**. Alone ≠ dual. Implementer does not self-approve. This is not coding authorization, not a prove, not a purchase authorization, and not HA.
+- Quote notes complete with honest **UNQUOTED** price cells (RDS / ECS×2 / Redis / egress-backup). ¥0 spent. Purchase count 0. Ban invent prices, instance types, or quotes. Ban buy cloud.
+- `claimProductionHA=false`. haStatus=**NOT_HA**. releaseEvidence=**false**. This note does not open D3 and does not claim 阶 D green. D3 production probe remains OUT OF SCOPE.
+- Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
+- Harness/slice status files were left as written by the REQUEST; this nail does not rewrite them. G7 FR3 section from `210f4c0` and I2 nail `e09a39f` stay as written. CLOSED gaps including `GAP-UC052-POOL-ROLE-LEAK` and `NOTE-CKPT-UNSEALED-CLAIM-NEG` stay CLOSED.
