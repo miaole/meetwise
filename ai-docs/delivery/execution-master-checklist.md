@@ -538,3 +538,12 @@ flowchart TD
 - Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained.
 - Pool slice one-line cite updated from stale L51–54 to cleanup path L79 / L80–82 / L101–103 (confirmed in ts; ts not edited). Harness r5 text left unchanged.
 - Sibling sections stay intact: D `018d692` waiting-user · C `2f23ed3` live · J `10e8dc2` · I2 `e09a39f` · offline FR3 `210f4c0` · and any E/H/G sections that have landed. CLOSED UC-052 rows stay CLOSED.
+### GAP-PRIV-AUTHZ-PROVE-FLAKE honesty（2026-10-02 SSOT nail · `post_pre_exec_dual_pass` · gap stays OPEN）
+
+- [x] **`post_pre_exec_dual_pass`** recorded for the honesty docs. Dual already issued and confirmed ancestors of origin before this nail: mw-privacy-int `a38f351` / `a38f351e4f1a9b71e6d4e35ead7cc1f59ce30d09` · mw-e2e-ha `67f6a16` / `67f6a168c515f9340d36fb139b793e2fa327127b`. Base REQUEST `031ad36` / `031ad36f7db01189e9754fd8e37a4b9fff5c6dd2`. Implementer does not self-approve. This is not a close and not a prove.
+- [ ] `GAP-PRIV-AUTHZ-PROVE-FLAKE` stays **OPEN** · mitigated/cause-unknown (not fixed, not root-caused).
+- Ban retry-to-green. Ban treating one EXIT 0, or v2 20/20, as closed or root-caused. Ban UC-052 product edits. This nail does not run `pnpm privacy-authorization:prove`.
+- Do not flip UC-018. Do not flip UC-052. UC-052 stays **partial**. Do not write covered. coveredCount=8.
+- Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+- This commit does not pre-claim the post-commit EXIT of `pnpm eval-harness-matrix-cite:prove`. A green cite does not close this gap and does not flip UC-018.
+- The Line F section above stays as written. Sibling sections stay intact. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
