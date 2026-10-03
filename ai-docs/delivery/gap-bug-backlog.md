@@ -278,3 +278,14 @@
 - This commit does not pre-claim the post-commit EXIT of `pnpm eval-harness-matrix-cite:prove`. A green cite does not authorize a flip and does not flip UC-018.
 - The earlier D' `post_pre_exec_dual_pass` paragraph above stays as written. A' and C' sections stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
 - Evidence: `reviews/REQUEST-2026-10-02-uc018-flip-ban-honesty-post-mw-rag-route.md` · `reviews/REQUEST-2026-10-02-uc018-flip-ban-honesty-post-mw-e2e-ha.md` · `harness/uc018-flip-ban-honesty.md` · `uc018-flip-ban-honesty.slice.md`.
+
+### GAP-UC004-FAIL-A3 / NHP-004-FAULT-01 FINAL NAIL（2026-10-02 SSOT nail · `post_prove_dual_pass` · row stays gap）
+
+- **GAP-UC004-FAIL-A3** · docs-status **`post_prove_dual_pass`** · **FINAL NAIL** for the docs status only. The FAULT column stays **gap**. The UC-E2E-004 row stays **gap**. A3 is not closed. Implementer does not self-approve.
+- Post-prove dual PASS on origin `feat/mysql-schema-skeleton`. Both commits reviewed nail `0807d27` / `0807d2729bd38d4f6b37add0196f819cb51247d2`: mw-rag-route `97c3dcf` / `97c3dcff5ca372dfccf8ea2be9d87f2a195848ea` · mw-e2e-ha `99e549c` / `99e549ca1edb1e818d5131bbc66a9912119ccd9e`.
+- Case id `NHP-004-FAULT-01` stays **gap**. Not UC-018. Not UC-052. Not UC-025. Do not treat `pnpm uc004:career-path:prove` EXIT 0 as A3 closed. Ban inventing a fix. Ban product code. Ban flipping any SSOT row.
+- Do not write covered. Do not flip UC-018. Do not flip UC-052. coveredCount=8.
+- Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+- This commit does not pre-claim the post-commit EXIT of `pnpm eval-harness-matrix-cite:prove`. A green cite does not close A3 and does not flip any row.
+- The earlier C' `post_pre_exec_dual_pass` paragraph and the D' FINAL NAIL paragraph above stay as written. A' section stays as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+- Evidence: `reviews/REQUEST-2026-10-02-gap-uc004-fail-a3-nhp-post-mw-rag-route.md` · `reviews/REQUEST-2026-10-02-gap-uc004-fail-a3-nhp-post-mw-e2e-ha.md` · `harness/gap-uc004-fail-a3-nhp.md` · `gap-uc004-fail-a3-nhp.slice.md`.
