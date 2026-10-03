@@ -30,3 +30,13 @@ Dual: mw-privacy-int `a38f351e4f1a9b71e6d4e35ead7cc1f59ce30d09` · mw-e2e-ha `67
 Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
 
 *Slice nail · GAP-PRIV-AUTHZ-PROVE-FLAKE · post_pre_exec_dual_pass · OPEN · STOP*
+
+## Oneshot attempt 1
+
+**attempt=1**. `pnpm privacy-authorization:prove` once. prove SHA `5b6e693e5e8b253da6c889a46aee331a8a6f5ccd`. EXIT **0**. Ban retry-to-green.
+
+Receipt `ai-docs/delivery/receipts/gap-priv-authz-prove-flake/oneshot-attempt-1.json`. Log `ai-docs/delivery/receipts/gap-priv-authz-prove-flake/oneshot-attempt-1.log`.
+
+`GAP-PRIV-AUTHZ-PROVE-FLAKE` stays **OPEN**, mitigated/cause-unknown. Not fixed. Not closed. Not root-caused. One green is not a close. SSOT files were not edited by this supplement.
+
+*Slice oneshot · attempt=1 · EXIT=0 · OPEN mitigated/cause-unknown · STOP*

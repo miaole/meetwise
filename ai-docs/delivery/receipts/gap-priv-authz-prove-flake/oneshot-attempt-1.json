@@ -1,0 +1,14 @@
+{
+  "attempt": 1,
+  "command": "pnpm privacy-authorization:prove",
+  "proveSha": "5b6e693e5e8b253da6c889a46aee331a8a6f5ccd",
+  "exit": 0,
+  "gapStatus": "OPEN",
+  "cause": "unknown",
+  "notClosed": true,
+  "notRootCaused": true,
+  "log": "ai-docs/delivery/receipts/gap-priv-authz-prove-flake/oneshot-attempt-1.log",
+  "oneGreenIsNotAClose": true,
+  "retryToGreenBanned": true,
+  "mitigation": "mitigated/cause-unknown"
+}
