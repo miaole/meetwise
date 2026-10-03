@@ -10,15 +10,18 @@
  *                           append attempts.jsonl; do not re-run prove
  *
  * Ban: tip run as substitute for old-SHA; retry-until-green; hand-written JSON;
- *      hardcoded stack facts without source.
+ *      hardcoded stack facts without source; a default HMAC key; reading .env*.
+ * New receipts are HMAC-SHA256 over canonical JSON claims and log bytes.
+ * Key is process env MEETWISE_UC018_BACKFILL_HMAC_KEY only. Missing key exits 8.
  */
 import { spawnSync, execSync } from 'node:child_process';
 import {
   mkdirSync, writeFileSync, readFileSync, existsSync, rmSync, appendFileSync,
 } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join, resolve, isAbsolute } from 'node:path';
 import {
   EMITTED_BY, sha256File, validateMachineEmittedReceipt,
+  attachEmitterHmac, resolveHmacKey, HMAC_KEY_ENV,
 } from './lib/uc018-receipt-backfill-guard.mjs';
 import {
   parseStackFromLog,
@@ -62,6 +65,16 @@ const worktreeBase = resolve(arg('worktreeBase', '/workspace/meetwise-lineA-back
 if (!key || !targetSha || !cmd) {
   console.error('Usage: --key= --targetSha= --cmd=uc018:…:prove [--mode=prove|reemit-from-log]');
   process.exit(2);
+}
+if (!resolveHmacKey()) {
+  console.error(`fail closed: ${HMAC_KEY_ENV} missing (no default key, no .env read)`);
+  process.exit(8);
+}
+
+function childEnv(extra = {}) {
+  const env = { ...process.env, ...extra };
+  delete env[HMAC_KEY_ENV];
+  return env;
 }
 
 const wrapperSha = git(tipRoot, 'rev-parse HEAD');
@@ -137,7 +150,7 @@ function buildReceiptBody({
     evidenceOfRecord: true,
     implementerOnly: false,
     disclosure:
-      'EOR@targetSha ≠ proven at tip (code drift). Machine-emitted backfill at recorded ancestor SHA; Ban tip-substitution; Ban hand-write JSON from prose. GAP-BACKFILL-EMITTER-UNAUTHENTICATED: HMAC-free JSON+log digest pair is forgeable.',
+      'EOR@targetSha ≠ proven at tip (code drift). Machine-emitted backfill at recorded ancestor SHA; Ban tip-substitution; Ban hand-write JSON from prose. Emitter HMAC binds JSON claims + log bytes via MEETWISE_UC018_BACKFILL_HMAC_KEY (process env only; Ban default key; Ban .env read).',
     waitingUser: 'MISSING-EVIDENCE',
     haStatus: 'NOT_HA',
     releaseEvidence: false,
@@ -166,22 +179,65 @@ function buildReceiptBody({
 }
 
 function finalizeReceipt(receipt, attemptExtra = {}) {
-  writeFileSync(outPath, JSON.stringify(receipt, null, 2) + '\n', 'utf8');
-  const v = validateMachineEmittedReceipt(receipt, { root: tipRoot });
+  const keyMaterial = resolveHmacKey();
+  if (!keyMaterial) {
+    const v = { ok: false, signed: false, reason: 'hmac-key-missing' };
+    recordAttempt(attemptsPath, {
+      key,
+      targetSha: targetFull,
+      wrapperSha,
+      installExit: receipt.installExit,
+      proveExit: receipt.exit,
+      outPath: outRel,
+      validate: v,
+      ranAt,
+      ...attemptExtra,
+      note: `missing process env ${HMAC_KEY_ENV}; Ban default key; Ban .env read`,
+    });
+    console.error(JSON.stringify({
+      ok: false, key, targetSha: targetFull, wrapperSha,
+      reason: 'hmac-key-missing', env: HMAC_KEY_ENV, mode,
+    }, null, 2));
+    process.exit(8);
+  }
+  const logAbsForHmac = isAbsolute(receipt.logPath)
+    ? receipt.logPath
+    : join(tipRoot, receipt.logPath);
+  const logBytes = readFileSync(logAbsForHmac);
+  const signed = attachEmitterHmac(receipt, logBytes, keyMaterial);
+  if (!signed.ok) {
+    recordAttempt(attemptsPath, {
+      key,
+      targetSha: targetFull,
+      wrapperSha,
+      installExit: receipt.installExit,
+      proveExit: receipt.exit,
+      outPath: outRel,
+      validate: signed,
+      ranAt,
+      ...attemptExtra,
+    });
+    console.error(JSON.stringify({ ok: false, reason: signed.reason, mode }, null, 2));
+    process.exit(8);
+  }
+  const finalReceipt = signed.receipt;
+  writeFileSync(outPath, JSON.stringify(finalReceipt, null, 2) + '\n', 'utf8');
+  const v = validateMachineEmittedReceipt(finalReceipt, { root: tipRoot });
   recordAttempt(attemptsPath, {
     key,
     targetSha: targetFull,
     wrapperSha,
-    installExit: receipt.installExit,
-    proveExit: receipt.exit,
+    installExit: finalReceipt.installExit,
+    proveExit: finalReceipt.exit,
     outPath: outRel,
     validate: v,
+    signed: v.signed === true,
     ranAt,
     ...attemptExtra,
   });
   console.log(JSON.stringify({
-    ok: v.ok, key, targetSha: targetFull, wrapperSha,
-    installExit: receipt.installExit, proveExit: receipt.exit, outPath, validate: v,
+    ok: v.ok, signed: v.signed === true, key, targetSha: targetFull, wrapperSha,
+    installExit: finalReceipt.installExit, proveExit: finalReceipt.exit, outPath, validate: v,
     mode,
   }, null, 2));
   if (!v.ok) process.exit(5);
@@ -318,7 +374,7 @@ try {
     const pnpmV = sh('pnpm -v', { cwd: wtPath }).stdout.trim();
     const imageDigestsPre = collectImageDigestsRaw(wtPath);
 
-    const install = sh('pnpm install --frozen-lockfile', { cwd: wtPath, env: process.env });
+    const install = sh('pnpm install --frozen-lockfile', { cwd: wtPath, env: childEnv() });
     const installLog = `=== pnpm install --frozen-lockfile EXIT=${install.status} ===\n${install.stdout || ''}\n${install.stderr || ''}\n`;
     if (install.status !== 0) {
       const receipt = buildReceiptBody({
@@ -332,7 +388,7 @@ try {
     } else {
       const prove = sh(`pnpm ${cmd}`, {
         cwd: wtPath,
-        env: { ...process.env, CI: process.env.CI || '1' },
+        env: childEnv({ CI: process.env.CI || '1' }),
       });
       const proveLog =
         installLog +
