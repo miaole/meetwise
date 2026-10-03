@@ -104,3 +104,97 @@ Row **`UC-E2E-014/026`** ADV column stays gap. Case `NHP-014-ADV-01` stays gap�
 3. 无 Blockers；7 条 Conditions（C-1~C-7）随prove 执行强制；本 PASS 仅 docs gate 单侧签，mw-rag-route 须独立签署、prove 须协调方授权，EXIT 0 ≠ 翻行 ≠ covered。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual · NHP-014-ADV-01 webhook ADV prove 包 `bb30062` · mw-e2e-ha（独立复验 · C-DUAL-FROM-FRESH）
+
+**Reviewed SHA**: `bb30062d7e2cbba4b7b2872e64b95a11731966c8`（parent `b790b45` · branch `line/k-next-nhp`）
+**Reviewer**: `mw-e2e-ha` · adversarial evidence-honesty · 禁自批实现 · 只认命令+EXIT+可复现证据 · alone ≠ dual，不代签 mw-rag-route
+**Fresh re-run 环境**: 独立 worktree `rv/kp-e2e-ha` @`bb30062` · `pnpm install --frozen-lockfile`（9.1s · pnpm 10.18.0）· docker daemon 29.1.3 · 本地 `pgvector/pgvector:pg16` 镜像 ID `7b822b0aac60`（与 receipt 声称 digest `sha256:7b822b0a…` 一致）
+
+## Fresh re-run（恰一次 · 禁重试未触发）
+
+- CMD: `pnpm run uc014:webhook-adv:prove`
+- 时窗: 2026-10-03T13:13:00Z → 13:13:07Z（≈7s，与实现方 attempt1 时长一致）
+- **EXIT = 0**
+- 输出核验: PASS 47 / FAIL 0 / `AUDIT-OBSERVATION: absent` ×4（C1/C2/C3/C7）/ `DISCLOSED` ×2；PINS 行逐字原值；R5-MARKED-RED banner 原样打出；`断言合计: 47 条, 失败 0 条`；C1–C7 逐类 ALL PASS
+- 47 条 PASS 行与 receipt 附录 `diff` **逐行一致（byte-identical）**
+- 随机容器 `meetwise-e2e-57029-1791033181107` @`127.0.0.1:57955`（≠实现方 55608/57289 → 证明确为 fresh 隔离实例）；run 后 `docker ps -a` 零残留容器
+- EXIT 不一致/崩溃: 无
+
+## 包完整性（`bb30062` vs parent `b790b45`）
+
+| 项 | 证据 | 结论 |
+|----|------|------|
+| 恰 6 申报文件 | `git show --name-status`：M harness + A receipt + M apps/api pkg + A proof.ts + M root pkg + M run-e2e-isolated.mjs；numstat 合计 **+487/−2** | PASS |
+| 零产品代码 | diff 全清单无 `apps/api/src/**`、无 `packages/**`（计数 0）；仅 test 新文件 + CMD 注册 + docs | PASS |
+| 三层 CMD 注册 | root `uc014:webhook-adv:prove`→`:raw`；`run-e2e-isolated.mjs` 仅 2 处改动（allowlist 插 `'uc014:webhook-adv:prove:raw'` 一项 + dispatch 三元链加一臂，2+/2−，与 uc015/uc010 同形态，零行为改动）；apps/api `prove:uc014-webhook-adv` | PASS |
+| 禁碰清单零 diff | `neg-commerce.proof.ts`/`full.e2e.ts`/UC-018/052/025/004 文件/SSOT（coverage-matrix · e2e-scenarios · checklist · NHP 矩阵）`git diff b790b45..bb30062` 全空 | PASS |
+| harness :542→:540@`b790b45` | `e2e-scenarios.md:540` 实测=「验收：A1…A2…A3…」行；注记修正来源；仅 1+/1− | PASS |
+
+## receipt 复核
+
+- Status 行「coding+prove done · EXIT=0（post-prove dual PENDING · 本 receipt 不翻行 · Ban covered · STOP）」——**无 preclaim**：EXIT0 未写成 covered/翻行；coveredCount=8 保持。
+- Pins 原值逐字保留（NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503）。
+- attempts 台账恰 1 行（2026-10-03T06:05:34→06:05:41 本地 -0700 · EXIT=0 · 首跑即绿）；无 EXIT1 attempt、无 retry-to-green、无隐瞒。
+- AUDIT-OBSERVATION C1/C2/C3/C7 全 `absent` + file:line（`commerce.service.ts:56-70` + `commerce-webhook.controller.ts:11-16`）；具名 residual「审计后置未接线」入 receipt :70。
+- C3 DISCLOSED 措辞合规：「显式服务端金额复核比较路径今天不存在」两处（proof :170-171 · receipt :135-136）；全文档**无**「已实现金额复核/金额复核已实现」实现性表述（唯一 grep 命中为 receipt :57 否认行本身）；未为凑 C3 改产品。
+- 授权链时序：pre-exec dual PASS 双侧签署在先（mw-rag-route `8dde8e3` @05:42:10-0700 Verdict: PASS · mw-e2e-ha `1d9f86d`/`9a1c1a7` @05:42:39-0700 reviewed SHA `0cf8591`），prove 执行（06:05:34-0700）在后 → C-1 时序成立。
+
+## 断言抽查（proof.ts file:line 实读）
+
+| 抽查项 | 实际位置 | 断言内容 | 结论 |
+|--------|----------|----------|------|
+| C4 桶恰 +1 / txn 恰 1 行 | :203 / :205 | count==before+1；provider_txn 全局恰 1 | PASS |
+| C5 provider_txn 恰 1 行 + 两账户合计恰单份 | :222 / :226 | ==1；A=10 ∧ B=0 | PASS |
+| C6 四条 DB 终态断言 | :243-246 | status=paid ∧ provider_txn=注入 txn ∧ 桶 delta=1 恰单份 ∧ txn 恰 1 行 | PASS |
+| C7 幽灵单零副作用 | :259-261 | 幽灵单不落库 ∧ txn 全局 0 行 ∧ 幽灵 owner 0 桶 | PASS |
+| C3 目录价恒等 | :179 / :185（落库 :180-181/:186-187） | pack_10 sum+10 / pack_30 sum+30；units/amount 恒 10/9900 · 30/24900 | PASS |
+| 断言总数 | `A()` 调用 8+6+7+6+5+7+8 | =47，与声称一致 | PASS |
+| 4 AUDIT_LINE + 2 DISCLOSED | :142/:161/:189/:271 · :170-171 | 与 receipt 附录结构一致 | PASS |
+
+## 条件裁决（pre-exec dual C-1~C-7 逐条 · POST-PROVE）
+
+| 条件 | 裁决 | 依据 |
+|------|------|------|
+| C-1 授权链 | PASS | 双侧 pre-exec PASS 在先（05:42 local）、prove 在后（06:05 local）；实现方 mw-core 非自批；本 POST-PROVE 由协调方另派（本审） |
+| C-2 C3 结构性契约 | PASS | DISCLOSED 原文在位（proof :170-171）；夹带字段忽略断言（:177-178/:183-184）+ 目录价恒等（:179/:185）+ 落库权威值；无改口表述 |
+| C-3 审计披露 | PASS | 4 类逐条 `AUDIT-OBSERVATION: absent` + 运行时源码扫描交叉核验（proof :54-66）；residual 具名入 receipt；未宣称审计已实现；非 EXIT 门槛 |
+| C-4 断言具体化 | PASS | C6 :243-246 四条具名 DB 终态；C5 :222-226 |
+| C-5 隔离壳+密钥 | PASS | 三层注册生效（fresh run 经壳执行）；随机容器/动态端口实测；`PAY_PROVIDER_SECRET`=测试常量（`_neg-harness.ts:15`）经 `Object.assign(process.env)` 注入（:44-46），无 dotenv、不入库不入 `.env*` 不入 receipt；`assertIsolatedTestTarget` 门禁（:58）；`.env` 零触碰 |
+| C-6 EXIT1 路径未触发因 EXIT0 | PASS | EXIT1 路径存在且带 GAP 明细打印（proof :279-287），未触发因两次独立运行（实现方 + 本审 fresh）均 EXIT=0；attempts 台账无隐瞒 |
+| C-7 互不替代+禁碰 | PASS | 两既有 prove 文件零 diff；UC-018/052/025/004 与 SSOT 零 diff；Pins 原值；NEG/FAULT/BOUND partial 不动；PERF/LOAD 显式 blind（harness :47） |
+
+## Fail-trigger audit（7 项 · 全负）
+
+1. 「已实现金额复核」表述：0 命中（唯一为 receipt :57 否认行）→ 未触发。
+2. EXIT1 记 flake / attempts 缺次 / retry-to-green：无（实现方台账恰 1 次；本审恰 1 次 fresh）→ 未触发。
+3. C5 双行 provider_txn / 双账户双入 / 零副作用缺快照：无（:222-226 单行断言 + C1 :125/:136-141、C2 :150/:157-160 before/after）→ 未触发。
+4. PERF/LOAD 写 n/a / wash：无（harness :47 显式 blind）→ 未触发。
+5. Pins 改口 / coveredCount≠8 / SSOT 翻转 / covered 字样 / 触 UC-018/052/025/004 / 改两 prove 文件：全无 → 未触发。
+6. secrets/`.env*` 入树入 receipt / secret 绕进程环境：无 → 未触发。
+7. dual PASS 前 prove / 自批 / 冒充双签：无（时序核对成立；本审不代签 mw-rag-route）→ 未触发。
+
+## 非阻断观察（如实记录）
+
+- receipt「F3 快照落点」两处行号漂移：「快照工具 :88-96」实际 :81-90；「C1 before :131」实际 :125（after 实际 :136-141 而非 :135-141）。本审必查五锚点（C4/C5/C6/C7/C3）行号全部精确。不影响断言有效性与可复现性，属文档精度 residual。
+- pre-exec dual PASS 附录提交（`1d9f86d`/`9a1c1a7`、`8dde8e3`/`42ee525`）在其它 line 分支，未并入 `line/k-next-nhp`；本分支上两 review 文件保持 stub 形态（本段即为 append-only 补位 post-prove 记录）。是否回迁签署附录由协调方定，非阻断。
+
+## Blockers
+
+无。
+
+## Conditions（非阻断 · 带入翻行评估）
+
+- **CO-1**: residual「审计后置未接线」（GuardrailHit/安全日志观察点产品今天不存在）须随任何 ADV gap→partial 翻行注记带入；升格权在协调方。
+- **CO-2**: receipt F3 两处行号漂移建议下次触碰该 receipt 时校正（不强制、不回改本包）。
+- **CO-3**: EXIT=0 ≠ 翻行 ≠ covered 维持：row `UC-E2E-014/026` ADV 仍 stays gap→case-only、翻行须协调方授权；coveredCount=8 不动；haStatus=NOT_HA · releaseEvidence=false 原值。
+
+## 中文摘要（3 行）
+
+1. 包完整性实核：`bb30062` 恰 6 文件 +487/−2、零产品代码、run-e2e-isolated.mjs 仅 allowlist+dispatch 两处、禁碰清单（neg-commerce/full.e2e/UC-018/052/025/004/SSOT）零 diff，harness :542→:540@`b790b45` 修正属实。
+2. 独立 fresh re-run（独立 worktree · frozen-lockfile · 恰一次禁重试未触发）EXIT=0：47/47 PASS、0 FAIL、4 AUDIT-OBSERVATION absent、2 DISCLOSED，PASS 行与 receipt 附录 byte-identical，随机容器/动态端口证明确为 fresh 实例；C1–C7 条件裁决全 PASS、7 项 fail-trigger 全负。
+3. 无 Blockers；EXIT=0 ≠ 翻行 ≠ covered 维持（ADV stays gap→case-only · coveredCount=8），residual「审计后置未接线」随翻行带入；本 PASS 为 mw-e2e-ha 单侧 post-prove dual，不代签 mw-rag-route。
+
+Verdict: PASS
