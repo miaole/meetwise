@@ -138,11 +138,12 @@ for (const m of MANUAL_LOGS) {
 }
 
 // ---------- 3. emitter-owned fresh run ----------
-const emitterSelfSha256 = sha256File(new URL(import.meta.url).pathname);
+const runId = new Date().toISOString().replace(/[:.]/g, '-');
+const emitterSha256 = sha256File(new URL(import.meta.url).pathname);
 const runStartedAt = new Date().toISOString();
 
 const install = sh('pnpm', ['install', '--frozen-lockfile'], { stdio: ['ignore', 'pipe', 'pipe'] });
-const installLogRel = 'logs/install.log';
+const installLogRel = `logs/install-${runId}.log`;
 writeFileSync(join(RECEIPT_DIR, installLogRel),
   `=== pnpm install --frozen-lockfile EXIT=${install.status} ===\n${install.stdout || ''}\n${install.stderr || ''}\n`);
 recordAttempt({
@@ -176,14 +177,14 @@ for (const cmd of CMDS) {
   const r = sh('pnpm', [cmd], { stdio: ['ignore', 'pipe', 'pipe'] });
   const finishedAt = new Date().toISOString();
   const exit = r.status ?? 1;
-  const logRel = `logs/emitter-attempt-${cmd.replace(/[^a-z0-9-]/g, '-')}.log`;
+  const logRel = `logs/emitter-${runId}-${cmd.replace(/[^a-z0-9-]/g, '-')}.log`;
   const logBody = `=== emitter attempt: pnpm ${cmd} | HEAD=${HEAD} | start=${startedAt} ===\n`
     + `${r.stdout || ''}\n${r.stderr || ''}\n=== pnpm ${cmd} EXIT=${exit} ===\n`;
   writeFileSync(join(RECEIPT_DIR, logRel), logBody);
   const iso = newestIsolatedReceipt(RAW_TARGETS[cmd], startedAt);
   let isoRel = null;
   if (iso) {
-    isoRel = `isolated-receipts/${cmd.replace(/[^a-z0-9-]/g, '-')}-${iso.f}`;
+    isoRel = `isolated-receipts/${cmd.replace(/[^a-z0-9-]/g, '-')}-${runId}-${iso.f}`;
     copyFileSync(join(TMP_ISO_DIR, iso.f), join(RECEIPT_DIR, isoRel));
   }
   const banner = logBody.match(/E2E isolated PostgreSQL: (\S+) on 127\.0\.0\.1:(\d+)/) || [];
@@ -217,6 +218,7 @@ const receipt = {
   schemaVersion: 1,
   class: 'local_untrusted_waiting_user_tip_run_receipt',
   knife: 'GAP-UC018-WAITING-USER-TIP',
+  runId,
   emittedBy: 'scripts/uc018-waiting-user-tip-emit.mjs',
   emitterSha256,
   // C1(e2e-ha): gitSha AND runnerCommitSha both = actual checked-out HEAD.
@@ -279,12 +281,18 @@ const receipt = {
     cmd: c.cmd, path: c.isolatedReceiptPath, sha256: c.isolatedReceiptSha256,
   })),
   attemptsPath: 'ai-docs/delivery/receipts/uc018-waiting-user-tip/attempts.jsonl',
-  attemptsSummary: {
-    importedManualAttempts: importedAttempts.length,
-    emitterInstallAttempts: 1,
-    emitterProveAttempts: perCmd.length,
-    note: 'all attempts recorded; no retry-to-green',
-  },
+  attemptsSummary: (() => {
+    const rows = existsSync(ATTEMPTS_PATH)
+      ? readFileSync(ATTEMPTS_PATH, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l))
+      : [];
+    const byPhase = {};
+    for (const row of rows) byPhase[row.phase] = (byPhase[row.phase] ?? 0) + 1;
+    return {
+      totalRows: rows.length,
+      rowsByPhase: byPhase,
+      note: 'all attempts recorded (including fail-closed and crashed runs); no retry-to-green',
+    };
+  })(),
   originTipDrift: {
     observedOriginTip: originTipAtRun,
     headProved: HEAD,
