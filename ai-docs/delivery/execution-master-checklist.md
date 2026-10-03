@@ -421,7 +421,8 @@ flowchart TD
 
 - [x] `GAP-UC018-COVERED-CRITERION` **CLOSED** · `post_prove_dual_pass` · runner `22790a8` · dual `fc7dc24`/`6d2841c`
 - UC-E2E-018 / §1.1 stay **partial** · coveredCount **8** · Ban invent covered · Ban writing covered
-- Follow-up: `GAP-UC018-RECEIPT-BACKFILL`（own dual knife）
+- Follow-up nailed below: `GAP-UC018-RECEIPT-BACKFILL` **CLOSED** as overlay registered, not a covered flip; UC-018 stays partial
+
 
 ### UC-052 pool-role-leak（2026-10-02 nail · `post_prove_dual_pass`）
 
@@ -430,3 +431,13 @@ flowchart TD
 - [ ] `GAP-PRIV-AUTHZ-PROVE-FLAKE` stays **OPEN** · status **mitigated/cause-unknown** · cold#5 `ECONNREFUSED 127.0.0.1:33047` state_bytes=29 · warm#2 SQLSTATE 23505 `interview_pkey` (not ECONNREFUSED; log and review `49ef158` agree) · v2 @`3d0c71e` cold_v2 10/10 EXIT 0 · warm_v2 10/10 EXIT 0
 - UC-052 / privacy row stays **partial** · **≠ covered** · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount **8** · ms3EqualsR4Closed=false · PG-retained · public DELETE=503
 - This commit does not pre-claim the post-commit EXIT table
+
+### UC-E2E-018 RECEIPT-BACKFILL（2026-10-02 nail）
+
+- [x] `GAP-UC018-RECEIPT-BACKFILL` **CLOSED** as overlay registered, not a covered flip; UC-018 stays **partial** · `post_prove_dual_pass` · dual mw-rag-route `d1b0af7` / mw-e2e-ha `07823b5`
+- Backfill overlay complete for 6 of 7 historical SHAs (FULL-E2E `85d36c7` · GRAPH `f06dcba` · TTL `549da9c` · SOLE `23f98d3` · ADV `bdc5993` · PERF/LOAD `b29c191`). UI@`e88d386` is a failed backfill (exit=1, web_not_ready), not counted. waiting_user stays MISSING-EVIDENCE. Line D owns any new tip run. Do not pick a historical tip.
+- UC-E2E-018 / §1.1 stay **partial** · `canHonestlyFlip=false` · Ban a covered flip · STUB-STACK remains because source=static-doc is not a runtime observation · coveredCount **8** · Ban invent covered · Ban writing covered
+- [ ] `GAP-BACKFILL-EMITTER-UNAUTHENTICATED` stays **OPEN** · Line G owns it · do not close
+- [ ] C-IMAGE-DIGEST live-per-run stays an open CONDITION (prior-docker-inspect is not live)
+- C-PERF-TEARDOWN disclosed (attempt1 EXIT 1, pg Client terminated mid-prove; attempt2 EXIT 0; not washed; PERF/LOAD stays local partial)
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503
