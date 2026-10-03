@@ -53,7 +53,8 @@
     "prove:g7-freetier-reprove-guard": "tsx test/g7-freetier-reprove-guard.proof.ts",
     "prove:g7-freetier-reprove-client": "tsx test/g7-freetier-reprove-client.proof.ts",
     "prove:g7-freetier-reprove-paths": "tsx test/g7-freetier-reprove-paths.proof.ts",
-    "prove:g7-freetier-fix-round2": "tsx test/g7-freetier-fix-round2.proof.ts"
+    "prove:g7-freetier-fix-round2": "tsx test/g7-freetier-fix-round2.proof.ts",
+    "prove:model-op-spend-ledger": "tsx test/model-op-spend-ledger.proof.ts"
   },
   "dependencies": {
     "@langfuse/client": "5.10.0",
