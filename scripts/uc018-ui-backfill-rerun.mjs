@@ -30,7 +30,7 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
-  appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync,
+  appendFileSync, existsSync, mkdirSync, readFileSync, relative, renameSync, writeFileSync,
 } from 'node:fs';
 import { join } from 'node:path';
 
@@ -55,6 +55,8 @@ const SELF_ROOT = new URL('..', import.meta.url).pathname;
 const wrapperSha = spawnSync('git', ['-C', SELF_ROOT, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).status === 0
   ? spawnSync('git', ['-C', SELF_ROOT, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout.trim()
   : null;
+// Receipts are committed: record repo-relative paths (Line A convention), not absolute machine paths.
+const relToSelf = (p) => relative(SELF_ROOT, p);
 
 const gitOut = (args) => {
   const r = spawnSync('git', ['-C', WORKTREE, ...args], { encoding: 'utf8' });
@@ -210,7 +212,7 @@ async function main() {
     finishedAt: new Date().toISOString(),
     nodeVersion,
     pnpmVersion,
-    logPath: steps.prove.logPath,
+    logPath: relToSelf(steps.prove.logPath),
     stdoutDigest,
     e2eFailureLines: parsed.failureLines,
     isolatedPostgres: parsed.postgres,
@@ -239,9 +241,9 @@ async function main() {
     installExit: steps.install.exit,
     buildExit: steps.build.exit,
     addedBuildStep: attempt.addedBuildStep,
-    logPath: steps.prove.logPath,
-    installLogPath: steps.install.logPath,
-    buildLogPath: steps.build.logPath,
+    logPath: relToSelf(steps.prove.logPath),
+    installLogPath: relToSelf(steps.install.logPath),
+    buildLogPath: relToSelf(steps.build.logPath),
     stdoutDigest,
     nodeVersion,
     pnpmVersion,
