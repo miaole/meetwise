@@ -166,3 +166,23 @@
 - This commit does not pre-claim the post-commit EXIT table. Harness/slice left as the REQUEST wrote them.
 - J section `10e8dc2`, I2 nail `e09a39f`, G7 FR3 from `210f4c0`, and CLOSED UC-052 rows stay as written. Sibling sections (Line C / E / H / G), if present, stay intact.
 - Evidence: `reviews/REQUEST-2026-10-02-gap-uc018-waiting-user-tip-mw-rag-route.md` · `reviews/REQUEST-2026-10-02-gap-uc018-waiting-user-post-prove-mw-e2e-ha.md` · `harness/gap-uc018-waiting-user-tip.md` · `gap-uc018-waiting-user-tip.slice.md` · `receipts/uc018-waiting-user-tip/waiting-user-tip.json`.
+
+### G7 Line C live chat-only（2026-10-02 SSOT nail · post_live_dual_pass）
+
+- **G7-LINEC-LIVE-POST-DUAL** · status **`post_live_dual_pass`** · one settled chat wiring call · not a suite close · not G7 green · implementer does not self-approve.
+- Dual PASS on origin `feat/mysql-schema-skeleton` (both commits confirmed present before this nail): mw-model-op `cd44800` / `cd44800d952bb19e5f41871148c55093831863a8` · mw-e2e-ha `0febb8b` / `0febb8b5a9d640c3b88a5ef6ed52e529d86367da`.
+- Code actually run `542c064` / `542c0646d1635b0a3a28c5d821ad50bc6ea625a3`. Live receipt commit `7eb1a7e` / `7eb1a7e76635e2549c3440f6c7fdcf8fae090288` under `ai-docs/delivery/receipts/g7-linec-live-2026-10-02/`. Receipt is not the prove SHA. There was no runner commit.
+- Command recorded in the receipt: `packages/ai-runtime/node_modules/.bin/tsx /tmp/g7-linec-live.mts` EXIT 0, window 2026-10-02 21:27:52–21:27:55 PT. `pnpm e2e:isolated` was not run.
+- One settled call: actualModel=`qwen3.8-flash`, in=190, out=37, evidence `free_quota_wiring_only`.
+- `deepseek-v4-pro` refused `g7_model_banned_without_approval`; `ALLOW_DEEPSEEK_V4_PRO_TEST` unset.
+- not_run: embed, rerank, asr, tts, asr_stream, tts_stream (side paths hard-disabled / not_run). Not pass.
+- Caps ¥5 / 2e6 tokens / 200 calls; observed 1 call, 227 tokens.
+- `actualSpendCny=null` because the console was not read. `estimatedCostCny=0` is the free-quota price book, NOT spend. No invented spend.
+- Trio not_re_run, historical exit 1, stay OPEN (`pnpm e2e:isolated` · `pnpm e2e:ui:isolated` · `pnpm verify:e2e-performance`).
+- `g7SuiteGreen=false`. R1 **OPEN**. TECH_ROLE Disclosure-1 **OPEN** (TECH_ROLE=0 is not R1). Receipt records `MEETWISE_TECH_ROLE_FAIL_CLOSED` unset this run.
+- Ban G7 green. Ban invent spend. Ban HA / claimProductionHA.
+- Non-blocking disclosures: the `/tmp` driver is not in git; receipt label `g7_hard_disabled` is not the runtime throw `g7_path_disabled`.
+- Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered. Do not flip UC-018 or UC-052.
+- This live nail is a new section. It does not rewrite or weaken the offline FR3 section from `210f4c0` (`offlineProvesAtCodeSha`=`b1d7b22` only, `g7SuiteGreen=false`, trio OPEN). J nail `10e8dc2`, I2 nail `e09a39f`, F r4 harness cites, and CLOSED UC-052 rows stay as written.
+- keyFingerprint=`d26808ef` only (already in the receipt). No key value.
+- Evidence: `reviews/2026-10-02-g7-linec-post-live-mw-model-op.md` · `reviews/REQUEST-2026-10-02-g7-post-live-mw-e2e-ha.md` · `receipts/g7-linec-live-2026-10-02/2026-10-02-line-c-chat-live-receipt.md`.
