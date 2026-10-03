@@ -1,0 +1,7 @@
+# GAP-G7-E2E-UI-APPLICATION-START-409
+# cites: live-e2e-ui-isolated.log:43/:67 application_start_failed_409; :91/:125 waitForURL timeout
+
+live-e2e-ui-isolated.log:43:[web]  ⨯ Error: application_start_failed_409
+live-e2e-ui-isolated.log:67:[web]  ⨯ Error: application_start_failed_409
+live-e2e-ui-isolated.log:91:    TimeoutError: page.waitForURL: Timeout 30000ms exceeded.
+live-e2e-ui-isolated.log:125:    TimeoutError: page.waitForURL: Timeout 30000ms exceeded.

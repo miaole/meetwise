@@ -1,0 +1,5 @@
+# GAP-G7-E2E-PROVENANCE-CLARIFICATION-IDENTITY-COUNT
+# cites: runfull-stderr-debug.txt:7; also stdout:45 for clarification_needed event list
+
+runfull-stderr-debug.txt:7:✗ 出处审查: 不把 AI 分/progress 当 B 端分（identities=4, forgedScores=none）
+runfull-stdout-debug.txt:45:✓ 至少出了 1 道题(实际 2 道;事件:question_ready,clarification_needed,answer_evaluated,session_concluded,report_unavailable; terminal=report_unavailable; reason=max_attempts_exceeded)
