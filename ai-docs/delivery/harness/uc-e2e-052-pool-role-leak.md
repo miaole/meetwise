@@ -18,7 +18,7 @@
 | ID | Class | Goal |
 |----|-------|------|
 | **GAP-UC052-POOL-ROLE-LEAK** | PRODUCT · OPEN | Fix `PrincipalBoundCheckpointPool` session `SET ROLE` + `set_config(..., false)` without RESET（`apps/worker/src/checkpoint-principal.ts` **L51–54** verified）。Merge `GAP-PRIV-SAVER-POOL-ROLE-ISOLATION`. Direction: `SET LOCAL` inside txn **or** `RESET ROLE` + clear GUCs on release. Prove: reuse pooled connection after principal path → **no** role/config bleed. |
-| **NOTE-CKPT-UNSEALED-CLAIM-NEG** | prove honesty | Explicit NEG: after begin, **before** seal, claim with NULL `privacy_epoch`/`target_set_digest` is **refused**（0091 **L369–374** already hard-refuses · unproven in checkpoint prove）. |
+| **NOTE-CKPT-UNSEALED-CLAIM-NEG** | prove honesty | **CLOSED** by nail **`119d6c0`**: `packages/db/test/uc052-checkpoint-physical.proof.ts` cases **NHP-CKPT-UNSEALED-NEG-EPOCH** L763, **NHP-CKPT-UNSEALED-NEG-DIGEST** L768, **NHP-CKPT-UNSEALED-NEG-BOTH** L773, and sealed **HP-CKPT-SEALED-CLAIM** header L778 / case L780 through assertion L804; SQLSTATE **42501** check L750; DB guard `packages/db/migrations/0091_privacy_authorization_issuer.sql` L369–373. |
 | **GAP-PRIV-AUTHZ-PROVE-FLAKE** | e2e honesty | Root-cause `pnpm privacy-authorization:prove` first-run flake（e2e-ha @`69de818`: attempt#1 EXIT=1 `ECONNREFUSED` · attempt#2 EXIT=0）. **Record every attempt**. **Ban retry-to-green** as evidence. |
 
 **Ban wash**: prior `uc052:checkpoint-physical:prove` EXIT=0 ≠ this GAP closed · Ban invent covered · Ban open DELETE.
