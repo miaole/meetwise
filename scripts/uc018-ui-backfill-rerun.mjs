@@ -30,9 +30,9 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
-  appendFileSync, existsSync, mkdirSync, readFileSync, relative, renameSync, writeFileSync,
+  appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync,
 } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 
 const arg = (name, fallback = '') => {
   const hit = process.argv.find((a) => a.startsWith(`--${name}=`));
