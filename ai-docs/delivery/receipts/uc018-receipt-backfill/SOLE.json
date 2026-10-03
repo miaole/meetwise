@@ -5,7 +5,7 @@
   "emittedBy": "uc018-receipt-backfill-emit",
   "ranAt": "2026-09-24T04:35:30.689Z",
   "targetSha": "23f98d3a206c12a975de9fe4bf7c053757257ccf",
-  "wrapperSha": "61c3fcb62efed6c176a2a13da58f6b95d1759aee",
+  "wrapperSha": "00d53ed299e3db252486ac5ce1c4790adde69979",
   "runnerCommitSha": "23f98d3a206c12a975de9fe4bf7c053757257ccf",
   "gitSha": "23f98d3a206c12a975de9fe4bf7c053757257ccf",
   "cmd": "pnpm uc018:sole:prove",
@@ -26,6 +26,7 @@
       "imageDigest": "not-started",
       "started": false,
       "source": "log-parse",
+      "liveObservation": false,
       "cite": {
         "note": "no E2E isolated PostgreSQL banner — prove did not start disposable PG"
       },
@@ -35,6 +36,7 @@
       "imageDigest": "not-started",
       "started": false,
       "source": "log-parse",
+      "liveObservation": false,
       "cite": {
         "note": "isolated e2e / sole static do not start redis:7-alpine (compose.dev declares it; not used by these proves)"
       },
@@ -44,6 +46,7 @@
       "imageDigest": "not-started",
       "started": false,
       "source": "log-parse",
+      "liveObservation": false,
       "cite": {
         "compose": "docker/compose.dev.yml:36 image: minio/minio:latest",
         "note": "declared in compose.dev but run-e2e-isolated does not start minio; log has no minio"
@@ -54,6 +57,7 @@
       "imageDigest": "not-started",
       "started": false,
       "source": "log-parse",
+      "liveObservation": false,
       "cite": {
         "compose": "docker/compose.dev.yml:54 image: mailhog/mailhog:v1.0.1",
         "note": "declared in compose.dev but run-e2e-isolated does not start mailhog; log has no mailhog"
@@ -64,7 +68,7 @@
   "stack": {
     "postgres": {
       "value": true,
-      "source": "log-parse",
+      "source": "static-doc",
       "logFile": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/SOLE-23f98d3.log",
       "line": 66,
       "regex": "PASS\\\\s+adr-postgres-retained:\\\\s+names Postgres",
@@ -72,7 +76,7 @@
     },
     "postgresSaver": {
       "value": true,
-      "source": "log-parse",
+      "source": "static-doc",
       "logFile": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/SOLE-23f98d3.log",
       "line": 68,
       "regex": "PASS\\\\s+adr-postgres-retained:\\\\s+pins PostgresSaver",
@@ -84,7 +88,7 @@
     },
     "mysql": {
       "value": false,
-      "source": "log-parse",
+      "source": "static-doc",
       "logFile": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/SOLE-23f98d3.log",
       "line": 70,
       "regex": "PASS\\\\s+adr-postgres-retained:\\\\s+Ban MySQL business cutover",
@@ -92,7 +96,7 @@
     },
     "qdrant": {
       "value": false,
-      "source": "log-parse",
+      "source": "static-doc",
       "logFile": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/SOLE-23f98d3.log",
       "line": 69,
       "regex": "PASS\\\\s+adr-postgres-retained:\\\\s+Ban Qdrant-as-required-vector",
@@ -123,10 +127,10 @@
   "coveredCountRetained": 8,
   "soleStack": {
     "value": "Postgres+pgvector+PostgresSaver",
-    "source": "log-parse",
+    "source": "static-doc",
     "logFile": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/SOLE-23f98d3.log",
-    "note": "derived from adr-postgres-retained PASS lines; Ban invent without log markers"
+    "note": "ADR pins in static sole prove; unwrapStackValue rejects static-doc as runtime MET"
   },
-  "reemittedAt": "2026-09-24T04:50:34.990Z",
-  "reemitNote": "format upgrade: sourced stack + imageDigest fields from committed log; prove not re-run"
+  "reemittedAt": "2026-10-03T03:52:18.529Z",
+  "reemitNote": "format upgrade: static-doc stack + prior-docker-inspect digests from committed log; prove not re-run; wrapperSha=tip emitter (≠ prove-wave 7433807)"
 }

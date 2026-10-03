@@ -5,7 +5,7 @@
   "emittedBy": "uc018-receipt-backfill-emit",
   "ranAt": "2026-09-24T04:36:13.284Z",
   "targetSha": "e88d386ea946918668d8e073edc7f33521fe33d9",
-  "wrapperSha": "61c3fcb62efed6c176a2a13da58f6b95d1759aee",
+  "wrapperSha": "00d53ed299e3db252486ac5ce1c4790adde69979",
   "runnerCommitSha": "e88d386ea946918668d8e073edc7f33521fe33d9",
   "gitSha": "e88d386ea946918668d8e073edc7f33521fe33d9",
   "cmd": "pnpm uc018:ui:prove",
@@ -25,18 +25,21 @@
     "pgvector/pgvector:pg16": {
       "imageDigest": "sha256:ccc6e83d6e35e931dc7c5def2022729d5a6c370318d099181995567ff1fb4d6b",
       "started": true,
-      "source": "docker-inspect",
+      "source": "prior-docker-inspect",
+      "liveObservation": false,
       "cite": {
         "logLine": 35,
         "matched": "E2E isolated PostgreSQL: meetwise-e2e-1852154-1790224576927 on 127.0.0.1:33015",
         "note": "run-e2e-isolated disposable PG (not docker/compose.dev.yml minio/mailhog)"
       },
-      "logFile": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/UI-e88d386.log"
+      "logFile": "ai-docs/delivery/receipts/uc018-receipt-backfill/logs/UI-e88d386.log",
+      "priorCapturedAt": "2026-09-24T04:36:13.284Z"
     },
     "redis:7-alpine": {
       "imageDigest": "not-started",
       "started": false,
       "source": "log-parse",
+      "liveObservation": false,
       "cite": {
         "note": "isolated e2e / sole static do not start redis:7-alpine (compose.dev declares it; not used by these proves)"
       },
@@ -46,6 +49,7 @@
       "imageDigest": "not-started",
       "started": false,
       "source": "log-parse",
+      "liveObservation": false,
       "cite": {
         "compose": "docker/compose.dev.yml:36 image: minio/minio:latest",
         "note": "declared in compose.dev but run-e2e-isolated does not start minio; log has no minio"
@@ -56,6 +60,7 @@
       "imageDigest": "not-started",
       "started": false,
       "source": "log-parse",
+      "liveObservation": false,
       "cite": {
         "compose": "docker/compose.dev.yml:54 image: mailhog/mailhog:v1.0.1",
         "note": "declared in compose.dev but run-e2e-isolated does not start mailhog; log has no mailhog"
@@ -111,6 +116,6 @@
   "releaseEvidence": false,
   "claimProductionHA": false,
   "coveredCountRetained": 8,
-  "reemittedAt": "2026-09-24T04:50:35.414Z",
-  "reemitNote": "format upgrade: sourced stack + imageDigest fields from committed log; prove not re-run"
+  "reemittedAt": "2026-10-03T03:52:18.940Z",
+  "reemitNote": "format upgrade: static-doc stack + prior-docker-inspect digests from committed log; prove not re-run; wrapperSha=tip emitter (≠ prove-wave 7433807)"
 }
