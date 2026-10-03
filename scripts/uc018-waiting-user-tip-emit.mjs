@@ -296,7 +296,7 @@ const receipt = {
   originTipDrift: {
     observedOriginTip: originTipAtRun,
     headProved: HEAD,
-    headIsOriginTipAtRun,
+    headIsOriginTipAtRun: headIsOriginTip,
     note: 'Observed honestly, not asserted: origin ref had advanced past the coordinator-authorized baseline (3d7063f) at execution time (concurrent lines). This run proves at this line branch tip at execution (built on the authorized baseline); no historical prove tip was substituted.',
   },
   pins: {
@@ -368,5 +368,5 @@ console.log(JSON.stringify({
   gitSha: HEAD, runnerCommitSha: HEAD, targetSha: HEAD, wrapperSha: HEAD,
   exit: aggregateExit, exits: receipt.exits, historicalTip: false,
   evidenceOfRecord: false, evidenceKind: receipt.evidenceKind,
-  originTipAtRun, headIsOriginTipAtRun,
+  originTipAtRun, headIsOriginTipAtRun: headIsOriginTip,
 }, null, 2));
