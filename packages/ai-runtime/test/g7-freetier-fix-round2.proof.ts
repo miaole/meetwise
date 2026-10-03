@@ -236,8 +236,8 @@ async function main() {
     {
       const client = openAICompatibleClient({ costPolicy: basePolicy() });
       const res = await client.complete(req, 1);
-      A('dispatch failure returns non-ok (or throws)', res.ok === false || true);
-      // complete may return ok:false or throw depending on error class; either way reservation must release
+      A('dispatch failure returns non-ok (or throws)', res.ok === false);
+      // must return ok:false (a throw fails the process; not treated as pass). reservation must still release
     }
     const post = inspectG7SharedLedger(process.env);
     A(
