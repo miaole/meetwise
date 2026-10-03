@@ -2,7 +2,7 @@
 
 **Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs only · Ban product implementation · Ban live calls）
 **Date**: 2026-10-02 (PT)
-**Base / parent tip**: `origin/feat/mysql-schema-skeleton` · `60cb927`
+**Base / parent tip**: `origin/feat/mysql-schema-skeleton` · `52815fb1b81b2401dc01b88d700101283d2f137b`
 **Knife**: **MODEL-OP spend-ledger offline I2**
 **Experts**: `mw-model-op` + `mw-e2e-ha`（stubs PENDING · Ban self-approve）
 
