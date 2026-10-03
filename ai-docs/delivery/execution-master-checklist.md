@@ -565,3 +565,13 @@ flowchart TD
 - Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
 - This commit does not pre-claim the post-commit EXIT of `pnpm eval-harness-matrix-cite:prove`. A green cite does not authorize a flip and does not flip UC-018.
 - The A' and C' sections above stay as written. Line F and sibling sections stay intact. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+### UC-018 flip-ban honesty FINAL NAIL（2026-10-02 SSOT nail · `post_prove_dual_pass` · flip stays banned）
+
+- [x] **`post_prove_dual_pass`** · **FINAL NAIL** recorded for flip-ban honesty docs only. Post-prove dual already issued and confirmed on origin. Both commits reviewed nail `ad37bbb` / `ad37bbb3115e5836f79c9b2c4dde0420e250de61`: mw-rag-route `866d2f9` / `866d2f9f2a4650cf8f0a5aa360187840db28fb24` · mw-e2e-ha `5b6e693` / `5b6e693e5e8b253da6c889a46aee331a8a6f5ccd`. Implementer does not self-approve. This is not a flip. Do not authorize a flip.
+- [ ] UC-018 stays **partial**. §1.1 stays **partial**. `canHonestlyFlip` stays false. coveredCount=8.
+- Ban editing `scripts/lib/uc-covered-evaluator.mjs`. Ban changing historical `ai-docs/delivery/receipts/uc018-receipt-backfill/UI.json` exit 1 at `e88d386` / `e88d386ea946918668d8e073edc7f33521fe33d9` into 0. Ban UC-052 edits.
+- Do not write covered. Do not flip UC-052. UC-052 stays **partial**.
+- Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+- This commit does not pre-claim the post-commit EXIT of `pnpm eval-harness-matrix-cite:prove`. A green cite does not authorize a flip and does not flip UC-018.
+- The earlier D' `post_pre_exec_dual_pass` section above stays as written. A' and C' sections stay as written. Line F and sibling sections stay intact. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.

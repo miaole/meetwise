@@ -1,6 +1,6 @@
-# Slice — **UC-018 flip-ban honesty**（docs REQUEST · **`post_pre_exec_dual_pass`**）
+# Slice — **UC-018 flip-ban honesty**（docs REQUEST · **`post_prove_dual_pass`** · **FINAL NAIL**）
 
-**Status**: **`post_pre_exec_dual_pass`**
+**Status**: **`post_prove_dual_pass`** · **FINAL NAIL**（honesty docs only · not a flip）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-02 (~22:00 PT)
 **Base**: `origin/feat/mysql-schema-skeleton` · `58c003156c3fc69505ecb3daa2e3dad25f4a6dfc`
@@ -18,7 +18,7 @@ Honesty only: a UC-018 flip is still banned. `canHonestlyFlip=false`. Local PERF
 | Dual `mw-e2e-ha` | `reviews/REQUEST-2026-10-02-uc018-flip-ban-honesty-mw-e2e-ha.md` |
 | Dual `mw-rag-route` | `reviews/REQUEST-2026-10-02-uc018-flip-ban-honesty-mw-rag-route.md` |
 
-*Slice · UC-018 flip-ban honesty · post_pre_exec_dual_pass · STOP*
+*Slice · UC-018 flip-ban honesty · post_prove_dual_pass · FINAL NAIL · flip banned · STOP*
 ## Post pre-exec dual
 
 **Status**: **`post_pre_exec_dual_pass`**. Flip stays banned. This PASS is not a future flip-knife dual. Implementer does not self-approve.
@@ -30,3 +30,15 @@ Dual: mw-rag-route `83fd6d0edb7ea12ba979bbab776344674c64c590` · mw-e2e-ha `5cf3
 Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
 
 *Slice nail · UC-018 flip-ban · post_pre_exec_dual_pass · flip banned · STOP*
+
+## FINAL NAIL
+
+**Status**: **`post_prove_dual_pass`**. **FINAL NAIL** for these honesty docs only. Flip stays banned. This is not a flip. Implementer does not self-approve.
+
+Post-prove dual reviewed nail `ad37bbb3115e5836f79c9b2c4dde0420e250de61`: mw-rag-route `866d2f9f2a4650cf8f0a5aa360187840db28fb24` · mw-e2e-ha `5b6e693e5e8b253da6c889a46aee331a8a6f5ccd`.
+
+`canHonestlyFlip` stays false. coveredCount=8. UC-018 and §1.1 stay **partial**. Ban editing the evaluator. Ban changing historical UI.json exit 1 at `e88d386` into 0. Ban UC-052 edits. Do not authorize a flip. Do not write covered.
+
+Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+
+*Slice FINAL NAIL · UC-018 flip-ban · post_prove_dual_pass · flip banned · STOP*
