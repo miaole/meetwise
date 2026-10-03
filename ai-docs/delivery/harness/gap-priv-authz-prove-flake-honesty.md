@@ -66,3 +66,16 @@ Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR4
 Sections above this heading stay as the REQUEST wrote them, except the status phrase, which this nail sets to `post_pre_exec_dual_pass`. A green cite of this nail does not close the gap and does not flip UC-018.
 
 *Nail · GAP-PRIV-AUTHZ-PROVE-FLAKE · post_pre_exec_dual_pass · OPEN mitigated/cause-unknown · STOP*
+
+## Oneshot attempt 1（2026-10-02 ~22:27 PT · docs supplement · not a close）
+
+**attempt=1**. Command `pnpm privacy-authorization:prove` ran once. No second run. Ban retry-to-green.
+
+- prove SHA (pre-commit HEAD, before this supplement): `5b6e693e5e8b253da6c889a46aee331a8a6f5ccd`
+- shell EXIT: **0**
+- receipt: `ai-docs/delivery/receipts/gap-priv-authz-prove-flake/oneshot-attempt-1.json`
+- log: `ai-docs/delivery/receipts/gap-priv-authz-prove-flake/oneshot-attempt-1.log`
+
+`GAP-PRIV-AUTHZ-PROVE-FLAKE` stays **OPEN**, mitigated/cause-unknown. Not fixed. Not closed. Not root-caused. One green is not a close. cause remains unknown. This supplement does not edit product code, does not touch UC-052 product files, and does not edit the three SSOT files.
+
+*Oneshot · attempt=1 · EXIT=0 · GAP-PRIV-AUTHZ-PROVE-FLAKE stays OPEN · mitigated/cause-unknown · STOP*
