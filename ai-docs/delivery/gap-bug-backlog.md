@@ -257,3 +257,14 @@
 - This commit does not pre-claim the post-commit EXIT of `pnpm eval-harness-matrix-cite:prove`. A green cite does not close A3 and does not flip any row.
 - The A' GAP-PRIV-AUTHZ-PROVE-FLAKE honesty section above stays as written (gap stays OPEN). Line F / E / H / G sections stay intact. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
 - Evidence: `reviews/REQUEST-2026-10-02-gap-uc004-fail-a3-nhp-mw-rag-route.md` · `reviews/REQUEST-2026-10-02-uc004-fault-pre-mw-e2e-ha.md` · `harness/gap-uc004-fail-a3-nhp.md` · `gap-uc004-fail-a3-nhp.slice.md`.
+### UC-018 flip-ban honesty（2026-10-02 SSOT nail · `post_pre_exec_dual_pass` · flip stays banned）
+
+- **UC-018 flip-ban honesty** · docs-nail status **`post_pre_exec_dual_pass`**. `canHonestlyFlip` stays false. This PASS is not a future flip-knife dual. Do not authorize a flip. Implementer does not self-approve.
+- Dual PASS on origin `feat/mysql-schema-skeleton` (both commits confirmed ancestors before this nail): mw-rag-route `83fd6d0` / `83fd6d0edb7ea12ba979bbab776344674c64c590` · mw-e2e-ha `5cf384d` / `5cf384df1e81929ff95d999157667932fb2c29ce`.
+- Base REQUEST `98b951e` / `98b951e73c564c3b03bc175789cffe0559538186`.
+- UC-018 stays **partial**. §1.1 stays **partial**. coveredCount=8. Ban editing `scripts/lib/uc-covered-evaluator.mjs`. Ban changing historical `ai-docs/delivery/receipts/uc018-receipt-backfill/UI.json` exit 1 at `e88d386` / `e88d386ea946918668d8e073edc7f33521fe33d9` into 0.
+- Do not write covered. Do not flip UC-052. UC-052 stays **partial**.
+- Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+- This commit does not pre-claim the post-commit EXIT of `pnpm eval-harness-matrix-cite:prove`. A green cite does not authorize a flip and does not flip UC-018.
+- The A' and C' sections above stay as written. Line F / E / H / G sections stay intact. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+- Evidence: `reviews/REQUEST-2026-10-02-uc018-flip-ban-honesty-mw-rag-route.md` · `reviews/REQUEST-2026-10-02-uc018-flip-ban-pre-mw-e2e-ha.md` · `harness/uc018-flip-ban-honesty.md` · `uc018-flip-ban-honesty.slice.md`.

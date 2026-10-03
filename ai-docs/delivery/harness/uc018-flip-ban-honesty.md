@@ -1,6 +1,6 @@
-# Harness — **UC-018 flip-ban honesty**（docs REQUEST · **`draft:awaiting_pre_exec_dual`** · flip still banned）
+# Harness — **UC-018 flip-ban honesty**（docs REQUEST · **`post_pre_exec_dual_pass`** · flip still banned）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban self-approve · Ban a flip · Ban editing the evaluator · this commit is not coding authorization）
+**Status**: **`post_pre_exec_dual_pass`**（L0 docs REQUEST only · Ban self-approve · Ban a flip · Ban editing the evaluator · this commit is not coding authorization）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-02 (~22:00 PT)
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`58c0031`** / full `58c003156c3fc69505ecb3daa2e3dad25f4a6dfc`
@@ -38,4 +38,24 @@ From `e2e-requirement-coverage-matrix.md` §1.0.1 `UC-E2E-018`, the covered-crit
 
 NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=**8** · ms3EqualsR4Closed=false · PG-retained · public DELETE stays **503** · flip banned · STOP
 
-*Harness · UC-018 flip-ban honesty · draft:awaiting_pre_exec_dual · STOP*
+*Harness · UC-018 flip-ban honesty · post_pre_exec_dual_pass · STOP*
+## Post pre-exec dual（2026-10-02 nail · flip stays banned）
+
+**Status**: **`post_pre_exec_dual_pass`**. This PASS is not a future flip-knife dual. It does not authorize a flip. Implementer does not self-approve.
+
+Dual PASS on origin `feat/mysql-schema-skeleton` (both commits confirmed ancestors before this nail):
+
+- mw-rag-route `83fd6d0` / `83fd6d0edb7ea12ba979bbab776344674c64c590` · `reviews/REQUEST-2026-10-02-uc018-flip-ban-honesty-mw-rag-route.md`
+- mw-e2e-ha `5cf384d` / `5cf384df1e81929ff95d999157667932fb2c29ce` · `reviews/REQUEST-2026-10-02-uc018-flip-ban-pre-mw-e2e-ha.md`
+
+Base REQUEST `98b951e` / `98b951e73c564c3b03bc175789cffe0559538186`.
+
+`canHonestlyFlip` stays false. coveredCount=8. UC-018 stays **partial**. §1.1 stays **partial**.
+
+Ban editing `scripts/lib/uc-covered-evaluator.mjs`. Ban changing historical `ai-docs/delivery/receipts/uc018-receipt-backfill/UI.json` exit 1 at `e88d386` / `e88d386ea946918668d8e073edc7f33521fe33d9` into 0. Do not write covered. Do not flip UC-052. UC-052 stays **partial**.
+
+Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+
+Sections above this heading stay as the REQUEST wrote them, except the status phrase, which this nail sets to `post_pre_exec_dual_pass`. A green cite does not authorize a flip and does not flip UC-018.
+
+*Nail · UC-018 flip-ban honesty · post_pre_exec_dual_pass · canHonestlyFlip=false · STOP*
