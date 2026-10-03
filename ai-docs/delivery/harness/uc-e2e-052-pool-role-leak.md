@@ -17,7 +17,7 @@
 
 | ID | Class | Goal |
 |----|-------|------|
-| **GAP-UC052-POOL-ROLE-LEAK** | PRODUCT · OPEN | Fix `PrincipalBoundCheckpointPool` session `SET ROLE` + `set_config(..., false)` without RESET（`apps/worker/src/checkpoint-principal.ts` **L51–54** verified）。Merge `GAP-PRIV-SAVER-POOL-ROLE-ISOLATION`. Direction: `SET LOCAL` inside txn **or** `RESET ROLE` + clear GUCs on release. Prove: reuse pooled connection after principal path → **no** role/config bleed. |
+| **GAP-UC052-POOL-ROLE-LEAK** | PRODUCT · **CLOSED** | Closed by nail **`119d6c0`**: `pnpm uc052:pool-role-leak:prove` EXIT=0 (`gitSha=119d6c08d96fcfe6858c6686f76c9aac2d612eb2`); coding prove **`9b39a20`** range-diff-equal to code **`ab96a02`**. The pool release path uses `SET ROLE NONE`, clears the three principal GUCs, and destroys the connection if reset throws. UC-052 remains **partial**, **≠ covered**, coveredCount **8**. |
 | **NOTE-CKPT-UNSEALED-CLAIM-NEG** | prove honesty | **CLOSED** by nail **`119d6c0`**: `packages/db/test/uc052-checkpoint-physical.proof.ts` cases **NHP-CKPT-UNSEALED-NEG-EPOCH** L763, **NHP-CKPT-UNSEALED-NEG-DIGEST** L768, **NHP-CKPT-UNSEALED-NEG-BOTH** L773, and sealed **HP-CKPT-SEALED-CLAIM** header L778 / case L780 through assertion L804; SQLSTATE **42501** check L750; DB guard `packages/db/migrations/0091_privacy_authorization_issuer.sql` L369–373. |
 | **GAP-PRIV-AUTHZ-PROVE-FLAKE** | e2e honesty | Root-cause `pnpm privacy-authorization:prove` first-run flake（e2e-ha @`69de818`: attempt#1 EXIT=1 `ECONNREFUSED` · attempt#2 EXIT=0）. **Record every attempt**. **Ban retry-to-green** as evidence. |
 
