@@ -308,6 +308,18 @@
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
 - The A' oneshot-disagreement paragraph above stays as written. Sibling sections D' `e0842d0`, C' `0652a08`, B' `e57d0cc`, and Line F stay. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
 
+### B'' GAP-UC025-NEG-01 real wiring NAIL（2026-10-03 SSOT nail · `post_prove_dual_pass` · **CLOSED（wired）** · row stays gap）
+
+- **GAP-UC025-NEG-01** · **CLOSED（wired）** by this B'' nail. Real product wiring landed and dual-verified; this section supersedes the `stays OPEN` status recorded by the prior sections above (their text stays as history). Implementer does not self-approve; the close is dual-signed (mw-rag-route + mw-e2e-ha).
+- REQUEST `8084f09` / `8084f0948aa86dcba09771ca141288ee918c9aa0`（docs-only REQUEST，与分支 `cfc0c28` 同文）. Pre-exec dual PASS: mw-rag-route `8613a3a` + mw-e2e-ha `36f583a`; coding+prove was coordinator-authorized on that dual (harness `harness/gap-uc025-neg-real-wiring.md` standing authorize §3⑤).
+- Real wiring commit `6cbaf04` / `6cbaf04e14f405670d80a3e3e5f5a38ffd74528e`（author mw-core；nail 分支 cherry-pick `bb97e83`，tree 与已审 commit 逐字节一致）: `interview.controller.ts` begin 真收可选 `quiz-id` header；`interview.service.ts:179` `begin(principal, id, resumeId, requestId?, sourceQuizId?)` owner-scoped（RLS `asPrincipal` + `owner_user_id=$2`）真消费 `resume_quiz` 工件，并在 `interview.service.ts:209` 抛唯一 `stale_quiz` HttpException **409 CONFLICT** —— 先于 `reserveEntitlement` 扣额度与 `enqueueInterviewJob` 入队，无局部 catch 吞；不带 quiz 工件的 begin 行为与接线前一致（rag C-6）。新鲜度锚点走新增非破坏迁移 `packages/db/migrations/0135_resume_quiz_freshness_anchor.sql`（ADD COLUMN IF NOT EXISTS，无 DROP，`0007` 未动）+ `packages/db/sql/20_resume_quiz.sql` 重放镜像同列；worker `quiz-lifecycle.ts` ready CAS 同事务写 `expires_at = now()+QUIZ_FRESH_TTL_MS(7d)`。
+- Proof `apps/api/test/uc-e2e-025-nhp-neg.proof.mjs` **一字未改**（dual 双区间 0 字节 diff 实证）。Prove 契约两个方向都成立：接线前 `pnpm uc025:nhp-neg:prove` **EXIT 1** @ `cfc0c28`（未接线标记）；接线后同一未改 proof **EXIT 0** @ `6cbaf04`（`acceptsQuiz=true · realStaleReject=true` · attempts=1，无重试无 wash）。Receipts: `receipts/uc-e2e-025-nhp/2026-10-03-uc025-nhp-neg-pre-wiring-prove.md` · `receipts/uc-e2e-025-nhp/2026-10-03-uc025-nhp-neg-real-wiring-prove.md`（commit `6e5252a`，nail 分支 `950c95f`）。
+- Post-prove dual PASS，双方各自 fresh re-run 恰好一次（EXIT=0）并判 6/6 条件 MET、无 Blockers: mw-rag-route `a2519e0`（nail 分支 `4fff517`）· mw-e2e-ha `62683e6`（nail 分支 `7411693`）。
+- **≠ covered**: UC-E2E-025 行所有列保持 **gap**（FAULT / BOUND / ADV not run，ADV blind）。coveredCount 保持 **8**。本节不改任何行状态列，只记录 NEG 接线关闭。
+- Residuals（开放但非本缺口）: `packages/contracts` 未登记 `stale_quiz` token（`contracts_stale_token=false` 为 proof 诚实读数，后续 HTTP 断言如需登记须另立 REQUEST）；新鲜度窗口 `QUIZ_FRESH_TTL_MS=7d` 为产品决策常量，留痕于 `apps/worker/src/quiz-lifecycle.ts:17`。
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+- Sibling sections stay. This section does not change the UC-018 row, the UC-052 row, the UC-004 row, or the `GAP-PRIV-AUTHZ-PROVE-FLAKE` row.
+
 ### GAP-PRIV-AUTHZ-PROVE-FLAKE FINAL HONEST CLOSE（2026-10-02 SSOT note · `post_prove_dual_pass` · docs only · gap stays OPEN）
 
 - **GAP-PRIV-AUTHZ-PROVE-FLAKE** · docs-status **`post_prove_dual_pass`** · **FINAL HONEST CLOSE** for the documents only. This is not a gap close. Implementer does not self-approve.

@@ -604,6 +604,18 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
 - The A' oneshot-disagreement section above stays as written. Sibling sections stay. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
 
+### B'' GAP-UC025-NEG-01 real wiring NAIL（2026-10-03 SSOT nail · `post_prove_dual_pass` · CLOSED（wired） · row stays gap）
+
+- [x] **`post_prove_dual_pass`** · **NAIL** recorded: **GAP-UC025-NEG-01 CLOSED（wired）**. Real product wiring landed and dual-verified. Implementer does not self-approve; the close is dual-signed. Not a covered flip.
+- REQUEST `8084f09`（docs，同 `cfc0c28` 文）· pre-exec dual PASS mw-rag-route `8613a3a` + mw-e2e-ha `36f583a` · coding+prove 由协调方在该 dual 上授权（harness `harness/gap-uc025-neg-real-wiring.md` §3⑤ standing authorize）。
+- Wiring commit `6cbaf04`（nail 分支 `bb97e83`，tree 与已审 commit 逐字节一致）: `interview.controller.ts` begin 真收可选 `quiz-id` header → `interview.service.ts:179` 五参 `begin(..., sourceQuizId?)`，owner-scoped（RLS + `owner_user_id=$2`）真消费 `resume_quiz`，`stale_quiz` 409 CONFLICT 唯一抛出点 `interview.service.ts:209`，先于 `reserveEntitlement`/`enqueueInterviewJob`，无局部 catch 吞；无 quiz 工件的 begin 行为不变。锚点：新增非破坏迁移 `0135_resume_quiz_freshness_anchor.sql` + `sql/20_resume_quiz.sql` 镜像；worker ready CAS 写 `expires_at=now()+7d`。`0007` 未动；proof `uc-e2e-025-nhp-neg.proof.mjs` 0 字节 diff。
+- Prove `pnpm uc025:nhp-neg:prove`: 接线前 **EXIT 1** @ `cfc0c28` · 接线后 **EXIT 0** @ `6cbaf04`（`acceptsQuiz=true · realStaleReject=true` · attempts=1 · 无 wash）。Receipts `receipts/uc-e2e-025-nhp/2026-10-03-uc025-nhp-neg-pre-wiring-prove.md` + `...-real-wiring-prove.md`（`6e5252a`/nail `950c95f`）。
+- Post-prove dual PASS，双方 fresh re-run EXIT=0、6/6 条件 MET、无 Blockers: mw-rag-route `a2519e0`（nail `4fff517`）· mw-e2e-ha `62683e6`（nail `7411693`）。
+- [ ] UC-E2E-025 row stays **gap**（FAULT/BOUND/ADV not-run · ADV blind）. coveredCount stays **8**. Not UC-018. Not UC-052. Not UC-004. Not the flake row.
+- Residuals: `packages/contracts` 未登记 stale token（如需另立 REQUEST）· TTL=7d 为产品决策留痕（`quiz-lifecycle.ts:17`）。
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+- Nail tip = 本 commit（branch `line/b2-nail`，以 FF 推至 `feat/mysql-schema-skeleton`；禁 force push）。
+
 ### GAP-PRIV-AUTHZ-PROVE-FLAKE FINAL HONEST CLOSE（2026-10-02 SSOT note · `post_prove_dual_pass` · docs only · gap stays OPEN）
 
 - [x] **`post_prove_dual_pass`** · **FINAL HONEST CLOSE** recorded for the documents only. This is not a gap close. Implementer does not self-approve.
