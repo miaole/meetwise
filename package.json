@@ -148,6 +148,8 @@
     "uc025:nhp-neg:prove": "node apps/api/test/uc-e2e-025-nhp-neg.proof.mjs",
     "uc004:career-path:prove": "node scripts/run-e2e-isolated.mjs uc004:career-path:prove:raw",
     "uc004:career-path:prove:raw": "pnpm -C apps/api prove:uc004-career-path",
+    "uc004:career-path-fault:prove": "node scripts/run-e2e-isolated.mjs uc004:career-path-fault:prove:raw",
+    "uc004:career-path-fault:prove:raw": "pnpm -C apps/api prove:uc004-career-path-fault",
     "uc028:trace-fail-open:prove": "node scripts/run-e2e-isolated.mjs uc028:trace-fail-open:prove:raw",
     "uc028:trace-fail-open:prove:raw": "pnpm -C apps/api prove:uc028-trace-fail-open",
     "uc027:manual-review-appeal:prove": "node scripts/run-e2e-isolated.mjs uc027:manual-review-appeal:prove:raw",
