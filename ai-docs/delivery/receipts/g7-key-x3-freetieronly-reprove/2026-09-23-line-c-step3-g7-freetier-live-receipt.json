@@ -3,8 +3,8 @@
   "line": "C",
   "step": 3,
   "kind": "g7-freetier-reprove-post-mw-model-op-fail-fix-round-offline",
-  "tipShaShort": "82981ff",
-  "tipShaFull": "82981ff1f5798f44a40b564031d532f94c842e4d",
+  "tipShaShort": "05cb79f",
+  "tipShaFull": "05cb79f6d687a693d8b6a44d20d7cf1e25cfaa5d",
   "keyFingerprint": "d26808ef",
   "actualSpendCny": null,
   "consoleSpendReadCny": 0,
@@ -66,7 +66,7 @@
   ],
   "ccConfirmed": false,
   "ccNote": "C-C separated but OPEN: perf dies at steps[3] on the provenance assertion; SLO unconfirmed. Not claimed green.",
-  "offlineProvesAtCodeSha": "82981ff1f5798f44a40b564031d532f94c842e4d",
+  "offlineProvesAtCodeSha": "05cb79f6d687a693d8b6a44d20d7cf1e25cfaa5d",
   "integration": [
     {
       "cmd": "pnpm -C packages/ai-runtime prove:g7-freetier-reprove-guard",
@@ -78,6 +78,10 @@
     },
     {
       "cmd": "pnpm -C packages/ai-runtime prove:g7-freetier-reprove-paths",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C packages/ai-runtime prove:g7-freetier-fix-round2",
       "exit": 0
     },
     {
@@ -95,13 +99,16 @@
     {
       "cmd": "pnpm -C apps/worker prove:nhp-r4-adv-covered",
       "exit": 1,
-      "note": "offline skip: requires E2E_ISOLATED/PG; not_run as covered NHP"
+      "status": "PINNED_EXPECTED_FAIL",
+      "reason": "COVERED_PATH_GAP: refuse fake-green with in-memory-only; requires E2E_ISOLATED via run-e2e-isolated (or DATABASE_URL/full PG*). skip≠pass; ≠R4 closed; ≠covered; ≠HA; releaseEvidence=false. Not reduced to \"needs PG\"."
     }
   ],
   "tsc": {
     "packages/ai-runtime": {
-      "errorCount": 14,
-      "note": "pre-existing outside G7/context-budget/interceptor; our touched G7 files clean (was 17 incl. RequestInfo, now 14)"
+      "before": 14,
+      "after": 14,
+      "newErrors": 0,
+      "note": "baseline recorded before FR2; ai-runtime new errors = 0"
     },
     "apps/web": {
       "errorCount": 0
@@ -212,5 +219,145 @@
   },
   "evidenceLabel": "free-tier model; not production-model evidence; not perf SLO evidence; FreeTierOnly residual CLOSED ≠ G7 green",
   "ssot": "ai-docs/delivery/receipts/g7-key-x3-freetieronly-reprove/2026-09-23-line-c-step3-g7-freetier-live-receipt.json",
-  "stop": true
+  "stop": "STOP — offline FR2 only; no live model/paid/e2e:isolated live trio; no nail; FreeTierOnly not CLOSED in SSOT",
+  "fixRound": 2,
+  "parentCodeShaFull": "82981ff1f5798f44a40b564031d532f94c842e4d",
+  "g7HardDisabledTrioSteps": [
+    {
+      "capability": "embed",
+      "status": "not_run",
+      "reason": "g7_hard_disabled"
+    },
+    {
+      "capability": "rerank",
+      "status": "not_run",
+      "reason": "g7_hard_disabled"
+    },
+    {
+      "capability": "asr",
+      "status": "not_run",
+      "reason": "g7_hard_disabled"
+    },
+    {
+      "capability": "tts",
+      "status": "not_run",
+      "reason": "g7_hard_disabled"
+    },
+    {
+      "capability": "asr_stream",
+      "status": "not_run",
+      "reason": "g7_hard_disabled"
+    },
+    {
+      "capability": "tts_stream",
+      "status": "not_run",
+      "reason": "g7_hard_disabled"
+    }
+  ],
+  "gapEvidence": {
+    "script": "scripts/g7-freetier/redact-gap-evidence.mjs",
+    "idempotent": true,
+    "proveIdempotentCmd": "node scripts/g7-freetier/redact-gap-evidence.mjs --prove-idempotent",
+    "proveIdempotentExit": 0,
+    "digests": [
+      {
+        "raw": "GAP-G7-E2E-PROVENANCE-CLARIFICATION-IDENTITY-COUNT.raw.txt",
+        "redacted": "GAP-G7-E2E-PROVENANCE-CLARIFICATION-IDENTITY-COUNT.redacted.txt",
+        "rawSha256": "8f7867b00e1946cc611807d46b449b56077e1e43f0bc11bb5daf65a826a503fc",
+        "redactedSha256": "8f7867b00e1946cc611807d46b449b56077e1e43f0bc11bb5daf65a826a503fc",
+        "bytesRaw": 484,
+        "bytesRedacted": 484
+      },
+      {
+        "raw": "GAP-G7-E2E-REPORT-MAX-ATTEMPTS.raw.txt",
+        "redacted": "GAP-G7-E2E-REPORT-MAX-ATTEMPTS.redacted.txt",
+        "rawSha256": "6cf5028c175ca6ceeed80164284a6a0a4e4b77eafda0ddf57f697e58300e01d3",
+        "redactedSha256": "6cf5028c175ca6ceeed80164284a6a0a4e4b77eafda0ddf57f697e58300e01d3",
+        "bytesRaw": 353,
+        "bytesRedacted": 353
+      },
+      {
+        "raw": "GAP-G7-E2E-UI-APPLICATION-START-409.raw.txt",
+        "redacted": "GAP-G7-E2E-UI-APPLICATION-START-409.redacted.txt",
+        "rawSha256": "505c7d12c91951d995e49bd2c5be883754c6cd0fd0b3dcc851b529263276b7fc",
+        "redactedSha256": "505c7d12c91951d995e49bd2c5be883754c6cd0fd0b3dcc851b529263276b7fc",
+        "bytesRaw": 467,
+        "bytesRedacted": 467
+      }
+    ]
+  },
+  "calibrationPath": {
+    "real": "planContextBudget",
+    "file": "packages/ai-runtime/src/model-client.ts",
+    "planContextBudgetLine": 215,
+    "assertCalibrationModelMatchLine": 224,
+    "prepareCallLine": 354,
+    "completeCallLine": 373,
+    "assert": "assertCalibrationModelMatch",
+    "note": "openAICompatibleClient.complete/prepare call planContextBudget — NOT only planDispatchBudget"
+  },
+  "interceptor": {
+    "covers": [
+      "fetch",
+      "WebSocket",
+      "node:http request/get (CJS)",
+      "node:https request/get (CJS)",
+      "ws package when present"
+    ],
+    "installedAt": [
+      "apps/api/src/main.ts via @meetwise/ai-runtime/g7-bootstrap",
+      "apps/worker/src/main.ts via @meetwise/ai-runtime/g7-bootstrap"
+    ],
+    "esmNamedHttpsNote": "voice.ts import { request as httpsRequest } from node:https is load-time snapshot; covered by assertG7UnguardedPathDisabled before use"
+  },
+  "nhpR4AdvCovered": {
+    "cmd": "pnpm -C apps/worker prove:nhp-r4-adv-covered",
+    "exit": 1,
+    "status": "PINNED_EXPECTED_FAIL",
+    "reason": "COVERED_PATH_GAP: real Postgres required for nhp-r4-adv-covered prove (C1 live wired). skip ≠ pass — refusing fake-green with in-memory-only. (not a vague needs-PG; offline Line C records expected fail with this exact reason)",
+    "note": "≠ R4 closed · ≠ covered · ≠ HA · releaseEvidence=false"
+  },
+  "offlineProves": [
+    {
+      "cmd": "pnpm -C packages/ai-runtime prove:g7-freetier-fix-round2",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C packages/ai-runtime prove:g7-freetier-reprove-guard",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C packages/ai-runtime prove:g7-freetier-reprove-client",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C packages/ai-runtime prove:g7-freetier-reprove-paths",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C packages/ai-runtime prove:context-budget",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C packages/ai-runtime prove:text-endpoint-config",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C apps/web prove:application-start-error",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C apps/worker prove:nhp-r4-adv-covered",
+      "exit": 1,
+      "pinned": "PINNED_EXPECTED_FAIL"
+    },
+    {
+      "cmd": "node scripts/g7-freetier/redact-gap-evidence.mjs --prove-idempotent",
+      "exit": 0
+    }
+  ],
+  "callChain": {
+    "calibration": "packages/ai-runtime/src/model-client.ts:215 planContextBudget → :224 assertCalibrationModelMatch; used from :354 prepare / :373 complete",
+    "bootstrap": "packages/ai-runtime/src/g7-bootstrap.ts:7 installG7OutboundInterceptor; apps/api/src/main.ts:2; apps/worker/src/main.ts:9"
+  }
 }
