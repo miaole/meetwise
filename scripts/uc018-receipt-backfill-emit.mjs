@@ -9,8 +9,18 @@
  *   --mode=reemit-from-log  rebuild JSON from EXISTING committed log (+ prior digests);
  *                           append attempts.jsonl; do not re-run prove
  *
+ * Authenticity (GAP-BACKFILL-EMITTER-UNAUTHENTICATED): every receipt this
+ * emitter writes carries `auth` = HMAC-SHA256 over a canonical serialization of
+ * the whole receipt (including stdoutDigest, which binds the log bytes), so a
+ * JSON+log pair cannot be forged by rewriting both files. Key source: process
+ * env UC018_RECEIPT_HMAC_KEY at run time — missing key fails closed (no receipt
+ * written). The key value is never logged and never committed; pre-HMAC
+ * receipts (no `auth`) verify as `unsigned-legacy` only when a consumer opts
+ * into requireAuth:false, and can be re-emitted signed via --mode=reemit-from-log.
+ *
  * Ban: tip run as substitute for old-SHA; retry-until-green; hand-written JSON;
- *      hardcoded stack facts without source.
+ *      hardcoded stack facts without source; committing the HMAC key or
+ *      reading it from .env*.
  */
 import { spawnSync, execSync } from 'node:child_process';
 import {
@@ -18,7 +28,8 @@ import {
 } from 'node:fs';
 import { join, resolve } from 'node:path';
 import {
-  EMITTED_BY, sha256File, validateMachineEmittedReceipt,
+  EMITTED_BY, HMAC_KEY_ENV, sha256File, validateMachineEmittedReceipt,
+  computeReceiptAuth,
 } from './lib/uc018-receipt-backfill-guard.mjs';
 import {
   parseStackFromLog,
@@ -61,6 +72,17 @@ const worktreeBase = resolve(arg('worktreeBase', '/workspace/meetwise-lineA-back
 
 if (!key || !targetSha || !cmd) {
   console.error('Usage: --key= --targetSha= --cmd=uc018:…:prove [--mode=prove|reemit-from-log]');
+  process.exit(2);
+}
+
+// HMAC key: process env only (fail closed). The value is never logged/committed;
+// receipts record only a non-reversible keyFingerprint for rotation tracking.
+const hmacKey = process.env[HMAC_KEY_ENV];
+if (typeof hmacKey !== 'string' || !hmacKey.length) {
+  console.error(
+    `FAIL-CLOSED: ${HMAC_KEY_ENV} is not set in the process environment — `
+    + 'refusing to emit an unsigned receipt (GAP-BACKFILL-EMITTER-UNAUTHENTICATED).',
+  );
   process.exit(2);
 }
 
@@ -137,7 +159,7 @@ function buildReceiptBody({
     evidenceOfRecord: true,
     implementerOnly: false,
     disclosure:
-      'EOR@targetSha ≠ proven at tip (code drift). Machine-emitted backfill at recorded ancestor SHA; Ban tip-substitution; Ban hand-write JSON from prose. GAP-BACKFILL-EMITTER-UNAUTHENTICATED: HMAC-free JSON+log digest pair is forgeable.',
+      'EOR@targetSha ≠ proven at tip (code drift). Machine-emitted backfill at recorded ancestor SHA; Ban tip-substitution; Ban hand-write JSON from prose. GAP-BACKFILL-EMITTER-UNAUTHENTICATED closed for this receipt: auth=HMAC-SHA256 over canonical receipt+log digest; receipts without auth are unsigned-legacy (their JSON+log pair remains forgeable until re-emitted).',
     waitingUser: 'MISSING-EVIDENCE',
     haStatus: 'NOT_HA',
     releaseEvidence: false,
@@ -166,8 +188,12 @@ function buildReceiptBody({
 }
 
 function finalizeReceipt(receipt, attemptExtra = {}) {
+  // Sign before writing: auth covers the whole receipt body incl. stdoutDigest.
+  receipt.auth = computeReceiptAuth(receipt, hmacKey);
   writeFileSync(outPath, JSON.stringify(receipt, null, 2) + '\n', 'utf8');
-  const v = validateMachineEmittedReceipt(receipt, { root: tipRoot });
+  // Verify what actually landed on disk (bytes, not the in-memory object).
+  const diskReceipt = JSON.parse(readFileSync(outPath, 'utf8'));
+  const v = validateMachineEmittedReceipt(diskReceipt, { root: tipRoot });
   recordAttempt(attemptsPath, {
     key,
     targetSha: targetFull,
@@ -176,11 +202,14 @@ function finalizeReceipt(receipt, attemptExtra = {}) {
     proveExit: receipt.exit,
     outPath: outRel,
     validate: v,
+    authed: v.authed === true,
+    authScheme: receipt.auth.scheme,
+    authKeyFingerprint: receipt.auth.keyFingerprint,
     ranAt,
     ...attemptExtra,
   });
   console.log(JSON.stringify({
-    ok: v.ok, key, targetSha: targetFull, wrapperSha,
+    ok: v.ok, authStatus: v.authStatus, key, targetSha: targetFull, wrapperSha,
     installExit: receipt.installExit, proveExit: receipt.exit, outPath, validate: v,
     mode,
   }, null, 2));
