@@ -73,3 +73,61 @@ harness Sequencing 禁止改 `apps/worker/src/checkpoint-principal.ts`。Line B 
 S1–S4 通过。S5 因四案已存在仍授权补测刀而失败。S6 因未写 `retention_pending` 而失败。整体 FAIL。本收据不授权编码。
 
 Verdict: FAIL
+
+---
+
+# RE-PRE-EXEC · NOTE-CKPT-UNSEALED-CLAIM-NEG rewrite（Line F · docs gate only）
+
+主审：`mw-privacy-int`  
+日期：2026-10-02（PT）  
+被审 SHA：`a24382b` / `a24382b6ae10464e2b7abcc957bec43ef2868061`（docs(privacy): rewrite Line F unsealed-claim request）  
+审查基线：worktree `rv/f-privacy-int` @ `3d7063f9335398b776a89327c5131382b8629c55`；`git merge-base --is-ancestor a24382b HEAD` EXIT=0。  
+被审对象：重写后的 `ai-docs/delivery/harness/note-ckpt-unsealed-claim-neg.md` 与 `ai-docs/delivery/note-ckpt-unsealed-claim-neg.slice.md`。上一段（PRE-EXEC FAIL @`a1a06ab`）原样保留；本段为 append-only 追加，last-line-wins。alone≠dual，不代签 `mw-e2e-ha`。
+
+## 检查表（file:line 证据）
+
+1. **docs-only 复核**：`git show --stat a24382b` → 仅 2 个 markdown（harness 81 行改动、slice 42 行改动，+51/−72）。零产品代码、零迁移、零 GRANT、零路由、零 `package.json`、零 SSOT（矩阵/backlog/checklist）触碰。✔
+2. **无静默漂移**：`git log a24382b..HEAD -- <两文档>` 为空、`git diff a24382b HEAD -- <两文档>` 为空——worktree 内读到的即 `a24382b` 原文。✔
+3. **引证抽查（S5 核心）**——`packages/db/test/uc052-checkpoint-physical.proof.ts`：
+   - `NHP-CKPT-UNSEALED-NEG-EPOCH` 引证 `:763–766` → 实际 id 在 `:763`、run 在 `:764`、断言在 `:765`。✔
+   - `NHP-CKPT-UNSEALED-NEG-DIGEST` 引证 `:768–771` → 实际 `:768–770`。✔
+   - `NHP-CKPT-UNSEALED-NEG-BOTH` 引证 `:773–776` → 实际 `:773–775`。✔
+   - `HP-CKPT-SEALED-CLAIM` 引证 `:780–804` → 实际 id `:780`、claim lease `:802–803`、断言 `:804`。✔
+   - 共享断言引证 `:750–758` → 实际 `sqlState === '42501'` + 期望拒绝文案在 `:750`、unchanged 三重在 `:751–755`、detail `:758`。✔
+   - 「epoch is checked first」→ `packages/db/migrations/0091_privacy_authorization_issuer.sql:369–371`（epoch RAISE）先于 `:372–374`（digest RAISE）。✔
+   全部引证真实、行号精确，无虚指。✔
+4. **无残留授权语句**：grep 全文——"no prove run"（harness `:3`/`:22`）、"do not rerun or extend the proof"（`:20`）、"authorizes no second implementation and no second prove"（`:7`）、"does not self-approve or authorize coding"（`:34`）、slice `:7`/`:11` 同向。旧版的 "Prove the four cases" 类指令已不存在。✔
+5. **Pins 8+2 逐项对表**（harness `:32`、slice `:28`）：`haStatus=NOT_HA` ✔ · `releaseEvidence=false` ✔ · `claimProductionHA=false` ✔ · `gR45Closed=true` ✔ · `coveredCount=8` ✔ · `ms3EqualsR4Closed=false` ✔ · PG-retained ✔ · external retention `retention_pending` ✔ · public DELETE `503` ✔。无省略、无松动、无改口。✔
+6. **S6 关闭证据**：harness `:26` 明写 "This is a pin, not completion evidence"；slice `:22` 同。`retention_pending` 已入 pins 且未被宣称完成。✔
+7. **边界**：禁改 `apps/worker/src/checkpoint-principal.ts`（harness `:27`、slice `:23`）✔；禁改 proof 文件（harness `:28`、slice `:24`）✔；禁改矩阵/backlog/checklist 且禁翻 covered（harness `:29`、slice `:25`）✔；DELETE=503 保持（harness `:30`、slice `:26`）✔。
+8. **Evidence honesty**：状态保持 `draft:awaiting_re_pre_exec`（harness `:1`/`:3`/`:36`、slice `:1`/`:3`）；"四案已存在" 陈述经第 3 项实读验证为真；全文无任何把 UC-052/矩阵写成完成态的句子；无 nail 宣称（harness `:3`/`:22`/`:36`、slice `:6`）。✔
+9. **stub 未动**：`a24382b` stat 不含两 stub；`REQUEST-2026-10-02-note-ckpt-unsealed-claim-neg-mw-privacy-int.md` 仍为 PENDING stub（`:3`）。✔
+10. **Line B 依赖如实保留**：重写刀零授权 coding（任何条件下），强于旧版 "coding after Line B nail"；未把 `7cb7010`/`49ef158` 写成 nail 或开工许可。✔
+
+## S1–S6 复裁
+
+- **S1 docs-only — PASS**：同检查表第 1–2 项。
+- **S2 四案写清 — PASS**：harness 表 `:15–18` 与 slice `:13–16` 四案分列，各带 case id + file:line。
+- **S3 DB 层与 SQLSTATE — PASS**：`:20` 记录 `sqlState === '42501'`、期望拒绝文案、unchanged；epoch-first 经 0091 `:369–374` 实证。
+- **S4 禁并行改 principal — PASS**：harness `:27` / slice `:23`，另加 proof 文件禁改（强于上轮）。
+- **S5 重复刀 — PASS（上轮 FAIL 关闭）**：实现刀已退役（harness `:7`/`:22`、slice `:7`），只引证已存在 case id + file:line（经实读为真），不再授权新实现/重跑/第二刀。
+- **S6 retention_pending — PASS（上轮 FAIL 关闭）**：入 pins（harness `:32`、slice `:28`）且明写非完成态（harness `:26`）。
+
+## Blockers
+
+无。
+
+## Conditions（binding）
+
+- **C-PRIV-F1**：本 PASS 仅放行 `a24382b` 的文档化本身；不授权任何 coding / prove / nail。后续任何 UC-052 checkpoint 实现刀须另立 REQUEST，且仍以 Line B nail 为前置——`7cb7010` / `49ef158` 的 post-prove PASS ≠ nail。
+- **C-PRIV-F2**：Pins 冻结按 harness `:32` / slice `:28` 原值；`retention_pending` 在外部保留证据落地前不得写成完成态；`coveredCount` 保持 8，UC-052 ≠ covered。
+- **C-PRIV-F3**：引证绑定当前证明形态（proof.ts `:750–758`、`:763–804`）；proof 文件在本 REQUEST 下禁改，未来若行号漂移须先重钉引证方可再引用。
+- **C-PRIV-F4**：alone≠dual——本 PASS 只签 `mw-privacy-int`；dual 生效需 `mw-e2e-ha` 独立 RE-PRE-EXEC 收据，本文件不代签。
+
+## 中文三行
+
+1. `a24382b` 重写为纯文档化：退役实现刀，四案以真实 file:line 引证（proof.ts:763–804、750–758；0091:369–374 epoch 先判），全文无重跑/第二刀授权——上轮 S5 关闭。
+2. `retention_pending` 已入 pins 且明写 "pin, not completion evidence"，8+2 项 pins 原值无改口，principal/proof/SSOT 禁改与公开 DELETE=503 保持，证据诚实——上轮 S6 及全边界关闭。
+3. 无 Blocker；附 C-PRIV-F1–F4 binding 条件；本 PASS 仅 docs gate、不签 peer、不授权 coding——Line B 未 nail 前 Line F 无任何 coding。
+
+Verdict: PASS
