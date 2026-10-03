@@ -55,3 +55,23 @@ This knife is **STOP**. A later, separate REQUEST would be required before anyon
 Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
 
 *Slice honesty · GAP-PRIV-AUTHZ-PROVE-FLAKE stays OPEN · no prove was run · STOP*
+
+## FINAL HONEST CLOSE
+
+**Status**: **`post_prove_dual_pass`** · **FINAL HONEST CLOSE** for the documents only. This is not a gap close. Implementer does not self-approve.
+
+Dual PASS. Both commits reviewed subject tip `2ec9d41` / `2ec9d4106fa2b06017784cceea3359e37726f6d3`: mw-privacy-int `f2de066` / `f2de066d57b41e8f66842b5bbd0408a9fe61e9c1` · mw-e2e-ha `3f6ea4a` / `3f6ea4a447c2d0bff593998810e05eac6fc2d665`.
+
+FAIL `3811cf1` / `3811cf1b47d3c3a939c2077b9c7386ab036069e6` still stands: attempt-1 JSON exit 0 and the log have no agreeing process EXIT, so the oneshot still does not satisfy post-prove.
+
+`GAP-PRIV-AUTHZ-PROVE-FLAKE` stays **OPEN**, mitigated/cause-unknown. Not fixed, not closed, not root-caused.
+
+Ban re-running the prove in this knife. Ban forging `PROCESS_EXIT` onto the old log. Do not modify `oneshot-attempt-1.json` or `oneshot-attempt-1.log`. This commit does not run `pnpm privacy-authorization:prove`.
+
+A future teed first run (log contains `PROCESS_EXIT` from the start) requires a new REQUEST. This commit does not authorize it and does not authorize coding or `apps/worker/src/checkpoint-principal.ts`.
+
+Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+
+The oneshot disagreement section above stays as written. Do not redo sibling finals B' `76d2bc3`, C' `0652a08`, or D' `e0842d0`.
+
+*Slice FINAL HONEST CLOSE · docs only · post_prove_dual_pass · GAP-PRIV-AUTHZ-PROVE-FLAKE stays OPEN · no prove was run · STOP*

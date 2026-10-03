@@ -603,3 +603,14 @@ flowchart TD
 - [ ] UC-E2E-025 row stays **gap**. `GAP-UC025-NEG-01` stays **OPEN**. Ban wash-green. Ban covered. Not UC-018. Not UC-052. Do not change the UC-018 row, the UC-004 row, or the flake row.
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
 - The A' oneshot-disagreement section above stays as written. Sibling sections stay. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+### GAP-PRIV-AUTHZ-PROVE-FLAKE FINAL HONEST CLOSE（2026-10-02 SSOT note · `post_prove_dual_pass` · docs only · gap stays OPEN）
+
+- [x] **`post_prove_dual_pass`** · **FINAL HONEST CLOSE** recorded for the documents only. This is not a gap close. Implementer does not self-approve.
+- Dual PASS already issued and confirmed on origin. Both commits reviewed subject tip `2ec9d41` / `2ec9d4106fa2b06017784cceea3359e37726f6d3`: mw-privacy-int `f2de066` / `f2de066d57b41e8f66842b5bbd0408a9fe61e9c1` · mw-e2e-ha `3f6ea4a` / `3f6ea4a447c2d0bff593998810e05eac6fc2d665`.
+- [ ] FAIL `3811cf1` / `3811cf1b47d3c3a939c2077b9c7386ab036069e6` still stands: attempt-1 JSON exit 0 and the log have no agreeing process EXIT, so the oneshot still does not satisfy post-prove.
+- [ ] `GAP-PRIV-AUTHZ-PROVE-FLAKE` stays **OPEN** · mitigated/cause-unknown. Not fixed. Not closed. Not root-caused. The existing checklist row is not changed by this paragraph.
+- Ban re-running the prove in this knife. Ban forging `PROCESS_EXIT` onto the old log. Do not modify `oneshot-attempt-1.json` or `oneshot-attempt-1.log`. This commit does not run `pnpm privacy-authorization:prove`.
+- A future teed first run (log contains `PROCESS_EXIT` from the start) requires a new REQUEST. This commit does not authorize it and does not authorize coding or `apps/worker/src/checkpoint-principal.ts`.
+- Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+- The A' oneshot-disagreement section above stays as written. Sibling sections stay: B' `76d2bc3`, C' `0652a08`, D' `e0842d0`. Do not redo those finals. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
