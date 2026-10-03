@@ -238,12 +238,13 @@ async function main() {
           await awaitRelease(client);
         }
       });
-      const ok = duringB != null
-        && duringB.currentUser === 'app_role'
-        && duringB.principal === ownerB
-        && duringB.threadId === threadB
-        && duringB.epoch === String(accessB.fenceEpoch);
-      A(id, ok, `duringB=${JSON.stringify(duringB)}`);
+      const snapB = duringB as SessionSnap | null;
+      const ok = snapB != null
+        && snapB.currentUser === 'app_role'
+        && snapB.principal === ownerB
+        && snapB.threadId === threadB
+        && snapB.epoch === String(accessB.fenceEpoch);
+      A(id, ok, `duringB=${JSON.stringify(snapB)}`);
     }
 
     /* ── C-CASECOUNT exact == ── */

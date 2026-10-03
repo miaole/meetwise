@@ -143,7 +143,7 @@ export class PrincipalBoundCheckpointPool {
       await client.query("SELECT set_config('app.checkpoint_thread_id', $1, false)", [access.threadId]);
       await client.query("SELECT set_config('app.checkpoint_epoch', $1, false)", [String(access.fenceEpoch)]);
       const { releaseAsync } = installReleaseCleanup(client);
-      client.releaseAsync = releaseAsync;
+      (client as { releaseAsync?: () => Promise<void> }).releaseAsync = releaseAsync;
       return client;
     } catch (error) {
       // connect() failed before wrap — destroy rather than return a half-bound client.
