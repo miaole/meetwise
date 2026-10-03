@@ -169,6 +169,6 @@ STOP after push · no messaging dual · no coding · no SSOT edit this tip.
 | Matrix | §1.0.1 / §1.1 **partial**（UC-052 deletion + checkpoint physical）· **≠ covered** |
 | No-revive | **DB fence/trigger**（0047）· FOR UPDATE barrier = **extra stress only** · **NOTE-RACE-REFUSE-VIA-FENCE** |
 | Cite known RED | `eval-harness-matrix-cite:prove` EXIT=1（UC-018 facet[2] · Line A · non-blocker） |
-| Open follow-ups | `GAP-UC052-POOL-ROLE-LEAK` · `NOTE-CKPT-UNSEALED-CLAIM-NEG` · `GAP-PRIV-AUTHZ-PROVE-FLAKE` |
+| Open follow-ups | `GAP-UC052-POOL-ROLE-LEAK` · `GAP-PRIV-AUTHZ-PROVE-FLAKE`; retired (not open): `NOTE-CKPT-UNSEALED-CLAIM-NEG` by nail **`119d6c0`**, proven in `packages/db/test/uc052-checkpoint-physical.proof.ts` — NULL epoch L706, NULL digest L708, both NULL L698–700, SQLSTATE **42501** refusal L750–758, sealed control L778–804 |
 | Pins | NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503 |
 
