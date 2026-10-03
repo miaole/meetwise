@@ -1,6 +1,6 @@
 # Harness — G7 · **trio / Disclosure-1 / TECH_ROLE=0 ≠ R1 honesty**（Line L · docs-only REQUEST · **`draft:awaiting_pre_exec_dual`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs only · **zero coding** · **zero prove** · **Ban live** · **Ban自批 pass** · Dual PASS ≠ coding ≠ authorize prove ≠ suite green ≠ residual closed）
+**Status**: **`executed:awaiting_post_prove_dual`**（docs 执行阶段完成 · awaiting post-prove dual · **not a pass** · **≠ suite close** · L0 docs only · **zero coding** · **zero prove** · **Ban live** · **Ban自批 pass** · Dual PASS ≠ coding ≠ authorize prove ≠ suite green ≠ residual closed）  
 **Date**: 2026-10-03
 **Line**: **L**（G7 遗留 honesty · trio 历史 OPEN + Disclosure-1 + TECH_ROLE=0 ≠ R1 · **不得**触碰其他 Line 的文件 · **本阶段不改共享 SSOT 行** · 新钉 **仅**登记本刀 docs）
 **Base tip**: `320c07b` / `320c07bff1bdad9952a10acdfdcfb873cab8f3e0`（origin `feat/mysql-schema-skeleton`）· worktree `/Users/miaole/Desktop/golucky/meetwise-line-l`（branch `line/l-g7-honesty`）
@@ -30,13 +30,13 @@
 
 ## 1. 冻结 trio（G7）· 逐一现状 · 为何 OPEN
 
-**Wiring（`package.json` 实存，只读核对 @ `320c07b`）**：
+**Wiring（`package.json` 实存，只读核对；行号钉定 base **`320c07b`** = **`0345315`**（两 tip 同值）；origin tip 后移（`0cf8591` · `8dde8e3`）scripts 块实测漂移 +2 行 → `:240/:241/:242/:243/:246`，引用行号一律附 @SHA）**：
 
-| CMD | package.json | 解析链 |
+| CMD | package.json（@`320c07b` / @`0345315`） | 解析链 |
 |-----|--------------|--------|
-| `pnpm e2e:isolated` | `:240` | `node scripts/run-e2e-isolated.mjs e2e:prove` → `e2e:prove`（`:238`）= `node scripts/run-e2e.mjs` |
-| `pnpm e2e:ui:isolated` | `:241` | `node scripts/run-e2e-isolated.mjs e2e:ui` → `e2e:ui`（`:239`）= `node scripts/run-e2e-ui.mjs` |
-| `pnpm verify:e2e-performance` | `:244` | `node scripts/run-e2e-performance-suite.mjs` |
+| `pnpm e2e:isolated` | `:240` @`320c07b`/`0345315` | `node scripts/run-e2e-isolated.mjs e2e:prove` → `e2e:prove`（`:238`）= `node scripts/run-e2e.mjs` |
+| `pnpm e2e:ui:isolated` | `:241` @`320c07b`/`0345315` | `node scripts/run-e2e-isolated.mjs e2e:ui` → `e2e:ui`（`:239`）= `node scripts/run-e2e-ui.mjs` |
+| `pnpm verify:e2e-performance` | `:244` @`320c07b`/`0345315` | `node scripts/run-e2e-performance-suite.mjs` |
 
 **逐一现状（为何 OPEN）**：
 
@@ -120,11 +120,11 @@
 
 | Phase | Gate | 本刀 |
 |-------|------|------|
-| **L0** | REQUEST pair open（harness + slice + 双 stub）· `draft:awaiting_pre_exec_dual` | **本步** |
-| **L1** | Pre-exec dual `mw-model-op` + `mw-e2e-ha` | awaiting |
-| **L2** | 协调方授权 docs/coding（nail 阶段 SSOT 登记 | 另行授权） | not_run |
-| **L3** | 执行 docs 对齐 + 离线收据整理（零跑、零 live） | forbidden this tip |
-| **L4** | Docs dual（两专家新文件） | forbidden this tip |
+| **L0** | REQUEST pair open（harness + slice + 双 stub）· `draft:awaiting_pre_exec_dual` | **done**（REQUEST `56d9b3d`；tree-identical mirror `0345315`） |
+| **L1** | Pre-exec dual `mw-model-op` + `mw-e2e-ha` | **BOTH PASS**（mw-model-op @`b8dfb62` + mw-e2e-ha @`a474ca4`） |
+| **L2** | 协调方授权 docs/coding（nail 阶段 SSOT 登记 · 另行授权） | **executed**（standing authorize · 本执行 commit · 零跑 · 零 live） |
+| **L3** | 执行 docs 对齐 + 离线收据整理（零跑、零 live） | **executed**（产物：`harness/g7-trio-current-state-alignment.md` · `harness/g7-trio-offline-receipt-index-alignment.md`） |
+| **L4** | Docs dual（两专家新文件） | **awaiting post-prove dual**（不自批） |
 | **Trio** | 冻结 trio | **OPEN 1/1/1 retained** · `not_run:no_coding_authorize` |
 
 ---
@@ -148,4 +148,4 @@ Not suite green · not trio green · not family green · not fixed · not R1 clo
 
 ---
 
-*Harness · G7 trio/disclosure/TECH_ROLE honesty · Line L · 2026-10-03 · draft:awaiting_pre_exec_dual · dual mw-model-op+mw-e2e-ha · trio OPEN 1/1/1 retained · Ban live · 禁假绿 · g7SuiteGreen=false · Disclosure-1 OPEN · TECH_ROLE=0 ≠ R1 · releaseEvidence=false · zero coding · zero prove*
+*Harness · G7 trio/disclosure/TECH_ROLE honesty · Line L · 2026-10-03 · executed:awaiting_post_prove_dual（docs 执行阶段完成 · not a pass）· dual mw-model-op@`b8dfb62`+mw-e2e-ha@`a474ca4` PASS · trio OPEN 1/1/1 retained · Ban live · 禁假绿 · g7SuiteGreen=false · Disclosure-1 OPEN · TECH_ROLE=0 ≠ R1 · releaseEvidence=false · zero coding · zero prove*
