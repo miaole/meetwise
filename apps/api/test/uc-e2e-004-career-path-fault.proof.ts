@@ -24,6 +24,12 @@
  *
  * releaseEvidence=false · Not HA · 本绿/本 EXIT ≠ UC-E2E-004 covered ≠ A3 closed
  * 与静态 mark-red prove（pnpm uc004:career-path:prove EXIT0）互不替代。
+ *
+ * 2026-10-05 修复回归增量（GAP-PRINCIPAL-POOL-NO-ERROR-LISTENER 产品刀 · Line P ·
+ * pre-exec dual mw-privacy-int 83bb162 + mw-e2e-ha 9d97de2 条件 C-4/C-5/C-6 授权）：
+ *   - 新增断言行 FI1-CHILD-SURVIVES（观察项 → 显式断言，加严不减，api.done 实测推导）；
+ *   - FI-1 证据新增 pool_error_log_seen / pool_error_log_line（C-6「错误被观测」通道，
+ *     非断言、不影响 EXIT）；F1 三要素与 F2/F3/no-fake 断言零改动。
  */
 import { readFileSync, readdirSync } from 'node:fs';
 import { spawn } from 'node:child_process';
@@ -260,6 +266,12 @@ function recordAttempt(a: Omit<Attempt, 'n' | 'ts'>): Attempt {
 }
 
 // ── FI-1 连接断：pg_terminate_backend 杀掉正在执行 INSERT 的后端（如实记录 API 侧结果）──
+// 2026-10-05 修复回归（GAP-PRINCIPAL-POOL-NO-ERROR-LISTENER 产品刀 · Line P）：API 侧已按
+// pre-exec dual（mw-privacy-int 83bb162 + mw-e2e-ha 9d97de2）条件 C-5 把 child 存活从观察项
+// 升为显式断言行 FI1-CHILD-SURVIVES——加严增量：由 api.done 实际观测推导（5s 窗口内未退出
+// = 存活），零改动既有断言语义；F1 维持等强三要素（kind==='http' ∧ status>=400 ∧ 实测错误体）。
+// pool_error_log_* 为证据字段（非断言、不影响 EXIT）：承载 C-6「错误被观测」的 stderr 结构化
+// 日志（db_pool_error）通道；transport_closed/2xx 计通过仍 = FAIL。
 {
   const before = await ledgerSnapshot();
   const lock = await pool.connect();
@@ -285,12 +297,14 @@ function recordAttempt(a: Omit<Attempt, 'n' | 'ts'>): Attempt {
   const f2b = A('FI1-F2B-GET-NO-FAILED-PRODUCT', g.status === 404 && (g as any).body?.error === 'not_found');
   const f3 = A('FI1-F3-LEDGER-NET-0', before === after);
   const noFake = A('FI1-NO-FAKE-GRAPH-RUN', graphRuns === 0);
-  const exit: 0 | 1 = f1 && f2a && f2b && f3 && noFake ? 0 : 1;
+  const childSurvives = A('FI1-CHILD-SURVIVES', exited === null);   // C-5 批准的加严增量（api.done 实测推导）
+  const exit: 0 | 1 = f1 && f2a && f2b && f3 && noFake && childSurvives ? 0 : 1;
   const childState = exited === null ? 'still_running' : `exit_code=${exited.code} signal=${exited.signal}`;
+  const poolErrLines = api.stderrTail().split('\n').filter((l) => l.includes('db_pool_error'));
   recordAttempt({
     id: 'ATTEMPT-2-FI1-CONNECTION-BREAK', fault: 'FI-1 connection break (pg_terminate_backend on INSERT backend)', exit,
-    detail: `blocked_pid_found=${pid !== null} terminated=${terminated} http=${r.kind === 'http' ? r.status : `transport_closed:${(r as any).code}`} child=${childState} sql_rows=${rowCnt} get=${typeof g.status === 'string' ? `unreachable:${(g as any).body?.reason}` : `${g.status}/${(g as any).body?.error}`} ledger_net=${before === after ? 0 : 'CHANGED'} graph_run_rows=${graphRuns}`,
-    evidence: { blocked_pid_found: pid !== null, terminated, f1: r, child_exit: childState, child_stderr_tail: api.stderrTail().slice(-1200), f2_sql_rows: rowCnt, f2_get: g, ledger_before: JSON.parse(before), ledger_after: JSON.parse(after) },
+    detail: `blocked_pid_found=${pid !== null} terminated=${terminated} http=${r.kind === 'http' ? r.status : `transport_closed:${(r as any).code}`} child=${childState} pool_error_observed=${poolErrLines.length > 0} sql_rows=${rowCnt} get=${typeof g.status === 'string' ? `unreachable:${(g as any).body?.reason}` : `${g.status}/${(g as any).body?.error}`} ledger_net=${before === after ? 0 : 'CHANGED'} graph_run_rows=${graphRuns}`,
+    evidence: { blocked_pid_found: pid !== null, terminated, f1: r, child_exit: childState, pool_error_log_seen: poolErrLines.length > 0, pool_error_log_line: poolErrLines[poolErrLines.length - 1]?.slice(0, 300) ?? null, child_stderr_tail: api.stderrTail().slice(-1200), f2_sql_rows: rowCnt, f2_get: g, ledger_before: JSON.parse(before), ledger_after: JSON.parse(after) },
   });
 }
 
