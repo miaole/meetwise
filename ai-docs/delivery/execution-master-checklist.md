@@ -694,3 +694,14 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered. R5-MARKED-RED stale banner 原样保留（named gap 不改写）。
 - Nail tip = 本 commit（branch `line/n-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+### Line P GAP-PRINCIPAL-POOL-NO-ERROR-LISTENER 产品修复刀 NAIL（2026-10-05 SSOT nail · `post_prove_dual_pass` · FI-1 attempt 1→0 · 全量 EXIT=1 honest · backlog :355 翻 CLOSED(fixed)）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line P pool error listener fix products only. Implementer does not self-approve. 授权翻转仅限 backlog `:355` `GAP-PRINCIPAL-POOL-NO-ERROR-LISTENER` → **CLOSED（fixed）**；其余行零翻转。coveredCount=**8** unchanged.
+- REQUEST `587b128` / `587b128c1ff0c918dd015db73d5377a317eee21e`（docs-only 恰 4 md · origin）。Pre-exec dual PASS: mw-privacy-int `83bb162`（C-1~C-6）+ mw-e2e-ha `9d97de2`（C-1~C-8）（docs gate only · origin 已有 cherry-pick 镜像）。
+- fix `56fc1ea`（候选 B：`createPool()` 工厂内池级 `error` 监听 + `pool.on('connect')` per-client 观测，只读 observer、WeakSet 1:1 去重、五键脱敏 JSON 日志 + purpose 计数、零吞错/零重建/零全局兜底；`packages/db/test/pool-error-listener.proof.ts` 12/12 EXIT=0；nail 分支 cherry-pick `f19ecba`）+ prove/receipt `1751122`（nail cherry-pick `3a8bc0f`）· CMD `pnpm uc004:career-path-fault:prove`：attempt 级 `ATTEMPT-2-FI1-CONNECTION-BREAK` **1→0**（进程不崩 + 500 `internal_error` 信封 + 结构化 `db_pool_error` 日志观测）· **全量 EXIT=1 诚实保留**（FI-3 `AiGraphRun(career-path)` 结构性不可达 · attempts=4 全台账 · one-shot · v1→v2 演进双审裁决合法、非 retry-to-green）· receipt `receipts/2026-10-05-gap-principal-pool-error-listener-fix-prove.md`。
+- Post-prove dual PASS: mw-privacy-int `892b2c4`（nail cherry-pick `cad27b4`）+ mw-e2e-ha `a272b72`（nail cherry-pick `c1c33ea`）——双 fresh 验证（mw-e2e-ha 恰一次 prove re-run EXIT=1 同形 + db proof 12/12 独立复跑）、机制/脱敏/去重独立复现、FT-1~FT-7 未触发。
+- Residuals（诚实保留）: A3 / `UC-E2E-004` FAULT 列 / `NHP-004-FAULT-01` stays **gap**（FI-3 接线另刀、全量 EXIT=1 不洗绿）；C-PERF-TEARDOWN 不互借（stays OPEN）；P-1（purpose 观测标签布线，调用点现记 `'default'`）与 P-3（非 Error 发射绕过 WeakSet 去重）为已登记 residual。
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
+- Nail tip = 本 commit（branch `line/p-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered except the coordinator-authorized backlog `:355` flip stated above.
