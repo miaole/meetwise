@@ -207,7 +207,7 @@ export class InterviewService {
       // GAP-UC025-NEG-01 真接线:begin 携带源押题工件时,owner-scoped 真消费该工件(RLS + owner_user_id 双限),
       // stale/未 ready → 在**扣额度(reserveEntitlement)与入队(enqueueInterviewJob)之前**抛真实 HttpException
       // (stale_quiz,409 CONFLICT)。此 throw 无局部 catch 吞(下方唯一 catch 只映射 insufficient_entitlement 且原样重抛),
-      // 经 Nest 异常层映射为真 409。expires_at 为 NULL(0135 前旧工件/无锚点)不得当过期拒(e2e-ha C-1:已迁移库不假拒)。
+      // 经 Nest 异常层映射为真 409。expires_at 为 NULL 不得当 stale_quiz 过期拒(C-1 窄保留:NULL≠stale); Line AA NHP-025-FAULT-01 已 supersede 放行语义→独立块 missing_quiz_expiry fail-closed。
       // 不带 sourceQuizId → 完全跳过本块,行为与接线前逐字节一致(rag C-6)。
       if (sourceQuizId) {
         const quiz = await c.query(
@@ -222,12 +222,32 @@ export class InterviewService {
           throw new HttpException({ error: 'stale_quiz' }, HttpStatus.CONFLICT);
       }
 
+      // NHP-025-FAULT-01 / GAP-UC025-FAULT-01(Line AA)missing/NULL expires_at fail-closed(FAULT 面;
+      // 上方 NEG stale_quiz 块 SELECT+throw 逐字节冻结;下方 BOUND resume_version_mismatch 不动)。
+      // C-1 supersede: NULL 仍不得抛 stale_quiz(窄保留); begin 携带 quiz-id 且缺新鲜度锚 → 409
+      // missing_quiz_expiry(独立错误码)。非法/NaN 日期 fold 入同口 fail-closed。抛点先于 resume
+      // bind / reserveEntitlement / enqueueInterviewJob。不带 sourceQuizId → 完全跳过。
+      if (sourceQuizId) {
+        const quizExpiry = await c.query(
+          'SELECT status, expires_at FROM resume_quiz WHERE id=$1 AND owner_user_id=$2',
+          [sourceQuizId, principal],
+        );
+        if (quizExpiry.rowCount === 0)
+          throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+        const rawExpiry = quizExpiry.rows[0].expires_at;
+        if (rawExpiry == null)
+          throw new HttpException({ error: 'missing_quiz_expiry' }, HttpStatus.CONFLICT);
+        const expiryMs = new Date(rawExpiry as string | Date).getTime();
+        if (Number.isNaN(expiryMs))
+          throw new HttpException({ error: 'missing_quiz_expiry' }, HttpStatus.CONFLICT);
+      }
+
       // NHP-025-BOUND-01 / GAP-UC025-BOUND-01(Line W)resumeVersion pin 失配守卫(BOUND 面;上方 NEG stale 块逐字节冻结不动)。
       // 押题工件生成时经 0061 typed 引用钉死 (resume_id, privacy_epoch)=该工件的 resumeVersion pin。begin 携带工件时:
       // 本次 resume-id ≠ 工件 pin 的 resume_id(简历变更后拿旧押题开面),或 pin 的 privacy_epoch ≠ 该简历当前世代
       // → 在**任何简历绑定写、扣额度(reserveEntitlement)与入队(enqueueInterviewJob)之前**抛真实
       // HttpException(resume_version_mismatch,409 CONFLICT);无局部 catch 吞。pin 为 NULL(0061 前旧工件/无 typed 引用)
-      // 不得当失配拒(对齐 NEG expires_at NULL 语义:已迁移库旧工件不假拒)。不带 sourceQuizId → 完全跳过,行为不变。
+      // 不得当失配拒(NULL pin 旧工件不假拒; expires_at NULL 另由 FAULT missing_quiz_expiry 处置)。不带 sourceQuizId → 完全跳过,行为不变。
       if (sourceQuizId) {
         const pin = await c.query(
           `SELECT q.resume_id::text AS pinned_resume_id, q.privacy_epoch AS pinned_epoch, r.privacy_epoch AS current_epoch
