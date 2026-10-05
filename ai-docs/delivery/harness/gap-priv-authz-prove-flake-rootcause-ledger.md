@@ -1,6 +1,8 @@
-# Harness — **GAP-PRIV-AUTHZ-PROVE-FLAKE · rootcause/repro ledger**（Line X · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · flake stays OPEN mitigated/cause-unknown）
+# Harness — **GAP-PRIV-AUTHZ-PROVE-FLAKE · rootcause/repro ledger**（Line X · NAIL · **`post_prove_dual_pass`** · flake stays OPEN mitigated/cause-unknown）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove 执行 · Ban push · Ban self-approve · Ban claim fixed · Ban forge PROCESS_EXIT）
+**Status**: **`post_prove_dual_pass`**（Line X nail · docs ledger only · L1–L6 retained · POST dual BOTH PASS · **PASS ≠ fixed ≠ closed ≠ root-caused ≠ HA** · Ban claim fixed · Ban forge PROCESS_EXIT · Ban coding product · Ban principal.ts · Ban Meridian · Ban secrets · Ban force-push · Ban closing backlog `:68` · Ban self-approve beyond this authorized nail）
+
+> **REQUEST-era note（historical · retained）**: this file began as REQUEST `draft:awaiting_pre_exec_dual`. Ledger tip **`b3e0f41`** · post dual mw-e2e-ha `424c7f0` + mw-privacy-int `2974d45` BOTH PASS. Lifecycle advanced to **`post_prove_dual_pass`** by Line X nail only. Gap stays **OPEN** mitigated/cause-unknown.
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-05
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`6a79946`** / full `6a79946ae5bb4b2148e0d63d3b7f66d64a1e51df`
@@ -71,13 +73,29 @@ Not fixed · not closed · not root-caused · not a prove · not teed first-run 
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · GAP-PRIV-AUTHZ-PROVE-FLAKE stays OPEN · STOP
 
-## Line X ledger 执行（协调方授权 docs-only · **awaiting post-prove dual**）
+## Line X ledger 执行（协调方授权 docs-only · retained）
 
 - **PRE dual BOTH PASS**：mw-privacy-int `8f28151` / `8f281511f81f7900b2610218029eb4d1971ed2eb` + mw-e2e-ha `9b8f748` / `9b8f748e2682019e27d5357bad728d2cb330b902`（REQUEST `5773243`）。
 - **执行产物**：`receipts/gap-priv-authz-prove-flake/2026-10-05-rootcause-ledger.md`——L1–L6 逐行落证（blob / 行号 / SHA 可达性）+ 失败 class 账（cold ECONNREFUSED ×2 份 log · warm 23505 ×1）+ 全部已记录 attempt EXIT 账 + blob 锚。
 - **CMD**：无。**本刀零 prove · 零重跑 · 零 forge**；EXIT 全为引用（attempt-1 JSON 0 vs log 无退出码 → 不同意保留；attempt-2 `PROCESS_EXIT=0` 三角一致 ≠ close；历史 EXIT=1 ×3 保留）。
 - **可达性**：`0c0ab16` / `6673042` 本 clone 不可达，以 `606677d` 树内 blobs 为准（PRE e2e-ha C-7）；`9b39a20`（jsonl L29 tip）存在但非分支祖先——如实披露。
-- 零产品 · 零 `principal.ts` / `checkpoint-principal.ts` · 零 SSOT（matrix / backlog / checklist 未碰）· attempt-1/2 blobs 零漂移。
-- Gap stays **OPEN** · **mitigated/cause-unknown** · Not fixed · Not closed · Not root-caused · coveredCount=**8** · **Ban self-nail**。
+- 零产品 · 零 `principal.ts` / `checkpoint-principal.ts` · attempt-1/2 blobs 零漂移。
+- Gap stays **OPEN** · **mitigated/cause-unknown** · Not fixed · Not closed · Not root-caused · coveredCount=**8**。
 
-*Harness · GAP-PRIV-AUTHZ-PROVE-FLAKE rootcause/repro ledger · executed · awaiting post-prove dual · OPEN · STOP*
+---
+
+## Line X NAIL lifecycle（`post_prove_dual_pass` · 2026-10-05 · additive）
+
+- Lifecycle on this harness/slice/ledger: **`post_prove_dual_pass`**.
+- Evidence tip NAILED TO: `b3e0f4172e188f23dbcc34aac0bae82e571a10dc`（docs ledger · **No CMD · no new prove**）.
+- POST dual BOTH PASS: mw-e2e-ha `424c7f06f7438a5a83688e5d14e9c25603e8c2e6` + mw-privacy-int `2974d45741d1009c26a36e24a43d051b1fb93a70`.
+- Receipt cross-ref: `receipts/gap-priv-authz-prove-flake/2026-10-05-rootcause-ledger.md`.
+- **L1–L6 retained** · blob 锚零漂移 · attempt-1 JSON≠log 仍立 · Ban forge PROCESS_EXIT · teed attempt-2 `PROCESS_EXIT=0` 三角一致 ≠ close.
+- **CITE_EXIT**: **0**（引用 teed attempt-2 · 非本 nail 新跑 · 非关 flake）。
+- **STILL_OPEN**: **GAP-PRIV-AUTHZ-PROVE-FLAKE stays OPEN mitigated/cause-unknown** · Not fixed · Not closed · Not root-caused · canHonestlyFlip=false · UC-052 stays **partial** · coveredCount=**8** · public DELETE=**503**.
+- Pins unchanged: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503.
+- Zero product · Ban principal.ts · Ban Meridian · Ban secrets · Ban force-push · Ban closing backlog `:68` · Ban HA claim. Sibling Y/W nails stay as written.
+
+---
+
+*Harness · GAP-PRIV-AUTHZ-PROVE-FLAKE rootcause/repro ledger · Line X NAIL · 2026-10-05 · lifecycle post_prove_dual_pass · tip b3e0f41 · post dual 424c7f0+2974d45 PASS · CITE_EXIT 0 · L1–L6 retained · OPEN mitigated/cause-unknown · PASS≠fixed≠HA · releaseEvidence=false · STOP*

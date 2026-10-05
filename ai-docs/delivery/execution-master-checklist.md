@@ -790,3 +790,16 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · canHonestlyFlip=false. Do not write covered.
 - Nail tip = 本 commit（branch `line/w-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written（incl. Line Y · Line S · Line T · Line U · B'' NEG）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+
+### Line X GAP-PRIV-AUTHZ-PROVE-FLAKE rootcause/repro ledger NAIL（2026-10-05 SSOT nail · `post_prove_dual_pass` · docs only · gap stays OPEN）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line X rootcause/repro ledger products only（docs ledger · zero product · zero prove rerun）. Implementer does not self-approve beyond this authorized nail. **PASS ≠ fixed ≠ closed ≠ root-caused ≠ HA**. Ban claim fixed · Ban forge PROCESS_EXIT · Ban coding product · Ban `principal.ts` · Ban Meridian · Ban secrets · Ban force-push · **Ban closing backlog `:68`**. coveredCount=**8** unchanged.
+- REQUEST `5773243` / `5773243cc3c64bf4e4d9242814a3b7ba8b778986`. Pre-exec dual PASS: mw-privacy-int `8f28151` / `8f281511f81f7900b2610218029eb4d1971ed2eb` + mw-e2e-ha `9b8f748` / `9b8f748e2682019e27d5357bad728d2cb330b902`.
+- Evidence tip `b3e0f41` / `b3e0f4172e188f23dbcc34aac0bae82e571a10dc` · **No CMD · no new prove** · L1–L6 retained · receipt `receipts/gap-priv-authz-prove-flake/2026-10-05-rootcause-ledger.md`.
+- Post-prove dual PASS: mw-e2e-ha `424c7f0` / `424c7f06f7438a5a83688e5d14e9c25603e8c2e6` + mw-privacy-int `2974d45` / `2974d45741d1009c26a36e24a43d051b1fb93a70`（BOTH · alone≠dual）.
+- **CITE_EXIT**: **0**（引用 teed attempt-2 `PROCESS_EXIT=0` · 非本 nail 新跑 · 非关 flake）。
+- [ ] **GAP-PRIV-AUTHZ-PROVE-FLAKE stays OPEN** · **mitigated/cause-unknown** · Not fixed · Not closed · Not root-caused · canHonestlyFlip=**false** · UC-052 stays **partial** · public DELETE=**503** · Ban flip `:68` to CLOSED.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · canHonestlyFlip=false. Do not write covered / fixed / closed / root-caused.
+- Nail tip = 本 commit（branch `line/x-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written（incl. Line Y · Line W · Line S · Line T · Line U · A'' teed）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
