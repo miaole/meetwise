@@ -137,6 +137,8 @@
     "uc002:lease:prove:raw": "pnpm -C packages/db prove:uc002-lease",
     "uc002:http:prove": "node scripts/run-e2e-isolated.mjs uc002:http:prove:raw",
     "uc002:http:prove:raw": "pnpm -C apps/api prove:uc002-http",
+    "uc002:adv:prove": "node scripts/run-e2e-isolated.mjs uc002:adv:prove:raw",
+    "uc002:adv:prove:raw": "pnpm -C apps/api prove:uc002-adv",
     "uc015:ingest-failures:prove": "node scripts/run-e2e-isolated.mjs uc015:ingest-failures:prove:raw",
     "uc015:ingest-failures:prove:raw": "pnpm -C apps/api prove:uc015-ingest-failures",
     "uc014:webhook-adv:prove": "node scripts/run-e2e-isolated.mjs uc014:webhook-adv:prove:raw",
