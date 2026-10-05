@@ -1,6 +1,8 @@
-# Harness — **NHP-025-FAULT-01 · UC-025 next non-BOUND face = FAULT**（Line AA · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · row stays gap）
+# Harness — **NHP-025-FAULT-01 · UC-025 FAULT missing-expiry fail-closed**（Line AA · NAIL · **`post_prove_dual_pass`** · row stays gap · FAULT column stays gap）
 
-**Status**: **`awaiting_post_prove_dual`**（Line AA prove EXIT0 · Ban self-nail · Ban wash NEG/BOUND · Ban invent covered · Ban flip row · Ban HA · Ban live · Ban Meridian · Ban secrets · Ban force-push · row stays gap · coveredCount=8 · post dual e2e+rag needed）
+**Status**: **`post_prove_dual_pass`**（Line AA nail · FAULT only · prove EXIT=0 · dual BOTH PASS · **FAULT EXIT0 · NEG/BOUND 仍 EXIT0 · pre-wire EXIT1 honest** · **EXIT0 ≠ covered** · row stays **gap** · FAULT column stays **gap** · NEG B'' `stale_quiz` CLOSED **frozen** Ban wash · BOUND W nail Ban wash · Ban invent covered · Ban flip covered · Ban HA/suite green · Ban coding · Ban live · Ban Meridian · Ban secrets · Ban force-push · Ban claiming isolated PG/HTTP E2E evidence · Ban self-approve beyond this authorized nail）
+
+> **REQUEST/prove-era note（historical · retained）**: this file began as REQUEST `draft:awaiting_pre_exec_dual` → prove `awaiting_post_prove_dual`. Prove tip **NAILED TO** `3a6ec52195bbde8bd56cae10e48346391cee116d` · code **`a8b98fcaaa8c314fd8e25437ff015f59dce05d93`** · CMD `pnpm uc025:nhp-fault:prove` **EXIT=0**（HTTP **409** `missing_quiz_expiry` · NaN fail-closed · C-1 **supersede**）· pre-wire `fe411fa` **EXIT=1** honest · NEG+BOUND 仍 EXIT0 · post dual mw-e2e-ha `c674cb5` + mw-rag-route `42b9834` BOTH PASS. Lifecycle advanced to **`post_prove_dual_pass`** by Line AA nail only.
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base / REQUEST tip**: `448a33e2460f919b15af1db6c9c44497dc585b62` · PRE BOTH PASS mw-e2e-ha `fbd47ac8076d2ccd0a948b88630cb397789e3ef7` + mw-rag-route `986260120f5910606043b03fb66c6a742636f219`（ignore empty `454d6e9`）
@@ -9,7 +11,7 @@
 **Case id**: **`NHP-025-FAULT-01`**（本刀新增 FAULT case 名，**不**编辑 NHP 矩阵 status 行——登记留 nail）
 **Row**: **`UC-E2E-025`** FAULT 列 · not UC-E2E-018 · not UC-E2E-052 · not UC-E2E-004 · **Ban 碰 B'' NEG wash · Ban 碰 W BOUND wash**
 **Experts**: `mw-e2e-ha` PRE PASS `fbd47ac` + `mw-rag-route` PRE PASS `9862601` · Ban self-approve · alone ≠ dual · post dual still needed after prove
-**Authority**: meetwise — coding+prove AUTHORIZED · Ban secrets / `.env*` · Ban force-push · Ban SSOT edit · Ban wash NEG/BOUND · Ban self-nail · Ban claiming covered / coveredCount bump
+**Authority**: meetwise — Line AA NAIL AUTHORIZED（docs/SSOT honesty only · Ban coding）· Ban secrets / `.env*` · Ban force-push · Ban wash NEG/BOUND · Ban invent covered / coveredCount bump · Ban flip row/FAULT off gap
 
 ## 选面（FAULT · 诚实裁决 · 本刀钉死 FAULT · next non-BOUND）
 
@@ -155,8 +157,24 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 - **CMD**：`pnpm uc025:nhp-fault:prove` → **EXIT=0** @ CODE_SHA；回归 `uc025:nhp-neg:prove` + `uc025:nhp-bound:prove` 仍 **EXIT0**。
 - **Evidence**：in-process `InterviewService.begin` + fake DB · **≠** isolated PG/HTTP · Ban narrate as isolated/covered。
 - Receipt：`receipts/2026-10-06-nhp-025-fault-01-missing-expiry-fail-closed-prove.md`。
-- 行 stays **gap** · FAULT column stays **gap** · coveredCount=**8** · Ban self-nail · **POST_DUAL_NEEDED** e2e+rag。
+- 行 stays **gap** · FAULT column stays **gap** · coveredCount=**8** · NEG B'' frozen（Ban wash）· BOUND W Ban wash · canHonestlyFlip=**false**。
 
 ---
 
-*Harness · NHP-025-FAULT-01 · Line AA prove · CODE_SHA a8b98fc · EXIT0 · 409 missing_quiz_expiry · C-1 supersede · NaN fail-closed · evidence in-process · awaiting_post_prove_dual · row+FAULT gap · coveredCount=8 · Ban self-nail · STOP*
+## Line AA NAIL lifecycle（`post_prove_dual_pass` · 2026-10-06 · additive）
+
+- Lifecycle on this harness/slice/receipt: **`post_prove_dual_pass`**.
+- Prove tip NAILED TO: `3a6ec52195bbde8bd56cae10e48346391cee116d`.
+- Code: `a8b98fcaaa8c314fd8e25437ff015f59dce05d93` · CMD `pnpm uc025:nhp-fault:prove` **FAULT EXIT0** · HTTP **409** `missing_quiz_expiry` · NaN fail-closed · C-1 **supersede**（窄保留 NULL≠`stale_quiz`；缺锚→409）· Ban live.
+- Pre-wire honesty retained: runner `fe411fa6997f3d32a3cdcc629e840be238ed5792` · **EXIT1** honest（GAP unwired）.
+- NEG/BOUND 仍 EXIT0（frozen Ban wash · **not** FAULT evidence）.
+- POST dual BOTH PASS: mw-e2e-ha `c674cb543fa93f849d84224074c5a69fb68a741e` + mw-rag-route `42b98343faf338435c6297b3744d7b108490c57f`.
+- Receipt cross-ref: `receipts/2026-10-06-nhp-025-fault-01-missing-expiry-fail-closed-prove.md`.
+- **Evidence layer**: in-process `InterviewService.begin` + fake DB · **≠ isolated Postgres/HTTP E2E** · **≠ covered** · three-layer isolated setup NOT run this knife（soft/aspirational · not hard blocker of this PASS）. PG/HTTP-level FAULT → separate knife.
+- **STILL_GAP**: UC-E2E-025 **row** stays **gap** · **FAULT column** stays **gap** · EXIT0≠covered · coveredCount=**8** · canHonestlyFlip=**false** · NEG B'' CLOSED(wired) **frozen** Ban wash · BOUND W nail Ban wash · ADV blind.
+- Pins unchanged: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503 · canHonestlyFlip=false.
+- Keep siblings: Line Z / Line AB / Line AC nails retained · Ban nail Z/AB/AC this turn.
+
+---
+
+*Harness · NHP-025-FAULT-01 · Line AA NAIL · 2026-10-06 · lifecycle post_prove_dual_pass · prove tip 3a6ec52 · FAULT EXIT0 · NEG/BOUND 仍 EXIT0 · pre-wire EXIT1 honest · 409 missing_quiz_expiry · C-1 supersede · NaN fail-closed · post dual c674cb5+42b9834 PASS · evidence in-process+fake-db ≠ isolated PG/HTTP · row+FAULT gap · coveredCount=8 · Ban wash NEG/BOUND · Ban invent covered · Ban HA · releaseEvidence=false · STOP*

@@ -846,3 +846,17 @@ flowchart TD
 - Nail tip = 本 commit（branch `line/z-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written（incl. Line V NHP-011-ADV-01 · Line AC G7 · Line AA/AB · Line X/W/Y · Line U）. This paragraph does not flip UC-011 to covered and does not close GAP-UC011-ADV-01.
 
+
+### Line AA NHP-025-FAULT-01 / GAP-UC025-FAULT-01 NAIL（2026-10-06 SSOT nail · `post_prove_dual_pass` · FAULT EXIT0 · row+FAULT stay gap）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line AA NHP-025-FAULT-01 FAULT products only（FAULT only · NEG/BOUND frozen Ban wash）. Implementer does not self-approve beyond this authorized nail. **FAULT EXIT0 · NEG/BOUND 仍 EXIT0 · pre-wire EXIT1 honest**. **EXIT0 ≠ covered**. Not a covered flip. Not a FAULT column flip. Not a row flip. Ban invent covered · Ban flip covered · Ban flip row/FAULT off gap · Ban wash NEG/BOUND · Ban HA/suite green · Ban Meridian · Ban coding · Ban live · Ban secrets · Ban force-push · Ban claiming isolated PG/HTTP E2E evidence. coveredCount=**8** unchanged.
+- REQUEST `448a33e` / `448a33e2460f919b15af1db6c9c44497dc585b62`. Pre-exec dual PASS: mw-e2e-ha `fbd47ac` / `fbd47ac8076d2ccd0a948b88630cb397789e3ef7` + mw-rag-route `9862601` / `986260120f5910606043b03fb66c6a742636f219`.
+- Runner-first pre-wire `fe411fa` / `fe411fa6997f3d32a3cdcc629e840be238ed5792` · **EXIT=1** honest（GAP unwired）.
+- Code `a8b98fc` / `a8b98fcaaa8c314fd8e25437ff015f59dce05d93` · prove tip **NAILED TO** `3a6ec52` / `3a6ec52195bbde8bd56cae10e48346391cee116d` · CMD `pnpm uc025:nhp-fault:prove` **FAULT EXIT=0** · HTTP **409** `missing_quiz_expiry` · NaN fail-closed · C-1 **supersede**（窄保留 NULL≠`stale_quiz`；缺锚→409）· receipt `receipts/2026-10-06-nhp-025-fault-01-missing-expiry-fail-closed-prove.md`.
+- NEG/BOUND 仍 EXIT0（Ban wash · not FAULT evidence）.
+- Post-prove dual PASS: mw-e2e-ha `c674cb5` / `c674cb543fa93f849d84224074c5a69fb68a741e` + mw-rag-route `42b9834` / `42b98343faf338435c6297b3744d7b108490c57f`（BOTH · alone≠dual）.
+- **Evidence layer MUST state**: in-process `InterviewService.begin` + fake DB · **≠ isolated Postgres/HTTP E2E** · **≠ covered** · harness three-layer isolated setup NOT run this knife（soft/aspirational · not hard blocker of this PASS）. PG/HTTP-level FAULT → separate knife.
+- [ ] UC-E2E-025 **row** stays **gap** · **FAULT column** stays **gap** · EXIT0≠covered · canHonestlyFlip=**false** · NEG B'' CLOSED(wired) **frozen** Ban wash · BOUND W Ban wash · ADV blind.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · canHonestlyFlip=false. Do not write covered.
+- Nail tip = 本 commit（branch `line/aa-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written（incl. Line W BOUND · Line Z REFUND-CALLBACK · Line AC G7 · Line AB · Line Y · B'' NEG）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
