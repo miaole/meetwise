@@ -1,6 +1,6 @@
 # Slice — **C-PERF-TEARDOWN 根因刀**（Line S · docs REQUEST · **`draft:awaiting_pre_exec_dual`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（docs REQUEST only · backlog `:35` stays CONDITION OPEN · canHonestlyFlip=false）
+**Status**: **`post_prove:awaiting_post_prove_dual`**（Branch A prove ran · receipt `receipts/2026-10-05-gap-perf-teardown-rootcause-fix-prove.md` · backlog `:35` stays CONDITION OPEN · canHonestlyFlip=false · Ban self-nail）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · PERF/LOAD stays local partial · capacityRepresentative=false
 **Date**: 2026-10-05
 **Base**: `origin/feat/mysql-schema-skeleton` · `377e7fc4fa1b35b85ebf524b668469caf66de2bc`
@@ -30,4 +30,14 @@ Ban coding · Ban prove 执行（pre-exec dual PASS 后由协调方授权）· B
 
 Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · PERF/LOAD stays local partial · capacityRepresentative=false · canHonestlyFlip=false.
 
-*Slice · C-PERF-TEARDOWN · rootcause + re-run/close-evidence knife · awaiting_pre_exec_dual · OPEN · STOP*
+*Slice · C-PERF-TEARDOWN · rootcause + re-run/close-evidence knife · post_prove awaiting dual · OPEN · STOP*
+
+
+---
+
+## Status note — Branch A prove ran（additive · 2026-10-05）
+
+**Status**: `post_prove:awaiting_post_prove_dual`（Branch A · zero product/infra code · prove @ `e8c63a913a1e9af285f692bcab16f7593294d144` · 3/3 attempts EXIT=0 · zero `Unhandled 'error' event` · all reached run3+SUMMARY）
+**Receipt**: `receipts/2026-10-05-gap-perf-teardown-rootcause-fix-prove.md`
+**C-PERF-TEARDOWN**: stays **CONDITION OPEN**（canHonestlyFlip=false · Ban self-nail · Ban SSOT/backlog `:35` flip here）
+**POST_DUAL**: awaiting · Pins unchanged · PERF/LOAD stays local partial · STOP
