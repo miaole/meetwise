@@ -57,6 +57,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@meetwise/ai-graphs':
+        specifier: workspace:*
+        version: link:../../packages/ai-graphs
       '@meetwise/ai-runtime':
         specifier: workspace:*
         version: link:../../packages/ai-runtime

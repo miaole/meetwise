@@ -61,7 +61,8 @@
     "rxjs": "^7.8.2",
     "zod": "catalog:",
     "@meetwise/domain": "workspace:*",
-    "@meetwise/ai-runtime": "workspace:*"
+    "@meetwise/ai-runtime": "workspace:*",
+    "@meetwise/ai-graphs": "workspace:*"
   },
   "devDependencies": {
     "@swc-node/register": "^1.11.1",

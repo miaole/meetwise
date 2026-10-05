@@ -1,7 +1,8 @@
-import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, Inject, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { createHash, randomUUID } from 'node:crypto';
 import { assertInterviewPrivacyActive, reserveEntitlement, enqueueInterviewJob, getReport, abandonInterviewAndRelease, requeueFailedReport, claimInterviewAnswer, listScorableScoreCards, submitInterviewAnswer, viewInterviewAnswerSnapshot, readbackInterviewAnswerSubmission } from '@meetwise/db';
 import { deriveAssessment, deriveLearningPlan, deriveCareerPath, resolveOverlongAnswerPolicy, isTrustedScoreIdentity, requireTrustedPracticeOverall } from '@meetwise/domain';
+import { runCareerPathGraph, selectCareerPathDerive, CAREER_PATH_GRAPH_NAME } from '@meetwise/ai-graphs';
 import { VOICE_EGRESS_DISABLED_ID, type Asr, type Tts, type StreamingTts } from '@meetwise/ai-runtime';
 import type { InterviewAnswerPreviewSubmitDto, InterviewAnswerSubmitResult, TranscribeDto, TurnDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
@@ -25,6 +26,18 @@ const TURN_RL = { capacity: 30, refillPerSec: 0.2 };
 const TERMINAL_INTERVIEW = ['completed', 'abandoned', 'failed'];
 const MAX_TURN = 256;             // turn 号上界(默认绝对杀开关 120 + clarify 冗余;防超大 turn 号刷无限 job)
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+// career-path AiGraphRun lease(审计 fence;终态 succeeded/failed 清空,让出 uq_active_run 重试槽)。
+const CAREER_PATH_LEASE_SECONDS = 120;
+const careerPathLogger = new Logger('CareerPathGraph');
+/**
+ * GAP-UC004-FI3 thread-scoped fail-only 注入 seam(C-HA-2 / C-MO-2):
+ * MEETWISE_CAREER_PATH_FAIL_THREAD_ID=<interview id>——仅该线程的 career-path 图 dep 确定性抛错。
+ * 默认关:未设/空 = 零行为差;NODE_ENV=production 恒关;不读凭据、不触网、不写 ai_invocation_trace。
+ */
+function careerPathFailSeamThreadId(): string | undefined {
+  if (process.env.NODE_ENV === 'production') return undefined;
+  return process.env.MEETWISE_CAREER_PATH_FAIL_THREAD_ID;
+}
 
 function toInterviewView(row: any) {
   let displayNumber = 0;
@@ -765,13 +778,17 @@ export class InterviewService {
   }
 
   // 职业路径:据评估综合分+弱项生成,落库。成长链终点。
-  generateCareerPath(principal: string, id: string) {
+  // GAP-UC004-FI3-GRAPH-WIRING Candidate A:derive 经 career-path 单节点图执行(@meetwise/ai-graphs,纯本地,零模型调用),
+  // AiGraphRun(career-path) 状态机真实落库:guards/评估前置(tx1,零写)→ create/reuse active(tx2,version+1)
+  // → 图(derive)→ career_path upsert 原样 + active→succeeded(tx3 同事务)| 失败 active→failed(tx4,version+1)后 rethrow。
+  // 对外契约冻结:成功体 {readiness,level,milestones} / 409 信封 / 500 internal_error / GET 语义全部原样。
+  async generateCareerPath(principal: string, id: string) {
     this.denyPublicPreviewWrite();
-    return this.db.asPrincipal(principal, async (c) => {
+    const pre = await this.db.asPrincipal(principal, async (c) => {
       await this.guardInterviewPrivacy(c, id);
       const a = await c.query('SELECT overall, dimensions FROM assessment_report WHERE interview_id=$1', [id]);
       if (a.rowCount === 0) throw new HttpException({ error: 'assessment_required' }, HttpStatus.CONFLICT);
-      const weaknesses = (a.rows[0].dimensions ?? []).filter((d: any) => d.gap).map((d: any) => d.dimension);
+      const weaknesses: string[] = (a.rows[0].dimensions ?? []).filter((d: any) => d.gap).map((d: any) => d.dimension);
       let overall: number;
       try { overall = requireTrustedPracticeOverall(a.rows[0].overall); }
       catch (e) {
@@ -780,13 +797,55 @@ export class InterviewService {
           throw new HttpException({ error: 'insufficient_evidence' }, HttpStatus.CONFLICT);
         throw e;
       }
-      const cp = deriveCareerPath(overall, weaknesses);
-      await c.query(
-        `INSERT INTO career_path(id, owner_user_id, interview_id, readiness, level, milestones)
-           VALUES ($1,$2,$3,$4,$5,$6)
-           ON CONFLICT (owner_user_id, interview_id) DO UPDATE SET readiness=EXCLUDED.readiness, level=EXCLUDED.level, milestones=EXCLUDED.milestones, version=career_path.version+1`,
-        [randomUUID(), principal, id, cp.readiness, cp.level, JSON.stringify(cp.milestones)]);
-      return cp;
+      return { overall, weaknesses };
+    });
+    const leaseOwner = randomUUID();
+    // C-HA-2 seam:生效点在 guards/前置之后、仅替换图 dep;env 未设 = 原 deriveCareerPath 原样(同一引用)。
+    const derive = selectCareerPathDerive(id, careerPathFailSeamThreadId(), deriveCareerPath);
+    return runCareerPathGraph<{ runId: string; version: number }>(pre, {
+      derive,
+      ledger: {
+        begin: () => this.db.asPrincipal(principal, async (c) => {
+          await this.guardInterviewPrivacy(c, id);
+          // 同线程并发 begin 串行化(事务级 advisory lock,提交即释放);latest-row FOR UPDATE 复用/接管。
+          await c.query('SELECT pg_advisory_xact_lock(hashtext($1),hashtext($2))', [CAREER_PATH_GRAPH_NAME, `${principal}:${id}`]);
+          const cur = await c.query(
+            `SELECT run_id FROM ai_graph_run WHERE graph_name=$1 AND thread_id=$2 AND owner_user_id=$3
+              ORDER BY version DESC LIMIT 1 FOR UPDATE`,
+            [CAREER_PATH_GRAPH_NAME, id, principal]);
+          const r = cur.rowCount === 0
+            ? await c.query(
+              `INSERT INTO ai_graph_run(graph_name,thread_id,owner_user_id,status,version,lease_owner,lease_expires_at)
+                 VALUES ($1,$2,$3,'active',1,$4,now()+($5||' seconds')::interval) RETURNING run_id,version`,
+              [CAREER_PATH_GRAPH_NAME, id, principal, leaseOwner, String(CAREER_PATH_LEASE_SECONDS)])
+            : await c.query(
+              `UPDATE ai_graph_run SET status='active',version=version+1,lease_owner=$3,lease_expires_at=now()+($4||' seconds')::interval
+                WHERE run_id=$1 AND owner_user_id=$2 RETURNING run_id,version`,
+              [cur.rows[0].run_id, principal, leaseOwner, String(CAREER_PATH_LEASE_SECONDS)]);
+          return { runId: String(r.rows[0].run_id), version: Number(r.rows[0].version) };
+        }),
+        commitSuccess: (run, cp) => this.db.asPrincipal(principal, async (c) => {
+          await this.guardInterviewPrivacy(c, id);
+          await c.query(
+            `INSERT INTO career_path(id, owner_user_id, interview_id, readiness, level, milestones)
+               VALUES ($1,$2,$3,$4,$5,$6)
+               ON CONFLICT (owner_user_id, interview_id) DO UPDATE SET readiness=EXCLUDED.readiness, level=EXCLUDED.level, milestones=EXCLUDED.milestones, version=career_path.version+1`,
+            [randomUUID(), principal, id, cp.readiness, cp.level, JSON.stringify(cp.milestones)]);
+          // active→succeeded 与业务落库同事务;fence(version)被并发接管时 0 行=不越权改别人的 run。
+          await c.query(
+            `UPDATE ai_graph_run SET status='succeeded',version=version+1,lease_owner=NULL,lease_expires_at=NULL
+              WHERE run_id=$1 AND owner_user_id=$2 AND version=$3 AND status='active'`,
+            [run.runId, principal, run.version]);
+        }),
+        markFailed: (run) => this.db.asPrincipal(principal, async (c) => {
+          await c.query(
+            `UPDATE ai_graph_run SET status='failed',version=version+1,lease_owner=NULL,lease_expires_at=NULL
+              WHERE run_id=$1 AND owner_user_id=$2 AND version=$3 AND status='active'`,
+            [run.runId, principal, run.version]);
+        }),
+      },
+      // fail-closed:转换自身失败不伪装终态(行如实停留 active,下次 begin 接管);原错误照常 rethrow。
+      onTransitionError: (e) => careerPathLogger.error(`career_path_graph_run_failed_transition_error${(e as { code?: string })?.code ? ` [${(e as { code?: string }).code}]` : ''}`),
     });
   }
 
