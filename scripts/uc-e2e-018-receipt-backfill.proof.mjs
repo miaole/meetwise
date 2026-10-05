@@ -22,6 +22,13 @@ import {
 import {
   stackFact, unobservedFact, TRACKED_IMAGES,
   unwrapStackValue, isLiveImageDigestEntry,
+  buildImageDigests,
+  parseContainerInspectOutput,
+  parseIsolatedPgBannerContainer,
+  isValidLiveCaptureRecord,
+  LIVE_CONTAINER_INSPECT_SOURCE,
+  HOST_TAG_INSPECT_FALLBACK_SOURCE,
+  RUNTIME_STACK_SOURCES,
 } from './lib/uc018-receipt-backfill-facts.mjs';
 import { REFUSE_REASONS, evaluate } from './lib/uc-covered-evaluator.mjs';
 
@@ -315,14 +322,238 @@ else pass('isPreferableBackfillReceipt false for exit=1');
   } else {
     fail('(b) prior-docker-inspect wrongly live');
   }
-  const live = {
+  // C-IMAGE-DIGEST fix · global strict reading (C-Q-RAG-1 rewrite, gate NOT weakened):
+  // an entry is live ONLY with source='live-container-inspect' + liveObservation===true
+  // + a non-empty containerId. The old synthetic 'docker-inspect'+live=true entry that
+  // carried no containerId (a host tag inspect mislabel) is now correctly NON-live —
+  // this fixture is rewritten to the tightened semantics, not deleted or weakened.
+  const legacyMislabel = {
     imageDigest: 'sha256:abc',
     source: 'docker-inspect',
     liveObservation: true,
     capturedAt: '2026-09-24T04:38:14.481Z',
+    // no containerId — must NOT pass the tightened gate
   };
-  if (isLiveImageDigestEntry(live)) pass('(b) live docker-inspect still live');
-  else fail('(b) live docker-inspect not live');
+  if (!isLiveImageDigestEntry(legacyMislabel)) {
+    pass('(b) docker-inspect without containerId no longer live (tightened gate)');
+  } else {
+    fail('(b) docker-inspect without containerId wrongly live (gate loosened?)');
+  }
+  const live = {
+    imageDigest: 'sha256:abc',
+    source: 'live-container-inspect',
+    liveObservation: true,
+    containerId: 'a'.repeat(64),
+    capturedAt: '2026-09-24T04:38:14.481Z',
+  };
+  if (isLiveImageDigestEntry(live)) pass('(b) live-container-inspect with containerId is live');
+  else fail('(b) live-container-inspect with containerId not live');
+}
+
+// ── C-IMAGE-DIGEST fix: 4 fail-closed FX groups (run-window live digest capture) ──
+
+const FX_BANNER_CONTAINER = 'meetwise-e2e-424242-1791650000000';
+const FX_BANNER_LINE = `E2E isolated PostgreSQL: ${FX_BANNER_CONTAINER} on 127.0.0.1:33099`;
+const FX_BANNER_LOG = `${FX_BANNER_LINE}\nE2E_ISO_STACK_NOTE isolated shell = test infrastructure only\n`;
+const FX_HOST_PRIOR = {
+  'pgvector/pgvector:pg16': ['pgvector/pgvector:pg16@sha256:' + 'ab'.repeat(32)],
+};
+const FX_LIVE_DIGEST = 'sha256:' + '1a'.repeat(32);
+const FX_CONTAINER_ID = 'f'.repeat(64);
+
+function fxCapture(overrides = {}) {
+  return {
+    ok: true,
+    source: LIVE_CONTAINER_INSPECT_SOURCE,
+    containerName: FX_BANNER_CONTAINER,
+    image: 'pgvector/pgvector:pg16',
+    imageDigest: FX_LIVE_DIGEST,
+    containerId: FX_CONTAINER_ID,
+    configImage: 'pgvector/pgvector:pg16',
+    running: true,
+    capturedAt: new Date().toISOString(),
+    bannerLine: FX_BANNER_LINE,
+    ...overrides,
+  };
+}
+
+// FX-IMAGE-DIGEST-LIVE-CONTAINER-INSPECT: validated in-window capture → live
+{
+  const runStartedAt = new Date(Date.now() - 60_000).toISOString();
+  const runEndedAt = new Date(Date.now() + 60_000).toISOString();
+  const capture = fxCapture();
+  const digests = buildImageDigests(FX_BANNER_LOG, FX_HOST_PRIOR, {
+    logRel: 'synthetic-fx.log',
+    mode: 'live',
+    liveCaptures: [capture],
+  });
+  const e = digests['pgvector/pgvector:pg16'];
+  const checks = [
+    [e.source === 'live-container-inspect', `source=${e.source}`],
+    [e.liveObservation === true, `liveObservation=${e.liveObservation}`],
+    [typeof e.containerId === 'string' && e.containerId.trim() !== '', `containerId=${e.containerId}`],
+    [e.containerId === FX_CONTAINER_ID, 'containerId is the captured run container Id'],
+    [e.imageDigest === FX_LIVE_DIGEST, `imageDigest is the live container digest (got ${e.imageDigest})`],
+    [e.imageDigest !== 'sha256:' + 'ab'.repeat(32), 'live digest is NOT the host tag fallback value'],
+    [e.capturedAt === capture.capturedAt, 'capturedAt is the in-window inspect moment'],
+    [e.priorCapturedAt === undefined, 'live entry does not inherit priorCapturedAt'],
+    [e.capturedAt >= runStartedAt && e.capturedAt <= runEndedAt, `capturedAt within run window [${runStartedAt}, ${runEndedAt}]`],
+    [isLiveImageDigestEntry(e) === true, 'isLiveImageDigestEntry=true'],
+  ];
+  const badChecks = checks.filter(([c]) => !c);
+  if (badChecks.length === 0) pass('FX-IMAGE-DIGEST-LIVE-CONTAINER-INSPECT: in-window capture → live entry (all checks)');
+  else fail('FX-IMAGE-DIGEST-LIVE-CONTAINER-INSPECT failed: ' + badChecks.map(([, d]) => d).join(' | '));
+  // unstarted services stay honest not-started (no fabricated observations)
+  const othersOk = ['redis:7-alpine', 'minio/minio:latest', 'mailhog/mailhog:v1.0.1']
+    .every((img) => digests[img].imageDigest === 'not-started'
+      && digests[img].liveObservation === false
+      && !isLiveImageDigestEntry(digests[img]));
+  if (othersOk) pass('FX-IMAGE-DIGEST-LIVE-CONTAINER-INSPECT: unstarted services remain honest not-started');
+  else fail('FX-IMAGE-DIGEST-LIVE-CONTAINER-INSPECT: unstarted service entry mutated');
+}
+
+// FX-IMAGE-DIGEST-CONTAINER-ID-FAILCLOSED: forged / missing container Id → never live
+{
+  // forged container Id (fails 64-hex shape — what a non-existent container / faked
+  // inspect output would produce; parseContainerInspectOutput also fails closed)
+  const forged = buildImageDigests(FX_BANNER_LOG, FX_HOST_PRIOR, {
+    logRel: 'synthetic-fx.log',
+    mode: 'live',
+    liveCaptures: [fxCapture({ containerId: 'deadbeef' })],
+  });
+  const fe = forged['pgvector/pgvector:pg16'];
+  // missing container Id
+  const missingCap = fxCapture();
+  delete missingCap.containerId;
+  const missing = buildImageDigests(FX_BANNER_LOG, FX_HOST_PRIOR, {
+    logRel: 'synthetic-fx.log',
+    mode: 'live',
+    liveCaptures: [missingCap],
+  });
+  const me = missing['pgvector/pgvector:pg16'];
+  const inspectFail = parseContainerInspectOutput(''); // `docker inspect` of a non-existent container: empty stdout
+  const inspectGarbage = parseContainerInspectOutput('no-such-object\n');
+  const gateEmpty = isLiveImageDigestEntry({
+    source: LIVE_CONTAINER_INSPECT_SOURCE, liveObservation: true, containerId: '   ',
+  });
+  const gateMissing = isLiveImageDigestEntry({
+    source: LIVE_CONTAINER_INSPECT_SOURCE, liveObservation: true,
+  });
+  const cases = [
+    [fe, 'forged'],
+    [me, 'missing'],
+  ];
+  let ok = true;
+  const details = [];
+  for (const [e, label] of cases) {
+    if (e.liveObservation !== false) { ok = false; details.push(`${label}: liveObservation=${e.liveObservation}`); }
+    if (isLiveImageDigestEntry(e) !== false) { ok = false; details.push(`${label}: isLive=true`); }
+    if (e.source !== 'live-container-inspect-failed') { ok = false; details.push(`${label}: source=${e.source}`); }
+    if (e.imageDigest === 'sha256:' + 'ab'.repeat(32)) { ok = false; details.push(`${label}: host tag value impersonated as capture result`); }
+    if (e.imageDigest !== 'unobserved') { ok = false; details.push(`${label}: imageDigest=${e.imageDigest}`); }
+    if (!e.failureReason) { ok = false; details.push(`${label}: failureReason missing`); }
+  }
+  if (ok) pass('FX-IMAGE-DIGEST-CONTAINER-ID-FAILCLOSED: forged/missing container Id → honest non-live failure entry, no host value impersonated');
+  else fail('FX-IMAGE-DIGEST-CONTAINER-ID-FAILCLOSED failed: ' + details.join(' | '));
+  if (inspectFail.ok === false && inspectFail.reason === 'inspect-output-empty'
+    && inspectGarbage.ok === false && inspectGarbage.reason === 'inspect-output-unparseable') {
+    pass('FX-IMAGE-DIGEST-CONTAINER-ID-FAILCLOSED: inspect of non-existent container fails closed at parse');
+  } else {
+    fail('FX-IMAGE-DIGEST-CONTAINER-ID-FAILCLOSED: inspect-output parse did not fail closed: '
+      + JSON.stringify({ inspectFail, inspectGarbage }));
+  }
+  if (!gateEmpty && !gateMissing) {
+    pass('FX-IMAGE-DIGEST-CONTAINER-ID-FAILCLOSED: gate rejects empty/missing containerId directly');
+  } else {
+    fail(`FX-IMAGE-DIGEST-CONTAINER-ID-FAILCLOSED: gate passed empty/missing containerId (empty=${gateEmpty} missing=${gateMissing})`);
+  }
+  if (isValidLiveCaptureRecord(fxCapture()) === true
+    && isValidLiveCaptureRecord(fxCapture({ containerId: 'deadbeef' })) === false
+    && isValidLiveCaptureRecord(missingCap) === false) {
+    pass('FX-IMAGE-DIGEST-CONTAINER-ID-FAILCLOSED: capture record validation accepts only well-formed containerId');
+  } else {
+    fail('FX-IMAGE-DIGEST-CONTAINER-ID-FAILCLOSED: capture record validation leak');
+  }
+}
+
+// FX-IMAGE-DIGEST-REEMIT-NOT-LIVE: reemit prior is never live (anti-whitewash pin)
+{
+  const reemit = buildImageDigests(FX_BANNER_LOG, FX_HOST_PRIOR, {
+    logRel: 'synthetic-fx.log',
+    mode: 'reemit',
+    priorCapturedAt: '2026-09-24T04:38:14.481Z',
+    // adversarial: even a perfectly-formed capture must NOT flip a reemit live —
+    // reemit runs no prove, so no run window exists and any capture is fabricated
+    liveCaptures: [fxCapture()],
+  });
+  const r = reemit['pgvector/pgvector:pg16'];
+  if (r.source === 'prior-docker-inspect' && r.liveObservation === false
+    && r.priorCapturedAt === '2026-09-24T04:38:14.481Z'
+    && isLiveImageDigestEntry(r) === false) {
+    pass('FX-IMAGE-DIGEST-REEMIT-NOT-LIVE: reemit prior stays prior-docker-inspect non-live (even with fabricated capture passed)');
+  } else {
+    fail('FX-IMAGE-DIGEST-REEMIT-NOT-LIVE: ' + JSON.stringify({
+      source: r.source, liveObservation: r.liveObservation, isLive: isLiveImageDigestEntry(r),
+    }));
+  }
+}
+
+// FX-IMAGE-DIGEST-HOST-TAG-FALLBACK-NOT-LIVE: host tag inspect fallback never live
+{
+  const fallback = buildImageDigests(FX_BANNER_LOG, FX_HOST_PRIOR, {
+    logRel: 'synthetic-fx.log',
+    mode: 'live',
+    liveCaptures: [], // no in-window capture — host arrays are fallback only
+  });
+  const f = fallback['pgvector/pgvector:pg16'];
+  const checks = [
+    [f.source === HOST_TAG_INSPECT_FALLBACK_SOURCE, `source=${f.source}`],
+    [f.liveObservation === false, `liveObservation=${f.liveObservation}`],
+    [isLiveImageDigestEntry(f) === false, `isLive=${isLiveImageDigestEntry(f)}`],
+    [f.imageDigest === 'sha256:' + 'ab'.repeat(32), 'host fallback keeps its honest digest value'],
+  ];
+  const badChecks = checks.filter(([c]) => !c);
+  if (badChecks.length === 0) pass('FX-IMAGE-DIGEST-HOST-TAG-FALLBACK-NOT-LIVE: host tag inspect is non-live fallback (old mislabel branch not regressed)');
+  else fail('FX-IMAGE-DIGEST-HOST-TAG-FALLBACK-NOT-LIVE failed: ' + badChecks.map(([, d]) => d).join(' | '));
+}
+
+// C-IMAGE-DIGEST fix: producer/source-level mechanism pins
+{
+  const factsSrc = readFileSync(join(root, 'scripts/lib/uc018-receipt-backfill-facts.mjs'), 'utf8');
+  const emitSrc = readFileSync(join(root, 'scripts/uc018-receipt-backfill-emit.mjs'), 'utf8');
+  if (/source\s*=\s*['"]docker-inspect['"]/.test(factsSrc)) {
+    fail('FX-SOURCE-PINS: old mislabeled source=docker-inspect branch still present in facts');
+  } else {
+    pass('FX-SOURCE-PINS: mislabeled source=docker-inspect branch removed from facts');
+  }
+  if (RUNTIME_STACK_SOURCES.includes('live-container-inspect')) {
+    fail('FX-SOURCE-PINS: live-container-inspect leaked into RUNTIME_STACK_SOURCES (frozen — stack MET boundary)');
+  } else {
+    pass('FX-SOURCE-PINS: live-container-inspect NOT in RUNTIME_STACK_SOURCES (live digest not counted as stack MET)');
+  }
+  if (!/E2E isolated PostgreSQL:/.test(emitSrc)) {
+    fail('FX-SOURCE-PINS: emitter no longer observes the run banner line');
+  } else if (!/\bspawn\(/.test(emitSrc)) {
+    fail('FX-SOURCE-PINS: emitter has no streaming spawn (window observation unreachable)');
+  } else if (!/runProveStreaming/.test(emitSrc)) {
+    fail('FX-SOURCE-PINS: prove step not run through the streaming runner');
+  } else {
+    pass('FX-SOURCE-PINS: emitter streams prove output and observes the run banner in-window');
+  }
+  if (!/\bdocker image inspect\b/.test(emitSrc)) {
+    fail('FX-SOURCE-PINS: host tag fallback inspect unexpectedly removed');
+  } else {
+    pass('FX-SOURCE-PINS: host tag inspect retained as fallback path only');
+  }
+  // banner parser trusts only the exact unique run container name shape
+  const goodParse = parseIsolatedPgBannerContainer(FX_BANNER_LINE);
+  const badParse = parseIsolatedPgBannerContainer('E2E isolated PostgreSQL: other-pool-abc on 127.0.0.1:33099');
+  if (goodParse && goodParse.trusted === true && goodParse.containerName === FX_BANNER_CONTAINER
+    && badParse && badParse.trusted === false) {
+    pass('FX-SOURCE-PINS: banner parser accepts only exact meetwise-e2e-<pid>-<ts> run container name');
+  } else {
+    fail('FX-SOURCE-PINS: banner parser name trust broken: ' + JSON.stringify({ goodParse, badParse }));
+  }
 }
 
 

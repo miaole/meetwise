@@ -57,12 +57,101 @@ export function isRuntimeStackSource(source) {
   return RUNTIME_STACK_SOURCES.includes(source);
 }
 
-/** Image digest from a prior emit — not a live per-run observation. */
+/**
+ * C-IMAGE-DIGEST fix · LIVE per-run digest capture constants.
+ * 'live-container-inspect' is deliberately NOT added to RUNTIME_STACK_SOURCES
+ * (that table is frozen): a live image digest is a digest-honesty observation,
+ * NOT a runtime stack MET — adding it there would be an out-of-scope stack change.
+ */
+export const LIVE_CONTAINER_INSPECT_SOURCE = 'live-container-inspect';
+export const LIVE_CONTAINER_INSPECT_FAILED_SOURCE = 'live-container-inspect-failed';
+export const HOST_TAG_INSPECT_FALLBACK_SOURCE = 'host-tag-inspect-fallback';
+/** The tracked image the isolated-PG banner identifies (servicesStartedFromLog). */
+export const ISOLATED_PG_TRACKED_IMAGE = 'pgvector/pgvector:pg16';
+
+const CONTAINER_ID_RE = /^[a-f0-9]{64}$/i;
+const IMAGE_DIGEST_RE = /^sha256:[a-f0-9]{64}$/i;
+const RUN_CONTAINER_NAME_RE = /^meetwise-e2e-\d+-\d+$/;
+const ISO_TS_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
+
+/**
+ * Parse the exact run container name out of the run-e2e-isolated banner line
+ * ("E2E isolated PostgreSQL: meetwise-e2e-<pid>-<ts> on 127.0.0.1:<port>").
+ * Only the banner's exact container name is trusted (pid+timestamp is unique per
+ * run — Ban name-prefix polling that could hit a concurrent run's container).
+ * Returns null when the line is not the banner; { trusted:false, reason } when it
+ * is the banner but the parsed name does not match the run container shape.
+ */
+export function parseIsolatedPgBannerContainer(line) {
+  const m = /E2E isolated PostgreSQL:\s*(\S+)\s+on\s+127\.0\.0\.1:\d+/.exec(String(line));
+  if (!m) return null;
+  const containerName = m[1];
+  if (!RUN_CONTAINER_NAME_RE.test(containerName)) {
+    return { containerName, trusted: false, reason: 'banner-container-name-unexpected' };
+  }
+  return { containerName, trusted: true };
+}
+
+/**
+ * Parse `docker inspect --format '{{.Id}}|{{.Image}}|{{.Config.Image}}|{{.State.Running}}'`
+ * output for a run-window container. Fail-closed: any missing / ill-formed field
+ * (including a forged or empty container Id) → { ok:false, reason }.
+ */
+export function parseContainerInspectOutput(stdout) {
+  const text = String(stdout || '').trim();
+  if (!text) return { ok: false, reason: 'inspect-output-empty' };
+  const parts = text.split('|');
+  if (parts.length < 4) {
+    return { ok: false, reason: 'inspect-output-unparseable', detail: text.slice(0, 240) };
+  }
+  const [containerId, imageDigest, configImage, running] = parts;
+  if (!CONTAINER_ID_RE.test(containerId || '')) {
+    return { ok: false, reason: 'container-id-unparseable', detail: String(containerId).slice(0, 80) };
+  }
+  if (!IMAGE_DIGEST_RE.test(imageDigest || '')) {
+    return { ok: false, reason: 'image-digest-unparseable', detail: String(imageDigest).slice(0, 80) };
+  }
+  if (!configImage) return { ok: false, reason: 'config-image-empty' };
+  if (running !== 'true') return { ok: false, reason: 'container-not-running' };
+  return { ok: true, containerId, imageDigest, configImage, running: true };
+}
+
+/**
+ * Full validation of a live-container-inspect capture record (defense in depth:
+ * the emitter validates at capture time; buildImageDigests re-validates before it
+ * ever marks an entry live). A record that is missing / forging containerId or
+ * digest, not observed running, or without an ISO capturedAt can never yield a
+ * live entry — it is downgraded to a fail-closed failure entry instead.
+ */
+export function isValidLiveCaptureRecord(rec) {
+  if (!rec || typeof rec !== 'object') return false;
+  if (rec.ok !== true) return false;
+  if (rec.source !== LIVE_CONTAINER_INSPECT_SOURCE) return false;
+  if (typeof rec.containerId !== 'string' || !CONTAINER_ID_RE.test(rec.containerId)) return false;
+  if (typeof rec.imageDigest !== 'string' || !IMAGE_DIGEST_RE.test(rec.imageDigest)) return false;
+  if (typeof rec.configImage !== 'string' || !rec.configImage) return false;
+  if (rec.running !== true) return false;
+  if (typeof rec.capturedAt !== 'string' || !ISO_TS_RE.test(rec.capturedAt)) return false;
+  if (Number.isNaN(Date.parse(rec.capturedAt))) return false;
+  return true;
+}
+
+/**
+ * LIVE per-run image digest gate — tightened extension (C-IMAGE-DIGEST fix).
+ * Global strict reading: an entry is live ONLY when
+ *   source === 'live-container-inspect' && liveObservation === true && containerId non-empty.
+ * ANY entry missing a non-empty containerId is false — including legacy
+ * 'docker-inspect' entries that carried no containerId (host tag inspect must not
+ * impersonate a run-window observation), 'prior-docker-inspect', host-tag fallback,
+ * 'live-container-inspect-failed', not-started / unpinned / unobserved. Existing
+ * committed receipts stay false under this gate and are never rewritten.
+ */
 export function isLiveImageDigestEntry(entry) {
   if (!entry || typeof entry !== 'object') return false;
-  if (entry.liveObservation === false) return false;
-  if (entry.source === 'prior-docker-inspect') return false;
-  return entry.source === 'docker-inspect' && entry.liveObservation === true;
+  if (entry.liveObservation !== true) return false;
+  if (entry.source !== LIVE_CONTAINER_INSPECT_SOURCE) return false;
+  if (typeof entry.containerId !== 'string' || entry.containerId.trim() === '') return false;
+  return true;
 }
 
 /** Find 1-based line index matching regex; return { line, text } or null. */
@@ -203,15 +292,34 @@ function isFloatingTag(imageRef) {
  * Build imageDigests map.
  * @param {string} logText
  * @param {Record<string, unknown>} [priorDigests] legacy map image→string[]|object
- * @param {{ logRel?: string, mode?: 'live'|'reemit', priorCapturedAt?: string|null, liveCapturedAt?: string|null }} [opts]
+ * @param {{ logRel?: string, mode?: 'live'|'reemit', priorCapturedAt?: string|null,
+ *           liveCaptures?: Array<object> }} [opts]
  *
- * Re-emit / reused digests → source=prior-docker-inspect + priorCapturedAt + liveObservation=false
- * (Ban counting as a live per-run docker observation).
- * Live prove inspect → source=docker-inspect + liveObservation=true + capturedAt.
+ * C-IMAGE-DIGEST fix labeling (fail-closed):
+ * - LIVE per-run entry ONLY from a validated in-run-window container capture
+ *   (emitter observed the run banner, then docker-inspected that exact container
+ *   while it was still alive): source=live-container-inspect + liveObservation=true
+ *   + containerId + capturedAt(run window). Re-validated via
+ *   isValidLiveCaptureRecord — forged/missing containerId can never be live.
+ * - re-emit / reused digests → source=prior-docker-inspect + priorCapturedAt +
+ *   liveObservation=false (Ban counting as a live per-run docker observation).
+ *   liveCaptures are deliberately ignored in reemit mode: reemit runs no prove,
+ *   so no run window exists and any capture would be fabricated.
+ * - host tag image inspect (fresh arrays without a container capture) →
+ *   source=host-tag-inspect-fallback + liveObservation=false. The old branch that
+ *   mislabeled these host readings as 'docker-inspect'/live=true is REMOVED.
+ * - a present-but-invalid/failed capture attempt → explicit failure entry
+ *   (source=live-container-inspect-failed, imageDigest='unobserved',
+ *   liveObservation=false): the failure is visible, and no host tag value is
+ *   impersonated as a live observation.
+ * The former opts.liveCapturedAt (emit-time timestamp feeding the mislabeled
+ * live branch) is gone — live capturedAt now comes only from the in-window
+ * capture record (Ban inheriting priorCapturedAt or emit-time as live moment).
  */
 export function buildImageDigests(logText, priorDigests = {}, opts = {}) {
   const { started, cites } = servicesStartedFromLog(logText);
   const mode = opts.mode === 'live' ? 'live' : 'reemit';
+  const liveCaptures = Array.isArray(opts.liveCaptures) ? opts.liveCaptures : [];
   const out = {};
   for (const img of TRACKED_IMAGES) {
     const wasStarted = started[img] === true;
@@ -230,27 +338,59 @@ export function buildImageDigests(logText, priorDigests = {}, opts = {}) {
       inheritedPriorAt = prior.priorCapturedAt || prior.capturedAt || null;
     }
 
+    const capturesForImg = liveCaptures.filter((c) => c && c.image === img);
+    const liveCap = mode === 'live'
+      ? capturesForImg.find((c) => isValidLiveCaptureRecord(c))
+      : null;
+    const failedCap = liveCap
+      ? null
+      : capturesForImg.find((c) => !isValidLiveCaptureRecord(c) || mode !== 'live');
+
     let imageDigest;
     let source;
     let liveObservation = false;
     let priorCapturedAt = null;
     let capturedAt = null;
+    let containerId = null;
+    let containerName = null;
+    let failureReason = null;
 
     if (!wasStarted) {
       imageDigest = 'not-started';
       source = 'log-parse';
       liveObservation = false;
     } else if (priorDigestStr && mode === 'reemit') {
+      // Re-emit: inherited prior digest — never a live per-run observation
+      // (liveCaptures ignored in reemit: no prove ran, no run window exists).
       imageDigest = priorDigestStr;
       source = 'prior-docker-inspect';
       liveObservation = false;
       priorCapturedAt = inheritedPriorAt || opts.priorCapturedAt || null;
-    } else if (priorDigestStr && mode === 'live') {
-      // Fresh inspect arrays passed as priorDigests in prove mode
-      imageDigest = priorDigestStr;
-      source = 'docker-inspect';
+    } else if (liveCap) {
+      // LIVE per-run capture: docker inspect of the banner-parsed run container,
+      // performed by the emitter inside the run window (container still alive).
+      imageDigest = liveCap.imageDigest;
+      source = LIVE_CONTAINER_INSPECT_SOURCE;
       liveObservation = true;
-      capturedAt = opts.liveCapturedAt || new Date().toISOString();
+      containerId = liveCap.containerId;
+      containerName = liveCap.containerName || null;
+      capturedAt = liveCap.capturedAt || null;
+    } else if (failedCap) {
+      // Fail-closed: a capture attempt exists but is missing/forged/failed —
+      // honest failure marker; never live; host tag value not impersonated.
+      imageDigest = 'unobserved';
+      source = LIVE_CONTAINER_INSPECT_FAILED_SOURCE;
+      liveObservation = false;
+      failureReason = failedCap.reason
+        || (mode !== 'live' ? 'no-run-window-in-reemit' : 'container-inspect-failed');
+      containerName = failedCap.containerName || null;
+      capturedAt = failedCap.capturedAt || null;
+    } else if (priorDigestStr) {
+      // Host-side tag image inspect fallback — honest non-live. The old
+      // 'docker-inspect'/live=true mislabel branch was removed (C-IMAGE-DIGEST).
+      imageDigest = priorDigestStr;
+      source = HOST_TAG_INSPECT_FALLBACK_SOURCE;
+      liveObservation = false;
     } else if (isFloatingTag(img)) {
       imageDigest = 'unpinned';
       source = 'compose-declared-floating';
@@ -269,6 +409,9 @@ export function buildImageDigests(logText, priorDigests = {}, opts = {}) {
       cite: cites[img],
       logFile: opts.logRel || null,
     };
+    if (containerId) entry.containerId = containerId;
+    if (containerName) entry.containerName = containerName;
+    if (failureReason) entry.failureReason = failureReason;
     if (priorCapturedAt) entry.priorCapturedAt = priorCapturedAt;
     if (capturedAt) entry.capturedAt = capturedAt;
     out[img] = entry;
