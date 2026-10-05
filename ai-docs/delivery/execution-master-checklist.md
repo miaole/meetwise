@@ -716,3 +716,14 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · canHonestlyFlip=false. Do not write covered.
 - Nail tip = 本 commit（branch `line/q-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+### Line R NHP-002-ADV-01 GAP-UC002-ADV-LED-CROSSUSER evidence NAIL（2026-10-05 SSOT nail · `post_prove_dual_pass` · EXIT=0 双 fresh 77/77 · ADV 行 stays blind/case-only）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line R SSE 会话两族六类 ADV evidence products only. Implementer does not self-approve. Not a covered flip. UC-E2E-002 §1.0.1 ADV stays **blind/case-only**（case `NHP-002-ADV-01` stays blind→case-only）. coveredCount=**8** unchanged.
+- REQUEST `d89aaf3` / `d89aaf39fd438bb873e3a1acfc8d74c628b3e160`（docs-only · origin）。Pre-exec dual PASS: mw-e2e-ha `8e9dd88` / `8e9dd88892926fcd2d062cb62cf4fdebfb988261` + mw-rag-route `1836712` / `18367128e9c2c36617b4a1b8b07360367283e595`（docs gate only · origin 已有 cherry-pick 镜像）。
+- Prove 包 `a8c5812` / `a8c58129831e1c113848ca2412066c00b74adda5`（branch `line/r-next-nhp` · 恰 5 文件 +696/−1 · 零产品代码 · 禁碰清单零 diff；nail 分支 cherry-pick `55ede89` / `55ede8980d5a23b8c021ec357207e030d222650e`）· CMD `pnpm uc002:adv:prove` **EXIT=0 双 fresh（77/77 · attempts 1,1,0,0 透明台账**：EXIT1×2 均证明侧修正——V2 观察窗对齐=观测面加严非放宽、teardown drain 仅涉收尾；sourceDigests 链证产品四次 digest 全同零改动 · 非 retry-to-green · EXIT1 未记 flake）· receipt `receipts/2026-10-05-gap-uc002-adv-led-crossuser-nhp-prove.md`。
+- Post-prove dual PASS: mw-e2e-ha `1f933b9` / `1f933b959bdca92da65187770ba0c0d86c94b0bb`（nail cherry-pick `3454d41`）+ mw-rag-route `f7fc728` / `f7fc728b3d106ded611253c046560a3a93c4634a`（nail cherry-pick `893acf6`）——双 fresh re-run EXIT=0 77/77 · alone≠dual · 不代签。
+- Residual（诚实保留）: **D1 disclosed**（403↔404 折叠：产品 404 不泄露系 `e2e-scenarios.md:90` 原文机制且严格更安全 · 期望→实际映射表入 receipt · 不得写成「403 面已闭合」）· PERF_api/PERF_web/LOAD_worker 显式 blind 保持（§1.0.2 :147 · 本 PASS 不构成任何 PERF/LOAD 面证据）· `GAP-UC002-ADV-LED-CROSSUSER` 已于 gap-bug-backlog 首次登记（nail 期 · C-ADV-6）· **EXIT0 ≠ covered**。
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
+- Nail tip = 本 commit（branch `line/r-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
