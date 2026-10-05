@@ -660,6 +660,7 @@ const isolatedReceiptSources = {
     'apps/api/test/uc-e2e-011-report-refund-http.proof.ts', 'apps/api/test/_neg-harness.ts',
     'apps/api/src/modules/commerce/commerce.controller.ts',
     'apps/api/src/modules/commerce/commerce.service.ts',
+    'apps/api/src/modules/commerce/commerce-webhook.controller.ts',
     'apps/api/src/modules/interview/interview.controller.ts',
     'apps/api/src/modules/interview/interview.service.ts',
     'packages/db/src/commerce.ts', 'packages/db/src/report.ts', 'packages/db/src/payment.ts',
@@ -667,6 +668,14 @@ const isolatedReceiptSources = {
   'uc011:adv:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/api/test/uc-e2e-011-adv-refund-callback.proof.ts', 'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/commerce/commerce.controller.ts',
+    'apps/api/src/modules/commerce/commerce.service.ts',
+    'apps/api/src/modules/commerce/commerce-webhook.controller.ts',
+    'packages/db/src/payment.ts',
+  ],
+  'uc011:refund-callback:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-011-refund-callback-mouth.proof.ts', 'apps/api/test/_neg-harness.ts',
     'apps/api/src/modules/commerce/commerce.controller.ts',
     'apps/api/src/modules/commerce/commerce.service.ts',
     'apps/api/src/modules/commerce/commerce-webhook.controller.ts',
@@ -1339,7 +1348,7 @@ const isolatedReceiptSources = {
 };
 if (![
   'e2e:prove', 'e2e:ui', 'performance:e2e',
-  'api:validate', 'neg:all', 'neg:auth', 'neg:commerce', 'neg:resume', 'neg:interview', 'neg:bend', 'neg:input', 'turn-idempotency:prove', 'migrate:prove', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc018:abandon:http:prove:raw', 'uc018:adv:prove:raw', 'uc018:perf-load:prove:raw', 'uc011:report-refund:prove:raw', 'uc011:report-refund:http:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc019:report-regenerate:http:prove:raw', 'uc002:lease:prove:raw', 'uc002:http:prove:raw', 'uc002:adv:prove:raw', 'uc015:ingest-failures:prove:raw', 'uc014:webhook-adv:prove:raw', 'uc010:sse-resume:prove:raw', 'uc033:cross-user-authz:prove:raw', 'uc003:i18n-locale:prove:raw', 'uc025:stale-quiz-expiry:prove:raw', 'uc004:career-path:prove:raw', 'uc028:trace-fail-open:prove:raw', 'uc027:manual-review-appeal:prove:raw', 'uc040-043:batch-qbank-seat:prove:raw', 'uc031-032:injection-jailbreak:prove:raw', 'resume:prove:raw',
+  'api:validate', 'neg:all', 'neg:auth', 'neg:commerce', 'neg:resume', 'neg:interview', 'neg:bend', 'neg:input', 'turn-idempotency:prove', 'migrate:prove', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc018:abandon:http:prove:raw', 'uc018:adv:prove:raw', 'uc018:perf-load:prove:raw', 'uc011:report-refund:prove:raw', 'uc011:report-refund:http:prove:raw', 'uc011:refund-callback:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc019:report-regenerate:http:prove:raw', 'uc002:lease:prove:raw', 'uc002:http:prove:raw', 'uc002:adv:prove:raw', 'uc015:ingest-failures:prove:raw', 'uc014:webhook-adv:prove:raw', 'uc010:sse-resume:prove:raw', 'uc033:cross-user-authz:prove:raw', 'uc003:i18n-locale:prove:raw', 'uc025:stale-quiz-expiry:prove:raw', 'uc004:career-path:prove:raw', 'uc028:trace-fail-open:prove:raw', 'uc027:manual-review-appeal:prove:raw', 'uc040-043:batch-qbank-seat:prove:raw', 'uc031-032:injection-jailbreak:prove:raw', 'resume:prove:raw',
   'stress:prove:raw', 'adaptive-latency:prove', 'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'adaptive-degrade:prove:raw', 'vectorstore:prove:raw',
   'qbank-source:prove:raw', 'memory:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'ocr:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'rag-generation:prove:raw', 'rag-corpus-version:prove:raw',
   'voice:prove', 'scoring-integrity:prove', 'scoring:eval:raw', 'qbank-pipeline:prove:raw', 'runtime-role:prove:raw', 'checkpoint-role:prove:raw', 'api-runtime-role:prove:raw',
@@ -1395,7 +1404,7 @@ if (![
   'sole-stack:vectorstore-qdrant:prove',
   'uc004:career-path-fault:prove:raw',
   'uc001:nhp-neg:prove:raw',
-  'uc011:adv:prove:raw',
+  'uc011:adv:prove:raw', 'uc011:refund-callback:prove:raw',
 ].includes(target)) {
   throw new Error(`unsupported_e2e_target:${target}`);
 }
@@ -1432,6 +1441,8 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc011-report-refund-http']]
   : target === 'uc011:adv:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc011-adv-refund-callback']]
+  : target === 'uc011:refund-callback:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc011-refund-callback-mouth']]
   : target === 'uc019:report-regenerate:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:uc019-report-regenerate']]
   : target === 'uc019:report-regenerate:http:prove:raw'

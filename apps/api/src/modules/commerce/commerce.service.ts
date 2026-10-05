@@ -1,6 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { randomUUID, createHmac, timingSafeEqual } from 'node:crypto';
-import { createOrder, getOrder, markOrderPaidAndCredit, availableUnits } from '@meetwise/db';
+import { createOrder, getOrder, markOrderPaidAndCredit, markOrderRefunded, availableUnits } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
 
 /**
@@ -67,6 +67,29 @@ export class CommerceService {
     if (res === 'not_found') throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
     if (res === 'conflict') throw new HttpException({ error: 'order_conflict' }, HttpStatus.CONFLICT);
     return { result: res };
+  }
+
+
+  /**
+   * 退款 webhook（GAP-UC011-REFUND-CALLBACK Path A）：无登录态 + HMAC fail-closed。
+   * 载荷标签用 `refunded`（对偶 pay 的 `paid`）；回调体仅 {providerTxn, sig}——无金额通道（DISCLOSED）。
+   * 具名码对齐 payWebhook：400 invalid_callback · 403 bad_signature · 404 order_not_found · 409 order_conflict ·
+   * 200 {result: refunded|already}。Ban any-non-404-4xx-as-sig-evidence。
+   */
+  async refundWebhook(id: string, body: { providerTxn?: string; sig?: string }) {
+    if (!body?.providerTxn || !body?.sig) throw new HttpException({ error: 'invalid_callback' }, HttpStatus.BAD_REQUEST);
+    const secret = process.env.PAY_PROVIDER_SECRET ?? '';
+    const exp = createHmac('sha256', secret).update(`${id}:${body.providerTxn}:refunded`).digest('hex');
+    const a = Buffer.from(body.sig), e = Buffer.from(exp);
+    if (!secret || a.length !== e.length || !timingSafeEqual(a, e)) throw new HttpException({ error: 'bad_signature' }, HttpStatus.FORBIDDEN);
+    const owner = await this.db.asGateway((c) => c.query(
+      'SELECT gateway_payment_order_owner($1) AS owner_user_id', [id],
+    )).then((r: any) => r.rows[0]?.owner_user_id);
+    if (!owner) throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
+    const res = await this.db.asPrincipal(owner, (c) => markOrderRefunded(c, owner, id, body.providerTxn!));
+    if (res === 'not_found') throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
+    if (res === 'conflict') throw new HttpException({ error: 'order_conflict' }, HttpStatus.CONFLICT);
+    return { result: res };   // refunded(首次) | already(幂等重放)
   }
 
   async getOrder(principal: string, id: string) {

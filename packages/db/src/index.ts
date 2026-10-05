@@ -281,8 +281,8 @@ export type {
 } from './memory-two-stage-recall.ts';
 
 // 支付订单（幂等入账）
-export { createOrder, getOrder, markOrderPaidAndCredit } from './payment.ts';
-export type { CreditResult } from './payment.ts';
+export { createOrder, getOrder, markOrderPaidAndCredit, markOrderRefunded } from './payment.ts';
+export type { CreditResult, RefundResult } from './payment.ts';
 
 // 站内通知
 export { insertNotification, listNotifications, markNotificationRead, markAllNotificationsRead, unreadCount } from './notification.ts';

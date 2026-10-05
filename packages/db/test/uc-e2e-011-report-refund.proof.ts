@@ -5,7 +5,7 @@
  *   R1 interview fail → reserved→released + 额度净变 0
  *   R2 report quarantine after complete → consumption stays confirmed（不退）
  *   R3 mistaken release on confirmed → already_confirmed（拒）
- *   R4 honesty: payment refund-callback / confirmed→refunded product path MISSING (GAP pin)
+ *   R4 honesty: markOrderRefunded landed (PREREQ-6) · consumption.refunded still absent (红冲) · ≠ covered
  *              + §1b static inventory + 抬 covered prerequisites (never covered)
  *
  * NO MODEL_API_KEY · NO HTTP/UI e2e.
@@ -178,10 +178,10 @@ async function main() {
     A('R3 interview 仍 completed', (await ivStatus(owner, id)) === 'completed');
   }
 
-  // ── R4 honesty GAP: payment refund-callback / confirmed→refunded missing (+ §1b prereqs) ──
-  section('R4 · honesty GAP pin：支付退款回调 / confirmed→refunded 产品路径缺失（假绿禁）');
+  // ── R4 honesty：markOrderRefunded 已落（PREREQ-6）· consumption 仍无 refunded 态（红冲）· ≠ covered ──
+  section('R4 · honesty pin：payment refund API landed · consumption.refunded 仍缺 · ≠ covered');
   {
-    // Schema: entitlement_consumption has no 'refunded' status (only reserved|confirmed|partial_confirmed|released)
+    // Schema: entitlement_consumption has no 'refunded' status (红冲路径，非 consumption 态迁移)
     const chk = await pool.query<{ cons: string }>(
       `SELECT pg_get_constraintdef(oid) AS cons
          FROM pg_constraint
@@ -195,21 +195,19 @@ async function main() {
     const hasConfirmed = /'confirmed'/i.test(defs);
     A('R4 schema status CHECK 含 confirmed', hasConfirmed);
     A('R4 schema status CHECK 含 released', hasReleased);
-    A('R4 schema status CHECK 不含 refunded（GAP: confirmed→refunded 未落库）', !hasRefunded);
+    A('R4 schema status CHECK 不含 refunded（红冲路径 · 非 consumption.refunded）', !hasRefunded);
 
-    // Static inventory (parallel §1b): payment.ts pay-only surface
     const paymentSrc = readRepo('packages/db/src/payment.ts');
     const dbIndex = readRepo('packages/db/src/index.ts');
     A('R4 payment.ts 有 markOrderPaidAndCredit（入账旁证）',
       /export async function markOrderPaidAndCredit\b/.test(paymentSrc));
-    A('R4 payment.ts 无 markOrderRefunded / refundOrder / applyRefund',
-      !/\b(markOrderRefunded|refundOrder|applyRefund|markOrderRefund)\b/.test(paymentSrc));
-    A('R4 payment.ts 无 status=refunded 写入',
-      !/status\s*=\s*['"]refunded['"]|SET\s+status\s*=\s*['"]refunded['"]/i.test(paymentSrc));
-    A('R4 db index 无 refund API re-export',
-      !/markOrderRefunded|refundOrder|applyRefund/.test(dbIndex));
+    A('R4 payment.ts 有 markOrderRefunded（Path A 已落）',
+      /export async function markOrderRefunded\b/.test(paymentSrc));
+    A('R4 payment.ts 有 status=refunded 写入',
+      /status\s*=\s*['"]refunded['"]|SET\s+status\s*=\s*['"]refunded['"]/i.test(paymentSrc));
+    A('R4 db index re-export 含 markOrderRefunded',
+      /markOrderRefunded/.test(dbIndex));
 
-    // payment_order schema reserves refunded — API still missing
     const orderChk = await pool.query<{ cons: string }>(
       `SELECT pg_get_constraintdef(oid) AS cons
          FROM pg_constraint
@@ -218,16 +216,13 @@ async function main() {
           AND pg_get_constraintdef(oid) ILIKE '%status%'`,
     );
     const orderDefs = orderChk.rows.map((r) => r.cons).join(' | ');
-    A('R4 payment_order CHECK 含 refunded（schema 预留 ≠ API）', /'refunded'/i.test(orderDefs));
+    A('R4 payment_order CHECK 含 refunded', /'refunded'/i.test(orderDefs));
 
-    console.log('GAP_PIN: GAP-UC011-REFUND-CALLBACK — packages/db payment.ts 仅 createOrder/getOrder/markOrderPaidAndCredit；无 refund-callback / paid→refunded API');
-    console.log('§1b#1 抬 covered 前置（implementing refund-callback · db 侧）:');
-    console.log('  PREREQ-2  markOrderRefunded：paid→refunded CAS + 幂等键(支付单号+流水) exactly-once');
-    console.log('  PREREQ-3  ConsumptionRecord confirmed→refunded（或红冲）与 D1 对齐；非仅 payment_order CHECK 预留');
-    console.log('  PREREQ-4  TC-E2E-011-refund-idem 集成断言可执行');
-    console.log('GAP_PIN: TC-E2E-011-refund-idem + balance-ui 仍缺产品路径；本 prove EXIT=0 仅=诚实钉，≠退款回调 covered');
-    A('R4 honesty: GAP+§1b PREREQ 已打印且 schema 不伪造 consumption.refunded',
-      !hasRefunded && hasConfirmed && hasReleased && /'refunded'/i.test(orderDefs));
+    console.log('MOUTH_LANDED: markOrderRefunded paid→refunded CAS + refund_provider_txn 幂等 · 真证据 pnpm uc011:refund-callback:prove');
+    console.log('REMAIN: balance-ui / wallet / ADV / full.e2e / covered-lift — 本刀不关');
+    console.log('HONESTY: EXIT0≠covered · UC-011 stays partial · coveredCount=8 · Ban wash ADV');
+    A('R4 honesty: markOrderRefunded 已落 + schema 不伪造 consumption.refunded + ≠covered',
+      !hasRefunded && hasConfirmed && hasReleased && /'refunded'/i.test(orderDefs) && /markOrderRefunded/.test(paymentSrc));
   }
 
   console.log(`\n${fail === 0
