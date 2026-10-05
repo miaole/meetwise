@@ -1,6 +1,8 @@
-# Slice — **C-PERF-TEARDOWN 根因刀**（Line S · docs REQUEST · **`draft:awaiting_pre_exec_dual`**）
+# Slice — **C-PERF-TEARDOWN 根因刀**（Line S · NAIL · **`post_prove_dual_pass`** · CONDITION stays OPEN）
 
-**Status**: **`post_prove:awaiting_post_prove_dual`**（Branch A prove ran · receipt `receipts/2026-10-05-gap-perf-teardown-rootcause-fix-prove.md` · backlog `:35` stays CONDITION OPEN · canHonestlyFlip=false · Ban self-nail）
+**Status**: **`post_prove_dual_pass`**（Line S nail · Branch A re-run evidence · prove tip `920666a` · prove @ `e8c63a9` · EXIT **0/0/0** · post dual mw-e2e-ha `f4441dd` + mw-rag-route `6a79946` BOTH PASS · backlog `:35` **C-PERF-TEARDOWN stays CONDITION OPEN** · canHonestlyFlip=false · Ban close CONDITION · Ban wash attempt1 · Ban covered flip · Ban HA · Ban coding · Ban Meridian · Ban Branch B invention · Ban secrets · Ban force-push · Ban self-approve beyond this authorized nail）
+
+> **REQUEST-era note（historical · retained）**: began as REQUEST `draft:awaiting_pre_exec_dual` → `post_prove:awaiting_post_prove_dual` after Branch A prove. Prove tip **`920666a`** · prove **`e8c63a9`** · code-eq **`55ede89`** · EXIT **0/0/0** · attempt1@`b29c191` EXIT1 retained · post dual `f4441dd`+`6a79946` BOTH PASS. Lifecycle advanced to **`post_prove_dual_pass`** by Line S nail only. **Not a CONDITION close**.
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · PERF/LOAD stays local partial · capacityRepresentative=false
 **Date**: 2026-10-05
 **Base**: `origin/feat/mysql-schema-skeleton` · `377e7fc4fa1b35b85ebf524b668469caf66de2bc`
@@ -30,14 +32,31 @@ Ban coding · Ban prove 执行（pre-exec dual PASS 后由协调方授权）· B
 
 Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · PERF/LOAD stays local partial · capacityRepresentative=false · canHonestlyFlip=false.
 
-*Slice · C-PERF-TEARDOWN · rootcause + re-run/close-evidence knife · post_prove awaiting dual · OPEN · STOP*
+*Slice · C-PERF-TEARDOWN · rootcause + re-run/close-evidence knife · post_prove awaiting dual · OPEN · STOP*  <!-- prove-era footer · lifecycle advanced below -->
 
 
 ---
 
-## Status note — Branch A prove ran（additive · 2026-10-05）
+## Status note — Branch A prove ran（additive · 2026-10-05 · historical · retained）
 
-**Status**: `post_prove:awaiting_post_prove_dual`（Branch A · zero product/infra code · prove @ `e8c63a913a1e9af285f692bcab16f7593294d144` · 3/3 attempts EXIT=0 · zero `Unhandled 'error' event` · all reached run3+SUMMARY）
+**Status (prove-era)**: `post_prove:awaiting_post_prove_dual`（Branch A · zero product/infra code · prove @ `e8c63a913a1e9af285f692bcab16f7593294d144` · 3/3 attempts EXIT=0 · zero `Unhandled 'error' event` · all reached run3+SUMMARY）
 **Receipt**: `receipts/2026-10-05-gap-perf-teardown-rootcause-fix-prove.md`
-**C-PERF-TEARDOWN**: stays **CONDITION OPEN**（canHonestlyFlip=false · Ban self-nail · Ban SSOT/backlog `:35` flip here）
-**POST_DUAL**: awaiting · Pins unchanged · PERF/LOAD stays local partial · STOP
+**C-PERF-TEARDOWN**: stays **CONDITION OPEN**（canHonestlyFlip=false · Ban self-nail · Ban SSOT/backlog `:35` flip）
+**POST_DUAL (prove-era)**: was awaiting — now BOTH PASS（see Line S NAIL lifecycle）· Pins unchanged · PERF/LOAD stays local partial
+
+---
+
+## Line S NAIL lifecycle（`post_prove_dual_pass` · 2026-10-05 · additive）
+
+- Lifecycle on this harness/slice/receipt: **`post_prove_dual_pass`**.
+- Nail evidence tip: `920666a9a6c2be248f6006067193414e2355f8aa`.
+- Prove SHA: `e8c63a913a1e9af285f692bcab16f7593294d144` · code-eq `55ede8980d5a23b8c021ec357207e030d222650e` · **PROVE_EXIT 0/0/0**.
+- POST dual BOTH PASS: mw-e2e-ha `f4441dde38eed6eee402a6d0bcf12cea697b6304` + mw-rag-route `6a79946ae5bb4b2148e0d63d3b7f66d64a1e51df`.
+- Branch A ONLY · zero product code · Branch B not triggered.
+- attempt1@`b29c191` EXIT1 retained · Ban wash.
+- **STILL_OPEN**: backlog `:35` **C-PERF-TEARDOWN stays CONDITION OPEN** · canHonestlyFlip=false · PERF/LOAD stays local partial · capacityRepresentative=false · coveredCount=8.
+- Pins unchanged: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · ms3EqualsR4Closed=false · PG-retained · DELETE=503.
+
+---
+
+*Slice · C-PERF-TEARDOWN · Line S NAIL · 2026-10-05 · lifecycle post_prove_dual_pass · prove tip 920666a · EXIT 0/0/0 · post dual f4441dd+6a79946 PASS · CONDITION OPEN retained · Ban close · Ban wash attempt1 · Ban covered flip · Ban HA · Ban Meridian · STOP*

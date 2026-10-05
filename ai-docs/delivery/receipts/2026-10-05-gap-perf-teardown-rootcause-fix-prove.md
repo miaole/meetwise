@@ -14,7 +14,7 @@
 
 haStatus=**NOT_HA** · releaseEvidence=**false** · claimProductionHA=**false** · gR45Closed=**true** · coveredCount=**8** · ms3EqualsR4Closed=**false** · **PG-retained** · public DELETE=**503** · PERF/LOAD stays **local partial** · capacityRepresentative=**false** · canHonestlyFlip=**false**
 
-**C-PERF-TEARDOWN stays CONDITION OPEN**（backlog `:35`）· **Not a close** · **Not coding** · Pins unchanged · **POST_DUAL: awaiting**（implementer 不自开 dual · 不自钉）
+**C-PERF-TEARDOWN stays CONDITION OPEN**（backlog `:35`）· **Not a close** · **Not coding** · Pins unchanged · **POST_DUAL: BOTH PASS** mw-e2e-ha `f4441dde38eed6eee402a6d0bcf12cea697b6304` + mw-rag-route `6a79946ae5bb4b2148e0d63d3b7f66d64a1e51df` · Lifecycle **`post_prove_dual_pass`** by Line S nail（cross-ref harness/slice/SSOT）· **CONDITION still OPEN**（Ban close）
 
 ---
 
@@ -108,6 +108,8 @@ Ban coding（本提交仅 receipt + 可选 harness/slice 状态注）· Ban 碰 
 
 **C-PERF-TEARDOWN stays CONDITION OPEN** · PERF/LOAD stays **local partial** · capacityRepresentative=**false** · canHonestlyFlip=**false** · **Not a close** · **Not coding** · Pins unchanged.
 
-**POST_DUAL: awaiting**（do NOT open dual here）· **NAIL: n/a**（awaiting post-prove dual PASS + 协调方授权）· STOP
+**POST_DUAL: BOTH PASS** — mw-e2e-ha `f4441dde38eed6eee402a6d0bcf12cea697b6304` + mw-rag-route `6a79946ae5bb4b2148e0d63d3b7f66d64a1e51df`（alone≠dual）.
 
-*Receipt · Line S · Branch A · C-PERF-TEARDOWN · OPEN · STOP*
+**NAIL**: Line S authorized nail advances lifecycle to **`post_prove_dual_pass`** on harness/slice + receipt cross-ref dual SHAs · SSOT additive honesty only · **backlog `:35` C-PERF-TEARDOWN stays CONDITION OPEN**（canHonestlyFlip=false · Ban close · Ban wash attempt1 · Ban covered flip · Ban HA · Ban Meridian · Ban Branch B invention · Ban coding · Ban secrets · Ban force-push）· STOP
+
+*Receipt · Line S · Branch A · C-PERF-TEARDOWN · prove tip 920666a · EXIT 0/0/0 · post dual f4441dd+6a79946 PASS · lifecycle post_prove_dual_pass · CONDITION OPEN retained · Ban close · STOP*
