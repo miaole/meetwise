@@ -54,44 +54,66 @@ Dual PASS ≠ coding ≠ close ≠ covered ≠ nail · alone ≠ dual · 本 stu
 
 ---
 
-## PRE-EXEC dual review — mw-rag-route（append-only · 本刀 docs gate only）
+# POST-PROVE dual 审查段 · mw-rag-route（LIVE digest 采集修复复验 @ `8b07308`）
 
-**审查对象**: `fa55a282e18e0ded1a61588ffae13ac4ee63f5cc`（`docs(e2e): REQUEST C-IMAGE-DIGEST live capture fix (pre_dual)` · mw-core）· 审查 worktree `rv/q-rag-route`（`git worktree add` 独立检出 · 被审 4 文件与 `fa55a28` 逐字节一致：`git diff --name-only fa55a28 124fb95` 不含本 REQUEST 四文件）。`git fetch origin` 网络不可达（github 443 timeout），`origin/feat/mysql-schema-skeleton` 以本地既有 ref 为准 —— 被审提交为该 ref 祖先（`git merge-base --is-ancestor` OK）。
+**审查对象**: `line/q-image-digest-live` tip **`8b07308`**（`8b0730831e717caf61f4ce0d3edaef124ec5f209` · author mw-core）· 恰 3 文件 +544/−22
+**审查方式**: 独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-qp-rag-route`（分支 `rv/qp-rag-route`）· 只读核验 + 单次 fresh re-run + append-only 本段
+**角色声明**: 本段为 `mw-rag-route` **单签（alone）**，**alone ≠ dual**，不代签 `mw-e2e-ha`；dual 是否成立由协调方裁定。
 
-### 一、检查表（route/一致性焦点）
+## 1. 包完整性核验 @ `8b07308`
 
-| # | 项 | 读数（命令 + 只读证据，被审锚点批文件 a778255→HEAD 零 diff） | 结果 |
-|---|----|------|------|
-| 1 | docs-only + ancestry + Ban 改共享 SSOT | `git show --stat fa55a28`：仅新增 slice/harness/双 stub 四个 md（232 insertions · 0 deletions · 零 .mjs/.json diff）；`gap-bug-backlog.md`、receipts、全部源码零触碰 | PASS |
-| 2 | 事实链与 M 线登记一致（两线一个口径） | correction `0d42e2c`（post-prove correction FAIL @e9ccfbe）与 RE-REVIEW `07823b5`（re-review PASS @b82b9bc）均系本分支祖先；§3 `reviews/REQUEST-2026-09-23-uc-e2e-018-receipt-backfill-mw-e2e-ha.md:399-401` 逐字核实（「Digest must be captured **LIVE per run** from the **actual container** in the run log」）；§5 `:475-481` kept-open 表含 C-IMAGE-DIGEST **CONDITION** 行；SSOT `gap-bug-backlog.md:34` OPEN CONDITION 且该行内证据链（emitter `:344-357`/`:353` · facts `:243-246`/`:61-66` · `PERF-LOAD.json:28-29` · `0d42e2c` §3 · `07823b5` §5）与本刀 harness 引用逐一相同；M 线登记刀 `harness/gap-image-digest-perf-teardown-conditions.md` `:69`「后续修复方向」与本刀 §一.1 机制/允许列表/验收锚点一致 —— 无各说各话 | PASS |
-| 3 | 源码锚点只读核实 | `uc018-receipt-backfill-emit.mjs:344-357`（`collectImageDigestsRaw` 宿主按 tag `docker image inspect`，inspect `:353`）· `:375`/`:396`/`:402` `digestMode:'live'` · emitter finally `:407-412`（`docker rm -f` meetwise-e2e*）；`uc018-receipt-backfill-facts.mjs:61-66`（现行仅认 `docker-inspect && liveObservation===true`）· reemit `:243-246` · 错标分支 `:248-252`（宿主 tag 数组标 live —— 错标来源属实）· 标注区段 `:239-262`；`run-e2e-isolated.mjs:1600`（唯一容器名 `meetwise-e2e-<pid>-<ts>`）/`:2056`（`docker run --rm -d --name`）/`:2070`（banner）/`:2125-2128`（finally `rm -f`）；`package.json:502` `uc018:receipt-backfill:prove`；`PERF-LOAD.json:28-29` `prior-docker-inspect`/`liveObservation:false` 且 redis/minio/mailhog `started=false`；README `:35-37`/`:41` 披露 not-live + live-per-run open；base tip full SHA `a778255c8a…` 核符 —— 全部零锚点漂移 | PASS |
-| 4 | fail-closed 四组断言齐备非空壳 | harness §二：`FX-IMAGE-DIGEST-LIVE-CONTAINER-INSPECT`（live→true 且 source/liveObservation/containerId 非空 + capturedAt 落窗）、`FX-IMAGE-DIGEST-CONTAINER-ID-FAILCLOSED`（伪造/缺失 Id→非 live、无宿主值冒名）、`FX-IMAGE-DIGEST-REEMIT-NOT-LIVE`（reemit prior 钉死 false 防未来洗白）、`FX-IMAGE-DIGEST-HOST-TAG-FALLBACK-NOT-LIVE`（`:248-252` 旧行为不得回归）—— 四组各有具体断言体，非空壳；stub `:37` 同口径；prove 退出码真实 + nail SHA ≠ prove SHA 沿用既有口径 | PASS |
-| 5 | `isLiveImageDigestEntry` 收紧式扩展兼容性 | 「只认 `live-container-inspect + liveObservation:true + containerId` 非空」+「一切缺 containerId 条目维持判 false」（§一.6）→ 裸 `docker-inspect` 产物落入 false，收紧成立、非放宽洗白；既有 7 份 receipts（已清点恰为 7 份 JSON）不回填（Ban 落文 §三 · live digest 只由新跑产生）；guard 验签 HMAC 零触碰（本 commit 无源码 diff + Ban 显式）；`run-e2e-isolated.mjs` 零触碰（Ban 显式 · 采集在 emitter 侧）；digest 载体键兼容核实：`validateImageDigests`（`facts.mjs:340-354`）仅强制 `imageDigest` 键、不拒额外字段 —— 新增 `containerId`/`capturedAt` 不破坏 guard 校验，`{digest,…}` 简写→`imageDigest` 键、不新造平行键的澄清成立 | PASS |
-| 6 | 窗口机制 | 唯一容器名 `meetwise-e2e-<pid>-<ts>`（pid+时间戳，`:1600`）+ 按 banner **精确容器名** inspect → 防并发串名；`--rm` + run 侧 finally `:2125-2128` + emitter finally `:407-412` 双侧清理 → 「prove 退出后 inspect 必败、窗口内采集是硬约束」成立且 §一.2 已写明；Ban 退出后冒充（§一.2 显式 Ban 静默降级冒充 + §一.3 fail-closed：缺/伪/失败一律非 live）；capturedAt 须为窗口内真实时刻（§一.1 + FX-LIVE 断言）；机制全部落在 emitter 侧允许列表内，未借道 `run-e2e-isolated.mjs` —— 可信可行 | PASS |
-| 7 | Pins 原值 + 不翻条件 + 不互借 + covered 不动 | stub/harness/slice 三处 pins 逐一相同：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · `canHonestlyFlip=false`（backlog 行佐证 UC-018 stays partial / Ban covered flip）；C-IMAGE-DIGEST 保持 **OPEN**（coding 落地 + 授权 prove 复跑 + dual 复验前不动 · NHP-1/4 + §三显式 Ban 借文关闭）；C-PERF-TEARDOWN 不互借（backlog `:35` 仍 disclosed OPEN · attempt1 根因未钉死 · 本刀零提及零借用）；UC-018/§1.1 stay partial · coveredCount 8 不动 | PASS |
+- `git show --numstat`：恰 3 文件 —— emitter `scripts/uc018-receipt-backfill-emit.mjs` +154/−6 · facts `scripts/lib/uc018-receipt-backfill-facts.mjs` +156/−13 · prove `scripts/uc-e2e-018-receipt-backfill.proof.mjs` +234/−3，合计 +544/−22 ✓ 与包描述一致。
+- guard（HMAC）`scripts/uc018-receipt-backfill-guard.mjs` 零 diff ✓；`scripts/run-e2e-isolated.mjs` 零 diff ✓；既有 7 份 receipts（`ai-docs/delivery/receipts/uc018-receipt-backfill/` ADV/FULL-E2E/GRAPH/PERF-LOAD/SOLE/TTL/UI.json）零 diff ✓；SSOT `ai-docs/delivery/gap-bug-backlog.md` 零 diff ✓；`package.json` 零改动（prove 复用 `:502` 既有 CMD）✓。
+- **C-Q-RAG-2 核验**：`RUNTIME_STACK_SOURCES`（facts `:51-54`，数组仅 `'log-parse'`/`'docker-inspect'`）零改动 ✓；diff 中仅新增注释「'live-container-inspect' is deliberately NOT added to RUNTIME_STACK_SOURCES」与新常量 `LIVE_CONTAINER_INSPECT_SOURCE`（`facts:66`，**未入列**）——live 不计 stack MET 的边界保持，未越界（FX-SOURCE-PINS 亦有同向断言）。
 
-### 二、Fail-trigger audit（对照 harness NHP）
+## 2. C-Q-RAG-1 裁决：**成立（PASS）**
 
-- NHP-1（NEG · 落地后仍 OPEN）：C-IMAGE-DIGEST 状态语义未被本 commit 改写（SSOT `:34` 未动 · harness Honesty 段显式）。未触发。
-- NHP-2（FAULT · 锚点漂移→FAIL）：全部 file:line / dual SHA / full SHA 逐条只读复核，零漂移。未触发。
-- NHP-3（BOUND · 越界→FAIL）：本 commit 未触碰 guard 验签、`run-e2e-isolated.mjs`、任何 receipts JSON/log/README；允许列表三处（emitter/facts/prove）与 slice `:23` 一致。未触发。
-- NHP-4（ADV · 借文关 CONDITION/covered→FAIL）：三文件均明示 REQUEST ≠ 修复 ≠ 关闭 ≠ covered ≠ nail。未触发。
-- Ban coding / prove / push / self-approve：本 commit 零源码 diff、无 prove 产物；本审查 worktree 禁 push；双 stub 由 mw-core 预置 PENDING，peer（mw-e2e-ha）stub 内容未读未签（alone ≠ dual · 不代签）。未触发。
+- fixture (b)（`uc-e2e-018-receipt-backfill.proof.mjs:312-350`）已同步改写为 `live-container-inspect`+containerId 口径：**旧错标条目保留且断言翻非 live** —— `legacyMislabel`（`docker-inspect`/`liveObservation:true`/无 containerId，`:330`）断言为 `!isLiveImageDigestEntry(legacyMislabel)` → pass（`:336-339`），非删除；`(a)` 与 `(b)-prior` 原样保留；`:325` 注释明示「rewritten to the tightened semantics, not deleted or weakened」。
+- prove diff 的 −3 行恰为旧错标正向断言 `if (isLiveImageDigestEntry(live)) pass('(b) live docker-inspect still live')` 的移除，由收紧式三例组（prior 非 live / 错标非 live / live-container-inspect+containerId 为 live，`:344-350`）替代 —— 旧断言语义被纠正而非削弱。
+- 全文件 grep（skip/todo/.only/relax/loosen/weaken/吞错放行等模式）无「为保绿放松收紧门」迹象；命中行均为 fail-closed 语义（exit=1 → backfill-failed 等）。
+- facts 侧收紧门一致：`isLiveImageDigestEntry`（`facts:149-157`）仅认 `source==='live-container-inspect' && liveObservation===true && containerId 非空`；`isValidLiveCaptureRecord`（`:123-139`）入库前重验（containerId 64-hex、ISO capturedAt、running）；reemit 模式忽略 liveCaptures（无 run 窗口即无 live）；失败采集显式 `live-container-inspect-failed`/`imageDigest='unobserved'`，宿主值不冒名；宿主 tag inspect 降级 `host-tag-inspect-fallback`/`liveObservation:false`，错标分支（旧 `facts:248-252`）已移除（FX-SOURCE-PINS 源级断言）。
 
-### 三、Blockers
+## 3. M/A/Q 线口径一致性（逐锚比对）：**一致**
+
+| 锚点 | 实文核对 | 本刀引用处 |
+|---|---|---|
+| correction dual `0d42e2c` §3 → `reviews/REQUEST-2026-09-23-uc-e2e-018-receipt-backfill-mw-e2e-ha.md:399-401`（「Digest must be captured **LIVE per run** from the **actual container** in the run log」） | ✓ 实文一致 | 本 REQUEST `:28` · harness `gap-image-digest-live-capture-fix.md:7/:17/:28/:31` · slice `:8` |
+| RE-REVIEW `07823b5` §5 `:475-481` C-IMAGE-DIGEST kept open（CONDITION · prior-docker-inspect · isLiveImageDigestEntry 拒之 · Not closed on prose） | ✓ 实文一致 | 同上各处 |
+| SSOT `ai-docs/delivery/gap-bug-backlog.md:34`（C-IMAGE-DIGEST 行 · **OPEN** CONDITION · prior-docker-inspect is not live） | ✓ `:34` 恰为该行 | 同上各处 |
+| M 线登记刀 `harness/gap-image-digest-perf-teardown-conditions.md`「后续修复方向」第一条（run log 解析实际容器 → 容器仍存活窗口内 `docker inspect` → capturedAt 绑定 run 窗口 → 允许列表 emitter+facts） | ✓ 与本刀实现逐点吻合 | — |
+
+## 4. Fresh re-run（单次 · 未重试）
+
+- `pnpm install --frozen-lockfile` EXIT=0（pnpm 10.18.0 / node 22.22.3，独立 worktree）。
+- `pnpm uc018:receipt-backfill:prove` **恰好运行一次**：**EXIT=0 · 58 PASS / 0 FAIL**，与包声称（58/58）一致；输出含 `FX-IMAGE-DIGEST-LIVE-CONTAINER-INSPECT`（含 unstarted 保持 not-started）、`FX-IMAGE-DIGEST-CONTAINER-ID-FAILCLOSED`（4 项）、`FX-IMAGE-DIGEST-REEMIT-NOT-LIVE`（含伪造 capture 亦不可翻转）、`FX-IMAGE-DIGEST-HOST-TAG-FALLBACK-NOT-LIVE`、`FX-SOURCE-PINS` 5 项全部 PASS。运行后 `git status` 零输出（无残留物）。
+- 独立复核（node 直读）：7 份已入库 receipts 过新收紧门 → 全部 **0 live entries**（sources 仍 prior-docker-inspect/log-parse），零回填 ✓；`PERF-LOAD.json:26-30` 原状（prior-docker-inspect/liveObservation:false）✓。
+
+## 5. 条件裁决表（pre-exec C-Q-RAG-1~3）
+
+| 条件 | 裁决 | 依据 |
+|---|---|---|
+| C-Q-RAG-1（fixture (b) 收紧式改写 · 无放松门） | **解除（PASS）** | §2：旧错标条目保留断言翻非 live；−3 行恰为旧错标断言；grep 无放松 |
+| C-Q-RAG-2（RUNTIME_STACK_SOURCES frozen · live 不计 stack MET） | **解除（PASS）** | §1：`facts:51-54` 零改动；live-container-inspect 未入列；越界即 FAIL 的红线未触碰 |
+| C-Q-RAG-3（条件纪律：C-IMAGE-DIGEST OPEN · 不互借 · covered 不动 · pins 原值） | **解除（PASS）** | §6：C-IMAGE-DIGEST 保持 OPEN；C-PERF-TEARDOWN 本刀 3 文件零提及；UC-018/§1.1 partial、coveredCount=8 不动；docs/SSOT/receipts 零 diff |
+
+## 6. Pins 复核（原值不动）
+
+haStatus=**NOT_HA** · releaseEvidence=**false** · claimProductionHA=**false** · gR45Closed=**true** · coveredCount=**8** · ms3EqualsR4Closed=**false** · Stack **PG-retained** · public DELETE stays **503** · canHonestlyFlip=**false** · UC-018/§1.1 stay **partial** · **C-IMAGE-DIGEST 保持 OPEN**（本刀=代码+prove 侧修复落地；「真实 emit 全链路落得 live 三要素才算实证闭合」的 e2e-ha 侧条件，本审认可状态判定权在协调方）· **C-PERF-TEARDOWN OPEN**（不同 scope，不互借）· guard 验签语义/HMAC 零触碰 · UC-018 covered 不动。
+
+## Blockers
 
 无。
 
-### 四、Conditions C-*（不阻断本 docs 刀 · coding/prove 阶段须满足）
+## Conditions
 
-- **C-Q-RAG-1（prove 既有断言随收紧门对齐）**: `scripts/uc-e2e-018-receipt-backfill.proof.mjs:318-325` 既有 fixture `(b)` 后半（`source:'docker-inspect'` + `liveObservation:true`、无 containerId → `:324` 断言 live）在收紧门下必判 false —— coding 落地必须同步改写该 fixture 为 `live-container-inspect` + containerId 口径（prove 文件在允许列表内）；**Ban** 为保绿放松收紧门（等于改判定义洗掉 C-IMAGE-DIGEST，违反 harness §一.6）。`(b)` 前半（prior-docker-inspect 非 live · `:313`）与 FX-REEMIT-NOT-LIVE 同向、不受影响。
-- **C-Q-RAG-2（stack-source 边界澄清 · 观察项）**: `live-container-inspect` 不在 `RUNTIME_STACK_SOURCES`（`facts.mjs:51-54` frozen）→ live digest 不计入 runtime stack MET；与本刀 scope（digest 诚实性而非 stack MET）一致，允许列表亦不含 `:51-58` —— coding 阶段不得为 stack 计分扩该表（越界即 FAIL，NHP-3）。记录备查，非缺陷。
-- **C-Q-RAG-3（历史文档行号差 · 无行动项）**: RE-REVIEW `07823b5` §5 引 `facts.mjs:61-65`，实际函数体 `:61-66` —— 历史文档既有 off-by-one，本刀 harness/stub 引 `:61-66` 与实码一致，不需改历史文档。
+- **解除**：C-Q-RAG-1 / C-Q-RAG-2 / C-Q-RAG-3（见 §5 表）。
+- **保持 OPEN**：C-IMAGE-DIGEST（后续由 SSOT 对齐刀处理，非本审文本可关）· C-PERF-TEARDOWN（不同 scope）。
+- 残留提示（非 blocker）：本审 prove 为合成 fixture 侧验证；真实 `uc018:receipt-backfill:emit` 全链路产生 live 三要素（source=`live-container-inspect`/`liveObservation=true`/非空 `containerId`）的实证归属协调方/e2e-ha 侧判定，本审不据此关闭任何条件。
 
-### 五、中文摘要（3 行）
+## 中文三行摘要
 
-1. `fa55a28` 为 docs-only 四新 md（ancestor OK · 零源码/SSOT/receipts 触碰）；correction `0d42e2c` §3 `:399-401`、RE-REVIEW `07823b5` §5 `:475-481`、SSOT `gap-bug-backlog.md:34` 与 M 线登记刀全部与本刀引用锚点逐一相符，Q 线与 M/A 线一个口径，零锚点漂移。
-2. fail-closed 四组 FX 断言齐备非空壳；`isLiveImageDigestEntry` 收紧式扩展（只认 live-container-inspect + containerId 非空、缺 containerId 一律 false）经 `validateImageDigests` 核实与 `imageDigest` 载体键兼容；窗口机制（唯一容器名防串名、Ban 退出后冒充、capturedAt 落窗、双侧清理）闭环且全部落在 emitter 侧允许列表内。
-3. Pins 三处一致原值不动、`canHonestlyFlip=false`、C-IMAGE-DIGEST 保持 OPEN、C-PERF-TEARDOWN 零互借、UC-018 covered 8 不动；一项须跟进 Condition（C-Q-RAG-1：prove 既有 `(b)` docker-inspect fixture 须随收紧门同步改写），不阻断本 docs 刀。
+- 包完整性全绿：恰 3 文件 +544/−22；guard、`run-e2e-isolated.mjs`、7 份 receipts、SSOT、`RUNTIME_STACK_SOURCES`（facts `:51-54`）零改动，C-Q-RAG-2 的 stack MET 边界未越。
+- fixture (b) 收紧式改写成立：旧错标条目保留且断言翻非 live、非删除，全文件无放松迹象；三锚点（correction `0d42e2c` §3 / RE-REVIEW `07823b5` §5 / backlog `:34`）与 M 线口径逐字一致。
+- fresh re-run 单次 EXIT=0（58 PASS/0 FAIL，未重试）；C-Q-RAG-1~3 全部解除，C-IMAGE-DIGEST/C-PERF-TEARDOWN 保持 OPEN，pins 原值、canHonestlyFlip=false；本审 alone 单签，dual 由协调方裁定。
 
 Verdict: PASS
