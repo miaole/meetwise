@@ -1,6 +1,8 @@
-# Slice — **GAP-UC011-REFUND-CALLBACK · refund-callback product mouth**（Line Z · docs REQUEST · **`draft:awaiting_re_pre_exec_dual`** · **B-1 pins after PRE FAIL `bbde310`**）
+# Slice — **GAP-UC011-REFUND-CALLBACK · refund-callback product mouth**（Line Z · NAIL · **`post_prove_dual_pass`** · Path A mouth）
 
-**Status**: **`draft:awaiting_re_pre_exec_dual`**（docs REQUEST only · B-1 / C-1 named status+code pins · row stays partial · Ban wash ADV into covered）
+**Status**: **`post_prove_dual_pass`**（Line Z nail · Path A mouth · EXIT=0 41/41 · dual BOTH PASS · **EXIT0≠covered** · UC-011 stays **partial** · coveredCount=8 · **ADV / GAP-UC011-ADV-01 stays OPEN** · Ban 互借关 ADV · Ban wash · Ban invent covered · Ban HA · Ban live · Ban Meridian · Ban coding · Ban closing GAP-UC011-ADV-01 · Ban 顺手洗绿）
+
+> REQUEST-era historical status was `draft:awaiting_re_pre_exec_dual`. Prove tip `244b812` · CODE `bf1fdb2` · REQUEST `54b2058` · EXIT 0 41/41 · B-1 pins · post dual `938adee`+`ef980e3` BOTH PASS. Lifecycle advanced by this nail only.
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base**: `origin/feat/mysql-schema-skeleton` · `fbd47ac8076d2ccd0a948b88630cb397789e3ef7`
@@ -43,4 +45,21 @@ Ban coding product · Ban prove 执行 · Ban covered · Ban invent covered · B
 
 Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503.
 
-*Slice · GAP-UC011-REFUND-CALLBACK · awaiting_re_pre_exec_dual · B-1 pins · EXIT0≠covered · Ban wash ADV · Ban any-non-404-4xx-as-sig-evidence · STOP*
+
+
+---
+
+## Line Z NAIL（`post_prove_dual_pass` · additive · 2026-10-06 · Path A mouth）
+
+- Prove tip **NAILED TO**: `244b81248d33bb85110a5304fff1f3d56de8563a` · CODE `bf1fdb22674d10fc5ab7fb827a7da11def97fd1f` · REQUEST `54b20583fdc828ca43f2c9dbbc9e35060dce7dff` · EXIT **0** · **41/41**.
+- Path A mouth: `POST /commerce/webhook/refund/:id` · B-1: **403** `bad_signature` · **400** `invalid_callback` · **404** `order_not_found` ≠ mouth-missing · amount **DISCLOSED** · M1 **`refunded`** · M2 **`already`** · Ban any-non-404-4xx-as-sig-evidence.
+- POST dual BOTH PASS: mw-e2e-ha `938adee524e9d927cecbc2e9ea84614e94d582e3` + mw-model-op `ef980e3faf1ac1fd73c5a5f81003e6788e33419d`.
+- Receipt cross-ref: `receipts/2026-10-06-gap-uc011-refund-callback-product-mouth-prove.md`.
+- **EXIT0≠covered** · UC-011 stays **partial** · coveredCount=8 · **ADV / GAP-UC011-ADV-01 stays OPEN** · Ban 互借关 ADV · Ban wash · Ban invent covered.
+- Residual: 主口 `POST /payment/refund-callback` **仍 404** · ADV INV 过时 = **后续刀** · Ban 顺手洗绿.
+- Pins unchanged: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503.
+
+---
+
+*Slice · GAP-UC011-REFUND-CALLBACK · Line Z NAIL · Path A mouth · 2026-10-06 · lifecycle post_prove_dual_pass · prove tip 244b812 · EXIT 0 41/41 · EXIT0≠covered · ADV OPEN · Ban wash · Ban 互借关 ADV · Ban 顺手洗绿 · releaseEvidence=false · STOP*
+
