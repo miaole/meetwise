@@ -135,7 +135,7 @@
 
 ## 10. 开放项 / 不声称
 
-- **STILL OPEN**：`GAP-UC004-FAIL-A3` / `NHP-004-FAULT-01` / `UC-E2E-004` FAULT gap——等待 post-prove dual（mw-e2e-ha + mw-model-op）+ 协调方 nail。NAIL_SHA n/a。SSOT_DELTA none。
+- **STILL OPEN**：`GAP-UC004-FAIL-A3` / `NHP-004-FAULT-01` / `UC-E2E-004` FAULT gap（**EXIT0 ≠ A3 closed** · Ban fake close A3）。Post-prove dual BOTH PASS：mw-e2e-ha `a655ffdab52093e669dca8793c5cd8b6d1fbade5` + mw-model-op `84f8eeb454bc682031dc4795cefd44460f7b2d09`。Lifecycle advanced to **`post_prove_dual_pass`** by Line T nail（cross-ref harness/slice/SSOT）。NAIL_SHA = Line T nail tip（本树后续 commit）。SSOT_DELTA = additive honesty only（matrix FI-3 措辞更新 · FAULT/A3 stays gap · coveredCount=8）。
 - 静态 mark-red `uc004:career-path:prove` 现 EXIT=1（§1 #3，预期绊线，本刀未碰）——需协调方决定其后续刀。
 - 观察未覆盖（evidence 级说明，非新闸）：「复用后转成功」路径未在 e2e 观察（单测 `RETRY-AFTER-FAULT-SUCCEEDED-V6` 覆盖）；tx4 转换自身失败路径本次 e2e 未触发（单测覆盖）。
 - releaseEvidence=false · Not HA · 本绿 ≠ covered ≠ A3 closed。
@@ -217,4 +217,4 @@ CMD=pnpm uc004:career-path-fault:prove EXIT=0
 LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-05T15-19-14-108Z-273538-eb6fe4cf-826c-46f7-aa01-14d010bda3d6.json release_evidence=false
 ```
 
-*Receipt · GAP-UC004-FI3-GRAPH-WIRING · Line T · prove EXIT=0 · EXIT0 ≠ A3 closed · FAULT stays gap · awaiting post-prove dual*
+*Receipt · GAP-UC004-FI3-GRAPH-WIRING · Line T · prove EXIT=0 · post dual a655ffd+84f8eeb PASS · lifecycle post_prove_dual_pass · EXIT0 ≠ A3 closed · FAULT stays gap · Ban fake close A3 · STOP*

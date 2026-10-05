@@ -1,6 +1,8 @@
-# Harness — **GAP-UC004-FI3-GRAPH-WIRING · 产品接线刀**（Line T · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · row stays gap）
+# Harness — **GAP-UC004-FI3-GRAPH-WIRING · 产品接线刀**（Line T · NAIL · **`post_prove_dual_pass`** · FAULT/A3 stays gap）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove 执行 · Ban push · Ban self-approve · this commit is not coding authorization and is not a prove）
+**Status**: **`post_prove_dual_pass`**（Line T nail · Candidate A wired · fault prove EXIT=0 · dual BOTH PASS · **EXIT0 ≠ A3 closed** · `GAP-UC004-FAIL-A3` / `NHP-004-FAULT-01` / UC-E2E-004 FAULT **stays gap** · Ban fake close A3 · Ban covered flip · Ban suite green · Ban Meridian · Ban HA claim · Ban coding · Ban live · Ban secrets · Ban force-push · Ban self-approve beyond this authorized nail）
+
+> **REQUEST-era note（historical · retained）**: this file began as REQUEST `draft:awaiting_pre_exec_dual`. Prove tip **`d9ddb13`** · code **`0a3c8a8`** · prove-tool **`b80bf92`**≡`ced3691` · EXIT **0**（4×0）· post dual mw-e2e-ha `a655ffd` + mw-model-op `84f8eeb` BOTH PASS. Lifecycle advanced to **`post_prove_dual_pass`** by Line T nail only.
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-05
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`377e7fc`** / full `377e7fc4fa1b35b85ebf524b668469caf66de2bc`
@@ -105,4 +107,22 @@ C'' harness §EXIT 契约原文：「EXIT 0 = A3 真证据成立，当且仅当�
 
 haStatus=**NOT_HA** · releaseEvidence=**false** · claimProductionHA=**false** · gR45Closed=**true** · coveredCount=**8** · ms3EqualsR4Closed=**false** · **PG-retained** · public DELETE=**503** · row stays gap · STOP
 
-*Harness · GAP-UC004-FI3-GRAPH-WIRING · AiGraphRun(career-path) graph wiring · awaiting_pre_exec_dual · FAULT gap · STOP*
+
+
+---
+
+## Line T NAIL lifecycle（`post_prove_dual_pass` · 2026-10-05 · additive）
+
+- Lifecycle on this harness/slice/receipt: **`post_prove_dual_pass`**.
+- Prove tip NAILED TO: `d9ddb13fa9cc1e505e04d97cde9ad6620dc49b58`.
+- Code: `0a3c8a8ad16667bd6b140cbb6b02f04d1ce20bf2` · prove-tool `b80bf92d4b3dc901a63bdcb585df47c5e7a285bb` ≡ `ced3691fb7b269c6b567f9af4510513cb8486c6e` · **PROVE_EXIT 0** · attempts **4×0**.
+- POST dual BOTH PASS: mw-e2e-ha `a655ffdab52093e669dca8793c5cd8b6d1fbade5` + mw-model-op `84f8eeb454bc682031dc4795cefd44460f7b2d09`.
+- Seam: `MEETWISE_CAREER_PATH_FAIL_THREAD_ID` production-off · workspace:* lock +3 accepted · zero-model/zero-trace ledger boundary retained.
+- Static `pnpm uc004:career-path:prove` EXIT=1 = expected tripwire（separate knife）.
+- **STILL_OPEN**: `GAP-UC004-FAIL-A3` / `NHP-004-FAULT-01` / UC-E2E-004 FAULT **gap** · **EXIT0 ≠ A3 closed**.
+- Pins unchanged: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503.
+
+---
+
+*Harness · GAP-UC004-FI3-GRAPH-WIRING · Line T NAIL · 2026-10-05 · lifecycle post_prove_dual_pass · prove tip d9ddb13 · EXIT 0 · post dual a655ffd+84f8eeb PASS · EXIT0 ≠ A3 closed · FAULT stays gap · Ban fake close A3 · Ban covered flip · Ban live · Ban Meridian · Ban HA · releaseEvidence=false · STOP*
+
