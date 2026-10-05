@@ -35,3 +35,43 @@ Dual PASS ≠ coding ≠ prove ≠ nail.
 ---
 
 *Stub · awaiting expert pre-exec dual · STOP*
+
+---
+
+# PRE-EXEC dual · NHP-025-BOUND-01 · mw-e2e-ha（docs gate only · Ban coding · Ban prove · Ban wash B'' NEG · alone ≠ dual）
+
+**Reviewer**: `mw-e2e-ha`（独立审查 · 非实现方 · Ban self-approve · 不代签 `mw-rag-route`）
+**Review date**: 2026-10-05
+**被审 tip**: `73b9d85`（`73b9d8574844e390180586b82af3b1a128fcbd8b` · docs-only 4 md）
+**REQUEST parent cited**: `6a79946`
+**Docs-only**: `git show --stat 73b9d85` = harness + slice + REQUEST×2 · 零产品 / 零 scripts / 零 SSOT 行翻转。
+**本审未跑**: 零 `uc025:nhp-bound:prove`（脚本尚未存在属预期）· 零 live · 零 `.env*`。
+
+## 检查表
+
+1. **选面 BOUND**：矩阵 UC-E2E-025 NEG CLOSED（wired）· FAULT gap · BOUND gap · ADV blind；P1-8 resumeVersion pin 缺；scenarios 有 TC-E2E-025-version-mismatch。FAULT 无具名场景 → 选 BOUND 成立。
+2. **BOUND ≠ NEG wash**：`interview.service.ts` begin 仅 status+expires_at→`stale_quiz`；无 resumeVersion 消费。B'' 关的是 NEG 过期面，不是版本 pin。
+3. **blind→case docs-only**：拟 `pnpm uc025:nhp-bound:prove` 未实现；未接线 → 授权后 EXIT1 保留 gap 诚实。Dual PASS ≠ coding ≠ prove ≠ nail。
+4. **行 stays gap** · coveredCount=8 · Ban invent covered · Ban 碰 B'' NEG · Ban 编辑 begin quiz 产品路径本 turn。
+5. **Pins 原值**：NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503。
+
+## Blockers
+
+无。
+
+## Conditions
+
+- **C-1**：alone ≠ dual；须 peer `mw-rag-route` 独立 PASS；不代签。
+- **C-2**：Ban coding · Ban prove 执行 · Ban nail · Ban push · Ban 改 `interview.service.ts` begin/quiz。
+- **C-3**：Ban wash B'' NEG→BOUND/整行 covered；UC-025 stays gap；coveredCount=8。
+- **C-4**：授权后若无 version-pin → EXIT1 保留 BOUND gap；EXIT0 ≠ covered。
+- **C-5**：pins 冻结；Ban HA / Ban 假绿。
+- **C-6**：NHP 矩阵仅有 NEG-01 行、BOUND 行登记留 nail；陈旧「NEG 未接线」表述只披露不洗。
+
+## 中文三行摘要
+
+1. tip `73b9d85` docs-only；选 BOUND 相对 FAULT 成立；B'' NEG 过期面 ≠ resumeVersion pin。
+2. 拟 prove 未落地属预期；行 stays gap · coveredCount=8 · Ban wash NEG。
+3. Blockers 无。本 PASS = docs 半签；alone≠dual；≠ coding ≠ nail ≠ HA。
+
+Verdict: PASS
