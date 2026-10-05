@@ -5,7 +5,8 @@
 **Date**: 2026-10-06 ~00:28 CST（Asia/Shanghai · UTC+8）
 **REQUEST tip**: `54b20583fdc828ca43f2c9dbbc9e35060dce7dff`
 **PRE_DUAL**: mw-e2e-ha `cffaf8e` PASS · mw-model-op `76edbc6` PASS · B-1 CLOSED
-**CODE_SHA / PROVE_TIP**: `f88ca0910512c791592b0a0bbd7257162216a865`（feat commit；prove 跑于此 tip）
+**CODE_SHA**: `bf1fdb22674d10fc5ab7fb827a7da11def97fd1f`（feat · post-rebase on tip）
+**PROVE_TIP**: 本 cite 提交 tip（re-prove EXIT=0 @ CODE_SHA tree · isolated `481071-f38c9bb5`）
 **Branch / worktree**: `line/z-refund-callback-code` · `/workspace/meetwise-lineZ-code`
 **Executed by**: `mw-core`（Path A coding+prove · Ban self-nail）
 **Harness**: `ai-docs/delivery/harness/gap-uc011-refund-callback-product-mouth.md`（B-1 pins）
@@ -52,7 +53,9 @@ pnpm uc011:refund-callback:prove
 | M2 | 200 `{ result: 'already' }` · 无双退 |
 | M2x | 409 `order_conflict` · 恰一单退成 |
 
-Isolated: container `meetwise-e2e-478674-1791217667565` · `127.0.0.1:32805` · receipt `.tmp/isolated-proof-receipts/2026-10-05T16-27-56-454Z-478674-ec149898-0d6a-44bc-a39f-f8ea6980deae.json` · `releaseEvidence=false`
+Isolated (re-prove @ CODE_SHA tree): container `meetwise-e2e-481071-*` · receipt `.tmp/isolated-proof-receipts/2026-10-05T16-28-39-531Z-481071-f38c9bb5-bcbf-4595-bf09-780718c16e19.json` · `releaseEvidence=false`
+
+Prior prove @ pre-rebase `f88ca09`（同 tree · 亦 EXIT=0 · 41/41）also recorded.
 
 ## HONESTY
 
