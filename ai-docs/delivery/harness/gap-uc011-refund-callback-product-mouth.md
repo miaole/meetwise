@@ -1,6 +1,8 @@
-# Harness — **GAP-UC011-REFUND-CALLBACK · refund-callback product mouth**（Line Z · docs REQUEST · **`draft:awaiting_re_pre_exec_dual`** · **B-1 pins after PRE FAIL `bbde310`** · row stays partial · Ban wash ADV into covered）
+# Harness — **GAP-UC011-REFUND-CALLBACK · refund-callback product mouth**（Line Z · NAIL · **`post_prove_dual_pass`** · Path A mouth · EXIT0≠covered · ADV stays OPEN）
 
-**Status**: **`draft:awaiting_re_pre_exec_dual`**（L0 docs REQUEST · **B-1 fix after PRE FAIL `bbde310`** · Ban coding product · Ban prove 执行 · Ban self-approve · Ban invent covered · Ban wash ADV covered via this REQUEST · this commit is not coding authorization and is not a prove）
+**Status**: **`post_prove_dual_pass`**（Line Z nail · Path A product mouth · prove EXIT=0 41/41 · dual BOTH PASS · **EXIT0≠covered** · UC-011 stays **partial** · coveredCount=8 · **ADV / GAP-UC011-ADV-01 stays OPEN** · Ban 互借关 ADV · Ban wash · Ban invent covered · Ban HA · Ban live · Ban Meridian · Ban secrets · Ban force-push · Ban self-approve beyond this authorized nail · Ban closing GAP-UC011-ADV-01 · Ban 顺手洗绿）
+
+> **REQUEST-era note（historical · retained）**: this file began as REQUEST `draft:awaiting_re_pre_exec_dual` / B-1 pins after PRE FAIL `bbde310`. Prove tip **NAILED TO** `244b81248d33bb85110a5304fff1f3d56de8563a` · CODE `bf1fdb22674d10fc5ab7fb827a7da11def97fd1f` · REQUEST `54b20583fdc828ca43f2c9dbbc9e35060dce7dff` · CMD `pnpm uc011:refund-callback:prove` **EXIT=0** · 41/41 · B-1 pins · post dual mw-e2e-ha `938adee` + mw-model-op `ef980e3` BOTH PASS. Lifecycle advanced to **`post_prove_dual_pass`** by Line Z nail only.
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`fbd47ac`** / full `fbd47ac8076d2ccd0a948b88630cb397789e3ef7`
@@ -122,4 +124,26 @@ Not a pass · not run · not covered · not ADV partial/covered · not 产品口
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · UC-011 stays partial · ADV stays gap/case-only · STOP
 
-*Harness · GAP-UC011-REFUND-CALLBACK · product mouth · awaiting_re_pre_exec_dual · B-1 pins · EXIT0≠covered · Ban wash ADV covered · Ban any-non-404-4xx-as-sig-evidence · STOP*
+
+
+---
+
+## Line Z NAIL lifecycle（`post_prove_dual_pass` · 2026-10-06 · additive · Path A mouth）
+
+- Lifecycle on this harness/slice/receipt: **`post_prove_dual_pass`**.
+- Prove tip **NAILED TO**: `244b81248d33bb85110a5304fff1f3d56de8563a`.
+- CODE: `bf1fdb22674d10fc5ab7fb827a7da11def97fd1f` · REQUEST: `54b20583fdc828ca43f2c9dbbc9e35060dce7dff`.
+- CMD `pnpm uc011:refund-callback:prove` **PROVE_EXIT 0** · **41/41** · Path A mouth `POST /commerce/webhook/refund/:id`（等价 webhook · HMAC 标签 `refunded`）.
+- **B-1 pins hit**: **403** `bad_signature` · **400** `invalid_callback` · **404** `order_not_found` ≠ mouth-missing · amount **DISCLOSED** · M1 **`refunded`** · M2 **`already`** · **Ban any-non-404-4xx-as-sig-evidence**.
+- POST dual BOTH PASS: mw-e2e-ha `938adee524e9d927cecbc2e9ea84614e94d582e3` + mw-model-op `ef980e3faf1ac1fd73c5a5f81003e6788e33419d`.
+- Receipt cross-ref: `receipts/2026-10-06-gap-uc011-refund-callback-product-mouth-prove.md`.
+- **EXIT0≠covered** · UC-E2E-011 stays **partial** · coveredCount=**8** · Ban invent covered · Ban claiming covered.
+- **ADV / GAP-UC011-ADV-01 stays OPEN** · Ban 互借关 ADV · Ban wash ADV · Ban closing GAP-UC011-ADV-01.
+- **Residual / 后续刀**: scenarios 主口 `POST /payment/refund-callback` **仍 404** · ADV INV 过时 = **后续刀** · Ban 顺手洗绿.
+- Pins unchanged: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503.
+- Sibling sections stay as written（incl. Line V ADV honesty-of-red · Line AC · Line AA/AB tracks · Line X/W/Y）. This nail does not flip UC-011 to covered and does not close GAP-UC011-ADV-01.
+
+---
+
+*Harness · GAP-UC011-REFUND-CALLBACK · Line Z NAIL · Path A mouth · 2026-10-06 · lifecycle post_prove_dual_pass · prove tip 244b812 · EXIT 0 41/41 · EXIT0≠covered · ADV OPEN · Ban wash · Ban 互借关 ADV · Ban 顺手洗绿 · releaseEvidence=false · STOP*
+

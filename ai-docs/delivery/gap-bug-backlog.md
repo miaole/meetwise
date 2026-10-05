@@ -482,3 +482,15 @@
 - Evidence: `receipts/g7-env-gap-honest-fix/SUMMARY.md` · `e2e-isolated.md` · `e2e-ui-isolated.md` · `verify-e2e-performance.md` · `harness/g7-env-gap-honest-fix.md` · `g7-env-gap-honest-fix.slice.md` · `reviews/REQUEST-2026-10-06-g7-env-gap-honest-fix-post-mw-e2e-ha.md` · `reviews/2026-10-06-g7-env-gap-honest-fix-post-prove-mw-model-op.md`.
 - Sibling sections stay as written（incl. Line U G7 trio-fresh · Line V · Line X · Line W · Line Y）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
 
+
+### Line Z GAP-UC011-REFUND-CALLBACK Path A mouth NAIL（2026-10-06 SSOT nail · `post_prove_dual_pass` · EXIT0≠covered · ADV stays OPEN）
+
+- **GAP-UC011-REFUND-CALLBACK Path A mouth** · Line Z product-mouth prove nailed · status **`post_prove_dual_pass`**. Implementer does not self-approve beyond this authorized nail. **EXIT0≠covered** · PASS ≠ covered ≠ HA. Ban invent covered · Ban claiming covered · Ban wash ADV · Ban 互借关 ADV · Ban closing GAP-UC011-ADV-01 · Ban HA · Ban live · Ban Meridian · Ban secrets · Ban force-push · Ban coding · Ban 顺手洗绿.
+- 证据链: REQUEST `54b2058` / `54b20583fdc828ca43f2c9dbbc9e35060dce7dff` · re-PRE dual PASS mw-e2e-ha `cffaf8e` / `cffaf8e8adac653a6f417f6b7fadbffe1eb0ee6c` + mw-model-op `76edbc6` / `76edbc66ea4a7f4950f33ae62b327b5053ed4162` · CODE `bf1fdb2` / `bf1fdb22674d10fc5ab7fb827a7da11def97fd1f`（Path A mouth `POST /commerce/webhook/refund/:id` · `markOrderRefunded` · migration `0136`）· prove tip **NAILED TO** `244b812` / `244b81248d33bb85110a5304fff1f3d56de8563a` · CMD `pnpm uc011:refund-callback:prove` **EXIT=0** · **41/41** · receipt `receipts/2026-10-06-gap-uc011-refund-callback-product-mouth-prove.md` · post-prove dual PASS mw-e2e-ha `938adee` / `938adee524e9d927cecbc2e9ea84614e94d582e3` + mw-model-op `ef980e3` / `ef980e3faf1ac1fd73c5a5f81003e6788e33419d`（alone≠dual）· nail tip = 本 commit（branch `line/z-nail` → `feat/mysql-schema-skeleton`；禁 force push）。
+- **B-1 pins**: **403** `bad_signature` · **400** `invalid_callback` · **404** `order_not_found` ≠ mouth-missing · amount **DISCLOSED** · M1 **`refunded`** · M2 **`already`** · Ban any-non-404-4xx-as-sig-evidence.
+- **CITE_EXIT**: **0** preferred at nail SHA（Path A prove EXIT 0 · 41/41 · cite green ≠ covered flip · Ban wash ADV prove；`uc011:adv:prove` stays EXIT 1 honesty）.
+- **STILL_OPEN / honesty**: **`GAP-UC011-ADV-01` stays OPEN** · ADV stays **gap**/`case-only` · Ban 互借关闭 · Ban wash. UC-E2E-011 stays **partial** · coveredCount=**8** · **EXIT0≠covered**. Path A 等价口已落 ≠ UC covered · ≠ ADV closed.
+- Residual / 后续刀: scenarios 主口 `POST /payment/refund-callback` **仍 404** · ADV INV 过时 = **后续刀** · Ban 顺手洗绿.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · canHonestlyFlip=false. Do not write covered. Do not write CLOSED for GAP-UC011-ADV-01.
+- Sibling sections stay as written（incl. Line V NHP-011-ADV-01 honesty-of-red · Line AC G7 · Line X/W/Y · Line AA/AB）. This paragraph does not flip UC-011 to covered and does not close GAP-UC011-ADV-01.
+

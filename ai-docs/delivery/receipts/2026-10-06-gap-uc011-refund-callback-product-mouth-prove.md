@@ -1,12 +1,12 @@
 # Receipt — **GAP-UC011-REFUND-CALLBACK · Path A refund-callback product mouth** · Line Z · prove
 
-**Status**: **coding+prove done · `EXIT=0`**（post-prove dual PENDING · Ban self-nail · Ban covered · STOP）
+**Status**: **`post_prove_dual_pass`**（Line Z nail · Path A mouth · prove EXIT=0 41/41 · post dual BOTH PASS · **EXIT0≠covered** · UC-011 stays **partial** · coveredCount=8 · **ADV / GAP-UC011-ADV-01 stays OPEN** · Ban wash · Ban 互借关 ADV · Ban invent covered · Ban HA · Ban 顺手洗绿 · STOP）
 **Pins（原值）**: haStatus=**NOT_HA** · releaseEvidence=**false** · claimProductionHA=**false** · gR45Closed=**true** · coveredCount=**8** · ms3EqualsR4Closed=**false** · PG-retained · public DELETE stays **503** · UC-011 stays **partial** · ADV stays **gap/case-only** · `GAP-UC011-ADV-01` stays **OPEN**
 **Date**: 2026-10-06 ~00:28 CST（Asia/Shanghai · UTC+8）
 **REQUEST tip**: `54b20583fdc828ca43f2c9dbbc9e35060dce7dff`
 **PRE_DUAL**: mw-e2e-ha `cffaf8e` PASS · mw-model-op `76edbc6` PASS · B-1 CLOSED
 **CODE_SHA**: `bf1fdb22674d10fc5ab7fb827a7da11def97fd1f`（feat · post-rebase on tip）
-**PROVE_TIP**: 本 cite 提交 tip（re-prove EXIT=0 @ CODE_SHA tree · isolated `481071-f38c9bb5`）
+**PROVE_TIP**: `244b81248d33bb85110a5304fff1f3d56de8563a`（cite CODE_SHA + re-prove EXIT=0 @ CODE_SHA tree · isolated `481071-f38c9bb5`）· **NAILED TO** this tip by Line Z nail
 **Branch / worktree**: `line/z-refund-callback-code` · `/workspace/meetwise-lineZ-code`
 **Executed by**: `mw-core`（Path A coding+prove · Ban self-nail）
 **Harness**: `ai-docs/delivery/harness/gap-uc011-refund-callback-product-mouth.md`（B-1 pins）
@@ -60,12 +60,13 @@ Prior prove @ pre-rebase `f88ca09`（同 tree · 亦 EXIT=0 · 41/41）also reco
 ## HONESTY
 
 - **EXIT0 ≠ covered** · UC-011 stays **partial** · coveredCount=**8**
-- **Ban wash ADV** · `GAP-UC011-ADV-01` stays OPEN · ADV stays gap/case-only
+- **Ban wash ADV** · `GAP-UC011-ADV-01` stays OPEN · ADV stays gap/case-only · Ban 互借关 ADV · Ban closing GAP-UC011-ADV-01
 - balance-ui / wallet / fail HTTP / full.e2e = 其它缺口 · 本刀不关
-- Ban self-nail · ASK post-prove dual e2e+model-op
+- Residual: scenarios 主口 `POST /payment/refund-callback` **仍 404** · ADV INV 过时 = **后续刀** · Ban 顺手洗绿
+- Post-prove dual BOTH PASS：mw-e2e-ha `938adee524e9d927cecbc2e9ea84614e94d582e3` + mw-model-op `ef980e3faf1ac1fd73c5a5f81003e6788e33419d`。Lifecycle advanced to **`post_prove_dual_pass`** by Line Z nail（cross-ref harness/slice/SSOT）。**EXIT0≠covered** · Ban invent covered · Ban claiming covered.
 
 ## Non-claims
 
 Not covered · not ADV closed · not HA · not releaseEvidence · not nail · not Meridian · not live · not secrets
 
-*Receipt · GAP-UC011-REFUND-CALLBACK Path A · EXIT0 · Ban self-nail · STOP*
+*Receipt · GAP-UC011-REFUND-CALLBACK Path A · Line Z · prove EXIT=0 41/41 @244b812 · post dual 938adee+ef980e3 PASS · lifecycle post_prove_dual_pass · EXIT0≠covered · ADV OPEN · coveredCount=8 · Ban wash · Ban 互借关 ADV · Ban 顺手洗绿 · STOP*

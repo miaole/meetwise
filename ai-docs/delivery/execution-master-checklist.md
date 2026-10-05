@@ -832,3 +832,17 @@ flowchart TD
 - Nail tip = 本 commit（branch `line/ac-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written（incl. Line U G7 trio-fresh · Line V · Line X · Line W · Line Y · Line Z/AA/AB REQUEST tracks）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
 
+
+### Line Z GAP-UC011-REFUND-CALLBACK Path A mouth NAIL（2026-10-06 SSOT nail · `post_prove_dual_pass` · EXIT0≠covered · ADV stays OPEN）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line Z GAP-UC011-REFUND-CALLBACK Path A product mouth only. Implementer does not self-approve beyond this authorized nail. **EXIT0≠covered**. Ban invent covered · Ban claiming covered · Ban wash ADV · Ban 互借关 ADV · Ban closing GAP-UC011-ADV-01 · Ban HA · Ban live · Ban Meridian · Ban secrets · Ban force-push · Ban coding · Ban 顺手洗绿.
+- REQUEST `54b2058` / `54b20583fdc828ca43f2c9dbbc9e35060dce7dff`（B-1 pins）. Pre-exec / re-PRE dual PASS: mw-e2e-ha `cffaf8e` / `cffaf8e8adac653a6f417f6b7fadbffe1eb0ee6c` + mw-model-op `76edbc6` / `76edbc66ea4a7f4950f33ae62b327b5053ed4162` · B-1 CLOSED.
+- CODE `bf1fdb2` / `bf1fdb22674d10fc5ab7fb827a7da11def97fd1f`（Path A mouth `POST /commerce/webhook/refund/:id` · `markOrderRefunded` · migration `0136`）· prove tip **NAILED TO** `244b812` / `244b81248d33bb85110a5304fff1f3d56de8563a` · CMD `pnpm uc011:refund-callback:prove` **PROVE_EXIT 0** · **41/41** · receipt `receipts/2026-10-06-gap-uc011-refund-callback-product-mouth-prove.md`.
+- **B-1 pins**: **403** `bad_signature` · **400** `invalid_callback` · **404** `order_not_found` ≠ mouth-missing · amount **DISCLOSED** · M1 **`refunded`** · M2 **`already`** · Ban any-non-404-4xx-as-sig-evidence.
+- Post-prove dual PASS: mw-e2e-ha `938adee` / `938adee524e9d927cecbc2e9ea84614e94d582e3` + mw-model-op `ef980e3` / `ef980e3faf1ac1fd73c5a5f81003e6788e33419d`（BOTH · alone≠dual）.
+- [ ] **UC-E2E-011 stays partial** · [ ] **EXIT0≠covered** · [ ] **coveredCount=8** · [ ] **`GAP-UC011-ADV-01` stays OPEN** · ADV stays **gap**/`case-only`.
+- Residual / 后续刀: scenarios 主口 `POST /payment/refund-callback` **仍 404** · ADV INV 过时 = **后续刀** · Ban 顺手洗绿.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered. Do not write ADV CLOSED.
+- Nail tip = 本 commit（branch `line/z-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written（incl. Line V NHP-011-ADV-01 · Line AC G7 · Line AA/AB · Line X/W/Y · Line U）. This paragraph does not flip UC-011 to covered and does not close GAP-UC011-ADV-01.
+
