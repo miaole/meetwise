@@ -1,6 +1,6 @@
 # Slice — **NHP-025-FAULT-01 · UC-025 FAULT missing-expiry fail-closed**（Line AA · docs REQUEST · **`draft:awaiting_pre_exec_dual`**）
 
-**Status**: **`authorized:coding_prove`**（PRE dual BOTH PASS · coding+prove · Ban self-nail · row stays gap · coveredCount=8）
+**Status**: **`awaiting_post_prove_dual`**（prove EXIT0 @4571024 · Ban self-nail · row stays gap · coveredCount=8）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base**: `origin/feat/mysql-schema-skeleton` · `f43bea12fc7f2e28e7bb0052b6a80811eac47e91`
@@ -36,4 +36,4 @@ Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR4
 - **Evidence**: **in-process**（≠ isolated PG/HTTP · ≠ covered）
 - PRE: mw-e2e-ha `fbd47ac` + mw-rag-route `9862601` · REQUEST `448a33e`
 
-*Slice · NHP-025-FAULT-01 · authorized coding+prove · gap · coveredCount=8 · Ban self-nail · STOP*
+*Slice · NHP-025-FAULT-01 · awaiting_post_prove_dual · CODE_SHA 4571024 · gap · coveredCount=8 · Ban self-nail · STOP*
