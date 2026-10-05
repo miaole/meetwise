@@ -1,6 +1,8 @@
-# Harness — **NHP-025-BOUND-01 · UC-025 next non-NEG face = BOUND**（Line W · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · row stays gap）
+# Harness — **NHP-025-BOUND-01 · UC-025 BOUND resumeVersion pin**（Line W · NAIL · **`post_prove_dual_pass`** · row stays gap · BOUND column stays gap）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove 执行 · Ban push · Ban self-approve · Ban flip row · Ban wash B'' NEG）
+**Status**: **`post_prove_dual_pass`**（Line W nail · BOUND only · prove EXIT=0 · dual BOTH PASS · **EXIT0 ≠ covered** · row stays **gap** · BOUND column stays **gap** · NEG B'' `stale_quiz` CLOSED **frozen** Ban wash · Ban invent covered · Ban flip covered · Ban HA/suite green · Ban coding · Ban Meridian · Ban secrets · Ban force-push · Ban claiming isolated PG/HTTP E2E evidence · Ban self-approve beyond this authorized nail）
+
+> **REQUEST-era note（historical · retained）**: this file began as REQUEST `draft:awaiting_pre_exec_dual`. Prove tip **`e8fa74c`** · code **`6853e17`** · CMD `pnpm uc025:nhp-bound:prove` **EXIT=0**（HTTP **409** `resume_version_mismatch`）· post dual mw-e2e-ha `9aad765` + mw-rag-route `c048533` BOTH PASS. Lifecycle advanced to **`post_prove_dual_pass`** by Line W nail only.
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-05
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`6a79946`** / full `6a79946ae5bb4b2148e0d63d3b7f66d64a1e51df`
@@ -76,14 +78,29 @@ Not a pass · not run · not covered · not BOUND partial · not FAULT knife · 
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · row stays gap · BOUND choice documented · STOP
 
-## Line W prove（授权 coding+prove · 协调方 meetwise · **awaiting post-prove dual**）
+## Line W prove（授权 coding+prove · 协调方 meetwise · retained）
 
 - **PRE dual BOTH PASS**：mw-e2e-ha `df6a897` + mw-rag-route `cdcd11f`（REQUEST `73b9d85`）。
 - **CODE_SHA**：`6853e177adedd9c35e88d9c1acaa98899744d6be`（product guard + prove 脚本 + pnpm script）。
 - **HTTP/error pin（本刀钉死）**：**409 CONFLICT · `{ error: 'resume_version_mismatch' }`**；pin = 押题工件 0061 typed `(resume_id, privacy_epoch)`；失配 = begin resume-id ≠ pin resume_id，或 pin epoch ≠ 简历当前 epoch（含简历行不可见）。NULL pin（旧工件）不假拒。不带 quiz-id 完全跳过。
 - **CMD**：`pnpm uc025:nhp-bound:prove` → **EXIT=0** @ code SHA；接线前同脚本 **EXIT=1**（GAP marker）已核。
-- **证据层诚实**：静态 inventory + 真 `InterviewService.begin` 进程内跑（记录型 fake DB client）；**≠** HTTP/PG 端到端 · **≠** covered · **≠** nail。
+- **Evidence layer MUST state**：in-process `InterviewService.begin` + fake DB · shape aligned to `uc025:nhp-neg:prove` · **≠ isolated Postgres/HTTP E2E** · harness「隔离壳三层」本刀 **NOT run**（soft/aspirational · not a hard blocker of this PASS）。若要 PG/HTTP-level BOUND 证据 → **separate knife**（本 nail 不得宣称）。
 - Receipt：`receipts/2026-10-05-nhp-025-bound-01-version-pin-prove.md`。
-- 行 stays **gap** · coveredCount=**8** · NEG B'' frozen（Ban wash）· FAULT gap · ADV blind · canHonestlyFlip=false · **Ban self-nail**。
+- 行 stays **gap** · BOUND column stays **gap** · coveredCount=**8** · NEG B'' frozen（Ban wash）· FAULT gap · ADV blind · canHonestlyFlip=**false**。
 
-*Harness · NHP-025-BOUND-01 · UC-025 BOUND version-pin · prove done · awaiting post-prove dual · gap · STOP*
+---
+
+## Line W NAIL lifecycle（`post_prove_dual_pass` · 2026-10-05 · additive）
+
+- Lifecycle on this harness/slice/receipt: **`post_prove_dual_pass`**.
+- Prove tip NAILED TO: `e8fa74cd35c8acbbcadbba0851e05ca754aec60d`.
+- Code: `6853e177adedd9c35e88d9c1acaa98899744d6be` · CMD `pnpm uc025:nhp-bound:prove` **PROVE_EXIT 0** · HTTP **409** `resume_version_mismatch` · Ban live.
+- POST dual BOTH PASS: mw-e2e-ha `9aad765a10cc65093c9d5b3554e7142c5405ea34` + mw-rag-route `c0485338eab5cf638558d2cd998f39b1c2fb84a3`.
+- Receipt cross-ref: `receipts/2026-10-05-nhp-025-bound-01-version-pin-prove.md`.
+- **Evidence layer**: in-process `InterviewService.begin` + fake DB · shape aligned to nhp-neg · **≠ isolated Postgres/HTTP E2E** · three-layer isolated setup NOT run this knife（soft/aspirational · not hard blocker of this PASS）.
+- **STILL_GAP**: UC-E2E-025 **row** stays **gap** · **BOUND column** stays **gap** · EXIT0≠covered · coveredCount=**8** · canHonestlyFlip=**false** · NEG B'' CLOSED(wired) **frozen** Ban wash · FAULT gap · ADV blind.
+- Pins unchanged: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503 · canHonestlyFlip=false.
+
+---
+
+*Harness · NHP-025-BOUND-01 · Line W NAIL · 2026-10-05 · lifecycle post_prove_dual_pass · prove tip e8fa74c · EXIT 0 · 409 resume_version_mismatch · post dual 9aad765+c048533 PASS · evidence in-process+fake-db ≠ isolated PG/HTTP · row+BOUND gap · coveredCount=8 · Ban wash NEG · Ban invent covered · Ban HA · releaseEvidence=false · STOP*

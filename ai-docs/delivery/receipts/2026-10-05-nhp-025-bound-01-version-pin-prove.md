@@ -1,4 +1,4 @@
-# Receipt — **NHP-025-BOUND-01 · UC-025 BOUND resumeVersion pin**（Line W · prove evidence · **awaiting post-prove dual** · row stays gap）
+# Receipt — **NHP-025-BOUND-01 · UC-025 BOUND resumeVersion pin**（Line W · NAIL · **`post_prove_dual_pass`** · row stays gap · BOUND column stays gap）
 
 **Date**: 2026-10-05（Asia/Shanghai）
 **Line**: **W** · implementer `mw-core`（commit identity `meetwise-core`）
@@ -88,7 +88,7 @@ CMD=pnpm uc025:nhp-bound:prove EXIT=0
 
 - **S 层**：静态 inventory（controller 透传 quiz-id · BOUND throw 形状 · pin 列读取 · 抛点先于 bind/reserve/enqueue · 无 catch 吞 · 0061 + sql/20 pin 列）。
 - **R 层**：真 `InterviewService.begin` 进程内执行，`DbService.asPrincipal` 注入**记录型 fake client**（未知 SQL 即抛 `UNEXPECTED_SQL`；bind UPDATE 处以 sentinel 截停）。**零 PostgreSQL · 零网络 · 零模型 · 零 secrets**（`MODEL_API_KEY`/`MODEL_BASE_URL` 进程内删除）。
-- **不是**：HTTP 全链路 · 隔离 PG prove · RLS 实测 · covered。harness 原拟「隔离壳三层」未采用 isolated PG runner（形态对齐 `uc025:nhp-neg:prove` 的非 PG 证据面；PG/HTTP 级 BOUND prove 留后续刀，若协调方要求）。
+- **不是**：HTTP 全链路 · 隔离 PG prove · RLS 实测 · covered。**Evidence layer MUST state（nail）**：in-process `InterviewService.begin` + fake DB · shape aligned to nhp-neg · **≠ isolated Postgres/HTTP E2E** · harness「隔离壳三层」本刀 **NOT run**（soft/aspirational · not a hard blocker of this PASS）。PG/HTTP 级 BOUND prove 须 **separate knife**（本 nail 不得宣称）。
 - `pnpm uc025:stale-quiz-expiry:prove`（旧 mark-red pin）在 base `3003392` 已 **EXIT=1**（NEG 接线后 S1/S3/S4/G 即失败 · 本刀前既有 · 非本刀引入 · 本刀不改该脚本 · 披露不洗）。
 - NEG 回归只读核：`node apps/api/test/uc-e2e-025-nhp-neg.proof.mjs` @`6853e17` EXIT=0（**frozen · 不计入 BOUND 进度**）。
 - `tsc -p apps/api/tsconfig.json --noEmit`：本刀新增文件/改动零新增错误（@`51d935a` 实测 24 条，与 base `3003392` 计数一致，均为既有错误）。
@@ -101,10 +101,14 @@ CMD=pnpm uc025:nhp-bound:prove EXIT=0
 
 ## Non-claims
 
-Not covered · not BOUND column flip · not nail · not NEG re-open · not FAULT · not ADV · not HTTP/PG E2E · not HA · alone ≠ dual · **Ban self-nail**
+Not covered · not BOUND column flip · not NEG re-open · not FAULT · not ADV · **not isolated Postgres/HTTP E2E** · not HA · alone ≠ dual
 
-## ASK
+## Line W NAIL（`post_prove_dual_pass`）
 
-Please open **post-prove dual**（mw-e2e-ha + mw-rag-route）on this receipt tip.
+- Post-prove dual BOTH PASS：mw-e2e-ha `9aad765a10cc65093c9d5b3554e7142c5405ea34` + mw-rag-route `c0485338eab5cf638558d2cd998f39b1c2fb84a3`。
+- Lifecycle advanced to **`post_prove_dual_pass`** by Line W nail（cross-ref harness/slice/SSOT）。
+- **Evidence layer MUST state**：in-process `InterviewService.begin` + fake DB · shape aligned to nhp-neg · **≠ isolated Postgres/HTTP E2E** · harness three-layer isolated setup NOT run this knife（soft/aspirational · not hard blocker of this PASS）。若要 PG/HTTP-level BOUND 证据 → separate knife（本 nail 不得宣称）。
+- **STILL_GAP**：UC-E2E-025 **row** stays **gap** · **BOUND column** stays **gap** · EXIT0≠covered · coveredCount=**8** · canHonestlyFlip=**false** · NEG B'' CLOSED(wired) **frozen** Ban wash · FAULT gap · ADV blind。
+- Pins：NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · ms3EqualsR4Closed=false · PG-retained · DELETE=503 · canHonestlyFlip=false。
 
-*Receipt · NHP-025-BOUND-01 · Line W · prove EXIT=0 @6853e17 · awaiting post-prove dual · row stays gap · coveredCount=8 · STOP*
+*Receipt · NHP-025-BOUND-01 · Line W · prove EXIT=0 @6853e17 · post dual 9aad765+c048533 PASS · lifecycle post_prove_dual_pass · evidence in-process+fake-db ≠ isolated PG/HTTP · row+BOUND gap · coveredCount=8 · Ban wash NEG · Ban invent covered · STOP*
