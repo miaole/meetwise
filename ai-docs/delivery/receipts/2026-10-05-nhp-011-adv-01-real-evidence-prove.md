@@ -1,4 +1,4 @@
-# Receipt — **NHP-011-ADV-01 · UC-011 ADV case-only → real evidence prove**（Line V · **EXIT=1 honest GAP** · ≠ covered）
+# Receipt — **NHP-011-ADV-01 · UC-011 ADV case-only → real evidence prove**（Line V · **EXIT=1 honest GAP** · NAIL **`post_prove_dual_pass`** · ≠ covered）
 
 **Date**: 2026-10-05（Asia/Shanghai · UTC+8）
 **Knife**: Line V · `harness/nhp-011-adv-01-real-evidence.md` · slice `nhp-011-adv-01-real-evidence.slice.md` · gap `GAP-UC011-ADV-01` · case `NHP-011-ADV-01` · row `UC-E2E-011` ADV 列
@@ -60,10 +60,19 @@ Not covered · not ADV partial · not refund-callback 产品口 · not HA · not
 
 Pins retained: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503
 
-## 5. ASK
+## 5. ASK（historical · retained）
 
-请协调方开启 **post-prove dual**（`mw-e2e-ha` + `mw-model-op`）。本实现方 **Ban self-nail**。
+请协调方开启 **post-prove dual**（`mw-e2e-ha` + `mw-model-op`）。本实现方 **Ban self-nail**。→ 已由协调方开启并 BOTH PASS；nail 经协调方授权（见 §6）。
+
+## 6. Line V NAIL（`post_prove_dual_pass` · 2026-10-06 · additive）
+
+- POST dual BOTH PASS: mw-e2e-ha `ca5c7ea` (`ca5c7eaa895528c9853f151c4790dc9905c027d0`) + mw-model-op `0421e5a` (`0421e5af984d33c95bed3c7467dbebba0692b2c8`)（alone≠dual · 均审红的诚实性 · **PASS ≠ covered ≠ HA**）.
+- Lifecycle advanced to **`post_prove_dual_pass`** by Line V nail（cross-ref harness/slice/SSOT）· 本节**不改** §1–§4 任一运行事实。
+- **Honesty of red**: PROVE `pnpm uc011:adv:prove` **EXIT 1**（断言 18 / 失败 6 · INV 5/5）· 三口 **404** · A1 错签 / A2 重放 **UNREACHABLE** · **Ban wash 404=pass**（404 ≠ 拒签证据 ≠ 重放幂等证据 ≠ ADV partial）· A1/A2 DB 副作用零误改 ≠ 验签/重放真证据.
+- **STILL_OPEN**: **`GAP-UC011-ADV-01`** + **`GAP-UC011-REFUND-CALLBACK`** stay **OPEN** · 产品口（`POST /payment/refund-callback` · `/commerce/webhook/refund/:id` · `/commerce/orders/:id/refund-callback`）= **other knife** · UC-E2E-011 row stays **partial** · ADV column stays **gap** / `case-only` · EXIT0≠covered · coveredCount=**8** · C-1 具名 status/error（HMAC/幂等字段）**deferred until mouths land** · Ban 互借关闭.
+- **CITE_EXIT**: **0**（`pnpm eval-harness-matrix-cite:prove` 静态引用核 · @ evidence tip `79825b2` EXIT 0 · @ parent `ca5c7ea` EXIT 0 · @ nail 内容 EXIT 0 · cite 只核 UC-E2E-011 stays **partial** · **不**要求 ADV green · cite 绿 ≠ prove 绿 · **PROVE_EXIT 仍 1** · Ban wash prove）.
+- Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503.
 
 ---
 
-*Receipt · NHP-011-ADV-01 · Line V · EXIT=1 honest GAP · STOP*
+*Receipt · NHP-011-ADV-01 · Line V · EXIT=1 honest GAP · post dual ca5c7ea+0421e5a PASS · lifecycle post_prove_dual_pass · two GAPs OPEN · UC-011 partial · coveredCount=8 · STOP*

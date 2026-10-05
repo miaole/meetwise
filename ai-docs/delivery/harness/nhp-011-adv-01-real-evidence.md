@@ -1,6 +1,8 @@
-# Harness — **NHP-011-ADV-01 · UC-011 ADV case-only → real evidence**（Line V · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · row stays partial · ADV stays gap/case-only）
+# Harness — **NHP-011-ADV-01 · UC-011 ADV case-only → real evidence**（Line V · NAIL · **`post_prove_dual_pass`** · honesty of red · EXIT 1 · row stays partial · ADV stays gap/case-only）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove 执行 · Ban push · Ban self-approve · Ban invent covered · this commit is not coding authorization and is not a prove）
+**Status**: **`post_prove_dual_pass`**（Line V nail · honesty of red · PROVE **EXIT 1** · 三口 404 · A1/A2 UNREACHABLE · dual BOTH PASS · **Ban wash 404=pass** · `GAP-UC011-ADV-01` + `GAP-UC011-REFUND-CALLBACK` stay **OPEN** · row stays **partial** · ADV stays **gap/case-only** · EXIT0≠covered · Ban invent covered · Ban HA/suite green · Ban coding product mouths · Ban Meridian · Ban secrets · Ban force-push · Ban self-approve beyond this authorized nail）
+
+> **REQUEST-era note（historical · retained）**: this file began as REQUEST `draft:awaiting_pre_exec_dual`（REQUEST `bb9af74` · PRE dual mw-model-op `587b9e0` + mw-e2e-ha `5716b47`）. CODE `3d113c8` · prove tip `79825b2` · CMD `pnpm uc011:adv:prove` **EXIT=1**（honest GAP）· post dual mw-e2e-ha `ca5c7ea` + mw-model-op `0421e5a` BOTH PASS. Lifecycle advanced to **`post_prove_dual_pass`** by Line V nail only；本节以下 REQUEST 正文原样保留（含其当时的 Ban 列表），不再代表当前生命周期。
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-05
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`6a79946`** / full `6a79946ae5bb4b2148e0d63d3b7f66d64a1e51df`
@@ -79,4 +81,20 @@ Not a pass · not run · not covered · not ADV partial（本 REQUEST）· not r
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · ADV stays gap/case-only · STOP
 
-*Harness · NHP-011-ADV-01 · UC-011 ADV real evidence · awaiting_pre_exec_dual · EXIT0≠covered · STOP*
+---
+
+## Line V NAIL lifecycle（`post_prove_dual_pass` · 2026-10-06 · additive）
+
+- Lifecycle on this harness/slice/receipt: **`post_prove_dual_pass`**（honesty of red · **not** ADV green）.
+- 授权链: REQUEST `bb9af74b8398a2a8e4bba15f34699775529295c6` → PRE dual mw-model-op `587b9e03eeb37f643fd1e203d8befa41272d968f` + mw-e2e-ha `5716b477f6589d36c2474ad52942a59d6e191f88` → CODE `3d113c872455375d81d84de48b7d806eb42b2dd4` → prove tip `79825b206d068aea0ef200ae8f5c4f92e85642d6`.
+- Prove tip NAILED TO: `79825b206d068aea0ef200ae8f5c4f92e85642d6` · CODE `3d113c872455375d81d84de48b7d806eb42b2dd4`（零产品业务口 · 4 files prove/脚本注册）· CMD `pnpm uc011:adv:prove` **PROVE_EXIT 1** · Ban live.
+- POST dual BOTH PASS: mw-e2e-ha `ca5c7ea` (`ca5c7eaa895528c9853f151c4790dc9905c027d0`) + mw-model-op `0421e5a` (`0421e5af984d33c95bed3c7467dbebba0692b2c8`)（alone≠dual · 均审红的诚实性 · **PASS ≠ covered ≠ HA**）.
+- Receipt cross-ref: `receipts/2026-10-05-nhp-011-adv-01-real-evidence-prove.md`.
+- **Honesty of red**: PROVE `pnpm uc011:adv:prove` **EXIT 1**（断言 18 / 失败 6 · INV 5/5）· 三口 **404** · A1 错签 / A2 重放 **UNREACHABLE** · **Ban wash 404=pass**（404 ≠ 拒签证据 ≠ 重放幂等证据 ≠ ADV partial）· A1/A2 DB 副作用零误改 ≠ 验签/重放真证据.
+- **STILL_OPEN**: **`GAP-UC011-ADV-01`** + **`GAP-UC011-REFUND-CALLBACK`** stay **OPEN** · 产品口（`POST /payment/refund-callback` · `/commerce/webhook/refund/:id` · `/commerce/orders/:id/refund-callback`）= **other knife** · UC-E2E-011 row stays **partial** · ADV column stays **gap** / `case-only` · EXIT0≠covered · coveredCount=**8** · C-1 具名 status/error（HMAC/幂等字段）**deferred until mouths land** · Ban 互借关闭.
+- **CITE_EXIT**: **0**（`pnpm eval-harness-matrix-cite:prove` 静态引用核 · @ evidence tip `79825b2` EXIT 0 · @ parent `ca5c7ea` EXIT 0 · @ nail 内容 EXIT 0 · cite 只核 UC-E2E-011 stays **partial** · **不**要求 ADV green · cite 绿 ≠ prove 绿 · **PROVE_EXIT 仍 1** · Ban wash prove）.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+
+---
+
+*Harness · NHP-011-ADV-01 · Line V NAIL · lifecycle post_prove_dual_pass · prove tip 79825b2 · EXIT 1 · 三口 404 · A1/A2 UNREACHABLE · Ban wash 404=pass · post dual ca5c7ea+0421e5a PASS · GAP-UC011-ADV-01 + GAP-UC011-REFUND-CALLBACK OPEN · UC-011 partial · ADV gap/case-only · coveredCount=8 · releaseEvidence=false · STOP*
