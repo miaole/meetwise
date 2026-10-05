@@ -766,3 +766,15 @@ flowchart TD
 - Nail tip = 本 commit（branch `line/s-perf-teardown-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written（incl. Line U G7 · Line T FI-3 · Line R · Line P）. This paragraph does **not** close C-PERF-TEARDOWN. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
 
+
+### Line Y NHP-001-NEG-01 / GAP-UC001-NEG-01 NAIL（2026-10-05 SSOT nail · `post_prove_dual_pass` · EXIT=0 · case ≠ covered）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line Y NHP-001-NEG-01 case-registration products only（prove pack · zero product business logic）. Implementer does not self-approve beyond this authorized nail. **EXIT0 = case ≠ covered**. Not a covered flip. Ban invent covered · Ban flip covered · Ban wash 011/017/neg:auth · Ban suite green · Ban Meridian · Ban HA claim · Ban coding · Ban live · Ban secrets · Ban force-push. coveredCount=**8** unchanged.
+- REQUEST `48e2a3b` / `48e2a3b6f552c3382f9ed25ffad4173686011edf`. Pre-exec dual PASS: mw-e2e-ha `78be465` / `78be465052fade0f2b278e6664317a5015d9e7ee` + mw-rag-route `ad37608` / `ad376082d0de279ae9c562d08f83a1b5962185be`.
+- Code `1761311` / `1761311c81e48e43d74c778b36bc86e0cebb6150` · prove tip `ff74522` / `ff74522ac4db4ad661e72265e50ad8d860a68812` · CMD `pnpm uc001:nhp-neg:prove` **EXIT=0** · N1 **402** · N2 **401** · asserts=26 · receipt `receipts/2026-10-05-nhp-001-neg-01-blind-to-case-prove.md`.
+- Post-prove dual PASS: mw-e2e-ha `3b605ac` / `3b605ac42cf5c98791d6af169c5d4a84760e8db3` + mw-rag-route `51c0c0b` / `51c0c0b6c59ee27f804ed0ff9660930b9b85d0b5`（BOTH · alone≠dual）.
+- [ ] UC-E2E-001 NEG stays **blind**/`case-only`（honest case registration only）· §1.1 stays **partial**/blocked · **EXIT0 = case ≠ covered** · Ban invent covered · Ban flip covered · Ban wash 011/017/neg:auth.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
+- Nail tip = 本 commit（branch `line/y-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written（incl. Line W · Line S · Line T · Line U）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+

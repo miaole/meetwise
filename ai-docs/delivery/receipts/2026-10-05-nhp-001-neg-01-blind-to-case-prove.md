@@ -61,7 +61,7 @@
 ## 4. 诚实边界
 
 - EXIT0 ≠ covered · coveredCount=8 · Ban invent covered · Ban SSOT flip · Ban self-nail。
-- NEG 升格仅经本 prove + **post-prove dual（mw-e2e-ha + mw-rag-route）** + 协调方 nail。
+- Post-prove dual BOTH PASS：mw-e2e-ha `3b605ac42cf5c98791d6af169c5d4a84760e8db3` + mw-rag-route `51c0c0b6c59ee27f804ed0ff9660930b9b85d0b5`。Lifecycle advanced to **`post_prove_dual_pass`** by Line Y nail（cross-ref harness/slice/SSOT）。**EXIT0 = case ≠ covered** · UC-E2E-001 NEG stays **blind**/`case-only` · Ban invent covered · Ban flip covered · Ban wash 011/017/neg:auth。
 - 本 prove 未触 FAULT/BOUND/ADV；UC-003 i18n 未借刀；既有 `uc001:live-blocked:prove` ≠ 本 NEG 收据。
 - fixture = pgvector-legacy 隔离 PG（R5 marked-red 提示原样保留）· PG-retained · Not HA · releaseEvidence=false。
 
@@ -146,4 +146,4 @@ CMD=pnpm uc001:nhp-neg:prove EXIT=0
 LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-05T15-44-27-564Z-365428-d63e6526-7200-41dd-a6cf-38f70d764e9f.json release_evidence=false
 ```
 
-*Receipt · NHP-001-NEG-01 · Line Y · prove EXIT=0 @1761311 · case ≠ covered · coveredCount=8 · awaiting post-prove dual (mw-e2e-ha + mw-rag-route) · Ban self-nail · STOP*
+*Receipt · NHP-001-NEG-01 · Line Y · prove EXIT=0 @1761311 · post dual 3b605ac+51c0c0b PASS · lifecycle post_prove_dual_pass · EXIT0 = case ≠ covered · coveredCount=8 · Ban invent covered · Ban wash · STOP*
