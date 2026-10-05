@@ -1,6 +1,8 @@
-# Slice — **GAP-UC004-FI3-GRAPH-WIRING · 产品接线刀**（Line T · docs REQUEST · **`draft:awaiting_pre_exec_dual`**）
+# Slice — **GAP-UC004-FI3-GRAPH-WIRING · 产品接线刀**（Line T · NAIL · **`post_prove_dual_pass`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（docs REQUEST only · row stays gap）
+**Status**: **`post_prove_dual_pass`**（Line T nail · Candidate A · EXIT=0 · dual BOTH PASS · **EXIT0 ≠ A3 closed** · FAULT/A3 stays gap · Ban fake close A3 · Ban covered flip · Ban suite green · Ban Meridian · Ban HA claim · Ban coding · Ban live）
+
+> REQUEST-era historical status was `draft:awaiting_pre_exec_dual`. Prove tip `d9ddb13` · code `0a3c8a8` · prove-tool `b80bf92`≡`ced3691` · EXIT 0（4×0）· post dual `a655ffd`+`84f8eeb` BOTH PASS. Lifecycle advanced by this nail only.
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-05
 **Base**: `origin/feat/mysql-schema-skeleton` · `377e7fc4fa1b35b85ebf524b668469caf66de2bc`
@@ -32,4 +34,20 @@ Ban coding · Ban prove 执行（pre-exec dual PASS 后由协调方授权）· B
 
 Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
 
-*Slice · GAP-UC004-FI3-GRAPH-WIRING · AiGraphRun(career-path) graph wiring · awaiting_pre_exec_dual · FAULT gap · STOP*
+
+
+---
+
+## Line T NAIL（`post_prove_dual_pass` · additive · 2026-10-05）
+
+- Prove tip NAILED TO: `d9ddb13fa9cc1e505e04d97cde9ad6620dc49b58` · code `0a3c8a8ad16667bd6b140cbb6b02f04d1ce20bf2` · prove-tool `b80bf92d4b3dc901a63bdcb585df47c5e7a285bb` ≡ `ced3691` · EXIT **0** · attempts **4×0**.
+- POST dual BOTH PASS: mw-e2e-ha `a655ffdab52093e669dca8793c5cd8b6d1fbade5` + mw-model-op `84f8eeb454bc682031dc4795cefd44460f7b2d09`.
+- Receipt cross-ref: `receipts/2026-10-05-gap-uc004-fi3-graph-wiring-prove.md`.
+- STILL_OPEN: `GAP-UC004-FAIL-A3` / `NHP-004-FAULT-01` / UC-E2E-004 FAULT **gap** · EXIT0 ≠ A3 closed.
+- Pins unchanged: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503.
+- Static tripwire: `pnpm uc004:career-path:prove` EXIT=1 expected（separate knife）.
+
+---
+
+*Slice · GAP-UC004-FI3-GRAPH-WIRING · Line T NAIL · 2026-10-05 · lifecycle post_prove_dual_pass · prove tip d9ddb13 · EXIT 0 · EXIT0 ≠ A3 closed · FAULT stays gap · Ban fake close A3 · Ban covered flip · Ban live · releaseEvidence=false · STOP*
+
