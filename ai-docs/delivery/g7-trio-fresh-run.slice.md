@@ -1,6 +1,8 @@
-# Slice — G7 · **trio 新鲜跑刀**（Line U · REQUEST docs · **`pending:awaiting_pre_exec_dual`**）
+# Slice — G7 · **trio 新鲜跑刀**（Line U · NAIL · **`post_prove_dual_pass`**）
 
-**状态**：**`pending:awaiting_pre_exec_dual`**（docs-only REQUEST stub · **not a pass** · **零实跑** · Ban coding · Ban prove · Ban push · Ban live · Ban self-approve · alone ≠ dual）
+**状态**：**`post_prove_dual_pass`**（Line U nail · honesty of red · trio stays **OPEN 1/1/1** · `g7SuiteGreen=false` · Disclosure-1 **OPEN** · R1 **OPEN** · Ban fake green / Ban suite green / Ban covered flip · Ban coding · Ban live · Ban Meridian）
+
+> REQUEST-era historical status was `pending:awaiting_pre_exec_dual`. Prove tip `9ff3daf` · code `e8c63a9` · EXIT 1/1/1 · post dual `4562644`+`580edc7` BOTH PASS. Lifecycle advanced by this nail only.
 **日期**：2026-10-05 · base tip（fetch 后 origin tip 实测）：**`377e7fc`**（`377e7fc4fa1b35b85ebf524b668469caf66de2bc` · docs(delivery): NAIL NHP-002-ADV-01 GAP-UC002-ADV-LED-CROSSUSER evidence post_prove_dual_pass · not a prove tip）
 **worktree**：`/Users/miaole/Desktop/golucky/meetwise-line-u`（branch `line/u-g7-trio-fresh` · 自 `origin/feat/mysql-schema-skeleton`）
 **性质**：在 committed SHA 上**首次产出**冻结 trio 三条 CMD 的新鲜 CMD+EXIT 收据（G7 北星硬闸要求全量收据；trio OPEN 1/1/1 是当前最大缺口之一）· **预期 EXIT=1（诚实）**——本刀目的不是翻绿，是产收据 + 精确定位三条 CMD 各自 FAIL 明细（哪些 case、什么原因），为后续修复刀排队。
@@ -51,4 +53,17 @@
 
 ---
 
-*Slice · G7 trio 新鲜跑刀 · Line U · 2026-10-05 · pending:awaiting_pre_exec_dual · base tip 377e7fc · 历史 EXIT 1/1/1 retained · 预期 EXIT=1 诚实 · 每条 CMD 恰一次 · Ban retry-to-green · Ban flake · Ban 假绿 · Ban live · Ban SSOT · g7SuiteGreen=false · Disclosure-1 OPEN · releaseEvidence=false · STOP*
+---
+
+## Line U NAIL（`post_prove_dual_pass` · additive · 2026-10-05）
+
+- Prove tip NAILED TO: `9ff3daf2ee7b9e5d355212d0e877f5b8be79db38` · prove code `e8c63a913a1e9af285f692bcab16f7593294d144` · EXIT **1/1/1**.
+- POST dual BOTH PASS: mw-model-op `456264420d75c4beddd5eed56c31ecd5f956fb86` + mw-e2e-ha `580edc73e1c12271d60d5f0cb4b0ad5d7d2ddb0a`.
+- FAIL classes: **env-gap**（`database_not_ready` / migrate EXIT1 → HTTP E2E not_run）.
+- STILL_OPEN: trio OPEN 1/1/1 · g7SuiteGreen=false · Disclosure-1 OPEN · R1 OPEN.
+- Pins unchanged: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503.
+- **ERRATUM**: FreeTierOnly **观察**=`3424dc1` · **消除轮**=`82981ff` · Ban shorthand `quota-403=82981ff` · Ban `b1d7b22` @ 09-23 for that removal.
+
+---
+
+*Slice · G7 trio 新鲜跑刀 · Line U NAIL · 2026-10-05 · lifecycle post_prove_dual_pass · prove tip 9ff3daf · EXIT 1/1/1 · g7SuiteGreen=false · Disclosure-1 OPEN · R1 OPEN · Ban fake/suite green · Ban covered flip · Ban live · releaseEvidence=false · STOP*

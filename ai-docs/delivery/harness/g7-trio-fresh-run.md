@@ -1,6 +1,8 @@
-# Harness — G7 · **trio 新鲜跑刀**（Line U · REQUEST docs · **`pending:awaiting_pre_exec_dual`**）
+# Harness — G7 · **trio 新鲜跑刀**（Line U · NAIL · **`post_prove_dual_pass`**）
 
-**Status**: **`pending:awaiting_pre_exec_dual`**（本文件 = 执行计划 REQUEST · docs-only · **not a pass** · **零实跑** · **零新 EXIT** · Ban coding · Ban prove 脚本改动 · Ban live · Ban self-approve）
+**Status**: **`post_prove_dual_pass`**（Line U nail · honesty of red · trio stays **OPEN 1/1/1** · `g7SuiteGreen=false` · Disclosure-1 **OPEN** · R1 **OPEN** · Ban fake green / Ban suite green / Ban covered flip · Ban coding · Ban live · Ban Meridian · Ban self-approve beyond this authorized nail）
+
+> **REQUEST-era note（historical · retained）**: this file began as REQUEST `pending:awaiting_pre_exec_dual`. Prove tip **`9ff3daf`** · code **`e8c63a9`** · EXIT **1/1/1** · post dual mw-model-op `4562644` + mw-e2e-ha `580edc7` BOTH PASS（honesty of red）. Lifecycle advanced to **`post_prove_dual_pass`** by Line U nail only.
 **Date**: 2026-10-05
 **授权链（待走）**：Line U REQUEST（本 commit）→ pre-exec dual **mw-model-op + mw-e2e-ha BOTH PASS** → 协调方授权 prove 执行 → 才允许在独立 worktree 实跑三条 CMD。**本 commit 不预claim 任何 post-commit EXIT。**
 **产物定位**：G7 北星硬闸要求**全量 CMD+EXIT 收据**；冻结 trio（`e2e:isolated` / `e2e:ui:isolated` / `verify:e2e-performance`）**OPEN 1/1/1** 且自 FIX（2026-09-17，prove `a4e3de5`）后**零实跑**——在 committed SHA 上首次产出 trio 三条 CMD 的新鲜 CMD+EXIT 收据，是当前 G7 最大缺口之一。L 线产物（`harness/g7-trio-current-state-alignment.md` · `harness/g7-trio-offline-receipt-index-alignment.md`）已备好全部未来跑纪律，本刀即按其三要素执行。
@@ -69,4 +71,29 @@ Not a pass · not run（本 REQUEST 零实跑）· not suite green · not trio g
 
 ---
 
-*Harness · G7 trio 新鲜跑刀 · Line U REQUEST · 2026-10-05 · pending:awaiting_pre_exec_dual · docs-only · 零实跑 · 预期 EXIT=1 诚实 · 每条 CMD 恰一次 · Ban retry-to-green · Ban flake 记法 · Ban 假绿 · Ban live · Ban SSOT · 收据落点 receipts/g7-trio-fresh/ · g7SuiteGreen=false · Disclosure-1 OPEN · trio OPEN 1/1/1 · releaseEvidence=false · alone ≠ dual · STOP*
+---
+
+## 7. Line U NAIL lifecycle（`post_prove_dual_pass` · 2026-10-05 · additive）
+
+- Lifecycle on this harness/slice/SUMMARY: **`post_prove_dual_pass`**.
+- Prove tip NAILED TO: `9ff3daf2ee7b9e5d355212d0e877f5b8be79db38`（do **not** claim a later origin tip as the prove tip）.
+- Prove code SHA: `e8c63a913a1e9af285f692bcab16f7593294d144` · **PROVE_EXIT 1/1/1**.
+- POST dual BOTH PASS: mw-model-op `456264420d75c4beddd5eed56c31ecd5f956fb86` + mw-e2e-ha `580edc73e1c12271d60d5f0cb4b0ad5d7d2ddb0a`.
+- FAIL classes registered: **env-gap**（`database_not_ready` / migrate EXIT1 → HTTP E2E **not_run**）.
+- STILL_OPEN: trio **OPEN 1/1/1** · `g7SuiteGreen=false` · Disclosure-1 **OPEN** · R1 **OPEN**.
+- Pins unchanged: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503.
+
+### ERRATUM（coordinator wording · corrects REQUEST §2 shorthand）
+
+| Role | SHA |
+|------|-----|
+| FreeTierOnly **观察** | **`3424dc1`** |
+| **消除轮** | **`82981ff`**（`cc8050d`→`82981ff`） |
+| Ban | writing shorthand **`quota-403=82981ff`** |
+| Ban | writing **`b1d7b22` @ 09-23** for that removal（`b1d7b22` = 2026-10-02 FR2 tautology / offlineProvesAtCodeSha only） |
+
+§2 historical prose that wrote `quota-403 移除（b1d7b22 @ 2026-09-23）` is **superseded by this erratum**（not rewritten in place；correction lives here + SUMMARY + SSOT nail sections）.
+
+---
+
+*Harness · G7 trio 新鲜跑刀 · Line U NAIL · 2026-10-05 · lifecycle post_prove_dual_pass · prove tip 9ff3daf · code e8c63a9 · EXIT 1/1/1 · post dual 4562644+580edc7 PASS · g7SuiteGreen=false · Disclosure-1 OPEN · R1 OPEN · trio OPEN 1/1/1 · Ban fake/suite green · Ban covered flip · Ban live · releaseEvidence=false · STOP*

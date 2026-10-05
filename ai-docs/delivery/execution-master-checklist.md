@@ -727,3 +727,17 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
 - Nail tip = 本 commit（branch `line/r-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+### Line U G7 trio fresh NAIL（2026-10-05 SSOT nail · `post_prove_dual_pass` · docs only · trio stays OPEN 1/1/1）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line U G7 trio fresh run products only（honesty of red）. Implementer does not self-approve beyond this authorized nail. Not a trio close. Not G7 green. Ban coding · Ban second knife · Ban live · Ban Meridian · Ban fake green / Ban suite green / Ban covered flip.
+- REQUEST `1c57bb3` / `1c57bb36e79a34b9152bf05d47275e90bfa4c58b`. Pre-exec dual PASS: mw-model-op `ad8d68e` / `ad8d68e5f2536e83668ea07f6c1e224c23b32442` + mw-e2e-ha `e8c63a9` / `e8c63a913a1e9af285f692bcab16f7593294d144`.
+- Prove tip **NAILED TO** `9ff3daf` / `9ff3daf2ee7b9e5d355212d0e877f5b8be79db38`（do **not** claim a later tip as the prove tip）· prove code `e8c63a9` / `e8c63a913a1e9af285f692bcab16f7593294d144` · **PROVE_EXIT 1/1/1** · receipts `ai-docs/delivery/receipts/g7-trio-fresh/`.
+- Post-prove dual PASS: mw-model-op `4562644` / `456264420d75c4beddd5eed56c31ecd5f956fb86` + mw-e2e-ha `580edc7` / `580edc73e1c12271d60d5f0cb4b0ad5d7d2ddb0a`（BOTH · honesty of red）.
+- [ ] Trio stays **OPEN 1/1/1**（`pnpm e2e:isolated` · `pnpm e2e:ui:isolated` · `pnpm verify:e2e-performance`；本轮 EXIT 1/1/1 · honesty_red retained）. FAIL classes: **env-gap**（`database_not_ready` / migrate EXIT1 → HTTP E2E not_run）.
+- 原值不动：`g7SuiteGreen=false` · R1 **OPEN** · Disclosure-1 **OPEN** · coveredCount=**8**.
+- **ERRATUM**: FreeTierOnly **观察**=`3424dc1` · **消除轮**=`82981ff` · Ban shorthand `quota-403=82981ff` · Ban `b1d7b22` @ 09-23 for that removal.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered. actualSpendCny stays null.
+- Nail tip = 本 commit（branch `line/u-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
