@@ -753,3 +753,16 @@ flowchart TD
 - Nail tip = 本 commit（branch `line/t-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written（incl. Line U G7 · Line R · Line P）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
 
+
+
+### Line S C-PERF-TEARDOWN Branch A NAIL（2026-10-05 SSOT nail · `post_prove_dual_pass` · CONDITION OPEN retained）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line S Branch A re-run evidence products only（zero product/infra code）. Implementer does not self-approve beyond this authorized nail. **Not a CONDITION close**. Ban close C-PERF-TEARDOWN · Ban wash attempt1 · Ban covered flip · Ban HA claim · Ban coding · Ban Meridian · Ban Branch B invention · Ban secrets · Ban force-push. coveredCount=**8** unchanged.
+- REQUEST `3ca9628` / `3ca96286eb182eed66670becfebeb621ad917a2d`. Pre-exec dual PASS: mw-e2e-ha `5066b5c` / `5066b5c5b6f9691ef0e3b916e0380a4a52c9ace3` + mw-rag-route `0bd7ddf` / `0bd7ddfee637f6829357242945aa9fe4a290a857`.
+- Prove tip (nail evidence) `920666a` / `920666a9a6c2be248f6006067193414e2355f8aa` · prove SHA `e8c63a9` / `e8c63a913a1e9af285f692bcab16f7593294d144` · code-eq `55ede89` / `55ede8980d5a23b8c021ec357207e030d222650e` · CMD `pnpm uc018:perf-load:prove` **EXIT 0/0/0** · receipt `receipts/2026-10-05-gap-perf-teardown-rootcause-fix-prove.md`.
+- Post-prove dual PASS: mw-e2e-ha `f4441dd` / `f4441dde38eed6eee402a6d0bcf12cea697b6304` + mw-rag-route `6a79946` / `6a79946ae5bb4b2148e0d63d3b7f66d64a1e51df`（BOTH · alone≠dual）.
+- [ ] backlog `:35` **C-PERF-TEARDOWN stays CONDITION OPEN** · canHonestlyFlip=**false** · PERF/LOAD stays **local partial** · capacityRepresentative=**false** · attempt1@`b29c191` EXIT1 retained · Branch B not triggered · UC-018/§1.1 stay partial.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
+- Nail tip = 本 commit（branch `line/s-perf-teardown-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written（incl. Line U G7 · Line T FI-3 · Line R · Line P）. This paragraph does **not** close C-PERF-TEARDOWN. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+

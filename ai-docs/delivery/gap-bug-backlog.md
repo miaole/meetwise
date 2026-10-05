@@ -418,3 +418,15 @@
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
 - Sibling sections stay as written（incl. Line U G7 · Line R ADV · Line P FI-1 · C'' FAULT evidence）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
 
+
+
+### Line S C-PERF-TEARDOWN Branch A NAIL（2026-10-05 SSOT nail · `post_prove_dual_pass` · CONDITION OPEN retained）
+
+- **C-PERF-TEARDOWN** · Line S Branch A re-run evidence nailed · status **`post_prove_dual_pass`**. Implementer does not self-approve beyond this authorized nail. **Not a CONDITION close**. Ban close C-PERF-TEARDOWN · Ban wash attempt1 · Ban covered flip · Ban HA claim · Ban coding · Ban Meridian · Ban Branch B invention · Ban secrets · Ban force-push.
+- 证据链: REQUEST `3ca9628` / `3ca96286eb182eed66670becfebeb621ad917a2d` · pre-exec dual PASS mw-e2e-ha `5066b5c` / `5066b5c5b6f9691ef0e3b916e0380a4a52c9ace3` + mw-rag-route `0bd7ddf` / `0bd7ddfee637f6829357242945aa9fe4a290a857` · Branch A **zero product/infra code** · prove tip (nail evidence) `920666a` / `920666a9a6c2be248f6006067193414e2355f8aa` · prove SHA `e8c63a9` / `e8c63a913a1e9af285f692bcab16f7593294d144` · code-eq `55ede89` / `55ede8980d5a23b8c021ec357207e030d222650e` · CMD `pnpm uc018:perf-load:prove` **EXIT 0/0/0**（attempts A/B/C · zero `Unhandled 'error' event` · all reached run3+SUMMARY · one-shot · Ban retry-to-green）· receipt `receipts/2026-10-05-gap-perf-teardown-rootcause-fix-prove.md` · post-prove dual PASS mw-e2e-ha `f4441dd` / `f4441dde38eed6eee402a6d0bcf12cea697b6304` + mw-rag-route `6a79946` / `6a79946ae5bb4b2148e0d63d3b7f66d64a1e51df`（alone≠dual）· nail tip = 本 commit（branch `line/s-perf-teardown-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Historical attempt1@`b29c191` / `b29c191543dfbe7c1afa4278c550340a3339f295` **EXIT=1** retained（mid-prove Unhandled pg Client · FAIL-UNREPRODUCED-ON-FIRST）· **Ban wash** · Do not claim the second exit washes the first.
+- Branch A 成立（P 修复结构性覆盖复跑实证）· Branch B **not** triggered / **not** invented · residual HOST_SQL_PROBE + P-1/P-3 carried · (c) `db_pool_error` N/A（无真实断连 · 不得发明观测绿）.
+- **STILL_OPEN**: backlog `:35` **C-PERF-TEARDOWN stays CONDITION OPEN**（disclosed OPEN · canHonestlyFlip=**false**）· PERF/LOAD stays **local partial** · capacityRepresentative=**false** · UC-018/§1.1 stay **partial** · coveredCount=**8** · Ban covered flip · Ban claim production capacity/HA · closing CONDITION still requires 协调方授权 beyond this nail.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
+- Sibling sections stay as written（incl. Line U G7 · Line T FI-3 · Line R ADV · Line P FI-1）. This paragraph does **not** change backlog `:35` row status to CLOSED. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
