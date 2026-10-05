@@ -664,6 +664,14 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/interview/interview.service.ts',
     'packages/db/src/commerce.ts', 'packages/db/src/report.ts', 'packages/db/src/payment.ts',
   ],
+  'uc011:adv:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-011-adv-refund-callback.proof.ts', 'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/commerce/commerce.controller.ts',
+    'apps/api/src/modules/commerce/commerce.service.ts',
+    'apps/api/src/modules/commerce/commerce-webhook.controller.ts',
+    'packages/db/src/payment.ts',
+  ],
   'uc019:report-regenerate:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/uc-e2e-019-report-regenerate.proof.ts', 'packages/db/src/commerce.ts', 'packages/db/src/report.ts',
@@ -1387,6 +1395,7 @@ if (![
   'sole-stack:vectorstore-qdrant:prove',
   'uc004:career-path-fault:prove:raw',
   'uc001:nhp-neg:prove:raw',
+  'uc011:adv:prove:raw',
 ].includes(target)) {
   throw new Error(`unsupported_e2e_target:${target}`);
 }
@@ -1421,6 +1430,8 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'packages/db', 'prove:uc011-report-refund']]
   : target === 'uc011:report-refund:http:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc011-report-refund-http']]
+  : target === 'uc011:adv:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc011-adv-refund-callback']]
   : target === 'uc019:report-regenerate:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:uc019-report-regenerate']]
   : target === 'uc019:report-regenerate:http:prove:raw'
