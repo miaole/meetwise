@@ -662,3 +662,14 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered. actualSpendCny stays null. No invented spend.
 - Nail tip = 本 commit（branch `line/l-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+### Line K NHP-014-ADV-01 webhook ADV evidence NAIL（2026-10-03 SSOT nail · `post_prove_dual_pass` · EXIT=0 双 fresh · ADV 行 stays gap→case-only）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line K webhook ADV evidence products only. Implementer does not self-approve. Not a covered flip. UC-E2E-014/026 §1.0.1 ADV stays **gap**（case stays gap→case-only）. coveredCount=**8** unchanged.
+- REQUEST `0cf8591` / `0cf8591b09a6439c25b984235d27bd3d4209f266`（docs-only 恰 4 md · origin）。Pre-exec dual PASS: mw-e2e-ha `9a1c1a7` / `9a1c1a7d162d1e35a39897bec63a7f3203672d64`（origin mirror `1d9f86d`）+ mw-rag-route `42ee525` / `42ee525ccbf75b8b7129b5710e7ac2af1732fcdb`（origin mirror `8dde8e3`）。
+- Prove 包 `bb30062` / `bb30062d7e2cbba4b7b2872e64b95a11731966c8`（branch `line/k-next-nhp` · 恰 6 文件 +487/−2 · 零产品代码 · 禁碰清单零 diff；nail 分支 cherry-pick `2e35708` / `2e357085a359ae83b1d1c9b1d21b3f1825426462`）· CMD `pnpm uc014:webhook-adv:prove` **EXIT=0 双 fresh**（实现方 attempts=1 + mw-e2e-ha 独立 worktree fresh re-run 恰一次 · 47/47 · 随机容器/动态端口/零残留）· receipt `receipts/2026-10-03-gap-uc014-026-adv-webhook-nhp-prove.md`。
+- Post-prove dual PASS: mw-e2e-ha `e1625c6` / `e1625c66c20f8cd89e0a910cafc609b02e3c44bc`（nail cherry-pick `fe1c483`）+ mw-rag-route `75b613e` / `75b613e70614dee309213d8ac1cccbef5bf7b683`（nail cherry-pick `7a1e0bd`）。
+- Residual「审计后置未接线」（GuardrailHit 产品路径 0 emit 点 · AUDIT-OBSERVATION absent×4）随任何 ADV gap→partial 翻行注记带入（e2e-ha CO-1）· C3 DISCLOSED（显式服务端金额复核不存在 · 保障=无金额通道+服务端权威定价）· PERF/LOAD 显式 blind 保留 · **EXIT0 ≠ covered**。
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
+- Nail tip = 本 commit（branch `line/k-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
