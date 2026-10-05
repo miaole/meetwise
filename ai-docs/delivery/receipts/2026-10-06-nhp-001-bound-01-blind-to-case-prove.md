@@ -1,5 +1,6 @@
 # Receipt — **NHP-001-BOUND-01 · UC-001 BOUND blind→case prove**（Line AB · case ≠ covered）
 
+**Status**: **`post_prove_dual_pass`**（Line AB nail · prove tip **NAILED TO** `f8cdc82748922a15f668993fe742411052cf21fd` · CODE `6e96cf5` · EXIT 0 17/17 · POST dual mw-e2e-ha `b060e4e` + mw-rag-route `5adb14f` BOTH PASS · **EXIT0≠covered** · SCOPE UC-001 BOUND only · coveredCount=8 · STOP）
 **Date**: 2026-10-06（Asia/Shanghai）
 **Knife**: Line AB · `harness/nhp-001-bound-01-blind-to-case.md` · slice `nhp-001-bound-01-blind-to-case.slice.md` · gap `GAP-UC001-BOUND-01` · case `NHP-001-BOUND-01` · row `UC-E2E-001`（BOUND 列）
 **授权链**: REQUEST `c6dd1a67fc6b6ef4c2dfad0f9a5beff9791d657b` → PRE-EXEC dual BOTH PASS：**mw-e2e-ha `d448da9d0426c30b8ebf8570ecf3d1b7b996bcc9`** + **mw-rag-route `64252bec74a5cde9aed077869aa86dfcf5d40586`** → 协调方 meetwise 授权 coding+prove（Line AB ONLY · UC-001 BOUND）
@@ -62,7 +63,8 @@
 ## 4. 诚实边界
 
 - EXIT0 ≠ covered · coveredCount=8 · Ban invent covered · Ban SSOT flip · **Ban self-nail**（harness/slice 生命周期仍 awaiting；本 turn 不钉）。
-- Post-prove dual **PENDING**：mw-e2e-ha + mw-rag-route（本 receipt 仅为 prove 证据，alone ≠ dual）。
+- Post-prove dual **PENDING**：mw-e2e-ha + mw-rag-route（本 receipt 仅为 prove 证据，alone ≠ dual）。*（历史原文；见下行 nail 更新）*
+- **NAIL update（2026-10-06 · additive）**：post-prove dual BOTH PASS — mw-e2e-ha `b060e4e35cfbde00715ff3d8be29ff1d657c9b67` + mw-rag-route `5adb14f68f43108c09ef277db03c674e9b93bfa3`。Lifecycle advanced to **`post_prove_dual_pass`** by Line AB nail（cross-ref harness/slice/SSOT）。prove-only · zero `apps/api/src` · product mouth pre-existing; this knife = BOUND prove wiring · 无双扣。**EXIT0≠covered** · coveredCount=8 · Ban wash Y/018/052/025/004/011 · Ban claiming covered。Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503。
 - 本 prove 未触 NEG/ADV/FAULT；UC-003 i18n 未借刀；Ban 018/052/025/004/011；Ban FUNNEL / G-R4-5。
 - fixture = pgvector-legacy 隔离 PG（R5 marked-red 提示原样保留）· PG-retained · Not HA · releaseEvidence=false。
 
@@ -115,4 +117,4 @@ CMD=pnpm uc001:nhp-bound:prove EXIT=0
 LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-05T16-34-47-558Z-503112-06dc5afd-60b8-4302-8472-3c2f0e98d9e9.json release_evidence=false
 ```
 
-*Receipt · NHP-001-BOUND-01 · Line AB · prove EXIT=0 @6e96cf5 · Ban self-nail · EXIT0 = case ≠ covered · coveredCount=8 · POST_DUAL_NEEDED e2e+rag · STOP*
+*Receipt · NHP-001-BOUND-01 · Line AB · prove EXIT=0 17/17 @6e96cf5 · tip NAILED TO f8cdc82 · post dual b060e4e+5adb14f PASS · lifecycle post_prove_dual_pass · EXIT0≠covered · coveredCount=8 · STOP*

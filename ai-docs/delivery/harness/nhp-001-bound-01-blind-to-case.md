@@ -1,6 +1,7 @@
-# Harness — **NHP-001-BOUND-01 · UC-001 BOUND blind→case**（Line AB · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · 主链 stays blind · ≠ covered）
+# Harness — **NHP-001-BOUND-01 · UC-001 BOUND blind→case**（Line AB · **`post_prove_dual_pass`** · 主链 stays blind · EXIT0≠covered）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove 执行 · Ban live · Ban fake-green suite · Ban push · Ban self-approve）
+**Status**: **`post_prove_dual_pass`**（Line AB nail 2026-10-06 · prove tip NAILED TO `f8cdc82` · CODE `6e96cf5` · EXIT 0 17/17 · POST dual e2e-ha `b060e4e` + rag-route `5adb14f` PASS · EXIT0≠covered · coveredCount=8）
+**History**: ~~`draft:awaiting_pre_exec_dual`~~（L0 docs REQUEST `c6dd1a6`）→ PRE dual PASS `d448da9`/`64252be` → coding+prove `6e96cf5`/`f8cdc82` → POST dual PASS → nail
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`94a8b2a`** / full `94a8b2aead1b7087115a0ac1af9f790ef2a8f177`（assigned Line AB start tip `f43bea1` / `f43bea12fc7f2e28e7bb0052b6a80811eac47e91` · rebased over Line Z/AA/AC REQUEST landings · Ban touch Z/AA/AC）
@@ -79,4 +80,14 @@ Not a pass · not run · not covered · not live · not suite green · not trio 
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · Ban live · Ban live default · Ban fake-green suite · STOP
 
-*Harness · NHP-001-BOUND-01 · UC-001 BOUND blind→case · awaiting_pre_exec_dual · STOP*
+## NAIL（2026-10-06 · Line AB · `post_prove_dual_pass` · EXIT0≠covered）
+
+- Lifecycle → **`post_prove_dual_pass`**（authorized coordinator nail · implementer does not self-approve beyond this nail）.
+- REQUEST `c6dd1a6`（`c6dd1a67fc6b6ef4c2dfad0f9a5beff9791d657b`）→ PRE dual mw-e2e-ha `d448da9` + mw-rag-route `64252be` PASS → CODE `6e96cf5`（`6e96cf50a8be410a0d2154761afef88cd2368c7a`）→ prove tip **NAILED TO** `f8cdc82`（`f8cdc82748922a15f668993fe742411052cf21fd`）· `pnpm uc001:nhp-bound:prove` **EXIT 0 · 17/17** · isolated 真 PG.
+- POST dual BOTH PASS: mw-e2e-ha `b060e4e`（`b060e4e35cfbde00715ff3d8be29ff1d657c9b67`）+ mw-rag-route `5adb14f`（`5adb14f68f43108c09ef277db03c674e9b93bfa3`）· alone≠dual.
+- **prove-only** · **zero `apps/api/src`** · product mouth pre-existing; this knife = BOUND prove wiring · 无双扣.
+- **EXIT0≠covered** · **SCOPE UC-001 BOUND only** · Ban wash Y / 018 / 052 / 025 / 004 / 011 · UC-E2E-001 BOUND stays blind/`case-only` wording · coveredCount=8.
+- Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503.
+- Keep siblings（Line AC / Z / AA nails · Line Y NEG）as written. Ban coding · Ban HA · Ban live · Ban Meridian · Ban secrets · Ban force-push · Ban claiming covered.
+
+*Harness · NHP-001-BOUND-01 · UC-001 BOUND blind→case · post_prove_dual_pass · EXIT0≠covered · coveredCount=8 · STOP*

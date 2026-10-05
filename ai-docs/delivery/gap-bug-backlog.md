@@ -504,3 +504,14 @@
 - **STILL_GAP / honesty**: UC-E2E-025 **row** stays **gap** · **FAULT column** stays **gap** · EXIT0≠covered · coveredCount=**8** · canHonestlyFlip=**false** · NEG B'' `stale_quiz` CLOSED(wired) **frozen** Ban wash · BOUND W Ban wash · ADV blind.
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · canHonestlyFlip=false. Do not write covered.
 - Sibling sections stay as written（incl. Line W BOUND · Line Z REFUND-CALLBACK · Line AC G7 · Line AB · Line Y NHP-001 · B'' NEG CLOSED）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+
+### Line AB NHP-001-BOUND-01 / GAP-UC001-BOUND-01 NAIL（2026-10-06 SSOT nail · `post_prove_dual_pass` · EXIT0≠covered · SCOPE UC-001 BOUND only）
+
+- **GAP-UC001-BOUND-01 / NHP-001-BOUND-01** · Line AB BOUND prove nailed · status **`post_prove_dual_pass`**（honest case registration · blind→case）. Implementer does not self-approve beyond this authorized nail. **EXIT0≠covered** · PASS ≠ covered ≠ HA. Ban invent covered · Ban claiming covered · Ban wash Y · Ban HA · Ban live · Ban Meridian · Ban secrets · Ban force-push · Ban coding.
+- 证据链: REQUEST `c6dd1a6` / `c6dd1a67fc6b6ef4c2dfad0f9a5beff9791d657b` · PRE dual PASS mw-e2e-ha `d448da9` / `d448da9d0426c30b8ebf8570ecf3d1b7b996bcc9` + mw-rag-route `64252be` / `64252bec74a5cde9aed077869aa86dfcf5d40586` · CODE `6e96cf5` / `6e96cf50a8be410a0d2154761afef88cd2368c7a`（**prove-only** · **zero `apps/api/src`**）· prove tip **NAILED TO** `f8cdc82` / `f8cdc82748922a15f668993fe742411052cf21fd` · CMD `pnpm uc001:nhp-bound:prove` **EXIT=0** · **17/17** · isolated 真 PG · receipt `receipts/2026-10-06-nhp-001-bound-01-blind-to-case-prove.md` · post-prove dual PASS mw-e2e-ha `b060e4e` / `b060e4e35cfbde00715ff3d8be29ff1d657c9b67` + mw-rag-route `5adb14f` / `5adb14f68f43108c09ef277db03c674e9b93bfa3`（alone≠dual）· nail tip = 本 commit（branch `line/ab-nail` → `feat/mysql-schema-skeleton`；禁 force push）。
+- Product mouth pre-existing（interview-id key · advisory lock · `alreadyBegun` · `ON CONFLICT DO NOTHING`）; this knife = BOUND prove wiring · 无双扣.
+- **CITE_EXIT**: **0** preferred at nail SHA（`eval-harness-matrix-cite:prove` · cite 绿 ≠ covered flip）.
+- **Honesty**: UC-E2E-001 BOUND stays **blind/`case-only`** wording · coveredCount=**8** · **EXIT0≠covered** · SCOPE UC-001 BOUND only · Ban wash Y（NHP-001-NEG-01）/ UC-017 / FUNNEL · Ban touching 018 / 052 / 025 / 004 / 011.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · canHonestlyFlip=false. Do not write covered.
+- Sibling sections stay as written（incl. Line Y NHP-001-NEG-01 · Line Z · Line AA · Line AC · Line V/W/X）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
