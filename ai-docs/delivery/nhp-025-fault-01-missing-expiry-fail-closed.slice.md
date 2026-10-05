@@ -1,10 +1,10 @@
 # Slice — **NHP-025-FAULT-01 · UC-025 FAULT missing-expiry fail-closed**（Line AA · docs REQUEST · **`draft:awaiting_pre_exec_dual`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（docs REQUEST only · row stays gap）
+**Status**: **`authorized:coding_prove`**（PRE dual BOTH PASS · coding+prove · Ban self-nail · row stays gap · coveredCount=8）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base**: `origin/feat/mysql-schema-skeleton` · `f43bea12fc7f2e28e7bb0052b6a80811eac47e91`
-**Authority**: meetwise — L0 docs only · Ban coding · Ban prove · Ban wash B'' NEG · Ban wash W BOUND · Ban Meridian · Ban secrets · Ban force-push · Ban invent covered
+**Authority**: meetwise — coding+prove AUTHORIZED · Ban wash B'' NEG · Ban wash W BOUND · Ban Meridian · Ban secrets · Ban force-push · Ban invent covered · Ban self-nail · Ban claiming covered
 
 ## One-line
 
@@ -28,4 +28,12 @@ Ban coding · Ban prove · Ban B'' NEG wash · Ban W BOUND wash · Ban edit NEG/
 
 Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503.
 
-*Slice · NHP-025-FAULT-01 · awaiting_pre_exec_dual · gap · STOP*
+## Coding pins（Line AA · 授权后）
+
+- **C-1**: **supersede**（写 harness；NULL 仍 ≠ `stale_quiz`；行为改为 `missing_quiz_expiry` fail-closed）
+- **NaN**: **fail-closed**（fold · 同码）
+- **HTTP/error**: **409** · `missing_quiz_expiry`
+- **Evidence**: **in-process**（≠ isolated PG/HTTP · ≠ covered）
+- PRE: mw-e2e-ha `fbd47ac` + mw-rag-route `9862601` · REQUEST `448a33e`
+
+*Slice · NHP-025-FAULT-01 · authorized coding+prove · gap · coveredCount=8 · Ban self-nail · STOP*
