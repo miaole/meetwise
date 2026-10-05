@@ -36,6 +36,7 @@ Architecture ADR-0001 / ADR-0003 / ADR-0007 already point at Postgres + checkpoi
 ## Non-claims
 
 - Not HA · not suite green · not releaseEvidence · not Redis wake cutover authorized or rejected · provisional LISTEN/NOTIFY preference is not a user hard pin · not deleting historical MySQL/Qdrant artifacts · not abandoning RLS · not inventing false prior ADR acceptance.
+- Banner clarify (GAP-E2E-ISO-BANNER-PG-RETAINED align · 2026-10-03 · docs only): isolated e2e shell banners in `scripts/run-e2e-isolated.mjs` (e.g. `E2E isolated PostgreSQL: …` @L2068 · R5-MARKED-RED @L1694-1697) are **test infrastructure narration**, not stack truth: **isolated test PG ≠ product stack change ≠ cutover evidence** — they neither contradict nor evidence this ADR's Postgres / `PostgresSaver` / pgvector retention. Stale banner wording (`sole stack = MySQL+Qdrant+Redis`, @L1696) is a known named gap (`gap-bug-backlog.md` GAP-E2E-ISO-BANNER-PG-RETAINED) and must not be cited as stack truth; SOLE_STACK code-path alignment is a separate package.
 
 ---
 
