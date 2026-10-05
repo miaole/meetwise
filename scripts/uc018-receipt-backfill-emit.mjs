@@ -14,7 +14,7 @@
  * New receipts are HMAC-SHA256 over canonical JSON claims and log bytes.
  * Key is process env MEETWISE_UC018_BACKFILL_HMAC_KEY only. Missing key exits 8.
  */
-import { spawnSync, execSync } from 'node:child_process';
+import { spawnSync, spawn, execSync } from 'node:child_process';
 import {
   mkdirSync, writeFileSync, readFileSync, existsSync, rmSync, appendFileSync,
 } from 'node:fs';
@@ -30,6 +30,11 @@ import {
   capacityRepresentativeFact,
   STACK_KEYS,
   unobservedFact,
+  TRACKED_IMAGES,
+  parseIsolatedPgBannerContainer,
+  parseContainerInspectOutput,
+  LIVE_CONTAINER_INSPECT_SOURCE,
+  ISOLATED_PG_TRACKED_IMAGE,
 } from './lib/uc018-receipt-backfill-facts.mjs';
 
 function arg(name, def = null) {
@@ -98,7 +103,7 @@ function emptySourcedStack() {
 
 function buildReceiptBody({
   installExit, proveExit, logBody, nodeV, pnpmV, priorImageDigests,
-  digestMode = 'reemit', priorCapturedAt = null,
+  digestMode = 'reemit', priorCapturedAt = null, liveCaptures = [],
 }) {
   // Always write/overwrite log when logBody provided; reemit keeps existing bytes
   if (logBody != null) {
@@ -117,7 +122,7 @@ function buildReceiptBody({
     logRel,
     mode: digestMode,
     priorCapturedAt,
-    liveCapturedAt: digestMode === 'live' ? ranAt : null,
+    liveCaptures,
   });
   const targetEnvFact = parseTargetEnvFromLog(logText, { logRel });
   const capFact = capacityRepresentativeFact();
@@ -360,6 +365,143 @@ function collectImageDigestsRaw(cwd) {
   return digests;
 }
 
+// ---------- C-IMAGE-DIGEST fix: LIVE per-run image digest capture ----------
+//
+// The run container is `docker run --rm` (run-e2e-isolated.mjs) and is removed in
+// its finally (and in this emitter's own finally below): after the prove child
+// exits, `docker inspect <container>` cannot succeed. The capture therefore MUST
+// happen inside the run window: the prove child is spawned as a STREAMING pipe
+// (not the buffered spawnSync sh()), each output line is observed as it arrives,
+// and when the unique run banner ("E2E isolated PostgreSQL: meetwise-e2e-<pid>-<ts>
+// on 127.0.0.1:<port>") is seen, that EXACT banner-parsed container is inspected
+// immediately — while the container is still alive. Ban: impersonating a live
+// observation from host tag inspects, from post-exit inspect failures, or from
+// name-prefix polling that could hit a concurrent run's container.
+
+/** Stream a prove child line-by-line; onLine observes each line as it arrives. */
+function runProveStreaming(cmdLine, { cwd, env, onLine }) {
+  return new Promise((resolvePromise) => {
+    const child = spawn('bash', ['-lc', cmdLine], { cwd, env });
+    let out = '';
+    let err = '';
+    let outLineBuf = '';
+    let errLineBuf = '';
+    let settled = false;
+    const emitLines = (chunk, bufKey) => {
+      let buf = bufKey === 'out' ? outLineBuf : errLineBuf;
+      buf += chunk;
+      let nl;
+      while ((nl = buf.indexOf('\n')) !== -1) {
+        const line = buf.slice(0, nl);
+        buf = buf.slice(nl + 1);
+        if (onLine) {
+          try { onLine(line); } catch { /* observer must never break the prove run */ }
+        }
+      }
+      if (bufKey === 'out') outLineBuf = buf; else errLineBuf = buf;
+    };
+    child.stdout.setEncoding('utf8');
+    child.stderr.setEncoding('utf8');
+    child.stdout.on('data', (chunk) => {
+      out += chunk;
+      emitLines(chunk, 'out');
+    });
+    child.stderr.on('data', (chunk) => {
+      err += chunk;
+      emitLines(chunk, 'err');
+    });
+    const finish = (code, extraErr = '') => {
+      if (settled) return;
+      settled = true;
+      // flush a trailing line without newline (banner could arrive un-terminated)
+      for (const tail of [outLineBuf, errLineBuf]) {
+        if (tail !== '' && onLine) {
+          try { onLine(tail); } catch { /* ignore observer errors */ }
+        }
+      }
+      resolvePromise({
+        status: code,
+        stdout: out,
+        stderr: extraErr ? err + extraErr : err,
+      });
+    };
+    child.on('error', (e) => finish(1, `\n[emitter] spawn error: ${e && e.message}\n`));
+    child.on('close', (code) => finish(code));
+  });
+}
+
+const liveCaptureAttempts = []; // every attempt (ok or failed) — attempts-ledger honesty
+const seenBannerContainers = new Set();
+
+/** docker inspect the banner-parsed run container NOW — inside the run window. */
+function inspectRunContainerLive(containerName, bannerLine) {
+  const capturedAt = new Date().toISOString(); // real in-window inspect moment
+  const fmt = '{{.Id}}|{{.Image}}|{{.Config.Image}}|{{.State.Running}}';
+  const r = sh(
+    `docker inspect --format ${JSON.stringify(fmt)} ${JSON.stringify(containerName)}`,
+  );
+  const parsed = parseContainerInspectOutput(r.stdout || '');
+  if (r.status !== 0 || !parsed.ok) {
+    return {
+      ok: false,
+      source: LIVE_CONTAINER_INSPECT_SOURCE,
+      containerName,
+      image: ISOLATED_PG_TRACKED_IMAGE, // banner-identified service; image ref unconfirmed
+      attributionNote: 'attributed via E2E isolated PostgreSQL banner; image ref unconfirmed (inspect failed)',
+      reason: r.status !== 0 ? 'docker-inspect-failed' : parsed.reason,
+      detail: ((r.stderr || '') + ' ' + (parsed.detail || '')).trim().slice(0, 240),
+      bannerLine: String(bannerLine).slice(0, 240),
+      capturedAt,
+    };
+  }
+  if (!TRACKED_IMAGES.includes(parsed.configImage)) {
+    return {
+      ok: false,
+      source: LIVE_CONTAINER_INSPECT_SOURCE,
+      containerName,
+      image: ISOLATED_PG_TRACKED_IMAGE,
+      observedConfigImage: parsed.configImage,
+      observedImageDigest: parsed.imageDigest,
+      reason: 'untracked-config-image',
+      bannerLine: String(bannerLine).slice(0, 240),
+      capturedAt,
+    };
+  }
+  return {
+    ok: true,
+    source: LIVE_CONTAINER_INSPECT_SOURCE,
+    containerName,
+    image: parsed.configImage,
+    imageDigest: parsed.imageDigest,
+    containerId: parsed.containerId,
+    configImage: parsed.configImage,
+    running: true,
+    bannerLine: String(bannerLine).slice(0, 240),
+    capturedAt,
+  };
+}
+
+/** Observe one prove-output line; on the run banner, inspect that exact container in-window. */
+function observeProveLineForLiveDigest(line) {
+  const parsed = parseIsolatedPgBannerContainer(line);
+  if (!parsed) return;
+  if (seenBannerContainers.has(parsed.containerName)) return;
+  seenBannerContainers.add(parsed.containerName);
+  if (!parsed.trusted) {
+    liveCaptureAttempts.push({
+      ok: false,
+      source: LIVE_CONTAINER_INSPECT_SOURCE,
+      containerName: parsed.containerName,
+      image: ISOLATED_PG_TRACKED_IMAGE,
+      reason: parsed.reason,
+      bannerLine: String(line).slice(0, 240),
+      capturedAt: new Date().toISOString(),
+    });
+    return;
+  }
+  liveCaptureAttempts.push(inspectRunContainerLive(parsed.containerName, line));
+}
+
 try {
   const wtDirty = porcelain(wtPath);
   if (wtDirty.length) {
@@ -383,16 +525,21 @@ try {
         logBody: installLog,
         nodeV, pnpmV, priorImageDigests: imageDigestsPre,
         digestMode: 'live',
+        liveCaptures: [], // no prove ran → no run window → no live capture possible
       });
-      finalizeReceipt(receipt, { phase: 'install-fail' });
+      finalizeReceipt(receipt, { phase: 'install-fail', liveCaptures: [] });
     } else {
-      const prove = sh(`pnpm ${cmd}`, {
+      // Streaming prove run: banner lines are observed DURING the run window so the
+      // run container can be docker-inspected while it is still alive (C-IMAGE-DIGEST).
+      const prove = await runProveStreaming(`pnpm ${cmd}`, {
         cwd: wtPath,
         env: childEnv({ CI: process.env.CI || '1' }),
+        onLine: observeProveLineForLiveDigest,
       });
       const proveLog =
         installLog +
         `\n=== pnpm ${cmd} EXIT=${prove.status} ===\n${prove.stdout || ''}\n${prove.stderr || ''}\n`;
+      // Host tag inspects stay as honest non-live fallback values only.
       const imageDigestsRaw = { ...imageDigestsPre, ...collectImageDigestsRaw(wtPath) };
       const receipt = buildReceiptBody({
         installExit: 0,
@@ -400,8 +547,9 @@ try {
         logBody: proveLog,
         nodeV, pnpmV, priorImageDigests: imageDigestsRaw,
         digestMode: 'live',
+        liveCaptures: liveCaptureAttempts,
       });
-      finalizeReceipt(receipt, { phase: 'prove' });
+      finalizeReceipt(receipt, { phase: 'prove', liveCaptures: liveCaptureAttempts });
     }
   }
 } finally {
