@@ -99,3 +99,96 @@ Row `UC-E2E-004` FAULT column stays gap. Case `NHP-004-FAULT-01` stays gap. Back
 3. 无 Blockers；附 C-1~C-6（alone ≠ dual 不代签 mw-e2e-ha、候选合裁、脱敏强制、prove 零改动优先、行冻结四前置、测试面收敛）；本 PASS 不授权 coding/prove，backlog `:355` stays OPEN，`mw-privacy-int` 单侧 PRE-EXEC PASS。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE DUAL REVIEW — GAP-PRINCIPAL-POOL-NO-ERROR-LISTENER · 产品修复刀复验 · mw-privacy-int
+
+**Status**: POST-PROVE dual（产品修复刀复验）· mw-privacy-int 独立签署（alone ≠ dual · 不代签 mw-e2e-ha）
+**被审 tip**: `1751122`（full `1751122ba7cd5ba78bf43309b47fd01c050ca36a` · branch `line/p-pool-error-listener` · 执行 worktree `/Users/miaole/Desktop/golucky/meetwise-line-p`）
+**授权链**: REQUEST docs `65d3a24` → pre-exec dual PASS（mw-privacy-int `83bb162` C-1~C-6 + mw-e2e-ha `9d97de2` C-1~C-8）→ fix `56fc1ea` → prove `1751122` → 本 POST-PROVE dual
+**审查 worktree**: `/Users/miaole/Desktop/golucky/meetwise-rv-pp-privacy-int` · branch `rv/pp-privacy-int`（git 写操作仅在此独立 worktree）
+**复现环境（本审自建）**: one-shot `pgvector/pgvector:pg16` @ `127.0.0.1:55391`（用后即毁）· pnpm frozen-lockfile · `DATABASE_URL` 注入本审新造凭据（`rvproof_secret_2026`）作负样本 · 复现后容器与临时脚本全部清除
+
+## §A 包完整性（`git diff 65d3a24 1751122` 全清单核证）
+
+恰 4 文件、零多触：
+
+| 文件 | 变化 | 归属 commit |
+|---|---|---|
+| `packages/db/src/principal.ts` | M +86/−1 | `56fc1ea` |
+| `packages/db/test/pool-error-listener.proof.ts` | A +135 | `56fc1ea` |
+| `apps/api/test/uc-e2e-004-career-path-fault.proof.ts` | M +20/−3 | `1751122` |
+| `ai-docs/delivery/receipts/2026-10-05-gap-principal-pool-error-listener-fix-prove.md` | A +147 | `1751122` |
+
+- `apps/worker/src/cloud-smoke-runner.ts` **零 diff**（本侧 C-2 / e2e-ha C-2 Ban 触碰项核销；唯一旁路站点 `:47` 自带 `on('error')` 原样）。
+- SSOT / backlog 零 diff；其他 outbound 主链零 diff。
+- `principal.ts` 恰 3 hunks：`PoolOverrides` 接口 + `createPool()` 工厂体内；`asPrincipal` 族 / `rebindDatabaseLogin` / `resolveSsl` / 查询路径零触碰（FT-1 未触发）。
+- 全仓 `new Pool(` 构造点 grep 恒为 2（`principal.ts:909` 工厂 + 未触碰的 `cloud-smoke-runner.ts:47` 旁路）——工厂外零新增池构造。
+
+## §B 机制断言独立复核（对照锁定源码 pg@8.22.0 / pg-pool@3.14.0 逐行）
+
+| 实现方声称 | 独立核验 | 结果 |
+|---|---|---|
+| pg-pool@3.14.0 `_acquireClient` checkout 时 `client.removeListener('error', idleListener)` | `pg-pool/index.js` `_acquireClient` 内该行实证 | 属实 |
+| pg@8.22.0 `_handleErrorEvent`（:412-419）对 checked-out client 先 `_errorAllQueries(err)` 后 `this.emit('error', err)` | `pg/lib/client.js` 逐行实证 | 属实 |
+| pg-pool 全库 pool 级 error 发射仅 1 处（`makeIdleListener` idle 重发） | grep 实证仅 `pool.emit('error', err, client)`，且重发**同一 error 对象** | 属实 |
+
+## §C 域核心四审（隐私/授权根）
+
+**C-I 零吞错（FT-2）**：`observePoolError` 纯只读（Map 计数 + 单行 JSON 日志）——不重连、不重建池、不重试、不设降级标志、不调 `pool.end`；全文件零 `uncaughtException`/`unhandledRejection` 注册（grep 实证，仅注释提及）。pg 在 `_handleErrorEvent` 中先 `_errorAllQueries(err)`（请求路径 reject → 统一 500 `internal_error`）**后** emit('error')——per-client 监听挂在 emit 侧，语义上不可能改写 reject 路径；db proof `POOL-ERROR-ACTIVE-QUERY-STILL-REJECTS` PASS（本审独立复现）。**错误处理语义零改变。**
+
+**C-II 脱敏（C-3）**：日志恰 5 键 `{event,purpose,count,error_name,error_message}`（`POOL-ERROR-LOG-FIVE-KEYS-ONLY` 独立复现 PASS）；`purpose` 白名单正则 `^[a-z0-9_-]{1,64}$`，非法标签在触碰任何连接配置前 fail-closed（`database_pool_purpose_invalid`，复现 PASS）；负样本断言用**环境真实 DATABASE_URL 密码子串**（≥4 字符过滤）+ `postgresql://` 全串子串双查——本审以新造密码独立复跑 `POOL-ERROR-LOG-NO-SECRETS` PASS，**负样本真实有效非摆设**；无 SQL 文本、无 principal/租户维度（计数 Map 仅 purpose 键，`POOL-ERROR-COUNTER-DIMENSION-ISOLATED` PASS）。pg 侧错误文本（如 `Connection terminated unexpectedly`）按 C-3 明示可记。
+
+**C-III 授权根零弱化（FT-3）**：diff 逐行核——`Pool` 构造参数块（connectionString/ssl/max/statement_timeout/connectionTimeoutMillis/idleTimeoutMillis）全部为上下文行零改动；`purpose` 字段从未传入 Pool 构造器（grep 实证仅作 observer 标签）；GUC `app.principal_user` / `SET LOCAL ROLE` / `privacy_worker_executor` 登录隔离 / RLS 零触碰。**附证**：本审复现首次误将 `DATABASE_URL` 与 `PGPASSWORD` 同设，被预存 fail-closed 守卫 `database_url_conflicts_with_pg_components` 当场拒绝——配置面 fail-closed 纪律在位。
+
+**C-IV 计数去重**：WeakSet 按 error **对象身份**去重。idle 断连：client 观测先记（WeakSet.add + count++）→ pool 侧 `makeIdleListener` 重发同一对象 → 早退；checked-out 断连：仅 client 观测（idleListener 已被移除）→ 每起断连恰 1 记录。db proof 2 起注入断连 counter=**2**（本审独立复现 `counter=pool-error-proof:2 default:0`）。残留说明：非 Error 实例发射绕过 WeakSet（按次计数），pg 当前在这些路径恒发 Error 实例，可接受（§G P-3）。
+
+## §D prove 复核
+
+- **演进披露核实（receipt §1 账目 #1-#2）**：本审以**独立负对照**（仅池级监听 + checked-out 断连注入）复现 v1 不足——崩溃帧与 receipt 逐字同形：`Emitted 'error' event on Client instance at Client._handleErrorEvent (pg/lib/client.js:417:10)`，`PROCESS_SURVIVED_V1` 未到达（进程死于 uncaughtException）。**池级监听确不覆盖 C'' FI-1 崩溃路径；v2 的 `pool.on('connect')` per-client 观测是必要修复延伸，非 scope creep。**
+- **attempts 台账**：4 条全在（CONTROL:0 / FI-2:0 / **FI-1:0** / FI-3:1 UNREACHABLE），`one_shot=true retry_to_green=false`；v1→v2 演进如实入账（各自一次性运行，非 retry-to-green）。
+- **FI-1 前后对照**（receipt §4）：`transport_closed`+崩溃 → 500 `internal_error`+`still_running`；F2 rows=0 / GET 404 / F3 净变 0 / graph_run_rows=0 全保持，无回归。
+- **`FI1-CHILD-SURVIVES` 为加严增量**：由 `Promise.race([api.done, sleep(5000)])` 实测推导（零假设），计入 exit 合取 `f1 && f2a && f2b && f3 && noFake && childSurvives`——观察项升断言行，加严不减；既有断言语义零改动（F1 等强三要素原文通过）。符合本侧 C-4 与 e2e-ha C-5 双授权。
+- **全量 EXIT=1 与 FI-3 一致性**：UNREACHABLE 锚点本树逐字核证——`apps/api/src/modules/interview/interview.service.ts:768` `generateCareerPath(principal: string, id: string) {`（同步 derive）与 `:783` `deriveCareerPath(overall, weaknesses)`，与 GAP 行引用一致；EXIT=1 诚实保留，未记 flake、未翻任何 SSOT 行。
+- **evidence 字段** `pool_error_log_seen` / `pool_error_log_line` 为非断言通道（不影响 EXIT），承载的日志行本身已脱敏（5 键）。
+
+## §E 条件裁决（本侧 pre-exec C-1~C-6 逐条）
+
+| 条件 | 裁决 | 依据 |
+|---|---|---|
+| C-1 alone ≠ dual | **PASS（已闭合）** | pre-exec dual 由 `83bb162`（本侧）+ `9d97de2`（mw-e2e-ha）构成，双签在树可证；本段为 POST-PROVE 独立签署，不代签、不改写 peer 结论 |
+| C-2 候选合裁=B 且 C 零实现 | **PASS** | 落地 = B（池级 + per-client 观测，同 `observePoolError`）；候选 C（重建/降级联动）零实现（全 diff 无 rebuild/retry/degrade/pool.end）；计数维度仅 purpose，Ban 维度（principal/租户/连接串/SQL 形态）零出现 |
+| C-3 脱敏强制 | **PASS** | §C-II：恰 5 键、正则白名单 fail-closed、真实负样本独立复现、pg 错误文本按明示可记 |
+| C-4 prove 零改动优先 + CHILD-SURVIVES 升级 + attempt 1→0 + 全量如实 | **PASS** | 既有断言零改动即过（实测 500 `internal_error`）；CHILD-SURVIVES 为双授权最小增量（实测推导、加严）；attempt 级 FI-1 **1→0**；全量 EXIT=1 如实保留 FI-3 gap |
+| C-5 行冻结（四前置未满足前不翻行） | **PASS（冻结保持）** | 四前置 = fix ✓ + prove 复跑 ✓ + post-prove dual（本段）✓ + **协调方 nail 授权 ✗（未发生）**→ backlog `:355` stays OPEN；`UC-E2E-004` FAULT / `NHP-004-FAULT-01` / A3 stays gap；C-PERF-TEARDOWN 未触碰；SSOT 零 diff |
+| C-6 测试面仅 db/test | **PASS（附 C-4 让位说明）** | fix 随附测试恰为 `packages/db/test/pool-error-listener.proof.ts`，四断言轴（进程不崩/错误被观测/池后续可用/请求路径语义不变）全数在位；prove 文件 +20/−3 非借道改测试面，系 C-4 预留的 CHILD-SURVIVES 工具层最小增量（双审裁、REQUEST 范围内明示、receipt §3 披露、零既有断言语义改动） |
+
+**FT-1~FT-7 全量未触发。**
+
+## §E2 演进裁决（主动披露的实现演进 v1→v2）
+
+**接受（ACCEPTED）**。依据：
+1. **必要性**（运行时 + 源码双证，§B/§D）：池级监听对 checked-out client 的 emit 无监听可依，本审负对照复现同形崩溃帧；v2 per-client 观测为修复 FI-1 的必要条件。
+2. **在授权面内**：仍在 `createPool()` 一处、零调用点改动、全仓池构造点恒为 2；`pool.on('connect')` 每 client 恰触发一次，零监听累积。
+3. **诚实**：receipt §1 账目 #1（v1 崩溃）与 §6 条件 3 披露在案；v1/v2 各自一次性运行，非 retry-to-green。
+4. **零新增授权风险**：observer 保持只读；WeakSet 去重保 1 断连=1 记录；日志/计数面与 B 候选原契约一致。
+
+## §F Blockers
+
+无（none）。
+
+## §G Conditions（本 PASS 附带 · 非阻断）
+
+- **P-1 purpose 布线**：现有调用点未传 `purpose`（记 `'default'`）——观测标签运维布线为后续项；Ban 叙述为 principal/租户标注，Ban 以「已有分维度观测」升格任何行。
+- **P-2 行冻结延续**：backlog `:355` 翻行须协调方 nail 授权（四前置之四）；本 PASS 不翻任何行、不关 A3、不置 covered、不碰 UC-018/052/025。
+- **P-3 非 Error 发射**：非 Error 实例路径绕过 WeakSet 去重（按次计数）。pg 当前恒发 Error 实例；若 pg 升级改变该行为须复评。非阻断。
+- **P-4 error_message 边界**：pg 错误文本可含网络层 endpoint（host:port），按 C-3「pg 侧错误文本可记」放行；凭据/连接串仍 Ban（负样本断言常驻）。
+
+## 三行中文摘要
+
+1. 包完整性实证：65d3a24→1751122 恰 4 文件（principal.ts 工厂内 + db proof 新测试 + prove 增量 + receipt），cloud-smoke-runner/SSOT/其他主链零 diff；pg@8.22.0 `_handleErrorEvent` 先 `_errorAllQueries` 后 emit、pg-pool `_acquireClient` checkout 移除 idleListener、pool.emit('error') 全库仅 makeIdleListener 重发同对象——机制声称逐条对锁定源码核证属实。
+2. 域核心四审全过：observer 纯只读零吞错（请求路径仍 reject→500，无全局兜底、候选 C 零实现）；日志恰 5 键 + purpose 正则白名单 + 真实密码负样本（本审以新造凭据独立复现 EXIT=0 12/12 PASS、counter=2:2 去重、维度隔离）；授权根零弱化（Pool 参数全为上下文行、purpose 不入构造器、GUC/角色/RLS 零触碰，预存 fail-closed 守卫在位）；per-client 演进经独立负对照证实为必要（v1 同形崩溃帧复现）且在授权面内。
+3. C-1~C-6 逐条 PASS（C-6 附 C-4 让位说明）；attempts=4 全台账、FI-1 attempt 1→0、`FI1-CHILD-SURVIVES` 加严增量（实测推导计入 exit 合取）、全量 EXIT=1 诚实保留 FI-3 gap（interview.service.ts:768/:783 锚点本树核证）；无 Blockers，行冻结保持——backlog :355 翻行待协调方 nail 授权，本 POST-PROVE dual PASS。
+
+Verdict: PASS
