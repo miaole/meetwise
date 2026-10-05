@@ -7,7 +7,7 @@
 **PRE dual**: **BOTH PASS** · mw-e2e-ha @ `96a5ee2c40e2b0333bc28c1dcfd342477d20bd96` + mw-model-op @ `7b068de`（full `7b068de…` on branch tip ancestry）  
 **CODE_SHA / Prove code**: **`160c30cac7a0a05106120949f337847b782647b7`**（`scripts/with-docker-session.sh`）
 **Prove-runtime HEAD（pre-rebase · machine receipt `gitHead`）**: `d1ddb7ce362fd1c629582ebd8ed0fd23cea77b95` · script blob identical `0130fb466e57ff6e5e0d31a10a24d4b6ccfd42c3` · rebase onto tip `cffaf8e` rewritten publish SHA only（Ban force-push · content-preserving）  
-**PROVE_TIP**: `208e2c42340e4d403d53d9179d77e0ba30f8e6cf`  
+**PROVE_TIP** (receipts tip): `5481d4ddcb8d119678ec4f70e1b626f8f7b27f1b` · cite `git rev-parse HEAD` on `line/ac-g7-env-gap-fix` after receipts commit  
 **PROVE_EXIT**: **1 / 1 / 1**（honest · Key-blocked · **≠** Line U env-gap class）  
 **Receipts**: `ai-docs/delivery/receipts/g7-env-gap-honest-fix/`  
 **Worktree**: `/workspace/meetwise-lineAC-code` · branch `line/ac-g7-env-gap-fix`  
