@@ -35,3 +35,44 @@ Row `UC-E2E-011` stays **partial** · ADV stays **gap/case-only** · Ban covered
 ---
 
 *Stub · awaiting expert pre-exec dual · STOP*
+
+---
+
+# PRE-EXEC dual · NHP-011-ADV-01 · mw-e2e-ha（docs gate only · Ban coding · Ban prove · Ban 洗 404→ADV · alone ≠ dual）
+
+**Reviewer**: `mw-e2e-ha`（独立审查 · 非实现方 · Ban self-approve · 不代签 `mw-model-op`）
+**Review date**: 2026-10-05
+**被审 tip**: `bb9af74`（`bb9af74b8398a2a8e4bba15f34699775529295c6` · docs-only 4 md）
+**Parent cited**: `6a79946`
+**Peer alone PASS（不代签）**: origin 上 `587b9e0` mw-model-op pre-exec PASS 存在；本文件仍 alone≠dual 半签。
+**本审未跑**: 零 `uc011:adv:prove` · 零 live · 零 `.env*`。
+
+## 检查表
+
+1. **证据链**：矩阵 ADV gap/case-only · NHP「产品口缺失=仍 gap 执行面」· H4 refund-callback **404** · scenarios 错签/重放合同 — 与 harness 一致。
+2. **一刀一 ADV**：仅 A1 错签 + A2 重放；观察=拒+无双退。
+3. **口仍 404 → EXIT1**：Ban 洗 H4/H5/404 成 ADV 真证据；Ban 互借关 `GAP-UC011-REFUND-CALLBACK`。
+4. **EXIT0 ≠ covered** · ADV stays gap/case-only · coveredCount=8 · Ban invent covered。
+5. **Pins 原值**全保持。Dual PASS ≠ coding ≠ prove ≠ nail。
+
+## Blockers
+
+无。
+
+## Conditions
+
+- **C-1**：alone ≠ dual；不代签 peer（含已落的 model-op PASS）。
+- **C-2**：pins 冻结；ADV stays gap/case-only 直至 post-prove dual + 协调方 nail。
+- **C-3**：本 PASS ≠ coding ≠ prove ≠ nail；证明/写码须双签齐 + 协调方授权。
+- **C-4**：口 404 → EXIT1 诚实；Ban 洗 404；Ban 互借关产品口缺口。
+- **C-5**：EXIT0 ≠ covered ≠ ADV auto-partial；coveredCount=8。
+- **C-6**：范围锁 A1+A2 only；Ban UC-018/052/025/004；Ban live/SSOT/HA/假绿/retry-to-green/self-nail。
+- **C-7（软）**：scenarios 路径缩写与 E3 行号可在后续 docs 微调，不阻断。
+
+## 中文三行摘要
+
+1. tip `bb9af74` docs-only；ADV case-only→真证据合同清楚；H4 404 前提如实。
+2. 口缺则 EXIT1；Ban 洗 covered；EXIT0≠covered · coveredCount=8。
+3. Blockers 无。本 PASS = docs 半签；alone≠dual；≠ coding ≠ nail ≠ HA。
+
+Verdict: PASS
