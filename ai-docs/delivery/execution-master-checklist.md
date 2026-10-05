@@ -705,3 +705,14 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
 - Nail tip = 本 commit（branch `line/p-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered except the coordinator-authorized backlog `:355` flip stated above.
+
+### Line Q C-IMAGE-DIGEST LIVE 采集修复刀 NAIL（2026-10-05 SSOT nail · `post_prove_dual_pass` · fresh EXIT=0 58/58 · backlog :34 保持 OPEN · 修复已落登记）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line Q live capture fix products only. Implementer does not self-approve. **零翻转**：backlog `:34` `C-IMAGE-DIGEST` 保持 **OPEN**（e2e-ha 条件：下一次真实 emit 全链路落得 `live-container-inspect` + `containerId` + `capturedAt` 三要素才算实证闭合，判定权在协调方）；仅追加「修复已落」登记。coveredCount=**8** unchanged.
+- REQUEST `fa55a28` / `fa55a282e18e0ded1a61588ffae13ac4ee63f5cc`（docs-only · origin）。Pre-exec dual PASS: mw-e2e-ha `8c7ff01` + mw-rag-route `f187c6b`（docs gate only · origin 已有 cherry-pick 镜像）。
+- fix `8b07308`（emitter 流式管道窗口内按 banner 解析的精确容器名即刻 `docker inspect` + `isLiveImageDigestEntry` 收紧门（仅认 `live-container-inspect && liveObservation===true && containerId` 非空）+ 4 组 fail-closed FX 断言；恰 3 文件 +544/−22；nail 分支 cherry-pick `f856902`）· fresh prove EXIT=0（58 PASS / 0 FAIL，58/58）。
+- Post-prove dual PASS: mw-e2e-ha `5688870`（nail cherry-pick `8c8351b`）+ mw-rag-route `e53269e`（nail cherry-pick `1abfe55`）——双 fresh 验证、C-1~C-4 条件全 PASS、非运行态/伪造/串名全 fail-closed 复现。
+- Residuals（诚实保留）: C-IMAGE-DIGEST 保持 **OPEN** 至真实 emit 全链路实证（残余=首次新跑自然产生的三要素证据）；C-PERF-TEARDOWN 不互借（stays OPEN）；UC-018/§1.1 stays partial · covered 不动。
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · canHonestlyFlip=false. Do not write covered.
+- Nail tip = 本 commit（branch `line/q-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
