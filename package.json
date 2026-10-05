@@ -155,6 +155,7 @@
     "uc025:stale-quiz-expiry:prove:raw": "pnpm -C apps/api prove:uc025-stale-quiz-expiry",
     "uc025:nhp-neg:prove": "node apps/api/test/uc-e2e-025-nhp-neg.proof.mjs",
     "uc025:nhp-bound:prove": "pnpm -C apps/api prove:uc025-nhp-bound",
+    "uc025:nhp-fault:prove": "pnpm -C apps/api prove:uc025-nhp-fault",
     "uc004:career-path:prove": "node scripts/run-e2e-isolated.mjs uc004:career-path:prove:raw",
     "uc004:career-path:prove:raw": "pnpm -C apps/api prove:uc004-career-path",
     "uc004:career-path-fault:prove": "node scripts/run-e2e-isolated.mjs uc004:career-path-fault:prove:raw",
