@@ -4,11 +4,11 @@
 **Knife**: Line AB · `harness/nhp-001-bound-01-blind-to-case.md` · slice `nhp-001-bound-01-blind-to-case.slice.md` · gap `GAP-UC001-BOUND-01` · case `NHP-001-BOUND-01` · row `UC-E2E-001`（BOUND 列）
 **授权链**: REQUEST `c6dd1a67fc6b6ef4c2dfad0f9a5beff9791d657b` → PRE-EXEC dual BOTH PASS：**mw-e2e-ha `d448da9d0426c30b8ebf8570ecf3d1b7b996bcc9`** + **mw-rag-route `64252bec74a5cde9aed077869aa86dfcf5d40586`** → 协调方 meetwise 授权 coding+prove（Line AB ONLY · UC-001 BOUND）
 **执行 worktree**: box `/workspace/meetwise-lineAB-code` · base `origin/feat/mysql-schema-skeleton`（REQUEST `c6dd1a67` + PRE dual 均为祖先）
-**Code commit = prove 执行 SHA**: **`284d8f3f434a17d923a4f9c922ced7b385dbdc10`**（porcelain 0 行 · 仅 untracked node_modules 软链）
-**Prove CMD**: `pnpm uc001:nhp-bound:prove`（root → `scripts/run-e2e-isolated.mjs uc001:nhp-bound:prove:raw` → `pnpm -C apps/api prove:uc001-nhp-bound` → `test/uc-e2e-001-nhp-bound.proof.ts`；容器 `meetwise-e2e-499486-1791218026296` @ `127.0.0.1:32811` · migrations applied=**136** · `ISOLATED_TARGET_ATTESTATION ok`）
+**Code commit = prove 执行 SHA**: **`6e96cf50a8be410a0d2154761afef88cd2368c7a`**（porcelain 0 行 · 仅 untracked node_modules 软链）
+**Prove CMD**: `pnpm uc001:nhp-bound:prove`（root → `scripts/run-e2e-isolated.mjs uc001:nhp-bound:prove:raw` → `pnpm -C apps/api prove:uc001-nhp-bound` → `test/uc-e2e-001-nhp-bound.proof.ts`；容器 `meetwise-e2e-503112-1791218074470` @ `127.0.0.1:32812` · migrations applied=**136** · `ISOLATED_TARGET_ATTESTATION ok`）
 **执行方式**: `sg docker -c "env -u MODEL_API_KEY -u MODEL_BASE_URL pnpm uc001:nhp-bound:prove"`（**显式剥离 MODEL_API_KEY/MODEL_BASE_URL**，prove 入口另行 fail-closed 断言 key 不存在）
-**实际 EXIT**: **shell EXIT=0** · `CMD=pnpm uc001:nhp-bound:prove EXIT=0` · `SUMMARY asserts=17 failed=0`（one-shot @ committed SHA · 2026-10-06 00:33:45 → 00:33:59 CST）
-**Machine receipt（.tmp，gitignored）**: `.tmp/isolated-proof-receipts/2026-10-05T16-33-59-142Z-499486-41f55f4b-167e-417d-a80d-9d944283ab0f.json`（target=`uc001:nhp-bound:prove:raw` · outcome=passed · exitCode=0 · releaseEvidence=false · sha256 `8863e944cd7571367a472be2b514ea8a4496a25c8c85dff5ebf093b8300fa0c5`）
+**实际 EXIT**: **shell EXIT=0** · `CMD=pnpm uc001:nhp-bound:prove EXIT=0` · `SUMMARY asserts=17 failed=0`（re-prove @ post-rebase CODE_SHA `6e96cf5` · 2026-10-06 00:34:33 → 00:34:47 CST；pre-rebase one-shot @`284d8f3` 亦 EXIT=0，rebase 后锚点行号随 AA land 位移已重证）
+**Machine receipt（.tmp，gitignored）**: `.tmp/isolated-proof-receipts/2026-10-05T16-34-47-558Z-503112-06dc5afd-60b8-4302-8472-3c2f0e98d9e9.json`（target=`uc001:nhp-bound:prove:raw` · outcome=passed · exitCode=0 · releaseEvidence=false · sha256 `b6fd8e36f5dd4cf1ab3e909c287c865f837f05f6850822d14533224b817d94ef`）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503（原值，零变动）
 
 > **EXIT0 = case 级证据（blind→case）≠ covered。** `UC-E2E-001` 矩阵 BOUND 读法不变（仍 blind/case-only，直到 post-prove dual + 协调方 nail）；本 receipt **不翻 SSOT**、不改矩阵/NHP 行/checklist；≠ UC-E2E-001 covered · ≠ `e2e:isolated` suite green · ≠ trio green · 快乐路径仍可 blind。**Ban wash** Line Y NEG / UC-017 orphan / FUNNEL / G-R4-5 / commerce 旁证成本收据——本 prove 独立成证。
@@ -20,14 +20,14 @@
 | # | 项 | 结果 | 说明 |
 |---|----|------|------|
 | 1 | 编码期 smoke（未提交工作树，同 CMD） | EXIT=1 一次（B2 文档自检过严）→ 收紧后 EXIT=0 | 如实披露；B2 仅禁可执行 import/call，允许 Ban-wash 文案提及 |
-| 2 | 编码期 smoke（收紧后，未提交） | EXIT=0（17/17） | 编码自检；之后提交 `284d8f3` |
-| 3 | **`pnpm uc001:nhp-bound:prove`（恰一次 · @`284d8f3`）** | **EXIT=0** | 全文 §Appendix A。无 retry、无断言放宽。 |
+| 2 | 编码期 smoke（收紧后，未提交） | EXIT=0（17/17） | 编码自检；之后提交 `6e96cf5`（rebase 后；re-prove @同内容） |
+| 3 | **`pnpm uc001:nhp-bound:prove`（@`6e96cf5` re-prove after rebase）** | **EXIT=0** | 全文 §Appendix A。无断言放宽；rebase 后重证一次。 |
 | 4 | `node scripts/e2e-static-guards.mjs` | EXIT=0 | runners=6 helpers=20 flags=9 aiPaths=6 |
-| 5 | `node scripts/eval-harness-matrix-cite.proof.mjs` @`284d8f3` | EXIT=0 | coveredCount 叙事未动 |
+| 5 | `node scripts/eval-harness-matrix-cite.proof.mjs` @`6e96cf5` | EXIT=0 | coveredCount 叙事未动 |
 | 6 | `node scripts/check-staged-secrets.mjs`（提交前） | passed | 零 `.env*` / 凭据 |
 | 7 | 容器清理 | 无残留 `meetwise-e2e-*` | runner 自删 |
 
-## 2. 触碰面（`git show --stat 284d8f3`，4 文件 · **零产品改动**）
+## 2. 触碰面（`git show --stat 6e96cf5`，4 文件 · **零产品改动**）
 
 | 文件 | 变更 |
 |------|------|
@@ -53,9 +53,9 @@
 | L0 | 入口 MODEL_API_KEY | absent | Ban live / Ban key |
 | L1 | `ai_model_invocation` / `ai_invocation_trace` | 0→0 | 零模型路径；重放不增生 |
 
-### 锚点（运行时解析 · @`284d8f3`）
+### 锚点（运行时解析 · @`6e96cf5`）
 
-- `apps/api/src/modules/interview/interview.service.ts`：begin `:192` · `pg_advisory_xact_lock('begin', id)` `:198` · alreadyBegun `:301` · `reserveEntitlement(..., id, ...)` `:309` · enqueue start `:317`
+- `apps/api/src/modules/interview/interview.service.ts`：begin `:192` · `pg_advisory_xact_lock('begin', id)` `:198` · alreadyBegun `:321` · `reserveEntitlement(..., id, ...)` `:329` · enqueue start `:337`
 - `apps/api/src/modules/interview/interview.controller.ts`：`@Post(':id/begin')` `:22` · `@HttpCode(202)` `:23`
 - `packages/db/src/commerce.ts`：`reserveEntitlement` `:36` · `ON CONFLICT (owner_user_id, idempotency_key) DO NOTHING` `:50` · duplicate `:20`
 
@@ -66,17 +66,17 @@
 - 本 prove 未触 NEG/ADV/FAULT；UC-003 i18n 未借刀；Ban 018/052/025/004/011；Ban FUNNEL / G-R4-5。
 - fixture = pgvector-legacy 隔离 PG（R5 marked-red 提示原样保留）· PG-retained · Not HA · releaseEvidence=false。
 
-## Appendix A — prove 全文（@`284d8f3`）
+## Appendix A — prove 全文（@`6e96cf5`）
 
 ```text
-HEAD=284d8f3f434a17d923a4f9c922ced7b385dbdc10 porcelain=0 start=2026-10-06 00:33:45 CST
-SHELL_EXIT=0 end=2026-10-06 00:33:59 CST
+CODE_SHA=6e96cf50a8be410a0d2154761afef88cd2368c7a porcelain=0 start=2026-10-06 00:34:33 CST
+SHELL_EXIT=0 end=2026-10-06 00:34:47 CST
 
 > meetwise@0.1.0 uc001:nhp-bound:prove /workspace/meetwise-lineAB-code
 > node scripts/run-e2e-isolated.mjs uc001:nhp-bound:prove:raw
 
 [R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy ... releaseEvidence=false · Not HA ...
-E2E isolated PostgreSQL: meetwise-e2e-499486-1791218026296 on 127.0.0.1:32811
+E2E isolated PostgreSQL: meetwise-e2e-503112-1791218074470 on 127.0.0.1:32812
 migrations: applied=136 skipped=0 ...
 
 > @meetwise/api@0.0.0 prove:uc001-nhp-bound ...
@@ -84,9 +84,9 @@ NHP-001-BOUND-01 UC-E2E-001 BOUND blind→case prove (B1 same-interview repeat b
 PASS  L0 Ban live: MODEL_API_KEY absent on entry (not loaded)
 ANCHOR interview.service.ts:begin=192
 ANCHOR interview.service.ts:pg_advisory_xact_lock(begin,id)=198
-ANCHOR interview.service.ts:alreadyBegun=301
-ANCHOR interview.service.ts:reserveEntitlement(interviewIdKey)=309
-ANCHOR interview.service.ts:enqueueInterviewJob(start)=317
+ANCHOR interview.service.ts:alreadyBegun=321
+ANCHOR interview.service.ts:reserveEntitlement(interviewIdKey)=329
+ANCHOR interview.service.ts:enqueueInterviewJob(start)=337
 ANCHOR interview.controller.ts:@Post(:id/begin)=22
 ANCHOR interview.controller.ts:@HttpCode(202)=23
 ANCHOR commerce.ts:reserveEntitlement=36
@@ -112,7 +112,7 @@ SUMMARY asserts=17 failed=0
 CASE  NHP-001-BOUND-01 B1(...) real HTTP+PG evidence = blind→case
 NOTE  EXIT0 ≠ covered · ≠ UC-E2E-001 covered · ≠ e2e:isolated suite green · ≠ trio green · coveredCount=8
 CMD=pnpm uc001:nhp-bound:prove EXIT=0
-LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-05T16-33-59-142Z-499486-41f55f4b-167e-417d-a80d-9d944283ab0f.json release_evidence=false
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-05T16-34-47-558Z-503112-06dc5afd-60b8-4302-8472-3c2f0e98d9e9.json release_evidence=false
 ```
 
-*Receipt · NHP-001-BOUND-01 · Line AB · prove EXIT=0 @284d8f3 · Ban self-nail · EXIT0 = case ≠ covered · coveredCount=8 · POST_DUAL_NEEDED e2e+rag · STOP*
+*Receipt · NHP-001-BOUND-01 · Line AB · prove EXIT=0 @6e96cf5 · Ban self-nail · EXIT0 = case ≠ covered · coveredCount=8 · POST_DUAL_NEEDED e2e+rag · STOP*
