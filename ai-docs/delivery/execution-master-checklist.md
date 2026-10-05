@@ -803,3 +803,16 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · canHonestlyFlip=false. Do not write covered / fixed / closed / root-caused.
 - Nail tip = 本 commit（branch `line/x-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written（incl. Line Y · Line W · Line S · Line T · Line U · A'' teed）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+
+### Line V NHP-011-ADV-01 / GAP-UC011-ADV-01 NAIL（2026-10-06 SSOT nail · `post_prove_dual_pass` · honesty of red · gaps stay OPEN）
+
+- [x] **`post_prove_dual_pass`** recorded for Line V NHP-011-ADV-01 products only（harness / slice / receipt）· **honesty of red**（PROVE **EXIT 1** 是预期诚实结果 · 非 ADV green）. Implementer does not self-approve beyond this authorized nail. **PASS ≠ covered ≠ HA**. Ban wash 404=pass · Ban invent covered · Ban HA/suite green · Ban coding product mouths · Ban Meridian · Ban secrets · Ban force-push. coveredCount=**8** unchanged.
+- REQUEST `bb9af74` / `bb9af74b8398a2a8e4bba15f34699775529295c6`. Pre-exec dual PASS: mw-model-op `587b9e0` / `587b9e03eeb37f643fd1e203d8befa41272d968f` + mw-e2e-ha `5716b47` / `5716b477f6589d36c2474ad52942a59d6e191f88`.
+- CODE `3d113c8` / `3d113c872455375d81d84de48b7d806eb42b2dd4`（zero product mouth）· prove tip `79825b2` / `79825b206d068aea0ef200ae8f5c4f92e85642d6` · `pnpm uc011:adv:prove` **EXIT 1** · 三口 404 · A1/A2 UNREACHABLE · receipt `receipts/2026-10-05-nhp-011-adv-01-real-evidence-prove.md`.
+- Post-prove dual PASS: mw-e2e-ha `ca5c7ea` / `ca5c7eaa895528c9853f151c4790dc9905c027d0` + mw-model-op `0421e5a` / `0421e5af984d33c95bed3c7467dbebba0692b2c8`（BOTH · alone≠dual）.
+- **CITE_EXIT**: **0**（`pnpm eval-harness-matrix-cite:prove` 静态引用核 · @ evidence tip `79825b2` EXIT 0 · @ parent `ca5c7ea` EXIT 0 · @ nail 内容 EXIT 0 · cite 只核 UC-E2E-011 stays **partial** · **不**要求 ADV green · cite 绿 ≠ prove 绿 · **PROVE_EXIT 仍 1** · Ban wash prove）.
+- [ ] **`GAP-UC011-ADV-01` stays OPEN** · [ ] **`GAP-UC011-REFUND-CALLBACK` stays OPEN** · product mouths = other knife · UC-E2E-011 stays **partial** · ADV stays **gap/case-only** · C-1 named codes deferred until mouths land · EXIT0≠covered.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · canHonestlyFlip=false. Do not write covered.
+- Nail tip = 本 commit（branch `lineV/nhp-011-adv-01-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written（incl. Line X GAP-PRIV-AUTHZ-PROVE-FLAKE ledger · Line W NHP-025-BOUND-01 · Line Y NHP-001-NEG-01 · Line S PERF · Line T FI-3 · Line U G7 · B'' NEG）. This note does not change any existing gap, partial, or OPEN row to CLOSED or covered.
