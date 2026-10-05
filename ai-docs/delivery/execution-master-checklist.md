@@ -673,3 +673,14 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
 - Nail tip = 本 commit（branch `line/k-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+### Line M C-IMAGE-DIGEST / C-PERF-TEARDOWN conditions registry NAIL（2026-10-03 SSOT nail · `post_prove_dual_pass` · 登记刀 · 两 CONDITION stays OPEN）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line M conditions registry alignment products only. Implementer does not self-approve. 登记≠修复≠关闭。零新 prove · 零产品改动。UC-E2E-018 §1.1 stays **partial** · `canHonestlyFlip=false` · Ban a covered flip · coveredCount=**8** unchanged.
+- REQUEST `fa3cc3b` / `fa3cc3b49c7926f7e9ce82e00ea599938ec022cf`（docs-only）。Pre-exec dual PASS: mw-e2e-ha `5bdce7f` + mw-rag-route `ce36b81`（docs gate only）。
+- 执行 `697ad54` / `697ad54fd8c7a1ca88e230b6ff4ffee9f361dfcf`（branch `line/m-conditions-registry` · 2 files +4/−4 登记对齐；nail 分支 cherry-pick `04311e5`）：checklist C-IMAGE-DIGEST / C-PERF-TEARDOWN 两行与 gap-bug-backlog 对应条目补证据指针（correction dual `0d42e2c` §2/§3 · RE-REVIEW `07823b5` §5 · emitter/capped-child 源位锚）。
+- Post-prove dual PASS: mw-e2e-ha `1c03538`（nail cherry-pick `c91d353`）+ mw-rag-route `135711c`（nail cherry-pick `027e184`）· 独立 re-verify registry tip `697ad54` PASS。
+- [ ] **C-IMAGE-DIGEST stays an OPEN CONDITION**（live-per-run 证据仍缺 · prior-docker-inspect 不是 live · `PERF-LOAD.json` liveObservation=false）· **C-PERF-TEARDOWN stays OPEN/disclosed**（attempt1 EXIT 1 mid-prove 未洗白 · PERF/LOAD stays local partial）。修复须另刀：live-per-run 须真实运行时观测接线；teardown 缺陷须产品修复并新鲜 prove + post-prove dual。本刀不修复、不关闭、不授权任何 prove。
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
+- Nail tip = 本 commit（branch `line/m-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
