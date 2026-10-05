@@ -222,6 +222,31 @@ export class InterviewService {
           throw new HttpException({ error: 'stale_quiz' }, HttpStatus.CONFLICT);
       }
 
+      // NHP-025-BOUND-01 / GAP-UC025-BOUND-01(Line W)resumeVersion pin 失配守卫(BOUND 面;上方 NEG stale 块逐字节冻结不动)。
+      // 押题工件生成时经 0061 typed 引用钉死 (resume_id, privacy_epoch)=该工件的 resumeVersion pin。begin 携带工件时:
+      // 本次 resume-id ≠ 工件 pin 的 resume_id(简历变更后拿旧押题开面),或 pin 的 privacy_epoch ≠ 该简历当前世代
+      // → 在**任何简历绑定写、扣额度(reserveEntitlement)与入队(enqueueInterviewJob)之前**抛真实
+      // HttpException(resume_version_mismatch,409 CONFLICT);无局部 catch 吞。pin 为 NULL(0061 前旧工件/无 typed 引用)
+      // 不得当失配拒(对齐 NEG expires_at NULL 语义:已迁移库旧工件不假拒)。不带 sourceQuizId → 完全跳过,行为不变。
+      if (sourceQuizId) {
+        const pin = await c.query(
+          `SELECT q.resume_id::text AS pinned_resume_id, q.privacy_epoch AS pinned_epoch, r.privacy_epoch AS current_epoch
+             FROM resume_quiz q
+             LEFT JOIN resume r ON r.id=q.resume_id AND r.owner_user_id=q.owner_user_id
+            WHERE q.id=$1 AND q.owner_user_id=$2`,
+          [sourceQuizId, principal],
+        );
+        const pinnedResumeId = pin.rows[0]?.pinned_resume_id as string | null | undefined;
+        if (pinnedResumeId != null) {
+          const pinnedEpoch = pin.rows[0].pinned_epoch == null ? null : Number(pin.rows[0].pinned_epoch);
+          const currentEpoch = pin.rows[0].current_epoch == null ? null : Number(pin.rows[0].current_epoch);
+          const resumeVersionMismatch = pinnedResumeId.toLowerCase() !== resumeId.toLowerCase()
+            || pinnedEpoch === null || currentEpoch === null || pinnedEpoch !== currentEpoch;
+          if (resumeVersionMismatch)
+            throw new HttpException({ error: 'resume_version_mismatch' }, HttpStatus.CONFLICT);
+        }
+      }
+
       // A new C-side start must bind its source in a typed, owner-checked
       // column before any quota reservation or queue write.  B-side sessions
       // already carry an immutable resume_id from application creation and
