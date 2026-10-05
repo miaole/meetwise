@@ -1,6 +1,8 @@
-# Ledger — **GAP-PRIV-AUTHZ-PROVE-FLAKE · rootcause/repro ledger**（Line X · docs execution · **awaiting post-prove dual** · flake stays **OPEN** mitigated/cause-unknown）
+# Ledger — **GAP-PRIV-AUTHZ-PROVE-FLAKE · rootcause/repro ledger**（Line X · NAIL · **`post_prove_dual_pass`** · flake stays **OPEN** mitigated/cause-unknown）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（docs ledger only · 实现方 mw-core 产物 · **非审阅** · Ban self-nail · Ban self-approve）
+**Status**: **`post_prove_dual_pass`**（Line X nail · docs ledger only · L1–L6 retained · POST dual BOTH PASS · **PASS ≠ fixed ≠ closed ≠ root-caused ≠ HA** · Ban claim fixed · Ban forge PROCESS_EXIT · Ban coding product · Ban principal.ts · Ban Meridian · Ban secrets · Ban force-push · Ban closing backlog `:68`）
+
+> **REQUEST-era note（historical · retained）**: this file began as `executed:awaiting_post_prove_dual` at tip `b3e0f41`. Post dual mw-e2e-ha `424c7f0` + mw-privacy-int `2974d45` BOTH PASS. Lifecycle advanced to **`post_prove_dual_pass`** by Line X nail only. Gap stays **OPEN** mitigated/cause-unknown.
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-05（CST / UTC+8）
 **Gap id**: **`GAP-PRIV-AUTHZ-PROVE-FLAKE`**（backlog `gap-bug-backlog.md:68` stays **OPEN** · **mitigated/cause-unknown** · 本 ledger 不改该行）
@@ -81,14 +83,26 @@
 
 ## Non-claims
 
-Not fixed · not closed · not root-caused · not a prove · not a rerun · not teed first-run authorization · not product rewrite · not SSOT edit · not nail · not HA · alone ≠ dual · **GAP-PRIV-AUTHZ-PROVE-FLAKE stays OPEN mitigated/cause-unknown** · canHonestlyFlip=false · UC-052 stays partial
+Not fixed · not closed · not root-caused · not a prove · not a rerun · not teed first-run authorization · not product rewrite · not closing backlog `:68` · not HA · alone ≠ dual · **GAP-PRIV-AUTHZ-PROVE-FLAKE stays OPEN mitigated/cause-unknown** · canHonestlyFlip=false · UC-052 stays partial · **PASS ≠ fixed ≠ HA**
 
 ## Pins
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 
-## STOP
+## STOP（execution-era · retained）
 
-本 ledger 为执行方（mw-core）产物，非审阅。post-prove 双审（mw-privacy-int + mw-e2e-ha）由协调方另派；实现方不自批、不代签、不 nail、不翻 SSOT。
+本 ledger 执行方（mw-core）产物原为 awaiting post-prove dual；双审已由 mw-e2e-ha + mw-privacy-int 独立落证。实现方不自批、不代签、不关 gap、不翻 `:68`。
 
-*Ledger · GAP-PRIV-AUTHZ-PROVE-FLAKE rootcause/repro · Line X · executed · awaiting post-prove dual · OPEN mitigated/cause-unknown · STOP*
+## Line X NAIL（`post_prove_dual_pass` · 2026-10-05 · additive）
+
+- Lifecycle on this ledger/harness/slice: **`post_prove_dual_pass`**.
+- Prove/evidence tip NAILED TO: `b3e0f4172e188f23dbcc34aac0bae82e571a10dc`（docs ledger execution · **No CMD · no new prove**）.
+- POST dual BOTH PASS: mw-e2e-ha `424c7f06f7438a5a83688e5d14e9c25603e8c2e6` + mw-privacy-int `2974d45741d1009c26a36e24a43d051b1fb93a70`.
+- REQUEST `5773243cc3c64bf4e4d9242814a3b7ba8b778986` · PRE dual privacy `8f281511f81f7900b2610218029eb4d1971ed2eb` + e2e `9b8f748e2682019e27d5357bad728d2cb330b902`.
+- **L1–L6 retained** · blob 锚零漂移 · attempt-1 JSON≠log 仍立 · Ban forge PROCESS_EXIT · teed attempt-2 `PROCESS_EXIT=0` 三角一致 ≠ close.
+- **CITE_EXIT**: **0**（引用 teed attempt-2 log 字面 `PROCESS_EXIT=0` · 非本 nail 新跑 · 非关 flake）。
+- **STILL_OPEN**: **GAP-PRIV-AUTHZ-PROVE-FLAKE stays OPEN mitigated/cause-unknown** · Not fixed · Not closed · Not root-caused · canHonestlyFlip=false · UC-052 stays **partial** · coveredCount=**8** · public DELETE=**503**.
+- Pins unchanged: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503.
+- Zero product · Ban principal.ts · Ban Meridian · Ban secrets · Ban force-push · Ban closing backlog `:68` · Ban HA claim. Sibling Y/W nails stay as written.
+
+*Ledger · GAP-PRIV-AUTHZ-PROVE-FLAKE rootcause/repro · Line X NAIL · 2026-10-05 · lifecycle post_prove_dual_pass · tip b3e0f41 · post dual 424c7f0+2974d45 PASS · CITE_EXIT 0 · L1–L6 retained · OPEN mitigated/cause-unknown · PASS≠fixed≠HA · releaseEvidence=false · STOP*
