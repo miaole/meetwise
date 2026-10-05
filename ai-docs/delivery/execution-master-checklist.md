@@ -778,3 +778,15 @@ flowchart TD
 - Nail tip = 本 commit（branch `line/y-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written（incl. Line W · Line S · Line T · Line U）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
 
+
+### Line W NHP-025-BOUND-01 / GAP-UC025-BOUND-01 NAIL（2026-10-05 SSOT nail · `post_prove_dual_pass` · EXIT=0 · row+BOUND stay gap）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line W NHP-025-BOUND-01 BOUND products only（BOUND only · NEG frozen）. Implementer does not self-approve beyond this authorized nail. **EXIT0 ≠ covered**. Not a covered flip. Not a BOUND column flip. Ban invent covered · Ban flip covered · Ban wash B'' NEG · Ban HA/suite green · Ban Meridian · Ban coding · Ban secrets · Ban force-push · Ban claiming isolated PG/HTTP E2E evidence. coveredCount=**8** unchanged.
+- REQUEST `73b9d85` / `73b9d8574844e390180586b82af3b1a128fcbd8b`. Pre-exec dual PASS: mw-e2e-ha `df6a897` / `df6a89796b898cadf99189c3bdfd60a6ac2982b2` + mw-rag-route `cdcd11f` / `cdcd11fd3af584a0dc111032680ae80c94e5e8d5`.
+- Code `6853e17` / `6853e177adedd9c35e88d9c1acaa98899744d6be` · prove tip `e8fa74c` / `e8fa74cd35c8acbbcadbba0851e05ca754aec60d` · CMD `pnpm uc025:nhp-bound:prove` **EXIT=0** · HTTP **409** `resume_version_mismatch` · receipt `receipts/2026-10-05-nhp-025-bound-01-version-pin-prove.md`.
+- Post-prove dual PASS: mw-e2e-ha `9aad765` / `9aad765a10cc65093c9d5b3554e7142c5405ea34` + mw-rag-route `c048533` / `c0485338eab5cf638558d2cd998f39b1c2fb84a3`（BOTH · alone≠dual）.
+- **Evidence layer MUST state**: in-process `InterviewService.begin` + fake DB · shape aligned to nhp-neg · **≠ isolated Postgres/HTTP E2E** · harness three-layer isolated setup NOT run this knife（soft/aspirational · not hard blocker of this PASS）. PG/HTTP-level BOUND → separate knife.
+- [ ] UC-E2E-025 **row** stays **gap** · **BOUND column** stays **gap** · EXIT0≠covered · canHonestlyFlip=**false** · NEG B'' CLOSED(wired) **frozen** Ban wash · FAULT gap · ADV blind.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · canHonestlyFlip=false. Do not write covered.
+- Nail tip = 本 commit（branch `line/w-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written（incl. Line Y · Line S · Line T · Line U · B'' NEG）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
