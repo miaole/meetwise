@@ -54,74 +54,68 @@ Dual PASS ≠ coding ≠ close ≠ covered ≠ nail · alone ≠ dual · 本 stu
 
 ---
 
-# PRE-EXEC dual · Q-IMAGE-DIGEST-LIVE-CAPTURE-FIX · mw-e2e-ha（docs gate only · Ban prove · Ban coding · Ban product edit · Ban 改共享 SSOT）
+# POST-PROVE dual（LIVE digest 采集修复复验）· mw-e2e-ha · 2026-10-05
 
-**被审 REQUEST**: `fa55a282e18e0ded1a61588ffae13ac4ee63f5cc`（`docs(e2e): REQUEST C-IMAGE-DIGEST live capture fix (pre_dual)`，origin 上）
-**审查基线**: origin/feat/mysql-schema-skeleton（`fa55a28` 经 `git merge-base --is-ancestor fa55a28 HEAD` 验证为祖先，ANCESTOR_OK）。
-**docs-only 验证**: `git show --stat fa55a28` = 4 文件 / +232 / -0，全部位于 `ai-docs/delivery/`（slice · harness · 两份 expert stub）；零产品代码、零 proof、零 emitter/facts/guard diff、零 SSOT（`gap-bug-backlog.md` 未触碰）、零 receipts 改动。
-**审查者**: mw-e2e-ha（adversarial evidence-honesty · 独立审 · alone ≠ dual · 不代签 mw-rag-route · 本段仅 docs gate）。
-**Reviewer worktree**: `/Users/miaole/Desktop/golucky/meetwise-rv-q-e2e-ha` @ `d89aaf3`（`rv/q-e2e-ha`）；基线 `a778255..d89aaf3` 区间 `scripts/`、`package.json` 零 diff（`git diff --stat a778255..HEAD -- scripts/ package.json` 为空），故全部源码锚点读数即 `a778255` 读数。
-**审查方法**: 只读静态核验（`git show`/`sed`/`grep` + EXIT 确认），非交付 prove receipt；未跑任何 prove。
+**Status**: **POST-PROVE DUAL COMPLETE**（独立 worktree `rv/qp-e2e-ha` @ tip `8b07308` · author mw-e2e-ha · alone ≠ dual · 不代签 mw-rag-route）
+**对象**: `line/q-image-digest-live` tip `8b0730831e717caf61f4ce0d3edaef124ec5f209`（parent `526b4bc7e91ed977a94380f44a6533d121f3e33b` REQUEST）
+**审法**: 只认命令 + EXIT + 可复现证据；本审未复用实现方任何输出作为判据，全部机检在审方 worktree 独立复跑。
 
-## 检查表（file:line 证据，全部在本 worktree 实读核验）
+## 1. Fresh re-run（C-DUAL-FROM-FRESH）
 
-| # | 审查项 | 证据 | 结论 |
-|---|--------|------|------|
-| 1 | docs-only、祖先关系 | `git show --stat fa55a28`（4 文件 +232/-0 全 docs）；`merge-base --is-ancestor` OK | ✅ |
-| 2 | 现状事实（宿主 tag inspect 冒充 live） | `scripts/uc018-receipt-backfill-emit.mjs:344-357`（`collectImageDigestsRaw`，四宿主 tag）· inspect `:353` `docker image inspect <tag> --format '{{json .RepoDigests}}'` · `:375` `imageDigestsPre` · `:396` prove 后 merge · `:402` `digestMode:'live'`（`:385` install-fail 路径同） | ✅ 与 harness Gap 表逐条相符 |
-| 3 | facts 错标分支 | `scripts/lib/uc018-receipt-backfill-facts.mjs:248-252`（`priorDigestStr && mode==='live'` → `docker-inspect`/`liveObservation=true`/`capturedAt`）—— 宿主数组被标 live 的直接来源，属实 | ✅ |
-| 4 | reemit 沿用 prior | `facts.mjs:243-246`（`mode==='reemit'` → `prior-docker-inspect`/`liveObservation=false`/`priorCapturedAt`）属实 | ✅ |
-| 5 | LIVE 判定门 | `facts.mjs:61-66` `isLiveImageDigestEntry`：`liveObservation===false`/`prior-docker-inspect` 判 false，仅认 `docker-inspect && liveObservation===true`；已入库条目判 false 属实 | ✅ |
-| 6 | 已入库回执与披露 | `receipts/uc018-receipt-backfill/PERF-LOAD.json:28-29`（`prior-docker-inspect`/`liveObservation:false`，digest `sha256:ccc6e83d…fb4d6b`，cite logLine 37）；README `:35-37`+`:41` 披露 not-live/CONDITION 未关；回执 JSON 恰 7 份（ADV/FULL-E2E/GRAPH/PERF-LOAD/SOLE/TTL/UI） | ✅ |
-| 7 | SSOT 登记 | `gap-bug-backlog.md:34` C-IMAGE-DIGEST **OPEN** CONDITION，evidence chain 指向 `0d42e2c`/`07823b5` 与本刀引用一致 | ✅ |
-| 8 | CONDITION 出处 | `0d42e2c` 存在（`git cat-file` + `%s` = post-prove correction FAIL）；其 review 文件 `:399-401`「Digest must be captured **LIVE per run** from the **actual container** in the run log」实读在位；RE-REVIEW `07823b5` 存在，`§5 :475-481` Conditions kept open 含 C-IMAGE-DIGEST 行实读在位；M 线登记 `harness/gap-image-digest-perf-teardown-conditions.md` 存在 | ✅ 无锚点漂移（NHP FAULT 未触发） |
-| 9 | 容器生命周期硬约束（前提真实性） | `run-e2e-isolated.mjs:1600`（`meetwise-e2e-${pid}-${Date.now()}`）· `:2056`（`docker run --rm -d --name`）· `:2070` banner · `:2125-2128` finally `docker rm -f`（`:2127`）；emitter finally `:407-412`（`:411` `docker rm -f` 过滤 meetwise-e2e/meetwise-uc018）—— 「prove 退出后 inspect 必败」前提**核实为真** | ✅ |
-| 10 | 采集窗口机制（见下专节裁决） | banner 实际流入 emitter 捕获流：`logs/PERF-LOAD-b29c191.log:37` 含 `E2E isolated PostgreSQL: meetwise-e2e-1857918-1790224698505 on 127.0.0.1:33018`；6 份 committed log 均含该 banner；`package.json:126-127` `uc018:perf-load:prove` → `run-e2e-isolated` 接线属实 | ✅ 可信且可行（附 C-1/C-3） |
-| 11 | fail-closed 四组断言 | harness §二 `:51-60`：`FX-IMAGE-DIGEST-LIVE-CONTAINER-INSPECT`（live 产物 `isLive=true`+`source='live-container-inspect'`+`liveObservation===true`+`containerId` 非空+`capturedAt` 在 run 窗口）/ `FX-IMAGE-DIGEST-CONTAINER-ID-FAILCLOSED`（伪造+缺失 → 非 live、无宿主值冒名、诚实记失败）/ `FX-IMAGE-DIGEST-REEMIT-NOT-LIVE` / `FX-IMAGE-DIGEST-HOST-TAG-FALLBACK-NOT-LIVE`（`:248-252` 旧分支不得回归）—— 四组齐备且方向全为 fail-closed | ✅ |
-| 12 | `isLiveImageDigestEntry` 收紧式扩展向后兼容 | harness §一.6：新增仅认 `live-container-inspect && liveObservation===true && containerId` 非空；prior/宿主 fallback/not-started/unpinned/unobserved 及缺 containerId 条目维持 false；§一.8 + Ban 既有 7 份 receipts 不回填改写——既有条目在任何读法下仍 false，向后兼容成立（附 C-2 读法澄清） | ✅ |
-| 13 | guard 验签零触碰 / `run-e2e-isolated.mjs` 零触碰 | harness §三 Ban `:70`（GAP-HMAC 语义零改动）· `:72`（Ban 碰 run-e2e-isolated，采集在 emitter 侧）；`fa55a28` diff 实证未触任何脚本 | ✅ |
-| 14 | digest 载体键兼容 | harness §一.1 Schema 澄清：保留 `imageDigest` 键承载 live 容器 digest、另加 `containerId`，**不**新造平行键——guard/evaluator 按既有键读取，兼容 | ✅ |
-| 15 | Pins 原值 + canHonestlyFlip=false | harness `:8`/`:97` · slice `:4` · stub `:4`/`:12-24` 逐字一致：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE stays 503 · canHonestlyFlip=false · UC-018/§1.1 stay partial | ✅ |
-| 16 | C-IMAGE-DIGEST 保持 OPEN / C-PERF-TEARDOWN 不互借 / UC-018 covered 不动 | harness `:75`（Ban 本 REQUEST 文本关闭 C-IMAGE-DIGEST，关闭只能在 coding+授权 prove+dual 复验后）· `:73`（Ban 借刀关 C-PERF-TEARDOWN）· `:74`（Ban covered flip，coveredCount=8 不动）· stub `:23-24` · slice `:25` | ✅ |
-| 17 | alone ≠ dual / 不代签 | 本段只签 mw-e2e-ha；`REQUEST-…-mw-rag-route.md` 保持 PENDING 原状未被触碰 | ✅ |
+| CMD（审方 worktree，`pnpm install --frozen-lockfile` 后恰一次） | EXIT | 结果 |
+|---|---|---|
+| `pnpm uc018:receipt-backfill:prove` | **0** | **58 PASS / 0 FAIL**，单次运行，无重试 |
 
-## 窗口内采集机制裁决（本刀成立前提 · 重点裁定）
+与实现方声称（EXIT=0 · 58 PASS/0 FAIL 单次）**一致**——非重大发现。
 
-**裁决：机制可信且在 `--rm` 生命周期内可行；REQUEST 无须改方案即可进入 coding。** 依据（全部实测）：
+**两形态如实记录**：fresh prove 输出走 **fixture/source-pin 路径**——prove 本身不启动 docker，输出中**无** `E2E isolated PostgreSQL` banner、无真实容器 Id/digest 出现；live 采集的"真实 docker 窗口内路径"由 (a) 源码级 `FX-SOURCE-PINS`（流式 spawn + banner 观察 + 宿主 fallback 保留）钉住，(b) 审方独立 seam 实测：以符合 `meetwise-e2e-<pid>-<ts>` 形态的容器名启动一次性运行态容器，跑 emitter 同款 `docker inspect --format '{{.Id}}|{{.Image}}|{{.Config.Image}}|{{.State.Running}}'`，把**真实输出**喂入 `parseContainerInspectOutput → isValidLiveCaptureRecord → buildImageDigests(mode:'live')`，得 `source=live-container-inspect · isLive=true · digest=sha256:7b822b0a… · containerId=fafb1791… · capturedAt=ISO 落当前时刻`——真实 docker inspect 输出与解析管道的 seam 通畅，且 digest `sha256:7b822b0a…` 与实现方 scratch clone 声称独立吻合（同一本地 `pgvector/pgvector:pg16`）。非运行态容器（Running=false）经 `isValidLiveCaptureRecord` 判 false，不冒充 live。
 
-1. **前提为真**：run 容器 `docker run --rm`（`run-e2e-isolated.mjs:2056`）+ finally `docker rm -f`（`:2125-2128`）+ emitter finally 兜底清理（`:407-412`）——prove 子进程退出后对 run 容器 `docker inspect` 必然失败。实现方自报的难题成立，不是借口。
-2. **banner 确实流入 emitter 捕获流**：`uc018:perf-load:prove`（`package.json:126`）→ `node scripts/run-e2e-isolated.mjs …`，banner 由 run-e2e-isolated 自身 `console.log`（`:2070`）打印到其 stdout → pnpm → emitter `sh()` 捕获的 prove stdout；committed `logs/PERF-LOAD-b29c191.log:37` 实读含完整 banner + 唯一容器名，6 份 committed log 均含 banner。容器名即 run log 中实际容器标识，解析源存在且唯一（`pid-timestamp` 天然防并发串名）。
-3. **窗口足够宽**：banner 在容器已就绪（`waitForPostgres` 通过）后打印，容器存活至 run-e2e-isolated finally 清理为止——窗口 = 整个测试运行期（分钟级），「观察 banner 即刻 inspect」落在窗口内绰绰有余；即使容器中途自毁（`--rm` 语义），§一.3 fail-closed 兜住。
-4. **现实现的唯一缺口已被 REQUEST 显式列为 coding 契约**：emitter 现用 `sh()`=`spawnSync`（`uc018-receipt-backfill-emit.mjs:39-44`、`:389`）缓冲捕获，输出仅在进程退出后可得——**今天的 emitter 无法在窗口内观察 banner**。REQUEST §一.2 已明文要求「实现须在 emitter 侧于 run 窗口内观察子进程输出 / banner 行并即刻 inspect，或等效的窗口内采集机制」并 Ban 把退出后 inspect 失败静默降级为宿主 tag 冒充 live。改流式管道/轮询属 emitter digest 采集范围（允许列表内），不触碰 `run-e2e-isolated.mjs`。机制写清、可行、无更诚实的替代出口被隐瞒。
-5. **无 banner 的 cmd 不受骗**：不经 `run-e2e-isolated` 的 prove（如 `uc018:sole:prove` `package.json:120`、`uc018:receipt-backfill:prove` `:502`）不启动容器 → §一.7 维持诚实非 live 条目，方案无越权伪造面。
+## 2. 包完整性（vs parent `526b4bc`）
 
-## Fail-trigger audit（逐项排查，均未触发）
+| 项 | 结果 |
+|---|---|
+| 恰 3 文件 | **PASS** — `uc018-receipt-backfill-emit.mjs` (+154/−6) · `lib/uc018-receipt-backfill-facts.mjs` (+156/−13) · `uc-e2e-018-receipt-backfill.proof.mjs` (+234/−3)；合计 +544/−22 |
+| guard（HMAC）零 diff | **PASS** |
+| `run-e2e-isolated.mjs` 零 diff | **PASS** |
+| 既有 7 份 receipts JSON + README + log 零 diff | **PASS**（整个 `ai-docs/` 0 文件变更） |
+| package.json / pnpm-lock 零 diff | **PASS** |
+| SSOT 零 diff | **PASS** |
+| `RUNTIME_STACK_SOURCES`（facts `:51-54`）零改动 | **PASS** — diff hunk 始于 `:57`，frozen 数组未触碰；仅新增注释与 `live-container-inspect` 常量（live 不计 stack MET，`FX-SOURCE-PINS` 亦断言） |
 
-- 锚点漂移（NHP FAULT #2）→ 无：上表 #2-#10 全部 file:line 实读相符。
-- docs commit 内夹带 coding/prove/push → 无（4 docs 文件 +232/-0）。
-- 改共享 SSOT / 回执 / README → 无（`gap-bug-backlog.md`、`PERF-LOAD.json` 等 7 份、README 零 diff）。
-- 借 REQUEST 措辞宣称修复完成 / CONDITION 已关 / UC-018 covered（NHP ADV #4）→ 无（harness `:11` Honesty + `:75` 显式否认；状态 `draft:awaiting_pre_exec_dual`）。
-- 借刀关 C-PERF-TEARDOWN → 无（仅以不互借口径提及，harness `:73`）。
-- guard HMAC 验签语义触碰 → 无（Ban `:70` + diff 实证）。
-- 给宿主 fallback / reemit prior 留 live 后门 → 无（§一.4 移除/改写 `:248-252`、§一.5 reemit 不变差、FX-FALLBACK/REEMIT 双断言钉死；`liveObservation:false` 强制）。
-- Pins 漂移 → 无（三份文档逐字一致，上表 #15）。
-- 把 dual PASS 写成 coding 授权 → 无（harness `:3`/`:10`、slice `:3`/`:7` 显式：coding 须 pre-exec dual PASS + 协调方授权后另 commit）。
+## 3. 机检（审方独立执行）
 
-## Blockers
+| 检查 | 结果 |
+|---|---|
+| `node --check` emit / facts / proof | **PASS**（三文件语法通过） |
+| FX-IMAGE-DIGEST-LIVE-CONTAINER-INSPECT 实读 | **PASS** — 合法窗口内 capture → `source=live-container-inspect · liveObservation=true · isLive=true`，digest 非 host fallback 值、`capturedAt` 落 `[runStartedAt, runEndedAt]` 窗口、不继承 `priorCapturedAt`；未启动服务保持诚实 `not-started` |
+| FX-IMAGE-DIGEST-CONTAINER-ID-FAILCLOSED 实读 | **PASS** — 伪造（`deadbeef`）/缺失 containerId → `live-container-inspect-failed · imageDigest=unobserved · isLive=false`，host 值不冒充；inspect 空输出/垃圾输出解析 fail-closed；gate 拒空/缺 containerId；capture 记录校验只收 64-hex |
+| FX-IMAGE-DIGEST-REEMIT-NOT-LIVE 实读 | **PASS** — reemit 模式即使传入完好 capture 仍 `prior-docker-inspect · isLive=false`（reemit 无 run 窗口，capture 即伪造） |
+| FX-IMAGE-DIGEST-HOST-TAG-FALLBACK-NOT-LIVE 实读 | **PASS** — 无 capture 时宿主 tag 读数 `host-tag-inspect-fallback · isLive=false`，诚实保留 digest 值 |
+| fixture (b) 改写方向 | **PASS（收紧）** — 旧合成 `docker-inspect + liveObservation:true` 无 containerId 条目**保留**且断言**翻为非 live**（收紧门，非放松）；新 live fixture 须 `live-container-inspect + containerId`；(a) static-doc 门与 (b)-prior 门原样保留 |
+| 审方对抗探针（node 直调，只读） | **PASS** — banner 名 `meetwise-e2e-999-1000-extra` / 非数字 pid / 异池名均 `trusted:false`（精确名 `^meetwise-e2e-\d+-\d+$` 防串名）；`running=false` / 非 ISO `capturedAt` → capture 记录无效；对未启动服务注入 capture 仍 `not-started` |
 
-无。REQUEST 文档事实与源码、CONDITION 证据链、SSOT 现状全部对得上；采集窗口机制前提真实、契约可行、fail-closed 四组断言齐备。
+## 4. 条件裁决（pre-exec C-1~C-4 逐条）
 
-## Conditions（C-*，coding/post-prove 阶段必须满足，非本 docs gate 的 FAIL 项）
+| 条件 | 内容 | 裁决 | 证据 |
+|---|---|---|---|
+| C-1 | 流式窗口内采集 + 精确名防串名 + Ban 退出后冒充 | **PASS** | `runProveStreaming`（spawn 逐行 onLine）→ `observeProveLineForLiveDigest` banner 命中即同步 `docker inspect`（子进程存活窗口内，结构保证）；`RUN_CONTAINER_NAME_RE` 精确名 + 审方串名探针全拒；`.State.Running===true` 硬校验 + 容器消失时 inspect 必败 → 失败进 attempts 台账，不冒充 |
+| C-2 | 收紧门 + fixture 共改 | **PASS** | `isLiveImageDigestEntry` 三要素（source/liveObservation/containerId 非空）；旧错标分支 `:248-252` 移除（源码 pin 断言无 `source='docker-inspect'` 赋值残留）；fixture (b) 收紧方向改写、(a)/(b)-prior 未删未削弱；4 组 FX + 5 项 FX-SOURCE-PINS 齐备且全过 |
+| C-3 | 无 banner cmd 诚实非 live + 禁伪造 | **PASS** | 无 banner → `liveCaptureAttempts` 空 → `host-tag-inspect-fallback`/`not-started`/`unpinned` 诚实非 live；失败尝试逐条 `recordAttempt` 落 `attempts.jsonl`；fresh prove 本身即诚实形态实证（无 banner 场景下 0 FAIL、零伪 live 声明） |
+| C-4 | capturedAt 落窗 | **PASS** | `capturedAt` 在 onLine 回调同步 inspect 时刻打点（容器存活即落窗，by construction）+ `ISO_TS_RE` 校验 + FX 断言窗口包含；审方 seam 实测 ISO 时刻落当前运行窗 |
 
-- **C-1（窗口内采集的落地形态）**: 现行 `sh()`=`spawnSync` 缓冲捕获下「窗口内观察」不可达——coding 必须把 prove 子进程改为流式管道逐行观察（async spawn + banner 行解析后**即刻** `docker inspect` 该 banner 解析出的**精确**容器名），或等效窗口内机制。Ban：prove 退出后 inspect 失败改用宿主 tag 值冒充 live；Ban：按 name 前缀轮询可能误中并发 run 的容器（只认 banner 解析出的唯一名）；banner 后 inspect 仍失败（容器早亡）→ §一.3 fail-closed 非 live 并如实记失败原因。
-- **C-2（`isLive` 收紧读法 + 既有 fixture 共改）**: harness §一.6「一切缺 containerId 的条目维持判 false」存在两种读法；若取全局严格读法（任何 `liveObservation:true` 且缺 `containerId` → false），既有合成 fixture 断言 `uc-e2e-018-receipt-backfill.proof.mjs:318-326`（`docker-inspect`+`live=true` 无 containerId → "live docker-inspect still live"）将翻红——该 prove 文件在允许列表内，coding 须在同一 commit 内诚实共改该合成用例并注明读法，**Ban** 静默删除/削弱 (a) 与 (b)-prior 断言；若取窄读法（仅新 source 要求 containerId），FX 断言仍须钉死任何 producer 路径不得给宿主/reemit 条目标 live。任一读法下 7 份已入库回执均维持 false 且不回填（§一.8）。
-- **C-3（无 banner cmd 的诚实条目）**: 不经 `run-e2e-isolated` 的 prove CMD 不产生 banner——对应服务维持 `not-started`/`unobserved` 诚实条目（§一.7），**Ban** 从 tag、其他 run 的容器或任何旁路伪造 `containerId`/`liveObservation:true`。
-- **C-4（capturedAt 诚实）**: live 条目 `capturedAt` 必须是 run 窗口内实际 inspect 时刻（FX-1 已断言），**Ban** 继承 `priorCapturedAt` 或以 emit 时刻冒充窗口内时刻。
+## 5. Blockers / Conditions
 
-## 中文三行摘要
+**Blockers**: 无。
 
-1. `fa55a28` 纯 docs（4 文件 +232/-0，零代码零 SSOT 零回执），C-IMAGE-DIGEST 修复 REQUEST 的事实链（emitter 宿主 tag inspect `:344-357`、facts 错标分支 `:248-252`、reemit prior `:243-246`、`isLiveImageDigestEntry :61-66`、7 份回执 prior-docker-inspect、SSOT OPEN）逐条实读相符，出处 `0d42e2c` §3 与 `07823b5` §5 锚点在位，无漂移。
-2. 核心裁决：`--rm`+finally 清容器的「prove 退出后 inspect 必败」前提核实为真，而 banner 确实流入 emitter 捕获流（PERF-LOAD committed log :37 实读含唯一容器名，6 份 log 在证）、窗口为分钟级——「流式观察 banner 即刻 inspect」机制可信可行，唯一缺口（现行 spawnSync 缓冲捕获）已被 REQUEST §一.2 显式列为 coding 契约并 Ban 静默降级，无需改方案；fail-closed 四组 FX 断言齐备，`isLive` 收紧式扩展向后兼容 7 份既有回执且不回填。
-3. 无 Blocker；附条件 C-1 coding 必须落地流式窗口内采集且只认 banner 精确容器名、C-2 `isLive` 全局严格读法须共改既有合成 fixture（禁静默削弱）、C-3 无 banner cmd 维持诚实非 live 禁伪造 containerId、C-4 capturedAt 须为窗口内真实时刻；Pins 八项原值 + canHonestlyFlip=false，C-IMAGE-DIGEST 保持 OPEN（coding+授权 prove+dual 复验前不动）、C-PERF-TEARDOWN 不互借、UC-018 covered 不动；Verdict PASS 仅本 docs gate，不授权 coding/prove/push，不代签 mw-rag-route。
+**Conditions**:
+1. prove 契约本体为 fixture/source-pin harness——真实 docker 窗口内采集路径不被 `pnpm uc018:receipt-backfill:prove` 直接执行；其可信度由源码 pin + 审方 seam 实测 + 实现方 scratch E2E 声称三重支撑。**下一次真实 emit（run-e2e-isolated 全链路）落得 `live-container-inspect · containerId · capturedAt` 才算 C-IMAGE-DIGEST 实证闭合**；在此之前 CONDITION 状态判定权在协调方，本审只判代码与 prove 诚实性。
+2. emitter 真实端到端（banner 命中 → 窗口内 inspect → receipt 落盘）本审未全链路重放（恰一次 prove 约束 + 不污染既有 receipts）；seam 已实测，剩余风险为组装层（`buildReceiptBody` 接线已实读核对：`liveCaptures: liveCaptureAttempts` 传入 mode:'live'，失败也全量进账）。
+3. `git worktree` 探针容器已 `docker rm -f` 清理，无残留。
+
+## 6. 中文三行摘要
+
+1. 独立 fresh re-run `pnpm uc018:receipt-backfill:prove` 恰一次 EXIT=0（58 PASS/0 FAIL），与实现方一致；prove 走 fixture/source-pin 形态，真实 docker seam 由审方以一次性容器实测打通（真实 inspect 输出 → isLive=true，digest `sha256:7b822b0a…` 与实现方声称独立吻合）。
+2. 包恰 3 文件 +544/−22，guard/`run-e2e-isolated`/receipts/package/SSOT/RUNTIME_STACK_SOURCES 全零 diff；4 组 FX 断言逐条实读方向正确，fixture (b) 为收紧式改写，(a)/(b)-prior 未削弱，串名/伪造/退出后冒充探针全 fail-closed。
+3. C-1~C-4 全 PASS，无 Blockers；真实 emit 全链路落得 `live-container-inspect + containerId + capturedAt` 前 C-IMAGE-DIGEST 不视为实证闭合；本审不代签 mw-rag-route（alone ≠ dual）。
 
 Verdict: PASS
