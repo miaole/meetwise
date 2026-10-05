@@ -650,3 +650,15 @@ flowchart TD
 - [ ] Not UC-018. Not UC-052. Not UC-025. Do not treat `pnpm uc004:career-path:prove` EXIT 0 as A3 closed；`pnpm uc004:career-path-fault:prove` EXIT=1 也不是 close。Ban inventing a fix. Ban product coding. Ban flipping any SSOT row.
 - Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
 - The C' `post_pre_exec_dual_pass` section and the FINAL NAIL section above stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+### Line L G7 trio/disclosure/techrole docs 对齐 NAIL（2026-10-03 SSOT nail · `post_prove_dual_pass` · docs only · trio stays OPEN）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line L docs alignment products only. 零新 prove · 零产品改动 · `not_run:no_coding_authorize`. Implementer does not self-approve. Not a trio close. Not G7 green.
+- REQUEST `0345315` / `0345315d19c92f038519e6e4b5ebd680f36c6441`（docs-only REQUEST · pre_dual）。Pre-exec dual PASS: mw-model-op `b8dfb62` / `b8dfb624182e733f3bd47c09b72b7a73adab3073` + mw-e2e-ha `a474ca4` / `a474ca41ed5fae2aea0678ea4d4f3868fc5d936a`。
+- EXEC docs 对齐 `13fbeec` / `13fbeecfd6c1172aa2caa0d8e18675057d4eb61f`（nail 分支 cherry-pick `3741bda`，patch-id 一致 `93f91c135e76e86223e65fb07f6d10910b01367d`）：产物 `harness/g7-trio-current-state-alignment.md` + `harness/g7-trio-offline-receipt-index-alignment.md`。时序 erratum：A″（2026-09-17 ~19:29–19:37 PT）早于 FIX（~20:04–20:17 PT），正确顺序 **A″ → FIX**；REQUEST stub（model-op）`:33`「此后 A″」为时序倒置措辞之 erratum，stub 归档不改写。
+- Post-prove dual PASS: mw-model-op `cd8fced` / `cd8fced4ab47c3ab164a1c505e5d18b91ffb5969`（nail 分支 `1775594`）+ mw-e2e-ha `a78c524` / `a78c524f08fe89705f96200acd74045339b613ce`（nail 分支 `ee63f53`）。
+- [ ] Trio stays **OPEN 1/1/1**（`pnpm e2e:isolated` · `pnpm e2e:ui:isolated` · `pnpm verify:e2e-performance`；历史实跑 EXIT 1/1/1 · honesty_red retained）。trio 翻绿仍须**未来授权下的新鲜 trio CMD+EXIT @ committed SHA + post-prove dual**；本刀不跑、不授权、不预挂 EXIT。
+- 原值不动：`g7SuiteGreen=false` · r1 **OPEN**（`r1Closed=false`）· TECH_ROLE Disclosure-1 **OPEN**（TECH_ROLE=0 不是 R1）· `techRoleFailClosedOptOutG7Only=true` · coveredCount=**8** · `e2e-requirement-coverage-matrix.md` 零触碰。
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered. actualSpendCny stays null. No invented spend.
+- Nail tip = 本 commit（branch `line/l-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
