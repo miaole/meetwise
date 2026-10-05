@@ -63,8 +63,8 @@ haStatus=**NOT_HA** · releaseEvidence=**false** · claimProductionHA=**false** 
 | 项 | 值 |
 |----|----|
 | PRE dual tip（start worktree） | `986260120f5910606043b03fb66c6a742636f219` |
-| Runner-first（pre-wire · EXIT1） | `6078912f4b9e2f527f0f6013a3d90aa681001971` |
-| **CODE_SHA = PROVE tip（exact）** | `457102409eacdce49551bd37ecbd24f97d050ec9` |
+| Runner-first（pre-wire · EXIT1） | `fe411fa6997f3d32a3cdcc629e840be238ed5792` |
+| **CODE_SHA = PROVE tip（exact）** | `a8b98fcaaa8c314fd8e25437ff015f59dce05d93` |
 | Code files | `interview.service.ts`（FAULT 独立块）· `uc-e2e-025-nhp-fault.proof.ts`（@ runner）· `package.json` / `apps/api/package.json`（@ runner） |
 | Tree at prove | clean of AA product paths（symlinks local-only · not committed） |
 
@@ -72,15 +72,15 @@ haStatus=**NOT_HA** · releaseEvidence=**false** · claimProductionHA=**false** 
 
 ## Prove runs
 
-### Pre-wire honesty（runner tip `6078912` · product unwired）
+### Pre-wire honesty（runner tip `fe411fa` · product unwired）
 
-CMD: `pnpm uc025:nhp-fault:prove` · Start `2026-10-06T00:32:24+08:00` · End `2026-10-06T00:32:26+08:00` · **EXIT=1** · `GAP GAP-UC025-FAULT-01 … unwired`
+CMD: `pnpm uc025:nhp-fault:prove` · Start `2026-10-06T00:32:24+08:00` · End `2026-10-06T00:32:26+08:00` (pre-rebase runner tip; post-rebase runner=`fe411fa`) · **EXIT=1** · `GAP GAP-UC025-FAULT-01 … unwired`
 
-### Committed prove（CODE_SHA `4571024`）
+### Committed prove（CODE_SHA `a8b98fc`）
 
 | CMD | Start (Asia/Shanghai) | End | EXIT |
 |-----|------------------------|-----|------|
-| `pnpm uc025:nhp-fault:prove` | `2026-10-06T00:32:51+08:00` | `2026-10-06T00:32:57+08:00` | **0** |
+| `pnpm uc025:nhp-fault:prove` | `2026-10-06T00:33:35+08:00` | `2026-10-06T00:33:42+08:00` | **0** |
 | `pnpm uc025:nhp-neg:prove` | same window | — | **0**（frozen · Ban wash · not FAULT evidence） |
 | `pnpm uc025:nhp-bound:prove` | same window | — | **0**（Ban wash · not FAULT evidence） |
 
@@ -110,4 +110,4 @@ EXIT0 ≠ covered ≠ FAULT column flip ≠ row flip · coveredCount stays **8**
 
 NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503
 
-*Receipt · NHP-025-FAULT-01 · Line AA prove · CODE_SHA 4571024 · EXIT0 · awaiting_post_prove_dual · gap · Ban self-nail · STOP*
+*Receipt · NHP-025-FAULT-01 · Line AA prove · CODE_SHA a8b98fc · EXIT0 · awaiting_post_prove_dual · gap · Ban self-nail · STOP*

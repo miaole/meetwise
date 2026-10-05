@@ -149,8 +149,8 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ## Line AA prove（授权 coding+prove · retained）
 
 - **PRE dual BOTH PASS**：mw-e2e-ha `fbd47ac` + mw-rag-route `9862601`（REQUEST `448a33e`）。
-- **Runner-first**：`6078912f4b9e2f527f0f6013a3d90aa681001971` · pre-wire `pnpm uc025:nhp-fault:prove` **EXIT=1**（GAP honest）。
-- **CODE_SHA / PROVE tip**：`457102409eacdce49551bd37ecbd24f97d050ec9`。
+- **Runner-first**：`fe411fa6997f3d32a3cdcc629e840be238ed5792` · pre-wire `pnpm uc025:nhp-fault:prove` **EXIT=1**（GAP honest）。
+- **CODE_SHA / PROVE tip**：`a8b98fcaaa8c314fd8e25437ff015f59dce05d93`。
 - **HTTP/error pin**：**409 CONFLICT · `{ error: 'missing_quiz_expiry' }`**；NULL / NaN fail-closed；C-1 **supersede**（NULL≠stale_quiz 窄保留）。
 - **CMD**：`pnpm uc025:nhp-fault:prove` → **EXIT=0** @ CODE_SHA；回归 `uc025:nhp-neg:prove` + `uc025:nhp-bound:prove` 仍 **EXIT0**。
 - **Evidence**：in-process `InterviewService.begin` + fake DB · **≠** isolated PG/HTTP · Ban narrate as isolated/covered。
@@ -159,4 +159,4 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ---
 
-*Harness · NHP-025-FAULT-01 · Line AA prove · CODE_SHA 4571024 · EXIT0 · 409 missing_quiz_expiry · C-1 supersede · NaN fail-closed · evidence in-process · awaiting_post_prove_dual · row+FAULT gap · coveredCount=8 · Ban self-nail · STOP*
+*Harness · NHP-025-FAULT-01 · Line AA prove · CODE_SHA a8b98fc · EXIT0 · 409 missing_quiz_expiry · C-1 supersede · NaN fail-closed · evidence in-process · awaiting_post_prove_dual · row+FAULT gap · coveredCount=8 · Ban self-nail · STOP*
