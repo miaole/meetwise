@@ -1,6 +1,8 @@
-# Harness — **NHP-001-NEG-01 · UC-001 NEG blind→case**（Line Y · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · 主链 stays blind · ≠ covered）
+# Harness — **NHP-001-NEG-01 · UC-001 NEG blind→case**（Line Y · NAIL · **`post_prove_dual_pass`** · case ≠ covered · 主链 may stay blind）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove 执行 · Ban live · Ban fake-green suite · Ban push · Ban self-approve）
+**Status**: **`post_prove_dual_pass`**（Line Y nail · NHP-001-NEG-01 case evidence · prove EXIT=0 · dual BOTH PASS · **EXIT0 = case ≠ covered** · UC-E2E-001 NEG stays **blind**/`case-only` · Ban invent covered · Ban flip covered · Ban wash 011/017/neg:auth · Ban live · Ban fake-green suite · Ban Meridian · Ban HA claim · Ban coding · Ban secrets · Ban force-push · Ban self-approve beyond this authorized nail）
+
+> **REQUEST-era note（historical · retained）**: this file began as REQUEST `draft:awaiting_pre_exec_dual`. Prove tip **`ff74522`** · code **`1761311`** · CMD `pnpm uc001:nhp-neg:prove` **EXIT=0**（N1 402 · N2 401 · asserts=26）· post dual mw-e2e-ha `3b605ac` + mw-rag-route `51c0c0b` BOTH PASS. Lifecycle advanced to **`post_prove_dual_pass`** by Line Y nail only.
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-05
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`6a79946`** / full `6a79946ae5bb4b2148e0d63d3b7f66d64a1e51df`
@@ -71,4 +73,21 @@ Not a pass · not run · not covered · not live · not suite green · not trio 
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · Ban live · Ban fake-green suite · STOP
 
-*Harness · NHP-001-NEG-01 · UC-001 NEG blind→case · awaiting_pre_exec_dual · STOP*
+
+
+---
+
+## Line Y NAIL lifecycle（`post_prove_dual_pass` · 2026-10-05 · additive）
+
+- Lifecycle on this harness/slice/receipt: **`post_prove_dual_pass`**.
+- Prove tip NAILED TO: `ff74522ac4db4ad661e72265e50ad8d860a68812`.
+- Code: `1761311c81e48e43d74c778b36bc86e0cebb6150` · CMD `pnpm uc001:nhp-neg:prove` **PROVE_EXIT 0** · N1 **402** `insufficient_entitlement` · N2 **401** PrincipalGuard · asserts=26 failed=0 · one-shot · Ban live.
+- POST dual BOTH PASS: mw-e2e-ha `3b605ac42cf5c98791d6af169c5d4a84760e8db3` + mw-rag-route `51c0c0b6c59ee27f804ed0ff9660930b9b85d0b5`.
+- Receipt cross-ref: `receipts/2026-10-05-nhp-001-neg-01-blind-to-case-prove.md`.
+- **EXIT0 = case ≠ covered** · UC-E2E-001 NEG / §1.1 stay honesty-required wording（NEG **blind**/`case-only` · UC **partial**/blocked）· coveredCount=**8** · Ban invent covered · Ban flip covered · Ban wash 011/017/neg:auth.
+- Pins unchanged: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503.
+
+---
+
+*Harness · NHP-001-NEG-01 · Line Y NAIL · 2026-10-05 · lifecycle post_prove_dual_pass · prove tip ff74522 · EXIT 0 · N1 402 · N2 401 · post dual 3b605ac+51c0c0b PASS · EXIT0 = case ≠ covered · Ban invent covered · Ban wash · Ban live · Ban Meridian · Ban HA · releaseEvidence=false · STOP*
+
