@@ -28,4 +28,8 @@ Ban coding · Ban prove · Ban push · Ban B'' NEG wash · Ban edit begin quiz p
 
 Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503.
 
-*Slice · NHP-025-BOUND-01 · awaiting_pre_exec_dual · gap · STOP*
+## Line W prove（awaiting post-prove dual）
+
+PRE dual PASS（e2e `df6a897` + rag `cdcd11f`）→ CODE `6853e17` → `pnpm uc025:nhp-bound:prove` EXIT=0（409 `resume_version_mismatch`）→ receipt `receipts/2026-10-05-nhp-025-bound-01-version-pin-prove.md`。Row stays gap · coveredCount=8 · NEG frozen · Ban self-nail。
+
+*Slice · NHP-025-BOUND-01 · prove done · awaiting post-prove dual · gap · STOP*

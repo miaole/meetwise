@@ -13,7 +13,7 @@
 
 ## 选面（FAULT vs BOUND · 诚实裁决 · 本刀钉死 BOUND）
 
-矩阵 `e2e-requirement-coverage-matrix.md:125`：UC-E2E-025 NEG 格长注 B'' 真接线（`stale_quiz` 409 @`interview.service.ts:209` · `GAP-UC025-NEG-01` **CLOSED（wired）**）· **FAULT gap · BOUND gap · ADV blind** · 行 stays **gap** · coveredCount=8。
+矩阵 `e2e-requirement-coverage-matrix.md:125`：UC-E2E-025 NEG 格长注 B'' 真接线（`stale_quiz` 409 @`interview.service.ts:209`〔矩阵原文引用；**抛点实为 `:222`**，`:209` 为注释行——Line W docs-align，矩阵 SSOT 本刀不改〕 · `GAP-UC025-NEG-01` **CLOSED（wired）**）· **FAULT gap · BOUND gap · ADV blind** · 行 stays **gap** · coveredCount=8。
 
 P1-8（矩阵 `:274`）：「仍缺 **resumeVersion pin** + 重押题入口」。
 
@@ -36,7 +36,7 @@ scenarios `e2e-scenarios.md:331-347`：E-简历变更「关联 `resumeVersion` �
 
 `e2e-scenarios.md:340-347`：E-简历变更 / A2 / TC-E2E-025-version-mismatch。
 
-`interview.service.ts:209-222`：B'' stale/expires_at 守卫（NEG）；**无** resumeVersion 比较。
+`interview.service.ts:209-222`：B'' stale/expires_at 守卫（NEG）；**无** resumeVersion 比较。〔REQUEST 时点。Line W 授权 coding 后 @`6853e17`：NEG 块 `:207-223`（throw `:222`）逐字节未动；BOUND 守卫新增 `:225-248`（throw `resume_version_mismatch` 409 @`:246`），先于 bind `:268` / reserve `:309` / enqueue `:317`。〕
 
 `non-happy-path-perf-load-case-matrix.md:84`：仅 `NHP-025-NEG-01`（无 BOUND 行——本刀 case 名新增，矩阵行登记留 nail）。
 
@@ -76,4 +76,14 @@ Not a pass · not run · not covered · not BOUND partial · not FAULT knife · 
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · row stays gap · BOUND choice documented · STOP
 
-*Harness · NHP-025-BOUND-01 · UC-025 BOUND version-pin · awaiting_pre_exec_dual · gap · STOP*
+## Line W prove（授权 coding+prove · 协调方 meetwise · **awaiting post-prove dual**）
+
+- **PRE dual BOTH PASS**：mw-e2e-ha `df6a897` + mw-rag-route `cdcd11f`（REQUEST `73b9d85`）。
+- **CODE_SHA**：`6853e177adedd9c35e88d9c1acaa98899744d6be`（product guard + prove 脚本 + pnpm script）。
+- **HTTP/error pin（本刀钉死）**：**409 CONFLICT · `{ error: 'resume_version_mismatch' }`**；pin = 押题工件 0061 typed `(resume_id, privacy_epoch)`；失配 = begin resume-id ≠ pin resume_id，或 pin epoch ≠ 简历当前 epoch（含简历行不可见）。NULL pin（旧工件）不假拒。不带 quiz-id 完全跳过。
+- **CMD**：`pnpm uc025:nhp-bound:prove` → **EXIT=0** @ code SHA；接线前同脚本 **EXIT=1**（GAP marker）已核。
+- **证据层诚实**：静态 inventory + 真 `InterviewService.begin` 进程内跑（记录型 fake DB client）；**≠** HTTP/PG 端到端 · **≠** covered · **≠** nail。
+- Receipt：`receipts/2026-10-05-nhp-025-bound-01-version-pin-prove.md`。
+- 行 stays **gap** · coveredCount=**8** · NEG B'' frozen（Ban wash）· FAULT gap · ADV blind · canHonestlyFlip=false · **Ban self-nail**。
+
+*Harness · NHP-025-BOUND-01 · UC-025 BOUND version-pin · prove done · awaiting post-prove dual · gap · STOP*
