@@ -12,6 +12,8 @@ export { buildMockInterviewGraph } from './mock-interview.ts';
 export { buildReportGraph } from './report.ts';
 export { validateReportContent } from './report.ts';
 export type { InterviewSummary, ReportContent, GenerateReport } from './report.ts';
+export { buildCareerPathGraph, runCareerPathGraph, selectCareerPathDerive, CAREER_PATH_GRAPH_NAME, CAREER_PATH_INJECTED_FAILURE } from './career-path.ts';
+export type { DeriveCareerPath, CareerPathRun, CareerPathRunLedger } from './career-path.ts';
 
 export {
   buildAdaptiveInterviewGraph,
