@@ -43,3 +43,66 @@ Trio stays **OPEN 1/1/1**（收据不自动翻转状态）. `g7SuiteGreen=false`
 ---
 
 *Stub · awaiting expert pre-exec dual · STOP*
+
+---
+
+# PRE-EXEC dual · G7 trio 新鲜跑刀 · mw-e2e-ha（docs gate only · Ban prove · Ban coding · Ban product edit · Ban 改共享 SSOT · Ban live · Ban 授权实跑）
+
+**Reviewer**: `mw-e2e-ha`（独立审查 · 非实现方 · Ban self-approve · alone ≠ dual · 不代签 `mw-model-op`）
+**Review date**: 2026-10-05
+**Worktree**: `/workspace/meetwise`（detached at tip `ad8d68e` · branch target `feat/mysql-schema-skeleton`）
+**被审 SHA**: `1c57bb3`（`1c57bb36e79a34b9152bf05d47275e90bfa4c58b` · `docs(model-op): REQUEST G7 trio fresh run (pre_dual)`）
+**Peer alone PASS**: `mw-model-op` @ tip `ad8d68e`（`ad8d68e5f2536e83668ea07f6c1e224c23b32442` · 仅追加 model-op 审体；e2e-ha REQUEST / harness / slice 自 `1c57bb3` 起字节未变）
+**Docs-only 核实**: `git show --stat --oneline 1c57bb3` = 恰 4 个新增 md（slice / harness / REQUEST·model-op / REQUEST·e2e-ha），+214/−0；零代码 / 零 `package.json` / 零 lockfile / 零 SSOT / 零收据触碰。
+**祖先关系**: `git merge-base --is-ancestor 1c57bb3 HEAD` EXIT=0。**fetch-now**（2026-10-05 ~23:10 +0800）：`origin/feat/mysql-schema-skeleton` = `ad8d68e`（peer PASS 已入 tip）。Parent tip 钉 `377e7fc` 仍为 docs 基线，not a prove tip。
+**本审未跑**: 零 `pnpm e2e:isolated` / `e2e:ui:isolated` / `verify:e2e-performance`；零 Key；零 `.env*`；零 model API。本 PASS **不授权**实跑。
+
+## 检查表（file:line 证据 · 本 worktree 实读）
+
+1. **wiring @`377e7fc` 独立重数**（`git show 377e7fc:package.json | grep -n`）：`e2e:isolated`=`:246` · `e2e:ui:isolated`=`:247` · `verify:e2e-performance`=`:250`。与本 stub:31–33 / harness §1 / slice 表一致。`1c57bb3` docs-only 未动 `package.json`。
+2. **历史失败基线如实**（harness §2 · stub:31–33）：三 CMD 历史 EXIT **1/1/1** · FIX 末次实跑 · iso 21s quota-403 · ui 10P/2F/10S · perf HTTP full E2E fail。**不**把历史 EXIT 写成现状绿；trio stays **OPEN 1/1/1**。
+3. **attempt 台账 / 恰一次 / 预期 EXIT=1**：stub:34–35 · harness §3.3 · slice:24–25 · Ban retry-to-green · Ban 只留绿 · Ban EXIT=1→flake · env-gap 须入 FAIL 原因。本审不预claim 任何 post-commit EXIT。
+4. **Ban live**：stub:36 · harness §3.5/§5 · slice:24–28 贯穿。零 Key 加载安排；`actualSpendCny=null`；Key-blocked / `g7_path_disabled` ≠ pass/not_run wash；chromium 可装且 **chromium ran ≠ UI green**。
+5. **收据落点**：`receipts/g7-trio-fresh/` 四文件约定在 harness §3.7 / stub:37；**本审实测该目录 ABSENT**（不预建不预填属实）。
+6. **诚实条款 / pins**：`g7SuiteGreen=false` · Disclosure-1 OPEN · `r1Closed=false` · `techRoleFailClosedOptOutG7Only=true` · coveredCount=**8** · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 —— stub Pins 表:14–24 · harness:7–8 · slice:47–50 **无翻转**。跑绿一条 ≠ suite green；EXIT=0 ≠ covered ≠ HA；quota-403 removed ≠ suite green。
+7. **边界**：零产品 / 零 prove 脚本 / 零 SSOT / 历史收据零改写 / nail 另授权 / Dual PASS ≠ coding ≠ 实跑 ≠ nail（stub:41 · harness:59–64 · slice:47–50）。
+8. **强制 erratum 抽查**（独立 git）：
+   - `cc8050d` = 2026-09-23 · `feat(g7): wire FreeTierOnly guards…`
+   - `82981ff` = 2026-09-23 · `fix(g7): guard all outbound model paths…`
+   - `b1d7b22` = **2026-10-02** · `test(g7): drop fail-open tautology…` · **1 file / 2-line test only** · = `offlineProvesAtCodeSha` · **≠** quota-403 移除
+   - SSOT `gap-bug-backlog.md:367`：**禁止写「`b1d7b22` @ 2026-09-23」**；正确归因 **2026-09-23 `cc8050d`→`82981ff`**
+   - **违写仍在**：harness `g7-trio-fresh-run.md:32` 写「quota-403 移除（`b1d7b22` @ 2026-09-23）」；peer model-op stub:31 同款。**本 e2e-ha REQUEST stub + slice 无该禁写配对**。按 erratum「归档不改写」+ peer C-2 先例 → **Condition C-2**，非 Blocker。
+
+## Fail-trigger audit
+
+- F1 历史绿暗示现状绿：未触发。
+- F2 R1/TECH_ROLE 洗白：未触发（Disclosure-1 OPEN retained）。
+- F3 live / Key 安排：未触发。
+- F4 `g7SuiteGreen` 翻转 / 假绿 suite：未触发。
+- F5 改 SSOT / covered / UC 行：未触发（`1c57bb3` 恰 4 md）。
+- F6 retry-to-green / flake 记法：未触发。
+- F7 预claim EXIT / 预建收据：未触发（目录 ABSENT）。
+- F8 erratum 口径倒退：**部分触发（Condition）**——harness:32（+ peer stub:31）复写禁写「`b1d7b22` @ 2026-09-23」；「≠ suite green」结论正确；材料事实不变；登记 C-2。
+
+## Blockers
+
+无。
+
+## Conditions
+
+- **C-1（双签 / alone≠dual）**：Peer `mw-model-op` PASS @`ad8d68e` 在本签前为 alone。本 PASS = `mw-e2e-ha` 半签。双签齐后仍须**协调方另行授权**方可实跑；Ban live 贯穿；implementer 不自批。Dual PASS ≠ coding ≠ 实跑 ≠ nail。本文件不代签 peer。
+- **C-2（强制 erratum · quota-403 归因）**：harness `g7-trio-fresh-run.md:32`（+ peer stub:31）违写「`b1d7b22` @ 2026-09-23」。正确：quota-403 移除 = **2026-09-23 `cc8050d`→`82981ff`**；`b1d7b22` = **2026-10-02** FR2 tautology drop / `offlineProvesAtCodeSha` only。归档 stub/harness 不改写；凡 receipt/`SUMMARY` 涉 quota-403 root cause 须正确归因并连带引用 `gap-bug-backlog.md:367`；nail 阶段 SSOT 登记本违写与更正指引（须协调方另行授权）。
+- **C-3（恰一次 · EXIT 如实）**：三 CMD 各一次；红了不重跑；Ban retry-to-green / 只留绿 / EXIT=1→flake；预期 EXIT=1；env-gap 入 FAIL 原因。
+- **C-4（Ban live）**：零 Key / 零 `.env*` / 零 model API；`actualSpendCny=null`；Key-blocked / `g7_path_disabled` ≠ pass/not_run wash；chromium 可装但 chromium ran ≠ UI green。本审自身未跑、不授权实跑。
+- **C-5（收据卫生）**：落点 `receipts/g7-trio-fresh/` 四文件；逐 case FAIL（case 名+原因+分类）；Ban secrets；原始日志 `.tmp/`。
+- **C-6（禁假绿 / pins）**：`g7SuiteGreen=false` · trio OPEN 1/1/1 · Disclosure-1 OPEN · pins 原值全保持；历史 EXIT≠suite green；quota-403 removed ≠ trio/suite green；EXIT=0 ≠ covered ≠ HA。
+- **C-7（零产品 / 零 SSOT）**：Ban product/prove/`package.json`/lockfile/SSOT 改动；nail 另授权；历史收据零改写。
+- **C-8（行号时效）**：wiring 以授权时 tip 重核；实跑 SHA = worktree HEAD；receipt commit ≠ 实跑 SHA。
+
+## 中文三行摘要
+
+1. 被审 `1c57bb3` docs-only 四 md；wiring `@377e7fc` `:246/:247/:250` 独立重数属实；历史 EXIT 1/1/1 基线如实；收据目录未预建；pins / Ban live / 恰一次 / 预期 EXIT=1 全在。
+2. Blockers 无。主 Condition：harness:32 违写禁写「`b1d7b22` @ 2026-09-23」——正确归因 `cc8050d`→`82981ff`（C-2）；本 e2e-ha stub/slice 无该禁写。
+3. 本 PASS = docs gate 半签，与 peer 合为 dual 材料；alone≠dual 已消，但仍须协调方授权才可实跑。Dual PASS ≠ coding ≠ 实跑 ≠ nail ≠ G7 green ≠ HA。coveredCount=8。
+
+Verdict: PASS
