@@ -358,3 +358,15 @@
 - **证据链**: `pnpm uc004:career-path-fault:prove` `ATTEMPT-2-FI1-CONNECTION-BREAK` EXIT=1（子进程 exit_code=1；stderr `Emitted 'error' event on Client instance` @ pg@8.22.0 `client.js:199/417`）· receipt `receipts/2026-10-03-gap-uc004-fault-real-evidence-prove.md` §2/§4 · post-prove dual mw-rag-route `aafdffbe` + mw-e2e-ha `4d8dc5d`（独立 grep：`principal.ts` 全文件无 `on('error')` / `uncaughtException` 兜底）· 静态复核 pg-pool@3.14.0 `makeIdleListener`。
 - **Status**: **OPEN**（not fixed · not mitigated · 本刀 Ban invent fix 已遵守）。修复方向（仅供未来产品刀评估，非授权）：池级 `error` 监听 + 坏客户端报废 + 进程健康兜底；修复须独立 REQUEST + 授权 + 自身 prove + dual。
 - Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+
+### G7 trio/disclosure/techrole docs 对齐 L（2026-10-03 SSOT nail · `post_prove_dual_pass` · docs only · trio stays OPEN）
+
+- **G7-L-DOCS-ALIGN-NAIL** · Line L docs 对齐已落并 post-prove 双审 PASS · not a suite close · not G7 green · implementer does not self-approve. 零新 prove · 零产品改动 · `not_run:no_coding_authorize` · `e2e-requirement-coverage-matrix.md` 零触碰.
+- 链路: REQUEST `0345315` / `0345315d19c92f038519e6e4b5ebd680f36c6441` · pre-exec dual PASS mw-model-op `b8dfb62` + mw-e2e-ha `a474ca4` · EXEC docs 对齐 `13fbeec`（nail 分支 cherry-pick `3741bda`，patch-id 一致）· post-prove dual PASS mw-model-op `cd8fced`（nail `1775594`）+ mw-e2e-ha `a78c524`（nail `ee63f53`）· Nail tip = 本 commit（branch `line/l-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）.
+- 已落产物: `harness/g7-trio-current-state-alignment.md` + `harness/g7-trio-offline-receipt-index-alignment.md`. **时序 erratum**: A″ Key×3 re-run 实跑（2026-09-17 ~19:29–19:37 PT）早于 FIX Key×3 fix 实跑（~20:04–20:17 PT）——正确顺序 **A″ → FIX**（model-op C-2 / e2e-ha C-1 登记）；REQUEST stub（model-op）`:33`「此后 A″」为时序倒置措辞之 erratum，stub 归档不改写，**凡引用 stub `:33`「此后 A″」处须连带引用本 erratum**.
+- **强制 erratum（e2e-ha C-5）**: `b1d7b22` = **2026-10-02** FR2 tautology drop（`test(g7): drop fail-open tautology in FR2 dispatch assertion`）且为 `offlineProvesAtCodeSha`；quota-403 移除 = **2026-09-23** `cc8050d`→`82981ff`. **禁止写「`b1d7b22` @ 2026-09-23」**；A″/FIX 两刀（2026-09-17）均早于上述两事件.
+- [ ] Trio stays **OPEN 1/1/1**（`pnpm e2e:isolated` · `pnpm e2e:ui:isolated` · `pnpm verify:e2e-performance`；历史实跑 EXIT 1/1/1 · honesty_red retained · 末次实跑=FIX）. trio 翻绿仍须**未来授权下的新鲜 trio CMD+EXIT @ committed SHA + post-prove dual**；本刀不跑、不授权、不预挂 EXIT.
+- 原值不动: `g7SuiteGreen=false` · r1 **OPEN**（`r1Closed=false`）· TECH_ROLE Disclosure-1 **OPEN**（TECH_ROLE=0 不是 R1）· `techRoleFailClosedOptOutG7Only=true` · coveredCount=**8**.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered. actualSpendCny stays null. No invented spend.
+- Evidence: `harness/g7-trio-current-state-alignment.md` · `harness/g7-trio-offline-receipt-index-alignment.md` · `harness/g7-trio-disclosure-techrole-honesty.md`.
+- Sibling sections stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
