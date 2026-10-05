@@ -106,4 +106,79 @@ Row **`UC-E2E-002`** ADV column stays blind/case-only. Case `NHP-002-ADV-01` sta
 2. 口径裁决：接受「如实披露 + Ban 改产品凑 403」——404 不泄露是 `e2e-scenarios.md:90`/:93 原文机制且严格更安全，分歧定性为文档间口径不一致而非产品缺陷；加码 C-ADV-1 要求期望→实际映射表入 receipt，禁止静默归一或回写矩阵。
 3. 无 Blocker；8 条 Conditions（C-ADV-1…8）锁死映射表披露、V6 环境口径、receipt 卫生、V3 可复核、EXIT1 台账、gap id nail 期登记、403 禁改与范围锁；Pins 八项原值不变，row `UC-E2E-002` ADV 保持 blind/case-only，EXIT 0 ≠ 翻行 ≠ covered，alone ≠ dual 不代签 mw-rag-route。
 
+---
+
+# POST-PROVE dual 审查 — **mw-e2e-ha**（adversarial evidence-honesty · NHP-002-ADV-01 复验）
+
+**Status**: **POST-PROVE DUAL PASS**（本审仅 mw-e2e-ha 一方签署 · alone≠dual · 不代签 mw-rag-route）
+**Reviewer**: `mw-e2e-ha` · 独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-rp-e2e-ha`（branch `rv/rp-e2e-ha`）
+**被审包**: `line/r-next-nhp` @ `a8c5812`（parent `f31f682` REQUEST）· 恰 5 文件 +696/−1
+**Date**: 2026-10-05
+
+## 1. Fresh re-run（C-DUAL-FROM-FRESH · 恰好一次 · 禁重试已遵守）
+
+| CMD | EXIT | 备注 |
+|-----|------|------|
+| `pnpm install --frozen-lockfile` | **0** | 本审 worktree 全新安装（pnpm v10.18.0 · 9.2s） |
+| `pnpm uc002:adv:prove` | **0** | **77 PASS / 0 FAIL**（`grep -c '^PASS'`=77 · `'^FAIL'`=0）· fresh 容器 `meetwise-e2e-17573-1791203563215` @ `127.0.0.1:59388` · runner receipt `exitCode=0 outcome=passed releaseEvidence=false` · `TEARDOWN pool.end OK` · 运行后 `docker ps -a` 残留=0 |
+
+Fresh 输出与 receipt 逐项一致：`ENV_RECORD AUTH_DEV_HEADER=1 NODE_ENV=<unset>` · `V2_OVERBOUND status=200 ids=[] kinds=[]` · `V3_REPLAY1_SEQ=3,4,5` / `V3_REPLAY2_SEQ=3,4,5` / `V3_REPLAY3_SEQ(led=4)=5` / `KINDS=[progress,question_ready,waiting_user]` · MAP V1–V6 六行 + DISCLOSED-D1–D4 + BLIND-KEEP 全部原样打出 · `EXIT-GATE V1–V6 全成立`。**与实现方声称无任何不一致；未发生不一致情形，故无重大发现可记。**
+
+## 2. 包完整性（git 证据）
+
+- `git diff --numstat f31f682 a8c5812`：恰 5 文件，+696/−1（receipt +261 · proof.ts +420 · root package.json +2 · apps/api/package.json +1 · run-e2e-isolated.mjs +12/−1）。
+- `git diff f31f682 a8c5812 -- apps/api/src packages` **空输出** → 产品源码零 diff；四既有 prove 文件（uc002:http/uc002:lease/uc010:sse-resume/uc033）与 UC-018/052/025/004/014·026 文件、SSOT（矩阵/backlog/checklist）均不在 diff 名单 → 零 diff。三层 CMD 注册与 `uc002:http:prove` 先例同形态（root `:prove`/`:raw` + runner allowlist/`isolatedReceiptSources`/dispatch 三处 + apps/api `prove:uc002-adv`）。
+
+## 3. 断言抽查（proof.ts file:line）
+
+- **V4 逐字节一致**：`uc-e2e-002-adv-led-crossuser.proof.ts:270-271` `jsonOf(other.body) === jsonOf(ghost.body)`（越权 404 vs 不存在 id 404），另 :269 ghost 同 404、:272-278 no-leak 三断言（属主键差集 / display_code·question·progress 子串 / 属主与 stream 标识零回显）。
+- **V5 单键 `{error}`**：:300-301 `[v0,v2,vbad].every(keysOf(r.body).length===1 && [0]==='error')`；:298-299 无 `seq/kind/payload` 键；:302-303 非 SSE 流；:315 SSE 路径直读 404。
+- **V6 五类 401**：:328 无令牌 `unauthenticated` · :331 坏令牌 `invalid_token` · :334 sentinel Bearer `reserved_principal` · :338-339 dev-header sentinel `reserved_principal`（前置 :336 devHeaderActive 按实断言）· :351-352 `NODE_ENV=production`+dev-header `unauthenticated`（进程内瞬态 · :343-349 用毕还原）。与 `principal.guard.ts:54/:55/:65/:63/:68` 逐一对应。
+- **V1 十一种注入**：:198 恰 11 项（`Infinity,1.5,1e3,-1,+1,01,'1 2','',17位溢出,NaN,0x10`），:201-208 每项 3 断言（400 + `invalid_last_event_id` + 非 SSE）×11=33 条。17 位溢出被 `last-event-id.ts:10` 正则 `^(0|[1-9]\d{0,15})$` 拒（归 V1 正确），15 位 `999999999999999` 过正则且为 safe integer（归 V2 越界正确）。
+- **EXIT 不可伪造**：`_neg-harness.ts:33-40` `done()` 按 `A()` 全量计数 `process.exit(fail===0?0:1)`，`AA` 包装不旁路 —— EXIT=0 蕴含 77/77 全过。
+
+## 4. Attempts 性质裁决（attempt1/2 EXIT1 = prove 自身缺陷修复 · 非 retry-to-green wash）
+
+**独立佐证（实现方 worktree `.tmp/isolated-proof-receipts/` 四份 runner receipt JSON）**：exitCode=**1,1,0,0**；时间戳与台账逐秒吻合（attempt1 `11:59:55.787Z→12:00:07.293Z` · attempt2 `12:07:11.505Z→12:07:22.750Z` durationMs=11245 与台账引文一致 · attempt3 `12:10:15.908Z` · attempt4 `12:10:44.237Z→12:11:00.379Z` 即 receipt 附录所引文件）。无任何 attempt 被隐瞒、无 flake 记法。
+
+**sourceDigests 密码学证据（4 份 receipt 交叉比对）**：四次运行 9 个受监源中**唯一变化文件 = `uc-e2e-002-adv-led-crossuser.proof.ts`**（attempt1→2 `544b91…→41ee7c…` = V2 观察窗修正；attempt2→3 `41ee7c…→90bc91…` = teardown drain 修正；attempt3→4 **逐字节相同** = 纯确认跑）。全部产品源（interview.controller/service · last-event-id · principal.guard）与 `_neg-harness.ts`、runner 本身四次 digest 全同 → **产品在整轮 prove 周期零改动（密码学级）**。本审 worktree @a8c5812 六文件 sha256 与 attempt3/4 receipt digest 逐一吻合 → 提交内容即产出 EXIT=0 的内容。
+
+**裁决**：
+- **attempt1**（76/77，唯一 FAIL=`V2 → 200`，客户端 status=0）：诊断 d1 定性为 hijacked-SSE 空 initial replay 时响应头与首个 2s 心跳合并冲刷（headers≈2050ms）> 1200ms 观察窗 → 客户端提前 abort 的**观察缺陷**，产品 replay 语义（`seq>$2 ORDER BY seq` → 0 行）未被任何一次裁决为 FAIL。修正 = 窗 1200ms→4000ms。
+- **加严/放宽裁决**：断言谓词（200 + 零 event 行 + 零副作用）**未放宽一字**；观察窗延长使客户端观测的流段**更长** → no-leak/零事件检查覆盖面**更大**（若产品真有事件外泄，4s 窗比 1.2s 窗更易捕获）。定性为**观察对齐 + 观测面加严**，非放宽、非 wash。
+- **attempt2**（77/77 全过但 pg pool teardown race 非确定崩溃，durationMs=11245 与全绿同量级 → 收尾阶段）：修正 = `TEARDOWN_DRAIN 3.5s` + `pool.end()` race 6s（proof.ts:408-419），仅涉 prove 进程收尾；`POOL_END_NOTE` 如实打印不吞错，EXIT 仍由断言决定。d2 复现不可得支持 race 定性。属**证明进程健壮性修复**，非 wash。
+- 两修复仅触 prove 文件：由上 sourceDigests 证据直接证明（git 单提交 squash 无法逐 diff 复原中间态，本审以 4 份 receipt digest 链代偿验证 —— 如实记此方法学）。
+
+## 5. 条件裁决（本方 pre-exec C-ADV-1~8 逐条）
+
+| # | 条件 | 裁决 | 依据 |
+|---|------|------|------|
+| C-ADV-1 | 404 口径映射表入 receipt（期望→实际→源锚 · 403↔404 折叠 disclosed） | **PASS** | receipt「C-ADV-1」六类三列 + proof `MAP V1–V6` 输出；六处源锚逐一对源核实（`last-event-id.ts:8-18` · `interview.service.ts:164-167/:818/:814-820` · `interview.controller.ts:274/:250-286` · `principal.guard.ts:54-68` 全部命中）；D1 披露原文双落（proof :391 + receipt :62） |
+| C-ADV-2 | V6 环境口径如实记录（dev-header 按实断言 · 生产硬闸瞬态模拟用毕还原 · 不虚断未注入的 401 码） | **PASS** | `ENV_RECORD AUTH_DEV_HEADER=1 NODE_ENV=<unset>`（proof :47-52 · fresh 复跑同值）；:336 前置断言 devHeaderActive；:343-349 restore；receipt :83 明示 `account_inactive/session_revoked` 非本刀注入类未断言其不存在 |
+| C-ADV-3 | receipt 卫生（零 payload 原文 / secrets / 令牌 / 连接串） | **PASS** | 全文复读 receipt+proof 输出：fixture payload 仅 `{"n":k}` 计数占位；no-leak 全以布尔/键差集判定；`V4_OWNER_KEYS` 仅键名无值；无令牌原文（V6 令牌为 `tokenFor()` 进程内现签）；runner receipt `dataHandling=no_output_prompt_answer_token_endpoint_or_connection_string_persisted` |
+| C-ADV-4 | V3 两次重放 seq 列表逐字落 receipt | **PASS** | receipt「C-ADV-4」节 `3,4,5 / 3,4,5 / 5` + KINDS；fresh 复跑输出同值 |
+| C-ADV-5 | EXIT1 全台账 · 禁 retry-to-green · 禁记 flake | **PASS** | 台账 4 prove attempts + 2 诊断全记录；4 份 runner receipt JSON 独立佐证 EXIT=1,1,0,0；两次修正均 prove 侧（digest 证据）→ 非 wash（见 §4） |
+| C-ADV-6 | gap id 未入 SSOT | **PASS** | `grep -rn GAP-UC002-ADV-LED-CROSSUSER` 全树：仅 receipt/harness/proof.ts/两份 review stub 命中，矩阵/backlog/checklist 零命中 |
+| C-ADV-7 | 403 禁改（Ban 凑 403 改产品） | **PASS** | 产品 diff 空（§2）+ 四次运行产品源 digest 全同（§4）；`guardInterviewPrivacy` 404 `not_found_or_forbidden` 原样（interview.service.ts:164-167）；D1 按 scenarios:90 原文口径披露、未回写矩阵 |
+| C-ADV-8 | 范围锁（仅 proof + 三层 CMD 注册 + receipt；不碰 UC-018/052/025/004/014·026） | **PASS** | §2 恰 5 文件清单即授权范围；隔离壳注册零行为改动（diff 仅加清单项/allowlist 项/dispatch 臂）；`node --check`+JSON 解析在 4 次真实运行中已隐式验证 |
+
+## 6. Blockers
+
+无。
+
+## 7. Conditions（随本 PASS 生效 · 不满足则本 PASS 不构成翻行依据）
+
+1. **EXIT0≠covered**：row `UC-E2E-002` ADV 与 case `NHP-002-ADV-01` 维持 blind/case-only；coveredCount=8 不动；翻行须 nail 阶段 SSOT edit + 协调方授权。
+2. **alone≠dual**：本文件仅 mw-e2e-ha POST-PROVE dual 签署；mw-rag-route 并行审查独立进行，本审未读未签。
+3. **403↔404 折叠（D1）为披露口径**：不回写矩阵 :45 原文；后续任何 nail/SSOT 动作引用本行时须携带 D1 披露。
+4. **PERF_api/PERF_web/LOAD_worker 显式 blind 保持**（§1.0.2 :147）：本 PASS 不构成任何 PERF/LOAD 面证据。
+5. attempt1/2 修正仅限 prove 侧（本审已核实产品零改动）：若后续发现产品行为相关差异，本 PASS 不覆盖。
+6. fresh re-run 基于本审环境（本机 docker + `pgvector/pgvector:pg16` 本地镜像 digest `7b822b0a…` canonical/mirror 一致）；不代表 HA/releaseEvidence（仍 false）。
+
+## 8. 三行中文摘要
+
+1. 恰 5 文件 +696/−1、产品零 diff、SSOT 与四既有 prove 文件零触碰；三层 CMD 注册同先例；fresh 全新 install 后恰好一次 `pnpm uc002:adv:prove` **EXIT=0（77 PASS/0 FAIL）**，V3 seq 列表与 ENV_RECORD 与 receipt 逐字一致。
+2. attempts 台账诚实：4 次 EXIT=1,1,0,0 由 4 份 runner receipt JSON 独立佐证；sourceDigests 链证明两处 EXIT1 修复仅触 prove 文件（观察窗对齐=观测面加严非放宽 · teardown drain 仅涉收尾），产品源四次 digest 全同——非 retry-to-green wash。
+3. C-ADV-1~8 全 PASS；映射表六类源锚逐一对源核实；receipt 卫生与 D1–D4/BLIND-KEEP 披露齐备；无 Blockers；row 维持 blind/case-only、翻行待 nail+协调方授权，且 alone≠dual、不代签 mw-rag-route。
+
 Verdict: PASS
