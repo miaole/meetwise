@@ -14,4 +14,11 @@ export class CommerceWebhookController {
   pay(@Param('id') id: string, @Body() b: { providerTxn?: string; sig?: string }) {
     return this.commerce.payWebhook(id, b);
   }
+
+  /** 退款 webhook · GAP-UC011-REFUND-CALLBACK · 对偶 pay/:id（HMAC 标签 refunded）。 */
+  @Post('refund/:id')
+  @HttpCode(HttpStatus.OK)
+  refund(@Param('id') id: string, @Body() b: { providerTxn?: string; sig?: string }) {
+    return this.commerce.refundWebhook(id, b);
+  }
 }
