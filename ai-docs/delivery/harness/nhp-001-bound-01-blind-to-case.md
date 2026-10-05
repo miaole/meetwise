@@ -3,7 +3,7 @@
 **Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove 执行 · Ban live · Ban fake-green suite · Ban push · Ban self-approve）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
-**Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`448a33e`** / full `448a33e2460f919b15af1db6c9c44497dc585b62`（assigned Line AB start tip `f43bea1` / `f43bea12fc7f2e28e7bb0052b6a80811eac47e91` · rebased over Line Z/AA REQUEST landings · Ban touch Z/AA）
+**Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`94a8b2a`** / full `94a8b2aead1b7087115a0ac1af9f790ef2a8f177`（assigned Line AB start tip `f43bea1` / `f43bea12fc7f2e28e7bb0052b6a80811eac47e91` · rebased over Line Z/AA/AC REQUEST landings · Ban touch Z/AA/AC）
 **Knife**: **NHP-001-BOUND-01（Line AB）· 黄金路径 BOUND · 幂等键重复 begin · blind→case/prove 显式化**
 **Gap id**: **`GAP-UC001-BOUND-01`**（本刀具名 · 服务 NHP-001-BOUND-01；不发明 covered）
 **Case id**: **`NHP-001-BOUND-01`**

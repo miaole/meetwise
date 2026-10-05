@@ -3,7 +3,7 @@
 **Status**: **`draft:awaiting_pre_exec_dual`**（docs REQUEST only · Ban live · Ban live default · Ban fake-green suite）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
-**Base**: `origin/feat/mysql-schema-skeleton` · `448a33e2460f919b15af1db6c9c44497dc585b62`（assigned start `f43bea12fc7f2e28e7bb0052b6a80811eac47e91`）
+**Base**: `origin/feat/mysql-schema-skeleton` · `94a8b2aead1b7087115a0ac1af9f790ef2a8f177`（assigned start `f43bea12fc7f2e28e7bb0052b6a80811eac47e91`）
 **Authority**: meetwise — L0 docs only · Ban coding · Ban prove · Ban push · Ban self-approve
 
 ## One-line
