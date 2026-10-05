@@ -684,3 +684,13 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
 - Nail tip = 本 commit（branch `line/m-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+### Line N GAP-E2E-ISO-BANNER-PG-RETAINED 一致性对齐刀 NAIL（2026-10-03 SSOT nail · `post_prove_dual_pass` · docs+banner-note only · gap stays OPEN）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line N alignment cut products only. Implementer does not self-approve. Not a covered flip. **backlog `:63` GAP-E2E-ISO-BANNER-PG-RETAINED 翻转未授权**：stale banner 仍为 named gap（stays OPEN），SOLE_STACK 代码路径对齐另包；`E2E_ISO_STACK_NOTE` **永为 narration-only**，不得引用为 stack truth 或 cutover evidence。coveredCount=**8** unchanged.
+- REQUEST `8cd5ed2` / `8cd5ed2d33c56c1d6bed99b3c9961f9a770c71c2`（docs-only · origin）。Pre-exec dual PASS: mw-e2e-ha `e2d9c8e` / `e2d9c8e73d43dc17dab75b4f17e0354b8cd617a6` + mw-privacy-int `a9a9fec` / `a9a9fececb0010b89ab746f02666128cff05abf5`。
+- 执行 commit `aab0e8b` / `aab0e8b1b8bba59e3bd843f4642ebd42abb22c3e`（branch `line/n-iso-banner-align` · 恰 2 files +5/−0 · 零产品行为变更；nail 分支 cherry-pick `4b7e834` / `4b7e83430c0a78b1dd54986c6dc297532ade0b8b`）：`adr-postgres-retained.md` L39 banner clarify bullet + `run-e2e-isolated.mjs` 4 行 `E2E_ISO_STACK_NOTE`（isolated shell = test infrastructure only · isolated test PG ≠ product stack change ≠ cutover evidence · product stack pin = `adr-postgres-retained.md` · releaseEvidence=false · Not HA）。对齐刀无新 prove 包；`node --check run-e2e-isolated.mjs` EXIT=0（nail worktree 独立复验）。
+- Post-prove dual PASS: mw-e2e-ha `ca1d2b1` / `ca1d2b1e57febc8d466a9d86849696713f248f24`（nail cherry-pick `1837899`）+ mw-privacy-int `39f3ab8` / `39f3ab823ebd71dd14fbeb53a10ba106d733d485`（nail cherry-pick `b5aa89d`）。
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered. R5-MARKED-RED stale banner 原样保留（named gap 不改写）。
+- Nail tip = 本 commit（branch `line/n-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
