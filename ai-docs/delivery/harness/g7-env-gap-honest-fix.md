@@ -1,6 +1,8 @@
-# Harness — **G7 env-gap honest fix track**（Line AC · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · ≠ suite green）
+# Harness — **G7 env-gap honest fix track**（Line AC · NAIL · **`post_prove_dual_pass`** · ≠ suite green）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove 执行 · Ban live · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · Ban fake green · Ban `g7SuiteGreen=true` · Ban self-approve）
+**Status**: **`post_prove_dual_pass`**（Line AC nail · Path A · EXIT **1/1/1** Key-blocked `live_provider_key_missing` · **`g7SuiteGreen=false`** · Disclosure-1 **OPEN** · R1 **OPEN** · Key-blocked ≠ pass · Ban wash suite green · Ban coding · Ban live · Ban Meridian · Ban secrets · Ban force-push · Ban self-approve beyond this authorized nail）
+
+> **REQUEST-era note（historical · retained）**: this file began as REQUEST `draft:awaiting_pre_exec_dual`. CODE `160c30c` · PROVE tip **`7c818c5`** · EXIT **1/1/1** Key-blocked · post dual mw-e2e-ha `fdab68f` + mw-model-op `6f0d015` BOTH PASS. Lifecycle advanced to **`post_prove_dual_pass`** by Line AC nail only. U env-gap cleared via `sg docker` / `scripts/with-docker-session.sh`（Ban sudo/chmod/usermod）.
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`f43bea1`** / full `f43bea12fc7f2e28e7bb0052b6a80811eac47e91`
@@ -98,4 +100,30 @@ Not a pass · not run · not suite green · not trio green · not fixed · not R
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · `g7SuiteGreen=false` · Disclosure-1 OPEN · R1 OPEN · STOP
 
-*Harness · G7 env-gap honest fix track · Line AC · 2026-10-06 · draft:awaiting_pre_exec_dual · docs-only · Ban coding · Ban g7SuiteGreen=true · Ban live · Ban buy cloud · Ban Meridian · Ban fake green · STOP*
+---
+
+## 9. Line AC NAIL lifecycle（`post_prove_dual_pass` · 2026-10-06 · additive）
+
+- Lifecycle on this harness/slice/SUMMARY: **`post_prove_dual_pass`**.
+- **PATH A**: remediable env · U env-gap cleared via `sg docker` / `scripts/with-docker-session.sh`（activate pre-existing docker group · **Ban sudo/chmod/usermod/setfacl**）。
+- Prove tip **NAILED TO**: `7c818c5fe2249cdac686aa2a0e58748b3c5dea68`（do **not** claim a later origin tip as the prove tip）· receipts tip `5481d4ddcb8d119678ec4f70e1b626f8f7b27f1b`.
+- Prove code SHA: `160c30cac7a0a05106120949f337847b782647b7` · **PROVE_EXIT 1/1/1** · Key-blocked `live_provider_key_missing`.
+- POST dual BOTH PASS: mw-e2e-ha `fdab68fd5e4223a27ffa0e2802e13250838fb088` + mw-model-op `6f0d015a96903ee59ad4953089a0a9f0bbe9ed7c`.
+- FAIL class honesty: **env-gap cleared** this host/session · dominant FAIL = **Key-blocked**（`provider/live_provider_key_missing`）· **Key-blocked ≠ pass** · **Ban wash suite green** · **0 model calls** · Ban live.
+- STILL_OPEN: trio **OPEN 1/1/1** · **`g7SuiteGreen=false`** · Disclosure-1 **OPEN** · R1 **OPEN**.
+- Pins unchanged: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503.
+
+### ERRATUM（retained · coordinator wording）
+
+| Role | SHA |
+|------|-----|
+| FreeTierOnly **观察** | **`3424dc1`** |
+| **消除轮** | **`82981ff`** |
+| Ban | writing shorthand **`quota-403=82981ff`** |
+| Ban | writing **`b1d7b22` @ 09-23** for that removal |
+
+Keep siblings（Line U trio-fresh nail · Z/AA/AB REQUEST tracks）as written.
+
+---
+
+*Harness · G7 env-gap honest fix track · Line AC NAIL · 2026-10-06 · lifecycle post_prove_dual_pass · Path A · prove tip 7c818c5 · code 160c30c · EXIT 1/1/1 Key-blocked · post dual fdab68f+6f0d015 PASS · g7SuiteGreen=false · Disclosure-1 OPEN · R1 OPEN · Ban wash suite green · Ban live · releaseEvidence=false · STOP*
