@@ -4,7 +4,7 @@
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Expert**: `mw-rag-route`
 **Knife**: `harness/nhp-001-bound-01-blind-to-case.md` · slice `nhp-001-bound-01-blind-to-case.slice.md`
-**Parent tip**: `448a33e`（full `448a33e2460f919b15af1db6c9c44497dc585b62`）
+**Parent tip**: `94a8b2a`（full `94a8b2aead1b7087115a0ac1af9f790ef2a8f177`）
 **Date**: 2026-10-06
 
 ## Pins（retained · 本 stub 不改）
