@@ -17,6 +17,7 @@
 | Harness | `harness/gap-priv-authz-prove-flake-rootcause-ledger.md` |
 | Dual `mw-privacy-int` | `reviews/REQUEST-2026-10-05-gap-priv-authz-prove-flake-rootcause-ledger-mw-privacy-int.md` |
 | Dual `mw-e2e-ha` | `reviews/REQUEST-2026-10-05-gap-priv-authz-prove-flake-rootcause-ledger-mw-e2e-ha.md` |
+| Ledger（Line X 执行产物） | `receipts/gap-priv-authz-prove-flake/2026-10-05-rootcause-ledger.md` |
 
 ## Ban
 
@@ -24,4 +25,8 @@ Ban coding · Ban prove · Ban push · Ban claim fixed · Ban forge PROCESS_EXIT
 
 Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503.
 
-*Slice · GAP-PRIV-AUTHZ-PROVE-FLAKE ledger · awaiting_pre_exec_dual · OPEN · STOP*
+## Line X ledger 执行（awaiting post-prove dual）
+
+PRE dual PASS（privacy `8f28151` + e2e `9b8f748`）→ docs ledger `receipts/gap-priv-authz-prove-flake/2026-10-05-rootcause-ledger.md`（L1–L6 落证 · 失败 class 账 · attempt EXIT 账 · blob 锚）。无 CMD · 零 prove · 零 forge · 零 SSOT。Gap stays OPEN mitigated/cause-unknown · coveredCount=8 · Ban self-nail。
+
+*Slice · GAP-PRIV-AUTHZ-PROVE-FLAKE ledger · executed · awaiting post-prove dual · OPEN · STOP*

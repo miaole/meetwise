@@ -71,4 +71,13 @@ Not fixed · not closed · not root-caused · not a prove · not teed first-run 
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · GAP-PRIV-AUTHZ-PROVE-FLAKE stays OPEN · STOP
 
-*Harness · GAP-PRIV-AUTHZ-PROVE-FLAKE rootcause/repro ledger · awaiting_pre_exec_dual · OPEN · STOP*
+## Line X ledger 执行（协调方授权 docs-only · **awaiting post-prove dual**）
+
+- **PRE dual BOTH PASS**：mw-privacy-int `8f28151` / `8f281511f81f7900b2610218029eb4d1971ed2eb` + mw-e2e-ha `9b8f748` / `9b8f748e2682019e27d5357bad728d2cb330b902`（REQUEST `5773243`）。
+- **执行产物**：`receipts/gap-priv-authz-prove-flake/2026-10-05-rootcause-ledger.md`——L1–L6 逐行落证（blob / 行号 / SHA 可达性）+ 失败 class 账（cold ECONNREFUSED ×2 份 log · warm 23505 ×1）+ 全部已记录 attempt EXIT 账 + blob 锚。
+- **CMD**：无。**本刀零 prove · 零重跑 · 零 forge**；EXIT 全为引用（attempt-1 JSON 0 vs log 无退出码 → 不同意保留；attempt-2 `PROCESS_EXIT=0` 三角一致 ≠ close；历史 EXIT=1 ×3 保留）。
+- **可达性**：`0c0ab16` / `6673042` 本 clone 不可达，以 `606677d` 树内 blobs 为准（PRE e2e-ha C-7）；`9b39a20`（jsonl L29 tip）存在但非分支祖先——如实披露。
+- 零产品 · 零 `principal.ts` / `checkpoint-principal.ts` · 零 SSOT（matrix / backlog / checklist 未碰）· attempt-1/2 blobs 零漂移。
+- Gap stays **OPEN** · **mitigated/cause-unknown** · Not fixed · Not closed · Not root-caused · coveredCount=**8** · **Ban self-nail**。
+
+*Harness · GAP-PRIV-AUTHZ-PROVE-FLAKE rootcause/repro ledger · executed · awaiting post-prove dual · OPEN · STOP*
