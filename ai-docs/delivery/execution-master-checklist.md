@@ -816,3 +816,19 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · canHonestlyFlip=false. Do not write covered.
 - Nail tip = 本 commit（branch `lineV/nhp-011-adv-01-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written（incl. Line X GAP-PRIV-AUTHZ-PROVE-FLAKE ledger · Line W NHP-025-BOUND-01 · Line Y NHP-001-NEG-01 · Line S PERF · Line T FI-3 · Line U G7 · B'' NEG）. This note does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+
+### Line AC G7 env-gap honest fix Path A NAIL（2026-10-06 SSOT nail · `post_prove_dual_pass` · Path A · EXIT 1/1/1 Key-blocked · ≠ suite green）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line AC G7 env-gap honest fix Path A products only（honesty of Key-blocked red）. Implementer does not self-approve beyond this authorized nail. **Not** suite green. **Not** G7 green. **Key-blocked ≠ pass**. Ban wash suite green · Ban `g7SuiteGreen=true` · Ban coding · Ban live · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · Ban covered flip.
+- REQUEST `94a8b2a` / `94a8b2aead1b7087115a0ac1af9f790ef2a8f177`. Pre-exec dual PASS: mw-e2e-ha `96a5ee2` / `96a5ee2c40e2b0333bc28c1dcfd342477d20bd96` + mw-model-op `7b068de` / `7b068de6234e05929c99d447a031871051cddc6d`.
+- CODE `160c30c` / `160c30cac7a0a05106120949f337847b782647b7`（`scripts/with-docker-session.sh` · Path A `sg docker` activator · **Ban sudo/chmod/usermod**）· prove tip **NAILED TO** `7c818c5` / `7c818c5fe2249cdac686aa2a0e58748b3c5dea68`（receipts tip `5481d4d`）· **PROVE_EXIT 1/1/1** · Key-blocked `live_provider_key_missing` · receipts `ai-docs/delivery/receipts/g7-env-gap-honest-fix/` · **0 model calls**.
+- Post-prove dual PASS: mw-e2e-ha `fdab68f` / `fdab68fd5e4223a27ffa0e2802e13250838fb088` + mw-model-op `6f0d015` / `6f0d015a96903ee59ad4953089a0a9f0bbe9ed7c`（BOTH · honesty of Key-blocked red · alone≠dual）.
+- **PATH A**: U env-gap cleared via `sg docker` / `with-docker-session`（pre-existing docker membership · Ban self-grant）. Class honesty: env-gap → Key-blocked. **Key-blocked ≠ pass** · Ban wash suite green.
+- [ ] Trio stays **OPEN 1/1/1**（`pnpm e2e:isolated` · `pnpm e2e:ui:isolated` · `pnpm verify:e2e-performance`；本轮 EXIT 1/1/1 Key-blocked retained）. Trio/suite 翻绿仍须**未来授权下的新鲜绿收据 + post-prove dual + 协调方授权**；本 nail 不翻 `g7SuiteGreen`.
+- 原值不动：`g7SuiteGreen=false` · R1 **OPEN** · Disclosure-1 **OPEN** · coveredCount=**8**.
+- **ERRATUM**: FreeTierOnly **观察**=`3424dc1` · **消除轮**=`82981ff` · Ban shorthand `quota-403=82981ff` · Ban `b1d7b22` @ 09-23 for that removal.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered. actualSpendCny stays null.
+- Nail tip = 本 commit（branch `line/ac-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written（incl. Line U G7 trio-fresh · Line V · Line X · Line W · Line Y · Line Z/AA/AB REQUEST tracks）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
