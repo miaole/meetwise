@@ -18,6 +18,14 @@ export interface PoolOverrides {
   sslCaPath?: string;
   /** Required when a cloud test runner pins PGHOST to a verified IP address. */
   tlsServerName?: string;
+  /**
+   * Observability-only label for the pool-error log/metric dimension (for
+   * example 'api', 'worker', 'listen', 'migrate').  Never forwarded to pg and
+   * never consulted for connection or TLS resolution; validated so a malformed
+   * label cannot smuggle arbitrary text into structured logs.  Principal,
+   * tenant, connection-string and SQL-shape values are forbidden as labels.
+   */
+  purpose?: string;
 }
 
 export interface RuntimeLoginInput {
@@ -833,9 +841,72 @@ function resolveSsl(o: PoolOverrides): false | { rejectUnauthorized: true; ca?: 
   catch { return invalidDatabaseConfig('database_ssl_ca_unreadable'); }
 }
 
+/** Pool-error labels are infrastructure tags, never free-form text (log-injection guard). */
+const POOL_PURPOSE = /^[a-z0-9_-]{1,64}$/;
+
+/**
+ * Process-local pool-error counter (GAP-PRINCIPAL-POOL-NO-ERROR-LISTENER,
+ * dual-adjudicated candidate B).  Keyed by pool purpose only; never by
+ * principal, tenant, connection target or SQL shape.  It is an observability
+ * gauge, not a health signal: a rising count records faults, it does not
+ * describe recovery.
+ */
+const poolErrorTotal = new Map<string, number>();
+
+/** Read-only counter view for tests and operations (values are never reset). */
+export function readPoolErrorTotal(purpose: string): number {
+  return poolErrorTotal.get(purpose) ?? 0;
+}
+
+/**
+ * GAP-PRINCIPAL-POOL-NO-ERROR-LISTENER: pg surfaces one connection break
+ * through up to two EventEmitter emissions (pg@8.22.0 `Client
+ * ._handleErrorEvent` always `emit('error')` on the client after rejecting the
+ * in-flight queries; pg-pool@3.14.0 `makeIdleListener` re-emits the same error
+ * object on the pool for idle clients).  One break must be recorded exactly
+ * once, so observers dedupe on error-object identity.
+ */
+const observedPoolErrors = new WeakSet<object>();
+
+/**
+ * Fail-closed observability, not recovery (candidate B; candidate C
+ * reconstruction/degrade linkage rejected by both pre-exec reviewers):
+ *   - it exists solely to keep pool/client error emissions observed instead of
+ *     escalating to uncaughtException and killing the whole process (the C''
+ *     prove FI-1 crash);
+ *   - it never swallows or converts errors — in-flight queries are rejected by
+ *     pg itself before this runs and future request-path failures still reject
+ *     their own queries (unified `internal_error` 500);
+ *   - it never reconnects, rebuilds the pool, retries, or flips any
+ *     health/degraded flag;
+ *   - the log line carries only the purpose label, a counter and the pg error
+ *     name/message — never connection strings, credentials, SQL text, or
+ *     principal/tenant identifiers.
+ */
+function observePoolError(purpose: string, error: unknown): void {
+  try {
+    if (error instanceof Error) {
+      if (observedPoolErrors.has(error)) return;
+      observedPoolErrors.add(error);
+    }
+    const count = (poolErrorTotal.get(purpose) ?? 0) + 1;
+    poolErrorTotal.set(purpose, count);
+    const errorName = error instanceof Error ? error.name : 'non_error';
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(JSON.stringify({ event: 'db_pool_error', purpose, count, error_name: errorName, error_message: errorMessage }));
+  } catch {
+    // The observer itself must never become the crash it exists to prevent.
+    // The pool error has already been routed/re-emitted by pg above; this only
+    // keeps the observer from adding a second uncaughtException on top of it.
+    console.error('db_pool_error_observer_failed');
+  }
+}
+
 /** Connection pool factory with explicit, cloud-safe target and TLS resolution. */
 export function createPool(o: PoolOverrides = {}): DbPool {
-  return new Pool({
+  if (o.purpose !== undefined && !POOL_PURPOSE.test(o.purpose)) invalidDatabaseConfig('database_pool_purpose_invalid');
+  const purpose = o.purpose ?? 'default';
+  const pool = new Pool({
     connectionString: resolveDatabaseConnectionString(o),
     ssl: resolveSsl(o),
     // An explicit caller cap is required for singleton resources such as a
@@ -846,6 +917,19 @@ export function createPool(o: PoolOverrides = {}): DbPool {
     connectionTimeoutMillis: Number(process.env.PG_CONN_TIMEOUT_MS ?? 5000),
     idleTimeoutMillis: Number(process.env.PG_IDLE_TIMEOUT_MS ?? 30000),
   });
+  // pg-pool removes its idle error listener while a client is checked out
+  // (`_acquireClient` → `client.removeListener('error', idleListener)`), so a
+  // connection break on a checked-out client leaves the client 'error'
+  // emission unobserved — that is the exact C'' FI-1 crash path.  Attach one
+  // permanent observer per client at creation ('connect' fires exactly once
+  // per client); the pool-level listener below guards the idle re-emission
+  // path (`makeIdleListener` → `pool.emit('error')`).  Dedup keeps the count
+  // at exactly one record per underlying connection break.
+  pool.on('connect', (client) => {
+    client.on('error', (error) => observePoolError(purpose, error));
+  });
+  pool.on('error', (error) => observePoolError(purpose, error));
+  return pool;
 }
 
 /**
