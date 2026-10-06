@@ -29,6 +29,11 @@ After AN-PERF-TEAR ×6 **P-HOLD met**（nail `85a4925` · PROVE `85b9261` · COD
 | POST dual | mw-rag-route `e341d164` + mw-e2e-ha `e6d21d10`（alone ≠ dual） |
 | rewrite ×6 pick | **(b)** A diagnostic non-gating · **(a)** seed redesign deferred |
 
+
+## Companion SSOT
+
+Remaining north-star queue SSOT lands as companion docs on this tip/line: `REMAINING-NORTH-STAR-QUEUE.md`（beyond REQUEST `95ddd88` · **NOT** a second REQUEST · Ban close `:35` via queue alone）。
+
 ## Ban
 
 Ban coding · Ban prove matrix run · Ban product/scripts/packages/apps · Ban AN-CIMG-EA · Ban buy cloud · Ban Meridian · Ban secrets · Ban close `:35` · Ban covered flip / UC-018 covered · Ban claim A proven · Ban wash P-HOLD into CONDITION close · Ban wash af9664a / attempt1 @`b29c191` · Ban claim HA / claimProductionHA · Ban invent green · Ban force-push · Ban self-approve · alone ≠ dual.
