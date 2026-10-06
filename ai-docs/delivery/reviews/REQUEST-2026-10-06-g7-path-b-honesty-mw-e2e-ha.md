@@ -104,3 +104,64 @@ Trio stays **OPEN 1/1/1**. `g7SuiteGreen=false`. `r1Closed=false`. Disclosure-1 
 3. Blockers 无；Conditions C-HA-1 base twin 重钉与 blob 复核 / C-HA-2 Q3 授权闸 / C-HA-3 Q1/Q2 行绑定 / C-HA-4 计数引用卫生；alone ≠ dual · 不代签 mw-model-op（其 stub 保持 PENDING）· PASS ≠ suite green ≠ Key-blocked 消除 ≠ covered。
 
 Verdict: PASS
+
+---
+
+## POST-PROVE dual review — `mw-e2e-ha`（adversarial evidence-honesty · 分类刀执行复验 · 2026-10-07）
+
+**Reviewer**: `mw-e2e-ha`（adversarial evidence-honesty）· 审查文件本段末行 = Verdict · **alone ≠ dual · 不代签 mw-model-op**（其 POST 审并行独立 · 本审不可见亦不代签）
+**Reviewed tip**: `ef7a63e4eeef6f1b1ba4241f72fe6625a4fedb06`（`docs(delivery): G7B exec G7 Path B honesty classification — lifecycle executed:awaiting_post_prove_dual` · branch `line/g7b-path-b-honesty` · origin 镜像 `b6caa6aa`：`git diff b6caa6aa ef7a63e4` 空 = tree 级等同 · reflog 实证经协调方 push 落 `origin/feat/mysql-schema-skeleton`）
+**Review worktree**: `/Users/miaole/Desktop/golucky/meetwise-rv-g7bp-e2e-ha` · branch `rv/g7bp-e2e-ha`（base = `line/g7b-path-b-honesty` @ `ef7a63e4`）· Ban push · 本审查 = docs-only · 零实跑 · 零新 EXIT · 零 SSOT 触碰 · PRE 段（`94f48b9` ≡ `c79219b6` · blob `0ae5bf0b`）本文件内 byte 级保留未动（append-only）
+
+### 包完整性（exec 复验 · 五项）
+
+| # | 项 | 证据（本 worktree 命令级核实） | 判 |
+|---|----|------------------------------|----|
+| P1 | 恰 2 文件 +15/−10 | `git diff --numstat ef7a63e4^ ef7a63e4` = slice +7/−5 + harness +8/−5 恰 2 md · 零产品码 · 零 receipts/ · 零他线归档 | PASS |
+| P2 | ERRATUM byte-identical（C-3） | exec diff 0 触 ERRATUM 行；`diff <(git show d5e6f7e6:<f> \| grep -A6 ERRATUM) <(git show ef7a63e4:<f> …)` harness/slice 双双 ERRATUM-identical；`g7-trio-current-state-alignment.md` blob `0a52f919` @tip = @`63992a3b` 零复写 | PASS |
+| P3 | SSOT/他线零 diff | backlog `cf549377` · execution-master-checklist `65aa8667` · e2e-requirement-coverage-matrix `dacf67fa` @tip = @tip^ 全等；exec diff 不含 SSOT 文件 | PASS |
+| P4 | PRE 段 append-only 保留 | 本文件 blob `0ae5bf0b` @tip = @`c79219b6` = @`94f48b9`；`git diff 94f48b9 ef7a63e4 -- 本文件` 空（byte 级未动） | PASS |
+| P5 | REQUEST twin 同补丁落 tip | pre-exec blob @tip^（`d5e6f7e6`）：slice `e307db6f` / harness `30b873c4` = PRE 审三镜像 blob 全等 → rebase auto-drop 同补丁实证；exec 只在其上叠 lifecycle 元行 | PASS |
+
+### C-HA-1~C-HA-4 逐条裁决（PRE Conditions · POST 复验）
+
+| 条件 | PRE 要求 | POST 证据 | 裁决 |
+|------|----------|-----------|------|
+| **C-HA-1** base 重钉 + gate blob 复核 | EXEC 前把 base 重钉到当时 origin tip 并复核 `c655235c`/`aa86fb3f` 未漂移 | `ef7a63e4` 父 = `d5e6f7e6` = 当时 `origin/feat/mysql-schema-skeleton` tip（reflog `@{1}` · `4766d4fc` 为其祖先）；自验 `git rev-parse`：blob `c655235cd3d747a4237aa137cc74cd4905aa872c`（`scripts/run-e2e.mjs`）/ `aa86fb3f421966d75ff73393b8360aa29f4b6c4c`（`scripts/run-e2e-ui.mjs`）@`4766d4fc` ≡ @`d5e6f7e6` ≡ @tip `ef7a63e4` ≡ @`b6caa6aa`（现行 origin tip）四点全等零漂移 | **满足** |
+| **C-HA-2** Q3 授权闸未被执行阶段启动 | 本 PASS ≠ Q3 授权；mock 面实施须另走独立 REQUEST + pre-exec dual | exec diff 零 mock 产物 · 零新 REQUEST · 零新收据；Q3 行（harness `:91`）+ 排队≠授权注（`:93`）+ mock 条款（`:114`）「独立 REQUEST + 双审 · mock ≠ real-model E2E · 本刀只登记不实施」逐字在位；Status 仅 `awaiting_post_prove_dual`；`post_prove_dual_pass` 全文仅存于 awaiting 措辞 / Ban 条款 / AC 历史题名引用三处，未被自写 | **满足（闸未启动 · 保持）** |
+| **C-HA-3** Q1/Q2 行绑定（BUG-E2E-ISO 行零触碰） | 锚 BUG-E2E-ISO 行 · Ban 重复立卷 · Ban 翻行/G6/R5 | backlog blob `cf549377` @tip = @`63992a3b`（exec 零触碰）；`gap-bug-backlog.md:98` BUG-E2E-ISO P1 行逐字 = PRE 审引文；G6/R5 零翻动；零新增 backlog 行 | **满足** |
+| **C-HA-4** 计数全口径 | 引用计数必须带「Key-blocked 3+3 · 真实产品缺陷 0 确认（unknown≠0）」 | harness §2.4 正文全口径在位（顶层 FAIL 点 3 + 历史 case 族 3 · 0 确认 unknown≠0 · 夹具 1 OPEN+1 REMEDIATED · 环境 0 open）；exec 为 slice footer 补齐同口径全量计数（PRE 时 slice footer 无此行）· 零简写零违例 | **满足（改进）** |
+
+### 分类文档完整性（C1–C11 / Q1–Q3 exec 后零弱化）
+
+- harness 分类矩阵 11 个 C 行（C1–C11）逐行在位 @tip；正文 diff 0 touch（exec 仅动 title/Status/Base/Experts/footer 元行，且以 historical blockquote 保留 pre-exec Status 原文——不抹除 pre-exec era，诚实）。
+- Q1/Q2（harness `:89-90` · P1/P2 锚 BUG-E2E-ISO `gap-bug-backlog.md:98`）与 Q3（`:91` · 独立 REQUEST+双审 · mock ≠ real-model E2E 硬标注）逐字在位；slice `:25` 排队摘要同口径；§3.1 注（`:93`）、§4.3（`:114`）、§6 Non-claims 全段在位。
+- Pins 两文档逐字未动：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · **`g7SuiteGreen=false`** · `r1Closed=false` · `techRoleFailClosedOptOutG7Only=true`；trio OPEN 1/1/1 retained（AC `7c818c5` + AD `880f144` EXIT 1/1/1）。
+- footer 两文档口径 = PRE 审四分类全量：「Key-blocked 3+3 · 产品缺陷 0 确认（unknown≠0）· 夹具 1 族 open + 1 已修 · 环境 0 open」· ≠ suite green · STOP（awaiting POST dual）。
+
+### Fail-trigger audit（POST 复验 · 0 hit）
+
+- exec 未实跑 trio / 未 retry-to-green / 未碰 `run-e2e*.mjs`（gate blob 四点全等）→ 0 hit。
+- exec 未自写 `post_prove_dual_pass`（仅 awaiting / Ban / AC 历史引用）→ 0 hit。
+- exec 零 SSOT 触碰 · 零 ERRATUM 复写 · 零 mock 实施 · 零 live · 零 receipts 新增 · 零他线归档触碰 → 0 hit。
+- lifecycle 措辞诚实：`executed:awaiting_post_prove_dual` + historical blockquote + 「Ban nail until POST BOTH + 协调方」→ 0 hit。
+
+### Blockers
+
+无。
+
+### Conditions（POST 后继续有效）
+
+- **C-HA-1′**：下一把引用本分类的刀（Q1/Q2/Q3 或 nail）开刀前重钉 base 到当时 origin tip（现为 `b6caa6aa`）并复核 gate blob `c655235c`/`aa86fb3f` 零漂移；漂移则分类引证重开复核。
+- **C-HA-2′**：Q3 mock 断言面授权闸保持关闭——须独立 REQUEST + pre-exec dual + 协调方授权；本 POST PASS ≠ 该授权；每份 mock 收据硬标注「mock ≠ real-model E2E」· 禁复用 trio 名义 · 零冲抵 Key-blocked。
+- **C-HA-3′**：Q1/Q2 修复刀保持锚 BUG-E2E-ISO（`gap-bug-backlog.md:98`）；夹具拆分/云 profile 落地 ≠ Key-blocked 消除（C1–C3 仍须 live 刀解锁）。
+- **C-HA-4′**：引用本矩阵计数继续全口径「Key-blocked 3+3 · 真实产品缺陷 0 确认（unknown≠0）」· Ban 简写。
+- **Nail 闸**：`post_prove_dual_pass` 只能由 POST dual BOTH（mw-model-op POST + 本 POST）+ 协调方 nail 写入；Ban self-write · Ban nail until BOTH + 协调方 · alone ≠ dual。
+
+### 三行中文摘要
+
+1. `ef7a63e4`（≡ origin 镜像 `b6caa6aa`）恰 2 md +15/−10 纯 lifecycle 元行推进：base 重钉 `d5e6f7e6`（当时 origin tip）+ gate blob `c655235c`/`aa86fb3f` 四点（`4766d4fc`/`d5e6f7e6`/`ef7a63e4`/`b6caa6aa`）零漂移自验成立；ERRATUM byte-identical、SSOT 三文件与 backlog `:98` 行零触碰、PRE 段 blob `0ae5bf0b` byte 级保留。
+2. C-HA-1~4 逐条裁决全满足：Q3 授权闸未启动（排队≠授权条款逐字在位 · `post_prove_dual_pass` 未被自写）、Q1/Q2 行绑定保持、计数全口径且 slice footer 补齐与 harness 同口径全量；C1–C11 十一行与 Q1–Q3 exec 后零弱化，pins 原值 · trio OPEN 1/1/1 retained · g7SuiteGreen=false。
+3. Blockers 无；Conditions C-HA-1′~4′ + Nail 闸（POST dual BOTH + 协调方方可 `post_prove_dual_pass`）；alone ≠ dual · 不代签 mw-model-op（其 POST 审并行独立）；PASS ≠ suite green ≠ Key-blocked 消除 ≠ covered ≠ 授权。
+
+Verdict: PASS
