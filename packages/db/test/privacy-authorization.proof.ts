@@ -407,6 +407,12 @@ async function main() {
     f1Purged.rows[0]?.status === 'erased' && f1Purged.rows[0]?.request_status === 'pending_external');
   const f1Target = await admin.query<{ status: string }>('SELECT status FROM privacy_deletion_target WHERE id=$1', [tgtLocal]);
   A('F1: 本地 target 已 erased(未因 guard 回滚)', f1Target.rows[0]?.status === 'erased');
+  // Line AR 0140 N2: resolve on oss/redis/langfuse requires verified vendor evidence (Ban wash attestation).
+  // F1 still proves pending→confirmed→completed; evidence here is local_isolated_stub only (≠ cloud wipe · :64 OPEN).
+  await asPrivacyWorkerPrincipal(admin, owner, (c) => c.query(
+    `SELECT privacy_record_vendor_purge_evidence($1::uuid,$2,$3,$4,true,$5)`,
+    [tgtExt, 'oss_delete_list_empty_local_stub', 'f'.repeat(64), 'deleteObject+listEmpty', worker],
+  ));
   const f1Resolved = await asPrivacyWorkerPrincipal(admin, owner, (c) => resolveDeletionReceipt(c, tgtExt, worker));
   A('F1: resolve external_pending→external_confirmed 并推进 completed',
     f1Resolved.receiptKind === 'external_confirmed' && f1Resolved.requestStatus === 'completed');

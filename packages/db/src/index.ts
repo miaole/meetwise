@@ -540,3 +540,4 @@ export {
 } from './privacy-erasure-preview.ts';
 export type { PrivacyPreviewListRow } from './privacy-erasure-preview.ts';
 export * from './uc052-internal-erasure.ts';
+export * from './uc052-external-sink-async-purge.ts';

@@ -287,11 +287,17 @@ async function main() {
   }
 
   /* ── EXT-POS-01 (C-4 contract locus): 0091 audit chain works but does NOT erase target nor complete ── */
+  /* AR 0140 N2: resolve requires vendor evidence for externals; seed stub evidence (≠ erase · ≠ cloud wipe). */
   {
     const id = 'EXT-POS-01';
     const h = await eraseHappy(28);
-    await asPrivacyWorkerPrincipal(admin, owner, (c) =>
-      recordDeletionReceipt(c, h.ext.oss.targetId, 'external_pending', nextHash(), worker));
+    await asPrivacyWorkerPrincipal(admin, owner, async (c) => {
+      await c.query(
+        `SELECT privacy_record_vendor_purge_evidence($1::uuid,$2,$3,$4,true,$5)`,
+        [h.ext.oss.targetId, 'oss_delete_list_empty_local_stub', nextHash(), 'deleteObject+listEmpty', worker],
+      );
+      await recordDeletionReceipt(c, h.ext.oss.targetId, 'external_pending', nextHash(), worker);
+    });
     const midStatus = await loadRequestStatus(admin, h.requestId);
     const resolved = await asPrivacyWorkerPrincipal(admin, owner, (c) =>
       resolveDeletionReceipt(c, h.ext.oss.targetId, `${worker}-confirmer`));
