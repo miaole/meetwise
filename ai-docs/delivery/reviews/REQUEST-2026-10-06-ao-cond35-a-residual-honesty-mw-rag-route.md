@@ -113,3 +113,66 @@ mw-e2e-ha PRE @2366319b：**审时未落仓**（origin tip = `2366319b` · 仅 s
 **SKIP（docs gate · 0 次）**。
 
 Verdict: PASS
+
+## POST @2366319b
+
+**审查方**: mw-rag-route（独立单方 · alone ≠ dual · **不代签** mw-e2e-ha）· **审时**: 2026-10-06 23:48 +08:00 · origin tip `548f13a4`（= DOCS tip `2366319b` + PRE BOTH + peer cite · **无**产品 / harness / queue / backlog 变更）· 临时 worktree `/tmp/mwrr-ao-post`（审后删除）
+**输入**: DOCS tip `2366319bf09d93df34312d7f59c8f2fe793892a9` · PRE BOTH：本方 `e4ad95887b9090b7ce398363e18b66b982a4b6ed` + peer `ca4c43843eb07a19dda5ce91ca16b98300690d75` · parent nail `85a4925` · AN-PERF-TEAR POST `e341d164` · 协调方已 AUTHORIZE 本 POST（docs gate · 0 prove）
+**范围**: POST-PROVE dual · docs gate · **0 prove** · Ban docker · Ban pnpm prove · Ban invent prove
+
+### 0. 结论先行
+
+- **Verdict: PASS**（单方 POST · docs honesty 门控 · ≠ dual nail · ≠ 关 `:35` · ≠ A proven · ≠ covered · ≠ HA）。
+- PRE 之后**无洗绿**：`e4ad9588..HEAD` 仅 peer review 文件（`ca4c4384` PRE + `548f13a4` cite）；`git diff --quiet e4ad9588 HEAD -- packages apps scripts package.json pnpm-lock.yaml` EXIT **0**；harness/slice/queue/backlog 相对 `2366319b` **字节未变**（`ssot_vs_docs_tip=0`）。
+- 本方 `## PRE @2366319b` 段 **byte-intact**（`cmp` vs `e4ad9588`）。
+
+### 1. Tip / 产品面
+
+| 检查 | 结果 |
+|---|---|
+| DOCS tip `2366319b` 仍为 origin 祖先 | ✓（`merge-base --is-ancestor` EXIT 0） |
+| 相对 PRE / nail 产品树 | EXIT 0 · 零 packages/apps/scripts/lockfile |
+| PRE 后新提交 | 仅 `…-mw-e2e-ha.md`（peer PRE/cite）· **无** honesty 翻转 |
+
+### 2. Harness / slice / backlog / bans（仍成立）
+
+| 断言 | 锚点 | 本审 |
+|---|---|---|
+| A 57P01/idle-in-txn **UNPROVEN** | harness `:1`/`:16`/`:27` | ✓ |
+| `:35` **OPEN** · Ban docs-close | harness `:8`/`:31`/`:71` · backlog `:35` **OPEN CONDITION** | ✓ |
+| Ban wash P-HOLD → CONDITION close | harness `:19`/`:30`/`:71` | ✓ |
+| Ban covered flip · coveredCount=**8** | harness `:4`/`:18`/`:43`/`:82` | ✓ |
+| Ban invent prove · zero prove | harness §4 `:61-65` · Ban prove `:70` | ✓ |
+| Ban AN-CIMG-EA · Ban buy cloud | harness `:70`/`:73` | ✓ |
+| 无 Qdrant/FULLTEXT/MySQL runtime/MemorySaver 栈替换 | harness/slice 无此类叙事（queue Phase0#3 仅对他刀 Ban FULLTEXT/Qdrant） | ✓ |
+
+### 3. Pins
+
+harness `:4`/`:82`：NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCount=8 · gR45Closed=true · ms3EqualsR4Closed=false · PG-retained · DELETE=503 · **未翻**。
+
+### 4. Queue companion
+
+`REMAINING-NORTH-STAR-QUEUE.md`（相对 tip 未改）：§0 Now AO docs-only · Ban closing CONDITION via docs alone · Pins coveredCount=8 · **HOLD AN-CIMG-EA** · 页脚 Ban prove/cloud/CONDITION close。披露：§0 文案仍写「awaiting PRE dual」（PRE 已 BOTH）= **队列措辞滞后 · 非 wash**（未宣称 A proven / `:35` CLOSED）。
+
+### 5. 与 PRE / AN-PERF-TEAR 对齐
+
+- 本方 PRE `e4ad9588` 全部 KEY 发现仍真（A unproven · `:35` OPEN · pins · zero prove · Ban invent）。
+- 对齐 nail `85a4925`「A diagnostic OPEN · :35 OPEN」与 POST `e341d164` KEY RULING ii。
+
+### 6. Prove
+
+**未跑 · 不要求**（harness §4）。**Ban** 发明 prove。本 POST = 诚实性复核，≠ 产品闭合。
+
+### 7. 边界
+
+alone ≠ dual · **Ban nail** until POST **BOTH** + 协调方 nail AUTHORIZE · Dual POST ≠ 关 `:35` ≠ A proven ≠ covered ≠ HA · Ban coding（本线可永不 prove）。
+
+### 8. Peer
+
+mw-e2e-ha：**PRE** PASS `ca4c4384`（+ cite `548f13a4`）· **POST @2366319b 审时未落仓**。cited not co-signed。
+
+### 9. 复跑
+
+**SKIP（docs gate · 0 次）**。
+
+Verdict: PASS
