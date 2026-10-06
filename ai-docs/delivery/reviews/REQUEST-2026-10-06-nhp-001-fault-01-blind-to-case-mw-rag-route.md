@@ -1,13 +1,14 @@
 # REQUEST — **NHP-001-FAULT-01 · UC-001 FAULT blind→case evidence** · pre-exec · mw-rag-route
 
-**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub only · Ban self-approve · alone ≠ dual · 不代签 peer `mw-e2e-ha`）
+**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub rewrite **re-PRE** · awaiting re-PRE · Ban self-approve · alone ≠ dual · 不代签 peer）
+**Rewrite**: **supersedes REQUEST `db24fc9`** · cites mw-rag-route PRE-EXEC FAIL **`64fba04`**（`64fba0473955359e244e9c532d45e19cac6c9670`）**B1–B5 addressed** (+ C1–C3）· peer e2e PASS `899fef2` alone ≠ dual · Ban coding
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Expert**: `mw-rag-route`
 **Peer**: `mw-e2e-ha`（独立签 · alone ≠ dual）
 **Knife**: `harness/nhp-001-fault-01-blind-to-case.md` · slice `nhp-001-fault-01-blind-to-case.slice.md`
-**Parent tip**: `71ad2a7`（full `71ad2a7fccaa3dd43b47e2c54b9823890aaabdf9` · not a prove tip · AE nail `3409862` ancestor）
+**Parent tip**: origin `feat/mysql-schema-skeleton` tip（includes AL/AM/AG ancestors · Ban touch AL/AM/AG files）
 **Date**: 2026-10-06
-**Line**: **AI**（wave AI–AM）
+**Line**: **AI**
 
 ## Pins（retained · 本 stub 不改）
 
@@ -22,29 +23,41 @@
 | Stack | **PG-retained** |
 | Public DELETE | **503**（stays） |
 
-## 请审什么（mw-rag-route）
+## 请审什么（mw-rag-route · re-PRE · B1–B5 + C1–C3）
 
-1. **worker 面**：report worker 注入点是否落在 worker 图/队列边界内且不触碰路由/检索语义（Ban 借 R2/R4 路由旁证）。
-2. **终态语义**：Interview 终态与 report 失败/降级状态是否结构可观测；Ban 静默吞错 · Ban 永挂 pending 被记为 pass。
-3. **gap 命名**：`GAP-UC001-FAULT-01` 服务 NHP-001-FAULT-01 · 不登记 SSOT（本 REQUEST）· 不与 NEG/BOUND/ADV gap 混用。
-4. **EXIT0≠covered**：任何 EXIT0 不升 FAULT 列 / 行 · coveredCount=8 · canHonestlyFlip=false。
-5. **边界**：Ban live · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · alone ≠ dual。
+Line AI · NHP-001-FAULT-01。本 stub 为 **re-PRE rewrite**（**supersedes `db24fc9`** · cites FAIL **`64fba04`** · 解除 B1–B5 + C1–C3；peer PASS `899fef2` **alone ≠ dual**）。请审：
 
-UC-E2E-001 FAULT 列 stays **partial**（逐字）· row stays honest · **EXIT0≠covered** · coveredCount=8 · Ban wash Y NEG `ff74522` / AB BOUND `f8cdc82` / AG ADV.
+1. **B1**：源锚 file:line（`report-worker.ts:31-58` / `:61-70` · `report.ts:7` / `:73-85` · controller `:174-191` · service `:661-690`）；注入 = `ReportWorkerDeps.generate` 确定性 throw（不改产品）；CMD 拟 `pnpm uc001:nhp-fault:prove` via `run-e2e-isolated.mjs` · 期望 EXIT。
+2. **B2**：逐 F-case 钉 HTTP status/error（failed/quarantined/retry/export）· 正控 ready+`report_ready` · mutation `MUT-F1-stuck-running` 真变红。
+3. **B3**：delta = UC-001 主链 begin→`/turn`→complete→report 注入失败后的 **HTTP 读口**；Ban borrow `report:prove` / report-bulkhead / uc011 / uc019 绿。
+4. **B4**：具名回归 `uc001:nhp-neg:prove` 26 · `uc001:nhp-bound:prove` 17/17 · `report:prove` EXIT0 零改动；env EXIT1 ≠ pass ≠ regression。
+5. **B5**：单一证据层 Nest HTTP + 隔离真 PG via `run-e2e-isolated.mjs`；Ban fake DB for ledger；Ban 矛盾 in-process 措辞。
+6. **C1–C3**：`/turn`（`:30-33`）· Ban `/answer` 410；Y/AB prove+POST SHA 并列；attempts=1 · CMD+EXIT+±08:00+SHA · EXIT0≠covered≠FAULT upgrade≠nail≠HA。
+7. **worker 面 / 终态语义**：注入点落在 worker 图/队列边界内且不触碰路由/检索语义；Interview 终态与 report 失败/降级可观测；Ban 静默吞错。
+
+UC-E2E-001 FAULT 列 stays **partial**（逐字）· row stays honest · **EXIT0≠covered** · coveredCount=8 · Ban wash Y NEG `ff74522`/`51c0c0b` / AB BOUND `f8cdc82`/`5adb14f` / AG ADV.
 
 ## Ban
 
-Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执行 · Ban self-nail · Ban self-approve（alone ≠ dual）· Ban SSOT edit of matrix/backlog（REQUEST = zero matrix/backlog edits）· Ban buy cloud · Ban Meridian · Ban secrets / `.env*` · Ban force-push · Ban claiming PRE PASS · Ban 碰 Line AG `nhp-001-adv-01*` / `REQUEST-2026-10-06-nhp-001-adv*` 文件 · Ban 改写既有 nailed harness 的 nail 状态 · Ban product/infra code。
+Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执行 · Ban self-nail · Ban self-approve（alone ≠ dual）· Ban SSOT edit of matrix/backlog · Ban buy cloud · Ban Meridian · Ban secrets / `.env*` · Ban force-push · Ban claiming PRE PASS · Ban 碰 AL/AM/AG 禁触文件 · Ban product/infra code · Ban borrow `report:prove` 绿 · Ban fake DB for ledger。
 
 本 stub 不授权 coding / prove / push 冒充执行 / buy cloud；pre-exec dual BOTH PASS 后由协调方 AUTHORIZE 执行；implementer 不自批 · 不代填 Verdict。
 
 ## Verdict
 
-**PENDING**（awaiting `mw-rag-route` · implementer 不得填写）
+**PENDING**（awaiting `mw-rag-route` re-PRE · implementer 不得填写）
 
 ---
 
-*Stub · awaiting expert pre-exec dual · STOP*
+*Stub · re-PRE rewrite · supersedes db24fc9 · FAIL 64fba04 B1–B5 · peer PASS 899fef2 alone≠dual · Ban coding · awaiting expert re-PRE dual · STOP*
+
+---
+
+## Rewrite note · re-PRE（append · do not erase FAIL section below）
+
+**re-PRE · supersedes `db24fc9` · cites FAIL `64fba04`** · B1–B5 + C1–C3 landed in harness/slice · Status stays `draft:awaiting_pre_exec_dual` · Pins unchanged · Ban coding · Ban prove · Ban covered flip · Ban wash Y/AB/AG · peer e2e PASS `899fef2` alone ≠ dual。
+
+下方 Historical FAIL 正文 **原样保留不擦除**；本段仅为 rewrite 注记，**不**构成对本稿的 PASS/FAIL。
 
 ---
 
