@@ -1,13 +1,15 @@
 # REQUEST — **GAP-RAG-03 · R3 filter-locus ADR + Top-K hard-filter prove** · pre-exec · mw-rag-route
 
-**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub only · Ban self-approve · alone ≠ dual · 不代签 peer `mw-e2e-ha`）
+**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub rewrite **re-PRE** · Ban self-approve · alone ≠ dual · 不代签 peer `mw-e2e-ha`）
+**Rewrite**: **supersedes REQUEST `4c93dc5`** · cites mw-rag-route PRE-EXEC FAIL **`5f8096a`**（`5f8096a7cea8ee01787b60d69c6773e444a4a086`）**R1–R6 addressed** · Ban coding · GAP-RAG-03 OPEN
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Expert**: `mw-rag-route`
 **Peer**: `mw-e2e-ha`（独立签 · alone ≠ dual）
 **Knife**: `harness/gap-rag-03-r3-filter-locus.md` · slice `gap-rag-03-r3-filter-locus.slice.md`
-**Parent tip**: `110532e`（full `110532e81f11064e543bc9bc420b67bb2f95ae1e` · not a prove tip）
+**Parent tip**: origin `feat/mysql-schema-skeleton` tip（Ban touch AN-PRIV-EXT / AN-MOP-Q45 / AN-CIMG-EA）
+**Prior REQUEST**: `4c93dc5bbd1d4ba56de9c0547fd944b52f72926d`（superseded）
 **Date**: 2026-10-06
-**Line**: **AN-RAG-R3**（wave AN）
+**Line**: **AN-RAG-R3**（wave AN · re-PRE）
 
 ## Pins（retained · 本 stub 不改）
 
@@ -22,27 +24,42 @@
 | Stack | **PG-retained** |
 | Public DELETE | **503**（stays） |
 
-## 请审什么（mw-rag-route）
+## 请审什么（mw-rag-route · re-PRE · R1–R6）
 
-1. **R3 门对齐**：与 `m4-rag-hard-gates.md` §4 / backlog `:71` 是否一致（过滤落点 + 词法等价 + Top-K 前硬过滤）。
-2. **Ban MySQL FULLTEXT**：假等价关 R3 是否被硬钉；MATCH/AGAINST 不得当通过条件。
-3. **Ban Qdrant cutover**：本刀 ADR/prove 不得宣称向量真相已切 / sole-stack 已迁；PG-retained。
-4. **与 R2 分界**：GAP-RAG-02 structural CLOSED ≠ R3 closed · Ban wash。
-5. **边界**：docs-only · Dual PASS ≠ coding · Ban re-open AG/AI/AK · Ban AN-CIMG-EA · Ban buy cloud。
+Line AN-RAG-R3 · GAP-RAG-03 R3 filter-locus。本 stub = **re-PRE rewrite**（**supersedes `4c93dc5`** · cites FAIL **`5f8096a`** · 解除 R1–R6）。请审：
+
+1. **R1 ADR 定案**：SECURITY DEFINER SQL WHERE **before** `ORDER BY g.embedding <=>` / `LIMIT` · **否决** Qdrant payload/全文与 post-Top-K filter · 词法保持 `to_tsvector('simple', qbank_search_terms(…))` · backlog `:71` Qdrant 选项书面「PG-retained 下不采用」· 对齐 `adr-postgres-retained.md:11-12`。
+2. **R2 行锚**：`qbank-generation-retrieval.ts:60-65`（setServingScope）· `:221-275`（hybrid · legacy `:229-233`）· `0106:55-92`（ANN · scope `:74-83` before LIMIT `:85` · candidate JOIN `:88-89` after）· `0106:94-131` lexical · `0029:205` HNSW · `0068:111+` candidate view。
+3. **R3 starvation**：K=5 仅 3 in-scope → 恰 **3** 行 · **0** 越界 · 披露 HNSW post-filter（ef_search 未钉）+ legacy `:229-233` 无 scope 须 fail-closed。
+4. **R4 LOOP §3③**：CMD `./scripts/with-docker-session.sh env -u MODEL_API_KEY -u MODEL_BASE_URL pnpm rag03-filter-locus:prove` · attempts=**3** · EXIT0 正控 / EXIT≠0 变异。
+5. **R5 PC+MUT+回归**：PC scope 内 =K · MUT1 post-LIMIT scope · MUT2 no-taxonomy · 回归 `rag04-track-local` / `rag03-route` / `rag-generation` / `qbank-pipeline` EXIT0 · Ban 借绿关 R3。
+6. **R6 证据**：隔离真 PG+pgvector · SECURITY DEFINER 绕过 RLS → 显式 WHERE 隔离（无 owner 维）· Ban MySQL/Qdrant/FULLTEXT 路径 + 静态断言。
+
+Ban MySQL FULLTEXT · Ban Qdrant cutover · Ban wash R2 as R3 · EXIT0 ≠ R3 closed alone · GAP-RAG-03 stays OPEN · coveredCount=8。
 
 ## Ban
 
-Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执行 · Ban self-nail · Ban self-approve（alone ≠ dual）· Ban MySQL FULLTEXT fake-equiv · Ban Qdrant cutover · Ban wash R2 as R3 · Ban SSOT edit · Ban buy cloud · Ban Meridian · Ban secrets / `.env*` · Ban force-push · Ban claiming PRE PASS · Ban product/infra code。
+Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执行 · Ban self-nail · Ban self-approve（alone ≠ dual）· Ban MySQL FULLTEXT fake-equiv · Ban Qdrant cutover · Ban wash R2 as R3 · Ban SSOT edit · Ban buy cloud · Ban Meridian · Ban secrets / `.env*` · Ban force-push · Ban claiming PRE PASS · Ban product/infra code · Ban Redis cutover · Ban MODEL-OP closed claim · Ban re-open AG/AI/AK · Ban AN-CIMG-EA。
 
 本 stub 不授权 coding / prove / push 冒充执行 / buy cloud；pre-exec dual BOTH PASS 后由协调方 AUTHORIZE 执行；implementer 不自批 · 不代填 Verdict。
 
 ## Verdict
 
-**PENDING**（awaiting `mw-rag-route` · implementer 不得填写）
+**PENDING**（awaiting `mw-rag-route` re-PRE · implementer 不得填写）
 
 ---
 
-*Stub · awaiting expert pre-exec dual · STOP*
+*Stub · re-PRE rewrite · supersedes 4c93dc5 · FAIL 5f8096a R1–R6 · Ban coding · GAP-RAG-03 OPEN · awaiting expert re-PRE dual · STOP*
+
+---
+
+## Rewrite note · re-PRE（append · do not erase FAIL section below）
+
+**re-PRE · supersedes `4c93dc5` · cites FAIL `5f8096a`** · R1–R6 landed in harness/slice · Status stays `draft:awaiting_pre_exec_dual` · Pins unchanged · GAP-RAG-03 OPEN · Ban coding · Ban MySQL FULLTEXT · Ban Qdrant cutover · alone ≠ dual。
+
+下方 Historical FAIL 正文 **原样保留不擦除**；本段仅为 rewrite 注记，**不**构成对本稿的 PASS/FAIL。
+
+---
 
 ## PRE-EXEC @4c93dc5 · mw-rag-route
 
