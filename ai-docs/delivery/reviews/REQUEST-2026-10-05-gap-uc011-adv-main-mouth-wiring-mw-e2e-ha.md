@@ -111,3 +111,68 @@ Row `UC-E2E-011` stays **partial** · ADV stays **gap/case-only** · `GAP-UC011-
 3. 无 Blockers；六条 Conditions（C-V1~C-V6）与九条 Fail-triggers（FT-1~FT-9）随刀执行；EXIT0≠covered、UC-011 stays partial、ADV stays gap/case-only、`GAP-UC011-ADV-01` stays OPEN、coveredCount=8 不动；alone ≠ dual，不代签 mw-model-op，是否 coding 由协调方在双审齐后授权。
 
 **Verdict: PASS**
+
+---
+
+## POST-PROVE dual review — mw-e2e-ha（adversarial evidence-honesty）· 2026-10-02
+
+**Reviewed**: `cf34390`（full `cf343900c441d3f7e800cabd1fe2944e4c81fd4d`）= `2535b31`（full `2535b319b3f4552a385df9321f0845dca5d30489` · feat 6 files +513/−2）+ receipt 1 file。origin 同补丁 cherry-pick 已核：`40a4f6c2`/`a8640846` 与 `2535b319`/`cf343900` 包内容零差异（其间仅一条无关 ledger doc commit）。Worktree `/Users/miaole/Desktop/golucky/meetwise-rv-vp-e2e-ha` · branch `rv/vp-e2e-ha`（自 `line/v-uc011-adv-main-mouth`）。本审 = POST-PROVE dual：**fresh re-run 独立执行 + 证据诚实性审计**；零 product/prove edit · 零 SSOT edit · alone ≠ dual · 不代签 mw-model-op（其审并行，本审未读其结论）。
+
+### 1. Fresh re-run（C-DUAL-FROM-FRESH · 恰好一次 · 禁重试）
+
+| 步骤 | CMD | 结果 |
+|------|-----|------|
+| 安装 | `pnpm install --frozen-lockfile` | **EXIT=0**（14.3s · pnpm v10.18.0 · 锁文件逐字冻结） |
+| prove | `pnpm uc011:refund-callback-adv:prove`（三层隔离壳 · 随机容器+动态端口 · pgvector/pgvector:pg16） | **EXIT=0 · 68/68 全绿**（0 FAIL 行 · INV/A1–A7/X/ZREG 十类全 ALL PASS · 内嵌 ZREG 子进程 41/41 EXIT=0） |
+
+- 镜像 digest 比对：本地 `pgvector/pgvector:pg16` RepoDigests 含 `docker.m.daocloud.io/pgvector/pgvector@sha256:7b822b0a…199b90a`——同 digest，通过。
+- 与实现方 attempt#2 声称（68/68 EXIT=0 @`2535b31`）**一致，无重大发现**。fresh run 关键 PASS 逐条落日志：A2「缺 orderId（有 txn+sig）→ 400 invalid_callback（非 403 · 400 判定先于 HMAC）」· A4「refund_provider_txn 全局恰 1 行」+ SNAPSHOT 三帧 `paid/sum=10 → refunded/sum=0 → after-replay 与 after-first 二致` · A5「跨订单重放 → 409 order_conflict（非 5xx）」· A7「命名区分(具名 body): 真口 404.body.error=order_not_found · 缺失口无此具名码」· X dir1/dir2 双方向跨口重放均 `already` + 红冲恰一次。fresh run 零改动工作树（`git status` 干净 · `.tmp` 不入树）。
+
+### 2. 包完整性（6+1 申报文件 · 冻结面零 diff）
+
+`git diff --name-only 920aee22..cf343900` = 恰 7 文件（feat 6：controller/app.module/proof/apps-api package.json/root package.json/run-e2e-isolated.mjs + receipt 1）——与申报 6+1 逐字一致，零超纲文件。零 diff 实证：`commerce.service.ts` / `packages/db/src/payment.ts` / `commerce-webhook.controller.ts`（薄适配红线）；Line Z 冻结 `uc-e2e-011-refund-callback-mouth.proof.ts`、Line V 历史 `uc-e2e-011-adv-refund-callback.proof.ts`、SSOT（slice/harness/矩阵面）；UC-002/004/014/018/025/026（`apps/api/test/` 全目录 diff 仅新增 adv proof 一个文件）。`app.module.ts` diff 仅 +import 与 controllers 数组插入（既有顺序零变动）；controller 33 行薄适配：白名单解构 `{orderId,providerTxn,sig}` → 缺 orderId 400 `invalid_callback`（先于 HMAC）→ 委托 `refundWebhook`，无 PrincipalGuard/无 HMAC 复制/无 owner 查询/无 CAS 复制。
+
+### 3. attempt#1→#2 演进裁决（非 retry-to-green wash）
+
+- attempt#1 原始日志（`.tmp/prove-adv-attempt1.log`，实现方树落盘，本审已读）：**恰 1 条 FAIL** = `[INV] Ban 金额通道: controller 源无 amount 字段引用（白名单结构性）`——prove 自身裸子串扫描命中 controller **注释**中 `amountCents/units/refundAmount` 字样（该注释在已提交的 2535b319 controller :26 在树）；A1–A7+X+ZREG 全 PASS，内嵌 Z 口 41/41 EXIT=0。68 条断言、1 失败——与 receipt 台账逐字吻合，无剪裁。
+- 修复面核实：fix 仅动 prove 扫描实现——新增 `stripComments`（proof.ts:67）+ 断言改 `!/amount/i.test(stripComments(ctrlSrc))`（proof.ts:199-200），断言名同步改「代码面（剥注释后）」；**A3 行为断言原样**（夹带字段忽略/权威 units=10/落库 9900 不变——attempt#1 与 attempt#2 日志 A3 全 PASS 均在，fresh run 亦全 PASS）。剥注释不可能隐藏真实代码引用，扫描反而更精确（注释非可执行面）——断言意图（代码无金额通道）不变。
+- 裁决：**一次修复演进、全台账、产品代码两 attempt 间零改动**（单 impl commit · 失败在 prove 自身静态扫描非产品行为），沿 P/R 线先例口径——**非 retry-to-green wash**。且本审 fresh re-run 于同一 tip 零改动复现 68/68 EXIT=0，独立排除「反复跑到闪绿」。
+
+### 4. 条件裁决（本审 pre-exec C-V1~V6 + FT-1~FT-9 逐条）
+
+| 条件 | 裁决 | 依据（file:line · fresh run 实证） |
+|------|------|------|
+| C-V1 body 契约钉死 + 逐字段 400 | **满足** | proof.ts:248-260 五断言（空 body/缺 orderId/缺 providerTxn/缺 sig/仅 sig → 400 `invalid_callback`）+ :251 缺 orderId 400 非 403（先于 HMAC）；fresh run PASS |
+| C-V2 A4/A6 DB 快照 + txn 恰 1 行 | **满足** | proof.ts:302-308 SNAPSHOT 三帧落日志 + :311-316 恰 −10 一次/txn 恰 1 行；A6 :348-361 并发恰一次；跨口重放双方向 :420-443（超出「可作强化断言」下限，非违约） |
+| C-V3 404 具名区分（不得只断 status） | **满足** | proof.ts:373-377：真口 `404.body.error=order_not_found` vs `POST /payment/definitely-not-a-mouth` 404 无此具名码 |
+| C-V4 新鲜 INV + 注册形态钉死 | **满足** | proof.ts:178-208 七断言（挂载 probe 403≠404 :205-207 · 管道存在/单管道/无复制守卫 · 注册形态=独立文件+app.module 注册 :202-203）；未复述 pre-exec 指出的「全部控制器在 app.module.ts:38 注册」欠精确句（receipt :69 明示） |
+| C-V5 attempts 全台账不剪裁 | **满足** | receipt :44-48 三 attempts 含时间戳/EXIT/归因；attempt#1 EXIT=1 未删改（落盘日志交叉吻合）；EXIT1 未记 flake |
+| C-V6 密钥进程环境 | **满足** | `PAY_PROVIDER_SECRET` 赋值在 fresh 日志/receipt/proof 均 0 命中；proof.ts:46 明示只经隔离壳进程 env；主口零新增 env plumbing（controller/proof 无 env 读取新增） |
+| FT-1 适配层长业务逻辑 | 未命中 | controller 仅字段存在性校验+委托；INV 断言 Ban createHmac/timingSafeEqual/gateway_payment_order_owner/markOrderRefunded（proof.ts:196-198） |
+| FT-2 签名丢 orderId/反查单 | 未命中 | HMAC 载荷 `${orderId}:${txn}:refunded`（proof.ts:131）；A1 他单签名→403（:225-226）；service 委托形参不含反查 |
+| FT-3 挂 PrincipalGuard | 未命中 | controller 无守卫，对齐 commerce-webhook.controller.ts:4-7 无登录态模型 |
+| FT-4 Z proof 被改/合取缺席 | 未命中 | `uc-e2e-011-refund-callback-mouth.proof.ts` 零 diff；ZREG=EXIT0 合取项（proof.ts:448-449）；fresh run ZREG 41/41 |
+| FT-5 EXIT0 写成 covered | 未命中 | receipt Status=coding+prove done · GAP-UC011-ADV-01 stays OPEN · coveredCount=8 · UC-011 stays partial · Non-claims 段逐字保留 |
+| FT-6 retry-to-green/attempts 剪裁 | 未命中 | 见 §3 演进裁决 |
+| FT-7 审计 residual 假称已接/当隐藏门槛 | 未命中 | AUDIT-OBSERVATION: absent（0 emit 点）如实披露 disclosed-not-blocking（receipt :104）；AUDIT_LINE 非断言不作 EXIT 门槛（proof.ts:82-88） |
+| FT-8 改历史 proof/SSOT/服务语义/新迁移 | 未命中 | §2 零 diff 清单；包内零迁移文件 |
+| FT-9 冒充字面契约 | 未命中 | `@Controller('payment')`+`@Post('refund-callback')`=`POST /payment/refund-callback` 字面（scenarios :253）；INV 钉死注册形态 |
+
+### 5. Blockers
+
+**无（none）。** fresh re-run 独立复现 68/68 EXIT=0 · 包完整性零超纲 · 冻结面零 diff · 演进为一次修复演进非 wash · C-V1~V6 全满足 · FT-1~FT-9 零命中 · 审计 residual（GuardrailHit absent）如实具名披露（disclosed-not-blocking）。
+
+### 6. Conditions（非阻塞 · 后续须维持）
+
+- **CON-1** 审计 residual「主口+管道 GuardrailHit/安全日志 emit 点 absent」保持具名 OPEN，后续接线审计时不得回溯宣称本刀已接。
+- **CON-2** EXIT0≠covered 地位不变：`GAP-UC011-ADV-01` 关闭 / coveredCount 翻行 / ADV 翻行须协调方 nail + 双审，本 PASS 不构成任何 covered 授权。
+- **CON-3** A3 口径维持 DISCLOSED 结构性（白名单无金额通道+权威 units 红冲）；引入显式服务端金额复核属新刀，不得回写本 receipt 措辞。
+- **CON-4** mw-model-op POST-PROVE 独立裁决未在本审视野内（并行）；本 PASS 仅 e2e-ha 单侧，dual 收口由协调方汇总（alone ≠ dual）。
+
+### 7. 三行中文摘要
+
+1. 本审独立 fresh re-run（`pnpm install --frozen-lockfile` EXIT=0 → `pnpm uc011:refund-callback-adv:prove` 恰好一次）**EXIT=0 · 68/68 全绿**（内嵌 Z 口回归 41/41），A1–A7+INV+X+ZREG 十类全 PASS，与实现方 attempt#2 声称一致，无重大发现；镜像 digest 与 daocloud 源比对一致。
+2. 包完整性：恰 6+1 文件零超纲；service/payment/webhook 冻结面、Line V/Z 历史 proof、SSOT、UC-002/004/014/018/025/026 全零 diff；controller 33 行薄适配（白名单三字段+缺 orderId 400 先于 HMAC+纯委托）；attempt#1 唯一失败=prove 自身裸扫描误伤注释、修复仅剥注释扫代码面且 A3 行为断言原样——一次修复演进、全台账、非 retry-to-green wash。
+3. C-V1~V6 全满足、FT-1~FT-9 零命中、审计 residual absent 如实披露；EXIT0≠covered、`GAP-UC011-ADV-01` stays OPEN、coveredCount=8、UC-011 stays partial；alone ≠ dual，不代签 mw-model-op，本审为 e2e-ha 单侧 PASS，dual 收口归协调方。
+
+**Verdict: PASS**
