@@ -163,4 +163,15 @@ Not a pass · not live-observed · not closed · not UC-018 covered · not nail 
 
 ---
 
-*Receipt · Line AJ · C-IMAGE-DIGEST live residual · E-C hmac-key-missing · CONDITION OPEN · 2026-10-06 · post_prove:awaiting_post_prove_dual · STOP*
+
+## NAIL（2026-10-06 · Line AJ · `post_prove_dual_pass` · additive · E-C · CONDITION OPEN）
+
+- Lifecycle → **`post_prove_dual_pass`**（AUTHORIZE nail · BOTH POST PASS · E-C outcome record only · implementer does not self-approve beyond this nail）. Body §0–§8 above retained verbatim as the prove-time record.
+- POST dual BOTH PASS: mw-e2e-ha `56b77a7`（`56b77a7f61edf2032094e9379b7f70ae61da0ea8`） + mw-rag-route `856680b`（`856680b1e93063653374ede090db985404565a06`） · alone≠dual satisfied by BOTH POST. PROVE_TIP remains **NAILED TO** `666a3bf`（`666a3bf930299cdde160f68b63b36e2c05fc3f9e`）.
+- E-C location erratum（carry · non-block）: fail-closed exit 8 = `scripts/uc018-receipt-backfill-emit.mjs:74-77`（`resolveHmacKey()` falsy）; the `:206` `hmac-key-missing` finalize branch is unreachable when the key is missing. Cite `:74-77`, not `:206`.
+- Repro CMD form（carry · non-block · preferred prefix）: `bash scripts/with-docker-session.sh env -u MEETWISE_UC018_BACKFILL_HMAC_KEY -u MODEL_API_KEY -u MODEL_BASE_URL pnpm uc018:receipt-backfill:emit --key=PERF-LOAD-LIVE-AJ --targetSha=b29c191543dfbe7c1afa4278c550340a3339f295 --cmd=uc018:perf-load:prove --tipRoot=<temp> --worktreeBase=<temp>`（§1 CMD shown without the prefix; key ABSENT per §4 so the conclusion is unchanged）.
+- E-A key source needs a **separate coordinator AUTHORIZE** — not invented here · Ban read `.env*`.
+- **HOLD**: **CONDITION stays OPEN**（backlog `gap-bug-backlog.md:34` row untouched · Ban fake-close）· UC-018 / §1.1 stay **partial** · coveredCount=**8** · live residual **NOT closed** · outcome stays honest **E-C**（emitter EXIT 8 · `hmac-key-missing` · fail-closed @ `scripts/uc018-receipt-backfill-emit.mjs:74-77`, not `:206`）≠ **E-A** · EXIT0≠covered · PASS = blocked outcome recorded, not closed · Ban invent `liveObservation` · Ban covered flip · `PERF-LOAD.json:28-29` prior-docker-inspect / liveObservation=false retained.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · canHonestlyFlip=false. Ban self-nail beyond this AUTHORIZE · Ban close CONDITION · Ban invent liveObservation · Ban covered flip · Ban product code changes · Ban touch AI/AK coding files · Ban HA · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push.
+
+*Receipt · Line AJ · C-IMAGE-DIGEST live residual · E-C hmac-key-missing · CONDITION OPEN · post_prove_dual_pass · live residual NOT closed · STOP*
