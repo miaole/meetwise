@@ -1,0 +1,28 @@
+with-docker-session: docker.sock permission gap in session; re-exec via sg docker (membership already in /etc/group; no grant/chmod/sudo)
+
+> meetwise@0.1.0 qbank-pipeline:prove /workspace/meetwise-wt-an-rag-r3
+> node scripts/run-e2e-isolated.mjs qbank-pipeline:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-1328009-1791292526317 on 127.0.0.1:32962
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /workspace/meetwise-wt-an-rag-r3/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=138 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:qbank-pipeline /workspace/meetwise-wt-an-rag-r3/apps/worker
+> tsx test/qbank-pipeline.proof.ts
+
+PASS  ① 受审核辅助 chunk 可进入 generation，但不能单独提升为完整业务题目工件
+PASS  ② 新批准的完整题目工件提升内容 epoch，并重建为新的活动 generation
+PASS  ③ Worker 同一 resolver 只返回完整题目 ID、四个角色证据和真实距离派生排序信号
+PASS  ④ 相同完整工件重放不原地改题，也不创建第二个活动 generation
+PASS  ⑤ query recipe 不匹配时拒绝，不在旧向量空间或裸 chunk 路径降级搜索
+
+✓ qbank current read path: raw helper exclusion / immutable generation / complete artifact resolver passed
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-06T13-15-38-072Z-1328009-eb3b1487-b49e-49f9-a600-dc599e02b371.json release_evidence=false
