@@ -1,6 +1,6 @@
-# Slice — **GAP-E2E-ISO-BANNER-PG-RETAINED residual · banner ≠ PG-retained truth**（Line AL · `draft:awaiting_pre_exec_dual`）
+# Slice — **GAP-E2E-ISO-BANNER-PG-RETAINED residual · banner ≠ PG-retained truth**（Line AL · `coding_prove_done:awaiting_post_prove_dual`）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（docs gate only · Ban coding until PRE BOTH PASS + AUTHORIZE）
+**Status**: **`coding_prove_done:awaiting_post_prove_dual`**（AUTHORIZE coding+prove after PRE dual BOTH PASS：e2e `899fef2` + privacy `3915e32` · banner string only · zero behavior change · `node --check` EXIT 0 · zero e2e run · gap stays OPEN · Ban self-approve · alone ≠ dual）（prior: `draft:awaiting_pre_exec_dual` @ REQUEST `27c2e99`）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base**: `origin/feat/mysql-schema-skeleton` · `71ad2a7fccaa3dd43b47e2c54b9823890aaabdf9`（AE nail `3409862` ancestor）
@@ -18,8 +18,18 @@ backlog `:63` GAP-E2E-ISO-BANNER-PG-RETAINED：Line N NAIL `a778255`（ADR 补�
 | Dual `mw-e2e-ha` | `reviews/REQUEST-2026-10-06-gap-e2e-iso-banner-pg-retained-residual-mw-e2e-ha.md` |
 | Dual `mw-privacy-int` | `reviews/REQUEST-2026-10-06-gap-e2e-iso-banner-pg-retained-residual-mw-privacy-int.md` |
 
+## Coding / prove（Line AL AUTHORIZE · 2026-10-06）
+
+PRE dual BOTH PASS（e2e `899fef2` + privacy `3915e32`）→ AUTHORIZE。`run-e2e-isolated.mjs:1765-1768` banner string only：removed `intended sole default=${SOLE_STACK}` + `(sole stack = MySQL+Qdrant+Redis)` → now `SOLE_STACK=… is a dual-track code-path label ≠ product stack truth` + `product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector`；retains R5-MARKED-RED · dual-track · legacy pgvector fixture · `releaseEvidence=false · Not HA · Local green ≠ RAG migrated · 本绿≠已迁 · local green ≠ HA`。`SOLE_STACK` const / allowlist / branching / marked-red gate untouched。`node --check` EXIT 0 · zero e2e。Receipt `receipts/2026-10-06-gap-e2e-iso-banner-pg-retained-residual-align.md`。ADR L39 cites refreshed。backlog `:63` **OPEN**（untouched · residual for nail/SSOT）· awaiting POST dual · Ban self-nail。
+
+| Role | Path |
+|------|------|
+| Code | `scripts/run-e2e-isolated.mjs`（banner string `:1765-1768` only） |
+| ADR | `adr-postgres-retained.md` L39 bullet（cites refresh · Decision untouched） |
+| Receipt | `receipts/2026-10-06-gap-e2e-iso-banner-pg-retained-residual-align.md` |
+
 ## Ban
 
 Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执行 · Ban self-nail · Ban self-approve（alone ≠ dual）· Ban SSOT edit of matrix/backlog（REQUEST = zero matrix/backlog edits）· Ban buy cloud · Ban Meridian · Ban secrets / `.env*` · Ban force-push · Ban claiming PRE PASS · Ban 碰 Line AG `nhp-001-adv-01*` / `REQUEST-2026-10-06-nhp-001-adv*` 文件 · Ban 改写既有 nailed harness 的 nail 状态 · Ban product/infra code · Ban cutover narrative · Ban rewriting business truth · Ban claiming sole cutover · Ban 覆盖 Line N 身份。
 
-*Slice · GAP-E2E-ISO-BANNER-PG-RETAINED residual · Line AL · draft:awaiting_pre_exec_dual · STOP*
+*Slice · GAP-E2E-ISO-BANNER-PG-RETAINED residual · Line AL · coding_prove_done:awaiting_post_prove_dual · gap OPEN · STOP*

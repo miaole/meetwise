@@ -1762,9 +1762,9 @@ process.exit(3);
 // Sole allowlist path already emitted R5-SOLE-WIRING; do not mislabel it as pgvector fixture.
 if (isolationStack === LEGACY_STACK) {
   console.warn(
-    `[R5-MARKED-RED] E2E_ISOLATION_STACK=${isolationStack} (dual-track; intended sole default=${SOLE_STACK}) ` +
-    `E2E_PG_IMAGE=${image} is a legacy pgvector isolation fixture — NOT sole-stack truth ` +
-    `(sole stack = MySQL+Qdrant+Redis). Local green ≠ RAG migrated. ` +
+    `[R5-MARKED-RED] E2E_ISOLATION_STACK=${isolationStack} (dual-track; SOLE_STACK=${SOLE_STACK} is a dual-track code-path label ≠ product stack truth) ` +
+    `E2E_PG_IMAGE=${image} is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence ` +
+    `(product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. ` +
     `releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.`,
   );
   if (target === 'scor-00:http:prove:raw') {

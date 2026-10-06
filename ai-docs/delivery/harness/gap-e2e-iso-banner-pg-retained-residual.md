@@ -1,6 +1,6 @@
-# Harness — **GAP-E2E-ISO-BANNER-PG-RETAINED residual · banner ≠ PG-retained truth**（Line AL · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · docs gate only · ≠ sole cutover）
+# Harness — **GAP-E2E-ISO-BANNER-PG-RETAINED residual · banner ≠ PG-retained truth**（Line AL · docs REQUEST · **`coding_prove_done:awaiting_post_prove_dual`** · banner string only · ≠ sole cutover）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban cutover narrative · Ban rewriting business truth · Ban claiming sole cutover · Ban self-approve · alone ≠ dual）
+**Status**: **`coding_prove_done:awaiting_post_prove_dual`**（AUTHORIZE coding+prove after PRE dual BOTH PASS：e2e `899fef2` + privacy `3915e32` · banner string only · zero behavior change · `node --check` EXIT 0 · zero e2e run · gap stays OPEN · Ban self-approve · alone ≠ dual）（prior: `draft:awaiting_pre_exec_dual` @ REQUEST `27c2e99`）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`71ad2a7`** / full `71ad2a7fccaa3dd43b47e2c54b9823890aaabdf9`（wave AI–AM start · includes Line AE nail `3409862` / `340986214ad2a32b1cb678caa612c6a50f305861` as ancestor · tip advanced past AE by Line AG re-PRE2 review commits only · Ban touch AG）
@@ -56,8 +56,37 @@
 
 Not a pass · not aligned · not closed · not cutover · not nail · not HA · not `releaseEvidence=true` · docs gate only · alone ≠ dual
 
+## 6. Coding / prove（Line AL AUTHORIZE · 2026-10-06 +08:00）
+
+- **Authority**: coordinator AUTHORIZE coding+prove · REQUEST `27c2e99` / `27c2e9943eae4d27bd6ba0b62f02ca3dd481c6f4` · PRE dual BOTH PASS = mw-e2e-ha `899fef2` + mw-privacy-int `3915e32`
+- **Base**: `origin/feat/mysql-schema-skeleton` `6a35c47`（tip at worktree add · REQUEST `27c2e99` ancestor）
+- **Diff scope**: `scripts/run-e2e-isolated.mjs` R5-MARKED-RED banner string **only** · line numbers unchanged **`:1765-1768`**（re-verified · 3 lines changed · same 4-line hunk）
+- **Untouched**: `:1674` `const SOLE_STACK = 'mysql-qdrant-redis'` · `SOLE_WIRING_ALLOWLIST` · dual-track branching · `if (isolationStack === LEGACY_STACK)` marked-red gate (NOT deleted) · `:2139`/`:2141` `E2E_ISO_STACK_NOTE` · header comment `:5` · erasure / migrations / `principal.ts` / `checkpoint-principal.ts`
+- **Prove**: `node --check scripts/run-e2e-isolated.mjs` → **EXIT 0** · zero e2e run · no docker · receipt `receipts/2026-10-06-gap-e2e-iso-banner-pg-retained-residual-align.md`
+- **ADR**: `adr-postgres-retained.md` L39 banner-clarify bullet line cites refreshed（@L1765-1768 · @L2139/@L2141）+ stale wording noted removed/aligned · Decision body untouched
+
+**Before** (`:1765-1768` @ `6a35c47`):
+```js
+    `[R5-MARKED-RED] E2E_ISOLATION_STACK=${isolationStack} (dual-track; intended sole default=${SOLE_STACK}) ` +
+    `E2E_PG_IMAGE=${image} is a legacy pgvector isolation fixture — NOT sole-stack truth ` +
+    `(sole stack = MySQL+Qdrant+Redis). Local green ≠ RAG migrated. ` +
+    `releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.`,
+```
+
+**After** (`:1765-1768`):
+```js
+    `[R5-MARKED-RED] E2E_ISOLATION_STACK=${isolationStack} (dual-track; SOLE_STACK=${SOLE_STACK} is a dual-track code-path label ≠ product stack truth) ` +
+    `E2E_PG_IMAGE=${image} is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence ` +
+    `(product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. ` +
+    `releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.`,
+```
+
+**Semantics retained**: R5-MARKED-RED · dual-track · legacy pgvector fixture · `releaseEvidence=false · Not HA · Local green ≠ RAG migrated · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence`. **Removed**: `intended sole default=${SOLE_STACK}` and `(sole stack = MySQL+Qdrant+Redis)` claims. No cutover narrative in either direction.
+
+**Gap status**: backlog `gap-bug-backlog.md:63` **OPEN**（row untouched）· banner string aligned · residual status for nail/SSOT（header comment `:5` "Intended sole default = mysql-qdrant-redis" + `SOLE_STACK` const = separate package / not in this knife）· external=`retention_pending` · public DELETE=503 · Ban flip backlog row in prove commit · Ban self-nail.
+
 ## Pins
 
-haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · backlog `:63` open named gap · STOP
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · backlog `:63` open named gap（banner string aligned · residual for nail/SSOT）· STOP
 
-*Harness · GAP-E2E-ISO-BANNER-PG-RETAINED residual · banner ≠ PG-retained truth · Line AL · 2026-10-06 · draft:awaiting_pre_exec_dual · Ban coding until PRE BOTH PASS + AUTHORIZE · alone ≠ dual · STOP*
+*Harness · GAP-E2E-ISO-BANNER-PG-RETAINED residual · banner ≠ PG-retained truth · Line AL · 2026-10-06 · coding_prove_done:awaiting_post_prove_dual · banner string only · gap OPEN · alone ≠ dual · STOP*
