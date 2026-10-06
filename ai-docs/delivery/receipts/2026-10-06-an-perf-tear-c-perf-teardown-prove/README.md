@@ -1,4 +1,4 @@
-# Receipt — **AN-PERF-TEAR · C-PERF-TEARDOWN product rootcause · prove matrix ×6**（`prove-complete:awaiting_post_prove_dual` · Ban nail · CONDITION `:35` OPEN）
+# Receipt — **AN-PERF-TEAR · C-PERF-TEARDOWN product rootcause · prove matrix ×6**（NAIL · **`post_prove_dual_pass`** · P-HOLD · CONDITION `:35` **OPEN** · A diagnostic **unproven**）
 
 | Field | Value |
 |---|---|
@@ -60,4 +60,24 @@ Fail marks `J2_KILL_NOT_BEFORE_ERROR` / `J2_POSTKILL_WINDOW_EXCEEDED` **not hit*
 
 `margin.json` · `lcli-aux.txt` · `docker-version-full.txt` · `mut-log.txt` · `summary.json` · `run.log` · `attempts/<id>/{prove.log,inject.log,meta.json,verdict.json,aux.txt,events.jsonl,...}` · `attempts/R2/` · `attempts/R3.log` · `harness-tools/`（×6 scorer）.
 
-Status: **`prove-complete:awaiting_post_prove_dual`** · tip for POST dual = this PROVE_SHA · Ban nail until mw-e2e-ha + mw-rag-route POST BOTH · Ban self-nail · CONDITION `:35` OPEN
+Status: **`prove-complete:awaiting_post_prove_dual`** · tip for POST dual = this PROVE_SHA · Ban nail until mw-e2e-ha + mw-rag-route POST BOTH · Ban self-nail · CONDITION `:35` OPEN  <!-- exec-era · lifecycle advanced below -->
+
+---
+
+## AN-PERF-TEAR NAIL cross-ref（additive · 2026-10-06 · `post_prove_dual_pass`）
+
+| Item | Value |
+|------|-------|
+| PROVE tip | `85b9261` / `85b92613db75804b2cc4e1b2e8fea7a35786ce17` |
+| CODE_SHA | `eae9fed` / `eae9fed1c81edf9231f7b3372c997f5501871c1c`（P-HOLD · no product code · `principal.ts` untouched） |
+| REQUEST | `f76fcff` / `f76fcff266369cec1f1d808f5be7324fbc4e0c61`（rewrite ×6） |
+| PRE dual | mw-e2e-ha Re-PRE6 `bb2e866` / `bb2e866a4aaaf369f65602de582ce37e61a67a78` + mw-rag-route Re-PRE6 `a752ffc` / `a752ffcd532e3f1dc653c52163960922826ff409` |
+| POST dual BOTH PASS | mw-rag-route `e341d164` / `e341d164a0f47ae9dbdc6956c4014340c728d1f6` + mw-e2e-ha `e6d21d10` / `e6d21d1018b84c2a19b6becae86cf1da77856a0e`（alone≠dual） |
+| Gate / P-HOLD | PC 3/3 · B-MUT/B-POST/C-MUT 3/3 · **C-POST 3/3 L3-sim under ×6** · R1/R2/R3 EXIT 0 · R2 **11/11** · **0 POST Unhandled** · **P-HOLD met** |
+| A residual | A-MUT FAIL×3 diagnostic · A-POST FAIL×3 `A_FATAL_ON_ACTIVE` · Inject A **57P01 / idle-in-txn pin path unproven** · disclosed · non-gating |
+| STILL_OPEN | **CONDITION `:35` C-PERF-TEARDOWN OPEN** · canHonestlyFlip=false · A residual OPEN · coveredCount=8 · Ban wash af9664a · Ban attempt1 wash · Ban covered flip · Ban claimProductionHA · alone≠dual · PASS≠关 CONDITION≠HA |
+
+Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered / CLOSED / CONDITION closed.
+
+*Receipt · AN-PERF-TEAR · NAILED post_prove_dual_pass · PROVE 85b9261 · CODE eae9fed · REQUEST f76fcff · POST e341d164+e6d21d10 PASS · P-HOLD · A diagnostic OPEN · :35 OPEN · 2026-10-06 · STOP*
+

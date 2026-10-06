@@ -793,3 +793,16 @@ mw-e2e-ha **POST @85b9261：审时未落仓**（`git log 85b9261..origin` 空 ·
 **SKIP（0 次）**：已提交 raw logs / events / verdict 足以逐格核验 · 无歧义 · 配额收尾。未执行 docker/pnpm prove · 未触 `uc018-receipt-backfill-emit.mjs`。
 
 Verdict: PASS
+
+---
+
+## AN-PERF-TEAR NAIL note（additive · 2026-10-06 · docs-only · does **not** overwrite Verdict）
+
+Coordinator AUTHORIZE nail landed · status **`post_prove_dual_pass`** for Line AN-PERF-TEAR C-PERF-TEARDOWN ×6.
+
+- PROVE `85b9261` / `85b92613db75804b2cc4e1b2e8fea7a35786ce17` · CODE `eae9fed` / `eae9fed1c81edf9231f7b3372c997f5501871c1c` · REQUEST `f76fcff` · PRE BOTH `bb2e866`+`a752ffc`
+- **POST BOTH PASS cited**: mw-rag-route `e341d164` / `e341d164a0f47ae9dbdc6956c4014340c728d1f6` + mw-e2e-ha `e6d21d10` / `e6d21d1018b84c2a19b6becae86cf1da77856a0e`（alone≠dual · this note does **not** re-judge or invent Verdict）
+- Honest close: **P-HOLD met** under ×6 gate · A diagnostic FAIL/unproven disclosed · CONDITION `:35` **OPEN** · Ban wash af9664a · Ban covered flip · Ban close CONDITION · Ban claim HA · Ban attempt1 wash · pins held（NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503）
+- Wind-down last knife DONE after nail · HOLD AN-CIMG-EA · **NO new knives**
+
+*Nail note · AN-PERF-TEAR · post_prove_dual_pass · POST BOTH e341d164+e6d21d10 · :35 OPEN · A residual OPEN · STOP*
