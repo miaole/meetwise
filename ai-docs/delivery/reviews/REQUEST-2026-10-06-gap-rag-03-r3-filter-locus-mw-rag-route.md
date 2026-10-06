@@ -237,3 +237,61 @@ Verdict: FAIL
 R3（C-1、C-2、F-STARVE、矛盾、HNSW 联动）与 R5（MUT-3、MUT-4、3/3、收据必录项）均已解除；R1 / R2 / R4 / R6 没有回退；我方 `0e5c5ed` 中「legacy 可达」的判断有误，已更正。无新阻断；6 条条件中条件 1 须在 AUTHORIZE 前修正。本 PASS 仅为 mw-rag-route 单方 re-PRE：alone ≠ dual，不代签 mw-e2e-ha。coding 仍禁止，须双方 PASS 加协调方 AUTHORIZE。GAP-RAG-03 与 `R3-HNSW-COMPLETENESS` 保持 OPEN。Pins：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained（Postgres / pgvector / PostgresSaver）· Ban MySQL runtime / Qdrant / MemorySaver · public DELETE=503。
 
 Verdict: PASS
+
+## Re-PRE3 @8d52138
+
+**时间**：2026-10-06 21:02 +08:00
+**REWRITE ×3**：`8d52138c609108939f113ef248fad4b4375f9e11`（supersedes `c515a8c`，回应我方 Re-PRE2 `4e16dfa` 的 Cond-1..6；协调方已将 Cond-1 视为阻断）。fetch 后确认在 origin，且即为当前 tip，是祖先；只改 4 个 docs（harness、slice、两个 stub）。`4e16dfa..8d52138` 区间 `packages/`、`apps/`、`scripts/`、`package.json` 零改动。
+**审查基**：临时 worktree `/tmp/mwrr-re-pre3` @ `8d52138` · 仅本 box · 只读，无 prove · 未读 `.env*` · 无 live 模型调用。本线只审 AN-RAG-R3；AN-PERF-TEAR 为另一轨，本次不审；AN-CIMG-EA HOLD。
+**本文件历史段**：`## PRE-EXEC @4c93dc5` 起至 `## Re-PRE2 @c515a8c` 结尾，与 `4e16dfa` 逐字一致（diff 为空）。
+**Peer**：mw-e2e-ha 同线收据仍为 PENDING stub（`...-mw-e2e-ha.md:3`），无结论可引；不代签 · alone ≠ dual。
+
+### Cond-1（阻断项）· 已解除
+
+我对 `packages/db/src/qbank-generation-retrieval.ts` @ `8d52138` 做了全文字面计数（`rg -n`，含注释、import、字符串）：
+- `annSearchLegacy` = **3**：`:113`（文档注释）、`:231`（解构 `const { annSearchLegacy } = …`）、`:232`（调用）。
+- `retrieval-legacy` = **1**：`:231`（动态 `import('./retrieval-legacy.ts')`）。
+- harness 写的修复前计数「3 / 1」（`:105`、`:137`）与实测一致，BASELINE 预测的红是对的，也更正了 ×2 稿「得 1」的误记。
+
+修复后模拟：把源文件复制到 `/tmp` 临时副本（不动 worktree），删除 `:229-233`（已确认 `:229` 为 `if (!active) {`、`:233` 为 `}`），再把 `:113` 替换为 harness `:89` 钉死的逐字文本。复计结果：`annSearchLegacy=0`、`retrieval-legacy=0`。替换文本含 `retrieval-store.ts`，但不含 `retrieval-legacy` 子串；删除后 `active` 类型本就非可选，类型上无影响。所以 PC 的静态断言能变绿。副本已删除。
+
+断言定义（`:133-142`）：对全文原始文本做字面计数，不剥注释，不做形态匹配，两个 token 都须为 0；红时日志输出两个计数；禁止 prove 期间改 token、口径或目标文件。改名 import 无法简单绕过：别名写法 `{ annSearchLegacy as x }`、命名空间写法 `m.annSearchLegacy`、路径 `'./retrieval-legacy.ts'` 都会命中其中一个 token。要绕过只能刻意拆分字符串（如 `'./retrieval-' + 'legacy.ts'`），而这种情况仍会被行为断言 `R3-LEGACY-SCOPED-FAIL-CLOSED` / `R3-LEGACY-UNSCOPED-FAIL-CLOSED` 捕获（要求 reject 且 `err.message === 'qbank_active_generation_missing'`，`:109`）。MUT-4 恢复分支后 `annSearchLegacy` ≥2，确定为红（`:139`、`:176`）。
+
+### 其余条件
+
+- **Cond-2 · 已解除。**
+  - 回归 R-e `qbank-integrity-upgrade:prove` 期望 EXIT 0（`:181`）；根 `package.json:429` 存在。
+  - F-LEGACY-NOSCOPE（`:104`）：无 active、不传 scope，结果钉为 reject `qbank_active_generation_missing` 且 0 行，断言名 `R3-LEGACY-UNSCOPED-FAIL-CLOSED`。构造顺序与前置断言（metadata 计数为 0，否则记 `FIXTURE_UNREACHABLE`）见 `:109`。EXIT 计入 proof 整体：修复前 1（因其他红），修复后 0（`:143`、`:172`）。
+  - R-e 理由有误，见下面条件 1。
+- **Cond-3 · 已解除**（`:179`）：R-c 改为「有 active generation 时无 scope 调用 `hybridQbankSearch`，即无 scope 的 serving 路径，不涉及 legacy」，与 `qbank-generation.proof.ts:66` 一致。
+- **Cond-4 · 已解除**（`:90`）：四处登记位置都已列出。我在当前 tip 核实，`rag04-track-local:prove:raw` 确实出现在 `run-e2e-isolated.mjs:1262`（依赖表）、`:1450`（target 列表）、`:1694`（命令分派）、`:2202`（migrate 列表）；新增分派语句的写法也已给出，漏任一处即视为 C-3 未落地。
+- **Cond-5 · 已解除**（`:176`）：MUT-4 只钉 EXIT 1，以及三个须同时命中的红断言名；`legacyReturned` 只记录，不作判定。
+- **Cond-6 · 已解除**（`:125-128`、`:185`、`:213`）：收据须披露 `planSource=substituted_body`，说明它不等于 live 计划，并记 `LIVE_PLAN_NOT_CAPTURED`。硬门禁只看真实函数调用的返回值；`enable_indexscan` / `enable_bitmapscan` 是会话 GUC，同样作用于函数内部，而函数的 `SET` 子句只覆盖 `search_path`，这一推理成立。
+
+### Re-PRE2 已解除项 · 无回退
+
+diff 核对：rewrite ×3 只删改了 C-2、C-3、F-LEGACY、变异 EXIT 说明、执行顺序、PC、MUT-4、R-c 这几行；C-1、F-STARVE、MUT-3、P-EXACT / P-HNSW、ADR、Ban 路径等行原样保留。
+- C-1：candidate JOIN 移入 `ann` CTE，位于 ORDER BY / LIMIT 之前，新 migration 预期 0138（`:88`）。
+- C-2：死分支删除，F-LEGACY fail-closed（`:89`、`:103`、`:131-143`）。
+- F-STARVE：修复前 0 行，修复后 5 行（`:101`）。
+- HNSW：残项 OPEN，P-EXACT 用 EXPLAIN 作门禁，并记录 `extversion`（`:13`、`:119-128`、`:185`、`:217`）。
+- MUT-3 / MUT-4 各 3/3 EXIT 1；全程要求 3/3（`:156-160`、`:175-176`）。
+- R1 / R2 / R4 / R6 保持（`:58`、§3、§5、`:191-194`）。
+- 回归脚本名在根 `package.json` 中均存在：`:238` / `:240` / `:427` / `:429` / `:433`。
+- GAP-RAG-03 保持 OPEN（`:13`、`:198`）；无 MySQL / Qdrant / FULLTEXT（`:194`）；Pins 未变（`:4`、`:217`）。
+
+### 新阻断
+
+无。
+
+### 非阻塞条件
+
+1. **R-e 理由过度声称，更正我方 `4e16dfa` 条件 2 的前提。** `qbank-integrity-upgrade.proof.ts:89-97` 只应用 `≤0067`、`≤0068`、`≤0072` 以及 `0086` / `0087` 这几组 migration（`:105`、`:252`、`:272`、`:544`），**从未应用 0106，也不会应用 0138**。因此它经 `hybridQbankSearch` 调用的是旧版 ANN 函数，既不覆盖 C-1 的 JOIN 前移，也不验证 0138 在 migration role 下能否应用。harness `:181` 写「C-1 移动的正是该 JOIN」「同时验证 C-1 CREATE OR REPLACE 在该角色下可应用」，两句都不成立。R-e 仍是合法回归（EXIT 0，用来防止 C-2 / 共享代码回归），但理由须改为「不覆盖 0138」。如需覆盖「content_hash 漂移 → 不在 candidate」这一语义，可在新 proof 里加一个 content_hash 不一致的 F-STARVE 变体。我在 `4e16dfa` 中说它「经 ANN SQL 覆盖 candidate 语义」，同样有误，在此更正。
+2. **`:113` 钉死的替换文本有一处事实不准。** 文本写「legacy `vector_chunk` 检索只经 retrieval-store.ts 的非 qbank 分支」，但 `retrieval-store.ts:14` 对外导出 legacy 入口，`vectorstore.proof.ts:73`、`smoke/rag-demo.ts:61`、`smoke/rag-adversarial-pg-eval.ts:146` 都直接以 `'qbank'` 调用。建议改为「legacy 入口由 retrieval-store.ts 导出、供 smoke / legacy proof 直接调用，不经本文件」，并保持不含两个 token。由于该文本是逐字钉死的，措辞须在 AUTHORIZE 前由协调方定稿，不得由实施方临场修改。
+3. 静态断言只检查单个文件。若有人在调用方（例如 `qbank-retrieval-cache.ts`）里 catch 之后改走 legacy，它查不出来。建议收据附 `git diff --stat` 与 `rg -n 'annSearchLegacy' packages/db/src apps` 的前后对比，证明本刀没有新增引用。目前不存在这类调用。
+
+### 结论
+
+Cond-1 已按实测计数真正修复：修复前 3 / 1，修复后模拟 0 / 0，PC 静态断言可以变绿，BASELINE 预测正确，且无法被简单绕过。Cond-2..6 均已解除；Re-PRE2 已解除项没有回退；无新阻断，另有 3 条非阻塞条件（其中条件 1 更正了 R-e 理由，也更正了我方 `4e16dfa` 的前提）。本 PASS 仅为 mw-rag-route 单方 re-PRE：alone ≠ dual，不代签 mw-e2e-ha。coding 仍禁止，须双方 PASS 加协调方 AUTHORIZE。GAP-RAG-03 与 `R3-HNSW-COMPLETENESS` 保持 OPEN。Pins：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained（Postgres / pgvector / PostgresSaver）· Ban MySQL runtime / Qdrant / MemorySaver · public DELETE=503。
+
+Verdict: PASS
