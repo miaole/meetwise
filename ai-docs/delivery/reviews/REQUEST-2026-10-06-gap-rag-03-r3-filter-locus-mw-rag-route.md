@@ -119,3 +119,43 @@ Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执
 上述 6 项阻断未解除前不得进入 coding / prove。GAP-RAG-03（backlog `:71`）保持 OPEN；PG-retained（Postgres / pgvector / PostgresSaver），禁止 MySQL runtime / Qdrant / MemorySaver / FULLTEXT。Pins 未变：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · public DELETE=503。本审不代签 mw-e2e-ha；alone ≠ dual；coding 须双方 PASS 加协调方 AUTHORIZE。
 
 Verdict: FAIL
+
+## Re-PRE @c71d354
+
+**时间**：2026-10-06 20:28 +08:00
+**REWRITE**：`c71d3547744900d4b6a70e64402a6c9baa40f6f6`（supersedes `4c93dc5`，引用我方 FAIL `5f8096a` R1–R6）。fetch 后确认在 origin，是祖先；只改 4 个 docs（harness +104/-33、slice、两个 stub）。
+**审查基**：临时 worktree `/tmp/mwrr-553cfc5` @ origin tip（`9e2abd0` → `7e97dc3`；本线 harness 与源码在 `a1f3614..` 区间无变化）· 仅本 box · 只读，无 prove · 未读 `.env*` · 无 live 模型调用
+**本文件历史段**：`## PRE-EXEC @4c93dc5` 正文与 `5f8096a` 逐字一致（diff 为空）；core 表头 / Rewrite note 未改动。
+**Peer**：mw-e2e-ha 同线收据仍为 PENDING stub（`...-mw-e2e-ha.md:3`、`:48`），无结论可引；不代签 · alone ≠ dual。
+
+### 逐项核对（harness = `harness/gap-rag-03-r3-filter-locus.md`）
+
+- **R1 · 已解除。** §2 ADR 定案（`:41-46`）：落点为 SECURITY DEFINER 函数体内、`ORDER BY <=>` / `ts_rank` 与 `LIMIT` **之前**的 WHERE，谓词列表含 active / `visible` / scope / taxonomy / 批准源 `qbank_retrieval_candidate`（`:43`）。明确否决 Qdrant payload、应用层 post-Top-K、MySQL `MATCH … AGAINST`（`:43-44`）；backlog `:71` 中的 Qdrant 选项书面不采用（`:46`），与 `adr-postgres-retained.md:11-12` 对齐（`:37`、`:48`）。没有残留 Qdrant 选项。
+- **R2 · 已解除。** 锚点逐条对源码核实无误：`qbank-generation-retrieval.ts:60-65`、`:221-275`、`:227`、`:229-233`、`:239`、`:255-257`；`0106:55-92`，其中 scope `:74-83`、内层 `ORDER BY :84`、`LIMIT greatest(k*8,40) :85`、candidate JOIN `:88-89`、外层 `LIMIT k :91`；lexical `:94-131`（scope `:120-128`，candidate JOIN 在 `:115`，位于 `LIMIT :131` 之前，即 `:57`「同块」属实）；`0029:205`；`0068:111`。harness `:56`、`:62` 也如实承认 ANN 的 candidate JOIN 在内层 LIMIT 之后。
+- **R3 · 未解除，阻断（关键项）。**
+  - ① harness 认出了缺陷，但**没有承诺修复，也没有钉预期**。`:69` 只写「ADR 修复方向 = 将批准源谓词移入内层 LIMIT 之前（授权后编码）」，并对「最近 >40 行全部未批准」这一场景写「prove 记录实际返回数」「修复前不得假装保证 K」。这不是钉死的期望值。没有说明本刀授权后的编码范围是否包含 `0106` ANN 的 candidate 前移（新 migration），也没有给该场景钉修复前基线和修复后精确值。§2 `:43` 把批准源列为「LIMIT 前谓词」，§3 `:62` 与 §4 `:69` 却仍把 LIMIT 后 JOIN 当作「已知风险」保留，两处自相矛盾。按这份计划，即使 prove 全绿，ANN 通道仍是 post-filter。
+  - ② HNSW 只做了限制声明（`:70`）。这个方向可接受，但没有和 ① 联动：即使把 candidate 谓词前移，HNSW 先索引后过滤（`hnsw.ef_search` 默认 40）在「最近 40+ 未批准」场景下仍可能返回少于 K。另外，小 fixture 下规划器可能直接走顺序扫描，根本没触发 HNSW，绿了也不说明问题。须钉：pgvector 版本下限，以及 `SET LOCAL hnsw.iterative_scan` / `ef_search` 的取值，或者显式声明「此场景期望 = 实际批准且 in-scope 行数 N，并以 EXPLAIN 证明走了（或没走）HNSW」。二者择一定案。
+  - ③ legacy `:229-233` 有 fail-closed 期望（`:71`）✓。但现状代码在「无 active generation 且已设 scope」时**可以**走到 legacy（`qbank-generation-retrieval.ts:227-233`），所以该断言在不改码时必然红。harness 没说该修复是否在本刀编码范围内，也没有钉 fixture 和修复前 / 后 EXIT。
+  - K=5、仅 3 行 in-scope → 恰 3 行、0 越界，已钉（`:68`）✓。
+  - **修复**：
+    1. 写明授权后编码范围 = `0106` ANN 内层（`:72-85`）加入 `qbank_retrieval_candidate` / 批准源谓词，位置在 `ORDER BY` / `LIMIT` 之前（新 migration），并对 legacy 做 fail-closed。
+    2. 钉 fixture：例如 45 条最近的 in-scope 未批准行，加 5 条较远的 in-scope 已批准行，K=5。修复前基线如实记录（预期 <5），修复后精确 = 5 行已批准、0 未批准、0 越界。
+    3. HNSW 联动按 ② 定案。
+    4. legacy fixture（无 active + scope）修复后的精确 EXIT / 返回。
+- **R4 · 已解除。** 命令 `./scripts/with-docker-session.sh env -u MODEL_API_KEY -u MODEL_BASE_URL pnpm rag03-filter-locus:prove`（`:78`）；脚本名唯一（新增，授权后登记，`:83`、`:89`）；attempts 3（`:85`）；正控 EXIT 0、变异 EXIT ≠0（`:87-88`）。条件：须写明 3/3 EXIT 0 为通过要求（见条件 1）。
+- **R5 · 部分解除，阻断（随 R3）。**
+  - 已具备：正控（`:97`）；变异 1「scope 移到 LIMIT 后」与变异 2「删 taxonomy」，均 EXIT ≠0 并有拟定断言名（`:98-99`）；回归 R-a..R-d 带 wrapper，期望 EXIT 0（`:100-103`），四个脚本已在根 `package.json` 核实存在（`:240` / `:238` / `:431` / `:425`）；Ban 借绿（`:105`）。
+  - 缺：**变异 3「candidate / 批准源 JOIN 移回内层 LIMIT 之后」→ EXIT ≠0**，以及 legacy 可达性变异。这两项依赖 R3 的修复承诺，目前无从定义。
+- **R6 · 已解除。** 隔离真 PG + pgvector，`pgvector/pgvector:pg16`（`:111`，与 `run-e2e-isolated.mjs:1716` 一致）；Linux-native（`:112`）；隔离依据 = SECURITY DEFINER 函数体内的显式 WHERE，不依赖 RLS；共享题库无 owner 租户维，租户隔离不适用（`:113`）；不引入 MySQL / Qdrant / FULLTEXT 路径，并有静态断言（`:114`）。
+- **其他**：GAP-RAG-03 backlog `:71` 保持 OPEN（`:13`、`:118`）；Ban wash R2 as R3（`:18`、`:126`）；Pins 未变（`:4`、`:137`）。
+
+### 非阻塞条件（随下次 rewrite 一并处理）
+
+1. attempts=3 的通过要求写明为 3/3 EXIT 0；变异每次 EXIT ≠0，且红断言名须命中。
+2. prove 收据须记录 `SELECT extversion FROM pg_extension WHERE extname='vector'` 以及关键查询的 EXPLAIN。
+
+### 结论
+
+R1 / R2 / R4 / R6 已解除；**R3 未解除**：ANN 的 candidate JOIN 仍在内层 `LIMIT greatest(k*8,40)` 之后（`0106:85` → `:88-89`）；rewrite 只写了「修复方向」，未纳入编码范围、未钉修复后精确值；HNSW 与 legacy 的预期没有与修复联动。**R5 部分解除**：缺 candidate 移回 LIMIT 后的变异。GAP-RAG-03 保持 OPEN。Pins 未变：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained（Postgres / pgvector / PostgresSaver）· Ban MySQL runtime / Qdrant / MemorySaver · public DELETE=503。coding 仍禁止，须双方 PASS 加协调方 AUTHORIZE；不代签 mw-e2e-ha。
+
+Verdict: FAIL
