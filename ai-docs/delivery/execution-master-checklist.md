@@ -979,3 +979,14 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · `g7SuiteGreen=false`. Do not write covered. actualSpendCny stays null.
 - Nail tip = 本 commit（branch `line/al-am-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written（incl. Line AD Key-blocked residual · Line AL banner residual · Line AC/U G7 · Line AE/AF/AH）. This paragraph does **not** flip `g7SuiteGreen` · does **not** close Disclosure-1 / R1 · does **not** reconcile m4 tension.
+
+### Line AG NHP-001-ADV-01 / GAP-UC001-ADV-01 NAIL（2026-10-06 SSOT nail · `post_prove_dual_pass` · EXIT0≠covered · ADV stays blind/case-only · SCOPE UC-001 ADV only）
+
+- [x] **`post_prove_dual_pass`** recorded for Line AG NHP-001-ADV-01（UC-001 ADV blind→case · 主链内注入串）only. Implementer does not self-approve beyond this AUTHORIZE nail. **EXIT0≠covered**. ADV stays **blind/case-only**. Ban invent covered · Ban flip ADV to covered · Ban wash Y/AB · Ban HA · Ban live · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · Ban coding · Ban touch AI/AJ/AK coding files.
+- REQUEST `51af3b2` / `51af3b273bf51945808c7bb31843b53dfcce44fc`. Pre-exec dual PASS: mw-e2e-ha `6a35c47` / `6a35c47c497d8827a6a7b729ba05c31193836553` + mw-rag-route `7706bf7` / `7706bf7ddad5e9ff2d0955d8e65e53eff9f60757`.
+- PROVE tip **NAILED TO** `7eb1c88` / `7eb1c88ee63aea2fb45a51bf708c0801fc03d22c`（prove-only · zero `apps/api/src`）· CMD `pnpm uc001:nhp-adv:prove` **PROVE_EXIT 0** · **ADV 63/63** · B5 neg **26/26** + bound **17/17** · mutation V1→409 `stale_question` EXIT1 discarded · isolated 真 PG · Ban live · receipt `receipts/2026-10-06-nhp-001-adv-01-prove.md`.
+- Post-prove dual PASS: mw-e2e-ha `0e6d58c` / `0e6d58c5801083db7c5bd29d6d912c4cc083167e` + mw-rag-route `2bf22c5` / `2bf22c56aa47f17e0f466e3b96ef926ef9063168`（BOTH · alone≠dual already satisfied by BOTH POST）.
+- [ ] **UC-E2E-001 ADV stays blind/`case-only` wording** · [ ] **EXIT0≠covered** · [ ] **coveredCount=8** · SCOPE UC-001 ADV only · Ban wash Y（NHP-001-NEG-01）/ AB（NHP-001-BOUND-01）· Ban touching 018 / 052 / 025 / AI/AJ/AK.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered. Ban buy cloud · Ban secrets · Ban force.
+- Nail tip = 本 commit（branch `nail/line-ag-nhp-001-adv-01`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written（incl. Line Y NEG · Line AB BOUND · Line AL/AM · Line AD/AE/AF/AH · AI/AJ/AK REQUEST）. This paragraph does **not** flip ADV to covered · does **not** invent covered · does not change any existing gap, partial, or OPEN row to CLOSED or covered.

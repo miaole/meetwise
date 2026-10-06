@@ -1,12 +1,13 @@
-# Slice — **NHP-001-ADV-01 · UC-001 ADV blind→case**（Line AG · prove done · **`prove:awaiting_post_dual`**）
+# Slice — **NHP-001-ADV-01 · UC-001 ADV blind→case**（Line AG · **`post_prove_dual_pass`** · EXIT0≠covered · ADV stays blind/case-only）
 
-**Status**: **`prove:awaiting_post_dual`**（ADV structural EXIT0 · B5 ENV-capable 26/26+17/17 · mutation discarded · ADV stays blind/case-only · EXIT0≠covered · coveredCount=8 · awaiting POST dual · Ban live · Ban fake-model · Ban covered flip · Ban wash Y/AB）
+**Status**: **`post_prove_dual_pass`**（Line AG nail 2026-10-06 · prove tip NAILED TO `7eb1c88` · REQUEST `51af3b2` · ADV EXIT0 **63/63** · B5 26/26+17/17 · mutation discarded · POST dual BOTH PASS e2e `0e6d58c` + rag `2bf22c5` · ADV stays blind/case-only · EXIT0≠covered · coveredCount=8）
+**History**: ~~`prove:awaiting_post_dual`~~ → POST dual BOTH PASS → nail
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base**: REQUEST `51af3b2` · prove on `origin/feat/mysql-schema-skeleton`（historical parent note `71ad2a7` corrected → REQUEST git parent `c562906`）
 **Prior REQUEST**: `4e9f568`（superseded by re-PRE3）← `626e060` ← `5eba515` · FAIL receipts `a3364b4`/`71ad2a7`（rag Re-PRE2 · B-R2-1 · retained）· `3f3a2e4`（e2e re-PRE · N1–N4 · retained）· `863a5e6`（rag PRE · B1–B5 · retained）
 **B5 self-check**: `receipts/2026-10-06-nhp-001-adv-01-b5-env-selfcheck.md`（reason tags `docker.sock` + `key`）
-**Authority**: meetwise-core coding+prove done · awaiting POST dual · Ban self-approve · Ban self-nail
+**Authority**: meetwise-core AUTHORIZE nail · BOTH POST PASS · Ban self-approve beyond this nail · Ban invent covered
 
 ## One-line
 
@@ -23,6 +24,8 @@
 | B5 ENV-capable | `receipts/2026-10-06-nhp-001-adv-01-b5-env-capable.md` |
 | Prove receipt | `receipts/2026-10-06-nhp-001-adv-01-prove.md` |
 | ADV proof | `apps/api/test/uc-e2e-001-nhp-adv.proof.ts` |
+| POST `mw-e2e-ha` | `reviews/REQUEST-2026-10-06-nhp-001-adv-01-blind-to-case-post-mw-e2e-ha.md`（`0e6d58c` PASS） |
+| POST `mw-rag-route` | `reviews/REQUEST-2026-10-06-nhp-001-adv-01-blind-to-case-post-mw-rag-route.md`（`2bf22c5` PASS） |
 
 ## Choice
 
@@ -65,4 +68,13 @@ Ban live · Ban fake-model · Ban fake-green suite · Ban covered flip · Ban in
 
 Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503.
 
-*Slice · NHP-001-ADV-01 · Line AG · prove:awaiting_post_dual · ADV EXIT0 structural · B5 26/26+17/17 · ADV stays blind/case-only · Ban wash Y/AB · STOP*
+## NAIL（2026-10-06 · Line AG · `post_prove_dual_pass` · EXIT0≠covered · ADV stays blind/case-only）
+
+- Lifecycle → **`post_prove_dual_pass`**（authorized coordinator nail · AUTHORIZE nail · BOTH POST PASS · implementer does not self-approve beyond this nail）.
+- REQUEST `51af3b2`（`51af3b273bf51945808c7bb31843b53dfcce44fc`）→ PRE dual mw-e2e-ha `6a35c47` + mw-rag-route `7706bf7` PASS → prove tip **NAILED TO** `7eb1c88`（`7eb1c88ee63aea2fb45a51bf708c0801fc03d22c`）· ADV **EXIT 0 · 63/63** · B5 neg **26/26** + bound **17/17** · mutation discarded.
+- POST dual BOTH PASS: mw-e2e-ha `0e6d58c`（`0e6d58c5801083db7c5bd29d6d912c4cc083167e`）+ mw-rag-route `2bf22c5`（`2bf22c56aa47f17e0f466e3b96ef926ef9063168`）· alone≠dual.
+- **EXIT0≠covered** · ADV stays **blind/case-only** · Ban invent covered · Ban wash Y/AB · Ban flip ADV to covered · coveredCount=**8**.
+- Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503 · Ban buy cloud · Ban secrets · Ban force.
+- Keep siblings（Y/AB/AL/AM · AI/AJ/AK）as written. Ban coding · Ban HA · Ban live · Ban Meridian · Ban claiming covered · Ban self-approve beyond this AUTHORIZE nail.
+
+*Slice · NHP-001-ADV-01 · Line AG · post_prove_dual_pass · EXIT0≠covered · ADV stays blind/case-only · coveredCount=8 · Ban wash Y/AB · STOP*

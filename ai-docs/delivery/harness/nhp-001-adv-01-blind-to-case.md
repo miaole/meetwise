@@ -1,6 +1,7 @@
-# Harness — **NHP-001-ADV-01 · UC-001 ADV blind→case**（Line AG · prove done · **`prove:awaiting_post_dual`** · SCOPE UC-001 ADV only · EXIT0≠covered · ADV stays blind/case-only）
+# Harness — **NHP-001-ADV-01 · UC-001 ADV blind→case**（Line AG · **`post_prove_dual_pass`** · SCOPE UC-001 ADV only · EXIT0≠covered · ADV stays blind/case-only）
 
-**Status**: **`prove:awaiting_post_dual`**（coding+prove AUTHORIZE · ADV structural EXIT0 · B5 ENV-capable neg 26/26 + bound 17/17 · mutation V1→409 stale_question EXIT≠0 discarded · ADV stays **blind/case-only** · EXIT0≠covered · coveredCount=8 · awaiting POST dual · Ban covered flip · Ban wash Y/AB · Ban self-approve · Ban self-nail）
+**Status**: **`post_prove_dual_pass`**（Line AG nail 2026-10-06 · prove tip NAILED TO `7eb1c88` · REQUEST `51af3b2` · ADV EXIT0 **63/63** · B5 neg **26/26** + bound **17/17** · mutation V1→409 `stale_question` EXIT1 discarded · POST dual e2e-ha `0e6d58c` + rag-route `2bf22c5` BOTH PASS · ADV stays **blind/case-only** · EXIT0≠covered · coveredCount=8 · Ban wash Y/AB · Ban invent covered）
+**History**: ~~`draft:awaiting_pre_exec_dual`~~ → REQUEST `51af3b2` · PRE dual PASS e2e `6a35c47` + rag `7706bf7` → prove `7eb1c88` · ~~`prove:awaiting_post_dual`~~ → POST dual BOTH PASS → nail
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base / parent tip**: REQUEST `51af3b2` · git parent of REQUEST was `c562906`（historical harness note `71ad2a7` = base≥errata · non-blocker fixed）· prove branch from `origin/feat/mysql-schema-skeleton` · Ban touch Y/AB/018/052/025 · AL/AM）
@@ -11,7 +12,7 @@
 **Prove receipt**: `ai-docs/delivery/receipts/2026-10-06-nhp-001-adv-01-prove.md`
 **Peer note**: mw-e2e-ha re-PRE2 PASS `5875644` on `4e9f568` · **alone ≠ dual** · rag FAIL ⇒ BOTH not PASS
 **Knife**: **NHP-001-ADV-01（Line AG）· 黄金路径 ADV · 主链内注入串 · blind→case/prove 显式化**
-**Gap id（拟）**: **`GAP-UC001-ADV-01`**（本刀具名 · 服务 NHP-001-ADV-01；不发明 covered · 未入 backlog）
+**Gap id**: **`GAP-UC001-ADV-01`**（本刀具名 · 服务 NHP-001-ADV-01；诚实 case registration · 不发明 covered · nail 期登记 · ADV stays blind/case-only）
 **Case id**: **`NHP-001-ADV-01`**（`non-happy-path-perf-load-case-matrix.md:39`）
 **Row**: **`UC-E2E-001`** ADV 列（matrix `:112`）· **Ban** UC-E2E-018 / 052 / 025 · 不借 UC-004 / 011 / 031 / 032
 **Experts**: `mw-e2e-ha` + `mw-rag-route`（stubs PENDING re-PRE · Ban self-approve · alone ≠ dual）
@@ -198,4 +199,13 @@ Structural ADV EXIT0 recorded · still not covered · not live · not suite gree
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · Ban live · Ban fake-model · Ban fake-green suite · STOP
 
-*Harness · NHP-001-ADV-01 · UC-001 ADV blind→case · Line AG · 2026-10-06 · prove:awaiting_post_dual · ADV EXIT0 structural · B5 26/26+17/17 · mutation discarded · ADV stays blind/case-only · EXIT0≠covered · Ban wash Y/AB · Ban covered flip · STOP*
+## NAIL（2026-10-06 · Line AG · `post_prove_dual_pass` · EXIT0≠covered · ADV stays blind/case-only）
+
+- Lifecycle → **`post_prove_dual_pass`**（authorized coordinator nail · AUTHORIZE nail · Line AG · NHP-001-ADV-01 · BOTH POST PASS · implementer does not self-approve beyond this nail）.
+- REQUEST `51af3b2`（`51af3b273bf51945808c7bb31843b53dfcce44fc`）→ PRE dual mw-e2e-ha `6a35c47`（`6a35c47c497d8827a6a7b729ba05c31193836553`）+ mw-rag-route `7706bf7`（`7706bf7ddad5e9ff2d0955d8e65e53eff9f60757`）PASS → prove tip **NAILED TO** `7eb1c88`（`7eb1c88ee63aea2fb45a51bf708c0801fc03d22c`）· `pnpm uc001:nhp-adv:prove` **EXIT 0 · 63/63** · B5 neg **26/26** + bound **17/17** · mutation V1→409 `stale_question` EXIT1 discarded · isolated 真 PG · Ban live.
+- POST dual BOTH PASS: mw-e2e-ha `0e6d58c`（`0e6d58c5801083db7c5bd29d6d912c4cc083167e`）+ mw-rag-route `2bf22c5`（`2bf22c56aa47f17e0f466e3b96ef926ef9063168`）· alone≠dual already satisfied by BOTH POST.
+- **prove-only** · **zero `apps/api/src`** · ADV stays **blind/case-only** · **EXIT0≠covered** · Ban invent covered · Ban wash Y/AB · Ban flip ADV to covered · Ban buy cloud · Ban secrets · Ban force.
+- **SCOPE UC-001 ADV only** · gap **`GAP-UC001-ADV-01`** 登记 · coveredCount=**8** · NOT_HA · releaseEvidence=false · claimProductionHA=false · PG-retained · DELETE=503.
+- Keep siblings（Line Y NEG · Line AB BOUND · AL/AM · AI/AJ/AK）as written. Ban coding · Ban HA · Ban live · Ban Meridian · Ban secrets · Ban force-push · Ban claiming covered · Ban self-approve beyond this AUTHORIZE nail.
+
+*Harness · NHP-001-ADV-01 · UC-001 ADV blind→case · Line AG · post_prove_dual_pass · EXIT0≠covered · ADV stays blind/case-only · coveredCount=8 · Ban wash Y/AB · STOP*
