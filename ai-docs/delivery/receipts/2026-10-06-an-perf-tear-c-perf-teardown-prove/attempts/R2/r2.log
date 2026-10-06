@@ -1,0 +1,18 @@
+GAP-PRINCIPAL-POOL-NO-ERROR-LISTENER pool error listener proof · releaseEvidence=false · Not HA
+NOTE: 非破坏性注入（客户端侧 socket 断开，同 pool error 发射路径）· 本绿 ≠ 行翻转（nail 前 backlog :355 stays OPEN）
+PASS  POOL-PURPOSE-INVALID-REJECTED
+{"event":"db_pool_error","purpose":"pool-error-proof","count":1,"error_name":"Error","error_message":"Connection terminated unexpectedly"}
+PASS  POOL-ERROR-PROCESS-SURVIVES-IDLE-BREAK
+PASS  POOL-ERROR-OBSERVED-COUNTER
+PASS  POOL-ERROR-OBSERVED-LOG
+PASS  POOL-ERROR-LOG-FIVE-KEYS-ONLY
+PASS  POOL-ERROR-LOG-NO-SECRETS
+PASS  POOL-ERROR-LOG-PG-MESSAGE-RECORDED
+OBSERVED {"event":"db_pool_error","purpose":"pool-error-proof","count":1,"error_name":"Error","error_message":"Connection terminated unexpectedly"}
+PASS  POOL-ERROR-COUNTER-DIMENSION-ISOLATED
+PASS  POOL-ERROR-POOL-STILL-USABLE
+{"event":"db_pool_error","purpose":"pool-error-proof","count":2,"error_name":"Error","error_message":"Connection terminated unexpectedly"}
+PASS  POOL-ERROR-ACTIVE-QUERY-STILL-REJECTS
+PASS  POOL-ERROR-OBSERVED-COUNTER-ACTIVE-BREAK
+ATTEMPTS_LEDGER induced_breaks=2 one_shot=true retry_to_green=false destructive_sql=none counter=pool-error-proof:2 default:0
+CMD=pnpm -C packages/db exec tsx test/pool-error-listener.proof.ts EXIT=0

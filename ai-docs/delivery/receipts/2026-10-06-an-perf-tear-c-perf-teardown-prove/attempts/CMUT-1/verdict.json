@@ -1,0 +1,111 @@
+{
+ "cell": "C-MUT",
+ "attempt": "CMUT-1",
+ "pass": true,
+ "fails": [],
+ "obs": {
+  "prove_exit": 1,
+  "unhandled_n": 1,
+  "emitted_on": "BoundPool",
+  "emitted_at_pg_frames": [
+   "pg-pool/index.js:62",
+   "pg/lib/client.js:417",
+   "pg/lib/client.js:217"
+  ],
+  "block_pg_frame": true,
+  "own_stack_pg_frame": true,
+  "block_57P01": false,
+  "unhandled_text": "Error: Connection terminated unexpectedly",
+  "db_pool_error_n": 0,
+  "db_pool_error_msgs": [],
+  "summary": false,
+  "allPass_true": false,
+  "cmd_exit0_line": false,
+  "perf_run3_line": false,
+  "seedAbandonTargets_in_log": false,
+  "state29": true,
+  "form": "F2",
+  "CTU_present": true,
+  "t_first_error": 1791295509590,
+  "pg_events": [
+   [
+    "create",
+    1791295498059,
+    null,
+    null
+   ],
+   [
+    "start",
+    1791295498233,
+    null,
+    null
+   ],
+   [
+    "kill",
+    1791295509581,
+    "9",
+    null
+   ],
+   [
+    "die",
+    1791295509807,
+    null,
+    "137"
+   ],
+   [
+    "destroy",
+    1791295510388,
+    null,
+    null
+   ]
+  ],
+  "pg_teardown_before_first_error": [
+   [
+    "kill",
+    1791295509581,
+    "9",
+    null
+   ]
+  ],
+  "foreign_emit_proc_lines": 0,
+  "C_seq_ms_rel_first_error": {
+   "kill9": -9,
+   "die137": 217,
+   "destroy": 798,
+   "inject_cmd_t0": -32
+  },
+  "J2_kill_start_reading": "L3-sim",
+  "J2": "L3-sim-temporal-mismatch(die/destroy after first error)",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "mut_deletions": 2,
+  "psql_exit": 0,
+  "gate_loop_start": [
+   [
+    "1791295508587",
+    "0"
+   ]
+  ],
+  "t_load2": 1791295509546,
+  "t_perf1": 1791295508468,
+  "marker": [
+   "GATE_BC phase=seed ts_ms=1791295509552 iv_rows=4 iv_nonactive=0 idle_n=19 seed_act=1 ub=109"
+  ],
+  "inject_cmd": {
+   "cmd": "docker rm -f meetwise-e2e-1408024-1791295496669",
+   "exit": 0,
+   "t0": 1791295509558,
+   "t1": 1791295510390,
+   "stdout": "meetwise-e2e-1408024-1791295496669"
+  },
+  "D_gate_to_cmd_return_ms": 838,
+  "kill_event_ms": [
+   1791295509581
+  ],
+  "D_gate_to_kill_event_ms": 29
+ }
+}

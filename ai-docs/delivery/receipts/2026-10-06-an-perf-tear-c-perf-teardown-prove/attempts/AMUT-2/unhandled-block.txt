@@ -1,0 +1,21 @@
+PERF run2: p50=18.5 p95=66.2 p99=85.2 err=0 timeout=0 passed=true
+LOAD run2: p50=35.6 p95=117.3 p99=123.7 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
+node:events:502
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: Connection terminated unexpectedly
+    at Connection.<anonymous> (node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:199:73)
+    at Object.onceWrapper (node:events:638:28)
+    at Connection.emit (node:events:524:28)
+    at Socket.<anonymous> (node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/connection.js:63:12)
+    at Socket.emit (node:events:524:28)
+    at TCP.<anonymous> (node:net:343:12)
+Emitted 'error' event on Client instance at:
+    at Client._handleErrorEvent (node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:417:10)
+    at Connection.<anonymous> (node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:217:16)
+    at Object.onceWrapper (node:events:638:28)
+    [... lines matching original stack trace ...]
+    at TCP.<anonymous> (node:net:343:12)
+
+Node.js v20.20.2

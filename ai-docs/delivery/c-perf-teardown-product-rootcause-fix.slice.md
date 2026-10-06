@@ -1,5 +1,6 @@
 # Slice — **C-PERF-TEARDOWN · product rootcause fix**（Line AN-PERF-TEAR · `draft:awaiting_pre_exec_dual` · re-PRE rewrite ×5）
 
+**Status (PROVE)**: **`prove-complete:awaiting_post_prove_dual`** · receipt `receipts/2026-10-06-an-perf-tear-c-perf-teardown-prove/README.md` · COND_SHA `60de958` · CODE_SHA `60de958`（P-HOLD · no product code change）· PC 3/3 · A-MUT FAIL×3 `A_FATAL_ON_ACTIVE` · A-POST FAIL×3 `A_FATAL_ON_ACTIVE` · B-MUT 3/3 · B-POST 3/3（`U_B=84` · `L_cli=18 ms`）· C-MUT 3/3 · C-POST FAIL×3（strict J-2 L3-sim temporal: die/destroy after first error）· R1/R2/R3 EXIT 0 · 0 Unhandled in any POST attempt · matrix not all-cells-met · Ban nail until POST dual BOTH · Ban self-nail · CONDITION `:35` OPEN
 **Status (AUTHORIZE)**: **`authorized:coding+prove`** @ REQUEST `771ca84` · PRE BOTH `683d946`+`fef9408` · C-a/C-b/C-c landed in harness before prove（`## AUTHORIZE · 条件落地`）· Ban self-nail · CONDITION `:35` OPEN
 **Status (history)**: **`draft:awaiting_pre_exec_dual`**（docs REQUEST rewrite **×5 re-PRE** · supersedes `b5633f0`（→`083cce4`→`1b74fb1`→`553cfc5`→`110532e`）· cites mw-rag-route Re-PRE4 FAIL **`a07256c`**（TIMING seed 窗口 ≲213 ms vs 1 s 反应 / 10 轮余量 · C-POST 阶段矛盾）· prior FAIL `70cba94`/`20da721`/`7e97dc3`/`152b665` · peer mw-e2e-ha Re-PRE4 PASS `2900c46` cited not co-signed · alone ≠ dual · Ban coding until PRE BOTH PASS + AUTHORIZE · CONDITION may stay OPEN）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · PERF/LOAD local partial · capacityRepresentative=false
@@ -20,6 +21,7 @@ backlog `:35` **C-PERF-TEARDOWN CONDITION OPEN**。**rewrite ×5**（supersedes 
 |------|------|
 | Harness | `harness/c-perf-teardown-product-rootcause-fix.md`（rewrite ×5） |
 | Dual `mw-e2e-ha` | `reviews/REQUEST-2026-10-06-c-perf-teardown-product-rootcause-fix-mw-e2e-ha.md` |
+| Prove receipt | `receipts/2026-10-06-an-perf-tear-c-perf-teardown-prove/README.md`（awaiting post_prove_dual · not nail） |
 | Dual `mw-rag-route` | `reviews/REQUEST-2026-10-06-c-perf-teardown-product-rootcause-fix-mw-rag-route.md` |
 
 ## Ban

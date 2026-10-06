@@ -1,0 +1,23 @@
+{
+  "inject": "C",
+  "ub": 109,
+  "cmd": "./scripts/with-docker-session.sh env -u MODEL_API_KEY -u MODEL_BASE_URL pnpm uc018:perf-load:prove",
+  "t_start": 1791295496088,
+  "pg": "meetwise-e2e-1408024-1791295496669",
+  "t_perf1": 1791295508468,
+  "t_inject_spawn": 1791295508468,
+  "t_load2": 1791295509546,
+  "t_gate_marker": 1791295509553,
+  "psql_exit": 0,
+  "t_psql_close": 1791295509557,
+  "inject_cmd": {
+    "cmd": "docker rm -f meetwise-e2e-1408024-1791295496669",
+    "exit": 0,
+    "stdout": "meetwise-e2e-1408024-1791295496669\n",
+    "stderr": "",
+    "t0": 1791295509558,
+    "t1": 1791295510390
+  },
+  "prove_exit": 1,
+  "t_end": 1791295511286
+}

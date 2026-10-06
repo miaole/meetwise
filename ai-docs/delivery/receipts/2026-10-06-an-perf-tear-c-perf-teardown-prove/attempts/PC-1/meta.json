@@ -1,0 +1,12 @@
+{
+  "inject": "none",
+  "ub": null,
+  "cmd": "./scripts/with-docker-session.sh env -u MODEL_API_KEY -u MODEL_BASE_URL pnpm uc018:perf-load:prove",
+  "t_start": 1791294987922,
+  "pg": "meetwise-e2e-1389328-1791294988481",
+  "t_perf1": 1791295002898,
+  "t_load2": 1791295003908,
+  "t_perf3": 1791295004318,
+  "prove_exit": 0,
+  "t_end": 1791295006916
+}

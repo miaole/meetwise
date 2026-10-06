@@ -1,0 +1,67 @@
+
+> meetwise@0.1.0 uc018:perf-load:prove /workspace/meetwise-wt-an-perf-coding
+> node scripts/run-e2e-isolated.mjs uc018:perf-load:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_RESOURCE_CAPS target=uc018:perf-load:prove:raw docker_args=--cpus 2 --memory 4g
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-1401074-1791295339448 on 127.0.0.1:32993
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+UC018_CAPS pg container=meetwise-e2e-1401074-1791295339448 NanoCpus=2000000000 Memory=4294967296 ok=true
+UC018_CAPS written enforced=true api NanoCpus=2000000000 Memory=4294967296
+UC-E2E-018 PERF/LOAD prove · NHP-018-PERF-01 + NHP-018-LOAD-01
+NOTE: Method freeze nearest-rank · timeout=10s=error · warmup=10 · runs=3 · caps Docker 2cpu/4GiB
+NOTE: local ≠ production capacity ≠ HA · PERF/LOAD partial ≠ UC covered · §1.1 stays partial
+fatal: not a git repository: /workspace/projects/meetwise/.git/worktrees/meetwise-wt-an-perf-coding
+PERF run1: p50=20.7 p95=72.1 p99=89.8 err=0 timeout=0 passed=true
+LOAD run1: p50=52.8 p95=149.6 p99=161.5 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
+PERF run2: p50=18.2 p95=56.2 p99=68.9 err=0 timeout=0 passed=true
+LOAD run2: p50=35.5 p95=101.0 p99=116.4 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
+node:events:502
+      throw er; // Unhandled 'error' event
+      ^
+
+error: terminating connection due to administrator command
+    at parseErrorMessage (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:305:11)
+    at Parser.handlePacket (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:143:27)
+    at Parser.parse (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:37:38)
+    at Socket.<anonymous> (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/index.js:12:42)
+    at Socket.emit (node:events:524:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at TCP.onStreamRead (node:internal/stream_base_commons:191:23)
+Emitted 'error' event on Client instance at:
+    at Client._handleErrorEvent (node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:417:10)
+    at Client._handleErrorMessage (node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:428:12)
+    at Connection.emit (node:events:524:28)
+    at node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/connection.js:136:12
+    at Parser.parse (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:38:17)
+    at Socket.<anonymous> (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/index.js:12:42)
+    [... lines matching original stack trace ...]
+    at TCP.onStreamRead (node:internal/stream_base_commons:191:23) {
+  length: 116,
+  severity: 'FATAL',
+  code: '57P01',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'postgres.c',
+  line: '3286',
+  routine: 'ProcessInterrupts'
+}
+
+Node.js v20.20.2
+ISOLATED_POSTGRES_OUTPUT_WITHHELD container=meetwise-e2e-1401074-1791295339448 state_bytes=229 logs_bytes=1778
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-06T14-02-35-482Z-1401074-006281f3-5b96-47c7-88b7-7ab35f0c0947.json release_evidence=false
+ ELIFECYCLE  Command failed with exit code 1.
+RAW_EXIT=1

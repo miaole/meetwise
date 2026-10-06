@@ -1,0 +1,142 @@
+{
+ "cell": "B-POST",
+ "attempt": "BPOST-1",
+ "pass": true,
+ "fails": [],
+ "obs": {
+  "prove_exit": 1,
+  "unhandled_n": 0,
+  "emitted_on": null,
+  "emitted_at_pg_frames": [],
+  "block_pg_frame": false,
+  "own_stack_pg_frame": false,
+  "block_57P01": false,
+  "unhandled_text": null,
+  "db_pool_error_n": 19,
+  "db_pool_error_msgs": [
+   "Connection terminated unexpectedly",
+   "terminating connection due to administrator command"
+  ],
+  "summary": false,
+  "allPass_true": false,
+  "cmd_exit0_line": false,
+  "perf_run3_line": false,
+  "seedAbandonTargets_in_log": true,
+  "state29": false,
+  "form": "F2",
+  "CTU_present": true,
+  "t_first_error": 1791295418563,
+  "pg_events": [
+   [
+    "create",
+    1791295406521,
+    null,
+    null
+   ],
+   [
+    "start",
+    1791295406710,
+    null,
+    null
+   ],
+   [
+    "kill",
+    1791295418561,
+    "2",
+    null
+   ],
+   [
+    "kill",
+    1791295418576,
+    "9",
+    null
+   ],
+   [
+    "stop",
+    1791295418768,
+    null,
+    null
+   ],
+   [
+    "die",
+    1791295418774,
+    null,
+    "137"
+   ],
+   [
+    "start",
+    1791295418958,
+    null,
+    null
+   ],
+   [
+    "restart",
+    1791295418958,
+    null,
+    null
+   ],
+   [
+    "kill",
+    1791295420428,
+    "9",
+    null
+   ],
+   [
+    "die",
+    1791295420601,
+    null,
+    "137"
+   ],
+   [
+    "destroy",
+    1791295421131,
+    null,
+    null
+   ]
+  ],
+  "pg_teardown_before_first_error": [
+   [
+    "kill",
+    1791295418561,
+    "2",
+    null
+   ]
+  ],
+  "foreign_emit_proc_lines": 0,
+  "J2": "B-restart(inject-initiated)",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "mut_deletions": 0,
+  "psql_exit": 0,
+  "gate_loop_start": [
+   [
+    "1791295417546",
+    "0"
+   ]
+  ],
+  "t_load2": 1791295418524,
+  "t_perf1": 1791295417449,
+  "marker": [
+   "GATE_BC phase=seed ts_ms=1791295418528 iv_rows=2 iv_nonactive=0 idle_n=19 seed_act=1 ub=84"
+  ],
+  "inject_cmd": {
+   "cmd": "docker restart -t 0 meetwise-e2e-1403757-1791295405222",
+   "exit": 0,
+   "t0": 1791295418533,
+   "t1": 1791295418960,
+   "stdout": "meetwise-e2e-1403757-1791295405222"
+  },
+  "D_gate_to_cmd_return_ms": 432,
+  "kill_event_ms": [
+   1791295418561
+  ],
+  "D_gate_to_kill_event_ms": 33,
+  "port_before": "127.0.0.1:32997",
+  "port_after": "127.0.0.1:32998",
+  "port_changed": true
+ }
+}
