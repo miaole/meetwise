@@ -1,10 +1,11 @@
 # REQUEST — **NHP-001-ADV-01 · UC-001 ADV blind→case**（主链内注入串 · 结构拒 · 不改 confirmed 账 · EXIT0≠covered）· pre-exec · mw-rag-route
 
-**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub only · Ban self-approve · alone ≠ dual · 不代签 peer）
+**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub rewrite · awaiting re-PRE · Ban self-approve · alone ≠ dual · 不代签 peer）
+**Rewrite**: supersedes REQUEST `5eba515` · cites FAIL receipt `863a5e6` B1–B5 addressed · rag **须 re-PRE**（e2e 因合同改靶亦须 re-PRE；alone ≠ dual）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Expert**: `mw-rag-route`
 **Knife**: `harness/nhp-001-adv-01-blind-to-case.md` · slice `nhp-001-adv-01-blind-to-case.slice.md`
-**Parent tip**: `416b6a5`（full `416b6a5b5c71d97a1816974c2b174dbf4b9c8cb8`）
+**Parent tip**: `ac590ab`（full `ac590ab7b513a9b776c6a6399eb2eb75258e9582`）
 **Date**: 2026-10-06
 **Line**: **AG**
 
@@ -23,17 +24,22 @@
 | UC-E2E-001 ADV 列 | **blind / `case-only`**（retained · Ban flip） |
 | Line Y NEG / Line AB BOUND | 原样（Ban wash） |
 
-## 请审什么（mw-rag-route · 主链输入数据化 / 031·032 委派边界 / GuardrailHit absent · Ban wash）
+## 请审什么（mw-rag-route · 主链输入数据化 / **/turn vs GONE /answer** / 031·032 委派边界 / GuardrailHit absent · Ban wash · B1–B5）
 
-Line AG · 选 NHP-001-ADV-01（SCOPE UC-001 ADV only · 非 UC-004 FAULT fallback · 非 018/052/025）。请审：
+Line AG · 选 NHP-001-ADV-01（SCOPE UC-001 ADV only · 非 UC-004 FAULT fallback · 非 018/052/025）。本 stub 为 **rewrite**（解除本专家 FAIL `863a5e6` B1–B5）。请审：
 
 1. **委派边界**：NHP `:39`「委派 031/032」—— 031/032 静态 S1–S6 + e2e gap / eval partial（matrix `:129`）**不**构成 UC-001 ADV 收据；本刀证据也 **不**反哺 031/032。
-2. **V3 主链输入**：`POST /resume` / `POST /quiz` 文本注入串 → 数据化或结构拒、无跨聚合副作用；摄取/生成需模型 → Key-blocked 残余，**Ban fake-model**。
-3. **V5 GuardrailHit absent**：`rg -il guardrail apps/api/src packages/*/src` @ `416b6a5` = 0 → 合同「或 GuardrailHit」分支当前无产品发射点；须如实登记 absent，Ban 假称已接、Ban 视为通过或失败。
-4. **不主张模型层防注入**：Key-blocked + Ban fake-model；结构面证据 ≠ 安全闭环。
-5. **Ban wash Y/AB**：Line Y NEG（`ff74522`）/ Line AB BOUND（`f8cdc82`）收据不动、不互借；EXIT0 ≠ covered · coveredCount=8。
-6. **专家对**：mw-e2e-ha + mw-rag-route（非 mw-model-op · 无模型面主张）是否成立。
-7. **边界**：docs-only 本 turn；Dual PASS ≠ coding ≠ prove ≠ nail；Ban touching 018/052/025 · Ban covered flip · Ban secrets · Ban force-push。
+2. **B1**：V1/V2/V4 改靶 `POST /interview/:id/turn`（TurnDto · controller `:30-33`）；**Ban** `POST /:id/answer`（`:242-245` · 410 GONE · 无 Body · service `:914`）。可选 preview `POST /:id/answers`（`:38-46` · PublicPreviewControlledWriteGuard）须钉 `MEETWISE_PUBLIC_PREVIEW` 且 **不与 `/turn` 证据混写**。
+3. **B2**：V3 删发明 quiz/JD；保留 `POST /resume` UploadResumeDto `{ text }` 非 strict（`:24` · 多余键静默剥离）；quiz `create(@Req())` 无 body（`:17-20`）· **JD 文本 ingress = absent**（同 V5 写法）。
+4. **B3**：TurnDto `.strict()` / InterviewAnswerPreviewSubmitDto `.strict()` → **400** `{error:'invalid', issues:[unrecognized_keys…]}`（zod.pipe `:10`）；逐 V 钉 status + error + 副作用快照；已知 `/turn` 码：`invalid_turn` 400 · `answer_hash_mismatch` 422 · `answer_conflict` 409 · `interview_not_active` 409 · `interview_not_started` 409。
+5. **B4**：正控合法 `/turn`→202 + 恰好 1 `enqueueInterviewJob(...,'answer')`；变异 temp 去 `.strict()`→V1 转红后丢弃；V4 confirmed = 隔离 PG **seeded fixture**（commerce `:126` 为产品真相 · Ban 无模型叙述 full main-chain）。
+6. **B5**：执行后 `pnpm uc001:nhp-neg:prove` + `pnpm uc001:nhp-bound:prove` EXIT0 · 不改 proof/收据（Y · AB `f8cdc82`）。
+7. **V5 GuardrailHit absent**：`rg -il guardrail apps/api/src packages/*/src` = 0 → 如实登记 absent，Ban 假称已接。
+8. **不主张模型层防注入**：Key-blocked + Ban fake-model；结构面证据 ≠ 安全闭环。
+9. **非阻断**：V2 经 `/turn` 只入队 answer job；评分=worker Key-blocked；API 可证 = 文本数据化 + status 仍 `created` + 无 skip · Ban 伪造评估。
+10. **Ban wash Y/AB**：Line Y NEG / Line AB BOUND 收据不动、不互借；EXIT0 ≠ covered · coveredCount=8。
+11. **专家对**：mw-e2e-ha + mw-rag-route（非 mw-model-op · 无模型面主张）是否成立。
+12. **边界**：docs-only 本 turn；Dual PASS ≠ coding ≠ prove ≠ nail；Ban touching 018/052/025 · Ban covered flip · Ban secrets · Ban force-push。
 
 UC-E2E-001 ADV stays **blind/`case-only`** until future prove+dual+nail. **EXIT0≠covered** · coveredCount=8 · **Ban live** · **Ban fake-model** · **Ban wash Y/AB**.
 
@@ -41,7 +47,13 @@ UC-E2E-001 ADV stays **blind/`case-only`** until future prove+dual+nail. **EXIT0
 
 ---
 
-*Stub · awaiting expert pre-exec dual · STOP*
+*Stub · rewrite · awaiting expert re-PRE dual · STOP*
+
+---
+
+## Historical FAIL receipt（retained · do not erase verdict · REQUEST `5eba515` · tip then）
+
+> 以下为 mw-rag-route 对 **旧 REQUEST `5eba515`** 的 PRE-EXEC FAIL 正文（commit `863a5e6`）。本 rewrite 声称已按 §5 解除条件修订；**新 stub 上方为 PENDING re-PRE**，本段仅作历史证据，**不**构成对新稿的 PASS/FAIL。
 
 ## mw-rag-route PRE-EXEC 审查（Line AG · docs gate only · 2026-10-06 13:10 +08:00）
 
