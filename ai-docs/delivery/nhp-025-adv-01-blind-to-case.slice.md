@@ -1,6 +1,8 @@
 # Slice — **NHP-025-ADV-01 · UC-025 ADV blind→case evidence**（Line AK · `draft:awaiting_pre_exec_dual` · re-PRE2 rewrite）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（docs REQUEST rewrite **re-PRE2** · supersedes `43e2dbc`（← `ae5367e`）· cites rag Re-PRE FAIL **`e883bf8` B-R1 + §3 1–3**（option **(b)**）· prior FAIL `6790cc6` B1–B5 cleared · B1/B2/B4/B5 not regressed · Ban coding until PRE BOTH PASS + AUTHORIZE · EXIT0≠covered）
+**Status update (2026-10-06)**: proved @`4a804a8`（code ≡ pre-rebase `b66464e`） EXIT 0 · receipt `receipts/2026-10-06-nhp-025-adv-01-prove.md` · awaiting POST dual · ADV blind · row gap
+
+**Status (REQUEST-time, retained)**: **`draft:awaiting_pre_exec_dual`**（docs REQUEST rewrite **re-PRE2** · supersedes `43e2dbc`（← `ae5367e`）· cites rag Re-PRE FAIL **`e883bf8` B-R1 + §3 1–3**（option **(b)**）· prior FAIL `6790cc6` B1–B5 cleared · B1/B2/B4/B5 not regressed · Ban coding until PRE BOTH PASS + AUTHORIZE · EXIT0≠covered）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base**: `origin/feat/mysql-schema-skeleton` tip（includes AI/AJ rewrite + AL/AM/AG ancestors · Ban touch AL/AM/AG · Ban 共享 SSOT）

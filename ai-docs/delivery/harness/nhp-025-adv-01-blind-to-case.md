@@ -1,6 +1,8 @@
 # Harness — **NHP-025-ADV-01 · UC-025 ADV blind→case evidence**（Line AK · docs REQUEST rewrite · **`draft:awaiting_pre_exec_dual`** · row UC-E2E-025 stays gap · ADV stays blind until case）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST rewrite **re-PRE2** · supersedes REQUEST `43e2dbc`（← `ae5367e`）· cites rag Re-PRE FAIL **`e883bf8` B-R1 + §3 items 1–3** · prior rag PRE-EXEC FAIL `6790cc6` **B1–B5** (+ C1–C2）cleared @`43e2dbc` · B1/B2/B4/B5 **not regressed**· peer e2e PASS `899fef2` alone ≠ dual · Ban coding · Ban prove · EXIT0≠covered · canHonestlyFlip=false · Ban wash B'' NEG / AA FAULT / W BOUND+FAULT-ISOLATED · Ban self-approve）
+**Status update (2026-10-06 · Line AK prove)**: PRE BOTH PASS e2e `13fc781` + rag `0a67d40` · coordinator AUTHORIZE · proved @`4a804a8`（code ≡ pre-rebase `b66464e`） `pnpm uc025:nhp-adv:prove` **EXIT 0**（ADV-new A1 404 · PC-A1 202 · A3-b 409 · complementary recorded ≠ ADV-new）· receipt `receipts/2026-10-06-nhp-025-adv-01-prove.md` · **awaiting POST dual** · ADV stays blind · row gap · EXIT0≠covered
+
+**Status (REQUEST-time, retained)**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST rewrite **re-PRE2** · supersedes REQUEST `43e2dbc`（← `ae5367e`）· cites rag Re-PRE FAIL **`e883bf8` B-R1 + §3 items 1–3** · prior rag PRE-EXEC FAIL `6790cc6` **B1–B5** (+ C1–C2）cleared @`43e2dbc` · B1/B2/B4/B5 **not regressed**· peer e2e PASS `899fef2` alone ≠ dual · Ban coding · Ban prove · EXIT0≠covered · canHonestlyFlip=false · Ban wash B'' NEG / AA FAULT / W BOUND+FAULT-ISOLATED · Ban self-approve）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton`（includes AI/AJ rewrite + AL/AM/AG as ancestors · **Ban touch** AL/AM/AG files · **Ban** 共享 SSOT：coverage matrix / gap-bug-backlog / execution checklist）
@@ -23,7 +25,7 @@
 |---|------|------|
 | **B1 A1** | 状态码未钉 / 设计交给审查者 | 钉 404 `not_found_or_forbidden`（`interview.service.ts:214-218`）· 抛点先于 `:222/:239/:242/:266` · 无 `reserveEntitlement` `:329` · 无 `enqueueInterviewJob` `:337` · ledger/job 不变；fixture = 自己的 interview + **他人** quiz；正控 = 同 interview + 自己新鲜已 pin quiz → **202**；与 `:200` 同码 404 区分 |
 | **B2 A2** | begin 无客户端 expiry 入口 · relabel `stale_quiz` 风险 | **删除 A2**（controller `:22-26` 无 body / 无客户端 expiry 输入 · 无攻击面）· **不**把 `stale_quiz` 当 ADV |
-| **B3 A3** | 与 W BOUND 重叠 · 未列绕过向量 | 列具体 bypass 向量 · 标 ADV-new；`:263` lowercase · `:260` NULL pin 有意放行 ≠ 红；Ban borrow W-covered 向量当 ADV pass |
+| **B3 A3** | 与 W BOUND 重叠 · 未列绕过向量 | ~~列具体 bypass 向量 · 标 ADV-new~~ **superseded by Rewrite note 2（option (b) · C5）**：`:263` lowercase · `:260` NULL pin 有意放行 ≠ 红；Ban borrow W-covered 向量当 ADV pass |
 | **B4** | 证据层未声明 | 单一层：`run-e2e-isolated.mjs` 真 PG + Nest HTTP + FORCE RLS（`20_resume_quiz.sql:46-49`） |
 | **B5** | 无正控 / mutation / 回归 | 具名回归 EXIT0 零改动；每 A-case ≥1 真变红 mutation（警告：只去 `owner_user_id` 过滤在 FORCE RLS 下不够）· env EXIT1 ≠ pass |
 | **C1–C2** | gap 边界 / attempts | A1/A3 不与 R4 `wrong_track` 混用；attempts=1 · CMD+EXIT+±08:00+SHA · EXIT0≠covered≠ADV 升格≠nail≠HA |
