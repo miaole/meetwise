@@ -1,11 +1,12 @@
 # REQUEST — **NHP-001-ADV-01 · UC-001 ADV blind→case**（主链内注入串 · 结构拒 · 不改 confirmed 账 · EXIT0≠covered）· pre-exec · mw-rag-route
 
-**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub rewrite **re-PRE2** · awaiting re-PRE · Ban self-approve · alone ≠ dual · 不代签 peer）
-**Rewrite**: **supersedes REQUEST `626e060`** · cites mw-e2e-ha re-PRE FAIL **`3f3a2e4`**（`3f3a2e4f45b0531e305ba0520ef8c0b5daa80938`）**N1–N4 addressed** · prior rag FAIL receipt `863a5e6` B1–B5 fixes retained · rag **须 re-PRE**（e2e 亦须 re-PRE；alone ≠ dual）
+**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub rewrite **re-PRE3** · awaiting re-PRE3 · Ban self-approve · alone ≠ dual · 不代签 peer）
+**Rewrite**: **re-PRE3 · supersedes REQUEST `4e9f568`** · cites rag Re-PRE2 FAIL **`a3364b4`/`71ad2a7`**（B-R2-1 + C1–C6）· N1–N4 / B1–B5 retained · peer e2e PASS `5875644` alone ≠ dual · Ban coding
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Expert**: `mw-rag-route`
 **Knife**: `harness/nhp-001-adv-01-blind-to-case.md` · slice `nhp-001-adv-01-blind-to-case.slice.md`
-**Parent tip**: `3e3b2af`（full `3e3b2af0ce46c294856b4c4f40ae181845ba9cb8`）
+**B5 self-check（B-R2-1）**: `receipts/2026-10-06-nhp-001-adv-01-b5-env-selfcheck.md`（reason `docker.sock` + `key`）
+**Parent tip**: `71ad2a7`（full `71ad2a7fccaa3dd43b47e2c54b9823890aaabdf9` · includes AE `3409862`）
 **Date**: 2026-10-06
 **Line**: **AG**
 
@@ -26,14 +27,18 @@
 
 ## 请审什么（mw-rag-route · 主链输入数据化 / **/turn vs GONE /answer** / 031·032 委派边界 / GuardrailHit absent · Ban wash · B1–B5）
 
-Line AG · 选 NHP-001-ADV-01（SCOPE UC-001 ADV only · 非 UC-004 FAULT fallback · 非 018/052/025）。本 stub 为 **re-PRE2 rewrite**（`626e060` 已解除本专家 FAIL `863a5e6` B1–B5；本稿再解除 e2e re-PRE FAIL `3f3a2e4` N1–N4：**N1** 账本快照/seed 改 `entitlement_consumption` + 非空转守卫 · **N2** V4 fixture 镜像 `completeInterviewAndConfirm`（interview `completed` + confirmed）· replay 钉 400 `invalid` / 409 `interview_not_active` · **N3** B5 env EXIT1（docker.sock / `MODEL_API_KEY` L0）= env-blocked ≠ 回归证据，且 B5 未满足 → ADV ≠ EXIT0 · **N4** 引文区逐字 · `/turn` 移入读码观察 + SSOT `:72` `/answer` 漂移注记）。请审：
+Line AG · 选 NHP-001-ADV-01（SCOPE UC-001 ADV only · 非 UC-004 FAULT fallback · 非 018/052/025）。本 stub 为 **re-PRE3 rewrite**（**supersedes `4e9f568`** · cites FAIL **`a3364b4`/`71ad2a7`** · 解除 **B-R2-1** 并落实 **C1–C6**；**保留** prior B1–B5 / N1–N4；peer e2e PASS `5875644` **alone ≠ dual**）。请审：
+
+0. **B-R2-1 + C1–C6（本 re-PRE3 主因）**：逐字自检收据 `receipts/2026-10-06-nhp-001-adv-01-b5-env-selfcheck.md`；B5 钉 `:2124/:2134` docker.sock 落点 + **L0=Key only**（neg `:61-65` / bound `:56-60`）· 两独立标签 `env-blocked(docker.sock)` / `L0-guard(key)`；变异记 V1 实际 202|409（非 400）+ EXIT≠0；LEDGER-SNAP + owner total rows + all buckets；正控≠V2 独立 issued 种子；V3 钉 **200**（`resume.controller.ts:17`）；断言 `status='issued'`。
+其余（保留 B1–B5 / N1–N4 审点）：
+
 
 1. **委派边界**：NHP `:39`「委派 031/032」—— 031/032 静态 S1–S6 + e2e gap / eval partial（matrix `:129`）**不**构成 UC-001 ADV 收据；本刀证据也 **不**反哺 031/032。
 2. **B1**：V1/V2/V4 改靶 `POST /interview/:id/turn`（TurnDto · controller `:30-33`）；**Ban** `POST /:id/answer`（`:242-245` · 410 GONE · 无 Body · service `:914`）。可选 preview `POST /:id/answers`（`:38-46` · PublicPreviewControlledWriteGuard）须钉 `MEETWISE_PUBLIC_PREVIEW` 且 **不与 `/turn` 证据混写**。
-3. **B2**：V3 删发明 quiz/JD；保留 `POST /resume` UploadResumeDto `{ text }` 非 strict（`:24` · 多余键静默剥离）；quiz `create(@Req())` 无 body（`:17-20`）· **JD 文本 ingress = absent**（同 V5 写法）。
+3. **B2**：V3 删发明 quiz/JD；保留 `POST /resume` UploadResumeDto `{ text }` 非 strict（`:24` · 多余键静默剥离）· 钉 HTTP **200**（`resume.controller.ts:17`）；quiz `create(@Req())` 无 body（`:17-20`）· **JD 文本 ingress = absent**（同 V5 写法）。
 4. **B3**：TurnDto `.strict()` / InterviewAnswerPreviewSubmitDto `.strict()` → **400** `{error:'invalid', issues:[unrecognized_keys…]}`（zod.pipe `:10`）；逐 V 钉 status + error + 副作用快照；已知 `/turn` 码：`invalid_turn` 400 · `answer_hash_mismatch` 422 · `answer_conflict` 409 · `interview_not_active` 409 · `interview_not_started` 409。
-5. **B4**：正控合法 `/turn`→202 + 恰好 1 `enqueueInterviewJob(...,'answer')`；变异 temp 去 `.strict()`→V1 转红后丢弃；V4 confirmed = 隔离 PG **seeded fixture，离线调用 `completeInterviewAndConfirm`**（commerce `:163-189` · confirm `:127` 写 `entitlement_consumption` · interview `completed` · Ban 无模型叙述 full main-chain）；账本快照表 = `entitlement_consumption`（Ban `consumption_record`）。
-6. **B5**：执行后 `pnpm uc001:nhp-neg:prove` + `pnpm uc001:nhp-bound:prove` EXIT0 · 不改 proof/收据（Y · AB `f8cdc82`）；env EXIT1（docker.sock / Key L0）= env-blocked ≠ 回归证据 · **B5 未满足 → ADV ≠ EXIT0**。
+5. **B4**：正控合法 `/turn`→202 + 恰好 1 `enqueueInterviewJob(...,'answer')`（**独立** issued 种子 · 异于 V2 · 断言 `status='issued'`）；变异 temp 去 `.strict()`→V1 EXIT≠0 且记实际 status/error（202 或 409 · 非 400）后丢弃；V4 confirmed = 隔离 PG **seeded fixture，离线调用 `completeInterviewAndConfirm`**（commerce `:163-189` · confirm `:127` 写 `entitlement_consumption` · interview `completed` · Ban 无模型叙述 full main-chain）；账本快照 = `entitlement_consumption` + owner total rows + all buckets（Ban `consumption_record`）。
+6. **B5**：执行后 `pnpm uc001:nhp-neg:prove` + `pnpm uc001:nhp-bound:prove` EXIT0 · 不改 proof/收据（Y · AB `f8cdc82`）；两独立标签 `env-blocked(docker.sock)`（`:2124/:2134`）/ `L0-guard(key)`（L0=Key only）· 自检收据必引 · **B5 未满足 → ADV ≠ EXIT0**。
 7. **V5 GuardrailHit absent**：`rg -il guardrail apps/api/src packages/*/src` = 0 → 如实登记 absent，Ban 假称已接。
 8. **不主张模型层防注入**：Key-blocked + Ban fake-model；结构面证据 ≠ 安全闭环。
 9. **非阻断**：V2 经 `/turn` 只入队 answer job；评分=worker Key-blocked；API 可证 = 文本数据化 + status 仍 `created` + 无 skip · Ban 伪造评估。
@@ -47,7 +52,15 @@ UC-E2E-001 ADV stays **blind/`case-only`** until future prove+dual+nail. **EXIT0
 
 ---
 
-*Stub · re-PRE2 rewrite · supersedes 626e060 · FAIL 3f3a2e4 N1–N4 addressed · awaiting expert re-PRE dual · STOP*
+*Stub · re-PRE3 rewrite · supersedes 4e9f568 · FAIL a3364b4/71ad2a7 B-R2-1+C1–C6 · N1–N4/B1–B5 retained · peer PASS 5875644 alone≠dual · Ban coding · awaiting expert re-PRE3 dual · STOP*
+
+---
+
+## Rewrite note · re-PRE3（append · do not erase FAIL sections below）
+
+**re-PRE3 · supersedes `4e9f568` · cites FAIL `a3364b4`/`71ad2a7`** · B-R2-1 verbatim self-check committed at `receipts/2026-10-06-nhp-001-adv-01-b5-env-selfcheck.md`（reason tags `docker.sock` + `key`）· C1–C6 landed in harness/slice · N1–N4 / B1–B5 retained · Status stays `draft:awaiting_pre_exec_dual` · Pins unchanged · Ban coding · Ban prove ADV · Ban live · Ban covered flip · Ban wash Y/AB/018/052/025 · peer e2e PASS `5875644` alone ≠ dual。
+
+下方 Historical FAIL / Re-PRE / Re-PRE2 FAIL 正文 **原样保留不擦除**；本段仅为 rewrite 注记，**不**构成对本稿的 PASS/FAIL。
 
 ---
 
