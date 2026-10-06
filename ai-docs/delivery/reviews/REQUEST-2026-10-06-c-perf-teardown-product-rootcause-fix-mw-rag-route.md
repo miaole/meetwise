@@ -504,3 +504,103 @@ Verdict: FAIL
 - Pins：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained（无 MySQL / Qdrant / FULLTEXT）· public DELETE=503。
 
 Verdict: PASS
+
+## POST @af9664a
+
+**审查方**: mw-rag-route（独立单方 · alone ≠ dual · **不代签** mw-e2e-ha）· **审时**: 2026-10-06 22:18 +08:00 · origin tip `1d9d3ac`（= `af9664a` + peer POST 收据 · 无产品 / harness 变更）· 临时 worktree `/tmp/mwrr-perf-post`（审后删除）
+**输入**: PROVE `af9664a8910710ed63b396735918c8e1922e2d30`（22:10:56 +08:00）· REQUEST `771ca84` · COND/CODE `60de95822d9696576a0d47d13306dae1d1c91cee`（21:53:13 +08:00 · C-a/C-b/C-c 于 prove 前落地）· PRE BOTH：本方 `683d946` + peer `fef9408` · prove 收据 `ai-docs/delivery/receipts/2026-10-06-an-perf-tear-c-perf-teardown-prove/README.md`（窗口 21:56:21 → 22:08:40 +08:00）
+
+### 0. 结论先行
+
+- **POST = FAIL**（合约意义）：A-MUT 0/3 · A-POST 0/3 · C-POST 0/3。REQUEST 原文钉死：harness `:193`「EXIT 矩阵（每格 attempts=3 · 通过 = 3/3 命中期望 · Ban retry-to-green · Ban 丢/换 attempt · 偏离即该格 FAIL 并诚实记录）」；`:172`「P-HOLD · 无需产品码改 | §4 矩阵 POST 格全达标（tip 原样）」；`:60`「FATAL 落 active query → `A_FATAL_ON_ACTIVE` 格 FAIL 计入 · Ban 换 attempt」；`:443` Ban「事后按观测改阶段/签名期望」及「把 `INJECT_KIND_POOLQUERY_RACE` / `A_FATAL_ON_ACTIVE` / `INJECT_PRECOND_NO_IDLE` 不计入或换 attempt」。
+- **非门控豁免：不存在**。`rg -n '非门控|non-gating|不阻断'` harness + slice → EXIT 1（0 命中，期望 EXIT 1）。没有任何一行把 A 或 C-POST 钉为不计入门控。
+- 本 FAIL 针对的是「按合约证成修复 / P-HOLD」，**不是**指控 prove 不诚实。实现方收据如实：每个 EXIT 与签名均与原始日志一致，FAIL 格自报 FAIL，无洗绿（README `:9`「matrix NOT all-cells-met … not a 'P-HOLD 全格达标' claim」）。
+
+### 1. 原始日志 vs 声明（逐格对抗核验 · 读已提交工件 · 无复跑）
+
+| 命令 | 期望 EXIT | 实际 |
+|---|---|---|
+| `git show --name-only --format= 60de958` | 0 · 仅 docs | 0 · 4 个文件：harness · slice · 两份 review stub（本文件仅头部 3 行 · 本方各段字节未动） |
+| `git diff --quiet 771ca84 af9664a -- packages/db/src/principal.ts` | 0 | **0** · principal.ts 未改（P-HOLD 前提成立） |
+| `git diff --quiet 771ca84 af9664a -- packages apps scripts package.json pnpm-lock.yaml` | 0 | **0** · 无任何产品 / 脚本 / 依赖变更 |
+| `git diff --name-only 683d946 1d9d3ac`（排除 prove 收据目录） | 0 | 0 · 仅 harness / slice / 4 份 review · 无 backlog / SSOT 变更 |
+
+| 格 | attempts 原始 EXIT | Unhandled（Emitted on） | `db_pool_error` 行数 | 关键签名（prove.log / inject.log / verdict.json） | 本审 |
+|---|---|---|---|---|---|
+| PC | 0/0/0 | 0 | 0 | `SUMMARY allPass=true` | 3/3 ✓ |
+| R1 | 0 | 0 | 0 | `SUMMARY allPass=true` | ✓ |
+| A-MUT（MUT-929 · diff「1 deletion(-)」） | 1/1/1 | 1/1/1（Client） | 0 | AMUT-1 prove.log `:21-39`：`Error: Connection terminated unexpectedly at … pg/lib/client.js:199:73` · `Emitted 'error' event on Client instance at: Client._handleErrorEvent (… client.js:417:10)` ← `client.js:217:16` · 全块无 57P01 · inject `INJECT_A phase=seed killed=1`（快照 state `idle in transaction`）· verdict `A_FATAL_ON_ACTIVE`（analyze.py `:133`） | FAIL×3 如实 |
+| A-POST | 1/1/1 | 0 | 1/1/1（仅 CTU） | 57P01 = 0 · F2 栈 `client.js:652` ← `asPrincipal` ← `seedAbandonTargets`（proof `:237`）· 无 `^PERF run3:` · verdict `A_FATAL_ON_ACTIVE`（analyze.py `:141`） | FAIL×3 如实 |
+| B-MUT（MUT-ZERO · diff「2 deletions(-)」） | 1/1/1 | 1/1/1（BoundPool / Client / BoundPool） | 0 | 57P01 出现 · pg 帧位于 Emitted-at 段（C-a 扫描范围生效） | 3/3 ✓ |
+| B-POST（`U_B=84` · `L_cli=18 ms`） | 1/1/1 | 0 | 19 / 1 / 12 | F2 ∧ 无 `^PERF run3:` ∧ `seedAbandonTargets` | 3/3 ✓ |
+| C-MUT（MUT-ZERO） | 1/1/1 | 1/1/1（BoundPool） | 0 | `state_bytes=29 logs_bytes=29` | 3/3 ✓ |
+| C-POST | 1/1/1 | 0 | 12 / 14 / 13 | `state_bytes=29 logs_bytes=29` · 无 SUMMARY · verdict `J2_NOT_L3SIM(L3-sim-temporal-mismatch(die/destroy after first error))`（analyze.py `:147`） | FAIL×3 如实 |
+| R2 | 0 | — | — | `attempts/R2/r2.log` 11×`PASS` + `CMD=… EXIT=0` · aux `R2_EXIT=0` · ps 前后 0/0 | ✓（见 §4） |
+| R3 | 0 | — | — | `attempts/R3.exit` `R3_EXIT=0` · R3.log `CMD=pnpm uc018:receipt-backfill:prove EXIT=0` | ✓ |
+
+AUX（C-b）：J-2 events / procs `kill_exit=0` · `wait=143`；ps 门控 0/0 ×22（README `:46-50`）。C-a：Unhandled 扫描覆盖 Emitted-at 段（README `:55`），B/C-MUT 未出现 `UNHANDLED_NOT_PG`。**POST Unhandled 合计 = 0**（9 次 POST inject + PC 3 + R1 1，逐个 prove.log 计数）→ P-FIX 触发条件**未满足**。
+
+### 2. 裁定 A（A-MUT / A-POST）
+
+- **按钉判 FAIL**：6/6 次都命中事先钉死的 C2 竞态结果（harness `:60` · `:198-199` 尾「无 57P01 的 `db_pool_error` → `A_FATAL_ON_ACTIVE` 格 FAIL 计入」）。不换 attempt，不洗。
+- **A 对其钉定路径产出零产品证据**：钉定路径是「57P01 FATAL 落在 idle-in-tx 的 checked-out client 上 → 经 `client.js:428`（`_handleErrorMessage` 无 active query）→ `:929` 观测」。6 份日志中 57P01 全部缺席，所以该路径一次都没有被行使。
+- 机制（**推断 · 非证明**）：快照为 `idle in transaction`，但 FATAL 到达时 client 已发出下一条查询 → FATAL 走 active-query 回调（`client.js:432-433`）→ `asPrincipal` catch → `ROLLBACK`（`principal.ts:945-955`）→ socket `'end'` → CTU（`client.js:199`）覆盖原 57P01。与 A-MUT 的 Emitted-at `:417 ← :217`、A-POST 只有 CTU 的现象一致。
+- **辅助观察（只录 · 不计入任何格 · 不替代 A）**：在 checked-out client 的 `'end'`/CTU 路径上，MUT-929 3/3 Unhandled on Client，而 POST 3/3 为 0 Unhandled + 1 条 CTU `db_pool_error`。这说明 `:929` 对 attempt1 同形态崩溃有区分力，但它**不是** A 的钉定判据，不得据此把 A 记为通过。
+- A 照钉的实际可达性：快照 → terminate 之间的间隔相对约 1.4 ms/轮的 seed 节奏，6/6 落在 active。照现稿 A 实际上不可达；不重新设计，A 线就保持 unproven。
+
+### 3. 裁定 C-POST（产品缺陷 vs 钉定谓词误设）
+
+- 钉定规则：harness `:203`「`"event":"db_pool_error"` ≥1 · 零 Unhandled · `state_bytes=29 logs_bytes=29` · J-2 判 **L3-sim**」；`:151` L3-sim 行「本 run PG 出现 `kill`(9)→`die`(137)→`destroy`，时间 **早于** 首个错误行 · 且发起者为**本程序** Inject C」。analyze.py `:59`（`before` = 早于 `t_first_error` 的事件）· `:70`（三者都须在 `before` 内）· `:147`（`j2 == 'L3-sim'`）是对该行的逐字实现。
+- J-2 事件（CPOST-1 `events.jsonl` 原样）：`kill` signal=9 `1791295598241708149` → `die` exitCode=137 `1791295598421441136` → `destroy` `1791295598882284890`。`t_first_error=1791295598246`（analyze.py `:48`，首个匹配 prove 行的宿主到达 ms）。inject `docker rm -f meetwise-e2e-1411453-1791295585569` 的 t0 为 `…598206`，EXIT 0。procs 中他 PID emit 为 0。
+- 相对首错（ms）：C-POST kill −5/−2/−4 · die +175/+213/+209 · destroy +636/+694/+669；C-MUT kill −9/−8/−8 · die +217/+177/+186 · destroy +798/+757/+725。**6/6 同序**。
+- `:203` 的产品判据 3/3 全满足：EXIT 1 · dpe 12/14/13 · 0 Unhandled · `state_bytes=29 logs_bytes=29`（诊断拿到 29 字节响应 = 容器已不存在，含义与 attempt1 签名一致，**不是**失败项）。
+- **裁定：不是产品缺陷，是钉定谓词误设**。SIGKILL 会让内核立即关闭 PG socket，client 在数 ms 内看到断开；docker `die` 要等 containerd 回收 task 后才发出（本机约 175–217 ms），`destroy` 则在 `--rm` 删除之后。所以只要 client 处于连接状态，「die/destroy 早于首错」在物理上不可达。C-MUT 6/6 同序是佐证。
+- **仍计 FAIL×3**：`:443` Ban「事后按观测改阶段/签名期望」。analyze.py `:76` 的 `J2_kill_start_reading='L3-sim'` 只是辅助读数，不是钉定谓词，不得据此改判。**No reinterpretation into PASS.**
+- **连带缺陷（新发现 · 影响 attempt1 归因）**：L3 IN `:147` 与 EXTERNAL-OTHER `:152` 用的是同一条「kill→die→destroy 早于首错」时序。真实的 L3 外部 kill 只有 `kill` 会落在首错之前，analyze.py `:71-72` 因此会落到 `L1/client-side`。照现稿，J-2 表**永远判不出 L3 IN**，attempt1 @ `b29c191` 的 L3 / L2-self 归因通路在结构上被堵死。
+
+### 4. R2：11/11 vs 12/12
+
+- `rg -c '\bA\(' packages/db/test/pool-error-listener.proof.ts` → EXIT 0，**11**（`:62 :86 :88 :91 :98 :100 :102 :109 :115 :125 :126`）；该文件自 `f19ecba` 后未改。
+- 本次 `attempts/R2/r2.log`：11 行 `PASS`。2026-10-05 收据 Appendix B（`receipts/2026-10-05-gap-principal-pool-error-listener-fix-prove.md:121` 起）正文同为 **11** 行 `PASS`，但其 `:21`、`:121` 标题写「12/12」。harness `:450`「12/12 PASS」是继承来的误计。
+- 裁定：**11/11 正确**，R2 格按 EXIT 0 + CMD 行 + 全部断言 PASS 成立。「12/12」字面是文档转录错误：未改动的源码只能产出 11 条，因此记为 docs 缺陷待更正。它不影响本审 FAIL（FAIL 来自 A / C-POST）。
+
+### 5. 已证 vs 未证
+
+**已证（原始日志支撑）**：
+- P-FIX 触发条件未满足：POST / PC / R1 共 0 Unhandled。
+- B 区分力：MUT-ZERO 3/3 Unhandled（含 57P01）vs POST 3/3 零 Unhandled + dpe≥1，落点为 seed（`U_B=84`）。
+- C 区分力：C-MUT 3/3 Unhandled BoundPool vs C-POST 3/3 零 Unhandled + dpe≥1。仅为区分力证据；C-POST 格本身 FAIL。
+- PC 3/3 · R1 · R2 11/11 · R3 均 EXIT 0。
+- principal.ts 与产品 / 脚本零改动。
+
+**未证**：
+- A 钉定路径（57P01 on idle-in-tx · `:428`）。
+- C-POST 的 J-2 L3-sim 归因。
+- §4 全格达标，以及 §3 `:172` 意义上的 P-HOLD 合约成立。
+- attempt1 根因归因（J-2 表照现稿判不出 L3 IN）。
+- HA / covered / CONDITION 关闭。
+
+### 6. Pins / backlog
+
+- `git diff --quiet 683d946 1d9d3ac -- ai-docs/delivery/gap-bug-backlog.md` → EXIT 0。`gap-bug-backlog.md:35` C-PERF-TEARDOWN 行仍为「disclosed OPEN」，**CONDITION OPEN**。
+- 无 covered flip：coveredCount=8。UC-018 / §1.1 仍为 partial。attempt1 @ `b29c191` 未洗。
+- haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · HOLD AN-CIMG-EA：全部保持。
+
+### 7. Peer（引用 · 不代签）
+
+mw-e2e-ha POST `1d9d3ac029170e7e1340abda2f113813bd7e01ee`（22:16:24 +08:00），文件 `ai-docs/delivery/reviews/REQUEST-2026-10-06-an-perf-tear-post-mw-e2e-ha.md`，`:3`、`:87` 为 **Verdict: PASS**（单方 · 「证据诚实」意义）。其 `:79` 同样写明「矩阵**未**全格达标（A-MUT / A-POST / C-POST FAIL×3）」，`:72` 同样认定 R2 为 11/11。
+
+事实层面双方一致；判词分歧在于 peer 按「prove 诚实性」判 PASS，本方按 §3 `:172` / §4 `:193` 合约判 FAIL。一方 PASS + 一方 FAIL ≠ dual BOTH PASS → **Ban nail**。
+
+### 8. 复跑
+
+**SKIP（0 次复跑）**：已提交的原始工件（22 份 prove.log + inject / events / verdict / aux + R2 / R3）足以逐格核验；配额收尾，遵循「Prefer verifying from committed logs/receipts」。本审未执行任何 docker / pnpm prove 命令，因此无需容器门控，也未触碰他方容器；未运行 `scripts/uc018-receipt-backfill-emit.mjs`。
+
+### 9. 建议（非绑定 · 由协调方决定 · 本审不开新刀）
+
+1. 重写 J-2 表 `:147` / `:151` / `:152`，以 kill 为锚：`kill`(9) 早于首错，且 `die`(137) / `destroy` 在 kill 之后的有界窗口内出现。须新 REQUEST + PRE dual，C-POST 须在新谓词下重跑才可计入；不得追溯本 prove。
+2. A：要么重新设计成确定性的 idle-in-tx 窗口，要么通过**事先登记**的 REQUEST 变更把 A 移出 P-HOLD 门控（不得事后豁免）；否则 A 线保持 unproven。
+3. docs 更正：harness `:450` 与 2026-10-05 收据 `:21` / `:121` 的「12/12」改为「11/11」。
+4. 在此之前：CONDITION `:35` OPEN · Ban nail · Ban covered flip · P-HOLD 不作为合约成立宣称。
+
+Verdict: FAIL
