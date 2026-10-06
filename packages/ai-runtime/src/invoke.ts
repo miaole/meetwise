@@ -368,6 +368,33 @@ async function persistTrace(
 }
 
 /**
+ * UC-028 fail-open 旁路（NHP-028-FAULT-01 · spec e2e-scenarios UC-E2E-028 A1）：trace 是可观测
+ * 旁路而非业务真相。persistTrace 在自己的 principal 事务内 best-effort 执行，INSERT 失败不回滚
+ * 已提交的 settle/complete 业务事务，也不改写 invoke 的成功终态；失败必须被结构化观测
+ * （ai_trace_persist_failures_total 计数 + 单行 JSON 日志），绝不静默无痕。失败 trace 的对账
+ * 重写属 A2 recon 域，本旁路不冒充 recon。
+ */
+async function persistTraceBestEffort(
+  pool: DbPool, owner: string, spec: Pick<InvokeSpec<unknown>, 'idempotencyKey' | 'service'>,
+  stored: unknown, usage: ModelUsage | undefined, latencyMs: number, requestId: string | null,
+): Promise<void> {
+  await asPrincipal(pool, owner, (c) => persistTrace(c, owner, spec, stored, usage, latencyMs, requestId))
+    .catch((error: unknown) => {
+      getMetrics().inc(METRIC.aiTracePersistFailures);
+      // 结构化日志只放稳定标量(service/idempotency_key/错误类与 PG code),不放 owner/原文/堆栈
+      // (脱敏纪律同 metrics:label 只放低基数维度,绝不放 PII/原文)。
+      const pgCode = (error as { code?: unknown } | null | undefined)?.code;
+      console.error(JSON.stringify({
+        event: 'ai_trace_persist_failed',
+        service: spec.service ?? null,
+        idempotencyKey: spec.idempotencyKey,
+        errorName: error instanceof Error ? error.name : typeof error,
+        pgCode: typeof pgCode === 'string' ? pgCode : null,
+      }));
+    });
+}
+
+/**
  * Calls the model with a durable pre-dispatch claim.  `pool` (rather than a
  * transaction `Client`) is intentional: every DB interaction is a short,
  * principal-scoped transaction and the remote call holds neither a connection
@@ -705,8 +732,11 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
         error: errorCode, inputTokens: settledUsage?.inputTokens, outputTokens: settledUsage?.outputTokens, latencyMs,
       });
       if (!completed) throw new Error('model_invocation_complete_state');
-      if (!error) await persistTrace(c, owner, spec, stored, settledUsage, latencyMs, requestId);
+      // UC-028 fail-open(A1)：trace 是可观测旁路非业务真相，已拆出本事务（persistTraceBestEffort
+      // 在事务提交后独立执行）。原同事务写入使 trace INSERT 失败连坐 settle/complete →
+      // external_outcome_unknown，违反 spec「trace 写入失败不回滚业务事务」。settle/complete 语义不变。
     });
+    if (!error) await persistTraceBestEffort(pool, owner, spec, stored, settledUsage, latencyMs, requestId);
     // MODEL-OP-02：provider 成功 + 结算成功 → breaker success（复位相位）；计费调用记 settled 钱记录
     // （真实扣费金额 + 版本化价格策略 + 双向 token），与 ai_cost_reservation 的钱账可对账。
     await releaseSharedAdmissionBestEffort(pool, owner, sharedLease, 'success', policy ? {

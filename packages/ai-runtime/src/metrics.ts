@@ -95,6 +95,8 @@ export const METRIC = {
   modelCostUnknownReservations: 'model_cost_unknown_reservations',
   modelInvocationReconcileInvocations: 'model_invocation_reconcile_invocations_total',
   modelInvocationReconcileFrozenCosts: 'model_invocation_reconcile_frozen_costs_total',
+  // UC-028 fail-open(NHP-028-FAULT-01):ai_invocation_trace 写失败(fail-open 旁路)的结构化观测计数。
+  aiTracePersistFailures: 'ai_trace_persist_failures_total',
   langfuseTracingState: 'langfuse_tracing_state',
   langfuseExportFailures: 'langfuse_export_failures_total',
 } as const;
@@ -136,6 +138,7 @@ export function registerBaselineMetrics(m: Metrics = getMetrics()): void {
   m.setGauge(METRIC.modelCostGovernanceEnabled, 0);
   m.setGauge(METRIC.modelCostBudgetRemainingRatio, 0);
   m.setGauge(METRIC.modelCostUnknownReservations, 0);
+  m.inc(METRIC.aiTracePersistFailures, undefined, 0);
   for (const result of ['terminalized', 'enumeration_failed', 'owner_failed'])
     m.inc(METRIC.modelInvocationReconcileInvocations, { result }, 0);
   m.inc(METRIC.modelInvocationReconcileFrozenCosts, undefined, 0);
