@@ -1,6 +1,6 @@
-# Slice — **NHP-001-FAULT-01 · UC-001 FAULT blind→case evidence**（Line AI · `draft:awaiting_pre_exec_dual` · re-PRE rewrite）
+# Slice — **NHP-001-FAULT-01 · UC-001 FAULT blind→case evidence**（Line AI · `prove:awaiting_post_dual` · prove done）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（docs REQUEST rewrite **re-PRE** · supersedes `db24fc9` · cites FAIL `64fba04` B1–B5 · Ban coding until PRE BOTH PASS + AUTHORIZE · EXIT0≠covered）
+**Status**: **`prove:awaiting_post_dual`**（coding+prove AUTHORIZE · FAULT EXIT0 · C1–C7 · MUT discarded · FAULT stays partial · EXIT0≠covered · awaiting POST dual）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base**: `origin/feat/mysql-schema-skeleton` tip（includes AL POST / AM / AG as ancestors · Ban touch AL/AM/AG files）
@@ -21,6 +21,6 @@ UC-E2E-001 FAULT：矩阵 `:112` FAULT 列逐字 **partial**（isolated worker �
 
 ## Ban
 
-Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执行 · Ban self-nail · Ban self-approve（alone ≠ dual）· Ban SSOT edit of matrix/backlog · Ban buy cloud · Ban Meridian · Ban secrets / `.env*` · Ban force-push · Ban claiming PRE PASS · Ban 碰 AL/AM/AG 禁触文件 · Ban wash Y NEG / AB BOUND / AG ADV · Ban borrow `report:prove` 绿 · Ban flip FAULT 列/行 · EXIT0≠covered · Ban fake DB for ledger。
+Ban self-nail · Ban self-approve（awaiting POST · alone ≠ dual）· Ban invent covered · Ban flip FAULT 列/行 · Ban SSOT edit of matrix/backlog · Ban buy cloud · Ban Meridian · Ban secrets / `.env*` · Ban force-push · Ban 碰 AL/AM/AG 禁触文件 · Ban wash Y NEG / AB BOUND / AG ADV · Ban borrow `report:prove` 绿 · EXIT0≠covered · Ban fake DB for ledger。
 
-*Slice · NHP-001-FAULT-01 blind→case · Line AI · draft:awaiting_pre_exec_dual · re-PRE supersedes db24fc9 · FAIL 64fba04 · STOP*
+*Slice · NHP-001-FAULT-01 blind→case · Line AI · prove:awaiting_post_dual · FAULT EXIT0 · FAULT stays partial · STOP*
