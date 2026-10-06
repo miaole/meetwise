@@ -1,10 +1,10 @@
-# Slice — **UC-E2E-011 covered-lift-reassess**（Line AF · docs REQUEST · **`draft:awaiting_pre_exec_dual`**）
+# Slice — **UC-E2E-011 covered-lift-reassess**（Line AF · Branch A hand-calc · **`executed:awaiting_post_prove_dual`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（docs REQUEST only · Ban fake flip · UC-011 stays partial · canHonestlyFlip=false current pin）
+**Status**: **`executed:awaiting_post_prove_dual`**（Branch A hand-calc done · canHonestlyFlip=**false** · Ban fake flip · UC-011 stays partial · Ban self-nail · awaiting post-prove dual）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base**: `origin/feat/mysql-schema-skeleton` · `416b6a5b5c71d97a1816974c2b174dbf4b9c8cb8`
-**Authority**: meetwise — L0 docs only · Ban coding · Ban prove · Ban self-approve · Ban covered flip
+**Authority**: meetwise — Branch A AUTHORIZE executed · Ban Branch B · Ban self-nail · Ban covered flip · Ban SSOT flip
 
 ## One-line
 
@@ -17,6 +17,9 @@ Line V 主口 CLOSED(wired) nail `5aae104`（prove tip `cf34390` · 68/68）+ Li
 | Harness | `harness/uc-e2e-011-covered-lift-reassess.md`（mirror `uc-e2e-018-covered-lift-reassess.md`） |
 | Dual `mw-e2e-ha` | `reviews/REQUEST-2026-10-06-uc-e2e-011-covered-lift-reassess-mw-e2e-ha.md` |
 | Dual `mw-model-op` | `reviews/REQUEST-2026-10-06-uc-e2e-011-covered-lift-reassess-mw-model-op.md` |
+| Receipt (Branch A) | `receipts/2026-10-06-uc-e2e-011-covered-lift-reassess.md` · canHonestlyFlip=false |
+| Post dual `mw-e2e-ha` | `reviews/REQUEST-2026-10-06-uc-e2e-011-covered-lift-reassess-post-prove-mw-e2e-ha.md` |
+| Post dual `mw-model-op` | `reviews/REQUEST-2026-10-06-uc-e2e-011-covered-lift-reassess-post-prove-mw-model-op.md` |
 
 ## Branches（授权后）
 
@@ -29,4 +32,4 @@ Ban coding · Ban prove 执行 · Ban flipping UC-011 to covered in REQUEST · B
 
 Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
 
-*Slice · UC-E2E-011 covered-lift-reassess · Line AF · awaiting_pre_exec_dual · STOP*
+*Slice · UC-E2E-011 covered-lift-reassess · Line AF · executed:awaiting_post_prove_dual · canHonestlyFlip=false · Ban fake flip · STOP*

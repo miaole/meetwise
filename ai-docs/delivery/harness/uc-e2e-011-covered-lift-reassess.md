@@ -1,6 +1,6 @@
-# Harness — **UC-E2E-011 covered-lift-reassess**（Line AF · partial→covered **honest reassessment** · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · Ban fake flip · UC-011 stays **partial**）
+# Harness — **UC-E2E-011 covered-lift-reassess**（Line AF · partial→covered **honest reassessment** · Branch A hand-calc · **`executed:awaiting_post_prove_dual`** · canHonestlyFlip=**false** · Ban fake flip · UC-011 stays **partial**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove 执行 · Ban covered fake flip · Ban invent covered · Ban wash residuals closed · Ban self-approve）
+**Status**: **`executed:awaiting_post_prove_dual`**（Branch A docs hand-calc done · receipt landed · canHonestlyFlip=**false** · refuse PERF/LOAD blind + ADV case-only + §1b/残余 OPEN · Ban covered fake flip · Ban invent covered · Ban wash residuals closed · Ban self-nail · Ban SSOT flip · awaiting post-prove dual mw-e2e-ha + mw-model-op）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · canHonestlyFlip=**false**（current pin · 本刀只重估、不翻）
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`416b6a5`** / full `416b6a5b5c71d97a1816974c2b174dbf4b9c8cb8`（wave start · sibling Line AD/AE/AG/AH REQUEST commits may land alongside · Ban touch siblings）
@@ -8,16 +8,16 @@
 **Gap id（拟）**: **`GAP-UC011-COVERED-LIFT-REASSESS`**（本刀具名 · 未入 backlog · 登记留给未来 nail）
 **Row**: matrix `e2e-requirement-coverage-matrix.md:117`（§1.0.1）· `:148`（§1.0.2 PERF/LOAD）· `:175`（§1.1）· P1-2 `:270` —— **全部只读**
 **Style mirror**: `harness/uc-e2e-018-covered-lift-reassess.md`（UC-018 先例 · canHonestlyFlip=false · refuse PERF/LOAD blind）
-**Experts**: `mw-e2e-ha` + `mw-model-op`（stubs PENDING · Ban self-approve · alone ≠ dual）
-**Authority**: meetwise — docs REQUEST only · Ban SSOT edit · Ban covered flip in REQUEST · Ban self-nail
+**Experts**: `mw-e2e-ha` + `mw-model-op`（PRE BOTH PASS `f215438`/`e3c887b` · post-prove stubs `draft:awaiting_post_prove` · Ban self-approve · alone ≠ dual）
+**Authority**: meetwise — Branch A AUTHORIZE executed · Ban SSOT edit · Ban covered flip · Ban self-nail · Ban Branch B
 
 ## 0. Stance
 
 | Statement | Ruling |
 |-----------|--------|
-| **What this knife is** | docs REQUEST：把 UC-011 当前证据逐列映射到 **已写成文的六列 covered 准则**（`harness/uc-e2e-018-covered-criterion.md` · evaluator `scripts/lib/uc-covered-evaluator.mjs`），产出 **可计算** 的 `canHonestlyFlip` 与 refuse reasons |
+| **What this knife is** | Branch A hand-calc：把 UC-011 当前证据逐列映射到 **已写成文的六列 covered 准则**（`harness/uc-e2e-018-covered-criterion.md` · evaluator `scripts/lib/uc-covered-evaluator.mjs` read-only），产出 **可计算** 的 `canHonestlyFlip=false` 与 refuse reasons · receipt landed |
 | **What this knife is not** | **Not** flip UC-011 / §1.1 to covered · **not** invent covered · **not** wash audit-absent / amount-recheck residual 成 closed · **not** 把 EXIT0 写成 covered · **not** reopen Line V/Z nails · **not** UC-018 knife |
-| **Expected result（预判 · 待授权后计算确认）** | **canHonestlyFlip=false**（见 §2 预判表 · 至少 PERF/LOAD blind + ADV 列 case-only + §1b 未关项 + 残余）—— 预判 ≠ 结论，结论以授权后计算为准；**若计算得 true 也 Ban 本刀翻行**（翻行须另刀 + 双审 + 协调方授权） |
+| **Computed result（Branch A）** | **canHonestlyFlip=false**（receipt · refuse `MISSING-NHP`/`CASE-ONLY`/`STATUS-NOT-COVERED`/`S11-NOT-MET`/`OPEN-GAP`）· **Ban 本刀翻行**（翻行须另刀 + 双审 + 协调方授权） |
 
 ## 1. 现状如实陈述（只读 · 证据链）
 
@@ -25,9 +25,9 @@
 |------|-----------|------|------|
 | Line V NHP-011-ADV-01 honesty-of-red | NAIL prove tip `79825b2` · code `3d113c8` | `pnpm uc011:adv:prove` **EXIT 1**（三口 404 · A1/A2 UNREACHABLE） | 历史红 retained · Ban wash |
 | Line Z Path A mouth | prove tip `244b812` / `244b81248d33bb85110a5304fff1f3d56de8563a` · CODE `bf1fdb2` · REQUEST `54b2058` | `pnpm uc011:refund-callback:prove` **EXIT 0 · 41/41** · `POST /commerce/webhook/refund/:id` | EXIT0 ≠ covered |
-| Line V main mouth wiring | NAIL `5aae104` / `5aae10424277e68edb51c314b00e753e08a20d29` · prove tip `cf34390` / `cf343900c441d3f7e800cabd1fe2944e4c81fd4d` · CODE `2535b31` · REQUEST `d58b05b` | `pnpm uc011:refund-callback-adv:prove` **EXIT 0 · 68/68** · `POST /payment/refund-callback` 真路由 · `GAP-UC011-ADV-01` **CLOSED（wired）** | closed as wired ≠ covered · ADV 列措辞保留 gap/`case-only` |
+| Line V main mouth wiring | NAIL `5aae104` / `5aae10424277e68edb51c314b00e753e08a20d29` · feat tip-reachable `40a4f6c` / `40a4f6c2acba905165d269d7318c2351e1be5ecb` · post-dual mirrors `a8873d0`/`b236be8` · REQUEST `d58b05b`（historical unreacheable CODE/prove `2535b31`/`cf34390` Ban as live cite） | `pnpm uc011:refund-callback-adv:prove` **EXIT 0 · 68/68** · `POST /payment/refund-callback` 真路由 · `GAP-UC011-ADV-01` **CLOSED（wired）** | closed as wired ≠ covered · ADV 列措辞保留 gap/`case-only` |
 | **残余 ①** 审计 | matrix `:117` / NAIL `:439` | 主口+管道 GuardrailHit/安全日志 emit 点 **absent**（AUDIT-OBSERVATION: absent · disclosed-not-blocking） | Ban 假称已接 · 审计接线 = 另刀 |
-| **残余 ②** 金额显式复核 | matrix `:117` / NAIL `:439` | A3 **DISCLOSED**（白名单无金额通道 + 服务器权威 units 红冲 · 显式服务端金额复核比较路径不存在） | Ban 改口「已实现金额复核」· 属新刀 |
+| **残余 ②** 金额显式复核 | matrix `:117` / NAIL `:439` | **amount explicit recheck / AMT DISCLOSED**（白名单无金额通道 + 服务器权威 units 红冲 · 显式服务端金额复核比较路径不存在 · Ban collide UC004/career-path A3） | Ban 改口「已实现金额复核」· 属新刀 |
 | §1b 库存 | `harness/uc-e2e-011-report-refund.md:63-74` | #1 refund-callback 产品口（Path A + 主口已落）· #2 balance-ui · #3 fail HTTP mouth / full.e2e · #4 regenerate（UC-019）· #5 `GET /wallet` 或 ADR · #6 sole-stack 夹具（原文 MySQL+Qdrant · 现 PG-retained ADR 下须重读 · **Ban** cutover） | 逐项标 DONE / OPEN / 须重读，Ban 一揽子 DONE |
 
 ## 2. 六列 canHonestlyFlip 预判表（只读矩阵 @ `416b6a5` · 非结论）
@@ -63,6 +63,21 @@
 4. **无论结果**：本刀 **不** 翻 `:117` / `:175` / P1-2 · **不** 改 coveredCount。
 5. Ban live（UC-011 面零模型调用）· Ban secrets · Ban `.env*`。
 
+## 4b. Branch A prove result（AUTHORIZE · 2026-10-06）
+
+| Field | Value |
+|-------|-------|
+| Branch | **A only**（docs hand-calc · Zero CMD · Ban Branch B） |
+| Receipt | `receipts/2026-10-06-uc-e2e-011-covered-lift-reassess.md` |
+| **canHonestlyFlip** | **false** |
+| Top refuse | `MISSING-NHP`（PERF）· `CASE-ONLY`（ADV/LOAD）· `STATUS-NOT-COVERED`（NEG/FAULT/BOUND/…）· `S11-NOT-MET` · `OPEN-GAP`（§1b #2–#6 + 残余 ① audit absent · ② amount explicit recheck / AMT DISCLOSED） |
+| Tip-reachable cites | feat `40a4f6c` · dual mirrors `a8873d0`/`b236be8` · nail `5aae104` · Path A `244b812` · honesty-of-red `79825b2`/`3d113c8` · Ban cite unreacheable `2535b31`/`cf34390`/`275ba7d` as live |
+| coveredCount | **8** retained |
+| SSOT | **untouched** · UC-011 stays **partial** |
+| Post dual stubs | `reviews/REQUEST-2026-10-06-uc-e2e-011-covered-lift-reassess-post-prove-mw-{e2e-ha,model-op}.md` · `draft:awaiting_post_prove` |
+
+PRE BOTH: mw-e2e-ha `f215438` · mw-model-op `e3c887b` · REQUEST `3dca5de`.
+
 ## 5. 行语义 / 状态冻结
 
 - UC-E2E-011 stays **partial** · ADV 列措辞 gap/`case-only` 保留 · PERF/LOAD blind 保留 · coveredCount=**8**
@@ -86,4 +101,4 @@ Not covered · not flipped · not a pass · not run · not computed（Branch B �
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · UC-011 partial · canHonestlyFlip=false · STOP
 
-*Harness · UC-E2E-011 covered-lift-reassess · Line AF · 2026-10-06 · draft:awaiting_pre_exec_dual · docs-only · Ban fake flip · Ban invent covered · Ban wash residuals · STOP*
+*Harness · UC-E2E-011 covered-lift-reassess · Line AF · 2026-10-06 · executed:awaiting_post_prove_dual · Branch A hand-calc · canHonestlyFlip=false · Ban fake flip · Ban invent covered · Ban wash residuals · Ban self-nail · STOP*
