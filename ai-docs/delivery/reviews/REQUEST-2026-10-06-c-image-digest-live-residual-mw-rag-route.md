@@ -1,13 +1,14 @@
 # REQUEST — **C-IMAGE-DIGEST live residual · first natural live emit evidence** · pre-exec · mw-rag-route
 
-**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub only · Ban self-approve · alone ≠ dual · 不代签 peer `mw-e2e-ha`）
+**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub rewrite **re-PRE** · awaiting re-PRE · Ban self-approve · alone ≠ dual · 不代签 peer）
+**Rewrite**: **supersedes REQUEST `f8f4ab5`** · cites mw-rag-route PRE-EXEC FAIL **`5be471c`**（`5be471c54114f7dc0fa8a73cb4d6675c4eb171c8`）**B1–B4 addressed** (+ C1–C3）· peer e2e PASS `899fef2` alone ≠ dual · Ban coding · CONDITION OPEN
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Expert**: `mw-rag-route`
 **Peer**: `mw-e2e-ha`（独立签 · alone ≠ dual）
 **Knife**: `harness/c-image-digest-live-residual.md` · slice `c-image-digest-live-residual.slice.md`
-**Parent tip**: `71ad2a7`（full `71ad2a7fccaa3dd43b47e2c54b9823890aaabdf9` · not a prove tip · AE nail `3409862` ancestor）
+**Parent tip**: origin `feat/mysql-schema-skeleton` tip（includes AI rewrite + AL/AM/AG · Ban touch AL/AM/AG files）
 **Date**: 2026-10-06
-**Line**: **AJ**（wave AI–AM）
+**Line**: **AJ**
 
 ## Pins（retained · 本 stub 不改）
 
@@ -22,29 +23,40 @@
 | Stack | **PG-retained** |
 | Public DELETE | **503**（stays） |
 
-## 请审什么（mw-rag-route）
+## 请审什么（mw-rag-route · re-PRE · B1–B4 + C1–C3）
 
-1. **收紧门一致性**：`isLiveImageDigestEntry`（仅认 live-container-inspect + liveObservation:true + 非空 containerId）与本刀三要素是否一致；`capturedAt` 是否需在门外单独核。
-2. **RUNTIME_STACK_SOURCES / stack MET 边界**：live digest 观测是否不被计为 stack MET（Line Q C-Q-RAG-2 边界延续）。
-3. **`PERF-LOAD.json:28-29` 原值保留**：prior-docker-inspect / liveObservation=false 不得被手改；Ban invent liveObservation=true。
-4. **E-B pending 台账**：未观测时缺失要素清单是否足以防假绿。
-5. **边界**：Ban 假关 CONDITION · Ban UC-018 covered flip · Ban live 模型 · Ban buy cloud · Ban Meridian · Ban secrets · alone ≠ dual。
+Line AJ · C-IMAGE-DIGEST live residual。本 stub 为 **re-PRE rewrite**（**supersedes `f8f4ab5`** · cites FAIL **`5be471c`** · 解除 B1–B4 + C1–C3；peer PASS `899fef2` **alone ≠ dual**）。请审：
+
+1. **B1 E-C**：`MEETWISE_UC018_BACKFILL_HMAC_KEY`（`guard.mjs:26` · emit `:74-77` exit 8）· Ban 读 `.env*` · E-C 记录 exit+reason · ≠ E-A · ≠ invent · 密钥来源须协调方另授权。
+2. **B2**：`--key=PERF-LOAD-LIVE-AJ` · temp tipRoot/worktreeBase · Ban overwrite `PERF-LOAD.json` / `:28-29` prior-docker-inspect/`liveObservation=false` · 只写新文件。
+3. **B3**：natural vs coordinator one-shot · 观测窗口 · exit map（2/3/4/6/8 · prove≠0 · live-container-inspect-failed → E-B/E-C · Ban retry-to-green）· host = Linux-native box + `with-docker-session.sh` ≠ macOS Desktop（Line AE）。
+4. **B4**：E-A = `isLiveImageDigestEntry(entry)===true`（`facts.mjs:149-155` · 含 `liveObservation===true`）**and** `isValidLiveCaptureRecord`（`:126-137`）**and** `capturedAt` in run window · machine-written + signature valid · Ban hand-write。
+5. **收紧门 / stack MET**：`isLiveImageDigestEntry` 与 E-A 一致；live digest 不计 stack MET（`RUNTIME_STACK_SOURCES` 边界）。
+6. **C1–C3**：执行收据钉 tip 行号；收据路径定日期；E-A ≠ CONDITION close ≠ covered ≠ nail ≠ HA。
 
 C-IMAGE-DIGEST（backlog `:34`）stays **OPEN CONDITION** · fix landed ≠ closed · **Ban 假关** · **Ban UC-018 covered flip** · **Ban invent liveObservation=true** · coveredCount=8.
 
 ## Ban
 
-Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执行 · Ban self-nail · Ban self-approve（alone ≠ dual）· Ban SSOT edit of matrix/backlog（REQUEST = zero matrix/backlog edits）· Ban buy cloud · Ban Meridian · Ban secrets / `.env*` · Ban force-push · Ban claiming PRE PASS · Ban 碰 Line AG `nhp-001-adv-01*` / `REQUEST-2026-10-06-nhp-001-adv*` 文件 · Ban 改写既有 nailed harness 的 nail 状态 · Ban product/infra code。
+Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove/emit 执行（本 turn）· Ban self-nail · Ban self-approve（alone ≠ dual）· Ban SSOT edit · Ban buy cloud · Ban Meridian · Ban secrets / `.env*` · Ban force-push · Ban claiming PRE PASS · Ban 碰 AL/AM/AG 禁触文件 · Ban product/infra code · Ban overwrite PERF-LOAD.json · Ban 假关 CONDITION。
 
-本 stub 不授权 coding / prove / push 冒充执行 / buy cloud；pre-exec dual BOTH PASS 后由协调方 AUTHORIZE 执行；implementer 不自批 · 不代填 Verdict。
+本 stub 不授权 coding / prove / emit / push 冒充执行 / buy cloud；pre-exec dual BOTH PASS 后由协调方 AUTHORIZE 执行；implementer 不自批 · 不代填 Verdict。
 
 ## Verdict
 
-**PENDING**（awaiting `mw-rag-route` · implementer 不得填写）
+**PENDING**（awaiting `mw-rag-route` re-PRE · implementer 不得填写）
 
 ---
 
-*Stub · awaiting expert pre-exec dual · STOP*
+*Stub · re-PRE rewrite · supersedes f8f4ab5 · FAIL 5be471c B1–B4 · peer PASS 899fef2 alone≠dual · Ban coding · CONDITION OPEN · awaiting expert re-PRE dual · STOP*
+
+---
+
+## Rewrite note · re-PRE（append · do not erase FAIL section below）
+
+**re-PRE · supersedes `f8f4ab5` · cites FAIL `5be471c`** · B1–B4 + C1–C3 landed in harness/slice · Status stays `draft:awaiting_pre_exec_dual` · Pins unchanged · CONDITION OPEN · Ban coding · Ban UC-018 covered flip · Ban invent liveObservation · peer e2e PASS `899fef2` alone ≠ dual。
+
+下方 Historical FAIL 正文 **原样保留不擦除**；本段仅为 rewrite 注记，**不**构成对本稿的 PASS/FAIL。
 
 ---
 
