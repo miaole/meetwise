@@ -897,6 +897,18 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0096_int_transcript_remaining_sinks.sql',
     'packages/db/migrations/0137_privacy_external_sink_confirmation_guard.sql',
   ],
+  'uc052:external-sink-async-purge:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/uc052-external-sink-async-purge.proof.ts',
+    'packages/db/src/uc052-external-sink-async-purge.ts',
+    'packages/db/src/uc052-internal-erasure.ts', 'packages/db/src/int-transcript-projection.ts',
+    'packages/db/src/privacy-authorization.ts', 'packages/db/src/principal.ts',
+    'packages/db/src/isolated-test-target.ts', 'apps/api/src/modules/privacy/privacy.service.ts',
+    'packages/db/migrations/0091_privacy_authorization_issuer.sql',
+    'packages/db/migrations/0096_int_transcript_remaining_sinks.sql',
+    'packages/db/migrations/0137_privacy_external_sink_confirmation_guard.sql',
+    'packages/db/migrations/0140_privacy_external_vendor_purge_evidence.sql',
+  ],
   'uc052:checkpoint-physical:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/uc052-checkpoint-physical.proof.ts',
@@ -1461,7 +1473,7 @@ if (![
   'model-op02:prove:raw',
   'model-slot-bypass:prove:raw',
   'privacy-authorization:prove:raw',
-  'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw',
+  'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw',
   'memory-governance:prove:raw',
   'memory-admission:prove:raw',
   'memory-fact-adjudication:prove:raw',
@@ -1674,6 +1686,8 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'packages/db', 'prove:uc052-internal-erasure']]
   : target === 'uc052:external-sink-retention:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:uc052-external-sink-retention']]
+  : target === 'uc052:external-sink-async-purge:prove:raw'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:uc052-external-sink-async-purge']]
   : target === 'uc052:checkpoint-physical:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:uc052-checkpoint-physical']]
   : target === 'uc052:pool-role-leak:prove:raw'
@@ -2236,7 +2250,7 @@ async function main() {
       `product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.`,
     );
     if (['e2e:prove', 'e2e:ui', 'performance:e2e', 'api:validate', 'recruiter:prove:raw', 'commerce-reconcile:prove:raw', 'model-invocation-reconcile:prove:raw', 'model-op00:prove:raw', 'model-op02:prove:raw', 'model-slot-bypass:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'scoring-integrity:prove', 'scoring:eval:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'scor-00:http:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'stress:prove:raw', 'memory:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'ocr:prove:raw', 'adaptive-degrade:prove:raw', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc011:report-refund:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc002:lease:prove:raw', 'resume:prove:raw', 'rag-generation:prove:raw', 'qbank:prove:raw', 'qbank-pipeline:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-retrieval-eval:prove:raw', 'online-judge-control:prove:raw', 'privacy-authorization:prove:raw',
-  'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag03-filter-locus:prove:raw', 'rag03-hnsw-completeness:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw', 'uc004:career-path-fault:prove:raw', 'uc001:nhp-neg:prove:raw', 'uc001:nhp-bound:prove:raw', 'uc001:nhp-adv:prove:raw', 'uc001:nhp-fault:prove:raw'].includes(target)) {
+  'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag03-filter-locus:prove:raw', 'rag03-hnsw-completeness:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw', 'uc004:career-path-fault:prove:raw', 'uc001:nhp-neg:prove:raw', 'uc001:nhp-bound:prove:raw', 'uc001:nhp-adv:prove:raw', 'uc001:nhp-fault:prove:raw'].includes(target)) {
       await migrateWithRecovery(env);
       // Re-attest host SQL after migrate (flake: migrate green → prove ECONNREFUSED).
       await waitForPostgres(env, { consecutive: 3, label: 'post-migrate' });
