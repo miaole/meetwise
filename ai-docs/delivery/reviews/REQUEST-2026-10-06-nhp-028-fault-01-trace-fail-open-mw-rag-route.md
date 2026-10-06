@@ -100,3 +100,64 @@ Line X · ② 下一 NHP = **NHP-028-FAULT-01**（UC-E2E-028 FAULT · trace 写�
 3. 唯一实质发现 = base tip 已前进（声明 `4766d4fc` → 实测 tip `71713718`，X 链 fork=`416b6a5b`，落后 178 commits），docs 自带复核条款触发，但 seam 文件字节不变、全部引用存活 → 降级为 EXEC 前 rebase 条件 C-1，非 Blocker。
 
 Verdict: PASS
+
+---
+
+## POST-PROVE dual 审查段（mw-rag-route · 2026-10-07 · route/ai-runtime 域边界焦点）
+
+**审查方法与审位（C-2 披露）**：独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-xp-rag-route`（branch `rv/xp-rag-route` · 自 `line/x-next-knife` tip `b16916fe65c54125ae2fbec0a6ff6f6bfcc7ec54` 新建），直接审 committed tip 状态；产品码只读零改动；git 写操作仅限本 worktree 本审查提交（Ban push）；未读 mw-e2e-ha 审段原文、独立审；**不代签 mw-e2e-ha · alone≠dual**。本段 append-only。审查对象 = 收包申报 commit `b16916fe`（`git rev-parse line/x-next-knife` 实测一致；其 parent `017a178dedbf37fe4bd44874dfebf3f0e56d99a4` = `origin/feat/mysql-schema-skeleton` 实测值）。
+
+### Fresh re-run（恰好一次 · 禁重试遵守）
+
+- CMD：`pnpm uc028:nhp-fault:prove`（本 worktree · 先 `pnpm install --frozen-lockfile`）· **EXIT=0 · `CHECKS=40 FAIL=0`** · 恰一次运行 · 零重试。日志 `.tmp/mw-rag-route-fresh-rerun.log` + 隔离收据 `.tmp/isolated-proof-receipts/2026-10-06T18-10-23-734Z-44522-2088abb9-bb91-49fe-802f-22f95d332d36.json`（本 worktree 落盘实证）。
+- 隔离实证（本 run 原文）：`ISO_SHELL  PGPORT=64145 E2E_ISOLATED=1 E2E_TEST_CONTAINER=meetwise-e2e-44522-1791310218191`；零 live key 双断言 PASS（MODEL_API_KEY / DASHSCOPE_API_KEY 缺席）；DB 层 trigger 注入；fake provider 面。
+- **Ban 静默丢——结构化观测实读（不采信 receipt 转述）**：本 run 自产 `OBSERVATION_LOG_LINE  {"event":"ai_trace_persist_failed","service":"uc028-fault-probe","idempotencyKey":"uc028-f1:muwzuubawjpuhm","errorName":"error","pgCode":"P0001"}`；F1 计数断言 `ai_trace_persist_failures_total=1` PASS；F2a/F2b 真相失败不误触发（计数仍=1）；F5 观测不丢失（仍=1）。→ 旁路失败被 **计数 + 单行 JSON** 双通道观测，无静默无痕路径；且日志只含稳定标量、无 owner/原文/堆栈（脱敏纪律实测）。
+
+### 域边界核验（核心职责 · 逐行）
+
+`git diff 017a178d b16916fe -- packages/ai-runtime/` 实测 = 仅 `invoke.ts` 2 hunk + `metrics.ts` 2 处，无其它：
+
+| 位置 | 实测 | 判定 |
+|---|---|---|
+| `invoke.ts:370-395` 新增 `persistTraceBestEffort` | 独立 `asPrincipal` 事务内调 `persistTrace`；`.catch` = `getMetrics().inc(METRIC.aiTracePersistFailures)` + `console.error` 单行 JSON（仅 event/service/idempotencyKey/errorName/pgCode） | ✅ 仅旁路+观测 |
+| `invoke.ts:735-738` 注释 + `:739` 新调用 | 事务体内原 `if (!error) await persistTrace(c,…)`（base `@017a178d` 实测在 `:708`）删除、移出事务；settleAiTextCost(`:723`)/persistValidatedOutput(`:729`)/completeModelInvocation(`:730-734` + `model_invocation_complete_state`)/catch 族(`:766` return `external_outcome_unknown`) 全部在位逐字节未动 | ✅ `:708`→`:739` 如实 |
+| `metrics.ts:98-99` + `:141` | METRIC 增 `aiTracePersistFailures: 'ai_trace_persist_failures_total'`（单一真源 · Prom 命名）+ `registerBaselineMetrics` 0 序列注册 | ✅ 仅观测 |
+| invoke.ts 其余全部 | diff 无其它 hunk → settle/complete/breaker（MODEL-OP-02）/dispatch/catch 族逐字节未动（prove 内 PIN 4 项机检亦全 PASS） | ✅ |
+
+全仓 `git diff --name-status 017a178d b16916fe` = 7 文件：receipt（新）/ root `package.json`（+2 script `:163-164`）/ `apps/api/package.json`（+1 script `:60`）/ `scripts/run-e2e-isolated.mjs`（+target：来源表 `:141-163`、allowlist `:1539`）/ 新 prove `apps/api/test/uc-e2e-028-nhp-fault.proof.ts`（新）/ 上述 2 产品文件 → **零 RAG-FUNNEL / route / 题库路径触碰 · 零禁碰行文件（UC-018/052/025/004/011/014/026/002/001）· 零 SSOT/矩阵改动**。
+
+### F1–F5 × spec 复核 + EXIT 契约 + attempts 裁决
+
+- spec 锚实测：`ai-docs/requirements/use-cases/e2e-scenarios.md:548` 恰为 `## UC-E2E-028` 标题行。主流程 1)「trace 写入失败**不回滚业务事务**」→ F1 八断言（trace=0 · invoke 返回 value 非 `external_outcome_unknown` · status=succeeded · reservation settled=90 净变恰一次 · 预算=90 · 单次派发 · counter=1 · JSON 日志）；反例守卫「业务真相（钱/状态）写失败必须阻塞」→ F2a 状态 / F2b 钱全阻塞（`external_outcome_unknown` · status=unknown · settled_micro_cny IS NULL · `error_code=settlement_or_record_failed` 原 catch 收口不动）；A2 对账补写 → F5 显式不做（trace 仍=0 · invoke.ts 无 recon 符号机检 · `GAP-UC028-RECON` stays gap）。F1–F5 与 harness 注入合同及 spec 1:1；isolated 面无 interview 实体，「额度仍 confirmed」按 harness 合同映射为 reservation settled + 预算账本 settled 恰一次（断言面 receipt 如实披露，非偷换）。
+- EXIT 契约诚实：run 输出与 receipt 双面钉死 **EXIT0 ≠ covered ≠ e2e:isolated suite green ≠ A2/A3 闭合** · UC-E2E-028 行/FAULT 列 stays gap · coveredCount=8 冻结 · EXIT1 诚实保留。老 prove 翻转**本席独立复现（恰一次）**：`pnpm uc028:trace-fail-open:prove` → **EXIT=1**，`FAIL S2-persistTrace-coupled-in-settle-txn` + `FAIL G-GAP-product-surface-or-pins: PRODUCT_SURFACE: … refuse gap EXIT=0` 逐字触发，S1/S3/S4/S5 仍 PASS、GAPS=0 —— 与 receipt 记载一致 = **设计绊线非回归**（refuse 条款 @老 proof `:15-16`/`:166-170` 实测在，文件零改动）。
+- **attempts 1,1,1,0 裁决：演进非 wash（Ban retry-to-green 不成立）**。依据：(1) attempt-1/2 失败在接线/基础设施层（runner allowlist 未注册 `unsupported_e2e_target` / proof repoRoot 上溯少一级 ENOENT），产品断言均未 evaluated，无洗绿面；(2) attempt-3 六 FAIL 定位到 prove-harness 两缺陷（三表共用 trigger 函数 → plpgsql 对 `NEW.<col>` 字段解析不随 IF 短路 → 42703 污染非注入键，实证 F3 日志 `pgCode=42703`；fakeModel `prepare.execute` 未路由 `model.call` → 派发计数恒 0），修复全在注入 harness 侧（每表独立函数 + 路由），**断言文本零改动、产品码零改动**——最终断言集与 harness 合同 1:1 且全为硬断言（精确值 90/180、`===1`、`P0001`），无弱化迁就；(3) 4 attempts 各留日志（`meetwise-line-x/.tmp/uc028-nhp-prove-attempt{1..4}.log` 实测在，尾部 EXIT 与台账逐一吻合）。
+
+### 条件裁决（本席 PRE-EXEC C-1~C-3 · 逐条）
+
+| Cond | 裁决 | 证据 |
+|---|---|---|
+| **C-1**（base 前进 · EXEC 前 rebase，rebase 后若 invoke.ts 受影响须回炉） | **关闭 · 回炉条款不触发** | rebase 已完成并经协调方集成：`origin/feat/mysql-schema-skeleton` 实测 = `017a178d`（= receipt rebase 落点）；seam 行号按 tip `b16916fe` 复核：base `@017a178d` `:708` 同事务调用（`git show` 实测）→ tip 拆出 `:739`，`persistTrace` def `:345` 两代未移，catch 族 return 在位 → invoke.ts rebase 零漂移 |
+| **C-2**（审位披露） | **履行** | 本段于独立 worktree `rv/xp-rag-route`（自 `line/x-next-knife@b16916fe`）执行、直审 committed tip；implementer 未触碰本 worktree；本 worktree 内唯一 git 写 = 本审查提交（author `mw-rag-route` · Ban push） |
+| **C-3**（prove 期冻结项：三层壳同构接线 · 老 proof 零改动 · 翻转如实入 receipt） | **遵守** | 三层壳同构接线实测（root `package.json:163-164` → `run-e2e-isolated.mjs` allowlist `:1539` + 来源表 `:141-163` → `apps/api package.json:60` → proof）；老 proof 在 `017a178d..b16916fe` 零改动（`git log -- <path>` 空 + name-status 不含）；翻转 EXIT=1 已如实入 receipt 且本席独立复现逐字一致 |
+
+### Minor（非阻断）
+
+- receipt 产品 diff 表将新增块记为 `:371-397`，tip 实测为 `:370-395`（doc 注释 `:370-376` · 函数 `:377-395`）——2 行内 cosmetic 行号漂移；全部承重行号（`:708`→`:739`、`:723/:729/:730-734/:766`、metrics `:98-99/:141`、runner `:141-163/:1539`、`package.json :163-164/:60`）逐一精确；PIN 机检为 regex 非行号锚，不受影响。
+
+### Blockers
+
+无。
+
+### Conditions（移交协调方/后手）
+
+1. **EXIT0 ≠ covered** 维持：UC-E2E-028 行/FAULT 列 stays gap、coveredCount=8 冻结、`GAP-UC028-RECON / GAP-UC028-TRUTH-BLOCK-E2E / GAP-UC028-INJECT` 仍 open；任何升格仅经 coordinator nail 的 additive honesty。
+2. 老 prove `uc028:trace-fail-open:prove` 现处**设计绊线态（EXIT=1）**：其静态库存更新属另刀；Ban 借任何后续刀静默改老 proof（C-3 延续）。
+3. POST-PROVE 双审合龙 = 本段 + mw-e2e-ha 段各出自其席，本席不代签 peer；coordinator nail 前，本刀不自宣称 covered / HA / releaseEvidence；PASS ≠ coding ≠ prove ≠ covered ≠ HA。
+
+### 三行中文摘要
+
+1. 域边界实测干净：`git diff 017a178d b16916fe` 全仓 7 文件，ai-runtime 仅 persistTrace 拆旁路（`:708`→`:739`）+ `ai_trace_persist_failures_total` 计数/基线，settle/complete/breaker/dispatch/catch 族逐字节未动，零 RAG-FUNNEL/route/题库路径、零禁碰行、零 SSOT 触碰。
+2. 本席 fresh re-run 恰一次 `pnpm uc028:nhp-fault:prove` = **EXIT=0（40 检查 0 失败）**：失败 trace 由计数 + 单行 JSON（pgCode=P0001）双通道实读观测、F2 真相失败不误触发、F5 recon 不冒充；老 prove 翻转 EXIT=1 本席独立复现 = 设计绊线；attempts 1,1,1,0 判演进非 wash（前三败均在 prove-harness 侧、断言与产品码零改动、全台账留痕）。
+3. C-1/C-2/C-3 全部关闭：rebase 落 `017a178d` = origin tip、seam 行号按 tip 复核吻合不回炉；独立 worktree 审位披露；老 proof 零改动 + 翻转如实。唯一发现 = receipt 新增块行号 cosmetic 漂移（`:371-397` vs 实测 `:370-395`），非阻断。
+
+Verdict: PASS
