@@ -1025,3 +1025,14 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered. Ban buy cloud · Ban secrets · Ban force.
 - Nail tip = 本 commit（branch `nail/line-ak-nhp-025-adv-01`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written（incl. Line W BOUND/FAULT-ISOLATED · Line AA FAULT · Line AG/AJ/AI · AL/AM）. This paragraph does **not** flip ADV to covered · does **not** invent covered · does **not** flip row off gap · does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+### Line AN-MOP-Q45 GAP-MOP-03 dual reconciler Q4/Q5 honesty NAIL（2026-10-06 SSOT nail · `post_prove_dual_pass` · GAP-MOP-03 stays OPEN · Ban MODEL-OP closed · Ban Redis cutover）
+
+- [x] **`post_prove_dual_pass`** recorded for Line AN-MOP-Q45 GAP-MOP-03 dual reconciler Q4/Q5 honesty products only（harness/slice/receipt + SSOT cite）. Implementer does not self-approve beyond this AUTHORIZE nail. **Nail ≠ MODEL-OP domain closed ≠ #102 cutover ≠ SLO closed ≠ Redis cutover ≠ suite green**. Ban invent MODEL-OP closed · Ban Redis cutover · Ban Meridian · Ban secrets · Ban force-push · Ban coding · Ban touch PRIV-EXT / PERF-TEAR / RAG-R3.
+- REQUEST `d269761` / `d26976171ddfa0678b4a42a003fe48a706e9d20e`（code-equivalent · `66a77ed` was e2e PRE docs）. Pre-exec dual PASS: mw-model-op `e2db4bc` / `e2db4bc913b84dabb836b848489562fad9f03b7a` + mw-e2e-ha `66a77ed` / `66a77eda3b405bbf3aef636d727b8e3564c46ffb`.
+- PROVE_SHA **NAILED TO** `a1f3614` / `a1f3614408f57b373306df7493a482fde7197019` · CODE prove window `66a77ed` / `66a77eda3b405bbf3aef636d727b8e3564c46ffb` · receipt `receipts/2026-10-06-an-mop-q45-gap-mop-03-dual-reconciler-q45-honesty-prove.md` · Q4/Q5 EXIT **0/0** same SHA · Redis **unset** · PG LISTEN **retained**.
+- Post-prove dual PASS: mw-model-op `67050c0` / `67050c0a29cd18446f8e8bec013ec02291adbfb7` + mw-e2e-ha `a41c575` / `a41c575ce8262914ec0be4c51206b0289a8bc4e2`（BOTH · alone≠dual）.
+- [ ] **GAP-MOP-03 stays OPEN**（backlog `:76`）· [ ] Ban MODEL-OP closed · [ ] Ban Redis cutover · [ ] Ban #102 cutover · [ ] coveredCount=**8** · alone≠dual.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · PG LISTEN retained. Do not write covered / MODEL-OP closed / Redis cutover.
+- Nail tip = 本 commit（branch `nail/an-mop-q45-post-prove`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written（incl. Line AG/AI/AK · AL/AM · PRIV-EXT / PERF-TEAR / RAG-R3）. This paragraph does **not** flip GAP-MOP-03 to CLOSED · does **not** claim MODEL-OP domain closed · does **not** claim Redis/#102 cutover.
