@@ -965,3 +965,17 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered / CLOSED / cutover.
 - Nail tip = 本 commit（branch `line/al-am-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written（incl. Line N banner NAIL `a778255` · Line AE/AF/AH/AD · AI/AJ/AK REQUEST）. This paragraph does **not** flip backlog `:63` to CLOSED. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+### Line AM G7 Disclosure-1 / R1 honesty residual NAIL（2026-10-06 SSOT nail · `post_prove_dual_pass` · docs-only · `g7SuiteGreen=false` · Disclosure-1/R1 OPEN）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line AM G7 Disclosure-1 / R1 honesty residual products only（H1–H4 docs append · honesty residual）. Implementer does not self-approve beyond this authorized nail. **Not** suite green. **Not** G7 green. Ban invent spend · Ban suite green · Ban `g7SuiteGreen=true` · Ban live · Ban flipping Disclosure-1 / R1 closed · Ban washing Key-blocked as pass · Ban Meridian · Ban secrets · Ban force-push · Ban coding · Ban reconciling m4-rag R1 vs G7 r1Closed this nail.
+- REQUEST `c562906` / `c56290618b362253b2f1b69592675ccb9c302108`. Pre-exec dual PASS: mw-e2e-ha `899fef2` / `899fef248d7d247f8425c037109ed4efde008e71` + mw-model-op `6099fcf` / `6099fcfec74d0c20918d3339c8df87c1de0c1720`.
+- CODE **none**（docs-only）· PROVE_TIP **NAILED TO** `f645e13` / `f645e130acf86d069c11917aabfdb49568a9e3c4` · receipt `receipts/2026-10-06-g7-disclosure-r1-honesty-residual-h1-h4.md` · H1–H4 · C-MO-AM-1..9 · **0 model calls** · `actualSpendCny=null`.
+- Post-prove dual PASS: mw-e2e-ha `1778d53` / `1778d53ac6075bfd4e361fb0cd51e8f31d4cfbb1` + mw-model-op `73148a2` / `73148a2e2cfdeaee738cedf5c85c1e5865a5c21e`（BOTH · alone≠dual）.
+- Products H1–H4 · **P1–P5 ≠ gate R1** retained · Key-blocked ≠ pass.
+- [ ] Trio stays **OPEN 1/1/1** · **`g7SuiteGreen=false`** · Disclosure-1 **OPEN** · R1 **OPEN**（`r1Closed=false`）. Trio/suite 翻绿仍须未来授权；本 nail 不翻 `g7SuiteGreen`.
+- **SEPARATE knife**: m4-rag R1 product-closed vs G7 `r1Closed=false` tension is **NOT reconciled** in this nail（H1 flag-only cross-ref retained）.
+- 原值不动：`g7SuiteGreen=false` · R1 **OPEN** · Disclosure-1 **OPEN** · coveredCount=**8**.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · `g7SuiteGreen=false`. Do not write covered. actualSpendCny stays null.
+- Nail tip = 本 commit（branch `line/al-am-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written（incl. Line AD Key-blocked residual · Line AL banner residual · Line AC/U G7 · Line AE/AF/AH）. This paragraph does **not** flip `g7SuiteGreen` · does **not** close Disclosure-1 / R1 · does **not** reconcile m4 tension.

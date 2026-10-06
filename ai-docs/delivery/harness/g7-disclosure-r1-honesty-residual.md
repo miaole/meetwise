@@ -1,6 +1,8 @@
-# Harness — **G7 Disclosure-1 / R1 honesty residual**（Line AM · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · honesty residual · **not** a suite-green knife · `g7SuiteGreen=false`）
+# Harness — **G7 Disclosure-1 / R1 honesty residual**（Line AM · NAIL · **`post_prove_dual_pass`** · honesty residual · **not** a suite-green knife · `g7SuiteGreen=false` · Disclosure-1/R1 **OPEN**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs-only honesty residual REQUEST · Ban coding · Ban `g7SuiteGreen=true` · Ban invent spend · Ban live unless separately authorized · Ban washing Key-blocked as pass · Ban self-approve · alone ≠ dual）
+**Status**: **`post_prove_dual_pass`**（Line AM nail · PROVE_TIP `f645e13` · H1–H4 docs append · POST dual mw-e2e-ha `1778d53` + mw-model-op `73148a2` BOTH PASS · **`g7SuiteGreen=false`** · Disclosure-1 **OPEN** · R1 **OPEN** · Ban invent spend · Ban suite green · Ban live · Ban self-approve beyond this authorized nail · alone ≠ dual · **m4-rag R1 vs G7 r1Closed tension NOT reconciled this nail**）
+
+> **REQUEST-era status（historical · retained）**: **`draft:awaiting_pre_exec_dual`**（L0 docs-only honesty residual REQUEST · Ban coding · Ban `g7SuiteGreen=true` · Ban invent spend · Ban live unless separately authorized · Ban washing Key-blocked as pass · Ban self-approve · alone ≠ dual）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`71ad2a7`** / full `71ad2a7fccaa3dd43b47e2c54b9823890aaabdf9`（wave AI–AM start · includes Line AE nail `3409862` / `340986214ad2a32b1cb678caa612c6a50f305861` as ancestor · tip advanced past AE by Line AG re-PRE2 review commits only · Ban touch AG）
@@ -69,7 +71,8 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## Execution addendum（Line AM · 2026-10-06 · **docs harness append only** · lines above unchanged so PRE-review line cites stay valid）
 
-**Status (this addendum)**: **`executed:awaiting_post_prove_dual`**（docs append H1–H4 landed · **not a pass** · awaiting POST dual mw-model-op + mw-e2e-ha · Ban self-nail · alone ≠ dual）
+**Status (this addendum)**: **`post_prove_dual_pass`**（docs append H1–H4 · POST dual BOTH PASS · **not suite green** · Ban self-nail invent · alone ≠ dual）
+> **Exec-era status（historical · retained）**: **`executed:awaiting_post_prove_dual`**（docs append H1–H4 landed · **not a pass** · awaiting POST dual mw-model-op + mw-e2e-ha · Ban self-nail · alone ≠ dual）
 **Authority**: coordinator AUTHORIZE coding+prove Line AM after PRE dual BOTH PASS — mw-e2e-ha `899fef2` / `899fef248d7d247f8425c037109ed4efde008e71` + mw-model-op `6099fcf` · REQUEST `c562906` / `c56290618b362253b2f1b69592675ccb9c302108` · scope = **docs harness append only（H1–H4）** · obeys **C-MO-AM-1..9**
 **Execution tip (re-pin base · C-MO-AM-9)**: `origin/feat/mysql-schema-skeleton` @ `6a35c47` / `6a35c47c497d8827a6a7b729ba05c31193836553`（`6a35c47` = Line AG re-PRE3 review commit · docs-only） · `scripts/run-e2e.mjs` / `scripts/run-e2e-ui.mjs` / `scripts/e2e-live-capability-env.mjs` last touched by `057701c` — unchanged since REQUEST · every file:line below **re-pinned at this tip** · re-verified unchanged after `pull --rebase` onto `c633584` / `c633584b1d991894f0f3682416b89f19695d664b`（intervening Line AK/AJ/AI review docs + Line AL `scripts/run-e2e-isolated.mjs` banner fix · none of the cited files touched）
 **What ran**: zero code / script / package · zero prove · zero live · zero re-run / re-attest · zero `.env*` probe · **0 model calls** · `actualSpendCny=null` · zero SSOT（matrix/backlog/checklist）· zero AD/AC receipt edits · AD nail `3e3b2af` untouched · no reconciler / MODEL-OP-00 touch
@@ -134,4 +137,19 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **Non-claims**: not a pass · not suite green · not trio green · not R1 closed · not Disclosure-1 closed · not live · not re-run · not Key provisioning · not nail · not HA · not `releaseEvidence=true` · Key-blocked ≠ pass · alone ≠ dual.
 
-*Addendum · Line AM · H1–H4 · executed:awaiting_post_prove_dual · Ban g7SuiteGreen=true · Ban invent spend · Ban live · Disclosure-1/R1 OPEN · STOP*
+*Addendum · Line AM · H1–H4 · executed:awaiting_post_prove_dual · Ban g7SuiteGreen=true · Ban invent spend · Ban live · Disclosure-1/R1 OPEN · STOP*  <!-- exec-era footer · lifecycle advanced below -->
+
+---
+
+## Line AM NAIL lifecycle（`post_prove_dual_pass` · 2026-10-06 · additive）
+
+- Lifecycle on this harness/slice/receipt: **`post_prove_dual_pass`**（docs/SSOT honesty only · zero product/infra code · Ban coding · Ban live · Ban invent spend）.
+- REQUEST `c562906` / `c56290618b362253b2f1b69592675ccb9c302108` · PRE dual BOTH PASS: mw-e2e-ha `899fef2` / `899fef248d7d247f8425c037109ed4efde008e71` + mw-model-op `6099fcf` / `6099fcfec74d0c20918d3339c8df87c1de0c1720`.
+- PROVE_TIP **NAILED TO** `f645e13` / `f645e130acf86d069c11917aabfdb49568a9e3c4` · receipt `receipts/2026-10-06-g7-disclosure-r1-honesty-residual-h1-h4.md` · H1–H4 docs harness append · C-MO-AM-1..9 held · 0 model · `actualSpendCny=null`.
+- POST dual BOTH PASS: mw-e2e-ha `1778d53` / `1778d53ac6075bfd4e361fb0cd51e8f31d4cfbb1` + mw-model-op `73148a2` / `73148a2e2cfdeaee738cedf5c85c1e5865a5c21e`（alone ≠ dual）.
+- **STILL_OPEN**: trio **OPEN 1/1/1** · **`g7SuiteGreen=false`** · Disclosure-1 **OPEN** · R1 **OPEN**（`r1Closed=false`）· coveredCount=**8** · P1–P5 ≠ gate R1 · Key-blocked ≠ pass.
+- **SEPARATE knife（not this nail）**: m4-rag R1 product-closed vs G7 `r1Closed=false` tension is **NOT reconciled** here（flag-only cross-ref H1 retained · Ban invent close）.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · `g7SuiteGreen=false`. Ban invent spend · Ban suite green · Ban live · Ban Meridian · Ban secrets · Ban force-push · alone≠dual.
+- Nail tip = 本 commit（推至 `feat/mysql-schema-skeleton`；禁 force push）. Sibling sections stay as written（incl. Line AD Key-blocked residual · Line AL banner residual · Line AC/U G7）. This paragraph does **not** flip `g7SuiteGreen` · does **not** close Disclosure-1 / R1 · does **not** reconcile m4 tension.
+
+*Harness · G7 Disclosure-1 / R1 honesty residual · Line AM NAIL · 2026-10-06 · lifecycle post_prove_dual_pass · PROVE_TIP f645e13 · POST 1778d53+73148a2 PASS · g7SuiteGreen=false · Disclosure-1/R1 OPEN · m4 tension not reconciled · Ban invent spend/live · STOP*
