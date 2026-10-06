@@ -1,6 +1,6 @@
-# Harness — **C-IMAGE-DIGEST live residual · first natural live emit evidence**（Line AJ · docs REQUEST rewrite · **`draft:awaiting_pre_exec_dual`** · CONDITION stays OPEN · fix landed ≠ CONDITION closed）
+# Harness — **C-IMAGE-DIGEST live residual · first natural live emit evidence**（Line AJ · **`post_prove:awaiting_post_prove_dual`** · E-C hmac-key-missing · CONDITION stays OPEN · fix landed ≠ CONDITION closed）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST rewrite **re-PRE** · supersedes REQUEST `f8f4ab5` · cites rag PRE-EXEC FAIL `5be471c` **B1–B4** (+ C1–C3）· peer e2e PASS `899fef2` alone ≠ dual · **zero coding this REQUEST** · Ban 假关 CONDITION · Ban UC-018 covered flip · Ban invent `liveObservation=true` · Ban self-approve）
+**Status**: **`post_prove:awaiting_post_prove_dual`**（AUTHORIZE coding+prove executed · receipt `receipts/2026-10-06-c-image-digest-live-residual.md` · outcome **E-C** emitter EXIT 8 · reason hmac-key-missing · PRE BOTH `e8b8115`+`e66419d` @ `92420a6` · C1–C4 carried · **CONDITION stays OPEN** · Ban 假关 CONDITION · Ban UC-018 covered flip · Ban invent `liveObservation=true` · Ban self-nail · Ban self-approve · alone ≠ dual）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton`（includes Line AI rewrite + AL POST / AM / AG as ancestors · **Ban touch** AL/AM/AG files）
@@ -132,4 +132,4 @@ Not a pass · not run · not closed · not live-observed · not UC-018 covered �
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · backlog `:34` C-IMAGE-DIGEST **OPEN CONDITION** · canHonestlyFlip=false · STOP
 
-*Harness · C-IMAGE-DIGEST live residual · first natural live emit evidence · Line AJ · 2026-10-06 · draft:awaiting_pre_exec_dual · re-PRE rewrite supersedes f8f4ab5 · FAIL 5be471c B1–B4 · peer e2e PASS 899fef2 alone≠dual · Ban coding · CONDITION OPEN · alone ≠ dual · STOP*
+*Harness · C-IMAGE-DIGEST live residual · Line AJ · 2026-10-06 · post_prove:awaiting_post_prove_dual · E-C hmac-key-missing · CONDITION OPEN · Ban invent liveObservation · Ban covered flip · Ban fake-close · Ban self-nail · alone ≠ dual · STOP*

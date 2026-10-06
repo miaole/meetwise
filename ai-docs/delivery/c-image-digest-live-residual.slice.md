@@ -1,6 +1,6 @@
-# Slice — **C-IMAGE-DIGEST live residual · first natural live emit evidence**（Line AJ · `draft:awaiting_pre_exec_dual` · re-PRE rewrite）
+# Slice — **C-IMAGE-DIGEST live residual · first natural live emit evidence**（Line AJ · `post_prove:awaiting_post_prove_dual` · E-C · CONDITION OPEN）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（docs REQUEST rewrite **re-PRE** · supersedes `f8f4ab5` · cites FAIL `5be471c` B1–B4 · zero coding · CONDITION stays OPEN）
+**Status**: **`post_prove:awaiting_post_prove_dual`**（AUTHORIZE one-shot · receipt `receipts/2026-10-06-c-image-digest-live-residual.md` · **E-C** EXIT 8 hmac-key-missing · PRE BOTH `e8b8115`+`e66419d` @ `92420a6` · C1–C4 · **CONDITION stays OPEN** · Ban invent liveObservation · Ban covered flip · Ban fake-close · Ban self-nail）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base**: `origin/feat/mysql-schema-skeleton` tip（includes AI rewrite + AL/AM/AG ancestors · Ban touch AL/AM/AG files）
@@ -23,4 +23,4 @@ backlog `:34` C-IMAGE-DIGEST **OPEN CONDITION** · 修复已落 · 残余 = 首�
 
 Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove/emit 执行（本 turn）· Ban self-nail · Ban self-approve（alone ≠ dual）· Ban SSOT edit · Ban buy cloud · Ban Meridian · Ban secrets / `.env*` · Ban force-push · Ban claiming PRE PASS · Ban 碰 AL/AM/AG 禁触文件 · Ban 假关 CONDITION · Ban UC-018 covered flip · Ban invent liveObservation=true · Ban overwrite PERF-LOAD.json · zero coding。
 
-*Slice · C-IMAGE-DIGEST live residual · Line AJ · draft:awaiting_pre_exec_dual · re-PRE supersedes f8f4ab5 · FAIL 5be471c · STOP*
+*Slice · C-IMAGE-DIGEST live residual · Line AJ · post_prove:awaiting_post_prove_dual · E-C · CONDITION OPEN · STOP*
