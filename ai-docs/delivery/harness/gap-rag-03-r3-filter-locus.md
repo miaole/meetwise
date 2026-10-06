@@ -217,3 +217,11 @@ Not a pass · not run · not fixed · not R3 closed · not live-plan proof（EXP
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · backlog `:71` OPEN · `R3-HNSW-COMPLETENESS` OPEN · STOP
 
 *Harness · GAP-RAG-03 R3 filter-locus ADR + ANN candidate-before-LIMIT fix + Top-K hard-filter prove · AN-RAG-R3 re-PRE ×3 · supersedes c515a8c (→c71d354→4c93dc5) · Re-PRE2 4e16dfa Cond-1 (BLOCKING) + Cond-2..6 addressed · FAIL 0e5c5ed + 5f8096a · R1/R2/R4/R6 retained · R3/R5 retained · 2026-10-06 · draft:awaiting_pre_exec_dual · Ban FULLTEXT · Ban Qdrant cutover · PG-retained · alone ≠ dual · STOP*
+
+## 11. Prove addendum（AUTHORIZE coding+prove · 2026-10-06 · `awaiting_post_prove_dual`）
+
+- AUTHORIZE @ REQUEST rewrite3 `8d52138` after PRE BOTH PASS（rag `d83c561` · e2e `eb8fb09`）+ coordinator FYI NB-1..3。§0–§10 above unchanged（REQUEST text frozen）；the `:113` landed wording follows coordinator NB-2（supersedes the §4.1 C-2 ② pinned text, which misdescribed legacy callers）。
+- C-3 `264e1d7` · CODE（C-1+C-2）`ac03f30` · migration **`0138_qbank_ann_candidate_before_limit.sql`**。
+- BASELINE **1/1/1** · PC **0/0/0** · MUT-1..4 each **1/1/1**（red names hit）· R-a/R-c/R-d/R-e **0** · R-b **1 = pre-existing at base `70cba94`**（disclosed）· static `3/1 → 0/0`（MUT-4 `2/1`）· pgvector 0.8.7 · ef_search 40 · EXPLAIN `substituted_body` · `LIVE_PLAN_NOT_CAPTURED`。
+- Receipt: `receipts/gap-rag-03-r3-filter-locus/2026-10-06-an-rag-r3-prove.md`（F-STARVE construction disclosure · F-STARVE-HASH NB-1 seam · MUT-2 name mapping · R-e rationale corrected）。
+- backlog `:71` **GAP-RAG-03 stays OPEN** · `R3-HNSW-COMPLETENESS` **OPEN** · Ban nail until POST BOTH + AUTHORIZE · Ban self-write `post_prove_dual_pass`。

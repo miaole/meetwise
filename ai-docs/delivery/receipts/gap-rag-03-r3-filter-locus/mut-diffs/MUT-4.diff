@@ -1,0 +1,24 @@
+diff --git a/packages/db/src/qbank-generation-retrieval.ts b/packages/db/src/qbank-generation-retrieval.ts
+index cd9bcb9..8666da1 100644
+--- a/packages/db/src/qbank-generation-retrieval.ts
++++ b/packages/db/src/qbank-generation-retrieval.ts
+@@ -115,7 +115,7 @@ export async function activeQbankGeneration(c: Client): Promise<QbankActiveGener
+   const present = (await c.query("SELECT to_regprocedure('qbank_active_generation_metadata()') IS NOT NULL AS ok")).rows[0]?.ok === true;
+   if (!present) throw new Error('qbank_active_generation_metadata_missing');
+   const r = await c.query('SELECT generation_id, recipe_id FROM qbank_active_generation_metadata()');
+-  if (r.rowCount !== 1) throw new Error('qbank_active_generation_missing');
++  if (r.rowCount !== 1) return undefined as unknown as QbankActiveGeneration;
+   return { generationId: String(r.rows[0].generation_id), recipeId: String(r.rows[0].recipe_id) };
+ }
+ 
+@@ -226,6 +226,10 @@ export async function hybridQbankSearch(
+   const mode = retrievalMode(input.retrievalMode);
+   await setServingScope(c, input.scope);
+   const active = await activeQbankGeneration(c);
++  if (!active) {
++    const { annSearchLegacy } = await import('./retrieval-legacy.ts');
++    return (await annSearchLegacy(c, 'qbank', input.embedding, input.k)).map((x) => ({ ...x, channels: ['dense'] }));
++  }
+   if (!input.expectedRecipeId || active.recipeId !== input.expectedRecipeId) {
+     throw new Error(`qbank_generation_recipe_mismatch:active=${active.recipeId}:query=${input.expectedRecipeId ?? 'missing'}`);
+   }

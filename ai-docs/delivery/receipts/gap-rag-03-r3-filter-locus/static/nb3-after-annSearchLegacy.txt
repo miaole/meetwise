@@ -1,0 +1,13 @@
+packages/db/src/retrieval-store.ts:12:import { annSearchLegacy } from './retrieval-legacy.ts';
+packages/db/src/retrieval-store.ts:14:export { annSearchLegacy } from './retrieval-legacy.ts';
+packages/db/src/retrieval-store.ts:57:    // undefined fallback branch — legacy callers must use annSearchLegacy directly.
+packages/db/src/retrieval-store.ts:65:  return annSearchLegacy(c, kind, queryEmbedding, k);
+packages/db/src/index.ts:143:export { upsertVectorChunk, annSearch, annSearchLegacy } from './retrieval-store.ts';
+packages/db/src/retrieval-legacy.ts:11:export async function annSearchLegacy(
+packages/db/src/principal.ts:429:      // silently resurrecting the chunk through the legacy annSearchLegacy
+apps/worker/smoke/rag-adversarial-pg-eval.ts:19:import { annSearchLegacy, asPrincipal, createPool, upsertVectorChunk } from '@meetwise/db';
+apps/worker/smoke/rag-adversarial-pg-eval.ts:146:      const rows = await asPrincipal(pool, reader, (c) => annSearchLegacy(c, 'qbank', vec, K));
+apps/worker/smoke/rag-adversarial-pg-eval.ts:154:    console.log('✓ 已覆盖 legacy compatibility 路径：真实 embedding → pgvector（HNSW 已建）→ app_role/RLS → qbank_visible_ref → annSearchLegacy。它不覆盖 generation-aware hybridQbankSearch、artifact evidence 或 serving cache。上方 plan 只代表 24-chunk fixture；不能外推为 10 万+ 语料性能。临时数据库将删除。');
+apps/worker/smoke/rag-demo.ts:2: * demo（非 serving 路径）：把真语料 → text-embedding-v4 → 入 pgvector(旧 legacy annSearchLegacy) → gte-rerank 重排 → 测 recall 一条龙跑通。
+apps/worker/smoke/rag-demo.ts:9:import { createPool, asPrincipal, upsertVectorChunk, annSearchLegacy } from '@meetwise/db';
+apps/worker/smoke/rag-demo.ts:61:    const hits = await asPrincipal(pool, OWNER, (c) => annSearchLegacy(c, 'qbank', qv, 20));   // legacy pgvector HNSW 召回(非 generation-aware serving)

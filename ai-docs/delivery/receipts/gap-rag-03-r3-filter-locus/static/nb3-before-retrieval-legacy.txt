@@ -1,0 +1,3 @@
+dbed2f2098ee39f5bd83b7b2cfb0bb697bb4631f:packages/db/src/qbank-generation-retrieval.ts:231:    const { annSearchLegacy } = await import('./retrieval-legacy.ts');
+dbed2f2098ee39f5bd83b7b2cfb0bb697bb4631f:packages/db/src/retrieval-store.ts:12:import { annSearchLegacy } from './retrieval-legacy.ts';
+dbed2f2098ee39f5bd83b7b2cfb0bb697bb4631f:packages/db/src/retrieval-store.ts:14:export { annSearchLegacy } from './retrieval-legacy.ts';
