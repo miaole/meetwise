@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # harness per-attempt J-2 wrapper (not product code). usage: attempt.sh <id> <inject> [ub]
 set -u
-ROOT=/workspace/meetwise-wt-an-perf-coding; cd $ROOT
+ROOT=/workspace/meetwise-wt-an-perf-prove6; cd $ROOT
 D=$ROOT/.tmp/an-perf-tear/$1; mkdir -p $D; shift
 { echo "start $(date --iso-8601=ns) sha=$(git rev-parse HEAD)"; git diff --stat -- packages/db/src/principal.ts; } > $D/attempt-info.txt
 docker ps -a --filter name=meetwise-e2e-r2pool- --format '{{.Names}}' > $D/nb4.txt; echo "nb4_list_exit=$?" >> $D/aux.txt

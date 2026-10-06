@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # usage: cell.sh <cell> <prefix> <inject> <ub|-> <mut:none|929|zero> <attempt numbers...>
 set -u
-ROOT=/workspace/meetwise-wt-an-perf-coding; cd $ROOT; T=$ROOT/.tmp/an-perf-tear/tools
+ROOT=/workspace/meetwise-wt-an-perf-prove6; cd $ROOT; T=$ROOT/.tmp/an-perf-tear/tools
 cell=$1 pre=$2 inj=$3 ub=$4 mut=$5; shift 5
 F=packages/db/src/principal.ts
 git diff --exit-code -- $F >/dev/null || { echo "principal dirty before cell"; exit 8; }

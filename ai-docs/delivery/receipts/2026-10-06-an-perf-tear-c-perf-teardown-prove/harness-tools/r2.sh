@@ -1,5 +1,5 @@
 set -u
-ROOT=/workspace/meetwise-wt-an-perf-coding; D=$ROOT/.tmp/an-perf-tear/R2; mkdir -p $D; cd $ROOT
+ROOT=/workspace/meetwise-wt-an-perf-prove6; D=$ROOT/.tmp/an-perf-tear/R2; mkdir -p $D; cd $ROOT
 docker ps -a --filter name=meetwise-e2e --filter name=meetwise-uc018 --format '{{.Names}}' > $D/ps-before.txt; echo "ps_before rows=$(wc -l <$D/ps-before.txt)" > $D/aux.txt
 N=meetwise-e2e-r2pool-$$-$(date +%s%3N); PW=$(openssl rand -hex 16)
 CID=$(docker run --rm -d --name $N -e POSTGRES_USER=meetwise -e POSTGRES_DB=meetwise -e POSTGRES_PASSWORD=$PW -p 127.0.0.1::5432 pgvector/pgvector:pg16); e=$?

@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process';
 import { createWriteStream, readFileSync, writeFileSync } from 'node:fs';
 import { createInterface } from 'node:readline';
 const [dir, inj, ubArg] = process.argv.slice(2);
-const ROOT = '/workspace/meetwise-wt-an-perf-coding';
+const ROOT = '/workspace/meetwise-wt-an-perf-prove6';
 const TOOLS = ROOT + '/.tmp/an-perf-tear/tools';
 const CMD = './scripts/with-docker-session.sh env -u MODEL_API_KEY -u MODEL_BASE_URL pnpm uc018:perf-load:prove';
 const now = () => Date.now();
