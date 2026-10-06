@@ -79,6 +79,8 @@
 | GAP-PROD-03 | P1 | 企业 tenant/席位/账单、ATS 流程、职位透明度、评分公平性等未接线（C/B P1 表） | 未完成项销售/权限标「未提供」；落地须独立 UC+审 | product | 商业化扩面（P0 清零后） | 按 UC 分域 prove |
 | GAP-SCH-01 | P1 | **STOPPED / superseded by PG-retained** — MySQL schema skeleton historical（was INFLIGHT:mysql-schema-prove）；~130 PG mig / RLS retained as truth · **Ban** MySQL sole relational cutover | Keep Postgres business schema + RLS; no MySQL replace-PG | schema | closed-as-direction · see `adr-postgres-retained.md` | `harness/mysql-schema.skeleton.md`（STOPPED） |
 
+> **2026-10-07 · MOP03 立卷登记（append-only · `:76` 附近）**: GAP-MOP-03 `:76` successor cutover 准入合同六门已立 @nail tip（本 commit · branch `line/mop03-nail`）——REQUEST `cdde235e`（origin 镜像 `787de124`）· pre-dual BOTH PASS（mw-model-op `16f2c684` + mw-e2e-ha `d65023e1`≡origin `2da0c904` patch-id `ad28e66e`）· exec `47f17b83`≡origin `d5e6f7e6`（patch-id `8cb6ea0b`）lifecycle `executed:awaiting_post_prove_dual` · post-dual BOTH PASS（mw-model-op `e10df445` + mw-e2e-ha `abb04dbd`）· **GAP-MOP-03 保持 OPEN——立卷≠关闭** · PG LISTEN retained · Redis cutover 须未来授权 REQUEST 走六门（Ban Redis cutover · Ban MODEL-OP closed）.
+
 ---
 
 ## B. 遗留 BUG / 假绿 / 审查阻塞
