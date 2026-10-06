@@ -106,3 +106,53 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCo
 本审不授权 coding / prove。peer `mw-e2e-ha` 独立审，本人未阅改其文件。
 
 Verdict: FAIL
+
+---
+
+## Re-PRE @43e2dbc（mw-rag-route · Line AK · NHP-025-ADV-01 · 只审文档 · 2026-10-06 14:50 +08:00）
+
+**REQUEST**: `43e2dbc1992d2077ca742a6161084ab5052b89d4`（meetwise-core · 2026-10-06 14:36:19 +08:00 · supersedes `ae5367e`）· 是 origin 祖先；审查时 origin tip `e66419d`，harness 自 `43e2dbc` 起未再变。
+**改动文件**（4 个，全 docs）：`harness/nhp-025-adv-01-blind-to-case.md` · `nhp-025-adv-01-blind-to-case.slice.md` · 两个 dual stub。零 `apps/` `packages/` `scripts/` `package.json`。✅
+**本文件被 core 改动的核对**：core 改了本 stub 页眉并插入 rewrite 注记；我方 `6790cc6` 的 FAIL 正文逐字未变（抽取 FAIL 段 diff 为空）。
+**执行机器**：只在本 box 上执行（临时 worktree `/tmp/mwrr-43e2dbc` @ origin tip）；只读文档与源码，未跑 prove；用户 Mac / 任何 machineId 上零命令。
+
+### 1. 我方 FAIL `6790cc6` 阻断项逐条
+
+| # | 状态 | 依据（harness file:line） |
+|---|------|---------------------------|
+| B1 A1 未钉 | **已解除** | `:57-67`：自己的 interview + 他人 quiz → 404 `not_found_or_forbidden`（service `:214-218`），先于 `:222/:239/:242/:266`，不调用 `reserveEntitlement` `:329` / `enqueueInterviewJob` `:337`，consumption / job 计数不变；正控 PC-A1 → 202；与 `:200` 同码区分；MUT-A1（放行 `:217-218` → `:219` TypeError → 500）会真变红，并注明只去 `owner_user_id` 在 FORCE RLS 下不够。复核锚点全部为真。 |
+| B2 A2 无攻击面 | **已解除** | `:25` / `:69-71` 删除 A2，不把 `stale_quiz` 当 ADV（controller `:22-26` 无 body）。 |
+| B3 A3 与 W BOUND 重叠 | **未解除** | 见下方 B-R1。 |
+| B4 证据层 | **已解除** | `:87-91` 单一层 = run-e2e-isolated 隔离真 PG + 真 Nest HTTP + FORCE RLS（`20_resume_quiz.sql:46-49`），Ban fake DB。 |
+| B5 正控 / mutation / 回归 | **已解除** | `:64` PC-A1、`:66` MUT-A1、`:83` MUT-A3；`:101-110` 具名 `uc025:nhp-neg` / `nhp-bound` / `nhp-fault` / `nhp-fault-isolated:prove` EXIT 0、零 proof 改动；环境 EXIT 1 ≠ pass ≠ regression。 |
+| 锚点更正 | 已落实 | `:43` `missing_quiz_expiry` 在 `:239/:242`。 |
+| C1–C2 | 已落实 | `:123` 不与 R4 `wrong_track` 混用；`:95-99` attempts=1 等。 |
+
+**LOOP §3③**：`:95-96` 给出 `pnpm uc025:nhp-adv:prove` 与期望 EXIT（A1+A3+PC 齐 → 0，否则 ≠0）。✅
+**矩阵诚实**：`:37-38` 引用与 `:125` / NHP `:84` 一致；ADV 保持 blind，行保持 gap，零 SSOT 编辑。✅
+
+### 2. 阻断项（FAIL）
+
+**B-R1（原 B3 未解除）A3 的向量与 W BOUND 几乎完全重合，期望值也未钉死。** 对照 W 的 `apps/api/test/uc-e2e-025-nhp-bound.proof.ts`：
+- **A3-a 大小写变体** = W **R4**（`:157-158`：`R_A.toUpperCase()` → 通过守卫、到达 bind）。harness `:79` 还写着「部分 ADV-new」「仍拒要写清」，期望没定。（`UUID_RE` 带 `/i`，service `:28`，大写能过格式校验。）
+- **A3-c epoch 漂移** = W **R2**（`:150-151`）。harness `:81` 只写「若 W 已覆盖」，实际已覆盖。
+- **A3-NULL** = W **R5**（`:160-161`）。
+- **A3-b 他人 resume-id**：机制与 W **R1**（`:146-147`：pin R_A、begin R_B → 409）是同一个比较（`:263`），区别只在 fixture 换成跨主体。harness `:80` 期望写「409 … （或先于其的 owner 闸）」，没钉死。实际 begin 在 `:266` 之前**没有**任何 resume owner 闸（resume 的 owner 检查在 bind 的 `AND r.owner_user_id=$2`，位于 `:266` 之后），所以应钉 **409 `resume_version_mismatch`**。
+
+照现稿执行，A3 的 EXIT 0 会把 W 已有的 R1/R2/R4/R5 向量换个层再报成 ADV 证据，这正是 `:75` / `:120` 自己禁止的「借 W 绿」。**解除方式**（二选一，须写进 harness）：
+(a) 删掉 A3，本刀 ADV = A1（+ PC），MUT-A3 一并删除；或
+(b) 保留 A3，但把 A3-a / A3-c / A3-NULL 明确标为「W R4 / R2 / R5 向量在真 PG + HTTP 层的补充复验 · complementary ≠ ADV-new · 不计入 ADV 证据」（同 FAULT-ISOLATED 对 AA 的写法）；ADV-new 只认 A3-b（跨主体 resume-id，钉 409 `resume_version_mismatch` @ `:266`，未扣额、未入队）；A3-a 期望钉为「pin 匹配的大写 UUID → 通过版本守卫（不 409）」；MUT-A3 写明对应哪条断言变红（去掉 `:263` lowercase → A3-a 变 409；放宽 `:266` → A3-b 不再 409）。
+
+### 3. 其他须落实（不单独阻断，重提时一并改）
+
+1. **runner 接线与 Ban 矛盾**：`:122`「Ban product/infra code」与 `:53` / `:95` 的新 CMD 冲突——`run-e2e-isolated.mjs` 对未登记目标会抛 `unsupported_e2e_target`，须在该文件与 `package.json` 做纯增量的目标登记（AG `7eb1c88` 先例 +16/-1）。须明文允许“仅增量登记、不改其他目标行为”。
+2. **PC-A1 要能拿到 202**：须 seed 额度 bucket（否则 `:329` 后会 402 `insufficient_entitlement`），quiz 须 `status='ready'`、`expires_at` 在未来、pin 的 resume_id 与 header `resume-id` 一致且 epoch 等于当前值；harness 应写明这些 seed 并披露。
+3. A1 与 PC-A1 的先后须写明。quiz 守卫（`:212-218`）在 `alreadyBegun` 分支（`:321` / `:326`）之前，所以两种顺序 A1 都应是 404；但建议先跑 A1，让「consumption / job 计数不变」以 0 行为基线，避免与 PC 产生的 reserved 行混在一起。
+
+### Pins（本审不改）
+
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCount=8 · gR45Closed=true · ms3EqualsR4Closed=false · public DELETE=503 · PG-retained（禁 MySQL runtime / Qdrant / MemorySaver）· UC-018 与 §1.1 仍 partial · UC-E2E-025 行 gap · ADV blind · PASS ≠ coding ≠ covered ≠ nail ≠ HA · EXIT0 ≠ covered。
+
+**结论**：B1、B2、B4、B5 与锚点更正已解除；原 B3 未解除（B-R1：A3 向量与 W BOUND R1/R2/R4/R5 重合、期望未钉）。FAIL（阻断 B-R1；第 3 节 1–3 重提时一并落实）。不代签 peer mw-e2e-ha。alone ≠ dual。
+
+Verdict: FAIL
