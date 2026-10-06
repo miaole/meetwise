@@ -1296,6 +1296,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0086_qbank_routed_metadata_taxonomy.sql',
     'packages/db/migrations/0097_qbank_generation_serving_scope_projection.sql',
     'packages/db/migrations/0106_qbank_track_local_serving_scope.sql',
+    'packages/db/migrations/0138_qbank_ann_candidate_before_limit.sql',
   ],
   'r4-wrong-track-adv-live-pg:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
