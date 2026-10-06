@@ -50,8 +50,15 @@ CREATE INDEX IF NOT EXISTS privacy_external_purge_evidence_request_idx
   ON privacy_external_purge_evidence (request_id);
 
 REVOKE ALL ON privacy_external_purge_evidence FROM PUBLIC, app_role;
-GRANT SELECT, INSERT ON privacy_external_purge_evidence TO privacy_worker_owner;
+-- Match 0091 receipt ACL: worker_owner needs INSERT+UPDATE for SECURITY DEFINER writers;
+-- guard_owner SELECT for completed-guard EXISTS. Table OWNER = privacy_worker_owner (definer writer).
+GRANT SELECT, INSERT, UPDATE ON privacy_external_purge_evidence TO privacy_worker_owner;
 GRANT SELECT ON privacy_external_purge_evidence TO privacy_guard_owner;
+GRANT USAGE ON SCHEMA public TO privacy_worker_owner, privacy_guard_owner;
+
+GRANT CREATE ON SCHEMA public TO privacy_worker_owner;
+ALTER TABLE privacy_external_purge_evidence OWNER TO privacy_worker_owner;
+REVOKE CREATE ON SCHEMA public FROM privacy_worker_owner;
 
 DROP POLICY IF EXISTS privacy_external_purge_evidence_worker_owner ON privacy_external_purge_evidence;
 CREATE POLICY privacy_external_purge_evidence_worker_owner ON privacy_external_purge_evidence
@@ -130,8 +137,10 @@ BEGIN
   RETURNING id INTO evidence_id;
   RETURN evidence_id;
 END $$;
+GRANT CREATE ON SCHEMA public TO privacy_worker_owner;
 ALTER FUNCTION privacy_record_vendor_purge_evidence(uuid,text,text,text,boolean,text)
   OWNER TO privacy_worker_owner;
+REVOKE CREATE ON SCHEMA public FROM privacy_worker_owner;
 REVOKE ALL ON FUNCTION privacy_record_vendor_purge_evidence(uuid,text,text,text,boolean,text)
   FROM PUBLIC, app_role;
 GRANT EXECUTE ON FUNCTION privacy_record_vendor_purge_evidence(uuid,text,text,text,boolean,text)
@@ -185,8 +194,10 @@ BEGIN
   END IF;
   RETURN v_status;
 END $$;
+GRANT CREATE ON SCHEMA public TO privacy_worker_owner;
 ALTER FUNCTION privacy_apply_external_sink_erased_with_vendor_evidence(uuid,text)
   OWNER TO privacy_worker_owner;
+REVOKE CREATE ON SCHEMA public FROM privacy_worker_owner;
 REVOKE ALL ON FUNCTION privacy_apply_external_sink_erased_with_vendor_evidence(uuid,text)
   FROM PUBLIC, app_role;
 GRANT EXECUTE ON FUNCTION privacy_apply_external_sink_erased_with_vendor_evidence(uuid,text)
@@ -257,7 +268,9 @@ BEGIN
   END IF;
   RETURN QUERY SELECT receipt_row.id, 'external_confirmed'::text, new_request_status;
 END $$;
+GRANT CREATE ON SCHEMA public TO privacy_worker_owner;
 ALTER FUNCTION privacy_resolve_deletion_receipt(uuid,text) OWNER TO privacy_worker_owner;
+REVOKE CREATE ON SCHEMA public FROM privacy_worker_owner;
 REVOKE ALL ON FUNCTION privacy_resolve_deletion_receipt(uuid,text) FROM PUBLIC, app_role;
 GRANT EXECUTE ON FUNCTION privacy_resolve_deletion_receipt(uuid,text) TO privacy_worker_executor;
 
