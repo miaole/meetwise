@@ -165,3 +165,64 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCo
 **结论**：B1、B2、B4、B5 与锚点更正已解除；原 B3 未解除（B-R1：A3 向量与 W BOUND R1/R2/R4/R5 重合、期望未钉）。FAIL（阻断 B-R1；第 3 节 1–3 重提时一并落实）。不代签 peer mw-e2e-ha。alone ≠ dual。
 
 Verdict: FAIL
+
+---
+
+## Re-PRE2 @420aeca
+
+**审查者**：`mw-rag-route`（独立域 · 只审文档 · 不代签 peer `mw-e2e-ha` · alone ≠ dual）· **时间**：2026-10-06 14:57 +08:00
+**REQUEST**：`420aecadf665349a6419feb89d8a5179a39fd2d2`（meetwise-core · 2026-10-06 14:54:09 +08:00 · supersedes `43e2dbc` ← `ae5367e` · 引用我方 Re-PRE FAIL `e883bf8`）。审查时它就是 origin tip，是 origin 的祖先。
+**改动文件**（4 个，全 docs）：`harness/nhp-025-adv-01-blind-to-case.md` · `nhp-025-adv-01-blind-to-case.slice.md` · 两个 dual stub。零 `apps/` `packages/` `scripts/` `package.json`。✅
+**本文件被 core 改动的核对**：core 只改了本 stub 页眉、请审清单和 Ban 行；我方 PRE-EXEC FAIL（`6790cc6`）与 Re-PRE FAIL（`e883bf8`）两段正文逐字未变（按段抽取 diff 为空）。
+**执行机器**：只在本 box 上执行（临时 worktree `/tmp/mwrr-420aeca` @ origin tip · detached）；只读文档与源码，未跑 prove，未读取任何密钥 / `.env*`；用户 Mac / 任何 machineId 上零命令；git config 未改。
+
+### 1. B-R1（A3 与 W BOUND 重合）→ **已解除**（选 option (b)）
+
+- **分类**：harness `:13` / `:37` / `:110` / `:114-119` 把 A3-a、A3-c、A3-NULL 明确标为「W R4 / R2 / R5 向量在真 PG + HTTP 层的补充复验 · complementary ≠ ADV-new · 不计 ADV 证据」；`:173` / `:180` 在 Ban 和 Non-claims 里重复声明。W 对照行号复核为真：`uc-e2e-025-nhp-bound.proof.ts:147`（R1）、`:151`（R2）、`:158`（R4）、`:161`（R5）。
+- **ADV-new 集合**：`:13` / `:43` / `:149` 写明 ADV-new = **A1 + A3-b + PC-A1**，只有这三项决定 EXIT 0；complementary 行照跑照记，红则 EXIT≠0，绿不计入 ADV 新证据。
+- **A3-b 期望唯一**：`:38` / `:116` 钉为 **409 `{error:'resume_version_mismatch'}` @ service `:266`**，不扣额（`:329`）、不入队（`:337`）、Δ0、不 bind；旧稿「或先于其的 owner 闸」已删。**源码复核**：`interview.service.ts:193-266` 之间用到 header `resume-id` 的只有 `:194`（缺失 → 400）、`:195`（`UUID_RE` 格式 → 400）和 `:263`（与 pin 比较）；`:255` 的 `JOIN resume` 用的是 `q.resume_id`（quiz 的 pin），不是 header 值。resume 的 owner 检查只出现在之后的 bind（`:300` `AND r.owner_user_id=$2`）。所以他人 resume-id（合法 UUID）一定先在 `:266` 得到 409，不会是 404 / 400。✅
+- **A3-a 期望**：`:39` / `:117` 钉为「pin 匹配的大写 UUID → 通过版本守卫，不 409」，依据 `:28` `UUID_RE` 带 `/i`、`:263` 两侧都 `toLowerCase`。`resume.id` 是 uuid 类型（`sql/03_resume.sql:10`），下游 bind 时 PG 的 uuid 输入不区分大小写，「seed 齐时预期 202」合理。✅
+- **Mutation**：`:121-128` MUT-A3a（去掉 `:263` lowercase → A3-a 变 409）、MUT-A3b（放宽 `:266` → A3-b 不再 409），都写明哪条断言变红、EXIT≠0、不提交；并注明 MUT-A3a 不把 A3-a 升为 ADV-new。✅
+
+### 2. 我方 Re-PRE `e883bf8` §3 的 1–3 项
+
+| 项 | 状态 | 依据 |
+|----|------|------|
+| §3-1 runner 接线与 Ban 矛盾 | **已解除** | `:44` / `:138-143` / `:175` 明文允许纯增量登记（`run-e2e-isolated.mjs` 的 receipt sources、支持目标表、命令映射、migrate 白名单 + 根 / `apps/api` `package.json`），「仅增量登记、不改其他目标行为」，以 AG `7eb1c88` +16/-1 为先例；既有目标与 `apps/api/src/**`、`packages/**` 仍禁改。 |
+| §3-2 PC-A1 的 seed | **已解除（附条件 1、2）** | `:45` / `:91-100` 列出 entitlement bucket、quiz `ready`、`expires_at` 在未来、pin resume_id = header、pin epoch = 当前、interview `created` 未 bind，以及各自缺失时的后果（402 `:331/:334` · 409 `:222` / `:239/:242` / `:266` · `:205` / `:321/:326`）。行号复核为真。 |
+| §3-3 A1 / PC-A1 先后 | **已解除** | `:46` / `:85` / `:102` / `:148`：先 A1 后 PC-A1；quiz 守卫 `:212-218` 在 `alreadyBegun` `:321/:326` 之前，A1-first 让 Δ0 以空表为基线。 |
+
+### 3. 已解除项无回退
+
+- **B1 A1**：`:77-88` 仍为 own interview + 他人 quiz → 404 `not_found_or_forbidden`（`:214-218`），先于 `:222/:239/:242/:266`、`:329`、`:337`；与 `:200` 同码区分；MUT-A1（`:217-218` 放行 → `:219` TypeError → 500）与 FORCE RLS 警告保留。✅
+- **B2**：A2 仍删除（`:104-106`），不 relabel `stale_quiz`。✅
+- **B4**：`:132-136` 单一层 = 隔离真 PG + 真 Nest HTTP + FORCE RLS（`20_resume_quiz.sql:46-49`），Ban fake DB。✅
+- **B5**：`:154-163` 具名 `uc025:nhp-neg` / `nhp-bound` / `nhp-fault` / `nhp-fault-isolated:prove`，EXIT 0、零 proof 改动；环境 EXIT 1 ≠ pass ≠ regression；PC-A1 与各 mutation 均在。✅
+- **锚点**：`:60` `missing_quiz_expiry` 在 `:239/:242`，复核为真。✅
+
+### 4. 门禁
+
+- **LOOP §3③**（`harness/NORTH-STAR-EXECUTION-LOOP.md:81`，REQUEST + harness 须含命令与期望 EXIT）：ADV `pnpm uc025:nhp-adv:prove` → ADV-new 全过 EXIT 0、否则 ≠0（`:147-149`）；每个 mutation EXIT≠0（`:87` / `:125-126`）；4 条回归 EXIT 0（`:158-161`）。每条命令都有期望 EXIT。✅
+- **`north-star-hard-gates.md`**：`:46` / `:117`「partial / GAP … ≠ covered」——harness `:151` / `:167` 写明行保持 gap、ADV 保持 blind、EXIT0 ≠ covered、canHonestlyFlip=false；零 matrix / backlog / checklist 编辑（`:168`）。✅
+- **Pins**：`:4` / `:184` 原样（NOT_HA · releaseEvidence=false · coveredCount=8 · DELETE=503 · PG-retained）。✅
+
+### 5. 条件（不阻断，执行前落实）
+
+1. **bucket kind 写法**：`:95` 写「`mock_interview` 额度 bucket」。`mock_interview` 是 `reserveEntitlement` 的 service_type（service `:329`），不是 bucket kind；`entitlement_bucket.kind` 受 `CHECK (kind IN ('gift','trial','paid'))` 约束（`packages/db/sql/02_commerce.sql:14`）。seed 须用其中之一（如 AG proof 的 `'paid'`），否则 INSERT 直接失败。
+2. **bucket 容量**：PC-A1、A3-a、A3-NULL 预期都会到 202，每个独立 interview 各 reserve 1.0。若都在 principal A 的同一 bucket 上，`ck_bucket_capacity`（`02_commerce.sql:22`）要求 `units_total ≥ 3.0`，否则后跑的 case 会 402，造成假红。须写明总额或改为每个 case 单独 seed bucket。
+3. **A3-NULL seed**：0061 有 `resume_quiz_reference_pair_chk`（`CHECK ((resume_id IS NULL) = (privacy_epoch IS NULL))`，`0061_resume_derivative_reference_guard.sql:68-70`），须 resume_id 与 privacy_epoch **同时**为 NULL；并披露这是 admin 直接 INSERT 的旧形态行。
+4. **A3-c seed 方法**：0061 的触发器只拦 UPDATE（`:121-124` `BEFORE UPDATE OF resume_id, privacy_epoch`，pin 一旦设定不可改），所以 epoch 漂移须在 INSERT 时直接写入与当前不同的 pin epoch，或改为提升 `resume.privacy_epoch`；两种都要满足外键 `(resume_id, owner_user_id)` 并披露。
+5. harness `:26`（rewrite note 1 的 B3 行）仍写「标 ADV-new」，已被 note 2 取代，建议注明 superseded，避免误读。
+6. 执行时 complementary 行（A3-a / A3-c / A3-NULL）的实际结果照实记录，任何情况下不计入 ADV-new 证据；POST 收据中逐条标明。
+
+### 6. 洗白 / 越界
+
+B'' NEG / AA FAULT / W BOUND / FAULT-ISOLATED 只读引用并 Ban 洗（`:172-173`）；未碰 AL / AM / AG 文件；FUNNEL / G-R4-5 未触碰；零 SSOT 编辑。
+
+### Pins（本审不改）
+
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCount=8 · gR45Closed=true · ms3EqualsR4Closed=false · public DELETE=503 · PG-retained（禁 MySQL runtime / Qdrant / MemorySaver）· UC-018 与 §1.1 仍 partial · UC-E2E-025 行 gap · ADV blind · PASS ≠ coding ≠ covered ≠ nail ≠ HA · EXIT0 ≠ covered。
+
+**结论**：B-R1 已按 option (b) 解除（A3-a/c/NULL 降为 complementary、ADV-new = A1 + A3-b + PC-A1、A3-b 钉 409 @ `:266` 且源码确认之前没有 resume owner 闸）；§3 1–3 解除；B1/B2/B4/B5 与锚点无回退；LOOP §3③ 与 hard gates 满足；无新阻断。PASS（附条件 1–6）。**coding 仍禁止**，须 mw-e2e-ha 对 `420aeca` 独立给出 PASS（BOTH PASS）并经协调方 AUTHORIZE 后才可执行。alone ≠ dual。
+
+Verdict: PASS
