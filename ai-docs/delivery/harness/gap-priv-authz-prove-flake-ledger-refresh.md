@@ -1,6 +1,6 @@
-# Harness — **GAP-PRIV-AUTHZ-PROVE-FLAKE · honesty ledger refresh**（Line AH · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · gap stays **OPEN** mitigated/cause-unknown）
+# Harness — **GAP-PRIV-AUTHZ-PROVE-FLAKE · honesty ledger refresh**（Line AH · docs refresh · **`executed:awaiting_post_dual`** · gap stays **OPEN** mitigated/cause-unknown）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove 执行 · Ban rerun · **Ban close** · **Ban claim fixed** · Ban claim root-caused · Ban forge PROCESS_EXIT · Ban self-approve）
+**Status**: **`executed:awaiting_post_dual`**（Line AH docs refresh executed · F1–F6 · 零 prove · 零 CMD · **Ban close** · **Ban claim fixed** · Ban claim root-caused · Ban forge PROCESS_EXIT · Ban self-approve · Ban self-nail）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · canHonestlyFlip=false
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`416b6a5`** / full `416b6a5b5c71d97a1816974c2b174dbf4b9c8cb8`（wave start · sibling Line AD/AE/AF/AG REQUEST commits may land alongside · Ban touch siblings）
@@ -69,4 +69,13 @@ Not fixed · not closed · not root-caused · not a prove · not a rerun · not 
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · canHonestlyFlip=false · backlog `:68` OPEN · STOP
 
-*Harness · GAP-PRIV-AUTHZ-PROVE-FLAKE ledger refresh · Line AH · 2026-10-06 · draft:awaiting_pre_exec_dual · docs-only · Ban close · Ban claim fixed · STOP*
+## Line AH ledger refresh 执行（协调方 AUTHORIZE · PRE BOTH PASS · **awaiting post dual**）
+
+- **PRE dual BOTH PASS**：mw-privacy-int `880f144` / `880f14408dda9a9cb03737b811b6005d94c3a2dc`（REQUEST `b12e20d`）+ mw-e2e-ha `f215438` / `f2154387df654b4600b74b4c8a52c1d35f5986b2`。
+- **执行产物**：`receipts/gap-priv-authz-prove-flake/2026-10-06-ledger-refresh.md`——F1 blob 锚 **9/9** · F2 五提交读 diff 分类（无一改写 `privacy-authorization:prove` 映射）· F3 新 attempt=**0** · F4 ECONNREFUSED 三族分界（F4(c) host/session class 限定语 · cite `g7-env-gap-honest-fix/SUMMARY.md:50`）· F5 未来前置含 N4 close-bar（**本刀不授权 rerun**）· N1 绿行 `prove_tip_authz @9b39a20` 入表。
+- **CMD**：无。**本刀零 prove · 零 Docker/PG · 零新 EXIT**；红账 EXIT=1 ×3（2 class）完整保留 · Ban forge PROCESS_EXIT · Ban retry-to-green。
+- Privacy PRE N1–N4 已并入 refresh；N5 `6673042`→可达等价 `606677d`；N6 父/`416b6a5` 披露保留。
+- 零产品 · 零 `principal.ts` / `checkpoint-principal.ts` · 零 SSOT（matrix / backlog `:68` / checklist 未碰）· 旧证据零改写 · Ban 碰 AD/AE/AF/AG。
+- Gap stays **OPEN** · **mitigated/cause-unknown** · Not fixed · Not closed · Not root-caused · coveredCount=**8** · public DELETE=**503** · UC-052 stays **partial** · **Ban self-nail**。
+
+*Harness · GAP-PRIV-AUTHZ-PROVE-FLAKE ledger refresh · Line AH · 2026-10-06 · executed:awaiting_post_dual · docs-only · Ban close · Ban claim fixed · STOP*
