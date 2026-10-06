@@ -162,3 +162,68 @@ Verdict: FAIL
 B2 / B5 / B6 已解除；B1、B3、B4 仍阻断（L3 判定程序缺失，attempt1 时序未用于约束假设；修复后 EXIT 与 attempts 通过条件未钉；注入手段仍是二选一、时机未钉）。CONDITION（backlog `:35`）保持 OPEN；UC-018 / §1.1 保持 partial；attempt1 不洗。Pins 未变：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503。coding 仍禁止，须双方 PASS 加协调方 AUTHORIZE；本审不代签 mw-e2e-ha。
 
 Verdict: FAIL
+
+## Re-PRE2 @1b74fb1
+
+**时间**：2026-10-06 20:52 +08:00
+**REWRITE ×2**：`1b74fb1cfa9226e8904e0dc51af02f1882851c79`（supersedes `553cfc5`，引用我方 Re-PRE FAIL `7e97dc3`）。fetch 后确认在 origin，是 tip `c515a8c` 的祖先；只改 4 个 docs（harness、slice、两个 stub）。
+**审查基**：临时 worktree `/tmp/mwrr-re-pre2` @ `c515a8c` · 仅本 box · 只读，无 prove / 无 docker 操作 · 未读 `.env*` · 无 live 模型调用
+**本文件历史段**：`## PRE-EXEC @110532e` 起至 `## Re-PRE @553cfc5` 结尾，与 `7e97dc3` 逐字一致（diff 为空）；core 只改了表头，并新增「Rewrite ×2 note」段，均未改动。
+**Peer**：mw-e2e-ha 同线收据仍为 PENDING stub（`...-mw-e2e-ha.md:3`），无结论可引；不代签 · alone ≠ dual。
+
+### 逐项核对（harness = `harness/c-perf-teardown-product-rootcause-fix.md` @ `1b74fb1`）
+
+- **B1(a) L3 判定程序 · 已解除。**
+  - J-1 回溯（`:58-70`）的证据我在 box 上逐条复核过：
+    - `/workspace/mw-rv-bf-results/PERF-LOAD.env:6/:10` 的 STARTED / ENDED 为 `21:57:14-07:00` 至 `21:57:35-07:00`，即 2026-09-24 12:57:14–12:57:35 +08:00；`PROVE_EXIT=1` 在 `:9`。
+    - `PERF-LOAD-prove.log:10` 的容器名 `meetwise-e2e-1921513-1790225837128`，时间戳换算为 12:57:17 +08:00。
+    - `:40` 为 `state_bytes=29 logs_bytes=29`；`run-e2e-isolated.mjs:2021` 中 `'docker_diagnostic_unavailable'` 正好 29 字节，计数逻辑见 `scripts/withheld-output.mjs:8`。
+    - `receipts/uc018-receipt-backfill/attempts.jsonl` 中：prove 模式最后一条为 `04:38:14.481Z`；`04:50:34.990Z`–`04:50:35.833Z` 七条均为 `phase=reemit-from-log`（`emit.mjs:252` 分支在 `:304` `process.exit(0)`，到不了 `:505` / `:559`）；`04:57:14–04:57:35Z` 窗口内**无**记录。
+    - `PERF-LOAD-cids-before.txt` 为 0 字节。
+  - 结论写得诚实：已记录 emit 判 OUT；未记录的并发 emit 与 L2-self 判 UNDETERMINABLE（`:70`），没有夸大。
+  - J-2 前向（`:72-88`）每个 attempt 强制采集：`docker events` 写入 `events.jsonl`；`pgrep` 进程采样写入 `procs.txt`；CMD 前 / 后 `docker ps -a`；`prove.log`。判定表把「观测什么 → 来自哪个文件 → 得出什么判定」写清楚了：例如 L3 IN 需要本 run PG 依次出现 kill(9)、die(137)、destroy，且早于首个错误行，且 1 s 内有他 PID 的 emit 进程。采集缺失时记 `J2_EVIDENCE_MISSING`，不计入任何格的通过。
+  - J-3（`:90`）用 Inject C 对照 attempt1 签名，并写明「只证能产生同签名，不证因果」。
+- **B1(b) attempt1 时序与 L2-self · 已解除。**
+  - `:94` 时序与证据一致：box `PERF-LOAD-prove.log` 中 run1 / run2 的 PERF、LOAD 行均为 `passed=true`，`LOAD run2` 之后紧接 `node:events:502`，没有 `PERF run3`，也没有 SUMMARY。proof 循环 `uc-e2e-018-perf-load.proof.ts:441-444` 为 `await runPerf(r); await runLoad(r)`，run 间没有 teardown；`PERF run3:` 行（`:329`）在 run3 PERF 结束时才打印，所以崩溃发生在 run3 PERF 期间。
+  - `:95` 读码排除本 run 自有 teardown：runner `:2251-2253` 在 finally 内；capped child 的 `:203` rm 在 `:202` `start -a` 返回之后。
+  - `:96` 新增 L2-self，并给出判据（oom，或无前置 kill 的 die）。`principal.ts:915-916/:918` 的超时数值核对无误。
+  - `:48` 注明 `b29c191` 时 `principal.ts` 尚无 `on('connect')` / `on('error')`。已核实：`git show b29c191:packages/db/src/principal.ts` 中匹配数为 0；引入提交 `f19ecba`（2026-10-05）。
+- **B3 EXIT 矩阵 · 已解除。** `:121-137`：
+  - PC 3/3 EXIT 0。
+  - A / B / C 三种注入，各配 MUT 与 POST 两格，每格 3/3 EXIT 1，并钉精确日志签名（MUT：`Unhandled 'error' event`、on Client、无 SUMMARY；POST：`db_pool_error` ≥1 且零 unhandled，失败形态限 F1 / F2）。
+  - POST 若观测到 EXIT 0，记 `POST_EXIT_UNEXPECTED`，该格 FAIL。依据为 `proof.ts:33` 的 `errMax=0.005`、N=100（核对无误）。
+  - 每个 inject 命令自身的 EXIT 都钉为 0，并有输出判据（`:149`）；pre-fix ≡ MUT 的理由已写明（`:123`）；禁止 retry、禁止丢或换 attempt（`:125`）。
+- **B4 三注入各自钉值 · 已解除。** `:139-155`：A / B / C 都做，各自钉命令、自身 EXIT、J-2 事件期望、MUT 与 POST 结果。共用触发点 T1 = `^LOAD run2: ` 出现后 ≤1 s（与 proof `:431` 的输出格式一致）；超时记 `INJECT_LATE`。门控条件为非 idle 的 client backend ≥1，10 s 超时记 `INJECT_GATE_TIMEOUT`。`psql -U meetwise -d meetwise` 与 runner `:2184/:2186` 的 `POSTGRES_USER` / `POSTGRES_DB` 一致。MUT = 临时删除 `principal.ts:929`，禁止 commit，跑完 `git diff --exit-code` 须为 0。
+- **Cond 1 · 已解除**：`:48` 改为 `:931`，与源码 `principal.ts:931` `pool.on('error', …)` 一致。
+- **Cond 2 · 已解除**：`:162` 写明 R2 的数据库来源：一次性本 run 自有 `pgvector/pgvector:pg16` 容器，用显式 `DATABASE_URL`，结束时只 rm 该名；连接失败记 `R2_ENV_FAIL`，不算回归。proof 无 localhost 回退（`pool-error-listener.proof.ts:20` 注释）。
+- **runner 行号 +12 · 已核实**：
+  - 行号对照：`a1f3614:scripts/run-e2e-isolated.mjs:1714` 对应 tip `:1726`；`a1f3614:2239-2241` 对应 tip `:2251-2253`，内容逐字相同。tip 上 `:2182` 为 `'run', '--rm', '-d'`，`:2175-2176` 为 caps。
+  - `git diff a1f3614 c515a8c` 中该文件为 +14/−2（净 +12）；`principal.ts`、`uc018-receipt-backfill-emit.mjs`、`uc018-perf-load-capped-child.mjs` 无改动。
+  - capped child `:18/:107/:136-137/:202/:203`、emitter `:252/:304/:505/:559`、`principal.ts:872/:886/:920-931` 均已核实。
+- **保留项没有回退**：
+  - B2 分层、P-FIX 仅 `principal.ts`、emitter `:559` ≠ product close：`:49-54`、`:109`。
+  - B5 回归 R1–R3 EXIT 0，并 Ban 借绿：`:159-165`。
+  - B6 隔离真 PG / Linux-native / 串行 / Ban emitter / inject 范围：`:169-175`。
+  - attempt1 不洗：`:42`、`:187`；不翻 UC-018 covered：`:180`、`:187`；backlog `:35` 保持 CONDITION OPEN：`:179`、`:199`；Pins 未变：`:4`、`:199`。
+
+### 新阻断
+
+无。
+
+### 非阻塞条件（执行前在 harness 中补齐，或在收据中披露）
+
+1. **A-MUT 命中确定性。** 本仓 `pg-pool@3.14.0` 的行为：
+   - `pool.query()` 会给 checkout 的 client 挂上 `client.once('error', onError)`（`node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:464`）；
+   - 只有 `pool.connect()` 手持的 client 在 checkout 期间没有监听器（`:344` `removeListener`）。`principal.ts:288/:570/…` 有大量 `pool.connect()` 调用。
+
+   因此，Inject A 若只终止了 `pool.query` 路径的 backend，即使在 MUT 下也不会出现 `Unhandled`，A-MUT 格可能诚实地 FAIL。建议二选一：把门控 / 终止条件收窄到 `state='idle in transaction'`（connect 手持的事务）；或在收据中记录被终止 backend 的 `state` / `xact_start` / `query`，用于归因。
+2. **J-2 判定表补两行**：
+   - 本 run PG 出现 kill→die→destroy，但 `procs.txt` 中没有他 PID 的 emit 进程（非 emitter 的外部删除）：当前没有对应格，应判 `EXTERNAL-OTHER`，计入 UNDETERMINABLE 并披露；
+   - C-POST 引用的「L3-sim」（`:135`）应在表中显式列出，要求时间早于首错误行，且发起者为本程序。
+3. R2 容器名 `meetwise-e2e-r2pool-*` 落在串行过滤 `meetwise-e2e` 的范围内，须在下一次 prove 前确认已删除，与 `:173` 一致。
+
+### 结论
+
+B1(a)、B1(b)、B3、B4、Cond 1、Cond 2 均已解除，+12 重锚已核实；B2 / B5 / B6 及冻结项没有回退；无新阻断，另有 3 条非阻塞条件。本 PASS 仅为 mw-rag-route 单方 re-PRE：alone ≠ dual，不代签 mw-e2e-ha。coding 仍禁止，须双方 PASS 加协调方 AUTHORIZE。CONDITION（backlog `:35`）保持 OPEN；attempt1 @ `b29c191` 不洗；UC-018 / §1.1 保持 partial。Pins：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503。
+
+Verdict: PASS
