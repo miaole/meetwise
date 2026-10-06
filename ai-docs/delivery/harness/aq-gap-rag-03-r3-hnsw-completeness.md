@@ -1,6 +1,6 @@
 # Harness — **AQ — GAP-RAG-03 R3-HNSW-COMPLETENESS**（HNSW path exercised · `:71` OPEN · prove/receipt contract only）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（stubs PENDING · Ban self-approve · alone ≠ dual · **Ban close GAP-RAG-03 `:71`** · **Ban claim HNSW-complete** · **Ban wash AN-RAG-R3 nail into gap close** · **Ban wash rag03-route EXIT1 (=GAP-RAG-02)**）
+**Status**: **`awaiting_post_prove_dual`**（CODE `49cfce97` · prove EXIT 0 · HNSW_USED + LIVE_PLAN_CAPTURED · Ban self-nail · alone ≠ dual · **Ban close GAP-RAG-03 `:71`** · **Ban claim production HNSW SLO** · **Ban wash AN-RAG-R3 nail into gap close** · **Ban wash rag03-route EXIT1 (=GAP-RAG-02)** · coveredCount=8）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=**8** · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · PERF/LOAD stays **local partial** · capacityRepresentative=**false** · canHonestlyFlip=**false**
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`1024bfc`** / full `1024bfc592bbd5f5a38e6dc78714101cdd416517`（AN-RAG-R3 nail · honesty dual-pass · residual OPEN）
@@ -98,3 +98,12 @@ Not a pass · not run · not closed · not fixed · not HNSW-complete · not liv
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · PERF/LOAD local partial · capacityRepresentative=false · canHonestlyFlip=false · backlog `:71` GAP-RAG-03 **OPEN** · **R3-HNSW-COMPLETENESS OPEN**（`HNSW_NOT_EXERCISED`）· STOP
 
 *Harness · AQ GAP-RAG-03 R3-HNSW-COMPLETENESS · 2026-10-06 · draft:awaiting_pre_exec_dual · `:71` OPEN · prove/receipt contract only · Ban close · Ban coding · Ban wash GAP-RAG-02 · STOP*
+
+## 7. Prove addendum（AUTHORIZE coding+prove · 2026-10-06 · `awaiting_post_prove_dual`）
+
+- CODE `49cfce97` / mig `0139` (`hnsw.iterative_scan=strict_order` on `qbank_generation_ann_search`) · principal seal `@>` · `rag03-hnsw-completeness:prove`.
+- Prove EXIT **0** · CC-H1 `HNSW_USED=true` (`qgc_hnsw_visible_*`) · CC-H2 `LIVE_PLAN_CAPTURED_AUTO_EXPLAIN` · CC-H3 safety · CC-H4 `hnswReturned=0` · `hnswExactFillObserved=false` (honest · Ban production SLO) · CC-H5..H8 held · `:71` OPEN · coveredCount=8.
+- Receipt: `ai-docs/delivery/receipts/aq-gap-rag-03-r3-hnsw-completeness/2026-10-06-aq-hnsw-prove.md`.
+- Ban self-nail until POST dual BOTH PASS + coordinator AUTHORIZE. alone ≠ dual. PASS ≠ 关 gap ≠ HA.
+
+*Harness addendum · AQ R3-HNSW-COMPLETENESS · awaiting_post_prove_dual · STOP*

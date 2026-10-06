@@ -1,6 +1,6 @@
 # Slice — **AQ — GAP-RAG-03 R3-HNSW-COMPLETENESS**（HNSW path exercised prove residual · `:71` OPEN · docs thin）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（REQUEST stubs PENDING · Ban self-approve · alone ≠ dual · **Ban close `:71` GAP-RAG-03** · **Ban claim HNSW-complete** · **Ban wash AN-RAG-R3 nail into gap close** · **Ban wash rag03-route EXIT1 (=GAP-RAG-02)**）
+**Status**: **`awaiting_post_prove_dual`**（CODE `49cfce97` · prove EXIT 0 · Ban self-nail · alone ≠ dual · **Ban close `:71`** · **Ban claim production HNSW SLO** · **Ban wash GAP-RAG-02** · coveredCount=8）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=**8** · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · PERF/LOAD local partial · capacityRepresentative=false · canHonestlyFlip=false
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`1024bfc`** / full `1024bfc592bbd5f5a38e6dc78714101cdd416517`（AN-RAG-R3 nail · `post_prove_dual_pass` · GAP-RAG-03/HNSW **OPEN** residual · ≠ gap close）
