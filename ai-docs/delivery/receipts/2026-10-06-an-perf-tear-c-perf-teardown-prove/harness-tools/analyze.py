@@ -74,8 +74,16 @@ obs['J2_x6'] = {'Tk': Tk, 'Td': Td, 'Tx': Tx, 'W_die': W_DIE, 'W_destroy': W_DES
                 'kill_to_die_ms': (t_die - t_kill) if (t_kill is not None and t_die is not None) else None,
                 'die_to_destroy_ms': (t_destroy - t_die) if (t_die is not None and t_destroy is not None) else None}
 procs = open(f'{d}/procs.txt').read()
-foreign_emit = [l for l in procs.split('\n') if 'uc018-receipt-backfill-emit' in l]
+# foreign emit = real emitter process, not pgrep-sampler / C-b smoke cmdlines that merely mention the name
+foreign_emit = []
+for l in procs.split('\n'):
+    if 'uc018-receipt-backfill-emit' not in l: continue
+    # exclude sampler/smoke that embed the pattern in pgrep -af / bash -c text
+    if 'pgrep' in l and 'uc018-receipt-backfill-emit' in l: continue
+    if 'C-b_smoke' in l: continue
+    foreign_emit.append(l)
 obs['foreign_emit_proc_lines'] = len(foreign_emit)
+obs['foreign_emit_raw_mention_lines'] = sum(1 for l in procs.split('\n') if 'uc018-receipt-backfill-emit' in l)
 tsl = len(re.findall(r'^\d+\.\d+$', procs, re.M)); dur = (meta['t_end'] - meta['t_start']) / 1000
 if tsl < dur - 1 or 'run-e2e-isolated' not in procs: fails.append(f'AUX_EXIT_UNEXPECTED:procs tsl={tsl} dur={dur:.1f}')
 ic = meta.get('inject_cmd') or {}
