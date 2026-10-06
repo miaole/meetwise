@@ -231,3 +231,77 @@ Verdict: FAIL
 B1(a)、B1(b)、B3、B4、Cond 1、Cond 2 均已解除，+12 重锚已核实；B2 / B5 / B6 及冻结项没有回退；无新阻断，另有 3 条非阻塞条件。本 PASS 仅为 mw-rag-route 单方 re-PRE：alone ≠ dual，不代签 mw-e2e-ha。coding 仍禁止，须双方 PASS 加协调方 AUTHORIZE。CONDITION（backlog `:35`）保持 OPEN；attempt1 @ `b29c191` 不洗；UC-018 / §1.1 保持 partial。Pins：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503。
 
 Verdict: PASS
+
+## Re-PRE3 @083cce4
+
+**时间**：2026-10-06 21:06 +08:00
+**REWRITE ×3**：`083cce467657c1499f748f0073eeaee7bdd9392d`（supersedes `1b74fb1`，回应 mw-e2e-ha Re-PRE2 FAIL `20da721` 的阻塞 1 / 2，以及非阻塞项）。fetch 后确认在 origin，是 tip `eb8fb09` 的祖先；只改 4 个 docs（harness、slice、两个 stub）。`882efbc..eb8fb09` 区间 `packages/`、`apps/`、`scripts/`、`package.json` 零改动，所以 `principal.ts`、`run-e2e-isolated.mjs`、emitter、capped child、proof 的行号与 Re-PRE2 时相同。
+**审查基**：临时 worktree `/tmp/mwrr-perf-pre3` @ `eb8fb09` · 仅本 box · 只读 · 无 prove / 无 docker 操作 · 未读 `.env*` · 无 live 模型调用。只读核对了 `node_modules/.pnpm/pg@8.22.0`、`pg-pool@3.14.0_pg@8.22.0` 源码，以及 box `/workspace/mw-rv-bf-results/PERF-LOAD-prove.log`。不审 RAG 线；AN-CIMG-EA HOLD。
+**本文件历史段**：`## PRE-EXEC @110532e` 起至 `## Re-PRE2 @1b74fb1` 结尾，与 `882efbc` 逐字一致（diff 为空）。
+**Peer**：mw-e2e-ha 对 `1b74fb1` 的 Re-PRE2 FAIL 为 `20da721`（`reviews/REQUEST-2026-10-06-an-perf-tear-rewrite2-re-pre-mw-e2e-ha.md`），只引用，不代签；mw-e2e-ha 对 `083cce4` 尚无收据，同线 stub 为 PENDING。alone ≠ dual。
+
+### 自我更正
+
+`20da721` 阻塞 2（warmup 不计错，导致 A/B-POST 的「EXIT=1」依据不成立）是我方 Re-PRE2 `882efbc` 漏掉的。`proof.ts:278` 中 warmup 结果被丢弃，`timedAbandon`（`:198-223`）自己 catch，不抛错。我方在 `882efbc` 中把 B3 判为已解除，并以 `proof.ts:33` 的 `errMax` 作依据，这个判断不完整，在此更正。阻塞 1 我方只列成了非阻塞条件 1，没有覆盖 A-POST 中 `db_pool_error=0` 的分支。
+
+### `20da721` 阻塞项逐条核对
+
+- **阻塞 1 · Inject A 收窄 · 已解除。**
+  - **选择条件**：§5.0 `:181`（门控）与 §5.1 `:188`（终止 SQL）都改为 `state='idle in transaction'`。PG 中 `pg_stat_activity.state` 的取值里，`active`、`idle`、`idle in transaction (aborted)`、`fastpath function call` 都是独立字符串，等值比较能把它们全部排除。
+  - **源码复核（pg@8.22.0 `lib/client.js`）**：
+    - `_handleErrorMessage` 在 `:421-434`：没有 active query 时，`:427-428` 调用 `_handleErrorEvent(msg)`，进而 `emit('error')`（`:417`）；有 active query 时，错误交给 query callback（`:432-433`），不 emit。
+    - pg-pool `index.js:344` 在 checkout 时 `removeListener('error', idleListener)`。`pool.query()` 在 `:464-480` 挂 `once('error')`，回调里 `release(err)`；`_release` 在 `:392` 遇到 err 时走 `_remove`，`:181` 调用 `client.end()`，置 `_ending`；随后 socket 'end' 时，`client.js:205` 的 `if (!this._ending)` 不成立，不会 emit。
+    - `asPrincipal`（`principal.ts:945-955`）用 `pool.connect()` 手持 client，依次发 BEGIN、SET LOCAL ROLE、set_config、fn、COMMIT，往返间隙中服务端状态为 `idle in transaction`。
+    - 因此 A 命中 idle-in-transaction 时：MUT（删 `:929`）下必然 Unhandled，文本为 57P01；POST 下 `:929` 必然记 `db_pool_error`。§5.2（`:195-200`）的描述与源码一致。
+  - **A ≠ attempt1 是真实的路径差异，不只是字符串差异**：
+    - A 走 FATAL 消息路径（`client.js:428`，错误对象为 57P01 的 DatabaseError）；attempt1 走 socket 'end' 路径（`:199` 构造 `Connection terminated unexpectedly`，`:217` emit）。attempt1 日志 `PERF-LOAD-prove.log:21-37` 的栈正是 `client.js:199:73` → `:417` ← `:217`；全文 `administrator` / `57P01` / `terminating connection` 匹配数为 0。
+    - 结论：57P01 出现与否可以区分「A 路径」与「attempt1 路径」。但要注意，它不能证明 attempt1 是 socket 层被杀，见条件 2。
+- **阻塞 2 · T1 钉在 seed 阶段 · 已解除（契约层面）。**
+  - T1 改为 run3 PERF 的 `seedAbandonTargets`（`:168-173`），并新增阶段期望表（`:156-162`）：seed 阶段 A/B/C-POST 期望 EXIT 1；warmup 着陆记 `INJECT_PHASE_WARMUP`，该格 FAIL，即使碰巧 EXIT 1 也记为相位违规；measured 着陆记 `INJECT_PHASE_MEASURED`，该格 FAIL；C 与阶段无关。`:164` 改写了 EXIT=1 的依据，明确 `errMax` 只约束 measured，warmup 不计错。这与 `proof.ts:274`（seed）、`:278`（warmup 结果丢弃）、`:280-284`（measured）一致。`WARMUP=10`（`:31`）、N=100，所以 seed 共 110 轮，每轮一条 INSERT 加一个 asPrincipal 事务（`:227-246`），且 seed 紧接在 `LOAD run2:` 行之后开始（`:441-444`）。
+  - 防假绿：warmup 着陆即使 EXIT 0，也会因 `POST_EXIT_UNEXPECTED`（`:164`）或 `INJECT_PHASE_WARMUP` 被判 FAIL，不能当证据，符合 `north-star-hard-gates.md:46/:117`。
+  - 阶段的**可观测性**仍有缺口，见条件 1。这个缺口只影响标签是否准确，不会造成假绿：POST 格的 EXIT 0 在任何阶段都 FAIL；MUT 格在哪个阶段着陆都不改变「删 `:929` → Unhandled」这一被测性质。
+- **C 保留**：`:188`、`:192-193`、`:153-154`；C-POST 必须判为 J-2 的 L3-sim（`:105`、`:154`）。
+- **非阻塞项已钉入**：
+  - NB-1：restart -t0 竞态，收据必录实际文本（`:206`）；B-MUT 允许两种文本（`:151`）。
+  - NB-2：`INJECT_MISS`（`:189`、`:207`）。
+  - NB-3：J-2 新增 EXTERNAL-OTHER 与 L3-sim 两行（`:105-107`）。
+  - NB-4：R2 的 `meetwise-e2e-r2pool-*` 须在下次 prove 前删除（`:209`、`:229`）。
+
+### 已解除项 · 无回退
+
+- B1(a) J-1 / J-2 / J-3、B1(b) 时序与 L2-self：§2.1 / §2.2 只增加了两行判定表和 T1 的 seed 约束，其余不变。
+- L1 `principal.ts:928-931`（`:65`；`:931` 为 `pool.on('error')`，源码未变）。
+- R2 数据库来源（§6）。
+- +12 重锚：`:1726` / `:2182` / `:2251-2253`，源码未变。
+- B2：P-FIX 仅 `principal.ts`，emitter `:559` ≠ product close。
+- B5：R1–R3 EXIT 0。
+- B6：隔离真 PG / Linux-native / 串行 / Ban emitter（`:229`）。
+- attempt1 不洗；不翻 UC-018 covered。
+- backlog `:35` 保持 CONDITION OPEN（`:57`、`:235`）。
+- Pins 未变（`:4`、`:255`）；PG only，无 MySQL / Qdrant / FULLTEXT。
+
+### 新阻断
+
+无。
+
+### 非阻塞条件（执行前在 harness 中补齐，否则 A 格大概率记 `INJECT_MISS` / 相位 FAIL，浪费一次 prove）
+
+1. **阶段判定须有确定的观测源。**
+   - 现状的问题：
+     - A 的门控只看 `state='idle in transaction'`；但 warmup / measured 阶段的 API 请求同样走 `asPrincipal`（`interview.service.ts:196/:358/:390`），同样会产生 idle-in-transaction，所以这个条件并非 seed 专有。
+     - B/C 门控（`:182`）的 OR 项中只有 `INSERT INTO interview%` 是 seed 专有，`SET LOCAL ROLE%`、`set_config('app.principal_user'…)`、`idle in transaction` 都不是。
+     - 阶段表 `:160` 中「尚未出现 HTTP abandon 痕迹」没有定义观测源。
+     - §5.1 A 的命令只返回 `count(pg_terminate_backend(pid))`，无法满足 `:170` 要求记录的「被选 backend 的 state / xact_start / left(query,60)」。
+   - 建议：在终止的同一条 SQL 中，用 CTE 一次性返回 `pid, state, xact_start, left(query,60)` 与 `pg_terminate_backend(pid)`；同时在同一快照里查 `interview` 中 `id LIKE 'IV_P018_R3_%'` 的行数与非 active 行数（容器内 `meetwise` 为超级用户，不受 RLS 影响）。判定：行数 <110 且非 active 行数为 0 → seed；行数 =110 且非 active 行数 ≤10 → warmup；否则 measured。
+2. **A ≠ attempt1 的表述须收窄。**
+   - A-POST 日志里同样会出现 `Connection terminated unexpectedly`。原因：57P01 被 `:929` 观测之后，socket 'end' 走到 `client.js:205/:216-217`（`_connectionError` 为假），再次 emit 一个**新的** Error 对象；`observePoolError` 按对象身份去重（`principal.ts:889-890`），所以会第二次记 `db_pool_error`。A-POST 的签名不得要求该文本缺席，判别依据只能是「57P01 出现」。
+   - `:193` 写「attempt1 = socket 'end'」过于绝对。服务端 FATAL 命中某个 connect client 的 active query 时（`client.js:432-433`），之后同样会走 `:199/:217`，产生同一文本；`idle_in_transaction_session_timeout` 的 FATAL 25P03（`principal.ts:916`）也会如此。所以 attempt1 的文本只能排除「FATAL 落在 idle client」这一种情形，不能单凭文本判定 L3 / L2-self。归因仍以 J-2 的 docker 事件为准，这一点 §2.1 已有。
+   - A-MUT 存在竞态：若 FATAL 到达时 client 恰好已发出下一条查询，就会得到 `Connection terminated unexpectedly` 而没有 57P01，该格 FAIL。须如实记录，禁止换 attempt。
+3. **INJECT_MISS 可行性。** idle-in-transaction 只存在于 asPrincipal 各次往返之间，每段为亚毫秒到毫秒级；seed 共 110 轮，紧接在 `LOAD run2:` 之后。现稿中门控与终止是两次独立的 `docker exec psql`，两次之间隔着进程启动延迟，T1 第 1 步（`:169`）也删去了原来的「≤1 s」上限。建议把「轮询 + 终止」合并为容器内的单次 psql 调用（例如 plpgsql 循环，配 `pg_sleep(0.005)`，见到第一个目标立即终止并返回快照），并恢复反应时间上限。
+4. **LOOP §3③ 辅助命令的期望 EXIT。** 以下命令须补上 EXIT 0 及输出判据：R2 一次性容器的 `docker run` / `docker port` / 结束时的 `docker rm -f <该名>`（`:162`），NB-4 清理用的 `docker rm -f`（`:209`），以及 J-2 采集用的 `docker events` / `pgrep` / `docker ps`。
+
+### 结论
+
+`20da721` 的两个阻塞都已在契约层面解除：A 已收窄到 idle-in-transaction，并改用 57P01 签名，与 pg@8.22.0 / pg-pool@3.14.0 源码一致；T1 已钉在 seed 阶段，warmup 着陆的 EXIT 0 不能作为证据。各非阻塞项已钉入，此前已解除的项目无回退，无新阻断。4 条条件中，条件 1 与条件 3 决定 A 格能否真正产出可判定的证据，强烈建议在 AUTHORIZE 前补齐。本 PASS 仅为 mw-rag-route 单方 re-PRE：mw-e2e-ha 对 `083cce4` 尚无收据，alone ≠ dual，不代签。coding 仍禁止，须双方 PASS 加协调方 AUTHORIZE。CONDITION（backlog `:35`）保持 OPEN；attempt1 @ `b29c191` 不洗；UC-018 / §1.1 保持 partial；gap ≠ covered。Pins：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained（无 MySQL / Qdrant / FULLTEXT）· public DELETE=503。
+
+Verdict: PASS
