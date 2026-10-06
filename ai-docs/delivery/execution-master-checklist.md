@@ -873,3 +873,17 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
 - Nail tip = 本 commit（branch `line/ab-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written（incl. Line Y NHP-001-NEG-01 · Line Z · Line AA · Line AC · Line V/W/X · Line U）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+
+### Line V GAP-UC011-ADV-01 main mouth wiring NAIL（2026-10-06 SSOT nail · `post_prove_dual_pass` · EXIT=0 双 fresh + Z 回归 41/41 · `GAP-UC011-ADV-01` → CLOSED（wired））
+
+- [x] **`post_prove_dual_pass`** recorded for the Line V GAP-UC011-ADV-01 main mouth wiring（主口 `POST /payment/refund-callback` 真路由 + ADV 七类）. `GAP-UC011-ADV-01` → **CLOSED（wired）**（协调方授权 · closed as wired ≠ covered）. Implementer does not self-approve beyond this authorized nail. **EXIT0≠covered**. Ban invent covered · Ban claiming covered · Ban wash · Ban HA · Ban live · Ban Meridian · Ban secrets · Ban force-push · Ban 顺手洗绿.
+- REQUEST `d58b05b` / `d58b05bf56ab33efd3312786e3958302bdb923c5`. Pre-exec dual PASS: mw-e2e-ha `7f31beb` / `7f31beba7439de026b5b6be1b7f3db0489f5fed8` + mw-model-op `dfd9822` / `dfd9822cbeee182135e3b332ed474034b178c58b`.
+- CODE `2535b31` / `2535b319b3f4552a385df9321f0845dca5d30489`（`payment-callback.controller.ts` 薄适配白名单三字段 + app.module 插入注册 + ADV proof `uc-e2e-011-refund-callback-adv.proof.ts` + 三层隔离壳注册）· prove/receipt tip `cf34390` / `cf343900c441d3f7e800cabd1fe2944e4c81fd4d` · receipt `receipts/2026-10-06-gap-uc011-adv-main-mouth-wiring-prove.md`.
+- Prove: `pnpm uc011:refund-callback-adv:prove` **EXIT=0 · 68/68**（A1–A7 + 新鲜 INV + X + ZREG · attempt#2 @`2535b31` · 双 fresh 复现：实现方 + mw-e2e-ha 独立复跑同形）· attempts 台账 **1,0,0** 全记录（#1 EXIT=1 = prove 自身 INV 裸子串扫描命中注释 · 修复=剥注释扫代码面 · 非产品缺陷 · 非 retry-to-green）· Z mouth 回归 `pnpm uc011:refund-callback:prove` **EXIT=0 · 41/41**（attempt#3 独立完整三层壳 · Z 冻结 proof 断言零改动 · Path A 不回退）.
+- Post-prove dual PASS: mw-e2e-ha `275ba7d` / `275ba7d322c1d7d7b94aaa131d57c8df4f098412` + mw-model-op `a0f77f0` / `a0f77f097c05f2aa6ea3c53b6009a43450965dd2`（BOTH · alone≠dual · origin 镜像 `a8873d03`/`b236be88` patch-id 一致）.
+- [ ] **UC-E2E-011 stays partial** · [ ] **EXIT0≠covered** · [ ] **coveredCount=8** · [x] `GAP-UC011-ADV-01` **CLOSED（wired）**（本 nail · 仅此 gap · 不关 `GAP-UC011-REFUND-CALLBACK` 超出 Line Z Path A 既有状态）.
+- Residual（随 CLOSED(wired) 保留 · 不洗）: ① 审计接线（主口+管道 GuardrailHit/安全日志 emit 点 absent · AUDIT-OBSERVATION: absent · disclosed-not-blocking · 另刀）② 金额显式复核（A3 DISCLOSED 结构性=白名单无金额通道+权威 units 红冲 · 显式服务端金额复核比较路径不存在 · 新刀 · Ban 改口「已实现金额复核」）· Z 线 Path A mouth 历史原样.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
+- Nail tip = 本 commit（branch `line/v-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written（incl. Line V NHP-011-ADV-01 honesty-of-red · Line Z Path A mouth · Line AC G7 · Line AA/AB · Line X/W/Y · Line U）. This paragraph does not flip UC-011 to covered; it records the coordinator-authorized wired close of `GAP-UC011-ADV-01` only.
