@@ -7,7 +7,7 @@
 **PRE dual**: **BOTH PASS** · mw-e2e-ha @ `f2154387df654b4600b74b4c8a52c1d35f5986b2`（REQUEST `REQUEST-2026-10-06-g7-key-blocked-residual-pre-mw-e2e-ha.md`）+ mw-model-op @ `2d422c14e585c544a162f536cc9b3058a7d14e30`（`2026-10-06-g7-key-blocked-residual-honest-pre-exec-mw-model-op.md` · C-MO-AD-1..9）
 **CODE_SHA**: **none**（docs-only · zero script / package / lockfile change · Ban editing `run-e2e*.mjs`）
 **Execution HEAD（re-attest + cite）**: **`880f14408dda9a9cb03737b811b6005d94c3a2dc`**（clean · = machine receipt `gitHead`）
-**Receipts tip（PROVE_TIP）**: _filled by follow-up cite commit_
+**Receipts tip（PROVE_TIP cite target）**: **`f4981cb6f75d5710039915b47e063e9192248da0`**（receipts commit · rebased onto `350f7a4`, docs-only drift · re-attest ran at `880f144`; Ban claiming a later tip as the run tip）
 **Prior nail（read-only · Ban rewrite）**: Line AC NAIL `3922b48` / `3922b4859f034f07d43ba9f9b443ac3d29b7687e` · prove tip **NAILED TO `7c818c5`** / `7c818c5fe2249cdac686aa2a0e58748b3c5dea68` · code `160c30c` / `160c30cac7a0a05106120949f337847b782647b7` · receipts `receipts/g7-env-gap-honest-fix/`（untouched）
 **Worktree**: `/workspace/meetwise-lineAD` · branch `line/ad-g7-key-blocked-residual`
 **package.json @ exec tip**: `e2e:isolated` **:260** · `e2e:ui:isolated` **:261** · `verify:e2e-performance` **:264**（AC historic `:251/:252/:255` retained in AC receipts）
