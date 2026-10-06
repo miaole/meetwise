@@ -1013,3 +1013,15 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered. Ban buy cloud · Ban secrets · Ban force.
 - Nail tip = 本 commit（branch `nail/line-ai-nhp-001-fault-01`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written（incl. Line Y NEG · Line AB BOUND · Line AG ADV · Line AL/AM · Line AJ/AK）. This paragraph does **not** flip FAULT off partial · does **not** invent covered · does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+### Line AK NHP-025-ADV-01 / GAP-UC025-ADV-01 NAIL（2026-10-06 SSOT nail · `post_prove_dual_pass` · EXIT0≠covered · ADV stays blind · row stays gap · SCOPE UC-025 ADV only）
+
+- [x] **`post_prove_dual_pass`** recorded for Line AK NHP-025-ADV-01（UC-025 ADV blind→case）only. Implementer does not self-approve beyond this AUTHORIZE nail. **EXIT0≠covered**. ADV stays **blind**/`case-only`. **row stays gap**. Ban invent covered · Ban flip ADV/row · Ban wash W BOUND · Ban HA · Ban live · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · Ban product code.
+- REQUEST `420aeca` / `420aecadf665349a6419feb89d8a5179a39fd2d2`. Pre-exec dual PASS: mw-e2e-ha `13fc781` / `13fc781f82c6394662868ba7d121e082f6d0f181` + mw-rag-route `0a67d40` / `0a67d409f61faa8247f673221d45d8d77158d108`（C1–C6 carried）.
+- PROVE tip **NAILED TO** `4a804a8` / `4a804a8f4ebae5c3d747988f798aba2248b34ab9` · receipt `c4d3b9f` / `c4d3b9f0d9b3a4fd60052429eb898ddbe1a76411` · CMD `pnpm uc025:nhp-adv:prove` **PROVE_EXIT 0** · ADV-new **A1 404** · **PC-A1 202** · **A3-b 409** · ADV-new asserts=**18**（行为核心约 **13** · ≠44）· complementary recorded ≠ ADV-new · MUT discarded · regress neg/bound/fault/fault-isolated EXIT0 · C1–C6.
+- Post-prove dual PASS: mw-e2e-ha `5ab6343` / `5ab6343668c8ae3639c54b1e9484324a992a48a1` + mw-rag-route `5368464` / `5368464130b31b9559c1fefb7bce0c1088266376`（BOTH · alone≠dual already satisfied by BOTH POST）.
+- [ ] **UC-E2E-025 ADV stays blind/`case-only` wording** · [ ] **row stays gap** · [ ] **EXIT0≠covered** · [ ] **coveredCount=8** · [ ] **canHonestlyFlip=false** · Ban wash W BOUND · complementary ≠ ADV-new · C1–C6.
+- **Evidence layer（non-block disclose）**：`sql/`+migrations+prove-local stub · `AUTH_DEV_HEADER` · stub-before-reject for A1/A3-b · keep owner-predicate static anchor · re-pin static anchors by symbol on service edits.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered. Ban buy cloud · Ban secrets · Ban force.
+- Nail tip = 本 commit（branch `nail/line-ak-nhp-025-adv-01`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written（incl. Line W BOUND/FAULT-ISOLATED · Line AA FAULT · Line AG/AJ/AI · AL/AM）. This paragraph does **not** flip ADV to covered · does **not** invent covered · does **not** flip row off gap · does not change any existing gap, partial, or OPEN row to CLOSED or covered.
