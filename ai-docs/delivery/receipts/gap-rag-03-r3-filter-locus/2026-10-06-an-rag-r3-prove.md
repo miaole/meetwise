@@ -1,6 +1,8 @@
-# Receipt — GAP-RAG-03 · R3 filter-locus · Line AN-RAG-R3 · prove（`awaiting_post_prove_dual`）
+# Receipt — GAP-RAG-03 · R3 filter-locus · Line AN-RAG-R3 · prove（NAIL · **`post_prove_dual_pass`** · GAP-RAG-03 OPEN · R3-HNSW-COMPLETENESS OPEN）
 
-**Status**: **`awaiting_post_prove_dual`**（mw-rag-route + mw-e2e-ha · POST opened by parent only）· Ban self-nail · Ban self-approve · alone ≠ dual · **Ban self-write `post_prove_dual_pass`**
+**Status**: **`post_prove_dual_pass`**（AN-RAG-R3 NAIL · POST dual mw-rag-route `f93d6ad` + mw-e2e-ha `a1de77d` BOTH PASS · **GAP-RAG-03 OPEN** · **R3-HNSW-COMPLETENESS OPEN** · R-b EXIT1 pre-existing = GAP-RAG-02 `:70` disclosed · alone≠dual · PASS≠关 gap≠HA）
+> **Exec-era status（historical · retained）**: **`awaiting_post_prove_dual`**（mw-rag-route + mw-e2e-ha · POST opened by parent only）· Ban self-nail · Ban self-approve · alone ≠ dual · **Ban self-write `post_prove_dual_pass`**
+**Lifecycle**: **`post_prove_dual_pass`** · PROVE tip `7c67b4a` · CODE `ac03f30` · C-3 `264e1d7` · REQUEST `8d52138`
 **AUTHORIZE**: coordinator `AUTHORIZE coding+prove — AN-RAG-R3 @ REQUEST rewrite3 8d52138` · PRE BOTH PASS: rag `d83c561`（mw-rag-route Re-PRE3）· e2e `eb8fb09`（mw-e2e-ha Re-PRE）· + coordinator FYI NB-1..3（2026-10-06 21:05 CST）
 **Harness**: `ai-docs/delivery/harness/gap-rag-03-r3-filter-locus.md`（REQUEST text §0–§10 frozen · prove addendum §11）
 **SHAs**: C-3 (proof + registration only) **`264e1d7`** · CODE (C-1 + C-2) **`ac03f30`**（`ac03f30…` pushed to `origin/feat/mysql-schema-skeleton` before PC A1）· base parent `70cba94`（docs-only review; AN-PERF-TEAR untouched）
@@ -76,4 +78,26 @@ All plan labels are substituted-body observations, not live-plan proof. Because 
 
 ## §7 Non-claims
 
-EXIT 0 ≠ R3 closed ≠ GAP-RAG-03 closed (backlog `:71` **OPEN** · canHonestlyFlip=false) · ≠ HNSW-complete (`R3-HNSW-COMPLETENESS` **OPEN**) · ≠ live-plan proof · ≠ cutover · ≠ FULLTEXT equiv · ≠ HA · releaseEvidence=false · coveredCount=8 · R-a..R-e green ≠ R3 evidence. Not nail. alone ≠ dual. Ban self-nail until POST BOTH + coordinator AUTHORIZE.
+EXIT 0 ≠ R3 closed ≠ GAP-RAG-03 closed (backlog `:71` **OPEN** · canHonestlyFlip=false) · ≠ HNSW-complete (`R3-HNSW-COMPLETENESS` **OPEN**) · ≠ live-plan proof · ≠ cutover · ≠ FULLTEXT equiv · ≠ HA · releaseEvidence=false · coveredCount=8 · R-a..R-e green ≠ R3 evidence. Not nail. alone ≠ dual. Ban self-nail until POST BOTH + coordinator AUTHORIZE.  <!-- exec-era §7 · lifecycle advanced below -->
+
+---
+
+## AN-RAG-R3 NAIL cross-ref（additive · 2026-10-06 · `post_prove_dual_pass`）
+
+| Item | Value |
+|------|-------|
+| PROVE tip | `7c67b4a` / `7c67b4aa6b890ec7978c575e1e552e51e081cb98` |
+| CODE_SHA（C-1+C-2） | `ac03f30` / `ac03f3080a02f5ea863b304908815646f4b3d18c` · mig `0138` |
+| C-3 | `264e1d7` / `264e1d709b8aa5318b15905d628f78a63bdfe161` |
+| REQUEST | `8d52138` / `8d52138c609108939f113ef248fad4b4375f9e11` |
+| PRE dual | mw-rag-route `d83c561` / `d83c561a570538cc43ab53bbb3e8faf438518a03` + mw-e2e-ha `eb8fb09` / `eb8fb09d36ec8980fd0b19e1e7bc6008c76a7a9c` |
+| POST dual BOTH PASS | mw-rag-route `f93d6ad` / `f93d6ad30491fb546cb43519a56e18cc908c6980` + mw-e2e-ha `a1de77d` / `a1de77dd06efde8285daa2b3f61c87ea077f773f`（alone≠dual） |
+| EXIT | BASELINE 1/1/1 · **PC 0/0/0** · **MUT-1..4 1/1/1** · R-a/c/d/e 0 · **R-b EXIT 1 pre-existing @`70cba94` = GAP-RAG-02 `:70`（disclosed · NOT green · Ban count green · Ban covered flip）** |
+| NB-2 ledger | `attempt-ledger.txt` BASE `70cba94` row lacked real EXIT → CORRECTION line appended at nail: EXIT=**1**（evidence `logs/reg-rag03-route-BASE-70cba94.log` `ELIFECYCLE … exit code 1`; e2e POST `a1de77d` independent EXIT 1; rag POST `f93d6ad` EXIT 1） |
+| Fixtures | F-STARVE = defence-in-depth（prod reachability unproven）· F-STARVE-HASH = superuser trigger-disable sim · supplementary · **non-gating** |
+| HNSW | P-HNSW post-fix `HNSW_NOT_EXERCISED` → **R3-HNSW-COMPLETENESS OPEN** · substituted_body · LIVE_PLAN_NOT_CAPTURED |
+| STILL_OPEN | **GAP-RAG-03 `:71` OPEN** · canHonestlyFlip=false · HNSW residual OPEN · R-b via `:70` · coveredCount=8 · Ban MySQL/Qdrant/FULLTEXT · alone≠dual · PASS≠关 gap≠HA |
+
+Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered / CLOSED / HNSW-complete / R-b green.
+
+*Receipt · AN-RAG-R3 · NAILED post_prove_dual_pass · PROVE 7c67b4a · CODE ac03f30 · C-3 264e1d7 · POST f93d6ad+a1de77d PASS · GAP-RAG-03 OPEN · R3-HNSW-COMPLETENESS OPEN · R-b EXIT1 = GAP-RAG-02 :70 disclosed · 2026-10-06 · STOP*
