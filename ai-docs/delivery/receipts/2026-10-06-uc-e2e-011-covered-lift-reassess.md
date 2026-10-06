@@ -1,13 +1,17 @@
 # Receipt — **UC-E2E-011 covered-lift-reassess**（Line AF · Branch A docs hand-calc · honest non-flip）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（Branch A hand-calc done · **Ban self-nail** · Dual PASS ≠ nail ≠ covered）
-**Date**: 2026-10-06 ~13:06 CST（Asia/Shanghai · UTC+8）
+**Status**: **`post_prove_dual_pass`**（Branch A hand-calc done · post-prove dual BOTH PASS · `GAP-UC011-COVERED-LIFT-REASSESS` **CLOSED as honest non-flip assessment only** · Dual PASS ≠ invent covered · Ban Branch B）
+**Date**: 2026-10-06 ~13:16 CST（Asia/Shanghai · UTC+8） · nail lifecycle recorded
 **Line**: **AF**
 **Knife**: `harness/uc-e2e-011-covered-lift-reassess.md` · slice `uc-e2e-011-covered-lift-reassess.slice.md`
-**Gap id（拟）**: `GAP-UC011-COVERED-LIFT-REASSESS`（assessment only · Ban invent covered · Ban SSOT flip）
+**Gap id**: `GAP-UC011-COVERED-LIFT-REASSESS` · **CLOSED as honest non-flip assessment only**（≠ UC-011 covered · Ban invent covered · Ban SSOT flip to covered · Ban closing ADV/audit/amount residuals）
 **Branch**: **A only**（docs hand-calc · **Zero CMD** · Ban Branch B gatherer/prove script · Ban live · Ban buy cloud · Ban Meridian · Ban secrets / `.env*`）
 **PRE BOTH PASS**: mw-e2e-ha `f215438` / `f2154387df654b4600b74b4c8a52c1d35f5986b2`（AD-AH dual half · includes `REQUEST-2026-10-06-uc011-covered-lift-reassess-pre-mw-e2e-ha.md`）· mw-model-op `e3c887b` / `e3c887b0ea55631b0df691820c63618caa1ab3e2` · REQUEST `3dca5de` / `3dca5decfe69c81f1ef5cf58428834d95b2b59d9`
-**AUTHORIZE**: Line AF · PRE BOTH PASS · coding+prove · Branch A · **canHonestlyFlip=false** · Ban fake flip
+**AUTHORIZE**: Line AF · PRE BOTH PASS · Branch A · **canHonestlyFlip=false** · Ban fake flip
+**PROVE tip**: `350f7a4` / `350f7a482bd85ccd05c41c62edfd98996f9a9506`
+**POST dual BOTH PASS**: mw-e2e-ha `ac590ab` / `ac590ab7b513a9b776c6a6399eb2eb75258e9582` · mw-model-op `e38a7c4` / `e38a7c43d64879fa59467d31d4c4d068af677c96`
+**NAIL tip**: **本 commit**（【NAIL · Line AF】· fill after commit）
+**Lifecycle**: `post_prove_dual_pass`
 **Style mirror**: `harness/uc-e2e-018-covered-lift-reassess.md` · evaluator `scripts/lib/uc-covered-evaluator.mjs`（**read-only** · Ban edit）
 **Executed by**: `mw-core`（meetwise-core · Ban self-nail · Ban message meetwise）
 
@@ -163,19 +167,19 @@ Sources（read-only）:
 | Artifact | Path |
 |----------|------|
 | Receipt（this file） | `ai-docs/delivery/receipts/2026-10-06-uc-e2e-011-covered-lift-reassess.md` |
-| Harness status → `executed:awaiting_post_prove_dual` | `ai-docs/delivery/harness/uc-e2e-011-covered-lift-reassess.md` |
+| Harness status → `post_prove_dual_pass` | `ai-docs/delivery/harness/uc-e2e-011-covered-lift-reassess.md` |
 | Slice status → same | `ai-docs/delivery/uc-e2e-011-covered-lift-reassess.slice.md` |
-| Post dual stub `mw-e2e-ha` | `ai-docs/delivery/reviews/REQUEST-2026-10-06-uc-e2e-011-covered-lift-reassess-post-prove-mw-e2e-ha.md` |
-| Post dual stub `mw-model-op` | `ai-docs/delivery/reviews/REQUEST-2026-10-06-uc-e2e-011-covered-lift-reassess-post-prove-mw-model-op.md` |
+| Post dual `mw-e2e-ha` PASS | tip `ac590ab` · `reviews/REQUEST-2026-10-06-uc-e2e-011-covered-lift-reassess-post-prove-mw-e2e-ha.md` |
+| Post dual `mw-model-op` PASS | tip `e38a7c4` · `reviews/2026-10-06-uc-e2e-011-covered-lift-reassess-post-mw-model-op.md` |
 
 **CMD**: **none**（Branch A · Zero CMD · Ban live · Ban Branch B `pnpm uc011:covered-lift-reassess:prove`）
 
-**SSOT**: matrix `:117` / `:148` / `:175` / P1-2 / NHP / backlog / checklist — **untouched** · coveredCount stays **8**
+**SSOT（nail registration · honest non-flip only）**: matrix / checklist / backlog append Line AF reassessment note · **status stays partial** · coveredCount stays **8** · Ban flip UC-011 / §1.1 / P1-2 to covered · Ban closing ADV gap or residuals as covered
 
 ---
 
-## 6. Honesty footer
+## 6. Honesty footer（nail · post_prove_dual_pass）
 
-canHonestlyFlip=**false** · coveredCount=**8** · UC-011 stays **partial** · EXIT0≠covered · closed(wired)≠covered · Ban fake flip · Ban invent covered · Ban wash residuals · Ban Branch B · Ban self-nail · Ban Meridian · Ban buy cloud · Ban secrets · Ban force-push · Ban touch AD/AE/AG/AH · alone≠dual · Dual PASS ≠ nail ≠ covered · STOP
+canHonestlyFlip=**false** · coveredCount=**8** · UC-011 stays **partial** · EXIT0≠covered · closed(wired)≠covered · refuse five retained · GAP-UC011-COVERED-LIFT-REASSESS **CLOSED as honest non-flip assessment only** · Ban fake flip · Ban invent covered · Ban wash residuals · Ban Branch B · Ban Meridian · Ban buy cloud · Ban secrets · Ban force-push · Ban claim HA · Ban next REQUEST · alone≠dual · Dual PASS ≠ invent covered · PROVE_TIP 350f7a4 · POST dual ac590ab+e38a7c4 · STOP
 
-*Receipt · Line AF · UC-E2E-011 covered-lift-reassess · Branch A hand-calc · 2026-10-06 ~13:06 CST · executed:awaiting_post_prove_dual · Ban fake flip*
+*Receipt · Line AF · UC-E2E-011 covered-lift-reassess · Branch A hand-calc · 2026-10-06 ~13:16 CST · post_prove_dual_pass · CLOSED as honest non-flip assessment only · Ban fake flip*
