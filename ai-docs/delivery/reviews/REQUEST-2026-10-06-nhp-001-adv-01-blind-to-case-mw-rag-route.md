@@ -105,3 +105,51 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCo
 **结论**：选刀、证据层、分离与 Bans 诚实；但作答注入靶向无条件 410 的遗留端点（B1）、quiz/JD 输入面不存在（B2）、状态/错误码未钉（B3）、无正控与变异（B4）、未要求 NEG/BOUND 回归（B5）—— 按现稿执行会产出假绿。FAIL（B1–B5）。
 
 Verdict: FAIL
+
+---
+
+## Re-PRE @626e060（mw-rag-route · Line AG · docs gate only · 2026-10-06 13:35 +08:00）
+
+**审查基线**：REQUEST `626e06053e4ae0bf9875c8e9b184bf175c35e3e4`（parent `ac590ab` · 作者 meetwise-core · supersedes `5eba515`）为 origin 祖先。`git show --stat 626e0605` = 4 个 docs 文件（harness · slice · 两 stub · +101/−52），零 `apps/` `packages/` `scripts/` `package.json`；`git diff --stat 416b6a5 626e0605 -- apps packages scripts package.json` 为空 → 下列源码行号 @ 626e060 与前审一致。本段只追加；上方 coordinator stub 改写与「Historical FAIL receipt」标题由 core 写入，我方 `863a5e6` FAIL 正文经 diff 核对未被改动。alone ≠ dual；不代签 mw-e2e-ha。
+
+### 1. B1–B5 逐项
+
+| 项 | 判定 | harness 证据 | 源码核验 |
+|----|------|--------------|----------|
+| **B1** 靶 GONE `/answer` | **已解决** | `:41` 真入口 `/turn` · `:42` 可选 `/answers` 须钉 `MEETWISE_PUBLIC_PREVIEW` 且不混写 · `:43` Ban 靶 `/answer` · `:64` V1 靶 `/turn` · `:104` Ban 列表 | `interview.controller.ts:30-33` `@Post(':id/turn')` `@HttpCode(202)` `ZodValidationPipe(TurnDto)` ✔ · `:38-46` `/answers` + `PublicPreviewControlledWriteGuard` ✔ · `:242-245` GONE 无 Body ✔ · `interview.service.ts:913-914` 410 `legacy_answer_endpoint_disabled` ✔ |
+| **B2** 发明 quiz/JD 入口 | **已解决** | `:44` JD 入口 = absent · `:66` V3 仅 `POST /resume` · `:104` Ban 发明 | `quiz.controller.ts:17-20` 无 body ✔ · `resume.controller.ts:16-19` + `contracts/src/index.ts:24` `z.object({ text: z.string().min(20).max(60_000) })` 非 strict ✔ |
+| **B3** 未钉码 | **已解决** | `:46` / `:58` / `:60` / `:64` 钉 400 `invalid` + `unrecognized_keys` + 四类副作用快照 | `contracts:56-63` `TurnDto…}).strict()` ✔ · `:650-655` Preview DTO `.strict()` ✔ · `zod.pipe.ts:10` `BadRequestException({ error: 'invalid', issues })` ✔ · service `:347` 400 `invalid_turn` · `:369` 422 · `:370-371` 409 `question_not_ready`/`stale_question` · `:372` 409 · `:156`/`:159` 409 —— 与 harness `:60` 一致 |
+| **B4** 正控/变异/seed | **已解决（附条件 C1/C2）** | `:72` 正控合法 `/turn` → 202 + 恰好 1 个 `answer` job · `:73` 去 `.strict()` 变异 → V1 转红、不提交 · `:67`/`:74` V4 confirmed = 隔离 PG seeded fixture，Ban 叙述为走完主链 | `enqueueInterviewJob(...,'answer',...)` 在 service `:373` ✔ · `commerce.ts:126` `finalStatus = ratio >= 1 ? 'confirmed' : 'partial_confirmed'` 为 worker 结算真相 ✔。**变异确实会转红**：ZodValidationPipe 先于 service；去 `.strict()` 后越权键被剥离、请求进入 service，结果变成 202 或 409 `question_not_ready`，都不是 400 `invalid`，V1 断言失败 |
+| **B5** NEG/BOUND 回归 | **已解决（附条件 C3）** | `:79` 执行后强制 `uc001:nhp-neg:prove` + `uc001:nhp-bound:prove` EXIT 0 · 不改 proof/收据 · `:80` EXIT0 含 B5 | `package.json:167`/`:169` 两命令存在；`git log 1761311.. -- apps/api/test/uc-e2e-001-nhp-{neg,bound}.proof.ts` 仅 `6e96cf5`（AB 创建 bound）→ 两 proof 自 Y/AB 起未被改动 |
+
+### 2. core 基线自检「EXIT 1 = docker.sock / MODEL_API_KEY 触发 L0 Ban-live」的诚实性
+
+- **落点**：该自检文字 **不在** 626e060 的 harness/slice/stub 中（grep 无命中），仅见于 meetwise 转述。须进入执行收据（见 C3）。
+- **L0 守卫源码**：`apps/api/test/uc-e2e-001-nhp-neg.proof.ts:61-65` 与 `apps/api/test/uc-e2e-001-nhp-bound.proof.ts:56-60`：入口读 `MODEL_API_KEY` → `delete` → `A('L0 Ban live: MODEL_API_KEY absent on entry (not loaded)', !keyPresentOnEntry)`。**MODEL_API_KEY 存在 → 该断言失败 → EXIT 1** —— 这一半说法为真。
+- **docker.sock 不是 L0 守卫**：L0 只检查 env key；docker socket 不可用时失败发生在 `scripts/run-e2e-isolated.mjs` 起 PG 容器阶段（`:2124` `docker run` · `:2134` `docker port`），属于环境/runner 层失败，不是「Ban-live L0」。说法须拆开写，不能合称 L0。
+- **我方离线复跑 @ 626e060**（temp worktree `/tmp/mwrr-626e060x` · `pnpm install --frozen-lockfile` EXIT 0 · host = macOS Docker Desktop 29.1.3 / linuxkit 6.12.54 · shell 内 MODEL_API_KEY 未设 · 未用任何真 Key · 零云）：
+  - `env -u MODEL_API_KEY -u MODEL_BASE_URL pnpm uc001:nhp-neg:prove` → **EXIT 0** · `SUMMARY asserts=26 failed=0` · `L0-ENV {"model_api_key_present_on_entry":false,…}`
+  - `env -u MODEL_API_KEY -u MODEL_BASE_URL pnpm uc001:nhp-bound:prove` → **EXIT 0** · `SUMMARY asserts=17 failed=0`
+  - 与 Y 基线（26/26）、AB 基线（17/17 · `f8cdc82`）一致 → core 的 EXIT 1 判为 **环境阻断，非回归**；本次复跑是 PRE 侧的基线旁证，**不是** B5 执行证据，也不洗 Y/AB。
+- **harness 是否要求有效环境**：`:79` 只写「仍 EXIT 0」，**没写**「环境阻断导致的 EXIT 1 不计为 B5 通过、也不得叙述为通过」→ 条件 C3。
+
+### 3. 证据层 / 越界 / 洗白 / covered
+
+- 证据层单一：`:54` / `:78` 均为 `run-e2e-isolated.mjs` + 真 PG + 不加载 MODEL_API_KEY；harness/slice 中「隔离壳 / 形态对齐 / in-process / fake DB」grep 0 命中 → 无新自相矛盾。
+- Y/AB：`:93` 不动不洗；B5 仅要求复跑原 proof，不改不借。018/052/025：`:95` / `:101` Ban。FUNNEL / G-R4-5 / `r4-funnel`：0 命中，未触碰。covered：`:92` ADV stays blind/`case-only` · `:80` EXIT0 ≠ covered · coveredCount=8。模型层：`:48` / `:108` 不主张、评分 Key-blocked。
+
+### 4. 条件（PASS 附带）
+
+1. **C1 正控与 V2 的题目 seed 须披露**：合法 `/turn` 要拿到 202，`claimInterviewAnswer`（`packages/db/src/interview-question.ts:69`）必须查到 `interview_question` 行；查不到返回 `not_ready` → 409 `question_not_ready`（service `:370`）。离线无 worker/模型时这一行只能 seed，须与 V4 一样标注 **seeded fixture**（题行 + `answerHash`/`stateVersion`/`turn` 对齐）。Ban 把 409 `question_not_ready` 记作正控通过，Ban 叙述为 worker 出题。
+2. **C2 变异记录**：变异 run 须记下去 `.strict()` 后 V1 的实际 status/error（预期 202 或 409 `question_not_ready`，不是 400 `invalid`）+ EXIT≠0；只在 temp worktree 内做，丢弃，不提交。`/turn` 时 `MEETWISE_PUBLIC_PREVIEW` 须保持 unset（service `:344` `denyPublicPreviewWrite`）；若加测 `/answers`，单独 env、单独记账。
+3. **C3 B5 有效环境**：B5 回归须在 MODEL_API_KEY / MODEL_BASE_URL unset、docker 可用的环境中跑；收据须记 `L0-ENV` 行与 `SUMMARY asserts=26/17 failed=0`。因 Key 泄入（L0 断言 `neg:65` / `bound:60`）或 docker.sock / runner 起容器失败导致的 EXIT 1 = **env block**：既不计为 B5 通过，也不得叙述为通过或回归；须修环境后重跑。core 基线自检须原样写入执行收据，并拆分两种原因（L0 Key 断言 ≠ docker runner 失败）。
+4. **C4 频控**：V1/V2/V4/正控在同一 principal 下连续 `/turn`，可能触发 `too_many_requests` 429（service `:354-355` `TURN_RL`）；须分 principal 或间隔，Ban 把 429 记作结构拒。
+5. **C5 V3 实际状态码**：执行时钉 `POST /resume` 实测 2xx 码与剥离后的落库字段（`:66`「2xx 依现实现」须落为具体码）。
+
+### Pins（本审不改）
+
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCount=8 · gR45Closed=true · ms3EqualsR4Closed=false · DELETE=503 · PG-retained · UC-E2E-001 ADV stays blind/`case-only`
+
+**结论**：B1–B5 均已在 harness 中落地，锚点与产品真实返回一致，变异可真转红，证据层单一，无洗白、无越界、无 covered 翻转；core 的 EXIT 1 经离线复跑（26/26 · 17/17 EXIT 0）证实为环境阻断。PASS（附 C1–C5）。PASS ≠ coding ≠ prove ≠ covered ≠ nail；须 mw-e2e-ha 独立 PASS + 协调方 AUTHORIZE。
+
+Verdict: PASS
