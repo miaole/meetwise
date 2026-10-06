@@ -41,3 +41,94 @@
 ---
 
 *Stub · awaiting expert pre-exec dual · STOP*
+
+---
+
+# PRE-EXEC dual 审查段 — **mw-privacy-int**（独立审 · append-only · 2026-10-07）
+
+**Reviewer**: `mw-privacy-int`（独立审查方 · 禁自批 · alone ≠ dual · 不代签 peer）
+**被审 REQUEST**: `45e1ac4241e8f4d4a0227b9eeeeeef105efd257e`（`docs(e2e): REQUEST perf container reachability fix (pre_dual)`，author `mw-core`，2026-10-06 13:31:25 +0800）
+**Worktree**: `meetwise-rv-ss2-privacy-int`（branch `rv/ss2-privacy-int`，review commit 落于被审 REQUEST 之上）
+**Peer 状态（仅元数据 · 未读原文）**：mw-e2e-ha PRE-EXEC dual PASS @`260a272e`（subject 披露 candidate 1 authorized · C-1..C-9；其 C 编号原文不可见，本文 Conditions 为 mw-privacy-int 独立编号，由协调方对账）。旧 `rv/ss-privacy-int` @`4256d7ef` 系针对孪生 REQUEST `7c523fb`（line/ss-container-reachability 链）的 review commit，本文不采纳其内容、不构成对 45e1ac42 的签名——本审为 45e1ac42 链独立补席。
+
+## 0. 审查基础（命令 + EXIT + 可复现证据 · 全部本 worktree 实测）
+
+- **docs-only 验证**：`git diff-tree --name-status -r 45e1ac42` = 4 个新增 `.md`（slice + harness + 双 stub），198 insertions / 0 deletions / 0 code。✅
+- **链位如实披露**：`git merge-base --is-ancestor 45e1ac42 71713718`（origin/feat/mysql-schema-skeleton 远端与本地 tip 同为 `71713718`，`git ls-remote` 复核）→ **exit=1，非祖先**；`45e1ac42` 直系落于 `416b6a5b`（`git merge-base --is-ancestor 416b6a5b 71713718` = YES，origin 链上 Line W nail 段），与 `4766d4fc`（REQUEST 文档所引 parent tip，`line/w-nail` 工作线 tip）为**平行孪生**（互不为祖先；两 base 树 diff 共 53 文件、`grep -v '^ai-docs/'` = 空，即**纯 ai-docs 差异、代码树零差异**）。REQUEST 文档 "满足预期 ≥`4766d4fc`" 在 origin 链镜像侧系孪生记账近似（OB-1）。孪生 REQUEST `7c523fb`（`line/ss-container-reachability`）与本审对象 patch **逐字节一致**（`git diff 45e1ac42^ 45e1ac42` vs `git diff 7c523fb^ 7c523fb` diff -q = IDENTICAL）。本审所有代码锚点均对 `45e1ac42` 实树独立复核，两链通用。✅
+- **缺陷链条锚点逐项实码复核**（只读）：`scripts/run-e2e-isolated.mjs:2124-2131` `docker run --rm -d … -p 127.0.0.1::5432 … postgres -c meetwise.e2e_run_token=${targetToken}`、`:1805` `targetToken = randomUUID()`（per-run 随机）、`:1812` baseEnv `PGHOST:'127.0.0.1'`、`:2133-2137` `docker port` 解析 `127\.0\.0\.1:(\d+)`；`scripts/uc018-perf-load-capped-child.mjs:18` API 容器名、`:89-103` passEnv **13 项无 `DATABASE_URL`**、`:141` `--network host`、`:202` `docker start -a`；`package.json:126-127` 三层链；`apps/api/test/uc-e2e-018-perf-load.proof.ts:24` `boot` ← `apps/api/test/_neg-harness.ts:58` `await assertIsolatedTestTarget(db.pool)`（启动期闸门路径成立）；`apps/api/test/uc-e2e-018-perf-load.proof.ts` 在 `-w apps/api` 下以 `test/…` 相对路径引用一致。✅
+- **闸门本体**（`packages/db/src/isolated-test-target.ts` 全文只读）：`:24-46` 云分支（`assertCloudPrivateTestEnvironment`：`:25` 隔离 profile 冲突、`:36` `privateIpv4(PGHOST)`、`:41-42` TLS attestation）；`:55-67` `assertIsolatedTestEnvironment`（`:60` `E2E_ISOLATED!=='1'` throw、`:61` `DATABASE_URL` 禁、**:62 `PGHOST!=='127.0.0.1'` throw `destructive_proof_loopback_target_required`**、`:63-64` TLS 受控、`:65` attestation 双变量）；`:70-78` `assertIsolatedTestTarget`（**:73 只读 nonce 查询 `current_setting('meetwise.e2e_run_token', true)`、:74-77 比对 + `destructive_proof_isolated_target_attestation_mismatch`**）；`:48-54` docstring 根语义「destructive proofs never allowed to infer their target from a developer shell + 服务端 custom setting nonce，ordinary local or cloud databases do not have」。台账所引 `:59` 行漂移属实（实码 `:62`，断言文本与错误码逐字一致）。✅
+- **台账/SSOT 锚点**：`receipts/2026-10-05-c-perf-teardown-branch-a-blocked-ledger.md` 在树内（7 次 EXIT=1 = 前 4 次陈旧 node_modules 归因 + 正式 attempt-1/2/3 全 `ECONNREFUSED 127.0.0.1:<port>` @ assert 点，receipt `bc195ca5…`/`ea57a86a…`/`30476649…`）；backlog `:35` C-PERF-TEARDOWN = disclosed OPEN、`:359` P 线 CLOSED（fixed）链完整、`:423-429` Line S nail `post_prove_dual_pass` + CONDITION OPEN retained + attempt1@`b29c191` Ban wash。✅
+
+## 1. assert 放宽边界裁决（授权根焦点 · 核心裁定）
+
+**根语义**（闸门 docstring `:48-54`）：破坏性证明不得从开发者 shell 推断目标；真绊线 = 服务端 nonce。分层：belt = `PGHOST` 字面白名单（`:62`，廉价无网络性质）；suspenders = `E2E_ISOLATED==='1'`（`:60`）+ `DATABASE_URL` 禁（`:61`）+ TLS 受控（`:63-64`）+ attestation 双变量（`:65`）+ **服务端 nonce 比对（`:73-77`，硬底）**。
+
+**候选 1（bridge + `host.docker.internal` + 两字面白名单）→ 裁定：授权（附 Conditions C-1~C-10）**。否定论证（针对 stub §1 攻击面推演）：
+
+1. **`host.docker.internal` 能否被滥用指向真实 DB → 否**。该名仅解析到宿主/VM host-gateway，不解析到攻击者任选目标；且 assert 通过要求对端服务器 `current_setting('meetwise.e2e_run_token', true)` === 声称 token（`:73-77`）。该 GUC 仅由 `run-e2e-isolated.mjs:2124-2131` 容器启动命令注入（`-c meetwise.e2e_run_token=<randomUUID>`，per-run 随机）；真实 dev/staging/prod 库无此 setting → `missing_ok` 返回 NULL → NULL ≠ token → 硬 throw。**只有隔离容器注入该设置 → 绊线是硬底**。
+2. **「从 shell 推断目标」通道未重开**。环境伪造（`E2E_ISOLATED=1` + attestation 全套）在改动**之前**对 `PGHOST=127.0.0.1` 即已可能——belt 从来不是防伪造进程的，是防 shell 意外继承的。放宽后增量可达面仅为「宿主自身 loopback 发布端口」，仍被 nonce 硬底兜住；`PGHOST=<其他任意 host/IP/前缀>` 仍被 `:62` 白名单 fail-closed 拒绝。
+3. **白名单最小性**：两精确字面量严格相等 = 最小放宽形态；REQUEST 自带 Ban 前缀/正则/环境变量开关/任意 host。空值/undefined/大小写变形均不匹配 → throw（fail-closed）。
+4. **云分支零联动**：`E2E_CLOUD_ISOLATED==='1'` 在 `:56-59` 先行分流；云分支 `:36` 要求 `privateIpv4(PGHOST)`，`host.docker.internal` 非 IPv4 → 云路径不受影响；REQUEST Ban 触碰 `:24-46`。
+5. **爆炸半径**：宿主侧 baseEnv `:1812` `PGHOST:'127.0.0.1'` 不变 → 其余 50+ prove 目标零行为变化；`host.docker.internal` 注入仅限 perf API 容器路径。
+
+**候选 2（容器名等值锚定 `PGHOST===E2E_TEST_CONTAINER`）→ 裁定：不授权优先**。风险：(a) **belt 退化为自指比较**——等式两端均为进程可注入的 env 变量，belt 不再约束目标类（任意名称只要两变量相等即过），防线坍缩为仅剩 nonce 单层，破坏 belt/suspenders 独立冗余结构——对授权根语义的破坏面**大于**候选 1 的封闭两字面集；(b) 触碰面最大：`-p` 移除使 `:2133-2137` `docker port` 解析失效、`waitForPostgres` 宿主探针不可达、共享函数改动需逐项零行为披露，跨 prove 回归面 &gt; 候选 1。其「零宿主发布面」优点真实但不补偿 belt 独立性损失。
+
+**候选 3（socat sidecar）→ 裁定：不推荐成立，本刀禁用**。(a) `node:20-bookworm` 无 socat → 镜像层变更**邻接 C-IMAGE-DIGEST 条件链**（Ban 借本刀，须另开授权）；(b) 转发器自身故障 = 新增沉默失败面（挂起/超时归因模糊），与「错误必被观测」正面冲突；(c) 三容器编排复杂度陡增。「assert 零改动」优点不足以抵偿。
+
+## 2. 七项必保核查（任一候选必须保住 · 逐项判定）
+
+| # | 不变量 | 判定 |
+|---|--------|------|
+| 1 | nonce 强制查询（`:73-77`） | ✅ REQUEST 未触碰；C-3 钉死字节不变 |
+| 2 | Ban `DATABASE_URL`（`:61`） | ✅ 未触碰；passEnv 实核 13 项无 DATABASE_URL；C-6 |
+| 3 | Ban 云分支联动放宽（`:24-46`） | ✅ 未触碰；`privateIpv4` 天然拒非 IP 值；C-4 |
+| 4 | 白名单最小化 | ✅ 两字面量、无前缀/正则/开关；C-1 |
+| 5 | 错误必被观测（结构化日志） | ✅ Ban 吞错/伪装成功/静默重试；关闭判据 (c) `db_pool_error` 诚实判；C-2/C-8 |
+| 6 | Ban 全局 `uncaughtException`/`unhandledRejection` | ✅ harness `:29` + slice Ban 段 + stub §3 三处一致 |
+| 7 | Ban 碰产品 `principal.ts` | ✅ harness `:71` + slice `:23` + stub §4 三处一致 |
+
+## 3. Fail-trigger audit（触发即 FAIL 项 · 本审逐项过筛 = 零触发）
+
+1. docs-only 违规 → 实测 4 md / 0 code，未触发。
+2. REQUEST 内嵌码或预设放宽既成事实 → REQUEST 仅提交判定 + 候选，明确「本 commit 不写码」，未触发。
+3. Pins 漂移 → stub/slice/harness 三文件 Pins 逐字一致（见 §5），未触发。
+4. C-PERF-TEARDOWN 自关或互借 → stays CONDITION OPEN、关闭链 = 本刀 prove + post-dual BOTH + 协调方 nail、Ban 互借 P 线（`:359`）/ Ban 混同 S 线 nail（`:423-429`），未触发。
+5. C-IMAGE-DIGEST 借道 → Ban 关闭 + 候选 3 镜像变更须另开授权，未触发。
+6. 洗 7×EXIT=1 台账 / retry-to-green / 弃 attempt → 全台账契约 + Ban 三连 + prove 契约 ≥3 attempts frozen-lockfile fresh PG，未触发。
+7. 阈值 miss 洗成关闭证据 → EXIT=1 诚实保留 + 关闭判据三分复用 S 线 Branch A 口径，未触发。
+8. 触碰面越界 → 仅 capped-child + run-e2e-isolated 编排 +（候选 1/2 且双审批准）isolated-test-target.ts + 测试；Ban 其他 prove 编排（共享函数逐项零行为披露），未触发。
+9. 观测面发明健康叙事（NOT_HA→HA）→ PERF/LOAD stays local partial · capacityRepresentative=false · 观测=故障观测非健康证明，未触发。
+
+## 4. Blockers / Conditions
+
+**Blockers（执行层阻断项）**：无。
+
+**Conditions（mw-privacy-int 独立编号 · 违反任一 = coding/prove/post-dual 审查 FAIL；与 peer C-1..C-9 由协调方对账，不互代签）**：
+
+- **C-1**: 白名单实现 = 恰好两个字符串字面量严格相等（`'127.0.0.1'` / `'host.docker.internal'`）；Ban 前缀/正则/环境开关/trim·lowercase 等归一化（归一化 = 新推断通道）。
+- **C-2**: 错误码裁决：**倾向新增专用码 `destructive_proof_loopback_or_hostgateway_required`**（诚实归因——host-gateway 类拓扑失败与 loopback 误配是不同故障类）；若保留原码，则结构化日志必须携带观测到的 PGHOST 值类。两者皆须在 coding commit 披露；assert 保持硬 throw，Ban 调用点 catch-and-fallback。
+- **C-3**: nonce 绊线字节不变：`assertIsolatedTestTarget :73-77` 查询与比对、`-c meetwise.e2e_run_token=` 注入与 per-run `randomUUID()` 惯例零改动。
+- **C-4**: 云分支 `:24-46` 字节不变；Ban 重构出两分支共享的「PGHOST 检查常量」（两 profile 不得共享被放宽的常量）。
+- **C-5**: `PGHOST=host.docker.internal` 注入仅限 perf API 容器路径（capped-child）；宿主 baseEnv `:1812` 恒 `'127.0.0.1'`；其余 prove 目标零行为变化，coding commit 须以 diff 级披露证明。
+- **C-6**: `:61` DATABASE_URL 禁令字节不变；passEnv 不得新增 DATABASE_URL 或任何连接串通道。
+- **C-7**: assert 单测须含：两白名单值通过边界 + 非白名单拒绝反证（至少 `''`、`'::1'`、`'localhost'`、`'10.0.0.5'`、`'host.docker.internal.evil'`、`'xhost.docker.internal'`——字面伪装变体必须仍被拒，证明严格相等而非匹配）。
+- **C-8**: 可达性契约诚实定界：候选 1 有效域 = Docker Desktop/macOS（本缺陷环境；S 台账 throwaway 容器 HOST-CONNECT-OK 为容器→宿主 loopback 发布端口可达的实证旁证）。若拓扑迁至 plain Linux/CI，`--add-host=host.docker.internal:host-gateway` + `127.0.0.1`-only bind 的可达性须诚实重验（host-gateway 拨桥 IP ≠ 宿主 loopback）；**Ban 双 PGHOST 依序试连等任何静默换路降级**。
+- **C-9**: 7×EXIT=1 S 台账原样保留并在 prove receipt 引用；attempts 全台账（EXIT + 时间戳 + machine receipt）；Ban retry-to-green / 弃单 / 洗账；阈值 miss → EXIT=1 诚实保留。
+- **C-10**: 互借禁令：coding commit 与 prove receipt 内不得出现 C-PERF-TEARDOWN 或 C-IMAGE-DIGEST 的关闭宣称；C-PERF-TEARDOWN 关闭须 prove + post-dual BOTH PASS + 协调方 nail 全链；`canHonestlyFlip=false`。
+
+## 5. Pins 原值确认（stub/slice/harness 三处一致 · 本审不改）
+
+haStatus=**NOT_HA** · releaseEvidence=**false** · claimProductionHA=**false** · gR45Closed=**true** · coveredCount=**8** · ms3EqualsR4Closed=**false** · Stack=**PG-retained** · public DELETE=**503**（stays）· PERF/LOAD=**local partial**（stays）· capacityRepresentative=**false** · canHonestlyFlip=**false** · backlog `:35` C-PERF-TEARDOWN **stays CONDITION OPEN** · C-IMAGE-DIGEST **不关** · `C-PERF-CONTAINER-REACHABILITY` 登记编号由协调方裁决。✅ 全数原值。
+
+## 6. 观察项（不阻断 · 留协调方）
+
+- **OB-1**: base 记账漂移——REQUEST 引 parent tip `4766d4fc`，origin 链镜像 `45e1ac42` 实落 `416b6a5b`（二者为平行孪生，53 文件纯 ai-docs 差异、代码树零差异）；「满足预期 ≥`4766d4fc`」在镜像侧为孪生近似。协调方同步链时应对平 later series docs（c-perf-teardown-condition-residual / g7-key-blocked-residual-honest / uc011 covered-lift-reassess 等）。对本刀技术裁定零影响（全部代码锚点两链一致实测）。
+- **OB-2**: 旧 `rv/ss-privacy-int` @`4256d7ef` 对孪生 REQUEST `7c523fb` 已有 PRE review commit（subject 元数据）；其与 peer `260a272` 非 sibling-dual 关系（分别审 7c523fb / 45e1ac42 内容孪生）。本审后 45e1ac42 链的 dual 完整性由协调方裁定；本文不追溯采纳或否认旧审内容。
+
+## 7. 结论（中文三行）
+
+1. 候选 1 两字面白名单放宽不破坏「破坏性证明不得从 shell 推断目标」根语义：belt 仍封闭、宿主可达面仅增量于自身 loopback 发布端口，nonce 硬底（`:73-77` + 容器启动 GUC 注入）对任何伪造 env 的进程恒拒真实库——否定论证成立，授权候选 1，否决候选 2（belt 自指退化）与候选 3（沉默失败面 + C-IMAGE-DIGEST 邻接）。
+2. REQUEST docs-only 四 md 实测成立，缺陷链全部代码锚点（`-p 127.0.0.1::5432` + token GUC + `--network host` + passEnv 无 DATABASE_URL + assert `:62/:73-77`）逐项实码复核属实；七项必保、互借禁令（C-PERF-TEARDOWN prove+post-dual+nail 全链 · C-IMAGE-DIGEST 不互借）、Pins 原值十项三处一致——fail-trigger audit 零触发，Blockers 无。
+3. alone ≠ dual：本 PASS 仅 mw-privacy-int 席位，≠ coding 授权 ≠ prove 执行 ≠ 条件关闭；peer `260a272` 原文未读、其 C-1..C-9 不代签不背书，dual 完成与 coding 授权由协调方裁定。
+
+Verdict: PASS
