@@ -1,15 +1,18 @@
-# Harness — **G7 Path B honesty · trio FAIL 四分类 + Path B 排队清单**（Line G7B · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · ≠ suite green）
+# Harness — **G7 Path B honesty · trio FAIL 四分类 + Path B 排队清单**（Line G7B · docs REQUEST · **`executed:awaiting_post_prove_dual`** · ≠ suite green）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove 执行 · Ban trio 重跑 · Ban live · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · Ban fake green · Ban `g7SuiteGreen=true` · Ban washing Key-blocked as pass · Ban self-approve）
+**Status**: **`executed:awaiting_post_prove_dual`**（G7B exec 落盘 2026-10-07 · PRE dual BOTH PASS：mw-model-op `bbf418ba` + mw-e2e-ha `c79219b6` @REQUEST `017a178d` ≡ mirror `7801750d`（4 文件 blob 级等同）· 分类产物 = REQUEST 自身（harness 未定义额外产物 → 仅推进 lifecycle 标记 · MOP03 `d5e6f7e6` 先例）· 零 coding · 零 prove 执行 · 零 trio 重跑 · 零 SSOT（nail 期才碰）· Q1–Q3 排队 ≠ 授权 · **Ban self-write `post_prove_dual_pass`** · Ban nail until POST BOTH + 协调方 · Ban live · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · Ban fake green · Ban `g7SuiteGreen=true` · Ban washing Key-blocked as pass · Ban self-approve · alone ≠ dual）
+
+> **Pre-exec-era status（historical · retained）**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove 执行 · Ban trio 重跑 · Ban live · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · Ban fake green · Ban `g7SuiteGreen=true` · Ban washing Key-blocked as pass · Ban self-approve）
+
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · **`g7SuiteGreen=false`** · `r1Closed=false` · `techRoleFailClosedOptOutG7Only=true`
 **Date**: 2026-10-06
-**Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`4766d4fc`** / full `4766d4fc…`（worktree `/Users/miaole/Desktop/golucky/meetwise-line-g7b` · branch `line/g7b-path-b-honesty`）
+**Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`d5e6f7e6`** / full `d5e6f7e63aa20ef3a4ec3f168a63c8f7feb4315d`（EXEC rebase 已落：REQUEST `7801750d` 同补丁自动 drop 落 tip · C-HA-1 base 重钉 · gate blob `c655235c`/`aa86fb3f` @tip 复核零漂移 · 被审基点 `4766d4fc` 保留为 review provenance · worktree `/Users/miaole/Desktop/golucky/meetwise-line-g7b` · branch `line/g7b-path-b-honesty`）
 **Knife**: **G7 Path B honesty 刀**（Line G7B · 协调方优先级 #4 (a)+(b)）——承接 Line AC `3922b48`（G7 env-gap **Path A** · trio EXIT 1/1/1 Key-blocked 诚实收据）与 Line AD 残余收据轨，把 trio 三条 CMD 的全部 FAIL case 逐个归入四类 **[Key-blocked | 真实产品缺陷 | 夹具/基建缺陷 | 环境缺口]**，把「Key-blocked」与「真实缺陷」两类彻底分开；并对各类开出 Path B 方案（修复排队 / 披露保持 / backlog 登记）。
 **Gap / theme**: G7 trio **OPEN 1/1/1** · dominant FAIL = **Key-blocked** `provider/live_provider_key_missing` · business-assert **unreached → UNKNOWN（null）** · 本刀 **docs-only**：分类 + 排队清单，零产品改动，SSOT 留待 nail 期。
 **Prior nails（只读 · 不改写）**:
 - Line AC NAIL `3922b4859f034f07d43ba9f9b443ac3d29b7687e`（`docs(delivery): NAIL G7 env-gap Path A Line AC post_prove_dual_pass`）· prove tip **NAILED TO** `7c818c5` / `7c818c5fe2249cdac686aa2a0e58748b3c5dea68` · code `160c30c` / `160c30cac7a0a05106120949f337847b782647b7`（`scripts/with-docker-session.sh`）· receipts tip `5481d4d` · **PROVE_EXIT 1/1/1** Key-blocked · POST dual mw-e2e-ha `fdab68f` + mw-model-op `6f0d015` BOTH PASS。
 - Line AD（residual receipts）· exec HEAD `880f144` · re-attest ×1 EXIT **1/1/1** Key-blocked · `receipts/g7-key-blocked-residual-honest/P2-residual-classification.md`（class 无漂移 · `assertionCount=null` 显式登记）。
-**Experts**: `mw-model-op` + `mw-e2e-ha`（stubs PENDING · Ban self-approve · alone ≠ dual）
+**Experts**: `mw-model-op` + `mw-e2e-ha`（PRE dual BOTH PASS · exec 落盘 awaiting POST dual · Ban self-approve · alone ≠ dual · Ban nail）
 **Authority**: meetwise — docs REQUEST only · Ban SSOT flip · Ban invent covered · Ban suite green claim · Ban self-nail
 
 ---
@@ -132,4 +135,4 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ---
 
-*Harness · G7 Path B honesty classification · Line G7B · 2026-10-06 · draft:awaiting_pre_exec_dual · docs-only · 四分类 C1–C11 · Key-blocked 3+3 · 产品缺陷 0 确认（unknown≠0）· 夹具 1 族 open + 1 已修 · 环境 0 open · 排队 Q1–Q3 · Ban trio 重跑 · Ban 装 Key 蒙混 · Ban 假绿 · Ban live · STOP*
+*Harness · G7 Path B honesty classification · Line G7B · 2026-10-06 · executed:awaiting_post_prove_dual · docs-only · 四分类 C1–C11 · Key-blocked 3+3 · 产品缺陷 0 确认（unknown≠0）· 夹具 1 族 open + 1 已修 · 环境 0 open · 排队 Q1–Q3 · Ban trio 重跑 · Ban 装 Key 蒙混 · Ban 假绿 · Ban live · STOP（awaiting POST dual）*
