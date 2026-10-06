@@ -1,10 +1,10 @@
-# Slice — **UC-E2E-011 covered-lift-reassess**（Line AF · Branch A hand-calc · **`executed:awaiting_post_prove_dual`**）
+# Slice — **UC-E2E-011 covered-lift-reassess**（Line AF · Branch A hand-calc · **`post_prove_dual_pass`** · `GAP-UC011-COVERED-LIFT-REASSESS` **CLOSED as honest non-flip assessment only**）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（Branch A hand-calc done · canHonestlyFlip=**false** · Ban fake flip · UC-011 stays partial · Ban self-nail · awaiting post-prove dual）
+**Status**: **`post_prove_dual_pass`**（Branch A hand-calc done · post-prove dual BOTH PASS · canHonestlyFlip=**false** · Ban fake flip · UC-011 stays partial · GAP CLOSED as honest non-flip · Ban Branch B · STOP）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
-**Date**: 2026-10-06
-**Base**: `origin/feat/mysql-schema-skeleton` · `416b6a5b5c71d97a1816974c2b174dbf4b9c8cb8`
-**Authority**: meetwise — Branch A AUTHORIZE executed · Ban Branch B · Ban self-nail · Ban covered flip · Ban SSOT flip
+**Date**: 2026-10-06 ~13:16 CST（Asia/Shanghai · UTC+8）
+**Base**: post-prove dual **`ac590ab`** / `ac590ab7b513a9b776c6a6399eb2eb75258e9582` · mw-model-op **`e38a7c4`** / `e38a7c43d64879fa59467d31d4c4d068af677c96` · PROVE tip **`350f7a4`** / `350f7a482bd85ccd05c41c62edfd98996f9a9506` · PRE `f215438`/`e3c887b` · REQUEST `3dca5de` · wave `416b6a5`
+**Authority**: meetwise — AUTHORIZED nail Line AF · Ban Branch B · Ban covered flip · Ban invent covered · Ban claim HA · Ban next REQUEST
 
 ## One-line
 
@@ -14,22 +14,32 @@ Line V 主口 CLOSED(wired) nail `5aae104`（prove tip `cf34390` · 68/68）+ Li
 
 | Role | Path |
 |------|------|
-| Harness | `harness/uc-e2e-011-covered-lift-reassess.md`（mirror `uc-e2e-018-covered-lift-reassess.md`） |
+| Harness | `harness/uc-e2e-011-covered-lift-reassess.md`（mirror `uc-e2e-018-covered-lift-reassess.md` / nail `0b7a218`） |
 | Dual `mw-e2e-ha` | `reviews/REQUEST-2026-10-06-uc-e2e-011-covered-lift-reassess-mw-e2e-ha.md` |
 | Dual `mw-model-op` | `reviews/REQUEST-2026-10-06-uc-e2e-011-covered-lift-reassess-mw-model-op.md` |
 | Receipt (Branch A) | `receipts/2026-10-06-uc-e2e-011-covered-lift-reassess.md` · canHonestlyFlip=false |
-| Post dual `mw-e2e-ha` | `reviews/REQUEST-2026-10-06-uc-e2e-011-covered-lift-reassess-post-prove-mw-e2e-ha.md` |
-| Post dual `mw-model-op` | `reviews/REQUEST-2026-10-06-uc-e2e-011-covered-lift-reassess-post-prove-mw-model-op.md` |
+| Post dual `mw-e2e-ha` | `reviews/REQUEST-2026-10-06-uc-e2e-011-covered-lift-reassess-post-prove-mw-e2e-ha.md` · **PASS** tip **`ac590ab`** |
+| Post dual `mw-model-op` | `reviews/2026-10-06-uc-e2e-011-covered-lift-reassess-post-mw-model-op.md` · **PASS** tip **`e38a7c4`** |
 
-## Branches（授权后）
+## Lifecycle（nailed）
 
-- **A docs-only 手算**（默认）：六列 + §1.1 + §1b + 残余 → refuse reasons；零 CMD
-- **B computed**（另授权）：UC-011 gatherer + 拟 `pnpm uc011:covered-lift-reassess:prove` 调用未改动 `evaluate()`；UC-018 回归不变
+| Phase | Result |
+|-------|--------|
+| L0 REQUEST | DONE · tip `3dca5de` |
+| L1 Pre-exec dual | DONE · BOTH PASS `f215438`/`e3c887b` |
+| L2 AUTHORIZED Branch A hand-calc | DONE · PROVE tip `350f7a4` · canHonestlyFlip=false · refuse five · Zero CMD · Ban Branch B |
+| L3–L4 post-prove dual | DONE · BOTH PASS `ac590ab`/`e38a7c4` |
+| L5 AUTHORIZED nail → STOP | **current** · `post_prove_dual_pass` · GAP CLOSED as honest non-flip · Ban invent covered · Ban next REQUEST |
+
+## Branches
+
+- **A docs-only 手算**（THIS NAIL · executed）：六列 + §1.1 + §1b + 残余 → refuse five；零 CMD · canHonestlyFlip=false
+- **B computed**（**Ban this nail**）：gatherer/prove script **not authorized** · Ban Branch B
 
 ## Ban
 
-Ban coding · Ban prove 执行 · Ban flipping UC-011 to covered in REQUEST · Ban covered fake flip · Ban invent covered · Ban wash residuals closed · Ban EXIT0=covered · Ban reopen GAP-UC011-ADV-01 · Ban 改 evaluator · Ban live · Ban Meridian · Ban secrets · Ban force-push · Ban SSOT flip · Ban self-approve · Ban self-nail · Ban 碰 018/052/025 · Ban 碰 AD/AE/AG/AH。
+Ban flipping UC-011 / §1.1 / P1-2 to covered · Ban covered fake flip · Ban invent covered · Ban wash residuals closed · Ban EXIT0=covered · Ban reopen GAP-UC011-ADV-01 · Ban Branch B · Ban live · Ban Meridian · Ban buy cloud · Ban secrets · Ban force-push · Ban SSOT flip to covered · Ban self-approve · Ban claim HA · Ban next REQUEST · Ban 碰 AD/AE/AG/AH active files except shared SSOT nail registration.
 
-Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · canHonestlyFlip=false · EXIT0≠covered.
 
-*Slice · UC-E2E-011 covered-lift-reassess · Line AF · executed:awaiting_post_prove_dual · canHonestlyFlip=false · Ban fake flip · STOP*
+*Slice · UC-E2E-011 covered-lift-reassess · Line AF · post_prove_dual_pass · CLOSED as honest non-flip assessment only · PROVE tip 350f7a4 · POST dual ac590ab+e38a7c4 · canHonestlyFlip=false · refuse five · coveredCount=8 · Ban fake flip · Ban Branch B · Ban claim HA · STOP*
