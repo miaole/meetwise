@@ -1,6 +1,6 @@
 # Slice — **C-PERF-TEARDOWN CONDITION residual · container-reachability honest evidence**（Line AE · docs REQUEST · **`draft:awaiting_pre_exec_dual`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（docs REQUEST only · CONDITION stays OPEN · Ban close · Ban wash attempt1）
+**Status**: **`post_prove:awaiting_post_prove_dual`**（R-A · EXIT 0/0/0 · receipt 2026-10-06 · CONDITION stays OPEN · Ban close · Ban wash attempt1 · Ban self-nail）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · PERF/LOAD local partial · capacityRepresentative=false · canHonestlyFlip=false
 **Date**: 2026-10-06
 **Base**: `origin/feat/mysql-schema-skeleton` · `416b6a5b5c71d97a1816974c2b174dbf4b9c8cb8`
@@ -33,4 +33,4 @@ Ban coding · Ban prove 执行 · Ban close C-PERF-TEARDOWN · Ban wash attempt1
 
 Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
 
-*Slice · C-PERF-TEARDOWN CONDITION residual · Line AE · awaiting_pre_exec_dual · STOP*
+*Slice · C-PERF-TEARDOWN CONDITION residual · Line AE · awaiting_post_prove_dual · R-A · OPEN · STOP*
