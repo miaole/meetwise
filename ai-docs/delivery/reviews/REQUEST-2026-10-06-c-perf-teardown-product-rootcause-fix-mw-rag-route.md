@@ -110,3 +110,48 @@ backlog `:35` 写明 attempt1 发生在 “PERF-LOAD teardown during backfill”
 上述 6 项阻断未解除前不得进入 coding / prove。CONDITION（backlog `:35`）保持 OPEN；UC-018 / §1.1 保持 partial；attempt1 不洗。Pins 未变：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503。本审不代签 mw-e2e-ha；alone ≠ dual；coding 须双方 PASS 加协调方 AUTHORIZE。
 
 Verdict: FAIL
+
+## Re-PRE @553cfc5
+
+**时间**：2026-10-06 20:28 +08:00
+**REWRITE**：`553cfc5e4ca511b0327b647fcc2b49925828752c`（supersedes `110532e`，引用我方 FAIL `152b665` B1–B6）。fetch 后确认在 origin，是 tip `a1f3614` 的祖先；只改 4 个 docs（harness +100/-24、slice、两个 stub）。
+**审查基**：临时 worktree `/tmp/mwrr-553cfc5` @ `a1f3614` · 仅本 box · 只读，无 prove / docker 操作 · 未读 `.env*` · 无 live 模型调用
+**本文件历史段**：`## PRE-EXEC @110532e` 正文与 `152b665` 逐字一致（区段比对通过）；core 新增的表头 / Rewrite note 未改动。
+**Peer**：mw-e2e-ha 的同线收据仍为 PENDING stub，无结论可引；不代签 · alone ≠ dual。
+
+### 逐项核对（harness = `harness/c-perf-teardown-product-rootcause-fix.md`）
+
+- **B1 · 部分解除，仍阻断。**
+  - 已解除：四个 locus 已具名并带锚点（`:48-51`）。L1 `principal.ts:928-931` ✓；L2 `run-e2e-isolated.mjs:1714` / `:2239-2241` ✓；L3 `uc018-receipt-backfill-emit.mjs:555-560` / `:559`，并注明 `:206` / `:226` / `:248` 跳过 finally ✓；L4 `uc018-perf-load-capped-child.mjs:18` ✓。根因初判已书面给出（`:58`），可证伪判据见 `:48-51`。小误差：`:48` 写 `pool.on('error')` 在 `:932`，实际在 `:931`。
+  - 仍缺 ①：L3（他线 emit 的 `:559` 删掉 PG 容器）只写了「优先排除」（`:58`）和判据「日志见他 PID 容器消失」（`:50`），**没有说明如何判定**。§4 / §5 没有任何一步能产生 L3 的入 / 出证据：既没有读取 attempt1 证据链（backlog `:35` 指向 `reviews/REQUEST-2026-09-23-uc-e2e-018-receipt-backfill-mw-e2e-ha.md:371-380`，以及 `attempts.jsonl`）核对是否有并发 emit，也没有设计能区分 L3 签名的复现。
+  - 仍缺 ②：attempt1 的时序证据没有被用来约束假设或注入时机。`:233` 写「on PG teardown」；纠正段 `:371-380` 写 run1+run2 `passed=true` 后出现 Unhandled `Connection terminated unexpectedly`，没有 run3，也没有 `SUMMARY`，即崩溃发生在 run2 通过后、run3 之前。harness 未分析此窗口内 proof 自身的 PG 收尾 / 重连（本 run 资源，L2 / L4 层）能否产生同一签名。`:49` 仅以「不扫他线」排除 L2。
+  - **修复**：
+    1. 在 §2 增加「L3 判定程序」：(a) 读取 attempt1 日志锚点与 `attempts.jsonl`，比对时间窗内是否存在并发 emit / 他 PID 容器删除，写出结论（入 / 出 / 无法判定）；(b) 给出一个模拟外部删除的确定性复现（只针对本 run 容器），把错误签名与 attempt1 的 `:376` 对比。
+    2. 在 L2 / L4 中补充「run 间 / PG teardown 窗口内本 run 资源时序」假设，以及对应判据。
+- **B2 · 已解除。** 每个 locus 标了 PRODUCT / HARNESS / INFRA（`:48-51`）；P-FIX 只准改 `packages/db/src/principal.ts`（`:53-56`）；明确「emitter `:559` ≠ product close」（`:50`、`:56`、`:72`、`:143`）。
+- **B3 · 部分解除，仍阻断（与 B4 合并）。**
+  - 已解除：唯一命令 `./scripts/with-docker-session.sh env -u MODEL_API_KEY -u MODEL_BASE_URL pnpm uc018:perf-load:prove`，带 `env -u` 前缀（`:80`、`:86`）；attempts=3（`:87`）；时间戳与 SHA 要求（`:88`）；去掉了「或 PRE 选定」（`:92`）。
+  - 仍缺：
+    - `:91`「修复后 + inject」的 EXIT 写成「按设计诚实（可为 1）」，**未钉值**，违反 LOOP §3③（`NORTH-STAR-EXECUTION-LOOP.md:81`）。
+    - attempts=3 的通过要求没写清：正控是否必须 3/3 EXIT 0？inject / 变异各跑几次？
+    - inject 这一步本身（`pg_terminate_backend` / `docker restart`）没有期望 EXIT。
+  - **修复**：逐条钉出：正控 3/3 EXIT 0；pre / 变异 inject 每次 EXIT 精确值（或「≠0 且日志含 `Unhandled 'error' event`」）；修复后 inject 的精确 EXIT 及判定（例如 EXIT=1 且 reason=X、`db_pool_error` 计数 ≥1、无 unhandled）；inject 命令期望 EXIT 0。
+- **B4 · 未解除，阻断。**
+  - `:98` 仍是「(A) `pg_terminate_backend` **或** (B) `docker restart` 本 run 容器」二选一，交给实施方选择，两者的预期也没分开。
+  - 注入时机未钉：只说 mid-prove，没有触发点（例如负载阶段第 N 个请求后，或 run2 通过后、run3 前），而 attempt1 发生在 run2 通过后、run3 前（`09-23 review :371-380`）。
+  - 修复后期望未钉（同 B3）。变异 = 删去 `principal.ts:929`（`:101`、`:103`）✓。
+  - **修复**：二选一定案，或两者都做并各自钉预期；钉触发点（建议至少包含与 attempt1 一致的 run 间窗口）；分别钉修复前 / 修复后 / 变异的 EXIT 与日志签名。
+- **B5 · 已解除。** 回归 R1–R3 各带期望 EXIT 0（`:109-111`），并 Ban 借绿（`:113`）。已核实 `packages/db/test/pool-error-listener.proof.ts` 与根 `package.json:524` 的 `uc018:receipt-backfill:prove` 都存在（见条件 2）。
+- **B6 · 已解除。** 隔离真 PG（`:119`）；Linux-native-Docker-Engine，Desktop 不在范围（`:120`）；串行要求 `docker ps` 为 0 行（`:121`）；禁止经 emitter 跑（`:122`）；inject 只作用于本 run 资源（`:99`、`:123`）。
+- **其他**：attempt1 @ `b29c191` 不洗（`:39`、`:68`、`:135`）；无 UC-018 covered flip（`:69`、`:128`）；backlog `:35` 保持 CONDITION OPEN（`:127`）；Pins 未变（`:4`、`:147`）。
+
+### 非阻塞条件（随下次 rewrite 一并处理）
+
+1. `:48` 的 `:932` 改为 `:931`。
+2. R2 `pnpm -C packages/db exec tsx test/pool-error-listener.proof.ts`（`:110`）需要说明数据库来源（经 isolated runner 还是 proof 自带），否则 env 失败会被误记为回归。
+
+### 结论
+
+B2 / B5 / B6 已解除；B1、B3、B4 仍阻断（L3 判定程序缺失，attempt1 时序未用于约束假设；修复后 EXIT 与 attempts 通过条件未钉；注入手段仍是二选一、时机未钉）。CONDITION（backlog `:35`）保持 OPEN；UC-018 / §1.1 保持 partial；attempt1 不洗。Pins 未变：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503。coding 仍禁止，须双方 PASS 加协调方 AUTHORIZE；本审不代签 mw-e2e-ha。
+
+Verdict: FAIL
