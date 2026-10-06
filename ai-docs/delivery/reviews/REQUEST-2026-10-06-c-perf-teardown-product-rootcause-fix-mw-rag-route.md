@@ -312,3 +312,95 @@ Verdict: PASS
 `20da721` 的两个阻塞都已在契约层面解除：A 已收窄到 idle-in-transaction，并改用 57P01 签名，与 pg@8.22.0 / pg-pool@3.14.0 源码一致；T1 已钉在 seed 阶段，warmup 着陆的 EXIT 0 不能作为证据。各非阻塞项已钉入，此前已解除的项目无回退，无新阻断。4 条条件中，条件 1 与条件 3 决定 A 格能否真正产出可判定的证据，强烈建议在 AUTHORIZE 前补齐。本 PASS 仅为 mw-rag-route 单方 re-PRE：mw-e2e-ha 对 `083cce4` 尚无收据，alone ≠ dual，不代签。coding 仍禁止，须双方 PASS 加协调方 AUTHORIZE。CONDITION（backlog `:35`）保持 OPEN；attempt1 @ `b29c191` 不洗；UC-018 / §1.1 保持 partial；gap ≠ covered。Pins：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained（无 MySQL / Qdrant / FULLTEXT）· public DELETE=503。
 
 Verdict: PASS
+
+## Re-PRE4 @b5633f0
+
+- 审查人：mw-rag-route（独立复核；alone≠dual，不代签 mw-e2e-ha）
+- 时间：2026-10-06 21:33 +08:00
+- 输入：REWRITE_SHA `b5633f0`（supersedes `083cce4`；docs-only 4 文件：harness / slice / 两个 stub）· 引用 mw-e2e-ha Re-PRE3 FAIL `70cba94` · 我方 Re-PRE3 PASS `dbed2f2`（条件 C1–C4）
+- 审查基：box 临时 worktree `/tmp/mwrr-perf-pre4`（detached @ origin tip `a1de77d`，含 `b5633f0`），完成后已移除。docs/source-only：未运行 prove，未执行任何 docker 命令，未触碰 .env*，未调用模型，未写 git config。
+- 源码核对：`node_modules/.pnpm/pg@8.22.0`、`pg-pool@3.14.0_pg@8.22.0`、`principal.ts`、`run-e2e-isolated.mjs`@`ac03f30`、`uc-e2e-018-perf-load.proof.ts`。`ac03f30..b5633f0` 在 packages/apps/scripts/package.json 下零改动；`083cce4..ac03f30` 中 principal.ts、PERF proof、_neg-harness 零改动（`git diff --quiet` EXIT 0）。
+- 补充说明：我在 box 上用 Node v20.19.2 跑了两段纯 Node 语义小脚本（无 DB、无 docker、非 prove），见 §1。
+- 对端：mw-e2e-ha Re-PRE4 PASS `2900c46`，仅引用，不代签。
+
+### 1. `70cba94` 新阻塞 1（B/C-MUT）→ 契约层已解除
+
+- MUT-ZERO 定义（harness :156-159）：同删 `principal.ts:929`（`client.on('error')`）与 `:931`（`pool.on('error')`），施加判据为 `2 deletions(-)`。全仓 API 进程中 `createPool` 仅 `apps/api/src/platform/db.service.ts:7` 一处，`h.pool` 即该池；apps/api/src、packages/db/src、_neg-harness 中除 :928-931 外无其他 `on('error'|'connect')`。MUT-ZERO 下确为零观测者。
+- 源码路径逐条成立：
+  - idle client 经 pg-pool `index.js:51-62` idleListener 触发 `:62` `pool.emit('error')`，无监听时抛出。BoundPool 来自 `pg/lib/index.js:14`。
+  - checkout 时 `index.js:344` 去掉 idleListener。asPrincipal（`principal.ts:945-955`）事务间隙经 `client.js:198-217` 或 `:427-428` → `:417` emit，无监听 → Unhandled on Client。
+  - asPrincipal 遇 active query + FATAL：`:432-433` 回调 → `:954` catch 发 ROLLBACK 并挂起 → 'end' 时 `:205` `_ending` 为假 → `:217` emit → Unhandled on Client。
+  - pool.query（`index.js:455-464` `once('error')`）接住自身 client；释放路径 `:384-397`。
+- 本地 Node 语义核对（v20.19.2）：
+  - 异步回调内对无监听 emitter emit Error，stderr 含 `throw er; // Unhandled 'error' event` 与 `Emitted 'error' event on Client instance`；子类名为 BoundPool 时打印 `on BoundPool instance`。
+  - 模拟 POOLQUERY_RACE：先到的回调拒绝 TLA 链，进程在下一个回调分发前以 EXIT 1 退出，无 Unhandled，栈含 `at async seed…`（pg-pool `index.js:42-46` 的 `captureStackTrace` 保证 seed 帧可见）。
+  - 结论：§5.2b :272-278 推导成立，残余竞态真实存在，并已事前钉为 `INJECT_KIND_POOLQUERY_RACE` 格 FAIL。
+- 防假绿：B/C-MUT 命中需同时满足 Unhandled、`db_pool_error=0`、无 SUMMARY、`RAW_EXIT=1`，且施加前 diff 恰为 2 deletions。MUT-929 误用会因 idle 路径经 `:931` 记 `db_pool_error` 而落 `MUT_NOT_APPLIED`；POST（socket 路径）`:929` 先挂 → `db_pool_error≥1`。因此不能假绿，MUT/POST 有判别力。
+- idle_n≥1：在门控同一条语句内测量（§5.0 :201、§5.1a :226-228），时点正确。它是服务端代理量，见 NB-1。
+
+### 2. C1–C4（我方 `dbed2f2` 条件）
+
+- C1 已落实：§5.1a :217-253 用单条 `WITH iv/idle/tgt/k … SELECT … INTO r`，同时返回 pid/state/xact_start/left(query,60)、`pg_terminate_backend`、`IV\_P018\_R3\_%` 行数 / 非 active 行数 / idle_n。`tgt`、`k` 各被引用两次 → 物化一次，每行只终止一次；非 seed 不终止（:256）。seed id 为 `${prefix}_${i}_${S}`、prefix `IV_P018_R${run}`（proof :230/:273），以 `status='active'` 插入（:233），阶段规则见 :177-179。
+- C2 已落实：A-MUT :166 与 A-POST :167 只以 57P01 存在为判据，永不以 CTU 缺席作判据；A 竞态 → `A_FATAL_ON_ACTIVE` 格 FAIL 计入、如实记录；attempt1 归因只依 J-2（:212）。
+- C3 已落实：§5.0 :196 单次 `docker exec -i … psql` `DO` 循环（`pg_stat_clear_snapshot()`、5 ms、10 s 上限 → `INJECT_GATE_TIMEOUT`）；`INJECT_MISS`（k=0）见 :208/:288；禁止两次 exec（:308）。但反应上限的取值见阻塞 1。
+- C4 已落实：§5.4 :293-306 给出 R2 run/port/pg_isready/rm、NB-4 清理、J-2 events/pgrep/ps 前后、B 端口、MUT 施加/还原的期望 EXIT 与输出判据，偏离 → `AUX_EXIT_UNEXPECTED`。`wait=143` 假设见 NB-3。
+
+### 3. runner +18 重锚 @ac03f30：成立
+
+- 逐行实测：`:1744` 容器名、`:2039` `docker_diagnostic_unavailable`、`:2193-2194` caps、`:2200` `run --rm -d`、`:2214` `E2E isolated PostgreSQL:` 打印、`:2269` finally / `:2270` 诊断 / `:2271` 自有 `rm -f`。与 `083cce4` 的 `:1726/:2021/:2175-2176/:2182/:2251-2253` 内容逐字一致。
+- 插入块为 `+15 @:1286-1300`、`+1 @:1466`、`+2 @:1712-1713`，合计 +18。
+- 另有一处未披露的单行改写 `:2220`（migrate 列表追加 `rag03-filter-locus:prove:raw`），不产生偏移、不影响 uc018 target（NB-4）。
+
+### 4. Cleared stay
+
+- harness §2 / §6 / §7 的 `083cce4..b5633f0` 改动仅为行号重锚。B1(a)(b)、`:931` 归属、R2 DB source、B2/B5/B6 无回退。
+- `20da721` 阻塞 1/2 保持解除：Inject A 仍为 `idle in transaction` + 57P01 + MUT-929（:157/:200/:280），T1 仍为 seed，`INJECT_PHASE_WARMUP` FAIL 格保留，C keep。
+- backlog `gap-bug-backlog.md:35` 在 `083cce4..b5633f0` 零改动，CONDITION OPEN。
+- 我方历史段字节不变（`70cba94..b5633f0` 对本文件的改动仅在 core 头部与新增 Rewrite ×4 note）。
+
+### 5. 阻塞项
+
+#### 阻塞 1：T1=seed 的时间窗与钉定的反应上限 / 余量量级不符，seed 着陆 3/3 不可推出
+
+本仓已提交的同一 proof 实测记录（`ai-docs/delivery/receipts/uc018-perf-load/nhp-018-perf-01-run3.json` / `nhp-018-load-01-run2.json`；proof 自 `b29c191` 引入后从未改动，caps 同为 `--cpus 2 --memory 4g`）：
+- LOAD run2 结束于 2026-09-24 10:46:15.205 +08:00。
+- PERF run3 从同一毫秒开始，到 10:46:15.635 +08:00 结束，全程 430 ms（含 seed 110 轮 + warmup 10 + measured 100）。
+- measured 墙钟按 rawLatenciesMs 总和 2166 ms / c=10 ≈ 217 ms，因此 seed ≤ 约 213 ms，约 ≤1.9 ms/轮；10 轮余量 ≤ 约 19 ms。
+- `asPrincipal` / `seedAbandonTargets` 热路径自 `b29c191` 以来无改动（principal.ts 仅新增监听与 purpose）。
+
+与 harness 钉值对照：
+- T1 第 2 步与 C3（:29/:189）的反应上限是 `^LOAD run2:` 检出 → psql 启动 ≤ 1 s。这比整个 PERF run3（430 ms）还长，约为 seed 窗口的 5 倍。日志检出、docker attach 转发、docker exec 起 psql 的延迟都落在这个量级内。只要 psql 晚于约 0.2 s 启动，A 就只能记 `INJECT_PHASE_*`，B/C 只能记 `INJECT_GATE_TIMEOUT`（iv_rows 已为 110），这些都是格 FAIL。
+- B/C 门控（:181/:201）要求 `iv_rows≤100`（“≥10 轮 seed 余量”），而 kill 还要再经过 psql 退出、docker exec 收尾和一次 docker CLI 往返。10 轮约 ≤19 ms，与 CLI 往返不在一个量级。B/C-POST 几乎必然记 `INJECT_PHASE_DRIFT`。
+- 后果：这不会产生假绿，因为相位违规均钉为 FAIL。但 A-MUT/A-POST/B-POST/C-POST，以及门控失败时的 B/C-MUT，都会被 harness 时序而非产品行为系统性判 FAIL。矩阵无法得出 P-HOLD / P-FIX 结论。这与 `70cba94` / `20da721` 的阻塞同类（3/3 不可推出），且在配额收尾期会可预见地浪费 18 次 inject attempt。
+- docs 内修复建议（AUTHORIZE 前写死，Ban 事后改）：
+  - (a) 容器内单次 psql 循环提前启动，例如在 `^PERF run2: ` 或更早出现时启动。门控键 `IV\_P018\_R3\_%` 在 run3 seed 前恒为 0，本身相位安全。10 s 上限改为覆盖 LOAD run2 的时长（约 0.3 s，取充足倍数）。删除或替换“LOAD run2 后 ≤1 s”上限，改为“LOAD run2 行出现时循环已在运行”的可观测判据。
+  - (b) B/C 余量按公式钉死：`iv_rows ≤ 110 − ceil(k·L_cli / t_round)`。`t_round` 取上述收据推算或执行前实测，`L_cli` 取执行前一次 docker CLI 往返基线，k 为安全倍数，取值须事前写入。或者证明 B/C-POST 不依赖 seed 着陆，并相应改写期望。
+  - (c) 在 harness 中写明 seed 时长的证据来源与数值，不得只写“≥10 轮余量”。
+
+#### 阻塞 2：C-POST 相位期望自相矛盾
+
+- 阶段期望表 :178-179 中，C-POST 在 warmup / measured 着陆的期望为 EXIT 1 “OK keep”。
+- :181 规定 B/C-POST 落点复核须 F2 栈含 `seedAbandonTargets`，缺失即 `INJECT_PHASE_DRIFT` 格 FAIL。
+- 同一 C-POST 在非 seed 着陆时，一处判通过、一处判 FAIL，留下事后选择空间，违反“钉死 · Ban 事后按观测改”。按阻塞 1 的时序证据，这一情形大概率会被实际触发。须写明唯一优先规则。
+
+### 6. 非阻塞
+
+- NB-1：idle_n≥1 不充分（同意 peer `2900c46` NB-e）。seed 自身 client 在 checkout 间隙即为 `state='idle'`，可单独满足条件，因此建议改为 `idle_n≥2`。若不改，该情形落 RACE（FAIL），不会假绿，但会把“池内无他 idle client”误标为竞态。
+- NB-2：`Emitted 'error' event on Client instance` 不是 pg 专有（undici 等也有 Client 类）。建议同时要求 Unhandled 栈含 `pg/lib/client.js` 或 `pg-pool/index.js` 帧。
+- NB-3：`docker events` / pgrep 循环在 SIGTERM 下 `wait=143` 是未验证假设（同意 peer NB-g）。须在 AUTHORIZE 前写死可接受值集合。
+- NB-4：runner `:2220` 单行改写未在重锚披露中列出（无偏移、无影响），建议补一句。
+- NB-5：“同一 microtask 检查点”宜改为“该 socket 回调后的 nextTick/microtask 排空内、下一回调分发前”（同意 peer NB-h）；结论不变，已由本地 Node 语义核对佐证。
+
+### 7. 自我更正
+
+我方 Re-PRE3 `dbed2f2` 只要求阶段观测源（C1）与单次 psql（C3），未核对 seed 实际时长与 1 s 反应上限 / 10 轮余量的量级关系，属遗漏。本次依据仓内已提交收据补正。
+
+### 8. 状态
+
+- `70cba94` 新阻塞 1 在契约层已解除；C1–C4 已落实；runner +18 重锚成立；cleared stay 无回退。
+- 新增阻塞 1（seed 时间窗 vs 反应上限 / 余量）与阻塞 2（C-POST 相位期望矛盾），均可在 docs 内修复，不要求 prove。
+- 对端 mw-e2e-ha Re-PRE4 PASS `2900c46` 仅引用、不代签。本方 FAIL → dual 不成立。Ban coding，直至 dual PASS + 协调员 AUTHORIZE。
+- backlog `:35` C-PERF-TEARDOWN CONDITION OPEN；attempt1 @ `b29c191` 不洗；UC-018 / §1.1 partial；gap ≠ covered。
+- Pins：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained（无 MySQL / Qdrant / FULLTEXT）· public DELETE=503。
+
+Verdict: FAIL
