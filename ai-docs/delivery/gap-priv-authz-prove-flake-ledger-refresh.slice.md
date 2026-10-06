@@ -1,6 +1,6 @@
-# Slice — **GAP-PRIV-AUTHZ-PROVE-FLAKE · honesty ledger refresh**（Line AH · docs REQUEST · **`draft:awaiting_pre_exec_dual`**）
+# Slice — **GAP-PRIV-AUTHZ-PROVE-FLAKE · honesty ledger refresh**（Line AH · docs refresh · **`executed:awaiting_post_dual`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（docs REQUEST only · gap stays OPEN · Ban close · Ban claim fixed）
+**Status**: **`executed:awaiting_post_dual`**（Line AH docs refresh executed · gap stays OPEN · Ban close · Ban claim fixed）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · canHonestlyFlip=false
 **Date**: 2026-10-06
 **Base**: `origin/feat/mysql-schema-skeleton` · `416b6a5b5c71d97a1816974c2b174dbf4b9c8cb8`
@@ -17,6 +17,9 @@ Line X NAIL `40bed97`（evidence tip `b3e0f41` · docs ledger L1–L6 · gap sta
 | Harness | `harness/gap-priv-authz-prove-flake-ledger-refresh.md` |
 | Dual `mw-privacy-int` | `reviews/REQUEST-2026-10-06-gap-priv-authz-prove-flake-ledger-refresh-mw-privacy-int.md` |
 | Dual `mw-e2e-ha` | `reviews/REQUEST-2026-10-06-gap-priv-authz-prove-flake-ledger-refresh-mw-e2e-ha.md` |
+| Refresh ledger（Line AH 执行产物） | `receipts/gap-priv-authz-prove-flake/2026-10-06-ledger-refresh.md` |
+| Post dual `mw-privacy-int` | `reviews/REQUEST-2026-10-06-gap-priv-authz-prove-flake-ledger-refresh-post-mw-privacy-int.md` |
+| Post dual `mw-e2e-ha` | `reviews/REQUEST-2026-10-06-gap-priv-authz-prove-flake-ledger-refresh-post-mw-e2e-ha.md` |
 
 ## Ban
 
@@ -24,4 +27,8 @@ Ban close · Ban claim fixed · Ban claim root-caused · Ban forge PROCESS_EXIT 
 
 Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · backlog `:68` OPEN.
 
-*Slice · GAP-PRIV-AUTHZ-PROVE-FLAKE ledger refresh · Line AH · awaiting_pre_exec_dual · STOP*
+## Line AH ledger refresh 执行（awaiting post dual）
+
+PRE dual PASS（privacy `880f144` + e2e `f215438`）→ docs refresh `receipts/gap-priv-authz-prove-flake/2026-10-06-ledger-refresh.md`（F1 9/9 · F2 五提交读 diff · F3 attempt=0 · F4 三族分界+N2 · F5+N4 · N1 `9b39a20` 绿行）。无 CMD · 零 prove · 零 SSOT。Gap stays OPEN mitigated/cause-unknown · coveredCount=8 · DELETE=503 · Ban self-nail。
+
+*Slice · GAP-PRIV-AUTHZ-PROVE-FLAKE ledger refresh · Line AH · executed:awaiting_post_dual · STOP*
