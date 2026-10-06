@@ -110,3 +110,16 @@ DOCS tip `2366319b` honesty **holds** under POST docs gate. Inject A 57P01/idle-
 Ban coding · Ban invent prove · Ban nail · Ban self-approve · Ban wash P-HOLD into CONDITION close · Ban wash af9664a / attempt1 @`b29c191` · Ban covered flip / invent covered · Ban claim A proven · Ban close `:35` via docs · Ban claim HA / claimProductionHA · Ban buy cloud · HOLD AN-CIMG-EA · Never Meridian · releaseEvidence=false · NOT_HA forever · coveredCount=8 · gR45Closed=true · ms3EqualsR4Closed=false · g7SuiteGreen=false · PG-retained · DELETE=503 · CONDITION `:35` OPEN · alone ≠ dual · 本审**不** AUTHORIZE nail。
 
 Verdict: PASS
+
+---
+
+## AO-COND35 NAIL note（additive · 2026-10-06 · docs-only · does **not** overwrite Verdict）
+
+Coordinator AUTHORIZE nail landed · status **`post_prove_dual_pass`** for Line AO-COND35-A-RESIDUAL-HONESTY（docs honesty dual-pass · **0 prove**）.
+
+- DOCS tip `2366319b` / `2366319bf09d93df34312d7f59c8f2fe793892a9` · REQUEST `95ddd88` / `95ddd8884405956f5044aca46ef92443ef66ce27` · PRE BOTH mw-e2e-ha `ca4c4384` / `ca4c43843eb07a19dda5ce91ca16b98300690d75` + mw-rag-route `e4ad9588` / `e4ad95887b9090b7ce398363e18b66b982a4b6ed`
+- **POST BOTH PASS cited**: mw-e2e-ha `68914be2` / `68914be222a49b3ba61506fac07c0812fffb7a99` + mw-rag-route `9f3ac173` / `9f3ac1734f7d5436aafbd56c5cf23b9652ce4513`（alone≠dual · this note does **not** re-judge or invent Verdict）
+- Honest close: docs-gate residual honesty nailed · A **57P01/idle-in-txn UNPROVEN** disclosed · CONDITION `:35` **OPEN** · Ban close CONDITION · Ban claim A proven · Ban covered flip · Ban invent prove · Ban wash P-HOLD into CONDITION close · pins held（NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503）
+- HOLD AN-CIMG-EA · Ban buy cloud · Ban product code · Ban prove matrix（cite-only）
+
+*Nail note · AO-COND35 · post_prove_dual_pass · POST BOTH 68914be2+9f3ac173 · :35 OPEN · A UNPROVEN · 0 prove · STOP*
