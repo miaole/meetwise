@@ -241,6 +241,8 @@
     "rag04-track-local:prove:raw": "pnpm -C packages/db prove:rag04-track-local",
     "rag03-filter-locus:prove": "node scripts/run-e2e-isolated.mjs rag03-filter-locus:prove:raw",
     "rag03-filter-locus:prove:raw": "pnpm -C packages/db prove:rag03-filter-locus",
+    "rag03-hnsw-completeness:prove": "node scripts/run-e2e-isolated.mjs rag03-hnsw-completeness:prove:raw",
+    "rag03-hnsw-completeness:prove:raw": "pnpm -C packages/db prove:rag03-hnsw-completeness",
     "rag05-qbank-miss:prove": "node scripts/run-e2e-isolated.mjs rag05-qbank-miss:prove:raw",
     "rag05-qbank-miss:prove:raw": "pnpm -C packages/db prove:rag05-qbank-miss",
     "rag06-route-scope-cache:prove": "node scripts/run-e2e-isolated.mjs rag06-route-scope-cache:prove:raw",
