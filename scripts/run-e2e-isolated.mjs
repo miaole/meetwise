@@ -138,6 +138,25 @@ const isolatedReceiptSources = {
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/migrations/0001_baseline.sql', 'packages/db/migrations/0058_interview_privacy_queue_fence.sql',
   ],
+  'uc028:nhp-fault:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-028-nhp-fault.proof.ts',
+    'packages/ai-runtime/src/invoke.ts', 'packages/ai-runtime/src/metrics.ts',
+    'packages/db/src/ai-cost-governance.ts', 'packages/db/src/model-invocation.ts',
+    'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts',
+    'packages/db/sql/01_schema.sql',
+    'packages/db/migrations/0033_ai_cost_governance.sql',
+    'packages/db/migrations/0035_ai_cost_principal_scope.sql',
+    'packages/db/migrations/0036_ai_text_cost_governance.sql',
+    'packages/db/migrations/0037_ai_model_invocation_durable_claim.sql',
+    'packages/db/migrations/0056_model_invocation_reconcile.sql',
+    'packages/db/migrations/0057_model_invocation_cost_scope.sql',
+    'packages/db/migrations/0083_ai_text_cost_price_revision_binding.sql',
+    'packages/db/migrations/0085_ai_model_logical_node_dispatch_slot.sql',
+    'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
+    'packages/db/migrations/0119_usage_reconciliation_wiring.sql',
+    'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
+  ],
   'uc025:nhp-fault-isolated:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/api/test/uc-e2e-025-nhp-fault-isolated.proof.ts',
@@ -1517,6 +1536,7 @@ if (![
   'uc001:nhp-adv:prove:raw',
   'uc001:nhp-fault:prove:raw',
   'uc025:nhp-adv:prove:raw',
+  'uc028:nhp-fault:prove:raw',
   'uc011:adv:prove:raw', 'uc011:refund-callback:prove:raw',
 ].includes(target)) {
   throw new Error(`unsupported_e2e_target:${target}`);

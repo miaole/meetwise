@@ -57,6 +57,7 @@
     "prove:uc001-nhp-adv": "node --import @swc-node/register/esm-register test/uc-e2e-001-nhp-adv.proof.ts",
     "prove:uc001-nhp-fault": "node --import @swc-node/register/esm-register test/uc-e2e-001-nhp-fault.proof.ts",
     "prove:uc028-trace-fail-open": "node test/uc-e2e-028-trace-ledger-fail-open.proof.mjs",
+    "prove:uc028-nhp-fault": "node --import @swc-node/register/esm-register test/uc-e2e-028-nhp-fault.proof.ts",
     "prove:uc027-manual-review-appeal": "node test/uc-e2e-027-manual-review-appeal.proof.mjs",
     "prove:uc040-043-batch-qbank-seat": "node test/uc-e2e-040-043-batch-qbank-seat.proof.mjs",
     "prove:uc031-032-injection-jailbreak": "node test/uc-e2e-031-032-injection-jailbreak.proof.mjs"
