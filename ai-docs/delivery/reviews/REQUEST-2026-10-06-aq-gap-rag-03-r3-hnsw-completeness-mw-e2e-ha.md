@@ -8,7 +8,7 @@
 **Parent evidence（cite · Ban re-prove）**: PROVE `7c67b4a` · CODE `ac03f30` · C-3 `264e1d7` · REQUEST `8d52138` · POST `f93d6ad`+`a1de77d`
 **Docs-only**: `git show --name-only c124fa53` = 7 paths under `ai-docs/delivery/` only · `git diff --name-only c124fa53^..c124fa53 -- scripts packages apps` = empty
 **Reviewer**: `mw-e2e-ha` · Meetwise only · Never Meridian · Ban coding product · Ban nail · Ban invent covered/HA · Ban wash · Ban covered flip · Ban invent prove · Ban close `:71` via docs · Ban FULLTEXT/Qdrant · Ban AN-CIMG-EA · Ban buy cloud · releaseEvidence=false · claimProductionHA=false · NOT_HA forever
-**Peer**: mw-rag-route stub `REQUEST-2026-10-06-aq-gap-rag-03-r3-hnsw-completeness-mw-rag-route.md` still **PENDING** / `draft:awaiting_pre_exec_dual` · **cite-when-available · not co-signed** · alone ≠ dual · 本审不代签 peer · 不构成 dual
+**Peer**: mw-rag-route PRE PASS `986c07ee` / `986c07eea6d84cb70ad28245e88f7d8b664ab0ed`（`REQUEST-2026-10-06-aq-gap-rag-03-r3-hnsw-completeness-mw-rag-route.md` · Verdict PASS · peer wrote with stub Status header retained）· **cited not co-signed** · alone ≠ dual · 本审不代签 peer · 不构成 dual · Ban coding until BOTH+AUTHORIZE still held（cite ≠ AUTHORIZE）
 **审查基**: `/workspace/meetwise` @ `origin/feat/mysql-schema-skeleton` containing `c124fa53` · 只读对抗复核 · 无 prove / 无 docker · 未读 `.env*` · 无 live · 未改 shared git config · Ban coding · Ban invent prove/covered/HA
 **Scope**: PRE / docs gate only · Ban coding until BOTH+AUTHORIZE · Ban prove · Ban nail · Ban wash GAP-RAG-02 · Ban covered flip · Ban invent covered/HA · Ban close `:71` without HNSW evidence · HOLD AN-CIMG-EA · Ban buy cloud · Never Meridian
 
@@ -24,7 +24,7 @@ NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true ·
 | Parent nail `1024bfc` · PROVE `7c67b4a` · CODE `ac03f30` · C-3 `264e1d7` · REQUEST `8d52138` · POST dual | ✓ cited · Ban re-prove |
 | Docs-only / product quiet (`scripts`/`packages`/`apps`) @ `c124fa53` | ✓ 0 paths |
 | REQUEST files | harness · slice · backlog `:71` additive · checklist additive · matrix additive · 两 stubs · **无产品码** |
-| Status harness/slice | `draft:awaiting_pre_exec_dual` · stubs PENDING（peer 仍 PENDING） |
+| Status harness/slice | `draft:awaiting_pre_exec_dual` · e2e-ha PRE PASS on origin · peer PRE PASS `986c07ee` cited not co-signed |
 | AR sibling | REQUEST `e2eac8ca` may land in parallel · **Ban stage AR files** · Ban conflict wash |
 
 ## 1. HNSW MUST checks（adversarial PRE）
@@ -69,7 +69,7 @@ NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true ·
 
 | 检查 | 结论 |
 |------|------|
-| Peer mw-rag-route stub still PENDING | ✓ cite-when-available · **not co-signed** |
+| Peer mw-rag-route PRE PASS `986c07ee` | ✓ **cited not co-signed** · alone ≠ dual |
 | alone ≠ dual · 本审不代签 | ✓ |
 | Dual PASS ≠ coding ≠ prove ≠ nail ≠ close `:71` | ✓ harness §4 · verification contract |
 | Ban coding until BOTH+AUTHORIZE · separate coding+prove REQUEST for CC-H1..CC-H8 | ✓ harness §4 item 4 · Ban list |
@@ -78,7 +78,7 @@ NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true ·
 
 **无阻塞（对本 docs REQUEST PRE）。**
 
-Checked：tip `c124fa53` docs-only · HNSW path exercised in prove plan（CC-H1..CC-H4）· Ban wash GAP-RAG-02 · Ban FULLTEXT/Qdrant · `:71` OPEN without HNSW evidence · coveredCount=8 · pins held · peer stub PENDING cited not co-signed · alone ≠ dual · Ban coding until BOTH+AUTHORIZE.
+Checked：tip `c124fa53` docs-only · HNSW path exercised in prove plan（CC-H1..CC-H4）· Ban wash GAP-RAG-02 · Ban FULLTEXT/Qdrant · `:71` OPEN without HNSW evidence · coveredCount=8 · pins held · peer PRE PASS `986c07ee` cited not co-signed · alone ≠ dual · Ban coding until BOTH+AUTHORIZE.
 
 **Future coding blockers（not this PRE）**: CC-H1..CC-H8 unmet · `:71` stays OPEN · R3-HNSW-COMPLETENESS OPEN · require separate AUTHORIZE after dual PRE BOTH PASS.
 
@@ -92,13 +92,13 @@ Checked：tip `c124fa53` docs-only · HNSW path exercised in prove plan（CC-H1.
 - backlog `:71` hunk = additive AQ cite · status stays **OPEN** · R3-HNSW-COMPLETENESS OPEN · Ban wash nail
 - checklist AQ section = OPEN boxes · Ban close without HNSW prove · Ban wash GAP-RAG-02 · coveredCount=8
 - matrix AQ additive note · `:71` OPEN · Ban FULLTEXT/Qdrant · Ban covered flip
-- peer stub mw-rag-route still PENDING · alone ≠ dual · 不代签
+- peer mw-rag-route PRE PASS `986c07ee` cited not co-signed · alone ≠ dual · 不代签
 - AR REQUEST `e2eac8ca` present on origin · **not staged / not reviewed here**
 - prior PRE structure cite `REQUEST-2026-10-06-ao-cond35-a-residual-honesty-mw-e2e-ha.md`（形制参考 · 非 wash）
 
 ## 4. Conclusion bans
 
-Tip `c124fa53` docs-only honesty **holds**. HNSW path exercised is **in** the prove/receipt plan（CC-H1..CC-H4）· **not** deferred to FULLTEXT/Qdrant. GAP-RAG-02 rag03-route EXIT1 retained disclosed · Ban wash. backlog `:71` **OPEN** without HNSW evidence · coveredCount=**8** · Ban covered flip. Peer stub PENDING · alone ≠ dual · 本审不代签 · **不** AUTHORIZE coding/prove/nail.
+Tip `c124fa53` docs-only honesty **holds**. HNSW path exercised is **in** the prove/receipt plan（CC-H1..CC-H4）· **not** deferred to FULLTEXT/Qdrant. GAP-RAG-02 rag03-route EXIT1 retained disclosed · Ban wash. backlog `:71` **OPEN** without HNSW evidence · coveredCount=**8** · Ban covered flip. Peer PRE PASS `986c07ee` **cited not co-signed** · alone ≠ dual · 本审不代签 · **不** AUTHORIZE coding/prove/nail.
 
 Ban coding until BOTH+AUTHORIZE · Ban prove · Ban nail · Ban self-approve · Ban wash GAP-RAG-02 / nail `1024bfc` into gap close · Ban FULLTEXT/Qdrant · Ban covered flip / invent covered · Ban invent prove · Ban claim HNSW-complete · Ban close `:71` via docs · Ban claim HA / claimProductionHA · Ban buy cloud · HOLD AN-CIMG-EA · Never Meridian · releaseEvidence=false · NOT_HA forever · coveredCount=8 · gR45Closed=true · ms3EqualsR4Closed=false · g7SuiteGreen=false · PG-retained · DELETE=503 · GAP-RAG-03 `:71` OPEN · R3-HNSW-COMPLETENESS OPEN · alone ≠ dual · 本审**不** AUTHORIZE。
 
