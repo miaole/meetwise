@@ -621,3 +621,92 @@ mw-e2e-ha POST `1d9d3ac029170e7e1340abda2f113813bd7e01ee`（22:16:24 +08:00）�
 4. 在此之前：CONDITION `:35` OPEN · Ban nail · Ban covered flip · P-HOLD 不作为合约成立宣称。
 
 Verdict: FAIL
+
+## Re-PRE6 @f76fcff
+
+**审查方**: mw-rag-route（独立单方 · alone ≠ dual · **不代签** mw-e2e-ha）· **审时**: 2026-10-06 22:47 +08:00 · tip `bb2e866`（= `f76fcff` + peer re-PRE6 · 无产品变更）· 临时 worktree `/tmp/mwrr-perf-repre6`（审后删除）
+**输入**: REQUEST rewrite ×6 `f76fcff266369cec1f1d808f5be7324fbc4e0c61`（22:25:33 +08:00）· supersedes prove tip `af9664a` / REQUEST `771ca84` · cites 本方 POST FAIL `4803616` · peer POST PASS `1d9d3ac` · peer re-PRE6 PASS `bb2e866` **仅引用、不代签**
+**范围**: docs/source-only · Ban prove · Ban docker · 读已提交 `events.jsonl` / harness / slice / 收据标题
+
+### 0. 结论先行
+
+- **Verdict: PASS**（合约层 docs gate · 非 dual · ≠ AUTHORIZE · ≠ nail · ≠ 关 CONDITION）。
+- `git diff --quiet af9664a f76fcff -- packages apps scripts package.json pnpm-lock.yaml` → EXIT **0** · `principal.ts` 零改 · **docs-only** 成立。
+- `4803616` 三项合约阻塞在 REQUEST 契约层**真实解除**（非 wash · 非追溯改判 `af9664a`）：① J-2 时序谓词；② A 选 (b) 诊断非门控；③ R2 11/11。
+- 一方 peer PASS + 本方 PASS ≠ 自动 AUTHORIZE；协调方决定。**Ban coding / Ban prove / Ban nail** 直至 BOTH + AUTHORIZE。
+
+### 1. J-2 时序谓词 ×6
+
+**写死（harness `:162-169` · `:175` / `:179` / `:180`）**：
+- (T-k) `kill`(signal=9) **严格早于** `t_err`；
+- (T-d) `die`(137) ∈ (`t_kill`, `t_kill`+**500 ms**]；
+- (T-x) `destroy` ∈ (`t_die`, `t_die`+**2000 ms**]；
+- `die`/`destroy` **可晚于**首错；旧「`kill`→`die`→`destroy` 全部早于首错」删除（`:161` 「取代 ×2–×5」· Ban 并用旧规则）。
+- 新标记（`:33` · `:179`）：`J2_KILL_NOT_BEFORE_ERROR` · `J2_POSTKILL_WINDOW_EXCEEDED`（C-POST 格 FAIL 计入 · Ban retry）。
+
+**(a) 界值 vs 观测余量（本审独立自 `af9664a` 收据 `events.jsonl` + `verdict.json` 重算）**：
+
+| attempt | die−kill (ms) | destroy−die (ms) | err−kill (ms) |
+|---|---:|---:|---:|
+| CMUT-1 | 226 | 581 | 9 |
+| CMUT-2 | 185 | 580 | 8 |
+| CMUT-3 | 194 | 539 | 8 |
+| CPOST-1 | 180 | 461 | 5 |
+| CPOST-2 | 215 | 481 | 2 |
+| CPOST-3 | 213 | 460 | 4 |
+| **范围** | **180–226** | **460–581** | **2–9** |
+
+- `W_die=500` ≈ **2.21×** max(226)；`W_destroy=2000` ≈ **3.44×** max(581)。
+- harness `:167` 自报「500 ≈ 2.2× / 2000 ≈ 3.4× 观测最大值，兼顾宿主抖动」——**有陈述余量**，非贴齐观测最大值；界为 round 数、写死不放宽。本审算得 die−kill 下限 180（稿写 177–226 的 177 似取自 die 相对首错的 177，非 kill→die；**不构成阻塞**，余量结论不变）。
+- 6/6 均落窗内：若用 ×6 谓词重判 `af9664a` C-POST，时序会过；但 `:25` **Ban 追溯改判** → `af9664a` 仍 FAIL · 须 **fresh prove**。
+
+**(b) L3 IN 可达 · 三行仍可分**：
+- 统一时序；(T-k) 存在 → 不得再落 `L1/client-side`（`:169` · `:177`）→ **真实外部 kill 可入 L3 IN**（修 `4803616` 连带缺陷）。
+- 区分仅靠**发起者**（`:168`）：L3 IN = 他 PID `uc018-receipt-backfill-emit` ∧ 非 Inject C；L3-sim = 本程序 Inject C（`docker rm -f` EXIT 0）∧ 非他 PID emit；EXTERNAL-OTHER = 二者皆非 → UNDETERMINABLE（`:180`）。
+- 披露：本稿为 docs；下一 prove 的 `analyze.py` 须按 ×6 重写（旧收据内 analyze.py `:59-77` 仍为「三者皆早于首错」· **不**当作可执行实现）。契约层已可返回 L3 IN。
+
+**(c) 无关早期 kill**：判定表头 `:171`「对本 run PG 容器 = `prove.log` 中 `E2E isolated PostgreSQL:` 行所列名」；`:162` 取本 run PG **首个** `signal=9` 的 `kill`。他容器事件不入；同名新容器每 attempt 新建 → 无关早期 kill 不能满足 (T-k)。
+
+### 2. A 选 (b) · KEY RULING（事后见红后的前向契约变更）
+
+| 要件 | 落点 | 本审 |
+|---|---|---|
+| **(i)** Ban 把 `af9664a` 重解释为 PASS · 保持 FAIL · 须 fresh prove | `:25`「**不**追溯改判 `af9664a`」· FAIL×3 与标记「原样保留为历史」· 「×6 契约只对 **re-PRE BOTH + AUTHORIZE 之后的下一次 prove** 生效」 | ✓ |
+| **(ii)** A 钉定路径 **unproven** · CONDITION OPEN · 不宣称根因已修 | `:30` / `:200` / `:223` / `:513`「A 非门控 ≠ A 已证（A 钉定路径 unproven）」· backlog `:35` 未改 · Ban close CONDITION / Ban wash attempt1 | ✓ |
+| **(iii)** A-POST **零 Unhandled 仍门控** | `:200`「全部 POST inject attempt（**A-POST** + B-POST + C-POST）零 Unhandled」· `:223`「A-POST 出现任何 Unhandled 仍**直接**使 P-HOLD 不成立」· `:229` 行标「但零 Unhandled 仍门控」 | ✓ |
+
+- P-HOLD 门控集（`:200` · `:223`）= **PC + B-MUT + B-POST + C-MUT + C-POST** 3/3 ∧ 全部 POST inject（含 A-POST）零 Unhandled。A-MUT/A-POST = 诊断 · 仍 3× · `A_FATAL_ON_ACTIVE` Ban drop/swap。
+- **可接受**：三项俱全 → 属**前向契约变更**，非 wash。
+- **attempt1 根因**：A 线本就 ≠ attempt1（attempt1 = CTU Unhandled on Client；A = 57P01 idle-in-tx）。取消 A 门控**不**回答 attempt1 断开来源；该问仍靠 J-2（现已可达 L3 IN）+ 下次 prove。披露：`:122` Ban wash attempt1 · `:183` J-3「**不**证明 attempt1 由 L3 引起」· CONDITION OPEN · peer `bb2e866` 同写「attempt1 本身仍 UNDETERMINABLE」。
+
+### 3. R2 11/11
+
+- harness `:480` → **11/11 PASS**（注明原 12/12 为继承误计）。
+- `receipts/2026-10-05-gap-principal-pool-error-listener-fix-prove.md` `:21` / `:121` 标题 → **11/11**；`:123` 更正注记；Appendix B **正文 11 行 PASS 零改动**（`git diff` 仅标题 + 注记）。
+- `rg '12/12'`：操作性期望已清。残留仅 (1) 更正语境「原写 12/12」；(2) **他方历史审** `REQUEST-2026-10-05-gap-principal-pool-error-listener-fix-mw-e2e-ha.md:133`「12/12」——**未改写**（正确 · Ban 改他证）；(3) `execution-master-checklist.md:703` / `gap-bug-backlog.md:359` Line P 历史叙事 —— **范围外 residual**，记 docs 债、**非本刀阻塞**（任务钉 harness + 2026-10-05 收据标题）。
+- `af9664a` prove README `:39` 已写 11/11（历史披露 harness 曾写 12/12）· 未在 ×6 重写证据体。
+
+### 4. Retain / pins / EXIT
+
+- ×5 清除保留：MUT-ZERO · C1–C4 · `U_B` / `BC_MARGIN_INFEASIBLE` · C-POST 阶段无关唯一规则 · NB-1..5 · C-a/C-b/C-c（`:35` · `:39-45` · `:51` 段）。
+- `git diff --quiet af9664a f76fcff -- gap-bug-backlog.md` EXIT 0 · `:35` **CONDITION OPEN**。
+- Pins：NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCount=8 · gap ≠ covered · UC-018 partial · HOLD AN-CIMG-EA。
+- EXIT 矩阵 / AUX EXIT 表仍钉期望 EXIT（§4 · §5.4 · C4）· LOOP §3③ 满足。
+
+### 5. Peer
+
+mw-e2e-ha re-PRE6 **PASS** `bb2e866a4aaaf369f65602de582ce37e61a67a78`（22:46:28 +08:00）· `reviews/REQUEST-2026-10-06-an-perf-tear-rewrite6-re-pre-mw-e2e-ha.md` · `:3`/`:108` Verdict PASS。事实面同认三 MUST 解除 · CONDITION OPEN · Ban nail。**cited not co-signed** · alone ≠ dual。
+
+### 6. 非阻塞披露 / 条件
+
+1. 下一 prove 须落地 ×6 `analyze.py`（旧收据 analyze 不可执行当新谓词）。
+2. `af9664a` **保持 FAIL** · 须 fresh prove + POST dual 才可谈 nail。
+3. A 钉定路径保持 **unproven** 直至未来 seed 重设计 AUTHORIZE（选项 (a) · 本稿延后 · Ban coding）。
+4. residual `12/12` 在 checklist / backlog Line P / 他方历史审 —— 可选另开 docs 刀，非本刀阻塞。
+5. L2-self 行未改（`:168` 披露）· 同类 daemon reap 时延可能仍影响该行。
+
+### 7. 复跑
+
+**SKIP（docs gate · 0 次）**：无 docker / 无 pnpm prove；余量自已提交 `events.jsonl` 计算。
+
+Verdict: PASS
