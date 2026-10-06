@@ -200,3 +200,8 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCo
 **结论**：N1–N4 实质解决，B1–B5 无回退；C1/C3/C4 已采纳，C2 部分采纳，C5 未采纳；但 core 自检原文未逐字入库（B-R2-1），所以 FAIL。FAIL ≠ 方案方向错误；补齐 B-R2-1 并落实条件 1–6 后可以再审。alone≠dual。
 
 Verdict: FAIL
+
+### 勘误（Re-PRE2 @4e9f568 · 2026-10-06 14:22 +08:00）
+上文 §3 C5 所引 `resume.controller.ts:16` 有误，`@HttpCode(HttpStatus.OK)` 实际位于 **`:17`**（`:16` 是 `@Post()`）。结论不变。
+
+Verdict: FAIL
