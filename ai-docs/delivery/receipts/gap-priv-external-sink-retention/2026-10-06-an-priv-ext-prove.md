@@ -1,6 +1,8 @@
-# Receipt — GAP-PRIV-EXTERNAL-SINK-RETENTION · Line AN-PRIV-EXT · prove（`awaiting_post_prove_dual`）
+# Receipt — GAP-PRIV-EXTERNAL-SINK-RETENTION · Line AN-PRIV-EXT · prove（NAIL · **`post_prove_dual_pass`** · gap `:64` OPEN · DELETE=503 · NB-3）
 
-**Status**: **`awaiting_post_prove_dual`**（mw-privacy-int + mw-e2e-ha · opened by parent）· §1 PRE-DECLARE was committed+pushed in the CODE commit **before any run** · §2+ = results
+**Status**: **`post_prove_dual_pass`**（AN-PRIV-EXT NAIL · POST dual mw-privacy-int `2b33e7c` + mw-e2e-ha `24ba2a4` BOTH PASS · gap `:64` **OPEN** · canHonestlyFlip=false · DELETE=503 · Ban count-as-erased · **`external_confirmed` ≠ vendor data deleted（NB-3）** · alone≠dual · PASS≠关 gap≠HA）
+> **Exec-era status（historical · retained）**: **`awaiting_post_prove_dual`**（mw-privacy-int + mw-e2e-ha · opened by parent）· §1 PRE-DECLARE was committed+pushed in the CODE commit **before any run** · §2+ = results
+**Lifecycle**: **`post_prove_dual_pass`** · PROVE tip `4b06058` · CODE `9e2abd0` · REQUEST `59e2189`
 **CODE_SHA**: `9e2abd0` / `9e2abd04083eca464817e35687595c706cbcd2a9`（pushed to `origin/feat/mysql-schema-skeleton` 2026-10-06 ~20:26 CST before attempt A1 · §1 unchanged since）
 **AUTHORIZE**: coordinator `AUTHORIZE coding+prove — AN-PRIV-EXT @ REQUEST 59e2189` · PRE BOTH PASS: privacy `fb6fca2` · e2e `512cc5d`（C-1..C-6）
 **Implementer**: mw-core（Ban self-nail · Ban self-approve · alone ≠ dual · POST dual opened by parent only）
@@ -115,6 +117,28 @@ Not touched: matrix · `gap-bug-backlog.md`（`:64` stays OPEN）· checklist ·
 
 - backlog `gap-bug-backlog.md:64` **GAP-PRIV-EXTERNAL-SINK-RETENTION stays OPEN** · canHonestlyFlip=**false**（no async external confirmer · no real OSS/Redis/Langfuse purge · Langfuse ≠ vendor wipe）.
 - UC-052 / privacy rows stay **partial** · coveredCount=**8** · public DELETE=**503**.
-- EXIT0 ≠ external purged ≠ completed ≠ covered ≠ deletion closed ≠ HA · alone ≠ dual · **Ban nail until POST BOTH + AUTHORIZE**.
+- EXIT0 ≠ external purged ≠ completed ≠ covered ≠ deletion closed ≠ HA · alone ≠ dual · AUTHORIZE nail landed · **`external_confirmed` ≠ vendor data deleted（NB-3）** · **PASS ≠ 关 gap ≠ HA**.
 
-*Receipt · GAP-PRIV-EXTERNAL-SINK-RETENTION · AN-PRIV-EXT · CODE_SHA 9e2abd0 · A1 EXIT0 · MUT-1 EXIT1 · awaiting_post_prove_dual · Ban nail · STOP*
+*Receipt · GAP-PRIV-EXTERNAL-SINK-RETENTION · AN-PRIV-EXT · CODE_SHA 9e2abd0 · A1 EXIT0 · MUT-1 EXIT1 · awaiting_post_prove_dual · Ban nail · STOP*  <!-- exec-era footer · lifecycle advanced below -->
+
+---
+
+## AN-PRIV-EXT NAIL cross-ref（additive · 2026-10-06 · `post_prove_dual_pass`）
+
+| Item | Value |
+|------|-------|
+| PROVE tip | `4b06058` / `4b06058be576e52903d213ace29c5c984e7cc7e2` |
+| CODE_SHA | `9e2abd0` / `9e2abd04083eca464817e35687595c706cbcd2a9` |
+| REQUEST | `59e2189` / `59e21898fd29c8d64897e7414a228c379568e3e6` |
+| PRE dual | mw-privacy-int `fb6fca2` / `fb6fca2ada0b9afeec974f646242a4b9d7783026` + mw-e2e-ha `512cc5d` / `512cc5d667674a8cc479b60b3532be87f5e8cd91` |
+| Named CMD EXITs @ CODE | A1 `pnpm uc052:external-sink-retention:prove` **EXIT 0** · `pnpm privacy-erasure:http:prove` **EXIT 0**（DELETE=503）· regressions R1–R4 **EXIT 0** · MUT-1（−0137 · `8a571cc`）**EXIT 1** |
+| 0137 | fail-closed superset of 0091 guard · externals need resolve-audited `external_confirmed` · app_role cannot confirm |
+| POST dual BOTH PASS | mw-privacy-int `2b33e7c` / `2b33e7c3162e5b15ca1304f77acc61b3764c6311` + mw-e2e-ha `24ba2a4` / `24ba2a4057ad0db5a5235f0cf83caec2a170731c` |
+| NB-3 | **`external_confirmed` ≠ vendor data deleted** · DB attestation ≠ OSS/Redis/Langfuse purge proof |
+| Lifecycle | **`post_prove_dual_pass`** · NAIL tip = AN-PRIV-EXT nail commit on `feat/mysql-schema-skeleton`（no force-push） |
+| STILL_OPEN | **gap `:64` OPEN** · canHonestlyFlip=false · UC-052 partial · DELETE=503 · Ban count-as-erased · coveredCount=8 · flake GAP-PRIV-AUTHZ-PROVE-FLAKE OPEN · alone≠dual · PASS≠关 gap≠HA · pins NOT_HA · releaseEvidence=false · claimProductionHA=false |
+
+Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Ban Meridian · Ban secrets · Ban force-push · Ban invent completed/erased · Ban wash Line B internals · Ban flip UC-050/051/052 covered · alone≠dual.
+
+*Receipt · AN-PRIV-EXT · NAILED post_prove_dual_pass · PROVE 4b06058 · CODE 9e2abd0 · POST 2b33e7c+24ba2a4 PASS · A1 EXIT0 · http 503 EXIT0 · MUT −0137 EXIT1 · 0137 fail-closed · gap :64 OPEN · DELETE=503 · Ban count-as-erased · external_confirmed ≠ vendor deleted（NB-3）· alone≠dual · PASS≠关 gap≠HA · 2026-10-06 · STOP*
+
