@@ -26,35 +26,35 @@
   "state29": true,
   "form": "F2",
   "CTU_present": true,
-  "t_first_error": 1791295529791,
+  "t_first_error": 1791299556002,
   "pg_events": [
    [
     "create",
-    1791295518983,
+    1791299543250,
     null,
     null
    ],
    [
     "start",
-    1791295519264,
+    1791299543434,
     null,
     null
    ],
    [
     "kill",
-    1791295529783,
+    1791299555994,
     "9",
     null
    ],
    [
     "die",
-    1791295529968,
+    1791299556209,
     null,
     "137"
    ],
    [
     "destroy",
-    1791295530548,
+    1791299556691,
     null,
     null
    ]
@@ -62,20 +62,36 @@
   "pg_teardown_before_first_error": [
    [
     "kill",
-    1791295529783,
+    1791299555994,
     "9",
     null
    ]
   ],
+  "J2_x6": {
+   "Tk": true,
+   "Td": true,
+   "Tx": true,
+   "W_die": 500,
+   "W_destroy": 2000,
+   "t_kill": 1791299555994,
+   "t_die": 1791299556209,
+   "t_destroy": 1791299556691,
+   "t_err": 1791299556002,
+   "kill_to_die_ms": 215,
+   "die_to_destroy_ms": 482
+  },
   "foreign_emit_proc_lines": 0,
+  "foreign_emit_raw_mention_lines": 0,
   "C_seq_ms_rel_first_error": {
    "kill9": -8,
-   "die137": 177,
-   "destroy": 757,
-   "inject_cmd_t0": -28
+   "die137": 207,
+   "destroy": 689,
+   "inject_cmd_t0": -37,
+   "kill_to_die_ms": 215,
+   "die_to_destroy_ms": 482
   },
-  "J2_kill_start_reading": "L3-sim",
-  "J2": "L3-sim-temporal-mismatch(die/destroy after first error)",
+  "J2_old_all_before_error": false,
+  "J2": "L3-sim",
   "aux": {
    "events_kill_exit": "0",
    "events_wait": "143",
@@ -86,26 +102,26 @@
   "psql_exit": 0,
   "gate_loop_start": [
    [
-    "1791295528904",
+    "1791299555024",
     "0"
    ]
   ],
-  "t_load2": 1791295529752,
-  "t_perf1": 1791295528800,
+  "t_load2": 1791299555942,
+  "t_perf1": 1791299554902,
   "marker": [
-   "GATE_BC phase=seed ts_ms=1791295529758 iv_rows=4 iv_nonactive=0 idle_n=19 seed_act=1 ub=109"
+   "GATE_BC phase=seed ts_ms=1791299555960 iv_rows=12 iv_nonactive=0 idle_n=19 seed_act=1 ub=109"
   ],
   "inject_cmd": {
-   "cmd": "docker rm -f meetwise-e2e-1409042-1791295517581",
+   "cmd": "docker rm -f meetwise-e2e-1508311-1791299541853",
    "exit": 0,
-   "t0": 1791295529763,
-   "t1": 1791295530551,
-   "stdout": "meetwise-e2e-1409042-1791295517581"
+   "t0": 1791299555965,
+   "t1": 1791299556694,
+   "stdout": "meetwise-e2e-1508311-1791299541853"
   },
-  "D_gate_to_cmd_return_ms": 793,
+  "D_gate_to_cmd_return_ms": 734,
   "kill_event_ms": [
-   1791295529783
+   1791299555994
   ],
-  "D_gate_to_kill_event_ms": 25
+  "D_gate_to_kill_event_ms": 34
  }
 }

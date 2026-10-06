@@ -26,37 +26,51 @@
   "pg_events": [
    [
     "create",
-    1791295088596,
+    1791299204628,
     null,
     null
    ],
    [
     "start",
-    1791295088771,
+    1791299204818,
     null,
     null
    ],
    [
     "kill",
-    1791295105442,
+    1791299219933,
     "9",
     null
    ],
    [
     "die",
-    1791295105598,
+    1791299220159,
     null,
     "137"
    ],
    [
     "destroy",
-    1791295106060,
+    1791299220646,
     null,
     null
    ]
   ],
   "pg_teardown_before_first_error": [],
+  "J2_x6": {
+   "Tk": false,
+   "Td": true,
+   "Tx": true,
+   "W_die": 500,
+   "W_destroy": 2000,
+   "t_kill": 1791299219933,
+   "t_die": 1791299220159,
+   "t_destroy": 1791299220646,
+   "t_err": null,
+   "kill_to_die_ms": 226,
+   "die_to_destroy_ms": 487
+  },
   "foreign_emit_proc_lines": 0,
+  "foreign_emit_raw_mention_lines": 0,
   "J2": "OUT",
   "aux": {
    "events_kill_exit": "0",

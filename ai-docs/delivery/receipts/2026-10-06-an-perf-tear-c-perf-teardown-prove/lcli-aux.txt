@@ -1,7 +1,7 @@
 nb4_list_exit=0 rows=0
 0
-sample1 exit=0 out=26.1.5+dfsg1 ms=17
-sample2 exit=0 out=26.1.5+dfsg1 ms=17
-sample3 exit=0 out=26.1.5+dfsg1 ms=16
+sample1 exit=0 out=26.1.5+dfsg1 ms=21
+sample2 exit=0 out=26.1.5+dfsg1 ms=20
+sample3 exit=0 out=26.1.5+dfsg1 ms=17
 sample4 exit=0 out=26.1.5+dfsg1 ms=18
-sample5 exit=0 out=26.1.5+dfsg1 ms=17
+sample5 exit=0 out=26.1.5+dfsg1 ms=20

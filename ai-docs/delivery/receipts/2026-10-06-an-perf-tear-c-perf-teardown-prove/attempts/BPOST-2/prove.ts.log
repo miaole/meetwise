@@ -1,0 +1,70 @@
+1791299473198 
+1791299473198 > meetwise@0.1.0 uc018:perf-load:prove /workspace/meetwise-wt-an-perf-prove6
+1791299473198 > node scripts/run-e2e-isolated.mjs uc018:perf-load:prove:raw
+1791299473198 
+1791299473315 [R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+1791299473316 E2E_RESOURCE_CAPS target=uc018:perf-load:prove:raw docker_args=--cpus 2 --memory 4g
+1791299476902 E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+1791299476902 E2E isolated PostgreSQL: meetwise-e2e-1504520-1791299473312 on 127.0.0.1:33060
+1791299476903 E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+1791299477825 E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+1791299477956 UC018_CAPS pg container=meetwise-e2e-1504520-1791299473312 NanoCpus=2000000000 Memory=4294967296 ok=true
+1791299484211 UC018_CAPS written enforced=true api NanoCpus=2000000000 Memory=4294967296
+1791299486220 UC-E2E-018 PERF/LOAD prove · NHP-018-PERF-01 + NHP-018-LOAD-01
+1791299486220 NOTE: Method freeze nearest-rank · timeout=10s=error · warmup=10 · runs=3 · caps Docker 2cpu/4GiB
+1791299486220 NOTE: local ≠ production capacity ≠ HA · PERF/LOAD partial ≠ UC covered · §1.1 stays partial
+1791299486570 fatal: not a git repository: /workspace/projects/meetwise/.git/worktrees/meetwise-wt-an-perf-prove6
+1791299487161 PERF run1: p50=23.0 p95=56.8 p99=81.7 err=0 timeout=0 passed=true
+1791299487506 LOAD run1: p50=42.3 p95=158.6 p99=167.8 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
+1791299487931 PERF run2: p50=17.6 p95=42.7 p99=58.9 err=0 timeout=0 passed=true
+1791299488183 LOAD run2: p50=34.1 p95=103.9 p99=116.6 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
+1791299488219 {"event":"db_pool_error","purpose":"default","count":1,"error_name":"error","error_message":"terminating connection due to administrator command"}
+1791299488219 {"event":"db_pool_error","purpose":"default","count":2,"error_name":"error","error_message":"terminating connection due to administrator command"}
+1791299488222 {"event":"db_pool_error","purpose":"default","count":3,"error_name":"error","error_message":"terminating connection due to administrator command"}
+1791299488223 {"event":"db_pool_error","purpose":"default","count":4,"error_name":"error","error_message":"terminating connection due to administrator command"}
+1791299488223 {"event":"db_pool_error","purpose":"default","count":5,"error_name":"error","error_message":"terminating connection due to administrator command"}
+1791299488223 {"event":"db_pool_error","purpose":"default","count":6,"error_name":"error","error_message":"terminating connection due to administrator command"}
+1791299488223 {"event":"db_pool_error","purpose":"default","count":7,"error_name":"error","error_message":"terminating connection due to administrator command"}
+1791299488223 {"event":"db_pool_error","purpose":"default","count":8,"error_name":"error","error_message":"terminating connection due to administrator command"}
+1791299488223 {"event":"db_pool_error","purpose":"default","count":9,"error_name":"error","error_message":"terminating connection due to administrator command"}
+1791299488223 {"event":"db_pool_error","purpose":"default","count":10,"error_name":"error","error_message":"terminating connection due to administrator command"}
+1791299488223 {"event":"db_pool_error","purpose":"default","count":11,"error_name":"error","error_message":"terminating connection due to administrator command"}
+1791299488224 {"event":"db_pool_error","purpose":"default","count":12,"error_name":"error","error_message":"terminating connection due to administrator command"}
+1791299488224 {"event":"db_pool_error","purpose":"default","count":13,"error_name":"error","error_message":"terminating connection due to administrator command"}
+1791299488224 {"event":"db_pool_error","purpose":"default","count":14,"error_name":"error","error_message":"terminating connection due to administrator command"}
+1791299488224 {"event":"db_pool_error","purpose":"default","count":15,"error_name":"error","error_message":"terminating connection due to administrator command"}
+1791299488224 {"event":"db_pool_error","purpose":"default","count":16,"error_name":"error","error_message":"terminating connection due to administrator command"}
+1791299488224 {"event":"db_pool_error","purpose":"default","count":17,"error_name":"error","error_message":"terminating connection due to administrator command"}
+1791299488227 /workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:45
+1791299488227     Error.captureStackTrace(err)
+1791299488227           ^
+1791299488227 
+1791299488227 error: terminating connection due to administrator command
+1791299488227     at /workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:45:11
+1791299488227     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+1791299488227     at async seedAbandonTargets (file:///workspace/meetwise-wt-an-perf-prove6/apps/api/test/uc-e2e-018-perf-load.proof.ts:234:9)
+1791299488227     at async runPerf (file:///workspace/meetwise-wt-an-perf-prove6/apps/api/test/uc-e2e-018-perf-load.proof.ts:250:17)
+1791299488227     at async file:///workspace/meetwise-wt-an-perf-prove6/apps/api/test/uc-e2e-018-perf-load.proof.ts:444:19 {
+1791299488227   length: 116,
+1791299488227   severity: 'FATAL',
+1791299488227   code: '57P01',
+1791299488227   detail: undefined,
+1791299488227   hint: undefined,
+1791299488227   position: undefined,
+1791299488227   internalPosition: undefined,
+1791299488227   internalQuery: undefined,
+1791299488227   where: undefined,
+1791299488227   schema: undefined,
+1791299488227   table: undefined,
+1791299488227   column: undefined,
+1791299488227   dataType: undefined,
+1791299488227   constraint: undefined,
+1791299488227   file: 'postgres.c',
+1791299488227   line: '3286',
+1791299488227   routine: 'ProcessInterrupts'
+1791299488227 }
+1791299488227 
+1791299488227 Node.js v20.20.2
+1791299489843 ISOLATED_POSTGRES_OUTPUT_WITHHELD container=meetwise-e2e-1504520-1791299473312 state_bytes=229 logs_bytes=1778
+1791299490691 LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-06T15-11-30-631Z-1504520-ffe9835b-6a9f-49cd-8462-6713549106b4.json release_evidence=false
+1791299490713  ELIFECYCLE  Command failed with exit code 1.

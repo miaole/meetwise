@@ -1,0 +1,286 @@
+1791299520335 
+1791299520336 > meetwise@0.1.0 uc018:perf-load:prove /workspace/meetwise-wt-an-perf-prove6
+1791299520336 > node scripts/run-e2e-isolated.mjs uc018:perf-load:prove:raw
+1791299520336 
+1791299520458 [R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+1791299520460 E2E_RESOURCE_CAPS target=uc018:perf-load:prove:raw docker_args=--cpus 2 --memory 4g
+1791299524092 E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+1791299524092 E2E isolated PostgreSQL: meetwise-e2e-1507309-1791299520456 on 127.0.0.1:33064
+1791299524093 E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+1791299525045 E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+1791299525166 UC018_CAPS pg container=meetwise-e2e-1507309-1791299520456 NanoCpus=2000000000 Memory=4294967296 ok=true
+1791299529728 UC018_CAPS written enforced=true api NanoCpus=2000000000 Memory=4294967296
+1791299531632 UC-E2E-018 PERF/LOAD prove · NHP-018-PERF-01 + NHP-018-LOAD-01
+1791299531632 NOTE: Method freeze nearest-rank · timeout=10s=error · warmup=10 · runs=3 · caps Docker 2cpu/4GiB
+1791299531632 NOTE: local ≠ production capacity ≠ HA · PERF/LOAD partial ≠ UC covered · §1.1 stays partial
+1791299531961 fatal: not a git repository: /workspace/projects/meetwise/.git/worktrees/meetwise-wt-an-perf-prove6
+1791299532565 PERF run1: p50=25.0 p95=70.5 p99=87.9 err=0 timeout=0 passed=true
+1791299532900 LOAD run1: p50=50.6 p95=149.9 p99=157.2 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
+1791299533327 PERF run2: p50=17.1 p95=47.5 p99=77.3 err=0 timeout=0 passed=true
+1791299533608 LOAD run2: p50=33.3 p95=97.5 p99=124.9 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
+1791299533650 node:events:502
+1791299533650       throw er; // Unhandled 'error' event
+1791299533650       ^
+1791299533650 
+1791299533650 Error: Connection terminated unexpectedly
+1791299533650     at Connection.<anonymous> (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:199:73)
+1791299533650     at Object.onceWrapper (node:events:638:28)
+1791299533650     at Connection.emit (node:events:524:28)
+1791299533650     at Socket.<anonymous> (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/connection.js:63:12)
+1791299533650     at Socket.emit (node:events:524:28)
+1791299533650     at TCP.<anonymous> (node:net:343:12)
+1791299533650 Emitted 'error' event on BoundPool instance at:
+1791299533650     at Client.idleListener (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:62:10)
+1791299533650     at Client.emit (node:events:524:28)
+1791299533650     at Client._handleErrorEvent (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:417:10)
+1791299533650     at Connection.<anonymous> (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:217:16)
+1791299533650     at Object.onceWrapper (node:events:638:28)
+1791299533650     [... lines matching original stack trace ...]
+1791299533650     at TCP.<anonymous> (node:net:343:12) {
+1791299533650   client: Client {
+1791299533650     _events: [Object: null prototype] { error: [Function (anonymous)] },
+1791299533650     _eventsCount: 1,
+1791299533650     _maxListeners: undefined,
+1791299533650     connectionParameters: ConnectionParameters {
+1791299533650       user: 'meetwise',
+1791299533650       database: 'meetwise',
+1791299533650       port: 33064,
+1791299533650       host: '127.0.0.1',
+1791299533650       binary: false,
+1791299533650       options: undefined,
+1791299533650       ssl: false,
+1791299533650       sslnegotiation: undefined,
+1791299533650       client_encoding: '',
+1791299533650       replication: undefined,
+1791299533650       isDomainSocket: false,
+1791299533650       application_name: undefined,
+1791299533650       fallback_application_name: undefined,
+1791299533650       statement_timeout: 15000,
+1791299533650       lock_timeout: false,
+1791299533650       idle_in_transaction_session_timeout: 15000,
+1791299533650       query_timeout: false,
+1791299533650       connect_timeout: 5
+1791299533650     },
+1791299533650     user: 'meetwise',
+1791299533650     database: 'meetwise',
+1791299533650     port: 33064,
+1791299533650     host: '127.0.0.1',
+1791299533650     replication: undefined,
+1791299533650     _Promise: [Function: Promise],
+1791299533650     _types: TypeOverrides {
+1791299533650       _types: {
+1791299533650         getTypeParser: [Function: getTypeParser],
+1791299533650         setTypeParser: [Function: setTypeParser],
+1791299533650         arrayParser: { create: [Function: create] },
+1791299533650         builtins: {
+1791299533650           BOOL: 16,
+1791299533650           BYTEA: 17,
+1791299533650           CHAR: 18,
+1791299533650           INT8: 20,
+1791299533650           INT2: 21,
+1791299533650           INT4: 23,
+1791299533650           REGPROC: 24,
+1791299533650           TEXT: 25,
+1791299533650           OID: 26,
+1791299533650           TID: 27,
+1791299533650           XID: 28,
+1791299533650           CID: 29,
+1791299533650           JSON: 114,
+1791299533650           XML: 142,
+1791299533650           PG_NODE_TREE: 194,
+1791299533650           SMGR: 210,
+1791299533650           PATH: 602,
+1791299533650           POLYGON: 604,
+1791299533650           CIDR: 650,
+1791299533650           FLOAT4: 700,
+1791299533650           FLOAT8: 701,
+1791299533650           ABSTIME: 702,
+1791299533650           RELTIME: 703,
+1791299533650           TINTERVAL: 704,
+1791299533650           CIRCLE: 718,
+1791299533650           MACADDR8: 774,
+1791299533650           MONEY: 790,
+1791299533650           MACADDR: 829,
+1791299533650           INET: 869,
+1791299533650           ACLITEM: 1033,
+1791299533650           BPCHAR: 1042,
+1791299533650           VARCHAR: 1043,
+1791299533650           DATE: 1082,
+1791299533650           TIME: 1083,
+1791299533650           TIMESTAMP: 1114,
+1791299533650           TIMESTAMPTZ: 1184,
+1791299533650           INTERVAL: 1186,
+1791299533650           TIMETZ: 1266,
+1791299533650           BIT: 1560,
+1791299533651           VARBIT: 1562,
+1791299533651           NUMERIC: 1700,
+1791299533651           REFCURSOR: 1790,
+1791299533651           REGPROCEDURE: 2202,
+1791299533651           REGOPER: 2203,
+1791299533651           REGOPERATOR: 2204,
+1791299533651           REGCLASS: 2205,
+1791299533651           REGTYPE: 2206,
+1791299533651           UUID: 2950,
+1791299533651           TXID_SNAPSHOT: 2970,
+1791299533651           PG_LSN: 3220,
+1791299533651           PG_NDISTINCT: 3361,
+1791299533651           PG_DEPENDENCIES: 3402,
+1791299533651           TSVECTOR: 3614,
+1791299533651           TSQUERY: 3615,
+1791299533651           GTSVECTOR: 3642,
+1791299533651           REGCONFIG: 3734,
+1791299533651           REGDICTIONARY: 3769,
+1791299533651           JSONB: 3802,
+1791299533651           REGNAMESPACE: 4089,
+1791299533651           REGROLE: 4096
+1791299533651         }
+1791299533651       },
+1791299533651       text: {},
+1791299533651       binary: {}
+1791299533651     },
+1791299533651     _ending: true,
+1791299533651     _ended: true,
+1791299533651     _connecting: false,
+1791299533651     _connected: true,
+1791299533651     _connectionError: false,
+1791299533651     _queryable: false,
+1791299533651     _activeQuery: null,
+1791299533651     _txStatus: 'I',
+1791299533651     enableChannelBinding: false,
+1791299533651     scramMaxIterations: 100000,
+1791299533651     connection: Connection {
+1791299533651       _events: [Object: null prototype] {
+1791299533651         newListener: [Function (anonymous)],
+1791299533651         connect: [Function (anonymous)],
+1791299533651         sslconnect: [Function (anonymous)],
+1791299533651         authenticationCleartextPassword: [Function: bound _handleAuthCleartextPassword],
+1791299533651         authenticationMD5Password: [Function: bound _handleAuthMD5Password],
+1791299533651         authenticationSASL: [Function: bound _handleAuthSASL],
+1791299533651         authenticationSASLContinue: [Function: bound _handleAuthSASLContinue] AsyncFunction,
+1791299533651         authenticationSASLFinal: [Function: bound _handleAuthSASLFinal],
+1791299533651         backendKeyData: [Function: bound _handleBackendKeyData],
+1791299533651         error: [Function: bound _handleErrorEvent],
+1791299533651         errorMessage: [Function: bound _handleErrorMessage],
+1791299533651         readyForQuery: [Function: bound _handleReadyForQuery],
+1791299533651         notice: [Function: bound _handleNotice],
+1791299533651         rowDescription: [Function: bound _handleRowDescription],
+1791299533651         dataRow: [Function: bound _handleDataRow],
+1791299533651         portalSuspended: [Function: bound _handlePortalSuspended],
+1791299533651         emptyQuery: [Function: bound _handleEmptyQuery],
+1791299533651         commandComplete: [Function: bound _handleCommandComplete],
+1791299533651         parseComplete: [Function: bound _handleParseComplete],
+1791299533651         copyInResponse: [Function: bound _handleCopyInResponse],
+1791299533651         copyData: [Function: bound _handleCopyData],
+1791299533651         notification: [Function: bound _handleNotification]
+1791299533651       },
+1791299533651       _eventsCount: 22,
+1791299533651       _maxListeners: undefined,
+1791299533651       stream: Socket {
+1791299533651         connecting: false,
+1791299533651         _hadError: false,
+1791299533651         _parent: null,
+1791299533651         _host: null,
+1791299533651         _closeAfterHandlingError: false,
+1791299533651         _events: {
+1791299533651           close: [Function (anonymous)],
+1791299533651           error: [Function: reportStreamError],
+1791299533651           prefinish: undefined,
+1791299533651           finish: undefined,
+1791299533651           drain: undefined,
+1791299533651           data: [Function (anonymous)],
+1791299533651           end: [ [Function: onReadableStreamEnd], [Function (anonymous)] ],
+1791299533651           readable: undefined,
+1791299533651           connect: undefined
+1791299533651         },
+1791299533651         _readableState: ReadableState {
+1791299533651           highWaterMark: 16384,
+1791299533651           buffer: [],
+1791299533651           bufferIndex: 0,
+1791299533651           length: 0,
+1791299533651           pipes: [],
+1791299533651           awaitDrainWriters: null,
+1791299533651           [Symbol(kState)]: 194512756
+1791299533651         },
+1791299533651         _writableState: WritableState {
+1791299533651           highWaterMark: 16384,
+1791299533651           length: 0,
+1791299533651           corked: 0,
+1791299533651           onwrite: [Function: bound onwrite],
+1791299533651           writelen: 0,
+1791299533651           bufferedIndex: 0,
+1791299533651           pendingcb: 0,
+1791299533651           [Symbol(kState)]: 1091450228,
+1791299533651           [Symbol(kBufferedValue)]: null,
+1791299533651           [Symbol(kWriteCbValue)]: null
+1791299533651         },
+1791299533651         allowHalfOpen: false,
+1791299533651         _maxListeners: undefined,
+1791299533651         _eventsCount: 4,
+1791299533651         _sockname: null,
+1791299533651         _pendingData: null,
+1791299533651         _pendingEncoding: '',
+1791299533651         server: null,
+1791299533651         _server: null,
+1791299533651         write: [Function: writeAfterFIN],
+1791299533651         [Symbol(async_id_symbol)]: 16013,
+1791299533651         [Symbol(kHandle)]: null,
+1791299533651         [Symbol(lastWriteQueueSize)]: 0,
+1791299533651         [Symbol(timeout)]: null,
+1791299533651         [Symbol(kBuffer)]: null,
+1791299533651         [Symbol(kBufferCb)]: null,
+1791299533651         [Symbol(kBufferGen)]: null,
+1791299533651         [Symbol(shapeMode)]: true,
+1791299533651         [Symbol(kCapture)]: false,
+1791299533651         [Symbol(kSetNoDelay)]: true,
+1791299533651         [Symbol(kSetKeepAlive)]: false,
+1791299533651         [Symbol(kSetKeepAliveInitialDelay)]: 0,
+1791299533651         [Symbol(kBytesRead)]: 13894,
+1791299533651         [Symbol(kBytesWritten)]: 26629
+1791299533651       },
+1791299533651       _keepAlive: false,
+1791299533651       _keepAliveInitialDelayMillis: 0,
+1791299533651       parsedStatements: {},
+1791299533651       ssl: false,
+1791299533651       sslNegotiation: 'postgres',
+1791299533651       _ending: true,
+1791299533651       _emitMessage: false,
+1791299533651       _connecting: true,
+1791299533651       [Symbol(shapeMode)]: false,
+1791299533651       [Symbol(kCapture)]: false
+1791299533651     },
+1791299533651     _queryQueue: [],
+1791299533651     binary: false,
+1791299533651     processID: 144,
+1791299533651     secretKey: -234958806,
+1791299533651     ssl: false,
+1791299533651     sslNegotiation: 'postgres',
+1791299533651     _connectionTimeoutMillis: 5000,
+1791299533651     _connectionCallback: null,
+1791299533651     connectionTimeoutHandle: Timeout {
+1791299533651       _idleTimeout: -1,
+1791299533651       _idlePrev: null,
+1791299533651       _idleNext: null,
+1791299533651       _idleStart: 2921,
+1791299533651       _onTimeout: null,
+1791299533651       _timerArgs: undefined,
+1791299533651       _repeat: null,
+1791299533651       _destroyed: true,
+1791299533651       [Symbol(refed)]: false,
+1791299533651       [Symbol(kHasPrimitive)]: false,
+1791299533651       [Symbol(asyncId)]: 16012,
+1791299533651       [Symbol(triggerId)]: 0
+1791299533651     },
+1791299533651     saslSession: null,
+1791299533651     release: [Function (anonymous)],
+1791299533651     readyForQuery: true,
+1791299533651     hasExecuted: true,
+1791299533651     _poolUseCount: 12,
+1791299533651     [Symbol(shapeMode)]: false,
+1791299533651     [Symbol(kCapture)]: false
+1791299533651   }
+1791299533651 }
+1791299533651 
+1791299533651 Node.js v20.20.2
+1791299535427 ISOLATED_POSTGRES_OUTPUT_WITHHELD container=meetwise-e2e-1507309-1791299520456 state_bytes=29 logs_bytes=29
+1791299535515 LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-06T15-12-15-441Z-1507309-b8434369-df3e-4c7c-b762-8eb4c95a79aa.json release_evidence=false
+1791299535536  ELIFECYCLE  Command failed with exit code 1.

@@ -1,5 +1,6 @@
+with-docker-session: docker.sock permission gap in session; re-exec via sg docker (membership already in /etc/group; no grant/chmod/sudo)
 
-> meetwise@0.1.0 uc018:receipt-backfill:prove /workspace/meetwise-wt-an-perf-coding
+> meetwise@0.1.0 uc018:receipt-backfill:prove /workspace/meetwise-wt-an-perf-prove6
 > node scripts/uc-e2e-018-receipt-backfill.proof.mjs
 
 PASS  valid machine receipt accepted

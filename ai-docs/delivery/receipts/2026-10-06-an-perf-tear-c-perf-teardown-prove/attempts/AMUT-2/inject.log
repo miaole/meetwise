@@ -1,2 +1,2 @@
-NOTICE:  GATE_LOOP_START t0_ms=1791295179199 iv_rows=0
-NOTICE:  INJECT_A phase=seed killed=1 iv_rows=25 iv_nonactive=0 idle_n=19 snap=[{"pid" : 145, "state" : "idle in transaction", "xact_start" : "2026-10-06T13:59:40.250843+00:00", "q" : "INSERT INTO entitlement_consumption(owner_user_id, idempoten"}]
+NOTICE:  GATE_LOOP_START t0_ms=1791299284683 iv_rows=0
+NOTICE:  INJECT_A phase=seed killed=1 iv_rows=43 iv_nonactive=0 idle_n=19 snap=[{"pid" : 122, "state" : "idle in transaction", "xact_start" : "2026-10-06T15:08:05.61885+00:00", "q" : "SELECT set_config('app.principal_user', $1, true)"}]

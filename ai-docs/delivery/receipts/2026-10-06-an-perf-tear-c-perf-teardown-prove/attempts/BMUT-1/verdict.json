@@ -26,71 +26,71 @@
   "state29": false,
   "form": "F2",
   "CTU_present": false,
-  "t_first_error": 1791295330680,
+  "t_first_error": 1791299397597,
   "pg_events": [
    [
     "create",
-    1791295317167,
+    1791299384929,
     null,
     null
    ],
    [
     "start",
-    1791295317342,
+    1791299385114,
     null,
     null
    ],
    [
     "kill",
-    1791295330677,
+    1791299397590,
     "2",
     null
    ],
    [
     "kill",
-    1791295330687,
+    1791299397599,
     "9",
     null
    ],
    [
     "stop",
-    1791295330853,
+    1791299397789,
     null,
     null
    ],
    [
     "die",
-    1791295330857,
+    1791299397793,
     null,
     "137"
    ],
    [
     "start",
-    1791295331038,
+    1791299397974,
     null,
     null
    ],
    [
     "restart",
-    1791295331038,
+    1791299397974,
     null,
     null
    ],
    [
     "kill",
-    1791295332330,
+    1791299399211,
     "9",
     null
    ],
    [
     "die",
-    1791295332530,
+    1791299399422,
     null,
     "137"
    ],
    [
     "destroy",
-    1791295332985,
+    1791299399839,
     null,
     null
    ]
@@ -98,12 +98,26 @@
   "pg_teardown_before_first_error": [
    [
     "kill",
-    1791295330677,
+    1791299397590,
     "2",
     null
    ]
   ],
+  "J2_x6": {
+   "Tk": false,
+   "Td": true,
+   "Tx": false,
+   "W_die": 500,
+   "W_destroy": 2000,
+   "t_kill": 1791299397599,
+   "t_die": 1791299397793,
+   "t_destroy": 1791299399839,
+   "t_err": 1791299397597,
+   "kill_to_die_ms": 194,
+   "die_to_destroy_ms": 2046
+  },
   "foreign_emit_proc_lines": 0,
+  "foreign_emit_raw_mention_lines": 0,
   "J2": "B-restart(inject-initiated)",
   "aux": {
    "events_kill_exit": "0",
@@ -115,29 +129,29 @@
   "psql_exit": 0,
   "gate_loop_start": [
    [
-    "1791295329703",
+    "1791299396715",
     "0"
    ]
   ],
-  "t_load2": 1791295330632,
-  "t_perf1": 1791295329598,
+  "t_load2": 1791299397558,
+  "t_perf1": 1791299396608,
   "marker": [
-   "GATE_BC phase=seed ts_ms=1791295330649 iv_rows=11 iv_nonactive=0 idle_n=19 seed_act=1 ub=109"
+   "GATE_BC phase=seed ts_ms=1791299397565 iv_rows=5 iv_nonactive=0 idle_n=19 seed_act=1 ub=109"
   ],
   "inject_cmd": {
-   "cmd": "docker restart -t 0 meetwise-e2e-1399938-1791295315868",
+   "cmd": "docker restart -t 0 meetwise-e2e-1499706-1791299383523",
    "exit": 0,
-   "t0": 1791295330653,
-   "t1": 1791295331041,
-   "stdout": "meetwise-e2e-1399938-1791295315868"
+   "t0": 1791299397569,
+   "t1": 1791299397976,
+   "stdout": "meetwise-e2e-1499706-1791299383523"
   },
-  "D_gate_to_cmd_return_ms": 392,
+  "D_gate_to_cmd_return_ms": 411,
   "kill_event_ms": [
-   1791295330677
+   1791299397590
   ],
-  "D_gate_to_kill_event_ms": 28,
-  "port_before": "127.0.0.1:32991",
-  "port_after": "127.0.0.1:32992",
+  "D_gate_to_kill_event_ms": 25,
+  "port_before": "127.0.0.1:33052",
+  "port_after": "127.0.0.1:33053",
   "port_changed": true
  }
 }
