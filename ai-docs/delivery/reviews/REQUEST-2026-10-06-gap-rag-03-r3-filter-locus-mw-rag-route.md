@@ -166,3 +166,68 @@ Verdict: FAIL
 R1 / R2 / R4 / R6 已解除；**R3 未解除**：ANN 的 candidate JOIN 仍在内层 `LIMIT greatest(k*8,40)` 之后（`0106:85` → `:88-89`）；rewrite 只写了「修复方向」，未纳入编码范围、未钉修复后精确值；HNSW 与 legacy 的预期没有与修复联动。**R5 部分解除**：缺 candidate 移回 LIMIT 后的变异。GAP-RAG-03 保持 OPEN。Pins 未变：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained（Postgres / pgvector / PostgresSaver）· Ban MySQL runtime / Qdrant / MemorySaver · public DELETE=503。coding 仍禁止，须双方 PASS 加协调方 AUTHORIZE；不代签 mw-e2e-ha。
 
 Verdict: FAIL
+
+## Re-PRE2 @c515a8c
+
+**时间**：2026-10-06 20:51 +08:00
+**REWRITE ×2**：`c515a8c08aeb904a2579f0d1d38ec4e93aa183c9`（supersedes `c71d354`，引用我方 Re-PRE FAIL `0e5c5ed`）。fetch 后确认在 origin，是祖先；只改 4 个 docs（harness、slice、两个 stub）。`0e5c5ed..c515a8c` 区间没有 `packages/`、`apps/`、`scripts/` 源码改动。
+**审查基**：临时 worktree `/tmp/mwrr-re-pre2` @ `c515a8c` · 仅本 box · 只读，无 prove · 未读 `.env*` · 无 live 模型调用
+**本文件历史段**：`## PRE-EXEC @4c93dc5` 起至 `## Re-PRE @c71d354` 结尾，与 `0e5c5ed` 逐字一致（diff 为空）；core 表头 / 「Rewrite ×2 note」未改动。
+**Peer**：mw-e2e-ha 同线收据仍为 PENDING stub，无结论可引；不代签 · alone ≠ dual。
+
+### 我方前次收据更正（如实披露）
+
+- **`0e5c5ed` R3③ 的前提有误。** 我当时写「现状代码在无 active generation 且已设 scope 时可以走到 legacy」，复核后结论是**到不了**：`activeQbankGeneration` 在 `qbank-generation-retrieval.ts:114-120` 中，若元数据函数缺失则抛 `qbank_active_generation_metadata_missing`，若 `rowCount !== 1` 则抛 `qbank_active_generation_missing`；返回类型是非可选的 `Promise<QbankActiveGeneration>`。因此 `:229` 的 `if (!active)` 永远不成立。rewrite ×2 §4.4（`:109`）的更正成立。
+- `0e5c5ed` 把 lexical candidate JOIN 记为 `0106:115`，实际在 `:116`（`:115` 是 `JOIN qbank_chunk`）。rewrite `:61` 写的 `:116` 正确。
+
+### 逐项核对（harness = `harness/gap-rag-03-r3-filter-locus.md` @ `c515a8c`）
+
+- **C-1 ANN candidate 前移 · 已解除。**
+  - 范围：`:74` 已纳入本刀编码范围（AUTHORIZE 后执行，`:70`），新增 migration `<NNNN>_qbank_ann_candidate_before_limit.sql`，预期编号 0138。tip 末号确为 `0137_privacy_external_sink_confirmation_guard.sql`；若编号被他线先占，按顺延处理并在收据披露。
+  - SQL：`CREATE OR REPLACE` 同签名、同 `SECURITY DEFINER`、同 `SET search_path`（与 `0106:55-61` 核对一致）。唯一变化是把 `JOIN qbank_retrieval_candidate` 移入 `ann` CTE，紧随 `0106:73` 的 `JOIN qbank_generation_chunk … AND g.visible`，位于 `ORDER BY :84` 与 `LIMIT greatest(k*8,40) :85` 之前；外层删去 `:89`。这样批准源过滤确实发生在 ORDER BY / LIMIT 之前。
+  - manifest 不变的理由与 `0106:14-21` 头注机理一致。
+  - lexical 路径：`0106:116` 的 candidate JOIN 与 `:120-128` 的 scope 都在 `:130` / `:131` 之前，已合规，本刀不改（`:61`、`:78`）。
+  - `retrieval-store.ts:58-63` 走同一个 `qbank_generation_ann_search`，修复同时覆盖（`:59`）。
+  - Postgres only：Ban MySQL / Qdrant / FULLTEXT（`:78`、`:162`）。
+- **C-2 删除 legacy 死分支 · 已解除（「死代码」属实）。** 调用链逐一核查：
+  - `annSearchLegacy` 在本文件内只出现在 `:231-232`（另有 `:113` 一处文档注释）。
+  - `hybridQbankSearch` 的全部调用方都先经过 `:228` 的 `activeQbankGeneration`：生产 `qbank-retrieval-cache.ts:276`；proof 包括 `rag04-track-local-retrieval.proof.ts:318`、`qbank-pipeline.proof.ts:55`、`qbank-generation.proof.ts:66`、`qbank-integrity-upgrade.proof.ts:256/:362`、`qbank-retrieval-eval-pg.proof.ts:77/:138`。
+  - 无 active 的情形（首次启动、generation 表为空、pre-0029 库）都在 `:228` 抛错，不会进入 legacy。
+  - 其他直接调用 `annSearchLegacy` 的地方（`retrieval-store.ts:65` 非 qbank 分支、`vectorstore.proof.ts`、smoke `rag-demo.ts:61`、`rag-adversarial-pg-eval.ts:146`）都不经 `hybridQbankSearch`，本刀不动（`:78`）。
+  - 所以删除不改变行为：删除前后都抛 `qbank_active_generation_missing`。fail-closed 结果已钉为 F-LEGACY 的 reject 与 0 行（`:89`）；proof 整体修复前 EXIT 1、修复后 EXIT 0（`:111`）。
+- **F-STARVE · 已解除。** `:87`：45 条 in-scope 未批准（dist 0.10–0.54），加 5 条 in-scope 已批准（0.60–0.64），加 10 条 out-of-scope 已批准（0.01–0.05），K=5，dense 模式。我按源码复算：
+  - dense 模式 `n=k`（`:239`），SQL 端 `k=least(5,50)=5`（`0106:63`），内层 LIMIT 为 40；out-of-scope 行先被 scope 过滤掉，内层取到的 40 行全是未批准 → 修复前精确 0 行。修复后为精确 5 行，全部批准、0 越界。
+  - F-STARVE-RRF 对照组：`n=min(200, max(40,40))=40`（`MAX_CANDIDATES=200` 在 `:14`），SQL `k=40`，内层 LIMIT 320 → 5 行。复算一致。
+  - fixture 若无法构造，记 `FIXTURE_UNREACHABLE`，不算绿（`:93`）。
+- **`:43` 与 `:62/:69` 的矛盾 · 已解除。** `:66` 明确 §2 是目标态，§3 是 tip 现状缺陷 D-ANN-1，由 §4.1 在本刀内修复，不再作为「保留风险」。
+- **HNSW · 已解除（残项 OPEN 并有防误读机制）。**
+  - `:97-105` 定案：不改 knobs；P-EXACT（`enable_indexscan` / `enable_bitmapscan` 关闭，EXPLAIN 证明计划树不含 `qgc_hnsw_visible_`）作为门禁，要求精确 5 行。
+  - P-DEFAULT 只记录 `HNSW_USED`；P-HNSW 只钉安全性，并记录 `hnswReturned`。`R3-HNSW-COMPLETENESS` 保持 OPEN（`:13`、`:103`、`:181`、`:185`）。
+  - 索引名前缀 `qgc_hnsw_visible_` 与 `0029:203` 一致，分区表见 `0029:146`。
+  - 收据必录 `extversion`、image digest、`hnsw.ef_search`、三计划 EXPLAIN JSON（`:153`）。
+- **MUT-3 / MUT-4 · 已解除。** `:144-145`：两者各 3/3 EXIT 1，且须命中具名红断言；MUT 禁止 commit，跑完 `git diff --exit-code` 须为 0（`:137`）。
+- **3/3 · 已解除。** `:125-129`，通过 = 3/3 命中期望；BASELINE 3/3 EXIT 1（`:127`）；执行顺序已钉（`:130`）。
+- **保留项没有回退**：
+  - R1 ADR（`:43-50`）、R2 锚点（`:52-64`）、R4 命令（`:118`）、R6 隔离（`:157-162`）。
+  - 镜像 `run-e2e-isolated.mjs:1728` 已核实。
+  - 回归 R-a..R-d 期望 EXIT 0，wrapper 带 `env -u`（`:146-149`）；根 `package.json` 中 `rag03-route:prove :238`、`rag04-track-local:prove :240`、`qbank-pipeline:prove :427`、`rag-generation:prove :433` 均已核实存在。
+  - GAP-RAG-03 保持 OPEN（`:13`、`:166`）；Pins 未变（`:4`、`:185`）。
+
+### 新阻断
+
+无（下面条件 1 必须在 AUTHORIZE 前修正，但它不触及 R1–R6 的实质，修法唯一且是机械性的）。
+
+### 条件
+
+1. **【执行前必改】静态断言与 C-2 范围冲突。** `R3-LEGACY-STATIC-UNREACHABLE` 要求本文件中 `annSearchLegacy` 出现次数为 0（`:89`、`:110`），但 C-2 只删 `:229-233`、「其余不变」（`:75`），而 `qbank-generation-retrieval.ts:113` 的文档注释里也有 `annSearchLegacy`。当前文件中计数为 3，不是 `:111` 所写的「得 1」；按现稿修复后仍为 1，PC 必然红。修法二选一：C-2 同时改写 `:113` 注释；或把断言收窄到代码形态，例如 `import('./retrieval-legacy` 或 `annSearchLegacy(` 调用。同时更正修复前计数。禁止在 prove 期间临时改断言来过关。
+2. **回归补强。** C-1 改动了 ANN SQL，而 `qbank-integrity-upgrade:prove`（根 `package.json:429`；`qbank-integrity-upgrade.proof.ts:256/:362` 经 `hybridQbankSearch` 断言 content_hash 漂移被排除，正是 candidate 视图语义）不在 R-a..R-d 中，建议加入，期望 EXIT 0。另外，现有 proof 中没有任何一个断言 `qbank_active_generation_missing`，无 active 情形只有新 proof 的 F-LEGACY 覆盖；建议加一个不设 scope 的无 active 变体。
+3. **R-c 理由更正**（`:148`）。`rag-generation:prove`（`prove:qbank-generation`）是在有 active generation 时无 scope 调用 `hybridQbankSearch`（`qbank-generation.proof.ts:66`），验证的是无 scope 的 serving 路径，不涉及 legacy。
+4. **C-3 注册位置不全**（`:76`）。`run-e2e-isolated.mjs` 中 `rag04-track-local:prove:raw` 实际出现在四处：`:1262`、`:1450`、`:1694`（命令分派）、`:2202`。新 target 须同样登记四处。
+5. **MUT-4 的「返回 ≥1 legacy 行」**（`:145`）依赖 `vector_chunk` 行在 legacy RLS / `qbank_visible_ref` 下可见。建议只钉 EXIT 1 与红断言名，行数仅作记录；或在 fixture 中证明这些行可见。
+6. **EXPLAIN 取的是目录中函数体参数替换后的计划**（`:105`），可能与函数实际执行时的计划不同。收据中须注明这一点。
+
+### 结论
+
+R3（C-1、C-2、F-STARVE、矛盾、HNSW 联动）与 R5（MUT-3、MUT-4、3/3、收据必录项）均已解除；R1 / R2 / R4 / R6 没有回退；我方 `0e5c5ed` 中「legacy 可达」的判断有误，已更正。无新阻断；6 条条件中条件 1 须在 AUTHORIZE 前修正。本 PASS 仅为 mw-rag-route 单方 re-PRE：alone ≠ dual，不代签 mw-e2e-ha。coding 仍禁止，须双方 PASS 加协调方 AUTHORIZE。GAP-RAG-03 与 `R3-HNSW-COMPLETENESS` 保持 OPEN。Pins：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained（Postgres / pgvector / PostgresSaver）· Ban MySQL runtime / Qdrant / MemorySaver · public DELETE=503。
+
+Verdict: PASS
