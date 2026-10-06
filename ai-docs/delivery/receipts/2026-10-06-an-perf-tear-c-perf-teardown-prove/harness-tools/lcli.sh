@@ -1,5 +1,5 @@
 set -u
-O=/workspace/meetwise-wt-an-perf-coding/.tmp/an-perf-tear
+O=/workspace/meetwise-wt-an-perf-prove6/.tmp/an-perf-tear
 L=$(docker ps -a --filter name=meetwise-e2e-r2pool- --format '{{.Names}}'); echo "nb4_list_exit=$? rows=$(printf '%s' "$L" | grep -c .)" > $O/lcli-aux.txt
 docker ps -a --filter name=meetwise-e2e --filter name=meetwise-uc018 --format '{{.Names}}' | wc -l >> $O/lcli-aux.txt
 S=()

@@ -56,25 +56,63 @@ pge = [e for e in evs if e.get('Actor', {}).get('Attributes', {}).get('name') ==
 seq = [(e['Action'], int(e['timeNano']) // 1_000_000, e['Actor']['Attributes'].get('signal'), e['Actor']['Attributes'].get('exitCode')) for e in pge if e['Action'] in ('create', 'start', 'kill', 'die', 'destroy', 'oom', 'restart', 'stop')]
 obs['pg_events'] = seq
 if not any(a in ('create', 'start') for a, *_ in seq): fails.append('AUX_EXIT_UNEXPECTED:events_no_pg_create_start')
+# ×6 J-2 temporal: kill(9) BEFORE first error; die(137) ≤500ms after kill; destroy ≤2000ms after die
+# (die/destroy MAY follow first error). Deletes old "all of kill→die→destroy before first error".
+W_DIE, W_DESTROY = 500, 2000
 before = [s for s in seq if errt is not None and s[1] < errt and s[0] in ('kill', 'die', 'destroy', 'oom')]
 obs['pg_teardown_before_first_error'] = before
+k9 = [t for a, t, sig, _ in seq if a == 'kill' and sig == '9']
+dd = [t for a, t, _, ec in seq if a == 'die' and ec == '137']
+ds = [t for a, *r in seq for t in [r[0]] if a == 'destroy']
+t_kill = k9[0] if k9 else None; t_die = dd[0] if dd else None; t_destroy = ds[0] if ds else None
+Tk = t_kill is not None and errt is not None and t_kill < errt
+Td = t_kill is not None and t_die is not None and t_kill < t_die <= t_kill + W_DIE
+Tx = t_die is not None and t_destroy is not None and t_die < t_destroy <= t_die + W_DESTROY
+postkill_ok = Td and Tx
+obs['J2_x6'] = {'Tk': Tk, 'Td': Td, 'Tx': Tx, 'W_die': W_DIE, 'W_destroy': W_DESTROY,
+                't_kill': t_kill, 't_die': t_die, 't_destroy': t_destroy, 't_err': errt,
+                'kill_to_die_ms': (t_die - t_kill) if (t_kill is not None and t_die is not None) else None,
+                'die_to_destroy_ms': (t_destroy - t_die) if (t_die is not None and t_destroy is not None) else None}
 procs = open(f'{d}/procs.txt').read()
 foreign_emit = [l for l in procs.split('\n') if 'uc018-receipt-backfill-emit' in l]
 obs['foreign_emit_proc_lines'] = len(foreign_emit)
 tsl = len(re.findall(r'^\d+\.\d+$', procs, re.M)); dur = (meta['t_end'] - meta['t_start']) / 1000
 if tsl < dur - 1 or 'run-e2e-isolated' not in procs: fails.append(f'AUX_EXIT_UNEXPECTED:procs tsl={tsl} dur={dur:.1f}')
 ic = meta.get('inject_cmd') or {}
-if errt is None: j2 = 'OUT'
-elif meta['inject'] == 'B' and ic.get('t0') and ic['t0'] <= errt and any(a == 'kill' and ic['t0'] <= t <= ic['t1'] for a, t, *_ in seq): j2 = 'B-restart(inject-initiated)'
-elif any(a == 'kill' and sig == '9' for a, t, sig, _ in before) and any(a == 'die' and ec == '137' for a, t, _, ec in before) and any(a == 'destroy' for a, *_ in before):
-    j2 = 'L3-sim' if (meta['inject'] == 'C' and ic.get('t0') and ic['t0'] <= min(t for a, t, *_ in before)) else ('L3 IN' if foreign_emit else 'EXTERNAL-OTHER')
-elif any(a in ('oom', 'die') for a, *_ in before): j2 = 'B-restart' if meta['inject'] == 'B' else 'L2-self IN'
-else: j2 = 'L1/client-side'
-if meta['inject'] == 'C' and ic.get('t0') and errt is not None:
-    k9 = [t for a, t, sig, _ in seq if a == 'kill' and sig == '9']; dd = [t for a, t, _, ec in seq if a == 'die' and ec == '137']; ds = [t for a, *r in seq for t in [r[0]] if a == 'destroy']
-    obs['C_seq_ms_rel_first_error'] = {'kill9': (k9[0] - errt) if k9 else None, 'die137': (dd[0] - errt) if dd else None, 'destroy': (ds[0] - errt) if ds else None, 'inject_cmd_t0': ic['t0'] - errt}
-    obs['J2_kill_start_reading'] = 'L3-sim' if (k9 and dd and ds and ic['t0'] <= k9[0] < errt and k9[0] < dd[0] < ds[0] and not foreign_emit) else 'no'
-    if j2 != 'L3-sim': j2 = 'L3-sim-temporal-mismatch(die/destroy after first error)' if obs['J2_kill_start_reading'] == 'L3-sim' else j2
+# Classification order (×6): B-restart · then (T-k) kill-anchor path · then L2-self · else L1
+# Presence of (T-k) kill(9) forbids falling to L1/client-side.
+if errt is None:
+    j2 = 'OUT'
+elif meta['inject'] == 'B' and ic.get('t0') and ic['t0'] <= errt and any(a == 'kill' and ic['t0'] <= t <= ic['t1'] for a, t, *_ in seq):
+    j2 = 'B-restart(inject-initiated)'
+elif Tk:
+    if postkill_ok:
+        if meta['inject'] == 'C' and ic.get('t0') and ic['t0'] <= t_kill and not foreign_emit:
+            j2 = 'L3-sim'
+        elif foreign_emit:
+            j2 = 'L3 IN'
+        else:
+            j2 = 'EXTERNAL-OTHER'  # UNDETERMINABLE bucket per §2.1
+    else:
+        j2 = 'UNDETERMINABLE(J2_POSTKILL_WINDOW_EXCEEDED)'
+elif any(a in ('oom', 'die') for a, *_ in before):
+    j2 = 'B-restart' if meta['inject'] == 'B' else 'L2-self IN'
+else:
+    j2 = 'L1/client-side'
+if meta['inject'] == 'C' and errt is not None:
+    obs['C_seq_ms_rel_first_error'] = {
+        'kill9': (t_kill - errt) if t_kill is not None else None,
+        'die137': (t_die - errt) if t_die is not None else None,
+        'destroy': (t_destroy - errt) if t_destroy is not None else None,
+        'inject_cmd_t0': (ic['t0'] - errt) if ic.get('t0') else None,
+        'kill_to_die_ms': obs['J2_x6']['kill_to_die_ms'],
+        'die_to_destroy_ms': obs['J2_x6']['die_to_destroy_ms'],
+    }
+    # retained diagnostic (not the gate): would old "all before error" have matched?
+    obs['J2_old_all_before_error'] = bool(
+        t_kill is not None and t_die is not None and t_destroy is not None
+        and ic.get('t0') is not None and ic['t0'] <= t_kill < errt
+        and t_kill < t_die < t_destroy < errt and not foreign_emit)
 obs['J2'] = j2
 # AUX
 if aux.get('ps_before_exit') != '0' or aux.get('rows') is None: pass
@@ -144,7 +182,15 @@ else:
         if obs['db_pool_error_n'] < 1: fails.append('INJECT_KIND_POOLQUERY_RACE')
         need(obs['form'] == 'F2' and not obs['perf_run3_line'] and obs['seedAbandonTargets_in_log'], 'INJECT_PHASE_DRIFT')
     if cell == 'C-POST':
-        need(obs['db_pool_error_n'] >= 1, 'DB_POOL_ERROR_0'); need(obs['state29'], 'NO_STATE29'); need(j2 == 'L3-sim', f'J2_NOT_L3SIM({j2})')
+        need(obs['db_pool_error_n'] >= 1, 'DB_POOL_ERROR_0'); need(obs['state29'], 'NO_STATE29')
+        # ×6 L3-sim gate: explicit fail marks (Ban old J2_NOT_L3SIM(temporal-mismatch))
+        if j2 != 'L3-sim':
+            if not Tk:
+                fails.append('J2_KILL_NOT_BEFORE_ERROR')
+            elif not postkill_ok:
+                fails.append('J2_POSTKILL_WINDOW_EXCEEDED')
+            else:
+                fails.append(f'J2_NOT_L3SIM({j2})')
 res = {'cell': cell, 'attempt': os.path.basename(d), 'pass': not fails, 'fails': fails, 'obs': obs}
 json.dump(res, open(f'{d}/verdict.json', 'w'), indent=1, default=str)
 print(json.dumps({'attempt': res['attempt'], 'pass': res['pass'], 'fails': fails, 'exit': EXIT, 'J2': j2, 'emitted': E, 'frames': obs['emitted_at_pg_frames'][:2], 'dpe': obs['db_pool_error_n'], 'marker': obs.get('marker'), 'form': obs['form']}, default=str))
