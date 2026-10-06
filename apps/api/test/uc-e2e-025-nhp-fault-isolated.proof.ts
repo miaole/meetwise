@@ -48,8 +48,8 @@ const A = (cls: Cls, name: string, cond: boolean) => {
 };
 
 const OWNER = 'userA';
-const RID = 'aaaaaaaa-bbbb-4ccc-8ddd-025fault0001';
-const RID_OTHER = 'bbbbbbbb-cccc-4ddd-8eee-025fault0002';
+const RID = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeee0251';
+const RID_OTHER = 'bbbbbbbb-cccc-4ddd-8eee-eeeeeeee0252';
 const S = Date.now().toString(36).toUpperCase();
 const IV = (k: string) => `IV_F025_${k}_${S}`;
 const QZ = (k: string) => `QZ_F025_${k}_${S}`;
