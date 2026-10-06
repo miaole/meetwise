@@ -1,13 +1,13 @@
-# Harness — **C-PERF-TEARDOWN · product rootcause fix**（Line AN-PERF-TEAR · docs REQUEST rewrite **×4 re-PRE** · **`draft:awaiting_pre_exec_dual`** · CONDITION may stay OPEN · Ban wash attempt1）
+# Harness — **C-PERF-TEARDOWN · product rootcause fix**（Line AN-PERF-TEAR · docs REQUEST rewrite **×5 re-PRE** · **`draft:awaiting_pre_exec_dual`** · CONDITION may stay OPEN · Ban wash attempt1）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST rewrite **×4 re-PRE** · supersedes REQUEST `083cce4`（→`1b74fb1`→`553cfc5`→`110532e`）· cites mw-e2e-ha Re-PRE3 FAIL **`70cba94`**（新阻塞 1 · B/C-MUT Unhandled-on-Client 3/3 在 seed 不可推出：`proof.ts:232` pool.query 窗口被 pg-pool `once('error')` 接住 + MUT 保留 `:931`）· prior FAIL `20da721`/`7e97dc3`/`152b665` retained · peer mw-rag-route Re-PRE3 PASS `dbed2f2` **cited not co-signed**（其 4 条 NB 条件 = 本稿 C1–C4） · alone ≠ dual · Ban coding · Ban prove · Ban wash attempt1 @ `b29c191` · Ban UC-018 covered flip · Ban close CONDITION without honest fix proved · Ban self-approve · Ban self-nail · HOLD AN-CIMG-EA）
+**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST rewrite **×5 re-PRE** · supersedes REQUEST `b5633f0`（→`083cce4`→`1b74fb1`→`553cfc5`→`110532e`）· cites mw-rag-route Re-PRE4 FAIL **`a07256c`**（新阻塞 1 TIMING：seed 窗口 ≲213 ms ≪ 1 s 反应上限 / 10 轮 B/C 余量 ≲19 ms < 一次 docker CLI 往返；新阻塞 2 C-POST 阶段期望 `:178-179` vs `:181` 自相矛盾）· prior FAIL `70cba94`/`20da721`/`7e97dc3`/`152b665` retained · peer mw-e2e-ha Re-PRE4 PASS `2900c46` **cited not co-signed** · alone ≠ dual（一方 PASS + 一方 FAIL ≠ dual PASS）· Ban coding · Ban prove · Ban wash attempt1 @ `b29c191` · Ban UC-018 covered flip · Ban close CONDITION without honest fix proved · Ban self-approve · Ban self-nail · HOLD AN-CIMG-EA · QUOTA WIND-DOWN · NO new knives）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · PERF/LOAD stays **local partial** · capacityRepresentative=**false** · canHonestlyFlip=**false**
 **Date**: 2026-10-06
-**Base / parent tip**: `origin/feat/mysql-schema-skeleton` @ **`ac03f30`**（ff past FAIL `70cba94` · peer PASS `dbed2f2` · RAG R3 CODE `264e1d7`/`ac03f30`（他线 · 只读 · 未触碰）· prior PERF rewrite ×3 `083cce4` · AN siblings cited only · Ban touch AN-RAG-R3 / AN-PRIV-EXT / AN-MOP-Q45 · Ban re-open AG/AI/AK · HOLD AN-CIMG-EA）
-**Prior REQUESTs**: `083cce467657c1499f748f0073eeaee7bdd9392d`（re-PRE ×3 · **superseded by this rewrite ×4**）· `1b74fb1cfa9226e8904e0dc51af02f1882851c79`（re-PRE ×2 · superseded）· `553cfc5e4ca511b0327b647fcc2b49925828752c`（superseded）· `110532e81f11064e543bc9bc420b67bb2f95ae1e`（superseded）
-**FAIL receipts**（retained · 不擦除）: `70cba947798c7fb33f7fa4a8a1ec8609ef6bc610`（Re-PRE3 FAIL @083cce4 · mw-e2e-ha · `reviews/REQUEST-2026-10-06-an-perf-tear-rewrite3-re-pre-mw-e2e-ha.md`）· `20da721c478f53cc7c13630f1533c4873a421501`（Re-PRE2 FAIL @1b74fb1 · mw-e2e-ha）· `7e97dc3e500c9471fe50dbdbd3aaee8d6c89e7e9`（Re-PRE FAIL @553cfc5）· `152b665787e02ac6ef350551e599b3823a9fa763`（PRE-EXEC FAIL @110532e）
-**Peer cites（不代签）**: mw-rag-route Re-PRE3 PASS `dbed2f2098ee39f5bd83b7b2cfb0bb697bb4631f` @083cce4 · Re-PRE2 PASS `882efbc6037d849c55b9a35dcafe9d9be1836b14` @1b74fb1 · alone ≠ dual（一方 PASS + 一方 FAIL ≠ dual PASS）
-**Wave**: Line **AN** REQUEST wave（this = **AN-PERF-TEAR** re-PRE ×4）
+**Base / parent tip**: `origin/feat/mysql-schema-skeleton` @ **`a07256c`**（rewrite ×5 · ff past FAIL `a07256c` / RAG nail `1024bfc` · CODE 锚仍 **`ac03f30`**：`git diff --quiet ac03f30 a07256c -- scripts packages apps` EXIT 0）· 历史：@ `ac03f30`（ff past FAIL `70cba94` · peer PASS `dbed2f2` · RAG R3 CODE `264e1d7`/`ac03f30`（他线 · 只读 · 未触碰）· prior PERF rewrite ×3 `083cce4` · AN siblings cited only · Ban touch AN-RAG-R3 / AN-PRIV-EXT / AN-MOP-Q45 · Ban re-open AG/AI/AK · HOLD AN-CIMG-EA）
+**Prior REQUESTs**: `b5633f0f20e887ce733d1d3778dedf48357ef176`（re-PRE ×4 · **superseded by this rewrite ×5**）· `083cce467657c1499f748f0073eeaee7bdd9392d`（re-PRE ×3 · superseded）· `1b74fb1cfa9226e8904e0dc51af02f1882851c79`（re-PRE ×2 · superseded）· `553cfc5e4ca511b0327b647fcc2b49925828752c`（superseded）· `110532e81f11064e543bc9bc420b67bb2f95ae1e`（superseded）
+**FAIL receipts**（retained · 不擦除）: `a07256c1809f30c9ae8bda6c98fab69760cb41a7`（Re-PRE4 FAIL @b5633f0 · mw-rag-route · `reviews/REQUEST-2026-10-06-c-perf-teardown-product-rootcause-fix-mw-rag-route.md` `## Re-PRE4 @b5633f0`）· `70cba947798c7fb33f7fa4a8a1ec8609ef6bc610`（Re-PRE3 FAIL @083cce4 · mw-e2e-ha · `reviews/REQUEST-2026-10-06-an-perf-tear-rewrite3-re-pre-mw-e2e-ha.md`）· `20da721c478f53cc7c13630f1533c4873a421501`（Re-PRE2 FAIL @1b74fb1 · mw-e2e-ha）· `7e97dc3e500c9471fe50dbdbd3aaee8d6c89e7e9`（Re-PRE FAIL @553cfc5）· `152b665787e02ac6ef350551e599b3823a9fa763`（PRE-EXEC FAIL @110532e）
+**Peer cites（不代签）**: mw-e2e-ha Re-PRE4 PASS `2900c46ef6f12258dcbc957c0273722ea83a6a47` @b5633f0（`reviews/REQUEST-2026-10-06-an-perf-tear-rewrite4-re-pre-mw-e2e-ha.md` · NB-e..i 已钉入本稿）· mw-rag-route Re-PRE3 PASS `dbed2f2098ee39f5bd83b7b2cfb0bb697bb4631f` @083cce4 · Re-PRE2 PASS `882efbc6037d849c55b9a35dcafe9d9be1836b14` @1b74fb1 · alone ≠ dual（一方 PASS + 一方 FAIL ≠ dual PASS）
+**Wave**: Line **AN** REQUEST wave（this = **AN-PERF-TEAR** re-PRE ×5 · QUOTA WIND-DOWN last knife）
 **Experts**: `mw-e2e-ha` + `mw-rag-route`（stubs PENDING re-PRE · Ban self-approve · alone ≠ dual）
 **Authority**: meetwise — docs REQUEST only · Ban SSOT edit · Ban coding · Ban self-nail · Ban buy cloud · status `draft:awaiting_pre_exec_dual`
 **Knife**: **C-PERF-TEARDOWN product rootcause fix（AN-PERF-TEAR）**——mid-prove pg Client teardown / unhandled crash 的产品根因判定 + 修复 REQUEST（≠ Line S Branch A 复跑证据刀 · ≠ Line AE CONDITION residual 容器可达证据刀 · ≠ AN-RAG-R3）
@@ -16,6 +16,26 @@
 - Line S `harness/gap-perf-teardown-rootcause-fix.md` — Branch A re-run / close-evidence · NAIL `post_prove_dual_pass` · CONDITION OPEN retained
 - Line AE `harness/c-perf-teardown-condition-residual.md` — container-reachability residual · NAIL `post_prove_dual_pass` · CONDITION OPEN retained · R-A Linux-native-Docker-Engine only
 - **本刀 = 新产品根因修复轨** · 旧 harness 只读引用 · Ban wash Line S / AE greens as product close · **Ban touch RAG files**
+
+## Rewrite ×5 note（supersedes `b5633f0` · FAIL `a07256c` · TIMING + C-POST 写死 · docs-only）
+
+`a07256c`（mw-rag-route Re-PRE4）确认 **已解除且核实**、本稿**不回退**：`70cba94` B/C-MUT（(ii) MUT-ZERO `:929`+`:931` · Client|BoundPool · `db_pool_error`=0 · `INJECT_KIND_POOLQUERY_RACE` 事前钉 FAIL）· C1–C4 · runner +18 @`ac03f30` · Inject A idle-in-txn + 57P01 + MUT-929 · T1 seed · `INJECT_PHASE_WARMUP` · B1(a)(b) · `:931` · R2 · B2/B5/B6 · backlog `:35` CONDITION OPEN。peer mw-e2e-ha Re-PRE4 PASS `2900c46` **仅引用、不代签**；一方 PASS + 一方 FAIL ≠ dual。
+
+| # | `a07256c` 阻塞 / NB | 本稿修订（锚 · 写死 · Ban 事后改） |
+|---|------|------|
+| **阻塞 1 · TIMING (a)** | `^LOAD run2: ` → psql 启动 ≤1 s 大于整个 PERF run3（430 ms）· seed ≲213 ms → psql 晚于 ~0.2 s 启动即系统性 `INJECT_PHASE_*` / `INJECT_GATE_TIMEOUT`（harness 时序 FAIL ≠ 产品） | §5 T1 改为 **预启动**：`prove.log` 首见 `^PERF run1: `（早于 `^PERF run2: `，按收据 ≈1.0 s 先于 `^LOAD run2: `）即起**唯一**一次容器内 psql 循环；门控键 `IV\_P018\_R3\_%` 在 run3 seed 第 1 条 INSERT 提交前恒 0 → 预启动**相位安全**（`iv_rows=0` 时任何分支都不触发、A 的 `k` 不终止）。**删除**「LOAD run2 → psql 启动 ≤1 s」；替换为可观测判据：`inject.log` 首行 `GATE_LOOP_START t0_ms=<epoch ms> iv_rows=0` 且 `t0_ms <` 宿主检出 `^LOAD run2: ` 的 epoch ms（同内核时钟 · §7 Linux-native），否则 `INJECT_LATE` 格 FAIL 计入。门控上限 10 s 自循环启动计（≈ 36× LOAD run2 时长 274 ms · ≈ 8× 循环启动→seed 结束 ≈1.22 s · §5.0a） |
+| **阻塞 1 · TIMING (b)** | B/C 余量 `iv_rows≤100`（≈10 轮 ≲19 ms）< 一次 docker CLI 往返 → B/C-POST 几乎必然 `INJECT_PHASE_DRIFT` | **公式写死**（§5.0b）：只有**唯一**依赖 seed 着陆的 B/C 格 = **B-POST** 用 `U_B = min(109, 110 − ceil(k·L_cli / t_round))`，**k = 2**、**t_round = 1.39 ms**（收据推得的最紧上界 · 取小 = 保守）、`L_cli` = 执行前 5 次 `docker version` 往返的**最大值**（ms）；`U_B` 与 5 个样本在**第一个 B-POST attempt 前**落 `.tmp/an-perf-tear/margin.json` + 收据，Ban 重算/改。可行性下限 `U_min = 6`（= `ceil(6 ms 轮询周期 / 1.39 ms) + 1`）：`U_B < 6` → **`BC_MARGIN_INFEASIBLE`**（B-POST 3 次**不执行** · 记格 FAIL ×3 · 标 harness-timing · ≠ 产品信号 · 披露）。B-MUT / C-MUT（MUT-ZERO 签名与阶段无关 · ×4 已钉）与 C-POST（阻塞 2 新规则 · 与阶段无关）门控上限 = **109**，落点只录不判 |
+| **阻塞 1 · TIMING (c)** | 「≥10 轮余量」无证据来源 | §5.0a **时序证据表**（收据路径 + 数值）：PERF run3 **430 ms** · measured 墙钟 ≥216.6 ms · seed（+warmup）**≲213 ms** · **≈1.9 ms/轮** · 10 轮 **≲19 ms** · LOAD run2 274 ms · `^PERF run1:`→`^LOAD run2:` 1006 ms · 收紧推导 seed ≲154 ms → ≤1.39–1.40 ms/轮（作 `t_round`） |
+| **阻塞 2 · C-POST 矛盾** | 阶段表 `:178-179` C-POST warmup/measured「OK keep」vs `:181` B/C-POST 须 F2 栈 `seedAbandonTargets` → 事后可选 | **选唯一规则**：**C-POST 与阶段无关 · OK keep**（PG `rm -f` 永久消失 · 其后任一 DB 调用必失败 → EXIT 1 · `:929`/`:931` 覆盖 → `db_pool_error`≥1 · 零 Unhandled · §4.1 推导）；**C-POST 不再要求** F2 / `seedAbandonTargets`、**无** `INJECT_PHASE_DRIFT`；EXIT 0（任一阶段）→ `POST_EXIT_UNEXPECTED` 格 FAIL 计入。**B-POST 保留且收紧**落点复核：seed 着陆 ⇔ F2 ∧ `prove.log` **无** `^PERF run3: ` 行 ∧ 栈含 `seedAbandonTargets`（排除 LOAD run3 seed 的 `seedAbandonTargets` 假阳），否则 `INJECT_PHASE_DRIFT` 格 FAIL 计入。阶段表、§4 矩阵、观测源段三处一致 |
+| **NB-1**（= peer NB-e） | `idle_n≥1` 可由 seed 自身 client 单独满足 | 门控前置改 **`idle_n≥2`**（同快照 · 否则 `INJECT_PRECOND_NO_IDLE` 格 FAIL 计入）· §5.0 / §5.0c SQL / §5.2b |
+| **NB-2** | `Emitted 'error' event on Client instance` 非 pg 专有 | A/B/C-MUT 额外要求 Unhandled 栈帧含 **`pg/lib/client.js`** 或 **`pg-pool/index.js`**；缺 → `UNHANDLED_NOT_PG` 格 FAIL 计入 |
+| **NB-3**（= peer NB-g） | `wait=143` 未验证 | J-2 `docker events` / pgrep 循环 `wait` 可接受集合写死 **{143, 0}**；其他值 → `AUX_EXIT_UNEXPECTED`（§5.4） |
+| **NB-4** | runner `:2220` 未披露 | 披露：`264e1d7` 在 `scripts/run-e2e-isolated.mjs:2220` migrate target 列表**同行追加** `'rag03-filter-locus:prove:raw'`（单行改写 · 无行偏移 · 不影响 `uc018:perf-load:prove:raw`）· +18 重锚不变 |
+| **NB-5**（= peer NB-h） | 「同一 microtask 检查点」措辞 | §5.2b 改为「**该 socket 回调后的 nextTick/microtask 排空内、下一回调分发前**」（结论不变 · ×4 note 原文保留为历史） |
+
+**新增/改名格标记（全部事前钉 · 格 FAIL · 计入 3 次 · Ban retry · Ban 换 attempt）**：`INJECT_LATE`（预启动判据不满足 / `^PERF run3:` 先于门控决定）· `INJECT_NOT_REACHED`（`^PERF run1:` 未出现即结束）· `INJECT_GATE_MISSED_MARGIN`（B-POST 门控首见 `iv_rows ∈ (U_B, 109]`）· `BC_MARGIN_INFEASIBLE`（B-POST 预判不可行 · 不执行）· `UNHANDLED_NOT_PG` · `INJECT_PHASE_DRIFT`（仅 B-POST）。
+
+**Tip / 锚（disclosure · @`a07256c`）**：`ac03f30..a07256c` 仅 RAG receipt / review / nail 与本刀 docs；`scripts/ packages/ apps/` 零改动 → 全部行号沿用 ×4（`:1744`/`:2039`/`:2193-2194`/`:2200`/`:2214`/`:2269-2271` · `principal.ts:918/:928-931` · `proof.ts:135/:227-247/:271-284/:328-331/:430-431/:441-444`）。**Ban invent product loci**：本稿未新增产品 locus。
 
 ## Rewrite ×4 note（supersedes `083cce4` · FAIL `70cba94` · 选 **(ii)** 写死）
 
@@ -163,62 +183,162 @@ Script 链：`pnpm uc018:perf-load:prove` → `run-e2e-isolated.mjs uc018:perf-l
 | 格 | 代码 | Inject | prove 期望 EXIT（每次） | 必要日志签名（每次） |
 |----|------|--------|-------------------------|----------------------|
 | **PC** | POST | 无 | **0**（3/3） | `SUMMARY allPass=true` · `CMD=pnpm uc018:perf-load:prove EXIT=0` · 零 `Unhandled 'error' event` · 零 `"event":"db_pool_error"` · J-2 判「OUT」 |
-| **A-MUT** | **MUT-929** | A @T1(**seed**) | **1**（3/3） | `Unhandled 'error' event` · `Emitted 'error' event on Client instance` · 该 Unhandled 错误文本 **含 57P01 / `terminating connection due to administrator command`**（**存在性**判据 · FATAL 路径 `client.js:428`）· **永不**以 `Connection terminated unexpectedly` 的**有/无**作判据（C2）· 无 `SUMMARY` · `RAW_EXIT=1`。Unhandled 文本无 57P01（FATAL 落 active query → `:432-433` 回调 + `'end'` `:217`，C2 竞态）→ **`A_FATAL_ON_ACTIVE`** 格 FAIL · 计入 3 次 · Ban 换 attempt |
+| **A-MUT** | **MUT-929** | A @T1(**seed**) | **1**（3/3） | `Unhandled 'error' event` · `Emitted 'error' event on Client instance` · Unhandled 栈帧含 `pg/lib/client.js` 或 `pg-pool/index.js`（×5 NB-2 · 缺 → `UNHANDLED_NOT_PG` 格 FAIL 计入）· 该 Unhandled 错误文本 **含 57P01 / `terminating connection due to administrator command`**（**存在性**判据 · FATAL 路径 `client.js:428`）· **永不**以 `Connection terminated unexpectedly` 的**有/无**作判据（C2）· 无 `SUMMARY` · `RAW_EXIT=1`。Unhandled 文本无 57P01（FATAL 落 active query → `:432-433` 回调 + `'end'` `:217`，C2 竞态）→ **`A_FATAL_ON_ACTIVE`** 格 FAIL · 计入 3 次 · Ban 换 attempt |
 | **A-POST** | POST | A @T1(**seed**) | **1**（3/3） | 至少 1 行 `"event":"db_pool_error"` 其 `error_message` **含** `terminating connection due to administrator command`（**57P01 存在** · C2）· **零** `Unhandled 'error' event` · 允许另有 `error_message=Connection terminated unexpectedly` 的 `db_pool_error`（`'end'` 新 Error 对象 · `principal.ts:889-890` 按对象去重 → 第二条 · **不**构成 FAIL · **Ban** 要求其缺席）· 失败形态 ∈ {F1: `SUMMARY allPass=false` + run3 `miss=errRate…`；F2: 无 SUMMARY、顶层 rejection 栈（非 'error' event）}，记录形态。无 57P01 的 `db_pool_error` → `A_FATAL_ON_ACTIVE` 格 FAIL 计入 |
-| **B-MUT** | **MUT-ZERO** | B @T1(**seed**) | **1**（3/3） | `Unhandled 'error' event` · `Emitted 'error' event on Client instance` **或** `Emitted 'error' event on BoundPool instance`（收据必录哪一个 · 两者均判命中 · §5.2b）· **零** `"event":"db_pool_error"`（MUT-ZERO 无观测者；出现即 `MUT_NOT_APPLIED` 格 FAIL）· 无 `SUMMARY` · `RAW_EXIT=1` · 文本可为 `Connection terminated unexpectedly` **或** 57P01（NB-1 竞态 · 收据必录）。EXIT 1 但无 Unhandled、栈为 seed 顶层 reject（含 `seedAbandonTargets`）→ **`INJECT_KIND_POOLQUERY_RACE`**：格 FAIL · 计入 3 次 · Ban retry（§5.2b 残余 · 事前钉死） |
-| **B-POST** | POST | B @T1(**seed**) | **1**（3/3） | `"event":"db_pool_error"` ≥1 · **零** Unhandled · 另记 `docker port` 重启前/后（port changed true/false）· 失败形态同 A-POST F1/F2。`db_pool_error`=0（仅 NB-1 57P01 分支 + FATAL 落 pool.query active query 时可能 · §5.2b）→ **`INJECT_KIND_POOLQUERY_RACE`** 格 FAIL · 计入 3 次 |
-| **C-MUT**（J-3） | **MUT-ZERO** | C @T1(**seed**) | **1**（3/3） | `Unhandled 'error' event` · `Emitted 'error' event on Client instance` **或** `… on BoundPool instance`（收据必录）· **零** `db_pool_error`（否则 `MUT_NOT_APPLIED`）· 无 `SUMMARY` · `RAW_EXIT=1` · 另需 `state_bytes=29 logs_bytes=29` · 文本记录（宜为 `Connection terminated unexpectedly` / socket 错误 · 不作判据）。无 Unhandled 的 seed 顶层 reject → **`INJECT_KIND_POOLQUERY_RACE`** 格 FAIL 计入 |
-| **C-POST**（J-3） | POST | C @T1(**seed**) | **1**（3/3） | `"event":"db_pool_error"` ≥1 · 零 Unhandled · `state_bytes=29 logs_bytes=29` · J-2 判 **L3-sim**（C 无 FATAL · socket 路径 → 被断 client 的 `:929` 先于 pool.query `once` 同步观测 · §5.2b） |
+| **B-MUT** | **MUT-ZERO** | B @T1(**seed**) | **1**（3/3） | `Unhandled 'error' event` · `Emitted 'error' event on Client instance` **或** `Emitted 'error' event on BoundPool instance`（收据必录哪一个 · 两者均判命中 · §5.2b）· Unhandled 栈帧含 `pg/lib/client.js` 或 `pg-pool/index.js`（×5 NB-2 · 缺 → `UNHANDLED_NOT_PG`）· **零** `"event":"db_pool_error"`（MUT-ZERO 无观测者；出现即 `MUT_NOT_APPLIED` 格 FAIL）· 门控上限 109 · 落点只录不判（签名与阶段无关）· 无 `SUMMARY` · `RAW_EXIT=1` · 文本可为 `Connection terminated unexpectedly` **或** 57P01（NB-1 竞态 · 收据必录）。EXIT 1 但无 Unhandled、栈为 seed 顶层 reject（含 `seedAbandonTargets`）→ **`INJECT_KIND_POOLQUERY_RACE`**：格 FAIL · 计入 3 次 · Ban retry（§5.2b 残余 · 事前钉死） |
+| **B-POST** | POST | B @T1(**seed** · 门控上限 **`U_B`** §5.0b） | **1**（3/3） | `"event":"db_pool_error"` ≥1 · **零** Unhandled · 另记 `docker port` 重启前/后（port changed true/false）· **落点复核（×5 写死 · 唯一规则）**：seed 着陆 ⇔ F2（无 SUMMARY · 顶层 rejection 栈）∧ `prove.log` **无** `^PERF run3: ` 行 ∧ 该栈含 `seedAbandonTargets`；任一不满足（含 F1）→ **`INJECT_PHASE_DRIFT`** 格 FAIL 计入。`U_B < 6` → `BC_MARGIN_INFEASIBLE`（不执行 · FAIL ×3）。`db_pool_error`=0（仅 NB-1 57P01 分支 + FATAL 落 pool.query active query 时可能 · §5.2b）→ **`INJECT_KIND_POOLQUERY_RACE`** 格 FAIL · 计入 3 次 |
+| **C-MUT**（J-3） | **MUT-ZERO** | C @T1(**seed**) | **1**（3/3） | `Unhandled 'error' event` · `Emitted 'error' event on Client instance` **或** `… on BoundPool instance`（收据必录）· Unhandled 栈帧含 `pg/lib/client.js` 或 `pg-pool/index.js`（×5 NB-2 · 缺 → `UNHANDLED_NOT_PG`）· 门控上限 109 · 落点只录不判 · **零** `db_pool_error`（否则 `MUT_NOT_APPLIED`）· 无 `SUMMARY` · `RAW_EXIT=1` · 另需 `state_bytes=29 logs_bytes=29` · 文本记录（宜为 `Connection terminated unexpectedly` / socket 错误 · 不作判据）。无 Unhandled 的 seed 顶层 reject → **`INJECT_KIND_POOLQUERY_RACE`** 格 FAIL 计入 |
+| **C-POST**（J-3） | POST | C @T1(门控快照 **seed** · 上限 109 · **着陆阶段无关**） | **1**（3/3 · **任一着陆阶段**） | `"event":"db_pool_error"` ≥1 · 零 Unhandled · `state_bytes=29 logs_bytes=29` · J-2 判 **L3-sim**（C 无 FATAL · socket 路径 → 被断 client 的 `:929` 先于 pool.query `once` 同步观测 · §5.2b）· **×5 唯一规则**：**不**要求 F2 / `seedAbandonTargets` · **无** `INJECT_PHASE_DRIFT` · 形态 F1/F2 与着陆阶段（门控快照 · `^PERF run3:` 有无 · J-2 `kill` 时刻）**只录不判** · EXIT 0 → `POST_EXIT_UNEXPECTED` 格 FAIL 计入（§4.1） |
 
 ### 阶段期望表（`runPerf` · `proof.ts:274/:278/:280-284` · 钉死 · Ban 事后按观测改）
 
-| 注入着陆阶段 | 如何判定（收据必录） | A-POST / B-POST 期望 EXIT | C-POST 期望 EXIT | 备注 |
+| 注入着陆阶段 | 如何判定（收据必录） | A-POST / B-POST 期望 EXIT | C-POST 期望 EXIT（×5 · **与阶段无关** · §4.1） | 备注 |
 |---|---|---|---|---|
-| **seed**（唯一合法 T1 着陆） | **C1 同快照**（§5.0/§5.1 单条 SQL）：`iv_rows` = `count(*) FROM interview WHERE id LIKE 'IV\_P018\_R3\_%'` ∈ **[1, 109]**（seed 第 i 轮 INSERT 已提交、asPrincipal 在其后 → seed 的 idle-in-tx 必有 `iv_rows≥1`；`=110` 起 seed 已无 INSERT）· `iv_nonactive`（`status<>'active'`）记录（seed 内恒 0）。`iv_rows=0` → 未进 seed，继续轮询不注入 | **1**（seed 顶层 `await` reject → Node EXIT 1） | **1** | §5 T1 只准此阶段 |
-| **warmup** | 同快照 `iv_rows=110` 且 `iv_nonactive ∈ [1,9]`（`iv_rows=110 ∧ iv_nonactive=0` = seed 末轮/warmup 首轮不可分 → **`INJECT_PHASE_BOUNDARY`** · 不注入 · 格 FAIL 计入）· `timedAbandon` 窗口 · 错误被 `:278` 丢弃（catch 不抛 · 不计 `errorCount`） | **禁止着陆** · 若着陆且 EXIT 0 → `INJECT_PHASE_WARMUP` 格 FAIL；若碰巧 EXIT 1 仍记相位违规 FAIL | **1**（C：`rm -f` PG 永久消失 · **OK keep**） | A/B-POST「3/3 EXIT=1」**不可**建立在 warmup 上 |
-| **measured** | 同快照 `iv_rows=110` 且 `iv_nonactive ≥ 10` · `:280-284` samples 计入 `errorCount`/`errorRate` | 本刀 **不**把 T1 钉此阶段；若误入记 `INJECT_PHASE_MEASURED` 格 FAIL（Ban 洗成绿） | **1** | measured 下 1 错 → `0.01>0.005` 可 EXIT1，但 T1 契约不依赖 |
+| **seed**（唯一合法 T1 着陆） | **C1 同快照**（§5.0/§5.1 单条 SQL）：`iv_rows` = `count(*) FROM interview WHERE id LIKE 'IV\_P018\_R3\_%'` ∈ **[1, 109]**（seed 第 i 轮 INSERT 已提交、asPrincipal 在其后 → seed 的 idle-in-tx 必有 `iv_rows≥1`；`=110` 起 seed 已无 INSERT）· `iv_nonactive`（`status<>'active'`）记录（seed 内恒 0）。`iv_rows=0` → 未进 seed，继续轮询不注入 | **1**（seed 顶层 `await` reject → Node EXIT 1）· B-POST 着陆按 §4 落点复核唯一规则 | **1**（OK keep） | §5 T1 门控快照只准此阶段 |
+| **warmup** | 同快照 `iv_rows=110` 且 `iv_nonactive ∈ [1,9]`（`iv_rows=110 ∧ iv_nonactive=0` = seed 末轮/warmup 首轮不可分 → **`INJECT_PHASE_BOUNDARY`** · 不注入 · 格 FAIL 计入）· `timedAbandon` 窗口 · 错误被 `:278` 丢弃（catch 不抛 · 不计 `errorCount`） | **禁止着陆** · A：门控快照判 warmup → `INJECT_PHASE_WARMUP` 格 FAIL（不注入）；B-POST：着陆于此 → `INJECT_PHASE_DRIFT` 格 FAIL（含碰巧 EXIT 1） | **1**（C：`rm -f` PG 永久消失 · **OK keep** · 不判 DRIFT） | A/B-POST「3/3 EXIT=1」**不可**建立在 warmup 上 |
+| **measured** | 同快照 `iv_rows=110` 且 `iv_nonactive ≥ 10` · `:280-284` samples 计入 `errorCount`/`errorRate` | 本刀 **不**把 T1 钉此阶段；门控快照判 measured → `INJECT_PHASE_MEASURED` 格 FAIL（Ban 洗成绿）；B-POST 着陆于此 → `INJECT_PHASE_DRIFT` 格 FAIL | **1**（OK keep · 不判 DRIFT） | measured 下 1 错 → `0.01>0.005` 可 EXIT1，但 T1 契约不依赖 |
 
-**观测源钉死（C1）**：阶段只由上述同快照 SQL 判定（psql 以容器 superuser `meetwise` 连接 · 不受 RLS 影响 · 只读 `interview`）；A 的快照即终止语句本身；B/C 的快照是门控语句（§5.0 · 不 kill），断开晚于快照一个 docker CLI 往返 → B/C 门控额外要求 `iv_rows ≤ 100`（≥10 轮 seed 余量）并收录「快照→inject CMD 返回」耗时；B/C-POST 的落点复核 = F2 栈含 `seedAbandonTargets`（缺 → `INJECT_PHASE_DRIFT` 格 FAIL 计入）；B/C-MUT（MUT-ZERO）签名与阶段无关（§5.2b），只录快照阶段。
+**观测源钉死（C1 · ×5 与阶段表 / §4 矩阵一致 · 唯一规则）**：门控阶段只由上述同快照 SQL 判定（psql 以容器 superuser `meetwise` 连接 · 不受 RLS 影响 · 只读 `interview`）；A 的快照即终止语句本身（着陆 = 快照阶段）。B/C 的快照是门控语句（§5.0c · 不 kill），断开晚于快照「psql 退出 + 一次 docker CLI 往返」：
+- **B-POST**（唯一依赖 seed 着陆的 B/C 格）：门控上限 `iv_rows ≤ U_B`（§5.0b 公式 · 执行前写死）；落点复核 = F2 ∧ 无 `^PERF run3: ` 行 ∧ 栈含 `seedAbandonTargets`，缺任一 → `INJECT_PHASE_DRIFT` 格 FAIL 计入。依据：`runPerf` 中 seed `:274` 之后的 warmup `:278`/measured `:280` 只经 `timedAbandon`（`proof.ts:197-` try/catch → `{ok:false}` · 不抛）、`:286-333` 无 DB await → `^PERF run3:` 之前的顶层 rejection **只能**来自 run3 seed；LOAD run3 seed 亦含 `seedAbandonTargets` 帧，但其时 `^PERF run3:` 已打印 → 被排除。
+- **C-POST**：**与阶段无关**（§4.1）· 不复核落点 · 不判 DRIFT · 只录。
+- **B-MUT / C-MUT**（MUT-ZERO）：签名与阶段无关（§5.2b）· 门控上限 109 · 只录快照阶段与着陆。
+- ×4 原文「B/C 门控额外要求 `iv_rows ≤ 100` … B/C-POST 的落点复核 = F2 栈含 `seedAbandonTargets`」**被本条取代**（Ban 并用两套规则）。
 
-POST 期望 EXIT=1（seed 着陆）的依据：proof 无重试；**seed**（`:274` `seedAbandonTargets`）任一步失败 → 顶层 await reject → EXIT 1；PERF `errMax=0.005`（`proof.ts:33`）仅约束 measured · **warmup `:278` 不计错**。**Ban** 伪装 0；若 seed 着陆的 POST 观测到 EXIT 0，记 `POST_EXIT_UNEXPECTED`，该格 FAIL（不视为绿）。
+A/B-POST 期望 EXIT=1（seed 着陆）的依据（C-POST 见 §4.1 · 与阶段无关）：proof 无重试；**seed**（`:274` `seedAbandonTargets`）任一步失败 → 顶层 await reject → EXIT 1；PERF `errMax=0.005`（`proof.ts:33`）仅约束 measured · **warmup `:278` 不计错**。**Ban** 伪装 0；若 seed 着陆的 POST 观测到 EXIT 0，记 `POST_EXIT_UNEXPECTED`，该格 FAIL（不视为绿）。
+
+### 4.1 C-POST 与阶段无关的推导（×5 · 阻塞 2 唯一规则 · docs · Ban invent）
+
+- Inject C = `docker rm -f <PG>`（runner `:2200` `--rm` · J-2 `kill`(9)→`die`(137)→`destroy`）→ 本 run PG **永久**消失、不重启；proof 无重连目标替换（`DATABASE_URL` 固定）。
+- **EXIT 1（任一着陆阶段）**：着陆 run3 seed → `h.pool.query`/`asPrincipal` reject → 顶层 await reject（F2）；着陆 warmup `:278` → 错误被吞，measured 全部失败 → PERF run3 `passed=false`，随后 `runLoad(3)` seed（`proof.ts:339` → `:232` `h.pool.query`）新建连接 `ECONNREFUSED` → reject（F2）；着陆 measured / LOAD run3 期间 → 同理在下一次 DB await reject，或 `allPass=false`（F1）。唯一 EXIT 0 路径 = 断开晚于 proof 最后一次 DB 调用（LOAD run3 SQL 检查之后）→ 门控在 run3 seed 起爆、其后尚余 ≈0.43 s + 0.29 s（收据 PERF run3 / LOAD run3）≫ 一次 CLI 往返；若仍发生 → **`POST_EXIT_UNEXPECTED`** 格 FAIL 计入（不视为绿 · 不改期望）。
+- **`db_pool_error` ≥1 与零 Unhandled（任一阶段）**：每个 client 在 `connect` 时挂 `:929`（永久），池挂 `:931`；`idleTimeoutMillis=30000`（`:918`）≫ 断开延迟 → 断开时池内 client 仍连接（门控同快照 `idle_n≥2`）→ socket `'end'` 经 `_handleErrorEvent` emit → `:929` 观测；idle client 经 idleListener → `pool.emit('error')` → `:931` 观测 → 无无监听 emitter。HTTP（API 同进程 loopback）不受 PG 删除影响。
+- **B-POST 为何不能同样阶段无关**：`docker restart` 后 PG 回来；warmup `:278` 吞错 → 原理上 EXIT 0 可达 → 必须 seed 着陆 + 落点复核（上段唯一规则）。
+
 
 ## 5. B4 · 三种注入（**各自**钉 CMD / 自身 EXIT / 触发点 / 期望 · 只作用于本 run 自有资源）
 
-**触发点 T1（三者共用 · 对齐 attempt1 窗口 + 钉 seed 阶段）**：
-1. `prove.log` 首次出现正则 `^LOAD run2: ` 后进入注入程序（对齐 attempt1：崩溃在 LOAD run2 后 / run3 PERF 期间）。
-2. **相位钉死 = run3 PERF seed**（`proof.ts:274` `seedAbandonTargets` · 在 `:278` warmup 之前）：注入前须通过下方 **seed 门控**；收据必录 `inject_phase=seed` + **同快照**（C1）的 `iv_rows` / `iv_nonactive` / `idle_n` + 被选 backend 的 `pid` / `state` / `xact_start` / `left(query,60)`。**反应上限（C3）**：`^LOAD run2: ` 检出时刻 → 容器内 psql 启动时刻 ≤ **1 s**（两时间戳 `+08:00` 毫秒必录；超出 → `INJECT_LATE` 格 FAIL 计入）。
-3. 若 `PERF run3: ` 行已出现仍未完成注入 → `INJECT_LATE`（该格 FAIL · 计入 3 次）。
-4. 若同快照判为 warmup / measured / boundary → `INJECT_PHASE_WARMUP` / `INJECT_PHASE_MEASURED` / `INJECT_PHASE_BOUNDARY`（**不注入** · 该格 FAIL · 计入 3 次 · **Ban** 洗成绿）。
-5. 本 run PG 名 `<PG>` 取自 `prove.log` `^E2E isolated PostgreSQL: (\S+) on`。
+**触发点 T1（三者共用 · 对齐 attempt1 窗口 + 钉 seed 阶段 · ×5 预启动）**：
+1. **预启动（×5 · 阻塞 1 (a)）**：注入程序 tail `prove.log`；首次出现正则 **`^PERF run1: `**（`proof.ts:328-331` · 早于 `^PERF run2: `）即**立刻**后台起本 attempt **唯一**一次容器内 psql 循环（A：§5.1a；B/C：§5.0c · `inj.ub` 按格取值），`2>&1 | tee inject.log`。门控键 `IV\_P018\_R3\_%` 在 run3 seed 第 1 条 INSERT 提交前恒 **0**（run1/run2 用 `IV_P018_R1_`/`IV_P018_R2_`，LOAD 用 `IV_L018_R<n>_` · `proof.ts:273/:338`）→ `iv_rows=0` 时 A 的 `k` 不终止、所有分支不触发 → **相位安全**。`^PERF run1:` 未出现即 prove 结束 → **`INJECT_NOT_REACHED`**（格 FAIL 计入）。崩溃窗口对齐不变：着陆仍只能在 `^LOAD run2: ` 之后的 run3 PERF（门控键所限）。
+2. **可观测判据「`^LOAD run2: ` 出现时循环已在运行」（替换 ×4「≤1 s 反应上限」）**：`inject.log` 首行须为 `NOTICE:  GATE_LOOP_START t0_ms=<epoch ms> iv_rows=0 …`（循环首轮前由 PG `clock_timestamp()` 打出）；注入程序在检出 `^LOAD run2: ` 时记宿主 `date +%s%3N` = `t_load2`。通过 ⇔ `iv_rows`(start) **= 0** ∧ `t0_ms < t_load2`（PG 与宿主同一内核时钟 · §7 Linux-native-Docker-Engine）。不满足 → **`INJECT_LATE`**（格 FAIL 计入）。两值 + `^PERF run1:` 检出时刻收据必录（`+08:00` 毫秒）。**Ban** 以「LOAD run2 后 ≤1 s」或任何事后阈值替代本判据。
+3. **相位钉死 = run3 PERF seed**（`proof.ts:274` `seedAbandonTargets` · 在 `:278` warmup 之前）：注入前须通过 seed 门控（A：§5.1a；B/C：§5.0c）；收据必录 `inject_phase=seed` + **同快照**（C1）的 `iv_rows` / `iv_nonactive` / `idle_n` + 被选 backend 的 `pid` / `state` / `xact_start` / `left(query,60)`（A）或 `seed_act`（B/C）。
+4. 若 `PERF run3: ` 行先于门控终态标记出现 → `INJECT_LATE`（该格 FAIL · 计入 3 次）。
+5. 若同快照判为 warmup / measured / boundary → `INJECT_PHASE_WARMUP` / `INJECT_PHASE_MEASURED` / `INJECT_PHASE_BOUNDARY`（**不注入** · 该格 FAIL · 计入 3 次 · **Ban** 洗成绿）。
+6. 本 run PG 名 `<PG>` 取自 `prove.log` `^E2E isolated PostgreSQL: (\S+) on`（runner `:2214` · 早于 `^PERF run1:`）。
 
 ### 5.0 门控（按注入分流 · **容器内单次 psql 循环**（C3）· 本地 socket · 不读 `.env*` · 不打印凭据）
 
-每个 attempt 只起**一次** `docker exec -i <PG> psql -X -v ON_ERROR_STOP=1 -U meetwise -d meetwise -qtA`（stdin 喂 §5.1 的 `DO` 块），循环在**容器内**完成：每轮先 `PERFORM pg_stat_clear_snapshot()`（否则同一事务内 `pg_stat_activity` 被缓存）· 轮间 `pg_sleep(0.005)` · 自 psql 启动起上限 **10 s** → `INJECT_GATE_TIMEOUT`（该格 FAIL 计入）。所有结果以单行 `RAISE NOTICE` 输出，psql `2>&1` 落 `inject.log`。**Ban** 门控与终止分两次 `docker exec`。
+每个 attempt 只起**一次** `docker exec -i <PG> psql -X -v ON_ERROR_STOP=1 -U meetwise -d meetwise -qtA`（stdin 喂 §5.1 的 `DO` 块），循环在**容器内**完成：每轮先 `PERFORM pg_stat_clear_snapshot()`（否则同一事务内 `pg_stat_activity` 被缓存）· 轮间 `pg_sleep(0.005)` · 首轮前打 `GATE_LOOP_START`（T1 第 2 步）· 自循环启动（`^PERF run1:` 预启动）起上限 **10 s** → `INJECT_GATE_TIMEOUT`（该格 FAIL 计入）。10 s 覆盖 LOAD run1 + PERF run2 + LOAD run2 + run3 seed（收据 ≈1.0 s + ≲0.21 s）≈ 8×，≈ 36× LOAD run2 时长（274 ms · §5.0a）。所有结果以单行 `RAISE NOTICE` 输出，psql `2>&1` 落 `inject.log`。**Ban** 门控与终止分两次 `docker exec`。
 
 | Inject | 门控条件（同一条 SQL · C1） | 为何 |
 |---|---|---|
 | **(A)** | `tgt` = client backend · `pid<>pg_backend_pid()` · **`state='idle in transaction'`**；同语句 `iv_rows ∈ [1,109]` 才执行终止（§5.1） | **A 收窄保留**（`20da721` 选项 (i) · 与本稿 B/C 选 (ii) 无关）：只命中 `pool.connect()` / `asPrincipal`（`principal.ts:945-955`）手持事务。**禁止**再用 `state<>'idle'` |
-| **(B)(C)** | 同语句：`seed_act` = client backend 中 `state='idle in transaction' OR query LIKE 'INSERT INTO interview%' OR query LIKE 'SET LOCAL ROLE%' OR query LIKE '%set_config(''app.principal_user''%'` 计数 ≥1 · **且** `iv_rows ∈ [1,100]` · **且** `idle_n ≥ 1`（`state='idle'` client backend 数 · MUT-ZERO `BoundPool` 路径前置 · §5.2b）→ 输出 `GATE_BC phase=seed …` 后 psql 退出，宿主**紧接**执行 B/C CMD；`idle_n=0` → `INJECT_PRECOND_NO_IDLE`（不注入 · 格 FAIL 计入） | seed 门控 + 余量；B/C 的 kill 只能由 docker CLI 发起（容器内无法自删），快照→CMD 返回耗时必录 |
+| **(B)(C)** | §5.0c 同语句：`seed_act` = client backend 中 `state='idle in transaction' OR query LIKE 'INSERT INTO interview%' OR query LIKE 'SET LOCAL ROLE%' OR query LIKE '%set_config(''app.principal_user''%'` 计数 ≥1 · **且** `iv_rows ∈ [1, ub]`（**B-POST：`ub = U_B`** §5.0b；**B-MUT / C-MUT / C-POST：`ub = 109`**）· **且** `idle_n ≥ 2`（×5 NB-1 · `state='idle'` client backend 数 · 排除仅 seed 自身 client 在 checkout 间隙为 idle 的情形 · MUT-ZERO `BoundPool` 路径前置 · §5.2b）→ 输出 `GATE_BC phase=seed …` 后 psql 退出，宿主**紧接**执行 B/C CMD；`idle_n<2` → `INJECT_PRECOND_NO_IDLE`；首见 `iv_rows ∈ (ub, 109]` → `INJECT_GATE_MISSED_MARGIN`（均不注入 · 格 FAIL 计入） | seed 门控 + 公式余量；B/C 的 kill 只能由 docker CLI 发起（容器内无法自删），快照（`GATE_BC` 内 `ts_ms`）→ CMD 返回 → J-2 `kill` 事件 `timeNano` 三时刻必录（`D_actual` 只录不判） |
+
+### 5.0a 时序证据（×5 · 阻塞 1 (c) · 收据路径 + 数值 · 只读引用 · 非本刀执行）
+
+来源：本仓已提交的同一 proof 收据（`proof.ts` 自 `b29c191` 引入后零改动；caps 同为 `--cpus 2 --memory 4g`；`principal.ts` 热路径仅 `f19ecba` 新增监听 / purpose）。时间 = 收据 `start`/`end`（Z）换算 +08:00。
+
+| 量 | 值 | 来源 / 推导 |
+|---|---|---|
+| PERF run3 全程 | **430 ms**（2026-09-24 10:46:15.205 → 15.635 +08:00） | `ai-docs/delivery/receipts/uc018-perf-load/nhp-018-perf-01-run3.json` `start`/`end`（含 seed 110 轮 + warmup 10 + measured 100） |
+| PERF run3 measured 墙钟 | **≥ 216.6 ms** | 同文件 `rawLatenciesMs` 总和 2166.01 ms / `c=10` |
+| run3 seed（+warmup）上界 | **≲ 213 ms** | 430 − 216.6 |
+| 每轮 seed 上界 | **≈ 1.9 ms/轮**（≤ 1.94） | 213.4 / 110 |
+| 10 轮余量（×4 `iv_rows≤100`） | **≲ 19 ms** | 10 × 1.94 → < 一次 docker CLI 往返 → ×4 余量作废 |
+| 收紧上界（作 `t_round`） | seed ≲ 154 ms → **≤ 1.40 ms/轮**（run3）· run2 ≤ **1.39 ms/轮** | 再减 warmup 串行 10 次 ≥ 10×min(`rawLatenciesMs`)（run3 5.90 ms · run2 5.49 ms）；run2 = `nhp-018-perf-01-run2.json`（439 ms · 2310.6/10）；run1 `nhp-018-perf-01-run1.json` ≤ 2.01 ms/轮。取三者最小 **1.39 ms**（取小 = 同一延迟下多算轮数 = 保守） |
+| LOAD run2 全程 | **274 ms**（10:46:14.931 → 15.205 +08:00） | `ai-docs/delivery/receipts/uc018-perf-load/nhp-018-load-01-run2.json`；其 `end` 与 PERF run3 `start` 同毫秒 → `^LOAD run2:` 打印即进入 run3 seed |
+| `^PERF run1:` → `^LOAD run2:` | **≈ 1006 ms**（14.199 → 15.205） | `nhp-018-perf-01-run1.json` `end` · `nhp-018-load-01-run2.json` `end` → 预启动领先量 |
+| ×4「LOAD run2 → psql ≤ 1 s」 | 1 s > 430 ms ≈ 5× seed | → 系统性 harness-timing FAIL（`a07256c` 阻塞 1）→ 本稿删除 |
+
+均为**上界/量级**证据（收据不分段计时 seed）；执行时实际 `iv_rows` 随时间曲线由门控 NOTICE 与 J-2 时刻收录，**只录不改期望**。
+
+### 5.0b B-POST 余量公式（×5 · 阻塞 1 (b) · 全部取值执行前写死 · Ban 事后改）
+
+```text
+U_B = min(109, 110 − ceil(k · L_cli / t_round))
+k       = 2         # 安全倍数：覆盖「门控 psql 退出 + docker exec 收尾」与「docker restart CLI 启动 + API → SIGKILL」两段，及 t_round 上界偏乐观
+t_round = 1.39 ms   # §5.0a 收据推得的最紧每轮上界（取小 = 保守）
+L_cli   = max_ms(5 × `docker version --format '{{.Server.Version}}'`)   # 执行前（NB-4 清理后、首个 prove 前）宿主测 · §5.4
+U_min   = 6         # = ceil(6 ms 轮询周期 [pg_sleep 5 ms + ≤1 ms 查询] / 1.39 ms) + 1：门控首见 iv_rows≥1 时 iv_rows 可达 ≈5
+```
+
+- 计算与记录：`L_cli` 5 个样本、`U_B`、上式常量于**第一个 B-POST attempt 之前**写入 `.tmp/an-perf-tear/margin.json` 并抄入收据；整轮 prove 只测一次；**Ban** 重测 / 改 k / 改 t_round / 改 `U_B`。
+- 例（非承诺）：`L_cli=40 ms` → `ceil(57.6)=58` → `U_B=52`；`L_cli=70 ms` → `U_B=9`；`L_cli ≥ 73 ms` → `U_B < 6`。
+- **`U_B < U_min` → `BC_MARGIN_INFEASIBLE`**：B-POST 3 次**不执行**、记格 FAIL ×3、标 harness-timing（≠ 产品信号 · ≠ P-FIX 依据）· 披露；矩阵 B-POST 不达标 → 不得宣称 P-HOLD 全格达标（§3）· CONDITION OPEN · 本刀不开新刀（协调方决定）。
+- 门控首见 `iv_rows ∈ (U_B, 109]`（未在余量内捕获）→ **`INJECT_GATE_MISSED_MARGIN`**（不注入 · 格 FAIL 计入）。
+- 公式只决定**何时起爆**；**是否着陆 seed** 只由 §4 B-POST 落点复核唯一规则判定（F2 ∧ 无 `^PERF run3:` ∧ `seedAbandonTargets`），不由公式推定。
+- 只用于 B-POST：A 的终止与快照同一语句（无 CLI 延迟）；B-MUT / C-MUT 签名与阶段无关（×4 已钉 · §5.2b）；C-POST 与阶段无关（§4.1）→ 三者 `ub = 109`。
+
+### 5.0c B/C 门控 SQL（×5 写死 · 只读 · 不 kill · `inj.ub` 按格设 · 替换 ×4「同结构去掉 k」描述）
+
+```sql
+-- docker exec -i <PG> psql -X -v ON_ERROR_STOP=1 -U meetwise -d meetwise -qtA  < gate-bc.sql  2>&1 | tee inject.log
+SET inj.ub = '<UB>';   -- B-POST: U_B（§5.0b · margin.json）；B-MUT / C-MUT / C-POST: 109
+DO $gate$
+DECLARE r record; t0 timestamptz := clock_timestamp(); ub int := current_setting('inj.ub')::int; n0 bigint;
+BEGIN
+  SELECT count(*) INTO n0 FROM interview WHERE id LIKE 'IV\_P018\_R3\_%';
+  RAISE NOTICE 'GATE_LOOP_START t0_ms=% iv_rows=% ub=%', floor(extract(epoch FROM t0) * 1000)::bigint, n0, ub;
+  LOOP
+    PERFORM pg_stat_clear_snapshot();
+    WITH iv AS (SELECT count(*) AS n, count(*) FILTER (WHERE status <> 'active') AS na
+                  FROM interview WHERE id LIKE 'IV\_P018\_R3\_%'),
+         idle AS (SELECT count(*) AS n FROM pg_stat_activity
+                   WHERE datname = current_database() AND backend_type = 'client backend'
+                     AND pid <> pg_backend_pid() AND state = 'idle'),
+         sa AS (SELECT count(*) AS n FROM pg_stat_activity
+                 WHERE datname = current_database() AND backend_type = 'client backend' AND pid <> pg_backend_pid()
+                   AND (state = 'idle in transaction' OR query LIKE 'INSERT INTO interview%'
+                        OR query LIKE 'SET LOCAL ROLE%' OR query LIKE '%set_config(''app.principal_user''%'))
+    SELECT iv.n AS iv_rows, iv.na AS iv_nonactive, idle.n AS idle_n, sa.n AS seed_act INTO r FROM iv, idle, sa;
+    IF r.iv_rows BETWEEN 1 AND ub AND r.seed_act >= 1 THEN
+      IF r.idle_n >= 2 THEN
+        RAISE NOTICE 'GATE_BC phase=seed ts_ms=% iv_rows=% iv_nonactive=% idle_n=% seed_act=% ub=%',
+          floor(extract(epoch FROM clock_timestamp()) * 1000)::bigint, r.iv_rows, r.iv_nonactive, r.idle_n, r.seed_act, ub; RETURN;
+      ELSE
+        RAISE NOTICE 'INJECT_PRECOND_NO_IDLE iv_rows=% idle_n=%', r.iv_rows, r.idle_n; RETURN;
+      END IF;
+    ELSIF r.iv_rows > ub AND r.iv_rows <= 109 THEN
+      RAISE NOTICE 'INJECT_GATE_MISSED_MARGIN iv_rows=% ub=%', r.iv_rows, ub; RETURN;
+    ELSIF r.iv_rows = 110 AND r.iv_nonactive = 0 THEN
+      RAISE NOTICE 'INJECT_PHASE_BOUNDARY iv_rows=% iv_nonactive=%', r.iv_rows, r.iv_nonactive; RETURN;
+    ELSIF r.iv_rows = 110 AND r.iv_nonactive BETWEEN 1 AND 9 THEN
+      RAISE NOTICE 'INJECT_PHASE_WARMUP iv_rows=% iv_nonactive=%', r.iv_rows, r.iv_nonactive; RETURN;
+    ELSIF r.iv_rows = 110 THEN
+      RAISE NOTICE 'INJECT_PHASE_MEASURED iv_rows=% iv_nonactive=%', r.iv_rows, r.iv_nonactive; RETURN;
+    END IF;
+    IF clock_timestamp() - t0 > interval '10 seconds' THEN
+      RAISE NOTICE 'INJECT_GATE_TIMEOUT iv_rows=% idle_n=%', r.iv_rows, r.idle_n; RETURN;
+    END IF;
+    PERFORM pg_sleep(0.005);
+  END LOOP;
+END $gate$;
+```
+
+- `iv_rows=0`（预启动至 run3 seed 首条 INSERT 提交前）不命中任何分支 → 继续轮询（相位安全）；`iv_rows ∈ [1, ub]` 但 `seed_act=0`（两步之间瞬时全空闲）→ 继续轮询。
+- `inj.ub` 为 psql 会话级自定义 GUC（`SET` 于 `DO` 之前；dollar-quote 内不做 psql 变量替换）；`<UB>` 由执行方按格原样代入（B-POST = `margin.json` 的 `U_B`；其余 109）。本 SQL 与 §5.1a 同为 harness 执行脚本文本（docs 钉值 · 非产品码 · 不入源码树）。
+- 期望 stdout（inject 自身判据 · §5.1 表）：恰 1 行 `GATE_LOOP_START … iv_rows=0` + 恰 1 行终态标记。
 
 ### 5.1 注入表
 
 | | **(A) `pg_terminate_backend`** | **(B) `docker restart`** | **(C) L3-sim `docker rm -f`** |
 |---|---|---|---|
 | Inject CMD | §5.1a 单次容器内 psql `DO` 循环（门控 + 快照 + `pg_terminate_backend` **同一条 SQL**） | §5.0 B/C 门控 psql（EXIT 0 + `GATE_BC phase=seed`）→ 紧接 `docker restart -t 0 <PG>` | §5.0 B/C 门控 psql → 紧接 `docker rm -f <PG>` |
-| Inject 自身期望 EXIT | psql **0** 且 `inject.log` 恰 1 行 `NOTICE:  INJECT_A phase=seed killed=<k> …` 且 **k≥1**；`k=0` → **`INJECT_MISS`**；其他标记行（`INJECT_GATE_TIMEOUT` / `INJECT_PHASE_*`）→ 对应 FAIL；均计入 3 次 | 门控 psql **0** + 恰 1 行 `GATE_BC phase=seed`；`docker restart` **0** 且 stdout == `<PG>` | 门控 psql **0** + 恰 1 行 `GATE_BC phase=seed`；`docker rm -f` **0** 且 stdout == `<PG>` |
+| Inject 自身期望 EXIT | psql **0** 且 `inject.log` 恰 1 行 `NOTICE:  GATE_LOOP_START … iv_rows=0`（T1 第 2 步）+ 恰 1 行 `NOTICE:  INJECT_A phase=seed killed=<k> …` 且 **k≥1**；`k=0` → **`INJECT_MISS`**；其他标记行（`INJECT_GATE_TIMEOUT` / `INJECT_PHASE_*`）→ 对应 FAIL；均计入 3 次 | 门控 psql **0** + 恰 1 行 `GATE_LOOP_START … iv_rows=0` + 恰 1 行 `GATE_BC phase=seed`（`ub=U_B` B-POST / `109` B-MUT）；`docker restart` **0** 且 stdout == `<PG>` | 门控 psql **0** + 恰 1 行 `GATE_LOOP_START … iv_rows=0` + 恰 1 行 `GATE_BC phase=seed`（`ub=109`）；`docker rm -f` **0** 且 stdout == `<PG>` |
 | J-2 事件期望 | 本 run PG **无** die/destroy（容器存活） | `kill`→`die`→`start`（无 destroy · `--rm` 不因 restart 删除）；若出现 destroy 记录 | `kill`(9)→`die`(137)→`destroy` · J-2 判 **L3-sim** |
 | MUT 期望 | §4 A-MUT（**MUT-929** · 57P01 **存在**） | §4 B-MUT（**MUT-ZERO** · Client 或 BoundPool） | §4 C-MUT（**MUT-ZERO** · Client 或 BoundPool） |
 | POST 期望 | §4 A-POST（`db_pool_error`≥1 · 57P01 **存在** · CTU 允许） | §4 B-POST | §4 C-POST |
-| 所证 | **checked-out + idle-in-transaction** client 的服务端 FATAL 终止 → L1 `client.on('error')` 覆盖路径（pg@8.22.0 `_handleErrorEvent`）。**A ≠ attempt1 的判别只用「57P01 出现」**（C2）：A 的 FATAL 落 idle-in-tx client → `:428` emit 57P01；attempt1 日志（`PERF-LOAD-prove.log:21-37`）`57P01`/`terminating connection` 匹配 0、栈为 `client.js:199` ← `:217`。**不**断言「attempt1 = socket 被杀」：FATAL 落 active query（`:432-433`）或 `idle_in_transaction_session_timeout` 25P03（`principal.ts:916`）之后同样走 `:199/:217` 得同一文本 → attempt1 文本只排除「FATAL 落 idle client」；归因仍以 J-2 为准 | 本 run PG 进程级断开 + 重连层（可能复现 attempt1 签名；NB-1 竞态） | 外部删除（L3 签名）对照 attempt1 · **C OK keep**（与 seed/warmup/measured 无关 · PG 永久消失） |
+| 所证 | **checked-out + idle-in-transaction** client 的服务端 FATAL 终止 → L1 `client.on('error')` 覆盖路径（pg@8.22.0 `_handleErrorEvent`）。**A ≠ attempt1 的判别只用「57P01 出现」**（C2）：A 的 FATAL 落 idle-in-tx client → `:428` emit 57P01；attempt1 日志（`PERF-LOAD-prove.log:21-37`）`57P01`/`terminating connection` 匹配 0、栈为 `client.js:199` ← `:217`。**不**断言「attempt1 = socket 被杀」：FATAL 落 active query（`:432-433`）或 `idle_in_transaction_session_timeout` 25P03（`principal.ts:916`）之后同样走 `:199/:217` 得同一文本 → attempt1 文本只排除「FATAL 落 idle client」；归因仍以 J-2 为准 | 本 run PG 进程级断开 + 重连层（可能复现 attempt1 签名；NB-1 竞态） | 外部删除（L3 签名）对照 attempt1 · **C-POST OK keep · 与阶段无关**（PG 永久消失 · §4.1 · ×5 唯一规则：不复核 `seedAbandonTargets` · 无 DRIFT） |
 
 
-#### 5.1a Inject A · 单次容器内 psql（C1 + C3 · 写死 · 只读 `interview` · 只终止本 run PG 的 idle-in-tx client backend）
+#### 5.1a Inject A · 单次容器内 psql（C1 + C3 · 写死 · 只读 `interview` · 只终止本 run PG 的 idle-in-tx client backend · ×5：`^PERF run1:` 预启动 + `GATE_LOOP_START`）
 
 ```sql
 -- docker exec -i <PG> psql -X -v ON_ERROR_STOP=1 -U meetwise -d meetwise -qtA  < inject-a.sql  2>&1 | tee inject.log
 DO $inj$
-DECLARE r record; t0 timestamptz := clock_timestamp();
+DECLARE r record; t0 timestamptz := clock_timestamp(); n0 bigint;
 BEGIN
+  SELECT count(*) INTO n0 FROM interview WHERE id LIKE 'IV\_P018\_R3\_%';
+  RAISE NOTICE 'GATE_LOOP_START t0_ms=% iv_rows=%', floor(extract(epoch FROM t0) * 1000)::bigint, n0;   -- ×5 预启动判据（T1 第 2 步）
   LOOP
     PERFORM pg_stat_clear_snapshot();
     WITH iv AS (SELECT count(*) AS n, count(*) FILTER (WHERE status <> 'active') AS na
@@ -254,7 +374,8 @@ END $inj$;
 
 - **同一时刻（C1）**：`iv` / `idle` / `tgt` / `k` 同属一条语句（READ COMMITTED 下 plpgsql 每条语句一个新快照；`tgt`、`k` 各被引用两次 → PG 物化一次，`pg_terminate_backend` 每行只调用一次）；快照 JSON 即被终止 backend 的 `pid/state/xact_start/left(query,60)`，满足 T1 第 2 步收录要求。
 - 阶段不为 seed 时**不终止**（`k` 的 `WHERE iv.n BETWEEN 1 AND 109`）→ 相位违规格不会产生「误注入后的观测」。
-- B/C 门控 = 同结构 `DO` 块，去掉 `k`，条件换成 §5.0 (B)(C) 行，输出 `GATE_BC phase=seed iv_rows=% idle_n=% seed_act=%` 或 `INJECT_PRECOND_NO_IDLE` / `INJECT_PHASE_*` / `INJECT_GATE_TIMEOUT`。
+- B/C 门控 = §5.0c 全文（×5 写死 · 取代 ×4「同结构去掉 `k`」描述）· 输出 `GATE_BC phase=seed …` 或 `INJECT_PRECOND_NO_IDLE` / `INJECT_GATE_MISSED_MARGIN` / `INJECT_PHASE_*` / `INJECT_GATE_TIMEOUT`。
+- 预启动相位安全（×5）：`^PERF run1:` 起至 run3 seed 首条 INSERT 提交前 `iv.n = 0` → `k` 的 `WHERE iv.n BETWEEN 1 AND 109` 不成立（不调用 `pg_terminate_backend`）且 IF 各分支不成立 → 只轮询；A 不需要 `idle_n` 前置（A 不触及 idle clients · §5.2b 末），`idle_n` 只录。
 - 本 SQL 为 harness 执行脚本文本（docs 钉值），**非**产品码 · 不入 repo 源码树 · AUTHORIZE 后由执行方原样落 `.tmp/an-perf-tear/<attemptId>/inject-*.sql`。
 
 ### 5.2 pg 路径钉死（docs · 对应 `20da721` 阻塞 1 源码依据 · Ban invent）
@@ -267,15 +388,15 @@ END $inj$;
 
 ### 5.2b B/C × MUT-ZERO / POST · 逐 seed 子步推导（对应 `70cba94` 新阻塞 1 · 选 (ii) · pg@8.22.0 / pg-pool@3.14.0 · Ban invent）
 
-前提（C1 同快照记录）：`idle_n ≥ 1`——LOAD run2（c=20）刚结束，`idleTimeoutMillis=30000`（`principal.ts:918`）未到，pool `_idle` 中有 client，其上挂 `makeIdleListener`（`index.js:51-62`）；API 与 proof 同进程同池（§2.2）。B/C 断开对**所有** backend 同时生效（restart/rm 作用于整个 PG）。
+前提（C1 同快照记录 · ×5 NB-1 改 **`idle_n ≥ 2`**：seed 自身 client 在 checkout 间隙亦显示 `state='idle'`，单此一个即可满足 ≥1 → 要求 ≥2 才保证池内另有 idle client；服务端代理量 · pool `_idle` 不可直接观测 · 披露）：LOAD run2（c=20 · `max=20` `principal.ts:914`）刚结束，`idleTimeoutMillis=30000`（`principal.ts:918`）未到，pool `_idle` 中有 client，其上挂 `makeIdleListener`（`index.js:51-62`）；API 与 proof 同进程同池（§2.2）。B/C 断开对**所有** backend 同时生效（restart/rm 作用于整个 PG）。
 
 | 断开时 seed 子步 | 被断 client 状态 | MUT-ZERO（删 `:929`+`:931`） | POST（tip） |
 |---|---|---|---|
 | **`:236` asPrincipal**（`pool.connect` 手持 · 事务间隙或 active query） | checkout 已去 idleListener（`index.js:344`），无任何 error 监听 | 间隙：`'end'`/FATAL → `_handleErrorEvent` → `emit('error')` 无监听 → **Unhandled on Client**。active query：FATAL → 回调（`:432-433`）→ `asPrincipal` catch 发 `ROLLBACK` 挂起 → `'end'`（`_ending` 假）→ `:217` emit → **Unhandled on Client**（seed 在 ROLLBACK 落定前不 reject）。idle clients 若先被分发 → idleListener → `pool.emit('error')` 无监听 → **Unhandled on BoundPool**。两者均命中 | `:929` 观测（必然 · 同上路径都经 emit）→ `db_pool_error`≥1 · 零 Unhandled |
-| **`:232` pool.query**（pg-pool `once('error', onError)` `index.js:455-464`） | 其自身 client 被 `once` 接住（`70cba94` 已证） | 该 client **不**产生 Unhandled；任一 idle client 的断开事件被分发 → idleListener → `pool.emit('error')` 无 `:931` → **Unhandled on BoundPool**。**残余**：若该 pool.query client 的事件先被分发，`onError` → `cb(err)` → seed `await` reject → top-level await reject 在同一 microtask 检查点内终止进程，idle 事件来不及分发 → 无 Unhandled → **`INJECT_KIND_POOLQUERY_RACE`**（事前钉死 · 格 FAIL · 计入 3 次 · Ban retry · 比例未实测 · 不臆造） | socket 路径（C；B 的 SIGKILL 分支）：`'end'` → `_handleErrorEvent` 同步 emit，`:929`（`connect` 时先挂）先于 `once` 运行 → `db_pool_error`≥1 必然。B 的 57P01 分支且 FATAL 落 active pool.query：回调 → `release(err)` → `_remove` → `client.end()` 置 `_ending` → 不 emit → `db_pool_error` 依赖 idle 事件先于退出 → 可为 0 → **`INJECT_KIND_POOLQUERY_RACE`**（同上钉死） |
+| **`:232` pool.query**（pg-pool `once('error', onError)` `index.js:455-464`） | 其自身 client 被 `once` 接住（`70cba94` 已证） | 该 client **不**产生 Unhandled；任一 idle client 的断开事件被分发 → idleListener → `pool.emit('error')` 无 `:931` → **Unhandled on BoundPool**。**残余**：若该 pool.query client 的事件先被分发，`onError` → `cb(err)` → seed `await` reject → top-level await reject **在该 socket 回调后的 nextTick/microtask 排空内、下一回调分发前**终止进程（×5 NB-5 措辞），idle 事件来不及分发 → 无 Unhandled → **`INJECT_KIND_POOLQUERY_RACE`**（事前钉死 · 格 FAIL · 计入 3 次 · Ban retry · 比例未实测 · 不臆造） | socket 路径（C；B 的 SIGKILL 分支）：`'end'` → `_handleErrorEvent` 同步 emit，`:929`（`connect` 时先挂）先于 `once` 运行 → `db_pool_error`≥1 必然。B 的 57P01 分支且 FATAL 落 active pool.query：回调 → `release(err)` → `_remove` → `client.end()` 置 `_ending` → 不 emit → `db_pool_error` 依赖 idle 事件先于退出 → 可为 0 → **`INJECT_KIND_POOLQUERY_RACE`**（同上钉死） |
 | **两次 checkout 之间** | 全部 client idle（idleListener 在） | 首个 idle 事件 → `pool.emit('error')` 无监听 → **Unhandled on BoundPool**（必然） | `:929`（per-client · 永久）→ `db_pool_error`≥1 必然 |
 
-- 结论：MUT-ZERO 下 asPrincipal 子步与 checkout 间隙子步 **必然** Unhandled（Client 或 BoundPool）；pool.query 子步在 `idle_n≥1` 下 Unhandled on BoundPool，**唯一**残余为上表分发顺序竞态，已事前钉为 FAIL 计分，不靠事后观测改期望。MUT-ZERO 恒 `db_pool_error=0`、POST（socket 路径）恒 ≥1 → MUT/POST 有判别力（`70cba94`「无判别力」点关闭）。
+- 结论：MUT-ZERO 下 asPrincipal 子步与 checkout 间隙子步 **必然** Unhandled（Client 或 BoundPool）；pool.query 子步在 `idle_n≥2` 下 Unhandled on BoundPool，**唯一**残余为上表分发顺序竞态，已事前钉为 FAIL 计分，不靠事后观测改期望。MUT-ZERO 恒 `db_pool_error=0`、POST（socket 路径）恒 ≥1 → MUT/POST 有判别力（`70cba94`「无判别力」点关闭）。
 - `Emitted 'error' event on BoundPool instance`：Node 以 emitter 构造器名打印；pg 导出的 Pool 为 `pg/lib/index.js:14` `class BoundPool extends Pool`。
 - A 仍用 MUT-929：A 只终止 idle-in-tx（checked-out）backend，不触及 idle clients，`:931` 不参与 → A-MUT 推导（§5.2）不变。
 - 本节只钉期望，**不**改产品码；MUT-ZERO 只在 prove worktree 临时存在（§4）。
@@ -299,13 +420,15 @@ END $inj$;
 | R2 就绪 | `docker exec <R2名> pg_isready -U meetwise -d meetwise`（连续 3 次） | **0**（×3 连续） | 每次 stdout 含 `accepting connections`；30 s 内未达 3 连续 → `R2_ENV_FAIL` |
 | R2 收尾 | `docker rm -f <R2名>` | **0** | stdout == `<R2名>` |
 | NB-4 清理（每次 prove 前） | `docker ps -a --filter name=meetwise-e2e-r2pool- --format '{{.Names}}'` → 对每行 `docker rm -f <名>` | 列举 **0**；每个 rm **0** | 每个 rm stdout == 该名；随后 §7 串行检查 0 行 |
-| J-2 事件流 | `docker events --filter type=container --format '{{json .}}' > events.jsonl &`（CMD 前起 · CMD 结束 +5 s 后 `kill -TERM`） | `wait` 返回 **143**（SIGTERM 终止 · 预期）；其他值 → `AUX_EXIT_UNEXPECTED` | `events.jsonl` 每行可解析 JSON · 至少 1 行 `Actor.Attributes.name` == 本 run PG 名（`create`/`start`） |
-| J-2 进程采样 | `while :; do date +%s.%N; pgrep -af 'uc018-receipt-backfill-emit\|run-e2e-isolated'; sleep 1; done > procs.txt &`（同起止 · `kill -TERM`） | `wait` 返回 **143**；循环内 `pgrep` 无匹配时 EXIT 1 属预期、不计偏离 | 时间戳行数 ≥ CMD 时长（秒）−1 · 至少 1 行含本 run `run-e2e-isolated` |
+| J-2 事件流 | `docker events --filter type=container --format '{{json .}}' > events.jsonl &`（CMD 前起 · CMD 结束 +5 s 后 `kill -TERM <该 job pid>` · `wait <pid>`） | `wait` ∈ **{143, 0}**（×5 NB-3 写死：143 = SIGTERM 默认终止；0 = CLI 捕获 SIGTERM 后正常退出）；其他值 → `AUX_EXIT_UNEXPECTED` | `events.jsonl` 每行可解析 JSON · 至少 1 行 `Actor.Attributes.name` == 本 run PG 名（`create`/`start`） |
+| J-2 进程采样 | `while :; do date +%s.%N; pgrep -af 'uc018-receipt-backfill-emit\|run-e2e-isolated'; sleep 1; done > procs.txt &`（同起止 · `kill -TERM <该 job pid>` · `wait <pid>`） | `wait` ∈ **{143, 0}**（×5 NB-3 写死 · 其他值 → `AUX_EXIT_UNEXPECTED`）；循环内 `pgrep` 无匹配时 EXIT 1 属预期、不计偏离 | 时间戳行数 ≥ CMD 时长（秒）−1 · 至少 1 行含本 run `run-e2e-isolated` |
 | J-2 前后容器 | `docker ps -a --filter name=meetwise-e2e --filter name=meetwise-uc018 --format '{{.Names}}'`（CMD 前 / 后） | **0** / **0** | 前 **0 行**（否则不得开跑 · §7）；后 **0 行**（runner `:2271` / `--rm` 已收尾；残留 → 记录并 `AUX_EXIT_UNEXPECTED`） |
 | B 端口对照 | `docker port <PG> 5432/tcp`（restart 前 / 后） | **0** / **0**（后若容器已被 runner 删 → EXIT 1 + `No such container` 记 `PORT_POST_UNAVAILABLE` · 披露 · 不计偏离） | 记录 port changed true/false |
+| `L_cli` 基线（×5 · §5.0b · NB-4 清理后、首个 prove 前 · 一次） | 5 × `{ a=$(date +%s%3N); docker version --format '{{.Server.Version}}'; b=$(date +%s%3N); echo $((b-a)); }` | **0**（×5） | 每次 stdout 恰 1 行非空版本串；5 个 ms 样本 + `L_cli`=max + `U_B` 写 `.tmp/an-perf-tear/margin.json`（第一个 B-POST attempt 前 · Ban 改） |
+| 预启动注入程序（×5 · T1 第 1–2 步） | tail `prove.log` · 检出 `^PERF run1: ` → 后台 `docker exec -i <PG> psql …`（§5.1a / §5.0c）· 检出 `^LOAD run2: ` 记 `t_load2` | psql **0**（§5.1 表） | `inject.log` 首行 `GATE_LOOP_START … iv_rows=0` · `t0_ms < t_load2`（否则 `INJECT_LATE`）· `^PERF run1:` / `^LOAD run2:` / `GATE_*` 宿主 epoch ms 全录 |
 | MUT 施加/还原 | `git diff --stat -- packages/db/src/principal.ts`（施加后）· `git checkout -- packages/db/src/principal.ts && git diff --exit-code`（还原） | **0** / **0** | 施加后 MUT-929=`1 deletion(-)`、MUT-ZERO=`2 deletions(-)`；还原后无输出 |
 
-**Ban**：全局 `docker rm -f` · 经 emitter `:559` · 触碰非本 run 容器/backend · 以 inject 红当绿 · 事后按观测改阶段/签名期望 · 用 `state<>'idle'` 跑 A · 要求 A 复现 attempt1「Connection terminated unexpectedly」· 以 CTU **缺席**作判据（C2）· 门控与终止分两次 `docker exec`（C3）· B/C-MUT 用 MUT-929 · A-MUT 用 MUT-ZERO · 把 `INJECT_KIND_POOLQUERY_RACE` / `A_FATAL_ON_ACTIVE` / `INJECT_PRECOND_NO_IDLE` 不计入或换 attempt。
+**Ban**：全局 `docker rm -f` · 经 emitter `:559` · 触碰非本 run 容器/backend · 以 inject 红当绿 · 事后按观测改阶段/签名期望 · 用 `state<>'idle'` 跑 A · 要求 A 复现 attempt1「Connection terminated unexpectedly」· 以 CTU **缺席**作判据（C2）· 门控与终止分两次 `docker exec`（C3）· B/C-MUT 用 MUT-929 · A-MUT 用 MUT-ZERO · 把 `INJECT_KIND_POOLQUERY_RACE` / `A_FATAL_ON_ACTIVE` / `INJECT_PRECOND_NO_IDLE` 不计入或换 attempt · **×5**：Ban「LOAD run2 → psql ≤1 s」或任何事后反应阈值 · Ban 以 `^PERF run1:` 以外的触发点起门控循环 · Ban 执行后重测 `L_cli` / 改 k / t_round / `U_B` · Ban `BC_MARGIN_INFEASIBLE` / `INJECT_GATE_MISSED_MARGIN` / `INJECT_LATE` / `INJECT_NOT_REACHED` / `UNHANDLED_NOT_PG` 不计入或换 attempt · Ban 对 C-POST 判 DRIFT 或要求 `seedAbandonTargets` · Ban 对 B-POST 免除落点复核 · Ban 并用 ×4 `iv_rows≤100` 与 ×5 公式。
 
 ## 6. B5 · 具名回归 + EXIT（B5 已解除 · 保留 · Cond 2 补 R2 DB source）
 
@@ -345,10 +468,10 @@ END $inj$;
 
 ## 10. Non-claims
 
-Not a pass · not run · not closed · not fixed · not root-caused（J-1 仅回溯读档，L3/L2-self UNDETERMINABLE）· not HA · not SLO/LOAD · not capacity · not covered · not `releaseEvidence=true` · not nail · CONDITION OPEN · alone ≠ dual · ≠ AE residual redo · emitter `:559` ≠ product close
+×5 时序数值（§5.0a）为收据上界/量级、非本刀实测；`U_B` 未计算（`L_cli` 未测 · Ban prove）。Not a pass · not run · not closed · not fixed · not root-caused（J-1 仅回溯读档，L3/L2-self UNDETERMINABLE）· not HA · not SLO/LOAD · not capacity · not covered · not `releaseEvidence=true` · not nail · CONDITION OPEN · alone ≠ dual · ≠ AE residual redo · emitter `:559` ≠ product close
 
 ## Pins
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · PERF/LOAD local partial · capacityRepresentative=false · canHonestlyFlip=false · backlog `:35` CONDITION OPEN · STOP
 
-*Harness · C-PERF-TEARDOWN product rootcause fix · AN-PERF-TEAR re-PRE ×4 · supersedes 083cce4 (→1b74fb1→553cfc5→110532e) · FAIL 70cba94 + 20da721 + 7e97dc3 + 152b665 · (ii) B/C-MUT = MUT-ZERO (:929+:931) · Client|BoundPool · POOLQUERY_RACE pinned FAIL · C1–C4 · Inject A idle-in-txn + 57P01 + T1 seed retained · runner +18 re-anchor @ac03f30 · 2026-10-06 · draft:awaiting_pre_exec_dual · Ban coding · Ban wash attempt1 · Ban UC-018 covered flip · CONDITION OPEN · peer dbed2f2 cited not co-signed · alone ≠ dual · STOP*
+*Harness · C-PERF-TEARDOWN product rootcause fix · AN-PERF-TEAR re-PRE ×5 · supersedes b5633f0 (→083cce4→1b74fb1→553cfc5→110532e) · FAIL a07256c + 70cba94 + 20da721 + 7e97dc3 + 152b665 · ×5: TIMING prestart on ^PERF run1 (GATE_LOOP_START t0_ms < t_load2) · B-POST margin U_B=min(109,110−ceil(2·L_cli/1.39ms)) · U_min=6 · C-POST phase-independent OK keep · B-POST landing = F2 ∧ no ^PERF run3 ∧ seedAbandonTargets · idle_n≥2 · pg frames · wait∈{143,0} · :2220 disclosed · peer e2e PASS 2900c46 cited not co-signed · (ii) B/C-MUT = MUT-ZERO (:929+:931) · Client|BoundPool · POOLQUERY_RACE pinned FAIL · C1–C4 · Inject A idle-in-txn + 57P01 + T1 seed retained · runner +18 re-anchor @ac03f30 · 2026-10-06 · draft:awaiting_pre_exec_dual · Ban coding · Ban wash attempt1 · Ban UC-018 covered flip · CONDITION OPEN · peer dbed2f2 cited not co-signed · alone ≠ dual · STOP*
