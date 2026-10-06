@@ -138,6 +138,19 @@ const isolatedReceiptSources = {
     'packages/db/sql/20_resume_quiz.sql',
     'packages/db/migrations/0135_resume_quiz_freshness_anchor.sql',
   ],
+  'uc025:nhp-adv:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-025-nhp-adv.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/interview/interview.service.ts',
+    'apps/api/src/modules/interview/interview.controller.ts',
+    'apps/api/src/platform/principal.guard.ts',
+    'packages/db/src/commerce.ts',
+    'packages/db/src/isolated-test-target.ts',
+    'packages/db/sql/02_commerce.sql',
+    'packages/db/sql/20_resume_quiz.sql',
+    'packages/db/migrations/0061_resume_derivative_reference_guard.sql',
+  ],
   'runtime:claim-join:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/ai-runtime/test/claim-join-orphan.proof.ts',
@@ -1436,6 +1449,7 @@ if (![
   'uc001:nhp-neg:prove:raw',
   'uc001:nhp-bound:prove:raw',
   'uc001:nhp-adv:prove:raw',
+  'uc025:nhp-adv:prove:raw',
   'uc011:adv:prove:raw', 'uc011:refund-callback:prove:raw',
 ].includes(target)) {
   throw new Error(`unsupported_e2e_target:${target}`);
@@ -1493,6 +1507,8 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc014-webhook-adv']]
   : target === 'uc025:nhp-fault-isolated:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc025-nhp-fault-isolated']]
+  : target === 'uc025:nhp-adv:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc025-nhp-adv']]
   : target === 'uc010:sse-resume:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc010-sse-resume']]
   : target === 'uc001:nhp-neg:prove:raw'
