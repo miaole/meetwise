@@ -1,47 +1,24 @@
-PERF run2: p50=16.9 p95=60.1 p99=73.3 err=0 timeout=0 passed=true
-LOAD run2: p50=34.3 p95=110.8 p99=119.4 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
+PERF run2: p50=14.8 p95=47.8 p99=60.0 err=0 timeout=0 passed=true
+LOAD run2: p50=35.2 p95=91.4 p99=103.6 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
 node:events:502
       throw er; // Unhandled 'error' event
       ^
 
-error: terminating connection due to unexpected postmaster exit
-    at parseErrorMessage (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:305:11)
-    at Parser.handlePacket (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:143:27)
-    at Parser.parse (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:37:38)
-    at Socket.<anonymous> (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/index.js:12:42)
-    at Socket.emit (node:events:524:28)
-    at addChunk (node:internal/streams/readable:561:12)
-    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
-    at Readable.push (node:internal/streams/readable:392:5)
-    at TCP.onStreamRead (node:internal/stream_base_commons:191:23)
-Emitted 'error' event on BoundPool instance at:
-    at Client.idleListener (node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:62:10)
-    at Client.emit (node:events:524:28)
-    at Client._handleErrorEvent (node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:417:10)
-    at Client._handleErrorMessage (node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:428:12)
+Error: Connection terminated unexpectedly
+    at Connection.<anonymous> (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:199:73)
+    at Object.onceWrapper (node:events:638:28)
     at Connection.emit (node:events:524:28)
-    at node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/connection.js:136:12
-    at Parser.parse (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:38:17)
-    at Socket.<anonymous> (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/index.js:12:42)
+    at Socket.<anonymous> (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/connection.js:63:12)
+    at Socket.emit (node:events:524:28)
+    at TCP.<anonymous> (node:net:343:12)
+Emitted 'error' event on BoundPool instance at:
+    at Client.idleListener (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:62:10)
+    at Client.emit (node:events:524:28)
+    at Client._handleErrorEvent (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:417:10)
+    at Connection.<anonymous> (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:217:16)
+    at Object.onceWrapper (node:events:638:28)
     [... lines matching original stack trace ...]
-    at TCP.onStreamRead (node:internal/stream_base_commons:191:23) {
-  length: 115,
-  severity: 'FATAL',
-  code: '57P01',
-  detail: undefined,
-  hint: undefined,
-  position: undefined,
-  internalPosition: undefined,
-  internalQuery: undefined,
-  where: undefined,
-  schema: undefined,
-  table: undefined,
-  column: undefined,
-  dataType: undefined,
-  constraint: undefined,
-  file: 'be-secure.c',
-  line: '205',
-  routine: 'secure_read',
+    at TCP.<anonymous> (node:net:343:12) {
   client: Client {
     _events: [Object: null prototype] { error: [Function (anonymous)] },
     _eventsCount: 1,
@@ -49,7 +26,7 @@ Emitted 'error' event on BoundPool instance at:
     connectionParameters: ConnectionParameters {
       user: 'meetwise',
       database: 'meetwise',
-      port: 33005,
+      port: 33066,
       host: '127.0.0.1',
       binary: false,
       options: undefined,
@@ -68,7 +45,7 @@ Emitted 'error' event on BoundPool instance at:
     },
     user: 'meetwise',
     database: 'meetwise',
-    port: 33005,
+    port: 33066,
     host: '127.0.0.1',
     replication: undefined,
     _Promise: [Function: Promise],
@@ -144,7 +121,7 @@ Emitted 'error' event on BoundPool instance at:
       binary: {}
     },
     _ending: true,
-    _ended: false,
+    _ended: true,
     _connecting: false,
     _connected: true,
     _connectionError: false,
@@ -176,17 +153,9 @@ Emitted 'error' event on BoundPool instance at:
         parseComplete: [Function: bound _handleParseComplete],
         copyInResponse: [Function: bound _handleCopyInResponse],
         copyData: [Function: bound _handleCopyData],
-        notification: [Function: bound _handleNotification],
-        end: [
-          [Function: bound onceWrapper] {
-            listener: [Function (anonymous)]
-          },
-          [Function: bound onceWrapper] {
-            listener: [Function (anonymous)]
-          }
-        ]
+        notification: [Function: bound _handleNotification]
       },
-      _eventsCount: 23,
+      _eventsCount: 22,
       _maxListeners: undefined,
       stream: Socket {
         connecting: false,
@@ -212,7 +181,7 @@ Emitted 'error' event on BoundPool instance at:
           length: 0,
           pipes: [],
           awaitDrainWriters: null,
-          [Symbol(kState)]: 194519348
+          [Symbol(kState)]: 194512756
         },
         _writableState: WritableState {
           highWaterMark: 16384,
@@ -222,7 +191,7 @@ Emitted 'error' event on BoundPool instance at:
           writelen: 0,
           bufferedIndex: 0,
           pendingcb: 0,
-          [Symbol(kState)]: 17563956,
+          [Symbol(kState)]: 1091450228,
           [Symbol(kBufferedValue)]: null,
           [Symbol(kWriteCbValue)]: null
         },
@@ -234,7 +203,8 @@ Emitted 'error' event on BoundPool instance at:
         _pendingEncoding: '',
         server: null,
         _server: null,
-        [Symbol(async_id_symbol)]: 15895,
+        write: [Function: writeAfterFIN],
+        [Symbol(async_id_symbol)]: 15949,
         [Symbol(kHandle)]: null,
         [Symbol(lastWriteQueueSize)]: 0,
         [Symbol(timeout)]: null,
@@ -246,8 +216,8 @@ Emitted 'error' event on BoundPool instance at:
         [Symbol(kSetNoDelay)]: true,
         [Symbol(kSetKeepAlive)]: false,
         [Symbol(kSetKeepAliveInitialDelay)]: 0,
-        [Symbol(kBytesRead)]: 6261,
-        [Symbol(kBytesWritten)]: 11263
+        [Symbol(kBytesRead)]: 7252,
+        [Symbol(kBytesWritten)]: 13457
       },
       _keepAlive: false,
       _keepAliveInitialDelayMillis: 0,
@@ -262,8 +232,8 @@ Emitted 'error' event on BoundPool instance at:
     },
     _queryQueue: [],
     binary: false,
-    processID: 138,
-    secretKey: [REDACTED],
+    processID: 141,
+    secretKey: 988639644,
     ssl: false,
     sslNegotiation: 'postgres',
     _connectionTimeoutMillis: 5000,
@@ -272,21 +242,21 @@ Emitted 'error' event on BoundPool instance at:
       _idleTimeout: -1,
       _idlePrev: null,
       _idleNext: null,
-      _idleStart: 2816,
+      _idleStart: 3200,
       _onTimeout: null,
       _timerArgs: undefined,
       _repeat: null,
       _destroyed: true,
       [Symbol(refed)]: false,
       [Symbol(kHasPrimitive)]: false,
-      [Symbol(asyncId)]: 15894,
+      [Symbol(asyncId)]: 15948,
       [Symbol(triggerId)]: 0
     },
     saslSession: null,
     release: [Function (anonymous)],
     readyForQuery: true,
     hasExecuted: true,
-    _poolUseCount: 5,
+    _poolUseCount: 6,
     [Symbol(shapeMode)]: false,
     [Symbol(kCapture)]: false
   }

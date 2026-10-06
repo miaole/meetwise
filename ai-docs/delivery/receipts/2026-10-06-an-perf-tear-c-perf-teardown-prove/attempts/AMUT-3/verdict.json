@@ -27,41 +27,55 @@
   "state29": false,
   "form": "F2",
   "CTU_present": true,
-  "t_first_error": 1791295202457,
+  "t_first_error": 1791299307704,
   "pg_events": [
    [
     "create",
-    1791295190723,
+    1791299295881,
     null,
     null
    ],
    [
     "start",
-    1791295190907,
+    1791299296063,
     null,
     null
    ],
    [
     "kill",
-    1791295203995,
+    1791299309365,
     "9",
     null
    ],
    [
     "die",
-    1791295204197,
+    1791299309525,
     null,
     "137"
    ],
    [
     "destroy",
-    1791295204717,
+    1791299310071,
     null,
     null
    ]
   ],
   "pg_teardown_before_first_error": [],
+  "J2_x6": {
+   "Tk": false,
+   "Td": true,
+   "Tx": true,
+   "W_die": 500,
+   "W_destroy": 2000,
+   "t_kill": 1791299309365,
+   "t_die": 1791299309525,
+   "t_destroy": 1791299310071,
+   "t_err": 1791299307704,
+   "kill_to_die_ms": 160,
+   "die_to_destroy_ms": 546
+  },
   "foreign_emit_proc_lines": 0,
+  "foreign_emit_raw_mention_lines": 0,
   "J2": "L1/client-side",
   "aux": {
    "events_kill_exit": "0",
@@ -73,14 +87,14 @@
   "psql_exit": 0,
   "gate_loop_start": [
    [
-    "1791295201437",
+    "1791299306764",
     "0"
    ]
   ],
-  "t_load2": 1791295202439,
-  "t_perf1": 1791295201330,
+  "t_load2": 1791299307696,
+  "t_perf1": 1791299306661,
   "marker": [
-   "INJECT_A phase=seed killed=1 iv_rows=7 iv_nonactive=0 idle_n=19 snap=[{\"pid\" : 124, \"state\" : \"idle in transaction\", \"xact_start\" : \"2026-10-06T14:00:02.45122+00:00\", \"q\" : \"INSERT INTO entitlement_consumption(owner_user_id, idempoten\"}]"
+   "INJECT_A phase=seed killed=1 iv_rows=2 iv_nonactive=0 idle_n=19 snap=[{\"pid\" : 130, \"state\" : \"idle in transaction\", \"xact_start\" : \"2026-10-06T15:08:27.698416+00:00\", \"q\" : \"INSERT INTO entitlement_consumption(owner_user_id, idempoten\"}]"
   ]
  }
 }

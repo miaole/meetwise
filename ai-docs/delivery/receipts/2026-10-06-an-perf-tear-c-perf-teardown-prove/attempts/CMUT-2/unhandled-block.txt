@@ -1,21 +1,21 @@
-PERF run2: p50=16.3 p95=44.5 p99=71.5 err=0 timeout=0 passed=true
-LOAD run2: p50=33.5 p95=93.6 p99=110.4 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
+PERF run2: p50=20.0 p95=49.2 p99=57.7 err=0 timeout=0 passed=true
+LOAD run2: p50=27.0 p95=92.2 p99=108.8 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
 node:events:502
       throw er; // Unhandled 'error' event
       ^
 
 Error: Connection terminated unexpectedly
-    at Connection.<anonymous> (node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:199:73)
+    at Connection.<anonymous> (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:199:73)
     at Object.onceWrapper (node:events:638:28)
     at Connection.emit (node:events:524:28)
-    at Socket.<anonymous> (node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/connection.js:63:12)
+    at Socket.<anonymous> (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/connection.js:63:12)
     at Socket.emit (node:events:524:28)
     at TCP.<anonymous> (node:net:343:12)
 Emitted 'error' event on BoundPool instance at:
-    at Client.idleListener (node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:62:10)
+    at Client.idleListener (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:62:10)
     at Client.emit (node:events:524:28)
-    at Client._handleErrorEvent (node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:417:10)
-    at Connection.<anonymous> (node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:217:16)
+    at Client._handleErrorEvent (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:417:10)
+    at Connection.<anonymous> (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:217:16)
     at Object.onceWrapper (node:events:638:28)
     [... lines matching original stack trace ...]
     at TCP.<anonymous> (node:net:343:12) {
@@ -26,7 +26,7 @@ Emitted 'error' event on BoundPool instance at:
     connectionParameters: ConnectionParameters {
       user: 'meetwise',
       database: 'meetwise',
-      port: 33004,
+      port: 33065,
       host: '127.0.0.1',
       binary: false,
       options: undefined,
@@ -45,7 +45,7 @@ Emitted 'error' event on BoundPool instance at:
     },
     user: 'meetwise',
     database: 'meetwise',
-    port: 33004,
+    port: 33065,
     host: '127.0.0.1',
     replication: undefined,
     _Promise: [Function: Promise],
@@ -204,7 +204,7 @@ Emitted 'error' event on BoundPool instance at:
         server: null,
         _server: null,
         write: [Function: writeAfterFIN],
-        [Symbol(async_id_symbol)]: 16117,
+        [Symbol(async_id_symbol)]: 9435,
         [Symbol(kHandle)]: null,
         [Symbol(lastWriteQueueSize)]: 0,
         [Symbol(timeout)]: null,
@@ -216,8 +216,8 @@ Emitted 'error' event on BoundPool instance at:
         [Symbol(kSetNoDelay)]: true,
         [Symbol(kSetKeepAlive)]: false,
         [Symbol(kSetKeepAliveInitialDelay)]: 0,
-        [Symbol(kBytesRead)]: 19429,
-        [Symbol(kBytesWritten)]: 37599
+        [Symbol(kBytesRead)]: 126335,
+        [Symbol(kBytesWritten)]: 310155
       },
       _keepAlive: false,
       _keepAliveInitialDelayMillis: 0,
@@ -232,8 +232,8 @@ Emitted 'error' event on BoundPool instance at:
     },
     _queryQueue: [],
     binary: false,
-    processID: 147,
-    secretKey: [REDACTED],
+    processID: 128,
+    secretKey: 1325268464,
     ssl: false,
     sslNegotiation: 'postgres',
     _connectionTimeoutMillis: 5000,
@@ -242,21 +242,21 @@ Emitted 'error' event on BoundPool instance at:
       _idleTimeout: -1,
       _idlePrev: null,
       _idleNext: null,
-      _idleStart: 2872,
+      _idleStart: 2633,
       _onTimeout: null,
       _timerArgs: undefined,
       _repeat: null,
       _destroyed: true,
       [Symbol(refed)]: false,
       [Symbol(kHasPrimitive)]: false,
-      [Symbol(asyncId)]: 16116,
+      [Symbol(asyncId)]: 9434,
       [Symbol(triggerId)]: 0
     },
     saslSession: null,
     release: [Function (anonymous)],
     readyForQuery: true,
     hasExecuted: true,
-    _poolUseCount: 17,
+    _poolUseCount: 405,
     [Symbol(shapeMode)]: false,
     [Symbol(kCapture)]: false
   }

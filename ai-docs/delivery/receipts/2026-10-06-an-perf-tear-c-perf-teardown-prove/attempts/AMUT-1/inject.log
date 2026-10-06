@@ -1,2 +1,2 @@
-NOTICE:  GATE_LOOP_START t0_ms=1791295157046 iv_rows=0
-NOTICE:  INJECT_A phase=seed killed=1 iv_rows=2 iv_nonactive=0 idle_n=19 snap=[{"pid" : 124, "state" : "idle in transaction", "xact_start" : "2026-10-06T13:59:18.044273+00:00", "q" : "SELECT id, (units_total - units_reserved - units_consumed) A"}]
+NOTICE:  GATE_LOOP_START t0_ms=1791299261214 iv_rows=0
+NOTICE:  INJECT_A phase=seed killed=1 iv_rows=7 iv_nonactive=0 idle_n=19 snap=[{"pid" : 144, "state" : "idle in transaction", "xact_start" : "2026-10-06T15:07:42.141239+00:00", "q" : "UPDATE entitlement_consumption SET allocations=$2 WHERE id=$"}]

@@ -1,28 +1,28 @@
-PERF run2: p50=19.5 p95=52.3 p99=95.5 err=0 timeout=0 passed=true
-LOAD run2: p50=32.4 p95=88.1 p99=114.4 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
+PERF run2: p50=15.9 p95=47.5 p99=64.5 err=0 timeout=0 passed=true
+LOAD run2: p50=31.8 p95=94.0 p99=109.8 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
 node:events:502
       throw er; // Unhandled 'error' event
       ^
 
 error: terminating connection due to administrator command
-    at parseErrorMessage (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:305:11)
-    at Parser.handlePacket (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:143:27)
-    at Parser.parse (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:37:38)
-    at Socket.<anonymous> (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/index.js:12:42)
+    at parseErrorMessage (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:305:11)
+    at Parser.handlePacket (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:143:27)
+    at Parser.parse (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:37:38)
+    at Socket.<anonymous> (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/index.js:12:42)
     at Socket.emit (node:events:524:28)
     at addChunk (node:internal/streams/readable:561:12)
     at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
     at Readable.push (node:internal/streams/readable:392:5)
     at TCP.onStreamRead (node:internal/stream_base_commons:191:23)
 Emitted 'error' event on BoundPool instance at:
-    at Client.idleListener (node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:62:10)
+    at Client.idleListener (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:62:10)
     at Client.emit (node:events:524:28)
-    at Client._handleErrorEvent (node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:417:10)
-    at Client._handleErrorMessage (node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:428:12)
+    at Client._handleErrorEvent (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:417:10)
+    at Client._handleErrorMessage (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:428:12)
     at Connection.emit (node:events:524:28)
-    at node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/connection.js:136:12
-    at Parser.parse (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:38:17)
-    at Socket.<anonymous> (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/index.js:12:42)
+    at /workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/connection.js:136:12
+    at Parser.parse (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:38:17)
+    at Socket.<anonymous> (/workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/index.js:12:42)
     [... lines matching original stack trace ...]
     at TCP.onStreamRead (node:internal/stream_base_commons:191:23) {
   length: 116,
@@ -49,7 +49,7 @@ Emitted 'error' event on BoundPool instance at:
     connectionParameters: ConnectionParameters {
       user: 'meetwise',
       database: 'meetwise',
-      port: 32995,
+      port: 33056,
       host: '127.0.0.1',
       binary: false,
       options: undefined,
@@ -68,7 +68,7 @@ Emitted 'error' event on BoundPool instance at:
     },
     user: 'meetwise',
     database: 'meetwise',
-    port: 32995,
+    port: 33056,
     host: '127.0.0.1',
     replication: undefined,
     _Promise: [Function: Promise],
@@ -234,7 +234,7 @@ Emitted 'error' event on BoundPool instance at:
         _pendingEncoding: '',
         server: null,
         _server: null,
-        [Symbol(async_id_symbol)]: 15997,
+        [Symbol(async_id_symbol)]: 16079,
         [Symbol(kHandle)]: null,
         [Symbol(lastWriteQueueSize)]: 0,
         [Symbol(timeout)]: null,
@@ -246,8 +246,8 @@ Emitted 'error' event on BoundPool instance at:
         [Symbol(kSetNoDelay)]: true,
         [Symbol(kSetKeepAlive)]: false,
         [Symbol(kSetKeepAliveInitialDelay)]: 0,
-        [Symbol(kBytesRead)]: 19546,
-        [Symbol(kBytesWritten)]: 37599
+        [Symbol(kBytesRead)]: 63036,
+        [Symbol(kBytesWritten)]: 154119
       },
       _keepAlive: false,
       _keepAliveInitialDelayMillis: 0,
@@ -262,8 +262,8 @@ Emitted 'error' event on BoundPool instance at:
     },
     _queryQueue: [],
     binary: false,
-    processID: 143,
-    secretKey: [REDACTED],
+    processID: 145,
+    secretKey: -435551764,
     ssl: false,
     sslNegotiation: 'postgres',
     _connectionTimeoutMillis: 5000,
@@ -272,21 +272,21 @@ Emitted 'error' event on BoundPool instance at:
       _idleTimeout: -1,
       _idlePrev: null,
       _idleNext: null,
-      _idleStart: 3213,
+      _idleStart: 3040,
       _onTimeout: null,
       _timerArgs: undefined,
       _repeat: null,
       _destroyed: true,
       [Symbol(refed)]: false,
       [Symbol(kHasPrimitive)]: false,
-      [Symbol(asyncId)]: 15996,
+      [Symbol(asyncId)]: 16078,
       [Symbol(triggerId)]: 0
     },
     saslSession: null,
     release: [Function (anonymous)],
     readyForQuery: true,
     hasExecuted: true,
-    _poolUseCount: 17,
+    _poolUseCount: 202,
     [Symbol(shapeMode)]: false,
     [Symbol(kCapture)]: false
   }
