@@ -1,12 +1,12 @@
-# Slice — **NHP-001-ADV-01 · UC-001 ADV blind→case**（Line AG · docs REQUEST rewrite · **`draft:awaiting_pre_exec_dual`**）
+# Slice — **NHP-001-ADV-01 · UC-001 ADV blind→case**（Line AG · prove done · **`prove:awaiting_post_dual`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（docs REQUEST rewrite **re-PRE3** · supersedes `4e9f568` · rag FAIL `a3364b4`/`71ad2a7` **B-R2-1 + C1–C6** · N1–N4 / B1–B5 retained · peer e2e PASS `5875644` alone ≠ dual · Ban live · Ban fake-model · Ban fake-green suite · SCOPE UC-001 ADV only）
+**Status**: **`prove:awaiting_post_dual`**（ADV structural EXIT0 · B5 ENV-capable 26/26+17/17 · mutation discarded · ADV stays blind/case-only · EXIT0≠covered · coveredCount=8 · awaiting POST dual · Ban live · Ban fake-model · Ban covered flip · Ban wash Y/AB）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
-**Base**: `origin/feat/mysql-schema-skeleton` · `71ad2a7fccaa3dd43b47e2c54b9823890aaabdf9`
+**Base**: REQUEST `51af3b2` · prove on `origin/feat/mysql-schema-skeleton`（historical parent note `71ad2a7` corrected → REQUEST git parent `c562906`）
 **Prior REQUEST**: `4e9f568`（superseded by re-PRE3）← `626e060` ← `5eba515` · FAIL receipts `a3364b4`/`71ad2a7`（rag Re-PRE2 · B-R2-1 · retained）· `3f3a2e4`（e2e re-PRE · N1–N4 · retained）· `863a5e6`（rag PRE · B1–B5 · retained）
 **B5 self-check**: `receipts/2026-10-06-nhp-001-adv-01-b5-env-selfcheck.md`（reason tags `docker.sock` + `key`）
-**Authority**: meetwise — L0 docs only · Ban coding · Ban prove ADV · Ban self-approve
+**Authority**: meetwise-core coding+prove done · awaiting POST dual · Ban self-approve · Ban self-nail
 
 ## One-line
 
@@ -20,6 +20,9 @@
 | Dual `mw-e2e-ha` | `reviews/REQUEST-2026-10-06-nhp-001-adv-01-blind-to-case-mw-e2e-ha.md` |
 | Dual `mw-rag-route` | `reviews/REQUEST-2026-10-06-nhp-001-adv-01-blind-to-case-mw-rag-route.md` |
 | B5 self-check（B-R2-1） | `receipts/2026-10-06-nhp-001-adv-01-b5-env-selfcheck.md` |
+| B5 ENV-capable | `receipts/2026-10-06-nhp-001-adv-01-b5-env-capable.md` |
+| Prove receipt | `receipts/2026-10-06-nhp-001-adv-01-prove.md` |
+| ADV proof | `apps/api/test/uc-e2e-001-nhp-adv.proof.ts` |
 
 ## Choice
 
@@ -58,8 +61,8 @@
 
 ## Ban
 
-Ban coding · Ban prove ADV · Ban live · Ban fake-model · Ban fake-green suite · Ban covered flip · Ban invent covered · Ban wash Y/AB · Ban wash 031/032 旁证 · Ban touching 018/052/025 · Ban SSOT flip · Ban self-approve · Ban self-nail · Ban Meridian · Ban secrets · Ban force-push · Ban 碰 AD/AE/AF/AH · Ban 靶 `/answer` · Ban 发明 JD ingress · Ban `consumption_record` 快照 · Ban 合并 docker.sock/Key L0 标签 · Ban env-EXIT1 叙述为回归通过/ADV 通过 · Ban 正控/V2 共享种子 · Ban V3 模糊 2xx · Ban 非逐字引文。
+Ban live · Ban fake-model · Ban fake-green suite · Ban covered flip · Ban invent covered · Ban wash Y/AB · Ban wash 031/032 旁证 · Ban touching 018/052/025 · Ban SSOT flip · Ban self-approve · Ban self-nail · Ban Meridian · Ban secrets · Ban force-push · Ban 碰 AD/AE/AF/AH · Ban 靶 `/answer` · Ban 发明 JD ingress · Ban `consumption_record` 快照 · Ban 合并 docker.sock/Key L0 标签 · Ban env-EXIT1 叙述为回归通过/ADV 通过 · Ban 正控/V2 共享种子 · Ban V3 模糊 2xx · Ban 非逐字引文。
 
 Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503.
 
-*Slice · NHP-001-ADV-01 · Line AG · awaiting_pre_exec_dual · re-PRE3 rewrite · supersedes 4e9f568 · FAIL a3364b4/71ad2a7 B-R2-1+C1–C6 · Ban coding · STOP*
+*Slice · NHP-001-ADV-01 · Line AG · prove:awaiting_post_dual · ADV EXIT0 structural · B5 26/26+17/17 · ADV stays blind/case-only · Ban wash Y/AB · STOP*

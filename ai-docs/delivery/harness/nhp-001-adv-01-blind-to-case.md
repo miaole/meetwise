@@ -1,12 +1,14 @@
-# Harness — **NHP-001-ADV-01 · UC-001 ADV blind→case**（Line AG · docs REQUEST rewrite · **`draft:awaiting_pre_exec_dual`** · SCOPE UC-001 ADV only · EXIT0≠covered）
+# Harness — **NHP-001-ADV-01 · UC-001 ADV blind→case**（Line AG · prove done · **`prove:awaiting_post_dual`** · SCOPE UC-001 ADV only · EXIT0≠covered · ADV stays blind/case-only）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST rewrite **re-PRE3** · supersedes REQUEST `4e9f568` · cites rag Re-PRE2 FAIL `a3364b4`/`71ad2a7` **B-R2-1 + C1–C6** · N1–N4 / B1–B5 retained · peer e2e PASS `5875644` alone ≠ dual · Ban coding · Ban prove 执行 ADV · Ban live · Ban fake-model · Ban covered flip · Ban wash Y/AB · Ban self-approve）
+**Status**: **`prove:awaiting_post_dual`**（coding+prove AUTHORIZE · ADV structural EXIT0 · B5 ENV-capable neg 26/26 + bound 17/17 · mutation V1→409 stale_question EXIT≠0 discarded · ADV stays **blind/case-only** · EXIT0≠covered · coveredCount=8 · awaiting POST dual · Ban covered flip · Ban wash Y/AB · Ban self-approve · Ban self-nail）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
-**Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`71ad2a7`** / full `71ad2a7fccaa3dd43b47e2c54b9823890aaabdf9`（includes AE `3409862` · FAIL receipts `a3364b4`/`71ad2a7` · `git diff --stat 4e9f568 71ad2a7 -- apps packages scripts package.json` may include sibling docs · 本刀代码锚点不变 · Ban touch Y/AB/018/052/025）
+**Base / parent tip**: REQUEST `51af3b2` · git parent of REQUEST was `c562906`（historical harness note `71ad2a7` = base≥errata · non-blocker fixed）· prove branch from `origin/feat/mysql-schema-skeleton` · Ban touch Y/AB/018/052/025 · AL/AM）
 **Prior REQUEST**: `4e9f568ce6e8bf71cc91465b6ff07b1a5d792323`（re-PRE2 · **superseded by this re-PRE3 rewrite**）← `626e060` ← `5eba515`
 **FAIL receipts**（retained · 不擦除）: `a3364b4`（mw-rag-route Re-PRE2 FAIL on `4e9f568` · **B-R2-1** · C5 200 unpinned）· `71ad2a7`（errata · `resume.controller.ts:17`）· `3f3a2e4`（mw-e2e-ha re-PRE FAIL on `626e060` · N1–N4）· `863a5e6`（mw-rag-route PRE-EXEC FAIL on `5eba515` · B1–B5）
-**B5 self-check receipt（B-R2-1）**: `ai-docs/delivery/receipts/2026-10-06-nhp-001-adv-01-b5-env-selfcheck.md`（verbatim · reason tags `docker.sock` + `key`）
+**B5 self-check receipt（B-R2-1）**: `ai-docs/delivery/receipts/2026-10-06-nhp-001-adv-01-b5-env-selfcheck.md`（verbatim · reason tags `docker.sock` + `key` · ≠ B5 pass）
+**B5 ENV-capable**: `ai-docs/delivery/receipts/2026-10-06-nhp-001-adv-01-b5-env-capable.md`（neg 26/26 · bound 17/17 · pre+post ADV）
+**Prove receipt**: `ai-docs/delivery/receipts/2026-10-06-nhp-001-adv-01-prove.md`
 **Peer note**: mw-e2e-ha re-PRE2 PASS `5875644` on `4e9f568` · **alone ≠ dual** · rag FAIL ⇒ BOTH not PASS
 **Knife**: **NHP-001-ADV-01（Line AG）· 黄金路径 ADV · 主链内注入串 · blind→case/prove 显式化**
 **Gap id（拟）**: **`GAP-UC001-ADV-01`**（本刀具名 · 服务 NHP-001-ADV-01；不发明 covered · 未入 backlog）
@@ -179,7 +181,7 @@ BOUND/ADV 仍无独立进 full.e2e；无 Key = live blocked；**happy-only 绿=�
 
 ## Ban 列表
 
-- Ban coding · Ban prove 执行（本 docs turn）· Ban live · Ban live default · **Ban fake-model** · **Ban fake-green suite**
+- Ban live · Ban live default · **Ban fake-model** · **Ban fake-green suite** · Ban invent covered on this prove turn
 - Ban invent covered · Ban covered flip · **Ban wash Y/AB** · Ban wash 031/032 旁证成 001 ADV covered · Ban 假称 GuardrailHit 已接
 - **Ban touching 018/052/025** · Ban 借 UC-004 / 011 收据
 - Ban secrets / `.env*` · Ban Meridian · Ban buy cloud · Ban force-push · Ban SSOT edit
@@ -190,10 +192,10 @@ BOUND/ADV 仍无独立进 full.e2e；无 Key = live blocked；**happy-only 绿=�
 
 ## Non-claims
 
-Not a pass · not run · not ADV EXIT0（B5 env-blocked 未解前）· not covered · not live · not suite green · not trio green · not model-level injection defense · not 031/032 closed · not GuardrailHit wired · not HA · not UC-004 knife · alone ≠ dual · EXIT0 ≠ covered · not scoring-proven（worker Key-blocked）
+Structural ADV EXIT0 recorded · still not covered · not live · not suite green · not trio green · not model-level injection defense · not 031/032 closed · not GuardrailHit wired · not HA · not UC-004 knife · alone ≠ dual (awaiting POST) · EXIT0 ≠ covered · ADV stays blind/case-only · not scoring-proven（worker Key-blocked）
 
 ## Pins
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · Ban live · Ban fake-model · Ban fake-green suite · STOP
 
-*Harness · NHP-001-ADV-01 · UC-001 ADV blind→case · Line AG · 2026-10-06 · draft:awaiting_pre_exec_dual · re-PRE3 rewrite supersedes 4e9f568 · FAIL a3364b4/71ad2a7 B-R2-1+C1–C6 · N1–N4/B1–B5 retained · peer e2e PASS 5875644 alone≠dual · Ban coding · Ban wash Y/AB · Ban covered flip · STOP*
+*Harness · NHP-001-ADV-01 · UC-001 ADV blind→case · Line AG · 2026-10-06 · prove:awaiting_post_dual · ADV EXIT0 structural · B5 26/26+17/17 · mutation discarded · ADV stays blind/case-only · EXIT0≠covered · Ban wash Y/AB · Ban covered flip · STOP*
