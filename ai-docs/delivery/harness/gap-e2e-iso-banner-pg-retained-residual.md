@@ -1,6 +1,8 @@
-# Harness — **GAP-E2E-ISO-BANNER-PG-RETAINED residual · banner ≠ PG-retained truth**（Line AL · docs REQUEST · **`coding_prove_done:awaiting_post_prove_dual`** · banner string only · ≠ sole cutover）
+# Harness — **GAP-E2E-ISO-BANNER-PG-RETAINED residual · banner ≠ PG-retained truth**（Line AL · NAIL · **`post_prove_dual_pass`** · banner residual documented · gap `:63` **OPEN** · ≠ sole cutover）
 
-**Status**: **`coding_prove_done:awaiting_post_prove_dual`**（AUTHORIZE coding+prove after PRE dual BOTH PASS：e2e `899fef2` + privacy `3915e32` · banner string only · zero behavior change · `node --check` EXIT 0 · zero e2e run · gap stays OPEN · Ban self-approve · alone ≠ dual）（prior: `draft:awaiting_pre_exec_dual` @ REQUEST `27c2e99`）
+**Status**: **`post_prove_dual_pass`**（Line AL nail · PROVE_TIP `c633584` · banner string only `:1765-1768` · `node --check` EXIT 0 · POST dual mw-e2e-ha `1778d53`（AL review file · attribution marker `1a32423`）+ mw-privacy-int `c20c42e` BOTH PASS · **STILL_OPEN**: backlog `:63` **GAP-E2E-ISO-BANNER-PG-RETAINED stays OPEN** · banner residual documented · `SOLE_STACK` const **unchanged** · DELETE=503 · retention_pending · Ban fake close · Ban cutover · Ban self-approve beyond this authorized nail · alone ≠ dual）
+
+> **Prove-era status（historical · retained）**: **`coding_prove_done:awaiting_post_prove_dual`**（AUTHORIZE coding+prove after PRE dual BOTH PASS：e2e `899fef2` + privacy `3915e32` · banner string only · zero behavior change · `node --check` EXIT 0 · zero e2e run · gap stays OPEN · Ban self-approve · alone ≠ dual）（prior: `draft:awaiting_pre_exec_dual` @ REQUEST `27c2e99`）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`71ad2a7`** / full `71ad2a7fccaa3dd43b47e2c54b9823890aaabdf9`（wave AI–AM start · includes Line AE nail `3409862` / `340986214ad2a32b1cb678caa612c6a50f305861` as ancestor · tip advanced past AE by Line AG re-PRE2 review commits only · Ban touch AG）
@@ -89,4 +91,18 @@ Not a pass · not aligned · not closed · not cutover · not nail · not HA · 
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · backlog `:63` open named gap（banner string aligned · residual for nail/SSOT）· STOP
 
-*Harness · GAP-E2E-ISO-BANNER-PG-RETAINED residual · banner ≠ PG-retained truth · Line AL · 2026-10-06 · coding_prove_done:awaiting_post_prove_dual · banner string only · gap OPEN · alone ≠ dual · STOP*
+*Harness · GAP-E2E-ISO-BANNER-PG-RETAINED residual · banner ≠ PG-retained truth · Line AL · 2026-10-06 · coding_prove_done:awaiting_post_prove_dual · banner string only · gap OPEN · alone ≠ dual · STOP*  <!-- prove-era footer · lifecycle advanced below -->
+
+---
+
+## Line AL NAIL lifecycle（`post_prove_dual_pass` · 2026-10-06 · additive）
+
+- Lifecycle on this harness/slice/receipt: **`post_prove_dual_pass`**（docs/SSOT honesty only · zero product/infra code in this nail · Ban coding）.
+- REQUEST `27c2e99` / `27c2e9943eae4d27bd6ba0b62f02ca3dd481c6f4` · PRE dual BOTH PASS: mw-e2e-ha `899fef2` / `899fef248d7d247f8425c037109ed4efde008e71` + mw-privacy-int `3915e32` / `3915e32e4b4a5b7f05bd81fd009ca2230e0e811a`.
+- PROVE_TIP **NAILED TO** `c633584` / `c633584b1d991894f0f3682416b89f19695d664b` · receipt `receipts/2026-10-06-gap-e2e-iso-banner-pg-retained-residual-align.md` · banner string only `:1765-1768` · `node --check` EXIT 0 · zero e2e run.
+- POST dual BOTH PASS: mw-e2e-ha `1778d53` / `1778d53ac6075bfd4e361fb0cd51e8f31d4cfbb1`（AL review file landed in this commit; attribution marker `1a32423` / `1a32423d1bfc810427a846d4ae44af150640c84e`）+ mw-privacy-int `c20c42e` / `c20c42e7922910fcbad5d9d5c047799dd853782c`（alone ≠ dual）.
+- **STILL_OPEN / residual honest**: backlog `:63` **GAP-E2E-ISO-BANNER-PG-RETAINED stays OPEN** · banner residual documented（header `:5` + `SOLE_STACK` const = separate package）· `SOLE_STACK` constant **unchanged**（label ≠ product truth · PG-retained）· public DELETE=**503** · external=`retention_pending` · Ban fake close · Ban cutover narrative · Ban claiming sole cutover · Ban invent covered/HA.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · coveredCount=8. alone≠dual.
+- Nail tip = 本 commit（推至 `feat/mysql-schema-skeleton`；禁 force push）. Sibling sections stay as written（incl. Line N banner NAIL `a778255` · Line AE/AF/AH/AD · AI/AJ/AK REQUEST）. This paragraph does **not** flip backlog `:63` to CLOSED.
+
+*Harness · GAP-E2E-ISO-BANNER-PG-RETAINED residual · Line AL NAIL · 2026-10-06 · lifecycle post_prove_dual_pass · PROVE_TIP c633584 · POST 1778d53+c20c42e PASS · gap :63 OPEN · SOLE_STACK unchanged · DELETE=503 · Ban cutover · Ban fake close · STOP*
