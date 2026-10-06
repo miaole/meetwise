@@ -411,3 +411,95 @@ Verdict: PASS
 - Pins：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained（无 MySQL / Qdrant / FULLTEXT）· public DELETE=503。
 
 Verdict: FAIL
+
+## Re-PRE5 @771ca84
+
+- 审查人：mw-rag-route（独立复核；alone≠dual，不代签 mw-e2e-ha）
+- 时间：2026-10-06 21:47 +08:00
+- 输入：REWRITE5_SHA `771ca8475cfbcb7efe9ce99137305da76305279b`（supersedes `b5633f0`；docs-only 4 文件）· 引用我方 Re-PRE4 FAIL `a07256c`（阻塞 1 时序、阻塞 2 C-POST 矛盾）
+- 审查基：box 临时 worktree `/tmp/mwrr-perf-pre5`（detached @ origin tip `771ca84`），完成后已移除。docs/source-only：未运行 prove，未执行 docker 命令，未触碰 .env*，未调用模型，未写 git config。
+- 源码与收据：`a07256c..771ca84` 在 packages/apps/scripts/package.json 下零改动（`git diff --quiet` EXIT 0）。另用一段纯 Node 小脚本（Node v20.19.2，无 DB、无 docker）核对 pg Client 的 Unhandled 输出帧。
+- 历史段：我方 `## PRE-EXEC @110532e` 起的历史段与 `a07256c` 逐字一致（diff EXIT 0）；core 只改了头部。
+- 对端：截至 origin `771ca84`，mw-e2e-ha 尚无 Re-PRE5 收据。其上一份为 Re-PRE4 PASS `2900c46`，仅引用，不代签。
+
+### 1. 阻塞 1（时序）→ 已解除
+
+- 预启动触发点存在且早于 seed：
+  - proof :328-331 打印 `PERF run${run}: …`；主循环 :441-444 的顺序为 PERF run1 → LOAD run1 → PERF run2 → LOAD run2 → PERF run3（seed :274）。
+  - attempt1 的 `PERF-LOAD-prove.log:17-20` 中 `PERF run1:` / `LOAD run2:` 行均在行首、无前缀，`^PERF run1: ` 可匹配。
+  - harness :220（T1 第 1 步）在首见该行即启动唯一一次容器内循环。
+- 不会提前起爆：
+  - 门控键只数 `IV\_P018\_R3\_%`；run1/run2 用 `IV_P018_R1_`/`R2_`（:273），LOAD 用 `IV_L018_R<n>_`（:338）；PG 为每次 prove 新建的隔离容器。
+  - `iv_rows=0` 时，A 的 `k`（:353，`iv.n BETWEEN 1 AND 109`）不调用 `pg_terminate_backend`，A 与 B/C（§5.0c :293-308）各分支都不成立，只轮询（:317/:378）。
+- “循环已在运行”可观测：
+  - 判据是 `GATE_LOOP_START … iv_rows=0` 且 `t0_ms < t_load2`（:221，:341/:280）。
+  - 宿主检出存在延迟，单看 `t0_ms < t_load2` 不足以证明循环早于 seed，但 `iv_rows(start)=0` 这一项把关：循环若晚于 run3 首条 INSERT 才启动，n0 就会 ≥1，从而记 `INJECT_LATE`。判据成立。
+  - 10 s 上限覆盖收据 ≈1.0 s + ≲0.21 s（:229）。
+- 时序证据表（§5.0a :240-250）逐项按已提交收据复算，全部一致：
+  - perf-01-run3：02:46:15.205Z → 15.635Z（10:46:15.205 → 15.635 +08:00），430 ms；`rawLatenciesMs` 总和 / 10 = 216.60 ms；seed 上界 213.4 ms，1.940 ms/轮；扣 10×min(5.90) 后为 1.404 ms/轮。
+  - perf-01-run2：439 ms；231.06 ms；min 5.49；1.391 ms/轮。
+  - perf-01-run1：2.014 ms/轮。
+  - load-01-run2：02:46:14.931Z → 15.205Z，274 ms，且 `end` 与 perf run3 `start` 同毫秒。
+  - perf run1 `end` → load run2 `end` = 1006 ms。
+- B-POST 余量公式（§5.0b :256-269）：
+  - 方向正确。取最小 t_round=1.39 ms，在同一延迟下多算轮数，因此更早起爆，偏保守。k=2 覆盖实际每轮快至约 0.7 ms 或实际延迟约 2·L_cli 的情形。
+  - U_min=6 由 6 ms 轮询周期推出，合理。L_cli、U_B 在第一个 B-POST 前一次写死，禁止重测或改动（:264/:431）。
+  - 公式只决定何时起爆；是否着陆 seed 由独立的唯一规则判定（:268），公式偏差最多导致诚实 FAIL，不能制造绿。判定：公式成立。
+- `BC_MARGIN_INFEASIBLE` 是诚实的非绿结果：
+  - 不执行，格 FAIL ×3，标为 harness-timing，不作产品信号或 P-FIX 依据。
+  - 不得宣称 P-HOLD 全格达标，CONDITION OPEN（:266）。
+  - 禁止不计入或换 attempt（:431），Non-claims :471 写明 U_B 未计算。
+  - 判定：不可能计为 PASS 或 covered，接受。
+
+### 2. 阻塞 2（C-POST）→ 已解除，每格唯一规则
+
+- C-POST 与阶段无关：
+  - 矩阵 :191、阶段表 :195-199 的 C-POST 列、观测源 :203、§4.1 :209-214、注入表 :330 五处一致。
+  - 不要求 F2 或 `seedAbandonTargets`，不判 DRIFT；任一阶段出现 EXIT 0 → `POST_EXIT_UNEXPECTED` FAIL。
+- B-POST 保留更严的唯一规则：
+  - :189、:198-199、:202 规定 seed 着陆 ⇔ F2 ∧ 无 `^PERF run3: ` 行 ∧ 栈含 `seedAbandonTargets`，否则记 DRIFT。
+  - 依据经源码核对：seed :274 之后，warmup :278 与 measured :280 只经 `timedAbandon`（:198-225，try/catch 不抛）；:281-331 无 DB await，只有计算、`writeReceipts` 与打印。所以 `PERF run3:` 之前带 `seedAbandonTargets` 帧的顶层 rejection 只能来自 run3 seed；LOAD run3 的 seed 已在该行之后，被排除。
+- ×4 旧规则显式作废（:205），Ban 并用（:431）。全文残留的 `iv_rows≤100` 只出现在 ×5 note 与证据表的历史引用中，没有作为现行规则（:27/:246）。
+- 阶段无关的 C-POST 仍不能假绿：
+  - EXIT 0 → FAIL；须 `db_pool_error≥1`（唯一发射点 `principal.ts:896`，只能来自 :929/:931 观测者，天然 pg-pool 来源）。
+  - 须零 Unhandled（任何 Unhandled 均 FAIL，比要求 pg 帧更严），并须 `state_bytes=29 logs_bytes=29` 与 J-2 L3-sim（kill(9)→die(137)→destroy 早于首错误行）。
+  - 若 :929 或 :931 失效，idle 路径或 checkout 路径必出现 Unhandled → FAIL。
+
+### 3. NB 落实
+
+- NB-1 `idle_n≥2`：已落实（:234、§5.0c :294、:391）。
+- NB-2 pg 帧：已落实，A/B/C-MUT 均有（:186/:188/:190），缺失 → `UNHANDLED_NOT_PG`。用法须澄清，见条件 C-a。
+- NB-3 `wait∈{143,0}`：接受。
+  - 该值是 `docker events` / pgrep 循环这两个采集进程自身被 `kill -TERM` 后的退出码，与 PG 容器以 SIGKILL 还是优雅方式停止无关。143 表示默认动作被 SIGTERM 终止；0 表示 CLI 捕获 SIGTERM 后正常退出。采集进程若被 SIGKILL，应为 137，仍落 `AUX_EXIT_UNEXPECTED`。
+  - PG 容器的停止方式与 C 的 L3-sim 归因只看 `events.jsonl` 内容（`kill` 的 signal=9、`die` 的 exitCode=137、`destroy`），因此接受 0 不削弱 C 的归因；事件缺失时 L3-sim 不成立 → 格 FAIL。
+  - 唯一歧义见条件 C-b。
+- NB-4 runner `:2220`：已披露（:33），实测为同行追加、无偏移。
+- NB-5 竞态措辞：已改（:396），结论不变。
+
+### 4. Cleared stay
+
+- MUT-929 / MUT-ZERO（:176-179）、C1–C4、+18 锚（runner、principal、proof 在 `ac03f30..771ca84` 零改动）、B1(a)(b) 与 §2（`b5633f0..771ca84` 无改动）、`:931` 归属、R2、B2/B5/B6、A 的 T1=seed（A 的终止与快照同一语句，:353/:358）均无回退。
+- backlog `:35` 逐字未变（`b5633f0..771ca84` 中 backlog 仅有 RAG nail `1024bfc` 改动的 :71 与追加段），CONDITION OPEN。
+- §3③：新增命令都有期望 EXIT（`L_cli` 基线 :427、预启动注入程序 :428、门控 psql :326）。例外见条件 C-b。
+
+### 5. 阻塞项
+
+无。
+
+### 6. 条件（不阻断，执行前写入执行脚本或收据口径）
+
+- C-a：NB-2 的“Unhandled 栈帧”须明确包含 Node 输出中的 `Emitted 'error' event on … instance at:` 段。
+  - 纯 Node 核对：调用真实 pg Client 的 `_handleErrorMessage`（57P01、无 active query），该段首帧为 `pg/lib/client.js:417`（`_handleErrorEvent`）与 `:428`。
+  - 但真实 FATAL 的 DatabaseError 由 pg-protocol 的 parser 构造，其自身栈帧不含 `pg/lib/client.js`。若只扫错误自身的栈，A-MUT 会被误判 `UNHANDLED_NOT_PG`。
+  - 这只会造成假 FAIL，不会假绿。BoundPool 路径的该段首帧为 `pg-pool/index.js:62`。
+- C-b：J-2 的 `kill -TERM <pid>` 须钉期望 EXIT 0（证明采集进程在被终止时仍在运行）。否则 `wait=0` 无法区分“捕获 SIGTERM 正常退出”与“流提前自行结束”。后者即使发生，也会因 events 缺失而使 L3-sim 不成立，所以不构成假绿。
+- C-c：U_B 与 L_cli 落 `margin.json` 时同时记录宿主 docker 版本，便于复核。
+
+### 7. 状态
+
+- `a07256c` 阻塞 1、阻塞 2 真实解除；NB-1..5 落实；cleared stay 无回退。
+- 本方 Re-PRE5 PASS（单方，docs gate）。mw-e2e-ha 对 `771ca84` 尚无收据，dual 未成立。Ban coding，直至 dual PASS + 协调员 AUTHORIZE。
+- backlog `:35` C-PERF-TEARDOWN CONDITION OPEN；attempt1 @ `b29c191` 不洗；UC-018 / §1.1 partial；gap ≠ covered。
+- Pins：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained（无 MySQL / Qdrant / FULLTEXT）· public DELETE=503。
+
+Verdict: PASS
