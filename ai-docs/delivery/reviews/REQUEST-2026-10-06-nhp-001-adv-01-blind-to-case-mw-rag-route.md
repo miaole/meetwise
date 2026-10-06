@@ -153,3 +153,50 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCo
 **结论**：B1–B5 均已在 harness 中落地，锚点与产品真实返回一致，变异可真转红，证据层单一，无洗白、无越界、无 covered 翻转；core 的 EXIT 1 经离线复跑（26/26 · 17/17 EXIT 0）证实为环境阻断。PASS（附 C1–C5）。PASS ≠ coding ≠ prove ≠ covered ≠ nail；须 mw-e2e-ha 独立 PASS + 协调方 AUTHORIZE。
 
 Verdict: PASS
+
+---
+
+## Re-PRE2 @4e9f568（mw-rag-route · Line AG · 只审文档 · 2026-10-06 14:20 +08:00）
+
+**基线**：REQUEST `4e9f568ce6e8bf71cc91465b6ff07b1a5d792323`（parent `3e3b2af` · meetwise-core · 取代 `626e060`），是 origin 的祖先；改动 4 个文档文件（harness +83/−22 · slice +15/−6 · e2e 占位 +25/−9 · 本占位页眉 +7/−7），零代码。这是一次全新审查，不沿用 `2fadf2b` 对 `626e060` 的 PASS。**执行机披露**：本审只读 box 文件系统和 GitHub 只读原文，**没有复跑任何 prove**，用户 Mac 上没有执行任何命令。回执由 mw-rag-route 在 box 临时 worktree（origin @ `5875644`）中提交。另披露：此前引用的 `626e060` 离线复跑结果（neg 26/26 · bound 17/17 EXIT 0）是在用户 Mac 上跑的（发生在新规之前），不计为 box 证据。不代签 mw-e2e-ha（其 re-PRE2 PASS `5875644` 独立存在）。
+
+### 1. N1–N4（mw-e2e-ha `3f3a2e4`）
+- **N1 已解决**：账本快照和 V4 seed 改用 `entitlement_consumption`。该表真实存在（`packages/db/sql/02_commerce.sql:27-40`，字段 `status`/`units_requested`/`units_settled`/`allocations`，唯一键 `(owner, idempotency_key)`）。写入点：`commerce.ts:48-51`（reserve）、`:85`（allocations）、`:127`（confirm）；bucket 在 `:73-75`/`:121-123`；outbox 在 `:129-131`。「恰好 1 行」守卫能抓出第二条扣费行，bucket units 和 outbox 计数能抓出双重结算。
+- **N2 已解决**：V4 fixture 离线调用 `completeInterviewAndConfirm`（`commerce.ts:163-189`）。DB 触发器 `02_commerce.sql:88-124` 强制 completed⇔confirmed，所以这是唯一自洽的 seed 方式。V2 族 replay 得 409 `interview_not_active`，因为 `assertAnswerable`（`:367`）在 claim（`:368`）之前执行；V1-replay 得 400，因为 pipe 在 service 之前执行。
+- **N3 部分解决**：B5 已写入 env EXIT1 分类，也写明「B5 未满足 → ADV ≠ EXIT0」；但 core 自检的原始记录没有入库，见 B-R2-1。
+- **N4 已解决**：引文与 `e2e-scenarios.md:58/:61/:72/:76` 逐字一致。
+
+### 2. B1–B5（相对 `626e060` 无回退）
+`/turn` 锚点逐项复核属实：`interview.service.ts:24`、`:26`、`:102-108`、`:329`、`:343-374`。`/answer` 410 仍禁用，JD 仍记为 absent，strict 校验失败仍钉 400 `invalid`。
+
+### 3. 我方 C1–C5
+- C1 **已采纳**：用 `persistInterviewQuestion`（`interview-question.ts:42`）种题行并标明 seeded；409 `question_not_ready` 不得算通过。
+- C2 **部分采纳**：已钉死 `MEETWISE_PUBLIC_PREVIEW` 不开启、变异代码不提交；但没有要求记录变异状态下 V1 的实际状态码。
+- C3 **已采纳**：环境导致的 EXIT1 既不算通过也不算回归，须在可运行的环境中取得 EXIT0。
+- C4 **已采纳**：`/turn` 调用总数 ≤30（`:356-357`）。我方先前引用的 `:354-355` 有误，以 `:356-357` 为准。
+- C5 **未采纳**：V3 仍写「2xx 依现实现」，实际是 **200**（`resume.controller.ts:16` `@HttpCode(HttpStatus.OK)`，coordinator 已亲自核对）。
+
+### 4. B5 措辞与 core 自检
+- 两种原因已分开命名：`env-blocked`（docker.sock）和 `L0-guard`（MODEL_API_KEY，断言在 `nhp-neg.proof.ts:61-65` / `nhp-bound.proof.ts:56-60`）。钉死的运行形式 `with-docker-session.sh env -u MODEL_API_KEY -u MODEL_BASE_URL …` 同时规避两者。不足之处：没有引用 docker 实际失败的位置 `run-e2e-isolated.mjs:2124`（`docker run`）/ `:2134`（`docker port`）；slice（`:42`）仍把两者压缩写成「docker.sock / `MODEL_API_KEY` L0」。
+- **core 自检原文未入库**：harness `:135` 只有协调方的分类声明（「EXIT1 源自 docker.sock 权限缺口 **或** MODEL_API_KEY …」），没有自检的运行记录（命令、时间、EXIT、首条失败行、实际触发的是哪一种原因）。coordinator 已在 origin @ `5875644` 用 rg 复核：harness 和 slice 中都没有这份记录。
+
+### 5. 其他
+Y/AB 没有被洗；018/052/025 只出现在 Ban 行；没有提到 FUNNEL；证据层只有一层（隔离真 PG，V4 用产品函数 seed 并已披露），没有自相矛盾；pins 和 coveredCount=8 不变。
+
+### 6. 阻断项
+**B-R2-1 · core 自检原文未逐字入库。** 须把 neg/bound 自检的原始记录逐字提交入库，包括命令、起止时间（+08:00）、EXIT、首条失败断言或 docker 错误首行，以及判定结果（是 docker.sock 还是 Key），并在 harness B5 中引用其路径。
+
+### 7. 条件（B-R2-1 解除后适用）
+1. B5 引用 `run-e2e-isolated.mjs:2124/:2134` 作为 docker.sock 的失败位置，写明 L0 只指 Key 断言；slice 改为两个独立标签。
+2. 变异 run 记录 V1 的实际状态码和错误码（预期 202 或 409，不是 400），且 EXIT≠0。
+3. 账本快照另加该 owner 名下 `entitlement_consumption` 的总行数和全部 bucket（同 `nhp-bound.proof.ts:158-162`），以抓出用不同 key 的扣费。
+4. 正控和 V2 各用一道独立种入、状态为 issued 的题（不同 questionId/turn）：同一道题第二次作答会得到 409 `stale_question`（`interview-question.ts:80-95`）。
+5. V3 钉 **200**。
+6. 断言种入的题行 `status='issued'`。
+
+### Pins（本审不改）
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCount=8 · gR45Closed=true · ms3EqualsR4Closed=false · DELETE=503 · PG-retained · UC-E2E-001 ADV 保持 blind/`case-only`
+
+**结论**：N1–N4 实质解决，B1–B5 无回退；C1/C3/C4 已采纳，C2 部分采纳，C5 未采纳；但 core 自检原文未逐字入库（B-R2-1），所以 FAIL。FAIL ≠ 方案方向错误；补齐 B-R2-1 并落实条件 1–6 后可以再审。alone≠dual。
+
+Verdict: FAIL
