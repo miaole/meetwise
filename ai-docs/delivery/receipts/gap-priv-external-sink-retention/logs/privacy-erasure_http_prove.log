@@ -1,0 +1,20 @@
+START 2026-10-06 20:27:14 CST sha=9e2abd04083eca464817e35687595c706cbcd2a9 dirty=0
+with-docker-session: docker.sock permission gap in session; re-exec via sg docker (membership already in /etc/group; no grant/chmod/sudo)
+
+> meetwise@0.1.0 privacy-erasure:http:prove /workspace/meetwise-wt-an-priv-ext
+> node scripts/run-e2e-isolated.mjs privacy-erasure:http:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-1232677-1791289635173 on 127.0.0.1:32924
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /workspace/meetwise-wt-an-priv-ext/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=137 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+ISOLATED_PROOF_SUMMARY target=privacy-erasure:http:prove:raw exit=0 pass_count=19 fail_count=0 failure_class=none
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-06T12-27-57-447Z-1232677-b70d3bbd-acaa-48f4-a7ec-52fe270ea80c.json release_evidence=false
+END 2026-10-06 20:27:57 CST EXIT=0

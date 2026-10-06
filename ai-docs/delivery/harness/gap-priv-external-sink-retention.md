@@ -67,3 +67,11 @@ Not a pass · not run · not closed · not erased · not `completed` · not open
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · backlog `:64` OPEN · STOP
 
 *Harness · GAP-PRIV-EXTERNAL-SINK-RETENTION · AN-PRIV-EXT · 2026-10-06 · draft:awaiting_pre_exec_dual · Ban coding until PRE BOTH PASS + AUTHORIZE · Ban count-as-erased · DELETE=503 · alone ≠ dual · STOP*
+
+## 7. Prove addendum（AUTHORIZE coding+prove · 2026-10-06 · `awaiting_post_prove_dual`）
+
+- AUTHORIZE @ REQUEST `59e2189` after PRE BOTH PASS（privacy `fb6fca2` · e2e `512cc5d`）。§0–§6 above unchanged（REQUEST text frozen）。
+- **Named CMD**: `pnpm uc052:external-sink-retention:prove`（new · run-e2e-isolated · Ban live · key not loaded）· CODE_SHA `9e2abd0` · A1 **EXIT 0** · MUT-1（−0137）**EXIT 1** · co-record `privacy-erasure:http:prove` EXIT 0 · regressions EXIT 0。
+- Product: `0137_privacy_external_sink_confirmation_guard.sql`（fail-closed guard clause only · 0091 bodies frozen）。
+- Receipt: `receipts/gap-priv-external-sink-retention/2026-10-06-an-priv-ext-prove.md`。
+- backlog `:64` **stays OPEN** · canHonestlyFlip=false · DELETE=503 · coveredCount=8 · Ban nail until POST BOTH + AUTHORIZE。

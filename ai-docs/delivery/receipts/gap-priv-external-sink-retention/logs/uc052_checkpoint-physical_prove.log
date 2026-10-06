@@ -1,0 +1,44 @@
+START 2026-10-06 20:28:21 CST sha=9e2abd04083eca464817e35687595c706cbcd2a9 dirty=0
+with-docker-session: docker.sock permission gap in session; re-exec via sg docker (membership already in /etc/group; no grant/chmod/sudo)
+
+> meetwise@0.1.0 uc052:checkpoint-physical:prove /workspace/meetwise-wt-an-priv-ext
+> node scripts/run-e2e-isolated.mjs uc052:checkpoint-physical:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-1236468-1791289702270 on 127.0.0.1:32927
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /workspace/meetwise-wt-an-priv-ext/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=137 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/db@0.0.0 prove:uc052-checkpoint-physical /workspace/meetwise-wt-an-priv-ext/packages/db
+> tsx test/uc052-checkpoint-physical.proof.ts
+
+UC052_CHECKPOINT_PHYSICAL_PROVE gitSha=9e2abd04083eca464817e35687595c706cbcd2a9 line=B
+PASS  NHP-052-CKPT-FAULT-01 · failStatus=failed req=pending_external retryReq=pending_external after={"checkpoints":0,"blobs":0,"writes":0}
+PASS  NHP-052-CKPT-FAULT-02 · counts={"checkpoints":0,"blobs":0,"writes":0} getTuple=empty put=refused req=pending_external
+PASS  NHP-052-CKPT-FAULT-03 · deleted=0 receipts=1
+PASS  NHP-052-CKPT-NEG-01 · beginRej=true forgedRej=true bypassRej=true jws=true grant=false
+PASS  NHP-052-CKPT-NEG-02 · beforeB={"checkpoints":1,"blobs":1,"writes":1} afterB={"checkpoints":1,"blobs":1,"writes":1} crossRej=true
+PASS  NHP-052-CKPT-NEG-03 · httpStatus=503 grant=false
+PASS  NHP-052-CKPT-BOUND-01 · winners=1
+PASS  NHP-052-CKPT-ZERO · deleted=0 status=erased req=pending_external
+PASS  NHP-052-CKPT-RACE · interleave=FOR_UPDATE_barrier racePut=refused postGet=empty postPut=refused counts={"checkpoints":0,"blobs":0,"writes":0}
+PASS  NHP-052-CKPT-RACE-TRIGGER · purge=fulfilled write=rejected counts={"checkpoints":0,"blobs":0,"writes":0}
+PASS  NHP-CKPT-UNSEALED-NEG-EPOCH · sqlState=42501 msgHas=true claimed=false unchanged=true expect=privacy_authorization_epoch_mismatch
+PASS  NHP-CKPT-UNSEALED-NEG-DIGEST · sqlState=42501 msgHas=true claimed=false unchanged=true expect=privacy_authorization_digest_mismatch
+PASS  NHP-CKPT-UNSEALED-NEG-BOTH · sqlState=42501 msgHas=true claimed=false unchanged=true expect=privacy_authorization_epoch_mismatch
+PASS  HP-CKPT-SEALED-CLAIM · lease=true
+PASS  C-DIGEST-JWS · preEpochNull=true preDigNull=true jwsEq=true sinks=checkpoint_rows,interview_job_payload,langfuse,oss,redis
+PASS  HP-052-CKPT-01 · before={"checkpoints":1,"blobs":1,"writes":1} after={"checkpoints":0,"blobs":0,"writes":0} deleted=3 req=pending_external getEmpty=true putRefused=true
+PASS  C-CASECOUNT · exact match
+{"line":"B","knife":"GAP-PRIV-CHECKPOINT-FENCE-ONLY","gitSha":"9e2abd04083eca464817e35687595c706cbcd2a9","releaseEvidence":false,"haStatus":"NOT_HA","cases":{"NHP-052-CKPT-FAULT-01":"pass","NHP-052-CKPT-FAULT-02":"pass","NHP-052-CKPT-FAULT-03":"pass","NHP-052-CKPT-NEG-01":"pass","NHP-052-CKPT-NEG-02":"pass","NHP-052-CKPT-NEG-03":"pass","NHP-052-CKPT-BOUND-01":"pass","NHP-052-CKPT-ZERO":"pass","NHP-052-CKPT-RACE":"pass","NHP-052-CKPT-RACE-TRIGGER":"pass","NHP-CKPT-UNSEALED-NEG-EPOCH":"pass","NHP-CKPT-UNSEALED-NEG-DIGEST":"pass","NHP-CKPT-UNSEALED-NEG-BOTH":"pass","HP-CKPT-SEALED-CLAIM":"pass","C-DIGEST-JWS":"pass","HP-052-CKPT-01":"pass","C-CASECOUNT":"pass"},"required":["NHP-052-CKPT-FAULT-01","NHP-052-CKPT-FAULT-02","NHP-052-CKPT-FAULT-03","NHP-052-CKPT-NEG-01","NHP-052-CKPT-NEG-02","NHP-052-CKPT-NEG-03","NHP-052-CKPT-BOUND-01","NHP-052-CKPT-ZERO","NHP-052-CKPT-RACE","NHP-052-CKPT-RACE-TRIGGER","NHP-CKPT-UNSEALED-NEG-EPOCH","NHP-CKPT-UNSEALED-NEG-DIGEST","NHP-CKPT-UNSEALED-NEG-BOTH","HP-CKPT-SEALED-CLAIM","HP-052-CKPT-01","C-DIGEST-JWS","C-CASECOUNT"],"raceInterleave":"FOR UPDATE barrier on checkpoints+blobs+writes while privacy_purge_checkpoint_target blocked; concurrent real saver.put/putWrites; then COMMIT hold","disclosure2":{"beginNoEpochDigest":"0096 L147-218","claimNeedsEpochDigest":"0091 L369-383","seal":"packages/db/src/uc052-checkpoint-physical.ts sealCheckpointErasureAuthz","jwsEqSealed":"runAuthorizedCheckpointPhysicalPurge asserts signed.targetSetDigest === sealed.targetSetDigest"},"perTableSql":{"checkpoints":"SELECT count(*) FROM checkpoints WHERE thread_id=$thread  -- expect 0","checkpoint_blobs":"SELECT count(*) FROM checkpoint_blobs WHERE thread_id=$thread  -- expect 0","checkpoint_writes":"SELECT count(*) FROM checkpoint_writes WHERE thread_id=$thread  -- expect 0","checkpoint_migrations":"excluded (not per-thread)"}}
+
+✓ UC052 checkpoint physical prove PASS
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-06T12-28-34-239Z-1236468-14092ee7-2025-484b-9454-92aa822ee891.json release_evidence=false
+END 2026-10-06 20:28:34 CST EXIT=0

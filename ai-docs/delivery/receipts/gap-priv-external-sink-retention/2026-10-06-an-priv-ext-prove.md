@@ -1,6 +1,7 @@
 # Receipt — GAP-PRIV-EXTERNAL-SINK-RETENTION · Line AN-PRIV-EXT · prove（`awaiting_post_prove_dual`）
 
-**Status**: §1 PRE-DECLARE（committed in the CODE commit **before any run**）· §2+ filled by the follow-up receipt commit
+**Status**: **`awaiting_post_prove_dual`**（mw-privacy-int + mw-e2e-ha · opened by parent）· §1 PRE-DECLARE was committed+pushed in the CODE commit **before any run** · §2+ = results
+**CODE_SHA**: `9e2abd0` / `9e2abd04083eca464817e35687595c706cbcd2a9`（pushed to `origin/feat/mysql-schema-skeleton` 2026-10-06 ~20:26 CST before attempt A1 · §1 unchanged since）
 **AUTHORIZE**: coordinator `AUTHORIZE coding+prove — AN-PRIV-EXT @ REQUEST 59e2189` · PRE BOTH PASS: privacy `fb6fca2` · e2e `512cc5d`（C-1..C-6）
 **Implementer**: mw-core（Ban self-nail · Ban self-approve · alone ≠ dual · POST dual opened by parent only）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · backlog `gap-bug-backlog.md:64` **OPEN** · canHonestlyFlip=false
@@ -50,3 +51,70 @@ Forged states run inside an admin txn that is **always ROLLED BACK**（never per
 ### Non-claims（C-6）
 
 EXIT0 ≠ external sinks purged ≠ `completed` ≠ covered ≠ deletion closed ≠ open DELETE ≠ HA. Langfuse ≠ vendor wipe（privacy N1）. `retention_pending` ≠ `external_pending` receipt（N2）. Line B internal nail is **not** washed into external closure. backlog `:64` stays **OPEN** · canHonestlyFlip=false · zero matrix/backlog edit.
+
+## §2 Results（Asia/Shanghai · CST/UTC+8 · all at CODE_SHA `9e2abd0` unless noted · porcelain clean=0 at every start）
+
+| # | CMD | SHA | Start → End（CST） | EXIT |
+|---|-----|-----|---------------------|------|
+| **A1** | `pnpm uc052:external-sink-retention:prove` | `9e2abd0` | 2026-10-06 20:26:55 → 20:27:07 | **0** |
+| C-3(c) | `pnpm privacy-erasure:http:prove` | `9e2abd0` | 20:27:14 → 20:27:57 | **0**（19 pass / 0 fail · DELETE `interview-data` 503 ×2 incl. replay） |
+| R1 | `pnpm uc052:internal-erasure:prove` | `9e2abd0` | 20:27:57 → 20:28:09 | **0**（regression only · ≠ this knife's evidence） |
+| R2 | `pnpm privacy-authorization:prove` | `9e2abd0` | 20:28:09 → 20:28:21 | **0**（F1 sanctioned `external_pending → resolve → completed` still passes under 0137） |
+| R3 | `pnpm uc052:checkpoint-physical:prove` | `9e2abd0` | 20:28:21 → 20:28:34 | **0** |
+| R4 | `pnpm int-transcript-remaining-sinks:prove` | `9e2abd0` | 20:28:34 → 20:28:46 | **0**（local-only requests still reach completed） |
+| **MUT-1** | same primary prove · scratch `8a571cc`（= `9e2abd0` − `0137` · local only · never pushed） | `8a571cc` | 20:28:59 → 20:29:11 | **1**（`✗ 3 assertion failures`: EXT-NEG-02 / EXT-NEG-02B / EXT-NEG-04 `err=NO_ERROR inTxn=completed`；runner receipt also ENOENT on the removed 0137 path — secondary） |
+
+Every run was attempt #1 for its CMD. Zero retries. Zero discarded runs. Ledger: `attempt-ledger.tsv` · logs: `logs/` · runner local receipts: `prove/*.json`（`class=local_untrusted_isolated_proof_receipt` · releaseEvidence=false · A1 manifest `count=137 latest=0137_…`）. Docker via `scripts/with-docker-session.sh`（`sg docker`）· `env -u MODEL_API_KEY`（key **not loaded**）· Ban live.
+
+### A1 per-case（verbatim from `logs/A1-…log`）
+
+```
+PASS  EXT-RP-01 · req=pending_external localsErased=true externalsRp=true externalReceiptKinds=[] (N2: retention_pending target ≠ external_pending receipt)
+PASS  EXT-NEG-01 · err=55000:privacy_erasure_request_incomplete_targets req=pending_external
+PASS  EXT-NEG-02 · err=55000:privacy_erasure_request_external_unconfirmed inTxn=pending_external after=pending_external forgeRolledBack=true
+PASS  EXT-NEG-02B · err=55000:privacy_erasure_request_external_unconfirmed inTxn=pending_external after=pending_external
+PASS  EXT-NEG-03 · err=55000:privacy_erasure_request_external_unresolved inTxn=pending_external after=pending_external
+PASS  EXT-NEG-06 · resolveErr=40901:privacy_authorization_receipt_not_pending
+PASS  EXT-NEG-04 · directExternalConfirmed(resolved_at=NULL)=true err=55000:privacy_erasure_request_external_unconfirmed inTxn=pending_external after=pending_external
+PASS  EXT-NEG-05 · errs=[40901,40901,40901] receipts=0->0 req=pending_external externalsRp=true
+PASS  EXT-POS-01 · mid=pending_external resolvedKind=external_confirmed audited=true resolveReq=pending_external req=pending_external externalsStillRp=true (no confirmer flips target → ≠ completed)
+PASS  EXT-DEL-01 · httpStatus=503 code=interview_erasure_authorization_not_available
+PASS  C-CASECOUNT · all 10 present
+```
+
+### MUT-1 per-case（bare 0091 guard）
+
+```
+FAIL  EXT-NEG-02 · err=NO_ERROR inTxn=completed after=pending_external forgeRolledBack=true
+FAIL  EXT-NEG-02B · err=NO_ERROR inTxn=completed after=pending_external
+FAIL  EXT-NEG-04 · directExternalConfirmed(resolved_at=NULL)=true err=NO_ERROR inTxn=completed after=pending_external
+（other 8 cases PASS identically）
+```
+
+## §3 What the red paths found（honest disclosure）
+
+- **Real honesty hole on the bare 0091 guard**（MUT-1）: with externals in today's shape（target `retention_pending`, **no** `external_pending` receipt — N2 confirmed by EXT-RP-01 `externalReceiptKinds=[]`）, flipping the external targets to `erased` with **zero confirmation** let a forced `UPDATE … completed` **and** the product settler `reassessRequestStatus`（CASE `ELSE 'completed'`）reach `completed`; a direct `privacy_record_deletion_receipt(external_confirmed)`（resolved_at NULL）was likewise accepted as if it were a purge. = count-as-erased reachable at DB level. Forged states were inside rolled-back txns（`after=pending_external`）— nothing persisted.
+- **Fix（0137 · only what honesty needs）**: guard clause `0137:45-55` — each `oss`/`redis`/`langfuse` target must hold an `external_confirmed` receipt that went through `privacy_resolve_deletion_receipt`（`resolved_at`+`resolved_by` set）else **55000** `privacy_erasure_request_external_unconfirmed`. Fail-closed only; 0091 issuer/record/resolve bodies untouched.
+- **C-3(b)**: resolve without `external_pending` → **40901** on all three externals in today's shape（EXT-NEG-05）and on a direct-written `external_confirmed`（EXT-NEG-06）— this held on the bare 0091 too（pre-existing fail-closed; now pinned）.
+- **C-4 locus**: EXT-POS-01 shows the 0091 audit chain works（`external_pending` → resolve → `external_confirmed` with resolved_at/resolved_by）but **does not** flip the target nor complete the request — no confirmer exists that turns external targets `erased`, so the honest happy terminal stays `pending_external`.
+
+## §4 Files（CODE commit `9e2abd0`）
+
+| Path | Change |
+|------|--------|
+| `packages/db/migrations/0137_privacy_external_sink_confirmation_guard.sql` | **new** · guard = 0091 verbatim + external-confirmation clause |
+| `packages/db/test/uc052-external-sink-retention.proof.ts` | **new** · 10 required cases + C-CASECOUNT · C-UNCOMMITTED refuse |
+| `packages/db/package.json` | +`prove:uc052-external-sink-retention` |
+| `package.json` | +`uc052:external-sink-retention:prove` / `:raw` |
+| `scripts/run-e2e-isolated.mjs` | additive target registration only（receipt-sources entry +12 lines · dispatch +2 lines · allowlist/migrate lists inline on existing uc052 lines）· zero logic change |
+| this receipt（§1 in CODE commit · §2+ + evidence in receipt commit） | docs |
+
+Not touched: matrix · `gap-bug-backlog.md`（`:64` stays OPEN）· checklist · 0091 · 0096 · `privacy.controller.ts`/`privacy.service.ts`（DELETE=503）· PERF-TEAR / RAG-R3 / MOP-Q45 files · `.env*`. `packages/db` tsc = 6 errors before and after（all pre-existing; new proof file adds 0）.
+
+## §5 Row semantics（frozen · C-6）
+
+- backlog `gap-bug-backlog.md:64` **GAP-PRIV-EXTERNAL-SINK-RETENTION stays OPEN** · canHonestlyFlip=**false**（no async external confirmer · no real OSS/Redis/Langfuse purge · Langfuse ≠ vendor wipe）.
+- UC-052 / privacy rows stay **partial** · coveredCount=**8** · public DELETE=**503**.
+- EXIT0 ≠ external purged ≠ completed ≠ covered ≠ deletion closed ≠ HA · alone ≠ dual · **Ban nail until POST BOTH + AUTHORIZE**.
+
+*Receipt · GAP-PRIV-EXTERNAL-SINK-RETENTION · AN-PRIV-EXT · CODE_SHA 9e2abd0 · A1 EXIT0 · MUT-1 EXIT1 · awaiting_post_prove_dual · Ban nail · STOP*
