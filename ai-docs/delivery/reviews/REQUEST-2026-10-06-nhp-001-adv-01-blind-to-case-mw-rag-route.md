@@ -218,3 +218,41 @@ Verdict: FAIL
 上文 §3 C5 所引 `resume.controller.ts:16` 有误，`@HttpCode(HttpStatus.OK)` 实际位于 **`:17`**（`:16` 是 `@Post()`）。结论不变。
 
 Verdict: FAIL
+
+---
+
+## Re-PRE3 @51af3b2（mw-rag-route · Line AG · 只审文档 · 2026-10-06 14:30 +08:00）
+
+**基线**：REQUEST `51af3b273bf51945808c7bb31843b53dfcce44fc`（parent `c562906` · meetwise-core · 取代 `4e9f568`），是 origin 的祖先。改动 5 个文档文件（harness +52 · slice +30 · 新增自检收据 +158 · e2e 占位 · 本占位页眉），`apps/` `packages/` `scripts/` `package.json` 零改动。这是全新审查，不沿用 `2fadf2b`（@626e060）的 PASS，也不代签 mw-e2e-ha 的 `5875644`。**执行机**：只在 box 上执行（临时 worktree `/tmp/mwrr-51af3b2`），只读文档与源码，没有复跑任何 prove，用户 Mac 上零命令。核对了本占位文件的改动：core 只改了页眉、追加了 rewrite 注记，我方此前的 FAIL / Re-PRE / Re-PRE2 正文未被删改。
+
+### 1. B-R2-1（自检原文入库）→ 已解除
+`ai-docs/delivery/receipts/2026-10-06-nhp-001-adv-01-b5-env-selfcheck.md` 共 4 条记录，每条都有 CMD、+08:00 起止时间、EXIT、首条失败行和原因标签：
+- Record 1/2（neg/bound，裸 session，`env -u` 去 Key）：EXIT 1，标签 `docker.sock`。
+- Record 3/4（`with-docker-session.sh`，故意继承环境中的 Key）：EXIT 1，首条失败行为 `FAIL L0 Ban live: MODEL_API_KEY absent on entry`，分别是 26 条断言中 1 条失败、17 条中 1 条失败，标签 `key`。
+- 另有 session 基线：box 当前 gid 不含 docker 组，`docker info` EXIT 1、`docker run hello-world` EXIT 126。Key 只记录是否存在，不打印值。
+- **box 侧旁证（coordinator 亲自核对）**：收据引用的 4 份隔离收据都在 `/workspace/meetwise-lineAG/.tmp/isolated-proof-receipts/` 下，时间为 06:18:01 / 06:18:09 / 06:18:23 / 06:18:42 UTC（即 14:18 +08:00），全部 `outcome=failed`、`exitCode=1`。Record 1 的 `durationMs=16`，与「PG 起来之前连 sock 就失败」一致；Record 3 的 `durationMs=12707`，说明容器已起，失败点在 proof 入口。这两组时长能区分两种原因。
+- **弱点（披露，不阻断）**：Record 1/2 的 docker 错误首行是同一 session 中另跑 `docker info` 得到的旁证行，不是 prove 自身 stderr 里的原文（runner 的日志很薄，没有透出 docker stderr）。收据对此如实注明「companion」，结合 16ms 时长可以接受。
+
+### 2. 我方 Re-PRE2 条件 1–6 → 全部落实
+- 条件 1：harness `:155-157` 写明 `env-blocked(docker.sock)` 落点为 `run-e2e-isolated.mjs:2124`（`docker run`）/ `:2134`（`docker port`），`L0-guard(key)` 只指 Key 断言（neg `:61-65` / bound `:56-60`）；slice `:44` / `:52` 已拆成两个独立标签，`:189` 禁止合并标签。
+- 条件 2：`:26` / `:145` 要求记录去掉 `.strict()` 后 V1 的实际状态码和错误码（预期 202 或 409，不是 400），且 EXIT≠0，只在临时 worktree 中做，不提交。
+- 条件 3：`:27` / `:124` 加上该 owner 名下 `entitlement_consumption` 的总行数和全部 bucket（镜像 `nhp-bound.proof.ts:158-162`）。
+- 条件 4：`:28` / `:144` / `:148` 规定正控和 V2 各自种入一道 issued 题，禁止复用，并注明 409 `stale_question` 的误读风险。
+- 条件 5：`:29` / `:138` 将 V3 钉为 **200**（`resume.controller.ts:17`）。
+- 条件 6：`:30` / `:107` / `:144` 断言种入题行 `status='issued'`。
+
+### 3. 保留项
+N1–N4 和 B1–B5 相对 `4e9f568` 无回退；Y/AB 未被洗；018/052/025 只出现在 Ban 行；FUNNEL 未触碰；证据层仍只有一层（隔离真 PG，seed 已披露）；pins 与 coveredCount=8 不变。
+
+### 4. 条件（执行和 POST 时适用）
+1. **B5 必须在 box 上实际取得 EXIT 0**：用 `./scripts/with-docker-session.sh env -u MODEL_API_KEY -u MODEL_BASE_URL pnpm uc001:nhp-{neg,bound}:prove`，neg 26/26、bound 17/17，不改 proof。本收据中的 4 条 EXIT 1 只是环境分类，不算 B5 通过，也不算回归。
+2. POST 回执须同时附上 prove 自身的 docker / L0 首行（若再出现环境失败），不得再只用旁证行。
+3. harness `:36` 的历史叙述仍写「本稿在 `626e060` 基础上只修 `3f3a2e4`」，与 re-PRE3 的现状不符。执行时顺手更正即可（不阻断）。
+4. 自检收据只证明环境分类，不是 ADV 证据，也不是 covered 证据；UC-E2E-001 ADV 保持 blind/`case-only`，直到 prove、双审和 nail 全部完成。
+
+### Pins（本审不改）
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCount=8 · gR45Closed=true · ms3EqualsR4Closed=false · DELETE=503 · PG-retained
+
+**结论**：B-R2-1 已解除（自检原文入库，4 条记录要素齐全，box 侧隔离收据可以佐证）；我方条件 1–6 全部落实；N1–N4、B1–B5 无回退。PASS（附条件 1–4）。PASS ≠ coding ≠ prove ≠ covered ≠ nail；须 mw-e2e-ha 对 `51af3b2` 独立给出结论，并经协调方 AUTHORIZE。alone≠dual。
+
+Verdict: PASS
