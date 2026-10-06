@@ -1,13 +1,14 @@
 # REQUEST — **NHP-025-ADV-01 · UC-025 ADV blind→case evidence** · pre-exec · mw-rag-route
 
-**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub only · Ban self-approve · alone ≠ dual · 不代签 peer `mw-e2e-ha`）
+**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub rewrite **re-PRE** · awaiting re-PRE · Ban self-approve · alone ≠ dual · 不代签 peer）
+**Rewrite**: **supersedes REQUEST `ae5367e`** · cites mw-rag-route PRE-EXEC FAIL **`6790cc6`**（`6790cc6d3e72ab5545a5071838b99b4fe0aaf8da`）**B1–B5 addressed** (+ C1–C2）· peer e2e PASS `899fef2` alone ≠ dual · Ban coding · ADV blind · canHonestlyFlip=false
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Expert**: `mw-rag-route`
 **Peer**: `mw-e2e-ha`（独立签 · alone ≠ dual）
 **Knife**: `harness/nhp-025-adv-01-blind-to-case.md` · slice `nhp-025-adv-01-blind-to-case.slice.md`
-**Parent tip**: `71ad2a7`（full `71ad2a7fccaa3dd43b47e2c54b9823890aaabdf9` · not a prove tip · AE nail `3409862` ancestor）
+**Parent tip**: origin `feat/mysql-schema-skeleton` tip（includes AI/AJ rewrite + AL/AM/AG · Ban touch AL/AM/AG · Ban 共享 SSOT）
 **Date**: 2026-10-06
-**Line**: **AK**（wave AI–AM）
+**Line**: **AK**
 
 ## Pins（retained · 本 stub 不改）
 
@@ -22,29 +23,41 @@
 | Stack | **PG-retained** |
 | Public DELETE | **503**（stays） |
 
-## 请审什么（mw-rag-route）
+## 请审什么（mw-rag-route · re-PRE · B1–B5 + C1–C2）
 
-1. **跨用户/跨域面**：A1 跨用户 quiz-id 是否需 RLS / principal 维度断言；与 R4 wrong_track 语义 Ban 混用。
-2. **服务端锚权威**：A2 是否以存储 expiry 锚为准（与 AA C-1 supersede 窄保留一致）· Ban 客户端声明生效。
-3. **gap 命名**：`GAP-UC025-ADV-01` 服务 NHP-025-ADV-01 · 不与 NEG/BOUND/FAULT/FAULT-ISOLATED gap 混用 · 本 REQUEST 不登记 SSOT。
-4. **EXIT0≠covered**：canHonestlyFlip=false · 行 stays gap。
-5. **边界**：Ban live · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · alone ≠ dual。
+Line AK · NHP-025-ADV-01。本 stub 为 **re-PRE rewrite**（**supersedes `ae5367e`** · cites FAIL **`6790cc6`** · 解除 B1–B5 + C1–C2；peer PASS `899fef2` **alone ≠ dual**）。请审：
+
+1. **B1 A1**：404 `not_found_or_forbidden`（`:214-218`）· 先于 `:222/:239/:242/:266` · 无 `reserveEntitlement` `:329` / `enqueueInterviewJob` `:337` · own interview + other's quiz · 正控 → 202 · 与 `:200` 同码区分 · MUT-A1（警告 FORCE RLS）。
+2. **B2 A2**：**已删除**（`:22-26` 无客户端 expiry）· Ban relabel `stale_quiz`。
+3. **B3 A3**：列 A3-a/b/c + A3-NULL（`:260` 有意放行 ≠ 红 · `:263` lowercase）· 标 ADV-new · Ban borrow W · MUT-A3。
+4. **B4**：`run-e2e-isolated.mjs` 真 PG + Nest HTTP + FORCE RLS（`20_resume_quiz.sql:46-49`）· Ban fake DB · 全文单一表述。
+5. **B5**：回归 `uc025:nhp-neg|bound|fault|fault-isolated:prove` EXIT0 零改动；每 A-case ≥1 mutation；env EXIT1 ≠ pass。
+6. **跨用户/服务端锚**：A1 需 RLS/principal；A2 已删故无客户端声明路径；gap 命名不与 NEG/BOUND/FAULT 混用。
+7. **C1–C2**：不与 R4 `wrong_track` 混用；attempts=1 · CMD+EXIT+±08:00+SHA · EXIT0≠covered≠ADV 升格≠nail≠HA。
 
 UC-E2E-025 row stays **gap** · ADV stays **blind** until case · **EXIT0≠covered** · canHonestlyFlip=false · coveredCount=8 · Ban wash B'' NEG / AA FAULT / W BOUND+FAULT-ISOLATED.
 
 ## Ban
 
-Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执行 · Ban self-nail · Ban self-approve（alone ≠ dual）· Ban SSOT edit of matrix/backlog（REQUEST = zero matrix/backlog edits）· Ban buy cloud · Ban Meridian · Ban secrets / `.env*` · Ban force-push · Ban claiming PRE PASS · Ban 碰 Line AG `nhp-001-adv-01*` / `REQUEST-2026-10-06-nhp-001-adv*` 文件 · Ban 改写既有 nailed harness 的 nail 状态 · Ban product/infra code。
+Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执行 · Ban self-nail · Ban self-approve（alone ≠ dual）· Ban SSOT edit（matrix / backlog / checklist）· Ban buy cloud · Ban Meridian · Ban secrets / `.env*` · Ban force-push · Ban claiming PRE PASS · Ban 碰 AL/AM/AG 禁触文件 · Ban product/infra code · Ban relabel stale_quiz · Ban fake DB。
 
 本 stub 不授权 coding / prove / push 冒充执行 / buy cloud；pre-exec dual BOTH PASS 后由协调方 AUTHORIZE 执行；implementer 不自批 · 不代填 Verdict。
 
 ## Verdict
 
-**PENDING**（awaiting `mw-rag-route` · implementer 不得填写）
+**PENDING**（awaiting `mw-rag-route` re-PRE · implementer 不得填写）
 
 ---
 
-*Stub · awaiting expert pre-exec dual · STOP*
+*Stub · re-PRE rewrite · supersedes ae5367e · FAIL 6790cc6 B1–B5 · peer PASS 899fef2 alone≠dual · Ban coding · ADV blind · awaiting expert re-PRE dual · STOP*
+
+---
+
+## Rewrite note · re-PRE（append · do not erase FAIL section below）
+
+**re-PRE · supersedes `ae5367e` · cites FAIL `6790cc6`** · B1–B5 + C1–C2 landed in harness/slice · A2 deleted · Status stays `draft:awaiting_pre_exec_dual` · Pins unchanged · ADV blind · canHonestlyFlip=false · Ban coding · Ban wash B''/AA/W · peer e2e PASS `899fef2` alone ≠ dual。
+
+下方 Historical FAIL 正文 **原样保留不擦除**；本段仅为 rewrite 注记，**不**构成对本稿的 PASS/FAIL。
 
 ---
 
