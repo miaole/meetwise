@@ -51,6 +51,16 @@ function assertCloudPrivateTestEnvironment(env: NodeJS.ProcessEnv): void {
  * container and injects a server-side custom setting that ordinary local or
  * cloud databases do not have.  Validate the cheap, no-network properties
  * first; only then make one read-only query to verify the container nonce.
+ *
+ * PGHOST admits exactly two closed string literals, compared strictly with no
+ * normalization: '127.0.0.1' (host-side prove main chain) and
+ * 'host.docker.internal' (perf dual-container path only: the API container sits
+ * on the docker bridge and reaches the host-loopback published isolated PG port
+ * via the host gateway on Docker Desktop/macOS; a plain Linux/CI topology must
+ * re-verify that admission honestly before relying on it).  The admission adds
+ * no reachable target beyond the host's own loopback publish face and is still
+ * fenced by the attestation env pair and the server-side nonce tripwire below,
+ * which real dev/staging/prod databases do not carry.
  */
 export function assertIsolatedTestEnvironment(env: NodeJS.ProcessEnv = process.env): void {
   if (env.E2E_CLOUD_ISOLATED === '1') {
@@ -59,7 +69,8 @@ export function assertIsolatedTestEnvironment(env: NodeJS.ProcessEnv = process.e
   }
   if (env.E2E_ISOLATED !== '1') throw new Error('destructive_proof_requires_e2e_isolated');
   if (env.DATABASE_URL) throw new Error('destructive_proof_database_url_forbidden');
-  if (env.PGHOST !== '127.0.0.1') throw new Error('destructive_proof_loopback_target_required');
+  if (env.PGHOST !== '127.0.0.1' && env.PGHOST !== 'host.docker.internal')
+    throw new Error('destructive_proof_loopback_or_hostgateway_required');
   if (env.DATABASE_SSL_MODE && env.DATABASE_SSL_MODE !== 'disable')
     throw new Error('destructive_proof_tls_mode_must_be_controlled');
   if (!env.E2E_TEST_CONTAINER || !env.E2E_TEST_TARGET_TOKEN)

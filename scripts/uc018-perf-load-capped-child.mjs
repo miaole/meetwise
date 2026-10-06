@@ -2,9 +2,24 @@
  * Caps child for uc018:perf-load:prove:raw.
  *
  * Enforces ≤2 vCPU / 4 GiB on the Node prove/API process via Docker
- * `--cpus=2 --memory=4g --network=host`, and records PG container HostConfig
- * (already started by run-e2e-isolated with the same caps) into
+ * `--cpus=2 --memory=4g` on the default bridge network, and records PG container
+ * HostConfig (already started by run-e2e-isolated with the same caps) into
  * `.tmp/uc018-perf-load-receipts/_caps-evidence.json` for the prove to embed.
+ *
+ * C-PERF-CONTAINER-REACHABILITY (Line SS, pre-exec dual BOTH PASS): the API
+ * container deliberately does NOT use `--network=host`.  On Docker Desktop/macOS
+ * that flag shares the Docker *VM* network stack, where the host-loopback
+ * published port of the isolated PG container (`-p 127.0.0.1::5432`) is
+ * unreachable → ECONNREFUSED at assertIsolatedTestTarget.  Instead the container
+ * stays on the default bridge with an explicit
+ * `--add-host=host.docker.internal:host-gateway` entry, and PGHOST is overridden
+ * to the literal `host.docker.internal` for THIS container only (the host-side
+ * baseEnv in run-e2e-isolated.mjs keeps PGHOST='127.0.0.1' and every other prove
+ * target is unchanged).  assertIsolatedTestEnvironment admits exactly the two
+ * closed literals '127.0.0.1' | 'host.docker.internal' — the server-side nonce
+ * tripwire (meetwise.e2e_run_token) remains the hard floor.  Validity domain of
+ * the host-gateway literal is Docker Desktop/macOS; a plain Linux/CI topology
+ * must re-verify reachability honestly before relying on it.
  *
  * If caps cannot be enforced → write enforced:false and still run (prove will EXIT≠0).
  */
@@ -85,13 +100,14 @@ if (pull.status !== 0) {
   }
 }
 
-// Pass through isolated attestation env (no DATABASE_URL — forbidden by assertIsolatedTestTarget)
+// Pass through isolated attestation env (no DATABASE_URL — forbidden by assertIsolatedTestTarget).
+// PGHOST is NOT passed through: the host-side baseEnv value ('127.0.0.1') is meaningless inside
+// the bridge container and is overridden below with the host-gateway literal, perf path only.
 const passEnv = [
   'E2E_ISOLATED',
   'E2E_TEST_CONTAINER',
   'E2E_TEST_TARGET_TOKEN',
   'E2E_ISOLATION_STACK',
-  'PGHOST',
   'PGPORT',
   'PGUSER',
   'PGPASSWORD',
@@ -102,43 +118,17 @@ const passEnv = [
   'NODE_OPTIONS',
 ];
 
-const dockerArgs = [
-  'run',
-  '--rm',
-  '--name', API_NAME,
-  '--cpus', CPUS,
-  '--memory', MEMORY,
-  '--network', 'host',
-  '-v', `${ROOT}:${ROOT}`,
-  '-w', join(ROOT, 'apps/api'),
-  '-u', `${process.getuid?.() ?? 1000}:${process.getgid?.() ?? 1000}`,
-];
-for (const k of passEnv) {
-  if (process.env[k] != null && process.env[k] !== '') {
-    dockerArgs.push('-e', `${k}=${process.env[k]}`);
-  }
-}
-dockerArgs.push(
-  NODE_IMAGE,
-  'node',
-  '--import',
-  '@swc-node/register/esm-register',
-  'test/uc-e2e-018-perf-load.proof.ts',
-);
-
-// Pre-write caps stub; update after inspect of running/created container.
-// We inspect immediately after create by using a brief detached start — simpler:
-// run attached, and inspect HostConfig from a create+start pattern.
-// Practical approach: docker create → inspect → start -a
-
-const createArgs = dockerArgs.filter((a, i) => !(a === 'run' || (dockerArgs[i - 1] === 'run')));
-// Rebuild as: docker create ... then start -a
+// docker create → inspect HostConfig → docker start -a (caps evidence comes from the
+// created container's HostConfig; the proof output is streamed attached).
 const create = [
   'create',
   '--name', API_NAME,
   '--cpus', CPUS,
   '--memory', MEMORY,
-  '--network', 'host',
+  // Default bridge + explicit host-gateway host entry (Docker Desktop/macOS supported path
+  // to the host's loopback-published ports).  NOT --network=host: that shares the Docker VM
+  // network stack on Docker Desktop/macOS and cannot reach 127.0.0.1-published ports.
+  '--add-host=host.docker.internal:host-gateway',
   '-v', `${ROOT}:${ROOT}`,
   '-w', join(ROOT, 'apps/api'),
   '-u', `${process.getuid?.() ?? 1000}:${process.getgid?.() ?? 1000}`,
@@ -148,6 +138,9 @@ for (const k of passEnv) {
     create.push('-e', `${k}=${process.env[k]}`);
   }
 }
+// C-PERF-CONTAINER-REACHABILITY: single authorized PGHOST injection point.  The assert
+// whitelist (isolated-test-target.ts) admits exactly '127.0.0.1' | 'host.docker.internal'.
+create.push('-e', 'PGHOST=host.docker.internal');
 create.push(
   NODE_IMAGE,
   'node',
