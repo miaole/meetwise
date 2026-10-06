@@ -1,9 +1,9 @@
 # REQUEST — **GAP-MOP-01 `:74` wakeup work face + BUG-NOTIFY-REC `:95`** · pre-exec · `mw-e2e-ha`
 
-**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（empty review stub · Ban self-approve · alone ≠ dual）
+**Status**: **PENDING** / `draft:awaiting_re_pre_exec_dual`（empty review stub · Ban self-approve · alone ≠ dual）
 **Expert**: `mw-e2e-ha`
 **Knife**: `harness/gap-mop-01-wakeup-notify-rec.md` · `gap-mop-01-wakeup-notify-rec.slice.md`
-**Base**: `origin/feat/mysql-schema-skeleton` · `1c4588f9` / `1c4588f952b77e6173acfadf7f3351c311b0cff0`
+**Base**: `origin/feat/mysql-schema-skeleton` · `4804c3dc` / `4804c3dc54e696b5f7af17574d21e1bbe68482a4`
 **Date**: 2026-10-07（Asia/Shanghai · UTC+8）
 
 ## Pins（原值全抄 · retained 写死）
@@ -25,7 +25,7 @@
 
 ## Scope（待审）
 
-docs-only REQUEST：按 backlog `:74` 原文把 GAP-MOP-01 wakeup 工作面立卷——(a) §2a wakeup 生产诚实清单（LISTEN/NOTIFY `meetwise_worker_wakeup_v1` lossy hint · additive Redis 旁路 value-gated flag 关 · **无周期兜底轮询** `apps/worker/src/main.ts:452` 唯一 setInterval 无关 → 漏唤醒窗口 = BUG-NOTIFY-REC `:95` 代码级登记）；(b) §2b M3 切流包 wakeup 侧内容定义（flag 审后开程序 · 保留 reconcile · wakeup prove 不命名不授权 · 本绿≠已迁随包输出）；(c) §2c 旧 `worker-wakeup:prove` 标红/换夹具处置计划。**与 MOP03 立卷边界**：nail `e29d8f93` 六门准入合同**只读引用不再立法**（Ban 重复立卷）——MOP03 立准入门，MOP01 立工作面；未来 wakeup 切流 REQUEST 须同时过六门与切流包内容。本刀零执行；prove 计划 named-not-run（`worker-wakeup:prove` / `worker-wakeup-redis:prove` named for clarity · 未来 cutover Redis wakeup prove 不命名不授权）· EXIT 契约预声明（attempts 全记录 · 诚实失败 · Ban retry-to-green · EXIT0≠已迁≠cutover）。
+docs-only REQUEST：按 backlog `:74` 原文把 GAP-MOP-01 wakeup 工作面立卷——(a) §2a wakeup 生产诚实清单（LISTEN/NOTIFY `meetwise_worker_wakeup_v1` lossy hint · additive Redis 旁路 value-gated flag 关 · 既有周期兜底扫描实存（drain-loop 周期 tick + 五 consumer loop `WORKER_JOB_RECONCILE_INTERVAL_MS` 默认 5s 认领 + dual reconciler 30s/60s → 漏唤醒 = 有界延迟窗 · `main.ts:452` 仅字面事实引用）· **强制 periodic reconcile 未在 sole stack 证明** = BUG-NOTIFY-REC `:95` 保持 OPEN 依据（未证明 ≠ 不存在））；(b) §2b M3 切流包 wakeup 侧内容定义（flag 审后开程序 · 保留 reconcile · wakeup prove 不命名不授权 · 本绿≠已迁随包输出）；(c) §2c 旧 `worker-wakeup:prove` 标红/换夹具处置计划。**与 MOP03 立卷边界**：nail `e29d8f93` 六门准入合同**只读引用不再立法**（Ban 重复立卷）——MOP03 立准入门，MOP01 立工作面；未来 wakeup 切流 REQUEST 须同时过六门与切流包内容。本刀零执行；prove 计划 named-not-run（`worker-wakeup:prove` / `worker-wakeup-redis:prove` named for clarity · 未来 cutover Redis wakeup prove 不命名不授权）· EXIT 契约预声明（attempts 全记录 · 诚实失败 · Ban retry-to-green · EXIT0≠已迁≠cutover）。
 
 ## Ban（待审确认）
 
