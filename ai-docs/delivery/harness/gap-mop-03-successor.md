@@ -1,10 +1,12 @@
-# Harness — **GAP-MOP-03 · `:76` successor（cutover / independent review path）**（docs-only REQUEST · **`draft:awaiting_pre_exec_dual`**）
+# Harness — **GAP-MOP-03 · `:76` successor（cutover / independent review path）**（docs-only 立卷 · **`executed:awaiting_post_prove_dual`** · Ban Redis cutover · Ban MODEL-OP closed · PG LISTEN retained）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs only · Ban coding · Ban prove execution · Ban live · **Ban Redis cutover** · **Ban MODEL-OP closed claim** · **PG LISTEN retained**）
+**Status**: **`executed:awaiting_post_prove_dual`**（MOP03 exec 落盘 2026-10-07 · PRE-EXEC dual BOTH PASS：mw-model-op `16f2c684`（origin）+ mw-e2e-ha `fa2f667e`（rv/mop03-e2e-ha）@REQUEST `cdde235e` ≡ mirror `787de124`（4 REQUEST md byte-identical · C-E2E-1）· **立卷产物 = REQUEST 自身**（harness+slice+双 stub · §2b 六门准入合同在内 · harness 未定义额外立卷文档/清单 → 仅推进 lifecycle 标记 · GAP-MOP-01/02 沿 §1-D1/§3 只读 cite · D1 判 GAP-MOP-02 不并入）· 零 coding · 零 prove 执行 · 零 SSOT（backlog/matrix/checklist 零改 · nail 阶段才登记）· `MEETWISE_WAKEUP_REDIS_STREAMS` **value-gated**（`'1'/'true'/'on'` 开 · `'0'`/空/unset 关 · 本刀 unset）—— 沿 mw-e2e-ha OB-1/C-E2E-2 按代码门重述，"presence-only" 不作开关判据 · 现存 `worker-wakeup-redis:prove` EXIT0 **≠** cutover 证据（C-E2E-3）· **PG LISTEN retained** 直至 cutover REQUEST PRE dual + AUTHORIZE + BUG-REV-COND 四专家审全部落地（C-E2E-5）· **Ban Redis cutover** · **Ban MODEL-OP closed claim** · `:76` OPEN · coveredCount=8 · `actualSpendCny=null` · **Ban self-write `post_prove_dual_pass`** · **Ban nail** until POST BOTH + 协调方 · alone ≠ dual）
+
+> **Pre-exec-era status（historical · retained）**: **`draft:awaiting_pre_exec_dual`**（L0 docs only · Ban coding · Ban prove execution · Ban live · **Ban Redis cutover** · **Ban MODEL-OP closed claim** · **PG LISTEN retained**）
 **Date**: 2026-10-07（Asia/Shanghai）· REQUEST 文件名日期 2026-10-06 按派单原文
-**Base / parent tip**: `origin/feat/mysql-schema-skeleton` `71713718` / full `717137180a4cccaa8575acb21c79ccf848973fc2`（local = origin tip · `git fetch origin` EXIT 0 · 无新提交 · 含 AN-MOP-Q45 / AR nail 祖先）
+**Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`63992a3b`** / full `63992a3b6a4d4ebe2745ff094b046c9d49997072`（EXEC rebase 已落：`cdde235e` 与 origin 镜像 `787de124` 同补丁自动 drop 落 tip · C-MO-1/C-E2E-1 base 重验 · drift 全 docs 面 · `apps/worker`/`packages/ai-runtime`/`package.json`/`scripts` 零 diff · 被审基点 `71713718` / `717137180a4cccaa8575acb21c79ccf848973fc2` 保留为 review provenance）
 **Wave**: Line **MOP03**（queue Phase 0 item 4 · `REMAINING-NORTH-STAR-QUEUE.md`：「GAP-MOP-03 :76 successor cutover/independent review · M · model-op+e2e · Ban MODEL-OP closed · Ban Redis cutover · PG LISTEN retained」）
-**Experts**: `mw-model-op` + `mw-e2e-ha`（stubs PENDING · pre-exec dual awaiting · Ban self-approve · alone ≠ dual）
+**Experts**: `mw-model-op` + `mw-e2e-ha`（PRE dual BOTH PASS · exec 落盘 awaiting POST dual · Ban self-approve · alone ≠ dual · Ban nail）
 **Knife**: **GAP-MOP-03 `:76` successor** — 把 backlog `:76` 自留的两个后继钩子（「#102 域 cutover 仍须独立审」+「cutover 另 REQUEST」）**立卷为独立 REQUEST 路径**的 docs 定义刀
 **Gap id**: **`GAP-MOP-03`**（backlog `gap-bug-backlog.md:76` · P0 · **OPEN** · AN-MOP-Q45 honesty nail `post_prove_dual_pass` · **≠** MODEL-OP domain closed · **≠** #102 cutover）
 
@@ -99,6 +101,6 @@ docs-only REQUEST 立卷 · not MODEL-OP closed · not SLO · not Redis cutover 
 | `mw-model-op` | `reviews/REQUEST-2026-10-06-gap-mop-03-successor-mw-model-op.md` |
 | `mw-e2e-ha` | `reviews/REQUEST-2026-10-06-gap-mop-03-successor-mw-e2e-ha.md` |
 
-**Pre-exec dual pending. 本 REQUEST 不授权 coding / prove / 切流；执行须 PRE BOTH PASS + 协调方 AUTHORIZE。**
+**Pre-exec dual BOTH PASS（2026-10-07 · mw-model-op `16f2c684` + mw-e2e-ha `fa2f667e`）· 执行已按协调方 AUTHORIZE 落盘（docs-only lifecycle 推进）· 本 REQUEST 仍不授权 coding / prove / 切流；POST dual + 协调方 AUTHORIZE 前 Ban nail / Ban SSOT 登记。**
 
-*Harness · GAP-MOP-03 :76 successor（cutover/independent review 立卷） · 2026-10-07 · `draft:awaiting_pre_exec_dual` · Ban coding · Ban Redis cutover · Ban MODEL-OP closed · PG LISTEN retained · `:76` OPEN · alone ≠ dual · STOP*
+*Harness · GAP-MOP-03 :76 successor（cutover/independent review 立卷） · 2026-10-07 · `executed:awaiting_post_prove_dual` · 零 coding · 零 prove 执行 · Ban Redis cutover · Ban MODEL-OP closed · PG LISTEN retained · `:76` OPEN · alone ≠ dual · STOP（awaiting POST dual）*

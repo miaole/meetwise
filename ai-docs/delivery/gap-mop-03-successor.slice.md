@@ -1,9 +1,11 @@
-# Slice — **MOP03 · GAP-MOP-03 `:76` successor（cutover / independent review 立卷）**（docs-only REQUEST · **`draft:awaiting_pre_exec_dual`**）
+# Slice — **MOP03 · GAP-MOP-03 `:76` successor（cutover / independent review 立卷）**（docs-only 立卷 · **`executed:awaiting_post_prove_dual`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**
+**Status**: **`executed:awaiting_post_prove_dual`**（PRE dual BOTH PASS：mw-model-op `16f2c684` + mw-e2e-ha `fa2f667e` @REQUEST `cdde235e`/mirror `787de124` · 立卷产物 = REQUEST 自身（harness 未定义额外立卷文档/清单 → 仅推进 lifecycle 标记）· 零 coding · 零 prove 执行 · 零 SSOT（nail 阶段才登记）· `MEETWISE_WAKEUP_REDIS_STREAMS` **value-gated**（`'1'/'true'/'on'` 开 · `'0'`/空/unset 关 · 本刀 unset）沿 C-E2E-2/OB-1 按代码门重述 · 现存 `worker-wakeup-redis:prove` EXIT0 ≠ cutover 证据（C-E2E-3）· **PG LISTEN retained**（C-E2E-5）· **Ban Redis cutover** · **Ban MODEL-OP closed** · `:76` OPEN · alone ≠ dual · Ban nail until POST BOTH + 协调方）
+
+> **Pre-exec-era status（historical · retained）**: **`draft:awaiting_pre_exec_dual`**
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · **PG-retained** · public DELETE=503 · **PG LISTEN retained** · `actualSpendCny=null` · 两本账分离沿 I 线
 **Date**: 2026-10-07（Asia/Shanghai）· REQUEST 文件名日期 2026-10-06 按派单原文
-**Base**: `origin/feat/mysql-schema-skeleton` · `71713718` / `717137180a4cccaa8575acb21c79ccf848973fc2`（local = origin tip · `git fetch origin` EXIT 0 无新提交）
+**Base**: `origin/feat/mysql-schema-skeleton` · **`63992a3b`** / `63992a3b6a4d4ebe2745ff094b046c9d49997072`（EXEC rebase 已落 · `cdde235e` ≡ origin 镜像 `787de124` 同补丁自动 drop · C-MO-1/C-E2E-1 base 重验 · 被审基点 `71713718` / `717137180a4cccaa8575acb21c79ccf848973fc2` 保留为 review provenance）
 **Authority**: meetwise — L0 docs only · Ban coding · Ban prove execution · Ban live · **Ban Redis cutover** · **Ban MODEL-OP closed claim** · **PG LISTEN retained**
 
 ## One-line
@@ -35,4 +37,4 @@ attempts 全记录（逐条 EXIT · Asia/Shanghai · code SHA）· 诚实失败�
 - Ban #102 借本刀合入 · Ban self-approve（alone ≠ dual）· Ban 四专家审降级（BUG-REV-COND · D2）
 - Ban SSOT edit（backlog / matrix / checklist 零改）· Ban 碰 sibling AN 文件 · Ban secrets / `.env*` · Ban Meridian · Ban buy cloud · Ban force-push · **Ban push**
 
-*Slice · MOP03 GAP-MOP-03 :76 successor · `draft:awaiting_pre_exec_dual` · Ban coding · Ban Redis cutover · Ban MODEL-OP closed · PG LISTEN retained · `:76` OPEN · alone ≠ dual · STOP*
+*Slice · MOP03 GAP-MOP-03 :76 successor · `executed:awaiting_post_prove_dual` · 零 coding · 零 prove 执行 · Ban Redis cutover · Ban MODEL-OP closed · PG LISTEN retained · `:76` OPEN · alone ≠ dual · STOP（awaiting POST dual）*
