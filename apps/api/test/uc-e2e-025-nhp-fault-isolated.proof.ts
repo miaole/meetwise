@@ -143,6 +143,50 @@ GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
 `);
   console.log('PIN   GAP-UC025-FAULT-ISO-JOB-SCHEMA-STUB: interview_job resume_privacy_epoch + v64 check (≠ 0064 triggers covered)');
 
+  // sql/22 CHECK+immutable trigger block C-side NULL→resume bind; production 0049 supersedes.
+  // Apply 0049-compatible CHECK + allow-once bind trigger (≠ full 0049/0064 covered).
+  await pool.query(`
+  ALTER TABLE interview DROP CONSTRAINT IF EXISTS ck_interview_application_binding_complete;
+  ALTER TABLE interview ADD CONSTRAINT ck_interview_application_binding_complete
+    CHECK (
+      (application_id IS NULL AND job_id IS NULL)
+      OR (application_id IS NOT NULL AND job_id IS NOT NULL AND resume_id IS NOT NULL)
+    );
+  CREATE OR REPLACE FUNCTION enforce_interview_application_binding_immutable()
+  RETURNS trigger LANGUAGE plpgsql AS $$
+  BEGIN
+    IF NEW.application_id IS DISTINCT FROM OLD.application_id
+       OR NEW.job_id IS DISTINCT FROM OLD.job_id
+       OR NEW.application_attempt IS DISTINCT FROM OLD.application_attempt THEN
+      RAISE EXCEPTION 'interview_application_binding_immutable';
+    END IF;
+    IF NEW.resume_id IS DISTINCT FROM OLD.resume_id THEN
+      IF OLD.application_id IS NULL
+         AND NEW.application_id IS NULL
+         AND OLD.resume_id IS NULL
+         AND NEW.resume_id IS NOT NULL
+         AND OLD.status='created' THEN
+        PERFORM 1 FROM resume r
+         WHERE r.id=NEW.resume_id
+           AND r.owner_user_id=NEW.owner_user_id
+           AND r.status='ingested';
+        IF NOT FOUND THEN
+          RAISE EXCEPTION 'interview_resume_reference_requires_owned_ingested_resume';
+        END IF;
+      ELSE
+        RAISE EXCEPTION 'interview_application_binding_immutable';
+      END IF;
+    END IF;
+    RETURN NEW;
+  END;
+  $$;
+  DROP TRIGGER IF EXISTS trg_interview_application_binding_immutable ON interview;
+  CREATE TRIGGER trg_interview_application_binding_immutable
+  BEFORE UPDATE OF application_id,application_attempt,job_id,resume_id ON interview
+  FOR EACH ROW EXECUTE FUNCTION enforce_interview_application_binding_immutable();
+`);
+  console.log('PIN   GAP-UC025-FAULT-ISO-0049-BIND-STUB: C-side allow-once resume bind (≠ full 0049 covered)');
+
   // C-3: print live anchor column evidence from isolated schema (sql/20 mirror carries expires_at)
   const col = await pool.query(`
     SELECT column_name, data_type, udt_name
