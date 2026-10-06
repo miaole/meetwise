@@ -162,3 +162,16 @@ PRE PASS `ae094a94`（cite `dd1ae8e8`）**仅引用**。**POST @19d69d72 审时�
 **SKIP（0 次）**：已提交收据 + CODE/proof 交叉足够 · 无歧义。未触 docker / 未跑 `uc018-receipt-backfill-emit.mjs`。
 
 Verdict: PASS
+
+---
+
+## AQ NAIL note（additive · 2026-10-07 · docs-only · does **not** overwrite Verdict）
+
+Coordinator AUTHORIZE nail landed · status **`post_prove_dual_pass`** for Line AQ GAP-RAG-03 R3-HNSW-COMPLETENESS（honesty dual-pass close of this REQUEST knife only · HNSW path exercised + live plan + safety + honesty fields）.
+
+- PROVE `19d69d72` / `19d69d720a5cdbc838fcb455b1d26736ad70639e` · CODE `49cfce97` / `49cfce97b0a261a6eef24de3952dff29693cdf0a` · REQUEST `c124fa53` / `c124fa53f7f7342417bd370292b5710c99424943` · PRE BOTH mw-rag-route `986c07ee` / `986c07eea6d84cb70ad28245e88f7d8b664ab0ed` + mw-e2e-ha `ae094a94` / `ae094a9473c43fa084ebe1e6be325bc3bd9176d0`
+- **POST BOTH PASS cited**: mw-rag-route `1894d04a` / `1894d04a1ced87007ceecbb3722ca1a34c64758a` + mw-e2e-ha `eb4131d5` / `eb4131d5e2fb11eb5ca4fdf04874c203eae18570`（alone≠dual · this note does **not** re-judge or invent Verdict）
+- CMD EXIT **0** · CC-H1..H8 held · path-exercised residual closed **this knife only** · GAP-RAG-03 `:71` **OPEN** · Ban production HNSW SLO（`hnswReturned=0` · `hnswExactFillObserved=false`）· Ban wash GAP-RAG-02 · Ban covered flip · pins held（NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503）
+- HOLD AN-CIMG-EA · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · Ban self-approve beyond this AUTHORIZE · Ban new knives
+
+*Nail note · AQ · post_prove_dual_pass · POST BOTH 1894d04a+eb4131d5 · :71 OPEN · Ban production HNSW SLO · coveredCount=8 · STOP*

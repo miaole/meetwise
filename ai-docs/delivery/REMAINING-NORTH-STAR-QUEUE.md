@@ -6,13 +6,13 @@ Cross-links: harness/NORTH-STAR-EXECUTION-LOOP.md · north-star-hard-gates.md ·
 Companion: docs SSOT on the AO-COND35 tip/line（beyond REQUEST `95ddd88` · refine beyond companion draft `cbe6fd2a` · **NOT** a second REQUEST · Ban close `:35` via queue alone）
 
 ## 0 Now
-~~AO-COND35-A-RESIDUAL-HONESTY (docs-only)~~ **DONE** · nailed `post_prove_dual_pass`（POST BOTH `68914be2`+`9f3ac173` · DOCS `2366319b` · PRE `ca4c4384`+`e4ad9588` · **0 prove** · A **UNPROVEN** · `:35` **OPEN** · Ban close CONDITION · Ban claim A proven · Ban invent prove · Ban covered flip）
-Next: Phase 0 item **2+**（serial COND / A-seed product rootcause still OPEN · Ban wash · Ban covered flip）
+~~AQ — GAP-RAG-03 R3-HNSW-COMPLETENESS~~ **DONE** · nailed `post_prove_dual_pass`（POST BOTH `1894d04a`+`eb4131d5` · PROVE `19d69d72` · CODE `49cfce97` · REQUEST `c124fa53` · PRE `986c07ee`+`ae094a94` · CMD EXIT 0 · CC-H1..H8 held · path-exercised residual closed **this knife only** · `:71` **OPEN** · Ban production HNSW SLO · Ban covered flip · Ban wash GAP-RAG-02）
+Next: Phase 0 item **2+**（serial COND / A-seed product rootcause still OPEN · Ban wash · Ban covered flip）· Phase 0 item 3 AQ nail DONE（≠ `:71` close）
 
 ## Phase 0 (after AO nail · local · no key/no cloud)
 1. ~~AO nail SSOT honesty~~ **DONE** · S · e2e · serial COND line · :35 A residual **OPEN** (57P01) · nail = honesty dual-pass ≠ CONDITION close ≠ A proven
 2. C-PERF-TEARDOWN :35 product rootcause next if A still needs prove · L · e2e+rag · Ban wash · Ban covered flip
-3. GAP-RAG-03 :71 R3-HNSW-COMPLETENESS · M→L · rag+e2e · parallel OK cross-domain · Ban FULLTEXT/Qdrant · Ban wash rag03-route EXIT1 (=GAP-RAG-02)
+3. ~~GAP-RAG-03 :71 R3-HNSW-COMPLETENESS~~ **DONE** · AQ nail `post_prove_dual_pass` · M→L · rag+e2e · PROVE `19d69d72` · CODE `49cfce97` · POST `1894d04a`+`eb4131d5` · path-exercised + live plan + safety + honesty fields · **`:71` stays OPEN** · Ban production HNSW SLO / exact-K · Ban FULLTEXT/Qdrant · Ban wash rag03-route EXIT1 (=GAP-RAG-02) · Ban covered flip
 4. GAP-MOP-03 :76 successor cutover/independent review · M · model-op+e2e · Ban MODEL-OP closed · Ban Redis cutover · PG LISTEN retained
 5. GAP-PRIV-EXTERNAL-SINK :64 async purge real knife · L · privacy+e2e · Ban count-as-erased · NB-3 external_confirmed≠vendor deleted
 

@@ -1,13 +1,15 @@
-# Harness — **AQ — GAP-RAG-03 R3-HNSW-COMPLETENESS**（HNSW path exercised · `:71` OPEN · prove/receipt contract only）
+# Harness — **AQ — GAP-RAG-03 R3-HNSW-COMPLETENESS**（HNSW path exercised · `:71` OPEN · NAIL · **`post_prove_dual_pass`**）
 
-**Status**: **`awaiting_post_prove_dual`**（CODE `49cfce97` · prove EXIT 0 · HNSW_USED + LIVE_PLAN_CAPTURED · Ban self-nail · alone ≠ dual · **Ban close GAP-RAG-03 `:71`** · **Ban claim production HNSW SLO** · **Ban wash AN-RAG-R3 nail into gap close** · **Ban wash rag03-route EXIT1 (=GAP-RAG-02)** · coveredCount=8）
+**Status**: **`post_prove_dual_pass`**（AQ nail · PROVE `19d69d72` / `19d69d720a5cdbc838fcb455b1d26736ad70639e` · CODE `49cfce97` / `49cfce97b0a261a6eef24de3952dff29693cdf0a` · REQUEST `c124fa53` · PRE `986c07ee`+`ae094a94` · POST BOTH PASS mw-rag-route `1894d04a` + mw-e2e-ha `eb4131d5` · CMD EXIT 0 · CC-H1..H8 held · path-exercised residual closed **this knife only** · **`:71` OPEN** · Ban production HNSW SLO · Ban wash GAP-RAG-02 · Ban covered flip · alone≠dual · coveredCount=8 · PASS≠关 gap≠HA）
+> **Exec-era status（historical · retained）**: **`awaiting_post_prove_dual`**（CODE `49cfce97` · prove EXIT 0 · HNSW_USED + LIVE_PLAN_CAPTURED · Ban self-nail · alone ≠ dual · **Ban close GAP-RAG-03 `:71`** · **Ban claim production HNSW SLO** · **Ban wash AN-RAG-R3 nail into gap close** · **Ban wash rag03-route EXIT1 (=GAP-RAG-02)** · coveredCount=8）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=**8** · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · PERF/LOAD stays **local partial** · capacityRepresentative=**false** · canHonestlyFlip=**false**
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`1024bfc`** / full `1024bfc592bbd5f5a38e6dc78714101cdd416517`（AN-RAG-R3 nail · honesty dual-pass · residual OPEN）
 **Knife**: **AQ — GAP-RAG-03 R3-HNSW-COMPLETENESS** —— name the HNSW residual after AN-RAG-R3；**only** pin prove/receipt closing criteria for a future coding+prove AUTHORIZE；**does not** execute prove · **does not** close `:71`
 **Gap id**: **`GAP-RAG-03`**（backlog `gap-bug-backlog.md:71` · P0 · **OPEN** · 本刀不翻行 · residual id **`R3-HNSW-COMPLETENESS`**）
 **Experts**: `mw-rag-route` + `mw-e2e-ha`（stubs PENDING · Ban self-approve · alone ≠ dual）
-**Authority**: meetwise — docs REQUEST only · Ban SSOT flip to CLOSED · Ban coding · Ban prove · Ban self-nail
+**Authority**: meetwise — AUTHORIZE nail AQ · honesty dual-pass close of this REQUEST knife · **≠** GAP-RAG-03 `:71` closed · **≠** production HNSW SLO · Ban SSOT flip to CLOSED · Ban self-approve beyond this AUTHORIZE
+> Exec-era authority（historical）: docs REQUEST only · Ban coding · Ban prove · Ban self-nail
 
 ## 0. Why this knife（thin · honesty）
 
@@ -34,9 +36,9 @@ Parent evidence（cite · Ban re-prove）: nail `1024bfc` · PROVE `7c67b4a` · 
 
 | Residual | Status | Note |
 |----------|--------|------|
-| HNSW path exercised | **UNPROVEN** | `HNSW_NOT_EXERCISED` @ parent prove |
-| Live plan capture | **UNPROVEN** | `LIVE_PLAN_NOT_CAPTURED` · substituted_body only |
-| Completeness（full-K / production-scale HNSW quality） | **OPEN** | Even after path exercised, Ban claim production HNSW SLO without separate AUTHORIZE |
+| HNSW path exercised | **DONE（this knife）** | CC-H1 `HNSW_USED=true` @ PROVE `19d69d72` · Ban wash into `:71` CLOSED |
+| Live plan capture | **DONE（this knife）** | CC-H2 `LIVE_PLAN_CAPTURED_AUTO_EXPLAIN` @ PROVE `19d69d72` |
+| Completeness（full-K / production-scale HNSW quality） | **OPEN** | `hnswReturned=0` · `hnswExactFillObserved=false` disclosed · Ban claim production HNSW SLO / exact-K |
 | `R3-HNSW-SAFETY`（0 unapproved · 0 OOB · ≤K） | **HELD**（parent filter-locus） | Safety ≠ completeness |
 | R-b EXIT1 | **OPEN as GAP-RAG-02 `:70`** | Ban wash into this knife green |
 | backlog `:71` GAP-RAG-03 | **OPEN** | Ban close without HNSW prove + dual + coordinator AUTHORIZE |
@@ -95,15 +97,29 @@ Not a pass · not run · not closed · not fixed · not HNSW-complete · not liv
 
 ## Pins
 
-haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · PERF/LOAD local partial · capacityRepresentative=false · canHonestlyFlip=false · backlog `:71` GAP-RAG-03 **OPEN** · **R3-HNSW-COMPLETENESS OPEN**（`HNSW_NOT_EXERCISED`）· STOP
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · PERF/LOAD local partial · capacityRepresentative=false · canHonestlyFlip=false · backlog `:71` GAP-RAG-03 **OPEN** · R3-HNSW path-exercised **DONE this knife** · exact-K / production HNSW SLO **NOT claimed** · STOP
 
-*Harness · AQ GAP-RAG-03 R3-HNSW-COMPLETENESS · 2026-10-06 · draft:awaiting_pre_exec_dual · `:71` OPEN · prove/receipt contract only · Ban close · Ban coding · Ban wash GAP-RAG-02 · STOP*
+*Harness · AQ GAP-RAG-03 R3-HNSW-COMPLETENESS · 2026-10-06 · draft:awaiting_pre_exec_dual · `:71` OPEN · prove/receipt contract only · Ban close · Ban coding · Ban wash GAP-RAG-02 · STOP*  <!-- exec-era footer · see §8 nail -->
 
-## 7. Prove addendum（AUTHORIZE coding+prove · 2026-10-06 · `awaiting_post_prove_dual`）
+## 7. Prove addendum（AUTHORIZE coding+prove · 2026-10-06 · historical `awaiting_post_prove_dual` · lifecycle advanced below）
 
 - CODE `49cfce97` / mig `0139` (`hnsw.iterative_scan=strict_order` on `qbank_generation_ann_search`) · principal seal `@>` · `rag03-hnsw-completeness:prove`.
 - Prove EXIT **0** · CC-H1 `HNSW_USED=true` (`qgc_hnsw_visible_*`) · CC-H2 `LIVE_PLAN_CAPTURED_AUTO_EXPLAIN` · CC-H3 safety · CC-H4 `hnswReturned=0` · `hnswExactFillObserved=false` (honest · Ban production SLO) · CC-H5..H8 held · `:71` OPEN · coveredCount=8.
 - Receipt: `ai-docs/delivery/receipts/aq-gap-rag-03-r3-hnsw-completeness/2026-10-06-aq-hnsw-prove.md`.
-- Ban self-nail until POST dual BOTH PASS + coordinator AUTHORIZE. alone ≠ dual. PASS ≠ 关 gap ≠ HA.
+- Ban self-nail until POST dual BOTH PASS + coordinator AUTHORIZE. alone ≠ dual. PASS ≠ 关 gap ≠ HA.  <!-- exec-era · lifecycle advanced below -->
 
-*Harness addendum · AQ R3-HNSW-COMPLETENESS · awaiting_post_prove_dual · STOP*
+*Harness addendum · AQ R3-HNSW-COMPLETENESS · awaiting_post_prove_dual · STOP*  <!-- exec-era footer -->
+
+---
+
+## 8. AQ NAIL lifecycle（`post_prove_dual_pass` · 2026-10-07 · additive）
+
+- REQUEST `c124fa53` / `c124fa53f7f7342417bd370292b5710c99424943` · PRE dual BOTH PASS mw-rag-route `986c07ee` / `986c07eea6d84cb70ad28245e88f7d8b664ab0ed` + mw-e2e-ha `ae094a94` / `ae094a9473c43fa084ebe1e6be325bc3bd9176d0` · CODE_SHA `49cfce97` / `49cfce97b0a261a6eef24de3952dff29693cdf0a` · mig **`0139`** · PROVE tip **NAILED TO** `19d69d72` / `19d69d720a5cdbc838fcb455b1d26736ad70639e` · POST dual BOTH PASS mw-rag-route **`1894d04a`** / `1894d04a1ced87007ceecbb3722ca1a34c64758a` + mw-e2e-ha **`eb4131d5`** / `eb4131d5e2fb11eb5ca4fdf04874c203eae18570`（alone≠dual）。
+- POST conditions carried: rag `1894d04a` + e2e `eb4131d5` independent EXIT 0 · CC-H1..H8 held · `:71` OPEN · coveredCount=8 · Ban nail（consumed by this AUTHORIZE）· Ban production HNSW SLO · Ban wash GAP-RAG-02。
+- Honesty dual-pass close of **this REQUEST knife only**（HNSW path exercised + live plan + safety + honesty fields · **≠** `:71` closed · **≠** production HNSW SLO / exact-K · **≠** covered · **≠** HA）。
+- **STILL_OPEN**: backlog `:71` **GAP-RAG-03 stays OPEN** · canHonestlyFlip=false · exact-K under HNSW / production HNSW SLO **NOT claimed**（`hnswReturned=0` · `hnswExactFillObserved=false`）· R-b EXIT1 = GAP-RAG-02 `:70` disclosed · coveredCount=**8** · alone≠dual · PASS ≠ 关 gap ≠ HA。
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered / CLOSED / production HNSW SLO / R-b green / claimProductionHA.
+- **CITE_EXIT**: `pnpm eval-harness-matrix-cite:prove` @ nail SHA → expected **EXIT 0**（static docs cite · ≠ gap closed · ≠ covered · ≠ production HNSW SLO）· actual EXIT in nail commit message.
+- Nail tip = 本 commit（branch `line/aq-gap-rag-03-r3-hnsw-prove` → `feat/mysql-schema-skeleton`；禁 force push）. This paragraph does **not** flip backlog `:71` to CLOSED · does **not** claim production HNSW SLO · does **not** wash GAP-RAG-02 / AN-RAG-R3 · does **not** flip any UC covered · HOLD AN-CIMG-EA · Ban buy cloud。
+
+*Harness · AQ GAP-RAG-03 R3-HNSW-COMPLETENESS · NAIL · 2026-10-07 · post_prove_dual_pass · PROVE 19d69d72 · CODE 49cfce97 · REQUEST c124fa53 · PRE 986c07ee+ae094a94 · POST 1894d04a+eb4131d5 PASS · EXIT 0 · :71 OPEN · Ban production HNSW SLO · Ban covered flip · alone≠dual · STOP*

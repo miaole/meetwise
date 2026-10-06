@@ -1,10 +1,12 @@
-# Receipt — AQ GAP-RAG-03 R3-HNSW-COMPLETENESS · prove（awaiting_post_prove_dual）
+# Receipt — AQ GAP-RAG-03 R3-HNSW-COMPLETENESS · prove（NAIL · **`post_prove_dual_pass`** · `:71` OPEN · Ban production HNSW SLO）
 
-**Status**: `awaiting_post_prove_dual`（mw-rag-route + mw-e2e-ha · Ban self-nail · Ban self-approve · alone ≠ dual · Ban close `:71` · Ban claim HNSW-complete as production SLO）
+**Status**: **`post_prove_dual_pass`**（AQ NAIL · POST dual mw-rag-route `1894d04a` + mw-e2e-ha `eb4131d5` BOTH PASS · path-exercised residual closed **this knife only** · **GAP-RAG-03 `:71` OPEN** · Ban production HNSW SLO · Ban wash GAP-RAG-02 · alone≠dual · PASS≠关 gap≠HA）
+> **Exec-era status（historical · retained）**: `awaiting_post_prove_dual`（mw-rag-route + mw-e2e-ha · Ban self-nail · Ban self-approve · alone ≠ dual · Ban close `:71` · Ban claim HNSW-complete as production SLO）
+**Lifecycle**: **`post_prove_dual_pass`** · PROVE tip `19d69d72` · CODE `49cfce97` · REQUEST `c124fa53`
 **AUTHORIZE**: coordinator `AUTHORIZE coding+prove — Line AQ GAP-RAG-03 R3-HNSW-COMPLETENESS REQUEST c124fa53` · PRE BOTH PASS: mw-rag-route `986c07ee` · mw-e2e-ha `ae094a94`（cite peer tip may include `dd1ae8e8`）
 **Harness**: `ai-docs/delivery/harness/aq-gap-rag-03-r3-hnsw-completeness.md` CC-H1..CC-H8
 **CODE_SHA**: `49cfce97b0a261a6eef24de3952dff29693cdf0a` / `49cfce97`（mig `0139` · principal `@>` seal · `rag03-hnsw-completeness:prove`）
-**PROVE tip**: *(this commit)*
+**PROVE tip**: `19d69d720a5cdbc838fcb455b1d26736ad70639e` / `19d69d72`
 **Date**: 2026-10-07 00:10:12 +0800（Asia/Shanghai）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCount=**8** · PG-retained · public DELETE=503 · GAP-RAG-03 `:71` **OPEN** · Ban wash GAP-RAG-02 rag03-route EXIT1 · Ban FULLTEXT · Ban Qdrant · Ban Meridian · Ban secrets · Ban buy cloud · HOLD AN-CIMG-EA
 
@@ -54,10 +56,30 @@ Green: `AQ-HNSW-ITERATIVE-PIN` · `R3-LEGACY-STATIC-UNREACHABLE` · `R3-LEGACY-S
 
 ## §6 Non-claims
 
-EXIT 0 ≠ GAP-RAG-03 closed ≠ `:71` CLOSED ≠ production HNSW SLO ≠ HA ≠ covered flip ≠ R-b green ≠ nail. alone ≠ dual. Ban self-nail until POST BOTH + coordinator AUTHORIZE.
+EXIT 0 ≠ GAP-RAG-03 closed ≠ `:71` CLOSED ≠ production HNSW SLO ≠ HA ≠ covered flip ≠ R-b green ≠ nail. alone ≠ dual. Ban self-nail until POST BOTH + coordinator AUTHORIZE.  <!-- exec-era §6 · lifecycle advanced below -->
 
 ## §7 Ban nail checklist
 
 Ban wash GAP-RAG-02 · Ban FULLTEXT · Ban Qdrant vector truth · Ban close `:71` without HNSW evidence *(this receipt is HNSW evidence for path-exercised residual only; coordinator still owns `:71`)* · Ban covered flip · Ban invent prove · Ban Meridian · Ban secrets · Ban buy cloud · HOLD AN-CIMG-EA
 
-*Receipt · AQ GAP-RAG-03 R3-HNSW-COMPLETENESS · CODE 49cfce97 · EXIT 0 · HNSW_USED · LIVE_PLAN_CAPTURED · :71 OPEN · coveredCount=8 · 2026-10-06 · STOP*
+*Receipt · AQ GAP-RAG-03 R3-HNSW-COMPLETENESS · CODE 49cfce97 · EXIT 0 · HNSW_USED · LIVE_PLAN_CAPTURED · :71 OPEN · coveredCount=8 · 2026-10-06 · STOP*  <!-- exec-era footer · lifecycle advanced below -->
+
+---
+
+## AQ NAIL cross-ref（additive · 2026-10-07 · `post_prove_dual_pass`）
+
+| Item | Value |
+|------|-------|
+| PROVE tip | `19d69d72` / `19d69d720a5cdbc838fcb455b1d26736ad70639e` |
+| CODE_SHA | `49cfce97` / `49cfce97b0a261a6eef24de3952dff29693cdf0a` · mig `0139` |
+| REQUEST | `c124fa53` / `c124fa53f7f7342417bd370292b5710c99424943` |
+| PRE dual | mw-rag-route `986c07ee` / `986c07eea6d84cb70ad28245e88f7d8b664ab0ed` + mw-e2e-ha `ae094a94` / `ae094a9473c43fa084ebe1e6be325bc3bd9176d0` |
+| POST dual BOTH PASS | mw-rag-route `1894d04a` / `1894d04a1ced87007ceecbb3722ca1a34c64758a` + mw-e2e-ha `eb4131d5` / `eb4131d5e2fb11eb5ca4fdf04874c203eae18570`（alone≠dual） |
+| CMD EXIT | **0**（`rag03-hnsw-completeness:prove` · implementer + POST independent re-runs） |
+| CC-H1..H8 | HNSW_USED · LIVE_PLAN · safety · `hnswReturned=0` · `hnswExactFillObserved=false` · R-b=`:70` disclosed · PG stack · `:71` OPEN · pins held |
+| Path-exercised residual | **DONE this knife**（HNSW path + live plan + safety + honesty fields） |
+| STILL_OPEN | **GAP-RAG-03 `:71` OPEN** · canHonestlyFlip=false · exact-K / production HNSW SLO **NOT claimed** · R-b via `:70` · coveredCount=8 · Ban FULLTEXT/Qdrant · alone≠dual · PASS≠关 gap≠HA |
+
+Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered / CLOSED / production HNSW SLO / R-b green.
+
+*Receipt · AQ NAILED post_prove_dual_pass · PROVE 19d69d72 · CODE 49cfce97 · POST 1894d04a+eb4131d5 PASS · :71 OPEN · Ban production HNSW SLO · 2026-10-07 · STOP*
