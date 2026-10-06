@@ -133,6 +133,8 @@
     "uc011:adv:prove:raw": "pnpm -C apps/api prove:uc011-adv-refund-callback",
     "uc011:refund-callback:prove": "node scripts/run-e2e-isolated.mjs uc011:refund-callback:prove:raw",
     "uc011:refund-callback:prove:raw": "pnpm -C apps/api prove:uc011-refund-callback-mouth",
+    "uc011:refund-callback-adv:prove": "node scripts/run-e2e-isolated.mjs uc011:refund-callback-adv:prove:raw",
+    "uc011:refund-callback-adv:prove:raw": "pnpm -C apps/api prove:uc011-refund-callback-adv",
     "uc019:report-regenerate:prove": "node scripts/run-e2e-isolated.mjs uc019:report-regenerate:prove:raw",
     "uc019:report-regenerate:prove:raw": "pnpm -C packages/db prove:uc019-report-regenerate",
     "uc019:report-regenerate:http:prove": "node scripts/run-e2e-isolated.mjs uc019:report-regenerate:http:prove:raw",
