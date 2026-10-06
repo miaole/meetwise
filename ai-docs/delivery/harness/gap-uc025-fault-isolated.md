@@ -1,7 +1,9 @@
-# Harness — **GAP-UC025-FAULT-ISOLATED-01 · UC-025 FAULT 隔离 PG/HTTP 证据层**（Line W · docs-only REQUEST · **`draft:awaiting_pre_exec_dual`** · Ban coding · Ban prove · Ban push）
+# Harness — **GAP-UC025-FAULT-ISOLATED-01 · UC-025 FAULT isolated PG/HTTP evidence**（Line W · NAIL · **`post_prove_dual_pass`** · row stays gap · FAULT column stays gap · coveredCount=8）
 
-**Status**: **`draft:awaiting_pre_exec_dual`** · docs spec only · this document is not coding permission, not a prove run, and not a nail · a later pre-exec dual PASS is still not coding permission — coding starts only on explicit coordinator authorization after the pre-exec dual · Ban self-approve · alone ≠ dual
-**Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
+**Status**: **`post_prove_dual_pass`**（Line W nail · isolated PG/HTTP FAULT evidence only · prove EXIT=0 · dual BOTH PASS · **EXIT0 ≠ covered** · complementary≠substitute AA · **AA_WASH: no** · 409 `missing_quiz_expiry` not washed · AA nail `15eedd6` / in-process `a8b98fc`/`3a6ec52` retained as complementary · attempts1–4 EXIT1 retained · Ban retry-to-green wash · row stays **gap** · FAULT column stays **gap** · coveredCount=**8** · Ban invent covered · Ban flip row/FAULT off gap · Ban HA/suite green · Ban coding · Ban live · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · Ban self-approve beyond this authorized nail）
+
+> **REQUEST/prove-era note（historical · retained）**: this file began as REQUEST `draft:awaiting_pre_exec_dual` → prove `post_prove_awaiting_dual`. Prove tip **NAILED TO** `e8d8a919a4f1a6da8e2879a09d429653fd849705` · CODE **`cce33ba9359ee040cf7cffa661cbb2477a1ed694`** · REQUEST `43322e5c2686b3daaf1e66a255184ac8ca74c6b9`（`b0242bf` missing on origin → use 43322e5）· CMD `pnpm uc025:nhp-fault-isolated:prove` **EXIT=0**（HTTP **409** `missing_quiz_expiry` · F1–F5 · three-layer isolated shell）· attempts1–4 EXIT1 honest retained · attempt 4b `e7b9ba2` same-SHA another EXIT1（privacy OPEN ledger）· post dual mw-e2e-ha `c55253b` + mw-privacy-int `1fc6623` BOTH PASS. Lifecycle advanced to **`post_prove_dual_pass`** by Line W nail only.
+**Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · g7SuiteGreen=false
 **Date**: 2026-10-05（Line W REQUEST · coordinator-prioritized #2）
 **Base / written at**: `origin/feat/mysql-schema-skeleton` **`44154aa5`** / full `44154aa53a8c8508e8e8b1c51333c648187ac360`（AA nail `15eedd6` 之后 · not a prove tip）
 **Knife**: **GAP-UC025-FAULT-ISOLATED-01**（W — 把 UC-025 FAULT 证据升到**隔离 PG + 真实 HTTP** 层；AA 线 `15eedd6` 只钉 in-process 层；本刀产出与 AA **同判据但隔离面**的证据）
@@ -9,7 +11,7 @@
 **Case id**: **`NHP-025-FAULT-01`**（同一 case 的**证据层升级**，不新开 NHP case 行 · 不编辑 NHP 矩阵 status 行——登记留 nail）
 **Row**: **`UC-E2E-025`** FAULT 列（证据面升级）· not UC-E2E-018 · not UC-E2E-052 · not UC-E2E-004 · not UC-E2E-014/026 · not UC-E2E-002 · not UC-E2E-011
 **Experts**: `mw-e2e-ha` + `mw-privacy-int`（stubs PENDING · Ban self-approve · alone ≠ dual；选 `mw-privacy-int` 理由：quiz 锚点涉 privacy 授权域邻接——`resume_quiz` 为 owner-scoped 工件、begin 授权路径含 owner 检查、隔离 harness 走 `x-user-id` dev 回退面；若 privacy-int 审后判纯 commerce/E2E 可改 `mw-rag-route` 并在 stub 说明理由）
-**Authority**: meetwise — docs REQUEST only · Ban coding · Ban prove 执行 · Ban push · Ban secrets / `.env*` · Ban force-push · Ban SSOT edit · Ban widen
+**Authority**: meetwise — Line W NAIL AUTHORIZED（docs/SSOT honesty only · Ban coding）· Ban secrets / `.env*` · Ban force-push · Ban wash AA · Ban invent covered / coveredCount bump · Ban flip row/FAULT off gap · Ban live · Ban buy cloud · Ban Meridian
 
 ## One-line
 
@@ -99,4 +101,23 @@ haStatus=**NOT_HA** · releaseEvidence=**false** · claimProductionHA=**false** 
 
 ---
 
-*Harness · GAP-UC025-FAULT-ISOLATED-01 · Line W docs-only REQUEST · 2026-10-05 · draft:awaiting_pre_exec_dual · 隔离 PG/HTTP 面 · 与 AA in-process（`a8b98fc`/`3a6ec52`）互补不互替 · 409 missing_quiz_expiry 同判据 · EXIT 前诚实/后判据 · Ban coding · Ban prove · Ban push · Ban 洗 AA · Ban 翻行 · STOP*
+---
+
+## Line W NAIL lifecycle（`post_prove_dual_pass` · 2026-10-06 · additive）
+
+- Lifecycle on this harness/slice/receipt: **`post_prove_dual_pass`**.
+- Prove tip NAILED TO: `e8d8a919a4f1a6da8e2879a09d429653fd849705`.
+- CODE: `cce33ba9359ee040cf7cffa661cbb2477a1ed694` · REQUEST `43322e5c2686b3daaf1e66a255184ac8ca74c6b9` · CMD `pnpm uc025:nhp-fault-isolated:prove` **EXIT0** · HTTP **409** `missing_quiz_expiry` · F1–F5 PASS · Ban live · Ban buy cloud.
+- **Evidence layer**: isolated three-layer shell + real Nest HTTP + real PG `expires_at timestamptz` · **complementary≠substitute** AA in-process · **AA_WASH: no** · 409 `missing_quiz_expiry` not washed · AA nail `15eedd65658c370f91cca5a55a86b76bdaa60a98` / code `a8b98fcaaa8c314fd8e25437ff015f59dce05d93` / prove `3a6ec52195bbde8bd56cae10e48346391cee116d` retained as complementary.
+- Attempts honesty: attempts1–4 **EXIT1** retained · Ban retry-to-green wash · **attempt 4b** `e7b9ba2` same-SHA another EXIT1（container `756259` @ 04:32:02Z · privacy OPEN `NOTE-UC025-ATTEMPT-LEDGER-4b`）added to ledger · attempt5 EXIT0 @ `cce33ba` first green.
+- OPEN non-blocking disclose: **NOTE-UC025-DEVHEADER-NODEENV-DISCLOSE**（`NODE_ENV` `<unset>` after boot · dual-gate still holds · Ban claim blocker）.
+- POST dual BOTH PASS: mw-e2e-ha `c55253bbe5f46fa3475b733d7e5f955b150f1103` + mw-privacy-int `1fc66233b3136d1d0740fd3b9568f67673c1f267`.
+- Receipt cross-ref: `receipts/2026-10-06-gap-uc025-fault-isolated-prove.md`.
+- **STILL_GAP**: UC-E2E-025 **row** stays **gap** · **FAULT column** stays **gap** · EXIT0≠covered · coveredCount=**8** · canHonestlyFlip=**false** · NEG B'' CLOSED(wired) **frozen** Ban wash · BOUND W nail Ban wash · AA FAULT in-process Ban wash · ADV blind.
+- Pins unchanged: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503 · g7SuiteGreen=false · canHonestlyFlip=false.
+- Keep siblings: Line AA FAULT in-process · Line W BOUND · Line Z/AB/AC/V/Y nails retained · Ban nail other lines this turn.
+
+---
+
+*Harness · GAP-UC025-FAULT-ISOLATED-01 · Line W NAIL · 2026-10-06 · lifecycle post_prove_dual_pass · prove tip e8d8a91 · CODE cce33ba · EXIT0 · 409 missing_quiz_expiry · AA_WASH: no · complementary≠substitute AA · post dual c55253b+1fc6623 PASS · row+FAULT gap · coveredCount=8 · Ban invent covered · Ban HA · Ban live · Ban buy cloud · releaseEvidence=false · STOP*
+
