@@ -1,12 +1,12 @@
-# Harness — **GAP-MOP-01 `:74` · wakeup work face + BUG-NOTIFY-REC `:95`**（docs-only REQUEST · **`draft:awaiting_pre_exec_dual`** · Ban coding · Ban Redis cutover · Ban MODEL-OP closed · PG LISTEN retained）
+# Harness — **GAP-MOP-01 `:74` · wakeup work face + BUG-NOTIFY-REC `:95`**（docs-only REQUEST · **`draft:awaiting_re_pre_exec_dual`** · Ban coding · Ban Redis cutover · Ban MODEL-OP closed · PG LISTEN retained）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（empty review stubs · Ban self-approve · alone ≠ dual · 零 coding · 零 prove 执行 · 零 live · 零 SSOT）
+**Status**: **`draft:awaiting_re_pre_exec_dual`**（empty review stubs · Ban self-approve · alone ≠ dual · 零 coding · 零 prove 执行 · 零 live · 零 SSOT）
 **Date**: 2026-10-07（Asia/Shanghai）
-**Base**: `origin/feat/mysql-schema-skeleton` · **`1c4588f9`** / `1c4588f952b77e6173acfadf7f3351c311b0cff0`（docs-delivery NAIL G7 Path B honesty）
+**Base**: `origin/feat/mysql-schema-skeleton` · **`4804c3dc`** / `4804c3dc54e696b5f7af17574d21e1bbe68482a4`（mw-rag-route GAP-RAG-02 fixture-fix PRE dual PASS）
 **Wave**: Line **MOP01**（queue **Phase 5 MOP** · `REMAINING-NORTH-STAR-QUEUE.md`：「**GAP-MOP-01/BUG-NOTIFY-REC** · GAP-MOP-02 claim」——GAP-MOP-02 claim 本刀**不认领**，独立行另刀）
 **Experts**: `mw-model-op` + `mw-e2e-ha`（PRE dual · Ban self-approve · alone ≠ dual）
 **Knife**: **GAP-MOP-01 `:74` wakeup 工作面 + BUG-NOTIFY-REC `:95` 处方分解**——按 backlog 原文把 wakeup 生产诚实清单与 M3 切流包工作面**立卷**（docs 定义），**不切流**、**不重复立法 MOP03 六门**（只读 cite）
-**Gap ids**: **`GAP-MOP-01`**（backlog `gap-bug-backlog.md:74` · P0 · **OPEN**）· **`BUG-NOTIFY-REC`**（backlog `:95`@本基线 `1c4588f9` · P0 · **OPEN**；派单原文写 `:93` = MOP03-era base `71713718` 行号——MOP03 nail `e29d8f93` 在 §A 尾 append +2 行登记块后 B 区整体下移 2 行 → 本基线 `:95` · 同一行条目，OB-1 如实登记）
+**Gap ids**: **`GAP-MOP-01`**（backlog `gap-bug-backlog.md:74` · P0 · **OPEN**）· **`BUG-NOTIFY-REC`**（backlog `:95`@本基线 `4804c3dc` · P0 · **OPEN**；派单原文写 `:93` = MOP03-era base `71713718` 行号——MOP03 nail `e29d8f93` 在 §A 尾 append +2 行登记块后 B 区整体下移 2 行 → 本基线 `:95` · 同一行条目，OB-1 如实登记）
 
 ## 0. backlog 原文（只读引用 · 零改写）
 
@@ -37,7 +37,7 @@
 | **旧 prove 处置** | §2c `worker-wakeup:prove`（旧）标红或换夹具的处置计划（docs 声明） | 本刀不改 `package.json`、不跑不标红 |
 | **口径钉** | `actualSpendCny=null` · 两本账分离沿 I 线 · `releaseEvidence=false` | 费率非承诺 |
 
-### 2a. wakeup 生产现状诚实清单（Q1 · 代码锚实测 @base `1c4588f9`）
+### 2a. wakeup 生产现状诚实清单（Q1 · 代码锚实测 @base `4804c3dc`）
 
 | 事实 | 代码锚 | 诚实含义 |
 |------|--------|----------|
@@ -45,7 +45,7 @@
 | 「Production still uses LISTEN/NOTIFY until an independent cutover is approved」+ flag 默认关 | `packages/db/src/worker-job-wakeup.ts:7-8` | 代码门原样 · 本刀零摘除 |
 | Redis Streams 旁路 = additive · **value-gated** `MEETWISE_WAKEUP_REDIS_STREAMS`（仅 `'1'/'true'/'on'` 开 · `'0'`/空/unset 关 · 本刀 unset） | `apps/worker/src/worker-job-wakeup-redis.ts:50-53`（`isRedisStreamsWakeupEnabled` trim+lowercase）；`apps/worker/src/main.ts:641-642`（"never replaces the PG LISTEN session above"） | flag 默认关三代码锚之一沿 MOP03 C-E2E-2 口径重述 · "presence-only" 不作开关判据 |
 | Redis URL 缺失 → skip 且 PG LISTEN unchanged | `apps/worker/src/main.ts:646-648` | 旁路失败不伤生产路径 |
-| **无周期兜底轮询**：worker main 唯一 `setInterval` 为无关 5s flush timer，wakeup 断链即存在漏唤醒窗口 | `apps/worker/src/main.ts:452`（唯一 setInterval · 与 wakeup 无关） | BUG-NOTIFY-REC `:95`「漏唤醒窗口」的代码级诚实登记——LISTEN 断连/NOTIFY 丢失窗口内仅靠下游下次 wake 兜底，**强制 periodic reconcile 未在 sole stack 证明** |
+| **既有周期兜底扫描实存**：NOTIFY 丢失/LISTEN 断连后的漏唤醒窗口 = **有界延迟窗**（窗口上界由各扫描周期约束），非「无周期兜底」断链；GAP = **强制 periodic reconcile 未在 sole stack 证明**（GAP 仍 OPEN） | `apps/worker/src/drain-loop.ts:14/:31/:52`（`runDrainLoop` 每拍后 `setTimeout(intervalMs)` 周期 tick 兜底）+ `apps/worker/src/main.ts:458-461`（代码自述 "bounded scan for listener outages"）+ `:462`（`WORKER_JOB_RECONCILE_INTERVAL_MS` 默认 5s）喂五 consumer loop `:488/:609/:612/:614/:616` 周期认领 + dual reconciler `model-invocation-reconcile.ts:129`（30s）+ `usage-calibration-reconcile.ts:63`（60s），自述 `main.ts:709` "bounded reconciliation"；`main.ts:452`（worker main 唯一 `setInterval` 字面 = 无关 5s flush timer）仅作字面事实引用 | BUG-NOTIFY-REC `:95` 保持 OPEN 的正确依据 = 原文「reconcile 未在 sole stack 证明」（**未证明 ≠ 不存在**）：既有 bounded scan 实存 → 漏唤醒 = 有界延迟窗；**Ban 两头漂移**——不许写成「已修复/无窗口」，也不许宣称既有扫描可关闭 `:95` GAP（强制 reconcile 的 sole stack 证明仍缺） |
 
 ### 2b. M3 切流包 wakeup 侧内容定义（docs 立卷 · 未来授权 REQUEST 的交付清单 · 非本刀执行）
 
@@ -138,4 +138,4 @@ docs-only REQUEST 立卷 · not wakeup cutover · not Redis cutover · not flag 
 
 **PRE dual BOTH PASS + 协调方 AUTHORIZE 前：本刀 docs 面不得执行，且执行仍 Ban coding / Ban prove / Ban live。**
 
-*Harness · GAP-MOP-01 :74 wakeup work face + BUG-NOTIFY-REC :95 · 2026-10-07 · `draft:awaiting_pre_exec_dual` · 零 coding · 零 prove 执行 · Ban Redis cutover · Ban MODEL-OP closed · Ban 重复立卷（MOP03 六门只读引用不松动）· PG LISTEN retained · `:74`/`:95` OPEN · alone ≠ dual · STOP（awaiting PRE dual）*
+*Harness · GAP-MOP-01 :74 wakeup work face + BUG-NOTIFY-REC :95 · 2026-10-07 · `draft:awaiting_re_pre_exec_dual` · 零 coding · 零 prove 执行 · Ban Redis cutover · Ban MODEL-OP closed · Ban 重复立卷（MOP03 六门只读引用不松动）· PG LISTEN retained · `:74`/`:95` OPEN · alone ≠ dual · STOP（awaiting PRE dual）*

@@ -1,14 +1,14 @@
-# Slice — **MOP01 · GAP-MOP-01 `:74` wakeup work face + BUG-NOTIFY-REC `:95`**（docs-only 立卷 · **`draft:awaiting_pre_exec_dual`**）
+# Slice — **MOP01 · GAP-MOP-01 `:74` wakeup work face + BUG-NOTIFY-REC `:95`**（docs-only 立卷 · **`draft:awaiting_re_pre_exec_dual`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（empty review stubs · Ban self-approve · alone ≠ dual · 零 coding · 零 prove 执行 · 零 live · 零 SSOT · `MEETWISE_WAKEUP_REDIS_STREAMS` **value-gated**（`'1'/'true'/'on'` 开 · `'0'`/空/unset 关 · 本刀 unset）沿代码门重述（`apps/worker/src/worker-job-wakeup-redis.ts:50-53`）· 现存 `worker-wakeup-redis:prove` EXIT0 **≠** cutover 证据 · **PG LISTEN retained** · **Ban Redis cutover** · **Ban MODEL-OP closed** · `:74`/`:95` OPEN · **Ban 重复立卷**（MOP03 六门只读引用不松动））
+**Status**: **`draft:awaiting_re_pre_exec_dual`**（empty review stubs · Ban self-approve · alone ≠ dual · 零 coding · 零 prove 执行 · 零 live · 零 SSOT · `MEETWISE_WAKEUP_REDIS_STREAMS` **value-gated**（`'1'/'true'/'on'` 开 · `'0'`/空/unset 关 · 本刀 unset）沿代码门重述（`apps/worker/src/worker-job-wakeup-redis.ts:50-53`）· 现存 `worker-wakeup-redis:prove` EXIT0 **≠** cutover 证据 · **PG LISTEN retained** · **Ban Redis cutover** · **Ban MODEL-OP closed** · `:74`/`:95` OPEN · **Ban 重复立卷**（MOP03 六门只读引用不松动））
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · **PG-retained** · public DELETE=503 · **PG LISTEN retained** · `actualSpendCny=null`
 **Date**: 2026-10-07（Asia/Shanghai）
-**Base**: `origin/feat/mysql-schema-skeleton` · **`1c4588f9`** / `1c4588f952b77e6173acfadf7f3351c311b0cff0`
+**Base**: `origin/feat/mysql-schema-skeleton` · **`4804c3dc`** / `4804c3dc54e696b5f7af17574d21e1bbe68482a4`
 **Authority**: meetwise — L0 docs only · Ban coding · Ban prove execution · Ban live · **Ban Redis cutover** · **Ban MODEL-OP closed claim** · **PG LISTEN retained**
 
 ## One-line
 
-backlog `:74` **GAP-MOP-01**（wakeup 生产仍 LISTEN/NOTIFY `meetwise_worker_wakeup_v1` — Q1 · Redis Streams 仅 flag 关旁路原型 · 拟切片「M3 切流包：flag 默认关→审后开；保留 reconcile」）+ `:95` **BUG-NOTIFY-REC**（lossy NOTIFY · reconcile 未在 sole stack 证明 → 漏唤醒窗口）本刀 docs-only **立卷 wakeup 工作面**：§2a 诚实清单（代码锚实测含「无周期兜底轮询」）+ §2b M3 切流包内容定义（flag 审后开 · 保留 reconcile · wakeup prove 不命名不授权 · 旧 prove 标红/换夹具处置）· **不切流** · **不重复立法 MOP03 六门**（`e29d8f93` 准入合同只读引用 · 未来切流 REQUEST 须同时过六门与本刀切流包内容）· `:74`/`:95` stays **OPEN**。
+backlog `:74` **GAP-MOP-01**（wakeup 生产仍 LISTEN/NOTIFY `meetwise_worker_wakeup_v1` — Q1 · Redis Streams 仅 flag 关旁路原型 · 拟切片「M3 切流包：flag 默认关→审后开；保留 reconcile」）+ `:95` **BUG-NOTIFY-REC**（lossy NOTIFY · reconcile 未在 sole stack 证明 → 漏唤醒窗口）本刀 docs-only **立卷 wakeup 工作面**：§2a 诚实清单（代码锚实测：既有周期兜底扫描实存——drain-loop 周期 tick + 五 consumer loop `WORKER_JOB_RECONCILE_INTERVAL_MS` 默认 5s 认领 + dual reconciler 30s/60s → 漏唤醒 = 有界延迟窗 · **强制 periodic reconcile 未在 sole stack 证明** GAP 仍 OPEN · `main.ts:452` 仅字面事实引用）+ §2b M3 切流包内容定义（flag 审后开 · 保留 reconcile · wakeup prove 不命名不授权 · 旧 prove 标红/换夹具处置）· **不切流** · **不重复立法 MOP03 六门**（`e29d8f93` 准入合同只读引用 · 未来切流 REQUEST 须同时过六门与本刀切流包内容）· `:74`/`:95` stays **OPEN**。
 
 ## Products
 
@@ -40,4 +40,4 @@ attempts 全记录（逐条 EXIT · Asia/Shanghai 时间窗 · code SHA）· 诚
 - Ban self-approve（alone ≠ dual）· Ban 四专家审降级（BUG-REV-COND 对切流持续绑定）
 - Ban SSOT edit（backlog / matrix / checklist / queue 零改）· Ban secrets / `.env*` · Ban Meridian · Ban buy cloud · Ban force-push · **Ban push**
 
-*Slice · MOP01 GAP-MOP-01 :74 wakeup work face + BUG-NOTIFY-REC :95 · `draft:awaiting_pre_exec_dual` · 零 coding · 零 prove 执行 · Ban Redis cutover · Ban MODEL-OP closed · Ban 重复立卷 · PG LISTEN retained · `:74`/`:95` OPEN · alone ≠ dual · STOP（awaiting PRE dual）*
+*Slice · MOP01 GAP-MOP-01 :74 wakeup work face + BUG-NOTIFY-REC :95 · `draft:awaiting_re_pre_exec_dual` · 零 coding · 零 prove 执行 · Ban Redis cutover · Ban MODEL-OP closed · Ban 重复立卷 · PG LISTEN retained · `:74`/`:95` OPEN · alone ≠ dual · STOP（awaiting PRE dual）*
