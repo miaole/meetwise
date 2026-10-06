@@ -1,0 +1,956 @@
+[
+ {
+  "a": "PC-1",
+  "pass_": true,
+  "fails": [],
+  "exit": 0,
+  "pg": "meetwise-e2e-1389328-1791294988481",
+  "start": "2026-10-06T21:56:27,283",
+  "t_perf1": "21:56:42.898",
+  "t_load2": "21:56:43.908",
+  "t0": null,
+  "iv0": null,
+  "marker": "",
+  "unh": 0,
+  "emitted": null,
+  "frames": [],
+  "own_pg": false,
+  "b57": false,
+  "text": null,
+  "dpe": 0,
+  "msgs": [],
+  "form": "PASS",
+  "perf3": true,
+  "seed": false,
+  "s29": false,
+  "j2": "OUT",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": null,
+  "port": [
+   null,
+   null
+  ],
+  "cseq": null,
+  "mutdel": 0
+ },
+ {
+  "a": "PC-2",
+  "pass_": true,
+  "fails": [],
+  "exit": 0,
+  "pg": "meetwise-e2e-1391063-1791295087240",
+  "start": "2026-10-06T21:58:06,058",
+  "t_perf1": "21:58:22.115",
+  "t_load2": "21:58:23.140",
+  "t0": null,
+  "iv0": null,
+  "marker": "",
+  "unh": 0,
+  "emitted": null,
+  "frames": [],
+  "own_pg": false,
+  "b57": false,
+  "text": null,
+  "dpe": 0,
+  "msgs": [],
+  "form": "PASS",
+  "perf3": true,
+  "seed": false,
+  "s29": false,
+  "j2": "OUT",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": null,
+  "port": [
+   null,
+   null
+  ],
+  "cseq": null,
+  "mutdel": 0
+ },
+ {
+  "a": "PC-3",
+  "pass_": true,
+  "fails": [],
+  "exit": 0,
+  "pg": "meetwise-e2e-1392014-1791295112472",
+  "start": "2026-10-06T21:58:31,223",
+  "t_perf1": "21:58:46.734",
+  "t_load2": "21:58:47.785",
+  "t0": null,
+  "iv0": null,
+  "marker": "",
+  "unh": 0,
+  "emitted": null,
+  "frames": [],
+  "own_pg": false,
+  "b57": false,
+  "text": null,
+  "dpe": 0,
+  "msgs": [],
+  "form": "PASS",
+  "perf3": true,
+  "seed": false,
+  "s29": false,
+  "j2": "OUT",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": null,
+  "port": [
+   null,
+   null
+  ],
+  "cseq": null,
+  "mutdel": 0
+ },
+ {
+  "a": "AMUT-1",
+  "pass_": false,
+  "fails": [
+   "A_FATAL_ON_ACTIVE"
+  ],
+  "exit": 1,
+  "pg": "meetwise-e2e-1393172-1791295142853",
+  "start": "2026-10-06T21:59:01,626",
+  "t_perf1": "21:59:16.929",
+  "t_load2": "21:59:18.040",
+  "t0": "21:59:17.046",
+  "iv0": "0",
+  "marker": "INJECT_A phase=seed killed=1 iv_rows=2 iv_nonactive=0 idle_n=19 snap=[{\"pid\" : 124, \"state\" : \"idle in transac",
+  "unh": 1,
+  "emitted": "Client",
+  "frames": [
+   "pg/lib/client.js:417",
+   "pg/lib/client.js:217"
+  ],
+  "own_pg": true,
+  "b57": false,
+  "text": "Error: Connection terminated unexpectedly",
+  "dpe": 0,
+  "msgs": [],
+  "form": "F2",
+  "perf3": false,
+  "seed": false,
+  "s29": false,
+  "j2": "L1/client-side",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": null,
+  "port": [
+   null,
+   null
+  ],
+  "cseq": null,
+  "mutdel": 1
+ },
+ {
+  "a": "AMUT-2",
+  "pass_": false,
+  "fails": [
+   "A_FATAL_ON_ACTIVE"
+  ],
+  "exit": 1,
+  "pg": "meetwise-e2e-1394211-1791295166968",
+  "start": "2026-10-06T21:59:25,661",
+  "t_perf1": "21:59:39.103",
+  "t_load2": "21:59:40.209",
+  "t0": "21:59:39.199",
+  "iv0": "0",
+  "marker": "INJECT_A phase=seed killed=1 iv_rows=25 iv_nonactive=0 idle_n=19 snap=[{\"pid\" : 145, \"state\" : \"idle in transa",
+  "unh": 1,
+  "emitted": "Client",
+  "frames": [
+   "pg/lib/client.js:417",
+   "pg/lib/client.js:217"
+  ],
+  "own_pg": true,
+  "b57": false,
+  "text": "Error: Connection terminated unexpectedly",
+  "dpe": 0,
+  "msgs": [],
+  "form": "F2",
+  "perf3": false,
+  "seed": false,
+  "s29": false,
+  "j2": "L1/client-side",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": null,
+  "port": [
+   null,
+   null
+  ],
+  "cseq": null,
+  "mutdel": 1
+ },
+ {
+  "a": "AMUT-3",
+  "pass_": false,
+  "fails": [
+   "A_FATAL_ON_ACTIVE"
+  ],
+  "exit": 1,
+  "pg": "meetwise-e2e-1395233-1791295189141",
+  "start": "2026-10-06T21:59:47,868",
+  "t_perf1": "22:00:01.330",
+  "t_load2": "22:00:02.439",
+  "t0": "22:00:01.437",
+  "iv0": "0",
+  "marker": "INJECT_A phase=seed killed=1 iv_rows=7 iv_nonactive=0 idle_n=19 snap=[{\"pid\" : 124, \"state\" : \"idle in transac",
+  "unh": 1,
+  "emitted": "Client",
+  "frames": [
+   "pg/lib/client.js:417",
+   "pg/lib/client.js:217"
+  ],
+  "own_pg": true,
+  "b57": false,
+  "text": "Error: Connection terminated unexpectedly",
+  "dpe": 0,
+  "msgs": [],
+  "form": "F2",
+  "perf3": false,
+  "seed": false,
+  "s29": false,
+  "j2": "L1/client-side",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": null,
+  "port": [
+   null,
+   null
+  ],
+  "cseq": null,
+  "mutdel": 1
+ },
+ {
+  "a": "APOST-1",
+  "pass_": false,
+  "fails": [
+   "A_FATAL_ON_ACTIVE"
+  ],
+  "exit": 1,
+  "pg": "meetwise-e2e-1396584-1791295232001",
+  "start": "2026-10-06T22:00:30,774",
+  "t_perf1": "22:00:43.916",
+  "t_load2": "22:00:45.117",
+  "t0": "22:00:44.011",
+  "iv0": "0",
+  "marker": "INJECT_A phase=seed killed=1 iv_rows=1 iv_nonactive=0 idle_n=19 snap=[{\"pid\" : 142, \"state\" : \"idle in transac",
+  "unh": 0,
+  "emitted": null,
+  "frames": [],
+  "own_pg": false,
+  "b57": false,
+  "text": null,
+  "dpe": 1,
+  "msgs": [
+   "Connection terminated unexpectedly"
+  ],
+  "form": "F2",
+  "perf3": false,
+  "seed": true,
+  "s29": false,
+  "j2": "L1/client-side",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": null,
+  "port": [
+   null,
+   null
+  ],
+  "cseq": null,
+  "mutdel": 0
+ },
+ {
+  "a": "APOST-2",
+  "pass_": false,
+  "fails": [
+   "A_FATAL_ON_ACTIVE"
+  ],
+  "exit": 1,
+  "pg": "meetwise-e2e-1397594-1791295253892",
+  "start": "2026-10-06T22:00:52,673",
+  "t_perf1": "22:01:06.110",
+  "t_load2": "22:01:07.230",
+  "t0": "22:01:06.208",
+  "iv0": "0",
+  "marker": "INJECT_A phase=seed killed=1 iv_rows=1 iv_nonactive=0 idle_n=19 snap=[{\"pid\" : 122, \"state\" : \"idle in transac",
+  "unh": 0,
+  "emitted": null,
+  "frames": [],
+  "own_pg": false,
+  "b57": false,
+  "text": null,
+  "dpe": 1,
+  "msgs": [
+   "Connection terminated unexpectedly"
+  ],
+  "form": "F2",
+  "perf3": false,
+  "seed": true,
+  "s29": false,
+  "j2": "L1/client-side",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": null,
+  "port": [
+   null,
+   null
+  ],
+  "cseq": null,
+  "mutdel": 0
+ },
+ {
+  "a": "APOST-3",
+  "pass_": false,
+  "fails": [
+   "A_FATAL_ON_ACTIVE"
+  ],
+  "exit": 1,
+  "pg": "meetwise-e2e-1398557-1791295276071",
+  "start": "2026-10-06T22:01:14,823",
+  "t_perf1": "22:01:28.401",
+  "t_load2": "22:01:29.465",
+  "t0": "22:01:28.523",
+  "iv0": "0",
+  "marker": "INJECT_A phase=seed killed=1 iv_rows=16 iv_nonactive=0 idle_n=19 snap=[{\"pid\" : 146, \"state\" : \"idle in transa",
+  "unh": 0,
+  "emitted": null,
+  "frames": [],
+  "own_pg": false,
+  "b57": false,
+  "text": null,
+  "dpe": 1,
+  "msgs": [
+   "Connection terminated unexpectedly"
+  ],
+  "form": "F2",
+  "perf3": false,
+  "seed": true,
+  "s29": false,
+  "j2": "L1/client-side",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": null,
+  "port": [
+   null,
+   null
+  ],
+  "cseq": null,
+  "mutdel": 0
+ },
+ {
+  "a": "BMUT-1",
+  "pass_": true,
+  "fails": [],
+  "exit": 1,
+  "pg": "meetwise-e2e-1399938-1791295315868",
+  "start": "2026-10-06T22:01:54,667",
+  "t_perf1": "22:02:09.598",
+  "t_load2": "22:02:10.632",
+  "t0": "22:02:09.703",
+  "iv0": "0",
+  "marker": "GATE_BC phase=seed ts_ms=1791295330649 iv_rows=11 iv_nonactive=0 idle_n=19 seed_act=1 ub=109",
+  "unh": 1,
+  "emitted": "BoundPool",
+  "frames": [
+   "pg-pool/index.js:62",
+   "pg/lib/client.js:417"
+  ],
+  "own_pg": false,
+  "b57": true,
+  "text": "error: terminating connection due to administrator command",
+  "dpe": 0,
+  "msgs": [],
+  "form": "F2",
+  "perf3": false,
+  "seed": false,
+  "s29": false,
+  "j2": "B-restart(inject-initiated)",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": 28,
+  "port": [
+   "127.0.0.1:32991",
+   "127.0.0.1:32992"
+  ],
+  "cseq": null,
+  "mutdel": 2
+ },
+ {
+  "a": "BMUT-2",
+  "pass_": true,
+  "fails": [],
+  "exit": 1,
+  "pg": "meetwise-e2e-1401074-1791295339448",
+  "start": "2026-10-06T22:02:18,193",
+  "t_perf1": "22:02:32.076",
+  "t_load2": "22:02:33.082",
+  "t0": "22:02:32.175",
+  "iv0": "0",
+  "marker": "GATE_BC phase=seed ts_ms=1791295353090 iv_rows=5 iv_nonactive=0 idle_n=19 seed_act=1 ub=109",
+  "unh": 1,
+  "emitted": "Client",
+  "frames": [
+   "pg/lib/client.js:417",
+   "pg/lib/client.js:428"
+  ],
+  "own_pg": false,
+  "b57": true,
+  "text": "error: terminating connection due to administrator command",
+  "dpe": 0,
+  "msgs": [],
+  "form": "F2",
+  "perf3": false,
+  "seed": false,
+  "s29": false,
+  "j2": "B-restart(inject-initiated)",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": 28,
+  "port": [
+   "127.0.0.1:32993",
+   "127.0.0.1:32994"
+  ],
+  "cseq": null,
+  "mutdel": 2
+ },
+ {
+  "a": "BMUT-3",
+  "pass_": true,
+  "fails": [],
+  "exit": 1,
+  "pg": "meetwise-e2e-1402233-1791295361924",
+  "start": "2026-10-06T22:02:40,671",
+  "t_perf1": "22:02:56.497",
+  "t_load2": "22:02:57.571",
+  "t0": "22:02:56.605",
+  "iv0": "0",
+  "marker": "GATE_BC phase=seed ts_ms=1791295377578 iv_rows=4 iv_nonactive=0 idle_n=19 seed_act=1 ub=109",
+  "unh": 1,
+  "emitted": "BoundPool",
+  "frames": [
+   "pg-pool/index.js:62",
+   "pg/lib/client.js:417"
+  ],
+  "own_pg": false,
+  "b57": true,
+  "text": "error: terminating connection due to administrator command",
+  "dpe": 0,
+  "msgs": [],
+  "form": "F2",
+  "perf3": false,
+  "seed": false,
+  "s29": false,
+  "j2": "B-restart(inject-initiated)",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": 28,
+  "port": [
+   "127.0.0.1:32995",
+   "127.0.0.1:32996"
+  ],
+  "cseq": null,
+  "mutdel": 2
+ },
+ {
+  "a": "BPOST-1",
+  "pass_": true,
+  "fails": [],
+  "exit": 1,
+  "pg": "meetwise-e2e-1403757-1791295405222",
+  "start": "2026-10-06T22:03:24,005",
+  "t_perf1": "22:03:37.449",
+  "t_load2": "22:03:38.524",
+  "t0": "22:03:37.546",
+  "iv0": "0",
+  "marker": "GATE_BC phase=seed ts_ms=1791295418528 iv_rows=2 iv_nonactive=0 idle_n=19 seed_act=1 ub=84",
+  "unh": 0,
+  "emitted": null,
+  "frames": [],
+  "own_pg": false,
+  "b57": false,
+  "text": null,
+  "dpe": 19,
+  "msgs": [
+   "Connection terminated unexpectedly",
+   "terminating connection due to administrator command"
+  ],
+  "form": "F2",
+  "perf3": false,
+  "seed": true,
+  "s29": false,
+  "j2": "B-restart(inject-initiated)",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": 33,
+  "port": [
+   "127.0.0.1:32997",
+   "127.0.0.1:32998"
+  ],
+  "cseq": null,
+  "mutdel": 0
+ },
+ {
+  "a": "BPOST-2",
+  "pass_": true,
+  "fails": [],
+  "exit": 1,
+  "pg": "meetwise-e2e-1404929-1791295427590",
+  "start": "2026-10-06T22:03:46,311",
+  "t_perf1": "22:04:01.801",
+  "t_load2": "22:04:02.848",
+  "t0": "22:04:01.919",
+  "iv0": "0",
+  "marker": "GATE_BC phase=seed ts_ms=1791295442859 iv_rows=7 iv_nonactive=0 idle_n=19 seed_act=1 ub=84",
+  "unh": 0,
+  "emitted": null,
+  "frames": [],
+  "own_pg": false,
+  "b57": false,
+  "text": null,
+  "dpe": 1,
+  "msgs": [
+   "terminating connection due to administrator command"
+  ],
+  "form": "F2",
+  "perf3": false,
+  "seed": true,
+  "s29": false,
+  "j2": "B-restart(inject-initiated)",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": 28,
+  "port": [
+   "127.0.0.1:32999",
+   "127.0.0.1:33000"
+  ],
+  "cseq": null,
+  "mutdel": 0
+ },
+ {
+  "a": "BPOST-3",
+  "pass_": true,
+  "fails": [],
+  "exit": 1,
+  "pg": "meetwise-e2e-1406403-1791295451650",
+  "start": "2026-10-06T22:04:10,453",
+  "t_perf1": "22:04:24.122",
+  "t_load2": "22:04:25.095",
+  "t0": "22:04:24.216",
+  "iv0": "0",
+  "marker": "GATE_BC phase=seed ts_ms=1791295465102 iv_rows=5 iv_nonactive=0 idle_n=19 seed_act=1 ub=84",
+  "unh": 0,
+  "emitted": null,
+  "frames": [],
+  "own_pg": false,
+  "b57": false,
+  "text": null,
+  "dpe": 12,
+  "msgs": [
+   "Connection terminated unexpectedly",
+   "terminating connection due to administrator command"
+  ],
+  "form": "F2",
+  "perf3": false,
+  "seed": true,
+  "s29": false,
+  "j2": "B-restart(inject-initiated)",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": 25,
+  "port": [
+   "127.0.0.1:33001",
+   "127.0.0.1:33002"
+  ],
+  "cseq": null,
+  "mutdel": 0
+ },
+ {
+  "a": "CMUT-1",
+  "pass_": true,
+  "fails": [],
+  "exit": 1,
+  "pg": "meetwise-e2e-1408024-1791295496669",
+  "start": "2026-10-06T22:04:55,432",
+  "t_perf1": "22:05:08.468",
+  "t_load2": "22:05:09.546",
+  "t0": "22:05:08.587",
+  "iv0": "0",
+  "marker": "GATE_BC phase=seed ts_ms=1791295509552 iv_rows=4 iv_nonactive=0 idle_n=19 seed_act=1 ub=109",
+  "unh": 1,
+  "emitted": "BoundPool",
+  "frames": [
+   "pg-pool/index.js:62",
+   "pg/lib/client.js:417"
+  ],
+  "own_pg": true,
+  "b57": false,
+  "text": "Error: Connection terminated unexpectedly",
+  "dpe": 0,
+  "msgs": [],
+  "form": "F2",
+  "perf3": false,
+  "seed": false,
+  "s29": true,
+  "j2": "L3-sim-temporal-mismatch(die/destroy after first error)",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": 29,
+  "port": [
+   null,
+   null
+  ],
+  "cseq": {
+   "kill9": -9,
+   "die137": 217,
+   "destroy": 798,
+   "inject_cmd_t0": -32
+  },
+  "mutdel": 2
+ },
+ {
+  "a": "CMUT-2",
+  "pass_": true,
+  "fails": [],
+  "exit": 1,
+  "pg": "meetwise-e2e-1409042-1791295517581",
+  "start": "2026-10-06T22:05:16,354",
+  "t_perf1": "22:05:28.800",
+  "t_load2": "22:05:29.752",
+  "t0": "22:05:28.904",
+  "iv0": "0",
+  "marker": "GATE_BC phase=seed ts_ms=1791295529758 iv_rows=4 iv_nonactive=0 idle_n=19 seed_act=1 ub=109",
+  "unh": 1,
+  "emitted": "BoundPool",
+  "frames": [
+   "pg-pool/index.js:62",
+   "pg/lib/client.js:417"
+  ],
+  "own_pg": true,
+  "b57": false,
+  "text": "Error: Connection terminated unexpectedly",
+  "dpe": 0,
+  "msgs": [],
+  "form": "F2",
+  "perf3": false,
+  "seed": false,
+  "s29": true,
+  "j2": "L3-sim-temporal-mismatch(die/destroy after first error)",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": 25,
+  "port": [
+   null,
+   null
+  ],
+  "cseq": {
+   "kill9": -8,
+   "die137": 177,
+   "destroy": 757,
+   "inject_cmd_t0": -28
+  },
+  "mutdel": 2
+ },
+ {
+  "a": "CMUT-3",
+  "pass_": true,
+  "fails": [],
+  "exit": 1,
+  "pg": "meetwise-e2e-1410066-1791295537740",
+  "start": "2026-10-06T22:05:36,491",
+  "t_perf1": "22:05:48.841",
+  "t_load2": "22:05:49.811",
+  "t0": "22:05:48.935",
+  "iv0": "0",
+  "marker": "GATE_BC phase=seed ts_ms=1791295549834 iv_rows=13 iv_nonactive=0 idle_n=20 seed_act=1 ub=109",
+  "unh": 1,
+  "emitted": "BoundPool",
+  "frames": [
+   "pg-pool/index.js:62",
+   "pg/lib/client.js:417"
+  ],
+  "own_pg": false,
+  "b57": true,
+  "text": "error: terminating connection due to unexpected postmaster exit",
+  "dpe": 0,
+  "msgs": [],
+  "form": "F2",
+  "perf3": false,
+  "seed": false,
+  "s29": true,
+  "j2": "L3-sim-temporal-mismatch(die/destroy after first error)",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": 25,
+  "port": [
+   null,
+   null
+  ],
+  "cseq": {
+   "kill9": -8,
+   "die137": 186,
+   "destroy": 725,
+   "inject_cmd_t0": -28
+  },
+  "mutdel": 2
+ },
+ {
+  "a": "CPOST-1",
+  "pass_": false,
+  "fails": [
+   "J2_NOT_L3SIM(L3-sim-temporal-mismatch(die/destroy after first error))"
+  ],
+  "exit": 1,
+  "pg": "meetwise-e2e-1411453-1791295585569",
+  "start": "2026-10-06T22:06:24,341",
+  "t_perf1": "22:06:37.004",
+  "t_load2": "22:06:38.196",
+  "t0": "22:06:37.130",
+  "iv0": "0",
+  "marker": "GATE_BC phase=seed ts_ms=1791295598201 iv_rows=2 iv_nonactive=0 idle_n=19 seed_act=1 ub=109",
+  "unh": 0,
+  "emitted": null,
+  "frames": [],
+  "own_pg": false,
+  "b57": false,
+  "text": null,
+  "dpe": 12,
+  "msgs": [
+   "Connection terminated unexpectedly",
+   "terminating connection due to unexpected postmaster exit"
+  ],
+  "form": "F2",
+  "perf3": false,
+  "seed": true,
+  "s29": true,
+  "j2": "L3-sim-temporal-mismatch(die/destroy after first error)",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": 40,
+  "port": [
+   null,
+   null
+  ],
+  "cseq": {
+   "kill9": -5,
+   "die137": 175,
+   "destroy": 636,
+   "inject_cmd_t0": -40
+  },
+  "mutdel": 0
+ },
+ {
+  "a": "CPOST-2",
+  "pass_": false,
+  "fails": [
+   "J2_NOT_L3SIM(L3-sim-temporal-mismatch(die/destroy after first error))"
+  ],
+  "exit": 1,
+  "pg": "meetwise-e2e-1412475-1791295606262",
+  "start": "2026-10-06T22:06:45,084",
+  "t_perf1": "22:06:59.086",
+  "t_load2": "22:07:00.049",
+  "t0": "22:06:59.195",
+  "iv0": "0",
+  "marker": "GATE_BC phase=seed ts_ms=1791295620054 iv_rows=2 iv_nonactive=0 idle_n=19 seed_act=1 ub=109",
+  "unh": 0,
+  "emitted": null,
+  "frames": [],
+  "own_pg": false,
+  "b57": false,
+  "text": null,
+  "dpe": 14,
+  "msgs": [
+   "Connection terminated unexpectedly"
+  ],
+  "form": "F2",
+  "perf3": false,
+  "seed": true,
+  "s29": true,
+  "j2": "L3-sim-temporal-mismatch(die/destroy after first error)",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": 28,
+  "port": [
+   null,
+   null
+  ],
+  "cseq": {
+   "kill9": -2,
+   "die137": 213,
+   "destroy": 694,
+   "inject_cmd_t0": -24
+  },
+  "mutdel": 0
+ },
+ {
+  "a": "CPOST-3",
+  "pass_": false,
+  "fails": [
+   "J2_NOT_L3SIM(L3-sim-temporal-mismatch(die/destroy after first error))"
+  ],
+  "exit": 1,
+  "pg": "meetwise-e2e-1413508-1791295628089",
+  "start": "2026-10-06T22:07:06,908",
+  "t_perf1": "22:07:19.618",
+  "t_load2": "22:07:20.590",
+  "t0": "22:07:19.715",
+  "iv0": "0",
+  "marker": "GATE_BC phase=seed ts_ms=1791295640590 iv_rows=1 iv_nonactive=0 idle_n=19 seed_act=1 ub=109",
+  "unh": 0,
+  "emitted": null,
+  "frames": [],
+  "own_pg": false,
+  "b57": false,
+  "text": null,
+  "dpe": 13,
+  "msgs": [
+   "Connection terminated unexpectedly"
+  ],
+  "form": "F2",
+  "perf3": false,
+  "seed": true,
+  "s29": true,
+  "j2": "L3-sim-temporal-mismatch(die/destroy after first error)",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": 28,
+  "port": [
+   null,
+   null
+  ],
+  "cseq": {
+   "kill9": -4,
+   "die137": 209,
+   "destroy": 669,
+   "inject_cmd_t0": -27
+  },
+  "mutdel": 0
+ },
+ {
+  "a": "R1-1",
+  "pass_": true,
+  "fails": [],
+  "exit": 0,
+  "pg": "meetwise-e2e-1414872-1791295671138",
+  "start": "2026-10-06T22:07:49,950",
+  "t_perf1": "22:08:02.703",
+  "t_load2": "22:08:03.710",
+  "t0": null,
+  "iv0": null,
+  "marker": "",
+  "unh": 0,
+  "emitted": null,
+  "frames": [],
+  "own_pg": false,
+  "b57": false,
+  "text": null,
+  "dpe": 0,
+  "msgs": [],
+  "form": "PASS",
+  "perf3": true,
+  "seed": false,
+  "s29": false,
+  "j2": "OUT",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "D": null,
+  "port": [
+   null,
+   null
+  ],
+  "cseq": null,
+  "mutdel": 0
+ }
+]

@@ -1,0 +1,85 @@
+{
+ "cell": "A-POST",
+ "attempt": "APOST-1",
+ "pass": false,
+ "fails": [
+  "A_FATAL_ON_ACTIVE"
+ ],
+ "obs": {
+  "prove_exit": 1,
+  "unhandled_n": 0,
+  "emitted_on": null,
+  "emitted_at_pg_frames": [],
+  "block_pg_frame": false,
+  "own_stack_pg_frame": false,
+  "block_57P01": false,
+  "unhandled_text": null,
+  "db_pool_error_n": 1,
+  "db_pool_error_msgs": [
+   "Connection terminated unexpectedly"
+  ],
+  "summary": false,
+  "allPass_true": false,
+  "cmd_exit0_line": false,
+  "perf_run3_line": false,
+  "seedAbandonTargets_in_log": true,
+  "state29": false,
+  "form": "F2",
+  "CTU_present": true,
+  "t_first_error": 1791295245123,
+  "pg_events": [
+   [
+    "create",
+    1791295233342,
+    null,
+    null
+   ],
+   [
+    "start",
+    1791295233665,
+    null,
+    null
+   ],
+   [
+    "kill",
+    1791295246774,
+    "9",
+    null
+   ],
+   [
+    "die",
+    1791295246938,
+    null,
+    "137"
+   ],
+   [
+    "destroy",
+    1791295247494,
+    null,
+    null
+   ]
+  ],
+  "pg_teardown_before_first_error": [],
+  "foreign_emit_proc_lines": 0,
+  "J2": "L1/client-side",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "mut_deletions": 0,
+  "psql_exit": 0,
+  "gate_loop_start": [
+   [
+    "1791295244011",
+    "0"
+   ]
+  ],
+  "t_load2": 1791295245117,
+  "t_perf1": 1791295243916,
+  "marker": [
+   "INJECT_A phase=seed killed=1 iv_rows=1 iv_nonactive=0 idle_n=19 snap=[{\"pid\" : 142, \"state\" : \"idle in transaction\", \"xact_start\" : \"2026-10-06T14:00:45.11743+00:00\", \"q\" : \"SELECT id, (units_total - units_reserved - units_consumed) A\"}]"
+  ]
+ }
+}

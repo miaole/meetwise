@@ -1,0 +1,45 @@
+PERF run2: p50=18.2 p95=56.2 p99=68.9 err=0 timeout=0 passed=true
+LOAD run2: p50=35.5 p95=101.0 p99=116.4 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
+node:events:502
+      throw er; // Unhandled 'error' event
+      ^
+
+error: terminating connection due to administrator command
+    at parseErrorMessage (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:305:11)
+    at Parser.handlePacket (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:143:27)
+    at Parser.parse (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:37:38)
+    at Socket.<anonymous> (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/index.js:12:42)
+    at Socket.emit (node:events:524:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at TCP.onStreamRead (node:internal/stream_base_commons:191:23)
+Emitted 'error' event on Client instance at:
+    at Client._handleErrorEvent (node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:417:10)
+    at Client._handleErrorMessage (node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:428:12)
+    at Connection.emit (node:events:524:28)
+    at node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/connection.js:136:12
+    at Parser.parse (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/parser.js:38:17)
+    at Socket.<anonymous> (node_modules/.pnpm/pg-protocol@1.15.0/node_modules/pg-protocol/dist/index.js:12:42)
+    [... lines matching original stack trace ...]
+    at TCP.onStreamRead (node:internal/stream_base_commons:191:23) {
+  length: 116,
+  severity: 'FATAL',
+  code: '57P01',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'postgres.c',
+  line: '3286',
+  routine: 'ProcessInterrupts'
+}
+
+Node.js v20.20.2

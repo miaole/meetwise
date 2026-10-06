@@ -1,0 +1,39 @@
+{
+  "inject": "B",
+  "ub": 84,
+  "cmd": "./scripts/with-docker-session.sh env -u MODEL_API_KEY -u MODEL_BASE_URL pnpm uc018:perf-load:prove",
+  "t_start": 1791295427000,
+  "pg": "meetwise-e2e-1404929-1791295427590",
+  "t_perf1": 1791295441801,
+  "t_inject_spawn": 1791295441801,
+  "port_before": {
+    "cmd": "docker port meetwise-e2e-1404929-1791295427590 5432/tcp",
+    "exit": 0,
+    "stdout": "127.0.0.1:32999\n",
+    "stderr": "",
+    "t0": 1791295441802,
+    "t1": 1791295441818
+  },
+  "t_load2": 1791295442848,
+  "t_gate_marker": 1791295442860,
+  "psql_exit": 0,
+  "t_psql_close": 1791295442863,
+  "inject_cmd": {
+    "cmd": "docker restart -t 0 meetwise-e2e-1404929-1791295427590",
+    "exit": 0,
+    "stdout": "meetwise-e2e-1404929-1791295427590\n",
+    "stderr": "",
+    "t0": 1791295442863,
+    "t1": 1791295443310
+  },
+  "port_after": {
+    "cmd": "docker port meetwise-e2e-1404929-1791295427590 5432/tcp",
+    "exit": 0,
+    "stdout": "127.0.0.1:33000\n",
+    "stderr": "",
+    "t0": 1791295443310,
+    "t1": 1791295443327
+  },
+  "prove_exit": 1,
+  "t_end": 1791295445386
+}

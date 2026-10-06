@@ -1,0 +1,7 @@
+ps_before rows=0
+run_exit=0 cid_ok=1 name=meetwise-e2e-r2pool-1415688-1791295691771
+port_exit=0 port_ok=1 port=127.0.0.1:33010
+pg_isready_consecutive=3
+R2_EXIT=0
+rm_exit=0 rm_ok=1
+ps_after rows=0

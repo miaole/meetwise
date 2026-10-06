@@ -1,0 +1,27 @@
+
+> meetwise@0.1.0 uc018:perf-load:prove /workspace/meetwise-wt-an-perf-coding
+> node scripts/run-e2e-isolated.mjs uc018:perf-load:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_RESOURCE_CAPS target=uc018:perf-load:prove:raw docker_args=--cpus 2 --memory 4g
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-1414872-1791295671138 on 127.0.0.1:33009
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+UC018_CAPS pg container=meetwise-e2e-1414872-1791295671138 NanoCpus=2000000000 Memory=4294967296 ok=true
+UC018_CAPS written enforced=true api NanoCpus=2000000000 Memory=4294967296
+UC-E2E-018 PERF/LOAD prove · NHP-018-PERF-01 + NHP-018-LOAD-01
+NOTE: Method freeze nearest-rank · timeout=10s=error · warmup=10 · runs=3 · caps Docker 2cpu/4GiB
+NOTE: local ≠ production capacity ≠ HA · PERF/LOAD partial ≠ UC covered · §1.1 stays partial
+fatal: not a git repository: /workspace/projects/meetwise/.git/worktrees/meetwise-wt-an-perf-coding
+PERF run1: p50=24.9 p95=67.6 p99=86.5 err=0 timeout=0 passed=true
+LOAD run1: p50=54.6 p95=181.9 p99=187.0 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
+PERF run2: p50=16.2 p95=48.6 p99=104.9 err=0 timeout=0 passed=true
+LOAD run2: p50=33.5 p95=85.1 p99=96.6 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
+PERF run3: p50=18.0 p95=44.7 p99=55.6 err=0 timeout=0 passed=true
+LOAD run3: p50=32.7 p95=119.1 p99=125.7 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
+
+SUMMARY allPass=true capsEnforced=true
+CMD=pnpm uc018:perf-load:prove EXIT=0
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-06T14-08-06-545Z-1414872-42589085-28ac-493d-a0fb-d09fb0423d7d.json release_evidence=false
+RAW_EXIT=0
