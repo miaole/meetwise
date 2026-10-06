@@ -126,6 +126,23 @@ GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
     ADD COLUMN IF NOT EXISTS job_id text
 `);
 
+  // interview_job v64 surface (0064 deltas) — sql/05 still pins CHECK=50; enqueue uses version 64.
+  // Stub columns/constraint only (≠ full 0064 trigger covered). Required so F5 no-quiz-id can reach 202.
+  await pool.query(`
+  ALTER TABLE interview_job
+    ADD COLUMN IF NOT EXISTS resume_privacy_epoch bigint;
+  ALTER TABLE interview_job
+    ALTER COLUMN reference_schema_version SET DEFAULT 64;
+  ALTER TABLE interview_job
+    DROP CONSTRAINT IF EXISTS interview_job_reference_schema_version_check;
+  ALTER TABLE interview_job
+    DROP CONSTRAINT IF EXISTS interview_job_reference_schema_version_chk;
+  ALTER TABLE interview_job
+    ADD CONSTRAINT interview_job_reference_schema_version_chk
+    CHECK (reference_schema_version IS NULL OR reference_schema_version IN (49, 50, 64));
+`);
+  console.log('PIN   GAP-UC025-FAULT-ISO-JOB-SCHEMA-STUB: interview_job resume_privacy_epoch + v64 check (≠ 0064 triggers covered)');
+
   // C-3: print live anchor column evidence from isolated schema (sql/20 mirror carries expires_at)
   const col = await pool.query(`
     SELECT column_name, data_type, udt_name
@@ -255,7 +272,7 @@ GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
     ];
     let chosen: { label: string; sql: string; raw: unknown; expiryMs: number } | null = null;
     for (const c of candidates) {
-      const probeId = `${qz}_probe_${c.label.replace(/[^a-z]/gi, '')}`;
+      const probeId = `${qz}_probe_${c.label.replace(/[^a-z0-9]+/gi, '_')}`;
       try {
         await pool.query(
           `INSERT INTO resume_quiz(id, owner_user_id, status, expires_at)
