@@ -166,7 +166,7 @@ GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
       [interviewId],
     );
     const cons = await pool.query(
-      'SELECT count(*)::int n FROM entitlement_consumption WHERE owner_user_id=$1 AND interview_id=$2',
+      'SELECT count(*)::int n FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2',
       [OWNER, interviewId],
     );
     const bucket = await pool.query(
