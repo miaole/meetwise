@@ -9,7 +9,7 @@
 **Lineage**: `85a4925` → `95ddd88` → `cbe6fd2a` → `2366319b`（all ancestors verified on `origin/feat/mysql-schema-skeleton`）
 **Docs-only**: `git diff --name-only 85a4925..2366319b -- scripts packages apps` = empty · per-commit product-path count = 0/0/0 · wave paths under `ai-docs/` only
 **Reviewer**: `mw-e2e-ha` · Meetwise only · Never Meridian · Ban coding product · Ban nail · Ban invent covered/HA · Ban wash · Ban covered flip · Ban invent prove · Ban close CONDITION via docs · Ban AN-CIMG-EA · Ban buy cloud · releaseEvidence=false · claimProductionHA=false · NOT_HA forever
-**Peer**: mw-rag-route stub `REQUEST-2026-10-06-ao-cond35-a-residual-honesty-mw-rag-route.md` still **PENDING** / `draft:awaiting_pre_exec_dual` · **cited not co-signed** · alone ≠ dual · 本审不代签 peer · 不构成 dual
+**Peer**: mw-rag-route PRE PASS `e4ad95887b9090b7ce398363e18b66b982a4b6ed`（`e4ad9588`）@ tip `2366319b` · **cited not co-signed** · alone ≠ dual · 本审独立对抗复核 · 不代签 peer · alone ≠ dual · 不构成 dual · **不** AUTHORIZE
 **审查基**: `/workspace/meetwise` @ tip `2366319b` · 只读对抗复核 · 无 prove / 无 docker · 未读 `.env*` · 无 live · 未改 shared git config · Ban coding · Ban invent prove/covered/HA
 **Scope**: PRE / docs gate only · Ban coding · Ban prove · Ban nail · Ban wash · Ban covered flip · Ban invent covered/HA · Ban close `:35` via docs · HOLD AN-CIMG-EA · Ban buy cloud · Never Meridian · NO new knives · queue ≠ AUTHORIZE
 
@@ -27,7 +27,7 @@ NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true ·
 | Per-commit product quiet (`95ddd88`/`cbe6fd2a`/`2366319b`) | ✓ 0/0/0 |
 | REQUEST `95ddd88` files | harness · slice · backlog `:35` additive · checklist additive · matrix additive · 两 stubs · **无产品码** |
 | Companion `cbe6fd2a`+`2366319b` | `REMAINING-NORTH-STAR-QUEUE.md` + NORTH-STAR-EXECUTION-LOOP pointer · **NOT** second REQUEST |
-| Status harness/slice | `draft:awaiting_pre_exec_dual` · stubs PENDING（peer 仍 PENDING） |
+| Status harness/slice | `draft:awaiting_pre_exec_dual` · own stub rewritten this PRE · peer PRE PASS `e4ad9588` cited not co-signed |
 | Slice path note | slice at `ai-docs/delivery/ao-cond35-a-residual-honesty.slice.md`（not under harness/）· harness cites correctly |
 
 ## 1. Honesty MUST checks
@@ -89,7 +89,7 @@ NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true ·
 
 **无阻塞。**
 
-Checked：tip docs-only honesty · A residual UNPROVEN explicit · `:35` OPEN with CC-1..CC-6 named · Ban close-via-docs · queue SSOT-not-authorize · pins held · product paths quiet · peer stub PENDING cited not co-signed · no wash / no covered flip / no invent prove / no fake green.
+Checked：tip docs-only honesty · A residual UNPROVEN explicit · `:35` OPEN with CC-1..CC-6 named · Ban close-via-docs · queue SSOT-not-authorize · pins held · product paths quiet · peer PRE PASS `e4ad9588` cited not co-signed · no wash / no covered flip / no invent prove / no fake green.
 
 ## 4. Spot-check list（只读）
 
@@ -103,12 +103,12 @@ Checked：tip docs-only honesty · A residual UNPROVEN explicit · `:35` OPEN wi
 - matrix AO additive note · coveredCount=8 · UC-018 partial · Ban CONDITION closed
 - queue Phase 0–8 denser refine vs `cbe6fd2a` · Ban close via queue alone · ≠ AUTHORIZE
 - NORTH-STAR-EXECUTION-LOOP companion pointer update only
-- peer stub mw-rag-route still PENDING · alone ≠ dual · 不代签
+- peer mw-rag-route PRE PASS `e4ad9588` / `e4ad95887b9090b7ce398363e18b66b982a4b6ed` · cited not co-signed · alone ≠ dual · 不代签
 - prior re-PRE structure cite `REQUEST-2026-10-06-an-perf-tear-rewrite6-re-pre-mw-e2e-ha.md`（形制参考 · 非 wash）
 
 ## 5. Conclusion bans
 
-Tip `2366319b` docs-only honesty **holds**. Inject A 57P01/idle-in-txn **UNPROVEN** explicit. backlog `:35` **CONDITION OPEN** with named closing criteria CC-1..CC-6（not met now）. Companion queue Phase 0–8 = SSOT only · ≠ AUTHORIZE next knives · pins/coveredCount untouched. Product paths quiet. No wash · no close-via-docs · no covered flip · no invent prove/covered/HA. Peer stub PENDING · alone ≠ dual · 本审不代签 · **不** AUTHORIZE coding/prove/nail.
+Tip `2366319b` docs-only honesty **holds**. Inject A 57P01/idle-in-txn **UNPROVEN** explicit. backlog `:35` **CONDITION OPEN** with named closing criteria CC-1..CC-6（not met now）. Companion queue Phase 0–8 = SSOT only · ≠ AUTHORIZE next knives · pins/coveredCount untouched. Product paths quiet. No wash · no close-via-docs · no covered flip · no invent prove/covered/HA. Peer PRE PASS `e4ad9588` cited not co-signed · alone ≠ dual · 本审不代签 · **不** AUTHORIZE coding/prove/nail.
 
 Ban coding · Ban prove · Ban nail · Ban self-approve · Ban wash P-HOLD into CONDITION close · Ban wash af9664a / attempt1 @`b29c191` · Ban covered flip / invent covered · Ban invent prove · Ban claim A proven · Ban close `:35` via docs · Ban claim HA / claimProductionHA · Ban buy cloud · HOLD AN-CIMG-EA · Never Meridian · releaseEvidence=false · NOT_HA forever · coveredCount=8 · gR45Closed=true · ms3EqualsR4Closed=false · g7SuiteGreen=false · PG-retained · DELETE=503 · CONDITION `:35` OPEN · alone ≠ dual · 本审**不** AUTHORIZE。
 
