@@ -89,3 +89,11 @@ Not a pass · not run · not suite green · not trio green · not fixed · not R
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · `g7SuiteGreen=false` · Disclosure-1 OPEN · R1 OPEN · STOP
 
 *Harness · G7 Key-blocked residual honest receipts · Line AD · 2026-10-06 · draft:awaiting_pre_exec_dual · docs-only · Ban coding · Ban g7SuiteGreen=true · Ban live · Ban buy cloud · Ban Meridian · Ban washing Key-blocked as pass · STOP*
+
+---
+
+## Execution addendum（Line AD · 2026-10-06 · additive · lines above unchanged so PRE-review line cites stay valid）
+
+**Label rename（C-MO-AD-6 · AUTHORIZE cond. 3）**: in all execution receipts the §2 products **R1–R5 are labelled P1–P5**（R1→P1 Key-gate cite · R2→P2 residual table · R3→P3 re-attest ×1 · R4→P4 unlock ledger · R5→P5 SUMMARY）. **P1-product ≠ gate R1**; gate R1 stays **OPEN**; "R1/P1 done" must never be read as gate R1 closed.
+
+Executed per coordinator AUTHORIZE（PRE BOTH PASS: mw-e2e-ha `f215438` · REQUEST `f32f56d` · mw-model-op `2d422c1`）: Branch A + B′ · exec HEAD `880f144` · trio EXIT **1/1/1** Key-blocked · receipts `ai-docs/delivery/receipts/g7-key-blocked-residual-honest/` · `g7SuiteGreen=false` · Disclosure-1/R1 OPEN · coveredCount=8 · 0 model calls · awaiting POST dual · Ban self-nail.
