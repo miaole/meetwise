@@ -710,3 +710,86 @@ mw-e2e-ha re-PRE6 **PASS** `bb2e866a4aaaf369f65602de582ce37e61a67a78`（22:46:28
 **SKIP（docs gate · 0 次）**：无 docker / 无 pnpm prove；余量自已提交 `events.jsonl` 计算。
 
 Verdict: PASS
+
+## POST @85b9261
+
+**审查方**: mw-rag-route（独立单方 · alone ≠ dual · **不代签** mw-e2e-ha）· **审时**: 2026-10-06 23:22 +08:00 · tip `85b9261` · 临时 worktree `/tmp/mwrr-perf-post6`（审后删除）
+**输入**: PROVE `85b92613db75804b2cc4e1b2e8fea7a35786ce17`（23:17:22 +08:00）· CODE `eae9fed1c81edf9231f7b3372c997f5501871c1c`（lineage `7059d1f`→`c6b613d`→`eae9fed`）· REQUEST `f76fcff` · PRE BOTH：本方 Re-PRE6 `a752ffc` + peer `bb2e866` · 窗口 23:06:19 → 23:14:37 +08:00
+**范围**: 对抗核验已提交原始日志 / verdict / events · Ban prove 复跑（配额 · 日志无歧义）
+
+### 0. 结论先行
+
+- **Verdict: PASS**（×6 **合约门控**意义 · 单方 · ≠ dual · ≠ nail · ≠ 关 CONDITION · ≠ covered · ≠ HA）。
+- 门控格 PC + B-MUT + B-POST + C-MUT + C-POST 全部 3/3 · 全部 POST inject（含 A-POST）**0 Unhandled** · A-MUT/A-POST 诊断 FAIL×3 如实 · 签名未 drop/swap。
+- `principal.ts` 零改（P-HOLD）· `af9664a` **未**重判为 PASS · CONDITION `:35` **OPEN** · A 钉定路径 **unproven**。
+
+### 1. CODE eae9fed（×6 实现）
+
+| 检查 | 证据 | 本审 |
+|---|---|---|
+| analyze.py ×6 J-2 | `harness-tools/analyze.py:59-74`：`W_DIE=500` · `W_DESTROY=2000` · `Tk=t_kill<t_err` · `Td=t_kill<t_die≤t_kill+500` · `Tx=t_die<t_destroy≤t_die+2000`；`:194-201` 标记 `J2_KILL_NOT_BEFORE_ERROR` / `J2_POSTKILL_WINDOW_EXCEEDED`；旧 temporal-mismatch 删除 | ✓ |
+| 容器过滤 | `:55` `Actor.Attributes.name == pg`（本 run PG 名） | ✓ |
+| L3 IN 可达 | `:95-103`：`Tk ∧ postkill_ok` 后按发起者分 L3-sim / **L3 IN**（`foreign_emit`）/ EXTERNAL-OTHER；有 Tk **不得**落 L1（`:90-91`） | ✓ |
+| foreign_emit 过滤（eae9fed） | `:77-84`：忽略 `pgrep…uc018-receipt-backfill-emit` 与 `C-b_smoke` 行 | ✓（contam 对照见下） |
+| sg docker（c6b613d） | `attempt.sh`/`cell.sh`/`lcli.sh`/`r2.sh` `MW_SG_DOCKER` → `sg docker` 重入 | ✓ |
+| `principal.ts` | `git diff --quiet f76fcff 85b9261 -- packages/db/src/principal.ts` → EXIT **0**；`f76fcff..eae9fed` 仅 `harness-tools/*` | ✓ |
+| 污染首跑 | README `:21`：`.tmp/an-perf-tear-contam-20261006T2305`（@`c6b613d` · hung C-b smoke 致 **CMUT false L3 IN** foreign≈22）· **不**入本收据 attempts · Ban wash | ✓ 独立核验 contam CMUT-1..3 `J2=L3 IN`；本收据 CMUT `J2=L3-sim` foreign=0 |
+
+### 2. 原始日志 vs 声明（逐格）
+
+| 格 | EXIT | Unhandled | 关键签名 / verdict | 本审 |
+|---|---|---|---|---|
+| PC 1..3 | 0/0/0 | 0 | `SUMMARY allPass=true` · J2 OUT · pass=true | 3/3 ✓ |
+| A-MUT | 1/1/1 | 0/1/1 | AMUT-1 `NO_UNHANDLED`（mut 1 del · inject killed=1 · idle-in-tx）· AMUT-2/3 `A_FATAL_ON_ACTIVE` Emitted Client · **诊断 FAIL** | FAIL×3 如实 |
+| A-POST | 1/1/1 | **0/0/0** | `A_FATAL_ON_ACTIVE`×3 · dpe=1 仅 CTU · **无 57P01** · 零 Unhandled **满足门控** | FAIL×3 诊断 |
+| B-MUT | 1/1/1 | 1/1/1 BoundPool | dpe=0 · J2 B-restart | 3/3 ✓ |
+| B-POST | 1/1/1 | 0 | dpe 7/17/2 · F2 ∧ 无 `^PERF run3:` ∧ seedAbandonTargets · ub=`U_B=79`（`L_cli=21`） | 3/3 ✓ |
+| C-MUT | 1/1/1 | 1 BoundPool | state29 · **L3-sim** | 3/3 ✓ |
+| C-POST | 1/1/1 | 0 | dpe 13/9/1 · state29 · **L3-sim** · 无 `J2_KILL_NOT_BEFORE_ERROR` / `J2_POSTKILL_WINDOW_EXCEEDED` | 3/3 ✓ |
+| R1 | 0 | 0 | SUMMARY · J2 OUT | ✓ |
+| R2 | 0 | — | `r2.log` **11×PASS** + `CMD=… EXIT=0` · aux `R2_EXIT=0` | 11/11 ✓ |
+| R3 | 0 | — | `R3.log` `CMD=pnpm uc018:receipt-backfill:prove EXIT=0` | ✓ |
+
+**POST Unhandled 合计 = 0**（APOST+BPOST+CPOST 9 次 · 逐 `prove.log`/`verdict` 一致）。
+
+**C-POST 窗口（本审自 `events.jsonl` 按容器名重算）**：
+
+| attempt | kill−err | kill→die | die→destroy | Tk | Td≤500 | Tx≤2000 |
+|---|---:|---:|---:|---|---|---|
+| CPOST-1 | −4 | **185** | **465** | ✓ | ✓ | ✓ |
+| CPOST-2 | −4 | **198** | **462** | ✓ | ✓ | ✓ |
+| CPOST-3 | −4 | **210** | **450** | ✓ | ✓ | ✓ |
+
+与 README 声称 185/198/210 · 465/462/450 **逐字一致**。`J2_old_all_before_error=false`×3 → **旧谓词仍不过**；过格全靠 ×6。C-MUT kill→die 243/215/198 · destroy-die 543/482/513 亦落窗。
+
+### 3. KEY RULING i/ii/iii（自 `a752ffc` · prove 时仍成立）
+
+| # | 要件 | 证据 | 本审 |
+|---|---|---|---|
+| **(i)** `af9664a` 不重判 PASS · 本 prove 为 ×6 新跑 | README `:15`「Ban wash/rejudge `af9664a`」· harness `:25` 不追溯 · 历史 POST FAIL `4803616` 段仍在本文件 | ✓ |
+| **(ii)** A 路径 unproven · CONDITION OPEN · 无根因已修宣称 | README `:56`「A 57P01-on-idle-in-tx pin path **unproven**」· backlog `:35` `git diff --quiet f76fcff 85b9261` EXIT 0 仍 OPEN · Ban nail / Ban covered flip | ✓ |
+| **(iii)** A-POST 零 Unhandled 门控且命中 | harness `:200`/`:223` · APOST 3/3 unh=0 · P-HOLD 门控未破 | ✓ |
+
+A 签名：`A_FATAL_ON_ACTIVE` / `NO_UNHANDLED` 仍计 FAIL · Ban drop/swap · 非门控。
+
+### 4. 已证 vs 仍 OPEN
+
+**已证（×6 合约门控）**：P-HOLD 触发条件未满足（0 POST Unhandled）· B/C MUT↔POST 判别力 · C-POST L3-sim 在 kill-anchor 谓词下可达 · PC/R1/R2/R3 EXIT 0 · `principal.ts` 未触。
+
+**仍 OPEN / 未证**：A 钉定路径（57P01 on idle-in-tx）· attempt1 @`b29c191` 根因归因（J-3 ≠ 证明 attempt1 由 L3）· CONDITION `:35` · HA · covered（coveredCount=8）· UC-018 partial。
+
+**Ban** wash · Ban covered flip · Ban nail until POST **BOTH**（peer POST @85b9261 尚未落仓）。
+
+### 5. Pins
+
+NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503 · HOLD AN-CIMG-EA · gap ≠ covered · UC-018 / §1.1 partial。
+
+### 6. Peer
+
+mw-e2e-ha **POST @85b9261：审时未落仓**（`git log 85b9261..origin` 空 · 无新 `*post*` 指向本 PROVE）。历史 POST `1d9d3ac` @af9664a **不**延用。alone ≠ dual。
+
+### 7. 复跑
+
+**SKIP（0 次）**：已提交 raw logs / events / verdict 足以逐格核验 · 无歧义 · 配额收尾。未执行 docker/pnpm prove · 未触 `uc018-receipt-backfill-emit.mjs`。
+
+Verdict: PASS
