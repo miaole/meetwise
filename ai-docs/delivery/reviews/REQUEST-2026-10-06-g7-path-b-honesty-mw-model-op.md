@@ -113,3 +113,75 @@ Trio stays **OPEN 1/1/1**. `g7SuiteGreen=false`. `r1Closed=false`. Disclosure-1 
 - Fail-trigger 全否 · Blockers 无 · 附 Conditions C-1~C-5；本 PASS 仅 mw-model-op 半签（alone ≠ dual），mw-e2e-ha stub 仍 PENDING 不代签。
 
 Verdict: PASS
+
+---
+
+## POST-PROVE dual 审查（mw-model-op · 2026-10-07 · append-only）
+
+**Reviewer**: `mw-model-op` · **Worktree**: `/Users/miaole/Desktop/golucky/meetwise-rv-g7bp-model-op` · branch `rv/g7bp-model-op`（自 `line/g7b-path-b-honesty` 切出）
+**被审 tip**: `ef7a63e4eeef6f1b1ba4241f72fe6625a4fedb06`（`docs(delivery): G7B exec …` · origin 镜像 `b6caa6aa` 同 2 文件 blob `d278e5c3`/`741043af` 同 +15/−10）· parent = `d5e6f7e6`（MOP03 exec · base 重钉落点）· 区间 `d5e6f7e6..ef7a63e4` 恰 1 commit
+**审查性质**: 分类刀 **POST-PROVE dual**（无 prove）——复验对象 = exec 的 lifecycle 推进与铁律兑现，非重审分类正文；mw-e2e-ha 的 POST 审并行进行，本审查看不到、也不代签（alone ≠ dual）
+**审查者纪律自证**: 零模型调用 · 零 trio/prove 实跑 · 零 Key 加载 · 零 `.env*` 读取 · `actualSpendCny=null` · 仅 git/文档只读核查 + 本文件 append-only 追加
+
+### 1. 包完整性（exec = 恰 2 文件 +15/−10 · 全部本机复现）
+
+| 检查项 | 结果 | 证据 |
+|--------|------|------|
+| 文件数/行数 | PASS | `git show ef7a63e4 --numstat` = `g7-path-b-honesty-classification.slice.md` +7/−5 + `harness/g7-path-b-honesty-classification.md` +8/−5 = 2 files +15/−10；`--name-status` 仅此 2 个 M |
+| 三镜像 blob 级等同 | PASS | `git ls-tree` @`017a178d`/`7801750d`/`62ef52bb`：4 文件 blob hash 全同（slice `e307db6f` · harness `30b873c4` · 双 stub `542f42c9`/`8e00c18d`） |
+| origin 镜像 parity | PASS | `git rev-parse b6caa6aa:{2 files}` = `d278e5c3`/`741043af` ≡ `ef7a63e4` 同名文件；`git show b6caa6aa --numstat` 同 +15/−10 |
+| SSOT / 其他线文件 | PASS | exec diff 恰 2 文件 → SSOT、backlog、checklist、sibling 归档、收据零 diff |
+| PRE 段 append-only 保留 | PASS | review 文件 blob `dc437104` @`922cfe36`（本人 PRE worktree）≡ @`bbf418ba`（line 镜像 · author=mw-model-op）≡ @tip；e2e review blob `0ae5bf0b` @`c79219b6` ≡ @tip（未被 exec 触碰） |
+| lifecycle 元行翻转 + 旧态保留 | PASS | 两文件 title/Status `draft:awaiting_pre_exec_dual` → `executed:awaiting_post_prove_dual`；旧状态以 `> **Pre-exec-era status（historical · retained）**` blockquote 逐字保留 |
+
+### 2. 条件裁决 C-1~C-5（POST 期逐条）
+
+| # | 裁决项 | 结果 | 证据 |
+|---|--------|------|------|
+| C-1 | exec docs-only · Q1–Q3 未被启动 | PASS | exec 仅 2 md；Q1–Q3 仍完整在 harness §3.1 排队表（byte 未动）·「排队 ≠ 授权：每项另走 REQUEST + pre-exec dual + 协调方授权」在位 · Q3「本刀只登记不实施」在位；零新 EXIT claim · 零 prove 产物 · 零收据改写 · footer「STOP（awaiting POST dual）」 |
+| C-2 | 状态 pin 未翻转 | PASS | Pins 行不在 exec diff 中（原值保留 @tip 实测）：`haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503 · g7SuiteGreen=false · r1Closed=false · techRoleFailClosedOptOutG7Only=true`；`g7SuiteGreen=true` 仅出现于 Ban 语境内（grep 全查）；`post_prove_dual_pass` 仅出现于「Ban self-write」与 Line AC 历史引用，无任何 self-write |
+| C-3 | ERRATUM 冻结（diff 0 touch） | PASS | slice ERRATUM 节 sha256 `41790274…`、harness ERRATUM 行 sha256 `fc9f5670…` @REQUEST ≡ @pre-exec(`d5e6f7e6`) ≡ @exec 三态 byte-identical；ERRATUM 行不在 exec diff hunks 中；shorthand `quota-403=82981ff` 仅存在于 Ban 语句自身，无违规复写 |
+| C-4 | Key-blocked 解锁仍循 AD P4 | PASS | harness §3.2（含「解锁条件账沿用 AD **P4**（P4-unlock-ledger）：live Key 供给 + live 预算 + mw-model-op live 双审 + 协调方显式授权 = 另刀 · 列条件 ≠ 授权」）位于 byte-identical 正文区内；C1/C2/C3 保持 Key-blocked 披露 · Ban 装 Key 蒙混 · `fake_service_mode_forbidden` 守门引用在位 · Disclosure-1 OPEN retained；exec 未给任何解锁动作 |
+| C-5 | alone ≠ dual | PASS | exec 两文件仅称「exec 落盘 awaiting POST dual · Ban self-approve · alone ≠ dual · Ban nail」，未宣称 POST dual 完成；本审查仅签 mw-model-op POST 半签，mw-e2e-ha POST 审并行未见不代签；lifecycle 停留 `executed:awaiting_post_prove_dual`（非 `post_prove_dual_pass`） |
+
+### 3. 分类文档完整性复验（REQUEST 版 vs exec 版 · byte 对比正文区）
+
+| 区域 | REQUEST `017a178d` | exec `ef7a63e4` | 结果 |
+|------|--------------------|-----------------|------|
+| harness 正文区（`\| C1 \|` 行 → `Not a pass` 行 · 覆盖 C1–C11 矩阵 + §3.1 Q1–Q3 + §3.2/§3.3 + §4 诚实条款） | sha256 `06f3674f…` | sha256 `06f3674f…` | **零弱化** |
+| slice 正文区（`## 范围` → 尾 `---` 前 · 覆盖四分类摘要 + Q1–Q3 + ERRATUM + Non-claims） | sha256 `31d76f7b…` | sha256 `31d76f7b…` | **零弱化** |
+| 全部变更行集 | — | — | 每文件恰 6 元行：title · Status · 新增 historical blockquote · Base 重钉 `d5e6f7e6` · Experts · footer；正文一行未动 |
+| C-HA-1 gate blob | `c655235c`/`aa86fb3f` @`4766d4fc` | 同 blob @tip `ef7a63e4` | 零漂移（`git ls-tree` 实测） |
+| C-HA-4 计数口径 | — | — | footer/正文「Key-blocked 3+3 · 产品缺陷 0 确认（unknown≠0）· 夹具 1 族 open + 1 已修 · 环境 0 open」全口径保留，零简写 |
+
+### 4. Fail-trigger audit（POST 期）
+
+| 触发器 | 是否触发 |
+|--------|----------|
+| exec 夹带 coding/prove/收据/SSOT | 否（diff 恰 2 md） |
+| lifecycle 越级 self-write `post_prove_dual_pass` | 否（停留 awaiting_post_prove_dual） |
+| pins 翻转 / suite green 叙事 | 否 |
+| ERRATUM 复写 / shorthand 归因 | 否（三态 byte 同） |
+| Q1–Q3 冒充已实施/已授权 | 否（排队原文未动） |
+| 解锁走样（绕 AD P4） | 否（§3.2 byte 同） |
+| 覆写他人/PRE 审查段 | 否（review blob 三态同） |
+
+### 5. Blockers
+
+无。
+
+### 6. Conditions（POST 期持续有效 · 承接 PRE C-1~C-5）
+
+- **C-1**（续）: Q1/Q2/Q3 任一实施仍须各自新 REQUEST + pre-exec dual；Q3 产物必须显式标注「mock ≠ real-model E2E」且收据独立命名归档。
+- **C-2**（续）: `g7SuiteGreen=false` · `r1Closed=false` · Disclosure-1 OPEN · trio OPEN 1/1/1 · coveredCount=8 在 nail 期前不得翻转；SSOT 仅 nail 期触碰。
+- **C-3**（续）: ERRATUM 措辞冻结延续（观察=`3424dc1` · 消除轮=`82981ff` · Ban shorthand `quota-403=82981ff` · Ban `b1d7b22`@09-23）。
+- **C-4**（续）: Key-blocked 解锁仅循 AD P4（live Key 供给 + live 预算 + mw-model-op live 双审 + 协调方显式授权 = 另刀）；列条件 ≠ 授权。
+- **C-5**（续）: alone ≠ dual：本 PASS 仅为 mw-model-op 的 POST 半签；POST dual 生效须 mw-e2e-ha 独立 POST PASS；lifecycle 推进至 nail 须 POST BOTH + 协调方，Ban 任何一方 self-write `post_prove_dual_pass`。
+
+### 7. 中文三行摘要
+
+- G7B exec `ef7a63e4`（镜像 `b6caa6aa`）恰 2 文件 +15/−10，仅推进 lifecycle 元行 `draft:awaiting_pre_exec_dual`→`executed:awaiting_post_prove_dual`（旧态 blockquote 逐字保留），SSOT/sibling/review 文件零触碰，本人 PRE 段 blob `dc437104` 三态同、append-only 保留。
+- C-1~C-5 全 PASS：Q1–Q3 仍排队≠授权零启动 · pins 原值（`g7SuiteGreen=false`/`r1Closed=false`/coveredCount=8 等）无 self-write `post_prove_dual_pass` · ERRATUM 三态 byte-identical（`41790274`/`fc9f5670`）· 解锁仍唯 AD P4 · 本审仅 mw-model-op POST 半签；正文区 sha256（harness `06f3674f` · slice `31d76f7b`）REQUEST≡exec 零弱化，gate blob `c655235c`/`aa86fb3f` @tip 零漂移。
+- Fail-trigger 全否 · Blockers 无 · 本 PASS 不构成 POST dual 完成、不授权 nail；lifecycle 任何再推进须 mw-e2e-ha POST PASS + 协调方（alone ≠ dual）。
+
+Verdict: PASS
