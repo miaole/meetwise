@@ -140,3 +140,70 @@ EXIT0 当且仅当隔离面全断言；EXIT1 诚实保留；attempts 全记录�
 C1–C8 全部成立。REQUEST `43322e5` 为 docs-only（4 md）；quiz 锚点 privacy 邻接成立（owner-scope · `x-user-id` 双闸 · 拒绝即无痕）且 **不**触 PG-retained/UC-052；判据保持 AA 原值 409 `missing_quiz_expiry`；Pins/coveredCount=8 未翻；PASS ≠ coding。**不**走 mw-rag-route escape hatch。未跑 prove · 未代签/编辑 e2e stub。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual（append-only · 2026-10-06）· GAP-UC025-FAULT-ISOLATED-01 · mw-privacy-int
+
+主审：`mw-privacy-int`（本段为 post-prove dual 审查段，append-only 追加；上方 pre-exec 段一字未改 · peer 文件零触碰 · **alone ≠ dual：本段只签 mw-privacy-int，不代签 mw-e2e-ha**）
+被审包：REQUEST `b0242bf2`（≡origin `43322e5c`，4 文档内容逐字节一致，blob `2d98843b` 实证）+ coding `cce1980b` + receipt `f2ef22f7`（branch `line/w-uc025-fault-isolated`，base `44154aa5`）
+本审 tip：origin `3fb7ba50`；独立 worktree `meetwise-rv-wp-privacy-int` @ `rv/wp-privacy-int` = `3fb7ba50` + 被审包 cherry-pick（`023f9c8e` coding / `d9f41c09` receipt；author 原样 mw-core · `-x` 记源）
+**包完整性**：coding 恰 4 文件（`apps/api/package.json`+1 script · 新 proof 374 行 · root `package.json`+2 · `run-e2e-isolated.mjs`+14/−2）；receipt 恰 2 文件。范围 `b0242bf2..f2ef22f7` 对 privacy 域（`0045/0047/0048/0058/0064` 迁移、`privacy_authorization` 源码）、`interview-graph-lease.ts`、principal、`_neg-harness.ts`、AA/NEG/BOUND 三 proof、SSOT 四件、`interview.service.ts`/controller：**零 diff**（`git diff --stat 44154aa5 f2ef22f7 -- …` 空输出实证，只读消费）。
+Cherry-pick 披露：唯一冲突 = `run-e2e-isolated.mjs` includes 名单（本审 base 因 Line V 已含 `uc011:refund-callback-adv:prove:raw`，包侧新增 `uc025:nhp-fault-isolated:prove:raw`）→ 机械并集解法；proof 文件与 `cce1980b` 逐字节一致；其余 diff 均为 base 既有 Line V 内容，非本手引入。
+
+## 1 · Fresh re-run（恰好一次 · 禁重试已守）
+
+- **CMD**：`pnpm uc025:nhp-fault-isolated:prove`（root，隔离壳）· **EXIT = 0**
+- 运行窗口：2026-10-06T04:44:37Z–04:45:04Z（`durationMs=27406`）· 单次 attempt · 无重试
+- 容器：`meetwise-e2e-9061-1791261877234`（随机自建 · 用毕即毁，`docker ps -a` 复核 0 残留）· PG `127.0.0.1:50922` · HTTP `app.listen(0)` → `127.0.0.1:50965`
+- runner 结构化 receipt：`.tmp/isolated-proof-receipts/2026-10-06T04-45-04-647Z-9061-9afb135e-32b4-42a2-9c83-3cd16d072d2c.json`（`outcome=passed · exitCode=0`）
+- **SUMMARY asserts=22 failed=0**；`MIGRATION_LEDGER applied=136`，tail 含 `0135_resume_quiz_freshness_anchor`；`ANCHOR_COLUMN introspected expires_at={"data_type":"timestamp with time zone","udt_name":"timestamptz"}`
+- 逐项复现实测（与 receipt `f2ef22f7` 声称零漂移）：F1 NULL→409 `missing_quiz_expiry`+零副作用；F2 `infinity`→同口+零副作用；F3→409 `resume_version_mismatch`（sentinel）+零副作用；F4→409 `stale_quiz`+零副作用；F5a 202+jobId+bind+恰 1 条 consumption `1.00/reserved`+quiz 行零触碰；F5b 409 `interview_not_active`+快照逐字节相同；5 条 `SEED … status=ready` 打印在案；`HTTP_ERROR_PIN status=409 CONFLICT · error=missing_quiz_expiry`；`ROW_STILL_GAP` 打印在案。
+- 回归三脚本（NEG/BOUND/AA-FAULT）本审**未重跑**（本审范围=隔离面恰好一次；receipt 台账记录同 tip 三者 EXIT=0）。
+
+## 2 · C-1~C-8 条件裁决（pre-exec @`a58bc58d` 所附 · 逐条）
+
+| # | 条件 | 裁决 | 依据（file:line / 实测输出） |
+|---|------|------|------|
+| C-1 | 种子显式 `status='ready'`+逐行打印；错守卫=FAIL | **成立** | proof `uc-e2e-025-nhp-fault-isolated.proof.ts:220-231`（5 种子全 `'ready'`+SEED 打印+断言 `every(status==='ready')`）；F1/F2 断言显式 `!== 'stale_quiz'`、F4 `!== 'missing_quiz_expiry'`（`:266-268/:281-283/:314-316`）；fresh re-run 5 条 SEED 行实测 |
+| C-2 | owner-scope 不 widen（种子/断言限自有行） | **成立** | 全部种子 `owner_user_id=U`（`:206-225`）；服务查询 `WHERE … owner_user_id=$2`（`interview.service.ts:215/:234`）；零跨用户 replay 断言；ADV（NHP 序 #4）未借道未关 |
+| C-3 | `x-user-id` dev 回退披露落 receipt；Ban 叙事成生产授权证明 | **成立** | proof `:141-142` IDENTITY_DISCLOSURE + `:363` C3_IDENTITY；receipt `:51` 显式「dev/test 身份语义 ≠ 生产授权面 · isolated green ≠ production-authz proof（披露，不洗）」；硬闸 `principal.guard.ts:62-66` 未改动 |
+| C-4 | NaN 真列可达性诚实（注入原值+解析值打印；不可达=EXIT1） | **成立（含说明）** | 注入 `'infinity'::timestamptz`（真可存值）；`C4_NAN_PROBE injected_raw=infinity parsed=number(Infinity) newDate.getTime()=NaN Number.isNaN=true`（proof `:233-239`）；服务折链 `new Date(Infinity).getTime()=NaN → missing_quiz_expiry`（`interview.service.ts:244-247`）。说明：pre-exec 括注预判「驱动解析为 Infinity 而非 NaN」的歧义——实测驱动解析=`number(Infinity)`、`Date(...).getTime()`=**NaN**，条件核心「经驱动解析后 `Date(...).getTime()` 为 NaN」满足，`'infinity'` 族即条件所举例子；全链打印、无降级、无洗 |
+| C-5 | F3 sentinel 钉死（prove 前写死）+ 副作用诚实 | **成立** | sentinel = BOUND `resume_version_mismatch`（Q_F3 pin epoch=2 vs resume epoch=1，seed 于 `:223`，先于运行）；断言 `errIs(r,'resume_version_mismatch')`+双非（`:298-302`）；哨兵抛点先于 bind/reserve/enqueue，零副作用快照 PASS |
+| C-6 | F5 before/after 观察值具体化 | **成立** | F5a 202+`accepted:true`+jobId+resume 绑定+恰 1 consumption `1.00/reserved`+恰 1 start job+quiz 行逐字节零触碰（`:326-339`）；F5b 终态面试 409 `interview_not_active`+快照逐字节相同（`:344-351`）；`F5_DISCLOSURE`（`:340`）显式声明 F5a bind/reserve/enqueue 为 pre-wiring 基线行为、**不叙事为零副作用** |
+| C-7 | 锚列隔离 schema 内省实证（timestamptz · 非静默假设） | **成立** | `information_schema.columns` 实测 `expires_at` `timestamp with time zone`/`timestamptz`（`:187-195`）；L3 双证：runner ledger `0135` applied + `sql/20_resume_quiz.sql` 镜像正则 PASS（`:177-184`）；fresh re-run 复现 |
+| C-8 | 双审齐 + 协调方授权链；post-prove 不覆写 | **成立** | pre-exec 双审在案：`a58bc58d`（privacy，C-1~C-8+Verdict: PASS）+ `afdb67da`（e2e-ha；与 origin `69be76c9` 内容逐字节一致，diff 实证）；链 = REQUEST `b0242bf2` → pre-exec dual PASS → 协调方授权 coding（协调方侧，repo 惯例不入 commit）→ `cce1980b` → `f2ef22f7` → 本 post-prove。Ban self-approve 成立：coding author=mw-core ≠ 两审者。本段按协调方指示 append-only 追加至本文件（pre-exec 段未改写）；peer 文件零触碰 |
+
+## 3 · REWORK privacy 侧裁决（attempt 2 全迁移壳）
+
+**裁决：全迁移壳使 privacy 链真实生效、未被绕过；F5a 副作用如实披露、未被洗。**
+
+1. **privacy 链齐备且在请求路径生效**（非旁路）：runner migrate 名单注册（包 diff `run-e2e-isolated.mjs` include 表 + 映射）→ 隔离壳 applied=136，含 `0045_checkpoint_thread_rls`（FORCE RLS）、`0047/0048` privacy fence/物理擦除、`0058_interview_privacy_queue_fence`、`0064_interview_resume_epoch_reference`。begin 路径实打：`SELECT status,resume_id,resume_privacy_epoch,…`（`interview.service.ts:199`，0064 列在迁移后真列上）；请求经 `this.db.asPrincipal(principal,…)`（`:196`）以 `app.principal_user` GUC 走 RLS。
+2. **0058 fence 活体证据（非绕过）**：`interview_job` RLS ENABLE+owner policy 键 `app.principal_user`（`0001_baseline.sql:272-276`）；`enforce_interview_job_privacy_active` BEFORE INSERT 触发器（`0058:88-96`）在 **F5a 的 enqueue 实际 INSERT 时执行并通过**——202+恰 1 start job 即 fence 活体旁证（fence 若失效/被绕过，此 INSERT 面是别样行为面）；`assert_interview_privacy_active` SECURITY DEFINER、EXECUTE 仅授 app_role（`0058:63-76`）。
+3. **最小权限请求路径**：`provisionRuntimeLogin`（`packages/db/src/principal.ts:566-`）建 `LOGIN NOINHERIT NOSUPERUSER … NOBYPASSRLS` + `GRANT app_role`，文档注释明示 NOINHERIT 强制经 `asPrincipal()` 取权；proof 于 import `src/main` **前**置 `PGUSER/PGPASSWORD=runtimeRole`（`:154-166`）→ 应用池以该角色发请求；admin 池仅用于 attestation/种子/快照（out-of-band）；`assertIsolatedTestTarget` 防误连开发库（loopback+nonce PASS）。
+4. **attempt 1 部分白名单壳为何不可用（如实）**：缺 0064 列 → begin SELECT 42703 500（receipt 引 attempt-1 log 原值）；且该壳 DROP+重放会毁掉迁移链——结构性不可「补跑迁移」修补。换壳修正以 REWORK 块披露（proof 头注 `:16-33` + receipt「Attempt-1 缺陷与修正」）；判据面（F1–F5 断言/快照/EXIT 契约）声称零改动，本审以现行断言逐条对照 harness 注入表与 AA 钉死口径核实为零漂移。
+5. **F5a 非零副作用披露（Ban 洗成立）**：F5a 的 bind（resume 绑定+epoch=1）、`1.00 reserved` 消费、1 个 start job 均如实标注为 pre-wiring 基线「行为不变」证据；零副作用主张仅落在 quiz 行零触碰+F5b 拒绝面（proof `F5_DISCLOSURE` `:340` + receipt F5 行同口径）。无「202 洗成零副作用」。
+6. **L0/secrets**：`MODEL_API_KEY`/`MODEL_BASE_URL` 进程内删除（entry absent，L0 PASS）；运行时口令/AUTH_SECRET 等 per-run `randomUUID()` 进程环境注入，树/receipt 无 secret（receipt 仅容器名/端口）。
+
+## 4 · Pins 复核（本审保留 · 未翻）
+
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · **coveredCount=8** · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · UC-E2E-025 row **stays gap** · FAULT 列 **stays gap** · NEG frozen · BOUND gap · ADV blind · AA in-process 收据保留（互补不互替）· EXIT0 ≠ covered ≠ nail ≠ 翻行（nail 须协调方另授）
+
+## 5 · Blockers
+
+无。
+
+## 6 · Conditions（非阻塞 · 如实披露）
+
+1. **attempt-1 证明文件未入库**：前任 coding 半途中断、其 proof 为未跟踪文件——「两 attempt 间 F1–F5 断言文本逐字节未动」为 implementer 自述，git 不可独立复核；本审以现行断言对照 harness/AA 判据核实零漂移替代。
+2. **本审 worktree 与 `line/w` tip 的差异**（已披露）：cherry-pick 并集解法 1 行 + base 既有 Line V 内容（`uc011-refund-callback-adv` 注册）；runner 结构化 receipt 已记录 source digests。
+3. **NODE_ENV/AUTH_DEV_HEADER**：proof 显式 `NODE_ENV='test'`（`:141`）+ `AUTH_DEV_HEADER='1'`（`:157`）并打印双闸披露语（pre-exec 非阻塞注记 1 以「显式设置+披露」兑现；未逐字打印变量值，实质等价）。
+4. **协调方 coding 授权工件**为协调方侧记录（repo 惯例无独立 commit）；本审以「REQUEST→双审→coding→receipt→post-prove」链 + Ban self-approve 身份分离核实链完整性。
+
+## 三行中文摘要
+
+1. 被审包完整（coding 恰 4 文件、receipt 2 文件；privacy 域/lease/principal/SSOT/三 proof/`_neg-harness.ts` 零 diff）；fresh re-run 恰好一次 `pnpm uc025:nhp-fault-isolated:prove` **EXIT=0**（asserts=22 failed=0 · 容器 `meetwise-e2e-9061-…` 用毕即毁 · runner receipt `outcome=passed`），F1–F5 全部复现且 409 `missing_quiz_expiry` 与 AA 钉死口径零漂移。
+2. C-1~C-8 逐条成立（种子 ready 显式化、owner-scope 不 widen、`x-user-id` 回退披露入 receipt、NaN 真列 `infinity→number(Infinity)→getTime()=NaN` 全链诚实、F3 sentinel 钉死、F5a/F5b 观察值落地且 F5a 副作用不洗、锚列 `timestamptz` 内省实证、双审齐 `a58bc58d`+`afdb67da` 且链上无 self-approve）；REWORK 全迁移壳（applied=136）使 0058 fence 触发器、0064 epoch 列、NOINHERIT+NOBYPASSRLS 运行登录与 RLS owner 策略在请求路径**真实生效而非绕过**。
+3. 无 Blockers；4 条非阻塞 Conditions 如实披露（attempt-1 未跟踪文件不可独立复核、cherry-pick 并集、NODE_ENV 设置式披露、协调方授权工件在协调方侧）；coveredCount=8、row/FAULT 列 stays gap、EXIT0 ≠ covered ≠ nail；alone ≠ dual，不代签 mw-e2e-ha，nail 与翻行留协调方。
+
+Verdict: PASS
