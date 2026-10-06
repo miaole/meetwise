@@ -6,11 +6,11 @@ Cross-links: harness/NORTH-STAR-EXECUTION-LOOP.md · north-star-hard-gates.md ·
 Companion: docs SSOT on the AO-COND35 tip/line（beyond REQUEST `95ddd88` · refine beyond companion draft `cbe6fd2a` · **NOT** a second REQUEST · Ban close `:35` via queue alone）
 
 ## 0 Now
-AO-COND35-A-RESIDUAL-HONESTY (docs-only) — name A/:35 residuals; Ban closing CONDITION via docs alone
-REQUEST `95ddd88` · companion refine on this tip · parent nail `85a4925` · awaiting PRE dual mw-e2e-ha + mw-rag-route
+~~AO-COND35-A-RESIDUAL-HONESTY (docs-only)~~ **DONE** · nailed `post_prove_dual_pass`（POST BOTH `68914be2`+`9f3ac173` · DOCS `2366319b` · PRE `ca4c4384`+`e4ad9588` · **0 prove** · A **UNPROVEN** · `:35` **OPEN** · Ban close CONDITION · Ban claim A proven · Ban invent prove · Ban covered flip）
+Next: Phase 0 item **2+**（serial COND / A-seed product rootcause still OPEN · Ban wash · Ban covered flip）
 
 ## Phase 0 (after AO nail · local · no key/no cloud)
-1. AO nail SSOT honesty · S · e2e · serial COND line · :35 A residual OPEN (57P01)
+1. ~~AO nail SSOT honesty~~ **DONE** · S · e2e · serial COND line · :35 A residual **OPEN** (57P01) · nail = honesty dual-pass ≠ CONDITION close ≠ A proven
 2. C-PERF-TEARDOWN :35 product rootcause next if A still needs prove · L · e2e+rag · Ban wash · Ban covered flip
 3. GAP-RAG-03 :71 R3-HNSW-COMPLETENESS · M→L · rag+e2e · parallel OK cross-domain · Ban FULLTEXT/Qdrant · Ban wash rag03-route EXIT1 (=GAP-RAG-02)
 4. GAP-MOP-03 :76 successor cutover/independent review · M · model-op+e2e · Ban MODEL-OP closed · Ban Redis cutover · PG LISTEN retained
