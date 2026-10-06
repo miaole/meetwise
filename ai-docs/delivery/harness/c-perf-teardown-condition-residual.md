@@ -1,6 +1,6 @@
 # Harness — **C-PERF-TEARDOWN CONDITION residual · container-reachability honest evidence**（Line AE · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · CONDITION stays OPEN）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove 执行 · Ban close C-PERF-TEARDOWN · Ban wash attempt1 @ `b29c191` · Ban invent green · Ban Branch B invention · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · Ban self-approve）
+**Status**: **`post_prove:awaiting_post_prove_dual`**（R-A executed · receipt `receipts/2026-10-06-c-perf-teardown-condition-residual.md` · formal EXIT 0/0/0 · host class Linux-native-Docker-Engine · **CONDITION stays OPEN** · Ban close · Ban wash attempt1 @ `b29c191` · Ban invent green · Ban Branch B · Ban self-nail · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · Ban self-approve · alone ≠ dual）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · PERF/LOAD stays **local partial** · capacityRepresentative=**false** · canHonestlyFlip=**false**
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`416b6a5`** / full `416b6a5b5c71d97a1816974c2b174dbf4b9c8cb8`（wave start · sibling Line AD/AF/AG/AH REQUEST commits may land alongside · Ban touch siblings）
@@ -76,4 +76,4 @@ Not a pass · not run · not closed · not fixed · not root-caused（attempt1 �
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · PERF/LOAD local partial · capacityRepresentative=false · canHonestlyFlip=false · backlog `:35` CONDITION OPEN · STOP
 
-*Harness · C-PERF-TEARDOWN CONDITION residual · Line AE · 2026-10-06 · draft:awaiting_pre_exec_dual · docs-only · Ban close · Ban wash attempt1 · Ban Branch B invention · Ban invent green · STOP*
+*Harness · C-PERF-TEARDOWN CONDITION residual · Line AE · 2026-10-06 · post_prove:awaiting_post_prove_dual · R-A · CONDITION OPEN · Ban close · Ban wash attempt1 · Ban Branch B · Ban invent green · Ban self-nail · STOP*
