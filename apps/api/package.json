@@ -48,6 +48,7 @@
     "prove:uc025-nhp-neg": "node test/uc-e2e-025-nhp-neg.proof.mjs",
     "prove:uc025-nhp-bound": "node --import @swc-node/register/esm-register test/uc-e2e-025-nhp-bound.proof.ts",
     "prove:uc025-nhp-fault": "node --import @swc-node/register/esm-register test/uc-e2e-025-nhp-fault.proof.ts",
+    "prove:uc025-nhp-fault-isolated": "node --import @swc-node/register/esm-register test/uc-e2e-025-nhp-fault-isolated.proof.ts",
     "prove:uc004-career-path": "node test/uc-e2e-004-career-path.proof.mjs",
     "prove:uc004-career-path-fault": "node --import @swc-node/register/esm-register test/uc-e2e-004-career-path-fault.proof.ts",
     "prove:uc001-nhp-neg": "node --import @swc-node/register/esm-register test/uc-e2e-001-nhp-neg.proof.ts",
