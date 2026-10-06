@@ -3,7 +3,9 @@
 **Date**: 2026-10-06 · Asia/Shanghai (+08:00)
 **Knife**: `harness/gap-mop-03-dual-reconciler-q45-honesty.md`
 **Slice**: `gap-mop-03-dual-reconciler-q45-honesty.slice.md`
-**Status after prove**: **`executed:awaiting_post_prove_dual`** · **Ban self-write `post_prove_dual_pass`** · **Ban nail** · GAP-MOP-03 stays **OPEN** · **≠ MODEL-OP closed** · **≠ SLO** · **≠ cutover** · **≠ HA** · **≠ suite**
+**Status after prove**: **`post_prove_dual_pass`**（AN-MOP-Q45 NAIL · POST dual mw-model-op `67050c0` + mw-e2e-ha `a41c575` BOTH PASS · GAP-MOP-03 stays **OPEN** · **≠ MODEL-OP closed** · **≠ SLO** · **≠ cutover** · **≠ HA** · **≠ suite**）
+> **Exec-era status（historical · retained）**: **`executed:awaiting_post_prove_dual`** · **Ban self-write `post_prove_dual_pass`** · **Ban nail** · GAP-MOP-03 stays **OPEN** · **≠ MODEL-OP closed** · **≠ SLO** · **≠ cutover** · **≠ HA** · **≠ suite**
+**Lifecycle**: **`post_prove_dual_pass`** · PROVE_SHA `a1f3614` · REQUEST `d269761`
 **REQUEST**: `d269761` / `d26976171ddfa0678b4a42a003fe48a706e9d20e`
 **PRE BOTH PASS**: mw-model-op `e2db4bc` / `e2db4bc913b84dabb836b848489562fad9f03b7a`（C-MO-AN-1..7）· mw-e2e-ha `66a77ed` / `66a77eda3b405bbf3aef636d727b8e3564c46ffb`（C-E2E-0..6）· alone≠dual · tip may be past PRE · ff pull first ✓
 **AUTHORIZE**: coding+prove AN-MOP-Q45 @ REQUEST `d269761`（coordinator · Ban Redis cutover · Ban MODEL-OP closed · Ban self-nail）
@@ -73,7 +75,7 @@ haStatus=**NOT_HA** · releaseEvidence=**false** · claimProductionHA=**false** 
 
 ## Ban / Non-claims
 
-- **Ban nail** until POST BOTH + AUTHORIZE · **Do NOT** self-write `post_prove_dual_pass`
+- AUTHORIZE nail landed · **Do NOT** invent MODEL-OP closed / Redis cutover / #102 cutover
 - **Ban MODEL-OP closed** / SLO forge / fake green / HA / suite / `#102` cutover claim
 - **Ban Redis cutover** · PG LISTEN retained · Redis Streams wakeup stays additive/default-off
 - **Ban** self-flip backlog `:76` · GAP-MOP-03 stays **OPEN**（future close ≠ MODEL-OP domain close ≠ #102 cutover · C-E2E-6）
@@ -91,7 +93,26 @@ haStatus=**NOT_HA** · releaseEvidence=**false** · claimProductionHA=**false** 
 | Q5 EXIT | **0** |
 | Redis flag | **unset** |
 | Gap | GAP-MOP-03 **OPEN** |
-| Nail | **Ban** until POST BOTH + AUTHORIZE |
+| Nail | **AUTHORIZED** · lifecycle `post_prove_dual_pass` · GAP-MOP-03 **OPEN** |
 | POST experts | `mw-model-op` + `mw-e2e-ha` |
 
-*Prove receipt · AN-MOP-Q45 GAP-MOP-03 Q4/Q5 honesty · EXIT 0/0 same SHA · executed:awaiting_post_prove_dual · Ban nail · Ban MODEL-OP closed · PG LISTEN retained · Ban Redis cutover · STOP*
+*Prove receipt · AN-MOP-Q45 GAP-MOP-03 Q4/Q5 honesty · EXIT 0/0 same SHA · executed:awaiting_post_prove_dual · Ban nail · Ban MODEL-OP closed · PG LISTEN retained · Ban Redis cutover · STOP*  <!-- exec-era footer · lifecycle advanced below -->
+
+---
+
+## AN-MOP-Q45 NAIL cross-ref（additive · 2026-10-06 · `post_prove_dual_pass`）
+
+| Item | Value |
+|------|-------|
+| PROVE_SHA | `a1f3614` / `a1f3614408f57b373306df7493a482fde7197019` |
+| REQUEST | `d269761` / `d26976171ddfa0678b4a42a003fe48a706e9d20e`（code-equivalent · `66a77ed` was e2e PRE docs） |
+| CODE prove window | `66a77ed` / `66a77eda3b405bbf3aef636d727b8e3564c46ffb` · Q4/Q5 EXIT **0/0** |
+| PRE dual | mw-model-op `e2db4bc` / `e2db4bc913b84dabb836b848489562fad9f03b7a` + mw-e2e-ha `66a77ed` / `66a77eda3b405bbf3aef636d727b8e3564c46ffb` |
+| POST dual BOTH PASS | mw-model-op `67050c0` / `67050c0a29cd18446f8e8bec013ec02291adbfb7` + mw-e2e-ha `a41c575` / `a41c575ce8262914ec0be4c51206b0289a8bc4e2` |
+| Redis | **unset** · PG LISTEN **retained** |
+| Lifecycle | **`post_prove_dual_pass`** · NAIL tip = AN-MOP-Q45 nail commit on `feat/mysql-schema-skeleton`（no force-push） |
+| STILL_OPEN | **GAP-MOP-03 OPEN** · Ban MODEL-OP closed · Ban Redis cutover · Ban #102 cutover · Ban SLO/suite · coveredCount=8 · alone≠dual · pins NOT_HA · releaseEvidence=false · claimProductionHA=false |
+
+Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · PG LISTEN retained. Ban Meridian · Ban secrets · Ban force-push · alone≠dual.
+
+*Receipt · AN-MOP-Q45 · NAILED post_prove_dual_pass · Q4/Q5 EXIT 0/0 @66a77ed · Redis unset · PG LISTEN retained · GAP-MOP-03 OPEN · Ban MODEL-OP closed · Ban Redis cutover · 2026-10-06 · STOP*
