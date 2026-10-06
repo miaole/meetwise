@@ -1,9 +1,11 @@
-# Receipt — Line AR · GAP-PRIV-EXTERNAL-SINK async purge real · prove
+# Receipt — Line AR · GAP-PRIV-EXTERNAL-SINK async purge real · prove（NAIL · **`post_prove_dual_pass`** · `:64` OPEN · stub≠cloud）
 
-**Status**: awaiting_post_prove_dual (CODE+PROVE by mw-core · Ban self-nail · alone!=dual · POST dual mw-privacy-int + mw-e2e-ha by parent only)
+**Status**: **`post_prove_dual_pass`**（AR NAIL · POST dual mw-privacy-int `3b1a136d` + mw-e2e-ha `2197d93e` BOTH PASS · local_isolated_stub PATH closed **this knife only** · **GAP `:64` OPEN** · stub≠cloud · cloudVendorDeleted=false · Ban count-as-erased · Ban wash ada604a · alone≠dual · PASS≠关 gap≠HA）
+> **Exec-era status（historical · retained）**: awaiting_post_prove_dual (CODE+PROVE by mw-core · Ban self-nail · alone!=dual · POST dual mw-privacy-int + mw-e2e-ha by parent only)
+**Lifecycle**: **`post_prove_dual_pass`** · PROVE tip `a49d712e` · CODE `111df857` · REQUEST `e2eac8ca`
 **CODE_SHA**: 111df857 / 111df857277e8be2b65ce2b9828fc207c428ef72
-**AUTHORIZE**: coding+prove Line AR @ REQUEST e2eac8ca · PRE privacy 6093626e + e2e e473eac2 · N1-N3 in CODE
-**Pins**: NOT_HA · releaseEvidence=false · coveredCount=8 · PG-retained · DELETE=503 · backlog :64 OPEN · UC-052 partial · NB-3 · cite ada604a honesty != wash into wipe · stub!=cloud
+**AUTHORIZE**: coding+prove Line AR @ REQUEST e2eac8ca · PRE privacy 6093626e + e2e e473eac2 · N1-N3 in CODE · nail AUTHORIZE post_prove_dual_pass
+**Pins**: NOT_HA · releaseEvidence=false · coveredCount=8 · PG-retained · DELETE=503 · backlog :64 OPEN · UC-052 partial · NB-3 · cite ada604a honesty != wash into wipe · stub!=cloud · cloudVendorDeleted=false
 
 ## N1-N3 (CODE)
 - N1: oss=oss_delete_list_empty_local_stub · redis=redis_del_exists_empty_local_stub · langfuse=langfuse_retention_delete_replica_local_stub · env=local_isolated_stub · Ban OSS-only shrink
@@ -50,3 +52,22 @@ stub != cloud vendor deleted · :64 stays OPEN · UC-052 partial · coveredCount
 
 ## Rebase note
 After rebase onto AQ tip eb4131d5, privacy vendor-evidence migration renumbered **0139→0140** (AQ owns 0139_qbank_ann_hnsw_iterative_scan). Prove EXITs recorded at pre-rebase CODE tip; product path identical. Ban close :64 · stub!=cloud.
+
+---
+
+## AR NAIL cross-ref（additive · 2026-10-07 · `post_prove_dual_pass`）
+
+| Item | Value |
+|------|-------|
+| PROVE tip | `a49d712e` / `a49d712edb8a3d4de168d11057eb368b3dbe4fd1` |
+| CODE_SHA | `111df857` / `111df857277e8be2b65ce2b9828fc207c428ef72` · mig `0140` |
+| REQUEST | `e2eac8ca` / `e2eac8ca8468fb031860c1a0e9604022657c41f3` |
+| PRE dual | mw-privacy-int `6093626e` / `6093626e77a242f85f8c77269d0f3d49b8d8bb07` + mw-e2e-ha `e473eac2` / `e473eac2bbbe831bea91af2e58228c8d5a678e7c` |
+| POST dual BOTH PASS | mw-privacy-int `3b1a136d` / `3b1a136d17190a9b136dbb667fccb52fd5ad2392` + mw-e2e-ha `2197d93e` / `2197d93e52e6b8b197c8213e6370c4705f33e9b0`（alone≠dual） |
+| A5 / MUT | EXIT0×5（async-purge/http/retention/authz/internal）· MUT −0140 EXIT1 · N1–N3 |
+| PATH residual | **DONE this knife**（local_isolated_stub vendor purge PATH · ≠ cloud wipe） |
+| STILL_OPEN | **GAP `:64` OPEN** · canHonestlyFlip=false · stub≠cloud · cloudVendorDeleted=false · NB-3 · UC-052 partial · coveredCount=8 · Ban count-as-erased · Ban wash ada604a · alone≠dual · PASS≠关 gap≠HA |
+
+Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered / CLOSED / cloud wipe / completed-as-erased.
+
+*Receipt · AR NAILED post_prove_dual_pass · PROVE a49d712e · CODE 111df857 · POST 3b1a136d+2197d93e PASS · :64 OPEN · stub≠cloud · UC-052 partial · DELETE=503 · 2026-10-07 · STOP*
