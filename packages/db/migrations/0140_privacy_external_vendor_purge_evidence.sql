@@ -232,7 +232,13 @@ BEGIN
   IF NOT FOUND THEN
     RAISE EXCEPTION 'privacy_authorization_resolve_not_found_or_forbidden' USING ERRCODE='42501';
   END IF;
-  -- N2 vendor evidence gate (external sinks only).
+  SELECT rc.* INTO receipt_row FROM privacy_deletion_receipt rc
+   WHERE rc.target_id = p_target AND rc.receipt_kind = 'external_pending' FOR UPDATE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'privacy_authorization_receipt_not_pending' USING ERRCODE='40901';
+  END IF;
+  -- N2 vendor evidence gate AFTER pending check (preserve 40901 for not-pending;
+  -- Ban wash attestation: pending→confirmed still requires verified_absent evidence).
   IF v_sink IN ('oss','redis','langfuse') THEN
     IF NOT EXISTS (
       SELECT 1 FROM privacy_external_purge_evidence e
@@ -246,11 +252,6 @@ BEGIN
     ) THEN
       RAISE EXCEPTION 'privacy_authorization_resolve_vendor_unproven' USING ERRCODE='55000';
     END IF;
-  END IF;
-  SELECT rc.* INTO receipt_row FROM privacy_deletion_receipt rc
-   WHERE rc.target_id = p_target AND rc.receipt_kind = 'external_pending' FOR UPDATE;
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'privacy_authorization_receipt_not_pending' USING ERRCODE='40901';
   END IF;
   UPDATE privacy_deletion_receipt rc
      SET receipt_kind='external_confirmed', resolved_at=now(), resolved_by=p_recorded_by
