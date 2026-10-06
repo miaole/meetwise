@@ -295,3 +295,74 @@ diff 核对：rewrite ×3 只删改了 C-2、C-3、F-LEGACY、变异 EXIT 说明
 Cond-1 已按实测计数真正修复：修复前 3 / 1，修复后模拟 0 / 0，PC 静态断言可以变绿，BASELINE 预测正确，且无法被简单绕过。Cond-2..6 均已解除；Re-PRE2 已解除项没有回退；无新阻断，另有 3 条非阻塞条件（其中条件 1 更正了 R-e 理由，也更正了我方 `4e16dfa` 的前提）。本 PASS 仅为 mw-rag-route 单方 re-PRE：alone ≠ dual，不代签 mw-e2e-ha。coding 仍禁止，须双方 PASS 加协调方 AUTHORIZE。GAP-RAG-03 与 `R3-HNSW-COMPLETENESS` 保持 OPEN。Pins：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained（Postgres / pgvector / PostgresSaver）· Ban MySQL runtime / Qdrant / MemorySaver · public DELETE=503。
 
 Verdict: PASS
+
+## POST @7c67b4a
+
+- 审查人：mw-rag-route（独立复核；alone≠dual，不代签 mw-e2e-ha）
+- 时间：2026-10-06 21:25 +08:00
+- 输入：PROVE_SHA `7c67b4a` · CODE_SHA `ac03f30`（C-1+C-2 · 0138）· C-3 `264e1d7` · REQUEST `8d52138` · 我方 PRE PASS `d83c561` · 对端 mw-e2e-ha PRE PASS `eb8fb09`
+- 复跑位置：仅 box，临时 worktree `/tmp/mwrr-rag-post`（detached @ origin tip `b5633f0`；`git diff 7c67b4a b5633f0 -- packages apps scripts package.json` 为空，源码等同 `ac03f30`）与 `/tmp/mwrr-rag-base`（@ `70cba94`），完成后均已移除。未触碰 .env*，未调用模型，未写 git config，未运行 uc018-receipt-backfill-emit.mjs。
+- 对端状态：mw-e2e-ha 评审文件截至 origin `b5633f0` 尚无 `## POST` 段，本段不代表 dual。
+
+### 1. 代码与 REQUEST 一致性
+
+- C-1（0138）：PASS。逐行对比 0106:55-92 与 0138:32-69，唯一差异是 `JOIN qbank_retrieval_candidate candidate ON candidate.ref_id=g.ref_id` 移入 ann CTE（位于 `qbank_generation_chunk` JOIN 之后、`ORDER BY g.embedding <=> p_embedding` / `LIMIT (SELECT greatest(k * 8, 40) FROM requested)` 之前），外层 `candidate.ref_id=a.ref_id` JOIN 删除；签名、SECURITY DEFINER、scope/taxonomy 谓词不变；带 `lock_timeout='2s'`/`statement_timeout='15s'`。
+- C-2（ac03f30 · qbank-generation-retrieval.ts）：PASS。`if (!active) {…}`（原 :229-233）删除；:113 已改写；整文件计数实测 `264e1d7` annSearchLegacy=3 / retrieval-legacy=1 → `ac03f30` 0 / 0（rg 复核）。同 commit 另在 runner 依赖表追加 0138（属登记必需）。
+- C-3（264e1d7）：PASS，在范围内。仅新增 proof `packages/db/test/rag03-filter-locus.proof.ts`（449 行）、root `rag03-filter-locus:prove`/`:raw`、packages/db `prove:rag03-filter-locus`、`scripts/run-e2e-isolated.mjs` 4 处登记（依赖表/target/dispatch/migrate 列表）；无生产代码改动。
+- `git diff 70cba94..ac03f30` 共 6 文件，与 REQUEST 范围一致。
+
+### 2. box 复跑（真实 EXIT）
+
+每次前经 wrapper `docker ps` 检查 meetwise-e2e*/uc018* 容器。
+
+| # | 命令（cwd） | 预期 EXIT | 实际 EXIT | 时间（+08:00） | 关键输出 |
+|---|---|---|---|---|---|
+| 0 | `pnpm install --frozen-lockfile --prefer-offline`（post） | 0 | 0 | 21:20 | — |
+| 1 | `./scripts/with-docker-session.sh env -u MODEL_API_KEY -u MODEL_BASE_URL pnpm rag03-filter-locus:prove`（post · PC） | 0 | **0** | 21:22:45–21:22:57 | applied=138；全部 PASS；`R3_ASSERT_RED -`；P-HNSW `HNSW_NOT_EXERCISED hnswReturned=5`；`planSource=substituted_body LIVE_PLAN_NOT_CAPTURED` |
+| 2 | `git apply …/mut-diffs/MUT-2.diff` 后同上命令（post · MUT-2） | 1 | **1** | 21:23:11 | `FAIL R3-SCOPE-EXACT returned=5 refs=r3s_outtax_00..04`；`FAIL R3-SCOPE-NO-CROSS-TAXONOMY crossTaxonomy=5`；`R3_ASSERT_RED R3-SCOPE-EXACT,R3-SCOPE-NO-CROSS-TAXONOMY` |
+| 2b | `git checkout -- 0138… && git diff --exit-code`（post） | 0 | **0** | 21:23:24 | MUT 未提交 |
+| 3 | `./scripts/with-docker-session.sh env -u MODEL_API_KEY -u MODEL_BASE_URL pnpm rag03-route:prove`（post · R-b @代码 tip） | 1（已披露） | **1** | 21:23:42–21:23:53 | applied=138；40 PASS + 1 FAIL：`未决岗位 start 不抛、返回 started，但 interview snapshot 行 = 0（优雅降级）` |
+| 4 | 同上（base · `70cba94`，install EXIT 0） | 1（已披露） | **1** | 21:24:09–21:24:21 | applied=137；同一条 FAIL，40 PASS |
+
+调度披露：PC 与 R-b ×2 开跑前均确认无其他 meetwise-e2e* 容器（R-b 用连续两次检查的门控）。但 MUT-2 开跑的那一刻，检查输出里出现了他方容器 `meetwise-e2e-1349004-…`，而我的命令没有在此中止，于是并发跑了一次（我方容器 `meetwise-e2e-1349582-…`）。runner 只对自身容器执行 `docker rm -f`（run-e2e-isolated.mjs:2271），所以没有干扰对方。即便如此，这违反了“遇到就等或跳过”的规则，特此记录。MUT-2 的结论不受影响（独立容器/端口）。
+
+### 3. R-b 裁定：PRE-EXISTING · 非本变更路径 · 不阻断 · 保持 OPEN 并跟踪
+
+- 证据 1（动态）：tip 与 base 的 `^(PASS|FAIL)` 行逐行 diff EXIT 0（完全一致：40 PASS + 同一条 FAIL），与已提交 `logs/reg-rag03-route-BASE-70cba94.log` 的 diff 也是 EXIT 0。唯一差异为 applied=138 vs 137。
+- 证据 2（静态）：proof 是 `test/job-route-decision.proof.ts`。失败断言（:238-239，`pendingIv !== undefined && pendingSnap === 0`）走 `startApplicationInterview`（recruiter.ts），而 recruiter.ts 只 import `./job-route-decision.ts`；该 proof 与 job-route-decision.ts 中 `qbank|ann_search|hybridQbank` 的匹配数为 0。本变更 6 个文件与该路径无交集，0138 只替换 `qbank_generation_ann_search`。
+- 根因（已存在）：recruiter.ts:396-397/:410 为 R2 P-START 真拒启（未决岗位无 binding → `interview_ineligible_route`，“未决路径绝不返回 started”）。该断言仍期望 `started`，属陈旧断言。backlog `gap-bug-backlog.md:70`（GAP-RAG-02 行）已记录“现有 `rag03-route:prove` 须换夹具或标红（R5）”。
+- 结论：不阻断本线 POST，但 R-b 红保持 OPEN，须继续沿 backlog :70 跟踪，不得记为 PASS/covered。
+
+### 4. 协调员四项裁定
+
+1. F-STARVE（先 revoke 后 build）：**有效（附注）**。proof `buildActiveGeneration(includeUnapprovedRefIds)` 先经 control-executor 把 45 条 source 置 rejected，再取 epoch；在 builder 的事实集中显式纳入这些 ref（`source.status='approved' OR ch.ref_id = ANY($1)`）；然后经 `qbank_prepare_generation_partition` → INSERT `qbank_generation_chunk` → `qbank_validate_generation` → `qbank_activate_generation` 走正常写入路径，未禁用任何 trigger。:353 可达性检查要求 candidate 内 0 条未批准 / 5 条已批准，PC 实测 5，BASELINE（证据 7c67b4a）为 0，即 0 前 / 5 后成立。附注：activate 之后再 revoke 会被 `qbank_source_visible_epoch_sync` 置 visible=false，所以此状态需要一个“事实集偏离审批”的 builder 才能构造，生产 builder 单独产生不了。D-ANN-1 因此是对函数契约的纵深防御；本 proof 验证的是函数在该状态下的过滤位置，不证明生产可达。
+2. F-STARVE-HASH（DISABLE TRIGGER USER）：**可接受，仅作补充模拟，不计入 harness 钉定证据**。qbank_chunk 上唯一的 user trigger 是 `trg_qbank_chunk_requires_approved_pool`（0068:100-102，不可变守卫）。禁用它只为模拟 0068 之前的历史 content 漂移；UPDATE 完成后 :423 立即 ENABLE，再执行检索。被测对象（candidate 视图的 content_hash 一致性 + ann CTE 内的 JOIN）未被绕过。但这一构造与 harness §4.2“Ban 直写绕过 trigger”的字面要求不符。由于它是协调员 NB-1 的额外夹具（非 §4.2 钉定，prove 收据 :59 已注明），裁定为可接受，前提是持续披露“superuser trigger-disable 模拟”。
+3. MUT-2 映射：**接受**。REQUEST/harness 对 MUT-2 只给了拟名 `R3-MUT-NO-TAXONOMY`，没有“经”断言。映射到 `R3-SCOPE-EXACT` + `R3-SCOPE-NO-CROSS-TAXONOMY` 恰好对应“跨 taxonomy 行出现”。本次复跑实测 5 条 v2 行泄漏、两条断言同时变红，F-SCOPE 的 10 条 `(v2, backend/nodejs)` 行使其不空转。
+4. :113 NB-2 措辞：**接受**。新注释写的是“legacy `vector_chunk` 入口由 retrieval-store.ts 导出、供 smoke / legacy proof 直接调用，不经本文件”，与事实一致（retrieval-store.ts:14 再导出；直调方 vectorstore.proof.ts:73、rag-demo.ts:61、rag-adversarial-pg-eval.ts:146），不再声称存在“仅非 qbank 分支”的路由。
+
+### 5. d83c561 遗留 NB
+
+- NB-1 R-e 理由：已修正（收据 :48：qbank-integrity-upgrade 只应用 ≤0067/≤0068/≤0072 + 0086/0087，从不应用 0106/0138）。CLEARED。
+- NB-2 全树前后计数：收据 :26 已给出 `rg -n 'annSearchLegacy' packages/db/src apps` 前 16 / 后 13 行（retrieval-legacy 3 → 2），我方复核 tip 为 13 行。CLEARED。
+- NB-3 EXPLAIN 披露：收据 §5 与 PC 输出均标 `planSource=substituted_body` · `LIVE_PLAN_NOT_CAPTURED`。CLEARED。
+
+### 6. 状态核对
+
+- P-HNSW = `HNSW_NOT_EXERCISED`（复跑实测）→ R3-HNSW-COMPLETENESS 保持 OPEN。
+- GAP-RAG-03 OPEN（backlog :71 未翻）；UC-018 / §1.1 partial；C-PERF-TEARDOWN CONDITION OPEN。
+- Pins 保持：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · public DELETE=503。
+- 仅 PG（Postgres/pgvector/PostgresSaver），无 MySQL / Qdrant / FULLTEXT 新增。prove 收据除 pin `coveredCount=8` 外无 “covered” 声明。
+- EXIT 0 ≠ 已覆盖；R3 / GAP-RAG-03 均未关闭。
+
+### 7. 条件（不阻断，须跟踪）
+
+- P-1：R-b `rag03-route:prove` 陈旧断言红保持 OPEN，沿 backlog :70（GAP-RAG-02 R5 “换夹具或标红”）跟踪，任何汇总不得计为绿。
+- P-2：F-STARVE-HASH 永久标注为 superuser trigger-disable 补充模拟，不计入 §4.2 钉定夹具。
+- P-3：F-STARVE 的生产可达性未被证明；D-ANN-1 只能表述为纵深防御。
+- P-4：R3-HNSW-COMPLETENESS OPEN（HNSW_NOT_EXERCISED）。
+
+### 结论
+
+C-1/C-2/C-3 与 REQUEST 一致；PC 复跑 EXIT 0，MUT-2 复跑 EXIT 1 且红断言名与钉定一致；R-b 在 tip 与 base 均为同一条断言红、不在本变更路径上，属已存在问题（保持 OPEN）；四项协调员问题与三条遗留 NB 均已裁定或解除。此为 mw-rag-route 单方 POST PASS。须待 mw-e2e-ha POST 也通过后才算 dual，在 dual PASS 与协调员 AUTHORIZE 之前不得 nail。
+
+Verdict: PASS
