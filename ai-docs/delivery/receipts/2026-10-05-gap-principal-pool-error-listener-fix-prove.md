@@ -18,7 +18,7 @@
 | 1 | db proof（修复 v1：仅池级监听） | **EXIT=1 · 进程崩溃** | `packages/db/test/pool-error-listener.proof.ts` 首次运行：idle-client 断开被池级监听观测（12 断言中前 10 项 PASS），**活跃（checked-out）client 断开即崩**——`Unhandled 'error' event on Client instance` @ pg@8.22.0 `client.js:199/417`，与 C'' FI-1 stderr 同形。**执行期实证发现：池级 `'error'` 监听不覆盖 checked-out 路径 = C'' 崩溃的真实路径**。 |
 | 2 | 源码钉路径（读 pg-pool@3.14.0 / pg@8.22.0） | — | `pg-pool/index.js:349` `_acquireClient` → `client.removeListener('error', idleListener)`（checkout 时移除池挂的监听）；`pg/lib/client.js:415-421` `_handleErrorEvent` 对 checked-out client `_errorAllQueries(err)` 后仍 `this.emit('error', err)` → 无监听 → uncaught。`pool.emit('error')` 在 pg-pool 全库**仅 1 处**（`makeIdleListener` :62，idle 重发）。 |
 | 3 | 修复 v2（工厂内补 per-client 观测） | — | `pool.on('connect')` 给每个新 client 挂常驻 `'error'` 观测（'connect' 每 client 恰好触发一次，零监听累积）；两路观测按 **error 对象身份去重**（WeakSet）→ 每起断连**恰好一次**计数/日志；observer 本体 try/catch 护甲（observer 不得成为它要防的崩溃）。仍在 `createPool()` 一处、零调用点改动。 |
-| 4 | db proof（修复 v2） | **EXIT=0（12/12 PASS）** | 一次性容器 `pgvector/pgvector:pg16` @ `127.0.0.1:53850`（用后即毁，零破坏性 SQL）；全文见 §Appendix B。 |
+| 4 | db proof（修复 v2） | **EXIT=0（11/11 PASS）**（2026-10-06 docs 更正 · AN-PERF-TEAR rewrite ×6：原写「12/12」为误计；`pool-error-listener.proof.ts` 恰 11 个 `A(` 断言，Appendix B 正文 11 行 `PASS`；运行结果本身未改） | 一次性容器 `pgvector/pgvector:pg16` @ `127.0.0.1:53850`（用后即毁，零破坏性 SQL）；全文见 §Appendix B。 |
 | 5 | prove 回归（修复后 · 恰好一次 · one-shot） | **EXIT=1**（attempts：CONTROL **0** · FI-2 **0** · **FI-1 0** · FI-3 1 UNREACHABLE） | 无 retry-to-green；未改既有断言语义。全文见 §Appendix A。 |
 
 ## 2. 修复实现摘要（Candidate B · `packages/db/src/principal.ts` `createPool()` 工厂内一处）
@@ -118,7 +118,9 @@ CMD=pnpm uc004:career-path-fault:prove EXIT=1
 
 （EVIDENCE 行全量原文见 machine receipt `.tmp/isolated-proof-receipts/2026-10-05T11-47-50-276Z-91467-43d65742-2294-4c08-9458-05af4ad296e0.json` 与 prove 运行日志；ATTEMPT-2 关键 evidence：`{"blocked_pid_found":true,"terminated":true,"f1":{"kind":"http","status":500,"body":{"error":"internal_error"}},"child_exit":"still_running","pool_error_log_seen":true,"pool_error_log_line":"{\"event\":\"db_pool_error\",\"purpose\":\"default\",\"count\":1,\"error_name\":\"Error\",\"error_message\":\"Connection terminated unexpectedly\"}","f2_sql_rows":0,"f2_get":{"status":404,"body":{"error":"not_found"}},"ledger_before":…,"ledger_after":…（bucket/consumption/orders before===after 逐行相等）。）`
 
-## Appendix B — db proof 全文（v2 · EXIT=0 · 12/12 PASS）
+## Appendix B — db proof 全文（v2 · EXIT=0 · 11/11 PASS）
+
+> 2026-10-06 docs 更正（AN-PERF-TEAR rewrite ×6 · mw-rag-route POST `4803616` §4 / mw-e2e-ha POST `1d9d3ac` 同认）：本标题原写「12/12」为计数误写；下方原文恰 **11** 行 `PASS`，与 proof 源码 11 个 `A(` 一致。下方日志原文零改动。
 
 ```
 GAP-PRINCIPAL-POOL-NO-ERROR-LISTENER pool error listener proof · releaseEvidence=false · Not HA
