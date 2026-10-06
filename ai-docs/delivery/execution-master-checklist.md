@@ -954,3 +954,14 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · g7SuiteGreen=false. Do not write covered.
 - Nail tip = 本 commit（branch `line/ae-c-perf-teardown-residual-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written（incl. Line S Branch A `54a7437` · Line AD/AF/AG/AH）. This paragraph does **not** close C-PERF-TEARDOWN. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+### Line AL GAP-E2E-ISO-BANNER-PG-RETAINED residual NAIL（2026-10-06 SSOT nail · `post_prove_dual_pass` · banner residual documented · gap `:63` stays OPEN）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line AL GAP-E2E-ISO-BANNER-PG-RETAINED residual products only（banner string align · residual honest）. Implementer does not self-approve beyond this authorized nail. **Not a gap close**. **Not cutover**. Ban fake close · Ban cutover narrative · Ban claiming sole cutover · Ban rewrite `SOLE_STACK` · Ban invent covered/HA · Ban Meridian · Ban secrets · Ban force-push · Ban closing backlog `:63`.
+- REQUEST `27c2e99` / `27c2e9943eae4d27bd6ba0b62f02ca3dd481c6f4`. Pre-exec dual PASS: mw-e2e-ha `899fef2` / `899fef248d7d247f8425c037109ed4efde008e71` + mw-privacy-int `3915e32` / `3915e32e4b4a5b7f05bd81fd009ca2230e0e811a`.
+- PROVE_TIP **NAILED TO** `c633584` / `c633584b1d991894f0f3682416b89f19695d664b` · receipt `receipts/2026-10-06-gap-e2e-iso-banner-pg-retained-residual-align.md` · banner string only `:1765-1768` · `node --check` EXIT 0 · zero e2e run · `SOLE_STACK` const **unchanged**（label ≠ product truth · PG-retained）.
+- Post-prove dual PASS: mw-e2e-ha `1778d53` / `1778d53ac6075bfd4e361fb0cd51e8f31d4cfbb1`（AL review file · attribution marker `1a32423` / `1a32423d1bfc810427a846d4ae44af150640c84e`）+ mw-privacy-int `c20c42e` / `c20c42e7922910fcbad5d9d5c047799dd853782c`（BOTH · alone≠dual）.
+- [ ] backlog `:63` **GAP-E2E-ISO-BANNER-PG-RETAINED stays OPEN** · banner residual documented · header `:5` + `SOLE_STACK` const = separate package · public DELETE=**503** · external=`retention_pending`.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered / CLOSED / cutover.
+- Nail tip = 本 commit（branch `line/al-am-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written（incl. Line N banner NAIL `a778255` · Line AE/AF/AH/AD · AI/AJ/AK REQUEST）. This paragraph does **not** flip backlog `:63` to CLOSED. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
