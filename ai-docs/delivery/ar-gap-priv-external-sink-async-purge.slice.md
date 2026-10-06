@@ -1,6 +1,6 @@
 # Slice — **AR · GAP-PRIV-EXTERNAL-SINK-RETENTION async purge real knife**（`:64` OPEN · Ban count-as-erased · NB-3 · DELETE=503）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（docs REQUEST only · Ban coding until PRE BOTH PASS + AUTHORIZE · Ban prove · Ban close `:64` via docs alone · Ban count-as-erased · DELETE=503）
+**Status**: **`awaiting_post_prove_dual`**（docs REQUEST only · Ban coding until PRE BOTH PASS + AUTHORIZE · Ban prove · Ban close `:64` via docs alone · Ban count-as-erased · DELETE=503）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`68914be2`** / full `68914be222a49b3ba61506fac07c0812fffb7a99`（AO-COND35 POST tip · Ban touch AO COND body · Ban AP ISO / MOP cutover / A-seed / CIMG / cloud）

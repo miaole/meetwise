@@ -1,6 +1,6 @@
 # Harness — **AR · GAP-PRIV-EXTERNAL-SINK-RETENTION async purge real knife**（`:64` OPEN · Ban count-as-erased · NB-3 · DELETE=503）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove · Ban count-as-erased · Ban open DELETE · Ban close `:64` via docs alone · Ban self-approve · alone ≠ dual）
+**Status**: **`awaiting_post_prove_dual`**（CODE+PROVE landed · Ban self-nail · Ban close `:64` · stub≠cloud · DELETE=503 · NB-3 · alone ≠ dual · POST dual privacy+e2e by parent）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`68914be2`** / full `68914be222a49b3ba61506fac07c0812fffb7a99`（AO-COND35 POST tip · Ban touch AO COND body · Ban AP ISO / MOP cutover / A-seed / CIMG / cloud）
