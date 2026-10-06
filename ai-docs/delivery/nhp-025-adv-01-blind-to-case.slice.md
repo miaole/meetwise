@@ -1,13 +1,14 @@
-# Slice — **NHP-025-ADV-01 · UC-025 ADV blind→case evidence**（Line AK · `draft:awaiting_pre_exec_dual` · re-PRE2 rewrite）
+# Slice — **NHP-025-ADV-01 · UC-025 ADV blind→case evidence**（Line AK · **`post_prove_dual_pass`** · EXIT0≠covered · ADV stays blind · row gap）
 
-**Status update (2026-10-06)**: proved @`4a804a8`（code ≡ pre-rebase `b66464e`） EXIT 0 · receipt `receipts/2026-10-06-nhp-025-adv-01-prove.md` · awaiting POST dual · ADV blind · row gap
+**Status**: **`post_prove_dual_pass`**（Line AK nail 2026-10-06 · prove tip NAILED TO `4a804a8` · receipt `c4d3b9f` · REQUEST `420aeca` · ADV EXIT0 · A1 404 · PC-A1 202 · A3-b 409 · ADV-new 18（≈13 behavior · ≠44）· complementary ≠ ADV-new · POST dual BOTH PASS e2e `5ab6343` + rag `5368464` · ADV stays blind · row gap · EXIT0≠covered · Ban wash W BOUND）
+**History**: ~~`draft:awaiting_pre_exec_dual`~~ → prove @`4a804a8` → receipt `c4d3b9f` → POST BOTH PASS → nail
 
 **Status (REQUEST-time, retained)**: **`draft:awaiting_pre_exec_dual`**（docs REQUEST rewrite **re-PRE2** · supersedes `43e2dbc`（← `ae5367e`）· cites rag Re-PRE FAIL **`e883bf8` B-R1 + §3 1–3**（option **(b)**）· prior FAIL `6790cc6` B1–B5 cleared · B1/B2/B4/B5 not regressed · Ban coding until PRE BOTH PASS + AUTHORIZE · EXIT0≠covered）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base**: `origin/feat/mysql-schema-skeleton` tip（includes AI/AJ rewrite + AL/AM/AG ancestors · Ban touch AL/AM/AG · Ban 共享 SSOT）
 **Prior REQUEST**: `43e2dbc` ← `ae5367e` · **FAIL**: `e883bf8`（Re-PRE · B-R1）· `6790cc6`（PRE · B1–B5）· **Peer e2e PASS** `899fef2` alone ≠ dual
-**Authority**: meetwise — L0 docs only · Ban coding · Ban prove · Ban self-approve · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push
+**Authority**: meetwise-core AUTHORIZE nail · BOTH POST PASS · Ban self-approve beyond this nail · Ban invent covered · Ban flip ADV/row · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push
 
 ## One-line
 
@@ -20,9 +21,23 @@ UC-E2E-025：矩阵 `:125` ADV=**blind** · 行 **gap** · NHP 无 ADV 行。本
 | Harness | `harness/nhp-025-adv-01-blind-to-case.md`（rewrite） |
 | Dual `mw-e2e-ha` | `reviews/REQUEST-2026-10-06-nhp-025-adv-01-blind-to-case-mw-e2e-ha.md` |
 | Dual `mw-rag-route` | `reviews/REQUEST-2026-10-06-nhp-025-adv-01-blind-to-case-mw-rag-route.md` |
+| Receipt | `receipts/2026-10-06-nhp-025-adv-01-prove.md`（`c4d3b9f`） |
+| POST `mw-e2e-ha` | `reviews/REQUEST-2026-10-06-nhp-025-adv-01-blind-to-case-post-mw-e2e-ha.md`（`5ab6343` PASS） |
+| POST `mw-rag-route` | `reviews/REQUEST-2026-10-06-nhp-025-adv-01-blind-to-case-post-mw-rag-route.md`（`5368464` PASS） |
 
 ## Ban
 
 Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执行 · Ban self-nail · Ban self-approve（alone ≠ dual）· Ban SSOT edit（matrix / backlog / checklist）· Ban buy cloud · Ban Meridian · Ban secrets / `.env*` · Ban force-push · Ban claiming PRE PASS · Ban 碰 AL/AM/AG 禁触文件 · Ban product/infra code（except 纯增量 runner 目标登记 · 仅增量登记、不改其他目标行为）· Ban borrow W R4/R2/R5 绿为 ADV · Ban wash B'' NEG / AA FAULT / W BOUND+FAULT-ISOLATED · Ban relabel stale_quiz 为 ADV · Ban flip ADV/row · EXIT0≠covered · Ban fake DB。
 
-*Slice · NHP-025-ADV-01 blind→case · Line AK · draft:awaiting_pre_exec_dual · re-PRE2 supersedes 43e2dbc ← ae5367e · FAIL e883bf8 B-R1 (b) · FAIL 6790cc6 · STOP*
+## NAIL（2026-10-06 · Line AK · `post_prove_dual_pass` · EXIT0≠covered · ADV stays blind · row gap）
+
+- Lifecycle → **`post_prove_dual_pass`**（authorized coordinator nail · AUTHORIZE nail · BOTH POST PASS · implementer does not self-approve beyond this nail）.
+- REQUEST `420aeca`（`420aecadf665349a6419feb89d8a5179a39fd2d2`）→ PRE dual mw-e2e-ha `13fc781` + mw-rag-route `0a67d40` PASS → prove tip **NAILED TO** `4a804a8`（`4a804a8f4ebae5c3d747988f798aba2248b34ab9`）· receipt `c4d3b9f`（`c4d3b9f0d9b3a4fd60052429eb898ddbe1a76411`）· ADV **EXIT 0** · A1 404 · PC-A1 202 · A3-b 409 · ADV-new 18（≈13 behavior · ≠44）· complementary ≠ ADV-new · MUT discarded · regress EXIT0 · C1–C6.
+- POST dual BOTH PASS: mw-e2e-ha `5ab6343`（`5ab6343668c8ae3639c54b1e9484324a992a48a1`）+ mw-rag-route `5368464`（`5368464130b31b9559c1fefb7bce0c1088266376`）· alone≠dual.
+- **HOLD**: ADV stays **blind**/`case-only` · **row stays gap** · canHonestlyFlip=**false** · coveredCount=**8** · EXIT0≠covered · Ban wash W BOUND · Ban invent covered · Ban flip ADV/row.
+- Evidence layer（non-block）: `sql/`+migrations+prove-local stub · `AUTH_DEV_HEADER` · stub-before-reject A1/A3-b · owner-predicate static anchor · re-pin by symbol on service edits.
+- Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503 · Ban buy cloud · Ban secrets · Ban force.
+- Keep siblings（W/AA · AG/AJ/AI · AL/AM）as written. Ban product code · Ban HA · Ban live · Ban Meridian · Ban claiming covered · Ban self-approve beyond this AUTHORIZE nail.
+
+*Slice · NHP-025-ADV-01 · Line AK · post_prove_dual_pass · EXIT0≠covered · ADV stays blind · row gap · coveredCount=8 · Ban wash W BOUND · STOP*
+
