@@ -887,3 +887,19 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
 - Nail tip = 本 commit（branch `line/v-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written（incl. Line V NHP-011-ADV-01 honesty-of-red · Line Z Path A mouth · Line AC G7 · Line AA/AB · Line X/W/Y · Line U）. This paragraph does not flip UC-011 to covered; it records the coordinator-authorized wired close of `GAP-UC011-ADV-01` only.
+
+
+### Line W GAP-UC025-FAULT-ISOLATED-01 NAIL（2026-10-06 SSOT nail · `post_prove_dual_pass` · isolated EXIT0 · row+FAULT stay gap）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line W GAP-UC025-FAULT-ISOLATED-01 isolated PG/HTTP FAULT evidence products only（evidence-layer upgrade of `NHP-025-FAULT-01` · not a new NHP row）. Implementer does not self-approve beyond this authorized nail. **EXIT0 ≠ covered**. complementary≠substitute AA · **AA_WASH: no** · 409 `missing_quiz_expiry` not washed. Not a covered flip. Not a FAULT column flip. Not a row flip. Ban invent covered · Ban flip covered · Ban flip row/FAULT off gap · Ban wash AA · Ban HA/suite green · Ban claim covered/HA · Ban Meridian · Ban coding · Ban live · Ban buy cloud · Ban secrets · Ban force-push · Ban retry-to-green wash. coveredCount=**8** unchanged.
+- REQUEST `43322e5` / `43322e5c2686b3daaf1e66a255184ac8ca74c6b9`（`b0242bf` missing on origin → use 43322e5）. Pre-exec dual PASS: mw-e2e-ha `69be76c` / `69be76c9c3c7eb1ef2cc8ce2bdd4686c750487f2` + mw-privacy-int `3fb7ba5` / `3fb7ba50803c9f43c3960913ced51f916c373e34`.
+- CODE `cce33ba` / `cce33ba9359ee040cf7cffa661cbb2477a1ed694` · prove tip **NAILED TO** `e8d8a91` / `e8d8a919a4f1a6da8e2879a09d429653fd849705` · CMD `pnpm uc025:nhp-fault-isolated:prove` **EXIT=0** · HTTP **409** `missing_quiz_expiry` · F1–F5 · receipt `receipts/2026-10-06-gap-uc025-fault-isolated-prove.md`.
+- Attempts1–4 **EXIT1** retained · Ban retry-to-green · attempt **4b** `e7b9ba2` same-SHA another EXIT1 ledgered（privacy OPEN `NOTE-UC025-ATTEMPT-LEDGER-4b`）.
+- OPEN non-blocking: **NOTE-UC025-DEVHEADER-NODEENV-DISCLOSE**（`NODE_ENV` `<unset>`）.
+- AA freeze retained: nail `15eedd6` / code `a8b98fc` / prove `3a6ec52` · in-process complementary · Ban wash. NEG/BOUND 仍 EXIT0 Ban wash.
+- Post-prove dual PASS: mw-e2e-ha `c55253b` / `c55253bbe5f46fa3475b733d7e5f955b150f1103` + mw-privacy-int `1fc6623` / `1fc66233b3136d1d0740fd3b9568f67673c1f267`（BOTH · alone≠dual）.
+- **Evidence layer MUST state**: isolated three-layer shell + real Nest HTTP + real PG `expires_at timestamptz` · **complementary≠substitute** AA in-process · **≠ covered**.
+- [ ] UC-E2E-025 **row** stays **gap** · **FAULT column** stays **gap** · EXIT0≠covered · canHonestlyFlip=**false** · NEG B'' CLOSED(wired) **frozen** Ban wash · BOUND W Ban wash · AA FAULT Ban wash · ADV blind.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · g7SuiteGreen=false · canHonestlyFlip=false. Do not write covered.
+- Nail tip = 本 commit（branch `line/w-fault-isolated-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written（incl. Line AA FAULT in-process · Line W BOUND · Line Z/AB/AC/V/Y · B'' NEG）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.

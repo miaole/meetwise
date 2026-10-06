@@ -1,10 +1,12 @@
-# Slice — **GAP-UC025-FAULT-ISOLATED-01 · UC-025 FAULT 隔离 PG/HTTP 证据层**（Line W · docs-only REQUEST · **`draft:awaiting_pre_exec_dual`** · Ban coding · Ban prove · Ban push）
+# Slice — **GAP-UC025-FAULT-ISOLATED-01 · UC-025 FAULT isolated PG/HTTP evidence**（Line W · NAIL · **`post_prove_dual_pass`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`** · docs REQUEST only · not coding permission · not a prove run · not a nail · pre-exec dual PASS ≠ coding；coding 由协调方在双审 PASS 后另行授权 · Ban self-approve · alone ≠ dual
-**Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
+**Status**: **`post_prove_dual_pass`**（Line W nail · isolated EXIT0 · dual BOTH PASS · **EXIT0 ≠ covered** · complementary≠substitute AA · **AA_WASH: no** · 409 `missing_quiz_expiry` not washed · AA nail `15eedd6` / in-process `a8b98fc`/`3a6ec52` retained · attempts1–4 EXIT1 retained · Ban retry-to-green · row stays gap · FAULT column stays gap · coveredCount=**8** · Ban invent covered · Ban HA/suite green · Ban coding · Ban live · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push）
+
+> REQUEST/prove-era historical status was `draft:awaiting_pre_exec_dual` → `post_prove_awaiting_dual`. Prove tip `e8d8a91` · CODE `cce33ba` · EXIT 0（409 `missing_quiz_expiry`）· post dual `c55253b`+`1fc6623` BOTH PASS. Lifecycle advanced by this nail only.
+**Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · g7SuiteGreen=false
 **Date**: 2026-10-05（Line W · coordinator-prioritized #2）
 **Base**: `origin/feat/mysql-schema-skeleton` **`44154aa5`** / full `44154aa53a8c8508e8e8b1c51333c648187ac360`（AA nail `15eedd6` 之后）
-**Authority**: meetwise — L0 docs only · 本 commit 不改任何代码 · 不跑 prove · 不 push
+**Authority**: meetwise — Line W NAIL AUTHORIZED（docs/SSOT honesty only · Ban coding）· Ban wash AA · Ban invent covered · Ban flip row/FAULT off gap · Ban Meridian · Ban secrets · Ban force-push · Ban live · Ban buy cloud
 **Worktree**: `/Users/miaole/Desktop/golucky/meetwise-line-w`（branch `line/w-uc025-fault-isolated` · 一切 git 写操作只在独立 worktree 内）
 
 ## One-line
@@ -54,4 +56,25 @@ Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR4
 
 ---
 
-*Slice · GAP-UC025-FAULT-ISOLATED-01 · Line W docs-only REQUEST · 2026-10-05 · draft:awaiting_pre_exec_dual · 隔离 PG/HTTP 面 · 与 AA in-process 互补不互替 · Ban coding · Ban prove · Ban push · Ban 洗 AA · Ban 翻行 · coveredCount=8 · STOP*
+## Line W prove（retained）
+
+PRE dual PASS（e2e `69be76c` + privacy `3fb7ba5`）→ CODE ancestry `48c4a8a`→`8d0d808`→`ca4e44d`→`e7b9ba2`→`cce33ba` → `pnpm uc025:nhp-fault-isolated:prove` EXIT=0（409 `missing_quiz_expiry` · F1–F5）→ AA/NEG/BOUND freeze EXIT0 → receipt `receipts/2026-10-06-gap-uc025-fault-isolated-prove.md`.
+
+---
+
+## Line W NAIL（`post_prove_dual_pass` · additive · 2026-10-06）
+
+- Prove tip NAILED TO: `e8d8a919a4f1a6da8e2879a09d429653fd849705` · CODE `cce33ba9359ee040cf7cffa661cbb2477a1ed694` · REQUEST `43322e5c2686b3daaf1e66a255184ac8ca74c6b9` · **EXIT0** · HTTP **409** `missing_quiz_expiry`.
+- **Evidence layer**: isolated three-layer shell + real Nest HTTP + real PG timestamptz · **complementary≠substitute** AA · **AA_WASH: no** · AA nail `15eedd6` / `a8b98fc`/`3a6ec52` retained as complementary · 409 not washed.
+- Attempts1–4 EXIT1 retained · Ban retry-to-green · attempt **4b** `e7b9ba2` same-SHA another EXIT1 added（privacy OPEN ledger）.
+- OPEN non-blocking: **NOTE-UC025-DEVHEADER-NODEENV-DISCLOSE**（`NODE_ENV` `<unset>`）.
+- POST dual BOTH PASS: mw-e2e-ha `c55253bbe5f46fa3475b733d7e5f955b150f1103` + mw-privacy-int `1fc66233b3136d1d0740fd3b9568f67673c1f267`.
+- Receipt cross-ref: `receipts/2026-10-06-gap-uc025-fault-isolated-prove.md`.
+- **STILL_GAP**: row + FAULT column · EXIT0≠covered · coveredCount=8 · canHonestlyFlip=false · NEG/BOUND/AA Ban wash · ADV blind.
+- Pins unchanged: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503 · g7SuiteGreen=false · canHonestlyFlip=false.
+- Keep siblings · Ban nail other lines this turn.
+
+---
+
+*Slice · GAP-UC025-FAULT-ISOLATED-01 · Line W NAIL · 2026-10-06 · lifecycle post_prove_dual_pass · prove tip e8d8a91 · CODE cce33ba · EXIT0 · 409 missing_quiz_expiry · AA_WASH: no · complementary≠substitute AA · row+FAULT gap · Ban invent covered · releaseEvidence=false · STOP*
+

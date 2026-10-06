@@ -1,4 +1,4 @@
-# Receipt — **GAP-UC025-FAULT-ISOLATED-01 · UC-025 FAULT isolated PG/HTTP evidence**（Line W · prove · **`post_prove_awaiting_dual`** · Ban self-nail · row/FAULT stay gap · coveredCount=8）
+# Receipt — **GAP-UC025-FAULT-ISOLATED-01 · UC-025 FAULT isolated PG/HTTP evidence**（Line W · NAIL · **`post_prove_dual_pass`** · EXIT0≠covered · row/FAULT stay gap · coveredCount=8）
 
 **Date**: 2026-10-06（Asia/Shanghai / CST UTC+8）
 **Line**: **W** · implementer `mw-core`（commit identity `meetwise-core`）
@@ -12,7 +12,7 @@
 
 ## Pins（unchanged）
 
-haStatus=**NOT_HA** · releaseEvidence=**false** · claimProductionHA=**false** · gR45Closed=**true** · coveredCount=**8** · ms3EqualsR4Closed=**false** · **PG-retained** · public DELETE=**503**
+haStatus=**NOT_HA** · releaseEvidence=**false** · claimProductionHA=**false** · gR45Closed=**true** · coveredCount=**8** · ms3EqualsR4Closed=**false** · **PG-retained** · public DELETE=**503** · g7SuiteGreen=**false**
 
 **Row**: `UC-E2E-025` stays **gap** · FAULT 列 **未翻** · NEG frozen · BOUND gap · ADV blind
 
@@ -60,6 +60,7 @@ haStatus=**NOT_HA** · releaseEvidence=**false** · claimProductionHA=**false** 
 | 2 | `8d0d808` | 04:30:33Z / 12:30:33 CST | meetwise-e2e-753206-1791261025793 | **1** crash | snap queried non-existent `entitlement_consumption.interview_id` |
 | 3 | `ca4e44d` | 04:30:55Z / 12:30:55 CST | meetwise-e2e-754258-1791261047973 | **1** | F1–F4 PASS · F5 HTTP 500（sql/05 CHECK=50 vs enqueue v64） |
 | 4 | `e7b9ba2` | 04:31:36Z / 12:31:36 CST | meetwise-e2e-755493-1791261089816 | **1** | F1–F4 PASS · F5 HTTP 500（sql/22 CHECK+immutable trigger blocks NULL→resume bind） |
+| **4b** | `e7b9ba2`（same SHA） | 04:32:02Z / 12:32:02 CST | meetwise-e2e-756259-… | **1** | privacy OPEN `NOTE-UC025-ATTEMPT-LEDGER-4b` · same-SHA another EXIT1（still red · **≠** retry-to-green wash） |
 | 5 | `cce33ba` | 04:34:20Z / 12:34:20 CST | meetwise-e2e-759280-1791261253419 | **0** | F1–F5 all PASS · 21/21 |
 
 CMD each attempt: `pnpm uc025:nhp-fault-isolated:prove`（→ `scripts/run-e2e-isolated.mjs uc025:nhp-fault-isolated:prove:raw` → `pnpm -C apps/api prove:uc025-nhp-fault-isolated`）
@@ -106,10 +107,28 @@ Ban edited AA/NEG/BOUND proofs.
 
 ---
 
+## OPEN（non-blocking · disclosed）
+
+1. **NOTE-UC025-DEVHEADER-NODEENV-DISCLOSE**：`_neg-harness` sets `AUTH_DEV_HEADER='1'` · `NODE_ENV` remains `<unset>` after boot · dual-gate `AUTH_DEV_HEADER==='1' && NODE_ENV!=='production'` still holds · Ban claim blocker · Ban weaken guard/CORS.
+2. **NOTE-UC025-ATTEMPT-LEDGER-4b**：same-SHA `e7b9ba2` extra EXIT1（container `756259` @ 04:32:02Z）now recorded in ledger above · still red → **≠** retry-to-green.
+
+## Line W NAIL（`post_prove_dual_pass` · additive · 2026-10-06）
+
+- Lifecycle: **`post_prove_dual_pass`**.
+- Prove tip NAILED TO: `e8d8a919a4f1a6da8e2879a09d429653fd849705` · CODE `cce33ba9359ee040cf7cffa661cbb2477a1ed694` · REQUEST `43322e5c2686b3daaf1e66a255184ac8ca74c6b9`.
+- CMD `pnpm uc025:nhp-fault-isolated:prove` **EXIT0** · HTTP **409** `missing_quiz_expiry` · F1–F5 · AA/NEG/BOUND freeze EXIT0.
+- **AA_WASH: no** · complementary≠substitute AA · AA nail `15eedd6` / `a8b98fc`/`3a6ec52` retained · 409 not washed.
+- Attempts1–4 EXIT1 retained · Ban retry-to-green · 4b added.
+- POST dual BOTH PASS: mw-e2e-ha `c55253bbe5f46fa3475b733d7e5f955b150f1103` + mw-privacy-int `1fc66233b3136d1d0740fd3b9568f67673c1f267`.
+- **STILL_GAP**: row + FAULT column · EXIT0≠covered · coveredCount=**8** · canHonestlyFlip=false.
+- Pins: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503 · g7SuiteGreen=false.
+- Ban invent covered · Ban flip row/FAULT · Ban HA · Ban live · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · Ban coding.
+- Keep siblings · Ban nail other lines.
+
 ## Non-claims
 
-EXIT0 ≠ covered ≠ nail ≠ flip row/FAULT · coveredCount=**8** · Not HA · releaseEvidence=false · Ban self-nail · **POST_DUAL_NEEDED: e2e+privacy**（new post-prove review files · never overwrite pre-exec stubs）
+EXIT0 ≠ covered ≠ flip row/FAULT · coveredCount=**8** · Not HA · releaseEvidence=false · Ban claim covered/HA · Ban live · Ban buy cloud
 
 ---
 
-*Receipt · GAP-UC025-FAULT-ISOLATED-01 · Line W · 2026-10-06 · isolated PG+HTTP · complementary to AA · 409 missing_quiz_expiry · attempts 1–5 all recorded · Ban self-nail · STOP*
+*Receipt · GAP-UC025-FAULT-ISOLATED-01 · Line W NAIL · 2026-10-06 · lifecycle post_prove_dual_pass · tip e8d8a91 · CODE cce33ba · EXIT0 · 409 missing_quiz_expiry · AA_WASH: no · post dual c55253b+1fc6623 PASS · row+FAULT gap · coveredCount=8 · STOP*
