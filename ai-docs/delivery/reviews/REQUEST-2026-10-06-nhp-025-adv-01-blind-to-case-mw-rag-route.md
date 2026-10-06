@@ -1,7 +1,7 @@
 # REQUEST — **NHP-025-ADV-01 · UC-025 ADV blind→case evidence** · pre-exec · mw-rag-route
 
-**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub rewrite **re-PRE** · awaiting re-PRE · Ban self-approve · alone ≠ dual · 不代签 peer）
-**Rewrite**: **supersedes REQUEST `ae5367e`** · cites mw-rag-route PRE-EXEC FAIL **`6790cc6`**（`6790cc6d3e72ab5545a5071838b99b4fe0aaf8da`）**B1–B5 addressed** (+ C1–C2）· peer e2e PASS `899fef2` alone ≠ dual · Ban coding · ADV blind · canHonestlyFlip=false
+**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub rewrite **re-PRE2** · awaiting re-PRE · supersedes REQUEST `43e2dbc` · cites rag Re-PRE FAIL `e883bf8` B-R1 + §3 1–3 · Ban self-approve · alone ≠ dual · 不代签 peer）
+**Rewrite**: **re-PRE2 · supersedes REQUEST `43e2dbc`**（`43e2dbc1992d2077ca742a6161084ab5052b89d4` ← `ae5367e`）· cites mw-rag-route Re-PRE FAIL **`e883bf8`**（`e883bf8c4d5dafb19af32a3d8713dd5a04ffe139`）**B-R1 → option (b)** + §3 1–3 · prior FAIL **`6790cc6`**（`6790cc6d3e72ab5545a5071838b99b4fe0aaf8da`）B1–B5 (+ C1–C2）cleared @`43e2dbc` · B1/B2/B4/B5 not regressed· peer e2e PASS `899fef2` alone ≠ dual · Ban coding · ADV blind · canHonestlyFlip=false
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Expert**: `mw-rag-route`
 **Peer**: `mw-e2e-ha`（独立签 · alone ≠ dual）
@@ -23,13 +23,14 @@
 | Stack | **PG-retained** |
 | Public DELETE | **503**（stays） |
 
-## 请审什么（mw-rag-route · re-PRE · B1–B5 + C1–C2）
+## 请审什么（mw-rag-route · re-PRE2 · B-R1 + §3 1–3 · 不回退 B1/B2/B4/B5）
 
-Line AK · NHP-025-ADV-01。本 stub 为 **re-PRE rewrite**（**supersedes `ae5367e`** · cites FAIL **`6790cc6`** · 解除 B1–B5 + C1–C2；peer PASS `899fef2` **alone ≠ dual**）。请审：
+Line AK · NHP-025-ADV-01。本 stub 为 **re-PRE2 rewrite**（**supersedes `43e2dbc`** ← `ae5367e` · cites Re-PRE FAIL **`e883bf8`** B-R1 + §3 1–3 · prior FAIL **`6790cc6`** B1–B5 + C1–C2 已于 `43e2dbc` 解除且本稿不回退；peer PASS `899fef2` **alone ≠ dual**）。请审：
 
 1. **B1 A1**：404 `not_found_or_forbidden`（`:214-218`）· 先于 `:222/:239/:242/:266` · 无 `reserveEntitlement` `:329` / `enqueueInterviewJob` `:337` · own interview + other's quiz · 正控 → 202 · 与 `:200` 同码区分 · MUT-A1（警告 FORCE RLS）。
 2. **B2 A2**：**已删除**（`:22-26` 无客户端 expiry）· Ban relabel `stale_quiz`。
-3. **B3 A3**：列 A3-a/b/c + A3-NULL（`:260` 有意放行 ≠ 红 · `:263` lowercase）· 标 ADV-new · Ban borrow W · MUT-A3。
+3. **B-R1 A3（option (b) · `e883bf8`）**：**ADV-new 仅 A3-b**（跨主体 resume-id）→ 钉 **409 `resume_version_mismatch` @ `:266`** · 未扣额 `:329` / 未入队 `:337` · `:266` 前**无** resume owner 闸（owner 检查在其后 bind `:300` `AND r.owner_user_id=$2`）· 已删旧稿 A3-b「owner 闸替代期望」模糊措辞（期望唯一）；A3-a / A3-c / A3-NULL = 「W R4 / R2 / R5 向量在真 PG + HTTP 层的补充复验 · complementary ≠ ADV-new · 不计 ADV 证据」；A3-a 钉 pin 匹配大写 UUID → 通过版本守卫（不 409 · `UUID_RE` `/i` `:28` · W R4）；A3-NULL = W R5 / `:260` 有意放行 ≠ 红 ≠ ADV pass；MUT-A3a 去 `:263` lowercase → A3-a 变 409 · MUT-A3b 放宽 `:266` → A3-b 不再 409 · never commit；ADV-new EXIT0 = **A1 + A3-b + PC-A1**。
+3b. **§3 1–3（`e883bf8`）**：runner 仅增量登记 `uc025:nhp-adv:prove`（`run-e2e-isolated.mjs` + 根/`apps/api` `package.json` · AG `7eb1c88` +16/-1 · 「仅增量登记、不改其他目标行为」· 否则 `unsupported_e2e_target`）；PC-A1 → 202 seed 披露（entitlement bucket 否则 `:329` 402 · quiz `ready` · `expires_at` 未来 · pin resume_id = header `resume-id` · epoch = 当前）；**A1 先于 PC-A1**（`:212-218` 先于 `alreadyBegun` `:321`/`:326` · Δ0 空表基线）。
 4. **B4**：`run-e2e-isolated.mjs` 真 PG + Nest HTTP + FORCE RLS（`20_resume_quiz.sql:46-49`）· Ban fake DB · 全文单一表述。
 5. **B5**：回归 `uc025:nhp-neg|bound|fault|fault-isolated:prove` EXIT0 零改动；每 A-case ≥1 mutation；env EXIT1 ≠ pass。
 6. **跨用户/服务端锚**：A1 需 RLS/principal；A2 已删故无客户端声明路径；gap 命名不与 NEG/BOUND/FAULT 混用。
@@ -39,7 +40,7 @@ UC-E2E-025 row stays **gap** · ADV stays **blind** until case · **EXIT0≠cove
 
 ## Ban
 
-Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执行 · Ban self-nail · Ban self-approve（alone ≠ dual）· Ban SSOT edit（matrix / backlog / checklist）· Ban buy cloud · Ban Meridian · Ban secrets / `.env*` · Ban force-push · Ban claiming PRE PASS · Ban 碰 AL/AM/AG 禁触文件 · Ban product/infra code · Ban relabel stale_quiz · Ban fake DB。
+Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执行 · Ban self-nail · Ban self-approve（alone ≠ dual）· Ban SSOT edit（matrix / backlog / checklist）· Ban buy cloud · Ban Meridian · Ban secrets / `.env*` · Ban force-push · Ban claiming PRE PASS · Ban 碰 AL/AM/AG 禁触文件 · Ban product/infra code（except 纯增量 runner 目标登记 `uc025:nhp-adv:prove` · 仅增量登记、不改其他目标行为）· Ban borrow W R4/R2/R5 绿为 ADV · Ban relabel stale_quiz · Ban fake DB。
 
 本 stub 不授权 coding / prove / push 冒充执行 / buy cloud；pre-exec dual BOTH PASS 后由协调方 AUTHORIZE 执行；implementer 不自批 · 不代填 Verdict。
 
@@ -49,7 +50,7 @@ Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执
 
 ---
 
-*Stub · re-PRE rewrite · supersedes ae5367e · FAIL 6790cc6 B1–B5 · peer PASS 899fef2 alone≠dual · Ban coding · ADV blind · awaiting expert re-PRE dual · STOP*
+*Stub · re-PRE2 rewrite · supersedes 43e2dbc ← ae5367e · FAIL e883bf8 B-R1 option (b) + §3 1–3 · FAIL 6790cc6 B1–B5 · peer PASS 899fef2 alone≠dual · Ban coding · ADV blind · awaiting expert re-PRE dual · STOP*
 
 ---
 
@@ -58,6 +59,14 @@ Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执
 **re-PRE · supersedes `ae5367e` · cites FAIL `6790cc6`** · B1–B5 + C1–C2 landed in harness/slice · A2 deleted · Status stays `draft:awaiting_pre_exec_dual` · Pins unchanged · ADV blind · canHonestlyFlip=false · Ban coding · Ban wash B''/AA/W · peer e2e PASS `899fef2` alone ≠ dual。
 
 下方 Historical FAIL 正文 **原样保留不擦除**；本段仅为 rewrite 注记，**不**构成对本稿的 PASS/FAIL。
+
+## Rewrite note 2 · re-PRE2（append · do not erase FAIL sections below · `6790cc6` + `e883bf8`）
+
+**re-PRE2 · supersedes `43e2dbc` · cites Re-PRE FAIL `e883bf8`**（`e883bf8c4d5dafb19af32a3d8713dd5a04ffe139`）· 选 **option (b)** 解除 **B-R1**（原 B3）+ 落实 §3 1–3；B1/B2/B4/B5 + 锚点更正 + C1–C2 **不回退**。落点（harness）：Rewrite note 2 表 · §2 锚（`:28` / `:288-301` / `:321`/`:326` / `:331`/`:334`）· §4 A1 seed 表 + 顺序 · §4 A3（option (b) 表 + MUT-A3a/MUT-A3b）· §5.1 runner allow · §6 EXIT。
+- **A3-b（ADV-new 唯一 A3）**：跨主体 resume-id → **409 `resume_version_mismatch` @ `:266`** · `:266` 前无 resume owner 闸（owner 检查在 bind `:300`）· 旧稿「owner 闸替代期望」模糊措辞已删（期望唯一）。
+- **A3-a / A3-c / A3-NULL**：W R4 / R2 / R5 真 PG + HTTP 补充复验 · complementary ≠ ADV-new · 不计 ADV 证据。
+- **EXIT**：ADV-new = A1 + A3-b + PC-A1；complementary 红则如实 EXIT≠0，绿不计 ADV。
+- Status stays `draft:awaiting_pre_exec_dual` · Pins unchanged · ADV blind · row gap · canHonestlyFlip=false · Ban coding · Ban wash B''/AA/W · peer e2e PASS `899fef2` alone ≠ dual。本段**不**构成对本稿的 PASS/FAIL；`6790cc6` 与 `e883bf8` FAIL 正文逐字保留。
 
 ---
 
