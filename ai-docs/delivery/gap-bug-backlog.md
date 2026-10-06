@@ -99,6 +99,8 @@
 | BUG-SCORE-LEGACY | P0 | 历史公开伪评分路径已 410/止血，但可比评分/校准未建；题目均分不可作同尺度排名（PRD-TEST-001/015） | 保持 B 端 `assessment_unavailable` / 无自动决策直至 SCOR+校准 | product / e2e | 与 GAP-PROD-01 同列；防回归 | `pnpm scor-00:http:prove`；公开写门 prove |
 | BUG-E2E-ISO | P1 | 宽 `e2e:isolated` / performance suite 默认绑同一 pgvector 镜像；云 serial runner 拒绝 migration/vector 全套（PRD-TEST-008）；无 `MODEL_API_KEY` → family **blocked**（`g6-e2e-iso-blocked` honesty） | 夹具拆分：关系面 MySQL、向量面 Qdrant；云故障证据另轨；**G6 still OPEN**（cite ≠ G6 closed ≠ R5 retired ≠ family green） | e2e | R5 退役阶段 3–4；云 profile 另 FINDING；G7-K3 cite align | `g6-e2e-iso-blocked` honesty pin（`harness/g6-e2e-iso-blocked.md` · `pnpm g6-e2e-iso-blocked:prove`）；`scripts/run-e2e-isolated.mjs`；`run-e2e-performance-suite.mjs` |
 
+> **2026-10-07 · G7 Path B 分类立卷登记（append-only · `:100` BUG-E2E-ISO 附近）**: Line G7B trio FAIL 四分类已立 @nail tip（本 commit · branch `line/g7b-nail`）——REQUEST `017a178d` · pre-dual BOTH PASS（mw-model-op `bbf418ba` + mw-e2e-ha `c79219b6`）· exec `ef7a63e4`≡origin `b6caa6aa`（patch-id `e209c13e`）· post-dual BOTH PASS（mw-model-op `bf68e20` + mw-e2e-ha `433a04f`）· 四分类＝Key-blocked 3+3 · 真实产品缺陷 0 确认（unknown≠0）· 夹具/基建 1 族 open+1 已修 · 环境 0 · **本行不新增 gap 行、不翻任何既有行状态**；Path B 排队 Q1 夹具拆分（P1 · 绑 BUG-E2E-ISO `:100`）/ Q2 云 serial runner（P2 · 同行另 FINDING）/ Q3 mock 断言面（P1 · mock ≠ real-model E2E）——**各项须另走 REQUEST + pre-exec dual + 协调方授权，排队 ≠ 授权**；Key-blocked（C1/C2/C3 + C7/C8/C9）解锁循 AD P4（live Key 供给 + 预算 + 双审 + 协调方显式授权 = 另刀 · 列条件 ≠ 授权）· trio stays OPEN 1/1/1 · `g7SuiteGreen=false`.
+
 ---
 
 ## C. 行统计与维护
