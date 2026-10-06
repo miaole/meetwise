@@ -170,6 +170,8 @@
     "uc001:nhp-bound:prove:raw": "pnpm -C apps/api prove:uc001-nhp-bound",
     "uc001:nhp-adv:prove": "node scripts/run-e2e-isolated.mjs uc001:nhp-adv:prove:raw",
     "uc001:nhp-adv:prove:raw": "pnpm -C apps/api prove:uc001-nhp-adv",
+    "uc001:nhp-fault:prove": "node scripts/run-e2e-isolated.mjs uc001:nhp-fault:prove:raw",
+    "uc001:nhp-fault:prove:raw": "pnpm -C apps/api prove:uc001-nhp-fault",
     "uc028:trace-fail-open:prove": "node scripts/run-e2e-isolated.mjs uc028:trace-fail-open:prove:raw",
     "uc028:trace-fail-open:prove:raw": "pnpm -C apps/api prove:uc028-trace-fail-open",
     "uc027:manual-review-appeal:prove": "node scripts/run-e2e-isolated.mjs uc027:manual-review-appeal:prove:raw",

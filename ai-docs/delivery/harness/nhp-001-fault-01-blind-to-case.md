@@ -1,11 +1,13 @@
-# Harness — **NHP-001-FAULT-01 · UC-001 FAULT blind→case evidence**（Line AI · docs REQUEST rewrite · **`draft:awaiting_pre_exec_dual`** · case ≠ covered · row UC-E2E-001 stays honest）
+# Harness — **NHP-001-FAULT-01 · UC-001 FAULT blind→case evidence**（Line AI · prove done · **`prove:awaiting_post_dual`** · case ≠ covered · FAULT stays partial · row UC-E2E-001 stays honest）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST rewrite **re-PRE** · supersedes REQUEST `db24fc9` · cites rag PRE-EXEC FAIL `64fba04` **B1–B5** (+ C1–C3）· peer e2e PASS `899fef2` alone ≠ dual · Ban coding · Ban prove · EXIT0≠covered · Ban wash Y NEG / AB BOUND / AG ADV · Ban self-approve）
+**Status**: **`prove:awaiting_post_dual`**（coding+prove AUTHORIZE · FAULT case EXIT0 · C1–C7 carried · MUT-F1-stuck-running actual `status=running` EXIT≠0 discarded · regressions neg 26/26 · bound 17/17 · report:prove EXIT0 · FAULT stays **partial** · EXIT0≠covered · coveredCount=8 · awaiting POST dual · Ban wash Y/AB/AG · Ban self-approve · Ban self-nail）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`1778d53`** / full `1778d53ac6075bfd4e361fb0cd51e8f31d4cfbb1`（includes AL `c633584` / AM `f645e13` / AG reviews as ancestors · **Ban touch** AL/AM/AG files: `gap-e2e-iso-banner*` · `g7-disclosure-r1*` · `nhp-001-adv*` · `run-e2e-isolated.mjs` product changes）
 **Prior REQUEST**: `db24fc9f67a8b0409972db3ad88689235972dfc1`（pre_dual · **superseded by this re-PRE rewrite**）
 **FAIL receipt**（retained · 不擦除）: `64fba0473955359e244e9c532d45e19cac6c9670`（mw-rag-route PRE-EXEC FAIL on `db24fc9` · B1–B5）
+**Prove receipt**: `ai-docs/delivery/receipts/2026-10-06-nhp-001-fault-01-prove.md`
+**PRE dual**: mw-e2e-ha re-PRE PASS `b449371` · mw-rag-route Re-PRE PASS `44e3665` @ REQUEST `6128b79`
 **Peer note**: mw-e2e-ha PRE-EXEC PASS `899fef248d7d247f8425c037109ed4efde008e71` on prior wave tip · **alone ≠ dual** · rag FAIL ⇒ BOTH not PASS
 **Wave**: Line **AI** rewrite（AI→AJ→AK sequential · this = Line **AI**）
 **Experts**: `mw-e2e-ha` + `mw-rag-route`（stubs PENDING re-PRE · Ban self-approve · alone ≠ dual）
@@ -61,21 +63,22 @@ NEG（`harness/nhp-001-neg-01-blind-to-case.md` · Line Y NAIL）/ BOUND（`harn
 
 **注入点（B1 · 不改产品）**：在隔离 proof 内向 `ReportWorkerDeps.generate` 注入**确定性 throw**（或等价拒绝），使 `drainReportsOnce` 走 `:47-50` `markReportFailed` 路径。**Ban** 编辑 `apps/worker/src/report-worker.ts` / `packages/db/src/report.ts` / controller/service 产品文件。
 
-**主链 delta（B3）**：UC-001 主链 `begin` → **`/turn`**（C1）→ complete → report job 注入失败 → 经 **Nest HTTP 读口**观测（非 worker 函数直调冒充 HTTP）。**Ban borrow** `report:prove` / report-bulkhead / `uc011:report-refund*` / `uc019:report-regenerate*` 绿。
+**主链 delta（B3）**：UC-001 主链 `begin` → **`/turn`**（C1）→ **offline seed** `completeInterviewAndConfirm` + `enqueueReport`（C2 · Ban 叙述成无模型跑通主链）→ report job 注入失败 → 经 **Nest HTTP 读口**观测（非 worker 函数直调冒充 HTTP）。**Ban borrow** `report:prove` / report-bulkhead / `uc011:report-refund*` / `uc019:report-regenerate*` 绿。
 
 | id | 注入 | 钉死观察（B2） |
 |----|------|----------------|
-| **F1 report worker 失败** | `ReportWorkerDeps.generate` 确定性 throw | `GET /interviews/:id` → interview `status='completed'`（可终态 · 不因 report 失败回滚）；`GET /:id/report` → **200** `{status:'failed', content:null}` |
+| **F1 report worker 失败** | `ReportWorkerDeps.generate` 确定性 throw | `GET /interview/:id` → interview `status='completed'`（C1 · `@Controller('interview')` · 非 `/interviews/`）（可终态 · 不因 report 失败回滚）；`GET /:id/report` → **200** `{status:'failed', content:null}` |
 | **F2 sweep 隔离** | F1 后耗尽 attempts 触发 sweep | `GET /:id/report` → **200** `{status:'quarantined', content:null}`；`interview_event` 含 `report_unavailable`（reason `max_attempts_exceeded`） |
-| **F2b retry / export** | F1 后 | `POST /:id/report/retry` → **200** `{requeued:true}`；`GET /:id/report/export` → **404** `{error:'report_not_ready'}` |
+| **F2b retry / export** | **F2 前 / 独立 fixture**（C3 · `requeueFailedReport` 仅 `status='failed'`；quarantined 后 retry → **404** `no_retriable_report`） | `POST /:id/report/retry` → **200** `{requeued:true}`；`GET /:id/report/export` → **404** `{error:'report_not_ready'}` |
 | **F3 旁证分离** | NEG/BOUND/`report:prove` 收据只读对照（不重跑替本 case） | 本 case 收据 **独立**；Ban 用 Y NEG / AB BOUND / AG ADV / `report:prove` 绿替代 FAULT |
 | **PC 正控** | 同夹具 · good `generate`（无 throw） | `GET /:id/report` → **200** `{status:'ready', content:…}` + `interview_event` 含 `report_ready` |
 | **MUT-F1**（mutation · 真变红） | temp 变异：失败路径**跳过** `markReportFailed`（报告滞留 `running`） | assert id **`MUT-F1-stuck-running`** → 期望 F1 断言红（`status='failed'` 不成立）· EXIT≠0 · temp only · never commit |
 
 ## 5. 证据层（B5 · 单一表述）
 
-- **唯一证据层**：**Nest HTTP**（Supertest / in-process Nest 对真实 HTTP 契约）+ **隔离真 PG** via `scripts/run-e2e-isolated.mjs`。
+- **唯一证据层**：**Nest HTTP**（`createApp` + `listen(0)` + `fetch` 对真实 HTTP 契约 · **C7** · Ban 误导性 Supertest-only 叙述）+ **隔离真 PG** via `scripts/run-e2e-isolated.mjs`。
 - **Ban fake DB** 作为 ledger / report 状态观测依据。
+- **C5 选定**：本 case **做 LEDGER-SNAP**（真 PG · interview exact-1 consumption 保持 `confirmed` · owner totals/all buckets 在 report 失败/retry/quarantine/ready 前后字节相同）。**不是**「本 case 不做 ledger 断言」。
 - **Ban** 全文混用「in-process only / fake DB」与「隔离壳三层」等矛盾措辞；全文只认上句单一层。
 
 ## 6. prove 方案（授权后 · Ban live · C3）
@@ -106,7 +109,7 @@ NEG（`harness/nhp-001-neg-01-blind-to-case.md` · Line Y NAIL）/ BOUND（`harn
 - **Ban wash Y NEG**（prove `ff74522` / `ff74522ac4db4ad661e72265e50ad8d860a68812` · post `51c0c0b` / `51c0c0b6c59ee27f804ed0ff9660930b9b85d0b5`）· **Ban wash AB BOUND**（prove `f8cdc82` / `f8cdc82748922a15f668993fe742411052cf21fd` · post `5adb14f` / `5adb14f68f43108c09ef277db03c674e9b93bfa3`）· **Ban wash AG ADV**（Ban 碰 `nhp-001-adv-01*` / `REQUEST-2026-10-06-nhp-001-adv*`）
 - **Ban borrow** `report:prove` / report-bulkhead / `uc011:report-refund*` / `uc019:report-regenerate*` 绿为本 case
 - Ban wash isolated worker 旁证为 case 收据 · Ban live · Ban fake-green suite · Ban invent covered · Ban flip FAULT 列/行
-- Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执行 · Ban self-nail · Ban self-approve（alone ≠ dual）· Ban SSOT edit of matrix/backlog · Ban buy cloud · Ban Meridian · Ban secrets / `.env*` · Ban force-push · Ban claiming PRE PASS · Ban 碰 AL/AM/AG 禁触文件 · Ban product/infra code · Ban fake DB for ledger
+- Ban self-nail · Ban self-approve（alone ≠ dual · awaiting POST）· Ban invent covered · Ban flip FAULT 列/行 · Ban SSOT edit of matrix/backlog · Ban buy cloud · Ban Meridian · Ban secrets / `.env*` · Ban force-push · Ban 碰 AL/AM/AG 禁触文件 · Ban product edits beyond C4 additive runner + this proof · Ban fake DB for ledger · Ban wash Y/AB/AG · Ban borrow report:prove
 
 ## 10. Non-claims
 
@@ -116,4 +119,4 @@ Not a pass · not run · not covered · not FAULT 列 flip · not nail · not HA
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · canHonestlyFlip=false · row UC-E2E-001 unchanged · FAULT stays **partial** · STOP
 
-*Harness · NHP-001-FAULT-01 · UC-001 FAULT blind→case evidence · Line AI · 2026-10-06 · draft:awaiting_pre_exec_dual · re-PRE rewrite supersedes db24fc9 · FAIL 64fba04 B1–B5 · peer e2e PASS 899fef2 alone≠dual · Ban coding until PRE BOTH PASS + AUTHORIZE · alone ≠ dual · STOP*
+*Harness · NHP-001-FAULT-01 · UC-001 FAULT blind→case evidence · Line AI · 2026-10-06 · prove:awaiting_post_dual · FAULT EXIT0 case evidence · C1–C7 · MUT discarded · FAULT stays partial · EXIT0≠covered · Ban wash Y/AB/AG · Ban covered flip · STOP*
