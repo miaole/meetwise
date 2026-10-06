@@ -943,3 +943,14 @@ flowchart TD
 - Nail tip = 本 commit（branch `line/ad-g7-key-blocked-residual-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written（incl. Line AC G7 Path A · Line AF covered-lift · Line W FAULT-ISOLATED · Line AE/AG/AH · Line U）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered · does **not** flip `g7SuiteGreen` · does **not** close R1 / Disclosure-1.
 
+### Line AE C-PERF-TEARDOWN residual NAIL（2026-10-06 SSOT nail · `post_prove_dual_pass` · R-A Linux-native-Docker-Engine only · CONDITION OPEN retained）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line AE C-PERF-TEARDOWN CONDITION residual evidence products only（zero product/infra code）. Implementer does not self-approve beyond this authorized nail. **Not a CONDITION close**. Ban close C-PERF-TEARDOWN / CONDITION · Ban wash attempt1 · Ban Desktop ECONNREFUSED 假关 · Ban Branch B invention · Ban invent green · Ban invent covered · Ban covered flip · Ban HA/capacity/suite-green claim · Ban coding · Ban buy cloud · Ban Meridian · Ban secrets/`.env*` · Ban force-push.
+- REQUEST `b4a2a01` / `b4a2a01d225373283c60d773055d360f6a3fc15a`. Pre-exec dual PASS: mw-rag-route `9e2f001` / `9e2f00114d8a19cdc0c06f62668cfe2147a26e0f` + mw-e2e-ha `f215438` / `f2154387df654b4600b74b4c8a52c1d35f5986b2`.
+- PROVE_TIP（receipt/evidence）`56dac68` / `56dac68ae4ab52babd0282e1fa5ba9ce917c4024` · R-A · C1 REACHABLE · CMD `pnpm uc018:perf-load:prove` formal N=3 **EXIT 0/0/0** · receipt `receipts/2026-10-06-c-perf-teardown-condition-residual.md`.
+- Post-prove dual PASS: mw-e2e-ha `76013c8` / `76013c8e0db8b9c2e371e56902107b5c8e2bb0a4` + mw-rag-route `ebf48b6` / `ebf48b68e7e640b6a577599939b5f41b344b15c6`（BOTH · alone≠dual）.
+- Host class **仅 Linux 原生宿主** / Linux-native-Docker-Engine only · `44154aa` Desktop ECONNREFUSED class unresolved · Ban Desktop ECONNREFUSED 假关.
+- [ ] backlog `:35` **C-PERF-TEARDOWN stays CONDITION OPEN** · canHonestlyFlip=**false** · PERF/LOAD stays **local partial** · capacityRepresentative=**false** · attempt1@`b29c191` EXIT1 retained · Branch B not invented · UC-018/§1.1 stay partial.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · g7SuiteGreen=false. Do not write covered.
+- Nail tip = 本 commit（branch `line/ae-c-perf-teardown-residual-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written（incl. Line S Branch A `54a7437` · Line AD/AF/AG/AH）. This paragraph does **not** close C-PERF-TEARDOWN. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.

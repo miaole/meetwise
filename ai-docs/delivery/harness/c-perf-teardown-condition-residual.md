@@ -1,6 +1,8 @@
-# Harness — **C-PERF-TEARDOWN CONDITION residual · container-reachability honest evidence**（Line AE · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · CONDITION stays OPEN）
+# Harness — **C-PERF-TEARDOWN CONDITION residual · container-reachability honest evidence**（Line AE · NAIL · **`post_prove_dual_pass`** · CONDITION stays OPEN）
 
-**Status**: **`post_prove:awaiting_post_prove_dual`**（R-A executed · receipt `receipts/2026-10-06-c-perf-teardown-condition-residual.md` · formal EXIT 0/0/0 · host class Linux-native-Docker-Engine · **CONDITION stays OPEN** · Ban close · Ban wash attempt1 @ `b29c191` · Ban invent green · Ban Branch B · Ban self-nail · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · Ban self-approve · alone ≠ dual）
+**Status**: **`post_prove_dual_pass`**（Line AE nail · R-A · PROVE_TIP `56dac68` · formal N=3 EXIT **0/0/0** · C1 REACHABLE · host class **Linux-native-Docker-Engine** only（仅 Linux 原生宿主）· POST dual mw-e2e-ha `76013c8` + mw-rag-route `ebf48b6` BOTH PASS · **STILL_OPEN**: backlog `:35` **C-PERF-TEARDOWN stays CONDITION OPEN** · attempt1 @ `b29c191` EXIT=1 retained · Ban close C-PERF-TEARDOWN / CONDITION · Ban wash attempt1 · Ban Desktop ECONNREFUSED 假关 · Ban Branch B invention · Ban invent green · Ban invent covered · Ban covered flip · Ban HA/capacity/suite-green claim · Ban coding · Ban buy cloud · Ban Meridian · Ban secrets/`.env*` · Ban force-push · Ban self-approve beyond this authorized nail · alone ≠ dual）
+
+> **Prove-era status（historical · retained）**: **`post_prove:awaiting_post_prove_dual`**（R-A executed · receipt `receipts/2026-10-06-c-perf-teardown-condition-residual.md` · formal EXIT 0/0/0 · host class Linux-native-Docker-Engine · **CONDITION stays OPEN** · Ban close · Ban wash attempt1 @ `b29c191` · Ban invent green · Ban Branch B · Ban self-nail · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · Ban self-approve · alone ≠ dual）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · PERF/LOAD stays **local partial** · capacityRepresentative=**false** · canHonestlyFlip=**false**
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`416b6a5`** / full `416b6a5b5c71d97a1816974c2b174dbf4b9c8cb8`（wave start · sibling Line AD/AF/AG/AH REQUEST commits may land alongside · Ban touch siblings）
@@ -76,4 +78,23 @@ Not a pass · not run · not closed · not fixed · not root-caused（attempt1 �
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · PERF/LOAD local partial · capacityRepresentative=false · canHonestlyFlip=false · backlog `:35` CONDITION OPEN · STOP
 
-*Harness · C-PERF-TEARDOWN CONDITION residual · Line AE · 2026-10-06 · post_prove:awaiting_post_prove_dual · R-A · CONDITION OPEN · Ban close · Ban wash attempt1 · Ban Branch B · Ban invent green · Ban self-nail · STOP*
+*Harness · C-PERF-TEARDOWN CONDITION residual · Line AE · 2026-10-06 · post_prove:awaiting_post_prove_dual · R-A · CONDITION OPEN · Ban close · Ban wash attempt1 · Ban Branch B · Ban invent green · Ban self-nail · STOP*  <!-- prove-era footer · lifecycle advanced below -->
+
+
+---
+
+## Line AE NAIL lifecycle（`post_prove_dual_pass` · 2026-10-06 · additive）
+
+- Lifecycle on this harness/slice/receipt: **`post_prove_dual_pass`**（docs/SSOT only · zero product/infra code in this nail）.
+- REQUEST `b4a2a01` / `b4a2a01d225373283c60d773055d360f6a3fc15a` · PRE dual BOTH PASS mw-rag-route `9e2f001` / `9e2f00114d8a19cdc0c06f62668cfe2147a26e0f` + mw-e2e-ha `f215438` / `f2154387df654b4600b74b4c8a52c1d35f5986b2`.
+- PROVE_TIP（receipt/evidence commit）`56dac68` / `56dac68ae4ab52babd0282e1fa5ba9ce917c4024` · receipt `receipts/2026-10-06-c-perf-teardown-condition-residual.md` · prove base `350f7a4` · code-eq `cce33ba` · CMD `pnpm uc018:perf-load:prove` formal N=3 **EXIT 0/0/0** · class none/none/none · C1 host+container REACHABLE.
+- POST dual BOTH PASS: mw-e2e-ha `76013c8` / `76013c8e0db8b9c2e371e56902107b5c8e2bb0a4` + mw-rag-route `ebf48b6` / `ebf48b68e7e640b6a577599939b5f41b344b15c6`（alone ≠ dual）.
+- Host class: **Linux-native-Docker-Engine only**（仅 Linux 原生宿主 · R-A on Linux-native host only）. `44154aa` macOS Docker Desktop `ECONNREFUSED` class stays a **valid, unresolved** record · **Ban** citing this R-A as closing/resolving the Desktop ECONNREFUSED class（Ban Desktop ECONNREFUSED 假关）.
+- attempt1 @ `b29c191543dfbe7c1afa4278c550340a3339f295` **EXIT=1 retained** · not reproduced ≠ closed · not root-caused · Ban wash.
+- **STILL_OPEN**: backlog `:35` **C-PERF-TEARDOWN stays CONDITION OPEN**（disclosed OPEN · canHonestlyFlip=**false**）· PERF/LOAD stays **local partial** · capacityRepresentative=**false** · UC-018 row unchanged · coveredCount=**8**. Closing CONDITION requires a future independent criterion + dual + coordinator authorization beyond this nail.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · g7SuiteGreen=false.
+- Ban close C-PERF-TEARDOWN / CONDITION · Ban wash attempt1 · Ban Desktop ECONNREFUSED 假关 · Ban Branch B invention · Ban invent green · Ban invent covered · Ban covered flip · Ban HA/capacity/suite-green claim · Ban coding · Ban buy cloud · Ban Meridian · Ban secrets/`.env*` · Ban force-push.
+
+---
+
+*Harness · C-PERF-TEARDOWN CONDITION residual · Line AE NAIL · 2026-10-06 · lifecycle post_prove_dual_pass · PROVE_TIP 56dac68 · EXIT 0/0/0 · POST dual 76013c8+ebf48b6 PASS · Linux-native-Docker-Engine only · CONDITION OPEN · attempt1 retained · Ban close · Ban Desktop ECONNREFUSED 假关 · Ban Branch B · STOP*

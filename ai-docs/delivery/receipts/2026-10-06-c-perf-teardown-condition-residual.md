@@ -6,6 +6,7 @@
 **REQUEST**: `b4a2a01d225373283c60d773055d360f6a3fc15a`（docs-only pre_dual）
 **PRE dual BOTH PASS**: mw-rag-route `9e2f001`（C1–C8）· mw-e2e-ha `f215438`（AD-AH PRE dual half）
 **AUTHORIZE**: Line AE · PRE BOTH PASS · coding+prove（coordinator）
+**Lifecycle**: **`post_prove_dual_pass`**（Line AE NAIL · POST dual mw-e2e-ha `76013c8` + mw-rag-route `ebf48b6` BOTH PASS · **CONDITION stays OPEN**）
 **Outcome**: **R-A**（容器可达 → 正式 ×3 复现台账）· **Ban close** · **Ban wash attempt1** · **Ban Branch B** · **Ban invent green** · **Ban self-nail**
 
 ---
@@ -14,7 +15,7 @@
 
 haStatus=**NOT_HA** · releaseEvidence=**false** · claimProductionHA=**false** · gR45Closed=**true** · coveredCount=**8** · ms3EqualsR4Closed=**false** · **PG-retained** · public DELETE=**503** · PERF/LOAD stays **local partial** · capacityRepresentative=**false** · canHonestlyFlip=**false**
 
-**C-PERF-TEARDOWN stays CONDITION OPEN**（backlog `gap-bug-backlog.md:35` · **zero SSOT edit** this receipt）· attempt1 @ `b29c191` **EXIT=1 retained** · **Not a close** · **Not coding** · **Not HA** · **Not capacity** · **POST_DUAL: awaiting**（stubs open · implementer 不自批 · Ban self-nail）
+**C-PERF-TEARDOWN stays CONDITION OPEN**（backlog `gap-bug-backlog.md:35` · **zero SSOT edit** this receipt）· attempt1 @ `b29c191` **EXIT=1 retained** · **Not a close** · **Not coding** · **Not HA** · **Not capacity** · **POST_DUAL: BOTH PASS**（mw-e2e-ha `76013c8` + mw-rag-route `ebf48b6` · was awaiting at prove time）· **NAILED**（Line AE nail · see §7）
 
 ---
 
@@ -122,6 +123,25 @@ Predeclare file: `.tmp/lineAE-formal/N3-class-table-predeclare.md` · **PREDECLA
 - attempt1 @ `b29c191` **EXIT=1 retained** · **Ban wash**
 - **C-PERF-TEARDOWN stays CONDITION OPEN** · PERF/LOAD **local partial** · capacityRepresentative=**false** · coveredCount=**8** · canHonestlyFlip=**false**
 - **Not a close** · **Not fixed** · **Not HA** · **Not capacity** · **Not covered flip** · **Not Branch B** · **Not invent green**
-- **POST_DUAL: awaiting**（stubs `REQUEST-2026-10-06-c-perf-teardown-condition-residual-post-mw-{e2e-ha,rag-route}.md`）· **NAIL: n/a**（Ban self-nail）· STOP
+- ~~POST_DUAL: awaiting · NAIL: n/a~~（prove-era · historical）→ **POST_DUAL: BOTH PASS**（stubs `REQUEST-2026-10-06-c-perf-teardown-condition-residual-post-mw-{e2e-ha,rag-route}.md`）· **NAIL: nailed**（Line AE · coordinator-authorized · see §7）· STOP
 
 *Receipt · Line AE · C-PERF-TEARDOWN CONDITION residual · R-A · OPEN · 2026-10-06 · STOP*
+
+
+---
+
+## 7. Line AE NAIL cross-ref（additive · 2026-10-06 · `post_prove_dual_pass`）
+
+| Item | Value |
+|------|-------|
+| PROVE_TIP（this receipt commit） | `56dac68` / `56dac68ae4ab52babd0282e1fa5ba9ce917c4024` |
+| REQUEST | `b4a2a01` / `b4a2a01d225373283c60d773055d360f6a3fc15a` |
+| PRE dual | mw-rag-route `9e2f001` / `9e2f00114d8a19cdc0c06f62668cfe2147a26e0f` + mw-e2e-ha `f215438` / `f2154387df654b4600b74b4c8a52c1d35f5986b2` |
+| POST dual BOTH PASS | mw-e2e-ha `76013c8` / `76013c8e0db8b9c2e371e56902107b5c8e2bb0a4`（independent re-run N=3 EXIT 0/0/0 on the same Linux-native box）+ mw-rag-route `ebf48b6` / `ebf48b68e7e640b6a577599939b5f41b344b15c6`（C1–C8 landed · "R-A on Linux-native host only" · independent re-run not executed, disclosed in review） |
+| Host class | **Linux-native-Docker-Engine only**（仅 Linux 原生宿主）· does **not** resolve `44154aa` macOS Docker Desktop ECONNREFUSED class · Ban Desktop ECONNREFUSED 假关 |
+| Lifecycle | **`post_prove_dual_pass`** · NAIL tip = Line AE nail commit on `feat/mysql-schema-skeleton`（no force-push） |
+| STILL_OPEN | backlog `:35` **C-PERF-TEARDOWN stays CONDITION OPEN** · attempt1 @ `b29c191` EXIT=1 retained · canHonestlyFlip=false · PERF/LOAD local partial · capacityRepresentative=false · coveredCount=8 |
+
+Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · g7SuiteGreen=false. Ban close C-PERF-TEARDOWN / CONDITION · Ban wash attempt1 · Ban Desktop ECONNREFUSED 假关 · Ban Branch B invention · Ban invent green · Ban invent covered · Ban covered flip · Ban HA/capacity/suite-green claim · Ban coding · Ban buy cloud · Ban Meridian · Ban secrets/`.env*` · Ban force-push.
+
+*Receipt · Line AE · NAILED post_prove_dual_pass · R-A Linux-native only · CONDITION OPEN · 2026-10-06 · STOP*
