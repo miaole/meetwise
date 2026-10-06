@@ -928,3 +928,18 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · canHonestlyFlip=false. Do not write covered / fixed / closed / root-caused.
 - Nail tip = 本 commit（推至 `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written（incl. Line X rootcause ledger NAIL `40bed97` · Line W FAULT-ISOLATED · Line AD/AE/AF/AG）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
+
+### Line AD G7 Key-blocked residual honest NAIL（2026-10-06 SSOT nail · `post_prove_dual_pass` · EXIT 1/1/1 Key-blocked · ≠ suite green）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line AD G7 Key-blocked residual honest products only（honesty of Key-blocked residual）. Implementer does not self-approve beyond this authorized nail. **Not** suite green. **Not** G7 green. **Key-blocked ≠ pass**. Ban wash suite green · Ban `g7SuiteGreen=true` · Ban claim suite green/HA · Ban washing Key-blocked as pass · Ban coding · Ban live · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · Ban covered flip · Ban flipping R1 / Disclosure-1 closed.
+- REQUEST `f32f56d` / `f32f56d8f602b9bf9aaa9f708ddbb59d7cef973f`. Pre-exec dual PASS: mw-e2e-ha `f215438` / `f2154387df654b4600b74b4c8a52c1d35f5986b2` + mw-model-op `2d422c1` / `2d422c14e585c544a162f536cc9b3058a7d14e30`.
+- CODE **none**（docs-only）· PROVE_TIP **NAILED TO** `f4981cb` / `f4981cb6f75d5710039915b47e063e9192248da0`（stubs tip `2e4a825` · exec HEAD `880f144`）· **PROVE_EXIT 1/1/1** · Key-blocked `live_provider_key_missing` · assertionCount=**null** · receipts `ai-docs/delivery/receipts/g7-key-blocked-residual-honest/` · **0 model calls** · `actualSpendCny=null`.
+- Post-prove dual PASS: mw-e2e-ha `ea00c93` / `ea00c936a032fc7334d46762c33709b6dbe016bb` + mw-model-op `c4bc836` / `c4bc83679eaac6ec92c257c4739d4a31dc9d2e49`（BOTH · honesty of Key-blocked residual · alone≠dual）.
+- Products P1–P5 · **P1–P5 ≠ gate R1** · gate R1 stays **OPEN**.
+- [ ] Trio stays **OPEN 1/1/1**（`pnpm e2e:isolated` · `pnpm e2e:ui:isolated` · `pnpm verify:e2e-performance`；本轮 EXIT 1/1/1 Key-blocked retained）. Trio/suite 翻绿仍须**未来授权下的新鲜绿收据 + post-prove dual + 协调方授权**；本 nail 不翻 `g7SuiteGreen`.
+- 原值不动：`g7SuiteGreen=false` · R1 **OPEN** · Disclosure-1 **OPEN** · coveredCount=**8**.
+- **Addendum（model-op non-blocker）**: future keys-stripped re-attest **must** treat **`.env` / `.env.local` / `apps/api/.env` absence** as a required pre-probe assertion（presence-only · never read contents）because `run-e2e.mjs:15–19` auto-loads ROOT/.env when present and could bypass `env -u`.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered. actualSpendCny stays null.
+- Nail tip = 本 commit（branch `line/ad-g7-key-blocked-residual-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written（incl. Line AC G7 Path A · Line AF covered-lift · Line W FAULT-ISOLATED · Line AE/AG/AH · Line U）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered · does **not** flip `g7SuiteGreen` · does **not** close R1 / Disclosure-1.
+

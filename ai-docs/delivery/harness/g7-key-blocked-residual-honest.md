@@ -1,6 +1,8 @@
-# Harness — **G7 Key-blocked residual · Path-B-style honest receipts track**（Line AD · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · ≠ suite green）
+# Harness — **G7 Key-blocked residual · Path-B-style honest receipts track**（Line AD · NAIL · **`post_prove_dual_pass`** · ≠ suite green · Key-blocked residual receipts landed · **`g7SuiteGreen=false`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove 执行 · Ban live · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · Ban fake green · Ban `g7SuiteGreen=true` · Ban washing Key-blocked as pass · Ban self-approve）
+**Status**: **`post_prove_dual_pass`**（Line AD nail · EXIT **1/1/1** Key-blocked `live_provider_key_missing` · **`g7SuiteGreen=false`** · Disclosure-1 **OPEN** · R1 **OPEN** · P1–P5≠gate R1 · assertionCount=null · 0 model · actualSpendCny=null · coveredCount=8 · Key-blocked ≠ pass · Ban wash suite green · Ban `g7SuiteGreen=true` · Ban live · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · Ban self-approve beyond this authorized nail）
+
+> **REQUEST-era note（historical · retained）**: this file began as REQUEST `draft:awaiting_pre_exec_dual`. PROVE_TIP **`f4981cb`** / `f4981cb6f75d5710039915b47e063e9192248da0` · stubs `2e4a825` / `2e4a825bc1c77d5428bdab281dba4c4aaf6104f2` · EXIT **1/1/1** Key-blocked · PRE dual mw-e2e-ha `f215438` + mw-model-op `2d422c1` · POST dual mw-e2e-ha `ea00c93` + mw-model-op `c4bc836` BOTH PASS. Lifecycle advanced to **`post_prove_dual_pass`** by Line AD nail only. Ban flipping G7 green / R1 closed / Disclosure-1 closed.
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · **`g7SuiteGreen=false`**
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`416b6a5`** / full `416b6a5b5c71d97a1816974c2b174dbf4b9c8cb8`（wave start · sibling Line AE/AF/AG/AH REQUEST commits may land alongside · Ban touch siblings）
@@ -88,7 +90,7 @@ Not a pass · not run · not suite green · not trio green · not fixed · not R
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · `g7SuiteGreen=false` · Disclosure-1 OPEN · R1 OPEN · STOP
 
-*Harness · G7 Key-blocked residual honest receipts · Line AD · 2026-10-06 · draft:awaiting_pre_exec_dual · docs-only · Ban coding · Ban g7SuiteGreen=true · Ban live · Ban buy cloud · Ban Meridian · Ban washing Key-blocked as pass · STOP*
+*Harness · G7 Key-blocked residual honest receipts · Line AD · REQUEST-era footer retained historically · Ban coding · Ban g7SuiteGreen=true · Ban live · Ban buy cloud · Ban Meridian · Ban washing Key-blocked as pass*
 
 ---
 
@@ -96,4 +98,24 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **Label rename（C-MO-AD-6 · AUTHORIZE cond. 3）**: in all execution receipts the §2 products **R1–R5 are labelled P1–P5**（R1→P1 Key-gate cite · R2→P2 residual table · R3→P3 re-attest ×1 · R4→P4 unlock ledger · R5→P5 SUMMARY）. **P1-product ≠ gate R1**; gate R1 stays **OPEN**; "R1/P1 done" must never be read as gate R1 closed.
 
-Executed per coordinator AUTHORIZE（PRE BOTH PASS: mw-e2e-ha `f215438` · REQUEST `f32f56d` · mw-model-op `2d422c1`）: Branch A + B′ · exec HEAD `880f144` · trio EXIT **1/1/1** Key-blocked · receipts `ai-docs/delivery/receipts/g7-key-blocked-residual-honest/` · `g7SuiteGreen=false` · Disclosure-1/R1 OPEN · coveredCount=8 · 0 model calls · awaiting POST dual · Ban self-nail.
+Executed per coordinator AUTHORIZE（PRE BOTH PASS: mw-e2e-ha `f215438` · REQUEST `f32f56d` · mw-model-op `2d422c1`）: Branch A + B′ · exec HEAD `880f144` · trio EXIT **1/1/1** Key-blocked · receipts `ai-docs/delivery/receipts/g7-key-blocked-residual-honest/` · `g7SuiteGreen=false` · Disclosure-1/R1 OPEN · coveredCount=8 · 0 model calls · POST dual BOTH PASS · Ban self-nail beyond authorized nail.
+
+---
+
+## 8. Line AD NAIL lifecycle（`post_prove_dual_pass` · 2026-10-06 · additive）
+
+- Lifecycle on this harness/slice/SUMMARY: **`post_prove_dual_pass`**.
+- **PROVE_TIP**（receipts · NAILED TO · do **not** claim a later tip as the prove tip）: `f4981cb` / `f4981cb6f75d5710039915b47e063e9192248da0` · stubs tip `2e4a825` / `2e4a825bc1c77d5428bdab281dba4c4aaf6104f2` · exec HEAD `880f144` / `880f14408dda9a9cb03737b811b6005d94c3a2dc`.
+- **PROVE_EXIT 1/1/1** · Key-blocked `live_provider_key_missing` · assertionCount=**null** · business-assert **unreached** · **0 model calls** · `actualSpendCny=null`.
+- PRE dual BOTH PASS: mw-e2e-ha `f215438` / `f2154387df654b4600b74b4c8a52c1d35f5986b2` + mw-model-op `2d422c1` / `2d422c14e585c544a162f536cc9b3058a7d14e30`.
+- POST dual BOTH PASS: mw-e2e-ha `ea00c93` / `ea00c936a032fc7334d46762c33709b6dbe016bb` + mw-model-op `c4bc836` / `c4bc83679eaac6ec92c257c4739d4a31dc9d2e49`（honesty of Key-blocked residual · alone≠dual）.
+- Products: **P1–P5**（Key-gate cite / residual class / re-attest ×1 / unlock ledger / SUMMARY）. **P1–P5 ≠ gate R1** · gate R1 stays **OPEN** · Disclosure-1 **OPEN**.
+- FAIL class honesty: **Key-blocked ≠ pass** · Ban wash suite green · Ban `g7SuiteGreen=true` · Ban live · Ban buy cloud.
+- **STILL_OPEN**: trio **OPEN 1/1/1** · **`g7SuiteGreen=false`** · Disclosure-1 **OPEN** · R1 **OPEN**.
+- Pins unchanged: NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503.
+- **Addendum（model-op non-blocker · C-MO-AD POST）**: future keys-stripped re-attest **must** treat **`.env` / `.env.local` / `apps/api/.env` absence** as a **required pre-probe assertion**（**presence-only** check · **never read contents**）because `run-e2e.mjs:15–19` auto-loads `ROOT/.env` when present and could bypass `env -u MODEL_API_KEY -u MODEL_BASE_URL`. Keep that probe required; Ban secrets / Ban reading `.env*` contents.
+- Keep siblings（Line AC G7 Path A nail · Line AE/AF/AG/AH · Line U）as written. Ban overwriting sibling nails.
+
+---
+
+*Harness · G7 Key-blocked residual honest receipts · Line AD NAIL · 2026-10-06 · lifecycle post_prove_dual_pass · PROVE_TIP f4981cb · POST ea00c93+c4bc836 PASS · EXIT 1/1/1 Key-blocked · g7SuiteGreen=false · Disclosure-1 OPEN · R1 OPEN · P1–P5≠gate R1 · .env absence probe required · Ban wash suite green · Ban live · releaseEvidence=false · STOP*
