@@ -112,3 +112,50 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCo
 本审不授权 coding / prove。peer `mw-e2e-ha` 独立审，本人未阅改其文件。
 
 Verdict: FAIL
+
+---
+
+## Re-PRE @6128b79（mw-rag-route · Line AI · NHP-001-FAULT-01 · 只审文档 · 2026-10-06 14:47 +08:00）
+
+**REQUEST**: `6128b7964df504f8127ef77b1bdf5b7a822a4add`（meetwise-core · 2026-10-06 14:34:16 +08:00 · supersedes `db24fc9`）· 是 origin 祖先；审查时 origin tip `2bf22c5`，harness 自 `6128b79` 起未再变。
+**改动文件**（4 个，全 docs）：`harness/nhp-001-fault-01-blind-to-case.md` · `nhp-001-fault-01-blind-to-case.slice.md` · 两个 dual stub。零 `apps/` `packages/` `scripts/` `package.json`。✅
+**本文件被 core 改动的核对**：core 改了本 stub 的页眉 / 请审清单并插入 rewrite 注记；我方 `64fba04` 的 FAIL 正文逐字未变（抽取 FAIL 段 diff 为空）。
+**执行机器**：只在本 box 上执行（临时 worktree `/tmp/mwrr-6128b79` @ origin tip）；只读文档与源码，未跑 prove；用户 Mac / 任何 machineId 上零命令。
+
+### 1. 我方 FAIL `64fba04` 阻断项逐条
+
+| # | 状态 | 依据（harness file:line） |
+|---|------|---------------------------|
+| B1 无源锚 / 设计交审查者 | **已解除** | `:44-52` 列出锚点；复核为真：`report-worker.ts:31-58` / `:61-70`、`report.ts:7` / `:73-85`、controller `:174-177` / `:180-184` / `:187-191`、service `:661-677` / `:680-690`、`/turn` `:30-33`、`/answer` `:242-246` 410。`:62` 注入点 = `ReportWorkerDeps.generate` 确定性 throw，不改产品。 |
+| B2 未钉状态码 / 无正控 / 无 mutation | **已解除** | `:66-73`：F1 200 `{status:'failed',content:null}`；F2 200 `quarantined` + `report_unavailable`；F2b retry 200 `{requeued:true}`、export 404 `report_not_ready`；PC 200 `ready` + `report_ready`；`MUT-F1-stuck-running` 预期红。 |
+| B3 与 `report:prove` 换名风险 | **已解除** | `:52` / `:64` / `:71` / `:107` 明文 Ban 借 `report:prove` / report-bulkhead / uc011 / uc019 绿；delta = 主链 begin → `/turn` → 完成 → 注入失败后的 HTTP 读口。 |
+| B4 回归未具名 | **已解除** | `:89-97` 具名 `uc001:nhp-neg:prove`（26）、`uc001:nhp-bound:prove`（17/17）、`report:prove`，零 proof 改动；环境 EXIT 1 ≠ pass ≠ regression。 |
+| B5 证据层 | **已解除** | `:75-79` 单一层 = Nest HTTP + 隔离真 PG（run-e2e-isolated），Ban fake DB 作为 ledger / report 状态依据。 |
+| C1 `/turn` | 已落实 | `:29` / `:51` / `:64`。 |
+| C2 Y/AB post SHA | 已落实 | `:30` / `:93-94` / `:106`。 |
+| C3 attempts / 时间 / SHA | 已落实 | `:83-87`。 |
+
+**LOOP §3③（命令 + 期望 EXIT）**：`:58` / `:83-84` 给出 `pnpm uc001:nhp-fault:prove`（`node scripts/run-e2e-isolated.mjs uc001:nhp-fault:prove:raw`），case 齐 EXIT 0、任一失败 EXIT≠0；回归表也有 EXIT。✅
+**矩阵诚实**：`:39-42` FAULT 列仍按 partial 引用，不改 blind、不升格；`:101` 行冻结。✅
+
+### 2. 改写引入的新问题（不阻断，执行前须落实）
+
+1. **路径写错**：`:68` 写 `GET /interviews/:id`，实际 controller 前缀是 `@Controller('interview')`（`interview.controller.ts:14`）、`@Get(':id')` 在 `:168`，应为 `GET /interview/:id`。
+2. **“完成”一步须写明是 seed**：生产中 `completeInterviewAndConfirm` + `enqueueReport` 只在 worker 打分后调用（`apps/worker/src/adaptive-lifecycle.ts:340-341`），而本刀 Ban live、无 worker 打分。`:64`「begin → /turn → complete」须注明 complete + enqueueReport 是离线 seed（如 AG `7eb1c88` V4 的做法），并禁止叙述成“无模型跑通主链”。
+3. **F2 / F2b 顺序**：`retryReport` 先选 `status IN ('failed','quarantined')`（service `:684`），但 `requeueFailedReport` 只更新 `status='failed'`（`packages/db/src/report.ts:60-64`），所以对 quarantined 报告 retry 实际返回 **404 `no_retriable_report`**。`:70`「F1 后」须钉死 F2b 在 F2 之前执行，或用各自独立的 interview fixture；建议同时把“quarantined 后 retry → 404 `no_retriable_report`”作为观察记录（不得写成 200）。
+4. **runner 接线与 Ban 自相矛盾**：`:6` 禁碰 `run-e2e-isolated.mjs`，`:109` 写「Ban product/infra code」，但 `run-e2e-isolated.mjs` 对未登记目标会抛 `unsupported_e2e_target`，新 CMD 必须在该文件和 `package.json` 里做纯增量的目标登记（AG `7eb1c88` 先例：receipt sources、支持目标表、命令映射、migrate 白名单，+16/-1）。须明文允许“仅增量登记、不改其他目标行为”，否则执行时不是违 Ban 就是 CMD 跑不起来。
+5. **“无双扣”断言已消失**：原 F1 的「无双扣」在改写后不见了，但 `:28` / `:78` 仍谈 ledger。须二选一：加 LEDGER 快照（interview 的 exact-1 consumption 保持 confirmed、`units_settled` 不变、owner 总行数 + 全部 bucket 在报告失败 / retry 前后字节相同，真 PG），或明确声明本 case 不做 ledger 断言。
+6. MUT-F1 执行时记录 F1 的实际值（预期 200 `{status:'running'}`），EXIT≠0，只在临时 worktree 中做，不提交。
+7. `:77`「Supertest」一词与仓内做法不符（现有 proof 用 `createApp` + `app.listen(0)` + fetch），写法统一即可。
+
+### 3. 洗白 / 越界
+
+Y / AB / AG 只读引用、Ban 洗；未碰 AL / AM / AG 文件；FUNNEL / G-R4-5 未触碰；零 SSOT 编辑；pins 不变。
+
+### Pins（本审不改）
+
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCount=8 · gR45Closed=true · ms3EqualsR4Closed=false · public DELETE=503 · PG-retained（禁 MySQL runtime / Qdrant / MemorySaver）· UC-018 与 §1.1 仍 partial · FAULT 列 partial 不动 · PASS ≠ coding ≠ covered ≠ nail ≠ HA · EXIT0 ≠ covered。
+
+**结论**：B1–B5 全部解除，C1–C3 落实，LOOP §3③ 满足；第 2 节 1–7 为执行前须落实的条件。PASS（附条件 1–7）。须 mw-e2e-ha 对 `6128b79` 独立结论并经协调方 AUTHORIZE；不代签 peer。alone ≠ dual。
+
+Verdict: PASS
