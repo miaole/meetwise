@@ -1609,7 +1609,7 @@ export async function assertQbankControlDefinerOwnership(pool: DbPool): Promise<
          SELECT count(proc.oid)::int AS found_count,
                 count(*) FILTER (WHERE expected.requires_security_definer AND proc.prosecdef AND namespace.nspname='public')::int AS security_definer_count,
                 count(*) FILTER (WHERE NOT expected.requires_security_definer AND NOT proc.prosecdef AND namespace.nspname='public')::int AS invoker_helper_count,
-                count(*) FILTER (WHERE proc.proconfig = ARRAY['search_path=' || expected.required_search_path])::int AS safe_search_path_count,
+                count(*) FILTER (WHERE proc.proconfig @> ARRAY['search_path=' || expected.required_search_path])::int AS safe_search_path_count,
                 count(DISTINCT proc.proowner)::int AS owner_count,
                 min(proc.proowner)::oid AS owner_oid
            FROM expected_function expected

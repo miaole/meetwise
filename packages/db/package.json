@@ -54,6 +54,7 @@
     "prove:rag03-route": "tsx test/job-route-decision.proof.ts",
     "prove:rag04-track-local": "tsx test/rag04-track-local-retrieval.proof.ts",
     "prove:rag03-filter-locus": "tsx test/rag03-filter-locus.proof.ts",
+    "prove:rag03-hnsw-completeness": "tsx test/rag03-hnsw-completeness.proof.ts",
     "prove:rag05-qbank-miss": "tsx test/rag05-qbank-miss.proof.ts",
     "prove:rag06-route-scope-cache": "tsx test/rag06-route-scope-cache.proof.ts",
     "prove:rag07-free-text-route": "tsx test/rag07-free-text-route.proof.ts",

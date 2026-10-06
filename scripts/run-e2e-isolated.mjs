@@ -1298,6 +1298,22 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0106_qbank_track_local_serving_scope.sql',
     'packages/db/migrations/0138_qbank_ann_candidate_before_limit.sql',
   ],
+  'rag03-hnsw-completeness:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/rag03-hnsw-completeness.proof.ts',
+    'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/src/retrieval-store.ts', 'packages/db/src/retrieval-legacy.ts',
+    'packages/db/src/qbank-ingest.ts', 'packages/db/src/qbank-curation.ts',
+    'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/package.json',
+    'packages/db/migrations/0029_qbank_generation_hybrid_retrieval.sql',
+    'packages/db/migrations/0066_qbank_control_executor.sql',
+    'packages/db/migrations/0068_qbank_content_fact_immutability.sql',
+    'packages/db/migrations/0086_qbank_routed_metadata_taxonomy.sql',
+    'packages/db/migrations/0097_qbank_generation_serving_scope_projection.sql',
+    'packages/db/migrations/0106_qbank_track_local_serving_scope.sql',
+    'packages/db/migrations/0138_qbank_ann_candidate_before_limit.sql',
+    'packages/db/migrations/0139_qbank_ann_hnsw_iterative_scan.sql',
+  ],
   'r4-wrong-track-adv-live-pg:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/r4-wrong-track-adv-live-pg.proof.ts',
@@ -1464,6 +1480,7 @@ if (![
   'rag03-route:prove:raw',
   'rag04-track-local:prove:raw',
   'rag03-filter-locus:prove:raw',
+  'rag03-hnsw-completeness:prove:raw',
   'r4-wrong-track-adv-live-pg:prove:raw',
   'nhp-r4-adv-covered:prove:raw',
   'r4-wrong-track-prod-surface:prove:raw',
@@ -1711,6 +1728,8 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'packages/db', 'prove:rag04-track-local']]
   : target === 'rag03-filter-locus:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:rag03-filter-locus']]
+  : target === 'rag03-hnsw-completeness:prove:raw'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:rag03-hnsw-completeness']]
   : target === 'r4-wrong-track-adv-live-pg:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:r4-wrong-track-adv-live-pg']]
   : target === 'nhp-r4-adv-covered:prove:raw'
@@ -2217,7 +2236,7 @@ async function main() {
       `product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.`,
     );
     if (['e2e:prove', 'e2e:ui', 'performance:e2e', 'api:validate', 'recruiter:prove:raw', 'commerce-reconcile:prove:raw', 'model-invocation-reconcile:prove:raw', 'model-op00:prove:raw', 'model-op02:prove:raw', 'model-slot-bypass:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'scoring-integrity:prove', 'scoring:eval:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'scor-00:http:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'stress:prove:raw', 'memory:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'ocr:prove:raw', 'adaptive-degrade:prove:raw', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc011:report-refund:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc002:lease:prove:raw', 'resume:prove:raw', 'rag-generation:prove:raw', 'qbank:prove:raw', 'qbank-pipeline:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-retrieval-eval:prove:raw', 'online-judge-control:prove:raw', 'privacy-authorization:prove:raw',
-  'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag03-filter-locus:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw', 'uc004:career-path-fault:prove:raw', 'uc001:nhp-neg:prove:raw', 'uc001:nhp-bound:prove:raw', 'uc001:nhp-adv:prove:raw', 'uc001:nhp-fault:prove:raw'].includes(target)) {
+  'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag03-filter-locus:prove:raw', 'rag03-hnsw-completeness:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw', 'uc004:career-path-fault:prove:raw', 'uc001:nhp-neg:prove:raw', 'uc001:nhp-bound:prove:raw', 'uc001:nhp-adv:prove:raw', 'uc001:nhp-fault:prove:raw'].includes(target)) {
       await migrateWithRecovery(env);
       // Re-attest host SQL after migrate (flake: migrate green → prove ECONNREFUSED).
       await waitForPostgres(env, { consecutive: 3, label: 'post-migrate' });
