@@ -204,6 +204,7 @@ export async function runExternalSinkAsyncPurgeConfirm(input: {
   const { asWorker, requestId, interviewId, externals, workerId, vendor } = input;
   const allow = new Set(input.onlySinks ?? [...EXTERNAL_ASYNC_PURGE_SINKS]);
   const sinks: AsyncPurgeSinkResult[] = [];
+  let lastRequestStatus = 'pending_external';
 
   // Ban OSS-only shrink on the product path: require all three present unless prove opts into onlySinks.
   if (!input.onlySinks) {
@@ -262,6 +263,7 @@ export async function runExternalSinkAsyncPurgeConfirm(input: {
       };
     });
 
+    if (one.requestStatus) lastRequestStatus = one.requestStatus;
     sinks.push({
       sink: sinkName,
       targetId: ref.targetId,
@@ -273,29 +275,9 @@ export async function runExternalSinkAsyncPurgeConfirm(input: {
     });
   }
 
-  const statusRow = await asWorker(async (c) => {
-    // Reassess after last erase (resolve may have run before erase on earlier sinks).
-    await c.query(
-      `UPDATE privacy_erasure_request r
-          SET status = CASE
-            WHEN EXISTS (SELECT 1 FROM privacy_deletion_target t WHERE t.request_id=r.id AND t.status='failed') THEN 'partial_failed'
-            WHEN EXISTS (SELECT 1 FROM privacy_deletion_receipt rc WHERE rc.request_id=r.id AND rc.receipt_kind='failed_cleanup') THEN 'pending_external'
-            WHEN EXISTS (SELECT 1 FROM privacy_deletion_target t WHERE t.request_id=r.id AND t.status='retention_pending') THEN 'pending_external'
-            WHEN EXISTS (SELECT 1 FROM privacy_deletion_target t WHERE t.request_id=r.id AND t.status <> 'erased') THEN 'purging'
-            WHEN EXISTS (SELECT 1 FROM privacy_deletion_receipt rc WHERE rc.request_id=r.id AND rc.receipt_kind IN ('external_pending','failed_cleanup')) THEN 'pending_external'
-            ELSE 'completed'
-          END,
-          version = version + 1,
-          updated_at = now()
-        WHERE r.id = $1::uuid
-          AND r.status IN ('fenced','purging','pending_external')`,
-      [requestId],
-    );
-    const s = await c.query<{ status: string }>(
-      `SELECT status FROM privacy_erasure_request WHERE id=$1::uuid`, [requestId],
-    );
-    return s.rows[0]?.status ?? 'missing';
-  });
+  // Status from last resolve (erase-before-resolve → completed under 0091+0139) or
+  // pending_external when any sink failed_cleanup / skipped. Ban raw request DML from executor.
+  const statusRow = lastRequestStatus;
 
   const allExternalErased = EXTERNAL_ASYNC_PURGE_SINKS.every((s) => {
     const row = sinks.find((x) => x.sink === s);
