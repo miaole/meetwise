@@ -111,3 +111,61 @@ Row `C-PERF-TEARDOWN` stays CONDITION OPEN · new `C-PERF-CONTAINER-REACHABILITY
 3. 无 Blockers，C-1…C-9 随 coding/prove 执行；两处诚实修正（F-1 行号叙事、F-2 raw 证据易失须 durable 哈希）已入条件；alone ≠ dual，不代签 mw-privacy-int，翻转须 post-dual + 协调方 nail。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual 审查 — **mw-e2e-ha**（adversarial evidence-honesty · fresh re-run + 条件裁决）
+
+**审查对象**：branch `line/ss-container-reachability` @ tip `ce31d7f2`（parent = origin tip `017a178d`）· coding `f59c4d20` + receipts `cf897e6e`/`ce31d7f2` · REQUEST `71ac2d44`。pre-exec dual：mw-e2e-ha @`260a272`（C-1~C-9）+ mw-privacy-int @`55c8d5d`（C-1~C-10，并行不可见不代签）。
+**审查基线（环境事实 · 如实记录）**：独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-ssp-e2e-ha`，branch `rv/ssp-e2e-ha` @ `ce31d7f229784aa0b99b0cb2a39341198088a498`。本机 Docker Server `linux/arm64 29.1.3`（Docker Desktop/macOS = 本刀宿主网关拓扑域）；`node:20-bookworm`（sha256 镜像 ID `8f693eaa…`）与 `pgvector/pgvector:pg16`（`7b822b0a…`）两镜像本地在库，零镜像源拉取（`docker.m.daocloud.io` 未使用）。本审查只 append 本文件；零 push；零 SSOT/backlog 触碰。
+
+## 1. 包完整性（恰 3+7 申报 · 逐文件核）
+
+- `f59c4d20`（coding）= 恰 3 文件：`scripts/uc018-perf-load-capped-child.mjs` + `packages/db/src/isolated-test-target.ts` + `packages/db/test/isolated-test-target.proof.ts`（`git diff --name-status 017a178d f59c4d20` 实测）。
+- `ce31d7f2`（receipts）= 恰 7 uc018-perf-load receipt JSON（M）+ 1 prove receipt md（A）；`cf897e6e` 为 prove receipt 落字。两 commit 合计 = 11 文件，与申报一致，无超面文件。
+- **零 diff 红线实测**：`run-e2e-isolated.mjs` = 0 diff 行（宿主主链红线）· `principal.ts` = 0 diff 行 · `gap-bug-backlog.md` / `e2e-covered-path-backlog.md` / `REMAINING-NORTH-STAR-QUEUE.md` = 0 diff 行（禁碰 UC 行/SSOT 行零触碰；变更集内无任何 SSOT/backlog 文件）。
+- **绊线字节级核验**（`git diff 017a178d ce31d7f2 -- packages/db/src/isolated-test-target.ts` 逐行）：可执行面唯一改动 = 旧 `:62` 一处检查；云分支（旧 `:24-46`，含 `privateIpv4`/TLS attestation）与 nonce 绊线函数（`assertIsolatedTestTarget` 全函数：`meetwise.e2e_run_token` 只读查询 + 等值比对）经两 revision 分区逐字节 diff = **byte-identical**；`:60-61`（E2E_ISOLATED/DATABASE_URL 禁用）、`:63-64`（TLS 受控）、`:65`（attestation env 对）全为未触碰上下文。白名单恰为**两封闭字面量严格相等**（`env.PGHOST !== '127.0.0.1' && env.PGHOST !== 'host.docker.internal'`），零归一化/前缀/正则/env 开关/共享常量（C-1/C-2 成立）；新专用错误码 `destructive_proof_loopback_or_hostgateway_required`（C-5：显式硬抛，无 catch-fallback）。
+- capped-child：`--network host` 两处全除（执行路径 `create` 改默认 bridge + `--add-host=host.docker.internal:host-gateway`）；`PGHOST` 移出 passEnv + 单点注入 `create.push('-e', 'PGHOST=host.docker.internal')`（唯一注入点，无双 `-e PGHOST`、无 DATABASE_URL 通道）；死代码 `dockerArgs` 数组 + env 循环 + `createArgs` filter 行整体移除、零残留（`grep dockerArgs` 实测仅 docstring 注释）、commit message 已作零行为披露（C-4 成立）；`node --check` PASS（本机复验）。
+
+## 2. Fresh re-run（C-DUAL-FROM-FRESH · 恰一次 · Ban retry）
+
+- **环境准备**：`pnpm install --frozen-lockfile`（pnpm 10.18.0 · Done 4s）。env 层预备（untracked · 不入 commit · 全披露 · 复刻实现方 receipt §2 同型 recipe）：临时 append `supportedArchitectures`（darwin/linux · arm64/x64）→ `pnpm install --frozen-lockfile`（补 linux-arm64 可选绑定 18 包）→ 立即还原 yaml；随后 `git status` = 空（tracked 面与 `ce31d7f2` 逐字节一致）。
+- **CMD**: `pnpm uc018:perf-load:prove` @ `rv/ssp-e2e-ha` 工作树（= `ce31d7f2` tracked 面）· 恰好执行一次 · 零重试。
+- **EXIT = 0**（2026-10-06T17:54:50Z→17:55:00Z UTC · 全日志留档 `/tmp/rv-ssp-fresh-prove.log` · sha256 `0671a145efb6626646f63e15959cee874fcf44c3f735f61c3038f6a0d7d35342`）。
+- **本刀唯一关闭目标达成**：全日志 grep `ECONNREFUSED` = **0**（断言点零复现）；`Unhandled|unhandledRejection|uncaughtException|db_pool_error` = **0**。API 容器（`meetwise-uc018-perf-api-41375-1791309293629`）内 proof 进程经 `host.docker.internal` 真实命中宿主 loopback 发布的隔离 PG（`meetwise-e2e-41177-1791309291317` · `127.0.0.1:62521`），六组 run 全为真实 PG 往返量测：PERF run1/2/3 p50=29.0/27.3/24.8ms err=0 timeout=0；LOAD run1/2/3 p50=65.1/46.9/43.1ms err=0 timeout=0 dblRel=0 stuck=0。`SUMMARY allPass=true capsEnforced=true`；`_caps-evidence.json` 结构不变（enforced=true · pg/api NanoCpus=2000000000 · Memory=4294967296）；teardown 后 `docker ps -a` 零残留容器。
+- **源一致性交叉证实**：本次 machine receipt（`.tmp/isolated-proof-receipts/2026-10-06T17-55-00-338Z-41177-00aab66d-3fe0-4169-94d0-5df7cf0feff8.json` · sha256 `d7121f5d8c9b08c1b9856a1545fd631c2bf1c3328ad8a917ce3deb15c7726a5f`）的 `sourceDigests`：`scripts/uc018-perf-load-capped-child.mjs` = `sha256:5a2a9a26…393293c`、`scripts/run-e2e-isolated.mjs` = `sha256:eddf453a…`、`apps/api/test/uc-e2e-018-perf-load.proof.ts` = `sha256:fadb1cfd…` —— 与实现方 prove receipt §7 attempts 2/3/4 所嵌 digest **逐项一致**：审查方 fresh run 与实现方 prove 跑的是同一份源字节。
+- **阈值正交性（如实）**：本次 run 级阈值本地全过（EXIT=0）——按 C-7 口径为正交事实，**零外推**：本绿 ≠ capacity ≠ HA ≠ UC covered；PERF/LOAD stays local partial · `capacityRepresentative=false` · coveredCount=8 不变。
+- **如实归因披露**：日志含 `fatal: not a git repository` 一行 = receipt §5 已披露的 pre-existing `gitSha:'unknown'` 容器内 git 元数据限制（`b29c1915` try/catch 回退 · 本刀零触碰 · summary.json 同值），非致命、非本刀引入。receipts uc018-perf-load/* 为 proof-owned tracked 面被本 CMD 按设计重写——审查证据以本节文本 + machine receipt 哈希为 durable 锚点，7 个 JSON 已还原至 `ce31d7f2` 原状（审查 commit 只含本文件，前例 `260a272e`/`a272b723` 同口径）。
+
+## 3. 条件裁决（pre-exec C-1…C-9 · 违反任一即 FAIL）
+
+| C | 内容 | 裁决 | 证据 |
+|---|------|------|------|
+| C-1 | 白名单且仅为两字面量 | ✅ PASS | `:72-73` 严格相等两封闭字面量；无归一化/前缀/正则/env 开关/变量等值（逐字节读码 + 两次变异探针） |
+| C-2 | nonce 绊线/云分支字节不动 | ✅ PASS | 云分支与 nonce 函数两 revision 分区 diff = byte-identical；`:60-61/:63-64/:65` 上下文未动 |
+| C-3 | 宿主主链零 diff | ✅ PASS | `run-e2e-isolated.mjs` 0 diff 行；baseEnv `PGHOST:'127.0.0.1'` 原值 |
+| C-4 | 触碰面 + 死代码零行为 | ✅ PASS | 恰 3 code 文件；`principal.ts` 0 diff；`dockerArgs`/`createArgs` 零残留 + commit message 零行为披露；C-IMAGE-DIGEST 未触碰 |
+| C-5 | assert 显式抛错 | ✅ PASS | 硬 throw + 专用码 `destructive_proof_loopback_or_hostgateway_required`；无静默降级/重试路径 |
+| C-6 | 反证 + 变异咬合复验 | ✅ PASS（附 1 项非 gating 观察） | 基线测试 EXIT=0（两值接受 + 9 伪造变体精确错误码拒绝 + 云邻接不回归 + nonce mismatch 硬抛）；变异 1（加第三值 `::1`）→ **EXIT=1 咬合**（`rejects IPv6 loopback`）；变异 2（host-gateway `startsWith` 前缀化）→ **EXIT=1 咬合**（`rejects host-gateway suffix forgery`）；变异后均逐字节还原（sha256 复验一致）。观察：loopback 字面量前缀化变异（`startsWith('127.0.0.1')`）测试集**未咬合**（EXIT=0）——拒绝集无 `'127.0.0.1'` 前缀伪造用例（如 `127.0.0.1.evil`）；实现码为严格相等、C-6 字面要求（加第三值须失败）满足，故非 gating，留作测试加固 residual |
+| C-7 | prove 契约 | ✅ PASS | `--frozen-lockfile` · fresh 隔离 PG（per-run 随机名+动态端口+token GUC）· 实现方 4 attempts 全台账（1 env 类 EXIT1 如实归因 + 3×EXIT=0）· 审查方 fresh 单次复跑 EXIT=0 · 关闭判据三分（零 unhandled crash + run3/SUMMARY 到达 + `db_pool_error` 诚实口径）· 关闭目标达成 · 阈值正交不外推 · Ban retry 已守（恰一次） |
+| C-8 | 行冻结 | ✅ PASS | backlog `:35` stays CONDITION OPEN（文件 0 diff）· PERF/LOAD local partial · capacityRepresentative=false · coveredCount=8 · haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · canHonestlyFlip=false —— receipt Pins 全数原值 |
+| C-9 | F-1/F-2 修正落实 | ✅ PASS | F-1（`:59` = 静态 off-by-3 引误非漂移；现 `:72-73`）已落 receipt §5；F-2 durable machine-receipt sha256 ×4 收录 §2 + §7 嵌入本体；7×EXIT=1 台账与 attempt1@`b29c191` 历史原样引用不洗 |
+
+## 4. Blockers
+
+**无**。白名单形态、绊线字节、宿主主链、触碰面、fresh 复跑、行冻结、诚实修正全部核过；实现方 4 attempts 台账（含 attempt-1 env 类 EXIT=1 如实归因）与审查方 fresh 单次 EXIT=0 相互印证（源 digest 逐项一致）。
+
+## 5. Conditions（非 gating · 留档）
+
+1. **测试加固 residual（非 gating）**：拒绝集可补 `'127.0.0.1'` 前缀伪造用例（如 `127.0.0.1.evil`）以咬合 loopback 字面量前缀化变异——C-6 字面要求已满足，此项为加固建议，不阻本裁决。
+2. `gitSha:'unknown'`（容器内 git 元数据限制）为 pre-existing 已披露限制，非本刀引入，留作 infra residual。
+3. 审查方 env 层预备（`supportedArchitectures` 临时 append + 还原）为 untracked 操作、逐字披露于 §2，复刻实现方同型 recipe（S 线先例），不计 coding、不洗入 prove 证据。
+4. 本裁决仅关闭**本刀关闭目标**（容器可达性缺陷不再复现）。C-PERF-TEARDOWN Branch A 关闭仍须：post-prove dual BOTH PASS（本审 + mw-privacy-int）→ 协调方 nail 全链 → 方可翻转 `:35`；Ban 本审内自关、Ban covered/HA/capacity 任何外推、Ban 洗 7×EXIT=1 历史、Ban secrets/push/force-push。alone ≠ dual：不代签 mw-privacy-int。
+
+## 6. 中文摘要（3 行）
+
+1. fresh re-run 恰一次 EXIT=0：零 ECONNREFUSED @ 断言点、六 run 全过全真实量测、SUMMARY allPass=true capsEnforced=true，machine receipt 源 digest 与实现方 attempts 2/3/4 逐项一致——可达性修复独立复现成立。
+2. 包完整性全过：恰 3+7 申报文件、宿主主链/SSOT/禁碰行零 diff、云分支与 nonce 绊线字节级不动、白名单恰两封闭字面量、死代码零残留零行为披露，C-1~C-5/C-7~C-9 全 PASS。
+3. C-6 复验：加第三值与 host-gateway 前缀化两变异均咬合（EXIT=1）；loopback 字面量前缀化变异未咬合留为非 gating 加固 residual——无 Blockers，mw-e2e-ha 侧 PASS，CONDITION 关闭仍待 dual BOTH + 协调方 nail。
+
+Verdict: PASS
