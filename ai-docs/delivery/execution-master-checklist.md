@@ -1127,3 +1127,13 @@ flowchart TD
 - Nail tip = 本 commit（branch `line/x-nail` → `feat/mysql-schema-skeleton`；禁 force push）。
 - Sibling sections stay as written（incl. Line SS · AQ/AR/AO/AN）. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered · does not flip UC-E2E-028 row/FAULT column · does not close RECON/TRUTH-BLOCK-E2E/INJECT.
 
+### Line MOP03 GAP-MOP-03 `:76` successor 立卷刀 NAIL（2026-10-07 SSOT nail · `post_prove_dual_pass` · cutover 准入合同六门已立 · `:76` GAP-MOP-03 stays OPEN · 立卷≠关闭 · Ban Redis cutover）
+
+- [x] **`post_prove_dual_pass`** recorded for Line MOP03 GAP-MOP-03 `:76` successor 立卷刀 products only（docs-only lifecycle 立卷 · 立卷产物=REQUEST 自身 · 零 coding / 零 prove run / 零 live / 零容器）. Implementer `mw-core` does not self-approve beyond this coordinator nail. **立卷 ≠ 关闭 ≠ MODEL-OP domain closed ≠ Redis cutover ≠ #102 cutover ≠ suite green ≠ HA**. **GAP-MOP-03 stays OPEN**（backlog `:76`）. Ban MODEL-OP closed · Ban Redis cutover · Ban secrets · Ban force-push.
+- 证据链: REQUEST `cdde235e`（origin 镜像 `787de124` · 4md byte-identical docs-only pre_dual）· pre-dual BOTH PASS mw-model-op `16f2c684` + mw-e2e-ha `d65023e1`（origin 镜像 `2da0c904` · patch-id `ad28e66e` 等同）· exec `47f17b83`（origin 镜像 `d5e6f7e6` · patch-id `8cb6ea0b` 等同）lifecycle 推进 `executed:awaiting_post_prove_dual`（零 coding/零 SSOT · `MEETWISE_WAKEUP_REDIS_STREAMS` value-gated（`1`/`true`/`on` 开 · `0`/空/unset 关 · 本刀 unset）沿代码门重述 · `worker-wakeup-redis:prove` EXIT0≠cutover 证据 · PG LISTEN retained 直至 PRE dual+AUTHORIZE+四专家审）· post-dual BOTH PASS mw-model-op `e10df445`（nail 分支 cherry-pick `40f73739` · author 保留）+ mw-e2e-ha `abb04dbd`（nail 分支 cherry-pick `26fd5bcf` · author 保留）（alone≠dual）· nail tip = 本 commit（branch `line/mop03-nail` → `feat/mysql-schema-skeleton`；禁 force push）。
+- **立卷刀**: cutover 准入合同六门已立（Q4/Q5 prove CMD 实存 + wakeup prove + 强制周期 reconcile + flag 默认关三代码锚 + PG LISTEN retained 直至授权 + 独立审≥dual/四专家不降级 + 两本账分离）· **`:76` GAP-MOP-03 stays OPEN** —— 立卷≠关闭，真实 Redis cutover 须未来授权 REQUEST 走六门 · GAP-MOP-01 `:74` / GAP-MOP-02 `:75` 独立行本刀不认领。
+- [ ] **`:76` GAP-MOP-03 stays OPEN** · [ ] Ban MODEL-OP closed · [ ] Ban Redis cutover（未授权 REQUEST）· [ ] coveredCount=**8** · alone≠dual.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · `actualSpendCny=null`（零 live 模型调用）. Do not write covered.
+- 矩阵零触碰（`e2e-requirement-coverage-matrix.md` 本刀零 diff）。
+- Sibling sections stay as written（incl. Line X · AR · AQ · AN-MOP-Q45）. This section does **not** flip backlog `:76` to CLOSED · does **not** claim MODEL-OP closed / Redis cutover / HA / releaseEvidence · does **not** change any existing gap, partial, or OPEN row.
+
