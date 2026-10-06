@@ -132,3 +132,56 @@ haStatus=**NOT_HA** · releaseEvidence=**false** · claimProductionHA=**false** 
 3. alone ≠ dual：本 PASS 仅 mw-privacy-int 席位，≠ coding 授权 ≠ prove 执行 ≠ 条件关闭；peer `260a272` 原文未读、其 C-1..C-9 不代签不背书，dual 完成与 coding 授权由协调方裁定。
 
 Verdict: PASS
+
+---
+
+## 8. POST-PROVE dual 审查（mw-privacy-int · 2026-10-07 · 包 `ce31d7f2` / coding `f59c4d20`）
+
+审查方式：独立 worktree `rv/ssp-privacy-int` @ `ce31d7f2`（分支 `line/ss-container-reachability`）。全部裁决基于本 worktree 实码逐行核对 + 恰一次白名单套件实测 + 审方自做变异咬合。peer mw-e2e-ha 的并行审未读、不代签、不背书。本段 append-only，PRE 段（§1–§7）原样不动。
+
+### 8.1 条件裁决表（C-1..C-10 · 全部本 worktree 实测证据）
+
+| 条款 | 裁决 | 证据 |
+|---|---|---|
+| C-1 无归一化 | ✅ | `packages/db/src/isolated-test-target.ts:72-73` 恰两封闭字面量 `'127.0.0.1'` / `'host.docker.internal'` 严格 `!==` 比较；零 trim / lowercase / 前缀 / 正则 / env 开关。审方自做 `endsWith` 前缀放宽变异 → 套件 **EXIT=1**（`host.docker.internal.evil` 被误放行咬合），实证非前缀匹配；变异后 `git checkout --` 字节还原（`grep endsWith` 零残留）。 |
+| C-2 错误码形态 | ✅ | 新专用码 `destructive_proof_loopback_or_hostgateway_required`（`:73`），assert 保持硬 throw、零 catch-fallback；旧码 `destructive_proof_loopback_target_required` 全仓（packages/apps/scripts/test，除 node_modules）零残留引用；coding commit message 披露符合 C-2 首选形态。 |
+| C-3 nonce 链字节不变 | ✅ | `017a178d..ce31d7f2` 对该文件 diff 中含 attestation/nonce/cloud 字样的增删行仅 1 行且为 docstring 注释；`assertIsolatedTestTarget :81-89`（旧 :73-77 行漂移）`SELECT current_setting('meetwise.e2e_run_token', true)` + 比对 + `attestation_mismatch` throw 逐字节原样；`-c meetwise.e2e_run_token=` 注入（`run-e2e-isolated.mjs:2239`）与 per-run `randomUUID()`（`:1913`）所在文件零 diff。 |
+| C-4 云分支字节不变 + 无共享放宽常量 | ✅ | `assertCloudPrivateTestEnvironment :24-46` 零增删；放宽字面量为 isolated 分支内联比较，未提炼任何两分支共享常量；云分支拒 `host.docker.internal`（`privateIpv4` → `isIP !== 4`）由套件实测：仍抛 `destructive_proof_cloud_private_ip_required`。 |
+| C-5 注入单点 + 宿主恒 `'127.0.0.1'` | ✅ | 全仓显式 `PGHOST=` 注入恰一处：`scripts/uc018-perf-load-capped-child.mjs:143`（perf API 容器路径 only）；`run-e2e-isolated.mjs` 在 `f59c4d20^..ce31d7f2` 零提交触碰（`git log -- <file>` 空），`:1920` `PGHOST: '127.0.0.1'` 恒在；`:2153` sole 路径 `delete soleEnv.PGHOST` 为既有行为不动。 |
+| C-6 DATABASE_URL 禁令 + passEnv | ✅ | `:71` `destructive_proof_database_url_forbidden` 字节不变；passEnv 现为 12 项、无 DATABASE_URL、无任何连接串通道；PGHOST 移出透传列表改单点显式注入（计数小疵见 OB-3）。 |
+| C-7 反证全集实测 | ✅ | 本 worktree 恰一次执行 `packages/db/test/isolated-test-target.proof.ts`（主仓 tsx 二进制，import 相对解析 → 执行本 worktree 副本）：**EXIT=0**。两 admitted 值通过 + 九拒绝（`''` / `::1` / `localhost` / `10.0.0.5` / `8.8.8.8` / `host.docker.internal.evil` / `xhost.docker.internal` / `evil.host.docker.internal` / 缺省，错误码 regex 精确匹配 `/^Error: destructive_proof_loopback_or_hostgateway_required$/`）+ 云邻接不回归 + 放宽路径上 nonce mismatch 仍 throw。 |
+| C-8 定界落 docstring + Ban 双 PGHOST 静默换路 | ✅ | docstring `:55-63` 诚实定界有效域（Docker Desktop/macOS；plain Linux/CI 须诚实重验 host-gateway ≠ 宿主 loopback）；全文件零 try/catch、零依序试连、零双 PGHOST 换路——单值不符即 throw。 |
+| C-9 7×EXIT=1 历史台账保全 | ✅ | `receipts/2026-10-05-c-perf-teardown-branch-a-blocked-ledger.md:7-9` 三 attempt（`bc195ca5…` / `ea57a86a…` / `30476649…`）原样；新 prove receipt `receipts/2026-10-07-gap-perf-container-reachability-fix-prove.md` §4 明文「原样保留不洗」并给出 4 attempts 全台账（EXIT + UTC 时间戳 + machine receipt sha256）。 |
+| C-10 零关闭宣称 | ✅ | `ai-docs/delivery/gap-bug-backlog.md:35` C-PERF-TEARDOWN 仍 **OPEN** CONDITION（未翻、未洗）；prove receipt 零 C-PERF-TEARDOWN / C-IMAGE-DIGEST 关闭宣称（仅「产出 Branch A 关闭证据 · awaiting post-prove dual」）；`canHonestlyFlip=false` 原值。 |
+
+### 8.2 对抗推演（放宽后攻击者控制进程 env 的最坏情形）
+
+**推演 1 — `PGHOST=host.docker.internal` + 伪造 nonce（最坏全控 env）**：env 廉价检查全过（`E2E_ISOLATED=1` 可伪造、PGHOST 为白名单字面量、`E2E_TEST_TARGET_TOKEN` 任填）；但随后 `:84` 的服务端查询 `current_setting('meetwise.e2e_run_token', true)` 在**数据库进程内**取值——真实 dev/staging/prod 库不携带该 GUC，`missing_ok=true` 使其返回 NULL → `NULL !== 伪造token` → `:88` 硬抛 `destructive_proof_isolated_target_attestation_mismatch`。唯一携带该 GUC 的库是 run-e2e-isolated 每轮以 `randomUUID()`（`run-e2e-isolated.mjs:1913`）生成、容器启动时 `-c` 注入（`:2239`）的一次性 throwaway 容器——仅控客户端 env 的攻击者不可知其值。**结论：nonce 绊线对全控 env 恒硬 throw，放宽零新增可及破坏目标。**（nonce mismatch 在放宽字面量路径上的行为已由套件实测覆盖。）
+
+**推演 2 — 宿主进程直接跑 prove 时 `host.docker.internal` 解析行为**：plain macOS 宿主默认无该 hosts 项（Docker Desktop 仅在 VM/容器侧 DNS 解析）→ `getaddrinfo` ENOTFOUND / 连接失败发生在任何查询之前 → **诚实失败（EXIT=1），非绕过**：响亮可观测崩溃，非静默降级。
+
+**推演 3 — 容器内最坏情形**：bridge 网络内 `host.docker.internal` → host-gateway → 仅命中宿主 loopback 发布面（`-p 127.0.0.1::5432`）背后的 throwaway PG；即便连上，伪造 token → attestation_mismatch 硬 throw（同推演 1）。assert 本体仅一条只读 SELECT（`:84`），自身无写面。
+
+**否定论证维持**：belt 仍封闭（恰两字面量）、宿主可达面仅增量于自身 loopback 发布端口、nonce 硬底对任何伪造 env 恒拒真实库——PRE 段 §7.1 的授权理由在 POST-PROVE 实证下成立。
+
+### 8.3 观察项（不阻断）
+
+- **OB-3**： coding commit message 称 passEnv "13 items"——post-fix 实为 **12** 项（13 为含 PGHOST 的 pre-fix 计数）。安全相关断言（无 DATABASE_URL、无新连接串通道）两版本均成立，零行为影响。
+- **OB-4**： 本审 fresh worktree 无 node_modules，套件经主仓 tsx 二进制执行本 worktree 文件；执行目标确为本 worktree 副本由变异咬合自证——变异仅存在于本 worktree 即观测到 EXIT=1，排除误跑主仓树。
+
+### 8.4 Blockers / Conditions
+
+**Blockers：无。**
+
+**Conditions（不阻断本 PASS · 违反即后续审查 FAIL）**：
+- **CD-1**： 拓扑迁至 plain Linux/CI 时，host-gateway 准入（`--add-host=host.docker.internal:host-gateway` + `127.0.0.1`-only bind）须诚实重验后方可依赖（docstring 已定界；执行属流程层）。
+- **CD-2**： alone≠dual：本 PASS 仅为 mw-privacy-int 席位 POST-PROVE 裁决；peer mw-e2e-ha 并行审未读、不代签；dual 完成与任何 nail 由协调方裁定。
+- **CD-3**： C-PERF-TEARDOWN 关闭链未启动：本刀 prove 仅**产出** Branch A 关闭证据；关闭仍须 prove + post-dual BOTH PASS + 协调方 nail 全链；backlog `:35` stays CONDITION OPEN。
+
+### 8.5 结论（中文三行）
+
+1. POST-PROVE 实证收口：C-1~C-10 十项全过——两字面白名单严格相等实码核对、白名单套件本 worktree 恰一次 **EXIT=0**、审方自做前缀放宽变异咬合 **EXIT=1**、nonce 链/云分支/宿主 baseEnv 字节不动、注入全仓单点、7×EXIT=1 台账与 backlog `:35` OPEN 原样保全。
+2. 对抗推演：全控 env 伪造 nonce 仍被服务端 GUC 绊线硬 throw（真实库无 `meetwise.e2e_run_token`）；宿主直跑 `host.docker.internal` 解析失败 = 诚实失败非绕过——放宽零新增可及破坏目标，PRE 授权否定论证维持。
+3. alone≠dual：本 Verdict 仅为 mw-privacy-int 席位 POST-PROVE 裁决；peer 判定、dual 完成、nail 与条件关闭由协调方裁定；`canHonestlyFlip=false`。
+
+Verdict: PASS
