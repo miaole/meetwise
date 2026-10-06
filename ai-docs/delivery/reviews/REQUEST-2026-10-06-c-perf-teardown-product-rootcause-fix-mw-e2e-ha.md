@@ -94,3 +94,16 @@ Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执
 ## Rewrite ×2 note · re-PRE（append · do not erase history below）
 
 **re-PRE ×2 · supersedes `553cfc5` · cites FAIL `7e97dc3`** · B1①/B1②/B3/B4/Cond1/Cond2 landed in harness §2.1/§2.2/§4/§5/§2 L1/§6 · B2/B5/B6 retained · Status stays `draft:awaiting_pre_exec_dual` · Verdict PENDING · Pins unchanged · CONDITION OPEN · Ban coding · Ban wash attempt1 · Ban UC-018 covered flip · alone ≠ dual。本段仅为 rewrite 注记，**不**构成对本稿的 PASS/FAIL；下方历史 FAIL 正文原样保留。
+
+---
+
+## AN-PERF-TEAR NAIL note（additive · 2026-10-06 · docs-only · does **not** overwrite Verdict）
+
+Coordinator AUTHORIZE nail landed · status **`post_prove_dual_pass`** for Line AN-PERF-TEAR C-PERF-TEARDOWN ×6.
+
+- PROVE `85b9261` / `85b92613db75804b2cc4e1b2e8fea7a35786ce17` · CODE `eae9fed` / `eae9fed1c81edf9231f7b3372c997f5501871c1c` · REQUEST `f76fcff` · PRE BOTH `bb2e866`+`a752ffc`
+- **POST BOTH PASS cited**: mw-rag-route `e341d164` / `e341d164a0f47ae9dbdc6956c4014340c728d1f6` + mw-e2e-ha `e6d21d10` / `e6d21d1018b84c2a19b6becae86cf1da77856a0e`（alone≠dual · this note does **not** re-judge or invent Verdict）
+- Honest close: **P-HOLD met** under ×6 gate · A diagnostic FAIL/unproven disclosed · CONDITION `:35` **OPEN** · Ban wash af9664a · Ban covered flip · Ban close CONDITION · Ban claim HA · Ban attempt1 wash · pins held（NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503）
+- Wind-down last knife DONE after nail · HOLD AN-CIMG-EA · **NO new knives**
+
+*Nail note · AN-PERF-TEAR · post_prove_dual_pass · POST BOTH e341d164+e6d21d10 · :35 OPEN · A residual OPEN · STOP*
