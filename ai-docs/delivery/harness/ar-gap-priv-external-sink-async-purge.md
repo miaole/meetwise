@@ -1,12 +1,14 @@
-# Harness — **AR · GAP-PRIV-EXTERNAL-SINK-RETENTION async purge real knife**（`:64` OPEN · Ban count-as-erased · NB-3 · DELETE=503）
+# Harness — **AR · GAP-PRIV-EXTERNAL-SINK-RETENTION async purge real knife**（`:64` OPEN · NAIL · **`post_prove_dual_pass`** · stub≠cloud · Ban count-as-erased · NB-3 · DELETE=503）
 
-**Status**: **`awaiting_post_prove_dual`**（CODE+PROVE landed · Ban self-nail · Ban close `:64` · stub≠cloud · DELETE=503 · NB-3 · alone ≠ dual · POST dual privacy+e2e by parent）
-**Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
+**Status**: **`post_prove_dual_pass`**（AR nail · PROVE `a49d712e` / `a49d712edb8a3d4de168d11057eb368b3dbe4fd1` · CODE `111df857` / `111df857277e8be2b65ce2b9828fc207c428ef72` · REQUEST `e2eac8ca` · PRE `6093626e`+`e473eac2` · POST BOTH PASS mw-privacy-int `3b1a136d` + mw-e2e-ha `2197d93e` · A5 EXIT0×5 · MUT −0140 EXIT1 · N1–N3 · local_isolated_stub PATH evidenced **this knife only** · **`:64` OPEN** · stub≠cloud · cloudVendorDeleted=false · Ban count-as-erased · Ban wash ada604a · Ban covered flip · alone≠dual · coveredCount=8 · UC-052 partial · DELETE=503 · PASS≠关 gap≠HA）
+> **Exec-era status（historical · retained）**: **`awaiting_post_prove_dual`**（CODE+PROVE landed · Ban self-nail · Ban close `:64` · stub≠cloud · DELETE=503 · NB-3 · alone ≠ dual · POST dual privacy+e2e by parent）
+**Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=**8** · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · canHonestlyFlip=**false**
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`68914be2`** / full `68914be222a49b3ba61506fac07c0812fffb7a99`（AO-COND35 POST tip · Ban touch AO COND body · Ban AP ISO / MOP cutover / A-seed / CIMG / cloud）
 **Line**: **AR**（successor to AN-PRIV-EXT honesty · **async purge real knife** · separate paths from AQ）
-**Experts**: `mw-privacy-int` + `mw-e2e-ha`（stubs PENDING · Ban self-approve · alone ≠ dual）
-**Authority**: meetwise — docs REQUEST only · Ban SSOT flip CLOSED · Ban coding · Ban self-nail · status `draft:awaiting_pre_exec_dual`
+**Experts**: `mw-privacy-int` + `mw-e2e-ha`（POST BOTH PASS · Ban self-approve beyond AUTHORIZE nail · alone ≠ dual）
+**Authority**: meetwise — AUTHORIZE nail AR · honesty dual-pass close of this REQUEST knife · **≠** `:64` closed · **≠** cloud vendor deleted · Ban SSOT flip CLOSED · Ban self-approve beyond this AUTHORIZE
+> Exec-era authority（historical）: docs REQUEST only · Ban coding · Ban self-nail · status `draft:awaiting_pre_exec_dual`
 **Knife**: **GAP-PRIV-EXTERNAL-SINK-RETENTION（AR）· 外部 sink 异步确认 / vendor purge 真实路径证据**（oss · redis · langfuse · **Ban** count-as-erased · **DELETE=503** · **NB-3** `external_confirmed` ≠ vendor deleted）
 **Gap id**: **`GAP-PRIV-EXTERNAL-SINK-RETENTION`**（backlog `gap-bug-backlog.md:64` · P0 · **OPEN** · AN-PRIV-EXT honesty nailed · 本 REQUEST 开 real purge 后继 · **Ban close via docs alone**）
 **Related（只读）**: `harness/gap-priv-external-sink-retention.md`（AN-PRIV-EXT NAIL · `post_prove_dual_pass` · honesty）· `harness/uc-e2e-050-052-privacy-erasure.md` · `harness/privacy-erasure-http-503-pin.md` · `architecture/ai/privacy-deletion-sink-inventory.md` · 0091 L516–545 · 0137
@@ -79,6 +81,20 @@ Not a pass · not run · not closed · not erased · not `completed` · not vend
 
 ## Pins
 
-haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · backlog `:64` OPEN · UC-052 partial · NB-3 held · STOP
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · backlog `:64` OPEN · UC-052 partial · NB-3 held · stub≠cloud · cloudVendorDeleted=false · local_isolated_stub PATH **DONE this knife** · STOP
 
-*Harness · AR GAP-PRIV-EXTERNAL-SINK async purge real · 2026-10-06 · draft:awaiting_pre_exec_dual · Ban coding until PRE BOTH PASS + AUTHORIZE · Ban count-as-erased · DELETE=503 · NB-3 · alone ≠ dual · STOP*
+*Harness · AR GAP-PRIV-EXTERNAL-SINK async purge real · 2026-10-06 · draft:awaiting_pre_exec_dual · Ban coding until PRE BOTH PASS + AUTHORIZE · Ban count-as-erased · DELETE=503 · NB-3 · alone ≠ dual · STOP*  <!-- exec-era footer · see §8 nail -->
+
+---
+
+## 8. AR NAIL lifecycle（`post_prove_dual_pass` · 2026-10-07 · additive）
+
+- REQUEST `e2eac8ca` / `e2eac8ca8468fb031860c1a0e9604022657c41f3` · PRE dual BOTH PASS mw-privacy-int `6093626e` / `6093626e77a242f85f8c77269d0f3d49b8d8bb07` + mw-e2e-ha `e473eac2` / `e473eac2bbbe831bea91af2e58228c8d5a678e7c` · CODE_SHA `111df857` / `111df857277e8be2b65ce2b9828fc207c428ef72` · mig **`0140`** · PROVE tip **NAILED TO** `a49d712e` / `a49d712edb8a3d4de168d11057eb368b3dbe4fd1` · tip docs `30228501` / `30228501b1ebf780886cf2095cd8e4f975137196` · POST dual BOTH PASS mw-privacy-int **`3b1a136d`** / `3b1a136d17190a9b136dbb667fccb52fd5ad2392` + mw-e2e-ha **`2197d93e`** / `2197d93e52e6b8b197c8213e6370c4705f33e9b0`（alone≠dual）。
+- POST conditions carried: privacy `3b1a136d` + e2e `2197d93e` independent A5 EXIT0×5 · MUT −0140 EXIT1 · N1–N3 · stub≠cloud · cloudVendorDeleted=false · `:64` OPEN · coveredCount=8 · Ban nail（consumed by this AUTHORIZE）· Ban wash ada604a · Ban count-as-erased · Ban open DELETE。
+- Honesty dual-pass close of **this REQUEST knife only**（local_isolated_stub vendor purge PATH evidenced · **≠** `:64` closed · **≠** cloud vendor deleted · **≠** covered · **≠** HA）。
+- **STILL_OPEN**: backlog `:64` **GAP-PRIV-EXTERNAL-SINK-RETENTION stays OPEN** · canHonestlyFlip=false · stub ≠ cloud · cloudVendorDeleted=false · NB-3 `external_confirmed` ≠ vendor deleted · UC-052 **partial** · coveredCount=**8** · alone≠dual · PASS ≠ 关 gap ≠ HA。
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered / CLOSED / cloud wipe / completed-as-erased / claimProductionHA.
+- **CITE_EXIT**: `pnpm eval-harness-matrix-cite:prove` @ nail SHA → expected **EXIT 0**（static docs cite · ≠ gap closed · ≠ covered · ≠ cloud wipe）· actual EXIT in nail commit message.
+- Nail tip = 本 commit（branch `line/ar-gap-priv-external-sink-async-purge` → `feat/mysql-schema-skeleton`；禁 force push）. This paragraph does **not** flip backlog `:64` to CLOSED · does **not** claim cloud vendor deleted · does **not** wash ada604a · does **not** flip any UC covered · HOLD AN-CIMG-EA · Ban buy cloud · Ban touch AQ HNSW SSOT beyond sibling leave-as-written。
+
+*Harness · AR GAP-PRIV-EXTERNAL-SINK async purge · NAIL · 2026-10-07 · post_prove_dual_pass · PROVE a49d712e · CODE 111df857 · REQUEST e2eac8ca · PRE 6093626e+e473eac2 · POST 3b1a136d+2197d93e PASS · A5 EXIT0 · MUT −0140 EXIT1 · :64 OPEN · stub≠cloud · Ban count-as-erased · Ban wash ada604a · Ban covered flip · alone≠dual · STOP*

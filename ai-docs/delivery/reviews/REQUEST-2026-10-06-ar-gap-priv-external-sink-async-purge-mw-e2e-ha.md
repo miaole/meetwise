@@ -82,3 +82,16 @@ Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执
 3. 本 PASS = mw-e2e-ha docs 半签；peer PRE PENDING（cite-when-available · 不代签）；alone≠dual；**Ban coding until BOTH+AUTHORIZE**；≠ prove ≠ erased ≠ HA。
 
 Verdict: PASS
+
+---
+
+## AR NAIL note（additive · 2026-10-07 · docs-only · does **not** overwrite Verdict）
+
+Coordinator AUTHORIZE nail landed · status **`post_prove_dual_pass`** for Line AR GAP-PRIV-EXTERNAL-SINK async purge（honesty dual-pass close of this REQUEST knife only · local_isolated_stub vendor purge PATH evidenced）.
+
+- PROVE `a49d712e` / `a49d712edb8a3d4de168d11057eb368b3dbe4fd1` · CODE `111df857` / `111df857277e8be2b65ce2b9828fc207c428ef72` · REQUEST `e2eac8ca` / `e2eac8ca8468fb031860c1a0e9604022657c41f3` · PRE BOTH mw-privacy-int `6093626e` / `6093626e77a242f85f8c77269d0f3d49b8d8bb07` + mw-e2e-ha `e473eac2` / `e473eac2bbbe831bea91af2e58228c8d5a678e7c`
+- **POST BOTH PASS cited**: mw-privacy-int `3b1a136d` / `3b1a136d17190a9b136dbb667fccb52fd5ad2392` + mw-e2e-ha `2197d93e` / `2197d93e52e6b8b197c8213e6370c4705f33e9b0`（alone≠dual · this note does **not** re-judge or invent Verdict）
+- A5 EXIT0×5 · MUT −0140 EXIT1 · N1–N3 · PATH residual closed **this knife only** · GAP `:64` **OPEN** · stub≠cloud · cloudVendorDeleted=false · Ban count-as-erased · Ban wash ada604a · Ban covered flip · UC-052 partial · DELETE=503 · pins held（NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503）
+- HOLD AN-CIMG-EA · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · Ban self-approve beyond this AUTHORIZE · Ban new knives · Ban touch AQ HNSW SSOT beyond sibling leave-as-written
+
+*Nail note · AR · post_prove_dual_pass · POST BOTH 3b1a136d+2197d93e · :64 OPEN · stub≠cloud · coveredCount=8 · DELETE=503 · STOP*
