@@ -1102,3 +1102,17 @@ flowchart TD
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered / CLOSED / production HNSW SLO / R-b green / claimProductionHA.
 - Sibling sections stay as written（incl. Line AN-RAG-R3 · AO-COND35 · AN-PERF-TEAR · Line AR）. This paragraph does **not** flip backlog `:71` to CLOSED · does **not** claim production HNSW SLO · does **not** wash R-b green · does **not** flip any UC covered · HOLD AN-CIMG-EA · Ban touch AR privacy files.
 
+### Line SS — C-PERF-CONTAINER-REACHABILITY 修复刀 NAIL（2026-10-07 SSOT nail · `post_prove_dual_pass` · backlog `:35` C-PERF-TEARDOWN → **CLOSED（fixed）** · 协调方授权翻转 · S 线 Branch A 三分全链闭合）
+
+- [x] **`post_prove_dual_pass`** recorded for the Line SS container reachability fix products only. Implementer does not self-approve. 授权翻转仅限 backlog `:35` `C-PERF-TEARDOWN` → **CLOSED（fixed）**；其余行零翻转。coveredCount=**8** unchanged.
+- 根因链完整记录（`b29c191` attempt1 mid-prove 崩溃 = 两支根因）：① 产品池缺 `error` 监听（**P 线 `845d357` 已修**）② prove 基建双容器可达性缺陷（API 容器内 proof 进程 `ECONNREFUSED 127.0.0.1:<port>` @ assert 点 · S 台账 7×EXIT=1 同点崩溃）——**SS 刀候选 1 修复：bridge + host-gateway + 两字面白名单**。
+- REQUEST `71ac2d44`（docs-only · origin）。Pre-exec dual PASS: mw-e2e-ha `aabdc64a`（worktree `260a272`，C-1..C-9）+ mw-privacy-int `5dbc391f`（C-1..C-10）（docs gate only · origin 已有 cherry-pick 镜像）。
+- Coding `f59c4d20`（nail cherry-pick `71a57f4b`）：`packages/db/src/isolated-test-target.ts` assert 白名单恰两字面量（`host.docker.internal` / `host-gateway`，新增专用码 `destructive_proof_loopback_or_hostgateway_required`）+ `packages/db/test/isolated-test-target.proof.ts` 反证集 + `scripts/uc018-perf-load-capped-child.mjs` PGHOST=`host.docker.internal` 单点显式注入（host 侧 `run-e2e-isolated.mjs` 零 diff · principal.ts 零 diff）。
+- Prove `pnpm uc018:perf-load:prove` **EXIT=0** @ `f59c4d20`（**attempts 台账 1,0,0,0**：attempt-1 env 层缺陷 `@oxc-resolver/binding-linux-arm64-gnu` 如实归因、非可达性类 · attempts 2/3/4 全过 · 全 attempts 零 ECONNREFUSED）· receipt `cf897e6e`（nail cherry-pick `ca92be99`）· in-tree run receipts `ce31d7f2`（nail cherry-pick `b756f09f`）。
+- Post-prove dual BOTH PASS: mw-e2e-ha `f614b5d`（nail cherry-pick `e4c057e6` · fresh re-run 恰一次 EXIT=0 · 零 ECONNREFUSED · 六 run 全真实量测 · C-1..C-9）+ mw-privacy-int `38018d6`（nail cherry-pick `5c4f1ed6` · 白名单套件本 worktree 恰一次 EXIT=0 · 审方前缀放宽变异咬合 EXIT=1 · C-1..C-10）（alone≠dual）。
+- 关闭判据：S 线 Branch A 三分（(a) 零 unhandled crash (b) run1/2/3+`SUMMARY allPass=true capsEnforced=true` 全达 (c) 真实断连诚实判）由本刀 prove 满足 + post-prove dual BOTH PASS + 协调方 nail 全链授权 → `:35` 翻转 **CLOSED（fixed）**。前 AN/AO 时代「Ban close CONDITION」禁令由本授权全链闭合取代，不构成 wash。
+- Residuals（诚实保留）：CD-1 plain Linux/CI 迁移须诚实重验 host-gateway 准入（docstring 已定界 Docker Desktop/macOS）；e2e-ha 加固 residual（loopback 前缀化变异测试未咬合 · 非 gating）；attempt1@`b29c191` 历史 7×EXIT=1 台账原样不洗；`gitSha:'unknown'` pre-existing infra residual。**PERF/LOAD stays local partial · capacityRepresentative=false · ≠ covered · ≠ capacity/HA**。
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503. Do not write covered.
+- Nail tip = 本 commit（branch `line/ss-nail`，推至 `feat/mysql-schema-skeleton`；禁 force push）。
+- Sibling sections stay as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered except the coordinator-authorized backlog `:35` flip stated above.
+
