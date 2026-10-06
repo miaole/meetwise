@@ -1,6 +1,6 @@
-# Slice — **GAP-PRIV-AUTHZ-PROVE-FLAKE · honesty ledger refresh**（Line AH · docs refresh · **`executed:awaiting_post_dual`**）
+# Slice — **GAP-PRIV-AUTHZ-PROVE-FLAKE · honesty ledger refresh**（Line AH · docs refresh · **`post_prove_dual_pass`**）
 
-**Status**: **`executed:awaiting_post_dual`**（Line AH docs refresh executed · gap stays OPEN · Ban close · Ban claim fixed）
+**Status**: **`post_prove_dual_pass`**（prior **`executed:awaiting_post_dual`** recorded · POST dual privacy `9c7b01a` + e2e `5b95dfd` BOTH PASS · tip `0005096` / feat `01e0853` · Line AH docs refresh executed · gap stays OPEN · Ban close · Ban claim fixed）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · canHonestlyFlip=false
 **Date**: 2026-10-06
 **Base**: `origin/feat/mysql-schema-skeleton` · `416b6a5b5c71d97a1816974c2b174dbf4b9c8cb8`
@@ -31,4 +31,8 @@ Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR4
 
 PRE dual PASS（privacy `880f144` + e2e `f215438`）→ docs refresh `receipts/gap-priv-authz-prove-flake/2026-10-06-ledger-refresh.md`（F1 9/9 · F2 五提交读 diff · F3 attempt=0 · F4 三族分界+N2 · F5+N4 · N1 `9b39a20` 绿行）。无 CMD · 零 prove · 零 SSOT。Gap stays OPEN mitigated/cause-unknown · coveredCount=8 · DELETE=503 · Ban self-nail。
 
-*Slice · GAP-PRIV-AUTHZ-PROVE-FLAKE ledger refresh · Line AH · executed:awaiting_post_dual · STOP*
+## Line AH NAIL（`post_prove_dual_pass` · gap stays OPEN）
+
+POST dual BOTH PASS mw-privacy-int `9c7b01a` + mw-e2e-ha `5b95dfd` · prove/docs tip `0005096` / feat `01e0853`。F1 9/9 · red EXIT=1 ×3 retained · N1/N2 retained · P1–P4 addendum in RL。**GAP-PRIV-AUTHZ-PROVE-FLAKE stays OPEN mitigated/cause-unknown** · **Ban close** · Not fixed · Not root-caused · backlog `:68` OPEN · UC-052 partial · coveredCount=8 · DELETE=503 · Ban forge PROCESS_EXIT · Ban retry-to-green。
+
+*Slice · GAP-PRIV-AUTHZ-PROVE-FLAKE ledger refresh · Line AH · post_prove_dual_pass（prior executed:awaiting_post_dual）· OPEN · Ban close · STOP*

@@ -1,6 +1,6 @@
-# Harness — **GAP-PRIV-AUTHZ-PROVE-FLAKE · honesty ledger refresh**（Line AH · docs refresh · **`executed:awaiting_post_dual`** · gap stays **OPEN** mitigated/cause-unknown）
+# Harness — **GAP-PRIV-AUTHZ-PROVE-FLAKE · honesty ledger refresh**（Line AH · docs refresh · **`post_prove_dual_pass`** · gap stays **OPEN** mitigated/cause-unknown）
 
-**Status**: **`executed:awaiting_post_dual`**（Line AH docs refresh executed · F1–F6 · 零 prove · 零 CMD · **Ban close** · **Ban claim fixed** · Ban claim root-caused · Ban forge PROCESS_EXIT · Ban self-approve · Ban self-nail）
+**Status**: **`post_prove_dual_pass`**（prior **`executed:awaiting_post_dual`** recorded · POST dual privacy `9c7b01a` + e2e `5b95dfd` BOTH PASS · prove/docs tip `0005096` / feat `01e0853` · Line AH docs refresh executed · F1–F6 · 零 prove · 零 CMD · **Ban close** · **Ban claim fixed** · Ban claim root-caused · Ban forge PROCESS_EXIT · Ban self-approve · Ban self-nail）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · canHonestlyFlip=false
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`416b6a5`** / full `416b6a5b5c71d97a1816974c2b174dbf4b9c8cb8`（wave start · sibling Line AD/AE/AF/AG REQUEST commits may land alongside · Ban touch siblings）
@@ -78,4 +78,15 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 - 零产品 · 零 `principal.ts` / `checkpoint-principal.ts` · 零 SSOT（matrix / backlog `:68` / checklist 未碰）· 旧证据零改写 · Ban 碰 AD/AE/AF/AG。
 - Gap stays **OPEN** · **mitigated/cause-unknown** · Not fixed · Not closed · Not root-caused · coveredCount=**8** · public DELETE=**503** · UC-052 stays **partial** · **Ban self-nail**。
 
-*Harness · GAP-PRIV-AUTHZ-PROVE-FLAKE ledger refresh · Line AH · 2026-10-06 · executed:awaiting_post_dual · docs-only · Ban close · Ban claim fixed · STOP*
+## Line AH NAIL（2026-10-06 · AUTHORIZE · POST BOTH PASS · **`post_prove_dual_pass`** · gap stays OPEN）
+
+- **POST dual BOTH PASS**：mw-privacy-int `9c7b01a`（POST review `reviews/REQUEST-2026-10-06-gap-priv-authz-prove-flake-ledger-refresh-post-mw-privacy-int.md` · reviewed tip `0005096`）+ mw-e2e-ha `5b95dfd` / `5b95dfdebebefc1e43874efeeabb202abf54ac9f`（alone ≠ dual · BOTH）。
+- **Prove/docs tip**：`0005096` / `0005096f773d8fd8f40d594e3912eaf99cbb3343`（`origin/line/ah-priv-authz-flake-ledger-refresh`）· feat land 等价 `01e0853` / `01e0853abeba956d1ecb18f0536dc285f6d9ee5b`（range-diff `=` · 5 文件 blob 全等）。
+- **Lifecycle**：`executed:awaiting_post_dual` → **`post_prove_dual_pass`**（docs refresh products only）。**PASS ≠ fixed ≠ closed ≠ root-caused ≠ HA**。
+- 红账 **EXIT=1 ×3**（cold ECONNREFUSED ×2 · warm 23505 ×1 · 2 class 未归一）保留 · F1 **9/9** · F3 新 attempt=**0** · N1/N2 修正保留 · **Ban forge PROCESS_EXIT** · **Ban retry-to-green** · 本 nail **零 prove**（Ban 跑 `privacy-authorization:prove`）。
+- Privacy POST 非阻塞 **P1–P4** 已以 addendum 并入 RL `## Addendum · Line AH NAIL`（不改写 F1–F5 原行 · 不改 Line X 旧证据 / attempt json/log）。
+- **GAP-PRIV-AUTHZ-PROVE-FLAKE stays OPEN · mitigated/cause-unknown** · **Ban close** · Not fixed · Not closed · Not root-caused · backlog `:68` **OPEN**（本 nail 仅登记 refresh nail cite · 不翻行）。
+- UC-052 stays **partial** · coveredCount=**8** · public DELETE=**503** · canHonestlyFlip=**false** · Ban buy cloud · Ban Meridian · Ban secrets · Ban force-push · Ban 碰 AD/AE/AF/AG 产品工作。
+- Nail tip = 本 commit（推至 `feat/mysql-schema-skeleton`；禁 force push）。
+
+*Harness · GAP-PRIV-AUTHZ-PROVE-FLAKE ledger refresh · Line AH · 2026-10-06 · post_prove_dual_pass（prior executed:awaiting_post_dual）· docs-only · OPEN mitigated/cause-unknown · Ban close · Ban claim fixed · STOP*

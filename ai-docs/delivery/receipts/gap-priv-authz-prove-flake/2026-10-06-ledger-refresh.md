@@ -1,6 +1,6 @@
-# Ledger refresh — **GAP-PRIV-AUTHZ-PROVE-FLAKE · honesty ledger refresh**（Line AH · docs-only · **`executed:awaiting_post_dual`** · gap stays **OPEN** mitigated/cause-unknown）
+# Ledger refresh — **GAP-PRIV-AUTHZ-PROVE-FLAKE · honesty ledger refresh**（Line AH · docs-only · **`post_prove_dual_pass`** · gap stays **OPEN** mitigated/cause-unknown）
 
-**Status**: **`executed:awaiting_post_dual`**（Line AH · docs refresh only · F1–F6 · **零 prove · 零 CMD · 零 Docker/PG** · **Ban close** · **Ban claim fixed** · Ban claim root-caused · Ban forge PROCESS_EXIT · Ban retry-to-green · Ban self-nail）
+**Status**: **`post_prove_dual_pass`**（prior **`executed:awaiting_post_dual`** recorded · POST dual privacy `9c7b01a` + e2e `5b95dfd` BOTH PASS · see `## Addendum · Line AH NAIL` · Line AH · docs refresh only · F1–F6 · **零 prove · 零 CMD · 零 Docker/PG** · **Ban close** · **Ban claim fixed** · Ban claim root-caused · Ban forge PROCESS_EXIT · Ban retry-to-green · Ban self-nail）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · canHonestlyFlip=false
 **Date**: 2026-10-06（CST / UTC+8）
 **Gap id**: **`GAP-PRIV-AUTHZ-PROVE-FLAKE`**（backlog `gap-bug-backlog.md:68` · P2 · **OPEN** · mitigated/cause-unknown · **本刀不改该行**）
@@ -161,4 +161,20 @@ Not fixed · not closed · not root-caused · not a prove · not a rerun · **no
 
 实现方（mw-core）产物 = docs refresh + post dual stubs（draft awaiting expert）。**Ban self-approve** · **Ban self-nail** · **Ban 代签** · **Ban 关 gap** · **Ban 翻 `:68`**。awaiting post dual mw-privacy-int + mw-e2e-ha。
 
-*Ledger refresh · GAP-PRIV-AUTHZ-PROVE-FLAKE · Line AH · 2026-10-06 · executed:awaiting_post_dual · F1 9/9 · F3 attempt=0 · N1 9b39a20 green · OPEN mitigated/cause-unknown · Ban close · Ban claim fixed · zero prove · coveredCount=8 · DELETE=503 · STOP*
+## Addendum · Line AH NAIL（2026-10-06 · `post_prove_dual_pass` · privacy POST 非阻塞 P1–P4 · 不改写上文行）
+
+- **POST dual BOTH PASS**：mw-privacy-int `9c7b01a` + mw-e2e-ha `5b95dfd` / `5b95dfdebebefc1e43874efeeabb202abf54ac9f` · reviewed tip `0005096` / `0005096f773d8fd8f40d594e3912eaf99cbb3343` · feat 等价 `01e0853` / `01e0853abeba956d1ecb18f0536dc285f6d9ee5b`。
+- 上文 F1–F5 / Attempt EXIT 账 / Disclosures **原样保留**；以下为 nail 时 addendum（footnote 性质）· Line X ledger / attempt-1/2 json/log/receipt / `uc052-pool-role-leak` jsonl/logs **零改写**。
+
+| # | 对象 | Addendum |
+|---|------|----------|
+| **P1** | F2 `bf1fdb2` 行 | 该提交另含 `packages/db/migrations/0136_payment_order_refund_provider_txn.sql`（+30）与 `packages/db/sql/11_commerce.sql`（+4）。隐私 prove 经 `migrateWithRecovery`（`scripts/run-e2e-isolated.mjs:2144`）跑全量迁移 → 隔离库 schema 面随之有 commerce 增量。**≠ fix · ≠ 无影响证明（no-impact proof）**；F2「未改写 `privacy-authorization:prove` 映射 / receiptSources」结论不变。 |
+| **P2** | Attempt 账 N1 绿行 `9b39a20` | `9b39a20d6b53d10ac95be880037a3e716126f715` 对象**存在**但 **NOT branch ancestor**（`git merge-base --is-ancestor 9b39a20 HEAD` → 1 · 无 remote 分支包含；同 Line X ledger `2026-10-05-rootcause-ledger.md:63`）；`git patch-id --stable` 等价 **`ab96a02`** / `ab96a0299d8836a635077f8bf9b61a7891aa583f`（分支祖先 · patch-id `84fc1ba3…`）。绿行 ≠ close。 |
+| **P3** | §执行声明「核验方法 … tip `9e2f001`」**勘误** | 执行提交实际父 = **`863a5e6`**（line 分支 `0005096`）/ **`2e4a825`**（feat 等价 `01e0853`）—— **非** tip `9e2f001`。中间提交不触本刀对象；F1–F3 在 `5b95dfd` 复核不变（privacy POST §2）。 |
+| **P4** | Pins 表补全 | UC-052 外部 sink 目标 **`retention_pending`**（request `pending_external` · Ban count-as-erased · backlog GAP-PRIV-EXTERNAL-SINK-RETENTION）；**coveredCount=8 构成 = `RAG-FUNNEL-02A..08` only**（`rag-funnel-01-08-covered-matrix.md`）—— **不含** UC-052 · **不含**本 flake · 本 nail 不动 coveredCount。 |
+
+- **GAP-PRIV-AUTHZ-PROVE-FLAKE stays OPEN · mitigated/cause-unknown** · **Ban close** · Not fixed · Not closed · Not root-caused · backlog `:68` **OPEN**。
+- 红账 EXIT=1 ×3 保留 · F1 9/9 · N1/N2 保留 · **Ban forge PROCESS_EXIT** · **Ban retry-to-green** · 本 nail 零 prove（未跑 `privacy-authorization:prove`）· UC-052 partial · DELETE=503 · Ban buy cloud。
+- CITE_EXIT：nail SHA 上 `pnpm eval-harness-matrix-cite:prove`（static docs cite · ≠ flake evidence · ≠ close）见 nail commit message。
+
+*Ledger refresh · GAP-PRIV-AUTHZ-PROVE-FLAKE · Line AH · 2026-10-06 · post_prove_dual_pass（prior executed:awaiting_post_dual）· F1 9/9 · F3 attempt=0 · N1 9b39a20 green（P2 non-ancestor · ≡ab96a02）· P1–P4 addendum · OPEN mitigated/cause-unknown · Ban close · Ban claim fixed · zero prove · coveredCount=8 · DELETE=503 · STOP*
