@@ -116,3 +116,55 @@ Ban coding · Ban prove execution · Ban live · **Ban Redis cutover** · **Ban 
 3. 零 Blocker · FT 10 项 0 hit；两处非阻断风险（"presence-only" 措辞漂移 · 现存 `worker-wakeup-redis:prove` 结构性证明洗白面）转为未来 cutover REQUEST 的 C-E2E-2/C-E2E-3；本审零 prove 零编码零 SSOT，alone ≠ dual，不代签 peer，PASS ≠ 授权执行。
 
 Verdict: PASS
+
+---
+
+## POST-PROVE dual review — `mw-e2e-ha`（2026-10-07 · append-only · adversarial evidence-honesty · e2e/HA 焦点）
+
+**Reviewer**: `mw-e2e-ha`（独立审 · 不代签 peer `mw-model-op`——其 POST 段在并行独立审、不在本刀 · alone ≠ dual · 本段为唯一新增 · 上方 stub+PRE 原文未动）
+**Reviewed tip**: **`47f17b83`**（branch `line/mop03-successor` = `d65023e1`（本人 PRE 镜像 · author `mw-e2e-ha` 保留 · patch-id `ad28e66e` ≡ 原审 `fa2f667e`）+ exec `47f17b83`（author `mw-core` · docs-only 2 文件 +14/−10）· 包整体 = base `63992a3b`→tip 恰 3 文件 +95/−10 全 docs 面）
+**执行契约核对**: exec 声称「REQUEST 自身即完整立卷产物 · harness 未定义额外立卷文档/清单 → 仅推进 lifecycle 标记」——与 harness §2 立卷 face 相符（§2b 六门准入合同在 pre_dual 阶段已写死于 REQUEST 内）· `executed:awaiting_post_prove_dual` 为仓内既有 lifecycle 中态（`gap-mop-03-dual-reconciler-q45-honesty.slice.md` 等 5 处先例）· **未自写 `post_prove_dual_pass`**（harness exec status 新增 Ban self-write + Ban nail until POST BOTH + 协调方）· 旧 status 以 historical blockquote retained
+**包完整性**: 恰 3 文件 diff（slice / harness / 本文件）· SSOT（backlog/matrix/checklist/queue）零 diff · 产品码/`package.json`/`scripts`/migrations 零 diff · 本文件现有 118 行 = stub 37 + 本人 PRE 段 81（patch-id 实证 ≡ `fa2f667e` · stub 首 37 行 byte-identical）· Pins 行内容 byte-identical（仅行号位移）· `:76` OPEN retained · backlog 零改
+**本审手段**: 仅 git 读操作（fetch/merge-base/patch-id/diff/ls-tree）+ grep/sed/ls · **0 prove 执行 · 0 容器 · 0 coding · 0 SSOT · 未读 `.env*`**
+
+### 条件裁决（PRE C-E2E-1~5 逐条 POST 复验）
+
+| # | 条件 | POST 复验证据（实测 @`47f17b83`） | 判 |
+|---|------|-----------------------------------|-----|
+| C-E2E-1 | base 重验 | rebase 实落 `63992a3b`：`d65023e1` 直接父 = `63992a3b`（`git merge-base --is-ancestor` PASS）· fresh `git fetch origin` EXIT 0 · origin/feat/mysql-schema-skeleton tip = `d5e6f7e6` 且 `63992a3b` 为其祖先 · exec 与 origin 侧 exec 同补丁（patch-id `8cb6ea0b`）· MOP03 四 dossier 文件（slice/harness/双 review）line-tip ↔ origin-tip **blob 级 IDENTICAL** · origin tip 仅多 sibling Line G7B 审 2 文件 +130/−1（非 MOP03 面） | ✓（前瞻重钉 → C-P1） |
+| C-E2E-2 | flag 语义按代码门重述 | 代码门 `apps/worker/src/worker-job-wakeup-redis.ts:50-53`：`trim().toLowerCase()` 后仅 `'1'/'true'/'on'` 开，`'0'`/空/unset 关——exec 产物 slice+harness status 均按此 **value-gated** 措辞重述并明写「"presence-only" 不作开关判据」（沿本人 OB-1/C-E2E-2）· §2b-3 合同原文 byte-untouched（修正在 exec status 层 · 合同未弱化） | ✓（再重述义务 → C-P2） |
+| C-E2E-3 | `worker-wakeup-redis:prove` EXIT0 ≠ cutover Ban 落字 | slice+harness exec status **双落字**「现存 `worker-wakeup-redis:prove` EXIT0 ≠ cutover 证据（C-E2E-3）」· 该脚本 `package.json:474` → `scripts/mysql-stack.redis-wakeup.proof.mjs` 实存且 §4 刻意不命名（byte-untouched）· exec 本刀零 prove 执行（3 md diff · 零新 receipt） | ✓ |
+| C-E2E-4 | EXIT 契约未触 | harness §5（attempts 全记录 · Ban retry-to-green `:68` 先例 · 单 attempt 窗 · EXIT0 ≠ 链）base→tip **byte-untouched**（diff 实证）· `package.json`/`scripts` 零 diff | ✓ |
+| C-E2E-5 | PG LISTEN retained 写死执行条款在案 | §2b-4 byte-untouched · slice Pins「**PG LISTEN retained**」内容 byte-identical · exec status 双落字「**PG LISTEN retained**（C-E2E-5）」+「直至 cutover REQUEST PRE dual + AUTHORIZE + BUG-REV-COND 四专家审全部落地」· 代码锚未动（`packages/db/src/worker-job-wakeup.ts:6` 头注 "Production still uses LISTEN/NOTIFY until an independent cutover is approved" · `apps/worker/src/main.ts:641-648` additive-only · Redis URL 缺失即 skip 且 "PG LISTEN unchanged"）· 产品码零 diff = 零摘除 | ✓ |
+
+### 六门合同完整性复验（§2b base→tip byte-untouched · diff 实证 · 零弱化）
+
+| 门 | 复验 | 判 |
+|----|------|-----|
+| G1 Q4/Q5 同列 + 单绿≠双门 | §2b-1 原文 retained；`package.json:194/198` CMD + `:195/:199` raw targets + `apps/worker/test/model-invocation-reconcile.proof.ts` / `packages/ai-runtime/test/usage-calibration-reconciler.proof.ts` 实存 | ✓ |
+| G2 wakeup prove + 强制周期 reconcile | §2b-2 原文 retained（BUG-NOTIFY-REC `:93` / GAP-MOP-01 `:74` 同构 cite 不动） | ✓ |
+| G3 flag 默认关 → 审后开 | §2b-3 原文 retained（本刀 **unset**）+ exec value-gated 修正为**加强**非弱化（"presence-only" 明示不作开关判据） | ✓ |
+| G4 PG LISTEN retained | §2b-4 原文 retained（Ban 静默摘除）+ exec status 强化落字（C-E2E-5 全句） | ✓ |
+| G5 独立审不降级 | §2b-5 原文 retained（≥ PRE/POST dual + BUG-REV-COND 四专家审 · D2 不降级） | ✓ |
+| G6 两本账分离沿 I 线 | §2b-6 原文 retained（`actualSpendCny=null` · nail `e09a39f` · 费率非承诺） | ✓ |
+
+exec 新增约束全部为**收紧**：Ban self-write `post_prove_dual_pass` · Ban nail until POST BOTH + 协调方 · `:76` OPEN · alone ≠ dual · PRE dual BOTH PASS 出处实证（mw-model-op `16f2c684` 为 base `63992a3b` 祖先 + 本人 PRE 经 `d65023e1` author 保留携入）。
+
+### Blockers
+
+无（0）。
+
+### Conditions
+
+- **C-P1**（base 前瞻重钉 · C-E2E-1 携出）：origin tip 已越 `63992a3b` 前进 sibling G7B 审 2 文件（+130/−1 · 非 MOP03 面 · MOP03 四文件 blob 级等同）；nail / 合入前须重钉届时 origin tip 并复验 MOP03 面零漂移。
+- **C-P2**（flag 语义再重述 · C-E2E-2 携出）：§2b-3 旧措辞按合同原文保留；未来 cutover REQUEST 仍须按代码门重述 value-gated（`'1'/'true'/'on'` 开 · `'0'`/空/unset 关）语义，不得以 "presence-only" 字面为开关判据。
+- **C-P3**（Ban 持续至 nail）：Ban Redis cutover · Ban MODEL-OP closed claim · Ban nail until POST BOTH + 协调方 · Ban SSOT 登记（nail 阶段才登记）· `:76` OPEN · alone ≠ dual。
+- **C-P4**（AUTHORIZE 出账说明）：协调方 AUTHORIZE 为协调方侧行为，harness 落字系 implementer 转述，仓内无协调方签名文件；本 POST dual 即在协调方本次派单下执行；nail 仍须 POST BOTH + 协调方，不因本段 PASS 自动升级。
+
+### 三行中文摘要
+
+1. 包完整性成立：恰 3 文件 +95/−10 全 docs 面，SSOT/产品码/`package.json`/`scripts` 零 diff，本人 PRE 段 author 保留且 patch-id ≡ 原审 `fa2f667e`（`ad28e66e`），stub+PRE 前 118 行 byte-identical append-only，exec 自身仅 2 文件 +14/−10 lifecycle 推进。
+2. C-E2E-1~5 全部复验成立：rebase 实落 `63992a3b`（origin tip `d5e6f7e6` 祖先 · MOP03 面与 origin blob 级等同）、flag 语义按代码门 value-gated（`'1'/'true'/'on'`）重述落字、`worker-wakeup-redis:prove` EXIT0 ≠ cutover Ban 双落字、EXIT 契约 §5 byte-untouched、PG LISTEN retained 写死执行条款三重在案（§2b-4 + Pins + 代码锚）。
+3. 六门 §2b base→tip byte-untouched 零弱化且 exec 新增全为收紧（Ban self-write `post_prove_dual_pass` · Ban nail until POST BOTH + 协调方）；0 Blocker · 4 Conditions · alone ≠ dual 不代签 peer `mw-model-op` · 本 PASS ≠ cutover ≠ MODEL-OP closed ≠ HA ≠ suite ≠ 授权 nail。
+
+Verdict: PASS
