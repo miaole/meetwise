@@ -100,7 +100,7 @@ PG-retained（业务+LangGraph PostgresSaver+pgvector；禁 MySQL/Qdrant 业务�
 
 ## 4. 当前队列（起草 @ `f3cf84c` · 已 FINAL 勿重开）
 
-> **剩余北星队列 SSOT（companion）**: [`../REMAINING-NORTH-STAR-QUEUE.md`](../REMAINING-NORTH-STAR-QUEUE.md) — Now/Near/Mid/Far after AO-COND35 · Ban buy cloud · HOLD AN-CIMG-EA · coveredCount=8。 §4 历史「待执行」表仍有效；冲突时以本文件 + backlog/matrix 现态为准。
+> **剩余北星队列 SSOT（companion）**: [`../REMAINING-NORTH-STAR-QUEUE.md`](../REMAINING-NORTH-STAR-QUEUE.md) — Phase 0–8 denser plan after AO-COND35 · Ban buy cloud · HOLD AN-CIMG-EA · coveredCount=8。 §4 历史「待执行」表仍有效；冲突时以本文件 + backlog/matrix 现态为准（**prefer Phase 0–8 over short Near/Mid/Far draft**）。
 
 ### 已 FINAL（不要重复开同刀）
 
