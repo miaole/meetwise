@@ -1,13 +1,15 @@
 # REQUEST — **C-PERF-TEARDOWN · product rootcause fix** · pre-exec · mw-rag-route
 
-**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub only · Ban self-approve · alone ≠ dual · 不代签 peer `mw-e2e-ha`）
+**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub rewrite **re-PRE** · Ban self-approve · alone ≠ dual · 不代签 peer `mw-e2e-ha`）
+**Rewrite**: **supersedes REQUEST `110532e`** · cites mw-rag-route PRE-EXEC FAIL **`152b665`**（`152b665787e02ac6ef350551e599b3823a9fa763`）**B1–B6 addressed** · Ban coding · CONDITION OPEN
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Expert**: `mw-rag-route`
 **Peer**: `mw-e2e-ha`（独立签 · alone ≠ dual）
 **Knife**: `harness/c-perf-teardown-product-rootcause-fix.md` · slice `c-perf-teardown-product-rootcause-fix.slice.md`
-**Parent tip**: `59e2189`（full `59e21898fd29c8d64897e7414a228c379568e3e6` · not a prove tip）
+**Parent tip**: origin `feat/mysql-schema-skeleton` tip（AN siblings cited only · Ban touch AN-PRIV-EXT / AN-MOP-Q45 / AN-CIMG-EA）
+**Prior REQUEST**: `110532e81f11064e543bc9bc420b67bb2f95ae1e`（superseded）
 **Date**: 2026-10-06
-**Line**: **AN-PERF-TEAR**（wave AN）
+**Line**: **AN-PERF-TEAR**（wave AN · re-PRE）
 
 ## Pins（retained · 本 stub 不改）
 
@@ -23,27 +25,42 @@
 | Public DELETE | **503**（stays） |
 | PERF/LOAD | **local partial** · capacityRepresentative=**false** |
 
-## 请审什么（mw-rag-route）
+## 请审什么（mw-rag-route · re-PRE · B1–B6）
 
-1. **与 AE residual 分界**：新 harness 是否明确 cite AE 为 parent context · 本刀 = product rootcause fix · Ban 互借 AE R-A 0/0/0 关 CONDITION。
-2. **产品面范围**：若 P-FIX，触碰面是否限于产品（非 AE Branch B 网络拓扑发明）；Ban 全局 uncaughtException 兜底。
-3. **attempt1 账目**：`b29c191` EXIT=1 retained · Ban wash · Ban flake 叙事。
-4. **CONDITION 诚实**：may stay OPEN until honest fix proved · Ban invent green · Ban HA/capacity。
-5. **边界**：docs-only · Dual PASS ≠ coding · Ban re-open AG/AI/AK · Ban AN-CIMG-EA · Ban Meridian · Ban buy cloud。
+Line AN-PERF-TEAR · C-PERF-TEARDOWN product rootcause。本 stub = **re-PRE rewrite**（**supersedes `110532e`** · cites FAIL **`152b665`** · 解除 B1–B6）。请审：
+
+1. **B1 四 loci 具名+初判**：`principal.ts:928-931` · `run-e2e-isolated:1714`+`:2239-2241` · `emit.mjs:555-560`/`:559` · `capped-child:18` · 各有可证伪判据与书面 P-FIX/P-HOLD/另开刀初判（见 harness §2）。
+2. **B2 分层**：PRODUCT / HARNESS / INFRA · **P-FIX 只动 `principal.ts`** · **emitter `:559` ≠ product close**。
+3. **B3 LOOP §3③**：CMD = `./scripts/with-docker-session.sh env -u MODEL_API_KEY -u MODEL_BASE_URL pnpm uc018:perf-load:prove` · **attempts=3** · EXIT 表钉死 · **无**「或 PRE 选定」。
+4. **B4 inject/PC/MUT**：`pg_terminate_backend` 或仅 restart 本 run 自有容器 · pre/post/mut 期望 · Ban 全局 rm / 他线。
+5. **B5 回归**：R1 `uc018:perf-load:prove` · R2 `pool-error-listener.proof.ts` · R3 `uc018:receipt-backfill:prove` · EXIT0 · Ban 借绿。
+6. **B6 证据层**：隔离真 PG · Linux-native · serial `docker ps`=0 · **Ban** 经 emitter `:559` 跑本刀。
+
+与 AE residual / Line S 分界（只读 cite · distinct knife）· **Ban wash attempt1 @ `b29c191`** · **Ban UC-018 covered flip** · CONDITION may stay OPEN。
 
 ## Ban
 
-Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执行 · Ban self-nail · Ban self-approve（alone ≠ dual）· Ban wash attempt1 · Ban UC-018 covered flip · Ban close CONDITION without honest fix proved · Ban wash AE residual · Ban SSOT edit · Ban buy cloud · Ban Meridian · Ban secrets / `.env*` · Ban force-push · Ban claiming PRE PASS · Ban product/infra code。
+Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执行 · Ban self-nail · Ban self-approve（alone ≠ dual）· Ban wash attempt1 · Ban UC-018 covered flip · Ban close CONDITION without honest fix proved · Ban wash AE residual · Ban SSOT edit · Ban buy cloud · Ban Meridian · Ban secrets / `.env*` · Ban force-push · Ban claiming PRE PASS · Ban product/infra code · Ban Redis cutover · Ban MODEL-OP closed claim · Ban re-open AG/AI/AK · Ban AN-CIMG-EA。
 
 本 stub 不授权 coding / prove / push 冒充执行 / buy cloud；pre-exec dual BOTH PASS 后由协调方 AUTHORIZE 执行；implementer 不自批 · 不代填 Verdict。
 
 ## Verdict
 
-**PENDING**（awaiting `mw-rag-route` · implementer 不得填写）
+**PENDING**（awaiting `mw-rag-route` re-PRE · implementer 不得填写）
 
 ---
 
-*Stub · awaiting expert pre-exec dual · STOP*
+*Stub · re-PRE rewrite · supersedes 110532e · FAIL 152b665 B1–B6 · Ban coding · CONDITION OPEN · awaiting expert re-PRE dual · STOP*
+
+---
+
+## Rewrite note · re-PRE（append · do not erase FAIL section below）
+
+**re-PRE · supersedes `110532e` · cites FAIL `152b665`** · B1–B6 landed in harness/slice · Status stays `draft:awaiting_pre_exec_dual` · Pins unchanged · CONDITION OPEN · Ban coding · Ban wash attempt1 · Ban UC-018 covered flip · alone ≠ dual。
+
+下方 Historical FAIL 正文 **原样保留不擦除**；本段仅为 rewrite 注记，**不**构成对本稿的 PASS/FAIL。
+
+---
 
 ## PRE-EXEC @110532e · mw-rag-route
 
