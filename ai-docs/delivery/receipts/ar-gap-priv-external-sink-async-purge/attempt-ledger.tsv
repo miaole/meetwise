@@ -10,4 +10,4 @@ A5-http	privacy-erasure:http:prove	b0177922	~00:09:26	~00:09:40	0	DELETE=503
 A5-retention	uc052:external-sink-retention:prove	b0177922	~00:09:40	~00:09:52	0	AN-PRIV-EXT co-adapted
 A5-authz	privacy-authorization:prove	b0177922	~00:09:52	~00:10:04	0	F1 co-adapted
 A5-internal	uc052:internal-erasure:prove	b0177922	~00:10:04	~00:10:16	0	Line B regression
-MUT-1	uc052:external-sink-async-purge:prove	7d7f1235(-0139)	2026-10-07 00:10:52	2026-10-07 00:14:41	1	EXIT≠0 load-bearing: receipt-sources/migration 0139 + PG boot · Ban loop
+MUT-1	uc052:external-sink-async-purge:prove	7d7f1235(-0139)	2026-10-07 00:10:52	2026-10-07 00:14:41	1	EXIT≠0 load-bearing: receipt-sources/migration 0140 + PG boot · Ban loop
