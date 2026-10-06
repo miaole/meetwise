@@ -100,3 +100,45 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCo
 本审不授权 emit / prove / coding。peer `mw-e2e-ha` 独立审，本人未阅改其文件。
 
 Verdict: FAIL
+
+---
+
+## Re-PRE @92420a6（mw-rag-route · Line AJ · C-IMAGE-DIGEST live residual · 只审文档 · 2026-10-06 14:48 +08:00）
+
+**REQUEST**: `92420a61c6c815846ed65c224e0eb91a7cdbb6ce`（meetwise-core · 2026-10-06 14:35:10 +08:00 · supersedes `f8f4ab5`）· 是 origin 祖先；审查时 origin tip `44e3665`，harness 自 `92420a6` 起未再变。
+**改动文件**（4 个，全 docs）：`harness/c-image-digest-live-residual.md` · `c-image-digest-live-residual.slice.md` · 两个 dual stub。零 `apps/` `packages/` `scripts/` `package.json`。✅
+**本文件被 core 改动的核对**：core 改了本 stub 页眉并插入 rewrite 注记；我方 `5be471c` 的 FAIL 正文逐字未变（抽取 FAIL 段 diff 为空）。
+**执行机器**：只在本 box 上执行（临时 worktree `/tmp/mwrr-92420a6` @ origin tip）；只读文档与源码，未跑 emit / prove，未读取任何密钥 / `.env*`；用户 Mac / 任何 machineId 上零命令。
+
+### 1. 我方 FAIL `5be471c` 阻断项逐条
+
+| # | 状态 | 依据（harness file:line） |
+|---|------|---------------------------|
+| B1 HMAC 密钥未声明 | **已解除** | `:22` / `:52` 新增 **E-C env/secret block**：`MEETWISE_UC018_BACKFILL_HMAC_KEY` 缺失 → exit 8（复核 `uc018-receipt-backfill-guard.mjs:26`、`emit.mjs:74-77` 为真）；记录 exit + reason，≠ E-A，Ban 读 `.env*`，密钥来源须协调方另授权。 |
+| B2 emit 参数未钉 / 覆盖 `<key>.json` | **已解除（附条件 2）** | `:23` / `:56-68`：`--key=PERF-LOAD-LIVE-AJ`、临时 `--tipRoot` / `--worktreeBase`，明文 Ban `--key=PERF-LOAD`、Ban 默认 worktreeBase 与共享树 cwd，只写新文件。复核 `emit.mjs:63/:68/:93/:229` 与此一致。 |
+| B3 自然 emit / 退出码 / 宿主类 | **已解除（附条件 1、3）** | `:73-78` 拆为 natural（自 AUTHORIZE 起 7 个自然日，+08:00）与 coordinator one-shot（单次 CMD 起止）；`:88-99` 退出映射，Ban retry-to-green；`:101-105` 宿主类 = Linux-native box + `with-docker-session.sh`，≠ macOS Docker Desktop，不跨类混写。 |
+| B4 E-A 漏 `liveObservation` | **已解除** | `:80-86`：`isLiveImageDigestEntry===true`（`facts.mjs:149-155`，含 `liveObservation===true`）**且** `isValidLiveCaptureRecord`（`:126-137`，含 capturedAt ISO）**且** capturedAt 在本次 run 窗口内 **且** 机器写出 + HMAC 签名校验通过，Ban 手写。复核行号为真。 |
+| C1–C3 | 已落实 | `:110` 执行时钉 tip 行号；`:69` 收据定为 `2026-10-06-…`；`:118-119` E-A ≠ 关闭，live digest ≠ stack MET（`facts.mjs:62`）。 |
+
+**CONDITION**：`:116-118` backlog `:34` 保持 OPEN，E-A 本身不关，关闭须协调方裁定 + 独立双审；未自造关闭判据。✅
+**LOOP §3③（命令 + 期望 EXIT）**：`:60-65` 给出命令，`:88-97` 给出退出码归类。✅（E-A 路径的期望 emit EXIT 0 + receipt `proveExit=0` 未明写，见条件 1。）
+**云 / 注册表**：本残余只需本机 docker + 本地镜像，不涉买云；harness 未发明证据。✅
+
+### 2. 执行前须落实的条件（复核 emitter 源码时发现）
+
+1. **exit 8 不只表示缺密钥**：`emit.mjs:206` 是 `reason:'hmac-key-missing'`（→ E-C），但 `:226` 是签名失败 `signed.reason`（`attachEmitterHmac` 不 ok），同为 exit 8，应归 **E-B**（emitter / 校验失败），不是 env 阻塞。`:94` 的「exit 8 → E-C」须按 stderr 的 `reason` 字段拆开。另：退出映射漏了 **exit 5**（`:248`，`validateMachineEmittedReceipt` 未通过 → 应归 E-B）；exit 6 / 7 只出现在 reemit 分支（`:255` / `:270`），prove 模式不会出现，可注明。还有：prove 失败时 emitter 仍然 `process.exit(0)`（`:562`），所以「prove EXIT≠0 → E-B」（`:95`）必须读 receipt 里的 `exit` / `proveExit` 字段，不能看 emitter 退出码；E-A 路径须写明期望 = emitter EXIT 0 **且** receipt `proveExit=0` **且** §4.2 四条全过。
+2. **`--cmd` / `--targetSha` 仍是占位符**（`:62-63`）：执行前须钉死。若对应既有 PERF-LOAD 轨，应为 `--cmd=uc018:perf-load:prove`，targetSha 以 `PERF-LOAD.json:7` / `:11` 为参照（`b29c191`）或协调方指定的祖先 SHA，并在 AUTHORIZE 中写明。另：B2 的钉参只约束 coordinator one-shot；natural emit 是别人跑的，参数不受本刀控制——须写明：若 natural emit 覆盖了 `PERF-LOAD.json` 或写入共享树，则该次结果不得算 E-A，并如实登记。
+3. **共享 box 上的容器清理风险**：emitter 的 `finally` 会执行 `docker ps -aq --filter name=meetwise-e2e --filter name=meetwise-uc018 | xargs -r docker rm -f`（`emit.mjs:559`），会强删本机**所有** `meetwise-e2e*` 容器，包括其他 agent 同时在跑的隔离 prove。coordinator one-shot 须安排在没有其他隔离 prove 运行的时段（串行），并在收据中披露；若因此打断他线 prove，他线的 EXIT 1 属于环境原因，不得记为回归。
+4. 收据中如实记录宿主类、`with-docker-session` 首行、emitter / prove 各自的退出码与 reason；任何结果下 C-IMAGE-DIGEST 都保持 OPEN、UC-018 / §1.1 保持 partial。
+
+### 3. 洗白 / 越界
+
+未碰 C-PERF-TEARDOWN（Line AE）与修复刀 nail 历史（`04607c9`）；未碰 AL / AM / AG 文件；零 SSOT 编辑；`PERF-LOAD.json:28-29` 原值保留；pins 不变。
+
+### Pins（本审不改）
+
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCount=8 · gR45Closed=true · ms3EqualsR4Closed=false · public DELETE=503 · PG-retained（禁 MySQL runtime / Qdrant / MemorySaver）· UC-018 与 §1.1 仍 partial · C-IMAGE-DIGEST OPEN · PASS ≠ coding ≠ covered ≠ nail ≠ HA · EXIT0 ≠ covered。
+
+**结论**：B1–B4 全部解除，C1–C3 落实，CONDITION 保持 OPEN；第 2 节 1–4 为执行前须落实的条件（尤其是 exit 8 拆分与容器清理串行化）。PASS（附条件 1–4）。须 mw-e2e-ha 对 `92420a6` 独立结论并经协调方 AUTHORIZE（含密钥来源的单独授权）；不代签 peer。alone ≠ dual。
+
+Verdict: PASS
