@@ -132,3 +132,57 @@ NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true ·
 3. Pins 原值三文件零漂移 · `:60`/`:64`/`:68` cite-only · DELETE=503 实码在档；OB-E1 逃逸面措辞机检化（C-E2）· OB-E2 防空转正对照（C-E3）· OB-E3 实锚更正（C-E4）均非阻断；0 Blocker · 5 Conditions · alone≠dual 不代签 mw-privacy-int · 0 prove · 0 coding · 0 SSOT · 禁 push。
 
 **Verdict: PASS**
+
+---
+
+# POST-PROVE dual 审查段 — mw-e2e-ha（append-only · 2026-10-07 · evidence-honesty 焦点）
+
+**审查方**: `mw-e2e-ha`（独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-p1p-e2e-ha` · branch `rv/p1p-e2e-ha` @ `origin/feat/mysql-schema-skeleton`）· **被审对象**: PRIV01 EXEC commit **`35360448`**（full `35360448725895265c3c40540df3750642691ded`，parent `ad75d033`）· **被审 tip**: origin tip **`d186c543`**（`git merge-base --is-ancestor 35360448 d186c543` 亲证在链；fetch 本审 attempt HTTP2 framing layer 失败，如实记录，本地 ref 即 tip 零位移）· PRE 双审 `4eb1361`（privacy · 镜像 `9f399f55`）+ `64bf867`（本审 · 镜像 `c8bda3c4`）——本审为 POST-PROVE dual 之 mw-e2e-ha 席，不代签 peer `mw-privacy-int`（并行审在途 · alone ≠ dual）。
+**docs-only 机检亲证**: `git show --stat 35360448` = **恰 2 md**（slice +24/−? 合计 64+/24−：`gap-priv-01-tenant-rls.slice.md` · `harness/gap-priv-01-tenant-rls.md`）· 零产品码 / migration / script / package.json / receipt · 零 prove 执行 · **双审 stub 自 PRE `64bf867` 起零 diff 亲证**（`git diff 64bf867..d186c543 -- <stub>` 双侧皆空）→ 本审 PRE 段 append-only 前提成立 · **SSOT 四件**：backlog/checklist/matrix/queue 在 `64bf867..d186c543` 区间的 diff（INT01 nail `ad75d033` + SCOR exec `d186c543` 所为）经 grep 机检 **零 PRIV-01/tenant 命中**，`gap-bug-backlog.md:57` GAP-PRIV-01 行实读 byte 级原样、stays OPEN · Pins 行 harness/slice 双文件 `diff` PRE≡tip **零漂移** · 孪生 provenance 复算：`git patch-id --stable` 亲算 `786a1949` ≡ `f3a48a76` = **`9e70fd0105ae8cdda3a92e76fb4a43afd23ee45d` 两侧全等**——exec message 引用属实。本审 0 prove run · 0 coding · 0 SSOT edit · 禁 push。
+
+## C-E1…C-E5 逐条裁决（对被审 exec `35360448` 落字 · 全部本审亲证）
+
+| Condition | 裁决 | 核验证据（本审亲算） |
+|-----------|------|---------------------|
+| **C-E1**（D1 裁定落档） | **成立** | harness `:30` §0.1.1 新增逐字落档：裁定 **R-B 为 `:57` 原义重心** + 依据 1-5（M2 钉死短语 / 验收跨 owner 非 org / 拟切片指 M2 工件 / 反证实锚 `:280-281` / **两问判据写死于 #5**）+ 候选裁决（A 可 / B Ban / C 失败路径）+ **休眠逃生门**（推翻依据 1-4 方可触发 · 触发即显式改写收窄 · Ban 静默换范围 · Ban 借机加列）；slice One-line §EXEC 登记 + harness §8「D1 裁决」行同文三处。C-P1 同点。§0.1 原双读法并陈未被改写裁决冲销 |
+| **C-E2**（逃逸面断言机检化） | **成立** | harness `:84` 矩阵第 5 项改写落四要素：effective role **`current_user='app_role'`**（`SET LOCAL ROLE` 后实读）+ **`rolbypassrls=false`** + **`rolinherit=false`**（`pg_roles` 内省）+ **FORCE RLS 在位**（`relforcerowsecurity=true`）；**Ban「superuser 不绕 RLS」无条件宣称**（引用沿 `0001_baseline.sql:7` 原义——本审亲读 `:7`「连超级用户走 app_role 时也不绕过」确系条件式）；slice `:56` 同文 · §8 C-E2 行。原「表 owner/超级用户也不绕」含糊括注已消除 |
+| **C-E3**（防空转正对照） | **成立** | harness `:80` 矩阵第 1 项：**B 行播种存在性断言 + A 自读 ≥1 行正对照**，「无正对照的 0 行绿 = 空转绿 = FAIL 面」落字；harness `:82` 第 3 项：**B 行仍在场断言 + A 自行 UPDATE/DELETE 自有行 ≥1 行正对照**；slice `:56` 同文 · §8 C-E3 行。先例口径亲证：backlog `:60` GAP-PRIV-04 原文实含「擦除前正对照 hit≥1 防空转」——引用准确且「**不借其证据**」写死 |
+| **C-E4**（实锚更正落实） | **成立** | PRE 旧锚计数亲算：slice `:281-282`×3 + `:300-307`×1 · harness `:281-282`×5 + `:300-307`×1 → §8 登记「5+3 处 / 1+1 处」计数与 diff 数学吻合；tip 残留 grep `:281-282\|:300-307` 仅 §8 更正登记行自身（provenance 非引锚），**零陈旧引用残留**；实锚抽验亲读 tip 基线：`:280-281` 恰为「C 端定位…B 端租户共享题库…现在不过度设计」两行 · `:300-304` 恰为 vector_chunk ENABLE/FORCE/`CREATE POLICY p_owner`/USING/WITH CHECK 五行 · `:7`/`:63-82`（app_role NOLOGIN + DO 循环 USING/WITH CHECK 双侧）实码在位——**引锚与实码逐行吻合，零语义变更** |
+| **C-E5**（EXIT 十不得 + 边界冻结 + 授权根非 abandon + alone≠dual） | **成立** | harness `:90` EXIT0 十不得逐项清点 = **10**（≠covered/≠`:57` CLOSED 翻行/≠等价宣称/≠授权根已迁/≠MySQL 等价强制完成/≠HA/≠releaseEvidence/≠UC-052 flip/≠DELETE 开放/≠R-A 缺口消失）全保留；EXIT1 attempts 全录（Asia/Shanghai+SHA+log）+ Ban retry-to-green + PREREQ 缺→预期非零且记录 + Ban 换弱断言凑绿；`:60`/`:64`/`:68` cite-only、DELETE=503 复验同列入账、UC-052 partial、**`:57` OPEN prove 绿不自动关行**（§8 C-P5 行写死）；RLS 根 MUST NOT abandon 四处写死（§8 C-P4/C-E5 行 `0001:7`/`:63-82`/`:300-304` + `principal.ts:945-955`/`:566-608` + §2 非目标 + §5 Ban）；alone ≠ dual 六处在卷，§7 改写后仍「各自独立签 · alone ≠ dual」+ 新增 **Ban self-write `post_prove_dual_pass`**（收紧非弱化） |
+
+## 立卷完整性复验（POST 视角）
+
+- **候选 A 矩阵零弱化**：6 项（读 0 行 / INSERT 冒充 42501 / UPDATE·DELETE 0 行 / GUC 未设缺省 deny / 逃逸面机检 / 404 不可区分 + fence 410）+ 内省 3 项（`pg_policies` qual/with_check、`pg_class.relrowsecurity`+`relforcerowsecurity`、`pg_roles`）全保留——harness `:79`「断言不得弱化 C-P3」+ `:118`「矩阵 6 项 + 内省 3 项不得弱化」+ `visibility='global'` 单列 + Ban grep 代替，机检 4 hit 在位；**零弱化**。
+- **候选 B 默认 Ban 维持**：§2 候选 B「默认 Ban」+ §5 Ban 加列 + §0.1.1 候选裁决 + §8 行，四处原样；解禁条件（显式申报 + 重立卷 + 产品权威）未松动。
+- **RLS 根四处写死在位**：如 C-E5 行所列，exec 未触碰授权根叙事，`packages/db/src/tenant/` 不接线不删不改条款原样。
+- **携带口径**：privacy C-P1~C-P8 + e2e-ha C-E1~C-E5 全数随卷 §8 登记零弱化（派单与实发超集差异如实自曝注记）。
+
+## Fail-trigger audit（POST 段 · 触发即 FAIL · 逐项排查）
+
+1. exec 越界（产品码/prove 执行/SSOT 翻行）——**未触发**（恰 2 md 机检 + SSOT diff 零 PRIV-01 命中 + `:57` 行 byte 级原样）。
+2. 双审 stub 被触碰/self-write 翻状态——**未触发**（stub 零 diff 亲证；lifecycle 止于 `executed:awaiting_post_prove_dual`；`post_prove_dual_pass` 零 self-write，Ban 条款反而新增）。
+3. PRE 段被改写（append-only 破坏）——**未触发**（本审 PRE 段 `:56-134` 逐行在档，stub blob 自 `64bf867` 零 diff）。
+4. D1 裁决改写走样/逃生门误触发——**未触发**（§0.1.1 与本 PRE 裁定逐条对读一致，逃生门休眠写死）。
+5. C-E2/C-E3/C-E4 弱化落地——**未触发**（四要素/正对照/实锚计数全数落字，见裁决表）。
+6. 借 `:60`/`:64`/`:68` 证据——**未触发**（C-E3 仅借先例**口径**且「不借其证据」写死；`:60` 原文引用准确）。
+7. Pins 漂移——**未触发**（双文件 Pins 行 PRE≡tip diff 空）。
+8. provenance 虚报——**未触发**（patch-id `9e70fd01` 本审第三侧重算全等；祖先关系亲证）。
+
+## Blockers
+
+**Blockers: 0。**
+
+## Conditions（POST 阶段 · 违任一即本 PASS 撤销）
+
+- **C-E1…C-E5 全数随卷携带至 prove/nail 阶段零弱化**（上表裁决为落字面；prove 实跑授权后仍受 C-E2 四要素机检、C-E3 正对照前置、C-E4 实锚引法、C-E5 EXIT 契约约束——0 行断言无正对照绿 = FAIL 面）。
+- **C-POST-1**：本 PASS ≠ AUTHORIZE nail ≠ `post_prove_dual_pass` 翻状态——翻状态须 dual BOTH（mw-privacy-int 并行审 + 本审）+ 协调方 AUTHORIZE；implementer Ban self-write；本审不代签 peer。
+- **C-POST-2**：`:57` stays OPEN · DELETE=503 · UC-052 partial · Pins 原值 · `:60`/`:64`/`:68` cite-only 零借零洗——冻结至 nail 阶段，prove 绿不自动关行。
+- **C-POST-3**：本审 append-only——PRE 段 `:56-134` byte-intact 为本 PASS 组成部分，后续任何改写即撤销。
+
+## 中文三行摘要
+
+1. PRIV01 EXEC `35360448`（tip `d186c543` 祖先亲证）恰 2 md docs-only、双 stub 零 diff、SSOT 四件零 PRIV-01 沾动、Pins 零漂移、孪生 patch-id `9e70fd01` 本审第三侧重算全等——程序面全清。
+2. C-E1~C-E5 逐条对读裁决**全成立**：D1=R-B 落档 §0.1.1 逃生门休眠 · 逃逸面四要素（current_user+rolbypassrls+rolinherit+FORCE）机检化落字 · 0 行断言正对照前置沿 `:60` hit≥1 口径不借证据 · 实锚 `:280-281`/`:300-304` 与基线实码逐行吻合零残留 · EXIT 十不得+边界冻结+alone≠dual 在卷。
+3. 候选 A 矩阵 6+3 零弱化 · B 默认 Ban 四处维持 · RLS 根四处写死在位；0 Blocker · C-E1~C-E5 + C-POST-1~3 随卷 · alone≠dual 不代签并行审的 mw-privacy-int · 0 prove run · 0 coding · 0 SSOT · 禁 push。
+
+Verdict: PASS
