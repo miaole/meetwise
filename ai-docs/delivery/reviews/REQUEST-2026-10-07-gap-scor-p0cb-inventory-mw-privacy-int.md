@@ -110,3 +110,57 @@ docs-only 盘点立卷（零实现）四面（详见 peer stub Scope 与 harness
 3. Pins 原值零漂移（NOT_HA/false/false/true/8/false/PG-retained/503/:77 OPEN/:78 OPEN），UC-052 partial 与 backlog `:58-:64` 零借用，DELETE=503 freeze remains；C-I-1~7（grep 范围注记 + 两处 cite-only 引锚漂移归 nail 更正 + 前置门不弱化 + alone≠dual 不代签 peer mw-e2e-ha）；0 prove run · 0 coding · 0 SSOT · 禁 push。
 
 **Verdict: PASS**
+
+---
+
+## POST-PROVE dual review — `mw-privacy-int`（privacy/INT 前置焦点 · docs gate only）
+
+**审席**：`mw-privacy-int` · 独立 worktree `rv/scorp-privacy-int` @origin tip `d186c543` · **alone ≠ dual · 不代签 peer `mw-e2e-ha`**（其 POST 审并行独立 · 本席未见亦不引用）。
+**被审 tip**：origin tip exec `d186c543`（parent `35360448`）≡ 协调方包 exec `597e7289`（parent `f35e4b95`）——`git show|git patch-id --stable` 双侧亲算全等 **`7fbacea216f979f76e3fa32c39926578a80383f3`**（rebase 孪生 · 身份以 patch-id 为准）；本 worktree HEAD 即 `d186c543` · 全部机检亲算于此。
+**PRE 衔接**：本席 PRE `1c1b28d`≡主线 `cd908eff`（patch-id `339c9ed2…` 亲算全等）· 本 stub PRE 段 cd908eff↔tip `git diff` 空 = byte-intact append-only 亲证；被审 case 双件（harness+slice）在 PRE 审态镜像 `6b61b734`↔exec base `d186c543^` byte-identical 亲证——exec delta 即本审唯一增量、无第三方插手。
+**包完整性**：exec 恰 **2 md**（slice +6/−4 · harness +52/−12 · 合 +58/−16 · `--numstat` 亲算）· `diff-tree --name-status` 全集仅此两件 · **零产品码/零迁移/零 package.json/零 SSOT（backlog/matrix/checklist/queue/audit）/零 `reviews/`** 机检亲证 · 零 prove run · 零 coding · 未读 `.env*`。
+**provenance 亲算复核（§9 登记值逐项吻合）**：REQUEST `895f5ec8`≡`6b61b734` patch-id `28d2806a…` 全等 · e2e-ha PRE `0617a15`≡`8345f3c2` patch-id `d73298d3…` 全等 · 两 PRE PASS（`8345f3c2`+`cd908eff`）∈ 两个 exec 孪生祖先（`merge-base --is-ancestor` 双双 OK）· 零码移 `313e04a7..cd908eff` = 12 文件全 ai-docs、产品码路径 `--shortstat` 空（0 字节）。
+
+### C-I-1~C-I-7 逐条裁决（本席 PRE Conditions · POST 复验）
+
+| # | 裁决 | 证据（本席亲算 @tip） | 判 |
+|---|------|----------------------|----|
+| C-I-1 | grep 范围注记落实 | §2b#2 `git grep -il 'sharegrant\|share_grant' -- ':!ai-docs'` = **0** · 整树字面 8 文件全 ai-docs 语境（含本刀工件自身）；§2b#1 candidate_evaluation 族产品码 **0** hit（本席以未转义 ERE 交替独立重测同值；exec 转写命令中 `\|` 配 `-E` 属 cite 级微瑕 · 实质零影响）——「零实现」原判断成立且表述已按代码域校准落字 | ✅ 落实 |
+| C-I-2 | 两处 cite-only 引锚漂移处置如实 | (a) §4 已就位更正 `../north-star-hard-gates.md` + 实锚注记——`ai-docs/delivery/north-star-hard-gates.md` `ls` 亲证在 delivery 根（非 harness/ 内）· §9 登记「exec 落实」；(b) §2a#5 原文「15 文件」**保留未改**，§9 C-I-2(b) 行如实登记「privacy-int 实测：非 ai-docs **34** · apps/web 内 **9**」归 nail——本席复测 `git grep -il assessment_unavailable -- ':!ai-docs'`=34 / `-- apps/web`=9 逐字吻合，nail 义务 alive | ✅ 如实登记 |
+| C-I-3 | D1 逃生门写死保留 | §1-D1（`:43`）「逃生门写死于此 · Ban 静默换范围 · Ban 任何实现不因改写解禁」原文未动；§2c S-CB-1 依赖列「D1 若判…以未来 REQUEST 重立」原样；§9 D1 裁决记录（`:163`）+ C-I-3 行双处再确认「S-CB-1 验收证据面闭合前 `:78` 不得 flip」——privacy 附加写死零弱化 | ✅ 保留 |
+| C-I-4 | 前置门不弱化 · stays blocked | §2c S-SCOR-0「**全局硬前置**（未闭合前 S-SCOR-1+ 一律不得启动）」· §3 SCOR 硬前置行 · slice Hard dependency「INT-TRANSCRIPT-01 blocked」· pins（`:143`）全部原样零 diff；§9 C-I-4 行 + 「写死保留」段 reconfirm——**S-SCOR-0/INT-TRANSCRIPT-01 stays blocked**，立卷/exec ≠ 授权，SCOR-01…08 / S-SCOR-*/S-CB-* 零借道 | ✅ 不弱化 |
+| C-I-5 | alone ≠ dual · 零 self-write | 两文件 `post_prove_dual_pass` 逐处命中均属 Ban 行（「Ban self-write」「Ban open POST here」）或 W6 历史 cite（`:35`/`:113`）；本卷状态止步 `executed:awaiting_post_prove_dual` + STOP（awaiting POST dual）——POST flip 零自写，属收紧 | ✅ 成立 |
+| C-I-6 | append-only | exec delta 恰 harness+slice 2 md、`reviews/` 零触碰（name-status 全集亲证）；本 stub PRE 段 cd908eff↔tip 机检 0 diff byte-intact；本审延续 append-only 追加 | ✅ 成立 |
+| C-I-7 | named ≠ 授权 | §5「named · **本 REQUEST 零执行**」+「待建 · 不命名 · 不授权」+ EXIT 契约（attempts 全记录 · 诚实失败 · Ban retry-to-green · EXIT0≠已建≠已闭≠校准≠covered）零 diff；六 CMD（`package.json:98/:194/:273/:396-398`）named-not-run 原样 · 对未来切片经 §9「写死保留」(4) 持续生效 | ✅ 成立 |
+
+### privacy 三面衔接复验（立卷完整性 · 零弱化）
+
+(1) **S-SCOR-0 前置门**：原样写死且经 §9「写死保留」升格为未来 S-SCOR-*/S-CB-* REQUEST 四要件之一（缺一不可）——收紧；(2) **P0-CB-02 同意边界**：§2b#2「零实现/同意边界全开」原义保留（仅按代码域口径收紧表述并附本席 grep 为证），S-CB-2 隐私联动（撤回 worker resume 竞态）+ 第一顺位 mw-privacy-int 由「写死」升格「换审冻结（C-EH-5 · 不得降级/缺席/换默认）」入 §1b/§2c/§3 三处——收紧非弱化；(3) **冻结面继承**：W3 DELETE=503 freeze remains · PG-retained · B 端 `assessment_unavailable`/score=NULL 暂停保持 · 「SCOR 可比/B 端排序不得借隐私本地绿解锁」在 slice Hard pins + harness §3 双处原样；audit 文档零 diff（`:82-:85` 四条编号项实存 · C-EH-4 binding 口径吻合）。**三面零弱化。**
+
+### 观察（非阻断 · 如实登记）
+
+- §9「exec HEAD = `cd908eff`」为 line worktree 授权时点落位描述；实际两孪生 base 为 `f35e4b95`（包 `597e7289`）/`35360448`（origin tip `d186c543`）——承载性主张「两 PRE PASS ∈ exec base 祖先」对两孪生均亲证成立、孪生身份以 patch-id `7fbacea2` 为准，零实质影响，留协调方知悉（rebase 后 provenance 措辞 drift · cite 级）。
+- C-I-2(a) 本席 PRE 原判「归 nail/docs 侧更正（归协调方）」——exec 以 docs-side 就位更正并 §9 显式登记出处（C-EH-2/C-I-2(a)），更正内容经本席实锚亲证准确：属条件意图内履行，非越权（该文件本为 exec 所辖立卷工件 · cite-only 语境）。
+
+### Fail-trigger audit（若下述任一成立本审即 FAIL——本席逐项查无）
+
+self-write POST/`post_prove_dual_pass`（逐处命中均 Ban 行或历史 cite）· lifecycle 推进超出 docs 元行（产品码/迁移/package.json 0 diff 机检）· SSOT 被改写或 `:77`/`:78`/`:103` flip · S-SCOR-0/INT-01 前置被弱化或被宣称闭合 · D1 逃生门被拆除 · Pins 原值漂移 · DELETE=503 冻结被触碰 · 换审冻结缺席或降级 · C-I-1~7 处置与登记不符 · named prove 被执行或视为授权 · append-only 被破 · secrets/.env 读取——**机检全部 0 成立**。
+
+### Blockers
+
+**0。**
+
+### Conditions（POST · 随卷携带 · 不阻断）
+
+- **C-I-POST-1**：§9 C-I-2(b) nail 义务保持 alive——「15 文件」→ 非 ai-docs 34（apps/web 9）正文措辞更正归协调方 nail；C-EH-4「三条→4 条编号项」正文措辞统一同批归 nail（binding 口径已登记 · audit 文档零改写亲证）。
+- **C-I-POST-2**：S-CB-1 验收证据面闭合前 `:78` 不得 flip（C-I-3 重申）；若届时判 DB 反查绑定 ≠ 审计意义不可替代，收窄须显式入卷，Ban 静默换范围、Ban 任何实现因改写解禁。
+- **C-I-POST-3**：INT-TRANSCRIPT-01 stays blocked 直至授权闭合；本 POST PASS ≠ AUTHORIZE——SCOR-01…08 / S-SCOR-*/S-CB-* 零借道启动（C-I-4 重申）。
+- **C-I-POST-4**：本 PASS 仅为 mw-privacy-int 一票；POST dual 以 peer `mw-e2e-ha` 独立签为准（alone ≠ dual）；`post_prove_dual_pass` 归 POST 双审 + 协调方 nail 专属，Ban self-write 义务持续；commit 落本席独立 worktree，**Ban push**。
+
+### 中文三行摘要
+
+1. 被审 POST-PROVE dual：origin tip `d186c543`≡包 `597e7289`（patch-id `7fbacea2` 双侧亲算全等 · rebase 孪生），恰 2 md +58/−16 全 ai-docs、零产品码/零 SSOT/零 reviews/ 机检亲证；PRE 双 PASS 孪生链（`28d2806a`/`d73298d3`/`339c9ed2`）与祖先关系全数亲算吻合 §9 登记，exec delta 唯一、无第三方插手。
+2. 本席 C-I-1~7 逐条裁决全部成立：grep 代码域口径落实（产品码 0 hit · 整树 8 ai-docs 语境）、引锚漂移两处如实处置（hard-gates 实锚 delivery 根已就位更正 ·「15 文件」→34/9 留 nail 登记）、D1 逃生门与 S-SCOR-0 前置门写死保留（INT-01 stays blocked）、零 self-write、append-only byte-intact、named≠授权；privacy 三面衔接零弱化（S-CB-2 第一顺位升格冻结为收紧）。
+3. 0 Blocker · 4 Conditions（nail 义务 alive · `:78` 不 flip 重申 · 立卷/exec/POST PASS ≠ 授权 · alone≠dual 待 peer mw-e2e-ha）；`post_prove_dual_pass` 归 POST 双审 + 协调方；0 prove run · 0 coding · 0 SSOT · 禁 push。
+
+**Verdict: PASS**
