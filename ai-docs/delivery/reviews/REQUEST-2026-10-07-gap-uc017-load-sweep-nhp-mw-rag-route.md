@@ -119,3 +119,74 @@ Line Y · 下一 NHP = **NHP-017-LOAD-w-01**（UC-E2E-017 LOAD_worker 分面 · 
 3. 无 Blocker，PASS 附 Conditions C-1..C-7；PERF_api 盲保持、EXIT0≠covered、coveredCount=8 冻结、O1–O4 零改动、Ban 借刀改 `commerce.ts`；prove 待协调方授权 + mw-e2e-ha 独立签署（alone ≠ dual，不代签）。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual · NHP-017-LOAD-w-01 UC-017 LOAD sweep · mw-rag-route（coding `dd471a74` 补席 · alone ≠ dual · 不代签 peer mw-e2e-ha）
+
+**Reviewed base**: `a7638debcea649c5b75f17b28bdf091cebdd9fc2`（`origin/feat/mysql-schema-skeleton` tip · 本 turn `git fetch origin` 成功复核 · 已含 Y coding：`dd471a74` 与 `a7638deb` 之间恰 4 文件 diff 且全为 ai-docs（MOP-01 slice/harness/双审 REQUEST），**9 文件包 blob 逐一 `git rev-parse <commit>:<path>` 比对全 SAME**）· 审查独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-yp-rag-route`（branch `rv/yp-rag-route` · 本审写操作仅在此）
+**Scope**: POST-PROVE dual（rag-route 席）——包完整性 + 本方 C-1 裁决（settled cohort 路由 (a)）+ fresh re-run evidence of record + 本方 C-1..C-7 逐条条件裁决。peer mw-e2e-ha 的 POST-PROVE 审在并行，本审看不到也不需要看，**不代签**。
+**Author of coding**: mw-core `dd471a74`（parent `4804c3dc`）· PRE-EXEC 双审 binding：mw-e2e-ha `1db7199a` + mw-rag-route `85a5e945`（本 file 上段）。
+
+## 0. 包完整性（恰 9 文件 · 零产品码）
+
+- `git diff-tree -r dd471a74` 恰 **9 文件**：root `package.json`(+2)、`packages/db/package.json`(+1)、`scripts/run-e2e-isolated.mjs`(+9/−2 · isolatedCommand/isolatedReceiptSources/known-targets allowlist/migrate-list 四处注册)、新 proof `packages/db/test/uc-e2e-017-nhp-load.proof.ts`(+453)、receipts 5 文件（本 receipt + README + attempt-ledger + 2 JSON 镜像）。
+- **产品码零 diff**：9 文件中零 `packages/db/src`/`packages/db/migrations`/`apps` 触碰；`git diff 4804c3dc a7638deb -- packages/db/src apps packages/db/migrations` 为空；SSOT（coverage matrix / NHP matrix / e2e-scenarios / backlog / checklist）零触碰；老 proof O1–O4 与老 harness `uc-e2e-017-orphan-reservation.md` 零改动；`commerce.ts` 零触碰（Ban 借刀遵守）。
+- **造数路径真 `reserveEntitlement`（proof 实读）**：消费生命周期全经真产品路径——reserve（proof :158 PC / :190 orphans / :197 fresh / :237 settled）· confirm（:240）· renewReservationLease（:203）· releaseConsumption（:422）。唯一裸 INSERT = `seedBucket` 桶 provision 夹具（:74-77），头注释 :14 显式披露、沿 `uc-e2e-017-orphan-reservation.proof.ts:30` 先例逐款同构；孤儿化 = 仅孤儿行 `lease_expires_at` 时移（:221-223），账面字段零触碰。**Ban 裸 INSERT 绕账面遵守**。
+
+## 1. C-1 裁决（本审核心 · 裁决① 路由 (a) settled cohort）——**兑现成立**
+
+三要素逐一实证（产品码只读直读 + proof 实读 + 本审独立复跑）：
+
+| 要素 | 实证 | 结论 |
+|------|------|------|
+| outbox 行经真结算产生 | `commerce.ts:130-131` `confirmConsumption` 同事务 `INSERT … 'settlement_proposed'`（全仓唯一生产点）；proof S=10 真 `reserveEntitlement`→真 `confirmConsumption`（:234-243）后前置闸 `outbox pending === 10`（:244-248）——**0 outbox 行该闸即红，settlement 半边结构上不可能空壳绿** | ✓ 真产生 |
+| `settleOutbox` 被并发行使 | `commerce.ts:363` `settleOutbox`（`:370` `FOR UPDATE OF o SKIP LOCKED`）；`reconcile`（:384）:386 调用之 → proof Wave1 `runConcurrentReconcileWave`（:100-131）C=10 并发 worker × allOwners(含 settleOwner) 逐轮真实行使 SKIP LOCKED 争用 | ✓ 并发行使 |
+| ledger exactly-once 断言真实 | DB 机制实体：`migrations/0001_baseline.sql:146` `CONSTRAINT uq_settlement_consumption UNIQUE (consumption_id)` + `commerce.ts:377` `ON CONFLICT (consumption_id) DO NOTHING`；断言链（proof :329-345）ledger 行===distinct consumption_id===10 ∧ Σunits===10.0 ∧ Σworker settled===10 ∧ outbox pending===0∧relayed===10 ∧ ledger 集==settled cohort 集（set 等值）——若 settleOutbox 零行使则 ledger===0 即红、若双入则 rows≠distinct 即红，**非空壳绿** | ✓ 真实非空壳 |
+
+**Fail-trigger 未触发**：本审独立复跑证 prove 全程 outbox 有真实行（造数后 pending===10 → 全 relayed 10/10），「0 outbox 行而 settlement 半边记绿」未发生；路由 (a) 实质处置完成，(b) 无需。参数 **N=20×M=5(=100)·C=10·S=10·F=20** 冻结入 receipt（frozenParams 实读核对一致）。
+
+## 2. fresh re-run（evidence of record · 恰好一次 · 禁重试遵守）
+
+- **CMD**: `MW_GIT_SHA=a7638debcea649c5b75f17b28bdf091cebdd9fc2 env -u MODEL_API_KEY -u DASHSCOPE_API_KEY -u DASHSCOPE_COMPAT_BASE_URL pnpm uc017:nhp-load:prove`（worktree `rv/yp-rag-route` @ `a7638deb` · `pnpm install --frozen-lockfile` 后 tracked 树零改动）
+- **EXIT=0**（恰一次执行 · 零重试）· **45 PASS / 0 FAIL**
+- 隔离生效：fresh PG container `meetwise-e2e-72016-1791357810954` · nonce tripwire `assertIsolatedTestTarget` · migrations applied=140 · image `pgvector/pgvector:pg16` digest `7b822b0aac60…da199b90a` 本机同 digest 无 pull · 零 live 模型零 MODEL_API_KEY · R5-MARKED-RED / ISO_STACK NOTE 原文在位（隔离叙述 ≠ stack truth）
+- 关键行（本审 log 实录）：w1 `released=100 settled=10 backlog=0 wall=250ms` · w2 `released=0 settled=0 backlog=0` · `errors=0/840` · settled cohort `outbox pending === 10` · N1 六断言全 PASS · L4/N4 全 PASS
+- 收据：`.tmp/uc017-perf-load-receipts/uc017-nhp-load-attempt001.json`（落点正确 · gitSha=a7638deb · overall=PASS · backlogShape [(1,100,10),(2,0,0)]）· log 存 `.tmp/rv-rag-route/rv-rerun-nhp-load.log` + EXIT `.tmp/rv-rag-route/rv-rerun-exit.txt`。实现方两 attempt 收据维持 **pre-commit runs · not evidence of record** 口径。
+
+## 3. 断言抽查（N1 / L4 / C-3 等值区分力）
+
+- **N1**：无双放 = distinct swept===孤儿数 ∧ set 等值（:323）；无双退 = 负 `units_reserved` 行===0 ∧ Σ余留 reserved===fresh holdout 20.0（:324-328）；无重复入账 = ledger 行===distinct consumption_id===10（:329-334）——均计数/等值机检，违任一即红。✓
+- **L4（worker 侧表述）**：二次 C=10 并发 reconcile released 增量===0 ∧ settled 增量===0 ∧ ledger 仍===10 ∧ outbox pending===0∧relayed 不变（:389-393）；N4 逐 call 420 次（10 workers×21 owners×2 轮）`staleReleased===0 ∧ settled===0`（:396-397）。按 e2e C-5 措辞收 worker 侧幂等边界，**未宣 A2 用户重试面被本刀覆盖**（receipt §L4 自评如实）。✓
+- **C-3（等值断言非恒真 · 有区分力）**：`sweptSetEqualsOrphans`（:288-293）与 `ledgerSetEquals`（:343-345）均为 size+membership 双重比对——fresh 行被误扫或 ledger 混入外来 id 必红；全 45 断言 ===/计数/set 等值，无 ≤/≥/恒真；attempt#1→#2 断言集逐字相同（本审 blob 比对 SAME 佐证），Ban 改断言迁就遵守。✓
+
+## 4. 条件裁决（本方 PRE-EXEC C-1..C-7 逐条）
+
+| Condition | 裁决 | 依据 |
+|-----------|------|------|
+| **C-1**（裁决① settled cohort 路由） | **兑现（路由 (a)）** | §1 三要素全实证；outbox 全程有真实行；参数 N/M/C/S 冻结入 receipt；FAIL trigger 未触发。**残留**：harness `:63` 负载形状行（及 §L4/N1 形状句）仍为孤儿-only commissioned 形状、未随 (a) 增补 settled cohort 登记——登记实体在 proof 头注释 :15-17 + receipt §C-1 + 冻结参数，实质义务全清，残留为文档同步项 → 转 **C-RV-1**（非 Blocker 非改判） |
+| **C-2**（造数诚实） | **兑现** | §0 造数路径实证；唯一 fixture INSERT=桶 provision 沿 O1–O4 先例并披露；fresh lease 严格未来零触碰（N3 逐条断言） |
+| **C-3**（断言等值/计数） | **兑现** | §3 区分力抽查；无恒真；断言集两 attempt 逐字相同 |
+| **C-4**（EXIT0 不翻行） | **兑现** | SSOT 零触碰（diff-tree 空举证）· coveredCount=8 · 矩阵 :63 stays blind→case-only · PERF_api 显式 blind 不动 · proof/receipt/log 三处 Non-claims 原文在位 |
+| **C-5**（老 prove 零改动） | **兑现** | O1–O4 proof、老 harness、eval 文档零触碰（不在 9 文件、harness git log 末次=e47101e2） |
+| **C-6**（台账与卫生） | **兑现** | attempts 全录（含 attempt#1 收据落点接线缺陷诚实披露 + attempt#2=shipped code 主证；attempt#1 本已全绿无 green 追逐 · 路径常量修复零断言改动——本审独立复跑以 shipped 代码再证 EXIT=0+落点正确）；三层壳+nonce+migrations=140；零 secrets 入树入 receipt |
+| **C-7**（dual 完整 + tip 复核） | **本席侧兑现 · dual 半边留白** | 本 turn fetch 成功：origin tip=`a7638deb`=本审 base（复核成立）；PRE 双审 binding 在史（1db7199a + 85a5e945）；POST-PROVE peer mw-e2e-ha 在并行，**本审不代签**，dual 生效须其独立签署 + 协调方 AUTHORIZE |
+
+## 5. Blockers
+
+**无**（0 Blocker）。
+
+## 6. Conditions（本 POST-PROVE 段新增/持续）
+
+- **C-RV-1**（C-1 残留 · exec/nail 授权前置）：harness `gap-uc017-load-sweep-nhp.md` `:63` 负载形状行及 §L4/N1 形状句须增补 settled cohort 登记（S=10 真 reserve→confirm 投 `settlement_proposed` → C=10 并发行使 `settleOutbox` → ledger exactly-once 断言；参数冻结指向 receipt）——scoped 行级修订、零越面、按 house 规则 dual ack；不重开 prove。
+- **C-RV-2**（Pins/Non-claims 持续）：EXIT0 ≠ covered ≠ e2e:isolated suite green ≠ UC-E2E-017 行升格 ≠ PERF_api/PERF_web ≠ 生产容量 ≠ SLO ≠ HA；coveredCount=8 · releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · gR45Closed=true · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 持续；UC-017 §1.0.1/§1.0.2 措辞不动。
+- **C-RV-3**（alone ≠ dual）：本审仅 rag-route 席；不代签 mw-e2e-ha；PASS ≠ 授权 coding/prove/live/cutover/nail ≠ AUTHORIZE；dual 结论以双方独立 PASS + 协调方裁定为准。
+- **C-RV-4**（Ban 项持续）：`commerce.ts`/产品码零触碰（Ban 借刀）、老 proof O1–O4 零改动、Ban push、本审零 retry（re-run 恰一次）持续有效。
+
+## 中文三行摘要
+
+1. 包完整性成立：`dd471a74` 恰 9 文件、与 origin tip `a7638deb` 9 blob 全 SAME、零产品码零 SSOT 零老 proof 触碰、造数全经真 `reserveEntitlement`/`confirmConsumption` 等真路径（唯一裸 INSERT=桶 provision 夹具沿 O1–O4 先例并披露）。
+2. C-1 裁决=**兑现**：路由 (a) settled cohort 三要素（outbox 经 `commerce.ts:130` 真结算产生、`settleOutbox`（:363 SKIP LOCKED）经 `reconcile` :386 被 C=10 并发行使、ledger UNIQUE+ON CONFLICT exactly-once 断言真实非空壳）全实证，0-outbox 空壳绿 FAIL trigger 未触发；fresh re-run 恰一次 EXIT=0（45 PASS/0 FAIL · w1 100/10/backlog0 · errors 0/840）为本席 evidence of record。
+3. 唯一残留=harness `:63` 负载形状行未随 (a) 增补 settled cohort 登记（实体登记在 proof+receipt）→ C-RV-1 授权前置 scoped 修订；0 Blocker，本方 C-1..C-7 全数兑现（C-7 dual 半边不代签 peer mw-e2e-ha）；EXIT0≠covered≠suite green≠行升格，coveredCount=8 冻结，禁 push。
+
+Verdict: PASS
