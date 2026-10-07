@@ -130,3 +130,71 @@ Trio stays **OPEN**（EXIT 1/1/1 真实业务红）。`g7SuiteGreen=false`. `act
 3. docs-only 四文件机检全净（零产品码零 Key 物料零禁改路径），REQUEST 与 origin tip 为同父同树孪生如实登记 OB-MO-2；live ≤200 G7R 口径在案、Pins 九值三处全等零漂移、wrapper blob 13dbfc43 全等；0 Blocker · alone≠dual 仅 mw-model-op 半签。
 
 Verdict: PASS
+
+---
+
+# RE-PRE dual 审查段 — mw-model-op（append-only · 2026-10-08 · docs gate only · 复审 rewrite `c4ec760b`）
+
+**审查域**：model-op / 根因域（round-1 本席处方 C-MO-P1/P2 兑现核验 + B-FF-1/B-FF-2 修正复核 + 全文复验零弱化）。**边界**：RE-PRE dual · Ban prove · Ban coding · Ban live（本审零调用零 Key 加载零 DB 连接）· alone ≠ dual（本 verdict 仅为 mw-model-op 半签，不代签并行 peer mw-e2e-ha）· 禁 push。
+**被审对象**：rewrite commit `c4ec760b`（`line/ff-last-error` tip · `docs(e2e): REQUEST F-F last_error discriminator rewrite (re_pre_dual)` · 恰 4 md +187/−29 全 ai-docs 机检）。**本审独立 worktree** `/Users/miaole/Desktop/golucky/meetwise-rv-ffr-model-op` · branch `rv/ffr-model-op` · 基于 `line/ff-last-error@c4ec760b`。
+**append-only 基线**：本 stub 追加前 20510B · md5 `00ac5b3b60cc9f9573c07f099547b55f` · 末行 `Verdict: PASS`（round-1 段）；本段纯追加，前缀字节零改动。
+
+## A. 对象机检（全部本机可复现）
+
+- **A1 docs-only 全距**：`git diff --name-only 0b18169c c4ec760b` 恰 4 个全 `.md`（harness/slice/双 stub）· 非 md 机检 = 0 · 禁改路径（`.env*`/`package.json`/spec/SSOT）机检 = 0 · Key 物料（sk-*/Bearer/key=）rewrite diff 面 0 hit（唯一命中系本席 round-1 段内描述扫描 pattern 的字面文本）· 收据目录零入树 · `.tmp/` 在 `.gitignore:15`。
+- **A2 base 重钉孪生机检**：`git rev-parse 1dd1e630^{tree} 0b18169c^{tree}` = `b910a6da5d78029dbaede8ea91e1511563d6ba10` 双全等——round-1 REQUEST 与 rebase 落 tip 确系同父同树孪生，harness Base 注记与 OB-FF-1/OB-MO-2 provenance 继承属实；round-1 全部码面锚在 tip 树重核=同树重核。
+
+## B. C-MO-P1 兑现核验（本席核心 · 逐落点）
+
+| 处方要求 | 落点 | 机检 | 裁定 |
+|---|---|---|---|
+| §1.4 判读表新增 embedding 证伪分支行：`last_error`/`error_code` 现 embedding-build/embedding-query/rerank 签名 → 推翻 H0-alt-2 驳回、回协调方、Ban 扫入基建 catch-all、Ban 就地 reinterpret | harness §1.4 表行（:86） | 分支行逐字落文，签名三值 `qbank.embedding-build.v1`/`qbank.embedding-query.v1`/`qbank.rerank.v1` 与 registry operationId 逐字全等；锚 `model-operation-registry.ts:148/:153/:158`（三行 `wired: false` 亲读行号精确）+ `invoke.ts:317-318`（`!resolved.ok → return undefined`）全中 | ✅ 兑现 |
+| 配套负检查（防「未覆盖值域」兜底） | 四落点 | §1.4 行内括注「与 §5.2『未覆盖值域』兜底不同：此系显式证伪语义，非未覆盖」· §3.4 七字段加「embedding/rerank 签名显式负检查（四查询读数逐条核对无 `qbank.embedding-*`/`qbank.rerank` 签名，有则按 §1.4 证伪分支处置）」· §5.2 例外条款「不属『未覆盖值域』兜底…命中即按『推翻 H0-alt-2 驳回』处置并回协调方」· 输入事实行（:10）「可证伪性随卷（C-MO-P1）」交叉引用 | ✅ 兑现（兜底漏洞四面封口） |
+| 判读表其余行不被证伪分支污染（embed 命中不得误归 c 行） | §1.4 行序 | 证伪分支行独立于 c 行基建 catch-all 行，且显式 Ban 扫入 catch-all | ✅ 语义隔离成立 |
+
+**C-MO-P1 裁定：兑现。** round-1 处方全文（H 节）要求的三要素——显式证伪语义落判读表、EXEC 收据显式负检查、Ban 扫入 catch-all/Ban 就地 reinterpret——全部落文且锚精确。
+
+## C. C-MO-P2/OB-MO-1 兑现核验（红①措辞精确化）
+
+- **harness §1.1（:31）**：「**start job 未入队**：`POST /` 的 interview 壳行已创建，四道 fail-closed 409 门 `interview.service.ts:278-279/:284-285/:304-305/:323-324` 全部先于 `:337` `enqueueInterviewJob` 入队（round-1 OB-MO-1/C-MO-P2 措辞精确化：Ban 沿用『interview 从不创建』简写）」——四门 + 入队锚本树逐行亲读全中（binding_conflict :278-279 / legacy :284-285 / binding_unavailable :304-305 / legacy :323-324 / enqueue :337）；「interview 从不创建」旧措辞全树仅存于本 Ban 注记，零残留作主动断言。
+- **slice §范围2** + **harness footer（:145）**：同款精确措辞（「红①排除=**start job 未入队**（壳行存在、四道 409 门先于 :337 入队 · C-MO-P2 措辞）」）随卷。
+- **C-MO-P2 裁定：兑现。**
+
+## D. B-FF-1/B-FF-2 修正复核（DDL 实读 · e2e-ha 处方面但影响判读表读数面）
+
+| 项 | harness 落点 | DDL/码面实读机检 | 裁定 |
+|---|---|---|---|
+| B-FF-1 `created_at` | §1.2-A 白名单 + §1.3(1) 排序键 + C-HA-FF-1 语义注记 | `packages/db/sql/05_interview_jobs.sql:20` `created_at timestamptz NOT NULL DEFAULT now()`（:16 `last_error text`）· `0001_baseline.sql:266` 同款 · 全库 `ADD COLUMN updated_at` 宽松 grep 唯一命中 `app_setting@0003` · `0058:227` `updated_at` 目标 privacy_erasure_request · interview_job 面 updated_at 零痕迹（含 sql/ 全树） | ✅ 已修（SQL 列名错误消除） |
+| B-FF-2 `error_code` | §1.3(2) 列名 + C-HA-FF-2 值域注记 | `0037_ai_model_invocation_durable_claim.sql:14` `error_code text` · 无裸 `error` 列（0037/0088 全文 grep）· `0088:113` 约束 `^[A-Za-z0-9._:-]{1,120}$` 逐字 · 全库 RENAME 仅 0061 resume_quiz/resume_diagnosis · 后续 ALTER（0057 cost_scope_id/0085 logical_node_key_digest/0119 estimate_input_tokens）均不触 error 面 · 0037:36-37 系 RLS enable/force | ✅ 已修（承重结论成立，见 OB-MO-3 注记措辞） |
+
+## E. 全文复验（零弱化 · tip 重核）
+
+- **E1 判读表忠实性六候选覆盖复验（round-1 B 节全锚 tip 重核全中）**：resume-reference 门 `interview-consumer.ts:200-206` · start locator `:313-314` · invoke 内部态六锚 `invoke.ts:494/:524/:562/:601/:662/:683` · 基建 catch-all `:294-295`→`:370-381`（`:374-377` graph_fence_lost 走 requeue 不落 failed）· 配置面 `:176` · reaper `interview-jobs.ts:251`——全部逐行亲读精确；`markJobFailed` `error.slice(0,500)`（:214-217）+ 调用方 message 抽取（consumer `:159` `(error)?.message ?? 'err'`）链闭合；success-only trace 注记 `invoke.ts:348-352` 亲读在卷；`model-invocation.ts:139-155` succeeded/failed/unknown 三态齐。
+- **E2 删除行零弱化审计（−29 行逐条）**：`git diff 0b18169c c4ec760b` 删除行全部为处方面替换——SQL 两列名纠错（B-FF-1/B-FF-2）· 备选触发收紧（查询报错≠空读 C-HA-FF-3）· NULL 行三面全空判读加仪器错误前置门 · 窗口采样「必得数十至数百次」过强断言改「预期…以 sidecar 自身健康为前提，非必然性断言」（诚实性**增强**非弱化）· Base 重钉注记 · 生命周期措辞。round-1 PASS 的判读表/红①/Pins/预算/Key 卫生面零删改。
+- **E3 Pins/Retained 原值**：harness §4 表 + harness §Pins（:141）+ slice §Pins 三处逐值对表全等（haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503 · g7SuiteGreen=false · r1Closed=false · techRoleFailClosedOptOutG7Only=true · Disclosure-1 OPEN · trio OPEN · GAP P1 OPEN · actualSpendCny=null）——零漂移。
+- **E4 wrapper/withhold**：`git hash-object scripts/run-e2e-isolated.mjs` = `13dbfc43c744511644649ae310696a13ee2f20f7` 与 G7R 冻结钉全等；锚 `:2082`（runFullE2E）/`:2088`（stderr 丢弃）/`:2119`（probe 凭据面）/`:2296`/`:2298-2301`/`:2310`/`:2367` 逐行全中；registry `:63-71` 清面（competency-planning/question-generation `wired:true`）零触碰（docs-only 本身即零触碰）。
+- **E5 双 stub append-only 完整性**：mw-model-op stub 与本席 round-1 worktree `rv/ff-model-op@eccfebfd` 副本逐字节 diff = 仅 Status 行生命周期更新 + 新增 RE-PRE 注记行，round-1 PASS 段（含 Pins 表/A-I 节/三行摘要/`Verdict: PASS`）零删改；mw-e2e-ha stub 同面（round-1 FAIL 段原样保留、末行 `Verdict: FAIL` 为其 round-1 记录，重审权在其本席）。
+- **E6 处方面恰限**：rewrite 变更面 = B-FF-1/B-FF-2 + C-HA-FF-1~3 注记 + C-MO-P1/P2 + OB 继承 + 生命周期——无静默换范围（E2 删除行审计佐证）。
+
+## F. Blockers / Conditions / OB
+
+- **Blockers：0。**
+- **Conditions（round-1 C-MO-P1/P2）**：**均兑现**（B/C 节）——转为已结；EXEC 收据仍须按 §3.4 显式负检查执行（此为收据义务非本审未决条件）。
+- **OB-MO-3（非阻断 · §1.3(2) 注记枚举）**：「后续 ALTER 全局 grep 仅 RLS enable/force 无补列」字面枚举不完整——0037 后确有三条 `ALTER TABLE ai_model_invocation ADD COLUMN`（0057 cost_scope_id / 0085 logical_node_key_digest / 0119 estimate_input_tokens），均非 error 面；承重结论（列名=`error_code`、无 error 列、未被 RENAME）经独立机检成立不受影响。EXEC 收据引用本注记时以精确枚举为准。
+- **OB-MO-4（非阻断 · commit message 计数）**：commit message prose「恰 4 md +186/−26」与实际 diffstat +187/−29 有 ±出入（文件集「恰 4 md 全 ai-docs」机检正确，仅 prose 计数滑差）。
+- **OB-MO-5（非阻断 · §Pins STOP 措辞）**：harness §Pins 行 STOP 仍作「awaiting pre-dual…」未同步 re_pre 生命周期措辞（Status/授权链/footer 均已为 awaiting_re_pre_exec_dual）；门语义（双审 + 协调方 EXEC）不变且实际更严，零削弱。
+
+## G. Fail-trigger audit（F-MO-1~7 复审 · 全未触发）
+
+F-MO-1 判读表漏候选：未触发（E1 六候选+证伪分支全覆盖）· F-MO-2 红①论证不成立：未触发（C 节锚精确）· F-MO-3 锚点/blob 失真：未触发（E1/E4 全中）· F-MO-4 Pins 漂移/SSOT 翻转：未触发（E3 零漂移 · P1 OPEN 保持）· F-MO-5 live 超口径/Key 入树：未触发（≤200 在案 · 0 hit）· F-MO-6 违 Ban 碰清面：未触发（A1 docs-only）· F-MO-7 retry-to-green：未触发（备选触发唯一+红 EXIT 不冲销在案）。
+
+## H. 裁决边界（硬钉）
+
+本 PASS = RE-PRE docs gate only 之 mw-model-op 半签：仅判「rewrite 已兑现 round-1 双审处方面、文档面可进入协调方 EXEC 授权队列」，**≠ EXEC 授权 ≠ 甄别 run 结果预判 ≠ H0-alt-5 定谳 ≠ H0-alt-2 驳回终局（证伪分支在卷可推翻）≠ 修复 ≠ trio 翻绿 ≠ `g7SuiteGreen=true`**。alone ≠ dual：mw-e2e-ha RE-PRE verdict 非本席所签，本审不依赖不代签；dual 成立以双方 RE-PRE PASS 各自落卷为准。本审零 prove run 零 live 零 Key 值读取零 coding 零 SSOT edit。禁 push。本 PASS ≠ 上一轮 PASS 的延续——系对 `c4ec760b` 处方兑现与零弱化的独立再裁决。
+
+**中文三行摘要**：
+1. C-MO-P1 兑现：判读表新增 embedding 证伪分支行（registry :148/:153/:158 wired:false 三锚+invoke.ts:317-319 亲读精确），兜底漏洞四面封口（行内注记/§3.4 显式负检查/§5.2 例外/输入事实交叉引用）；C-MO-P2 兑现：红①「start job 未入队（壳行存在、四道 409 门 :278-:305 先于 :337）」三处落文，旧措辞仅存 Ban 注记，码面锚逐行全中。
+2. B-FF-1/B-FF-2 DDL 实读核验已修（05:20+0001:266 created_at、全库唯一 updated_at 补列仅 app_setting@0003；0037:14 error_code、0088:113 正则逐字、RENAME/ALTER 面 error 零沾）；全文复验零弱化——删除行 29 条全为处方面收紧或纠错，六候选锚 tip 重核全中，wrapper blob 13dbfc43 全等，Pins 三处全等，双 stub round-1 段逐字节保留。
+3. 0 Blocker · 三条非阻断 OB（§1.3(2) ALTER 枚举不完整/commit 计数滑差/§Pins STOP 措辞未同步）；alone≠dual 仅 mw-model-op 半签不代签 mw-e2e-ha；本 PASS ≠ EXEC 授权 ≠ trio 翻绿；本审 0 prove run 0 live 0 Key 值读取 0 coding 0 SSOT edit · 禁 push。
+
+Verdict: PASS
