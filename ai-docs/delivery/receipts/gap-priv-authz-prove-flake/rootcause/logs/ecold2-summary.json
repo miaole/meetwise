@@ -1,0 +1,107 @@
+{
+  "experiment": "ecold2-toctou",
+  "attempts": [
+    {
+      "id": "stop-1",
+      "inject": "stop",
+      "keep": false,
+      "container": "meetwise-e2e-62497-cold2-stop-1-1791381379639",
+      "port": 52827,
+      "preProbePassed": true,
+      "exit": 1,
+      "econnrefusedLine": "Error: connect ECONNREFUSED 127.0.0.1:52827",
+      "econnrefusedCodeLine": true,
+      "processExitLine": "PROCESS_EXIT=1",
+      "elifecycle": true,
+      "withheld": {
+        "state_bytes": 29,
+        "logs_bytes": 29
+      }
+    },
+    {
+      "id": "kill-1",
+      "inject": "kill",
+      "keep": false,
+      "container": "meetwise-e2e-62497-cold2-kill-1-1791381386783",
+      "port": 52863,
+      "preProbePassed": true,
+      "exit": 1,
+      "econnrefusedLine": "Error: connect ECONNREFUSED 127.0.0.1:52863",
+      "econnrefusedCodeLine": true,
+      "processExitLine": "PROCESS_EXIT=1",
+      "elifecycle": true,
+      "withheld": {
+        "state_bytes": 29,
+        "logs_bytes": 29
+      }
+    },
+    {
+      "id": "none-1",
+      "inject": "none",
+      "keep": false,
+      "container": "meetwise-e2e-62497-cold2-none-1-1791381391874",
+      "port": 52887,
+      "preProbePassed": true,
+      "exit": 0,
+      "econnrefusedLine": null,
+      "econnrefusedCodeLine": false,
+      "processExitLine": "PROCESS_EXIT=0",
+      "elifecycle": false,
+      "withheld": {
+        "state_bytes": 218,
+        "logs_bytes": 8714
+      }
+    },
+    {
+      "id": "none-2",
+      "inject": "none",
+      "keep": false,
+      "container": "meetwise-e2e-62497-cold2-none-2-1791381397463",
+      "port": 52943,
+      "preProbePassed": true,
+      "exit": 0,
+      "econnrefusedLine": null,
+      "econnrefusedCodeLine": false,
+      "processExitLine": "PROCESS_EXIT=0",
+      "elifecycle": false,
+      "withheld": {
+        "state_bytes": 217,
+        "logs_bytes": 8714
+      }
+    },
+    {
+      "id": "none-3",
+      "inject": "none",
+      "keep": false,
+      "container": "meetwise-e2e-62497-cold2-none-3-1791381402829",
+      "port": 52990,
+      "preProbePassed": true,
+      "exit": 0,
+      "econnrefusedLine": null,
+      "econnrefusedCodeLine": false,
+      "processExitLine": "PROCESS_EXIT=0",
+      "elifecycle": false,
+      "withheld": {
+        "state_bytes": 218,
+        "logs_bytes": 8714
+      }
+    },
+    {
+      "id": "stop-band-1",
+      "inject": "stop",
+      "keep": true,
+      "container": "meetwise-e2e-62497-cold2-stop-band-1-1791381408317",
+      "port": 53035,
+      "preProbePassed": true,
+      "exit": 1,
+      "econnrefusedLine": "Error: connect ECONNREFUSED 127.0.0.1:53035",
+      "econnrefusedCodeLine": true,
+      "processExitLine": "PROCESS_EXIT=1",
+      "elifecycle": true,
+      "withheld": {
+        "state_bytes": 223,
+        "logs_bytes": 8732
+      }
+    }
+  ]
+}

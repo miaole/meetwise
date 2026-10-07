@@ -1,0 +1,35 @@
+{
+  "experiment": "ewarm1-doublerun",
+  "container": "meetwise-e2e-64053-ewarm1-doublerun-1791381474567",
+  "runs": [
+    {
+      "run": 1,
+      "exit": 0,
+      "processExitLine": "PROCESS_EXIT=0",
+      "threePoint": {
+        "duplicateKeyLine": false,
+        "code23505Line": false,
+        "keyValueLine": false
+      },
+      "passCount": 51,
+      "failCount": 0
+    },
+    {
+      "run": 2,
+      "exit": 1,
+      "processExitLine": "PROCESS_EXIT=1",
+      "threePoint": {
+        "duplicateKeyLine": true,
+        "code23505Line": true,
+        "keyValueLine": true
+      },
+      "passCount": 1,
+      "failCount": 0,
+      "withheld": {
+        "state_bytes": 218,
+        "logs_bytes": 8776
+      }
+    }
+  ],
+  "port": 53199
+}

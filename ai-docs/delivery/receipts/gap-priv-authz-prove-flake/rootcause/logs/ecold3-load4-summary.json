@@ -1,0 +1,63 @@
+{
+  "experiment": "ecold3-load4",
+  "instances": 4,
+  "probesPerInstance": 100,
+  "intervalMs": 100,
+  "parallel": 4,
+  "image": "pgvector/pgvector:pg16",
+  "dockerServer": "29.1.3",
+  "totalProbes": 400,
+  "totalTcpRefusals": 0,
+  "totalSqlRefusals": 0,
+  "totalTimeouts": 0,
+  "perInstance": [
+    {
+      "idx": 0,
+      "container": "meetwise-e2e-64642-ecold3-load4-0-1791381521964",
+      "port": 53378,
+      "bootMs": 559,
+      "refusals": 0,
+      "sqlRefusals": 0,
+      "timeouts": 0,
+      "others": 0,
+      "firstTcpOkMs": 3,
+      "firstSqlOkMs": 1227
+    },
+    {
+      "idx": 1,
+      "container": "meetwise-e2e-64642-ecold3-load4-1-1791381521967",
+      "port": 53395,
+      "bootMs": 920,
+      "refusals": 0,
+      "sqlRefusals": 0,
+      "timeouts": 0,
+      "others": 0,
+      "firstTcpOkMs": 2,
+      "firstSqlOkMs": 826
+    },
+    {
+      "idx": 2,
+      "container": "meetwise-e2e-64642-ecold3-load4-2-1791381521968",
+      "port": 53387,
+      "bootMs": 754,
+      "refusals": 0,
+      "sqlRefusals": 0,
+      "timeouts": 0,
+      "others": 0,
+      "firstTcpOkMs": 1,
+      "firstSqlOkMs": 1022
+    },
+    {
+      "idx": 3,
+      "container": "meetwise-e2e-64642-ecold3-load4-3-1791381521969",
+      "port": 53382,
+      "bootMs": 646,
+      "refusals": 0,
+      "sqlRefusals": 0,
+      "timeouts": 0,
+      "others": 0,
+      "firstTcpOkMs": 1,
+      "firstSqlOkMs": 1126
+    }
+  ]
+}
