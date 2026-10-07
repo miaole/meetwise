@@ -60,7 +60,7 @@
 
 ## 负载合同（L1–L5 + NEG 硬闸 N1–N4 + PC · G7）
 
-**负载形状（登记）**：isolated 真 PG（migrations 齐跑）· **诚实造数**：经真产品路径 `reserveEntitlement` 预占后置 `lease_expires_at` 过期（**Ban 裸 INSERT 绕过 CAS/bucket 账面**——造数必须保持账面自洽，否则 sweep 释放路径未被真实行使）；形状 N owners × M orphans（拟 N=20 × M=5 = 100 · 参数冻结入 receipt）+ C 并发 reconcile workers（拟 C=10）+ 新鲜（未过期）对照组。收据 `.tmp/uc017-perf-load-receipts/` + tracked `ai-docs/delivery/receipts/uc017-perf-load/`（**implementer pre-commit runs · not evidence of record** · 沿 UC-018 PERF/LOAD 先例措辞）。
+**负载形状（登记）**：isolated 真 PG（migrations 齐跑）· **诚实造数**：经真产品路径 `reserveEntitlement` 预占后置 `lease_expires_at` 过期（**Ban 裸 INSERT 绕过 CAS/bucket 账面**——造数必须保持账面自洽，否则 sweep 释放路径未被真实行使）；形状 N owners × M orphans（拟 N=20 × M=5 = 100 · 参数冻结入 receipt）+ C 并发 reconcile workers（拟 C=10）+ 新鲜（未过期）对照组。收据 `.tmp/uc017-perf-load-receipts/` + tracked `ai-docs/delivery/receipts/uc017-perf-load/`（**implementer pre-commit runs · not evidence of record** · 沿 UC-018 PERF/LOAD 先例措辞）。**settled cohort 登记（C-RV-1）**：prove 含 settled cohort（S=10 经真结算产生 outbox 行）+ C=10 并发行使 `settleOutbox`，settlement 半边非空壳。
 
 | id | 列 | 负载/注入 | 期望观察（结构） |
 |----|----|-----------|------------------|
