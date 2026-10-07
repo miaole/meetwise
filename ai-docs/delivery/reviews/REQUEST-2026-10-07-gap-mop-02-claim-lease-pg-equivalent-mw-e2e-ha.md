@@ -115,3 +115,70 @@ Ban coding · Ban prove 执行 · Ban live · **Ban Redis 顶替实现**（`SET 
 3. 0 Blocker；C-E2E-1 落位 patch-id 重验（`f100ee66…` 两副本等同）· C-E2E-2 alone≠dual 不代签 peer mw-model-op · C-E2E-3 未来切片须六门+§2b+MOP01 切流包+四专家审 · C-E2E-5 EXIT 契约；本 PASS ≠ 编码 ≠ prove ≠ 选型 ≠ cutover ≠ `:75` closed ≠ HA。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual review — `mw-e2e-ha`（append-only · 2026-10-07 · 被审 exec `f6e16117`）
+
+**Reviewer**: `mw-e2e-ha`（独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-mop02p-e2e-ha` · branch `rv/mop02p-e2e-ha` @ `origin/feat/mysql-schema-skeleton` = `972c6c2f`）。**被审 tip = exec `f6e16117`**（`line/mop02-claim-lease` · parent=`1b85b58a` 即本审 PRE PASS commit）。本审证据全部独立复测（worktree 内 git/代码/SSOT 实读 + patch-id 第三次独立重算），不读不引 peer `mw-model-op` 任何结论；**alone ≠ dual，本 Verdict 仅一票，不代签 peer，不构成 dual 生效**。仅 append 本段，上方 PRE 段零触碰（append-only 自证：`git diff` 应仅显示本段追加）。
+
+## 0. 拓扑实证（诚实登记 · F-1 非阻断观察）
+
+- **祖先链亲证**：`f6e16117` parent=`1b85b58a`（`git show --format='%P'` 实测）；`1b85b58a`（mw-e2e-ha PRE）与 `bab29111`（mw-model-op PRE）均 ∈ `1b85b58a` 祖先=exec base 祖先（`merge-base --is-ancestor` 双 YES）——harness §9「两 PRE PASS 均 ∈ exec base 祖先亲证」属实。REQUEST 两副本 `93e0ffaf`（line 原本 · parent=`2fd78ea1`）≡ `f8d9f615`（origin 镜像 ∈ `1b85b58a` 与 `972c6c2f` 祖先双证）——本审第三次独立重算 `git show | git patch-id --stable` 两侧全等 **`f100ee66e5ed86d04a8d32585c233fce85b2a055`**。
+- **F-1（非阻断）**：`f6e16117` **不是** origin tip `972c6c2f` 的祖先（`merge-base --is-ancestor` = NO）；`972c6c2f` 经 GAP-PRIV-04 两连（`b5dd9aa3`/`972c6c2f`，零触碰 mop-02 文件）从 `1b85b58a` 续链，故 **origin tip 内容口径尚未含 exec 的 mop-02 md 变更**（tip 处 harness/slice 仍 draft-era · `git diff f6e16117 972c6c2f -- '*mop-02*'` = exec 全量反向实测）。与包内申报**无矛盾**：harness §9/slice 自钉「exec 落 tip `1b85b58a`」在其 AUTHORIZE 时点准确；落共享链 + SSOT 登记属协调方 nail 阶段（§9 明示 Ban open POST here）。任务简报「origin tip `972c6c2f` 已含 MOP02 exec」按内容口径不成立、按「exec 已存在并落其时点 tip」口径成立——如实登记，不构成 exec 包瑕疵。
+
+## 1. 包完整性机检（命令+EXIT 可复现）
+
+| # | 项 | 实测 | 判 |
+|---|----|------|----|
+| 1 | exec delta 恰 2 md | `git diff --name-only 1b85b58a f6e16117` = 恰 `harness/gap-mop-02-claim-lease-pg-equivalent.md` + `gap-mop-02-claim-lease-pg-equivalent.slice.md`（+57/-26） | OK |
+| 2 | 零产品码/零 SSOT/零 package.json | 同上 delta 对 backlog/matrix/checklist/queue/package.json/src/apps/packages/scripts/migrations grep = 空；`2fd78ea1..1b85b58a` 16 文件全 `ai-docs/` + 代码面 `--stat` = **0 字节**（复证 §9 申报） | OK |
+| 3 | PRE 段 author 保留 | 本文件 PRE 段（`1b85b58a` · author `mw-e2e-ha <mw-e2e-ha@meetwise.local>`）在 tip 逐字保留；exec delta 零触碰 reviews/ | OK |
+| 4 | 零 prove 跑/新增 | exec delta 无 package.json/脚本/receipt；八条 named CMD 在 tip 实存（§4#3）；零 receipt 新增 | OK |
+
+## 2. C-E2E-1~5 逐条裁决（POST）
+
+| Condition | 裁决 | 实测证据 |
+|---|---|---|
+| **C-E2E-1** 落位 + patch-id 重验 | **成立（exec 已落实）** | exec HEAD=`1b85b58a`=本审 PRE commit（parent 亲证）；patch-id `f100ee66…` 第三次独立重算两侧全等；`2fd78ea1..1b85b58a` 16 md/0 字节码移复证——§2a 全部代码锚在新 base 继续有效（exec §9 申报属实） |
+| **C-E2E-2** alone ≠ dual | **成立（持续绑定）** | exec 全文 grep `post_prove_dual_pass` 仅 3 处且全为 Ban/awaiting 语境（Status/铁律/Review stubs 尾注），**零 self-write**；lifecycle = `executed:awaiting_post_prove_dual` 准确；本审仅一票不代签 peer |
+| **C-E2E-3** 四重门写死保留 | **成立（exec 落实并写死）** | §9 `C-MO-3/C-E2E-3 · 写死保留`：未来切片须**同时**(1) MOP03 六门（`e29d8f93` 不松动）(2) §2b 内容清单（含 #2 选型前置显式化·禁引 draft 主候选）(3) MOP01 切流包（涉 wakeup 联动时）(4) BUG-REV-COND 四专家审（禁自批）——「缺一不可」「≠ 预授」逐字在位；门 5/6 写死引用未升级未放宽 |
+| **C-E2E-4** OB 落实 | **成立（全项核销 · 见 §3）** | OB-1/OB-H1、OB-H2、OB-H3、OB-H4、OB-2/OB-D2 五项全部 docs-side 落实，行号刷新本审双点抽验/全验零错 |
+| **C-E2E-5** EXIT 契约 | **成立（持续绑定）** | §5 原样（exec 零触碰该节）：named proves 零执行 + attempts 全记录（序号/时间窗/code SHA/EXIT）+ 诚实失败路径 + Ban retry-to-green（`:68` 先例）+ EXIT0≠已实现≠已选型≠cutover≠`:75` closed≠MODEL-OP closed≠SLO≠HA≠suite≠covered |
+
+## 3. C-E2E-4 OB 落实清单逐项核（行号刷新独立复测）
+
+| OB | exec 落实 | 本审复测（base=`2fd78ea1` · tip=`1b85b58a`≡`972c6c2f` 该两文件全等，diff 为空亲证） | 判 |
+|----|----------|------|----|
+| OB-1/OB-H1 表头 `:66`→`:55` | §0 更正 + 「现状」命名强化 D1 注 | `:55`@base 与 @tip 均 = `| ID | P0/P1 | 现状 | 目标 | 归属域 | 拟切片 | 所需 harness 路径 |`；`:66`@两点均 = GAP-UC052-POOL-ROLE-LEAK（旧引确误）——双点同位申报属实 | OK |
+| OB-H2 GAP-SCH-01 `:78`→`:80` | §4 更正（`:78` 实为 GAP-PROD-02） | `:78`=GAP-PROD-02 · `:80`=GAP-SCH-01（STOPPED/superseded 原文）@base 与 @tip 同位 | OK |
+| OB-H3 `:95`/`:96`→`:97`/`:98` | §1-D4/§2b#3/§3/§4×2/§7×2/Non-claims 六处刷新 + 行 ID 锚定 | @base `:95`=BUG-NOTIFY-REC/`:96`=BUG-REV-COND；@tip `:97`/`:98`（+2 行=BUG-FAKE-QBANK-EVAL/BUG-FAKE-CONN 插入，与 MOP01 nail append 申报吻合）；`:55`/`:68`/`:74`/`:75`/`:76` @tip 无位移；checklist `:1134` 六门合同 base/tip 逐字同位 | OK |
+| OB-H4 `:5`→`:6` + `0050:401` 移列 | §2a#5 锚更正 · §2a#4 移列 | `usage-calibration-reconcile.ts:6` 实读 = 「batch = 小时桶，同小时重跑幂等」（`:5` 同 doc-comment 块 ±1 申报属实）；`0050:401` 实读 = `FOR UPDATE SKIP LOCKED LIMIT 1`（Q2 族非 advisory · 移列正确）；`:329`/`:332`/`:343` 实读 = `pg_advisory_xact_lock` 三处——advisory 主张由余锚独立支撑，结论不变 | OK |
+| OB-2/OB-D2 禁引 draft 主候选 | §2b#2 落字 | 「禁引 `m3-queue-wakeup-selection.md` draft『主候选』（Q2 `:76`/Q3 `:88`）充当选型终局」+ 状态行 `:10` selection draft + superseded 前提——与 PRE OB-D2 精确化一致 | OK |
+
+## 4. 立卷完整性（零弱化审计 · e2e/HA 焦点）
+
+1. **盘点/切片定义零弱化**：exec 对 §2a 仅锚精度更正（OB-H4）、对 §2b 仅加强 Ban（OB-D2 禁引 draft）；§0 表行 1-3/6、§2a#1-3/#6、§2c、§5、§6 零触碰（diff hunk 面核）；「dual reconciler 无显式租约」诚实边界、「wakeup=hint/claim=真相」边界句、cloud-test-serial 测试基建标注全部原样。
+2. **named proves named-not-run**：八条 CMD tip 实存 = `package.json:81` runtime:claim-join:prove / `:107` commerce:prove / `:144` uc002:lease:prove / `:196` model-invocation-reconcile:prove / `:200` model-op00-usage-reconciler:prove / `:211` report:prove / `:381` quiz-dual-claim:prove / `:476` mysql:migrate:local——零跑零新增零 receipt；待建三项持续不命名不授权。
+3. **Ban 假绿/HA 叙事持续**：pins 原值全 held（harness §6 + slice Pins 双面实测）——haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · PG LISTEN retained · actualSpendCny=null · `:75` OPEN；Ban Redis 顶替/Ban MySQL claim 顶替/Ban MODEL-OP closed/Ban 重复立卷/Ban SSOT edit/Ban push 全部原样或加强；draft-era 状态以 historical blockquote 保留（无洗史）。
+4. **POST Fail-trigger audit（0 hit）**：FT-10 delta 非 docs（0 hit·§1#1/#2）· FT-11 lifecycle 越位/self-write POST pass（0 hit·C-E2E-2）· FT-12 OB 落实走样/行号刷新错（0 hit·§3 全验）· FT-13 盘点弱化/Ban 抽条（0 hit·§4#1/#3）· FT-14 prove 偷跑/伪造 receipt（0 hit·§4#2）。
+
+## 5. Blockers
+
+**0 Blocker。**
+
+## 6. Conditions（POST · 持续绑定至协调方 nail）
+
+- **CP-E2E-1（落链保真）**：协调方将 `f6e16117` 落共享链/nail 时须保内容零改（patch-id 不变）；SSOT 登记 = nail 阶段专属，本审不代行不预授；落链后 `:55`/`:80`/`:97`/`:98` 等行号引用以行 ID 锚定为准（沿 OB-H3 口径）。
+- **CP-E2E-2（alone ≠ dual）**：本 Verdict 仅 `mw-e2e-ha` 一票；dual 生效须 peer `mw-model-op` POST 段各自独立 PASS（本审零读零引其证据）；dual + 协调方 nail 前 `post_prove_dual_pass` 持续 Ban。
+- **CP-E2E-3（四重门持续绑定）**：未来任何 claim/lease 实现/切流 REQUEST 须同时满足 §9 四门（六门 + §2b + MOP01 切流包 + 四专家审）；本 POST PASS ≠ 任一门预授。
+- **CP-E2E-4（EXIT 契约持续）**：未来授权后任何 prove 按 §5 预声明执行——attempts 全记录 · 诚实失败 · Ban retry-to-green · EXIT0≠实现≠选型≠cutover≠closed≠HA；named proves 持续 named-not-run（零新增零洗白）。
+- **CP-E2E-5（pins 冻结）**：§4#3 全部 pins 原值零漂移至 nail；`actualSpendCny=null` 两本账分离；`:75` stays OPEN。
+
+## 7. 摘要（3 行中文）
+
+1. POST-PROVE dual 独立复测 exec `f6e16117`（parent=`1b85b58a` 本审 PRE commit ∈ origin 链）：恰 2 md +57/-26 零产品码零 SSOT 零 package.json、16 文件/0 字节码移复证、PRE 段 author 原样——包完整性全过。
+2. C-E2E-1~5 逐条成立：patch-id `f100ee66…` 第三次重算两侧全等、`post_prove_dual_pass` 零 self-write（仅 Ban 语境）、§9 四重门写死「缺一不可≠预授」、OB 五项全核销（`:55`/`:80` 双点同位、`:97`/`:98` tip 漂移与 MOP01 nail +2 行吻合、`usage-calibration:6` 与 `0050:401` SKIP LOCKED 实读移列正确）、§5 EXIT 契约原样八条 CMD named-not-run；盘点/切片定义/诚实登记零弱化，pins 原值零漂移。
+3. 0 Blocker；F-1 非阻断如实登记：origin tip `972c6c2f`（GAP-PRIV-04 并发续链）内容口径尚未含 exec 的 mop-02 变更，落链+SSOT 登记属协调方 nail 阶段（CP-E2E-1 落链保真）；alone≠dual 本 PASS 仅一票不代签 mw-model-op；本 PASS ≠ 编码 ≠ prove ≠ 选型 ≠ cutover ≠ `:75` closed ≠ HA。
+
+Verdict: PASS
