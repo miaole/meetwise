@@ -338,6 +338,8 @@
     "ctx06-deletion-closure:prove:raw": "pnpm -C packages/db prove:ctx06-deletion-closure",
     "memory-vector-chunk-erasure:prove": "node scripts/run-e2e-isolated.mjs memory-vector-chunk-erasure:prove:raw",
     "memory-vector-chunk-erasure:prove:raw": "pnpm -C packages/db prove:memory-vector-chunk-erasure",
+    "vector-plane-erasure:prove": "node scripts/run-e2e-isolated.mjs vector-plane-erasure:prove:raw",
+    "vector-plane-erasure:prove:raw": "pnpm -C packages/db prove:vector-plane-erasure",
     "privacy-erasure-preview:prove": "node scripts/run-e2e-isolated.mjs privacy-erasure-preview:prove:raw",
     "privacy-erasure-preview:prove:raw": "pnpm -C packages/db prove:privacy-erasure-preview",
     "int-transcript-preview-submit:http:prove": "node scripts/run-e2e-isolated.mjs int-transcript-preview-submit:http:prove:raw",
