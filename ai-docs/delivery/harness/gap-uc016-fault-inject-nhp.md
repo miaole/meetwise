@@ -78,10 +78,10 @@
 | **F2** | **FAULT**（E1 主证 · diagnosis） | `resume-diagnosis.generate` 脚本抛错 | 同族：`diagnosis_job` failed + `resume_diagnosis` failed + `diagnosis_unavailable`（`diagnosis-consumer.ts:55`）+ 退预留 → 净 0 |
 | **F3** | **FAULT**（E3 · schema） | scripted 返回 `ok:true` + **非法 JSON 外形**（schema 外） | `invoke` 双校验第一层拒绝 → **确定性拒绝收敛**（job failed · attempts 有界 · **不无限重试**）· 可解释 `last_error`；transient/deterministic 分类按 `invoke`/`failover-model` **既有语义只读行使**（Ban 改分类器 · 分类断言按实际行为落 receipt · 若确定性拒绝误入无限 requeue = EXIT1） |
 | **F4** | **FAULT**（A1/A2 · 重试后可成功 · D1 映射） | F1/F2 失败后**重建**新 quiz/diagnosis（成功 scripted 模型） | 新实例 `ready`（重试后可成功）；旧失败对象**停在 failed 不复活**（终态稳定 · 二次 drain 不改写） |
-| **F5** | **FAULT**（无悬挂消费） | 全注入面收尾审计 | 无 stuck `running` 残留（`sweepStuckQuizJobs`/`sweepStuckDiagnosisJobs` 后 requeue/终结二态与 `reaper.proof` ②③ 边界一致）· 二次 reap 幂等 0 增量 · 每个 failed job 恰一条 `*_unavailable` 终态事件 |
+| **F5** | **FAULT**（无悬挂消费） | 全注入面收尾审计 | 无 stuck `running` 残留（`sweepStuckQuizJobs`/`sweepStuckDiagnosisJobs` 后 requeue/终结二态与 `reaper.proof` ②③ 边界一致）· 二次 reap 幂等 0 增量 · 每个 failed 且对象**非 ready** 的注入面 job 恰一条 `*_unavailable` 终态事件（fail-closed 键面：alreadySettled 晚到失败对象已结算 ready、故意无终态事件系产品既有语义 → 不在逐 job 断言面内 · Ban 藉本键面把已 ready 倒退合法化——N3 仍守） |
 | **F6** | **FAULT**（收据） | 全程记录 | attempts/EXIT/逐 case 断言计数/冻结参数落 receipt；**≠ 线上 SLO · ≠ 容量 · ≠ HA** |
 | **N1** | **NEG**（G7 硬闸 · 钱 · spec A3） | 额度账全程审计 | **全程额度不变（净 0）**：reserve→failed→release 精确回补；**无双重退款**；已结算（ready）对象被注入晚到失败 → **不重复退、不发假终态**（`reaper.proof` ⑥ 语义负向行使）；违者 EXIT1 |
-| **N2** | **NEG**（G7 硬闸 · 死胡同） | 逐 failed job 检查 | 任一 failed 无 `quiz_unavailable`/`diagnosis_unavailable` 终态事件 = **EXIT1**（产品「无静默死胡同」条款反向行使 · Ban 沉默失败） |
+| **N2** | **NEG**（G7 硬闸 · 死胡同） | 逐 failed 且对象**非 ready** 的注入面 job 检查 | 任一 failed 且对象非 ready 无 `quiz_unavailable`/`diagnosis_unavailable` 终态事件 = **EXIT1**（产品「无静默死胡同」条款反向行使 · Ban 沉默失败 · fail-closed 键面：alreadySettled 晚到失败对象已结算 ready、故意无终态事件 → 不在本闸计数面，由 N1 负向断言「不重复退、不发假终态」与 N3 ready 不倒退兜底） |
 | **N3** | **NEG**（G7 硬闸 · 倒退） | 已 ready 对照组 + 晚到失败注入 | 已 ready 押题/诊断**不得被失败路径倒退**（CAS `status NOT IN ('ready')` 负向行使 · `quiz-consumer.ts:71` 注释「非 ready 才退,不倒退已交付」自证条款）；倒退即 EXIT1 |
 | **N4** | **NEG**（G7 硬闸 · 无限重试） | F3 收敛复核 | E3 确定性拒绝必须收敛（attempts 有界断言 · attempts 计数从 DB 读）；Ban 用超时/异常冒充分类；死循环/无界 requeue = EXIT1 |
 
