@@ -114,3 +114,84 @@ Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执
 3. alone≠dual：本 PASS 不代签 mw-e2e-ha、不构成 AUTHORIZE；target 集未钉不开工，EXIT0≠covered≠`:60` closed≠HA，DELETE=503 与 cloudVendorDeleted=false 沿 AR 口径持续，0 Blocker · 6 Conditions。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual 审查段（Line PRIV4 · GAP-PRIV-04 向量面擦除实现复验）
+
+- 审查方：`mw-privacy-int`（独立 POST-PROVE dual 本侧；alone≠dual，不代签、不阅读、不评判并行中的 `mw-e2e-ha` 审）。
+- 审查基点：独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-p4p-privacy-int`（分支 `rv/p4p-privacy-int` = `origin/feat/mysql-schema-skeleton` tip `972c6c2f` 亲证）。审查时间 2026-10-07。
+- 被审包：coding 链 `fb1885a5`（0141 迁移 + `vector-plane-erasure` 模块 + worker 接线 + prove/CMD 注册，9 files +650/−4 亲证恰等）→ `90e4de7e`（prove fixture 42P08 分参修复，断言零改动）→ `d01e3d37`（receipt）。origin tip 载其为 rebase 孪生 `b5dd9aa3`/`972c6c2f`：patch-id 双侧亲算全等（code=`4f1f2d8e…`、fix=`952403a2…`，`git diff` 树零差异），tip 树 ≡ 被审包树。
+
+## 1. 包完整性与冻结面（机检亲证）
+
+- 恰 9 files +650/−4（`1b85b58a`→`972c6c2f` 全 diff）：0141 新迁移（137 行）、`packages/db/src/vector-plane-erasure.ts`（+126）、`packages/db/test/vector-plane-erasure.proof.ts`（+322）、`apps/worker/src/privacy-erasure-worker.ts`（+21/−2）、`apps/worker/src/main.ts`（+5/−3）、`packages/db/src/index.ts`（+11）、`package.json`（+2）、`packages/db/package.json`（+1）、`scripts/run-e2e-isolated.mjs`（+20/−3，恰 4 注册点：receipt sources / gate 白名单 / isolatedCommand 分派 / migrate-with-recovery 列表）。
+- fix 提交 `972c6c2f` vs `b5dd9aa3`：单文件 fixture INSERT 参数 `$1::uuid`+`$2` 分参，断言行逐字未动（diff 亲证）——确定性 fixture bug 修复，非 retry-to-green。
+- 零触碰亲证：`apps/api/src/modules/privacy/privacy.service.ts` / `privacy.controller.ts`（DELETE=503 冻结面，controller `:51-52` `@HttpCode(SERVICE_UNAVAILABLE)` + service `:56`/`:67` throw 亲读）零 diff；`0091`/`0125`/`0137`/`0140` 迁移零字节 diff；`ai-docs/` 恰 0 files 变更（backlog `:60`/`:64` OPEN 原文、UC-052 partial、SSOT 零触碰）。
+- C-P4-3 强化：`local_erased` 系 0091 `:88` receipt_kind CHECK 既有枚举值（非新增）；receipt 落账复用既有 `privacy_record_deletion_receipt`（`privacy-authorization.ts:138-146` 亲读）；0091 文件零字节 diff = guard/issuer 主链零语义改动自证。
+
+## 2. fail-closed 链亲验（0141 fence ↔ 0125 claim/purge 链同形逐项比对）
+
+| # | 0125 既有裁定面 | 0141 对应 | 比对结论 |
+|---|---|---|---|
+| 1 | purge 以 `set_config` 安装 `app.privacy_target_id`+`app.privacy_lease_token`（0125 `:341-342`） | fence 读同一 GUC，三要素（principal/target/lease）缺一即 `42501 vector_plane_erasure_delete_not_authorized`（`:53-57`） | 同形，唯一合法 DELETE 上下文绑定成立 |
+| 2 | lease 活性校验 status='leased'+token 等值+未过期（`:336-338`） | `t.status='leased' AND t.lease_token::text=lease GUC`（`:62-63`） | 同形 |
+| 3 | sink 恰 `memory_vector_chunk`（claim `:250-252` / purge `:344`） | fence 白名单 `t.sink='memory_vector_chunk'`（`:64`） | 同形 |
+| 4 | owner 绑定（claim `:228`/`:243-246`、purge `:326`） | 双检 `r.owner_user_id=principal`（`:65`）+ `OLD.owner_user_id=principal`（`:71-73`） | 同形且行级加严 |
+| 5 | scope='account_data'（claim `:247`） | `r.scope='account_data'`（`:66`） | 同形 |
+| 6 | request status ∈ fenced/purging/pending_external（claim `:271` / purge `:329`） | `:67` 同集 | 同形 |
+| 7 | 全线 42501 fail-closed | `:56`/`:69`/`:72` 三处 42501 | 同形 |
+| 8 | SECURITY DEFINER+OWNER+REVOKE（0125 `:297-299`/`:380-383`） | `:77-78` 同形（EXECUTE 撤自 PUBLIC+app_role） | 同形 |
+| 9 | claim 十项链（issuer/consumed/expiry/owner/purpose+scope/sink/subject/epoch+digest/drift，`:214-269`）为唯一授权裁定者 | 0141 jti feed 只读解析（`:110-133`，头注自钉"非授权判定"）；jti 缺失→sweep 诚实跳过（模块 `:107-108`），解析错→claim 42501 | 裁定权未转移、未复制，drift 复核仍在 claim |
+
+- **sink_forbidden drift 防线实证**：INT `sink='vector'` 假造 target 经真 claim 入口（0125 claim 十项链原样）→ `42501 privacy_authorization_sink_forbidden`（`:250-252` 既有门）；0141 feed 只出 `memory_vector_chunk`（`:97`）双保险。prove `INT:` 三断言 PASS（不进 feed + sink_forbidden 红 + 假造行清除后真靶 purge 照常绿，且代码内诚实注释 drift 防线本身系十项链一环）。
+- **qbank 永不删双证**：fence `kind IS DISTINCT FROM 'memory' → RETURN OLD`（`:48-50`，只拦 kind='memory'）；purge 谓词只删 `owner=principal AND kind='memory'`（0125 `:345-346`）；prove `fence: qbank DELETE 不受 0141 影响` + ⑤ qbank digest 等值 PASS。
+- **app_role 自删缺口实关**：fence BEFORE DELETE 触发器对所有角色生效；prove 以 `asPrincipal`（`principal.ts:949` `SET LOCAL ROLE app_role`）无 purge 上下文自删 → 42501 PASS——sink-inventory §5 已披露缺口以运行时证据闭合；错 token（lease 上下文+假 token）→ 42501 PASS，正 token purge 绿 PASS（fence 不拦授权路径）。
+
+## 3. 六件套复核（receipt 实读 + prove 源码逐锚 + 我方 fresh re-run 复现）
+
+1. ①未授权红=真入口：伪造 jti→42501 snapshot_not_found、issued 未 consume→42501 not_consumed、sweep 无 consumed 授权诚实跳过（claimed=0/erased=0/skipped=1 且行数仍 3）——prove `:167-190` 三断言 PASS。
+2. ②ANN recall=0=真 ANN 查询：生产缝 `annSearchLegacy`（`retrieval-legacy.ts:11`，HNSW `<=>`）擦除前正对照 hit≥1 且首挑 `vp-mem-1`（probe 与主向量逐字节同源，证非空转）；擦除后同 probe 0 hit + admin 侧直探 0 hit——Ban 行数 proxy 守住。
+3. ③行数=0：owner memory 3→0。
+4. ④残留=0：0125 `:348-355` 同口径显式 count + purge 内建 `55000 memory_vector_chunk_target_residual_rows` fail-closed 未触发。
+5. ⑤跨 subject/qbank intact：他户 memory / owner qbank / 系统 qbank 三组 content_hash+embedding 聚合 sha256 digest 擦除前后逐字节等值 + 他户 ANN probe 仍命中。
+6. ⑥DELETE=503：源码钉（零 diff 亲证）+ `pnpm privacy-erasure:http:prove` EXIT=0 19/0 同列入账（receipt 实读）。
+- 附加：0091 local_erased receipt hash 可复算（`sha256(targetId:vector_plane:local_erased:deletedCount)`，prove `:213-216` 断言逐字节相等）。
+- attempt1 诚实保留实证：`meetwise-line-priv4/.tmp/p4c-prove-attempt1.log` 实读——28 PASS 后 `code: '42P08'` crash、`ATTEMPT1_EXIT=1`、时间 2026-10-07 17:31:42+08，与 receipt 申报逐字吻合；attempt2 17:33:44+08 EXIT=0。
+
+## 4. fresh re-run（本审恰一次 · 禁重试未触发）
+
+- CMD：`./scripts/with-docker-session.sh env -u MODEL_API_KEY -u MODEL_BASE_URL pnpm vector-plane-erasure:prove`（review worktree 内、依赖安装后恰执行一次）。
+- 结果：**EXIT=0，33 PASS / 0 FAIL**；`migrations: applied=141 skipped=0`；隔离 PG `pgvector/pgvector:pg16`（R5-MARKED-RED 口径在位：isolation fixture ≠ stack truth ≠ cutover）；`LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-07T09-49-50-327Z-4247-5ed7743b….json`（0141 ∈ sourceDigests，21 文件）；尾行诚实披露原文在位（本地行级 ≠ 云端彻底删除 · releaseEvidence=false · HNSW/WAL/备份不在面 · DELETE=503 同列）。
+- 与 receipt 申报（attempt2 EXIT=0 33/33, migrations=141 latest=0141）逐项吻合，无漂移。
+
+## 5. 条件裁决（PRE-EXEC C-P4-1~6 逐条）
+
+| 条件 | 裁决 | 依据 |
+|---|---|---|
+| C-P4-1 alone≠dual | **SATISFIED** | PRE dual 已 BOTH PASS（`b5dd9aa3` 头注载 29cc2dfd+909d6118）；本审仍为单侧 POST-PROVE（本侧），不代签 `mw-e2e-ha`，其并行审独立签发 |
+| C-P4-2 target 先钉后码 | **SATISFIED** | target 集钉于 0141 头注 `:6-14`（码前、与双审 stub C-P4-2/C-EH-3 记载一致）；裁 `memory_vector_chunk`（0125 owner+kind 双谓词）+ INT `sink='vector'` 诚实 no-target——本条件明列的合法选项之一（显式申报面试作用域键 **或** 诚实保持 no-target）；不假造键 + `42501 sink_forbidden` drift 防线经真 claim 入口实证，符合双审裁决的诚实原则 |
+| C-P4-3 0091 零语义改动 | **SATISFIED** | 0091 零字节 diff 亲证；`local_erased` 既有枚举（0091 `:88`）；receipt 函数/guard 原样复用；无新增 receipt_kind、无重载、guard 触发面零触碰 |
+| C-P4-4 断言强度不弱化 | **SATISFIED** | 六件套全保零替换零弱化（§3 逐项）；attempt1 EXIT=1 诚实保留且 log 实存实读吻合；唯一 fix 为确定性 fixture 分参、断言零动；本审 fresh re-run 独立复现 33/33 EXIT=0 |
+| C-P4-5 诚实披露沿 AR | **SATISFIED** | cloudVendorDeleted=false 持续；「彻底删除/磁盘字节清零」Ban 叙事零违反；披露口径四处一致（0141 头注/模块 docstring/proof 头注/fresh log 尾行）；sweep completed ≠ 账户删除完成 如实申报 |
+| C-P4-6 F-1 转注 | **SATISFIED（义务闲置）** | 新工件（0141/模块/proof/worker）零 `0032`/`p_*` 引用（grep 亲证），本期无更正点；转注仍为 docs-side 持续义务 |
+
+## Blockers
+
+无（none）。
+
+### Conditions（POST-PROVE PASS 附带）
+
+- **CP4P-1 alone≠dual 持续**：本 PASS 仅为 `mw-privacy-int` 单侧 POST-PROVE dual 本侧签发，不构成、不代签 `mw-e2e-ha` 侧；dual 生效以协调方双签汇录为准。
+- **CP4P-2 EXIT0 语义钉**：EXIT0 ≠ covered ≠ backlog `:60`/`:64` closed ≠ UC-052 flip（stays partial, coveredCount=8 冻结）≠ DELETE 开放（503 冻结持续）≠ HA ≠ releaseEvidence；本 sweep completed ≠ 账户删除完成；SSOT 翻行仍 Ban。
+- **CP4P-3（OB-1 · docs-side 提示，非返工）**：receipt `d01e3d37` 为空提交——收据内容仅存于提交信息，isolated-proof JSON 位于未跟踪 `.tmp/`；后续引用本 prove 证据时以提交信息 + prove 日志为准，不得声称为 file-backed artifact。
+- **CP4P-4（OB-2 · docs-side 提示，非返工）**：attempt1 log `.tmp/p4c-prove-attempt1.log` 系 implementer line worktree（`meetwise-line-priv4`）相对路径，主仓 checkout `.tmp` 无此文件；后续 ledger 引用注明所在 worktree。
+- **CP4P-5**： pins 原值复核 held：NOT_HA / gR45Closed=true / coveredCount=8 / ms3EqualsR4Closed=false / PG-retained / DELETE=503 / `:60` OPEN / `:64` OPEN / UC-052 partial / canHonestlyFlip=false——零漂移。
+
+### 三行中文摘要
+
+1. POST-PROVE 本侧 PASS：包完整性机检恰 9 files +650/−4，rebase 孪生 `b5dd9aa3`/`972c6c2f` patch-id 双侧全等（`4f1f2d8e`/`952403a2` 亲算），503 冻结面与 0091/0125/0137/0140 及 SSOT 全部零 diff，attempt1 EXIT1 诚实保留且 42P08 log 实读吻合。
+2. fail-closed 链亲验成立：0141 fence 与 0125 claim/purge 链八项同形逐项比对吻合、裁定权未转移（claim 十项链仍唯一），app_role 自删已披露缺口以运行时红证据闭合，qbank 永不删双证，INT sink='vector' 诚实 no-target + 假造键 `42501 sink_forbidden` drift 防线经真 claim 入口实证；fresh re-run 恰一次 EXIT=0 33/33（migrations=141）与 receipt 零漂移。
+3. C-P4-1~6 六条全 SATISFIED（C-P4-2 裁：诚实不做假造键符合双审裁决精神）；0 Blocker · 5 Conditions（CP4P-1 alone≠dual 不代签 mw-e2e-ha；CP4P-2 EXIT0≠翻行≠HA；CP4P-3/4 docs-side 提示两项）；EXIT0≠covered≠`:60`/`:64` closed≠UC-052 flip≠DELETE 开放。
+
+Verdict: PASS
