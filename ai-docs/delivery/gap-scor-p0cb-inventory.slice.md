@@ -1,12 +1,14 @@
 # Slice — **Line SCOR** · Phase 7 产品诚实首刀 · GAP-PROD-01 `:77`（SCOR）+ GAP-PROD-02 `:78`（P0-CB）盘点立卷（docs-only REQUEST）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**
+**Status**: **`executed:awaiting_post_prove_dual`**
+
+> **Draft-era status（historical · retained）**: **`draft:awaiting_pre_exec_dual`**
 **Date**: 2026-10-07（Asia/Shanghai）
 **Base**: `origin/feat/mysql-schema-skeleton` · `313e04a7fc0ca91ef60fb229802dd374f85cc93d`
 **Authority**: meetwise — docs-only SCOR/P0-CB 盘点立卷刀（沿 MOP03/MOP01/MOP02 先例）· Ban coding · Ban prove 执行 · 零实现 · **Dual PASS ≠ authorize coding**
 **releaseEvidence=false** · **≠HA** · **≠suite green** · **≠ SCOR-01…08 closed** · **≠ P0-CB closed** · **≠ B 端排序/校准** · **GAP-PROD-01 `:77` OPEN** · **GAP-PROD-02 `:78` OPEN**
 **Hard dependency**: **W3 DELETE=503 freeze remains** · **INT-TRANSCRIPT-01 blocked**（SCOR-01/02 生产唯一 P0 前置）· **MODEL-OP-01**（SCOR-03/04 前置）· Ban open DELETE
-**Experts**: `mw-e2e-ha` + `mw-privacy-int`（按域选审 · 理由 harness §1b）· PRE dual awaiting · Ban self-approve · alone ≠ dual
+**Experts**: `mw-e2e-ha` + `mw-privacy-int`（按域选审 · 理由 harness §1b）· **PRE dual BOTH PASS**（mw-e2e-ha `0617a15`≡主线 `8345f3c2` + mw-privacy-int `1c1b28d`≡主线 `cd908eff` · 均 ∈ exec base 祖先）· Ban self-approve · alone ≠ dual · **Ban self-write `post_prove_dual_pass`**
 **Order（写死）**: 队列「**SCOR then P0-CB**」——S-SCOR-0…4 包先于 S-CB-1…3 包启动；P0-CB 内序 **01→02→03**；无一豁免
 
 ---
@@ -42,8 +44,8 @@ Docs-only：SCOR（GAP-PROD-01 `:77`）现状诚实清单（SCOR-00/00H 已止�
 
 | CMD | Status |
 |-----|--------|
-| docs dual | `draft:awaiting_pre_exec_dual` · **no prove · zero coding**（`scor-00:http:prove` / `scor-00-honesty:prove` / `recruiter:prove` / `neg:bend` / `openapi:prove` named-not-run · harness §5） |
+| docs dual | **PRE dual BOTH PASS + 协调方 AUTHORIZE → exec landed** · `executed:awaiting_post_prove_dual` · **no prove · zero coding**（`scor-00:http:prove` / `scor-00-honesty:prove` / `recruiter:prove` / `neg:bend` / `openapi:prove` named-not-run · harness §5） |
 
 ---
 
-*Slice · Line SCOR · Phase 7 产品诚实首刀 · GAP-PROD-01 `:77` + GAP-PROD-02 `:78` 盘点立卷 · 2026-10-07 · `draft:awaiting_pre_exec_dual` · SCOR then P0-CB 写死 · W3 DELETE=503 freeze remains · releaseEvidence=false · ≠HA · ≠suite · Dual PASS ≠ authorize coding · zero coding · ≠ SCOR-01…08 closed · ≠ P0-CB closed*
+*Slice · Line SCOR · Phase 7 产品诚实首刀 · GAP-PROD-01 `:77` + GAP-PROD-02 `:78` 盘点立卷 · 2026-10-07 · `executed:awaiting_post_prove_dual` · PRE dual BOTH PASS（mw-e2e-ha + mw-privacy-int）· SCOR then P0-CB 写死 · W3 DELETE=503 freeze remains · releaseEvidence=false · ≠HA · ≠suite · Dual PASS ≠ authorize coding · zero coding · ≠ SCOR-01…08 closed · ≠ P0-CB closed · STOP（awaiting POST dual · Ban self-write `post_prove_dual_pass`）*
