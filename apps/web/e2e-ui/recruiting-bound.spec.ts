@@ -1,5 +1,6 @@
 import { test, expect, type BrowserContext, type Page, type APIRequestContext } from '@playwright/test';
 import { createHmac, randomUUID } from 'node:crypto';
+import { createRequire } from 'node:module';
 
 /**
  * 真浏览器 C→B 闭环：两个独立 cookie context 分别扮演候选人/招聘方。
@@ -53,6 +54,74 @@ async function waitForTerminalOrAnswer(page: Page, timeout = 90_000): Promise<'t
   ]);
 }
 
+// ─── G7U 路线甲夹具（docs REQUEST 4279595c · PRE 双审 PASS C-HA-1~5/C-MO-U6 · 协调方 EXEC 授权路线甲）───
+// begin 前等异步 classify 的 route 决策到位（「等 route_decided 再 begin」· G7S harness :79 预留口径）。
+// 只读轮询产品自产状态：SELECT-only 白名单沿 G7T sidecar 同族列（job_posting.id 仅作 join 键 /
+// job_semantic_revision(status,created_at) / job_route_decision(route_outcome,attempt_outcome,created_at)），
+// Ban interview_job.payload / ai_invocation_trace.output / 任何写语句（C-HA-1 · C-MO-U6）。
+// 资格谓词 = 产品 bindApplicationRoute 同款（job-route-decision.ts:15「binding 只可绑 route_decided」）。
+// cap = 60s（C-HA-3 EXEC 定值）· 周期 1s · 超时 = 诚实 FAIL（不静默 skip、不重试 begin、不调参造 flake）。
+// 连接物料只经 isolated runner 既有 env 契约（PGHOST/PGPORT/PGUSER/PGPASSWORD/PGDATABASE —— 与
+// run-e2e-isolated.mjs 自身探针同款），零硬编码零 .env*（C-HA-2）。pg 客户端经 packages/db 的
+// 声明依赖解析（createRequire 锚其 package.json），不改任何 manifest。
+const ROUTE_DECIDED_WAIT_CAP_MS = 60_000;
+const ROUTE_DECIDED_POLL_INTERVAL_MS = 1_000;
+
+async function waitForRouteDecided(jobTitle: string, publishedAt: number): Promise<void> {
+  for (const name of ['PGHOST', 'PGPORT', 'PGUSER', 'PGPASSWORD', 'PGDATABASE']) {
+    if (!process.env[name]) throw new Error(`[g7u-fixture] ${name} missing — isolated runner env contract required (honest env FAIL)`);
+  }
+  const requireDbDriver = createRequire(new URL('../../../packages/db/package.json', import.meta.url));
+  const { Client } = requireDbDriver('pg');
+  const client = new Client({
+    host: process.env.PGHOST,
+    port: Number(process.env.PGPORT),
+    user: process.env.PGUSER,
+    password: process.env.PGPASSWORD,
+    database: process.env.PGDATABASE,
+    ssl: false,
+    connectionTimeoutMillis: 2000,
+  });
+  await client.connect();
+  const startedAt = Date.now();
+  try {
+    for (;;) {
+      const r = await client.query(
+        `SELECT r.status AS revision_status, r.created_at AS revision_created_at,
+                d.route_outcome, d.attempt_outcome, d.created_at AS decision_created_at
+           FROM job_posting j
+           JOIN job_semantic_revision r ON r.job_id = j.id
+      LEFT JOIN job_route_decision d ON d.job_id = r.job_id AND d.revision = r.revision
+          WHERE j.title = $1
+          ORDER BY r.revision DESC`,
+        [jobTitle],
+      );
+      const row = r.rows[0] as
+        | { revision_status: string; revision_created_at: Date; route_outcome: string | null; attempt_outcome: string | null; decision_created_at: Date | null }
+        | undefined;
+      if (row?.route_outcome === 'route_decided') {
+        console.log(
+          `[g7u-fixture] route_decided observed: ${Date.now() - startedAt}ms since wait start, `
+          + `${startedAt - publishedAt}ms wait-anchor offset after publish click, revision_status=${row.revision_status}, `
+          + `attempt_outcome=${row.attempt_outcome}, decision_created_at=${row.decision_created_at?.toISOString() ?? 'n/a'}`,
+        );
+        return;
+      }
+      if (Date.now() - startedAt >= ROUTE_DECIDED_WAIT_CAP_MS) {
+        console.error(
+          `✗ [g7u-fixture] route_decided timeout after ${ROUTE_DECIDED_WAIT_CAP_MS}ms cap `
+          + `(last revision_status=${row?.revision_status ?? 'none'}, attempt_outcome=${row?.attempt_outcome ?? 'none'}) `
+          + `— honest FAIL, begin not attempted`,
+        );
+        throw new Error(`[g7u-fixture] route not decided within ${ROUTE_DECIDED_WAIT_CAP_MS}ms cap — fixture wait failed honestly`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, ROUTE_DECIDED_POLL_INTERVAL_MS));
+    }
+  } finally {
+    await client.end().catch(() => {});
+  }
+}
+
 test('C→B: real browser binds application to a new interview, completes it, and front-end finalizes it', async ({ page, browser, request }) => {
   // 这是一个 6 题的真实模型旅程：每题都包含 worker、模型评分和 SSE（服务器发送事件）回写。
   // 150 秒不足以覆盖已经实测的单轮真实语音延迟，导致“系统仍在正确收口”被误报为产品失败。
@@ -78,11 +147,14 @@ test('C→B: real browser binds application to a new interview, completes it, an
   const recruiterContext = await browser.newContext({ baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3100' });
   const recruiter = await recruiterContext.newPage();
   await signUp(recruiter, recruiterEmail, 'recruiter');
+  const publishedAt = Date.now();
   await recruiter.fill('input[name="title"]', jobTitle);
   await recruiter.fill('input[name="competencies"]', '高并发, 幂等, 限流');
   await recruiter.getByRole('button', { name: '发布岗位' }).click();
   const jobLink = recruiter.getByRole('link', { name: new RegExp(jobTitle) });
   await expect(jobLink).toBeVisible({ timeout: 20_000 });
+  // G7U 路线甲：begin 前等异步 classify decided（只读轮询 · cap 60s · 超时=诚实 FAIL）。
+  await waitForRouteDecided(jobTitle, publishedAt);
   await jobLink.click();
   await recruiter.getByRole('button', { name: '邀请候选人' }).click();
   await recruiter.fill('input[name="candidateEmail"]', candidateEmail);
