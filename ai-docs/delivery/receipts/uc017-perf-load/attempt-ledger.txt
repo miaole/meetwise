@@ -1,0 +1,21 @@
+# UC-017 NHP-LOAD prove attempt ledger — NHP-017-LOAD-w-01 · GAP-UC017-LOAD-01
+
+**implementer pre-commit runs · not evidence of record**
+**时区**: Asia/Shanghai（本地墙钟）· 时间戳另有 UTC ISO（progress log）
+**code SHA（两 attempt 同）**: 4804c3dc54e696b5f7af17574d21e1bbe68482a4（branch line/y-next-nhp · worktree 未提交态运行 · prove 接线 diff = root/package.json + packages/db/package.json + scripts/run-e2e-isolated.mjs + 本 proof 新文件）
+**零 live**: 运行命令 env -u MODEL_API_KEY -u DASHSCOPE_API_KEY -u DASHSCOPE_COMPAT_BASE_URL · 三层隔离壳 run-e2e-isolated.mjs（fresh PG container meetwise-e2e-<pid>-<ts> · nonce tripwire assertIsolatedTestTarget · migrations applied=140）· E2E_PG_IMAGE=pgvector/pgvector:pg16 digest sha256:7b822b0aac60967beb1ea5e576b8602c94c300a157d187f385ae3e0da199b90a（本机两 tag 同 digest 比对）
+
+## Attempts（全录 · Ban retry-to-green · Ban flake 记绿）
+
+| # | 时间（Asia/Shanghai） | CMD | EXIT | 失败类 | 断言 | 备注 |
+|---|----------------------|-----|------|--------|------|------|
+| 1 | 2026-10-07 15:10–15:11 | `MW_GIT_SHA=4804c3dc… env -u MODEL_API_KEY -u DASHSCOPE_API_KEY -u DASHSCOPE_COMPAT_BASE_URL pnpm uc017:nhp-load:prove` | 0 | 无（45/45 PASS） | 45 PASS / 0 FAIL | waves: w1 released=100 settled=10 backlog=0 406ms · w2 0/0 252ms · errors=0/840。**实现方接线缺陷（非产品）**：RECEIPT_DIR 相对层级少一级 → 收据误落 `packages/.tmp/…`（违反 C-6 落点）。处置：收据原样搬迁至 `.tmp/uc017-perf-load-receipts/`（attempt001.json 保留不删）+ 修复 proof 路径常量（仅路径、零断言改动、零产品码）→ **attempt#2 以 shipped code 复跑**以满足 C-6 收据落点。attempt#1 不记 flake、不改断言、不判绿掩盖 |
+| 2 | 2026-10-07 15:11–15:12 | 同上 | 0 | 无（45/45 PASS） | 45 PASS / 0 FAIL | waves: w1 released=100 settled=10 backlog=0 245ms · w2 0/0 135ms · errors=0/840 · 收据落点正确 `.tmp/uc017-perf-load-receipts/uc017-nhp-load-attempt002.json`。**本 attempt = 提交代码的原样运行（EXIT0 主证）** |
+
+## 冻结参数（两 attempt 同 · harness :63 登记）
+
+N=20 owners × M=5 orphans/owner（=100 orphans）· C=10 并发 reconcile workers · S=10 settled cohort · F=1 fresh control/owner（=20）· orphan/fresh/settled units=1.00 · bucket TTL=now()+300 days（C-4 前提：run 期无桶 expires_at 边界穿越；run 实测 wall <1s）· lease heartbeat renewReservationLease=1800s · drain MAX_WAVES=10（实际 2 轮达稳态）
+
+## Non-claims
+
+EXIT0 ≠ covered ≠ e2e:isolated suite green ≠ UC-E2E-017 行升格 ≠ PERF_api/PERF_web 面填补 ≠ 线上 SLO ≠ 生产容量 ≠ HA。coveredCount=8 不变 · releaseEvidence=false · haStatus=NOT_HA。
