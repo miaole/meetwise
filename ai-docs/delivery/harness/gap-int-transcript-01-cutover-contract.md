@@ -118,7 +118,7 @@
 | `pnpm uc052:internal-erasure:prove` | 已存在 · 本 REQUEST **不跑** | 门 4 read=0 语义现状锚 |
 | `pnpm uc052:external-sink-retention:prove` / `pnpm uc052:external-sink-async-purge:prove` | 已存在 · 本 REQUEST **不跑** | 门 2 现状锚（stub 面） |
 | `pnpm vector-plane-erasure:prove` / `pnpm qdrant-store:g5-erasure:prove` | 已存在 · 本 REQUEST **不跑** | 门 3 现状锚（memory_vector_chunk 面） |
-| `pnpm mem00-int00:prove-path`（#103） | 已存在 · 本 REQUEST **不跑** | §2b-0a（00→01 prove 路径） |
+| `pnpm mem00-int00:prove-path`（#103） | 属 #103 INFLIGHT、合入后方可称已存在 · 本 REQUEST **不跑** | §2b-0a（00→01 prove 路径） |
 | 生产组合根组合证 / issuer 轮换证明 / INT 向量 sink / DELETE 开关合同 prove | **不命名 · 不授权** | 属未来 cutover REQUEST 自带（远程 Postgres · Ban `pnpm db:up`） |
 
 本 REQUEST 不新增脚本、不改 `package.json`、不跑任何 prove、不起容器、不连任何远程环境。
