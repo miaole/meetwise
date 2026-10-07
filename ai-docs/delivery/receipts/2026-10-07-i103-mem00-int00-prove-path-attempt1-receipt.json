@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_mem00_int00_prove_path_receipt",
+  "releaseEvidence": false,
+  "controlPlaneClosed": false,
+  "intTranscript01ProductionWrite": false,
+  "publicDeleteStill503Required": true,
+  "codeSha": "92ab9918e389ceede8e7fe29a3e7ca30cb49e76b",
+  "attempt": 1,
+  "attemptWindow": "single",
+  "startedAt": "2026-10-07T13:51:02.731Z",
+  "startedAtAsiaShanghai": "2026-10-07T21:51:02.731+08:00",
+  "finishedAt": "2026-10-07T13:53:07.033Z",
+  "dockerAvailable": true,
+  "portableOnly": false,
+  "counts": {
+    "portableFailed": 0,
+    "isolatedFailed": 0,
+    "isolatedBlocked": 0,
+    "total": 10
+  },
+  "results": [
+    {
+      "id": "privacy-authorization:crypto:prove",
+      "item": "INT-TRANSCRIPT-00",
+      "kind": "portable",
+      "outcome": "passed",
+      "exitCode": 0,
+      "attempt": 1,
+      "at": "2026-10-07T21:51:05.847+08:00",
+      "codeSha": "92ab9918e389ceede8e7fe29a3e7ca30cb49e76b"
+    },
+    {
+      "id": "privacy-erasure-preview:domain:prove",
+      "item": "INT-TRANSCRIPT-00",
+      "kind": "portable",
+      "outcome": "passed",
+      "exitCode": 0,
+      "attempt": 1,
+      "at": "2026-10-07T21:51:10.867+08:00",
+      "codeSha": "92ab9918e389ceede8e7fe29a3e7ca30cb49e76b"
+    },
+    {
+      "id": "privacy-erasure-preview:contract:prove",
+      "item": "INT-TRANSCRIPT-00",
+      "kind": "portable",
+      "outcome": "passed",
+      "exitCode": 0,
+      "attempt": 1,
+      "at": "2026-10-07T21:51:14.601+08:00",
+      "codeSha": "92ab9918e389ceede8e7fe29a3e7ca30cb49e76b"
+    },
+    {
+      "id": "interview-answer-submission:prove",
+      "item": "INT-TRANSCRIPT-00",
+      "kind": "portable",
+      "outcome": "passed",
+      "exitCode": 0,
+      "attempt": 1,
+      "at": "2026-10-07T21:51:17.008+08:00",
+      "codeSha": "92ab9918e389ceede8e7fe29a3e7ca30cb49e76b"
+    },
+    {
+      "id": "domain:memory-vector-chunk-deletion",
+      "item": "MEM-00",
+      "kind": "portable",
+      "outcome": "passed",
+      "exitCode": 0,
+      "attempt": 1,
+      "at": "2026-10-07T21:51:18.673+08:00",
+      "codeSha": "92ab9918e389ceede8e7fe29a3e7ca30cb49e76b"
+    },
+    {
+      "id": "privacy-authorization:prove",
+      "item": "INT-TRANSCRIPT-00",
+      "kind": "isolated",
+      "outcome": "passed",
+      "exitCode": 0,
+      "attempt": 1,
+      "at": "2026-10-07T21:51:21.530+08:00",
+      "codeSha": "92ab9918e389ceede8e7fe29a3e7ca30cb49e76b"
+    },
+    {
+      "id": "privacy-erasure:http:prove",
+      "item": "INT-TRANSCRIPT-00",
+      "kind": "isolated",
+      "outcome": "passed",
+      "exitCode": 0,
+      "attempt": 1,
+      "at": "2026-10-07T21:51:36.937+08:00",
+      "codeSha": "92ab9918e389ceede8e7fe29a3e7ca30cb49e76b"
+    },
+    {
+      "id": "memory-governance:prove",
+      "item": "MEM-00",
+      "kind": "isolated",
+      "outcome": "passed",
+      "exitCode": 0,
+      "attempt": 1,
+      "at": "2026-10-07T21:52:28.246+08:00",
+      "codeSha": "92ab9918e389ceede8e7fe29a3e7ca30cb49e76b"
+    },
+    {
+      "id": "memory-control-surface:prove",
+      "item": "MEM-00/MEM-10",
+      "kind": "isolated",
+      "outcome": "passed",
+      "exitCode": 0,
+      "attempt": 1,
+      "at": "2026-10-07T21:52:36.228+08:00",
+      "codeSha": "92ab9918e389ceede8e7fe29a3e7ca30cb49e76b"
+    },
+    {
+      "id": "memory:prove",
+      "item": "MEM-00 lean",
+      "kind": "isolated",
+      "outcome": "passed",
+      "exitCode": 0,
+      "attempt": 1,
+      "at": "2026-10-07T21:52:48.962+08:00",
+      "codeSha": "92ab9918e389ceede8e7fe29a3e7ca30cb49e76b"
+    }
+  ],
+  "honesty": {
+    "note": "Portable green does not close MEM-00 or INT-TRANSCRIPT-00. Isolated blocked/failed is not skip-as-pass. Do not flip releaseEvidence to true. No automatic downgrade: --portable-only is explicit-only and its EXIT0 is not a full green nor any closure evidence. Single attempt window; no retry-to-green."
+  }
+}
