@@ -116,3 +116,92 @@ F1 REQUEST 混入非 docs 文件 → 未触发（R4）· F2 Key 值/fingerprint 
 3. 本 PASS 仅为 mw-model-op 半签（alone ≠ dual，不代签 peer mw-e2e-ha），U4 仍待协调方 EXEC 显式授权，双审 BOTH PASS ≠ 实跑授权；携 C-MO-G7K-1~7（含 EXEC 收据补 `.env` presence-only 探针）；本审 0 实跑 0 live 0 Key 值读取 0 coding 0 SSOT，禁 push。
 
 Verdict: PASS
+
+---
+
+## POST-PROVE dual 审查段（mw-model-op · 2026-10-07 · G7 trio keyed EXEC 收据复核 · append-only · 本段以上正文 118 行零改动）
+
+**审查方**: `mw-model-op`（独立审查 · Ban self-approve · **alone ≠ dual · 不代签 peer mw-e2e-ha**——mw-e2e-ha 的 post-prove 审在并行，本审不可见不代签）
+**审查 worktree**: `/Users/miaole/Desktop/golucky/meetwise-rv-g7kp-model-op` · branch `rv/g7kp-model-op` @ origin tip `75ba2783`
+**被审对象**: receipt commit **`f02602cb`**（`line/g7k-trio-keyed` tip · parent 亲证 = 实跑 code SHA `8c6860e3` · origin 主线孪生 `760de1e1`）
+**审查性质**: POST-PROVE dual · 收据复核 + 磁盘工件复验 · **0 重跑 0 live 调用**（三 CMD 各 ×1 已然 · Ban retry-to-green）· 0 Key 值读取（name-only + 模式扫描）· 0 coding · 0 SSOT · 0 push
+
+### 亲算证据（命令 + EXIT + 可复现 · worktree 与 exec worktree 内实测）
+
+- R1 包完整性：`git show --stat f02602cb` → **恰 4 md +261/−0** 全 `ai-docs/delivery/receipts/g7-trio-keyed/`（SUMMARY + e2e-isolated + e2e-ui-isolated + verify-e2e-performance）· 零产品码 / 零 SSOT / 零 `package.json` / 零夹具 / 零 Key 物料
+- R2 孪生全等：4 文件 `git rev-parse f02602cb:<path>` ↔ `HEAD:<path>` blob 值逐一全等 + `git diff f02602cb HEAD -- …/g7-trio-keyed/` 空 + `git show f02602cb|git patch-id --stable` = `git show 760de1e1|…` = **`a26b2043…` 双侧全等**（origin tip `75ba2783` 经主线 `760de1e1` 载入同一收据包）
+- R3 parent 链：`git rev-parse f02602cb^` = **`8c6860e3…`**（收据 commit 直落实跑 HEAD · 「receipt commit ≠ 实跑 code SHA」惯例守恒且双值分记）
+- R4 gate 零漂移：`git rev-parse 8c6860e3:scripts/run-e2e.mjs` = **`c655235c…`** / `run-e2e-ui.mjs` = **`aa86fb3f…`**（≡ PRE dual R6 记录值 · EXEC 期零漂移）
+- R5 wiring 实读：`package.json` `:276`=`e2e:isolated` / `:277`=`e2e:ui:isolated` / `:280`=`verify:e2e-performance` @`8c6860e3` 与 REQUEST 基点零漂移
+- R6 七字段全中：三 per-CMD 收据逐字段实中（CMD 原文 + EXIT 原值 + 起止时间戳 + 实跑 code SHA + 关键输出 + envModelApiKey name-only + 预算计数）+ 各自 presence 探针段
+- R7 工件复现：`.tmp/g7k-keyed-20261007/{01,02,03}.exit` = **1/1/1** · start/end 六时间戳与收据逐字吻合 · `code-sha.txt` = `8c6860e3…` · `install.exit`=0（frozen-lockfile）· `0{1,2,3}.key-presence.txt`=「set」name-only
+- R8 machine receipt 双 JSON 逐字段吻合：CMD1（`exitCode=1` · `durationMs=38541` · `failureClass=api` · `reviewLedger`=capability `image_ocr_unavailable`+`voice_unavailable` 恰 2 · `schemaMigrationManifest.count=141` latest `0141_…` · `releaseEvidence=false` · dataHandling 原文在案）· CMD3（`gitHead=8c6860e3…` · `failure=e2e_performance_suite_failed:HTTP full E2E:exit=1` · steps build **0**/97152ms + migrate **0**/15006ms + HTTP full E2E **1**/31792ms 恰 3 步 = 短路后 not_run 面）
+- R9 gate/quota 0 hit：`grep -c` 于三 log —— `live_provider_key_missing` **0/0/0** · `FreeTierOnly|AllocationQuota` **0/0/0**
+- R10 CMD2 明细逐条复现：log 总结 **4 failed / 10 skipped / 10 passed (2.2m)** · ✘ 面恰 = recruiting-bound`:56` ×chromium 35.3s/mobile 35.6s + uc018-abandon`:68` ×chromium 1.6s/mobile 2.5s · 失败点 `:96:14` waitForURL 30s timeout / `:139:58` **Expected 200 / Received 409** · ✓ 面恰 = golden ×2 tests×2 project（4.4s/255ms/2.8s/318ms）+ screenshots ×4 + stream-window ×2（751ms/1.1s）= **10** 与收据逐值吻合 · `E2E_FAILURE class=frontend code=client_exited`（log `:200`）suite 级归类如实
+- R11 代码锚全亲算：`recruiting-bound.spec.ts:56/:94/:96` · `uc018-abandon.spec.ts:68/:139` · `voice-duplex.spec.ts:9`（skip 原文逐字）`/:166/:205/:237` · `online-public.spec.ts` skip 条件 + `:20/:34` · `e2e/full.e2e.ts:187/:225/:346` `driveInterviewToTerminal` ×3（预算估计面实证）· `run-e2e.mjs:15-21` `.env` auto-load「不覆盖已设」+ `:42` fake_service + `:43` Key gate + `:158` `client_exited`→api 链 · `run-e2e-isolated.mjs:2084-2098` **stderr 永不回显契约原文在案（`child.stderr.on('data', () => {})`）** · `run-e2e-performance-suite.mjs` 步循环首步非零即 throw（`:100`）且 failure 串格式与 machine receipt 逐字同构（短路面 not_run ×24 属实）
+- R12 AC Path A 对照：`3922b485` 收据 SUMMARY 实读 = C1 top-level throw `provider/live_provider_key_missing` / C2 stderr provider code（Playwright **not reached**）/ C3 HTTP 步 Key-blocked cascade @prove tip `7c818c5` —— 本刀「三 gate 解除」翻转的**前态**亲证成立
+- R13 G7B C8 预注册：`1c4588f9` 实读「Key-blocked 解锁循 AD P4 … 另刀」——本刀复核 = **仍红 · 非 quota · 归 api 类候选真实缺陷**，处置与预注册一致
+- R14 Key 卫生机检：三 log 五模式扫描（`MODEL_API_KEY=` / `sk-` / `Bearer` / `eyJ` / `api-16 位`）**全 0** · 收据包 grep 0 物料 · 树内 tracked `.env` 仅 `docker/env/*.env.example` ×4（模板）· 原始 log 落 exec worktree `.tmp/`（git 不跟踪 · `git status` 证）· 无任何 Key 值/fingerprint 入树
+- R15 SSOT 零触碰：`f02602cb` diff 面 = 恰 4 收据文件；`gap-bug-backlog` / `execution-master-checklist` / 覆盖矩阵零 diff（登记动作留协调方 nail · EXEC 期不越权）
+
+### 收据复核表（声称 vs 亲算）
+
+| 收据 | 声称 | 亲算复现 | 裁决 |
+|------|------|----------|------|
+| CMD1 `e2e:isolated` | EXIT=1 · 21:30:06→21:30:45 · Key gate 解除 0 hit · migrate 141 全 PASS · class=api · case 明细 by-design withheld · capability skip 2 · <50 次 | exit 文件+machine receipt+log 三源全吻合（R7/R8/R9/R10/R11）· 19 行 log 与声称一致 · `ISOLATED_POSTGRES_OUTPUT_WITHHELD` 在案 | **如实** |
+| CMD2 `e2e:ui:isolated` | EXIT=1 · 21:34:09→21:37:45 · Playwright reached · 24=10P/4F/10S · build PASS · F1–F4 明细 · skip 6+4 · <20 次 | log `:185-191` 总结 + ✘/✘ 逐条+耗时逐值吻合（R10）· `next start :31304` 在案（log `:22`）· skip 原文与 spec 逐字合（R11） | **如实** |
+| CMD3 `verify:e2e-performance` | EXIT=1 · 21:39:16→21:41:41 · build 0+migrate 0→HTTP 步 1 class=api 短路 24 步 not_run · <50 次 | machine receipt `gitHead`+steps 表+failure 串逐字段吻合（R8）· log `:207` throw 原文 + 短路机制代码级实证（R11）· 210 行 log 与声称一致 | **如实** |
+| SUMMARY | trio 1/1/1 · 预算 <120/200 · 探针 3×ABSENT · `g7SuiteGreen=false` · Pins 原值 | 三分收据交叉 + 逐 CMD 探针/预算段全中 · Non-claims 全量 | **如实** |
+
+### AC 翻转核验（Key-blocked → 真实红 · 双向如实）
+
+| Gate | AC Path A `7c818c5` 前态（R12 亲证） | 本刀 `8c6860e3` 实测（R9/R10 亲算） | 翻转分类裁决 |
+|------|--------------------------------------|--------------------------------------|--------------|
+| C1 iso（`run-e2e.mjs:43`） | top-level throw `live_provider_key_missing` | **0 hit** · 业务 case 实跑至断言红 | Key-blocked 类 → **0**（解除属实）· 红归 **api 类 → 登记**（backlog 另刀建议恰当） |
+| C2 UI（`run-e2e-ui.mjs:48`） | Playwright launch **not reached** | **reached · 24 tests 实跑**（10P/4F/10S 有逐 case 证据） | 解除属实 · F1–F4 = **api 类 → 登记** |
+| C3 perf HTTP 级联 | HTTP 步 Key-blocked cascade | HTTP 步 class=**api**（非 provider）· 短路 24 步 not_run | 级联点翻转属实 · not_run ≠ pass 收法诚实 |
+| quota 残余 | —（era 早于消除轮） | `FreeTierOnly/AllocationQuota` 三 log **0 hit** | 无复发 · G7B C7 关账面成立 |
+
+翻转分类纪律核验：**Key-blocked 类计数 → 0 且无一被洗成绿**；**api 类红全数如实登记**（recruiting-bound bind 路径 ×2 · abandon 409 ×2 · iso HTTP 断言红面）——同根性假设（in-interview 状态未建立 → abandon 409）标注「候选解读非断言」，**Ban 冒充确认**守约。
+
+### 条件裁决（PRE 段 C-MO-G7K-1~7 逐条）
+
+| # | 条件 | 裁决 | 依据 |
+|---|------|------|------|
+| C-MO-G7K-1 | 上限以协调方 EXEC 为准逐 receipt 引用 · 超限即停如实记 | **PASS** | 三收据均引「上限 200」· 结构估 <120 未触限无中止 · 无计数面 by-design 如实披露且 Ban 为计数改产品 |
+| C-MO-G7K-2 | 每 per-CMD 收据含三文件 presence-only 探针 | **PASS**（附观察 O-1） | SUMMARY 3×ABSENT 表 + CMD2/CMD3 落盘工件亲读；CMD1 无独立落盘工件，由 02/03 同 worktree 相隔数分钟探针 + auto-load 行为旁证闭合 |
+| C-MO-G7K-3 | Key 值/fingerprint 零入 receipt/log/commit · log 落 `.tmp/` · 摘录过自查 | **PASS** | R14 五模式扫描全 0 · 树内无 tracked `.env*`（仅 example 模板）· `.tmp/` 不入 git 实证 |
+| C-MO-G7K-4 | `actualSpendCny=null` 保持 · Ban invented spend | **PASS** | 四文件全 `null` · 金额零发明 · 计价依据留协调方 |
+| C-MO-G7K-5 | `g7SuiteGreen=false` 三条件门 · alone ≠ dual | **PASS** | 全文 retained · 翻转须三绿+post-dual BOTH+协调方 nail · 本 PASS 仍为 mw-model-op 半签 |
+| C-MO-G7K-6 | 逐 attempt 全记录 · EXIT=1 不洗 flake · Ban retry-to-green | **PASS** | 七字段全中（R6）· 恰各 ×1 无重跑 · EXIT 1/1/1 原值 · 红如实收 |
+| C-MO-G7K-7 | 协调方重钉 committed SHA 逐 receipt 记录 · 配置原值 | **PASS** | 实跑 SHA `8c6860e3` 三源互证（code-sha.txt + machine receipt gitHead + `f02602cb^`）· receipt commit 分记 · 零调参证据面 |
+
+### Fail-trigger audit（触发即 FAIL · 均未触发）
+
+F1 包混入非收据文件 → 未触发（R1 恰 4 文件）· F2 Key 物料入树/log → 未触发（R14）· F3 retry-to-green / 只留绿 → 未触发（各 ×1 · EXIT 原值）· F4 假绿/Pin 漂移 → 未触发（`g7SuiteGreen=false` retained · Non-claims 全量 · Pins 原值）· F5 发明 case 名 / 洗 not_run/skip-as-pass → 未触发（CMD1 明细 withheld by design 且代码契约实证 R11 · CMD2 逐 case 与 log 全等 · not_run ≠ pass 收法在案）· F6 SSOT 越权触碰 → 未触发（R15 · 登记留 nail）· F7 EXIT 洗 flake → 未触发
+
+### Blockers
+
+**0 Blocker。**
+
+### Conditions（随卷 binding · 交协调方 nail 阶段）
+
+- **C-MO-G7K-P1**：api 类红（recruiting-bound interview bind 路径 · uc018-abandon 409 · iso HTTP 断言红面）由协调方按 REQUEST 条款 **append-only 登记 `gap-bug-backlog` 后修复另刀**（各自 REQUEST + pre-exec dual + 授权 · 排队 ≠ 授权）；同根性仅作候选线索不写入结论。
+- **C-MO-G7K-P2**：`g7SuiteGreen=false` 保持——翻转须三绿 + post-prove dual BOTH PASS + 协调方 nail，缺一不 flip；本 PASS = mw-model-op 半签，**dual 生效须 mw-e2e-ha 独立同审 PASS（alone ≠ dual · 不代签）**。
+- **C-MO-G7K-P3**：CMD1 case 级 withhold 沿 wrapper stderr 安全契约保持（**Ban 为取明细改产品/开回显假面**）；修复刀若需 case 明细走产品级诊断面另立 REQUEST。
+- **C-MO-G7K-P4**：voice ×6 capability skip 与 online-public ×4 env skip 保持 skip ≠ pass 口径，任一后续刀不得据本刀主张 voice/公网面 green。
+- **C-MO-G7K-P5**：`actualSpendCny=null` 保持至协调方另给计价依据；预算结构估口径（<120/200）不得事后改写为实测。
+
+### 观察（非阻断 · 登记备查）
+
+- **O-1**：CMD1 presence 探针无独立落盘工件（`.tmp/g7k-keyed-20261007/` 无 `01.env-presence.txt`，仅 `01.key-presence.txt`）——SUMMARY 文字声称由 CMD2/CMD3 落盘探针（同 worktree · 相隔 4–9 分钟 · ABSENT×3）+ `run-e2e.mjs:15-21`「不覆盖已设」行为旁证闭合；后续刀建议三 CMD 探针一律落盘。
+- **O-2**：CMD2 收据引 online-public skip 理由于 `:16`，实际在 `:15`（`:16` = `test.setTimeout`）——一行引用漂移，文本逐字吻合，非实质。
+- **O-3**：SUMMARY 记 `E2E_POSTGRES_READY boot/post-migrate/pre-probe`，log 实为 label=`pre-prove`——转写差，非实质。
+
+### 三行中文摘要
+
+1. G7K 收据包 `f02602cb` 亲证成立：恰 4 收据 md +261/−0 零产品码零 SSOT 零 Key 物料，主线孪生 `760de1e1` patch-id `a26b2043` 双侧全等，parent 实测 = 实跑 code SHA `8c6860e3`（gate blob `c655235c`/`aa86fb3f` EXEC 期零漂移）；三 CMD EXIT 1/1/1 与磁盘 exit 文件、六时间戳、双 machine receipt JSON（38541ms/api/141 · gitHead/三步 0-0-1/短路串）逐字段吻合。
+2. AC 翻转双向如实：三 gate 解除证据亲算成立（`live_provider_key_missing` 与 `FreeTierOnly/AllocationQuota` 三 log 全 0 hit、Playwright 24=10P/4F/10S 实跑且逐 case 逐毫秒与 log 全等、HTTP 步 class=api 级联点翻转），Key-blocked 类 → 0、api 类红（recruiting-bound ×2 · abandon 409 ×2）全数如实登记 backlog 另刀，CMD1 case 明细 withheld 系 wrapper stderr 契约（代码 `:2084-2098` 原文实证）且零发明 case 名；预算 <120/200 未触限、presence 探针、`actualSpendCny=null`、`g7SuiteGreen=false` 全部守约，C-MO-G7K-1~7 逐条 PASS（附非阻断观察 O-1~O-3）。
+3. 本 POST-PROVE PASS 仅为 mw-model-op 半签（alone ≠ dual，不代签 peer mw-e2e-ha）；`g7SuiteGreen=false` 保持至三绿 + post-dual BOTH + 协调方 nail；本审 0 重跑 0 live 调用 0 Key 值读取（name-only + 模式扫描）0 coding 0 SSOT，禁 push。
+
+Verdict: PASS
