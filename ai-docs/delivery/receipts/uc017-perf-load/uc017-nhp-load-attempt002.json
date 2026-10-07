@@ -1,0 +1,6076 @@
+{
+ "caseId": "NHP-017-LOAD-w-01",
+ "gapId": "GAP-UC017-LOAD-01",
+ "gitSha": "4804c3dc54e696b5f7af17574d21e1bbe68482a4",
+ "frozenParams": {
+  "N": 20,
+  "M": 5,
+  "orphanTotal": 100,
+  "C": 10,
+  "S": 10,
+  "F": 20,
+  "orphanUnits": 1,
+  "bucketTtlDays": 300,
+  "leaseHeartbeatSeconds": 1800
+ },
+ "rounds": [
+  {
+   "round": 1,
+   "calls": [
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "1d35dc8f-eaa9-4527-afe8-a4ee1a21538c",
+      "5f87138a-0a98-468d-bfc1-bd12df45bb3e",
+      "76c712ec-d584-4760-b5e5-652b7912262b",
+      "55a93f20-b8c1-49d9-8ac6-e051b124fbfe",
+      "cef5db5e-b556-4963-b73c-9eb587d51343"
+     ],
+     "ms": 16.270834
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "2bab827d-f0cb-4d79-882d-e4d3be797580",
+      "950ce8c4-5c52-44e0-b0bd-5529ea7cbc9c",
+      "6cf649d0-bb7d-4f5b-92bb-3ee20815d68e",
+      "f527fe4a-7d3e-414a-8d7a-ca24f534e718",
+      "2850ebdf-7fa9-475d-bcf1-f426dffd9827"
+     ],
+     "ms": 11.126208
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "36e0b704-da2b-4540-aa11-11e2b477793c",
+      "023ccd56-5f8e-42af-aea4-1157a661a8cb",
+      "ec407040-f0b9-4fa7-b69b-07017d0993d6",
+      "510b32a8-45b5-41ef-a6c2-2dda899f9d27",
+      "6677a709-1043-4450-aea3-1b0a5909c843"
+     ],
+     "ms": 7.334125
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "f9bff2e7-7ff1-4fa7-a839-97305644798f",
+      "ed45a23a-4f8d-4c62-bed2-617dca6a8d56",
+      "6d712cfd-4ac7-4ee5-a738-15b6d3b3348a",
+      "fcdfd75b-3458-41a0-8775-d1336f464056",
+      "74959161-df69-4543-bb21-ef462ceeddbe"
+     ],
+     "ms": 34.543208
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "58db2a9b-fd8e-4fd9-ae69-6f3f4bb5aae0",
+      "9c61d792-3382-47ea-b32f-7eac3823eab1",
+      "205ef4fc-bfc1-4006-84bb-2fd1ab5a18c6",
+      "2e416e3a-5c0c-4467-8785-88af7c914c3d",
+      "cac19a15-c8a2-41d1-bbe9-4b2bd1fcc0d9"
+     ],
+     "ms": 15.757209
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "d469e5c2-5178-48e2-916e-9f329d5d1616",
+      "1778bb4c-36ce-460f-ad46-aa91b4457a2a",
+      "41941a3b-13e5-473b-8d7d-e4cf9c7337e3",
+      "c3b9baaa-2aec-403f-adf5-b84bcaa14ce5",
+      "5821d63e-a291-4afd-9261-4bebe2f1e70d"
+     ],
+     "ms": 9.550959
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "b01245f8-3c5a-48fe-ad8d-3c4cc579c9e0",
+      "27fb534d-cd5c-4d44-88eb-bab323457a51",
+      "a440c8eb-866e-416b-a98e-4d7c9f10d068",
+      "216889df-f51d-43d8-b17e-1484caececc4",
+      "2f5886e7-5e19-4a49-84df-d666ace43755"
+     ],
+     "ms": 8.72025
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "3ca25a12-ec8a-434d-b75c-2617c092bb02",
+      "e2185c15-df6b-4c39-9eef-7c38581d6ab1",
+      "81066cf5-5040-4edd-aba2-180b70df5e74",
+      "83ed0276-851b-4128-aee3-ee8eb5b94acb",
+      "52ea51c0-f3a9-4992-9546-0067ba1d91ad"
+     ],
+     "ms": 9.088417
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "23cde8b9-88a0-43ec-ad37-28f62d861c72",
+      "4a7d68c6-7719-4573-a62c-064ac6cf6839",
+      "3640ff22-7fb7-4edb-8cb0-78355736309e",
+      "29b2ed85-4ffc-41ac-b148-b7db4c355827",
+      "cf88fa11-46b3-48ab-a9d9-75f1d5dc1dca"
+     ],
+     "ms": 10.881542
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "7647cb69-ac3c-49dc-904e-c260c9ce0390",
+      "5ee0df40-a7e3-4e66-84ef-342626fb2ef5",
+      "f44460a7-649a-4af3-b78f-80e0b0ffbf61",
+      "959b8d36-f62f-4879-94bd-f43e66d36709",
+      "67d0a4ce-29bf-4734-94b0-2a7a80ab1e13"
+     ],
+     "ms": 8.966125
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "e4626e29-f3c1-49e2-b533-a642a1aa1263",
+      "3d983d03-c5f5-4779-b915-2a62b1c9eaa0",
+      "44db3ff9-7478-4a3d-a09a-e0442d0a416a",
+      "f3f891bd-671f-441c-aac2-b747bd4d26da",
+      "8c90a9b7-5ee1-4dd9-8814-f759e78d91dd"
+     ],
+     "ms": 9.164417
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "cc6a2dbf-e04a-4a73-a9b8-1ee15071857e",
+      "028bc163-b1ca-4f81-a25f-3453f71dd853",
+      "6e4ccbf1-3c33-4921-b137-c9de614ff25e",
+      "41287938-8ef8-42d6-b9e1-973b0f945b59",
+      "147ff722-70f7-4c58-ab98-aa3652f8e08d"
+     ],
+     "ms": 9.385083
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "3485835e-8129-42a7-b174-4dbf517d0e06",
+      "c3edd116-f851-4556-a6fe-11dba48d30b2",
+      "6de81a4a-ea4b-41a6-becc-090707a2d361",
+      "47e6013a-7140-4c1c-ab4e-3590a33f050d",
+      "409dcb4a-812b-4a9c-b9c5-191ca15fd728"
+     ],
+     "ms": 9.28575
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "3784b312-ec15-4fc6-8750-cfd3cf6ff6d9",
+      "2f6757d7-7f25-498b-a70b-27aec15f7a2d",
+      "2a8e4ad9-a978-413e-bd84-4e33f4c6153e",
+      "0d7f264a-e164-4dd2-8c0d-957252d31035",
+      "45384054-9b0d-45dd-b5f9-42e0be68f65f"
+     ],
+     "ms": 9.275458
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "c8a0affe-46a7-42c9-a732-eae1884cbff4",
+      "813048a4-03a3-4f0e-bf74-64bfa8f08fbf",
+      "9e6473a6-7ae0-46a6-b495-994a2c3a9c20",
+      "bbd32b1b-eb83-4c90-be89-e79b85b8b13f",
+      "ed32604a-f269-42d1-ad13-7dafe67ea5b4"
+     ],
+     "ms": 9.494959
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "b7315dec-c9bd-45ea-a5f4-0f81c42df1ed",
+      "97642101-c4b2-460b-991b-822d7fc1cf87",
+      "c1a9cf1c-4266-4a6b-b45a-6a1d22a77411",
+      "ed15ec60-7614-4b1a-9ded-392997c3a5d9",
+      "323238a7-f30b-4adc-b2ac-0bd981bcaf8f"
+     ],
+     "ms": 12.1035
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "19abdeb7-155a-440f-9066-03284141ed0c",
+      "7e165380-4ace-400d-b948-dacc89dc63ec",
+      "6822655f-96bf-4499-8823-dcb1d1a71e7e",
+      "2163f973-7dbe-4432-87d1-be1ad5231f72",
+      "f095be3a-b884-45d6-a1f5-473d7f796c36"
+     ],
+     "ms": 10.980459
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "4f7461df-d9e6-452c-b46a-e91eba3f48a5",
+      "e7a93d73-96e9-4566-a99b-e7fe04b47754",
+      "043c8f0b-1cba-4632-a148-7c9f06f733ce",
+      "80d2f33d-ad0b-46c7-b7e7-c296addbeaf8",
+      "800df448-0e23-417e-8ff6-a495b5dc1e62"
+     ],
+     "ms": 9.662708
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "bebced5b-1982-440e-971f-98116381add3",
+      "efb00206-3ae6-4dd9-abc0-a4c6629fcad2",
+      "12addb7e-0f4c-4b9b-9ef8-7c76d7643fbd",
+      "5f6f8182-feb8-40d4-acd8-3a7204bc2f9d",
+      "7046c3a5-842f-44aa-a6c9-f5316b02c7e8"
+     ],
+     "ms": 8.308542
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 5,
+     "settled": 0,
+     "sweptIds": [
+      "d1ca790e-e6cc-4e2c-9476-dcdd24e50e92",
+      "14e87f09-cfe8-4373-b300-290165f7c57b",
+      "10cdbed0-b04f-4c4f-8ddb-732e26025f0a",
+      "8c231490-9f19-4e90-b570-ce0d7c7a54e9",
+      "71808977-9d68-4687-a971-00fe7e6e769f"
+     ],
+     "ms": 9.235083
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 10,
+     "sweptIds": [],
+     "ms": 15.410584
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 20.301125
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 16.022
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.735791
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 30.125667
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 14.608291
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 12.41025
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 15.274125
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.830708
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.049167
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 13.287458
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.48675
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 13.27275
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.219834
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 10.524042
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 17.469208
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.971625
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 14.476416
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.450792
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 14.509625
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.876875
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.411875
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 20.028917
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 13.109333
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 3.734583
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 45.548958
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.75975
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 10.113292
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 10.024208
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 15.268542
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.060042
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 14.707334
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.899542
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 18.776125
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.085625
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.048708
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.173625
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 12.108084
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 10.745166
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 10.077709
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.609791
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 11.563042
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.59925
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 20.170958
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 11.429042
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.05
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 44.86375
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.861958
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 14.037167
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.356667
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.568458
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 14.113084
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.624667
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.540084
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.831084
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 11.756584
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 11.317708
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.468625
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 18.427083
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.585875
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 15.0455
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.488917
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.064917
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.517291
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 21.288792
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 18.684
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 28.708708
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 11.828834
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 12.271709
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.727958
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 14.484791
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.431041
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 15.472833
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.315292
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.940291
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 16.745708
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.329542
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.746917
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 15.4815
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.720417
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 12.020041
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 14.138167
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.906667
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 13.704709
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 3.457542
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 21.1605
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 22.193791
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 28.949792
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 11.352834
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.662625
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 13.703375
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.675084
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 13.091084
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.94275
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 11.664875
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 12.884334
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.835875
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 13.579
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.279417
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 20.314
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.326208
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.441166
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 11.658667
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.654208
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 10.943167
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.94875
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 21.197417
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 52.253167
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 11.295042
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.134583
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.375042
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.645792
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 20.572
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.301709
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.530542
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.824084
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 12.259542
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.655958
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 10.392375
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.464125
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.838167
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 14.106958
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 12.650625
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.344
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.62425
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.966584
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.577792
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 20.0715
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 14.449541
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.617542
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 47.113291
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.823875
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.077792
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.965917
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 11.116417
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 11.785667
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 16.779875
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.794791
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.679959
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 12.715167
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.62325
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 13.450541
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 18.663084
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.246291
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 16.83025
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.628
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.893458
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.636584
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 20.099375
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.97575
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.635167
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 36.964875
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 16.871125
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 15.693375
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.871125
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.857584
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 16.074875
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.555708
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.731209
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 12.355166
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 14.574208
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.607917
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.779542
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 15.83625
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.544791
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 11.909875
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 10.6345
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.514583
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.829833
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 21.2085
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 47.738625
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 11.826125
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.418417
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.165083
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.857084
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 12.425042
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.198125
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.39
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.222583
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 11.8525
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 14.102417
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.014833
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 12.711333
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.518458
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 20.817459
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.875042
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.192667
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 12.221
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.740584
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.408791
+    }
+   ],
+   "released": 100,
+   "settled": 10,
+   "ms": 244.849583
+  },
+  {
+   "round": 2,
+   "calls": [
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.7105
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.682541
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.751666
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.571708
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.056459
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.234292
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.672583
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.117041
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.016083
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.406875
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.091167
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.639792
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.337084
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.369541
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.12575
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.93875
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.412958
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.283458
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.033416
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.605958
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.755125
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.73125
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.396
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.400583
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.135625
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.341666
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.952583
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.672
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.86
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.725542
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.671542
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.56125
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.565417
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.031625
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.415459
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.943083
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.046417
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.527959
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.284917
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.649584
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.394584
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.385334
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.415875
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.177375
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.0325
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.370375
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.960666
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.364875
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.156625
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.499917
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.02975
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.147375
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.181416
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.526833
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.329958
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.482208
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.800125
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.417
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.788458
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.211042
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.821208
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.787541
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.683417
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.755375
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.448
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.209417
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.483417
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.127625
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.656709
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.30725
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.798458
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.325917
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.014458
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.308916
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.360292
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.374333
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.440042
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.138
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.07625
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.774459
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.041375
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.229416
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.546
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.953583
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.350834
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 10.581125
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.746333
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.2265
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.637083
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.18
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.031375
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.952667
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.813708
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.193708
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.317959
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.013
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.997583
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.558541
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.585083
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.644
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.154916
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.702625
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.630959
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.184167
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.676917
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.989834
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.486625
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.906
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.304875
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.29125
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.191916
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.66775
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.1635
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.179791
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.995
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.444
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.491542
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.700084
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.23075
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.402625
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.32625
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.8805
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.858959
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.033292
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.548292
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.644583
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.9615
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.468958
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.217958
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.984333
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.093125
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.384834
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.597208
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.104458
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.763167
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.158625
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.377709
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.467416
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.33575
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.782875
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.033958
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.833
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.126916
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.384
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.586666
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.793125
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.50425
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.803167
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 10.022042
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.239208
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.907917
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.530542
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.000625
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.064
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.272041
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.135375
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.431125
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.448
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.149708
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.235875
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.304125
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.277959
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.80175
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.042958
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.661833
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.305583
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.455875
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.488792
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.644583
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.598083
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.377333
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.937333
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.825042
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.345333
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.041084
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.150417
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.640084
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.060875
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.103125
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.085875
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.247875
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.571125
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.07775
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.001542
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.98625
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.145833
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.078584
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.55
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.688667
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.178917
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.355
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.618
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.61925
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.151125
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.10425
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.042667
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.519
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.146333
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.19675
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.588875
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.431791
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.447708
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.807083
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.584583
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.726792
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.92925
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.567166
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.71
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.279584
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.6885
+    }
+   ],
+   "released": 0,
+   "settled": 0,
+   "ms": 135.056333
+  }
+ ],
+ "idempotencyRounds": [
+  {
+   "round": 100,
+   "calls": [
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.68375
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.819792
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.128333
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 15.673083
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.9205
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.505917
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.851541
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.073708
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.234875
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.919166
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.885583
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.531709
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.369708
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.9515
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.247583
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.623542
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.749917
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.979125
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.771208
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.600792
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.754166
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.154166
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.560875
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.942875
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 15.20675
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.290708
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.398375
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.042542
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.311
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.273625
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.026875
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.431917
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.279584
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.023042
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.244292
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.317583
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.822875
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.269292
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.904958
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.647458
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.733292
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.70175
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.043791
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.694792
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.937209
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 14.888875
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.54
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.581042
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.132625
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.295208
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.572167
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.596959
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.303541
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.9915
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.864542
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.334916
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.199917
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.893625
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.049167
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.72525
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.591667
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.689542
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.654666
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.131167
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.674834
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.050625
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 14.907583
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.4785
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.401125
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.929833
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.764167
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.293667
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.183708
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.322417
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.426291
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.191541
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.745625
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.449667
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.776834
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.031459
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.842375
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.069125
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.470583
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.915417
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.793042
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.539125
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.554791
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 14.132
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.448208
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.938542
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.788958
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.430541
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.426667
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.607542
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.372125
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.496584
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.800125
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.280709
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.781167
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.085375
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.282125
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.446792
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.343041
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.3865
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.823667
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.064625
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.585709
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.980166
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 15.298541
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.286334
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.203042
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.008417
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.532291
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.316917
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.692875
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.0735
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.76175
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.693625
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.251834
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.58725
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.755791
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.953125
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.492
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.535917
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.497916
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.448
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.943
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.739916
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.851583
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 15.24275
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.582666
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.136416
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.453916
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.357708
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.547042
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.655208
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.107209
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.470291
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.503583
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.556333
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.081917
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.05875
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.687041
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.892833
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.141125
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.620833
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.382292
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.085375
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.693292
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.942667
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 14.323375
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.716
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.131875
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.764833
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.885958
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.113833
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.9175
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.975958
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.762833
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.370667
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.57175
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.271292
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.179625
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.554375
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.847
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.482417
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.127708
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.512333
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.751541
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.522584
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.305875
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 15.103958
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.644458
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.852625
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.319708
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.364583
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.620084
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.833375
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.316209
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.375625
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.627583
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.596625
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.023542
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.656958
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.164667
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.556084
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.721042
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.246833
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.4345
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.01075
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.742625
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.740833
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 16.207042
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.0575
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.311375
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.707583
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.934708
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.805041
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.894959
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.110709
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.821334
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.010709
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.762042
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.202292
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.516458
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.566166
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.182333
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.030958
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.129834
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.74375
+    }
+   ],
+   "released": 0,
+   "settled": 0,
+   "ms": 140.346792
+  },
+  {
+   "round": 101,
+   "calls": [
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.856
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.6035
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.925208
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.659375
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.574
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.014167
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.338875
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 11.139375
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.983917
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.357375
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.419667
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.478959
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.319709
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.758833
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.395334
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.042209
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.122917
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.336167
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.366959
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.284667
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.081416
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.688416
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.02025
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.13925
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.326042
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.066375
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.492041
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.836125
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 10.425458
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.066958
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.967208
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.794042
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.686709
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.6585
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.118417
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.922625
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.9275
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.448166
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.771375
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.805875
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.249833
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.51625
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.82825
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.605166
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.841583
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.211
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.537875
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.574125
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.269084
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 11.192333
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.14025
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.177166
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.176125
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.095833
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.195458
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.968333
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.521417
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.90425
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.087375
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.750333
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.725291
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.993375
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.555334
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.637167
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.74375
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.914292
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.285833
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.490333
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.231083
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.826125
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 10.953
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.030209
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.88575
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.882625
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.136625
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.172541
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.964834
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.105375
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.76775
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.418792
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.743208
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.844541
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.080666
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.322958
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.77525
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.571
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.87425
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.108125
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.599708
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.410333
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.84525
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 12.4925
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.711916
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.578666
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.657208
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.926834
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.851458
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.961333
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.670167
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.638667
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.909875
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.963708
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.532417
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.108916
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 3.503125
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.801709
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.464
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.129709
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.325459
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.180834
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.063041
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.970125
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 11.837458
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.446125
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.928
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.175709
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.777416
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.872834
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.207375
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.64375
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.500875
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.863
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.115709
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.12025
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.355
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.518125
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.317208
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.021667
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.871166
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.0855
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.023375
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.084542
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.731583
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 12.306458
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.978792
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.762166
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.845125
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.716625
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.487041
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.664167
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.569459
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.023875
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.659834
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.703917
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.571125
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.677208
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 2.688875
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.31525
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.978209
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.591333
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.210583
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.938458
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.218542
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.159417
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 12.330583
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.407292
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.851833
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.484833
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.451042
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.204667
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.061458
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.954792
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.904834
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.676791
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.385292
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.992583
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.326791
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.561
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.5385
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.311625
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.886875
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.011583
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.592
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.586166
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.8105
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 10.814166
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.463166
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.241208
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.712333
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.712625
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.583792
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.107459
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.856667
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.764
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.468958
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.058167
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 9.652833
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.068917
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.925584
+    },
+    {
+     "owner": "uc017load-o0-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.737084
+    },
+    {
+     "owner": "uc017load-o1-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.580917
+    },
+    {
+     "owner": "uc017load-o2-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 4.994792
+    },
+    {
+     "owner": "uc017load-o3-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.381958
+    },
+    {
+     "owner": "uc017load-o4-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.60675
+    },
+    {
+     "owner": "uc017load-o5-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.601958
+    },
+    {
+     "owner": "uc017load-o6-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.640208
+    },
+    {
+     "owner": "uc017load-o7-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 10.407917
+    },
+    {
+     "owner": "uc017load-o8-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.2595
+    },
+    {
+     "owner": "uc017load-o9-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.8875
+    },
+    {
+     "owner": "uc017load-o10-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.278541
+    },
+    {
+     "owner": "uc017load-o11-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.066958
+    },
+    {
+     "owner": "uc017load-o12-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.617125
+    },
+    {
+     "owner": "uc017load-o13-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.233041
+    },
+    {
+     "owner": "uc017load-o14-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.439959
+    },
+    {
+     "owner": "uc017load-o15-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.752625
+    },
+    {
+     "owner": "uc017load-o16-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.702458
+    },
+    {
+     "owner": "uc017load-o17-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 6.848917
+    },
+    {
+     "owner": "uc017load-o18-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 8.57425
+    },
+    {
+     "owner": "uc017load-o19-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 7.586708
+    },
+    {
+     "owner": "uc017load-settle-muxrrr7y",
+     "released": 0,
+     "settled": 0,
+     "sweptIds": [],
+     "ms": 5.925625
+    }
+   ],
+   "released": 0,
+   "settled": 0,
+   "ms": 148.861792
+  }
+ ],
+ "l5": {
+  "drainWaves": 2,
+  "drainWallMs": 382.031,
+  "throughputOrphansPerSec": 261.76,
+  "backlogShape": [
+   {
+    "round": 1,
+    "released": 100,
+    "settled": 10
+   },
+   {
+    "round": 2,
+    "released": 0,
+    "settled": 0
+   }
+  ],
+  "errorCalls": 0,
+  "totalCalls": 840,
+  "errorRate": 0,
+  "note": "LOAD_worker face only · ≠ 线上 SLO · ≠ 生产容量 · ≠ HA · ≠ PERF_api/PERF_web"
+ },
+ "finishedAt": "2026-10-07T07:11:50.158Z",
+ "overall": "PASS",
+ "failedAsserts": 0
+}
