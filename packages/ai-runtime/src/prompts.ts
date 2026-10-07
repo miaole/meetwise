@@ -20,14 +20,23 @@ const REGISTRY: Record<string, PromptTemplate> = {
   // R2 P-WORKER / MODEL-OP job.route-classify.v1：岗位意图路由小模型。
   // 只读 <data> 内 title/description/competencies；输出严格 leaf allocations（bps 和=10000）。
   // 禁止发明 taxonomy 外 leaf；不确定 → reasonCodes 非空（known_not_sent）。
+  // p.v2（G7T C-RR-2 五要素 · 消单叶死路）：v1 唯一示例是「单叶 margin=10000」，而服务端
+  // validateModelRouteOutput（job-route-classifier.ts:149-152，G7T 零改动）对单叶恒算出
+  // gap=10000-10000=0 → 恒拒（conflict）——v1 教的恰是必拒形状（live 诊断 3/4 次复现）。
+  // v2：删单叶条款；恒 ≥2 叶 + 减法 few-shot；reasonCodes 双向指令；万分比提示；confidence 锚。
+  // 零校验改动（C-MO-G1 Ban 触 validator）；改 prompt = 升 version（本注册表纪律）。
   'job.route-classify.v1': {
-    service: 'job.route-classify.v1', version: 'p.v1',
+    service: 'job.route-classify.v1', version: 'p.v2',
     system: '你是岗位意图路由分类器。仅依据 <data> 内岗位标题、描述与能力要求，从允许的 taxonomy leaf 中分配权重。'
-      + '允许 leaf 仅限 <data> 列出的 taxonomyLeaves。allocations 的 allocationBps 为整数且总和必须恰为 10000；'
-      + '每项 >= 500；最多 4 个不同 leaf。confidenceBps/marginBps 为 0..10000 整数；'
-      + 'marginBps 必须等于最高权重与次高权重之差（仅 1 个 leaf 时 marginBps=10000）。'
-      + '若无法自信分类，返回空 allocations 与非空 reasonCodes（例如 ambiguous / low_confidence），不要猜测。'
-      + '只返回 JSON: {"allocations":[{"leafTrackId":"backend/nodejs","allocationBps":10000}],"confidenceBps":8000,"marginBps":10000,"reasonCodes":[]}',
+      + '允许 leaf 仅限 <data> 列出的 taxonomyLeaves。'
+      + 'allocationBps 是万分比（满分为 10000，不是百分比 100）：每项是 >= 500 的整数，所有项总和必须恰等于 10000。'
+      + '必须恰分配 2–4 个不同 leaf，绝不要把全部权重集中在单一 leaf。'
+      + 'confidenceBps 与 marginBps 均为 0..10000 整数；confidenceBps >= 7000 才算自信分类；'
+      + 'marginBps 必须精确等于最高权重减去次高权重的差（整数减法，逐位精确，如 7000-3000=4000）。'
+      + '若最高与次高权重之差不足 1000，说明两类难以自信区分：应明确拉开差距，或走拒分路径。'
+      + '双向规则（只居其一）：分类成功 ⇒ allocations 非空且 reasonCodes 恰为空数组 []；'
+      + '无法自信分类（confidenceBps 达不到 7000）⇒ allocations 返回空数组 [] 且 reasonCodes 非空（例如 ["ambiguous"]），绝不猜测。'
+      + '只返回 JSON: {"allocations":[{"leafTrackId":"backend/general","allocationBps":7000},{"leafTrackId":"backend/nodejs","allocationBps":3000}],"confidenceBps":8000,"marginBps":4000,"reasonCodes":[]}',
     buildData: (v) => {
       const comps = Array.isArray(v.competencies) ? (v.competencies as string[]).join(', ') : String(v.competencies ?? '');
       return `taxonomyLeaves:${String(v.taxonomyLeaves ?? '')}\ntitle:${String(v.title ?? '')}\ndescription:${String(v.description ?? '')}\ncompetencies:${comps}`;

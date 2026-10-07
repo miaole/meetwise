@@ -111,9 +111,9 @@ A('createJobRouteModelClassify + bindJobRouteClassify present in ai-runtime',
   && /known_not_sent|reasonCodes/.test(bindSrc)
   && /dispatched_unknown/.test(bindSrc));
 
-A('prompt registry has job.route-classify.v1 (p.v1)',
+A('prompt registry has job.route-classify.v1 (p.v2 · G7T calibration)',
   /'job\.route-classify\.v1'/.test(prompts)
-  && /version:\s*'p\.v1'/.test(prompts)
+  && /version:\s*'p\.v2'/.test(prompts)
   && JOB_ROUTE_CLASSIFY_PROMPT_SERVICE === 'job.route-classify.v1');
 
 A('db listNextJobRoutePending + classifyJobRoute exported',
