@@ -133,3 +133,9 @@ Not a pass · not run（本 REQUEST 零实跑）· not fixed · not coding · no
 
 ---
 *Harness · G7T 红① route/classify 输出质量校准刀 · 2026-10-07 · `draft:awaiting_pre_exec_dual` · docs-only · 定谳承卷=classify 调用成功但输出未过 validateModelRouteOutput → validation_rejected sticky → interview_ineligible_route 409 → 30s 超时 · RC 排序 RC-1 margin 自洽 ＞ RC-2 bps 算术 ＞ RC-3 low_confidence ＞ RC-4 叶覆盖 ＞ RC-5 半执行拒分（EXEC 判别定谳）· 候选 A prompt v2 推荐/B 规则词典/C 叶扩展 交双审 · 三 Ban（弱化校验/夹具强造/G7S 域内）随卷 · trio ×1 各一次 · 预算 ≤200 · STOP*
+
+---
+
+## ERRATUM（G7T EXEC 期追加 · 2026-10-07 · append-only 原文未动 · C-MO-G1）
+
+§1.2 表 #10 括注「（单叶=10000）」为**误读**（抄自 p.v1 prompt 自述条款，未对 `:150` 代码）：validator 单叶 fallback=`JOB_ROUTE_TOTAL_BPS` → gap=10000−10000=**0** → `:151` 恒等要求 margin=0 与 `:152` 阈值 ≥1000 永久矛盾 → **单叶输出结构性必拒（RC-1a 单叶死路）**；p.v1 `:28/:30` 的「仅 1 个 leaf 时 marginBps=10000」条款与唯一单叶示例恰教必拒形状。更正以 `receipts/gap-route-classify-quality/00-diagnosis.md` Erratum 节为准（双审 `8c9295a9` OB-RR-2 / `0efbcd3b` F1 先发现，本席承卷）。v2（`430d4c84`）删单叶条款 + 恒 ≥2 叶减法 few-shot 消此死路；**validator 零改动**（C-MO-G1 Ban 触 validator 全程守住：`job-route-classifier.ts` blob `79ceded8` 不变）。
