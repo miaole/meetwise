@@ -1,0 +1,102 @@
+{
+ "caseId": "NHP-016-FAULT-01",
+ "gapId": "GAP-UC016-FAULT-01",
+ "row": "UC-E2E-016/029 · FAULT 分面（§1.0.1 :121 · NHP 矩阵 :82 · gap→case-only）",
+ "microPatchKeyFace": "95b1fd95：N2/F5 = failed 且对象非 ready 的注入面 job 恰一条 *_unavailable；alreadySettled（failed+ready）不在断言面，由 N1 负向（不重复退·不发假终态）+ N3（ready 不倒退）兜底",
+ "frozenParams": {
+  "bucket": {
+   "kind": "paid",
+   "total": 9,
+   "ttlDays": 300
+  },
+  "unitsPerFlow": 1,
+  "quizFlows": [
+   "PC",
+   "F1",
+   "F3",
+   "F4",
+   "ASET"
+  ],
+  "diagnosisFlows": [
+   "PC",
+   "F2",
+   "F4",
+   "ASET"
+  ],
+  "settledFlows": 6,
+  "expectedFinalAvail": 3,
+  "maxQuizJobAttempts": 5,
+  "maxDiagnosisJobAttempts": 5,
+  "owner": "uc016fault-muxwf39u",
+  "seed": {
+   "resumeIngestPath": "createResumeWithBlob→transitionResume→completeIngestion+ingestResume（真产品路径）",
+   "objectRowsAndBucketProvision": "fixture（quiz.proof:44-45 先例）",
+   "orphanFixture": "job 行 status/lease/attempts 时移（reaper.proof:35-40 先例）"
+  }
+ },
+ "scriptedSeams": {
+  "PC": {
+   "service": "resume-quiz.generate + resume-diagnosis.generate",
+   "behavior": "ok:true 合法 raw（2 接地题 / 4 维接地诊断）"
+  },
+  "F1": {
+   "service": "resume-quiz.generate",
+   "behavior": "throw new Error(nhp16_injected_model_outage)"
+  },
+  "F2": {
+   "service": "resume-diagnosis.generate",
+   "behavior": "throw new Error(nhp16_injected_diagnosis_outage)"
+  },
+  "F3": {
+   "service": "resume-quiz.generate",
+   "behavior": "ok:true + raw {items:\"nhp16-schema-injection-not-an-array\"}（schema 外形非法）"
+  },
+  "F4": {
+   "service": "resume-quiz.generate + resume-diagnosis.generate",
+   "behavior": "ok:true 合法 raw（新实例）"
+  },
+  "ASett": {
+   "service": "resume-quiz.generate + resume-diagnosis.generate",
+   "behavior": "ok:true 合法 raw（真 drain 至 ready+结算）"
+  }
+ },
+ "zeroLive": {
+  "scriptedSeamOnly": true,
+  "providerOutboundCalls": 0,
+  "envModelApiKeyUnset": true,
+  "missingKeyFailClosed": "model-client.ts:364 known_not_executed（双保险）"
+ },
+ "classification": {
+  "envModelApiKeyUnset": true,
+  "F1": {
+   "inject": "script throw(nhp16_injected_model_outage)",
+   "jobLastError": "quiz:external_outcome_unknown",
+   "attempts": 1
+  },
+  "F2": {
+   "inject": "script throw(nhp16_injected_diagnosis_outage)",
+   "jobLastError": "diagnosis:external_outcome_unknown",
+   "attempts": 1
+  },
+  "F3": {
+   "inject": "ok:true + raw.items not-an-array (schema-invalid)",
+   "jobLastError": "quiz:schema_validation_failed",
+   "attempts": 1,
+   "note": "实测=第一层 schema 拒绝即终态收敛 · spec E3「transient 重试」分支 NOT claimed（C-RR-3）"
+  },
+  "F4": {
+   "inject": "success model on NEW instances",
+   "mapping": "D1 rebuild-mapping（重建≠同实例复活 · Ban 宣称字面 failed→pending 已验）"
+  }
+ },
+ "disclosure": {
+  "D1": "F4=重建新实例映射（controller 无 failed→pending 重启口）· Ban 宣称字面口已验 · 旧对象终态稳定断言已行使",
+  "D2": "断言键=产品真表真事件（resume_quiz/quiz_job/interview_event·resume_diagnosis/diagnosis_job）· spec AssessmentReport/AiGraphRun 为需求语映射",
+  "D3": "零模型质量/召回/安全断言（质量归 ai-eval · 禁 fake-model 冒充质量闭环）",
+  "D4": "UC-029 0 题 BOUND 面（partial）本刀不碰"
+ },
+ "nonClaims": "EXIT0 ≠ covered ≠ suite green ≠ 行升格 ≠ PERF/LOAD/容量/SLO/HA ≠ 模型质量闭环 · releaseEvidence=false · Not HA · coveredCount=8",
+ "finishedAt": "2026-10-07T09:21:57.932Z",
+ "overall": "PASS",
+ "failedAsserts": 0
+}
