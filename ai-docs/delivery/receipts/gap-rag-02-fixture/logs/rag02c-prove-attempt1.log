@@ -1,0 +1,91 @@
+
+> meetwise@0.1.0 rag03-route:prove /Users/miaole/Desktop/golucky/meetwise-line-rag02
+> node scripts/run-e2e-isolated.mjs rag03-route:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-77002-1791359678615 on 127.0.0.1:58103
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-line-rag02/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=140 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/db@0.0.0 prove:rag03-route /Users/miaole/Desktop/golucky/meetwise-line-rag02/packages/db
+> tsx test/job-route-decision.proof.ts
+
+
+──────── ① rule 唯一 leaf → route_decided，0 次模型外发；revision 结构上无可写路由参数 ────────
+PASS  规则唯一 leaf → route_decided / rule_decided，seam 0 次外发
+PASS  规则 decision allocations = 单叶 backend/nodejs 10000 bps
+PASS  revision 只存 canonical digest + 输入 HMAC（均为 64 hex，且互异）
+PASS  revision 表结构无 trackId/weight/confidence/override 列（用户提交的桶参数无处可写）
+
+──────── ② fullstack/全栈 rule 不扩散；模型 5 桶 → too_broad ────────
+PASS  fullstack rule 返回 null（命中多桶，绝不做多桶推断）
+PASS  模型 5 桶输出 → too_broad → route_unresolved（不扩散为语言桶）
+
+──────── ③ 模型路径恰 1 次外发 → result_validated → route_decided；allocations sum=10000 ────────
+PASS  模型路径恰 1 次外发 → result_validated → route_decided
+PASS  decided allocations sum=10000 且 confidence/margin 落库
+
+──────── ④ 同一 (job, revision) 最多 1 次外发（终态 noop） ────────
+PASS  二次 classify → noop already_decided，seam 不再被调
+
+──────── ⑤ 模型输出非法 → route_unresolved（精确原因码，绝不半合法落库） ────────
+PASS  allocations sum≠10000 → route_unresolved(invalid_schema)
+PASS  min-allocation 超限(<500) → route_unresolved(calibration_failed)
+PASS  low-confidence(<7000) → route_unresolved(low_confidence)
+PASS  margin 与 top1-top2 实际 gap 不符 → route_unresolved(conflict)
+PASS  leaf 不在 taxonomy v1 → route_unresolved(taxonomy_invalid)
+
+──────── ⑤b DB CHECK 数值 backstop（绕过 domain 校验直插，DB 拒非法 decision） ────────
+PASS  DB CHECK 拒非法 decision（sum≠10000）
+PASS  DB CHECK 拒非法 decision（max-leaf>4）
+PASS  DB CHECK 拒非法 decision（min-alloc<500）
+PASS  DB CHECK 拒非法 decision（confidence<7000）
+PASS  DB CHECK 拒非法 decision（margin<1000）
+
+──────── ⑥ dispatched_unknown 是 sticky 终态，永不自动重发 ────────
+PASS  dispatched_unknown → route_unresolved，恰 1 次外发
+PASS  二次 classify → noop already_unresolved，seam 不再被调（永不自动重发）
+
+──────── ⑦ 非 route_decided 岗位 fail-closed 拒启（不抛但绝不 started：interview_ineligible_route·不建 interview·不落 snapshot） ────────
+PASS  未决岗位申请成功但 binding 行 = 0（route_not_decided 不落）
+PASS  未决岗位 start 不抛、返回 interview_ineligible_route（P-START fail-closed 拒启：无 binding 绝不返回 started/interviewId）
+PASS  fail-closed 拒启未创建 interview 行（该 application 的 interview 行 = 0）
+PASS  fail-closed 拒启不落 snapshot（该 application 关联的 interview_route_snapshot 行 = 0）
+PASS  fail-closed 拒启 application 不进 in_progress（保持 invited）
+
+──────── ⑧ binding 只绑 route_decided 版本；snapshot 不可变（编辑后旧会话不受影响） ────────
+PASS  绑定岗位 rule 路径 route_decided
+PASS  申请绑定最新 route_decided revision 1（route_digest=64 hex，allocations 副本）
+PASS  面试启动落 snapshot（revision 1 + 单叶副本）
+PASS  编辑岗位 → 新 revision 2（route_pending）
+PASS  编辑后旧 interview snapshot 仍 revision 1 + backend/nodejs（不可变，不被新 revision 改写）
+
+──────── ⑧b 招聘方 invite 多方 RLS 可插入 binding（绑定 route_decided） ────────
+PASS  招聘方 invite 触发 binding（recruiter 多方 RLS insert，revision 1）
+
+──────── ⑨ 图内 planner 输出服务端校验（leaf 必须属于 snapshot） ────────
+PASS  leaf 不在 snapshot → 拒
+PASS  difficulty 越界(0/6) → 拒
+PASS  competencyId 含控制字符 → 拒
+PASS  合法 planner 输出 → 通过
+
+──────── ⑩ weighted-deficit 确定性按轮配额（多桶 = 按轮，非一次混合检索） ────────
+PASS  weighted-deficit 10 轮 → 7 nodejs / 3 frontend
+
+──────── ⑪ RLS owner/tenant 隔离（C/B 边界） ────────
+PASS  跨招聘方读 revision/route-event = 0 行
+PASS  候选人读自己消费事件 >0、读他人 = 0 行
+PASS  候选人不能为招聘方岗位 INSERT revision（C/B 边界，RLS WITH CHECK 拒绝）
+PASS  候选人不能 INSERT decision（owner 非本人，RLS 拒绝）
+PASS  非 owner 候选人读 route_unresolved decision = 0 行（公开读仅限 route_decided）
+PASS  非 owner 候选人读 route_decided decision = 1 行（公开读允许，绑定依赖此读）
+
+✓ rag03-route（真 Postgres）全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-07T07-54-47-747Z-77002-47407e56-05b3-45ae-9e4f-9b4508f9c6db.json release_evidence=false
