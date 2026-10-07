@@ -1,6 +1,7 @@
-# Slice — **AUDIT · `product-readiness-c-b-audit.md` stale 更正刀（erratum · 双登记不改写）**（docs-only REQUEST · **`draft:awaiting_pre_exec_dual`**）
+# Slice — **AUDIT · `product-readiness-c-b-audit.md` stale 更正刀（erratum · 双登记不改写）**（docs-only REQUEST · NAIL · **`post_prove_dual_pass`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（empty review stubs · Ban self-approve · alone ≠ dual · 零 coding · 零 prove 执行 · 零 SSOT · **Ban 改写 audit 原文** · **Ban 翻 `:78`/`:77` 状态** · 预执行双审 PASS 后由协调方授权执行）
+> **Draft-era status（historical · retained）**: **`draft:awaiting_pre_exec_dual`**（empty review stubs · Ban self-approve · alone ≠ dual · 零 coding · 零 prove 执行 · 零 SSOT · **Ban 改写 audit 原文** · **Ban 翻 `:78`/`:77` 状态** · 预执行双审 PASS 后由协调方授权执行）
+**Status**: **`post_prove_dual_pass`**（2026-10-07 SSOT nail · 全链：REQUEST `e258fe30`≡origin `23b2ceb5`（patch-id `03e2f145`）· PRE dual `925d1a70`+`3e8c303e`（origin 镜像 `86af8b30`/`951f7267`）· EXEC `afcefece`≡origin `1d16e60a`（生效卷 `harness/gap-cb-audit-erratum.exec.md` · audit blob `8393c67b` 零字节）· POST dual `102d7159`+`eaff320b`（origin 镜像 `02ab60bd`/`65c220ca`）· **`:77`/`:78`/`:103` stays OPEN · 更正 ≠ 闭合**）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · **PG-retained** · **公开 DELETE=503** · GAP-PROD-01 `:77` OPEN · GAP-PROD-02 `:78` OPEN · matrix GAP-PROD-02 partial · audit frontmatter 零触碰
 **Date**: 2026-10-07（Asia/Shanghai · UTC+8）
 **Base**: `origin/feat/mysql-schema-skeleton` · **`50423a6f`** / `50423a6fa6f18d4c9d193611cf84c4702e067208`（SCOR nail tip · fetch 后 origin 最新）
@@ -39,4 +40,4 @@ Ban coding · Ban prove 执行 · Ban live · Ban 改写/删除/加注 audit 原
 
 本刀未跑 prove、未起容器、未连远程环境、未改产品码 / migrations / scripts / `package.json`、未读 `.env*`、audit 文档零字节触碰。执行须 PRE BOTH PASS + 协调方 AUTHORIZE。
 
-**STOP——awaiting PRE dual（Ban self-approve）· Ban push。**
+**NAIL（2026-10-07 · `post_prove_dual_pass`）——`:77`/`:78` stays OPEN · Ban force-push。**
