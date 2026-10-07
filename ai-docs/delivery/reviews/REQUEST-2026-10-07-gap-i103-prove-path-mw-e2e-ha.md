@@ -111,3 +111,78 @@ F1 REQUEST 非祖先→**0 hit**（merge-base 亲证）；F2 REQUEST 夹带代�
 3. blocked/skip≠pass、缺 Docker EXIT≠0、Ban retry-to-green、「不证明控制面已关」口径全卷机械可检成立；0 Blocker，Conditions C-HA-1~8 随卷（attempts 三字段补齐、gate 加严 2 断言、Ban 自动降级等）；alone ≠ dual，本 PASS 单侧不代签 peer mw-privacy-int。
 
 Verdict: PASS
+
+---
+
+## POST-PROVE dual review — `mw-e2e-ha`（adversarial evidence-honesty · #103 prove-path 落地复验 · 2026-10-07）
+
+**Status**: **POST-PROVE dual PASS**（单侧有效 · alone ≠ dual · 不代签 peer `mw-privacy-int` · 其 POST 段并行审未读未签）
+**被审包**: coding **`92ab9918`**（`feat(mem00-int00): wire prove-path harness without claiming control plane closed` · parent `ee7563a2` ∈ origin 祖先亲证 · author mw-core · 2026-10-07 21:50:46+08:00）+ receipt **`01d922e5`**（land attempt-1 receipt · parent `92ab9918` · 21:54:02+08:00）· 两 commit 居本地 `line/i103-prove-path`（见 OB-1）
+**Review base**: 独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-i103p-e2e-ha`（branch `rv/i103p-e2e-ha`）@ origin tip **`65c220ca`**；fresh re-run 态 = `65c220ca` ⨝ merge `01d922e5` = **`e54cf72f`**（clean merge · scripts 双 blob 与 `92ab9918` 全等亲算：runner `b609c589` · gate `f34d201e`）
+**本审执行面**: `pnpm install`（env prep）+ fresh re-run 恰两次命令（gate ×1 · prove-path ×1 · 零重试零弃单）+ 静态机检（git show/diff/grep/sed 只读 · node --check · node -e JSON 解析）；零产品码改动 · 零 SSOT edit · 零 .env 读取。
+
+### 包完整性（机检）
+
+| 项 | 证据 | 判 |
+|----|------|----|
+| 恰 3+1 文件 | `92ab9918` diffstat：`package.json` M +2/−0（恰两行接线 `mem00-int00:prove-path`/`:gate` @ :317-318）+ `scripts/run-mem00-int00-prove-path.mjs` A +325 + `scripts/mem00-int00-prove-path.proof.mjs` A +41 = 3 文件 +368/−0；`01d922e5` 恰 1 文件 receipt A +127/−0 | PASS |
+| 继承重放（D1） | scripts vs 草稿 `3c7f99cb` 全 diff 亲读：gate 恰 +3 行（1 注释 + 2 断言）；runner +51/−3 且 −3 行全为加严替换（start log 加 code_sha/attempt 字段 · honesty note 增「No automatic downgrade…Single attempt window; no retry-to-green」· summary log 加 code_sha）——零逻辑弱化零删除面 | PASS |
+| 零产品码/零 SSOT | 包全文件清单 = scripts×2 + package.json + receipt 四件；`git diff ee7563a2 01d922e5 -- ai-docs` 恰 receipt 1 文件；SSOT 三件（truth/checklist/register）+ INT01 合同 + slice + REQUEST + 双审 stub 全零 diff | PASS |
+| C-1 义务链零触碰 | INT01 合同 `:121`「属 #103 INFLIGHT、合入后方可称已存在」+ `:163` C-1 义务行 @ tip 逐字亲读在位；包内零 diff、ee7563a2→tip 零漂移；checklist `:1212`/`:1214`（STILL OPEN #103 INFLIGHT）@ tip 亲读在位 | PASS |
+| PRE 段 append-only | 本文件 tip blob `a27d2c5e` ≡ 本席 PRE `19cfe869` ≡ origin 镜像 `3301a62c` 三点全等（patch-id `6808f5b9` 双侧全等）；append-only 基线 19207 字节 md5 `7a37a984` 机检 | PASS |
+
+### fresh re-run（恰一次/命令 · 零重试）
+
+- **`pnpm mem00-int00:prove-path:gate` ×1**：**13/13 PASS · EXIT=0**（11 继承 + 2 新断言逐条 PASS；gate 无 DB 无 Docker 无 .env）。
+- **`pnpm mem00-int00:prove-path` ×1**：**10/10 PASS · EXIT=0**（portable 5/5 + isolated 5/5 · `portable_failed=0 isolated_failed=0 isolated_blocked=0` · attempt=1 单窗口 · `docker_available=true` · `portable_only=false` · 运行 23:12:48→23:13:53+08:00 约 65 秒）；回执落 `.tmp/mem00-int00-prove-path/2026-10-07T15-13-53-431Z-…json`（gitignored `.gitignore:15`）**恰 1 文件**；`git status --porcelain` 跑后空 = tracked 树零 IO。
+- fresh 回执 codeSha=**`e54cf72f`**（run 态 HEAD 如实自录，见 OB-2）；per-step 10 条全携 `attempt:1` + `at:+08:00` + `codeSha` 三字段（C-HA-3 在 fresh 面同验）。
+
+### 三钉回执复核（双回执独立解析）
+
+| 钉 | 原回执（`01d922e5` 内嵌 · codeSha=`92ab9918`） | fresh 回执（codeSha=`e54cf72f`） | 判 |
+|----|----|----|----|
+| `releaseEvidence` | **false** | **false** | PASS |
+| `controlPlaneClosed` | **false** | **false** | PASS |
+| `publicDeleteStill503Required` | **true** | **true** | PASS |
+| `intTranscript01ProductionWrite` | **false** | **false** | PASS |
+
+双回执 `class=local_untrusted_mem00_int00_prove_path_receipt` · honesty note 全文含「No automatic downgrade…no retry-to-green」加严版 · 原回执 counts 0/0/0 total=10 与 commit message 申报吻合。
+
+### C-HA-1~8 逐条裁决（POST）
+
+| 条件 | 裁决 | 证据 |
+|------|------|------|
+| C-HA-1（PRE dual BOTH + AUTHORIZE） | **HELD** | PRE dual BOTH PASS 时序亲证：本席 `19cfe869`@21:38:56+08（末行 Verdict: PASS）+ peer `257e9a98`@21:44:46+08（末行 Verdict: PASS）均早于 exec `92ab9918`@21:50:46+08；协调方 AUTHORIZE 本体在 git 外（沿 C-KP-6/U4 先例如实登记，随卷条件延续）；named proves ≠ 授权口径未被突破（包内零越权宣称 grep 全 Ban/否定语境） |
+| C-HA-2（触碰面恰限） | **HELD** | 包全文件清单恰 scripts×2+package.json+receipt；SSOT 三件/backlog/checklist/INT01 `:121`/`:163` 包内零 diff 机检；产品码/迁移/apps/packages 零触碰 |
+| C-HA-3（attempts 三字段 additive） | **HELD** | runner additive 增 `attempt`/`at`（`shanghaiIso` 显式 +08:00 非歧义）/`codeSha`（`git rev-parse HEAD`）三字段入 5 处 result 组装点全数覆盖 + 回执头 `codeSha`/`attempt`/`attemptWindow:'single'`/`startedAtAsiaShanghai`；双回执实测逐字段在位 |
+| C-HA-4（gate +2 断言非弱化） | **HELD** | `grep -c '^A('` = **13**；vs 草稿 11 条逐字保留（diff 纯增量亲读）+2 条双向防翻断言（`publicDeleteStill503Required: true` 且禁 `false` 反值 · `intTranscript01ProductionWrite: false` 且禁 `true` 反值）；fresh gate 13/13 |
+| C-HA-5（blocked→EXIT≠0 全模式 · Ban 自动降级） | **HELD** | runner exit 逻辑亲读：`portableFailed>0‖isolatedFailed>0‖isolatedBlocked>0 → process.exitCode=1`；无 Docker 全模式记 `blocked:docker_daemon_missing`；无静默降级路径（`--portable-only` 仅显式 argv 旗标）；honesty note 写死 explicit-only |
+| C-HA-6（单窗口零重跑 · 历史回执未引用） | **HELD** | 原回执 10 步全 attempt=1、时间戳连续（21:51:02→21:53:07+08）与 wire→receipt commit 窗（21:50:46→21:54:02）吻合；git 树内恰 1 个 i103 receipt（attempt1）无 attempt-2 文件；双脚本 `grep '2026-08\|receipts/'` 0 hit；本审 fresh 恰 1 receipt .tmp 零重跑 |
+| C-HA-7（零 live · Ban 绕壳 · Ban db:up） | **HELD** | isolated 5/5 全经 `scripts/run-e2e-isolated.mjs <target>:raw` 壳（ISOLATED 数组亲读）；runner grep live/api_key/secret/token 0 hit；`db:up`/`compose.dev` 仅存于 gate Ban 断言与注释零调用；worktree 零 `.env*` 文件、runner 零 .env 读取（仅 process.env 透传子进程惯例面） |
+| C-HA-8（Pins 冻结 · 禁碰行 · alone≠dual） | **HELD** | tip checklist `:173` Pins retained 行亲读原值：NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount **8** · ms3EqualsR4Closed=false · PG-retained · public DELETE=503；backlog `:58`-`:64`/`:68`/`:100`-`:102`/`:123` 与 checklist `:154`/`:167`-`:176`/`:1212`/`:1214` 包内零 diff；peer POST 并行未读未签 |
+
+### Blockers
+
+**0 Blocker。**
+
+### Observations（非阻断）
+
+- **OB-1**：任务书申报「origin tip `65c220ca` 已含 I103 exec」在 git 祖先义**不成立**——`92ab9918`/`01d922e5` 居本地 `line/i103-prove-path`（parent `ee7563a2` ∈ origin 祖先，非 origin tip 祖先；`merge-base --is-ancestor` EXIT=1 亲算）。正因如此，tip 上 checklist `:1214`「`#103` INFLIGHT（`mem00-int00:prove-path` 未合入）」与 INT01 `:121`「合入后方可称已存在」**保持为真**——SSOT 诚实链零漂移，合入承载分支属协调方动作（沿 PRE O4 孪生先例）。
+- **OB-2**：fresh re-run codeSha=`e54cf72f`（本审 merge 态 HEAD）≠ 被审 wire commit `92ab9918`——scripts 双 blob 三点全等（`b609c589`/`f34d201e`）即运行面与被审码 byte-identical，回执如实自录实际 HEAD 不虚指，方向诚实非稀释。
+- **OB-3**：宿主机残留容器 `meetwise-e2e-62497-cold2-stop-band-1`（Exited 0 · 约 1h 前）属 FLK rootcause ecold2 stop-band 实验按其自身语义保留的证据容器，非本刀非本审产物；本审 fresh run 与被审 exec 均零容器残留。
+- **OB-4**：pnpm 以 project pin 10.18.0（corepack）执行 vs 全局 10.28.0——无影响面，登记备查。
+
+### Conditions（随卷延续 · 违反任一即本 PASS 不覆盖）
+
+C-HA-1~8 全额随卷继续绑定（含 AUTHORIZE 本体落卷要求沿 C-KP-6）；另加：
+
+- **C-HA-9**：合入承载分支（`feat/mysql-schema-skeleton`）前，`line/i103-prove-path` 上的 `92ab9918`/`01d922e5` 不得被引用为「已合入/已存在」；合入后 INT01 `:121` 改注与 checklist `:1214` 迁移仍属协调方 nail 专属，本包未预支。
+- **C-HA-10**：任何后续 prove-path 再执行须沿用单次 attempt 窗口纪律（Ban retry-to-green、blocked/failed 原值入账），新 attempt 须新回执新序号，Ban 覆写 attempt-1 台账。
+
+### 中文三行摘要
+
+1. 被审包 `92ab9918`（恰 3 文件 +368：scripts×2 继承重放 + package.json 两行接线）+ `01d922e5`（receipt +127）包完整性机检全过——继承重放 vs 草稿 `3c7f99cb` 纯加严（gate +2 断言 · attempts 三字段补齐 · honesty note 加严），零产品码零 SSOT 零 INT01 `:121`/`:163` 触碰，本席 PRE 段 blob 三点全等 append-only。
+2. C-HA-1~8 POST 逐条 HELD：PRE dual BOTH PASS 早于 exec 时序亲证（21:38/21:44 < 21:50）、gate 恰 13 条、blocked→EXIT≠0 全模式、单窗口零重跑、零 live 零绕壳零 db:up、Pins 八项原值；三钉双回执（原 `92ab9918`/fresh `e54cf72f`）releaseEvidence=false · controlPlaneClosed=false · publicDeleteStill503Required=true · intTranscript01ProductionWrite=false 实测全中。
+3. fresh re-run 恰两次命令零重试：gate **13/13 EXIT=0** · prove-path **10/10 EXIT=0**（portable 5/5 + isolated 5/5 · blocked=0 · attempt=1 单窗口 · tracked 树零 IO）；0 Blocker · OB-1 登记「origin tip 未含本包」诚实事实（合入属协调方）· PASS ≠ 控制面已关 ≠ HA ≠ releaseEvidence=true ≠ INT-TRANSCRIPT-01 解禁 ≠ UC-052 covered · alone ≠ dual 不代签 peer mw-privacy-int · 禁 push。
+
+Verdict: PASS
