@@ -391,6 +391,14 @@ export type {
   JobRoutePendingClaim, ClassifyJobRouteResult, BindApplicationRouteResult, SnapshotInterviewRouteResult, InterviewRouteSnapshotView,
 } from './job-route-decision.ts';
 
+// G7S 通用 begin 供给面收口：candidate-profile-derived route decision + snapshot（0142 新结构，
+// additive-only；job 维度零冒用）。写侧 = begin 事务同步供给（先于扣额/入队，未决 409 fail-closed）；
+// 读侧 = worker 角色门 fallback（旧 recruiter snapshot 优先，零回归）。
+export {
+  supplyCandidateProfileRoute, getInterviewRouteSnapshotForAdaptiveRole,
+} from './candidate-route.ts';
+export type { CandidateProfileRouteSupply } from './candidate-route.ts';
+
 // RAG-FUNNEL-04 / track-local retrieval dispatch seam（图内 planner 消费）：
 // 冻结 RetrievalPlan + 服务端校验属于 snapshot + DB 层 serving_scope 硬过滤检索 + recheck。
 // 复用 RAG-03 getInterviewRouteSnapshot / RAG-02A readGenerationQuestionChunkProjection，不改检索函数 ACL。

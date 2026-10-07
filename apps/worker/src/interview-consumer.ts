@@ -4,7 +4,7 @@
  * 三事务式:claim 提交 → 生命周期(模型在各自短事务,经 invoke) → markDone。同面试保序、租约崩溃可重领。
  */
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, getInterviewRouteSnapshot, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, type DbPool, type InterviewGraphFence, type QbankServingScopeInput } from '@meetwise/db';
+import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, getInterviewRouteSnapshot, getInterviewRouteSnapshotForAdaptiveRole, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, type DbPool, type InterviewGraphFence, type QbankServingScopeInput } from '@meetwise/db';
 import { getMetrics, METRIC, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
 import type { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { admitInterviewResume, degradedRetrieval, type ScoredRef, type SourceDoc } from '@meetwise/domain';
@@ -337,20 +337,24 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
                   ocrBinding: loaded.ocr_binding ?? undefined,
                 })
               : { ok: false as const, resumeProfileAvailable: false as const };
-            // R1 / GAP-RAG-01: resolve role from route snapshot / job metadata; flag-on fail-closed
-            // when missing (no silent 技术岗). Flag-off keeps legacy default inside resolver.
-            // Does not claim R2 snapshot write-path or R4 topic isolation.
+            // R1 / GAP-RAG-01: resolve role from route snapshot; flag-on fail-closed when missing
+            // (no silent 技术岗). Flag-off keeps legacy default inside resolver.
+            // G7S 通用 begin 供给面收口:角色门供给读 = 旧 recruiter snapshot 优先 → fallback
+            // candidate_profile_route_snapshot(0142 新结构;通用 begin 面供给先行,先于扣额/入队)。
+            // 检索面(routeSnapForRetrieve / G-R2-5)维持旧表直读不动——candidate 面 retrieval 走
+            // 既有 degradedRetrieval('route_snapshot_missing') 语义。门语义零弱化:缺行/缺叶仍
+            // throw adaptive_role_route_missing(adaptive-role-resolve 零改动)。
+            // 死源处置(C-MO-S3):原 roleFromJobRouteMetadata(声明从未赋值)已删除,非接线——
+            // 通用面供给走独立 candidate 结构,Ban 冒用 job 维度 metadata。
             let roleFromRouteSnapshot: string | undefined;
-            let roleFromJobRouteMetadata: string | undefined;
             if (isTechRoleFailClosedEnabled()) {
-              // Reuse retrieve-path snapshot load (same interview); R1 ≠ R4 isolation.
-              const snap = routeSnapForRetrieve;
+              const snap = await asPrincipal(d.pool, owner, (c) =>
+                getInterviewRouteSnapshotForAdaptiveRole(c, owner, job.interviewId));
               const primary = snap?.allocations?.[0]?.leafTrackId;
               if (typeof primary === 'string' && primary.trim()) roleFromRouteSnapshot = primary.trim();
             }
             const role = resolveAdaptiveInterviewRole({
               roleFromRouteSnapshot,
-              roleFromJobRouteMetadata,
               roleFromDeps: adaptive.role,
             });
             await startAdaptiveInterview(life, role, admitted.ok && admitted.resumeProfileAvailable ? facts : []);
