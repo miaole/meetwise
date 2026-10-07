@@ -156,3 +156,65 @@ Pins 篡改：无 ✓ · Ban 违反：无（REQUEST docs-only · 三 Ban 原文�
 3. 候选 B 裁决：不被 `:66-70` 当然禁止（唯一叶命中结构上无扩散面）但须逐词放行+伞桶-only+policy 升版，且只可补不可替；0 Blocker · 6 Conditions C-RR-1~6 · 本 PASS 仅为 mw-rag-route 半签（alone≠dual · 不代签 mw-model-op）· Ban prove/coding/产品 edit/共享 SSOT edit 全守 · 禁 push。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual 审查段 · mw-rag-route（route/taxonomy/policy 语义域焦点）· 2026-10-07 · append-only
+
+**审席**: `mw-rag-route` · worktree `/Users/miaole/Desktop/golucky/meetwise-rv-g7tp-rag-route` · branch `rv/g7tp-rag-route`（基于 `feat/mysql-schema-skeleton`）· 审时 HEAD `7979cd20`。**被审对象 = G7T EXEC 链**：`c670bf15`（prompt p.v2 · 恰 3 文件 +19/−9）+ `7979cd20`（receipts · 恰 5 文件 +197/−0）；实现方工作树 `line/g7t-classify-quality` 孪生提交 `430d4c84`/`80833e6b`（origin push 443 堵 · 以本地链为被审对象如实记录）。本审 = git 只读亲证 + 原始工件只读检视（EXEC 工作树 `.tmp/`、`test-results/`）+ 双 proof 本机复现；**恰 0 fresh live 调用 0 coding 0 产品 edit 0 共享 SSOT edit 0 Key 值读取 0 DB 连接**；本 PASS 仅为 mw-rag-route 半签（**alone ≠ dual · 不代签并行 peer mw-model-op**）。
+
+## PP-1. 包完整性复核（全过 · 机检）
+
+- **恰 3+5 文件** ✓：`git show --stat c670bf15` 恰 3 文件 +19/−9（prompts.ts / sealed binding / r2 proof）· `git show --stat 7979cd20` 恰 5 文件 +197/−0（harness erratum + receipts 00/01/02/SUMMARY）；全距 `8c92b344..7979cd20` 恰 10 文件（中含双 PRE 提交 `b5f53a22`/`f3c7dd08`——EXEC 两 commit 本身恰 3+5）。
+- **零 validator 改动（C-MO-G1）blob 亲算** ✓：`job-route-classifier.ts` = `79ceded84977bef0fc9e0033c8c85b97b1c8492a` 于 `8c92b344`/`b5f53a22`/`f3c7dd08`/`c670bf15^`/`c670bf15`/`7979cd20` 六 ref `git ls-tree` 逐字节全等；`semantic-route.ts`=`077aebab`、`job-route-decision.ts`=`a621d8bd` 同验不变。
+- **sealed 常量+测试钉同步（C-RR-3）** ✓：`sealed-job-route-classify-binding.ts:28` p.v1→p.v2（blob `f2105586`→`e291780d`）· `r2-p-worker-route-classify.proof.ts:114` 钉同步 p.v2；Ban 面亲算不变：`recruiting-bound.spec.ts`=`de4991e6`、`package.json`=`0afb3bd2`。
+- **SSOT 零 diff** ✓：`git diff --name-only 8c92b344..7979cd20 | grep -iE 'ssot|suite|pin'` 零命中；execution-master-checklist/backlog 零触碰；Pins 十值（SUMMARY §Pins）与 stub/slice 在卷原值零翻转。
+- **erratum 落点** ✓：harness 末尾 ERRATUM 段纯追加（diff 零删改 · §1.2 #10 原文未动）+ `00-diagnosis.md` Erratum 节同源互证；本席 PRE 段落点保全——stub 前 7944B md5 `078f4207` 复算全等。
+- **孪生映射机检（OB-RR-P1）**：`git diff --name-only 430d4c84 c670bf15` 与 `80833e6b 7979cd20` 均恰 2 文件（双 PRE 审查段 +142 行主线独有）；排除 `ai-docs/delivery/reviews` 后 **0 文件差**——被审实质（3 码 + 5 收据 + harness erratum）内容级全等，`≡` 成立（沿 OB-RR-1/OB-MO-P4 benign 先例）。
+
+## PP-2. v2 修复面翻绿裁决（核心 · 成立）
+
+- **RC-1a 机理独立复证** ✓（blob `79ceded8` 实读）：`:150` 单叶 fallback=`JOB_ROUTE_TOTAL_BPS` → gap=10000−10000=**0** → `:151` margin≠0 拒、`=0` 落 `:152` <1000 拒——单叶结构性必拒无解；与双审 F1/RC-1a + 确定性探针（两形状均 `conflict`，三份 diag 原始日志亲读在卷）三角闭合。
+- **v2 唯一示例形状确定性可过** ✓：2 叶 7000/3000 · confidence 8000 · margin 4000 · `reasonCodes[]` 经本席对 validator 十齿（`:119-152` + 常量 `:34-38` max4/min500/7000/1000/10000）逐项推演全过（sum=10000·每叶≥500·gap=7000−3000=4000=margin·≥1000）。
+- **诊断链原始工件亲读全同** ✓（EXEC 工作树只读检视）：round-1 日志 ITER1-3 单叶 `backend/general`@[10000]·margin10000·conf 9000/7500/9000（**逐字=p.v1 唯一示例形状**）→ `conflict` ×3 + ITER4 空 allocations/`ambiguous` → known_not_sent 面；分布 `{"0":1,"1":3}`/`{"conflict":3,"invalid_schema":1}` 与收据 00 §2 逐值同；OB-1 双调用污染（`sensitive_result_replay_requires_artifact` ×4 DB 行）如实登记不作归因 ✓。round-2 route-only DB 行亲读：**`validation_rejected/["conflict"]` ×3 + `known_not_sent/["ambiguous"]` ×1**——G7S 红①签名同形补齐（G7S `receipts/gap-begin-snapshot-supply-fix/02` 同位读数 `validation_rejected ×2` 未查 reason_codes 列，本轮补齐=conflict）。v2 预检 ×3 原始 DB 行 `result_validated` ×3 与收据逐值同（4 叶 4000/3000/2000/1000·conf7000·margin1000；3 叶 4500/3000/2500·conf7000·margin1500 ×2——减法逐位精确）。
+- **CMD2 attempt2 sidecar 原始日志亲读全同** ✓：`g7t-sidecar-attempt2.log` 135 行 2s 轮询——`20:57:08 route_pendingx1` → **`20:57:13 result_validated:{}` + `route_decidedx1`** → 末读 `20:59:03 result_validated:{} | result_validated:{}` · `route_decidedx2` · **consumption=0 snapshot=0**；与收据 02 时间线逐行同。sidecar 脚本亲读：SELECT-only 白名单恰四查询（attempt_outcome/reason_codes/revision status 计数/两表 count）· Ban payload/`ai_invocation_trace.output`/写查询维持。
+- **同位翻绿=修复面因果确证**：G7S 同表同位 `validation_rejected ×2`（classify 拒）→ G7T attempt2 同位 **`result_validated ×2` · 零 validation_rejected · 零 conflict/low_confidence/taxonomy_invalid · reason_codes 全空**；唯一变量 = p.v1→p.v2（validator blob 钉死不变）→ **本刀指名面（classify 输出质量/RC-1a 单叶死路）已修复并经 live e2e 复证翻绿，裁决成立**。attempt1 失败签名（`recruiting-bound.spec.ts:56` ×2 project · `:96:14` 30s waitForURL · 错误横幅 `3363855294` 双 project error-context 快照亲读在卷）与 G7S 同形，attempt1 无 sidecar 不可判别（OB-2 如实自认）→ attempt2 判别设计成立。
+- **双 proof 本机复现** ✓：本 worktree `pnpm install` 后 `job-route-classify-binding:prove` OK + `r2-p-worker-route-classify:prove` **EXIT=0**（p.v2 钉经执行面验证同步）。
+- **Ban retry-to-green 守住** ✓：attempt1（仪表缺位不可判别）+ attempt2 同码仪表化迭代（目的=判别非翻绿）双 attempt 全记录、未择优留档；EXIT=1 原值 ×2；12P/2F/10S 同计数且失败面构成已变如实区分。
+
+## PP-3. 根因位移裁决（成立 · 证据强度分级如实）
+
+- **硬事实（sidecar 直读）**：publish→decided 恰 +5s（chromium `20:57:08`→`13`；mobile `20:58:03`→`08`）= consumer 5000ms 轮询 + 模型延迟；decided 在卷后至拆除末读 135 行全程 **`consumption=0`/`snapshot=0`**——G7S 供给链语义（begin 后到必落 binding+consumption event · 本刀零触碰）下，binding 零落贯穿 = **begin 从未消费到 route_decided**。
+- **推断面（收据已自标「spec 内推算」）**：publish→begin 步进 ≈5–6s → 竞差 0–2s 先 begin 后 decided → `bindApplicationRoute` 409 `interview_ineligible_route`（`recruiter.ts:410` fail-closed）→ 30s waitForURL 死窗。本席裁决：**时序面定谳成立**——409 只能在 undecided 时发生（consumption=0 硬事实排除他因），竞差量级为有据推断非直测，收据措辞与证据强度相称。
+- **与 G7S「时序竞态假说否定」不矛盾** ✓：G7S 否定语境 = 决策行已存在且为 sticky-unresolved 终态（无对象可消费·时序无关）；v2 后决策行 +5s 翻绿到位而 begin 已过——**失败面位移（classify 输出质量→消费时序）=「根因位移」表述准确**。
+- **衔接表述核验** ✓：`harness/gap-begin-snapshot-supply-fix.md:79` 原文逐字在卷「夹具刀不在本刀（仅红①时序面合法——recruiting-bound『等 route_decided 再 begin』若需要，属独立夹具 REQUEST…）」——收据 02/SUMMARY 引述准确；产品面备选（begin 同步 fallback classify / consumer 提速/事件唤醒）= 消费时序产品语义变更如实并列。**两者均超本刀授权（prompt v2 校准 + 诊断先行）→ STOP 交协调方 = 正确落点**（spec blob `de4991e6` 零触碰 · sticky 通路零改动机检在卷）。
+
+## PP-4. 温度残余方差复核（登记成立）
+
+- **C-MO-G2 prompts-only 兑现** ✓：`SERVICE_TEMPERATURE`（`model-client.ts:152-156`）仅 evaluate/planner/resume-diagnosis 三映射，无 `job.route-classify.v1`，全距 0 文件触碰——映射面零改动、F2 维持（live 跑供应商默认温度）如实登记、未静默假设 0。
+- **锚定行为观测如实且闸内** ✓：预检 ×3 confidence 恰=7000（prompt 锚=validator `:141` 阈值字面值）、margin 恰=1000/1500（few-shot 演示值·减法精确）——贴字面下限但十齿全过（**闸内合规**），收据不隐残差；温度钉 0/映射引入属 F2 另刀双审事项，本刀不动，残差入卷 ✓。
+
+## PP-5. 条件裁决（C-RR-1~6 逐条）
+
+| # | 条件 | 裁决 |
+|---|---|---|
+| C-RR-1 | RC-1 分型 + live 回放叶数形状记录 | **兑现**——RC-1a 定谳（3/4 单叶逐字形状 + 探针双证；RC-1b 零出现）；形状记录于 round-1 seam 直调（`{"0":1,"1":3}`），round-2/预检 route-only 以 DB attempt_outcome/reason_codes 判别（`leafCount=-1` 占位如实），未越 C-MO-G3 内存即弃 |
+| C-RR-2 | p.v2 五要素 + 零校验改动 | **兑现**——删单叶条款+唯一示例 / 恒 ≥2 叶+减法 few-shot（7000−3000=4000）/ reasonCodes 双向只居其一 / 万分比提示 / confidence 锚 7000+差<1000 拒分条款；blob `79ceded8` 全程不变 |
+| C-RR-3 | 触碰面 ≥3 文件 | **兑现**——恰 3 文件（prompts+sealed 常量+测试钉）；sealed 漂移规避（binding 声明与 registry 供版一致·prove 复现验证）；全仓 p.v1 残留仅注释 |
+| C-RR-4 | 候选 B 逐词标准 | **未触发（正确）**——走 A 且 A 翻绿（result_validated ×2）；B 词典补叶按「只可补不可替」休眠，本刀零词典改动 |
+| C-RR-5 | reason_codes SELECT-only 授权 | **兑现**——sidecar/诊断 SQL 白名单亲读恰限授权列；Ban `ai_invocation_trace.output`/payload 全守；Key name-only · 五个 `.env*` ABSENT 与收据一致 |
+| C-RR-6 | 候选 C 门槛维持 | **维持**——全部读数零 `taxonomy_invalid`（0086 `backend/general` 自然叶被模型选用佐证非覆盖缺口）；零 taxonomy/leaf 面改动 |
+
+## PP-6. Blockers / Conditions / OB
+
+- **0 Blocker**。
+- **Conditions（随卷）**：① **alone≠dual**——本 PASS 仅为 mw-rag-route 半签，POST-PROVE dual 生效须 mw-model-op 同位另签 + 协调方裁决；② **时序面残留=红① STILL OPEN（构成已变）**——夹具刀（等 route_decided 再 begin）vs 产品面（同步 fallback/consumer 提速/事件唤醒）须**新 REQUEST + 双审 + 协调方授权**，本审两皆不预授权；③ **Pins 零翻转**：`g7SuiteGreen=false` · trio OPEN（EXIT 1/1/− · CMD2 ×2 attempts 如实）· `actualSpendCny=null` · Disclosure-1 OPEN；④ 温度钉 0/映射引入属 F2 面，另刀双审。
+- **OB 非阻断**：**OB-RR-P1** 孪生 `430d4c84`/`80833e6b` 与主线 `c670bf15`/`7979cd20` 仅差双 PRE 审查段（+142 行 reviews docs；被审实质 0 文件差——benign 沿先例）；**OB-RR-P2** live 计数口径 15–18 区间 ±1~3 歧义（`g7t-diag-run3-v2.log` 与 `g7t-diag-run4-sample.log` 两份 v2 日志关系收据未逐条对账；口径上限仍 ≤ C-MO-G3 N≤20 冻结内 · est-not-counter 如实）；**OB-RR-P3** 本审零 fresh live 零 DB 连接——全部读数为收据+原始工件只读亲证（attempt1 classify ×2 本为 est-not-counter 同登记）；**OB-RR-P4** begin 时点为 spec 内推算非直测（收据已自标 · 本席按证据强度相称原则采信定谳）。
+
+## PP-7. 中文三行摘要
+
+1. 包完整性机检全过：EXEC 恰 3+5 文件 · validator blob `79ceded8` 六 ref 全等零改动 · sealed/测试钉同步 · SSOT 零 diff · erratum 纯追加；孪生提交与主线仅差双 PRE 段（被审实质 0 文件差）。
+2. v2 修复面翻绿成立：诊断/预检/CMD2 全部原始工件（diag 日志 · sidecar 135 行 · 错误快照 `3363855294` ×2）亲读与收据逐值同；G7S 同位 `validation_rejected ×2` → `result_validated ×2` 零拒分，唯一变量 p.v1→p.v2 因果确证；双 proof 本机 EXIT=0 复现。
+3. 残留红①=begin/异步 classify 时序面定谳成立（decided +5s · consumption=0 贯穿 · 竞差 0–2s 为有据推断）＝G7S `:79` 预留独立夹具 REQUEST，超本刀授权 STOP 正确；C-RR-1~6 全兑现/维持 · 0 Blocker · Pins 零翻转 · 本 PASS 仅为 mw-rag-route 半签（alone≠dual · 不代签 mw-model-op）· 禁 push。
+
+Verdict: PASS
