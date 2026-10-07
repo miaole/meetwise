@@ -1,6 +1,7 @@
 # REQUEST — **F-F · interview_job last_error 甄别刀**（仪器化重跑 + 容器拆除前 DB 只读甄别 · ≠ 修复 ≠ trio 翻绿）· pre-dual · mw-e2e-ha
 
-**Status**: **PENDING** / `draft:awaiting_pre_dual`（stub only · Ban self-approve · alone ≠ dual · 不代签 peer）
+**Status**: **PENDING** / `draft:awaiting_re_pre_exec_dual`（**RE-PRE round 2** · round-1 本席 verdict=**FAIL**（B-FF-1/B-FF-2 · 下附段 append-only 随卷保留零删改）· 实现方已按两审处方面 rewrite · 本 stub 重开待本席复审 · Ban 实现方 self-write 任何 PASS · Ban self-approve · alone ≠ dual · 不代签 peer）
+**RE-PRE 注记（实现方 mw-core · 2026-10-08）**：rewrite commit 落于 `line/ff-last-error`（base 重钉 `0b18169c`，rebase drop 孪生 `1dd1e630`）。本席 round-1 处方兑现：B-FF-1（§1.3(1)+白名单 `updated_at`→`created_at` + C-HA-FF-1 语义注记 + DDL 核实在卷）· B-FF-2（§1.3(2) `error`→`error_code` + C-HA-FF-2 值域注记 @`0037:14`/`0088:113`）· C-HA-FF-3（§1.3 前注 + §1.2-A 快照逐查询 ok/error + §3.4/§3.5 报错≠空读封口）· C-HA-FF-4（本段 append-only 随卷 + OB-FF-1 孪生 provenance/OB-FF-2 措辞注记于 harness Base/§1.2-A 如实继承）· C-HA-FF-5（withhold blob `13dbfc43` 钉与判读表措辞纪律零触碰）。请本席复审。
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · `g7SuiteGreen=false` · `r1Closed=false` · `techRoleFailClosedOptOutG7Only=true` · trio OPEN · GAP-G7K-API-REDS **P1 OPEN** · `actualSpendCny=null`
 **Expert**: `mw-e2e-ha`
 **Knife**: `harness/g7r-ff-last-error-discriminator.md` · slice `g7r-ff-last-error-discriminator.slice.md`
@@ -47,3 +48,63 @@ Trio stays **OPEN**（EXIT 1/1/1 真实业务红）。`g7SuiteGreen=false`. `act
 ---
 
 *REQUEST stub · F-F last_error discriminator · Line F-F · 2026-10-07 · PENDING awaiting mw-e2e-ha + mw-model-op pre-dual · alone ≠ dual · 禁 push · STOP*
+
+---
+
+# PRE-EXEC dual 审查段 — mw-e2e-ha（adversarial evidence-honesty）· append-only · 2026-10-07
+
+**审者**：`mw-e2e-ha`（独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-ff-e2e-ha` · branch `rv/ff-e2e-ha`）。**被审树**：origin tip `0b18169c`（full `0b18169c78f20b0d2b8c5105d388b23d6d9cc865`，parent `bfd868e0`）。**方法**：0 prove run · 0 live · 0 Key 值读取 · 0 DB 连接 · 0 coding · 全部只读（git 亲读 + 文件亲读 + 全局 grep 机检）· alone ≠ dual，不代签并行 peer mw-model-op。
+
+**Provenance（如实登记）**：任务单所引 REQUEST commit `1dd1e630` **非** origin 分支祖先（dangling 同树孪生）；origin tip `0b18169c` 与之 **tree 全等**（`b910a6da5d78029dbaede8ea91e1511563d6ba10` 双向 `rev-parse^{tree}` 亲算 + `git diff` 空）· 同 subject 同 4 文件 +255/−0 · parent 恰为 `bfd868e0`。本审对 tip `0b18169c` 执行，孪生 provenance 登记为 OB-FF-1（沿 G7R 同树重提交先例，非阻断）。docs-only 机检：4 文件全 `ai-docs/delivery/`，零产品码、零 SSOT、零 package.json、零 spec、零 `.env*`。REQUEST 祖先性：tip 即分支头，docs-only 成立。
+
+## 一、检查表（逐维 · 只读抽验证据全部本树亲算）
+
+| # | 维度 | 结果 | 证据（本树亲读亲算） |
+|---|---|---|---|
+| 1 | docs-only + 无 SSOT 翻转 | ✅ | `git diff bfd868e0..0b18169c --numstat` = 4 docs 文件 +255/−0 |
+| 2 | wrapper 零 diff / withhold 零触碰 | ✅ | `git hash-object scripts/run-e2e-isolated.mjs` = `13dbfc43c744511644649ae310696a13ee2f20f7` 与 G7R 冻结钉前缀全等；`runFullE2E` 实测起 `:2082`、`child.stderr.on('data', () => {})` 实测 `:2088`（REQUEST 登记的先例行号偏差 `:2084-2098/:2093` 属实且已如实披露） |
+| 3 | sidecar 时序窗口 | ✅ | `:2309` `waitForPostgres` → `:2310` 端口行 → `:2333` `runFullE2E('pnpm',[target],env)`：端口行先于 spawn（无连接竞态，探针起采即 PG 已就绪）；`docker run --rm -d` `:2296`、动态映射 `:2301`、finally `docker rm -f` `:2367` 全精确命中；拆除仅发生于整个 e2e run 结束后（G7R 在案 34.5-35.6s 量级），job 秒级抛 → failed 行存活 ≈33s ≫ 300ms 轮询 → 采样量充裕 |
+| 4 | SELECT-only / 隐私白名单 | ✅ | 四查询全 SELECT；Ban `payload`/`trace.output` 明文在案；凭据=容器固定测试值（`:2298-2300` POSTGRES_USER/PASSWORD/DB + `:2119` HOST_SQL_PROBE 同面），非模型 Key，零 Key 物料触碰 |
+| 5 | 读 DB ≠ 读 stderr 契约 | ✅ | sidecar 只 tee wrapper 自身 stdout（端口行为 wrapper 设计内公开输出）+ 纯 DB SELECT，与子进程 stdio 零接触；「Ban 假面/回显 stderr/落盘子进程输出」Ban 条款在案；G7R post-dual 授权边界如实转述 |
+| 6 | 判读表源码锚 | ✅ 全精确 | `interview-jobs.ts:214-217` markJobFailed `error.slice(0,500)`+`payload-'answer'`（`:211` markDone 同剥）；`:251` `reaped:worker_died`；`interview-consumer.ts:93`（interview_unavailable kind/reason）、`:162`（job_failed 终态）、`:176`（legacy disabled）、`:200-206`（resume-reference 结构门）、`:294-295`（enroll+fence）、`:313-314`（start locator throw）、`:370-381`（catch-all→failClaimedInterviewJob）、`:374-377`（fence_lost→requeue→'retry'）；`invoke.ts:494/:524/:562/:601/:662/:683` 六内部态 throw 逐行命中、`:646`（completeModelInvocation error=provider_rejected/deterministic_refusal）、`:352` 注释亲证 persistTrace 仅 `!error` 落；`model-invocation.ts:139-155`；registry `:63-71` wired:true 清面；wiring `:278/:279` |
+| 7 | 判读表完整性/纪律 | ✅ | 逐值域映射 + 「机械归类非根因断言」+「未覆盖值域系合法收据结论」+ 三面联合判读单一读数不定谳 + 矛盾必记（reaped vs 秒抛 / fence_lost 出现 / 混合面）；`graph_fence_lost` 不可能论证经 `:374-377` 亲验成立（拦截先于 failClaimedInterviewJob）且具可证伪框架 |
+| 8 | 红① 排除诚实性 | ✅ | 「interview_job 无对象」码面抽验成立：start 链 `interview.service.ts:208/:227/:248/:279/:305` 各 fail-closed 门全在 `:337` `enqueueInterviewJob` 之前；留 route 侧另刀如实、未越界 |
+| 9 | EXIT/attempts 纪律 | ✅ | 预期 EXIT=1、红 EXIT ≠ 甄别失败、成功判据=快照捕获、备选触发条件唯一且须登记、attempts 全记录 Ban 删改、Ban retry-to-green/flake、机制 B 锁协调方显式批准 + provenance 弱点如实登记 |
+| 10 | Pins/Retained 原值 | ✅ | harness §2/§4、slice、stub 三处一致：NOT_HA · false · false · true · 8 · false · PG-retained · DELETE=503 · g7SuiteGreen=false · trio OPEN · GAP P1 OPEN · actualSpendCny=null——本审零翻转 |
+| 11 | Non-claims/输入事实边界 | ✅ | H0-alt-1 出局标注为协调方输入事实未独立复证 + §5.3 矛盾回协调方 Ban 掩盖；Non-claims 全集在案 |
+
+## 二、Fail-trigger audit（可复现 · 全局 grep 排除补列）
+
+- **F-FF-1（判读主查询 §1.3(1) 引用不存在的列）**：`SELECT id, kind, status, attempts, last_error, updated_at FROM interview_job ORDER BY updated_at DESC LIMIT 20` —— `interview_job` **无 `updated_at` 列**。DDL `packages/db/sql/05_interview_jobs.sql`（及同款内嵌 `migrations/0001_baseline.sql:253+`）仅有 `created_at`（`:18`）；全局机检 `packages/db/migrations/*.sql` + `packages/db/sql/*.sql`：唯一 `ADD COLUMN updated_at` 是 `app_setting`（`0003_app_setting_updated_at.sql:2`）；0058:227 的 `updated_at` 目标为 `privacy_erasure_request` 非本表。**后果**：隔离 PG 上该查询每次轮询必报 `column "updated_at" does not exist`——「一步定谳」主读为零产出；且 (1) 出错≠「无 failed 行可读」，若被误读为 NULL 结果将**可预期地误触发**备选 iso attempt（触发条件唯一性被仪器错误污染），白烧 attempt 预算并产生朝机制 B 的偏置。EXEC 期修复=偏离冻结 docs；不修复=甄别目的（快照捕获 §1.3 读数）必然落空。
+- **F-FF-2（§1.3(2) 同类缺陷）**：`SELECT service, status, error, count(*) FROM ai_model_invocation …` —— 该表列名为 **`error_code`**（`0037_ai_model_invocation_durable_claim.sql:14`），无 `error` 列；后续 ALTER 全局 grep 仅 RLS enable/force，无补列。值域不受影响（0088:113 约束 `^[A-Za-z0-9._:-]{1,120}$` 可容 `provider_rejected`/`deterministic_refusal`），纯列名错误，但同样每轮必错。四查询中 (3) `count(*) FROM ai_invocation_trace`（表在 `0001_baseline:55`/`01_schema.sql:77`）与 (4) `interview.status`（`01_schema.sql:17+:4`）验证有效。
+- **其余 Fail-trigger 逐项排查零命中**：withhold/blob/行号（见检查表 #2/3/6）、Pins 翻转、retry-to-green 空间、备选触发多义、机制 B 越权、Key 物料、`:68-71` 清面触碰、self-approve——全无。
+
+## 三、机制/判读裁决
+
+- **机制 A（sidecar）框架可行**：时序、零 wrapper diff、SELECT-only、隐私白名单、withhold 零触碰论证全部成立；**但读数仪器带两处必然报错的列引用（F-FF-1/F-FF-2），「仪器可行、读数清单不可行」**——恰是本刀赖以定谳的四查询之二。
+- **判读表本身合格**：锚点全精确、值域映射纪律完整、矛盾处置框架（如实记/不定谳）符合 evidence-honesty；主查询失效属仪器缺陷而非判读逻辑缺陷。
+- **OB-FF-2（非阻断）**：「必得数十至数百次采样」的必然性措辞以 sidecar 自身健康为条件（框架内 §1.2-B 兜底已覆盖残余风险）；「CMD 34.8-38.5s」上界 38.5 本树未复现（在案 34.8/34.5/35.3/35.6），承重命题（run 时长 ≫ 轮询间隔×行存活）不受影响，如实登记。
+
+## 四、Blockers
+
+- **B-FF-1**：F-FF-1 必须修复（`updated_at` → `created_at`，或 `ORDER BY id DESC` 等价改写）方可送 EXEC。
+- **B-FF-2**：F-FF-2 必须修复（`error` → `error_code`）。
+- 两项均为 docs-only 一行级修正：**须新 docs commit 重走 pre-dual，禁 EXEC 期热修，禁在本 stub 上原地改**（冻结 docs 即 EXEC 契约）。
+
+## 五、Conditions（随卷）
+
+- **C-HA-FF-1**：修复 commit 中查询 (1) 改用 `created_at` 时须注明其语义为入队时刻（failed 行即首因写入时刻，排序语义等价）；如另选排序键须一并写明。
+- **C-HA-FF-2**：§1.3(2) 修复为 `error_code` 并保留 0088:113 值域约束注记（`provider_rejected`/`deterministic_refusal` 可容性）。
+- **C-HA-FF-3**：EXEC 契约须显式区分「查询报错」与「查询成功且零行」——仪器错误**不得**记作「无 failed 行可读」，不得据此触发备选 attempt；sidecar 快照 log 须含每查询执行状态（ok/error）。
+- **C-HA-FF-4**：修复后重走 pre-dual 双审（mw-e2e-ha + mw-model-op），本 FAIL 段随卷留存不删改；OB-FF-1 孪生 provenance 与 OB-FF-2 措辞注记在修复 commit 中如实继承。
+- **C-HA-FF-5（延续 C-HA-2/C-HA-3）**：withhold blob `13dbfc43` 钉与判读表「机械归类非根因断言」「与 X 一致 ≠ X 已证」措辞纪律在 EXEC 期不变。
+
+## 六、中文三行摘要
+
+1. F-F 甄别刀 REQUEST 文档框架合格：wrapper 零 diff（blob `13dbfc43` 亲算全等）、sidecar 时序窗口与 SELECT-only 纪律成立、判读表锚点 20+ 处逐一精确命中、红① 排除与 EXIT/attempts/Pins 纪律全部如实。
+2. 但四查询中两个引用不存在的列——`interview_job` 无 `updated_at`（仅 `created_at`，全迁移全局 grep 排除补列）、`ai_model_invocation` 列名为 `error_code` 非 `error`——判读主查询与分布查询在隔离 PG 上必报错，一步定谳主读零产出，且仪器错误可被误读为「无 failed 行」而误触发备选 attempt。
+3. 判 **FAIL**（机制缺陷、可复现、两行级 docs 修正即可），附 Blockers B-FF-1/2、Conditions C-HA-FF-1~5；修复须新 docs commit 重走 pre-dual，非对文档设计的否定——甄别框架本身保留，仪器读数清单须先修准。
+
+alone ≠ dual：本 FAIL 仅为 mw-e2e-ha 半签，不代签并行 peer mw-model-op；peer 独立裁决。本审 0 prove run · 0 live · 0 Key 值读取 · 0 coding · 0 产品/SSOT 触碰 · 禁 push。本 FAIL ≠ REQUEST 框架整体否决 ≠ 判读表逻辑否定 = 仅 B-FF-1/B-FF-2 修复前置。
+
+Verdict: FAIL
