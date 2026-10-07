@@ -1,10 +1,12 @@
-# Slice — **MOP02 · GAP-MOP-02 `:75` claim/lease（PG 侧等价机制盘点 + 「选型后」切片定义）**（docs-only REQUEST · **`draft:awaiting_pre_exec_dual`**）
+# Slice — **MOP02 · GAP-MOP-02 `:75` claim/lease（PG 侧等价机制盘点 + 「选型后」切片定义）**（docs-only REQUEST · 立卷 executed · **`executed:awaiting_post_prove_dual`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（empty review stubs · Ban self-approve · alone ≠ dual · 零 coding · 零 prove 执行 · 零 live · 零 SSOT · **Ban Redis 顶替实现**（`SET NX PX`+fence 属未来六门 REQUEST 自带 · 不命名不授权）· **Ban MySQL 8 同语义 claim 顶替**（PG-retained · GAP-SCH-01）· 现存局部 prove（claim-join / uc002-lease / report / commerce）**≠** `:75` 待建三项的替代 · **PG LISTEN retained** · **Ban Redis cutover** · **Ban MODEL-OP closed** · **GAP-MOP-02 `:75` OPEN** · **Ban 重复立卷**（MOP03 六门 `e29d8f93` + MOP01 wakeup 工作面只读引用不松动））
+**Status**: **`executed:awaiting_post_prove_dual`**（PRE dual BOTH PASS（mw-model-op `bab29111` + mw-e2e-ha `1b85b58a`）+ 协调方 AUTHORIZE 后 exec landed · REQUEST 自身即完整立卷产物 · exec = lifecycle 元行推进 + 双审 Conditions/OB docs-side 落实（行号精度 OB `:55`/`:80`/`:97-98` 漂移/`:6`±1·`0050:401` 移列 + OB-2 选型措辞精确化 · 详见 harness §9 清单）· exec 落 tip `1b85b58a`（同补丁 drop · 零码移 · C-MO-1/C-E2E-1 重验）· **Ban self-write `post_prove_dual_pass`**（POST 双审 + 协调方 nail 专属）· alone ≠ dual · 零 coding · 零 prove 执行 · 零 live · 零 SSOT · **Ban Redis 顶替实现**（`SET NX PX`+fence 属未来六门 REQUEST 自带 · 不命名不授权）· **Ban MySQL 8 同语义 claim 顶替**（PG-retained · GAP-SCH-01）· 现存局部 prove（claim-join / uc002-lease / report / commerce）**≠** `:75` 待建三项的替代 · **PG LISTEN retained** · **Ban Redis cutover** · **Ban MODEL-OP closed** · **GAP-MOP-02 `:75` OPEN** · **Ban 重复立卷**（MOP03 六门 `e29d8f93` + MOP01 wakeup 工作面只读引用不松动））
+
+> **Draft-era status（historical · retained）**: **`draft:awaiting_pre_exec_dual`**（empty review stubs · Ban self-approve · alone ≠ dual · 零 coding · 零 prove 执行 · 零 live · 零 SSOT · **Ban Redis 顶替实现**（`SET NX PX`+fence 属未来六门 REQUEST 自带 · 不命名不授权）· **Ban MySQL 8 同语义 claim 顶替**（PG-retained · GAP-SCH-01）· 现存局部 prove（claim-join / uc002-lease / report / commerce）**≠** `:75` 待建三项的替代 · **PG LISTEN retained** · **Ban Redis cutover** · **Ban MODEL-OP closed** · **GAP-MOP-02 `:75` OPEN** · **Ban 重复立卷**（MOP03 六门 `e29d8f93` + MOP01 wakeup 工作面只读引用不松动））
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · **PG-retained** · public DELETE=503 · **PG LISTEN retained** · `actualSpendCny=null`
 **Date**: 2026-10-07（Asia/Shanghai）
-**Base**: `origin/feat/mysql-schema-skeleton` · **`2fd78ea1`** / `2fd78ea10cd1a2d47babb79604afc3f62977eebc`
-**Authority**: meetwise — docs-only REQUEST · awaiting PRE dual（mw-model-op + mw-e2e-ha）+ 协调方 AUTHORIZE · Ban coding · Ban prove 执行 · Ban live · **Ban Redis cutover** · **Ban MySQL claim 顶替** · **Ban MODEL-OP closed claim** · **PG LISTEN retained**
+**Base**: `origin/feat/mysql-schema-skeleton` · **`2fd78ea1`** / `2fd78ea10cd1a2d47babb79604afc3f62977eebc`（REQUEST 钉定）· exec 落 tip **`1b85b58a`**（同补丁 drop 落位 · `2fd78ea1..1b85b58a` 16 文件全 `ai-docs/` 零码移 · C-MO-1/C-E2E-1 base 重验随 exec 登记 harness §9）
+**Authority**: meetwise — docs-only REQUEST · PRE dual BOTH PASS + 协调方 AUTHORIZE · 立卷 exec landed（lifecycle 元行推进 + OB docs-side 落实）· awaiting POST dual（Ban self-write `post_prove_dual_pass`）· Ban coding · Ban prove 执行 · Ban live · **Ban Redis cutover** · **Ban MySQL claim 顶替** · **Ban MODEL-OP closed claim** · **PG LISTEN retained**
 
 ## One-line
 
@@ -24,7 +26,7 @@ backlog `:75` **GAP-MOP-02**（缺口：Claim 仍多路径 PG `FOR UPDATE SKIP L
 
 ## 与 MOP01/MOP03 立卷的边界（一句话 + 逃生门）
 
-MOP03 nail `e29d8f93` 立准入合同六门、MOP01 `b95313a9` 立 wakeup 工作面（`:74`/`:95`），本刀立 claim/lease 工作面（`:75`）——三刀互补；六门与 MOP01 面**只读引用不再立法**（checklist `:1134`「GAP-MOP-02 `:75` 独立行本刀不认领」→ 本刀即认领刀）；若双审判实质重叠，收窄为「仅诚实登记」（逃生门 harness §1-D1/§3）。
+MOP03 nail `e29d8f93` 立准入合同六门、MOP01 `b95313a9` 立 wakeup 工作面（`:74`/BUG-NOTIFY-REC · `:95`@base → `:97`@tip · 行 ID 锚定），本刀立 claim/lease 工作面（`:75`）——三刀互补；六门与 MOP01 面**只读引用不再立法**（checklist `:1134`「GAP-MOP-02 `:75` 独立行本刀不认领」→ 本刀即认领刀）；若双审判实质重叠，收窄为「仅诚实登记」（逃生门 harness §1-D1/§3）。
 
 ## Named proves（clarity only · 本 REQUEST 零执行 · I2 先例：named ≠ 授权）
 
@@ -41,8 +43,8 @@ attempts 全记录（逐条 EXIT · Asia/Shanghai 时间窗 · code SHA）· 诚
 - **Ban MySQL 8 同语义 claim 顶替实现**（PG-retained · GAP-SCH-01）
 - **Ban MODEL-OP closed claim** / SLO forge / fake green / `:75` flip CLOSED
 - **Ban 删 PG LISTEN** without separately authorized cutover REQUEST
-- **Ban 重复立卷**（MOP03 六门 + MOP01 工作面只读引用）· Ban 认领 `:74`/`:95`/`:76` 面
-- Ban self-approve（alone ≠ dual）· Ban 四专家审降级（BUG-REV-COND `:96` 对未来切片 REQUEST 持续绑定）
+- **Ban 重复立卷**（MOP03 六门 + MOP01 工作面只读引用）· Ban 认领 `:74`/BUG-NOTIFY-REC（tip `:97`）/`:76` 面
+- Ban self-approve（alone ≠ dual）· Ban 四专家审降级（BUG-REV-COND（`:96`@base→`:98`@tip · 行 ID 锚定）对未来切片 REQUEST 持续绑定）
 - Ban SSOT edit（backlog / matrix / checklist / queue 零改）· Ban secrets / `.env*` · Ban Meridian · Ban buy cloud · Ban force-push · **Ban push**
 
-*Slice · MOP02 GAP-MOP-02 :75 claim/lease（PG 等价机制盘点 + 选型后切片定义）· `draft:awaiting_pre_exec_dual` · 零 coding · 零 prove 执行 · Ban Redis/MySQL 顶替实现 · Ban MODEL-OP closed · Ban 重复立卷 · PG LISTEN retained · `:75` OPEN · alone ≠ dual · STOP（awaiting PRE dual）*
+*Slice · MOP02 GAP-MOP-02 :75 claim/lease（PG 等价机制盘点 + 选型后切片定义）· `executed:awaiting_post_prove_dual` · 零 coding · 零 prove 执行 · Ban Redis/MySQL 顶替实现 · Ban MODEL-OP closed · Ban 重复立卷 · PG LISTEN retained · `:75` OPEN · alone ≠ dual · Ban self-write `post_prove_dual_pass` · STOP（awaiting POST dual）*
