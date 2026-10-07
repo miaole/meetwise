@@ -137,3 +137,61 @@ OB-MO-G1：REQUEST twin-commit 重根（`5b6b1e97`≡`8c92b344` 同 tree 同父�
 3. Verdict PASS 为 mw-model-op 半签（alone ≠ dual · 不代签 mw-rag-route）· EXEC 须 BOTH PASS + 协调方授权 + C-MO-G1~G4 兑现 · 本 PASS ≠ 任何 Pin 翻转 ≠ 修复授权 · 禁 push。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual 审查段（mw-model-op · model-op/prompt 版本焦点 · 2026-10-07 追加）
+
+**被审 EXEC 链**：主线本地 `feat/mysql-schema-skeleton` `c670bf15`（feat · 恰 3 文件 +19/−9）+ `7979cd20`（docs 收据 · 恰 5 文件 +197/−0）；SUMMARY 自报 line worktree v2 twin `430d4c84`（父 `8c92b344`）。全距 `f3c7dd08..7979cd20` 恰 3+5=8 文件零越界（`git diff --name-status` 机检）。**审查 worktree**：`/Users/miaole/Desktop/golucky/meetwise-rv-g7tp-model-op`（branch `rv/g7tp-model-op` @`7979cd20` · tree `5766e421`）· 本席零产品 edit 零共享 SSOT edit。
+
+## 0. 包完整性与机检（blob 亲算 · git rev-parse/cat-file 实测）
+
+- 恰 3+5 文件：feat=「prompts.ts + sealed-job-route-classify-binding.ts + r2-p-worker-route-classify.proof.ts」；docs=「harness +6 + receipts 00/01/02/SUMMARY 恰 4 新增」。
+- **零 validator 改动（C-MO-G1 机检面）**：`job-route-classifier.ts` blob `79ceded8` 链前=链后全等；`job-route-decision.ts` `a621d8bd`、`model-operation-registry.ts` `63af556f`、`model-client.ts` `6b12dfca`、`semantic-route.ts` `077aebab` 全等；Occupied 面 `recruiting-bound.spec.ts` `de4991e6`、`recruiter.ts` `d06b4f49`、`package.json` `0afb3bd2` 全等；SSOT `ai-docs/meta/index.md` `4c50373f` 链前=链后零 diff。
+- Twin 核验：`430d4c84` vs `c670bf15` 三产品文件 blob 逐字节全等（`69ca4633`/`e291780d`/`7e03af1c`）；两 commit tree 不等（`ea10e1e0` vs `02b22e28`）但 delta 恰为 f3c7dd08 两个 PRE 审查文件=重根 benign（沿 OB-MO-P4 先例，OB-2 非阻断）。
+- Key 物料零入树：8 文件扫 `sk-*`/`API_KEY=` 值/`Bearer` 命中仅为「`MODEL_API_KEY=set` name-only」登记行×3；诊断/sidecar 临时脚本 `.tmp/` gitignored 且 `git ls-files` 零追踪。
+- Append-only 机检：本文件前 22131B md5 `b141950b` 追加后逐字节保全（PRE 段含其末行 Verdict 原文未动）。
+
+## 1. C-MO-G1~G4 逐条裁决（本席四条件兑现定谳）
+
+| 条件 | 裁决 | 证据 |
+|---|---|---|
+| **C-MO-G1** v2 消单叶死路 + erratum 落字 · Ban 触 validator | **兑现（PASS）** | 死路消除双证：①确定性证——收据 00 §1 单叶两形状探针（margin=10000 逐字 p.v1 示例形 / margin=0 派生形）均 `{"ok":false,"reasons":["conflict"]}`，与 validator `:150-152` 实读自洽（单叶 fallback=TOTAL_BPS→gap=0→`:151` 恒等矛盾→`:152` 阈值拒）；②教学面证——p.v2「仅 1 个 leaf 时 marginBps=10000」条款删除+单叶唯一示例删除+「绝不要把全部权重集中在单一 leaf」新增（diff 亲读）。validator 零改动（blob `79ceded8` 双端全等）。Erratum 落字双落点：harness 末尾 append-only ERRATUM 段（+6 行）+ 收据 00 Erratum 节，均如实承卷双审先发现（`8c9295a9` OB-RR-2 + 本席 `0efbcd3b` F1） |
+| **C-MO-G2** temperature 显式二选一 · Ban 静默假设 0 | **兑现（PASS · 二选一取 prompts-only 支）** | 「供应商默认温度如实登记」非静默 0：收据 00/04 显式写明「`SERVICE_TEMPERATURE` 无 `job.route-classify.v1` 映射 → live 跑供应商默认温度，F2 维持，扩面钉 0 须重新双审，本刀不动」——登记的是未知/默认值本身而非假设 0，满足 Ban。映射面零触碰机检：`model-client.ts` blob `6b12dfca` 全等 + 映射表实读仅 3 服务无 classify 项。残余方差入卷：v2 预检 confidence/margin 精确贴锚（7000/1000/1500）的锚定行为如实登记为闸内合规残差 |
+| **C-MO-G3** 回放 N≤20 · 内存即弃 · Key name-only | **兑现（PASS）** | 范围冻结：诊断 round-1×4+round-2×4+预检×3+CMD2×2 attempt=收据口径 4+4+3+6=**17 ≤ 20**；叶数形状全记录（收据 00 逐 ITER 表）符合「记录叶数形状」授权。内存即弃：原始模型输出/DB payload 零落盘（在卷仅形状汇总）；临时脚本 gitignored 零追踪；sidecar SELECT-only 白名单 Ban payload/`ai_invocation_trace.output` 如实执行。Key name-only 全程（五 `.env*` ABSENT）。OB-1：17 中 CMD2 项=6 的分解（classify ×2×2=4 + 面试面既有调用≈2）未逐值列表，严格 classify-only 口径=15——两口径均 ≤20，界不破，非阻断 |
+| **C-MO-G4** alone≠dual 半签 · 不代签 mw-rag-route | **兑现（PASS）** | 授权链如实引用：收据 00/SUMMARY 均写「pre-exec dual BOTH PASS（mw-rag-route `8c9295a9` + mw-model-op `0efbcd3b`）→ 协调方 EXEC 授权」，两 twin commit 对象在卷可解析（`git cat-file -t` 双 PASS）。SUMMARY 明示「post-prove 双审由协调方另派（本席不自批）」——本段即 mw-model-op 半签；并行 mw-rag-route POST 审不在本席视野，本段不构成也不预断其裁决 |
+
+## 2. v2 质量五要素逐项（prompt 版本域 · C-RR-2）
+
+1. **删单叶条款**：「仅 1 个 leaf 时 marginBps=10000」删除 + 单叶示例删除 + 恒 ≥2 叶指令新增——PASS。
+2. **2 叶减法 few-shot**：唯一 JSON 示例 `backend/general 7000 + backend/nodejs 3000 → marginBps 4000`，7000−3000=4000 精确减法演示；亲算过闸形状（sum=10000 ✓ 每 ≥500 ✓ ≤4 叶 ✓ margin=gap=4000≥1000 ✓ reasonCodes=[] ✓ confidence 8000≥7000 ✓）——PASS。
+3. **reasonCodes 双向**：成功⇒恰 `[]`、拒分⇒`allocations=[]`+非空——双向指令与 validator `:144`（非空即 conflict）`:123`（空 allocations→invalid_schema）合取自洽——PASS。
+4. **万分比**：「万分比（满分为 10000，不是百分比 100）」——直指 RC-2 bps 算术误读面——PASS。
+5. **confidence ≥7000 锚**：锚值与 `JOB_ROUTE_CONFIDENCE_THRESHOLD_BPS=7000`（`:36`）精确同值，另附 margin 差 <1000 的「难以自信区分」条款（与 `:37` 阈值同源）——PASS。
+- **Sealed 常量同步（C-RR-3）**：`SEALED_JOB_ROUTE_CLASSIFY_PROMPT_VERSION` `p.v1→p.v2`（`:28` · sealed 漂移消除）；**测试钉同步**：`r2-p-worker-route-classify.proof.ts` 断言 `version: 'p.v1'→'p\.v2'`（`:114` hunk 亲读）。全仓 `p\.v1` 残留 grep 仅剩 sealed 注记 1 处（迁移说明，非活引用）——PASS。
+
+## 3. 诚实性裁决（CMD2 仍红 · attempt2 定性）
+
+- **CMD2 仍红如实**：EXIT=1 原值 ×2 双收据全记录（12P/2F/10S ×2 · 红①签名 `:96:14` 30s 超时同形），SUMMARY 一句话定谳以「红①用例仍红」开头非埋没——如实。
+- **attempt2 定性裁决（本席）**：Ban retry-to-green = 禁为翻绿重跑并只留绿档。attempt2 同码 `430d4c84` 零产品变更、目的=sidecar 判别（SELECT-only 白名单仪表）、结果 EXIT=1 红档与 attempt1 同列归档零择优、判别产出=根因位移定谳（classify 面 `validation_rejected×2→result_validated×2` 翻绿 · 残留=begin/异步 classify 时序面 · consumption=0/snapshot=0 · 竞差 0–2s）——**目的=判别成立，Ban 守住，attempt2 合规**。attempt1 sidecar 缺位如实自报 OB-2 且为 attempt2 唯一动因、禁以 attempt1 读数定谳——仪器诚实。
+- **根因位移处置**：时序面残留超出本刀授权（prompt v2 校准+诊断先行）——EXEC 已 STOP 交协调方且本刀零触碰该面（`de4991e6`/`d06b4f49` blob 机检佐证），未越权、未为绿改断言（红③ `:203` 零触碰）、sticky 通路零改动——**维持 STOP 裁决，本席同样不授权任何时序面改动**。
+
+## 4. Blockers / Conditions
+
+**Blockers：0。**
+
+**OB（非阻断）**：OB-1 live 计数 17 vs 严格 15 分解未逐值列表（两口径均 ≤N≤20 界不破）；OB-2 twin 重根（delta 恰=PRE 审查文件 · benign 沿 OB-MO-P4）；OB-3 attempt1 仪表缺口（EXEC 已自报并由 attempt2 补齐 · 两档全记录）。
+
+**Conditions（转后继 · 均非本段放行条件）**：
+- **C-MO-P1** 时序面残留：任何修复（独立夹具刀「等 route_decided 再 begin」或产品面消费时序变更）须新 REQUEST+双审+协调方授权；Ban 无授权改夹具、Ban 为绿弱化断言。
+- **C-MO-P2** F2 温度面维持 OPEN：classify 钉 0（映射或参数面）须重新双审；锚定行为残差（贴字面下限 7000/1000/1500）列入后续质量刀观察面。
+- **C-MO-P3** alone≠dual：本 PASS 仅 mw-model-op 半签，不代签 mw-rag-route；其并行 POST 审独立成立；dual 状态由协调方汇签。
+- **C-MO-P4** Pins 零翻转本段复核成立：`g7SuiteGreen=false` retained、trio OPEN、红① STILL OPEN（构成已变：classify 面绿 · 时序面残留）、`actualSpendCny=null`——本 PASS 不翻转任何 Pin。
+
+## 5. 中文摘要（3 行）
+
+1. 包完整性恰 3+5 文件零越界，validator/decision/registry/model-client/SSOT/Occupied 面 blob 亲算全等零改动，Key 物料零入树，twin 重根 benign；我的 C-MO-G1~G4 四条件全部兑现：单叶死路消除（确定性探针+教学面双证+erratum 双落点）、温度取 prompts-only 支且供应商默认如实登记未假设 0、回放 17≤20 形状内存记录 Key name-only、授权链如实引用且半签不代签。
+2. v2 五要素逐项在卷全 PASS（删单叶/7000−3000=4000 减法 few-shot/reasonCodes 双向/万分比/confidence 7000 锚与 `:36` 阈值同源），sealed 常量与测试钉同步升级无漂移，p.v1 活引用清零。
+3. CMD2 仍红如实两档全记录，attempt2 同码仪表化判别合规、Ban retry-to-green 守住；残留红①=begin/异步 classify 时序面超授权维持 STOP 交协调方；0 Blocker 4 Conditions，`g7SuiteGreen=false` 零翻转，本 PASS=mw-model-op 半签。
+
+Verdict: PASS
