@@ -101,3 +101,76 @@ F1 Pins 漂移 / `canHonestlyFlip` 翻转 =0 · F2 SSOT/backlog `:68` 触碰或�
 3. 本 PASS = PRE-EXEC docs gate only：alone≠dual 不代签 peer `mw-e2e-ha`（stub PENDING 未触碰）；0 prove run · 0 coding · 0 SSOT · 禁 push；PASS≠实验授权≠prove≠nail≠关闭。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual 审查段 — `mw-privacy-int`（2026-10-07 · append-only · 被审对象 = 本地 `line/flk-rootcause` @ `99a5b96a`）
+
+**被审包**: `99a5b96a` / `99a5b96af43f2fc0f1a628964fe7ffa779e715ec`（`docs(privacy): FLK EXEC rootcause experiments + report (awaiting_post_dual)` · parent `ee7563a2` 亲证 · **本地分支未推 origin 如实记录**——`git branch -r --contains 99a5b96a` 空；`ee7563a2` ∈ origin/feat/mysql-schema-skeleton 祖先 EXIT=0 亲证，origin tip 其后已被他线 docs/prove commits 前推至 `0c6c3287`，与本审对象无交集）· 独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-flkp-privacy-int`（branch `rv/flkp-privacy-int` @ `99a5b96a`）
+**授权链亲证**: PRE dual BOTH PASS `77dd8dd1`（本席 · C-P-1~7）+ `82f5db5c`（mw-e2e-ha · C-FLK-HA-1..8）均 ∈ `99a5b96a` 祖先（`git merge-base --is-ancestor` 双 EXIT=0）
+**本审纪律**: 0 prove run · 0 docker · 0 coding · 0 SSOT 写 · 0 凭据值读取；只读核验（`git show/log/branch -r/merge-base/hash-object/shasum/grep/sed/awk`）+ append-only 本段 + worktree 内 commit（author `mw-privacy-int` · 禁 push）；本段追加前全文件 17548 字节 md5 `f81636c7db349b6c29c1027a60cd1427` byte-intact 机检锚
+
+## 包完整性（P-INT · 亲验）
+
+恰 **23 文件** 全 A `+2105/−0`，全在 `ai-docs/delivery/receipts/gap-priv-authz-prove-flake/rootcause/`（`git show --name-only` 逐行 grep 反证 =0 外溢）；非 receipts 路径 diff **空**（含 `scripts/` `packages/` `apps/` `package.json` migrations `.env*`）——`run-e2e-isolated.mjs` / `privacy-authorization.proof.ts` / `principal.ts` / `checkpoint-principal.ts` 零 diff（C-P-2 ✓）；SSOT/backlog `gap-bug-backlog.md` 零 diff、`:68` 行本体逐字仍 **OPEN · mitigated/cause-unknown**（C-P-7 ✓）；实验脚本落 receipt 区非产品 `scripts/`（C-FLK-HA-5 ✓）。凭据扫描：提交 logs+report `PASSWORD/password/DATABASE_URL` 大小写不敏感 grep = 0 命中（report `:18`「0 命中」如实）；`scripts/lib.mjs` 内嵌 `meetwise_dev_password` ×3 = 树内先在明文 dev 容器口令（runner `:1985`/`:2299` 同值），零新暴露（OB-F4）。machine 哈希：`flk-machine-hashes.txt` 17 条逐条 `shasum -a 256` 复算 0 mismatch（其中 4 条引用 `.tmp` 原始组合面文件未入提交面——`ecold2-none-2/3.log` 与已提交 `none-1` byte-identical 同 sha256 `d89a0c18`、`ewarm1-doublerun.log`/`ewarm2-preseed.log` 为 per-run 已提交面的组合流，见 OB-F3）。
+
+## 6 实验复核表（假设/判读/反例/结论四元组 · 逐实验亲算）
+
+| 实验 | 预注册（harness §3） | 执行证据（本审亲算） | 判读一致性 | 结论 |
+|------|---------------------|---------------------|-----------|------|
+| E-COLD-1 | H-COLD-1 发布窗口竞态；成立=探针见 ECONNREFUSED+自愈；反例=0/500 →「本机未复现」Ban「排除」 | summary `totalProbes:500 totalTcpRefusals:0` ×5 fresh 实例；jsonl 500 行逐行在场；initdb 临时 postmaster 期 SQL `Connection terminated unexpectedly` 自愈签名非 ECONNREFUSED 独立入账 | 反例分支照预注册如实（Ban 排除守约） | **未成立（未复现 · 入观察）** ✓ |
+| E-COLD-2 | H-COLD-2 TOCTOU 退场注入；成立=注入 run 逐字 ECONNREFUSED+code 同 cold-5 L18/L24 形 + 字节带可比；反例=形态≠ECONNREFUSED 如实入账 | stop-1/kill-1 EXIT=1 `PROCESS_EXIT=1` 亲读（`Error: connect ECONNREFUSED 127.0.0.1:52827/52863` + `code:'ECONNREFUSED'` @ `assertIsolatedTestTarget` isolated-test-target.ts:84 ← proof.ts:119）；对照 none ×3 EXIT=0 51 PASS；stop-band-1 keep 形同红；字节带 29/29 ≡ cold-5 `state_bytes=29 logs_bytes=29`（`--rm` 后 `docker_diagnostic_unavailable` fallback 29 字节机制在 lib.mjs:147 亲读）、217–223 ≡ historical 226 带——分桶机械成立、归因保留未解释（C-FLK-HA-2 ✓） | 成立分支按预注册上限收在「机理级受控复现（充分性）」，Ban 历史必然性守约 | **成立（充分性）· 部分钉死** ✓ |
+| E-COLD-3 | H-COLD-3 负载放大；只作放大器不单独作根因（无独立反例栏 · PRE OB-2 已容） | summary `totalProbes:400 totalTcpRefusals:0` ×4 并行；jsonl 400 行在场 | 如实入观察、未升格根因 | **未成立（未复现 · 入观察）** ✓ |
+| E-WARM-1 | H-WARM-1 同库双跑；成立=run1 EXIT=0 + run2 三点逐字（`interview_pkey` duplicate + `code:'23505'` + `Key (id)=(…a1) already exists`） | run1 EXIT=0 亲读（51 PASS 行亲数 · `PROCESS_EXIT=0` · sha256 ≡ 3×none 对照 byte-identical `d89a0c18` = 确定性绿旁证）；run2 EXIT=1 三点全 TRUE 亲读且 vs 历史 `warm-2.log` **L6/L13/L14 逐字全等亲证**（本席独立 `sed -n '6p;13p;14p'` 双侧）；应用帧同位亲证（pg-pool `index.js:45:11` · `proof.ts:58:3 insertInterview` · `proof.ts:127:3 main` 双侧全等；仅 workspace 路径字符串不同——report 已披露；node 内部 `task_queues` 计数 103:5 vs 95:5 差异见 OB-F2）；run2 标 **designed-red** 红账保留 · 零 retry | 成立分支 + designed-red 双向禁守约（未记回归、未 retry 洗绿、未反向洗「必然红」——三点证据在卷） | **成立（确定性）** ✓ |
+| E-WARM-2 | H-WARM-2 预置行首跑；成立=首跑 23505 三点 + 与 E-WARM-1 run1 互证 | 首跑 EXIT=1 三点全 TRUE 亲读（sha256 `8abd5416` ≡ E-WARM-1 run2 byte-identical = 同机同形直接旁证）；C-P-4 落账字段**全数在卷**：预插 SQL 逐字（纯数据面 INSERT · 与 fixture `proof.ts:57-62` 同形 · 零 GUC/角色 SET/CREATE/ALTER）+ 行 id `…a1` + 容器/端口 `53304` + UTC `2026-10-07T13:58:25.038Z` | 成立分支；「与累积无关」由首跑触发+fresh run1 不触发互证完整支撑 | **成立（变因隔离）** ✓ |
+| E-WARM-3 | static 零执行；产出「触发面=复用库/残留行」供双审独立复核 | 树内亲证：裸 INSERT @`proof.ts:57-62` · `ON CONFLICT`=0 · `DELETE FROM interview`/`TRUNCATE`=0 · 固定 id `…a1`@`:125`/`…a2`@`:126`（另有 6 处固定 id 调用点 `:193/:317/:330/:388/:422/:469`）；9 blob 锚 `git hash-object` 亲算（warm-2 `4ce66da1` · cold-5 `d066fcd8` · jsonl `272f0314` · attempt-1 json `8cc9db56`/log `e8d0fbe4` 全等 · zeroDrift=true）；attempt-1「不同意」语义原样（JSON `exit:0` vs log 无退出行 · FAIL `3811cf1`） | static 陈述与树一致 | **成立** ✓（报告散文「恰 2 次调用」与机检 `insertCalls:8` 相悖——见 OB-F1） |
+
+**暖类钉死复核结论（本席核心）**：E-WARM-1 run2（同库第二遍 designed-red）+ E-WARM-2（预置行首跑）×2 确定性三点全等 + 应用堆栈逐帧同位 + E-WARM-3 静态面（固定 id × 裸 INSERT × 零 cleanup × 零 ON CONFLICT）机理性必然 + fresh 路径结构性不触发（run1 51/0 + 对照 3/3 绿）——**「机理级钉死（warm=cause-pinned）」措辞成立**，满足 C-P-5 前置（受控复现成立 + 三点全等），且与历史 warm-2.log 同形同帧归一。两类分立、Ban 归一守约。
+
+**冷类「部分钉死」vs「Ban 直接关」一致性**：充分性实证（注入 2/2 同形 + 对照 3/3 绿 + 防线只能缩窗不能消除 check-then-use 间隙）与未钉部分（历史退场原因不可回溯 · 自然窗口 0/500+0/400 未复现）分层如实；nail 升级措辞建议 warm=cause-pinned + 冷=cause-partially-pinned 且 **stays OPEN · Ban 直接关**——与 C-P-5/C-P-11/C-FLK-HA-2/C-FLK-HA-7 全一致，无过度声明。
+
+## attempt-1 污染风险影响裁决（C-P-6 收拢口径 · 本席裁定）
+
+1. **attempt-1 的绿（@`5b6e693` · JSON `exit:0`/log 无退出行 · FAIL `3811cf1` 不同意保留）对暖类零证据力**——其路径为 fresh 一次性容器，结构上不进入「复用库/残留行」触发面；暖类钉死后，attempt-1 的「EXIT=0」**不构成根因反证**（report 历史绿账表第 1 行如实）。
+2. **attempt-1 的绿亦不构成「当时环境干净」的证明**——fresh 路径即使库外有残留状态也结构性不触发该类，且其退出面本身不完整（`3811cf1` 缺陷在卷）；「一次过=环境干净」双向禁令下此推论 Ban。
+3. **A'' attempt-1 结论降级标注裁决**：attempt-1 账面维持「不同意」原状不原地改写（append-only 纪律）；降级通过本报告历史绿账收拢专节 + 本段生效——**任何后续引用 A'' attempt-1「过」必须携带「零暖类覆盖证据力 + 非当时环境干净证明」双重标注**；nail 阶段 `:68` 行文须逐字保留「attempt-1=不同意（`3811cf1`）· 零证据力」收拢语句（CN-P-2）。
+4. report 收拢表其余行（attempt-2/`9b39a20`/cold_v2/warm_v2/SS perf-load 全 fresh-path 或另一路径 · 零暖类覆盖）本席对 warm_v2「新容器非复用库」引 review `49ef158` §5 与 backlog `:68` 原文交叉核对一致——**「23505 根因与全部历史绿无冲突」收拢结论成立**（C-P-6 如约，OB-3 单点归拢达成）。
+
+## 条件裁决（C-P-1~7 · 逐条）
+
+| 条件 | 裁决 | 亲证要点 |
+|------|------|----------|
+| C-P-1 alone≠dual · EXEC 协调方授权 · E-WARM-1 单列 | **PASS** | 授权链 `77dd8dd1`+`82f5db5c` 祖先亲证；report `awaiting_post_dual` 零自批；本 PASS 仅 mw-privacy-int 单侧，不代签 peer mw-e2e-ha（其 POST 审并行、未见不评） |
+| C-P-2 零触碰面贯穿 EXEC | **PASS** | 23 文件 diff 面亲验零外溢；脚本落 receipt 区；探针/注入容器唯一名+`--rm -d`+显式 env 构造（lib.mjs 亲读：不继承 shell env · stop/kill 仅指向自建容器 · 收尾 `rm -f` 自容器） |
+| C-P-3 teed 三角 + 全台账 + Ban 弃单/retry | **PASS（披露偏差已入账）** | 9 次 prove 目标执行（E-COLD-2 ×6 · E-WARM-1 ×2 · E-WARM-2 ×1）全部 raw 直跑**不经 runner receipt-writer**——report `:16` 执行声明事前披露，三角改锚 teed log `PROCESS_EXIT` 行 / driver JSON exit 记录 / log 正文三点互证 + sha256；全部 17 条哈希复算 0 mismatch；designed-red ×1 照卷 · 非预期红 0 · 弃单 0 · retry 0；驱动脚本两次模块解析缺陷修于任何 docker attempt 之前（零副作用 · 披露在卷）——attempt 纪律诚实性成立 |
+| C-P-4 E-WARM-2 注入落账 | **PASS** | SQL 逐字 + 行 id + 容器/端口 + UTC 时戳全在卷；纯数据面；零 GUC/角色操作；零开发库/开发容器触碰 |
+| C-P-5 designed-red 与根因语言 | **PASS** | run2 designed-red 保留；「钉死」前置=受控复现+三点全等 ×2 达成；两类分立 Ban 归一守约；未复现一律「本机未复现+样本量」措辞（0/500 · 0/400 · 历史等价性未钉） |
+| C-P-6 历史绿收拢 | **PASS** | 专节逐行 + attempt-1 不同意保留 + 全绿零暖类覆盖 + Ban 反证 + 单点归拢（OB-3 达成）；`state_bytes` 29/226 保持「未解释观测·只分桶」；三族互借禁令贯穿（SS 判「不可判定」保留 · perf-load 绿只作另一路径健康） |
+| C-P-7 Pins 冻结 + 脱敏 | **PASS** | Pins 九项原值 + `canHonestlyFlip=false` + `:68` stays OPEN 零翻转；logs 脱敏 0 命中；`.tmp` 机器哈希入 receipt（OB-F4 卫生注记非阻断） |
+
+## Blockers
+
+无（**0 Blocker**）。
+
+## Observations（非阻断 · 随卷 · nail 阶段处理）
+
+- **OB-F1（erratum 级 · 须 nail 勘误）**：report E-WARM-3 段散文「恰 2 次调用」与其同 receipt 机检 `insertCalls: 8` 及树内实况（`insertInterview` 8 个调用点 `proof.ts:127/:128/:193/:317/:330/:388/:422/:469` · 8 个固定 id `…a1/…a2/…d1/…b1/…b6/…b7/…bc/…f3` 全裸 INSERT 无 cleanup）相悖。方向保守（低估触发面、不强化结论）——残留行机理反而更必然（第二次跑任一固定 id 即撞）；不影响钉死结论；CN-P-3 勘误。
+- **OB-F2（精度注记）**：冷类「同断言点」为函数级——historical cold-5.log 栈帧 `isolated-test-target.ts:73:18` vs 复现 `:84:18`，行差由 SS coding `71a57f4b`（cloud 分支插入）机械解释、同一 `pool.query` 语句亲证，report 未申报行号漂移（其措辞未声明行号全等，非失实）；暖类帧比对中 node 内部 `task_queues` 计数 103:5 vs 95:5 差异未在「仅路径字符串不同」句中提及（应用帧全等不受影响）。nail 引用时建议一并注明。
+- **OB-F3（machine 哈希覆盖面）**：`flk-machine-hashes.txt` 17 条中 4 条（`ecold2-none-2/3.log` · `ewarm1-doublerun.log` · `ewarm2-preseed.log`）指向未入提交面的 `.tmp` 组合/去重面——none-2/3 与已提交 none-1 byte-identical（同 sha256 亲证）；组合流文件须 `.tmp` 在场方可复核。提交面自身全部复核通过，非缺陷。
+- **OB-F4（卫生注记）**：`scripts/lib.mjs` 内嵌 `meetwise_dev_password` ×3 = 树内先在明文（compose/env.example/CI/runner 同值），零新暴露；report「0 命中」限于 logs 如实；nail 可选择在 receipt 头注注明该值域来源以绝后患。
+- **OB-F5（基点时点）**：report `:6`「ee7563a2 = origin/feat/mysql-schema-skeleton」为 EXEC 时点事实；origin 其后被 G7K/SS2/INT01 等他线 commits 前推（`ee7563a2..origin` 含非 ai-docs 文件），与本审对象（本地分支）无关，如实记录。
+
+## Conditions（CN-P-1~4 · binding 随卷）
+
+- **CN-P-1** alone ≠ dual：本 PASS 仅 `mw-privacy-int` 单侧有效，不代签 peer `mw-e2e-ha`；dual 由协调方依双侧 POST 段认定；钉死程度最终以 dual+nail 裁定为准；本 PASS ≠ nail ≠ 关闭 ≠ `:68` 翻转 ≠ AUTHORIZE。
+- **CN-P-2** `:68` 措辞升级只走协调方 nail（双审同意）：warm=cause-pinned + 冷=cause-partially-pinned 建议措辞下 **stays OPEN · Ban 直接关**；nail 行文须逐字保留 C-P-6 收拢（attempt-1=不同意 `3811cf1` 零证据力 · 历史绿零暖类覆盖 · `state_bytes` 只分桶不归因 · 三族 Ban 互借）；可选后续刀（fixture ON CONFLICT/cleanup）独立 REQUEST 零本刀授权。
+- **CN-P-3** OB-F1 勘误随 nail 落字：「恰 2 次调用」→ 8 调用点（对齐机检 `insertCalls:8` 与树内实况）；OB-F2 行号漂移注记随引用一并申报。
+- **CN-P-4** Pins 全项原值冻结 + `canHonestlyFlip=false` 贯穿至 nail；零 retry · 零弃单 · 零洗账延续；Ban 借本 receipt 或本审关闭任何行。
+
+### 中文摘要（3 行）
+
+1. FLK EXEC 包 `99a5b96a`（本地分支未推 origin 如实记录 · 授权链 `77dd8dd1`+`82f5db5c` 祖先亲证）恰 23 文件 +2105/−0 全 receipts rootcause/ 零产品码零 SSOT、`:68` 仍 OPEN；6 实验四元组逐个亲算复核：暖类 E-WARM-1 run2 designed-red + E-WARM-2 预置行首跑 ×2 三点全等（vs 历史 warm-2.log L6/L13/L14 双侧逐字亲证 + 应用帧 `index.js:45`/`proof.ts:58:3`/`:127:3` 同位）+ E-WARM-3 静态面树内亲证（裸 INSERT · ON CONFLICT=0 · 零 cleanup · 9 blob 锚全等）——**warm=cause-pinned 成立**；冷类注入 2/2 同形 @`assertIsolatedTestTarget` + 对照 3/3 绿 + 字节带 29/29 与 217–223 机械分桶=充分性实证、历史等价不可回溯 + 自然窗口 0/500+0/400 未复现=**cause-partially-pinned 措辞与 Ban 直接关一致**。
+2. attempt-1 裁决（C-P-6 口径）：attempt-1「EXIT=0」**不构成暖类反证（零覆盖）亦不构成当时环境干净证明**，账面原状保留、降级经本段生效，任何后续引用须携双重标注、nail `:68` 行文逐字保留收拢语句；C-P-1~7 逐条 PASS（C-P-3 raw 直跑不经 runner receipt-writer 事前披露、teed+JSON+sha256 三角 17 哈希复算 0 mismatch · designed-red 双向禁守约零 retry）；0 Blocker，OB-F1「恰 2 次调用」vs 机检 8 调用点 erratum 随 nail 勘误（方向保守不涉结论），OB-F2~5 非阻断。
+3. 本 PASS = POST-PROVE dual 之 mw-privacy-int 单侧：alone≠dual 不代签 peer `mw-e2e-ha`；0 prove run · 0 docker · 0 coding · 0 SSOT · 禁 push；PASS≠nail≠关闭≠`:68` 翻转；追加前 17548 字节 md5 `f81636c7db349b6c29c1027a60cd1427` byte-intact 机检锚在卷。
+
+Verdict: PASS
