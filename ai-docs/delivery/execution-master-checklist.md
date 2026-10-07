@@ -1301,3 +1301,14 @@ flowchart TD
 - 矩阵零触碰（`e2e-requirement-coverage-matrix.md` 本刀零 diff）；backlog `:58`/`:59`/`:60`/`:64`/`:68` stays OPEN 原样；#104 `fix/privacy-authorization-lease-takeover` 仍 INFLIGHT 不借不碰。
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503。
 - Sibling sections stay as written（incl. Line INT01 · PRIV01/PRIV4 · SCOR · SS2 · G7K · RAG05 · AUDIT）. This section does **not** weaken any sibling obligation.
+
+### Line F-F interview_job last_error 甄别刀 NAIL（2026-10-07 SSOT nail · `post_prove_dual_pass` · 根因定谳登记 · backlog `:107` GAP-G7K-API-REDS stays OPEN——根因已定谳、修复未落地）
+
+- [x] **`post_prove_dual_pass`** recorded for Line F-F 甄别刀 products only（docs REQUEST + 仪器化甄别 run ×1 + 收据 · 零产品码 / 零 SSOT 翻转 / 零矩阵 diff）· nail tip 本 commit（branch `line/ff-nail`）.
+- 证据链全 SHA：REQUEST `1dd1e630`（origin 链 `0b18169c` · rewrite `f0d6594f` @ base `0b18169c`）· RE-PRE dual BOTH PASS（mw-e2e-ha `f7074586`≡origin `c5a1f8e3` + mw-model-op `23e99856`≡origin `7ed35f0d`）· EXEC receipt `3da3f0cb`≡origin `ca2e4ce0`（同树 `4fe35720` 孪生 · `receipts/g7r-ff-last-error-discriminator/` 2 md · 实跑 code SHA `7ed35f0d`）· post-dual dual BOTH PASS（mw-model-op `e07fc6f0`≡origin `d4580d6c` + mw-e2e-ha `e9fa8e12`≡origin `0d97d7be`）· 判读表增补走 docs 刀（C-FFP-1 · 未预列值域 H0-alt-5·d 已登记）.
+- **根因定谳（backlog `:107` 行附近追记同源）**：`interview_job.last_error = adaptive_role_route_missing` ×2 → **H0-alt-5·d role-resolve fail-closed 门**（`adaptive-role-resolve.ts:57-62` · flag 默认 ON）· 门后 = 通用 begin 面 route snapshot 结构性零写（`interview.service.ts:587` 裸壳 + `begin():260-337` + `:344` 死源）→ **产品供给面缺口，非 Key/配对问题**（H0 值面出局 · H0-alt-1 出局 · H0-alt-2 驳回维持 0/536 embedding 签名）· 甄别 run CMD1 `e2e:ui:isolated` EXIT=1 如实（4 failed 与 G7R 逐面同形 · sidecar 525 轮全 ok · 8 轮 migrate 前仪器错误如实 · C-HA-FF-3 兑现）· live=2/200 · `actualSpendCny=null`.
+- **修复路线排序（model-op 裁决）**：产品刀（通用 begin 供给面收口，门语义零弱化）＞ 夹具刀（仅红①时序面）＞ opt-out=0+披露（仅临时 · never R1）——修复=新 REQUEST+双审+EXEC（C-MO-Q1~3 转产品刀硬义务）.
+- [ ] **STILL OPEN**：产品刀待 REQUEST（供给面收口）；红① `job_route` 归因留 route 侧另刀（C-MO-Q2 需新增授权查询）；**trio stays OPEN**（根因已定谳、修复未落地）；Disclosure-1 OPEN（C-MO-Q3 至供给面实际修复）；`GAP-G7K-API-REDS` `:107` stays **P1 OPEN**.
+- 本刀零产品改动；coveredCount=**8**；公开 DELETE=**503**；`e2e-requirement-coverage-matrix.md` 零触碰（矩阵零 diff）；G7R/G7K 收据与 sibling 归档零改写；`g7SuiteGreen=false` 保持.
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503.
+- Sibling sections stay as written（incl. Line G7K · G7B · RAG05 · I103 · INT01 · PRIV01/PRIV4 · SCOR · SS2 · FLK · AUDIT · MOP01/MOP02/MOP03）. This section does **not** close `:107` or flip trio/`g7SuiteGreen`.
