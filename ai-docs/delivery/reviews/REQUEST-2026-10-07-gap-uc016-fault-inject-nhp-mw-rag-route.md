@@ -96,3 +96,51 @@ Line Y2 · 下一 NHP = **NHP-016-FAULT-01**（UC-E2E-016/029 FAULT 分面 · �
 3. 0 Blocker，Verdict PASS 附 C-RR-1~5；scripted 缝零 live、零产品码、SSOT/pins 原值全数守住；alone≠dual 不代签 mw-e2e-ha，禁 push。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual 复验（mw-rag-route · 2026-10-07 · append-only 补席）
+
+**性质**：本段为 PRE 段之后的 POST-PROVE dual 补席，append-only（上文 1–98 行 byte-intact）。被审对象 = Y2 coding 链 `2051d12a`(code 接线) → `20fe852d`(attempt#1 EXIT1 接线修复) → `12a350f7`(prove EXIT0 + receipts)，branch `line/y2-next-nhp`，base `1b85b58a`（本 PRE `42150f5b` ∈ 祖先亲证）。独立 worktree `rv/y2p-rag-route` @`12a350f7`。
+
+**拓扑披露（OB-RR-P1 · 非编码缺陷）**：派单称 origin tip `972c6c2f` 已含 Y2 coding——实测不符：`972c6c2f` 为并行 privacy 线（GAP-PRIV-04），`git merge-base --is-ancestor 972c6c2f 12a350f7` = NO，`8eb2de2a..972c6c2f` 间零 uc016 coding commit。Y2 coding 实际位于本机 `line/y2-next-nhp` tip `12a350f7`。本审即以 `12a350f7` 为被审 tip 并落其上；origin 合并/nail 顺序归协调方处置（C-RR-6），本审不代行 merge。
+
+## Fresh re-run（本审独立 · 恰一次 · 禁重试下零重试）
+
+- CMD：`MW_GIT_SHA=12a350f72032123fcd49afd67d50c2388c18f29f env -u MODEL_API_KEY -u DASHSCOPE_API_KEY -u DASHSCOPE_COMPAT_BASE_URL pnpm uc016:nhp-fault:prove`（先 `pnpm install --frozen-lockfile` EXIT0）
+- **EXIT=0 · 45 PASS / 0 FAIL**（`grep -c '^PASS'`=45 · `^FAIL`=0）；fresh isolated PG `meetwise-e2e-6047-1791366674891` · migrate `applied=140 skipped=0` · `[R5-MARKED-RED] pgvector-legacy = test infra ≠ stack truth` 原样
+- 本审复跑收据 `.tmp/uc016-fault-receipts/uc016-nhp-fault-attempt001.json`（untracked · C-RR-7）：`envModelApiKeyUnset=true` · `providerOutboundCalls=0` · `overall=PASS/failedAsserts=0` · F3 `jobLastError=quiz:schema_validation_failed` + E3「transient NOT claimed」note 原文 · F1/F2=`external_outcome_unknown` · F4 D1 rebuild-mapping 原文
+- 实现方 attempts 台账抽验：attempt#1 EXIT1（夹具 ref UPDATE 参数位次）→ `20fe852d` 恰 2 行占位符重排（`$3/$4→$2/$3`·`$i+5→$i+4`）断言集零改动亲 diff——非 retry-to-green、非断言迁就，台账诚实成立；attempt#2 收据 tracked 镜像 `uc016-nhp-fault-attempt001.json` 45/0 与日志 `attempt2-full.log` 逐行对账吻合
+
+## 条件裁决（C-RR-1~5 POST-PROVE 复验）
+
+| 条件 | 裁决 | 独立证据 |
+|------|------|----------|
+| **C-RR-1** 零产品码 | **PASS** | `git diff 1b85b58a..12a350f7 -- 'apps/*/src' 'packages/*/src' 'packages/db/migrations'` 空（机检）；diff 面恰 7 文件 = 3 receipts docs + 1 proof `uc-e2e-016-nhp-fault.proof.ts` + 2 package.json 脚本注册 + 1 `run-e2e-isolated.mjs` 四处注册（receipt-sources/allowlist/isolatedCommand/migrate-list · 与 uc001/uc025/uc028 既有 nhp-fault 同构 additive） |
+| **C-RR-2** scripted 冻结入 receipt + 零 provider 外呼 | **PASS** | scriptedSeams 逐 case 冻结（proof :295-302 ≡ tracked 镜像 JSON :37-62）；缝= `model-client.ts:137` scriptedModelClient 既有生产缝亲证；本审 fresh run `envModelApiKeyUnset=true`+`providerOutboundCalls=0`（env -u 三键）；缺 key fail-closed `model-client.ts:364` 在位（未被触发亦如实登记 · 双保险诚实措辞） |
+| **C-RR-3** 分类按实际行为 + E3 NOT claimed + D1 标记 | **PASS** | F3 实测 `schema_validation_failed`（`invoke.ts:711-712` 第一层 schema 拒绝亲证 · proof :196 断言 · 收据 note 原文）；F1/F2 按 DB `last_error=*_external_outcome_unknown` 落账，未宣称 transient/deterministic 分类语义；F4 断言文本带「D1 重建映射 · 非字面 failed→pending 口」+ 旧失败对象终态稳定/事件数不变断言未省略（C-HA-4） |
+| **C-RR-4** EXIT0≠covered≠行升格 | **PASS** | proof 头 :27-28 + 收据 nonClaims + 日志尾三处逐字同文；SSOT 零 diff（backlog/checklist/matrix/queue 不在 7 文件面机检 0 hit）；coveredCount=8 冻结；UC-016/029 行措辞不动、gap→case-only 保留、升格仅归 coordinator nail |
+| **C-RR-5** alone≠dual | **held** | 本签仅 mw-rag-route 半边；mw-e2e-ha POST-PROVE 由并行补席另签，本审不代签、不见其面；dual 效力归协调方汇合 |
+
+## 域边界（route/RAG 焦点）
+
+- receipt 有无越界宣称——**无**：D3 原文「零模型质量/召回/安全断言（质量归 ai-eval · 禁 fake-model 冒充质量闭环）」；nonClaims 保留 EXIT0≠covered≠suite green≠行升格≠PERF/LOAD/容量/SLO/HA≠模型质量闭环；`isolatedReceiptSources` 引 `packages/ai-runtime` 等路径仅为只读 hash 源清单，非触碰。
+- 隔离镜像本机 `pgvector/pgvector:pg16` Id `7b822b0aac60…` 与收据宣称逐字同（无 pull · digest 口径）；PG-retained pin 原值。
+
+## Blockers
+
+0 Blocker
+
+## Conditions
+
+- **C-RR-6**（拓扑处置）：Y2 coding 链 `2051d12a→20fe852d→12a350f7` 当前不在 origin tip `972c6c2f` 链内（OB-RR-P1）；合并/nail 顺序由协调方处置，本审不代行、不 push。
+- **C-RR-7**（证据口径）：本审复跑收据在 `.tmp/uc016-fault-receipts/`（untracked · implementer pre-commit 同口径 not evidence of record 的独立复跑面）；evidence of record = 本段文字 + tracked 镜像 + 实现方 attempts 台账。
+- PRE 段 C-RR-1~5 全数复验 held；alone≠dual 不代签 mw-e2e-ha；禁 push、禁 retry-to-green。
+
+## 中文三行摘要
+
+1. Fresh re-run 恰一次 EXIT0 45/45：独立复跑收据 envModelApiKeyUnset=true、providerOutboundCalls=0，attempt#1 EXIT1 接线修复恰 2 行占位符重排、断言集零改动，非 retry-to-green 台账诚实成立。
+2. C-RR-1~5 全数 held：零产品码/SSOT/RAG 域零触碰机检亲证，F3 按 `schema_validation_failed` 实际行为落 receipt、E3 transient NOT claimed、D1 重建映射标记在位，EXIT0≠covered≠行升格、coveredCount=8 冻结。
+3. 0 Blocker；OB-RR-P1：派单「origin tip 已含 Y2 coding」实测不符（972c6c2f 为并行 privacy 线），实审 `12a350f7` 并落其上，合并顺序归协调方（C-RR-6）；alone≠dual 不代签 mw-e2e-ha，禁 push。
+
+Verdict: PASS
