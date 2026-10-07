@@ -39,3 +39,54 @@ Ban coding · Ban prove execution · Ban live · Ban `pnpm db:up` · **Ban 预�
 本 stub 未跑 prove、未起容器、未连远程环境、未改产品码 / migrations / scripts、未读 `.env*`；named proves ≠ coding/prove 授权（I2 先例）。执行须 PRE BOTH PASS + 协调方 AUTHORIZE。
 
 *Stub · awaiting expert pre-exec dual · STOP*
+
+---
+
+## PRE-EXEC dual review — `mw-e2e-ha`（2026-10-07 · docs gate only · evidence-honesty / E2E 面）
+
+**审域**：六门可执行判据逐门核 + 现状诚实清单实线核 + E2E 证据根裁决。本审 0 prove 执行 · 0 coding · 0 SSOT · 0 push · append-only 仅本 stub · alone ≠ dual。
+
+**对象核验**：被审 REQUEST 直接哈希 `397f3ec` 不在 `origin/feat/mysql-schema-skeleton` 祖先链；origin 链（tip `6b61b734`）载 **patch-id 全等孪生 `c173ee0f`**（同父 `313e04a7` · 树 `8ac5a976` 双侧一致 · patch-id `9d52d8ea` 双侧亲算全等）→ 内容零漂移，本审以孪生内容为被审对象（OB-EH-1 · 落链登记归协调方）。REQUEST diff = 恰 4 md **+286/−0** · 零非 md · 零 SSOT · 零 sibling AN · docs-only 亲证（`313e04a7..6b61b734` 全程 md-only）。本 stub 自 REQUEST 后零触碰（41 行 byte-intact）。
+
+**检查表**（✓ = 亲证）：
+
+| # | 项 | 结果 |
+|---|----|------|
+| 1 | 六门逐门可执行判据（门1 0091 生产级 key 管理/轮换/JWS 验签组合根 · 门2 逐外部 sink vendor real-delete · 门3 INT 向量 sink 作用域键+Qdrant 登记+`0091` receipt 对齐 · 门4 公开 DELETE 开关合同+独立审 · 门5 公平重放/幂等 · 门6 BUG-REV-COND 四专家审） | ✓ 每门判据落到可 prove/可审的具体主张（§2b）+ 各带现状锚（`:167`/`:64`/`:60`/`:58`/`:175`/`:100`），无空洞门、无达标宣告 |
+| 2 | **门5 E2E 级裁决** | ✓ 裁：证据根 = **真实 HTTP/SSE/RLS 组合根**（checklist `:176` 原文 + §2b-0b 绑定）；**in-process（supertest 式 in-process app、直接 service/仓储层调用、scripted seam、0092/0096 rehearsal 面、0128 预览级公平性证据）不足以过此门**；「双 tab 恰一 winner」须**两个独立并发 HTTP/SSE 会话**（Ban 串行两次调用充数）；预览级顶替已被 §2b/门5/stub Ban 显式禁 → C-EH-1 钉死 |
+| 3 | **门4 独立 prove + 专家审** | ✓ backlog `:58`「独立 prove + 专家审批准前**不得放开**」由合同收紧为「独立 prove + ≥ mw-privacy-int + mw-e2e-ha dual · Ban 自批」+ 503 pin 先行入账 + 0129 `preview_incomplete` 保持 + **单一明确开关 Ban 多入口**（收紧非弱化 → C-EH-2） |
+| 4 | 现状诚实清单 H1–H13 逐条实线核 | ✓ `:154`（其余方法 onRequest 前置门固定 `503 public_preview_read_only` · `TC-public-preview-01-main/E1…E6` planned/unmapped）· `:167`（无部署密钥 · 无真实组合根回执 `releaseEvidence=false` · checkpoint 仅恢复 pending graph）· `:169`（00 不授权 01 生产写入 · 0092/0096 rehearsal 与预览 `/answers` 都不是公开 01 write route）· `:173`（0129 回执**固定未完成** · 七类 TC planned/unmapped · legacy `/turn` 仍写 plaintext job payload = `INT-P0-RAW-QUEUE` 不可洗 · 0091 不做 JWS 验签/worker 走 0077/HTTP 未接线 · 远程 PG Ban `db:up` · 「这**不**授权 01 生产 cutover」）· `:174`（0126 围栏 · 01 保持 blocked）· `:175`（preview `/answers` 受控写 · **公开预览下 OCR 组合根仍关** · 0129 公开预览下仍 503）· `:176`（两道不可拆 release gate · 真实 HTTP/SSE/RLS 组合根 · 三项重放语义）· `:1179-1184`（PRIV4 本地行级证据 ≠ `:60` closed ≠ 云端删除）· backlog `:58`/`:59`/`:60`/`:64`/`:68`/`:100` 逐行吻合 · **零洗白** |
+| 5 | 立卷 ≠ 授权 | ✓ §1/§7/§8 三处写死（Ban 预授权任一门 · Ban cutover-ready · Non-claims 全清单）；六门无一被标达标；门6 现状锚诚实声明「本刀双审只是 REQUEST 级 docs gate，**不是**门 6」 |
+| 6 | Pins 原值 | ✓ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · `:60`/`:64` OPEN · UC-052 partial · 01 blocked · `INT-P0-RAW-QUEUE` open · 七类 TC planned/unmapped · PG LISTEN/Redis unchanged — 与 checklist `:173` pins 行零漂移 |
+| 7 | named ≠ 授权（I2 先例）+ EXIT 契约 | ✓ §4 八条 named proves 全「本 REQUEST **不跑**」· 生产组合根证「不命名 · 不授权」· §5 attempts 全录/诚实失败/Ban retry-to-green（`:68` 先例）/单次 attempt 窗口/EXIT0 ≠（cutover/六门关/01 解禁/DELETE 开放/`:60`·`:64` closed/UC-052 covered/HA/releaseEvidence/suite green）全清单 |
+| 8 | MOP03 先例同构 | ✓ `harness/gap-mop-03-successor.md:38` §2b 六项准入合同结构对齐 · D3 沿其 D2「不降级」口径 · 两刀互不引用对方开关面（PG LISTEN/Redis 无关本刀口径成立） |
+
+**D1–D3 独立裁决**：
+
+- **D1（六门不加不减）= PASS**。SSOT 要求面 → 六门映射完备：`:176` 两道 gate → §2b-0a/0b · 重放三语义 → 门5 · `:169` 密钥禁令 → 门1 · `:58` → 门4 · `:64` → 门2 · `:60` → 门3 · `:100` → 门6 · 0126 切换图断明文 → §2b-0c · `:59`（GAP-PRIV-03 acceptance）→ §2b-0b。无 SSOT 项被漏；门5 内含 0128 fairness 生产级证据属门内收紧（`:175` 依文）非增门；GAP-PRIV-01 tenant≠RLS 与 SCOR-01/02 排除**不**豁免 RLS 作为门5/§2b-0b 证据根（`:100` 切流 block 原样在案）。维持六门，无需改写合同。
+- **D2（vendor 证据形态留白）= PASS**。禁令为**类别级**（非 vendor 侧可复核证据一律不得顶替），三例（local_isolated_stub / `external_confirmed` NB-3 / docs 自述）为示例非穷尽白名单；正面形态留未来 cutover REQUEST 定义 + 双审可接受（C-EH-4 收口）。
+- **D3（四专家名单留 AUTHORIZE）= PASS**。`:100` 原文确未列名单；「不降级 + 名单留 AUTHORIZE」解读保持下限 ≥ 既有双审再加两席，Ban 降级为双审即切、Ban 代指派，沿 MOP03 D2 先例，可执行。
+
+**Fail-trigger audit**（触发即 FAIL 六项 · 逐项查无）：①六门弱化/任一门预授权/cutover-ready 叙事 — 无（§1/§7/§8 + 各门现状锚全为未达标口径）②诚实清单洗白（preview 回执写成完成 / `/turn` 洗成停用 / 七类 TC 映射 / UC-052 covered / `:58`·`:60`·`:64` flip）— 无（检查表#4 全实线核零漂移）③Pins 漂移 — 无 ④证据根降级（门5 放行 in-process/预览级）— 无，且本审以 C-EH-1 把 E2E 级读法钉死 ⑤越界（SSOT / sibling AN / 产品码 / scripts）— 无（+286/−0 恰 4 md）⑥程序违规（self-approve / 代签 peer / push）— 无（peer stub 末行仍 PENDING · 本审 append-only 本 stub · 禁 push）。
+
+**Blockers**：0。
+
+**Non-blocking**：
+- **OB-EH-1**：REQUEST `397f3ec` 不在 origin 分支祖先链，origin 链载 patch-id 全等孪生 `c173ee0f`（同父 `313e04a7` · 树 `8ac5a976` 一致 · patch-id `9d52d8ea` 双侧亲算全等）· 内容零漂移；落链/SSOT 登记归协调方 nail 阶段（C-EH-7）。
+- **OB-EH-2**：门1「轮换流程有逐次证据」的证据形态（轮换次数、回执样式）未定死 — 属未来 cutover REQUEST 定义面（与 D2 同构），门判据本身可执行（逐次证据 + 组合根 issue→verify→receipt 全链路已写死），非阻断。
+
+**Conditions**：
+- **C-EH-1（门5 证据根 · E2E 级）**：门5 三项（同 key 同体回放幂等 / 同 key 异体冲突显式拒绝 / 同题双 tab 恰一 winner）+ 0128 dispatch fairness 的唯一合格证据根 = **真实 HTTP/SSE/RLS 组合根**——out-of-process 真 HTTP server + 真 SSE 流 + RLS 开启的远程 Postgres（环境变量注入 · Ban `pnpm db:up`）；**in-process 调用（supertest 式 in-process app、直接 service/仓储层调用、scripted seam、0092/0096 rehearsal 面、0128 预览级证据）一律不足以过门 5**；「双 tab 恰一 winner」须两个独立并发 HTTP/SSE 会话，串行两次调用不算数；未来 cutover REQUEST 的门5 prove 按此执行，预览级顶替 Ban（合同原文 + 本 Condition 双重钉）。
+- **C-EH-2**：门4 放行前置 = 独立 prove（含 DELETE=503 pin 先行入账）+ ≥ mw-privacy-int + mw-e2e-ha dual 专家审 + Ban 自批 + 单一明确开关（Ban 多入口绕行）；0129 `preview_incomplete` 语义直至开关合同满足。
+- **C-EH-3**：D1 落地 — 六门不加不减维持；任何未来增删门须显式改写本合同 + 双审，Ban 口头扩面/缩面；GAP-PRIV-01/SCOR 排除不豁免 RLS 证据根义务（`:100` 切流 block 不动）。
+- **C-EH-4**：D2 落地 — 未来 vendor 证据形态定义须产出 **vendor 侧可复核工件**（Ban 实现方自述/无交叉核 console 截图顶替）并经双审；三例禁令按类别执行非穷尽。
+- **C-EH-5**：D3 落地 — 四专家名单由协调方 AUTHORIZE 指派；下限 ≥ mw-privacy-int + mw-e2e-ha + 再两席；Ban 降级、Ban 代指派。
+- **C-EH-6**：本 PASS 仅 REQUEST 级 docs gate 一票 — alone ≠ dual，不代签 peer `mw-privacy-int`；不预授权六门任一；PASS ≠ AUTHORIZE ≠ coding ≠ prove ≠ cutover；INT-TRANSCRIPT-01 stays blocked；Pins 原值 held 零漂移；EXIT0 ≠（§5 全清单）在未来执行期持续绑定。
+- **C-EH-7**：OB-EH-1 lineage — 协调方 nail 阶段落链时以 patch-id `9d52d8ea` 复核 `397f3ec` ≡ `c173ee0f` 且合并零内容漂移。
+
+**三行中文摘要**：
+1. INT01 立卷合同六门判据逐门核可执行：门5 公平重放/幂等裁真实 HTTP/SSE/RLS 组合根为唯一证据根（in-process/预览级不足过门、双 tab 须两独立并发会话，C-EH-1 钉死），门4 收紧为独立 prove + dual + Ban 自批，门6 四专家不降级、名单留 AUTHORIZE。
+2. H1–H13 现状诚实清单逐条 SSOT 实线核（`:154`/`:167-176`/`:1179-1184` · backlog `:58`-`:100`）零洗白：preview 回执固定未完成、legacy `/turn` plaintext=`INT-P0-RAW-QUEUE` open、七类 TC planned、UC-052 partial、`:60`/`:64` OPEN、releaseEvidence=false 全 held；Pins 原值零漂移。
+3. D1 六门不加不减 / D2 vendor 形态留白·顶替禁入 / D3 名单留 AUTHORIZE 三裁全 PASS；0 Blocker · C-EH-1~7 · OB-EH-1 孪生落链归协调方 · alone≠dual 不代签 mw-privacy-int · docs gate only 零 prove 零 coding 零 SSOT 零 push。
+
+Verdict: PASS
