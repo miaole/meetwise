@@ -32,7 +32,7 @@
 
 | Face | 本 REQUEST（拟） | 仍须保留 |
 |------|------------------|----------|
-| **诚实清单钉** | §2a wakeup 生产现状诚实登记（lossy hint · 无周期兜底轮询 · 漏唤醒窗口） | BUG-NOTIFY-REC `:95` OPEN · Ban 写成已修复 |
+| **诚实清单钉** | §2a wakeup 生产现状诚实登记（lossy hint · 既有周期兜底扫描实存（drain-loop 周期 tick + 五 loop 5s 认领 + dual reconciler 30s/60s）→ 漏唤醒 = 有界延迟窗 · 强制 periodic reconcile 未在 sole stack 证明 GAP 仍 OPEN · 漏唤醒窗口） | BUG-NOTIFY-REC `:95` OPEN · Ban 写成已修复 |
 | **切流包立卷** | §2b M3 切流包 wakeup 侧内容定义（docs · 非执行） | `:74` OPEN · flag 开启动作属未来授权 REQUEST |
 | **旧 prove 处置** | §2c `worker-wakeup:prove`（旧）标红或换夹具的处置计划（docs 声明） | 本刀不改 `package.json`、不跑不标红 |
 | **口径钉** | `actualSpendCny=null` · 两本账分离沿 I 线 · `releaseEvidence=false` | 费率非承诺 |
