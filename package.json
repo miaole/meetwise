@@ -255,6 +255,8 @@
     "rag06-route-scope-cache:prove:raw": "pnpm -C packages/db prove:rag06-route-scope-cache",
     "rag07-free-text-route:prove": "node scripts/run-e2e-isolated.mjs rag07-free-text-route:prove:raw",
     "rag07-free-text-route:prove:raw": "pnpm -C packages/db prove:rag07-free-text-route",
+    "gap-rag05-classifier:prove": "pnpm run gap-rag05-classifier:prove:raw",
+    "gap-rag05-classifier:prove:raw": "pnpm -C packages/ai-runtime prove:gap-rag05-classifier",
     "map:eval": "pnpm -C apps/worker exec tsx smoke/map-eval.ts",
     "memory:prove": "node scripts/run-e2e-isolated.mjs memory:prove:raw",
     "memory:prove:raw": "pnpm -C apps/worker prove:memory",
