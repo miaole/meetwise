@@ -89,3 +89,53 @@ Ban coding · Ban prove execution · Ban live · Ban `pnpm db:up` · **Ban 预�
 3. D1/D2/D3 均 ACCEPT（D2 形态留白与 NB-3 顶替禁令自洽）；唯一修正项 C-1（#103 prove 脚本在本 base 未合入，「已存在」表注不准）不阻 Verdict；单侧 PASS，mw-e2e-ha 侧不代签，alone ≠ dual，执行仍须 PRE BOTH PASS + 协调方 AUTHORIZE。
 
 Verdict: PASS
+
+---
+
+## POST-PROVE dual review — `mw-privacy-int`（2026-10-07 · EXEC lifecycle 落盘复验 · docs gate only · 单侧 · alone ≠ dual）
+
+**Reviewed**: exec `a1fd61a2` / `a1fd61a2d1004496d256b9f7bf55d7e4c077648f`（parent `9f399f55` = `origin/feat/mysql-schema-skeleton` tip）≡ 主线链载镜像 `6d5a4d7f`——同父 `9f399f55`、tree `79d19cc2` 全等、patch-id `048dbc01` 双侧亲算全等，且 `6d5a4d7f` 亲证为主线（`cd908eff` 链）祖先：exec 内容按链载实审，无网络环境下的 origin 陈旧性以镜像等价闭合。
+**Method**: 独立 worktree `rv/int01p-privacy-int`（base = origin/feat/mysql-schema-skeleton `9f399f55`，恰为 exec 父 tip；worktree add EXIT=0）· 全部机检 + SSOT 只读核验 · 零执行 / 零容器 / 零远程 / 零 `.env*` / 零产品码触碰 · 本审不代签 peer mw-e2e-ha（其侧审在并行，本审不见不需见）。
+
+### 复验表
+
+| # | 维度 | 结果 | 证据（机检 / 只读核验） |
+|---|------|------|------|
+| P1 | 包形态恰 2 md | PASS | exec diff `--name-status`：恰 `gap-int-transcript-01-cutover-contract.slice.md` + `harness/gap-int-transcript-01-cutover-contract.md` 2 个 .md，+36/−7；非 ai-docs 文件 0；`src`/`packages`/`db`/`migrations` 等产品码 0 diff；审 stub（reviews/）0 diff；`package(-lock).json` 0 diff |
+| P2 | lifecycle 推进 + 旧态保留 | PASS | 两文件同步 `draft:awaiting_pre_exec_dual` → `executed:awaiting_post_prove_dual`；旧态以 blockquote「**Pre-exec-era status（historical · retained）**: draft:awaiting_pre_exec_dual …」在 slice 与 harness 各保留一处；页脚 STOP（awaiting PRE dual）→ STOP（awaiting POST dual） |
+| P3 | §9 EXEC 登记真实性 | PASS | 双 PRE SHA 全长登记且与实物相符：`70e95cafd40df1263043b89077e28c27708f6232`≡镜像 `0cee4f18`（patch-id `6f85af5e` 两侧亲算全等 · tree `cd0c5759`）、`58466c836d910ff6a1c120c6ae9450cc7a250fac`≡镜像 `b4bcff45`（patch-id `6c0f9718` 两侧亲算全等）；两镜像 `merge-base --is-ancestor` 亲证 ∈ origin 祖先（「均已收 origin」属实）；e2e-ha 侧 0 Blocker / Verdict PASS / D1–D3 全 PASS 经镜像 commit message 亲读 |
+| P4 | 落链 provenance | PASS | 孪生 `397f3ece`≡`c173ee0f`：同 parent `313e04a7`、tree 同为 `8ac5a976`、patch-id `9d52d8ea89339741a62f72412727e4e70df9d22f` 两侧亲算全等；`c173ee0f` ∈ origin 祖先亲证——与 §9 provenance 行登记逐字相符 |
+| P5 | D1–D3 入卷 | PASS | §9 三行裁决（六门不加不减 / vendor 形态留白·顶替禁入 / 四专家名单留 AUTHORIZE）与本 PRE §D1–D3（三 ACCEPT）及 e2e-ha 镜像 message（三 PASS）实质一致，「三裁一致」属实 |
+| P6 | 六门零弱化 | PASS | harness §2b 起至 §9 前区间 base↔exec `diff` 机检 **byte-identical**；六门 + 「本合同不预授权任何一门，也不因任何单门提前达标而宣布 cutover ready」原样 |
+| P7 | §2b-0 两道 release gate 在位 | PASS | 0a/0b 两条 + 「两道不可拆 release gate……非门、缺一即止」原样机检在位；0b「真实 HTTP/SSE/RLS 组合根 · rehearsal/预览账本/test-only ≠ 该证明」原文未动 |
+| P8 | H1–H13 零洗 | PASS | H1–H13 表随 P6 区间 byte-identical 整体保留（H1 preview 回执固定未完成 … H13 rehearsal ≠ 公开 write route 逐条在位）；SSOT（checklist/backlog/matrix）exec 零 diff，现状表述无洗白面 |
+| P9 | Pins 零漂移 | PASS | slice 与 harness 的 Pins 行 base↔exec `diff` 机检 identical；NOT_HA/false/false/true/8/false/PG-retained/503/`:60`/`:64` OPEN/UC-052 partial 全原值 |
+| P10 | C-EH-1~7 超集携带 | PASS | §9 C-EH-1~C-EH-7 七行全表携带；C-EH-1「in-process/预览级不足过门5 · 双 tab=两独立并发会话」、C-EH-2「独立 prove + dual + Ban 自批」原义在位；「携带口径注记」行如实自曝派单 1~5 / 实审 1~7 差异并按超集绑定，零弱化 |
+| P11 | Ban self-write `post_prove_dual_pass` | PASS | exec 树内 `post_prove_dual_pass` 全部命中为他刀历史锚（UC-052/AN-PRIV-EXT·AR/PRIV4，均 base 已有语境）或 Ban self-write 声明；本 REQUEST 状态零 self-write（= awaiting_post_prove_dual）；「Ban nail until POST BOTH + 协调方 AUTHORIZE」写死；INT-TRANSCRIPT-01 stays blocked 全文保留 |
+
+### 上轮 Conditions 逐条复验裁决（mw-privacy-int 单侧）
+
+| Condition | 裁决 | 复验证据 |
+|-----------|------|----------|
+| **C-1**（#103 `mem00-int00:prove-path`「已存在」修正义务） | **成立 · 如实引用 · 维持义务** | §4 表格原文零改（base `:119` ↔ exec `:121` 同文「已存在 · 本 REQUEST **不跑**」，+2 行位移即 blockquote）；义务仅在 §9 C-1 行如实登记（exec 树内全仓 package.json 对该脚本机检 **0 hit** 亲证 · `gap-bug-backlog.md:24`/`:45` 亲读 = #103 **INFLIGHT** PR `chore/mem00-int00-prove-path` 未合入）——「exec 仅如实登记不改 §4 原文」与 C-1 原义完全一致；nail 阶段改注义务**未被本 exec 消除**，继续 alive |
+| **C-2**（引用纪律） | **成立 · 原义复载** | §9 C-2 行逐字复载「双审 PASS 仅 REQUEST 级 docs gate；不得被引用为六门任一达标、cutover ready、01 解禁或 DELETE 开放」；exec 树内 cutover-ready 字样机检全为 Ban/否定语境；§8 Non-claims「PASS ≠ AUTHORIZE ≠ coding ≠ prove」保留 |
+| **C-3**（sha 记账钉实际祖先 `c173ee0f`） | **成立 · 已落实** | §9 provenance 行 + §9 C-3 行 + slice EXEC 段三处一致钉 `c173ee0f`；patch-id `9d52d8ea` 本审第三次独立重算全等（P4） |
+
+### Blockers
+
+无。
+
+### Conditions（本审新增 · 随卷继续绑定）
+
+- **CP-1**：C-1 修正义务保持 alive——nail 阶段必须把 harness §4 该格（及 slice Named proves 处如引用）改注为「属 #103 INFLIGHT、合入后方可称已存在」；本 exec 仅登记、不视为已履行。
+- **CP-2**：C-2 / C-3 与 e2e-ha C-EH-1~7 全集随卷继续绑定，任何后续 nail/dual 阶段不得裁剪或重释（超集口径以 §9 携带口径注记为准）。
+- **CP-3**：alone ≠ dual——本 PASS 仅为 mw-privacy-int 单侧一票，不代签 mw-e2e-ha；POST BOTH PASS + 协调方 AUTHORIZE 前 Ban nail / Ban SSOT 登记 / Ban self-write `post_prove_dual_pass`。
+- **CP-4**：本 PASS ≠ 六门任一裁决 ≠ cutover ready ≠ INT-TRANSCRIPT-01 解禁 ≠ DELETE 开放；INT-TRANSCRIPT-01 stays blocked；六门裁决一律发生在未来独立 cutover REQUEST + 协调方 AUTHORIZE。
+
+### 中文三行摘要
+
+1. exec `a1fd61a2`≡链载镜像 `6d5a4d7f`（patch-id `048dbc01` 双侧亲算）恰 2 md +36/−7 全 ai-docs，零产品码/SSOT/审 stub/package.json 机检 0 diff，本 stub PRE 段 blob `abda4d9f` 三处 byte-identical，append-only 保留。
+2. lifecycle 推进与 §9 EXEC 登记全部属实：双 PRE SHA+镜像 ∈ origin 祖先亲证、孪生 `397f3ece≡c173ee0f` patch-id `9d52d8ea` 第三次重算全等、D1–D3 三裁一致入卷；C-1 如实引用且 §4 原文零改、C-2 原义复载、C-3 三处钉 `c173ee0f`。
+3. 立卷零弱化：§2b..§9 区间 byte-identical、§2b-0 两道 release gate 与 H1–H13 原样、Pins 双文件零漂移、C-EH-1~7 超集全携带并如实注记口径差；`post_prove_dual_pass` 零 self-write，INT-TRANSCRIPT-01 stays blocked；单侧 PASS 不代签 peer mw-e2e-ha，0 Blocker，CP-1~CP-4。
+
+Verdict: PASS
