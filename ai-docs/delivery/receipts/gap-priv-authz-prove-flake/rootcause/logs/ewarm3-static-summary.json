@@ -1,0 +1,43 @@
+{
+  "experiment": "ewarm3-static",
+  "a_fixtureFace": {
+    "insertInterviewVerbatim": "async function insertInterview(ownerId: string, interviewId: string): Promise<void> {\n  await admin.query(\n    \"INSERT INTO interview(id,owner_user_id,status,version,current_question_index,questions) VALUES ($1,$2,'active',0,0,'[]'::jsonb)\",\n    [interviewId, ownerId],\n  );\n}",
+    "insertAtLine": 57,
+    "onConflictCount": 0,
+    "deleteFromInterviewCount": 0,
+    "truncateCount": 0,
+    "fixedIdA": {
+      "line": 125,
+      "value": "00000000-0000-4000-8000-0000000000a1"
+    },
+    "fixedIdOther": {
+      "line": 126,
+      "value": "00000000-0000-4000-8000-0000000000a2"
+    },
+    "insertCalls": 8
+  },
+  "b_warmV2NotReusedDb": {
+    "source": "receipts/uc052-pool-role-leak/privacy-authorization-flake-ledger.jsonl warm_v2 rows + review 49ef158 §5 (quoted in backlog :68)",
+    "backlogVerbatim": "| GAP-PRIV-AUTHZ-PROVE-FLAKE | P2 | **OPEN** · status **mitigated/cause-unknown** · `pnpm privacy-authorization:prove` is not a single root. Historical e2e-ha @`69de818` first-run #1 `ECONNREFUSED` EX…"
+  },
+  "c_attempt1Disagreement": {
+    "oneshotAttempt1JsonBlob": "8cc9db56079a60fc6410472632dbf4899952c9c2",
+    "expectedJsonBlob": "8cc9db56079a60fc6410472632dbf4899952c9c2",
+    "oneshotAttempt1LogBlob": "e8d0fbe4bf5d0cb5d8819adda7b69c7a68b39c77",
+    "expectedLogBlob": "e8d0fbe4bf5d0cb5d8819adda7b69c7a68b39c77",
+    "failCommitPresent": true
+  },
+  "d_anchorCheck": {
+    "cold5Blob": "d066fcd8e8a6805e903b706196c3ead5d7cd9feb",
+    "warm2Blob": "4ce66da1ac4dbaea808580fcaa94784ef689a095",
+    "historicalBlob": "db8ade3ba4fecc01a7cb7d019b8424174628d631",
+    "jsonlBlob": "272f0314e0eff8a9192c658a6a72584ae70146f4",
+    "expected": {
+      "cold5": "d066fcd8e8a6805e903b706196c3ead5d7cd9feb",
+      "warm2": "4ce66da1ac4dbaea808580fcaa94784ef689a095",
+      "historical": "db8ade3ba4fecc01a7cb7d019b8424174628d631",
+      "jsonl": "272f0314e0eff8a9192c658a6a72584ae70146f4"
+    }
+  },
+  "zeroDrift": true
+}
