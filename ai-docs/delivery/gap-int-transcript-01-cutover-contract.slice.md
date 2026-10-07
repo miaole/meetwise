@@ -1,6 +1,8 @@
-# Slice — **INT01 · INT-TRANSCRIPT-01 生产 cutover 立卷（准入合同 · 沿 MOP03 六门先例）**（docs-only REQUEST · **`draft:awaiting_pre_exec_dual`**）
+# Slice — **INT01 · INT-TRANSCRIPT-01 生产 cutover 立卷（准入合同 · 沿 MOP03 六门先例）**（docs-only REQUEST · **`executed:awaiting_post_prove_dual`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（零 coding · 零 prove 执行 · 零 SSOT（backlog / matrix / checklist 零改 · nail 阶段才登记）· **Ban 预授权六门任一** · **Ban cutover-ready claim** · **Ban 把立卷写成授权** · INT-TRANSCRIPT-01 stays blocked · alone ≠ dual · Ban nail until PRE BOTH + 协调方 AUTHORIZE）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC lifecycle 推进 2026-10-07 · PRE dual BOTH PASS：mw-privacy-int `70e95ca`（镜像 `0cee4f18`）+ mw-e2e-ha `58466c8`（镜像 `b4bcff45`）· D1–D3 三裁一致 · line 孪生 `397f3ece` rebase 与链载孪生 `c173ee0f`（patch-id `9d52d8ea`）同补丁自动 drop 落 tip `9f399f55` · exec 仅 lifecycle 标记 + Conditions 登记（详见 harness §9）· 零 coding · 零 prove 执行 · 零 SSOT（nail 阶段才登记）· **Ban 预授权六门任一** · **Ban cutover-ready claim** · **Ban 把立卷写成授权** · INT-TRANSCRIPT-01 stays blocked · alone ≠ dual · **Ban self-write `post_prove_dual_pass`** · Ban nail until POST BOTH + 协调方 AUTHORIZE）
+
+> **Pre-exec-era status（historical · retained）**: **`draft:awaiting_pre_exec_dual`**（零 coding · 零 prove 执行 · 零 SSOT · Ban nail until PRE BOTH PASS + 协调方 AUTHORIZE）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · **PG-retained** · **public DELETE=503** · `:60`/`:64` OPEN · UC-052 partial · `INT-P0-RAW-QUEUE` open · PG LISTEN/Redis unchanged（无关本刀）
 **Date**: 2026-10-07（Asia/Shanghai · UTC+8）
 **Base**: `origin/feat/mysql-schema-skeleton` · **`313e04a7`** / `313e04a7fc0ca91ef60fb229802dd374f85cc93d`
@@ -23,6 +25,10 @@ checklist `:173` 硬钉「这**不**授权 `INT-TRANSCRIPT-01` 生产 cutover」
 
 preview（0129 erasure-preview 盘点 + 0096/0125 begin 链接，回执固定未完成、`releaseEvidence=false`，公开预览下仍 503）· preview `/answers`（0092 rehearsal 账本 · `MEETWISE_PUBLIC_PREVIEW=1` 才可写 · 非预览 404 · 不入 apiContract · 不是 01 生产 write）· 公开 DELETE=503 冻结（GAP-PRIV-02 `:58`）· legacy `/turn` plaintext job payload = **`INT-P0-RAW-QUEUE` 不可洗**（checklist `:173` 原文）· 七类 TC 仍 planned/unmapped（`:173`/`:154`）· UC-052 stays partial（≠ covered ≠ 01）· 0091 本地合同已冻结但不做 JWS 验签、worker 走 0077、HTTP 未接线（`:173`）· AR `:64` OPEN（stub≠cloud · `cloudVendorDeleted=false` · NB-3）· PRIV4 `:60` 本地行级证据 ≠ close、INT sink='vector' no-target（`:1181`）· 账本 HTTP 证明须远程 Postgres · **Ban `pnpm db:up`**。
 
+## EXEC 登记（浓缩 · 全表见 harness §9）
+
+PRE dual BOTH PASS（privacy `70e95ca` + e2e-ha `58466c8` · 0 Blocker）· D1 六门不加不减 / D2 形态留白·顶替禁入 / D3 名单留 AUTHORIZE——三裁双审一致 ACCEPT/PASS · Conditions 随卷：privacy C-1（**#103 `mem00-int00:prove-path`「已存在」注记修正义务：nail 阶段改注「属 #103 INFLIGHT、合入后方可称已存在」· 本 exec 仅如实登记不改 §4 原文**）· C-2 引用纪律 · C-3 记账钉 `c173ee0f` · e2e-ha C-EH-1（门5 唯一证据根=真实 HTTP/SSE/RLS 组合根 · in-process/预览级不足 · 双 tab=两独立并发会话）~C-EH-7 超集全携带（派单写 1~5 · 实审 1~7 · 零弱化）· Ban self-write `post_prove_dual_pass`。
+
 ## Named proves（clarity only · 本 REQUEST 零执行 · I2 先例：named ≠ 授权）
 
 `pnpm privacy-erasure:http:prove`（含 DELETE=503 pin）· `pnpm int-answer-dual-write-fence:prove` · `pnpm uc052:internal-erasure:prove` · `pnpm uc052:external-sink-retention:prove` · `pnpm uc052:external-sink-async-purge:prove` · `pnpm vector-plane-erasure:prove` · `pnpm qdrant-store:g5-erasure:prove` · `pnpm mem00-int00:prove-path`（#103）。生产组合根组合证 / issuer 轮换 / INT 向量 sink / DELETE 开关合同 prove **不命名不授权**（属未来 cutover REQUEST）。本刀不新增脚本、不改 `package.json`、不跑任何 prove。
@@ -40,4 +46,4 @@ attempts 全记录（逐条 EXIT · Asia/Shanghai · code SHA · PRIV4 先例 1,
 - Ban `INT-P0-RAW-QUEUE` 洗白 · Ban 七类 TC 映射/翻行 · Ban 云 vendor 删除以 stub/`external_confirmed`（NB-3）/docs 自述顶替（D2）· Ban 四专家审降级/代指派（D3）
 - Ban PG LISTEN/Redis 改动或引用为切流语义（无关本刀 · MOP03 面）· Ban 碰 sibling AN 文件 · Ban secrets / `.env*` · Ban Meridian · Ban buy cloud · Ban force-push · **Ban push** · Ban self-approve（alone ≠ dual）
 
-*Slice · INT01 INT-TRANSCRIPT-01 cutover contract · `draft:awaiting_pre_exec_dual` · 零 coding · 零 prove 执行 · Ban 预授权六门任一 · Ban cutover-ready claim · DELETE=503 冻结 · `:60`/`:64` OPEN · UC-052 partial · alone ≠ dual · STOP（awaiting PRE dual）*
+*Slice · INT01 INT-TRANSCRIPT-01 cutover contract · `executed:awaiting_post_prove_dual` · 零 coding · 零 prove 执行 · Ban 预授权六门任一 · Ban cutover-ready claim · DELETE=503 冻结 · `:60`/`:64` OPEN · UC-052 partial · alone ≠ dual · STOP（awaiting POST dual）*

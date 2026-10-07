@@ -1,6 +1,8 @@
-# Harness — **INT01 · INT-TRANSCRIPT-01 生产 cutover 立卷刀（准入合同 · 沿 MOP03 六门先例）**（docs-only REQUEST · **`draft:awaiting_pre_exec_dual`** · Ban 预授权六门任一 · Ban cutover-ready claim · Ban coding · Ban prove）
+# Harness — **INT01 · INT-TRANSCRIPT-01 生产 cutover 立卷刀（准入合同 · 沿 MOP03 六门先例）**（docs-only REQUEST · **`executed:awaiting_post_prove_dual`** · Ban 预授权六门任一 · Ban cutover-ready claim · Ban coding · Ban prove）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（docs-only REQUEST 立卷 · 零 coding · 零 prove 执行 · 零 SSOT（backlog / matrix / checklist 零改 · nail 阶段才登记）· **Ban 预授权六门任一** · **Ban 宣称 cutover ready** · **Ban 把立卷写成授权** · INT-TRANSCRIPT-01 **保持 blocked** · 公开 DELETE=503 冻结 · `:60`/`:64` OPEN · UC-052 stays partial · PG LISTEN / Redis **无关本刀（零改）** · alone ≠ dual · Ban self-approve · Ban nail until PRE BOTH PASS + 协调方 AUTHORIZE）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC lifecycle 推进落盘 2026-10-07 · PRE-EXEC dual BOTH PASS：mw-privacy-int `70e95ca`（origin 镜像 `0cee4f18`）+ mw-e2e-ha `58466c8`（origin 镜像 `b4bcff45`）· 均已收 origin · D1–D3 三裁一致（双审 ACCEPT/PASS）· 立卷产物 = REQUEST 自身（harness+slice+双 stub · 六门准入合同在内 → exec 仅推进 lifecycle 标记 + Conditions 登记 · 见 §9）· line 孪生 `397f3ece` rebase 到 origin tip `9f399f55` 与链载孪生 `c173ee0f`（同父 `313e04a7` · patch-id `9d52d8ea` 双侧亲算全等）同补丁自动 drop 落 tip（MOP03 EXEC rebase 先例）· 零 coding · 零 prove 执行 · 零 SSOT（backlog / matrix / checklist 零改 · nail 阶段才登记）· **Ban 预授权六门任一** · **Ban 宣称 cutover ready** · **Ban 把立卷写成授权** · INT-TRANSCRIPT-01 **保持 blocked** · 公开 DELETE=503 冻结 · `:60`/`:64` OPEN · UC-052 stays partial · PG LISTEN / Redis **无关本刀（零改）** · **Ban self-write `post_prove_dual_pass`** · alone ≠ dual · Ban nail until POST BOTH + 协调方 AUTHORIZE）
+
+> **Pre-exec-era status（historical · retained）**: **`draft:awaiting_pre_exec_dual`**（docs-only REQUEST 立卷 · L0 · Ban coding · Ban prove execution · Ban push · alone ≠ dual · Ban nail until PRE BOTH PASS + 协调方 AUTHORIZE）
 **Date**: 2026-10-07（Asia/Shanghai · UTC+8）
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`313e04a7`** / full `313e04a7fc0ca91ef60fb229802dd374f85cc93d`
 **Wave**: Line **INT01**（queue Phase 3 privacy · `REMAINING-NORTH-STAR-QUEUE.md:31-32`：「## Phase 3 privacy / DELETE=503 freeze · INT-TRANSCRIPT-01 · GAP-PRIV-01 tenant≠RLS · GAP-PRIV-04 vector erase」）
@@ -149,6 +151,27 @@
 
 docs-only REQUEST 立卷 · **not cutover ready** · **not INT-TRANSCRIPT-01 授权/解禁** · not 六门任一关闭 · not DELETE 开放（503 冻结）· not `:60`/`:64` closed · not UC-052 covered · not `cloudVendorDeleted=true` · not HA · not `releaseEvidence=true` · not 完整面试记录/控制面已关（checklist `:67`）· PG LISTEN/Redis unchanged · alone ≠ dual · PASS ≠ AUTHORIZE ≠ coding ≠ prove
 
+## 9. EXEC 登记（2026-10-07 · lifecycle 推进 · docs-only · 协调方 AUTHORIZE 后落盘）
+
+| 项 | 登记 |
+|----|------|
+| **PRE-EXEC dual BOTH PASS** | mw-privacy-int `70e95ca` / `70e95cafd40df1263043b89077e28c27708f6232`（origin 镜像 `0cee4f18`）+ mw-e2e-ha `58466c8` / `58466c836d910ff6a1c120c6ae9450cc7a250fac`（origin 镜像 `b4bcff45`）· 均 0 Blocker · Verdict PASS · 均已收 origin |
+| **REQUEST 落链 provenance** | line 孪生 `397f3ece`（parent `313e04a7`）EXEC rebase 到 origin tip `9f399f55` 时，与 origin 链载孪生 `c173ee0f`（同父 `313e04a7` · tree `8ac5a976` 一致 · patch-id `9d52d8ea` 双侧亲算全等）同补丁**自动 drop 落 tip**（MOP03 EXEC rebase 先例）· 内容零漂移 · 后续 nail/dual 记账按 **C-3 / C-EH-7** 钉实际祖先 sha `c173ee0f` |
+| **D1 裁决（双审一致）** | **六门不加不减 = ACCEPT/PASS**：不并入 GAP-PRIV-01 tenant≠RLS、不并入 SCOR-01/02；未来增删门须显式改写本合同 + 双审，Ban 口头扩面/缩面（C-EH-3）；GAP-PRIV-01/SCOR 排除**不**豁免 RLS 作为门5/§2b-0b 证据根（`:100` 切流 block 原样在案） |
+| **D2 裁决（双审一致）** | **vendor 证据形态留白·自洽 = ACCEPT/PASS**：正面形态留未来 cutover REQUEST 定义 + 双审；顶替禁令类别级写死（local_isolated_stub / `external_confirmed` NB-3 / docs 自述为示例非穷尽白名单）；未来形态定义须产出 **vendor 侧可复核工件**、Ban 实现方自述/无交叉核 console 截图顶替（C-EH-4） |
+| **D3 裁决（双审一致）** | **四专家名单留 AUTHORIZE = ACCEPT/PASS**：不降级 · 下限 ≥ mw-privacy-int + mw-e2e-ha 再加两席 · 名单由协调方 AUTHORIZE 指派 · Ban 代指派 · Ban 降为双审即切（C-EH-5） |
+| **Conditions 落点 · privacy C-1（修正义务 · exec 如实引用）** | harness §4 表与 slice 将 `pnpm mem00-int00:prove-path`（#103）标为「已存在」——在被审 base 上该脚本**不在任何 package.json**，backlog `:24`/`:45` 记 #103 为 **INFLIGHT** PR（`chore/mem00-int00-prove-path`）未合入 `feat/mysql-schema-skeleton`。本刀零执行、仅 named-not-run 故不阻 Verdict。**义务：nail 阶段须把该格改注为「属 #103 INFLIGHT、合入后方可称已存在」，未来任何引用前须在承载分支复核**——本 exec 仅登记该义务，不改 §4 表格原文（SSOT/立卷原文 exec 零触碰） |
+| **Conditions 落点 · privacy C-2** | 引用纪律：双审 PASS 仅 REQUEST 级 docs gate；不得被引用为六门任一达标、cutover ready、01 解禁或 DELETE 开放；六门裁决一律发生在未来独立 cutover REQUEST + 协调方 AUTHORIZE |
+| **Conditions 落点 · privacy C-3** | sha 记账：后续 nail/dual 记账钉实际祖先 sha `c173ee0f`（已按本表 provenance 行落实） |
+| **Conditions 落点 · e2e-ha C-EH-1** | 门5 唯一合格证据根 = **真实 HTTP/SSE/RLS 组合根**（out-of-process 真 HTTP + 真 SSE + RLS 开启远程 Postgres · Ban `pnpm db:up`）；**in-process（supertest 式 app / 直调 service/仓储 / scripted seam / 0092/0096 rehearsal 面 / 0128 预览级证据）一律不足以过门 5**；「双 tab 恰一 winner」须**两个独立并发 HTTP/SSE 会话**、串行两次调用不算数（随卷携带 · 合同原文 + 本 Condition 双重钉） |
+| **Conditions 落点 · e2e-ha C-EH-2** | 门4 放行前置 = 独立 prove（DELETE=503 pin 先行入账）+ ≥ mw-privacy-int + mw-e2e-ha dual 专家审 + Ban 自批 + 单一明确开关 Ban 多入口绕行；0129 `preview_incomplete` 直至开关合同满足 |
+| **Conditions 落点 · e2e-ha C-EH-3** | D1 落地（见上 D1 行） |
+| **Conditions 落点 · e2e-ha C-EH-4** | D2 落地（见上 D2 行） |
+| **Conditions 落点 · e2e-ha C-EH-5** | D3 落地（见上 D3 行） |
+| **Conditions 落点 · e2e-ha C-EH-6** | 双审 PASS 仅 docs gate 一票 · alone ≠ dual · 不预授权六门任一 · PASS ≠ AUTHORIZE ≠ coding ≠ prove ≠ cutover · INT-TRANSCRIPT-01 stays blocked · §5 EXIT0 ≠ 清单在未来执行期持续绑定 |
+| **Conditions 落点 · e2e-ha C-EH-7** | OB-EH-1 lineage：协调方 nail 阶段落链时以 patch-id `9d52d8ea` 复核 `397f3ece` ≡ `c173ee0f` 且合并零内容漂移 |
+| **携带口径注记** | 派单写「C-EH-1~5 随卷携带」，实审 Conditions 为 **C-EH-1~7**——按**超集全携带**（C-EH-6/7 一并绑定），零弱化 |
+
 ## Review stubs
 
 | Expert | Stub |
@@ -156,6 +179,6 @@ docs-only REQUEST 立卷 · **not cutover ready** · **not INT-TRANSCRIPT-01 授
 | `mw-privacy-int` | `reviews/REQUEST-2026-10-07-gap-int-transcript-01-cutover-contract-mw-privacy-int.md` |
 | `mw-e2e-ha` | `reviews/REQUEST-2026-10-07-gap-int-transcript-01-cutover-contract-mw-e2e-ha.md` |
 
-**PRE-exec dual 未发生（本 REQUEST 即 awaiting 状态）· 执行须 PRE BOTH PASS + 协调方 AUTHORIZE · 本 REQUEST 不授权 coding / prove / cutover；POST dual + 协调方 AUTHORIZE 前 Ban nail / Ban SSOT 登记。**
+**Pre-exec dual BOTH PASS（2026-10-07 · mw-privacy-int `70e95ca` + mw-e2e-ha `58466c8` · D1–D3 三裁一致）· 执行已按协调方 AUTHORIZE 落盘（docs-only lifecycle 推进 + §9 Conditions 登记）· 本 REQUEST 仍不授权 coding / prove / cutover；POST dual + 协调方 AUTHORIZE 前 Ban nail / Ban SSOT 登记 / Ban self-write `post_prove_dual_pass`。**
 
-*Harness · INT01 INT-TRANSCRIPT-01 生产 cutover 立卷合同 · 2026-10-07 · `draft:awaiting_pre_exec_dual` · 零 coding · 零 prove 执行 · Ban 预授权六门任一 · Ban cutover-ready claim · DELETE=503 冻结 · `:60`/`:64` OPEN · UC-052 partial · alone ≠ dual · STOP（awaiting PRE dual）*
+*Harness · INT01 INT-TRANSCRIPT-01 生产 cutover 立卷合同 · 2026-10-07 · `executed:awaiting_post_prove_dual` · 零 coding · 零 prove 执行 · Ban 预授权六门任一 · Ban cutover-ready claim · DELETE=503 冻结 · `:60`/`:64` OPEN · UC-052 partial · alone ≠ dual · STOP（awaiting POST dual）*
