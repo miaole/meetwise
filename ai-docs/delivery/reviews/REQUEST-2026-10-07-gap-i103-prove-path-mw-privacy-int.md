@@ -102,3 +102,58 @@ F1 控制面/DELETE/releaseEvidence 翻转宣称（grep `controlPlaneClosed=true
 3. 0 Blocker · C-PRI-1~7 随卷（D1 回执字段 additive 补齐 · D2 skip≠pass 叙事级 · D3 gate 补 503/01-write 断言 · 三钉冻结 · 历史回执重证 · 边界冻结 · alone≠dual 不代签 mw-e2e-ha）；本 PASS≠AUTHORIZE≠prove 授权；0 prove run · 0 coding · 0 SSOT · 禁 push。
 
 Verdict: PASS
+
+---
+
+## POST-PROVE dual review — `mw-privacy-int`（2026-10-07 · privacy/INT-00 域焦点 · EXEC `c20010d6` 执行复验 + 收据 `75ba2783`）
+
+**审席**: `mw-privacy-int` · 独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-i103p-privacy-int`（branch `rv/i103p-privacy-int` @ `origin/feat/mysql-schema-skeleton` tip `65c220ca9a6e88022986ec08af1c4602ebfcbc37`）· 本审 author=mw-privacy-int · **禁 push** · 本审 fresh re-run 恰 1+1 次（gate + prove-path 各恰一次 · **零 retry**）
+**被审包（恰 3+1 文件）**: EXEC `c20010d664fc4a9d06d39a3ae1ba77b6b26cd93b`（parent `1d16e60a` · ≡ line 孪生 `92ab9918` · patch-id `3220105273c2dca38543c82d73e1151c638e2afc` 双侧亲算全等 · 恰 3 A 文件 +368/−0：`package.json` 两行接线 `mem00-int00:prove-path`/`:gate` + `scripts/run-mem00-int00-prove-path.mjs` +325 + `scripts/mem00-int00-prove-path.proof.mjs` +41）+ POST-PROVE 收据 `75ba2783d547e154227d52ea4ee98cf6547310e3`（parent=c20010d6 · 恰 1 A 文件 `ai-docs/delivery/receipts/2026-10-07-i103-mem00-int00-prove-path-attempt1-receipt.json` +127）
+**包完整性 / 隐私域零触碰**: `git diff --name-only c20010d6^ 75ba2783` 恰 4 文件（2 scripts + package.json + 1 receipt）· name-only grep `0091|0125|privacy|uc-052` = **0 hit**（隐私域零 diff：0091/0125 迁移、privacy service、UC-052 面零触碰）· 整链 ai-docs 仅 +1 receipt（非 SSOT 三件 · 非产品码）· SSOT 三件/backlog/checklist/INT01 harness 链内零触碰机检成立 · 本席 PRE 段 **append-only 保留**：blob `dd8f7282` 三点全等（PRE 镜像 `257e9a98` ≡ tip `65c220ca` ≡ worktree 亲算）· 本席 PRE 提交孪生 patch-id `d823c22e`（`a913f665` ≡ `257e9a98`）
+
+### Fresh re-run（本审机面 · worktree @`65c220ca` · 恰一次 · 零 retry）
+
+1. `pnpm mem00-int00:prove-path:gate` — **EXIT=0** · 13/13 PASS（11 条原断言 + 2 条 additive 全绿）
+2. `pnpm mem00-int00:prove-path` — **EXIT=0** · **10/10 passed**（`portable_only=false` · `docker_available=true` · `attempt=1` · `code_sha=65c220ca` · `portable_failed=0/isolated_failed=0/isolated_blocked=0` · 5 portable + 5 isolated 全 PASS）· fresh 收据落 `.tmp`（gitignore `:15` · 工作树净零脏）· 收据机读亲验（python）：4 钉 `False/False/False/True` · per-step `attempt`/`at(+08:00)`/`codeSha` 10/10 全在 · outcomes 全 `passed` · `attemptWindow=single`
+
+### C-PRI-1~7 逐条裁决（POST）
+
+| # | 条件 | 裁决 | 证据（亲算/亲读） |
+|---|------|------|------------------|
+| C-PRI-1 | exec 触碰面 = scripts×2 + package.json 两行接线；SSOT 三件 + backlog `:24`/`:45` 迁移 = nail 专属零触碰 | **SATISFIED** | EXEC diff 机检恰 3 文件且 package.json 恰 +2 行接线；`git diff c20010d6^..75ba2783` 全链零 SSOT/backlog；backlog `:45` #103 行仍 `INFLIGHT:pr-privacy-prove` 未迁 landed（未越权 self-nail）；PRE dual BOTH PASS 在卷（本席 `a913f665`/镜像 `257e9a98` + peer `19cfe869`）· exec commit message 如实申报 "EXEC authorized by coordinator"。登记：链另含收据落点 `75ba2783`（+1 ai-docs receipt）——按 harness §4c 回执契约产物裁非越权（非 SSOT/非产品码），如实记录于 OB-P3 |
+| C-PRI-2 | §4c 回执字段（per-step attempt 序号 / Asia/Shanghai 时间 / code SHA）additive 补齐或如实声明；偏离逐条枚举；Ban 夹带 | **SATISFIED**（走 additive 补齐路径） | runner draft→exec diff 实测：5 处 `results.push` 均增 `attempt: ATTEMPT` / `at: shanghaiIso(+08:00)` / `codeSha`；summary 增 `codeSha`/`attempt=1`/`attemptWindow:'single'`/`startedAtAsiaShanghai`；落地收据 10 步逐字段机验全在且 `+08:00` 字面时区；`codeSha=92ab9918`（=主线 `c20010d6` 孪生，patch-id 本席双侧亲证全等）；零偏离故「偏离枚举」不适用；草稿 SSOT hunks 零继承（diff 机检）= Ban 夹带成立 |
+| C-PRI-3 | blocked→EXIT≠0 写死；portable-only EXIT0 不得叙事为全绿/关闭证据 | **SATISFIED** | runner `:315-318` 写死 `portableFailed>0 ∥ isolatedFailed>0 ∥ isolatedBlocked>0 → exitCode=1`（blocked 独立计入 · 无自动降级路径）；honesty note 较草稿增写「No automatic downgrade: --portable-only is explicit-only and its EXIT0 is not a full green nor any closure evidence. Single attempt window; no retry-to-green.」（diff 实测）；`--portable-only` isolated 逐条 `skipped:portable_only` 入回执（`:259-273`）；gate 断言 portable-only skip-not-pass 在位 |
+| C-PRI-4 | gate additive 补 `publicDeleteStill503Required=true` + `intTranscript01ProductionWrite=false`；既有 11 条零弱化 | **SATISFIED** | `diff 3c7f99cb:proof.mjs c20010d6:proof.mjs` 实测仅 +2 断言 +1 注释行、零删零改（11 条 byte-identical 继承）；新增 2 条均带正则反翻检查且标注 C-HA-4/C-PRI-4 additive；fresh gate 实跑 13/13 PASS EXIT=0 |
+| C-PRI-5 | 三钉 + `intTranscript01ProductionWrite=false` 冻结不可翻转；EXIT0/绿 ≠ 控制面关 ≠ DELETE 开放 ≠ `:60`/`:64` closed ≠ UC-052 covered ≠ HA ≠ releaseEvidence=true；BUG-CP-CLAIM stays open | **SATISFIED** | runner 硬编码 `:279-:282` 四钉原值；exec 收据 4 钉原值；本席 fresh 收据 4 钉机读 `False/False/False/True`；gate 2 条反翻断言双保险；宣称卫生 grep（`controlPlaneClosed: true`/`releaseEvidence: true`/`publicDeleteStill503Required: false`/`intTranscript01ProductionWrite: true`）I103 3 文件 **0 hit**；BUG-CP-CLAIM @tip backlog `:103`（`:101`→`:103` 行号漂移系他线提交 · 链零碰 SSOT 机检）仍 **open**「保持未关」未自动关行；本席 fresh EXIT=0 后零 SSOT/状态行翻动（I103 harness 仍 `draft:awaiting_pre_dual` · `post_prove_dual_pass` 零自写 grep 0 hit） |
+| C-PRI-6 | 历史回执纪律：草稿 2026-09-09 观察与 `memory:prove` 2026-08-10 旧回执 ≠ 当前树证明；exec 须当前树重新亲证，Ban 抄旧 | **SATISFIED** | 草稿历史观察零落 SSOT（SSOT hunks 弃用 · exec/收据链 ai-docs 仅 +1 receipt 机检）；exec 当前树重证：收据 `codeSha=92ab9918` @ `2026-10-07T21:51:02→21:53:07+08:00` 10/10 · `dockerAvailable=true` · attempt=1；本席再独立重证：`codeSha=65c220ca` 10/10 EXIT=0 单 attempt 窗（零 retry）——两次重证均当前树亲跑，无一处引用历史回执充当前通过 |
+| C-PRI-7 | 边界冻结：#104 零触碰 · INT01 `:121`/`:163` 零触碰（Ban self-close C-1）· backlog 占用行 · checklist `:154`/`:167-176` · UC-052 partial · `INT-P0-RAW-QUEUE` open · 七类 TC planned/unmapped · Pins 八项 · alone≠dual | **SATISFIED** | #104 `fix/privacy-authorization-lease-takeover` 面链内零 diff（4 文件机检）；INT01 harness `:121`「属 #103 INFLIGHT、合入后方可称已存在 · 本 REQUEST 不跑」与 `:163` C-1 义务行 tip 亲读原样在位（改回「已存在」仍留 #103 合入后后续 nail · 义务链未 self-close）；backlog 内容锚逐条亲读全中：`:24` INFLIGHT 双 PR+「不宣称控制面已关」+DELETE 仍 503 · `:58` GAP-PRIV-02 503 冻结 · `:59` 00◐/01 blocked · `:60` GAP-PRIV-04 · `:64` EXTERNAL-SINK-RETENTION · `:68` retry-to-green 先例 OPEN · BUG-CP-CLAIM open · `:123` 邻域 BUG-REV-COND conditional 原样；checklist `:432` Pins 八项逐字零漂移（NOT_HA/false/false/true/**8**/false/PG-retained/DELETE=503）· `:173` 00◐ + UC-052 deletion=**partial**≠covered + `INT-P0-RAW-QUEUE` + 七类 TC planned/unmapped 原样 · `:176` 两道不可拆 release gate 原样 · INT01 立卷段（`:1208-1213`）零触碰；peer `mw-e2e-ha` 未代签（POST 段并行未读） |
+
+### Fresh re-run 记录
+
+本审恰好一次 `pnpm mem00-int00:prove-path:gate`（EXIT=0 · 13/13）+ 恰好一次 `pnpm mem00-int00:prove-path`（EXIT=0 · 10/10 · 全模式 · `code_sha=65c220ca` · attempt=1）。零 retry · 零 `db:up` · 零 `.env*` 读取 · 零 SSOT edit · 零产品码改动（`pnpm install --frozen-lockfile` 环境预置除外 · 工作树净）。
+
+### Blockers
+
+**0**。
+
+### Conditions（POST 续绑）
+
+- **C-PRI-1 ~ C-PRI-7 全额随卷续绑**：POST 满足系对本次 exec/收据的复验裁决，不解除其对后续演化（含未来 nail/cutover REQUEST）的约束。
+- SSOT 三件 INFLIGHT→landed 迁移 + I103 harness/checklist 状态行推进 = **post-prove dual 协调方 nail 专属**，本审零触碰；`post_prove_dual_pass` 未自写。
+- **alone ≠ dual**：本 PASS 仅为 `mw-privacy-int` 一席半签；**不代签** peer `mw-e2e-ha`（其 POST 段并行进行中，本席未读未签）。
+- 本 POST PASS ≠ AUTHORIZE ≠ nail ≠ 翻状态 ≠ coveredCount 8+1 ≠ `releaseEvidence=true` ≠ `controlPlaneClosed=true` ≠ 公开 DELETE 开放（503 冻结）≠ INT-TRANSCRIPT-00 closed ≠ INT-TRANSCRIPT-01 解禁 ≠ `:60`/`:64` closed ≠ UC-052 covered ≠ HA ≠ suite green；EXIT0（含本审 fresh EXIT=0 与 exec 10/10 绿）**不构成**控制面关闭证据，仅证明 prove-path 编排本身在当前树可重入复现。
+- 禁 push · 禁 force-push · 禁 retry-to-green（单 attempt 窗口纪律随卷）。
+
+### 观察（非阻断）
+
+- **OB-P1**: exec 收据 `codeSha=92ab9918` 为 line 分支孪生 HEAD（执行线 `line/i103-prove-path`），主线落点为孪生 `c20010d6`——本席 patch-id 双侧亲算全等（`3220105273c2dca38543c82d73e1151c638e2afc`），属执行线如实记账非缺陷。
+- **OB-P2**: PRE 段 cite 行号 @tip 有漂移（如 BUG-CP-CLAIM `:101`→`:103`、checklist 立卷段 `:1212`→`:1208` 邻域），系 `257e9a98..65c220ca` 间他线提交所致；I103 链零碰 SSOT 机检成立 + 内容锚全中，多保护向。
+- **OB-P3**: C-PRI-1 字面「exec 触碰面仅 scripts×2+package.json 两行」与链含收据落点 `75ba2783`（+1 ai-docs receipt 文件）并存——裁据：harness §4c 回执契约为绑定口径（PRE D1），收据系 exec 必产证据工件且非 SSOT 三件/非产品码/非 backlog/checklist，不构成越权；如实登记免歧义。
+
+### 中文摘要（3 行）
+
+1. 被审包恰 3+1 文件（EXEC `c20010d6`≡孪生 `92ab9918` patch-id 亲证 + 收据 `75ba2783`）：隐私域零 diff（0091/0125/privacy service/UC-052 name-only grep 0 hit）、SSOT/INT01 立卷义务链零触碰、本席 PRE 段 blob `dd8f7282` 三点全等 append-only、四钉（releaseEvidence/controlPlaneClosed/intTranscript01ProductionWrite=false · publicDeleteStill503Required=true）在 runner 与收据双侧写死。
+2. C-PRI-1~7 POST 逐条 SATISFIED：gate 11 条 byte-identical 继承 + additive 补 503/01-write 断言零弱化、blocked→EXIT≠0 写死 + portable-only EXIT0 叙事纪律落字、回执 per-step attempt/+08:00/codeSha additive 补齐、exec 当前树重证 10/10 非抄历史、#104/`:58`-`:64`/UC-052 partial/占用行/Pins 八项全冻结。
+3. 本席 fresh re-run 恰一次 gate（EXIT=0 · 13/13）+ 恰一次 prove-path（EXIT=0 · 10/10 · 全模式 · `code_sha=65c220ca` · attempt=1）零 retry；0 Blocker · C-PRI-1~7 续绑 · alone≠dual 不代签 mw-e2e-ha；本 PASS≠AUTHORIZE≠nail≠控制面关闭≠503 开放≠releaseEvidence=true；0 coding · 0 SSOT edit · 禁 push。
+
+Verdict: PASS
