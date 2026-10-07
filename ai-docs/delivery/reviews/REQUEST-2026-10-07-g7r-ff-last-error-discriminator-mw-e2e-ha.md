@@ -108,3 +108,50 @@ Trio stays **OPEN**（EXIT 1/1/1 真实业务红）。`g7SuiteGreen=false`. `act
 alone ≠ dual：本 FAIL 仅为 mw-e2e-ha 半签，不代签并行 peer mw-model-op；peer 独立裁决。本审 0 prove run · 0 live · 0 Key 值读取 · 0 coding · 0 产品/SSOT 触碰 · 禁 push。本 FAIL ≠ REQUEST 框架整体否决 ≠ 判读表逻辑否定 = 仅 B-FF-1/B-FF-2 修复前置。
 
 Verdict: FAIL
+
+---
+
+# RE-PRE dual 审查段 — mw-e2e-ha（adversarial evidence-honesty）· append-only · 2026-10-08
+
+**审者**：`mw-e2e-ha`（独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-ffr-e2e-ha` · branch `rv/ffr-e2e-ha`，自 `line/ff-last-error` 创立）。**被审对象**：rewrite commit `c4ec760b`（full `c4ec760bd6fdbbfda6131317610e00627a56fd32` · parent `0b18169c` · author mw-core）。**方法**：`git diff 0b18169c c4ec760b` 逐 hunk 亲读 + 全局 grep 机检 + 锚点亲读重算；0 prove run · 0 live · 0 Key 值读取 · 0 DB 连接 · 0 coding；alone ≠ dual，本 PASS 仅为 mw-e2e-ha 半签，不代签并行 peer mw-model-op。
+
+## 一、round-1 处方兑现核验表（逐条 · 证据全部本树亲算）
+
+| # | 处方 | 兑现 | 证据（本树亲读亲算） |
+|---|---|---|---|
+| 1 | **B-FF-1** `updated_at`→`created_at` | ✅ | §1.3(1) 改为 `SELECT id, kind, status, attempts, last_error, created_at FROM interview_job ORDER BY created_at DESC LIMIT 20`；DDL 亲读：`05_interview_jobs.sql` 仅 `created_at timestamptz NOT NULL DEFAULT now()`（本树实测 `:20`，文档按内容引用未钉错行）、内嵌 `0001_baseline.sql:266` 同款逐字命中；全局机检复核：`ADD COLUMN updated_at` 全迁移唯一=`0003_app_setting_updated_at.sql:2`（app_setting），`interview_job`+`updated_at` 同现 0 hit，`0058:227` updated_at 确系 `privacy_erasure_request`——文档排除补列论证全真 |
+| 2 | **C-HA-FF-1** created_at 语义注记 | ✅ | §1.3(1) 注释块 + slice 范围3 + footer 三处在卷：「created_at=入队时刻；failed 行系首因写入（秒抛首败非多 attempt 续写），『最近失败优先』排序语义与失败时刻排序等价」 |
+| 3 | **B-FF-2** `error`→`error_code` | ✅ | §1.3(2) 改为 `SELECT service, status, error_code, count(*) …`；DDL 亲读：`0037_ai_model_invocation_durable_claim.sql:14` 逐字=`error_code text,`；`0088:113` 逐字=`error_code !~ '^[A-Za-z0-9._:-]{1,120}$'`；后续 ALTER 全查：0057/0085/0119 补 `cost_scope_id`/`logical_node_key_digest`/`estimate_input_tokens`，**全库零 `error` 列**（`ADD COLUMN|grep -i error`=0 hit）——无 error 列承重命题成立 |
+| 4 | **C-HA-FF-2** error_code 值域注记 | ✅ | §1.3(2) 注释块 + slice + footer：「0088:113 约束可容 provider_rejected/deterministic_refusal，值域判读不受列名修复影响」在卷 |
+| 5 | **C-HA-FF-3** 查询报错≠空读 | ✅ 六处落字 | §1.3 专门前注段（仪器错误不得记「无 failed 行」/不得触发备选/快照逐查询 ok/error+报错摘要/Ban 读成空结果）；§1.2-A(3) 快照格式加「四查询逐条执行状态 ok/error（含报错摘要）」；§1.1 备选触发改为「查询成功且确实未捕获 failed 行」；§1.4 NULL 行加「『三面全空』仅在四查询逐条 ok 时方可判读」；§3.4 收据字段 + §3.5 attempt 纪律同面封口；slice 范围2/3/4/footer 同步 |
+| 6 | **红① 措辞（C-MO-P2/OB-MO-1）** | ✅ | harness §1.1：「start job 未入队：`POST /` 的 interview 壳行已创建，四道 fail-closed 409 门 `interview.service.ts:278-279/:284-285/:304-305/:323-324` 全部先于 `:337` `enqueueInterviewJob` 入队（Ban 沿用『interview 从不创建』简写）」——六行号本树逐一亲验精确（throw 行 `:279/:285/:305/:324`，入队恰 `:337`），且全先于入队成立 |
+| 7 | **C-HA-FF-4** FAIL 段随卷 append-only | ✅ | 本席 round-1 段（自 round-1 commit `a2c33c59` 提取）与 `c4ec760b` 卷内段 **cmp 逐字节全等**（10501B 前缀相等、其后零字节）；round-1 本体对 `0b18169c` 恰 +60/−0；peer 段同理 `rv/ff-model-op` `eccfebfd` 12116B 前缀全等——双审段零删改随卷；OB-FF-1 孪生 provenance（`1dd1e630` tree `b910a6da5d78029dbaede8ea91e1511563d6ba10` 与 `0b18169c` 全等亲算 rebase drop 属实）与 OB-FF-2 措辞（34.5-35.6s 如实改 + 「以 sidecar 自身健康为前提，非必然性断言」）于 Base/§1.2-A 继承在卷 |
+| 8 | **C-HA-FF-5** blob 钉 + 措辞纪律 | ✅ | `git hash-object scripts/run-e2e-isolated.mjs` 重算=`13dbfc43c744511644649ae310696a13ee2f20f7` 全等（`:2082/:2088/:2119/:2296-2301/:2310/:2333/:2367` 行号逐一复验全中）；判读表「机械归类非根因断言」+「单一读数不定谳」交叉互证规则原文保留 |
+| 9 | **C-MO-P1** embedding 证伪分支 | ✅ | §1.4 新增显式证伪行（签名=`qbank.embedding-build/-query/rerank` → 推翻 H0-alt-2 驳回、回协调方、Ban 扫入基建 catch-all、Ban 就地 reinterpret、与「未覆盖值域」兜底显式切割）；§3.4 显式负检查字段 + §5.2 例外条款 + 输入事实行交叉引用；registry `:148/:153/:158` wired:false 三行亲验精确、`invoke.ts:317-319` 降级不抛亲读 |
+| 10 | **base 重钉** | ✅ | Base=`0b18169c`（full SHA 亲核）；抽验 ≥2 锚（实抽 20+：DDL 4 处 + registry 3 处 + service 5 处 + interview-jobs 214-217 + invoke 2 处 + consumer 8 处 + package.json `:278/:279` + wrapper blob）tip 树全中；`c4ec760b` name-status 恰 4 文件全 `ai-docs/delivery/`，零产品码/SSOT/package.json/spec/`.env*` |
+| 11 | **改写面恰限 + 状态纪律** | ✅ | 全部 hunk 逐一面归处方（B-FF-1/2·C-HA-FF-1/3·C-MO-P1/P2·OB-FF-1/2·re-pin 轮次标注）；双 stub Status 仍 **PENDING**、实现方 RE-PRE 注记署名 mw-core 零代写 verdict、「Ban 实现方 self-write 任何 PASS」入条；Ban 面（wrapper/withhold/`:68`/`:70`/`:71`/SSOT/backlog）零触碰亲验 |
+
+## 二、Blockers
+
+- **0**。round-1 B-FF-1/B-FF-2 双 Blocker 均已兑现修复（核验表 #1/#3），无新 Fail-trigger：本审对 §1.3 四查询在 tip 树 DDL 全列存在性逐列机检通过，判读表锚点复抽全中，改写面无越界。
+
+## 三、Conditions（随卷 · EXEC 期义务）
+
+- **C-HA-FFR-1**：C-HA-FF-3 自本 PASS 起为 EXEC 硬义务——sidecar 快照须对四查询逐条记 ok/error+报错摘要；任一查询报错=仪器缺陷，如实登记回协调方并复核机制 A 窗口健康性，Ban 记空读、Ban 触发备选 attempt；违者=post 段 Fail-trigger。
+- **C-HA-FFR-2**：C-MO-P1 负检查同为 EXEC 硬义务——四查询读数逐条核对无 `qbank.embedding-*`/`qbank.rerank` 签名，有即按 §1.4 证伪分支处置（回协调方），Ban 扫入基建 catch-all、Ban 就地 reinterpret。
+- **C-HA-FFR-3**：C-HA-FF-5 延续——wrapper blob `13dbfc43` 钉与判读表「机械归类非根因断言」「与 X 一致 ≠ X 已证」措辞纪律 EXEC 期不变；blob 变动即停回协调方。
+
+## 四、OB（非阻断 · 如实登记）
+
+- **OB-FFR-1**：§1.3(2) 注记「后续 ALTER 全局 grep 仅 RLS enable/force 无补列」不精确——后续 0057/0085/0119 实补三列（cost_scope_id/logical_node_key_digest/estimate_input_tokens）；承重命题「无 error 列」经全库机检成立，且该措辞系本席 round-1 F-FF-2 原文被实现方忠实继承（非实现方引入）。精确表述应如本行；不阻断 EXEC（无任何判读/查询依赖该完备性子命题）。
+- **OB-FFR-2**：slice 范围2 压缩区间「四道 fail-closed 409 门 `interview.service.ts:278-:305`」仅覆盖四门中三门（第四门 `:323-324` 在区间外）；harness（SSOT）枚举 `:278-279/:284-285/:304-305/:323-324` 精确无误，按 harness 为准，不阻断。
+
+## 五、中文三行摘要
+
+1. 重写 commit `c4ec760b` 对 round-1 处方逐条兑现：`updated_at`→`created_at`（DDL 仅 created_at、语义注记在卷）与 `error`→`error_code`（0037:14/0088:113 亲读命中）双修复机检通过，查询报错≠空读纪律六处落字，红①「start job 未入队」按 C-MO-P2 精确措辞且六行号亲验全中。
+2. 改写面恰限成立：恰 4 个 ai-docs 文件、hunk 逐面归处方、双审段（本席 FAIL 10501B + peer PASS 12116B）cmp 逐字节 append-only 随卷、base 重钉 0b18169c 后 20+ 锚点重抽全中、wrapper blob 13dbfc43 重算全等、双 stub 保持 PENDING 零 self-approve。
+3. 判 **PASS**（mw-e2e-ha 半签）：0 Blocker，2 OB 非阻断（「仅 RLS」注记不精确系本席 round-1 原文继承/slice 压缩区间漏第四门），3 Conditions 转 EXEC 硬义务；本 PASS ≠ EXEC 授权 ≠ trio 翻绿 ≠ g7SuiteGreen=true，RE-PRE dual 须 peer mw-model-op 独立半签后方达成。
+
+alone ≠ dual：本 PASS 仅为 mw-e2e-ha 半签，不代签并行 peer mw-model-op；peer 独立裁决。本审 0 prove run · 0 live · 0 Key 值读取 · 0 coding · 0 产品/SSOT 触碰 · 禁 push。本 PASS ≠ EXEC 续授权 ≠ H0-alt-5 定谳 ≠ 修复 ≠ trio 翻绿 ≠ g7SuiteGreen=true。
+
+Verdict: PASS
