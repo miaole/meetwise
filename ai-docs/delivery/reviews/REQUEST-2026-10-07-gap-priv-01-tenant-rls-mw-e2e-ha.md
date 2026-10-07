@@ -50,3 +50,85 @@ Ban coding（until PRE dual BOTH PASS + coordinator AUTHORIZE）· Ban prove 执
 ---
 
 *Stub · awaiting expert pre-exec dual · awaiting_pre_exec_dual · STOP*
+
+---
+
+# PRE-EXEC dual 审查段 — mw-e2e-ha（append-only · 2026-10-07 · docs gate only · evidence-honesty 焦点）
+
+**审查方**: `mw-e2e-ha`（独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-p1-e2e-ha` · branch `rv/p1-e2e-ha` @ origin tip `9f399f55`）· **被审 REQUEST**: `786a1949`（origin 链镜像 · parent `c173ee0f`）≡ line 孪生 `f3a48a76`（parent `313e04a7` = stub 自报开工 tip）· **patch-id `9e70fd01` 两侧亲算全等（`git patch-id --stable`），零内容漂移** · `786a1949` 为 origin tip 祖先（`git merge-base --is-ancestor` 亲证）。
+**docs-only 机检亲证**: `git show --stat 786a1949` = 恰 4 文件 +275/-0 全 `ai-docs/*.md`（slice 62 / harness 108 / 双 PENDING stub 52+53）；零产品码 / migration / script / package.json；SSOT 四面（backlog `:57` / checklist / matrix / queue）不在 diff。**本 stub 自 REQUEST 起 byte-intact（md5 `4a1542f9d9e22761ccdffb00b78f35e5` 与 `786a1949` 版全等）→ append-only 前提成立。本审 0 prove run · 0 coding · 0 SSOT edit · 禁 push · 不代签 peer `mw-privacy-int`（alone ≠ dual）· 审查结论全部由本审自带机检独立得出。**
+
+## 检查表（对 stub「请审什么」7 项逐条 · 全部本审亲证）
+
+| # | 项 | 核验证据（本审亲算） | 裁定 |
+|---|----|---------------------|------|
+| 1 | prove 工程面可执行性 | 三跳 CMD 拟法与先例逐跳同形：`package.json:304` `privacy-authorization:prove`→`run-e2e-isolated.mjs …:raw`、`:343` `vector-plane-erasure:prove` 同形；下游 `packages/db/package.json:37` `prove:privacy-authorization` / `:69` `prove:vector-plane-erasure`（tsx test/*.proof.ts）实读在位；`run-e2e-isolated.mjs` 注册先例四点实读：allowlist gate 反假绿 EXIT=3（`:7`/`:1895`/`:1903`）· isolatedCommand 分派（`:1584`/`:2227`/`:2339`）· migrateWithRecovery（`:2175`）· receipt writers（`:53`/`:2372`/`:2397`）；「隔离真 PG · Ban live 云端 · Ban 共享开发库」写死 harness §3 | **成立**（OB-E1/E2→C-E2/C-E3） |
+| 2 | fail-closed 矩阵完备性 | 六项全写死（读 0 行 / INSERT 冒充 42501 / UPDATE·DELETE 0 行 / GUC 未设缺省 deny 不抛错 / 角色逃逸面 / `guardInterviewPrivacy` 404 不可区分+fence 410）；`interview.service.ts:177-190` 实读吻合（`:179-180` 404 同文案、`:184-185` 410 GONE）；`visibility='global'` 共享面单列（`0032:38` `USING (visibility='global' OR owner_user_id=…)` + `:417` `__system_rag__` 门实读）；harness §7「矩阵 6 项 + 内省 3 项不得弱化」写死 | **成立**（0 行防空转→C-E3） |
+| 3 | 两维度分开断言 | harness §4「Ban owner-scoped 冒充 tenant 隔离 · 分开断言/报告/结论」+ §3 tenant/org 内省钉「记录性 · 非授权实现 · 非缺口实锤」+ §5 Ban + slice 同文——四处写死 | **成立** |
+| 4 | RLS 内省真实性 | 真 PG 目录三件套写死：`pg_policies` qual/with_check 含 `owner_user_id`+`current_setting('app.principal_user'` · `pg_class.relrowsecurity`+`relforcerowsecurity` · `pg_roles.rolbypassrls`+`rolinherit`；Ban grep 代替（stub #4）+ 策略普查基线入 receipt JSON 可复算 | **成立** |
+| 5 | EXIT 契约与环境诚实 | harness §3 EXIT0 十不得（≠covered/≠`:57` CLOSED/≠等价宣称/≠授权根已迁/≠MySQL 等价完成/≠HA/≠releaseEvidence/≠UC-052 flip/≠DELETE 开放/≠R-A 缺口消失）⊇ stub Pins 八不得；EXIT1 attempts 全录（Asia/Shanghai+SHA+log）· PREREQ 缺→预期非零且记录 · Ban 换弱断言凑绿 · Ban retry-to-green（`:68` 口径不借状态）；实证 ≠ 实现新维度 ≠ 翻行 ≠ UC-052 flip 全钉 | **成立** |
+| 6 | 边界与 SSOT | `:60`（PRIV4 post_prove_dual_pass）/`:64`（AR OPEN · stub≠cloud · cloudVendorDeleted=false）/`:68`（flake OPEN · Ban retry-to-green）backlog 实读对位；`privacy.controller.ts:51-52` `@HttpCode(SERVICE_UNAVAILABLE)` + backlog `:58` 冻结行亲证 DELETE=503；UC-052 partial；本 commit 恰 4 md、零 SSOT 翻行、Ban coding until PRE BOTH + AUTHORIZE 三处在卷 | **成立** |
+| 7 | D1 裁决可执行性 | harness §0.1 双读法 + R-A 反证如实并陈、implementer 读法标「非绑定」、逃生门「显式改写收窄为诚实登记 · Ban 静默换范围 · Ban 借机加列」写死（harness §0.1 + slice Scope 两处）；候选 A 弊面「不新增任何隔离能力」如实 | **成立** |
+
+## 等值断言恒真排查（Y 线 C-3 口径 · evidence-honesty 核心）
+
+矩阵 6 项 + 内省 3 项逐条对恒真性排查：全部断言引用**外部状态**（行数、SQLSTATE 42501、`pg_policies`/`pg_class`/`pg_roles` 目录值、HTTP 状态码/错误文案），零自反等值面（无 `X==X`/自查自证）；若 RLS 被弃/弱化，第 1/2/3/4/5 项均必然翻红 → 非恒真非空壳。**残余恒真风险仅在空转绿**：第 1/3 项「0 行」断言若 B 行未播种或表为空则空洞通过——backlog `:60` 先例已自钉「擦除前正对照 hit≥1 防空转」，本刀须同形（→ C-E3）。
+
+## D1 裁决（本审独立裁定）
+
+**裁定 R-B 为 backlog `:57` 原义重心；「显式延后的设计扩展 ≠ 现行隐私洞」边界成立。** 依据（本审全部亲算）：
+
+1. `:57` 现状列整段为 M2 原型状态；「应用层 tenant ≠ RLS」系 M2 钉死短语（`packages/db/src/tenant/index.ts` 头注原样 + 「Must not silently replace the auth root」、`m2-tenant-prototype-impl.md:10`「tenant≠RLS still true under PG-retained」原样）。
+2. 验收维度「跨 **owner** fail-closed」非 org；「MySQL 时代」措辞自锚 M2 语境；拟切片列指 M2 工件（「M2 等价强制设计→prove 对齐 ADR 清单」+ `harness/tenant-enforcement.prototype.md`）。
+3. R-A 反证实锚（awk 亲证）：设计注记实锚 `0001_baseline.sql:280-281`「C 端定位:owner_user_id RLS 即足…B 端租户共享题库是未来扩展…现在不过度设计」——org 维度系显式延后；本审机检：全 migrations 零 `tenant_id/org_id/workspace_id/organization_id` 列（grep=0），`apps/api/src`+`packages/db/src` 零 organization/workspace 概念文件（grep=0）。
+4. 边界判据两问：①冻结基线（`:2`「勿改本文件」checksum 注记亲证）是否显式延后该维度——是；②产品今日是否既需要又宣称 tenant 隔离——否。→ R-A 语境「缺口」≠ 现行隐私洞，其事实观察仅可经候选 A **记录性内省**诚实登记；两头叙事 Ban（harness §4 原样）。
+5. R-B 残余诚实面在 PG-retained（2026-09-17 hard ruling · 两 M2 头注 STOPPED/superseded 亲读在档）下 = 现行 RLS 根隔离实证 + 「应用层 tenant ≠ RLS」差距如实保留不关——候选 A 恰直面之。
+
+## 候选裁决
+
+- **候选 A（隔离真 PG owner 矩阵 + RLS 内省 · 零 schema 变更）= 裁可（主体）**：矩阵 6+3 非空壳非恒真（上节）；「证隔离非修隔离」弊面 harness §2 如实写死；CMD 三跳同形 + 注册先例四点实读在位 → 工程面可执行；实证 ≠ 实现新维度（EXIT 契约封顶）。
+- **候选 B（补 tenant/org 维度）= 默认 Ban 维持**：与 `:280-281` 显式「未来扩展/不过度设计」冲突；触碰面 = 全 ownership 表族 + 策略面（本审 fresh 机检全 migrations `CREATE POLICY` = **350** 条 ∈ 被审「348±2」带内）= 伪缺口实现；解禁须显式申报 + 重立卷 + 产品权威。
+- **候选 C（诚实登记不做实现）= 仅 A 的诚实失败/裁决路径**（EXIT1 同形兼容 · attempts 全录）；不得作 docs-alone 关 `:57` 捷径（Pins `:57` OPEN · Ban close via docs alone 原样）。
+- **组合**：A 主体 + C 失败路径 + B 默认 Ban，交协调方写入 AUTHORIZE。
+
+## RLS 根 MUST NOT abandon 写死核验（授权根焦点）
+
+`:57` 目标列「MUST NOT abandon RLS」落实四处写死：harness §2 非目标（不动 `asPrincipal`/`set_config`/FORCE RLS）· harness §5 Ban（动授权根/`app_role`）· slice Ban 同文 · 双 stub Pins（PG-retained · Ban 授权根迁移叙事）+ EXIT0 ≠ 授权根已迁。与实码三点吻合（本审亲读）：FORCE RLS 头注 `0001:7` + `app_role NOLOGIN` 无 BYPASSRLS `:63-64` + DO 循环 `p_owner` USING/WITH CHECK 双侧 `:69-82` + vector_chunk 同形 `:300-304`；`asPrincipal` `principal.ts:945-955`（BEGIN→`SET LOCAL ROLE app_role`→`set_config('app.principal_user',$1,true)`→COMMIT；`:939`「tenant-routing context, not a cryptographic identity root」）；`provisionRuntimeLogin` `:566-608`（`LOGIN NOINHERIT … NOBYPASSRLS` `:574`/`:581` + `GRANT app_role TO` `:589` + 反向 REVOKE `:604`）。**本审写死：本刀 prove 与 coding 阶段 MUST NOT abandon/弱化/迁移该授权根（C-E5）。**
+
+## Pins 原值核验（零漂移 · 三文件机械比对）
+
+NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503（实码 + backlog `:58` 冻结）· `:57` OPEN · UC-052 partial · `:60`/`:64`/`:68` cite-only——stub/harness/slice 三处 grep 亲证一致，**全 held 零漂移**。
+
+## Fail-trigger audit（触发即 FAIL · 逐项排查）
+
+1. docs-only 越界/产品码夹带 —— **未触发**（恰 4 md +275/-0 亲证）。
+2. SSOT 翻行（`:57`/checklist/matrix/queue）—— **未触发**（四面零 diff）。
+3. self-approve/代签 peer —— **未触发**（本 stub 提交时点 PENDING byte-intact · 本审只 append 本 stub）。
+4. prove 执行/receipt 夹带 —— **未触发**（0 prove run · diff 零 prove/receipt 面）。
+5. D1 择一冒充/两头叙事 —— **未触发**（双读法并陈 + 反证如实 + implementer 读法标非绑定）。
+6. 恒真/弱断言预埋（自反等值/行数 proxy 缺红路径/grep 顶 `pg_policies`/retry-to-green）—— **未触发**（恒真排查节 + Ban 三处在卷）；空转绿风险以 C-E3 封堵。
+7. 借 `:60`/`:64`/`:68` 证据/状态/洗 OPEN 钉 —— **未触发**（cite-only 四处钉 + OPEN 原文实读对位）。
+8. Pins 漂移/预授 coding —— **未触发**（上节零漂移 · Ban coding until PRE BOTH + AUTHORIZE 原样三处）。
+
+## 观察与 Blockers
+
+- **OB-E1（非阻断 · 逃逸面措辞须机检化）**：harness §3 第 5 项括注「表 owner/超级用户也不绕」按 PG 语义仅在「`SET LOCAL ROLE app_role` 后 effective role=app_role」下成立（FORCE RLS 绑表 owner；残留 superuser/BYPASSRLS 自身角色恒绕）——`0001:7` 头注「连超级用户走 app_role 时也不绕过」原义即此。→ C-E2 要求 prove 第 5 项断言 effective role（`current_user='app_role'`）并 Ban 无条件「superuser 不绕 RLS」宣称。
+- **OB-E2（非阻断 · 0 行断言防空转）**：矩阵第 1/3 项 0 行断言须正对照（B 行播种存在性先断言 + A 自读 ≥1），沿 backlog `:60`「擦除前正对照 hit≥1 防空转」先例 → C-E3。
+- **OB-E3（非阻断 · 引锚漂移两处）**：被审引 `:281-282`（实锚 `:280-281`，本审 awk 亲证）与 `:300-307`（vector_chunk RLS 策略实为 `:300-304`，`:306-307` 已入 07_memory）——逐字文本在档、语义全同 → C-E4 统一改用实锚。
+- **Blockers: 0。**
+
+## Conditions C-E1…C-E5（本审裁定写死 · 违任一即本 PASS 撤销）
+
+- **C-E1（D1 裁定）**：R-B 为 `:57` 原义；「显式延后的设计扩展 ≠ 现行隐私洞」边界成立；coding 期文档 D1 节逐字载本裁定依据 1-4；逃生门保留为休眠回退（双审/后续证据推翻依据方可触发，触发即显式改写收窄为诚实登记 · Ban 静默换范围 · Ban 借机加列）。
+- **C-E2（逃逸面断言机检化）**：矩阵第 5 项 prove 须断言 effective role（`current_user='app_role'`）+ `rolbypassrls=false` + `rolinherit=false` + FORCE RLS 在位；Ban 把「superuser 不绕 RLS」写成无条件宣称（引用沿 `0001:7` 原义）。
+- **C-E3（防空转正对照）**：0 行断言（第 1/3 项）前置 B 行播种存在性断言 + A 自读 ≥1 正对照；无正对照的 0 行绿 = 空转绿 = 本审 FAIL 面。
+- **C-E4（实锚更正）**：coding 期 harness/slice/receipt 引基线设计注记一律 `0001_baseline.sql:280-281`、引 vector_chunk RLS 一律 `:300-304`；零语义变更。
+- **C-E5（EXIT 与边界冻结 · 授权根非 abandon）**：EXIT0 十不得全保留；EXIT1 attempts 全录（Asia/Shanghai+SHA+log）；`:60`/`:64`/`:68` cite-only 零借零洗；DELETE=503 复验同列入账；UC-052 partial；`:57` OPEN——prove 绿不自动关行；MUST NOT abandon/弱化/迁移 FORCE RLS+`asPrincipal`+`set_config`+`app_role` 根；alone ≠ dual：本 PASS 仅 mw-e2e-ha 一票，dual = PRE BOTH PASS（mw-privacy-int + mw-e2e-ha）+ 协调方 AUTHORIZE，不代签 peer。
+
+## 中文三行摘要
+
+1. PRIV01 REQUEST `786a1949`（≡`f3a48a76` patch-id `9e70fd01` 两侧亲算全等）docs-only 恰 4 md +275/-0 零产品码零 SSOT、stub byte-intact、祖先关系亲证——程序面全清。
+2. 本审独立裁 **D1=R-B**（`:57` 现状列整段 M2 语境 · 验收「跨 owner」· 基线实锚 `:280-281` 显式延后 B 端租户 + 全 migrations 零 tenant/org 列 = 非现行隐私洞）；候选 **A 裁可**（矩阵 6+3 逐条排恒真非空壳 · CMD 三跳同形 · 注册四点实读在位）· **B 默认 Ban 维持**（伪缺口 · CREATE POLICY fresh 机检 350∈348±2）· **C 仅诚实失败路径**；RLS 根 MUST NOT abandon 四处写死与实码三点亲读吻合。
+3. Pins 原值三文件零漂移 · `:60`/`:64`/`:68` cite-only · DELETE=503 实码在档；OB-E1 逃逸面措辞机检化（C-E2）· OB-E2 防空转正对照（C-E3）· OB-E3 实锚更正（C-E4）均非阻断；0 Blocker · 5 Conditions · alone≠dual 不代签 mw-privacy-int · 0 prove · 0 coding · 0 SSOT · 禁 push。
+
+**Verdict: PASS**
