@@ -142,3 +142,106 @@ Trio stays **OPEN**（G7T 后 `1/−/−` · CMD2 ×2 attempts 如实）。`g7Su
 *PRE-EXEC dual review · mw-e2e-ha · adversarial evidence-honesty · 2026-10-07 · 被审 `4279595c` · 审查 worktree `meetwise-rv-g7u-e2e-ha` · 本审 0 prove 0 coding 0 产品 edit 0 SSOT edit 0 Key 读取 0 DB 连接 · append-only 机检：前 7312B md5 11927b0fc21a145db32cb0d2010cf181 逐字节保全 · alone ≠ dual · 不代签 mw-model-op · 禁 push*
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual 审查 — mw-e2e-ha（adversarial evidence-honesty · e2e/时序清除断判焦点）· 2026-10-07
+
+**被审对象**: G7U EXEC 链 `dbed8a6f`（spec 唯一触碰面纯插入 +72/−0 · `waitForRouteDecided` helper）+ `6ae92c4a`（trio 收据 4 md）——origin tip `c9e262a5` 面为 rebase 后孪生 `bde3ab25`/`c9e262a5`（协调方在双 PRE 后插入 peer PRE `db208386` 所致拓扑），三对 patch-id 全等亲验（fix `b65a612e` · docs `bacc369b` · 本席 PRE `7fdc3b54`），`26773f5a`/`74c4d1f4` 镜像关系成立
+**本审边界**: 独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-g7up-e2e-ha`（branch `rv/g7up-e2e-ha` @ `c9e262a5`）· 恰 1 次 prove（fresh re-run CMD2 · 禁重试守住）· 0 coding · 0 产品 edit · 0 SSOT edit · Key 只经 loader source 进程环境（name-only）· `.env*` ABSENT 亲扫 · alone ≠ dual · 不代签并行 peer mw-model-op · 禁 push
+
+## 0. 机检记录（append-only 保全）
+
+本审查文件追加前 = **24560 bytes · md5 `476e5a2ed7436ec83063f2542d75bb40`**（含 PRE 段末行 `Verdict: PASS` 逐字节保全；本段为纯追加，前缀零改写零删改）。
+
+## 1. 包完整性机检（本席自跑 · 全 PASS）
+
+| # | 项 | 结果 |
+|---|---|---|
+| 1 | 恰 1+4 文件 | PASS — fix commit 恰 `apps/web/e2e-ui/recruiting-bound.spec.ts` 一文件 `+72/−0`（numstat 实测）；receipts commit 恰 4 md `+164/−0`（00+01+02+03） |
+| 2 | 既有断言零删除（C-HA-4 双机检复跑） | PASS — diff 体删除行（`^-[^-]`）计数=**0**；`:96` waitForURL 30s 行 pre/post 逐字在卷（现位 ：168，纯位移零改动）；begin 一次性语义保持（`waitForRouteDecided` 插于 `jobLink.click()` 之前、begin 点击之后零重试结构） |
+| 3 | 产品码 blob 链 12/12 全等自跑 | PASS — `recruiter.ts`=packages/db/src `d06b4f49` · `route-classify-consumer` `223b7f09` · `job-route-decision` `a621d8bd` · `job-route-classifier` `79ceded8` · `adaptive-role-resolve` `80abbb80` · `interview.service` `fbea8aeb` · `candidate-route` `8bf8e9bd` · `applications.service` `9a17cfe4` · `e2e/full.e2e.ts` `7d65d0f3` · `package.json` `0afb3bd2` · `run-e2e-isolated.mjs` `13dbfc43` · `prompts.ts` `69ca4633` —— `git rev-parse db208386:<path>` vs `c9e262a5:<path>` 逐一亲算 12/12 全等 |
+| 4 | SSOT 零 diff | PASS — 全距 `db208386..c9e262a5` 恰 5 文件（spec+4 receipts），SSOT/backlog/钉状态文件零触碰；工作树 clean @ tip |
+| 5 | PRE 段 append-only 保留 | PASS — 本文件在 `26773f5a`/`74c4d1f4`/tip 三点 md5 全等 `476e5a2e…`，EXEC 期零改写本席历史段落 |
+| 6 | 触碰面内容核验 | PASS — +72 行构成 = import 1 + helper 68 + 测试体 2 处插入（`publishedAt` 锚 + `waitForRouteDecided` 调用）+ 注释 1；零断言行零改写 |
+
+## 2. 红① 清除断判（核心焦点）：**清除证据成立（e2e 面）**
+
+四点证据链逐点独立复核（raw log `.tmp/g7u-cmd2-ui.log` + `error-context.md` 亲读，非仅收据转述）：
+
+1. **轮询观测 route_decided 双样本**：chromium **3017ms**（publish 偏移 991ms · `attempt_outcome=result_validated` · `decision_created_at=2026-10-07T22:35:34.093Z`）/ mobile **3021ms**（偏移 1727ms · 22:38:39.030Z）——raw log 31/44 行与 Receipt 02 逐字节一致亲验。
+2. **begin 全过**：双 project `waitForURL(/\/interview\/iv_…\?applicationId=app_/)` 达成——面试页 heading 双双在 error-context 亲读在卷（`面试岗位：浏览器绑定岗位-088c02ae` / `-44803c98`）。
+3. **旧 `:96` 30s 死窗签名零出现**：raw log `recruiting-bound.spec.ts:96` grep=**0**、`waitForURL` 超时=**0**——G7T EXEC sidecar 定谳的「先 begin 后 decided → binding 零落 → 409 `interview_ineligible_route` → 30s 死窗」链在 UI 面零复现。
+4. **面试页双 project 到达**：双 error-context 均含面试页 heading + 作答控件，旅程推进至 ：183 循环（3.3m 真实展开）——到达深度为 G7S/G7T 基线（begin 即死）从未达到。
+
+**谓词同形亲验**：夹具 `row?.route_outcome === 'route_decided'` ≡ 产品 `bindApplicationRoute`（`job-route-decision.ts:289` `WHERE job_id=$1 AND route_outcome='route_decided' ORDER BY revision DESC LIMIT 1` 实读 + `:15` 注释「binding 只可绑 route_decided 的版本」互证）——begin 语义上仅可在 decided 后成交，清除非 masking（产品码次序零动、blob 12/12 背书）。
+
+**轮询形态核验**：SELECT 原文在卷（committed spec :90-97 + Receipt 02）；面族 = `job_semantic_revision(status,created_at,revision)` + `job_route_decision(route_outcome,attempt_outcome,created_at,revision)` + `job_posting.id`（仅 join 键）——为 C-HA-1 冻结四面族的**子集**（`route_consumption_event`/`interview_route_snapshot` 两面未查询、零扩展），新增列仅 created_at/revision 时序元数据；Ban 面（`interview_job.payload`/`ai_invocation_trace.output`/写语句）本席机扫零命中。**cap=60s EXEC 定值入收据**（`ROUTE_DECIDED_WAIT_CAP_MS=60_000` committed 一次成型 · 本轮观测最大 4.7s、cap 未被行使）；**方差双样本如实**（publish→decided ≈4.0s/4.7s · 与 G7T「+5s 轮询量子」相容）。
+
+**断判**：四点证据链支撑「begin 时序面清除（e2e 面）」**成立**——本刀指名面在夹具对齐后被打破；此断判限 e2e 夹具面，真实用户 0–2s 未决窗口产品残余维持 C-HA-5 披露原样。
+
+## 3. fresh re-run（本席恰 1 次 · 单条命令 · 禁重试守住）
+
+| 字段 | 值 |
+|---|---|
+| CMD | `pnpm e2e:ui:isolated`（wiring `package.json:279` @`0afb3bd2`）· HEAD=`c9e262a5` · start 23:06:29Z |
+| EXIT | **1**（`MW-E2E-HA-POSTPROVE-CMD2-EXIT=1` · log tally 即记录 · UI 面无 LOCAL_E2E_RECEIPT 同口径） |
+| tally | **12 passed / 2 failed / 10 skipped（7.5m）** |
+| 红① 清除复现 | `[g7u-fixture] route_decided observed` ×2（**3016ms**/1691ms + **3024ms**/1725ms · `result_validated` · 23:07:32.580Z/23:11:12.586Z）；`:96` 死窗签名 **0**；面试页双 project 到达（`-afe2e7bc`/`-83d3f0ad` heading 亲读） |
+| 残留面复现 | recruiting-bound ×2 同签名 ✘（`waitForTerminalOrAnswer` 90s ← :183 · 终态串 `/面试完成 · 综合评分|报告暂不可用/` 零现）· 页面 status=「练习因持续偏弱或多次未决提前结束（自适应控制流，不是能力等级或招聘结论）」+ alert「面试已完成，但报告暂时无法生成…」双 project 在卷 |
+| golden(chromium) | **本轮 PASS（3.1s）** vs 实现方轮 ✘（22.6s）——非确定性 env/冷启定性获独立第二样本支持 |
+
+**形状注记（如实）**：12P/2F vs 实现方 11P/3F——差异恰为 golden 冷启面（env 方差、run 序先行、零触碰文件、产品零 diff，归因链自洽）；recruiting-bound 残留面在两轮 4 个 project 样本上 4/4 复现=确定性旅程面；协调方判据（14P/0F/10S）两轮均未达——清除判据未达的记账如实，但未达构成已从「begin 时序面」整体后移至「旅程自适应面 ×2（+golden 冷启方差 1）」。alert 文案双轮方差（实现方轮 chromium=「额度已释放」vs 本轮双 project=「报告暂时无法生成」）= 同族早停的不同结算分支文案，不改变残留面归属，如实注记。
+
+## 4. 残留红定性裁决
+
+1. **recruiting-bound ×2 = 面试旅程自适应早停面（非本刀失败 · 另刀边界成立）**：status 源 = `apps/web/lib/view-model.ts:9-12` `signalConcludePracticeCopy('early_weak')`（worker/graph 自适应控制流下游 copy）；时序面修复后 begin 通过、旅程推进至答题段才**首次暴露**（G7S/G7T 基线 begin 即死、此面不可达）——「新暴露的更深层旅程面」定性**成立**；本刀授权域=spec 夹具（产品零触碰 blob 12/12 结构背书），归咎本刀=黏连归咎 Ban 守住；登记 route/产品侧另刀处置权归协调方。
+2. **golden(chromium) ×1 = env/冷启候选（归因处置诚实）**：本席独立第二样本 PASS（3.1s）+ `golden.spec.ts` 零触碰 + 产品码零 diff + run 序在 recruiting-bound 之前（非本刀下游）+ mobile 侧两轮全 PASS——非确定性定性成立，「精确归因留协调方」处置如实。
+3. **CMD1 attempt-1 仪器误发入账纪律：成立**：三证亲验 machine receipt `…22-21-52…json`（`exitCode=1` · `durationMs=6581` · `assertionCount=null` · `failureClass` 缺失）在卷 = 零测试执行零 live；attempt-2 真跑 receipt（`failureClass=api` · `40560ms`）在卷；两档全记录零删改；与 G7T EXEC 仪表化先例同族；非红档择优、非 retry-to-green——trio 计数 CMD1 正身=attempt-2 界定接受。
+4. **CMD1/CMD3 api 面 G7S 同形如实**：40560ms（CMD1-a2）/37904ms（CMD3 内层）/G7S 38428ms 三者 class=api 同量级亲验（machine receipts 三份全在卷）；CMD3 suite receipt `gitHead=dbed8a6f` 自证亲验；「retained api 面真测结论=未消失」记账诚实，精确拒因甄别留 post-dual/另刀、Ban 黏连归咎本刀——边界成立。
+
+## 5. 条件裁决表（C-HA-1~10 逐条）
+
+| # | 条件 | 裁决 | 依据 |
+|---|---|---|---|
+| C-HA-1 | 轮询白名单冻结 | **PASS** | SELECT 原文在卷；面族=冻结四面族子集 + join 键 id + 时序元数据列（零扩展零 payload 面）；Ban 面机扫零命中；断言零放宽（本席 #1-2 机检）——子集+元数据列在本席冻结意图内（决策族状态/时序面，非内容面），注记在卷 |
+| C-HA-2 | 连接物料纪律 | **PASS** | PG* 五 env 仅 process.env 名读取、五缺失即 throw（:70-72 实读）；pg 驱动经 createRequire 锚 `packages/db/package.json`（manifest 零改 · `0afb3bd2` 在 12/12 链）；零硬编码物料机扫零命中；`.env*` ABSENT 亲扫；物料/Key 零入 receipt/log/commit |
+| C-HA-3 | N 与超时 | **PASS** | cap=60_000 EXEC 定值 committed 一次成型（单 commit 零调参轨迹）· 周期 1000ms；超时=console.error+throw 诚实 FAIL（无 skip/无 begin 重试/cap 有界非无限等待）；CMD2 墙钟如实（实现方 2.7m/3.3m · 本席 7.5m 全程） |
+| C-HA-4 | 机检双强制 | **PASS** | 两项机检入 00-summary §码面 + 本席独立复跑全复现（numstat 72/0 · 删除行 0 · blob 12/12） |
+| C-HA-5 | 诚实披露随卷 | **PASS** | 「夹具对齐 ≠ 产品修复；真实用户 0–2s 窗口仍 409 fail-closed」原文在 00-summary 条件表 #6 + commit message；backlog 立行权归协调方（全距 diff 零 backlog 翻转） |
+| C-HA-6 | 乙硬门三件 | **N/A（路线乙未走）** | 协调方裁决路线甲；底层零 diff 机检仍成立（full.e2e/adaptive-role-resolve/classifier blob 全等） |
+| C-HA-7 | 乙范围锁 | **N/A（且未越界）** | 产品码 12/12 零 diff = 零越界实证 |
+| C-HA-8 | 乙机检 | **N/A（底层成立）** | 同上 |
+| C-HA-9 | alone ≠ dual | **维持** | 本 PASS 仅为 mw-e2e-ha post-prove 半签；mw-model-op 并行审在途未见不代签；dual 效力=两半签合流后由协调方认定 |
+| C-HA-10 | Pins 零翻转 | **PASS** | receipts Pins 表十值原值（`g7SuiteGreen=false` · trio OPEN 1/1/1 · `actualSpendCny=null` · GAP P1 OPEN · Disclosure-1 OPEN 等）+ SSOT 零 diff 机检双证；红① 构成更新（时序面 e2e 清除 · 用例残留=旅程面）为如实登记非状态翻转 |
+
+## 6. Fail-trigger audit（EXEC 期反向核查 · 零触发）
+
+1. masking/洗绿？——零触发（产品零触碰 · 断言零放宽 · 失败如实记账 · "Not a pass" Non-claims 面完整）。
+2. retry-to-green？——零触发（三 CMD 各一正身 attempt · 误发档三证零执行非红档择优 · 本席 fresh re-run 为审查性复验非补救重跑，见 C-HA-P4）。
+3. 断言放宽？——零触发且正面：页面文案「报告暂时无法生成」≠ 断言串「报告暂不可用」，实现方未借机改断言、如实记为残留面证据（收据明文「不构成改断言理由」）。
+4. flake 记法/证据拣选？——零触发（EXIT=1 原值 · 无只留绿样本；本席异形样本 12P/2F 反向如实注记）。
+5. 预算/Key 卫生？——零触发（est ≤60 ≪ 200 · `actualSpendCny=null` 无计价源 · Key name-only · `.env*` ABSENT）。
+6. SSOT/backlog/钉越界？——零触发（全距恰 5 文件 · sibling 收据零改写 · withhold `13dbfc43` 冻结）。
+
+## 7. Blockers
+
+**0 Blocker。**
+
+## 8. Conditions（C-HA-P1~P5 · post-prove 后继强制）
+
+- **C-HA-P1**（残留面处置权）：旅程自适应早停面 ×2、golden 冷启面、api 面 G7S 同形、真实用户 0–2s 产品残余——全部归协调方裁决处置；任何产品侧修复须新 REQUEST 重走双审（C-MO-P1 同构）；Ban 借本刀顺手扩面、Ban 以夹具轮询形态就地改产品兜底。
+- **C-HA-P2**（Pins retained）：`g7SuiteGreen=false` · trio OPEN（实现方真测 1/1/1）· `actualSpendCny=null` · GAP P1 OPEN · Disclosure-1 OPEN · haStatus=NOT_HA 全 retained 至协调方 nail 全链；红① 状态构成更新为「e2e 面时序构成清除 · 用例残留=旅程自适应面」——如实登记、不整单翻闭。
+- **C-HA-P3**（backlog 权）：真实用户 0–2s 未决窗口残余（409 无重试引导）是否立 backlog 行，决定权归协调方（C-HA-5 延续 · 本席不代决）。
+- **C-HA-P4**（本席 re-run 记账纪律）：本 fresh re-run（12P/2F/10S · EXIT=1）仅为审查性独立第二样本，Ban 记为「CMD2 重跑」、Ban 并入实现方 trio 计数（trio 仍=1/1/1）、Ban 用于任何翻绿叙事；其 golden PASS 样本仅作冷启定性佐证。
+- **C-HA-P5**（夹具面冻结）：轮询夹具在本 REQUEST 域内冻结（不再跑、不调 N、不扩白名单）；后继刀如需同形态须随新 REQUEST 双审重批。
+
+## 9. 三行中文摘要
+
+1. 包完整性全过：EXEC 链恰 1 spec（+72/−0 纯插入 · 删除行 0 · `:96` 断言原样）+4 收据，产品码 blob 链 12/12 本席亲算全等、SSOT 零 diff、PRE 段 append-only 三点 md5 全等，rebase 孪生 patch-id 三对全等——双 PRE → 协调方路线甲授权链闭合。
+2. 红① 清除断判**成立**（e2e 面）：decided 双样本（3017/3021ms）先于 begin、begin 全过、旧 30s 死窗签名零出现、面试页双 project 到达——四点链 raw 级亲验，谓词与产品 `bindApplicationRoute` 同形；本席恰一次 fresh re-run 复现清除（3016/3024ms · EXIT=1 · 12P/2F/10S），清除判据 14P/0F 两轮均未达但未达构成已整体后移。
+3. 残留红定性如实：旅程自适应早停面 ×2（4/4 样本复现 · 时序面修复后才可达的新深层面）+ golden 冷启面（本席样本反证非确定性）+ api 面 G7S 同形——均非本刀域、另刀处置权归协调方；C-HA-1~10 全兑现（6 PASS · 3 N/A 底层成立 · 1 维持），0 Blocker · 5 后继 Conditions · trio OPEN 1/1/1 · Pins 零翻转 · alone ≠ dual 不代签 mw-model-op · 禁 push。
+
+*POST-PROVE dual review · mw-e2e-ha · adversarial evidence-honesty · 2026-10-07 · 被审 EXEC `dbed8a6f`+`6ae92c4a`（tip 面孪生 `bde3ab25`/`c9e262a5`）· 审查 worktree `meetwise-rv-g7up-e2e-ha` · 本审恰 1 prove（fresh re-run EXIT=1 · 禁重试守住）· 0 coding · 0 产品 edit · 0 SSOT edit · Key name-only · append-only 机检：前 24560B md5 476e5a2ed7436ec83063f2542d75bb40 逐字节保全 · 本 PASS=证据诚实性与包完整性定谳 ≠ trio 绿 ≠ 红① 整单关闭 ≠ g7SuiteGreen 翻转 ≠ 任何 Pin 翻转 · alone ≠ dual · 不代签 mw-model-op · 禁 push*
+
+Verdict: PASS
