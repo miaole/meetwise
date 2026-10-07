@@ -284,8 +284,8 @@ async function main() {
     [begunInt.requestId, 'memory_vector_chunk'])).rows[0]!.id;
   await admin.query(
     `INSERT INTO privacy_deletion_target(request_id, sink, resource_hmac, status)
-     VALUES ($1,'vector',encode(hmac($1::text,'vplane-fixture','sha256'),'hex'),'pending')`,
-    [begunInt.requestId]);
+     VALUES ($1::uuid,'vector',encode(hmac($2,'vplane-fixture','sha256'),'hex'),'pending')`,
+    [begunInt.requestId, begunInt.requestId]);
   const feedRows = await asPrivacyWorkerExecutor(admin, (c) => listClaimableVectorChunkTargets(c));
   A('INT: 假造 sink=vector target 不进 0141 feed（feed 仅真靶 memory_vector_chunk）',
     feedRows.length === 1 && feedRows[0]?.targetId === intTargetId);
