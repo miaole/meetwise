@@ -133,3 +133,75 @@ EXIT 契约：EXIT0 ≠ covered ≠ `:60` CLOSED ≠ 翻行 ≠ UC-052 flip ≠ 
 3. evidence-honesty 独立钉：prove 六件套入账、**ANN recall=0 须真 ANN 查询 Ban 行数 proxy**、Ban「彻底删除」叙事 + cloudVendorDeleted 披露沿 AR、EXIT0≠covered≠:60 closed≠翻行、UC-052 stays partial、coveredCount=8、Ban retry-to-green；0 Blocker · 7 Conditions · alone≠dual 不代签 mw-privacy-int。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual review — **mw-e2e-ha**（adversarial evidence-honesty · 独立审 · 2026-10-07）
+
+**Review scope**: PRIV4 coding 链 `b5dd9aa3`（0141 主体 + 接线 + prove 六件套）+ `972c6c2f`（fixture 分参修复）= origin tip `972c6c2f` · 被审 = 已落地码 + prove 证据链 · POST-PROVE dual 之半 · alone ≠ dual · 不代签 peer `mw-privacy-int`（其审并行，本审未见、不采信任何 peer 文本）。全部裁决基于本审独立 worktree 机检 + 本审恰一次 fresh re-run 实证。
+
+## §P1 包完整性（机检 · 本审 worktree `rv/p4p-e2e-ha` @ `972c6c2f`）
+
+- **恰申报文件**：`git diff --name-status b5dd9aa3^..972c6c2f` 恰 9 文件——新增 `0141_vector_plane_erasure_receipt_fence.sql`（137 行 additive：lease 绑定 DELETE fence + dispatch feed + jti feed，零函数体改动 0125）+ `vector-plane-erasure.ts`（126）+ `vector-plane-erasure.proof.ts`（322）；修改 `main.ts`（+4 行 additive loop/readiness）、`privacy-erasure-worker.ts`、`package.json`×2（CMD 注册）、`run-e2e-isolated.mjs`（注册点+隔离命令）、`index.ts`（exports）。零夹带。
+- **SSOT 零 diff**：`ai-docs/` 全树链内 0 行；`gap-bug-backlog.md` blob `583a29cd` 链前后全等 → `:60` GAP-PRIV-04 **OPEN** 原文在位、`:64` **OPEN** + cloudVendorDeleted=false + Ban close 原文在位；503 面 controller blob `6a9e2026` / service blob `159b4bea` 链内全等（DELETE=503 冻结实证）。
+- **C-EH-4 机检**：`0091`/`0125`/`0137`/`0140` 链内 diff 均 0 行；TS 侧 `recordVectorPlaneLocalErasedReceipt` 仅以既有 `privacy_record_deletion_receipt($1..$4)` + 枚举原值 `local_erased` 调用（`privacy-authorization.ts:138-148` 原样）。
+- **C-EH-5 机检**：AR 面（`ai-docs/architecture/`+reviews+queue）链内 0 行 diff；AR nail `71713718` 面未借未洗。
+- PRE dual 祖先：`29cc2dfd`(mw-privacy-int) 与 `909d6118`(mw-e2e-ha) 经 `merge-base --is-ancestor` 均 ∈ HEAD——coding 于 PRE dual BOTH PASS 后进行实证成立。
+
+## §P2 attempts 裁决（attempt1→2 · 本审独立裁）
+
+- attempt1 EXIT=1 根因（diff 亲证）：fixture 假造 sink=vector target INSERT `VALUES ($1,'vector',encode(hmac($1::text,…)))`——`$1` 同时被 uuid 列上下文与 `::text` 显式推断 → PG 42P08 inconsistent types deduced，**确定性 SQL fixture 缺陷**，非产品码缺陷、非断言失败。
+- attempt2 修复（`972c6c2f` 恰 +2/−2 行）：`$1::uuid` + 独立 `$2` 参——hmac 输入值逐字节同源（同一 requestId 字符串）→ `resource_hmac` 产物值不变；本审逐条比对 33 条 `A()` 断言**等数等名零改动**。
+- **裁决：合法确定性 fixture 修复**——非 retry-to-green（attempt1 EXIT=1 于 `972c6c2f` commit message 诚实保留未洗）、非迁就弱断言、非产品码返工。✅
+
+## §P3 fresh re-run（本审恰一次 · 无重试）
+
+- CMD：`pnpm vector-plane-erasure:prove` @ 本审 worktree `rv/p4p-e2e-ha` @ `972c6c2f`，隔离真 PG `meetwise-e2e-5003-1791366605546` @ `127.0.0.1:51218`（`E2E_PG_IMAGE=pgvector/pgvector:pg16` via `run-e2e-isolated.mjs`），2026-10-07T09:50:05–09:50:30Z，durationMs=25006。
+- **EXIT=0 · 33 PASS / 0 FAIL 恰一次**；机器 receipt `.tmp/isolated-proof-receipts/2026-10-07T09-50-30-560Z-5003-be259952-….json` `outcome=passed · exitCode=0` + `sourceDigests` 源哈希在位；本审 log sha256 `43d1c5c143775757e4a88a23af889723050ccc6b475c4b47a8f3593a0dbab01c`；`[R5-MARKED-RED]` / `E2E_ISO_STACK_NOTE` 诚实横幅在位（isolated fixture ≠ stack truth ≠ cutover · releaseEvidence=false）。
+
+## §P4 六件套逐条裁决（C-EH-2 核心 · 本审独立实证）
+
+| # | 件 | 本审实证 | 裁决 |
+|---|-----|---------|------|
+| 1 | 未授权红真入口 | 伪造 jti → 42501 `privacy_authorization_snapshot_not_found`；issued 未 consume → 42501 `privacy_authorization_snapshot_not_consumed`；产品 sweep 无授权诚实跳过（claimed=0 erased=0 skippedUnauthorized=1 · 行数仍 3）——全走 0125 真 claim 十项链，非 stub 前置造红 | ✅ |
+| 2 | ANN recall=0 真 ANN | 生产 `annSearchLegacy`（`retrieval-legacy.ts:40-44` memory 分支 `embedding <=> $1::vector … ORDER BY … LIMIT k` · `retrieval-store.ts:14` 生产面再出口）；**擦除前正对照 hit≥1 且首挑 ref-id=`ref-vp-mem-1` 精确**（probe=makeVec(20260) 与 VEC_A 逐字节同源，防空转）；擦除后同 probe 0 hit + admin 侧同向量 `<=>` 直探 0 行——**非行数 proxy** | ✅ |
+| 3 | 目标行数=0 | owner memory 3→0，per `(owner_user_id, kind)` 快照差 | ✅ |
+| 4 | 残留=0 | 显式 count=0 + 0125 purge 内建 55000 fail-closed 同口径 | ✅ |
+| 5 | 跨 subject/qbank intact | 他户 memory / owner qbank / 系统 qbank 三面 `content_hash+embedding::text` 聚合 sha256 digest **逐字节等值断言**（非仅无报错）+ 他户 ANN 检索面仍命中 ≥1 | ✅ |
+| 6 | DELETE=503 同列入账 | `privacy-erasure:http:prove` CMD 注册在位（package.json）；controller/service blob 链内全等（503 冻结）；proof 落款行明示同列入账 | ✅ |
+
+附加断言全 PASS：0141 fence（app_role 无上下文自删红 42501 / lease 上下文错 token 红 / 正 token purge 绿 + qbank DELETE 不拦）、INT 假造 sink=vector target（feed 不出 + 真 claim 入口 42501 `sink_forbidden` + 清除后真靶不拖累）、0091 receipt `local_erased` 落账 + `receipt_hash=sha256(targetId:vector_plane:local_erased:3)` 可复算 + request 经既有 completed guard 原样到 completed。
+
+**Ban「彻底删除」叙事核查**：三层披露在位——`0141:30-32` / `vector-plane-erasure.ts:18-20` / proof 头注+落款（本地隔离行级证据 ≠ 生产云端彻底删除 · HNSW 内部页/WAL/备份/副本不在行级证据面 · releaseEvidence=false · completed ≠ 账户删除完成）；receipt_kind=`local_erased` 为 0091 枚举原值，无 external/cloud 冒称；`:64` cloudVendorDeleted=false 原文 blob 全等未借未洗。✅
+
+## §P5 条件裁决（C-EH-1~7 POST-PROVE）
+
+| # | Condition | 裁决 | 实证 |
+|---|-----------|------|------|
+| C-EH-1 | alone≠dual · worktree · 禁 push | ✅ | 本审独立 worktree `rv/p4p-e2e-ha`、仅本地 commit 禁 push；本 PASS=POST dual 之半，不代签 mw-privacy-int；coding 于 PRE dual BOTH PASS（`29cc2dfd`+`909d6118` ∈ HEAD 亲证）+ 协调方授权后进行 |
+| C-EH-2 | 六件套不弱化 | ✅ | §P4 全六件同列入账、零弱化零替换；ANN=真 HNSW `<=>` probe + 擦除前正对照 ref-id 精确；intact=digest 等值断言 |
+| C-EH-3 | target/CMD 先钉后码 · Ban 越界 | ✅ | target 仅 sink=memory_vector_chunk（0125 owner+kind 双谓词继承）；INT sink=vector 诚实 no-target 不假造作用域键；qbank/共享语料零触碰（digest 等值实证）；CMD=`vector-plane-erasure:prove` 同 slice 拟案；0141 顺位取号新增 additive 零抢号 |
+| C-EH-4 | 0091 语义零改动 | ✅ | 0091/0125/0137/0140 链内 diff=0 行；既有函数+枚举原值调用；completed guard 原样通过（proof `request completed` PASS）；零语义偏离故无需重 dual |
+| C-EH-5 | cloudVendorDeleted 披露沿 AR · Ban 彻底删除叙事 | ✅ | 三层披露在位；receipt=local_erased 不冒称 cloud；`:64` OPEN 原文 blob 全等；零 count-as-erased |
+| C-EH-6 | EXIT 契约诚实 | ✅ | EXIT=0 恰一次 33/33 无重试；attempt1 EXIT=1 诚实保留；EXIT0 未被冒称 covered/`:60` closed/UC-052 flip/DELETE 开/HA——backlog `:60` 仍 OPEN、coveredCount=8、UC-052 partial 全冻结 |
+| C-EH-7 | F-1/F-2 docs-side 转注 | ◐ 非阻断未闭合 | harness blob `85c50920` 链内零触碰（coding 链零混 docs 属正确卫生）；F-1 措辞更正仍待 nail 期 docs-side 落地 → 转 **C-EH-7′** |
+
+## §P6 Blockers
+
+**0 Blocker。**
+
+## §P7 Conditions（POST-PROVE 后仍约束后续刀）
+
+- **C-EH-1′**：本 PASS 为 POST-PROVE dual 之半；dual 成立须 peer `mw-privacy-int` POST-PROVE 独立 PASS（本审未见其文本）；nail 由协调方裁定，implementer 不自批；本审禁 push。
+- **C-EH-2′**：任何后续对本 prove 六件套的修改须全量重跑并重 dual；Ban 换弱断言、Ban 行数 proxy 替代 ANN、Ban 删擦除前正对照。
+- **C-EH-5′**：任何下游引用本证据须原样携带披露「本地隔离 PG 行级证据 ≠ 生产云端删除 · HNSW 内部页/WAL/备份/副本不在行级证据面 · cloudVendorDeleted=false · `:64` OPEN · releaseEvidence=false」；Ban count-as-erased。
+- **C-EH-6′**：EXIT0 ≠ covered ≠ `:60` CLOSED ≠ UC-052 flip ≠ DELETE 开放 ≠ HA ≠ 彻底删除；`:60` 翻行只能走独立 SSOT docs 刀并附其自身证据。
+- **C-EH-7′**：F-1（harness §2「0032 corpus `p_*` 表」实为 `rag_corpus_*` 表族、`p_*` 系 RLS 策略名）措辞更正须于 nail 期 docs-side 落地（非阻断、不重开 PRE/POST）。
+
+## 摘要（3 行）
+
+1. 包完整恰 9 文件零夹带：SSOT/0091/0125/0137/0140/AR 面/503 双 blob 链内全等零触碰；attempt1 EXIT=1→2 分参修复裁合法（hmac 输入与 33 断言面逐字节不变，非 retry-to-green 非迁就）。
+2. 本审恰一次 fresh re-run **EXIT=0 · 33/33 PASS**（隔离 pgvector 真 PG）；六件套零弱化——ANN recall=0 走生产 `annSearchLegacy` 真 `<=>` probe 且擦除前正对照 ref-id 精确命中防空转、跨 subject/qbank digest 逐字节等值、未授权红真入口、0091 receipt hash 可复算、「彻底删除」Ban 三层披露在位。
+3. 0 Blocker；C-EH-1~6 全 ✅、C-EH-7 非阻断待 nail 期 docs-side 更正（C-EH-7′）；EXIT0 ≠ covered ≠ `:60` CLOSED ≠ UC-052 flip ≠ 云端删除；alone≠dual 不代签 mw-privacy-int，POST dual 之半待 peer 独立 PASS。
+
+Verdict: PASS
