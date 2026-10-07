@@ -25,7 +25,8 @@ export const SEALED_JOB_ROUTE_CLASSIFY_MODEL_OR_RECIPE = 'job-route-classifier';
 export const SEALED_JOB_ROUTE_CLASSIFY_ADMISSION_KEY =
   'dashscope-main|cn-beijing|job-route-classifier|job.route-classify.v1';
 export const SEALED_JOB_ROUTE_CLASSIFY_PROMPT_CONTRACT = 'job.route-classify.v1';
-export const SEALED_JOB_ROUTE_CLASSIFY_PROMPT_VERSION = 'p.v1';
+/** G7T：prompt 校准 p.v1→p.v2（C-RR-3 sealed 版本常量随 prompts.ts 同步升级，否则 sealed provenance 漂移）。 */
+export const SEALED_JOB_ROUTE_CLASSIFY_PROMPT_VERSION = 'p.v2';
 export const SEALED_JOB_ROUTE_CLASSIFY_OUTPUT_CONTRACT = 'job.route-decision.schema.v1';
 
 const SHA256_HEX = /^[0-9a-f]{64}$/;
