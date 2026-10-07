@@ -155,3 +155,78 @@ Verdict: FAIL
 alone ≠ dual：本 PASS 仅为 mw-e2e-ha 半签，不代签并行 peer mw-model-op；peer 独立裁决。本审 0 prove run · 0 live · 0 Key 值读取 · 0 coding · 0 产品/SSOT 触碰 · 禁 push。本 PASS ≠ EXEC 续授权 ≠ H0-alt-5 定谳 ≠ 修复 ≠ trio 翻绿 ≠ g7SuiteGreen=true。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual 审查段 — mw-e2e-ha（adversarial evidence-honesty）· append-only · 2026-10-08
+
+**审者**：`mw-e2e-ha`（独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-ffp-e2e-ha` · branch `rv/ffp-e2e-ha`，自 origin/feat/mysql-schema-skeleton `ca2e4ce0` 创立）。**被审对象**：F-F EXEC 收据 commit `3da3f0cb`（full `3da3f0cb1771444c0bbbc310a7467fe434d25dac` · parent `7ed35f0d` · author mw-core · 恰 2 收据 md +122/−0）。**实跑 code SHA（收据自称）**：`7ed35f0d05f7d31fcfca24e873664311160d157c`（= RE-PRE 双 PASS 镜像链 tip，本审逐锚重核）。**方法**：git 亲读亲算 + 码面/DDL 锚点亲读 + 收据内容机导复核；本审 0 prove run · 0 live · 0 Key 值读取 · 0 DB 连接 · 0 coding · 零远程（fetch 网络不可用，以本机 origin ref `ca2e4ce0` 为基线，与任务单给定 origin tip 全等）；alone ≠ dual，本 PASS 仅为 mw-e2e-ha 半签，不代签并行 peer mw-model-op（其 POST 段 parallel 在途，本审看不到亦不需要看）。
+
+## 一、包完整性复核（全部本树亲算）
+
+| # | 项 | 结果 | 证据 |
+|---|---|---|---|
+| 1 | 恰 2 收据文件 | ✅ | `git show --name-status 3da3f0cb` = 恰 2 个 **A**（新增）：`receipts/g7r-ff-last-error-discriminator/SUMMARY.md`（53 行）+ `e2e-ui-isolated.md`（69 行），+122/−0；G7R 收据目录（`receipts/gap-g7k-api-reds-fix/`）零改写零覆盖（diff 零触碰）亲验 |
+| 2 | 零产品码/SSOT/Key 物料 | ✅ | 全距 `c5a1f8e3..ca2e4ce0` 恰 3 文件：2 收据 + peer 审查文件 +68（= peer RE-PRE 段落卷）；零 `apps/`/`packages/`/`scripts/`/SSOT/backlog/checklist/package.json/spec/`.env*`；diff 长 token 机扫仅 job UUID×2/commit SHA/env 名/表名/容器名——零 Key 物料（Key 仅 name-only loader 口径记录，值零入树） |
+| 3 | wrapper blob post-run 复算 | ✅ | `git hash-object scripts/run-e2e-isolated.mjs`（tip working tree 实算）= `13dbfc43c744511644649ae310696a13ee2f20f7`，与 `7ed35f0d`/`3da3f0cb^{tree}`/`ca2e4ce0^{tree}` 四点 `git ls-tree` 全等——withhold 面零触碰、gate 机不可弱化（收据 §4-1 自评「post-run 复算全等」与实测一致） |
+| 4 | 本席 PRE/RE-PRE 段 append-only 保留 | ✅ | 本文件 @`ca2e4ce0` = 26886B，与 `c5a1f8e3`（本席 RE-PRE 镜像）**逐字节全等**（`git diff` 空）；round-1 FAIL 段 + RE-PRE PASS 段原样随卷；追加前 md5 `fafe2783be522a58e4d92fa89209fc85`（26886B）随卷备查 |
+| 5 | 授权链（C-HA-1 证据） | ✅ | RE-PRE 双 PASS 原始 commit `f7074586`（mw-e2e-ha，author epoch **1791394767**）+ `23e99856`（mw-model-op，author epoch **1791394838**）均早于 exec start epoch **1791395164**（17:46:04Z）；本席镜像 `c5a1f8e3` ≡ `f7074586` tree `5bae5f29` 全等亲算；协调方 EXEC 授权系输入事实（与 harness §3.1 契约结构一致，收据 §头如实转述） |
+
+**Provenance 观察（OB-FFP-4，非阻断）**：peer 原始 `23e99856`（tree `9fbf7c8a`）与其分支镜像 `7ed35f0d`（tree `2b9e1c27`）tree 不同——差量恰为本席 RE-PRE 段 +47 行并入本席文件（镜像组合面，benign）；本席原始与镜像 tree 全等。两原始 commit 均 dangling 非 origin 祖先，授权链以「原始对象在场 + author 时间戳不变 + 镜像树全等」三重一致承重。
+
+## 二、快照复核（甄别证据窗口 · 内容自证）
+
+1. **算术**：536 行 = 525 轮四查询全 ok + 8 轮仪器错误 + 3 行 phase 标记（525+8+3=536 ✓）。8 轮系 migrate 前空库窗口（17:46:06.7-17:46:08.8Z）`relation does not exist`——**如实记 error、未记空读、未触发备选**（C-HA-FF-3/C-HA-FFR-1 兑现；收据 §5 + §4-2 双处落字与收据 §6 快照逐查询 status 全 ok 一致）。
+2. **「快照在 `docker rm -f` 之前」系内容自证，非仅时序主张**：最后全 ok 快照 t=`17:48:50.659Z` **读得** `created_at=17:48:49.644Z` 的 failed 行（1.015s 前）——已拆除容器不可能服务该读取；wrapper 拆除仅发生于 finally（`run-e2e-isolated.mjs:2365-2368` 亲读：`docker rm -f` 在 run 结束后的 finally 块内）。窗口保证成立。
+3. **时间链自洽**：start epoch `1791395164`=17:46:04Z ↔ 容器名 `meetwise-e2e-8418-1791395164551` 后缀 ms 全合；end epoch `1791395330`=17:48:50Z ↔ dur=166s ↔ 收据 commit epoch 1791395720（+5min 落卷）；快照 .659s 处 finally 窗口内。attempts=1 ×2 与 fail-closed 秒抛一致（无 retry 消耗）。
+4. **时间线整体对抗性复演**：recruiting-bound ×2（34.7s/34.5s，未入队面 C-MO-P2）失败时刻与 run 结束（17:48:50.000Z）及两 job created_at（17:47:44.030/17:48:49.644Z）在「rb 零入队 + 他 spec begin ×2 秒抛」模型下全部相容——收据对 job 归属未越权断言（见 §三.4），无矛盾残留。
+
+## 三、甄别有效性裁决（核心）
+
+1. **未预列值域处置程序正当**：判读表 §1.4（@`7ed35f0d` 亲读，12 行值域：a/a′/b×4/c/legacy/reaped/NULL 行/证伪行/fence_lost）确无 `adaptive_role_route_missing`——「六域无一命中」属实。收据按 §5.2（「判读表未覆盖值域」系合法收据结论：如实记原值 + 三面交叉读数）处置，并**额外**做码面归类登记 H0-alt-5·d——加良非违例。**未扫入 catch-all 成立**：·c 行域限定 checkpoint/SQL/连接类错误原文，role-resolve 系业务 fail-closed 门（`ADAPTIVE_ROLE_ROUTE_MISSING` 常量 `adaptive-role-resolve.ts:16` 亲读），排除正当；亦非 C-MO-P1 证伪分支域（签名全 absent）。
+2. **码面锚全中（@`7ed35f0d` 逐行亲读）**：`isTechRoleFailClosedEnabled`（`:35-38`）默认 ON 仅精确 `0/false/off` 关闭；`resolveAdaptiveInterviewRole`（`:55-62`）route snapshot ?? metadata 双缺 → throw（`:59-61`）；调用点 `interview-consumer.ts:345-349`（`allocations[0].leafTrackId` 读）+ `:351-355`（resolve 调用）**先于** `:356` `startAdaptiveInterview`；catch-all `:370-381`（`:380`）→ `failClaimedInterviewJob`（`:155-168`，`:162` job_failed）→ `terminalizeUnsettledInterview`（`:77-96`，`:93` `interview_unavailable{reason,kind}`）→ `markJobFailed`（`interview-jobs.ts:214-216`，`last_error` + `slice(0,500)`）——收据 §7 传播链逐环命中。
+3. **三面互证命题均为收据内数据机导出**：Q2 分布 rowCount=1（仅 `job.route-classify.v1`/`succeeded` ×2、`error_code` 全 NULL）⇒ 零 chat op 行 + 零 `provider_rejected`/`deterministic_refusal`/embedding/rerank 签名（C-MO-P1/C-HA-FFR-2 兑现，H0-alt-2 驳回维持）；Q3 trace=2 恰两次 classify；Q4 interview failed ×2。「start job 死于一切 interview chat op 之前」由 Q2 直接承载。
+4. **措辞纪律守住（含红①）**：「与 H0-alt-5 一致」≠「H0-alt-5 已证」在 SUMMARY §3 行内 + §6 Non-claims（not root-cause-proven）双处明示；单一 run 单面限制披露；红①张力（rb ×2 仍红 vs classify succeeded ×2）**如实登记非定谳、回协调方**，`job_route` 归属查询在四查询授权外**未扩查**、留 route 侧另刀——本刀对红①零越权归因。甄别成功判据=快照捕获（4/4 ok）达成，与「预期红 EXIT=1 ≠ 甄别失败」契约一致。
+
+**裁决：甄别 run 程序正当、证据窗口成立、归类登记合法、措辞纪律守住——有效性成立。** 承重边界（如实转述）：H0-alt-5·d 系「一致性归类 + 未预列登记」，非定谳终局；2 个 failed job 与 rb 红面的归属（需 `job_route`）未决，留 route 侧另刀。
+
+## 四、C-HA-1~8 逐条裁决（继承 I103 `19cfe869` standing 系列 · 对本 EXEC 收据）
+
+| # | 条件 | 裁决 | 证据（本审亲算） |
+|---|---|---|---|
+| 1 | 授权链 | ✅ | RE-PRE 双 PASS `f7074586`/`23e99856`（epoch 1791394767/1791394838）早于 exec 1791395164；镜像树全等；EXEC 由协调方下达（输入事实），binding 7 条随卷自评 §4 在卷 |
+| 2 | 触碰面恰限 | ✅ | EXEC diff 恰 2 收据 md；零产品码/SSOT/Key/`:68-71` 清面/G7R 收据；wrapper blob `13dbfc43` 四点全等 |
+| 3 | attempts 三字段 + C-HA-FF-3 | ✅ w/ OB-FFP-1 | attempt 序号（#1）+ code SHA 40 位全哈希（§4，receipt commit ≠ 实跑 SHA 如实登记）+ 时间戳（epoch+Z）；⚠ 时区呈现 UTC/Z 非 Asia/Shanghai（I103 原文字面），epoch 锚无歧义、保守向不阻断；sidecar 536=525+8+3 ✓；8 轮仪器错误如实记 error、未触发备选、未记空读——C-HA-FF-3 兑现核验通过 |
+| 4 | gate 13 条 | ✅（零交集面） | 13 条义务系 I103 mem00-int00 prove-path 刀域；本刀 EXEC diff 零 gate 机触碰 + wrapper blob 冻结全等 ⇒ gate 面不可弱化；义务留存原刀不受本刀影响 |
+| 5 | blocked→EXIT≠0 | ✅ | EXIT=1 原值如实（预期红）；10 skipped=诚实 capability skip（voice/OCR/ASR/TTS 0 调用）零洗绿；无自动降级路径触碰（blob 冻结）；sidecar exit 1 如实登记 |
+| 6 | 单窗口 | ✅ | 恰 1 attempt（§1）；备选 iso 未触发（触发条件=「查询成功且无 failed 行」未满足）；机制 B 未启用；Ban retry-to-green 守约（红不冲销） |
+| 7 | 零 live 报备口径 | ✅ | live=2/200 全部为 `job.route-classify.v1` succeeded ×2（Q2 机导出）；`actualSpendCny=null`（Ban invented spend）；Key name-only；isolated 经 wrapper 壳（sidecar 仅连 wrapper 所建容器 SELECT-only，无 `db:up`/compose 捷径） |
+| 8 | Pins | ✅ | 收据 §5 八项原值（NOT_HA/false/false/true/8/false/PG-retained/DELETE=503）与 checklist `:432`/`:443` 亲读零漂移；retained（g7SuiteGreen=false/r1Closed=false/techRoleFailClosedOptOutG7Only=true/Disclosure-1 OPEN/trio OPEN/GAP P1 OPEN/actualSpendCny=null）零翻转；EXEC diff 零 checklist/backlog 文件 |
+
+## 五、Blockers
+
+- **0**。无新 Fail-trigger：收据原始值（EXIT/时长/行号/class）全部如实、无假绿叙事、无越权归因、无 SSOT/withhold/Gate 触碰。
+
+## 六、Conditions（随卷 · POST 后义务）
+
+- **C-FFP-1**：H0-alt-5·d 判读表增补须走 docs 刀（新 REQUEST + 双审 + 冻结纪律），Ban 就地改冻结 harness。
+- **C-FFP-2**：红①归因所需 `job_route` 表查询属 route 侧另刀域——Ban 在本刀收据上扩查/回填/改写结论。
+- **C-FFP-3**：role-resolve fail-closed 门修复=产品刀（route snapshot/metadata 供给面或门语义），另 REQUEST + 双审 + 协调方 EXEC；本收据 ≠ 修复授权。
+- **C-FFP-4**：Pins/g7SuiteGreen=false/trio OPEN/GAP P1 OPEN 保持至修复落地 + 三绿 + post-dual BOTH + 协调方 nail 全链；evidenceOfRecord/SSOT 登记留 nail 阶段。
+
+## 七、OB（非阻断 · 如实登记）
+
+- **OB-FFP-1**：attempt 时间戳呈现 UTC/Z + epoch（I103 C-HA-3 字面为 Asia/Shanghai）；epoch 锚消歧、保守向，无证据完整性影响。
+- **OB-FFP-2**：SUMMARY §3 标题「根因定谳段」与 e2e §7「H0-alt-5 族成立」措辞偏强；被 §3 行内「≠已证」与 §6 Non-claims「not root-cause-proven」双处明示限定，承重命题均收据内机导出，不构成 overclaim。
+- **OB-FFP-3**：红面失败定位粒度与 G7R 不同——本 run 报 test 声明行（`:56`/`:68`）+ `client_exited`，G7R 为测内行（`:96` waitForURL/`:139`）；原始值全部如实入卷可自行对差，「逐面同形」主张在 spec×计数×时长×class 粒度成立且红①张力已显式登记，承面不受影响。
+- **OB-FFP-4**：见 §一 Provenance 观察（peer 原始/镜像 tree 差 = 本席段落镜像并入，benign；授权链三重一致承重）。
+
+## 八、中文三行摘要
+
+1. F-F EXEC 收据 `3da3f0cb` 包完整性成立：恰 2 收据 md、零产品码/SSOT/Key、wrapper blob `13dbfc43` 四点复算全等（withhold 零触碰）、本席 PRE/RE-PRE 段逐字节随卷、RE-PRE 双 PASS（`f7074586`/`23e99856`）早于 exec 授权链成立。
+2. 甄别有效性成立（核心）：最后全 ok 快照 17:48:50.659Z 系拆除前捕获（内容自证：快照读得 1.015s 前新建 failed 行）；`adaptive_role_route_missing` 未预列值域按 §5.2 处置 + 码面归类 H0-alt-5·d 登记（锚点 adaptive-role-resolve.ts:57-62 等全中、未扫入 catch-all、非证伪分支）；「与 H0-alt-5 一致 ≠ 已证」与红①排除（job_route 未扩查、留 route 侧另刀）双纪律守住；C-HA-FF-3 兑现（8 轮仪器错误如实记 error 零空读零备选）。
+3. 判 **PASS**（mw-e2e-ha 半签）：0 Blocker，4 OB 非阻断（时区呈现/措辞强度/红面定位粒度/镜像 provenance），4 Conditions 随卷；live=2/200、Pins 零翻转、g7SuiteGreen=false、trio OPEN 保持；本 PASS ≠ H0-alt-5 定谳终局 ≠ 修复授权 ≠ trio 翻绿。
+
+alone ≠ dual：本 PASS 仅为 mw-e2e-ha 半签，不代签并行 peer mw-model-op；peer 独立裁决，dual 以协调方合卷为准。本审 0 prove run · 0 live · 0 Key 值读取 · 0 coding · 0 产品/SSOT 触碰 · 禁 push。本 PASS ≠ H0-alt-5 定谳终局 ≠ 修复 ≠ trio 翻绿 ≠ g7SuiteGreen=true ≠ EXEC 续授权。
+
+Verdict: PASS
