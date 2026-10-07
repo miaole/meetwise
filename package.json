@@ -316,6 +316,8 @@
     "uc052:pool-role-leak:prove": "node scripts/run-e2e-isolated.mjs uc052:pool-role-leak:prove:raw",
     "uc052:pool-role-leak:prove:raw": "pnpm -C apps/worker prove:uc052-pool-role-leak",
     "interview-answer-submission:prove": "pnpm -C packages/contracts prove:interview-answer-submission",
+    "mem00-int00:prove-path": "node scripts/run-mem00-int00-prove-path.mjs",
+    "mem00-int00:prove-path:gate": "node scripts/mem00-int00-prove-path.proof.mjs",
     "memory-governance:prove": "node scripts/run-e2e-isolated.mjs memory-governance:prove:raw",
     "memory-governance:prove:raw": "pnpm -C packages/db prove:memory-governance",
     "memory-admission:prove": "node scripts/run-e2e-isolated.mjs memory-admission:prove:raw",
