@@ -40,3 +40,54 @@ Ban coding · Ban prove execution · Ban live · **Ban Redis cutover**（wakeup/
 本 stub 未跑 prove、未改产品码、未读 `.env*`；named proves ≠ coding/prove 授权（I2 先例）。执行须 PRE BOTH PASS + 协调方 AUTHORIZE。
 
 *Stub · awaiting expert pre-exec dual · STOP*
+
+---
+
+## RE-PRE dual 审查（mw-model-op · 2026-10-07 Asia/Shanghai · append-only · B-1 重写复核）
+
+**被审对象**：重写 commit `a265d6f8`（`line/mop01-knife` tip · parent=`4804c3dc54e696b5f7af17574d21e1bbe68482a4` 实证 `git rev-parse a265d6f8^` EXIT=0）——上轮 PRE dual FAIL Blocker **B1**（harness §2a 行 5「无周期兜底轮询…仅靠下游下次 wake 兜底」与代码相反）处方兑现专项复审。审阅基树 = 独立 worktree `rv/mop01r-model-op` @ `a265d6f8`（`git worktree add` EXIT=0）。本 commit patch-id = `5ad66dc3c6311bf532b84e9d112ed149aca5f3ba`（`git show a265d6f8 | git patch-id --stable`；与上轮被审 `d0dc312f` 的 `de532136` 不同属预期——内容已按处方改写）。本审看不到 `mw-e2e-ha` 的 RE-PRE 审（peer stub 仍 PENDING），本裁决独立作出，alone ≠ dual。
+
+### B-1 兑现核验表
+
+| # | 处方要素 | 兑现证据（本 worktree 逐条可复现） | 结果 |
+|---|----------|-----------------------------------|------|
+| 1 | 改写面恰限行 5 + 三处回声 + base 重钉 + Status token | `git diff --numstat 4804c3dc a265d6f8` = 恰 4 文件 `+18/−18` 零增删行（slice 5 / harness 7 / 两 stub 各 3）。逐行核对：harness = §2a 行 5 重写 + Base/Gap ids/§2a 标题三处 base 重钉（`1c4588f9`→`4804c3dc`）+ Status token×3；slice = One-line 回声 + Base 重钉 + Status token×3；两 stub = Scope 回声 + Base 重钉 + Status token×1——全部落在枚举面内，零越面 | PASS |
+| 2 | 行 5 新口径 = 既有 bounded scan 实存 | 新行 5「**既有周期兜底扫描实存**…非『无周期兜底』断链」。代码实证：`main.ts:452` setInterval 全文件恰 1 处（`grep -c setInterval` = 1 · Langfuse 5s flush）· `main.ts:458-461` 代码自述 "bounded scan for listener outages" · `drain-loop.ts:14` `runDrainLoop(tick, intervalMs = 5000)` · `:31` `setTimeout(finish, intervalMs)` fallback · 每拍后 `waitForWakeOrInterval()` re-arm | PASS |
+| 3 | 窗口由扫描周期上界约束（有界延迟窗） | `main.ts:462` `boundedIntEnv('WORKER_JOB_RECONCILE_INTERVAL_MS', 5_000, 1_000, 60_000)` 默认 5s；五 consumer loop `main.ts:488/:609/:612/:614/:616`（report/interview/quiz/diagnosis/route-classify）全部喂同一 `jobReconcileIntervalMs`；dual reconciler `model-invocation-reconcile.ts:129` `intervalMs = 30_000` + `usage-calibration-reconcile.ts:63` `intervalMs = 60_000`（同构 `runDrainLoop`）；`main.ts:709` 自报 "bounded reconciliation" | PASS |
+| 4 | 强制 periodic reconcile 未在 sole stack 证明 → GAP 仍 OPEN | 新行 5「GAP = **强制 periodic reconcile 未在 sole stack 证明**（GAP 仍 OPEN）」+「**未证明 ≠ 不存在**」。backlog `:95` SSOT 原文「reconcile 未在 sole stack 证明 → 漏唤醒窗口」逐字对应、零重译；backlog blob 三点全等（`git rev-parse 4804c3dc:a265d6f8:worktree = 28c7656447762bf1e2740b4ad38433202888d236`）SSOT 零触碰 | PASS |
+| 5 | `main.ts:452` 仅字面事实引用 | 新行 5 对 452 表述 = 「worker main 唯一 `setInterval` 字面 = 无关 5s flush timer）仅作字面事实引用」——不再由 452 推断「无周期兜底」；字面复核 `sed -n '452p'` = Langfuse flush timer，唯一性成立 | PASS |
+| 6 | Ban 两头漂移 | 新行 5 尾「**Ban 两头漂移**——不许写成『已修复/无窗口』，也不许宣称既有扫描可关闭 `:95` GAP（强制 reconcile 的 sole stack 证明仍缺）」双向锁定；`:74`/`:95` OPEN 在 4 文件全保留 | PASS |
+| 7 | 三处回声同步 | slice One-line + 两 stub Scope 新口径逐语义一致（drain-loop 周期 tick + 五 loop 默认 5s 认领 + dual reconciler 30s/60s + 452 仅字面 + 强制 reconcile 未证明 = OPEN 依据 + 未证明≠不存在） | PASS |
+| 8 | 其余 byte 保留（D1 逃生门原文） | D1 逃生门三处 byte-intact（均在 diff 面外）：harness §1-D1 `:27` + §3 `:79` + slice `:21-23`；harness §0 backlog 原文引用、§2b/§2c、§8 Non-claims、slice §2b/§2c 与 Ban 全节未触碰；旧措辞「无周期兜底轮询」仅余 harness §2 表 `:35`（见残留裁决）；旧 Status token `awaiting_pre_exec_dual` 在 4 文件 grep = 0 residue | PASS |
+| 9 | Status token / stub 不自批 | 新 token `draft:awaiting_re_pre_exec_dual` slice×3 / harness×3 / stub×1；两 stub Status 仍 **PENDING**、零 self-write 任何 PASS；零产品码（diff 全在 `ai-docs/delivery/` 4 md）；Pins 表 byte-intact 原值（NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · PG LISTEN retained · actualSpendCny=null · `:74`/`:95` OPEN） | PASS |
+
+上轮 B1 处方各要素（行 5 机制如实改写 + `:95` OPEN 依据改「未证明 ≠ 不存在」+ slice/stub 三处联动短语 + backlog `:95` SSOT 零触碰）**逐项兑现**；C-MOP-1 base 重钉兑现（声明 base `4804c3dc` = 实际 parent，零差）；C-MOP-2 兑现（改写只动该行与联动短语，未扩张范围）。
+
+### 残留披露裁决（harness §2 表 `:35` 第 5 处摘要回声）
+
+实现方披露 `:35`「诚实清单钉（lossy hint · **无周期兜底轮询** · 漏唤醒窗口）」不在处方枚举面内未动。裁决两段：
+- **当时不动 = 诚实保留成立**：处方面纪律优先，静默扩面改 `:35` 反违 Ban 静默换范围；如实披露并留 RE-PRE 裁是正确动作，非隐匿。
+- **本 RE-PRE 后不得再存 → 须修**：本审既已裁定 §2a 行 5 新口径与代码相符，`:35` 与之同文档自相矛盾，是 B-1 同款失实的最后残体；任何未来切流 REQUEST 引 §2 口径钉表都会再吸入同一谬误。→ 列入 **C-MOP-6：exec/授权前必修**（一行内替换对齐行 5 口径；若修 face 恰限该一行且语义对齐本审裁定内容，不重开 RE-PRE；越面即重开）。
+
+### Blockers
+
+- **0**（上轮唯一 Blocker B1 已兑现关闭）
+
+### Conditions C-*（持续绑定 + 新增）
+
+- **C-MOP-1～C-MOP-5（上轮）全部随卷继续绑定**：C-MOP-1 base 重钉已兑现；C-MOP-3 D1 边界永久锁 / C-MOP-4 §2b 非执行定义·flag 开启=cutover 本体须 MOP03 六门+BUG-REV-COND `:96` 四专家审 / C-MOP-5 pins 全值+PG LISTEN retained+`:74`/`:95` OPEN+actualSpendCny=null 原样保留——本重写全部未触碰，原值复核通过。
+- **C-MOP-6（本审新增 · exec/授权前强制）**：harness §2 表 `:35` 摘要回声须一行内替换，对齐 §2a 行 5 新口径（含 Ban 两头漂移语义），修 face 恰限该行，修后 receipt 留痕；越面重开 RE-PRE。
+
+### Peer 边界
+
+alone ≠ dual：`mw-e2e-ha` stub PENDING 原样零触碰，本 PASS 不代签 peer、不约束 peer 独立结论；RE-PRE dual 生效以 peer 独立同判 + 协调方 AUTHORIZE 为准。本审零 coding · 零 prove 执行 · 零 live · 零 SSOT edit · 未读 `.env*` · git 写操作仅独立 worktree `rv/mop01r-model-op` · Ban push。
+
+### 中文三行摘要
+
+1. B-1 兑现成立：行 5 重写 + 三处回声 + base 重钉 + Status token 恰 +18/−18 零增删行零越面，新口径与代码逐锚相符（452 唯一 setInterval 字面 · 462 默认 5s 喂五 loop · drain-loop:14/:31 周期 tick · 双 reconciler 30s/60s · 709 自述 bounded reconciliation），「未证明 ≠ 不存在」作 `:95` OPEN 依据正确，D1 逃生门与 Pins/SSOT byte-intact。
+2. 残留裁决：harness `:35` 第 5 处摘要回声当时不动 = 诚实保留成立（处方面纪律 + 如实披露），但 RE-PRE 后不得再存 → C-MOP-6 exec 前必修一行对齐，恰限该行不重开 dual、越面重开。
+3. 0 Blocker，Verdict PASS；PENDING 不自批、alone ≠ dual 不代签 mw-e2e-ha，PASS ≠ 授权 coding/prove/live/cutover。
+
+*Reviewed by mw-model-op · RE-PRE dual · append-only · PASS ≠ AUTHORIZE · Ban push*
+
+Verdict: PASS
