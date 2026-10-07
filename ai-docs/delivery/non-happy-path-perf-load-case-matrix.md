@@ -60,7 +60,7 @@
 | NHP-014-ADV-01 | 014/026 | ADV | api | webhook 重放/篡改七类 | 幂等+拒 | **gap**→**case-only** | 错签 403 partial 仅子集 |
 | NHP-017-FAULT-01 | 017 | FAULT | api/db | begin-fail 孤儿 reserved | sweeper→released | **partial** | uc017:orphan:prove |
 | NHP-017-BOUND-01 | 017 | BOUND | db | sweeper 幂等 | 重复扫无二次副作用 | **partial** | 同上 |
-| NHP-017-LOAD-w-01 | 017 | LOAD | worker | 大量孤儿预占回收 | 回收完成+无漏扣；收据 | **blind**→**case-only** | — |
+| NHP-017-LOAD-w-01 | 017 | LOAD | worker | 大量孤儿预占回收 | 回收完成+无漏扣；收据 | **blind**→**case-only**（**真证据已落（2026-10-07 Line Y nail）**：`pnpm uc017:nhp-load:prove` **EXIT=0** · 45 断言双 fresh @coding `dd471a74`（≡shipped `a7638deb`）· post-dual `adcbe17`/`f8b68a9` BOTH PASS · settled cohort 路由（S=10 真结算 outbox + C=10 并发 `settleOutbox`）· gap **`GAP-UC017-LOAD-01`** 登记 · **EXIT0 = case ≠ covered** · 行状态不动：保持 blind→case-only 措辞（诚实 case registration only），禁止升 covered/partial，coveredCount=8 不变） | `pnpm uc017:nhp-load:prove` · harness `harness/gap-uc017-load-sweep-nhp.md` · ≠ 017 covered |
 | NHP-018-NEG-01 | 018 | NEG | api | abandon 后复活尝试 | 拒；∉进行中 | **partial** | uc018 http |
 | NHP-018-FAULT-01 | 018 | FAULT | worker | safe_terminating 注入 | 图安全终态；额度 released | **case-only**（authoritative for matrix §1.0.1 FAULT · D2） | graph/`pnpm uc018:graph:prove` · ≠ FAULT covered |
 | NHP-018-BOUND-01 | 018 | BOUND | api | waiting_user-CAS abandon（`created\|active\|waiting_user`） | abandoned+released；额度净 0；∉ in-progress | **partial**（D1 · pinned `GAP-UC018-WAITING-USER` evidence / parent harness A/H-waiting-user） | `pnpm uc018:abandon:prove` + `pnpm uc018:abandon:http:prove` · Ban invent BOUND covered |
