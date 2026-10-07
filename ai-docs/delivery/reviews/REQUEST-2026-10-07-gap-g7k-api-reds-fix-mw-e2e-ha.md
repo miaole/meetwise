@@ -112,3 +112,106 @@ Trio stays **OPEN**（EXIT 1/1/1 真实业务红）。`g7SuiteGreen=false`. `r1C
 3. 0 Blocker · 4 条非阻断观察（行号微漂/blob 全等、目录省略、wiring 行号自钉重核、Key 探针降格处置正确）· 8 条 Conditions 随卷；本 PASS 仅 mw-e2e-ha 半签，不代签 mw-model-op，dual BOTH ≠ EXEC 授权。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual 审查段（mw-e2e-ha · adversarial evidence-honesty · append-only · 2026-10-08）
+
+**审查对象**: Line G7R **POST-PROVE** EXEC 收据 commit `37a5c26f`（恰 4 收据文件 · origin tip `e67989e4` 同树孪生）· 实跑 code SHA `3767f783863c8dc2bb8743e4ff02654948f1c34c` · F-A-1 配对实测（`MODEL_ENDPOINT_PROFILE=dashscope-cn-beijing` + `MODEL_NAME=qwen-plus`）。**审查 base**: 独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-g7rp-e2e-ha` · branch `rv/g7rp-e2e-ha` @`e67989e4`（= `origin/feat/mysql-schema-skeleton` tip）。**append-only 纪律**: 本段追加前全文 19038 字节 · md5 `b728429b63827caf4bed5c74404a8ad4`（机检在案 · PRE 段原文零改写）。**本审零实跑零 live 零 Key 值读取零产品改动**；证据 = git 只读亲算 + G7K committed 收据（`g7-trio-keyed/`）+ G7R EXEC 磁盘工件只读抽查（`.tmp/g7r-fa1-20261007/` · machine receipts · `apps/web/test-results/` trace.zip 解包亲读——未入 git 属如实披露范畴）。
+
+## A. 包完整性机检（独立复算 · 非抄被审文本）
+
+| # | 项 | 结果 | 本席证据 |
+|---|-----|------|----------|
+| A1 | 收据恰 4 文件 | ✅ | `git show 37a5c26f --stat` = 恰 4 md 全 `+`（+207/−0）全在 `receipts/gap-g7k-api-reds-fix/`；EXEC 全距 `git diff --name-only fa10e01e e67989e4` 仅此 4 + 双 PRE review 文件，**零产品码零 package.json 零 spec 零脚本零 SSOT 三件零 backlog/checklist 零 `.env*`**（`grep -Ev '^ai-docs/'` 计数=0） |
+| A2 | 零 Key 物料 | ✅ | committed 收据 `sk-*`/`Bearer` 长令牌机扫 **0 hit**；EXEC 期 3 条原始 log 同法机扫 **0 hit**（本席独立扫）；`.tmp/` gitignore `.gitignore:15` 亲读在位 |
+| A3 | 七字段/presence/预算 | ✅ | 三 CMD 收据七字段齐（CMD 原文/EXIT/时间戳/实跑 SHA/envModelApiKey/关键输出/预算）；`.tmp/g7r-fa1-20261007/01/02/03.env-presence.txt` 磁盘亲读 = **3×3 全 ABSENT**；`01/02/03.key-presence.txt` name-only（`envModelApiKey=set` + `profile=dashscope-cn-beijing model=qwen-plus`）零值泄露；预算结构估 <10/<30/<10 = <50 < 200 · 超限即停未触发 · `actualSpendCny=null` |
+| A4 | 三来源交叉 | ✅ | `01/02/03.exit`=1/1/1 磁盘亲读；machine receipt CMD1 `{outcome=failed, exitCode=1, failureClass=api, durationMs=15215}` + suite 级 `{failure=e2e_performance_suite_failed:HTTP full E2E:exit=1, gitHead=3767f783…自证}` + 内层 `{exitCode=1, failureClass=api, durationMs=14581}`；start/end 时间戳与收据逐字同 |
+| A5 | 同形基线（G7K） | ✅ | `g7-trio-keyed/` 4 文件在案：EXIT 1/1/1 · F1/F2 35.3s/35.6s @`:96` · F3/F4 1.6s/2.5s @`:139` · 24=10P/4F/10S · ledger=[ocr,voice] |
+
+## B. C-HA-1~8 逐条裁决（PRE Conditions · 逐条对 EXEC 收据）
+
+| 条件 | 裁决 | 本席独立证据 |
+|------|------|--------------|
+| **C-HA-1 重钉** | **满足** | 祖先链 `7b28a492 < fa10e01e < d6d1d64e < 3767f783` 亲证（merge-base --is-ancestor PASS）＝REQUEST + 双 PRE 全在实跑 tip 之内；`7b28a492→3767f783` 非-ai-docs drift **机检 0**；wiring `:278`(e2e:isolated)/`:279`(e2e:ui:isolated)/`:282`(verify:e2e-performance) @`3767f783` sed 亲读回填（PRE OB-3 预钉兑现）；7 blob 锚重算全等：`c655235c`/`aa86fb3f`/`13dbfc43`/`de4991e6`/`3309dc38`/`7d65d0f3`(`e2e/full.e2e.ts`)/`005c68cc`。「origin push 间歇堵」如实登记与 EXEC 时点相符，且**现 origin tip 已含全链**（本席 fetch 亲证 3767f783/d6d1d64e 在 origin），登记核验闭合 |
+| **C-HA-2 withhold 零触碰** | **满足** | `run-e2e-isolated.mjs` blob `13dbfc43c744…` @`fa10e01e` 与 @`3767f783` rev-parse 双算**全等**；EXEC 全距零代码 diff ⇒ F-F 不可能已开（无新脚本/探针入树）；case 名甄别仅收据三角法（ledger 越 `:153` → 主 drive 段 · 零发明 case 名） |
+| C-HA-3 定谳措辞 | **满足** | 「与 F-A-1 实测不一致（**置信度显著下降 · 非证伪**）」+「H0 与 H0-alt-1 联合假设空间仍开放」逐字在卷（SUMMARY §定谳）；OB-4 探针未作配对证据（egress 401 探针正确标注为连通性面·零 Key 零模型调用） |
+| C-HA-4 sticky 口径 | **满足** | 每 CMD 独立 fresh 容器 DB · classify 每新 revision 恰一次新尝试；无旧 sticky 岗位复活记已修的叙事 |
+| C-HA-5 EXIT 契约 | **满足** | EXIT 1/1/1 原值未洗；逐 case 五分类在卷；根因假设修正如实登记（H0 置信度下降 + 残余候选集）；每 CMD 恰 1 attempt（`0N.exit` 各一 · Ban retry-to-green 兑现）；CMD3 not_run ≠ pass 原样 |
+| C-HA-6 预算 | **满足** | 结构估 <50/200（est-not-counter 基础如实披露）· 无中止 · `actualSpendCny=null` |
+| C-HA-7 Key 卫生 | **满足** | 进程环境唯一通道（loader name-only）· `.env*` 三文件 ABSENT 探针逐 CMD 在案（A3 亲读）· 值/fingerprint 零入树零入据（A2 机扫）· F-A-1 两枚配置值非 secret 经协调方下达 |
+| C-HA-8 alone≠dual | **满足** | 收据 lifecycle `executed:awaiting_post_prove_dual` · Ban 自批在卷；本段仅为 mw-e2e-ha 一席半签，不代签并行 peer mw-model-op |
+
+## C. 核心裁决——F-A-1 vs G7K 同形性（本席独立对照）
+
+**逐面同形表（G7K @`8c6860e3` vs F-A-1 @`3767f783` · 本席逐格独立复算）**：
+
+| 面 | G7K | F-A-1 | 形态 |
+|----|-----|-------|------|
+| trio EXIT | 1/1/1 | 1/1/1 | 同形 |
+| CMD1 class / ledger | api / [ocr,voice]（越 `:153`） | api / 同 | 同形 |
+| CMD2 计分 | 24 = 10P/4F/10S | 同 | 同形 |
+| 红① case/点/窗 | recruiting-bound ×2 · waitForURL 30s @`:96` · 35.3s/35.6s | 同 case 同点 @`:96` · 34.8s/34.5s | **同形**（差 ≤0.8s · 均=30s 超时窗+开销 · 量级不变） |
+| 红① digest | 190419086 | 382212850 | 同面新 digest（每 run 随机 · 非形态面 · 磁盘快照「出错了·错误标识:382212850」亲读） |
+| 红② case/点/耗时 | abandon ×2 · 409≠200 @`:139` · 1.6s/2.5s | 同 case 同点 @`:139` · 1.8s/1.9s | **同形**（秒败量级不变 · 2×「Received: 409」log 亲读） |
+| CMD3 | build EXIT0 + migrate EXIT0 → HTTP EXIT1 class=api → 短路 not_run | 同序（22.5s/4.7s/14.6-14.8s · G7K 97.2s/15.0s/31.8s） | 同形（EXIT 序列同形 · 墙钟差属环境面不属失败形态） |
+| Key gate / quota | `live_provider_key_missing` 0 hit · quota 0 | 3 log grep 复算 **0/0/0** | 同形 |
+| suite pin | `g7SuiteGreen=false` | retained | 同 |
+| 新证据面 | 红② SSE 未取证 | **SSE 亲证**（见 D） | 证据增量非形态变化 |
+
+**裁决：同形成立（10/10 面全同形 · 逐格值变化均属同量级/环境面/digest 随机面）。**
+
+**「配对值变化不改变失败形态 → H0 唯一根因置信度下降」推理是否成立：在限缩读法下成立，且必须限缩。** 本席裁定推理链如下：
+
+1. 该同形观测打击的是**联合假设 J =（H0：默认配对错配为三红唯一根因）∧（P：Key provenance=百炼系且具 qwen-plus 权限）**——在 J 下 F-A-1 是真修复，预测行为面必变；实测零变 ⇒ J 似然后验显著下降。这一步成立。
+2. 但 H0 **单独**（¬P 分支）对此观测**不做该预测**：若 Key 非 百炼系，F-A-1 值以异源 Key 打 dashscope 端点 → 仍失败 → 零行为变化恰为 H0+¬P 所预测。故同形观测**不可分辨 H0 vs H0-alt-1**——收据「H0 与 H0-alt-1 的联合假设空间仍开放」一句正是本席 PRE C-HA-3/OB-4 所要求的分解，**措辞精度合格**。
+3. 同形本身对任一残余候选（H0-alt-1/2/5）**不构成正面证据**——它是失败的区别性预测，不是选票。收据将其列为「登记 backlog 候选 · 非定谳」并把甄别手段（provider 级 name-only 探针/F-F/F-B）正确上交协调方（均未授权未执行）——边界守约。
+4. 故收据结论「置信度显著下降 · **非证伪**」是唯一与证据强度匹配的措辞：任何「H0 已证伪」或反向「H0 仍成立」的写法在本观测下均越权。**同形推理裁决：成立（限缩于联合假设 J）· 措辞裁决：合格。**
+
+## D. 新 SSE 证据取证完整性（本席从 primary artifact 独立复现）
+
+CMD2 trace.zip（`apps/web/test-results/uc018-abandon-…-chromium/trace.zip`）解包，resource `647bec132e68157425bd97b232f8a229d4292b2a.dat` **逐字节亲读**：
+
+```
+id: 1
+event: interview_unavailable
+data: {"kind":"start","reason":"job_failed"}
+```
+
+与收据引用**逐字全等**。旁证三重独立复现：(a) 同 trace `error-context.md` 页快照「已结束」+ alert「面试启动/处理遇到问题,已停止…」+「重新开始面试」逐字在案；(b) Playwright log 2×「Received: 409」；(c) **码面一致性**——`apps/worker/src/interview-consumer.ts:78` `reason: 'job_failed' | 'worker_died', kind?` + `:162` `terminalizeUnsettledInterview(…, 'job_failed', job.kind)`（`kind:"start"` 与 job.kind 同源）· web 侧 `ALL_PHASES` 含 `interview_unavailable` · quiz/diagnosis consumer 同形 `{reason:'job_failed'}`——SSE 证据非孤证、非发明。**取证完整性：成立**（trace 工件未入 git · 引用合法性收据已如实披露）。
+
+## E. 诚实性专项 audit
+
+- **F-A-2 未触发守约（C-MO-7）**：触发条件（收据现 4xx model-not-exist）在 withhold 面下**不可判读 → 未换值未重跑**，`key-presence` 三文件 profile/model 同值亲读、无第二 attempt——Ban 就地改值重跑兑现。
+- **「置信度下降非证伪」措辞**：C-2 已裁合格。
+- **`g7SuiteGreen=false` 保持**：Pins/Non-claims/三收据状态行四处 retained，亲读全中。
+- **Non-claims 面**：not pass/not fixed/not root-cause-proven/not provider-status-determined/not F-A-2 attempted/not SSOT flip 全列——零越权 claim。
+- **Fail-trigger 全未触发**：假设升格结论？否。预填/洗 EXIT？否（1/1/1 原值）。发明 case 名？否。为绿改码/改 spec/改 withhold？否（A1 零 diff）。SSOT/backlog 翻转？否。Key 越界？否（A2/A3）。retry-to-green？否（各 1 attempt）。自批/代签？否。
+
+## F. Blockers
+
+**0 Blocker。**
+
+## G. 观察（非阻断 · 如实登记）
+
+- **OB-P1** origin tip `e67989e4` 系 `37a5c26f` 的**同树重提交**（tree `3909d578` + parent `3767f783` 全等 · committer `meetwise`≠`mw-core` · +122s）——内容 byte-identical，纯 provenance 备注，协调方 nail 时登记取数来源即可。
+- **OB-P2** CMD3 收据表内「HTTP full E2E 14826ms」与本收据自钉 machine receipt `durationMs=14581` 差 ~245ms，两数均不见于原始 log 逐字（log 仅 `:207` 短路 `exit=1`）；authoritative 值（machine receipt 14581）已正确在卷且与表内同卷披露——下游引用**须以 14581 为准**（随 C-HA-P4）。
+- **OB-P3** 「trace 网络面 GET events→200」的 URL/status 框架本席未能从 `.network` 文件独立解析（录制形态所限），但 SSE body resource + 页快照 + 409 log 三重旁证已覆盖全部承重事实；该 status 表述不承担额外推理载荷。
+- **OB-P4** 残余候选排序（H0-alt-2 → H0-alt-1 → H0-alt-5）系披露性判断（附 structural note：`model-operation-registry.ts:148/:153` embedding `wired:false`），在 withhold 面下**非似然排序**——收据已自钉「按证据强度如实排序·非定谳」，下游不得引为概率主张。
+
+## H. Conditions（PASS 随卷 · 下游强制）
+
+- **C-HA-P1** `g7SuiteGreen=false`/trio OPEN/GAP-G7K-API-REDS P1 OPEN 保持；翻转 = 三绿 + post-dual BOTH + 协调方 nail 全链，缺一不可。
+- **C-HA-P2** 残余候选（H0-alt-1/2/5）甄别（provider name-only 探针 / F-F / F-B）须经协调方显式授权 + 独立记账 REQUEST，Ban 自批就地开 probe；F-A-2 转换仍须 C-MO-7 触发条件的收据证据。
+- **C-HA-P3** H0 措辞纪律延续：「置信度下降」≠「已证伪」；同形观测不得引为对任一残余候选的正面证据；OB-4 探针继续不得作配对证据。
+- **C-HA-P4** 下游引用 CMD3 HTTP 步时长以 machine receipt **14581ms** 为准（OB-P2）；引用 SSE/trace 证据须随卷披露其未入 git 状态或以脱敏收据落卷（C-HA-P4a）。
+- **C-HA-P5** OB-P1 同树重提交事实由协调方 nail 登记一句即可，Ban 追加改写收据正文。
+- **C-HA-P6** alone ≠ dual：本 PASS 仅为 mw-e2e-ha 一席半签，不代签 mw-model-op；本 PASS ≠ EXEC 续授权 ≠ H0 定谳 ≠ trio 翻绿 ≠ `g7SuiteGreen=true`。
+
+## I. 三行中文摘要
+
+1. 包完整性机检全过：恰 4 收据 +207/−0 全 docs、EXEC 全距零产品码零 SSOT 零 Key 物料（收据+3 log 双机扫 0 hit）、presence 3×3 ABSENT 磁盘亲读、machine receipt/gitHead/exit 三源交叉全中、实跑 SHA `3767f783`=REQUEST+双 PRE 孪生链 patch-id 亲证——C-HA-1~8 逐条满足。
+2. 同形性核心裁决：F-A-1 三红与 G7K 十面全同形（EXIT 1/1/1 · `:96` 34.8/34.5s · `:139` 409 1.8/1.9s · class=api · 计分 10P/4F/10S）——同形打击的是联合假设（H0唯一∧Key provenance 合配）而非 H0 本身，「置信度显著下降·非证伪」措辞成立且必要；新 SSE 证据 `interview_unavailable{kind:start,reason:job_failed}` 本席从 trace.zip resource 逐字节独立复现并三重旁证+码面同源（interview-consumer `:78`/`:162`）——取证完整性成立。
+3. 0 Blocker · 4 非阻断观察（同树重提交 provenance、14826/14581ms 以 14581 为准、trace URL 框架不可独立解析、候选排序非似然）· 6 条 Conditions 随卷；`g7SuiteGreen=false`/trio OPEN 保持；本 PASS 仅为 mw-e2e-ha 半签，不代签 mw-model-op，post-dual BOTH ≠ 任何翻转授权。
+
+Verdict: PASS
