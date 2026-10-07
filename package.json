@@ -109,6 +109,8 @@
     "uc017:orphan:prove:raw": "pnpm -C packages/db prove:uc017-orphan",
     "uc017:nhp-load:prove": "node scripts/run-e2e-isolated.mjs uc017:nhp-load:prove:raw",
     "uc017:nhp-load:prove:raw": "pnpm -C packages/db prove:uc017-nhp-load",
+    "uc016:nhp-fault:prove": "node scripts/run-e2e-isolated.mjs uc016:nhp-fault:prove:raw",
+    "uc016:nhp-fault:prove:raw": "pnpm -C apps/worker prove:uc016-nhp-fault",
     "uc018:abandon:prove": "node scripts/run-e2e-isolated.mjs uc018:abandon:prove:raw",
     "uc018:abandon:prove:raw": "pnpm -C packages/db prove:uc018-abandon",
     "uc018:abandon:http:prove": "node scripts/run-e2e-isolated.mjs uc018:abandon:http:prove:raw",
