@@ -91,3 +91,59 @@ alone ≠ dual：`mw-e2e-ha` stub PENDING 原样零触碰，本 PASS 不代签 p
 *Reviewed by mw-model-op · RE-PRE dual · append-only · PASS ≠ AUTHORIZE · Ban push*
 
 Verdict: PASS
+
+---
+
+## POST-PROVE dual 审查（mw-model-op · 2026-10-07 Asia/Shanghai · append-only · 立卷 exec 复验）
+
+**被审对象**：exec `fe0c134a` / `fe0c134a1dfc6caf6969af6a6847adfede4fa64d`（origin tip · 含前置 micro-patch `46ad76cd`≡`f202091c`）。审阅基树 = 独立 worktree `rv/mop01p-model-op` @ `origin/feat/mysql-schema-skeleton`（`git worktree add` EXIT=0 · 禁 push）。本审看不到 `mw-e2e-ha` 的 POST 审（并行另派），本裁决独立作出，alone ≠ dual。协调方 AUTHORIZE 属 exec commit 内声明，本审不复查授权行为本身，只审 exec 面与条件兑现。
+
+### 包完整性
+
+- patch-id 等价双向实证：`git show fe0c134a | git patch-id --stable` = `9cb7e1e7bfdf45f38d683d7f1cb1bb38681a0bba` ≡ `b95313a9`；`git show 46ad76cd | git patch-id --stable` = `43a2cdf50f5bd1e20d0000928004ecc62b9dade0` ≡ `f202091c`。
+- `git diff --numstat fe0c134a^ fe0c134a` = **恰 2 md**：harness `7+/5−` + slice `6+/4−` = `+13/−9`（派单口径「+22/−9」= 总变更行数 22 = 13+9 的记账口径差，内容零差 · 如实披露非缺陷）。全部落在 lifecycle 元行：头部 token / Status / Draft-era historical blockquote 新增 / Authority / Experts / §8 gate 行 `:141` / 页脚；零其他文件。
+- micro-patch `46ad76cd` = 恰 1 文件 1+/1−，恰限 harness `:35`。
+- 零产品码：`git diff 4804c3dc fe0c134a -- apps/ packages/db/src packages/db/migrations` = 空。
+- SSOT：MOP01 包（`46ad76cd`+`fe0c134a`）对 backlog / coverage-matrix / master-checklist / queue **零触碰**；`46ad76cd^..fe0c134a` 区间内 backlog/matrix/checklist blob 变化全部归属 Line Y NAIL `9b60596e`（backlog `@@ -724,3 +724,16 @@` 尾部 append · diff 内 0 处 MOP01 字样 · `:74`/`:95` 行 verbatim 不动）；queue blob pre↔tip 全等（`87c812d9`）。
+- 本审 RE-PRE 段 append-only 保留：review 文件 blob `9efd24360032109f632774173c67b7d25e1040ba` @ `a0ebe08` ≡ @ `a6b5cd94` ≡ @ tip，三点全等零改动。
+
+### C-MOP-1～6 逐条裁决（POST 复验）
+
+| 条件 | 内容 | 裁决证据（本 worktree 可复现） | 结果 |
+|------|------|------------------------------|------|
+| C-MOP-1 | base 重钉 `4804c3dc`（协调方已集成） | harness/slice Base 行原值 `4804c3dc`/full SHA；代码面 4804c3dc→tip 零 diff；锚点 tip 逐行抽验：`main.ts:452` 全文件唯一 `setInterval` 字面（Langfuse 5s flush）· `:458-461` 自述 "bounded scan for listener outages" · `:462` `boundedIntEnv('WORKER_JOB_RECONCILE_INTERVAL_MS', 5_000, 1_000, 60_000)` · `drain-loop.ts:14/:31` `intervalMs=5000`+`setTimeout` · `model-invocation-reconcile.ts:129` `30_000` · `usage-calibration-reconcile.ts:63` `60_000` · `worker-job-wakeup.ts:7-8/:15-17` · `worker-job-wakeup-redis.ts:50-53` value-gated `'1'/'true'/'on'`——零位移 | 兑现 |
+| C-MOP-2 | 改写面纪律 零越面 | exec 恰 2 md 恰 lifecycle 元行；micro-patch 恰 1 行 `:35`；零产品码零 SSOT 零其他线（`--name-status` 全枚举核对） | 兑现 |
+| C-MOP-3 | D1 边界永久锁 | harness `:27`/`:79` + slice `:21-23` 区段在 exec 与 micro-patch 全部 diff hunk 面外 byte-intact；§3 MOP03 六门准入×MOP01 工作面互补边界原样 | 兑现 |
+| C-MOP-4 | §2b 非执行定义 | §2b 五项原样（flag 开启=cutover 本体 Ban · 保留 reconcile · wakeup prove 不命名不授权 · §2c 旧 prove 处置 · 本绿≠已迁随包输出）；`:75` GAP-MOP-02 未认领 | 兑现 |
+| C-MOP-5 | Pins 全值持续 | harness `:116` + slice `:6`：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · PG LISTEN retained · actualSpendCny=null 全原值；`:74`/`:95` OPEN verbatim | 兑现 |
+| C-MOP-6 | `:35` micro-patch 兑现 | `f202091c`≡`46ad76cd` 恰 1 行：新 `:35` = 「既有周期兜底扫描实存（drain-loop 周期 tick + 五 loop 5s 认领 + dual reconciler 30s/60s）→ 漏唤醒 = 有界延迟窗 · 强制 periodic reconcile 未在 sole stack 证明 GAP 仍 OPEN」对齐 §2a 行 5 口径三要素；右格「BUG-NOTIFY-REC `:95` OPEN · Ban 写成已修复」byte-intact；兑现引用五处落字（slice `:3`/`:9` + harness `:3`/`:141` + exec commit message）；receipt 留痕 = `46ad76cd` commit + exec 引用链；恰限该行未越面 → 按本审 RE-PRE 原条件不重开 RE-PRE | 兑现 |
+
+### 立卷完整性复验（exec 后零弱化）
+
+- 工作面 §2 四 face 全保留：诚实清单钉 `:35`（随 C-MOP-6 对齐 = 强化非弱化）/ 切流包立卷 `:36` / 旧 prove 处置 `:37` / 口径钉 `:38` 后三行 byte-intact；§2a 诚实清单与 §2b/§2c 内容零触碰。
+- 旧状态 `draft:awaiting_re_pre_exec_dual` 仅存于标注「Draft-era status（historical · retained）」blockquote（两文件各 `:5`）；live Status token = `executed:awaiting_post_prove_dual`；0 live residue。
+- RE-PRE dual BOTH PASS 前置实证：`a6b5cd94`（mw-model-op）+ `07746c3c`（mw-e2e-ha）均为 `fe0c134a` 祖先（`git merge-base --is-ancestor` EXIT=0 双确认）。
+- Ban 集持续：Ban Redis cutover / Ban MODEL-OP closed / Ban live / Ban coding / Ban prove execution / PG LISTEN retained / `:74`/`:95` OPEN / Ban 重复立卷（MOP03 六门只读引用不松动）/ Ban self-write `post_prove_dual_pass`——该 token 在两文件仅以 Ban 措辞与 MOP03 历史引用出现（harness `:91` = MOP03 nail `e29d8f93` 链引用），0 self-write。
+- alone ≠ dual：本 PASS 不代签 `mw-e2e-ha`；POST dual 生效以 peer 独立 POST 审 + 协调方 nail 为准。
+
+### Blockers
+
+- **0**
+
+### Conditions（POST 阶段持续绑定）
+
+- **C-PD-1** alone≠dual：本审不代签 peer；`post_prove_dual_pass` token 属 POST 双审 BOTH + 协调方 nail 专属，Ban open POST here。
+- **C-PD-2** `:74`/`:95` stays OPEN：立卷 lifecycle 推进 ≠ gap close ≠ cutover ≠ covered（coveredCount=8 冻结）≠ HA ≠ releaseEvidence 翻转。
+- **C-PD-3** Ban 集持续：Redis cutover / flag 开启 / live / coding / prove execution / 重复立卷；实际切流须未来授权 REQUEST 同时过 MOP03 六门 + §2b 切流包内容。
+- **C-PD-4** Pins 原值 + SSOT 零 MOP01 触碰持续；MOP01 状态如需入 backlog 登记属协调方 nail 阶段，本审不代写。
+- **C-PD-5** append-only：本段落卷后不改；后续 nail/receipt 沿 git 史留痕；Ban push。
+
+### 中文三行摘要
+
+1. 包完整性成立：exec `fe0c134a`（≡`b95313a9` patch-id `9cb7e1e7`）恰 2 md `+13/−9` 全部为 lifecycle 元行推进（旧状态入 historical blockquote · 0 live residue），前置 micro-patch `f202091c`≡`46ad76cd` 恰 1 行 `:35` 对齐行 5 口径，零产品码零 SSOT（区间 SSOT blob 变化全归 Line Y NAIL `9b60596e` 尾部 append · `:74`/`:95` verbatim 不动），RE-PRE 段 blob `9efd2436` 三点全等 append-only。
+2. C-MOP-1～6 逐条复验全部兑现（base 重钉锚点 tip 零位移 · 面纪律零越面 · D1/§2b/§2c byte-intact · Pins 十值原样 · `:35` 三要素对齐+右格 byte-intact+五处兑现落字），立卷四 face 零弱化，Ban 集与 `post_prove_dual_pass` 禁令持续（0 self-write）。
+3. 0 Blocker，Verdict PASS；alone ≠ dual 不代签 mw-e2e-ha（其 POST 审并行另派看不到），PASS ≠ `post_prove_dual_pass` ≠ close ≠ cutover ≠ covered，nail 属协调方，Ban push。
+
+*Reviewed by mw-model-op · POST-PROVE dual · append-only · PASS ≠ post_prove_dual_pass ≠ AUTHORIZE · Ban push*
+
+Verdict: PASS
