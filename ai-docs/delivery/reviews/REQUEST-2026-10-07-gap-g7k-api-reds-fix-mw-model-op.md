@@ -47,3 +47,64 @@ Trio stays **OPEN**（EXIT 1/1/1 真实业务红）。`g7SuiteGreen=false`. `act
 ---
 
 *REQUEST stub · GAP-G7K-API-REDS fix · Line G7R · 2026-10-07 · PENDING awaiting mw-e2e-ha + mw-model-op pre-exec dual · alone ≠ dual · 禁 push · STOP*
+
+---
+
+# PRE-EXEC dual 审查段 — mw-model-op（append-only · 2026-10-07）
+
+**审者**: `mw-model-op`（独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-g7r-model-op` · branch `rv/g7r-model-op` @ `fa10e01e` · 本审零实跑零 live 零 Key 值读取零 coding 零 SSOT）
+**被审**: REQUEST `fa10e01e`（origin tip · parent `b6b1c52c` · G7K nail `0c6c3287` merge-base `--is-ancestor` 亲证在链）
+**append 基线**: 本 stub 追加前 6383 字节 md5 `fda10e0db2f3103d36e0e8dc4413e182` 机检在案 · 本段纯追加零改写上行。
+
+## P1–P8 检查表（model-op 首责面）
+
+- **P1 包完整性（docs-only）**: `git diff --stat fa10e01e^..fa10e01e` 亲算 = 恰 4 md +248/−0（slice 25 + harness 126 + 双 stub 48/49）全在 `ai-docs/delivery/` · 零产品码零 package.json 零 spec 零夹具零 SSOT 零 `.env*`（worktree `find` 0 hit）→ PASS
+- **P2 H0 配对不一致（结构面亲证）**: `text-endpoint-config.ts` blob `005c68cc` 亲算吻合 harness 记载；`:77` `env.MODEL_ENDPOINT_PROFILE?.trim() || 'deepseek-cn-public'`、`:67` `env.MODEL_NAME?.trim() || 'qwen-plus'`、`:37-40` 闭集注册表（`deepseek-cn-public`→`api.deepseek.com` basePath `''` · `dashscope-cn-beijing`→`dashscope.aliyuncs.com/compatible-mode/v1`）逐行实读；`model-client.ts` `:324` `resolveTextEndpointConfig()`（profile 恒走 process.env）→ `:392` `${baseUrl}/chat/completions` → `:410` body `model: dispatchModel`——**仅挂 `MODEL_API_KEY` 时派发 = POST `https://api.deepseek.com/chat/completions` × `model: qwen-plus`，跨供应商错配结构面成立**；语义内证三点：`:64-66` F4 注释自述 qwen-plus=项目实际接入模型、`:87-92` 备用端点默认 `dashscope-cn-beijing`（「Qwen backup」）与主默认 asymmetry、价格表全 qwen 族归 DashScope 侧——**H0 配对不一致论断：结构面 CONFIRMED；三红归因仍为假设（EXEC 定谳）** → PASS
+- **P3 H0-alt 同判呈现**: harness §1 H0-alt-1（Key-provider 错配）/alt-2（pre-dispatch 拒 · `job-route-classify.ts:113-128` `PRE_DISPATCH_KNOWN_NOT_SENT` 实读含 `provider_rejected`/`model_not_configured`/`model_key_missing`）/alt-3（worker env 缺口）同等列出；`§6.3`「翻绿 ≠ 证明 H0」+ Non-claims「env 补齐 ≠ H0 定谳」措辞纪律在位；classify catch-all（`job-route-classify.ts:179-195` 实读 `/not_configured|api_key|key_missing|model_endpoint/i` → `model_key_missing`）为 EXEC 收据可甄别面 → PASS
+- **P4 sticky 语义**: `job-route-decision.ts` 模块头 `:14`「dispatched_unknown / known_not_sent / validation_rejected 是 sticky 终态，永不自动重试」逐字在位；stub §2 正确限定 F-A 只对新 revision 生效（旧 sticky 不复活；新跑=新 job/revision） → PASS
+- **P5 F-A/F-B 边界**: harness §2 F-B 行 + stub #3 + slice §2 三处落字「另刀 coding · 独立 REQUEST + 双审 + EXEC 授权 · EXEC 期顺手修=违纪」；**本席补充登记（C-MO-4）**: F-B 未来触碰面必须含 `packages/ai-runtime/test/text-endpoint-config.proof.ts:31-36`——默认配对（deepseek × qwen-plus）已被该 proof 断言 test-enshrined，改默认必连带改证 → PASS
+- **P6 Key 卫生**: stub #4 / harness §3.3 沿 G7K C-K6 全量（进程环境 loader · Ban `.env*` · Ban 值/fingerprint 入树入据 · 探针 name-only）；本审 name-only 实测 loader 在位（`~/.meetwise-secrets/load-model-api-key.sh` · 权限 `rwx------` · 零内容读取）· REQUEST diff 零 Key 物料 → PASS
+- **P7 预算诚实**: G7K SUMMARY `:4`（U4 额度上限 200）+ `:45-48`（结构估 <120 · bind 失败生成面未展开下测得）实读；G7R harness §3.5 主动披露「修复生效后 recruiting-bound ×2 首次全程 6 题×2 + CMD1 三驱动全程生成 → live 面较 G7K 增大 · 余量收窄」——披露方向正确（G7K CMD2 死在 waitForURL 先于任何生成、CMD1 fast-fail 0 题，<120 低估真实面）、超限即停不洗 not_run、`actualSpendCny=null` 保持 → PASS
+- **P8 Pins + retained 零漂移**: stub 表/harness §5/slice §Pins 三处全等；任务单八 Pins（haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503）+ retained（`g7SuiteGreen=false` · `actualSpendCny=null`）逐项对表全中；trio OPEN / GAP P1 OPEN / `r1Closed=false` / Disclosure-1 OPEN 保持 → PASS
+- **P9 引证抽查（15/15 blob 全吻合）**: `005c68cc`(endpoint config) · `67b8928`(actions.ts) · `9a17cfe`(applications.service) · `a621d8b`(job-route-decision) · `3b1e708`(job-route-classify) · `d06b4f4`(recruiter) · `79ceded`(classifier) · `de4991e`(recruiting-bound spec · `:96` waitForURL 30s 逐字) · `3309dc3`(uc018 spec · `:139` abandon→200 逐字) · `7d65d0f`(full.e2e.ts) · `13dbfc4`(run-e2e-isolated · `:2093` `child.stderr.on('data', () => {})` 逐字 · 冻结窗 `:2084-2098` 实读) · `aa86fb3`(run-e2e-ui) · `975fbb3`(assert.ts) · `257718c`(interview.service) 全与本审 worktree 亲算一致（spec 路径在 `apps/web/e2e-ui/`，行号内容全中） → PASS
+
+## 配对裁决（mw-model-op 核心产出 · 供协调方 EXEC 下达 · **候选、EXEC 实测定谳**）
+
+**值域双轴（实读闭集/声明集）**: profile 轴 = `TEXT_ENDPOINT_PROFILES` 闭集（`:22`/`:37-40`：`deepseek-cn-public` | `dashscope-cn-beijing`）；model 轴 = 治理声明集（`g7-freetier-reprove-guard.ts` `:171-191` `assertModelAllowedForTest` + 价格表 `:40-55` + `:30` paid allowlist + `:31` banned）。文本主链路相关声明 model：qwen3.8-\*（免费族）· `qwen-plus` · `qwen-turbo` · `qwen-max` · `qwen-vl-max` · `deepseek-v4-flash` · `deepseek-v4-pro`（banned w/o approval）。
+
+**有效配对候选（EXEC 二选一 · 以 Key provenance 定）**:
+
+| 候选 | env 值（协调方 EXEC 下达） | 解析结果 | 前提/依据 |
+|------|------|------|------|
+| **F-A-1（首选）** | `MODEL_ENDPOINT_PROFILE=dashscope-cn-beijing` + `MODEL_NAME=qwen-plus`（显式下达保收据无歧义；缺省亦同值） | `https://dashscope.aliyuncs.com/compatible-mode/v1` × `qwen-plus` | Key 为百炼/DashScope 系（H0 主线 · F4 注释「项目实际接入」· 价格表 ¥0.8/¥2 · paid allowlist · 82981ff 消除轮 paid 语义一致） |
+| **F-A-2（Key 为 DeepSeek 系时）** | `MODEL_ENDPOINT_PROFILE=deepseek-cn-public`（或缺省同值）+ `MODEL_NAME=deepseek-v4-flash` | `https://api.deepseek.com` × `deepseek-v4-flash` | deepseek-v4-flash 为 DeepSeek 侧唯一同时价格表+paid allowlist 的声明模型；真实存在性 EXEC 探针定 |
+
+**Ban 值域外（F-A 禁用值）**: `MODEL_NAME=deepseek-chat`/`deepseek-reasoner`（不在声明集 → G7 finalize 面 `g7_model_undeclared`）；`deepseek-v4-pro`（banned without approval）；qwen3.8-\* 免费族（与 82981ff 消除轮 paid 语义冲突，非本刀候选）。
+
+**H0 vs H0-alt-1 甄别法（EXEC 一跑可判）**: F-A-1 下若收据现 provider 4xx `model-not-exist` 类 → 与 H0 一致；若现 401/auth 类 → Key provenance 非百炼（H0-alt-1），转 F-A-2 重下 EXEC 指令（C-MO-7 · Ban 就地改值重跑）。配对可用性与三红归因均为 **候选、EXEC 实测定谳**——本席裁决的是「值域内哪些配对合法 + 甄别顺序」，不是 H0 本身真伪。
+
+## Fail-trigger audit（F1–F8 全未触发）
+
+F1 H0 写成断言（§6.2/6.3 + Non-claims 在位）· F2 agent 自造 F-A 值预填（值域留协调方 EXEC；本表系审查产出非实现注入）· F3 预算隐瞒（§3.5 主动披露 live 面增大）· F4 Pins 漂移（三处全等）· F5 F-B 边界含混（另刀三处落字）· F6 docs-only 破坏（diff 亲算 4 md +248/−0）· F7 Key 物料入树（diff 零物料 · loader name-only）· F8 sticky 语义错写（`:14` 逐字 + 新 revision 口径在位）——**全未触发**。
+
+## Blockers
+
+**0 Blocker。**
+
+## Conditions（C-MO-1~7 · 随 EXEC 延续）
+
+- **C-MO-1 值域纪律**: F-A env 值必须由协调方 EXEC 指令下达，限定上表候选矩阵（F-A-1/F-A-2）；Ban 值域外 model 名（`deepseek-chat`/`deepseek-reasoner`/`deepseek-v4-pro`/qwen3.8 免费族）；收据可记配置值（非 secret）但 Ban 借值域外注入变相换端点。
+- **C-MO-2 定谳措辞**: SUMMARY 根因定谳段按 §6.3 强度措辞——「与 H0 一致」≠「H0 已证」；H0 vs H0-alt-1 以 provider 错误类 + knownNotSent reason 收据落字甄别。
+- **C-MO-3 sticky 口径**: 新跑 = 新 job/revision；旧 sticky `route_unresolved` 不复活；EXEC 收据按此口径解读，Ban 把旧 sticky 行计入新 attempt 结果。
+- **C-MO-4 F-B 登记补充**: 未来 F-B 刀（默认配对一致化/启动 fail-fast）触碰面必须含 `text-endpoint-config.proof.ts:31-36`（默认配对 test-enshrined 断言）；本刀零实现。
+- **C-MO-5 预算**: 结构估 <200 但余量收窄（live 面增大已披露）；实际额度以协调方 EXEC 指令为准，超限即停如实记中止（不洗 not_run）；`actualSpendCny=null` 保持（无协调方计价依据 Ban invented spend）。
+- **C-MO-6 Key 卫生（硬）**: Key 只经进程环境 loader；Ban 写任何 `.env*`；Ban Key 值/fingerprint 入 receipt/log/commit/截图；`MODEL_ENDPOINT_PROFILE`/`MODEL_NAME` 探针 name-only + 值可入收据（非 secret）。
+- **C-MO-7 值迭代纪律**: 若 EXEC 实测证明所选候选前提错误（如 F-A-1 现 401），Ban 就地改 env 值重跑（retry-to-green 变体）；回协调方按 Key provenance 重下 EXEC 指令，每一次 attempt 独立全记录七字段。
+
+## 中文三行摘要
+
+1. 配对裁决：H0 结构面成立——默认 `deepseek-cn-public`(:77→api.deepseek.com) × `qwen-plus`(:67) 跨供应商错配经 `:67/:77/:37-40` + `model-client.ts:324/:392/:410` + 价格表/备用端点语义三点实读亲证，但三红归因仍是假设；F-A 候选 = **F-A-1 `dashscope-cn-beijing`×`qwen-plus`（首选·Key 为百炼系）** / **F-A-2 `deepseek-cn-public`×`deepseek-v4-flash`（Key 为 DeepSeek 系）**，候选、EXEC 实测定谳；`deepseek-chat` 等值域外名 Ban。
+2. F-A/F-B 边界清晰（另刀三处落字；本席补充 F-B 触碰面含 proof `:31-36` test-enshrined 配对）、预算 ≤200 且 live 面增大已预披露、15/15 引证 blob 全吻合、withhold 契约 `:2093` 逐字、Pins 零漂移、docs-only 亲算 4 md +248/−0。
+3. 0 Blocker，携 C-MO-1~7；alone≠dual 本 PASS 仅为 mw-model-op 半签，不代签并行 peer mw-e2e-ha；本 PASS ≠ EXEC 授权 ≠ H0 定谳 ≠ trio 翻绿 ≠ `g7SuiteGreen=true`。
+
+Verdict: PASS
