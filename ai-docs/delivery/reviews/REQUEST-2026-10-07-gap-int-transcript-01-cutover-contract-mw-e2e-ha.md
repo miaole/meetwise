@@ -90,3 +90,55 @@ Ban coding · Ban prove execution · Ban live · Ban `pnpm db:up` · **Ban 预�
 3. D1 六门不加不减 / D2 vendor 形态留白·顶替禁入 / D3 名单留 AUTHORIZE 三裁全 PASS；0 Blocker · C-EH-1~7 · OB-EH-1 孪生落链归协调方 · alone≠dual 不代签 mw-privacy-int · docs gate only 零 prove 零 coding 零 SSOT 零 push。
 
 Verdict: PASS
+
+---
+
+## POST-PROVE dual review — `mw-e2e-ha`（2026-10-07 · docs gate only · evidence-honesty / E2E 面 · POST-PROVE 补席）
+
+**被审对象**：EXEC 提交 **`a1fd61a2`** / `a1fd61a2d1004496d256b9f7bf55d7e4c077648f`（branch `line/int01-cutover-contract` tip · parent = origin tip `9f399f55` · author `mw-core`）——INT01 立卷合同 lifecycle `draft:awaiting_pre_exec_dual` → **`executed:awaiting_post_prove_dual`** docs-only 推进。本审独立 worktree `rv/int01p-e2e-ha`（自 `origin/feat/mysql-schema-skeleton` `9f399f55` 切出 · 零 git 写操作出此 worktree · 禁 push）。0 prove 执行 · 0 coding · 0 SSOT · append-only 仅本 stub · **alone ≠ dual · 不代签 `mw-privacy-int`**（其 POST 审并行独立、互不可见互不引用）。
+
+**包完整性机检**（✓ = 亲证）：
+
+- ✓ 恰 **2 md** touched（`gap-int-transcript-01-cutover-contract.slice.md` + `harness/gap-int-transcript-01-cutover-contract.md` 均 M · 0 A 0 D）· **零非 md** · 零产品码 / migrations / `package.json` · **零 SSOT**（backlog/matrix/checklist 零改）——`git diff --name-status 9f399f55 a1fd61a2` 亲证。
+- ✓ 双审 stub 零 diff：`git diff 9f399f55 a1fd61a2 -- ai-docs/delivery/reviews/` = **0 行**。
+- ✓ 本 stub PRE 段（`58466c836d910ff6a1c120c6ae9450cc7a250fac` ≡ 镜像 `b4bcff45`）**append-only byte-intact**：`git diff 58466c836d91 a1fd61a2 -- <本 stub>` 空输出机检。
+
+**C-EH-1~7 逐条裁决（对 exec §9 EXEC 登记 Conditions 落点逐条对读）**：
+
+| Condition | 裁决 | 证据 |
+|---|------|------|
+| **C-EH-1** 门5 唯一证据根 | **零弱化 · PASS** | §9 行全要素在位：唯一合格证据根 = **真实 HTTP/SSE/RLS 组合根**（out-of-process 真 HTTP + 真 SSE + RLS 开启远程 Postgres · Ban `pnpm db:up`）；**in-process（supertest 式 app / 直调 service/仓储 / scripted seam / 0092/0096 rehearsal 面 / 0128 预览级证据）一律不足以过门 5**；「双 tab 恰一 winner」须**两个独立并发 HTTP/SSE 会话**、串行两次调用不算数；「合同原文 + 本 Condition 双重钉」——门5 判据 §2b 原文经 `sed '/^### 2b\./,/^## 8\./'` 区间 diff = 空 **byte-identical** 机检，exec 未动判据原文 |
+| **C-EH-2** 门4 收紧 | **零弱化 · PASS** | §9 行：独立 prove（DELETE=503 pin 先行入账）+ ≥ mw-privacy-int + mw-e2e-ha dual 专家审 + Ban 自批 + 单一明确开关 Ban 多入口绕行 + 0129 `preview_incomplete` 直至开关合同满足——全要素与 PRE C-EH-2 一致 |
+| **C-EH-3** D1 落地 | **零弱化 · PASS** | §9 D1 行：六门不加不减 = ACCEPT/PASS；未来增删门须显式改写合同 + 双审、Ban 口头扩面/缩面；GAP-PRIV-01/SCOR 排除**不**豁免 RLS 证据根（`:100` 切流 block 原样在案） |
+| **C-EH-4** D2 落地 | **零弱化 · PASS** | §9 D2 行：形态留白 + 顶替禁令**类别级**写死；未来形态定义须产出 **vendor 侧可复核工件**、Ban 实现方自述 / 无交叉核 console 截图顶替 |
+| **C-EH-5** D3 落地 | **零弱化 · PASS** | §9 D3 行：不降级 · 下限 ≥ 双审再加两席 · 名单归协调方 AUTHORIZE 指派 · Ban 代指派 · Ban 降为双审即切 |
+| **C-EH-6** EXIT0 非执行期绑定 | **零弱化 · PASS** | §9 行明写「**§5 EXIT0 ≠ 清单在未来执行期持续绑定**」；§5 EXIT 段 byte-identical 机检；**exec 后零新增执行期绑定宣称**：lifecycle 仅写 `executed:awaiting_post_prove_dual` 而非 `post_prove_dual_pass`（POST 状态未自签）；新增 **Ban self-write `post_prove_dual_pass`** 属收紧非弱化；SSOT 零改 → 零执行期绑定落地物 |
+| **C-EH-7** lineage 复核归协调方 | **引用如实 · PASS** | 义务正确**保留给协调方 nail 阶段**（exec 未代偿该复核）；exec provenance 引用逐项亲证：`397f3ece` parent `313e04a7` tree `8ac5a976` · `c173ee0f` parent `313e04a7` tree `8ac5a976` 双侧一致 · patch-id 双侧亲算 **`9d52d8ea89339741a62f72412727e4e70df9d22f`** 全等 · `c173ee0f` 确为 origin tip `9f399f55` 祖先（`merge-base --is-ancestor` EXIT0）→ 「自动 drop 落 tip」宣称**机械成立** · PRE 引用 `70e95caf`（mw-privacy-int 实存 · PASS）镜像 `0cee4f18`、`58466c836d91` 镜像 `b4bcff45` 均在链亲证——「均已收 origin」**如实** |
+
+**携带口径诚实性**：§9 末行注记自曝「派单写 C-EH-1~5 随卷携带、实审 Conditions 为 C-EH-1~7、按**超集全携带**」——如实披露而非静默缩水，零弱化 ✓。
+
+**立卷完整性复验**（六门 + 两道 release gate + H1–H13）：
+
+- ✓ §2b 六门 + §2b-0a/0b/0c 结构前提（checklist `:176` **两道不可拆 release gate** 原文钉）`9f399f55` vs `a1fd61a2` 区间 diff = 空 **byte-identical** 机检。
+- ✓ **H1–H13 诚实清单 byte-identical 零洗白**：preview 回执固定未完成（H2）· legacy `/turn` plaintext = `INT-P0-RAW-QUEUE` open（H5）· 七类 TC planned/unmapped（H6）· UC-052 partial（H7）· `:64` OPEN / `cloudVendorDeleted=false`（H9）· `:60` OPEN（H10）· `releaseEvidence=false`（H4 等）全 held。
+- ✓ §5 EXIT / §6 Pins / §7 Ban / §8 Non-claims 本体全 **identical** 机检；slice Pins 行 + Named-proves→Ban 块 identical；slice 全 diff 仅 4 hunk 亲列（`1c1` header · `3c3,5` Status+historical · `25a28,31` EXEC 登记 · `43c49` footer）= 纯 lifecycle 面，零判据面触碰。
+- ✓ privacy C-1（§4 将 `pnpm mem00-int00:prove-path`（#103）标「已存在」而该脚本在被审 base 不在任何 package.json）由 exec **如实登记修正义务且不改立卷原文**——诚实处理非掩盖非静默修正；义务随卷（nail 阶段强制 · 本刀 named-not-run 不阻 Verdict）。
+
+**Fail-trigger audit**（POST 六项 · 逐项查无）：① exec 弱化任一门/任一 Condition — 无（byte-identity 机检 + C-EH-1~7 逐条对读）② H1–H13 洗白 — 无 ③ Pins 漂移 — 无 ④ POST 状态自签 — 无（`awaiting_post_prove_dual` + 新增 Ban self-write）⑤ provenance 虚引 — 无（4 组 SHA / tree / patch-id 全部亲算吻合）⑥ 越界（SSOT / 产品码 / sibling stub / push）— 无（恰 2 md docs-only · 双 stub 零 diff · 本审禁 push）。
+
+**Blockers**：0。
+
+**Conditions**（随卷重申 · 对未来 nail / cutover 持续绑定）：
+
+- **C-EH-1~7 原文全量维持**（PRE 段 Conditions + §9 落点已核零弱化）；其中 **C-EH-1**（门5 唯一证据根）、**C-EH-6**（EXIT0 非执行期绑定）、**C-EH-7**（协调方 patch-id 复核义务）为本 POST 审重点复核项，继续全额绑定。
+- **C-EH-7-POST**：协调方 nail 阶段落链时仍须以 patch-id `9d52d8ea` 复核 `397f3ece` ≡ `c173ee0f` 且合并零内容漂移——本 POST 审只核 provenance 引用如实，**不代偿该复核**。
+- **C-1 携带**（privacy 修正义务）：nail 阶段须把 §4 `pnpm mem00-int00:prove-path` 格改注「属 #103 INFLIGHT、合入后方可称已存在」。
+- **POST PASS ≠ AUTHORIZE ≠ post_prove_dual_pass 落章**：本 PASS 仅 REQUEST 级 docs gate 一票（POST-PROVE 补席）；`post_prove_dual_pass` 状态须待双审各自独立落 stub + 协调方 AUTHORIZE，**Ban self-write**；INT-TRANSCRIPT-01 **stays blocked**；六门任一未裁；公开 DELETE=503 冻结；`INT-P0-RAW-QUEUE` open；Pins 原值 held。
+
+**三行中文摘要**：
+
+1. exec `a1fd61a2` 为 docs-only lifecycle 推进（恰 2 md · 零 SSOT 零产品码 · 双 stub 零触碰 · PRE 段 byte-intact 机检亲证），lifecycle 只写 `awaiting_post_prove_dual` 未自签 post 状态且新增 Ban self-write `post_prove_dual_pass`，属收紧非弱化。
+2. C-EH-1~7 逐条对读 §9 落点零弱化：门5 真实 HTTP/SSE/RLS 组合根唯一证据根 + in-process/预览级禁入 + 双 tab 两独立并发会话全额在位；EXIT0 非执行期绑定重申且 §5 byte-identical；lineage patch-id 复核义务保留协调方且 exec 四组 SHA/tree/patch-id 引用双侧亲算全等（`9d52d8ea8933…` · 树 `8ac5a976` · `c173ee0f` 确为 origin tip 祖先，自动 drop 机械成立）。
+3. 六门 + 两道 release gate + H1–H13 + Pins + EXIT + Non-claims 全 byte-identical 零洗白；0 Blocker；携带口径（1~5 vs 1~7）如实自曝超集全携带；POST PASS 仅 docs gate 一票，01 stays blocked，alone≠dual 不代签 mw-privacy-int，禁 push。
+
+Verdict: PASS
