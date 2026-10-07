@@ -1,6 +1,7 @@
-# Harness — **Line AUDIT · `product-readiness-c-b-audit.md` stale 更正刀（erratum · 双登记不改写）**（docs-only REQUEST · **`draft:awaiting_pre_exec_dual`** · Ban coding · Ban prove 执行 · Ban 改写 audit 原文 · Ban 翻 `:77`/`:78` 状态 · 零实现）
+# Harness — **Line AUDIT · `product-readiness-c-b-audit.md` stale 更正刀（erratum · 双登记不改写）**（docs-only REQUEST · NAIL · **`post_prove_dual_pass`** · Ban coding · Ban prove 执行 · Ban 改写 audit 原文 · Ban 翻 `:77`/`:78` 状态 · 零实现）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（empty review stubs · Ban self-approve · alone ≠ dual · 本刀零执行：零 coding · 零 prove 执行 · 零 live · 零 SSOT · **Ban 借更正翻 `:78`/`:77` 状态** · **Ban 宣称 P0-CB-01/02/03 closed 或 covered**）
+> **Draft-era status（historical · retained）**: **`draft:awaiting_pre_exec_dual`**（empty review stubs · Ban self-approve · alone ≠ dual · 本刀零执行：零 coding · 零 prove 执行 · 零 live · 零 SSOT · **Ban 借更正翻 `:78`/`:77` 状态** · **Ban 宣称 P0-CB-01/02/03 closed 或 covered**）
+**Status**: **`post_prove_dual_pass`**（2026-10-07 SSOT nail · 协调方授权 · lifecycle 终态沿 INT01/AR 先例由 nail 落 · erratum 生效卷=`harness/gap-cb-audit-erratum.exec.md` · audit 本体 `ai-docs/requirements/use-cases/product-readiness-c-b-audit.md` blob `8393c67ba3fa0e73ea6413be13086a5ac8c103cb` 多时点全等零字节 · REQUEST `e258fe30`≡origin 镜像 `23b2ceb5`（patch-id `03e2f145`）· PRE dual BOTH PASS `925d1a70`+`3e8c303e`（origin 镜像 `86af8b30`/`951f7267` · patch-id `0f105c4c`/`3929257f`）· EXEC `afcefece`（origin 镜像 `1d16e60a` · patch-id `75699f09`）· POST dual BOTH PASS `102d7159`+`eaff320b`（origin 镜像 `02ab60bd`/`65c220ca` · patch-id `78351621`/`96f64f59`）· **`:77`/`:78`/`:103` stays OPEN · matrix `:234` partial · coveredCount=8 · DELETE=503 · 更正 ≠ 闭合**）
 **Date**: 2026-10-07（Asia/Shanghai）
 **Base**: `origin/feat/mysql-schema-skeleton` · **`50423a6f`** / `50423a6fa6f18d4c9d193611cf84c4702e067208`（fetch 后 origin tip · SCOR nail）
 **Wave**: Line **AUDIT**——SCOR 线 `50423a6f` 显式遗留的「未来 docs 刀」：`harness/gap-scor-p0cb-inventory.md` §9 C-EH-4（binding 口径）+ §9 OB①「audit 文档正文口径更正留 nail / audit 文档自身的更正属未来 docs 刀/协调方」+ §4 表行「**tip 部分现状证据 stale**（§2b#1 · D4 · 本刀不改写该文档）」。本刀即对该遗留的兑现：对 audit 本文档做 **erratum 式更正**（原文保留 + 更正声明并存）。
@@ -115,6 +116,6 @@ docs-only REQUEST · not audit 文档改版 · not P0-CB-01/02/03 closed · not 
 | `mw-e2e-ha` | `reviews/REQUEST-2026-10-07-gap-cb-audit-erratum-mw-e2e-ha.md` |
 | `mw-privacy-int` | `reviews/REQUEST-2026-10-07-gap-cb-audit-erratum-mw-privacy-int.md` |
 
-**STOP——awaiting PRE dual（Ban self-approve · alone ≠ dual · 禁自批）· 预执行双审 PASS 后由协调方授权执行 · Ban push。**
+**NAIL（2026-10-07 · 协调方授权 · `post_prove_dual_pass`）——erratum 生效卷已落地；`:77`/`:78`/`:103` stays OPEN · Ban 借 nail 翻状态/宣称 P0-CB 闭合 · Ban force-push。**
 
-*Harness · Line AUDIT · `product-readiness-c-b-audit.md` stale 更正刀（erratum · 双登记不改写）· 2026-10-07 · `draft:awaiting_pre_exec_dual` · 零 coding · 零 prove 执行 · 原文零触碰 · `:77`/`:78` OPEN · DELETE=503 · alone ≠ dual*
+*Harness · Line AUDIT · `product-readiness-c-b-audit.md` stale 更正刀（erratum · 双登记不改写）· 2026-10-07 · NAIL `post_prove_dual_pass` · 零 coding · 零 prove 执行 · 原文零触碰（blob `8393c67b`）· `:77`/`:78` OPEN · DELETE=503 · alone ≠ dual*
