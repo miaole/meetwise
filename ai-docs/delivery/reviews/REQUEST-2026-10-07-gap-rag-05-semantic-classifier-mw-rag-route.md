@@ -111,3 +111,95 @@ docs-only 违反（A2 干净）· SSOT 触碰（REQUEST 4 文件外零触碰）�
 3. 零 Blocker；Conditions C-1..C-7（docs gate 界定 / alone≠dual / L 前置 / CMD 消歧 / EXIT1 诚实 / EXIT0≠ / SSOT nail 期 additive）随本 PASS 生效。
 
 Verdict: PASS
+
+---
+
+## POST-PROVE DUAL REVIEW — mw-rag-route（2026-10-07 · append-only · Stage S 复验 · 只签本人段）
+
+**Reviewer**: `mw-rag-route`（独立 · alone ≠ dual · 不代签 peer `mw-e2e-ha` · 只认命令 + EXIT + 可复现证据）
+**Review locus**: worktree `/Users/miaole/Desktop/golucky/meetwise-rv-rag05p-rag-route`（branch `rv/rag05p-rag-route` · base = `origin/feat/mysql-schema-skeleton` tip `75ba2783` full `75ba2783d547e154227d52ea4ee98cf6547310e3` · 已含 RAG05 Stage S）
+**Mandate**: Line RAG05 POST-PROVE dual（Stage S 复验 · 实现方 coding `db7da1cd` + receipt `ba64306d` · prove 主 attempt-2 EXIT=0 33/33 + mut-1/mut-2 EXIT=1 预期红 + final-1 EXIT=0 + 邻接 rag07/rag03 双 tip EXIT=0）
+**Scope**: 本审零 SSOT 触碰 · 零产品码触碰（变异复核为临时注入并 `git diff --exit-code` 恢复 · 全程披露）· 零 Key 值读取 · 官方 CMD fresh re-run 恰一次 · 不代签 · 不裁 Route L 授权
+
+### 1. 包完整性与触碰面（可复现）
+
+| # | 检查 | 证据（复现命令 / 文件锚） | 结果 |
+|---|------|------|------|
+| B1 | 包内容 tip 落地一致 | `db7da1cd`/`ba64306d` 在 `line/rag05-classifier`；tip 谱系对应 `281128ce`/`0039c1b7`；`git diff db7da1cd 281128ce` 与 `git diff ba64306d 0039c1b7` 的 RAG05 面零差异（仅他线 g7-trio 收据树差）——包面 byte-identical | OK |
+| B2 | 恰 4+2 文件 | `281128ce` stat = 恰 4 文件 +466/−1（semantic-route.ts 新 260 行 + proof 新 202 行 + root package.json +2 + ai-runtime package.json +1/−1）；`0039c1b7` stat = 恰 2 文件 +93（receipt 72 行 + attempt-ledger 21 行） | OK |
+| B3 | 产品码零外溢 | `git diff 281128ce~1 0039c1b7 -- packages/db migrations scripts` = 空；`packages/ai-runtime/src/router/index.ts`（规则骨架）自 initial commit 零改——本刀纯 additive | OK |
+| B4 | SSOT 零触碰 | backlog/checklist/register/matrix/queue 五件 diff（pair 跨度）= 空；`gap-bug-backlog.md:73` GAP-RAG-05 行原文逐字在位 · **stays OPEN** | OK |
+| B5 | qbank-miss 消歧（C-4） | `rag05-qbank-miss:prove` 仍在 `package.json:252` 零改；新 CMD 注册 `:258-259` additive 零碰撞；消歧 note 写死于两新文件头（semantic-route.ts:4-7 · proof:4-9） | OK |
+| B6 | 邻接 byte-intact | `rag03-*`/`rag07-*` proof 断言文件不在 pair 触碰列表；台账录 adj×4 EXIT=0（36 PASS / 43 PASS · 双 tip `8c6860e3`+`db7da1cd`） | OK |
+| B7 | sha256 自证复核 | `shasum -a 256` = `105a6373…`（semantic-route.ts）/ `607d9380…`（proof）与 receipt §4 逐字同 | OK |
+| B8 | Pins 原值 | receipt §7/§8 与 stub Pins 逐字同：NOT_HA / releaseEvidence=false / claimProductionHA=false / gR45Closed=true / coveredCount=8 / ms3EqualsR4Closed=false / PG-retained / DELETE=503 / `:70`/`:71`/`:73` OPEN | OK |
+
+### 2. 验收①②③④裁决（receipt §3 实读 + 源码/proof 实读 + fresh 复跑实证）
+
+| 验收 | 裁决 | 依据（33 断言实读：S0=1 + S1=7 + S2=7 + S3=7 + S4=3 + S5=8） |
+|------|------|------|
+| **① 规则命中 → 模型调用=0** | **PASS** | `semantic-route.ts:183-194` 规则路径不触缝；proof S1 注入**被调即抛缝**（`seam_must_not_be_called_on_rule_hit`）→ decided source=rule modelCalls=0（被调即红 = 未被调实证）；词边界由冻结词典 `signalMatches` ASCII `\b` 保证（`javascript` 不命中 `java` · domain 实读）；对照规则 miss → 模型恰 1 次（`seamCalls===1`） |
+| **② NEG 六类全 unresolved + 0 检索 + 只建议不授读权** | **PASS** | S2 六类（低置信/越权非 allowlist 叶/unknown 空建议/conflict/校准不符/过宽）全 `unresolved` + `retrievalDispatched=0` + `toolGrant=false` + `readGrant=false` + `clarificationRequired=true`；decided 结构断言 = 精确键集（allocations/confidenceBps/durationMs/kind/marginBps/modelCalls/scopeKey/semanticDigest/source）**无任何授予键**；类型面 unresolved 变体四字段为字面量常量 |
+| **③ 10 并发同 scope 恰 1 次 + 缝 throw 不崩零内重试** | **PASS** | in-flight guard（`:197-207,210,254-256`）：S3 10 并发 `seamCalls===1` + 恰 1 decided + 9 `attempt_in_flight`（各 modelCalls=0）；异 scope 并发互不阻塞；settle 后 slot 释放（显式重试 ≠ 自动重试）；缝 throw → `model_seam_failure` + `faultCalls===1`（零内 retry）；进程内计时器超时 → 同 reason |
+| **④ PERF 预注册机制落位** | **PASS（机制）** | `SEMANTIC_ROUTE_PERF_BUDGET` const 于模块加载期冻结（先于任何首调）：stage=L · frozenAt=2026-10-07 · misrouteHoldoutMax=0 · perLeafRecallAt5MinBps=8000 · p95=3000ms · **costHardCapCny=20** · 钉 TAXONOMY/POLICY 版本；决策携带 durationMs（测量机制在位）；误路由/Recall@K/P95/成本**实测显式留 Route L**（receipt §5）——本 proof 不证语义质量，口径诚实 |
+
+### 3. 变异证伪核验（本审独立复现 · 断言零改动 · 注入即披露）
+
+| 变异 | 实现方台账 | 本审独立复现（同 CMD · `env -u` 三键 · 只动 semantic-route.ts · proof 零改动） | 恢复复核 |
+|------|------|------|------|
+| **mut-1**（scope guard disable） | EXIT=1 · 红 = S3③ ×2（seamCalls=10） | **EXIT=1** · 红恰 = `S3③ 同 scope 10 并发 → 缝恰 1 次调用 — seamCalls=10` + `S3③ 恰 1 decided + 9 attempt_in_flight`，31 PASS——**与台账逐字一致** | `git checkout` + `git diff --exit-code` → clean ✓ |
+| **mut-2**（validate bypass） | EXIT=1 · 红 = S2② NEG ×6 | **EXIT=1** · S2② 六类全 `decided(RED)`（核心红面一致）；本审变体形状（`if (true)` 直通）附加级联 S4ADV 红并于第 23 断言处 abort（undefined allocations）——见 O-2 | `git checkout` + `git diff --exit-code` → clean ✓ |
+
+**有效性判定**：两条变异均证实断言面**非空转**——守卫摘除与校验旁路必被 S3③/S2② 捕获，主绿面非恒真。实现方 mut-1/mut-2 作为防空转证据**有效**；EXIT1 如实录账、断言零改动、恢复复核齐全（C-5 兑现）。本审两条变异跑 = 显式披露的复核性注入（预期红 · 非官方 attempt · 非重试），官方 fresh re-run 仅末尾恰一次。
+
+### 4. Route L residual 登记核验（receipt §5 逐字）
+
+| 要素（我方上轮裁定原文） | §5 在位证据 | 结果 |
+|------|------|------|
+| EXEC 再授权 | 「须 EXEC 再授权」「peer 双审同裁 + EXEC 显式授权（AD P4 · 列条件 ≠ 授权）」 | ✓ |
+| 预算重报 | 「按当时牌价预算重报（粗估 ~240 calls/量级 ¥1 内/硬帽 ¥20 超帽 abort）+ `actualSpendCny` 实测（现 `null`）」 | ✓ |
+| 阈值先冻 | 「阈值先冻」「预注册阈值已先于首调冻结于 `SEMANTIC_ROUTE_PERF_BUDGET`（… Ban 事后改值凑绿，CC-R8/C-3/C-HA-3）」 | ✓ |
+| H19 | 「H19 temperature=0 + prompt 版本钉」 | ✓ |
+| 单轮 | 「单轮不重试（429/403 类按 Key-blocked 观察类记录非静默绿）」 | ✓ |
+
+五要素**逐字完整**；`EXIT0 ≠ :73 CLOSED ≠ 语义质量冻结 ≠ covered flip ≠ :70/:71 close ≠ router 生产接线 ≠ HA ≠ 替代 R4` 全列在位（§5/§8）。**登记 COMPLETE。**
+
+### 5. fresh re-run（官方 CMD · 恰好一次 · 禁重试遵守）
+
+- 环境：本审 worktree @ `75ba2783` clean（`git status --porcelain` = 0）· `pnpm install --frozen-lockfile`（setup · 非 prove）· node v22.22.3 / pnpm 10.18.0
+- CMD：`env -u MODEL_API_KEY -u DASHSCOPE_API_KEY -u DASHSCOPE_COMPAT_BASE_URL pnpm gap-rag05-classifier:prove`
+- 结果：**EXIT=0 · 33/33 全 PASS**（S0 三键 unset 门 PASS · 末行「全部通过 · GAP-RAG-05 Stage S 结构面（EXIT=0）· 量化面 residual 留 Route L」）· 恰好一次 · 零重试
+
+### 6. C-1~C-7 逐条裁决
+
+| 条件 | 裁决 | 依据 |
+|------|------|------|
+| C-1（docs gate ≠ coding/live/push 授权 · L 须 EXEC 显式授权） | **SATISFIED** | coding/prove 在 pre-exec dual（`2ee5bd89`+`48fc38cb`）后由协调方 EXEC Stage S 授权（receipt Authorization 行）；Route L 未执行且 §5 门控 EXEC 再授权；本审零 push |
+| C-2（alone ≠ dual · 不代签 peer） | **MAINTAINED** | 本段只签 mw-rag-route；mw-e2e-ha post-prove 审并行在途、未读未代签 |
+| C-3（L 前置：阈值先冻 Ban 事后改 / actualSpendCny 实测 / H19 / Key name-only / 单轮不重试） | **SATISFIED（登记态）** | §5 五要素逐字在位（§4 核验表）；阈值已代码化冻结（const）；`actualSpendCny=null` 保持未发明；本刀零 Key 值读取 |
+| C-4（CMD 消歧 + 邻接 byte-intact） | **SATISFIED** | B5/B6：`:252` 零改、新 CMD additive 零碰撞、双文件头 note、邻接断言零触碰 + 双 tip EXIT=0 台账 |
+| C-5（EXIT1 诚实 + 全录 + Ban retry-to-green + 双 fresh） | **SATISFIED** | 主断言面自始绿零修复轮（smoke/attempt-1/attempt-2/final-1 全 0）；两条 EXIT1 = 显式变异预期红如实录账 + `git diff --exit-code` 恢复；实现方 fresh ✓ + 本审 fresh 恰一次 ✓ |
+| C-6（EXIT0 ≠ 全列） | **SATISFIED** | B8：Pins 原值零漂移；`:73` OPEN 原文在位；coveredCount=8；无任何 HA/生产接线/语义质量宣称 |
+| C-7（SSOT 仅 nail 期 additive · REQUEST/coding 期零触碰 · 占用行零触碰） | **SATISFIED** | B4：五件 SSOT pair 跨度零 diff；本授权刀正确地**未做** nail 期记账（属后置独立刀）；占用行不在触碰列表 |
+
+### 7. Observations（非阻塞 · 如实披露）
+
+- **O-1**：proof S1 注释称「javascript 不得命中 java」，实际断言输入为前端 React/TypeScript → frontend/web；词边界语义由冻结词典 `signalMatches`（ASCII `\b`）实读确证，无诚实性问题，唯注释所辖略宽于断言面。不阻塞。
+- **O-2**：实现方 mut-2 台账 red 列录 6 项（S2② NEG ×6）；本审复现显示全 bypass 形变必附加级联 S4ADV 红（越权建议同走校验拒绝路径）。疑台账 red 列仅录预期主面未录级联项——主红面一致、证伪有效性不变，唯 red 列颗粒度可再全。不阻塞。
+- **O-3**：`db7da1cd`/`ba64306d` 在 `line/rag05-classifier`，tip 经 `281128ce`/`0039c1b7` 同内容落地（base 重钉已在 receipt §0 披露、delta 零面交集经 B1 实证）。不阻塞。
+
+### 8. Blockers
+
+无。
+
+### 9. Conditions（维持 · 不新增）
+
+C-1..C-7 全数维持效力；Route L 量化面 residual 依 receipt §5 原样后置——**peer 双审同裁 + EXEC 显式授权（AD P4 · 列条件 ≠ 授权）+ 预算重报 + 阈值先冻（已在位 Ban 改）+ H19 temperature=0/prompt 版本钉 + Key name-only + 单轮不重试** 全部满足前，Ban 任何 live 外呼、Ban 语义质量宣称、Ban `:73` 翻行。
+
+### 10. 中文三行摘要
+
+1. 包完整性成立：coding/receipt 在 tip 谱系 byte-identical 落地（恰 4+2 文件），packages/db/migrations/scripts 零外溢，SSOT/backlog `:73`/qbank-miss `:252`/邻接断言全零触碰，sha256 与 Pins 逐字复核一致。
+2. 验收①②③④全 PASS（seam 即抛证零调用、NEG 六类 + decided 无授予键、10 并发恰 1 次 + 零内重试、PERF 预算 ¥20 硬帽先冻）；mut-1/mut-2 本审独立复现预期红且 `git diff --exit-code` 恢复——防空转证据有效；fresh re-run 恰一次 EXIT=0 33/33。
+3. Route L residual §5 五要素（EXEC 再授权/预算重报/阈值先冻/H19/单轮）逐字完整登记；C-1..C-7 全数 SATISFIED；零 Blocker；alone ≠ dual，不代签 mw-e2e-ha。
+
+Verdict: PASS
