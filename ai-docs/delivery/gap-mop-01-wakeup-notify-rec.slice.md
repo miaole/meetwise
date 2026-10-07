@@ -1,10 +1,12 @@
-# Slice — **MOP01 · GAP-MOP-01 `:74` wakeup work face + BUG-NOTIFY-REC `:95`**（docs-only 立卷 · **`draft:awaiting_re_pre_exec_dual`**）
+# Slice — **MOP01 · GAP-MOP-01 `:74` wakeup work face + BUG-NOTIFY-REC `:95`**（docs-only 立卷 executed · **`executed:awaiting_post_prove_dual`**）
 
-**Status**: **`draft:awaiting_re_pre_exec_dual`**（empty review stubs · Ban self-approve · alone ≠ dual · 零 coding · 零 prove 执行 · 零 live · 零 SSOT · `MEETWISE_WAKEUP_REDIS_STREAMS` **value-gated**（`'1'/'true'/'on'` 开 · `'0'`/空/unset 关 · 本刀 unset）沿代码门重述（`apps/worker/src/worker-job-wakeup-redis.ts:50-53`）· 现存 `worker-wakeup-redis:prove` EXIT0 **≠** cutover 证据 · **PG LISTEN retained** · **Ban Redis cutover** · **Ban MODEL-OP closed** · `:74`/`:95` OPEN · **Ban 重复立卷**（MOP03 六门只读引用不松动））
+**Status**: **`executed:awaiting_post_prove_dual`**（RE-PRE dual BOTH PASS + 协调方 AUTHORIZE 后 exec landed · REQUEST 自身即完整立卷产物 · exec = lifecycle 元行推进 · micro-patch `f202091c` 兑现 C-MOP-6/C-HA-3 · **Ban self-write `post_prove_dual_pass`**（POST 双审 + 协调方 nail 专属）· alone ≠ dual · 零 coding · 零 prove 执行 · 零 live · 零 SSOT · `MEETWISE_WAKEUP_REDIS_STREAMS` **value-gated**（`'1'/'true'/'on'` 开 · `'0'`/空/unset 关 · 本刀 unset）沿代码门重述（`apps/worker/src/worker-job-wakeup-redis.ts:50-53`）· 现存 `worker-wakeup-redis:prove` EXIT0 **≠** cutover 证据 · **PG LISTEN retained** · **Ban Redis cutover** · **Ban MODEL-OP closed** · `:74`/`:95` OPEN · **Ban 重复立卷**（MOP03 六门只读引用不松动））
+
+> **Draft-era status（historical · retained）**: **`draft:awaiting_re_pre_exec_dual`**（empty review stubs · Ban self-approve · alone ≠ dual · 零 coding · 零 prove 执行 · 零 live · 零 SSOT · `MEETWISE_WAKEUP_REDIS_STREAMS` **value-gated**（`'1'/'true'/'on'` 开 · `'0'`/空/unset 关 · 本刀 unset）沿代码门重述（`apps/worker/src/worker-job-wakeup-redis.ts:50-53`）· 现存 `worker-wakeup-redis:prove` EXIT0 **≠** cutover 证据 · **PG LISTEN retained** · **Ban Redis cutover** · **Ban MODEL-OP closed** · `:74`/`:95` OPEN · **Ban 重复立卷**（MOP03 六门只读引用不松动））
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · **PG-retained** · public DELETE=503 · **PG LISTEN retained** · `actualSpendCny=null`
 **Date**: 2026-10-07（Asia/Shanghai）
 **Base**: `origin/feat/mysql-schema-skeleton` · **`4804c3dc`** / `4804c3dc54e696b5f7af17574d21e1bbe68482a4`
-**Authority**: meetwise — L0 docs only · Ban coding · Ban prove execution · Ban live · **Ban Redis cutover** · **Ban MODEL-OP closed claim** · **PG LISTEN retained**
+**Authority**: meetwise — RE-PRE dual BOTH PASS + AUTHORIZE · 立卷 exec landed（lifecycle 元行推进 · micro-patch `f202091c` 前置兑现 C-MOP-6/C-HA-3）· Ban coding · Ban prove execution · Ban live · **Ban Redis cutover** · **Ban MODEL-OP closed claim** · Ban self-write `post_prove_dual_pass` · awaiting POST dual · **PG LISTEN retained**
 
 ## One-line
 
@@ -40,4 +42,4 @@ attempts 全记录（逐条 EXIT · Asia/Shanghai 时间窗 · code SHA）· 诚
 - Ban self-approve（alone ≠ dual）· Ban 四专家审降级（BUG-REV-COND 对切流持续绑定）
 - Ban SSOT edit（backlog / matrix / checklist / queue 零改）· Ban secrets / `.env*` · Ban Meridian · Ban buy cloud · Ban force-push · **Ban push**
 
-*Slice · MOP01 GAP-MOP-01 :74 wakeup work face + BUG-NOTIFY-REC :95 · `draft:awaiting_re_pre_exec_dual` · 零 coding · 零 prove 执行 · Ban Redis cutover · Ban MODEL-OP closed · Ban 重复立卷 · PG LISTEN retained · `:74`/`:95` OPEN · alone ≠ dual · STOP（awaiting PRE dual）*
+*Slice · MOP01 GAP-MOP-01 :74 wakeup work face + BUG-NOTIFY-REC :95 · `executed:awaiting_post_prove_dual` · 零 coding · 零 prove 执行 · Ban Redis cutover · Ban MODEL-OP closed · Ban 重复立卷 · PG LISTEN retained · `:74`/`:95` OPEN · alone ≠ dual · Ban self-write `post_prove_dual_pass` · STOP（awaiting POST dual）*
