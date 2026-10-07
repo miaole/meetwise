@@ -104,3 +104,89 @@ Line Y · 下一 NHP = **NHP-017-LOAD-w-01**（UC-E2E-017 LOAD_worker 分面 · 
 3. Fail-trigger 0/6 · 无 Blocker · 7 条 Condition（:363 锚 · UC-028 禁碰 · 对照组同规造数 · 桶 TTL 冻结 · L4 措辞边界 · attempts 全录 · alone≠dual）→ **PASS**；本 PASS ≠ dual ≠ 授权 ≠ prove ≠ covered。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual 审查 — mw-e2e-ha（adversarial evidence-honesty · 2026-10-07）
+
+**Reviewer**: `mw-e2e-ha`（独立审 · 非实现方 · 禁自批 · 不代签 peer `mw-rag-route` · alone ≠ dual）
+**审 worktree**: `/Users/miaole/Desktop/golucky/meetwise-rv-yp-e2e-ha`（branch `rv/yp-e2e-ha` · 自 `origin/feat/mysql-schema-skeleton` tip `a7638deb` 新建）
+**被审对象**: coding `dd471a74`（9 files +12730/−2）· shipped face = `a7638deb^..a7638deb`（同一补丁 drop 落 origin tip；**9 文件 blob 逐字全等实证**：`git rev-parse dd471a74:<f>` ≡ `a7638deb:<f>` ×9 · 两 commit tree 差集恰为 MOP-01 base 移动的 4 md，Y 面零语义差）
+**Pre-exec binding 复核**: REQUEST `e47101e2`（镜像 `1948f1be`）为 `a7638deb` 祖先 EXIT0 · PRE-EXEC mw-e2e-ha `9b1313a` ≡ in-origin `1db7199a`（该文件 diff=0 行，rebase drop 同内容）· peer rag-route 审在并行，本审看不到也不看。
+**方法**: 只认命令 + EXIT + 可复现证据；产品源码/SSOT 只读；本审恰一次独立复跑（fresh re-run），未 retry。
+
+## 1. 包完整性（shipped face 逐项）
+
+| # | 项 | 可复现证据 | 结果 |
+|---|----|-----------|------|
+| 1 | 恰 9 申报文件 +12730/−2 | `git diff --numstat a7638deb^ a7638deb` → 5 receipts（prove doc + README + ledger + 2 JSON）+ root `package.json`(+2) + `packages/db/package.json`(+1) + `proof.ts`(+453) + `run-e2e-isolated.mjs`(+9/−2) = 9 files · numstat 合计 +12730/−2 逐字吻合 | ✓ |
+| 2 | 产品码零 diff | `git diff --stat a7638deb^ a7638deb -- 'packages/*/src' 'apps/*/src' 'packages/db/migrations'` 空 · `*commerce.ts` 空 | ✓ |
+| 3 | 老 O1–O4 proof 零触碰 | `git diff --name-only a7638deb^ a7638deb -- packages/db/test` 仅 `uc-e2e-017-nhp-load.proof.ts`（新文件）；`uc017:orphan:prove` 接线行零 diff | ✓ |
+| 4 | SSOT/禁碰 UC 行零 diff | `git diff` 空：`e2e-requirement-coverage-matrix.md` · `e2e-covered-path-backlog.md` · `execution-master-checklist.md` · `PARALLEL-DISPATCH-2026-10-02.md`（pins）· `e2e-live-targets-whitelist.md`（UC-028 面）· Line X 在办 `harness/nhp-028-fault-01-trace-fail-open.md` 不在 face；018/052/025/004/011/014/026/002/001 行零触碰 | ✓ |
+| 5 | Pins 原值 | proof.ts `:22-23`（releaseEvidence=false · Not HA · coveredCount=8 · EXIT0 ≠ covered ≠ suite green ≠ 行升格 ≠ PERF ≠ 容量 ≠ SLO ≠ HA）+ SSOT 零 diff 实证 | ✓ |
+| 6 | 三层接线真实 | root `package.json:109-110`（`uc017:nhp-load:prove`→`:raw`→`pnpm -C packages/db prove:uc017-nhp-load`）· `run-e2e-isolated.mjs` 四处注册（`isolatedReceiptSources :689-693` · known-targets allowlist `:1482` · `isolatedCommand :1564-1565` · migrate-list `:2279`）— fresh run 全链路行使 | ✓ |
+
+## 2. Fresh re-run（C-DUAL-FROM-FRESH · 恰一次 · 禁重试）
+
+- **CMD**: `MW_GIT_SHA=a7638debcea649c5b75f17b28bdf091cebdd9fc2 env -u MODEL_API_KEY -u DASHSCOPE_API_KEY -u DASHSCOPE_COMPAT_BASE_URL pnpm uc017:nhp-load:prove`（本审 worktree · fresh checkout + `pnpm install --frozen-lockfile` EXIT0 · 恰运行一次，无重试）
+- **EXIT = 0**；**45 PASS / 0 FAIL**（`grep -c '^PASS'`=45 · `'^FAIL'`=0）——与实现方 #2 完全一致，无不一致，非重大发现。
+- 隔离直证（log 行号）：`:7` fresh PG `meetwise-e2e-71421-1791357701280` on 127.0.0.1:50802 · `:13` `migrations: applied=140 skipped=0` · `:5` `[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy`（test infra ≠ stack truth · releaseEvidence=false · Not HA）· 本机 `pgvector/pgvector:pg16` digest `7b822b0aac60…da199b90a` 与 ledger 逐字同（无 pull · 不依赖 docker.m.daocloud.io 可达性）· 零 live 模型（env -u 三键 + 零 MODEL_API_KEY 加载）。
+- L5（本审 run）：waves=2 · wall=419ms · throughput=238.4 orphans/s · backlog [(1,100,10),(2,0,0)] · errors=0/840 —— 与 #1（151.09/s）/ #2（261.76/s）同族同形，仅时序抖动。
+- 收据落点：`RECEIPT_WRITTEN …/.tmp/uc017-perf-load-receipts/uc017-nhp-load-attempt001.json`（**repo 根** `.tmp/`，即修复后 C-6 落点；`.gitignore:15` 忽略 · `overall=PASS · failedAsserts=0 · gitSha=a7638deb…`）。
+
+## 3. 断言抽查（proof.ts file:line · 全部在本审 fresh run 中亲见 PASS）
+
+| 断言 | 锚 | fresh run 证据 |
+|------|----|---------------|
+| L2 无漏扣（逐 owner avail 0→5.0） | `:308-314`（post≡total−1=5.0 ∧ pre≡0）+ `:315-319`（units_reserved 6.0→1.0 逐 owner）+ `:320` 无负 | PASS ×3 |
+| L3 Σreleased=100=distinct | `:303-305`（Σ===100 ∧ distinct===100 ∧ set 等值无放大） | PASS ×3 |
+| L4 二次增量=0 + ledger=10 | `:390-393`（released/settled 增量===0 · ledger 仍===10 · outbox 不变） | PASS ×4 |
+| N1 无双放/无双退 + outbox 全 relayed | `:323-345`（set 等值 · 负 reserved 行===0 ∧ Σ余留===20.0 · ledger 行===distinct===10 ∧ Σworker settled===10 · pending===0 ∧ relayed===10 · ledger 集==cohort 集） | PASS ×6 |
+| N3 fresh 20/20 零被扫 | `:356-366`（仍 reserved 20/20 · released===0 DB 面 · ∩swept===0 worker 面 · lease 严格未来 · swept 集==孤儿集 Ban 全扫） | PASS ×5 |
+| N4 420 次 reconcile 0/0 | `:396-397`（10 workers × 21 owners × 2 轮 = 420 call 逐个 staleReleased===0 ∧ settled===0）+ `:398-403` 账面零漂移 | PASS ×3 |
+| settled cohort 真路径 | `:229-256` 真 reserve→真 confirm（`commerce.ts:130` outbox `settlement_proposed` 唯一生产点，只读亲验）→ outbox pending===10 前置 → Wave1 `:274` C=10 并发 `reconcile` 行使 `settleOutbox`（`commerce.ts:363` 函数声明行只读亲验 · `FOR UPDATE OF o SKIP LOCKED` · ledger `ON CONFLICT(consumption_id) DO NOTHING`）→ settlement 半边非空壳绿 | PASS（前置 3/3 + N1 结算面 + L4） |
+
+断言总数复核：PC 7 + 造数 5 + settled 3 + L1 3 + L3 3 + L2 3 + N1 6 + N2 2 + N3 5 + L4 4 + N4 3 + 收尾 1 = **恰 45**，与 EXIT 契约一致。造数诚实面：消费生命周期全经真 `reserveEntitlement`/`confirmConsumption`/`releaseConsumption`/`renewReservationLease`（`:189-205` `:421-424`），唯一裸 INSERT = 桶 provision 夹具（`:72-78`，O1–O4 先例同款）；孤儿化仅孤儿行 lease 时移（`:221-223`），fresh 行 fixture 零触碰（`:225-227` 断言锚死）。
+
+## 4. Attempts 裁决（#1 → #2 = 收据路径修复，非 retry-to-green）
+
+**裁决：成立（path-fix · 无 green 追逐）**。依据：
+1. **#1 本已全绿**：ledger + prove doc + attempt001.json 三处一致记录 `EXIT=0 · 45 PASS/0 FAIL`——无红可追，retry-to-green 动机不成立；#2 复跑唯一目的是以提交代码行使修复后的 C-6 收据落点。
+2. **缺陷性质 = 接线非产品非断言**：RECEIPT_DIR 相对层级少一级 → 误落 `packages/.tmp/`（违 C-6 落点）；处置 = 收据原样搬迁 + 仅改路径常量。shipped `proof.ts:67` `../../../.tmp/uc017-perf-load-receipts/` 恰解析到 repo 根，**本审 fresh run 收据实际落点已验证修复生效**。
+3. **两 receipts 结构全等**（本审逐字段比对 attempt001/002.json）：caseId/gapId/gitSha(4804c3dc)/frozenParams(N20·M5·C10·S10·F20·units1.0·TTL300d·hb1800s)/overall=PASS/failedAsserts=0/backlogShape [(1,100,10),(2,0,0)] 全同，差异仅时序（drainWallMs 661.9→382.0 · throughput 151.09→261.76）。
+4. **披露诚实**：#1 缺陷在 ledger/prove doc 显要位置如实自曝（含违 C-6 定性），搬迁后 `line-y` worktree `.tmp/` 存两份 attempt JSON 且无 `packages/.tmp` 残留（本审只读查证），与「原样搬迁保留」声明吻合。
+5. **Verification limit（如实记录，非阻塞）**：#1 运行时的 pre-fix proof 文本未单独入 git 史（单 commit 交付），「断言集两次逐字相同」无法由 git byte 级直证， rests on ledger 披露 + 两 receipts 结构全等 + 本审对 shipped 文件的独立 45/45 复跑（C6 本即规定 implementer 收据 ≠ evidence of record，evidence of record = 本审复跑）——该限度不改变裁决。
+
+## 5. 条件裁决（e2e C1–C7 · PRE-EXEC binding 逐条）
+
+| Cond | 内容 | 裁决 | 证据 |
+|------|------|------|------|
+| C1 | `settleOutbox` 引 `:363`（非 `:359` JSDoc 行）· Ban 回改 REQUEST | ✓ 兑现 | 只读亲验 `commerce.ts:363` = `export async function settleOutbox` 声明行；proof header `:16`、prove doc `:28` 均引 `:363`；REQUEST/harness 零 diff（§1 项4） |
+| C2 | UC-028 禁碰（Line X 在办） | ✓ 兑现 | 9-file face 无 UC-028 行/文件；`e2e-live-targets-whitelist.md` 与 `run-e2e-isolated.mjs` 中 `uc028:trace-fail-open` 既有条目零改动（diff 仅插入 `uc017:nhp-load:prove:raw` token） |
+| C3 | N3 对照组同规造数（真 reserve + 真 renew） | ✓ 兑现 | `proof.ts:194-205` fresh 走真 `reserveEntitlement` + 真 `renewReservationLease(1800s)`；无裸 INSERT 双标 |
+| C4 | L2 前提 + 参数冻结入 receipt | ✓ 兑现 | `:52` TTL=300d 冻结（TTL ≥ run 时长+余量，实测 wall 419ms ≪ 300d，无 `expires_at` 穿越）；frozenParams 落 proof `:143-147` + 两 receipts + ledger `:17` |
+| C5 | L4 按 worker 侧幂等措辞 · 不宣 A2 用户重试面 | ✓ 兑现 | `:369` 段标题「worker 侧幂等 · e2e C-5 措辞」· `:391` 同措辞；`grep 'A2\|用户重试' proof.ts` 零命中（A2 边界仅在 prove doc `:42` 以否认句出现） |
+| C6 | attempts 全录 + 收据 ≠ EOR | ✓ 兑现 | ledger `:10-13` 两 attempt CMD/EXIT/失败类/时间全录（含 #1 缺陷披露）；`proof.ts:440` + ledger `:3` + prove doc `:3` 三处「implementer pre-commit run · not evidence of record」；**本审 fresh re-run = evidence of record**；无 retry-to-green |
+| C7 | alone ≠ dual | ✓ 兑现 | 本审仅 append 本 stub；`REQUEST-…-mw-rag-route.md` 零触碰；不签 nail、不代签 peer、不宣 dual 成立（dual = 两 POST-PROVE PASS 齐 + 协调方裁） |
+
+**Fail-trigger audit（POST 面重扫）**：fake-green/retry-to-green＝无（#1 全绿非追逐 · 本审一次复跑）；invent covered/翻 SSOT/「EXIT0=covered」＝无（SSOT 零 diff · coveredCount=8 冻结）；借 LOAD 宣 PERF/容量/SLO/HA＝无（L5 note + Non-claims + fresh run 输出 `:5` 三重否认，PERF_api 显式 blind 未动）；借刀改 `commerce.ts`＝无（src 零 diff）；裸 INSERT 绕账面/全扫冒充＝无（§3 造数面 + N3 set 等值）；自批/代签＝无。**触发 0/6。**
+
+## 6. Blockers
+
+**无阻塞。** 一处 nit（不阻塞、不要求单独改面）：prove doc `:73` 记 `run-e2e-isolated.mjs`「+9/−0」，文件级 numstat 实为 **+9/−2**（allowlist/migrate 两长行插 token 计改写；coding commit message 本身已正确记 +9/-2）。纯记账口径差，face 内容已全量实证。
+
+## 7. Conditions（carry forward）
+
+- **CP-1（EOR 归属）**：本 NHP-017-LOAD-w-01 的 evidence of record = 本审 fresh re-run（`rv/yp-e2e-ha` · EXIT0 · 45/45 · 收据 `.tmp/uc017-perf-load-receipts/uc017-nhp-load-attempt001.json` gitSha `a7638deb…`）；implementer attempt001/002 维持 pre-commit run 定位，不得升格引用。
+- **CP-2（不升格）**：EXIT0 ≠ covered ≠ e2e:isolated suite green ≠ UC-E2E-017 行升格 ≠ PERF_api/PERF_web ≠ 容量 ≠ SLO ≠ HA；UC-017 行/§1.0.2 LOAD_worker 措辞不动（升格仅经 coordinator nail）；coveredCount=8 · releaseEvidence=false · NOT_HA · PG-retained · DELETE=503 持续。
+- **CP-3（alone ≠ dual）**：本 PASS 仅为 mw-e2e-ha 半签；peer `mw-rag-route` POST-PROVE 审由其独立出具；dual 成立与否由协调方裁，任何一方不得代签或引用对方结论。
+- **CP-4（verification limit 存档）**：#1 pre-fix proof 文本不在 git 史，「断言集逐字相同」依 §4-5 限度裁决；后续任何 turn Ban 倒填/改写 attempt 台账或收据（append-only）。
+- **CP-5（nits 不重开）**：§6 记账 nit 不作为重开 prove/coding 的理由；仅当未来该文件因其他正因改面时顺带对齐。
+
+## 中文三行摘要
+
+1. coding `dd471a74`≡shipped `a7638deb` 九文件逐字全等（+12730/−2 恰 9 申报面），产品码/commerce.ts/老 O1–O4/SSOT/禁碰 UC 行零 diff，pins 原值零漂移，三层接线四处注册全实。
+2. 本审 fresh re-run 恰一次 EXIT=0 **45 PASS/0 FAIL**（隔离容器+migrations=140+本机同 digest pg16+零 live），L2/L3/L4/N1/N3/N4 与 settled cohort 真路径逐锚亲见 PASS（`settleOutbox` `commerce.ts:363` SKIP LOCKED 真行使），与实现方 #2 零不一致。
+3. attempts #1→#2 裁定为收据落点修复非 retry-to-green（#1 本已全绿·结构全等·披露诚实·修复经本审复跑验证生效），C1–C7 全兑现，Fail-trigger 0/6，0 Blocker 5 Conditions → **PASS**；本 PASS = 半签 ≠ dual ≠ covered ≠ 授权 nail。
+
+Verdict: PASS
