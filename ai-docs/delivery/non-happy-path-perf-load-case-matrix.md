@@ -79,7 +79,7 @@
 | NHP-015-BOUND-01 | 015 | BOUND | api | 0 字节 / 超大 413 | 入口拒 | **partial** | F2/F3 |
 | NHP-015-FAULT-01 | 015 | FAULT | worker | OCR 管线宕 | 可解释失败；无悬挂消费 | **blind**→**case-only** | — |
 | NHP-015-LOAD-w-01 | 015 | LOAD | worker | 并发大文件拒+小文件通 | 拒率/队列不炸；收据 | **blind**→**case-only** | 413 单点≠负载 |
-| NHP-016-FAULT-01 | 016/029 | FAULT | api | 诊断/押题显式失败注入 | unavailable 终态；无死胡同 | **gap**→**case-only** | full.e2e 终态旁证 |
+| NHP-016-FAULT-01 | 016/029 | FAULT | api | 诊断/押题显式失败注入 | unavailable 终态；无死胡同 | **gap**→**case-only**（**真证据已落（2026-10-07 Line Y2 nail）**：`pnpm uc016:nhp-fault:prove` **EXIT=0** · 45 断言双 fresh @`12a350f7`（链 `2051d12a`→`20fe852d`→`12a350f7`）· F3 按实际行为 `schema_validation_failed` · **E3 transient NOT claimed** · F4 按 D1 重建映射断言（spec 字面 failed→pending 重试口产品不存在 · 非字面口 · 旧对象停 failed 不复活）· scripted 缝零 live · attempts 1,0 · post-dual `4efa85fe`/`822d533b` BOTH PASS · gap **`GAP-UC016-FAULT-01`** 登记 · **EXIT0 = case ≠ covered** · 行状态不动：保持 gap→case-only 措辞（诚实 case registration only），禁止升 covered/partial，coveredCount=8 不变） | full.e2e 终态旁证；`pnpm uc016:nhp-fault:prove` · harness `harness/gap-uc016-fault-inject-nhp.md`（+micro-patch `95b1fd95` 键面）· ≠ 016/029 covered |
 | NHP-004-FAULT-01 | 004 | FAULT | api | A3 失败降级 | 可解释；无假 completed | **gap** | 静态 G-GAP |
 | NHP-025-NEG-01 | 025 | NEG | api | stale quiz 作输入 | reject/version-mismatch | **gap** | 产品未接线 |
 
