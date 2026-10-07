@@ -1,10 +1,12 @@
-# Harness — **GAP-MOP-01 `:74` · wakeup work face + BUG-NOTIFY-REC `:95`**（docs-only REQUEST · **`draft:awaiting_re_pre_exec_dual`** · Ban coding · Ban Redis cutover · Ban MODEL-OP closed · PG LISTEN retained）
+# Harness — **GAP-MOP-01 `:74` · wakeup work face + BUG-NOTIFY-REC `:95`**（docs-only REQUEST · 立卷 executed · **`executed:awaiting_post_prove_dual`** · Ban coding · Ban Redis cutover · Ban MODEL-OP closed · PG LISTEN retained）
 
-**Status**: **`draft:awaiting_re_pre_exec_dual`**（empty review stubs · Ban self-approve · alone ≠ dual · 零 coding · 零 prove 执行 · 零 live · 零 SSOT）
+**Status**: **`executed:awaiting_post_prove_dual`**（RE-PRE dual BOTH PASS（mw-model-op `a6b5cd94` + mw-e2e-ha `07746c3c`）+ 协调方 AUTHORIZE 后 exec landed · REQUEST 自身即完整立卷产物（harness 未定义额外立卷文档）· exec = lifecycle 元行推进 · micro-patch `f202091c` 兑现 C-MOP-6/C-HA-3 · **Ban self-write `post_prove_dual_pass`**（POST 双审 + 协调方 nail 专属）· Ban Redis cutover · Ban MODEL-OP closed claim · 零 coding · 零 prove 执行 · 零 live · `:74`/`:95` OPEN · alone ≠ dual）
+
+> **Draft-era status（historical · retained）**: **`draft:awaiting_re_pre_exec_dual`**（empty review stubs · Ban self-approve · alone ≠ dual · 零 coding · 零 prove 执行 · 零 live · 零 SSOT）
 **Date**: 2026-10-07（Asia/Shanghai）
 **Base**: `origin/feat/mysql-schema-skeleton` · **`4804c3dc`** / `4804c3dc54e696b5f7af17574d21e1bbe68482a4`（mw-rag-route GAP-RAG-02 fixture-fix PRE dual PASS）
 **Wave**: Line **MOP01**（queue **Phase 5 MOP** · `REMAINING-NORTH-STAR-QUEUE.md`：「**GAP-MOP-01/BUG-NOTIFY-REC** · GAP-MOP-02 claim」——GAP-MOP-02 claim 本刀**不认领**，独立行另刀）
-**Experts**: `mw-model-op` + `mw-e2e-ha`（PRE dual · Ban self-approve · alone ≠ dual）
+**Experts**: `mw-model-op` + `mw-e2e-ha`（RE-PRE dual BOTH PASS · exec landed · POST dual awaiting · Ban self-approve · alone ≠ dual · Ban nail）
 **Knife**: **GAP-MOP-01 `:74` wakeup 工作面 + BUG-NOTIFY-REC `:95` 处方分解**——按 backlog 原文把 wakeup 生产诚实清单与 M3 切流包工作面**立卷**（docs 定义），**不切流**、**不重复立法 MOP03 六门**（只读 cite）
 **Gap ids**: **`GAP-MOP-01`**（backlog `gap-bug-backlog.md:74` · P0 · **OPEN**）· **`BUG-NOTIFY-REC`**（backlog `:95`@本基线 `4804c3dc` · P0 · **OPEN**；派单原文写 `:93` = MOP03-era base `71713718` 行号——MOP03 nail `e29d8f93` 在 §A 尾 append +2 行登记块后 B 区整体下移 2 行 → 本基线 `:95` · 同一行条目，OB-1 如实登记）
 
@@ -136,6 +138,6 @@ docs-only REQUEST 立卷 · not wakeup cutover · not Redis cutover · not flag 
 | `mw-model-op` | `reviews/REQUEST-2026-10-07-gap-mop-01-wakeup-notify-rec-mw-model-op.md` |
 | `mw-e2e-ha` | `reviews/REQUEST-2026-10-07-gap-mop-01-wakeup-notify-rec-mw-e2e-ha.md` |
 
-**PRE dual BOTH PASS + 协调方 AUTHORIZE 前：本刀 docs 面不得执行，且执行仍 Ban coding / Ban prove / Ban live。**
+**RE-PRE dual BOTH PASS + 协调方 AUTHORIZE 已兑现（micro-patch `f202091c` 前置已落 = origin tip `46ad76cd`）· docs 立卷面已执行 = lifecycle 元行推进至 `executed:awaiting_post_prove_dual` · Ban coding / Ban prove / Ban live 持续 · awaiting POST dual（Ban self-write `post_prove_dual_pass` · Ban open POST here · nail 属协调方）。**
 
-*Harness · GAP-MOP-01 :74 wakeup work face + BUG-NOTIFY-REC :95 · 2026-10-07 · `draft:awaiting_re_pre_exec_dual` · 零 coding · 零 prove 执行 · Ban Redis cutover · Ban MODEL-OP closed · Ban 重复立卷（MOP03 六门只读引用不松动）· PG LISTEN retained · `:74`/`:95` OPEN · alone ≠ dual · STOP（awaiting PRE dual）*
+*Harness · GAP-MOP-01 :74 wakeup work face + BUG-NOTIFY-REC :95 · 2026-10-07 · `executed:awaiting_post_prove_dual` · 零 coding · 零 prove 执行 · Ban Redis cutover · Ban MODEL-OP closed · Ban 重复立卷（MOP03 六门只读引用不松动）· PG LISTEN retained · `:74`/`:95` OPEN · alone ≠ dual · STOP（awaiting POST dual）*
