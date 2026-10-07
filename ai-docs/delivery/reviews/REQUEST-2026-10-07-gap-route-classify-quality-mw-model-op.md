@@ -79,3 +79,61 @@ Not a pass · not run（本 REQUEST 零实跑零 live 零 DB 连接）· not fix
 
 ---
 *REQUEST stub · G7T · mw-model-op · 2026-10-07 · `draft:awaiting_pre_exec_dual` · docs-only · 三 Ban 随卷（弱化校验/masking/G7S 域内）· 修复候选 A/B/C 未裁决 · STOP*
+
+---
+
+# PRE-EXEC dual 审查段 · mw-model-op（model-op/prompt 版本焦点）· 2026-10-07 · append-only
+
+**审席**: `mw-model-op` · worktree `/Users/miaole/Desktop/golucky/meetwise-rv-g7t-model-op` · branch `rv/g7t-model-op`（基于 `origin/feat/mysql-schema-skeleton`）· 审时 HEAD `8c92b344`。被审 REQUEST = **G7T REQUEST**（`5b6b1e97`，本机 `line/g7t-classify-quality` tip）。**本审零 prove run · 零 coding · 零产品码 edit · 零 SSOT edit · 零 live 调用 · 零 Key 加载 · 零 DB 连接**——证据全部来自本 worktree git 只读亲读 + blob `git hash-object` 亲算 + 在案收据/nail 引用。本 PASS 仅为 mw-model-op 半签（**alone ≠ dual** · 不代签并行 peer `mw-rag-route` · 不预claim 任何 post-commit EXIT）。
+
+## 1. 检查表（全部本席码面/包面亲核 @tree `2297b72d`）
+
+1. **包完整性 + docs-only 机检**：`git diff --name-status c4546f7b..5b6b1e97` = 恰 4 新增 `.md`（slice/harness/双 stub）+315/−0，零产品码、零 SSOT、零 sibling 归档、零 backlog 触碰。**祖先关系如实登记**：`5b6b1e97` 非严格 git-ancestor of origin tip `8c92b344`，但两者 **tree 全等（`2297b72d`）+ 父全等（`c4546f7b`）+ 文本全等**，仅 committer 重根（mw-core@04:17:21 → meetwise@04:18:11，+50s）——content 级祖先成立；沿 G7S POST 已裁 OB-MO-P4 同型 benign 先例登记 **OB-MO-G1 非阻断**。
+2. **blob 亲算 ×8 全等 REQUEST §A 锚**：`prompts.ts`=`3eae75fc` · `job-route-classifier.ts`=`79ceded8` · `job-route-decision.ts`=`a621d8bd` · `job-route-classify.ts`=`3b1e7081` · `model-operation-registry.ts`=`63af556f` · `recruiting-bound.spec.ts`=`de4991e6` · `JobCreateForm.tsx`=`0be5344c` · `package.json`=`0afb3bd2`。零漂移。
+3. **输出合同三层行号逐一对号**：zod `job-route-classify.ts:103-111`（max(4) **无 min** · leafTrackId 1-64 · bps int ✓）；validator `job-route-classifier.ts:115-160` 十齿（`:119-123`/`:124`/`:129-130`/`:131`/`:133`/`:136`/`:139`/`:140-141`/`:142`/`:143`/`:144`/`:149-152` 全对号）；prompt p.v1 `prompts.ts:23-35`（`:24` 显式 `version:'p.v1'`）；版本纪律注释 `prompts.ts:2-3`（「改 prompt = 升 version」）；registry `:99-104`（`job.route-classify.v1` · chat · text-small · maxDispatches=1 · fallbackAction=`route_unresolved`）。§1.3 四缺口 (a)-(d) 在 p.v1 原文逐一证实（零多叶示例 ✓ · 零显式成功⇒`reasonCodes=[]` 指令 ✓ · 零万分比提示 ✓ · 零 confidence 阈值 7000 ✓）。
+4. **RC-1 技术自洽实读核验（`:149-152` conflict 逻辑）**：`:149` desc sort → `:150` `gap = top1 − (len>1 ? top2 : 10000)` → `:151` `marginBps !== gap → ['conflict']` → `:152` `<1000 → ['conflict']` → ok:false → `job-route-decision.ts` `validation_rejected` + `validated.reasons` 持久化 `reason_codes`（INSERT `:117-120`）。模型自报 `reasonCodes` 非空走 `known_not_sent`（`:231-236`）**先于** validator → G7S 读数 `validation_rejected` ⇒ 模型 reasonCodes 空 + JSON 形状合法 ⇒ harness §1.2 派生事实成立；RC-1（margin 恒等自洽失败→`conflict`→`validation_rejected`）机理与读数完全相容，排序自洽 ✓ **且被本席 F1 结构性加强（见第 2 条）**。
+5. **F1（本席实读新发现 · 候选 A 充分性缺口）**：`:150` 单叶时 `gap = 10000 − 10000 = 0`（幻影次高=TOTAL_BPS）→ `:151` 要求 `marginBps===0` 与 `:152` 要求 `≥1000` **永久矛盾 → 单叶模型输出不可能过闸**。即 p.v1 唯一示例（单叶 10000 + `marginBps:10000`）**本身即必拒形状**——温度默认 + OOD 输入下模型仿示例即必落 `conflict`/`validation_rejected`。RC-1 首位排序被加强；同时 harness §1.2 表 #10 括注「（单叶=10000）」是 validator 合同**误述（erratum）**——代码不存在单叶生路。对候选 A 的直接约束见 **C-MO-G1**。对照自检：harness §2 减法演示 `[{7000},{3000}]→4000` 逐齿可过（sum=10000 ✓ ≥500×2 ✓ gap 逐位=4000 ✓ ≥1000 ✓）✓。
+6. **F2（H19 temperature 纪律缺口 · model-op 首责）**：RAG05 Route L 先例 `semantic-route.ts:28` 明文 live 面=「**H19 temperature=0 + 固定 prompt 版本** + 决策持久化」；而 `model-client.ts:152-156` `SERVICE_TEMPERATURE` 仅 evaluate/planner/resume-diagnosis 三映射，**`job.route-classify.v1` 未列 → live 跑供应商默认温度**（`:413` 条件注入、`:538` trace 记 null）。REQUEST 携带 prompt 版本钉（p.v1→p.v2）但全程零提温度——候选 A「恰 `prompts.ts` 一文件」与 H19 先例存在**未裁决张力**。绑定 **C-MO-G2**。
+7. **三 Ban + sticky 写死核验**：harness §5.2（阈值 7000/1000/500/恒等/枚举/sum 全零松动 · Ban 借「校准」放闸）· §5.3（夹具强造=masking）· §5.4（G7S 域内 blob `d06b4f49`/`80abbb80`/uc018/红③ `full.e2e.ts:203` 零触碰）✓；**sticky 不新增自动重试**：harness §5.5 + §2 默认不选 + 代码双重印证（`job-route-decision.ts:14` 头注释「sticky 终态，永不自动重试」+ `:180` `already_unresolved` noop）+ trio fresh-run 无存量负担 + 单 CMD 内部重试按自身契约 Ban 临时调高（§3.0(3)）✓。
+8. **EXEC 诊断先行授权面与预算**：§3.0(1) `job_route_decision.reason_codes` SELECT-only（精确拒因已持久化 `:117-120` · 沿 sidecar 白名单 · Ban `ai_invocation_trace.output`）✓；§3.0(2) live 定向回放 N≤20 **单独报备**·内存回放校验器后即弃·Ban 原始输出落盘/入 receipt·`redactOutput` 产品语义零改（`invoke.ts:718` 面零触）✓；§3.1 预算 ≤200 含 N≤20·超限即停不洗 not_run·`actualSpendCny=null` ✓；Key 卫生 loader name-only·Ban `.env*`·Ban fingerprint ✓。判别推翻 RC 排序即停如实迭代（Ban 假修复）✓。
+9. **Pins 十值对照 SSOT（`execution-master-checklist.md:1319-1324` 实读）**：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · `g7SuiteGreen=false`（`:1323`「保持」）· trio OPEN + 红① STILL OPEN（`:1321` 逐字印证）· `actualSpendCny=null`——REQUEST/harness/slice 三文一致，零翻转 ✓。
+10. **输入面亲核**：`recruiting-bound.spec.ts:64` jobTitle=`浏览器绑定岗位-${suffix.slice(0,8)}` + `:81-82` 填充/competencies=`高并发, 幂等, 限流` ✓；`JobCreateForm.tsx:43-50` 仅 title+competencies 两字段、description 恒空 ✓；`RULE_SIGNALS`（`:71-80`）对该输入零命中（`高并发/幂等/限流/浏览器` 不在任何词表；frontend 表无『浏览器』）→ `classifyJobByRule` null → 模型路径必然，OOD 判读成立 ✓。wiring `package.json:278/:279/:282` 逐行 ✓。
+
+## 2. Fail-trigger audit（逐条过 · 零触发）
+
+弱化校验=无（REQUEST 全程 Ban 且候选 A 零 validator 触碰面）；夹具强造=无；G7S 域内修=无（docs-only 零产品码）；sticky 自动重试新增=无；Pin 翻转=无；pre-claim post-commit EXIT=无（harness §4 末条 + 三文 Non-claims）；invented spend=无；Key 物料越界=无；假绿/flake 记法=无（Ban 清单 §5.6）；self-approve=无（本段即他审）。**0 Fail-trigger。**
+
+## 3. 请专家五问逐答
+
+1. 三层合同判读**无漏**（三层全部行号/blob 本席亲核）；RC-1~RC-5 排序在 live 小模型行为面**成立且 RC-1 被 F1 加强**（示例必拒形状）；增补 `ai_model_invocation` latency/token 形状查询=**可选非必需**（OB-MO-G2：`reason_codes` 单列已足定谳；若加须 SELECT-only name-only 列、Ban payload、入 sidecar 白名单）。
+2. 四项补强方向**正确但不完备**——必须加第五项：**消单叶死路**（v2 删除/更正「仅 1 个 leaf 时 marginBps=10000」、以多叶为唯一成功形态、可显式「≥2 leaf」指令——见 C-MO-G1）；「裸 JSON 无 fence」约束建议随 v2 顺手钉（zod fence 拒因已被读数排除非当前承重，零成本白赚）；temperature 须按 C-MO-G2 显式裁决。
+3. N≤20 内存即弃设计**合 Key 与隐私卫生**（redactOutput 产品链零改 · 原始输出不落盘）；样本量**足够**——判别对象是 `reason_codes` 精确单码分布而非统计估计，N≤20 足以分辨 RC-1 vs RC-2/3/4 主导；温度未钉下方差被放大，故 C-MO-G2 先裁后跑。
+4. **同意 sticky 面零改动**：代码 `:14` 明文「永不自动重试」+ `already_unresolved` noop + fresh-run 策略无存量负担；「sticky 重试=新产品语义另立卷」边界维持 ✓。
+5. **同意 prove 方案**（诊断前置先行/trio ×1 各一次/预算 ≤200/七字段全记录/三来源交叉一致）**与 EXIT 双向契约**；红③→C-MO-P3 另刀切面干净（recruiting-bound 断言 `:96` 零触碰在 §5.4/§4 双处写死）✓。
+
+## 4. Blockers
+
+**0 Blocker。**
+
+## 5. Conditions（绑定 · EXEC 授权前必须满足/随 EXEC 收据兑现）
+
+- **C-MO-G1（单叶死路 · 承 F1）**：候选 A 落码的 p.v2 文本必须**消除单叶必拒死路**——不得保留 p.v1「仅 1 个 leaf 时 marginBps=10000」指令，须以多叶为唯一成功形态（建议显式「至少 2 个 leaf」指令 + 多叶 few-shot 为唯一成功示例）；EXEC 收据根因定谳段必须**更正 harness §1.2 #10 括注「（单叶=10000）」erratum**（实读：单叶 gap=0 → conflict 必拒）。**Ban 借此触碰 `validateModelRouteOutput`**（修复只走 prompt 侧；validator 零松动 Ban 不变）。
+- **C-MO-G2（H19 temperature 裁决 · 承 F2）**：EXEC 期须显式二选一并如实登记——(a) 将候选 A 触碰面扩至 `model-client.ts` `SERVICE_TEMPERATURE`（`job.route-classify.v1` 钉 0，沿 RAG05 Route L 先例；扩面须 pre-exec dual 重新确认 + 协调方批准）；或 (b) 维持恰 `prompts.ts` 一文件落地，收据如实登记「classify live 温度=供应商默认未钉」为残余方差风险。**Ban 静默假设 temperature=0**（代码实证未钉）。
+- **C-MO-G3（live 回放授权范围冻结）**：N≤20 定向回放 EXEC 执行前单独报备（预算内列支）·内存即弃·Ban 原始输出/Key 物料落盘入 receipt·Key 仅进程环境 loader name-only·Ban `.env*`——按 §3.0(2)/§3.1 原文范围执行，超范围须重新报备。
+- **C-MO-G4（alone ≠ dual）**：本 PASS 仅为 mw-model-op 半签；EXEC 启动须 mw-rag-route 并行 PRE dual 亦 PASS + 协调方显式授权；候选 B/C 的 route 语义裁决（RULE_SIGNALS 张力/taxonomy 演进）归 peer 首责，本席不代裁不代签。
+
+## 6. OB（非阻断）
+
+OB-MO-G1：REQUEST twin-commit 重根（`5b6b1e97`≡`8c92b344` 同 tree 同父仅 committer 异）benign，沿 OB-MO-P4 先例。OB-MO-G2：增补 `ai_model_invocation` latency/token 形状佐证查询=可选，若采纳须 SELECT-only name-only 列 + Ban payload。
+
+## 7. 边界声明
+
+本审恰 0 prove run · 0 coding · 0 产品码 edit · 0 SSOT edit · 0 live 调用 · 0 Key 值读取 · 0 DB 连接；本 worktree 恰 1 commit（本段 append-only 追加）；禁 push；本 PASS ≠ EXEC 授权 ≠ red① 终局 ≠ trio 翻绿 ≠ `g7SuiteGreen=true` ≠ 任何 Pin 翻转 ≠ prompt v2 落码授权。
+
+## 中文三行摘要
+
+1. 包完整性/docs-only 机检过（恰 4 新增 .md +315/−0 · blob 亲算 ×8 全等 · 行号逐一对号）· Pins 十值零翻转 · 三 Ban + sticky 不重试双写死（代码 `:14` 实证）· 0 Blocker · 0 Fail-trigger。
+2. 实读新发现 F1：validator `:149-152` 单叶死路使 p.v1 唯一示例必拒——RC-1 首位排序被结构性加强，但候选 A 四项补强不完备（C-MO-G1 绑定 v2 消死路 + 收据更正 harness #10 erratum）；F2：classify 未钉 H19 temperature=0（`SERVICE_TEMPERATURE` 无映射，RAG05 Route L 先例在案）——C-MO-G2 绑定 EXEC 显式二选一。
+3. Verdict PASS 为 mw-model-op 半签（alone ≠ dual · 不代签 mw-rag-route）· EXEC 须 BOTH PASS + 协调方授权 + C-MO-G1~G4 兑现 · 本 PASS ≠ 任何 Pin 翻转 ≠ 修复授权 · 禁 push。
+
+Verdict: PASS
