@@ -138,3 +138,47 @@ backlog `:57` 目标列「privacy 清单 prove 绿前 **MUST NOT abandon RLS**�
 3. Pins 原值零漂移、`:60`/`:64`/`:68` cite-only、DELETE=503 在码；OB-1 引锚 `:281-282`→实锚 `:280-281` 非阻断（C-P7 更正）；0 Blocker · 8 Conditions · alone≠dual 不代签 mw-e2e-ha · 0 prove · 0 coding · 0 SSOT · 禁 push。
 
 **Verdict: PASS**
+
+---
+
+# POST-PROVE dual 审查段 — mw-privacy-int（append-only · 2026-10-07 · docs gate only · 立卷刀执行复验）
+
+**审查方**: `mw-privacy-int`（独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-p1p-privacy-int` · branch `rv/p1p-privacy-int` @ origin tip `d186c543`）· **被审 EXEC tip**: `35360448` / full `35360448725895265c3c40540df3750642691ded`（parent `ad75d033` · origin/feat/mysql-schema-skeleton 最新段）· **≡ exec `f7a7162a`（parent `cd908eff`）rebase 镜像：patch-id `df0144940eb0c6dc303c0debbe43b7671235acce` 双侧亲算全等**（`git show | git patch-id --stable` 两次独立计算）· EXEC tip 为本 worktree HEAD 祖先、本审 PRE 段镜像 `9f399f55` 为 EXEC 祖先（`git merge-base --is-ancestor` 亲证）。本段为**立卷完整性复验**（EXEC 后、prove 执行前的 dual 门槛审），非 prove 结果审；mw-e2e-ha 的 POST 审并行进行中，本审不见、不代签（alone ≠ dual）。
+
+**包完整性机检亲证**: `git show --stat 35360448` = **恰 2 md**（`gap-priv-01-tenant-rls.slice.md` +15/−9 · `harness/gap-priv-01-tenant-rls.md` +49/−15 · 合计 +64/−24）· 零产品码/迁移/script/package.json（`git diff 9f399f55 35360448 -- packages/ apps/ scripts/ package.json` = 空）· **零 SSOT**（backlog/checklist/matrix/queue 四件不在 EXEC diff · `:57` OPEN/:58 DELETE=503 冻结/:60/:64/:68 行锚实读对位）· **双审 stub 零触碰**（本 stub 末次提交 = 本审 PRE 镜像 `9f399f55`、HEAD byte-intact；peer stub 末次 = 其 PRE 镜像 `c8bda3c4`）· lifecycle 旧态 blockquote「Pre-exec-era status（historical · retained）」两文件各保留 1 处 · **零 prove run · 零 receipt** · PRE 段（上 53 行 + 本审 PRE 段）append-only 零改。
+
+## C-P1…C-P8 逐条裁决（EXEC 落实复验）
+
+| # | Condition | EXEC 落实核验（本审亲读/机检） | 裁定 |
+|---|-----------|------------------------------|------|
+| C-P1 | D1 裁定落档逐字核 | harness §0.1.1 新增：裁定 **R-B 为 `:57` 原义重心、逃生门不触发写死保留为休眠回退**；依据 1-5 逐条在位——机检短语全命中（「现状列整段即 M2 原型状态」「tenant≠RLS still true under PG-retained」「验收维度是 owner 非 org」「跨 tenant/org 而非跨 owner」「MySQL 时代」「拟切片与 harness 指向 M2 工件」「tenant-enforcement.prototype.md」「现在不过度设计」「显式延后的设计扩展」「既**需要**又**宣称**」「记录性内省」「两头叙事」）；候选裁决一致（A 主体/B Ban 伪缺口 `350∈348±2`/C 仅诚实失败路径）；休眠逃生门「仅当双审或后续证据推翻依据 1-4 方可触发」原样 | **成立** |
+| C-P2 | 边界写死 | 两问判据写死于 §0.1.1 #5（①基线显式延后=是 `:280-281`；②产品既需要又宣称=否）；§4「Ban 两头叙事」引锚已更正 `:280-281`；§8 C-P2 行（只许记录性内省 · 候选 B 默认 Ban · 解禁须显式申报+重立卷+产品权威） | **成立** |
+| C-P3 | 断言矩阵六项+内省三项不弱化 + `visibility='global'` 单列 | 矩阵六项全在且**被强化非弱化**：#1/#3 加 C-E3 正对照前置（B 行播种存在性+A 自读/自写 ≥1，无正对照 0 行绿=空转绿=FAIL 面）；#5 C-E2 机检化（effective role `current_user='app_role'` 实读 + `rolbypassrls=false` + `rolinherit=false` + `relforcerowsecurity=true` · Ban「superuser 不绕 RLS」无条件宣称——沿 `0001:7` 原义「连超级用户走 app_role 时也不绕过」实读对位）；#2 42501/#4 缺省 deny/#6 404 不可区分原样（`interview.service.ts:177-190` 亲读吻合）；内省三项（`pg_policies` 谓词 / `relrowsecurity`+`relforcerowsecurity` / `rolbypassrls`+`rolinherit`）原样 · Ban grep 代替保留；`visibility='global'` 共享面单列 + §8 C-P3 行钉 `0032:38`/`:417`（实读吻合：`USING (visibility='global' OR owner_user_id=…)` + `__system_rag__` 守卫） | **成立** |
+| C-P4 | RLS 根四处写死 | §8「C-P4/C-E5 后半」行写死 `0001:7`/`:63-82`/`:300-304` + `principal.ts:945-955`/`:566-608` + `app_role` 根 + `packages/db/src/tenant/` 不接线不删不改 + 2026-09-10 conditional 不解除；实码五点亲读全吻合（`app_role NOLOGIN` 无 BYPASSRLS @0001:64 · DO 循环 `p_owner` USING/WITH CHECK 双侧 @:69-79 · vector_chunk 同形 @:300-304 · `asPrincipal` SET LOCAL ROLE+set_config @principal.ts:945-955 · `provisionRuntimeLogin` NOINHERIT/NOBYPASSRLS @:574/:581 + 反向 REVOKE @:600-607）；PRE 四处写死（§2 非目标/§5 Ban/slice Ban/双 stub Pins）EXEC 零触碰 | **成立** |
+| C-P5 | EXIT 十不得 + cite-only | harness §3 EXIT 契约**十不得**机检在位（≠covered/≠`:57` CLOSED 翻行/≠等价宣称/≠授权根已迁/≠MySQL 等价强制完成/≠HA/≠releaseEvidence/≠UC-052 flip/≠DELETE 开放/≠R-A 缺口消失）；EXIT1 attempts 全录（Asia/Shanghai+SHA+log）· Ban retry-to-green · PREREQ 缺预期非零 · Ban 换弱断言凑绿；§8 C-P5 行全携带 + `:57` OPEN prove 绿不自动关行；`:60`/`:64`/`:68` cite-only 零借零洗（C-E3 沿 `:60`「hit≥1 防空转」先例**口径**——backlog 实读对位，不借其证据）；DELETE=503 复验同列入账 · UC-052 partial | **成立** |
+| C-P6 | Pins 冻结 | 两文件 `**Pins**` 行与 PRE 镜像 `9f399f55` **逐 byte 一致**（机检）：NOT_HA/false/false/true/8/false/PG-retained/DELETE 503/`:57` OPEN/UC-052 partial/canHonestlyFlip=false（harness 另有 `:60`/`:64`/`:68` cite-only） | **成立** |
+| C-P7 | 引锚更正落实抽验 | 机检：PRE `:281-282` 出现次数 harness=5/slice=3、`:300-307` 各=1 → 更正声明「5+3 处/1+1 处」**精确吻合**；awk 实锚亲读 `:280-281`（`:280` C 端定位 owner_user_id RLS 即足 + `:281` B 端未来扩展不过度设计）、`:300-304`（vector_chunk ENABLE/FORCE/p_owner 双侧）全对位；两文件活引零 stale 残留（唯一 `:281-282`/`:300-307` 命中 = §8 C-P7 更正台账行自身，非活引） | **成立** |
+| C-P8 | alone ≠ dual | 双 Status + §7 + footer + §8「Ban self-write」行全在；`post_prove_dual_pass` 全文机检仅出现于 Ban/指派语境（「由 post-prove 双审（协调方另派）写入」）· **零 self-write status flip**（Status = `executed:awaiting_post_prove_dual` 止步）；本审不代签 peer `mw-e2e-ha` | **成立** |
+
+## 立卷完整性复验（工作面零弱化）
+
+- **诚实清单/候选/证明路径零弱化**：§0.1 双读法+反证、§0.2 边界钉、§2 候选 A/B/C 与触碰 file 清单、§3 内省三项+静态钉+同列入账、§4 四 Ban、§5 Ban 全部原样保留（diff 中仅引锚更正与 C-E2/C-E3 强化触碰）；§6/§7 改写为 EXEC 态**如实登记且收紧**（「本 REQUEST 仍不授权 coding/prove；POST dual + 协调方 AUTHORIZE 前 Ban nail / Ban SSOT 登记 / Ban self-write」）；§8 EXEC 登记表 = 纯增量携带，Conditions 随卷零弱化（C-P6/C-P8/C-E5 条款并入相应行的携带口径注记经核不损实质）。
+- **slice 与 harness 同步一致**：Status/lifecycle/EXEC 浓缩登记/One-line/Prove plan 改写两侧同文；slice EXIT 为浓缩版（9 项）指向 harness 全表（10 项）——PRE 即此口径，EXEC 未使其更弱。
+- **provenance 如实**：§8 登记孪生 drop 落 tip 机制、PRE 双 SHA 全长、`786a1949` 链载记账口径——与 git 亲证一致（本审独立重算 patch-id 全等）。
+
+## Blockers / Conditions
+
+- **Blockers: 0。**
+- **CP-POST-1（alone ≠ dual）**：本 PASS 仅为 mw-privacy-int 一票；POST dual 生效须 peer `mw-e2e-ha` POST 审独立 PASS + 协调方 AUTHORIZE；本审不见其审、不代签。
+- **CP-POST-2（状态写入权）**：`post_prove_dual_pass` 阶段标记仅得于 POST dual BOTH PASS 后经协调方流程写入；implementer 持续 Ban self-write。
+- **CP-POST-3（prove 期全额绑定）**：prove 执行期 C-P1~C-P8 + C-E1~C-E5 继续全额绑定，违任一即本 PASS 及 PRE PASS 撤销；prove receipt 引锚一律从实锚 `:280-281`/`:300-304`（C-P7 恒久化）。
+- **CP-POST-4（nail/SSOT 冻结）**：prove 绿不自动关行；`:57` 关行与任何 SSOT 翻行须独立 SSOT 翻行刀循既定程序，且 nail 仍 Ban until POST BOTH + 协调方 AUTHORIZE。
+- **CP-POST-5（本审边界）**：本段为立卷完整性复验，不构成对 prove 结果/EXIT0 的预签；prove 结果审另刀。
+
+## 中文三行摘要
+
+1. PRIV01 exec `35360448`（≡`f7a7162a` patch-id `df014494` 双侧亲算全等 · parent `ad75d033`）恰 2 md +64/−24，零产品码零 SSOT 零 stub 触碰零 prove，lifecycle `draft`→`executed:awaiting_post_prove_dual` 旧态 blockquote 保留——程序面全清。
+2. C-P1~C-P8 逐条复验全成立：§0.1.1 D1 裁定（R-B 胜出·依据 1-5·两问判据·休眠逃生门）逐字落档，RLS 根四处写死与实码五点亲读吻合，矩阵六项+内省三项经 C-E2/C-E3 **强化非弱化**，EXIT 十不得/Pins byte 级原值/引锚更正 5+3 与 1+1 处机检精确落实，`post_prove_dual_pass` 零 self-write。
+3. 立卷工作面零弱化、§8 EXEC 登记纯增量携带；0 Blocker · 本 PASS = mw-privacy-int alone，dual 待 peer mw-e2e-ha POST + 协调方 AUTHORIZE · 不代签 · 0 prove · 0 coding · 0 SSOT · 禁 push。
+
+**Verdict: PASS**
