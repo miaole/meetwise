@@ -1,6 +1,8 @@
-# Harness — **Line SCOR · Phase 7 产品诚实首刀 · GAP-PROD-01 `:77`（SCOR）+ GAP-PROD-02 `:78`（P0-CB）盘点立卷**（docs-only REQUEST · 立卷 draft · **`draft:awaiting_pre_exec_dual`** · Ban coding · Ban prove 执行 · Ban 实现 · 队列「**SCOR then P0-CB**」顺序写死 · 零实现）
+# Harness — **Line SCOR · Phase 7 产品诚实首刀 · GAP-PROD-01 `:77`（SCOR）+ GAP-PROD-02 `:78`（P0-CB）盘点立卷**（docs-only REQUEST · 立卷 executed · **`executed:awaiting_post_prove_dual`** · Ban coding · Ban prove 执行 · Ban 实现 · 队列「**SCOR then P0-CB**」顺序写死 · 零实现）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（empty review stubs · Ban self-approve · alone ≠ dual · 本刀零执行：零 coding · 零 prove 执行 · 零 live · 零 SSOT · **Ban SCOR-01…08 实现借道** · **Ban P0-CB 实现借道** · **GAP-PROD-01 `:77` / GAP-PROD-02 `:78` OPEN**）
+**Status**: **`executed:awaiting_post_prove_dual`**（PRE dual BOTH PASS（mw-e2e-ha `0617a15`≡主线 `8345f3c2` · patch-id `d73298d3…` 两副本等同 + mw-privacy-int `1c1b28d`≡主线 `cd908eff` · patch-id `339c9ed2…` 两副本等同 · 均 ∈ exec base 祖先）+ 协调方 AUTHORIZE 后 exec landed · REQUEST 自身即完整立卷产物 · exec = lifecycle 元行推进 + 双审 Conditions docs-side 落实（§1b/§2b/§2c/§3/§4/§9）· **Ban self-write `post_prove_dual_pass`**（POST 双审 + 协调方 nail 专属）· alone ≠ dual · 本刀零执行：零 coding · 零 prove 执行 · 零 live · 零 SSOT · **Ban SCOR-01…08 实现借道** · **Ban P0-CB 实现借道** · **GAP-PROD-01 `:77` / GAP-PROD-02 `:78` OPEN**）
+
+> **Draft-era status（historical · retained）**: **`draft:awaiting_pre_exec_dual`**（empty review stubs · Ban self-approve · alone ≠ dual · 本刀零执行：零 coding · 零 prove 执行 · 零 live · 零 SSOT · **Ban SCOR-01…08 实现借道** · **Ban P0-CB 实现借道** · **GAP-PROD-01 `:77` / GAP-PROD-02 `:78` OPEN**）
 **Date**: 2026-10-07（Asia/Shanghai）
 **Base**: `origin/feat/mysql-schema-skeleton` · **`313e04a7`** / `313e04a7fc0ca91ef60fb229802dd374f85cc93d`（fetch 后 origin tip · NHP-016-FAULT-01 nail）
 **Wave**: Line **SCOR**（queue `REMAINING-NORTH-STAR-QUEUE.md:43-44`：「## Phase 7 product / **SCOR then P0-CB**」——先盘后动 · 本刀 = Phase 7 首刀 **盘点立卷刀**（沿 MOP03/MOP01/MOP02 先例）：诚实清单（现状/缺口/接线图）+ 修复切片定义（不实现）+ 「SCOR then P0-CB」顺序写死）
@@ -34,7 +36,7 @@
 
 ### 1b. 选审理由（按域判 · 任务允许 mw-e2e-ha + mw-model-op 默认或按域判）
 
-**选 `mw-e2e-ha` + `mw-privacy-int`，非默认 mw-model-op**：(a) backlog `:77` 归属域原文即 **product / privacy**——SCOR 生产实现唯一前置是 INT-TRANSCRIPT-00/01（privacy fact root · canonical artifact + 0091 授权 + 0096 逐 sink receipt · checklist `:194`），ScoreCard 面 fence 绑定 `assert_interview_answer_fact_active`/`assert_interview_privacy_active`（mig `0100` 头注）与 W3 **DELETE=503 freeze**（W6 hard dependency）——该依赖面裁决权在 mw-privacy-int；(b) GAP-PROD-02 的 **P0-CB-02 同意/撤回面**同属 privacy 域（purpose-bound consent/撤回/在途终止）；(c) mw-model-op 对 SCOR-03/04 的 MODEL-OP 面（operation/预算/unknown）在本刀**仅为 ADR-0020/checklist 原文转述、无立法无裁决负担**——届时 **S-SCOR-3 实现切片 REQUEST 的 dual 第一顺位应换入 mw-model-op**（§2c 写死）。GAP-PROD-02 的 e2e 面由 mw-e2e-ha 覆盖（浏览器矩阵 + CI 面）。
+**选 `mw-e2e-ha` + `mw-privacy-int`，非默认 mw-model-op**：(a) backlog `:77` 归属域原文即 **product / privacy**——SCOR 生产实现唯一前置是 INT-TRANSCRIPT-00/01（privacy fact root · canonical artifact + 0091 授权 + 0096 逐 sink receipt · checklist `:194`），ScoreCard 面 fence 绑定 `assert_interview_answer_fact_active`/`assert_interview_privacy_active`（mig `0100` 头注）与 W3 **DELETE=503 freeze**（W6 hard dependency）——该依赖面裁决权在 mw-privacy-int；(b) GAP-PROD-02 的 **P0-CB-02 同意/撤回面**同属 privacy 域（purpose-bound consent/撤回/在途终止）；(c) mw-model-op 对 SCOR-03/04 的 MODEL-OP 面（operation/预算/unknown）在本刀**仅为 ADR-0020/checklist 原文转述、无立法无裁决负担**——届时 **S-SCOR-3 实现切片 REQUEST 的 dual 第一顺位换入 mw-model-op，S-CB-2 第一顺位 mw-privacy-int——换审冻结（C-EH-5 · 届时不得降级/缺席/换默认 · §2c/§3 同步写死）**。GAP-PROD-02 的 e2e 面由 mw-e2e-ha 覆盖（浏览器矩阵 + CI 面）。
 
 **裁决点（留给 PRE dual）**：
 
@@ -68,8 +70,8 @@
 
 | # | 项 | tip 实况 | 代码锚 | 诚实含义 |
 |---|----|----------|--------|----------|
-| 1 | **P0-CB-01 绑定** | **基底已实存**（audit 2026-08-02 三条现状证据 stale · D1/D4）：`interview.application_id/job_id/resume_id` + 双 partial UNIQUE（`uq_interview_application_binding`/`uq_job_application_interview_binding`）+ CHECK 三件套 + FK + 旧无绑定 fail-closed；`startApplicationInterview` 行锁同事务「看绑定→建 interview→回写」+ route 绑定 fail-closed（`interview_ineligible_route`）+ attempt 单调；finalize **不接受客户端 interviewId**、DB 反查 application↔interview↔job↔resume↔owner、`not_ready`→409；web 已有 finalize 消费者（终态自动触发） | `packages/db/migrations/0028_application_bound_interview.sql` · `packages/db/src/recruiter.ts:354-430`（`startApplicationInterview`）· `apps/api/src/modules/jobs/applications.service.ts:35-56`（start→interviewId+redirectTo）/`:66-78`（finalize）· `apps/web/components/InterviewPanel.tsx:88-111` + `apps/web/app/api/applications/[id]/finalize/route.ts`（消费者）· `:68` 注释「不接受客户端 interviewId」 | **缺口重心 = 验收证据面**：immutable `CandidateEvaluationSnapshot`/评分快照（rubric/model/prompt/qbank 版本 + evidence hash）**零代码命中**（`candidate_evaluation`/`evaluation_snapshot` 全仓 0 hit）；consent_version 绑定事务零代码（属 #2 面）；audit 验收表（20 并发恰 1 会话 / 错配 interviewId 409 / 完成重放恰 1 / 真实浏览器 C→B 全链路 1 条必过）**无 named prove 收据**（`recruiter:prove` 29 断言为邀请/CAS/分数推导面、`neg:bend` 109 为负向面——audit 口径，非 P0-CB-01 验收面）——**绑定基底 ≠ P0-CB-01 关闭** |
-| 2 | **P0-CB-02 同意边界** | **零实现**：`ShareGrant`/`share_grant` 全仓 **0 hit**；purpose-bound 同意/岗位快照版本/expiry/撤回/在途 `terminated_consent`/全数据面（DB/缓存/向量/SSE/checkpoint/trace）清理观测均无接线 | `git grep -i 'sharegrant\|share_grant'` = 空 · consent 面仅 memory/隐私治理 mig（`0093`/`0095`/`0105`/`0107` 等非 C/B 申请域） | 原文缺口逐字成立（「同意边界」全开）——S-CB-2 将与隐私线联动（撤回 worker resume 竞态） |
+| 1 | **P0-CB-01 绑定** | **基底已实存**（audit 2026-08-02 三条现状证据 stale · D1/D4）：`interview.application_id/job_id/resume_id` + 双 partial UNIQUE（`uq_interview_application_binding`/`uq_job_application_interview_binding`）+ CHECK 三件套 + FK + 旧无绑定 fail-closed；`startApplicationInterview` 行锁同事务「看绑定→建 interview→回写」+ route 绑定 fail-closed（`interview_ineligible_route`）+ attempt 单调；finalize **不接受客户端 interviewId**、DB 反查 application↔interview↔job↔resume↔owner、`not_ready`→409；web 已有 finalize 消费者（终态自动触发） | `packages/db/migrations/0028_application_bound_interview.sql` · `packages/db/src/recruiter.ts:354-430`（`startApplicationInterview`）· `apps/api/src/modules/jobs/applications.service.ts:35-56`（start→interviewId+redirectTo）/`:66-78`（finalize）· `apps/web/components/InterviewPanel.tsx:88-111` + `apps/web/app/api/applications/[id]/finalize/route.ts`（消费者）· `:68` 注释「不接受客户端 interviewId」 | **缺口重心 = 验收证据面**：immutable `CandidateEvaluationSnapshot`/评分快照（rubric/model/prompt/qbank 版本 + evidence hash）**代码域零命中**（产品码口径 `git grep -inE 'candidate_evaluation\|evaluation_snapshot\|application_snapshot' -- ':!ai-docs'` = 0 hit · C-EH-1/C-I-1 范围注记）；consent_version 绑定事务零代码（属 #2 面 · **C-EH-3 语义终裁面**）；audit 验收表（20 并发恰 1 会话 / 错配 interviewId 409 / 完成重放恰 1 / 真实浏览器 C→B 全链路 1 条必过）**无 named prove 收据**（`recruiter:prove` 29 断言为邀请/CAS/分数推导面、`neg:bend` 109 为负向面——audit 口径，非 P0-CB-01 验收面）——**绑定基底 ≠ P0-CB-01 关闭** |
+| 2 | **P0-CB-02 同意边界** | **零实现**：`ShareGrant`/`share_grant` **代码域（产品码 · 非 ai-docs）0 hit**（`git grep -i 'sharegrant\|share_grant' -- ':!ai-docs'` = 0 hit · 整树字面 grep 仅命中 ai-docs 语境文件 · C-I-1 范围注记）；purpose-bound 同意/岗位快照版本/expiry/撤回/在途 `terminated_consent`/全数据面（DB/缓存/向量/SSE/checkpoint/trace）清理观测均无接线 | `git grep -i 'sharegrant\|share_grant' -- ':!ai-docs'` = 0 hit · consent 面仅 memory/隐私治理 mig（`0093`/`0095`/`0105`/`0107` 等非 C/B 申请域） | 原文缺口逐字成立（「同意边界」全开）——S-CB-2 将与隐私线联动（撤回 worker resume 竞态） |
 | 3 | **P0-CB-03 浏览器矩阵** | **单链路 spec 在树、三主体矩阵未进 CI**：两独立 cookie context 的 C→B 真浏览器闭环（真实 HMAC webhook 额度 + production UI finalize + 评分暂不可用断言）已写；matrix 行 **partial** | `apps/web/e2e-ui/recruiting-bound.spec.ts`（头注：两 context、production Next UI、Ban 前端伪造额度）· matrix `:234`「**单链路有；三主体矩阵进 CI 仍缺**」· `golden.spec.ts` | 单链路 ≠ 三主体矩阵 ≠ CI 收据 ≠ `releaseEvidence=true`；`recruiter:prove`（`package.json:194`）/`neg:bend`（`:98`）/`openapi:prove`（`:273`）为 HTTP/数据/契约底座，**不得被新 E2E 取代**（audit §6.3） |
 
 ### 2c. 修复切片定义（docs 立卷 · 非本刀执行 · 每片：目标/触碰面/prove 拟案/依赖顺序）
@@ -81,10 +83,10 @@
 | **S-SCOR-0（前置门 · 非本线实现）** | INT-TRANSCRIPT-00/01 真实组合根闭合（canonical artifact + 删除授权 + 逐 sink receipt + 删后 read=0）——SCOR-01/02 生产实现唯一 P0 前置 | INT/privacy 线已有队列（checklist `:173`/`:176`）· 本线零触碰 | 属隐私/INT 线各自 REQUEST | **全局硬前置**（未闭合前 S-SCOR-1+ 一律不得启动） |
 | **S-SCOR-1（SCOR-01 生产接线）** | 发题事务落 `IssuedQuestionContract`（只冻题不冻答案）；提交后以 canonical artifact 追加 `AnswerVersion`/`ScoreRequest` + answer HMAC + delete-wins permit | `packages/db/src/scoring-fact-root.ts` 接线 + interview 发题/提交 service + additive mig（如需）· Ban 碰 0091/0092/0096 形状 | issue→submit→fence 全链 prove（原始 SQL 逃逸 0 · 旧 worker 0 · 跨 owner 0 · 并发重放 · 答案替换 · 删除/撤权先赢 · 迟到结果丢弃——ADR-0020 §后果验证面） | 前置 S-SCOR-0 |
 | **S-SCOR-2（SCOR-02 score-writer + 消费迁移 + 读面收窄）** | 专用 score-writer 原子切换 C 端 assessment/report/profile/memory 全部消费者；只消费资格化 ScoreCard；legacy event 均分切除；读面收窄（`b_review_eligible` 须独立 CalibrationRelease + 人工复核才可进） | mig `0103` 面 + `scoring-aggregation.ts` + `interview.service.ts:728/:750` + `worker main.ts:160` + 域 fail-closed 面 | 消费切换 prove（无资格卡 fail-closed：`409 no_scorable_cards`/`insufficient_evidence` · 空≠0 分 · GET 不重闸口径保持） | 前置 S-SCOR-1 |
-| **S-SCOR-3（SCOR-03/04 证据/冲突/uncertainty + 评分 operation）** | 证据 span/hash/coverage/uncertainty 写路径（mig `0109` 面）+ criterion 级模型 operation/预算/unknown/`review_required`/`score_excluded` 语义 | `scoring-evidence-conflict.ts` + `scoring-operation-routing.ts` + MODEL-OP 面 | 证据复验/冲突→review_required（非 0 分）+ operation attempt/unknown 语义 prove | 前置 S-SCOR-2 + **MODEL-OP-01**；**dual 第一顺位换 mw-model-op**（§1b） |
+| **S-SCOR-3（SCOR-03/04 证据/冲突/uncertainty + 评分 operation）** | 证据 span/hash/coverage/uncertainty 写路径（mig `0109` 面）+ criterion 级模型 operation/预算/unknown/`review_required`/`score_excluded` 语义 | `scoring-evidence-conflict.ts` + `scoring-operation-routing.ts` + MODEL-OP 面 | 证据复验/冲突→review_required（非 0 分）+ operation attempt/unknown 语义 prove | 前置 S-SCOR-2 + **MODEL-OP-01**；**换审冻结：dual 第一顺位 mw-model-op**（C-EH-5 · §1b · 不得降级/缺席/换默认） |
 | **S-SCOR-4（SCOR-05/06/07/08 校准与 B 端门）** | 金标/双盲标注/cohort 稳定性；calibration release + 双盲人工复核；B 端用途硬门（无校准不得影响申请/列表/人才库/通知/导出）；真实组合根全验证 | 校准/复核/门禁面（届时立项） | 校准 release prove + 反事实公平集 + 决策审计 | 前置 S-SCOR-3；**校准不通过 → B 端保持暂停（`assessment_unavailable`/score=NULL 无限期合法）** |
-| **S-CB-1（P0-CB-01 收口）** | 不可替代绑定**验收证据面**闭合：immutable `CandidateEvaluationSnapshot`（score/rubric/model/prompt/qbank 版本 + evidence hash）建模；audit 验收表逐项（20 并发恰 1 会话/错配 409/重放恰 1/浏览器 C→B 必过 1 条） | `recruiter.ts`/`applications.service.ts` + additive mig + web 面 · Ban 动摇 `0028` 既有约束语义 | 验收表逐项 named proves + 浏览器 E2E（含刷新/双击/断网恢复） | **S-SCOR 包启动门之后**（「SCOR then P0-CB」写死）· D1 若判绑定语义仍有缺口，范围以未来 REQUEST 重立 |
-| **S-CB-2（P0-CB-02 同意边界）** | purpose-bound `ShareGrant` + 岗位/简历快照版本 + expiry/retention + 可撤回 + 在途 `terminated_consent` + 全数据面清理观测 | additive mig + recruiter/applications 面 + **隐私线联动**（撤回与 worker resume 竞态） | 撤回后各数据面 0 命中 + 并发 20 次终态一致 + 已授权可见字段仅来自 snapshot | S-CB-1 后 · 01→02→03 内序写死 · **mw-privacy-int 第一顺位** |
+| **S-CB-1（P0-CB-01 收口）** | 不可替代绑定**验收证据面**闭合：immutable `CandidateEvaluationSnapshot`（score/rubric/model/prompt/qbank 版本 + evidence hash）建模；audit 验收表逐项（20 并发恰 1 会话/错配 409/重放恰 1/浏览器 C→B 必过 1 条）；**自带「不可替代绑定」语义终裁（含 `consent_version` 事务绑定面——tip 代码域零命中 · C-EH-3 冻结；若届时判 DB 绑定 ≠ 审计意义不可替代〔snapshot 层不可变证据〕，范围以未来 REQUEST 重立——依赖列逃生门认可并冻结）** | `recruiter.ts`/`applications.service.ts` + additive mig + web 面 · Ban 动摇 `0028` 既有约束语义 | 验收表逐项 named proves + 浏览器 E2E（含刷新/双击/断网恢复） | **S-SCOR 包启动门之后**（「SCOR then P0-CB」写死）· D1 若判绑定语义仍有缺口，范围以未来 REQUEST 重立 |
+| **S-CB-2（P0-CB-02 同意边界）** | purpose-bound `ShareGrant` + 岗位/简历快照版本 + expiry/retention + 可撤回 + 在途 `terminated_consent` + 全数据面清理观测 | additive mig + recruiter/applications 面 + **隐私线联动**（撤回与 worker resume 竞态） | 撤回后各数据面 0 命中 + 并发 20 次终态一致 + 已授权可见字段仅来自 snapshot | S-CB-1 后 · 01→02→03 内序写死 · **换审冻结：第一顺位 mw-privacy-int**（C-EH-5） |
 | **S-CB-3（P0-CB-03 浏览器矩阵进 CI）** | 三主体浏览器矩阵（recruiter/candidate/第三租户 + 越权读 0 + 撤回后结果 0）进 CI；Ban mock API/DB | `apps/web/e2e-ui/` + CI profile · 保留 `recruiter:prove`/`neg:bend`/`openapi:prove` 底座 | 矩阵 ≥7 条全过收据（audit §4.2 阈值）· `releaseEvidence` 仍 false | S-CB-2 后 · 内序写死 |
 
 ### 2d. 现存 prove 面处置（docs 声明 · 本刀不执行）
@@ -101,7 +103,7 @@
 | B 端冻结 | 校准 release + 人工复核前：B 端 `assessment_unavailable`/score=NULL、无排序/自动决策、`refuseMappedBSideScore` 恒失败 | backlog `:77`/`:103` + ADR-0020 §3 |
 | W6 边界 | W6 honesty close pins 只读继承不重复立法；本刀 = inventory + slice definition | §1a |
 | 隐私冻结 | **W3 DELETE=503 freeze remains** · SCOR 可比/B 端排序不得借隐私/擦除任何本地绿解锁叙事 | W6 hard dependency + BUG-PRIV-503（继承） |
-| 审规格 | 本刀 dual = mw-e2e-ha + mw-privacy-int（§1b）；未来切片按域换审不降级（≥dual · 关键片 ≥2 域对抗 · G4） | G4 + §1b |
+| 审规格 | 本刀 dual = mw-e2e-ha + mw-privacy-int（§1b）；未来切片按域换审不降级（≥dual · 关键片 ≥2 域对抗 · G4）· **换审冻结：S-SCOR-3→mw-model-op / S-CB-2→mw-privacy-int 第一顺位（C-EH-5 · 不得降级/缺席/换默认）** | G4 + §1b |
 
 ## 4. 相关历史（只读 cite · 零改写）
 
@@ -113,7 +115,7 @@
 | `architecture/ai/scoring-measurement-runtime.md` | status **draft**（目标架构 · 非现状） |
 | `execution-master-checklist.md` | `:198-209`（SCOR-00 [x] · 00H [x] · 预览 UI ◐ · SCOR-01…08 全 [ ]）· `:167`/`:173`/`:174`/`:176`（INT-TRANSCRIPT ◐/blocked）· `:194`（依赖）· `:124` EXEC-01 ◐ |
 | `e2e-requirement-coverage-matrix.md` | `:201` SCOR-00 **partial** · `:234` GAP-PROD-02/P0-CB **partial**「单链路有；三主体矩阵进 CI 仍缺」· `:264` P0-4 隐私 pin/评分止血 |
-| `harness/north-star-hard-gates.md` | G1-G7 生效（门禁强制）：本刀 docs-only 走 G4 独立审；G2/G3 对未来切片的强制列（NEG/FAULT/BOUND/ADV/PERF/LOAD）在各自 REQUEST 落 |
+| `../north-star-hard-gates.md`（`ai-docs/delivery/north-star-hard-gates.md` · delivery 根实锚 · C-EH-2/C-I-2(a) exec 落实） | G1-G7 生效（门禁强制）：本刀 docs-only 走 G4 独立审；G2/G3 对未来切片的强制列（NEG/FAULT/BOUND/ADV/PERF/LOAD）在各自 REQUEST 落 |
 | `harness/w3-int-transcript-delete-503-freeze.md` | DELETE=503 freeze（继承写死） |
 | `REMAINING-NORTH-STAR-QUEUE.md:43-44` | 「## Phase 7 product / SCOR then P0-CB」（本刀认领） |
 | PRD-TEST-015（remediation register `:54`） | 原文：先 INT-TRANSCRIPT-00/01 再 SCOR-01…08；同包切除 legacy event 消费；公开 DELETE 保持 503 |
@@ -154,6 +156,44 @@
 
 docs-only REQUEST 立卷 · not SCOR 实现 · not P0-CB 实现 · not 校准 · not B 端可比较/排序 · not C/B 闭环 · not INT-TRANSCRIPT-00/01 闭合 · not MODEL-OP 面 · not DELETE 开放 · not audit 文档更正 · not `:77`/`:78`/`:103` flip CLOSED · not covered · not HA · not suite green · not `releaseEvidence=true` · PG-retained · DELETE=503 · alone ≠ dual · PASS ≠ coding ≠ prove ≠ AUTHORIZE
 
+## 9. exec 登记（2026-10-07 · exec-era · docs-only · lifecycle 元行推进）
+
+**PRE dual BOTH PASS + 协调方 AUTHORIZE 后 exec landed**：REQUEST `895f5ec8`≡origin 镜像 `6b61b734`（patch-id **`28d2806a575851758fc79172384cd4da99ff1487`** 两副本实测等同 · rebase skipped-CherryPicks 实证）· PRE dual PASS = **mw-e2e-ha `0617a15`≡主线 `8345f3c2`（patch-id `d73298d3957940c49562f4f556b8d2c2e6ae36ca` 两副本实测等同）+ mw-privacy-int `1c1b28d`≡主线 `cd908eff`（patch-id `339c9ed2f213a10209c34770454bb8c0ff7103bf` 两副本实测等同）**（两审 0 Blocker）· REQUEST 自身即完整立卷产物（SCOR/P0-CB 盘点 + 切片定义 + 顺序写死）→ 执行 = 本 harness/slice lifecycle 元行推进 **`draft:awaiting_pre_exec_dual` → `executed:awaiting_post_prove_dual`**（旧状态以 Draft-era historical retained blockquote 保留 · token 0 live residue）+ 双审 Conditions docs-side 落实（§1b/§2b/§2c/§3/§4/本节）。
+
+**D1 裁决记录（两审一致 · 生死点 · P0-CB-01 现状属向）**：绑定基底 tip 实存成立（mig `0028` 双 partial UNIQUE + CHECK 三件套 + FK · `recruiter.ts:354` `startApplicationInterview` 行锁同事务 · finalize「不接受客户端 interviewId」DB 反查逐锚亲证）→ implementer 读法成立、收窄逃生门**不触发**、`:78` 按原文 **OPEN** 维持；audit stale 属向校正**只降基底缺口、不降验收证据面缺口**（缺口重心=验收证据面）；privacy 附加写死保留：「不可替代」含 snapshot 面、S-CB-1 验收证据面闭合前 `:78` 不得 flip（C-I-3）。D2/D3/D4/D5 两审全成立（D5：e2e-ha+privacy-int 审席组合两席裁合理；S-SCOR-3 换 mw-model-op 写死足够 → 升格冻结见 C-EH-5 落实）。
+
+**落位与 base 重验（rebase 落 tip 后锚点核对）**：
+
+- **落位**：`line/scor-p0cb-inventory` rebase `feat/mysql-schema-skeleton`（本机主线 @ `cd908eff` · 含 PRIV01/INT01 链 + 本刀双审 `8345f3c2`/`cd908eff`）→ REQUEST 同补丁副本 drop（镜像 `6b61b734` 已 ∈ 祖先 · patch-id 同上）· exec HEAD = **`cd908eff`**（= mw-privacy-int PRE PASS commit · 两 PRE PASS `8345f3c2`+`cd908eff` 均 ∈ exec base 祖先亲证）。
+- **零码移复证**：`git diff --name-only 313e04a7..cd908eff` = 12 文件全 `ai-docs/` · `git diff --stat 313e04a7..cd908eff -- src apps packages scripts migrations package.json` = **0 字节** → §2a/§2b 代码锚在新 base 全部继续有效（抽验：mig `0028`/`0046`/`0051`/`0082`/`0100`/`0103`/`0109` 七件实存 · `recruiter.ts:354` · `applications.service.ts:35-56`/`:66-78` · `InterviewPanel.tsx:88-111` · `scoring-aggregation.ts:96` · `scoring-fact-root.ts`/`scoring-evidence-conflict.ts` · `package.json:98`/`:194`/`:273`/`:396`/`:397`/`:398` 六 CMD 实存 · w6 dual SHA `a6ca9e31` `:35` · audit P0-CB-01 编号项 **×4** 实数）。
+- **SSOT 行号 tip 实测（只读核对 · 零改）**：backlog `:55` 表头 / `:77` GAP-PROD-01 / `:78` GAP-PROD-02 / `:103` BUG-SCORE-LEGACY · matrix `:201` SCOR-00 partial / `:234` GAP-PROD-02 partial / `:264` P0-4 · checklist `:167`/`:173`/`:174`/`:176`/`:194`/`:198-209`（SCOR-00 [x] · 00H [x] · SCOR-01…08 [ ]）· queue `:43-44`「SCOR then P0-CB」——**base→tip 全部零漂移**（delta 12 文件零触碰上述 SSOT）。
+- **named proves**：六条 CMD 行号 tip 实测全在位 · 零跑零新增零 receipt。
+
+**Conditions 落实清单（C-EH-1~8 + C-I-1~7 · 全 docs-side · 零 SSOT 行改动）**：
+
+| Condition | 内容 | 落实位置 |
+|----|------|----------|
+| C-EH-1 / C-I-1 | 零命中措辞按代码域口径校准（`-- ':!ai-docs'`） | §2b#1（candidate_evaluation 族 · 产品码 0 hit）· §2b#2（ShareGrant · 产品码 0 hit · 整树字面仅 ai-docs 语境）落字 |
+| C-EH-2 / C-I-2(a) | hard-gates 路径实锚 delivery 根 | §4 更正 `harness/north-star-hard-gates.md` → `../north-star-hard-gates.md`（`ai-docs/delivery/north-star-hard-gates.md`） |
+| C-EH-3 | S-CB-1 自带「不可替代绑定」语义终裁，含 `consent_version` 事务绑定面（冻结） | §2c S-CB-1 目标落字（snapshot 层不可变证据判读逃生门认可并冻结） |
+| C-EH-4 | audit 现状证据以 **4 条编号项**口径登记（1/3/4 三条全 stale + 第 2 条部分 superseded：practice 面入口在 tip 仍存在、application 面已被 `startApplicationInterview` 绑定路径覆盖） | **本节登记为 binding 口径**；audit 文档零改写 · audit 文档正文口径更正**留 nail**（协调方 · 本卷正文引作「三条」的措辞统一亦留 nail） |
+| C-EH-5 | 审席换审冻结 | §1b/§2c（S-SCOR-3→mw-model-op · S-CB-2→mw-privacy-int 第一顺位 · 不得降级/缺席/换默认）· §3 审规格行 |
+| C-EH-6 / C-I-7 | named proves ≠ 授权 · EXIT 契约持续 | §5 原样维持（六 CMD named-not-run · 待建不命名不授权 · attempts 全记录 · 诚实失败 · Ban retry-to-green · EXIT0≠已建≠已闭≠校准≠covered） |
+| C-EH-7 | Pins 冻结至 nail | §6 原值零漂移 · SSOT 登记属协调方 nail 阶段 |
+| C-EH-8 / C-I-5 | alone ≠ dual 不代签 | 本 exec 零 self-write POST · awaiting POST dual（协调方另派） |
+| C-I-2(b) | 「assessment_unavailable 15 文件」cite 漂移（privacy-int 实测：非 ai-docs **34** 文件 · apps/web 内 9） | **归 nail 更正**（本节登记 · 正文留原值 · cite-only · 实质结论零变动） |
+| C-I-3 | D1 逃生门写死保留（`:78` 闭合前不 flip · 收窄若触发须显式入卷 Ban 静默换范围） | §1-D1/§2c S-CB-1 原样 + 本节再确认 |
+| C-I-4 | 前置门不弱化 · INT-TRANSCRIPT-01 stays **blocked** | §2a#6/§2c S-SCOR-0/§3 原样 + 本节再确认（立卷 ≠ 授权 · SCOR-01…08 / S-SCOR-*/S-CB-* 零借道启动） |
+| C-I-6 | append-only（审段）· 被审 stub 前 43 行 byte-intact | 本 exec 零触碰 `reviews/`（exec delta 恰 harness+slice 2 md） |
+
+**OB/遗留（归 nail · docs-side）**：① audit「4 条编号项」口径在正文（§0-D1/§2b#1 引作「三条」）的措辞统一更正——binding 口径见 C-EH-4 行，正文措辞留 nail；② §2a#5「15 文件」→ 非 ai-docs 34（apps/web 9）——留 nail；③ 两件均 cite-only、实质结论零变动，登记不弱化。
+
+**写死保留（未来切片绑定）**：未来任何 S-SCOR-*/S-CB-* 切片 REQUEST 须**同时**满足——(1) 本刀 §2c 内容清单（每片目标/触碰面/prove 拟案）+ §3 顺序合同（「SCOR then P0-CB」· P0-CB-01→02→03 · 无一豁免）；(2) **S-SCOR-0 前置门**（INT-TRANSCRIPT-00/01 真实组合根闭合 · stays blocked 直至授权闭合 · C-I-4 不弱化）；(3) **换审冻结**（C-EH-5）；(4) **§5 EXIT 契约** + G2/G3 六列（NEG/FAULT/BOUND/ADV/PERF/LOAD）——缺一不可；本刀 PRE PASS/exec ≠ 上述任一项预授。
+
+**铁律持续自证**：零实现 · 零 prove 执行 · 零 live · 零产品码（`313e04a7..cd908eff` delta 复证 0 字节 · 本 exec delta 恰 harness+slice 2 md）· **SSOT 零触碰**（backlog/matrix/checklist/queue/audit/W6 链/MOP 链/AN 系列/`reviews/` 零改 · SSOT 登记属协调方 nail 阶段）· **「SCOR then P0-CB」顺序写死** · S-SCOR-0 前置门不弱化（INT-TRANSCRIPT-01 stays blocked）· **Pins 原值零漂移**（§6）· DELETE=503 · **GAP-PROD-01 `:77` / GAP-PROD-02 `:78` OPEN** · **Ban self-write `post_prove_dual_pass`**（POST 双审 + 协调方 nail 专属 · Ban open POST here）。
+
+**STOP——awaiting POST dual（协调方另派 · 禁自批）· Ban push。**
+
 ## Review stubs
 
 | Expert | Stub |
@@ -161,6 +201,6 @@ docs-only REQUEST 立卷 · not SCOR 实现 · not P0-CB 实现 · not 校准 ·
 | `mw-e2e-ha` | `reviews/REQUEST-2026-10-07-gap-scor-p0cb-inventory-mw-e2e-ha.md` |
 | `mw-privacy-int` | `reviews/REQUEST-2026-10-07-gap-scor-p0cb-inventory-mw-privacy-int.md`（按域选审 · 理由 §1b） |
 
-**Ban coding / Ban prove / Ban live 持续 · awaiting PRE dual（Ban self-write PASS · nail 属协调方 · SSOT 登记属 nail 阶段）。**
+**PRE dual BOTH PASS（mw-e2e-ha `0617a15`≡主线 `8345f3c2` + mw-privacy-int `1c1b28d`≡主线 `cd908eff`）+ 协调方 AUTHORIZE 已兑现 · docs 立卷面已执行 = lifecycle 元行推进至 `executed:awaiting_post_prove_dual` · Ban coding / Ban prove / Ban live 持续 · awaiting POST dual（Ban self-write `post_prove_dual_pass` · Ban open POST here · nail 属协调方 · SSOT 登记属 nail 阶段）。**
 
-*Harness · Line SCOR · Phase 7 产品诚实首刀 · GAP-PROD-01 `:77`（SCOR）+ GAP-PROD-02 `:78`（P0-CB）盘点立卷 · 2026-10-07 · `draft:awaiting_pre_exec_dual` · 零 coding · 零 prove 执行 · 「SCOR then P0-CB」顺序写死 · 零实现 · DELETE=503 · `:77`/`:78` OPEN · alone ≠ dual · STOP（awaiting PRE dual）*
+*Harness · Line SCOR · Phase 7 产品诚实首刀 · GAP-PROD-01 `:77`（SCOR）+ GAP-PROD-02 `:78`（P0-CB）盘点立卷 · 2026-10-07 · `executed:awaiting_post_prove_dual` · 零 coding · 零 prove 执行 · 「SCOR then P0-CB」顺序写死 · 零实现 · DELETE=503 · `:77`/`:78` OPEN · alone ≠ dual · STOP（awaiting POST dual · Ban self-write）*
