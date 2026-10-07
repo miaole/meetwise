@@ -48,7 +48,7 @@ import { budgetedQbankEmbedding, resolveRagCostGovernance } from './rag-cost-gov
 import { resolveModelCostGovernance, verifyModelCostGovernance } from './model-cost-governance.ts';
 import { RedisQbankRetrievalCache, UnavailableQbankRetrievalCache, isProductionEnvironment, resolveRagRedisCacheConfig } from './rag-redis-cache.ts';
 import { PrincipalBoundCheckpointPool } from './checkpoint-principal.ts';
-import { runCheckpointPrivacyEraser } from './privacy-erasure-worker.ts';
+import { runCheckpointPrivacyEraser, runVectorPlanePrivacyEraser } from './privacy-erasure-worker.ts';
 import { initializePrivacyWorkerStartup } from './privacy-worker-runtime.ts';
 import { initializeRagControlStartup } from './rag-control-runtime.ts';
 
@@ -679,6 +679,10 @@ async function bootstrap() {
   // Dual reconciler 同列 · ≠ MODEL-OP fake green / ≠ SLO / ≠ Redis cutover / PG LISTEN retained.
   const usageCalibrationReconcileLoop = runUsageCalibrationReconciler(pool);
   const privacyErasureLoop = privacyPool ? runCheckpointPrivacyEraser(privacyPool, `${leaseOwner}:privacy`) : undefined;
+  // GAP-PRIV-04：向量面 sweep 步（0141 · 0125 memory_vector_chunk 同形收尾）。仅
+  // sink='memory_vector_chunk'；INT sink='vector' 诚实 no-target；qbank 永不删；
+  // 无授权不删（jti feed 缺失即跳过）· 0091 local_erased receipt 落账 · ≠ 云端删除宣称。
+  const vectorPlaneErasureLoop = privacyPool ? runVectorPlanePrivacyEraser(privacyPool, `${leaseOwner}:privacy-vector`) : undefined;
   // 队列健康 gauge 刷新循环(告警数据源:queued/卡住/DLQ 深度)。低频 15s,查询失败经 drain-loop 兜底不停循环。
   const gaugeLoop = runDrainLoop(() => Promise.all([
     refreshJobGauges(pool), refreshRagCostGauges(pool, ragCost.scopeId), refreshModelCostGauges(pool, modelCost.scopeId),
@@ -687,7 +691,7 @@ async function bootstrap() {
     ragReady: () => ragCache.available && qbankReadModel.ready,
     workerReady: () => reportLoop.ready() && interviewLoop.ready() && quizLoop.ready() && diagnosisLoop.ready()
       && routeClassifyLoop.ready()
-      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && usageCalibrationReconcileLoop.ready() && (privacyErasureLoop?.ready() ?? true),
+      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && usageCalibrationReconcileLoop.ready() && (privacyErasureLoop?.ready() ?? true) && (vectorPlaneErasureLoop?.ready() ?? true),
   });
   // Start consumers before the optional external embedding build. A failure can only disable local evidence, never
   // turn an infrastructure dependency into an interview/payment availability outage.

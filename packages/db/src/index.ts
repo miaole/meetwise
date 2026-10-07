@@ -541,3 +541,14 @@ export {
 export type { PrivacyPreviewListRow } from './privacy-erasure-preview.ts';
 export * from './uc052-internal-erasure.ts';
 export * from './uc052-external-sink-async-purge.ts';
+
+// 0141：GAP-PRIV-04 向量面擦除收尾（dispatch feed + jti feed + 0091 receipt 落账 +
+// 产品 sweep 步）。target 集先钉：仅 memory_vector_chunk（owner+kind 双谓词）；INT
+// sink='vector' 诚实 no-target；qbank 永不删；0091 零语义改动（既有 receipt 函数原样复用）。
+export {
+  listClaimableVectorChunkTargets, resolveVectorChunkTargetConsumedJti,
+  recordVectorPlaneLocalErasedReceipt, runVectorPlaneErasureTick,
+} from './vector-plane-erasure.ts';
+export type {
+  VectorChunkErasureFeedItem, VectorPlaneErasureTickDeps, VectorPlaneErasureTickResult,
+} from './vector-plane-erasure.ts';
