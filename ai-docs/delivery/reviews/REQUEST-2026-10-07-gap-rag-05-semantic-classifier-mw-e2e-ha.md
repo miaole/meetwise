@@ -112,3 +112,71 @@ GAP-RAG-05 `:73` stays **OPEN** · 受控评测 harness named-only · **Ban clos
 3. Pins 原值零漂移（NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503），`:73` stays OPEN；0 Blocker，Conditions C-HA-1~7 随卷；alone ≠ dual，不代签 peer `mw-rag-route`，PASS ≠ coding/prove/live/nail/close 授权。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual 审查段（mw-e2e-ha · adversarial evidence-honesty · Stage S prove 后复核）
+
+**Reviewer**: `mw-e2e-ha`（独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-rag05p-e2e-ha` · branch `rv/rag05p-e2e-ha` · base=origin/feat/mysql-schema-skeleton tip `75ba2783`（full `75ba2783d547e154227d52ea4ee98cf6547310e3`）· 本审 commit 于该 worktree · Ban push）
+**被审包**: RAG05 Stage S 链 = coding `281128ce`（feat(ai-runtime) · receipt/台账侧自称 `db7da1cd` · 见 OBS-A）+ receipt `0039c1b7`（docs(delivery)）· 恰 **4+2 文件**
+**前审**: PRE-EXEC dual PASS `48fc38cb`（本文件上半段 · C-HA-1~7 全额绑定本段逐条复核）· 实现方 EXEC receipt `0039c1b7` Status=`executed:awaiting_post_prove_dual` · Ban self-approve
+**审查焦点**: fresh re-run 亲跑 + Route L 零执行零 Key 接触解锁链完整性 + Key 卫生 + 评测诚实 + 不外推 + additive-only + Pins + alone≠dual。
+
+## 包完整性机检（逐项亲算）
+
+- **恰 4+2 文件**：`281128ce` = M root `package.json`（+2 行 CMD 三层注册）+ M `packages/ai-runtime/package.json`（+1 行 prove script）+ A `packages/ai-runtime/src/router/semantic-route.ts`（260 行）+ A `packages/ai-runtime/test/gap-rag05-classifier.proof.ts`（202 行）；`0039c1b7` = A receipt md + A attempt-ledger.txt。恰 4+2，零多余。
+- **零 Key 物料入树（秘密门自跑）**：`scripts/check-staged-secrets.mjs` credentialPatterns（5 条）+ `CLOUD_IDENTIFIER_RULES`（PRIVATE_KEY/CLOUD_IDENTIFIER · 含 isSyntheticIdentifier 放行逻辑）**逐条 verbatim 重放** 6 包文件 = **0 findings**；包面零 `.env*`；receipt/ledger 全程 name-only（`~/.meetwise-secrets/MODEL_API_KEY` 仅提名）。
+- **SSOT 零 diff**：`git diff 760de1e1..0039c1b7` 于 backlog/checklist/register/matrix/queue 五件 = **空**；占用行零触碰随之机检成立。
+- **零外呼三重证**：① `envModelApiKeyUnset=true`——本审 fresh re-run CMD 层 `env -u` 三键 + proof **S0 fail-closed 断言门 PASS**（log :13 亲读）；② `providerOutboundCalls=0` 结构性——两新文件 network-primitives grep（fetch/http/https/net/tls/dns/http2/axios/undici/WebSocket/child_process）= **0 hit**，模型缝 = 注入类型函数 `SemanticRouteModelClassify`，零网络客户端构造；③ **import 面恰 = `node:crypto` + `node:perf_hooks` + `@meetwise/domain`**（`semantic-route.ts:35-47` · proof :25-32 同域）亲读吻合。
+- **base 重钉 delta 亲算**：`8c6860e3..ee7563a2` = 恰 7 ai-docs（他线）+ `scripts/run-e2e-isolated.mjs` ±2 行（:5-6 SOLE_STACK 头注对齐 · SS2 线）——与本刀 4 文件触碰面零交集，receipt §Base 重钉披露吻合。
+
+## Fresh re-run（双审侧 · 恰一次 · 禁重试）
+
+- **CMD**：`env -u MODEL_API_KEY -u DASHSCOPE_API_KEY -u DASHSCOPE_COMPAT_BASE_URL pnpm gap-rag05-classifier:prove`
+- 场景：worktree `rv/rag05p-e2e-ha` @ `75ba2783` porcelain clean · node v22.22.3 · pnpm 10.18.0（`pnpm install --frozen-lockfile` 环境准备 · 非 prove attempt）· parent env 三键 name-only 亲检 absent（闸仍全额应用）
+- **结果：EXIT=0 · 33 PASS / 0 FAIL** · S0 三键未设门在卷 PASS · **首跑即绿 · 零重试** · 跑后 `git status --porcelain` = 0 行（进程内零 IO 结构性自证）
+- 与实现方 PRIMARY attempt-2（`db7da1cd` clean tip）内容同源性：4 文件 blob hash 逐一 IDENTICAL（见 OBS-A）→ 双侧 fresh 同一断言面成立。
+
+## C-HA 条件裁决（PRE 七条 · POST 逐条复核）
+
+| 条件 | 裁决 | 亲证 |
+|------|------|------|
+| **C-HA-1** Route L 零执行零 Key 接触（解锁链完整带入） | **HELD** | 模块零网络客户端（结构性不可能外呼）；receipt §5 residual **原文核验**：量化面（误路由率/Recall@K/P95/成本）显式未测不宣称；四要件解锁链完整在卷 = 双审同裁 + **EXEC 显式授权**（AD P4 · 列条件≠授权）+ **按当时牌价预算重报**（粗估 ~240 calls/硬帽 ¥20 超帽 abort）+ **阈值先冻**（`SEMANTIC_ROUTE_PERF_BUDGET` stage='L' · frozenAt='2026-10-07' · misrouteHoldoutMax=0 · perLeafRecallAt5MinBps=8000 · p95=3000ms · costHardCapCny=20 · S5④ 断言在卷）+ **H19 temperature=0 + prompt 版本钉**；`actualSpendCny=null` stays null（Ban invent spend）；本审全程零 Key 读取零外呼亲证 |
+| **C-HA-2** Key 卫生 | **HELD** | CMD 层 `env -u` 三键 = 唯一凭证闸（本审亲跑应用）+ proof S0 fail-closed 门（设了即红）亲跑 PASS；主 proof **不经 runner**（`:prove:raw` 直达 tsx · package.json 三层链亲读）；本刀零改 runner（delta 仅 SS2 头注 :5-6）；runner 剥清单仍**不含 `MODEL_API_KEY`**（:1957-1972 DASHSCOPE 族亲读）→ 「Route L 若经 runner 须 additive 补剥」条件继续绑定；`:72`（G7 指纹 · env -u 下恒 null ·「Fingerprint only — never persist key material」）与 `:1954`（scoring:eval:raw skip-gate）均为既有码非本刀面（OBS-B）；零 `.env*` · receipt/ledger/commit 零 Key 值（秘密门自跑 0 findings） |
+| **C-HA-3** 评测诚实 | **HELD** | 阈值预注册冻结于代码常量（先于 Stage L 首调 · Ban 事后改值凑绿 · S5④ 逐项断言）；变异证伪如实录红：mut-1-1 EXIT=1（S3③ ×2 红）· mut-2-1 EXIT=1（S2② NEG ×6 红）· 断言集零改动 · `git diff --exit-code` 恢复复核在卷；主断言面自始绿（smoke/attempt-1/attempt-2/final-1 全 EXIT=0 · 台账 :20 汇总亲读）→ **零 retry-to-green**；本审 fresh re-run 亦首跑绿；EXIT1=诚实 attempt ≠ flake 口径在卷 |
+| **C-HA-4** 不外推 | **HELD** | receipt §5 EXIT0≠清单在位（≠ `:73` CLOSED ≠ 语义质量冻结 ≠ covered flip ≠ `:70`/`:71` close ≠ router 生产接线 ≠ HA ≠ `releaseEvidence=true` ≠ 替代 R4）；proof S5④「规则路径本地实测 < P95」显式标 **机制演示 · 模型 P95 实测留 Stage L**（不外推）；S2② decided 结构断言 = 纯建议无 retrieval/read/tool 授予键；backlog `:73` 行亲读无 CLOSED/`post_prove_dual_pass` token；coveredCount=**8** 零翻转；matrix :18-19 FUNNEL-07/08 covered 未借关行 |
+| **C-HA-5** additive-only / 触碰面 | **HELD** | 4+2 全为 A 或 additive 行；`packages/db/src/**` · migrations（含 0138/0139）· 既有 rag03-*/rag04-*/rag05-qbank-miss/rag06/rag07/batch4 proof · runner · SSOT 五件 · 占用行 **零触碰机检**；CMD 消歧（C-4）：`gap-rag05-classifier:prove` 新注册与 `rag05-qbank-miss:prove`（`package.json:252` 原位未动）零碰撞，双新文件头 disambiguation note 在卷 |
+| **C-HA-6** Pins 冻结 | **HELD** | checklist `:432`/`:443` 逐字吻合 tip 原值（NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount **8** · ms3EqualsR4Closed=false · PG-retained · DELETE=503）；backlog `:70`/`:71`/`:73` 原样；register `:56` PRD-TEST-017 仅首格 ☑；queue `:34-35` Phase 4 原文；本段 append-only（前 114 行 byte-intact · git diff 仅 + 行机检）为本 PASS 组成部分 |
+| **C-HA-7** alone ≠ dual | **HELD** | 本段仅 `mw-e2e-ha` 一侧裁决 · 不读不改不代签 peer `mw-rag-route`（其 POST 审并行另出）· `post_prove_dual_pass` 落账权归协调方 · implementer 不自批 · POST PASS ≠ AUTHORIZE ≠ Route L 授权 |
+
+## Fail-trigger audit（触发即 FAIL · 逐条机检为负）
+
+- 包面 Key 物料 / `.env*` → 秘密门 verbatim 重放 6 文件 **0 findings**。
+- 重试凑绿 / 断言改动 → 台账 attempts 全录 + 本审恰一次首跑绿 + 4 文件 blob 与 PRIMARY attempt 同源 IDENTICAL。
+- 事后改阈值口子 → 阈值为 `as const` 代码常量 + S5④ 断言逐项钉值 + receipt §5「Ban 事后改值凑绿」写死。
+- Route L 偷跑口子 → 模块零网络客户端 + 缝=注入函数 + residual 四要件解锁链完整 + EXEC 未授权。
+- `:73` 翻行 / covered flip / Pins 漂移 → SSOT 五件 0 diff + `:73` 行无 closed token + checklist :432/:443 原值亲读。
+- 外推口子 → S5④ 机制演示显式 + §5/§8 Non-claims 双写。
+
+## Blockers
+
+**0**（无阻断项）。
+
+## Conditions（随 PASS 携带）
+
+- **C-HA-1 ~ C-HA-7 全额继续绑定**（PRE 段原文为准 · POST 复核全 HELD 无稀释）；其中 C-HA-2 之「Route L 若经 runner 须 additive 补剥 `MODEL_API_KEY`」与 C-HA-1 之 Route L 四要件解锁链（EXEC 再授权+预算重报+阈值先冻+H19 t=0/prompt 版本钉）为本 PASS 的继续生效前提。
+- 本刀口径边界继续绑定：EXIT=0（双侧 fresh）仅证 **Stage S 结构面**；Route L 量化面 residual 按 receipt §5 原文待 EXEC；`actualSpendCny` stays null；coveredCount=8；`:73` stays OPEN。
+- 无新增 Conditions（2 条观察非阻断登记如下）。
+
+## 观察（非阻断 · 2 条）
+
+- **OBS-A**: receipt/台账 coding commit 自称 `db7da1cd`（=rebase 到 `ee7563a2` 顶的 sha · parent 亲证 `ee7563a2`），落地主线 coding commit 实为 `281128ce`（parent `760de1e1`）——**落地后 sha 未在 receipt 提名**。内容面机检全等：`git patch-id --stable` 双侧 = `f714263032b8cd41f84531ecbb5cafc6239eef06` 全等 + 4 文件 blob hash 逐一 IDENTICAL（`077aebab`/`a099c0c4`/`9549cb28`/`ee0a3204`）→ 重钉已披露、内容零漂移，登记备查不阻断；后续 receipt 惯例建议并列披露 pre/post-landing 双 sha。
+- **OBS-B**: runner 既有 `MODEL_API_KEY` 引用两处（`:72` G7 freetier 指纹——本刀口径下 env -u 恒 null · 代码自注 never persist key material；`:1954` `scoring:eval:raw` skip-gate——live eval 显式申报面）均**先于本刀存在**（`8c6860e3..ee7563a2` delta 仅 :5-6 头注），非本刀触碰；剥清单仍不含 `MODEL_API_KEY`，与 PRE 段 C-HA-2 亲验登记一致（PRE 引 :1965-1972 与现行号微漂 · 实质内容 DASHSCOPE 族成立）。
+
+## 中文三行摘要
+
+1. POST-PROVE dual 机检全过：RAG05 Stage S 链恰 4+2 文件（coding `281128ce` + receipt `0039c1b7` · 台账侧 `db7da1cd` 与落地 `281128ce` patch-id `f7142630` 全等 + 4 blob IDENTICAL · OBS-A 登记）；秘密门 verbatim 重放 6 包文件 0 findings、SSOT 五件 0 diff、零外呼三重证成立（env -u 三键 + S0 门 PASS + 网络原语 0 hit + import 面恰 node:crypto/perf_hooks/domain）。
+2. 本审 fresh re-run 恰一次：`env -u MODEL_API_KEY -u DASHSCOPE_API_KEY -u DASHSCOPE_COMPAT_BASE_URL pnpm gap-rag05-classifier:prove` → **EXIT=0 · 33/33** · 首跑即绿零重试、跑后 porcelain=0 零 IO 自证；C-HA-1~7 逐条复核全 HELD（Route L 四要件解锁链 receipt §5 原文完整 · 阈值 as const 先冻 · 变异 2 轮 EXIT=1 如实录红零 retry-to-green · EXIT0≠`:73` CLOSED≠语义质量≠covered flip · additive-only · Pins 八项原值 · alone≠dual）。
+3. 0 Blocker · C-HA-1~7 全额随卷继续绑定（runner 补剥 + EXEC 再授权链为 Route L 前提）· 观察 2 条非阻断（landing sha 未并列披露 · runner 既有 MODEL_API_KEY 引用特征化）；本段仅 mw-e2e-ha 一侧，不代签 peer `mw-rag-route`，`post_prove_dual_pass` 落账权归协调方；PASS ≠ Route L 授权 ≠ close ≠ HA · 禁 push。
+
+Verdict: PASS
