@@ -198,3 +198,91 @@ F-MO-1 判读表漏候选：未触发（E1 六候选+证伪分支全覆盖）· 
 3. 0 Blocker · 三条非阻断 OB（§1.3(2) ALTER 枚举不完整/commit 计数滑差/§Pins STOP 措辞未同步）；alone≠dual 仅 mw-model-op 半签不代签 mw-e2e-ha；本 PASS ≠ EXEC 授权 ≠ trio 翻绿；本审 0 prove run 0 live 0 Key 值读取 0 coding 0 SSOT edit · 禁 push。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE DUAL 审段（mw-model-op · 2026-10-07 · 被审 EXEC receipt commit `3da3f0cb`）
+
+**审查域**：POST-PROVE dual 甄别实验复验 · **model-op/TECH_ROLE 门域焦点 = 根因归类裁决（本席核心产出）** + 包完整性 + 四查询快照复核 + C-MO-P1 复核 + C-MO-1~11 条件裁决。**边界**：Ban coding · Ban prove 执行 · Ban live · Ban Key 值读取 · Ban SSOT edit · alone ≠ dual（本 verdict 仅为 mw-model-op 半签，不代签并行 peer mw-e2e-ha）· 禁 push。本审独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-ffp-model-op` · branch `rv/ffp-model-op` @ origin tip `ca2e4ce0`（实跑 code SHA `7ed35f0d` 亲核 = 本树直接父提交，`ca2e4ce0` 恰 +2 收据 md 零码 diff → 码面读数对实跑树全等等价）。append-only：追加前全文 32502B · md5 `65337c1bb1bad718c5cc9f42f04e83f3`，前缀机检见 G 节。
+
+## A. 包完整性机检（全过）
+
+- EXEC receipt commit `3da3f0cb`（mw-core）：`--name-only` 机检**恰 2 md**——`receipts/g7r-ff-last-error-discriminator/SUMMARY.md`（53 行）+ `e2e-ui-isolated.md`（69 行）· +122/−0 · **零产品码/SSOT/Key 物料 diff**。
+- sidecar 快照 536 行留 `.tmp/ff-lasterror-snapshots.log` 不入 git——**本席核实确不在 git**（commit 文件清单恰 2）且盘面实物在（292606B · 536 行 · exit 文件=1），披露如实。本席对该实物直接复核（B/D 节）——sidecar 不入 git 不减损其证据力，但产品刀 REQUEST 若需引用须以本审段盘面核验记录为桥。
+- wrapper blob：`git hash-object scripts/run-e2e-isolated.mjs` 本审 worktree 亲算 = `13dbfc43c744511644649ae310696a13ee2f20f7`，与执行 worktree `meetwise-line-ff` 亲算全等（binding 条件 1「零 diff」守约）。
+- 实跑 SHA `7ed35f0d` = RE-PRE 双 PASS tip（本树 `git log` 直读）；收据 commit ≠ 实跑 SHA 已如实登记（收据 §4 自我声明）。
+
+## B. 四查询快照原文复核（收据 §6 ↔ 盘面最后全 ok 行逐值全等）
+
+最后全 ok 快照 `2026-10-07T17:48:50.659Z`（phase=poll）本席从盘面 536 行 log `tail -1` 提取，与收据 §6 JSON **逐值全等**：
+
+1. Q1 `interview_job_failed_rows` rowCount=2：两行均 kind=start / status=failed / attempts=1 / `last_error='adaptive_role_route_missing'`（created_at `17:47:44.030Z` / `17:48:49.644Z`）✅
+2. Q2 分布**仅** `job.route-classify.v1` succeeded ×2 · error_code 全 NULL（零 interview chat op 行 · 零 `provider_rejected`/`deterministic_refusal`/`unknown`）✅
+3. Q3 `ai_invocation_trace` count=2 ✅
+4. Q4 `interview_status_distribution` failed ×2 ✅
+
+全卷聚合：`"status":"ok"` ×525（=525 轮全 ok）· `does not exist` ×32（=8 轮 migrate 前仪器错误 ×4 查询，与收据 §5 C-HA-FF-3 登记一致，未计入判读、未触发备选）· 无选择性摘录痕迹。**四查询快照原文核验通过。**
+
+## C. 根因归类裁决（本席核心产出 · 三问三答）
+
+### C.1 实现方码面归类是否准确：**准确（逐行亲读 @本树）**
+
+- 门文件 `apps/worker/src/adaptive-role-resolve.ts`：`:35-39` `isTechRoleFailClosedEnabled` unset/blank→**ON**（默认 ON 属实；仅精确 `0|false|off`→OFF）· `:55-62` `fromRoute = roleFromRouteSnapshot ?? roleFromJobRouteMetadata`，flag ON 且双缺 → `throw Object.assign(new Error('adaptive_role_route_missing'), {code:…})`——收据 H0-alt-5·d「role-resolve fail-closed 门」码面成立 · `:23-28` `roleFromDeps` 显式**不**满足门（防借 deps 回潜静默技术岗）亲读在案。
+- 传播链全中：`interview-consumer.ts:345-350`（flag ON 下读 `routeSnapForRetrieve?.allocations?.[0]?.leafTrackId`）→ `:351-355` resolver（`:356` `startAdaptiveInterview` **之前**）→ catch-all `:370-381` → `failClaimedInterviewJob :155-168` → `markJobFailed` `packages/db/src/interview-jobs.ts:214-217`（`last_error = message.slice(0,500)`）→ `terminalizeUnsettledInterview :77-96`（`:93` `interview_unavailable{kind:start,reason:job_failed}`）。
+- `adaptive_role_route_missing` 判读表 §1.4 未预列属实 → §5.2 处置 + H0-alt-5·d 新子面登记合法，未扫入 c 行 catch-all、未就地 reinterpret。
+
+### C.2 「classify succeeded ×2 而 snapshot 缺叶」：**产品面（接线/范围缺口），非夹具造数缺口——修复刀方向 = 产品刀**
+
+本席独立重建（全码面亲读 + 在案读数交叉）：
+
+1. **全树唯一 snapshot 生产者** = recruiter-flow begin 事务内 `snapshotInterviewRoute`（`recruiter.ts:428`；`apps/api/src/modules/interview/interview.service.ts` 全文 0 笔 snapshotInterviewRoute/interview_route_snapshot 引用）。**通用 begin 面**（`interview.service.ts` `create():587` 裸壳 interview——无 application_id——+ `begin():260-337` 仅绑 resume 后 `:337` 入队）**结构性不写 snapshot**。
+2. **route_decided 决策必带 ≥1 有效叶**：`validateModelRouteOutput`（`packages/domain/src/job-route-classifier.ts:115-160`）`allocs.length<1 → invalid_schema`、叶正则 + taxonomy + bps 合计 10000 全校验——凡走完 bind→snapshot 的 interview 门必过。「snapshot 行存在但叶空/缺」在产品链上**不可达**；故 Q1 两行门 throw 只能来自 **snapshot 行不存在** 的 interview。
+3. **Q1=2 / Q4=2 的唯一自洽归因**：两条 failed start job = **uc018 ×2（通用面 begin）**。run log 亲读：两 project 的 uc018 均死在 `:139`「abandon 409」——该断言**之前**的 begin 200/202 断言与「额度 -1」断言均已通过 → 两次 uc018 begin 必曾成功入队 = 恰 2 条 start job；recruiting-bound ×2 若曾入队则 Q1=4，实为 2 → 其 begin **未入队**（红① = application-start 层 route binding 缺失 fail-closed `interview_ineligible_route`（`recruiter.ts:399-407`）+ 30s `waitForURL :96` 超时），与 C-MO-P2「start job 未入队」面互证。旁证：uc018 spec 注释自证「赶在 worker fail-closed 把会话打成 failed 之前」——红②面本就是与 fail-closed 竞速的面。
+4. **定谳**：甄别读数指向的结构缺口在**产品供给面**——通用 begin 为结构性无 snapshot 的 interview 入队 adaptive start job（门必 throw）；且 `roleFromJobRouteMetadata` 在调用点 `:344` **声明后从未赋值**（死源，全文件仅 :344/:353 两笔）为第二处供给缺口。e2e 全程真 UI、零 route 表 stub——「夹具造数不完整」不成立为该面的修复框架。
+5. **保留项（如实）**：classify succeeded ×2（归 recruiting-bound 两 job）与 begin 时序的最终区分需 `job_route`/`route_consumption_event`/`interview_route_snapshot` 表数据——超 §1.3 四查询授权，维持收据「未扩查、回协调方」处置；本席双流归因是与全部在案读数 + 码面结构唯一无矛盾的重构，最终确认归产品刀 REQUEST。
+
+### C.3 修复路线诚实性排序（Disclosure-1 关联 · 沿钉「仅 G7 opt-out · never counts toward R1 · 须持续披露」）
+
+1. **产品刀（最诚实 · 唯一根因修复）**：通用 begin 供给面收口——begin 时显式 route-eligibility 前置（镜像 recruiter 面 `interview_ineligible_route` fail-closed，把 throw 从 worker 异步面提前到 begin 同步面）或显式范围决策（通用面不入 adaptive / 不入队 adaptive start job）；并案处理 `:344` 死源（接线或删除）。门语义零弱化；trio 只能经真实产品修复翻绿。
+2. **夹具刀（部分诚实 · 仅限红①时序面）**：recruiting-bound 面「等 route_decided 再 begin」属合法测试稳定性修复或 recruiter happy-path 附加覆盖；对 uc018/通用面**无效**——为通用面 interview 强造 route metadata = 捏造产品不可能状态 = masking，Ban 作为本红的通用修复。
+3. **opt-out 翻绿 + 披露（作为修复最不诚实 · 程序上仅可临时）**：`MEETWISE_TECH_ROLE_FAIL_CLOSED=0` 以关掉产品刻意开启的门换绿 = 换值形状；仅可作 G7 域临时 opt-out + Disclosure-1 持续披露 + never R1 + 不解除 trio 真实业务红定性（C-MO-11 明文排除其为终局修复）。
+- 一律 Ban：产品码内把门弱化回 legacy 技术岗兜底（重新打开 G-R4-3/R1 刻意关闭的静默桶）。
+
+## D. C-MO-P1 复核（本席上轮裁定被证实）
+
+536 行全量扫描（grep 计数法）：`embedding-build`/`embedding-query`/`rerank` 签名 **0 笔**；registry `packages/ai-runtime/src/model-operation-registry.ts:148/:153/:158` wired:false 三锚本树复读在案 → **证伪分支未触发，H0-alt-2 驳回维持**。收据 §7.1 显式负检查义务兑现。
+
+## E. 条件裁决表（C-MO-1~11 · EXEC binding 7 条自评复核通过）
+
+| # | 条件（延续域） | 裁决 |
+|---|---|---|
+| C-MO-1 | 甄别器码面 / 判读表值域映射 | ✅ 未预列值走 §5.2 + H0-alt-5·d 登记，未扫 catch-all |
+| C-MO-2 | 定谳措辞（一致 ≠ 已证 · 联合判读） | ✅ SUMMARY §3 措辞守约；红①张力如实登记未洗 |
+| C-MO-3 | 读取窗口 / SELECT 白名单 | ✅ 快照 Q1 行仅 id/kind/status/attempts/last_error/created_at，零 payload/trace.output |
+| C-MO-4 | 预算 / live ≤200 | ✅ live=2（恰 classify ×2，本 run 全部 live 面）· actualSpendCny=null · voice/OCR/ASR/TTS=0 skip 如实 |
+| C-MO-5/6 | Key 卫生 | ✅ loader name-only · 三 .env ABSENT 在案 · commit 零 Key 物料 · 零 .env 写 |
+| C-MO-7 | Ban 就地换值重跑 | ✅ 恰 1 attempt · EXIT=1 原值 · 无 retry-to-green（门默认 ON 自证未偷设 opt-out） |
+| C-MO-8 | 矛盾读数如实 | ✅ 红①「classify succeeded ×2 vs 仍红」张力登记回协调方，Ban 就地解读已守 |
+| C-MO-9 | withhold / 机制面 | ✅ wrapper blob `13dbfc43` 复算全等 · sidecar exit 1 如实 · 四来源降三来源如实登记 |
+| C-MO-10 | sibling 归档 / SSOT / Pins | ✅ G7R 收据零触碰 · Pins 原值零翻转 · GAP P1 OPEN 未翻 · `g7SuiteGreen=false` 保持 |
+| C-MO-11 | 产品刀边界 | ✅ **本席域裁定：H0-alt-5 证实为根因类（结构性 pre-model throw）→ 修复 = 产品/夹具刀另 REQUEST + 双审 + 协调方授权，非换值**；EXEC 期「零修复零改产品」守住（commit 恰 2 md） |
+
+## F. Blockers / OB / Conditions
+
+- **Blockers: 0。**
+- **OB-MO-P1（非阻断 · 措辞精确化）**：收据「`allocations[0].leafTrackId` 与 job route metadata 双缺」易读作 metadata 有供给而缺值；实况为调用点 `:344` **从未赋值**（死源）。两读皆 throw，不改归类；随产品刀并案。
+- **OB-MO-P2（非阻断）**：harness §1.1 红①四 409 门锚定通用 begin 面（`interview.service.ts`）；本席重构将 recruiting-bound 未入队定位于 application-start 层 `interview_ineligible_route`（`recruiter.ts:399-407`）。两读皆「入队前 fail-closed」，本刀承重结论不受影响；route 侧另刀时须以 `job_route` 数据定谳。
+- **Conditions（转产品刀 REQUEST 硬义务）**：
+  - **C-MO-Q1**：产品刀 REQUEST 须以通用 begin 供给面（`interview.service.ts:587` 裸壳 + `begin():260-337` 零 snapshot 写）为第一承重面，双审随卷；夹具刀仅作 recruiter-flow 覆盖补充；opt-out=0 仅可作披露的 G7 临时措施，Ban 记作修复。
+  - **C-MO-Q2**：红①归因（classify succeeded revision vs begin 时序）须以新增授权查询（`job_route`/`route_consumption_event`/`interview_route_snapshot`）定谳，Ban 以本刀四查询读数就地定谳。
+  - **C-MO-Q3**：Disclosure-1 保持 OPEN 至供给面实际修复；任何临时 opt-out 持续披露、never counts toward R1、不解除 trio 真实业务红定性。
+
+## G. append-only 机检 + 中文三行摘要
+
+机检：本段追加后前 32502B md5 复算 = `65337c1bb1bad718c5cc9f42f04e83f3`（追加前全等 · 前缀零改写）；本审 0 prove run · 0 live · 0 Key 值读取 · 0 coding · 0 SSOT edit · 唯一 git 写 = 本审段 append + 本 worktree 提交（author mw-model-op）· 禁 push。
+
+1. 包完整性 + 四查询快照盘面复核全过：EXEC receipt `3da3f0cb` 恰 2 md 零产品码/SSOT/Key diff，收据 §6 与 536 行 sidecar 最后全 ok 快照逐值全等（last_error=adaptive_role_route_missing ×2 / classify succeeded ×2 / trace=2 / interview failed=2），wrapper blob `13dbfc43` 复算全等，sidecar 留 `.tmp/` 不入 git 如实。
+2. 根因归类裁决（本席核心产出）：H0-alt-5·d role-resolve fail-closed 门码面归类准确；「classify succeeded 而 snapshot 缺叶」定谳为**产品供给面缺口非夹具缺口**（全树唯一 snapshot 生产者=recruiter-flow begin；通用 begin 面结构性零 snapshot 写 · `roleFromJobRouteMetadata` :344 死源 · route_decided 必带有效叶使「有 snapshot 而叶空」不可达 · Q1=2/Q4=2 唯一自洽归因=uc018 通用面 ×2）；修复排序 = 产品刀 ＞ 夹具刀（仅红①时序面）＞ opt-out 披露（仅 G7 临时 · never R1 · 持续披露）。
+3. C-MO-P1 复核 0/536 命中 → H0-alt-2 驳回维持（上轮裁定被证实）；C-MO-1~11 全兑现 · 0 Blocker · 2 OB 非阻断 · 3 Conditions 转产品刀 REQUEST；alone ≠ dual 本 PASS 仅为 mw-model-op 半签不代签并行 peer mw-e2e-ha；本 PASS ≠ 修复 ≠ trio 翻绿 ≠ `g7SuiteGreen=true` ≠ H0-alt-5·d 终局定谳（子面归属留产品刀）· 禁 push。
+
+Verdict: PASS
