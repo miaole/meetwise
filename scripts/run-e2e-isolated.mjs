@@ -2,8 +2,8 @@
  * NOTE (BUG-FAKE-R5): default image is pgvector via E2E_PG_IMAGE — legacy fixture /
  * fake-green risk. E2E_PG_IMAGE ≠ sole-stack truth; local green ≠ RAG migrated.
  * Dual-track: E2E_ISOLATION_STACK defaults to pgvector-legacy (explicit; never silent sole).
- * Intended sole default = mysql-qdrant-redis (MySQL+Qdrant+Redis). Allowlisted sole targets
- * (wiring / ping / qdrant-backed / vectorstore-adapter / vectorstore-qdrant) may prove against compose MySQL+Qdrant+Redis
+ * Sole-track code-path label: SOLE_STACK='mysql-qdrant-redis' is a dual-track isolation label ≠ product stack truth; product stack pin =
+ * ai-docs/delivery/adr-postgres-retained.md (Postgres · PostgresSaver · pgvector retained; MySQL/Qdrant = historical local prototypes, no cutover authorized). Allowlisted sole targets
  * with receipts; non-allowlisted sole requests EXIT=3 with PREREQ checklist (forbid fake-green).
  * G3 (E2E_PG_IMAGE): sole track fail-closed — unmarked pgvector MUST NOT silently green as sole;
  * sole approved fixture = compose.mysql-local only (no PG image). Default E2E_PG_IMAGE value for
