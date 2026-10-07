@@ -140,8 +140,8 @@ async function main() {
     'SELECT privacy_epoch FROM resume WHERE id=$1 AND owner_user_id=$2', [resumeId, OWNER],
   )).rows[0]!.privacy_epoch));
   await asPrincipal(pool, OWNER, async (c) => {
-    await c.query(`UPDATE resume_quiz SET resume_id=$3,privacy_epoch=$4 WHERE owner_user_id=$1 AND id IN (${QUIZ_FLOWS.map((_, i) => `$${i + 5}`).join(',')})`, [OWNER, resumeId, epoch, ...QUIZ_FLOWS.map((k) => QID(k))]);
-    await c.query(`UPDATE resume_diagnosis SET resume_id=$3,privacy_epoch=$4 WHERE owner_user_id=$1 AND id IN (${DIAG_FLOWS.map((_, i) => `$${i + 5}`).join(',')})`, [OWNER, resumeId, epoch, ...DIAG_FLOWS.map((k) => DID(k))]);
+    await c.query(`UPDATE resume_quiz SET resume_id=$2,privacy_epoch=$3 WHERE owner_user_id=$1 AND id IN (${QUIZ_FLOWS.map((_, i) => `$${i + 4}`).join(',')})`, [OWNER, resumeId, epoch, ...QUIZ_FLOWS.map((k) => QID(k))]);
+    await c.query(`UPDATE resume_diagnosis SET resume_id=$2,privacy_epoch=$3 WHERE owner_user_id=$1 AND id IN (${DIAG_FLOWS.map((_, i) => `$${i + 4}`).join(',')})`, [OWNER, resumeId, epoch, ...DIAG_FLOWS.map((k) => DID(k))]);
   });
   const avail0 = await avail();
   classification.envModelApiKeyUnset = process.env.MODEL_API_KEY === undefined;
