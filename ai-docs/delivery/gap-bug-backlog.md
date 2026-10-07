@@ -81,6 +81,8 @@
 
 > **2026-10-07 · MOP03 立卷登记（append-only · `:76` 附近）**: GAP-MOP-03 `:76` successor cutover 准入合同六门已立 @nail tip（本 commit · branch `line/mop03-nail`）——REQUEST `cdde235e`（origin 镜像 `787de124`）· pre-dual BOTH PASS（mw-model-op `16f2c684` + mw-e2e-ha `d65023e1`≡origin `2da0c904` patch-id `ad28e66e`）· exec `47f17b83`≡origin `d5e6f7e6`（patch-id `8cb6ea0b`）lifecycle `executed:awaiting_post_prove_dual` · post-dual BOTH PASS（mw-model-op `e10df445` + mw-e2e-ha `abb04dbd`）· **GAP-MOP-03 保持 OPEN——立卷≠关闭** · PG LISTEN retained · Redis cutover 须未来授权 REQUEST 走六门（Ban Redis cutover · Ban MODEL-OP closed）.
 
+> **2026-10-07 · MOP01 立卷登记（append-only · `:74` 附近）**: GAP-MOP-01 `:74` wakeup 工作面合同已立 @nail tip（本 commit · branch `line/mop01-nail`）——REQUEST `766cdf94`（origin 镜像 `d0dc312f` · patch-id `de532136`）· PRE FAIL→重写（B-1：`a265d6f`≡origin `92ce56aa` patch-id `5ad66dc3`）→ RE-PRE dual BOTH PASS（mw-model-op `a6b5cd94` + mw-e2e-ha `07746c3c`）· micro-patch `f202091c`≡origin `46ad76cd`（patch-id `43a2cdf5`）· exec `fe0c134a` `executed:awaiting_post_prove_dual` · post-dual BOTH PASS（mw-model-op `74ede93`≡origin `e96c3190` patch-id `752c43ca` + mw-e2e-ha `7fc220b`≡origin `8a57db4d` patch-id `419fa776`）· **GAP-MOP-01 / BUG-NOTIFY-REC（`:95`）保持 OPEN——立卷≠关闭**：漏唤醒=有界延迟窗（既有周期兜底扫描实存）· **强制周期 reconcile 未在 sole stack 证明**（未证明≠不存在）· 真实 Redis cutover 须未来授权 REQUEST **同过 MOP03 六门 + 本立卷切流包内容**（诚实清单有界延迟窗口径 + 切流包内容 + 旧 `worker-wakeup:prove` 标红/换夹具处置），缺一不可（Ban Redis cutover · Ban MODEL-OP closed · Ban 两头漂移）.
+
 ---
 
 ## B. 遗留 BUG / 假绿 / 审查阻塞
