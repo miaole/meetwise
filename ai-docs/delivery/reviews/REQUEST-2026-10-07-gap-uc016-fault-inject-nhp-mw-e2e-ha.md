@@ -90,3 +90,77 @@ Line Y2 · 下一 NHP = **NHP-016-FAULT-01**（UC-E2E-016/029 FAULT 分面 · �
 alone ≠ dual —— 本审不代签 mw-rag-route；PASS ≠ 授权 coding/prove/nail/covered；Ban push。
 
 Verdict: PASS
+
+---
+
+## POST-PROVE dual review — **mw-e2e-ha**（2026-10-07 · 独立 worktree `/Users/miaole/Desktop/golucky/meetwise-rv-y2p-e2e-ha` @ branch `rv/y2p-e2e-ha` · 本审=Line Y2 coding+prove 双审的 mw-e2e-ha 侧 · alone≠dual 不代签 mw-rag-route（并行审看不到）· append-only（PRE-EXEC stub 92 行 byte-intact · blob `8e26127e` 全等亲证）· Ban push）
+
+**被审对象**：Y2 coding 链 `2051d12a`（新 proof `apps/worker/test/uc-e2e-016-nhp-fault.proof.ts` 337 行 + 三层壳注册）→ `20fe852d`（attempt-1 接线修复）→ `12a350f7`（receipts）· 本机 branch `line/y2-next-nhp` · base=`1b85b58a`（∈ origin HEAD 链亲证 · merge-base 亲算）· 链长恰 3 commit（`rev-list --count`=3 亲证）。
+
+### F-P1 链拓扑 erratum（协调方简报与机器事实不符 · 非阻断）
+
+协调方简报称「origin tip `972c6c2f` 已含 Y2 coding」——**机器复核为不实**：`git branch -r --contains` 对 `2051d12a`/`20fe852d`/`12a350f7` 全部为空；origin tip 树内无 `uc-e2e-016-nhp-fault.proof.ts`、root `package.json` 无 `uc016` 脚本（Y2 coding 链仅存于本机 `line/y2-next-nhp`）。origin **实际已含**的 Y2 关联物=PRE-EXEC 审镜像 `a0f2e3b2`（本审文件 blob `8e26127e` 与 `be05a3ae` 全等）+ micro-patch 镜像 `87c57517`（patch-id `e79a8734…` ≡ `95b1fd95` 亲算全等 · 双双 parent=`bab29111`）。**处置**：fresh re-run 按被审链本钉 coding tip `12a350f7`（树=base+恰申报 7 文件）；delta `1b85b58a..972c6c2f`（P4 隐私线）与 uc016 proof 语义零交集（receipt-sources 交集仅 `run-e2e-isolated.mjs` 一文件 · 两链 hunk 除 `:2277` 单行 migrate-list 追加外不同区 · root `package.json` 两链 hunk 异区 `:109` vs `:338`）→ 协调方后续镜像 origin 时须做一次 additive 文本合并（非本包缺陷）。与 PRE-EXEC F-1 同族（实现方 receipt 本就诚实申报「本机 line/y2-next-nhp · 禁 push」，不实点在简报侧）→ **非阻断 · 交协调方记账 + C-HA-7 续用**。
+
+### 包完整性（机器机检）
+
+- 恰申报文件：`git diff --name-status 1b85b58a..12a350f7` = 恰 7 文件——A proof（337 行）· M `apps/worker/package.json`（+1 `prove:uc016-nhp-fault`）· M root `package.json`（+2 `uc016:nhp-fault:prove(:raw)`）· M `scripts/run-e2e-isolated.mjs`（恰 4 处注册：receipt-sources :475-486 / allowlist :1557 / isolatedCommand :1585-1586 / migrate-with-recovery 单行表 :2295）· A 3 receipt docs。
+- **零产品码**：变更清单逐行过筛 `apps/*/src`/`packages/*/src`/migrations → 0 hit；**零 SSOT**（backlog/matrix/checklist/queue 不在 diff）· UC-016/029 行措辞零触碰 · coveredCount=8 冻结（proof :28/:311/:331 + receipt :4/:65）。
+
+### micro-patch `95b1fd95` 兑现（C-HA-1 裁决=FULFILLED）
+
+双镜像 patch-id 全等亲算（`95b1fd95`≡origin `87c57517` = `e79a8734f486df2b8e1e831be6b817842b1aff73`）· 内容恰 harness N2/F5 两行键面对齐（+2/−2 · 1 文件）：键面=「failed **且对象非 ready** 的注入面 job 恰一条 `*_unavailable` 终态事件」，alreadySettled 显式豁免+负向兜底（N1 不重复退/不发假终态 + N3 ready 不倒退）+「Ban 藉本键面把已 ready 倒退合法化」落字——与 PRE-EXEC 处方 (a) 逐字吻合、恰限两行、无越面。proof 逐字兑现：`keyFace()` :105-109 双集合返回 · 键面内 :260-264 · 键面外 :265-268 · 头注 :9-13 原文引用。
+
+### fresh re-run（C-DUAL-FROM-FRESH · 恰一次 · 禁重试遵守）
+
+本审 worktree detach 至 `12a350f72032123fcd49afd67d50c2388c18f29f` → `pnpm install --frozen-lockfile` EXIT=0 → **恰好一次** `MW_GIT_SHA=12a350f72032123fcd49afd67d50c2388c18f29f env -u MODEL_API_KEY -u DASHSCOPE_API_KEY -u DASHSCOPE_COMPAT_BASE_URL pnpm uc016:nhp-fault:prove` → **EXIT=0** · **45 PASS / 0 FAIL**（机器计数 · 分段 6/9/7/6/8/7/2 恰和 45）· fresh isolated PG boot→**migrations applied=140 skipped=0** · `[R5-MARKED-RED]` 隔离横幅在位 · 本地镜像 `pgvector/pgvector:pg16` Id `7b822b0aac60` ≡ receipt 申报 digest 逐字同（无 pull）· fresh 收据 `envModelApiKeyUnset=true`（两处）· overall=PASS · failedAsserts=0 · run 后 tracked 树零脏（receipts 落 `.tmp` 未跟踪）。**与实现方 #2 申报完全一致 → 零分歧**。
+
+### 断言抽查（proof.ts file:line @`12a350f7`）
+
+- **N1**（已结算晚到失败 · 不重复退/不发假终态）：:183（F1+F2 退款落账 · 非空转注记「drain release 吞错则本断言必红」）· :244-245（ASett `*_unavailable` 仍=0 假终态负向）· :246（余额不变）· :275-278（全程 avail===3.00 对账 + 台账 confirmed=6/released=3）。**键面外豁免全链负向**：:239-240（收割 happened requeued=0）· :241（job 终结 failed）· :242-243（对象仍 ready）· :265-268（failedReady 恰 2 且逐 job 0 事件）。
+- **N2**（键面内逐 job 恰一事件）：:105-109 `keyFace` · :260-261（恰 3 且 stream 前缀钉 F1/F2/F3）· :262-264（逐 job `evCount===1` 任一缺失即红）。
+- **N3**（六 ready 对照零倒退）：:269-271（PC/F4/ASET × quiz/diag 六对象全仍 ready）+ :242-243（ASett 即时）+ :216-217（旧失败对象停 failed 不复活）。
+- **N4**（attempts 有界）：:181-182（F1/F2=1）· :201（F3 二次调度 attempts 仍=1 零重跑）· :202（上界=`MAX_QUIZ_JOB_ATTEMPTS` 产品常量）· :233-234（ASett 夹具 attempts=MAX 经 reap 收敛）。
+- **D1 映射标记**：:214-215（F4 断言文本带「D1 映射标记…非字面 failed→pending 状态机口」）· :220/:306（mapping/disclosure）。**措辞裁决**：子串「字面口已验」仅出现于禁令式「**Ban 宣称**字面口已验 / Ban 宣称字面 failed→pending 已验」，从无肯定式宣称 → C-HA-4 三绑定（映射标记/禁字面口已验措辞/终态稳定断言 :216-218 未省略）**全部成立**。
+
+### attempts #1→#2 裁决（本审独立裁定）
+
+**裁=wiring 修复成立 · 非断言迁就 · 非 retry-to-green**。依据：(1) #1 EXIT1 失败点=夹具种子段 ref UPDATE（proof :143-144 前身）SQL 占位符（`$3,$4` + IN `$5..$9`）与参数数组 `[OWNER,resumeId,epoch,…ids]` 错位 → PG `could not determine data type of parameter $2`（$2 未引用）；失败发生于 seeding，**早于首条 `A()` 断言（:157）→「断言未行使」为真**。(2) `20fe852d` 恰 2 行替换、仅占位符重编号（`$3→$2/$4→$3/$5..→$4..`）对齐**既有**参数数组，参数数组与全部断言零改动（diff 机检）。(3) 修复方向=让夹具达成 harness 合同既定语义（对象须引用 resume+privacy_epoch 才能走真产品路径），不存在任何曾绿的断言可「迁就」；#1 EXIT1 已诚实入 receipt attempts 台账。**Ban retry-to-green 不适用于此类确定性夹具缺陷修复**（无绿可追 · 非 flake 重跑）。
+
+### 条件裁决（C-HA-1~7 逐条）
+
+| 条件 | 裁决 | 依据 |
+|------|------|------|
+| C-HA-1 micro-patch 键面 | **FULFILLED** | patch-id 全等 · 恰 2 行 · proof 逐字兑现（上两节） |
+| C-HA-2 Pins 原值 | **HELD** | receipt :4 / proof :27-28,:311,:331 八值原值 · SSOT 零 diff · coveredCount=8 |
+| C-HA-3 造数诚实 | **HELD** | 消费全经真产品 API（:151-156/:168-173/:190-192/:208-213/:224-229）· 夹具申报+先例锚（:125-137 · orphan :232-235=reaper.proof:35-40 同款） |
+| C-HA-4 D1 三绑定 | **FULFILLED** | 映射标记 + 禁令措辞 + 终态稳定断言未省略（:214-218/:220/:306） |
+| C-HA-5 零 live 三缝 | **HELD** | scriptedModelClient 全注入 · fresh run env -u 三键 · envModelApiKeyUnset=true · `model-client.ts:364` fail-closed 在位（未触发亦在位） |
+| C-HA-6 prove 纪律 | **HELD** | attempts #1 EXIT1/#2 EXIT0 全录 · 本审 fresh 单次 EXIT0 45/0 · EXIT0≠covered≠翻行≠suite green≠PERF/LOAD/容量/SLO/HA |
+| C-HA-7 base 重钉/erratum 记账 | **CARRIED+** | F-P1 新增（origin 不含 Y2 coding · 简报不实）交协调方记账+镜像；镜像落地前任何复跑须钉 coding tip |
+
+### 非阻断观察
+
+- **OB-1**（cosmetic · docs 侧可选修）：receipt 逐类表为叙事性归组、存在跨类重复归属（逐行加总≈47>45；「F3 8 PASS」vs 实际分段 7）——headline 45/0 为机器精确计数且本审 fresh 复验逐字一致，无诚实性问题。
+- **OB-2**：`MW_GIT_SHA` 仅被 uc017 收据消费（`uc-e2e-017-nhp-load.proof.ts:142`）；uc016 侧为纯 provenance env，无害。
+
+### Blockers
+
+**无（0 Blocker）**。F-P1 链拓扑 erratum 非阻断（见专节 · 与 PRE-EXEC F-1 同族 · 内容审全链自洽）。
+
+### Conditions（持续至协调方 nail）
+
+- **C-PHA-1**：EXIT0 ≠ covered ≠ 行升格 ≠ suite green ≠ PERF/LOAD/容量/SLO/HA ≠ HA ≠ 模型质量闭环；UC-016/029 行措辞与 §1.0.1 :121 / 矩阵 :82 冻结；coveredCount=8 冻结；升格仅经 coordinator nail。
+- **C-PHA-2**：alone≠dual——本审不代签 mw-rag-route（其 POST-PROVE 审并行另出）；nail 与 origin 镜像属协调方。
+- **C-PHA-3**：协调方镜像 `line/y2-next-nhp` → origin 时按 F-P1 做 additive 合并（`run-e2e-isolated.mjs` :2277 单行表 + allowlist 相邻区）并记账 F-P1；镜像落地前复跑一律钉 coding tip `12a350f7`。
+- **C-PHA-4**：OB-1 receipt 逐类表归组如后续修订限 docs 侧、禁触 proof 断言面。
+- **C-HA-2~6 原值续用**（Pins/造数诚实/D1 绑定/零 live/prove 纪律）至 nail。
+
+### 三行中文摘要
+
+1. POST-PROVE dual（mw-e2e-ha 侧）通过：包完整性机检成立（恰 7 文件 · 零产品码 · 零 SSOT · 链长恰 3）· micro-patch `95b1fd95`≡`87c57517` patch-id 全等兑现且 proof `keyFace` 逐字落地 · **fresh re-run 恰一次 EXIT=0 · 45 PASS/0 FAIL · fresh PG migrations=140 · envModelApiKeyUnset=true**，与实现方 #2 零分歧。
+2. N1-N4/D1 断言逐锚亲证成立（键面外豁免有全链负向断言 · 六 ready 对照 · attempts 有界 · F4 带映射标记且「字面口已验」仅存于 Ban 禁令式）；attempts #1→#2 裁=wiring 修复（种子期断言未行使 · 恰 2 行占位符重编号 · 非断言迁就 · 非 retry-to-green）。
+3. 唯一新发现 **F-P1（非阻断 erratum）**：协调方简报「origin tip 972c6c2f 已含 Y2 coding」不实——coding 链仅在本机 `line/y2-next-nhp`（base `1b85b58a` ∈ origin · origin 已含 PRE-EXEC 镜像与 micro-patch 镜像），fresh re-run 按被审链本钉 `12a350f7`，镜像与记账交协调方（C-PHA-3）· OB-1 receipt 逐类表归组 cosmetic · 0 Blocker · EXIT0≠covered · alone≠dual 不代签 mw-rag-route。
+
+alone ≠ dual —— 本审不代签 mw-rag-route；EXIT0 ≠ covered/nail/HA；PASS ≠ 授权 covered/行升格；Ban push。
+
+Verdict: PASS
