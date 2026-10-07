@@ -96,3 +96,74 @@ Ban coding · Ban prove execution · Ban live · **Ban 改写/删除/加注 audi
 3. 观察 4 条（cite 区间欠覆盖/`:117-138` 过覆盖/§0.5 前题仓外不可复现/「≥2 实存」计法）全部非阻断且方向保守；0 Blocker；Conditions C-AE-1…7 随卷——本 PASS ≠ coding ≠ prove ≠ AUTHORIZE ≠ 状态翻转，alone ≠ dual 不代签 peer mw-privacy-int，禁 push。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual（erratum 执行复验 · mw-e2e-ha · adversarial evidence-honesty）
+
+**Review date**: 2026-10-07（Asia/Shanghai）· **Reviewer**: mw-e2e-ha（独立 · 与 PRE 同角色 · erratum exec 的执行复验）
+**被审对象**: EXEC `afcefece`（parent `ee7563a2` · 恰 1 新 A 文件 `ai-docs/delivery/harness/gap-cb-audit-erratum.exec.md` +84/−0）· origin tip `75ba2783` 链上落点 `1d16e60a` 与 `afcefece` **patch-id `75699f0963ba40a09a5e407b0d728e605c0e9017` 两副本实测全等**、exec 文件 blob `ec232b03` 在 `afcefece`/`1d16e60a`/tip 三点 `git rev-parse` 全等——review target=包内容（rebase 镜像机检成立），非 `afcefece` 本体祖先性（`merge-base --is-ancestor` 实测 NOT ancestor，如实登记，不阻断：patch-id+blob 双等价已亲算）。
+**独立 worktree**: `rv/auditp-e2e-ha` @ origin/feat/mysql-schema-skeleton `75ba2783`。
+
+## erratum 内容裁决（E-1…E-4 + 6 同根复述点 · 全部亲算）
+
+- **E-1…E-4 原文引用逐字节**：exec 卷 §2 四条引用块（exec `:26/:31/:36/:41`）对 audit `:82/:83/:84/:85` python 逐字节比对 **4/4 verbatim=True**（blob `8393c67b` 实体亲读）。
+- **时间点论证**：audit `:22` 审查日期 **2026-08-02**；引入提交 `d9394e91`（2026-08-18 · `git show --stat` 亲见 `0028_application_bound_interview.sql`）与 `37602676`（2026-08-18 · 亲见 `apps/web/app/api/applications/[id]/finalize/route.ts` +19）均**晚于审查日**——「audit 时点属实、后被代码 superseded」时点论证成立；存续链 `d9394e91`/`37602676` → `50423a6f` ≡ exec base `ee7563a2` 以**六条锚点路径双 base `git diff --stat` 空 diff 机检**（recruiter.ts / applications.service.ts / InterviewPanel.tsx / finalize route / interviews/actions.ts / mig 0028）。
+- **tip 实况逐锚亲读**：`applications.service.ts:35` start/:52-57 返回 `interviewId`+`redirectTo`/:68-69 逐字「不接受客户端 interviewId」/:71 `cannot_finalize`；`recruiter.ts:354` `startApplicationInterview`+`FOR UPDATE`（`:358`/`:194`）；`recruiter.ts:182` `finalizeApplication` 五向反查（`:178` 注释 + `:184-186` JOIN）；mig `0028` 双 partial UNIQUE（`:11`/`:13`）+CHECK 三件套（`:19-20`）+三 FK（`:24/:28/:32`）；`0082` `score=NULL, status='assessment_unavailable'`；practice 面 `interviews/actions.ts:10-17` 仍仅 `resumeId`（E-2 半句仍真成立）；`InterviewPanel.tsx:103` fetch + `:100` phase 门（report_ready/report_unavailable/assessment_unavailable）；finalize route 头注逐字「浏览器只给 applicationId；上游 strict DTO 拒绝 interviewId」——四条 E 项 tip 实况全中，无一处夸大。
+- **6 处同根复述点落点**：audit `:59`（start 只改状态前提→E-1）· `:60`（无绑定约束前提→E-3）· `:62`（消费者 0+start 仅 revalidate→E-4；「不能声称已实现」半句仍真）· `:89`（业务关联伪造前提已变）+`:91`（无出口状态前提已变）· `:245`（基底已实存 · 剩余=验收证据面）· `:254`（证据位增量 0028+finalize route）——逐一亲读在位；**:90 purpose/同意条未登记**（C-P3 同意边界零稀释亲证）；**P0-CB-02 零 erratum 项**（`:117-138` 未入 §2 编号项）。
+
+## Ban 翻状态核验（erratum 后全部原值 · 亲读 @tip）
+
+- backlog `gap-bug-backlog.md` `:77` GAP-PROD-01 / `:78` GAP-PROD-02 / `:103` BUG-SCORE-LEGACY 三行在位、行内零 CLOSED 字样；OPEN 态锚 `execution-master-checklist.md:1234`「STILL OPEN: GAP-PROD-01 `:77` / GAP-PROD-02 `:78` OPEN（BUG-SCORE-LEGACY `:103` 防回归同列）」原样。
+- matrix `e2e-requirement-coverage-matrix.md` `:201` SCOR-00 **partial** / `:234` GAP-PROD-02 **partial** 原样；`coveredCount=8`（checklist 87 处）零扩面；DELETE=503（checklist 79 处 + W3 freeze 卷原样）。
+- REQUEST-era 状态行：harness `gap-cb-audit-erratum.md:1/:3` 与 slice `:1/:3` 状态 `draft:awaiting_pre_exec_dual` **原样零触碰**（C-AE-1 亲证；两文件在 `ee7563a2..75ba2783` 零 diff）。
+- **缺口重心=验收证据面零稀释**：exec 全卷无「已闭/covered/闭环已验/releaseEvidence=true」措辞；E-4 措辞纪律落字（「实存 ≠ 闭环 ≠ `:78` 可翻」）；E-3 写死「不得读成数值分恢复预告」；`post_prove_dual_pass` 未被 self-write（状态保持 `executed:awaiting_post_prove_dual`）。
+
+## 包完整性机检
+
+- EXEC diff=`diff-tree` 恰 1 文件 A 状态（零 M/零 SSOT/零产品码/零 reviews 既有文件/SCOR 卷零触碰）；REQUEST `e258fe30`≡镜像 `23b2ceb5` patch-id `03e2f145…` 两副本实测全等、diff 恰 4 A md；PRE `925d1a70`≡`86af8b30` patch-id `0f105c4c…` 实测全等。
+- audit 本体 blob `8393c67ba3fa0e73ea6413be13086a5ac8c103cb` 在 `50423a6f`/`ee7563a2`/`afcefece`/tip `75ba2783` **四时点亲算全等**（超出三时点自证，加测 tip rebase 后时点）。
+- 本审卷 append-only：PRE 段 blob `7c6491a8`（16479 字节）@`86af8b30` ≡ tip 亲证 byte-intact；本 POST 段为 PRE 后首次追加，PRE 字节零触碰。
+
+## 条件裁决表（POST 复验 · 逐条独立复核）
+
+| Condition | POST 裁决 | 复核证据 |
+|----|------|-----------|
+| C-AE-1 docs gate（恰 1 A 文件 · REQUEST 状态行保留） | **满足** | diff-tree 1 A；harness/slice 状态行亲读零触碰 |
+| C-AE-2 audit 零字节收据 | **满足** | blob `8393c67b` 四时点亲算；§3 收据与实机一致 |
+| C-AE-3 Pins 冻结 | **满足** | `:77`/`:78`/`:103`+matrix `:201`/`:234`+coveredCount=8+DELETE=503 亲读原值 |
+| C-AE-4 更正 ≠ 闭合 | **满足** | 零闭合措辞；缺口重心=验收证据面（20 并发/错配 409/重放/真实浏览器均无 named prove 收据） |
+| C-AE-5 E-4 措辞纪律 | **满足** | E-4 限定「调用链存在性」；Ban 外推 prove/E2E 授权落字 |
+| C-AE-6 触碰面 | **满足** | SCOR 卷/W6 链/MOP 链/AN 系列/reviews 既有文件/sibling stub 零 diff |
+| C-AE-7 alone ≠ dual | **满足** | 状态 `executed:awaiting_post_prove_dual` 无 self-flip；本 PASS 仅 mw-e2e-ha 半签 |
+| C-P1 base 重钉（`ee7563a2`） | **满足** | `afcefece` parent=`ee7563a2` 亲证；六锚双 base 零 diff |
+| C-P2 原文保留全程 binding | **满足** | blob 四时点全等；后续 rebase/镜像同 binding 沿用 |
+| C-P3 同意边界零稀释 | **满足** | `:90` 未登记；P0-CB-02 零 erratum 项 |
+| C-P4 数值暂停与 DELETE 冻结 | **满足** | `0082`/`recruiter.ts:182` 亲读；DELETE=503 原样 |
+| C-P5 状态翻转冻结 | **满足** | 全部 Pins 原值（见上） |
+| C-P6 SSOT/邻接零触碰 | **满足** | EXEC diff 恰 1 A 文件机检 |
+| C-P7 EXIT 契约 | **满足（持续）** | 本 EXEC 零 prove；未来 named proves 契约随卷 |
+
+## Blockers
+
+**0 Blocker。**
+
+## 观察（非阻断 · 保守向）
+
+- **OB-5**：`afcefece` 非 tip 祖先、tip 链落点为 rebase 镜像 `1d16e60a`（patch-id+blob 双等价亲算）——POST dual 立卷以「包内容等价」为 key，登记如实，无需 exec 动作。
+- **OB-6**：exec §2 E-2/E-3 引 `0028:6-33`，UNIQUE/CHECK/FK 实跨 `:11-:36`（trigger 更后）——cite 窗口略窄，与 PRE OB-1 同族，无害。
+- **OB-7**：OB①②（SCOR 卷 nail 项）仍留协调方，本 exec 未代办亦未触碰（C-AE-6 正确执行）。
+
+## Conditions（随本 POST PASS 绑定）
+
+- **C-PD-1**：本 PASS=POST dual 之 mw-e2e-ha 半签；`post_prove_dual_pass` 仅可由协调方在双 PASS 后 nail，mw-privacy-int 的并行审独立、零代签零读取。
+- **C-PD-2**：POST PASS ≠ AUTHORIZE ≠ 闭合 ≠ covered ≠ `:77`/`:78`/`:103` 翻转 ≠ HA ≠ releaseEvidence=true；缺口重心=验收证据面（named proves 仍全缺）。
+- **C-PD-3**：本卷与后续任何 rebase/镜像沿用 C-P2 binding（audit blob `8393c67b` 零字节）；禁 push；禁碰 peer stub。
+
+## 三行中文摘要
+
+1. 独立 worktree `rv/auditp-e2e-ha@75ba2783` 复验 EXEC `afcefece`（tip 落点 `1d16e60a` patch-id `75699f09…` 全等）：恰 1 A md +84/−0、audit blob `8393c67b` 四时点亲算全等、E-1…E-4 引用块对 audit `:82-85` 逐字节 4/4 verbatim、`d9394e91`/`37602676`（均 2026-08-18）晚于审查日 2026-08-02 时点论证成立。
+2. tip 实况四条逐锚亲读全中（start 行锁+interviewId+409 fail-closed · `0028` 双 partial UNIQUE+CHECK+FK 覆盖 application 面 · finalize 五向反查+hold 恒 `assessment_unavailable` · InterviewPanel `:103`+同源代理 strict DTO）；6 处同根复述点落点亲证、`:90` 未登记；`d9394e91`/`37602676`→`50423a6f`≡`ee7563a2` 六锚双 base 零 diff 机检。
+3. Ban 全原值：backlog `:77`/`:78`/`:103`+checklist `:1234` OPEN、matrix `:201`/`:234` partial、coveredCount=8、DELETE=503、REQUEST 状态行 `draft:awaiting_pre_exec_dual` 零触碰、`post_prove_dual_pass` 未自写；缺口重心=验收证据面零稀释；0 Blocker，观察 3 条非阻断；本 PASS 仅 mw-e2e-ha 半签（alone≠dual · 不代签 peer），POST PASS≠AUTHORIZE≠翻状态，禁 push。
+
+Verdict: PASS
