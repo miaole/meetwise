@@ -1,6 +1,6 @@
 # SSE-PUSH · SSE 2s 轮询 → PG LISTEN/NOTIFY 精确推送重构 · slice（REQUEST docs-only）
 
-status: **`draft:awaiting_pre_exec_dual`**（REQUEST 就绪 · 预执行双审未做 · meetwise 未授权 EXEC · 本 commit 零码零迁移零实跑）
+status: **`post_prove_dual_pass`**（EXEC `a963ef19` 落码+证明 · post-prove 双审两席 PASS（席1 七项 15/15 blob · 席2 ①-⑦）· 协调方 2026-10-08 授权 nail——原 `draft:awaiting_pre_exec_dual` 链条见文末 EXEC/nail 结果块）
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null
 
@@ -15,3 +15,13 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 - **Ban**：worker wakeup 通道本体（常量/0084/0133/listener/worker wiring）/ 事件表 schema 本体（只加 trigger·0001/0059/0126 零改）/ Last-Event-ID 语义 / secrets（`actualSpendCny` 保持 null）/ 每 SSE 一条 LISTEN / 移除放宽 429·deadline·ping·终态集合 / 共享 SSOT / force-push / retry-to-green / self-approve。
 - **流程**：REQUEST（本文）→ 预执行双审（mw-e2e-ha + mw-model-op · stub `reviews/REQUEST-2026-10-07-sse-push-{mw-e2e-ha,mw-model-op}.md`）→ meetwise 授权 → EXEC（迁移+service+util+去重+proof）→ post-prove 双审 → meetwise 授权 nail。
 - **Not-a-pass**：not coding · not proven · not run（零实跑零 live 零容器）· not 延迟 <500ms 达成 · not 2s 轮询已消除（三处仍在树）· not e2e 三流绿 · not covered · not HA · not releaseEvidence · not nail · not coordinator authorize · `g7SuiteGreen=false` · `actualSpendCny=null` · alone ≠ dual。详版见 `ai-docs/delivery/harness/sse-push-notify.md`。
+
+---
+
+## EXEC / nail 结果块（2026-10-08 · append-only · 上方 REQUEST 时点原值保留）
+
+- **链**：REQUEST `407e5afe` → 预执行双审双 PASS → EXEC 授权（③/④互斥）→ 阻断备忘录 `876eaeac`（零码 STOP · Opt1/2/3 菜单）→ 基座 re-pin `de5c657a`（≥`7135f615`）→ **协调方裁决 Opt1+三约束**（全文持久化于 harness §10）→ **EXEC `a963ef19`**（0143 迁移 + sse-notify.service + sse-pump + 三控制器 pump 化 + proof + runner 登记 · 11 文件 +987/−87）→ push origin（fast-forward `876eaeac..a963ef19`）→ post-prove 双审两席 PASS → 协调方授权 nail。
+- **证明**：`sse-push:notify:prove` **35/35 EXIT=0**（P-1 延迟实测 4ms/12ms <500 · P-2 活体退化臂首 ping 2041/2108ms + 健康兜底臂 gaps[250,251]/[251,251] + 退避读数 `[76,151,300/301,602,1201/1202,2401/2417,3751]` 触顶 5s cap ×0.75 · P-3 close 即醒+router 归零+LED 只补 seq>N · P-4 同流双醒异流不误醒 · P-5 独立 LISTEN 实收裸 stream_key）；**三既有 proof 未改一字复跑绿**（`last-event-id` ✓ · `sse-slot` ✓〔listen_down 退化路径〕· `uc010` ✓ 13/13〔trigger_missing 退化路径·R4 ping 窗+R-mid 帧窗两原红锚绿〕——复绿=退化面验证措辞 · 生产 B6 由 P-1~P-5 真 LISTEN 承担）。
+- **降级窗口收据（约束②）**：live `trigger_missing window_ms=3004/2526`（两绿跑）· unit `listen_down window_ms=26` · 结构化日志两 reason 形状断言在卷。
+- **红跑披露（席2 补认）**：proof 开发 3 红跑（`08-20-12`/`08-22-11`/`08-26-42` 收据在卷）全在仪器面；产品字节零漂移=六收据 sourceDigests 产品面 8 文件全等（机器比对）。
+- **Not-yet**：full e2e 三流未跑 · 跨副本未证 · GAP-SSEPUSH-PROD-30S/QUIZ-DX-HTTP/REG-WINDOW 行登记于 checklist NAIL 节 · covered/HA/releaseEvidence/g7SuiteGreen/actualSpendCny 原值零翻转。

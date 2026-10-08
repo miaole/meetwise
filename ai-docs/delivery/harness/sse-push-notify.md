@@ -1,6 +1,6 @@
 # SSE-PUSH · SSE 2s 轮询 → PG LISTEN/NOTIFY 精确推送重构 · REQUEST（docs-only）
 
-status: **`draft:awaiting_pre_exec_dual`**（REQUEST 就绪 · 预执行双审未做 · meetwise 未授权 EXEC · 本 commit 零码零迁移零实跑——trigger/连接/抽 util/proof 属下轮 EXEC 面）
+status: **`executed:nail`**（EXEC `a963ef19` 已落 · Opt1 裁决见 §10 · post-prove 双审 BOTH PASS · 协调方授权 nail 2026-10-08——原 `draft:awaiting_pre_exec_dual` 文本如下保留：REQUEST 就绪 · 预执行双审未做 · meetwise 未授权 EXEC · 本 commit 零码零迁移零实跑——trigger/连接/抽 util/proof 属下轮 EXEC 面）
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null
 
@@ -123,3 +123,17 @@ REQUEST（本文）→ 预执行双审（mw-e2e-ha + mw-model-op · 空审 stub 
 ## 9. Not-a-pass 诚实尾条
 
 Not a pass · not coding（零码零迁移·本 REQUEST docs-only）· not proven · not run（零实跑零 live 零容器）· not 延迟 <500ms 达成（P-1 属 EXEC 面）· not 2s 轮询已消除（现状三处仍在树）· not e2e 三流绿（未跑）· not covered · not HA · not releaseEvidence · not nail · not coordinator authorize · not 预执行双审 done · `g7SuiteGreen=false` · `actualSpendCny=null` · alone ≠ dual
+
+> **§9a 事后推进注（append-only · 2026-10-08 nail）**：§9 为 REQUEST 时点原值保留。截至 EXEC `a963ef19` + 本 nail：coding/proven/run/延迟 <500ms（P-1 实测 4ms/12ms 两绿跑）/**健康态 2s 轮询已消除**（三控制器 pump 化）已达成；"e2e 三流绿"仍未跑（本刀授权面=三既有 proof 复跑，全绿）；covered/HA/releaseEvidence/g7SuiteGreen/actualSpendCny 维持原值零翻转。预执行双审与 post-prove 双审均已 done（两席 PASS · stub 回填见 `reviews/REQUEST-2026-10-07-sse-push-{mw-e2e-ha,mw-model-op}.md`）。
+
+## 10. 协调方 Opt1 裁决全文（nail 持久化 · 2026-10-08 · 原文照录）
+
+**裁决语境**：EXEC 授权指令③（`Promise.race([notify, sleep(30s)])` 兜底钉死·"30s fallback only"）与④（三既有 SSE 证明未修改复跑绿）结构性互斥（证据三重锚定见阻断备忘录 `reviews/EXEC-2026-10-08-sse-push-blocker-mw-core.md` §0：sse-slot `:174-176` counting-stub 环境无 PG·LISTEN 结构性不可能；uc010 `:220-222`/`:241-242` 2s cadence 硬耦合 + `_neg-harness` 01_schema DROP 摧毁 trigger；last-event-id 纯解析无冲突）。协调方就备忘录 §1 选项菜单（Opt1 通道健康分级兜底〔mw-core 推荐〕/Opt2 改两 proof 时序窗/Opt3 两红 retained）裁决如下——
+
+> **裁定 Opt1 · 通道健康分级兜底 · 附三约束：**
+> **①健康判定 = LISTEN 在位 + establish 期一次 `pg_trigger` SELECT 实证 0143 在场双条件**（每连接建立时恰一次，非每 SSE、非周期）；
+> **②降级时结构化日志 `reason=listen_down|trigger_missing` + 收据登记降级窗口**；
+> **③两 proof 复绿 = 退化面验证措辞 · 生产 B6 合规由 P-1~P-5 真 LISTEN prove 承担**。
+
+**裁决语义**：健康 → notify 主推 + 30s 兜底（B6 合规 posture，生产常态）；退化（LISTEN 失败/断连或 trigger 缺席）→ 逐连接回落 legacy `sleep(2000)` 轮询 + 一次性 warn（fail-open 回旧行为，D6c 由「变慢」改「回旧」）；两 proof 环境按构造即退化（stub 无库 / harness DROP 后无 trigger）→ 不改一字复跑绿；改动面仍在授权触面内（pump/LISTEN 模块内部逻辑），无 proof/仪器触碰。Opt2（仪器变更重走双审·NHP-028 仪器纪律高危面）与 Opt3（击穿④绿门）不采。
+**执行与核验**：EXEC `a963ef19` 落码（双条件健康/降级日志+窗口/退化回落三约束全落）；proof 35 断言（P-2a 活体退化臂=退化面验证措辞的证明面）；三既有 proof 未改一字复跑绿（sse-slot 走 listen_down 路径 · uc010 走 trigger_missing 路径）。post-prove 双审两席 PASS（席1 七项 15/15 blob · 席2 ①-⑦）· 协调方 2026-10-08 授权 nail（含两席补账处方——见 stub 回填两文件与 checklist NAIL 节）。
