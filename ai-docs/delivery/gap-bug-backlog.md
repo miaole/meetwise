@@ -858,3 +858,23 @@
 | GAP-COMM-PARTIAL-PAIR | P1 | **OPEN** · 休眠设计张力（用户 2026-10-08 直裁登记）：0001_baseline.sql:117 CHECK 允许 `partial_confirmed`，但配对触发器 0020_commerce_terminal_integrity.sql:47-48（trg_interview_consumption_terminal_pair :62）与 0046_application_assessment_recovery.sql:162-166 同族副本要求 interview `completed` ⇔ consumption `confirmed`——`ratio<1` 时 commerce.ts:126 `finalStatus='partial_confirmed'`（过 0001 CHECK）+ 同事务面试 completed ⇒ RAISE 23514 invalid_interview_consumption_pair 整事务回滚。生产全调用方 ratio=1（commerce.ts:97 默认·无外部非默认调用点）当前不可达；按比例结算/降级计费立项时必撞 | 语义裁决：分支 T（触发器正确——partial_confirmed 定为非终态中间值，completed 只配 confirmed·文档+CHECK 注释收窄）vs 分支 C（CHECK 正确——触发器放行 partial_confirmed+completed 配对·units_settled 语义入合同）——两分支并陈交双审+产品视角裁 | commerce/db | 语义裁决刀（REQUEST→双审→EXEC→post-dual→nail） | 0001_baseline.sql:117 · 0020_commerce_terminal_integrity.sql:25,:47-48,:62 · 0046_application_assessment_recovery.sql:162-166 · packages/db/src/commerce.ts:97,:126 |
 
 > 登记依据：用户在 meetwise chat 直裁「登记，登记完了还要处理」· 本 commit 仅登记·修复=语义裁决刀另立（两分支并陈·Ban 未裁先改码）· Pins 不动：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null.
+
+### 技术债登记（2026-10-08 用户直裁全库质量审计 · 前端+测试路 · 协调方 SSOT commit）
+
+| ID | P0/P1 | 现状 | 目标 | 归属域 | 拟切片 | 所需 harness 路径 |
+|----|-------|------|------|--------|--------|-------------------|
+| BUG-E2E-FAILUNIMPORT | **P0** | **OPEN** · 真 bug：e2e/full.e2e.ts:205 调用 `emitE2EFailure` 但 :14 只 import `emitClassifiedE2EFailure`（helpers/failure.ts:20-21 双导出在）——终态超时这条最需上报的路径 ReferenceError 断线，被外层 catch 错分类 client_uncaught；e2e 目录无 tsc 门。**直接影响 CMOP03-F 六窗判据段外分支分类正确性**（已通报在飞双审·修复并入该刀 EXEC 同文件面） | 补 import + e2e tsc --noEmit 门 | e2e | 并入 CMOP03-F EXEC（同文件） | full.e2e.ts:14,:205 |
+| GAP-DEBT-FE-TYPESHARE | P1 | OPEN · 前端审计 2026-10-08：①语音转写链路三份手抄（VoiceCallPanel:434-452/:483-511+InterviewPanel:143-166≈120 行重复）②Report/Profile 类型双页各抄已漂移（report/[id]/page.tsx:22-25 vs share/page.tsx:10-13 状态枚举少 2 成员；dashboard vs settings Profile 分叉）③serverGet 裸 as T 零校验（lib/api/server.ts:31）④状态中文映射逐字复制两份+quiz/diagnosis/jobs 各一份 ⑤死依赖 @tanstack/react-query+zustand 零引用 ⑥无 ESLint/Prettier 配置 | contracts 扩面+抽 audio.ts/状态徽章组件+lint 最小起步 | web | 多批次小刀 | 审计报告在卷 |
+| GAP-DEBT-TEST-BOILER | P1 | OPEN · 测试审计：①scor-01/02/03 proof 11 字段字面量 9 连发（defaultIssue 工厂缺）②A() 断言助手 109 处逐文件重抄 8 种变体+sleep 5 处重定义（harness.ts 缺）③voice-reliability.proof 35 处 any（mock 工厂底座缺）④readJson():Promise<any> 全 e2e 无类型+interviewId 三连猜×3 ⑤裸 sleep 残留 6 处（screenshots:16,26/online-public:44/interview.ts:371/sse.ts:105） | 测试基建收敛（工厂/共享助手/类型化 readJson） | test/e2e | 多批次小刀 | 审计报告在卷 |
+
+### 技术债登记（2026-10-08 · DB schema 审计 + 后端审计 · 协调方 SSOT commit）
+
+| ID | P0/P1 | 现状 | 目标 | 归属域 | 拟切片 |
+|----|-------|------|------|--------|--------|
+| GAP-DEBT-DB-TRIGFAM | P0 | OPEN · 触发器函数族全量重抄：0028→0046→0051→0082 状态机函数抄 4 遍（评分公式抄 6 遍）；ai_cost 族 0033→0034→0036→0083 抄 4 遍；ann_search/is_generation_control_definer(5份)/checkpoint_erasure/gateway_dispatch 同族蔓延——419 个 CREATE OR REPLACE FUNCTION 中同族重贴约 40 处 | 函数清单单一真相源+变更走 ALTER/版本化（0139 已示范） | db | 独立刀 |
+| GAP-DEBT-DB-NOFK | P0 | OPEN · interview 零外键被引用：interview_event/ai_report/assessment_report/learning_plan 等卫星表裸 text 无 FK（resume 侧却复合 FK 双标）→ 逼出 6 个巨型隐私擦除迁移手工枚举删除闭包(~10 万字节) | (id,owner_user_id) 复合 FK 渐进补齐 | db | 独立刀 |
+| GAP-DEBT-DB-SRCBOILER | P0 | OPEN · src 层：14 份 SET LOCAL ROLE 事务样板(principal.ts:945-983 族)+4 套 job 队列整套复刻(表+claim/done/failed/renew/sweep 五件套×4)+SAVEPOINT 幂等模板 3 处 | runAs(pool,role,fn) 收敛+多态 job 表(kind 列)+withSavepoint | db | 独立刀 |
+| GAP-DEBT-DB-MONEY3 | P1 | OPEN · 钱三轨制：amount_cents int(无正数 CHECK)/units numeric 无精度(22003 风险)/micro_cny bigint 并存；status 列无 CHECK(ai_graph_run 脏值静默绕过 partial unique 不变量)；interview_event 双重唯一索引 | bigint 分单位+正数 CHECK+状态枚举 CHECK+删重复索引 | db | 独立刀 |
+| GAP-DEBT-DB-HYGIENE | P1 | OPEN · 死表 app_setting/consumption_record 在产；sql/ 双 schema 真相(0019 自述曾致 fresh deploy 炸)；0023-0027 reconcile 补丁族；qbank 分区无界膨胀(0029 每代一物理表+HNSW 无清理)；jsonb 万能口袋老表(questions/dimensions/items) | 死表下线/sql/ 删除/分区固定化或清理例程/老 jsonb 渐进拆 | db | 多刀 |
+| GAP-DEBT-BE-R4SCRIPTS | P0 | OPEN · worker/src 里 r4-* 自证脚本 30 文件 7163 行(58% worker src)+cloud-test/eval 族≈9000 行(26% 后端)：grep 自己源码出 evidence JSON 的元验证机器混生产包，重构即失明，helper 复制 18-20 遍 | 整体迁 test/ 或独立 prove 包+helper 抽模块 | worker | 独立刀(并入 DIR-1 迁移批次) |
+| GAP-DEBT-BE-GODFN | P1 | OPEN · invoke() 372 行 8 职责 5-6 层嵌套；bootstrap() 325 行；interview.service.ts 954 行 30 方法；begin() 同 SQL 查 2 遍+3 守卫块考古堆积；G7 freetier 卫兵 641 行焊进生产运行时(monkey-patch http/ws+价格表出自聊天口述)；SSE 三胞胎(已入 SSE-PUSH 刀)；错误码双轨；HMAC 验签×3；any 热点(req:any 24 处/c:any 13 处) | 按 phase 拆函数+域拆服务+G7 门禁移组合根+AppError{code} 统一 | api/worker/ai-runtime | 多刀 |
