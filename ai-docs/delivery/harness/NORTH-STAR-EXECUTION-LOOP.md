@@ -60,6 +60,8 @@ PG-retained（业务+LangGraph PostgresSaver+pgvector；禁 MySQL/Qdrant 业务�
 9. **作者标记**：`git -c user.name=<agent> -c user.email=<agent>@meetwise.local`。
 10. **HA 买云** — **禁止购买**云资源，直到用户在 meetwise chat **明确点头**（D3 报价已钉 ≠ 授权买）。
 
+11. **最佳实践对表强制** — 所有 coding 刀（REQUEST/EXEC）与 review 刀（预执行/post-prove 双审）必须对 `ai-docs/engineering/NEXT-NODE-BEST-PRACTICES.md`（§A/§B/§C）逐条核对；DB 面加对 postgres 规范（uuidv7 ID/索引/约束/触发器）——违反项要么当刀修掉、要么登记技术债台账，禁 silently 通过。协调方派单 prompt 须注入本条。
+
 ### 分域审查员
 
 | 域 | Agent | 审什么 |
