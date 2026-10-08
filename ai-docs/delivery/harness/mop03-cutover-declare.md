@@ -4,7 +4,7 @@
 
 **Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs-only REQUEST · 七门行使方案书 · 零 coding · 零 prove 执行（fresh Q4/Q5 属 EXEC 面 · 本面禁跑）· 零 live · 零容器 · 零 SSOT（backlog / matrix / checklist / queue 零 diff）· 零 `:76` 触碰 · Ban self-approve · alone ≠ dual · Ban nail until 全链 + 四专家审 BOTH + 协调方 AUTHORIZE）
 **Date**: 2026-10-07（Asia/Shanghai）
-**Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`9265e4d8`** / full `9265e4d8a58eaa064244eb3c5fd02c165e83d8fc`（= fetch 后 origin tip · ≥ `9265e4d8` 达标 · 承卷链祖先在位：AN-MOP-Q45 nail `e29d8f93` 之前的 honesty 链 + MOP03 立卷 + MOP03-B 材料包 nail `b2948f20` 已收账 @checklist `:1384`）
+**Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`9265e4d8`** / full `9265e4d8a58eaa064244eb3c5fd02c165e83d8fc`（= fetch 后 origin tip · ≥ `9265e4d8` 达标 · 承卷链祖先在位：AN-MOP-Q45 nail `e29d8f93` 之前的 honesty 链 + MOP03 立卷 + MOP03-B 材料包 nail `b2948f20` 已收账 @checklist `:1384` · worktree `/Users/miaole/Desktop/golucky/meetwise-line-mop03decl` · branch `line/mop03-cutover-declare` · 兄弟刀 worktree（mop03-successor @`47f17b83` · mop03-nail @`e29d8f93` · cutover-review @`b2948f20` · cmop03 各刀）零触碰）（Base 行补记沿 MOP03-B rev2 先例 · rev2 · e2e-ha PRE 处方）
 **Wave**: Line **MOP03-C**（GAP-MOP-03 后继刀第三刀 · 前刀：①AN-MOP-Q45 honesty nail `post_prove_dual_pass`（Q4/Q5 EXIT 0/0 @`66a77ed`）→ ②MOP03 `:76` successor 立卷刀（六门准入合同 `harness/gap-mop-03-successor.md` §2b）→ ③MOP03-B 独立审材料包刀（七门独立审判据 + 审后残留义务 `harness/mop03-cutover-independent-review.md` §3/§4 · nail @checklist `:1384`）· 本刀 = MOP03-B nail 登记的「未来 cutover REQUEST」本身）
 **Experts**: `mw-model-op` + `mw-e2e-ha`（预执行双审 · PRE 待开 · Ban self-approve · alone ≠ dual）；四专家审面（mw-e2e-ha + mw-privacy-int + mw-rag-route + mw-model-op 四席）**在 EXEC 后按合同召集**，本 REQUEST 面不预开
 **Authority**: meetwise — 待授权 · 流程：**REQUEST（本 commit）→ 预执行双审（mw-model-op + mw-e2e-ha · BOTH PASS）→ meetwise 授权 → EXEC（fresh Q4/Q5 同列 + value-gate 审前 unset 核验）→ 四专家审（四席 · BOTH PASS）→ meetwise AUTHORIZE → nail（`:76` 行翻转在此 nail 面 · 单独 nail commit）**
@@ -14,7 +14,7 @@
 ## 0. 承卷事实（勿重做 · 只读 cite · 零重跑）
 
 - AN-MOP-Q45 honesty nail **`post_prove_dual_pass`**：Q4/Q5 **同列 EXIT 0/0** @ CODE_SHA `66a77ed`（PROVE `a1f3614` · POST dual `67050c0`+`a41c575` · attempt 1 · 2026-10-06 20:21:35–20:22:00 +08）· Redis unset · PG LISTEN retained。**该 EXIT0 仅背景证据，不可替代本刀 G1 fresh 门**（旧 EXIT ≠ 新证据 · MOP03-B §3 门1 原口径）。
-- MOP03 `:76` successor 立卷刀已立**六门准入合同**（`harness/gap-mop-03-successor.md` §2b）；MOP03-B 材料包刀已立**七门独立审判据**（`harness/mop03-cutover-independent-review.md` §3）+ **审后残留义务**（同 §4）。本刀沿两者**不加不减、不降级**；七门 = 六门合同的执行细化（门 5 拆出 wakeup 强制周期 reconcile 面 · 审规格四席具名）。
+- MOP03 `:76` successor 立卷刀已立**六门准入合同**（`harness/gap-mop-03-successor.md` §2b）；MOP03-B 材料包刀已立**七门独立审判据**（`harness/mop03-cutover-independent-review.md` §3）+ **审后残留义务**（同 §4）。本刀沿两者**不加不减、不降级**；七门 = 六门合同的执行细化（门 2 细化 wakeup 强制周期 reconcile 面；门 5 对应审规格四席具名）。
 - 铁律原钉原样有效（Ban 洗）：backlog `:76`「prove EXIT 同列绿 **禁止**宣称 MODEL-OP/SLO/cutover 已关；#102 域 cutover 仍须独立审」· checklist `:1031`「Nail ≠ MODEL-OP domain closed ≠ #102 cutover ≠ SLO closed ≠ Redis cutover ≠ suite green」· checklist `:1132`「立卷 ≠ 关闭 ≠ MODEL-OP domain closed ≠ Redis cutover ≠ #102 cutover ≠ suite green ≠ HA」。
 - 锚实测 @ base `9265e4d8`：Q4 CMD `package.json:198` · Q5 CMD `package.json:202` · `worker-wakeup:prove` `package.json:391`（PG-unit 层标注）· `worker-wakeup-redis:prove` `package.json:486`（EXIT0 ≠ cutover 证据）· 双 reconciler wiring `apps/worker/src/main.ts:677/:679-680/:694/:712` · PG LISTEN `main.ts:633/:640-641` + `packages/db/src/worker-job-wakeup.ts:7/:15`（`meetwise_worker_wakeup_v1`）· value-gate `apps/worker/src/worker-job-wakeup-redis.ts:21/:49-52`（`'1'/'true'/'on'` trim+lowercase · default off）· BUG-NOTIFY-REC backlog `:101` · MOP01 立卷 backlog `:84` + `harness/gap-mop-01-wakeup-notify-rec.md` §2a（`:50`）· Line C 口径 backlog `:183-191`。（MOP03-B §2-F 订正锚纪律沿用 · rev1 旧号 `:170-172`/`:93`/`:82` 保留为 provenance 不回改不沿用。）
 
@@ -86,7 +86,7 @@
 
 **REQUEST（本 commit · docs-only）→ 预执行双审（mw-model-op + mw-e2e-ha · PRE BOTH PASS）→ meetwise 授权 → EXEC（fresh Q4/Q5 同列（G1 预声明窗）+ value-gate 审前 unset 核验（G3）+ wakeup prove/强制周期 reconcile 证据入账（G2）· attempts 全账入 receipt）→ 四专家审（mw-e2e-ha + mw-privacy-int + mw-rag-route + mw-model-op · BOTH PASS）→ meetwise AUTHORIZE → nail（单独 nail commit · **`:76` 行翻转在此 nail 面** · 七门任一未过则不进 nail 且 `:76` 保持 OPEN）。**
 
-EXEC 允许操作面：跑 G1/G2 named proves（预声明窗内 · 单次 attempt）+ `MEETWISE_WAKEUP_REDIS_STREAMS` unset 核验（只读 env）+ receipt 落账；Ban 产品码 / SSOT / flag 开启 / 容器 / live / `.env*` 读改。EXEC 的 rg 复验结果与 prove EXIT 全账写入 exec commit message，四专家审可独立复跑。
+EXEC 允许操作面：跑 G1/G2 named proves（预声明窗内 · 单次 attempt）+ `MEETWISE_WAKEUP_REDIS_STREAMS` unset 核验（只读 env）+ receipt 落账；Ban 产品码 / SSOT / flag 开启 / 容器 / live / `.env*` 读改。EXEC 的 rg 复验结果与 prove EXIT 全账写入 exec commit message，四专家审可独立复跑。披露（EXEC/nail 面 · 沿 MOP01 镜像披露先例）：**B 链（MOP03-B 材料包刀）origin 镜像 nail 具名 `6006d2e8`**（origin parent `cde75f3c` · 已在本刀 base `9265e4d8` 祖先 · 本地 nail `b2948f20`）；本刀 EXEC/nail 落账时镜像 SHA 一并具名披露。
 
 ## 5. EXIT 契约（预声明 · 适用于授权后 EXEC · 本 REQUEST 零执行）
 
