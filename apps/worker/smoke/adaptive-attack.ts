@@ -10,6 +10,7 @@ for (const line of readFileSync(new URL('../../../.env', import.meta.url), 'utf8
 const { getPrompt, openAICompatibleClient } = await import('@meetwise/ai-runtime');
 const { ATTACK_CORPUS } = await import('../test/attack-corpus.ts');
 const { stripScoringManipulation, isNonAnswer } = await import('@meetwise/domain');
+const { asErr } = await import('@meetwise/db');
 
 const FAST = process.env.MODEL_FAST_NAME ?? 'qwen-turbo';
 const fastClient = openAICompatibleClient({ model: FAST });
@@ -64,7 +65,7 @@ console.log(`=== 红队回归:${ATTACK_CORPUS.length} 条攻击 过真评估器(
 const results: Awaited<ReturnType<typeof evalOne>>[] = [];
 for (const a of ATTACK_CORPUS) {
   try { results.push(await evalOne(a)); }
-  catch (e: any) { results.push({ a, breach: null, err: 'exc_' + String(e?.message).slice(0, 30) }); }
+  catch (e: unknown) { results.push({ a, breach: null, err: 'exc_' + String(asErr(e)?.message).slice(0, 30) }); }
 }
 
 const breaches = results.filter((r) => r.breach);

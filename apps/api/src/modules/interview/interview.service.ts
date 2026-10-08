@@ -1,6 +1,6 @@
 import { Injectable, Inject, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { assertInterviewPrivacyActive, reserveEntitlement, enqueueInterviewJob, abandonInterviewAndRelease, claimInterviewAnswer, submitInterviewAnswer, readbackInterviewAnswerSubmission, viewInterviewAnswerSnapshot, supplyCandidateProfileRoute, requireOwnerUserId, buildRequiredOwnerFilter, newEntityId } from '@meetwise/db';
+import { assertInterviewPrivacyActive, reserveEntitlement, enqueueInterviewJob, abandonInterviewAndRelease, claimInterviewAnswer, submitInterviewAnswer, readbackInterviewAnswerSubmission, viewInterviewAnswerSnapshot, supplyCandidateProfileRoute, requireOwnerUserId, buildRequiredOwnerFilter, newEntityId, asErr, errCode } from '@meetwise/db';
 import { deriveCareerPath, requireTrustedPracticeOverall, resolveOverlongAnswerPolicy } from '@meetwise/domain';
 import { runCareerPathGraph, selectCareerPathDerive, CAREER_PATH_GRAPH_NAME } from '@meetwise/ai-graphs';
 import type { InterviewAnswerPreviewSubmitDto, InterviewAnswerSubmitResult, TranscribeDto, TurnDto } from '@meetwise/contracts';
@@ -154,8 +154,8 @@ export class InterviewService {
       throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
     try {
       await assertInterviewPrivacyActive(c, id);
-    } catch (error: any) {
-      if (error?.message === 'interview_privacy_fenced')
+    } catch (error: unknown) {
+      if (asErr(error)?.message === 'interview_privacy_fenced')
         throw new HttpException({ error: 'interview_privacy_fenced' }, HttpStatus.GONE);
       throw error;
     }
@@ -302,8 +302,8 @@ export class InterviewService {
       // 额度不足时 reserveEntitlement **抛**(回滚),不是返回——必须 catch 映射成 402,否则被异常过滤当 500(E2E 实测抓到)。
       let rr;
       try { rr = await reserveEntitlement(c, owner, id, 'mock_interview', 1.0); }
-      catch (e: any) {
-        if (e?.code === 'insufficient_entitlement') throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
+      catch (e: unknown) {
+        if (errCode(e) === 'insufficient_entitlement') throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
         throw e;
       }
       if (rr.status !== 'reserved') throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
@@ -498,9 +498,10 @@ export class InterviewService {
       try {
         const result = await abandonInterviewAndRelease(c, owner, id);
         return { abandoned: true, released: result.released, alreadyAbandoned: result.status === 'already_abandoned' };
-      } catch (e: any) {
-        if (e?.code === 'interview_release_failed' || e?.code === 'interview_abandon_conflict')
-          throw new HttpException({ error: 'interview_not_active', status: e?.status ?? st }, HttpStatus.CONFLICT);
+      } catch (e: unknown) {
+        const err = asErr(e);
+        if (errCode(e) === 'interview_release_failed' || errCode(e) === 'interview_abandon_conflict')
+          throw new HttpException({ error: 'interview_not_active', status: err?.status ?? st }, HttpStatus.CONFLICT);
         throw e;
       }
     });

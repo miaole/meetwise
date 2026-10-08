@@ -1,5 +1,5 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { reserveEntitlement, enqueueDiagnosisJob, releaseConsumption, requireOwnerUserId, buildRequiredOwnerFilter, newEntityId } from '@meetwise/db';
+import { reserveEntitlement, enqueueDiagnosisJob, releaseConsumption, requireOwnerUserId, buildRequiredOwnerFilter, newEntityId, errCode } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
 import { parseLastEventId } from '../../platform/last-event-id.ts';
 
@@ -57,8 +57,8 @@ export class DiagnosisService {
       // 额度不足时 reserveEntitlement **抛**(回滚),必须 catch 映射成 402,否则被异常过滤当 500。
       let rr;
       try { rr = await reserveEntitlement(c, owner, id, 'resume_diagnosis', 1.0); }
-      catch (e: any) {
-        if (e?.code === 'insufficient_entitlement') throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
+      catch (e: unknown) {
+        if (errCode(e) === 'insufficient_entitlement') throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
         throw e;
       }
       if (rr.status !== 'reserved') throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);

@@ -8,6 +8,7 @@
  * release and never substitutes for a TargetGrant-protected cloud E2E run.
  */
 import { createHmac } from 'node:crypto';
+import { AppError } from '@meetwise/db';
 import { lookup as dnsLookup } from 'node:dns/promises';
 import { readFileSync } from 'node:fs';
 
@@ -52,7 +53,7 @@ function nonEmpty(value: string | undefined): string | undefined {
 }
 
 function smokeError(code: string): never {
-  throw new Error(`cloud_smoke_${code}`);
+  throw new AppError(`cloud_smoke_${code}`);
 }
 
 function isLoopbackHost(host: string): boolean {

@@ -1,5 +1,6 @@
 import pkg from 'pg';
 import { createClient } from 'redis';
+import { AppError } from '@meetwise/db';
 import {
   assertCloudSmokeHostsPrivate,
   assertCloudSmokePeer,
@@ -89,12 +90,12 @@ export async function runCloudSmoke(
       client.release();
     }
     if (databaseResult.rows[0]?.database_name !== target.databaseName || databaseResult.rows[0]?.tls !== true)
-      throw new Error('cloud_smoke_database_target_or_tls_mismatch');
+      throw new AppError('cloud_smoke_database_target_or_tls_mismatch');
     let redisAsyncError: unknown;
     redis.on('error', (error) => { redisAsyncError ??= error; });
     await redis.connect();
     if (redisAsyncError) throw redisAsyncError;
-    if (await redis.ping() !== 'PONG') throw new Error('cloud_smoke_redis_ping_failed');
+    if (await redis.ping() !== 'PONG') throw new AppError('cloud_smoke_redis_ping_failed');
     return {
       kind: 'cloud_connectivity_receipt',
       runId: config.runId,

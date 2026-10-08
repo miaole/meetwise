@@ -5,6 +5,7 @@
  * 与 invoke 关口分层:invoke 守"模型输出双校验";tools 守"模型决定调的工具入参校验 + 调用编排"。两者正交、各自可测。
  */
 import type { z } from 'zod';
+import { asErr } from '@meetwise/db';
 
 export interface Tool<A = unknown, R = unknown> {
   name: string;
@@ -28,7 +29,7 @@ export function toolRegistry(tools: Tool[]): ToolRegistry {
       const parsed = tool.argsSchema.safeParse(rawArgs);
       if (!parsed.success) return { ok: false, error: 'invalid_args' };        // 铁律①:校验不过 → 不执行
       try { return { ok: true, result: await tool.invoke(parsed.data) }; }
-      catch (e: any) { return { ok: false, error: 'tool_error:' + (e?.message ?? 'unknown') }; }
+      catch (e: unknown) { return { ok: false, error: 'tool_error:' + (asErr(e)?.message ?? 'unknown') }; }
     },
   };
 }

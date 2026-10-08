@@ -5,6 +5,7 @@
 import type { CompletionRequest, ModelClient } from './model-client.ts';
 import type { ModelCallPlan } from './invoke.ts';
 import { getMetrics, METRIC } from './metrics.ts';
+import { AppError, errCode } from '@meetwise/db';
 
 export interface BreakerOpts { threshold?: number; cooldownMs?: number; now?: () => number; onPhase?: (phase: BreakerPhase) => void; dep?: string }
 export type BreakerPhase = 'closed' | 'open' | 'half_open';
@@ -53,7 +54,7 @@ export function circuitBreaker(inner: ModelClient, opts: BreakerOpts = {}): Mode
     // the durable claim and before it writes `dispatching`.
     const admit = !isHalfOpenProbe ? plan.admit : async (admitSignal?: AbortSignal) => {
       if (admitSignal?.aborted) throw new Error('model_execution_aborted');
-      if (halfOpenProbeHeld) throw new Error('model_circuit_half_open');
+      if (halfOpenProbeHeld) throw new AppError('model_circuit_half_open');
       halfOpenProbeHeld = true;
       let upstream: { release(): void } | undefined;
       try {
@@ -118,8 +119,8 @@ export function circuitBreaker(inner: ModelClient, opts: BreakerOpts = {}): Mode
       if (!p.ready) return { ok: false, kind: 'transient', externalOutcome: 'known_not_executed' };
       let admission;
       try { admission = p.admit ? await p.admit(signal) : undefined; }
-      catch (error: any) {
-        if (error?.message === 'model_circuit_half_open')
+      catch (error: unknown) {
+        if (errCode(error) === 'model_circuit_half_open')
           return { ok: false, kind: 'transient', externalOutcome: 'known_not_executed' };
         throw error;
       }
