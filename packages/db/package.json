@@ -53,6 +53,7 @@
     "prove:int-answer-dual-write-fence": "tsx test/int-answer-dual-write-fence.proof.ts",
     "prove:db-id-v7": "tsx test/db-id-v7.proof.ts",
     "prove:db-money3": "tsx test/db-money3.proof.ts",
+    "prove:db-acl": "tsx test/db-acl.proof.ts",
     "prove:scor-01": "tsx test/scor-01.proof.ts",
     "prove:scor-02": "tsx test/scor-02.proof.ts",
     "prove:scor-03": "tsx test/scor-03.proof.ts",
