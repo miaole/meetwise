@@ -1,6 +1,6 @@
-# EXEC — **DBID-1 · 数据库 ID 统一优化刀（UUIDv7 渐进收敛）**（EXEC 落地 + post-dual 席2 修复 · `post_dual_r2_fix:awaiting_seat2_rereview`）
+# EXEC — **DBID-1 · 数据库 ID 统一优化刀（UUIDv7 渐进收敛）**（EXEC + post-dual 双席齐 + 修复轮 · **`post_prove_dual_pass`（nail）**）
 
-**Status**: **`post_dual_r2_fix:awaiting_seat2_rereview`**（原 `executed:awaiting_post_prove_dual` · post-dual 席2 FAIL 成立（消费方版本锁拒收 v7 真雷）已按协调方修复指令落地（§7）· run-5 全套 36/36 EXIT=0 · **Ban self-write `post_prove_dual_pass`** · 席2 复核 + meetwise nail 专属 · alone ≠ dual）
+**Status**: **`post_prove_dual_pass`（nail @协调方授权 2026-10-08）**（全链：EXEC → post-dual 席1 PASS @`b0d86099` → 席2 FAIL（版本锁真雷）→ 修复轮 @`e1971769` → 席2 复核 PASS → nail；修复轮全记录见 §3 run-4/run-5 + §7 · **本状态行为协调方授权 nail 指令直书**）
 **Date**: 2026-10-08（Asia/Shanghai）
 **Knife**: `harness/dbid1-id-v7-unify.md`（REQUEST）· slice `dbid1-id-v7-unify.slice.md`
 **REQUEST**: `13a0f9f6`（parent = origin tip `7135f615`——rebase 要求 **≥7135f615 已满足**：branch `line/db-id-v7-unify` HEAD 恰为 `7135f615 + 13a0f9f6`，fetch 后 origin/feat/mysql-schema-skeleton tip = `7135f615`，无需位移；`7135f615` 含对表勾销块绑定（硬规则 11 · commit `48ec9fc3`/`3afa08d5`/`7135f615` 链））≡ origin 镜像 **`23d8991c`**（协调卷 REQUEST · base `0fe96fca` · patch-id **`2013fe209f0961d56128062b9ddd540558b02647`** 两副本实测全等 · push 前 `git rebase origin/line/db-id-v7-unify` 机检 skip `13a0f9f6` previously applied · EXEC tree 零字节漂移亲证 `git diff efe16da6 HEAD` = 空）
@@ -92,6 +92,30 @@
 
 ≠HA · ≠suite green · ≠SLO/性能量化声明 · ≠存量 ID 迁移 · ≠列类型/FK/RLS 变更 · ≠MySQL/Qdrant 重开 · ≠覆盖任何 e2e 门（coveredCount=8 不变）· releaseEvidence=false · actualSpendCny=null · local green ≠ stack truth。
 
+## §8 NAIL（协调方授权 · 2026-10-08 · post-dual 双席齐）
+
+**lifecycle**：`post_prove_dual_pass`（nail）。**修复轮记录如实入链**：席2 FAIL（消费方版本锁正则拒收 v7 · `interview.begin` 拒 v7 resumeId → 主 e2e 断）→ 全库扫实测 **3 处雷**（点名 2：api `interview.service.ts` / web `scoring-honesty.ts` + 漏网 1：domain 孪生 `packages/domain/src/scoring-honesty.ts:17`）→ 字符类单点修（`[1-5]`→`[0-9a-f]` · 守卫逻辑零改动）→ P8 冒烟 6 断言（真实 begin 方法 + 真实导出纯函数孪生）→ run-5 全套 **36/36 EXIT=0** → 席2 复核 PASS。
+
+### NAIL checklist（全链勾销）
+
+| 项 | 值/勾销 |
+|----|---------|
+| SHA 链 | REQUEST `23d8991c`（≡ 本地孪生 `13a0f9f6` · patch-id `2013fe20…` 全等）→ EXEC `b0d86099`（≡ rebase 前 `efe16da6` tree 零字节漂移）→ 席2 修复 `e1971769` → nail commit（本笔） |
+| 双审 | pre-exec dual BOTH PASS（D1–D6 裁定齐 · D1=全 55 切 / D2=`qgen-` 排除 / D3=裸 uuid 残留登记 / D4=32hex / D5=B2 并入 / D6=解码 helper）；post-dual 席1 PASS @`b0d86099` · 席2 FAIL→修复→复核 PASS @`e1971769` |
+| prove | run-5 EXIT=0 · **36/36**（P1×6+P2×3+P3×8+P4×5+P5×5+P6×2+P7×1+P8×6）· attempts 全账 6 跑（run-0..run-5 · §3 · Ban retry-to-green）· E1 计数勘误 31→30 如实登记（§7-E1） |
+| 对表勾销 | postgres skill 7 项 + NEXT-NODE **C4**（§4：1/2/6/7+C4 ✅ 落地 · 3/4/5/C1/C2 ≠silently 台账既有登记） |
+| 防复发产物 | `id-convention.md` §2「消费面契约」：uuid 形态 id 消费方正则**禁版本锁**（席2 复核认可 · 全库残扫 0） |
+| Ban 自证 | 存量行零回填 / 列类型·FK·RLS·幂等键·触发器零触碰 / P6 语句白名单静态门（§5 全绿） |
+
+### 席2 两 nit · 登记**下轮清**（不在本 nail 面）
+
+| # | nit | 下轮动作 |
+|---|-----|---------|
+| N1 | **绿收据补钉 smoke digest**：run-5 绿收据 `sourceDigests` 缺 `packages/db/scripts/dbid1-api-guard-smoke.ts`（该源清单补钉 commit `e1971769` 晚于绿跑 08:47，收据为跑时快照） | 下一轮任意 `db-id-v7:prove` 绿跑收据即自带（清单已在卷）；或下轮绿跑后回钉收据 SHA 入台账 |
+| N2 | **`0049:47` known-benign 登记**：`0049_resume_reference_foundation.sql:47` 为已闭一次性回填 UPDATE 的版本锁 WHERE（`[1-5]` · 仅匹配书写时点存量 v4 payload · 已入 checksummed ledger 永不重放 · 不在活读写路径 · Ban 改历史迁移） | 下轮刀/台账登记 known-benign 指针，防未来版本锁全库扫重复误报 |
+
+**Pins（照抄 · 禁翻转）**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503（stays） · g7SuiteGreen=false · actualSpendCny=null。
+
 ---
 
-*EXEC receipt · DBID-1 · 2026-10-08 · executed:awaiting_post_prove_dual · Ban self-approve · Ban push · pins 全保留*
+*EXEC receipt · DBID-1 · 2026-10-08 · post_prove_dual_pass（nail @协调方授权）· 修复轮全链如实 · pins 全保留*
