@@ -1,6 +1,6 @@
 # NEGCOMM-1 — neg-commerce consume 族夹具修复刀（红掩覆盖解锁）
 
-**状态**：`draft_rev2:awaiting_pre_exec_dual`（rev1 席1 FAIL 处方：五件套 schema 补丁镜像 neg-interview 先例+decision/snapshot 预种——七用例期望零改动即真语义绿防 500 面续红与超卖假绿） · base = 主线 `02d35a01` · 分支 `line/negcomm-fixture` · 立项依据 = G7TRIO nail（consume 族 7F 单一根因=begin UUID_RE 门 3f5bdc80 晚于 'r1' 夹具 3c87bfa7→全部 begin 死于 400 门·产品方向 fail-closed 更严·覆盖红掩）。
+**状态**：`exec:awaiting_post_prove_dual`（mw-core EXEC 落刀：五件套镜像 neg-interview:26-227 + 四 principal resume 种子 + 五面试 decision→snapshot 预种 + consume 族 'r1'→principal 对齐 UUID（七用例期望零 diff）+ 新门负断言 400 invalid_resume_id（门位 interview.service.ts:169 亲证）· 恰 1 run `pnpm neg:commerce` attempt1 EXIT=0 · runtime 84/84 全绿 FAIL=0 · 零产品码 · 收据 `ai-docs/delivery/receipts/negcomm-fixture/` · alone≠dual 不自批）。前态 `draft_rev2:awaiting_pre_exec_dual`（rev1 席1 FAIL 处方：五件套 schema 补丁镜像 neg-interview 先例+decision/snapshot 预种——七用例期望零改动即真语义绿防 500 面续红与超卖假绿） · base = 主线 `02d35a01` · 分支 `line/negcomm-fixture` · 立项依据 = G7TRIO nail（consume 族 7F 单一根因=begin UUID_RE 门 3f5bdc80 晚于 'r1' 夹具 3c87bfa7→全部 begin 死于 400 门·产品方向 fail-closed 更严·覆盖红掩）。
 
 ## 1. 修法（仅 neg-commerce.proof.ts 夹具段·零产品码）【rev2·席1 FAIL 处方落实——五件套 schema 补丁镜像】
 **仅换 UUID 不够**：begin 过 UUID 门后 harness DB 缺四道基建（席1 亲证）→ 换 500 面续红+超卖假绿。修法=**整段镜像 `neg-interview.proof.ts:26-227` 先例**（同病同治 46/97→97/97·仓内有据）：
@@ -12,6 +12,7 @@
 
 ## 2. 验收
 恰 1 run neg:commerce（或 neg:all 含该族）EXIT=0（7 用例转绿+新门断言在卷）·attempts 全账·收据 `ai-docs/delivery/receipts/negcomm-fixture/`·零产品码·pins 十值照抄（haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null）·实现不自批·alone≠dual·禁重跑至绿。
+> EXEC 注记（措辞）：文件尾自记 79 为陈年文档漂移（刀前静态 `A(` 位点已 83）；REQUEST 钉死的 79→80 落在文档 tally，runtime 终态打印 84 条全绿（=83+1），两账并立如实入收据。历史红=begin 400 门+夹具债（db gate/test failed 面），非 web-build 相位。
 
 ## 3. Non-claims
 本刀 ≠ CMD3 收官（步 11-27 含 6 LEGACY/R5 步解锁后另评估）≠ 7A 面 ≠ trio。

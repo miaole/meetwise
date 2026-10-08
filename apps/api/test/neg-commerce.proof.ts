@@ -14,7 +14,9 @@ import { boot, mkAssert, tokenFor, paySig, PAY_SECRET } from './_neg-harness';
  *    长度不符/内容不符→403 bad_signature(timingSafeEqual,fail-closed)。
  *  - markOrderPaidAndCredit:CAS created→paid 只第一次成功(credited);重复同单同流水→already(不双入);
  *    非本人/不存在→not_found(404);已 paid 但流水不符→conflict(409)。
- *  - 额度消费经 interview begin:reserveEntitlement 不足则**抛** → service catch 映射 402 insufficient_entitlement。
+ *  - 额度消费经 interview begin:resume-id 头非 UUID → 400 invalid_resume_id(消费方版本锁,
+ *    interview.service.ts:169,v64 typed 引用契约);reserveEntitlement 不足则**抛** → service catch 映射
+ *    402 insufficient_entitlement。
  *  - zod 校验失败→400 {error:'invalid',issues}。异常过滤:pg 23505→409 {error:'conflict'};未知→500 internal_error。
  *  - 传输层:非上传路由 content-length>1MB → onRequest 直接 413 payload_too_large(body parse 之前)。
  */
@@ -25,6 +27,156 @@ const money = (o: any) => o?.amountCents;
   const h = await boot();
   const { A, done } = mkAssert('neg:commerce');
   const pool = h.pool;
+
+  // ── NEGCOMM-1 schema 逐修(预存红根因:本 proof 落后 HEAD 产品 schema 漂移,consume 族 begin 过 UUID 门后
+  //    死 500/409 面)——补丁整段镜像 neg-interview.proof.ts:26-227 先例(同病同治),A 断言零改动:
+  //    ① 0058 privacy fence 函数缺失 → 最小 stub(begin guardInterviewPrivacy 与 enqueueInterviewJob 均调
+  //       assert_interview_privacy_active;无 write-guard trigger,admin 直插种子不触 fence);
+  //    ② 0064 interview.resume_privacy_epoch 列缺失 → ALTER IF NOT EXISTS(begin 绑定 UPDATE 读
+  //       r.privacy_epoch 写本列;epoch=NULL 会被 legacy_resume_reference_unavailable 守卫拦);
+  //    ③ sql/05 interview_job v64 面(resume_privacy_epoch 列 + reference_schema_version CHECK 放行 64)缺失 →
+  //       ALTER(INTERVIEW_RESUME_REFERENCE_VERSION=64;sql/05 严格体仍钉 CHECK=50);
+  //    ④ sql/22 绑定面落后 0049 语义(strict 全禁 UPDATE + 三列同扎 CHECK)→ 按 migrations/0049 原文对齐
+  //       (C 面 NULL→owned/ingested resume 允许恰好一次;CHECK 放开 application/job 全 NULL 时 resume 独立),
+  //       否则 begin 真实 bind 路径被旧 trigger 误拦;
+  //    ⑤ 0142 candidate-profile route 两表缺失(supplyCandidateProfileRoute 首查 snapshot 表)→ additive-only
+  //       同款 CREATE TABLE IF NOT EXISTS(migrations/0142)。
+  await pool.query(`ALTER TABLE interview ADD COLUMN IF NOT EXISTS resume_privacy_epoch bigint`);
+  await pool.query(`
+ALTER TABLE interview_job
+  ADD COLUMN IF NOT EXISTS resume_privacy_epoch bigint;
+ALTER TABLE interview_job
+  ALTER COLUMN reference_schema_version SET DEFAULT 64;
+ALTER TABLE interview_job
+  DROP CONSTRAINT IF EXISTS interview_job_reference_schema_version_check;
+ALTER TABLE interview_job
+  DROP CONSTRAINT IF EXISTS interview_job_reference_schema_version_chk;
+ALTER TABLE interview_job
+  ADD CONSTRAINT interview_job_reference_schema_version_chk
+  CHECK (reference_schema_version IS NULL OR reference_schema_version IN (49, 50, 64));
+`);
+  await pool.query(`ALTER TABLE interview ADD COLUMN IF NOT EXISTS application_attempt int`);
+  await pool.query(`
+ALTER TABLE interview DROP CONSTRAINT IF EXISTS ck_interview_application_binding_complete;
+ALTER TABLE interview ADD CONSTRAINT ck_interview_application_binding_complete
+  CHECK (
+    (application_id IS NULL AND job_id IS NULL)
+    OR (application_id IS NOT NULL AND job_id IS NOT NULL AND resume_id IS NOT NULL)
+  );
+`);
+  await pool.query(`
+CREATE OR REPLACE FUNCTION enforce_interview_application_binding_immutable()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.application_id IS DISTINCT FROM OLD.application_id
+     OR NEW.job_id IS DISTINCT FROM OLD.job_id
+     OR NEW.application_attempt IS DISTINCT FROM OLD.application_attempt THEN
+    RAISE EXCEPTION 'interview_application_binding_immutable';
+  END IF;
+
+  IF NEW.resume_id IS DISTINCT FROM OLD.resume_id THEN
+    -- Ordinary C interviews are created before /begin knows the selected
+    -- resume.  Allow exactly one NULL -> owned/ingested resume assignment in
+    -- the created state; every other mutation remains an immutable-binding
+    -- violation, including all B-side application attempts.
+    IF OLD.application_id IS NULL
+       AND NEW.application_id IS NULL
+       AND OLD.resume_id IS NULL
+       AND NEW.resume_id IS NOT NULL
+       AND OLD.status='created' THEN
+      PERFORM 1 FROM resume r
+       WHERE r.id=NEW.resume_id
+         AND r.owner_user_id=NEW.owner_user_id
+         AND r.status='ingested';
+      IF NOT FOUND THEN
+        RAISE EXCEPTION 'interview_resume_reference_requires_owned_ingested_resume';
+      END IF;
+    ELSE
+      RAISE EXCEPTION 'interview_application_binding_immutable';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+DROP TRIGGER IF EXISTS trg_interview_application_binding_immutable ON interview;
+CREATE TRIGGER trg_interview_application_binding_immutable
+BEFORE UPDATE OF application_id,application_attempt,job_id,resume_id ON interview
+FOR EACH ROW EXECUTE FUNCTION enforce_interview_application_binding_immutable();
+`);
+  await pool.query(`
+CREATE OR REPLACE FUNCTION interview_privacy_active(target_interview text)
+RETURNS boolean
+LANGUAGE plpgsql
+SET search_path = pg_catalog, public, pg_temp AS $$
+DECLARE
+  principal text := current_setting('app.principal_user', true);
+BEGIN
+  IF principal IS NULL OR length(principal)=0 OR target_interview IS NULL OR length(target_interview)=0 THEN
+    RETURN false;
+  END IF;
+  RETURN EXISTS (
+    SELECT 1 FROM interview i
+     WHERE i.id = target_interview AND i.owner_user_id = principal
+  );
+END $$;
+CREATE OR REPLACE FUNCTION assert_interview_privacy_active(target_interview text)
+RETURNS void
+LANGUAGE plpgsql
+SET search_path = pg_catalog, public, pg_temp AS $$
+BEGIN
+  IF NOT interview_privacy_active(target_interview) THEN
+    RAISE EXCEPTION 'interview_privacy_fenced' USING ERRCODE='P0001';
+  END IF;
+END $$;
+GRANT EXECUTE ON FUNCTION interview_privacy_active(text) TO app_role;
+GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
+`);
+  await pool.query(`
+CREATE TABLE IF NOT EXISTS candidate_profile_route_decision (
+  id text PRIMARY KEY,
+  interview_id text NOT NULL CHECK (char_length(interview_id) BETWEEN 1 AND 512),
+  owner_user_id text NOT NULL CHECK (char_length(owner_user_id) BETWEEN 1 AND 512),
+  resume_id text NOT NULL CHECK (char_length(resume_id) BETWEEN 1 AND 512),
+  resume_content_sha text NOT NULL CHECK (resume_content_sha ~ '^[0-9a-f]{64}$'),
+  input_digest text NOT NULL CHECK (input_digest ~ '^[0-9a-f]{64}$'),
+  taxonomy_version text NOT NULL CHECK (taxonomy_version ~ '^v[1-9][0-9]{0,15}$'),
+  policy_version text NOT NULL CHECK (char_length(policy_version) BETWEEN 1 AND 64),
+  route_outcome text NOT NULL CHECK (route_outcome = 'route_decided'),
+  attempt_outcome text NOT NULL CHECK (attempt_outcome = 'rule_decided'),
+  leaf_track_id text NOT NULL CHECK (leaf_track_id ~ '^[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*){0,3}$'),
+  allocation_bps integer NOT NULL CHECK (allocation_bps = 10000),
+  decision_hash text NOT NULL CHECK (decision_hash ~ '^[0-9a-f]{64}$'),
+  created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+  UNIQUE (interview_id)
+);
+CREATE TABLE IF NOT EXISTS candidate_profile_route_snapshot (
+  interview_id text PRIMARY KEY,
+  candidate_user_id text NOT NULL CHECK (char_length(candidate_user_id) BETWEEN 1 AND 512),
+  decision_id text NOT NULL,
+  resume_content_sha text NOT NULL CHECK (resume_content_sha ~ '^[0-9a-f]{64}$'),
+  input_digest text NOT NULL CHECK (input_digest ~ '^[0-9a-f]{64}$'),
+  taxonomy_version text NOT NULL CHECK (taxonomy_version ~ '^v[1-9][0-9]{0,15}$'),
+  leaf_track_id text NOT NULL CHECK (leaf_track_id ~ '^[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*){0,3}$'),
+  allocation_bps integer NOT NULL CHECK (allocation_bps = 10000),
+  status text NOT NULL CHECK (status = 'interview_snapshotted'),
+  created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+  FOREIGN KEY (decision_id) REFERENCES candidate_profile_route_decision(id)
+);
+GRANT SELECT, INSERT ON candidate_profile_route_decision TO app_role;
+GRANT SELECT, INSERT ON candidate_profile_route_snapshot TO app_role;
+ALTER TABLE candidate_profile_route_decision ENABLE ROW LEVEL SECURITY;
+ALTER TABLE candidate_profile_route_decision FORCE ROW LEVEL SECURITY;
+ALTER TABLE candidate_profile_route_snapshot ENABLE ROW LEVEL SECURITY;
+ALTER TABLE candidate_profile_route_snapshot FORCE ROW LEVEL SECURITY;
+CREATE POLICY p_candidate_profile_route_decision_owner ON candidate_profile_route_decision
+  FOR ALL TO app_role
+  USING (owner_user_id = current_setting('app.principal_user', true))
+  WITH CHECK (owner_user_id = current_setting('app.principal_user', true));
+CREATE POLICY p_candidate_profile_route_snapshot_owner ON candidate_profile_route_snapshot
+  FOR ALL TO app_role
+  USING (candidate_user_id = current_setting('app.principal_user', true))
+  WITH CHECK (candidate_user_id = current_setting('app.principal_user', true));
+`);
 
   // ── 隔离 fixtures(固定种子不动;所有 mutation/并发用例用独立 owner/订单,可精确断言增量)──
   await pool.query(
@@ -42,6 +194,44 @@ const money = (o: any) => o?.amountCents;
   await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('IV_OS1','negOsell','created'),('IV_OS2','negOsell','created')");
   await pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ('negDbl','paid',5.0, now()+interval '30 days')");
   await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('IV_DBL','negDbl','created')");
+
+  // ── consume 族 resume 夹具:'r1' 版本号形态已被 interview.service.ts:169 UUID_RE 消费方版本锁拒
+  //    (400 invalid_resume_id,产品方向 fail-closed 更严)→ 各 begin 头改用 principal 名下真实 ingested
+  //    UUID 简历(neg-interview.proof.ts:219-222 同款;无需 resume_blob——snapshot 预种使
+  //    supplyCandidateProfileRoute 走幂等复用面,不触 decryptResumeBlob → 推进至扣额面,防 409
+  //    candidate_route_undecided 假红)。
+  const R_UBC2 = '33333333-3333-4333-8333-333333333331';   // userB(无额度桶 → 402 面)
+  const R_EXP  = '33333333-3333-4333-8333-333333333332';   // negExp(过期额度 → 402 面)
+  const R_OS   = '33333333-3333-4333-8333-333333333333';   // negOsell(共享池仅 1.0 → 超卖面)
+  const R_DBL  = '33333333-3333-4333-8333-333333333334';   // negDbl(5.0 → 并发双击幂等面)
+  const SHA64  = 'a'.repeat(64);
+  await pool.query(
+    "INSERT INTO resume(id,owner_user_id,status,content_sha,source_kind,privacy_epoch) VALUES " +
+    "($1,'userB','ingested',$5,'text',1),($2,'negExp','ingested',$5,'text',1)," +
+    "($3,'negOsell','ingested',$5,'text',1),($4,'negDbl','ingested',$5,'text',1) ON CONFLICT DO NOTHING",
+    [R_UBC2, R_EXP, R_OS, R_DBL, SHA64]);
+  // 五面试 decision→snapshot 预种(neg-interview.proof.ts:229-231 形态;FK 先 decision 后 snapshot;
+  // owner=对应 principal;0142 两表 RLS 面以事务内 SET app.principal_user 对齐;IV_UBC2 的 interview 行
+  // 在 §5 用例内内联插入,decision/snapshot 对 interview 无 FK,先种无碍)。
+  {
+    const cli = await pool.connect();
+    try {
+      await cli.query('BEGIN');
+      const preseeds: Array<[string, string, string]> = [
+        ['IV_UBC2', 'userB', R_UBC2], ['IV_EXP', 'negExp', R_EXP],
+        ['IV_OS1', 'negOsell', R_OS], ['IV_OS2', 'negOsell', R_OS], ['IV_DBL', 'negDbl', R_DBL],
+      ];
+      for (const [iv, owner, rid] of preseeds) {
+        const decId = `cprd-negcomm-${iv.toLowerCase()}`;
+        await cli.query(`SET app.principal_user='${owner}'`);
+        await cli.query(`INSERT INTO candidate_profile_route_decision(id,interview_id,owner_user_id,resume_id,resume_content_sha,input_digest,taxonomy_version,policy_version,route_outcome,attempt_outcome,leaf_track_id,allocation_bps,decision_hash)
+          VALUES ($1,$2,$3,$4,$5,$5,'v1','policy-neg-comm-1','route_decided','rule_decided','backend',10000,$5) ON CONFLICT (interview_id) DO NOTHING`, [decId, iv, owner, rid, SHA64]);
+        await cli.query(`INSERT INTO candidate_profile_route_snapshot(interview_id,candidate_user_id,decision_id,resume_content_sha,input_digest,taxonomy_version,leaf_track_id,allocation_bps,status)
+          VALUES ($1,$2,$3,$4,$4,'v1','backend',10000,'interview_snapshotted') ON CONFLICT (interview_id) DO NOTHING`, [iv, owner, decId, SHA64]);
+      }
+      await cli.query('COMMIT');
+    } finally { cli.release(); }
+  }
 
   // ── 小工具(经特权 pool 直查,验证 DB 侧不变量;pool 绕 RLS)──
   const nOrders = async (owner: string, key: string) =>
@@ -367,12 +557,12 @@ const money = (o: any) => o?.amountCents;
   {
     // userB 无任何额度桶 → 消费触发 402。**必须从 created 态 begin**(IV_OTHER 是 active → begin 幂等短路不扣额)。
     await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('IV_UBC2','userB','created') ON CONFLICT DO NOTHING");
-    const r = await h.post(BEGIN('IV_UBC2'), { ...U('userB'), 'resume-id': 'r1' }, {});
+    const r = await h.post(BEGIN('IV_UBC2'), { ...U('userB'), 'resume-id': R_UBC2 }, {});
     A('consume/无额度 → 402 insufficient_entitlement', r.status === 402 && r.body?.error === 'insufficient_entitlement');
   }
   {
     // 额度已过期(expires_at < now)→ 可用池=0 → 402(过期额度不可用,不误当有效)
-    const r = await h.post(BEGIN('IV_EXP'), { ...U('negExp'), 'resume-id': 'r1' }, {});
+    const r = await h.post(BEGIN('IV_EXP'), { ...U('negExp'), 'resume-id': R_EXP }, {});
     A('consume/过期额度 → 402 insufficient_entitlement', r.status === 402 && r.body?.error === 'insufficient_entitlement');
   }
   {
@@ -381,20 +571,26 @@ const money = (o: any) => o?.amountCents;
     A('consume/缺 resume-id → 400 missing_resume_id', r.status === 400 && r.body?.error === 'missing_resume_id');
   }
   {
+    // 新门负断言:非 UUID resume-id(旧夹具 'r1' 版本号形态)→ interview.service.ts:169 UUID_RE 消费方版本锁
+    // 在任何绑定写/扣额/入队之前拒 → 400 invalid_resume_id(resume-reference-http.proof.ts:53 断言式先例)。
+    const r = await h.post(BEGIN('IV_UBC2'), { ...U('userB'), 'resume-id': 'r1' }, {});
+    A('consume/非 UUID resume-id(旧 r1 形态)→ 400 invalid_resume_id', r.status === 400 && r.body?.error === 'invalid_resume_id');
+  }
+  {
     // 越权对他人面试 begin(userB 打 userA 的 IV_ACT)→ RLS 隐藏 → 404,不扣他人额度
-    const r = await h.post(BEGIN('IV_ACT'), { ...U('userB'), 'resume-id': 'r1' }, {});
+    const r = await h.post(BEGIN('IV_ACT'), { ...U('userB'), 'resume-id': R_UBC2 }, {});
     A('consume/越权他人面试 → 404 not_found_or_forbidden', r.status === 404 && r.body?.error === 'not_found_or_forbidden');
   }
   {
-    // 未鉴权 begin → 401
-    const r = await h.post(BEGIN('IV_ACT'), { 'resume-id': 'r1' }, {});
+    // 未鉴权 begin → 401(死于 guard 层:PrincipalGuard 在控制器/UUID 门之前拒,头形态对齐 UUID 即可,断言零改)
+    const r = await h.post(BEGIN('IV_ACT'), { 'resume-id': R_UBC2 }, {});
     A('consume/未鉴权 begin → 401', r.status === 401);
   }
   {
     // 并发竞态超卖:共享池仅 1.0,两场不同面试并发各扣 1.0 → 只能一场成功,另一场 402;预留永不超过 1.0
     const rs = await Promise.all([
-      h.post(BEGIN('IV_OS1'), { ...U('negOsell'), 'resume-id': 'r1' }, {}),
-      h.post(BEGIN('IV_OS2'), { ...U('negOsell'), 'resume-id': 'r1' }, {}),
+      h.post(BEGIN('IV_OS1'), { ...U('negOsell'), 'resume-id': R_OS }, {}),
+      h.post(BEGIN('IV_OS2'), { ...U('negOsell'), 'resume-id': R_OS }, {}),
     ]);
     const codes = rs.map((r) => r.status);
     A('consume/并发超卖 → 恰一场被 402 拒(不超卖)', codes.filter((c) => c === 402).length === 1);
@@ -404,8 +600,8 @@ const money = (o: any) => o?.amountCents;
   {
     // 并发重复 begin 同一面试(双击)→ advisory 锁 + 幂等:只预留一次,不双扣
     const rs = await Promise.all([
-      h.post(BEGIN('IV_DBL'), { ...U('negDbl'), 'resume-id': 'r1' }, {}),
-      h.post(BEGIN('IV_DBL'), { ...U('negDbl'), 'resume-id': 'r1' }, {}),
+      h.post(BEGIN('IV_DBL'), { ...U('negDbl'), 'resume-id': R_DBL }, {}),
+      h.post(BEGIN('IV_DBL'), { ...U('negDbl'), 'resume-id': R_DBL }, {}),
     ]);
     A('consume/并发同面试双击 → 无 5xx', rs.every((r) => r.status < 500));
     A('consume/并发同面试双击 → 只预留一次(不双扣,reserved==1.0)', (await sumReserved('negDbl')) === 1.0);
@@ -444,11 +640,11 @@ const money = (o: any) => o?.amountCents;
 })().catch((e) => { console.error('neg:commerce харness 崩溃:', e); process.exit(1); });
 
 /*
- * ══ 断言条数统计 ══  共 79 条纯负路径断言(A(...) 调用),无一条 happy-path:
+ * ══ 断言条数统计 ══  共 80 条纯负路径断言(A(...) 调用),无一条 happy-path:
  *   §1 下单(鉴权/畸形/缺字段/未知品/篡改被忽略/幂等正确性/并发同key)
  *   §2 查询(越权/不存在/未鉴权)
  *   §3 pay-callback(缺签/伪签/越权/不存在/冲突/并发双结算)
  *   §4 webhook(无登录态仍 fail-closed/边角/冒充owner/重放/并发双结算)
- *   §5 额度消费(不足/过期/缺参/越权/未鉴权/并发超卖/并发双击)
+ *   §5 额度消费(不足/过期/缺参/非UUID门/越权/未鉴权/并发超卖/并发双击)
  *   §6 边角(空body/错方法/越权已paid单)
  */
