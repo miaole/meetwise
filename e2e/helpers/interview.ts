@@ -61,6 +61,7 @@ export type InterviewLoopResult = {
   /** Safe diagnostic only: terminal event payload (reason/provenance). Never includes secrets. */
   terminalPayload: unknown;
   questions: number;
+  clarifications: number;
   turns: number;
   evaluated: number;
   lastSeq: number;
@@ -288,6 +289,7 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
   let lastSeq = 0;
   let turn = 0;
   let questions = 0;
+  let clarifications = 0;
   let evaluated = 0;
   let terminal = '';
   let terminalPayload: any = null;
@@ -337,6 +339,7 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
       } else if (event.kind === 'answer_unscored') {
         unscoredReason(event.payload);
       } else if (event.kind === 'clarification_needed') {
+        clarifications++;
         const staleQuestion = currentQuestion;
         currentQuestion = questionIdentityFromEvent(event);
         if (options.staleReplayLabel && staleQuestion) {
@@ -370,7 +373,7 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
 
   const provenance = reviewInterviewProvenance(seen);
   return {
-    terminal, terminalPayload, questions, turns: turn, evaluated, lastSeq, kinds,
+    terminal, terminalPayload, questions, clarifications, turns: turn, evaluated, lastSeq, kinds,
     practiceHints: provenance.practiceHints,
     attributions: provenance.attributions,
     provenance,
