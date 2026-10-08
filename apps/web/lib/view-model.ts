@@ -65,7 +65,17 @@ export function interviewDisplay(v: InterviewView): Display {
       // 优雅降级:报告暂不可用 → 给出路(重试/联系),**绝不无限等 report_ready**
       return { heading: '报告暂不可用', message: '面试已完成,但报告暂时无法生成。可稍后重试或联系支持。', spinner: false, action: { kind: 'retry', label: '重试生成报告' }, degraded: true, signalConclude };
     case 'assessment_unavailable':
-      return { heading: '本次评分暂不可用', message: '没有得到足够可信的评分证据，本次预留额度已释放。岗位面试可从“我的投递”重新开始；其他面试可新建一场。', spinner: false, action: { kind: 'view_applications', label: '前往我的投递' }, degraded: true, signalConclude };
+      // 同一 kind 两种钱面（adaptive-lifecycle 分派），文案按 reason 分臂、绝不谎报资金变动（GAP-G7V-THIRDARM-COPY-SETTLEMENT）：
+      if (v.assessmentUnavailableReason === 'no_eligible_scored_answer') {
+        // 第三臂：已 completeInterviewAndConfirm 扣费结算，且 bound 路径不生成报告（enqueueReport 仅 unbound 可达）——「本次不生成报告」如实，Ban 释放字样。
+        return { heading: '本次评分暂不可用', message: '面试已完成并扣费结算，但未获得可信评分，本次不生成报告。岗位面试可从“我的投递”重新开始；其他面试可新建一场。', spinner: false, action: { kind: 'view_applications', label: '前往我的投递' }, degraded: true, signalConclude };
+      }
+      if (v.assessmentUnavailableReason === 'evaluation_unscored') {
+        // 释放臂：failInterviewAndRelease 补偿释放——「额度已释放」此时为真，文案逐字保留。
+        return { heading: '本次评分暂不可用', message: '没有得到足够可信的评分证据，本次预留额度已释放。岗位面试可从“我的投递”重新开始；其他面试可新建一场。', spinner: false, action: { kind: 'view_applications', label: '前往我的投递' }, degraded: true, signalConclude };
+      }
+      // 未知/缺失 reason：fail-closed 中性——既不称释放也不称扣费，不冒认任何资金变动。
+      return { heading: '本次评分暂不可用', message: '本次未能获得可信评分，面试已结束。岗位面试可从“我的投递”重新开始；其他面试可新建一场。', spinner: false, action: { kind: 'view_applications', label: '前往我的投递' }, degraded: true, signalConclude };
     case 'interview_unavailable':
       return { heading: '面试暂不可用', message: '面试启动/处理遇到问题,已停止。可重试或联系支持——不会让你干等。', spinner: false, action: { kind: 'retry', label: '重新开始面试' }, degraded: true, signalConclude };
     case 'error':
