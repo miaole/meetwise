@@ -1780,3 +1780,14 @@ flowchart TD
 - [ ] **STILL OPEN**：`:76` GAP-MOP-03 OPEN 维持（cutover 另 REQUEST）· G2 wakeup prove · 四专家审（cutover REQUEST 时开）· `g7SuiteGreen=false` 维持.
 - 预算：Q4/Q5 prove 全本地隔离容器 · 0 live 模型调用 · 0 Key · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
+
+### Line G7P-1 启动链探针刀 NAIL（2026-10-08 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 八段探针 2 run 双绿 8/8（A 14465ms/B 11324ms·冷热差全在 migrate）· est 0=实测 0 · 五向判读命中向④【降格采信】· G7 下一刀裁定=wrapper code 截获挂真实链）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
+- [x] **`post_prove_dual_pass`** recorded for Line G7P-1 products only（触面恰 6 文件：scripts/e2e-boot-probe.mjs 新增+package.json +1 行+4 docs · 零产品码 · wrapper 基线以来 0 改 · nail tip 本 commit · branch `line/g7-bootphase-probe`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：8 钉点等价逐字同构亲证〔consecutive=3/migrate 2-试/并发 spawn/login-401 门/3s+exitCode//readyz/api 实名〕·收据多维毫秒级自洽〔容器名 epoch 对齐 ts 链·段边界 0-1ms·末行×EXIT×收据三方〕·恰 2 run 零第三痕迹·向④唯一命中+三盲区注记在场·触面白名单+pins 十值+容器余量 0 亲证）+ mw-model-op PASS（六核：**向④证据强度评估**〔等价面属实+残余差异补录〕·分段时序数值自洽亲核·est0=实测 0 结构性成立〔密钥 unset+.env 缺席⇒原理上不可发生〕·恰 2 run/pins/sha256 四方复算）· 协调方正式授权本 nail.
+- **判读登记（向④命中·席2 降格采信）**：「复刻链上启动链健康——红主候选移至 tsx 装载/旅程段」+**环境限制分支并列保留不关闭**（模型面 children env 差〔MODEL_API_KEY 有/无·wrapper 钉 MODEL_ENDPOINT_PROFILE〕与 G7 freetier 钉值差系未披露残余面·E2EFAIL-1 的 23.3s/0 行形状对「早退 throw」与「装载/旅程死」两解均拟合·历史 40-102s 族带 2-11 ledger 行=boot 本就完成非探针排除任务）.
+- **G7 下一刀裁定（协调方·采纳席2 建议）**：**G7P-2=wrapper 最小 code 截获刀挂真实链 e2e:prove**——instrument run-e2e.mjs 的 tsx spawn→full.e2e.ts 模块装载起止→首测试行三时间戳（NODE_OPTIONS --import 装载钩子·env-flag 门控可回退·零产品码·est 0）——一刀同时切分「装载红 vs 旅程红」并关闭环境外推缺口（落在历史红环境内）；旅程分段探针次之；POST7B 修复刀压后至定靶（前两刀断言面修复曾 superseded·未定靶先修=高复发风险）.
+- **nit×2 登记（nail 期清偿·不阻断）**：①席2：收据 §6.4 未点明 children 模型面 env 差（livez/login/signup 全过证明 boot 不硬依赖 key 但时序面未证等价）——本 nail 补注如上；②席1：探针头注 docker run 等价声明略宽（省略 resourceCapArgs——e2e 链上恒为空数组语义等价·注释口径下刀注记收口）.
+- [ ] **STILL OPEN**：G7P-2 wrapper code 截获刀（REQUEST 待立）；api 红真抛点定靶（`:107` 维持 OPEN）；POST7B 修复刀（压后）；trio 再跑；`g7SuiteGreen=false` 维持.
+- 预算：0 live 模型调用 = 实测 0（结构性成立）· 0 Key · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 探针=定靶非修复 · 实现方不 self-approve.
