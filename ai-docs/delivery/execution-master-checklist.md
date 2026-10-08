@@ -1772,3 +1772,15 @@ flowchart TD
 - 预算：0 live 模型调用 · 0 Key · `actualSpendCny=null` · 全本地 docker PG.
 - **W2 五 DB 刀收官登记**：DBTF-1（0144 tf_ 库）·DBHY-1（0145/0146 卫生）·DBFK-1（0147/0148 FK）·DBM3-1（0149 约束）·DBACL-1（0150 ACL）——迁移链 0143→0150 让位序全兑现·五 P0 债行全 CLOSED.
 - Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
+
+### Line DBACL-2 pgp_sym_encrypt ACL 补授刀 NAIL（2026-10-08 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 0151 单 GRANT（catalog 推导闭集恰 1·282 SD 函数扫描）· prove 37/37 两轮+席1 席2 各自独立复跑全绿 · P2 加密回环全链 · **DBACL-1 N2 面收口**）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
+- [x] **`post_prove_dual_pass`** recorded for Line DBACL-2 products only（触面恰 7 文件全白名单·产品码零改·0121/0108 及历史零字节·nail tip 本 commit · branch `line/db-pgp-acl`）· **双审 BOTH PASS**：mw-privacy-int PASS（六核：0151 恰一 GRANT 幂等+历史零字节 diff 亲跑/catalog 推导亲跑复现〔282 SD·闭集恰 1·静态独立复核 grep 145 迁移唯一=0108:255〕/P2 真写路径+超用户 decrypt 回环逐字节还原〔非 mock〕/P1 aclexplode 闭集+P3 新角色负门/P5 applied=145+migrate:prove 专用第二净库全绿/attempts 8 轮 pg_default_acl 假雷定案〔0073:1340-1342 库级 ADP 实据·DROP SCHEMA 不清〕+**独立复跑 37/37**）+ mw-model-op PASS（六核：37 断言亲数+两收据 digest/时间线逐点吻合+**独立复跑 37 PASS/0 FAIL**/P2 写→读→明文等值链完整〔decrypt 超用户收窄正确〕/wiring 不入预迁移 allowlist=DBACL-1 erratum 同型+0144-0150 空洞语义/pins 十值+0 live 0 Key+secret 扫描零命中）· 协调方正式授权本 nail.
+- **DBACL-2 全链**：REQUEST（rev1 双席勘误）→ rev2 `95911975` → EXEC `0ec543d0`+`650b018e`+`dfa7068e`（origin tip 零位移）→ 本 nail commit.
+- **核心产出**：0151_pgp_sym_encrypt_grant.sql 单条 GRANT（memory_runtime）——0108 conversation_event_append 会话事件加密持久化链 42501 修复·DBACL-1 N2 既存面收口·prove 37 断言（P0 双面 42501 复现/P2 event+artifact 落行+decrypt 回环/P5 applied=145 零漂移）.
+- **rerun wave 裁定（席2 亲测修正）**：ctx03 等 6 prove 面（ctx03-06/mem02/mem03）rerun **须在含 0150 的主线环境跑**（本支无 0150——席2 亲测本支 HEAD ctx03 残 uuidv7 红系 DBACL-1 域非本刀）·预期 pgp 面解锁·rerun 波归协调方主线 worktree 执行.
+- **残余登记（席2·非本刀缺陷）**：①探针轮 1-6 证据叙事级（无逐轮收据）；②runner 六面收据源用不存在路径 `packages/db/src/context/ctx03-event-source.ts`（真实 src/ctx03-event-source.ts）——DIR-1 E4 同型基线缺陷·收据落盘 ENOENT 面·归收据层路径修正小刀.
+- [ ] **STILL OPEN**：6 prove 面 rerun（主线环境）；收据层路径缺陷（E4 同型）；`g7SuiteGreen=false` 维持.
+- 预算：0 live 模型调用 · 0 Key · `actualSpendCny=null` · 全本地 docker PG.
+- Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
