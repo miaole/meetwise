@@ -16,7 +16,8 @@
  *  - route 事件 (job_id, revision, event_seq) 与消费事件 (candidate_user_id, event_seq)
  *    各自单 owner 单调追加，事务内分配 event_seq，无跨 owner 读 MAX。
  */
-import { createHmac, randomUUID } from 'node:crypto';
+import { createHmac } from 'node:crypto';
+import { newEntityId } from './ids.ts';
 import type { PoolClient as Client } from 'pg';
 import { asPrincipal, type DbPool } from './principal.ts';
 import {
@@ -106,7 +107,7 @@ export type ClassifyJobRouteResult =
 async function writeRouteUnresolved(c: Client, args: {
   jobId: string; owner: string; revision: number; attemptOutcome: JobRouteAttemptOutcome; reasonCodes: string[];
 }): Promise<{ decisionId: string }> {
-  const decisionId = 'rd_' + randomUUID();
+  const decisionId = newEntityId('rd');
   const decisionHash = jobRouteDecisionHash({
     jobId: args.jobId, revision: args.revision,
     taxonomyVersion: JOB_ROUTE_TAXONOMY_VERSION, policyVersion: JOB_ROUTE_POLICY_VERSION,
@@ -136,7 +137,7 @@ async function writeRouteDecided(c: Client, args: {
   allocations: JobRouteAllocation[]; confidenceBps: number; marginBps: number;
   fromStatus: 'rule_decided' | 'result_validated';
 }): Promise<{ decisionId: string }> {
-  const decisionId = 'rd_' + randomUUID();
+  const decisionId = newEntityId('rd');
   const decisionHash = jobRouteDecisionHash({
     jobId: args.jobId, revision: args.revision,
     taxonomyVersion: JOB_ROUTE_TAXONOMY_VERSION, policyVersion: JOB_ROUTE_POLICY_VERSION,

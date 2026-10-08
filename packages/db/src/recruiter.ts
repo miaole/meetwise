@@ -3,7 +3,8 @@
  * 多租户:招聘方只见自己的岗位(RLS p_owner)。assertPrincipal 是 belt-and-suspenders(确认上下文 owner 一致)。
  */
 import type { PoolClient as Client } from 'pg';   // 直引 pg 类型,不从 ./index 桶引(防成环)
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
+import { newEntityId } from './ids.ts';
 import { createJobSemanticRevision, bindApplicationRoute, snapshotInterviewRoute } from './job-route-decision.ts';  // RAG-FUNNEL-03 路由 seam
 import { requireOwnerUserId } from './tenant/index.ts';   // PRIV01-C 第二层 E1(应用层 tenant ≠ RLS · 授权根仍为 asPrincipal+RLS)
 
@@ -28,7 +29,7 @@ export async function createJob(c: Client, owner: string, input: { title: string
   const payloadHash = idempotencyKey
     ? createHash('sha256').update(JSON.stringify({ title, description, competencies })).digest('hex')
     : undefined;
-  const id = 'job_' + randomUUID();
+  const id = newEntityId('job');
   if (!idempotencyKey) {
     await c.query(
       'INSERT INTO job_posting(id, owner_user_id, title, description, competencies) VALUES ($1,$2,$3,$4,$5)',
@@ -136,7 +137,7 @@ export async function applyToJob(c: Client, candidate: string, jobId: string): P
   const job = await c.query("SELECT owner_user_id, title FROM job_posting WHERE id=$1 AND status='open'", [jobId]);  // 公开读
   if (job.rowCount === 0) return null;
   const recruiter = job.rows[0].owner_user_id as string;
-  const id = 'app_' + randomUUID();
+  const id = newEntityId('app');
   const ins = await c.query(
     `INSERT INTO job_application(id, job_id, recruiter_user_id, candidate_user_id, status, job_title_snapshot)
      VALUES ($1,$2,$3,$4,'invited',$5)
@@ -329,7 +330,7 @@ export async function inviteCandidate(c: Client, recruiter: string, jobId: strin
   // 显式校验岗位归属(应用层),与 RLS p_recruiter_insert 的 EXISTS 自校验形成纵深防御。
   const job = await c.query('SELECT id, title FROM job_posting WHERE id=$1 AND owner_user_id=$2', [jobId, recruiter]);
   if (job.rowCount === 0) return null;
-  const id = 'app_' + randomUUID();
+  const id = newEntityId('app');
   const ins = await c.query(
     `INSERT INTO job_application(id, job_id, recruiter_user_id, candidate_user_id, status, source, job_title_snapshot)
      VALUES ($1,$2,$3,$4,'invited','invited',$5)
@@ -416,7 +417,7 @@ export async function startApplicationInterview(c: Client, candidate: string, ap
   );
   if ((binding.rowCount ?? 0) === 0) return { status: 'interview_ineligible_route' };
 
-  const interviewId = 'iv_' + randomUUID();
+  const interviewId = newEntityId('iv');
   const nextAttempt = Math.max(0, Number(row.interview_attempt ?? 0)) + 1;
   await c.query(
     `INSERT INTO interview(id,owner_user_id,status,application_id,application_attempt,job_id,job_title_snapshot,resume_id,resume_privacy_epoch)
