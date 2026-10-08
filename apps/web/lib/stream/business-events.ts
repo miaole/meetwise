@@ -56,6 +56,18 @@ export const BusinessEvent = z.discriminatedUnion('event', [
   z.object({ event: z.literal('interview_unavailable'), id: z.number().int(), data: z.object({ reason: z.string() }).loose() }),
   // INT-LEVEL-SIGNAL-SSE-01：练习控制流收尾理由。非终态；strict 载荷拒绝 score/band。
   z.object({ event: z.literal('session_concluded'), id: z.number().int(), data: SessionConcludedPayload }),
+  // TOKSTREAM 阶段1 生成进度事件(D-2 新 kind):非权威、非终态;断线重放=幂等覆盖写+业务事件清除(见 interview-state)。
+  // 载荷红线:只含计数/时刻/段名/幂等键(写侧另有键白名单守卫);.loose() 容阶段2 演进字段(tokensSoFar 预留)。
+  z.object({ event: z.literal('generation_started'), id: z.number().int(), data: z.object({
+    attemptKey: z.string(), jobKind: z.string().optional(), operationId: z.string().optional(),
+    segments: z.array(z.string()).optional(), startedAt: z.string().optional(),
+  }).loose() }),
+  z.object({ event: z.literal('model_first_token'), id: z.number().int(), data: z.object({
+    attemptKey: z.string(), firstTokenMs: z.number().optional(), tokensSoFar: z.number().optional(),
+  }).loose() }),
+  z.object({ event: z.literal('generation_progress'), id: z.number().int(), data: z.object({
+    attemptKey: z.string(), stage: z.string().optional(), tokensSoFar: z.number().optional(), elapsedMs: z.number().optional(),
+  }).loose() }),
   z.object({ event: z.literal('error'), id: z.number().int(), data: z.record(z.string(), z.unknown()) }),
 ]);
 export type BusinessEvent = z.infer<typeof BusinessEvent>;

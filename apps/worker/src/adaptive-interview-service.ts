@@ -10,6 +10,7 @@ import { cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, toCompet
 import type { AdaptiveDeps } from '@meetwise/ai-graphs';
 import { wasAsked, pastWeakDimensions } from './memory-service.ts';
 import { invokeEvaluationOnce } from './interview-service.ts';
+import { withGenerationProgress } from './generation-progress.ts';
 
 /** Native embed/rerank miss is not “empty qbank”; do not invent a stem from the competency name. */
 function nativeRetrievalFailureToken(reason: string): string | null {
@@ -107,6 +108,12 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           `请结合你简历中一段与「${competency}」相关的真实经历，说明你的做法、关键取舍和验证结果。`,
         );
       }
+      // TOKSTREAM 阶段1(裁定触发面之一):interviewer.ask 模型调用面包装层回调——题间等待(检索→生成→校验)
+      // 发生成进度事件(invoke 关口零改动;attempt≠0 重放与 grounded 模板路径在上方早退,不产生进度事件)。
+      return withGenerationProgress(d.pool, d.owner, d.threadId, {
+        jobKind: 'next_question', operationId: QUESTION_OPERATION_ID,
+        attemptKey: `${d.threadId}:ask:t${turn}:0`, segments: ['retrieve', 'generate', 'validate'],
+      }, async (run) => {
       // 题型决定接地:grounded/fundamental 用 CRAG 检索真题素材;scenario/behavioral 与简历/题库解耦(空素材、空来源)。
       const useRetrieval = kind === 'fundamental';
       const { local, web, verdict } = useRetrieval
@@ -153,7 +160,9 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           // 检索素材(material)走 rag 字段独立分账(仍在 <data> 围栏内、受 DATA_BOUNDARY_RULE 保护),不进 buildData 的 userData。
           model: promptedModel(d.model, 'interviewer.ask', { competency, difficulty, kind, resumeFacts: [] }, undefined, material),
         }, d.pool, d.owner);
+      run.stage('generate');                                                           // 段名进下一帧心跳(纯时间窗,不为切段加帧)
       const out = await generate();
+      run.stage('validate');                                                           // invoke 返回后的确定性检查(查重/引文)段
       const idempotencyKey = `${d.threadId}:ask:t${turn}:0`;
       if ('error' in out) {
         // Missing keys, timeouts and malformed/schema failures must not become
@@ -183,6 +192,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
         });
       }
       return modelGeneration(out.value.q, cited.sources, { operationId: QUESTION_OPERATION_ID, idempotencyKey });
+      });
     },
     async assess(question, answer, _competency, turn, identity) {
       // **结构化防评分操纵(红队实测:靠 prompt 让 turbo 自己抵抗不可靠)**:评分前确定性剥离评分元指令/伪造截断标记。

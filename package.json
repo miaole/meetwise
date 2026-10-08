@@ -434,6 +434,8 @@
     "adaptive-life:prove": "node scripts/run-e2e-isolated.mjs adaptive-life:prove:raw",
     "adaptive-consumer:prove": "node scripts/run-e2e-isolated.mjs adaptive-consumer:prove:raw",
     "adaptive-consumer:prove:raw": "pnpm -C apps/worker prove:adaptive-consumer",
+    "tokenstream:prove": "node scripts/run-e2e-isolated.mjs tokenstream:prove:raw",
+    "tokenstream:prove:raw": "pnpm -C apps/worker prove:tokenstream",
     "worker-production-config:prove": "pnpm -C apps/worker prove:production-config",
     "rag-control-runtime:prove": "pnpm -C apps/worker prove:rag-control-runtime",
     "web-explore:prove": "pnpm -C packages/domain prove:web-explore",

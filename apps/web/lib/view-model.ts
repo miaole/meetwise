@@ -4,6 +4,7 @@
  */
 import type { InterviewSignalConcludeReason } from '@meetwise/contracts';
 import { isTerminal, type InterviewView } from './stream/interview-state';
+import { generationProgressLabel } from './stream/generation-progress';
 
 export function signalConcludePracticeCopy(code: InterviewSignalConcludeReason['code']): string {
   if (code === 'early_weak') {
@@ -51,14 +52,19 @@ export function interviewDisplay(v: InterviewView): Display {
         : { heading: '面试进行中', message: v.question ?? '', spinner: false, action: { kind: 'answer', label: '作答(打字/语音)' }, degraded: false, signalConclude };
     case 'waiting_user':
       return { heading: '请作答', message: v.question ?? '请回答上一题', spinner: false, action: { kind: 'answer', label: '作答(打字/语音)' }, degraded: false, signalConclude };
-    case 'answered':
+    case 'answered': {
+      // TOKSTREAM 阶段1:题间/报告期等待有进度态时 loading 变真实进度(段名+时长/token 计数;R-B 无思考原文);
+      // 无进度帧(断线跳过/未到首帧)回既有文案——缺帧兜底,不死等。
+      const progress = generationProgressLabel(v.generationProgress);
+      const base = v.signalConcludeReason
+        ? '练习控制流已结束，正在生成练习反馈…'
+        : `本题得分 ${v.lastScore ?? '—'},正在出下一题…`;
       return {
         heading: '已作答',
-        message: v.signalConcludeReason
-          ? '练习控制流已结束，正在生成练习反馈…'
-          : `本题得分 ${v.lastScore ?? '—'},正在出下一题…`,
+        message: progress ? `${base}（${progress}）` : base,
         spinner: true, action: { kind: 'none', label: '' }, degraded: false, signalConclude,
       };
+    }
     case 'report_ready':
       return { heading: '练习报告', message: `本次练习反馈 ${v.report?.overall ?? '—'}（仅供个人复盘）`, spinner: false, action: { kind: 'view_report', label: '查看完整报告' }, report: v.report, degraded: false, signalConclude };
     case 'report_unavailable':

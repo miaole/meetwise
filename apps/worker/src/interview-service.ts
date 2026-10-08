@@ -9,6 +9,7 @@ import { type DbPool } from '@meetwise/db';
 import { invoke, getPrompt, promptedModel, openAICompatibleClient, failoverModel, isTextBackupEnabled, type ModelClient, type ModelCostPolicy } from '@meetwise/ai-runtime';
 import { aggregateScores, groundedByFacts } from '@meetwise/domain';
 import { DIAGNOSIS_SECTION_KINDS, validateReportContent, type GenerateQuestions, type GenerateReport, type GenerateDiagnosis, type QuizItem, type RawDiagnosis, type ReportContent, type InterviewSummary } from '@meetwise/ai-graphs';
+import { withGenerationProgress } from './generation-progress.ts';
 
 export const QuizSchema = z.object({ items: z.array(z.object({ q: z.string().min(1).max(2000), refs: z.array(z.string()) })) });   // q 封顶:模型出题理应短,超长=异常输出 → schema 闸拦下并以失败/降级收口
 /**
@@ -194,16 +195,24 @@ export function fastModelClient(costs: { primary?: ModelCostPolicy; backup?: Mod
   return withFailover(process.env.MODEL_FAST_NAME ?? 'qwen-turbo', costs, process.env.MODEL_FAST_BACKUP_NAME ?? process.env.MODEL_BACKUP_NAME);
 }
 
-/** 押题:resume-quiz 图的 generate。经 invoke(双校验:schema + 非空业务校验)+ 图侧 factuality 过滤幻觉。 */
-export function quizGenerator(pool: DbPool, owner: string, resumeFacts: string[], idempotencyKey: string, model: ModelClient): GenerateQuestions {
+/** 押题:resume-quiz 图的 generate。经 invoke(双校验:schema + 非空业务校验)+ 图侧 factuality 过滤幻觉。
+ *  progressStream(TOKSTREAM 阶段1 · 可选):SSE 流键(=quizId)。传了即以包装层回调发生成进度事件
+ *  (generation_started / generation_progress 节流持久写 interview_event);不传=与从前逐字节一致(零回归)。 */
+export function quizGenerator(pool: DbPool, owner: string, resumeFacts: string[], idempotencyKey: string, model: ModelClient, progressStream?: string): GenerateQuestions {
   return async (): Promise<QuizItem[]> => {
-    const out = await invoke({
-      idempotencyKey, operation: { id: 'interview.quiz-generation.v1', businessRevision: idempotencyKey }, schema: QuizSchema,
-      businessValidate: (v) => (v.items.length === 0 ? 'empty_quiz' : v.items.some((it) => !it.q.trim()) ? 'blank_question' : null),
-      model: promptedModel(model, 'resume-quiz.generate', { facts: resumeFacts }),
-    }, pool, owner);
-    if ('error' in out) throw new Error('quiz:' + out.error);
-    return out.value.items;
+    const call = async (): Promise<QuizItem[]> => {
+      const out = await invoke({
+        idempotencyKey, operation: { id: 'interview.quiz-generation.v1', businessRevision: idempotencyKey }, schema: QuizSchema,
+        businessValidate: (v) => (v.items.length === 0 ? 'empty_quiz' : v.items.some((it) => !it.q.trim()) ? 'blank_question' : null),
+        model: promptedModel(model, 'resume-quiz.generate', { facts: resumeFacts }),
+      }, pool, owner);
+      if ('error' in out) throw new Error('quiz:' + out.error);
+      return out.value.items;
+    };
+    if (!progressStream) return call();
+    return withGenerationProgress(pool, owner, progressStream, {
+      jobKind: 'quiz', operationId: 'interview.quiz-generation.v1', attemptKey: idempotencyKey, segments: ['generate'],
+    }, () => call());
   };
 }
 
@@ -277,19 +286,26 @@ export async function evaluateAnswer(pool: DbPool, owner: string, idempotencyKey
   }
 }
 
-/** 报告:report 图的 generate,经 invoke(空报告=业务校验失败)。 */
-export function reportGenerator(pool: DbPool, owner: string, idempotencyKey: string, model: ModelClient): GenerateReport {
+/** 报告:report 图的 generate,经 invoke(空报告=业务校验失败)。
+ *  progressStream(TOKSTREAM 阶段1 · 可选):SSE 流键(=interviewId)。语义同 quizGenerator 的 progressStream。 */
+export function reportGenerator(pool: DbPool, owner: string, idempotencyKey: string, model: ModelClient, progressStream?: string): GenerateReport {
   return async (s: InterviewSummary): Promise<ReportContent> => {
     const overall = aggregateScores(s.scores); // 空集或越界 score 由确定性聚合门拒绝，不交给模型猜。
-    const out = await invoke({
-      idempotencyKey, operation: { id: 'report.narrative.v1', businessRevision: idempotencyKey }, schema: ReportSchema,
-      businessValidate: (v) => {
-        try { validateReportContent(s, { overall, sections: v.sections }); return null; }
-        catch (error: any) { return error?.message ?? 'invalid_report'; }
-      },
-      model: promptedModel(model, 'report.generate', { scores: s.scores }),
-    }, pool, owner);
-    if ('error' in out) throw new Error('report:' + out.error);
-    return { overall, sections: out.value.sections };
+    const call = async (): Promise<ReportContent> => {
+      const out = await invoke({
+        idempotencyKey, operation: { id: 'report.narrative.v1', businessRevision: idempotencyKey }, schema: ReportSchema,
+        businessValidate: (v) => {
+          try { validateReportContent(s, { overall, sections: v.sections }); return null; }
+          catch (error: any) { return error?.message ?? 'invalid_report'; }
+        },
+        model: promptedModel(model, 'report.generate', { scores: s.scores }),
+      }, pool, owner);
+      if ('error' in out) throw new Error('report:' + out.error);
+      return { overall, sections: out.value.sections };
+    };
+    if (!progressStream) return call();
+    return withGenerationProgress(pool, owner, progressStream, {
+      jobKind: 'report', operationId: 'report.narrative.v1', attemptKey: idempotencyKey, segments: ['generate'],
+    }, () => call());
   };
 }
