@@ -1814,3 +1814,15 @@ flowchart TD
 - [ ] **STILL OPEN**：consent 定靶刀（REQUEST 待立）；`:107` 维持 P1 OPEN（收窄登记）；POST7B 压后；trio 再跑；`g7SuiteGreen=false` 维持.
 - 预算：0 live 模型调用 = 实测 0（sidecar 双计 0/0）· 0 Key（name-only）· `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 探针=定靶非修复 · 实现方不 self-approve.
+
+### Line G7P-3 consent 定靶刀 NAIL（2026-10-08 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 五段探针 2 run 双绿（consent POST 200×2·6/11ms·零 throw/4xx/5xx/间歇）· **向 4 命中=红不在 consent 端点 DB/契约/连接层**〔边界=152 面探针等价环境〕· key 面受控排除 · G7 下一刀裁定=G7P-4 driver 内联 stdout 截获）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
+- [x] **`post_prove_dual_pass`** recorded for Line G7P-3 products only（触面=scripts/e2e-consent-probe.mjs 新增+package.json +1+ai-docs · 零产品码零 wrapper 改 · 蓝本 blob d6cdce7f 钉收据 · nail tip 本 commit · branch `line/g7-consent-probe`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：蓝本复刻等价〔strip 清单字节全等+现行锚逐段亲读〕/双 run 三元组+JWT uid+端口数学+applied=152 内部自洽/恰 2 run 零重跑/向 4 机械正确+剩余轴限定/Key name-only 零值回显/pins 十值+sha256 四方一致）+ mw-model-op PASS（六核：**逐轴排除评估**〔DB/RLS/契约/key/(a)(d) 实已收窄·(a) 对隔离链实不可差·(d) 对 G7P-2 红实已等〕/**(f) 迁移面漂移轴补登**〔红基线 064fc37e=applied 144 vs 探针 152·privacy src 逐字节同·差面恰 8 迁移含 0150/0151 ACL 授权——「红系基线特有已随后续迁移消解」强候选〕/est 0 达标+key set 复刻亲证/**下一刀刀形修正**〔A() ✗ 走 stderr=死信·改消息无效·有效形=driver console.log stdout 三元组+try/catch throw 面 ≤8 行〕/双 run 冷热形态同族/pins+恰 2 run+sanitize）· 协调方正式授权本 nail.
+- **G7P-3 全链**：REQUEST `1735f415` → rev2 `d0549c20`（双席处方：向 5+段续行+key 面复刻）→ 双席复核 BOTH PASS → EXEC `bac4d8f6`（origin tip 零位移）→ 本 nail commit.
+- **判读登记**：向 4 命中——consent POST 双臂 200 {recorded:true}（6/11ms）·GET 对照 200·零 throw 零间歇——**排除性结论边界=152 面探针等价环境**：(a)(d) 对隔离红链实已收窄/相等·真开放轴=**(c) undici 客户端冷池首复用**（红链 consent=tsx 冷池第 2 发 vs 探针第 4+ 发——首复用竞态与 13ms 形态相容）+**(f) 迁移面漂移 144→152**（席2 补登·含 ACL 授权迁移·「红系基线特有」强候选）.
+- **G7 下一刀裁定（协调方·采纳席2 刀形修正）**：**G7P-4=full.e2e driver 内联 stdout 三元组截获刀**——driver 侧（full.e2e.ts:35-36 consent 步）先 console.log 三元组行（status/body/elapsed·stdout 面）再断言+try/catch 把 throw 面 err_name/err_code 同落 stdout 后 rethrow（≤8 行·零产品码·零 wrapper 改·不触解析器契约）——**一跑三得**：拿真实红面三元组/throw 码；顺带裁定红在 152 面是否仍存（绿=基线特有假说定谳→(f) 轴收口）；常驻受益未来所有 run。**后续序**：若 152 面绿→(f) 144 面 worktree 复跑定谳→再议 (c) 冷池变体探针；A() 消息改动在隔离链系 stderr 死信已证禁采.
+- **nit×3 登记（不阻断）**：①席1：现行 wrapper docker run 较蓝本多 resourceCapArgs（探针忠于蓝本·「≡现行锚」措辞略松）；②席1：docs:check 预存红（PTP_FILE_LIMIT 3964）未落本收据正文（g7p1/g7p2 同例沉默——记账惯例待统一）；③席2：未来探针 token 中段打码建议（非本刀义务）.
+- [ ] **STILL OPEN**：G7P-4 driver 内联截获刀（REQUEST 待立）；`:107` 维持 P1 OPEN（consent 面排除性收窄登记）；(c)/(f) 开放轴；trio 再跑；`g7SuiteGreen=false` 维持.
+- 预算：0 live 模型调用 · 0 Key（set name-only 受控）· `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 探针=定靶非修复 · 实现方不 self-approve.
