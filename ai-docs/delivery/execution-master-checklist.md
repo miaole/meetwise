@@ -1924,3 +1924,14 @@ flowchart TD
 - [ ] **STILL OPEN**：G7P-6+consume 夹具刀（REQUEST 待立）；GAP-CMOP03-7A-DOWNGRADE `:107` 域 P1 OPEN 维持（era 形状再现增记）；consume 族红掩覆盖（夹具刀解锁）；`g7SuiteGreen=false` 维持.
 - 预算：链累计 107≤200 硬帽 · 0 Key 值接触 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
+
+### Line NEGCOMM-1 consume 族夹具修复刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 五件套 schema 补丁镜像+预种+'r1'→UUID（期望零改动红线达成）+400 新门负断言 · 恰 1 run **EXIT=0·84 条负路径全绿**（consume 族 7 用例真语义行使转绿·红掩覆盖解锁）· CMD3 步 10 blocker 移除）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
+- [x] **`post_prove_dual_pass`** recorded for Line NEGCOMM-1 products only（触面=neg-commerce.proof.ts 夹具段+harness/收据·零产品码·patch 与 diff 逐字节一致·nail tip 本 commit · branch `line/negcomm-fixture`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：diff 恰 6 文件+五件套 6 模板块逐字匹配先例/run 日志 84 PASS/0 FAIL 亲数+consume 族 7 用例期望原文/恰 1 run 三门独立复核/**期望零改动红线**〔83 条 A( 期望行 base vs committed 机检仅 1 新增〕/计数漂移三账 79/83/84 双处如实披露/pins+R5 登记）+ mw-model-op PASS（六核：**真语义行使终审**〔402×2 真 FIFO 滤过·404 真依赖 RLS 0 行破则 409 反证·超卖真桶锁并发 EvalPlanQual·双击真幂等契约〕/新门负断言真实回归价值〔'r1' 债转 v64 版本锁常驻探针〕/五件套四块逐字节 IDENTICAL/计数三口径裁定 runtime 84=权威面/零产品码树净/⑥ CMD3 步 10 唯一 blocker 移除）· 协调方正式授权本 nail.
+- **NEGCOMM-1 全链**：REQUEST `4c8a7d84` → rev2 `9a698e6c`（rev1 席1 FAIL：五件套 schema 补丁镜像 neg-interview 先例+decision/snapshot 预种——UUID-only 会 500 面续红+超卖假绿）→ 双席复核 BOTH PASS → EXEC `8528fd80`（origin tip 零位移）→ 本 nail commit.
+- **核心产出**：consume 族 7 用例真语义行使转绿（402×2/404/超卖×2/幂等×2）+'r1' 债转 400 新门常驻回归探针——**CMD3 步 10（neg:all）唯一 blocker 移除**·G7TRIO consume 7F 红掩覆盖解锁.
+- **erratum×2 登记（席1·簿记级）**：①attempts.md 日期 2026-10-07 应为 2026-10-09；②文件尾 tally 80 vs 静态 84（陈年漂移已披露）.
+- [ ] **STILL OPEN**：CMD3 步 11-27（含 6 LEGACY/R5 步）解锁后另评估；trio 再跑收官；`g7SuiteGreen=false` 维持.
+- 预算：恰 1 run · est live ≤25 · 0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
