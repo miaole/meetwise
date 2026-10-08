@@ -84,7 +84,7 @@ async function main() {
     const businessBefore = await admin.query(
       `SELECT
          (SELECT count(*)::int FROM interview) AS interviews,
-         (SELECT count(*)::int FROM consumption_record) AS consumptions,
+         (SELECT count(*)::int FROM entitlement_consumption) AS consumptions,  -- DBHY-1(0145):死表退役,改查幂等真身
          (SELECT count(*)::int FROM job_application) AS applications,
          (SELECT count(*)::int FROM interview_event) AS events`,
     );
@@ -235,7 +235,7 @@ async function main() {
     const businessAfter = await admin.query(
       `SELECT
          (SELECT count(*)::int FROM interview) AS interviews,
-         (SELECT count(*)::int FROM consumption_record) AS consumptions,
+         (SELECT count(*)::int FROM entitlement_consumption) AS consumptions,  -- DBHY-1(0145):死表退役,改查幂等真身
          (SELECT count(*)::int FROM job_application) AS applications,
          (SELECT count(*)::int FROM interview_event) AS events`,
     );
