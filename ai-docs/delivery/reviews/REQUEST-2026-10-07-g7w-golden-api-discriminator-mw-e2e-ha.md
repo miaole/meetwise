@@ -114,3 +114,81 @@ Trio stays **OPEN**（G7U 真测 1/1/1 如实）。`g7SuiteGreen=false`. `actual
 3. 附条件 PASS：C-HA-1 查询(8) `application` 表本 tip 无此表（实为 `job_application`）——EXEC 须实测重核+修正 SQL 入收据后 J-A4 方可参与判读；另有 C-HA-2~6 观测/预算/机检条件；Blockers 无；mw-model-op 半签不代 · alone ≠ dual。
 
 Verdict: PASS
+
+---
+
+# POST-PROVE dual 审查段 — **mw-e2e-ha**（append-only · 2026-10-08 · 独立 worktree `rv/g7wp-e2e-ha` @EXEC `7db84c18` · adversarial evidence-honesty/甄别复验焦点）
+
+**被审对象**：G7W EXEC 包 `7db84c18`（恰 3 收据 `ai-docs/delivery/receipts/g7w-golden-api-discriminator/` +181/−0 · 恰 1 commit）。**链路如实记录**：`origin/feat/mysql-schema-skeleton` 实测 tip=`10e25f38`（mw-model-op PRE 段）**不含** EXEC `7db84c18`（`merge-base --is-ancestor` EXIT≠0 亲测 · push 间歇堵与 PRE 段记录一致）——依任务约以本地 `line/g7w-discriminator` @`7db84c18` 为被审链；主线孪生 `a4e49b8a` 同父 `10e25f38` 且 `git diff 7db84c18 a4e49b8a` = **0 字节**（同树孪生亲测，审任一等价）。worktree `git worktree add …/meetwise-rv-g7wp-e2e-ha -b rv/g7wp-e2e-ha 7db84c18` EXIT=0。
+
+## 1. 包完整性机检（本席自跑 · 全过）
+
+| # | 检查 | 结果 | 亲测证据 |
+|---|---|---|---|
+| 1 | 恰 3 收据/零产品码 | ✅ | `git diff 10e25f38 7db84c18 --name-status` = 恰 3 个 `A ai-docs/delivery/receipts/g7w-golden-api-discriminator/*.md`（00-summary/01-exp1/02-exp2 · +181/−0）· 非 docs 命中=0 · SSOT/backlog/Key 物料零触碰 |
+| 2 | PRE 段 append-only 保留 | ✅ | 本文件 EXEC 前后 `git diff 10e25f38 7db84c18 -- ai-docs/delivery/reviews/` = 0 字节；全文与本人 PRE 提交镜像 `6640ae26` 逐字节 `diff` 全等（PRE 段零改动 · 追加前 md5 `ec4acc0f5248fe2a126519e926422e72` 与 PRE commit 自记指纹全等） |
+| 3 | 三钉 blob 全等自跑 | ✅ | `git hash-object` 亲算 @`7db84c18`：`run-e2e-isolated.mjs`=`13dbfc43c744…` ✓ · `e2e/full.e2e.ts`=`7d65d0f35e39…` ✓ · `model-operation-registry.ts`=`63af556fd166…` ✓（C-HA-6 三钉全兑现）；锚 `golden.spec.ts`=`8db8746b…` ✓ · `package.json`=`0afb3bd2…` ✓ |
+| 4 | Key 卫生 | ✅ | 三收据 `sk-*`/`Bearer` 扫描零命中；`.env*` ABSENT（run 前后各测一次）；本席 fresh re-run 用 loader source（name-only）· `MODEL_API_KEY set=yes` |
+| 5 | tracked 树零改 | ✅ | EXEC 收据声明 + 本席 run 前后 `git status --porcelain` 非 untracked 变更=0 双测亲证 |
+
+## 2. 实验一裁决（golden 冷启 · 6 run 全绿的「削弱+挂起」措辞）
+
+**裁决：恰当 · 忠实于预注册 · 无过度主张。** 依据：(a) 升压臂 B=harness §1.1 预注册分支原文「同命令追加样本…至总样本 ≥6；B 仍全绿→归因残留=环境特异如实挂起回协调方，**Ban 定谳永不复现**」——EXEC 采用「追加 ×3 轮」形态（协调方定值 ≥6/+≤15 一次成型 · 总样本恰 6/12 执行）逐字兑现，无红方向加样（FT-1 关闭）；(b) 判读表第 4 行（三跑全绿且分段 <5s→削弱非证伪→升压臂）命中路径与收据叙事逐行对号——run1-6 tally 2 passed(8.1/7.3/7.7/8.6/8.3/7.6s) 与分段 chromium 3.6/3.0/3.6/4.4/4.3/3.7s 本席逐 log 亲读全等且全部 ≪20s；(c) **「未定谳（削弱+挂起）」措辞正确**：H-G1/H-G2 零复现=置信度下降非证伪（12 样本量限制如实）、H-G3 契约内不可证伪（破坏性注入=Ban）、残留「G7U 两轮环境特异」**未就地定谳**回协调方——三处 hedge 全部落字；(d) 全绿下 trace 缺失=harness 第 5 行仪器缺口条款的正确排除（retain-on-failure 无失败可留 · 收据显式区分预期行为 vs 缺口）。OB-1（run1 `RUN1_EXIT=` 空展开）如实披露且四证承担（tally+零 ✗+收尾+复合进程 exit 0 · run2-6 `RUN2_EXIT=0`/`RUN3_EXIT=0` 直录亲读）——仪器注记非造假通道，**不阻断**。OB-4 冷 build 实证（run1 log 亲读 `无 .next/BUILD_ID，先 next build` · runner `:160-163` 仅缺席才 build 亲读）——runner 原生行为非破坏注入。
+
+## 3. 实验二裁决（核心 · sidecar 35 tick 时间线本席直读主证据复核）
+
+**裁决：「同形不同内容」定谳成立 · 供给链清白与尾段死亡定位均为多读数联合判读 · 忠实。** 本席不转述收据，直读 `.tmp/g7w-sidecar/snapshots.log`（27714B）+ `.tmp/e2e-receipts/2026-10-08T00-23-17-866Z….json` + `.tmp/g7w-cmd1.log` 三主证据：
+
+- **形 retained（四源交叉一致亲测）**：machine receipt `outcome=failed/exitCode=1/failureClass=api/durationMs=38013/startedAt 00:22:39.853Z→finishedAt 00:23:17.866Z` 与收据逐字段全等；`E2E_FAILURE_CLASS class=api` + `ISOLATED_POSTGRES_OUTPUT_WITHHELD` + `CMD1_EXIT=1` 三行 log 亲读；38013ms 落 G7S 38428/G7U 40560/CMD3 内层 37904 簇（37.9–40.6s）亲算属实；`sourceDigests["e2e/full.e2e.ts"]=sha256 f55f57f3…` 与本席 `shasum -a 256` 亲算全等。
+- **tick 时间线（35 tick 全亲读）**：恰 35 tick · tick-1 `00:22:42.740` → tick-35 `00:23:16.801`（receipt 终点前 1.06s ✓）· 间隔 ≈1002ms（定值 1000ms 兑现）；tick-1 恰 5 查询 relation ERROR（q2/q3/q5/q7a/q7b · 迁移在途如实记）· **tick-2 起零 error**（ok/error 纪律 C-HA-FF-3 兑现 · 无仪器缺口）；`schema_validation_failed` 首现 tick-10(=1)、次现 tick-12(=2) 后恒 2 不再增；succeeded tick-15 起增至 5；`interview` created+abandoned → tick-24 `completed=1`；**tick-24→35（00:23:05→00:23:16）零新行零状态迁移 = ~11-12s DB 静默窗亲测**（J-A6 命中成立）。
+- **终态（tick-35 亲读）**：`interview_job` 6 行全 done/att=1/err=null（start×2+answer×4）→ **J-A1 排除成立**（last_error 全 NULL · F-F 值域零命中 · reaper 未触发）；`job_route_decision`/`job_semantic_revision`=0 行 → **J-A2「排除（未被行使）」读法诚实**（收据显式区分「未达」≠「通过」）；`ai_model_invocation` succeeded=5+failed/schema_validation_failed=2 · `ai_invocation_trace`=5（=succeeded · persistTrace 仅 !error 落 ✓）；`route_consumption_event`/`interview_route_snapshot`=0。
+- **C-HA-1 纠偏兑现（本席上轮发现被 EXEC 落地）**：sidecar 头行亲读 `whitelist=9-queries(8 corrected to job_application)`；`q8_job_application_status_CORRECTED:ok:[]` **恰 35/35 tick 全 ok 恒空**（含 tick-1）；修正 SQL 原文逐字入收据（`SELECT status, count(*) FROM job_application GROUP BY 1`）；migration `0005_job_application.sql:20` `CREATE TABLE IF NOT EXISTS job_application` + `:26` status CHECK(invited/interviewing/completed) 本席亲读 ✓；纠偏必要性实证成立（tick-1 同族 relation-ERROR 形状在卷——沿原 `FROM application` 将成永久仪器 ERROR 而非空读）。**J-A4 锚在修正名查询 ok 后参与判读**——兑现本 PRE 条款原文。
+- **「死于申请面前」定位本席独立复核加固**：full.e2e.ts 旅程亲读——主面试完成（tick-24）后，7a 段将建第三 interview+start job、7b 建 quiz/diagnosis、步骤 9 `POST /jobs/:id/apply`（`applyToJob`→`INSERT INTO job_application` recruiter.ts:139 亲读）才会写 job_application 行；sidecar 终态零第三 interview、start 恒 2、application 恒 0 → 死亡窗收敛于主面试 completed 后、第三 interview 创建前（report/尾段）——与收据「report/B-side/review 尾段 · 申请面前」一致且 DB 面更细粒度不可辨（断言原文 withhold 不可回读 · 收据未越界主张）。
+- **J-A3 修正读法=诚实偏离非静默 reinterpret**：预注册 J-A3 形状含「route consumption/snapshot 行在」，本 run route 面 0 行（未绑岗直创面试未被行使）——收据未硬套预注册形状，而是以「全 job done+completed+纠偏后 application 恒 0」联合定谳并在 SUMMARY 显式标记「J-A3 修正读法」——符合「判读表外→如实登记」纪律方向，且方向上利于证伪而非利于 claim。
+- **表外读数 `schema_validation_failed ×2` 处置诚实**：写入方 `invoke.ts:711-712` 亲读 ✓；`question-generation.ts:39` MALFORMED 正则含该值 + `:46` 显式映射 `schema_invalid` 亲读 ✓（优雅路径吸收有码面依据）；致死性**未定谳**（旅程随后 5 连成功至 completed 的读数支持非即死但不排除尾段联合贡献——收据Ban 定谳正确）；与 OB-3（本机 `MODEL_ENDPOINT_PROFILE`/`MODEL_NAME` unset vs G7U 口径 `dashscope-cn-beijing`/`qwen-plus`）的联合解释力交协调方——如实。
+- **OB-2**（sidecar 拆除瞬间 pg error 事件 exit 1）：35/35 快照完好+末快照距终点 1.06s 亲测 → 拆除伪影非覆盖缺口定性成立；崩溃绕过失败计数器的机制披露如实。
+- **withhold 零触碰复核**：收据三文件+sidecar log 零断言原文/零 case 名回读（精确断言原文显式登记为「契约内不可回读·裁定权归协调方」）✓；SELECT-only/零 payload/零 output/零写语句全过 ✓（q1 紧凑编码仅含 kind/status/att/err/ts，较白名单裸行更保守 · 非偏离实质）。
+- **预算**：live=7（DB 账本实测 5+2 · 非计数器）≤≤10 ✓ · `actualSpendCny=null` 保持 ✓。
+- **不可回溯限制如实**：G7S 时点内容不追认（`--rm` 容器即毁）——本刀仅就本 run 内容定谳，「与 X 一致」≠「X 已证」措辞纪律全程守住。
+
+## 4. fresh re-run（本席自跑 · 恰一次 · 禁重试遵守）
+
+- CMD：`. ~/.meetwise-secrets/load-model-api-key.sh`（name-only）→ `pnpm run e2e:isolated` @worktree `rv/g7wp-e2e-ha`（树=`7db84c18` · `pnpm install` EXIT=0 前置）· **恰一次调用**，`> .tmp/g7wp-e2e-ha-cmd1.log 2>&1; echo EXIT=$?` 直录：**`G7WP_E2E_ISOLATED_EXIT=1`**（2026-10-08 00:48:07→00:48:54 UTC · 零重试）。
+- **形复现 ✓**：log 亲读 `E2E_FAILURE_CLASS class=api` + `ISOLATED_POSTGRES_OUTPUT_WITHHELD`（container `meetwise-e2e-19798-…`）+ `ELIFECYCLE … exit code 1`；machine receipt `outcome=failed/exitCode=1/failureClass=api/**durationMs=41843**/00:48:12.932Z→00:48:54.775Z`；`sourceDigests full.e2e.ts=sha256 f55f57f3…` 与 EXEC 树全等；reviewLedger 同 2 capability skip（image_ocr_unavailable/voice_unavailable）。
+- **duration 如实记账**：41843ms 落同量级但**略高于**在卷簇上沿（37.9–40.6s · +≈1.2s/3%）——不推翻「同形」（形核心=EXIT=1+class=api+WITHHELD 同形，本席复验三要素全中）；对 J-A6「~26s 旅程+~12s 尾段恒定构成」的恒定性读数，本样本提示旅程段时长可有波动——**落条件 CO-HA-4 回协调方**，不动任何 Pin。甄别结论（api 红面 retained · 非供给面）在独立重跑下**复现成立**。
+- 本 re-run=POST 审议义务非 retry-to-green（预期红 · 结果红 · 红方向无冲销对象）。
+
+## 5. 条件裁决（本席 PRE C-HA-1~6 逐条）
+
+| # | 条件 | 裁决 | 依据 |
+|---|---|---|---|
+| C-HA-1 | 表名实测纠偏+修正 SQL 逐字入收据+逐查询 ok/error+J-A4 锚修正名 ok 后参与判读 | **兑现** | §3 亲测：`q8_…CORRECTED` 35/35 ok · SQL 逐字在收据 · tick-1 五 ERROR 如实记后零 error · J-A4 仅在 ok 读数上参与（且读法诚实） |
+| C-HA-2 | 判读表外值域回协调方 Ban 就地 reinterpret/Ban 追加跑 | **兑现（空真+实质）** | 实验一零红无表外步骤；实验二表外读数 `schema_validation_failed ×2` 按同纪律登记回协调方未 reinterpret；零追加跑（7 attempt 台账零重跑亲核） |
+| C-HA-3 | 过滤机制定值+预算影响如实 | **兑现** | `E2E_UI_GREP`→`--grep` `run-e2e-ui.mjs:193` 亲读存在且 tip 行号恰 `:193`；机制+est ≤24⊆A≤15+B≤15 入收据 |
+| C-HA-4 | .tmp 落点纪律/Ban Key 值 | **兑现** | snapshots/栈日志全在 `.tmp/` 不入 git（EXEC diff 恰 3 收据亲测）；收据仅 name-only 摘要；Key 扫描零命中 |
+| C-HA-5 | 升压臂预算钉 ≥6/+≤15 一次成型 Ban 事后追加 | **兑现** | 总样本恰 6 run · B 臂 3 run est ≤12 ≤ +15 · 预注册触发非事后 |
+| C-HA-6 | 三钉 blob 前后全等机检重跑入收据 | **兑现** | 收据 §码面机检 1 落字 + 本席 `git hash-object` 三钉独立复算全等（§1.3） |
+
+## 6. Fail-trigger audit（POST 复验 · 七通道全不存在）
+
+FT-1 retry-to-green：不存在（7 attempt 全台账 · 升压臂预注册 · 本席 re-run 恰一次为 POST 义务）；FT-2 withhold 破面：不存在（三主证据+收据零断言原文/零 case 名回读）；FT-3 Pins 翻转：不存在（`g7SuiteGreen=false`/`actualSpendCny=null` 保持 · trio OPEN 1/1/1 · 残红②③ OPEN · GAP-G7K-API-REDS `:107` 零触碰——EXEC diff 恰 3 收据亲测）；FT-4 破坏性注入：不存在（零清 BUILD_ID/零降资源/零杀进程 · OB-2=拆除伪影 OB-4=runner 原生）；FT-5 越权：不存在（docs-only +181/−0）；FT-6 预注册缺角：不存在（两实验判读表逐行对号 · 偏离=J-A3 修正读法+q8 纠偏均显式落字）；FT-7（POST 新增）自批/代签：不存在（EXEC receipt 末行 STOP+禁自批 · 本席独立 worktree 独立 commit · 不代签 mw-model-op 并行 POST 段）。
+
+## 7. Blockers
+
+**无。**（包完整性、双实验忠实性、C-HA-1~6 兑现、fresh re-run 形复现、Pins 零翻转全部亲证；三项非阻断仪器注记 OB-1/OB-2/OB-3 均由 EXEC 主动全量披露且本席对主证据独立复核未发现与披露矛盾处。）
+
+## 8. Conditions（转协调方/后继刀 · 非本 POST 段 FAIL 事由）
+
+- **CO-HA-1**：`schema_validation_failed ×2` 致死性立案与否 + 与 OB-3（`MODEL_ENDPOINT_PROFILE`/`MODEL_NAME` unset 口径差）联合解释力（是否换定值复跑/是否产品刀）——裁定权归协调方（EXEC 已如实挂起）。
+- **CO-HA-2**：实验一残留（「G7U 两轮环境特异」假说成立与否/是否立 backlog 行/是否需全 suite 上下文复现臂）——归协调方（EXEC 已挂起 · Ban 定谳永不复现守住）。
+- **CO-HA-3**：尾段断言面甄别新形态（driver 侧结构化埋点 or withhold 契约变更裁定）+ 精确断言原文/case 名回读——归协调方；`job_application` 0 行读数的更细定位（本席 §3：死亡窗收敛于第三 interview 创建前）可供其参考但 DB 面不可辨处不追认。
+- **CO-HA-4**：本席 fresh re-run `durationMs=41843`（略高于在卷簇上沿）入账——J-A6 尾段时长「恒定构成」读数如需硬化须联合本样本；零 Pin 影响。
+- **CO-HA-5**：origin push 链路间歇堵未解——EXEC `7db84c18` 与本 POST commit 均在本地链，远端同步由协调方处置（本席禁 push）。
+
+## 9. 三行中文摘要
+
+1. G7W POST-PROVE dual 审（被审 EXEC `7db84c18` 本地链 · origin 未含如实记 · 孪生 `a4e49b8a` 同树 0 字节差）：恰 3 收据 +181/−0、本席 PRE 段逐字节保全（md5 `ec4acc0f…` 全等）、三钉 blob `13dbfc43`/`7d65d0f3`/`63af556f` 独立复算全等、Key 卫生与 tracked 树零改亲证。
+2. 双实验裁决均忠实：实验一「削弱+挂起」措辞=预注册原文兑现（6 run/12 执行全绿逐 log 对号 · Ban 永不复现守住）；实验二「同形不同内容」成立——本席直读 sidecar 35 tick 主证据复核（供给链 6 job 全 done/last_error 全 NULL=J-A1 排除 · `schema_validation_failed ×2` 表外登记致死性不定谳 · ~11-12s 静默窗=J-A6 命中 · `q8 job_application` 纠偏后 35/35 ok 恒空=C-HA-1 兑现且「死于申请面前」经旅程码面独立加固）。
+3. fresh re-run 恰一次 EXIT=1 class=api 同形复现（durationMs=41843 略超簇上沿如实记账落 CO-HA-4）；C-HA-1~6 全兑现 · 0 Blocker · 5 Conditions CO-HA-1~5 转协调方 · alone ≠ dual 本 PASS 仅为 mw-e2e-ha POST 半签不代签 mw-model-op ≠ trio/残红任何翻转 · 禁 push。
+
+Verdict: PASS
