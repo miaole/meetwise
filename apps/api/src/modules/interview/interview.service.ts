@@ -1,6 +1,6 @@
 import { Injectable, Inject, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { createHash, randomUUID } from 'node:crypto';
-import { assertInterviewPrivacyActive, reserveEntitlement, enqueueInterviewJob, getReport, abandonInterviewAndRelease, requeueFailedReport, claimInterviewAnswer, listScorableScoreCards, submitInterviewAnswer, viewInterviewAnswerSnapshot, readbackInterviewAnswerSubmission, supplyCandidateProfileRoute } from '@meetwise/db';
+import { assertInterviewPrivacyActive, reserveEntitlement, enqueueInterviewJob, getReport, abandonInterviewAndRelease, requeueFailedReport, claimInterviewAnswer, listScorableScoreCards, submitInterviewAnswer, viewInterviewAnswerSnapshot, readbackInterviewAnswerSubmission, supplyCandidateProfileRoute, requireOwnerUserId, buildRequiredOwnerFilter } from '@meetwise/db';
 import { deriveAssessment, deriveLearningPlan, deriveCareerPath, resolveOverlongAnswerPolicy, isTrustedScoreIdentity, requireTrustedPracticeOverall } from '@meetwise/domain';
 import { runCareerPathGraph, selectCareerPathDerive, CAREER_PATH_GRAPH_NAME } from '@meetwise/ai-graphs';
 import { VOICE_EGRESS_DISABLED_ID, type Asr, type Tts, type StreamingTts } from '@meetwise/ai-runtime';
@@ -193,7 +193,11 @@ export class InterviewService {
     this.denyPublicPreviewWrite();
     if (!resumeId) throw new HttpException({ error: 'missing_resume_id' }, HttpStatus.BAD_REQUEST);
     if (!UUID_RE.test(resumeId)) throw new HttpException({ error: 'invalid_resume_id' }, HttpStatus.BAD_REQUEST);
-    return this.db.asPrincipal(principal, async (c) => {
+    // PRIV01-C 应用层 tenant 强制第二层:E1 入口显式 owner + E2 必选谓词绑定——授权根仍为 RLS(应用层 tenant ≠ RLS)。
+    const owner = requireOwnerUserId(principal, 'interview.begin');
+    const quizScope = buildRequiredOwnerFilter(owner, 'interview.begin.quizScope');
+    const bindScope = buildRequiredOwnerFilter(owner, 'interview.begin.bind');
+    return this.db.asPrincipal(owner, async (c) => {
       // **并发竞态安全**:事务级 advisory 锁串行化同面试的并发 begin(对齐 invoke 关口)——否则两并发都过 check-then-act = 双开。
       await c.query('SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))', ['begin', id]);
       const cur = await c.query('SELECT status,resume_id,resume_privacy_epoch,application_id FROM interview WHERE id=$1 FOR UPDATE', [id]);
@@ -212,7 +216,7 @@ export class InterviewService {
       if (sourceQuizId) {
         const quiz = await c.query(
           'SELECT status, expires_at FROM resume_quiz WHERE id=$1 AND owner_user_id=$2',
-          [sourceQuizId, principal],
+          [sourceQuizId, quizScope.value],
         );
         if (quiz.rowCount === 0)
           throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
@@ -230,7 +234,7 @@ export class InterviewService {
       if (sourceQuizId) {
         const quizExpiry = await c.query(
           'SELECT status, expires_at FROM resume_quiz WHERE id=$1 AND owner_user_id=$2',
-          [sourceQuizId, principal],
+          [sourceQuizId, quizScope.value],
         );
         if (quizExpiry.rowCount === 0)
           throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
@@ -254,7 +258,7 @@ export class InterviewService {
              FROM resume_quiz q
              LEFT JOIN resume r ON r.id=q.resume_id AND r.owner_user_id=q.owner_user_id
             WHERE q.id=$1 AND q.owner_user_id=$2`,
-          [sourceQuizId, principal],
+          [sourceQuizId, quizScope.value],
         );
         const pinnedResumeId = pin.rows[0]?.pinned_resume_id as string | null | undefined;
         if (pinnedResumeId != null) {
@@ -299,7 +303,7 @@ export class InterviewService {
               AND r.id=$3
               AND r.owner_user_id=$2
               AND r.status='ingested'`,
-          [id, principal, resumeId],
+          [id, bindScope.value, resumeId],
         );
         if (bound.rowCount !== 1)
           throw new HttpException({ error: 'interview_resume_binding_unavailable' }, HttpStatus.CONFLICT);
@@ -331,13 +335,13 @@ export class InterviewService {
       // candidate_route_undecided(拒因从 worker 异步 throw 前移为 begin 同步业务拒绝,拒的本体
       // 零消失);worker fail-closed 门(adaptive-role-resolve 默认 ON)零改动,缺行/缺叶仍拒。
       if (cur.rows[0].application_id == null) {
-        const supply = await supplyCandidateProfileRoute(c, principal, id, resumeId);
+        const supply = await supplyCandidateProfileRoute(c, owner, id, resumeId);
         if (supply.status === 'undecided')
           throw new HttpException({ error: 'candidate_route_undecided', reason: supply.reason }, HttpStatus.CONFLICT);
       }
       // 额度不足时 reserveEntitlement **抛**(回滚),不是返回——必须 catch 映射成 402,否则被异常过滤当 500(E2E 实测抓到)。
       let rr;
-      try { rr = await reserveEntitlement(c, principal, id, 'mock_interview', 1.0); }
+      try { rr = await reserveEntitlement(c, owner, id, 'mock_interview', 1.0); }
       catch (e: any) {
         if (e?.code === 'insufficient_entitlement') throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
         throw e;
@@ -345,7 +349,7 @@ export class InterviewService {
       if (rr.status !== 'reserved') throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
       // The queue derives the v64 typed id+epoch from the just-bound parent;
       // JSON retains only transport tracing, never a resume locator.
-      const jobId = await enqueueInterviewJob(c, principal, id, 'start', { requestId }, 0);
+      const jobId = await enqueueInterviewJob(c, owner, id, 'start', { requestId }, 0);
       return { accepted: true, jobId };
     });
   }
@@ -366,22 +370,23 @@ export class InterviewService {
     // 成本 DoS 闸(每 turn = 一条付费评分 job):per-principal 令牌桶,超速 → 429(安全审计 F1)。
     if (!this.rl.allow(`turn:${principal}`, TURN_RL.capacity, TURN_RL.refillPerSec))
       throw new HttpException({ error: 'too_many_requests', message: '作答过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);
-    return this.db.asPrincipal(principal, async (c) => {
+    const owner = requireOwnerUserId(principal, 'interview.turn');   // PRIV01-C 第二层 E1(授权根仍 RLS)
+    return this.db.asPrincipal(owner, async (c) => {
       // 状态机守卫(对齐 quiz/diagnosis 的 CAS 守卫;安全审计 F1):只对**未终态**面试收作答。
       // 对 completed/abandoned/failed 提交 → 409,绝不制造新付费 job、不绕状态机(此前一个守卫都没有)。
       const iv = await c.query('SELECT status FROM interview WHERE id=$1', [id]);
-      if (iv.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+      if (iv.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND); // E5:自身 id 意外 0 行 → 404 fail-closed
       // Delete holds the same transaction advisory lock and atomically
       // redacts any earlier queue row.  Put this before question claim so a
       // fenced turn leaves neither an answer hash nor a job behind.
       await this.guardInterviewPrivacy(c, id);
       await this.assertAnswerable(c, id, iv.rows[0].status);   // 终态拒 / 未 begin 拒(见下方共用守卫)
-      const claim = await claimInterviewAnswer(c, principal, id, body);
+      const claim = await claimInterviewAnswer(c, owner, id, body);
       if (claim.status === 'hash_mismatch') throw new HttpException({ error: 'answer_hash_mismatch' }, HttpStatus.UNPROCESSABLE_ENTITY);
       if (claim.status === 'not_ready') throw new HttpException({ error: 'question_not_ready' }, HttpStatus.CONFLICT);
       if (claim.status === 'stale') throw new HttpException({ error: 'stale_question' }, HttpStatus.CONFLICT);
       if (claim.status === 'conflict') throw new HttpException({ error: 'answer_conflict' }, HttpStatus.CONFLICT);
-      const jobId = await enqueueInterviewJob(c, principal, id, 'answer', { ...body, requestId }, turn + 1);
+      const jobId = await enqueueInterviewJob(c, owner, id, 'answer', { ...body, requestId }, turn + 1);
       return { accepted: claim.status === 'accepted', replayed: claim.status === 'replayed', jobId };
     });
   }
@@ -398,10 +403,12 @@ export class InterviewService {
       throw new HttpException({ error: overlong.policy.errorCode, max: overlong.policy.maxLength }, HttpStatus.PAYLOAD_TOO_LARGE);
     if (!this.rl.allow(`turn:${principal}`, TURN_RL.capacity, TURN_RL.refillPerSec))
       throw new HttpException({ error: 'too_many_requests', message: '作答过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);
-    return this.db.asPrincipal(principal, async (c) => {
+    const owner = requireOwnerUserId(principal, 'interview.submitPreviewAnswer');   // PRIV01-C 第二层 E1
+    const issuedScope = buildRequiredOwnerFilter(owner, 'interview.submitPreview.issued');   // E2 必选谓词(原 GUC 直读改参数绑定,RLS 会话内同值)
+    return this.db.asPrincipal(owner, async (c) => {
       await c.query('SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))', ['preview-answer', id]);
       const iv = await c.query('SELECT status FROM interview WHERE id=$1', [id]);
-      if (iv.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+      if (iv.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND); // E5:自身 id 意外 0 行 → 404 fail-closed
       await this.guardInterviewPrivacy(c, id);
       await this.assertAnswerable(c, id, iv.rows[0].status);
       const existing = await readbackInterviewAnswerSubmission(c, body.clientSubmissionKey);
@@ -412,9 +419,9 @@ export class InterviewService {
       }
       const issued = await c.query(
         `SELECT state_version, status FROM interview_question
-          WHERE owner_user_id=current_setting('app.principal_user', true)
+          WHERE owner_user_id=$3
             AND interview_id=$1 AND question_id=$2 FOR UPDATE`,
-        [id, body.questionId],
+        [id, body.questionId, issuedScope.value],
       );
       // Same-key replay must not depend on the live question row (A4/E6).
       if (!existing) {
@@ -466,7 +473,8 @@ export class InterviewService {
   /** TTS:把 AI 题/追问合成语音(qwen-tts),供单人语音模式播报。未配置/失败 → 降级(前端回落文字读题)。 */
   async speak(principal: string, id: string, dto: { text: string }, options: { signal?: AbortSignal } = {}) {
     this.voiceGate(principal);
-    await this.db.asPrincipal(principal, (c) => this.guardInterviewPrivacy(c, id));
+    const owner = requireOwnerUserId(principal, 'interview.speak');   // PRIV01-C 第二层 E1(授权根仍 RLS;guard 0 行→404 fail-closed)
+    await this.db.asPrincipal(owner, (c) => this.guardInterviewPrivacy(c, id));
     const text = (dto.text ?? '').trim();
     if (!text) throw new HttpException({ error: 'empty_text' }, HttpStatus.BAD_REQUEST);
     try {
@@ -487,7 +495,8 @@ export class InterviewService {
    *  把"首音延迟"从整段合成下载(qwen-tts ~9s)降到首块到达(cosyvoice WS ~1-2s);未配置/中断 → 前端回落非流式 /speak 再回落文字读题(无死胡同)。 */
   async speakStreamPrepare(principal: string, id: string, dto: { text: string }) {
     this.voiceGate(principal);
-    await this.db.asPrincipal(principal, (c) => this.guardInterviewPrivacy(c, id));
+    const owner = requireOwnerUserId(principal, 'interview.speakStreamPrepare');   // PRIV01-C 第二层 E1(授权根仍 RLS;guard 0 行→404 fail-closed)
+    await this.db.asPrincipal(owner, (c) => this.guardInterviewPrivacy(c, id));
     const text = (dto.text ?? '').trim();
     if (!text) throw new HttpException({ error: 'empty_text' }, HttpStatus.BAD_REQUEST);
     // Disabled before hijack/headers: the browser can always fall back to text
@@ -504,10 +513,11 @@ export class InterviewService {
 
   async transcribe(principal: string, id: string, dto: TranscribeDto, options?: { signal?: AbortSignal }) {
     this.voiceGate(principal);
+    const owner = requireOwnerUserId(principal, 'interview.transcribe');   // PRIV01-C 第二层 E1(授权根仍 RLS;guard 0 行→404 fail-closed)
     // Check the same durable fence before any audio leaves the process.  This
     // closes delete-wins; dispatch-wins provider retention receipts remain a
     // separate release blocker until voice uses the durable egress outbox.
-    await this.db.asPrincipal(principal, (c) => this.guardInterviewPrivacy(c, id));
+    await this.db.asPrincipal(owner, (c) => this.guardInterviewPrivacy(c, id));
     const audio = Buffer.from(dto.audioBase64, 'base64');
     if (audio.length === 0) throw new HttpException({ error: 'empty_audio' }, HttpStatus.BAD_REQUEST);
     if (audio.length > MAX_AUDIO_BYTES) throw new HttpException({ error: 'audio_too_large' }, HttpStatus.PAYLOAD_TOO_LARGE);
@@ -550,11 +560,12 @@ export class InterviewService {
     if (b?.rating !== 'up' && b?.rating !== 'down') throw new HttpException({ error: 'invalid_rating' }, HttpStatus.BAD_REQUEST);
     const qi = Number(idx);
     if (!Number.isInteger(qi) || qi < 0) throw new HttpException({ error: 'invalid_index' }, HttpStatus.BAD_REQUEST);
-    await this.db.asPrincipal(principal, async (c) => {
+    const owner = requireOwnerUserId(principal, 'interview.questionFeedback');   // PRIV01-C 第二层 E1
+    await this.db.asPrincipal(owner, async (c) => {
       await this.guardInterviewPrivacy(c, id);
       await c.query(`INSERT INTO question_feedback(owner_user_id, interview_id, question_index, rating, comment) VALUES ($1,$2,$3,$4,$5)
                ON CONFLICT (owner_user_id, interview_id, question_index) DO UPDATE SET rating=EXCLUDED.rating, comment=EXCLUDED.comment`,
-        [principal, id, qi, b.rating, b.comment ?? null]);
+        [owner, id, qi, b.rating, b.comment ?? null]);
     });
     return { recorded: true };
   }
@@ -562,18 +573,19 @@ export class InterviewService {
   // 放弃面试:**退还预留额度**(不漏扣)+ status abandoned。对接 commerce saga release 路径。
   abandon(principal: string, id: string) {
     this.denyPublicPreviewWrite();
-    return this.db.asPrincipal(principal, async (c) => {
+    const owner = requireOwnerUserId(principal, 'interview.abandon');   // PRIV01-C 第二层 E1(授权根仍 RLS)
+    return this.db.asPrincipal(owner, async (c) => {
       // advisory 锁仅折叠同端点重复点击；与 worker 的真正串行化由
       // abandonInterviewAndRelease 内部在 consumption 行上的 FOR UPDATE + 条件状态 CAS 完成。
       await c.query('SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))', ['abandon', id]);
       const cur = await c.query('SELECT status FROM interview WHERE id=$1', [id]);
-      if (cur.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+      if (cur.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND); // E5:自身 id 意外 0 行 → 404 fail-closed
       await this.guardInterviewPrivacy(c, id);
       const st = cur.rows[0].status;
       if (st === 'completed' || st === 'failed')
         throw new HttpException({ error: 'interview_not_active', status: st }, HttpStatus.CONFLICT);
       try {
-        const result = await abandonInterviewAndRelease(c, principal, id);
+        const result = await abandonInterviewAndRelease(c, owner, id);
         return { abandoned: true, released: result.released, alreadyAbandoned: result.status === 'already_abandoned' };
       } catch (e: any) {
         if (e?.code === 'interview_release_failed' || e?.code === 'interview_abandon_conflict')
@@ -588,14 +600,15 @@ export class InterviewService {
   // 未结束(非 completed/abandoned/failed)就复用既有;复用后再 begin 由 begin 的 alreadyBegun 幂等兜住(不重复扣费)。
   async create(principal: string) {
     this.denyPublicPreviewWrite();
-    return this.db.asPrincipal(principal, async (c) => {
+    const owner = requireOwnerUserId(principal, 'interview.create');   // PRIV01-C 第二层 E1(fail-closed)
+    return this.db.asPrincipal(owner, async (c) => {
       // advisory 事务锁串行化同用户并发"开始面试",防两次点击 check-then-act 竞态各 INSERT 一条。
-      await c.query('SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))', [principal, 'iv-create']);
+      await c.query('SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))', [owner, 'iv-create']);
       const open = await c.query(
-        "SELECT id, status FROM interview WHERE status NOT IN ('completed','abandoned','failed') ORDER BY id DESC LIMIT 1"); // RLS 只见己
+        "SELECT id, status FROM interview WHERE status NOT IN ('completed','abandoned','failed') ORDER BY id DESC LIMIT 1"); // RLS 只见己(集合端点空集=合法,E5 白名单)
       if (open.rowCount! > 0) return { interviewId: open.rows[0].id, status: open.rows[0].status, reused: true };
       const id = 'iv_' + randomUUID();
-      await c.query("INSERT INTO interview(id, owner_user_id, status) VALUES ($1,$2,'created')", [id, principal]); // RLS WITH CHECK owner=principal
+      await c.query("INSERT INTO interview(id, owner_user_id, status) VALUES ($1,$2,'created')", [id, owner]); // RLS WITH CHECK owner=principal
       return { interviewId: id, status: 'created', reused: false };
     });
   }
@@ -603,6 +616,9 @@ export class InterviewService {
   // 列出自己的面试(RLS 只见己),可按 status 过滤 + limit 分页。
   async list(principal: string, status?: string, limit?: string) {
     const lim = Math.min(Math.max(Number(limit) || 50, 1), 200);
+    // PRIV01-C 第二层 E1+E2:入口显式 owner + 列表显式必选 owner 谓词(原仅隐式 RLS)。授权根仍为 RLS。
+    const owner = requireOwnerUserId(principal, 'interview.list');
+    const listScope = buildRequiredOwnerFilter(owner, 'interview.list.scope');
     const projection = `
       SELECT i.id, i.status, i.created_at,
         i.job_title_snapshot AS job_title,
@@ -628,15 +644,16 @@ export class InterviewService {
         FROM interview_question iq
         WHERE iq.interview_id = i.id AND iq.owner_user_id = i.owner_user_id
       ) q ON true`;
-    const r = await this.db.asPrincipal(principal, (c) =>
+    const r = await this.db.asPrincipal(owner, (c) =>
       status
-        ? c.query(`${projection} WHERE i.status=$1 AND interview_privacy_active(i.id) ORDER BY i.created_at DESC NULLS LAST, i.id DESC LIMIT $2`, [status, lim])
-        : c.query(`${projection} WHERE interview_privacy_active(i.id) ORDER BY i.created_at DESC NULLS LAST, i.id DESC LIMIT $1`, [lim]));
+        ? c.query(`${projection} WHERE i.owner_user_id=$2 AND i.status=$1 AND interview_privacy_active(i.id) ORDER BY i.created_at DESC NULLS LAST, i.id DESC LIMIT $3`, [status, listScope.value, lim])
+        : c.query(`${projection} WHERE i.owner_user_id=$1 AND interview_privacy_active(i.id) ORDER BY i.created_at DESC NULLS LAST, i.id DESC LIMIT $2`, [listScope.value, lim]));
     return { interviews: r.rows.map(toInterviewView) };
   }
 
   async get(principal: string, id: string) {
-    const r = await this.db.asPrincipal(principal, async (c) => {
+    const owner = requireOwnerUserId(principal, 'interview.get');   // PRIV01-C 第二层 E1(guard 0 行→404 fail-closed)
+    const r = await this.db.asPrincipal(owner, async (c) => {
       await this.guardInterviewPrivacy(c, id);
       return c.query(`
         SELECT i.id, i.status, i.created_at,

@@ -4,6 +4,7 @@ import {
   createResumeWithBlob, transitionResume, completeIngestion, decryptResumeBlob,
   persistResumeOcrArtifact, decryptResumeOcrArtifact, deleteResumeOcrArtifact,
   reserveEntitlement, confirmConsumption, releaseConsumption,
+  requireOwnerUserId, buildRequiredOwnerFilter,
   type ResumeOcrBindingSnapshot, type ResumeSourceKind,
 } from '@meetwise/db';
 import { ingestResume, extractResumeText, parseSealedOcrProvenance } from '@meetwise/domain';
@@ -156,6 +157,7 @@ export class ResumeService {
     // 重传可从工件继续；不把基础设施故障误判为应退费的业务失败。
     // 文本 HMAC 去重命中既有 text/pdf（或另一张图）时不得 confirm 本图 OCR 费。
     const structured = await this.db.asPrincipal(principal, async (c: any) => {
+      const dedupeFilter = buildRequiredOwnerFilter(principal, 'resume.ocrConfirm.dedupe');   // PRIV01-C 第二层 E2
       const saved = await this.uploadInTransaction(c, principal, { text }, 'needs_review', { sourceKind: 'image', ocrBinding: sealed });
       if (saved.status === 'deduped') {
         const existing = await c.query<{ source_kind: string | null; ocr_binding: unknown }>(
@@ -163,7 +165,7 @@ export class ResumeService {
              FROM resume r
              LEFT JOIN resume_profile rp ON rp.resume_id=r.id AND rp.owner_user_id=r.owner_user_id
             WHERE r.id=$1 AND r.owner_user_id=$2`,
-          [saved.resumeId, principal],
+          [saved.resumeId, dedupeFilter.value],
         );
         const existingSealed = parseSealedOcrProvenance(existing.rows[0]?.ocr_binding);
         const sameImageIngest = existing.rows[0]?.source_kind === 'image'
@@ -206,14 +208,19 @@ export class ResumeService {
   }
 
   list(principal: string) {
-    return this.db.asPrincipal(principal, async (c: any) => {
+    // PRIV01-C 第二层 E1+E2:入口显式 owner + 列表查询显式必选 owner 谓词(原仅隐式 RLS「只己见」)。
+    // 授权根仍为 RLS;此谓词为纵深防御第二层(应用层 tenant ≠ RLS)。空列表=合法(集合端点,E5 白名单)。
+    const owner = requireOwnerUserId(principal, 'resume.list');
+    const listFilter = buildRequiredOwnerFilter(owner, 'resume.list.scope');
+    return this.db.asPrincipal(owner, async (c: any) => {
       const r = await c.query(`
         SELECT r.id, r.status, r.created_at, r.content_sha,
           rp.structured #>> '{experience,0,text}' AS experience_hint,
           rp.structured #>> '{skills,0,text}' AS skill_hint
         FROM resume r
         LEFT JOIN resume_profile rp ON rp.resume_id=r.id AND rp.owner_user_id=r.owner_user_id
-        ORDER BY r.created_at DESC, r.id`);   // RLS:只己见
+        WHERE r.owner_user_id=$1
+        ORDER BY r.created_at DESC, r.id`, [listFilter.value]);   // RLS:只己见 + 显式必选谓词第二层
       return {
         resumes: r.rows.map((row: any) => ({
           id: row.id,
@@ -225,15 +232,20 @@ export class ResumeService {
   }
 
   reparse(principal: string, id: string) {
-    return this.db.asPrincipal(principal, async (c: any) => {
-      const raw = await decryptResumeBlob(c, principal, id).catch(() => null);
+    // PRIV01-C 第二层 E1+E2:入口显式 owner;三条 owner 谓词经 required predicate 绑定。
+    const owner = requireOwnerUserId(principal, 'resume.reparse');
+    const existingFilter = buildRequiredOwnerFilter(owner, 'resume.reparse.existing');
+    const profileFilter = buildRequiredOwnerFilter(owner, 'resume.reparse.updateProfile');
+    const statusFilter = buildRequiredOwnerFilter(owner, 'resume.reparse.updateStatus');
+    return this.db.asPrincipal(owner, async (c: any) => {
+      const raw = await decryptResumeBlob(c, owner, id).catch(() => null);
       if (!raw) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
       const existing = await c.query<{ ocr_binding: unknown }>(
         `SELECT rp.ocr_binding
            FROM resume r
            LEFT JOIN resume_profile rp ON rp.resume_id=r.id AND rp.owner_user_id=r.owner_user_id
           WHERE r.id=$1 AND r.owner_user_id=$2`,
-        [id, principal],
+        [id, existingFilter.value],
       );
       const ingested = ingestResume(raw);
       const structured = { experience: ingested.experience, skills: ingested.skills, facts: ingested.facts };
@@ -244,13 +256,13 @@ export class ResumeService {
         `UPDATE resume_profile
             SET structured=$3::jsonb, pii_summary=$4::jsonb, blocked_count=$5
           WHERE resume_id=$1 AND owner_user_id=$2`,
-        [id, principal, JSON.stringify(structured), JSON.stringify(piiSummary), ingested.blocked.length],
+        [id, profileFilter.value, JSON.stringify(structured), JSON.stringify(piiSummary), ingested.blocked.length],
       );
-      await c.query("UPDATE resume SET status='ingesting', version=version+1 WHERE id=$1 AND owner_user_id=$2", [id, principal]);
+      await c.query("UPDATE resume SET status='ingesting', version=version+1 WHERE id=$1 AND owner_user_id=$2", [id, statusFilter.value]);
       if (refreshed.rowCount === 0) {
-        await completeIngestion(c, principal, id, ingested, 'ok', parseSealedOcrProvenance(existing.rows[0]?.ocr_binding));
+        await completeIngestion(c, owner, id, ingested, 'ok', parseSealedOcrProvenance(existing.rows[0]?.ocr_binding));
       } else {
-        await transitionResume(c, principal, id, 'ingesting', 'ingested');
+        await transitionResume(c, owner, id, 'ingesting', 'ingested');
       }
       return { reparsed: true };
     });

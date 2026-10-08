@@ -1,0 +1,173 @@
+
+> meetwise@0.1.0 tenant-wiring-e5:prove /Users/miaole/Desktop/golucky/meetwise-line-priv01wire
+> pnpm -C packages/db prove:tenant-wiring-e5
+
+
+> @meetwise/db@0.0.0 prove:tenant-wiring-e5 /Users/miaole/Desktop/golucky/meetwise-line-priv01wire/packages/db
+> tsx test/tenant-wiring-e5.proof.ts
+
+PASS  manifest: wired files registered (file envelope) — files=11
+PASS  manifest: residual absences registered (Ban silent absence) — residualEntries=11
+PASS  manifest: context tags unique per file
+PASS  wired file has tenant consumption: apps/api/src/modules/interview/interview.service.ts (exact count=17)
+PASS  ctx present: apps/api/src/modules/interview/interview.service.ts :: interview.begin
+PASS  E5 fail-closed witness: interview.begin → "not_found_or_forbidden"
+PASS  ctx present: apps/api/src/modules/interview/interview.service.ts :: interview.begin.quizScope
+PASS  required-predicate witness (predicate-bind): interview.begin.quizScope → "owner_user_id=$2"
+PASS  required-predicate witness: interview.begin.quizScope → "owner_user_id=$2"
+PASS  ctx present: apps/api/src/modules/interview/interview.service.ts :: interview.begin.bind
+PASS  required-predicate witness (predicate-bind): interview.begin.bind → "AND i.owner_user_id=$2"
+PASS  required-predicate witness: interview.begin.bind → "AND i.owner_user_id=$2"
+PASS  ctx present: apps/api/src/modules/interview/interview.service.ts :: interview.turn
+PASS  E5 fail-closed witness: interview.turn → "not_found_or_forbidden"
+PASS  ctx present: apps/api/src/modules/interview/interview.service.ts :: interview.submitPreviewAnswer
+PASS  E5 fail-closed witness: interview.submitPreviewAnswer → "not_found_or_forbidden"
+PASS  ctx present: apps/api/src/modules/interview/interview.service.ts :: interview.submitPreview.issued
+PASS  required-predicate witness (predicate-bind): interview.submitPreview.issued → "owner_user_id=$3"
+PASS  required-predicate witness: interview.submitPreview.issued → "owner_user_id=$3"
+PASS  ctx present: apps/api/src/modules/interview/interview.service.ts :: interview.speak
+PASS  E5 fail-closed witness: interview.speak → "guardInterviewPrivacy"
+PASS  ctx present: apps/api/src/modules/interview/interview.service.ts :: interview.speakStreamPrepare
+PASS  E5 fail-closed witness: interview.speakStreamPrepare → "guardInterviewPrivacy"
+PASS  ctx present: apps/api/src/modules/interview/interview.service.ts :: interview.transcribe
+PASS  E5 fail-closed witness: interview.transcribe → "guardInterviewPrivacy"
+PASS  ctx present: apps/api/src/modules/interview/interview.service.ts :: interview.questionFeedback
+PASS  E5 fail-closed witness: interview.questionFeedback → "guardInterviewPrivacy"
+PASS  ctx present: apps/api/src/modules/interview/interview.service.ts :: interview.abandon
+PASS  E5 fail-closed witness: interview.abandon → "not_found_or_forbidden"
+PASS  ctx present: apps/api/src/modules/interview/interview.service.ts :: interview.create
+PASS  ctx present: apps/api/src/modules/interview/interview.service.ts :: interview.list
+PASS  E5 whitelist (legal empty set): interview.list
+PASS  ctx present: apps/api/src/modules/interview/interview.service.ts :: interview.list.scope
+PASS  E5 whitelist (legal empty set): interview.list.scope
+PASS  required-predicate witness: interview.list.scope → "i.owner_user_id=$1"
+PASS  ctx present: apps/api/src/modules/interview/interview.service.ts :: interview.get
+PASS  E5 fail-closed witness: interview.get → "guardInterviewPrivacy"
+PASS  wired file has tenant consumption: apps/api/src/modules/resume/resume.service.ts (exact count=9)
+PASS  ctx present: apps/api/src/modules/resume/resume.service.ts :: resume.list
+PASS  E5 whitelist (legal empty set): resume.list
+PASS  ctx present: apps/api/src/modules/resume/resume.service.ts :: resume.list.scope
+PASS  E5 whitelist (legal empty set): resume.list.scope
+PASS  required-predicate witness: resume.list.scope → "WHERE r.owner_user_id=$1"
+PASS  ctx present: apps/api/src/modules/resume/resume.service.ts :: resume.reparse
+PASS  E5 fail-closed witness: resume.reparse → "not_found_or_forbidden"
+PASS  ctx present: apps/api/src/modules/resume/resume.service.ts :: resume.reparse.existing
+PASS  required-predicate witness (predicate-bind): resume.reparse.existing → "r.owner_user_id=$2"
+PASS  required-predicate witness: resume.reparse.existing → "r.owner_user_id=$2"
+PASS  ctx present: apps/api/src/modules/resume/resume.service.ts :: resume.reparse.updateProfile
+PASS  required-predicate witness (predicate-bind): resume.reparse.updateProfile → "owner_user_id=$2"
+PASS  required-predicate witness: resume.reparse.updateProfile → "owner_user_id=$2"
+PASS  ctx present: apps/api/src/modules/resume/resume.service.ts :: resume.reparse.updateStatus
+PASS  required-predicate witness (predicate-bind): resume.reparse.updateStatus → "owner_user_id=$2"
+PASS  required-predicate witness: resume.reparse.updateStatus → "owner_user_id=$2"
+PASS  ctx present: apps/api/src/modules/resume/resume.service.ts :: resume.ocrConfirm.dedupe
+PASS  required-predicate witness (predicate-bind): resume.ocrConfirm.dedupe → "r.owner_user_id=$2"
+PASS  required-predicate witness: resume.ocrConfirm.dedupe → "r.owner_user_id=$2"
+PASS  wired file has tenant consumption: apps/api/src/modules/quiz/quiz.service.ts (exact count=9)
+PASS  ctx present: apps/api/src/modules/quiz/quiz.service.ts :: quiz.create
+PASS  ctx present: apps/api/src/modules/quiz/quiz.service.ts :: quiz.begin
+PASS  E5 fail-closed witness: quiz.begin → "not_found_or_forbidden"
+PASS  ctx present: apps/api/src/modules/quiz/quiz.service.ts :: quiz.begin.existingJob
+PASS  required-predicate witness (predicate-bind): quiz.begin.existingJob → "owner_user_id=$1"
+PASS  required-predicate witness: quiz.begin.existingJob → "owner_user_id=$1"
+PASS  ctx present: apps/api/src/modules/quiz/quiz.service.ts :: quiz.begin.resume
+PASS  required-predicate witness (predicate-bind): quiz.begin.resume → "owner_user_id=$2"
+PASS  required-predicate witness: quiz.begin.resume → "owner_user_id=$2"
+PASS  ctx present: apps/api/src/modules/quiz/quiz.service.ts :: quiz.begin.bind
+PASS  required-predicate witness (predicate-bind): quiz.begin.bind → "owner_user_id=$2"
+PASS  required-predicate witness: quiz.begin.bind → "owner_user_id=$2"
+PASS  ctx present: apps/api/src/modules/quiz/quiz.service.ts :: quiz.abandon
+PASS  E5 fail-closed witness: quiz.abandon → "not_found_or_forbidden"
+PASS  ctx present: apps/api/src/modules/quiz/quiz.service.ts :: quiz.abandon.cas
+PASS  required-predicate witness (predicate-bind): quiz.abandon.cas → "owner_user_id=$2"
+PASS  required-predicate witness: quiz.abandon.cas → "owner_user_id=$2"
+PASS  wired file has tenant consumption: apps/api/src/modules/diagnosis/diagnosis.service.ts (exact count=9)
+PASS  ctx present: apps/api/src/modules/diagnosis/diagnosis.service.ts :: diagnosis.create
+PASS  ctx present: apps/api/src/modules/diagnosis/diagnosis.service.ts :: diagnosis.begin
+PASS  E5 fail-closed witness: diagnosis.begin → "not_found_or_forbidden"
+PASS  ctx present: apps/api/src/modules/diagnosis/diagnosis.service.ts :: diagnosis.begin.existingJob
+PASS  required-predicate witness (predicate-bind): diagnosis.begin.existingJob → "owner_user_id=$1"
+PASS  required-predicate witness: diagnosis.begin.existingJob → "owner_user_id=$1"
+PASS  ctx present: apps/api/src/modules/diagnosis/diagnosis.service.ts :: diagnosis.begin.resume
+PASS  required-predicate witness (predicate-bind): diagnosis.begin.resume → "owner_user_id=$2"
+PASS  required-predicate witness: diagnosis.begin.resume → "owner_user_id=$2"
+PASS  ctx present: apps/api/src/modules/diagnosis/diagnosis.service.ts :: diagnosis.begin.bind
+PASS  required-predicate witness (predicate-bind): diagnosis.begin.bind → "owner_user_id=$2"
+PASS  required-predicate witness: diagnosis.begin.bind → "owner_user_id=$2"
+PASS  ctx present: apps/api/src/modules/diagnosis/diagnosis.service.ts :: diagnosis.abandon
+PASS  E5 fail-closed witness: diagnosis.abandon → "not_found_or_forbidden"
+PASS  ctx present: apps/api/src/modules/diagnosis/diagnosis.service.ts :: diagnosis.abandon.cas
+PASS  required-predicate witness (predicate-bind): diagnosis.abandon.cas → "owner_user_id=$2"
+PASS  required-predicate witness: diagnosis.abandon.cas → "owner_user_id=$2"
+PASS  wired file has tenant consumption: apps/api/src/modules/profile/profile.service.ts (exact count=6)
+PASS  ctx present: apps/api/src/modules/profile/profile.service.ts :: profile.overview
+PASS  E5 whitelist (legal empty set): profile.overview
+PASS  ctx present: apps/api/src/modules/profile/profile.service.ts :: profile.overview.answered
+PASS  E5 whitelist (legal empty set): profile.overview.answered
+PASS  required-predicate witness: profile.overview.answered → "iq.owner_user_id=$1"
+PASS  ctx present: apps/api/src/modules/profile/profile.service.ts :: profile.growth
+PASS  E5 whitelist (legal empty set): profile.growth
+PASS  ctx present: apps/api/src/modules/profile/profile.service.ts :: profile.growth.reports
+PASS  E5 whitelist (legal empty set): profile.growth.reports
+PASS  required-predicate witness: profile.growth.reports → "owner_user_id=$1"
+PASS  wired file has tenant consumption: apps/api/src/modules/notification/notification.service.ts (exact count=5)
+PASS  ctx present: apps/api/src/modules/notification/notification.service.ts :: notification.list
+PASS  E5 whitelist (legal empty set): notification.list
+PASS  ctx present: apps/api/src/modules/notification/notification.service.ts :: notification.unread
+PASS  E5 whitelist (legal empty set): notification.unread
+PASS  ctx present: apps/api/src/modules/notification/notification.service.ts :: notification.readAll
+PASS  E5 whitelist (legal empty set): notification.readAll
+PASS  ctx present: apps/api/src/modules/notification/notification.service.ts :: notification.read
+PASS  E5 fail-closed witness: notification.read → "error: 'not_found'"
+PASS  wired file has tenant consumption: apps/api/src/modules/jobs/applications.service.ts (exact count=5)
+PASS  ctx present: apps/api/src/modules/jobs/applications.service.ts :: applications.mine
+PASS  E5 whitelist (legal empty set): applications.mine
+PASS  ctx present: apps/api/src/modules/jobs/applications.service.ts :: applications.start
+PASS  E5 fail-closed witness: applications.start → "cannot_finalize"
+PASS  ctx present: apps/api/src/modules/jobs/applications.service.ts :: applications.decline
+PASS  E5 fail-closed witness: applications.decline → "'noop'"
+PASS  ctx present: apps/api/src/modules/jobs/applications.service.ts :: applications.finalize
+PASS  E5 fail-closed witness: applications.finalize → "cannot_finalize"
+PASS  wired file has tenant consumption: apps/api/src/modules/commerce/commerce.service.ts (exact count=3)
+PASS  ctx present: apps/api/src/modules/commerce/commerce.service.ts :: commerce.payWebhook.owner
+PASS  E5 fail-closed witness: commerce.payWebhook.owner → "order_not_found"
+PASS  ctx present: apps/api/src/modules/commerce/commerce.service.ts :: commerce.refundWebhook.owner
+PASS  E5 fail-closed witness: commerce.refundWebhook.owner → "order_not_found"
+PASS  wired file has tenant consumption: packages/db/src/notification.ts (exact count=6)
+PASS  ctx present: packages/db/src/notification.ts :: notification.list
+PASS  E5 whitelist (legal empty set): notification.list
+PASS  required-predicate witness: notification.list → "WHERE owner_user_id=$2"
+PASS  ctx present: packages/db/src/notification.ts :: notification.read
+PASS  E5 fail-closed witness: notification.read → "r.rowCount === 1"
+PASS  required-predicate witness: notification.read → "AND owner_user_id=$2"
+PASS  ctx present: packages/db/src/notification.ts :: notification.unread
+PASS  E5 whitelist (legal empty set): notification.unread
+PASS  required-predicate witness: notification.unread → "AND owner_user_id=$1"
+PASS  ctx present: packages/db/src/notification.ts :: notification.readAll
+PASS  E5 whitelist (legal empty set): notification.readAll
+PASS  required-predicate witness: notification.readAll → "AND owner_user_id=$1"
+PASS  wired file has tenant consumption: packages/db/src/recruiter.ts (exact count=9)
+PASS  ctx present: packages/db/src/recruiter.ts :: recruiter.applyToJob
+PASS  E5 fail-closed witness: recruiter.applyToJob → "return null"
+PASS  ctx present: packages/db/src/recruiter.ts :: recruiter.listMyApplications
+PASS  E5 whitelist (legal empty set): recruiter.listMyApplications
+PASS  required-predicate witness: recruiter.listMyApplications → "a.candidate_user_id=$1"
+PASS  ctx present: packages/db/src/recruiter.ts :: recruiter.finalizeApplication
+PASS  E5 fail-closed witness: recruiter.finalizeApplication → "'not_ready'"
+PASS  ctx present: packages/db/src/recruiter.ts :: recruiter.markApplicationAssessmentUnavailable
+PASS  E5 fail-closed witness: recruiter.markApplicationAssessmentUnavailable → "'stale'"
+PASS  ctx present: packages/db/src/recruiter.ts :: recruiter.markApplicationNoEligibleScore
+PASS  E5 fail-closed witness: recruiter.markApplicationNoEligibleScore → "'stale'"
+PASS  ctx present: packages/db/src/recruiter.ts :: recruiter.startApplicationInterview
+PASS  E5 fail-closed witness: recruiter.startApplicationInterview → "status: 'noop'"
+PASS  ctx present: packages/db/src/recruiter.ts :: recruiter.declineInvitation
+PASS  E5 fail-closed witness: recruiter.declineInvitation → "(r.rowCount ?? 0) > 0"
+PASS  wired file has tenant consumption: packages/db/src/candidate-route.ts (exact count=3)
+PASS  ctx present: packages/db/src/candidate-route.ts :: candidate-route.supply
+PASS  E5 fail-closed witness: candidate-route.supply → "profile_unavailable"
+PASS  E5 coverage: single-id fail-closed paths checked — singleId=28
+PASS  E5 coverage: list endpoints classified legal-empty — list=16
+PASS  E2 coverage: explicit owner predicates bound in statement shape — predicates=39
+PASS  E4: asPrincipal + set_config intact (authorization root untouched by wiring)
+
+✓ tenant-wiring E5 (application-layer half) proof passed (EXIT=0)

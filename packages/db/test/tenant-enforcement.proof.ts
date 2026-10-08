@@ -16,18 +16,22 @@
  *   - E4 static pins: 0001_baseline.sql FORCE RLS header + app_role NOLOGIN (无
  *     BYPASSRLS) + p_owner USING/WITH CHECK double-sided predicate + vector_chunk;
  *     provisionRuntimeLogin NOINHERIT/NOBYPASSRLS.
- *   - Wiring-face machine-check (production wiring of src/tenant must stay 0
- *     until the wiring PR):
- *       face A — literal 'src/tenant' string references in production src: 0;
- *       face B — tenant module/symbol references outside pure re-export: 0.
- *     R1: the packages/db/src/index.ts barrel re-export (lines 25-32 at
- *     fe218b7a) is REGISTERED and classified re-export ≠ consumption (anti
- *     false-red / anti silent-narrowing; its existence is asserted).
- *   - R2: E5 application-layer half (own-id unexpected-empty-set fail-closed
- *     rethrow) is NOT proven here — its prove belongs to the wiring PR. The
- *     E5 DB-layer half (GUC unset → 0 rows default deny) belongs to the RLS
- *     isolation prove (PRIV01-A candidate A, awaiting its own authorization).
- *     This proof claims neither half of E5.
+ * PRIV01-C EXEC flip (2026-10-08 · authorized EXEC · R1 flipped — tightening, not relaxing):
+ *   - Wiring-face machine-check FLIPPED from "wiring must stay 0" to
+ *     "wiring == manifest" (file envelope + EXACT per-file counts, no lower
+ *     bounds): face A stays 0 as the zero-deep-path-literal-import discipline
+ *     (wiring imports go through the @meetwise/db barrel or db-relative
+ *     './tenant/index.ts' — a literal 'src/tenant' path is still banned);
+ *     face B consumption must be > 0 and EXACTLY equal the wired-file manifest
+ *     (file set and per-file counts both asserted — anti silent-narrowing);
+ *     barrel re-export statements stay exactly 2 (re-export ≠ consumption).
+ *     The flip itself is double-reviewed verbatim (post-prove dual).
+ *   - R2: the E5 application-layer half (own-id unexpected-empty-set fail-closed
+ *     rethrow) is now proven against the wiring manifest by the sibling proofs
+ *     tenant-wiring-e5.proof.ts (P2 static contract) and tenant-wiring-neg.proof.ts
+ *     (P3 live cross-owner NEG). The E5 DB-layer half (GUC unset → 0 rows default
+ *     deny) still belongs to the RLS isolation prove (PRIV01-A candidate A).
+ *     No half may be read as "E5 fully proven" by the other.
  *
  * releaseEvidence=false · Not HA · does not weaken RLS.
  */
@@ -171,14 +175,25 @@ if (existsSync(baselinePath)) {
     && /CREATE POLICY p_owner ON vector_chunk/.test(baseline));
 }
 
-// --- wiring-face machine-check: production wiring of src/tenant must be 0 ---
-// R1: grep face pinned — face A = literal 'src/tenant' string in production
-// src (zero allowed); face B = tenant module/symbol references outside pure
-// re-export statements (zero allowed). The packages/db/src/index.ts barrel
-// re-export (:25-32 at fe218b7a) is REGISTERED and classified re-export ≠
-// consumption (anti false-red / anti silent-narrowing; existence asserted).
-// R2: E5 app-layer half not claimed here — prove belongs to the wiring PR.
+// --- wiring-face machine-check: production wiring == wiring manifest (R1 flipped) ---
+// PRIV01-C EXEC flip (tightening, not relaxing):
+//   face A = literal 'src/tenant' string in production src must stay 0 — now the
+//   ZERO-DEEP-PATH-LITERAL-IMPORT discipline (wiring goes through the
+//   @meetwise/db barrel or db-relative './tenant/index.ts'; a deep 'src/tenant'
+//   path literal is still banned). Semantics flipped from "zero wiring = green";
+//   narrated verbatim for the post-prove dual review.
+//   face B = tenant module/symbol consumption must be > 0 and EXACTLY equal the
+//   wired-file manifest: file SET equality AND exact per-file count equality
+//   (file = envelope unit; no lower bounds; anti silent-narrowing in both
+//   directions — an unwired file consuming helpers, or a wired file losing a
+//   touchpoint, both fail).
+//   R1: barrel re-export statement count stays exactly 2 (re-export ≠
+//   consumption classification unchanged; existence asserted).
+//   R2: E5 application-layer half is proven by tenant-wiring-e5.proof.ts (P2)
+//   and tenant-wiring-neg.proof.ts (P3) against the same manifest; the DB-layer
+//   half remains PRIV01-A candidate A. Neither half alone is "E5 fully proven".
 {
+  const { WIRED_FILES } = await import('./tenant-wiring.manifest.ts');
   const symbolRe = /\b(requireOwnerUserId|assertTenantPredicate|buildRequiredOwnerFilter|enforceOwnerOnRow|TenantEnforcementError)\b/g;
   const specRe = /(?:\bfrom\s+|\bimport\s*\(\s*|\brequire\s*\(\s*)['"]([^'"]*)['"]/g;
   const reexportRe = /export\s+(?:type\s+)?\{[^{}]*\}\s*from\s*['"][^'"]*['"]/gs;
@@ -218,6 +233,7 @@ if (existsSync(baselinePath)) {
   let faceALiteral = 0;
   let faceBConsumption = 0;
   let tenantReexportStmts = 0;
+  const observed = new Map<string, number>();
   for (const f of moduleFiles) {
     const raw = readFileSync(f, 'utf8');
     const text = stripComments(raw);
@@ -231,10 +247,16 @@ if (existsSync(baselinePath)) {
       const spec = m[1] ?? '';
       if (!spec.split('/').includes('tenant')) continue;
       if (inSpan(m.index ?? 0)) tenantReexportStmts++;
-      else faceBConsumption++;
+      else {
+        faceBConsumption++;
+        observed.set(f, (observed.get(f) ?? 0) + 1);
+      }
     }
     for (const m of text.matchAll(symbolRe)) {
-      if (!inSpan(m.index ?? 0)) faceBConsumption++;
+      if (!inSpan(m.index ?? 0)) {
+        faceBConsumption++;
+        observed.set(f, (observed.get(f) ?? 0) + 1);
+      }
     }
   }
   const barrelPath = join(repoRoot, 'packages', 'db', 'src', 'index.ts');
@@ -247,12 +269,22 @@ if (existsSync(baselinePath)) {
     }
     return n;
   })();
-  A('wiring face A: zero literal src/tenant references in production src',
+  // R1 flipped face A: zero deep-path literal imports (discipline — see comment above).
+  A('wiring face A (flipped): zero literal src/tenant deep-path imports in production src',
     faceALiteral === 0,
-    `hits=${faceALiteral} files-scanned=${moduleFiles.length}`);
-  A('wiring face B: zero tenant consumption outside pure re-export (wiring=0)',
-    faceBConsumption === 0,
-    `consumption=${faceBConsumption} reexportStmts=${tenantReexportStmts}`);
+    `hits=${faceALiteral} files-scanned=${moduleFiles.length} (discipline: barrel/@meetwise/db or db-relative './tenant/index.ts' only)`);
+  // R1 flipped face B: consumption > 0 AND exactly == manifest (file set + exact counts).
+  const manifestMap = new Map(WIRED_FILES.map((w) => [join(repoRoot, w.file), w.count]));
+  const extraFiles = [...observed.keys()].filter((f) => !manifestMap.has(f));
+  const missingFiles = [...manifestMap.keys()].filter((f) => !observed.has(f));
+  const countMismatches = [...manifestMap.entries()]
+    .filter(([f, c]) => observed.has(f) && observed.get(f) !== c)
+    .map(([f, c]) => `${f}:manifest=${c}:observed=${observed.get(f)}`);
+  A('wiring face B (flipped): consumption > 0 and EXACTLY equals wiring manifest (file envelope + exact per-file counts)',
+    faceBConsumption > 0 && extraFiles.length === 0 && missingFiles.length === 0 && countMismatches.length === 0,
+    `consumption=${faceBConsumption} manifestTotal=${WIRED_FILES.reduce((s, w) => s + w.count, 0)} `
+    + `files=${observed.size}/${manifestMap.size} extra=[${extraFiles.join(',')}] missing=[${missingFiles.join(',')}] `
+    + `mismatch=[${countMismatches.join(';')}]`);
   A('R1: barrel re-export present and classified re-export≠consumption (index.ts :25-32)',
     barrelTenantReexports === 2,
     `barrelTenantReexportStatements=${barrelTenantReexports} expected=2`);

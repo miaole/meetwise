@@ -69,3 +69,11 @@ REQUEST → 预执行双审（mw-privacy-int + mw-e2e-ha）→ meetwise 授权 �
 ---
 
 *Slice · PRIV01-C GAP-PRIV-01 应用层 tenant 强制接线 PR（纵深防御第二层 · RLS 根零触碰 · E5 应用层半边 prove 兑现）· `draft:awaiting_pre_exec_dual` · 2026-10-07 立卷 · backlog `:57` OPEN · DELETE=503 · PG-retained · R1 翻正交双审 · alone ≠ dual · STOP*
+
+## EXEC 登记（浓缩 · 2026-10-08 · 全文见 harness §13 + `receipts/priv01-tenant-wiring/2026-10-08-exec-wiring-and-prove.md`）
+
+- **base**：rebase 落 `5a2994c4` · EXEC HEAD=`566e3b3d` · 上游零 src 漂移。
+- **coding**：manifest 11 文件/精确 81 触点（interview 17 · resume 9 · quiz 9 · diagnosis 9 · profile 6 · notification svc 5 · applications 5 · commerce 3 · notification db 6 · recruiter 9 · candidate-route 3）· α/β 双形态 · 残余面 10 类显式登记（含 interview `:673-931` 16 处 + guard 先例原样）。
+- **prove**：P1 EXIT=0（35/0 · R1 翻正：face A=0 纪律 · face B 81==81 双向精确 · barrel=2）· P2 EXIT=0（163/0 · E5 应用层半边 R2 兑现）· P3 EXIT=0（9 具名红 · 跨 owner fail-closed + 42501 根在位 + 恰一次写尝试）· attempts：P2 1→0（manifest 分类缺陷）· P3 1→0（fixture GRANT 缺陷）——确定性缺陷定性交 post 双审裁。
+- **runner 三道门+命令分支登记**（post-EXEC 锚见收据 §6）· 触面恰授权清单 · 零授权根/隐私链/worker/SSOT/stub/secrets 触碰。
+- **`executed:awaiting_post_prove_dual`** · Ban self-nail · alone ≠ dual · STOP。

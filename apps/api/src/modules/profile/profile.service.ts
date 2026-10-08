@@ -1,5 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { hashPassword, verifyPassword, deriveGrowth, toGrowthRow, signToken } from '@meetwise/domain';
+import { requireOwnerUserId, buildRequiredOwnerFilter } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
 import { evictPrincipalStatus } from '../../platform/principal.guard';
 
@@ -25,7 +26,10 @@ export class ProfileService {
 
   // 个人总览/仪表盘(首屏):面试分布、已答题数、平均分、就绪报告数。全 RLS 限己。
   overview(principal: string) {
-    return this.db.asPrincipal(principal, async (c: any) => {
+    // PRIV01-C 第二层 E1:入口显式 owner(fail-closed tenant_owner_user_id_required)——授权根仍为 RLS。
+    const owner = requireOwnerUserId(principal, 'profile.overview');
+    const ansFilter = buildRequiredOwnerFilter(owner, 'profile.overview.answered');
+    return this.db.asPrincipal(owner, async (c: any) => {
       const iv = await c.query('SELECT status, count(*)::int n FROM interview i WHERE interview_privacy_active(i.id) GROUP BY status');
       // 得分权威 = ScoreCard(确定性总分,仅 practice_eligible/b_review_eligible),legacy answer_evaluated.score 结构性不参与。
       // 全 owner 作用域由 score_card_app_role RLS(FORCE) 兜底,无卡 → avg=null(fail-closed,无数值)。
@@ -33,8 +37,10 @@ export class ProfileService {
       const rp = await c.query("SELECT count(*)::int n FROM ai_report WHERE status='ready'");
       // C 端「已答题数」= 题目账本已答行(与 GET /interview.answered_turns 同一 FILTER),不是 ScoreCard 张数。
       // 无卡时仍应反映已作答;issued/queued/cancelled 不计;隐私围栏场次与列表同一谓词排除。
+      // 第二层 E2:owner 谓词必选显式绑定(原 GUC 直读改参数绑定,RLS 会话内同值)。
       const ans = await c.query(
-        "SELECT count(*)::int n FROM interview_question iq WHERE iq.status='answered' AND iq.owner_user_id=current_setting('app.principal_user', true) AND interview_privacy_active(iq.interview_id)",
+        "SELECT count(*)::int n FROM interview_question iq WHERE iq.status='answered' AND iq.owner_user_id=$1 AND interview_privacy_active(iq.interview_id)",
+        [ansFilter.value],
       );
       return {
         interviewsByStatus: Object.fromEntries(iv.rows.map((r: any) => [r.status, r.n])),
@@ -48,10 +54,14 @@ export class ProfileService {
   // 成长档案/能力曲线(读侧聚合):历次 ready 评估按时间序 → 成长点 + 维度 + 趋势。全 RLS 限己(他人评估永不入)。
   // 聚合是纯函数 deriveGrowth(domain);本层只取数,绝不在响应里带简历原文/作答原文(只 score/维度标签/时间戳)。
   growth(principal: string) {
-    return this.db.asPrincipal(principal, async (c: any) => {
-      // RLS(FORCE)已限己;再显式带 owner_user_id 作纵深防御(双闸,修审计低危项)。
+    // PRIV01-C 第二层 E1+E2:入口显式 owner + 谓词显式绑定(RLS(FORCE) 仍是授权根,双闸纵深防御沿原注释)。
+    const owner = requireOwnerUserId(principal, 'profile.growth');
+    const repFilter = buildRequiredOwnerFilter(owner, 'profile.growth.reports');
+    return this.db.asPrincipal(owner, async (c: any) => {
+      // RLS(FORCE)已限己;再显式带 owner_user_id 作纵深防御(双闸,修审计低危项)——现经 required predicate 绑定。
       const rep = await c.query(
-        "SELECT interview_id, overall, dimensions, created_at FROM assessment_report WHERE owner_user_id=current_setting('app.principal_user', true) AND status='ready' ORDER BY created_at ASC, interview_id ASC");
+        "SELECT interview_id, overall, dimensions, created_at FROM assessment_report WHERE owner_user_id=$1 AND status='ready' ORDER BY created_at ASC, interview_id ASC",
+        [repFilter.value]);
       // answered = 可评分 ScoreCard 数(仅 practice_eligible/b_review_eligible),非 legacy answer_evaluated 事件计数;
       // 无卡 → 0(fail-closed)。成长档案训练量仍以 score_card 为权威;C 端总览已答题数改走题目账本(UC-overview-001)。
       const ans = await c.query("SELECT count(*)::int n FROM score_card WHERE status IN ('practice_eligible','b_review_eligible')");

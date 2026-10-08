@@ -5,6 +5,7 @@
 import type { PoolClient as Client } from 'pg';   // 直引 pg 类型,不从 ./index 桶引(防成环)
 import { createHash, randomUUID } from 'node:crypto';
 import { createJobSemanticRevision, bindApplicationRoute, snapshotInterviewRoute } from './job-route-decision.ts';  // RAG-FUNNEL-03 路由 seam
+import { requireOwnerUserId } from './tenant/index.ts';   // PRIV01-C 第二层 E1(应用层 tenant ≠ RLS · 授权根仍为 asPrincipal+RLS)
 
 async function assertPrincipal(c: Client, owner: string): Promise<void> {
   const r = await c.query("SELECT current_setting('app.principal_user', true) AS p");
@@ -130,7 +131,8 @@ export async function listOpenJobs(c: Client): Promise<JobPosting[]> {
 
 /** 候选人投递岗位。岗位不存在/已关闭→null。重复投递幂等(UNIQUE 冲突复用既有申请 id)。 */
 export async function applyToJob(c: Client, candidate: string, jobId: string): Promise<{ applicationId: string } | null> {
-  await assertPrincipal(c, candidate);
+  const owner = requireOwnerUserId(candidate, 'recruiter.applyToJob');   // PRIV01-C 第二层 E1
+  await assertPrincipal(c, owner);
   const job = await c.query("SELECT owner_user_id, title FROM job_posting WHERE id=$1 AND status='open'", [jobId]);  // 公开读
   if (job.rowCount === 0) return null;
   const recruiter = job.rows[0].owner_user_id as string;
@@ -139,25 +141,26 @@ export async function applyToJob(c: Client, candidate: string, jobId: string): P
     `INSERT INTO job_application(id, job_id, recruiter_user_id, candidate_user_id, status, job_title_snapshot)
      VALUES ($1,$2,$3,$4,'invited',$5)
      ON CONFLICT (job_id, candidate_user_id) DO NOTHING RETURNING id`,
-    [id, jobId, recruiter, candidate, job.rows[0].title],
+    [id, jobId, recruiter, owner, job.rows[0].title],
   );
   const applicationId = ((ins.rowCount ?? 0) > 0)
     ? (ins.rows[0].id as string)
-    : ((await c.query('SELECT id FROM job_application WHERE job_id=$1 AND candidate_user_id=$2', [jobId, candidate])).rows[0].id as string);  // 幂等复用
+    : ((await c.query('SELECT id FROM job_application WHERE job_id=$1 AND candidate_user_id=$2', [jobId, owner])).rows[0].id as string);  // 幂等复用
   // RAG-FUNNEL-03：申请事务绑定最新 route_decided 版本（未决岗位不绑定 → start 拒启 interview_ineligible_route）。
-  await bindApplicationRoute(c, { candidateUserId: candidate, recruiterUserId: recruiter, jobId, applicationId, emitConsumptionEvent: true });
+  await bindApplicationRoute(c, { candidateUserId: owner, recruiterUserId: recruiter, jobId, applicationId, emitConsumptionEvent: true });
   return { applicationId };
 }
 
 /** 候选人查自己的申请(RLS p_party_read:候选人侧)。带 source 让候选人 UI 区分"受邀/主动投递"并给出动作出口。 */
 export async function listMyApplications(c: Client, candidate: string): Promise<Array<Pick<JobApplication, 'id' | 'job_id' | 'interview_id' | 'resume_id' | 'status' | 'score' | 'source'> & { job_title: string }>> {
-  await assertPrincipal(c, candidate);
+  const owner = requireOwnerUserId(candidate, 'recruiter.listMyApplications');   // PRIV01-C 第二层 E1
+  await assertPrincipal(c, owner);
   const r = await c.query(`
     SELECT a.id, a.job_id, a.job_title_snapshot AS job_title,
       a.interview_id, a.resume_id, a.status, a.score, a.source
     FROM job_application a
     WHERE a.candidate_user_id=$1
-    ORDER BY a.created_at DESC`, [candidate]);
+    ORDER BY a.created_at DESC`, [owner]);
   return r.rows as Array<Pick<JobApplication, 'id' | 'job_id' | 'interview_id' | 'resume_id' | 'status' | 'score' | 'source'> & { job_title: string }>;
 }
 
@@ -180,7 +183,8 @@ export type FinalizeApplicationResult = 'replayed' | 'assessment_unavailable' | 
  * scoreless 的 assessment_unavailable；本函数只是浏览器断线重试的幂等后备。
  */
 export async function finalizeApplication(c: Client, candidate: string, appId: string): Promise<FinalizeApplicationResult> {
-  await assertPrincipal(c, candidate);
+  const owner = requireOwnerUserId(candidate, 'recruiter.finalizeApplication');   // PRIV01-C 第二层 E1
+  await assertPrincipal(c, owner);
   const bound = await c.query(
     `SELECT ja.status AS application_status, ja.interview_id, i.status AS interview_status
        FROM job_application ja
@@ -192,9 +196,9 @@ export async function finalizeApplication(c: Client, candidate: string, appId: s
                       AND i.owner_user_id=ja.candidate_user_id
       WHERE ja.id=$1 AND ja.candidate_user_id=$2
       FOR UPDATE OF ja`,
-    [appId, candidate],
+    [appId, owner],
   );
-  if (bound.rowCount === 0) return 'not_ready';
+  if (bound.rowCount === 0) return 'not_ready';   // E5:单 id 0 行 → not_ready → 服务层 409 fail-closed
   const row = bound.rows[0];
   if (row.application_status === 'completed') return 'replayed'; // pre-hold historical state; never exposes its score to B.
   if (row.application_status === 'assessment_unavailable') return 'assessment_unavailable';
@@ -202,7 +206,7 @@ export async function finalizeApplication(c: Client, candidate: string, appId: s
   const applied = await c.query(
     `UPDATE job_application SET score=NULL,status='assessment_unavailable',version=version+1
       WHERE id=$1 AND candidate_user_id=$2 AND status='in_progress'`,
-    [appId, candidate],
+    [appId, owner],
   );
   return applied.rowCount === 1 ? 'assessment_unavailable' : 'not_ready';
 }
@@ -220,7 +224,8 @@ export async function finalizeApplication(c: Client, candidate: string, appId: s
 export type AssessmentUnavailableMark = 'updated' | 'replayed' | 'stale' | 'unbound';
 
 export async function markApplicationAssessmentUnavailable(c: Client, candidate: string, interviewId: string): Promise<AssessmentUnavailableMark> {
-  await assertPrincipal(c, candidate);
+  const owner = requireOwnerUserId(candidate, 'recruiter.markApplicationAssessmentUnavailable');   // PRIV01-C 第二层 E1
+  await assertPrincipal(c, owner);
   const r = await c.query(
     `UPDATE job_application ja
         SET status='assessment_unavailable', score=NULL, version=ja.version+1
@@ -233,7 +238,7 @@ export async function markApplicationAssessmentUnavailable(c: Client, candidate:
         AND i.owner_user_id=ja.candidate_user_id
         AND i.status='failed'
         AND ja.status='in_progress'`,
-    [candidate, interviewId],
+    [owner, interviewId],
   );
   if (r.rowCount === 1) return 'updated';
   const binding = await c.query<{ application_id: string | null; application_status: string | null; current_interview_id: string | null; current_attempt: number | null }>(
@@ -244,7 +249,7 @@ export async function markApplicationAssessmentUnavailable(c: Client, candidate:
        FROM interview i
        LEFT JOIN job_application ja ON ja.id=i.application_id
       WHERE i.id=$1 AND i.owner_user_id=$2`,
-    [interviewId, candidate],
+    [interviewId, owner],
   );
   const row = binding.rows[0];
   if (!row?.application_id || !row.current_interview_id) return 'unbound';
@@ -263,7 +268,8 @@ export async function markApplicationAssessmentUnavailable(c: Client, candidate:
  * older completion flows and deliberately ignores unbound legacy events.
  */
 export async function markApplicationNoEligibleScore(c: Client, candidate: string, interviewId: string): Promise<AssessmentUnavailableMark> {
-  await assertPrincipal(c, candidate);
+  const owner = requireOwnerUserId(candidate, 'recruiter.markApplicationNoEligibleScore');   // PRIV01-C 第二层 E1
+  await assertPrincipal(c, owner);
   const r = await c.query(
     `UPDATE job_application ja
         SET status='assessment_unavailable', score=NULL, version=ja.version+1
@@ -296,7 +302,7 @@ export async function markApplicationNoEligibleScore(c: Client, candidate: strin
                              AND q.competency=e.payload->>'competency'
                              AND q.status='answered')
         )`,
-    [candidate, interviewId],
+    [owner, interviewId],
   );
   if (r.rowCount === 1) return 'updated';
   const binding = await c.query<{ application_id: string | null; application_status: string | null; current_interview_id: string | null }>(
@@ -306,7 +312,7 @@ export async function markApplicationNoEligibleScore(c: Client, candidate: strin
        FROM interview i
        LEFT JOIN job_application ja ON ja.id=i.application_id
       WHERE i.id=$1 AND i.owner_user_id=$2`,
-    [interviewId, candidate],
+    [interviewId, owner],
   );
   const row = binding.rows[0];
   if (!row?.application_id || !row.current_interview_id) return 'unbound';
@@ -352,13 +358,14 @@ export type StartApplicationResult =
  * partial unique indexes 是进程崩溃/未来调用方绕开本函数时的第二道一对一防线。
  */
 export async function startApplicationInterview(c: Client, candidate: string, appId: string, resumeId: string): Promise<StartApplicationResult> {
-  await assertPrincipal(c, candidate);
+  const owner = requireOwnerUserId(candidate, 'recruiter.startApplicationInterview');   // PRIV01-C 第二层 E1
+  await assertPrincipal(c, owner);
   const app = await c.query(
     `SELECT id,job_id,recruiter_user_id,job_title_snapshot,status,interview_id,resume_id,interview_attempt
        FROM job_application WHERE id=$1 AND candidate_user_id=$2 FOR UPDATE`,
-    [appId, candidate],
+    [appId, owner],
   );
-  if (app.rowCount === 0) return { status: 'noop' }; // 不区分不存在/越权
+  if (app.rowCount === 0) return { status: 'noop' }; // 不区分不存在/越权(E5:单 id 0 行 fail-closed → 服务层 409 映射)
   const row = app.rows[0] as { id: string; job_id: string; recruiter_user_id: string; job_title_snapshot: string; status: string; interview_id: string | null; resume_id: string | null; interview_attempt: number };
   if (row.status === 'completed' || row.status === 'declined') return { status: 'noop' };
 
@@ -372,7 +379,7 @@ export async function startApplicationInterview(c: Client, candidate: string, ap
           AND r.status='ingested'
           AND r.privacy_epoch=i.resume_privacy_epoch
           AND i.status IN ('created','active')`,
-      [row.interview_id, candidate, row.id, row.interview_attempt, row.job_id, row.resume_id],
+      [row.interview_id, owner, row.id, row.interview_attempt, row.job_id, row.resume_id],
     );
     if (bound.rowCount !== 1 || !row.resume_id) return { status: 'binding_invalid' };
     return { status: 'reused', interviewId: row.interview_id, resumeId: row.resume_id };
@@ -387,7 +394,7 @@ export async function startApplicationInterview(c: Client, candidate: string, ap
 
   const resume = await c.query(
     "SELECT id,privacy_epoch FROM resume WHERE id=$1 AND owner_user_id=$2 AND status='ingested' FOR KEY SHARE",
-    [resumeId, candidate],
+    [resumeId, owner],
   );
   if (resume.rowCount !== 1) return { status: 'resume_not_ready' };
 
@@ -397,7 +404,7 @@ export async function startApplicationInterview(c: Client, candidate: string, ap
   // 可测等价 unresolved_route_start_count=0：未决路径绝不返回 started。
   // 已绑定旧 revision 的面试在岗位后续编辑后仍读旧 snapshot，不受影响。
   await bindApplicationRoute(c, {
-    candidateUserId: candidate,
+    candidateUserId: owner,
     recruiterUserId: row.recruiter_user_id,
     jobId: row.job_id,
     applicationId: row.id,
@@ -405,7 +412,7 @@ export async function startApplicationInterview(c: Client, candidate: string, ap
   });
   const binding = await c.query(
     `SELECT 1 FROM application_route_binding WHERE application_id=$1 AND candidate_user_id=$2`,
-    [row.id, candidate],
+    [row.id, owner],
   );
   if ((binding.rowCount ?? 0) === 0) return { status: 'interview_ineligible_route' };
 
@@ -414,7 +421,7 @@ export async function startApplicationInterview(c: Client, candidate: string, ap
   await c.query(
     `INSERT INTO interview(id,owner_user_id,status,application_id,application_attempt,job_id,job_title_snapshot,resume_id,resume_privacy_epoch)
      VALUES($1,$2,'created',$3,$4,$5,$6,$7,$8)`,
-    [interviewId, candidate, row.id, nextAttempt, row.job_id, row.job_title_snapshot, resumeId, Number(resume.rows[0].privacy_epoch)],
+    [interviewId, owner, row.id, nextAttempt, row.job_id, row.job_title_snapshot, resumeId, Number(resume.rows[0].privacy_epoch)],
   );
   const updated = await c.query(
     `UPDATE job_application
@@ -422,10 +429,10 @@ export async function startApplicationInterview(c: Client, candidate: string, ap
       WHERE id=$1 AND candidate_user_id=$2
         AND status IN ('invited','assessment_unavailable')
         AND interview_attempt=$6`,
-    [row.id, candidate, interviewId, nextAttempt, resumeId, row.interview_attempt],
+    [row.id, owner, interviewId, nextAttempt, resumeId, row.interview_attempt],
   );
   if (updated.rowCount !== 1) throw Object.assign(new Error('application_start_conflict'), { code: 'application_start_conflict' });
-  const snap = await snapshotInterviewRoute(c, candidate, interviewId, row.id);
+  const snap = await snapshotInterviewRoute(c, owner, interviewId, row.id);
   if (snap.status === 'no_binding') {
     // Belt-and-suspenders：中途丢 binding → 抛错让 asPrincipal 回滚，避免无 snapshot 启动。
     throw Object.assign(new Error('interview_ineligible_route'), { code: 'interview_ineligible_route' });
@@ -435,12 +442,13 @@ export async function startApplicationInterview(c: Client, candidate: string, ap
 
 /** 候选人婉拒邀请:状态机 CAS invited → declined(终态,不死胡同)。已开始/已完成→落败=0 行。 */
 export async function declineInvitation(c: Client, candidate: string, appId: string): Promise<boolean> {
-  await assertPrincipal(c, candidate);
+  const owner = requireOwnerUserId(candidate, 'recruiter.declineInvitation');   // PRIV01-C 第二层 E1
+  await assertPrincipal(c, owner);
   const r = await c.query(
     "UPDATE job_application SET status='declined', version=version+1 WHERE id=$1 AND candidate_user_id=$2 AND status='invited'",
-    [appId, candidate],
+    [appId, owner],
   );
-  return (r.rowCount ?? 0) > 0;
+  return (r.rowCount ?? 0) > 0;   // E5:单 id 写 0 行 → false → 服务层 noop(非 invited 终态)或 404(fail-closed)
 }
 
 export interface TalentQuery { status?: string; order?: 'asc' | 'desc' }

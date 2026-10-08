@@ -33,6 +33,8 @@
     "prove:runtime-role": "tsx test/runtime-role.proof.ts",
     "prove:principal-config": "tsx test/principal-config.proof.ts",
     "tenant-enforcement:prove": "tsx test/tenant-enforcement.proof.ts",
+    "prove:tenant-wiring-e5": "tsx test/tenant-wiring-e5.proof.ts",
+    "prove:tenant-wiring-neg": "tsx test/tenant-wiring-neg.proof.ts",
     "prove:isolated-target": "tsx test/isolated-test-target.proof.ts",
     "prove:privacy-authorization": "tsx test/privacy-authorization.proof.ts",
     "prove:uc052-internal-erasure": "tsx test/uc052-internal-erasure.proof.ts",

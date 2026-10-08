@@ -21,6 +21,7 @@ import {
   CANDIDATE_ROUTE_TAXONOMY_VERSION, CANDIDATE_ROUTE_POLICY_VERSION, CANDIDATE_ROUTE_REVISION,
   canonicalCandidateProfileDigest, candidateRouteDecisionHash, classifyCandidateProfileByRule,
 } from '@meetwise/domain';
+import { requireOwnerUserId } from './tenant/index.ts';   // PRIV01-C 第二层 E1(应用层 tenant ≠ RLS · 授权根仍为 asPrincipal+RLS)
 import { decryptResumeBlob } from './resume.ts';
 import { getInterviewRouteSnapshot, type InterviewRouteSnapshotView } from './job-route-decision.ts';
 
@@ -34,27 +35,29 @@ export type CandidateProfileRouteSupply =
  * 派生输入 = 简历解密原文（owner-scoped；零外发零模型）；输出只有 leaf + sha256 digest。
  */
 export async function supplyCandidateProfileRoute(c: Client, owner: string, interviewId: string, resumeId: string): Promise<CandidateProfileRouteSupply> {
+  const ownerScope = requireOwnerUserId(owner, 'candidate-route.supply');   // PRIV01-C 第二层 E1(两席一致裁定纳入 · 候选 owner 归属读写平面)
   // 幂等回读：本 interview 已供给 → 复用（重复 begin / 崩溃后重放不会产生第二份决策）。
   const existing = await c.query(
     `SELECT decision_id, leaf_track_id
        FROM candidate_profile_route_snapshot
       WHERE interview_id=$1 AND candidate_user_id=$2`,
-    [interviewId, owner],
+    [interviewId, ownerScope],
   );
   if (existing.rowCount !== 0) {
     const row = existing.rows[0] as { decision_id: string; leaf_track_id: string };
     return { status: 'supplied', decisionId: row.decision_id, leafTrackId: row.leaf_track_id, reused: true };
   }
   // 简历必须处于 ingested（与 begin 的绑定守卫同一前提）；原文经 owner-scoped 解密取回。
+  // E5:自身 id 意外 0 行 → undecided → 服务层 409 candidate_route_undecided fail-closed。
   const resume = await c.query(
     `SELECT content_sha FROM resume WHERE id=$1 AND owner_user_id=$2 AND status='ingested'`,
-    [resumeId, owner],
+    [resumeId, ownerScope],
   );
   if (resume.rowCount === 0) return { status: 'undecided', reason: 'profile_unavailable' };
   const resumeContentSha = String((resume.rows[0] as { content_sha: string }).content_sha);
   let raw: string;
   try {
-    raw = await decryptResumeBlob(c, owner, resumeId);
+    raw = await decryptResumeBlob(c, ownerScope, resumeId);
   } catch {
     return { status: 'undecided', reason: 'profile_unavailable' };
   }
@@ -75,7 +78,7 @@ export async function supplyCandidateProfileRoute(c: Client, owner: string, inte
      VALUES($1,$2,$3,$4,$5,$6,$7,$8,'route_decided','rule_decided',$9,$10,$11)
      ON CONFLICT (interview_id) DO NOTHING
      RETURNING id`,
-    [decisionId, interviewId, owner, resumeId, resumeContentSha, inputDigest,
+    [decisionId, interviewId, ownerScope, resumeId, resumeContentSha, inputDigest,
       CANDIDATE_ROUTE_TAXONOMY_VERSION, CANDIDATE_ROUTE_POLICY_VERSION,
       rule.leafTrackId, rule.allocationBps, decisionHash],
   );
@@ -84,7 +87,7 @@ export async function supplyCandidateProfileRoute(c: Client, owner: string, inte
   if ((ins.rowCount ?? 0) === 0) {
     const dec = await c.query(
       `SELECT id FROM candidate_profile_route_decision WHERE interview_id=$1 AND owner_user_id=$2`,
-      [interviewId, owner],
+      [interviewId, ownerScope],
     );
     if (dec.rowCount === 0) return { status: 'undecided', reason: 'profile_unavailable' };
     finalDecisionId = String((dec.rows[0] as { id: string }).id);
@@ -95,7 +98,7 @@ export async function supplyCandidateProfileRoute(c: Client, owner: string, inte
         taxonomy_version,leaf_track_id,allocation_bps,status)
      VALUES($1,$2,$3,$4,$5,$6,$7,$8,'interview_snapshotted')
      ON CONFLICT (interview_id) DO NOTHING`,
-    [interviewId, owner, finalDecisionId, resumeContentSha, inputDigest,
+    [interviewId, ownerScope, finalDecisionId, resumeContentSha, inputDigest,
       CANDIDATE_ROUTE_TAXONOMY_VERSION, rule.leafTrackId, rule.allocationBps],
   );
   return { status: 'supplied', decisionId: finalDecisionId, leafTrackId: rule.leafTrackId, reused: false };
