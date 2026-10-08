@@ -1,6 +1,8 @@
-# Harness — **PRIV01-B · 应用层 tenant M2 等价强制（设计 + prove 方案）**（GAP-PRIV-01 后继刀 · 设计+prove 面 · 接线 PR 另审另刀 · backlog `:57` OPEN · DELETE=503 · PG-retained · **`executed:awaiting_post_prove_dual`**）
+# Harness — **PRIV01-B · 应用层 tenant M2 等价强制（设计 + prove 方案）**（GAP-PRIV-01 后继刀 · 设计+prove 面 · 接线 PR 另审另刀 · backlog `:57` OPEN · DELETE=503 · PG-retained · **`post_prove_dual_pass`**）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC lifecycle 推进落盘 2026-10-08 Asia/Shanghai · PRE-EXEC dual BOTH PASS：mw-privacy-int 全项 PASS + mw-e2e-ha 全项 PASS · meetwise 协调方 §3⑤ standing authorize 授权 EXEC · P-A 裁定 + 断言措辞定稿（§4.1.1 · R1/R2/O1 落卷 · R3 条件性不触发）+ 设计面 prove `pnpm --filter @meetwise/db tenant-enforcement:prove` **EXIT=0（35 PASS / 0 FAIL）** · attempts 1,0 全录（attempt1 EXIT=1 确定性 fixture 字串缺陷诚实保留 · 沿 PRIV4 先例 · 交 post 双审裁，详见 §11 + receipts）· **零 `src/` 产品码 · ADR 门 cite-only 零执行零 receipt · Ban self-write `post_prove_dual_pass`** · 公开 DELETE=503 · `:57` OPEN · UC-052 partial · alone ≠ dual · Ban nail until POST BOTH + meetwise AUTHORIZE）
+**Status**: **`post_prove_dual_pass`**（nail lifecycle 推进落盘 2026-10-08 Asia/Shanghai · post-prove 双审 BOTH PASS：mw-privacy-int PASS（裁决 attempts 1,0 **可采** · attempt2 EXIT=0 为 EXEC 终态）+ mw-e2e-ha PASS（独立复跑 EXIT=0 35/0 逐值一致 · 可采确认 · **E-1 勘误处方确认**）· meetwise 协调方正式授权 nail · **E-1 勘误已落**（attempt1 台账计数三处统一 33/1→**34/1** · `.exit`/log 原样零改 · 详见 §12）· **Ban self-write 条款由本授权满足**（非 implementer 自写）· 接线 PR 另审另刀 · 公开 DELETE=503 · `:57` OPEN · UC-052 partial · alone ≠ dual）
+
+> **Exec-era status（historical · retained）**: **`executed:awaiting_post_prove_dual`**（EXEC lifecycle 推进落盘 2026-10-08 Asia/Shanghai · PRE-EXEC dual BOTH PASS：mw-privacy-int 全项 PASS + mw-e2e-ha 全项 PASS · meetwise 协调方 §3⑤ standing authorize 授权 EXEC · P-A 裁定 + 断言措辞定稿（§4.1.1 · R1/R2/O1 落卷 · R3 条件性不触发）+ 设计面 prove `pnpm --filter @meetwise/db tenant-enforcement:prove` **EXIT=0（35 PASS / 0 FAIL）** · attempts 1,0 全录（attempt1 EXIT=1 确定性 fixture 字串缺陷诚实保留 · 沿 PRIV4 先例 · 交 post 双审裁，详见 §11 + receipts）· **零 `src/` 产品码 · ADR 门 cite-only 零执行零 receipt · Ban self-write `post_prove_dual_pass`** · 公开 DELETE=503 · `:57` OPEN · UC-052 partial · alone ≠ dual · Ban nail until POST BOTH + meetwise AUTHORIZE）
 **EXEC provenance**: REQUEST `0147f8ce` / full `0147f8ceaef55d27397af53bd9a928eb2b2dda46`（parent `fe218b7a` · EXEC 期间 origin tip 零位移，fetch 复核 up-to-date 免 rebase · 全部引锚自 REQUEST 零漂移）· 收据 `ai-docs/delivery/receipts/priv01-m2-enforcement/2026-10-08-exec-assertions-and-prove.md`（断言措辞 file:line + attempts + env 探针）
 
 > **Pre-exec-era status（historical · retained）**: **`draft:awaiting_pre_exec_dual`**（REQUEST docs-only · 零 coding / 零 prove 执行 / 零产品码 / 零 SSOT · Ban coding until PRE dual BOTH PASS + meetwise AUTHORIZE · Ban self-approve · alone ≠ dual）
@@ -162,7 +164,7 @@ Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR4
 
 **预执行双审**：`mw-privacy-int` + `mw-e2e-ha`（各自独立签 · alone ≠ dual · stub PENDING 不代填）。裁决点：两层关系写死与三类等价宣称 Ban、E1–E5 合同强度（不得弱化）、候选 P-A/P-B/P-C 取舍、ADR 清单门 cite-only 口径、EXIT 契约与诚实条款、docs-only 边界。
 
-**流程声明**：REQUEST → 预执行双审（mw-privacy-int + mw-e2e-ha）→ meetwise 授权 → 设计+prove 面 EXEC → post 双审 → meetwise 授权 nail。（当前推进至 EXEC 完成态 `executed:awaiting_post_prove_dual`——post 双审归协调方派）
+**流程声明**：REQUEST → 预执行双审（mw-privacy-int + mw-e2e-ha）→ meetwise 授权 → 设计+prove 面 EXEC → post 双审 → meetwise 授权 nail。（当前推进至 `post_prove_dual_pass`——post-prove 双审 BOTH PASS + meetwise 协调方授权 nail，2026-10-08 落链，详见 §12）
 
 ## 11. EXEC 登记（2026-10-08 Asia/Shanghai · lifecycle 推进 · meetwise 协调方 AUTHORIZE 后落盘）
 
@@ -175,13 +177,21 @@ Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR4
 | **R1** | 断言 5 接线面机检双面钉死（face A 字面 `src/tenant` 串 · face B 模块引用面）+ `packages/db/src/index.ts:25-32` barrel re-export 显式登记存在且归类 re-export≠consumption（防误红/防静默收窄）——落 `proof:174-258` + receipts §2 |
 | **R2/O1（同车）** | E5 应用层半边 prove 显式归属接线 PR（`proof:26-29` 头注 + `:180` 注释 + receipts §2 + §4.1.1 四处同文）· E5 DB 层半边归属前刀候选 A 隔离面 · Ban 读作「E5 已证」 |
 | **R3** | P-B 条件登记不触发（P-A 裁定）· receipts §1 显式注销 |
-| **prove** | `pnpm --filter @meetwise/db tenant-enforcement:prove`（=`packages/db/package.json:35`）· **attempt1 EXIT=1**（2026-10-08 10:26:28..10:26:32 +0800 · 33/1 · 唯一 FAIL=断言正则漏源 `:99` 一词 `object` 的**确定性 fixture 字串缺陷**）→ 恰一行正则修复（S1→S2 diff 可验证 · 零断言语义变更 · 零被测源变更）→ **attempt2 EXIT=0**（10:27:29 +0800 · **35 PASS / 0 FAIL**）· attempts 1,0 全录（Asia/Shanghai 窗 + HEAD=`0147f8ce`+工作树态 S1/S2 + log/exit 落 receipts）· **沿 GAP-PRIV-04 attempts 台账 1,0 先例，非 `:68` 型 retry-to-green；缺陷定性显式交 post 双审裁——若裁不可采，attempt1 EXIT=1 诚实保留为 EXEC 终态** |
+| **prove** | `pnpm --filter @meetwise/db tenant-enforcement:prove`（=`packages/db/package.json:35`）· **attempt1 EXIT=1**（2026-10-08 10:26:28..10:26:32 +0800 · 34/1（E-1 勘误 · 原文 33/1）· 唯一 FAIL=断言正则漏源 `:99` 一词 `object` 的**确定性 fixture 字串缺陷**）→ 恰一行正则修复（S1→S2 diff 可验证 · 零断言语义变更 · 零被测源变更）→ **attempt2 EXIT=0**（10:27:29 +0800 · **35 PASS / 0 FAIL**）· attempts 1,0 全录（Asia/Shanghai 窗 + HEAD=`0147f8ce`+工作树态 S1/S2 + log/exit 落 receipts）· **沿 GAP-PRIV-04 attempts 台账 1,0 先例，非 `:68` 型 retry-to-green；缺陷定性显式交 post 双审裁——若裁不可采，attempt1 EXIT=1 诚实保留为 EXEC 终态** |
 | **ADR 门** | **零执行 · 零复跑 · 零 receipt（cite-only）**——privacy-authorization / crypto / erasure 系列仍为切流门各自独立 EXIT=0 + 独立审查 |
 | **收据** | `ai-docs/delivery/receipts/priv01-m2-enforcement/`（`2026-10-08-exec-assertions-and-prove.md` + `priv01-prove-attempt1/2.log` + `.exit`）· env 探针：node v22.22.3 · pnpm 10.18.0 · tsx v4.22.4 · darwin arm64 · PREREQ `pnpm install --frozen-lockfile`（5.2s 零 lockfile 变更）· **secrets 零触及（Key name-only）· actualSpendCny=null** |
 | **触面机检（自报 · 待 post 双审机检复核）** | EXEC commit 触面 = proof.ts + 本 harness + slice + receipts 四类恰 7 文件 · **零 `src/` 产品码 / 零两 package.json / 零 SSOT 四件 / 零双审 stub / 零 `checkpoint-principal.ts` / 零 `privacy.controller.ts` / 零授权根（`principal.ts`/migrations）/ 零 secrets** |
 | **EXIT 契约** | EXIT=0 十不得+1 照抄生效：≠接线已授权 ≠RLS abandon 门开 ≠`:57` CLOSED/翻行 ≠tenant=RLS 等价 ≠授权根已迁 ≠MySQL 等价强制完成 ≠HA ≠releaseEvidence ≠UC-052 flip ≠DELETE 开放 ≠ADR 门全绿宣称 |
 | **Ban self-write** | **`post_prove_dual_pass` 阶段标记由 post-prove 双审（协调方派）写入**，implementer 本 EXEC 仅推进至 `executed:awaiting_post_prove_dual` 为止 · Ban nail until POST BOTH + meetwise AUTHORIZE |
 
+## 12. NAIL 登记（2026-10-08 Asia/Shanghai · lifecycle 推进 `executed:awaiting_post_prove_dual` → `post_prove_dual_pass` · meetwise 协调方正式授权）
+
+- **post-prove 双审 BOTH PASS**：mw-privacy-int PASS（裁决 attempts 1,0 **可采** · attempt2 EXIT=0 为 EXEC 终态）+ mw-e2e-ha PASS（独立复跑 EXIT=0 35/0 逐值一致 · 可采确认 · **E-1 勘误处方确认**）· meetwise 协调方正式授权 nail。
+- **E-1 勘误（先落 · 本 nail commit 第一项）**：attempt1 台账计数三处统一——receipts §3 / 本 harness §11 prove 行 / slice EXEC 登记——「33/1」更正为「**34/1**」（attempt1 log 实为 34 PASS + 1 FAIL 含 `:39` optional PG skip 行按 PASS 口径计入；总断言数 35 与 attempt2 的 35/0 口径一致）；改法 = 最小编辑 + 本 E-1 append-only 注记；两个 `.exit` 文件与两 log 原样零改。
+- **Ban self-write 条款由本授权满足**：§11 Ban self-write 行所述「`post_prove_dual_pass` 由 post-prove 双审（协调方派）写入」——本推进依 meetwise 协调方授权（post 双审 BOTH PASS + AUTHORIZE）落盘，非 implementer 自写自批；历史 EXEC 态全文保留于文首 blockquote。
+- **Non-claims（逐条 · 本 nail 不宣称）**：EXIT0 ≠ 接线已授权 ≠ cutover ≠ abandon RLS ≠「tenant=RLS 等价」≠ 授权根迁移 ≠ MySQL 等价强制完成 · backlog `:57` stays OPEN（行翻转 = 接线 PR 刀全链后另 nail；关行时须核对 `:57` 所需 harness 路径列）· ADR 门 cite-only 零执行（cite-only ≠ 未达标——门执行归接线/cutover 前置刀）· UC-052 partial 零触碰。
+- 全链 SHA 与 Non-claims 正式落卷：`ai-docs/delivery/execution-master-checklist.md`「Line PRIV01-B M2 等价 tenant 强制设计刀 NAIL」节。
+
 ---
 
-*Harness · PRIV01-B 应用层 tenant M2 等价强制（设计+prove 方案）· `executed:awaiting_post_prove_dual` · 2026-10-07 立卷 / 2026-10-08 EXEC · backlog `:57` OPEN · DELETE=503 · PG-retained · PRE dual BOTH PASS · P-A · prove EXIT=0（35/0 · attempts 1,0 全录 · fixture 缺陷定性交 post 双审）· ADR 门 cite-only · 零 src/ 产品码 · **Ban self-write `post_prove_dual_pass`** / Ban nail until POST BOTH + meetwise AUTHORIZE · alone ≠ dual · STOP（awaiting post-prove dual）*
+*Harness · PRIV01-B 应用层 tenant M2 等价强制（设计+prove 方案）· `post_prove_dual_pass` · 2026-10-07 立卷 / 2026-10-08 EXEC · 2026-10-08 nail · backlog `:57` OPEN · DELETE=503 · PG-retained · PRE dual BOTH PASS · post-prove dual BOTH PASS（attempts 1,0 可采 · E-1 已正 33/1→34/1）· P-A · prove EXIT=0（35/0 · attempts 1,0 全录）· ADR 门 cite-only · 零 src/ 产品码 · 接线 PR 另审另刀 · alone ≠ dual*
