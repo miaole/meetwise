@@ -4,10 +4,22 @@
  * 不变量(无静默死胡同):任何情形都有出路——quiz_unavailable→degraded+重试;流断在非终态→reconnecting;重连耗尽→degraded/error。
  */
 import { z } from 'zod';
+import { applyGenerationProgress, generationProgressLabel, type GenerationProgressView } from './generation-progress';
 
 /** 押题业务事件判别联合(event = SSE event 字段 = 后端 interview_event.kind,stream_key=quizId)。 */
 export const QuizEvent = z.discriminatedUnion('event', [
   z.object({ event: z.literal('progress'), id: z.number().int(), data: z.record(z.string(), z.unknown()) }),
+  // TOKSTREAM 阶段1 生成进度事件(D-2 新 kind;形状与 interview 流同构;.loose() 容阶段2 演进字段)。
+  z.object({ event: z.literal('generation_started'), id: z.number().int(), data: z.object({
+    attemptKey: z.string(), jobKind: z.string().optional(), operationId: z.string().optional(),
+    segments: z.array(z.string()).optional(), startedAt: z.string().optional(),
+  }).loose() }),
+  z.object({ event: z.literal('model_first_token'), id: z.number().int(), data: z.object({
+    attemptKey: z.string(), firstTokenMs: z.number().optional(), tokensSoFar: z.number().optional(),
+  }).loose() }),
+  z.object({ event: z.literal('generation_progress'), id: z.number().int(), data: z.object({
+    attemptKey: z.string(), stage: z.string().optional(), tokensSoFar: z.number().optional(), elapsedMs: z.number().optional(),
+  }).loose() }),
   z.object({ event: z.literal('question_ready'), id: z.number().int(), data: z.object({ question: z.string(), refs: z.array(z.string()).optional() }) }),
   // 专家审计:report 是装饰性的,绝不能因其字段漂移让**唯一成功终态**被 safeParse 丢弃 → 成功被误判成"出错"。
   // 故 data 用 .loose() + report 留 unknown,接地在 reducer 里防御性读取(字段不对就忽略 report,但终态照样到达 ready)。
@@ -32,6 +44,8 @@ export interface QuizViewState {
   degraded: boolean;
   connection: ConnectionState;
   lastEventId: number;
+  /** TOKSTREAM 阶段1 生成进度态(非权威;幂等覆盖写;业务事件到达即清;缺帧回段级兜底不死等)。 */
+  generationProgress?: GenerationProgressView;
 }
 
 export const initialQuizView: QuizViewState = { phase: 'connecting', questions: [], degraded: false, connection: 'live', lastEventId: 0 };
@@ -41,8 +55,22 @@ export const isQuizTerminal = (p: QuizPhase): boolean => TERMINAL_QUIZ_PHASES.in
 
 export function applyQuizEvent(v: QuizViewState, e: QuizEvent): QuizViewState {
   const next: QuizViewState = { ...v, lastEventId: Math.max(v.lastEventId, e.id), connection: 'live' };
+  // TOKSTREAM:业务事件(非进度家族)到达即清进度态(与 interview 流同构;防重放旧进度复活已完成段)。
+  if (e.event !== 'generation_started' && e.event !== 'model_first_token' && e.event !== 'generation_progress') {
+    next.generationProgress = undefined;
+  }
   switch (e.event) {
     case 'progress': next.phase = 'generating'; break;
+    // TOKSTREAM 阶段1:进度帧只更新进度态;started 同时把 phase 置 generating(与既有 progress kind 同语义:
+    // 生成确实在跑;不改终态语义——quiz_ready/quiz_unavailable 仍唯一收口)。
+    case 'generation_started':
+      next.phase = 'generating';
+      next.generationProgress = applyGenerationProgress(next.generationProgress, e);
+      break;
+    case 'model_first_token':
+    case 'generation_progress':
+      next.generationProgress = applyGenerationProgress(next.generationProgress, e);
+      break;
     case 'question_ready':
       next.phase = 'generating';
       next.questions = [...next.questions, { q: e.data.question, refs: e.data.refs ?? [] }];
@@ -90,8 +118,12 @@ export function quizDisplay(v: QuizViewState): QuizDisplay {
   switch (v.phase) {
     case 'connecting':
       return { heading: '连接押题', message: '正在建立连接…', spinner: true, action: { kind: 'reconnecting', label: '取消' }, degraded: false };
-    case 'generating':
-      return { heading: '正在押题', message: v.questions.length ? `已生成 ${v.questions.length} 道,正在继续…` : '正在依据你的简历预测训练问题…', spinner: true, action: { kind: 'none', label: '' }, degraded: false };
+    case 'generating': {
+      // TOKSTREAM 阶段1:有进度态时 loading 变真实进度(段名+时长/token 计数;R-B 无思考原文);无进度回既有文案(缺帧兜底)。
+      const progress = generationProgressLabel(v.generationProgress);
+      const base = v.questions.length ? `已生成 ${v.questions.length} 道,正在继续…` : '正在依据你的简历预测训练问题…';
+      return { heading: '正在押题', message: progress ? `${base}（${progress}）` : base, spinner: true, action: { kind: 'none', label: '' }, degraded: false };
+    }
     case 'ready': {
       const n = v.total ?? v.questions.length;   // total 权威(防题目事件未重放时误报 0)
       return { heading: '押题完成', message: `共 ${n} 道预测训练问题,均已接地校验(过滤幻觉)。`, spinner: false, action: { kind: 'none', label: '' }, degraded: false };

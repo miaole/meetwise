@@ -17,8 +17,10 @@ export function parseSseBuffer(buf: string): SseEvent[] {
 }
 
 const SCORE_KEYS = new Set(['score', 'overall', 'overallScore', 'totalScore', 'deterministic_total']);
-/** Kinds that must never carry a numeric-like score. report_ready.overall is display-only and reviewed separately. */
-const FORBIDDEN_SCORE_KINDS = new Set(['progress', 'question_ready', 'clarification_needed', 'waiting_user', 'answer_unscored']);
+/** Kinds that must never carry a numeric-like score. report_ready.overall is display-only and reviewed separately.
+ *  TOKSTREAM 阶段1(裁定 D-2 加固):generation_* 进度家族同样禁分——进度载荷只有计数/时刻/段名(tokensSoFar/elapsedMs
+ *  非分键,不触发本门),任何 score 键出现在进度帧=e2e 红。 */
+const FORBIDDEN_SCORE_KINDS = new Set(['progress', 'question_ready', 'clarification_needed', 'waiting_user', 'answer_unscored', 'generation_started', 'model_first_token', 'generation_progress']);
 
 function isNumericLike(value: unknown): boolean {
   if (typeof value === 'number') return Number.isFinite(value);

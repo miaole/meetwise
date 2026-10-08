@@ -38,7 +38,8 @@ export async function runQuiz(
   });
 
   // 纯图:parse(摄取)→ generate(经 invoke 双校验)→ validate(factuality 歪曲门)→ make_report(业务派生)。模型在注入边界外。
-  const graph = buildResumeQuizGraph({ generate: quizGenerator(pool, owner, facts, `${quizId}:quiz`, model) });
+  // progressStream=quizId(TOKSTREAM 阶段1):押题模型调用发生成进度事件(SSE→前端 loading 变真实进度)。
+  const graph = buildResumeQuizGraph({ generate: quizGenerator(pool, owner, facts, `${quizId}:quiz`, model, quizId) });
   const out = await graph.invoke({ raw: resumeRaw });
   const questions = (out.questions ?? []) as QuizItem[];
   const report = (out.report ?? null) as { score: number; grounded: number; summary: string } | null;

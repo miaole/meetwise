@@ -152,7 +152,8 @@ function reportWorkerDeps(pool: ReturnType<typeof createPool>, model: ModelClien
   }
   let reportInvocations = 0;
   const generateLiveReport = (s: import('@meetwise/ai-graphs').InterviewSummary) =>
-    reportGenerator(pool, s.owner!, `${s.interviewId}:report`, model)(s);
+    // progressStream=interviewId(TOKSTREAM 阶段1):报告叙述生成发生成进度事件(SSE→前端报告期等待变真实进度)。
+    reportGenerator(pool, s.owner!, `${s.interviewId}:report`, model, s.interviewId)(s);
   return {
     loadSummary: (owner, interviewId) => asPrincipal(pool, owner, async (c) => {
       // 得分权威 = ScoreCard(确定性总分,仅 practice_eligible/b_review_eligible),legacy answer_evaluated.score 结构性不参与。

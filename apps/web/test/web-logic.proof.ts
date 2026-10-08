@@ -4,7 +4,7 @@
  */
 import { decodeSSE, toBusinessEvent } from '../lib/stream/business-events.ts';
 import {
-  reduceInterview, applyEvent, initialView, onStreamClosed, onReconnectExhausted, isTerminal,
+  reduceInterview, applyEvent, applyEvents, initialView, onStreamClosed, onReconnectExhausted, isTerminal,
 } from '../lib/stream/interview-state.ts';
 import { interviewDisplay, isDeadEnd, signalConcludePracticeCopy } from '../lib/view-model.ts';
 import { makeInterviewApi, type FetchLike, type FetchResponse } from '../lib/api/client.ts';
@@ -441,6 +441,48 @@ async function main() {
   A('生成中断流 → reconnecting(自动重连,非卡死)', qClosedMid.connection === 'reconnecting' && !isQuizTerminal(qClosedMid.phase));
   A('终态(ready)断流 → closed(正常结束)', onQuizStreamClosed(qreduce([{ event: 'quiz_ready', id: 1, data: { count: 1 } }])).connection === 'closed');
   A('重连耗尽 → degraded 出口;从未连上则 error', onQuizReconnectExhausted(qClosedMid).degraded && onQuizReconnectExhausted(initialQuizView).phase === 'error');
+
+  // ───────────────────────── TOKSTREAM 阶段1(TS-P3 前端渲染断言 @REQUEST a31a7bbe) ─────────────────────────
+  section('TOKSTREAM 生成进度:白名单解析 + 归约(幂等覆盖写/业务事件清除/缺帧不死胡同) + loading→真实进度');
+  // b0 解析面:三类新 kind 必须经 decodeSSE+toBusinessEvent 进契约(漏注册=前端静默丢=白写)。
+  const tsFrames = decodeSSE([
+    ev(1, 'generation_started', { jobKind: 'next_question', operationId: 'interview.question-generation.v1', attemptKey: 'i1:ask:t0:0', segments: ['retrieve', 'generate', 'validate'], startedAt: '2026-10-07T00:00:00.000Z' }),
+    ev(2, 'model_first_token', { attemptKey: 'i1:ask:t0:0', firstTokenMs: 1234, tokensSoFar: 1 }),
+    ev(3, 'generation_progress', { attemptKey: 'i1:ask:t0:0', stage: 'generate', elapsedMs: 4200, tokensSoFar: 87 }),
+  ].join('')).frames.map(toBusinessEvent);
+  A('TS-P3 三类 generation_* 帧全部解析进契约(白名单双端注册)', tsFrames.length === 3 && tsFrames.every((e) => e !== null));
+  // b1 进度不改 phase(interview 流红线:进度帧不发明阶段)。
+  const tsV1 = applyEvents(initialView, [tsFrames[0]!, tsFrames[2]!]);
+  A('TS-P3 进度帧只挂进度态,不改 phase/lastScore', tsV1.phase === 'connecting' && tsV1.generationProgress?.attemptKey === 'i1:ask:t0:0' && tsV1.generationProgress?.stage === 'generate' && tsV1.generationProgress?.elapsedMs === 4200);
+  // b2 断线重放幂等覆盖写:同 attempt 旧帧(elapsedMs 更小)重复到达不回退计数(取 max)。
+  const tsV2 = applyEvents(tsV1, [tsFrames[2]!, { ...tsFrames[2]!, id: 4, data: { attemptKey: 'i1:ask:t0:0', stage: 'generate', elapsedMs: 2100 } } as any]);
+  A('TS-P3 重放旧进度帧不回退计数(同 attempt 数值取 max)', tsV2.generationProgress?.elapsedMs === 4200);
+  // b3 新 attempt 直接替换(新一轮生成)。
+  const tsV3 = applyEvents(tsV2, [{ ...tsFrames[0]!, id: 5, data: { attemptKey: 'i1:ask:t1:0', segments: ['retrieve', 'generate', 'validate'] } } as any]);
+  A('TS-P3 新 attemptKey 替换旧进度态', tsV3.generationProgress?.attemptKey === 'i1:ask:t1:0' && tsV3.generationProgress?.elapsedMs === undefined);
+  // b4 业务事件清除(断线重放防"已完成题重新显示生成中")。
+  const tsV4 = applyEvents(tsV3, [{ event: 'question_ready', id: 6, data: { question: 'Q2' } } as any]);
+  A('TS-P3 权威业务事件(question_ready)清除进度态', tsV4.phase === 'question' && tsV4.generationProgress === undefined);
+  // b5 缺帧不死胡同:全程零进度帧(断线跳过)→ 视图照常推进,无 degraded/卡死。
+  const tsV5 = applyEvents(initialView, [{ event: 'question_ready', id: 1, data: { question: 'Q1' } } as any]);
+  A('TS-P3 进度帧全丢(模拟断线跳过)不死胡同(照常出题,不 degraded)', tsV5.phase === 'question' && !tsV5.degraded && tsV5.generationProgress === undefined);
+  // b6 题间 loading→真实进度:interviewDisplay(answered+进度态)文案含 AI 生成中;无进度回既有文案(缺帧兜底)。
+  const tsAns = applyEvents(baseV({ phase: 'answered' }), [tsFrames[0]!, tsFrames[2]!]);
+  const tsDisp = interviewDisplay(tsAns);
+  const tsDispNoProgress = interviewDisplay(baseV({ phase: 'answered' }));
+  A('TS-P3 answered+进度态 display 文案含真实进度(AI 生成中·已 N 秒)', tsDisp.spinner && tsDisp.message.includes('AI 生成中') && tsDisp.message.includes('已 4 秒'));
+  A('TS-P3 answered 无进度态回既有文案(缺帧兜底,不死等)', tsDispNoProgress.message.includes('正在出下一题') && !tsDispNoProgress.message.includes('AI 生成中'));
+  // b7 押题流同构:generation_started 置 generating + 进度;quizDisplay 文案带进度;question_ready 清进度。
+  const tsq1 = qreduce([
+    { event: 'generation_started', id: 1, data: { jobKind: 'quiz', operationId: 'interview.quiz-generation.v1', attemptKey: 'tsq:quiz', segments: ['generate'] } },
+    { event: 'generation_progress', id: 2, data: { attemptKey: 'tsq:quiz', stage: 'generate', elapsedMs: 4000 } },
+  ]);
+  const tsqDisp = quizDisplay(tsq1);
+  A('TS-P3 quiz generation_started 置 generating + 进度态挂上(与既有 progress kind 同语义)', tsq1.phase === 'generating' && tsq1.generationProgress?.elapsedMs === 4000);
+  A('TS-P3 quiz generating+进度态文案含真实进度', tsqDisp.spinner && tsqDisp.message.includes('AI 生成中') && tsqDisp.message.includes('已 4 秒'));
+  const tsq2 = applyQuizEvent(tsq1, { event: 'question_ready', id: 3, data: { question: 'Q', refs: [] } } as any);
+  A('TS-P3 quiz question_ready 清除进度态', tsq2.generationProgress === undefined && tsq2.questions.length === 1);
+
 
   section('押题 SSE 驱动:端到端(happy/重连续传/耗尽/已就绪重放/坏帧)');
   const qHappy = await runQuizStream({
