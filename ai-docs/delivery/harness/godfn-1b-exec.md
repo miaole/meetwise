@@ -1,6 +1,6 @@
 # GODFN-1b — G7 卫兵移组合根 EXEC 刀（按已 nail 设计执行）
 
-**状态**：`draft:awaiting_pre_exec_dual` · base = 主线 `16b40f0d` · 分支 `line/godfn-1b-g7guard` · 蓝本 = **已 nail 设计** `ai-docs/delivery/harness/godfn-decompose.md` @37705a3e（§5.2 1b 清单+§5.2b r4 读者名单补引+§2.2 env 澄清+§7.3 条款）——薄壳零重议。
+**状态**：`draft_rev2:awaiting_pre_exec_dual`（rev1 席1 FAIL 一行级：prove 门补「或 base 同红零回归」——照抄蓝本 §5 门非新裁） · base = 主线 `16b40f0d` · 分支 `line/godfn-1b-g7guard` · 蓝本 = **已 nail 设计** `ai-docs/delivery/harness/godfn-decompose.md` @37705a3e（§5.2 1b 清单+§5.2b r4 读者名单补引+§2.2 env 澄清+§7.3 条款）——薄壳零重议。
 
 ## 1. 范围（照设计 §5.2 1b 行）
 G7 freetier reprove 卫兵从散读点（model-client.ts :220/:347/:376 直读 process.env·context-budget.ts :281）移至组合根（apps/api/src/main.ts:2 + apps/worker/src/main.ts:9 无条件 import 单读点注入）——语义零变（=1 判定钉写设计 §2.2 冻结）·`g7-outbound-interceptor.ts :79` 收注入 env 参数形态保形。
