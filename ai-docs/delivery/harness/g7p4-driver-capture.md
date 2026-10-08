@@ -1,23 +1,24 @@
 # G7P-4 — full.e2e driver 内联 stdout 三元组截获刀（G7 api 红真实面一跑三得）
 
-**状态**：`draft:awaiting_pre_exec_dual` · base = 主线 `79ada922`（applied=152 面）· 分支 `line/g7-driver-capture` · 立项依据 = G7P-3 nail 裁定（A() ✗ 走 stderr=死信已证·「改 A() 消息」禁采·有效形=driver stdout 面）。
+**状态**：`draft_rev2:awaiting_pre_exec_dual`（rev1 双席 FAIL 六处方：capture 面改 NDJSON 文件〔裸 stdout 系死信〕+cause 面必含+四向补「consent=200 红死亡面后移」臂+绿向降级「152 面不红定谳」留 144 对比臂+绿后 :107 仍 OPEN+JSON.stringify 伪锚闭合+硬帽重申） · base = 主线 `79ada922`（applied=152 面）· 分支 `line/g7-driver-capture` · 立项依据 = G7P-3 nail 裁定（A() ✗ 走 stderr=死信已证·「改 A() 消息」禁采·有效形=driver stdout 面）。
 
 ## 1. 目标（一跑三得）
 在 full.e2e 真实旅程 consent 步落 **stdout 可收据面** 的三元组+throw 码：①拿真实红面（status/body/elapsed 或 err_name/err_code）；②顺带裁定红在 **152 面**是否仍存（绿=「红系 144 基线特有已随后续迁移消解」假说定谳→(f) 轴收口）；③常驻截获面受益未来所有 run。
 
-## 2. 手段（≤8 行·零产品码·零 wrapper 改）
+## 2. 手段（≤8 行·零产品码·零 wrapper 改）【rev2·席1 致命缺陷修正：capture 面改 NDJSON 文件】
 `e2e/full.e2e.ts:35-36` consent 步改造：
-1. console.log 三元组行 `E2E_STEP_CAPTURE step=consent status=<n> elapsed_ms=<n> body=<prefix-200-chars>`（**stdout 面**——A() ✗ 的 stderr 系死信·emitE2EFailure 双通道契约先例）**先打印后断言**；
-2. try/catch 包 fetch：catch (e) → console.log `E2E_STEP_CAPTURE step=consent thrown=<e.name>/<e.code>` 后 **rethrow 原语义**（不吞不洗）；
+1. **appendFileSync NDJSON 文件面**（G7P-2 boot trace 同形态·SIGKILL 安全）：`.tmp/e2e-consent-capture.ndjson` 每行内嵌 run 身份（bootId=启动时刻.pid）+run 前 unlink 亲证——行体 `{bootId, step:'consent', status:<n>, elapsed_ms:<n>, body:<JSON.stringify 截 200 字符>}`。【rev1 裸 console.log 系死信——runFullE2E :2247 stdout 只收内存从不回显·emitE2EFailure 双通道先例=解析后 wrapper 再发射非裸可见——协调方起草错误席1 纠正】
+2. try/catch 包 fetch：catch (e) → appendFileSync `thrown=<e.name>/<e.code>/<e.cause?.code>`（**cause 面必含**——Node fetch 网络错 name=TypeError·code=undefined·分辨码 ECONNREFUSED/UND_ERR_* 在 e.cause.code）后 **rethrow 原语义**（不吞不洗→main().catch fallback 原样生效）。
 3. 断言消息内嵌实际 status（交互面增益）：`PIPL 采集同意 → 200 (实际 ${r.status})`。
-- 不触 helpers/不触 wrapper/不触解析器契约（evaluateIsolatedHttpE2E 容忍任意 stdout 行·UC018 banner 先例）。
+- 不触 helpers/不触 wrapper/不触解析器契约·body JSON.stringify 一行闭合伪锚（防原文换行造伪 E2E_ 行首）。
 
 ## 3. 跑法与预注册判读
-恰 1 run：`pnpm e2e:isolated`（152 面真实链·MODEL_API_KEY 沿 wrapper 既有钉值）。三向：
-- **红+capture 行到手**：status/throw 码定靶 ⇒ 修复刀直接立项（按码面：5xx=DB/4xx=契约/UND_ERR=连接层）；
-- **绿（含 consent 200 capture 行）**：152 面红已消 ⇒ (f) 基线特有假说**定谳成立** ⇒ `:107` 收口材料（红链归因=144 基线 ACL 缺失·已由 0150/0151 修复）⇒ G7 修复线转 POST7B/trio 评估；
-- **红但 capture 行缺**（死于 consent 前——如 A#1 signup 面）：死亡面再次前移 ⇒ 如实登记再探。
-三向如实禁洗绿禁重跑至绿。est live ≤25（sidecar 双计·沿判别 run 口径）。
+恰 1 run：`pnpm e2e:isolated`（152 面真实链·MODEL_API_KEY 沿 wrapper 既有钉值）。**四向**：
+- **红+capture 记录在手（consent 非 200 或 thrown）**：status/cause 码定靶 ⇒ 修复刀直接立项（按码面：5xx=DB/4xx=契约/ECONNREFUSED|UND_ERR_*=连接层 (c) 轴）；
+- **红且 capture 记录 consent=200**：死亡面**后移**（G7W 尾段簇 37.9-40.6s 同族候选）⇒ 如实登记再探·consent 面 (f) 材料成立；
+- **绿（A#2 过=consent 200 结构性推得+NDJSON 记录佐证）**：**「152 面不红」定谳+(f) 基线特有**强候选增强**（归因 144 ACL 缺失仍系假设——因果定谳留 144 面对比臂·沿 G7P-3 nail 后续序）**；**绿向后 `:107` 行仍 OPEN（修复另刀）** ⇒ G7 修复线转 144 复跑/POST7B/trio 评估；
+- **红但 NDJSON 无记录**（死于 consent 前）：死亡面再次前移 ⇒ 如实登记再探。
+四向如实禁洗绿禁重跑至绿。est live ≤25（sidecar 双计·绿向满旅程校准值·**链累计硬帽 200 重申**）。
 
 ## 4. Ban
 零产品码（apps/packages src 零改）·e2e/full.e2e.ts 改动 ≤8 行且仅 consent 步·helpers/wrapper/解析器零触碰·Key 只经进程 env name-only·pins 十值照抄（haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null）·实现不自批·alone≠dual。
