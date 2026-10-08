@@ -1032,6 +1032,18 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/diagnosis/diagnosis.service.ts',
     'apps/api/src/modules/interview/interview.service.ts',
   ],
+  'db-acl2:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/db-acl2.proof.ts',
+    'packages/db/src/index.ts', 'packages/db/src/principal.ts',
+    'packages/db/src/isolated-test-target.ts', 'packages/db/src/migrate.ts',
+    'packages/db/test/migrate.proof.ts',
+    'packages/db/package.json', 'package.json',
+    'packages/db/migrations/0108_ctx03_immutable_session_event_source.sql',
+    'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
+    'packages/db/migrations/0122_resume_pgcrypto_optional_acl.sql',
+    'packages/db/migrations/0151_pgp_sym_encrypt_grant.sql',
+  ],
   'memory-governance:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/memory-governance.proof.ts',
@@ -1593,6 +1605,7 @@ if (![
   'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw',
   'memory-governance:prove:raw',
   'db-id-v7:prove:raw',
+  'db-acl2:prove:raw',
   'memory-admission:prove:raw',
   'memory-fact-adjudication:prove:raw',
   'memory-index-generation:prove:raw',
@@ -1826,6 +1839,8 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'packages/db', 'prove:privacy-authorization']]
     : target === 'db-id-v7:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:db-id-v7']]
+    : target === 'db-acl2:prove:raw'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:db-acl2']]
     : target === 'memory-governance:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:memory-governance']]
   : target === 'memory-admission:prove:raw'
