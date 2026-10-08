@@ -6,6 +6,8 @@ import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { openAICompatibleClient } from '../src/model-client.ts';
+import { configureG7RuntimeInjection, resetG7RuntimeInjection } from '../src/g7-runtime-injection.ts';
+import { withG7OutboundAllow } from '../test/support/g7-outbound-interceptor.ts';
 import {
   isG7FreetierReproveEnabled,
   readG7SharedLedger,
@@ -57,6 +59,13 @@ async function main() {
     process.env.G7_RUN_COST_LEDGER_PATH = ledgerPath;
     process.env.G7_RUN_COST_CAP_CNY = '5';
     delete process.env.ALLOW_DEEPSEEK_V4_PRO_TEST;
+
+    // GODFN-1b: in-process prove stands in for the composition root — install
+    // the injection (predicate + real outbound ticket) from this single read.
+    configureG7RuntimeInjection({
+      freetierReproveEnabled: () => isG7FreetierReproveEnabled(process.env),
+      withOutboundAllow: withG7OutboundAllow,
+    });
 
     A('G7 flag enabled', isG7FreetierReproveEnabled(process.env));
 
@@ -153,6 +162,7 @@ async function main() {
     }
   } finally {
     globalThis.fetch = originalFetch;
+    resetG7RuntimeInjection();
     for (const name of MUTATED) {
       const value = initial.get(name);
       if (value === undefined) delete process.env[name];

@@ -1,0 +1,55 @@
+
+> @meetwise/worker@0.0.0 prove:r4-eg1-dual-claim-product-close /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-eg1-dual-claim-product-close.proof.ts
+
+G-R4-5 / EG1 dual-claim product close prove
+EXIT=0 = product-close evidence · eg1ProductClosed=true · gR45DualClaimClosed=true · gR45Closed=false · Ban closing EG2 · Ban flip gR45/r4/funnel/eg3–eg6 · Ban self-nail dual_pass
+
+──────── P0 anchors ────────
+PASS  P0 emitter wired
+PASS  P0 harness present
+FAIL  P0 harness status awaiting_post_prove_dual + Ban self-nail + flags
+
+──────── P1 live assessor ────────
+PASS  P1 priorEg1EvidenceRetained
+PASS  P1 authorizedSsotPinsPresent
+PASS  P1 retainedFlagsHonest
+PASS  P1 orthogonalNotClaimedClosed
+PASS  P1 hasEg1DualClaimProductCloseEvidence
+
+──────── P2 emit ────────
+PASS  P2 emitted=true
+PASS  P2 kind
+PASS  P2 eg1ProductClosed=true
+PASS  P2 gR45DualClaimClosed=true
+PASS  P2 gR45Closed=false
+PASS  P2 ms3EqualsR4Closed=false
+PASS  P2 r4ProductClosed=true
+PASS  P2 funnelProductClosed=true
+PASS  P2 domainIsolationClosed=true
+PASS  P2 eg3ProductClosed=true
+PASS  P2 eg4ProductClosed=true
+PASS  P2 wrongTrackProductClosed=true
+PASS  P2 eg5ProductClosed=true
+PASS  P2 productSsotFlipped=true
+PASS  P2 eg6ProductClosed=true
+PASS  P2 eg2ClosedByThisKnife=false
+PASS  P2 coveredCountInvented=false
+PASS  P2 emptyMetaAloneDoesNotClose=true
+PASS  P2 idleEg1EvidenceAloneDoesNotClose=true
+PASS  P2 releaseEvidence=false
+PASS  P2 receipt written
+PASS  P2 roundtrip eg1ProductClosed=true
+PASS  P2 roundtrip gR45DualClaimClosed=true
+PASS  P2 roundtrip gR45Closed=false
+PASS  P2 roundtrip ms3EqualsR4Closed=false
+PASS  P2 roundtrip eg6ProductClosed=true
+PASS  P2 roundtrip releaseEvidence=false
+
+──────── P3 hard pins ────────
+PASS  P3 ≠ flip gR45Closed / r4 / funnel / eg3 / eg4 / eg5 / eg6 / ms3EqualsR4Closed this knife
+PASS  P3 ≠ wash EG1 08f7499/ffb2a9b · EG6 315570d/757fbe1 · EG5 33f457b/7f59b95 · EG4 ce09850/0a34933 · R4·FUNNEL 2b38e18/14e9e2c · EG3 7be1a55/5b3c854
+PASS  P3 Ban invent coveredCount · Ban MS3=R4 · Ban closing EG2 · Ban empty meta · Ban self-nail post_prove_dual_pass
+
+FAIL  r4-eg1-dual-claim-product-close prove (1 failures)
+ ELIFECYCLE  Command failed with exit code 1.

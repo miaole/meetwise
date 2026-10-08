@@ -23,7 +23,10 @@
  */
 import { isKnownEstimatorVersion, refineEstimate, type CalibratedFactor, type EstimatorVersion } from './usage-reconciliation.ts';
 import { byteEstimate } from './model-client.ts';
-import { assertCalibrationModelMatch, isG7FreetierReproveEnabled } from './g7-freetier-reprove-guard.ts';
+import { assertCalibrationModelMatch } from './g7-freetier-reprove-guard.ts';
+// GODFN-1b: G7 test-state sensing arrives via composition-root injection —
+// zero `isG7FreetierReproveEnabled(process.env)` direct reads in production src.
+import { g7RuntimeInjection } from './g7-runtime-injection.ts';
 import type { ModelCostPolicy } from './invoke.ts';
 
 /** 显式 enum：预算结果状态。degraded = 确定性降级后仍可派发（已裁低优先级材料）；rejected = 裁无可裁仍超 → 拒绝。 */
@@ -278,7 +281,7 @@ export function planDispatchBudget(components: ContextBudgetComponents, policy: 
   // Under G7, any calibration requires both bound+dispatch models and an exact match.
   // Outside G7, assert whenever calibration is present and either model field is provided.
   if (policy.calibration !== undefined) {
-    const g7 = isG7FreetierReproveEnabled(process.env);
+    const g7 = g7RuntimeInjection().freetierReproveEnabled();
     if (g7 || policy.calibrationBoundModel !== undefined || policy.dispatchModel !== undefined) {
       const bound = policy.calibrationBoundModel;
       const dispatch = policy.dispatchModel;

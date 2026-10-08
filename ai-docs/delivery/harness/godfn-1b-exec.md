@@ -1,6 +1,6 @@
 # GODFN-1b — G7 卫兵移组合根 EXEC 刀（按已 nail 设计执行）
 
-**状态**：`draft_rev3:awaiting_pre_exec_dual`（rev2 失误：处方仅落状态行未落实体两行——rev3 实改 §3③ 与 §4 两行「EXIT=0 或 base 同红零回归」+收据路径归一 godfn-decompose/1b） · base = 主线 `16b40f0d` · 分支 `line/godfn-1b-g7guard` · 蓝本 = **已 nail 设计** `ai-docs/delivery/harness/godfn-decompose.md` @37705a3e（§5.2 1b 清单+§5.2b r4 读者名单补引+§2.2 env 澄清+§7.3 条款）——薄壳零重议。
+**状态**：`exec:awaiting_post_prove_dual`（EXEC 完账 @mw-core：diff 面=卫兵移动面 11 tracked+5 新增/随迁 · prove 全键终态落卷 `receipts/godfn-decompose/1b/prove-godfn-1b.md`——ai-runtime 17+新静态门 1+api voice 3 全 EXIT=0 · r4 族 36=8 绿+28 base≡red 签名逐行一致（含 live-pg/nhp 强制位点）· trio 3 base≡red 零 live spend · est live=0 · 三钉 blob 零位移 · §5.2b 读者名单前后必看已看 · attempts 全账含 stash 仪器失误披露 · §7.3 先于 1d · Ban self-approve·alone≠dual） · 原 draft_rev3 记录：rev2 失误：处方仅落状态行未落实体两行——rev3 实改 §3③ 与 §4 两行「EXIT=0 或 base 同红零回归」+收据路径归一 godfn-decompose/1b · base = 主线 `16b40f0d` · 分支 `line/godfn-1b-g7guard` · 蓝本 = **已 nail 设计** `ai-docs/delivery/harness/godfn-decompose.md` @37705a3e（§5.2 1b 清单+§5.2b r4 读者名单补引+§2.2 env 澄清+§7.3 条款）——薄壳零重议。
 
 ## 1. 范围（照设计 §5.2 1b 行）
 G7 freetier reprove 卫兵从散读点（model-client.ts :220/:347/:376 直读 process.env·context-budget.ts :281）移至组合根（apps/api/src/main.ts:2 + apps/worker/src/main.ts:9 无条件 import 单读点注入）——语义零变（=1 判定钉写设计 §2.2 冻结）·`g7-outbound-interceptor.ts :79` 收注入 env 参数形态保形。
