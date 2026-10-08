@@ -28,7 +28,7 @@
 
 ### 1.1 死亡窗码面定性（本席亲读 @`84bbef23` · 亲算 blob §1.4）
 
-尾段旅程结构（`e2e/full.e2e.ts` blob `7d65d0f3` · 与 G7W 时代全等）：主循环 `driveInterviewToTerminal`（`e2e/helpers/interview.ts:286` deadline 默认 `INTERVIEW_TERMINAL_DEADLINE_MS=420_000` :7 · 终态族 :8 `report_ready/report_unavailable/assessment_unavailable/interview_unavailable/error`）→ **step 7**（:212-216）`GET /interview/:id/report` + 2 断言（status 可查 / 与终态自洽）→ **7a**（:218-238）报告失败隔离：第三 interview `POST /interview`（:220）→ begin 复用**同 resume-id**（:223）→ failLoop 期望 `report_unavailable`+`quarantined`（:236-237）→ **7b**（:240-256）quiz/diagnosis 全栈 → **step 8**（:258+）B 端 `job_posting` → **step 9**（:292）`applyToJob`（`recruiter.ts:132` → `INSERT INTO job_application` :137-141）。
+尾段旅程结构（`e2e/full.e2e.ts` blob `7d65d0f3` · 与 G7W 时代全等）：主循环 `driveInterviewToTerminal`（`e2e/helpers/interview.ts:286` deadline 默认 `INTERVIEW_TERMINAL_DEADLINE_MS=420_000` **:6** · 终态族 **:7** `report_ready/report_unavailable/assessment_unavailable/interview_unavailable/error`）〔EXEC erratum @`fe218b7a`：REQUEST 版误写 :7/:8，按 harness 行号重核条款亲读纠正 · model-op 席处方〕→ **step 7**（:212-216）`GET /interview/:id/report` + 2 断言（status 可查 / 与终态自洽）→ **7a**（:218-238）报告失败隔离：第三 interview `POST /interview`（:220）→ begin 复用**同 resume-id**（:223）→ failLoop 期望 `report_unavailable`+`quarantined`（:236-237）→ **7b**（:240-256）quiz/diagnosis 全栈 → **step 8**（:258+）B 端 `job_posting` → **step 9**（:292）`applyToJob`（`recruiter.ts:132` → `INSERT INTO job_application` :137-141）。
 
 服务端面：`GET report`=`interview.service.ts:672` **快读**（有行返 status/content、无行查 interview_event 终态族、真进行中 404）——**不等报告生成**；报告生成走舱壁 `apps/worker/src/report-worker.ts`（blob `06d87f73`）`drainReportsOnce`（:30 tx1 claim → 模型事务外 → tx2 finalize · markReportFailed :49 · 租约 120s 量级 :44 注记）+ `sweepReportsOnce`（:63 重排 failed/隔离 poison-pill → `report_unavailable` 事件 :66-68）。API 无 per-request access log（`apps/api/src/main.ts:22` `logger: false` 亲算 blob `d20dbed0`）——「请求是否到达服务端」不可从日志直读=仪器边界如实记。
 
@@ -97,7 +97,7 @@
 |---|---|---|---|
 | 尾段旅程 | `e2e/full.e2e.ts:186-210`（主循环/终态）· `:212-216`（step 7）· `:218-238`（7a 第三 interview · `:220` POST / `:223` 同 resume-id begin）· `:240-256`（7b）· `:258+`（step 8）· `:292`（apply） | `7d65d0f3` | 死亡窗码面区间（与 G7W 时代 blob 全等亲算） |
 | class=api 兜底 | `e2e/full.e2e.ts:383-385` | `7d65d0f3` | `main().catch → emitClassifiedE2EFailure(e,{class:'api',code:'client_uncaught'})` |
-| 终态驱动 | `e2e/helpers/interview.ts:7`（`INTERVIEW_TERMINAL_DEADLINE_MS=420_000`）· `:8`（终态族）· `:286`（deadline 默认） | `c8e63f41` | deadline 420s ≫ 12s 尾窗 → 终态 deadline 非死因候选的码面依据 |
+| 终态驱动 | `e2e/helpers/interview.ts:6`（`INTERVIEW_TERMINAL_DEADLINE_MS=420_000`）· `:7`（终态族）· `:286`（deadline 默认） | `c8e63f41` | deadline 420s ≫ 12s 尾窗 → 终态 deadline 非死因候选的码面依据〔EXEC erratum @`fe218b7a`：:7/:8→:6/:7 亲读纠正〕 |
 | SSE abort 语义 | `e2e/helpers/sse.ts:63`（`timeoutMs=1200` 默认）· `:94`（pollTerminal 60s） | `9bba015d` | 「short abort 期望内非产品失败」自述 · H-T4 sse 子面界线 |
 | withhold 冻结 | `scripts/run-e2e-isolated.mjs:2088`（stderr 丢弃）· `:2143`（WITHHELD）· `:2310`（PG 端口行） | `13dbfc43` | 与 G7R/G7U/G7W 冻结钉全等——本刀零 diff 机检承重锚 |
 | 报告舱壁 | `apps/worker/src/report-worker.ts:30`（drainReportsOnce tx1/模型/tx2）· `:49`（markReportFailed）· `:63-68`（sweep→report_unavailable）· `:44`（120s 租约注记） | `06d87f73` | H-T1 机制面 |
@@ -106,7 +106,7 @@
 | applyToJob | `packages/db/src/recruiter.ts:132`（函数）· `:137-141`（INSERT job_application） | `d06b4f49` | application face 写入方（G7W 承卷亲读锚 @tip 重核） |
 | schema 读数面 | `packages/db/migrations/0001_baseline.sql:38`（interview_event）· `:336`（assessment_report status CHECK pending/ready/failed）· `0005_job_application.sql:20` · `0037_ai_model_invocation_durable_claim.sql:7`（service/latency_ms/completed_at 列）· `0004_recruiter.sql:3`（job_posting）· `0007_resume_quiz.sql:5/:17`（resume_quiz/quiz_job）· `0008_resume_diagnosis.sql`（resume_diagnosis） | —（migration 锚） | 新增 SQL 读数 N1-N5 的 schema 依据（EXEC 期逐条重核） |
 | 已清面 | `packages/ai-runtime/src/model-operation-registry.ts:63-71` | `63af556f` | G7R post-dual 裁决清面——**零触碰** |
-| 旧红③ 断言 | `e2e/full.e2e.ts:202-204` | `7d65d0f3` | C-MO-P3 断言语义刀——**本刀零触碰零 diff** |
+| 旧红③ 断言 | `e2e/full.e2e.ts:201-203` | `7d65d0f3` | C-MO-P3 断言语义刀——**本刀零触碰零 diff**〔EXEC erratum @`fe218b7a`：:202-204→:201-203 亲读纠正 · provenance 断言 `A(provenance.trustedBSideScore…)` 三行 201-203 实测〕 |
 | wiring | `package.json:278`（`e2e:isolated`） | `0afb3bd2` | T-1/T-2 CMD 入口 |
 
 ## 2. 边界（Ban 清单）
