@@ -27,7 +27,8 @@
  * 分层纪律：形状校验归 domain（validateModelRouteOutput / classifyFreeTextByRule）；本层只把
  * 字段送进承重 SQL 并映射返回值。
  */
-import { createHmac, randomUUID } from 'node:crypto';
+import { createHmac } from 'node:crypto';
+import { newEntityId } from './ids.ts';
 import type { PoolClient as Client } from 'pg';
 import { asPrincipal, type DbPool } from './principal.ts';
 import {
@@ -114,7 +115,7 @@ export type ClassifyFreeTextScopeResult =
 async function writeFreeTextRouteUnresolved(c: Client, args: {
   scopeId: string; owner: string; revision: number; attemptOutcome: FreeTextRouteAttemptOutcome; reasonCodes: string[];
 }): Promise<{ decisionId: string }> {
-  const decisionId = 'ftd_' + randomUUID();
+  const decisionId = newEntityId('ftd');
   const decisionHash = freeTextRouteDecisionHash({
     scopeId: args.scopeId, revision: args.revision,
     taxonomyVersion: JOB_ROUTE_TAXONOMY_VERSION, policyVersion: JOB_ROUTE_POLICY_VERSION,
@@ -144,7 +145,7 @@ async function writeFreeTextRouteDecided(c: Client, args: {
   allocations: JobRouteAllocation[]; confidenceBps: number; marginBps: number;
   fromStatus: 'rule_decided' | 'result_validated';
 }): Promise<{ decisionId: string }> {
-  const decisionId = 'ftd_' + randomUUID();
+  const decisionId = newEntityId('ftd');
   const decisionHash = freeTextRouteDecisionHash({
     scopeId: args.scopeId, revision: args.revision,
     taxonomyVersion: JOB_ROUTE_TAXONOMY_VERSION, policyVersion: JOB_ROUTE_POLICY_VERSION,

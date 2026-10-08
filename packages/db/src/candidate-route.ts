@@ -15,7 +15,7 @@
  * 门语义零弱化（C-HA/C-MO 铁律）：worker adaptive-role-resolve fail-closed 门零改动——本模块
  * 只解决「供给缺失」，缺行/缺叶仍拒（拒因前移非拒体消失）。releaseEvidence=false · Not HA。
  */
-import { randomUUID } from 'node:crypto';
+import { newEntityId } from './ids.ts';
 import type { PoolClient as Client } from 'pg';
 import {
   CANDIDATE_ROUTE_TAXONOMY_VERSION, CANDIDATE_ROUTE_POLICY_VERSION, CANDIDATE_ROUTE_REVISION,
@@ -70,7 +70,7 @@ export async function supplyCandidateProfileRoute(c: Client, owner: string, inte
     interviewId, resumeId, inputDigest,
     leafTrackId: rule.leafTrackId, allocationBps: rule.allocationBps, policyVersion: CANDIDATE_ROUTE_POLICY_VERSION,
   });
-  const decisionId = 'cprd_' + randomUUID();
+  const decisionId = newEntityId('cprd');
   const ins = await c.query(
     `INSERT INTO candidate_profile_route_decision
        (id,interview_id,owner_user_id,resume_id,resume_content_sha,input_digest,

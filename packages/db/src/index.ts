@@ -81,6 +81,10 @@ export {
 } from './recruiter.ts';
 export type { JobPosting, JobApplication, TalentRow, TalentQuery, StartApplicationResult, FinalizeApplicationResult, AssessmentUnavailableMark } from './recruiter.ts';
 
+// 实体 ID 工厂（DBID-1 · B 级统一：UUIDv7 时间有序尾巴 + 前缀注册表 fail-closed）。
+export { newEntityId, newUuidV7, idUnixMs, ENTITY_PREFIXES } from './ids.ts';
+export type { EntityPrefix } from './ids.ts';
+
 // resume 存储 ops（S2 摄取存储侧：加密原文 + 状态机 + 脱敏 profile）
 export {
   createResumeWithBlob, transitionResume, persistResumeProfile, completeIngestion, failIngestion,

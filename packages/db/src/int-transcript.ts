@@ -16,7 +16,8 @@
  *     → 冲突抛错（DB 只保证键唯一，正文唯一性由本层比对 canonical_body_hmac 判）。
  */
 import type { Client } from './principal.ts';
-import { createHmac, randomUUID } from 'node:crypto';
+import { createHmac } from 'node:crypto';
+import { newUuidV7 } from './ids.ts';
 import { assertInterviewPrivacyActive } from './checkpoint-privacy.ts';
 import { assertInterviewAnswerLedgerWriteAllowed, remapInterviewAnswerDualWriteError } from './interview-answer-dual-write.ts';
 
@@ -126,11 +127,11 @@ export async function submitInterviewAnswer(c: Client, input: SubmitInterviewAns
 
   // app_role 只 INSERT 不 SELECT（ciphertext/指纹都不可读），故两处约束：
   //   1) 不用 `INSERT ... RETURNING id`——RETURNING 额外要求被返回列的 SELECT 权限；
-  //      三张表的 id 由本层 `randomUUID()` 预生成、以参数显式传入。
+  //      三张表的 id 由本层 `newUuidV7()` 预生成、以参数显式传入（DBID-1：v7 时间有序）。
   //   2) 不用 `ON CONFLICT DO NOTHING`——PostgreSQL 要求能读冲突行（表级 SELECT + RLS 策略），
   //      而 submission 对 app_role 无 SELECT 策略；且唯一冲突会 abort 整个事务。与 resume.ts
   //      persistResumeProfile 同源：SAVEPOINT 把重试竞态局部化，保持幂等又不削弱读边界。
-  const submissionId = randomUUID();
+  const submissionId = newUuidV7();
   let inserted = true;
   await c.query('SAVEPOINT answer_submission_insert');
   try {
@@ -150,7 +151,7 @@ export async function submitInterviewAnswer(c: Client, input: SubmitInterviewAns
   await c.query('RELEASE SAVEPOINT answer_submission_insert');
 
   if (inserted) {
-    const artifactId = randomUUID();
+    const artifactId = newUuidV7();
     try {
       await c.query(
         `INSERT INTO interview_answer_artifact(id,owner_user_id,interview_id,question_id,state_version,submission_id,ciphertext,body_hmac,hmac_key_version,enc_key_version,privacy_epoch,status)
@@ -161,7 +162,7 @@ export async function submitInterviewAnswer(c: Client, input: SubmitInterviewAns
     } catch (error) {
       remapInterviewAnswerDualWriteError(error);
     }
-    const jobId = randomUUID();
+    const jobId = newUuidV7();
     await c.query(
       `INSERT INTO interview_answer_job(id,owner_user_id,interview_id,question_id,state_version,artifact_ref,status)
        VALUES ($1,current_setting('app.principal_user', true),$2,$3,$4,$5,'queued')`,

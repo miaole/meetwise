@@ -1,6 +1,6 @@
 import { Injectable, Inject, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { createHash, randomUUID } from 'node:crypto';
-import { assertInterviewPrivacyActive, reserveEntitlement, enqueueInterviewJob, getReport, abandonInterviewAndRelease, requeueFailedReport, claimInterviewAnswer, listScorableScoreCards, submitInterviewAnswer, viewInterviewAnswerSnapshot, readbackInterviewAnswerSubmission, supplyCandidateProfileRoute, requireOwnerUserId, buildRequiredOwnerFilter } from '@meetwise/db';
+import { assertInterviewPrivacyActive, reserveEntitlement, enqueueInterviewJob, getReport, abandonInterviewAndRelease, requeueFailedReport, claimInterviewAnswer, listScorableScoreCards, submitInterviewAnswer, viewInterviewAnswerSnapshot, readbackInterviewAnswerSubmission, supplyCandidateProfileRoute, requireOwnerUserId, buildRequiredOwnerFilter, newEntityId } from '@meetwise/db';
 import { deriveAssessment, deriveLearningPlan, deriveCareerPath, resolveOverlongAnswerPolicy, isTrustedScoreIdentity, requireTrustedPracticeOverall } from '@meetwise/domain';
 import { runCareerPathGraph, selectCareerPathDerive, CAREER_PATH_GRAPH_NAME } from '@meetwise/ai-graphs';
 import { VOICE_EGRESS_DISABLED_ID, type Asr, type Tts, type StreamingTts } from '@meetwise/ai-runtime';
@@ -607,7 +607,7 @@ export class InterviewService {
       const open = await c.query(
         "SELECT id, status FROM interview WHERE status NOT IN ('completed','abandoned','failed') ORDER BY id DESC LIMIT 1"); // RLS 只见己(集合端点空集=合法,E5 白名单)
       if (open.rowCount! > 0) return { interviewId: open.rows[0].id, status: open.rows[0].status, reused: true };
-      const id = 'iv_' + randomUUID();
+      const id = newEntityId('iv');
       await c.query("INSERT INTO interview(id, owner_user_id, status) VALUES ($1,$2,'created')", [id, owner]); // RLS WITH CHECK owner=principal
       return { interviewId: id, status: 'created', reused: false };
     });

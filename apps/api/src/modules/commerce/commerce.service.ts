@@ -1,6 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { randomUUID, createHmac, timingSafeEqual } from 'node:crypto';
-import { createOrder, getOrder, markOrderPaidAndCredit, markOrderRefunded, availableUnits, requireOwnerUserId } from '@meetwise/db';
+import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createOrder, getOrder, markOrderPaidAndCredit, markOrderRefunded, availableUnits, requireOwnerUserId, newEntityId } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
 
 /**
@@ -24,7 +24,7 @@ export class CommerceService {
   async createOrder(principal: string, dto: { productId?: string }, idempotencyKey?: string) {
     const p = PRODUCTS.find((x) => x.id === dto?.productId);
     if (!p) throw new HttpException({ error: 'unknown_product' }, HttpStatus.BAD_REQUEST);
-    const id = 'ord_' + randomUUID();
+    const id = newEntityId('ord');
     let orderId: string;
     try {
       orderId = await this.db.asPrincipal(principal, (c) =>              // 幂等:同 key 同参重试返回原单

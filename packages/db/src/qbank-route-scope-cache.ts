@@ -22,7 +22,8 @@
  *
  * 分层纪律：形状校验归 domain（validateRouteScopeCacheFacets）；本层只把字段送进承重 SQL 并映射返回值。
  */
-import { createHmac, randomUUID } from 'node:crypto';
+import { createHmac } from 'node:crypto';
+import { newEntityId } from './ids.ts';
 import type { PoolClient as Client } from 'pg';
 import { asPrincipal, type DbPool } from './principal.ts';
 import {
@@ -155,7 +156,7 @@ export async function recordRouteScopeNegativeResult(
     for (const row of older.rows) {
       await appendCacheEvent(c, owner, digest, 'active', 'superseded', 'superseded_by_re_record');
     }
-    const id = 'nr-' + randomUUID();
+    const id = newEntityId('nr');
     const ins = await c.query(
       `INSERT INTO qbank_route_scope_negative_result(
          id, owner_user_id, route_scope_cache_digest, route_scope_digest, leaf_track_id, taxonomy_version,

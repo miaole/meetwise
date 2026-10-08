@@ -29,7 +29,7 @@
  * 分层纪律：schema 校验与 leaf ∈ allocations 判定归 domain（validateQuestionPlan /
  * validateGeneratedQuestion）；本层只把字段送进承重 SQL 并映射返回值，与 job-route-decision.ts 一致。
  */
-import { randomUUID } from 'node:crypto';
+import { newEntityId } from './ids.ts';
 import type { PoolClient as Client } from 'pg';
 import { asPrincipal, type DbPool } from './principal.ts';
 import { getInterviewRouteSnapshot } from './job-route-decision.ts';
@@ -264,7 +264,7 @@ async function projectQuestion(c: Client, owner: string, planId: string, plan: Q
   }, `question_ready:${questionId}`);
 
   // provenance（仅脱敏 digest，origin=llm_qbank_miss；无用户正文/PII/raw prompt）。
-  const provenanceId = 'qip-' + randomUUID();
+  const provenanceId = newEntityId('qip');
   await c.query(
     `INSERT INTO question_issue_provenance(
        id, owner_user_id, interview_id, question_id, origin, plan_id, leaf_track_id, taxonomy_version,
