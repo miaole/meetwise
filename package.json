@@ -155,6 +155,8 @@
     "uc014:webhook-adv:prove:raw": "pnpm -C apps/api prove:uc014-webhook-adv",
     "uc010:sse-resume:prove": "node scripts/run-e2e-isolated.mjs uc010:sse-resume:prove:raw",
     "uc010:sse-resume:prove:raw": "pnpm -C apps/api prove:uc010-sse-resume",
+    "sse-push:notify:prove": "node scripts/run-e2e-isolated.mjs sse-push:notify:prove:raw",
+    "sse-push:notify:prove:raw": "pnpm -C apps/api prove:sse-push-notify",
     "uc033:cross-user-authz:prove": "node scripts/run-e2e-isolated.mjs uc033:cross-user-authz:prove:raw",
     "uc033:cross-user-authz:prove:raw": "pnpm -C apps/api prove:uc033-cross-user-authz",
     "uc025:stale-quiz-expiry:prove": "node scripts/run-e2e-isolated.mjs uc025:stale-quiz-expiry:prove:raw",
