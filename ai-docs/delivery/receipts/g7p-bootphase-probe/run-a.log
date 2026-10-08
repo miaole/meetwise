@@ -1,0 +1,20 @@
+PROBE_SCRIPT_SHA256 path=scripts/e2e-boot-probe.mjs sha256=1629af6f75928496167c4ffa74401a1041ed4b532c8a730e6a42195bea50007e
+PROBE_META label=A pid=66826 ts=2026-10-08T12:09:56.871Z container=meetwise-g7p-probe-66826-1791461396870 image=pgvector/pgvector:pg16 api_port=26826 worker_metrics_port=26827 node=v22.22.3
+E2E isolated PostgreSQL: meetwise-g7p-probe-66826-1791461396870 on 127.0.0.1:54963
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+PROBE_SEGMENT segment=probe_pg_1 status=ok elapsed_ms=1909 ts=2026-10-08T12:09:58.780Z detail=pg_port=54963,ready_attempt=4
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-line-g7boot/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=144 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+PROBE_SEGMENT segment=probe_migrate_2 status=ok elapsed_ms=5896 ts=2026-10-08T12:10:04.676Z detail=migrate_attempts=1,post_migrate_attempt=3,pre_prove_attempt=3
+PROBE_SEGMENT segment=probe_spawn_3 status=ok elapsed_ms=504 ts=2026-10-08T12:10:05.180Z detail=api_pid=67042,worker_pid=67048,mode=back-to-back
+PROBE_SEGMENT segment=probe_api_livez_4 status=ok elapsed_ms=1032 ts=2026-10-08T12:10:06.213Z detail=first_200_attempt=1
+PROBE_SEGMENT segment=probe_db_gate_5 status=ok elapsed_ms=1045 ts=2026-10-08T12:10:07.258Z detail=login_401_attempt=1
+PROBE_SEGMENT segment=probe_exit_check_6 status=ok elapsed_ms=3010 ts=2026-10-08T12:10:10.268Z detail=api_exit=null,worker_exit=null,worker_livez=ok,readyz_worker=ok
+PROBE_SEGMENT segment=probe_api_readyz_7 status=ok elapsed_ms=1006 ts=2026-10-08T12:10:11.275Z detail=readyz_api_200_attempt=1
+PROBE_SEGMENT segment=probe_first_signup_8 status=ok elapsed_ms=60 ts=2026-10-08T12:10:11.335Z detail=signup_http=200,token_present=true
+PROBE_SUMMARY exit=0 total_ms=14465 segments_completed=8 segment_parts=probe_pg_1:ok:1909ms,probe_migrate_2:ok:5896ms,probe_spawn_3:ok:504ms,probe_api_livez_4:ok:1032ms,probe_db_gate_5:ok:1045ms,probe_exit_check_6:ok:3010ms,probe_api_readyz_7:ok:1006ms,probe_first_signup_8:ok:60ms
