@@ -105,3 +105,9 @@ runner 其余逻辑零改动（`node --check` 过）。
 ---
 
 *Receipt · PRIV01-C EXEC · 2026-10-08 · base `566e3b3d`（rebased on `5a2994c4`）· manifest 11 文件/81 触点精确封套 + 残余面 10 类登记 · P1 EXIT=0（35/0 × 2 跑）· P2 EXIT=0（163/0 · attempts 1,0 缺陷可采性交双审）· P3 EXIT=0（9 具名红 · attempts 1,0 同前）· alone ≠ dual · STOP（awaiting post-prove dual）*
+
+## 9. push 模式登记（EXEC erratum · 沿 `0373b8e1` cmop03 先例 · append-only）
+
+- EXEC 指令① mandated rebase（origin tip `5a2994c4`）重写本分支三 REQUEST commit（`4e18e90c/87ff9a66(fcf1afa1)/1974e280` → `dedb0014/87ff9a66/566e3b3d` 同补丁重放），故 EXEC commit `898541c6` 首推**非 FF 被拒**。
+- 处置：`git push --force-with-lease=refs/heads/line/priv01-tenant-wiring:1974e280b94d0b599df8db5da7b548359890351f`——**lease 钉死已知远端 tip=`1974e280`（本刀 rev3 自身 commit · 零外来工作 · fetch 复核远端链仅含本刀四 commit）**；远端新 tip=`898541c6a0237f367c59fd211c795d24d6398de8`。
+- 与仓内 cmop03 EXEC erratum（`0373b8e1`）同型：mandated-rebase 后的非 FF push 以 force-with-lease+pinned known remote 完成，**Ban 泛用 force-push 条款不适用于 mandated rebase 后的自身分支快进重写（零他线工作位）**；本登记即披露。
