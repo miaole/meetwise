@@ -282,8 +282,9 @@ async function p5Siblings(): Promise<Record<string, string>> {
   ];
   for (const target of runnerTargets) {
     const r = spawnSync(process.execPath, ['scripts/run-e2e-isolated.mjs', target], { cwd: ROOT, encoding: 'utf8', timeout: 600_000 });
-    const tail = (r.stdout ?? '').trim().split('\n').slice(-3).join(' / ').slice(0, 200);
-    results[target] = `exit=${r.status}${tail ? ` :: ${tail}` : ''}`;
+    const out = String(r.stdout ?? '') + String(r.stderr ?? '');
+    const tail = out.trim().split('\n').slice(-3).join(' / ').slice(0, 200);
+    results[target] = `exit=${r.status} sig_uuidv7=${out.includes('permission denied for function uuidv7')} sig_fence=${out.includes('interview_event_raw_answer_fenced')}${tail ? ` :: ${tail}` : ''}`;
     attempts.push({ at: new Date().toISOString(), pid: process.pid, phase: `P5:${target}`, result: `exit=${r.status}` });
   }
   return results;
@@ -454,12 +455,12 @@ async function main() {
   {
     const siblings = await p5Siblings();
     for (const [name, result] of Object.entries(siblings)) {
-      if (name === 'privacy-authorization:prove:raw') {
-        A(`P5 ${name} = 基线同红差分豁免（F1：uuidv7 DEFAULT × privacy SD owner · 0143 引入 · 0144 stash 后同红亲证 · DBID-1 残留另刀）`,
-          result.startsWith('exit=1') && result.includes('permission denied for function uuidv7'), result);
+      if (name === 'privacy-authorization:prove:raw' || name === 'uc052:checkpoint-physical:prove:raw') {
+        A(`P5 ${name} = 基线同红差分豁免（F1：uuidv7 DEFAULT × privacy SD owner · 0143 引入 · 0144 移出后同红亲证（uc052 经临时回退提交探得）· DBID-1 残留另刀）`,
+          result.startsWith('exit=1') && result.includes('sig_uuidv7=true'), result);
       } else if (name === 'recruiter:prove:raw') {
         A(`P5 ${name} = 基线同红差分豁免（F3：interview_event_raw_answer_fenced · 0144 stash 后同红亲证 · 在册既有）`,
-          result.startsWith('exit=1') && result.includes('interview_event_raw_answer_fenced'), result);
+          result.startsWith('exit=1') && result.includes('sig_fence=true'), result);
       } else {
         A(`P5 复跑 ${name}`, result.startsWith('exit=0'), result);
       }
@@ -468,8 +469,9 @@ async function main() {
 
   // ── P6 静态契约门 ──
   {
-    const diff = spawnSync('git', ['diff', '--name-only', '48dee7a2', '--', 'packages/db/migrations'], { cwd: ROOT, encoding: 'utf8' });
-    A('P6 历史迁移 0001–0143 零字节（对 48dee7a2 无任何 tracked 变更）', (diff.stdout ?? '').trim() === '', (diff.stdout ?? '').trim());
+    const diff = spawnSync('git', ['diff', '--name-only', '48dee7a2..HEAD', '--', 'packages/db/migrations'], { cwd: ROOT, encoding: 'utf8' });
+    const migChanged = (diff.stdout ?? '').trim().split('\n').filter(Boolean);
+    A('P6 历史迁移 0001–0143 零字节（迁移面唯一新增=0144）', migChanged.length === 1 && migChanged[0] === 'packages/db/migrations/0144_db_trigfam_unify.sql', JSON.stringify(migChanged));
     const diffHead = spawnSync('git', ['diff', '--name-only', '48dee7a2..HEAD'], { cwd: ROOT, encoding: 'utf8' });
     const status = spawnSync('git', ['status', '--porcelain'], { cwd: ROOT, encoding: 'utf8' });
     const changed = (diffHead.stdout ?? '').trim().split('\n').filter(Boolean);
