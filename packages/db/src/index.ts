@@ -19,6 +19,8 @@ export {
 } from './principal.ts';
 export type { Client, DbPool, PoolOverrides, RuntimeLoginInput } from './principal.ts';
 export { assertIsolatedTestEnvironment, assertIsolatedTestTarget } from './isolated-test-target.ts';
+export { AppError, asErr, errCode } from './errors.ts';
+export type { ErrLike } from './errors.ts';
 
 // App-level tenant enforcement prototype (additive MySQL path).
 // 应用层 tenant ≠ RLS — does not replace asPrincipal / set_config / FORCE RLS.

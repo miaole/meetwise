@@ -5,7 +5,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { createPool } from '@meetwise/db';
+import { AppError, createPool } from '@meetwise/db';
 import { z } from 'zod';
 import { failoverModel, invoke, modelFor, rateLimitedModel, type Model, type ModelClient, type ModelCostPolicy } from '../src/index.ts';
 
@@ -227,7 +227,7 @@ async function main() {
       return {
         ready: true as const,
         admit: async () => {
-          if (primaryProbeHeld) throw new Error('model_circuit_half_open');
+          if (primaryProbeHeld) throw new AppError('model_circuit_half_open');
           primaryProbeHeld = true;
           return { release: () => { primaryProbeHeld = false; } };
         },

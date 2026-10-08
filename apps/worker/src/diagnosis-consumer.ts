@@ -3,7 +3,7 @@
  * 镜像 quiz-consumer 的三事务式(claim 提交 → 生命周期短事务 → markDone)+ **失败路径(无泄漏)**:
  *   job 失败=终态(诊断不重试到无穷)→ markFailed + 发 diagnosis_unavailable 终态事件(前端不死等)+ release 预留额度(不白扣)。
  */
-import { asPrincipal, gatewayDispatchOwners, claimNextDiagnosisJob, markDiagnosisJobDone, markDiagnosisJobFailed, appendEvent, releaseConsumption, renewDiagnosisJobLease, sweepStuckDiagnosisJobs, RESUME_DERIVATIVE_REFERENCE_VERSION, type DbPool } from '@meetwise/db';
+import { asPrincipal, gatewayDispatchOwners, claimNextDiagnosisJob, markDiagnosisJobDone, markDiagnosisJobFailed, appendEvent, releaseConsumption, renewDiagnosisJobLease, sweepStuckDiagnosisJobs, RESUME_DERIVATIVE_REFERENCE_VERSION, errCode, asErr, type DbPool } from '@meetwise/db';
 import type { ModelClient } from '@meetwise/ai-runtime';
 import { runDiagnosis } from './diagnosis-lifecycle.ts';
 import { runDrainLoop } from './drain-loop.ts';
@@ -33,11 +33,12 @@ export async function drainDiagnosisJobOnce(d: DiagnosisConsumerDeps, owner: str
     await runDiagnosis(d.pool, owner, job.diagnosisId, job.resumeId!, job.privacyEpoch!, d.model);
     await asPrincipal(d.pool, owner, (c) => markDiagnosisJobDone(c, owner, job.id, d.leaseOwner));
     return 'generate';
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const err = asErr(e);
     await asPrincipal(d.pool, owner, async (c) => {
       // **租约守卫**:markFailed 的 CAS 含 lease_owner=本机;若已被重领(0 行 → false),本 worker 已不持租约 → 静默退出,
       // 不发终态事件、不退额度(否则会退掉现租约持有者正要 confirm 的预留 = 漏扣)。
-      const isLegacyReference = e?.code === 'legacy_resume_reference_unresolved';
+      const isLegacyReference = errCode(err) === 'legacy_resume_reference_unresolved';
       // Never deserialize a historical payload.  Its terminal transition
       // atomically redacts it so future maintenance code cannot recover it.
       const stillMine = isLegacyReference
@@ -47,7 +48,7 @@ export async function drainDiagnosisJobOnce(d: DiagnosisConsumerDeps, owner: str
            WHERE id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3`,
           [job.id, owner, d.leaseOwner],
         )).rowCount === 1
-        : await markDiagnosisJobFailed(c, owner, job.id, d.leaseOwner, e?.message ?? 'err');
+        : await markDiagnosisJobFailed(c, owner, job.id, d.leaseOwner, (err?.message ?? 'err') as string);
       if (!stillMine) return;
       // 不把已 ready 的诊断倒退(confirm 后 markDone 抛错也会落此 catch);仅从非终态置 failed。
       await c.query("UPDATE resume_diagnosis SET status='failed', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status NOT IN ('ready')", [job.diagnosisId, owner]);

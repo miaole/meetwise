@@ -29,7 +29,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
-import { assertIsolatedTestTarget, createPool } from '@meetwise/db';
+import { AppError, assertIsolatedTestTarget, createPool } from '@meetwise/db';
 import {
   failoverModel, invoke, modelFor,
   type Model, type ModelClient, type ModelCostPolicy, type ModelResult,
@@ -246,7 +246,7 @@ async function main() {
         return {
           ready: true as const,
           cost: mismatchPrepareCalls === 1 ? mismatchPolicyA : mismatchPolicyB,
-          admit: async () => { throw new Error('model_circuit_half_open'); },
+          admit: async () => { throw new AppError('model_circuit_half_open'); },
           execute: () => mismatchCall(),
         };
       },
@@ -290,7 +290,7 @@ async function main() {
           cost: samePolicy,
           admit: async () => {
             sameAdmitCalls++;
-            if (sameAdmitCalls === 1) throw new Error('model_circuit_half_open');
+            if (sameAdmitCalls === 1) throw new AppError('model_circuit_half_open');
             return { release: () => {} };
           },
           execute: () => sameCall(),

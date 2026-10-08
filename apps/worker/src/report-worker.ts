@@ -4,7 +4,7 @@
  * 这样 failed/过期 running 真有人周期跟进（重排/重领/隔离），不是写了机制却无人调用。
  */
 import {
-  asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimReport, markReportReady, markReportFailed, sweepReports, appendEvent, insertNotification, type DbPool,
+  asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimReport, markReportReady, markReportFailed, sweepReports, appendEvent, insertNotification, asErr, type DbPool,
 } from '@meetwise/db';
 import { buildReportGraph, type GenerateReport, type InterviewSummary } from '@meetwise/ai-graphs';
 import { runDrainLoop } from './drain-loop.ts';
@@ -44,9 +44,10 @@ export async function drainReportsOnce(
     // 否则一次事件库/解密/聚合故障会平白增加 120 秒恢复延迟，并让调度器看起来像“没在工作”。
     const summary = await deps.loadSummary(owner, claim.interviewId);
     report = (await buildReportGraph({ generate: deps.generate }).invoke({ summary }))!.report!;  // 模型在事务外
-  } catch (e: any) {
-    if (e?.message === 'interview_privacy_fenced') return 'stale';
-    await asPrincipal(pool, owner, (c) => markReportFailed(c, owner, claim.reportId, leaseOwner, e?.message ?? 'err'));
+  } catch (e: unknown) {
+    const err = asErr(e);
+    if (err?.message === 'interview_privacy_fenced') return 'stale';
+    await asPrincipal(pool, owner, (c) => markReportFailed(c, owner, claim.reportId, leaseOwner, (err?.message ?? 'err') as string));
     return 'failed';
   }
   return asPrincipal(pool, owner, async (c) => {                                            // tx2 finalize

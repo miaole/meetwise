@@ -2,6 +2,7 @@
  * @meetwise/db · 支付订单 ops。承重:回调**幂等 exactly-once 入账**——CAS(created→paid)保证重复回调只入账一次。
  */
 import type { PoolClient as Client } from 'pg';
+import { errCode } from './errors.ts';
 
 /** 创建订单(幂等):同 owner+idempotencyKey 重试 → 返回已存在订单 id(不重复下单)。返回最终 orderId。 */
 export async function createOrder(
@@ -73,8 +74,8 @@ export async function markOrderPaidAndCredit(c: Client, owner: string, orderId: 
         RETURNING units`,
       [orderId, owner, providerTxn]);
     await c.query('RELEASE SAVEPOINT payment_provider_txn_claim');
-  } catch (e: any) {
-    if (e?.code !== '23505') throw e;
+  } catch (e: unknown) {
+    if (errCode(e) !== '23505') throw e;
     await c.query('ROLLBACK TO SAVEPOINT payment_provider_txn_claim');
     await c.query('RELEASE SAVEPOINT payment_provider_txn_claim');
     return 'conflict';
@@ -116,8 +117,8 @@ export async function markOrderRefunded(c: Client, owner: string, orderId: strin
           )
         RETURNING units`,
       [orderId, owner, providerTxn]);
-  } catch (e: any) {
-    if (e?.code !== '23505') throw e;
+  } catch (e: unknown) {
+    if (errCode(e) !== '23505') throw e;
     await c.query('ROLLBACK TO SAVEPOINT payment_refund_txn_claim');
     await c.query('RELEASE SAVEPOINT payment_refund_txn_claim');
     return 'conflict';

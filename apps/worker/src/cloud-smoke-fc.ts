@@ -2,6 +2,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { cloudSmokeFailure, type CloudSmokeReceipt, runCloudSmoke } from './cloud-smoke-runner.ts';
+import { AppError } from '@meetwise/db';
 
 const FIXED_ACK = 'I_UNDERSTAND_FIXED_TARGET_IS_READ_ONLY';
 const RUN_ID = /^[a-z0-9][a-z0-9-]{5,62}$/;
@@ -26,7 +27,7 @@ export type CloudSmokeFcDeps = {
 };
 
 function failure(code: string): never {
-  throw new Error(`cloud_smoke_fc_${code}`);
+  throw new AppError(`cloud_smoke_fc_${code}`);
 }
 
 function parseInvocation(event: unknown): string {

@@ -4,6 +4,7 @@
  */
 import type { PoolClient as Client } from 'pg';
 import { createHmac } from 'node:crypto';
+import { errCode } from './errors.ts';
 
 export type ResumeStatus = 'uploaded' | 'ingesting' | 'ingested' | 'failed' | 'erasure_fenced' | 'erased';
 
@@ -111,8 +112,8 @@ export async function persistResumeProfile(
        VALUES ($1,$2,$3,$4,$5,$6,$7)`,
       [resumeId, owner, JSON.stringify(structured), JSON.stringify(piiSummary), p.blocked.length, status, ocrBinding ? JSON.stringify(ocrBinding) : null],
     );
-  } catch (error: any) {
-    if (error?.code !== '23505') {
+  } catch (error: unknown) {
+    if (errCode(error) !== '23505') {
       await c.query(`ROLLBACK TO SAVEPOINT ${savepoint}`);
       throw error;
     }

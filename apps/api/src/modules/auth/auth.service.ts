@@ -1,6 +1,7 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { hashPassword, verifyPassword, signToken } from '@meetwise/domain';
+import { errCode } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
 import { RateLimitService } from '../../platform/rate-limit.service';
 
@@ -29,8 +30,8 @@ export class AuthService {
         'SELECT gateway_auth_signup($1,$2,$3,$4)',
         [id, email, hashPassword(password), role],
       ));
-    } catch (e: any) {
-      if (e?.code === '23505') throw new HttpException({ error: 'email_taken' }, HttpStatus.CONFLICT);   // 仅唯一冲突=邮箱已注册;其它 DB 错(连接/约束)照抛,不误报 email_taken 掩盖故障
+    } catch (e: unknown) {
+      if (errCode(e) === '23505') throw new HttpException({ error: 'email_taken' }, HttpStatus.CONFLICT);   // 仅唯一冲突=邮箱已注册;其它 DB 错(连接/约束)照抛,不误报 email_taken 掩盖故障
       throw e;
     }
     return { token: this.issue(id), userId: id, role };

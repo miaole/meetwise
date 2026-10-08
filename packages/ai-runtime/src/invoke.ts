@@ -14,7 +14,7 @@ import type { z } from 'zod';
 import {
   asPrincipal, isInterviewPrivacyActive, claimModelInvocation, completeModelInvocation, failModelInvocationClaim,
   markAiCostDispatched, markAiCostUnknown, markAiTextCostRejected, markModelInvocationDispatched,
-  markModelInvocationUnknown, reserveAiTextCost, settleAiTextCost, type Client, type DbPool,
+  markModelInvocationUnknown, reserveAiTextCost, settleAiTextCost, errCode, type Client, type DbPool,
 } from '@meetwise/db';
 import { doubleValidate } from './validators/index.ts';
 import { getTracer, type ModelCallOutcome } from './trace.ts';
@@ -197,7 +197,7 @@ export type InvokeOutcome<T> = { value: T } | { error: string };
  * path because they may already be billable.
  */
 function isHalfOpenFollower(error: unknown): boolean {
-  return error instanceof Error && error.message === 'model_circuit_half_open';
+  return errCode(error) === 'model_circuit_half_open';
 }
 
 /**
