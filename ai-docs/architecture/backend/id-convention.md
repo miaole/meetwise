@@ -20,6 +20,7 @@
 - **text 存量行**（`prefix + randomUUID()` 40 字符时代）：原样保留；新生成走 `newEntityId`（尾 32hex）。
 - 列类型 / FK / RLS / 幂等键 / 触发器：**零触碰**（migration 0143 仅 `CREATE FUNCTION` + `ALTER … SET DEFAULT`，prove P6 静态门强制）。
 - 时间戳解码：`idUnixMs(id)` helper——v7（含前缀形态与裸连字符形态）返回 unix_ms；**v4 / 非 v7 / 形状不符 → null**（不猜）。
+- **消费面契约（post-dual 席2 补）**：一切接收 uuid 形态 id 的**消费方正则禁版本锁**（`[1-5]` 类）——v4/v7 并存终态下版本组一律 `[0-9a-f]`；变位锁 `[89ab]`（RFC 10x）可保留。违例即拒收新行 id（席2 真雷：`interview.begin` 守卫拒 v7 resumeId → 主 e2e 断）。
 
 ## 3. 域前缀注册表（fail-closed：未登记前缀 `newEntityId` throw `entity_prefix_not_registered`）
 

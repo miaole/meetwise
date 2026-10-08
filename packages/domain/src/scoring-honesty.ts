@@ -13,7 +13,8 @@ function fail(code: string): never { throw Object.assign(new Error(code), { code
 
 /** Canonical server-issued questionId: q-v{stateVersion}-t{turn}-c{clarifyAttempts}. */
 export const TRUSTED_QUESTION_ID_RE = /^q-v(\d+)-t(\d+)-c(\d+)$/;
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+// DBID-1 post-dual 席2：版本组字符类放宽 [1-5]→[0-9a-f]（纳 v7 answerId）·变位锁 [89ab] 与 fail-closed 逻辑不动。
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ANSWER_HASH_RE = /^[a-f0-9]{64}$/;
 
 export type TrustedQuestionIdentity = { questionId: string; stateVersion: number; turn: number };
