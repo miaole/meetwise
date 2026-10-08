@@ -1,6 +1,6 @@
 # Slice — **TOKSTREAM · 模型输出 token 流式透传设计刀**（进度事件 → 完整流式 → 报告同构 · REQUEST docs-only · 阶段1 先行独立刀 · 阶段2/3 另刀授权）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（REQUEST docs-only · 零 coding · 零 prove · 零 live · Ban coding until PRE dual BOTH PASS + coordinator AUTHORIZE · Ban self-approve · alone ≠ dual）
+**Status**: **阶段1 `post_prove_dual_pass`（nail）· 阶段2/3 未立项（另刀授权）**（REQUEST `f5ed40f4`〔≡本地孪生 `a31a7bbe` 四文件逐字节同〕→ pre-exec 双审 BOTH PASS（裁定协调方转达）→ EXEC `045ded0f` → merge 推远端 `8a4cf089` → 本 nail · post-prove 双审 BOTH PASS（mw-model-op + mw-e2e-ha · 协调方转达）· Ban self-approve · alone ≠ dual · 详见文末 NAIL lifecycle 段）
 **Pins（十值照抄）**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null
 **Date**: 2026-10-07
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`0fe96fca`** / full `0fe96fca007d1de740eb699eede94c28febfcaa2`（开工 fetch 后实测恰等预期 ≥`0fe96fca` · 无 drift）
@@ -69,3 +69,9 @@
 8. Ban 绕过 invoke 关口（durable claim/计费/双校验链不可旁路）
 9. Ban 进度/增量帧承载权威语义（终态永远=既有业务事件 · 缺帧不 degraded 不死胡同）
 10. Ban 阶段2/3 就地开工（均须另刀授权）
+
+## TOKSTREAM 阶段1 NAIL lifecycle（`post_prove_dual_pass` · 2026-10-08 · additive · 协调方授权 nail）
+
+- **链**：REQUEST `f5ed40f4`（远端正规卷宗 · harness+slice+双 stub 四文件 · ≡本地孪生 `a31a7bbe` 零字节差）→ pre-exec 双审 **BOTH PASS**（裁定经协调方带外转达七项：D-1=案A ≤6 行常量断言+vacuum 登记 · T1 纯 2s 时间窗+tokensSoFar 预留 · 断线=重放幂等覆盖+终态清除 · R-B 零 reasoning 落盘 · D-2 新 kind+e2e FORBIDDEN_SCORE_KINDS · 三触发面包装层 · invoke 关口零改动+前端 no-op 接活）→ EXEC `045ded0f`（17 文件=16 代码/infra+1 收据 · `packages/` 零字节 · 收据 `receipts/2026-10-07-tokenstream-phase1-exec-prove.md` · 双证明 EXIT=0：tokenstream 20 PASS + web 190 PASS 含 TS-P3×11 · 零 live）→ merge 收编远端 REQUEST `8a4cf089`（保 `045ded0f` SHA · 非 force fast-forward `f5ed40f4..8a4cf089`）→ 本 nail。
+- **post-prove 双审 BOTH PASS**（mw-model-op + mw-e2e-ha · 裁定经协调方转达：复跑 20+190 PASS · 断线三语义（幂等覆盖/终态清除/缺帧不死等）· 载荷红线 · packages 零 diff 全坐实）。`reviews/REQUEST-2026-10-07-tokenstream-mw-{model-op,e2e-ha}.md` 两 stub 保持空审原文**零代填**（Ban self-approve · alone ≠ dual）。
+- **禁止翻转**：pins 十值原值（见文首 Pins 行）· coveredCount=8 未动 · **阶段2/3 不因本 nail 获立项授权**（阶段2 前置门=供应商 stream 行为 live 核实另刀 · 阶段3 同）· 本段纯追加不改上文一字。
