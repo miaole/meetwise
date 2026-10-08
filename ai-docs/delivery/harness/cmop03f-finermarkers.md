@@ -1,6 +1,6 @@
 # CMOP03-F · GAP-CMOP03-POST7B POST7B finer markers 段内鉴别刀 · REQUEST（docs-only）
 
-status: **`draft:awaiting_pre_exec_dual`**（REQUEST 就绪 · 预执行双审未做 · meetwise 未授权 EXEC · 本 commit 零码零埋点零实跑——埋点与判别 run 属下轮 EXEC 面）
+status: **`nailed:closed`**（全链闭合 · REQUEST `7ef80920` → rev2 `2bd5f041` → 预执行双审 BOTH PASS → EXEC `632930f3`（4 埋点+判别 run）→ post-dual 双席 BOTH PASS → **协调方授权 nail 落字（2026-10-08）**——段外升级条款行使 · 7A 形状第 2 次复现读数增量 · POST7B 未复现 P1 OPEN 维持 · 埋点 4+7 枚留树 · 判定登记见 checklist `### Line CMOP03-F finer markers 定位刀 NAIL` 节〔协调卷位〕）
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null
 
