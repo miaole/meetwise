@@ -67,7 +67,11 @@ M5（`:337` 前夹逼界）与 M6（`:351` 后夹逼界）**已在树**（G7Y �
 
 **先例引用（checklist :1553 sidecar v2 前向纪律五条 · 只引不改）+ G7Y trio 全程行使形态**：判别 run 内并行 sidecar——① **post-migrate 锚**（挂 wrapper stdout `E2E_POSTGRES_READY label=post-migrate` · **Ban container_found 锚**）；② **42P01 pending 窗**（首 ok tick 前 relation-missing 归类 `pending` 不计失败预算）；③ **停针计数器仅 post-first-ok 武装**；④ **逐查询纪律**（C-HA-FF-3 + OB-Q2 兜底 · `fallbackUsed=false` guard · Ban 新发明查询——G7X 冻结投影/CMOP03-D `.tmp/cmop03d-sidecar/` 同法 SELECT-only · 1000ms EXEC 定值）；⑤ **必读面 `interview_job` + `ai_model_invocation` 双读逐 tick 双计**。容器精确绑定 · 外来容器零触碰零采信 · 产物 `.tmp/` 不入 git · 容器用后即焚零残留。
 
-**本刀交叉读数（预注册 · 互证非唯一判据）**：段内死亡（M6 未达）⇒ 绑定 interview 已于 `:338` 创建 ⇒ `interview_job` 窗内新行**应在**；模型调用自 boundLoop（`:352` 起 · M6 后）方始 ⇒ `ai_model_invocation` 绑定会话增量**预期 0**（若 >0 ⇒ 与心跳读数冲突 ⇒ 两臂冲突条款如实升级）。收据仅入计数与时间戳（`request_digest`/`output`/token 计数不入收据 prose）。
+**叠加 G7Y :87 等价前向纪律（rev2 · model-op 席处方补字）**：sidecar SELECT-only · 绑定**精确容器名+端口** + **`created_at`∈run 窗** + **`migrations=0142` 相关性校验**——**失配弃读并登记**（Ban 前缀匹配误靶采信）；零有效读数 run 按「**driver 单臂 + 缺陷附注**」记账（**Ban 单臂冒充双臂互证**）。
+
+**双计口径（G7Y :88 同法显式化 · rev2）**：live 计数＝`ai_model_invocation` 账本实测 **succeeded+failed 双计**（**dispatching/在途行不计入** · **teardown 竞态窗 ±1-2 行下限界** · 三先例同法：G7X live=7=5+2 / CMOP03-E live=14=9+4 / G7Y CMD1 live=14=10+4）· 全绿/红各结局 run 同口径入 receipt；**本刀预期＝0**（段内死亡形下绑定会话增量——模型调用自 M6 后 boundLoop 方始，详下）。
+
+**本刀交叉读数（预注册 · 互证非唯一判据）**：段内死亡（M6 未达）⇒ 绑定 interview 已于 `:338` 创建 ⇒ `interview_job` 窗内新行**应在**（**前提＝`:338` 请求已达服务端**——fetch 网络抛面形下请求可能未离机，此时零新行与 `:338` 抛面相容、不构成两臂冲突）；模型调用自 boundLoop（`:352` 起 · M6 后）方始 ⇒ `ai_model_invocation` 绑定会话增量**预期 0**（若 >0 ⇒ 与心跳读数冲突 ⇒ 两臂冲突条款如实升级）。收据仅入计数与时间戳（`request_digest`/`output`/token 计数不入收据 prose）。
 
 **live 记账纪律（前向兑现）**：est ≤25/本刀（含判别 run+sidecar 实测）· 硬帽 200（链累计）· `actualSpendCny=null`（无计价数据源 · Ban invented spend）· Key 只经进程环境 loader（收据内 name-only 零键值）· `.env*` ABSENT（全程零创建零读取零入收据）。
 
@@ -85,6 +89,8 @@ M5（`:337` 前夹逼界）与 M6（`:351` 后夹逼界）**已在树**（G7Y �
 
 **双向界条款（任务书明文）**：M5 **未达**（红点在 `:337` 前）或 M6 **达**（红点在 `:351` 后）⇒ 红点在本段外 ⇒ **如实验证升级协调方（跨 run 形状漂移）**，Ban 强行归类段内。
 
+**折扣注记（rev2 · 顺手一行 · model-op 席审查发现）**：**BUG-E2E-FAILUNIMPORT**——段外（M5 前/M6 后红）receipt 分类读数受扰；本刀双向界升级条款如常行使（升级不依赖受扰分类面 · 读数引用时折扣标注）· **修复另刀** · backlog 拟切片指向归协调方重指（本刀 Ban 改共享 SSOT 维持 · 不建行）。
+
 - **四枚新心跳+M5/M6 夹逼 ⇒ 死点定位**：六窗中四窗唯一死点、两窗（F1-F2 机制罕窗 / F2-F3 assertion 残留窗）预注册升级条款——非唯一分支**诚实预注册**（Ban 隐匿）。
 - **sidecar 交叉互证**：§3 两臂方向一致则判别成立；两臂冲突或任一机制不可判 → 如实登记升级协调方。
 - **预期红 retained ≠ 判别失败**：判别 run 预期 EXIT=1 class=api retained——鉴别刀交付物=定位读数非翻绿；**单 attempt · Ban retry-to-green**。
@@ -94,7 +100,7 @@ M5（`:337` 前夹逼界）与 M6（`:351` 后夹逼界）**已在树**（G7Y �
 ## 5. EXEC 面范围与 prove 计划（下轮 · 本 REQUEST 不执行）
 
 - **coding**：恰 1 文件 `e2e/full.e2e.ts` · 恰 4 行 `reviews.record({ class: 'worker', code: 'seg2_*' })` 纯插入（§2 表）· 零其他 diff；插入后 marker 纪元重锚逐行亲证。
-- **prove（一次优先 · 单 attempt）**：`pnpm e2e-static-guards:prove` + `pnpm e2e-static-guards:check` 期望 EXIT=0 · `pnpm e2e-helpers:prove` 期望 EXIT=0 · `pnpm e2e-parity:prove`（base 已再生 74→84 · parity-b nail 在卷）+ `pnpm e2e-case-inventory:prove` 期望 EXIT=0；**判别 run＝`pnpm run e2e:isolated`（CMD1 同体）+ sidecar v2 五条全程并行 · 恰 1 次，预期 EXIT=1 class=api retained**；收据须含：全量 `seg_*`/`seg2_*` 心跳行 + 末心跳序位判读 + receipt code 交叉读数 + sidecar 五条逐项读数（post-migrate 锚/42P01 pending 窗/post-first-ok/逐查询 guard/必读面双计）+ 三零机器核验（A() 逐字节零 diff · 四钉前后全等 · withhold 零触碰）+ live 记账（est ≤25 · 硬帽 200 · `actualSpendCny=null`）。
+- **prove（一次优先 · 单 attempt）**：`pnpm e2e-static-guards:prove` + `pnpm e2e-static-guards:check` 期望 EXIT=0 · `pnpm e2e-helpers:prove` 期望 EXIT=0 · `pnpm e2e-parity:prove`（base 已再生 74→84 · parity-b nail 在卷）+ `pnpm e2e-case-inventory:prove` 期望 EXIT=0；**判别 run＝`pnpm run e2e:isolated`（CMD1 同体）+ sidecar v2 五条全程并行 · 恰 1 次，预期 EXIT=1 class=api retained**；收据须含：全量 `seg_*`/`seg2_*` 心跳行 + 末心跳序位判读 + receipt code 交叉读数 + sidecar 五条逐项读数（post-migrate 锚/42P01 pending 窗/post-first-ok/逐查询 guard/必读面双计）**+ 叠加三条逐项读数（`created_at`∈run 窗/`migrations=0142` 相关性/失配弃读与否）+ 双计分项（succeeded+failed 分项计数 · dispatching 不计 · teardown ±1-2 下限界注记 · rev2）** + 三零机器核验（A() 逐字节零 diff · 四钉前后全等 · withhold 零触碰）+ live 记账（est ≤25 · 硬帽 200 · `actualSpendCny=null`）。
 - 机器核验命令与判读脚本 /tmp 预演（dry-run）先行，Ban 未经授权加跑（绿面佐证臂不默认行使 · 归预执行双审裁）。
 
 ## 6. Ban 列表（REQUEST 必写④）
