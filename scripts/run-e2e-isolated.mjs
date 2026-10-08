@@ -1032,6 +1032,26 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/diagnosis/diagnosis.service.ts',
     'apps/api/src/modules/interview/interview.service.ts',
   ],
+  'db-trigfam:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/db-trigfam-unify.proof.ts',
+    'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/src/migrate.ts', 'packages/db/src/ai-cost-governance.ts',
+    'package.json', 'packages/db/package.json',
+    'packages/db/migrations/0028_application_bound_interview.sql',
+    'packages/db/migrations/0046_application_assessment_recovery.sql',
+    'packages/db/migrations/0051_application_no_eligible_score_terminal.sql',
+    'packages/db/migrations/0054_resume_reference_write_gate.sql',
+    'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
+    'packages/db/migrations/0082_b_side_score_calibration_hold.sql',
+    'packages/db/migrations/0083_ai_text_cost_price_revision_binding.sql',
+    'packages/db/migrations/0089_qbank_taxonomy_definer_manifest.sql',
+    'packages/db/migrations/0096_int_transcript_remaining_sinks.sql',
+    'packages/db/migrations/0132_job_route_classify_worker_dispatch.sql',
+    'packages/db/migrations/0138_qbank_ann_candidate_before_limit.sql',
+    'packages/db/migrations/0139_qbank_ann_hnsw_iterative_scan.sql',
+    'packages/db/migrations/0144_db_trigfam_unify.sql',
+  ],
   'memory-governance:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/memory-governance.proof.ts',
@@ -1593,6 +1613,7 @@ if (![
   'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw',
   'memory-governance:prove:raw',
   'db-id-v7:prove:raw',
+  'db-trigfam:prove:raw',
   'memory-admission:prove:raw',
   'memory-fact-adjudication:prove:raw',
   'memory-index-generation:prove:raw',
@@ -1826,6 +1847,8 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'packages/db', 'prove:privacy-authorization']]
     : target === 'db-id-v7:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:db-id-v7']]
+    : target === 'db-trigfam:prove:raw'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:db-trigfam']]
     : target === 'memory-governance:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:memory-governance']]
   : target === 'memory-admission:prove:raw'
