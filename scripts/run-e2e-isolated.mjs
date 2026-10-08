@@ -432,8 +432,8 @@ const isolatedReceiptSources = {
   ],
   'recruiter:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/recruiter-depth.proof.ts', 'packages/db/src/recruiting/recruiter.ts',
-    'packages/db/src/commerce/commerce.ts', 'packages/db/migrations/0046_application_assessment_recovery.sql',
+    'packages/db/test/recruiter-depth.proof.ts', 'packages/db/src/recruiter.ts',
+    'packages/db/src/commerce.ts', 'packages/db/migrations/0046_application_assessment_recovery.sql',
     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
     'packages/db/migrations/0082_b_side_score_calibration_hold.sql',
   ],
@@ -781,7 +781,7 @@ const isolatedReceiptSources = {
   ],
   'uc019:report-regenerate:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/uc-e2e-019-report-regenerate.proof.ts', 'packages/db/src/commerce/commerce.ts', 'packages/db/src/report/report.ts',
+    'packages/db/test/uc-e2e-019-report-regenerate.proof.ts', 'packages/db/src/commerce.ts', 'packages/db/src/report.ts',
     'packages/db/migrations/0001_baseline.sql',
   ],
   'uc019:report-regenerate:http:prove:raw': [
@@ -1275,8 +1275,8 @@ const isolatedReceiptSources = {
   'int-transcript-remaining-sinks:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/int-transcript-remaining-sinks.proof.ts',
-    'packages/db/src/transcript/int-transcript-projection.ts', 'packages/db/src/index.ts',
-    'packages/db/src/privacy/privacy-authorization.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/src/int-transcript-projection.ts', 'packages/db/src/index.ts',
+    'packages/db/src/privacy-authorization.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/privacy-authorization.ts', 'packages/domain/src/index.ts',
     'packages/contracts/src/index.ts',
     'packages/db/migrations/0019_schema_drift_reconcile.sql',
@@ -1344,8 +1344,8 @@ const isolatedReceiptSources = {
   'growth:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/growth.proof.ts',
-    'packages/db/src/index.ts', 'packages/db/src/scoring/scoring-aggregation.ts',
-    'packages/db/src/scoring/scoring-fact-root.ts', 'packages/db/src/transcript/int-transcript.ts',
+    'packages/db/src/index.ts', 'packages/db/src/scoring-aggregation.ts',
+    'packages/db/src/scoring-fact-root.ts', 'packages/db/src/int-transcript.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/growth.ts', 'packages/domain/src/scoring-aggregation.ts',
     'packages/domain/src/scoring-fact-root.ts', 'packages/domain/src/index.ts',
