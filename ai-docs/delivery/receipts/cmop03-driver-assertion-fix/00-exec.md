@@ -83,3 +83,9 @@ not a pass（EXIT=1 原值在卷 · 单有效 attempt · 零重跑）· not 修�
 ---
 
 *Receipt 00 · CMOP03-FIX EXEC · 2026-10-08 · rebase 硬门干净（tip 恰 `eef469d9` · REQUEST twin `938e0f55` · coding base HEAD 在卷）· coding 恰两文件（interview.ts +4/−1 · full.e2e.ts +2/−2 · 方案 a 主形 · 四钉 pre/post 全等 · 受保护面零 diff）· 单有效 attempt EXIT=1 class=api **78798ms**：**修复面 `:201-203` 越过实证**（reviewLedger 后四条 recordTerminal 全在 ：203 后 · fail-fast 序理）+ **step 7（:216 容 quarantined）/7a（report_unavailable+quarantined 首验过）/7b（quiz_unavailable+diagnosis_ready 双终态非死胡同）全过** + **post-7b 新面红原值登记**（死亡窗 ∈(:256, 末) · 精确行 withhold · 新面 vs 既有面两岔归协调方）· errata E-1（InterviewLoopResult :59）E-2（终态族 :7）回填 · est ≤25 ≪ 200（账本实测不可达如实记）· `actualSpendCny=null` · STOP*
+
+> **errata E-3/E-4（append-only · 2026-10-08 · Line CMOP03-FIX 刀① nail · 协调方授权 · post-prove 双审 BOTH PASS 后落字 · 本收据已落原文零字节改动）**：
+> - **E-3a**：本收据 §3 reviewLedger 摘录与判读表 quiz recordTerminal 行锚 `:249` → **`:247`**（`if (quizTerm) reviews.recordTerminal(quizTerm);` 本 nail 亲读 @nail tip；`:249` 实为 `let dg:` 行）——诊断 recordTerminal 行锚 `:255` 正确；ledger 恰 4 条形状与 fail-fast 越行序理判读不受影响。
+> - **E-3b**：本收据 §Coding interview.ts `:342`（clarification_needed 分支头部 `clarifications++`）「与 `:309` `questions++` 分支头部对称」之 `:309` 系 **pre-fix 行号**——post-fix（`:64` 插行后下方整体 +1）为 **`:311`**（`questions++` 本 nail 亲读 @nail tip；`:342` 本身即 post-fix 行号正确）。
+> - **E-3c**：本收据 §CMD 七字段表 attempt#1「UTC 窗口＝—」＝**七字段未全满的如实注记**（该 attempt 系 shell 重定向即败 env-not-ready infra-abort · 时间戳未当场记录 · 原值「—」保留不回填不臆造；七字段契约对产品读数 attempt 的要求于 attempt#2 全满）。
+> - **E-4**：`ai_model_invocation` 账本实测缺口＝**接受**（meetwise 协调方裁决 · mw-model-op 席 post-prove 同意见）——wrapper `finally` 已拆容器物理不可回补；补测＝新 run ≠ 本 run 读数（Ban 第二 run 通道守住 · 零补测）；**前向纪律**：CMOP03-FIX 鉴别刀 REQUEST 须自带 sidecar 账本实测臂（沿 G7X T-1 先例 · 本线后续 run 须派 sidecar）。
