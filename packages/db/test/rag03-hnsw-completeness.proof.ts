@@ -47,7 +47,7 @@ const PRINCIPAL = 'rag03hnsw_' + Math.random().toString(36).slice(2, 8);
 const SCOPE = { taxonomyVersion: T1, servingScopeId: S1 };
 const NO_LEXICAL_QUERY = 'qwvzkx';    // 不出现在任何 chunk 文本中 → lexical 0 行
 const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
-const STATIC_TARGET = 'packages/db/src/qbank-generation-retrieval.ts';
+const STATIC_TARGET = 'packages/db/src/qbank/qbank-generation-retrieval.ts';
 
 /* ─────────────────────────── 精确距离向量构造 ─────────────────────────── */
 // q = e_axis；doc = s·e_axis + sqrt(1-s²)·e_j（j 独占正交轴）→ cos distance = 1 - s（精确可控）。

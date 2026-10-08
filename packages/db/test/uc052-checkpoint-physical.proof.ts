@@ -20,13 +20,13 @@ import {
 import {
   runAuthorizedCheckpointPhysicalPurge, retryFailedCheckpointPhysicalTarget,
   sealCheckpointErasureAuthz, loadRequestStatus, loadRequestTargets,
-} from '../src/uc052-checkpoint-physical.ts';
+} from '../src/privacy/uc052-checkpoint-physical.ts';
 import {
   beginCheckpointErasure, purgeCheckpointErasureTarget, claimCheckpointErasureTarget,
-} from '../src/checkpoint-privacy.ts';
+} from '../src/checkpoint/checkpoint-privacy.ts';
 import {
   issueAuthorizationSnapshot, consumeAuthorizationSnapshotBound, claimAuthorizationTarget,
-} from '../src/privacy-authorization.ts';
+} from '../src/privacy/privacy-authorization.ts';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import {
   withCheckpointAccess, PrincipalBoundCheckpointPool, type CheckpointAccess,

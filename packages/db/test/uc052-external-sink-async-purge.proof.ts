@@ -22,15 +22,15 @@ import { generatePrivacyAuthzKeyPair } from '@meetwise/domain';
 import {
   runAuthorizedInterviewErasure, loadRequestStatus, loadRequestTargets,
   reassessRequestStatus, attachExternalRetentionPendingTargets, type Uc052ErasureTarget,
-} from '../src/uc052-internal-erasure.ts';
-import { beginInterviewProjectionErasure } from '../src/int-transcript-projection.ts';
-import { recordDeletionReceipt, resolveDeletionReceipt } from '../src/privacy-authorization.ts';
+} from '../src/privacy/uc052-internal-erasure.ts';
+import { beginInterviewProjectionErasure } from '../src/transcript/int-transcript-projection.ts';
+import { recordDeletionReceipt, resolveDeletionReceipt } from '../src/privacy/privacy-authorization.ts';
 import {
   EXTERNAL_ASYNC_PURGE_SINKS, EVIDENCE_CLASS_BY_SINK, ENVIRONMENT_CLASS,
   createLocalStubVendorSurface, runExternalSinkAsyncPurgeConfirm,
   recordVendorPurgeEvidence, applyExternalSinkErasedWithVendorEvidence,
   type ExternalAsyncPurgeSink,
-} from '../src/uc052-external-sink-async-purge.ts';
+} from '../src/privacy/uc052-external-sink-async-purge.ts';
 
 const REQUIRED_CASES = [
   'AP-N1-CLASS',     // N1: pinned evidence classes match sink · wrong class rejected

@@ -24,9 +24,9 @@ import { generatePrivacyAuthzKeyPair } from '@meetwise/domain';
 import {
   runAuthorizedInterviewErasure, loadRequestStatus, loadRequestTargets,
   reassessRequestStatus, attachExternalRetentionPendingTargets, type Uc052ErasureTarget,
-} from '../src/uc052-internal-erasure.ts';
-import { beginInterviewProjectionErasure } from '../src/int-transcript-projection.ts';
-import { recordDeletionReceipt, resolveDeletionReceipt } from '../src/privacy-authorization.ts';
+} from '../src/privacy/uc052-internal-erasure.ts';
+import { beginInterviewProjectionErasure } from '../src/transcript/int-transcript-projection.ts';
+import { recordDeletionReceipt, resolveDeletionReceipt } from '../src/privacy/privacy-authorization.ts';
 
 const REQUIRED_CASES = [
   'EXT-RP-01',     // happy: externals retention_pending · request pending_external · N2 no external_* receipt

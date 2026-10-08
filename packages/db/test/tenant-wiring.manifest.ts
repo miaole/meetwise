@@ -144,7 +144,7 @@ export const WIRED_FILES: WiredFile[] = [
     ],
   },
   {
-    file: 'packages/db/src/notification.ts',
+    file: 'packages/db/src/notification/notification.ts',
     count: 6,
     paths: [
       { ctx: 'notification.list', kind: 'list-legal-empty', predicateWitness: 'WHERE owner_user_id=$2' },
@@ -154,7 +154,7 @@ export const WIRED_FILES: WiredFile[] = [
     ],
   },
   {
-    file: 'packages/db/src/recruiter.ts',
+    file: 'packages/db/src/recruiting/recruiter.ts',
     count: 9,
     paths: [
       { ctx: 'recruiter.applyToJob', kind: 'single-id', e5Witness: 'return null' },
@@ -167,7 +167,7 @@ export const WIRED_FILES: WiredFile[] = [
     ],
   },
   {
-    file: 'packages/db/src/candidate-route.ts',
+    file: 'packages/db/src/routing/candidate-route.ts',
     count: 3,
     paths: [
       { ctx: 'candidate-route.supply', kind: 'single-id', e5Witness: 'profile_unavailable' },
@@ -224,31 +224,31 @@ export const RESIDUAL_PATHS: ResidualPath[] = [
     ownership: 'PRIV01 第二波（db 层）',
   },
   {
-    file: 'packages/db/src/notification.ts',
+    file: 'packages/db/src/notification/notification.ts',
     paths: 'insertNotification（系统内部插入 · worker/报告就绪 lane）',
     reason: '系统 lane（§3.2 排除）——插入方为 worker 报告就绪流',
     ownership: 'PRIV01 第二波（worker 刀）',
   },
   {
-    file: 'packages/db/src/recruiter.ts',
+    file: 'packages/db/src/recruiting/recruiter.ts',
     paths: 'recruiter-owner 侧 fns（createJob/listJobs/getJob/closeJob/updateJob/listJobCandidates/inviteCandidate/listTalentPool）+ listOpenJobs（公开读 by-design）',
     reason: 'B 端角色维度（§3.2 排除 · Ban owner 冒充 tenant）；listOpenJobs 公开读无 owner 谓词 by-design',
     ownership: '不接线（角色域）',
   },
   {
-    file: 'packages/db/src/candidate-route.ts',
+    file: 'packages/db/src/routing/candidate-route.ts',
     paths: 'getInterviewRouteSnapshotForAdaptiveRole（worker start job 角色门 fallback 读）',
     reason: 'worker lane（§3.2 排除）',
     ownership: 'PRIV01 第二波（worker 刀）',
   },
   {
-    file: 'packages/db/src/{resume,quiz-jobs,diagnosis-jobs,interview-jobs,interview-question,report,payment,commerce,job-route-decision,free-text-route-decision,gateway-dispatch,usage-calibration}.ts',
+    file: 'packages/db/src/{resume/resume,jobs/quiz-jobs,jobs/diagnosis-jobs,interview/interview-jobs,interview/interview-question,report/report,commerce/payment,commerce/commerce,routing/job-route-decision,routing/free-text-route-decision,jobs/gateway-dispatch,model-op/usage-calibration}.ts',
     paths: '各文件内 owner_user_id SQL 点（resume.ts 18 · interview-jobs.ts 20 · commerce.ts 23 · payment.ts 10 · report.ts 10 · quiz-jobs/diagnosis-jobs 各 9 等）',
     reason: 'worker/系统消费 lane 与深层 db helper（owner 形参由本刀已接线服务层供给）；§3.2 排除 worker lane',
     ownership: 'PRIV01 第二波（db 层刀）',
   },
   {
-    file: 'packages/db/src/{checkpoint-privacy,checkpoint-thread,privacy-authorization,memory-vector-chunk-erasure,vector-plane-erasure,int-transcript*,qbank-*,memory-*,retrieval-*}.ts',
+    file: 'packages/db/src/{checkpoint/checkpoint-privacy,checkpoint/checkpoint-thread,privacy/privacy-authorization,memory/memory-vector-chunk-erasure,privacy/vector-plane-erasure,transcript/int-transcript*,qbank/qbank-*,memory/memory-*,retrieval/retrieval-*}.ts',
     paths: '隐私主链/擦除链/向量/记忆/题库 lane 的 owner 点',
     reason: '隐私主链与 erasure 链 = 本刀硬 Ban 触面（DELETE=503 冻结 · ADR 门 cite-only）；worker/memory/qbank = 系统 lane',
     ownership: 'Ban 链不接线（privacy 主链）· 其余 PRIV01 第二波',
