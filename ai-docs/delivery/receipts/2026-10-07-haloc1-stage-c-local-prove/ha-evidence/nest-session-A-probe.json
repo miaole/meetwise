@@ -1,0 +1,26 @@
+{
+  "status": "PG_PATH",
+  "at": "2026-10-08T10:08:45.700Z",
+  "via": "A",
+  "port": 18787,
+  "livez": {
+    "status": 200,
+    "ok": true
+  },
+  "readyz": {
+    "status": 200,
+    "ok": true,
+    "degraded": false,
+    "bodyPrefix": "{\"status\":\"ok\"}"
+  },
+  "authLogin": {
+    "status": 401,
+    "issuedToken": false,
+    "bodyPrefix": "{\"error\":\"invalid_credentials\"}"
+  },
+  "nestSessionOk": false,
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "note": "Live Nest PG probe — readyz may be 200; sticky A→B still needs --prove"
+}

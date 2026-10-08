@@ -1,0 +1,25 @@
+{
+  "status": "OK",
+  "at": "2026-10-08T10:07:17.797Z",
+  "survivor": "meetwise-ha-dual-api-b",
+  "sharedPath": "shared_backend_hostpath_survivor",
+  "redis": {
+    "key": "meetwise:ha:c4:fault-survivor",
+    "setOk": true,
+    "getOk": true,
+    "redisUrl": "redis://redis:6379/0"
+  },
+  "mysql": {
+    "table": "ha_c3_shared_probe",
+    "ok": true
+  },
+  "wiring": {
+    "soleNetwork": "meetwise-mysql-local_default",
+    "bOnSole": true
+  },
+  "tokenPrefix": "c4-96dae",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "note": "C4 post-fault shared survivor — A down; sole Redis/MySQL still reachable for B wiring; ≠ Nest session; ≠ production HA"
+}

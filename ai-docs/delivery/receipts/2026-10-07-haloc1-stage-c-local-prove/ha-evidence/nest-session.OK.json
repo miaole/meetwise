@@ -1,0 +1,14 @@
+{
+  "status": "OK",
+  "at": "2026-10-08T10:08:39.613Z",
+  "nestSessionOk": true,
+  "path": "A_signup_token→B_profile + A_login_token→B_profile",
+  "userId": "f111c605-f512-41c0-ab78-b9a4735af2d9",
+  "email": "ha-nest-session-5296161c2a99@meetwise.local",
+  "portA": 18787,
+  "portB": 18788,
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "note": "LOCAL Nest session sticky proven via shared Postgres + AUTH_SECRET — STILL Not HA; ≠ production HA; ≠ ladder C/D green; releaseEvidence=false"
+}

@@ -1,0 +1,12 @@
+{
+  "status": "OK",
+  "at": "2026-10-08T10:08:39.569Z",
+  "port": 18787,
+  "httpStatus": 200,
+  "issuedToken": true,
+  "userId": "f111c605-f512-41c0-ab78-b9a4735af2d9",
+  "email": "ha-nest-session-5296161c2a99@meetwise.local",
+  "bodyPrefix": "{\"token\":\"[redacted:local-ephemeral-token]\",\"userId\":\"",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false
+}

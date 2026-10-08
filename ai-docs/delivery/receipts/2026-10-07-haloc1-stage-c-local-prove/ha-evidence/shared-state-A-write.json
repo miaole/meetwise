@@ -1,0 +1,28 @@
+{
+  "status": "OK",
+  "at": "2026-10-08T10:07:05.440Z",
+  "via": "meetwise-ha-dual-api-a",
+  "sharedPath": "shared_backend_hostpath",
+  "redis": {
+    "key": "meetwise:ha:c3:shared-probe",
+    "op": "SET",
+    "ok": true,
+    "redisUrl": "redis://redis:6379/0",
+    "note": "SET on sole redis backend that api-a REDIS_URL targets (CC TCP blocked)"
+  },
+  "mysql": {
+    "table": "ha_c3_shared_probe",
+    "written_by": "api-a-wiring",
+    "ok": true
+  },
+  "wiring": {
+    "soleNetwork": "meetwise-mysql-local_default",
+    "envParity": true,
+    "dnsRedisMysql": true
+  },
+  "tokenPrefix": "c3-3e35f",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "note": "C3 local shared write — ≠ Nest business session; ≠ production HA"
+}

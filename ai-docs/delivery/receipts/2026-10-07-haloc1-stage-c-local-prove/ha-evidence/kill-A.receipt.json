@@ -1,0 +1,19 @@
+{
+  "method": "docker-kill-api-a",
+  "at": "2026-10-08T10:07:17.799Z",
+  "portA": 18787,
+  "portB": 18788,
+  "aDown": true,
+  "aLivezOk": false,
+  "aContainerRunning": false,
+  "rekillUsed": false,
+  "bStillServing": true,
+  "containerA": "meetwise-ha-dual-api-a",
+  "containerB": "meetwise-ha-dual-api-b",
+  "composeFile": "/Users/miaole/Desktop/golucky/meetwise-line-halocal/docker/compose.ha-dual.yml",
+  "sharedOverlay": "/Users/miaole/Desktop/golucky/meetwise-line-halocal/docker/compose.ha-dual.shared.yml",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "note": "C4 compose kill receipt — Not production failover; Not HA; releaseEvidence=false"
+}

@@ -1,0 +1,22 @@
+{
+  "status": "OK",
+  "at": "2026-10-08T10:07:05.440Z",
+  "via": "meetwise-ha-dual-api-b",
+  "sharedPath": "shared_backend_hostpath",
+  "redis": {
+    "key": "meetwise:ha:c3:shared-probe",
+    "op": "GET",
+    "ok": true,
+    "valueMatch": true,
+    "redisUrl": "redis://redis:6379/0",
+    "note": "GET on sole redis backend that api-b REDIS_URL targets (same URL as A)"
+  },
+  "mysql": {
+    "table": "ha_c3_shared_probe",
+    "ok": true
+  },
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "note": "C3 local shared read visible across dual wiring — ≠ Nest business session; ≠ production HA"
+}

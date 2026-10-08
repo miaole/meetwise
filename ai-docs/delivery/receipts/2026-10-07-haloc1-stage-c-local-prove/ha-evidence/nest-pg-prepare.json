@@ -1,0 +1,14 @@
+{
+  "status": "OK",
+  "at": "2026-10-08T10:08:05.835Z",
+  "nestPgReady": true,
+  "host": "127.0.0.1",
+  "port": 54339,
+  "runtimeUser": "meetwise_ha_runtime",
+  "migrateUrlHostPort": "127.0.0.1:54339",
+  "containerDns": "postgres:5432",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "note": "Nest PG sidecar migrated + runtime login provisioned — still Not HA; run ha:dual:bring-up -- --compose-pg then ha:prove:nest-session -- --prove"
+}

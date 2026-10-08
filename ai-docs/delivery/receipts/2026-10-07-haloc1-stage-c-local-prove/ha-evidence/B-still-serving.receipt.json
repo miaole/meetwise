@@ -1,0 +1,9 @@
+{
+  "port": 18788,
+  "status": 200,
+  "ok": true,
+  "instanceId": "",
+  "at": "2026-10-08T10:07:17.799Z",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false
+}

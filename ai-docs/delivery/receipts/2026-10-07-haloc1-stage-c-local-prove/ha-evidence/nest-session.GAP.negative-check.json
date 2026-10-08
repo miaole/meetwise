@@ -1,0 +1,22 @@
+{
+  "status": "GAP",
+  "at": "2026-10-08T10:00:02.108Z",
+  "nestSessionOk": false,
+  "reason": "Nest business session A→B unproven without Nest PG dual: sole stack=MySQL+Redis; Nest createPool/auth/PrincipalGuard=Postgres; base compose DATABASE_URL=placeholder; C3 SHARED_OK≠Nest session",
+  "prereq": "MEETWISE_HA_NEST_PG_AUTHORIZED=1 + ha:prepare:nest-pg (migrate + runtime login) + MEETWISE_HA_DUAL_AUTHORIZED=1 + ha:dual:bring-up -- --compose-pg + AUTH_SECRET shared across dual Nest (compose.ha-dual.pg.yml) + prove path: POST /auth/signup|login on A → Authorization Bearer GET /profile on B",
+  "static": {
+    "placeholderDb": true,
+    "postgresOnlyPool": true,
+    "authNeedsPg": true,
+    "guardNeedsPg": true,
+    "readyzNeedsDb": true,
+    "c3SharedOkPresent": false,
+    "nestPgPrepared": false,
+    "pgOverlayPresent": true
+  },
+  "probed": null,
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "note": "Nest business session still GAP — do not treat C3 SHARED_OK / dual /livez as session closed"
+}

@@ -1,0 +1,13 @@
+{
+  "status": "OK",
+  "at": "2026-10-08T10:08:39.575Z",
+  "port": 18788,
+  "httpStatus": 200,
+  "expectedUserId": "f111c605-f512-41c0-ab78-b9a4735af2d9",
+  "gotUserId": "f111c605-f512-41c0-ab78-b9a4735af2d9",
+  "expectedEmail": "ha-nest-session-5296161c2a99@meetwise.local",
+  "gotEmail": "ha-nest-session-5296161c2a99@meetwise.local",
+  "bodyPrefix": "{\"id\":\"f111c605-f512-41c0-ab78-b9a4735af2d9\",\"email\":\"ha-nest-session-5296161c2a99@meetwise.local\",\"status\":\"active\",\"preferences\":{},\"created_at\":\"2026-10-08T1",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false
+}
