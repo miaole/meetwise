@@ -60,8 +60,8 @@ status: **`draft:awaiting_pre_exec_dual`**（REQUEST 就绪 · 预执行双审�
 | 结局 | 判据（以 reviewLedger + receipt 定位） | 处置 |
 | --- | --- | --- |
 | **全绿** | EXIT=0 · 全段断言过 · seg 心跳达 M7（或达 M7 后终局） | **「三绿候选」如实登记**（≠宣称——须 post-dual BOTH + 协调方 nail；`g7SuiteGreen` 翻转=**独立 SSOT 刀**，本刀禁翻） |
-| **红于 `:236`** | ledger 第 4 行后即停 · failLoop terminal ≠ `report_unavailable` 或 rep.status ≠ quarantined | **`7A-DOWNGRADE` 域读数增量**：本 run 形状（terminal 值/attempts/last_error）append-only 增记该域 · **Ban 归因三候选任一** · 升级协调方 |
-| **红于窗 `(:256,:356]`** | ledger 达 M1（≥`:257`）后停于 `:357` 前 · seg 末心跳 ∈ {M1..M6} | **`POST7B` 复现读数**：复现读数 + 末心跳定位入该域（M1/M2→step8/9 岔A 相容；M3/M4/M5/M6→专家评审段岔B 相容；M7 停靠则 `:356-357` 断言面读数）· **Ban 归因两岔任一岔定谳** · 升级协调方 |
+| **红于 `:236`** | ledger 第 4 行后即停 · failLoop terminal ≠ `report_unavailable` 或 rep.status ≠ quarantined | **`7A-DOWNGRADE` 域读数增量**：本 run 形状（terminal 值/attempts/last_error）append-only 增记该域 · **`ai_model_invocation` 双计读数 append-only 增记该域** · **Ban 归因三候选任一** · 升级协调方 |
+| **红于窗 `(:256,:356]`** | ledger 达 M1（≥`:257`）后停于 `:357` 前 · seg 末心跳 ∈ {M1..M6} | **`POST7B` 复现读数**：复现读数 + 末心跳定位入该域（M1/M2→step8/9 岔A 相容；M3/M4/M5/M6→专家评审段岔B 相容；M7 停靠则 `:356-357` 断言面读数）· **`ai_model_invocation` 双计读数 append-only 增记该域** · **Ban 归因两岔任一岔定谳** · 升级协调方 |
 | **红于他处** | 上列定位面均不合 | **新面登记**（沿「同形不同内容」分列判例 · 立行归协调方）· 按预注册升级条款升级 |
 | **env/infra 中止** | docker/migration 等环境缺口 | env-gap 类如实记 FAIL 原因 · 不洗 not_run · 零产品读数 ≠ 判别失败 |
 
@@ -85,7 +85,7 @@ status: **`draft:awaiting_pre_exec_dual`**（REQUEST 就绪 · 预执行双审�
    - ④**v2 策略落文字**（本条即载体）；
    - ⑤**必读面 `interview_job` + `ai_model_invocation`**。
    - 叠加 CMOP03-E 前向纪律：sidecar **SELECT-only** · 绑定**精确容器名+端口** + `created_at∈run 窗` + `migrations=0142` 相关性校验——失配弃读并登记（Ban 前缀匹配误靶采信）；零有效读数 run 按「driver 单臂 + 缺陷附注」记账（**Ban 单臂冒充双臂互证**）。
-3. **est 逐 CMD（沿各线在卷口径 · est-not-counter 非估算器）**：CMD1 **≤25**（CMOP03-E 满旅程 est 带口径 · G7X T-1 实测 live=7 先例 · 本刀纯跑无注入面）；CMD2 **≤30**（G7V-CALIB 口径 est ≤30≪200）；CMD3 **≤64**（G7W-G frozen S1 重估 extreme-bound ≤64 口径沿展 · 含 HTTP full E2E + legacy 族）。**总硬帽 200**（G7K trio-keyed §5 上限口径）· 超限即停如实记中止原因（不洗 not_run）· **`actualSpendCny=null`**（无计价数据源 · Ban invented spend · 金额入账须协调方另给计价依据）。
+3. **est 逐 CMD（沿各线在卷口径 · est-not-counter 非估算器）**：CMD1 **≤25**（CMOP03-E 满旅程 est 带口径 · G7X T-1 实测 live=7 先例 · 本刀纯跑无注入面）；CMD2 **≤30**（G7V-CALIB 口径 est ≤30≪200）；CMD3 **≤64**（G7W-G frozen S1 重估 extreme-bound ≤64 口径沿展 · 含 HTTP full E2E + legacy 族）。**总硬帽 200**（G7K trio-keyed §5 上限口径）· 超限即停如实记中止原因（不洗 not_run）· **`actualSpendCny=null`**（无计价数据源 · Ban invented spend · 金额入账须协调方另给计价依据）。**live 计数=`ai_model_invocation` 账本实测 succeeded+failed 双计**（dispatching/在途行不计入 · teardown 竞态窗 ±1-2 行下限界 · 沿 G7X live=7=5+2 / CMOP03-E live=14=9+4 同法），全绿/红各结局 run 的 live 读数同口径入 receipt。
 4. **Key 卫生**：Key **只经进程环境**（loader `~/.meetwise-secrets/load-model-api-key.sh` 或同进程 export）· **name-only 探针**（set/unset 不打印值）· **Ban Key 值/fingerprint 入 receipt/log/commit** · **`.env*` ABSENT 双向记录**（本刀零读取零创建）。
 5. **逐 attempt 全记录**：CMD 原文 + EXIT + 起止时间戳 + 实跑 code SHA（worktree HEAD 实测）+ worktree/branch + install 记录 + 环境探针 + 逐 case FAIL 明细（case 名+失败原因+五分类）+ machine receipt + `seg_*` ledger 行序；三类记录（退出码/receipt/原始 log）交叉一致才可引用。原始日志落 worktree `.tmp/`（不入 git）· receipt 只引路径+无 Key 值自查后摘录。
 6. **跑在 committed SHA 上**：协调方 EXEC 时重钉 committed SHA（若 tip 前移以协调方重钉为准并逐 receipt 记录）；`pnpm install --frozen-lockfile`（禁改 lockfile · EXIT 逐次记录）；隔离 PG 用后即焚 · 容器零残留亲证。
