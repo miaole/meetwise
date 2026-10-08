@@ -304,6 +304,8 @@
     "privacy-erasure-preview:domain:prove": "pnpm -C packages/domain prove:privacy-erasure-preview",
     "privacy-erasure-preview:contract:prove": "pnpm -C packages/contracts prove:privacy-erasure-preview",
     "privacy-authorization:prove": "node scripts/run-e2e-isolated.mjs privacy-authorization:prove:raw",
+    "tenant-wiring-e5:prove": "pnpm -C packages/db prove:tenant-wiring-e5",
+    "tenant-wiring-neg:prove": "node scripts/run-e2e-isolated.mjs tenant-wiring-neg:prove:raw",
     "privacy-authorization:prove:raw": "pnpm -C packages/db prove:privacy-authorization",
     "uc052:internal-erasure:prove": "node scripts/run-e2e-isolated.mjs uc052:internal-erasure:prove:raw",
     "uc052:internal-erasure:prove:raw": "pnpm -C packages/db prove:uc052-internal-erasure",

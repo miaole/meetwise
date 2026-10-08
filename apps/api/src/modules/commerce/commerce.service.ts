@@ -1,6 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { randomUUID, createHmac, timingSafeEqual } from 'node:crypto';
-import { createOrder, getOrder, markOrderPaidAndCredit, markOrderRefunded, availableUnits } from '@meetwise/db';
+import { createOrder, getOrder, markOrderPaidAndCredit, markOrderRefunded, availableUnits, requireOwnerUserId } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
 
 /**
@@ -59,10 +59,16 @@ export class CommerceService {
     const exp = createHmac('sha256', secret).update(`${id}:${body.providerTxn}:paid`).digest('hex');
     const a = Buffer.from(body.sig), e = Buffer.from(exp);
     if (!secret || a.length !== e.length || !timingSafeEqual(a, e)) throw new HttpException({ error: 'bad_signature' }, HttpStatus.FORBIDDEN);
-    const owner = await this.db.asGateway((c) => c.query(
+    const resolved = await this.db.asGateway((c) => c.query(
       'SELECT gateway_payment_order_owner($1) AS owner_user_id', [id],
     )).then((r: any) => r.rows[0]?.owner_user_id);
-    if (!owner) throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);   // 查不到单(签名再对也不入账)
+    // PRIV01-C 第二层 E1:gateway fn 解析出的 owner 显式校验(fail-closed;缺失/空 → 404 不可区分,沿原守卫语义)。
+    let owner: string;
+    try {
+      owner = requireOwnerUserId(resolved, 'commerce.payWebhook.owner');
+    } catch {
+      throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
+    }
     const res = await this.db.asPrincipal(owner, (c) => markOrderPaidAndCredit(c, owner, id, body.providerTxn!));
     if (res === 'not_found') throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
     if (res === 'conflict') throw new HttpException({ error: 'order_conflict' }, HttpStatus.CONFLICT);
@@ -82,10 +88,16 @@ export class CommerceService {
     const exp = createHmac('sha256', secret).update(`${id}:${body.providerTxn}:refunded`).digest('hex');
     const a = Buffer.from(body.sig), e = Buffer.from(exp);
     if (!secret || a.length !== e.length || !timingSafeEqual(a, e)) throw new HttpException({ error: 'bad_signature' }, HttpStatus.FORBIDDEN);
-    const owner = await this.db.asGateway((c) => c.query(
+    const resolved = await this.db.asGateway((c) => c.query(
       'SELECT gateway_payment_order_owner($1) AS owner_user_id', [id],
     )).then((r: any) => r.rows[0]?.owner_user_id);
-    if (!owner) throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
+    // PRIV01-C 第二层 E1:同 payWebhook(缺失/空 → 404 不可区分)。
+    let owner: string;
+    try {
+      owner = requireOwnerUserId(resolved, 'commerce.refundWebhook.owner');
+    } catch {
+      throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
+    }
     const res = await this.db.asPrincipal(owner, (c) => markOrderRefunded(c, owner, id, body.providerTxn!));
     if (res === 'not_found') throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
     if (res === 'conflict') throw new HttpException({ error: 'order_conflict' }, HttpStatus.CONFLICT);

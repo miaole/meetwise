@@ -123,3 +123,13 @@ Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR4
 ---
 
 *Harness · PRIV01-C GAP-PRIV-01 应用层 tenant 强制接线 PR（纵深防御第二层 · RLS 根零触碰 · E5 应用层半边 prove 兑现）· `draft:awaiting_pre_exec_dual` · 2026-10-07 立卷 · backlog `:57` OPEN · DELETE=503 · PG-retained · R1 机检翻正交双审 · attempts 全账一次优先 Ban retry-to-green · alone ≠ dual · STOP*
+
+## 13. EXEC 登记（2026-10-08 Asia/Shanghai · meetwise 协调方 AUTHORIZE 后 EXEC · coding+prove 一次优先 · `executed:awaiting_post_prove_dual`）
+
+- **base 重钉**：fetch → origin tip `5a2994c4` → rebase 干净（REQUEST 三 commit 重放）→ **EXEC base HEAD = `566e3b3d`**（全部 prove 运行时 HEAD 亲测同值）· 上游 `eef469d9..5a2994c4` 零 src 漂移实测 · 全锚原位复核。
+- **coding**：接线 manifest **11 文件 / 精确 81 触点**（文件封套+每文件精确全量计数非 ≥N）——interview 17 · resume 9 · quiz 9 · diagnosis 9 · profile 6 · notification(svc) 5 · applications 5 · commerce 3 · notification(db) 6 · recruiter 9 · candidate-route 3（两席一致裁定纳入）· 形态 α=buildRequiredOwnerFilter 进查询构造（resume.list/interview.list/notification db 四 fn 等隐式 RLS-only 面补显式必选谓词）· β=asPrincipal 会话内 E1 入口 requireOwnerUserId + 既有 fail-closed 分支见证 · 残余面 **10 类显式登记**（interview `:673-931` 16 处读侧 + guard 先例原样 · worker lane · B 端角色域 · db 深层 · Ban 链）——Ban 静默缺席兑现。
+- **prove 三段全绿**：P1 `pnpm --filter @meetwise/db tenant-enforcement:prove` **EXIT=0（35/0）**——R1 翻正三断言在位：face A hits=0（零深路径字面导入纪律 · 语义翻转如实叙述）· **face B consumption=81 == manifest 81/11 文件双向精确** · barrel ===2 零弱化 · 既有 35 基线一字不减；P2 `pnpm tenant-wiring-e5:prove` **EXIT=0（163/0）**（singleId=28 fail-closed 见证 · list=16 白名单 · predicates=39 · E4 根在位）——**R2 E5 应用层半边兑现**；P3 `pnpm tenant-wiring-neg:prove` **EXIT=0（9 具名红全 PASS）**——跨 owner list/read/write fail-closed + 写路径恰一次尝试 + RLS `42501` 根在位 + own-id 正控。
+- **attempts 全账**：P1 attempt1 EXIT=0 + 终态确认 attempt2 EXIT=0（manifest 重分类后一致性跑非红后重试）；P2 attempt1 **EXIT=1**（确定性 manifest 分类缺陷：14 个 α 谓词绑定子触点误标 `single-id`）→ 恰分类改标 `predicate-bind` + P2 断言分支 → attempt2 **EXIT=0**；P3 attempt1 **EXIT=1**（确定性 fixture 缺陷：notification GRANT 无 DELETE → 预清理 42501）→ 恰 fixture 修正 + 汇总行判定 → attempt2 **EXIT=0**。**两缺陷定性交 post 双审裁（沿 PRIV01-B E-1/PRIV4 先例 · 若裁不可采各自 attempt1 EXIT=1 诚实保留为终态）** · log/exit 落 `receipts/priv01-tenant-wiring/`。
+- **runner 三道门 + 命令分支登记**（EXEC 后行锚见收据 §6 · 相对 rev3 引锚位移=本刀 diff 所致）：①supported-target 数组 ②PG-migrate 白名单 ③isolatedReceiptSources ④isolatedCommand 分支——runner 其余逻辑零改动（`node --check` 过）。
+- **触面自检**：恰授权清单（11 生产 + runner + 两 package.json + P1 翻正面 + 新 test×3 + 收据 + 本 harness/slice 登记）· **零 principal.ts / 零 migrations / 零 privacy.controller.ts / 零 checkpoint-principal.ts / 零 worker src / 零隐私·擦除链 / 零 SSOT / 零 stub / 零 secrets（.env* ABSENT · actualSpendCny=null）**。
+- **Ban self-write**：本节仅推进至 `executed:awaiting_post_prove_dual` · post-prove 双审 + R1 翻正逐字比对 + meetwise AUTHORIZE 后方可 nail · alone ≠ dual。
