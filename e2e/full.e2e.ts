@@ -339,6 +339,19 @@ async function main() {
   A(r.status === 400, '[防伪造] finalize 夹带历史 interviewId → 400(strict DTO 拒绝)');
 
   reviews.record({ class: 'worker', code: 'seg_bound_start_enter' }); // CMOP03-D M5: 岗位绑定 start 面入口
+  // G7FIX-1(g7fix1-route-wait): start 前等 driver route_decided——G7U 同形 SELECT-only 直连轮询(cap 60s/周期 1s·超时诚实 FAIL)。
+  { const { createRequire } = await import('node:module');
+    const { Client } = createRequire(new URL('../packages/db/package.json', import.meta.url))('pg');
+    for (const n of ['PGHOST', 'PGPORT', 'PGUSER', 'PGPASSWORD', 'PGDATABASE']) if (!process.env[n]) throw new Error(`[g7fix1] ${n} missing — isolated runner env contract required`);
+    const pgc = new Client({ host: process.env.PGHOST, port: Number(process.env.PGPORT), user: process.env.PGUSER, password: process.env.PGPASSWORD, database: process.env.PGDATABASE, ssl: false, connectionTimeoutMillis: 2000 });
+    await pgc.connect(); const waitT0 = Date.now();
+    try { for (;;) { const hit = (await pgc.query(`SELECT 1 FROM job_route_decision WHERE job_id=$1 AND route_outcome='route_decided'`, [jobId])).rowCount ?? 0;
+      if (hit > 0) { console.log(`[g7fix1] route_decided observed after ${Date.now() - waitT0}ms (job=${String(jobId).slice(0, 8)})`); break; }
+      if (Date.now() - waitT0 >= 60_000) { const rev = await pgc.query(`SELECT status FROM job_semantic_revision WHERE job_id=$1 ORDER BY revision DESC LIMIT 1`, [jobId]); const raw = String(rev.rows[0]?.status ?? 'none');
+        console.error(`✗ [g7fix1] route_decided cap 60000ms 耗尽 — job_semantic_revision.status 原值=${raw} (中间态注记: rule_decided/model_prepared/result_validated; ${raw === 'route_unresolved' ? 'route_unresolved → sticky 族(G7S classify 质量面)' : '≠route_unresolved → pending 族(时序面在途)'}) — 诚实 FAIL`);
+        throw new Error(`[g7fix1] route not decided within 60000ms cap — revision_status=${raw}`); }
+      await new Promise((res) => setTimeout(res, 1_000)); } }
+    finally { await pgc.end().catch(() => {}); } }
   const startT0 = Date.now(); try { r = await fetch(`${BASE}/applications/${app1}/start`, { method: 'POST', headers: H, body: JSON.stringify({ resumeId }) }); fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'app_start', status: r.status, elapsed_ms: Date.now() - startT0, body: (await r.clone().text()).slice(0, 200) })}\n`); }
   catch (e: any) { fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'app_start', thrown: `${e.name}/${e.code}/${e.cause?.code}` })}\n`); throw e; }
   const started = await readJson(r);
