@@ -41,9 +41,23 @@
 
 F1 DBID-1 潜伏残留（uuidv7 ACL × privacy SD owner · 0143 引入 · 0144 stash 同红亲证 · 另刀）· F2 ai-cost 独立 prove 骨架 bit-rot（自 0033 基线不可跑 · model-cost 替代）· F3 recruiter 基线既有红（interview_event fence）· N2 ACL 镜像修正 · N3 tf_assert 唯一 SD 库成员 · N4 qbank definer 可达（供给同形态 DO 块 + 两笔镜像 GRANT）。
 
-## §4 Prove attempts 全账（Ban retry-to-green · 官方 run 经 `pnpm db-trigfam:prove` 净树执行 · 见运行输出 ATTEMPTS_LEDGER）
+## §4 Prove attempts 全账（Ban retry-to-green · 每轮无论红绿全记录）
 
-开发轮（scratch 容器 · 全记录）：run-1 红（snapshot tgtype 拼接 42725）→ run-2 红（ORDER BY 位序）→ run-3 红（uuid 字面量构造）→ run-4 红（interview_job 隐私围栏夹具改 job_semantic_revision）→ run-5 红（语法/重复 await）→ run-6 红（阶段共享 resume 夹具 · 阶段化 uuid）→ run-7 红（P3 GUC 单客户端化 · 15 FAIL 逐项归类：migrate:prove def 钉死=真回归修 def 链 / qbank definer 可达=真回归修 N4 / 其余 prove 断言缺陷+基线红分类）→ run-8 7 FAIL（P5 差分重设计+P6/P7 钉死修正）→ **官方 run（本轮 commit 后净树）EXIT 见推送后报告**。
+| # | at(UTC) | EXIT | 红/绿 | 结果与因 |
+|---|---------|------|-------|---------|
+| 1 | 2026-10-08T09:43Z | 1 | 红 | snapshot `tgtype` 未 cast（42725）——prove 自身缺陷 |
+| 2 | 09:43Z | 1 | 红 | ORDER BY 位序不在选择集——prove 自身缺陷 |
+| 3 | 09:44Z | 1 | 红 | 夹具 uuid 字面量构造非法（22P02）——prove 夹具缺陷 |
+| 4 | 09:44Z | 1 | 红 | interview_job 夹具被既有隐私围栏+resume 引用守卫拦（语义正确）→ 夹具改 job_semantic_revision |
+| 5 | 09:46Z | 1 | 红 | python 替换残留重复 await（语法）——修 |
+| 6 | 09:46Z | 1 | 红 | 阶段 B 复用阶段 A resume 行触发 epoch 校验（语义正确）→ 夹具阶段化 uuid |
+| 7 | 09:47Z | 1 | 红 | P3 池连接 GUC 丢失（interview_privacy_fenced）→ 单客户端 GUC 事务；随后 15 FAIL 归类：**真回归×2**（migrate:prove def 文本钉死→def 链断言；qbank definer 上下文不可达 tf_→N4 DO 块+GRANT）· prove 断言缺陷×6 · 基线红×3（F1/F2/F3 分类）· ai-cost 容器骨架不可跑（F2） |
+| 8 | 09:54Z | 1 | 红 | 7 FAIL：gateway 差分归一化 / P5 全文签名+差分重设计（model-cost 替代 ai-cost · uc052 探得 F1 基线同红）/ P6 提交态断言 / P7 _scoped 双载计数 |
+| 9 | 10:00Z | 1 | 红 | 官方 run#1（@350cea57 净树）：4 FAIL=uc052 真跑得 F1 + P5 签名截尾 + P6 迁移面提交态 → 0144 临时回退提交探 uc052 基线（同红 uuidv7 亲证）→ reset --hard 恢复 → 三处修（commit 272a92bf） |
+| **10** | **2026-10-08T10:02Z** | **0** | **绿** | **官方 run#2（@272a92bf 净树 · `pnpm db-trigfam:prove` · run-e2e-isolated 临时 PG）：51 PASS / 0 FAIL**（P1×11 · P2×9 · P3×3 · P4×12 · P5×7（绿4：qbank/rag/migrate/model-cost + F1 差分豁免2：uc052/privacy-authorization + F3 差分豁免1：recruiter）· P6×6 · P7×3）· ATTEMPTS_LEDGER 随运行输出留档 · 收据 `.tmp/isolated-proof-receipts/` |
+| 基线探针 | 09:51–10:02Z | — | — | 0144 移出态亲证：migrate:prove 绿（def 链修复前为 0144 独红）· qbank-control 绿（N4 修复前 0144 独红）· privacy-authorization/recruiter/uc052 同红（F1/F3 · 非本刀回归）· ai-cost 双模式红（F2） |
+
+**边界重申**：F1（uuidv7 ACL × privacy SD owner）为 0143 引入的 DBID-1 潜伏残留，三 prove 同红亲证归档——**属另刀**，本刀不越界修；releaseEvidence=false · coveredCount=8 不变。
 
 ---
 
