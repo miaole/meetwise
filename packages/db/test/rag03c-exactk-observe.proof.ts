@@ -250,7 +250,7 @@ function hnswIndexScan(json: unknown): boolean {
 function extractHnswIndexName(json: unknown): string | null {
   let found: string | null = null;
   const walk = (n: any): void => {
-    if (!n || typeof n === 'object') return;
+    if (!n || typeof n !== 'object') return;
     if ((n['Node Type'] === 'Index Scan' || n['Node Type'] === 'Index Only Scan')
       && String(n['Index Name'] ?? '').startsWith('qgc_hnsw_visible_')) found = String(n['Index Name']);
     if (Array.isArray(n)) n.forEach(walk); else Object.values(n).forEach(walk);
@@ -258,15 +258,35 @@ function extractHnswIndexName(json: unknown): string | null {
   walk(json);
   return found;
 }
+/** 原始节点事实（additive 收据字段 · label 之外的 raw 证据）：HNSW 节点 Filter/Recheck/祖先 JOIN 全录。 */
+function planNodeFacts(json: unknown): { found: boolean; indexName: string | null; filterText: string | null; recheckText: string | null; joinAbove: boolean } {
+  const isJoin = (t: string) => /Join/i.test(t);
+  const out = { found: false, indexName: null as string | null, filterText: null as string | null, recheckText: null as string | null, joinAbove: false };
+  const walk = (n: any, joinAbove: boolean): void => {
+    if (out.found) return;
+    if (Array.isArray(n)) { n.forEach((x) => walk(x, joinAbove)); return; }
+    if (!n || typeof n !== 'object') return;
+    const nodeType = String(n['Node Type'] ?? '');
+    const hereJoin = joinAbove || isJoin(nodeType);
+    if ((nodeType === 'Index Scan' || nodeType === 'Index Only Scan') && String(n['Index Name'] ?? '').startsWith('qgc_hnsw_visible_')) {
+      out.found = true; out.indexName = String(n['Index Name'] ?? '');
+      out.filterText = typeof n['Filter'] === 'string' ? n['Filter'] : null;
+      out.recheckText = typeof n['Recheck Cond'] === 'string' ? n['Recheck Cond'] : null;
+      out.joinAbove = hereJoin;
+      return;
+    }
+    for (const v of Object.values(n)) walk(v, hereJoin);
+  };
+  walk(json, false);
+  return out;
+}
 /** 判别读数①：HNSW 节点形态 — same-table Filter（同表 recheck）vs join（HNSW 之上为 JOIN 节点）vs none。 */
 function planFilterShape(json: unknown): string {
   const isJoin = (t: string) => /Join/i.test(t);
   let label = 'none';
   const walk = (n: any, joinAbove: boolean): void => {
-    if (!n || typeof n !== 'object' || Array.isArray(n)) {
-      if (Array.isArray(n)) n.forEach((x) => walk(x, joinAbove));
-      return;
-    }
+    if (Array.isArray(n)) { n.forEach((x) => walk(x, joinAbove)); return; }
+    if (!n || typeof n !== 'object') return;
     const nodeType = String(n['Node Type'] ?? '');
     const hereJoin = joinAbove || isJoin(nodeType);
     if ((nodeType === 'Index Scan' || nodeType === 'Index Only Scan') && String(n['Index Name'] ?? '').startsWith('qgc_hnsw_visible_')) {
@@ -275,7 +295,7 @@ function planFilterShape(json: unknown): string {
       label = hasSameTableFilter ? 'same-table-filter' : (hereJoin ? 'join' : (hasRecheck ? 'index-cond-only' : 'none'));
       return;
     }
-    if (Array.isArray(n['Plans'])) n['Plans'].forEach((x: any) => walk(x, hereJoin));
+    for (const v of Object.values(n)) walk(v, hereJoin);
   };
   walk(json, false);
   return label;
@@ -444,6 +464,7 @@ async function main() {
     planSource: pHnsw.planSource, livePlan: pHnsw.livePlan, HNSW_USED: pHnsw.hnswUsed, hnswIndexName: pHnsw.hnswIndexName,
     hnswReturned: pHnsw.rows.length, hnswExactFillObserved: exactFive(pHnsw.rows),
     planFilterShape: { substituted_body: pHnsw.subShape, live: pHnsw.liveShape },
+    nodeFacts: { substituted_body: planNodeFacts(pHnsw.explain), live: pHnsw.liveExplain ? planNodeFacts(pHnsw.liveExplain) : null },
     returned: fmtHits(pHnsw.rows), noticeCount: pHnsw.noticeCount,
     explainJson: pHnsw.explain, liveExplainJson: pHnsw.liveExplain,
   };
@@ -463,6 +484,7 @@ async function main() {
     planSource: pDefault.planSource, livePlan: pDefault.livePlan, HNSW_USED: pDefault.hnswUsed,
     hnswIndexName: pDefault.hnswIndexName, returned: fmtHits(pDefault.rows),
     planFilterShape: { substituted_body: pDefault.subShape, live: pDefault.liveShape },
+    nodeFacts: { substituted_body: planNodeFacts(pDefault.explain), live: pDefault.liveExplain ? planNodeFacts(pDefault.liveExplain) : null },
   };
   console.log(`RAG03C_READING P-DEFAULT HNSW_USED=${pDefault.hnswUsed} returned=${pDefault.rows.length} shape sub=${pDefault.subShape} live=${pDefault.liveShape} rows=${JSON.stringify(fmtHits(pDefault.rows))}`);
   A('R3C-SAFETY', safe(pDefault.rows), `plan=P-DEFAULT returned=${pDefault.rows.length}`);
