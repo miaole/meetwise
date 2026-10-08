@@ -1,6 +1,6 @@
 # G7P-1 — e2e runner 启动段探针刀（api 红真抛点定位·非判别 run）
 
-**状态**：`draft:awaiting_pre_exec_dual` · base = 主线 `a9f55133` · 分支 `line/g7-bootphase-probe` · 立项依据 = E2EFAIL-1 判别 run branch 3（api 红 23.3s·0 行·双计 0=史上最早死亡面）+ 席2 时序分析（prove 窗 ~5-8s vs runner 启动链 ≳8-12s ⇒ 红点很可能在启动段）+ 席2 建议「boot-phase 探针 run 或 code 截获面」——协调方裁**探针 run 方案**（不动 wrapper·零产品码·信息量最大）。
+**状态**：`draft_rev2:awaiting_pre_exec_dual`（rev1 席1 FAIL 三处方落实：段序对齐真实链〔api+worker 并发 spawn+login-401 DB 门+3s sleep+exitCode 检查〕·段 5 实名 /readyz/api·EXIT=9 崩溃专属码+行文法钉死） · base = 主线 `a9f55133` · 分支 `line/g7-bootphase-probe` · 立项依据 = E2EFAIL-1 判别 run branch 3（api 红 23.3s·0 行·双计 0=史上最早死亡面）+ 席2 时序分析（prove 窗 ~5-8s vs runner 启动链 ≳8-12s ⇒ 红点很可能在启动段）+ 席2 建议「boot-phase 探针 run 或 code 截获面」——协调方裁**探针 run 方案**（不动 wrapper·零产品码·信息量最大）。
 
 ## 1. 背景与目标
 历史 api 红族（G7S 38428/G7X 40363/G7U 40560/CMOP03-FIX 78798/G7Y 101906ms·均 4-11 行 review ledger 深跑红）与 E2EFAIL-1 新形状（23330ms·0 行·双计 0）**不同族**；已修面（断言 supersession/断链 import）均非触发点。目标=区分红点在 (a) runner 启动段〔PG 冷启/api 进程退出/readyz 超时〕vs (b) 旅程早期段〔signup/resume/upload 前〕vs (c) 环境噪声〔Docker 重启后残留态〕——为 G7 修复刀定靶。
@@ -8,9 +8,9 @@
 ## 2. 手段（docs+脚本级探针·零产品码改动）
 新增 `scripts/e2e-boot-probe.mjs`（探针脚本·不动 run-e2e wrapper）：
 1. 按与 run-e2e-isolated.mjs 等价的容器/迁移流程起隔离环境；
-2. 分段采集启动链时序戳：docker PG 起→migrate 完成→api spawn→api /livez 首个 200（耗时）→api /readyz 200（耗时）→worker spawn→worker livez→首个业务面请求（signup）HTTP 状态与耗时；
-3. 每段独立超时与 EXIT 码语义（段号=码：probe_pg_1/probe_migrate_2/probe_api_spawn_3/probe_api_livez_4/probe_api_readyz_5/probe_worker_6/probe_first_signup_7）；
-4. stdout 输出结构化 PROBE_SEGMENT 行（机器可收据）。
+2. 分段采集启动链时序戳【rev2·席1 段序订正=对齐 run-e2e.mjs 真实链】：docker PG 起→migrate 完成→**api+worker 背靠背并发 spawn**（对齐 :119/:124——顺序启动会给 api 独占资源致冷启争用失真）→api `/livez` 首个 200（轮询 40×1s 同 :127-131）→**DB 门复刻**：POST /auth/login 期 401（对齐 :135 waitForApiDatabase :100-112——真实链 DB 门非 readyz）→**3s sleep**（对齐 :136）→**exitCode 检查**（:139-140 worker/api_exited_before_test）→worker `/livez`+单发 `/readyz/worker`（:141·worker 段只表里程碑不重排）→api `/readyz/api`（health.controller.ts:19 实名）→首个业务面请求（signup=POST /auth/signup）HTTP 状态与耗时；
+3. 每段独立超时与 EXIT 码语义（段号=码：probe_pg_1/probe_migrate_2/probe_spawn_3〔api+worker 并发〕/probe_api_livez_4/probe_db_gate_5〔login-401〕/probe_exit_check_6〔3s sleep+exitCode+readyz/worker〕/probe_api_readyz_7/probe_first_signup_8）；**EXIT=9=脚本未捕获崩溃专属码**（与段 1 码解耦；无 PROBE_SEGMENT 行的 EXIT=1 亦=崩溃非段红——双保险预注册）；PROBE_SEGMENT 行文法钉死：`PROBE_SEGMENT segment=<id> status=<ok|fail|timeout> elapsed_ms=<n> ts=<ISO8601> [detail=...]`；
+4. stdout 输出结构化 PROBE_SEGMENT 行（机器可收据·探针脚本 sha256 digest 自证入收据防 wrapper 漂移）。
 - 跑恰 **2 次**（预注册：run-A 冷〔docker 刚起〕+ run-B 热〔紧随其后〕——区分冷热态）；非判别 run（不跑全旅程·不触模型调用面·Ban retry-to-green 不适用但禁重跑至绿同律）。
 
 ## 3. 预注册判读（三向）
