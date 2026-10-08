@@ -397,6 +397,7 @@ async function main() {
       'packages/db/package.json',
       'package.json',
       'scripts/run-e2e-isolated.mjs',
+      'ai-docs/delivery/harness/dbacl2-pgp-grant.md',
       'ai-docs/delivery/receipts/dbacl2-pgp-grant/exec.md',
     ]);
     const unexpected = files.filter((f) => !allow.has(f));
