@@ -1,6 +1,5 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
-import { reserveEntitlement, enqueueQuizJob, releaseConsumption, requireOwnerUserId, buildRequiredOwnerFilter } from '@meetwise/db';
+import { reserveEntitlement, enqueueQuizJob, releaseConsumption, requireOwnerUserId, buildRequiredOwnerFilter, newEntityId } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
 import { parseLastEventId } from '../../platform/last-event-id.ts';
 
@@ -17,7 +16,7 @@ export class QuizService {
   // 新建押题(空壳,created)。begin 才扣额度跑图。
   async create(principal: string) {
     const owner = requireOwnerUserId(principal, 'quiz.create');   // PRIV01-C 第二层 E1(fail-closed)
-    const id = 'qz_' + randomUUID();
+    const id = newEntityId('qz');
     await this.db.asPrincipal(owner, (c) =>
       c.query("INSERT INTO resume_quiz(id, owner_user_id, status) VALUES ($1,$2,'created')", [id, owner])); // RLS WITH CHECK owner=principal
     return { quizId: id, status: 'created' };
