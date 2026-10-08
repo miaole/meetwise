@@ -304,7 +304,9 @@ export async function runMigrateProof(
     (await pool.query("SELECT has_table_privilege('app_role','qbank_chunk','SELECT') allowed")).rows[0]?.allowed === false
     && (await pool.query("SELECT has_function_privilege('app_role','qbank_active_generation_metadata()','EXECUTE') allowed")).rows[0]?.allowed === true);
   A('0021 → interview_question + 事件去重索引已建', (await has('interview_question')) && (await pool.query("SELECT to_regclass('public.uq_interview_event_key') r")).rows[0].r !== null);
-  A('0027 → 事件去重表级唯一约束已建', (await pool.query("SELECT count(*)::int n FROM pg_constraint WHERE conname='uq_interview_event_key_constraint' AND contype='u'")).rows[0].n === 1);
+  A('0027+0149 → 事件去重唯一最终态=仅 0021 partial（DBM3-1 D3 删 0027 表级约束·ON CONFLICT arbiter 不变）',
+    (await pool.query("SELECT count(*)::int n FROM pg_constraint WHERE conname='uq_interview_event_key_constraint'")).rows[0].n === 0
+    && (await pool.query("SELECT to_regclass('public.uq_interview_event_key') r")).rows[0].r !== null);
   A('0028/0046 → application/interview attempt 唯一索引与自动回填 trigger 已建', (await pool.query("SELECT to_regclass('public.uq_interview_application_attempt') r")).rows[0].r !== null
     && (await pool.query("SELECT count(*)::int n FROM pg_trigger WHERE tgname='trg_finalize_bound_job_application' AND NOT tgisinternal")).rows[0].n === 1);
   A('0029 → qbank 可重建事实、generation 指针、语料 epoch 与分区表已建',
