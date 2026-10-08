@@ -1,9 +1,9 @@
 # E2EFAIL-1 — full.e2e.ts emitE2EFailure 断链修复刀（BUG-E2E-FAILUNIMPORT · G7X ②面 erratum · 附判别 run）
 
-**状态**：`draft:awaiting_pre_exec_dual` · base = 主线 `9130509e` · worktree `meetwise-line-g7drv` · 分支 `line/g7-driver-assert` · 立项依据 = 协调方码面三重实证（2026-10-08）。
+**状态**：`draft_rev2:awaiting_pre_exec_dual`（rev1 席1 FAIL 仅史实措辞——C-MO-P3 断言修复已由 1789e321 完成系 supersession·本刀对象改为残余断链炸弹·修法 A/B 与判别 run 三向不变） · base = 主线 `9130509e` · worktree `meetwise-line-g7drv` · 分支 `line/g7-driver-assert` · 立项依据 = 协调方码面三重实证（2026-10-08）。
 
-## 1. 三重码面实证（协调方亲读 · 供双席复核）
-1. **G7X ②面定谳误判**：`e2e/full.e2e.ts:201-203` 断言三合取项恒 True——①`trustedBSideScore === null` 与 `forgedScores === 'none'` 为 `e2e/helpers/interview.ts:235-236` **字面量硬编码**返回；②`identities.length === questions + clarifications` 恒等（provenance 终扫 :374 输入=mainLoop `seen` :309，identities 计 question_ready+clarification_needed 双 kind :210，questions :311 与 clarifications :342 分别同 kind 同源计数，无跳过分支）。**G7X 收据漏读 `+ clarifications`**（读成 identities(5)===questions(3)）——C-MO-P3「断言恒 False」定谳失效登记 erratum（G7X ①面 ai_report 烧尽钟定谳系 sidecar 时间线实证·不受影响）。
+## 1. 三重码面实证（协调方亲读 · 供双席复核）【rev2 · 席1 史实考证订正：supersession 叙事】
+1. **C-MO-P3 断言面史实链（supersession 非误判）**：G7X 实跑码 `979a85e4`（blob `7d65d0f3`·与 G7X 登记块同源钉）的 `full.e2e.ts:202` 当时为 `provenance.identities.length === questions`——**「恒 False（5 vs 3）」定谳对其码成立且正确**；`+ clarifications` 系其后继 `1789e321`（CMOP03-FIX 刀①·git 亲证 ancestor）引入——**现树恒 True 是已被修复取代（supersession）的状态**：①`trustedBSideScore === null`/`forgedScores === 'none'` 为 `helpers/interview.ts:235-236` 字面量；②`identities.length === questions + clarifications` 同源恒等（终扫 :374 输入=seen :309·seq 去重门卫 :306-307·identities :210 双 kind·questions :311/clarifications :342 同循环无跳过·一切 throw 路径使 :201 永不求值）。**G7X ②面定谳维持成立零翻案；断言修复已由 1789e321 完成——本刀对象=残余断链**（G7X ①面 ai_report 烧尽钟 sidecar 时间线定谳不受影响）。
 2. **断链炸弹**：`full.e2e.ts:14` import 仅 `{ createE2EReviewLedger, emitClassifiedE2EFailure }`，`:205` 却调用 `emitE2EFailure`（存在于 `e2e/helpers/failure-class.mjs:233` 并经 failure.ts re-export）——**未导入 → ReferenceError → uncaught throw → A() 兜底 class='api' EXIT=1**。时序与 G7X T-1 观察（~12s 静默后 uncaught throw·40363ms）相容。
 3. **存活根因 = e2e/ 零静态门**：root tsconfig 仅路径别名无 include；e2e/ 无自有 tsconfig；`emitE2EFailure` 断链（TS2304 级）无任何 tsc/lint 程序可抓。`INTERVIEW_TERMINAL_DEADLINE_MS=420_000`（interview.ts:6）排除「deadline 超时→terminal=''」简单路径（40s run ≪ 420s）——**触发条件需判别 run 实证**。
 
@@ -23,6 +23,8 @@
 
 ## 5. 验收
 静态门 B EXIT=0（含新机检红测自证：临时摘 import 一行必红再复原）· 判别 run 恰一次全收据（EXIT 原值+stderr 摘录+三向判读结论）· 收据 `ai-docs/delivery/receipts/e2efail-import-knife/` · est：判别 run live ≤10（ai_model_invocation 记账口径同 CMOP03-F）· actualSpendCny=null。
+
+**席1 附注登记（rev2 收录）**：① boundLoop `full.e2e.ts:368` 断言仍 `identities.length === boundLoop.questions`（未含 clarifications）——backlog `:830` 已登记候修行·非本刀域；② 兜底细节措辞：ReferenceError 经 `:394-397` main().catch fallback `{class:'api',code:'client_uncaught'}` 而非 A() 兜底——无害·收据措辞以本附注为准。
 
 ## 6. Non-claims
 本刀 ≠ G7 三绿 ≠ `:107` 关闭（判别 run 结果决定后续）≠ 刀② 落地 ≠ C-MO-P3 收口（erratum 登记后收口材料待判别 run）。
