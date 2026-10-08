@@ -1,6 +1,6 @@
 # Slice — **DBFK-1** · interview 复合 FK 渐进补齐（GAP-DEBT-DB-NOFK · W2 二刀 · REQUEST 阶段）
 
-**Status**: **`exec:awaiting_post_prove_dual`**（EXEC 完成：0147+0148 落地 · prove 31/31 EXIT=0 · P7 四项 base-identical red 登记=DBID1-UUIDV7-ACL-E1 既有雷）
+**Status**: **`awaiting_post_dual_close`**（EXEC 完成 + P7 绿收据补充轮完成 @DBACL-1 0150：growth/uc019/remaining-sinks 三绿 · recruiter P0001 原值登记=0062 fence×fixture 独立面 · 见 harness §5a 收据对照表）
 **Date**: 2026-10-08（rev2 同日）
 **Author**: **`mw-core`**（rev2 小修：协调方 0144 序裁定迁移顺延 0147/0148 · §1.5a 口径勘误 · P7 补 recruiter-depth 复跑）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503（stays） · g7SuiteGreen=false · actualSpendCny=null

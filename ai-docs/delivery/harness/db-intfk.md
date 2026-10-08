@@ -1,6 +1,6 @@
 # Harness — **DBFK-1** · interview 复合 FK 渐进补齐（GAP-DEBT-DB-NOFK · W2 二刀 · REQUEST）
 
-**Status**: **`exec:awaiting_post_prove_dual`**（EXEC 完成 @协调方授权 rev2 双审 BOTH PASS · prove 31/31 EXIT=0 · **P7 四项 base-identical red 已登记**（DBID1-UUIDV7-ACL-E1 既有雷·见 P4-0/P5-2 收据与债行进度注）· Ban self-approve · nail 须 meetwise 授权）
+**Status**: **`post_dual_close:green_receipts_supplemented:awaiting_post_dual_close`**（EXEC 完成 · prove 31/31 EXIT=0 · post-prove dual BOTH PASS @1abef7f8 · **P7 绿收据补充轮完成 @DBACL-1 0150（cherry-pick 2628fe39）**：growth 31/uc019 26/remaining-sinks 31 三绿 + recruiter P0001 原值登记（0062 fence×fixture 独立面）——§5a 收据对照表 · Ban self-approve · nail 须 meetwise 授权）
 **Date**: 2026-10-08（rev2 同日 · 小修）
 **Author**: **`mw-core`**（rev1 全部清单亲核 + rev2 小修执行 · 按协调方 0144 裁定）
 **Rev2 变更记录（docs-only · 协调方 0144 序裁定）**: ①迁移编号 0144/0145 → **0147/0148**（DBTF-1 已 EXEC 占 0144 · DBHY-1 0145+0146 · 本刀顺延 0147+0148 · DBM3-1 0149）②§1.5a「全库 0 命中」措辞勘误为「生产/迁移面 0 命中」+ recruiter-depth.proof:210 测试清理 1 处登记 ③P7 回归补 `recruiter:prove` 复跑（CASCADE 级联面）④作者标记 mw-core。刀面/断言集/pins 零变化。
@@ -194,6 +194,19 @@ SELECT count(*) AS orphans FROM <child> c
 
 **接线**（dbid1 同款四点）：root `package.json` `db-intfk:prove`/`:raw` · `packages/db/package.json` `prove:db-int-fk` · `scripts/run-e2e-isolated.mjs` 文件映射表 · test 文件本体。
 **纪律**：EXIT=0 一次过；attempts 全账；**Ban retry-to-green**。
+
+### 5a. P7 绿收据补充轮（2026-10-08 · DBACL-1 nail 后 resume · append-only）
+
+DBACL-1（`0150_uuidv7_grant_acl.sql` 恰 8 GRANT · commit `1caf7f32` 主线）修复 DBID1-UUIDV7-ACL-E1 后，本刀 worktree cherry-pick（`2628fe39`·四冲突双保留解：db-intfk/db-acl 两套 runner 注册并存各 4 处）+ E4 漏网收据层陈旧路径修正（run-e2e-isolated.mjs **路径文本-only**·仅四目标清单内 9 处：src/scoring|transcript|commerce|report|privacy|recruiting 子目录前缀→实际平铺 src/ 路径·他条目零碰）后复跑。**非 retry-to-green**：证明体/断言面零字节改动，红→绿差=上游 0150 ACL 修复 + 收据层文本修正，前后对照在卷：
+
+| 目标 | EXEC 轮（红·4ca1ffa1 树） | 补充轮（绿·2628fe39 树） | 收据 |
+|------|--------------------------|--------------------------|------|
+| `growth:prove` | EXIT=1 · PASS=0 · 断点 42501 uuidv7（publishQuestionRubric→question_rubric） | **EXIT=0 · PASS=31** | `.tmp/isolated-proof-receipts/2026-10-08T11-37-08-829Z-…json` |
+| `uc019:report-regenerate:prove` | EXIT=1 · PASS=0 · 断点 42501 uuidv7（enqueueReport→ai_report） | **EXIT=0 · PASS=26** | `…T11-37-14-786Z-…json` |
+| `int-transcript-remaining-sinks:prove` | EXIT=1 · PASS=0 · 断点 42501 uuidv7（begin 链→privacy_erasure_request） | **EXIT=0 · PASS=31** | `…T11-37-21-019Z-…json` |
+| `recruiter:prove` | EXIT=1 · PASS=0 · P0001 interview_event_raw_answer_fenced（setup :42） | EXIT=1 · PASS=0 · **同一 P0001 原值**（ACL 修复后仍在=证与 uuidv7 雷正交；0062 scope fence × recruiter-depth 历史 fixture 面 · base 既有独立面 · stash 前后签名逐字一致已证） | `…T11-37-27-623Z-…json`（如实红收据） |
+
+A4 口径闭合：三绿收据在卷（uuidv7 雷面全消）；recruiter 按协调方裁定原值登记（0062 fence×fixture 独立面·非本刀 FK 亦非 DBACL-1 面·修复归属该独立面的 owner 另裁）。CASCADE 级联面（rev2 P7 补点）以 `recruiter:prove` 的**收据层写通**（目标注册+收据文件落卷）+本刀 prove cleanup 收据（删根行 3 条·子行随 CASCADE 级联清理）双证接线在卷，断言面待该独立面修复后归绿。
 
 ---
 
