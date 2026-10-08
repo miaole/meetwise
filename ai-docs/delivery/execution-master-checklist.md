@@ -1652,3 +1652,11 @@ flowchart TD
 
 - 全链：REQUEST `9079d81a` → EXEC `d3507770`（245/245 纯前缀·G0 172/172 零违例）→ 收据 `8585f8ae` → 主线收账（见上注）。**B2 前置达成**。G2=64 靶 53绿/11红全 base parity（红侧 9+2 结构对账·预存红零洗）·ENOENT 归零 67/67（1,007 sourceDigests 全在盘）·G3 vectorstore=结构性无回执先在事实（两席一致：附会话日志 EXIT=0·补跑不产生回执）。收据勘误在案：db 44→43·红 10→11 补 uc011·分项和闭合。E6（uc-e2e-011:200 payment.ts=B1 扫漏唯一机械面·归 B1b/B2）·E4b（conn-stack 10 处零处置待另裁）登记。Pins 十值零翻转：NOT_HA · releaseEvidence=false · g7SuiteGreen=false · coveredCount=8 · DELETE=503 · actualSpendCny=null。
 - Non-claims：≠DIR-1 完成 ≠B2 已批；B2/B3/B6 各须 REQUEST+双审+授权。
+
+### Line GODFN 巨函数拆解设计刀定稿 NAIL（2026-10-08 SSOT nail · 协调方授权 · rev2 pre-exec 双审 BOTH PASS · docs-only 设计定稿 §5 矩阵 86 键 0 MISS + §7.3 串行条款 + 计数校正 · 四子刀授权开工登记）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
+- [x] **rev2 pre-exec 双审 BOTH PASS**：mw-e2e-ha PASS（78 行键名清单机检复跑 0 MISS〔77 单键+r4 族 36〕·trio 三键 root 实键·§7.3 双文件六处行号逐行核对现树全中〔model-client.ts:517 依赖 1b 注入 g7 变量——纠缠比文档更强〕·三计数亲数 7/154/30 处全中·docs-only 恰 4 md 零产品码）+ mw-model-op PASS（r4 族 36 键两强位点实证·§7.3 精确·roster 六守卫逐一吻合〔:103/:118/:129/:156/:164/:178〕·G7_FREETIER_REPROVE 恰 4 直读点+四 runner 传播链亲验·cloud 五键四 consumer 键全实）· **唯一缺口（席2）=§5.2 未引 R4SCRIPTS 依据——本 nail 补 §5.2b 落字（main.ts 读者名单 r4-eg3-product-evidence/funnel-batch1-4/r4-pr1b + 31 文件 7163 行现状）**；席1 观察 model-client.ts:505 第二 g7_ 位点登记为 1d EXEC 行级清单收录项 · 协调方正式授权本设计定稿.
+- **四子刀授权开工登记（立项≠即修——各须新 REQUEST+pre-exec dual+授权全链）**：1a invoke 拆解（e2e trio+prove 矩阵 §5.1）· 1b G7 卫兵移组合根（voice+embedder+model-client 族+r4 族 36 键抽样·**1b×1d 同文件两处亲钉禁并行 EXEC——串行〔先 1b 后 1d〕或合并单刀·归协调方裁**）· 1c interview.service 拆（§7.3 同文件条款适用面核对）· 1d AppError 统一（uc/neg 十键+invoke/voice/cloud 触面+worker 四 consumer+payment）· vectorPlaneErasureLoop=独立授权面（1b EXEC 不默认覆盖）.
+- [ ] **STILL OPEN**：四子刀各自 REQUEST 未立·r4 迁出（GAP-DEBT-BE-R4SCRIPTS `:879`）与 1b 的顺序耦合待子刀 REQUEST 裁·`g7SuiteGreen=false` 维持.
+- Sibling sections stay as written. alone≠dual · 设计不自批.

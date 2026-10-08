@@ -159,7 +159,11 @@
 
 **收据**：逐 CMD 实录 EXIT 落 `receipts/godfn-decompose/<子刀>/`；预存红记 base≡red（零回归）；三钉 blob 对照（如触）。
 
-### 5.5 机检清单（rev2 · 键名存在性 · 逐名核实实录）
+#### 5.2b r4 读者名单补引（rev2 复审席2 建议 · nail 期落字）
+
+1b 拆解（G7 卫兵移组合根）将改 `apps/worker/src/main.ts:9` 组合根——**直读 main.ts 的 r4 脚本读者名单**（抽样选点必看）：`r4-eg3-domain-isolation-product-evidence.ts`（经 product-close 变体 import 传递）· `r4-funnel-batch1/2/3/4` · `r4-pr1b-combo-root`。现状体量=GAP-DEBT-BE-R4SCRIPTS（backlog `:879`·亲测 31 文件 7163 行）——**重构 r4 不迁则 1b 改组合根即失明**（eg4-product-close 不读 main.ts 故仅 eg3 经传递覆盖）。抽样面 EXEC 前由协调方+双审定，product-close/live-pg 强位点条款不变。
+
+## 5.5 机检清单（rev2 · 键名存在性 · 逐名核实实录）
 
 CMD（本 worktree HEAD `97fce99c`（base `9028eb70` 上 REQUEST 落盘 commit）· 2026-10-08 实跑）：`node -e '<per-pkg Object.keys(scripts) 逐键 includes 核对>'`（packages/ai-runtime · apps/api · apps/worker · root 四 package.json · 跨子刀同键去重）。输出实录：
 
