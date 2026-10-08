@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "model-invocation-reconcile:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 10746,
+  "startedAt": "2026-10-08T12:01:39.266Z",
+  "finishedAt": "2026-10-08T12:01:50.012Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:c3e8bdf1f59009319a49e93192f07410df511bb929035da190f2c304ef51ec29",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/model-invocation-reconcile.proof.ts": "sha256:49231acb31102697dc8b767c82df5e62fd8bc1d94d0e814db3291d208903f1f9",
+    "apps/worker/src/model-invocation-reconcile.ts": "sha256:146608b8c8df87d71e87e57e46a214a49de0e17820a3fbe491df640518227d7d",
+    "packages/db/src/model-invocation.ts": "sha256:5fec7f19a886540611183758dde8478d4455735d91113463b542e863cc363691",
+    "packages/db/src/ai-cost-governance.ts": "sha256:3ecd30068a3d240d66c30e7f9382d98f3f1157d551e3de18fcbf0d2a74856f0f",
+    "packages/db/migrations/0037_ai_model_invocation_durable_claim.sql": "sha256:b08a3c48a10f9cbcc82a0ba4e13612c692a29ea637f798e8ecb2b2a58aedf7d1",
+    "packages/db/migrations/0056_model_invocation_reconcile.sql": "sha256:34be3619874db8d4292913686c5d28a59201cc37ff768b60f263ae15dabdbf9a",
+    "packages/db/migrations/0057_model_invocation_cost_scope.sql": "sha256:59e741cef2d093d67c9b1c33bb906c997c6a1e8027d357964da0f1b901450ef3",
+    "packages/db/migrations/0083_ai_text_cost_price_revision_binding.sql": "sha256:fc89c9b134dddd17c317ab095d009111c42c925bf60fa87554ac9a54b729a3ce",
+    "packages/db/migrations/0085_ai_model_logical_node_dispatch_slot.sql": "sha256:19dd8c0926ddbf3d5fd6a6af6baef94948ce22fa9cfc865baffabf147bb52a39",
+    "packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql": "sha256:9b99a0c7cd9a59a57aeedb47508c3e1dada00691041b4e8deb80989af6b697e7"
+  },
+  "schemaMigrationManifest": {
+    "count": 142,
+    "latest": "0142_candidate_profile_route.sql",
+    "digest": "sha256:39b162151706b9c634d9174851b58f3309b85cfd9c44f85d8312a4054e7b58a2"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

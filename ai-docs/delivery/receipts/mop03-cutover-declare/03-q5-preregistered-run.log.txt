@@ -1,0 +1,44 @@
+
+> meetwise@0.1.0 model-op00-usage-reconciler:prove /Users/miaole/Desktop/golucky/meetwise-line-mop03decl
+> node scripts/run-e2e-isolated.mjs model-op00-usage-reconciler:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-65135-1791460958506 on 127.0.0.1:53420
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/ai-runtime@0.0.0 prove:usage-calibration-reconciler /Users/miaole/Desktop/golucky/meetwise-line-mop03decl/packages/ai-runtime
+> tsx test/usage-calibration-reconciler.proof.ts
+
+PASS  ① 成功：estimate_input_tokens 在 claim 落库(100)且 input_tokens=50 配对
+PASS  ① schema-失败：estimate 落库(100)且 usage 仍 settle(input=150)，不再偏置
+PASS  ① business-失败：estimate 落库(100)且 usage 仍 settle(input=60)
+PASS  ① unknown：estimate 落库(100)、无 usage(input NULL)
+PASS  ② P2 reconcile ok，且只 1 组(unknown 无 usage 不配对)
+PASS  ② P2 组 observationCount=3(成功+schema+business；unknown 排除)
+PASS  ② P2 组 informativeCount=3(全部 providerInput≥1)
+PASS  ② P2 rawMaxRatio=1.5、factor=1.65(1.5×1.1)、hasUnderEstimate
+PASS  ② P2 factorVersion 形态 `utf8-bytes-v1.calibration-v1.<sha256>`
+PASS  ② P2 观测日志落库 3 条(全历史)，因子落库 1 条
+PASS  ③ 低估样本显式 under_estimated(绝不静默)；其余 within_estimate
+PASS  ③ model_estimate_calibration_underestimated_total 计数=1
+PASS  ② 未知 estimator → fail-closed（error，不落任何观测/因子）
+PASS  ② 非法因子：伪造版本后缀(非 64hex) → toCalibratedFactor null
+PASS  ② 非法因子：版本前缀 algo 不符 → null
+PASS  ② 非法因子：未知 estimator → null
+PASS  ② 非法因子：factor<=0 / observationCount<1 → null
+PASS  ④ 跨 owner 读=0（RLS 隔离）
+PASS  ④ 未知 (service,model) → resolveLatestCalibratedFactor null（不串扰）
+PASS  ④ 跨 service 分组独立：factorVersion 互异、各自读回各自
+PASS  ⑤ 同批重跑幂等：观测/因子条数不变（ON CONFLICT DO NOTHING）
+PASS  ⑤ 并发同批双写：两事务都成功、观测不重复(全历史 4 条)
+PASS  ⑥ refineEstimate 精化后 ≥ 已观测 provider usage(150)
+PASS  ⑥ 因子单调不减：追加更高比率后 factor(≈2.2) > 旧(≈1.65)
+PASS  ⑥ 缺因子 (空组) → resolveLatestCalibratedFactor null（fail-closed 退回未精化）
+PASS  ⑦ 空历史 owner → ok 且 groups=[]，不落任何观测/因子
+PASS  ⑦ 零观测(provider=0)：informativeCount=0、factor=null（无校准信号）
+PASS  ⑦ 零观测 provider=0 仍显式 within_estimate 落库 1 条
+
+✓ usage 对账校准 reconciler 全七类矩阵通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-08T12-02-43-886Z-65135-67e6cbdf-f0f8-4fec-a96d-26aa6f7edf81.json release_evidence=false
