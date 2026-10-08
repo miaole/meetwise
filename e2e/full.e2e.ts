@@ -254,8 +254,10 @@ async function main() {
   const diagTerm = await pollTerminal(`/diagnosis/${diagId}`, token, ['diagnosis_ready', 'diagnosis_unavailable', 'error']);
   if (diagTerm) reviews.recordTerminal(diagTerm);
   A(diagTerm !== '', `诊断:跑到终态(${diagTerm})——无死胡同 ✅`, 'worker');
+  reviews.record({ class: 'worker', code: 'seg_diag_green_enter' }); // CMOP03-D M1: post-7b 死亡窗已进入(:256 绿)
 
   // 8. B 端(招聘方)+ 多租户 RLS 隔离:发岗位 → 自己可见 → 他人不可见
+  reviews.record({ class: 'worker', code: 'seg_step8_enter' }); // CMOP03-D M2: step8 B 端区入口
   const recruiter = await signupOrLogin(`e2e_rec_${tag}@x.com`, password, 'recruiter');
   const HR = recruiter.headers;
   r = await fetch(`${BASE}/recruiter/jobs`, { method: 'POST', headers: HR, body: JSON.stringify({ title: '后端工程师', competencies: ['高并发', '分布式锁', '限流'] }) });
@@ -299,8 +301,10 @@ async function main() {
   r = await fetch(`${BASE}/recruiter/jobs/${jobId}/candidates`, { headers: HR });
   b = await readJson(r);
   A(r.status === 200 && (b.candidates ?? []).some((x: any) => x.candidate_user_id === user2Id), `招聘方:看到该候选人本人(多方 RLS,candidate=${String(user2Id).slice(0, 8)})`);
+  reviews.record({ class: 'worker', code: 'seg_step9_green' }); // CMOP03-D M3: step8/9 区全绿(岔A 排除)
 
   /* ════════ 专家评审全维度用例:异常 / 特殊 / 兜底 / 状态机 ════════ */
+  reviews.record({ class: 'worker', code: 'seg_expert_enter' }); // CMOP03-D M4: 专家评审段入口(岔B)
   const noEntitlement = await signupOrLogin(`e2e3_${tag}@x.com`, password);
   const H3 = noEntitlement.headers;
   r = (await consentResumeProcessing(H3)).response;
@@ -330,6 +334,7 @@ async function main() {
   r = await fetch(`${BASE}/applications/${app1}/finalize`, { method: 'POST', headers: H, body: JSON.stringify({ interviewId }) });
   A(r.status === 400, '[防伪造] finalize 夹带历史 interviewId → 400(strict DTO 拒绝)');
 
+  reviews.record({ class: 'worker', code: 'seg_bound_start_enter' }); // CMOP03-D M5: 岗位绑定 start 面入口
   r = await fetch(`${BASE}/applications/${app1}/start`, { method: 'POST', headers: H, body: JSON.stringify({ resumeId }) });
   const started = await readJson(r);
   const boundInterviewId = started.interviewId;
@@ -343,6 +348,7 @@ async function main() {
 
   r = await fetch(`${BASE}/interview/${boundInterviewId}/begin`, { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
   A(r.status === 202, '[状态机] 岗位绑定会话 begin → 202');
+  reviews.record({ class: 'worker', code: 'seg_boundloop_enter' }); // CMOP03-D M6: boundLoop 调用前(子型1 域)
   const boundLoop = await driveInterviewToTerminal({
     interviewId: boundInterviewId,
     token,
@@ -353,6 +359,7 @@ async function main() {
     clarificationAcceptedLabel: '[状态机] 岗位澄清 canonical /turn → 202',
   });
   if (boundLoop.terminal) reviews.recordTerminal(boundLoop.terminal);
+  reviews.record({ class: 'worker', code: 'seg_boundloop_terminal' }); // CMOP03-D M7: boundLoop 已返回且 terminal 已记账(子型2 域 · bounded)
   A(boundLoop.questions >= 1 && boundLoop.turns >= 1 && boundLoop.terminal !== '', `[状态机] 岗位绑定会话经真 worker 到终态(${boundLoop.terminal}; ${boundLoop.questions} 题/${boundLoop.turns} 答)`);
   A(boundLoop.provenance.trustedBSideScore === null && boundLoop.provenance.identities.length === boundLoop.questions,
     '[状态机] 岗位会话出处审查: AI 分/progress 不是 B 端分');
