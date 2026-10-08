@@ -1,6 +1,6 @@
 # Harness — **DBTF-1** · 触发器函数族收敛刀（公共函数库 + 版本 diff 对齐证明 · REQUEST）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（本 turn docs-only · REQUEST 编写完成即停 · **未授权 EXEC** · zero coding / zero migration / zero prove）
+**Status**: **`executed:awaiting_post_prove_dual`**（pre-exec 双审 **BOTH PASS** 裁定经协调方带外转达：D1=案B/D2=U/D4=保留/D5=**改裁双参**/D6=引入/D7=足量/D8=保形 · EXEC 落盘 2026-10-08 · 零 SSOT（backlog/matrix 零改 · nail 阶段才登记）· **Ban self-write `post_prove_dual_pass`** · Ban nail until POST BOTH + 协调方）
 **Date**: 2026-10-07
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503（stays） · g7SuiteGreen=false · actualSpendCny=null
 **Experts**: `mw-model-op` + `mw-privacy-int`（pre-exec 双审 · 本 REQUEST 只送审 · **Ban self-approve** · **Dual PASS ≠ 自动开工** · 须 meetwise 明示授权才进 EXEC）
@@ -31,8 +31,8 @@
 | `CREATE OR REPLACE FUNCTION` 总数 | **423** | grep 逐文件计数（§1.4 口径差） |
 | 去重函数名数 | **346** | 按首 token（schema.name）去重 |
 | 同名重贴（≥2 份）函数名 | **55** | 版本链见 §1.2/§1.3 与附录 A |
-| 同名重贴多余份数 | **78** | Σ(份数−1)——协调方「约 40 处」为保守下限（§1.4） |
-| `CREATE TRIGGER` 挂接点总数 | **100** | 全部零变（Ban 面 §7-2） |
+| 同名重贴多余份数 | **77**（**N1 勘误**：原记 78 为手算+1 误） | Σ(份数−1)=40+18+15+4——协调方「约 40 处」为保守下限（§1.4） |
+| `CREATE TRIGGER` 语句总数 / live 挂接点 | 语句 **100** / **live 85**（迁移语句含 DROP+重建 · live 行集为 P1 差分口径） | live 85 全零变（Ban 面 §7-2 · P1 断言） |
 | 调用面 | 应用层直调 6 处 + principal.ts 封印 3 处 | §2.5 |
 
 ### 1.2 Tier-1 族（本刀 0144 全量收敛面 · 四簇）
@@ -44,7 +44,7 @@
 | `finalize_bound_job_application_on_interview_completion` | 0028:42 · 0046:175 · 0051:8 · 0082:9（4） | **0082** | `trg_finalize_bound_job_application` ON interview AFTER UPDATE OF status（0028:73 唯一建点） |
 | `enforce_job_application_interview_binding` | 0028:95 · 0046:220 · 0051:37 · 0082:29（4） | **0082** | `trg_enforce_job_application_interview_binding` ON job_application BEFORE UPDATE（0028:140 唯一建点） |
 | `enforce_interview_application_binding_immutable` | 0028:78 · 0046:203 · 0049:51 · 0064:45（4） | **0064** | `trg_interview_application_binding_immutable` ON interview BEFORE INSERT OR UPDATE OF application_id,application_attempt,job_id,resume_id,resume_privacy_epoch（0064:100 末次重建 · 列面=终端） |
-| `enforce_interview_job_resume_reference`（伴族） | 0049 · 0064（2） | 0064 | `trg_interview_job_resume_reference` ON interview_job（0064:177） |
+| `enforce_interview_job_resume_reference`（伴族 · **N1 勘误**） | **0054:16 · 0064:108**（2 · 原误记 0049·0064 · 0049 无此函数） | 0064:108 | `trg_interview_job_resume_reference` ON interview_job（0064:176-178） |
 | `enforce_interview_consumption_terminal_pair`（伴族 · GAP-COMM-PARTIAL-PAIR 张力面） | 0020:26 · 0046:144（2） | **0046** | `trg_interview_consumption_terminal_pair` ON interview（0020:62 唯一建点） |
 
 **② ai_cost_reserve/settle 族（0033→0034→0036→0083 抄 4 代 + 0035/0056/0057 变体蔓延 · 7 文件 17 函数对象）**
@@ -232,6 +232,26 @@ Not HA · not suite green · not 运行时性能改善声明 · not 历史文件
 3 份×9：`qbank_generation_lexical_search` · `qbank_generation_evidence` · `qbank_generation_distances` · `qbank_pool_requires_approved` · `qbank_chunk_requires_approved_pool` · `privacy_begin_checkpoint_erasure` · `gateway_dispatch_owners` · `assert_privacy_erasure_request_completed_guard` · `ai_model_claim_invocation_scoped`。
 2 份×40：`ai_cost_reserve` · `ai_cost_settle` · `ai_cost_release` · `ai_cost_reserve_text`（8→9 参跨代）· `ai_cost_reserve_text_scoped` · `ai_cost_mark_unknown_for_model_reconcile_scoped` · `enforce_interview_consumption_terminal_pair` · `enforce_interview_job_resume_reference` · `scoring_publish_question_rubric` · `interview_privacy_active` · `enforce_interview_projection_privacy_active` · `assert_score_card_status_transition` · `assert_checkpoint_privacy_fence` · `assert_checkpoint_enrollment_not_privacy_fenced` · `privacy_resolve_deletion_receipt` · `privacy_purge_checkpoint_target` · `privacy_list_claimable_checkpoint_targets` · `privacy_issue_authorization_snapshot` · `privacy_claim_checkpoint_target` · `ai_model_transition_dispatched_scoped` · `ai_model_register_logical_node_header_scoped` · `ai_model_invocation_state_guard` · `qbank_validate_generation` · `qbank_source_visible_epoch_sync` · `qbank_question_chunk_requires_visible_source` · `qbank_question_chunk_artifact_guard` · `qbank_question_artifact_guard` · `qbank_prepare_generation_partition` · `qbank_mark_generation_failed` · `qbank_is_curator` · `qbank_generation_chunk_only_building` · `qbank_activate_generation` · `rag_runtime.rag_search_bound` · `rag_runtime.rag_resolve_query_binding` · `rag_runtime.rag_evidence_bound` · `rag_runtime.rag_bind_query` · `rag_control.rag_mark_request_dispatching` · `rag_control.rag_heartbeat_rebuild_run` · `rag_control.rag_claim_rebuild_run`。
 （另有 `--` 前缀注释行 2 处计入 grep 噪声已剔除 · Tier-1=§1.2 四簇 14 名 · Tier-2=其余 41 名）
+
+---
+
+## EXEC 落盘（2026-10-08 · @ 协调方授权 · 两席处方逐条落实）
+
+**处方落实**：①薄壳逐字重声明 SD+SET（实证 PG16：CREATE OR REPLACE 省略子句会清空 prosecdef/proconfig · ACL/owner 自动保留——亲测留痕）②tf_ 调用一律 `public.tf_` 前缀限定 ③base 双 0143 排序亲核（`loadMigrations` 文件名 localeCompare：`0143_db_id_v7_unify` → `0143_sse_push_notify` → 0144）④N1 勘误（§1.2-①/§1.1 已按勘误订正 · 77 份 · live 85 挂接点）⑤P1 catalog 差分含 proconfig 断言 ⑥P7 三类措辞（薄壳 12/tf_ 12+derived_score/种子 INSERT 1）⑦P5 七腿含 privacy 席增补 privacy-authorization。
+
+**落地面**：`packages/db/migrations/0144_db_trigfam_unify.sql`（tf_ 库 12 员 + 12 薄壳 + `interview_derived_score(owner,stream_key)` 双参休眠 + 规则表+5 种子 + ACL 镜像）· `packages/db/test/db-trigfam-unify.proof.ts`（P1–P7 两段式差分：≤0143 快照/行为 → +0144 复比）· scripts 注册（package.json×2 + run-e2e-isolated.mjs×3 处 · **不入 migrate allowlist**——prove 自管两段式迁移）· `ai-docs/delivery/harness/db-trigfam-unify.exec.md`（EXEC 卷宗）。
+
+**实现期发现与披露（F/N 全账 · Ban 假绿）**：
+- **F1（DBID-1 潜伏残留 · 非本刀回归 · 另刀）**：0143 `uuidv7()` 受 0073:1342 默认 REVOKE PUBLIC 影响 ACL={owner}，`privacy_begin_checkpoint_erasure`（SD · privacy_api_owner）INSERT `privacy_erasure_request`（DEFAULT uuidv7）→ 42501 permission denied——0144 stash 后 0143 态同错亲证（差分保形 · P4 断言同签名）。privacy-authorization:prove 基线同红同根因。修法属 DBID-1 后续（uuidv7 GRANT 至 SD owner 角色或 DEFAULT 面）。
+- **F2（prove 骨架 bit-rot · 登记）**：`packages/db/test/ai-cost-governance.proof.ts` 自 0033 基线迁移在净容器不可跑（缺 0001 表）且对全量 ledger 报 `migration_ledger_unknown_version`——P5 以 runner 管理的 `model-cost:prove:raw`（现行 ai_cost 真实覆盖面）替代并在此登记。
+- **F3（基线既有红 · 登记）**：`recruiter:prove:raw` 在 0144 stash 后同红（`interview_event_raw_answer_fenced`）——P5 差分豁免同签名钉死。
+- **N2（REQUEST §2.1 修正 · 保形优先）**：「库成员一律 REVOKE PUBLIC」修正为 **ACL 镜像终端**——簇① 终端为 PUBLIC 默认 ACL，库成员须显式 GRANT PUBLIC 全等镜像（亲测 permission denied 复现：app_role 经触发器路径不可达）。
+- **N3（唯一 SD 库成员）**：`tf_assert_job_application_transition` SD 读 owner-only 规则表（零新 GRANT）。
+- **N4（qbank definer 可达 · manifest 供给制）**：manifest 供给把控制面 SD 函数属主转 `qbank_control_definer`（含 `qbank_pool_visible_epoch_sync` 内联求值 definer 判定、ann_search 薄壳 SD definer）——0144 按供给同形态幂等确保角色存在 + 两笔镜像 GRANT（tf_is / tf_ann_search → qbank_control_definer；供给端 exists-check 兼容亲证）。
+- **既有 prove 断言唯一改动（披露）**：`packages/db/test/migrate.proof.ts:373` terminal-pair def 文本钉死（含 `'failed'` 字面量）改为 **薄壳+库成员 def 链拼接** 断言（强度不减 · 位置无关 · 0144 收敛后字面量移入 tf_）。
+
+**Non-claims 不变**：历史迁移零字节 · 挂接点零变 · RLS/幂等键/secrets 零触 · partial_confirmed 只保形（P2 逐字节断言 23514 同消息）· 0082 冻结未解 · pins 十值全保留。
+
 
 ---
 

@@ -1,6 +1,6 @@
 # Slice — **DBTF-1** · 触发器函数族收敛刀（公共函数库 + 版本 diff 对齐证明 · REQUEST 阶段）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（REQUEST 完成 · **未授权 EXEC** · zero coding / zero migration / zero prove）
+**Status**: **`executed:awaiting_post_prove_dual`**（pre-exec 双审 BOTH PASS 裁定经协调方带外转达（D1案B/D2U/D4保留/D5双参/D6引入/D7足量/D8保形）· EXEC 落盘 2026-10-08 · prove EXIT 见 exec.md attempts 全账 · Ban self-approve · Ban nail until POST BOTH + 协调方）
 **Date**: 2026-10-07
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503（stays） · g7SuiteGreen=false · actualSpendCny=null
 **Experts**: `mw-model-op` + `mw-privacy-int`（pre-exec 双审 · Ban self-approve · Dual PASS ≠ 开工 · 须 meetwise 明示授权）
