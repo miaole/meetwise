@@ -1,8 +1,12 @@
-# Slice — **MOP03-B · MODEL-OP #102 域 cutover 独立审材料包**（REQUEST · docs-only · `draft:awaiting_pre_exec_dual`）
+# Slice — **MOP03-B · MODEL-OP #102 域 cutover 独立审材料包**（REQUEST · docs-only · `post_dual_pass` · 旧状态 token `draft:awaiting_pre_exec_dual`/`executed:awaiting_post_dual` 保留为 provenance（historical blockquote + 本 nail 记录））
 
-**Status**: **`executed:awaiting_post_dual`**（EXEC 材料包核验已落 · 2026-10-07 · rg 复验 **46/46 HIT · 0 偏离** · §2-F 订正锚全用新号 · 收据 `receipts/mop03-cutover-review/00-summary.md` · rg 结果在 exec commit message · 零 coding · 零 prove 执行 · 零 live · 零 SSOT · 零 `:76` 触碰 · Ban self-approve · alone ≠ dual · Ban self-nail until POST BOTH + meetwise AUTHORIZE）
+**Status**: **`post_dual_pass`**（EXEC 材料包核验已落 · 2026-10-07 · rg 复验 **46/46 HIT · 0 偏离** · §2-F 订正锚全用新号 · 收据 `receipts/mop03-cutover-review/00-summary.md` · rg 结果在 exec commit message · 零 coding · 零 prove 执行 · 零 live · 零 SSOT · 零 `:76` 触碰 · Ban self-approve · alone ≠ dual · Ban self-nail until POST BOTH + meetwise AUTHORIZE）
 
 > **Pre-exec-era status（historical · retained）**: **`draft:awaiting_pre_exec_dual`**（L0 docs only · 材料包组装）
+
+> **EXEC-era status（historical · retained）**: **`executed:awaiting_post_dual`**（EXEC 材料包核验 46/46 HIT · 0 偏离 · Ban self-nail）
+
+> **Post-dual record（2026-10-07 · nail era）**: post 双审 **BOTH PASS** —— `mw-e2e-ha` PASS（**独立复跑 27 项全 HIT**）+ `mw-model-op` PASS（**独立复跑 26 项全 HIT** · 优先模型域锚）· 两席合计 **53 项独立抽验全 HIT · 零偏离** · meetwise 协调方正式授权 nail（登记见 checklist `### Line MOP03-B cutover 独立审材料包刀 NAIL` 节）· 本刀仍 non-claims：**≠ `#102` 域 cutover 声明成立 ≠ MODEL-OP closed ≠ `:76` 关闭**（`:76` 处置 = 未来 cutover REQUEST 自带 fresh Q4/Q5 同列门 + 四专家审 BOTH PASS + 单独 nail + 协调方 AUTHORIZE）。
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · **PG-retained** · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null · **PG LISTEN retained**
 **Date**: 2026-10-07（Asia/Shanghai）
 **Base**: `origin/feat/mysql-schema-skeleton` · **`fe218b7a`** / `fe218b7aecaebda92f3f1ede7dd3b77eb6059cd9`（fetch 后 origin tip）
@@ -47,4 +51,4 @@ attempts 全记录（逐条 EXIT · Asia/Shanghai · code SHA）· 诚实失败�
 
 not #102 cutover 成立 · not MODEL-OP closed · not SLO · not Redis cutover · not PG LISTEN 退役 · not HA · not suite green · not `releaseEvidence=true` · not coveredCount 扩面 · `actualSpendCny=null` · `:76` **OPEN** · alone ≠ dual · PASS ≠ 执行 ≠ AUTHORIZE ≠ nail
 
-*Slice · MOP03-B MODEL-OP #102 domain cutover independent review evidence pack · 2026-10-07 · `executed:awaiting_post_dual` · EXEC 材料包核验 46/46 HIT · 0 偏离 · 零 coding · 零 prove 执行 · Ban Redis cutover · Ban MODEL-OP closed · PG LISTEN retained · `:76` OPEN · alone ≠ dual · STOP（awaiting post dual）*
+*Slice · MOP03-B MODEL-OP #102 domain cutover independent review evidence pack · 2026-10-07 · `post_dual_pass`（nail 已由协调方授权落链 · 旧 token `draft:awaiting_pre_exec_dual`/`executed:awaiting_post_dual` 保留为 provenance）· EXEC 材料包核验 46/46 HIT · 0 偏离 · post-dual 两席独立复验 53 项全 HIT · 零偏离 · 零 coding · 零 prove 执行 · Ban Redis cutover · Ban MODEL-OP closed · PG LISTEN retained · `:76` OPEN · alone ≠ dual · nail = 协调方授权*
