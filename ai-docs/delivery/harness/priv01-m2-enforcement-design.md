@@ -1,6 +1,9 @@
-# Harness — **PRIV01-B · 应用层 tenant M2 等价强制（设计 + prove 方案）**（GAP-PRIV-01 后继刀 · REQUEST docs-only · 设计+prove 面 · 接线 PR 另审另刀 · backlog `:57` OPEN · DELETE=503 · PG-retained · **`draft:awaiting_pre_exec_dual`**）
+# Harness — **PRIV01-B · 应用层 tenant M2 等价强制（设计 + prove 方案）**（GAP-PRIV-01 后继刀 · 设计+prove 面 · 接线 PR 另审另刀 · backlog `:57` OPEN · DELETE=503 · PG-retained · **`executed:awaiting_post_prove_dual`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（REQUEST docs-only · 零 coding / 零 prove 执行 / 零产品码 / 零 SSOT · Ban coding until PRE dual BOTH PASS + meetwise AUTHORIZE · Ban self-approve · alone ≠ dual）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC lifecycle 推进落盘 2026-10-08 Asia/Shanghai · PRE-EXEC dual BOTH PASS：mw-privacy-int 全项 PASS + mw-e2e-ha 全项 PASS · meetwise 协调方 §3⑤ standing authorize 授权 EXEC · P-A 裁定 + 断言措辞定稿（§4.1.1 · R1/R2/O1 落卷 · R3 条件性不触发）+ 设计面 prove `pnpm --filter @meetwise/db tenant-enforcement:prove` **EXIT=0（35 PASS / 0 FAIL）** · attempts 1,0 全录（attempt1 EXIT=1 确定性 fixture 字串缺陷诚实保留 · 沿 PRIV4 先例 · 交 post 双审裁，详见 §11 + receipts）· **零 `src/` 产品码 · ADR 门 cite-only 零执行零 receipt · Ban self-write `post_prove_dual_pass`** · 公开 DELETE=503 · `:57` OPEN · UC-052 partial · alone ≠ dual · Ban nail until POST BOTH + meetwise AUTHORIZE）
+**EXEC provenance**: REQUEST `0147f8ce` / full `0147f8ceaef55d27397af53bd9a928eb2b2dda46`（parent `fe218b7a` · EXEC 期间 origin tip 零位移，fetch 复核 up-to-date 免 rebase · 全部引锚自 REQUEST 零漂移）· 收据 `ai-docs/delivery/receipts/priv01-m2-enforcement/2026-10-08-exec-assertions-and-prove.md`（断言措辞 file:line + attempts + env 探针）
+
+> **Pre-exec-era status（historical · retained）**: **`draft:awaiting_pre_exec_dual`**（REQUEST docs-only · 零 coding / 零 prove 执行 / 零产品码 / 零 SSOT · Ban coding until PRE dual BOTH PASS + meetwise AUTHORIZE · Ban self-approve · alone ≠ dual）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null
 **Date**: 2026-10-07
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`fe218b7a`** / full `fe218b7aecaebda92f3f1ede7dd3b77eb6059cd9`（开工时点 origin 最新 tip · 满足预期 ≥`fe218b7a` · fetch 一次成功 up-to-date：本地 ref 开工前已恰在 `fe218b7a`，ff 为 no-op）
@@ -79,6 +82,16 @@
   5. **接线面机检**：`packages/db/src/tenant/` 生产接线 = 0（`src/tenant` 仅被 `test/tenant-enforcement.proof.ts` 引用的 grep 面）——接线 PR 落地前强制保持为 0。
 - **候选（PRE dual 裁定 · 实现方倾向非绑定）**：**P-A** = 扩展 proof 文件落 E1–E5 合同断言 + 接线面机检（设计升级须有对应 prove 面）；**P-B** = 沿用现有 prove 零扩展（现有断言已覆盖 E1–E3 + 静态钉主体，EXEC 仅定稿设计文档 + 复跑现有 CMD 入账）；**P-C** = 诚实失败路径（EXIT1 同形兼容 · attempts 全录 · 不得作 docs-alone 捷径）。倾向 P-A 主体、P-B 为可接受最小面、C 仅诚实失败。
 
+### 4.1.1 EXEC 定稿（2026-10-08 · P-A 裁定 · 断言措辞 file:line · R1/R2/R3/O1 落档）
+
+**裁定 P-A**（双审读数倾向 + 断言 4 baseline 半边/断言 2 成形断言/断言 5 接线面机检在现有 proof 缺位，P-B 将留可机检而不检面；触面恰为授权清单内 test/proof 文件，CMD 不变故 `packages/db/package.json`/根 `package.json` 零变更）。**R3（P-B 条件登记）不触发**——条件性显式注销，非静默跳过。
+
+**断言措辞定稿（file:line · `packages/db/test/tenant-enforcement.proof.ts` · EXEC 后 299 行 · 全表见 receipts §2）**：E1 `:65-79`（既有）· E3 `:81-89`+`:112-119`（既有）· E2 成形 `:101`/`:107` · E2 源短语钉 `required predicate object, not an optional filter hint`（源 `src/tenant/index.ts:99`）`:132` · E4 provisionRuntimeLogin `:150` · E4 baseline 四钉（`0001:7`/`:63-64`/`:69-79`/`:300-304`）`:160`/`:163`/`:165`/`:168` · **R1 断言 5 接线面机检** face A（字面 `src/tenant` 串零命中 · `hits=0 files-scanned=332`）`:250` + face B（tenant 模块/符号引用在纯 re-export span 之外零命中 · `consumption=0 reexportStmts=2`）`:253` + barrel 存在性与归类断言（恰 2 条 re-export 语句）`:256`。
+
+**R1 登记全文**：grep 面钉死双面——face A = 生产 src（`packages/*/src`+`apps/*/src`，排除 `src/tenant/**` 本体与 test）**字面 `'src/tenant'` 串**；face B = **模块引用面**（`from`/`import()`/`require()` specifier 含 `tenant` 路径段 + 五导出符号，注释剥离后落在纯 re-export span 外计 consumption）。**`packages/db/src/index.ts:25-32` barrel re-export 显式登记在位且归类 re-export ≠ consumption**（`:25-31` 值块 + `:32` 类型，恰 2 条语句 · 存在性断言防静默收窄 · barrel 使未来 `@meetwise/db` 消费者可被 face B 捕获）——防误红 + 防静默收窄。
+
+**R2/O1（同车落卷）**：E5 应用层半边（自身 id 意外 0 行 fail-closed 上抛）**本 proof 不证、prove 显式归属接线 PR**（`proof :26-29` 头注 R2 块 + `:180` 注释 + receipts + 本节四处同文）；E5 DB 层半边（GUC 未设→0 行缺省 deny）归属前刀候选 A 隔离面 prove（awaiting 授权）——**任何一方不得被读作「E5 已证」**。
+
 ### 4.2 ADR 清单门（切流门 · cite-only · 本刀不执行不复跑）
 
 按 `:57` 行内清单 + `m2-tenant-authorization-model.md` §4「Prove 门禁清单（ADR）」逐行登记（**未绿 = 红；全绿前 Ban cutover · Ban abandon RLS**；各门独立 EXIT=0 + 独立审查，**不自批**）：
@@ -149,8 +162,26 @@ Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR4
 
 **预执行双审**：`mw-privacy-int` + `mw-e2e-ha`（各自独立签 · alone ≠ dual · stub PENDING 不代填）。裁决点：两层关系写死与三类等价宣称 Ban、E1–E5 合同强度（不得弱化）、候选 P-A/P-B/P-C 取舍、ADR 清单门 cite-only 口径、EXIT 契约与诚实条款、docs-only 边界。
 
-**流程声明**：REQUEST → 预执行双审（mw-privacy-int + mw-e2e-ha）→ meetwise 授权 → 设计+prove 面 EXEC → post 双审 → meetwise 授权 nail。
+**流程声明**：REQUEST → 预执行双审（mw-privacy-int + mw-e2e-ha）→ meetwise 授权 → 设计+prove 面 EXEC → post 双审 → meetwise 授权 nail。（当前推进至 EXEC 完成态 `executed:awaiting_post_prove_dual`——post 双审归协调方派）
+
+## 11. EXEC 登记（2026-10-08 Asia/Shanghai · lifecycle 推进 · meetwise 协调方 AUTHORIZE 后落盘）
+
+| 项 | 登记 |
+|----|------|
+| **PRE-EXEC dual BOTH PASS** | mw-privacy-int 全项 PASS（授权根两层关系写死 · E1-E5 合同对码 · ADR 门 cite-only · 禁改面全守）+ mw-e2e-ha 全项 PASS（prove 方案可执行可判 · EXIT 契约/cite-only 边界自洽）· meetwise 协调方 §3⑤ standing authorize 授权 EXEC |
+| **base 核对** | EXEC 开工 fetch origin：origin tip 仍 `fe218b7aecaebda92f3f1ede7dd3b77eb6059cd9` 零位移 → 免 rebase；全部引锚（backlog `:57`/`:58`/`:60`/`:64`/`:68` · `0001:7`/`:63-82`/`:280-281`/`:300-304` · `principal.ts:945-955`/`:566-608` · `interview.service.ts:177-190` · `privacy.controller.ts:51-52` · R1 barrel `index.ts:25-32`）自 REQUEST 零漂移实测复核 |
+| **P-A/P-B 裁定** | **P-A**（依据三：双审读数倾向 · 现有 proof 缺断言 2 成形/断言 4 baseline 半边/断言 5 接线面机检 · 触面恰在授权清单且 CMD 不变→两 package.json 零变更）；R3（P-B 条件登记）**条件性不触发显式注销** |
+| **断言措辞定稿** | §4.1.1（file:line 全表）· proof 文件 154→299 行（+146/−1）· 零 `src/` 产品码 |
+| **R1** | 断言 5 接线面机检双面钉死（face A 字面 `src/tenant` 串 · face B 模块引用面）+ `packages/db/src/index.ts:25-32` barrel re-export 显式登记存在且归类 re-export≠consumption（防误红/防静默收窄）——落 `proof:174-258` + receipts §2 |
+| **R2/O1（同车）** | E5 应用层半边 prove 显式归属接线 PR（`proof:26-29` 头注 + `:180` 注释 + receipts §2 + §4.1.1 四处同文）· E5 DB 层半边归属前刀候选 A 隔离面 · Ban 读作「E5 已证」 |
+| **R3** | P-B 条件登记不触发（P-A 裁定）· receipts §1 显式注销 |
+| **prove** | `pnpm --filter @meetwise/db tenant-enforcement:prove`（=`packages/db/package.json:35`）· **attempt1 EXIT=1**（2026-10-08 10:26:28..10:26:32 +0800 · 33/1 · 唯一 FAIL=断言正则漏源 `:99` 一词 `object` 的**确定性 fixture 字串缺陷**）→ 恰一行正则修复（S1→S2 diff 可验证 · 零断言语义变更 · 零被测源变更）→ **attempt2 EXIT=0**（10:27:29 +0800 · **35 PASS / 0 FAIL**）· attempts 1,0 全录（Asia/Shanghai 窗 + HEAD=`0147f8ce`+工作树态 S1/S2 + log/exit 落 receipts）· **沿 GAP-PRIV-04 attempts 台账 1,0 先例，非 `:68` 型 retry-to-green；缺陷定性显式交 post 双审裁——若裁不可采，attempt1 EXIT=1 诚实保留为 EXEC 终态** |
+| **ADR 门** | **零执行 · 零复跑 · 零 receipt（cite-only）**——privacy-authorization / crypto / erasure 系列仍为切流门各自独立 EXIT=0 + 独立审查 |
+| **收据** | `ai-docs/delivery/receipts/priv01-m2-enforcement/`（`2026-10-08-exec-assertions-and-prove.md` + `priv01-prove-attempt1/2.log` + `.exit`）· env 探针：node v22.22.3 · pnpm 10.18.0 · tsx v4.22.4 · darwin arm64 · PREREQ `pnpm install --frozen-lockfile`（5.2s 零 lockfile 变更）· **secrets 零触及（Key name-only）· actualSpendCny=null** |
+| **触面机检（自报 · 待 post 双审机检复核）** | EXEC commit 触面 = proof.ts + 本 harness + slice + receipts 四类恰 7 文件 · **零 `src/` 产品码 / 零两 package.json / 零 SSOT 四件 / 零双审 stub / 零 `checkpoint-principal.ts` / 零 `privacy.controller.ts` / 零授权根（`principal.ts`/migrations）/ 零 secrets** |
+| **EXIT 契约** | EXIT=0 十不得+1 照抄生效：≠接线已授权 ≠RLS abandon 门开 ≠`:57` CLOSED/翻行 ≠tenant=RLS 等价 ≠授权根已迁 ≠MySQL 等价强制完成 ≠HA ≠releaseEvidence ≠UC-052 flip ≠DELETE 开放 ≠ADR 门全绿宣称 |
+| **Ban self-write** | **`post_prove_dual_pass` 阶段标记由 post-prove 双审（协调方派）写入**，implementer 本 EXEC 仅推进至 `executed:awaiting_post_prove_dual` 为止 · Ban nail until POST BOTH + meetwise AUTHORIZE |
 
 ---
 
-*Harness · PRIV01-B 应用层 tenant M2 等价强制（设计+prove 方案）· `draft:awaiting_pre_exec_dual` · 2026-10-07 · backlog `:57` OPEN · DELETE=503 · PG-retained · Ban coding / Ban prove 执行 / Ban self-nail until PRE dual BOTH PASS + meetwise AUTHORIZE · 接线 PR 另审另刀 · alone ≠ dual · STOP*
+*Harness · PRIV01-B 应用层 tenant M2 等价强制（设计+prove 方案）· `executed:awaiting_post_prove_dual` · 2026-10-07 立卷 / 2026-10-08 EXEC · backlog `:57` OPEN · DELETE=503 · PG-retained · PRE dual BOTH PASS · P-A · prove EXIT=0（35/0 · attempts 1,0 全录 · fixture 缺陷定性交 post 双审）· ADR 门 cite-only · 零 src/ 产品码 · **Ban self-write `post_prove_dual_pass`** / Ban nail until POST BOTH + meetwise AUTHORIZE · alone ≠ dual · STOP（awaiting post-prove dual）*
