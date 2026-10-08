@@ -1903,3 +1903,14 @@ flowchart TD
 - [ ] **STILL OPEN**：G7TRIO（REQUEST 待立）；`:107` 收口 SSOT 刀；POST7B（重锚后评估）；adaptive-consumer 域刀；`g7SuiteGreen=false` 维持（翻转归 SSOT 刀）.
 - 预算：N=21 实测 ≤25 · 链 35≤200 · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 首绿≠收官 · 实现方不 self-approve.
+### Line GODFN-1c interview.service 拆解刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · begin() 三守卫合并单查（3→1·抛序逐字节保持·消除撕裂读窗严格改进）· 五域机械迁出（955→745 行）· 五值等数双树独立复机 · api 16 键 15 绿+1 base≡红（接替口径）· dbid1 保形零改动）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（设计 §4 全表）.
+- [x] **`post_prove_dual_pass`** recorded for Line GODFN-1c products only（触面=interview.service.ts+五域文件+prove:begin-guard-merge 新键+package.json 语义零漂移重缩进·blob d43a569c→d816beff·nail tip 本 commit · branch `line/godfn-1c-interview-svc`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：begin 单查 :195-204 亲读+尾段 :275-356 vs :234-315 **diff 为空字节级同**/五域迁移纯机械 this.db→db 注入形变/五值等数独立复机 27/23/10/1/5+5+3/**6 键亲跑全绿含 db-id-v7 隔离容器全量复跑 EXIT=0 failures=0 含 P8 真实 begin 冒烟**/attempts 修面全仪器层零弱化零洗红/dbid1 smoke git diff 空/诚实性 trio env-blocked 如实）+ mw-model-op PASS（六核：**五域零反依 facade 无环+24 路由恰数亲证**/**begin 单查锁序不变零锁升级+消除撕裂读窗严格改进**/五值双树亲跑逐字节相等/**stale-quiz-expiry git archive base 树双跑亲证同恰 4 失败集**——接替口径有 proof 头自钉+设计明文背书/api 16 键对账/trio 归属 G7TRIO 主线刀·1c 登记 env-blocked 非回归）· 协调方正式授权本 nail.
+- **GODFN-1c 全链**：REQUEST → rev2 `861c630e`（rev1 双席 FAIL：prove 面错引 §5.4+dbid1 桩面+pins r1Closed）→ 双席复核 BOTH PASS → EXEC `6f7e13cb`（origin tip 零位移）→ 本 nail commit.
+- **核心产出**：begin() 三守卫合并单查（3→1·抛序九行矩阵 prove 30 PASS·消除撕裂读窗）·五域机械迁出（955→745 行·六守卫零弱化·24 路由零触）·dbid1 保形零改动·设计 §5.3 1c 面清.
+- **trio 诉求归属裁定（席2 建议·协调方裁）**：1c trio env-blocked=非回归登记·持钥复跑归 **G7TRIO 主线刀**（g7fix2 持钥 EXIT=0/75 先例）·1c 不设本地复跑义务.
+- **nits×4 登记（不阻断）**：package.json 重缩进 169 行语义零漂移/「30 PASS」含总结行口径/trio-exits 行标注/设计 §2.3 抛序行文与实际保持序表述不一致（EXEC 从实际序正确）.
+- [ ] **STILL OPEN**：GODFN-1d（**串行前置 1c 已落地满足**·REQUEST rev2 待落）；adaptive-consumer 域刀；`g7SuiteGreen=false` 维持.
+- 预算：est live ≤25/run 链记账 · 0 Key 值接触（trio env-blocked 佐证）· `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
