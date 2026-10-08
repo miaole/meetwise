@@ -1,6 +1,7 @@
 # Slice — **DBSB-1** · src 样板收敛刀（runAs / job-claim 泛型 / withSavepoint + r4 退役协同 · REQUEST 阶段）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（REQUEST 完成 · **未授权 EXEC** · zero coding / zero migration / zero prove）
+**Status**: **`draft:awaiting_pre_exec_dual` · rev2**（model-op 席 FAIL 四项窄修已落卷 · 等双席复审 · **未授权 EXEC** · zero coding / zero migration / zero prove）
+**Rev**: **rev2**（缺陷 A scoring 吞回滚失败路径披露+裁定不转换（排除出 runAs 面）·缺陷 B withSavepoint per-site 三错误模式+P4 逐点次序断言·RUNTIME_ROLE_NAME 措辞改格式正则+PG 报错兜底·三处模块计数勘误 quiz 6/diagnosis 6/context 7·D4 裁案B 先行落卷 · rev1 = `b3f8a0a0` · 落卷 mw-core）
 **Date**: 2026-10-07
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503（stays） · g7SuiteGreen=false · actualSpendCny=null
 **Experts**: `mw-model-op` + `mw-e2e-ha`（pre-exec 双审 · Ban self-approve · Dual PASS ≠ 开工 · 须 meetwise 明示授权）
@@ -19,7 +20,7 @@
 
 ## One-line scope
 
-两债行（GAP-DEBT-DB-SRCBOILER + GAP-DEBT-BE-R4SCRIPTS 退役评估子面）合并一 REQUEST：`runAs(pool,role,fn)` 收敛 11 份 SET LOCAL ROLE 样板（principal.ts 10 + scoring-fact-root 漂移 1 · 薄别名保调用点零改动）· job 队列五件套 TS 泛型工厂（案B 不动表 · 案A 并陈交裁）· `withSavepoint` util 抽 3 处 4 实例 · r4 退役评估+prove 别名保全（物理迁出让位 DIR-1 B3 · 冲突让位五条）· Prove P1–P6 + 族复跑 22 项全绿。
+两债行（GAP-DEBT-DB-SRCBOILER + GAP-DEBT-BE-R4SCRIPTS 退役评估子面）合并一 REQUEST rev2：`runAs(pool,role,fn)` 收敛 SET LOCAL ROLE 样板（principal.ts 10 份·薄别名保调用点零改动；scoring-fact-root 漂移 1 份经缺陷 A 裁定**不转换**·登记防复发）· job 队列五件套 TS 泛型工厂（D4 裁**案B 不动表**先行·案A 不立项）· `withSavepoint` util 抽 3 处 4 实例（per-site 三错误模式 RB+throw/裸 throw/RB+RELEASE→conflict·禁拉平）· r4 退役评估+prove 别名保全（物理迁出让位 DIR-1 B3 · 冲突让位五条）· Prove P1–P6（P4 逐点次序断言）+ 族复跑 22 项全绿。
 
 ## Hard pins
 
@@ -32,17 +33,17 @@
 
 ## EXEC checklist（授权后）
 
-1. `principal.ts`：+`runAs`（role 白名单 fail-closed · `opts.principalUser` GUC variant）+ `withSavepoint`（落点 D5）· 9 具名 wrapper 单行委托 · `assertRagControlDefinerOwnership` 壳委托（断言体不动）
-2. `scoring-fact-root.ts`：`asScoringWorkerPrincipal` → import 委托 principal.runAs
+1. `principal.ts`：+`runAs`（role 格式正则 `RUNTIME_ROLE_NAME` fail-closed + PG 角色不存在报错兜底 · `opts.principalUser` GUC variant）+ `withSavepoint`（落点 D5·per-site 错误模式参数）· 9 具名 wrapper 单行委托 · `assertRagControlDefinerOwnership` 壳委托（断言体不动）
+2. `scoring-fact-root.ts`：**零触碰**（缺陷 A 裁定不转换——rev2 从 EXEC 面摘除·P1 负断言防复发）
 3. `job-queue.ts` 工厂 + 三队列（interview/quiz/diagnosis-jobs.ts）五件套委托 · 导出面不变
-4. `resume.ts` / `payment.ts`×2 / `int-transcript.ts` 4 实例点接 `withSavepoint`
+4. `resume.ts` / `payment.ts`×2 / `int-transcript.ts` 4 实例点接 `withSavepoint`（逐点传 errorMode·三模式语句序原样·P4 逐点次序断言）
 5. `dbsb1-src-boiler.proof.ts`（P1–P6 · harness §6）+ `dbsb1:prove` 别名 + 族复跑 22 项
 6. `r4-evidence-retirement-assessment.md`（可退役集/永续集/触发条件 · 零 r4 位移）+ 台账 L876/L879 勘误
 7. post-prove 双审 → meetwise 授权 nail
 
 ## Decision points（双审裁定）
 
-D1 薄别名 vs 全量替换 263 调用点（建议薄别名）· D2 assertRagControlDefinerOwnership 壳并入（建议并入）· D3 provisionQbankControlDefiner 特判不收敛（建议不动）· D4 job 队列案B 先行 vs 案A 同刀（建议 B · A 后续刀）· D5 withSavepoint 落点 principal.ts（建议是）· D6 r4 协同 §5 让位五条（建议确认）。
+D1 薄别名 vs 全量替换 263 调用点（建议薄别名）· D2 assertRagControlDefinerOwnership 壳并入（建议并入）· D3 provisionQbankControlDefiner 特判不收敛（建议不动）· D4 job 队列案B 先行 vs 案A 同刀（**rev2 裁定：案B 先行锁定·案A 不立项**）· D5 withSavepoint 落点 principal.ts（建议是）· D6 r4 协同 §5 让位五条（建议确认）。
 
 ## Non-claims
 

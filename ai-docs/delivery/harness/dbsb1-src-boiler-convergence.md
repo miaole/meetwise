@@ -1,6 +1,6 @@
 # Harness — **DBSB-1** · src 样板收敛刀（runAs / job-claim 泛型 / withSavepoint + r4 退役协同 · REQUEST）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（本 turn docs-only · REQUEST 编写完成即停 · **未授权 EXEC** · zero coding / zero migration / zero prove）
+**Status**: **`draft:awaiting_pre_exec_dual` · rev2**（rev1 model-op 席 FAIL（窄修四项：缺陷 A scoring 假等价 · 缺陷 B withSavepoint 错误模式拉平 · ③ 角色校验措辞 · ④ 模块计数）→ 本 rev2 全部落卷 · 本 turn docs-only · REQUEST 写完即停 · **未授权 EXEC** · zero coding / zero migration / zero prove · 修订全账见 §11）
 **Date**: 2026-10-07
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503（stays） · g7SuiteGreen=false · actualSpendCny=null
 **Experts**: `mw-model-op` + `mw-e2e-ha`（pre-exec 双审 · 本 REQUEST 只送审 · **Ban self-approve** · **Dual PASS ≠ 自动开工** · 须 meetwise 明示授权才进 EXEC）
@@ -45,7 +45,7 @@ principal.ts 外的**漂移复制**（本债的直接证据）：
 
 | # | 函数 | 位置 | 备注 |
 |---|------|------|------|
-| 11 | `asScoringWorkerPrincipal` | `packages/db/src/scoring-fact-root.ts:25`（SET ROLE :29） | 头注自述「与 principal.ts 的 asPrivacyWorkerPrincipal 同构；只在本模块导出，**不改 principal.ts**」= 样板复制的第 11 份 · 生产调用点 **0**（仅 scor-01/02/03/growth 四 proof） |
+| 11 | `asScoringWorkerPrincipal` | `packages/db/src/scoring-fact-root.ts:25`（SET ROLE :29） | 头注自述「与 principal.ts 的 asPrivacyWorkerPrincipal 同构；只在本模块导出，**不改 principal.ts**」= 样板复制的第 11 份 · 生产调用点 **0**（仅 scor-01/02/03/growth 四 proof）· **缺陷 A 披露（rev1 model-op 席）**：:34 catch 为 `ROLLBACK.catch(() => undefined)` **吞回滚失败路径**——与 principal.ts 族 `await c.query('ROLLBACK')`（回滚失败即抛、替换原错误）**不等价** → **裁定不转换**：排除出 runAs 收编面 · 保持原样（连同其吞错语义）· 仅登记防复发（后续若真要收编须先单独立案裁「回滚失败替换 vs 保留原错误」的语义取舍 · Ban 面外） |
 
 test 侧同形复制（登记 · 不在刀面）：`packages/db/test/mem02-summary.proof.ts:65` 与 `mem03-summary-tree.proof.ts:67`（memory_summarizer 专用 wrapper 各一份）。
 
@@ -65,22 +65,22 @@ export async function runAs<T>(pool: DbPool, role: string, fn: (c: Client) => Pr
 | # | 表 | 迁移 | TS 模块 | 五件套 | 独有差异（亲核） |
 |---|----|------|---------|--------|------------------|
 | 1 | `interview_job` | 0001:253 | `interview-jobs.ts`（10 函数） | claim/done/failed/renew/sweep + requeue | advisory xact lock · `interview_privacy_active` 谓词 · 僵尸兄弟守卫（同 interview 任一 failed 不再领）· per-owner inflight 上限 · `ORDER BY seq, created_at` · done/failed 时 `payload-'answer'` 擦除 |
-| 2 | `quiz_job` | 0007:17 | `quiz-jobs.ts`（7 函数） | 五件套 | `ORDER BY created_at` · 同 quiz running 排他 |
-| 3 | `diagnosis_job` | 0008:18 | `diagnosis-jobs.ts`（7 函数） | 五件套 | `ORDER BY created_at` · 同 diagnosis running 排他 |
-| 4 | `context_compression_dispatch` | 0117:39 | `context-compression-dispatch.ts`（8 函数） | **非五件套**（register/claim/dispatched/commit/unknown/discard/recover/replay 状态机） | 单行单赢家 CAS · unknown sticky · **登记不动**（形态不同 · 不属本刀复刻债） |
+| 2 | `quiz_job` | 0007:17 | `quiz-jobs.ts`（**6 函数**·rev2 勘误④：rev1 误记 7） | 五件套 | `ORDER BY created_at` · 同 quiz running 排他 |
+| 3 | `diagnosis_job` | 0008:18 | `diagnosis-jobs.ts`（**6 函数**·rev2 勘误④：rev1 误记 7） | 五件套 | `ORDER BY created_at` · 同 diagnosis running 排他 |
+| 4 | `context_compression_dispatch` | 0117:39 | `context-compression-dispatch.ts`（**7 函数**·rev2 勘误④：rev1 误记 8） | **非五件套**（claim/dispatched/commit/unknown/discard/recover/replay 状态机） | 单行单赢家 CAS · unknown sticky · **登记不动**（形态不同 · 不属本刀复刻债） |
 
 五件套共性（1/2/3 套逐行对照同构）：`UPDATE ... SET status='running', lease_owner, lease_expires_at=now()+interval, attempts+1, version+1 WHERE id=(SELECT ... FOR UPDATE SKIP LOCKED LIMIT 1)` · done/failed 同守卫（`status='running' AND lease_owner=$me`）+ `lease_owner=NULL` + `version+1` · renew 仅推 `lease_expires_at` · sweep 两条原子 UPDATE（`attempts>=max`→failed / `<max`→queued）。差异全部可参数化：表名、镜像排他列（interview_id/quiz_id/diagnosis_id）、排序列、额外谓词 SQL 片段、lease 秒、max attempts 默认、done/failed payload 擦除开关。
 
 ### 1.3 SAVEPOINT 幂等模板 3 处（4 实例点）
 
-| # | 文件:行 | savepoint 名 | 语义 |
+| # | 文件:行 | savepoint 名 | 语义（rev2 逐点亲核·错误模式三态） |
 |---|---------|--------------|------|
-| 1 | `packages/db/src/resume.ts:107-121`（persistResumeProfile） | `resume_profile_insert` | 23505→回滚保存点吞掉（幂等重试竞态）· 非 23505→回滚后 rethrow |
-| 2 | `packages/db/src/payment.ts:62-79`（markOrderPaidAndCredit） | `payment_provider_txn_claim` | 23505→回滚+释放→返 `conflict` · 非 23505→rethrow |
-| 3 | `packages/db/src/payment.ts:106-158`（markOrderRefunded） | `payment_refund_txn_claim` | 23505 同上 + **业务条件回滚**（红冲不足→主动 ROLLBACK TO+RELEASE→返 `conflict`） |
-| 4 | `packages/db/src/int-transcript.ts:133-151` | `answer_submission_insert` | 头注自述「persistResumeProfile **同源**」= 复制的直接证据 · 语义同 #1 |
+| 1 | `packages/db/src/resume.ts:107-121`（persistResumeProfile） | `resume_profile_insert` | 23505→ROLLBACK TO+RELEASE→**吞掉继续**（幂等重试竞态·:119/:121）· 非23505→**模式① RB+throw**：`ROLLBACK TO SAVEPOINT` 后 rethrow·**不 RELEASE**（resume.ts:116-117） |
+| 2 | `packages/db/src/payment.ts:62-79`（markOrderPaidAndCredit） | `payment_provider_txn_claim` | 23505→**模式③ RB+RELEASE→conflict**（ROLLBACK TO+RELEASE+返 `'conflict'`·payment.ts:78-80）· 非23505→**模式② 裸 throw**：零回滚零释放直接 rethrow（payment.ts:77） |
+| 3 | `packages/db/src/payment.ts:106-158`（markOrderRefunded） | `payment_refund_txn_claim` | 23505 同模式③（:121-123）· 非23505 同模式②裸 throw（:120）+ **业务条件回滚**（红冲不足→主动 ROLLBACK TO+RELEASE→返 `conflict`·:151-153） |
+| 4 | `packages/db/src/int-transcript.ts:133-151` | `answer_submission_insert` | 头注自述「persistResumeProfile **同源**」= 复制的直接证据 · 语义同 #1（23505 吞·:148/:151 / 非23505 模式① RB+throw·int-transcript.ts:145-146） |
 
-共性核：命名 SAVEPOINT → try{工作} → catch 23505 判定 → ROLLBACK TO + RELEASE → rethrow-or-确定码。#3 多一条「业务半途回滚」路径 → util 需支持调用方主动触发回滚（sentinel throw 或返回信号 · EXEC 定稿）。
+**rev2 亲核结论（缺陷 B 纠偏）**：四实例点的错误路径**不是**同一形态——rev1 §4.2 把 util 语义拉平为「catch(非23505){ ROLLBACK TO; RELEASE; throw }」单一模式，会改写 payment 两点的裸 throw（多出两条语句）与 resume/int-transcript 的无 RELEASE rethrow（多出一条 RELEASE）——**语句序漂移即违 Ban §7-7**。util 必须按 per-site 错误模式参数化（三模式）：**① RB+throw**（ROLLBACK TO→rethrow·不 RELEASE）·**② 裸 throw**（不回滚不释放·直接 rethrow）·**③ RB+RELEASE→确定码**（ROLLBACK TO→RELEASE→返 conflict/吞）。#3 的业务半途回滚保持主动信号路径（sentinel·EXEC 定稿）。
 
 ### 1.4 r4-* 自证脚本现状（GAP-DEBT-BE-R4SCRIPTS 面）
 
@@ -91,16 +91,16 @@ export async function runAs<T>(pool: DbPool, role: string, fn: (c: Client) => Pr
 
 ### 1.5 口径差（诚实标注）
 
-- 台账 L876 记「14 份 SET LOCAL ROLE 样板」；mw-core 亲核 src 侧 = **11 份**（principal.ts 10 + scoring-fact-root 1）。差 3 疑为台账把 mem02/mem03 两份 test 复制 + 内嵌特判重复计数；**收敛对象事实一致**，按 11 份执行、台账行 EXEC 时勘误。
+- 台账 L876 记「14 份 SET LOCAL ROLE 样板」；mw-core 亲核 src 侧 = **11 份**（principal.ts 10 + scoring-fact-root 1）。差 3 疑为台账把 mem02/mem03 两份 test 复制 + 内嵌特判重复计数；**收敛对象事实一致**——rev2 后收敛面 = principal.ts 内 10 份（#11 经缺陷 A 裁定**不转换**·登记保留漂移现状），台账行 EXEC 时勘误。
 - 台账 L879 记「30 文件 7163 行(58% worker src)」；亲核 = **31 文件 / 7163 行 / 45.8%**（行数精确吻合 · 文件数差 1 · 百分比口径差）。EXEC 时台账行勘误。
 
 ---
 
 ## 2. runAs 收敛方案（§1.1 → 1 个泛型）
 
-1. `packages/db/src/principal.ts` 新增 `runAs<T>(pool, role, fn, opts?)`（role 经 `RUNTIME_ROLE_NAME` 既有白名单校验 fail-closed · `opts.principalUser` 存在则 `set_config('app.principal_user', $1, true)`）。
-2. 表 §1.1 #1–#8 具名 wrapper 函数体收敛为单行委托（**导出名/签名/JSDoc 全保留**）；#9 `assertRagControlDefinerOwnership` 外层事务壳委托 runAs（catalog 断言体原样为 fn）；#11 `asScoringWorkerPrincipal` 改 import 委托。
-3. **不动**：#10 `provisionQbankControlDefiner`（finally RESET ROLE+REVOKE 的供给事务语义 ≠ runAs · Ban 面 §7-2）；mem02/mem03 test 复制（test 面 · 登记）。
+1. `packages/db/src/principal.ts` 新增 `runAs<T>(pool, role, fn, opts?)`（role 经 `RUNTIME_ROLE_NAME` 既有校验——**rev2 措辞勘误③：非白名单**，实为**格式正则** `/^[a-z][a-z0-9_]{0,62}$/`（principal.ts:43）fail-closed 拒非法形态，合法形态但 PG 角色不存在时由 `SET LOCAL ROLE` 本身报错兜底（DB 面 `42704` · 非运行时静默）；`opts.principalUser` 存在则 `set_config('app.principal_user', $1, true)`）。
+2. 表 §1.1 #1–#8 具名 wrapper 函数体收敛为单行委托（**导出名/签名/JSDoc 全保留**）；#9 `assertRagControlDefinerOwnership` 外层事务壳委托 runAs（catalog 断言体原样为 fn）；**#11 `asScoringWorkerPrincipal` 排除出收编面**（缺陷 A 裁定不转换·§1.1——scoring-fact-root.ts **零触碰**，吞回滚失败语义连同现状保留）。
+3. **不动**：#10 `provisionQbankControlDefiner`（finally RESET ROLE+REVOKE 的供给事务语义 ≠ runAs · Ban 面 §7-2）；**#11 scoring-fact-root（缺陷 A 裁定·上条）**；mem02/mem03 test 复制（test 面 · 登记）。
 4. 等价证明 = 每份调用点零改动（tsc 零错即类型面证明）+ wrapper 体 diff 对照入 EXEC 卷 + P1 行为断言 + §6 族 prove 复跑。
 
 ---
@@ -115,14 +115,14 @@ export async function runAs<T>(pool: DbPool, role: string, fn: (c: Client) => Pr
 | 风险 | 擦除链/隐私谓词/inflight 上限回归面大 · 与 W2 批次撞期 | 工厂 SQL 组装错误 → 由 P3 **文本快照等价断言**（工厂输出 vs 收敛前字面量逐字符相等）+ 队列族 prove 复跑兜住 |
 | 收益 | 表数-2 · 单队列真相 | 样板复刻止增（第 5 套队列=1 个配置对象）· 案A 随时可在其上再做（不锁死） |
 
-**mw-core 建议**：B 先行；A 登记后续刀再评（若双审裁 A，本刀 REQUEST 须重写 §3/§6 —— Ban 面 §7-3 历史迁移对 A 同样生效，A 须新迁移非改旧）。
+**mw-core 建议（rev1）**：B 先行；A 登记后续刀再评（若双审裁 A，本刀 REQUEST 须重写 §3/§6 —— Ban 面 §7-3 历史迁移对 A 同样生效，A 须新迁移非改旧）。**rev2 裁定落卷：D4 = 案B 先行锁定**（model-op 席 FAIL 窄修不改此判·协调方通道确认）——案A 不立项、后续刀再评的立场固化为裁定。
 
 ## 4. withSavepoint 抽 util（§1.3 → 1 个 util）
 
 1. `packages/db/src/principal.ts` 新增 `withSavepoint<T>(c, name, fn)`（落点决策点 D5；建议 principal.ts —— 它是仓库既定的「无业务依赖事务原语」家，savepoint 属同层）。
-2. 语义（对齐 4 实例点最大公约）：`SAVEPOINT name` → `try { fn } catch(非23505){ ROLLBACK TO; RELEASE; throw }`；23505 → `ROLLBACK TO; RELEASE` 后按 opts 决定吞或抛；另暴露主动回滚信号（sentinel）覆盖 #3 业务半途回滚。
-3. 接线点：resume.ts:107 · payment.ts:62/:106 · int-transcript.ts:136（4 实例 · 3 文件）；返回码（`conflict`/幂等吞）与错误路径**逐点原样**。
-4. 等价证明：P4 断言（23505 吞/非 23505 rethrow/RELEASE 次序/主动回滚路径）+ payment 幂等重放（already/conflict）+ resume/int-transcript 幂等插入回归。
+2. 语义（**rev2 缺陷 B 纠偏：per-site 错误模式参数化·三模式·禁拉平**）：`SAVEPOINT name` → `try { fn }` → catch 按 `opts.errorMode` 分派——**模式① `rollback-throw`**（resume/int-transcript 非 23505 路径：`ROLLBACK TO` → rethrow·不 RELEASE）·**模式② `bare-throw`**（payment 两点非 23505 路径：零回滚零释放·直接 rethrow）·**模式③ 23505 确定码路径**（payment：`ROLLBACK TO` → `RELEASE` → 返 `conflict`；resume/int-transcript：`ROLLBACK TO` → `RELEASE` → 吞掉继续）；另暴露主动回滚信号（sentinel）覆盖 #3 业务半途回滚（RB+RELEASE→conflict）。rev1 单一拉平语义（非 23505 一律 ROLLBACK TO+RELEASE+throw）作废——其会改写 payment 裸 throw 与 resume 无 RELEASE rethrow 的语句序，违 Ban §7-7。
+3. 接线点：resume.ts:107 · payment.ts:62/:106 · int-transcript.ts:136（4 实例 · 3 文件）；返回码（`conflict`/幂等吞）与错误路径**逐点按 §1.3 三模式原样**（每接线点显式传 errorMode·EXEC diff 对照入卷）。
+4. 等价证明：P4 **逐点次序断言**（见 §6·对四实例点×三模式逐一断言语句序）+ payment 幂等重放（already/conflict）+ resume/int-transcript 幂等插入回归。
 
 ---
 
@@ -151,10 +151,10 @@ export async function runAs<T>(pool: DbPool, role: string, fn: (c: Client) => Pr
 
 | 块 | 断言 |
 |----|------|
-| P1 runAs 语义 | 每 role wrapper（9 具名 + scoring 委托）：fn 内 `current_user`=期望 role · GUC 仅 principal variant 可见（`app.principal_user` IS NULL for 非法 variant）· fn 抛错→事务 ROLLBACK（副作用不落）· 连接回收（pool 总量不降）· `runAs` 直接调用面 role 白名单 fail-closed（非法 role throw） |
+| P1 runAs 语义 | 每 role wrapper（9 具名·**scoring 不在面**——另断言 scoring-fact-root.ts 零 import principal.runAs·缺陷 A 排除防复发）：fn 内 `current_user`=期望 role · GUC 仅 principal variant 可见（`app.principal_user` IS NULL for 非法 variant）· fn 抛错→事务 ROLLBACK（副作用不落）· 连接回收（pool 总量不降）· `runAs` 直接调用面 role **格式正则** fail-closed（`RUNTIME_ROLE_NAME` `/^[a-z][a-z0-9_]{0,62}$/`·非法形态如大写/连字符/超 63 字符 throw；合法形态但角色不存在 → PG `SET LOCAL ROLE` 报错兜底断言·rev2 措辞勘误③） |
 | P2 导出面冻结 | 9 具名 wrapper + 3 个 `*-jobs.ts` 模块 + persistResumeProfile/markOrderPaidAndCredit/markOrderRefunded 的导出名与签名逐一对表（编译期契约 + prove 期 typeof 对拍）→ 调用面零漂移 |
 | P3 job 工厂等价 | 工厂产出的 3 队列 × 5 操作 SQL 文本 vs 收敛前字面量快照**逐字符相等**（快照入 prove）；行为面：enqueue→claim（FIFO/租约重领/attempts 上限）→done/failed（守卫 lease_owner）→renew→sweep（requeue/failed 两分支）全绿 · 镜像排他 + interview 独有守卫（僵尸/inflight/payload 擦除）逐条断言 |
-| P4 withSavepoint | 23505 吞（resume/int-transcript 幂等重插不炸外层事务 · 外层后续语句可继续）· 非 23505 rethrow 后连接仍可用 · payment paid/refund 幂等重放（already/conflict）· 红冲不足主动回滚路径返 conflict |
+| P4 withSavepoint（rev2 逐点次序断言·三模式） | **逐实例点×逐模式断言语句序**（语句探针序贯记录·非只看结果态）：#1/#4 非23505 → 序 = [RB, throw]·无 RELEASE（模式①）·#1/#4 23505 → [RB, RELEASE]→吞继续 · #2 非23505 → 序 = [throw]·零 RB 零 RELEASE（模式②裸 throw·外层事务进 aborted 态由调用方处置）·#2/#3 23505 → [RB, RELEASE]→返 `conflict`（模式③）·#3 红冲不足 → 主动 [RB, RELEASE]→`conflict` · payment paid/refund 幂等重放（already/conflict）· resume/int-transcript 幂等重插不炸外层事务（外层后续语句可继续）· 非23505 rethrow 后连接仍可用 |
 | P5 静态门 | principal.ts `SET LOCAL ROLE` 字面 site 数 = 1（runAs 泛型内）· 具名 wrapper 体 = 单行委托（AST 级或行数断言）· 三 `*-jobs.ts` 无内联 claim SQL 字面量 · r4 面零位移（若 B3 未落：31 文件路径原样；若已落：别名解析断言按新路径过） |
 | P6 r4 别名保全 | `apps/worker/package.json` 全部 `prove:r4-*` 别名 → 目标文件存在（test -f 语义）· 根聚合别名同 · 退役评估文档存在且触发表齐（可退役集 + 永续集逐条列名） |
 
@@ -187,7 +187,7 @@ export async function runAs<T>(pool: DbPool, role: string, fn: (c: Client) => Pr
 | D1 | runAs 收敛形态：泛型+薄别名（调用点零改动）vs 全量替换 263 调用点 | **薄别名**（风险面最小 · P2 冻结断言） |
 | D2 | `assertRagControlDefinerOwnership` 事务壳并入委托（断言体不动） | **并入**（同构 · 断言体逐字节保留） |
 | D3 | `provisionQbankControlDefiner` 内嵌 SET LOCAL ROLE 不收敛（特判 · RESET ROLE+REVOKE 供给语义） | **不收敛**（Ban §7-2） |
-| D4 | job 队列：案B（TS 工厂不动表）先行 vs 案A（多态表大迁移）同刀 | **B 先行 · A 后续刀再评** |
+| D4 | job 队列：案B（TS 工厂不动表）先行 vs 案A（多态表大迁移）同刀 | **B 先行 · A 后续刀再评**（rev2 裁定锁定·§3） |
 | D5 | `withSavepoint` 落点：principal.ts vs 新文件 | **principal.ts**（事务原语既定家 · 无业务依赖契约延续） |
 | D6 | r4 协同时序：本刀 docs-only r4 面 + B3 物理迁 · 冲突让位规则 §5 | **确认 §5 五条** |
 
@@ -197,7 +197,7 @@ export async function runAs<T>(pool: DbPool, role: string, fn: (c: Client) => Pr
 
 | ID | Criterion |
 |----|-----------|
-| A1 | `runAs` 泛型落地 · 9 具名 wrapper 单行委托 + scoring-fact-root 委托 · 导出名/签名零变化（tsc 零新错）· wrapper 体 diff 对照入卷 |
+| A1 | `runAs` 泛型落地 · 9 具名 wrapper 单行委托（#11 scoring **排除·零触碰**）· 导出名/签名零变化（tsc 零新错）· wrapper 体 diff 对照入卷 |
 | A2 | `job-queue.ts` 工厂 + 三队列五件套委托 · P3 SQL 文本快照逐字符等价 + 行为断言全绿 |
 | A3 | `withSavepoint` util + 4 实例点接线 · P4 全绿 |
 | A4 | `dbsb1-src-boiler.proof.ts` EXIT=0（P1–P6 · attempts 全账） |
@@ -216,7 +216,7 @@ export async function runAs<T>(pool: DbPool, role: string, fn: (c: Client) => Pr
 | 文件 | 动作 |
 |------|------|
 | `packages/db/src/principal.ts` | 修改（+runAs +withSavepoint · 9 wrapper 委托化 · assertRagControlDefinerOwnership 壳委托） |
-| `packages/db/src/scoring-fact-root.ts` | 修改（asScoringWorkerPrincipal 委托 principal.runAs） |
+| `packages/db/src/scoring-fact-root.ts` | **零触碰**（缺陷 A 裁定不转换——rev2 从 EXEC 面摘除·P1 负断言防复发） |
 | `packages/db/src/job-queue.ts` | 新增（createJobQueueLifecycle 工厂） |
 | `packages/db/src/interview-jobs.ts` / `quiz-jobs.ts` / `diagnosis-jobs.ts` | 修改（五件套委托工厂 · 导出面不变） |
 | `packages/db/src/resume.ts` / `payment.ts` / `int-transcript.ts` | 修改（4 实例点接 withSavepoint） |
@@ -227,10 +227,26 @@ export async function runAs<T>(pool: DbPool, role: string, fn: (c: Client) => Pr
 
 ---
 
-## Non-claims
+## 11. rev2 修订全账（model-op 席 FAIL 四项窄修 + D4 裁定落卷 · 落卷 mw-core）
 
-Not HA · not suite green · not 性能/可用性 claim · not 多态 job 表迁移（案A 未立项）· not RLS/角色供给/历史迁移/擦除链/secrets 变更 · not r4 物理迁出（B3 所有 · 本刀零 r4 位移）· not worker 生产包瘦身完成声明（瘦身实效归 B3 验收）· not coding authorized（Dual PASS ≠ 开工）· 不覆盖任何 e2e 门（coveredCount=8 不变）· `releaseEvidence=false` · `actualSpendCny=null`。
+**rev1 基线**：`b3f8a0a0`（本分支）。**rev2 性质**：docs-only 窄修——model-op 席对 rev1 判 FAIL 附四项，本 rev2 逐项落卷；无编码无迁移无 prove；落卷者 **mw-core**（协调方 rev2 通道）。e2e-ha 席待复审 rev2。
+
+| # | FAIL 项 | rev1 缺陷 | rev2 落卷 | 亲核证据 |
+|---|---------|-----------|-----------|-----------|
+| R1 | 缺陷 A：scoring 假等价 | §1.1/§2 把 `asScoringWorkerPrincipal` 当作与 principal.ts 族「同构」拟收编 | **披露**：`scoring-fact-root.ts:34` catch 为 `ROLLBACK.catch(() => undefined)` **吞回滚失败路径**——principal.ts 族是 `await c.query('ROLLBACK')`（回滚失败即抛、替换原错误）·两者**不等价**（rev1 收编即行为漂移）→ **裁定不转换**：#11 排除出 runAs 收编面·保持原样（连同吞错语义）·仅登记防复发（P1 负断言 zero-import；后续若真要收编须先单独立案裁「回滚失败替换 vs 保留原错误」语义取舍） | scoring-fact-root.ts:30-34 vs principal.ts 族 catch 形态逐字对照 |
+| R2 | 缺陷 B：withSavepoint 错误模式拉平 | rev1 §4.2 单一语义「非23505 一律 ROLLBACK TO+RELEASE+throw」 | **三模式参数化**（§1.3 重核+§4.2 重写）：① RB+throw（resume.ts:116-117 · int-transcript.ts:145-146）② 裸 throw（payment.ts:77/:120）③ RB+RELEASE→确定码（payment.ts:78-80/:121-123/:151-153 · resume/int-transcript 23505 吞径 :119/:148）——util 按 per-site `opts.errorMode` 分派·禁拉平（拉平=语句序漂移·违 Ban §7-7）+ **P4 升级为逐点次序断言**（语句探针序贯记录·四实例点×三模式逐一断言语句序·§6-P4） | 三文件 catch 块逐行读·行号入 §1.3 表 |
+| R3 | ③ 角色校验措辞 | rev1 称 `RUNTIME_ROLE_NAME`「白名单校验」 | **改口**：实为**格式正则** `/^[a-z][a-z0-9_]{0,62}$/`（principal.ts:43）fail-closed 拒非法形态；合法形态但 PG 角色不存在 → `SET LOCAL ROLE` 报错（DB 面）兜底——非枚举白名单·不存在「白名单外合法角色被拒」面（§2.1/§6-P1 同步改） | principal.ts:43/:298/:567/:617/:645 五处使用点均 `.test()` 正则形态 |
+| R4 | ④ 模块函数计数 | rev1 记 quiz 7 / diagnosis 7 / context 8 | **勘误**：quiz-jobs **6** · diagnosis-jobs **6** · context-compression-dispatch **7**（interview 10 不变·§1.2 表已改） | 三文件 `export async function` 计数亲核 |
+| R5 | D4 裁定落卷 | rev1 仅「mw-core 建议 B 先行」 | **裁定：案B 先行锁定**（§3/§8-D4）·案A 不立项后续刀再评 | 协调方 rev2 通道确认 |
+
+**效力**：本 rev2 即对 model-op 席 FAIL 四项的逐项清偿；REQUEST 面回到 `draft:awaiting_pre_exec_dual` 等双席复审 + meetwise 授权（Dual PASS ≠ 开工）。
 
 ---
 
-*Harness · DBSB-1 src 样板收敛刀 REQUEST · 2026-10-07 · draft:awaiting_pre_exec_dual · parent `48dee7a2` · docs-only · pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null · Dual PASS ≠ 开工 · Ban self-approve*
+## Non-claims
+
+Not HA · not suite green · not 性能/可用性 claim · not 多态 job 表迁移（案A 未立项）· not RLS/角色供给/历史迁移/擦除链/secrets 变更 · not r4 物理迁出（B3 所有 · 本刀零 r4 位移）· not worker 生产包瘦身完成声明（瘦身实效归 B3 验收）· not scoring-fact-root 收编（缺陷 A 裁定不转换·零触碰）· not coding authorized（Dual PASS ≠ 开工）· 不覆盖任何 e2e 门（coveredCount=8 不变）· `releaseEvidence=false` · `actualSpendCny=null`。
+
+---
+
+*Harness · DBSB-1 src 样板收敛刀 REQUEST **rev2**（rev1 `b3f8a0a0`·model-op 席 FAIL 四项窄修：缺陷 A scoring 吞回滚披露+裁定不转换·缺陷 B withSavepoint 三模式 per-site+P4 逐点次序断言·③ RUNTIME_ROLE_NAME 措辞改正则+报错兜底·④ 模块计数勘误 6/6/7·D4 案B 先行落卷·落卷 mw-core·全账 §11）· 2026-10-07 · draft:awaiting_pre_exec_dual · parent `48dee7a2` · docs-only · pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null · Dual PASS ≠ 开工 · Ban self-approve*
