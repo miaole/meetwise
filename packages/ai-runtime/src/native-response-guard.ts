@@ -2,15 +2,19 @@
  * Shared fail-closed checks for DashScope-native JSON bodies.
  * A 200 with missing/empty/non-finite payload is malformed, not an empty success.
  */
+import { AppError } from '@meetwise/db';
+
 export function requireRecord(value: unknown, code: string): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(code);
   return value as Record<string, unknown>;
 }
 
+// GODFN-1d: code-channel carrier (AppError, message = code, string zero-change) — sole src
+// consumer voice.ts asr_malformed judges via errCode; message-track readers unaffected.
 export function requireNonEmptyText(value: unknown, code: string): string {
-  if (typeof value !== 'string') throw new Error(code);
+  if (typeof value !== 'string') throw new AppError(code);
   const text = value.trim();
-  if (text.length < 1 || text.length > 32_000) throw new Error(code);
+  if (text.length < 1 || text.length > 32_000) throw new AppError(code);
   return text;
 }
 

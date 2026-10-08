@@ -4,7 +4,7 @@
  * 三事务式:claim 提交 → 生命周期(模型在各自短事务,经 invoke) → markDone。同面试保序、租约崩溃可重领。
  */
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, getInterviewRouteSnapshot, getInterviewRouteSnapshotForAdaptiveRole, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, type DbPool, type InterviewGraphFence, type QbankServingScopeInput } from '@meetwise/db';
+import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, getInterviewRouteSnapshot, getInterviewRouteSnapshotForAdaptiveRole, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, errCode, asErr, type DbPool, type InterviewGraphFence, type QbankServingScopeInput } from '@meetwise/db';
 import { getMetrics, METRIC, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
 import type { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { admitInterviewResume, degradedRetrieval, type ScoredRef, type SourceDoc } from '@meetwise/domain';
@@ -79,11 +79,12 @@ async function terminalizeUnsettledInterview(
 ): Promise<'settled' | 'unavailable'> {
   try {
     await failInterviewAndRelease(c, owner, interviewId);
-  } catch (error: any) {
+  } catch (raw: unknown) {
+    const error = asErr(raw);
     if (error?.reason === 'already_confirmed' || (error?.code === 'interview_failure_terminal_conflict' && (error?.status === 'completed' || error?.status === 'abandoned'))) {
       return 'settled';
     }
-    throw error;
+    throw raw;
   }
   const applicationMark = await markApplicationAssessmentUnavailable(c, owner, interviewId);
   if (applicationMark === 'stale') return 'unavailable';
@@ -160,7 +161,7 @@ async function failClaimedInterviewJob(
     if (!stillMine) return;
     try {
       await terminalizeUnsettledInterview(c, owner, job.interviewId, 'job_failed', job.kind);
-    } catch (terminalError: any) {
+    } catch (terminalError: unknown) {
       getMetrics().inc(METRIC.refundFailed);
       throw terminalError;
     }
@@ -185,14 +186,15 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
     // has already terminalized/redacted the row, so no compensating business
     // transition or event may be emitted here.
     await asPrincipal(d.pool, owner, (c) => assertInterviewPrivacyActive(c, job.interviewId));
-  } catch (error: any) {
+  } catch (raw: unknown) {
+    const error = asErr(raw);
     if (error?.message === 'interview_privacy_fenced') {
       // Do not leave a naked running row occupying the per-owner cap until
       // lease expiry. Lease CAS=0 is ignored: we are no longer the holder.
       await asPrincipal(d.pool, owner, (c) => requeueInterviewJob(c, owner, job.id, d.leaseOwner));
       return 'retry';
     }
-    throw error;
+    throw raw;
   }
   // This must precede every graph-related side effect.  In particular, do not
   // use payload.resumeId as a fallback: a deletion worker must be able to
@@ -371,11 +373,11 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
       if (!done) return 'retry';
       return job.kind;
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
     // durable fence 失效时，旧 worker 的 graph checkpoint 可能已经前进、但业务投影事务被
     // requireCurrentFence 整体回滚。此时不能把一次可恢复的 lease 交接误判为业务失败/退款：
     // 归还同一 job，下一持有者会从 checkpoint 识别 alreadyApplied 并只补投影。
-    if (e?.code === 'graph_fence_lost') {
+    if (errCode(e) === 'graph_fence_lost') {
       await asPrincipal(d.pool, owner, (c) => requeueInterviewJob(c, owner, job.id, d.leaseOwner));
       return 'retry';
     }
@@ -405,7 +407,7 @@ export async function reapStuckInterviewJobs(d: ConsumerDeps, owner: string): Pr
     for (const interviewId of res.failedInterviews) {
       try {
         await terminalizeUnsettledInterview(c, owner, interviewId, 'worker_died');
-      } catch (terminalError: any) {
+      } catch (terminalError: unknown) {
         getMetrics().inc(METRIC.refundFailed);
         throw terminalError;
       }
@@ -424,7 +426,8 @@ export async function interviewDispatchTick(d: ConsumerDeps): Promise<{ owners: 
       const r = await reapStuckInterviewJobs(d, o);   // 先收割:超限终结+发终态事件+退款;未超限 requeue → 同拍被 drain 重领
       requeued += r.requeued; failed += r.failed;
       drainable.push(o);
-    } catch (error: any) {
+    } catch (raw: unknown) {
+      const error = asErr(raw);
       // Isolate per-owner reap. Do not drain this owner in the same tick: cap
       // ignores expired running, so a failed sweep plus claim could overlap a
       // still-executing expired lease. Later owners still drain.

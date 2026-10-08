@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { createHash } from 'node:crypto';
-import { type DbPool } from '@meetwise/db';
+import { asErr, type DbPool } from '@meetwise/db';
 import { invoke, getPrompt, promptedModel, openAICompatibleClient, failoverModel, isTextBackupEnabled, type ModelClient, type ModelCostPolicy } from '@meetwise/ai-runtime';
 import { aggregateScores, groundedByFacts } from '@meetwise/domain';
 import { DIAGNOSIS_SECTION_KINDS, validateReportContent, type GenerateQuestions, type GenerateReport, type GenerateDiagnosis, type QuizItem, type RawDiagnosis, type ReportContent, type InterviewSummary } from '@meetwise/ai-graphs';
@@ -296,7 +296,7 @@ export function reportGenerator(pool: DbPool, owner: string, idempotencyKey: str
         idempotencyKey, operation: { id: 'report.narrative.v1', businessRevision: idempotencyKey }, schema: ReportSchema,
         businessValidate: (v) => {
           try { validateReportContent(s, { overall, sections: v.sections }); return null; }
-          catch (error: any) { return error?.message ?? 'invalid_report'; }
+          catch (error: unknown) { return (asErr(error)?.message ?? 'invalid_report') as string; }
         },
         model: promptedModel(model, 'report.generate', { scores: s.scores }),
       }, pool, owner);

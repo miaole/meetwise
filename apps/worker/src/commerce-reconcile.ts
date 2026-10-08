@@ -10,7 +10,7 @@
  * 幂等/多实例安全:sweep 的 `WHERE status='reserved' AND lease<now RETURNING` 行锁 + settle 的 SKIP LOCKED 使并发/重叠拍不重复处理;
  * 已 released 的不会二次进 swept → 终态事件 exactly-once。一个 owner 抛不拖垮整拍;整拍从不抛(否则 drain-loop 会停)。
  */
-import { asPrincipal, gatewayDispatchOwners, reconcile, appendEvent, failInterviewAndRelease, abandonInterviewAndRelease, markApplicationAssessmentUnavailable, type DbPool } from '@meetwise/db';
+import { asPrincipal, gatewayDispatchOwners, reconcile, appendEvent, failInterviewAndRelease, abandonInterviewAndRelease, markApplicationAssessmentUnavailable, errCode, type DbPool } from '@meetwise/db';
 import { runDrainLoop } from './drain-loop.ts';
 
 /** 枚举有"待回收"的 owner：网关只能返回 owner id；每个 owner 的对账仍在 RLS 事务内。
@@ -54,10 +54,10 @@ export async function reconcileOwner(pool: DbPool, owner: string): Promise<Recon
           // Ban wash: commerce-reconcile:prove 旁证 alone ≠ this dedicated path closed.
           try {
             await abandonInterviewAndRelease(c, owner, s.idempotencyKey);
-          } catch (e: any) {
+          } catch (e: unknown) {
             // Missing/non-CAS row: keep release (same txn) and soft-set abandoned when possible
             // so create() cannot reuse a half-dead corpse (same terminal口 as abandon).
-            if (e?.code !== 'interview_abandon_conflict' && e?.code !== 'interview_release_failed') throw e;
+            if (errCode(e) !== 'interview_abandon_conflict' && errCode(e) !== 'interview_release_failed') throw e;
             await c.query(
               "UPDATE interview SET status='abandoned', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status NOT IN ('completed','abandoned','failed')",
               [s.idempotencyKey, owner]);
