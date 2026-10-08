@@ -4,12 +4,12 @@
   "scope": "e2e/ test+assertion parity plus agreed critical prove scripts",
   "floors": {
     "testCount": 48,
-    "assertionCount": 367
+    "assertionCount": 377
   },
   "files": {
     "e2e/full.e2e.ts": {
       "testCount": 1,
-      "assertionCount": 74,
+      "assertionCount": 84,
       "tests": [
         {
           "kind": "implicit-suite",
@@ -18,6 +18,46 @@
         }
       ],
       "assertions": [
+        {
+          "kind": "A",
+          "label": "[UC018] abandon 前置额度≥1(${beforeUnits})",
+          "conditionDigest": "sha256:8b2ef57cf67c830ab6592b7c93b7509037f03e300d494e0710ba45c8b8b8a8c7"
+        },
+        {
+          "kind": "A",
+          "label": "[UC018] abandon 后 begin → 409 interview_not_active(不可 resume; ${JSON.stringify(b).slice(0, 80)})",
+          "conditionDigest": "sha256:a823fbfb60e1334a66b5052c2e9bddd1171c8af33e276e0fdeee0a612bdd5f8a"
+        },
+        {
+          "kind": "A",
+          "label": "[UC018] abandon 后额度净变 0(${unitsAfterAbandon.availableUnits})",
+          "conditionDigest": "sha256:93e4349c15e28572664be0479d110c953c2cebb5acf7f2f7e1923751177dcd71"
+        },
+        {
+          "kind": "A",
+          "label": "[UC018] begin 后额度 -1(${unitsAfterBegin.availableUnits})",
+          "conditionDigest": "sha256:a6f3412c80faaeebe0927816b50e0c8ff30fac09bbb9ced107169affb94ca53a"
+        },
+        {
+          "kind": "A",
+          "label": "[UC018] begin 预留 → 202(${JSON.stringify(await readJson(r)).slice(0, 60)})",
+          "conditionDigest": "sha256:e7cbfa12bd287fbbcff4ad697afff00ecc330dd4ecc40380550d6a98c3338a5f"
+        },
+        {
+          "kind": "A",
+          "label": "[UC018] GET interview → status=abandoned(${got.status})",
+          "conditionDigest": "sha256:50f38683422aa1fea984775d2f51099b4c5549334abaaa5207b689a535ca146f"
+        },
+        {
+          "kind": "A",
+          "label": "[UC018] POST abandon → abandoned+released(${JSON.stringify(b).slice(0, 100)})",
+          "conditionDigest": "sha256:67fd21b6fa980dc4b95cbe6cfdbbdc27b892fab20d84d4557b1ec9d5e5c07709"
+        },
+        {
+          "kind": "A",
+          "label": "[UC018] 建放弃面试 → interviewId(${abandonInterviewId})",
+          "conditionDigest": "sha256:664349ff51bea06c0644050d52d2ceb03abab0bdf080736f8badd16efa199bfc"
+        },
         {
           "kind": "A",
           "label": "[兜底] 失败测试面试 begin → 202",
@@ -200,6 +240,11 @@
         },
         {
           "kind": "A",
+          "label": "出处审查: 不把 AI 分/progress 当 B 端分（identities=${provenance.identities.length}, forgedScores=${provenance.forgedScores}）",
+          "conditionDigest": "sha256:16131e7bc2b53e9ff9d7eee8621a427bc02f03c095da309fe591cfd9d7742bc8"
+        },
+        {
+          "kind": "A",
           "label": "同图重传 → 409 且额度不再扣减",
           "conditionDigest": "sha256:321a8ef4cfa71816d71524c82007cd431c59ab899cd36b4ac2d08390ecd9cf4e"
         },
@@ -267,6 +312,11 @@
           "kind": "A",
           "label": "真实 TTS → 有效 WAV 音频（非本地假实现，${spoken.attempts} 次请求）",
           "conditionDigest": "sha256:34053e9d42f3477313afa858f012643aa044efc6831e8b8fb8390877e1e90e0e"
+        },
+        {
+          "kind": "A",
+          "label": "至少出了 1 道题(实际 ${questions} 道;事件:${[...kinds].join(',')}; terminal=${terminal}; reason=${(terminalPayload as any)?.reason ?? 'n/a'})",
+          "conditionDigest": "sha256:8327ec148e87dbfcfc9d4083fc643882f2bfa212e62966f55bde3055da785b35"
         },
         {
           "kind": "A",

@@ -251,6 +251,27 @@
       "removedFile": false,
       "testCountDelta": -1,
       "assertionCountDelta": -1
+    },
+    {
+      "id": "E2E-PARITY-20261008-upstream-drift-regen",
+      "path": "e2e/full.e2e.ts",
+      "reason": "Upstream assertion rewrites and additions (cmop03 C-MO-P3 provenance condition retarget, g7-key-x3 question-count diagnostic label extension, uc018 abandon block) replaced two identities and added eight; replacement identities appended to the baseline without lowering floors.",
+      "removedTests": [],
+      "removedAssertions": [
+        {
+          "kind": "A",
+          "label": "至少出了 1 道题(实际 ${questions} 道;事件:${[...kinds].join(',')})",
+          "conditionDigest": "sha256:8327ec148e87dbfcfc9d4083fc643882f2bfa212e62966f55bde3055da785b35"
+        },
+        {
+          "kind": "A",
+          "label": "出处审查: 不把 AI 分/progress 当 B 端分（identities=${provenance.identities.length}, forgedScores=${provenance.forgedScores}）",
+          "conditionDigest": "sha256:5fb8372fff815be47b96ffc71e3de7c8fb4efb7dfe6f3aa9e252ffdb643005c6"
+        }
+      ],
+      "removedFile": false,
+      "testCountDelta": 0,
+      "assertionCountDelta": -2
     }
   ]
 }
