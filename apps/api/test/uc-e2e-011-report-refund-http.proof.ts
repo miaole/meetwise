@@ -233,8 +233,11 @@ async function forceQuarantine(owner: string, interviewId: string, leaseOwner: s
 
   // 字面契约名 /payment/refund-callback 仍可 404（等价口=webhook；不洗成 covered）
   const refundCb = await h.post('/payment/refund-callback', A_, { orderId: 'ORD_PAID', providerTxn: 'txn-x', sig: 'nosig' });
-  A('H4 POST /payment/refund-callback 字面契约名仍 404（等价口=webhook；≠ 产品口缺失）',
-    refundCb.status === 404);
+  // GODFN-1c 逐修(预存红根因:字面契约名已从「404 等价口」演进为真主口——GAP-UC011-ADV-01
+  // payment-callback.controller.ts 落地;诚实意图不洗:口存在且 fail-closed,真 B-1 证据归
+  // pnpm uc011:refund-callback:prove,此处仍不是 covered)。
+  A('H4 POST /payment/refund-callback 字面契约名已挂载 → 403 bad_signature（≠ 404 口缺失；真 B-1 → uc011:refund-callback:prove）',
+    refundCb.status === 403 && refundCb.body?.error === 'bad_signature');
 
   const wallet = await h.req('GET', '/wallet', A_);
   A('H4 GET /wallet → 404（契约名未落；额度口是 GET /commerce/entitlement）',
@@ -310,7 +313,8 @@ async function forceQuarantine(owner: string, interviewId: string, leaseOwner: s
   const refundCb2 = await h.post('/payment/refund-callback', A_, {
     orderId: 'ORD_H5', providerTxn: 'txn-h5', sig: 'nosig',
   });
-  A('H5 POST /payment/refund-callback 字面仍 404（等价口=webhook）', refundCb2.status === 404);
+  A('H5 POST /payment/refund-callback 字面已挂载 → fail-closed（≠ 404 口缺失；真 B-1 → uc011:refund-callback:prove）',
+    refundCb2.status === 403 && refundCb2.body?.error === 'bad_signature');
 
   const refundWh2 = await h.post('/commerce/webhook/refund/ORD_H5', {}, {
     providerTxn: 'txn-h5r', sig: 'nosig',

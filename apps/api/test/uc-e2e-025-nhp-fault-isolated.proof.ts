@@ -187,6 +187,57 @@ GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
 `);
   console.log('PIN   GAP-UC025-FAULT-ISO-0049-BIND-STUB: C-side allow-once resume bind (≠ full 0049 covered)');
 
+  // GODFN-1c 逐修(预存红根因:0142 candidate-profile route 供给面落地后,本 shell 未建对应表 → F5 happy-path
+  // begin 的 supplyCandidateProfileRoute 直查 500)。additive-only 同款 DDL + GRANT/RLS(policies mirror
+  // migrations/0142),断言面零改动。
+  await pool.query(`
+  CREATE TABLE IF NOT EXISTS candidate_profile_route_decision (
+    id text PRIMARY KEY,
+    interview_id text NOT NULL CHECK (char_length(interview_id) BETWEEN 1 AND 512),
+    owner_user_id text NOT NULL CHECK (char_length(owner_user_id) BETWEEN 1 AND 512),
+    resume_id text NOT NULL CHECK (char_length(resume_id) BETWEEN 1 AND 512),
+    resume_content_sha text NOT NULL CHECK (resume_content_sha ~ '^[0-9a-f]{64}$'),
+    input_digest text NOT NULL CHECK (input_digest ~ '^[0-9a-f]{64}$'),
+    taxonomy_version text NOT NULL CHECK (taxonomy_version ~ '^v[1-9][0-9]{0,15}$'),
+    policy_version text NOT NULL CHECK (char_length(policy_version) BETWEEN 1 AND 64),
+    route_outcome text NOT NULL CHECK (route_outcome = 'route_decided'),
+    attempt_outcome text NOT NULL CHECK (attempt_outcome = 'rule_decided'),
+    leaf_track_id text NOT NULL CHECK (leaf_track_id ~ '^[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*){0,3}$'),
+    allocation_bps integer NOT NULL CHECK (allocation_bps = 10000),
+    decision_hash text NOT NULL CHECK (decision_hash ~ '^[0-9a-f]{64}$'),
+    created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+    UNIQUE (interview_id)
+  );
+  CREATE TABLE IF NOT EXISTS candidate_profile_route_snapshot (
+    interview_id text PRIMARY KEY,
+    candidate_user_id text NOT NULL CHECK (char_length(candidate_user_id) BETWEEN 1 AND 512),
+    decision_id text NOT NULL,
+    resume_content_sha text NOT NULL CHECK (resume_content_sha ~ '^[0-9a-f]{64}$'),
+    input_digest text NOT NULL CHECK (input_digest ~ '^[0-9a-f]{64}$'),
+    taxonomy_version text NOT NULL CHECK (taxonomy_version ~ '^v[1-9][0-9]{0,15}$'),
+    leaf_track_id text NOT NULL CHECK (leaf_track_id ~ '^[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*){0,3}$'),
+    allocation_bps integer NOT NULL CHECK (allocation_bps = 10000),
+    status text NOT NULL CHECK (status = 'interview_snapshotted'),
+    created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+    FOREIGN KEY (decision_id) REFERENCES candidate_profile_route_decision(id)
+  );
+  GRANT SELECT, INSERT ON candidate_profile_route_decision TO app_role;
+  GRANT SELECT, INSERT ON candidate_profile_route_snapshot TO app_role;
+  ALTER TABLE candidate_profile_route_decision ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE candidate_profile_route_decision FORCE ROW LEVEL SECURITY;
+  ALTER TABLE candidate_profile_route_snapshot ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE candidate_profile_route_snapshot FORCE ROW LEVEL SECURITY;
+  CREATE POLICY p_candidate_profile_route_decision_owner ON candidate_profile_route_decision
+    FOR ALL TO app_role
+    USING (owner_user_id = current_setting('app.principal_user', true))
+    WITH CHECK (owner_user_id = current_setting('app.principal_user', true));
+  CREATE POLICY p_candidate_profile_route_snapshot_owner ON candidate_profile_route_snapshot
+    FOR ALL TO app_role
+    USING (candidate_user_id = current_setting('app.principal_user', true))
+    WITH CHECK (candidate_user_id = current_setting('app.principal_user', true));
+  `);
+  console.log('PIN   GAP-UC025-FAULT-ISO-0142-SUPPLY-STUB: candidate-route supply face tables (≠ 0142 RLS/trigger full covered)');
+
   // C-3: print live anchor column evidence from isolated schema (sql/20 mirror carries expires_at)
   const col = await pool.query(`
     SELECT column_name, data_type, udt_name
@@ -392,6 +443,29 @@ GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
   {
     const iv = IV('F5');
     await seedInterview(iv);
+    // GODFN-1c 逐修:预供给 0142 route snapshot(幂等复用路径)使 F5 begin 推进至 bind/reserve/enqueue;
+    // 拒因面(F1-F4)在 supply 之前抛出,不受影响。
+    {
+      const cli = await pool.connect();
+      try {
+        await cli.query('BEGIN');
+        await cli.query("SET app.principal_user='userfault'");
+        const HEX64 = 'f'.repeat(64);
+        await cli.query(
+          `INSERT INTO candidate_profile_route_decision(id,interview_id,owner_user_id,resume_id,resume_content_sha,input_digest,taxonomy_version,policy_version,route_outcome,attempt_outcome,leaf_track_id,allocation_bps,decision_hash)
+           VALUES ($1,$2,$3,$4,$5,$5,'v1','policy-f025-1','route_decided','rule_decided','backend',10000,$5)
+           ON CONFLICT (interview_id) DO NOTHING`,
+          [`cprd-f025-${iv}`, iv, OWNER, RID, HEX64],
+        );
+        await cli.query(
+          `INSERT INTO candidate_profile_route_snapshot(interview_id,candidate_user_id,decision_id,resume_content_sha,input_digest,taxonomy_version,leaf_track_id,allocation_bps,status)
+           VALUES ($1,$2,$3,$4,$4,'v1','backend',10000,'interview_snapshotted')
+           ON CONFLICT (interview_id) DO NOTHING`,
+          [iv, OWNER, `cprd-f025-${iv}`, HEX64],
+        );
+        await cli.query('COMMIT');
+      } finally { cli.release(); }
+    }
     const before = await snapOf(iv);
     const r = await begin(iv); // no quiz-id header
     const after = await snapOf(iv);

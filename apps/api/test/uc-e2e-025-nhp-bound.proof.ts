@@ -124,9 +124,20 @@ function run(resumeId: string, quizId: string | undefined, pin: Pin): Promise<{ 
         return { rowCount: 1, rows: [{ status: 'created', resume_id: null, resume_privacy_epoch: null, application_id: null }] };
       if (s === 'SELECT 1 FROM interview WHERE id=$1') return { rowCount: 1, rows: [{}] };
       if (s.startsWith('SELECT assert_interview_privacy_active')) return { rowCount: 1, rows: [{}] };
-      if (s.startsWith('SELECT status, expires_at FROM resume_quiz'))
-        return { rowCount: 1, rows: [{ status: 'ready', expires_at: new Date(Date.now() + 86_400_000) }] };
-      if (s.includes('FROM resume_quiz q')) return { rowCount: 1, rows: [pin] };
+      // GODFN-1c 合并后单查:NEG/FAULT(status,expires_at)与 BOUND pin(JOIN)列同回一行。
+      // IO 桩随产品 SQL 形状对齐;R 断言(R1-R6 预期错误码/顺序/零 quiz 读)逐字未改。
+      if (s.startsWith('SELECT q.status, q.expires_at') && s.includes('FROM resume_quiz q')) {
+        return {
+          rowCount: 1,
+          rows: [{
+            status: 'ready',
+            expires_at: new Date(Date.now() + 86_400_000),
+            pinned_resume_id: pin.pinned_resume_id,
+            pinned_epoch: pin.pinned_epoch,
+            current_epoch: pin.current_epoch,
+          }],
+        };
+      }
       if (s.startsWith('UPDATE interview i')) throw new ReachedBind();
       throw new Error(`UNEXPECTED_SQL ${s.slice(0, 80)}`);
     },
