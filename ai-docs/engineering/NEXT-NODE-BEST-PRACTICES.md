@@ -26,8 +26,8 @@
 | B2 | 全局异常 filter + Error 子类统一（禁 throw 裸字符串） | ⚠️ | all-exceptions.filter 在；db 层仍混 throw 字符串（后端审计中） |
 | B3 | 入参校验 zod pipe 全路由 | ✅ | platform/zod.pipe.ts |
 | B4 | 速率限制/并发帽（含 SSE 每连接占池） | ✅ | rate-limit.service + sse slot 429 |
-| B5 | 流式响应规范：hijack+心跳+deadline+并发帽四件套 | ⚠️ | 三控制器复制粘贴四件套（SSE-PUSH 刀治理中） |
-| B6 | 长轮询禁令：PG 事件改 LISTEN/NOTIFY 推送，轮询仅兜底 ≥30s | ❌ | 2s×10min 轮询三处（SSE-PUSH 刀治理中） |
+| B5 | 流式响应规范：hijack+心跳+deadline+并发帽四件套 | ✅ 2026-10-08 | SSE-PUSH 刀落 sse-pump.ts 单源（49535514·nail 5fad2bc6）四件套语义原值 |
+| B6 | 长轮询禁令：PG 事件改 LISTEN/NOTIFY 推送，轮询仅兜底 ≥30s | ✅ 2026-10-08 | SSE-PUSH：健康态 notify 精确推送+30s 兜底（实测 4ms/18ms）·退化态 legacy 2s fail-open（49535514·生产 posture 落码） |
 | B7 | DB：参数化查询零字符串拼接；池复用单例 | 审计中 | db 审计刀在飞 |
 | B8 | 结构化日志（pino）替代 console.log（API 进程内） | ⚠️ | API 侧 console 待清理面审计 |
 | B9 | 超时帽全覆盖（上游调用/DB/SSE） | ⚠️ | SSE 10min 帽有；上游模型调用超时面审计中 |
