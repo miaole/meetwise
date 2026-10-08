@@ -14,11 +14,14 @@
  *      零 UPDATE/DELETE/DROP/GRANT/TRIGGER/类型变更 = append-only 零回填硬保证
  *   P7 对表勾销块（DEF-2 · 硬规则 11）：postgres skill 7 项 + NEXT-NODE C4，程序可判处断言、
  *      其余登记台账指针（禁 silently 通过）
+ *   P8 post-dual 席2 冒烟：v7 形态 id 穿真实消费方守卫——begin() 正/负门/v4 回归（真实方法·
+ *      仅 IO 边界桩·守卫逻辑零改动）+ domain/web scoring-honesty 双孪生（真实导出纯函数）
  *
  * EXIT=0 才过；attempts 全账纪律见收据（Ban retry-to-green）。
  */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import { createPool, asPrincipal, assertIsolatedTestTarget, submitInterviewAnswer, newEntityId, newUuidV7, idUnixMs, ENTITY_PREFIXES } from '../src/index.ts';
 
 // submitInterviewAnswer 的加密/HMAC 密钥（惰性读取，先注入；长度 ≥16 过 requireSecret；隔离库·非密钥）。
@@ -341,6 +344,44 @@ async function main() {
     A('P7-1 NEXT-NODE C4 kebab-case：本刀新增文件名全部合规（migration 从仓库 snake 惯例）',
       newFiles.every(Boolean) && snake);
     console.log('CHECK  [对表·NEXT-NODE C1/C2] lint/tsc-CI 门 —— 台账既有 ❌ 行·不在本刀面（C1/C2 刀治理） ≠silently 通过');
+  }
+
+  /* ── P8 · post-dual 席2 冒烟：v7 形态 id 穿真实消费方守卫（三处版本锁 [1-5] 已放宽） ── */
+  {
+    // API 面（begin 守卫）：apps/api 源带参数装饰器，须子进程执行（tsx 从 apps-api cwd 发现
+    // nest.json 装饰器转译配置；packages/db 主 tsconfig 不开装饰器、也不把 apps/api 拖进主 tsc 程序）。
+    // 子进程执行体 = packages/db/scripts/dbid1-api-guard-smoke.ts（真实 begin 方法·仅 IO 边界桩）。
+    const appsApiRoot = fileURLToPath(new URL('../../../apps/api/', import.meta.url));
+    const smokeScript = fileURLToPath(new URL('../scripts/dbid1-api-guard-smoke.ts', import.meta.url));
+    const smoke = spawnSync('pnpm', ['exec', 'tsx', smokeScript], { cwd: appsApiRoot, encoding: 'utf8' });
+    const smokeOut = `${smoke.stdout ?? ''}${smoke.stderr ?? ''}`.trim();
+    console.log(smokeOut.split('\n').map((l) => `SMOKE| ${l}`).join('\n'));
+    const smokeOk = (s: string) => smoke.status === 0 && smokeOut.includes(`S PASS  ${s}`);
+    A('P8-1 begin() v7 resumeId 穿 UUID_RE 守卫抵达 db 面（席2 真雷正门·真实 begin 方法·守卫逻辑零改动）',
+      smokeOk('S1 v7 resumeId 穿 begin() UUID_RE 守卫抵达 db 面（真实方法）'));
+    A('P8-2 begin() 负门不弱化：垃圾 resumeId → invalid_resume_id（fail-closed 保持）',
+      smokeOk('S2 垃圾 resumeId → invalid_resume_id（负门 fail-closed 保持）'));
+    A('P8-3 v4 resumeId 仍过门（表内 v4/v7 并存终态回归面）',
+      smokeOk('S3 v4 resumeId 仍过门（v4/v7 并存终态回归面）'));
+
+    // scoring-honesty 双孪生（domain + web）：纯 TS 真实导出函数，进程内直执。
+    const domain = await import('../../domain/src/scoring-honesty.ts');
+    const web = await import('../../../apps/web/lib/stream/scoring-honesty.ts');
+    const scorePayload = (answerId: string) => ({
+      questionId: 'q-v3-t0-c0', stateVersion: 3, turn: 0,
+      answerId, answerHash: 'ab'.repeat(32), competency: '沟通表达', score: 87,
+    });
+    let domainV7 = false;
+    try { domainV7 = domain.trustedScoreIdentity(scorePayload(newUuidV7())).answerId.length === 36; } catch { domainV7 = false; }
+    A('P8-4 domain trustedScoreIdentity：v7 answerId 过 UUID_RE（不再 score_answer_identity_missing）', domainV7);
+    let domainNeg = '';
+    try { domain.trustedScoreIdentity(scorePayload('not-a-uuid')); }
+    catch (e) { domainNeg = (e as { message?: string }).message ?? ''; }
+    A('P8-5 domain 负门不弱化：垃圾 answerId → score_answer_identity_missing（fail-closed 保持）',
+      domainNeg === 'score_answer_identity_missing');
+    A('P8-6 web practiceHintScore：v7 answerId 返回分值 · 垃圾 answerId → undefined（不展示≠0）',
+      web.practiceHintScore(scorePayload(newUuidV7()), undefined) === 87
+      && web.practiceHintScore(scorePayload('not-a-uuid'), undefined) === undefined);
   }
 
   console.log(`RESULT dbid1-db-id-v7 failures=${failures} at=${new Date().toISOString()}`);
