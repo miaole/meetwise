@@ -1752,3 +1752,14 @@ flowchart TD
 - [ ] **STILL OPEN**：api 红根因调查（boot-phase 探针方向·`:107` GAP-G7K-API-REDS 维持 P1 OPEN）；门 B 残留缺口三面 forward（全域 tsc 门=lint/tsc C1/C2 待立项面）；boundLoop `:368` 断言（backlog `:830` 候修行）；刀②（弱输入 report 预期面·G7X 立项）；`g7SuiteGreen=false` 维持.
 - 预算：判别 run live=0（succeeded 0+failed 0 实测 ≤ est 25）· 0 Key · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 实现方不 self-approve · 禁将 branch-3 命中误读为根因收口.
+### Line DBHY-1 DB 卫生刀 NAIL（2026-10-08 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 0145 死表双 DROP+jsonb 四列 DEPRECATED+uuidv7 GRANT×2 + 0146 qbank 释放五重守卫 · prove 28/28 EXIT=0 · sql/ 案B' 13 处机械迁+drift 门退役换 dbhy1:prove · backlog GAP-DEBT-DB-HYGIENE → **CLOSED**）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
+- [x] **`post_prove_dual_pass`** recorded for Line DBHY-1 products only（基线 48dee7a2+DBTF-1 0144 汇流 merge 7c40446a〔0144 落号在前亲核〕·触面白名单内·nail tip 本 commit · branch `line/db-hygiene`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：链+merge 真二父亲验·**跨刀重叠面专审=0145 两角色⊂0150 八角色闭集技术完全相容**〔GRANT 幂等·号序天然·合流终态=闭集·DBACL proacl 双向核不受扰〕·28 断言亲数 P0:1+P1:4+P2:1+P3:1+P4:7+P5:13+P6:1·12 轮红因全仪器层〔run4 挖真缺口反致强化〕·P2 基线 node 重算 145/145 零偏差·4 豁免逐一亲验·案B' 13 迁+drift 退役等价性〔覆盖面反超 drift〕·事故账诚实）+ mw-privacy-int PASS（六核：死表零依赖闭集 rg 全库扫〔FK/触发器/代码/RLS/视图/迁移引用六面〕+承载头充分·jsonb 四列存量消费者活〔interview.service.ts:737/761〕零数据丢失〔0145 零 UPDATE/DELETE〕·**GRANT×2=实证生产断路**〔0050:216 OWNER×0143:101-103 三表·commerce.ts:48〕·0146 五重守卫+擦除链零交集〔memory-vector-chunk-erasure.ts:5 明文不删 qbank〕·P2 独立复算 145/145·pins 三处一致零 secrets）· 协调方正式授权本 nail.
+- **DBHY-1 全链登记**：REQUEST → rev3 `e6150cab` → merge 0144 `7c40446a` → EXEC `1ab83bd8`（origin tip 零位移）→ 本 nail commit.
+- **核心产出**：① 0145 死表 DROP×2〔app_setting/consumption_record·零依赖闭集〕+jsonb 四列 DEPRECATED〔存量读者保留·id-convention §6 冻结〕+GRANT uuidv7×2〔app_role/online_judge_owner·reserveEntitlement/OJ 生产断路修复〕；② 0146 qbank 释放例程五重守卫〔仅 __system_qbank__·仅 retired/failed·非 active 指针·epoch 已前进·幂等〕+元数据永留+G-R4-5 零波及负门；③ sql/ 案B' 13 处机械迁〔drift 门退役换 dbhy1:prove——对象类四名录活体 diff 覆盖面反超〕；④ P2 冻结 145 文件 sha256 基线=历史改写机器门.
+- **跨刀重叠面对账闭环（协调层）**：0145 GRANT×2 与 DBACL-1 0150 重叠——两支自分叉无树内知情渠道·DBHY-1 独立炸出叙事成立（时间线支持）·DBACL-1 nail 已同步登记「重叠相容」·**对账闭环**；合流后终态=精确闭集.
+- **nit×2 登记**：① 0145 头注/收据将 owner-only ACL 归因 0040/0041 逐函数 REVOKE——应为 0073:1342-1344 全局 ADP（DBACL-1 引对·净效果结论成立仅引注错源）；② 席2 风险提示「privacy definer 族同型缺口」——**已被 0150 闭集覆盖**（privacy_api_owner/privacy_worker_owner 均在 8 集·P2 F3/F5 双向验证）·合流后自动闭环.
+- [ ] **STILL OPEN**：sql/ 残面（neg 族 24 boot() 消费·vectorstore/rag-demo legacy 夹具·qbank-ingest 孤儿——P3 模式门残面清单机器不变量在卷）；uc025 三 proof=OPEN 行基线诚实红（非回归）；qbank 物理迁出域；`g7SuiteGreen=false` 维持.
+- 预算：0 live 模型调用 · 0 Key · `actualSpendCny=null` · 全本地 docker PG（磁盘两度 100% 满→docker 重启+32.77GB 回收环境事故如实入账）.
+- Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
