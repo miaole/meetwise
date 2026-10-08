@@ -337,7 +337,9 @@ async function main() {
   reviews.record({ class: 'worker', code: 'seg_bound_start_enter' }); // CMOP03-D M5: 岗位绑定 start 面入口
   r = await fetch(`${BASE}/applications/${app1}/start`, { method: 'POST', headers: H, body: JSON.stringify({ resumeId }) });
   const started = await readJson(r);
+  reviews.record({ class: 'worker', code: 'seg2_start_readjson' }); // CMOP03-F F1: 首发 start fetch/readJson 已完整返回
   const boundInterviewId = started.interviewId;
+  reviews.record({ class: 'worker', code: 'seg2_start_assert_pre' }); // CMOP03-F F2: start 断言面进入前
   A(r.status === 200 && started.status === 'started' && typeof boundInterviewId === 'string' && boundInterviewId !== interviewId &&
     typeof started.redirectTo === 'string' && started.redirectTo.includes(boundInterviewId),
     `[状态机] start 原子创建岗位专属会话(${String(boundInterviewId).slice(0, 12)})并返回可信跳转`);
@@ -345,9 +347,11 @@ async function main() {
   const reused = await readJson(r);
   A(r.status === 200 && reused.status === 'reused' && reused.interviewId === boundInterviewId,
     '[幂等] 重试岗位 start → reused 同一 interviewId(不重复建会话)');
+  reviews.record({ class: 'worker', code: 'seg2_idem_assert_post' }); // CMOP03-F F3: 幂等断言已完整通过
 
   r = await fetch(`${BASE}/interview/${boundInterviewId}/begin`, { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
   A(r.status === 202, '[状态机] 岗位绑定会话 begin → 202');
+  reviews.record({ class: 'worker', code: 'seg2_begin_assert_post' }); // CMOP03-F F4: begin 断言已通过(M6 前)
   reviews.record({ class: 'worker', code: 'seg_boundloop_enter' }); // CMOP03-D M6: boundLoop 调用前(子型1 域)
   const boundLoop = await driveInterviewToTerminal({
     interviewId: boundInterviewId,
