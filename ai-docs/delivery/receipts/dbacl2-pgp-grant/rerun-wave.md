@@ -39,3 +39,40 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 - 预算：0 live 模型调用 · 0 Key · `actualSpendCny=null` · 全本地 docker PG。
 
 Status: rerun-wave:STOP · awaiting_coordinator.
+
+---
+
+# 第二轮段 —— EXEC 面合入后六 prove 面复跑收据（mw-core EXEC · 2026-10-08 20:50 +0800）
+
+- 席位：mw-core（EXEC · 补救收账：W2 五刀+DBACL 两刀 EXEC commit 按让位序 cherry-pick 进主线 · 协调方正式授权 · 本轮只搬运已 dual 批 EXEC 面零产品语义改动）。
+- 环境：主线 worktree `/Users/miaole/Desktop/golucky/meetwise` · 分支 `feat/mysql-schema-skeleton` · 基线 `7e5eb9a5`（第一轮段 tip 5d398dab 之上）· 本地 docker 隔离 PG（run-e2e-isolated 每面独立容器 · 每面 `migrations: applied=152 skipped=0` 亲验逐面一致）。
+- 前提修正：第一轮段「前提缺陷」（主线无 0150/0151）由本轮 cherry-pick 链修复——六刀 EXEC commit 按让位序入主线：DBTF-1 `350cea57`→`356d6026`+`272a92bf`→`dca911cf` · DBHY-1 `1ab83bd8`→`ea4e5796` · DBFK-1 `4ca1ffa1`→`eca9b052` · DBM3-1 `8097f2d8`→`847da01f` · DBACL-1 `1caf7f32`→`889c324b`+`db941542`→`02f487e2` · DBACL-2 `0ec543d0`→`c5b953a7`+`650b018e`→`419f85f1`。wiring 冲突一律 union 双保留（DBM3-1 三处先例同型）；各刀实质面（migrations/prove/sql/src）patch-id 与原 commit 逐刀全等亲验。
+- 验证四件亲验：①九 commit 全为 HEAD 祖先（让位序）；②migrations 目录 152 文件（144 基数+0144~0151 八新）；③`pnpm migrate:prove` EXIT=0 38/38（含「再部署:全迁移 skip」零漂移+0121 checksum 不可漂移断言·六面日志逐面 `applied=152 skipped=0` 原值）；④`node --check scripts/run-e2e-isolated.mjs` + 两 package.json JSON parse 全过。
+
+## 六面终态表（第二轮 · 单次计数 run · 各恰一次未重跑）
+
+| # | 面 | pnpm 键 | EXIT | 域级+DB 级断言 | prove 面判词 | 红因（原样） |
+|---|----|---------|------|----------------|--------------|--------------|
+| 1 | ctx03-event-source | `ctx03-event-source:prove` | **1** | **63 PASS / 0 FAIL** | **✓ 不可变会话事件源(CTX-03) DB 证明通过** | 仅收据层：`LOCAL_ISOLATED_PROOF_RECEIPT_FAILED reason=ENOENT .../packages/db/src/context/ctx03-event-source.ts` |
+| 2 | ctx04-compression-snapshot | `ctx04-compression-snapshot:prove` | **1** | **40 PASS / 0 FAIL** | **✓ 可验证压缩快照(CTX-04) DB 证明通过** | 仅收据层：同型 ENOENT `.../src/context/context-compression-snapshot.ts` |
+| 3 | ctx05-concurrency-recovery | `ctx05-concurrency-recovery:prove` | **1** | **79 PASS / 0 FAIL** | **✓ 并发与故障恢复(CTX-05) DB 证明通过** | 仅收据层：同型 ENOENT `.../src/context/context-compression-dispatch.ts` |
+| 4 | ctx06-deletion-closure | `ctx06-deletion-closure:prove` | **1** | **27 PASS / 0 FAIL** | **✓ 撤回、过期和删除(CTX-06) DB 证明通过** | 仅收据层：同型 ENOENT `.../src/context/context-compression-erasure.ts` |
+| 5 | mem02-summary | `mem02-summary:prove` | **1** | **58 PASS / 0 FAIL** | **✓ 单轮与区间摘要(MEM-02) DB 证明通过** | 仅收据层：同型 ENOENT `.../src/memory/memory-summary.ts` |
+| 6 | mem03-summary-tree | `mem03-summary-tree:prove` | **1** | **42 PASS / 0 FAIL** | **✓ 多层会话摘要树(MEM-03) DB 证明通过** | 仅收据层：同型 ENOENT `.../src/memory/memory-summary-tree.ts` |
+
+- **pgp 面（0151）全解锁转绿**：六面日志 `42501`/`permission denied` **零出现**（第一轮段六面统一 `42501 permission denied for function pgp_sym_encrypt` 红签名全清）；第一轮段断点位置（域级块后首个 PG 写段）本轮全部 PASS——ctx03「② 幂等: 同 event_key 重放 → replayed=true」「⑤ 恢复: replay 的 digest 与 append 时 SQL 侧 digest 一致」、mem02「① draft: source_range_digest 与 domain 逐字节一致（TS↔SQL）」等加密持久化链断言逐条过门。
+- **uuidv7 面（0150）全解锁转绿**：第一轮段「不可判定」（pgp 段先断遮蔽）——本轮六面 INSERT/append 写路径断言全 PASS（uuidv7 DEFAULT 求值不再 42501），可判定=绿。
+- **六面 EXIT=1 全因第一轮段已登记的收据层路径缺陷**（收据源引用 DIR-1 后不存在的 `src/context/*`·`src/memory/*` 平铺路径族 → runner 收据落盘 ENOENT）——**非 prove 面红、非本轮新缺陷、维持 OPEN 待收据层小刀**（E4 同型·本轮未动一行 runner 码）。六面 prove 主体均以「✓ … DB 证明通过」句收尾（ELIFECYCLE EXIT=1 发生在 ✓ 行之后的收据落盘段）。
+
+## Pins（十值照抄 · 未翻转）
+
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null.
+
+## 残余 / 待协调方裁定（第二轮段）
+
+- [ ] 收据层路径缺陷（六面 ENOENT · E4 同型小刀）维持 OPEN——prove 面已全绿，仅 runner 收据文件不可落盘。
+- [ ] `g7SuiteGreen=false` 维持。
+- [ ] 本轮六面 EXIT=1 是否计「绿」归协调方裁定（prove 主体全绿+✓ 句在卷 vs EXIT 码原值=1 如实记）。
+- 预算：0 live 模型调用 · 0 Key · `actualSpendCny=null` · 全本地 docker PG。
+
+Status: rerun-wave:round2:EXEC-landed · prove faces all-green (0 FAIL ×6 · 42501 zero) · EXIT=1 receipt-ENOENT only · pushed awaiting_coordinator.
