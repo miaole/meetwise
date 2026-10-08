@@ -1,0 +1,25 @@
+# Slice — G7V-FIX · **第三臂文案/结算相悖产品修复刀**（Line G7V-FIX · docs REQUEST · `draft:awaiting_pre_exec_dual`）
+
+**配套**: harness `harness/g7v-thirdarm-copy-fix.md`（相悖链锚表/两文件触碰面/文案初稿表/prove 契约全文以 harness 为准）· 双审 stub `reviews/REQUEST-2026-10-07-g7v-thirdarm-copy-fix-mw-e2e-ha.md` + `reviews/REQUEST-2026-10-07-g7v-thirdarm-copy-fix-mw-model-op.md`（PENDING · pre-exec dual 待两审 append-only）
+**上游**: G7V EXEC（分支 A 定谳 · 校准 `92f70db7` 多臂三层落码 · 第三臂 `no_eligible_scored_answer` 运行时复现 1/2 · SUMMARY 交接 #1「文案/结算一致性修复须另派」）→ 协调方派刀 G7V-FIX（knife id=**GAP-G7V-THIRDARM-COPY-SETTLEMENT** · 缺陷行由 G7V nail 并行登记 P1 OPEN · 本 REQUEST 仅引用不碰 backlog）——本 REQUEST 即该指名后继
+**Base**: `origin/feat/mysql-schema-skeleton` `84bbef23`（full `84bbef2367b0870d30385d2e107449133876ad60` · 本地实测 tip 恰等 · fetch 本 turn 网络超时如实注记）· worktree `/Users/miaole/Desktop/golucky/meetwise-line-g7v-fix` · branch `line/g7v-thirdarm-copy-fix`
+**本 turn 边界**: docs-only 一次 commit · Ban coding · Ban prove 执行 · Ban live（零调用零 Key 加载零 DB 连接）· Ban 碰结算/早停语义/spec/backlog/SSOT · Ban 洗绿他红 · Ban self-approve · alone ≠ dual · 本 commit 不预claim 任何 post-commit EXIT
+
+## 范围（REQUEST 要点五条）
+
+1. **诊断前置——第三臂相悖链（码面锚 @`84bbef23` · blob 亲算）**：第三臂（unscored=0 ∧ eligible=0）`adaptive-lifecycle.ts:345-356`（blob `288eb311`）走 `completeInterviewAndConfirm`（`commerce.ts:163` blob `a64784e8` **已扣费**）+ bound 路径 `:355-356` 落 `assessment_unavailable{reason:'no_eligible_scored_answer'}`（与释放臂 `:361` `failInterviewAndRelease`/`commerce.ts:198` + `:364` `evaluation_unscored` **同 kind 异 reason**）；前端 `business-events.ts:54-55`（blob `b7e5ab3d`）解析 reason 后于 `interview-state.ts:122`（blob `a9214288`）丢弃 → `view-model.ts:68`（blob `71d1bd0d`）单分支相无论 reason 渲染「本次预留额度已释放」→ **已扣费却宣示已释放 = 相悖**（运行时复现：`receipts/gap-adaptive-early-stop/01-readings.md` §2 mobile seq7-8 early_weak@turn4 → 第三臂）。结算分派语义本身正确（已扣费面就该扣费结算），修的是 UI 谎报非结算。
+2. **修复面=恰两文件（指令偏差如实披露）**：协调方指令「仅 view-model.ts 文案分派」的码面机械前提=reason 现到不了 display 层——伴生 **plumb**：`interview-state.ts` `InterviewView` +可选字段 `assessmentUnavailableReason?`（先例 `:46` `signalConcludeReason?`）+ `:122` 赋值（phase/degraded 零语义改动 · 行尾注释随行修正）；修复本体 `view-model.ts:68` reason 三分臂。其余全卷零 diff（lifecycle/commerce/business-events/spec 全文件/web-logic.proof/早停族/decideNext）——blob 链前=链后全等机检强制。
+3. **文案初稿表（交双审 · Ban EXEC 期擅改）**：**第三臂**「面试已完成并扣费结算，但未获得可信评分，报告暂时无法生成。岗位面试可从”我的投递“重新开始；其他面试可新建一场。」——不得出现「已释放/释放」逐字机检；「报告暂时无法生成」=**锚对齐** `REPORT_DOWN_MSG_PART`（spec `:60`）逐字子串，使校准仪器将第三臂归入扣费·报告面 → 全测绿零 spec 改动（该臂 `enqueueReport` 仅 `:341`/`:353` 可达、bound 第三臂不达=报告确实不生成；「暂时」诚实性 mw-model-op 首责裁，任一审否 → fallback 初稿 B 去锚版 + 残红如实申报升级，Ban 洗）；**释放臂逐字保留**（真释放 · `web-logic.proof.ts:209-214` 夹具保持绿零改动）；**未知/缺失 reason fail-closed 中性文案**（不冒认任何资金变动）。
+4. **prove（授权后 EXEC · 一次优先）**：主证恰一次 `cd /Users/miaole/Desktop/golucky/meetwise-line-g7v-fix && set -a && source ~/.meetwise-secrets/load-model-api-key.sh && set +a && E2E_UI_GREP='C→B: real browser binds application' pnpm e2e:ui:isolated`（根 `package.json:279` · 双 project 单测过滤）期望 **EXIT=0**——第三臂落臂 project named 红 `:229-230` 转绿 + 锚对齐报告面绿 + finalize 幂等 200（`recruiter.ts:197` 已证）+ recruiter hold 零改动；释放/报告就绪/报告暂不可用臂零回归；副证恰一次 `pnpm -C apps/web prove`（零 diff 期望 EXIT=0）。**单 attempt · Ban retry-to-green · Ban 重跑追臂**：臂指派数据依赖（G7V EXEC 1/2），落臂读数逐 project 记录，双 project 均未落第三臂=not-demonstrated 如实升级；EXIT 原值全记录，仍红→五分类+根因→迭代刀重走 REQUEST。est ≤30 live（2×classify+2×旅程[各 ~4–5 回合×出题+评分]+报告 worker 重试项）≪ 200 硬帽（沿 G7V readings 七字段口径）· `actualSpendCny=null` · Key 只经 loader 进程环境 name-only · Ban `.env*` · 收据落 `receipts/gap-thirdarm-copy-fix/` · 机检三强制（numstat 恰两文件 / 八面 blob 全等 / 文案逐字禁则）。
+5. **Pins 原值 + retained 全抄**：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · **PG-retained** · 公开 DELETE=503 · **`g7SuiteGreen=false`** · **`actualSpendCny=null`**；retained：trio OPEN（`1/1/1`）· 红① STILL OPEN（校准落码待行使 · 状态行归协调方 nail）· golden ×1 env/候选 · api 面 G7S 同形 · recruiting-bound ×2 残红不因本刀洗绿 · GAP-G7K-API-REDS P1 OPEN（`0c6c3287` 不翻）· GAP-G7V-THIRDARM-COPY-SETTLEMENT 待 G7V nail 登记。双审 = mw-e2e-ha（仪器合法性/锚对齐/触碰面机检/零 spec 改动验证）+ mw-model-op（文案诚实性/「暂时」用词/plumb 最小性/fail-closed 守卫/模型面纪律）。
+
+## 流程声明
+
+REQUEST（本 commit · docs-only）→ 预执行双审（mw-e2e-ha + mw-model-op）→ meetwise 授权 → coding+prove 一次优先 → post-prove 双审 → meetwise 授权 nail（SSOT/backlog/checklist 只在 nail 由协调方改）。
+
+## Non-claims
+
+Not a pass · not run（本 REQUEST 零实跑）· not fixed · not coding · not proven（推演链=码面结构推演非运行时读数）· not third-arm closed · not covered · not nail · not trio green · not suite green · not `g7SuiteGreen=true` · not R1 closed · not Disclosure-1 closed · not G6 closed · not R5 retired · not HA · not `releaseEvidence=true` · not backlog 登记 · not 初稿 A/B 裁决 · not 锚对齐已裁 · not live（本 turn）· not coordinator authorize · `g7SuiteGreen=false` · trio OPEN（1/1/1 retained）· `actualSpendCny=null` · alone ≠ dual
+
+---
+*Slice · G7V-FIX 第三臂文案/结算相悖产品修复刀 · 2026-10-07 · `draft:awaiting_pre_exec_dual` · docs-only · 相悖链=第三臂已扣费借释放臂 kind + reason 丢弃 → view-model 谎报已释放 · 修复=两文件 reason 三分臂（诚实扣费/保留释放/fail-closed 中性）· 锚对齐交双审 · prove=校准第三臂 named 红转绿+余臂零回归 · est ≤30≪200 · STOP*
