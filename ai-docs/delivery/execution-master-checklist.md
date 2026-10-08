@@ -1838,3 +1838,14 @@ flowchart TD
 - [ ] **STILL OPEN**：G7P-5 start 步截获+marker（REQUEST 待立）；`:107` 维持 P1 OPEN；(c)/(f) 轴；POST7B 压后；trio；`g7SuiteGreen=false` 维持.
 - 预算：live 14（succeeded 10+failed 4·dispatching 1 不计）≤ est 25 · 链累计 0+0+14 ≪ 硬帽 200 · 0 Key · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 截获=定靶非修复 · 实现方不 self-approve.
+
+### Line RCPT-1 runner 收据路径修正刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 59 条陈旧前缀→平铺实路径（REPLAY-IDENTICAL）· 四过门全过 · **六面 EXIT=0×6**（域级 309 断言+收据面双层绿闭环）· infra-red 裁决 (a) 合规）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
+- [x] **`post_prove_dual_pass`** recorded for Line RCPT-1 products only（diff 仅 runner isolatedReceiptSources 段 165+/165- 引号内文本+harness/收据·零产品码零解析器·nail tip 本 commit · branch `line/receipt-paths`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：diff REPLAY-IDENTICAL 逐字节同构+tenant :998 恰 1 保留/四过门实质复跑全绿〔门2 我方 421 超集全存在·门4 实测 1631⊂[93,1640]〕/六面收据 7 JSON 亲读〔6 passed+1 failed 原值〕/59 条 236 处精确复证/pins 十值+勘误在卷/infra-red 计费沿 A1-r1 先例）+ mw-model-op PASS（六核：sourceDigests 124/124 按新路径全等/EXIT 判定链零后置覆盖/59 清单独立重放零失配/裁决 a 合规〔retry 恰一次非 retry-to-green〕/309=63+40+79+27+58+42 双层绿闭环/零泄漏+worktree clean）· 协调方正式授权本 nail.
+- **RCPT-1 全链**：REQUEST `5fad59ee` → 双席预审 BOTH PASS（59/59 零发明·tenant 红线）→ EXEC 遇雷 STOP（ctx03 boot infra-red）→ 协调方裁决 (a) → resume 完成 `873ca3f1`（origin tip 零位移）→ 本 nail commit.
+- **核心产出**：runner isolatedReceiptSources 59 条陈旧子目录前缀→平铺实路径（165 行 236 处·每条 ls 亲证·59/59 零发明）——**六面（ctx03-06/mem02/mem03）EXIT=0×6**：域级 309 断言（rerun wave 在卷）+收据落盘面（本刀）双层绿闭环·E4 同型债清.
+- **erratum×3 登记（双席·不阻断）**：①门2 分母 419 应为 421（.json 6 条口径）；②门4 上界 1607 应为 1631；③58→59 勘误已三处在卷.
+- [ ] **STILL OPEN**：DIR-1 B6 scripts 批残余收据层项；`g7SuiteGreen=false` 维持.
+- 预算：六面 prove 全本地 docker PG · 0 live 模型调用 · 0 Key · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
