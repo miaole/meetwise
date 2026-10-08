@@ -327,6 +327,8 @@
     "memory-governance:prove": "node scripts/run-e2e-isolated.mjs memory-governance:prove:raw",
     "db-id-v7:prove": "node scripts/run-e2e-isolated.mjs db-id-v7:prove:raw",
     "db-id-v7:prove:raw": "pnpm -C packages/db prove:db-id-v7",
+    "db-acl:prove": "node scripts/run-e2e-isolated.mjs db-acl:prove:raw",
+    "db-acl:prove:raw": "pnpm -C packages/db prove:db-acl",
     "memory-governance:prove:raw": "pnpm -C packages/db prove:memory-governance",
     "memory-admission:prove": "node scripts/run-e2e-isolated.mjs memory-admission:prove:raw",
     "memory-admission:prove:raw": "pnpm -C packages/db prove:memory-admission",
