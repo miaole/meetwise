@@ -1802,3 +1802,15 @@ flowchart TD
 - [ ] **STILL OPEN**：6 prove 面 rerun（主线环境）；收据层路径缺陷（E4 同型）；`g7SuiteGreen=false` 维持.
 - 预算：0 live 模型调用 · 0 Key · `actualSpendCny=null` · 全本地 docker PG.
 - Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
+
+### Line G7P-2 wrapper code 截获刀 NAIL（2026-10-08 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · boot trace 三戳落地〔T1/T2/T3·SIGKILL 安全·NDJSON run 身份〕· 判别 run 恰 1：EXIT=1 api 14449ms·**向 3 命中=旅程红**——装载面 364ms 全健康〔装载红拟合解本 run 证伪〕·红点定靶 consent 端点面〔T3 后 13ms fail-closed〕· est 0=实测 0 · G7 下一刀裁定=consent 定靶刀先行·POST7B 维持压后）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
+- [x] **`post_prove_dual_pass`** recorded for Line G7P-2 products only（触面=scripts/e2e-boot-trace.mjs 154 行新增+run-e2e.mjs 6+/1-〔flag 门控默认关〕+收据族+harness · 零产品码 · Ban 三面零触碰〔sourceDigests 15/15 双席独立重算 MATCH〕· nail tip 本 commit · branch `line/g7-boot-intercept`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：trace 钩子三戳语义与 rev2 对齐〔argvTail 双 face/registerHooks 与 tsx 共存/唯一 ✓ 产出面 grep 亲证〕+uncaughtExceptionMonitor 零扰动形态合规〔rethrow EXIT 1→7 问题修于 run 前〕/diff 恰 6+/1- 默认关+零第二 run/三戳联判 fail-closed 依据链闭合〔:31→:36 间仅解构无他步·13ms consent 面成立〕/四向向 3 命中+证伪限定语在场/sidecar 五纪律+watchdog N1 如实/pins 十值+15/15 digests+sanitize）+ mw-model-op PASS（六核：**定靶结构性密闭论证**〔A#1 与 A#3 间唯一 await=consent 端点+13ms 单次本地 HTTP 非 200 往返合理·consent 面最优解释〕/双计 0 与 T3 达时序自洽〔signup 已成功+auth/consent 零模型面+结构性封盲窗〕/**G7P-1 环境外推缺口实测收窄**〔MODEL_API_KEY set+红复现于 consent 面=key 面因果对本红结构性排除·登记非裁定〕/est 25 达标/恰 1 run+pins/:107 维持 OPEN 正确〔本刀=其 iso 红面定位排队步·候选面收窄〕）· 协调方正式授权本 nail.
+- **G7P-2 全链**：REQUEST `1c23c324` → rev2 `064fc37e`（双席六处方）→ 双席复核 BOTH PASS → EXEC `590be0df`（origin tip 零位移）→ 本 nail commit.
+- **判读登记**：向 3 命中——T1@26.960→T2@27.174（214ms 装载）→T3@27.324（首断言 ✓）→exit@27.337（T3 后 13ms·fail-closed 断言路径非崩溃·零装载类异常码）——**装载红在本 run 证伪**（限定语）·**红点定靶 consent 端点/api 早期旅程面**（`:107` GAP-G7K-API-REDS 候选面收窄）·与 E2EFAIL-1 同族（0 行早死）但 G7W 卷载 38s 末段红提示 consent 红间歇性/状态依赖.
+- **G7 下一刀裁定（协调方·采纳席2 建议）**：①**consent 定靶刀先行**（API 面 HTTP code 截获或 api 侧日志·withhold 契约内·拿精确 code 再谈修）；②**POST7B 维持压后**（本刀定靶非其 (:256,:356] 末段窗·旅程死于第 2 断言时末段不可达·修复在当前红链上无法验证·G7P-1「未定靶先修=高复发风险」裁定对其窗依然成立）；③trio 再跑待 consent 面修复后.
+- **errata×3 登记（双席合计·不阻断）**：①收据 STOP 行「117 行」应为 154；②§4① ANCHOR 20.478 应为 20.489（11ms 转录笔误）；③§5「A() 捕获」应为顶层 main().catch（两面签名相同结论不变）·另席2 两措辞（「唯一 ✓ 面」过强——full.e2e.ts 尚有 3 处硬编码 ✓ 行均在 T3 后；throw 路径描述）一并附记.
+- [ ] **STILL OPEN**：consent 定靶刀（REQUEST 待立）；`:107` 维持 P1 OPEN（收窄登记）；POST7B 压后；trio 再跑；`g7SuiteGreen=false` 维持.
+- 预算：0 live 模型调用 = 实测 0（sidecar 双计 0/0）· 0 Key（name-only）· `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 探针=定靶非修复 · 实现方不 self-approve.
