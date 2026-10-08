@@ -1826,3 +1826,15 @@ flowchart TD
 - [ ] **STILL OPEN**：G7P-4 driver 内联截获刀（REQUEST 待立）；`:107` 维持 P1 OPEN（consent 面排除性收窄登记）；(c)/(f) 开放轴；trio 再跑；`g7SuiteGreen=false` 维持.
 - 预算：0 live 模型调用 · 0 Key（set name-only 受控）· `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 探针=定靶非修复 · 实现方不 self-approve.
+
+### Line G7P-4 driver 内联截获刀 NAIL（2026-10-08 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · consent 步 NDJSON 截获落地（≤8 行硬门达标·diff +6/−2）· 判别 run 恰 1：EXIT=1 api 61848ms·**臂 2 命中=红且 consent 200/12ms**——死亡面后移至 **F2→F3 双断言窗**〔首候选 :347-349 start 原子创建〕· **本线最深进度 13 行 ledger**〔越过 :236 红点·7a PASS·M1-M5+F1/F2 全达〕· **live 14=10+4 双计首达模型面** · `:107` 维持 OPEN 零归因）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
+- [x] **`post_prove_dual_pass`** recorded for Line G7P-4 products only（diff +6/−2 恰 8 行仅 consent 步〔动态 import fs+bootId+NDJSON+cause 面 rethrow+mkdirSync 防御行〕·零产品码·helpers/wrapper/解析器零触碰·nail tip 本 commit · branch `line/g7-driver-capture`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：diff 恰 8 行+**H3 未埋点反证单行归属**/恰 1 run EXIT 原值+NDJSON 单行三方自洽/臂 2 判读正确〔窗定位修正〕/最深进度亲比〔13>11 深 2 marker·越过 G7Y〕/sidecar 五纪律+live 14 口径/pins+digests+容器净+五 nit 落卷）+ mw-model-op PASS（六核：**臂 2 定位质量**〔F1 机械排除超时/网络抛·候选排序=①非 2xx 拒启族（409 fail-closed/500 conflict）＞②noop-shape 低＞③恒 False 构造基本排除（iv_+32hex encodeURIComponent 恒等亲证）〕/**live 14 首达模型面**〔G7P-2/3 双计 0 对照·done=11/attempts=1 供给健康〕/61.8s 落 post-7b 尾段族非新形态/est 14≤25+链累计≪200/pins+恰 1 run 三源互证）· 协调方正式授权本 nail.
+- **G7P-4 全链**：REQUEST `afd13de2` → rev2 `f99928b8`（双席六处方：NDJSON 文件面〔裸 stdout 死信协调方起草错误认领〕+cause 链+四向+绿向降级）→ 双席复核 BOTH PASS → EXEC `26ad1b65`（origin tip 零位移）→ 本 nail commit.
+- **判读登记**：臂 2 命中——consent 200/12ms 干净⇒死亡面后移·ledger 有界至 (:346,:354) 双断言窗〔**致死点降格：首候选 :347-349 start 原子创建〔六合取〕·:350-353 幂等 reused 断言 ledger 不可分辨——席1 修正〕·零归因维持〕·**G7P 系首达模型面**（live 14·旅程真实深入）·start 面红候选谱=①非 2xx 拒启族＞②noop-shape＞③恒 False 基本排除.
+- **G7 下一刀裁定（协调方·采纳席2 排序+席1 marker 建议）**：**G7P-5=start 步复用 NDJSON 截获刀**（≤6 行包 :342-343 fetch+appendFileSync status/body-200——409 拒启 error 码即入截获面·一刀定谳候选谱①/②）**+两断言间加 1 marker**（席1·分辨 :347-349 vs :350-353）——NDJSON 常驻面已验证模式成本最低；**:107 收口后置**（start 面码面到手后再议）.
+- **erratum×3 登记（双席·不动摇结论）**：①reviewLedger 实为 13 行非 14（最深结论不变）；②致死点「唯一 :347-349」降格「双断言窗首候选」；③poll tick 45 非 46（final tick 回显计入）.
+- [ ] **STILL OPEN**：G7P-5 start 步截获+marker（REQUEST 待立）；`:107` 维持 P1 OPEN；(c)/(f) 轴；POST7B 压后；trio；`g7SuiteGreen=false` 维持.
+- 预算：live 14（succeeded 10+failed 4·dispatching 1 不计）≤ est 25 · 链累计 0+0+14 ≪ 硬帽 200 · 0 Key · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 截获=定靶非修复 · 实现方不 self-approve.
