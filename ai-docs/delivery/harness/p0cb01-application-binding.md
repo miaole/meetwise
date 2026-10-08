@@ -42,14 +42,14 @@
 | # | 缺口 | 亲算证据 @`fe218b7a` |
 |---|------|----------------------|
 | G-1 | **immutable `CandidateEvaluationSnapshot` 不存在**——audit `:97-107` 要求完成事件写不可变快照（score、rubric/model/prompt/qbank 版本、evidence hash），B 端只读该快照；tip 完成链只回填 `job_application.score/status` 两列，无版本化/evidence-hash 化的独立不可变证据关系 | `git grep -icE 'candidate_evaluation\|evaluation_snapshot\|application_snapshot' -- ':!ai-docs'` = **0 hit**（rc=1 亲测） |
-| G-2 | **`consent_version` 事务绑定面 0 hit**——audit `:97-99` 要求创建事务绑定 `consent_version`；tip 绑定四元组为 application/job/resume/owner，无 consent 维度（该面语义终裁按 SCOR C-EH-3 冻结归本刀执行阶段） | `git grep -icE 'consent_version\|consentVersion' -- ':!ai-docs'` = **0 hit**（rc=1 亲测） |
+| G-2 | **`consent_version` 事务绑定面 0 hit**——audit `:97-99` 要求创建事务绑定 `consent_version`；tip 绑定四元组为 application/job/resume/owner，无 consent 维度（该面语义终裁按 SCOR C-EH-3 冻结归本刀执行阶段）；**C-EH-3 执行期终裁必答四问（本卷不裁）**：①体系关系——`consent_version` 挂既有同意体系哪一套：baseline 不可撤回 `consent_record`（`packages/db/sql/13_privacy.sql:5-16` · INSERT-only）vs 可撤回 `memory_consent`（`packages/db/migrations/0093_memory_governance.sql:102-121` · revision+privacy_epoch fence）vs 独立第三套 application 域体系 ②版本指向（policy_version/consent_revision 语义对齐哪套、由谁递增）③旧行缺省值（存量 application 无 consent_version 时缺省何值、fail-closed 还是有界放行）④迁移语义（additive 回填 vs NULL 拒绑定的边界与回滚面） | `git grep -icE 'consent_version\|consentVersion' -- ':!ai-docs'` = **0 hit**（rc=1 亲测） |
 | G-3 | **验收表 `:112` 并发项残差**——并发 20 绑定与换绑拒**已由底座 named 覆盖**；真残差=①reserve 计数断言面（恰 1 次 reserve）②HTTP 层跨岗位完成会话重放 named 收据③快照幂等（结构性依赖 G-1，成立）④浏览器刷新/双击/断网分支（成立） | `recruiter-depth.proof.ts`（blob `8579cc70a3000fe52fb36d230a50495f70fd11ed`）§① `:60-71`：20 路并发 startApplicationInterview→同一 interviewId（`:67`）+ 四元绑定完整（`:69`）+ 每 application 恰一 interview（`:70`）；§② `:73-80`：换绑 DB 拒（`:75`/`:78`）+ 本人历史会话不能 finalize（`:79-80`）· `neg-bend.proof.ts`（blob `6b38d536fb4381f5536722b8012f38c0f2c30ce8` · `apps/api/test/`）HTTP 层：strict DTO 400（`:270-271`）/finalize 空对象 409（`:269`）/跨用户 finalize 409+score NULL（`:251-252`）——reserve 计数断言与 HTTP 层跨岗位完成会话重放收据无；浏览器分支缺（=G-6） |
 | G-4 | **验收表 `:113` 错配 409 残差**——错配拒绝面已由底座覆盖（strict DTO 400 / finalize 空对象 409 / 跨用户 finalize 409+score NULL / DB 换绑拒，锚同 G-3）；真残差=「本人**已完成**会话对跨岗位申请收口」的 HTTP 层 named 收据（底座断言覆盖未完成态与跨用户态，未覆盖完成会话跨岗位重放态=残差②） | 同 G-3 证据锚（`neg-bend.proof.ts:269-271`/`:251-252` 在树亲读）——完成会话跨岗位重放态无 named 收据 |
 | G-5 | **验收表 `:114` 重放恰一次残差**——CandidateEvaluationSnapshot 幂等重放收据**结构性依赖 G-1**（快照关系不存在，不可证——成立=残差③）；完成重放幂等底座仅断言 scoreless 收口重放（`recruiter-depth.proof.ts` §③ `:84-85`），snapshot/消费确认逐项恰 1 断言无 | 同 G-1 + `0028:42-75` trigger 仅回填两列 |
 | G-6 | **验收表 `:115` 浏览器全链路覆盖不足（=残差④，成立）**——要求覆盖**刷新、双击、断网后恢复**及 B 端最小化展示；`recruiting-bound.spec.ts`（blob `2b232748a034f39e634c911cce962dcb5dbb61b8` · `:142-255`）有单链路 C→B + B 端 reload 最小化断言（`:244-255`），**无 C 端刷新/双击/断网恢复分支** | spec 全文亲读 @`fe218b7a` |
 | G-7 | **practice 面域与 application 域的隔离——拒绝面已 named 覆盖，重放态残差同②**——practice 入口 `apps/web/app/interviews/actions.ts:9-21`（仅 resumeId · blob `bbc8bde144cedba8412af379787da4f03a037260`）+ `POST /interview` 空壳创建 `apps/api/src/modules/interview/interview.controller.ts:156-160`（service `create` `:589`）合法存在；practice（历史普通）会话的换绑拒/移花接木拒已由底座 named（G-3 §② 锚）+ HTTP strict DTO（G-3 neg-bend 锚）覆盖；真残差=完成态 practice 会话跨岗位 HTTP 重放收据（=残差②） | E-2 口径（erratum 继承）+ G-3/G-4 锚 |
 
-**缺陷面结论**：现状不是 audit 2026-08-02 审查时的「无绑定」（erratum 已更正该 4 条为 stale），而是**「绑定基底实存、不可替代性证据为零」**——跨申请重放/换绑在 DB 层 fail-closed（trigger + 反查 + strict DTO），但没有一条 named prove 证明它在并发/对抗/重放条件下真的拒得干净；完成收口没有不可变快照证据层。`GAP-PROD-02` `:78` 因此 **stays OPEN**，翻转权归协调方 nail，本刀在任何结果下都不翻行。
+**缺陷面结论**：现状不是 audit 2026-08-02 审查时的「无绑定」（erratum 已更正该 4 条为 stale），而是**「绑定基底实存、验收证据面有真残差」**——并发 20 绑定与换绑拒已在 DB/HTTP 底座 named 断言（§1.2 G-3 锚），真残差=①reserve 计数断言②HTTP 层跨岗位完成会话重放收据③快照幂等（结构性依赖 G-1）④浏览器刷新/双击/断网分支；完成收口没有不可变快照证据层。`GAP-PROD-02` `:78` 因此 **stays OPEN**，翻转权归协调方 nail，本刀在任何结果下都不翻行。
 
 ### 1.3 期望语义（audit `:97-107` 验收原文语义 · 本刀目标态）
 
@@ -72,13 +72,15 @@ fail-closed 形态（目标态逐条）：跨申请重放（拿 A 岗完成会�
 
 | 维度 | **方案 A（推荐）· additive 快照关系 + 复用 `0028` 绑定基底** | 方案 B · 快照 embed 进 `job_application`（JSONB 列） | 方案 C · 中间表 `application_interview_binding` 重构绑定面 |
 |------|----------------------------------------------|----------------------------------------------|----------------------------------------------|
-| 形态 | 新 additive migration 建 `candidate_evaluation_snapshot`（application_id 唯一 FK + interview_id FK + score/rubric/model/prompt/qbank 版本列 + evidence_hash + created_at），INSERT-only trigger 封死 UPDATE/DELETE；完成链（DB trigger 同事务）恰一次写入（幂等重放：conflict-then-read-back 返回同一行）；`consent_version` 列 additive 挂绑定面（语义终裁随执行落卷）；prove 层新增验收表四项 named proves | `job_application` 加 `evaluation_snapshot jsonb + evaluation_snapshot_hash` 列，由完成 trigger 写入同表 | 新建独立绑定关系表，interview/job_application 上的绑定列与 `0028`/`0046` trigger 全部迁移重写 |
+| 形态 | 新 additive migration 建 `candidate_evaluation_snapshot`（application_id 唯一 FK + interview_id FK + score/rubric/model/prompt/qbank 版本列 + evidence_hash + created_at），INSERT-only trigger 封死 UPDATE/DELETE；**RLS 写死**：带 `owner_user_id`（随 `0028` 体系：`interview.owner_user_id=candidate_user_id`，`0028:103/:117`）+ `ENABLE ROW LEVEL SECURITY` + `FORCE ROW LEVEL SECURITY` + owner policy（`current_setting('app.principal_user')` 口径）+ `REVOKE ALL ON candidate_evaluation_snapshot FROM PUBLIC, app_role` + GRANT 收窄（仅授权面 INSERT/SELECT）；完成链（DB trigger 同事务）恰一次写入（幂等重放：conflict-then-read-back 返回同一行）；`consent_version` 列 additive 挂绑定面（语义终裁随执行落卷 · 关系四问见 G-2）；prove 层新增验收表四项 named proves | `job_application` 加 `evaluation_snapshot jsonb + evaluation_snapshot_hash` 列，由完成 trigger 写入同表 | 新建独立绑定关系表，interview/job_application 上的绑定列与 `0028`/`0046` trigger 全部迁移重写 |
 | 对现有链破坏面 | **零改写**：`0028`/`0046`/`0082` 约束与 trigger 语义原样；`startApplicationInterview`/`finalizeApplication` 现有行为原样（finalize 仍 scoreless hold 收口）；只增不改 | 中：`job_application` 已挂两层重 BEFORE trigger（`0028:95-142`/`0046`），同表再藏可变 JSONB 需追加列级防篡改 trigger，行级 immutability 只靠约定；其他写路径（status CAS/attempt）与快照列共行，误覆盖面变大 | **最大**：重写全部绑定面（migrations×2 + recruiter.ts 全部查询 + finalize 反查 + e2e spec），直接抵触 SCOR S-CB-1 触碰面 Ban「Ban 动摇 `0028` 既有约束语义」 |
 | 迁移面 | 恰 1 个 additive migration（CREATE TABLE + trigger + 既有行零回填；旧申请无快照保持 fail-closed 最小投影） | additive 列但落在热表上；旧行 NULL 语义与 hash 基线含混 | 全量重迁移 + 数据搬迁，回归面不可控 |
 | 不可替代性强度 | **最强**：独立 INSERT-only 关系 + evidence hash，不可变是结构性质非约定性质；B 端只读投影有唯一权威源 | 弱：hash 覆盖的对象本身住在可变行里，「不可替代」降级为 trigger 约定 | 与 A 等价但推倒重来，纯成本 |
 | fail-closed 形态 | 快照缺失/不一致 → B 端最小投影；重放 conflict-read-back 恰 1 行；绑定拒绝面原样继承 `0028` 三 trigger + 反查 | 同左但快照一致性须额外自证 | 同左但全部拒绝面须从零重证 |
 | 验收表映射 | `:112`（并发 20 → 残差①prove）/`:113`（409 → 残差②prove）/`:114`（重放恰 1 → snapshot 表幂等直证，依赖 G-1）/`:115`（spec 扩分支=残差④）逐项可 named | `:114` snapshot 项证明绕行（同表行级），收据弱 | 逐项可 named 但代价是全链重证 |
 | 审查关注点 | INSERT-only 封口是否彻底（app_role 全路径）· consent_version 语义终裁落卷 · hold 期间 B 端投影仍 scoreless | 行级防篡改完备性 · hash 基线 | ——（不建议进入执行） |
+
+> **擦除面登记（additive · 转裁决 · 本刀不裁）**：`candidate_evaluation_snapshot` 为**擦除面新 sink 候选**——INSERT-only 与 subject-erase 互斥，未裁是否入擦除范围；如入，机制对齐 `0125_memory_vector_chunk_erasure.sql`/`0141_vector_plane_erasure_receipt_fence.sql` purge-transaction fence 先例 → 转协调方/`GAP-PRIV-04` 线裁决；**本刀不裁、不碰 erasure 链**。
 
 **推荐：方案 A。** 理由：唯一同时满足「Ban 动摇 `0028` 既有约束语义」（SCOR S-CB-1 触碰面写死）+ 审计级不可变证据（INSERT-only 关系）+ 迁移面最小三条的方案；B 在 immutability 上先天弱一档，C 直接违约。**本推荐 ≠ 执行授权**：方案终采与 `consent_version` 语义终裁（C-EH-3 冻结）由 coding 阶段落卷、双审复核；若终裁判「DB 绑定 ≠ 审计意义不可替代」且 A 的 snapshot 层不足以闭合，范围按 D1 逃生门先例以未来 REQUEST 重立。
 
@@ -91,7 +93,7 @@ fail-closed 形态（目标态逐条）：跨申请重放（拿 A 岗完成会�
 | N1 | 跨申请重放：候选人持有 A 岗已完成绑定会话，对 B 岗申请（不同 job）finalize，body 携带 `interviewId=A` | strict DTO 拒（`FinalizeApplicationDto={}.strict()`）；body `{}` 时反查不一致 → `not_ready` | HTTP 4xx/409 · `job_application(B).score IS NULL` 恒成立 · 无任何写 |
 | N2 | 换绑：对已绑定 interview UPDATE `application_id/job_id/resume_id` 任一列；对已绑定 `job_application.interview_id` 改指他场 | DB trigger 拒 | exception `interview_application_binding_immutable` / `job_application_interview_binding_immutable` · 行无变化 |
 | N3 | 无申请上下文进 application 域：路由未决岗位 start；对无绑定申请 finalize | start → `interview_ineligible_route` 且 **interview 行 0 新增**；finalize → `cannot_finalize` | 409 · `unresolved_route_start_count=0` 语义等价可测 · score 仍 NULL |
-| N4 | 快照不可变（方案 A 落地后）：app_role 路径 UPDATE/DELETE `candidate_evaluation_snapshot`；快照缺失时 B 端读 | DB trigger 拒写删；读侧最小投影 | exception · B 端永不见数值分（hold 投影不变） |
+| N4 | 快照不可变（方案 A 落地后）：app_role 路径 UPDATE/DELETE `candidate_evaluation_snapshot`；快照缺失时 B 端读；**异主读快照 → 0 行** | DB trigger 拒写删；RLS 拒跨 owner 读；读侧最小投影 | exception · 异主 0 行（授权根口径=PG RLS + `asPrincipal`+`set_config('app.principal_user')` 唯一——`gap-priv-01-tenant-rls.slice.md:14` · Ban 应用层 tenant 原型代授权根）· B 端永不见数值分（hold 投影不变） |
 | N5 | 伪造归属：异主/异租户对他人申请 start/finalize | RLS + owner 反查 | 0 行 · 409/noop 族（底座实况：跨用户 finalize 409 `cannot_finalize`、start 不存在 noop、decline 他人 noop、列表 RLS 0 行——`neg-bend.proof.ts:247-258`） |
 
 ### 3.2 HP 面（正常绑定流 · 期望全过）
@@ -141,4 +143,4 @@ additive migration（新文件 · `packages/db/migrations/`）· `packages/db/sr
 
 ## 7. Non-claims
 
-docs-only REQUEST 立卷 · not P0-CB-01 closed · not `:78` flip · not 绑定验收通过 · not snapshot/consent_version 已建 · not named proves 已跑 · not covered · not HA · not `releaseEvidence=true` · not g7SuiteGreen · `actualSpendCny=null` · PG-retained · 公开 DELETE=503 · alone ≠ dual · PASS ≠ AUTHORIZE ≠ 状态翻转 · 方案 A 为推荐非终裁。
+docs-only REQUEST 立卷 · not P0-CB-01 closed · not `:78` flip · not 绑定验收通过 · not snapshot/consent_version 已建 · not named proves 已跑 · not covered · not HA · not `releaseEvidence=true` · not g7SuiteGreen · `actualSpendCny=null` · PG-retained · 公开 DELETE=503 · alone ≠ dual · PASS ≠ AUTHORIZE ≠ 状态翻转 · 方案 A 为推荐非终裁 · snapshot 为擦除面新 sink 候选（INSERT-only 与 subject-erase 互斥 · 未裁是否入擦除范围）→ 转协调方/GAP-PRIV-04 线裁决 · 本刀不裁、不碰 erasure 链 · consent 体系关系四问列 C-EH-3 执行期终裁必答（本卷不裁）。

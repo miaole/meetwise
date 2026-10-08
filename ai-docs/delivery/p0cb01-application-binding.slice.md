@@ -17,7 +17,7 @@ GAP-PROD-02 首面立卷：**「不可替代绑定」基底在 tip `fe218b7a` �
 
 | 方案 | 一句话 | 判定 |
 |------|--------|------|
-| **A（推荐）** | additive `candidate_evaluation_snapshot` INSERT-only 表（版本列+evidence_hash+幂等重放）复用 `0028` 基底；`consent_version` 列随绑定面 additive | 破坏面最小+不可变性结构化+验收表逐项可 named——**推荐交双审，非终裁** |
+| **A（推荐）** | additive `candidate_evaluation_snapshot` INSERT-only 表（版本列+evidence_hash+幂等重放）复用 `0028` 基底；带 `owner_user_id`+ENABLE/FORCE RLS+owner policy+REVOKE FROM PUBLIC/app_role·GRANT 收窄（`0028:103/:117` 体系）；`consent_version` 列随绑定面 additive，consent 体系关系**四问**（`consent_record`@`13_privacy.sql:5-16` / `memory_consent`@`0093:102-121` / 第三套 · 版本指向 · 旧行缺省 · 迁移语义）列 C-EH-3 执行期终裁必答；snapshot=**擦除面新 sink 候选**（INSERT-only 与 subject-erase 互斥）→ 转协调方/GAP-PRIV-04 裁决，本刀不裁不碰 erasure 链 | 破坏面最小+不可变性结构化+验收表逐项可 named——**推荐交双审，非终裁** |
 | B | 快照 embed `job_application` JSONB 列 | 热表行级 immutability 靠约定，弱一档 |
 | C | 中间表重构绑定面 | 重写全部既有绑定链，直接抵触「Ban 动摇 `0028` 语义」 |
 
