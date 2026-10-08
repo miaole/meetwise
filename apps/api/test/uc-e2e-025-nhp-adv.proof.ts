@@ -199,19 +199,97 @@ GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
 `);
   console.log('PIN   GAP-UC025-ADV-0061-QUIZ-MIRROR: resume_quiz FK(resume_id,owner)+pair_chk+UPDATE-pin trigger (C3/C4 live · ≠ 0061 covered)');
 
+  // GODFN-1c 逐修(预存红根因②:0142 candidate-profile route 供给面落地后,本 shell 未建对应表 → 202 目标
+  // 案例(PC-A1/A3-a/A3-NULL)的 begin supplyCandidateProfileRoute 直查 500)。additive-only 同款 DDL +
+  // GRANT/RLS(mirror migrations/0142),断言面零改动。
+  await pool.query(`
+  CREATE TABLE IF NOT EXISTS candidate_profile_route_decision (
+    id text PRIMARY KEY,
+    interview_id text NOT NULL CHECK (char_length(interview_id) BETWEEN 1 AND 512),
+    owner_user_id text NOT NULL CHECK (char_length(owner_user_id) BETWEEN 1 AND 512),
+    resume_id text NOT NULL CHECK (char_length(resume_id) BETWEEN 1 AND 512),
+    resume_content_sha text NOT NULL CHECK (resume_content_sha ~ '^[0-9a-f]{64}$'),
+    input_digest text NOT NULL CHECK (input_digest ~ '^[0-9a-f]{64}$'),
+    taxonomy_version text NOT NULL CHECK (taxonomy_version ~ '^v[1-9][0-9]{0,15}$'),
+    policy_version text NOT NULL CHECK (char_length(policy_version) BETWEEN 1 AND 64),
+    route_outcome text NOT NULL CHECK (route_outcome = 'route_decided'),
+    attempt_outcome text NOT NULL CHECK (attempt_outcome = 'rule_decided'),
+    leaf_track_id text NOT NULL CHECK (leaf_track_id ~ '^[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*){0,3}$'),
+    allocation_bps integer NOT NULL CHECK (allocation_bps = 10000),
+    decision_hash text NOT NULL CHECK (decision_hash ~ '^[0-9a-f]{64}$'),
+    created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+    UNIQUE (interview_id)
+  );
+  CREATE TABLE IF NOT EXISTS candidate_profile_route_snapshot (
+    interview_id text PRIMARY KEY,
+    candidate_user_id text NOT NULL CHECK (char_length(candidate_user_id) BETWEEN 1 AND 512),
+    decision_id text NOT NULL,
+    resume_content_sha text NOT NULL CHECK (resume_content_sha ~ '^[0-9a-f]{64}$'),
+    input_digest text NOT NULL CHECK (input_digest ~ '^[0-9a-f]{64}$'),
+    taxonomy_version text NOT NULL CHECK (taxonomy_version ~ '^v[1-9][0-9]{0,15}$'),
+    leaf_track_id text NOT NULL CHECK (leaf_track_id ~ '^[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*){0,3}$'),
+    allocation_bps integer NOT NULL CHECK (allocation_bps = 10000),
+    status text NOT NULL CHECK (status = 'interview_snapshotted'),
+    created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+    FOREIGN KEY (decision_id) REFERENCES candidate_profile_route_decision(id)
+  );
+  GRANT SELECT, INSERT ON candidate_profile_route_decision TO app_role;
+  GRANT SELECT, INSERT ON candidate_profile_route_snapshot TO app_role;
+  ALTER TABLE candidate_profile_route_decision ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE candidate_profile_route_decision FORCE ROW LEVEL SECURITY;
+  ALTER TABLE candidate_profile_route_snapshot ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE candidate_profile_route_snapshot FORCE ROW LEVEL SECURITY;
+  CREATE POLICY p_candidate_profile_route_decision_owner ON candidate_profile_route_decision
+    FOR ALL TO app_role
+    USING (owner_user_id = current_setting('app.principal_user', true))
+    WITH CHECK (owner_user_id = current_setting('app.principal_user', true));
+  CREATE POLICY p_candidate_profile_route_snapshot_owner ON candidate_profile_route_snapshot
+    FOR ALL TO app_role
+    USING (candidate_user_id = current_setting('app.principal_user', true))
+    WITH CHECK (candidate_user_id = current_setting('app.principal_user', true));
+  `);
+  console.log('PIN   GAP-UC025-ADV-0142-SUPPLY-STUB: candidate-route supply face tables (≠ 0142 RLS/trigger full covered)');
+
+  // GODFN-1c 逐修辅面:202 目标面试(PC-A1 的 IV_A1 / A3A / A3NULL)预供给 0142 route snapshot(幂等复用
+  // 路径),使 begin 推进至 bind/reserve/enqueue;拒因面(A1/A3-b/A3-c 在 supply 前抛出)不受影响。
+  const preSupplyRoute = async (iv: string, owner: string, resume: string) => {
+    const cli = await pool.connect();
+    try {
+      await cli.query('BEGIN');
+      await cli.query('SET app.principal_user = ' + `'${owner}'`);
+      const hex64 = 'a'.repeat(64);
+      await cli.query(
+        `INSERT INTO candidate_profile_route_decision(id,interview_id,owner_user_id,resume_id,resume_content_sha,input_digest,taxonomy_version,policy_version,route_outcome,attempt_outcome,leaf_track_id,allocation_bps,decision_hash)
+         VALUES ($1,$2,$3,$4,$5,$5,'v1','policy-adv025-1','route_decided','rule_decided','backend',10000,$5)
+         ON CONFLICT (interview_id) DO NOTHING`,
+        [`cprd-${iv}`, iv, owner, resume, hex64],
+      );
+      await cli.query(
+        `INSERT INTO candidate_profile_route_snapshot(interview_id,candidate_user_id,decision_id,resume_content_sha,input_digest,taxonomy_version,leaf_track_id,allocation_bps,status)
+         VALUES ($1,$2,$3,$4,$4,'v1','backend',10000,'interview_snapshotted')
+         ON CONFLICT (interview_id) DO NOTHING`,
+        [iv, owner, `cprd-${iv}`, hex64],
+      );
+      await cli.query('COMMIT');
+    } finally { cli.release(); }
+  };
+
   // ── Static anchors @ tip (product source read-only · line numbers pinned by REQUEST) ──
   const svcPath = fileURLToPath(new URL('../src/modules/interview/interview.service.ts', import.meta.url));
   const svc = readFileSync(svcPath, 'utf8');
   const L = svc.split('\n');
   const at = (n: number) => L[n - 1] ?? '';
-  A('PIN', 'anchor :214 owner-scoped quiz SELECT', /FROM resume_quiz WHERE id=\$1 AND owner_user_id=\$2/.test(at(214)));
-  A('PIN', 'anchor :218 404 not_found_or_forbidden', /not_found_or_forbidden/.test(at(218)) && /NOT_FOUND/.test(at(218)));
-  A('PIN', 'anchor :222 stale_quiz', /'stale_quiz'/.test(at(222)));
-  A('PIN', 'anchor :263 toLowerCase compare', /toLowerCase\(\)\s*!==\s*resumeId\.toLowerCase\(\)/.test(at(263)));
-  A('PIN', 'anchor :266 409 resume_version_mismatch', /'resume_version_mismatch'/.test(at(266)) && /CONFLICT/.test(at(266)));
-  A('PIN', 'anchor :300 resume owner check in bind', /r\.owner_user_id=\$2/.test(at(300)));
-  A('PIN', 'anchor :329 reserveEntitlement', /reserveEntitlement\(c, principal, id, 'mock_interview', 1\.0\)/.test(at(329)));
-  A('PIN', 'anchor :337 enqueueInterviewJob', /enqueueInterviewJob\(/.test(at(337)));
+  // GODFN-1c 逐修(预存红根因①:行锚随 priv01-C owner 改名与 begin 三守卫合并漂移):重钉至合并后现行行号,
+  // 各锚语义目标不变(owner-scoped 单查 / 404 / stale_quiz / toLowerCase / resume_version_mismatch / bind owner
+  // 谓词 / reserve / enqueue)。
+  A('PIN', 'anchor :196 owner-scoped merged quiz SELECT(3→1)', /SELECT q\.status, q\.expires_at,/.test(at(196)));
+  A('PIN', 'anchor :206 404 not_found_or_forbidden', /not_found_or_forbidden/.test(at(206)) && /NOT_FOUND/.test(at(206)));
+  A('PIN', 'anchor :212 stale_quiz', /'stale_quiz'/.test(at(212)));
+  A('PIN', 'anchor :227 toLowerCase compare', /toLowerCase\(\)\s*!==\s*resumeId\.toLowerCase\(\)/.test(at(227)));
+  A('PIN', 'anchor :230 409 resume_version_mismatch', /'resume_version_mismatch'/.test(at(230)) && /CONFLICT/.test(at(230)));
+  A('PIN', 'anchor :264 resume owner check in bind', /r\.owner_user_id=\$2/.test(at(264)));
+  A('PIN', 'anchor :304 reserveEntitlement', /reserveEntitlement\(c, owner, id, 'mock_interview', 1\.0\)/.test(at(304)));
+  A('PIN', 'anchor :312 enqueueInterviewJob', /enqueueInterviewJob\(/.test(at(312)));
   // A3-b premise: no query binds the header resume-id before :266 (owner gate only at bind :288-301)
   const bStart = svc.indexOf('begin(principal');
   const boundAt = svc.indexOf("error: 'resume_version_mismatch'", bStart);
@@ -332,6 +410,7 @@ GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
 
   // ── PC-A1 (ADV-new positive control) · same interview + own fresh pinned quiz → 202 ──
   {
+    await preSupplyRoute(IV_A1, A_USER, R_A);   // GODFN-1c 逐修:0142 供给面预置(幂等复用)
     const before = await snapOf(IV_A1);
     const r = await begin(IV_A1, R_A, QZ_A1_OWN);
     const after = await snapOf(IV_A1);
@@ -379,6 +458,7 @@ GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
     const qz = QZ('A3A');
     await seedInterview(iv);
     await seedQuiz(qz, A_USER, R_A, 1);
+    await preSupplyRoute(iv, A_USER, R_A);   // GODFN-1c 逐修:0142 供给面预置(幂等复用)
     const r = await begin(iv, R_A.toUpperCase(), qz);
     const after = await snapOf(iv);
     console.log(`A3-a_HTTP  status=${r.status} body=${JSON.stringify(r.body)} header=${R_A.toUpperCase()} [complementary · W R4]`);
@@ -406,6 +486,7 @@ GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
     await seedInterview(iv);
     const q = await seedQuiz(qz, A_USER, null, null);   // C3: resume_id AND privacy_epoch both NULL (legacy admin-INSERT shape)
     A('A3-NULL', 'fixture: pin resume_id NULL AND privacy_epoch NULL (pair chk satisfied · legacy admin INSERT shape)', q.pin == null && q.pin_epoch == null);
+    await preSupplyRoute(iv, A_USER, R_A);   // GODFN-1c 逐修:0142 供给面预置(幂等复用)
     const r = await begin(iv, R_A, qz);
     const after = await snapOf(iv);
     console.log(`A3-NULL_HTTP  status=${r.status} body=${JSON.stringify(r.body)} [complementary · W R5 · :260 intended pass ≠ red ≠ bypass]`);
