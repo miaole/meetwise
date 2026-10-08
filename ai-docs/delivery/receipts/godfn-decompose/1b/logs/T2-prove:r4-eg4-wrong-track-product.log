@@ -1,0 +1,44 @@
+
+> @meetwise/worker@0.0.0 prove:r4-eg4-wrong-track-product /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-eg4-wrong-track-product-evidence.proof.ts
+
+EG4 wrong_track production honesty evidence prove
+EXIT=0 = evidence emitted · ≠ EG4/wrong_track/G-R4-5/R4/题域 product closed · Ban forge · Ban claim from covered-path / meta prove alone · releaseEvidence=false
+
+──────── D0 anchors present ────────
+PASS  D0 emitter wired
+PASS  D0 harness present
+PASS  D0 harness pins Ban forge + Ban idle EG1/EG2/EG3 + EG4 STILL OPEN
+
+──────── D1 live assessor (production wrong_track / honesty pins) ────────
+PASS  D1 enforceWrongTrackZeroOnServedWired
+PASS  D1 productionRequiresTrackLocalFailClosed
+PASS  D1 observeTrackLocalWrongTrackOutcome
+PASS  D1 statusPinsWrongTrackNotClosed
+PASS  D1 coveredPathAloneDoesNotClose
+PASS  D1 metaProveAloneDoesNotClose
+PASS  D1 hasWrongTrackProductEvidence
+
+──────── D2 emit evidence (Ban forge) ────────
+PASS  D2 emitted=true
+PASS  D2 kind
+PASS  D2 wrongTrackProductEvidence=true
+PASS  D2 eg4ProductClosed=false (Ban假关)
+PASS  D2 wrongTrackProductClosed=false
+PASS  D2 gR45Closed=false
+PASS  D2 r4ProductClosed=false
+PASS  D2 domainIsolationClosed=false
+PASS  D2 releaseEvidence=false
+PASS  D2 coveredPathAloneDoesNotClose=true
+PASS  D2 metaProveAloneDoesNotClose=true
+PASS  D2 receipt written
+PASS  D2 receipt roundtrip kind
+PASS  D2 receipt roundtrip eg4ProductClosed=false
+PASS  D2 receipt roundtrip wrongTrackProductClosed=false
+
+──────── D3 hard pins ────────
+PASS  D3 ≠ claim EG4 / wrong_track closed from emit alone
+PASS  D3 ≠ idle EG1/EG2/EG3 / 5×meta as fake EG4 close
+PASS  D3 Ban forge · Ban invent coveredCount · Ban claim from covered-path / meta prove alone
+
+OK  r4-eg4-wrong-track-product-evidence prove (EG4 evidence emitted; ≠ EG4/wrong_track/G-R4-5/R4/题域 closed; releaseEvidence=false)

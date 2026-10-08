@@ -1,0 +1,74 @@
+
+> meetwise@0.1.0 r4-wrong-track-adv:prove /Users/miaole/Desktop/golucky/meetwise-line-godfn1b
+> pnpm -C apps/worker prove:r4-wrong-track-adv
+
+
+> @meetwise/worker@0.0.0 prove:r4-wrong-track-adv /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-wrong-track-adv.proof.ts
+
+
+── A1 wired path ──
+PASS  track-local retrieve helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/qbank-track-local-retrieve.ts
+PASS  interview-consumer.ts present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/interview-consumer.ts
+PASS  main.ts present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/main.ts
+PASS  db recheck seam present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/packages/db/src/qbank-track-local-retrieval.ts
+PASS  domain assert hooks present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/packages/domain/src/qbank-track-local-retrieval.ts
+PASS  ADV harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-wrong-track-adv.md
+PASS  r4 status present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-domain-isolation-status.md
+PASS  A1 apps/worker/src CALL_SITES≥1 for dispatchTrackLocalRetrieval( — callSites=1 files=apps/worker/src/qbank-track-local-retrieve.ts
+PASS  A1 helper uses assembleValidatedRetrievalPlan + activeQbankGeneration (no P-FAKEPLAN)
+PASS  A1 consumer/main wire trackLocal → retrieveViaDispatchTrackLocal
+
+── A2 wrong_track=0 assert hooks ──
+PASS  A2 same-leaf annotated hits → wrongTrack=0
+PASS  A2 cross-leaf hit → wrongTrack≥1
+PASS  A2 missing metadata → wrongTrack≥1 (fail-closed)
+PASS  A2 enforceWrongTrackZeroOnServed fail-closed → degraded refs
+PASS  A2 enforceWrongTrackZeroOnServed ok path
+
+── A3 adversarial surfaces (domain + Worker map) ──
+PASS  A3 forged/missing metadata: missing track counted wrong
+PASS  A3 forged/missing metadata: recheck metadata_hash_mismatch → degraded
+PASS  A3 forged/missing metadata: unreviewed_annotation → degraded
+PASS  A3 unknown taxonomy: validateRetrievalPlan taxonomy_not_current
+PASS  A3 unknown taxonomy: assemble refuses non-current via plan validate
+PASS  A3 concurrent job change: leaf outside snapshot → validate reject
+PASS  A3 concurrent job change: assemble stays on snapshot leaf (no cross)
+PASS  A3 stale checkpoint: route_scope_digest_mismatch
+PASS  A3 cache replay: cross_track_or_revoked → Worker degraded (not served)
+PASS  A3 cache replay: serving_scope_mismatch → degraded
+PASS  A3 generation_race / recipe_mismatch → degraded
+PASS  A3 full R4_WRONG_TRACK_RECHECK_REASONS catalog mapped fail-closed
+
+── A4 fail-closed / G-R2-5 / no P-FAKEPLAN ──
+PASS  A4 G-R2-5 decideRouteSnapshotRetrieve null → route_snapshot_missing
+PASS  A4 G-R2-5 degradedRetrieval observable
+PASS  A4 rejected snapshot_missing maps to route_snapshot_missing
+PASS  A4 helper pins fail-closed / no unscoped / question_ready / P-FAKEPLAN
+PASS  A4 consumer pins recheck_failed fail-closed + G-R2-5 + ≠ wrong_track=0
+PASS  A4 parseCragPlannerQuery rejects illegal planner inputs
+PASS  A4 assemble without generation/recipe → fail (P-FAKEPLAN ban)
+
+── static recheck predicates on wired db seam ──
+PASS  db recheckHitsAtLeaf present with ADV predicates
+PASS  db pins no sibling / legacy_unrouted / question_ready on recheck fail
+PASS  domain exports countWrongTrackHits + R4_WRONG_TRACK_RECHECK_REASONS
+PASS  helper exports enforceWrongTrackZeroOnServed + mapRecheckFailedToRefs
+
+── A5–A8 honesty pins ──
+PASS  A5/A6 harness pins wire≠ADV · releaseEvidence=false · ≠R4 closed
+FAIL  A7/A8 status still 题域隔离 NOT closed + releaseEvidence=false
+FAIL  A8 parent harness still 题域隔离 NOT closed
+PASS  LIVE_PG_GAP honesty: prove header documents remaining live Worker+PG gap
+PASS  matrix NHP-R4-ADV-01 must not claim covered (≠ covered / partial/honesty ok)
+PASS  harness must not claim R4 closed / wrong_track=0 production closed
+
+── honesty summary (not covered) ──
+LIVE_PG_GAP: full live Worker+PG ADV (cache poison / job edit / metadata tamper
+  through retrieveViaDispatchTrackLocal) NOT claimed; companion=rag04 seam.
+NHP-R4-ADV-01: partial/honesty-pin allowed; ≠ covered; ≠ R4 closed.
+wire green ≠ ADV closed; ADV prove EXIT=0 ≠ R4 closed.
+
+FAIL  r4-wrong-track-adv prove (2 failures)
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.

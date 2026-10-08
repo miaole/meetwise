@@ -22,7 +22,7 @@ import {
   installG7OutboundInterceptor,
   uninstallG7OutboundInterceptor,
   withG7OutboundAllow,
-} from '../src/g7-outbound-interceptor.ts';
+} from '../test/support/g7-outbound-interceptor.ts';
 import { dashscopeEmbedder } from '../src/embedder.ts';
 import { dashscopeReranker } from '../src/reranker.ts';
 import { dashscopeAsr, dashscopeTts } from '../src/voice.ts';

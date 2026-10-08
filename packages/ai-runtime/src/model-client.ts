@@ -15,14 +15,16 @@ import {
   bounded429BackoffMs,
   classifyProviderError,
   finalizeG7ReservationOnSharedLedger,
-  isG7FreetierReproveEnabled,
   releaseG7ReservationOnSharedLedger,
   reserveG7CallOnSharedLedger,
   resolveG7TestProfile,
   selectPaidFallback,
   assertCalibrationModelMatch,
 } from './g7-freetier-reprove-guard.ts';
-import { installG7OutboundInterceptor, withG7OutboundAllow } from './g7-outbound-interceptor.ts';
+// GODFN-1b: the G7 test-state sensing is injected by composition roots — this
+// production file performs zero `isG7FreetierReproveEnabled(process.env)`
+// direct reads and never imports the (test-support) outbound interceptor.
+import { g7RuntimeInjection } from './g7-runtime-injection.ts';
 import { refineEstimate } from './usage-reconciliation.ts';
 
 export interface CompletionRequest {
@@ -217,7 +219,7 @@ export function planContextBudget(req: CompletionRequest, policy: ModelCostPolic
   // Under G7, any calibration requires bound+dispatch match; outside G7, assert whenever
   // calibration or calibrationBoundModel is present.
   if (policy.calibration !== undefined || policy.calibrationBoundModel !== undefined) {
-    const g7 = isG7FreetierReproveEnabled(process.env);
+    const g7 = g7RuntimeInjection().freetierReproveEnabled();
     if (g7 || policy.calibration !== undefined || policy.calibrationBoundModel !== undefined) {
       const bound = policy.calibrationBoundModel;
       if (!bound) throw new Error('g7_calibration_bound_model_required_for_plan_context_budget');
@@ -344,7 +346,7 @@ export function openAICompatibleClient(cfg: {
     && (!Number.isSafeInteger(maxOutputTokens) || maxOutputTokens < 1 || maxOutputTokens > 1_000_000)) {
     throw new Error('model_output_token_limit_invalid');
   }
-  if (costPolicy !== undefined && model !== costPolicy.model && !isG7FreetierReproveEnabled(process.env)) {
+  if (costPolicy !== undefined && model !== costPolicy.model && !g7RuntimeInjection().freetierReproveEnabled()) {
     throw new Error('model_cost_policy_model_mismatch');
   }
   const client: ModelClient = {
@@ -373,10 +375,11 @@ export function openAICompatibleClient(cfg: {
       const context = costPolicy === undefined ? undefined : planContextBudget(req, costPolicy);
       if (context?.ok === false) return { ok: false, kind: 'deterministic', externalOutcome: 'known_not_executed' };
 
-      const g7 = isG7FreetierReproveEnabled(process.env);
+      const g7 = g7RuntimeInjection().freetierReproveEnabled();
+      // GODFN-1b: the outbound interceptor install moved to the composition
+      // root (api/worker mains assemble it under G7 before any dispatch).
       if (g7) {
         assertModelApiKeyPresent(process.env);
-        installG7OutboundInterceptor(process.env);
       }
 
       let activeModel = model;
@@ -437,7 +440,7 @@ export function openAICompatibleClient(cfg: {
       while (true) {
         try {
           const j = g7
-            ? await withG7OutboundAllow(() => dispatchOnce(activeModel))
+            ? await g7RuntimeInjection().withOutboundAllow(() => dispatchOnce(activeModel))
             : await dispatchOnce(activeModel);
           const content = j.choices?.[0]?.message?.content;
           if (!content) {

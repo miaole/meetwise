@@ -1,0 +1,45 @@
+
+> @meetwise/worker@0.0.0 prove:r4-pr1c-no-legacy /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-pr1c-default-on-no-legacy-evidence.proof.ts
+
+PR1-C default-on / no-legacy path evidence prove (post product-close flip)
+EXIT=0 = evidence emitted · defaultFlipped=true · failClosedDefaultStill0=false · ≠ R4/FUNNEL/题域/G-R4-5 closed · Ban forge
+
+──────── C0 anchors present ────────
+PASS  C0 emitter wired
+PASS  C0 product-close harness present
+PASS  C0 worker.env.example MEETWISE_TECH_ROLE_FAIL_CLOSED=1
+
+──────── C1 live assessor (no-legacy path · default flipped) ────────
+PASS  C1 emptyEnvFailClosedOn
+PASS  C1 workerEnvExampleNow1
+PASS  C1 noLegacyPathUnderProductDefault
+PASS  C1 noLegacyPathUnderExplicitFlagOn
+PASS  C1 legacyPathStillWhenFlagExplicitOff
+PASS  C1 defaultFlipped=true
+PASS  C1 isTechRoleFailClosedEnabled({})=true
+PASS  C1 hasDefaultOnNoLegacyPathEvidence
+
+──────── C2 emit evidence (Ban forge still-0 · Ban claim R4 closed) ────────
+PASS  C2 emitted=true
+PASS  C2 kind
+PASS  C2 defaultOnNoLegacyPathEvidence=true
+PASS  C2 failClosedDefaultStill0=false
+PASS  C2 defaultFlipped=true
+PASS  C2 r4ProductClosed=false (Ban假关 R4)
+PASS  C2 gR45Closed=false
+PASS  C2 domainIsolationClosed=false
+PASS  C2 releaseEvidence=false
+PASS  C2 receipt written
+PASS  C2 receipt roundtrip kind
+PASS  C2 receipt roundtrip failClosedDefaultStill0=false
+PASS  C2 receipt roundtrip defaultFlipped=true
+
+──────── C3 classifier reflects flipped default · Ban claim R4 closed ────────
+PASS  C3 classify defaultOnNoLegacyPathEvidence=true
+PASS  C3 classify failClosedFlagDefaultOn=true (flipped)
+PASS  C3 classify r1Closed forced false on F4 classifier (product close via dedicated knife)
+PASS  C3 ≠ claim R4/FUNNEL/题域/G-R4-5 closed from emit alone
+PASS  C3 ≠ idle 3×prove as close
+
+OK  r4-pr1c-default-on-no-legacy-evidence prove (PR1-C evidence emitted; defaultFlipped=true; failClosedDefaultStill0=false; ≠ R4/FUNNEL/题域/G-R4-5 closed; releaseEvidence=false)

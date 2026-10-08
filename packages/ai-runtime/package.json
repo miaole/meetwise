@@ -5,8 +5,9 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./g7-bootstrap": "./src/g7-bootstrap.ts",
-    "./g7-bootstrap.ts": "./src/g7-bootstrap.ts"
+    "./g7-bootstrap": "./test/support/g7-bootstrap.ts",
+    "./g7-bootstrap.ts": "./test/support/g7-bootstrap.ts",
+    "./g7-test-support": "./test/support/index.ts"
   },
   "scripts": {
     "prove": "tsx test/runtime-kernel.proof.ts && tsx test/claim-join-orphan.proof.ts",
@@ -54,6 +55,7 @@
     "prove:g7-freetier-reprove-client": "tsx test/g7-freetier-reprove-client.proof.ts",
     "prove:g7-freetier-reprove-paths": "tsx test/g7-freetier-reprove-paths.proof.ts",
     "prove:g7-freetier-fix-round2": "tsx test/g7-freetier-fix-round2.proof.ts",
+    "prove:g7-bootstrap-zero-prod-import": "tsx test/g7-bootstrap-zero-prod-import.proof.ts",
     "prove:gap-rag05-classifier": "tsx test/gap-rag05-classifier.proof.ts"
   },
   "dependencies": {

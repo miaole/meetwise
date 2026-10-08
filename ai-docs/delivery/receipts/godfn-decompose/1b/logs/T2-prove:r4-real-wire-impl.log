@@ -1,0 +1,35 @@
+
+> @meetwise/worker@0.0.0 prove:r4-real-wire-impl /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-real-wire-impl.proof.ts
+
+PASS  track-local retrieve helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/qbank-track-local-retrieve.ts
+PASS  planner helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/qbank-planner-retrieval-plan.ts
+PASS  interview-consumer.ts present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/interview-consumer.ts
+PASS  main.ts present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/main.ts
+PASS  scope helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/qbank-retrieve-scope.ts
+PASS  REAL-WIRE-IMPL harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-real-wire-impl.md
+PASS  r4 status present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-domain-isolation-status.md
+PASS  parseCragPlannerQuery accepts competency + 难度N
+PASS  parseCragPlannerQuery rejects missing difficulty
+PASS  parseCragPlannerQuery rejects difficulty out of 1..5
+PASS  recheck_failed maps to degraded (fail-closed)
+PASS  rejected snapshot_missing maps to route_snapshot_missing degraded
+PASS  served maps results through
+PASS  G-R2-5 decideRouteSnapshotRetrieve null → route_snapshot_missing
+PASS  G-R2-5 degradedRetrieval observable
+PASS  apps/worker/src CALL_SITES≥1 for dispatchTrackLocalRetrieval( — callSites=1 files=apps/worker/src/qbank-track-local-retrieve.ts
+PASS  helper contains dispatchTrackLocalRetrieval( call
+PASS  helper uses assembleValidatedRetrievalPlan (no P-FAKEPLAN primary hard-stuff)
+PASS  consumer imports retrieveViaDispatchTrackLocal
+PASS  consumer gates G-R2-5 via decideRouteSnapshotRetrieve
+PASS  consumer calls retrieveViaDispatchTrackLocal when trackLocal present
+PASS  consumer documents recheck_failed fail-closed / P-FAKEPLAN / ≠ wrong_track=0
+PASS  main injects adaptive.trackLocal factory
+PASS  helper pins recheck_failed fail-closed (no unscoped / sibling / question_ready)
+PASS  harness pins wire green ≠ R4 closed ≠ wrong_track=0
+FAIL  status still pins 题域隔离 NOT closed + releaseEvidence=false
+FAIL  parent harness still pins 题域隔离 NOT closed
+PASS  no claim wrong_track=0 proven in harness
+
+FAIL  r4-real-wire-impl prove (2 failures)
+ ELIFECYCLE  Command failed with exit code 1.

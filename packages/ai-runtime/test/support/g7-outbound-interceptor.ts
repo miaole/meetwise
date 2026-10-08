@@ -11,7 +11,7 @@
  * hard-disabled at their entrypoints — this interceptor catches escapes.
  */
 import { createRequire } from 'node:module';
-import { isG7FreetierReproveEnabled } from './g7-freetier-reprove-guard.ts';
+import { isG7FreetierReproveEnabled } from '../../src/g7-freetier-reprove-guard.ts';
 
 const require = createRequire(import.meta.url);
 

@@ -1,0 +1,500 @@
+
+> @meetwise/worker@0.0.0 prove:r4-p-meta-ms3-deploy-product /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-p-meta-ms3-deploy-product.proof.ts
+
+F8 MS3 standard deploy product handoff prove — MS1 true · MS2 served · MS3 true · releaseEvidence=false · ≠HA · ≠R4 closed
+EXIT=0 ≠ R4 closed ≠ 题域已隔离 · product FUNNEL classifier may be true · Ban dual-claim without dual · Ban forge
+
+──────── MS0 static anchors present ────────
+PASS  F8 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f8-p-meta-ms3-deploy-product.md
+PASS  F8 eval present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/eval/r4-f8-p-meta-ms3-deploy-product.eval.md
+PASS  F8 slice present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/r4-f8-p-meta-ms3-deploy-product.slice.md
+PASS  r4 status present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-domain-isolation-status.md
+PASS  r4 inventory present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-domain-isolation.md
+PASS  F7 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f7-p-meta-ms2-facets-product.md
+PASS  F6 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f6-p-meta-ms1-product-wire.md
+PASS  F5 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f5-p-meta-serving-product.md
+PASS  F4 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f4-p-r1-fail-closed.md
+PASS  01A sealed manifest present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md
+PASS  principal.ts present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/packages/db/src/principal.ts
+PASS  rag-funnel architecture present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/architecture/ai/rag-funnel-routing.md
+PASS  F8 MS3 deploy product present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-ms3-deploy-product.ts
+PASS  F7 MS2 facets product present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-ms2-facets-product.ts
+PASS  F6 MS1 product wire present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-ms1-product-wire.ts
+PASS  F5 product helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-serving-product-remaining.ts
+PASS  F3 serving helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-serving-remaining.ts
+PASS  F2 remaining helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-p-r1-remaining.ts
+PASS  01A handoff prove present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/packages/db/test/qbank-handoff-closure.proof.ts
+PASS  pre-exec e2e-ha review present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/reviews/2026-09-17-r4-f8-p-meta-ms3-deploy-product-mw-e2e-ha.md
+PASS  pre-exec rag-route review present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/reviews/2026-09-17-r4-f8-p-meta-ms3-deploy-product-mw-rag-route.md
+
+──────── MS1 pin stays true (F6 dual-closed · ≠ flip back) ────────
+PASS  MS1 marker: MS1_METADATA_REVIEW_RECEIPT_PRODUCT_SERVING_CONSUMER_WIRED=true
+PASS  MS1 classify: routedServingProductConsumerWired=true
+PASS  MS1 contract.wired=true
+PASS  MS1 F3/F2 align wired=true
+PASS  MS1 F6 harness post_prove_dual_pass (prior)
+
+──────── MS2 pin stays true (F7 dual-closed · ≠ flip back) ────────
+PASS  MS2 marker: MS2_PRODUCT_FACETS_SERVED_ON_PRODUCT_PATH_WIRED=true
+PASS  MS2 classify: facetsServedOnProductPath = required set
+PASS  MS2 F3 align: fullFacetsServed=true
+PASS  MS2 F2 align: fullFacetsServed=true
+PASS  MS2 F7 harness post_prove_dual_pass (prior)
+
+──────── MS3 standard deploy product handoff LANDED (≠ forge) ────────
+PASS  MS3 marker: MS3_STANDARD_DEPLOY_PRODUCT_HANDOFF_WIRED=true
+PASS  MS3 handoff id pinned
+PASS  MS3 checklist plan = F5 PRODUCT_DEPLOY_HANDOFF_CHECKLIST (3)
+PASS  MS3 classify: productDeployHandoffChecklistNamed=true
+PASS  MS3 classify: standardDeployProductHandoff=true
+PASS  MS3 classify: local01AHandoffProveExists=true
+PASS  MS3 local handoff prove file present (旁证)
+PASS  MS3 F3 align: standardDeployHandoff=true
+PASS  MS3 F2 align: standardDeployHandoff=true
+PASS  MS3 emit: served+valid checklist → handedOff · releaseEvidence=false
+PASS  MS3 emit: non-served facets → fail-closed
+PASS  MS3 emit: invalid checklist → fail-closed
+PASS  MS3 fixture checklist validates
+PASS  MS3 module exports emitStandardDeployProductHandoff (real handoff)
+  leak: /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-eg1-dual-claim-evidence.ts
+FAIL  MS3 only allowed worker src files name MetadataReviewReceipt
+PASS  MS3 inventory / status still list P-META / G-R4-5
+
+──────── MS4 hard pins (MS3 ≠ R4 · Ban dual-claim · sole 恰 5 · Ban forge · G-R4-3 parallel) ────────
+PASS  MS4 isProductFunnel01Closed=true (MS1+MS2+MS3 product surfaces)
+PASS  MS4 isProduct01ANotEqual01=false (product surfaces complete · still ≠ R4 closed)
+PASS  MS4 productAlignsWithF3Serving=true
+PASS  MS4 F3 isServingFunnel01Closed=true · isServing01ANotEqual01=false
+PASS  MS4 F2 isRagFunnel01Closed=true · is01ANotEqual01=false
+PASS  MS4 servingAlignsWithF2Remaining=true
+PASS  MS4 gR43PR1ParallelOpen=true
+PASS  MS4 harness freezes CMD r4-p-meta-ms3-deploy-product:prove
+PASS  MS4 harness pins ≠ R4 closed · Ban FUNNEL/G-R4-5 dual-claim · releaseEvidence=false · ≠HA · sole 恰 5
+PASS  MS4 harness Ban forge · Ban self-approve · omits mw-model-op · G-R4-3 parallel
+PASS  MS4 F8 harness post_prove_dual_pass · Ban self-approve · G-R4-5/FUNNEL dual-claim STILL OPEN
+PASS  MS4 F7 harness post_prove_dual_pass (prior MS2)
+PASS  MS4 F6 harness post_prove_dual_pass (prior MS1)
+PASS  MS4 F5 harness post_prove_dual_pass (prior)
+PASS  MS4 F4 harness post_prove_dual_pass · G-R4-3 STILL OPEN · no flip (prior)
+PASS  MS4 eval registers MS3 / E* deploy stubs
+PASS  MS4 slice indexes harness+eval
+FAIL  MS4 status pins 题域隔离 NOT closed + releaseEvidence=false
+PASS  MS4 status mentions F8 / G-R4-5 / MS3 deploy
+PASS  MS4 pre-exec dual reviews exist · verdict pass (docs gate)
+FAIL  MS4 P-R1 default fail-closed still OFF (no flip this knife)
+FAIL  MS4 worker.env.example still documents MEETWISE_TECH_ROLE_FAIL_CLOSED=0 (or absent)
+PASS  MS4 prove never assigns MODEL_API_KEY (no invent)
+PASS  MS4 SOLE allowlist 恰 5 · F8 NOT on allowlist
+PASS  MS4 principal lists qbank_metadata_review_receipt (01A table)
+PASS  MS4 01A manifest still names FUNNEL-01 / deploy handoff
+PASS  MS4 composition: EXIT=0 ≠ R4/题域/HA closed ≠ dual-claim without dual ≠ forge OK
+
+──────── MS4 F7 MS2 facets product 旁证 spawn (≠ R4 closed · MS3 now true) ────────
+
+── spawn r4-p-meta-ms2-facets-product: pnpm r4-p-meta-ms2-facets-product:prove ──
+
+> meetwise@0.1.0 r4-p-meta-ms2-facets-product:prove /Users/miaole/Desktop/golucky/meetwise-line-godfn1b
+> pnpm -C apps/worker prove:r4-p-meta-ms2-facets-product
+
+
+> @meetwise/worker@0.0.0 prove:r4-p-meta-ms2-facets-product /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-p-meta-ms2-facets-product.proof.ts
+
+F7 MS2 facets on product path prove — MS1 true · MS2 served · MS3 landed (F8) · releaseEvidence=false · ≠HA · ≠R4 closed
+EXIT=0 ≠ RAG-FUNNEL-01 closed ≠ G-R4-5 closed ≠ 题域已隔离 · await post-prove dual · Ban forge serving
+
+──────── MS0 static anchors present ────────
+PASS  F7 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f7-p-meta-ms2-facets-product.md
+PASS  F7 eval present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/eval/r4-f7-p-meta-ms2-facets-product.eval.md
+PASS  F7 slice present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/r4-f7-p-meta-ms2-facets-product.slice.md
+PASS  r4 status present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-domain-isolation-status.md
+PASS  r4 inventory present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-domain-isolation.md
+PASS  F6 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f6-p-meta-ms1-product-wire.md
+PASS  F5 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f5-p-meta-serving-product.md
+PASS  F4 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f4-p-r1-fail-closed.md
+PASS  01A sealed manifest present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md
+PASS  principal.ts present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/packages/db/src/principal.ts
+PASS  rag-funnel architecture present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/architecture/ai/rag-funnel-routing.md
+PASS  F7 MS2 facets product present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-ms2-facets-product.ts
+PASS  F6 MS1 product wire present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-ms1-product-wire.ts
+PASS  F5 product helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-serving-product-remaining.ts
+PASS  F3 serving helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-serving-remaining.ts
+PASS  F2 remaining helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-p-r1-remaining.ts
+PASS  01A handoff prove present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/packages/db/test/qbank-handoff-closure.proof.ts
+PASS  pre-exec e2e-ha review present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/reviews/2026-09-17-r4-f7-p-meta-ms2-facets-product-mw-e2e-ha.md
+PASS  pre-exec rag-route review present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/reviews/2026-09-17-r4-f7-p-meta-ms2-facets-product-mw-rag-route.md
+
+──────── MS1 pin stays true (F6 dual-closed · ≠ flip back) ────────
+PASS  MS1 marker: MS1_METADATA_REVIEW_RECEIPT_PRODUCT_SERVING_CONSUMER_WIRED=true
+PASS  MS1 classify: routedServingProductConsumerWired=true
+PASS  MS1 contract.wired=true
+PASS  MS1 F3/F2 align wired=true
+PASS  MS1 F6 harness post_prove_dual_pass (prior)
+
+──────── MS2 required secondary facets SERVED on product path (≠ forge) ────────
+PASS  MS2 marker: MS2_PRODUCT_FACETS_SERVED_ON_PRODUCT_PATH_WIRED=true
+PASS  MS2 serve id pinned
+PASS  MS2 plan facets = architecture secondary set (6)
+PASS  MS2 classify: productFacetServingPlanPinned=true
+PASS  MS2 classify: facetsServedOnProductPath = required set
+PASS  MS2 F3 align: fullFacetsServed=true · facetsServedOnRoutedPath = required
+PASS  MS2 F2 align: fullFacetsServed=true
+PASS  MS2 serve: admitted+valid facets → served · deploy=false
+PASS  MS2 serve: non-admitted → fail-closed
+PASS  MS2 serve: invalid facet payload → fail-closed
+PASS  MS2 fixture facet payload validates
+PASS  MS2 architecture names secondary facets set
+PASS  MS2 module exports serveRequiredSecondaryFacetsOnProductPath (real serve)
+  leak: /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-eg1-dual-claim-evidence.ts
+FAIL  MS2 only allowed worker src files name MetadataReviewReceipt
+PASS  MS2 inventory / status still list P-META / G-R4-5 open
+
+──────── MS3 product deploy handoff landed (F8) ────────
+PASS  MS3 classify: productDeployHandoffChecklistNamed=true
+PASS  MS3 classify: standardDeployProductHandoff=true (F8 landed)
+PASS  MS3 classify: local01AHandoffProveExists=true
+PASS  MS3 local handoff prove file present (旁证)
+PASS  MS3 F3 align: standardDeployHandoff=true
+PASS  MS3 F2 align: standardDeployHandoff=true
+
+──────── MS4 hard pins (MS2 alone ≠ FUNNEL · ≠ R4 · sole 恰 5 · Ban forge · G-R4-3 parallel) ────────
+PASS  MS4 isProductFunnel01Closed=true (MS1+MS2+MS3 · Ban dual-claim without dual · ≠ R4)
+PASS  MS4 isProduct01ANotEqual01=false (product surfaces complete · still ≠ R4)
+PASS  MS4 productAlignsWithF3Serving=true
+PASS  MS4 F3 isServingFunnel01Closed=true · isServing01ANotEqual01=false
+PASS  MS4 F2 isRagFunnel01Closed=true · is01ANotEqual01=false
+PASS  MS4 servingAlignsWithF2Remaining=true
+PASS  MS4 gR43PR1ParallelOpen=true
+PASS  MS4 harness freezes CMD r4-p-meta-ms2-facets-product:prove
+PASS  MS4 harness pins ≠ R4 closed · ≠ FUNNEL-01 closed · ≠ R1 closed · 01A ≠ 01 · releaseEvidence=false · ≠HA · sole 恰 5
+PASS  MS4 harness Ban forge · MS2 alone ≠ FUNNEL · omits mw-model-op · G-R4-3 parallel
+PASS  MS4 F6 harness post_prove_dual_pass (prior MS1 wire)
+PASS  MS4 F5 harness post_prove_dual_pass (prior)
+PASS  MS4 F4 harness post_prove_dual_pass · G-R4-3 STILL OPEN · no flip (prior)
+PASS  MS4 eval registers MS2 / E* facets stubs
+PASS  MS4 slice indexes harness+eval
+FAIL  MS4 status pins 题域隔离 NOT closed + releaseEvidence=false
+PASS  MS4 status mentions F7 / G-R4-5 / MS2 facets
+PASS  MS4 status / harness: G-R4-5 dual-claim STILL OPEN · MS3 landed
+PASS  MS4 pre-exec dual reviews exist · verdict pass (docs gate)
+FAIL  MS4 P-R1 default fail-closed still OFF (no flip this knife)
+FAIL  MS4 worker.env.example still documents MEETWISE_TECH_ROLE_FAIL_CLOSED=0 (or absent)
+PASS  MS4 prove never assigns MODEL_API_KEY (no invent)
+PASS  MS4 SOLE allowlist 恰 5 · F7 NOT on allowlist
+PASS  MS4 principal lists qbank_metadata_review_receipt (01A table)
+PASS  MS4 01A ≠ 01 still pinned in manifest
+PASS  MS4 composition: EXIT=0 ≠ FUNNEL-01/R4/R1/G-R4-5 closed ≠ HA ≠ forge OK
+
+──────── MS4 F6 MS1 product wire 旁证 spawn (≠ FUNNEL-01 closed · MS2 now true) ────────
+
+── spawn r4-p-meta-ms1-product-wire: pnpm r4-p-meta-ms1-product-wire:prove ──
+
+> meetwise@0.1.0 r4-p-meta-ms1-product-wire:prove /Users/miaole/Desktop/golucky/meetwise-line-godfn1b
+> pnpm -C apps/worker prove:r4-p-meta-ms1-product-wire
+
+
+> @meetwise/worker@0.0.0 prove:r4-p-meta-ms1-product-wire /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-p-meta-ms1-product-wire.proof.ts
+
+F6 MS1 MetadataReviewReceipt product wire prove — MS1 wired · MS2 served (F7) · MS3 landed (F8) · releaseEvidence=false · ≠HA · ≠R4 closed
+EXIT=0 ≠ RAG-FUNNEL-01 closed ≠ G-R4-5 closed ≠ 题域已隔离 · await post-prove dual · Ban forge serving
+
+──────── MS0 static anchors present ────────
+PASS  F6 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f6-p-meta-ms1-product-wire.md
+PASS  F6 eval present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/eval/r4-f6-p-meta-ms1-product-wire.eval.md
+PASS  F6 slice present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/r4-f6-p-meta-ms1-product-wire.slice.md
+PASS  r4 status present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-domain-isolation-status.md
+PASS  r4 inventory present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-domain-isolation.md
+PASS  F5 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f5-p-meta-serving-product.md
+PASS  F4 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f4-p-r1-fail-closed.md
+PASS  01A sealed manifest present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md
+PASS  principal.ts present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/packages/db/src/principal.ts
+PASS  rag-funnel architecture present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/architecture/ai/rag-funnel-routing.md
+PASS  F6 MS1 product wire present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-ms1-product-wire.ts
+PASS  F5 product helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-serving-product-remaining.ts
+PASS  F3 serving helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-serving-remaining.ts
+PASS  F2 remaining helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-p-r1-remaining.ts
+PASS  01A handoff prove present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/packages/db/test/qbank-handoff-closure.proof.ts
+PASS  pre-exec e2e-ha review present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/reviews/2026-09-17-r4-f6-p-meta-ms1-product-wire-mw-e2e-ha.md
+PASS  pre-exec rag-route review present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/reviews/2026-09-17-r4-f6-p-meta-ms1-product-wire-mw-rag-route.md
+
+──────── MS1 real product MetadataReviewReceipt serving consumer WIRED (≠ forge) ────────
+PASS  MS1 marker: MS1_METADATA_REVIEW_RECEIPT_PRODUCT_SERVING_CONSUMER_WIRED=true
+PASS  MS1 consumer id pinned
+PASS  MS1 classify: sourceSealed01A=true
+PASS  MS1 classify: productServingContractNamed=true
+PASS  MS1 classify: routedServingProductConsumerWired=true (F6 real wire)
+PASS  MS1 contract.wired=true · honest after real wire
+PASS  MS1 F3 align: routedServingConsumerWired=true
+PASS  MS1 F2 align: routedServingWired=true
+PASS  MS1 admit: approved+recorded → admitted · facets=[] · deploy=false
+PASS  MS1 admit: rejected review → fail-closed
+PASS  MS1 admit: voided status → fail-closed
+PASS  MS1 admit: invalid shape → fail-closed
+PASS  MS1 fixture shape validates
+PASS  MS1 principal lists qbank_metadata_review_receipt (01A table)
+PASS  MS1 01A manifest pins table ≠ routed serving complete / 01 still open
+PASS  MS1 wire exports admitMetadataReviewReceiptToProductServing (real consumer)
+  leak: /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-eg1-dual-claim-evidence.ts
+FAIL  MS1 only allowed worker src files name MetadataReviewReceipt (wire + honesty helpers)
+PASS  MS1 inventory / status still list P-META / G-R4-5 open
+
+──────── MS2 product facets served (F7 · plan pinned · served = required) ────────
+PASS  MS2 classify: productFacetServingPlanPinned=true
+PASS  MS2 requiredFacets = architecture secondary set (6)
+PASS  MS2 facetsServedOnProductPath = required set (F7 served)
+PASS  MS2 F3 align: fullFacetsServed=true · facetsServedOnRoutedPath = required
+PASS  MS2 architecture names secondary facets set
+
+──────── MS3 product deploy handoff landed (F8) ────────
+PASS  MS3 classify: productDeployHandoffChecklistNamed=true
+PASS  MS3 classify: standardDeployProductHandoff=true (F8 landed)
+PASS  MS3 classify: local01AHandoffProveExists=true
+PASS  MS3 local handoff prove file present (旁证)
+PASS  MS3 F3 align: standardDeployHandoff=true
+
+──────── MS4 hard pins (MS1 alone ≠ FUNNEL · ≠ R4 · sole 恰 5 · Ban forge · G-R4-3 parallel) ────────
+PASS  MS4 isProductFunnel01Closed=true (MS1+MS2+MS3 · Ban dual-claim without dual · ≠ R4)
+PASS  MS4 isProduct01ANotEqual01=false (product surfaces complete · still ≠ R4)
+PASS  MS4 productAlignsWithF3Serving=true
+PASS  MS4 F3 isServingFunnel01Closed=true · isServing01ANotEqual01=false
+PASS  MS4 F2 isRagFunnel01Closed=true · is01ANotEqual01=false
+PASS  MS4 servingAlignsWithF2Remaining=true
+PASS  MS4 gR43PR1ParallelOpen=true
+PASS  MS4 harness freezes CMD r4-p-meta-ms1-product-wire:prove
+PASS  MS4 harness pins ≠ R4 closed · ≠ FUNNEL-01 closed · ≠ R1 closed · 01A ≠ 01 · releaseEvidence=false · ≠HA · sole 恰 5
+PASS  MS4 harness Ban forge · MS1 alone ≠ FUNNEL · omits mw-model-op · G-R4-3 parallel
+PASS  MS4 F5 harness post_prove_dual_pass (prior honesty · F5 named contract)
+PASS  MS4 F4 harness post_prove_dual_pass · G-R4-3 STILL OPEN · no flip (prior)
+PASS  MS4 eval registers MS1 / E* product-wire stubs
+PASS  MS4 slice indexes harness+eval
+FAIL  MS4 status pins 题域隔离 NOT closed + releaseEvidence=false
+PASS  MS4 status mentions F6 / G-R4-5 / MS1 product wire
+PASS  MS4 status / harness: G-R4-5 dual-claim STILL OPEN · MS3 landed
+PASS  MS4 pre-exec dual reviews exist · verdict pass (docs gate)
+FAIL  MS4 P-R1 default fail-closed still OFF (no flip this knife)
+FAIL  MS4 worker.env.example still documents MEETWISE_TECH_ROLE_FAIL_CLOSED=0 (or absent)
+PASS  MS4 prove never assigns MODEL_API_KEY (no invent)
+PASS  MS4 SOLE allowlist 恰 5 · F6 NOT on allowlist
+PASS  MS4 composition: EXIT=0 ≠ FUNNEL-01/R4/R1/G-R4-5 closed ≠ HA ≠ forge OK
+
+──────── MS4 F5 product remaining 旁证 spawn (≠ FUNNEL-01 closed · MS1 now true) ────────
+
+── spawn r4-p-meta-serving-product: pnpm r4-p-meta-serving-product:prove ──
+
+> meetwise@0.1.0 r4-p-meta-serving-product:prove /Users/miaole/Desktop/golucky/meetwise-line-godfn1b
+> pnpm -C apps/worker prove:r4-p-meta-serving-product
+
+
+> @meetwise/worker@0.0.0 prove:r4-p-meta-serving-product /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-p-meta-serving-product.proof.ts
+
+F5 P-META serving product remaining prove — MS1/MS2/MS3/MS4 · releaseEvidence=false · ≠HA · ≠R4 closed
+EXIT=0 ≠ R4/题域/HA closed · MS1 wired (F6) · MS2 served (F7) · MS3 landed (F8) · Ban dual-claim · Ban forge serving
+
+──────── MS0 static anchors present ────────
+PASS  F5 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f5-p-meta-serving-product.md
+PASS  F5 eval present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/eval/r4-f5-p-meta-serving-product.eval.md
+PASS  F5 slice present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/r4-f5-p-meta-serving-product.slice.md
+PASS  r4 status present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-domain-isolation-status.md
+PASS  r4 inventory present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-domain-isolation.md
+PASS  F3 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f3-p-meta-serving.md
+PASS  F4 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f4-p-r1-fail-closed.md
+PASS  01A sealed manifest present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md
+PASS  principal.ts present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/packages/db/src/principal.ts
+PASS  rag-funnel architecture present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/architecture/ai/rag-funnel-routing.md
+PASS  F5 product helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-serving-product-remaining.ts
+PASS  F3 serving helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-serving-remaining.ts
+PASS  F2 remaining helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-p-r1-remaining.ts
+PASS  01A handoff prove present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/packages/db/test/qbank-handoff-closure.proof.ts
+PASS  pre-exec e2e-ha review present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/reviews/2026-09-17-r4-f5-p-meta-serving-product-mw-e2e-ha.md
+PASS  pre-exec rag-route review present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/reviews/2026-09-17-r4-f5-p-meta-serving-product-mw-rag-route.md
+
+──────── MS1 product MetadataReviewReceipt serving (contract named · F6 consumer wired · ≠ forge) ────────
+PASS  MS1 classify: sourceSealed01A=true
+PASS  MS1 classify: productServingContractNamed=true (honest progress)
+PASS  MS1 classify: routedServingProductConsumerWired=true (F6 MS1 product wire)
+PASS  MS1 contract.wired=true · honest after F6 real wire
+PASS  MS1 F3 align: routedServingConsumerWired=true
+PASS  MS1 F2 align: routedServingWired=true
+PASS  MS1 principal lists qbank_metadata_review_receipt (01A table)
+PASS  MS1 01A manifest pins table ≠ routed serving / 01 still open
+PASS  MS1 F6 product wire present
+  leak: /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-eg1-dual-claim-evidence.ts
+FAIL  MS1 only honesty helpers + F6 wire name MetadataReviewReceipt in worker src
+PASS  MS1 helper Ban forging MetadataReviewReceipt serving / MS1 alone ≠ FUNNEL
+PASS  MS1 inventory / status still list P-META / G-R4-5 open
+
+──────── MS2 product facets (plan pinned · served-on-path = required · F7) ────────
+PASS  MS2 classify: productFacetServingPlanPinned=true (honest progress)
+PASS  MS2 requiredFacets = architecture secondary set (6)
+PASS  MS2 facetsServedOnProductPath = required set (F7 served)
+PASS  MS2 F3 align: fullFacetsServed=true · facetsServedOnRoutedPath = required
+PASS  MS2 architecture names secondary facets set
+PASS  MS2 harness names MS2 / full facets / product remaining
+
+──────── MS3 product deploy handoff (checklist named · F8 evidence landed) ────────
+PASS  MS3 classify: productDeployHandoffChecklistNamed=true (honest progress)
+PASS  MS3 checklist inventory length=3
+PASS  MS3 classify: standardDeployProductHandoff=true (F8 landed)
+PASS  MS3 classify: local01AHandoffProveExists=true
+PASS  MS3 local handoff prove file present (旁证)
+PASS  MS3 F3 align: standardDeployHandoff=true
+PASS  MS3 01A manifest pins local prove ≠ cloud/standard deploy receipt
+PASS  MS3 harness names MS3 / deploy handoff remaining
+
+──────── MS4 hard pins (01A ≠ 01 · ≠ R4 · sole 恰 5 · Ban forge · G-R4-3 parallel) ────────
+PASS  MS4 isProductFunnel01Closed=true (MS1+MS2+MS3 · Ban dual-claim without dual · ≠ R4)
+PASS  MS4 isProduct01ANotEqual01=false (product surfaces complete · still ≠ R4)
+PASS  MS4 productAlignsWithF3Serving=true
+PASS  MS4 F3 isServingFunnel01Closed=true · isServing01ANotEqual01=false
+PASS  MS4 F2 isRagFunnel01Closed=true · is01ANotEqual01=false
+PASS  MS4 servingAlignsWithF2Remaining=true
+PASS  MS4 gR43PR1ParallelOpen=true
+PASS  MS4 harness freezes CMD r4-p-meta-serving-product:prove
+PASS  MS4 harness pins ≠ R4 closed · ≠ FUNNEL-01 closed · ≠ R1 closed · 01A ≠ 01 · releaseEvidence=false · ≠HA · sole 恰 5
+PASS  MS4 harness Ban forge serving · omits mw-model-op · G-R4-3 parallel not this F5
+PASS  MS4 F3 harness post_prove_dual_pass · MS1–MS3 still false (prior)
+PASS  MS4 F4 harness post_prove_dual_pass · G-R4-3 STILL OPEN · no flip (prior)
+PASS  MS4 eval registers MS1–MS4 / E* product stubs
+PASS  MS4 slice indexes harness+eval
+FAIL  MS4 status pins 题域隔离 NOT closed + releaseEvidence=false
+PASS  MS4 status mentions F5 / G-R4-5 / MS1–MS3 still false (or F5 knife)
+PASS  MS4 pre-exec dual reviews exist · verdict pass (docs gate)
+FAIL  MS4 P-R1 default fail-closed still OFF (no flip this knife)
+FAIL  MS4 worker.env.example still documents MEETWISE_TECH_ROLE_FAIL_CLOSED=0 (or absent)
+PASS  MS4 prove never assigns MODEL_API_KEY (no invent)
+PASS  MS4 SOLE allowlist 恰 5 · F5 NOT on allowlist
+PASS  MS4 composition: EXIT=0 ≠ FUNNEL-01/R4/R1 closed ≠ HA ≠ forge OK
+
+──────── MS4 F3 serving honesty 旁证 spawn (≠ FUNNEL-01 closed) ────────
+
+── spawn r4-p-meta-serving: pnpm r4-p-meta-serving:prove ──
+
+> meetwise@0.1.0 r4-p-meta-serving:prove /Users/miaole/Desktop/golucky/meetwise-line-godfn1b
+> pnpm -C apps/worker prove:r4-p-meta-serving
+
+
+> @meetwise/worker@0.0.0 prove:r4-p-meta-serving /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-p-meta-serving.proof.ts
+
+F3 P-META serving remaining prove — MS1/MS2/MS3/MS4 · releaseEvidence=false · ≠HA · ≠R4 closed
+EXIT=0 ≠ RAG-FUNNEL-01 closed ≠ 题域已隔离 · await post-prove dual · Ban claiming R4 closed
+
+──────── MS0 static anchors present ────────
+PASS  F3 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f3-p-meta-serving.md
+PASS  F3 eval present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/eval/r4-f3-p-meta-serving.eval.md
+PASS  F3 slice present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/r4-f3-p-meta-serving.slice.md
+PASS  r4 status present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-domain-isolation-status.md
+PASS  r4 inventory present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-domain-isolation.md
+PASS  F2 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f2-p-meta-p-r1.md
+PASS  01A sealed manifest present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md
+PASS  principal.ts present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/packages/db/src/principal.ts
+PASS  rag-funnel architecture present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/architecture/ai/rag-funnel-routing.md
+PASS  F3 serving helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-serving-remaining.ts
+PASS  F2 remaining helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-p-r1-remaining.ts
+PASS  01A handoff prove present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/packages/db/test/qbank-handoff-closure.proof.ts
+
+──────── MS1 routed MetadataReviewReceipt serving (still open · ≠ forge) ────────
+PASS  MS1 classify: sourceSealed01A=true
+PASS  MS1 classify: routedServingConsumerWired=true (F6 MS1 product wire)
+PASS  MS1 F2 align: routedServingWired=true
+PASS  MS1 principal lists qbank_metadata_review_receipt (01A table)
+PASS  MS1 01A manifest pins table ≠ routed serving / 01 still open
+PASS  MS1 F6 product wire present
+  leak: /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-eg1-dual-claim-evidence.ts
+FAIL  MS1 only honesty helpers + F6 wire name MetadataReviewReceipt in worker src
+PASS  MS1 helper Ban forging MetadataReviewReceipt serving
+PASS  MS1 inventory / status still list P-META / G-R4-5 open
+
+──────── MS2 full facets served (F7 product-path serve · plan = served) ────────
+PASS  MS2 classify: fullFacetsServed=true (F7)
+PASS  MS2 requiredFacets = architecture secondary set (6)
+PASS  MS2 facetsServedOnRoutedPath = required set (F7 served)
+PASS  MS2 architecture names secondary facets set
+PASS  MS2 harness names MS2 / full facets remaining
+
+──────── MS3 standard deploy handoff (F8 landed · local 01A still 旁证) ────────
+PASS  MS3 classify: standardDeployHandoff=true (F8)
+PASS  MS3 classify: local01AHandoffProveExists=true
+PASS  MS3 local handoff prove file present (旁证 ≠ 01)
+PASS  MS3 01A manifest pins local prove ≠ cloud/standard deploy receipt
+PASS  MS3 harness names MS3 / deploy handoff remaining
+
+──────── MS4 hard pins (01A ≠ 01 · ≠ R4 · sole 恰 5) ────────
+PASS  MS4 isServingFunnel01Closed=true (MS1+MS2+MS3 · Ban dual-claim without dual · ≠ R4)
+PASS  MS4 isServing01ANotEqual01=false (product surfaces complete · still ≠ R4)
+PASS  MS4 servingAlignsWithF2Remaining=true
+PASS  MS4 F2 isRagFunnel01Closed=true · is01ANotEqual01=false
+PASS  MS4 harness freezes CMD r4-p-meta-serving:prove
+PASS  MS4 harness pins ≠ R4 closed · ≠ FUNNEL-01 closed · 01A ≠ 01 · releaseEvidence=false · ≠HA · sole 恰 5
+PASS  MS4 harness omits mw-model-op · excludes P-R1 flip from this knife
+PASS  MS4 F2 harness still post_prove_dual_pass / honesty (prior gate)
+PASS  MS4 eval registers MS1–MS4 / E* serving stubs
+PASS  MS4 slice indexes harness+eval
+FAIL  MS4 status pins 题域隔离 NOT closed + releaseEvidence=false
+PASS  MS4 status F2 post_prove_dual_pass · F3 this knife · G-R4-5
+FAIL  MS4 P-R1 default fail-closed still OFF (no flip this knife)
+FAIL  MS4 worker.env.example still documents MEETWISE_TECH_ROLE_FAIL_CLOSED=0 (or absent)
+PASS  MS4 prove never assigns MODEL_API_KEY (no invent)
+PASS  MS4 SOLE allowlist 恰 5 · F3 NOT on allowlist
+PASS  MS4 composition: EXIT=0 ≠ FUNNEL-01/R4 closed ≠ HA
+
+── honesty summary (F3 P-META serving remaining; await post-prove dual) ──
+MS1: routedServingConsumerWired=true (F6 product wire) · ≠ forge
+MS2: fullFacetsServed=true · required=[competency,technology,difficulty,seniority,kind,language] · served=required (F7)
+MS3: standardDeployHandoff=true (F8) · local01A prove exists (旁证)
+MS4: 01A ≠ 01 · ≠ R4 closed · ≠ 题域已隔离 · releaseEvidence=false · sole 恰 5 · no P-R1 flip
+EXIT=0 ≠ RAG-FUNNEL-01 closed ≠ R4 closed ≠ HA ≠ suite green.
+
+FAIL  r4-p-meta-serving prove (4 failures)
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.
+FAIL  r4-p-meta-serving EXIT=0 — exit=1
+
+── product remaining summary (F5 P-META serving product; await post-prove dual) ──
+MS1: productServingContractNamed=true · routedServingProductConsumerWired=true (F6) · ≠ forge
+MS2: productFacetServingPlanPinned=true · required=[competency,technology,difficulty,seniority,kind,language] · served=required (F7)
+MS3: productDeployHandoffChecklistNamed=true · standardDeployProductHandoff=true (F8) · local01A prove 旁证
+MS4: 01A ≠ 01 · ≠ R4/FUNNEL/R1 closed · G-R4-5 STILL OPEN · G-R4-3 parallel · releaseEvidence=false · sole 恰 5 · no P-R1 flip
+EXIT=0 ≠ RAG-FUNNEL-01 closed ≠ R4 closed ≠ HA ≠ suite green ≠ knife product-done.
+
+FAIL  r4-p-meta-serving-product prove (5 failures)
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.
+FAIL  r4-p-meta-serving-product EXIT=0 — exit=1
+
+── MS1 product wire summary (F6; await post-prove dual) ──
+MS1: routedServingProductConsumerWired=true · contract.wired=true · consumer=r4-p-meta-ms1-product-wire:admitMetadataReviewReceiptToProductServing
+MS2: productFacetServingPlanPinned=true · required=[competency,technology,difficulty,seniority,kind,language] · served=required (F7)
+MS3: productDeployHandoffChecklistNamed=true · standardDeployProductHandoff=true (F8) · local01A prove 旁证
+MS4: 01A ≠ 01 · MS1 alone ≠ FUNNEL/R4/G-R4-5 closed · G-R4-3 parallel · releaseEvidence=false · sole 恰 5 · no P-R1 flip
+EXIT=0 ≠ RAG-FUNNEL-01 closed ≠ R4 closed ≠ HA ≠ suite green ≠ G-R4-5 closed.
+
+FAIL  r4-p-meta-ms1-product-wire prove (5 failures)
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.
+FAIL  r4-p-meta-ms1-product-wire EXIT=0 — exit=1
+
+── MS2 facets product summary (F7; await post-prove dual) ──
+MS1: routedServingProductConsumerWired=true · contract.wired=true (pin stays)
+MS2: served · required=[competency,technology,difficulty,seniority,kind,language] · serveId=r4-p-meta-ms2-facets-product:serveRequiredSecondaryFacetsOnProductPath
+MS3: productDeployHandoffChecklistNamed=true · standardDeployProductHandoff=true (F8) · local01A prove 旁证
+MS4: 01A ≠ 01 · MS2 alone ≠ FUNNEL/R4/G-R4-5 closed · G-R4-3 parallel · releaseEvidence=false · sole 恰 5 · no P-R1 flip
+EXIT=0 ≠ RAG-FUNNEL-01 closed ≠ R4 closed ≠ HA ≠ suite green ≠ G-R4-5 closed.
+
+FAIL  r4-p-meta-ms2-facets-product prove (5 failures)
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.
+FAIL  r4-p-meta-ms2-facets-product EXIT=0 — exit=1
+
+── MS3 deploy product summary (F8; await post-prove dual) ──
+MS1: routedServingProductConsumerWired=true · contract.wired=true (pin stays)
+MS2: fullFacetsServed=true · facetsServedOnProductPath=required (pin stays)
+MS3: standardDeployProductHandoff=true · handoffId=r4-p-meta-ms3-deploy-product:emitStandardDeployProductHandoff · checklist=[local_01A_handoff_prove,combo_root_receipt,standard_or_cloud_deploy_receipt]
+MS4: product FUNNEL classifier true · Ban dual-claim without dual · G-R4-3 parallel · releaseEvidence=false · sole 恰 5 · no P-R1 flip · ≠ R4/题域/HA
+EXIT=0 ≠ R4 closed ≠ HA ≠ suite green · Ban self-approve post_prove_dual_pass.
+
+FAIL  r4-p-meta-ms3-deploy-product prove (5 failures)
+ ELIFECYCLE  Command failed with exit code 1.

@@ -1,0 +1,44 @@
+
+> @meetwise/worker@0.0.0 prove:r4-eg3-domain-isolation-product /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-eg3-domain-isolation-product-evidence.proof.ts
+
+EG3 domain-isolation product evidence prove
+EXIT=0 = evidence emitted · ≠ EG3/题域/G-R4-5/R4 product closed · Ban forge · Ban claim from meta prove alone · releaseEvidence=false
+
+──────── D0 anchors present ────────
+PASS  D0 emitter wired
+PASS  D0 harness present
+PASS  D0 harness pins Ban forge + Ban idle EG1/EG2 + EG3 STILL OPEN
+
+──────── D1 live assessor (product track-local / scope / honesty pins) ────────
+PASS  D1 trackLocalRetrieveDispatchWired
+PASS  D1 mainInjectsTrackLocal
+PASS  D1 consumerConsumesTrackLocal
+PASS  D1 retrieveScopeFailClosedMissingSnapshot
+PASS  D1 statusPinsDomainIsolationNotClosed
+PASS  D1 metaProveAloneDoesNotClose
+PASS  D1 wrongTrackZeroProductProven=false
+PASS  D1 hasDomainIsolationProductEvidence
+
+──────── D2 emit evidence (Ban forge) ────────
+PASS  D2 emitted=true
+PASS  D2 kind
+PASS  D2 domainIsolationProductEvidence=true
+PASS  D2 eg3ProductClosed=false (Ban假关)
+PASS  D2 domainIsolationClosed=false
+PASS  D2 gR45Closed=false
+PASS  D2 r4ProductClosed=false
+PASS  D2 wrongTrackZeroProductProven=false
+PASS  D2 releaseEvidence=false
+PASS  D2 metaProveAloneDoesNotClose=true
+PASS  D2 receipt written
+PASS  D2 receipt roundtrip kind
+PASS  D2 receipt roundtrip eg3ProductClosed=false
+PASS  D2 receipt roundtrip domainIsolationClosed=false
+
+──────── D3 hard pins ────────
+PASS  D3 ≠ claim EG3 / 题域 closed from emit alone
+PASS  D3 ≠ idle EG1/EG2 / 5×meta as fake EG3 close
+PASS  D3 Ban forge · Ban invent coveredCount · Ban claim from meta prove alone
+
+OK  r4-eg3-domain-isolation-product-evidence prove (EG3 evidence emitted; ≠ EG3/题域/G-R4-5/R4 closed; releaseEvidence=false)
