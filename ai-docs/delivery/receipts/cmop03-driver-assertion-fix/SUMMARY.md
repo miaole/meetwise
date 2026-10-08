@@ -37,3 +37,5 @@ Not a pass · not fixed-fully（修复面成立但 post-7b 面红在卷）· not
 ---
 
 *SUMMARY · CMOP03-FIX EXEC · 2026-10-08 · 单有效 attempt EXIT=1 class=api 78798ms · **修复面 `:201-203` 越过实证（C-MO-P3 恒 False 面消除 · G7X T-1 死亡点不复现）** · step 7/7a/7b 首验全过（report_unavailable×2 + quiz_unavailable + diagnosis_ready 四终态 ledger 在卷 · :236-237 零改断言本体而预期形状兑现）· post-7b 新面红原值登记（∈(:256,末) · class=api · withhold bounding · 两岔归协调方）· coding 恰两文件四钉零 diff · errata ×2 回填 · est ≤25 ≪ 200（账本实测不可达如实记）· `actualSpendCny=null` · **STOP——勿自 nail · post-prove 双审归协调方派** · STOP*
+
+> **erratum · push 模式登记（append-only · 2026-10-08）**：首推被拒 non-FF——remote 停在 pre-rebase REQUEST `479719a9`（本人上一 turn 所推 · `git ls-remote` 亲测 · **零外来提交**），本地按 EXEC 指令 1 rebase 出 patch 全等孪生 `938e0f55`（4 文件 +266 numstat 逐行同 · 亲算）致历史分叉。处置=`git push --force-with-lease=refs/heads/line/cmop03-driver-assertion-fix:479719a9107ec2414b44d7e1becfd91f3fc4e3ac`（lease 钉死已知远端 SHA · 零外来工作覆盖面）→ 远端 `479719a9`→`9a48f57c`（forced update · ls-remote 终测=9a48f57c）。远端终链：`eef469d9` ← `938e0f55`（REQUEST twin）← `4252efc8`（coding）← `9a48f57c`（EXEC 收据）。
