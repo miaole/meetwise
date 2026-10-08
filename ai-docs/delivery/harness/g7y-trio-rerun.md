@@ -6,7 +6,7 @@ status: **`draft:awaiting_pre_exec_dual`**（REQUEST 就绪 · 预执行双审�
 
 **Date**: 2026-10-08
 **Line**: **G7Y**（trio 复跑判定 · 三绿收官测量刀）
-**Base**: `origin/feat/mysql-schema-skeleton` = **`9265e4d8`**（full `9265e4d8a58eaa064244eb3c5fd02c165e83d8fc` · 2026-10-08 fetch 后实测 tip，≥ `9265e4d8` 达成 · 本地同名分支已 ff 同点）· worktree `/Users/miaole/Desktop/golucky/meetwise-line-g7y` · branch `line/g7y-trio-rerun`（新立自 origin tip · 跟踪同名 upstream · 禁 force push）。
+**Base**: `origin/feat/mysql-schema-skeleton` = **`9265e4d8`**（full `9265e4d8a58eaa064244eb3c5fd02c165e83d8fc` · 2026-10-08 fetch 后实测 tip，≥ `9265e4d8` 达成 · 本地同名分支已 ff 同点）· worktree `/Users/miaole/Desktop/golucky/meetwise-line-g7y` · branch `line/g7y-trio-rerun`（新立自 origin tip · tracking **`origin/feat/mysql-schema-skeleton`**——`git worktree add -b` 派生默认 tracking 实况，rev3 更正；origin 上同名分支 `line/g7y-trio-rerun` 系本刀 push 时新立 · 禁 force push）。
 
 **立项出处（引用既有登记 · 不自建 SSOT 行）**：协调方 G7Y trio 复跑判定刀——CMOP03-FIX nail「C-MO-P3 行关闭/翻转归协调方后续（**trio 复跑复核保留**）」+ G7V-CALIB nail「G7U 残红①关联子面处置**随 G7Y trio 复判**」+ CMOP03-D nail「trio stays OPEN（真测 1/1/1 retained）· 复判 run 归协调方」既有指向的行使。本 REQUEST 为独立全链 REQUEST（REQUEST → 预执行双审 → meetwise 授权 → EXEC → post-prove 双审 → meetwise 授权 nail）。
 
@@ -18,7 +18,7 @@ status: **`draft:awaiting_pre_exec_dual`**（REQUEST 就绪 · 预执行双审�
 
 | 文件 | blob @ `9265e4d8` | 角色 |
 | --- | --- | --- |
-| `e2e/full.e2e.ts` | `6c27b583`（=`1fededa5` 刀①修复 + 7 埋点纯插入的当 tip 值） | CMD1/CMD3 HTTP full E2E driver（`:201-203` 已修 · `:236` 7a 兜底 · `:356-357` boundLoop 断言面 · 7 埋点在树） |
+| `e2e/full.e2e.ts` | `6c27b583`（=`1fededa5` 刀①修复 + 7 埋点纯插入的当 tip 值） | CMD1/CMD3 HTTP full E2E driver（`:201-203` 已修 · `:236` 7a 兜底 · boundLoop 断言面 **recordTerminal `:361` / 死胡同断言 `:363` / provenance 候修 `:364`**〔blob `6c27b583` 实测 · 旧值 `:355-357`=`1fededa5` 纪元 provenance 引用〕· 7 埋点在树） |
 | `e2e/helpers/interview.ts` | `c7001612` | 刀① 修复面（澄清感知计数） |
 | `e2e/helpers/assert.ts` | `975fbb38` | 反伪造钉②（fail-fast 纪律） |
 | `e2e/helpers/sse.ts` | `9bba015d` | 反伪造钉① |
@@ -33,7 +33,7 @@ status: **`draft:awaiting_pre_exec_dual`**（REQUEST 就绪 · 预执行双审�
 
 **trio wiring @ 当 tip**（`package.json` 当值 blob **`24da3467`**——G7W-G era 在卷值 `0afb3bd2`→`24da3467` 漂移系上游脚本区增长 · trio 三行语义零变化）：`e2e:isolated`=`:278` · `e2e:ui:isolated`=`:279` · `verify:e2e-performance`=`:282`。解析链不变：`e2e:isolated` = `run-e2e-isolated.mjs e2e:prove` → `run-e2e.mjs`；`e2e:ui:isolated` = `run-e2e-isolated.mjs e2e:ui` → `run-e2e-ui.mjs`；`verify:e2e-performance` = `run-e2e-performance-suite.mjs`。
 
-**7 埋点在树亲证**（`e2e/full.e2e.ts` blob `6c27b583` · `reviews.record({class:'worker',code:'seg_*'})`）：M1 `seg_diag_green_enter`=`:257` · M2 `seg_step8_enter`=`:260` · M3 `seg_step9_green`=`:304` · M4 `seg_expert_enter`=`:307` · M5 `seg_bound_start_enter`=`:337` · M6 `seg_boundloop_enter`=`:351` · M7 `seg_boundloop_terminal`=`:362`（与 CMOP03-D nail errata E-a 实插行号逐点一致）。断言面亲证：`:201-203`（C-MO-P3 修复后出处审查，含 `+ clarifications` 对称计数）· `:235-237`（7a failLoop recordTerminal + 兜底断言 `report_unavailable + quarantined` 本体）· `:355-357`（boundLoop recordTerminal + 死胡同断言 + `:357` provenance 同族残留候修行）。**本刀对上述断言本体零触碰**（Ban 顺手修先例承继 · `:357` 候修处置仍归协调方）。
+**7 埋点在树亲证**（`e2e/full.e2e.ts` blob `6c27b583` · `reviews.record({class:'worker',code:'seg_*'})`）：M1 `seg_diag_green_enter`=`:257` · M2 `seg_step8_enter`=`:260` · M3 `seg_step9_green`=`:304` · M4 `seg_expert_enter`=`:307` · M5 `seg_bound_start_enter`=`:337` · M6 `seg_boundloop_enter`=`:351` · M7 `seg_boundloop_terminal`=`:362`（与 CMOP03-D nail errata E-a 实插行号逐点一致）。断言面亲证（**blob `6c27b583` 实测**）：`:201-203`（C-MO-P3 修复后出处审查，含 `+ clarifications` 对称计数）· `:235-237`（7a failLoop recordTerminal + 兜底断言 `report_unavailable + quarantined` 本体）· boundLoop 段＝**recordTerminal `:361` + 死胡同断言 `:363` + provenance 同族残留候修 `:364`**。**行号换算规则（显式声明 · 双纪元并记 · 沿 G7X erratum `979a85e4` 与 CMOP03-D errata E-a/E-b 先例）**：卷面旧值 `:355/:356/:357` 系 **`1fededa5` 纪元 · provenance 引用**（backlog `:828` GAP-CMOP03-POST7B SSOT 行 append-only 零改写 · 本刀不回改任何 SSOT 原文）；`1fededa5`→`6c27b583` 位移 = 两纪元间插入的 seg 埋点行数——recordTerminal `:355`→`:361`（其前有 M1-M6 共 **+6** 行）· 死胡同断言 `:356`→`:363` 与 provenance 候修 `:357`→`:364`（其前有 M1-M7 共 **+7** 行 · M7 系 recordTerminal 与死胡同断言之间插入）；`:201-203`/`:236`/`:256` 零位移（7 埋点全在其后）。**本刀对上述断言本体零触碰**（Ban 顺手修先例承继 · `:364` 候修处置仍归协调方）。
 
 ---
 
@@ -53,7 +53,7 @@ status: **`draft:awaiting_pre_exec_dual`**（REQUEST 就绪 · 预执行双审�
 **两 OPEN 面如实预注册（不预设其已消解）**：
 
 - **OPEN 面 (i)＝`GAP-CMOP03-7A-DOWNGRADE`（P1 OPEN）`:236` 面**：run2（注入 run）中 7a 兜底断言期望 `failLoop.terminal === 'report_unavailable'` 实达 `interview_unavailable` · 由构造即假 fail-fast；**三候选产生面并列零归因**（`apps/worker/src/adaptive-lifecycle.ts:54` 出题面烧尽 / `apps/worker/src/interview-consumer.ts:93` interview_job 重试上限 / `apps/worker/src/commerce-reconcile.ts:65` 孤儿预留回收）· **跨 run 形状漂移已留档**（同一 `:235` failLoop 面跨 run 给出 `report_unavailable`〔协调方 run〕vs `interview_unavailable`〔run2〕· 账本面事实 · 零归因）。本刀 trio run **无 `E2E_REPORT_FAIL_ALL` 注入**（纯跑）——该面在无注入下是否出现、呈现何形状，**零预设**。
-- **OPEN 面 (ii)＝`GAP-CMOP03-POST7B`（P1 OPEN）窗 `(:256, :356]`**：run1 出现（78798ms · 死亡窗 ∈(:256,:356] · ledger 恰 4 条）· run2（鉴别刀）未复现（红点在窗前 `:236`）——**窗红未复现 ≠ 已解决**（原读数零冲销 · 两岔〔driver step 8/9 区 vs 异常/绑定段〕仍未分 · 复判 run 归协调方=本刀）。CMD3 的对应面 = perf 套件内 **HTTP full E2E 步**（同一 driver · 同窗语义沿展）。
+- **OPEN 面 (ii)＝`GAP-CMOP03-POST7B`（P1 OPEN）窗**：卷面历史窗 **`(:256, :356]`（`1fededa5` 纪元 · provenance 引用 · backlog `:828` 原文零改写）**——run1 出现（78798ms · 死亡窗 ∈(:256,:356] · ledger 恰 4 条）· run2（鉴别刀）未复现（红点在窗前 `:236`）；**本刀重锚窗＝`(:256, :361]`（blob `6c27b583` 实测 · 窗右端=recordTerminal `:361` · 换算规则见 §0 断言面亲证段）**——**窗红未复现 ≠ 已解决**（原读数零冲销 · 两岔〔driver step 8/9 区 vs 异常/绑定段〕仍未分 · 复判 run 归协调方=本刀）。CMD3 的对应面 = perf 套件内 **HTTP full E2E 步**（同一 driver · 同窗语义沿展）。
 
 **结局族（每 CMD 独立判定 · 原值记账）**：
 
@@ -61,7 +61,7 @@ status: **`draft:awaiting_pre_exec_dual`**（REQUEST 就绪 · 预执行双审�
 | --- | --- | --- |
 | **全绿** | EXIT=0 · 全段断言过 · seg 心跳达 M7（或达 M7 后终局） | **「三绿候选」如实登记**（≠宣称——须 post-dual BOTH + 协调方 nail；`g7SuiteGreen` 翻转=**独立 SSOT 刀**，本刀禁翻） |
 | **红于 `:236`** | ledger 第 4 行后即停 · failLoop terminal ≠ `report_unavailable` 或 rep.status ≠ quarantined | **`7A-DOWNGRADE` 域读数增量**：本 run 形状（terminal 值/attempts/last_error）append-only 增记该域 · **`ai_model_invocation` 双计读数 append-only 增记该域** · **Ban 归因三候选任一** · 升级协调方 |
-| **红于窗 `(:256,:356]`** | ledger 达 M1（≥`:257`）后停于 `:357` 前 · seg 末心跳 ∈ {M1..M6} | **`POST7B` 复现读数**：复现读数 + 末心跳定位入该域（M1/M2→step8/9 岔A 相容；M3/M4/M5/M6→专家评审段岔B 相容；M7 停靠则 `:356-357` 断言面读数）· **`ai_model_invocation` 双计读数 append-only 增记该域** · **Ban 归因两岔任一岔定谳** · 升级协调方 |
+| **红于窗 `(:256,:361]`（含 `:363-:364` 断言面子情形）** | ledger 达 M1（≥`:257`）后 · seg 末心跳 ∈ {M1..M7}（M7 停靠＝红点落 `:363-:364` 断言面的窗内子情形） | **`POST7B` 复现读数**：复现读数 + 末心跳定位入该域（M1/M2→step8/9 岔A 相容；M3/M4/M5/M6→专家评审段岔B 相容；**M7 停靠＝`:363-:364` 断言面读数〔窗内子情形〕**）· **`ai_model_invocation` 双计读数 append-only 增记该域** · **Ban 归因两岔任一岔定谳** · 升级协调方 |
 | **红于他处** | 上列定位面均不合 | **新面登记**（沿「同形不同内容」分列判例 · 立行归协调方）· 按预注册升级条款升级 |
 | **env/infra 中止** | docker/migration 等环境缺口 | env-gap 类如实记 FAIL 原因 · 不洗 not_run · 零产品读数 ≠ 判别失败 |
 
@@ -95,7 +95,7 @@ status: **`draft:awaiting_pre_exec_dual`**（REQUEST 就绪 · 预执行双审�
 ## 3. 判定与上报（预注册）
 
 - **三绿**：逐 CMD EXIT=0 → 如实登记为「**三绿候选**」——**≠ trio 翻绿宣称 ≠ `g7SuiteGreen=true`**；`g7SuiteGreen` 翻转 = **独立 SSOT 刀**（须 post-dual 双审 BOTH + 协调方 nail 全链 · **本刀禁翻**）。
-- **任一红**：EXIT 原值记账 + 按归属面登记（红于 `:236`→`GAP-CMOP03-7A-DOWNGRADE` 域读数增量 · 红于 `(:256,:356]`→`GAP-CMOP03-POST7B` 复现读数 · 红于他处→新面登记）· **升级协调方**（立行/增记处置权归协调方 · 本刀 EXEC 期零 SSOT 行改写——判定登记归本刀 nail 面行使）。
+- **任一红**：EXIT 原值记账 + 按归属面登记（红于 `:236`→`GAP-CMOP03-7A-DOWNGRADE` 域读数增量 · 红于 `(:256,:361]`（含 `:363-:364` 断言面子情形 · 旧纪元窗 `(:256,:356]` provenance）→`GAP-CMOP03-POST7B` 复现读数 · 红于他处→新面登记）· **升级协调方**（立行/增记处置权归协调方 · 本刀 EXEC 期零 SSOT 行改写——判定登记归本刀 nail 面行使）。
 - **任一 env/infra 中止**：env-gap 如实定性 · 不洗 · 零产品读数不冒充判别读数。
 
 ## 4. 硬 Ban（全链有效）
