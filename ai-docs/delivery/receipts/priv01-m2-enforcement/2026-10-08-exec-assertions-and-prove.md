@@ -40,7 +40,7 @@ R3（P-B 条件登记：断言面 delta）**不触发**——P-A 已裁定，无
 
 | # | 窗口（Asia/Shanghai） | CMD | EXIT | PASS/FAIL | log |
 |---|----------------------|-----|------|-----------|-----|
-| 1 | 2026-10-08 10:26:28 +0800 .. 10:26:32 +0800 | `pnpm --filter @meetwise/db tenant-enforcement:prove`（= `packages/db/package.json:35` `tsx test/tenant-enforcement.proof.ts` · worktree HEAD=`0147f8ce` + EXEC 工作树态 S1） | **1** | 33/1 | `receipts/priv01-m2-enforcement/priv01-prove-attempt1.log` + `.exit` |
+| 1 | 2026-10-08 10:26:28 +0800 .. 10:26:32 +0800 | `pnpm --filter @meetwise/db tenant-enforcement:prove`（= `packages/db/package.json:35` `tsx test/tenant-enforcement.proof.ts` · worktree HEAD=`0147f8ce` + EXEC 工作树态 S1） | **1** | 34/1（E-1 勘误 2026-10-08 · 原文 33/1） | `receipts/priv01-m2-enforcement/priv01-prove-attempt1.log` + `.exit` |
 | 2 | 2026-10-08 10:27:29 +0800 .. 10:27:29 +0800 | 同上（工作树态 S2 = S1 + 恰一行正则修复） | **0** | **35/0** | `receipts/priv01-m2-enforcement/priv01-prove-attempt2.log` + `.exit` |
 
 **attempt1→2 定性（显式交 post 双审裁 · 非 retry-to-green 洗白声明）**：attempt1 唯一 FAIL = `tenant source pins required-predicate (non-optional filter) wording (E2)`——**确定性 fixture 字串缺陷**：断言正则误写 `/required predicate, not an optional filter hint/`，漏源文件 `packages/db/src/tenant/index.ts:99` 原文一词 `object`（`This is a required predicate object, not an optional filter hint.` · od 字节级亲验）。修复 = 恰一行正则补 `object`（S1→S2 diff 可验证，零断言语义变更、零被测源变更）。沿 GAP-PRIV-04 先例（attempts 台账 1,0：#1 EXIT=1 确定性 fixture 缺陷诚实保留 · #2 EXIT=0）——非 `:68` 型 cause-unknown 重试凑绿；两 attempt 全录、EXIT 原值保留、缺陷定性本节存档。**post 双审若裁本路径不可采，attempt1 EXIT=1 诚实保留为 EXEC 终态。**
@@ -64,3 +64,5 @@ EXIT0 ≠ 接线已授权 ≠ RLS abandon 门开 ≠ backlog `:57` CLOSED/翻行
 ---
 
 *Receipt · PRIV01-B EXEC · P-A · prove EXIT=0（35/0 · attempts 1,0 全录 · fixture 缺陷定性交双审）· R1/R2/O1 落卷 · R3 不触发 · ADR 门 cite-only · 零 src/ · executed:awaiting_post_prove_dual · STOP（awaiting post-prove dual · 协调方派）*
+
+> **E-1 勘误（append-only 注记 · 2026-10-08 nail · meetwise 协调方授权）**：§3 台账 attempt1 PASS/FAIL 计数原记「33/1」更正为「**34/1**」——attempt1 log 实为 34 PASS + 1 FAIL（含 `:39` optional PG skip 行按 PASS 口径计入；总断言数 35 与 attempt2 35/0 口径一致）· 三处统一更正：本收据 §3 / harness §11 / slice EXEC 登记 · 两个 `.exit` 文件与两 log 原样零改 · 本收据其余已落内容零字节改动。（post-prove 双审 BOTH PASS：mw-privacy-int 裁 attempts 1,0 可采 · mw-e2e-ha 独立复跑 EXIT=0 35/0 逐值一致并确认 E-1 勘误处方）
