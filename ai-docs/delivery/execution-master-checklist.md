@@ -1913,4 +1913,14 @@ flowchart TD
 - **nits×4 登记（不阻断）**：package.json 重缩进 169 行语义零漂移/「30 PASS」含总结行口径/trio-exits 行标注/设计 §2.3 抛序行文与实际保持序表述不一致（EXEC 从实际序正确）.
 - [ ] **STILL OPEN**：GODFN-1d（**串行前置 1c 已落地满足**·REQUEST rev2 待落）；adaptive-consumer 域刀；`g7SuiteGreen=false` 维持.
 - 预算：est live ≤25/run 链记账 · 0 Key 值接触（trio env-blocked 佐证）· `actualSpendCny=null`.
+
+### Line G7TRIO trio 全景再跑刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 恰 3 run＝1 绿 2 红·非三绿·g7SuiteGreen 不翻 · **CMD2 绿**（24 tests 14P/0F/10S·web build 本 HEAD 绿）· **CMD1 红点席2 精确定位=步 7a fail-interview 一击终态**（interview-consumer.ts:93/:384·7A-DOWNGRADE era 形状再现·无 requeue 结构放大器）· **CMD3 consume 族 7F=fixture 债非产品缺陷**（begin UUID 门 3f5bdc80 晚于 'r1' 夹具·红掩覆盖）· 收官路径裁定=两把独立刀）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
+- [x] **`post_prove_dual_pass`** recorded for Line G7TRIO products only（触面=收据 22 文件+harness 两注记·零产品码零脚本改·nail tip 本 commit · branch `line/g7-trio-full`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：三 run EXIT 原值+attempts 1,1,1 三源交叉/**间歇性定谳证实**〔NDJSON 双 bootId 同卷·digest c74cecd 三处字节同=同码一红一绿⇒复现事实非代码面·interview_unavailable=7A-DOWNGRADE era 形状再现非新形状非修复面回归〕/consume 7F 全库无 prior 收据=首录确证历史红零冲销/sidecar v3×4 锚 match=true 双计 10/21/41 链 107≤200/skip 台账+三绿定义落卷/pins+零产品码）+ mw-model-op PASS（六核：**红点精确定位步 7a fail-interview 一击终态**〔ledger 前 3 位与绿 run 逐位同形+interview-consumer.ts:93/:384 亲读·reaper 10min 与 g7fix1 cap 均排除·候选谱=单发模型外发瞬时错误>resume reference gate 误阴>fence_lost>role_route〕/**consume 7F 单一根因亲证**〔begin UUID_RE 门 3f5bdc80 晚于 'r1' 夹具 3c87bfa7→7F 全部 begin 死于 400 门·产品方向 fail-closed 更严无超卖无双扣·但覆盖红掩〕/收官路径两把独立刀/链 107 独立复算/台账+pins+exactly-1）· 协调方正式授权本 nail.
+- **G7TRIO 全链**：REQUEST `692e8286` → 双席预审 BOTH PASS（席2 预期管理校准并入 EXEC）→ EXEC `78dc22f9`（origin tip 零位移）→ 本 nail commit.
+- **三 run 终态**：CMD2 **绿**（24 tests 14P/0F/10S·web build EXIT=0·route_decided 4018/3020ms result_validated——G7U 轮询先例在 real run 现形）；CMD1 红=步 7a interview_unavailable 一击终态（45s·cap 未行使·红掩=大半旅程未达）；CMD3 红于步 10 consume 族 7F（步 1-9 全绿：**步1 web build EXIT=0〔retained 红不适用〕·步3 HTTP full E2E 75 断言绿〔G7FIX-2 修复形实跑现形 4=2+2〕·步4 browser 14P/10S**）.
+- **G7 收官双刀裁定（协调方·采纳席2 路径）**：①**G7P-6=7a 间歇定靶刀**（红 run exit 前补抓 `SELECT status,attempts,last_error FROM interview_job WHERE interview_id=failIv`+interview_event 尾行——一次红 run 即定谳 last_error；另案评估 transient 模型类错误 job 级 requeue〔一击终态=间歇红结构放大器〕）；②**RCPT/NEG-COMM 夹具修复刀**（neg-commerce.proof consume 族 resumeId 'r1'→合法 UUID+种子 resume 行+400 新门断言——便宜独立·解锁 CMD3 步 11-27 含 6 LEGACY/R5 步）→两刀落地后 trio 再跑收官.
+- [ ] **STILL OPEN**：G7P-6+consume 夹具刀（REQUEST 待立）；GAP-CMOP03-7A-DOWNGRADE `:107` 域 P1 OPEN 维持（era 形状再现增记）；consume 族红掩覆盖（夹具刀解锁）；`g7SuiteGreen=false` 维持.
+- 预算：链累计 107≤200 硬帽 · 0 Key 值接触 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
