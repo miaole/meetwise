@@ -1,0 +1,100 @@
+
+> meetwise@0.1.0 neg:commerce /Users/miaole/Desktop/golucky/meetwise-line-negc
+> node scripts/run-e2e-isolated.mjs neg:commerce
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-25866-1791491508219 on 127.0.0.1:52762
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 neg:commerce /Users/miaole/Desktop/golucky/meetwise-line-negc/apps/api
+> node --import @swc-node/register/esm-register test/neg-commerce.proof.ts
+
+PASS  create/unauth → 401 unauthenticated
+PASS  create/bad-bearer → 401 invalid_token
+PASS  create/reserved-principal → 401
+PASS  create/missing productId → 400 invalid
+PASS  create/productId wrong type → 400 invalid
+PASS  create/null body → 400
+PASS  create/unknown product → 400 unknown_product
+PASS  create/empty productId → 400 unknown_product
+PASS  create/malformed json → 4xx
+PASS  create/non-json content-type → 4xx
+PASS  create/oversized body → 413 payload_too_large
+PASS  create/tamper amountCents → 服务器价 9900(篡改无效)
+PASS  create/tamper amountCents → 落库金额仍 9900
+PASS  create/tamper units+amount → 忽略,价 9900
+PASS  create/inject units=0 → pack_30 权威 24900
+PASS  create/inject units=-1 → pack_30 权威 24900
+PASS  create/idem 同key不同body → 409 idempotency_key_conflict(不静默吞篡改品)
+PASS  create/idem 同key不同body → 不产生第二条订单(冲突前抛,原单不变)
+PASS  create/idem 同key同body → 仍只 1 条订单
+PASS  create/并发同key → DB 只落 1 条订单(不重复建)
+PASS  create/并发同key → 3 个调用均 200（重放不是冲突）
+PASS  create/并发同key → 3 个响应严格同一 orderId
+PASS  query/越权他人订单 → 404 not_found
+PASS  query/越权(token) → 404
+PASS  query/不存在订单 → 404 not_found
+PASS  query/未鉴权订单 → 401
+PASS  query/未鉴权额度 → 401
+PASS  query/未鉴权 products → 200(公开目录与 OpenAPI 对齐)
+PASS  pay/缺 providerTxn+sig → 400 invalid_callback
+PASS  pay/缺 sig → 400 invalid_callback
+PASS  pay/缺 providerTxn → 400 invalid_callback
+PASS  pay/空 providerTxn → 400 invalid_callback
+PASS  pay/伪签(等长)→ 403 bad_signature
+PASS  pay/短签名 → 403 bad_signature
+PASS  pay/错单签名 → 403 bad_signature
+PASS  pay/签名流水不符 → 403 bad_signature
+PASS  pay/不存在订单(合法签名)→ 404 order_not_found
+PASS  pay/越权他人订单(合法签名)→ 404 order_not_found
+PASS  pay/越权他人订单 → 不给受害者入账
+PASS  pay/已paid单再回调(流水不符)→ 409 order_conflict
+PASS  pay/已paid单再回调 → 不重复入账
+PASS  pay/并发双回调 → 都 200(无 5xx)
+PASS  pay/并发双回调 → 恰一个 credited(不双结算)
+PASS  pay/并发双回调 → 桶只加 1 次(不超卖)
+PASS  pay/并发双回调 → 入账额恰 10(单份)
+PASS  webhook/缺 sig → 400 invalid_callback
+PASS  webhook/伪签 → 403 bad_signature
+PASS  webhook/短签名 → 403 bad_signature
+PASS  webhook/不存在订单 → 404 order_not_found
+PASS  webhook/错 content-type → 400 invalid_callback
+PASS  webhook/超大 body → 413 payload_too_large
+PASS  webhook/body 冒充 owner → 200 credited(仅按 DB owner)
+PASS  webhook/body 冒充 owner → 攻击者 0 桶(冒充无效)
+PASS  webhook/body 冒充 owner → 真 owner 入账 1 桶
+PASS  webhook/重放 → 首次 credited
+PASS  webhook/重放 → 二次 already(幂等,不双入)
+PASS  webhook/重放 → 桶只 1 个(不重复入账)
+PASS  webhook/重放 → 入账额恰 10(单份)
+PASS  webhook/已paid换流水回放 → 409 order_conflict
+PASS  webhook/已paid换流水回放 → 不再入账
+PASS  webhook/并发双回调 → 都 200
+PASS  webhook/并发双回调 → 恰一个 credited
+PASS  webhook/并发双回调 → 桶只加 1(不双结算)
+PASS  webhook/并发双回调 → 入账额恰 10
+PASS  webhook/跨订单同 providerTxn → 恰一笔 200 credited
+PASS  webhook/跨订单同 providerTxn → 另一笔 409 order_conflict（非 5xx）
+PASS  webhook/跨订单同 providerTxn → provider_txn 落库仅 1 行
+PASS  webhook/跨订单同 providerTxn → 两个账户合计只发 10 单位
+PASS  consume/无额度 → 402 insufficient_entitlement
+PASS  consume/过期额度 → 402 insufficient_entitlement
+PASS  consume/缺 resume-id → 400 missing_resume_id
+PASS  consume/非 UUID resume-id(旧 r1 形态)→ 400 invalid_resume_id
+PASS  consume/越权他人面试 → 404 not_found_or_forbidden
+PASS  consume/未鉴权 begin → 401
+PASS  consume/并发超卖 → 恰一场被 402 拒(不超卖)
+PASS  consume/并发超卖 → 预留额不超过池上限 1.0
+PASS  consume/并发超卖 → 被拒方返 insufficient_entitlement
+PASS  consume/并发同面试双击 → 无 5xx
+PASS  consume/并发同面试双击 → 只预留一次(不双扣,reserved==1.0)
+PASS  consume/并发同面试双击 → 只 1 条 consumption(幂等)
+PASS  webhook/空 body → 400 invalid_callback
+PASS  pay/空 body → 400 invalid_callback
+PASS  webhook/错方法 GET → 4xx
+PASS  pay/他人已paid单越权 → 404 order_not_found
+
+✓ neg:commerce: 84 条负路径用例全绿
+EXIT=0
