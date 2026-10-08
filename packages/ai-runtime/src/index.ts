@@ -219,4 +219,7 @@ export { createMetrics, setMetrics, getMetrics, registerBaselineMetrics, METRIC,
 export { toolRegistry, runToolLoop, type Tool, type ToolRegistry, type ToolStep, type ToolDecision } from './tools.ts';
 
 export * from './g7-freetier-reprove-guard.ts';
-export { g7OutboundAllowDepth, withG7OutboundAllow, installG7OutboundInterceptor, uninstallG7OutboundInterceptor, g7OutboundSpy, resetG7OutboundSpyCounters, isG7OutboundInterceptorInstalled } from './g7-outbound-interceptor.ts';
+// GODFN-1b: the outbound interceptor moved to the test-support face; its
+// pre-1b export line migrated to '@meetwise/ai-runtime/g7-test-support'
+// (packages/ai-runtime/test/support/index.ts). Production code never imports it.
+export { configureG7RuntimeInjection, resetG7RuntimeInjection, g7RuntimeInjection, type G7RuntimeInjection, type G7OutboundAllowTicket } from './g7-runtime-injection.ts';

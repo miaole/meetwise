@@ -6,7 +6,6 @@
  *
  * 骨架：当前给出组合根装配点；真实的队列消费/续跑循环 S5 落（见 production-backlog）。
  */
-import '@meetwise/ai-runtime/g7-bootstrap';
 import { hostname } from 'node:os';
 import { createServer, type Server } from 'node:http';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
@@ -16,7 +15,7 @@ import {
   createPool, resolveDatabaseConnectionString, asPrincipal, asQbankControlExecutor, assertQbankControlExecutorIdentity, assertQbankControlDefinerOwnership, activeQbankGeneration, cachedQbankSearch, gatewayCostBudgetSnapshot, gatewayJobGauges,
   qbankEvidenceForRefs, qbankQuestionResultsForHits, listScorableScoreCards, type GatewayCostBudgetSnapshot, type QbankServingScopeInput,
 } from '@meetwise/db';
-import { createLangfuseV5Runtime, resolveLangfuseConnection, resolveModelDeadlineConfig, resolveDashscopeNativeConfig, setTracer, dashscopeEmbedder, cachingEmbedder, inMemoryEmbeddingStore, getMetrics, registerBaselineMetrics, METRIC, type Embedder, type ModelClient } from '@meetwise/ai-runtime';
+import { configureG7RuntimeInjection, createLangfuseV5Runtime, isG7FreetierReproveEnabled, resolveLangfuseConnection, resolveModelDeadlineConfig, resolveDashscopeNativeConfig, setTracer, dashscopeEmbedder, cachingEmbedder, inMemoryEmbeddingStore, getMetrics, registerBaselineMetrics, METRIC, type Embedder, type ModelClient } from '@meetwise/ai-runtime';
 import { assertLegacyInterviewGraphDisabled } from './production-config.ts';
 import { runDrainLoop } from './drain-loop.ts';
 import { startWorkerJobWakeupListener } from './job-wakeup-listener.ts';
@@ -51,6 +50,24 @@ import { PrincipalBoundCheckpointPool } from './checkpoint-principal.ts';
 import { runCheckpointPrivacyEraser, runVectorPlanePrivacyEraser } from './privacy-erasure-worker.ts';
 import { initializePrivacyWorkerStartup } from './privacy-worker-runtime.ts';
 import { initializeRagControlStartup } from './rag-control-runtime.ts';
+
+// GODFN-1b composition-root single read point: G7_FREETIER_REPROVE is read
+// exactly ONCE here (env key name and `=1` activation semantics unchanged —
+// guard `trim() === '1'` pinned). The pre-1b unconditional
+// `import '@meetwise/ai-runtime/g7-bootstrap'` (was line 9) became assembly by
+// this switch: only a G7 process dynamically loads the test-support
+// interceptor and injects predicate + outbound ticket into the runtime
+// package. Production builds carry zero static g7-bootstrap import
+// (prove:g7-bootstrap-zero-prod-import).
+const g7FreetierReproveEnabled = isG7FreetierReproveEnabled(process.env);
+if (g7FreetierReproveEnabled) {
+  const support = await import('@meetwise/ai-runtime/g7-test-support');
+  configureG7RuntimeInjection({
+    freetierReproveEnabled: () => g7FreetierReproveEnabled,
+    withOutboundAllow: support.withG7OutboundAllow,
+  });
+  support.installG7OutboundInterceptor(process.env);
+}
 
 /**
  * web 探索默认许可源:**权威公开技术源**(尊重 ToS、内容稳定可引)。构造 URL 走各站公开检索端点。

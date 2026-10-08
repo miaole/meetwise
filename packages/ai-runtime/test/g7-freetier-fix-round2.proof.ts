@@ -18,12 +18,14 @@ import {
   inspectG7SharedLedger,
   isG7FreetierReproveEnabled,
 } from '../src/g7-freetier-reprove-guard.ts';
+import { configureG7RuntimeInjection, resetG7RuntimeInjection } from '../src/g7-runtime-injection.ts';
 import {
   installG7OutboundInterceptor,
   uninstallG7OutboundInterceptor,
   resetG7OutboundSpyCounters,
   g7OutboundSpy,
-} from '../src/g7-outbound-interceptor.ts';
+  withG7OutboundAllow,
+} from '../test/support/g7-outbound-interceptor.ts';
 import { dashscopeEmbedder } from '../src/embedder.ts';
 import { dashscopeReranker } from '../src/reranker.ts';
 import { dashscopeAsr, dashscopeTts } from '../src/voice.ts';
@@ -91,6 +93,13 @@ async function main() {
     delete process.env.MODEL_TEST_TRANSPORT_OVERRIDES;
     process.env.G7_PAID_FALLBACK_ENABLED = '0';
     writeFileSync(ledgerPath, '');
+
+    // GODFN-1b: in-process prove stands in for the composition root — install
+    // the injection (predicate + real outbound ticket) from this single read.
+    configureG7RuntimeInjection({
+      freetierReproveEnabled: () => isG7FreetierReproveEnabled(process.env),
+      withOutboundAllow: withG7OutboundAllow,
+    });
 
     A('G7 enabled', isG7FreetierReproveEnabled(process.env));
 
@@ -250,6 +259,7 @@ async function main() {
   } finally {
     globalThis.fetch = originalFetch;
     uninstallG7OutboundInterceptor();
+    resetG7RuntimeInjection();
     for (const k of keys) {
       if (prev[k] === undefined) delete process.env[k];
       else process.env[k] = prev[k];

@@ -1,0 +1,19 @@
+== PRE-DIFF worker main.ts reader anchors (r4-pr1b/funnel-batch1-4/eg3 evidence) ==
+2: * @meetwise/worker — 图执行组合根。长会话图在这里跑，不在 api 请求里跑
+7: * 骨架：当前给出组合根装配点；真实的队列消费/续跑循环 S5 落（见 production-backlog）。
+31:import { runInterviewConsumer } from './interview-consumer.ts';
+120:/** 组合根装配：把持久 checkpointer 注入纯 mock-interview 图。 */
+392:  // 组合根：持久 checkpointer + **真正启动**两个生产消费循环——报告调度 + 面试 job 消费(api 入队的 start/answer)。
+598:    // resolveAdaptiveInterviewRole (legacy default only when MEETWISE_TECH_ROLE_FAIL_CLOSED is off).
+610:  const interviewLoop = runInterviewConsumer({ pool, cp, model, fastModel, leaseOwner, adaptive, dispatchBudget: interviewDispatchBudget }, jobReconcileIntervalMs);
+514:    // R4 REAL-WIRE-IMPL: production retrieve prefers trackLocal → dispatchTrackLocalRetrieval
+518:    trackLocal: (owner: string) => ({
+
+== PRE-DIFF api main.ts :1-3 ==
+import 'reflect-metadata';
+import '@meetwise/ai-runtime/g7-bootstrap';
+import { randomUUID } from 'node:crypto';
+
+== PRE-DIFF worker main.ts :9-10 ==
+import '@meetwise/ai-runtime/g7-bootstrap';
+import { hostname } from 'node:os';

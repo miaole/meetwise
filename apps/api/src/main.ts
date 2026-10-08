@@ -1,15 +1,31 @@
 import 'reflect-metadata';
-import '@meetwise/ai-runtime/g7-bootstrap';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
-import { getMetrics, resolveModelDeadlineConfig } from '@meetwise/ai-runtime';
+import { configureG7RuntimeInjection, getMetrics, isG7FreetierReproveEnabled, resolveModelDeadlineConfig } from '@meetwise/ai-runtime';
 import { buildOpenApiDocument } from '@meetwise/contracts/openapi';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './platform/all-exceptions.filter';
 import { installPublicPreviewIngressGate, resolvePublicPreviewMode } from './platform/public-preview';
+
+// GODFN-1b composition-root single read point: G7_FREETIER_REPROVE is read
+// exactly ONCE here (env key name and `=1` activation semantics unchanged —
+// guard `trim() === '1'` pinned). The pre-1b unconditional
+// `import '@meetwise/ai-runtime/g7-bootstrap'` became assembly by this switch:
+// only a G7 process dynamically loads the test-support interceptor and injects
+// predicate + outbound ticket into the runtime package. Production builds
+// carry zero static g7-bootstrap import (prove:g7-bootstrap-zero-prod-import).
+const g7FreetierReproveEnabled = isG7FreetierReproveEnabled(process.env);
+if (g7FreetierReproveEnabled) {
+  const support = await import('@meetwise/ai-runtime/g7-test-support');
+  configureG7RuntimeInjection({
+    freetierReproveEnabled: () => g7FreetierReproveEnabled,
+    withOutboundAllow: support.withG7OutboundAllow,
+  });
+  support.installG7OutboundInterceptor(process.env);
+}
 
 /** 真 NestJS（Fastify + 类型 DI + SWC 运行）。 run: pnpm -C apps/api serve */
 export async function createApp(): Promise<NestFastifyApplication> {
