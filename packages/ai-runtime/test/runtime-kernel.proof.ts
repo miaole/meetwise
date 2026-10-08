@@ -25,27 +25,23 @@ const EvalSchema = z.object({ score: z.number().min(0).max(100), evidence: z.arr
 const HalluSchema = z.object({ score: z.number(), claim: z.string() });
 
 async function main() {
-  const SCHEMA = readFileSync(fileURLToPath(new URL('../../db/sql/01_schema.sql', import.meta.url)), 'utf8');
-  await pool.query(SCHEMA);                                   // 超级用户：建表 + 装 RLS（绕过 RLS）
-  for (const migration of [
-    '0033_ai_cost_governance.sql', '0035_ai_cost_principal_scope.sql', '0036_ai_text_cost_governance.sql',
-    '0037_ai_model_invocation_durable_claim.sql', '0056_model_invocation_reconcile.sql',
-    '0057_model_invocation_cost_scope.sql', '0083_ai_text_cost_price_revision_binding.sql',
-    '0085_ai_model_logical_node_dispatch_slot.sql',
-    '0088_ai_model_invocation_controlled_state_machine.sql',
-    '0119_usage_reconciliation_wiring.sql',
-    '0130_model_invocation_same_key_claim_join.sql',
-  ]) {
-    await pool.query(readFileSync(fileURLToPath(new URL(`../../db/migrations/${migration}`, import.meta.url)), 'utf8'));
-  }
+  // DBHY-1: sql/01_schema 兼容镜像退役——本 proof 由隔离 runner 预迁移(migrations 单真相,含 0033-0130 全链),
+  // 原「01_schema 重放 + 逐迁移补跑」bootstrap 整块移除(断言面不变)。
   // 0037/0085 是增量表，01_schema 的演示基座不会删除它们。显式清理避免上一次
   // proof 的幂等键被误当成当前进程的缓存命中，导致模型调用/观测断言失真。
   // 0085 的 dispatch slot 是「派发后永不放行」的受管账本：不清它，同库重跑时
   // slot 主键(owner,logical_node_key_digest)撞车 → ai_model_transition_dispatched_scoped
   // 的 ON CONFLICT DO NOTHING 空转 → 误报 model_dispatch_preflight_failed。
   await pool.query('TRUNCATE ai_model_dispatch_slot, ai_model_logical_node_header, ai_model_invocation, ai_model_invocation_transition_permit');
-  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('R1','userA','created'),('R9','userB','created')");
+  // DBHY-1(迁移真相):0059 投影写护栏要求写者 principal=owner(旧 sql/01 镜像无此触发器)。
+  // 超级用户种子行按 owner 逐个 set principal(会话级·seed 完清空)。
+  for (const [id, owner] of [['R1', 'userA'], ['R9', 'userB']] as const) {
+    await pool.query("SELECT set_config('app.principal_user',$1,false)", [owner]);
+    await pool.query('INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,$3)', [id, owner, 'created']);
+  }
+  await pool.query("SELECT set_config('app.principal_user','userA',false)");
   await pool.query("INSERT INTO ai_graph_run(graph_name,thread_id,owner_user_id,status) VALUES ('mock-interview','R1','userA','created')");
+  await pool.query("SELECT set_config('app.principal_user','',false)");
 
   section('进程 A：面试官启动一轮 · 全程 principal 上下文(FORCE RLS 生效)');
   await asPrincipal(pool, 'userA', async (c) => {
@@ -75,7 +71,8 @@ async function main() {
   section('提交答案：幂等（双击/断线重发只评一次）');
   async function submitAnswer(key: string): Promise<'ok' | 'dup'> {
     const claimed = await asPrincipal(pool, 'userA', async (c) => {
-      const ins = await c.query("INSERT INTO consumption_record(owner_user_id,idempotency_key,interview_id) VALUES('userA',$1,'R1') ON CONFLICT (owner_user_id,idempotency_key) DO NOTHING", [key]);
+      // DBHY-1(0145):死表 consumption_record 已退役——幂等冒烟改打真身 entitlement_consumption（同形 uq(owner_user_id,idempotency_key)）。
+      const ins = await c.query("INSERT INTO entitlement_consumption(owner_user_id,idempotency_key,service_type,units_requested) VALUES('userA',$1,'interview_eval',1.00) ON CONFLICT (owner_user_id,idempotency_key) DO NOTHING", [key]);
       if (ins.rowCount === 0) return 'dup';
       return 'claimed';
     });

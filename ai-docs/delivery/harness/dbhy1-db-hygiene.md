@@ -1,6 +1,6 @@
 # Harness — **DBHY-1** · GAP-DEBT-DB-HYGIENE 卫生刀（死表/sql/ 双真相/qbank 分区生命周期/jsonb 路线图 · REQUEST）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（本 turn docs-only · REQUEST 编写完成即停 · **未授权 EXEC** · zero coding / zero migration / zero prove）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已按协调方授权执行完毕 @ 本线：0145+0146+18 处清单（案B' 定案）+dbhy1:prove 28 断言 EXIT=0+族复跑全绿·收据 `receipts/dbhy1/2026-10-07-dbhy1-exec.md`·**post-prove 双审未开**·Dual PASS ≠ nail）
 **Rev**: **rev3**（model-op 席 rev2 复核 FAIL——rev2 头注把「双审 FAIL」误归并为唯一项·**勘误：双席 FAIL 各自闭卷非唯一项**（e2e-ha 席=sql/ 清单漏网+P3 门失明→rev2 已修；model-op 席处方主项 rev2 未动→rev3 本修）→ 窄修五项·其余零改动：(a) P4 补对象类承载机器断言（删 sql/ 前两侧函数/触发器/策略/索引名录 diff·sql 侧⊆迁移侧·逐名入 attempts）·(b) §3.0 口径勘误（drift 门=列+UNIQUE/PK·对象类证据 P4 另立）·(c) §4.2 补 RAG03-C 观察面一行非影响声明·(d) §1.1 补 0143:68 触点·(e) validate.ts 条目勘误（15 条目/14 去重·10_learning 重复）+头注勘误）· **rev2**（e2e-ha 席闭卷项：sql/ 清单 15→18 处+_neg-harness/build-cloud-test-fc/run-e2e-isolated 补录·P3 改全代码面文件名模式 grep·0144 让位序协调方裁定（DBTF-1 已 EXEC 占 0144 → 本刀 0145+0146）·consumption_record 让位 DBM3-1）· rev1 = `f4f320cd` · 落卷 mw-core
 **Date**: 2026-10-07
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503（stays） · g7SuiteGreen=false · actualSpendCny=null

@@ -1,6 +1,6 @@
 # Slice — **DBHY-1** · GAP-DEBT-DB-HYGIENE 卫生刀（死表/sql/ 退役/分区生命周期/jsonb 路线图 · REQUEST 阶段）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（REQUEST 完成 · **未授权 EXEC** · zero coding / zero migration / zero prove）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 完成：0145+0146 落盘·案B' 定案（13 处机械迁+残面登记）·dbhy1:prove EXIT=0（28 断言）·族复跑全绿（migrate/db-id-v7/runtime/ai-runtime×4/adaptive/uc028/validate 198/online-judge/privacy-erasure:http）·uc025 三=OPEN 行基线红·收据在卷）
 **Rev**: **rev3**（model-op 席 rev2 复核 FAIL——**双席 FAIL 各自闭卷非唯一项**（rev2 头注勘误）→ 窄修五项·其余零改动：(a) P4 补对象类承载机器断言（删 sql/ 前两侧函数/触发器/策略/索引名录 diff·sql 侧⊆迁移侧·逐名入 attempts）·(b) §3.0 口径勘误（drift 门=列+UNIQUE/PK·对象类证据 P4 另立）·(c) §4.2 补 RAG03-C 观察面一行非影响声明·(d) §1.1 补 0143:68 触点（consumption_record uuidv7 DEFAULT 历史 ALTER）·(e) validate.ts 条目勘误 15 条目/14 去重）· **rev2**（e2e-ha 席闭卷项：sql/ 清单补 _neg-harness 模板路径加载器+build-cloud-test-fc 整目录拷贝+run-e2e-isolated manifest 点名 → 15→18 处·P3 门改全代码面文件名模式 grep·迁移号让位序 0145+0146·consumption_record 让位 DBM3-1）· rev1 = `f4f320cd` · 落卷 mw-core
 **Date**: 2026-10-07
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503（stays） · g7SuiteGreen=false · actualSpendCny=null
