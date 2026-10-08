@@ -1088,6 +1088,18 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0143_db_id_v7_unify.sql',
     'packages/db/migrations/0150_uuidv7_grant_acl.sql',
   ],
+  'db-acl2:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/db-acl2.proof.ts',
+    'packages/db/src/index.ts', 'packages/db/src/principal.ts',
+    'packages/db/src/isolated-test-target.ts', 'packages/db/src/migrate.ts',
+    'packages/db/test/migrate.proof.ts',
+    'packages/db/package.json', 'package.json',
+    'packages/db/migrations/0108_ctx03_immutable_session_event_source.sql',
+    'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
+    'packages/db/migrations/0122_resume_pgcrypto_optional_acl.sql',
+    'packages/db/migrations/0151_pgp_sym_encrypt_grant.sql',
+  ],
   'memory-governance:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/memory-governance.proof.ts',
@@ -1653,6 +1665,7 @@ if (![
   'db-intfk:prove:raw',
   'db-money3:prove:raw',
   'db-acl:prove:raw',
+  'db-acl2:prove:raw',
   'memory-admission:prove:raw',
   'memory-fact-adjudication:prove:raw',
   'memory-index-generation:prove:raw',
@@ -1897,6 +1910,8 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'packages/db', 'prove:db-money3']]
     : target === 'db-acl:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:db-acl']]
+    : target === 'db-acl2:prove:raw'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:db-acl2']]
     : target === 'memory-governance:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:memory-governance']]
   : target === 'memory-admission:prove:raw'
