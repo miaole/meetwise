@@ -54,6 +54,7 @@
     "prove:db-id-v7": "tsx test/db-id-v7.proof.ts",
     "prove:db-trigfam": "tsx test/db-trigfam-unify.proof.ts",
     "prove:dbhy1": "tsx test/dbhy1.proof.ts",
+    "prove:db-int-fk": "tsx test/db-int-fk.proof.ts",
     "prove:scor-01": "tsx test/scor-01.proof.ts",
     "prove:scor-02": "tsx test/scor-02.proof.ts",
     "prove:scor-03": "tsx test/scor-03.proof.ts",
