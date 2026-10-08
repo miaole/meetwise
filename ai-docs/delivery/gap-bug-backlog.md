@@ -850,3 +850,11 @@
 > 本行由 Line CMOP03-D POST7B 鉴别刀 协调方 nail 立行（本 commit · branch `line/cmop03-post7b-discriminator`）· **立行≠定位≠修复≠关闭**——`interview_unavailable` 降级成因未定谳（三候选产生面并列零归因）· 复判/修复归协调方后续授权 · Pins 不动：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
 
 > **协调方收账注（append-only · 2026-10-08 · CMOP03-D）**：CMOP03-D 系整链收账（REQUEST `bfcdcc6d`≡`3aa494db` patch-id c55c0072 + EXEC `3434f82b`（7 埋点留树）+ 本 nail≡`5e2e32fb`；merge `c19b638e` 跳过=零内容增量）后落主线，撞同锚点按纯追加语义双保留（顺序=落账顺序 …CMOP03-E→PRIV01-C→CMOP03-D），两侧内容逐字节未改 · 新行 `GAP-CMOP03-7A-DOWNGRADE` P1 OPEN · `GAP-CMOP03-POST7B` P1 OPEN 维持零改写 · 两岔仍未分·降级成因零归因 · Pins 十值零翻转。
+
+### GAP-COMM-PARTIAL-PAIR 立行（2026-10-08 用户直裁登记 · 协调方 SSOT commit · P1 OPEN）
+
+| ID | P0/P1 | 现状 | 目标 | 归属域 | 拟切片 | 所需 harness 路径 |
+|----|-------|------|------|--------|--------|-------------------|
+| GAP-COMM-PARTIAL-PAIR | P1 | **OPEN** · 休眠设计张力（用户 2026-10-08 直裁登记）：0001_baseline.sql:117 CHECK 允许 `partial_confirmed`，但配对触发器 0020_commerce_terminal_integrity.sql:47-48（trg_interview_consumption_terminal_pair :62）与 0046_application_assessment_recovery.sql:162-166 同族副本要求 interview `completed` ⇔ consumption `confirmed`——`ratio<1` 时 commerce.ts:126 `finalStatus='partial_confirmed'`（过 0001 CHECK）+ 同事务面试 completed ⇒ RAISE 23514 invalid_interview_consumption_pair 整事务回滚。生产全调用方 ratio=1（commerce.ts:97 默认·无外部非默认调用点）当前不可达；按比例结算/降级计费立项时必撞 | 语义裁决：分支 T（触发器正确——partial_confirmed 定为非终态中间值，completed 只配 confirmed·文档+CHECK 注释收窄）vs 分支 C（CHECK 正确——触发器放行 partial_confirmed+completed 配对·units_settled 语义入合同）——两分支并陈交双审+产品视角裁 | commerce/db | 语义裁决刀（REQUEST→双审→EXEC→post-dual→nail） | 0001_baseline.sql:117 · 0020_commerce_terminal_integrity.sql:25,:47-48,:62 · 0046_application_assessment_recovery.sql:162-166 · packages/db/src/commerce.ts:97,:126 |
+
+> 登记依据：用户在 meetwise chat 直裁「登记，登记完了还要处理」· 本 commit 仅登记·修复=语义裁决刀另立（两分支并陈·Ban 未裁先改码）· Pins 不动：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null.
