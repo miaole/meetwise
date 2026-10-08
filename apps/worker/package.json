@@ -7,6 +7,7 @@
     "start": "node --import @swc-node/register/esm-register src/main.ts",
     "cost:configure": "node --import @swc-node/register/esm-register src/cost-configure.ts",
     "prove:resume": "tsx test/resume.int.ts",
+    "prove:tokenstream": "tsx test/tokenstream-progress.proof.ts",
     "prove:report": "tsx test/report-bulkhead.proof.ts",
     "prove:flow": "tsx test/interview.proof.ts",
     "prove:voice": "tsx test/voice.proof.ts",
