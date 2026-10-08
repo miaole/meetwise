@@ -4,7 +4,7 @@
 
 **Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs only · 材料包组装 · 零 coding · 零 prove 执行 · 零 live · 零 SSOT · Ban self-approve · alone ≠ dual · Ban nail until POST BOTH + meetwise AUTHORIZE）
 **Date**: 2026-10-07（Asia/Shanghai）
-**Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`fe218b7a`** / full `fe218b7aecaebda92f3f1ede7dd3b77eb6059cd9`（= fetch 后 origin tip · ≥ `fe218b7a` 达标 · MOP03 `:76` successor 立卷刀 nail 链已在祖先：checklist `:1132` · nail commit `e29d8f93`）
+**Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`fe218b7a`** / full `fe218b7aecaebda92f3f1ede7dd3b77eb6059cd9`（= fetch 后 origin tip · ≥ `fe218b7a` 达标 · MOP03 `:76` successor 立卷刀 nail 链已在祖先：checklist `:1132` · nail commit `e29d8f93` · worktree `/Users/miaole/Desktop/golucky/meetwise-line-mop03-cutover` · branch `line/mop03-cutover-review` · 兄弟刀 line/mop03-successor worktree（meetwise-line-mop03 @`47f17b83`）零触碰）（Base 行补记沿 `harness/g7-path-b-honesty-classification.md:9` 先例 · rev2 · e2e-ha PRE 处方）
 **Wave**: Line **MOP03-B**（GAP-MOP-03 后继刀第二刀 · 前刀：AN-MOP-Q45 honesty nail `post_prove_dual_pass` + MOP03 `:76` successor 立卷刀六门合同）
 **Experts**: `mw-model-op` + `mw-e2e-ha`（PRE dual 待开 · Ban self-approve · alone ≠ dual · Ban nail）
 **Authority**: meetwise — 待授权（REQUEST → 预执行双审 → meetwise 授权 → 执行 → post 双审 → meetwise 授权 nail）
@@ -80,6 +80,16 @@
 - checklist `:1132`：「立卷 ≠ 关闭 ≠ MODEL-OP domain closed ≠ Redis cutover ≠ #102 cutover ≠ suite green ≠ HA」——原样有效。
 - Line C 口径（`e2e-requirement-coverage-matrix.md:104` / backlog `:170-172`）：one wiring call ≠ suite green ≠ 域 close · 收据≠prove SHA · not_run 不计 pass。
 
+### F. EXEC 期 rg 复验订正锚（三处 · model-op PRE 处方 · rev2 登记 · 订正后为本节权威）
+
+| 原引用（REQUEST rev1 行号） | **订正后锚（`fe218b7a` 实位 · EXEC rg 复验与 nail 一律用此号）** | 内容面 |
+|------|------|------|
+| backlog `:170-172` | **backlog `:183-191`**（G7 Line C live chat-only 节） | Line C 口径：one settled chat wiring call ≠ suite close |
+| BUG-NOTIFY-REC `:93` | **backlog `:101`** | wakeup 切流须 Redis Streams hint + **强制** periodic reconcile |
+| MOP01 立卷 `:82` | **backlog `:84` + `harness/gap-mop-01-wakeup-notify-rec.md` §2a（`:50`）** | 有界延迟窗口径 + 强制周期 reconcile 未在 sole stack 证明 |
+
+**披露（诚实）**：该三处原引用行号系按兄弟支线 `47f17b83` 的 SSOT 状态计量，`fe218b7a` 实际位置如上——**引用内容逐字无损**，仅行号漂移。nail 不得沿用旧号；rev1 行内旧号保留为 provenance 不回改。
+
 ## 3. 独立审判据（审席可同意「#102 域 cutover 声明成立」的充要条件 · 沿六门合同不降级）
 
 **裁复合体**：独立审（mw-model-op + mw-e2e-ha PRE/POST dual · 加 BUG-REV-COND 四专家审 · D2 不降级）只有同时确认下列**全部门**通过，方可同意域 cutover 声明成立；**任一门未过 → 声明不成立**（可部分通过 = 不成立，Ban「大体通过」措辞）：
@@ -109,7 +119,7 @@
 
 **REQUEST（本 commit · docs-only 材料包）→ 预执行双审（mw-model-op + mw-e2e-ha · PRE BOTH PASS）→ meetwise 授权 → 执行（材料包核验 + 引用面 rg 实证 · 零 coding / 零 prove 执行 / 零 live）→ post 双审（BOTH PASS）→ meetwise 授权 nail。**
 
-执行阶段允许的操作面：只读 `rg`/`git` 对 §2 A–E 锚逐条复验 + 材料包完备性核对；Ban 任何产品码、SSOT、flag、容器、prove 执行。
+执行阶段允许的操作面：只读 `rg`/`git` 对 §2 A–E 锚逐条复验 + 材料包完备性核对（SSOT 行号按 §2-F 订正锚）；Ban 任何产品码、SSOT、flag、容器、prove 执行。**rg 复验结果写入 exec/lifecycle commit message，post 双审可独立复跑**（rev2 · e2e-ha 建议采纳）。
 
 ## 6. Ban 列表（硬 Ban · 全程）
 
