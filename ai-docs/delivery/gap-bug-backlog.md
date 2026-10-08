@@ -871,7 +871,7 @@
 
 | ID | P0/P1 | 现状 | 目标 | 归属域 | 拟切片 |
 |----|-------|------|------|--------|--------|
-| GAP-DEBT-DB-TRIGFAM | P0 | OPEN · 触发器函数族全量重抄：0028→0046→0051→0082 状态机函数抄 4 遍（评分公式抄 6 遍）；ai_cost 族 0033→0034→0036→0083 抄 4 遍；ann_search/is_generation_control_definer(5份)/checkpoint_erasure/gateway_dispatch 同族蔓延——419 个 CREATE OR REPLACE FUNCTION 中同族重贴约 40 处 | 函数清单单一真相源+变更走 ALTER/版本化（0139 已示范） | db | 独立刀 |
+| GAP-DEBT-DB-TRIGFAM | P0 | **CLOSED @0144 (DBTF-1 nail 2026-10-08)** · 触发器函数族全量重抄：0028→0046→0051→0082 状态机函数抄 4 遍（评分公式抄 6 遍）；ai_cost 族 0033→0034→0036→0083 抄 4 遍；ann_search/is_generation_control_definer(5份)/checkpoint_erasure/gateway_dispatch 同族蔓延——419 个 CREATE OR REPLACE FUNCTION 中同族重贴约 40 处 | 函数清单单一真相源+变更走 ALTER/版本化（0139 已示范） | db | 独立刀 | 【处置：0144 tf_ 公共库 12 员+12 薄壳+双参 derived_score 收敛落地 · prove 51/51 · post-dual BOTH PASS（mw-privacy-int+mw-model-op）· 协调方授权 nail · 0082 冻结面（derived_score 接线）另刀 · N4 ALTER 硬化跟进登记】
 | GAP-DEBT-DB-NOFK | P0 | OPEN · interview 零外键被引用：interview_event/ai_report/assessment_report/learning_plan 等卫星表裸 text 无 FK（resume 侧却复合 FK 双标）→ 逼出 6 个巨型隐私擦除迁移手工枚举删除闭包(~10 万字节) | (id,owner_user_id) 复合 FK 渐进补齐 | db | 独立刀 |
 | GAP-DEBT-DB-SRCBOILER | P0 | OPEN · src 层：14 份 SET LOCAL ROLE 事务样板(principal.ts:945-983 族)+4 套 job 队列整套复刻(表+claim/done/failed/renew/sweep 五件套×4)+SAVEPOINT 幂等模板 3 处 | runAs(pool,role,fn) 收敛+多态 job 表(kind 列)+withSavepoint | db | 独立刀 |
 | GAP-DEBT-DB-MONEY3 | P1 | OPEN · 钱三轨制：amount_cents int(无正数 CHECK)/units numeric 无精度(22003 风险)/micro_cny bigint 并存；status 列无 CHECK(ai_graph_run 脏值静默绕过 partial unique 不变量)；interview_event 双重唯一索引 | bigint 分单位+正数 CHECK+状态枚举 CHECK+删重复索引 | db | 独立刀 |
