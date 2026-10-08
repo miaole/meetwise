@@ -72,8 +72,11 @@ const faultThrowAt = region.search(FAULT_THROW_RE);
 const wired = faultThrowAt >= 0;
 A('S2-fault-throw-409-missing_quiz_expiry', wired);
 
-const expiryReadAt = region.search(/SELECT status, expires_at FROM resume_quiz WHERE id=\$1 AND owner_user_id=\$2/);
-A('S3-reads-quiz-expires_at', expiryReadAt >= 0);
+// GODFN-1c 三守卫合并(语义等价拆解刀):begin 源押题工件三守卫块(NEG stale_quiz/FAULT missing_quiz_expiry/
+// BOUND resume_version_mismatch)归一为单查(status+expires_at+pin JOIN 一查询回);抛序逐字节保持。
+// S3 witness 随合并面更新:begin region 在 FAULT throw 前单查读取 quiz status+expires_at(查询次数 3→1)。
+const expiryReadAt = region.search(/SELECT q\.status, q\.expires_at[\s\S]{0,240}FROM\s+resume_quiz\s+q/);
+A('S3-reads-quiz-expires_at(single merged query · 3→1)', expiryReadAt >= 0 && (!wired || expiryReadAt < faultThrowAt));
 
 const bindAt = region.indexOf('UPDATE interview i');
 const reserveAt = region.indexOf('reserveEntitlement(');
@@ -131,17 +134,19 @@ function run(quizId: string | undefined, quiz: QuizRow | null, pinOk = true): Pr
         return { rowCount: 1, rows: [{ status: 'created', resume_id: null, resume_privacy_epoch: null, application_id: null }] };
       if (s === 'SELECT 1 FROM interview WHERE id=$1') return { rowCount: 1, rows: [{}] };
       if (s.startsWith('SELECT assert_interview_privacy_active')) return { rowCount: 1, rows: [{}] };
-      if (s.startsWith('SELECT status, expires_at FROM resume_quiz')) {
+      // GODFN-1c 合并后单查:同一行同时携带 NEG/FAULT 列(status,expires_at)与 BOUND pin 列(JOIN)。
+      // IO 桩随产品 SQL 形状对齐;R 断言(R1-R5 预期错误码/顺序/副作用)逐字未改。
+      if (s.startsWith('SELECT q.status, q.expires_at') && s.includes('FROM resume_quiz q')) {
         if (!quiz) return { rowCount: 0, rows: [] };
-        return { rowCount: 1, rows: [quiz] };
-      }
-      if (s.includes('FROM resume_quiz q')) {
-        // BOUND pin: match begin resume so FAULT-positive paths can reach bind
         return {
           rowCount: 1,
-          rows: pinOk
-            ? [{ pinned_resume_id: R_A, pinned_epoch: 1, current_epoch: 1 }]
-            : [{ pinned_resume_id: '22222222-2222-4222-8222-222222222222', pinned_epoch: 1, current_epoch: 1 }],
+          rows: [{
+            status: quiz.status,
+            expires_at: quiz.expires_at,
+            pinned_resume_id: pinOk ? R_A : '22222222-2222-4222-8222-222222222222',
+            pinned_epoch: 1,
+            current_epoch: 1,
+          }],
         };
       }
       if (s.startsWith('UPDATE interview i')) throw new ReachedBind();

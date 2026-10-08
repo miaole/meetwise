@@ -1,0 +1,9 @@
+apps/api/src/modules/interview/interview-assessment.ts {"asPrincipal":3,"guardInterviewPrivacy":0,"denyPublicPreviewWrite":0,"requirePublicPreviewControlledWrite":0,"catchAny":0,"advisory":0,"forUpdate":0}
+apps/api/src/modules/interview/interview-learning.ts {"asPrincipal":3,"guardInterviewPrivacy":0,"denyPublicPreviewWrite":0,"requirePublicPreviewControlledWrite":0,"catchAny":0,"advisory":0,"forUpdate":0}
+apps/api/src/modules/interview/interview-report.ts {"asPrincipal":5,"guardInterviewPrivacy":0,"denyPublicPreviewWrite":0,"requirePublicPreviewControlledWrite":0,"catchAny":0,"advisory":0,"forUpdate":0}
+apps/api/src/modules/interview/interview-view.ts {"asPrincipal":0,"guardInterviewPrivacy":0,"denyPublicPreviewWrite":0,"requirePublicPreviewControlledWrite":0,"catchAny":0,"advisory":0,"forUpdate":0}
+apps/api/src/modules/interview/interview-voice.ts {"asPrincipal":0,"guardInterviewPrivacy":0,"denyPublicPreviewWrite":0,"requirePublicPreviewControlledWrite":0,"catchAny":2,"advisory":0,"forUpdate":0}
+apps/api/src/modules/interview/interview.controller.ts {"asPrincipal":0,"guardInterviewPrivacy":0,"denyPublicPreviewWrite":0,"requirePublicPreviewControlledWrite":0,"catchAny":0,"advisory":0,"forUpdate":0}
+apps/api/src/modules/interview/interview.module.ts {"asPrincipal":0,"guardInterviewPrivacy":0,"denyPublicPreviewWrite":0,"requirePublicPreviewControlledWrite":0,"catchAny":0,"advisory":0,"forUpdate":0}
+apps/api/src/modules/interview/interview.service.ts {"asPrincipal":16,"guardInterviewPrivacy":23,"denyPublicPreviewWrite":10,"requirePublicPreviewControlledWrite":1,"catchAny":3,"advisory":5,"forUpdate":3}
+TOTAL {"asPrincipal":27,"guardInterviewPrivacy":23,"denyPublicPreviewWrite":10,"requirePublicPreviewControlledWrite":1,"catchAny":5,"advisory":5,"forUpdate":3}
