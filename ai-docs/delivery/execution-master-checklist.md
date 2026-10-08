@@ -1394,7 +1394,6 @@ flowchart TD
 
 > **协调方收账注（append-only · 2026-10-08）**：G7X nail `2c4fd56a` 与 MOP03-B nail `b2948f20` 系并行 nail；MOP03-B 系整链收账（REQUEST `aaf2ecbd`≡`33d080cc` + rev2 `3484e214`≡`6774d642` + EXEC `cde75f3c`≡`c133b2db` + 本 nail）后落主线，两 nail 节撞同锚点按纯追加语义双保留（顺序=落账顺序 G7X→MOP03-B），两侧内容逐字节未改；MOP03-B 链孪生 patch-id 收账验证 · Pins 十值两侧一致零翻转 · `:76`/`:107` 均 OPEN 零翻转。
 
-<<<<<<< HEAD
 ### Line PRIV01-B M2 等价 tenant 强制设计刀 NAIL（2026-10-08 SSOT nail · `post_prove_dual_pass` · GAP-PRIV-01 后继刀设计+prove 面完结（P-A · prove EXIT=0 35/0 · attempts 1,0 可采 · E-1 勘误已正）· backlog `:57` stays OPEN · EXIT0≠接线授权≠cutover≠abandon RLS≠tenant=RLS 等价≠授权根迁移≠MySQL 等价完成）
 
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
