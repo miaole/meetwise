@@ -1709,3 +1709,16 @@ flowchart TD
 - [ ] **STILL OPEN**：P7 绿收据补充轮（待 DBACL-1）；DBACL-1 全链；同事务锁窗模板条款（后续批）；`g7SuiteGreen=false` 维持.
 - 预算：零 live 模型调用 · 零 Key · `actualSpendCny=null` · prove 全本地 docker PG.
 - Sibling sections stay as written. This section does **not** flip any pin beyond `:875` 债行 CLOSED · does **not** claim P7 四项绿（待复跑）· alone≠dual · 实现方不 self-approve.
+
+### Line E2EFAIL-1 e2e driver 断链修复刀 NAIL（2026-10-08 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · import 修复+e2e-static-guards 门+双常驻负例 TC · 判别 run 恰一次 branch 3 命中（断链非触发点·a fortiori 23.3s≪420s）· **api 红根因仍 OPEN 另寻** · backlog BUG-E2E-FAILUNIMPORT → **CLOSED**）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
+- [x] **`post_prove_dual_pass`** recorded for Line E2EFAIL-1 products only（触面恰 3 代码文件〔full.e2e.ts 1+/1-·e2e-static-guards.mjs 47+/0-·proof.mjs 43+/0-〕+收据族+harness 状态行 · Ban 三面〔:201-203 断言语义/failure.ts+failure-class.mjs/INTERVIEW_TERMINALS〕数学零触碰 · nail tip 本 commit · branch `line/g7-driver-assert`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：A 恰 1+/1- 亲证·B 门+常驻负例 TC-019 亲跑复现·五门复跑 32/32 全绿与收据逐字吻合·420s 算术与 :58/:187 双重不可达〔>18×〕亲证·漂移升级不越裁定权·15 sourceDigests 亲算全 MATCH+.env* ABSENT+pins 零翻转）+ mw-model-op PASS（六核：双计=0≤25 机器证〔reviewLedger 字段 ABSENT=0 vs G7Y 11 行同通道对照〕·「史上最早死亡面」机器读数准确·分类器 api 维持正确〔child 确发 E2E_FAILURE 行机器证据〕·门 B 亲测三面〔基线绿/摘 specifier 必红/不可解析 fail-closed〕·attempt#0 infra-red 非 run attempt 口径成立〔HALOC A1-r1 同性质〕·hygiene 全过）· 协调方正式授权本 nail.
+- **E2EFAIL-1 全链登记**：REQUEST `a2dda46c` → rev2 `2ec927b7`（席1 史实订正：C-MO-P3 断言修复已由 1789e321 CMOP03-FIX 刀①完成系 supersession·G7X ②面定谳对其码成立零翻案）→ rev3 `ef2dd5b2`（席2 三处方：est ≤25·sidecar v2 臂·:205 可达性算术降级）→ 双席增量复核 BOTH PASS → EXEC `83a6ec8b`（含 docker wedge MINE-STOP 原值保留+resume 完成轮）→ 本 nail commit.
+- **判别 run 结论（branch 3 预注册命中）**：EXIT=1 class=api 23330ms·reviewLedger 0 行·双计 0（succeeded 0+failed 0）·sidecar v2 全程（migration_max=0143 相关成立·零弃读）——**断链非该 run 触发点**（a fortiori：23.3s≪420s 且未达 :58 首记）·潜伏炸弹已拆除+防复发门落地=净收益不依赖根因归属·**api 红根因 OPEN 另寻（本 nail 不收口 `:107`）**.
+- **infra-adjacent 假说增强登记（席2·不裁定）**：run 于 Docker 重启后 ~30min·PG 冷启 6 试（~15s）·prove 有效窗仅 ~5-8s 而 runner 启动链（/livez+DB-ready+3s+readyz）≳8-12s ⇒ 红点更可能在 runner 启动段（api_exited_before_test 类）而非旅程断言——与历史深跑红族（40-102s·4-11 行）不同族·形状漂移登记·**下一刀方向（席2 建议·归协调方裁）：boot-phase 探针 run 或 wrapper E2E_FAILURE code 原值最小截获面**，区分启动段 vs client_exited 再定向.
+- **门 B 残留缺口 forward 登记（席2·如实）**：(a) 消费者面冻结仅 full.e2e.ts——voice.ts/assert.ts/e2e-helpers.proof.ts 同类断链不设防；(b) `if (!helper) return` failure.ts 整文件缺失边 fail-open；(c) e2e/ 全域零 tsc 缺口整体仍在——门闭合=本刀炸弹面非全域替代.
+- **erratum×2 登记（双席）**：①收据 §4① ANCHOR 时戳 11:15:39 应为 11:15:41.670（~2.7s 措辞偏差·锚计数语义无误）；②「16 ok tick」应正为「双读 ok 8 tick（10-17）×2 面」（末可读=17·双计 0·零弃读实质结论不变）.
+- [ ] **STILL OPEN**：api 红根因调查（boot-phase 探针方向·`:107` GAP-G7K-API-REDS 维持 P1 OPEN）；门 B 残留缺口三面 forward（全域 tsc 门=lint/tsc C1/C2 待立项面）；boundLoop `:368` 断言（backlog `:830` 候修行）；刀②（弱输入 report 预期面·G7X 立项）；`g7SuiteGreen=false` 维持.
+- 预算：判别 run live=0（succeeded 0+failed 0 实测 ≤ est 25）· 0 Key · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 实现方不 self-approve · 禁将 branch-3 命中误读为根因收口.
