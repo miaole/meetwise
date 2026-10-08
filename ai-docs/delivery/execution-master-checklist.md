@@ -1924,3 +1924,14 @@ flowchart TD
 - [ ] **STILL OPEN**：G7P-6+consume 夹具刀（REQUEST 待立）；GAP-CMOP03-7A-DOWNGRADE `:107` 域 P1 OPEN 维持（era 形状再现增记）；consume 族红掩覆盖（夹具刀解锁）；`g7SuiteGreen=false` 维持.
 - 预算：链累计 107≤200 硬帽 · 0 Key 值接触 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
+
+### Line GODFN-1d AppError 统一刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 30 处 catch(:any) 全消+AppError 单一分类面 errors.ts（message=code 零变兼容）· 三车道 producer 收敛闭世界等价 · g7 车道 model-client 零 diff 豁免实录 · prove 38 键=31 绿+7 base≡red（账面勘误 18+7 实数）· **GODFN 四子刀全收官（1a/1b/1c/1d 主线全落地）**）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（设计 §4 全表）.
+- [x] **`post_prove_dual_pass`** recorded for Line GODFN-1d products only（触面=errors.ts 新分类面+30 文件 catch 收窄+三车道 producer+1d-consumers.md 前置交付·零产品码语义零变·nail tip 本 commit · branch `line/godfn-1d-apperror`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：errors.ts 亲读零 import 零新依赖边+30↔30 守恒抽核 10 处语义保形/三车道 breaker:57→:123 精确等近邻变体恒不匹配+invoke:200+cloud 7 抛点 fc_⊂smoke_ 保形/**model-client.ts 零 diff 亲证**/prove 直跑 13 全绿/1d-consumers 内外双副本 IDENTICAL/pins 十一值+勘误落账）+ mw-model-op PASS（六核：**AppError 表达力边界逐点亲证**〔consumer 三属性 asErr 视图保形+rethrow raw 保身份/payment 23505/voice 惰性两臂同效〕/**msg 轨全审计零改变**〔AppError 化 producer message=code·g7 车道外读者零改变 rg 抽验〕/三车道闭世界 throw 审计独立复证/**tsc 四包本机复跑被触面零新增**/隔离门形态/残余登记在案）· 协调方正式授权本 nail.
+- **GODFN-1d 全链**：REQUEST → rev2 `dcb6e871`（rev1 席2 FAIL 三处方：g7 车道豁免+位点 tip 重列+串行 1c 前置）→ 双席复核 BOTH PASS → EXEC `c10a82d3`（rebase 重写 rev2 docs 86627721 内容逐字同·披露在卷）→ 本 nail commit.
+- **GODFN 四子刀全收官登记**：1a invoke 拆解（ab447228）·1b G7 卫兵移组合根（6aa24486）·1c interview.service 拆解（493fc3b8）·1d AppError 统一（本 nail）——**巨函数/巨类/错误分类三大债面清零·设计 godfn-decompose.md 全兑现**。
+- **erratum×2 登记（席1·账面瑕疵非洗红）**：①runner 台账实为 **18 绿+7 红**（收据表头/commit 写 19+6——多计 1 绿少计 1 红·7 红全为 1c 时代已列名预存红·按表实数更正）；②base-exits.txt 仅 3 键落痕（neg:all 与 neg:commerce 同红 lane 可实质共担/uc004/uc025/interview:prove:raw 四键改「沿 1c 收据互证」口径）·席2 补签名列建议随 residual 刀。
+- [ ] **STILL OPEN（GODFN 线残余·均已登记）**：§6 余量（HMAC×3/req:any·c:any 参数面/bootstrap 拆分/vectorPlaneErasureLoop 独立授权面）；预存红 6 lane 翻绿须另刀（neg:commerce 归 NEGCOMM-1·余五 lane 各自域）；adaptive-consumer 域刀（1a 席2 建议）；trio 持钥复跑归 G7TRIO 主线刀；base worktree godfn1a-base 处置归协调方.
+- 预算：est live=0 · 0 Key 值接触 · `actualSpendCny=null` · 容器 30 只自拆.
+- Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
