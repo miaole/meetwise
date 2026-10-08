@@ -1877,4 +1877,16 @@ flowchart TD
 - **erratum×2 登记（席1·不阻断）**：①trio 两键 tip 原始日志未入卷（perf 靠 .tmp 收据互证·ui 仅 prose）——后续刀补卷；②slot-bypass 双侧日志缺（席1 wrapper 亲跑补证 EXIT=0）.
 - [ ] **STILL OPEN**：GODFN-1d（1b/1a 已落·**解冻**——REQUEST 待立·§7.3 串行先 1b 后 1d 已兑现前半）；r4 三键绿收据 rerun 波（主线含 rcpt1 环境）；trio base≡red（归 G7 线）；`g7SuiteGreen=false` 维持.
 - 预算：est live=0（60 键全数未达模型面）· 0 Key 值接触 · `actualSpendCny=null`.
+
+### Line G7FIX-1 driver route 等待修复刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · +13/−0 SELECT-only 轮询·恰 1 run：**start 死点消灭**（app_start 200/started/16ms·F 链 19 行史上最深·F2.5 两刀致死面绿）· 臂 2 命中=红移位 post-M7 窗 · **席2 新证：:388 boundLoop 孪生断言未同步 C-MO-P3 修复（机制缺陷在树·五候选首位）**）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
+- [x] **`post_prove_dual_pass`** recorded for Line G7FIX-1 products only（diff +13/−0 恰 1 文件仅 start 前置段〔G7U 同形 SELECT-only 轮询 cap 60s/1s·createRequire pg·判别读数条款〕·零产品码·200 started 门原样·nail tip 本 commit · branch `line/g7-route-wait`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：+13/−0 八要素逐项在场+零删改/NDJSON 3 行+ledger 19 行 F 链亲数/证据强度扎实〔409 零复现+200/16ms+F 链越死点〕+单 run 限定如实/臂 2 五候选在卷+坐标勘误〔base 实测 :374-:391·现树 :387-:404——收据误标不得照抄〕/sidecar 自弃+恰 1 run/pins+digest 亲等）+ mw-model-op PASS（六核：**pending 族内强证据定谳边界如实**〔A/B 孪生+产品门同款轮询·sticky 族明示除外·最终定谳归协调方+trio〕/**:388 boundLoop 孪生未同步 1789e321 新证**〔C-MO-P3 修复只落 mainLoop :206·bound 轮 ≥1 次澄清则 :388 必红——五候选首位机制缺陷在树〕/**trio/:107 就绪度裁定**〔CMD1 不绿=本 run 即现形·:107 收口材料不完备待 post-M7 解决·trio 可先跑须预注册 CMD1 预期红〕/sidecar 自弃二连系统性 fix 建议〔correlation 改前缀匹配〕/est N=null 不冒充/下刀排序=post-M7 截获＞trio 全景＞POST7B）· 协调方正式授权本 nail.
+- **G7FIX-1 全链**：REQUEST → rev2（双席 FAIL：G7U 同形形态改判+基座 DOA〔主线补收 c0bd2f4d=02b34474 认领〕）→ rev3（席1 锚点纠偏 :342 自洽）→ 双席复核 BOTH PASS → EXEC `c691efda`（origin tip 零位移）→ 本 nail commit.
+- **核心产出**：**G7 api 红原死点（409 interview_ineligible_route 结构性时序错位）修复落地**——start 200/started·F 链 19 行史上最深（越 M6/M7 入 bound 尾段）·journey 真实深入 boundLoop 全程.
+- **席2 新证登记（五候选首位）**：**:388 boundLoop 孪生断言 `identities.length === boundLoop.questions` 未同步 1789e321 C-MO-P3 修复**（identities 含 clarification_needed·bound 轮 ≥1 次澄清必红）——**机制缺陷在树**·修复=1789e321 孪生一行（G7FIX-2 域）。
+- **G7 下一刀裁定（协调方·采纳席2 排序）**：**G7FIX-2=post-M7 窗截获+:388 孪生同步复合刀**（§1: :387-:405 现树坐标逐断言 NDJSON 截获一次性甄别五候选；§2: :388 孪生同步 1789e321 一行〔若甄别坐实〕；sidecar correlation 前缀匹配修复携行）＞ trio 全景（CMD1 预期红预注册）＞ POST7B 复评（旧窗坐标漂移重锚）。
+- **erratum 登记**：①席1：post-M7 窗坐标收据误标（正确 base :374-:391/现树 :387-:404）；②sidecar correlation 硬 pin 二连（系统性 fix 随 G7FIX-2）；③pre-run unlink 记录未入 run-log（provenance 由 bootId 兜底）.
+- [ ] **STILL OPEN**：G7FIX-2（复合刀 REQUEST 待立）；trio 全景跑（CMD1 预期红预注册）；`:107` 维持 OPEN（收口待 post-M7 红解决）；POST7B 压后；`g7SuiteGreen=false` 维持.
+- 预算：恰 1 run · live N=null 诚实单臂 · 链 0+0+14+N ≪ 200 · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
