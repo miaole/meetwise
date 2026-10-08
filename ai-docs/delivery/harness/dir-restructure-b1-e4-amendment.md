@@ -1,6 +1,6 @@
 # Harness / REQUEST — DIR-1 · E4 微刀：run-e2e-isolated.mjs receipt 层路径文本修正案
 
-**Status**: `draft:awaiting_pre_exec_dual` · **未 exec**（预执行双审 BOTH `Verdict: PASS` + standing authorize 前零改动）
+**Status**: `executed:awaiting_post_prove_dual` · **EXEC 完成**（协调方授权 · 双审 BOTH PASS 前置齐）· 收据见 §7 · **STOP**
 **Date**: 2026-10-07 · **Base tip**: `409843b3`（B1 批已 push · f208a78d..409843b3）
 **Worktree**: `meetwise-line-dirstruct` · branch `line/dir-structure`
 **releaseEvidence=false** · **NOT_HA** · 本微刀零逻辑 · 批绿 ≠ 重构完成 ≠ E2E ≠ HA
@@ -61,10 +61,36 @@
 - [x] 裁定回执登记（§0）+ 范围实值落盘（§2 · 245/104/59/块外 0）
 - [x] E4b 连带面登记（§4 · 7 文件 10 处 · 零处置）
 - [x] 验收门钉死（§3 · E5 零回归口径）
-- [ ] **预执行双审 BOTH `Verdict: PASS`（待派席）**
-- [ ] standing authorize → exec → G0–G4 → post 双审 → nail
+- [x] **预执行双审 BOTH `Verdict: PASS`（两席独立复算 245/104/59/50 全中 · 协调方 2026-10-07 授权 EXEC）**
+- [x] **EXEC + G0–G4 全门实录（§7 收据）· commit `d3507770`**
+- [ ] post-prove 双审 → nail 授权
 - [x] **STOP**
 
 ---
 
-*DIR-1 E4 微刀 REQUEST · 2026-10-07 · base `409843b3` · 单文件纯路径文本 · awaiting pre-exec dual · STOP*
+## 7. EXEC 收据（2026-10-07 · commit `d3507770` · base `409843b3`）
+
+### G0 面验证
+`node --check` 前/后 EXIT=0 · 替换 **245/245** 落地（59 文件 §4.1 纯前缀插入·零排序零重排）· 块外旧路径残留 **0** · 锚串原样（principal ×60 · isolated-test-target ×57 · migrate-cli ×1 · tenant/index ×1）· `git diff` 恰 1 文件 172+/172− · **172/172 行对引号外逐字节相同（0 违例）**。
+
+### G1 契约门
+`e2e-platform:check` **0** · `e2e-platform:layout:prove` **0** · `e2e-static-guards:check` **0** · `e2e-static-guards:prove` **0** · `e2e-parity:check` **0**；`e2e-platform:prove` **EXIT=1 = base 同红原样**（`secret-redaction e2e/full.e2e.ts:59/:154` · E5 不洗）。
+
+### G2 解阻复跑（64 靶 = db 50 全量 + api/worker/ai-runtime 各抽 3 + 三靶不倒退 + base 同红 2 例外）
+**53 绿 / 11 红 · 零回归**（逐红靶 base `409843b3` parity 实录同败）：
+
+- **绿 EXIT=0 + 回执正常产出（53）**：db 44（含 commerce·memory-admission·privacy-authorization·scor-01·resume·uc052×4 复跑等；uc052×4 首跑因净树守卫 `C-UNCOMMITTED refuse: dirty worktree` 拒跑——commit `d3507770` 后复跑全绿）+ api 抽 3 中 2 + worker 抽 3 中 2 + ai-runtime 3/3（runtime:claim-join · model-cost · model-op00-usage-reconciler）+ 不倒退 3/3（vectorstore · rag-control-dispatch · qbank-control-role）。**receipt ENOENT 全线归零（fail=0）**。
+- **红 = base 同红维持（10）**：`pgp_sym_encrypt` 权限族 6（ctx03/04/05/06 · mem02/mem03）· `interview_privacy_fenced` 族 2（runtime-role · int-transcript-preview-submit:http）· `qbank-source`（app_role 缺）· `adaptive-consumer`（NORMAL_ANSWER_DRAIN）——以上在 base `409843b3` 逐靶复跑 **EXIT=1 同错**（E5 类既有红 · 本刀零致 · 零回归成立）。
+
+### E6 登记（新 · 本刀零处置）
+`packages/db/test/uc-e2e-011-report-refund.proof.ts:200` `readRepo('packages/db/src/payment.ts')` —— **B1 扫漏的单行 test 路径串**（B1 白名单①类 · 当时清单未含该文件），致 `uc011:report-refund` 本体红（base `409843b3` 同红 + 双重 ENOENT；本刀后仅剩本体红，回执已修复）。**全仓复扫确认此为 packages/db 内唯一残留**（src 干净 · test 唯此 1 行；仓外余量 = E4b conn-stack 10 处已登记）。处置建议：并入 B1b 单行修正（同白名单类）或随 B2 批带上——需协调方裁定，本刀未触。
+
+### G4 收尾
+`git diff --quiet pnpm-lock.yaml` EXIT=0 · commit 后 `git status` 0 entries · runner 容器零残留 · 临时 worktree 已清。
+
+### Ban 自证
+E4b conn-stack 零触碰 · SSOT/债行零动 · 无 shim · 单文件单块零逻辑（172/172 证）· 预存红零洗 · pins 十值未改口。
+
+---
+
+*DIR-1 E4 微刀 REQUEST+收据 · 2026-10-07 · exec commit `d3507770` · 单文件纯路径文本 · awaiting post-prove dual · STOP*
