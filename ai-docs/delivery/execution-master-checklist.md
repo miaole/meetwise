@@ -1859,3 +1859,13 @@ flowchart TD
 - [ ] **STILL OPEN**：G7FIX-1（REQUEST 待立·落定后 trio 再跑→g7SuiteGreen SSOT 刀在望）；`:107` 维持 P1 OPEN（根因定谳材料在卷·关闭须修复刀全链）；(c)/(f) 轴残余；POST7B；`g7SuiteGreen=false` 维持.
 - 预算：恰 1 判别 run · live 缺席如实记 N(absent) · 链累计 0+0+14+N ≪ 硬帽 200 · 0 Key · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 截获=定靶非修复 · 实现方不 self-approve.
+### Line GODFN-1a invoke 巨函数拆解刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · invoke.ts 五相位纯机械提取（6668eff7→28d0d7a7·:1-402 零触碰·导出面零变）· 22 键终态=17 EXIT=0+5 base≡red 配对零回归 · 遇雷-裁决-cherry-pick 解锁-重跑全链纪律样板 · 遗留刀登记）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（设计 §4 全表）.
+- [x] **`post_prove_dual_pass`** recorded for Line GODFN-1a products only（触面恰 invoke.ts+runner cherry-pick+台账 · 四调用方/两码钉/1d 面零触碰 · nail tip 本 commit · branch `line/godfn-1a-invoke`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：blob cmp 逐字节+导出面 10 export 全等+367 行 diff 全读仅三种已声明机械变换/22 键全账 a1-a37 闭合/M1 收据 8 JSON+440 路径缺失 0 亲证/base≡red 五件 trio 六 NDJSON 亲数全等/cherry-pick 三点 blob 全等/pins+live 78+1d 冻结+sanitize）+ mw-model-op PASS（六核：**五相位零隐式闭包残留**亲提取对照+typecheck base≡head 逐字节全等/**adaptive-consumer 路径级排除**〔mock ModelClient·sourceDigests 不含 invoke.ts——非本刀范围不止靠配对〕/trio 六 run 末行均止 start 步未释放 reservation 与 G7P-5 定谳相容零归因/live 78 逐 run 核算/1a→1d 序+1d 冻结面亲验）· 协调方正式授权本 nail.
+- **GODFN-1a 全链（遇雷-裁决-解锁-重跑纪律样板）**：REQUEST rev2 `737c0f24`（rev1 席2 pins 一行级）→ 双席复核 BOTH PASS → EXEC 拆解 `6c31811a` → **M1 雷 STOP**（59 断源=RCPT-1 修复前态）→ 协调方裁决 cherry-pick RCPT-1 `873ca3f1`→`cb029f8b` 解锁 → M1 七键首跑绿+trio 六 run 配对 → 收口 `6a9294ed`（origin tip 零位移）→ 本 nail commit.
+- **核心产出**：invoke.ts 五相位拆解（resolve+prepare/claim/admit/reserve+dispatch/execute+settle·参数对象传态零闭包残留·prepareModelPlan 外提·strict typecheck base≡head 零 delta）·设计 §1/#1 巨函数面清.
+- **遗留刀登记（协调方裁立）**：①**adaptive-consumer 域刀**（席2 建议：interview-consumer.ts drainInterviewJobOnce answer 排空环·mock-model 证明体·base 同红预存——与 ai-runtime/invoke 无涉·路径级排除在卷）；②interview-dispatch-pg 云门（Ban buy cloud 域·HC-GAP-001 既有口径维持）；③base worktree `meetwise-line-godfn1a-base` 处置归协调方（a22 原始收据证据层级差知悉）.
+- [ ] **STILL OPEN**：adaptive-consumer 域刀；trio base≡red（G7FIX-1 修复后重评归 G7 线）；`g7SuiteGreen=false` 维持.
+- 预算：live 链 78=14(G7P)+64(本刀)≪硬帽 200 · 0 Key 值接触 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
