@@ -335,6 +335,8 @@
     "db-intfk:prove:raw": "pnpm -C packages/db prove:db-int-fk",
     "db-money3:prove": "node scripts/run-e2e-isolated.mjs db-money3:prove:raw",
     "db-money3:prove:raw": "pnpm -C packages/db prove:db-money3",
+    "db-acl:prove": "node scripts/run-e2e-isolated.mjs db-acl:prove:raw",
+    "db-acl:prove:raw": "pnpm -C packages/db prove:db-acl",
     "memory-governance:prove:raw": "pnpm -C packages/db prove:memory-governance",
     "memory-admission:prove": "node scripts/run-e2e-isolated.mjs memory-admission:prove:raw",
     "memory-admission:prove:raw": "pnpm -C packages/db prove:memory-admission",
