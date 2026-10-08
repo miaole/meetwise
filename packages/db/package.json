@@ -57,6 +57,7 @@
     "prove:db-int-fk": "tsx test/db-int-fk.proof.ts",
     "prove:db-money3": "tsx test/db-money3.proof.ts",
     "prove:db-acl": "tsx test/db-acl.proof.ts",
+    "prove:db-acl2": "tsx test/db-acl2.proof.ts",
     "prove:scor-01": "tsx test/scor-01.proof.ts",
     "prove:scor-02": "tsx test/scor-02.proof.ts",
     "prove:scor-03": "tsx test/scor-03.proof.ts",
