@@ -1597,3 +1597,27 @@ flowchart TD
 - Sibling sections stay as written. This section does **not** flip any pin, does **not** 改写任何既有行（CMOP03-D「STILL OPEN」行零触碰 · 闭环兑现仅以本节登记）, does **not** touch 产品面四文件 / e2e / apps / packages · 纯追加 · 禁洗盲区.
 
 > **协调方收账注（append-only · 2026-10-08 · PARITY-B）**：PARITY-B 系整链收账（REQUEST `2e2f1156` + EXEC 产品面 `9fa560b1`（baseline/allowlist/proof.mjs/baseline.md 四件）+ EXEC 收据 `1f3cf8df` + 本 nail≡`af60ce82`）后落主线，撞同锚点按纯追加语义双保留（顺序=落账顺序 …CMOP03-D→G7Y→PARITY-B），两侧内容逐字节未改 · parity 门红收官（pre/post 双案 EXIT=0 一次优先）· C-MO-P3 刀域收尾项闭环 · Pins 十值零翻转。
+### Line RAG03-C exact-K fill 观察刀 NAIL（2026-10-08 SSOT nail · 协调方授权 nail · post-prove 双审 BOTH PASS（mw-rag-route PASS + mw-model-op PASS · 两笔缺陷均可采 · NHP-028 先例）· backlog `:71` stays OPEN（处置建议登记非定谳 · 定谳权归协调方）· exact-K 仍 NOT claimed · coveredCount=8 零翻转 · append-only 不改既有行结构）
+
+- Pins 照抄（文首原值写死 · 零翻转）: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null. Do not write covered.
+- [x] **全链 SHA（本 nail `git fetch origin` 后复算 · worktree `meetwise-line-rag03` · branch `line/rag03c-exactk-observe` · base `9265e4d8`=origin tip · tip `bf20b096` 同点 fetch 后亲证 · 禁 force push）**：REQUEST `9404c4c4` / `9404c4c495cc8347ae536021b5050a3e4c330338`（pre-exec dual BOTH PASS）→ C-1..C-4 `be2da779` / `be2da7793344fa28dc4a76b83409f284777f2518` → 仪器修复 `f113768a` / `f113768a211fbbc8211afb01b2aeee9464964858` → EXEC 收据+台账+logs `bf20b096` / `bf20b096a7cb50f1ecd4309a0a69cf3618d5241f` → 本 nail.
+- [x] **四有效格读数表（P1-a2/P1-b/P1-c/P2-a 全 EXIT=0 · 跨四独立容器/索引 · 全在仪器修复后同一码 `f113768a` · 收据 `receipts/rag03c-exactk-observe/2026-10-08-rag03c-exactk-prove.md` §2）**：
+
+| 格 | hnswReturned | hnswExactFillObserved | planFilterShape（sub/live） | P-DEFAULT HNSW_USED | 返回面 |
+|----|--------------|------------------------|------------------------------|---------------------|--------|
+| P1-a2 | 5 | true | same-table-filter / same-table-filter | false | 恰 5 批准 in-scope（`r3c_appr_00..04` · dist 0.06→0.10 升序 · 0 未批准 0 越界 ≤K · R3C-SAFETY 绿） |
+| P1-b | 5 | true | same-table-filter / same-table-filter | false | 同上 |
+| P1-c | 5 | true | same-table-filter / same-table-filter | false | 同上 |
+| P2-a | 5 | true | same-table-filter / same-table-filter | false | 同上（2000 行 · 1985 随机单位向量 · p2MinMassDist=0.922152 · 顺序不变量满足） |
+
+- [x] **三向假设判读落点（登记非定谳 · 定谳权归协调方）**：**H-E1 候选成立**（四格 `hnswReturned=5`+`exactFill=true` · AQ `hnswReturned=0` 与夹具向量分布退化一致——「与分布退化一致」≠「E1 已证」）；**H-E2/H-E3 预注册预测面=「削弱」**（参数面「不越批」与机制性「不可观测」均未获本刀证据支持）；**E3 机理内核证实**（见下条机理新事实 · 内核证实≠E3 全命题成立）.
+- [x] **机理新事实（采 rag-route 席措辞处方）**：`iterative_scan=strict_order` 行为=「**同表 Filter 弹出后继续推进至通过行**」（P2-a live 计划 Rows Removed by Filter: 10 · visited 15 ≤ ef_search 40 · 批准行在距离序 11-15 位窗内）——**批边界跨越未被 P1/P2 证据演示 · 严格越批面仍在 AQ 原位**；与 AQ §5 的关系=**条件差异非矛盾**（同机制在不同分布下的表现 · AQ 原文带「under this fixture」条件限定 · F-STARVE 已闭面 `hnswReturned=0` 未被推翻未冲销）；**E3 机理内核（审批谓词不可见于 HNSW 扫描节点 · 审批谓词在候选 JOIN 节点执行）被计划结构证实**.
+- [x] **backlog `:71` 处置建议（append-only 登记注 · 行 OPEN 不翻 · 定谳权归协调方 · 登记注已落 `:71` 行状态格尾本 nail 同 commit）**：建议 **`:71` 保持 OPEN**——自然触发面未现（P-DEFAULT ≤2000 行不走 HNSW）/ 生产规模行为未知 / JOIN-only 拒绝不可见面仍在 AQ 原位 · 两枚新事实（①非退化分布+GUC 强制 ordered-HNSW 面下 exact-K fill 事实性可行使 ②自然规划面不走 HNSW）均不构成关闭或 covered flip 依据 · 只作登记.
+- [x] **两笔缺陷可采登记（两席一致裁 · NHP-028 attempts-ledger 先例）**：run-0 bootstrap fail（漏 harness §4.1 `pnpm install` 前置 + 冷 daemon PG boot 超时 · proof 未执行零读数 · EXEC 纪律瑕疵如实披露）+ run-1 仪器红 `R3C-P1-HNSW-USED`（guard 一字符笔误 `typeof n === object` + shape walk 未下钻根包裹 · run-1 自身 plan JSON 实证 HNSW 节点在树=红在仪器非系统 · 修复 `f113768a` additive 零断言名/判据变更 · 红原值留账）→ **有效四格全在修复后同一码（`f113768a`）**.
+- [x] **errata 登记（append-only）**：①applied=140 系陈旧口径（实测 **base=142=head=142** · 零新增由 142=142 机检顶住）；②C-4 migrate 白名单单行数组整体重写（numstat 1 deletion · 逐项比对纯插入旧条目零改动——「仅追加」实质成立）；③nodeFacts.joinAbove=false 系标签口径瑕疵（Nested Loop 不含 Join 子串 · raw filterText+完整计划 JSON 在卷无歧义）.
+- **Non-claims（本 nail 不宣称）**：观测≠SLO · ≠修复 · ≠`:71` 关闭（OPEN 不翻 · 行处置归协调方）· ≠covered（**coveredCount=8 零翻转**）· **exact-K 仍 NOT claimed**（exact-K fill 可观测=本刀唯一新事实口径承收据 §7）· not production HNSW SLO · not HA · not releaseEvidence · not H-E1/E2/E3 定谳 · not F-STARVE 已闭面冲销 · not GAP-RAG-02 `:70` 触碰 · alone ≠ dual.
+- [ ] **STILL OPEN**：backlog `:71` GAP-RAG-03 stays **OPEN**（R3-HNSW-COMPLETENESS 剩余面处置归协调方）· `:70` GAP-RAG-02 stays OPEN · 自然触发面未现 · 生产规模行为未知 · `g7SuiteGreen=false` · `actualSpendCny=null`.
+- Pins 照抄（原值写死 · 零翻转）: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null. Do not write covered.
+- Sibling sections stay as written（incl. Line AQ · AN-RAG-R3 · RAG02 · RAG05 · RAG04-C · CMOP03-D/CMOP03-E · PRIV01/PRIV01-C · G7 系列 · MOP01/MOP02/MOP03 · SCOR · SS2 · FLK · AUDIT · I103 · INT01 · F-F · G7V-CALIB）. This section does **not** close `:71`, does **not** flip any pin or coveredCount/`g7SuiteGreen`, does **not** claim production HNSW SLO / exact-K / HA / releaseEvidence, does **not** touch AQ closed faces（`0138`/`0139`/`0029` · F-STARVE 面）· 纯追加 · 行 OPEN 不翻 · alone≠dual · 禁洗盲区.
+
+> **协调方收账注（append-only · 2026-10-08 · RAG03-C）**：RAG03-C 系整链收账（REQUEST `9404c4c4` + C-1..C-4 `be2da779` + 仪器修复 `f113768a` + EXEC 收据 `bf20b096` + 本 nail≡`02a41055`）后落主线，撞同锚点按纯追加语义双保留（顺序=落账顺序 …PRIV01-C→G7Y→PARITY-B→RAG03-C），两侧内容逐字节未改 · H-E1 候选成立（登记非定谳）· `:71` OPEN 零翻转 · exact-K 仍 NOT claimed · coveredCount=8 零翻转 · Pins 十值零翻转。
