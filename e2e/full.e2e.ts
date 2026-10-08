@@ -335,16 +335,19 @@ async function main() {
   A(r.status === 400, '[防伪造] finalize 夹带历史 interviewId → 400(strict DTO 拒绝)');
 
   reviews.record({ class: 'worker', code: 'seg_bound_start_enter' }); // CMOP03-D M5: 岗位绑定 start 面入口
-  r = await fetch(`${BASE}/applications/${app1}/start`, { method: 'POST', headers: H, body: JSON.stringify({ resumeId }) });
+  const startT0 = Date.now(); try { r = await fetch(`${BASE}/applications/${app1}/start`, { method: 'POST', headers: H, body: JSON.stringify({ resumeId }) }); fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'app_start', status: r.status, elapsed_ms: Date.now() - startT0, body: (await r.clone().text()).slice(0, 200) })}\n`); }
+  catch (e: any) { fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'app_start', thrown: `${e.name}/${e.code}/${e.cause?.code}` })}\n`); throw e; }
   const started = await readJson(r);
   reviews.record({ class: 'worker', code: 'seg2_start_readjson' }); // CMOP03-F F1: 首发 start fetch/readJson 已完整返回
   const boundInterviewId = started.interviewId;
   reviews.record({ class: 'worker', code: 'seg2_start_assert_pre' }); // CMOP03-F F2: start 断言面进入前
   A(r.status === 200 && started.status === 'started' && typeof boundInterviewId === 'string' && boundInterviewId !== interviewId &&
     typeof started.redirectTo === 'string' && started.redirectTo.includes(boundInterviewId),
-    `[状态机] start 原子创建岗位专属会话(${String(boundInterviewId).slice(0, 12)})并返回可信跳转`);
+    `[状态机] start 原子创建岗位专属会话(${String(boundInterviewId).slice(0, 12)})并返回可信跳转 (实际 ${r.status})`);
+  reviews.record({ class: 'worker', code: 'seg2_start_assert_post' }); const idemT0 = Date.now(); // CMOP03-F F2.5: start 断言已通过·幂等臂计时起点
   r = await fetch(`${BASE}/applications/${app1}/start`, { method: 'POST', headers: H, body: JSON.stringify({ resumeId }) });
   const reused = await readJson(r);
+  fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'app_start_reid', status: r.status, elapsed_ms: Date.now() - idemT0, body: JSON.stringify(reused ?? {}).slice(0, 200) })}\n`);
   A(r.status === 200 && reused.status === 'reused' && reused.interviewId === boundInterviewId,
     '[幂等] 重试岗位 start → reused 同一 interviewId(不重复建会话)');
   reviews.record({ class: 'worker', code: 'seg2_idem_assert_post' }); // CMOP03-F F3: 幂等断言已完整通过

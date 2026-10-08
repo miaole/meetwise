@@ -1,0 +1,2 @@
+{"bootId":35819,"step":"consent","status":200,"elapsed_ms":7,"body":"{\"recorded\":true,\"policyVersion\":\"v1\"}"}
+{"bootId":35819,"step":"app_start","status":409,"elapsed_ms":3,"body":"{\"error\":\"interview_ineligible_route\",\"message\":\"该岗位路由尚未就绪，暂不可开始题库面试；请待岗位补充描述并完成路由后再试\"}"}
