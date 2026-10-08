@@ -10,9 +10,28 @@
  * Optional PG path (when DATABASE_URL or full PG* components are present):
  *   - still uses asPrincipal (does not bypass set_config)
  *
+ * EXEC additions (PRIV01-B · 2026-10-07 · P-A ruled · test-only, zero src/ product code):
+ *   - E2 non-optional predicate: buildRequiredOwnerFilter must always yield the
+ *     full required {column,value} shape — no empty-predicate success form exists.
+ *   - E4 static pins: 0001_baseline.sql FORCE RLS header + app_role NOLOGIN (无
+ *     BYPASSRLS) + p_owner USING/WITH CHECK double-sided predicate + vector_chunk;
+ *     provisionRuntimeLogin NOINHERIT/NOBYPASSRLS.
+ *   - Wiring-face machine-check (production wiring of src/tenant must stay 0
+ *     until the wiring PR):
+ *       face A — literal 'src/tenant' string references in production src: 0;
+ *       face B — tenant module/symbol references outside pure re-export: 0.
+ *     R1: the packages/db/src/index.ts barrel re-export (lines 25-32 at
+ *     fe218b7a) is REGISTERED and classified re-export ≠ consumption (anti
+ *     false-red / anti silent-narrowing; its existence is asserted).
+ *   - R2: E5 application-layer half (own-id unexpected-empty-set fail-closed
+ *     rethrow) is NOT proven here — its prove belongs to the wiring PR. The
+ *     E5 DB-layer half (GUC unset → 0 rows default deny) belongs to the RLS
+ *     isolation prove (PRIV01-A candidate A, awaiting its own authorization).
+ *     This proof claims neither half of E5.
+ *
  * releaseEvidence=false · Not HA · does not weaken RLS.
  */
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -76,6 +95,18 @@ A('predicate match passes (no throw)',
     f.column === 'owner_user_id' && f.value === 'owner-z');
   A('buildRequiredOwnerFilter rejects missing owner',
     caughtCode(() => buildRequiredOwnerFilter('')) === 'tenant_owner_user_id_required');
+  // E2: required predicate, not an optional filter hint — every success form
+  // carries the full {column,value} shape; no empty/absent predicate exists.
+  const g = buildRequiredOwnerFilter('  owner-w  ');
+  A('buildRequiredOwnerFilter trims and yields exact required shape (E2)',
+    g.column === 'owner_user_id' && g.value === 'owner-w'
+    && Object.keys(g).length === 2);
+  const shapes = ['owner-1', 'x'.repeat(64), ' owner-2 '].map(
+    (o) => buildRequiredOwnerFilter(o),
+  );
+  A('buildRequiredOwnerFilter never yields an empty predicate — all shapes bound (E2)',
+    shapes.every((s) => s.column === 'owner_user_id'
+      && typeof s.value === 'string' && s.value.trim().length > 0));
 }
 
 // --- unit: enforceOwnerOnRow ---
@@ -98,6 +129,11 @@ if (existsSync(tenantPath)) {
   A('tenant source exports requireOwnerUserId + assertTenantPredicate',
     /export function requireOwnerUserId/.test(src)
     && /export function assertTenantPredicate/.test(src));
+  A('tenant source pins required-predicate (non-optional filter) wording (E2)',
+    /required predicate object, not an optional filter hint/.test(src));
+  A('tenant source exports buildRequiredOwnerFilter + enforceOwnerOnRow',
+    /export function buildRequiredOwnerFilter/.test(src)
+    && /export function enforceOwnerOnRow/.test(src));
 }
 
 // --- HARD: principal.ts RLS path intact (set_config not removed) ---
@@ -111,6 +147,115 @@ if (existsSync(principalPath)) {
   A('tenant module does not remove set_config from principal',
     /set_config\('app\.principal_user'/.test(principal)
     && /SET LOCAL ROLE app_role/.test(principal));
+  A('principal.ts provisionRuntimeLogin NOINHERIT/NOBYPASSRLS intact (E4)',
+    /export async function provisionRuntimeLogin/.test(principal)
+    && /NOINHERIT/.test(principal) && /NOBYPASSRLS/.test(principal));
+}
+
+// --- HARD: baseline RLS root intact (MUST NOT abandon — static pins, E4) ---
+const baselinePath = join(root, 'migrations', '0001_baseline.sql');
+A('0001_baseline.sql present', existsSync(baselinePath));
+if (existsSync(baselinePath)) {
+  const baseline = readFileSync(baselinePath, 'utf8');
+  A('baseline header pins owner+ENABLE+FORCE RLS incl. app_role non-bypass (0001:7)',
+    /所有归属表都带 owner_user_id \+ ENABLE \+ FORCE ROW LEVEL SECURITY/.test(baseline)
+    && /连超级用户走 app_role 时也不绕过/.test(baseline));
+  A('baseline app_role fail-closed NOLOGIN 无 BYPASSRLS (0001:63-64)',
+    /CREATE ROLE app_role NOLOGIN/.test(baseline) && /无 BYPASSRLS/.test(baseline));
+  A('baseline p_owner USING/WITH CHECK double-sided principal predicate (0001:69-79)',
+    /USING \(owner_user_id = current_setting\(''app\.principal_user'', true\)\)/.test(baseline)
+    && /WITH CHECK \(owner_user_id = current_setting\(''app\.principal_user'', true\)\)/.test(baseline));
+  A('baseline vector_chunk ENABLE+FORCE+p_owner same shape (0001:300-304)',
+    /ALTER TABLE vector_chunk ENABLE ROW LEVEL SECURITY/.test(baseline)
+    && /ALTER TABLE vector_chunk FORCE ROW LEVEL SECURITY/.test(baseline)
+    && /CREATE POLICY p_owner ON vector_chunk/.test(baseline));
+}
+
+// --- wiring-face machine-check: production wiring of src/tenant must be 0 ---
+// R1: grep face pinned — face A = literal 'src/tenant' string in production
+// src (zero allowed); face B = tenant module/symbol references outside pure
+// re-export statements (zero allowed). The packages/db/src/index.ts barrel
+// re-export (:25-32 at fe218b7a) is REGISTERED and classified re-export ≠
+// consumption (anti false-red / anti silent-narrowing; existence asserted).
+// R2: E5 app-layer half not claimed here — prove belongs to the wiring PR.
+{
+  const symbolRe = /\b(requireOwnerUserId|assertTenantPredicate|buildRequiredOwnerFilter|enforceOwnerOnRow|TenantEnforcementError)\b/g;
+  const specRe = /(?:\bfrom\s+|\bimport\s*\(\s*|\brequire\s*\(\s*)['"]([^'"]*)['"]/g;
+  const reexportRe = /export\s+(?:type\s+)?\{[^{}]*\}\s*from\s*['"][^'"]*['"]/gs;
+  const stripComments = (t: string): string =>
+    t.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+      .replace(/\/\/[^\n]*/g, (m) => m.replace(/[^\n]/g, ' '));
+  const walk = (dir: string): string[] => {
+    const out: string[] = [];
+    let entries: import('node:fs').Dirent[];
+    try {
+      entries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return out;
+    }
+    for (const e of entries) {
+      const p = join(dir, e.name);
+      if (e.isDirectory()) out.push(...walk(p));
+      else if (e.isFile() && p.endsWith('.ts')) out.push(p);
+    }
+    return out;
+  };
+  const repoRoot = join(root, '..', '..');
+  const prodFiles: string[] = [];
+  for (const top of ['packages', 'apps']) {
+    const topDir = join(repoRoot, top);
+    let tops: import('node:fs').Dirent[];
+    try {
+      tops = readdirSync(topDir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const t of tops) {
+      if (t.isDirectory()) prodFiles.push(...walk(join(topDir, t.name, 'src')));
+    }
+  }
+  const moduleFiles = prodFiles.filter((f) => !f.includes('/src/tenant/'));
+  let faceALiteral = 0;
+  let faceBConsumption = 0;
+  let tenantReexportStmts = 0;
+  for (const f of moduleFiles) {
+    const raw = readFileSync(f, 'utf8');
+    const text = stripComments(raw);
+    if (raw.includes('src/tenant')) faceALiteral++;
+    const spans: Array<[number, number]> = [];
+    for (const m of text.matchAll(reexportRe)) {
+      spans.push([m.index ?? 0, (m.index ?? 0) + m[0].length]);
+    }
+    const inSpan = (i: number) => spans.some(([s, e]) => i >= s && i < e);
+    for (const m of text.matchAll(specRe)) {
+      const spec = m[1] ?? '';
+      if (!spec.split('/').includes('tenant')) continue;
+      if (inSpan(m.index ?? 0)) tenantReexportStmts++;
+      else faceBConsumption++;
+    }
+    for (const m of text.matchAll(symbolRe)) {
+      if (!inSpan(m.index ?? 0)) faceBConsumption++;
+    }
+  }
+  const barrelPath = join(repoRoot, 'packages', 'db', 'src', 'index.ts');
+  const barrelTenantReexports = (() => {
+    if (!existsSync(barrelPath)) return -1;
+    const t = stripComments(readFileSync(barrelPath, 'utf8'));
+    let n = 0;
+    for (const m of t.matchAll(reexportRe)) {
+      if (m[0].includes('tenant')) n++;
+    }
+    return n;
+  })();
+  A('wiring face A: zero literal src/tenant references in production src',
+    faceALiteral === 0,
+    `hits=${faceALiteral} files-scanned=${moduleFiles.length}`);
+  A('wiring face B: zero tenant consumption outside pure re-export (wiring=0)',
+    faceBConsumption === 0,
+    `consumption=${faceBConsumption} reexportStmts=${tenantReexportStmts}`);
+  A('R1: barrel re-export present and classified re-export≠consumption (index.ts :25-32)',
+    barrelTenantReexports === 2,
+    `barrelTenantReexportStatements=${barrelTenantReexports} expected=2`);
 }
 
 // --- optional PG path: still uses asPrincipal (skip if no DB target) ---
