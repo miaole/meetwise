@@ -1,14 +1,14 @@
 # Harness — **DBHY-1** · GAP-DEBT-DB-HYGIENE 卫生刀（死表/sql/ 双真相/qbank 分区生命周期/jsonb 路线图 · REQUEST）
 
 **Status**: **`draft:awaiting_pre_exec_dual`**（本 turn docs-only · REQUEST 编写完成即停 · **未授权 EXEC** · zero coding / zero migration / zero prove）
-**Rev**: **rev2**（双审 FAIL 修订·唯一项：sql/ 退役清单漏 3 真依赖方+_neg-harness 真加载器·P3 门失明 → 清单 15→18 处·P3 改全代码面文件名模式 grep·0144 让位序协调方裁定（DBTF-1 已 EXEC 占 0144 → 本刀 0145+0146）·consumption_record 让位 DBM3-1 裁定入卷 · rev1 = `f4f320cd` · 落卷 mw-core）
+**Rev**: **rev3**（model-op 席 rev2 复核 FAIL——rev2 头注把「双审 FAIL」误归并为唯一项·**勘误：双席 FAIL 各自闭卷非唯一项**（e2e-ha 席=sql/ 清单漏网+P3 门失明→rev2 已修；model-op 席处方主项 rev2 未动→rev3 本修）→ 窄修五项·其余零改动：(a) P4 补对象类承载机器断言（删 sql/ 前两侧函数/触发器/策略/索引名录 diff·sql 侧⊆迁移侧·逐名入 attempts）·(b) §3.0 口径勘误（drift 门=列+UNIQUE/PK·对象类证据 P4 另立）·(c) §4.2 补 RAG03-C 观察面一行非影响声明·(d) §1.1 补 0143:68 触点·(e) validate.ts 条目勘误（15 条目/14 去重·10_learning 重复）+头注勘误）· **rev2**（e2e-ha 席闭卷项：sql/ 清单 15→18 处+_neg-harness/build-cloud-test-fc/run-e2e-isolated 补录·P3 改全代码面文件名模式 grep·0144 让位序协调方裁定（DBTF-1 已 EXEC 占 0144 → 本刀 0145+0146）·consumption_record 让位 DBM3-1）· rev1 = `f4f320cd` · 落卷 mw-core
 **Date**: 2026-10-07
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503（stays） · g7SuiteGreen=false · actualSpendCny=null
 **Experts**: `mw-model-op` + `mw-e2e-ha`（pre-exec 双审 · 本 REQUEST 只送审 · **Ban self-approve** · **Dual PASS ≠ 自动开工** · 须 meetwise 明示授权才进 EXEC）
 **Slice**: `../dbhy1-db-hygiene.slice.md`
 **Authority**: 债行在卷 `ai-docs/delivery/gap-bug-backlog.md:878`（GAP-DEBT-DB-HYGIENE · P1 · OPEN · 拟切片「多刀」· 本刀=其首刀）· W1 盘点（`post_prove_dual_pass` @ `675269c`）+ W1b 批次（`post_prove_dual_pass` @ `c378943`）早已言明「retire coding only after separate prove + authorize」——**本刀即那个 separate knife 的 REQUEST**，不构成 W1/W1b 闭面重开
 **Parent tip**: `48dee7a2`（branch `line/db-hygiene` · base `origin/feat/mysql-schema-skeleton` @ `48dee7a2` · fetch 后 ff 已核同步）
-**Honesty**: 本 REQUEST 全部清单为 mw-core 在 `48dee7a2` 上亲核（grep/逐文件逐行读迁移与消费方），非 AI 凭记忆；四处「零生产写入/零引用」断言均给出可复核的检索口径（§1 各节）。**rev2 教训如实入卷**：rev1 消费方清单以 `db/sql` 字面 grep 为口径，漏掉 `_neg-harness.ts` 模板路径加载（`packages/db/${dir}/${f}`·dir='sql'）与 `.mjs` 工程面（云测拷贝/manifest 点名）——被双审 FAIL 唯一项点名；rev2 已逐文件补核并把 P3 门改为全代码面文件名模式 grep（§5）
+**Honesty**: 本 REQUEST 全部清单为 mw-core 在 `48dee7a2` 上亲核（grep/逐文件逐行读迁移与消费方），非 AI 凭记忆；四处「零生产写入/零引用」断言均给出可复核的检索口径（§1 各节）。**rev2 教训如实入卷**：rev1 消费方清单以 `db/sql` 字面 grep 为口径，漏掉 `_neg-harness.ts` 模板路径加载（`packages/db/${dir}/${f}`·dir='sql'）与 `.mjs` 工程面（云测拷贝/manifest 点名）——被 e2e-ha 席 FAIL 点名（**双席 FAIL 各自闭卷·非唯一项**——model-op 席处方主项 rev3 修·见 Rev 行）；rev2 已逐文件补核并把 P3 门改为全代码面文件名模式 grep（§5）
 
 ---
 
@@ -30,7 +30,7 @@
 | 表 | 出生 | 现状（亲核口径） | 判定 |
 |----|------|------------------|------|
 | `app_setting` | `0002_app_setting.sql`（自述「增量迁移示范：CREATE IF NOT EXISTS 可重跑」）+ `0003`（示范 ALTER ADD COLUMN） | 全库 grep `app_setting`（*.ts/*.sql）：仅命中迁移本体 2 文件 + `packages/db/test/migrate.proof.ts`（:223 DROP 冒烟·:397 列存在断言·:399-402 幂等数据保留断言）。**业务代码（packages/db/src · apps/api/src · apps/worker/src）零引用零读写** | 示范迁移进产：教学样本成了生产表 |
-| `consumption_record` | `0001_baseline.sql:47`（id uuid · owner_user_id · idempotency_key · interview_id · status · `uq_consumption_idem(owner_user_id,idempotency_key)`） | 生产写入面：**0 处**（grep 全 src 无 INSERT/UPDATE）。消费面仅测试：`packages/ai-runtime/test/runtime-kernel.proof.ts:78`（INSERT 幂等冒烟）· `apps/api/test/privacy-erasure-http.proof.ts:290/:334`（SELECT count 断言逃逸=0）· `apps/worker/test/online-judge-control-plane.proof.ts:87/:238`（SELECT count 业务隔离断言）· `packages/db/test/db-id-v7.proof.ts:38`（dbid1 catalog 行）· `packages/db/proof/primitives.sql`（自带 DROP+CREATE 本地副本·不依赖迁移建的表） | 零生产写入仅测试 count：幂等语义真身已是 `entitlement_consumption`（0001:109 · `uq_entitlement_consumption_idem` 同形 · 生产写路径 `packages/db/src/commerce.ts`） |
+| `consumption_record` | `0001_baseline.sql:47`（id uuid · owner_user_id · idempotency_key · interview_id · status · `uq_consumption_idem(owner_user_id,idempotency_key)`）· **后续触点 `0143_db_id_v7_unify.sql:68`**（rev3 补：dbid1 刀曾为其 `ALTER COLUMN id SET DEFAULT public.uuidv7()`——死表也吃了一刀 DEFAULT） | 生产写入面：**0 处**（grep 全 src 无 INSERT/UPDATE）。消费面仅测试：`packages/ai-runtime/test/runtime-kernel.proof.ts:78`（INSERT 幂等冒烟）· `apps/api/test/privacy-erasure-http.proof.ts:290/:334`（SELECT count 断言逃逸=0）· `apps/worker/test/online-judge-control-plane.proof.ts:87/:238`（SELECT count 业务隔离断言）· `packages/db/test/db-id-v7.proof.ts:38`（dbid1 catalog 行）· `packages/db/proof/primitives.sql`（自带 DROP+CREATE 本地副本·不依赖迁移建的表）。**0143:68 处置语义**：本刀 0145 DROP 后该 ALTER 成为无对象历史行——0143 原文一字不动（Ban 历史迁移改写·P2 checksum 链照护）·执行序 0143→0145 天然合法（DROP 晚于 ALTER） | 零生产写入仅测试 count：幂等语义真身已是 `entitlement_consumption`（0001:109 · `uq_entitlement_consumption_idem` 同形 · 生产写路径 `packages/db/src/commerce.ts`） |
 
 **要点**：两表删除（案A）不影响任何生产路径；所有触碰面都在测试/证明文件里，且 `migrate.proof.ts` 对 `app_setting` 的断言本身就是「示范迁移如何工作」的自证——表死则示范须换真对象。
 
@@ -41,7 +41,7 @@
 | 双真相结构 | `packages/db/sql/`（25 个 .sql 域文件·DROP+CREATE 重放型·自述「内核演示 schema」）vs `packages/db/migrations/`（144 个版本化增量·runMigrations 记 `schema_migrations`）。`scripts/schema-drift-check.mjs`（`pnpm drift:prove`）头部自述：**「版本化 migrations 才是 fresh deploy 的唯一真相；sql/ 是兼容镜像，不能用于生产/发布/当前 E2E 结论」** |
 | 曾炸史 | `0019_schema_drift_reconcile.sql` 自述：sql/15_audit、sql/16_feedback 在 0001_baseline（只拼到 sql/14）之后新增、learning_progress/user_account.is_admin 漂移出基线、**均无配套迁移 → fresh deploy 缺表缺列 → admin 审计/题目反馈/学习进度端点 500**；本迁移把它们补进迁移路径 |
 | 十月仍在双写 | `bb97e837`（2026-10-03 · GAP-UC025-NEG-01 真接线）同时改 `sql/20_resume_quiz.sql`（+expires_at 列）与新增 `0135_resume_quiz_freshness_anchor.sql`，0135 注释自认「新库经 sql/20 重放镜像得同列——两类库都必须拿到锚点列」——**每次 schema 演进都在付双份成本，且 sql/ 侧是 DROP+CASCADE 型（`20_resume_quiz.sql:4`），重放即毁数据** |
-| 消费面（rev2 亲核逐文件分类·18 处） | **真加载器/依赖方 18 处**：① `.ts` 直读 14 个（readFileSync/sql() 助手实读）：ai-runtime proofs ×6（runtime-kernel · model-cost-governance · claim-join-orphan · estimate-threading-invoke · usage-calibration-reconciler · failover-price-policy，均 `01_schema.sql`）· apps/api ×3（`validate.ts` 拼读 16 文件+`23_api_gateway` · `neg-bend.proof.ts` · `uc-e2e-025-nhp-bound.proof.ts` 读 `20_resume_quiz.sql`）+`uc-e2e-028-nhp-fault.proof.ts` 读 `01_schema.sql` · apps/worker ×3（`smoke/rag-demo.ts` · `qbank-ingest.proof.ts` · `adaptive-latency.proof.ts`）· packages/db ×1（`vectorstore.proof.ts` 以 sql/ 目录为工作目录跑全量）；② **`apps/api/test/_neg-harness.ts:61-70`（rev2 补·rev1 漏网）**：模板路径加载器 `packages/db/${dir}/${f}`（dir 默认 'sql'·字面 grep `db/sql` 天然打不中）——**整载 22 个 sql 文件+`23_api_gateway.sql`**+4 个迁移，承载 neg 族（uc-e2e-025-adv/bound/fault 等）命脉；rev1 把 `uc-e2e-025-nhp-adv.proof.ts` 误分类为「仅注释」实为经 harness import 的间接真消费方；③ **`scripts/build-cloud-test-fc.mjs:28`（rev2 补）**：`cp(packages/db/sql → 云测函数包/sql, recursive)` 整目录拷贝（其后 `appendDirectoryDigest` 亦对 sql/ 目录求 digest）——退役不改则云测构建断；④ **`scripts/run-e2e-isolated.mjs:155/:176/:188-189`（rev2 补）**：isolated prove 的文件 manifest 数组点名 `packages/db/sql/01_schema.sql`（:155）· `sql/20_resume_quiz.sql`（:176 uc025:nhp-fault · :188 uc025:nhp-adv）· `sql/02_commerce.sql`（:189）——退役不摘则 manifest 校验红；⑤ `scripts/schema-drift-check.mjs`（drift 门本体·第 18 处）。**仅注释提及**（已用迁移·不需改）：interview/memory/report-bulkhead 三 proof 的注释文本 |
+| 消费面（rev2 亲核逐文件分类·18 处） | **真加载器/依赖方 18 处**：① `.ts` 直读 14 个（readFileSync/sql() 助手实读）：ai-runtime proofs ×6（runtime-kernel · model-cost-governance · claim-join-orphan · estimate-threading-invoke · usage-calibration-reconciler · failover-price-policy，均 `01_schema.sql`）· apps/api ×3（`validate.ts` 拼读 **15 条目（14 去重·`10_learning` 字面重复——rev3 勘误·rev1/rev2 误记 16 文件）**+`23_api_gateway` · `neg-bend.proof.ts` · `uc-e2e-025-nhp-bound.proof.ts` 读 `20_resume_quiz.sql`）+`uc-e2e-028-nhp-fault.proof.ts` 读 `01_schema.sql` · apps/worker ×3（`smoke/rag-demo.ts` · `qbank-ingest.proof.ts` · `adaptive-latency.proof.ts`）· packages/db ×1（`vectorstore.proof.ts` 以 sql/ 目录为工作目录跑全量）；② **`apps/api/test/_neg-harness.ts:61-70`（rev2 补·rev1 漏网）**：模板路径加载器 `packages/db/${dir}/${f}`（dir 默认 'sql'·字面 grep `db/sql` 天然打不中）——**整载 22 个 sql 文件+`23_api_gateway.sql`**+4 个迁移，承载 neg 族（uc-e2e-025-adv/bound/fault 等）命脉；rev1 把 `uc-e2e-025-nhp-adv.proof.ts` 误分类为「仅注释」实为经 harness import 的间接真消费方；③ **`scripts/build-cloud-test-fc.mjs:28`（rev2 补）**：`cp(packages/db/sql → 云测函数包/sql, recursive)` 整目录拷贝（其后 `appendDirectoryDigest` 亦对 sql/ 目录求 digest）——退役不改则云测构建断；④ **`scripts/run-e2e-isolated.mjs:155/:176/:188-189`（rev2 补）**：isolated prove 的文件 manifest 数组点名 `packages/db/sql/01_schema.sql`（:155）· `sql/20_resume_quiz.sql`（:176 uc025:nhp-fault · :188 uc025:nhp-adv）· `sql/02_commerce.sql`（:189）——退役不摘则 manifest 校验红；⑤ `scripts/schema-drift-check.mjs`（drift 门本体·第 18 处）。**仅注释提及**（已用迁移·不需改）：interview/memory/report-bulkhead 三 proof 的注释文本 |
 | 门的自省 | drift:prove 只防「sql/ 有、迁移缺」这一个方向（会打断 fresh deploy 的方向）；反向（迁移独有）仅提示兼容镜像落后。**门存在本身=双真相的常态化**；测试注释已出现「禁止用 sql/ 影子 schema 伪造通过」（interview.proof.ts）·「旧兼容样本」（memory.proof.ts）·「绕过当前 privacy trigger/RLS」（report-bulkhead.proof.ts） |
 
 ### 1.3 qbank 分区无界膨胀域（亲核 `0029_qbank_generation_hybrid_retrieval.sql` 全文）
@@ -89,11 +89,11 @@
 
 ---
 
-## 3. sql/ 目录退役计划（决策点 D3 · 两案）
+## 3. sql/ 目录退役计划（决策点 D3 · rev2 三案）
 
 ### 3.0 前置事实
 
-- **migrations 已是超集**（drift:prove 门长期绿的语义）：sql/ 的列/约束迁移路径全覆盖（0019 补齐后）；20_resume_quiz 的十月内容（expires_at）已由 0007+0135 完整承载。
+- **migrations 已是超集（口径勘误 rev3）**：drift:prove 门只 diff **列 + UNIQUE/PK 约束两类**（`scripts/schema-drift-check.mjs` 的 `COLS_SQL`/`CONS_SQL`）·**不含函数/触发器/策略/索引等对象类**——「门长期绿」只证明**列与键约束面**上 sql/ ⊆ 迁移侧（0019 补齐后·20_resume_quiz 十月内容（expires_at）已由 0007+0135 承载）；**对象类承载证据由 P4 ④ 另立机器断言**（删 sql/ 前两侧名录 diff·§5·rev3 补）。
 - **20_resume_quiz 内容并入 migrations 声明** = 不需要任何新 DDL：在 0145 迁移头部注释 + 本 REQUEST §3.2 表格声明「`sql/20_resume_quiz.sql` 全部内容（含 expires_at 锚点）由 `0007_resume_quiz` + `0135_resume_quiz_freshness_anchor` 承载」；同理逐文件声明 25 个 sql 文件 → 迁移承载清单（§3.2）。
 - 退役 = 删除 `packages/db/sql/` 目录 + 删除 `drift:prove` 门（其「B 侧真相源」消失，门失去对象）+ **18 处消费方**（§3.2 rev2 清单）全部改走 `runMigrations`。
 
@@ -102,7 +102,7 @@
 | # | 消费方 | 现状 | 改造 |
 |---|--------|------|------|
 | 1 | `scripts/schema-drift-check.mjs`（drift:prove） | 双库 diff 门 | **退役**，替代者=§5 fresh-deploy prove（单真相自证）· root package.json 删 script |
-| 2 | `apps/api/test/validate.ts` | 拼读 16 文件+23 | 改 `loadMigrations(migrations/)`+`runMigrations`（已有公开导出 `packages/db/src/index.ts:295`） |
+| 2 | `apps/api/test/validate.ts` | 拼读 15 条目（14 去重·`10_learning` 重复——rev3 勘误）+23 | 改 `loadMigrations(migrations/)`+`runMigrations`（已有公开导出 `packages/db/src/index.ts:295`） |
 | 3-8 | ai-runtime proofs ×6（runtime-kernel · model-cost-governance · claim-join-orphan · estimate-threading-invoke · usage-calibration-reconciler · failover-price-policy） | 各自 `sql('../../db/sql/01_schema.sql')` | 同上改迁移前缀（多张 ai_cost 族表本就只在迁移里·01_schema 镜像反而缺它们——改后断言面更真） |
 | 9 | `apps/api/test/neg-bend.proof.ts` | 拼读 | 同上 |
 | 10 | `apps/api/test/uc-e2e-025-nhp-bound.proof.ts` | 读 `20_resume_quiz.sql` | 改迁移（0007+0135 前缀） |
@@ -115,7 +115,7 @@
 | 17 | **`scripts/build-cloud-test-fc.mjs:28`**（rev2 补） | `cp(packages/db/sql → 云测函数包/sql, recursive)` 整目录拷贝（+其后 `appendDirectoryDigest` 对 sql/ 求 digest） | 停拷 sql/ 目录（云测包只带 migrations/·digest 面同步摘除）·云测 prove 重跑绿 |
 | 18 | **`scripts/run-e2e-isolated.mjs:155/:176/:188-189`**（rev2 补） | isolated prove 文件 manifest 数组点名 `sql/01_schema.sql`（:155）· `sql/20_resume_quiz.sql`（:176/:188）· `sql/02_commerce.sql`（:189） | manifest 点名逐条改为对应迁移文件（01_schema→迁移前缀整体 · 20→0007+0135 · 02→commerce 迁移族）·isolated prove 重跑绿 |
 
-（表内「拼读」文件清单 = validate.ts:58 的 16 文件 + 23_api_gateway + rag-demo/qbank-ingest 各自的域文件列表·EXEC 时逐一对号。）
+（表内「拼读」文件清单 = validate.ts:58 的 15 条目（14 去重·`10_learning` 字面重复）+ 23_api_gateway + rag-demo/qbank-ingest 各自的域文件列表·EXEC 时逐一对号。）
 
 ### 3.3 两案（rev2 增案B'）
 
@@ -155,6 +155,7 @@
 
 - 本例程**不碰**：`qbank_generation_ann_search`/`lexical_search`/`evidence`/`distances` 四检索函数 · active 代及其分区与 HNSW · `qbank_route_scope_cache`（0113）· track local serving scope（0106）· retrieval cache epoch 语义（0022/0023/0024）。
 - 释放只发生在「retired/failed + corpus 已前进 + 非 active」三重守卫内的**死存储**上；G-R4-5 闭面（`gR45Closed=true` · `coveredCount=8`）**不因此重开、不因此加成、不重述**——本刀 Non-claims 明示。
+- **RAG03-C 观察面（rev3 补·一行非影响声明）**：RAG03-C exact-K fill 观察刀（nail 登记注·backlog `:71` 保持 OPEN·exact-K **NOT claimed**）读数全部产自 **proof-local corpus**（隔离库自建语料·非生产代）·本清理例程为**手动例程**（无自动调度碰其读数面）·守卫三重排除 active（观察所用代不在释放面）·exact-K 本未主张故**无闭面可失效**——零波及。
 - prove 侧以负门保护：释放例程跑完后，active 代 ann_search 结果不变（§5 P5）。
 
 ---
@@ -166,7 +167,7 @@
 | P1 死表退役 | catalog：`app_setting`/`consumption_record` `to_regclass` 为 NULL（案A）/ 或 COMMENT 含 DEPRECATED（案B·以双审裁定案为准）· 全库静态 grep：两表名在 `packages/*/src`+`apps/*/src` 出现 0 处（`packages/db/proof/primitives.sql` 本地副本豁免·登记） |
 | P2 迁移链完整性 | `migrate.proof.ts`（改造后）全绿：示范断言组改挂新对象后增量语义（乱序/幂等/只跑新增/checksum 不改历史）逐条 PASS · **0145/0146 之前全部历史迁移 checksum 与改造前一致**（亲核基线入卷·含与 DBTF-1 0144 汇流后的序核） |
 | P3 sql/ 退役（**rev2 门升级：全代码面文件名模式 grep·堵模板路径盲区**） | ① `packages/db/sql` 目录不存在；② **全代码面静态门**——不限于 `.ts`，对**全部文本代码文件**（`.ts`/`.mjs`/`.js`/`.json`/`.yml`/`.yaml`/`Dockerfile*`/`package.json` scripts 等）按**文件名与路径模式**grep：字面 `packages/db/sql` · `db/sql/` · **模板路径形态 `packages/db/${dir}`、`db/${dir}/${f}`、`sql/${f}`（rev1 盲区·_neg-harness 教训）** · manifest 字符串点名（`sql/01_schema.sql`/`sql/02_commerce.sql`/`sql/20_resume_quiz.sql`/`sql/23_api_gateway.sql` 等 25 文件名逐一）——命中仅允许登记豁免清单（`packages/db/proof/primitives.sql` 本地副本自建·历史 CHANGELOG/收据/harness 文档的叙事文本·注释），否则红；③ §3.2 **18 处**消费方各自原有断言面在迁移前缀下全绿（逐文件跑账入 attempts·neg 族含 uc-e2e-025-adv/bound/fault 三 proof 重跑） |
-| P4 fresh deploy 重建（runner 实测） | **空库 → `loadMigrations(migrations/) → runMigrations`**（真 runner·非 psql 拼）：① `schema_migrations` 计数 = 迁移文件数（0146 后·亲核数入卷·含 DBTF-1 0144 汇流）② 抽查 catalog：`resume_quiz.expires_at` 存在（0007+0135 链·对 sql/20 退役的替代证明）· `admin_audit`/`question_feedback`/`learning_progress`/`user_account.is_admin` 存在（0019 语义回归·对当年炸史的封口断言）③ 死表不存在（案A） |
+| P4 fresh deploy 重建（runner 实测） | **空库 → `loadMigrations(migrations/) → runMigrations`**（真 runner·非 psql 拼）：① `schema_migrations` 计数 = 迁移文件数（0146 后·亲核数入卷·含 DBTF-1 0144 汇流）② 抽查 catalog：`resume_quiz.expires_at` 存在（0007+0135 链·对 sql/20 退役的替代证明）· `admin_audit`/`question_feedback`/`learning_progress`/`user_account.is_admin` 存在（0019 语义回归·对当年炸史的封口断言）③ 死表不存在（案A）④ **对象类承载机器断言（rev3 补）**：**删 sql/ 之前**对两侧库（sql/ 全量重放库 vs 迁移重建库）抽取**四类对象名录**——函数（`pg_proc`·public·含 SECURITY DEFINER 面）/触发器（`pg_trigger`·非系统内建）/策略（`pg_policies`）/索引（`pg_indexes`·排除 pk/unique 约束自动索引）——diff 断言 **sql 侧 ⊆ 迁移侧**（sql/ 有而迁移无的对象=对象类漂移=红·**逐名打印入 attempts**）；sql/ 侧独有对象若为 DROP 型重放辅助（亲核入卷）则登记豁免后放行 |
 | P5 qbank 清理例程（若 EXEC 含 §4） | 隔离库建 fake 语料与两代：gen1 active→gen2 激活后 gen1 retired·corpus_epoch 前进 → 调 `qbank_release_retired_generation_storage(gen1)`：gen1 分区 `to_regclass` NULL·`qbank_vector_generation` gen1 行仍在且 `storage_released_at` 非空·**gen2（active）ann_search 结果与释放前一致**；负门：对 active 代调用 → 异常·对 building 代调用 → 异常·二次调用（幂等门）→ 异常·非 `__system_qbank__` 调用 → `insufficient_privilege` |
 | P6 deprecated 标注（若含 §6） | `pg_description`：四 jsonb 列 + （案B 时两死表）COMMENT 含 `DEPRECATED` 与指向路线图的锚文本 |
 
@@ -256,4 +257,4 @@ Not HA · not suite green · not G-R4-5 重开或加成（`gR45Closed=true`·`co
 
 ---
 
-*Harness · DBHY-1 GAP-DEBT-DB-HYGIENE 卫生刀 REQUEST **rev2**（rev1 `f4f320cd`·双审 FAIL 唯一项修订：sql/ 清单 15→18+P3 全代码面门+让位序 0145/0146）· 2026-10-07 · draft:awaiting_pre_exec_dual · parent `48dee7a2` · branch `line/db-hygiene` · docs-only · pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null · Dual PASS ≠ 开工 · Ban self-approve*
+*Harness · DBHY-1 GAP-DEBT-DB-HYGIENE 卫生刀 REQUEST **rev3**（rev1 `f4f320cd`·rev2 e2e-ha 席闭卷：sql/ 清单 15→18+P3 全代码面门+让位序 0145/0146·rev3 model-op 席闭卷：P4 ④ 对象类承载断言+§3.0 口径勘误+RAG03-C 非影响声明+0143:68 触点+validate 条目勘误——双席 FAIL 各自闭卷）· 2026-10-07 · draft:awaiting_pre_exec_dual · parent `48dee7a2` · branch `line/db-hygiene` · docs-only · pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null · Dual PASS ≠ 开工 · Ban self-approve*
