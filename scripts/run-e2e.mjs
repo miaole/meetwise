@@ -142,8 +142,13 @@ async function main() {
   if (!workerReady) throw tagE2EFailure('worker', 'worker_not_ready');
 
   console.log('E2E: 跑全栈用例…');
+  // G7P-2 boot-trace knife (REQUEST rev2 @064fc37e): flag-gated, default OFF = zero behavior
+  // change; append-only NODE_OPTIONS (preserve any existing value) on the tsx child only.
+  const bootTraceImport = process.env.E2E_BOOT_TRACE === '1'
+    ? { NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --import ${ROOT}scripts/e2e-boot-trace.mjs`.trim() }
+    : {};
   const tsx = run('e2e', [ROOT + 'node_modules/tsx/dist/cli.mjs', 'e2e/full.e2e.ts'], ROOT, {
-    E2E_TAG: 'ci' + Math.floor(process.hrtime()[1] / 1000), E2E_BASE: apiBase,
+    E2E_TAG: 'ci' + Math.floor(process.hrtime()[1] / 1000), E2E_BASE: apiBase, ...bootTraceImport,
   }, false);
   tsx.stdout.on('data', (d) => process.stdout.write(d));
   tsx.stderr.on('data', (d) => process.stderr.write(d));

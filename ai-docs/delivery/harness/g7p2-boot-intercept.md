@@ -1,6 +1,6 @@
 # G7P-2 — wrapper code 截获刀（真实链装载红 vs 旅程红切分）
 
-**状态**：`draft_rev2:awaiting_pre_exec_dual`（rev1 双席 FAIL 六处方合并：T1 前死向 0+装载红键修正〔ESM onLoad 语义〕+120s 挂死界+逐戳即时落盘 SIGKILL 安全+run 身份内嵌+stderr 死信改挂 JSON+est 0→≤25 偏差登记+硬帽 200） · base = 主线 `251618d5` · 分支 `line/g7-boot-intercept` · 立项依据 = G7P-1 nail 裁定（向④降格采信+环境外推缺口关闭需求·席2 建议被采纳）。
+**状态**：`exec_done:awaiting_post_prove_dual`（rev2 `064fc37e` EXEC 已毕 2026-10-08：钩子 154 行+run-e2e.mjs diff 7 行默认关门控落树 · 判别 run 恰 1 attempt EXIT=1 class=api **四向向 3 命中**——T1/T2/T3 全达〔装载面 364ms 健康·装载红证伪〕·红点=T3 后 13ms 首断言后紧邻旅程步〔第 2 断言 consent 面〕·零装载类异常码·120s 挂死界未触发 · sidecar v2 双计 0≤est25 · 收据 receipts/g7p2-boot-intercept/00-exec.md）· base = 主线 `251618d5` · 分支 `line/g7-boot-intercept` · 立项依据 = G7P-1 nail 裁定（向④降格采信+环境外推缺口关闭需求·席2 建议被采纳）。
 
 ## 1. 目标
 在**历史红环境**（主 checkout 真实链）切分 E2EFAIL-1 形状（23.3s/0 行/双计 0）的两拟合解：**装载红**（tsx spawn→full.e2e.ts 模块装载期 throw/超时）vs **旅程红**（装载完成后首测试行前死/旅程中死）——G7P-1 探针（复刻链）无法区分此两面。

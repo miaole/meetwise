@@ -1,0 +1,6 @@
+{"evt":"t1","at":"2026-10-08T12:44:26.960Z","bootId":"1791463466960.79534","pid":79534,"ppid":79234,"tid":0,"face":"tsx-cli-process","argvTail":["/Users/miaole/Desktop/golucky/meetwise-line-g7p2/node_modules/tsx/dist/cli.mjs","e2e/full.e2e.ts"],"flag":"E2E_BOOT_TRACE(name-only)"}
+{"evt":"t1","at":"2026-10-08T12:44:27.078Z","bootId":"1791463467078.79543","pid":79543,"ppid":79534,"tid":0,"face":"tsx-runner-entry-process","argvTail":["/Users/miaole/Desktop/golucky/meetwise-line-g7p2/e2e/full.e2e.ts"],"flag":"E2E_BOOT_TRACE(name-only)"}
+{"evt":"t2","at":"2026-10-08T12:44:27.174Z","bootId":"1791463467099.79543","pid":79543,"ppid":79534,"tid":1,"url":"e2e/full.e2e.ts","note":"entry onLoad fires before its static imports resolve"}
+{"evt":"t3","at":"2026-10-08T12:44:27.324Z","bootId":"1791463467078.79543","pid":79543,"ppid":79534,"tid":0,"marker":"✓","note":"first assertion line on stdout"}
+{"evt":"exit","at":"2026-10-08T12:44:27.337Z","bootId":"1791463467078.79543","pid":79543,"ppid":79534,"tid":0,"code":1}
+{"evt":"exit","at":"2026-10-08T12:44:27.369Z","bootId":"1791463466960.79534","pid":79534,"ppid":79234,"tid":0,"code":1}

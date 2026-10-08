@@ -1,0 +1,2 @@
+[2026-10-08T12:44:12.960Z] watchdog start; PRE-REGISTERED boundary: 120000ms after tsx spawn without T2 => external SIGKILL => 装载红·挂死
+[2026-10-08T12:44:28.499Z] STOP sentinel (wrapper exited) — watchdog done

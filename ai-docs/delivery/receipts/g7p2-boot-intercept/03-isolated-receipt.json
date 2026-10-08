@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_e2e_receipt",
+  "target": "e2e:prove",
+  "outcome": "failed",
+  "exitCode": 1,
+  "durationMs": 14449,
+  "startedAt": "2026-10-08T12:44:13.269Z",
+  "finishedAt": "2026-10-08T12:44:27.718Z",
+  "assertionCount": null,
+  "failureClass": "api",
+  "sourceDigests": {
+    "e2e/full.e2e.ts": "sha256:0658fa6cd1d6d12118d2145eec756a31d653d363a3256d8e4a137e8a765ef5bb",
+    "e2e/helpers/assert.ts": "sha256:269e61413061627bec45cf5f225518af1f0c913af008020c1835c393e0314f28",
+    "e2e/helpers/auth.ts": "sha256:6243aa47cf6661c9905c9c3c41e9190565c85011ac3dd25b793b90dfdaa4abde",
+    "e2e/helpers/classify-failure.ts": "sha256:f5277aadb6d781e7aa1eba0a26d600fbfdc3eda3704b1c2d8c6ed171ac585cfb",
+    "e2e/helpers/commerce.ts": "sha256:0b21a938c1d7a87507de7e8ff00fbbd2051549af6dfdc98632e56964e5444d6f",
+    "e2e/helpers/failure-class.mjs": "sha256:9c6a468e9fe46a182cf8e3cdcc4779be9f0fc1298291625fcc939119ba786f87",
+    "e2e/helpers/failure.ts": "sha256:5ddb000a626276de001c726d138681c61ba19e72dfd42ddf82e2c06ed8124cbc",
+    "e2e/helpers/http.ts": "sha256:cb678b6b96954f96cd584826efb6266cc1607f3e1419821fbd6e118865e4e91d",
+    "e2e/helpers/interview.ts": "sha256:51f1ae972c032a2768750bc5e02aab00fc6ba0fb394f64020ceaff27c0e9e881",
+    "e2e/helpers/resume.ts": "sha256:de02295819af4ba7a31c28cb2152a6f2b164da8271999a9a5cef6cfdcadb390d",
+    "e2e/helpers/sse.ts": "sha256:dbd35fdae581930c8084802be5d1c50dc950c9983d3327d0e6cc0906a31d83fe",
+    "e2e/helpers/voice.ts": "sha256:e0e101e35fc358308aa3293126bae0f98781cb79e3a8de7dd4179fd87bda2f2b",
+    "e2e/ocr-fixture.ts": "sha256:8683008efe6ade9c87c04a752b662aad4a142df3099bc9c1e49dfa086ed5e6f8",
+    "scripts/run-e2e.mjs": "sha256:249e509baa1d2cc6416c501c3fc463987b6360ee481256cdaffea9dcec9db1df",
+    "scripts/run-e2e-isolated.mjs": "sha256:27cf7bb75801ac96970233971730cb683f9ed128886598c98c7a32ff8633cdb3"
+  },
+  "schemaMigrationManifest": {
+    "count": 144,
+    "latest": "0143_sse_push_notify.sql",
+    "digest": "sha256:a7c9a6957b60e6ee4a4bcfc634f4e1f9ea731fea18dbcb8f48f3e5cf41f600d3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

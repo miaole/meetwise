@@ -1,0 +1,16 @@
+=== env probes 2026-10-08T12:44:12Z ===
+gitHEAD=064fc37eaa9ac6a67d3ffc684dc711ea77370a20
+gitBranch=line/g7-boot-intercept
+gitPorcelain=2 entries
+ M scripts/run-e2e.mjs
+?? scripts/e2e-boot-trace.mjs
+dockerServer=29.1.3
+node=v22.22.3 pnpm=10.18.0
+.env-files: ABSENT
+E2E_VERBOSE: unset
+orchestrate-shell NODE_OPTIONS: unset (flag gate is sole injector)
+G7_FREETIER_REPROVE: unset
+=== pre-run unlink proof (REQUEST rev2: run 前 unlink 陈旧文件亲证) ===
+pre-run-unlink: ENOENT (no stale file)
+MODEL_API_KEY: set (name-only)
+E2E_BOOT_TRACE=1 exported 2026-10-08T12:44:12Z
