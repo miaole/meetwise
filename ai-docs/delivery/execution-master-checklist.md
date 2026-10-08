@@ -1868,4 +1868,13 @@ flowchart TD
 - **遗留刀登记（协调方裁立）**：①**adaptive-consumer 域刀**（席2 建议：interview-consumer.ts drainInterviewJobOnce answer 排空环·mock-model 证明体·base 同红预存——与 ai-runtime/invoke 无涉·路径级排除在卷）；②interview-dispatch-pg 云门（Ban buy cloud 域·HC-GAP-001 既有口径维持）；③base worktree `meetwise-line-godfn1a-base` 处置归协调方（a22 原始收据证据层级差知悉）.
 - [ ] **STILL OPEN**：adaptive-consumer 域刀；trio base≡red（G7FIX-1 修复后重评归 G7 线）；`g7SuiteGreen=false` 维持.
 - 预算：live 链 78=14(G7P)+64(本刀)≪硬帽 200 · 0 Key 值接触 · `actualSpendCny=null`.
+### Line GODFN-1b G7 卫兵移组合根刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 4 散读点→注入缝 g7-runtime-injection（默认 OFF pass-through）+组合根各读恰一次·interceptor/bootstrap git mv test/support·静态门 prove:g7-bootstrap-zero-prod-import P0-P8 · prove 60 键=21 EXIT=0+r4 36=8 绿+28 base≡red+trio 3 配对 · stash 事件 T2 自愈达标）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（设计 §4 全表）.
+- [x] **`post_prove_dual_pass`** recorded for Line GODFN-1b products only（触面=注入缝+组合根 2 文件+git mv 面+静态门+台账 · 三钉 blob 零位移〔guard 4e75fae7/runner ee762a8c/text-endpoint 005c68cc 双席亲算〕·nail tip 本 commit · branch `line/godfn-1b-g7guard`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：注入缝默认 OFF+pass-through 论证+git mv 98% 相似仅 import 1 行差/:79 逐字保形/静态门 tip 亲跑复现 P0-P8 全绿含反空过门/**stash 事件 28/28 BASE-T2 签名逐对机检 SIG-IDENTICAL+T2-pr1b 硬锚〔comboRootMainWired 正则 tip 才在〕证实真 tip 态无污染**/r4 8 绿+28 红三族红因坐实+live-pg CALL_SITES=1/nhps 94 PASS/锚快照零伤/pins+est=0）+ mw-model-op PASS（六核：**G7=0 字节级等价结构可证**〔pre-1b bootstrap 本就 G7=0 no-op〕/静态门源级+独立 grep 生产零真实引用/test-support 仅 G7=1 门内动态 import bundler 图不可达/**stash 事件达标非 retry-to-green**〔T2=测量状态重建〕/r4 ENOENT 配对收案+rcpt1 主线 rerun 波路径/三钉/pins/1d 冻结亲验）· 协调方正式授权本 nail.
+- **GODFN-1b 全链**：REQUEST → rev3 `53966369`（rev1 席1 prove 门一行级+rev2 失误实改）→ 双席复核 BOTH PASS → EXEC `1af8987e`（origin tip 零位移）→ 本 nail commit.
+- **核心产出**：G7 卫兵散读点清零（生产 src 对 g7-bootstrap 零真实引用·组合根单读点恰一次·test-support 仅 G7=1 门内可达 bundler 图不可达）·静态门常驻（prove:g7-bootstrap-zero-prod-import P0-P8）·设计 §5.2 1b 面清.
+- **erratum×2 登记（席1·不阻断）**：①trio 两键 tip 原始日志未入卷（perf 靠 .tmp 收据互证·ui 仅 prose）——后续刀补卷；②slot-bypass 双侧日志缺（席1 wrapper 亲跑补证 EXIT=0）.
+- [ ] **STILL OPEN**：GODFN-1d（1b/1a 已落·**解冻**——REQUEST 待立·§7.3 串行先 1b 后 1d 已兑现前半）；r4 三键绿收据 rerun 波（主线含 rcpt1 环境）；trio base≡red（归 G7 线）；`g7SuiteGreen=false` 维持.
+- 预算：est live=0（60 键全数未达模型面）· 0 Key 值接触 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
