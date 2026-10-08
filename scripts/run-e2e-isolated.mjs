@@ -1042,6 +1042,7 @@ const isolatedReceiptSources = {
     'packages/db/src/checkpoint-privacy.ts', 'packages/db/src/interview-answer-dual-write.ts',
     'apps/worker/package.json', 'package.json',
     'ai-docs/delivery/r4-evidence-retirement-assessment.md',
+  ],
   'db-acl:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/db-acl.proof.ts',
