@@ -34,3 +34,5 @@ Not a pass（EXIT=1 · 「判据 PASS」=预期面冻结契约的兑现判读 �
 ---
 
 *SUMMARY · CMOP03-E EXEC · 2026-10-08 · 单 attempt EXIT=1 class=api 74094ms 预期红兑现（post-7b 窗 · GAP-CMOP03-POST7B 域零触碰）· 四判据 a/b/c/d 全 PASS · P 校准零码改落地（报告链钟 ×2 段 ≈9.5-11s/9.5s 实测落 ~10-12s 预期带 · `:236-237` md5 `b51a03fb` 前后全等）· sidecar live=14（succeeded 9+failed 4 双计口径 · dispatching 1 在途 · est 期望未中如实记 · 硬帽 200 未触）· 11 钉+wiring 前后全等 · D 假说 OPEN 转用户裁决队列零关闭 · `actualSpendCny=null` · **STOP——勿自 nail · post-prove 双审归协调方派** · STOP*
+
+> **erratum · push 模式登记（append-only · 2026-10-08）**：EXEC commit 首推被拒 non-FF——remote 停在前 turn 所推 pre-rebase REQUEST `3c372d20`（本人上一 turn 所推 · `git ls-remote` 亲测 · **零外来提交**），本地已按 EXEC 指令 1 rebase 出 patch 全等孪生 `3186cf03`（patch-id `7c1d9ae5` 双侧亲算恰等 · 恰 4 md 文件）致历史分叉。处置=`git -c http.version=HTTP/1.1 push --force-with-lease=refs/heads/line/cmop03-weak-input-calib:3c372d207760ca04005758e8d56e1bc6f876069b origin line/cmop03-weak-input-calib`（lease 钉死已知远端 SHA · 零外来工作覆盖面 · 沿刀① EXEC erratum 先例）→ 远端 `3c372d20`→`3afb887f`（forced update · ls-remote 终测=3afb887f）。远端终链：`b5101df4`（主线 tip）← `3186cf03`（REQUEST twin）← `3afb887f`（EXEC 收据+erratum）。
