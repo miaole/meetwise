@@ -44,12 +44,29 @@ async function provisionPaidInterviewCredit(request: APIRequestContext, token: s
  * 提交最后一题时，SSE 的报告终态与 textarea 卸载是两个独立 React commit。
  * E2E 必须等待「下一题可答」或「终态已展示」任一事件，不能把 textarea
  * 消失后的瞬间误判为产品失败。
+ *
+ * G7V 终态校准（REQUEST 14f507e9 · pre-exec dual PASS C-HA-V1~V7/C-MO-V1~V7 · 协调方 EXEC 授权）：
+ * 本夹具的单条脚本化答案旅程会触发自适应早停控制流（session_concluded/early_weak 投影——
+ * 「自适应控制流，不是能力等级或招聘结论」），终态族按 adaptive-lifecycle.ts:339-365 结算语义分臂，
+ * 各臂绑钱面后果（GET /interview/:id 暴露 status，interview.service.ts:47）：
+ *   释放臂 unscored>0 → failInterviewAndRelease（commerce.ts:198）→ status='failed'（:68「额度已释放」文案此时为真）；
+ *   扣费臂 unscored=0∧eligible>0 → completeInterviewAndConfirm（已扣费）→ status='completed'
+ *     → 报告就绪（InterviewPanel.tsx:407）或报告暂不可用（view-model.ts:66 ·「已扣费」语义 Ban 写「已释放」）。
+ * 此处只做「旅程已收尾」的臂甄别；PASS 谓词=下方各臂 exact 文案 + 钱面守卫联合断言
+ * （Ban race OR 作谓词 · Ban 宽正则 · Ban 单臂钉死——三结算臂跨 run 方差经 sidecar 甄别实证）。
  */
+const EARLY_STOP_COPY = '练习因持续偏弱或多次未决提前结束（自适应控制流，不是能力等级或招聘结论）';
+const RELEASED_MSG_PART = '本次预留额度已释放';
+const REPORT_DOWN_MSG_PART = '报告暂时无法生成';
+const PRACTICE_FEEDBACK_PART = '练习完成 · 本次练习反馈';
+function settlementFaces(page: Page) {
+  return [page.getByText(EARLY_STOP_COPY), page.getByText(RELEASED_MSG_PART), page.getByText(REPORT_DOWN_MSG_PART), page.getByText(PRACTICE_FEEDBACK_PART)];
+}
 async function waitForTerminalOrAnswer(page: Page, timeout = 90_000): Promise<'terminal' | 'answer'> {
-  const terminal = page.getByText(/面试完成 · 综合评分|报告暂不可用/);
   const answer = page.locator('textarea[placeholder^="打字作答"]');
+  const terminal = Promise.any(settlementFaces(page).map((f) => f.waitFor({ state: 'visible', timeout })));
   return Promise.race([
-    terminal.waitFor({ state: 'visible', timeout }).then(() => 'terminal' as const),
+    terminal.then(() => 'terminal' as const),
     answer.waitFor({ state: 'visible', timeout }).then(() => 'answer' as const),
   ]);
 }
@@ -184,13 +201,43 @@ test('C→B: real browser binds application to a new interview, completes it, an
     const answer = page.locator('textarea[placeholder^="打字作答"]');
     await answer.fill('我会用稳定幂等键约束写操作，配合 outbox、重试退避和指标告警确保最终一致。');
     await page.getByRole('button', { name: '提交', exact: true }).click();
-    // 非最后一题等待当前编辑器卸载；最后一题则可能直接进入报告终态。
+    // 非最后一题等待当前编辑器卸载；最后一题则可能直接进入报告终态（早停族结算面同判）。
     await Promise.race([
-      page.getByText(/面试完成 · 综合评分|报告暂不可用/).waitFor({ state: 'visible', timeout: 20_000 }),
+      Promise.any(settlementFaces(page).map((f) => f.waitFor({ state: 'visible', timeout: 20_000 }))),
       answer.waitFor({ state: 'hidden', timeout: 20_000 }),
     ]);
   }
-  await expect(page.getByText(/面试完成 · 综合评分|报告暂不可用/)).toBeVisible({ timeout: 90_000 });
+  // ─── G7V 终态断言（多臂三层：定锚 / 分支守卫 / 禁则 · C-HA-V1/V2 · C-MO-V2/V4）───
+  // 定锚层：早停控制流 copy（view-model.ts:10 逐字 · session_concluded/early_weak 投影——非能力等级、非招聘结论），
+  // 本夹具脚本化弱输入旅程的预期收尾面；正常完成（无 session_concluded）到达 = 诚实红（产品行为面变化）。
+  await expect(page.getByTestId('signal-conclude-reason')).toHaveText(EARLY_STOP_COPY, { timeout: 90_000 });
+  // 分支守卫层：先锚钱面（结算与 SSE 事件同事务提交；failed=已释放 / completed=已扣费），再按臂断言 exact 结算文案。
+  let interviewStatus = '';
+  await expect.poll(async () => {
+    const res = await request.get(`${API}/interview/${boundInterviewId}`, { headers: { authorization: `Bearer ${candidateToken}` } });
+    interviewStatus = res.ok() ? ((await res.json()) as { status: string }).status : '';
+    return interviewStatus;
+  }, { timeout: 15_000 }).toMatch(/^(failed|completed)$/);
+  if (interviewStatus === 'failed') {
+    // 释放臂：unscored>0 → failInterviewAndRelease（commerce.ts:198 补偿释放）——「额度已释放」文案此时为真。
+    await expect(page.getByText(RELEASED_MSG_PART)).toBeVisible({ timeout: 30_000 });
+  } else {
+    // 第三臂 no_eligible_scored_answer（adaptive-lifecycle.ts:342-356 · C-HA-V1 落字 · 不作 PASS 容忍面）：
+    // 其落字事件与释放臂同 kind（:355 vs :364），经同一 SSE 通道达 UI 同现「额度已释放」文案，
+    // 而结算为 completeInterviewAndConfirm 已确认扣费——「status='completed' ∧ 释放文案」组合即本臂：
+    // 观测到 → 诚实红 + 五分类 + 升级披露（UI 文案释放声称与已扣费结算码面相悖），Ban 断言其为 PASS。
+    const releasedCopyOnCharged = await page.getByText(RELEASED_MSG_PART).waitFor({ state: 'visible', timeout: 3_000 }).then(() => true).catch(() => false);
+    expect(releasedCopyOnCharged, '第三臂 no_eligible_scored_answer：UI「本次预留额度已释放」文案与已扣费结算（completeInterviewAndConfirm）相悖——C-HA-V1 不作 PASS 容忍面，须升级披露').toBe(false);
+    // 扣费臂（已扣费 · business-events.ts:55 语义「面试已经完成并扣费」）：等报告 worker 异步结算面分臂（实测 ~40s，cap 120s）。
+    await Promise.any([page.getByText(REPORT_DOWN_MSG_PART), page.getByText(PRACTICE_FEEDBACK_PART)].map((f) => f.waitFor({ state: 'visible', timeout: 120_000 })));
+    if (await page.getByText(PRACTICE_FEEDBACK_PART).isVisible()) {
+      // 扣费·报告就绪臂：complete+enqueueReport 成功 → 练习反馈面（仅供个人复盘）。
+      await expect(page.getByText(PRACTICE_FEEDBACK_PART)).toBeVisible();
+    } else {
+      // 扣费·报告暂不可用臂：报告生成失败（view-model.ts:66 文案为「报告暂时无法生成」——已扣费，Ban 写「已释放」）。
+      await expect(page.getByText(REPORT_DOWN_MSG_PART)).toBeVisible({ timeout: 30_000 });
+    }
+  }
   await expect.poll(() => finalizeResponses.some((status) => status === 200), { timeout: 15_000 }).toBeTruthy();
 
   // B 端刷新后只见流程状态，不见候选人的逐题内容或数值分；校准 hold 下必须是评分暂不可用，不能回退成已完成。
