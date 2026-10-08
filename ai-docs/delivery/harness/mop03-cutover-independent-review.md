@@ -1,10 +1,14 @@
-# Harness — **MOP03-B · MODEL-OP #102 域 cutover 独立审材料包**（REQUEST · docs-only · `draft:awaiting_pre_exec_dual` · Ban Redis cutover · Ban MODEL-OP closed · GAP-MOP-03 OPEN · PG LISTEN retained）
+# Harness — **MOP03-B · MODEL-OP #102 域 cutover 独立审材料包**（REQUEST · docs-only · `post_dual_pass` · 旧状态 token `draft:awaiting_pre_exec_dual`/`executed:awaiting_post_dual` 保留为 provenance（historical blockquote + 本 nail 记录）· Ban Redis cutover · Ban MODEL-OP closed · GAP-MOP-03 OPEN · PG LISTEN retained）
 
 **Pins**（文首照抄 · 原值写死 · 本刀零翻转）: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · **PG-retained** · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null
 
-**Status**: **`executed:awaiting_post_dual`**（EXEC 材料包核验已落 · 2026-10-07 Asia/Shanghai · rg 复验 **46/46 HIT · 0 偏离** · base `fe218b7a` 未前进无需 rebase · §2-F 订正锚全用新号 · 收据 `receipts/mop03-cutover-review/00-summary.md` · rg 结果全文在 exec commit message（post 双审可独立复跑）· 零 coding / 零 prove 执行 / 零 live / 零 SSOT / 零 `:76` 触碰 · Ban self-approve · alone ≠ dual · **Ban self-nail** until POST BOTH + meetwise AUTHORIZE）
+**Status**: **`post_dual_pass`**（EXEC 材料包核验已落 · 2026-10-07 Asia/Shanghai · rg 复验 **46/46 HIT · 0 偏离** · base `fe218b7a` 未前进无需 rebase · §2-F 订正锚全用新号 · 收据 `receipts/mop03-cutover-review/00-summary.md` · rg 结果全文在 exec commit message（post 双审可独立复跑）· 零 coding / 零 prove 执行 / 零 live / 零 SSOT / 零 `:76` 触碰 · Ban self-approve · alone ≠ dual · **Ban self-nail** until POST BOTH + meetwise AUTHORIZE）
 
 > **Pre-exec-era status（historical · retained）**: **`draft:awaiting_pre_exec_dual`**（L0 docs only · 材料包组装 · 零 coding · 零 prove 执行 · 零 live · 零 SSOT · Ban self-approve · alone ≠ dual · Ban nail until POST BOTH + meetwise AUTHORIZE）
+
+> **EXEC-era status（historical · retained）**: **`executed:awaiting_post_dual`**（EXEC 材料包核验 46/46 HIT · 0 偏离 · Ban self-nail）
+
+> **Post-dual record（2026-10-07 · nail era）**: post 双审 **BOTH PASS** —— `mw-e2e-ha` PASS（**独立复跑 27 项全 HIT**）+ `mw-model-op` PASS（**独立复跑 26 项全 HIT** · 优先模型域锚）· 两席合计 **53 项独立抽验全 HIT · 零偏离** · meetwise 协调方正式授权 nail（登记见 checklist `### Line MOP03-B cutover 独立审材料包刀 NAIL` 节）· 本刀仍 non-claims：**≠ `#102` 域 cutover 声明成立 ≠ MODEL-OP closed ≠ `:76` 关闭**（`:76` 处置 = 未来 cutover REQUEST 自带 fresh Q4/Q5 同列门 + 四专家审 BOTH PASS + 单独 nail + 协调方 AUTHORIZE）。
 **Date**: 2026-10-07（Asia/Shanghai）
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`fe218b7a`** / full `fe218b7aecaebda92f3f1ede7dd3b77eb6059cd9`（= fetch 后 origin tip · ≥ `fe218b7a` 达标 · MOP03 `:76` successor 立卷刀 nail 链已在祖先：checklist `:1132` · nail commit `e29d8f93` · worktree `/Users/miaole/Desktop/golucky/meetwise-line-mop03-cutover` · branch `line/mop03-cutover-review` · 兄弟刀 line/mop03-successor worktree（meetwise-line-mop03 @`47f17b83`）零触碰）（Base 行补记沿 `harness/g7-path-b-honesty-classification.md:9` 先例 · rev2 · e2e-ha PRE 处方）
 **Wave**: Line **MOP03-B**（GAP-MOP-03 后继刀第二刀 · 前刀：AN-MOP-Q45 honesty nail `post_prove_dual_pass` + MOP03 `:76` successor 立卷刀六门合同）
@@ -149,4 +153,4 @@ docs-only REQUEST 材料包组装 · not #102 cutover 成立 · not MODEL-OP clo
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null · PG LISTEN retained · Ban Redis cutover · Ban MODEL-OP closed · backlog `:76` OPEN · alone ≠ dual · STOP（awaiting post dual）
 
-*Harness · MOP03-B MODEL-OP #102 domain cutover independent review evidence pack · 2026-10-07 · `executed:awaiting_post_dual` · EXEC 材料包核验 46/46 HIT · 0 偏离 · 零 coding · 零 prove 执行 · 承卷 AN-MOP-Q45（Q4/Q5 EXIT 0/0 @66a77ed · Redis unset · PG LISTEN retained）勿重做 · Ban Redis cutover · Ban MODEL-OP closed · `:76` OPEN · alone ≠ dual · STOP（awaiting post dual）*
+*Harness · MOP03-B MODEL-OP #102 domain cutover independent review evidence pack · 2026-10-07 · `post_dual_pass`（nail 已由协调方授权落链 · 旧 token `draft:awaiting_pre_exec_dual`/`executed:awaiting_post_dual` 保留为 provenance）· EXEC 材料包核验 46/46 HIT · 0 偏离 · post-dual 两席独立复验 53 项全 HIT · 零偏离 · 零 coding · 零 prove 执行 · 承卷 AN-MOP-Q45（Q4/Q5 EXIT 0/0 @66a77ed · Redis unset · PG LISTEN retained）勿重做 · Ban Redis cutover · Ban MODEL-OP closed · `:76` OPEN · alone ≠ dual · nail = 协调方授权*
