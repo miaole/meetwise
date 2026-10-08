@@ -1,9 +1,9 @@
-# EXEC — **DBSB-1 · src 样板收敛刀**（runAs / job-claim 泛型 / withSavepoint + r4 退役协同）（EXEC · **`exec:awaiting_post_prove_dual`**）
+# EXEC — **DBSB-1 · src 样板收敛刀**（runAs / job-claim 泛型 / withSavepoint + r4 退役协同）（nail `da117cb9` · **复跑清账 `rerun-clearing:awaiting_coordinator`**）
 
-**Status**: **`exec:awaiting_post_prove_dual`**（EXEC 完成 · prove 主套绿 · 族复跑基线对照口径见 §3 · **未 nail · post-prove 双审未开**）
+**Status**: **nail `da117cb9`**（2026-10-08 协调方授权 · E2 追认 D2 修订 · 14 项基线红挂复跑潮）→ **复跑清账 `rerun-clearing:awaiting_coordinator`**（本节 · cherry-pick DBACL-1 0150 后 14 项复跑 12 转绿 + 2 项非权限面残留红如实登记 · Ban retry-to-green 全账见 §7）
 **Date**: 2026-10-08（Asia/Shanghai）
 **Knife**: `harness/dbsb1-src-boiler-convergence.md`（REQUEST rev2）· slice `dbsb1-src-boiler-convergence.slice.md`
-**REQUEST**: rev1 `b3f8a0a0` → rev2 `8241ba3a`（model-op FAIL 四项窄修落卷）· EXEC 授权 = 协调方指令「按工具集 @8241ba3a 执行（1a→1d 串行）」
+**REQUEST**: rev1 `b3f8a0a0` → rev2 `8241ba3a`（model-op FAIL 四项窄修落卷）· EXEC 授权 = 协调方指令「按工具集 @8241ba3a 执行（1a→1d 串行）」· **复跑清账授权 = 协调方 resume 指令（DBACL-1 nail 0150 恰 8 GRANT·主线 tip 578cae57）**
 **Pins（全保留 · 零翻转）**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503（stays） · g7SuiteGreen=false · actualSpendCny=null
 
 ---
@@ -108,3 +108,30 @@
 ---
 
 *EXEC receipt · DBSB-1 · 2026-10-08 · exec:awaiting_post_prove_dual · pins 全保留 · Ban self-approve · post-dual 未开*
+
+---
+
+## §7 复跑清账（nail 后 · DBACL-1 0150 上线 · `rerun-clearing:awaiting_coordinator` · 2026-10-08）
+
+**前置**：DBACL-1 nail（0150 uuidv7 EXECUTE ACL 恰 8 GRANT · 主线 tip `578cae57` · 0150 commit `1caf7f32`）→ 本刀 cherry-pick `1caf7f32` 落 `bfa06bd3`（+合流修复 `4d9e25d1`）· 冲突 3 文件（两个 package.json + runner）均为 dbsb1/db-acl 别名同区注册冲突 → **双保解**（sourceDigest 条目/target 列表/isolatedCommand 分支/migrate allowlist 行内双 id）· `node --check` + JSON parse 过。
+
+**attempts 全账（Ban retry-to-green · 每轮留痕）**：
+
+| 轮 | 范围 | 结果 | 红/无效因 |
+|----|------|------|-----------|
+| run-1 | 14 项 + dbsb1 + tenant | **全红=无效跑**（不计断言账） | cherry-pick 冲突解丢失 dbsb1 sourceDigest 条目闭合 `],` → runner SyntaxError(:1045) → 所有 isolated prove spawn 即崩——**工具坏非断言红**；tenant-enforcement 手动容器（不经 runner）**确证绿 ✓**（E4 带 migrate PG 面·关账） |
+| run-2 | 同上（语法修复后） | **9 项转绿** + dbsb1 回归绿 + tenant 复验绿 | uc052×4 = C-UNCOMMITTED dirty 守卫拒（修复未 commit 时跑）· runtime-role/interview 红点后移（见下） |
+| run-3 | 6 项（干净树 `4d9e25d1`） | **uc052×4 全转绿** | runtime-role / interview 仍红（非权限面·见下） |
+
+**终态（14 项基线同态红复跑账）**：
+
+| 结果 | 项 | 证据 |
+|------|----|------|
+| ✅ **转绿 12/14** | privacy-authorization · uc052:internal-erasure / checkpoint-physical / external-sink-async-purge / external-sink-retention · reaper · quiz · diagnosis · resume · commerce · int-transcript-answer-fact-root / remaining-sinks | 0150 GRANT 生效——uuidv7 权限面（42501 aclcheck）**全部消除**（协调方预期「uuidv7 权限面应转绿」达成） |
+| ⚠️ **残留红 2/14（非权限面·非本刀面·基线同红·如实登记交协调方）** | `runtime-role:prove`（EXIT=1：权限断言 PASS 后卡 `interview_privacy_fenced` 数据前置——prove 自身数据流）· `interview:prove`（EXIT=1：2 断言 PASS 后卡自适应图业务断言「当前自适应图投影 issued 首题」等 4 FAIL——业务面） | 两项**基线（da117cb9 无 0150）同红**（上轮 stash 亲证）；0150 已使其越过权限错误点（红点后移=改善非回归）；残留红属 prove 自身数据/业务面，**非 uuidv7 权限、非 DBSB-1 TS 收敛面**——维持登记不动任何 pin |
+| ✅ 回归确认 | `dbsb1:prove` 30/30 EXIT=0（cherry-pick 后复跑绿）· E4 tenant-enforcement 带 migrate PG 确证绿（run-1 手动容器 + run-2 复验双绿） | 收据 `.tmp/isolated-proof-receipts/`（release_evidence=false） |
+
+**登记面**：uc025 OPEN 行基线红**非本面**维持原值（本清账未触碰）；复跑全绿 ≠ 云端绿 ≠ stack truth；`releaseEvidence=false` 不变。
+
+**SHA 链**：nail `da117cb9` → cherry-pick `bfa06bd3`（0150 + 双保）→ 合流修复 `4d9e25d1` → 本清账收据 commit。
+
