@@ -150,7 +150,13 @@ if (existsSync(principalPath)) {
     /set_config\('app\.principal_user'/.test(principal));
   A('tenant module does not remove set_config from principal',
     /set_config\('app\.principal_user'/.test(principal)
-    && /SET LOCAL ROLE app_role/.test(principal));
+    // DBSB-1 (E4 assertion-shape adaptation): the literal `SET LOCAL ROLE
+    // app_role` moved into the runAs generic (`SET LOCAL ROLE ${role}`); the
+    // guarded intent — the app_role entry is still wired through the RLS
+    // transaction primitive — is now checked as asPrincipal delegating to
+    // runAs('app_role') plus the generic emitting SET LOCAL ROLE.
+    && /runAs\(pool, 'app_role'/.test(principal)
+    && /SET LOCAL ROLE \$\{role\}/.test(principal));
   A('principal.ts provisionRuntimeLogin NOINHERIT/NOBYPASSRLS intact (E4)',
     /export async function provisionRuntimeLogin/.test(principal)
     && /NOINHERIT/.test(principal) && /NOBYPASSRLS/.test(principal));

@@ -23,11 +23,12 @@
 | `ai-docs/delivery/harness/dbsb1-src-boiler-convergence.md` | 修改（残渣清除·协调方指令随 EXEC commit） | §1.1 scoring 委托残渣句删除线标注 · §6-P5 site 数措辞勘误（=1 → 执行态=3 构成注记） |
 | 本收据 | 新增 | exec.md |
 
-**与 harness 预告面的偏差（两处 · 诚实登记）**：
+**与 harness 预告面的偏差（四处 · 诚实登记）**：
 
 - **E1（#11 scoring 零触碰·已按 rev2 裁定）**：harness §10 预告表 rev2 已改「零触碰」，落地面一致；无偏差。
 - **E2（#9 assertRagControlDefinerOwnership 未壳委托——EXEC 期豁免）**：harness D2 裁定「并入」，但 EXEC 亲核发现其 catch 为 `ROLLBACK.catch(() => undefined)`（**吞回滚失败**·principal.ts:1507），与 runAs 的裸 `ROLLBACK`（回滚失败替换原错误）**不等价**——与缺陷 A（scoring）同性质。按 rev2 缺陷 A 同一裁定逻辑豁免：保持原样 + 函数头注登记 + P5-1 site 构成注记（执行态=3）。**此为 EXEC 对 D2 裁定的偏离，post-dual 请复核确认**（若裁定仍要求并入，须先裁「回滚失败替换 vs 保留原错误」语义取舍，另开窄刀）。
-- **E3（wrapper 体 diff 对照）**：harness §1.1 要求「EXEC commit 内 diff 留痕」——由本 commit diff 本身承载（8 wrapper 委托化前后对照即 commit diff）+ P5-2 单行委托正则断言 + P1 行为断言三重覆盖。
+- **E3（wrapper 体 diff 对照）**：harness §1.1 要求「EXEC commit 内 diff 留痕」——由 EXEC commit diff 本身承载（8 wrapper 委托化前后对照即 commit `d63702bc` diff）+ P5-2 单行委托正则断言 + P1 行为断言三重覆盖。
+- **E4（tenant-enforcement.proof 断言口径适配）**：prove 静态断言锁 `SET LOCAL ROLE app_role` 字面量（tenant-enforcement.proof.ts:151-153·意图=「RLS 路径未被 tenant 模块移除」）——收敛后字面量移入 runAs 泛型模板串。断言适配（意图不变）：改证 `runAs(pool, 'app_role')` 委托行 + `SET LOCAL ROLE ${role}` 泛型模板双在，prove 内注释登记。适配后该 prove unit+静态面全绿。
 
 ## §2 Prove attempts 全账（Ban retry-to-green · 每次运行无论红绿全记录）
 
@@ -59,9 +60,24 @@
 
 **14 项基线红的红因（亲核 log）**：主体为 `permission denied for function uuidv7`（42501 aclcheck——0143 uuidv7 函数 EXECUTE 权限对 prove 低权角色未放行·DBID-1 后本地权限面遗留）+ 同族 `privacy_issue_authorization_snapshot` aclcheck + `assert_interview_privacy_active` P0001 数据前置——**全部为环境/数据前置红，与本刀 TS 收敛零交叠**（本刀零迁移零 SQL 变更）；云端 CI 上 DBID-1 nail 时 prove 36/36 全绿史与本本地红不矛盾（本地 Docker 环境差异）。登记不改任何 pin。
 
-**§3.1 commit 后复跑**（EXEC commit 落地后工作树干净·pool-role-leak 守卫放行）：见 §3.1 回填表（commit 后补跑）。
+**§3.1 commit 后复跑**（EXEC commit `d63702bc` 落地后工作树干净·守卫放行）：
 
-**§3.2 手动隔离容器 4 项**（tenant-enforcement / principal-config / quiz-dual-claim-pg / interview-dispatch-pg——无 runner target 的直跑脚本·一次性容器同语义·commit 后跑·结果回填）。
+| 项 | EXIT | 备注 |
+|----|------|------|
+| `uc052:pool-role-leak:prove` | **0（PASS·5/5）** | NHP-POOL-NEG-01 / NHP-POOL-FAULT-ABORT / NHP-POOL-FAULT-RESET-DESTROY / HP-POOL-01 / C-CASECOUNT 全 PASS · 收据 gitSha=`d63702bc` · releaseEvidence=false —— **回归排除**（先前红=C-UNCOMMITTED dirty 守卫拒跑·非断言面） |
+
+**§3.2 手动隔离容器 4 项**（无 runner target 的直跑脚本·一次性容器同语义）：
+
+| 项 | EXIT | 备注 |
+|----|------|------|
+| `prove:principal-config` | **0（PASS）** | — |
+| `tenant-enforcement:prove` | **适配后 PASS（unit+静态面全绿）** | 首跑红=prove 静态断言锁 `SET LOCAL ROLE app_role` 字面量（:153）——收敛后字面量入 runAs 模板串 → **E4 断言口径适配**（意图不变：改证 `runAs(pool, 'app_role')` 委托 + `SET LOCAL ROLE ${role}` 泛型双在·登记于 prove 内注释）。适配后 unit+静态面全 PASS（PG optional 面因容器未迁移 skipped）；带 migrate 的 PG 面确证复跑被 **Docker daemon 二次故障**打断（本 EXEC 期间第二次环境故障·如实登记·待环境恢复补跑·post-dual 可复验） |
+| `prove:quiz-dual-claim-pg` | 守卫拒（非红） | `quiz_diagnosis_dual_claim_prove_forbids_local_docker_db`——该 prove **设计上 remote-PG-only**（fail-closed 守卫工作正常）·本地结构性不可跑·与基线同态 |
+| `prove:interview-dispatch-pg` | 守卫拒（非红） | 同上 remote-only 守卫（`run-interview-dispatch-prove.mjs` 头注自述）·与基线同态 |
+
+**族复跑终态（22 项口径）**：✅ 绿 5（privacy-erasure / qbank-control-role / rag-control-role / pool-role-leak / principal-config）+ tenant-enforcement 适配后绿（PG 确证面待补）· 14 项**基线同态红**（既有本地环境红·stash 逐项亲证·零回归）· 2 项 remote-only 守卫（本地结构性不可跑·同态）· **零真回归**。
+
+**环境故障全账（如实）**：①Docker containerd 存储 I/O 故障（10:25 起·`meta.db`/blob I/O error·重启 Docker Desktop 恢复·本机三个 dev 容器 Exited(255) 已复原）②Docker daemon 二次掉线（§3.2 tenant-enforcement 确证跑中断·待恢复）。两次均为本机 Docker Desktop 环境事件，非本刀代码面。
 
 ## §4 对表勾销（harness §9 Acceptance）
 
@@ -71,7 +87,7 @@
 | A2 | ✅ | P3-1/2/3 SQL 逐字符快照等价（15 条 + params 深比对）|
 | A3 | ✅ | P4-1..12 逐点次序断言（4 实例点×三模式全覆盖）|
 | A4 | ✅ | run-4/5 EXIT=0 · 30/30 · attempts 全账 §2 |
-| A5 | （§3 结果表） | 基线对照口径 |
+| A5 | ✅（基线对照口径·§3） | 绿 5 + tenant-enforcement 适配后绿 · 14 项基线同态红（零回归·stash 逐项亲证）· 2 项 remote-only 同态 · 零真回归 |
 | A6 | ✅ | 退役评估文档落卷 + 台账 L876/L879 勘误 + r4 零位移（P5-4）+ 35 别名解析绿（P6-1） |
 | A7 | ✅ | pins 全保留零翻转 |
 
