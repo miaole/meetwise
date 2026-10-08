@@ -370,7 +370,9 @@ export async function runMigrateProof(
   A('0046 → 岗位申请可显式评分不可用、历史 attempt 唯一、failed 必须释放',
     (await pool.query("SELECT pg_get_constraintdef(oid) def FROM pg_constraint WHERE conname='job_application_status_check'")).rows[0]?.def.includes('assessment_unavailable')
     && (await pool.query("SELECT to_regclass('public.uq_interview_application_attempt') r")).rows[0]?.r !== null
-    && (await pool.query("SELECT pg_get_functiondef('enforce_interview_consumption_terminal_pair()'::regprocedure) def")).rows[0]?.def.includes("'failed'")
+    // DBTF-1（0144）：terminal-pair 函数体收敛入 tf_ 库（挂接点/签名/语义零变）——断言改为
+    // 薄壳+库成员 def 链拼接后仍含 'failed' 字面量（强度不减 · 位置无关）。
+    && ((await pool.query("SELECT pg_get_functiondef('enforce_interview_consumption_terminal_pair()'::regprocedure) || pg_get_functiondef('public.tf_interview_consumption_terminal_pair(public.interview,public.interview)'::regprocedure) def")).rows[0]?.def.includes("'failed'"))
     && (await pool.query("SELECT pg_get_constraintdef(oid) def FROM pg_constraint WHERE conname='ck_job_application_score_range'")).rows[0]?.def.includes('100')
     && (await pool.query("SELECT count(*)::int n FROM pg_trigger WHERE tgname='trg_interview_scoring_completion_integrity' AND NOT tgisinternal")).rows[0]?.n === 1
     && (await pool.query("SELECT count(*)::int n FROM pg_trigger WHERE tgname='trg_job_application_lineage' AND NOT tgisinternal")).rows[0]?.n === 1

@@ -326,6 +326,8 @@
     "mem00-int00:prove-path:gate": "node scripts/mem00-int00-prove-path.proof.mjs",
     "memory-governance:prove": "node scripts/run-e2e-isolated.mjs memory-governance:prove:raw",
     "db-id-v7:prove": "node scripts/run-e2e-isolated.mjs db-id-v7:prove:raw",
+    "db-trigfam:prove": "node scripts/run-e2e-isolated.mjs db-trigfam:prove:raw",
+    "db-trigfam:prove:raw": "pnpm -C packages/db prove:db-trigfam",
     "db-id-v7:prove:raw": "pnpm -C packages/db prove:db-id-v7",
     "memory-governance:prove:raw": "pnpm -C packages/db prove:memory-governance",
     "memory-admission:prove": "node scripts/run-e2e-isolated.mjs memory-admission:prove:raw",
