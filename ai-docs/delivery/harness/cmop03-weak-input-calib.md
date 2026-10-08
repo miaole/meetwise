@@ -84,7 +84,7 @@ G7X/刀① 两代收据的报告链钟（**~10-12s 确定性钟 ×2 段**：主�
 | sidecar 读数 | `ai_model_invocation` 账本 | 实测 ≤10/run 预期形状：报告 narrative invoke **零发生**（聚合门 invoke 前抛的正面判据）· 调用全部来自题面/评分侧 |
 | 总 EXIT | `pnpm run e2e:isolated` | **预期 EXIT=1 红于 post-7b 窗（如实预注册 · 红 retained）**——判据四条见 §4.3 · **Ban 以「EXIT=0」为本刀通过条件** |
 
-**预期面机检钉**（EXEC 实跑前后 blob 全等强制 · 亲算 @`5a2994c4`）：**产品码五钉零 diff**——`assessment.ts`=`ca63f4ce` · `interview-service.ts`=`3026d9dd` · `main.ts`（worker）=`e4878b61` · `report.ts`=`92c77919` · `report-worker.ts`=`06d87f73`；**harness 保护三钉零 diff**——`sse.ts`=`9bba015d` · `assert.ts`=`975fbb38` · `run-e2e-isolated.mjs`=`13dbfc43`（+`model-operation-registry.ts`=`63af556f` 沿刀① 四钉惯例并入）；`full.e2e.ts`=`1fededa5`/`interview.ts`（helper）=`c7001612` 为基线 blob（EXEC 若获授权落注释级注记 → 改后 blob 收据登记 + `:236-237` 断言语句逐字符全等机检；默认零 diff）。tracked 树 run 前后零改双测（`git status --porcelain` 非 untracked=0）。
+**预期面机检钉**（EXEC 实跑前后 blob 全等强制 · 亲算 @`5a2994c4`）：**产品码五钉零 diff**——`assessment.ts`=`ca63f4ce` · `interview-service.ts`=`3026d9dd` · `main.ts`（worker）=`e4878b61` · `report.ts`=`92c77919` · `report-worker.ts`=`06d87f73`；**harness 保护三钉零 diff**——`e2e/helpers/sse.ts`=`9bba015d` · `e2e/helpers/assert.ts`=`975fbb38` · `scripts/run-e2e-isolated.mjs`=`13dbfc43`（+`model-operation-registry.ts`=`63af556f` 沿刀① 四钉惯例并入）〔erratum EXEC 期 · e2e-ha 席处方：sse.ts/assert.ts/run-e2e-isolated.mjs 补全仓库根相对路径 · blob 值不变〕；`full.e2e.ts`=`1fededa5`/`interview.ts`（helper）=`c7001612` 为基线 blob（EXEC 若获授权落注释级注记 → 改后 blob 收据登记 + `:236-237` 断言语句逐字符全等机检；默认零 diff）。tracked 树 run 前后零改双测（`git status --porcelain` 非 untracked=0）。
 
 ## 4. prove 方案（EXEC 期 · pre-exec dual BOTH PASS + meetwise 授权后方可行 · **分支 D 则本节不执行**）
 
