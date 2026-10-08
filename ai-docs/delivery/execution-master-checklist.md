@@ -1394,6 +1394,7 @@ flowchart TD
 
 > **协调方收账注（append-only · 2026-10-08）**：G7X nail `2c4fd56a` 与 MOP03-B nail `b2948f20` 系并行 nail；MOP03-B 系整链收账（REQUEST `aaf2ecbd`≡`33d080cc` + rev2 `3484e214`≡`6774d642` + EXEC `cde75f3c`≡`c133b2db` + 本 nail）后落主线，两 nail 节撞同锚点按纯追加语义双保留（顺序=落账顺序 G7X→MOP03-B），两侧内容逐字节未改；MOP03-B 链孪生 patch-id 收账验证 · Pins 十值两侧一致零翻转 · `:76`/`:107` 均 OPEN 零翻转。
 
+<<<<<<< HEAD
 ### Line PRIV01-B M2 等价 tenant 强制设计刀 NAIL（2026-10-08 SSOT nail · `post_prove_dual_pass` · GAP-PRIV-01 后继刀设计+prove 面完结（P-A · prove EXIT=0 35/0 · attempts 1,0 可采 · E-1 勘误已正）· backlog `:57` stays OPEN · EXIT0≠接线授权≠cutover≠abandon RLS≠tenant=RLS 等价≠授权根迁移≠MySQL 等价完成）
 
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
@@ -1438,3 +1439,16 @@ flowchart TD
 - Sibling sections stay as written（incl. Line G7K · G7R · F-F · G7S · G7T · G7U · G7B · G7W · G7V · RAG05 · I103 · INT01 · PRIV01/PRIV4 · SCOR · SS2 · FLK · AUDIT · MOP01/MOP02/MOP03）. This section does **not** close `:107`, does **not** flip trio/`g7SuiteGreen`, does **not** wash the `:232` instrument red, and does **not** touch G7U/G7V 节原文.
 
 > **协调方收账注（append-only · 2026-10-08 · G7V-FIX）**：G7V-FIX 系整链收账（REQUEST `cd47e0e4`≡`00bdfd5e` + rev2 `29f4f066`≡`298c9c79` + **产品码 coding `feddaa6a`≡`4faa61ef`**（patch-id 收账验证 · 恰两文件 view-model/interview-state）+ EXEC 收据 `2e849c98`≡`e55b2363` + 本 nail≡`ee8832c2`）后落主线，撞同锚点按纯追加语义双保留（顺序=落账顺序 G7X→MOP03-B→PRIV01-B→QGEN-P2→G7V-FIX），两侧内容逐字节未改 · Pins 十值零翻转 · `GAP-G7V-THIRDARM-COPY-SETTLEMENT` → CLOSED（fixed）· trio 1/1/1 与 `g7SuiteGreen=false` 零翻转。
+
+### Line ANNOT-1 注释收口小刀 NAIL（2026-10-08 SSOT nail · 协调方授权 · post-prove 双审后落链 · `apps/web/app/jobs/page.tsx:110-111` 注释诚实性收口 · annotation-only 零行为变更 · lifecycle `executed:awaiting_post_dual` → `post_prove_dual_pass`）
+
+- [x] **`post_prove_dual_pass`** recorded for Line ANNOT-1（jobs/page.tsx:110 注释收口小刀）products only（注释诚实性收口 · annotation-only · 零行为变更）. Implementer does not self-approve beyond this coordinator nail.
+- 证据链全 SHA：REQUEST `0a8ffd6b`（docs-only 恰 4 文件：harness+slice+双审空 stub ×2 · +97/−0 · 零产品码）→ EXEC `a7e13d2c`（`jobs/page.tsx:110-111` 注释改写 · blob 链 `6912cd61`→`490f231d` · 产品面恰 1 文件 · slice 勘误 :11→:14 随落 · 收据 `receipts/annot1-jobs-refund-annotation/` · 双 prove EXIT=0 一次过零 retry）→ **本 nail commit**（branch `line/jobs-refund-annotation-fix` · 禁 force push）。
+- 产物摘要：恰 **1 文件 1 处 2 行注释 in-place**（2→2 零行移位 · 其余全文件零 diff）· **分臂如实口径**（`evaluation_unscored`=预留已释放 / `no_eligible_scored_answer`=已扣费结算不释放 / 额度处理以结算事件为准 · 「已退款」一刀切口径移除 · `:27` 标签、`:112` startable、渲染字符串零触碰）· **零行为变更**（纯注释编译期剥离 · `pnpm -C apps/web prove` EXIT=0 + `pnpm -C apps/web prove:public-copy` EXIT=0 双证一次过）· slice :11→:14 勘误随落。
+- post-dual 双审 BOTH PASS（两席独立复核 · alone ≠ dual · 不代签 peer）：`mw-e2e-ha` PASS + `mw-model-op` PASS · meetwise 协调方正式授权本 nail（harness/slice lifecycle `executed:awaiting_post_dual` → **`post_prove_dual_pass`** · 旧状态 token 保留为 provenance 不回改）。
+- **Non-claims**：本刀 = 注释诚实性收口（码面文档假话纠正）**≠ 行为修复 ≠ GAP 翻转**；`GAP-G7V-THIRDARM-COPY-SETTLEMENT` 已 **CLOSED(fixed)** 归 `line/g7v-thirdarm-copy-fix` 线（渲染文案分臂修复）· **本刀零 backlog 操作**（本分支 backlog 快照 `:796-802` 立行时原貌 · 处置权归 G7V 线与协调方）；docs:check 预存红 `PTP_FILE_LIMIT:3804`（MAX_FILES=2048）base 即红非本刀产物 · retained 不洗。
+- Pins unchanged（文首照抄 · 原值写死 · 零翻转）: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null. Do not write covered.
+- [ ] not 行为修复 · [ ] not GAP 翻转（backlog 本刀零 diff）· [ ] not covered · [ ] not suite green ≠ not HA ≠ not `releaseEvidence=true` ≠ not coveredCount 扩面（coveredCount=**8** unchanged）· `g7SuiteGreen=false` · `actualSpendCny=null` · alone ≠ dual.
+- Sibling sections stay as written（incl. Line G7K · G7R · F-F · G7S · G7T · G7U · G7B · G7V · G7X · MOP03-B · RAG05 · I103 · INT01 · PRIV01/PRIV4 · SCOR · SS2 · FLK · AUDIT · MOP01/MOP02/MOP03）. This section does **not** flip any pin, does **not** close any existing gap row, and does **not** touch backlog · 纯追加 · alone≠dual · 禁洗绿为 covered/closed.
+
+> **协调方收账注（append-only · 2026-10-08 · ANNOT-1）**：ANNOT-1 系整链收账（REQUEST `0a8ffd6b` + EXEC `a7e13d2c`（含产品注释码 `490f231d`）+ 本 nail≡`0f1c1b15`）后落主线，撞同锚点按纯追加语义双保留（顺序=落账顺序 …QGEN-P2→G7V-FIX→ANNOT-1），两侧内容逐字节未改 · Pins 十值零翻转 · 零 GAP 翻转。
