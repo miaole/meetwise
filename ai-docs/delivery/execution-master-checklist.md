@@ -1670,3 +1670,4 @@ flowchart TD
 - Sibling sections stay as written（incl. Line CMOP03-FIX 刀① · CMOP03-E · CMOP03-D · G7Y · PARITY-B 及全部 sibling 归档）. This section does **not** flip any pin, does **not** close any row, does **not** 归因三候选任一/两岔任一/段内候选任一, does **not** touch backlog 行本体（7A-DOWNGRADE 增量转挂与本节互引 · 行状态零改写）, does **not** 碰 `:237-:351`/`:356`/`:357` 断言本体（埋点 4 行 insert-only 留树）· 纯追加 · alone ≠ dual · 禁洗盲区 · 禁洗段外红为段内候选 · 禁 retry-to-green 叙事.
 
 > **协调方收账注（append-only · 2026-10-08 · CMOP03-F）**：CMOP03-F 系整链收账（REQUEST 7ef80920+rev2 2bd5f041+EXEC 632930f3（含 4 行 seg2 埋点 e2e 产品码）+本 nail≡6516b9c7）后落主线，双保留两侧逐字节未改 · POST7B P1 OPEN 维持 · 7A 增量转挂 · Pins 十值零翻转。
+
