@@ -1,6 +1,6 @@
 # G7P-1 — e2e runner 启动段探针刀（api 红真抛点定位·非判别 run）
 
-**状态**：`draft_rev2:awaiting_pre_exec_dual`（rev1 席1 FAIL 三处方落实：段序对齐真实链〔api+worker 并发 spawn+login-401 DB 门+3s sleep+exitCode 检查〕·段 5 实名 /readyz/api·EXIT=9 崩溃专属码+行文法钉死） · base = 主线 `a9f55133` · 分支 `line/g7-bootphase-probe` · 立项依据 = E2EFAIL-1 判别 run branch 3（api 红 23.3s·0 行·双计 0=史上最早死亡面）+ 席2 时序分析（prove 窗 ~5-8s vs runner 启动链 ≳8-12s ⇒ 红点很可能在启动段）+ 席2 建议「boot-phase 探针 run 或 code 截获面」——协调方裁**探针 run 方案**（不动 wrapper·零产品码·信息量最大）。
+**状态**：`draft_rev3:awaiting_pre_exec_dual`（rev2 残留：§3 分支 1 区间联动 8 段编号〔EXIT 3-7·fail/timeout 均计〕——rev2 三处方落实：段序对齐真实链〔api+worker 并发 spawn+login-401 DB 门+3s sleep+exitCode 检查〕·段 5 实名 /readyz/api·EXIT=9 崩溃专属码+行文法钉死） · base = 主线 `a9f55133` · 分支 `line/g7-bootphase-probe` · 立项依据 = E2EFAIL-1 判别 run branch 3（api 红 23.3s·0 行·双计 0=史上最早死亡面）+ 席2 时序分析（prove 窗 ~5-8s vs runner 启动链 ≳8-12s ⇒ 红点很可能在启动段）+ 席2 建议「boot-phase 探针 run 或 code 截获面」——协调方裁**探针 run 方案**（不动 wrapper·零产品码·信息量最大）。
 
 ## 1. 背景与目标
 历史 api 红族（G7S 38428/G7X 40363/G7U 40560/CMOP03-FIX 78798/G7Y 101906ms·均 4-11 行 review ledger 深跑红）与 E2EFAIL-1 新形状（23330ms·0 行·双计 0）**不同族**；已修面（断言 supersession/断链 import）均非触发点。目标=区分红点在 (a) runner 启动段〔PG 冷启/api 进程退出/readyz 超时〕vs (b) 旅程早期段〔signup/resume/upload 前〕vs (c) 环境噪声〔Docker 重启后残留态〕——为 G7 修复刀定靶。
@@ -14,7 +14,7 @@
 - 跑恰 **2 次**（预注册：run-A 冷〔docker 刚起〕+ run-B 热〔紧随其后〕——区分冷热态）；非判别 run（不跑全旅程·不触模型调用面·Ban retry-to-green 不适用但禁重跑至绿同律）。
 
 ## 3. 预注册判读（三向）
-- **启动段红**（EXIT 3-6 或 signup 前超时）⇒ 红因=runner/环境启动链 ⇒ G7 api 红修复刀定靶启动段（api_exited_before_test 类）；
+- **启动段红**（**EXIT 3-7**〔probe_spawn_3..probe_api_readyz_7·status=fail 与 timeout 两状均计〕或 signup 前超时）⇒ 红因=runner/环境启动链 ⇒ G7 api 红修复刀定靶启动段（api_exited_before_test 类）；
 - **signup 绿**（EXIT 0 全段过）⇒ 启动链健康 ⇒ 红因在旅程段 ⇒ 归 G7X ①面延续（报告钟/断言之外的第三抛点）另探；
 - **冷热分裂**（run-A 红run-B 绿或反之）⇒ 环境噪声主导 ⇒ infra-adjacent 假说坐实 ⇒ 复跑窗策略调整。
 三向均如实入收据禁洗绿。
