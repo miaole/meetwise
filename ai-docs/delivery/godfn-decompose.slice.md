@@ -1,6 +1,6 @@
 # Slice — **GODFN-1** · GAP-DEBT-BE-GODFN 四子刀拆解 REQUEST
 
-**Status**: **`draft:awaiting_pre_exec_dual`**
+**Status**: **`draft:awaiting_pre_exec_dual`** · **rev2**（2026-10-08 · mw-e2e-ha 席 FAIL 处方四项 docs-only 修订：§5 矩阵缺口+键名归一（机检 §5.5）· §7.3 1b×1d 同文件条款 · 计数/实名校准）
 **Date**: 2026-10-07
 **Authority**: meetwise — docs-only 拆解刀（W3 前置 · 债行在卷 `gap-bug-backlog.md:880` P1 OPEN 不翻）· 四子刀（1a invoke 拆 phase / 1b G7 卫兵移组合根 / 1c interview.service 域拆+begin 守卫合并 / 1d AppError{code} 统一）可分批授权 · 每子刀独立全链（REQUEST→双审→EXEC→post-dual→nail）
 **Base**: `9028eb70`（`origin/feat/mysql-schema-skeleton` fetch 后实测 tip）· worktree `meetwise-line-godfn` · branch `line/be-godfn`
@@ -34,7 +34,8 @@ Docs-only：把 GAP-DEBT-BE-GODFN 债行拆成四把行为等价子刀并各自�
 | CMD | Status |
 |-----|--------|
 | docs REQUEST | `draft:awaiting_pre_exec_dual` · harness + slice + 双 stub 落盘 · 零 prove · 零 live · 零 Key |
+| docs rev2 | 2026-10-08 · e2e-ha FAIL 处方四项修订（同 4 md · 仍 docs-only · 零 prove · 零 SSOT 翻转）· 复审待双席 |
 
 ---
 
-*Slice · GODFN-1 decomposition REQUEST · 2026-10-07 · base `9028eb70` · awaiting pre-exec dual (mw-model-op + mw-e2e-ha) · docs-only · STOP*
+*Slice · GODFN-1 decomposition REQUEST · 2026-10-07 · rev2 2026-10-08（e2e-ha FAIL 处方四项 docs-only 修订）· base `9028eb70` · awaiting pre-exec dual (mw-model-op + mw-e2e-ha) · docs-only · STOP*
