@@ -1647,3 +1647,8 @@ flowchart TD
 - Sibling sections stay as written（incl. Line G7 系列 · CMOP03 系列 · PARITY-B · RAG03-C · PRIV01 系列 · MOP/SCOR/SS2/FLK/AUDIT 等）. This section does **not** flip any pin, does **not** close any OPEN row, does **not** 勾销 B6 合规清单（归协调方后续 SSOT commit）, does **not** touch 产品码/proof/仪器（本 nail 纯 ai-docs 追加：两 stub 回填+harness §10+slice 结果块+本节）· 纯追加 · alone≠dual · 禁洗盲区.
 
 > **协调方收账注（append-only · 2026-10-08 · SSE-PUSH）**：SSE-PUSH 系整链收账（REQUEST 407e5afe + 阻断备忘录 876eaeac + EXEC a963ef19〔0143 迁移+sse-notify/sse-pump 产品码〕+ 本 nail≡49535514）后落主线，撞同锚点按纯追加语义双保留，两侧内容逐字节未改 · B6 生产 posture 已落码（合规清单勾销归协调方后续 SSOT commit）· GAP-SSEPUSH-PROD-30S 等五行登记 · Pins 十值零翻转。
+
+### Line E4 微刀（DIR-1 B1 解阻）NAIL（2026-10-08 SSOT 协调方 nail · post-dual BOTH PASS：mw-e2e-ha PASS+vectorstore 附日志裁定 / mw-model-op PASS+53/11 分项闭合复核）
+
+- 全链：REQUEST `9079d81a` → EXEC `d3507770`（245/245 纯前缀·G0 172/172 零违例）→ 收据 `8585f8ae` → 主线收账（见上注）。**B2 前置达成**。G2=64 靶 53绿/11红全 base parity（红侧 9+2 结构对账·预存红零洗）·ENOENT 归零 67/67（1,007 sourceDigests 全在盘）·G3 vectorstore=结构性无回执先在事实（两席一致：附会话日志 EXIT=0·补跑不产生回执）。收据勘误在案：db 44→43·红 10→11 补 uc011·分项和闭合。E6（uc-e2e-011:200 payment.ts=B1 扫漏唯一机械面·归 B1b/B2）·E4b（conn-stack 10 处零处置待另裁）登记。Pins 十值零翻转：NOT_HA · releaseEvidence=false · g7SuiteGreen=false · coveredCount=8 · DELETE=503 · actualSpendCny=null。
+- Non-claims：≠DIR-1 完成 ≠B2 已批；B2/B3/B6 各须 REQUEST+双审+授权。
