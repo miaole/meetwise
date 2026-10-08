@@ -1,6 +1,11 @@
-# Slice — **PRIV01-C · GAP-PRIV-01 应用层 tenant 强制接线 PR（纵深防御第二层）**（PRIV01-B 后继刀 · REQUEST docs-only · 零产品码 · backlog `:57` OPEN · DELETE=503 · PG-retained · **`draft:awaiting_pre_exec_dual`**）
+# Slice — **PRIV01-C · GAP-PRIV-01 应用层 tenant 强制接线 PR（纵深防御第二层）**（PRIV01-B 后继刀 · REQUEST docs-only · 零产品码 · backlog `:57` OPEN · DELETE=503 · PG-retained · **`post_prove_dual_pass`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（REQUEST docs-only · 本 commit 恰 4 文档 · 零 coding / 零 prove 执行 / 零产品码 / 零 SSOT / 零 stub 代填 · Ban coding until PRE dual BOTH PASS + meetwise AUTHORIZE · Ban self-approve · alone ≠ dual）
+**Status**: **`post_prove_dual_pass`**（nail lifecycle 推进 2026-10-07（本机 · Asia/Shanghai 2026-10-08 链语境）· post-prove 双审 BOTH PASS：mw-privacy-int PASS + mw-e2e-ha PASS（两处 attempt1 均裁可采 · R1 翻正「加严非放松」终核成立 · runner 第 4 处 isolatedCommand 路由追认）· meetwise 协调方正式授权 nail · Ban self-write 条款由本授权满足 · `:57` OPEN · alone ≠ dual · 详见 harness §13 + `execution-master-checklist.md` Line PRIV01-C NAIL 节）
+
+> **Exec-era status（historical · retained）**: **`executed:awaiting_post_prove_dual`**（EXEC 2026-10-08 Asia/Shanghai · base 重钉 `566e3b3d`（mandated rebase）· 11 文件/81 触点精确接线 · prove 三段全绿 P1 35/0 + P2 163/0 + P3 9 具名红 · attempts 1,1 交 post 双审裁 · 详见 harness §13 · Ban self-write `post_prove_dual_pass`）
+
+> **Pre-exec-era status（historical · retained）**: **`draft:awaiting_pre_exec_dual`**（REQUEST docs-only · 本 commit 恰 4 文档 · 零 coding / 零 prove 执行 / 零产品码 / 零 SSOT / 零 stub 代填 · Ban coding until PRE dual BOTH PASS + meetwise AUTHORIZE · Ban self-approve · alone ≠ dual）
+
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null
 **Date**: 2026-10-07（本机）· stub 名 `REQUEST-2026-10-08-priv01-wiring-*` 系协调方 mandate（Asia/Shanghai 跨日命名）
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`eef469d9`** / full `eef469d9b1305e290d41f510922c0b0795f2266f`（≥`eef469d9` 满足 · fetch up-to-date · ff no-op · 全部引锚 @`eef469d9` 实测）
@@ -68,7 +73,7 @@ REQUEST → 预执行双审（mw-privacy-int + mw-e2e-ha）→ meetwise 授权 �
 
 ---
 
-*Slice · PRIV01-C GAP-PRIV-01 应用层 tenant 强制接线 PR（纵深防御第二层 · RLS 根零触碰 · E5 应用层半边 prove 兑现）· `draft:awaiting_pre_exec_dual` · 2026-10-07 立卷 · backlog `:57` OPEN · DELETE=503 · PG-retained · R1 翻正交双审 · alone ≠ dual · STOP*
+*Slice · PRIV01-C GAP-PRIV-01 应用层 tenant 强制接线 PR（纵深防御第二层 · RLS 根零触碰 · E5 应用层半边 prove 兑现）· `post_prove_dual_pass` · 2026-10-07 立卷 / 2026-10-08 EXEC · 2026-10-07 nail（本机 · Asia/Shanghai 2026-10-08 链语境）· backlog `:57` OPEN · DELETE=503 · PG-retained · PRE dual BOTH PASS · post-prove dual BOTH PASS（attempts 1,1 可采 · R1 翻正「加严非放松」终核 · runner 第 4 处 isolatedCommand 路由追认）· alone ≠ dual · STOP*
 
 ## EXEC 登记（浓缩 · 2026-10-08 · 全文见 harness §13 + `receipts/priv01-tenant-wiring/2026-10-08-exec-wiring-and-prove.md`）
 
