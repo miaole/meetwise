@@ -401,14 +401,162 @@ async function persistTraceBestEffort(
  * nor an advisory lock.
  */
 export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string): Promise<InvokeOutcome<T>> {
+  // GODFN-1a：主函数只做五相位编排——resolve+prepare → claim → admit → reserve+dispatch →
+  // execute+settle。各相位本体为同文件私有函数，跨相位状态经显式参数对象传递（禁闭包共享可变态）。
+  // 每相位代码逐字搬移自拆解前行界（:404-461/:463-482/:487-570/:572-629/:631-773）：
+  // 错误码/抛序/SQL 事务边界/时序常量（sleep(20)/60s lease/deadline）零变，导出面签名零变。
+  const prepared = await invokeResolveAndPreparePhase(spec, owner);
+  if (prepared.terminal) return prepared.outcome;
+  const claimed = await invokeClaimPhase({
+    spec, pool, owner,
+    logicalNodeKey: prepared.logicalNodeKey,
+    digest: prepared.digest,
+    requestId: prepared.requestId,
+    deadline: prepared.deadline,
+    span: prepared.span,
+    plan: prepared.plan,
+  });
+  if (claimed.terminal) return claimed.outcome;
+  const admitted = await invokeAdmitPhase({
+    spec, pool, owner,
+    plan: prepared.plan,
+    leaseToken: claimed.leaseToken,
+    admissionPartition: prepared.admissionPartition,
+    executionTimeoutMs: prepared.executionTimeoutMs,
+    span: prepared.span,
+  });
+  if (admitted.terminal) return admitted.outcome;
+  const dispatched = await invokeReserveAndDispatchPhase({
+    spec, pool, owner,
+    plan: admitted.plan,
+    leaseToken: claimed.leaseToken,
+    admission: admitted.admission,
+    sharedLease: admitted.sharedLease,
+    span: prepared.span,
+  });
+  if (dispatched.terminal) return dispatched.outcome;
+  return invokeExecuteAndSettlePhase({
+    spec, pool, owner,
+    plan: admitted.plan,
+    policy: dispatched.policy,
+    admission: admitted.admission,
+    sharedLease: admitted.sharedLease,
+    requestId: prepared.requestId,
+    executionTimeoutMs: prepared.executionTimeoutMs,
+    span: prepared.span,
+  });
+}
+
+/**
+ * GODFN-1a 五相位私有函数（全部拆解自原 `invoke()` :403-774 · 纯机械提取 · 语义等价）。
+ * 相位间公共判别形：`terminal: true` 时 `outcome` 即 invoke 的终态返回；`terminal: false`
+ * 时携带续行状态对象，由主函数经显式参数传给下一相位。`preparePlan` 闭包（原 :429-441）
+ * 外提为模块级 `prepareModelPlan`（spec/executionTimeoutMs 显式传参），供相位 1/3 共用。
+ */
+type InvokeSpanFn = (attempt: number, outcome: ModelCallOutcome, latencyMs: number, usage?: ModelUsage) => void;
+
+type InvokePhaseStep<T, Next> =
+  | { terminal: true; outcome: InvokeOutcome<T> }
+  | ({ terminal: false } & Next);
+
+/** resolve+prepare 相位产出（原 :404-461 生成 · 跨相位显式状态对象）。 */
+interface InvokePrepared {
+  logicalNodeKey: string;
+  admissionPartition: ReturnType<typeof resolveModelAdmissionPartition>;
+  requestId: string | null;
+  executionTimeoutMs: number;
+  deadline: number;
+  span: InvokeSpanFn;
+  plan: ReadyModelCallPlan;
+  digest: string;
+}
+
+/** claim 相位产出（原 :463-482 · durable lease token）。 */
+interface InvokeClaimed { leaseToken: string }
+
+/** admit 相位产出（原 :487-570 · 可能被半开 route-retry 替换的 plan + 双层 admission）。 */
+interface InvokeAdmitted {
+  plan: ReadyModelCallPlan;
+  admission: ModelAdmission | undefined;
+  sharedLease: SharedModelAdmissionLease | undefined;
+}
+
+interface InvokeClaimArgs<T> {
+  spec: InvokeSpec<T>;
+  pool: DbPool;
+  owner: string;
+  logicalNodeKey: string;
+  digest: string;
+  requestId: string | null;
+  deadline: number;
+  span: InvokeSpanFn;
+  plan: ReadyModelCallPlan;
+}
+
+interface InvokeAdmitArgs<T> {
+  spec: InvokeSpec<T>;
+  pool: DbPool;
+  owner: string;
+  plan: ReadyModelCallPlan;
+  leaseToken: string;
+  admissionPartition: ReturnType<typeof resolveModelAdmissionPartition>;
+  executionTimeoutMs: number;
+  span: InvokeSpanFn;
+}
+
+interface InvokeDispatchArgs<T> {
+  spec: InvokeSpec<T>;
+  pool: DbPool;
+  owner: string;
+  plan: ReadyModelCallPlan;
+  leaseToken: string;
+  admission: ModelAdmission | undefined;
+  sharedLease: SharedModelAdmissionLease | undefined;
+  span: InvokeSpanFn;
+}
+
+interface InvokeExecuteArgs<T> {
+  spec: InvokeSpec<T>;
+  pool: DbPool;
+  owner: string;
+  plan: ReadyModelCallPlan;
+  policy: ModelCostPolicy | undefined;
+  admission: ModelAdmission | undefined;
+  sharedLease: SharedModelAdmissionLease | undefined;
+  requestId: string | null;
+  executionTimeoutMs: number;
+  span: InvokeSpanFn;
+}
+
+/** 原 invoke 内 `preparePlan` 闭包（:429-441）的模块级外提：纯 pre-dispatch 路由选择，不发请求。 */
+async function prepareModelPlan<T>(
+  spec: InvokeSpec<T>, executionTimeoutMs: number,
+): Promise<{ plan?: ModelCallPlan; timedOut: boolean }> {
+  let timedOut = false;
+  try {
+    const plan = await withAbortTimeout(
+      (signal) => spec.model.prepare
+        ? Promise.resolve(spec.model.prepare(1, signal))
+        : Promise.resolve({ ready: true as const, execute: (executeSignal?: AbortSignal) => spec.model.call(1, executeSignal), cost: undefined }),
+      executionTimeoutMs,
+      () => { timedOut = true; },
+    );
+    return { plan, timedOut };
+  } catch { return { timedOut }; }
+}
+
+/** GODFN-1a 相位 1/5 · resolve+prepare（原 :404-461 逐字搬移）。 */
+async function invokeResolveAndPreparePhase<T>(
+  spec: InvokeSpec<T>, owner: string,
+): Promise<InvokePhaseStep<T, InvokePrepared>> {
   const logicalNodeKey = resolvedLogicalNodeKey(spec);
   if (!logicalNodeKey) {
     if (spec.operation) {
       const resolved = resolveModelOperation(spec.operation.id, spec.operation.businessRevision);
-      if (!resolved.ok) return { error: resolved.error };
-      return { error: 'model_logical_node_key_conflict' };
+      if (!resolved.ok) return { terminal: true, outcome: { error: resolved.error } };
+      return { terminal: true, outcome: { error: 'model_logical_node_key_conflict' } };
     }
-    return { error: 'model_logical_node_key_required' };
+    return { terminal: true, outcome: { error: 'model_logical_node_key_required' } };
   }
   // MODEL-OP-02 准入分区（服务器派生，绝不 caller 供）。仅 operation-scoped 路径；
   // legacy cost-policy-only 调用返回 undefined（走 MODEL-OP-00 账本，不折入共享分区）。
@@ -421,47 +569,38 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
   const executionTimeoutMs = modelExecutionTimeoutMs(spec);
   const deadline = Date.now() + waitMs;
   const tracer = getTracer();
-  const span = (attempt: number, outcome: ModelCallOutcome, latencyMs: number, usage?: ModelUsage) =>
+  const span: InvokeSpanFn = (attempt, outcome, latencyMs, usage) =>
     tracer.record({ owner, idempotencyKey: spec.idempotencyKey, threadId: spec.threadId, attempt, outcome, latencyMs, service: spec.service, sources: spec.sources ?? [], retrieval: spec.retrieval, inputTokens: usage?.inputTokens, outputTokens: usage?.outputTokens });
 
   // Routing/breaker selection is pure pre-dispatch work. It can choose backup
   // only when primary is already unavailable; it must not send a request.
-  const preparePlan = async (): Promise<{ plan?: ModelCallPlan; timedOut: boolean }> => {
-    let timedOut = false;
-    try {
-      const plan = await withAbortTimeout(
-        (signal) => spec.model.prepare
-          ? Promise.resolve(spec.model.prepare(1, signal))
-          : Promise.resolve({ ready: true as const, execute: (executeSignal?: AbortSignal) => spec.model.call(1, executeSignal), cost: undefined }),
-        executionTimeoutMs,
-        () => { timedOut = true; },
-      );
-      return { plan, timedOut };
-    } catch { return { timedOut }; }
-  };
-  const initial = await preparePlan();
+  const initial = await prepareModelPlan(spec, executionTimeoutMs);
   if (!initial.plan) {
     // `prepare` is contractually pre-dispatch, so a deadline here creates no
     // billable ambiguity and must not leave an invocation claim behind.
     span(0, 'exhausted', 0);
-    return { error: initial.timedOut ? 'model_prepare_timeout' : 'model_prepare_failed' };
+    return { terminal: true, outcome: { error: initial.timedOut ? 'model_prepare_timeout' : 'model_prepare_failed' } };
   }
-  if (initial.plan.ready === false) { span(0, 'deterministic_refusal', 0); return { error: initial.plan.error }; }
-  let plan: ReadyModelCallPlan = initial.plan;
+  if (initial.plan.ready === false) { span(0, 'deterministic_refusal', 0); return { terminal: true, outcome: { error: initial.plan.error } }; }
+  const plan: ReadyModelCallPlan = initial.plan;
   // The scope becomes part of the durable claim before any local admission
   // lease is taken.  Reject malformed trusted configuration here so a database
   // encoding/constraint error cannot escape the claim loop or strand a caller.
   const initialCostPolicyError = costPolicyError(plan.cost);
   if (initialCostPolicyError) {
     span(0, 'deterministic_refusal', 0);
-    return { error: initialCostPolicyError };
+    return { terminal: true, outcome: { error: initialCostPolicyError } };
   }
   // Route selection is pure. Bind the actually selected endpoint policy only
   // after it is known, but still before the durable claim is created.
   const digest = invocationDigest(spec, plan.cost);
+  return { terminal: false, logicalNodeKey, admissionPartition, requestId, executionTimeoutMs, deadline, span, plan, digest };
+}
 
+/** GODFN-1a 相位 2/5 · claim（原 :463-482 逐字搬移 · durable claim 轮询 + follower 20ms 真轮询）。 */
+async function invokeClaimPhase<T>(args: InvokeClaimArgs<T>): Promise<InvokePhaseStep<T, InvokeClaimed>> {
+  const { spec, pool, owner, logicalNodeKey, digest, requestId, deadline, span, plan } = args;
   let leaseToken: string | undefined;
-  let sharedLease: SharedModelAdmissionLease | undefined;
   for (;;) {
     const token = randomUUID();
     const claim = await asPrincipal(pool, owner, (c) => claimModelInvocation(c, {
@@ -473,28 +612,35 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
       estimateInputTokens: plan.estimateInputTokens,
     }));
     if (claim.action === 'execute') { leaseToken = claim.leaseToken; break; }
-    if (claim.action === 'cached') { span(0, 'cached', 0); return { value: claim.output as T }; }
-    if (claim.action === 'failed' || claim.action === 'unknown') { span(0, 'deterministic_refusal', 0); return { error: claim.error }; }
-    if (Date.now() >= deadline) { span(0, 'exhausted', 0); return { error: 'model_invocation_wait_timeout' }; }
+    if (claim.action === 'cached') { span(0, 'cached', 0); return { terminal: true, outcome: { value: claim.output as T } }; }
+    if (claim.action === 'failed' || claim.action === 'unknown') { span(0, 'deterministic_refusal', 0); return { terminal: true, outcome: { error: claim.error } }; }
+    if (Date.now() >= deadline) { span(0, 'exhausted', 0); return { terminal: true, outcome: { error: 'model_invocation_wait_timeout' } }; }
     // Followers must join, never execute.  20ms is still a real poll of durable
     // status (claimed/dispatching → succeeded), not an in-process single-flight.
     await sleep(20);
   }
+  return { terminal: false, leaseToken: leaseToken! };
+}
 
+/** GODFN-1a 相位 3/5 · admit（原 :487-570 逐字搬移 · 共享准入 + 本地 admission + 半开 follower 路由重试）。 */
+async function invokeAdmitPhase<T>(args: InvokeAdmitArgs<T>): Promise<InvokePhaseStep<T, InvokeAdmitted>> {
+  const { spec, pool, owner, leaseToken, admissionPartition, executionTimeoutMs, span } = args;
+  let { plan } = args;
   // MODEL-OP-02 共享准入 + 断路器入场 + 并发槽认领（单一权威，取代 per-adapter 限流）。
   // 在 durable claim 之后、派发边界之前执行：拒绝=known-not-sent，claim 可安全 failed。
   // 决策 fail-closed（unknown/blocked/breaker_open/concurrency_exhausted → 确定性拒绝，零外呼）。
+  let sharedLease: SharedModelAdmissionLease | undefined;
   if (admissionPartition) {
     const shared = await admitSharedModelOperation(pool, owner, {
       partition: admissionPartition, scopeId: plan.cost?.scopeId, idempotencyKey: spec.idempotencyKey,
     });
     if (!shared.ok) {
       await asPrincipal(pool, owner, async (c) => {
-        if (!await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken!, shared.error))
+        if (!await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken, shared.error))
           throw new Error('model_invocation_admission_state');
       });
       span(0, 'deterministic_refusal', 0);
-      return { error: shared.error };
+      return { terminal: true, outcome: { error: shared.error } };
     }
     sharedLease = shared.lease;
   }
@@ -515,7 +661,7 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
       if (plan.admit) {
         admission = await withAbortTimeout(
           async (signal) => {
-            const acquired = await plan!.admit!(signal);
+            const acquired = await plan.admit!(signal);
             // A non-cooperative admission implementation can resolve after the
             // gateway deadline.  It must release itself immediately rather than
             // leak a local slot/probe that no caller can now reach.
@@ -534,7 +680,7 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
     } catch (error) {
       admissionError = error;
       if (!isHalfOpenFollower(error) || routeRetry === 1) break;
-      const replacement = await preparePlan();
+      const replacement = await prepareModelPlan(spec, executionTimeoutMs);
       if (!replacement.plan) { admissionTimedOut = admissionTimedOut || replacement.timedOut; break; }
       if (replacement.plan.ready === false) { admissionError = new Error(replacement.plan.error); break; }
       // Cost scope is an idempotency boundary.  A route may fail over only
@@ -558,7 +704,7 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
       ? 'model_failover_cost_policy_mismatch'
       : (admissionTimedOut ? 'model_admission_timeout' : 'model_admission_failed');
     await asPrincipal(pool, owner, async (c) => {
-      if (!await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken!, code))
+      if (!await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken, code))
         throw new Error('model_invocation_admission_state');
     });
     // MODEL-OP-02：本地 admission（plan.admit）失败仍必须释放已取得的共享槽/探针。
@@ -566,9 +712,16 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
     // 此分支是防御性收口，防止未来有本地+共享双层 admission 的模型在此泄漏共享租约。
     await releaseSharedAdmissionBestEffort(pool, owner, sharedLease, 'no_signal');
     span(0, admissionTimedOut ? 'exhausted' : 'deterministic_refusal', 0);
-    return { error: code };
+    return { terminal: true, outcome: { error: code } };
   }
+  return { terminal: false, plan, admission, sharedLease };
+}
 
+/** GODFN-1a 相位 4/5 · reserve+dispatch（原 :572-629 逐字搬移 · 隐私围栏 + reserve + 双 dispatched 标记单事务）。 */
+async function invokeReserveAndDispatchPhase<T>(
+  args: InvokeDispatchArgs<T>,
+): Promise<InvokePhaseStep<T, { policy: ModelCostPolicy | undefined }>> {
+  const { spec, pool, owner, plan, leaseToken, admission, sharedLease, span } = args;
   const policy = plan.cost;
   let reservationDecision: string | undefined;
   let dispatch: { ok: true } | { ok: false; error: string };
@@ -580,7 +733,7 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
         // aborts the transaction and would make the following durable
         // known-not-sent transition impossible.
         if (!await isInterviewPrivacyActive(c, spec.privacyInterviewId)) {
-          if (!await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken!, 'privacy_fenced_pre_dispatch'))
+          if (!await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken, 'privacy_fenced_pre_dispatch'))
             throw new Error('model_invocation_privacy_fence_state');
           return { ok: false as const, error: 'privacy_fenced_pre_dispatch' };
         }
@@ -593,11 +746,11 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
         });
         reservationDecision = reserve.decision;
         if (reserve.decision !== 'reserved' && reserve.decision !== 'held') {
-          await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken!, `cost_${reserve.decision}`);
+          await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken, `cost_${reserve.decision}`);
           return { ok: false as const, error: `cost_${reserve.decision}` };
         }
       }
-      const marked = await markModelInvocationDispatched(c, owner, spec.idempotencyKey, leaseToken!, policy?.scopeId);
+      const marked = await markModelInvocationDispatched(c, owner, spec.idempotencyKey, leaseToken, policy?.scopeId);
       if (!marked) throw new Error('model_invocation_dispatch_state');
       if (policy) {
         const costMarked = await markAiCostDispatched(c, policy.scopeId, owner, spec.idempotencyKey);
@@ -614,20 +767,25 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
     // MODEL-OP-02 共享槽/探针释放（no_signal：相位不变，只还槽/探针；无 provider 外呼）。
     await releaseSharedAdmissionBestEffort(pool, owner, sharedLease, 'no_signal');
     await asPrincipal(pool, owner, async (c) => {
-      await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken!, 'model_dispatch_preflight_failed');
+      await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken, 'model_dispatch_preflight_failed');
     }).catch(() => undefined);
     span(0, 'exhausted', 0);
-    return { error: 'model_dispatch_preflight_failed' };
+    return { terminal: true, outcome: { error: 'model_dispatch_preflight_failed' } };
   }
   if (!dispatch.ok) {
     admission?.release();
     // MODEL-OP-02 共享槽/探针释放（确定性拒绝：隐私围栏 / cost reserve 拒绝，未派发）。
     await releaseSharedAdmissionBestEffort(pool, owner, sharedLease, 'no_signal');
     span(0, 'deterministic_refusal', 0);
-    return { error: dispatch.error };
+    return { terminal: true, outcome: { error: dispatch.error } };
   }
   if (policy && reservationDecision) getMetrics().inc(METRIC.modelCostDecisions, { decision: reservationDecision });
+  return { terminal: false, policy };
+}
 
+/** GODFN-1a 相位 5/5 · execute+settle（原 :631-773 逐字搬移 · 执行 + 四路结算 + breaker 释放）。 */
+async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promise<InvokeOutcome<T>> {
+  const { spec, pool, owner, plan, policy, admission, sharedLease, requestId, executionTimeoutMs, span } = args;
   const started = performance.now();
   let result: ModelResult;
   let executionTimedOut = false;
