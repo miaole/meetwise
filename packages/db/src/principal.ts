@@ -933,6 +933,92 @@ export function createPool(o: PoolOverrides = {}): DbPool {
 }
 
 /**
+ * DBSB-1 · generic role-scoped transaction primitive — the single source of
+ * the former per-role `SET LOCAL ROLE` wrapper boilerplate (8 wrappers
+ * converged as one-line delegates; call sites unchanged).
+ *
+ * `role` is validated by the RUNTIME_ROLE_NAME *format regex* (lowercase
+ * identifier, <=63 chars) — not an enumeration whitelist: any well-formed
+ * name is forwarded to PostgreSQL, and a role that does not exist fails at
+ * `SET LOCAL ROLE` inside the transaction (rolled back, surfaced to the
+ * caller) instead of being silently accepted here.
+ *
+ * Rollback discipline is byte-for-byte the former wrapper shape: on error
+ * ROLLBACK is awaited bare — a failing ROLLBACK replaces the in-flight
+ * error.  Sites that deliberately swallow rollback failure keep their own
+ * local shape and are excluded from this convergence (DBSB-1 exec receipt:
+ * assertRagControlDefinerOwnership, scoring-fact-root asScoringWorkerPrincipal).
+ */
+export async function runAs<T>(
+  pool: DbPool,
+  role: string,
+  fn: (c: Client) => Promise<T>,
+  opts: { principalUser?: string } = {},
+): Promise<T> {
+  if (!RUNTIME_ROLE_NAME.test(role)) throw new Error('run_as_invalid_role_name');
+  const c = await pool.connect();
+  try {
+    await c.query('BEGIN');
+    await c.query(`SET LOCAL ROLE ${role}`);
+    if (opts.principalUser !== undefined) {
+      await c.query("SELECT set_config('app.principal_user', $1, true)", [opts.principalUser]);
+    }
+    const r = await fn(c);
+    await c.query('COMMIT');
+    return r;
+  } catch (e) { await c.query('ROLLBACK'); throw e; } finally { c.release(); }
+}
+
+/**
+ * DBSB-1 · savepoint-scoped idempotency primitive with per-site error modes.
+ * The former inline templates split into three distinct statement orders;
+ * flattening them would drift behavior (DBSB-1 rev2 defect B), so `errorMode`
+ * is mandatory and RELEASE positions stay with the caller where each site
+ * emitted them.
+ *
+ * Statement order per path (asserted per call site by dbsb1 prove P4):
+ *  - non-23505, mode 'rollback-throw' → ROLLBACK TO, rethrow (no RELEASE — resume/int-transcript shape).
+ *  - non-23505, mode 'bare-throw'     → immediate rethrow, no ROLLBACK TO, no RELEASE (payment shape).
+ *  - 23505 (both modes)               → ROLLBACK TO, RELEASE, return { duplicate: true } (caller swallows-and-continues or maps to a deterministic code).
+ *  - SavepointRollbackSignal          → ROLLBACK TO, RELEASE, return the signal value (mid-work business rollback: payment refund clawback shortfall).
+ */
+export const SAVEPOINT_UNIQUE_VIOLATION = '23505';
+
+/** Sentinel for an in-flight business rollback: ROLLBACK TO + RELEASE, then yield `value` to the caller. */
+export class SavepointRollbackSignal<R = unknown> {
+  constructor(public readonly value: R) {}
+}
+
+export type SavepointOutcome<R> = { duplicate: true } | { duplicate: false; value: R };
+
+export async function withSavepoint<R>(
+  c: Client,
+  name: string,
+  fn: () => Promise<R>,
+  opts: { errorMode: 'rollback-throw' | 'bare-throw' },
+): Promise<SavepointOutcome<R>> {
+  await c.query(`SAVEPOINT ${name}`);
+  try {
+    const value = await fn();
+    return { duplicate: false, value };
+  } catch (error) {
+    if (error instanceof SavepointRollbackSignal) {
+      await c.query(`ROLLBACK TO SAVEPOINT ${name}`);
+      await c.query(`RELEASE SAVEPOINT ${name}`);
+      return { duplicate: false, value: error.value as R };
+    }
+    if ((error as { code?: string } | null)?.code === SAVEPOINT_UNIQUE_VIOLATION) {
+      await c.query(`ROLLBACK TO SAVEPOINT ${name}`);
+      await c.query(`RELEASE SAVEPOINT ${name}`);
+      return { duplicate: true };
+    }
+    if (opts.errorMode === 'bare-throw') throw error;
+    await c.query(`ROLLBACK TO SAVEPOINT ${name}`);
+    throw error;
+  }
+}
+
+/**
  * Request-path transaction: bind the principal trusted by this application
  * process through `SET LOCAL`.
  *
@@ -943,15 +1029,7 @@ export function createPool(o: PoolOverrides = {}): DbPool {
  * `app.principal_user` alone as proof of user authorization.
  */
 export async function asPrincipal<T>(pool: DbPool, user: string, fn: (c: Client) => Promise<T>): Promise<T> {
-  const c = await pool.connect();
-  try {
-    await c.query('BEGIN');
-    await c.query('SET LOCAL ROLE app_role');
-    await c.query("SELECT set_config('app.principal_user', $1, true)", [user]);
-    const r = await fn(c);
-    await c.query('COMMIT');
-    return r;
-  } catch (e) { await c.query('ROLLBACK'); throw e; } finally { c.release(); }
+  return runAs(pool, 'app_role', fn, { principalUser: user });
 }
 
 /**
@@ -960,27 +1038,12 @@ export async function asPrincipal<T>(pool: DbPool, user: string, fn: (c: Client)
  * and the API login has no privacy_worker_executor grant.
  */
 export async function asPrivacyWorkerPrincipal<T>(pool: DbPool, user: string, fn: (c: Client) => Promise<T>): Promise<T> {
-  const c = await pool.connect();
-  try {
-    await c.query('BEGIN');
-    await c.query('SET LOCAL ROLE privacy_worker_executor');
-    await c.query("SELECT set_config('app.principal_user', $1, true)", [user]);
-    const r = await fn(c);
-    await c.query('COMMIT');
-    return r;
-  } catch (e) { await c.query('ROLLBACK'); throw e; } finally { c.release(); }
+  return runAs(pool, 'privacy_worker_executor', fn, { principalUser: user });
 }
 
 /** Execute a reviewed cross-owner dispatch procedure without exposing tables. */
 export async function asPrivacyWorkerExecutor<T>(pool: DbPool, fn: (c: Client) => Promise<T>): Promise<T> {
-  const c = await pool.connect();
-  try {
-    await c.query('BEGIN');
-    await c.query('SET LOCAL ROLE privacy_worker_executor');
-    const r = await fn(c);
-    await c.query('COMMIT');
-    return r;
-  } catch (e) { await c.query('ROLLBACK'); throw e; } finally { c.release(); }
+  return runAs(pool, 'privacy_worker_executor', fn);
 }
 
 /**
@@ -1192,14 +1255,7 @@ export async function assertPrivacyAuthorizationIssuerIdentity(pool: DbPool): Pr
  * flip the active generation pointer.
  */
 export async function asQbankControlExecutor<T>(pool: DbPool, fn: (c: Client) => Promise<T>): Promise<T> {
-  const c = await pool.connect();
-  try {
-    await c.query('BEGIN');
-    await c.query('SET LOCAL ROLE qbank_control_executor');
-    const r = await fn(c);
-    await c.query('COMMIT');
-    return r;
-  } catch (e) { await c.query('ROLLBACK'); throw e; } finally { c.release(); }
+  return runAs(pool, 'qbank_control_executor', fn);
 }
 
 /**
@@ -1207,14 +1263,7 @@ export async function asQbankControlExecutor<T>(pool: DbPool, fn: (c: Client) =>
  * scope never installs a user-controlled authorization GUC.
  */
 export async function asRagControlExecutor<T>(pool: DbPool, fn: (c: Client) => Promise<T>): Promise<T> {
-  const c = await pool.connect();
-  try {
-    await c.query('BEGIN');
-    await c.query('SET LOCAL ROLE rag_control_executor');
-    const r = await fn(c);
-    await c.query('COMMIT');
-    return r;
-  } catch (e) { await c.query('ROLLBACK'); throw e; } finally { c.release(); }
+  return runAs(pool, 'rag_control_executor', fn);
 }
 
 /**
@@ -1288,6 +1337,12 @@ export async function assertRagControlExecutorIdentity(pool: DbPool): Promise<vo
  * Verify the two immutable RAG function manifests and their data owners.
  * A request process must never silently continue when a migration owner or a
  * login role owns a SECURITY DEFINER function under FORCE RLS.
+ *
+ * DBSB-1: this shell deliberately stays local instead of delegating to
+ * runAs() — its catch swallows a failed ROLLBACK (`ROLLBACK.catch(() =>
+ * undefined)`), while runAs awaits the bare ROLLBACK; converging would swap
+ * the error surfaced on the rollback-failure path (same class of divergence
+ * as scoring-fact-root asScoringWorkerPrincipal, DBSB-1 rev2 defect A).
  */
 export async function assertRagControlDefinerOwnership(pool: DbPool): Promise<void> {
   const c = await pool.connect();
@@ -2038,26 +2093,12 @@ export async function assertQbankControlDefinerOwnership(pool: DbPool): Promise<
 
 /** Scheduler scope has one capability: register/revoke opaque online-Judge candidates. */
 export async function asOnlineJudgeScheduler<T>(pool: DbPool, fn: (c: Client) => Promise<T>): Promise<T> {
-  const c = await pool.connect();
-  try {
-    await c.query('BEGIN');
-    await c.query('SET LOCAL ROLE online_judge_scheduler');
-    const r = await fn(c);
-    await c.query('COMMIT');
-    return r;
-  } catch (e) { await c.query('ROLLBACK'); throw e; } finally { c.release(); }
+  return runAs(pool, 'online_judge_scheduler', fn);
 }
 
 /** Dispatcher scope cannot see Judge tables; it can only claim/terminalize opaque jobs. */
 export async function asOnlineJudgeExecutor<T>(pool: DbPool, fn: (c: Client) => Promise<T>): Promise<T> {
-  const c = await pool.connect();
-  try {
-    await c.query('BEGIN');
-    await c.query('SET LOCAL ROLE online_judge_executor');
-    const r = await fn(c);
-    await c.query('COMMIT');
-    return r;
-  } catch (e) { await c.query('ROLLBACK'); throw e; } finally { c.release(); }
+  return runAs(pool, 'online_judge_executor', fn);
 }
 
 /**
@@ -2066,12 +2107,5 @@ export async function asOnlineJudgeExecutor<T>(pool: DbPool, fn: (c: Client) => 
  * versioned SECURITY DEFINER functions with fixed SQL/output contracts.
  */
 export async function asGateway<T>(pool: DbPool, fn: (c: Client) => Promise<T>): Promise<T> {
-  const c = await pool.connect();
-  try {
-    await c.query('BEGIN');
-    await c.query('SET LOCAL ROLE app_gateway_role');
-    const r = await fn(c);
-    await c.query('COMMIT');
-    return r;
-  } catch (e) { await c.query('ROLLBACK'); throw e; } finally { c.release(); }
+  return runAs(pool, 'app_gateway_role', fn);
 }

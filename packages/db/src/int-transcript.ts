@@ -16,6 +16,7 @@
  *     → 冲突抛错（DB 只保证键唯一，正文唯一性由本层比对 canonical_body_hmac 判）。
  */
 import type { Client } from './principal.ts';
+import { withSavepoint } from './principal.ts';
 import { createHmac } from 'node:crypto';
 import { newUuidV7 } from './ids.ts';
 import { assertInterviewPrivacyActive } from './checkpoint-privacy.ts';
@@ -132,23 +133,19 @@ export async function submitInterviewAnswer(c: Client, input: SubmitInterviewAns
   //      而 submission 对 app_role 无 SELECT 策略；且唯一冲突会 abort 整个事务。与 resume.ts
   //      persistResumeProfile 同源：SAVEPOINT 把重试竞态局部化，保持幂等又不削弱读边界。
   const submissionId = newUuidV7();
-  let inserted = true;
-  await c.query('SAVEPOINT answer_submission_insert');
-  try {
+  // DBSB-1: savepoint shell delegates to withSavepoint (errorMode
+  // 'rollback-throw', same statement order as the former inline template —
+  // 23505 swallows with duplicate=true, non-23505 rolls back then rethrows
+  // without RELEASE). Asserted by dbsb1 prove P4.
+  const insertOutcome = await withSavepoint(c, 'answer_submission_insert', async () => {
     await c.query(
       `INSERT INTO interview_answer_submission(id,owner_user_id,interview_id,question_id,state_version,client_submission_key,canonical_body_hmac,privacy_epoch,status)
        VALUES ($1,current_setting('app.principal_user', true),$2,$3,$4,$5,$6,$7,'accepted_unscored')`,
       [submissionId, input.interviewId, input.questionId, input.stateVersion, input.clientSubmissionKey, bodyHmac, input.privacyEpoch],
     );
-  } catch (error: unknown) {
-    if ((error as { code?: string } | null)?.code !== '23505') {
-      await c.query('ROLLBACK TO SAVEPOINT answer_submission_insert');
-      throw error;
-    }
-    await c.query('ROLLBACK TO SAVEPOINT answer_submission_insert');
-    inserted = false;
-  }
-  await c.query('RELEASE SAVEPOINT answer_submission_insert');
+    await c.query('RELEASE SAVEPOINT answer_submission_insert');
+  }, { errorMode: 'rollback-throw' });
+  const inserted = !insertOutcome.duplicate;
 
   if (inserted) {
     const artifactId = newUuidV7();

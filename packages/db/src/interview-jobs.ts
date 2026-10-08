@@ -1,11 +1,14 @@
 /**
  * @meetwise/db · 面试 job 队列 ops（api 入队 / worker 消费）。同面试内按 seq 保序;租约防并发双跑、崩溃可重领。
+ * DBSB-1: claim/done/failed/renew/sweep 五件套委托 job-queue.ts 工厂(案B·SQL 逐字符等价由 prove P3 快照断言);
+ * 独有守卫(advisory lock/隐私谓词/僵尸兄弟/inflight 上限/payload-'answer' 擦除)以配置+模块层前置原样保留。
  */
 import type { PoolClient as Client } from 'pg';
 import { assertInterviewPrivacyActive } from './checkpoint-privacy.ts';
 import {
   assertInterviewAnswerLegacyPlaintextAllowed, plaintextAnswerIdentity, remapInterviewAnswerDualWriteError,
 } from './interview-answer-dual-write.ts';
+import { createJobQueueLifecycle } from './job-queue.ts';
 
 export type JobKind = 'start' | 'answer';
 const LEASE_SECONDS = 120;
@@ -19,6 +22,31 @@ export const DEFAULT_INTERVIEW_PER_OWNER_INFLIGHT = 1;
 export type InterviewClaimBudget = {
   perOwnerInflight: number;
 };
+
+const interviewQueue = createJobQueueLifecycle({
+  table: 'interview_job',
+  siblingColumn: 'interview_id',
+  leaseSeconds: LEASE_SECONDS,
+  maxAttempts: MAX_INTERVIEW_JOB_ATTEMPTS,
+  claimOrder: 'j.seq ASC, j.created_at ASC',
+  claimReturning: 'id, interview_id, kind, seq, resume_id, resume_privacy_epoch, reference_schema_version, attempts',
+  claimOwnerPredicates: '            AND interview_privacy_active(j.interview_id)\n',
+  claimGuardPredicates: `            -- 僵尸兄弟守卫(专家审计 F3):同面试任一 job 已终态 failed → 面试已死(已发 interview_unavailable+退款),
+            -- 绝不再领其后续 seq job(否则对已宣告不可用/已退款的面试乱序跑答题 → 重复假终态 + churn)。
+            AND NOT EXISTS (SELECT 1 FROM interview_job f WHERE f.interview_id=j.interview_id AND f.status='failed')
+            -- Cap counts unexpired running only. Expired running is reclaimable:
+            -- the same tick reaps first, then this predicate must still admit a
+            -- replacement claim. Counting expired rows would pin an owner at cap
+            -- until sweep succeeded on every replica.
+            AND (
+              SELECT count(*)::int FROM interview_job live
+               WHERE live.owner_user_id=$1
+                 AND live.status='running'
+                 AND live.lease_expires_at >= now()
+            ) < $5
+`,
+  terminalScrub: ", payload=payload-'answer'",
+});
 
 /** 入队 job（api 用）。answer 用 seq 保证按答题顺序消费。**幂等**:同面试同题(owner+interview+kind+seq)重复提交 → 不新建,返已存在 job(防双提交错位)。 */
 export async function enqueueInterviewJob(
@@ -119,29 +147,7 @@ export async function claimNextInterviewJob(
   // Serialize same-owner claims in this transaction so the running-count
   // predicate cannot race two replicas past the per-owner cap.
   await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [`meetwise.interview_dispatch.owner:${owner}`]);
-  const r = await c.query(
-    `UPDATE interview_job SET status='running', lease_owner=$2, lease_expires_at=now()+($3||' seconds')::interval, attempts=attempts+1, version=version+1
-       WHERE id = (
-         SELECT j.id FROM interview_job j
-          WHERE j.owner_user_id=$1
-            AND interview_privacy_active(j.interview_id)
-            AND (j.status='queued' OR (j.status='running' AND j.lease_expires_at < now() AND j.attempts < $4))
-            AND NOT EXISTS (SELECT 1 FROM interview_job r WHERE r.interview_id=j.interview_id AND r.status='running' AND r.lease_expires_at >= now())
-            -- 僵尸兄弟守卫(专家审计 F3):同面试任一 job 已终态 failed → 面试已死(已发 interview_unavailable+退款),
-            -- 绝不再领其后续 seq job(否则对已宣告不可用/已退款的面试乱序跑答题 → 重复假终态 + churn)。
-            AND NOT EXISTS (SELECT 1 FROM interview_job f WHERE f.interview_id=j.interview_id AND f.status='failed')
-            -- Cap counts unexpired running only. Expired running is reclaimable:
-            -- the same tick reaps first, then this predicate must still admit a
-            -- replacement claim. Counting expired rows would pin an owner at cap
-            -- until sweep succeeded on every replica.
-            AND (
-              SELECT count(*)::int FROM interview_job live
-               WHERE live.owner_user_id=$1
-                 AND live.status='running'
-                 AND live.lease_expires_at >= now()
-            ) < $5
-          ORDER BY j.seq ASC, j.created_at ASC FOR UPDATE SKIP LOCKED LIMIT 1)
-     RETURNING id, interview_id, kind, seq, resume_id, resume_privacy_epoch, reference_schema_version, attempts`, [owner, leaseOwner, String(LEASE_SECONDS), maxAttempts, budget.perOwnerInflight]);
+  const r = await interviewQueue.claimNext(c, owner, leaseOwner, maxAttempts, budget.perOwnerInflight);
   if (r.rowCount === 0) return null;
   const x = r.rows[0];
   return {
@@ -208,12 +214,10 @@ export async function markJobDone(c: Client, owner: string, jobId: string, lease
   // An answer is needed only until graph evaluation and business projection
   // have both committed.  A completed durable job keeps its identity/trace but
   // never keeps the plaintext answer for later queue inspection or replay.
-  const r = await c.query("UPDATE interview_job SET status='done', lease_owner=NULL, payload=payload-'answer', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3", [jobId, owner, leaseOwner]);
-  return r.rowCount === 1;
+  return interviewQueue.markDone(c, owner, jobId, leaseOwner);
 }
 export async function markJobFailed(c: Client, owner: string, jobId: string, leaseOwner: string, error: string): Promise<boolean> {
-  const r = await c.query("UPDATE interview_job SET status='failed', last_error=$4, lease_owner=NULL, payload=payload-'answer', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3", [jobId, owner, leaseOwner, error.slice(0, 500)]);
-  return r.rowCount === 1;
+  return interviewQueue.markFailed(c, owner, jobId, leaseOwner, error);
 }
 
 /** 未取得 graph fence 时归还 job；仅当前 lease owner 可操作，不能把别的 worker 的 job 偷回 queued。 */
@@ -231,11 +235,7 @@ export async function requeueInterviewJob(c: Client, owner: string, jobId: strin
 export async function renewInterviewJobLease(
   c: Client, owner: string, jobId: string, leaseOwner: string, leaseSeconds = LEASE_SECONDS,
 ): Promise<boolean> {
-  const r = await c.query(
-    `UPDATE interview_job SET lease_expires_at = now() + ($4||' seconds')::interval
-       WHERE id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3`,
-    [jobId, owner, leaseOwner, String(leaseSeconds)]);
-  return r.rowCount === 1;
+  return interviewQueue.renewLease(c, owner, jobId, leaseOwner, leaseSeconds);
 }
 
 /**
@@ -247,15 +247,8 @@ export async function renewInterviewJobLease(
 export async function sweepStuckInterviewJobs(
   c: Client, owner: string, maxAttempts = MAX_INTERVIEW_JOB_ATTEMPTS,
 ): Promise<{ requeued: number; failed: number; failedInterviews: string[] }> {
-  const dead = await c.query(
-    `UPDATE interview_job SET status='failed', last_error='reaped:worker_died', lease_owner=NULL, version=version+1
-       WHERE owner_user_id=$1 AND status='running' AND lease_expires_at < now() AND attempts >= $2
-     RETURNING interview_id`, [owner, maxAttempts]);
-  const rq = await c.query(
-    `UPDATE interview_job SET status='queued', lease_owner=NULL, version=version+1
-       WHERE owner_user_id=$1 AND status='running' AND lease_expires_at < now() AND attempts < $2`,
-    [owner, maxAttempts]);
-  return { requeued: rq.rowCount ?? 0, failed: dead.rowCount ?? 0, failedInterviews: dead.rows.map((x) => x.interview_id as string) };
+  const r = await interviewQueue.sweep(c, owner, maxAttempts);
+  return { requeued: r.requeued, failed: r.failed, failedInterviews: r.failedSiblings };
 }
 
 /** 枚举有待办 job 的 owner（调度层,需越 RLS;生产用 BYPASSRLS dispatcher 角色,只读 owner_user_id）。 */

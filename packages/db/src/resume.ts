@@ -4,6 +4,7 @@
  */
 import type { PoolClient as Client } from 'pg';
 import { createHmac } from 'node:crypto';
+import { withSavepoint } from './principal.ts';
 
 export type ResumeStatus = 'uploaded' | 'ingesting' | 'ingested' | 'failed' | 'erasure_fenced' | 'erased';
 
@@ -103,22 +104,19 @@ export async function persistResumeProfile(
   // transaction even when JavaScript catches it. Contain just this retry race
   // in a savepoint so a duplicate profile stays idempotent without weakening
   // read RLS or materializing the existing profile to the caller.
-  const savepoint = 'resume_profile_insert';
-  await c.query(`SAVEPOINT ${savepoint}`);
-  try {
+  // DBSB-1: savepoint shell delegates to withSavepoint (errorMode
+  // 'rollback-throw' — non-23505: ROLLBACK TO then rethrow, no RELEASE;
+  // 23505: ROLLBACK TO + RELEASE, swallow-and-continue). Statement order is
+  // asserted against the former inline template by dbsb1 prove P4.
+  const outcome = await withSavepoint(c, 'resume_profile_insert', async () => {
     await c.query(
       `INSERT INTO resume_profile(resume_id, owner_user_id, structured, pii_summary, blocked_count, status, ocr_binding)
        VALUES ($1,$2,$3,$4,$5,$6,$7)`,
       [resumeId, owner, JSON.stringify(structured), JSON.stringify(piiSummary), p.blocked.length, status, ocrBinding ? JSON.stringify(ocrBinding) : null],
     );
-  } catch (error: any) {
-    if (error?.code !== '23505') {
-      await c.query(`ROLLBACK TO SAVEPOINT ${savepoint}`);
-      throw error;
-    }
-    await c.query(`ROLLBACK TO SAVEPOINT ${savepoint}`);
-  }
-  await c.query(`RELEASE SAVEPOINT ${savepoint}`);
+    await c.query('RELEASE SAVEPOINT resume_profile_insert');
+  }, { errorMode: 'rollback-throw' });
+  if (outcome.duplicate) return;
 }
 
 /** 原子完成摄取：**同一事务**里落 profile + CAS ingesting→ingested。杜绝"profile 已落但状态卡 ingesting"的非原子缝（审计 P1-6）。 */

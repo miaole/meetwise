@@ -12,11 +12,13 @@
 import type { Client } from './principal.ts';
 
 export {
-  createPool, resolveDatabaseConnectionString, rebindDatabaseLogin, asPrincipal, asPrivacyWorkerPrincipal, asPrivacyWorkerExecutor, assertPrivacyWorkerExecutorIdentity, assertPrivacyAuthorizationIssuerIdentity,
+  createPool, resolveDatabaseConnectionString, rebindDatabaseLogin, runAs, withSavepoint, SavepointRollbackSignal, SAVEPOINT_UNIQUE_VIOLATION,
+  asPrincipal, asPrivacyWorkerPrincipal, asPrivacyWorkerExecutor, assertPrivacyWorkerExecutorIdentity, assertPrivacyAuthorizationIssuerIdentity,
   asQbankControlExecutor, assertQbankControlExecutorIdentity, assertQbankControlDefinerOwnership, asRagControlExecutor, assertRagControlExecutorIdentity, assertRagControlDefinerOwnership, assertDistinctProvisionedLoginNames, asOnlineJudgeScheduler, asOnlineJudgeExecutor, asGateway,
   provisionRuntimeLogin, provisionQbankControlLogin, provisionQbankControlDefiner, provisionRagControlLogin, provisionPrivacyWorkerLogin, provisionOnlineJudgeSchedulerLogin, provisionOnlineJudgeExecutorLogin,
   QBANK_CONTROL_DEFINER_ROLE, QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST, QBANK_CONTROL_DEFINER_TABLE_MANIFEST, QBANK_CONTROL_DEFINER_VIEW_MANIFEST,
 } from './principal.ts';
+export type { SavepointOutcome } from './principal.ts';
 export type { Client, DbPool, PoolOverrides, RuntimeLoginInput } from './principal.ts';
 export { assertIsolatedTestEnvironment, assertIsolatedTestTarget } from './isolated-test-target.ts';
 

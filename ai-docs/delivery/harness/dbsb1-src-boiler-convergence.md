@@ -57,7 +57,7 @@ export async function runAs<T>(pool: DbPool, role: string, fn: (c: Client) => Pr
 // 9 个具名 wrapper 保留导出名与签名，函数体收敛为 return runAs(pool, '<role>', fn, { principalUser });
 ```
 
-- **调用点零改动**：215+31+10+3+2+1+1 处 import/调用一概不动（薄别名委托）；`asScoringWorkerPrincipal` 同步改为 `import { runAs } from './principal.ts'` 委托（principal.ts 头注「无业务 import」契约不破 · scoring-fact-root 反向依赖 principal 合法）。
+- **调用点零改动**：215+31+10+3+2+1+1 处 import/调用一概不动（薄别名委托）；~~`asScoringWorkerPrincipal` 同步改为 `import { runAs } from './principal.ts'` 委托~~（**rev2 残渣句清除·随 EXEC commit**：缺陷 A 裁定 #11 不转换·scoring-fact-root 零触碰——本句为 rev1 遗留残渣，与 §1.1/#11 披露及 §2.2 矛盾，EXEC 时删除）。
 - **行为等价证明**（§6-P1）：① 逐 wrapper **函数体 diff 对照**（收敛前后：BEGIN→SET LOCAL ROLE→GUC(如 variant)→fn→COMMIT / catch→ROLLBACK / finally release 语句序逐一相同 · EXEC commit 内 diff 留痕）② 隔离 PG 上对每个 role 断言 `current_user` 断言面 + GUC 只在 principal variant 出现 + fn 抛错→ROLLBACK→连接回收复用无泄漏。
 
 ### 1.2 job 队列四套 + TS 五件套复刻
@@ -155,7 +155,7 @@ export async function runAs<T>(pool: DbPool, role: string, fn: (c: Client) => Pr
 | P2 导出面冻结 | 9 具名 wrapper + 3 个 `*-jobs.ts` 模块 + persistResumeProfile/markOrderPaidAndCredit/markOrderRefunded 的导出名与签名逐一对表（编译期契约 + prove 期 typeof 对拍）→ 调用面零漂移 |
 | P3 job 工厂等价 | 工厂产出的 3 队列 × 5 操作 SQL 文本 vs 收敛前字面量快照**逐字符相等**（快照入 prove）；行为面：enqueue→claim（FIFO/租约重领/attempts 上限）→done/failed（守卫 lease_owner）→renew→sweep（requeue/failed 两分支）全绿 · 镜像排他 + interview 独有守卫（僵尸/inflight/payload 擦除）逐条断言 |
 | P4 withSavepoint（rev2 逐点次序断言·三模式） | **逐实例点×逐模式断言语句序**（语句探针序贯记录·非只看结果态）：#1/#4 非23505 → 序 = [RB, throw]·无 RELEASE（模式①）·#1/#4 23505 → [RB, RELEASE]→吞继续 · #2 非23505 → 序 = [throw]·零 RB 零 RELEASE（模式②裸 throw·外层事务进 aborted 态由调用方处置）·#2/#3 23505 → [RB, RELEASE]→返 `conflict`（模式③）·#3 红冲不足 → 主动 [RB, RELEASE]→`conflict` · payment paid/refund 幂等重放（already/conflict）· resume/int-transcript 幂等重插不炸外层事务（外层后续语句可继续）· 非23505 rethrow 后连接仍可用 |
-| P5 静态门 | principal.ts `SET LOCAL ROLE` 字面 site 数 = 1（runAs 泛型内）· 具名 wrapper 体 = 单行委托（AST 级或行数断言）· 三 `*-jobs.ts` 无内联 claim SQL 字面量 · r4 面零位移（若 B3 未落：31 文件路径原样；若已落：别名解析断言按新路径过） |
+| P5 静态门 | principal.ts **执行态** `SET LOCAL ROLE` site 数 = 3（runAs 泛型 1 + provisionQbankControlDefiner 特判 1[D3 保留] + assertRagControlDefinerOwnership 豁免壳 1[缺陷 A 同性质豁免·EXEC 勘误]）——rev2 原文「=1」系 D3/D2 豁免面落地前的残渣措辞，EXEC 勘误（另 +2 处 JSDoc 文字提及非执行面）· 具名 wrapper 体 = 单行委托（AST 级或行数断言）· 三 `*-jobs.ts` 无内联 claim SQL 字面量 · r4 面零位移（若 B3 未落：31 文件路径原样；若已落：别名解析断言按新路径过） |
 | P6 r4 别名保全 | `apps/worker/package.json` 全部 `prove:r4-*` 别名 → 目标文件存在（test -f 语义）· 根聚合别名同 · 退役评估文档存在且触发表齐（可退役集 + 永续集逐条列名） |
 
 **族 prove 复跑清单（全绿才算 · attempts 全账 · Ban retry-to-green）**：

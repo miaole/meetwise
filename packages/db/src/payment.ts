@@ -2,6 +2,7 @@
  * @meetwise/db · 支付订单 ops。承重:回调**幂等 exactly-once 入账**——CAS(created→paid)保证重复回调只入账一次。
  */
 import type { PoolClient as Client } from 'pg';
+import { withSavepoint, SavepointRollbackSignal } from './principal.ts';
 
 /** 创建订单(幂等):同 owner+idempotencyKey 重试 → 返回已存在订单 id(不重复下单)。返回最终 orderId。 */
 export async function createOrder(
@@ -59,10 +60,12 @@ export type CreditResult = 'credited' | 'already' | 'conflict' | 'not_found';
 export async function markOrderPaidAndCredit(c: Client, owner: string, orderId: string, providerTxn: string): Promise<CreditResult> {
   // 唯一索引在跨订单并发时会抛 23505。Savepoint 让当前外层业务事务可回到可查询状态，
   // 以确定性的 `conflict` 回应，而非把数据库错误泄漏成 500。
-  await c.query('SAVEPOINT payment_provider_txn_claim');
-  let upd;
-  try {
-    upd = await c.query(
+  // DBSB-1: savepoint shell delegates to withSavepoint (errorMode 'bare-throw' —
+  // non-23505 rethrows with zero rollback/release, 23505 maps to 'conflict';
+  // success-path RELEASE stays right after the CAS exactly as before).
+  // Statement order asserted by dbsb1 prove P4.
+  const claim = await withSavepoint(c, 'payment_provider_txn_claim', async () => {
+    const upd = await c.query(
       `UPDATE payment_order
           SET status='paid', provider_txn=$3, version=version+1
         WHERE id=$1 AND owner_user_id=$2 AND status='created'
@@ -73,12 +76,10 @@ export async function markOrderPaidAndCredit(c: Client, owner: string, orderId: 
         RETURNING units`,
       [orderId, owner, providerTxn]);
     await c.query('RELEASE SAVEPOINT payment_provider_txn_claim');
-  } catch (e: any) {
-    if (e?.code !== '23505') throw e;
-    await c.query('ROLLBACK TO SAVEPOINT payment_provider_txn_claim');
-    await c.query('RELEASE SAVEPOINT payment_provider_txn_claim');
-    return 'conflict';
-  }
+    return upd;
+  }, { errorMode: 'bare-throw' });
+  if (claim.duplicate) return 'conflict';
+  const upd = claim.value;
   if (upd.rowCount === 1) {
     await c.query(
       "INSERT INTO entitlement_bucket(owner_user_id, kind, units_total, expires_at) VALUES ($1,'paid',$2, now()+interval '365 days')",
@@ -103,10 +104,13 @@ export type RefundResult = 'refunded' | 'already' | 'conflict' | 'not_found';
  */
 export async function markOrderRefunded(c: Client, owner: string, orderId: string, providerTxn: string): Promise<RefundResult> {
   // Savepoint 覆盖 CAS+红冲：不足红冲 / 唯一约束冲突 → 回滚本段，外层事务可继续以确定性码回应。
-  await c.query('SAVEPOINT payment_refund_txn_claim');
-  let upd;
-  try {
-    upd = await c.query(
+  // DBSB-1: savepoint shell delegates to withSavepoint (errorMode 'bare-throw';
+  // 23505 → ROLLBACK TO + RELEASE → 'conflict'; the mid-work clawback shortfall
+  // throws SavepointRollbackSignal → ROLLBACK TO + RELEASE → 'conflict'; the
+  // success/no-hit RELEASE positions stay inline exactly as before).
+  // Statement order asserted by dbsb1 prove P4.
+  const outcome = await withSavepoint<RefundResult>(c, 'payment_refund_txn_claim', async () => {
+    const upd = await c.query(
       `UPDATE payment_order
           SET status='refunded', refund_provider_txn=$3, version=version+1
         WHERE id=$1 AND owner_user_id=$2 AND status='paid'
@@ -116,50 +120,45 @@ export async function markOrderRefunded(c: Client, owner: string, orderId: strin
           )
         RETURNING units`,
       [orderId, owner, providerTxn]);
-  } catch (e: any) {
-    if (e?.code !== '23505') throw e;
-    await c.query('ROLLBACK TO SAVEPOINT payment_refund_txn_claim');
-    await c.query('RELEASE SAVEPOINT payment_refund_txn_claim');
-    return 'conflict';
-  }
-  if (upd.rowCount === 1) {
-    const need = Number(upd.rows[0].units);
-    // 红冲：按 FIFO 从可用额度扣减 units_total（不碰 reserved/consumed；受 ck_bucket_capacity 约束）
-    const buckets = await c.query(
-      `SELECT id, (units_total - units_reserved - units_consumed) AS avail
-         FROM entitlement_bucket
-        WHERE owner_user_id=$1
-          AND (units_total - units_reserved - units_consumed) > 0
-        ORDER BY expires_at ASC, id ASC
-        FOR UPDATE`, [owner]);
-    let remaining = need;
-    for (const b of buckets.rows) {
-      if (remaining <= 0) break;
-      const take = Math.round(Math.min(Number(b.avail), remaining) * 100) / 100;
-      if (take <= 0) continue;
-      const claw = await c.query(
-        `UPDATE entitlement_bucket
-            SET units_total = units_total - $2, version = version + 1
-          WHERE id=$1
-            AND (units_total - units_reserved - units_consumed) >= $2
-            AND units_reserved + units_consumed <= units_total - $2`,
-        [b.id, take]);
-      if (claw.rowCount === 1) remaining = Math.round((remaining - take) * 100) / 100;
-    }
-    if (remaining > 0) {
-      // 可用额度不足 → 回滚 CAS+部分红冲，不静默半退
-      await c.query('ROLLBACK TO SAVEPOINT payment_refund_txn_claim');
+    if (upd.rowCount === 1) {
+      const need = Number(upd.rows[0].units);
+      // 红冲：按 FIFO 从可用额度扣减 units_total（不碰 reserved/consumed；受 ck_bucket_capacity 约束）
+      const buckets = await c.query(
+        `SELECT id, (units_total - units_reserved - units_consumed) AS avail
+           FROM entitlement_bucket
+          WHERE owner_user_id=$1
+            AND (units_total - units_reserved - units_consumed) > 0
+          ORDER BY expires_at ASC, id ASC
+          FOR UPDATE`, [owner]);
+      let remaining = need;
+      for (const b of buckets.rows) {
+        if (remaining <= 0) break;
+        const take = Math.round(Math.min(Number(b.avail), remaining) * 100) / 100;
+        if (take <= 0) continue;
+        const claw = await c.query(
+          `UPDATE entitlement_bucket
+              SET units_total = units_total - $2, version = version + 1
+            WHERE id=$1
+              AND (units_total - units_reserved - units_consumed) >= $2
+              AND units_reserved + units_consumed <= units_total - $2`,
+          [b.id, take]);
+        if (claw.rowCount === 1) remaining = Math.round((remaining - take) * 100) / 100;
+      }
+      if (remaining > 0) {
+        // 可用额度不足 → 回滚 CAS+部分红冲，不静默半退
+        throw new SavepointRollbackSignal<RefundResult>('conflict');
+      }
       await c.query('RELEASE SAVEPOINT payment_refund_txn_claim');
-      return 'conflict';
+      return 'refunded';
     }
     await c.query('RELEASE SAVEPOINT payment_refund_txn_claim');
-    return 'refunded';
-  }
-  await c.query('RELEASE SAVEPOINT payment_refund_txn_claim');
-  const cur = await c.query(
-    'SELECT status, refund_provider_txn FROM payment_order WHERE id=$1 AND owner_user_id=$2',
-    [orderId, owner]);
-  if (cur.rowCount === 0) return 'not_found';
-  if (cur.rows[0].status === 'refunded' && cur.rows[0].refund_provider_txn === providerTxn) return 'already';
-  return 'conflict';
+    const cur = await c.query(
+      'SELECT status, refund_provider_txn FROM payment_order WHERE id=$1 AND owner_user_id=$2',
+      [orderId, owner]);
+    if (cur.rowCount === 0) return 'not_found';
+    if (cur.rows[0].status === 'refunded' && cur.rows[0].refund_provider_txn === providerTxn) return 'already';
+    return 'conflict';
+  }, { errorMode: 'bare-throw' });
+  if (outcome.duplicate) return 'conflict';
+  return outcome.value;
 }
