@@ -1,6 +1,6 @@
 # G7P-3 — consent 端点定靶刀（G7 api 红精确 HTTP code 截获）
 
-**状态**：`draft_rev2:awaiting_pre_exec_dual`（rev1 双席处方合并：向 5 fetch-throw/传输面+30s 超时预算+段 4/5 红支续行覆写早退+conent 拼写+MODEL_API_KEY set 复刻红面+蓝本 blob 钉收据） · base = 主线 `94650e43` · 分支 `line/g7-consent-probe` · 立项依据 = G7P-2 nail 裁定（向 3 定靶 consent 面·T3 后 13ms fail-closed·「间歇性/状态依赖」注记·码面侦察无确定性红因〔consent 链显式 v4 id 不吃 uuidv7 雷·幂等 SELECT 跳过〕——需 withhold 契约内拿精确 code）。
+**状态**：`executed:awaiting_post_prove_dual`（EXEC mw-core 2026-10-08 落地：恰 2 run 冷/热·双臂 EXIT=0·consent POST 200 `{"recorded":true,"policyVersion":"v1"}` 6/11ms·五向判读向 4 命中〔200 双 run→上下文差→下一刀 full.e2e 内联截获〕·MODEL_API_KEY set 红面已复刻〔name-only〕·Ban self-approve 待 dual） · base = 主线 `94650e43` · 分支 `line/g7-consent-probe` · 立项依据 = G7P-2 nail 裁定（向 3 定靶 consent 面·T3 后 13ms fail-closed·「间歇性/状态依赖」注记·码面侦察无确定性红因〔consent 链显式 v4 id 不吃 uuidv7 雷·幂等 SELECT 跳过〕——需 withhold 契约内拿精确 code）。
 
 ## 1. 目标
 拿 POST /privacy/consent 的精确 HTTP status+response body+耗时——切分红因：5xx（服务端 DB/RLS 面）/4xx（guard/body 面）/200（间歇不可复现→状态依赖假说增强→对比 full.e2e 上下文差异）。
@@ -24,7 +24,7 @@
 零产品码（apps/packages src 零改）·零 wrapper 改·helpers 导入只读复用（e2e/helpers/auth.ts 的 BASE/fetch 形态·探针自实现不打扰）·Key 只经进程 env name-only·est 0 live（consent/signup 链零模型已实证）·pins 十值照抄（haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null）·实现不自批·alone≠dual。
 
 ## 5. 验收
-2 run 全收据（EXIT 原值+PROBE_SEGMENT+consent status/body/elapsed 三元组）·四向判读结论·探针脚本 sha256 自证+**G7P-1 蓝本 blob SHA d6cdce7f 钉收据**（证「复刻」）·收据 `ai-docs/delivery/receipts/g7p3-consent-probe/`·node --check 过。
+2 run 全收据（EXIT 原值+PROBE_SEGMENT+consent status/body/elapsed 三元组）·五向判读结论·探针脚本 sha256 自证+**G7P-1 蓝本 blob SHA d6cdce7f 钉收据**（证「复刻」）·收据 `ai-docs/delivery/receipts/g7p3-consent-probe/`·node --check 过。
 
 ## 6. Non-claims
 本刀 ≠ G7 修复 ≠ consent 面根因定谳（=code 截获定靶）≠ trio 面 ≠ g7SuiteGreen 翻转·探针环境与 full.e2e 上下文差如实记（200 结果的限定语）。

@@ -281,6 +281,7 @@
     "e2e:ui": "node scripts/run-e2e-ui.mjs",
     "e2e:isolated": "node scripts/run-e2e-isolated.mjs e2e:prove",
     "e2e:ui:isolated": "node scripts/run-e2e-isolated.mjs e2e:ui",
+    "e2e:consent-probe": "node scripts/e2e-consent-probe.mjs",
     "performance:e2e": "node scripts/run-performance-e2e.mjs",
     "performance:e2e:isolated": "node scripts/run-e2e-isolated.mjs performance:e2e",
     "verify:e2e-performance": "node scripts/run-e2e-performance-suite.mjs",

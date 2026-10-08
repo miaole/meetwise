@@ -1,0 +1,20 @@
+PROBE_SCRIPT_SHA256 path=scripts/e2e-consent-probe.mjs sha256=4b7db56607c8774746751e7940af11dbd87aec4b4e66a7a249f1e33d850ae7ba
+PROBE_META label=B pid=88135 ts=2026-10-08T13:18:02.550Z container=meetwise-g7p3-consent-88135-1791465482549 image=pgvector/pgvector:pg16 api_port=28135 worker_metrics_port=28136 node=v22.22.3 model_api_key=set model_api_key_face=name_only dot_env_present=false g7_freetier_reprove=unset fetch_budget_ms=30000 watchdog_boundary_ms=120000
+E2E isolated PostgreSQL: meetwise-g7p3-consent-88135-1791465482549 on 127.0.0.1:52383
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-line-g7p3/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=152 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-probe consecutive=3 attempt=3
+PROBE_SEGMENT segment=probe_env_1 status=ok elapsed_ms=11389 ts=2026-10-08T13:18:13.940Z detail=pg_port=52383,ready_attempt=4,migrate_attempts=1,post_migrate_attempt=3,pre_probe_attempt=3,api_pid=88346,worker_pid=88352,mode=back-to-back
+PROBE_CONSENT op=auth_signup status=200 body="{\"token\":\"eyJ1aWQiOiJmMGQxZjUyNS1lZjgxLTQyOTktYTExMy03YzgyZTk5ZGEzMWMiLCJleHAiOjE3OTIwNzAyOTQsInBlIjowfQ.jjt-3wduWA1e3nugKDspdrnG1qrV6V4PyC4Fuo2Gy-g\",\"userId\":\"f0d1f525-ef81-4299-a113-7c82e99da31c\",\"role\":\"candidate\"}" elapsed_ms=80 ts=2026-10-08T13:18:14.020Z
+PROBE_SEGMENT segment=probe_signup_2 status=ok elapsed_ms=81 ts=2026-10-08T13:18:14.021Z detail=via=signup,http=200,token_present=true,elapsed_ms=80
+PROBE_CONSENT op=consent_post status=200 body="{\"recorded\":true,\"policyVersion\":\"v1\"}" elapsed_ms=11 ts=2026-10-08T13:18:14.032Z
+PROBE_SEGMENT segment=probe_consent_post_3 status=ok elapsed_ms=11 ts=2026-10-08T13:18:14.032Z detail=http=200,elapsed_ms=11
+PROBE_CONSENT op=consent_status_get status=200 body="{\"consented\":true,\"purpose\":\"resume_processing\",\"policyVersion\":\"v1\"}" elapsed_ms=3 ts=2026-10-08T13:18:14.035Z
+PROBE_SEGMENT segment=probe_consent_status_4 status=ok elapsed_ms=3 ts=2026-10-08T13:18:14.035Z detail=http=200,elapsed_ms=3
+PROBE_SEGMENT segment=probe_repost_5 status=skipped elapsed_ms=0 ts=2026-10-08T13:18:14.035Z detail=condition_not_met:segment3_http=200
+PROBE_SUMMARY exit=0 total_ms=11486 segments_completed=5 segment_parts=probe_env_1:ok:11389ms,probe_signup_2:ok:81ms,probe_consent_post_3:ok:11ms,probe_consent_status_4:ok:3ms,probe_repost_5:skipped:0ms
