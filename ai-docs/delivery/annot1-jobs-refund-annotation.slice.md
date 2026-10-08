@@ -1,6 +1,12 @@
 # ANNOT-1 · jobs/page.tsx:110 注释收口小刀 · slice（REQUEST docs-only）
 
-status: executed:awaiting_post_dual（预执行双审双 PASS · meetwise §3⑤ EXEC 授权 · EXEC 落注释改写+勘误:11→:14+收据 · STOP awaiting post dual）
+status: post_prove_dual_pass（预执行双审双 PASS · meetwise §3⑤ EXEC 授权 · EXEC 落注释改写+勘误:11→:14+收据 · post-prove 双审 BOTH PASS · meetwise 协调方正式授权 nail · 登记见 checklist `### Line ANNOT-1 注释收口小刀 NAIL` 节）
+
+> **Pre-exec-era status（historical · retained）**: **`draft:awaiting_pre_exec_dual`**（预执行双审未做 · meetwise 未授权 EXEC · 本 commit 零产品码零注释改动）
+
+> **EXEC-era status（historical · retained）**: **`executed:awaiting_post_dual`**（EXEC 落注释改写+勘误:11→:14+收据 · 双 prove EXIT=0 一次过 · STOP awaiting post dual）
+
+> **Post-dual record（2026-10-08 · nail era）**: post 双审 **BOTH PASS** —— `mw-e2e-ha` PASS + `mw-model-op` PASS（两席独立复核 · alone ≠ dual · 不代签 peer）· meetwise 协调方正式授权 nail（lifecycle `executed:awaiting_post_dual` → **`post_prove_dual_pass`** · 旧状态 token 保留为 provenance 不回改 · 下文 Not-a-pass 行中 `not nail · not coordinator authorize` 系 REQUEST-era 原文保留为 provenance，nail 后以本条为准）· 本刀仍 non-claims：**≠ 行为修复（纯注释零运行时影响）≠ GAP 翻转**（GAP-G7V-THIRDARM-COPY-SETTLEMENT 已由 `line/g7v-thirdarm-copy-fix` 线 CLOSED(fixed) · 本刀零 backlog 操作）· docs:check base 预存红（PTP_FILE_LIMIT:3804）retained 不洗 · `g7SuiteGreen=false` · `actualSpendCny=null` · alone ≠ dual
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null
 
