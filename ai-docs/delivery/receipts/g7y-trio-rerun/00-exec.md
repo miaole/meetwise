@@ -101,3 +101,21 @@
 ## 6. Non-claims（逐条 · 本收据不宣称）
 
 本收据 **≠ trio 翻绿 ≠ 三绿 ≠ `g7SuiteGreen=true` ≠ 任一 OPEN 行关闭 ≠ POST7B 定位定谳 ≠ 归因两岔任一岔 ≠ 修复**（复现读数+子段收紧=读数增量 · 处置归协调方）；CMD2 绿 ≠ 套件绿 ≠ UI 全量绿（grep 单臂 2 test）；not covered（coveredCount=8 unchanged）· not HA · not `releaseEvidence=true`（receipt 自证 `release_evidence=false`）· not R5 retired / not sole-stack（R5-MARKED-RED 披露保持）· **Pins 十值零翻转**：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · **g7SuiteGreen=false** · **actualSpendCny=null** · alone ≠ dual（双审归协调方派）· 禁洗红为 flake/env 偶发。
+
+---
+
+## 7. E-5 erratum（addendum · append-only · 2026-10-08 · 协调方裁决+两席处方收敛 · 上文 §1-§6 已落原文零改写）
+
+**触发**：post-dual 双席就 CMD2 偏离收敛 FAIL。以下五项逐字登记（协调方 addendum 授权 · 非 executor 自裁）：
+
+**① 命令偏离事实 + 协调方源头认领**：CMD2 实跑命令为 `E2E_UI_GREP='C→B: real browser binds application' pnpm run e2e:ui:isolated`（grep 过滤单臂 · 仅 2 test）——**违背 rev3 §1.2 预注册**「本刀全量 UI 套件（无 grep 过滤）· `E2E_UI_GREP` 过滤臂**本刀零行使**」。**偏离源头 = 协调方 EXEC 指令本身**（EXEC 指令第 2 条下达的 CMD2 命令自带 grep，与 rev3 冲突）——**协调方认领偏离源头责任**；executor 未在 §2/errata 登记该偏离 = 次生缺陷（executor 记账责任如实落字 · 沿「EXEC 未回改 · errata 承载」先例）。
+
+**② 「机会主义采读」标签撤回**：§2 CMD2 行原附「（机会主义采读：全绿零失败工件 · G7V-CALIB 附条件②承继）」——**标签撤回**：G7V-CALIB 附条件②只涵盖**全量 run** 内落第三臂读数的机会主义采读，grep 过滤单臂不适用该条款（误用如实登记）。
+
+**③ §2 CMD2 行改判（协调方裁决）**：原「CMD2 | 预期绿为基线 | 兑现……」改判为——**「grep 单臂 2 test 绿（G7V-CALIB 同域复证 · 读数入账）· 全量套件基线 not_run」**。grep run 的 EXIT=0（05:45:36Z–05:50:02Z · chromium 1.5m + mobile 2.0m · 2 passed）**独立成立留档零冲销**；全量套件基线读数由 addendum 全量单 run（无 grep）补交（见 `01-cmd2-full-baseline.md` · 补交预注册基线读数 **非 retry-to-green** · 零第二次 grep run · 全量 run 结局无论绿红按结局族如实登记）。
+
+**④ sidecar §3 CMD3 anchor 计数 3→1 勘误（model-op 席）**：§3 表 CMD3 行「① post-migrate 锚 ✓ 3 anchor（逐容器）」**勘误为 ✓ 1 anchor**——`ANCHOR post-migrate` 实计 **1**（HTTP full E2E 容器 `meetwise-e2e-18720-1791438665509:50750` · `sidecar-cmd3.log:05:51:10.533Z`）；`CONTAINER BIND` = 2（首容器 `meetwise-e2e-17780-1791438659472:50722` = migrate:prove 步，该步仅 `label=pre-prove` 无 post-migrate 锚，其 tick 均为 pre-anchor/pending 类 · **零必读面读数**——§3 其余 CMD3 各行读数（ij/inv/双计）均取自 18720 容器不受影响）。原「3」系 `grep -c "CONTAINER BIND\|ANCHOR post-migrate"` 联合计数（2+1）误并入 anchor 行，纪律行使结论不变（HTTP full E2E 容器有锚 ✓）。
+
+**⑤ 容器精确绑定前向纪律确认**：三 run 精确容器名+端口绑定逐 run 在卷（`meetwise-e2e-1239-1791438110337:64179` / `meetwise-e2e-7108-1791438336901:49180` / `meetwise-e2e-18720-1791438665509:50750`）——CMOP03-E 前向纪律（SELECT-only · 精确绑定 · created_at∈run 窗 · migrations=0142 相关性 · 失配弃读）**确认持续有效**，addendum 全量 run 同纪律行使。
+
+**POST7B 处置登记（协调方裁决 · 本收据只登记不立项）**：采纳 e2e-ha 席推荐——**finer markers 鉴别刀另刀立项**（(:337,:351) 段内 4 埋点 · 沿 CMOP03-D 同法 · 独立 REQUEST 全链）；`GAP-CMOP03-POST7B` 行 **P1 OPEN 维持**。本刀 EXEC 期零 SSOT 行改写不变。
