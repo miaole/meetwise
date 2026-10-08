@@ -287,11 +287,12 @@ async function main() {
     // privacy fence.
     const beforeEscapes = await admin.query(`
       SELECT
-        (SELECT count(*)::int FROM consumption_record WHERE interview_id=$1) AS consumption_count,
+        -- DBHY-1(0145):consumption_record 死表退役;改查幂等真身 entitlement_consumption(按 owner 计·真表无 interview_id 列)
+        (SELECT count(*)::int FROM entitlement_consumption WHERE owner_user_id=$2) AS consumption_count,
         (SELECT count(*)::int FROM interview_event WHERE stream_key=$1) AS event_count,
         (SELECT count(*)::int FROM question_feedback WHERE interview_id=$1) AS feedback_count,
         (SELECT count(*)::int FROM ai_report WHERE interview_id=$1) AS report_count
-    `, [interviewId]);
+    `, [interviewId, signupBody.userId]);
     const [feedback, speak, speakStream, transcribe, report, retryReport, exportReport, transcript, assessment, getAssessment, createLearningPlan, getLearningPlan, completeLearningItem, createCareerPath, getCareerPath, begin, abandon, interview, sse, list] = await Promise.all([
       fetch(`${base}/interview/${interviewId}/questions/0/feedback`, {
         method: 'POST', headers: { ...authorization, 'content-type': 'application/json' }, body: JSON.stringify({ rating: 'up' }),
@@ -331,11 +332,12 @@ async function main() {
     ]);
     const afterEscapes = await admin.query(`
       SELECT
-        (SELECT count(*)::int FROM consumption_record WHERE interview_id=$1) AS consumption_count,
+        -- DBHY-1(0145):consumption_record 死表退役;改查幂等真身 entitlement_consumption(按 owner 计·真表无 interview_id 列)
+        (SELECT count(*)::int FROM entitlement_consumption WHERE owner_user_id=$2) AS consumption_count,
         (SELECT count(*)::int FROM interview_event WHERE stream_key=$1) AS event_count,
         (SELECT count(*)::int FROM question_feedback WHERE interview_id=$1) AS feedback_count,
         (SELECT count(*)::int FROM ai_report WHERE interview_id=$1) AS report_count
-    `, [interviewId]);
+    `, [interviewId, signupBody.userId]);
     const listBody = await json(list);
     const fencedEndpoints = [
       feedback, speak, speakStream, transcribe, report, retryReport, exportReport, transcript,

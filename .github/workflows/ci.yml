@@ -150,8 +150,8 @@ jobs:
         run: pnpm migrate:prove
       - name: B端历史快照迁移回归（stale binding + deferred FK pending events）
         run: pnpm neg:bend
-      - name: legacy schema 兼容门（迁移路径 vs sql/ 兼容镜像逐列+约束比对；不替代完整迁移 E2E）
-        run: pnpm drift:prove
+      - name: DBHY-1 卫生刀 prove（死表退役+sql/ 兼容镜像退役残面门+fresh deploy 重建+qbank 分区释放例程）
+        run: pnpm dbhy1:prove
       - name: 模型熔断器（连败→降级快速失败不打模型→冷却半开→恢复关闭）
         run: pnpm breaker:prove
       - name: 跨供应商 failover（primary 故障秒切 backup·内容拒不换供应商·全挂交降级）

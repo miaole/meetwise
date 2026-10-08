@@ -220,7 +220,7 @@ export async function runMigrateProof(
   await pool.query('DROP TABLE migration_guarded_business, mig_t2, schema_migrations');
 
   // 目录加载 + baseline(冻结真 schema) + 增量 + 幂等 + **数据保全(零丢失)**
-  await pool.query('DROP TABLE IF EXISTS schema_migrations, app_setting CASCADE');
+  await pool.query('DROP TABLE IF EXISTS schema_migrations CASCADE');
   const loaded = loadMigrations(migrationDirectory);
   A('版本化目录没有普通迁移自带事务控制语句', loaded.every((migration) => migration.executionMode === 'concurrent-index'
     || !containsTopLevelTransactionControl(migration.sql)));
@@ -396,12 +396,17 @@ export async function runMigrateProof(
     && (await pool.query("SELECT has_table_privilege('app_role','ai_model_invocation','DELETE') allowed")).rows[0]?.allowed === false
     && (await pool.query("SELECT has_function_privilege('app_role','ai_model_claim_invocation_scoped(text,text,text,text,text,text,text,uuid,integer,text,text,text,text,integer,integer,integer)','EXECUTE') allowed")).rows[0]?.allowed === true
     && (await pool.query("SELECT has_function_privilege('app_role','ai_model_terminalize_scoped(text,text,text,text,jsonb,boolean,integer,integer,integer)','EXECUTE') allowed")).rows[0]?.allowed === true);
-  A('增量 0003 → app_setting 有 ALTER 加的 updated_at 列(非 DROP 重建)', (await pool.query("SELECT 1 FROM information_schema.columns WHERE table_name='app_setting' AND column_name='updated_at'")).rowCount === 1);
-  // 关键:插用户数据 → 再部署(重跑迁移)→ 数据必须还在(运行器 skip,不重跑 baseline 的 drop+recreate)
-  await pool.query("INSERT INTO app_setting(key,value) VALUES ('user_key','user_data')");
+  // DBHY-1(0145):app_setting 死表已退役——示范断言改挂真迁移对象演示同一增量语义(增量 ALTER 出列+数据保全):
+  // 列对象=0135 的 resume_quiz.expires_at(真增量 ALTER·非 DROP 重建);数据对象=resume_quiz 真行(增量重跑不毁既有行)。
+  A('增量 0135 → resume_quiz 有 ALTER 加的 expires_at 列(非 DROP 重建·真迁移对象)', (await pool.query("SELECT 1 FROM information_schema.columns WHERE table_name='resume_quiz' AND column_name='expires_at'")).rowCount === 1);
+  // 关键:插业务数据 → 再部署(重跑迁移)→ 数据必须还在(运行器 skip,不重跑任何 baseline 的 drop+recreate)
+  await pool.query("INSERT INTO resume_quiz(id,owner_user_id) VALUES ('__dbhy1_canary__','dbhy1_canary_owner')");
   const rr2 = await runMigrations(pool, loaded);
-  A('再部署:全迁移 skip(不重跑 baseline 的 DROP)', rr2.applied.length === 0 && rr2.skipped.length === loaded.length);
-  A('**零数据丢失**:再部署后用户数据仍在', (await pool.query("SELECT value FROM app_setting WHERE key='user_key'")).rows[0]?.value === 'user_data');
+  A('再部署:全迁移 skip(不重跑任何 DROP)', rr2.applied.length === 0 && rr2.skipped.length === loaded.length);
+  A('**零数据丢失**:再部署后业务数据仍在', (await pool.query("SELECT owner_user_id FROM resume_quiz WHERE id='__dbhy1_canary__'")).rows[0]?.owner_user_id === 'dbhy1_canary_owner');
+  await pool.query("DELETE FROM resume_quiz WHERE id='__dbhy1_canary__'");
+  A('DBHY-1(0145):app_setting 死表已退役(fresh deploy 不再产死表)', !(await has('app_setting')));
+  A('DBHY-1(0145):consumption_record 死表已退役(幂等真身=entitlement_consumption 在产)', !(await has('consumption_record')) && (await has('entitlement_consumption')));
 
   return { assertions, failures };
 }

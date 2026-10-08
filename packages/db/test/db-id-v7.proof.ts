@@ -33,9 +33,9 @@ const owner = `dbid1-owner-${process.pid}`;
 let failures = 0;
 const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures++; };
 
-/** A 级 55 表（亲核 @7135f615；N1：ai_graph_run 主键列 = run_id，其余 = id）。 */
+/** A 级 54 表（亲核 @7135f615 后经 DBHY-1 0145 摘除死表 consumption_record——0143 历史文本仍 55 条 ALTER·P6 静态门不动；N1：ai_graph_run 主键列 = run_id，其余 = id）。 */
 const A_TABLES: ReadonlyArray<readonly [string, string]> = [
-  ['entitlement_consumption', 'id'], ['entitlement_bucket', 'id'], ['consumption_record', 'id'],
+  ['entitlement_consumption', 'id'], ['entitlement_bucket', 'id'],
   ['commerce_outbox', 'id'], ['settlement_ledger', 'id'], ['ai_graph_run', 'run_id'],
   ['privacy_deletion_target', 'id'], ['privacy_erasure_request', 'id'],
   ['resume', 'id'], ['interview_job', 'id'], ['ai_report', 'id'], ['quiz_job', 'id'], ['diagnosis_job', 'id'],
@@ -182,12 +182,12 @@ async function main() {
       && idUnixMs('not-a-v7-id') === null && idUnixMs('job_zzz') === null);
   }
 
-  /* ── P4 · catalog 断言（55 表 + 保留面原样） ───────────────────────────── */
+  /* ── P4 · catalog 断言（DBHY-1 0145 后 54 表：死表 consumption_record 已 DROP·A_TABLES 摘行；0143 历史文本 55 条 ALTER 不改） ── */
   {
     const leftover = await pool.query<{ n: string }>(
       `SELECT count(*)::text AS n FROM information_schema.columns
         WHERE table_schema='public' AND column_default LIKE '%gen_random_uuid()%'`);
-    A('P4-1 gen_random_uuid() 默认值清零（55/55 已切换）', leftover.rows[0]!.n === '0');
+    A('P4-1 gen_random_uuid() 默认值清零（54/54 已切换·DBHY-1 后）', leftover.rows[0]!.n === '0');
     let allSwitched = true; let badTable = '';
     for (const [table, col] of A_TABLES) {
       const c = await pool.query<{ d: string | null }>(
@@ -196,7 +196,7 @@ async function main() {
       const d = c.rows[0]?.d ?? null;
       if (d === null || !d.includes('uuidv7()')) { allSwitched = false; badTable = `${table}.${col}=${d}`; break; }
     }
-    A(`P4-2 55 表 DEFAULT=uuidv7()（含 N1 ai_graph_run.run_id）`, allSwitched && !badTable);
+    A(`P4-2 54 表 DEFAULT=uuidv7()（含 N1 ai_graph_run.run_id·DBHY-1 后）`, allSwitched && !badTable);
     const bigintFaces: Array<readonly [string, string]> = [
       ['interview_event', 'id'], ['memory_audit_event', 'id'],
       ['rag_cache_invalidation_outbox', 'id'], ['rag_generation_release_event', 'id'],

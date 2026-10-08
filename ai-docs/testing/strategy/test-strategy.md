@@ -125,7 +125,7 @@ RAG 检索的当前实跑基线、非 happy-path 桶和 pgvector HNSW 复核见 
 
 ## 影子数据库结构迁移状态
 
-`packages/db/migrations/`（版本化迁移）是全新部署、隔离 E2E（端到端）和任何发布结论的唯一数据库真相。`packages/db/sql/` 只是旧 demo（演示）/单元 fixture（样本）的兼容镜像；`pnpm drift:prove` 只保证它不会比迁移路径**多出**列或唯一约束，不能反向证明它覆盖当前 schema（数据库结构）。
+`packages/db/migrations/`（版本化迁移）是全新部署、隔离 E2E（端到端）和任何发布结论的唯一数据库真相。DBHY-1（0145）后 `packages/db/sql/` 降格为 neg 族/legacy 向量夹具的**测试夹具源**（非 schema 真相·退役残面登记于 `ai-docs/delivery/harness/dbhy1-db-hygiene.md`）；原 `pnpm drift:prove` 门已退役，其 fresh-deploy 保护职责由 `pnpm dbhy1:prove` 的 P4/P5（fresh deploy 重建+0019 炸史封口断言）机器接替。
 
 2026-08-10 的仓库盘点发现仍有 **7** 个测试或 smoke（冒烟）源文件直接执行该兼容镜像。其中支付权益 Saga（预留→确认→释放）、面试主链、长上下文压力、记忆模块、报告舱壁、押题、诊断、孤儿任务收割、OCR（光学字符识别）、模型优雅降级、简历摄取和 request ID（请求标识）已经分别迁至 64 个迁移的隔离运行器：`pnpm commerce:prove`（50/50）、`pnpm interview:prove`（11/11）、`pnpm stress:prove`（29/29）、`pnpm memory:prove`（11/11）、`pnpm report:prove`（36/36）、`pnpm quiz:prove`（25/25）、`pnpm diagnosis:prove`（35/35）、`pnpm reaper:prove`（28/28）、`pnpm ocr:prove`（15/15）、`pnpm adaptive-degrade:prove`（8/8）、`pnpm resume:prove`（32/32）、`pnpm reqid:prove`（10/10），十二份回执均标记 `releaseEvidence=false`。已退役固定题单的旧 `flow.proof.ts` 及会手读 `.env`、使用影子结构的 `flow:live`/`adaptive:live` 均已删除；`flow:prove` 仅为当前 `interview:prove` 的兼容别名。其余使用者（包含 vectorstore 和若干 smoke）在迁移前只能作为局部兼容测试，**不得**被写成当前生产 E2E、权限、删除或性能证据。
 

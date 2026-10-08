@@ -96,10 +96,7 @@ function sameInvokeValue(left: unknown, right: unknown): boolean {
 }
 
 async function main() {
-  await pool.query(sql('../../db/sql/01_schema.sql'));
-  for (const migration of MIGRATIONS) {
-    await pool.query(sql(`../../db/migrations/${migration}`));
-  }
+  // DBHY-1: sql/01_schema 兼容镜像退役——隔离 runner 预迁移(migrations 单真相,含 MIGRATIONS 全链),原 bootstrap 重放块移除(断言面不变)。
   await pool.query('TRUNCATE ai_model_dispatch_slot, ai_model_logical_node_header, ai_model_invocation, ai_model_invocation_transition_permit');
 
   section('HC-GAP-011-orphan-permit · leftover create-permit, no invocation row');

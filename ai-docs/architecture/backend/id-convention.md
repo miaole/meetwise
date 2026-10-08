@@ -62,3 +62,15 @@
 ## 5. prove 门（EXIT=0 硬保证）
 
 `pnpm db-id-v7:prove`（`packages/db/test/db-id-v7.proof.ts`）：P1 SQL 函数位域/单调/碰撞 · P2 RFC 9562 KAT 三方比对 · P3 工厂 10000 次 + Spearman≥0.999 · P4 catalog 55 表断言 · P5 INSERT 冒烟（DEFAULT + B2 显式 id 双路径）· P6 migration 文本静态门（dollar-quote 感知语句白名单）· P7 对表勾销块（postgres skill 7 项 + NEXT-NODE C4）。
+
+## 6. jsonb 使用边界（DBHY-1 · 0145 冻结 · GAP-DEBT-DB-HYGIENE 路线图）
+
+**规范（新表面强制）**：元素级需要查询/外键/擦除/演进的结构化实体数据**禁**塞 jsonb 列（"万能口袋"反模式：无 schema 约束、无法 FK 到元素、隐私擦除只能整列盲处理、每次消费全量解析）。此类数据必须建子表 + 复合键（范式参考：`interview_question` @0021）。jsonb 仅限两类合法用途：①不透明诊断/遥测 blob；②图/流水线产物快照（终结记录·不可查·如 `resume_quiz.report`）。
+
+**存量例外登记（0145 已打 DEPRECATED COMMENT·拆表另刀）**：
+
+| 列 | 现状（DBHY-1 亲核） | 路线图 |
+|----|---------------------|--------|
+| `interview.questions` | 生产写入 0 处；唯一读点 interview.service.ts transcript 路径 | P1 先行拆（列死风险最小） |
+| `assessment_report.dimensions` | 评分聚合读写面 | P2 拆子表（dimension/score/gap/evidence） |
+| `learning_plan.items` / `career_path.milestones` | 各自读写面 | P3/P4 同型拆 |

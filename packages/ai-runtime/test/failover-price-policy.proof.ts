@@ -139,10 +139,7 @@ async function main() {
   // ────────────────────────────────────────────────────────────────────────────
   // 隔离账本 bootstrap（同 model-cost-governance.proof.ts：01_schema + ai 成本/调用迁移）。
   // ────────────────────────────────────────────────────────────────────────────
-  await pool.query(sql('../../db/sql/01_schema.sql'));
-  for (const f of ['0033_ai_cost_governance.sql', '0035_ai_cost_principal_scope.sql', '0036_ai_text_cost_governance.sql', '0037_ai_model_invocation_durable_claim.sql', '0056_model_invocation_reconcile.sql', '0057_model_invocation_cost_scope.sql', '0083_ai_text_cost_price_revision_binding.sql', '0085_ai_model_logical_node_dispatch_slot.sql', '0088_ai_model_invocation_controlled_state_machine.sql', '0119_usage_reconciliation_wiring.sql', '0130_model_invocation_same_key_claim_join.sql']) {
-    await pool.query(sql(`../../db/migrations/${f}`));
-  }
+  // DBHY-1: sql/01_schema 兼容镜像退役——隔离 runner 预迁移(migrations 单真相,0033-0130 全链),原 bootstrap 重放块移除(断言面不变)。
 
   // 清理 + 播种（唯一后缀，只碰自己名下数据；费用账本 FK 顺序：reservation → budget_month → budget_policy）。
   await pool.query(`DELETE FROM ai_model_invocation WHERE owner_user_id=$1`, [OWNER]);
