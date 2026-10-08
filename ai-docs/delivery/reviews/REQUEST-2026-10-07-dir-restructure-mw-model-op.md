@@ -1,6 +1,6 @@
-# REQUEST — DIR-1 · 目录与文件位置重构设计刀（docs-only · per-batch pure-move 迁移计划）· pre-exec · mw-model-op
+# REQUEST — DIR-1 · 目录与文件位置重构设计刀（docs-only · per-batch pure-move 迁移计划）· pre-exec · mw-model-op · **rev2**
 
-**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub only · Ban self-approve · alone ≠ dual · 不代签 peer）
+**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub only · **rev2 已并入双席 FAIL 合并处方** · Ban self-approve · alone ≠ dual · 不代签 peer）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Expert**: `mw-model-op`
 **Knife**: `harness/dir-restructure.md` · slice `dir-restructure.slice.md`
@@ -32,6 +32,14 @@
 4. **B6 scripts 移动的 prove 资产安全**：38 个根 `*.proof.mjs`（含 `interview-dispatch-prove.proof.mjs` / `mysql-stack.*` 11 个）移入子目录须同步 248 处 `node scripts/` package.json 路径——model-op 视角确认 prove CMD 别名（`pnpm <x>:prove`）迁移后仍解析到同一脚本字节（`--find-renames` R100），无静默换脚本 / 无 prove 面缩水。
 5. **预算与零调用**：本 docs-only 批零 model 调用 / 零 Key / 零 `.env*` / `actualSpendCny=null`；不发明 spend；后续各迁移批同样零模型调用（纯文件移动）。
 6. **诚实边界**：批绿 ≠ 重构完成 ≠ reconcile 语义已验证 ≠ HA；SSOT（矩阵/backlog）零触碰留 nail；`releaseEvidence=false` / `g7SuiteGreen=false` 不动。
+
+## rev2 补审点（对应本席盘点诚实性 FAIL · 重审时逐条核）
+
+M1′ **旗舰行与计数勘误**：harness §2.3 旗舰改为 `qbank-track-local-retrieval.ts` = **db+domain 两树同名** + worker **近名** `qbank-track-local-retrieve.ts`（rev1 三树同名误记已勘）；exact 17 组全为 db↔domain + 跨树 8 组（补录 `scoring-honesty.ts` domain↔web/lib/stream · `client.ts` qdrant-store↔web/lib/api）+ 近名族 6 族（`interview.service`(api) vs `interview-service`(worker) 归近名）；n=749/kebab=744 · db 70 平铺+tenant/ · ai-graphs 17 · 散件 15 · helpers 12。请抽核 ≥3 处。
+M2′ **B1 逐文件落位（§4.1）**：model-op 落点 = `packages/db/src/model-op/`（model-invocation · model-operation-admission · usage-calibration · ai-cost-governance · online-judge-control，5 文件）；根锚 5 明示（principal.ts 不动=SPLIT-1 前原地）。请核 usage-calibration 只移动不改字节。
+M3′ **prove 真实命令面**：B1 证明面含 `prove:ai-cost` · `prove:model-*`（worker 侧 `prove:model-invocation-reconcile` · `prove:model-op00-db-state` · `prove:model-cost*`）等现存别名全绿；live/Key 类 prove 明示不在迁移批证明面。
+M4′ **wakeup 链 docker 锚**：R2/B3 明示 `cost-configure.ts` 钉根（`docker/compose.prod.yml:231` 直引）+ docker/ops 引用面前置盘点（`:230-231/:240/:269` · `Dockerfile.ha-dual:38` · `worker.env.example:171` · `ops/deploy/*` 入 B6 扫）；`checkpoint-principal.ts` 仍被 B3 排除。
+M5′ **r4 债行 + shim 预裁定**：Ban 9（r4/R4/FUNNEL 债行不因移动关闭，backlog 字节不动）+ Ban 10/§4.2-3（B6 禁新建转发 shim；唯一合法转发层 = mysql-stack 根转发 S4 landed）。
 
 末行严格 `Verdict: PASS` 或 `Verdict: FAIL`。本 stub 不授权 coding / mv / prove / push；pre-exec dual PASS 后由协调方授权后续批次。
 

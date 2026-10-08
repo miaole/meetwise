@@ -1,6 +1,6 @@
-# REQUEST — DIR-1 · 目录与文件位置重构设计刀（docs-only · per-batch pure-move 迁移计划）· pre-exec · mw-e2e-ha
+# REQUEST — DIR-1 · 目录与文件位置重构设计刀（docs-only · per-batch pure-move 迁移计划）· pre-exec · mw-e2e-ha · **rev2**
 
-**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub only · Ban self-approve · alone ≠ dual · 不代签 peer）
+**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（stub only · **rev2 已并入双席 FAIL 合并处方** · Ban self-approve · alone ≠ dual · 不代签 peer）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Expert**: `mw-e2e-ha`
 **Knife**: `harness/dir-restructure.md` · slice `dir-restructure.slice.md`
@@ -33,6 +33,14 @@
 5. **测试落位一案统一**（§3 R4）：`<pkg>/test/*.proof.ts` 同级为唯一规范（现状 322 文件已合规），禁内联/`__tests__`；`apps/web/e2e-ui/*.spec.ts` 为 UI 次层（契约管辖）；`_neg-harness.ts` 下划线前缀是否被 runner glob 依赖须先探测（B7 前置）。B1/B2 批须同步改 test/ 内引用 db/domain 内部路径的 proof import——此改面是否已在 §4 通用律 2 覆盖。
 6. **Ban 拆长文件**：§2.2 top5 只登记给后续 SPLIT-1 内容刀，本刀 Ban 拆 Ban 改名（B7 单列微批除外）——防止「顺手重构」混入纯移动。
 7. **诚实边界**：本 docs-only commit 不构成任何 prove / 不翻任何 SSOT 行 / coveredCount=8 不动 / `g7SuiteGreen=false`；批绿 ≠ 重构完成 ≠ E2E ≠ HA。
+
+## rev2 补审点（对应本席 FAIL 洞 · 重审时逐条核）
+
+R1′ **prove 真实命令面**：harness §4「零行为变更证明（rev2）」已撤回 rev1 幻构命令（`pnpm -C <pkg> typecheck|build|test` 实不存在），改为 `pnpm exec tsc -p <pkg>/tsconfig.json --noEmit` + 逐包现存 `prove:*` 全绿清单（db 67 / domain 26 / worker 119 / 根 alias 面），且「新增包级 script 须批 REQUEST 显式单列白名单」。请核清单与各包 package.json 逐名对得上。
+R2′ **B6 白名单闭合**：通用律 2 扩为四类路径文本（第四类 = `scripts/**.mjs` 内 repo 相对路径串 + `./lib` 相对 import）；§4.2-1 钉死扫描命令并如实登记口径差（协调方 62 vs 复扫 67/79、移动敏感面 37——正则覆盖差，以钉死命令实测为准，B6 批落逐文件清单消解）。
+R3′ **mysql-stack 契约态**：§4.2-2 实测根 11 文件为 **S4 legacy path forwarder**（真身在 conn-stack/，文件头自证），B6 改为「根转发层原样保留」，「并入/删转发」须契约修正案前置另刀；rev1 的「评估并入」已撤回。请核与 `adr-e2e-directory-restructure.md` S4 landed 叙事一致。
+R4′ **r4 债行不关**：B3 行 + Ban 9 明示「移动 31 个 r4-\* ≠ 关闭/洗涤任何 r4/R4/FUNNEL/G-R4-5 债行」；§6.2-2 已删「与 conn-stack 同名双份易混」误记。
+R5′ **批前重查**：通用律 0（SOP + W 线 w1/w1b/w2 冻结序 + loop 文件冲突面，任一命中即顺延）+ Ban 11。
 
 末行严格 `Verdict: PASS` 或 `Verdict: FAIL`。本 stub 不授权 coding / mv / prove / push；pre-exec dual PASS 后由协调方授权后续批次。
 
