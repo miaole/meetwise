@@ -1,6 +1,6 @@
 # Harness — **DBFK-1** · interview 复合 FK 渐进补齐（GAP-DEBT-DB-NOFK · W2 二刀 · REQUEST）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（本 turn docs-only · REQUEST 编写完成即停 · **未授权 EXEC** · zero coding / zero migration / zero prove）
+**Status**: **`exec:awaiting_post_prove_dual`**（EXEC 完成 @协调方授权 rev2 双审 BOTH PASS · prove 31/31 EXIT=0 · **P7 四项 base-identical red 已登记**（DBID1-UUIDV7-ACL-E1 既有雷·见 P4-0/P5-2 收据与债行进度注）· Ban self-approve · nail 须 meetwise 授权）
 **Date**: 2026-10-08（rev2 同日 · 小修）
 **Author**: **`mw-core`**（rev1 全部清单亲核 + rev2 小修执行 · 按协调方 0144 裁定）
 **Rev2 变更记录（docs-only · 协调方 0144 序裁定）**: ①迁移编号 0144/0145 → **0147/0148**（DBTF-1 已 EXEC 占 0144 · DBHY-1 0145+0146 · 本刀顺延 0147+0148 · DBM3-1 0149）②§1.5a「全库 0 命中」措辞勘误为「生产/迁移面 0 命中」+ recruiter-depth.proof:210 测试清理 1 处登记 ③P7 回归补 `recruiter:prove` 复跑（CASCADE 级联面）④作者标记 mw-core。刀面/断言集/pins 零变化。

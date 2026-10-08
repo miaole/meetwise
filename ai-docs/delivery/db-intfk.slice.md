@@ -1,6 +1,6 @@
 # Slice — **DBFK-1** · interview 复合 FK 渐进补齐（GAP-DEBT-DB-NOFK · W2 二刀 · REQUEST 阶段）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（REQUEST 完成 · **未授权 EXEC** · zero coding / zero migration / zero prove）
+**Status**: **`exec:awaiting_post_prove_dual`**（EXEC 完成：0147+0148 落地 · prove 31/31 EXIT=0 · P7 四项 base-identical red 登记=DBID1-UUIDV7-ACL-E1 既有雷）
 **Date**: 2026-10-08（rev2 同日）
 **Author**: **`mw-core`**（rev2 小修：协调方 0144 序裁定迁移顺延 0147/0148 · §1.5a 口径勘误 · P7 补 recruiter-depth 复跑）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503（stays） · g7SuiteGreen=false · actualSpendCny=null
