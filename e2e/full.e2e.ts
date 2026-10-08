@@ -11,7 +11,7 @@ import { liveOcrResumePngBase64 } from './ocr-fixture.ts';
 import { createAssert } from './helpers/assert.ts';
 import { signupOrLogin, uidFromToken } from './helpers/auth.ts';
 import { createOrder, entitlement, isWebhookCreditResult, paidWebhookSignature, payWebhook, postPayWebhook } from './helpers/commerce.ts';
-import { createE2EReviewLedger, emitClassifiedE2EFailure } from './helpers/failure.ts';
+import { createE2EReviewLedger, emitClassifiedE2EFailure, emitE2EFailure } from './helpers/failure.ts';
 import { BASE, readJson } from './helpers/http.ts';
 import { driveInterviewToTerminal } from './helpers/interview.ts';
 import { consentResumeProcessing, getResumeProfile, uploadImageResume, uploadTextResume } from './helpers/resume.ts';
