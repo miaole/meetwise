@@ -1,7 +1,8 @@
 # Slice — **DBFK-1** · interview 复合 FK 渐进补齐（GAP-DEBT-DB-NOFK · W2 二刀 · REQUEST 阶段）
 
 **Status**: **`draft:awaiting_pre_exec_dual`**（REQUEST 完成 · **未授权 EXEC** · zero coding / zero migration / zero prove）
-**Date**: 2026-10-08
+**Date**: 2026-10-08（rev2 同日）
+**Author**: **`mw-core`**（rev2 小修：协调方 0144 序裁定迁移顺延 0147/0148 · §1.5a 口径勘误 · P7 补 recruiter-depth 复跑）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503（stays） · g7SuiteGreen=false · actualSpendCny=null
 **Experts**: `mw-model-op` + `mw-e2e-ha`（pre-exec 双审 · Ban self-approve · Dual PASS ≠ 开工 · 须 meetwise 明示授权）
 **Parent tip**: `48dee7a2`（branch `line/db-interview-fk` · base `origin/feat/mysql-schema-skeleton`）
@@ -19,7 +20,7 @@
 
 ## One-line scope
 
-interview 复合 FK 渐进补齐 REQUEST：父侧 `UNIQUE(id, owner_user_id)`（镜像 resume 模板 0001:180）+ Batch 1 三表（ai_report/assessment_report/question_feedback）复合 FK `ON DELETE CASCADE` · Batch 1b（learning_plan/career_path + 亲核孪生 learning_progress）复核后同刀（D2）· interview_event 两案并陈交双审（D1 · mw-core 建议保持无 FK+登记）· additive 迁移 orphan-check-first（0144 concurrent-index 父索引 + 0145 NOT VALID+VALIDATE · PG 无 FK CONCURRENTLY 措辞修正 D4）· 擦除迁移零碰（FK 驱动收缩=未来刀 §4）· Prove P1-P7 + 三表回归复跑。
+interview 复合 FK 渐进补齐 REQUEST：父侧 `UNIQUE(id, owner_user_id)`（镜像 resume 模板 0001:180）+ Batch 1 三表（ai_report/assessment_report/question_feedback）复合 FK `ON DELETE CASCADE` · Batch 1b（learning_plan/career_path + 亲核孪生 learning_progress）复核后同刀（D2）· interview_event 两案并陈交双审（D1 · mw-core 建议保持无 FK+登记）· additive 迁移 orphan-check-first（rev2：0147 concurrent-index 父索引 + 0148 NOT VALID+VALIDATE · 协调方序裁定顺延 · PG 无 FK CONCURRENTLY 措辞修正 D4）· 擦除迁移零碰（FK 驱动收缩=未来刀 §4）· Prove P1-P7 + 回归复跑（三表 + rev2 补 recruiter-depth CASCADE 级联面）。
 
 ## Hard pins
 
@@ -32,10 +33,10 @@ interview 复合 FK 渐进补齐 REQUEST：父侧 `UNIQUE(id, owner_user_id)`（
 
 ## EXEC checklist（授权后）
 
-1. `packages/db/migrations/0144_interview_owner_unique_index.sql`：`-- @migration-mode concurrent-index` + `CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS uq_interview_id_owner ON interview (id, owner_user_id);`（恰一条语句合 runner 正则门）
-2. `packages/db/migrations/0145_interview_composite_fk_batch1.sql`：`ADD CONSTRAINT uq_interview_id_owner UNIQUE USING INDEX` 收编 + 6×FK `(interview_id, owner_user_id)→interview(id, owner_user_id) ON DELETE CASCADE NOT VALID` + 6×`VALIDATE CONSTRAINT`（同事务 · Batch 1 三表 + Batch 1b 三表若 D2 裁同刀）
+1. `packages/db/migrations/0147_interview_owner_unique_index.sql`：`-- @migration-mode concurrent-index` + `CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS uq_interview_id_owner ON interview (id, owner_user_id);`（恰一条语句合 runner 正则门 · rev2 顺延号——EXEC 期亲核卷首实占号，不符则以实际顺号落地并登记）
+2. `packages/db/migrations/0148_interview_composite_fk_batch1.sql`：`ADD CONSTRAINT uq_interview_id_owner UNIQUE USING INDEX` 收编 + 6×FK `(interview_id, owner_user_id)→interview(id, owner_user_id) ON DELETE CASCADE NOT VALID` + 6×`VALIDATE CONSTRAINT`（同事务 · Batch 1 三表 + Batch 1b 三表若 D2 裁同刀）
 3. orphan-check-first：ADD 前逐表 LEFT JOIN 查孤儿（§3.4 SQL）· 期望 0 · >0 停+登记
-4. `packages/db/test/db-int-fk.proof.ts` + 接线三点（root pkg / db pkg / run-e2e-isolated.mjs）：P1 孤儿+合成孤儿 VALIDATE 拒 · P2 catalog 六点 · P3 双负门（不存在 id / 错 owner → 23503）· P4 正路径 · P5 0096 purge 共存复刻 · P6 静态门（新迁移零 UPDATE/DELETE/DROP/TRIGGER/POLICY + 历史迁移零 diff）· P7 三表回归复跑（growth / uc019-report-regenerate / int-transcript-remaining-sinks）
+4. `packages/db/test/db-int-fk.proof.ts` + 接线三点（root pkg / db pkg / run-e2e-isolated.mjs）：P1 孤儿+合成孤儿 VALIDATE 拒 · P2 catalog 六点 · P3 双负门（不存在 id / 错 owner → 23503）· P4 正路径 · P5 0096 purge 共存复刻 · P6 静态门（新迁移零 UPDATE/DELETE/DROP/TRIGGER/POLICY + 历史迁移零 diff）· P7 回归复跑（growth / uc019-report-regenerate / int-transcript-remaining-sinks / **recruiter:prove——rev2 补 CASCADE 级联面·cleanup :210 全库唯一根行删点**）
 5. 债行 `gap-bug-backlog.md:875` 追加进度注（append-only · 不 CLOSE——event 裁定与后续批在卷）
 6. post-prove 双审 → meetwise 授权 nail
 

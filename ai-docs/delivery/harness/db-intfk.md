@@ -1,7 +1,9 @@
 # Harness — **DBFK-1** · interview 复合 FK 渐进补齐（GAP-DEBT-DB-NOFK · W2 二刀 · REQUEST）
 
 **Status**: **`draft:awaiting_pre_exec_dual`**（本 turn docs-only · REQUEST 编写完成即停 · **未授权 EXEC** · zero coding / zero migration / zero prove）
-**Date**: 2026-10-08
+**Date**: 2026-10-08（rev2 同日 · 小修）
+**Author**: **`mw-core`**（rev1 全部清单亲核 + rev2 小修执行 · 按协调方 0144 裁定）
+**Rev2 变更记录（docs-only · 协调方 0144 序裁定）**: ①迁移编号 0144/0145 → **0147/0148**（DBTF-1 已 EXEC 占 0144 · DBHY-1 0145+0146 · 本刀顺延 0147+0148 · DBM3-1 0149）②§1.5a「全库 0 命中」措辞勘误为「生产/迁移面 0 命中」+ recruiter-depth.proof:210 测试清理 1 处登记 ③P7 回归补 `recruiter:prove` 复跑（CASCADE 级联面）④作者标记 mw-core。刀面/断言集/pins 零变化。
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503（stays） · g7SuiteGreen=false · actualSpendCny=null
 **Experts**: `mw-model-op` + `mw-e2e-ha`（pre-exec 双审 · 本 REQUEST 只送审 · **Ban self-approve** · **Dual PASS ≠ 自动开工** · 须 meetwise 明示授权才进 EXEC）
 **Slice**: `../db-intfk.slice.md`
@@ -15,7 +17,7 @@
 
 | Statement | Ruling |
 |-----------|--------|
-| **本刀是什么** | interview 侧复合 FK 渐进补齐第一刀：interview 建 `UNIQUE(id, owner_user_id)`（镜像 resume 模板 0001:180）→ Batch 1 三表（ai_report / assessment_report / question_feedback）补 `FOREIGN KEY (interview_id, owner_user_id) REFERENCES interview(id, owner_user_id) ON DELETE CASCADE`（additive · orphan-check-first · NOT VALID+VALIDATE 在线路径）· interview_event 两案并陈交双审 · Prove `db-int-fk.proof.ts` EXIT=0 + 三表回归 prove 复跑 |
+| **本刀是什么** | interview 侧复合 FK 渐进补齐第一刀：interview 建 `UNIQUE(id, owner_user_id)`（镜像 resume 模板 0001:180）→ Batch 1 三表（ai_report / assessment_report / question_feedback）补 `FOREIGN KEY (interview_id, owner_user_id) REFERENCES interview(id, owner_user_id) ON DELETE CASCADE`（additive · orphan-check-first · NOT VALID+VALIDATE 在线路径）· interview_event 两案并陈交双审 · Prove `db-int-fk.proof.ts` EXIT=0 + 回归 prove 复跑（三表 + recruiter-depth CASCADE 面 · rev2） |
 | **本刀不是什么** | **不是** 存量行回填/改写 · **不是** 擦除迁移改写（本刀后删除闭包仍由 0048/0092/0096/0111/0118/0125 手工枚举承重——FK 驱动收缩是**未来刀**，见 §4）· **不是** RLS/触发器变更（0058/0059/0062 写 guard 面零碰）· **不是** interview_event 判别列手术（若裁案 A 则独立后刀）· **不是** 删除 interview 根行（fence 锚不动，§1.5a）· **不是** 本 turn 编码 |
 | **增益边界（诚实）** | ①同 owner 归属从「触发器+RLS 行为面」升为**声明式 DB 约束**（绕过触发器的路径——新 SECURITY DEFINER/运维直连——也被拦）· ②孤儿行制造被 DB 拒绝（现状可静默产生）· ③为未来「删除闭包 FK 驱动化」铺轨（收缩面=0096 report sink 6 表 DELETE 可撤）· **不 claim** 擦除机器已减半（本刀只铺轨）· **不 claim** 性能收益 |
 | **现在** | `draft:awaiting_pre_exec_dual` · docs-only · 等双审 + meetwise 授权 |
@@ -76,7 +78,7 @@ interview 一场的删除闭包今天散布在（亲核 DELETE 语句落点）�
 
 ### 1.5 关键架构事实（分批裁决的根据 · 全部亲核）
 
-- **(a) interview 根行是 fence 锚，永不删除**：全库 `DELETE FROM interview` = **0 命中**（唯一 `UPDATE interview` 是 0046 恢复器与 0123 快照回写，均非擦除）。`interview_privacy_active`（0058:42-45）先 `PERFORM 1 FROM interview WHERE id=… AND owner=principal`，**行不在→返回 false→全部写 guard 失效**。故「删除 interview 根行」= 拆 fence——`ON DELETE CASCADE` 在现行擦除路径**永不触发**，本刀的 CASCADE 是**声明式安全网**（若未来引入真·根删除路径，须先重裁 fence 锚设计——Non-claim）。
+- **(a) interview 根行是 fence 锚，生产/迁移面永不删除**：生产/迁移面 `DELETE FROM interview` = **0 命中**（rev2 勘误：rev1 措辞「全库 0 命中」漏计 **recruiter-depth.proof:210 测试清理 1 处登记**——`packages/db/test/recruiter-depth.proof.ts:210` cleanup `DELETE FROM interview WHERE id = ANY(…)` 为全库词边界精确匹配唯一命中·非生产/迁移面；该测试删根行在 FK 在场后**首触 CASCADE 级联面**，由 P7 `recruiter:prove` 复跑覆盖。唯一 `UPDATE interview` 是 0046 恢复器与 0123 快照回写，均非擦除）。`interview_privacy_active`（0058:42-45）先 `PERFORM 1 FROM interview WHERE id=… AND owner=principal`，**行不在→返回 false→全部写 guard 失效**。故「删除 interview 根行」= 拆 fence——`ON DELETE CASCADE` 在现行擦除路径**永不触发**，本刀的 CASCADE 是**声明式安全网**（若未来引入真·根删除路径，须先重裁 fence 锚设计——Non-claim）。
 - **(b) interview_event 是多态共享流表，stream_key 无类型父**：0062:4-6 自述「shared durable transport for interview, quiz and diagnosis SSE」+ 0143_sse_push_notify.sql:5「interview / quiz / diagnosis share this table」；writers 亲核五域——interview（interview-consumer.ts:91/93 · report-worker.ts:55/67 · adaptive-lifecycle.ts:54/158/257 · signal-conclude-event.ts:26）· quiz（quiz-lifecycle.ts:37/63/64 · quiz-consumer.ts:56/82）· diagnosis（diagnosis-lifecycle.ts:43/68-70 · diagnosis-consumer.ts:55/81）· qbank 生成（qbank-miss.ts:261 `plan.snapshotId`）· commerce 过期（commerce-reconcile.ts:49/65 `s.idempotencyKey`）。0062:36-39 对「legacy generic streams」显式放行（无父表可言）。→ `stream_key` 直接 FK 到 interview(id) **结构上不可能**（会拒绝全部非 interview 流）。
 - **(c) 0059 写 guard 已隐式要求「interview 行在 + 同 owner」**：8 张投影表的 BEFORE INSERT OR UPDATE guard → `enforce_interview_projection_privacy_active` → `interview_privacy_active`。因此**现存全部受 guard 写入已满足未来复合 FK**——FK 对现存流程的破坏风险 ≈ 0（触发器=安全边界，FK=完整性边界，互补非替代；FK 另拦「绕过触发器的路径」）。
 - **(d) RLS/触发器与 FK 零交互**：约束校验不走 RLS 策略；CASCADE 仅父删除触发（§1.5a：不存在该路径）。0096 purge 走**子行直接 DELETE**，FK 不拦子侧删除（P5 验证）。
@@ -146,11 +148,11 @@ ALTER TABLE <child>
 
 | | 形态 1：双迁移（mw-core 建议） | 形态 2：单事务迁移 |
 |---|---|---|
-| 结构 | `0144_interview_owner_unique_index.sql`（`-- @migration-mode concurrent-index` · `CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS uq_interview_id_owner ON interview (id, owner_user_id);`——**恰合 runner 正则门**）→ `0145_interview_composite_fk_batch1.sql`（`ALTER TABLE interview ADD CONSTRAINT uq_interview_id_owner UNIQUE USING INDEX uq_interview_id_owner;` + 6×FK ADD NOT VALID + 6×VALIDATE，同事务原子） | 单文件全内联（UNIQUE 直建 + FK NOT VALID + VALIDATE） |
-| 锁 | 父表在线建索引（0055 先例）· 0145 短窗 | 父表 ACCESS EXCLUSIVE 建索引（量小可忍，但模板不可复制到大表） |
+| 结构 | `0147_interview_owner_unique_index.sql`（`-- @migration-mode concurrent-index` · `CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS uq_interview_id_owner ON interview (id, owner_user_id);`——**恰合 runner 正则门**）→ `0148_interview_composite_fk_batch1.sql`（`ALTER TABLE interview ADD CONSTRAINT uq_interview_id_owner UNIQUE USING INDEX uq_interview_id_owner;` + 6×FK ADD NOT VALID + 6×VALIDATE，同事务原子） | 单文件全内联（UNIQUE 直建 + FK NOT VALID + VALIDATE） |
+| 锁 | 父表在线建索引（0055 先例）· 0148 短窗 | 父表 ACCESS EXCLUSIVE 建索引（量小可忍，但模板不可复制到大表） |
 | 建议 | ✅（interview_event/answer 族后续大批复制此模板） | 否 |
 
-注：0143 已有双文件同号先例（`0143_db_id_v7_unify.sql` + `0143_sse_push_notify.sql` 并存）——本刀取 **0144/0145 顺号**，避撞。
+注（rev2）：迁移编号原取 0144/0145 顺号（避撞 0143 双文件同号）；**协调方 0144 序裁定顺延为 0147/0148**——DBTF-1 已 EXEC 占 0144 · DBHY-1 0145+0146 · 本刀 0147+0148 · DBM3-1 0149。EXEC 期落地前须亲核 `packages/db/migrations/` 实际卷首号（跨 worktree 合流时序）——若实占号与 0147/0148 不符，以实际顺号落地并在收据登记，**不改迁移内容只改号**。
 
 ### 3.4 orphan-check-first（ADD 前置门 · prove P1 承重）
 
@@ -178,7 +180,7 @@ SELECT count(*) AS orphans FROM <child> c
 
 ## 5. Prove 设计（新 `packages/db/test/db-int-fk.proof.ts` · `pnpm db-intfk:prove` · EXIT=0）
 
-对隔离 PostgreSQL（`assertIsolatedTestTarget` + 增量迁移到 0145），全断言 PASS 才 EXIT=0：
+对隔离 PostgreSQL（`assertIsolatedTestTarget` + 增量迁移到 0148），全断言 PASS 才 EXIT=0：
 
 | 块 | 断言 |
 |----|------|
@@ -188,7 +190,7 @@ SELECT count(*) AS orphans FROM <child> c
 | P4 正路径 | 建 interview → 依序 INSERT 三表成功（guard 与 FK 共存不误伤 · `report.ts:15` / `interview.service.ts:567/:796` 真实语句形态） |
 | P5 擦除共存 | 复刻 0096 report sink 链（begin→claim→purge）在 FK 在场走通 + 残留=0 + interview 根行仍在（fence 锚不动） |
 | P6 静态契约门 | 新迁移文本 grep：**零** `UPDATE `/`DELETE FROM `/`DROP `/`CREATE TRIGGER `/`POLICY`（仅 CREATE UNIQUE INDEX / ADD CONSTRAINT / VALIDATE）；`git diff --stat packages/db/migrations/0001-0143` 零变更 |
-| P7 三表回归 prove 复跑 | `growth`（assessment_report ×4 引用）· `prove:uc019-report-regenerate`（ai_report ×6）· `prove:int-transcript-remaining-sinks`（question_feedback ×3 + purge 闭包）全绿收据 |
+| P7 回归 prove 复跑 | `growth`（assessment_report ×4 引用）· `prove:uc019-report-regenerate`（ai_report ×6）· `prove:int-transcript-remaining-sinks`（question_feedback ×3 + purge 闭包）· **`recruiter:prove`（recruiter-depth.proof.ts · rev2 补——cleanup :210 为全库唯一 `DELETE FROM interview` 根行删点 · FK 在场后该 DELETE 首触 CASCADE 级联面=级联清 Batch 1 子行 · 测试库清理语义兼容 · 复跑证明清理链不断）** 全绿收据 |
 
 **接线**（dbid1 同款四点）：root `package.json` `db-intfk:prove`/`:raw` · `packages/db/package.json` `prove:db-int-fk` · `scripts/run-e2e-isolated.mjs` 文件映射表 · test 文件本体。
 **纪律**：EXIT=0 一次过；attempts 全账；**Ban retry-to-green**。
@@ -214,7 +216,7 @@ SELECT count(*) AS orphans FROM <child> c
 | D1 | interview_event 两案（A=CASCADE 需判别列手术·独立后刀 vs B=保持无 FK+登记理由） | **B**（多态流表无类型父 · 擦除语义已承重 · 隐私优先） |
 | D2 | Batch 1b：learning_plan/career_path 复核后与 Batch 1 同刀（+新发现孪生 learning_progress 入裁） | **同刀 6 FK**（同构 · 分刀只增记账成本；复核例外则剔除登记） |
 | D3 | FK NOT DEFERRABLE（严于 resume 模板 0049 的 DEFERRABLE） | **确认**（卫星永远后于父行存在 · 无同事务先子后父场景） |
-| D4 | 形态 1 双迁移（0144 concurrent-index 父索引 + 0145 USING INDEX/FK/VALIDATE）+「PG 无 FK CONCURRENTLY·NOT VALID+VALIDATE 为在线等价」措辞修正 | **确认形态 1**（0055 先例 · 模板可复制） |
+| D4 | 形态 1 双迁移（0147 concurrent-index 父索引 + 0148 USING INDEX/FK/VALIDATE · rev2 顺延号）+「PG 无 FK CONCURRENTLY·NOT VALID+VALIDATE 为在线等价」措辞修正 | **确认形态 1**（0055 先例 · 模板可复制） |
 | D5 | CASCADE vs NO ACTION（父行永不删的现状下二者等价 inert；CASCADE 为未来 FK 驱动擦除预铺） | **CASCADE**（铺轨语义 · 与 resume 侧 0001:190 一致） |
 | D6 | consumption_record/answer 族/user_memory.source_id 排除面（§2.4） | **确认登记**（answer 族=Batch 2 候选） |
 
@@ -224,10 +226,10 @@ SELECT count(*) AS orphans FROM <child> c
 
 | ID | Criterion |
 |----|-----------|
-| A1 | 0144（concurrent-index 模式·恰一条语句）+ 0145（USING INDEX + 6 FK NOT VALID + 6 VALIDATE · 同事务）落地（P6 静态门绿） |
+| A1 | 0147（concurrent-index 模式·恰一条语句）+ 0148（USING INDEX + 6 FK NOT VALID + 6 VALIDATE · 同事务）落地（P6 静态门绿） |
 | A2 | `db-int-fk.proof.ts` EXIT=0（P1–P7 全 PASS · attempts 全账） |
 | A3 | 孤儿检测 6 表计数=0 收据在卷（或 >0 时登记处置 · Ban 静默回填） |
-| A4 | 三表回归 prove（growth / uc019 / remaining-sinks）复跑全绿收据 |
+| A4 | 回归 prove（growth / uc019 / remaining-sinks / **recruiter-depth · rev2 补 CASCADE 级联面**）复跑全绿收据 |
 | A5 | 历史迁移/RLS/触发器零 diff（P6）· 存量数据零变化 |
 | A6 | pins 全保留（§首行 · 无一翻转） |
 
@@ -235,14 +237,14 @@ SELECT count(*) AS orphans FROM <child> c
 
 ## 9. 流程与产物
 
-**流程**：REQUEST（本档）→ 预执行双审（`mw-model-op` + `mw-e2e-ha`）→ **meetwise 授权** → EXEC（0144+0145 + prove 接线 + 回归复跑）→ post-prove 双审 → **meetwise 授权 nail**（债行 GAP-DEBT-DB-NOFK 追加进度注·不 CLOSE——event 表裁定与后续批在卷）。
+**流程**：REQUEST（本档）→ 预执行双审（`mw-model-op` + `mw-e2e-ha`）→ **meetwise 授权** → EXEC（0147+0148 + prove 接线 + 回归复跑）→ post-prove 双审 → **meetwise 授权 nail**（债行 GAP-DEBT-DB-NOFK 追加进度注·不 CLOSE——event 表裁定与后续批在卷）。
 
 **EXEC 文件面（预告 · 本 turn 不动）**：
 
 | 文件 | 动作 |
 |------|------|
-| `packages/db/migrations/0144_interview_owner_unique_index.sql` | 新增（concurrent-index 模式 · 父唯一索引） |
-| `packages/db/migrations/0145_interview_composite_fk_batch1.sql` | 新增（USING INDEX 收编 + 6 FK NOT VALID + 6 VALIDATE） |
+| `packages/db/migrations/0147_interview_owner_unique_index.sql` | 新增（concurrent-index 模式 · 父唯一索引） |
+| `packages/db/migrations/0148_interview_composite_fk_batch1.sql` | 新增（USING INDEX 收编 + 6 FK NOT VALID + 6 VALIDATE） |
 | `packages/db/test/db-int-fk.proof.ts` | 新增 prove（P1–P7） |
 | root `package.json` + `packages/db/package.json` + `scripts/run-e2e-isolated.mjs` | prove 接线三点 |
 | 债行 `gap-bug-backlog.md:875` | 追加进度注（append-only） |
@@ -255,4 +257,4 @@ Not HA · not suite green · not 擦除机器已减半（只铺轨 · §4）· n
 
 ---
 
-*Harness · DBFK-1 interview 复合 FK 渐进补齐 REQUEST · 2026-10-08 · draft:awaiting_pre_exec_dual · parent `48dee7a2` · docs-only · pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null · Dual PASS ≠ 开工 · Ban self-approve*
+*Harness · DBFK-1 interview 复合 FK 渐进补齐 REQUEST · 2026-10-08 · rev2（迁移顺延 0147/0148 · 口径勘误 · P7 补 recruiter-depth · 作者 `mw-core`）· draft:awaiting_pre_exec_dual · parent `48dee7a2` · docs-only · pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null · Dual PASS ≠ 开工 · Ban self-approve*
