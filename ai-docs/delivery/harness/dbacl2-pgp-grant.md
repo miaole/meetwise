@@ -1,6 +1,6 @@
 # DBACL-2 — pgp_sym_encrypt EXECUTE ACL 补授刀（0151）
 
-**状态**：`draft_rev2:awaiting_pre_exec_dual`（rev1 席2 三勘误落实）· base = 主线 `a9f55133` **尾=双 0143（磁盘亲数 144 文件）**——0144-0150 归 W2 五刀在飞线让位序、**0151 全分支无冲突=下一空号** · 分支 `line/db-pgp-acl` · 立项依据 = DBACL-1 post-dual mw-privacy-int 席 N2 定性（超用户直调仍 42501 亲证·「勿并入勿忽略」）+ 协调方裁立（DBACL-1 nail 登记）。
+**状态**：`executed:awaiting_post_prove_dual`（rev1 席2 三勘误落实 · 协调方正式授权 EXEC · REQUEST rev2 @95911975 唯一蓝本 · EXEC 落盘 2026-10-08：0151 落地 + 官方 prove EXIT=0 37 PASS/0 FAIL + migrate:prove 子进程全绿 + drift 零漂移 · 收据 `receipts/dbacl2-pgp-grant/` · **Ban self-approve** · alone≠dual）· base = 主线 `a9f55133` **尾=双 0143（磁盘亲数 144 文件）**——0144-0150 归 W2 五刀在飞线让位序、**0151 全分支无冲突=下一空号** · 分支 `line/db-pgp-acl` · 立项依据 = DBACL-1 post-dual mw-privacy-int 席 N2 定性（超用户直调仍 42501 亲证·「勿并入勿忽略」）+ 协调方裁立（DBACL-1 nail 登记）。
 
 ## 1. 根因链
 - `0121:14` `REVOKE ALL ON FUNCTION public.pgp_sym_encrypt(text,text) FROM PUBLIC` + `:16` 仅 `GRANT ... TO app_role`。
@@ -27,3 +27,10 @@ prove EXIT=0 · P0-P5 全 PASS · attempts 全账（红→绿逐修非 retry-to-
 
 ## 6. Non-claims
 本刀 ≠ memory 会话链全部修复（仅 ACL 面）≠ ctx03-06/mem02 prove 转绿承诺（复跑归各自域）≠ G7 任何面。
+
+## 7. EXEC 落盘（2026-10-08 · mw-core 席 · 详收据 `receipts/dbacl2-pgp-grant/exec.md`）
+- **落地面**：`0151_pgp_sym_encrypt_grant.sql`（恰 1 条 GRANT·全文仅 GRANT）+ `packages/db/test/db-acl2.proof.ts`（P0–P5 两段式 37 断言）+ wiring（`prove:db-acl2`/`db-acl2:prove` + runner 3 处注册·不入预迁移 allowlist——DBACL-1 erratum 先例）。
+- **§2 闭集 EXEC 期机检双向核通过**：282 SD 函数扫描 · pgp_sym_* 调用点恰 1（memory_runtime·conversation_event_append·2 参 encrypt·0108:255）· 三参面/decrypt 面全库零 SD 调用 · 多一零/少一零。
+- **官方 prove**：探针 6 轮红→绿逐修（attempts 全账）→ 官方轮 **EXIT=0 · 37 PASS/0 FAIL**；P5 含 migrate:prove 子进程（专用第二净库）全绿 + 重跑全 skip 零漂移 + applied=145（磁盘 144+0151）。
+- **Pins 十值零翻转**；0 live 模型 0 Key 全本地 docker PG；历史迁移/函数体/产品码零字节改（P1-8/P1-9/P4 机检）。
+- **待办**：post_prove_dual 双席（协调方派）→ prove 面 6 文件 rerun wave 解锁归协调方。
