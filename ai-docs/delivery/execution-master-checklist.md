@@ -1890,3 +1890,16 @@ flowchart TD
 - [ ] **STILL OPEN**：G7FIX-2（复合刀 REQUEST 待立）；trio 全景跑（CMD1 预期红预注册）；`:107` 维持 OPEN（收口待 post-M7 红解决）；POST7B 压后；`g7SuiteGreen=false` 维持.
 - 预算：恰 1 run · live N=null 诚实单臂 · 链 0+0+14+N ≪ 200 · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
+
+### Line G7FIX-2 post-M7 截获+孪生同步复合刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 恰 1 run **EXIT=0/75 断言/19 ledger 末位 M7**——**G7 旅程 CMD1 主旅程 HTTP 面首次全绿** · :388 boundLoop 孪生同步（C-MO-P3 语义纠·构造级恒等在 vivo 定谳 4=2+2）· sidecar v3 correlation 修复 match=true 首次）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
+- [x] **`post_prove_dual_pass`** recorded for Line G7FIX-2 products only（diff +8/−2 churn 10≤15 恰 full.e2e.ts+收据+harness·零产品码·反伪造三面零弱化·nail tip 本 commit · branch `line/g7-postm7`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：:388 修复行 :391 与 1789e321 逐字同形+构造恒等亲读/NDJSON 8 行 bootId 一致五窗全绿+receipt 三源交叉〔EXIT=0·75 断言·75804ms〕/sidecar v3 修复面亲读+58 poll match=true 首次+g7fix1 零改/diff 逐行点清+a4 插曲双面落字/N=21 实测+链 35≤200/pins+sanitize+lifecycle）+ mw-model-op PASS（六核：**CMD1 首绿三源交叉+family 关系亲证**〔CMD2=UI 面·CMD3 同 driver 继承·sibling trio OPEN 佐证无在先绿〕/**C-MO-P3 收口材料完备**〔构造算术+对称性达成+:388 确证语义纠非避红〕/**trio 向成立**〔CMD2 零触碰·CMD3 继承·R5 披露原样〕/v3 锚定消除自弃类但 count=152 硬 pin 非自适配〔设计本意〕/a4 守卫钉形零触碰/纪律全过）· 协调方正式授权本 nail.
+- **G7FIX-2 全链**：REQUEST `538b42fe` → 双席预审 BOTH PASS → EXEC `f83e12e3`（origin tip 零位移）→ 本 nail commit.
+- **核心产出**：①:388 boundLoop 孪生同步（C-MO-P3 语义纠·identities≡q+c 构造级恒等·在 vivo 定谳 4=2+2·两次实发澄清恰解释历次红偶发性）②post-M7 五窗截获全绿 ③sidecar v3（锚定前缀+剥 .sql·自弃类消除）——**CMD1 主旅程 HTTP 面首次全绿**（EXIT=0/75 断言/M7 最深心跳梯·G7Y 红止 M5 对照）.
+- **C-MO-P3 收口材料完备登记**（席2）：构造算术+对称性达成+:388 语义纠定性——`:107` GAP-G7K-API-REDS 的 C-MO-P3 断言面修复域材料完备·裁定权归协调方.
+- **erratum×3 登记（席1·不阻断）**：①收据 §2 bootId=82676 笔误（数据面 82674 一致）；②孪生坐标 :206 系 :202-203；③E2E_ISOLATED_EXIT 未入 run-log 副本（exitCode=0 由 receipt 承载）.
+- **G7 下一刀裁定（协调方·采纳席2 建议）**：**G7TRIO=trio 全景再跑刀**（CMD1 预期绿·CMD2 零触碰·CMD3 继承·预算 ≤25+≤30+≤64 追加后累计 ~154<200 帽）——三绿齐则 **g7SuiteGreen SSOT 刀**（收官翻转·仍归协调方裁）.
+- [ ] **STILL OPEN**：G7TRIO（REQUEST 待立）；`:107` 收口 SSOT 刀；POST7B（重锚后评估）；adaptive-consumer 域刀；`g7SuiteGreen=false` 维持（翻转归 SSOT 刀）.
+- 预算：N=21 实测 ≤25 · 链 35≤200 · 0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 首绿≠收官 · 实现方不 self-approve.
