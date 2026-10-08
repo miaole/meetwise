@@ -235,7 +235,7 @@ async function main() {
     A('P3-1 payment_order 全链：createOrder → markOrderPaidAndCredit=credited → 重放=already（回调幂等零退化）',
       pay.id === orderId && pay.first === 'credited' && pay.replay === 'already');
     A('P3-2 回调发桶：owner 名下 units_total=10 的 paid 桶恰 1（22003 落点链在案B 下行为不变）',
-      bucket.rows[0]!.n === '1' && bucket.rows[0]!.total === '10');
+      bucket.rows[0]!.n === '1' && Number(bucket.rows[0]!.total) === 10);
 
     // 表② entitlement_bucket：FIFO saga reserve→confirm（落账≥0）· reserve→release（全退）。
     const saga = await asPrincipal(pool, owner, async (c) => {
@@ -245,12 +245,15 @@ async function main() {
       const rel = await releaseConsumption(c, owner, `dbm3-resv2-${process.pid}`);
       return { res, conf, res2, rel };
     });
-    const settled = await pool.query<{ n: string }>(
-      `SELECT count(*)::text AS n FROM settlement_ledger WHERE owner_user_id=$1 AND units_settled >= 0`, [owner]);
+    // settlement_ledger 是 outbox 结算消费者（sweeper · commerce.ts:373）的下游副作用，非 confirm 同事务产物
+    // （0001 设计：confirm 同事务投 commerce_outbox kind='settlement_proposed' · commerce.ts:130）——
+    // 同步可断言真相 = outbox 行；ledger ≥0 守卫由 P1-3（catalog）+ P2-7（负值 23514）双面覆盖。
+    const outbox = await pool.query<{ n: string }>(
+      `SELECT count(*)::text AS n FROM commerce_outbox WHERE owner_user_id=$1 AND kind='settlement_proposed'`, [owner]);
     A('P3-3 entitlement saga：reserve(1.5)=reserved → confirm(1)=confirmed（ck_bucket_capacity 不变量零退化）',
       saga.res.status === 'reserved' && saga.conf.status === 'confirmed');
-    A('P3-4 reserve→release 全退（=released）· confirm 落账 settlement_ledger ≥0 行在卷（D4 同族兜底闭环）',
-      saga.res2.status === 'reserved' && saga.rel.status === 'released' && settled.rows[0]!.n !== '0');
+    A('P3-4 reserve→release 全退（=released）· confirm 同事务投 settlement_proposed outbox 行在卷（saga→对账链入口零退化）',
+      saga.res2.status === 'reserved' && saga.rel.status === 'released' && outbox.rows[0]!.n !== '0');
 
     // 表③ interview_event：appendEvent 幂等去重（arbiter=0021 partial · 0027 删除后零影响）。
     const stream = `dbm3-stream-${process.pid}`;
@@ -320,8 +323,10 @@ async function main() {
   /* ── P5 · 联动静态门（L1 fixture 对齐 · L2 migrate.proof 契约更新） ────────── */
   {
     const fixture = readFileSync(fileURLToPath(new URL('../sql/01_schema.sql', import.meta.url)), 'utf8');
+    // 先剥注释再测：fixture 对齐注释里「原表级 CONSTRAINT uq_event_key 已删」的字样不得自匹配（run#5 红因）。
+    const fixtureCode = fixture.split('\n').map((l) => l.replace(/--.*$/, '')).join('\n');
     A('P5-1 L1：sql/01 fixture 无表级 uq_event_key 约束（drift:prove 方向=sql/ 有迁移缺即红 → 已对齐）',
-      !/CONSTRAINT\s+uq_event_key\b/.test(fixture));
+      !/CONSTRAINT\s+uq_event_key\b/.test(fixtureCode));
     A('P5-2 L1：sql/01 fixture 含 0021 同形 partial index（fixture 幂等语义保留）',
       fixture.includes('CREATE UNIQUE INDEX uq_interview_event_key')
       && fixture.includes('WHERE event_key IS NOT NULL'));
@@ -333,8 +338,8 @@ async function main() {
   /* ── P6 · 0149 文本静态门（语句白名单 · append-only 纪律结构性保证） ───────── */
   {
     const noComments = migRaw.split('\n').map((l) => l.replace(/--.*$/, '')).join('\n');
-    const stmts = splitSql(noComments);
-    const doBlocks = stmts.filter((s) => /^DO \$dbm3_detect\$$/.test(s.split('\n')[0] ?? '')).length;
+    const stmts = splitSql(noComments).map((s) => s.replace(/\s+/g, ' ').trim()); // 空白归一（dbid1 P6-1 同款红因：换行≠单空格）
+    const doBlocks = stmts.filter((s) => s.startsWith('DO $dbm3_detect$')).length;
     const dropC = stmts.filter((s) => /^ALTER TABLE (public\.)?[a-z_]+ DROP CONSTRAINT IF EXISTS [a-z_]+$/.test(s)).length;
     const addC = stmts.filter((s) => /^ALTER TABLE (public\.)?[a-z_]+ ADD CONSTRAINT [a-z_]+ CHECK \(/.test(s)).length;
     const whitelisted = stmts.filter((s) =>
@@ -350,7 +355,8 @@ async function main() {
       bannedHits.length === 0);
     const bannedNames = ['ck_payment_order_amount_cents_positive', 'ck_payment_order_units_range',
       'ck_settlement_units_settled_nonneg', 'ck_ai_graph_run_status'];
-    A('P6-3 零 ALTER TYPE 字样（D1 裁案B · 全文亲证）', !/ALTER\s+COLUMN|TYPE\s+numeric/i.test(migRaw));
+    // 测注释剥离后的代码面（run#5 红因：文件头纪律注释「零 …ALTER COLUMN TYPE…」字样误中全文正则）。
+    A('P6-3 零 ALTER TYPE 字样（D1 裁案B · 代码面亲证·注释除外）', !/ALTER\s+COLUMN|TYPE\s+numeric/i.test(noComments));
     A('P6-4 四约束名逐名在卷（catalog 断言 P1-1..4 与文本一致）',
       bannedNames.every((n) => migRaw.includes(n)));
   }
