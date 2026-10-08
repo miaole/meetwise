@@ -107,8 +107,8 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
           ) : appsWin.shown.map((app) => {
             const st = STATUS_LABEL[app.status] ?? { text: '状态未知', variant: 'outline' as const };
             const invited = app.status === 'invited';
-            // `assessment_unavailable` 是无可信分数且已退款的可恢复终态；重试必须显式由
-            // 用户发起，服务端会创建新的 attempt，不会复活或覆盖旧会话。
+            // `assessment_unavailable` 是无可信分数的可恢复终态；额度处理以结算事件为准：
+            // evaluation_unscored=预留已释放，no_eligible_scored_answer=已扣费结算（不释放）。重试必须显式由用户发起，服务端会创建新的 attempt，不会复活或覆盖旧会话。
             const startable = app.status === 'invited' || app.status === 'in_progress' || app.status === 'assessment_unavailable';
             // 申请 score 即使历史非空也不得渲染：校准 hold 下它不是可比较评分。
             const showScore = applicationScoreVisible(app.score);
