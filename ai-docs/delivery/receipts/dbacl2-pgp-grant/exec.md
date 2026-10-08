@@ -39,6 +39,9 @@
 **官方 run #1**（@HEAD=0ec543d0）：**EXIT=0 · 37 PASS / 0 FAIL** ·
 runner 收据 `.tmp/isolated-proof-receipts/2026-10-08T12-21-58-548Z-69777-c6df18c5-bcef-47a9-8de2-1f84bafe97c7.json`
 
+**终轮 run #2**（@HEAD=650b018e · 收据+harness+白名单补丁在卷后重验）：**EXIT=0 · 37 PASS / 0 FAIL** ·
+runner 收据 `.tmp/isolated-proof-receipts/2026-10-08T12-24-02-869Z-70484-67f4d81f-4e01-4503-92e7-b611a6cf523c.json` · P4-1/P4-2 含三 docs 文件在 diff 全绿
+
 | 面 | 结果 | 要点 |
 |---|---|---|
 | P0-0..P0-4 | PASS | Stage A(≤0143) applied=144 · 修复前 proacl=owner+app_role only · PUBLIC/app_role/memory_runtime 矩阵 f/t/f · 直调 42501 · 全链 42501 |
