@@ -195,11 +195,11 @@ async function main() {
     staleReplayLabel: '已消费 question identity 重放 → 409 stale_question（不双写/不二次扣费）',
     replayConsumedAfterFirstTurn: true,
   });
-  const { terminal, terminalPayload, questions, turns: turn, lastSeq, kinds, provenance } = mainLoop;
+  const { terminal, terminalPayload, questions, clarifications, turns: turn, lastSeq, kinds, provenance } = mainLoop;
   A(questions >= 1, `至少出了 1 道题(实际 ${questions} 道;事件:${[...kinds].join(',')}; terminal=${terminal}; reason=${(terminalPayload as any)?.reason ?? 'n/a'})`);
   A(turn >= 1, `至少答了 1 题(${turn} 次)`);
   A(provenance.trustedBSideScore === null && provenance.forgedScores === 'none'
-    && provenance.identities.length === questions,
+    && provenance.identities.length === questions + clarifications,
     `出处审查: 不把 AI 分/progress 当 B 端分（identities=${provenance.identities.length}, forgedScores=${provenance.forgedScores}）`);
   if (!terminal) {
     emitE2EFailure({ class: 'worker', code: 'interview_terminal_timeout' });
