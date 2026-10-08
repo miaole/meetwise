@@ -1,6 +1,6 @@
 # ANNOT-1 · jobs/page.tsx:110 注释收口小刀 · REQUEST（docs-only）
 
-status: draft:awaiting_pre_exec_dual（REQUEST 就绪 · 预执行双审未做 · meetwise 未授权 EXEC · 本 commit 零产品码零注释改动）
+status: executed:awaiting_post_dual（REQUEST 预执行双审双 PASS · meetwise §3⑤ EXEC 授权 · EXEC 已落：注释改写+勘误 slice :11→:14+收据 · STOP awaiting post dual）
 
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null
 
@@ -26,7 +26,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **同假面的渲染层独立证据**（本刀 Ban 面，仅作缺陷定位引用）：`apps/web/lib/view-model.ts:67-68`（blob `71d1bd0d915558a2c0ed128e6cdaacb061471fba`）对 `assessment_unavailable` 不分 reason 一律渲染「本次预留额度已释放」。该 UI 文案缺口已由 G7V nail 登记 SSOT：`ai-docs/delivery/gap-bug-backlog.md:796-802` · **GAP-G7V-THIRDARM-COPY-SETTLEMENT · P1 OPEN**（2026-10-07 立行）；文案分臂修复属 `line/g7v-thirdarm-copy-fix` 线产物，本刀零操作。
 
-**登记出处（越界面诚实收口 · G7V-FIX post-prove model-op 席记录在案）**：`line/g7v-thirdarm-copy-fix` 线文档——`ai-docs/delivery/harness/g7v-thirdarm-copy-fix.md:61,109`（Ban 顺手修 `jobs/page.tsx:110` 注释 · **登记为后续注释收口小刀候选（协调方队列 · rev2 保留观察项）**）、`ai-docs/delivery/g7v-thirdarm-copy-fix.slice.md:11,22`、`ai-docs/delivery/receipts/g7v-thirdarm-copy-fix/SUMMARY.md:37`。本 REQUEST 即该候选小刀的立卷。
+**登记出处（越界面诚实收口 · G7V-FIX post-prove model-op 席记录在案）**：`line/g7v-thirdarm-copy-fix` 线文档——`ai-docs/delivery/harness/g7v-thirdarm-copy-fix.md:61,109`（Ban 顺手修 `jobs/page.tsx:110` 注释 · **登记为后续注释收口小刀候选（协调方队列 · rev2 保留观察项）**）、`ai-docs/delivery/g7v-thirdarm-copy-fix.slice.md:14,22`（EXEC 勘误 :11→:14 亲测复核）、`ai-docs/delivery/receipts/g7v-thirdarm-copy-fix/SUMMARY.md:37`。本 REQUEST 即该候选小刀的立卷。
 
 ## 2. 运行时影响核实（REQUEST 必写①附加 · 预期=纯注释零运行时影响 · 如实记录）
 
