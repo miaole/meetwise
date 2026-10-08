@@ -384,23 +384,29 @@ async function main() {
   });
   if (boundLoop.terminal) reviews.recordTerminal(boundLoop.terminal);
   reviews.record({ class: 'worker', code: 'seg_boundloop_terminal' }); // CMOP03-D M7: boundLoop 已返回且 terminal 已记账(子型2 域 · bounded)
+  console.log('[g7fix2] post-M7 window armed (5 asserts · twin :388 synced q+c)'); // G7P-4/5 模式: stdout 可能死信,NDJSON 为准
+  fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a1_loop', questions: boundLoop.questions, turns: boundLoop.turns, terminal: boundLoop.terminal })}\n`);
   A(boundLoop.questions >= 1 && boundLoop.turns >= 1 && boundLoop.terminal !== '', `[状态机] 岗位绑定会话经真 worker 到终态(${boundLoop.terminal}; ${boundLoop.questions} 题/${boundLoop.turns} 答)`);
-  A(boundLoop.provenance.trustedBSideScore === null && boundLoop.provenance.identities.length === boundLoop.questions,
-    '[状态机] 岗位会话出处审查: AI 分/progress 不是 B 端分');
+  fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a2_provenance', trustedBSideScore: boundLoop.provenance.trustedBSideScore, identities: boundLoop.provenance.identities.length, questions: boundLoop.questions, clarifications: boundLoop.clarifications })}\n`);
+  A(boundLoop.provenance.trustedBSideScore === null && boundLoop.provenance.identities.length === boundLoop.questions + boundLoop.clarifications,
+    '[状态机] 岗位会话出处审查: AI 分/progress 不是 B 端分(identities=q+c 孪生同步 1789e321)');
   r = await fetch(`${BASE}/applications/${app1}/finalize`, { method: 'POST', headers: H, body: '{}' });
   const finalized = await readJson(r);
   const scorelessBound = boundLoop.terminal === 'assessment_unavailable';
+  fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a3_finalize', status: r.status, outcome: finalized.outcome, terminal: boundLoop.terminal, scorelessBound })}\n`);
   A(r.status === 200 && finalized.applicationId === app1 && finalized.interviewId === boundInterviewId
     && finalized.outcome === (scorelessBound ? 'assessment_unavailable' : 'completed'),
     `[状态机] 岗位终态后 {} finalize → 200，服务端仅认已绑定 interview(term=${boundLoop.terminal}, outcome=${finalized.outcome ?? 'none'}, status=${r.status}, error=${finalized.error ?? 'none'})`);
   r = await fetch(`${BASE}/recruiter/jobs/${jobId}/candidates`, { headers: HR });
   b = await readJson(r);
   const cand = (b.candidates ?? []).find((x: any) => x.candidate_user_id === user1Id);
+  fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a4_cand', candStatus: cand?.status, score: cand?.score, scorelessBound })}\n`);
   if (scorelessBound) {
     A(cand?.status === 'assessment_unavailable' && cand.score === null,
       '[状态机·可信] 无评分证据时招聘方只见 assessment_unavailable + score=NULL（不伪造 0 分）');
     const retry = await fetch(`${BASE}/applications/${app1}/start`, { method: 'POST', headers: H, body: JSON.stringify({ resumeId }) });
     const retried = await readJson(retry);
+    fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a5_retry', retryStatus: retry.status, retriedStatus: retried?.status, newInterviewId: typeof retried?.interviewId === 'string' })}\n`);
     A(retry.status === 200 && retried.status === 'started' && typeof retried.interviewId === 'string' && retried.interviewId !== boundInterviewId,
       '[状态机·恢复] 评分不可用后显式重试创建新 attempt（旧会话不复活）');
   } else {
