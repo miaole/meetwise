@@ -1771,4 +1771,12 @@ flowchart TD
 - [ ] **STILL OPEN**：run#4 逐断言 stdout 未持久化（结构证据闭合）；`g7SuiteGreen=false` 维持；money3 相关上下游对账面随 W4 验收.
 - 预算：0 live 模型调用 · 0 Key · `actualSpendCny=null` · 全本地 docker PG.
 - **W2 五 DB 刀收官登记**：DBTF-1（0144 tf_ 库）·DBHY-1（0145/0146 卫生）·DBFK-1（0147/0148 FK）·DBM3-1（0149 约束）·DBACL-1（0150 ACL）——迁移链 0143→0150 让位序全兑现·五 P0 债行全 CLOSED.
+### Line MOP03-C cutover 宣告面刀 NAIL（2026-10-08 SSOT nail · 协调方授权 · 审查双席 BOTH PASS · Q4/Q5 fresh 双绿 EXIT=0/0 窗内恰单次 · G3 三时点 unset · 披露行 #0 协调方终裁=不计入 attempt · **功能线按 SOP 冻结收尾即停 · `:76` GAP-MOP-03 维持 OPEN**）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · **PG LISTEN retained**（附加钉）.
+- [x] **审查双席 BOTH PASS**：mw-e2e-ha PASS（五核：双 EXIT 原值收据与 .tmp 原件字节同一·窗内恰单次/CODE_SHA 6a37459e 三验+porcelain=0+push 纯 fast-forward/G3 三时点 printenv rc=1 现场复核+根 .env absent+#0 log 原样归档零执行确证〔时间线自洽〕/Pins 十值+LISTEN retained+`:76` OPEN 零触碰+全锚逐字亲证）+ mw-model-op PASS（五核：Q5 脚本链三层亲读〔242 行断言面·EXIT=0=isolated reconciler 域功能面全绿非 sole-stack 生产证据·releaseEvidence=false〕/Q4 SKIP LOCKED 域〔SQL 本体 0088:708〕+断言面/**#0 终裁复核=裁量成立**〔pnpm 自证拼错·零执行无红果·Ban retry-to-green 射程外·改判权留审正当〕/宣告面边界全在位〔Q4/Q5 绿仅 G1 一门·G2 wakeup 未跑·四专家审未开〕/`:76` 原样+镜像链 6006d2e8/parent/祖先三方一致）· 协调方正式授权本 nail + **披露行 #0 协调方终裁登记：直译串系协调方指令拼写错误·EXIT=254 零执行非 prove 红果·不计入 Q5 预宣告单次 attempt——指令源头责任归协调方认领**.
+- **MOP03-C 全链**：harness 预宣告（Q5 CMD 连字符版 package.json:202）→ 窗内 EXEC（Q4 20:01:38 EXIT=0 + Q5 20:02:38 EXIT=0 · CODE_SHA 6a37459e 三验不变 · attempts 全账含 #0）→ 收据六件 `receipts/mop03-cutover-declare/` → commit `d7501802` push fast-forward → 双席审 BOTH PASS → 本 nail.
+- **功能线收尾边界（照 SOP）**：EXIT 0/0 = **G1 fresh Q4/Q5 同列门达成** ≠ cutover 成立 ≠ MODEL-OP closed ≠ Redis cutover ≠ flag 开启（worker-job-wakeup-redis.ts:21/:49-52 default off 亲证）≠ SLO ≠ HA ≠ suite green · **`:76` 翻转只发生在未来 cutover REQUEST 全链（fresh Q4/Q5 同列门+BUG-REV-COND 四专家审 BOTH PASS+单独 nail+AUTHORIZE·缺一不可）** · G2 wakeup prove 归后续面 · MOP03 功能线至此按 SOP 冻结收尾.
+- [ ] **STILL OPEN**：`:76` GAP-MOP-03 OPEN 维持（cutover 另 REQUEST）· G2 wakeup prove · 四专家审（cutover REQUEST 时开）· `g7SuiteGreen=false` 维持.
+- 预算：Q4/Q5 prove 全本地隔离容器 · 0 live 模型调用 · 0 Key · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
