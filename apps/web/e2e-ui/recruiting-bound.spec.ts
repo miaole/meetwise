@@ -59,6 +59,7 @@ const EARLY_STOP_COPY = '练习因持续偏弱或多次未决提前结束（自�
 const RELEASED_MSG_PART = '本次预留额度已释放';
 const REPORT_DOWN_MSG_PART = '报告暂时无法生成';
 const PRACTICE_FEEDBACK_PART = '练习完成 · 本次练习反馈';
+const NO_REPORT_ON_CHARGED_MSG = '面试已完成并扣费结算，但未获得可信评分，本次不生成报告。岗位面试可从“我的投递”重新开始；其他面试可新建一场。';
 function settlementFaces(page: Page) {
   return [page.getByText(EARLY_STOP_COPY), page.getByText(RELEASED_MSG_PART), page.getByText(REPORT_DOWN_MSG_PART), page.getByText(PRACTICE_FEEDBACK_PART)];
 }
@@ -229,13 +230,13 @@ test('C→B: real browser binds application to a new interview, completes it, an
     const releasedCopyOnCharged = await page.getByText(RELEASED_MSG_PART).waitFor({ state: 'visible', timeout: 3_000 }).then(() => true).catch(() => false);
     expect(releasedCopyOnCharged, '第三臂 no_eligible_scored_answer：UI「本次预留额度已释放」文案与已扣费结算（completeInterviewAndConfirm）相悖——C-HA-V1 不作 PASS 容忍面，须升级披露').toBe(false);
     // 扣费臂（已扣费 · business-events.ts:55 语义「面试已经完成并扣费」）：等报告 worker 异步结算面分臂（实测 ~40s，cap 120s）。
-    await Promise.any([page.getByText(REPORT_DOWN_MSG_PART), page.getByText(PRACTICE_FEEDBACK_PART)].map((f) => f.waitFor({ state: 'visible', timeout: 120_000 })));
+    await Promise.any([page.getByText(NO_REPORT_ON_CHARGED_MSG, { exact: true }), page.getByText(REPORT_DOWN_MSG_PART), page.getByText(PRACTICE_FEEDBACK_PART)].map((f) => f.waitFor({ state: 'visible', timeout: 120_000 })));
     if (await page.getByText(PRACTICE_FEEDBACK_PART).isVisible()) {
       // 扣费·报告就绪臂：complete+enqueueReport 成功 → 练习反馈面（仅供个人复盘）。
       await expect(page.getByText(PRACTICE_FEEDBACK_PART)).toBeVisible();
     } else {
       // 扣费·报告暂不可用臂：报告生成失败（view-model.ts:66 文案为「报告暂时无法生成」——已扣费，Ban 写「已释放」）。
-      await expect(page.getByText(REPORT_DOWN_MSG_PART)).toBeVisible({ timeout: 30_000 });
+      await expect(page.getByText(REPORT_DOWN_MSG_PART).or(page.getByText(NO_REPORT_ON_CHARGED_MSG, { exact: true }))).toBeVisible({ timeout: 30_000 });
     }
   }
   await expect.poll(() => finalizeResponses.some((status) => status === 200), { timeout: 15_000 }).toBeTruthy();
