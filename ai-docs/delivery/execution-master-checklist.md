@@ -1762,4 +1762,13 @@ flowchart TD
 - **nit×2 登记**：① 0145 头注/收据将 owner-only ACL 归因 0040/0041 逐函数 REVOKE——应为 0073:1342-1344 全局 ADP（DBACL-1 引对·净效果结论成立仅引注错源）；② 席2 风险提示「privacy definer 族同型缺口」——**已被 0150 闭集覆盖**（privacy_api_owner/privacy_worker_owner 均在 8 集·P2 F3/F5 双向验证）·合流后自动闭环.
 - [ ] **STILL OPEN**：sql/ 残面（neg 族 24 boot() 消费·vectorstore/rag-demo legacy 夹具·qbank-ingest 孤儿——P3 模式门残面清单机器不变量在卷）；uc025 三 proof=OPEN 行基线诚实红（非回归）；qbank 物理迁出域；`g7SuiteGreen=false` 维持.
 - 预算：0 live 模型调用 · 0 Key · `actualSpendCny=null` · 全本地 docker PG（磁盘两度 100% 满→docker 重启+32.77GB 回收环境事故如实入账）.
+### Line DBM3-1 钱三轨约束治理刀 NAIL（2026-10-08 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 0149 money status constraints〔四计数 DO 检测+amount_cents>0+units 案B 三联+settlement≥0+ai_graph_run 11 值枚举+0027 删保 0021〕· 复跑 run#5 38/38 EXIT=0〔阻断轮 25/25 严格超集〕· **P3-1 转绿=0150 生效直接实证** · backlog GAP-DEBT-DB-MONEY3 → **CLOSED** · W2 五 DB 刀全收官）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
+- [x] **`post_prove_dual_pass`** recorded for Line DBM3-1 products only（链：base 重钉 578cae57〔DBACL-1 nail〕→8097f2d8 EXEC→83ebcead cherry-pick 0150→d08a3eb6 复跑收据·0001-0148 历史零字节·nail tip 本 commit · branch `line/db-money3`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：链/wiring 双留解四点亲核+tsc 零新错·38 断言亲数 P0×4+P1×9+P2×7+P3×6+P4×4+P5×3+P6×4+P7×1·**run#4 五处修正逐条亲证「永红构造→等强 operative 断言」**〔P3-2 numeric(12,2) 恒 '10.00'·P3-4 ledger 唯一写点确在 sweeper commerce.ts:373 而 confirm 同事务真相确为 outbox :130——架构修正非放松〕·P3-1 转绿归因〔run#3→#4 唯一 ACL 增量=0150〕·0149 面复点 run#4→#5 零改·pins/6 跑台账/Ban 全对上）+ mw-model-op PASS（六核：0149 约束面全量亲读〔N1 负样本两跑 SAVEPOINT 形态健全·生产写方词表全覆盖无破坏〕·P3 真实写路径非 mock〔proof import 真实模块+asPrincipal 链〕·**复跑超集 diff 亲证**〔恰 5 处修正·P0-P2 25 断言逐字节原样〕·P4-P7 各面亲核·**双门本席亲跑双绿**〔drift PASS+migrate:prove 全绿〕+applied=146 三源互证·pins/零 Key）· 协调方正式授权本 nail.
+- **阻断→解锁纪律闭环登记（本刀特色）**：EXEC 阻断轮（6d11e616）P3 炸 42501→mw-core 不越权（Ban 面禁擅扩 GRANT）→STOP 上报三选项→协调方裁 B 变体（DBACL-1 独立刀全链）→DBACL-1 dual BOTH PASS nail→本刀 cherry-pick 0150 回支→复跑 38/38——**跨刀升级-独立修-回支复跑的全链纪律样板**.
+- **run#4 五处修正红线（席1 逐条）**：P3-2 numeric 字符串等值〔恒 '10.00' 永红→Number 等值〕/P3-4 outbox 同事务真相改断〔架构正确·ledger≥0 由 P1-3+P2-7 双兜〕/P5-1·P6-3 自写注释误中剥注释/P6-1 空白归一〔永红→精确 operative 10 语句〕——**无断言删除无阈值放松·断言面零弱化**.
+- [ ] **STILL OPEN**：run#4 逐断言 stdout 未持久化（结构证据闭合）；`g7SuiteGreen=false` 维持；money3 相关上下游对账面随 W4 验收.
+- 预算：0 live 模型调用 · 0 Key · `actualSpendCny=null` · 全本地 docker PG.
+- **W2 五 DB 刀收官登记**：DBTF-1（0144 tf_ 库）·DBHY-1（0145/0146 卫生）·DBFK-1（0147/0148 FK）·DBM3-1（0149 约束）·DBACL-1（0150 ACL）——迁移链 0143→0150 让位序全兑现·五 P0 债行全 CLOSED.
 - Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
