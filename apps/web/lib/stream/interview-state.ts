@@ -44,6 +44,9 @@ export interface InterviewView {
    * INT-LEVEL-SIGNAL-SSE-01 练习控制流收尾理由。只来自 session_concluded，不是分数、不是 phase、不是终态。
    */
   signalConcludeReason?: InterviewSignalConcludeReason;
+  /** assessment_unavailable 事件的 reason 原样承载（'evaluation_unscored' | 'no_eligible_scored_answer' | 未知值）：
+   *  同一 kind 两种钱面（释放补偿 vs 已扣费），view-model 按 reason 分臂渲染，未知值 fail-closed 中性、不冒认资金变动。 */
+  assessmentUnavailableReason?: string;
 }
 
 export const initialView: InterviewView = { phase: 'connecting', degraded: false, connection: 'live', lastEventId: 0, turns: [] };
@@ -119,7 +122,7 @@ export function applyEvents(v: InterviewView, events: readonly BusinessEvent[]):
       break;
     }
     case 'report_unavailable': next.phase = 'report_unavailable'; next.degraded = true; break; // 优雅降级
-    case 'assessment_unavailable': next.phase = 'assessment_unavailable'; next.degraded = true; break; // 无可信评分且已释放预留
+    case 'assessment_unavailable': next.phase = 'assessment_unavailable'; next.degraded = true; next.assessmentUnavailableReason = e.data.reason; break; // 无可信评分：文案按 reason 分臂（evaluation_unscored=已释放补偿 / no_eligible_scored_answer=已扣费且本次不生成报告）——「已释放」字样只在释放臂为真
     case 'interview_unavailable': next.phase = 'interview_unavailable'; next.degraded = true; break; // 面试 job 失败终态 → 降级,不死等
     case 'error': next.phase = 'error'; break;
     case 'progress': break;                                  // 仅进度,不改阶段
