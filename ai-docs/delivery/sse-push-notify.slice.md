@@ -1,0 +1,27 @@
+# SSE-PUSH · SSE 2s 轮询 → PG LISTEN/NOTIFY 精确推送重构 · slice（REQUEST docs-only）
+
+status: **`post_prove_dual_pass`**（EXEC `a963ef19` 落码+证明 · post-prove 双审两席 PASS（席1 七项 15/15 blob · 席2 ①-⑦）· 协调方 2026-10-08 授权 nail——原 `draft:awaiting_pre_exec_dual` 链条见文末 EXEC/nail 结果块）
+
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null
+
+- **立项**：用户直裁立项（任务书直发·非 GAP 行承接·不自建 SSOT 行）。**Base**：`origin/feat/mysql-schema-skeleton`=`0fe96fca`（=tip · ≥`0fe96fca` 达成 · 2026-10-07 fetch · 本地已 ff 同点）；worktree `meetwise-line-ssepush` · 分支 `line/sse-notify-push`（新立）。
+- **现状（码面亲算·三处同款复制粘贴）**：interview `18004851`（acquireSlot :256 · hijack :258 · deadline :275 · **while :276 + sleep(2000) :277 + 每轮 tail fetch :279**）/ quiz `83a7f37c`（:54/:57/:73/:74/:76）/ diagnosis `2f4c31c8`（同形）——每轮实为 ≥2 条 SQL（own/guard 前置 + `WHERE stream_key=$1 AND seq>$2`），每空闲 SSE 0.5 QPS · 10min 最坏 300 轮空查询 · 事件延迟最坏 ≈2s。锚漂移如实登记：任务书 interview `:287-292` 越过 EOF（当树同段 :276-283）；`acquireSlot :262` 无当树对应（当树 :256/:54/:54 + 定义 rate-limit.service.ts:24）；quiz/diagnosis `:57` 段、worker `main.ts:633/:640-641`、`worker-job-wakeup.ts:7/:15` 均 ✓ 同点。
+- **关键结构事实**：三实体事件共用 `interview_event` 一表（`0001:38-46` · stream_key=id · 无实体类型列）；quiz/diagnosis 取数即同一条 `stream_key=$1 AND seq>$2`（quiz/diagnosis.service.ts:103-110 亲读）；写路径唯一入口 `appendEvent`（`interview-event.ts` · event_key 幂等冲突不产新行→不触发 notify→正确）。
+- **设计·共同底座**：D1 trigger additive（AFTER INSERT → `pg_notify(ch, NEW.stream_key)`·payload 只 id·lossy hint 事实仍由 fetch 取）；D2 API 每进程恰一条专用 LISTEN 客户端（`sse-notify.service.ts` 复用 db.service DI 形态 + 复制 `job-wakeup-listener.ts` 生命周期：回调零 SQL/退避重连 100ms→5s/stop 隐式 UNLISTEN）·**禁每 SSE 一条连接**；D3 进程内 router `Map<streamKey,Set<waiter>>` 全退出路径注销；D4 `await Promise.race([notifyPromise, sleep(30_000)])` 替 sleep(2000)——无事件零 SQL（兜底每路 ≤20 条/10min）；D5 waiter 注册先于 initial catch-up（LISTEN-first-then-reconcile `:112` 先例）；D6 30s 兜底=断连最终一致+ping 载体+旧机制退化形态（fail-open 变慢不变错·trigger 缺失同样退化·部署顺序无耦合）；D7 `sse-pump.ts` 收三处复制段（三 isTerminal 集合原值参数化零合并）。
+- **两案对比（交双审·推荐案A）**：**案A 统一 channel** `interview_event_ch` payload=裸 stream_key——零分类·单 trigger 单 LISTEN·router 精确匹配实体无关·改动面最小·与"payload 只 id"吻合；**案B1 三通道**（trigger 须 JOIN resume_quiz/resume_diagnosis 分类或 app 双写 notify→每 INSERT 额外成本+漏报面+双写不一致）；**案B2 统一+实体前缀**（分类难题同 B1+剥前缀复杂度·唯一增益日志可读性·可作案A 叠增强列双审裁量默认不采）。
+- **迁移面**：`0143_sse_push_notify.sql` additive（0133 风格镜像：lock_timeout/statement_timeout·SECURITY INVOKER·search_path·REVOKE·DROP IF EXISTS 再 CREATE）；**事件表 schema 本体零触碰**（0001/0059/0126 blob 全等核验·两既有 trigger 留树）；runner whitelist 登记（rag03c C-4 先例）；多实例幂等（每进程各自收播·进程内分发）。
+- **兼容**：Last-Event-ID 语义零改（`parseLastEventId 40b12d01` 全等·同一 tail SQL·wire format 逐字节同形）；acquireSlot(5)/429、10min deadline、ping 心跳、三终态集合、404 前置全保留（唯一行为披露：静默 ping cadence 2s→30s 兜底驱动·交双审）；**worker 零改动**（wakeup 通道五 blob 全等：`7a46fc9b`/`fc18131d`/`e4878b61`/`9eb6fe38`/`9380e6f9`）。
+- **Prove（EXEC 一次优先）**：新 `apps/api/test/sse-push-notify.proof.ts`（`prove:sse-push-notify`·_neg-harness·uc010 先例）——P-1 主判据 notify→帧 **<500ms**（旧 2s poll 对照登记不设门）/ P-2 兜底 30s 唤醒+ping+重连退避（fake-timer）/ P-3 断连 slot 释放+waiter 注销无泄漏+Last-Event-ID 重连续推 / P-4 多等待者单 notify 双醒异 key 不误醒 / P-5 迁移后真实 INSERT→LISTEN 实收 payload 只 id；回归=既有三 SSE proof 复跑绿 + `e2e:isolated` full e2e 三流绿（quiz :246 · diagnosis :254 段零回归）；机器核验=blob 全等表 + 三控制器 429/deadline/ping/终态 grep 收据 + apps/worker 零字节 diff。
+- **Ban**：worker wakeup 通道本体（常量/0084/0133/listener/worker wiring）/ 事件表 schema 本体（只加 trigger·0001/0059/0126 零改）/ Last-Event-ID 语义 / secrets（`actualSpendCny` 保持 null）/ 每 SSE 一条 LISTEN / 移除放宽 429·deadline·ping·终态集合 / 共享 SSOT / force-push / retry-to-green / self-approve。
+- **流程**：REQUEST（本文）→ 预执行双审（mw-e2e-ha + mw-model-op · stub `reviews/REQUEST-2026-10-07-sse-push-{mw-e2e-ha,mw-model-op}.md`）→ meetwise 授权 → EXEC（迁移+service+util+去重+proof）→ post-prove 双审 → meetwise 授权 nail。
+- **Not-a-pass**：not coding · not proven · not run（零实跑零 live 零容器）· not 延迟 <500ms 达成 · not 2s 轮询已消除（三处仍在树）· not e2e 三流绿 · not covered · not HA · not releaseEvidence · not nail · not coordinator authorize · `g7SuiteGreen=false` · `actualSpendCny=null` · alone ≠ dual。详版见 `ai-docs/delivery/harness/sse-push-notify.md`。
+
+---
+
+## EXEC / nail 结果块（2026-10-08 · append-only · 上方 REQUEST 时点原值保留）
+
+- **链**：REQUEST `407e5afe` → 预执行双审双 PASS → EXEC 授权（③/④互斥）→ 阻断备忘录 `876eaeac`（零码 STOP · Opt1/2/3 菜单）→ 基座 re-pin `de5c657a`（≥`7135f615`）→ **协调方裁决 Opt1+三约束**（全文持久化于 harness §10）→ **EXEC `a963ef19`**（0143 迁移 + sse-notify.service + sse-pump + 三控制器 pump 化 + proof + runner 登记 · 11 文件 +987/−87）→ push origin（fast-forward `876eaeac..a963ef19`）→ post-prove 双审两席 PASS → 协调方授权 nail。
+- **证明**：`sse-push:notify:prove` **35/35 EXIT=0**（P-1 延迟实测 4ms/12ms <500 · P-2 活体退化臂首 ping 2041/2108ms + 健康兜底臂 gaps[250,251]/[251,251] + 退避读数 `[76,151,300/301,602,1201/1202,2401/2417,3751]` 触顶 5s cap ×0.75 · P-3 close 即醒+router 归零+LED 只补 seq>N · P-4 同流双醒异流不误醒 · P-5 独立 LISTEN 实收裸 stream_key）；**三既有 proof 未改一字复跑绿**（`last-event-id` ✓ · `sse-slot` ✓〔listen_down 退化路径〕· `uc010` ✓ 13/13〔trigger_missing 退化路径·R4 ping 窗+R-mid 帧窗两原红锚绿〕——复绿=退化面验证措辞 · 生产 B6 由 P-1~P-5 真 LISTEN 承担）。
+- **降级窗口收据（约束②）**：live `trigger_missing window_ms=3004/2526`（两绿跑）· unit `listen_down window_ms=26` · 结构化日志两 reason 形状断言在卷。
+- **红跑披露（席2 补认）**：proof 开发 3 红跑（`08-20-12`/`08-22-11`/`08-26-42` 收据在卷）全在仪器面；产品字节零漂移=六收据 sourceDigests 产品面 8 文件全等（机器比对）。
+- **Not-yet**：full e2e 三流未跑 · 跨副本未证 · GAP-SSEPUSH-PROD-30S/QUIZ-DX-HTTP/REG-WINDOW 行登记于 checklist NAIL 节 · covered/HA/releaseEvidence/g7SuiteGreen/actualSpendCny 原值零翻转。
