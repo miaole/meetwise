@@ -24,3 +24,7 @@ diff ≤15 行亲证（基座复原单独计）+恰 1 run EXIT 原值+NDJSON/sid
 
 ## 5. Non-claims
 本刀 ≠ G7 收官 ≠ g7SuiteGreen 翻转 ≠ `:107` 关闭（收口材料归 SSOT 刀）≠ 产品面残余（真实用户 0-2s 窗归协调方另裁）。
+
+
+## 7. G7FIX-2 复合刀裁定登记（nail 期·协调方）
+§1 post-M7 窗 NDJSON 截获（**现树坐标 :387-:405**·席1 勘误坐标为准·逐断言一次性甄别五候选）+§2 **:388 boundLoop 孪生同步 1789e321**（席2 新证·机制缺陷在树·一行）+§3 sidecar correlation 前缀匹配修复（硬 pin 二连系统性 fix）。REQUEST 另立全链。
