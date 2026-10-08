@@ -46,8 +46,9 @@
 | **applications（jobs 候选侧）** | `apps/api/src/modules/jobs/applications.service.ts`：入口 `:17/:37/:62/:70/:72` · db 面 `packages/db/src/recruiter.ts` 候选侧函数：`applyToJob :132` · `listMyApplications :153` · `finalizeApplication :182` · `markApplicationAssessmentUnavailable :222` · `markApplicationNoEligibleScore :265` · `startApplicationInterview :354` · `declineInvitation :437` | application↔interview↔resume owner 链显式化（形态 α+β · E5 单 id 0 行 fail-closed） |
 | **notification** | `apps/api/src/modules/notification/notification.service.ts`：入口 `:14/:19/:24/:29` · db 面 `packages/db/src/notification.ts`：`insertNotification :3-5`（owner 已绑）· **`listNotifications :6-9` / `markNotificationRead :10-13` / `unreadCount :14-17` / `markAllNotificationsRead :19-22`（`owner` 形参收下但 SQL 零绑定 · 注释「RLS 限己」· 纯隐式 RLS）** | 本刀**最薄增量面**：形参已在手、谓词零绑定 → 形态 α 补 `buildRequiredOwnerFilter` 显式谓词；`markNotificationRead`/`markAllNotificationsRead` 单/批写路径加 E5 语义登记 |
 | **commerce（owner 同意侧）** | `apps/api/src/modules/commerce/commerce.service.ts`：`:63-64/:86-87`（`gateway_payment_order_owner` owner 回查）· db 面 `packages/db/src/payment.ts`（10 处）/`commerce.ts`（23 处）中 owner 归属路径 | 仅限 owner 归属读写点（形态 α）· 支付网关回调/对账系统链不在本刀（§3.2） |
+| **candidate-route（候选路由 · 两席一致裁定纳入）** | `packages/db/src/candidate-route.ts`（owner 点 `:50/:73/:86`） | C 端 owner 归属读写平面，与 applications/interview 候选侧**同质同链**——Ban 接线 applications 而豁免本文件留静默豁口（形态 α+β 同收敛） |
 
-**接线清单总账**：EXEC 落地时以**接线清单（wiring manifest）**形式逐文件登记实际触点（文件 × 每文件 helper 调用 ≥N），manifest 进 prove 断言与 receipts（§5-P1）；上表为 REQUEST 级 inventory，最终触点以 EXEC diff 为准，超出本表范围的触点 = 越权触面。
+**接线清单总账**：EXEC 落地时以**接线清单（wiring manifest）**形式登记实际触点——**以文件为封套单位，每文件登记精确全量触点数（非 ≥N 下限）**，face B `== manifest` 按「文件集合 + 每文件精确计数」双断言（§5-P1）；**同文件内本刀不接线的残余 owner 路径须在 manifest 显式登记「本刀不接线残余面」+ 理由 + 归属——Ban 静默缺席**（实测例 @`eef469d9`：`interview.service.ts:673-931` 计 16 处未锚 `asPrincipal` 入口）；上表为 REQUEST 级 inventory，最终触点以 EXEC diff 为准，超出本表范围的触点 = 越权触面。
 
 ### 3.2 明确排除（出范围 · 理由写死）
 
@@ -79,11 +80,11 @@
 |---|-----------|-----------|-----|
 | **P1** | `pnpm --filter @meetwise/db tenant-enforcement:prove`（CMD 不变 · `packages/db/package.json:35`） | **0** · PASS 数 = 35+Δ（Δ=E5/manifest 新增断言数 · **执行时如实宣布禁静默**）· face B 行示 `consumption=N>0` | **R1 机检翻正 + 既有 35/0 回绿** |
 | **P2** | `pnpm tenant-wiring-e5:prove`（新 named script · raw=`tsx test/tenant-wiring-e5.proof.ts` @`packages/db` · 零 DB 依赖） | **0** | **E5 应用层半边**（§4 断言面 · manifest 逐项） |
-| **P3** | `pnpm tenant-wiring-neg:prove`（`node scripts/run-e2e-isolated.mjs tenant-wiring-neg:prove:raw` · 一次性本 run 自有 `pgvector/pgvector:pg16` 容器 · 随机口令不落盘 · `DATABASE_URL` 由 `docker port` 组装 · finally 自有 `rm -f` 仅该名——沿 `scripts/run-e2e-isolated.mjs` + `receipts/2026-10-05-gap-principal-pool-error-listener-fix-prove.md:21` 口径 · **Ban 指向 dev/共享/他线 PG · Ban buy cloud**） | **0** | **端到端 NEG（跨 owner fail-closed）**：user-a 建 fixture → user-b principal 走已接线路径读/写 user-a 资源 → 应用层 throw `tenant_owner_mismatch`/`tenant_owner_user_id_required` + API 面 404 不可区分 + 写侧 RLS `42501` 双重 fail-closed；容器/PREREQ 缺 → **预期非零 EXIT 且如实记录**（Ban 换弱断言凑绿） |
+| **P3** | `pnpm tenant-wiring-neg:prove`（`node scripts/run-e2e-isolated.mjs tenant-wiring-neg:prove:raw` · 一次性本 run 自有 `pgvector/pgvector:pg16` 容器：**固定 dev 口令（不落盘 · 不入 receipt）+ 随机容器名/`e2e_run_token` token + `docker port` 动态解析 PGPORT**（实锚 `run-e2e-isolated.mjs:2296-2309` · 口令 `:2299` · token `:2302` · port `:2305-2309`）· finally 自有 `rm -f` 仅该名 · 目标须登记进 runner PG-migrate 白名单数组（`:2313`）+ `isolatedReceiptSources`（`:93`）= §7 授权触面（否则空 schema 起跑、RLS `42501` 面不可达）· **Ban 指向 dev/共享/他线 PG · Ban buy cloud**） | **0** | **端到端 NEG（跨 owner fail-closed）**：user-a 建 fixture → user-b principal 走已接线路径读/写 user-a 资源 → 应用层 throw `tenant_owner_mismatch`/`tenant_owner_user_id_required` + API 面 404 不可区分 + 写侧 RLS `42501` 双重 fail-closed；容器/PREREQ 缺 → **预期非零 EXIT 且如实记录**（Ban 换弱断言凑绿） |
 
-- **P1 翻正细节（翻正本身交双审）**：
-  - face A（字面 `'src/tenant'` 串）：接线形态钉死 `@meetwise/db` barrel 导入（与各 service 既有导入风格一致）→ face A **保持 0**，断言语义从「零接线=绿」翻转为「**零深路径字面导入纪律=绿**」——接线禁止深路径 import，防绕 barrel；
-  - face B（模块/符号引用面）：`consumption=0` → **`consumption>0` 且 == manifest 登记**（文件集合与每文件计数双断言 · manifest 常量随 prove 落盘）；
+- **P1 翻正细节（翻正本身交双审 · **翻正方向 = 加严非放松**：face B 从「0=未接线」翻为「>0 且受 manifest 文件封套+精确计数约束」= 断言面加严；face A 语义翻转如实叙述、深路径字面导入仍零容忍非放松）**：
+  - face A（字面 `'src/tenant'` 串）：接线形态钉死 `@meetwise/db` barrel 导入（与各 service 既有导入风格一致）→ face A **保持 0**，断言语义从「零接线=绿」翻转为「**零深路径字面导入纪律=绿**」——接线禁止深路径 import，防绕 barrel（翻转如实叙述 · 非放松）；
+  - face B（模块/符号引用面）：`consumption=0` → **`consumption>0` 且 == manifest**（**加严**：manifest 以文件为封套单位、每文件精确全量触点数 · 文件集合与每文件精确计数双断言 · manifest 常量随 prove 落盘 · 同文件残余面登记见 §3.1 总账）；
   - barrel 存在性断言（恰 2 条 re-export 语句 · `packages/db/src/index.ts:25-32`）**零弱化保留**（re-export ≠ consumption 归类原样）；
   - R2 头注（`proof:26-29`/`:180`）同步更新为「E5 应用层半边由本刀 P2/P3 兑现 · DB 层半边仍归 PRIV01-A」；
   - 其余 E1–E3/E4 静态钉（35/0 基线）**一字不减**——弱化任一既有断言 = 本刀失败。
@@ -99,7 +100,7 @@ Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR4
 ## 7. Scope / 非目标
 
 - **本 REQUEST（本 commit）**：恰 4 文档 docs-only（§8）· 零产品码 / 零 migration / 零 script / 零 prove 执行 / 零 SSOT 编辑 / 零 stub 代填。
-- **EXEC 面（PRE dual BOTH PASS + meetwise AUTHORIZE 后 · 拟）**：§3 接线清单内生产文件（api services + `packages/db/src` 归属模块）+ P1 翻正面（`packages/db/test/tenant-enforcement.proof.ts`）+ P2 新 proof + 根/包 `package.json` named script + harness/slice lifecycle 推进 + receipts。**触碰面超出授权清单 = 越权**。
+- **EXEC 面（PRE dual BOTH PASS + meetwise AUTHORIZE 后 · 拟）**：§3 接线清单内生产文件（api services + `packages/db/src` 归属模块，含两席裁定纳入的 `packages/db/src/candidate-route.ts`）+ P1 翻正面（`packages/db/test/tenant-enforcement.proof.ts`）+ P2 新 proof + **P3 raw proof（`packages/db/test/tenant-wiring-neg.proof.ts`）** + **`scripts/run-e2e-isolated.mjs`（授权触面仅两处登记：P3 新目标 `tenant-wiring-neg:prove:raw` 进 PG-migrate 白名单数组 `:2313` + `isolatedReceiptSources` `:93`——否则空 schema 起跑、RLS `42501` 面不可达；runner 其余逻辑零改动）** + 根/包 `package.json` named script + harness/slice lifecycle 推进 + receipts。**触碰面超出授权清单 = 越权**。
 - **非目标**：不动授权根 · 不动隐私/擦除链 · 不动 worker 域 · 不动 recruiter/admin/roles 域 · 不执行 ADR 门 · 零 SSOT 翻行 · 零 secrets。
 
 ## 8. Products
