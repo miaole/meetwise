@@ -11,7 +11,7 @@
 
 ## One-line
 
-GAP-PROD-02 首面立卷：**「不可替代绑定」基底在 tip `fe218b7a` 实存**（mig `0028` blob `ef940e26` 双 partial UNIQUE+CHECK+FK+绑定不可变 trigger `:11-142` · `recruiter.ts:354-434` `startApplicationInterview` 行锁同事务+`interview_ineligible_route` fail-closed · `finalizeApplication:182-215` 五向反查+strict 空 DTO `contracts:339`+web 消费者 `InterviewPanel.tsx:103`/同源代理——erratum E-1…E-4 口径继承），**缺口重心=验收证据面**：immutable `CandidateEvaluationSnapshot` 产品码 **0 hit**（rc=1 亲测）· `consent_version` **0 hit**（rc=1 亲测）· audit 验收表 `:110/:111/:112/:114` 四项（20 并发恰 1/错配 409/重放恰 1/浏览器全链路含刷新双击断网恢复）**零 named prove 收据**，`recruiting-bound.spec.ts`（blob `2b232748` · `:142-255`）单链路无 C 端刷新/双击/断网分支。**GAP-PROD-02 `:78` stays OPEN**。
+GAP-PROD-02 首面立卷：**「不可替代绑定」基底在 tip `fe218b7a` 实存**（mig `0028` blob `ef940e26` 双 partial UNIQUE+CHECK+FK+绑定不可变 trigger `:11-142` · `recruiter.ts:354-434` `startApplicationInterview` 行锁同事务+`interview_ineligible_route` fail-closed · `finalizeApplication:182-215` 五向反查+strict 空 DTO `contracts:339`+web 消费者 `InterviewPanel.tsx:103`/同源代理——erratum E-1…E-4 口径继承），**缺口重心=验收证据面**：immutable `CandidateEvaluationSnapshot` 产品码 **0 hit**（rc=1 亲测）· `consent_version` **0 hit**（rc=1 亲测）· 并发 20 绑定与换绑拒**已由底座 named 覆盖**（`recruiter-depth.proof.ts` §① `:60-71`+§② `:73-80` · `neg-bend.proof.ts:251-252/:269-271`），audit 验收表 `:112/:113/:114/:115` 四项作为验收面仍无 named prove 收据，真残差=①reserve 计数断言 ②HTTP 层跨岗位完成会话重放收据 ③快照幂等（依赖 G-1） ④浏览器刷新/双击/断网分支（`recruiting-bound.spec.ts` blob `2b232748` · `:142-255` 单链路无该三分支）。**GAP-PROD-02 `:78` stays OPEN**。
 
 ## 设计候选（全文对比见 harness §2）
 
@@ -24,7 +24,7 @@ GAP-PROD-02 首面立卷：**「不可替代绑定」基底在 tip `fe218b7a` �
 ## Prove 拟案（本卷零执行 · 终名/落地随 exec 卷）
 
 - NEG（全拒）：N1 跨申请重放（strict DTO+反查 → 4xx/409 · score NULL）· N2 换绑（trigger exception）· N3 无申请上下文（`interview_ineligible_route`/`cannot_finalize` · interview 0 新增）· N4 快照不可变（A 落地后）· N5 异主/异租户 0 行。
-- HP（全过）：H1 正常绑定流 scoreless 收口 · H2 并发 20 恰 1 interview/1 reserve/同一 interviewId（`:110`）· H3 重放恰 1 快照/分数/确认（`:112`）· H4 浏览器全链路 1 条必过含刷新/双击/断网恢复+B 端最小化（`:114` · 既有 spec 只增分支）。
+- HP（全过）：H1 正常绑定流 scoreless 收口 · H2 并发 20 恰 1 interview/1 reserve/同一 interviewId（`:112` · 恰 1/同一 id 底座已断言，本刀补 reserve 计数）· H3 重放恰 1 快照/分数/确认（`:114` · snapshot 项依赖 G-1）· H4 浏览器全链路 1 条必过含刷新/双击/断网恢复+B 端最小化（`:115` · 既有 spec 只增分支）。
 - 底座保持绿：`recruiter:prove`（`package.json:194`）/ `neg:bend`（`:98`）/ `openapi:prove`（`:275`）期望 EXIT 0。
 - 纪律：attempts 全账（时间窗/SHA/EXIT）· 一次优先 · **Ban retry-to-green**（`:68` FLK 先例）· EXIT0 ≠ 闭合 ≠ `:78` 翻转 ≠ covered。
 

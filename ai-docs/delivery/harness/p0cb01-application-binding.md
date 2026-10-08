@@ -19,7 +19,7 @@
 
 ### 1.0 缺陷一句话
 
-**「不可替代绑定」的基底（DB 约束 + 绑定路径 + 反查收口）在 tip 实存，但其审计级语义（immutable `CandidateEvaluationSnapshot` + `consent_version` 事务绑定）产品码 0 hit，且 audit 验收表（`product-readiness-c-b-audit.md:110-115`）四项**全部零 named prove 收据**——面试可脱嵌于申请上下文存在（practice 面域）在设计上合法，但「跨申请重放/换绑 fail-closed」与「完成事件恰一次写不可变快照」两条**只有代码实现、没有验收证据**。缺口重心=验收证据面（SCOR §9 D1 裁决继承 · erratum E-1…E-4 口径继承），本刀即该面的实现 REQUEST。
+**「不可替代绑定」的基底（DB 约束 + 绑定路径 + 反查收口）在 tip 实存，其审计级语义（immutable `CandidateEvaluationSnapshot` + `consent_version` 事务绑定）产品码 0 hit。并发 20 绑定与换绑拒已由 prove 底座 named 覆盖（`recruiter-depth.proof.ts` §①② + `neg-bend.proof.ts` HTTP 面——锚见 §1.2 G-3），audit 验收表（`product-readiness-c-b-audit.md:112-115`）作为验收面仍无 named prove 收据，真残差=①reserve 计数断言面（恰 1 次 reserve）②HTTP 层跨岗位完成会话重放 named 收据③快照幂等（结构性依赖 G-1，成立）④浏览器刷新/双击/断网分支（成立）——「跨申请重放/换绑 fail-closed」在 DB/HTTP 底座有实现有断言，「完成事件恰一次写不可变快照」与「浏览器全链路覆盖」仍是实现/覆盖缺口。缺口重心=验收证据面（SCOR §9 D1 裁决继承 · erratum E-1…E-4 口径继承），本刀即该面的实现 REQUEST。
 
 ### 1.1 基底实存面（亲算锚 · 本刀 Ban 动摇其约束语义）
 
@@ -32,9 +32,9 @@
 | application 侧绑定/状态机/分数铁面 trigger（换绑拒 `job_application_interview_binding_immutable` · 伪造绑定拒 `_invalid` · 分数未收口不可变） | 同上 `:95-142` | 同上 |
 | `startApplicationInterview`：行锁同事务「看绑定→建/复用 interview→CAS 回写」，attempt 单调递增，未决路由 fail-closed `interview_ineligible_route`（不创建 interview） | `packages/db/src/recruiter.ts:354-434`（`FOR UPDATE` `:357-358` · 拒启 `:410` · INSERT `:414-421` · attempt `:413`） | `d06b4f4933414853b3ff574c2f6dad2292824d92` |
 | `finalizeApplication`：不接受客户端 interviewId，五向 JOIN 反查 `application↔interview↔job↔resume↔owner`，不一致/未完成 → `not_ready`；hold 下收口恒 `score=NULL, status='assessment_unavailable'` | 同上 `:182-215`（反查 `:184-194` · scoreless 收口 `:203-206`） | 同上 |
-| HTTP start / finalize（strict DTO） | `apps/api/src/modules/jobs/applications.controller.ts:22-24/:36-39` · `apps/api/src/modules/jobs/applications.service.ts:35-63/:66-92`（`:71` `not_ready`→409 `cannot_finalize`） | `d0b779952514c36417b98242ca1412c78be4685c` / `9a17cfe4546aec7542ebe49a43d3b18978ea422a` |
+| HTTP start / finalize（strict DTO） | `apps/api/src/modules/jobs/applications.controller.ts:22-24/:33-38` · `apps/api/src/modules/jobs/applications.service.ts:35-63/:66-83`（`:71` `not_ready`→409 `cannot_finalize`） | `d0b779952514c36417b98242ca1412c78be4685c` / `9a17cfe4546aec7542ebe49a43d3b18978ea422a` |
 | `FinalizeApplicationDto = z.object({}).strict()`（客户端 interviewId/score 一律 DTO 拒）· `StartApplicationDto` 仅 `resumeId` | `packages/contracts/src/index.ts:327/:339`（注释 `:335-338`） | `d44768f91ce3f011447ee251d8213661a61457dc` |
-| web 终态自动 finalize 消费者 + 同源代理（浏览器只给 applicationId） | `apps/web/components/InterviewPanel.tsx:88/:99-114`（fetch `:103`）· `apps/web/app/api/applications/[id]/finalize/route.ts:5-17` | `ec9b3fe168e4e9c98a782f0f78ef5f89e4d1ba85` / `c558e82e169a8465289bcb4d977a82343140ec72` |
+| web 终态自动 finalize 消费者 + 同源代理（浏览器只给 applicationId） | `apps/web/components/InterviewPanel.tsx:88/:99-114`（fetch `:103`）· `apps/web/app/api/applications/[id]/finalize/route.ts:6-18` | `ec9b3fe168e4e9c98a782f0f78ef5f89e4d1ba85` / `c558e82e169a8465289bcb4d977a82343140ec72` |
 | B 端数值暂停（calibration hold · score=NULL 恒定投影） | `packages/db/migrations/0082_b_side_score_calibration_hold.sql` | `2b4d4f66dd6d53d278655ff7e7f6be5694881f39` |
 
 ### 1.2 缺口面（本刀要闭合的 · 亲算 0 hit / 0 收据）
@@ -43,11 +43,11 @@
 |---|------|----------------------|
 | G-1 | **immutable `CandidateEvaluationSnapshot` 不存在**——audit `:97-107` 要求完成事件写不可变快照（score、rubric/model/prompt/qbank 版本、evidence hash），B 端只读该快照；tip 完成链只回填 `job_application.score/status` 两列，无版本化/evidence-hash 化的独立不可变证据关系 | `git grep -icE 'candidate_evaluation\|evaluation_snapshot\|application_snapshot' -- ':!ai-docs'` = **0 hit**（rc=1 亲测） |
 | G-2 | **`consent_version` 事务绑定面 0 hit**——audit `:97-99` 要求创建事务绑定 `consent_version`；tip 绑定四元组为 application/job/resume/owner，无 consent 维度（该面语义终裁按 SCOR C-EH-3 冻结归本刀执行阶段） | `git grep -icE 'consent_version\|consentVersion' -- ':!ai-docs'` = **0 hit**（rc=1 亲测） |
-| G-3 | **验收表 `:110` 并发项零收据**——「同一 applicationId+startIdempotencyKey 并发 20 次 → 恰 1 interview、1 次 reserve、同一 interviewId」无 named prove；现有隔离底座（`recruiter:prove`）不含并发 20 绑定场景 | `package.json:194`（recruiter:prove · 29 项底座口径）无该断言；`apps/web/e2e-ui/recruiting-bound.spec.ts` 单链路无双击/并发分支 |
-| G-4 | **验收表 `:111` 错配 409 零收据**——「任意本人但非该岗位 interviewId finalize → 409 且 score 仍 NULL」无 named prove（实现面存在：strict DTO + 反查；证据面空） | `neg:bend`（`package.json:98`）为 B 端底座、无跨申请重放用例收据 |
-| G-5 | **验收表 `:112` 重放恰一次零收据**——「同一岗位会话 completion 重放 → CandidateEvaluationSnapshot/人才库分数/消费确认各恰 1 次」无 named prove（G-1 缺失导致 snapshot 项结构性不可证） | 同 G-1 + `0028:42-75` trigger 仅回填两列 |
-| G-6 | **验收表 `:114` 浏览器全链路覆盖不足**——要求覆盖**刷新、双击、断网后恢复**及 B 端最小化展示；`recruiting-bound.spec.ts`（blob `2b232748a034f39e634c911cce962dcb5dbb61b8` · `:142-255`）有单链路 C→B + B 端 reload 最小化断言（`:244-255`），**无 C 端刷新/双击/断网恢复分支** | spec 全文亲读 @`fe218b7a` |
-| G-7 | **practice 面域与 application 域的隔离只有实现无收据**——practice 入口 `apps/web/app/interviews/actions.ts:9-21`（仅 resumeId · blob `bbc8bde144cedba8412af379787da4f03a037260`）+ `POST /interview` 空壳创建 `apps/api/src/modules/interview/interview.controller.ts:156-160`（service `create` `:589`）合法存在；practice 会话不可被 finalize 移花接木到岗位（反查兜底）须以 NEG prove 收据化，而非仅凭码面注释 | E-2 口径（erratum 继承）+ G-4 |
+| G-3 | **验收表 `:112` 并发项残差**——并发 20 绑定与换绑拒**已由底座 named 覆盖**；真残差=①reserve 计数断言面（恰 1 次 reserve）②HTTP 层跨岗位完成会话重放 named 收据③快照幂等（结构性依赖 G-1，成立）④浏览器刷新/双击/断网分支（成立） | `recruiter-depth.proof.ts`（blob `8579cc70a3000fe52fb36d230a50495f70fd11ed`）§① `:60-71`：20 路并发 startApplicationInterview→同一 interviewId（`:67`）+ 四元绑定完整（`:69`）+ 每 application 恰一 interview（`:70`）；§② `:73-80`：换绑 DB 拒（`:75`/`:78`）+ 本人历史会话不能 finalize（`:79-80`）· `neg-bend.proof.ts`（blob `6b38d536fb4381f5536722b8012f38c0f2c30ce8` · `apps/api/test/`）HTTP 层：strict DTO 400（`:270-271`）/finalize 空对象 409（`:269`）/跨用户 finalize 409+score NULL（`:251-252`）——reserve 计数断言与 HTTP 层跨岗位完成会话重放收据无；浏览器分支缺（=G-6） |
+| G-4 | **验收表 `:113` 错配 409 残差**——错配拒绝面已由底座覆盖（strict DTO 400 / finalize 空对象 409 / 跨用户 finalize 409+score NULL / DB 换绑拒，锚同 G-3）；真残差=「本人**已完成**会话对跨岗位申请收口」的 HTTP 层 named 收据（底座断言覆盖未完成态与跨用户态，未覆盖完成会话跨岗位重放态=残差②） | 同 G-3 证据锚（`neg-bend.proof.ts:269-271`/`:251-252` 在树亲读）——完成会话跨岗位重放态无 named 收据 |
+| G-5 | **验收表 `:114` 重放恰一次残差**——CandidateEvaluationSnapshot 幂等重放收据**结构性依赖 G-1**（快照关系不存在，不可证——成立=残差③）；完成重放幂等底座仅断言 scoreless 收口重放（`recruiter-depth.proof.ts` §③ `:84-85`），snapshot/消费确认逐项恰 1 断言无 | 同 G-1 + `0028:42-75` trigger 仅回填两列 |
+| G-6 | **验收表 `:115` 浏览器全链路覆盖不足（=残差④，成立）**——要求覆盖**刷新、双击、断网后恢复**及 B 端最小化展示；`recruiting-bound.spec.ts`（blob `2b232748a034f39e634c911cce962dcb5dbb61b8` · `:142-255`）有单链路 C→B + B 端 reload 最小化断言（`:244-255`），**无 C 端刷新/双击/断网恢复分支** | spec 全文亲读 @`fe218b7a` |
+| G-7 | **practice 面域与 application 域的隔离——拒绝面已 named 覆盖，重放态残差同②**——practice 入口 `apps/web/app/interviews/actions.ts:9-21`（仅 resumeId · blob `bbc8bde144cedba8412af379787da4f03a037260`）+ `POST /interview` 空壳创建 `apps/api/src/modules/interview/interview.controller.ts:156-160`（service `create` `:589`）合法存在；practice（历史普通）会话的换绑拒/移花接木拒已由底座 named（G-3 §② 锚）+ HTTP strict DTO（G-3 neg-bend 锚）覆盖；真残差=完成态 practice 会话跨岗位 HTTP 重放收据（=残差②） | E-2 口径（erratum 继承）+ G-3/G-4 锚 |
 
 **缺陷面结论**：现状不是 audit 2026-08-02 审查时的「无绑定」（erratum 已更正该 4 条为 stale），而是**「绑定基底实存、不可替代性证据为零」**——跨申请重放/换绑在 DB 层 fail-closed（trigger + 反查 + strict DTO），但没有一条 named prove 证明它在并发/对抗/重放条件下真的拒得干净；完成收口没有不可变快照证据层。`GAP-PROD-02` `:78` 因此 **stays OPEN**，翻转权归协调方 nail，本刀在任何结果下都不翻行。
 
@@ -77,7 +77,7 @@ fail-closed 形态（目标态逐条）：跨申请重放（拿 A 岗完成会�
 | 迁移面 | 恰 1 个 additive migration（CREATE TABLE + trigger + 既有行零回填；旧申请无快照保持 fail-closed 最小投影） | additive 列但落在热表上；旧行 NULL 语义与 hash 基线含混 | 全量重迁移 + 数据搬迁，回归面不可控 |
 | 不可替代性强度 | **最强**：独立 INSERT-only 关系 + evidence hash，不可变是结构性质非约定性质；B 端只读投影有唯一权威源 | 弱：hash 覆盖的对象本身住在可变行里，「不可替代」降级为 trigger 约定 | 与 A 等价但推倒重来，纯成本 |
 | fail-closed 形态 | 快照缺失/不一致 → B 端最小投影；重放 conflict-read-back 恰 1 行；绑定拒绝面原样继承 `0028` 三 trigger + 反查 | 同左但快照一致性须额外自证 | 同左但全部拒绝面须从零重证 |
-| 验收表映射 | `:110`（并发 20 → prove）/`:111`（409 → prove）/`:112`（重放恰 1 → snapshot 表幂等直证）/`:114`（spec 扩分支）逐项可 named | `:112` snapshot 项证明绕行（同表行级），收据弱 | 逐项可 named 但代价是全链重证 |
+| 验收表映射 | `:112`（并发 20 → 残差①prove）/`:113`（409 → 残差②prove）/`:114`（重放恰 1 → snapshot 表幂等直证，依赖 G-1）/`:115`（spec 扩分支=残差④）逐项可 named | `:114` snapshot 项证明绕行（同表行级），收据弱 | 逐项可 named 但代价是全链重证 |
 | 审查关注点 | INSERT-only 封口是否彻底（app_role 全路径）· consent_version 语义终裁落卷 · hold 期间 B 端投影仍 scoreless | 行级防篡改完备性 · hash 基线 | ——（不建议进入执行） |
 
 **推荐：方案 A。** 理由：唯一同时满足「Ban 动摇 `0028` 既有约束语义」（SCOR S-CB-1 触碰面写死）+ 审计级不可变证据（INSERT-only 关系）+ 迁移面最小三条的方案；B 在 immutability 上先天弱一档，C 直接违约。**本推荐 ≠ 执行授权**：方案终采与 `consent_version` 语义终裁（C-EH-3 冻结）由 coding 阶段落卷、双审复核；若终裁判「DB 绑定 ≠ 审计意义不可替代」且 A 的 snapshot 层不足以闭合，范围按 D1 逃生门先例以未来 REQUEST 重立。
@@ -92,23 +92,23 @@ fail-closed 形态（目标态逐条）：跨申请重放（拿 A 岗完成会�
 | N2 | 换绑：对已绑定 interview UPDATE `application_id/job_id/resume_id` 任一列；对已绑定 `job_application.interview_id` 改指他场 | DB trigger 拒 | exception `interview_application_binding_immutable` / `job_application_interview_binding_immutable` · 行无变化 |
 | N3 | 无申请上下文进 application 域：路由未决岗位 start；对无绑定申请 finalize | start → `interview_ineligible_route` 且 **interview 行 0 新增**；finalize → `cannot_finalize` | 409 · `unresolved_route_start_count=0` 语义等价可测 · score 仍 NULL |
 | N4 | 快照不可变（方案 A 落地后）：app_role 路径 UPDATE/DELETE `candidate_evaluation_snapshot`；快照缺失时 B 端读 | DB trigger 拒写删；读侧最小投影 | exception · B 端永不见数值分（hold 投影不变） |
-| N5 | 伪造归属：异主/异租户对他人申请 start/finalize | RLS + owner 反查 | 0 行 / 404 族 · 与既有 B 端隔离底座一致 |
+| N5 | 伪造归属：异主/异租户对他人申请 start/finalize | RLS + owner 反查 | 0 行 · 409/noop 族（底座实况：跨用户 finalize 409 `cannot_finalize`、start 不存在 noop、decline 他人 noop、列表 RLS 0 行——`neg-bend.proof.ts:247-258`） |
 
 ### 3.2 HP 面（正常绑定流 · 期望全过）
 
 | # | 场景 | 断言（audit 验收表映射） |
 |---|------|------|
-| H1 | invited → start(本人已摄取 resume) → 答题至完成 → finalize 确认 | `started` + interviewId + `redirectTo`；完成自动收口；finalize 返回 `replayed/assessment_unavailable` 恒 scoreless（`:110` 前置正常流） |
-| H2 | 同一 application 并发 20 次 start | **恰 1** interview、**1** 次 reserve、成功响应同一 interviewId（`:110`） |
-| H3 | 同一岗位会话 completion 重放 | CandidateEvaluationSnapshot / 人才库分数 / 消费确认各**恰 1** 次（`:112`） |
-| H4 | 真实浏览器 C→B 全链路 | **1 条必过**，覆盖刷新、双击、断网后恢复 + B 端最小化展示（`:114`；在 `recruiting-bound.spec.ts` 既有单链路上**扩展分支，不替换不删既有断言**） |
+| H1 | invited → start(本人已摄取 resume) → 答题至完成 → finalize 确认 | `started` + interviewId + `redirectTo`；完成自动收口；finalize 返回 `replayed/assessment_unavailable` 恒 scoreless（`:112` 前置正常流） |
+| H2 | 同一 application 并发 20 次 start | **恰 1** interview、**1** 次 reserve、成功响应同一 interviewId（`:112`；底座 §① 已断言恰 1 interview/同一 interviewId，本刀补 reserve 计数=残差①） |
+| H3 | 同一岗位会话 completion 重放 | CandidateEvaluationSnapshot / 人才库分数 / 消费确认各**恰 1** 次（`:114`；snapshot 项依赖 G-1 落地） |
+| H4 | 真实浏览器 C→B 全链路 | **1 条必过**，覆盖刷新、双击、断网后恢复 + B 端最小化展示（`:115`；在 `recruiting-bound.spec.ts` 既有单链路上**扩展分支，不替换不删既有断言**） |
 
 ### 3.3 命令 + 期望 EXIT + attempt 纪律
 
 | Command | 状态 | 期望 EXIT | 说明 |
 |---------|------|-----------|------|
-| `pnpm recruiter:prove`（`package.json:194`） | 在树 | 0 | 底座保持绿（29 项口径）；回绿失败即基底回归，判 fail |
-| `pnpm neg:bend`（`package.json:98`） | 在树 | 0 | HTTP 拒绝底座保持绿 |
+| `pnpm recruiter:prove`（`package.json:194` → `packages/db/package.json:19` → `tsx test/recruiter-depth.proof.ts`） | 在树 | 0 | 底座保持绿（`recruiter-depth.proof.ts` **39 处 `A()` 断言** · `rg -c "A\('" @fe218b7a 亲测`）；回绿失败即基底回归，判 fail |
+| `pnpm neg:bend`（`package.json:98` → `apps/api/test/neg-bend.proof.ts`） | 在树 | 0 | HTTP 拒绝底座保持绿 |
 | `pnpm openapi:prove`（`package.json:275`） | 在树 | 0 | 契约面（strict DTO 变更若有时）保持绿 |
 | `pnpm cb01-binding:prove`（**拟名** · coding 阶段经 scripts/`package.json` 落地 · 终名随 exec 卷） | 待建 | 0 | NEG N1/N2/N3/N4/N5 + HP H2/H3 · 真实隔离 PG（`run-e2e-isolated.mjs` 族）· Ban mock API/DB |
 | `pnpm e2e`（`recruiting-bound.spec.ts` 扩展后定向跑该 spec） | 在树 + 扩展 | 0 | HP H4（含 H1 全链）· 真实浏览器 |
