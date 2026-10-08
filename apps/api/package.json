@@ -42,6 +42,7 @@
     "prove:int-transcript-preview-submit-http": "node --import ./node_modules/@swc-node/register/esm/esm-register.mjs test/int-transcript-preview-submit-http.proof.ts",
     "prove:last-event-id": "node --import @swc-node/register/esm-register test/last-event-id.proof.ts",
     "prove:sse-slot": "node --import @swc-node/register/esm-register test/sse-principal-slot.proof.ts",
+    "prove:sse-push-notify": "node --import @swc-node/register/esm-register test/sse-push-notify.proof.ts",
     "prove:resume-reference-http": "node --import @swc-node/register/esm-register test/resume-reference-http.proof.ts",
     "neg:all": "for g in auth commerce resume interview bend input; do node --import @swc-node/register/esm-register test/neg-$g.proof.ts || exit 1; done",
     "prove:uc025-stale-quiz-expiry": "node test/uc-e2e-025-stale-quiz-expiry.proof.mjs",
