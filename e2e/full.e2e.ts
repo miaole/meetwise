@@ -32,8 +32,12 @@ async function main() {
   const { token, headers: H } = session;
 
   // 2. PIPL 采集同意(上传简历前置)
-  let r = (await consentResumeProcessing(H)).response;
-  A(r.status === 200, 'PIPL 采集同意 → 200');
+  const fs = await import('node:fs'), bootId = process.pid, capT0 = Date.now(); fs.mkdirSync('.tmp', { recursive: true });
+  let r: any, consentCap: any;
+  try { consentCap = await consentResumeProcessing(H); r = consentCap.response; }
+  catch (e: any) { fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'consent', thrown: `${e.name}/${e.code}/${e.cause?.code}` })}\n`); throw e; }
+  fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'consent', status: r.status, elapsed_ms: Date.now() - capT0, body: JSON.stringify(consentCap.body ?? {}).slice(0, 200) })}\n`);
+  A(r.status === 200, `PIPL 采集同意 → 200 (实际 ${r.status})`);
 
   // 3. 上传简历(加密落库 + 结构化 + PII 脱敏)
   const textResume = await uploadTextResume(H, '后端工程师 3 年。负责高并发订单系统,用 Redis 做分布式锁与限流,MySQL 分库分表,消息队列削峰。');
