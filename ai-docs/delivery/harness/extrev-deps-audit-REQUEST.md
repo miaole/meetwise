@@ -169,3 +169,11 @@ canHonestlyFlip=false
 状态 **`awaiting_pre_exec_dual`**：`mw-e2e-ha` + `mw-privacy-int` 预执行双审 BOTH `Verdict: PASS` + meetwise 授权后方可进 EXEC（含联网 audit 实跑）；实现不自批；nail 归 meetwise。**STOP**
 
 *Harness · EXTREV-0 DEPS-AUDIT · 2026-10-07 · draft:awaiting_pre_exec_dual · base 5636d58d · #106/#107 · 切片 S1/S2/S3 · docs-only · Ban 顺带升级 · alone≠dual · STOP*
+
+## rev2 双审收口（2026-10-09 · 席1 PASS+席2 PASS·三处方级+四记账级 advisory 转为 EXEC 义务）
+
+- **A1（EXEC 硬义务）**：既有 resume-extract.proof 零真实 docx/pdf 提取正例——S1/S3 判据①的「零回归」若仅跑既有 prove 即空转；EXEC 必须新增最小真实 docx 提取正例（S3 负例 zip 构造工具面共用）并断言输出。
+- **A2（EXEC 硬义务）**：守卫上限值锚——zip 条目数 ≤1000（正常 docx <100 条目含 media 余量）·解压总大小 ≤64MB（12MB bodyLimit × 压缩比合理域），实定后 receipt 记取值依据+正常 docx 正例旁证防误伤。
+- **A3（EXEC 硬义务）**：docs:check 前锚以 EXEC 起点 commit 实跑值为准（本 REQUEST 自身已 +1 至 4104·预期值）——操作化=EXIT 持恒 1 且错误码集合不变；禁静默改绿。
+- 记账级：fastify CVE-2026-92081 记 moderate 勿入 high 清零面·本 API 未启 http2 减害事实入 receipt；multer 零运行时参与（FastifyAdapter+base64 上传）纯供应链清账；xmldom 0.8.13 registry 已 deprecated·升级走纯 lockfile 刷新**禁 overrides**；Renovate 优先于 Dependabot（pnpm 双层 catalog 原生解析）；audit 步建议独立 workflow 文件物理零触 ci.yml；next 升级后加跑 pnpm -C apps/web build（standalone 打包承重面）；proxy-addr 两包不同源勿混记。
+- Status: `draft_rev2:pre_exec_dual_PASS`（双席 BOTH PASS·EXEC 授权·S1 起跑）。
