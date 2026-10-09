@@ -63,3 +63,22 @@
 **陈旧登记**：tscgate2-fixbatches.md:3 状态头仍 exec:awaiting_post_prove_dual，与 checklist:2052 NAIL 记录不一致（文档陈旧非 SOP 之错，防误读）。
 **未覆盖 backlog（44 条·P3 为主·按需立项）**：#6 #11 #14 #21 #22 #28 #39 #46 #60 #62 #63 #64 #65 #70 #73 #74 #78 #80 #93 #94 #101 #119 #132 #147(已归) #154 #162 #163 #166 #167 #170 #171 #172 #173 #174 #183(已归) 等——以 issues-master.md 总表为完整清单，本 SOP 不再复制全量；立项时按域归入对应批次刀。
 （P2 未覆盖 10 条待归：#7 #9 #17 #36 #42 #59 #66 #95 #116 #138——随对应域刀立项时收编：#7/#9/#163 归 EXTREV-1 图租约面、#17 归 SSE-RESILIENCE、#36 归 AUTHZ-HARDEN、#42 归 SCORE-READ-V2、#59 归 SSE-RESILIENCE、#66 归 API-HARDEN、#95 归 OBS-LOG、#116 归 QUEUE-BACKPRESSURE、#138 归 DB-CONSTRAINT。）
+
+## EXTREV-6 UNSTUB 全功能交付战役（用户指令 2026-10-09：「不要总说暂不可用，这次必须全部可用」）
+
+**指令定性**：产品级硬要求——所有用户可见的「暂不可用/暂未开放/migration in progress」桩必须变为真实可用功能。诚实披露式的 503 桩是过渡态不是终态；「迁移中」话术与真实状态（无迁移在进行）不符即设计偏移。
+
+**已知桩清单（协调方快扫 @5636d58d·以 UNSTUB 盘点刀实测定全量）**：
+| 桩 | 位置 | 可用化路径 |
+|---|---|---|
+| TTS 语音播报 | interview-voice.ts:33/:49 恒 503 | DashScope TTS 绑定+流式返回+前端播放 |
+| ASR 语音转写 | interview-voice.ts:78（配置缺失时 503） | ASR 能力门真实化（#69 同刀：服务端 consent 落账） |
+| 简历单份删除 | resume.service.ts:278-280 `never` 503 | 擦除链 cutover 完成后翻真实删除+回执 |
+| 全量简历数据删除 | privacy.service.ts:65-67 `never` 503 | 同上（跨存储 sweep：PG+向量+memory） |
+| 面试数据擦除 | privacy.service.ts:53-56 `never` 503 | 同上+授权面（0058 fence 族已在库） |
+| 账户注销 | settings/page.tsx:89-95 disabled | 级联擦除设计→实现→可用 |
+| begin 路由未就绪 | applications.service.ts:49 | ROUTE-DICT 刀（#133/#195）已覆盖 |
+| 跨存储删除回执 | faq/resume 页披露未开放 | 擦除链 cutover 附带（回执=PRIV 链收尾） |
+
+**执行纪律**：①每桩一刀或并刀，全走 REQUEST→双审→EXEC→post-dual；②**禁止假可用**——删除类桩必须在跨存储擦除真实完成+回执可证后才翻，提前翻=隐私谎言（比诚实 503 更糟）；③TTS/ASR 类接 provider 真实现+fake seam 测试+真实能力 prove；④「暂不可用」文案随之退役，UI 与 API 同步；⑤与 PRIV01/PRIV4/PRIV01WIRE/PRIV04B 已 nail 面对账（哪些已建只差 cutover）。
+**首批刀**：UNSTUB-INV 盘点刀（全量桩清单+每桩可用化差距+依赖链定谳）→ UNSTUB-ERASE（删除三桩 cutover）→ UNSTUB-VOICE（TTS/ASR 真实现）→ UNSTUB-ACCOUNT（注销）。
