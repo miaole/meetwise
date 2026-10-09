@@ -1,9 +1,17 @@
-# AC-FIX adaptive-consumer 夹具供给修复刀 — attempts 全账
+# AC-FIX adaptive-consumer 夹具供给修复刀 — attempts 全账（初授权 + 裁决行动树全程）
 
-| # | 性质 | 命令/面 | 证明体进入 | 结果 | 记录 |
+| # | 性质 | 面 | 证明体 | 结果 | 凭据 |
 |---|---|---|---|---|---|
-| a1 | 静态预检（零证明体零 DB） | tsc --noEmit（worker 包）· grep | 否 | worker 包 41 error TS 全为预存红（GODFN-1d 已登记 base 同在）；`adaptive-consumer.proof.ts` 零诊断 · diff 范围核验仅 test 文件 22 行 | 本文件 + exec-receipt §0 |
-| a2 | **THE prove（唯一证明体调用）** | root 包裹器 `pnpm adaptive-consumer:prove`（runner 隔离面，docker pg16 disposable + migrate 152） | 是（恰 1 次） | **EXIT=1 · 31 PASS / 2 FAIL · child_exit_nonzero · 无 stage/code banner（零崩溃·跑至最后断言）** · 蓝本命名目标（溃点消失·排空环 claim→evaluate→complete×3·供给门 ON 态行使）全达；EXIT=0 未达——2 断言级红，runner 面 by-design 零断言明文，授权证据面内不可定位 | `prove-stdout.raw` · `prove-stderr.raw` · `isolated-proof-receipt.json` · exec-receipt §1-§3 |
+| a0 | 静态预检（初授权刀） | tsc/grep（零证明体零 DB） | 否 | worker 41 error 全预存红（GODFN-1d 已登记）；proof 文件零诊断；diff 仅 test | exec-receipt §1 |
+| a1 | **prove#1**（初授权 THE prove） | runner 隔离面 `pnpm adaptive-consumer:prove` | 是 | **EXIT=1 · 31/2 · child_exit_nonzero** · 溃点消失·排空环真走（蓝本命名目标达）· 2 红不可定位 → 遇雷 STOP | `prove-stdout.raw`·`prove-stderr.raw`·`isolated-proof-receipt.json`·commit ceb43343 |
+| a2-prep | :raw 环境自备 #1 | docker/双探/迁移 | 否（零进入） | 探针 node cwd 缺陷（pg 解析需 packages/db 起点）→ PG_NOT_READY 即弃，容器自拆 | exec-receipt §1 |
+| a3-prep | :raw 环境自备 #2 | 同配方修正 cwd | 否（零进入） | ready×3 ✓ · migrate 152/0 ✓ | exec-receipt §1 |
+| a4 | **:raw 诊断恰 1 次**（裁决第一步） | `pnpm -C apps/worker prove:adaptive-consumer` 双流直跑 | 诊断体（不计红绿账） | EXIT=1 · 31/2 复现 · **两红=**:123 `deepCalls===1&&shallowCalls===0` + :124 `askRequests[0]` 信封三clause | `raw-stdout.raw`·`raw-stderr.raw` |
+| a5 | 根因定位（零消耗） | 码面链路逐环 + 真 langgraph 离线 sim（scratch，已删） | 否 | 因子 A=0104 检索链缺供（degraded deny_external）；因子 B=planner 双 core 字面量 × 单轮结算动力学 → 2 fundamentals；sim 三分支预验证修复设计 | `mind-sim-final.txt` |
+| a6 | 夹具修（分叉①） | 仅 proof 文件：0104 生产写手链 + 测试 HMAC key + planner `['并发']` | 否 | tsc 零新诊断 · 排空语义/断言字节零弱化 | `fixture.diff` |
+| a7 | **prove#2**（分叉①收口·预算 ≤2 之第 1 次） | runner 隔离面 | 是 | **EXIT=0 · 33/0 · failure_class=none —— 全绿达标** | `prove2-stdout.raw`·`prove2-stderr.raw`·`isolated-proof-receipt-prove2.json` |
 
-- 证明体调用总数：**1**（a2）。无重跑、无 retry、无 :raw 面（未授权）。a2 后即遇雷 STOP，未回滚未隐藏工作树。
-- 预算纪律：恰每 prove 一次 ✓（本刀恰 1 次）· 禁重跑至绿 ✓（a2 红后零再跑）· est live=0（mock 模型面）· Key name-only ✓。
+- 证明体调用总计：3（a1 红 / a4 诊断 / a7 绿）· prove 红绿账 = 2（红 1 → 修 → 绿 1，逐修零 retry）· :raw 诊断恰 1 次 ✓ · prove ≤2 ✓
+- est live=0 全程（scriptedModelClient mock 面 · 零外发 · MODEL_API_KEY/DASHSCOPE env 计数 0 · Key name-only · 零 .env 写 · nonce/token 零落盘）
+- 容器卫生：全部 disposable --rm 自拆零 stray（现存 meetwise-e2e-godfn1c-35997 系他刀遗留，本刀未触碰）
+- 禁重跑至绿 ✓（a1 红后经裁决+诊断+修方有 a7；无任何无修重跑）

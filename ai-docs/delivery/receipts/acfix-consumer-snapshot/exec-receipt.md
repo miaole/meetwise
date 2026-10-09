@@ -1,53 +1,48 @@
-# AC-FIX adaptive-consumer 夹具供给修复刀 — EXEC 收据 · prove#1 红 · 遇雷 STOP
+# AC-FIX adaptive-consumer 夹具供给修复刀 — EXEC 收据 · 终态全绿 EXIT=0
 
-- 席位：mw-core（EXEC）· 蓝本 = AC-1 调查刀定谳（@f4c2a9f9 收据）+ 席1/席2 post-dual BOTH PASS 一致建议（A 路线：夹具供给真 route snapshot）· 协调方正式授权
-- worktree `/Users/miaole/Desktop/golucky/meetwise-line-ac1` · 分支 `line/adaptive-consumer-diag` · base = 03439f67（AC-1 nail）
-- 改动面：**仅 `apps/worker/test/adaptive-consumer.proof.ts` 夹具段**（apps/packages src 零 diff · runner 零 diff · 排空环语义原样）· `fixture.diff` 全量 22 行（+21/−1）三段：
-  1. import 追加 `supplyCandidateProfileRoute`（@meetwise/db 出面，packages/db/src/index.ts:404 既有导出）；
-  2. `ROUTE_SNAPSHOT_SUPPLY` 段（FENCE_RACE 插行后、RESERVATION_SETUP 前，生产 begin「供给先于扣额/入队」同位序）：`asPrincipal(pool, OWNER, (c) => supplyCandidateProfileRoute(c, OWNER, IID, up.resumeId))` —— **生产同链**（0142 供给面原函数，非伪造行）：内部 requireOwnerUserId → resume ingested 校验 → owner-scoped `decryptResumeBlob`（原文仅内存）→ `classifyCandidateProfileByRule` → 落 `candidate_profile_route_decision`（route_outcome='route_decided' · attempt_outcome='rule_decided'）+ `candidate_profile_route_snapshot`（FK 序 decision→snapshot · owner/principal 对齐 = OWNER ≡ app.principal_user · asPrincipal SET LOCAL ROLE app_role + RLS owner policy 行使）。沿 neg-interview 先例 FK 序；**Ban 面遵守**：零伪造 0104 job 维度行（job_route_decision/application_route_binding 零触碰——0142 头注明文 Ban masking，授权文中该二表名按 0142 生产同源面实义落为 candidate 面结构）；**非 legacy opt-out**（MEETWISE_TECH_ROLE_FAIL_CLOSED 全程未设，门 ON 态被生产等价行使）；fixture 简历（Redis/限流/分布式锁）经 `classifyCandidateProfileByRule`（packages/domain/src/candidate-profile-route.ts:95-105）恰命中 `backend/general` 唯一叶（ASCII 词界 `redis` + CJK `限流`/`分布式锁`，无第二叶、无歧义）；
-  3. 排空环 `!q` 卫语句（授权 ③）：查无 issued 题 → stderr 诊断（start job status/last_error，镜像 :114-117 先例）+ `A('排空环第N轮查无 issued 题…诚实 FAIL 而非 TypeError', false)` + break——claim→evaluate→complete 排空语义零弱化，仅溃点卫生。
-- harness lifecycle：`exec:awaiting_post_prove_dual` · **prove#1 红 → 遇雷 STOP** · Ban self-approve · alone≠dual
+- 席位：mw-core（EXEC）· 蓝本 = AC-1 定谳（@f4c2a9f9）A 路线 + 协调方两次授权（初授权 → prove#1 红遇雷 STOP → 裁决 (a)(b) 混合行动树：:raw 诊断恰 1 次 → 分叉①续修 prove ≤2）
+- worktree `/Users/miaole/Desktop/golucky/meetwise-line-ac1` · 分支 `line/adaptive-consumer-diag` · base = 03439f67（prove#1 后中间态 ceb43343 已在账）
+- 改动面：**仅 `apps/worker/test/adaptive-consumer.proof.ts`**（apps/packages src 零 diff · runner 零 diff · 排空环语义原样 · 断言 :123/:124 字节零改零弱化）
+- **终态：prove#2 EXIT=0 · pass_count=33 · fail_count=0 · failure_class=none**（runner 隔离面 `pnpm adaptive-consumer:prove`，2026-10-09T05:19:54Z，pg16 disposable 自拆零 stray，migrate 152/0）
+- harness lifecycle：`exec:awaiting_post_prove_dual` · 本收据后 STOP · Ban self-approve · alone≠dual
 
 ---
 
-## 1. THE prove（恰 1 次证明体调用 · runner 隔离面）
+## 1. 行动树回放（预算全账）
 
-- 命令：root 包裹器 `pnpm adaptive-consumer:prove`（≡ `node scripts/run-e2e-isolated.mjs adaptive-consumer:prove:raw`，授权字面 runner 隔离面）· 2026-10-09T04:36:29.315Z → 04:36:37.534Z（8219ms，child）· docker pgvector:pg16 disposable 容器 `meetwise-e2e-90621-1791520589313`（--rm 自拆零 stray；现存 `meetwise-e2e-godfn1c-35997` 系 11h 前他刀遗留，本刀未触碰）· migrate **152 applied / 0 skipped**。
-- 终态：**EXIT=1 · pass_count=31 · fail_count=2 · failure_class=child_exit_nonzero** · runner receipt `.tmp/isolated-proof-receipts/2026-10-09T04-36-37-534Z-90621-f6cd817b-409b-4c70-ada6-ae3782618df0.json`（副本入本目录）。
-- **summary 无 `stage=/code=` 后缀**（runRedactedProof :2210-2212 `ADAPTIVE_CONSUMER_STAGE` 正则未命中）→ proof **未走 main-catch banner**：全程零崩溃，exit 1 系 fail 计数器，main() 跑至最后断言（:389 DUP 段）。
+| 步 | 性质 | 命令/面 | 证明体? | 结果 |
+|---|---|---|---|---|
+| prove#1 | 初授权 THE prove（裁决前） | runner 隔离面 | 是 | EXIT=1 · 31/2 · child_exit_nonzero · 蓝本命名目标（溃点消失·排空环真走）已达 · 遇雷 STOP（已账 ceb43343） |
+| 预备×2 | :raw 环境自备（非证明体） | docker+双探+迁移 | 否 | 首备探针 cwd 缺陷零进入即弃；重备成功（容器 meetwise-e2e-acfixdiag-93276-* · 152/0） |
+| diag | **:raw 诊断恰 1 次**（裁决第一步·不计红绿账） | runner 同配方自备 + `pnpm -C apps/worker prove:adaptive-consumer` 双流直跑 | 诊断体 | EXIT=1 · 31/2 复现 · **两红断言精确落位**：`低置信 RAG…走有界 deepResearch`(:123) + `深检索正文以不可信信封…`(:124)——`raw-stdout.raw` |
+| 定位 | 零消耗静态+纯函数演算 | 码面链路 + 真 langgraph 离线 sim（scratch 已删·输出留档 `mind-sim-final.txt`） | 否 | 根因闭环（§2）+ 修复设计三分支预验证（§3） |
+| **prove#2** | 分叉①收口 prove（预算 ≤2 之第 1 次） | runner 隔离面 | 是 | **EXIT=0 · 33/33 全绿** |
 
-### 断言算术对账（33 = 30 固定 + 3 环内 claim）
+证明体调用总计 3（prove#1 / diag / prove#2）· prove 红绿账调用总计 2（红 1 → 绿 1，逐修非 retry）· est live=0（scripted mock 面 · MODEL_API_KEY/DASHSCOPE env 计数 0 · Key name-only · 零 .env 写）
 
-夹具 A() 调用点静态计数 32 = 30 字面 + 2 模板（环内 claim `第N题…` + 卫语句 `排空环第N轮…`）。观测 33 断言 = 30 固定全执行 + **环内 claim 恰 3 次执行、卫语句 0 次触发**。由环退出条件（`done || guard≥8`）→ **interview completed（:142 done=true）· 排空环真走 claim→evaluate→complete ×3 轮**。
+## 2. 根因定谳（:raw 诊断 + 码面逐环 + 离线 sim 互证）
 
-## 2. 蓝本命名目标逐项对账
+两红同根，双因子叠加，均**夹具债**（NEGCOMM-1 同族）——产品侧零修复指示：
 
-| 蓝本目标 | 判 | 证据 |
-|---|---|---|
-| 4/4 child_exit_nonzero NORMAL_ANSWER_DRAIN 溃点（q undefined TypeError · CODE=UNKNOWN）消失 | ✅ **达成** | 无 stage banner（=UNKNOWN 崩溃面不存在）；33 断言算术排除卫语句触发；执行到达 :389 |
-| 排空环真语义行使：claim→evaluate→complete | ✅ **达成** | 3 次 claim 断言执行 + done=true 收尾 + :140-:149 段全达 |
-| 夹具供给真 route snapshot · 门 ON 态生产等价行使 | ✅ **达成** | start 链过角色门产题 3 轮（AC-1 §3 #7 断环消除）；供给 A 断言执行且流程前进（若 undecided，start 必 fail → 无题 → 卫语句触发/断言数 ≠33）；非 opt-out（env 未设） |
-| **prove EXIT=0** | ❌ **未达** | 残余 **2 断言级红**，见 §3 雷 |
+- **因子 A（供给缺失·根因环）**：G-R2-5 检索 scope 门（interview-consumer.ts :252-283）`routeSnapForRetrieve = getInterviewRouteSnapshot` **直读旧表 `interview_route_snapshot`**（0104 招聘流程链；g7s 明文：candidate 面快照只喂角色门 fallback 读，检索面维持旧表直读）。夹具建面方式=裸 SQL 插 interview、零 0104 链 → `decideRouteSnapshotRetrieve` → `{allowed:false, reason:'route_snapshot_missing'}` → 夹具 fake localRetrieve **从未被行使**（被 `degradedRetrieval('route_snapshot_missing')` 包裹）→ CRAG `gradeRetrieval` 判 `deny_external('local_retrieval_degraded:…')` → `explore` 零调用（deepCalls=0·shallowCalls=0）；`nativeRetrievalFailureToken` 不匹配 degraded 串 → 生成以空素材继续（scripted ask 出题）→ :123 红（0≠1）+ :124 红（rag 无信封）。sim DENIED 分支逐位复现实跑（3 asks · turns 0/1/2 · deny_external ×2 · deep=0）。
+- **因子 B（场景字面量漂移·同族伴生）**：夹具 planner 脚本 `competencies:['并发','缓存']` 早于现行 kind 动力学成形——`planCompetencies → toCompetencySpecs` 确定性附加行为槽，score 88（hasHook=false，EvalSchema default）首证即 `conf 0.88 ≥ CONF_ENOUGH` 单轮结算 → **每个 core 能力恰一次 fundamental**。dual-core → 2 次 fundamental → 仅修因子 A 仍 `deepCalls=2≠1`（sim ALLOWED-dual-core 分支实证）。`:123` 的 `===1` 界在现行确定性动力学下对双 core 场景不可达。
+- 判别式：sim 三分支（DENIED-dual / ALLOWED-dual / ALLOWED-single）输出与 :raw 实跑、断言 fate 逐一互证（`mind-sim-final.txt`）；产品回归排除（G-R2-5 门按文档语义行使「缺行=检索拒绝，绝不误当空题库/不落 web」；mind 动力学=确定性纯函数，零产品崩溃零漂移）。
 
-## 3. 雷：2 残余红在授权证据面内结构性不可定位 → 逐修不可为 → STOP
+## 3. 修复（全夹具段·生产同链·零弱化）
 
-- runner `runRedactedProof`（scripts/run-e2e-isolated.mjs:2191-2226）按设计**零断言明文持久化**（隐私铁律，stdout/stderr 仅内存计数）；`failed_check_ids` 仅 PPRIV/PRES 词表（本 proof 不用该命名）→ 空缺；receipt JSON 无断言名。**2 红是哪两条，在 runner 面不可知。**
-- 静态定位到顶：31 PASS 中含全部流程必经断言（登录/fence/供给/start/首题/3×claim/完成/结算/报告/无卡/episode/v64 四卫/legacy 八卫/DUP 二卫），排除法无法把 2 红唯一收敛到具体断言——深段（v64 数据库卫、legacy v49/NULL 五段、episode、额度、报告）机制面均无本 run 独有变异签名。
-- **基线缺口（根构）**：本 proof 自 3d88cb64（2026-09-04）后零更新；G-R4-3 默认翻 ON（72233a08，2026-09-23）以来一切已登记红 run（GODFN-1a `4/4 NORMAL_ANSWER_DRAIN UNKNOWN`、AC-1 同签名）都在 :132 崩溃——**:124 之后的 24 条深段断言在全部已登记 run 中不可达，无现行绿基线**。本 run 是翻 ON 后首次行使全程——2 红为**新暴露的未登记漂移**：假说主判 = 同 NEGCOMM-1 族夹具债（深段断言写于旧契约时代，其间 0049/0054 后续演进/R4 线/g7s 落地），产品回归未排除。
-- **为何不盲修 + prove#2**：无证据指向的修复 = 猜测；「恰每 prove 一次禁重跑至绿」下，无诊断依据的 prove#2 属 retry-to-green 实质。授权面未含 AC-1 C-1 式 :raw 诊断面（该面在 AC-1 授权中以 Condition 显式给出，本刀授权文本无此条）——**定位手段本身超授权，即雷**。
+1. **测试专用 HMAC key**（沿 adaptive-lifecycle.proof.ts:11 先例）：`RAG_JOB_ROUTE_INPUT_HASH_KEY ??= '…not-production-01'`——runner 隔离面按设计剥除生产 key，createJob 生产链需同形 key 落 0104 语义修订行。
+2. **0104 招聘流程链供给（生产写手全链）**：`createJob(recruiter) → classifyJobRoute(rule 零模型,'Node.js 服务端工程师'→backend/nodejs 唯一叶·沿 lifecycle 先例题形) → bindApplicationRoute(apply 面·candidate 自插 RLS) → snapshotInterviewRoute(候选 owner)`——`interview_route_snapshot` 行使检索 scope 门放行。**Ban 面如实登记**：授权初文所列 `job_route_decision(route_outcome='route_decided')+application_route_binding` 即此链的真实生产写手落点（非伪造行·全为 production writer 产物）；0142 candidate 面供给（第一刀已落）保留=通用 begin 面生产语义+角色门 fallback 读行使，二面并存=夹具场景的如实构成。
+3. **planner 脚本 `['并发','缓存'] → ['并发']`**（夹具字面量债·零断言改动）：单 core 场景下恰 1 次 fundamental（深检索 + 行为槽 2 asks），`:123 ===1` 界在新场景下**逐字节保留原断言强度**（有界=恰一次·零浅层·信封完整）。sim ALLOWED-single 分支预验证 deep=1/shallow=0/信封 ✓ → prove#2 实证全绿。
+4. （第一刀已落）:132 溃点卫生卫语句 + 0142 candidate 面供给——prove#2 下卫语句零触发（33=30 固定+2 环内 claim+1 供给断言对账）。
 
-## 4. 请求 post-prove dual 裁定（三路）
+## 4. 终态 33 断言（prove#2 全 PASS）
 
-- **(a)** 授权 **:raw 诊断面**（AC-1 C-1 先例：runner 同配方自备隔离环境 + `pnpm -C apps/worker prove:adaptive-consumer` 双流可见直跑）恰 1 次定位 2 红 → 后续逐修刀各恰 1 次 prove 至绿；
-- **(b)** 裁定本刀 scope 收口：蓝本命名目标（溃点消失 + 排空环真行使 + 供给门 ON 态诚实行使）已全达，EXIT=0 的 2 红另立调查/修复刀（深段基线缺口本就超出夹具供给蓝本射程）；
-- **(c)** 其他裁定。
-
-本刀未再消耗任何证明体调用；工作树状态 = prove#1 后原样（夹具改动 + 本收据），未回滚未隐藏。
+runtime login · 0142 供给 · 双 worker fence ×2 · **0104 链供给** · start→自适应路径 · 零解密门 · question_ready · **低置信 RAG 走有界 deepResearch（:123 绿）** · **深检索信封入 prompt（:124 绿）** · 2×题 claim · answer_evaluated≥2 · 画像 hook ≥1 · 收尾 completed · 额度精确 −1.0 · 报告舱壁 queued · 无卡 job · 跨会话 episode ≥2 · v64 四卫 · legacy 六段零副作用+配对释放 · DUP 幂等双卫。
 
 ## 5. pins 十一值（照抄）
 
-haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false + 脚注 **actualSpendCny=null**（est live=0：scriptedModelClient mock 面 · 零外发 · MODEL_API_KEY/DASHSCOPE env 计数=0 · Key name-only · 零 .env 写）
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false + 脚注 **actualSpendCny=null**（est live=0：mock 模型面零外发 · free-tier wiring 口径无计价数据源，Ban invented spend）
 
 ## 6. Non-claims
 
-本收据 ≠ EXIT=0 达成 ≠ 2 红根因定谳（定位证据不存在，仅假说）≠ 深段契约裁定 ≠ g7SuiteGreen 翻转 ≠ adaptive 面全部。供给面「生效」判据 = 流程前进的间接证据 + 断言算术，非 supply 返回值直读（该断言行被 wrapper withhold）。attempts 全账见 `attempts.md`。
+本绿 ≠ g7SuiteGreen 翻转 ≠ R4 closed ≠ HA ≠ 产品语义变更（门与检索拒绝语义零触碰·全为夹具供给）≠ 其他 proof 键转绿 ≠ candidate 面检索语义裁定（g7s 既有文档语义照旧）。attempt 全账见 `attempts.md`；prove#1 中间态收据史存 git ceb43343。
