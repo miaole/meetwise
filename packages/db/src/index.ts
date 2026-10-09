@@ -80,8 +80,8 @@ export {
   createJob, listJobs, getJob, closeJob, updateJob,
   listOpenJobs, applyToJob, listMyApplications, listJobCandidates, finalizeApplication,
   inviteCandidate, startApplicationInterview, declineInvitation, markApplicationAssessmentUnavailable, markApplicationNoEligibleScore, listTalentPool,
-} from './recruiter.ts';
-export type { JobPosting, JobApplication, TalentRow, TalentQuery, StartApplicationResult, FinalizeApplicationResult, AssessmentUnavailableMark } from './recruiter.ts';
+} from './recruiting/recruiter.ts';
+export type { JobPosting, JobApplication, TalentRow, TalentQuery, StartApplicationResult, FinalizeApplicationResult, AssessmentUnavailableMark } from './recruiting/recruiter.ts';
 
 // 实体 ID 工厂（DBID-1 · B 级统一：UUIDv7 时间有序尾巴 + 前缀注册表 fail-closed）。
 export { newEntityId, newUuidV7, idUnixMs, ENTITY_PREFIXES } from './ids.ts';
@@ -92,8 +92,8 @@ export {
   createResumeWithBlob, transitionResume, persistResumeProfile, completeIngestion, failIngestion,
   decryptResumeBlob, decryptActiveResumeBlob, contentDigest, RESUME_KEY_VERSION,
   persistResumeOcrArtifact, decryptResumeOcrArtifact, deleteResumeOcrArtifact,
-} from './resume.ts';
-export type { ResumeStatus, IngestedProfile, ResumeSourceKind, ResumeOcrBindingSnapshot } from './resume.ts';
+} from './resume/resume.ts';
+export type { ResumeStatus, IngestedProfile, ResumeSourceKind, ResumeOcrBindingSnapshot } from './resume/resume.ts';
 
 // report job ops（报告子图舱壁：持久 job + 状态机 + 租约 + 重试）
 export {

@@ -4,7 +4,7 @@
  */
 import type { PoolClient as Client } from 'pg';
 import { createHmac } from 'node:crypto';
-import { errCode } from './errors.ts';
+import { errCode } from '../errors.ts';
 
 export type ResumeStatus = 'uploaded' | 'ingesting' | 'ingested' | 'failed' | 'erasure_fenced' | 'erased';
 

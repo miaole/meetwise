@@ -22,7 +22,7 @@ import {
   canonicalCandidateProfileDigest, candidateRouteDecisionHash, classifyCandidateProfileByRule,
 } from '@meetwise/domain';
 import { requireOwnerUserId } from './tenant/index.ts';   // PRIV01-C 第二层 E1(应用层 tenant ≠ RLS · 授权根仍为 asPrincipal+RLS)
-import { decryptResumeBlob } from './resume.ts';
+import { decryptResumeBlob } from './resume/resume.ts';
 import { getInterviewRouteSnapshot, type InterviewRouteSnapshotView } from './job-route-decision.ts';
 
 export type CandidateProfileRouteSupply =

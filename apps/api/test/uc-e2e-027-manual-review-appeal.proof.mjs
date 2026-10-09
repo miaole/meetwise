@@ -124,7 +124,7 @@ const checks = {
     );
 
     // resume needs_review is a profile status mark — not a ManualReview case
-    const resume = read('packages/db/src/resume.ts');
+    const resume = read('packages/db/src/resume/resume.ts');
     assert.match(resume, /needs_review/, 'resume needs_review旁证 present');
     assert.doesNotMatch(
       resume,

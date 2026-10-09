@@ -154,7 +154,7 @@ export const WIRED_FILES: WiredFile[] = [
     ],
   },
   {
-    file: 'packages/db/src/recruiter.ts',
+    file: 'packages/db/src/recruiting/recruiter.ts',
     count: 9,
     paths: [
       { ctx: 'recruiter.applyToJob', kind: 'single-id', e5Witness: 'return null' },
@@ -230,7 +230,7 @@ export const RESIDUAL_PATHS: ResidualPath[] = [
     ownership: 'PRIV01 第二波（worker 刀）',
   },
   {
-    file: 'packages/db/src/recruiter.ts',
+    file: 'packages/db/src/recruiting/recruiter.ts',
     paths: 'recruiter-owner 侧 fns（createJob/listJobs/getJob/closeJob/updateJob/listJobCandidates/inviteCandidate/listTalentPool）+ listOpenJobs（公开读 by-design）',
     reason: 'B 端角色维度（§3.2 排除 · Ban owner 冒充 tenant）；listOpenJobs 公开读无 owner 谓词 by-design',
     ownership: '不接线（角色域）',
@@ -242,7 +242,7 @@ export const RESIDUAL_PATHS: ResidualPath[] = [
     ownership: 'PRIV01 第二波（worker 刀）',
   },
   {
-    file: 'packages/db/src/{resume,quiz-jobs,diagnosis-jobs,interview-jobs,interview-question,report/report,payment,commerce,job-route-decision,free-text-route-decision,gateway-dispatch,usage-calibration}.ts',
+    file: 'packages/db/src/{resume/resume,quiz-jobs,diagnosis-jobs,interview-jobs,interview-question,report/report,payment,commerce,job-route-decision,free-text-route-decision,gateway-dispatch,usage-calibration}.ts',
     paths: '各文件内 owner_user_id SQL 点（resume.ts 18 · interview-jobs.ts 20 · commerce.ts 23 · payment.ts 10 · report.ts 10 · quiz-jobs/diagnosis-jobs 各 9 等）',
     reason: 'worker/系统消费 lane 与深层 db helper（owner 形参由本刀已接线服务层供给）；§3.2 排除 worker lane',
     ownership: 'PRIV01 第二波（db 层刀）',
