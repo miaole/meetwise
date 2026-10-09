@@ -12,9 +12,8 @@ import { Command } from '@langchain/langgraph';
 import { buildAdaptiveInterviewGraph, type PendingQuestion } from '@meetwise/ai-graphs';
 import type { ModelClient, GraphObserver } from '@meetwise/ai-runtime';
 import { admitInterviewResume, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision } from '@meetwise/domain';
-import { buildAdaptiveDeps, planCompetencies } from './adaptive-interview-service.ts';
-import { writeScoreCardAfterProjectionFenceTolerant } from './score-writer.ts';
 import { buildAdaptiveDeps, buildResumeFactPool, planCompetencies, selectPlannerFacts } from './adaptive-interview-service.ts';
+import { writeScoreCardAfterProjectionFenceTolerant } from './score-writer.ts';
 import { recordAskedQuestions } from './memory-service.ts';
 import { emitSignalConcludeEvent } from './signal-conclude-event.ts';
 
