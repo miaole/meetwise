@@ -92,6 +92,13 @@ A('A9 assertCriticalEnv 抛 env_schema_invalid 且消息一次性列全缺失项
     try { assertCriticalEnv({ DATABASE_URL: 'postgresql://u:p@h:5432/d' } as NodeJS.ProcessEnv); return false; }
     catch (e) { return e instanceof Error && e.message.startsWith(`${ENV_SCHEMA_INVALID}: `) && e.message.includes('missing:AUTH_SECRET'); }
   })());
+// A10（post-dual FAIL 处方·勘误回归钉）：五件套齐全+仅缺 AUTH_SECRET → 不得误报
+// database_target_missing（修复前 parse 失败分支以 {} 传入致组件存在性被丢弃）。
+A('A10 PG 五件套齐全+仅缺 AUTH_SECRET → problems 精确等于 [missing:AUTH_SECRET]（禁含 database_target_missing）',
+  (() => {
+    const r = parseCriticalEnv({ PGHOST: 'h', PGPORT: '5432', PGUSER: 'u', PGPASSWORD: 'p', PGDATABASE: 'd' } as NodeJS.ProcessEnv);
+    return !r.ok && JSON.stringify(r.problems) === JSON.stringify(['missing:AUTH_SECRET']);
+  })());
 
 // ────────────────────────── B/C/D. spawn 死亡面 ──────────────────────────
 const dead1 = await spawnServe({ DATABASE_URL: 'postgresql://u:p@h:5432/d' });   // 只缺 AUTH_SECRET
