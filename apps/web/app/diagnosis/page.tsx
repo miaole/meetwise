@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { ResumeList, type ResumeRef as Resume } from '@meetwise/contracts';
 import { resumeOptionLabel } from '@/lib/resume/display';
+import { actionErrorMessage } from '@/lib/errors/action-error';
 
 export const metadata = { title: '简历诊断 · 知面' };          // App Router Metadata API(SEO,服务端注入)
 
@@ -44,9 +45,20 @@ export default async function DiagnosisListPage({ searchParams }: { searchParams
         <p className="text-sm text-muted-foreground">据你的简历给出结构、亮点、风险与岗位匹配度诊断,并提供可改写建议——只优化表达,绝不为你编造经历。</p>
       </header>
 
-      {error === 'create_failed' && (
-        <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">创建诊断失败,请稍后重试;若反复出现请确认额度与网络。</p>
-      )}
+      {/* #250/#251：?error= 统一走 actionErrorMessage 映射（兜底=create_failed 原文不变；未知码 null 不渲染空壳） */}
+      {(() => {
+        const actionError = actionErrorMessage('diagnosis', 0, error ?? null);
+        if (!actionError) return null;
+        return (
+          <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            {actionError.text}
+            {actionError.href && (
+              <Link href={actionError.href} className="ml-1 font-medium underline underline-offset-4">额度说明</Link>
+            )}
+            {actionError.note && <span className="mt-1 block text-xs opacity-80">{actionError.note}</span>}
+          </p>
+        );
+      })()}
 
       <Card>
         <CardHeader>

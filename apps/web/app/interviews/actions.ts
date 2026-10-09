@@ -1,6 +1,7 @@
 'use server';
 import { serverFetch } from '../../lib/api/server';
 import { redirect } from 'next/navigation';
+import { actionErrorMessage } from '../../lib/errors/action-error';
 
 /** Server Action:选简历 → POST /interview 创建 → /begin(resume-id 头)启动 → 服务端跳转进会话。
  *  对齐 startQuizAction:逐步校验,失败给明确出口(回列表带错 / 去登录 / 明确不可用),
@@ -17,6 +18,13 @@ export async function startInterviewAction(formData: FormData) {
   const begin = await serverFetch('/interview/' + interviewId + '/begin', { method: 'POST', headers: { 'resume-id': resumeId } });
   if (begin.status === 402) redirect('/interviews?error=credits_unavailable');
   if (begin.status === 401) redirect('/login?expired=1');
-  if (!begin.ok) redirect('/interviews?error=begin_failed');            // begin 失败 → 回列表,不进未预留死会话
+  if (!begin.ok) {
+    // #251 折叠点解除：begin 确定性 409/503 的 body error 码透传回列表（码必达页面不折叠丢失），
+    // 不可解析/未映射 → begin_failed 兜底（原文不变）。
+    const body: { error?: unknown } = await begin.json().catch(() => ({}));
+    const raw = typeof body.error === 'string' ? body.error : '';
+    const code = raw !== '' && actionErrorMessage('interviews', 0, raw) ? raw : 'begin_failed';
+    redirect(`/interviews?error=${encodeURIComponent(code)}`);   // begin 失败 → 回列表带码,不进未预留死会话
+  }
   redirect('/interview/' + interviewId);
 }
