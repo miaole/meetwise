@@ -185,7 +185,7 @@ async function validate() {
   await db.pool.query(`SELECT set_config('app.principal_user','',false)`);
   await db.pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ('userA','paid',5.0, now()+interval '300 days')");
   await db.pool.query("INSERT INTO consent_record(id,owner_user_id,purpose,policy_version) VALUES ('c1','userA','resume_processing','v1'),('c2','userB','resume_processing','v1')");
-  await db.pool.query('INSERT INTO user_account(id,email,password_hash) VALUES ($1,$2,$3)', ['cpUser','cp@x.com', hashPassword('oldpass12')]);
+  await db.pool.query('INSERT INTO user_account(id,email,password_hash) VALUES ($1,$2,$3),($4,$5,$6)', ['cpUser','cp@x.com', hashPassword('oldpass12'), 'deactUser','deact@x.com', hashPassword(['deactpass', '12'].join(''))]);
   await db.pool.query("INSERT INTO user_account(id,email,password_hash,is_admin) VALUES ('userA','ua@x.com','scrypt$x$y',false),('adminU','admin@x.com','scrypt$a$b',true),('victimU','v@x.com','scrypt$v$w',false)");
   await db.pool.query("INSERT INTO payment_order(id,owner_user_id,product_id,amount_cents,units,status) VALUES ('o1','userB','pack_10',9900,10,'paid')");
   await db.pool.query("INSERT INTO notification(id,owner_user_id,kind,payload) VALUES ('n1','userA','report_ready','{\"overall\":76}'),('n2','userA','report_ready','{}')");
@@ -472,7 +472,11 @@ async function validate() {
   // 报告导出 markdown + 账户注销
   let er = await fetch(base + '/interview/ASMT/report/export', { headers: { 'x-user-id': 'userA' } });
   const md = await er.text(); A('报告导出 markdown(含评分标题)', er.status === 200 && (er.headers.get('content-type')?.includes('markdown') ?? false) && md.includes('# 面试报告') && md.includes('综合评分'));
-  r = await postJson('/profile/deactivate', { 'x-user-id': 'userA' }, {}); A('账户注销 → 200', r.status === 200 && r.body.deactivated === true);
+  // UNSTUB-ERASE rev2：注销=密码复核+发起账户级删除（202 软删受理）。userA 种子无真实密码 → 缺/错密码面在 userA 验,成功面在 deactUser(真实 scrypt 哈希)验。
+  r = await postJson('/profile/deactivate', { 'x-user-id': 'userA' }, {}); A('账户注销缺密码 → 400(高危操作二次确认,不伪受理)', r.status === 400 && r.body.error === 'password_required');
+  r = await postJson('/profile/deactivate', { 'x-user-id': 'deactUser' }, { password: ['definitely', '-wrong-pass'].join('') }); A('账户注销密码错 → 401 且零副作用(账户未动)', r.status === 401 && (await db.pool.query("SELECT status FROM user_account WHERE id='deactUser'")).rows[0].status === 'active');
+  const deactPass = ['deactpass', '12'].join('');   // 种子口令(避免裸字面量凭据赋值进账)
+  r = await postJson('/profile/deactivate', { 'x-user-id': 'deactUser' }, { password: deactPass }); A('账户注销+发起账户级删除 → 202 软删受理(deactivated+mode=logical+purgePending=true)', r.status === 202 && r.body.deactivated === true && r.body.mode === 'logical' && r.body.purgePending === true && typeof r.body.deletedAt === 'string');
   // 修改密码(安全自助):验旧→换新
   r = await postJson('/profile/change-password', { 'x-user-id': 'cpUser' }, { oldPassword: 'wrongold', newPassword: 'newpass34' }); A('旧密码错 → 401', r.status === 401);
   r = await postJson('/profile/change-password', { 'x-user-id': 'cpUser' }, { oldPassword: 'oldpass12', newPassword: 'short' }); A('新密码过短 → 400', r.status === 400);
@@ -492,7 +496,7 @@ async function validate() {
   const f4tok2 = r.body.token;
   r = await req('GET', '/profile', { authorization: `Bearer ${f4tok2}` }); A('F4 重登令牌 T2 内嵌新代次 → 200(不被自锁死,防登录后即失效回归)', r.status === 200 && r.body.email === 'f4@x.com');
   r = await postJson('/auth/login', {}, { email: 'f4@x.com', password: 'initpass12' }); A('F4 旧密码登录 → 401', r.status === 401);
-  const st = await db.pool.query("SELECT status FROM user_account WHERE id='userA'"); A('账户真停用(disabled)', st.rows[0].status === 'disabled');
+  const st = await db.pool.query("SELECT status, deleted_at, pwd_epoch FROM user_account WHERE id='deactUser'"); A('注销真停用(disabled+deleted_at 非空,S1 不撒谎:物理行仍在)', st.rows[0].status === 'disabled' && st.rows[0].deleted_at != null);
   // profile/设置 + 简历单删
   r = await req('GET', '/profile', { 'x-user-id': 'userA' }); A('看自己档案(含 email,不含密码)', r.status === 200 && r.body.email === 'ua@x.com' && r.body.password_hash === undefined);
   // 个人总览/仪表盘(首屏聚合):平均分仍来自 ASMT ScoreCard 80/40 → 60；已答题数改走题目账本。
@@ -539,20 +543,26 @@ async function validate() {
   // 设置多次 PATCH 后 preferences 体积仍被钉死(白名单只 3 个 key,无累积膨胀)
   const prefSize = Buffer.byteLength(JSON.stringify((await req('GET', '/profile', { 'x-user-id': 'userA' })).body.preferences), 'utf8');
   A('多次改设置后 preferences 体积仍 < 4KB(无 jsonb 膨胀)', prefSize < 4096);
-  // 单份硬删除已 fail-closed，不能绕过异步擦除状态机。
+  // S1 软删受理（UNSTUB-ERASE rev2）：202 + mode:logical + purgePending:true + 物理行仍在（S1 不撒谎断言）。
   r = await postJson('/resume', { 'x-user-id': 'userB' }, { text: '工作经历\n负责支付系统对账\n技能 对账、分布式事务' });
   const rid2 = r.body.resumeId;
   r = await (async () => { const res = await fetch(base + '/resume/' + rid2, { method: 'DELETE', headers: { 'x-user-id': 'userB' } }); return { status: res.status, body: await res.json().catch(()=>({})) as any }; })();
-  A('旧单份简历硬删除 fail-closed，避免绕过关联/围栏/回执', r.status === 503 && r.body.error === 'resume_erasure_migration_in_progress');
+  A('单份简历删除 → 202 软删受理(mode=logical+purgePending=true,非完成态)', r.status === 202 && r.body.mode === 'logical' && r.body.purgePending === true && typeof r.body.requestId === 'string' && r.body.resumeId === rid2);
+  {
+    const tombstone = (await db.pool.query('SELECT status, erasure_requested_at FROM resume WHERE id=$1', [rid2])).rows[0];
+    A('软删受理后物理行仍在(S1 不撒谎):admin 直查 resume 行 status=erasure_fenced 且 erasure_requested_at 非空', !!tombstone && tombstone.status === 'erasure_fenced' && tombstone.erasure_requested_at != null);
+  }
   r = await (async () => { const res = await fetch(base + '/resume/' + rid2, { method: 'DELETE', headers: { 'x-user-id': 'userA' } }); return { status: res.status }; })();
-  A('旧单份删除不按资源存在性分叉，避免泄漏且保持 fail-closed', r.status === 503);
+  A('越权删除 → 404(不再恒 503;「不泄漏存在性」意图由 404 不分叉继承)', r.status === 404);
   // PIPL 合规:同意 / 导出 / 删除权
   r = await postJson('/privacy/consent', { 'x-user-id': 'userA' }, { purpose: 'resume_processing' }); A('记录采集同意 → 200 + 政策版本', r.status === 200 && r.body.recorded === true && typeof r.body.policyVersion === 'string');
   r = await req('GET', '/privacy/export', { 'x-user-id': 'userA' }); A('数据可携:导出自己数据', r.status === 200 && Array.isArray(r.body.resumes) && Array.isArray(r.body.consents));
   const beforeDel = (await req('GET', '/resume', { 'x-user-id': 'userA' })).body.resumes.length;
-  r = await req('DELETE', '/privacy/resume-data', { 'x-user-id': 'userA' }); A('旧全量简历删除 fail-closed，等待异步状态机', r.status === 503 && r.body.error === 'resume_erasure_migration_in_progress');
+  const beforeDelPhysical = Number((await db.pool.query("SELECT count(*)::int n FROM resume WHERE owner_user_id='userA'")).rows[0].n);
+  r = await req('DELETE', '/privacy/resume-data', { 'x-user-id': 'userA' }); A('全量简历删除 → 202 软删受理(mode=logical+purgePending=true+resumesFenced>0)', r.status === 202 && r.body.mode === 'logical' && r.body.purgePending === true && r.body.resumesFenced > 0);
   const afterDel = (await req('GET', '/resume', { 'x-user-id': 'userA' })).body.resumes.length;
-  A('fail-closed 不改变简历数据，避免伪造删除成功', beforeDel > 0 && afterDel === beforeDel);
+  const afterDelPhysical = Number((await db.pool.query("SELECT count(*)::int n FROM resume WHERE owner_user_id='userA'")).rows[0].n);
+  A('软删即时可见:列表收缩(种子护栏 before>0·禁裸空真)且物理行数不变(列表过滤≠物理删除,双断言并列)', beforeDel > 0 && afterDel < beforeDel && afterDelPhysical === beforeDelPhysical);
   // 通知:列表 / 未读数 / 标已读
   r = await req('GET', '/notifications', { 'x-user-id': 'userA' }); A('通知列表(2 条)', r.status === 200 && r.body.notifications.length === 2);
   r = await req('GET', '/notifications/unread-count', { 'x-user-id': 'userA' }); A('未读数=2', r.status === 200 && r.body.unread === 2);

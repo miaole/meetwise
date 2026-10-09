@@ -12,6 +12,7 @@
   "neg:auth": "node --import @swc-node/register/esm-register test/neg-auth.proof.ts",
   "neg:commerce": "node --import @swc-node/register/esm-register test/neg-commerce.proof.ts",
   "neg:resume": "node --import @swc-node/register/esm-register test/neg-resume.proof.ts",
+  "prove:unstube-erase": "node --import @swc-node/register/esm-register test/unstube-erase.proof.ts",
   "prove:uc015-ingest-failures": "node --import @swc-node/register/esm-register test/uc-e2e-015-resume-ingest-failures.proof.ts",
   "prove:uc010-sse-resume": "node --import @swc-node/register/esm-register test/uc-e2e-010-sse-resume.proof.ts",
   "prove:uc002-http": "node --import @swc-node/register/esm-register test/uc-e2e-002-cross-device-http.proof.ts",
