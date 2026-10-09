@@ -402,10 +402,10 @@ async function main() {
   r = await fetch(`${BASE}/applications/${app1}/finalize`, { method: 'POST', headers: H, body: '{}' });
   const finalized = await readJson(r);
   const scorelessBound = boundLoop.terminal === 'assessment_unavailable';
-  fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a3_finalize', status: r.status, outcome: finalized.outcome, terminal: boundLoop.terminal, scorelessBound })}\n`);
-  A(r.status === 200 && finalized.applicationId === app1 && finalized.interviewId === boundInterviewId
-    && finalized.outcome === (scorelessBound ? 'assessment_unavailable' : 'completed'),
-    `[状态机] 岗位终态后 {} finalize → 200，服务端仅认已绑定 interview(term=${boundLoop.terminal}, outcome=${finalized.outcome ?? 'none'}, status=${r.status}, error=${finalized.error ?? 'none'})`);
+  fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a3_finalize', status: r.status, outcome: finalized.outcome, terminal: boundLoop.terminal, scorelessBound, reason: (boundLoop.terminalPayload as any)?.reason ?? null })}\n`); // G7FIX-3: reason 入账(abandoned sweep vs generation 族归因判别)
+  A(boundLoop.terminal === 'interview_unavailable' ? r.status === 409 && finalized.error === 'cannot_finalize' // G7FIX-3 409 臂: generation 族 fail-closed 形状双验(禁「非 200 即过」泛容忍·有限恢复现树不存在〔recruiter.ts:385 binding_invalid 亲证〕→ 诚实卡死面·文档化非接纳)
+    : r.status === 200 && finalized.applicationId === app1 && finalized.interviewId === boundInterviewId && finalized.outcome === (scorelessBound ? 'assessment_unavailable' : 'completed'),
+    `[状态机] 岗位终态后 {} finalize 按族分流: interview_unavailable→409 cannot_finalize·其余→200 服务端仅认已绑定 interview(term=${boundLoop.terminal}, outcome=${finalized.outcome ?? 'none'}, status=${r.status}, error=${finalized.error ?? 'none'}, reason=${(boundLoop.terminalPayload as any)?.reason ?? 'n/a'})`);
   r = await fetch(`${BASE}/recruiter/jobs/${jobId}/candidates`, { headers: HR });
   b = await readJson(r);
   const cand = (b.candidates ?? []).find((x: any) => x.candidate_user_id === user1Id);
@@ -418,6 +418,8 @@ async function main() {
     fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a5_retry', retryStatus: retry.status, retriedStatus: retried?.status, newInterviewId: typeof retried?.interviewId === 'string' })}\n`);
     A(retry.status === 200 && retried.status === 'started' && typeof retried.interviewId === 'string' && retried.interviewId !== boundInterviewId,
       '[状态机·恢复] 评分不可用后显式重试创建新 attempt（旧会话不复活）');
+  } else if (boundLoop.terminal === 'interview_unavailable') { // G7FIX-3 a4 选路: generation 族既成事实卡死面(application 停 in_progress+interview failed·文档化非接纳·产品面 finalize 契约归协调方)
+    A(cand?.status === 'in_progress' && cand.score === null, `[状态机·卡死] generation 族: application 停 in_progress 且零伪造分数(cand=${cand?.status ?? 'none'}, score=${String(cand?.score)})`);
   } else {
     A(cand?.status === 'completed' && Number.isInteger(cand?.score) && cand.score >= 0 && cand.score <= 100,
       `[状态机·可信] 招聘方看到 completed + **服务端推导**分数=${cand?.score}(非自报,跨方 RLS 可读)`);

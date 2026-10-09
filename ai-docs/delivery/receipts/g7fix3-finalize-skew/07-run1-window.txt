@@ -1,0 +1,3 @@
+RUN1 window (UTC): 2026-10-09T03:37:43Z → 2026-10-09T03:39:01Z
+EXIT=0 (原值 · receipt exitCode=0 · outcome=passed · durationMs=76905 · assertions=72)
+container=meetwise-e2e-81371-1791517064274 port=61959 (用后即焚 · teardown 亲证)
