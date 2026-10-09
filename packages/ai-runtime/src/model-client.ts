@@ -108,7 +108,7 @@ const DEFAULT_USERDATA_CAP = 20_000;
 /** 分服务上限(字符)。未列出的服务用 DEFAULT。值是"防滥用兜底",正常用量远在其下(不会误伤真实作答)。 */
 const SERVICE_USERDATA_CAP: Record<string, number> = {
   'mock-interview.evaluate': 12_000,   // 一题一答:题目(有界)+ 单条答案(边缘已封 8000)≈ <9k,12k 给足余量
-  'interviewer.ask': 16_000,           // 能力/难度 + 简历 facts + 检索素材(素材已 slice 2000)
+  'interviewer.ask': 16_000,           // 能力/难度 + 简历 facts(有界选定,经 <data> 围栏) + 上轮追问上下文 + 检索素材(素材已 slice 2000)
   'report.generate': 8_000,            // 只吃分数数组,极小;8k 绰绰有余
 };
 /** 按**码点**安全截断:末位若是高代理(astral 字符如 emoji/扩展汉字的前半)则回退一位,绝不留孤代理项(防 JSON 序列化出 \uD800 级残片)。 */

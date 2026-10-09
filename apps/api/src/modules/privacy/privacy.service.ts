@@ -32,6 +32,18 @@ export class PrivacyService {
     return { consented, purpose, policyVersion: POLICY_VERSION };
   }
 
+  /**
+   * G4(RESUME-GROUNDING rev3):撤回=停止后续使用——删除该 purpose 的同意行,worker 侧同意门
+   * (consent SELECT 门,resume.service.ts:95 同形先例)随即读到缺行并停止 facts 注入。
+   * 已落 checkpoint/事件**不回溯清除**(Non-claims 既有条文继续覆盖;撤回端点/policy 升版通用化归 #81 W5)。
+   */
+  async withdrawConsent(principal: string, purpose = 'resume_processing') {
+    await this.db.asPrincipal(principal, async (c) => {
+      await c.query('DELETE FROM consent_record WHERE purpose=$1', [purpose]);
+    });
+    return { withdrawn: true, purpose, policyVersion: POLICY_VERSION };
+  }
+
   // 数据可携:导出结构化档案,不含加密原文/明文 PII。
   export(principal: string) {
     return this.db.asPrincipal(principal, async (c) => {

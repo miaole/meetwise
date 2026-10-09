@@ -29,11 +29,11 @@ function failClosed(
 export function createGenerateQuestionNode(deps: AdaptiveDeps) {
   return async (state: AdaptiveInterviewGraphState) => {
     const route = state.route as { competency: string; difficulty: number; qkind: QuestionKind };
-    // Resume facts are sensitive business artifacts.  Even though dependencies
-    // are runtime-only, a node result/question is checkpointed and replayed.
-    // Therefore graph topology receives only an authorization bit and never
-    // hands fact text to a generator/model seam that could echo it into
-    // pending/transcript/interrupt/SSE/episode state.
+    // C14(RESUME-GROUNDING):facts 输入仅在 worker deps 闭包内经 `<data-nonce>` 围栏直达模型 seam
+    // (buildAdaptiveDeps.retrieveAndGenerate 渲染进 interviewer.ask 的 <data>),禁入图
+    // state/checkpoint/interrupt/SSE/episode。节点结果/question 会被 checkpoint 并重放——因此图拓扑
+    // 从 deps.resumeFacts 只派生授权位(下方 grounded→fundamental 降级判定),facts 形参恒传空数组;
+    // 模型产出的 grounded 题面属派生内容可持久化,其擦除残差登记 Non-claims 归 #183/#153 PRIVACY-FACE。
     const resumeProfileAvailable = deps.resumeProfileAvailable === true
       || (deps.resumeFacts ?? []).some((fact) => fact.trim());
     // `grounded` means a candidate-specific claim is safe only when there is at
@@ -57,9 +57,10 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
       hint = clarifying.hint;
     } else {
       const asked = state.transcript.map((entry) => entry.q);
-      // Pass no resume fact text into the graph-generation seam.  The concrete
-      // grounded question may say "your resume mentions a relevant experience"
-      // but must not repeat the fact itself; see worker buildAdaptiveDeps.
+      // C14(RESUME-GROUNDING):graph 侧 facts 形参恒空——选定事实(2-4 条)由 worker deps 闭包
+      // (buildAdaptiveDeps)直接渲染进模型请求的 <data-nonce> 围栏,不经本节点参数/state。
+      // grounded 题面可引用事实所指经历,但 refs 须为事实原文子串且过 worker 侧组合闸
+      // (refsGroundedInFacts,不过则丢弃重试/回退固定模板);fact 子串 refs 仅作闸料,禁入 sources。
       const generated = normalizeQuestionGenerationResult(
         await deps.retrieveAndGenerate(route.competency, route.difficulty, 0, turn, [], effectiveKind),
       );

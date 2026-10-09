@@ -4,7 +4,7 @@
  * 测试由确定性 fake 背书）。这样图本身可用 fake 确定性单测，易失技术全在注入边界外。
  */
 import { StateGraph, Annotation, START, END } from '@langchain/langgraph';
-import { ingestResume, groundedByFacts, type ResumeProfile } from '@meetwise/domain';
+import { ingestResume, refsGroundedInFacts, type ResumeProfile } from '@meetwise/domain';
 
 export interface QuizItem { q: string; refs: string[] }
 /** 注入边界：返回的 items 应已过 schema/业务双校验（真实流由 ai-runtime.invoke 保证）。 */
@@ -24,7 +24,9 @@ export function buildResumeQuizGraph(deps: { generate: GenerateQuestions }) {
     .addNode('generate', async (s) => ({ questions: await deps.generate(s.profile!) }))
     .addNode('validate', (s) => {                               // factuality 歪曲门
       const grounded: QuizItem[] = [], rejected: QuizItem[] = [];
-      for (const it of s.questions) (groundedByFacts(it.refs, s.profile!.facts) ? grounded : rejected).push(it);
+      // #193:改用 domain 组合闸 refsGroundedInFacts(非空 ∧ 逐条 groundedByFacts)——
+      // 空 refs 押题不再被 every-空集放行(与 prompts「refs 必须是简历里出现过的关键词原文」对齐)。
+      for (const it of s.questions) (refsGroundedInFacts(it.refs, s.profile!.facts) ? grounded : rejected).push(it);
       return { questions: grounded, rejected };
     })
     .addNode('make_report', (s) => {

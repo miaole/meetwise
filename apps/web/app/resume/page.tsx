@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getServerToken, serverGet } from '../../lib/api/server';
-import { reparseResumeAction, grantConsentAction } from './actions';
+import { reparseResumeAction, grantConsentAction, withdrawInterviewPersonalizationAction } from './actions';
 import { startDiagnosisAction } from '../diagnosis/actions';
 import { ResumeUploadForms } from './ResumeUploadForms';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,9 +25,11 @@ export default async function ResumePage() {
     serverGet<unknown>('/resume'),
     serverGet<{ consented: boolean }>('/privacy/consent'),
   ]);
+  const interviewConsent = await serverGet<{ consented: boolean }>('/privacy/consent?purpose=interview_personalization');
   const parsedResumes = ResumeList.safeParse(data);
   const list: Resume[] | null = data === null ? null : parsedResumes.success ? parsedResumes.data.resumes : null;
   const consented = consent?.consented === true;   // null(取数失败)→ 当未同意,安全默认展示同意门
+  const interviewPersonalized = interviewConsent?.consented === true;
   const ocrPreview = isOcrPreviewEnabled();
 
   return (
@@ -35,19 +37,25 @@ export default async function ResumePage() {
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">简历 · 知面</h1>
         <p className="text-sm text-muted-foreground">
-          用于练习的简历内容会经过当前已覆盖的存储与访问约束；只提取必要结构化事实，不编造经历。完整删除与撤回流程尚未开放。
+          用于练习的简历内容会经过当前已覆盖的存储与访问约束；只提取必要结构化事实，不编造经历。完整删除流程尚未开放；面试出题个性化同意可随时撤回。
         </p>
       </header>
 
       {!consented ? (
         // **PIPL 同意门**(修死胡同:此前无授予同意的 UI,用户永远传不了简历)。同意后即解锁上传。
+        // G3(RESUME-GROUNDING rev3)最小用途选择:勾选项独立、默认不勾(同意必须 opt-in);
+        // 文案按审计附录 C E 项原文明示「简历要点将发送给模型服务商用于出题」。
         <Card>
           <CardHeader>
             <CardTitle>先同意隐私政策(PIPL)</CardTitle>
             <CardDescription>上传简历会处理个人信息。请阅读并同意后再上传——系统只用于练习所需的结构化提取，不编造经历。完整删除、撤回与跨存储回执流程尚未开放。</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <form action={grantConsentAction}>
+            <form action={grantConsentAction} className="space-y-3">
+              <label className="flex items-start gap-2 text-sm">
+                <input type="checkbox" name="interview_personalization" className="mt-1" />
+                <span>允许面试出题个性化：简历要点将发送给模型服务商用于出题（不勾选则面试仅使用通用题库，可随时撤回）。</span>
+              </label>
               <SubmitButton pendingLabel="记录中…">我已阅读并同意隐私政策(PIPL)</SubmitButton>
             </form>
             <p className="text-xs text-muted-foreground">同意后可启用简历上传；<Link href="/privacy" className="underline underline-offset-4">数据边界说明</Link>会标明当前可用范围与未开放流程。</p>
@@ -61,6 +69,13 @@ export default async function ResumePage() {
         </CardHeader>
         <CardContent className="space-y-5">
           <ResumeUploadForms ocrPreview={ocrPreview} />
+          {/* G3/G4(RESUME-GROUNDING rev3)最小用途状态面:展示面试出题个性化同意态,可撤回(撤回=停止后续使用)。 */}
+          <form action={withdrawInterviewPersonalizationAction} className="flex items-center justify-between gap-3 border-t pt-4">
+            <span className="text-xs text-muted-foreground">
+              面试出题个性化：{interviewPersonalized ? '已同意（简历要点将发送给模型服务商用于出题）' : '未同意（面试仅使用通用题库）'}
+            </span>
+            {interviewPersonalized && <SubmitButton variant="outline" size="sm" pendingLabel="撤回中…">撤回出题个性化</SubmitButton>}
+          </form>
         </CardContent>
       </Card>
       )}
