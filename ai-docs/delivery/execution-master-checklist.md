@@ -2086,3 +2086,12 @@ flowchart TD
 - [ ] **STILL OPEN**：G7TRIO-2 EXEC（在飞·POST7B EXEC 必然殿后）；`:107` GAP-G7K-API-REDS P1 OPEN 维持；7A-DOWNGRADE P1 OPEN 维持；`g7SuiteGreen=false` 维持.
 - 预算：零新跑（双收据复用）· est 0 live · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 盘点=供料非实施 · 实现方不 self-approve.
+### Line LINT-DESIGN C1 lint 门独立设计刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · docs-only 恰 1 文件 +169/−10 全 ai-docs·五节设计定稿（六维对比表 eslint9 胜出=C1 钉死组合原样兑现·四规则 warn 起步+prettier 独立条目 printWidth=140·turbo lint 空槽同层就绪+真 token 并线依赖·双道首日红 dlx 主道+grep 代理道·req:any=88/c:any=19/catch(:any)=0 逐字复现·分批 B1-B5·切片 S0-S5）· C1 勾销路径=实现刀 S0→S5 立项→lint 门上线→判据 SSOT 对表勾销）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（十一值）.
+- [x] **`post_prove_dual_pass`** recorded for Line LINT-DESIGN products only（恰 1 文件 docs-only +169/−10 全 ai-docs·零产品码 apps/packages diff=0·零 npm 安装·零 dlx 行使·nail tip 本 commit · branch `line/lint-design`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：选型对比表亲证 eslint9 胜出+C1 组合原样兑现+偏离授权条款落笔/规则集四规则参数化+format 半边独立条目+biome 分支留档/门禁挂点三层+真 token 并线依赖/双道预估方法+三口径如实登记/pins 十一值+Non-claims）+ mw-model-op PASS（六核：五节完整性每节为实施刀 REQUEST 提供直接可立项输入/选型一致性 eslint9 flat 胜出→C1 组合原样兑现无偏离·六维裁决依据亲核/format 归属维 eslint 不含 formatter→prettier=C1 组合另一半/首日红=0 warn 结构保证成立+亲证计数全部复现 req:any=88·src 词边界 86·全仓 89·c:any=19·catch(:any)=0·测试面 66·107=88+19/pins 十一值+docs-only+sha256 双面同符）· 协调方正式授权本 nail.
+- **LINT-DESIGN 全链**：REQUEST `56eb8d5e` → rev2 `6ffe80df`（席2 FAIL 三处方：format 半边设计条目+dry-run 零安装矛盾裁决+真 token 精确化）→ 双席复核 BOTH PASS → EXEC `7942f26a`（origin tip 零位移）→ 本 nail commit.
+- **C1 勾销路径**：本设计 ≠ 勾销（Non-claims 明文）；路径=实现刀 REQUEST 按 S0→S5 立项（deps 入 config 包 → 产物 → 指针 → S3 dlx 实测定 N → script 点亮 → turbo lint 绿+收据）→ 门上线后循判据 SSOT 对 C1 行逐条对表勾销，材料已齐。
+- [ ] **STILL OPEN**：S0-S5 实现刀 REQUEST 立项+落地；CI 接线另刀（C2 勾销前提）；`g7SuiteGreen=false` 维持.
+- 预算：docs-only 零 run · est 0 live · 0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 设计 ≠ 实施 ≠ lint 门上线 ≠ C1 勾销 · 实现方不 self-approve.
