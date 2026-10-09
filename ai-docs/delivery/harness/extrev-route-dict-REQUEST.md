@@ -186,3 +186,13 @@ g7SuiteGreen=false
 ---
 
 *Harness · EXTREV-0 ROUTE-DICT · #133 词典收紧+样本回归集 · 2026-10-07 · draft:awaiting_pre_exec_dual · mw-routedict-draft · docs-only 零产品码零 run · Ban 改仲裁语义 · 真歧义 409 冻结面不放宽 · 词典收紧≠路由准确率保证 · alone ≠ dual · STOP*
+
+
+## rev2 双审收口（2026-10-09 · 席1 PASS+席2 PASS·四登记项转为 EXEC 义务）
+
+- **D1（席1 P1+席2 合流·EXEC 必做）**：go 上下文 token 追加 GO 全大写变体——GO语言/GO 语言/GO开发/GO 开发/GO工程师/GO后端（机制依据：includes 分支大小写敏感 vs ASCII 分支 i-flag 的不对称·ENUM 枚举是 Ban 改 signalMatches 下唯一闭合手段）；§1.2 加 1 条 GO 形态守护样本。
+- **D2（观察项登记）**：「测开」补入观察项（漏收实词·方向保守）；「自动化」裸词以「有意排除」名义入观察项（防后续刀误补）；英文 "Go developer" 形态不收（假阳回归）。
+- **D3（冗余注记）**：「机器学习算法」token 冗余（必中「机器学习」子串）——留删随意，EXEC 记录注明。
+- **D4（代价面补句）**：代价面 a) 措辞扩「纯 html/css/javascript/typescript 弱前端证据类简历→backend/general」叶变更（与 S15 同类）。
+- **P3 关单叙事（席1）**：#133 关单须区分「假歧义已修（弱词污染类）/真歧义 409 冻结待后继『用户选择』刀」——不得称全栈简历已可用。
+- Status: `draft_rev2:pre_exec_dual_PASS`（双席 BOTH PASS·EXEC 授权·蓝本=本 rev2）。
