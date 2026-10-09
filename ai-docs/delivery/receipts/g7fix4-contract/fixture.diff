@@ -1,0 +1,258 @@
+diff --git a/apps/worker/src/adaptive-lifecycle.ts b/apps/worker/src/adaptive-lifecycle.ts
+index 288eb311..cc826b5c 100644
+--- a/apps/worker/src/adaptive-lifecycle.ts
++++ b/apps/worker/src/adaptive-lifecycle.ts
+@@ -51,10 +51,29 @@ async function writeGenerationUnavailable(
+ ): Promise<void> {
+   await requireCurrentFence(c, d);
+   await failInterviewAndRelease(c, d.owner, d.interviewId);
+-  await appendEvent(c, d.owner, d.interviewId, 'interview_unavailable', {
+-    reason: failure.reason,
+-    provenance: failure.provenance,
+-  }, 'interview_unavailable:terminal');
++  // G7FIX-4 与 job 失败族（interview-consumer.ts terminalizeUnsettledInterview）对称：
++  // generation 终态同样在同一事务、同一 client 内把绑定申请收口为 assessment_unavailable
++  // 正向可重试终态（i.status='failed' AND ja.status='in_progress' AND attempt 匹配才命中）。
++  // 'unbound'（C 端舱壁）/'stale'（old-attempt worker 防双写）双闸由 marker 自身语义承担；
++  // 事件分流与其对齐：updated/replayed → assessment_unavailable，unbound → interview_unavailable，
++  // stale 不补任何事件（与 consumer.ts:90 提前返回同形，绝不给已推进的下一 attempt 追加旧终态）。
++  const applicationMark = await markApplicationAssessmentUnavailable(c, d.owner, d.interviewId);
++  if (applicationMark === 'updated' || applicationMark === 'replayed') {
++    // 事件键循 consumer.ts:92 先例 `assessment_unavailable:${reason}`；reason 恒为
++    // generation_* 前缀（generationFailureOf 保证），与 no_eligible_scored_answer /
++    // evaluation_unscored 两个固定键零碰撞。
++    await appendEvent(c, d.owner, d.interviewId, 'assessment_unavailable', {
++      reason: failure.reason,
++      provenance: failure.provenance,
++    }, `assessment_unavailable:${failure.reason}`);
++    return;
++  }
++  if (applicationMark !== 'stale') {
++    await appendEvent(c, d.owner, d.interviewId, 'interview_unavailable', {
++      reason: failure.reason,
++      provenance: failure.provenance,
++    }, 'interview_unavailable:terminal');
++  }
+ }
+ 
+ async function emitGenerationUnavailable(d: AdaptiveLifecycleDeps, failure: InterviewGenerationUnavailable): Promise<void> {
+diff --git a/apps/worker/test/adaptive-lifecycle.proof.ts b/apps/worker/test/adaptive-lifecycle.proof.ts
+index 09c5204c..96bd8a09 100644
+--- a/apps/worker/test/adaptive-lifecycle.proof.ts
++++ b/apps/worker/test/adaptive-lifecycle.proof.ts
+@@ -3,7 +3,7 @@
+ import { fileURLToPath } from 'node:url';
+ import { MemorySaver } from '@langchain/langgraph';
+ import { randomUUID } from 'node:crypto';
+-import { createPool, asPrincipal, reserveEntitlement, appendEvent, answerHash, claimInterviewAnswer, loadMigrations, runMigrations, inviteCandidate, startApplicationInterview, createJob, classifyJobRoute } from '@meetwise/db';
++import { createPool, asPrincipal, reserveEntitlement, appendEvent, answerHash, claimInterviewAnswer, loadMigrations, runMigrations, inviteCandidate, startApplicationInterview, createJob, classifyJobRoute, finalizeApplication, failInterviewAndRelease } from '@meetwise/db';
+ import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
+ import { startAdaptiveInterview, submitAdaptiveAnswer, type AdaptiveLifecycleDeps } from '../src/adaptive-lifecycle.ts';
+ 
+@@ -214,6 +214,117 @@ async function main() {
+   A('出题失败 → 面试 failed 且预留释放',
+     failStatus.rows[0]?.status === 'failed' && failCons.rows[0]?.status === 'released');
+ 
++  console.log('\n──── G7FIX-4：generation 族 bound 面对称标记 + finalize 200 面 + mark-then-recover ────');
++  // 与上方 C 端 unbound 面（failIid→interview_unavailable）同族对照。REQUEST rev3 @ea3e38a7：
++  // bound 面 generation 失败与 job 失败族（interview-consumer.ts terminalizeUnsettledInterview）
++  // 对称——failInterviewAndRelease 之后同事务标记 application=assessment_unavailable（unbound
++  // 舱壁/'stale' 旧 worker 双闸原样）；事件分流对齐 consumer.ts:91-95（updated/replayed→
++  // assessment_unavailable·unbound→interview_unavailable·stale 不补事件）；事件键循
++  // consumer.ts:92 先例 `assessment_unavailable:${reason}`，reason 恒 generation_* 前缀，
++  // 与 no_eligible_scored_answer / evaluation_unscored 固定键零碰撞。
++  const g7fix4Recruiter = `life-g7fix4-rec-${Date.now()}`;
++  const g7fix4Resume = randomUUID();
++  const g7fix4JobRow = await asPrincipal(pool, g7fix4Recruiter, (c) => createJob(c, g7fix4Recruiter, {
++    title: 'Node.js 服务端工程师',
++    description: '使用 NestJS 构建服务',
++    competencies: ['nestjs', 'express'],
++  }));
++  const g7fix4Job = g7fix4JobRow.id;
++  const g7fix4Rev = Number((await pool.query(
++    'SELECT COALESCE(MAX(revision),0)::int AS n FROM job_semantic_revision WHERE job_id=$1', [g7fix4Job],
++  )).rows[0].n);
++  const g7fix4Classify = await classifyJobRoute(pool, g7fix4Recruiter, g7fix4Job, g7fix4Rev, {
++    modelClassify: async () => { throw new Error('B-side seed must rule-decide; model path unexpected'); },
++  });
++  A('G7FIX-4 B 端岗位 rule-classified route_decided（start 前置）', g7fix4Classify.status === 'route_decided' && g7fix4Classify.attemptOutcome === 'rule_decided');
++  await pool.query("INSERT INTO resume(id,owner_user_id,status,content_sha) VALUES ($1,$2,'ingested',$3)", [g7fix4Resume, OWNER, `life-g7fix4:${IID}`]);
++  const g7fix4Application = await asPrincipal(pool, g7fix4Recruiter, (c) => inviteCandidate(c, g7fix4Recruiter, g7fix4Job, OWNER));
++  const g7fix4First = await asPrincipal(pool, OWNER, (c) => startApplicationInterview(c, OWNER, g7fix4Application!.applicationId, g7fix4Resume));
++  const g7fix4Iid = (g7fix4First.status === 'started' || g7fix4First.status === 'reused') ? g7fix4First.interviewId : undefined;
++  A('G7FIX-4 B 端 startApplicationInterview 返回 interviewId（attempt=1）', typeof g7fix4Iid === 'string' && g7fix4Iid.length > 0
++    && Number((await pool.query('SELECT interview_attempt FROM job_application WHERE id=$1', [g7fix4Application!.applicationId])).rows[0]?.interview_attempt) === 1);
++  if (!g7fix4Iid) throw Object.assign(new Error('g7fix4_start_missing_interview_id'), { code: 'g7fix4_start_missing_interview_id', start: g7fix4First });
++  await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, g7fix4Iid, 'mock_interview', 1.0));
++  const g7fix4FailingAsk = scriptedModelClient({
++    'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发'] } }),
++  });
++  const g7fix4GenFail = await startAdaptiveInterview({
++    pool, cp: new MemorySaver(), owner: OWNER, interviewId: g7fix4Iid, model: g7fix4FailingAsk,
++    localRetrieve: async () => [], webExplore: async () => [],
++  }, '后端工程师', []);
++  const g7fix4State = (await pool.query(
++    `SELECT i.status AS interview_status, ja.status AS application_status, ja.score,
++            ec.status AS consumption_status
++       FROM interview i
++       JOIN job_application ja ON ja.id=i.application_id AND ja.interview_id=i.id
++       LEFT JOIN entitlement_consumption ec ON ec.owner_user_id=i.owner_user_id AND ec.idempotency_key=i.id
++      WHERE i.id=$1`, [g7fix4Iid],
++  )).rows[0];
++  const g7fix4Events = await asPrincipal(pool, OWNER, (c) => c.query(
++    "SELECT kind, event_key, payload FROM interview_event WHERE stream_key=$1 AND kind IN ('assessment_unavailable','interview_unavailable','question_ready') ORDER BY seq", [g7fix4Iid],
++  ));
++  const g7fix4MarkedEvent = g7fix4Events.rows.find((r: any) => r.kind === 'assessment_unavailable');
++  A('generation 失败（bound 面）→ 不发明 question_ready 且 start 返回 unavailable',
++    !g7fix4GenFail.question && !g7fix4GenFail.questionId && !!g7fix4GenFail.unavailable
++    && !g7fix4Events.rows.some((r: any) => r.kind === 'question_ready'));
++  A('generation 族对称标记：application=assessment_unavailable、score=NULL、interview=failed、预留释放',
++    g7fix4State?.application_status === 'assessment_unavailable' && g7fix4State?.score === null
++    && g7fix4State?.interview_status === 'failed' && g7fix4State?.consumption_status === 'released');
++  A('bound 面终态事件恰一：assessment_unavailable:generation_* 键（循 consumer.ts:92 先例）·零 interview_unavailable',
++    g7fix4Events.rows.length === 1 && !!g7fix4MarkedEvent
++    && /^assessment_unavailable:generation_/.test(g7fix4MarkedEvent.event_key)
++    && String(g7fix4MarkedEvent.payload?.reason ?? '').startsWith('generation_')
++    && g7fix4MarkedEvent.payload?.provenance?.origin === 'unavailable');
++
++  // finalize 面（REQUEST §2：200 + outcome='assessment_unavailable' + replayed:false）：
++  // DB 层命中 recruiter.ts:205 既有 assessment_unavailable 幂等面（≠:204 completed→replayed
++  // 面）；服务层映射（applications.service.ts:82-88）r!=='replayed' → replayed:false、
++  // outcome 恒 assessment_unavailable、零 HttpException → HTTP 200。服务脸另由
++  // g7fix4:finalize:prove 直证。
++  const g7fix4Finalize: string = await asPrincipal(pool, OWNER, (c) => finalizeApplication(c, OWNER, g7fix4Application!.applicationId));
++  A('finalize DB 面：显式 assessment_unavailable（→ 200 + outcome=assessment_unavailable）',
++    g7fix4Finalize === 'assessment_unavailable');
++  A('finalize ≠ replayed（replayed:false——:204 replayed 面为 completed 专有，本面绝非它）',
++    g7fix4Finalize !== 'replayed' && g7fix4Finalize !== 'not_ready');
++
++  // 正向可重试（既有 assessment_unavailable 恢复形）：新 attempt=2 started。
++  const g7fix4Retry = await asPrincipal(pool, OWNER, (c) => startApplicationInterview(c, OWNER, g7fix4Application!.applicationId, g7fix4Resume));
++  const g7fix4RetryIid = g7fix4Retry.status === 'started' ? g7fix4Retry.interviewId : undefined;
++  const g7fix4RetryState = (await pool.query('SELECT status,interview_id,interview_attempt FROM job_application WHERE id=$1', [g7fix4Application!.applicationId])).rows[0];
++  A('assessment_unavailable 重试恢复形（既有面）：started 新 interview·attempt=2',
++    g7fix4Retry.status === 'started' && !!g7fix4RetryIid && g7fix4RetryIid !== g7fix4Iid
++    && g7fix4RetryState?.status === 'in_progress' && g7fix4RetryState?.interview_id === g7fix4RetryIid
++    && Number(g7fix4RetryState?.interview_attempt) === 2);
++
++  // mark-then-recover 单触点（REQUEST rev3）：构造真实卡死态（interview failed 但
++  // application 仍 in_progress——本刀前 generation 族/历史窗口遗留死路）。
++  await asPrincipal(pool, OWNER, (c) => failInterviewAndRelease(c, OWNER, g7fix4RetryIid!));
++  const g7fix4Stuck = (await pool.query(
++    'SELECT ja.status AS application_status, i.status AS interview_status FROM job_application ja JOIN interview i ON i.id=ja.interview_id WHERE ja.id=$1',
++    [g7fix4Application!.applicationId],
++  )).rows[0];
++  A('卡死态复现：application 仍 in_progress 且绑定 interview 已 failed',
++    g7fix4Stuck?.application_status === 'in_progress' && g7fix4Stuck?.interview_status === 'failed');
++  A('卡死态下 finalize 仍 not_ready（服务层 409 cannot_finalize——本刀消的死路面）',
++    await asPrincipal(pool, OWNER, (c) => finalizeApplication(c, OWNER, g7fix4Application!.applicationId)) === 'not_ready');
++  const g7fix4WrongResume = await asPrincipal(pool, OWNER, (c) => startApplicationInterview(c, OWNER, g7fix4Application!.applicationId, randomUUID()));
++  A('卡死态 + 异 resume → binding_invalid 且不触发 mark（resume 恒等镜像闸）',
++    g7fix4WrongResume.status === 'binding_invalid'
++    && (await pool.query('SELECT status FROM job_application WHERE id=$1', [g7fix4Application!.applicationId])).rows[0]?.status === 'in_progress');
++  const g7fix4Recover = await asPrincipal(pool, OWNER, (c) => startApplicationInterview(c, OWNER, g7fix4Application!.applicationId, g7fix4Resume));
++  const g7fix4RecoverIid = g7fix4Recover.status === 'started' ? g7fix4Recover.interviewId : undefined;
++  const g7fix4RecoverState = (await pool.query('SELECT status,interview_id,interview_attempt,score FROM job_application WHERE id=$1', [g7fix4Application!.applicationId])).rows[0];
++  A('mark-then-recover：同 resume 重启 → started 新 attempt=3（旧 interview 保 failed·score=NULL·mark 先行经 assessment_unavailable 恢复形）',
++    g7fix4Recover.status === 'started' && !!g7fix4RecoverIid && g7fix4RecoverIid !== g7fix4RetryIid
++    && g7fix4RecoverState?.status === 'in_progress' && g7fix4RecoverState?.interview_id === g7fix4RecoverIid
++    && Number(g7fix4RecoverState?.interview_attempt) === 3 && g7fix4RecoverState?.score === null);
++  const g7fix4Ledger = (await pool.query('SELECT application_attempt, status FROM interview WHERE application_id=$1 ORDER BY application_attempt', [g7fix4Application!.applicationId])).rows;
++  A('attempts 全账：attempt1 failed（对称标记面）/attempt2 failed（卡死源）/attempt3 created（恢复新绑定）',
++    g7fix4Ledger.length === 3
++    && g7fix4Ledger[0]?.status === 'failed' && Number(g7fix4Ledger[0]?.application_attempt) === 1
++    && g7fix4Ledger[1]?.status === 'failed' && Number(g7fix4Ledger[1]?.application_attempt) === 2
++    && g7fix4Ledger[2]?.status === 'created' && Number(g7fix4Ledger[2]?.application_attempt) === 3);
++
+   console.log(`\n${fail === 0 ? '✓ 生产主线替换:自适应 agent 图驱动真面试生命周期(SSE 事件+结算+舱壁报告)全部通过' : '✗ ' + fail + ' 失败'}`);
+   await pool.end(); process.exit(fail ? 1 : 0);
+ }
+diff --git a/package.json b/package.json
+index 5cbf840e..760d7b2d 100644
+--- a/package.json
++++ b/package.json
+@@ -196,6 +196,8 @@
+     "resume:prove": "node scripts/run-e2e-isolated.mjs resume:prove:raw",
+     "recruiter:prove": "node scripts/run-e2e-isolated.mjs recruiter:prove:raw",
+     "recruiter:prove:raw": "pnpm -C packages/db recruiter",
++    "g7fix4:finalize:prove": "node scripts/run-e2e-isolated.mjs g7fix4:finalize:prove:raw",
++    "g7fix4:finalize:prove:raw": "pnpm -C apps/api exec tsx test/g7fix4-finalize-contract.proof.ts",
+     "commerce-reconcile:prove": "node scripts/run-e2e-isolated.mjs commerce-reconcile:prove:raw",
+     "commerce-reconcile:prove:raw": "pnpm -C apps/worker prove:commerce-reconcile",
+     "model-invocation-reconcile:prove": "node scripts/run-e2e-isolated.mjs model-invocation-reconcile:prove:raw",
+diff --git a/packages/db/src/recruiter.ts b/packages/db/src/recruiter.ts
+index 573ddff3..986c3d05 100644
+--- a/packages/db/src/recruiter.ts
++++ b/packages/db/src/recruiter.ts
+@@ -382,8 +382,31 @@ export async function startApplicationInterview(c: Client, candidate: string, ap
+           AND i.status IN ('created','active')`,
+       [row.interview_id, owner, row.id, row.interview_attempt, row.job_id, row.resume_id],
+     );
+-    if (bound.rowCount !== 1 || !row.resume_id) return { status: 'binding_invalid' };
+-    return { status: 'reused', interviewId: row.interview_id, resumeId: row.resume_id };
++    if (bound.rowCount === 1 && row.resume_id) {
++      return { status: 'reused', interviewId: row.interview_id, resumeId: row.resume_id };
++    }
++    // G7FIX-4 mark-then-recover 单触点（REQUEST rev3）：in_progress 绑定面试已终态 failed
++    // 的卡死态不再谎报 binding_invalid 死路。放行严格限三闸（全部在上方 FOR UPDATE 行锁下
++    // 验证）：绑定面试 status='failed'（终态收口已完成、预留额度已释放）+ resume 恒等镜像
++    // （resumeId===row.resume_id，对齐下方 assessment_unavailable 面守卫）+ 四元绑定不变。
++    if (!(row.resume_id && resumeId === row.resume_id)) return { status: 'binding_invalid' };
++    const failedBound = await c.query(
++      `SELECT 1
++         FROM interview i
++        WHERE i.id=$1 AND i.owner_user_id=$2 AND i.application_id=$3 AND i.application_attempt=$4
++          AND i.job_id=$5 AND i.resume_id=$6
++          AND i.status='failed'`,
++      [row.interview_id, owner, row.id, row.interview_attempt, row.job_id, row.resume_id],
++    );
++    if (failedBound.rowCount !== 1) return { status: 'binding_invalid' };
++    // 同事务先 mark：in_progress→assessment_unavailable 合法迁移（0144 状态机规则表 +
++    // 终端体守卫全链已验），随后落回下方既有恢复通路原样行进——下方 UPDATE 守卫
++    // `status IN ('invited','assessment_unavailable')` 字节零改即命中，触发器走
++    // assessment_unavailable→in_progress 恢复形（binding_immutable 例外 / attempt+1 形 /
++    // recovery_requires_next_bound_attempt / start_requires_bound_interview 全链零拦），
++    // 零 migration。mark 非 'updated'（行锁下不应发生）→ binding_invalid fail-closed。
++    const mark = await markApplicationAssessmentUnavailable(c, owner, row.interview_id);
++    if (mark !== 'updated') return { status: 'binding_invalid' };
+   }
+ 
+   // A scoreless attempt is terminal and refundable.  A deliberate new start
+diff --git a/scripts/run-e2e-isolated.mjs b/scripts/run-e2e-isolated.mjs
+index 85ef4808..6fa7238f 100644
+--- a/scripts/run-e2e-isolated.mjs
++++ b/scripts/run-e2e-isolated.mjs
+@@ -437,6 +437,16 @@ const isolatedReceiptSources = {
+     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
+     'packages/db/migrations/0082_b_side_score_calibration_hold.sql',
+   ],
++  'g7fix4:finalize:prove:raw': [
++    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
++    'apps/api/test/g7fix4-finalize-contract.proof.ts',
++    'apps/api/src/modules/jobs/applications.service.ts',
++    'packages/db/src/recruiter.ts', 'packages/db/src/commerce.ts',
++    'packages/db/src/job-route-decision.ts',
++    'packages/db/migrations/0046_application_assessment_recovery.sql',
++    'packages/db/migrations/0082_b_side_score_calibration_hold.sql',
++    'packages/db/migrations/0144_db_trigfam_unify.sql',
++  ],
+   'reqid:prove:raw': [
+     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+     'apps/worker/test/reqid.proof.ts', 'apps/worker/src/interview-consumer.ts',
+@@ -1714,6 +1724,7 @@ if (![
+   'dbhy1:prove:raw',
+   'uc016:nhp-fault:prove:raw',
+   'uc011:adv:prove:raw', 'uc011:refund-callback:prove:raw',
++  'g7fix4:finalize:prove:raw',
+ ].includes(target)) {
+   throw new Error(`unsupported_e2e_target:${target}`);
+ }
+@@ -2473,7 +2484,7 @@ async function main() {
+       `E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; ` +
+       `product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.`,
+     );
+-    if (['e2e:prove', 'e2e:ui', 'performance:e2e', 'api:validate', 'recruiter:prove:raw', 'commerce-reconcile:prove:raw', 'model-invocation-reconcile:prove:raw', 'model-op00:prove:raw', 'model-op02:prove:raw', 'model-slot-bypass:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'tokenstream:prove:raw', 'scoring-integrity:prove', 'scoring:eval:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'scor-00:http:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'stress:prove:raw', 'memory:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'ocr:prove:raw', 'adaptive-degrade:prove:raw', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc011:report-refund:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc002:lease:prove:raw', 'resume:prove:raw', 'rag-generation:prove:raw', 'qbank:prove:raw', 'qbank-pipeline:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-retrieval-eval:prove:raw', 'online-judge-control:prove:raw', 'privacy-authorization:prove:raw', 'tenant-wiring-neg:prove:raw',
++    if (['e2e:prove', 'e2e:ui', 'performance:e2e', 'api:validate', 'recruiter:prove:raw', 'g7fix4:finalize:prove:raw', 'commerce-reconcile:prove:raw', 'model-invocation-reconcile:prove:raw', 'model-op00:prove:raw', 'model-op02:prove:raw', 'model-slot-bypass:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'tokenstream:prove:raw', 'scoring-integrity:prove', 'scoring:eval:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'scor-00:http:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'stress:prove:raw', 'memory:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'ocr:prove:raw', 'adaptive-degrade:prove:raw', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc011:report-refund:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc002:lease:prove:raw', 'resume:prove:raw', 'rag-generation:prove:raw', 'qbank:prove:raw', 'qbank-pipeline:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-retrieval-eval:prove:raw', 'online-judge-control:prove:raw', 'privacy-authorization:prove:raw', 'tenant-wiring-neg:prove:raw',
+   'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag03-filter-locus:prove:raw', 'rag03-hnsw-completeness:prove:raw', 'rag03c-exactk-observe:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'db-id-v7:prove:raw', 'db-intfk:prove:raw', 'db-money3:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw', 'vector-plane-erasure:prove:raw', 'uc004:career-path-fault:prove:raw', 'uc001:nhp-neg:prove:raw', 'uc001:nhp-bound:prove:raw', 'uc001:nhp-adv:prove:raw', 'uc001:nhp-fault:prove:raw', 'uc016:nhp-fault:prove:raw',
+   // DBHY-1: sql/ 兼容镜像退役(案A 机械迁面)——这些目标改为预迁移(migrations 单真相),proof 内 sql/ 重放已剥。
+   // (vectorstore:prove:raw 不入此名单:marked-red legacy fixture 自证只装 legacy 向量面,归 B' 残面=sql/ 夹具保留至 legacy 退役刀。)

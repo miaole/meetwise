@@ -3,7 +3,7 @@
 import { fileURLToPath } from 'node:url';
 import { MemorySaver } from '@langchain/langgraph';
 import { randomUUID } from 'node:crypto';
-import { createPool, asPrincipal, reserveEntitlement, appendEvent, answerHash, claimInterviewAnswer, loadMigrations, runMigrations, inviteCandidate, startApplicationInterview, createJob, classifyJobRoute } from '@meetwise/db';
+import { createPool, asPrincipal, reserveEntitlement, appendEvent, answerHash, claimInterviewAnswer, loadMigrations, runMigrations, inviteCandidate, startApplicationInterview, createJob, classifyJobRoute, finalizeApplication, failInterviewAndRelease } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { startAdaptiveInterview, submitAdaptiveAnswer, type AdaptiveLifecycleDeps } from '../src/adaptive-lifecycle.ts';
 
@@ -213,6 +213,117 @@ async function main() {
     && typeof unavail.payload.provenance?.errorCode === 'string');
   A('出题失败 → 面试 failed 且预留释放',
     failStatus.rows[0]?.status === 'failed' && failCons.rows[0]?.status === 'released');
+
+  console.log('\n──── G7FIX-4：generation 族 bound 面对称标记 + finalize 200 面 + mark-then-recover ────');
+  // 与上方 C 端 unbound 面（failIid→interview_unavailable）同族对照。REQUEST rev3 @ea3e38a7：
+  // bound 面 generation 失败与 job 失败族（interview-consumer.ts terminalizeUnsettledInterview）
+  // 对称——failInterviewAndRelease 之后同事务标记 application=assessment_unavailable（unbound
+  // 舱壁/'stale' 旧 worker 双闸原样）；事件分流对齐 consumer.ts:91-95（updated/replayed→
+  // assessment_unavailable·unbound→interview_unavailable·stale 不补事件）；事件键循
+  // consumer.ts:92 先例 `assessment_unavailable:${reason}`，reason 恒 generation_* 前缀，
+  // 与 no_eligible_scored_answer / evaluation_unscored 固定键零碰撞。
+  const g7fix4Recruiter = `life-g7fix4-rec-${Date.now()}`;
+  const g7fix4Resume = randomUUID();
+  const g7fix4JobRow = await asPrincipal(pool, g7fix4Recruiter, (c) => createJob(c, g7fix4Recruiter, {
+    title: 'Node.js 服务端工程师',
+    description: '使用 NestJS 构建服务',
+    competencies: ['nestjs', 'express'],
+  }));
+  const g7fix4Job = g7fix4JobRow.id;
+  const g7fix4Rev = Number((await pool.query(
+    'SELECT COALESCE(MAX(revision),0)::int AS n FROM job_semantic_revision WHERE job_id=$1', [g7fix4Job],
+  )).rows[0].n);
+  const g7fix4Classify = await classifyJobRoute(pool, g7fix4Recruiter, g7fix4Job, g7fix4Rev, {
+    modelClassify: async () => { throw new Error('B-side seed must rule-decide; model path unexpected'); },
+  });
+  A('G7FIX-4 B 端岗位 rule-classified route_decided（start 前置）', g7fix4Classify.status === 'route_decided' && g7fix4Classify.attemptOutcome === 'rule_decided');
+  await pool.query("INSERT INTO resume(id,owner_user_id,status,content_sha) VALUES ($1,$2,'ingested',$3)", [g7fix4Resume, OWNER, `life-g7fix4:${IID}`]);
+  const g7fix4Application = await asPrincipal(pool, g7fix4Recruiter, (c) => inviteCandidate(c, g7fix4Recruiter, g7fix4Job, OWNER));
+  const g7fix4First = await asPrincipal(pool, OWNER, (c) => startApplicationInterview(c, OWNER, g7fix4Application!.applicationId, g7fix4Resume));
+  const g7fix4Iid = (g7fix4First.status === 'started' || g7fix4First.status === 'reused') ? g7fix4First.interviewId : undefined;
+  A('G7FIX-4 B 端 startApplicationInterview 返回 interviewId（attempt=1）', typeof g7fix4Iid === 'string' && g7fix4Iid.length > 0
+    && Number((await pool.query('SELECT interview_attempt FROM job_application WHERE id=$1', [g7fix4Application!.applicationId])).rows[0]?.interview_attempt) === 1);
+  if (!g7fix4Iid) throw Object.assign(new Error('g7fix4_start_missing_interview_id'), { code: 'g7fix4_start_missing_interview_id', start: g7fix4First });
+  await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, g7fix4Iid, 'mock_interview', 1.0));
+  const g7fix4FailingAsk = scriptedModelClient({
+    'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发'] } }),
+  });
+  const g7fix4GenFail = await startAdaptiveInterview({
+    pool, cp: new MemorySaver(), owner: OWNER, interviewId: g7fix4Iid, model: g7fix4FailingAsk,
+    localRetrieve: async () => [], webExplore: async () => [],
+  }, '后端工程师', []);
+  const g7fix4State = (await pool.query(
+    `SELECT i.status AS interview_status, ja.status AS application_status, ja.score,
+            ec.status AS consumption_status
+       FROM interview i
+       JOIN job_application ja ON ja.id=i.application_id AND ja.interview_id=i.id
+       LEFT JOIN entitlement_consumption ec ON ec.owner_user_id=i.owner_user_id AND ec.idempotency_key=i.id
+      WHERE i.id=$1`, [g7fix4Iid],
+  )).rows[0];
+  const g7fix4Events = await asPrincipal(pool, OWNER, (c) => c.query(
+    "SELECT kind, event_key, payload FROM interview_event WHERE stream_key=$1 AND kind IN ('assessment_unavailable','interview_unavailable','question_ready') ORDER BY seq", [g7fix4Iid],
+  ));
+  const g7fix4MarkedEvent = g7fix4Events.rows.find((r: any) => r.kind === 'assessment_unavailable');
+  A('generation 失败（bound 面）→ 不发明 question_ready 且 start 返回 unavailable',
+    !g7fix4GenFail.question && !g7fix4GenFail.questionId && !!g7fix4GenFail.unavailable
+    && !g7fix4Events.rows.some((r: any) => r.kind === 'question_ready'));
+  A('generation 族对称标记：application=assessment_unavailable、score=NULL、interview=failed、预留释放',
+    g7fix4State?.application_status === 'assessment_unavailable' && g7fix4State?.score === null
+    && g7fix4State?.interview_status === 'failed' && g7fix4State?.consumption_status === 'released');
+  A('bound 面终态事件恰一：assessment_unavailable:generation_* 键（循 consumer.ts:92 先例）·零 interview_unavailable',
+    g7fix4Events.rows.length === 1 && !!g7fix4MarkedEvent
+    && /^assessment_unavailable:generation_/.test(g7fix4MarkedEvent.event_key)
+    && String(g7fix4MarkedEvent.payload?.reason ?? '').startsWith('generation_')
+    && g7fix4MarkedEvent.payload?.provenance?.origin === 'unavailable');
+
+  // finalize 面（REQUEST §2：200 + outcome='assessment_unavailable' + replayed:false）：
+  // DB 层命中 recruiter.ts:205 既有 assessment_unavailable 幂等面（≠:204 completed→replayed
+  // 面）；服务层映射（applications.service.ts:82-88）r!=='replayed' → replayed:false、
+  // outcome 恒 assessment_unavailable、零 HttpException → HTTP 200。服务脸另由
+  // g7fix4:finalize:prove 直证。
+  const g7fix4Finalize: string = await asPrincipal(pool, OWNER, (c) => finalizeApplication(c, OWNER, g7fix4Application!.applicationId));
+  A('finalize DB 面：显式 assessment_unavailable（→ 200 + outcome=assessment_unavailable）',
+    g7fix4Finalize === 'assessment_unavailable');
+  A('finalize ≠ replayed（replayed:false——:204 replayed 面为 completed 专有，本面绝非它）',
+    g7fix4Finalize !== 'replayed' && g7fix4Finalize !== 'not_ready');
+
+  // 正向可重试（既有 assessment_unavailable 恢复形）：新 attempt=2 started。
+  const g7fix4Retry = await asPrincipal(pool, OWNER, (c) => startApplicationInterview(c, OWNER, g7fix4Application!.applicationId, g7fix4Resume));
+  const g7fix4RetryIid = g7fix4Retry.status === 'started' ? g7fix4Retry.interviewId : undefined;
+  const g7fix4RetryState = (await pool.query('SELECT status,interview_id,interview_attempt FROM job_application WHERE id=$1', [g7fix4Application!.applicationId])).rows[0];
+  A('assessment_unavailable 重试恢复形（既有面）：started 新 interview·attempt=2',
+    g7fix4Retry.status === 'started' && !!g7fix4RetryIid && g7fix4RetryIid !== g7fix4Iid
+    && g7fix4RetryState?.status === 'in_progress' && g7fix4RetryState?.interview_id === g7fix4RetryIid
+    && Number(g7fix4RetryState?.interview_attempt) === 2);
+
+  // mark-then-recover 单触点（REQUEST rev3）：构造真实卡死态（interview failed 但
+  // application 仍 in_progress——本刀前 generation 族/历史窗口遗留死路）。
+  await asPrincipal(pool, OWNER, (c) => failInterviewAndRelease(c, OWNER, g7fix4RetryIid!));
+  const g7fix4Stuck = (await pool.query(
+    'SELECT ja.status AS application_status, i.status AS interview_status FROM job_application ja JOIN interview i ON i.id=ja.interview_id WHERE ja.id=$1',
+    [g7fix4Application!.applicationId],
+  )).rows[0];
+  A('卡死态复现：application 仍 in_progress 且绑定 interview 已 failed',
+    g7fix4Stuck?.application_status === 'in_progress' && g7fix4Stuck?.interview_status === 'failed');
+  A('卡死态下 finalize 仍 not_ready（服务层 409 cannot_finalize——本刀消的死路面）',
+    await asPrincipal(pool, OWNER, (c) => finalizeApplication(c, OWNER, g7fix4Application!.applicationId)) === 'not_ready');
+  const g7fix4WrongResume = await asPrincipal(pool, OWNER, (c) => startApplicationInterview(c, OWNER, g7fix4Application!.applicationId, randomUUID()));
+  A('卡死态 + 异 resume → binding_invalid 且不触发 mark（resume 恒等镜像闸）',
+    g7fix4WrongResume.status === 'binding_invalid'
+    && (await pool.query('SELECT status FROM job_application WHERE id=$1', [g7fix4Application!.applicationId])).rows[0]?.status === 'in_progress');
+  const g7fix4Recover = await asPrincipal(pool, OWNER, (c) => startApplicationInterview(c, OWNER, g7fix4Application!.applicationId, g7fix4Resume));
+  const g7fix4RecoverIid = g7fix4Recover.status === 'started' ? g7fix4Recover.interviewId : undefined;
+  const g7fix4RecoverState = (await pool.query('SELECT status,interview_id,interview_attempt,score FROM job_application WHERE id=$1', [g7fix4Application!.applicationId])).rows[0];
+  A('mark-then-recover：同 resume 重启 → started 新 attempt=3（旧 interview 保 failed·score=NULL·mark 先行经 assessment_unavailable 恢复形）',
+    g7fix4Recover.status === 'started' && !!g7fix4RecoverIid && g7fix4RecoverIid !== g7fix4RetryIid
+    && g7fix4RecoverState?.status === 'in_progress' && g7fix4RecoverState?.interview_id === g7fix4RecoverIid
+    && Number(g7fix4RecoverState?.interview_attempt) === 3 && g7fix4RecoverState?.score === null);
+  const g7fix4Ledger = (await pool.query('SELECT application_attempt, status FROM interview WHERE application_id=$1 ORDER BY application_attempt', [g7fix4Application!.applicationId])).rows;
+  A('attempts 全账：attempt1 failed（对称标记面）/attempt2 failed（卡死源）/attempt3 created（恢复新绑定）',
+    g7fix4Ledger.length === 3
+    && g7fix4Ledger[0]?.status === 'failed' && Number(g7fix4Ledger[0]?.application_attempt) === 1
+    && g7fix4Ledger[1]?.status === 'failed' && Number(g7fix4Ledger[1]?.application_attempt) === 2
+    && g7fix4Ledger[2]?.status === 'created' && Number(g7fix4Ledger[2]?.application_attempt) === 3);
 
   console.log(`\n${fail === 0 ? '✓ 生产主线替换:自适应 agent 图驱动真面试生命周期(SSE 事件+结算+舱壁报告)全部通过' : '✗ ' + fail + ' 失败'}`);
   await pool.end(); process.exit(fail ? 1 : 0);

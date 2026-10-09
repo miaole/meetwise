@@ -382,8 +382,31 @@ export async function startApplicationInterview(c: Client, candidate: string, ap
           AND i.status IN ('created','active')`,
       [row.interview_id, owner, row.id, row.interview_attempt, row.job_id, row.resume_id],
     );
-    if (bound.rowCount !== 1 || !row.resume_id) return { status: 'binding_invalid' };
-    return { status: 'reused', interviewId: row.interview_id, resumeId: row.resume_id };
+    if (bound.rowCount === 1 && row.resume_id) {
+      return { status: 'reused', interviewId: row.interview_id, resumeId: row.resume_id };
+    }
+    // G7FIX-4 mark-then-recover 单触点（REQUEST rev3）：in_progress 绑定面试已终态 failed
+    // 的卡死态不再谎报 binding_invalid 死路。放行严格限三闸（全部在上方 FOR UPDATE 行锁下
+    // 验证）：绑定面试 status='failed'（终态收口已完成、预留额度已释放）+ resume 恒等镜像
+    // （resumeId===row.resume_id，对齐下方 assessment_unavailable 面守卫）+ 四元绑定不变。
+    if (!(row.resume_id && resumeId === row.resume_id)) return { status: 'binding_invalid' };
+    const failedBound = await c.query(
+      `SELECT 1
+         FROM interview i
+        WHERE i.id=$1 AND i.owner_user_id=$2 AND i.application_id=$3 AND i.application_attempt=$4
+          AND i.job_id=$5 AND i.resume_id=$6
+          AND i.status='failed'`,
+      [row.interview_id, owner, row.id, row.interview_attempt, row.job_id, row.resume_id],
+    );
+    if (failedBound.rowCount !== 1) return { status: 'binding_invalid' };
+    // 同事务先 mark：in_progress→assessment_unavailable 合法迁移（0144 状态机规则表 +
+    // 终端体守卫全链已验），随后落回下方既有恢复通路原样行进——下方 UPDATE 守卫
+    // `status IN ('invited','assessment_unavailable')` 字节零改即命中，触发器走
+    // assessment_unavailable→in_progress 恢复形（binding_immutable 例外 / attempt+1 形 /
+    // recovery_requires_next_bound_attempt / start_requires_bound_interview 全链零拦），
+    // 零 migration。mark 非 'updated'（行锁下不应发生）→ binding_invalid fail-closed。
+    const mark = await markApplicationAssessmentUnavailable(c, owner, row.interview_id);
+    if (mark !== 'updated') return { status: 'binding_invalid' };
   }
 
   // A scoreless attempt is terminal and refundable.  A deliberate new start

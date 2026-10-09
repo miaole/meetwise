@@ -51,10 +51,29 @@ async function writeGenerationUnavailable(
 ): Promise<void> {
   await requireCurrentFence(c, d);
   await failInterviewAndRelease(c, d.owner, d.interviewId);
-  await appendEvent(c, d.owner, d.interviewId, 'interview_unavailable', {
-    reason: failure.reason,
-    provenance: failure.provenance,
-  }, 'interview_unavailable:terminal');
+  // G7FIX-4 与 job 失败族（interview-consumer.ts terminalizeUnsettledInterview）对称：
+  // generation 终态同样在同一事务、同一 client 内把绑定申请收口为 assessment_unavailable
+  // 正向可重试终态（i.status='failed' AND ja.status='in_progress' AND attempt 匹配才命中）。
+  // 'unbound'（C 端舱壁）/'stale'（old-attempt worker 防双写）双闸由 marker 自身语义承担；
+  // 事件分流与其对齐：updated/replayed → assessment_unavailable，unbound → interview_unavailable，
+  // stale 不补任何事件（与 consumer.ts:90 提前返回同形，绝不给已推进的下一 attempt 追加旧终态）。
+  const applicationMark = await markApplicationAssessmentUnavailable(c, d.owner, d.interviewId);
+  if (applicationMark === 'updated' || applicationMark === 'replayed') {
+    // 事件键循 consumer.ts:92 先例 `assessment_unavailable:${reason}`；reason 恒为
+    // generation_* 前缀（generationFailureOf 保证），与 no_eligible_scored_answer /
+    // evaluation_unscored 两个固定键零碰撞。
+    await appendEvent(c, d.owner, d.interviewId, 'assessment_unavailable', {
+      reason: failure.reason,
+      provenance: failure.provenance,
+    }, `assessment_unavailable:${failure.reason}`);
+    return;
+  }
+  if (applicationMark !== 'stale') {
+    await appendEvent(c, d.owner, d.interviewId, 'interview_unavailable', {
+      reason: failure.reason,
+      provenance: failure.provenance,
+    }, 'interview_unavailable:terminal');
+  }
 }
 
 async function emitGenerationUnavailable(d: AdaptiveLifecycleDeps, failure: InterviewGenerationUnavailable): Promise<void> {
