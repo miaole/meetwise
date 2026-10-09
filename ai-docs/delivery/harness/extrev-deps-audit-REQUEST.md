@@ -177,3 +177,13 @@ canHonestlyFlip=false
 - **A3（EXEC 硬义务）**：docs:check 前锚以 EXEC 起点 commit 实跑值为准（本 REQUEST 自身已 +1 至 4104·预期值）——操作化=EXIT 持恒 1 且错误码集合不变；禁静默改绿。
 - 记账级：fastify CVE-2026-92081 记 moderate 勿入 high 清零面·本 API 未启 http2 减害事实入 receipt；multer 零运行时参与（FastifyAdapter+base64 上传）纯供应链清账；xmldom 0.8.13 registry 已 deprecated·升级走纯 lockfile 刷新**禁 overrides**；Renovate 优先于 Dependabot（pnpm 双层 catalog 原生解析）；audit 步建议独立 workflow 文件物理零触 ci.yml；next 升级后加跑 pnpm -C apps/web build（standalone 打包承重面）；proxy-addr 两包不同源勿混记。
 - Status: `draft_rev2:pre_exec_dual_PASS`（双席 BOTH PASS·EXEC 授权·S1 起跑）。
+
+## S1 EXEC 结果（append-only · 2026-10-07 · mw-depsaud-exec）
+
+- **Status**: `exec_S1_DONE_awaiting_review`（S1 实跑收口·收据=receipts/extrev-deps-audit/S1/ 三件套·S2/S3 未起）
+- audit 前后：critical 3→**0**·点名 4 包+proxy-addr 全清零·剩余 25 条非点名逐包列名留档（Non-claim）。
+- 升级矩阵：next 15.5.19→**15.5.27**（精确 pin·受影响列仍在故取 27）·fastify 5.8.5→**5.12.5**（精确 pin 保留+根 overrides 定点第二实例·nest11 线内无自然解·nest12.1.2 官方配对 5.12.5 旁证）·@xmldom/xmldom 0.8.13→**0.8.15**（纯 lockfile 手术刷新·零 overrides·遵守 rev2）·multer 2.1.1→**2.4.0**（载体 @nestjs/platform-express 11.1.27→11.2.7 显式直接依赖·依赖面唯一差异=multer·optional 链图形状保持）·proxy-addr 2.0.7→**2.0.8**（express 链纯刷新·@fastify/proxy-addr 独立包不动）。
+- lockfile diff 审计：结构化集合 diff 零闭包外变更+frozen-lockfile EXIT 0+孤儿叶零残留（`pnpm update` 闭包外漂移事故回滚重做·教训入收据 §3）。
+- 冒烟：web typecheck/prove×2/**build**·api 隔离 validate+三 smoke·domain prove（25 断言）·root typecheck 全 **EXIT 0**；root arch **12=基线 12 既有红**（逐条同·零恶化）；docs:check **1 持恒·错误码集合不变**（PTP_FILE_LIMIT 4104→4107·+3=收据文件自指增量）。
+- A1 义务**本切片已落**：真实 docx 提取正例（手构 OOXML zip·零新依赖·输出精确断言·xmldom 0.8.15 端到端旁证·craftDocx 面与 S3 负例共用）；A3 前后锚坐实（§8）。
+- Pins 十一值原值照抄（收据 §10）·零 stop-condition 命中。
