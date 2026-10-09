@@ -2,6 +2,7 @@
 
 **Status**: **`exec:awaiting_post_prove_dual`**（EXEC 已按审计口径实施+prove · 本档=简版合并 REQUEST+EXEC 记账 · **Ban self-approve** · **alone≠dual** · 待 post-prove 双审）
 **Status+（EXEC append-only）**: prove 终态 `pnpm env-schema:prove` EXIT=0（21/21 全绿·isolated runner 容器 nonce attested）· 零回归批 12 绿 + 4 红（neg:input 4/135·resume-reference 5 红·uc001-neg 7/26·uc001-bound 11/17——**经 stash 基线复跑逐条实证为 base 6aa83c48 既有红同文同数，与本刀无关**，全账见 §3）· est live=0
+**Status++（rev2 · post-dual 席2 FAIL 窄口径修复 · append-only）**: databaseTargetProblem 误报缺陷已修（rawEnv 单源判定）+ A10 回归钉 · 复跑 EXIT=0 **22/22** · tsc 26→30（+4 TS2532 测试侧·26 既有零漂移实证）· 勘误归档见 §5 · 修复 commit author `mw-envschema-exec2` 直送席1 补签
 **Date**: 2026-10-07
 **审计项**: issues-master #91（P1·第3批C 可靠性/运维/API）：「配置无集中校验（约 108 个 env 变量散落 70 个文件），AUTH_SECRET 缺失照常启动并通过 readiness」·锚点 auth.service.ts:57-58 / principal.guard.ts:52 / health.service.ts:20-27（评审基线漂移已亲读复核）·修复口径：「引入 env schema（zod）启动即校验，缺关键密钥 fail-fast 并纳入 readiness」
 **Base**: 主线系 `feat/mysql-schema-skeleton` @`6aa83c48` · 分支 `line/obs-envschema`（工作树 `meetwise-line-obsenv`）
@@ -82,10 +83,19 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 Non-claims：本刀 ≠ 108 env 全量治理 ≠ 集中 config 对象 ≠ worker 侧校验 ≠ #92 readiness 深化；T3 可选 ≠ 无守卫（运行时 fail-closed 既有）；`config.envSchema:'ok'` ≠ 依赖拓扑健康声明（仅 T1 存在性/粗格式）；prove EXIT=0 ≠ DONE（claimDone=false · local green = NOT_READY · awaiting post-dual）。
 
+## §5 勘误归档（post-dual 双审席2 FAIL 窄口径处方 · append-only · §3 原文零改写）
+
+**rev2（2026-10-07 · 席2 FAIL 处方逐字执行 · 其余面席2 已 PASS 不重开 · 修复后直送复审席1 补签）**：
+
+1. **勘误①（§3 typecheck 行失实）**：§3 「typecheck | 基线 26 错=改后 26 错（同集合，零新增）」实测失实——该 26=26 系本刀 proof 文件落盘**前**的快照；proof 落盘后裸 tsc 实测 **26→30**（+4 = `test/env-schema.proof.ts` 4×TS2532「Object is possibly 'undefined'」，测试侧·沿 ERRATA-1 放宽先例不入产品码门）；复核：26 既有错集合零漂移实证（file+code 归一 diff 空集，AFTER_MINUS_PROOF=26=ORIG26）。
+2. **勘误②（产品码单点缺陷+修复记录）**：席2 实测坐实 `env-schema.ts databaseTargetProblem` 缺陷——parse 失败分支以 `{}` 传入致组件存在性真相被丢弃：**五件套齐全+仅缺 AUTH_SECRET → 误报 `lacking: PGHOST,PGPORT,PGUSER,PGPASSWORD,PGDATABASE`**。修复（处 方逐字）：组件存在性改 **rawEnv 单源判定**——`PGPASSWORD` 用 `rawEnv[name] !== undefined`（空串算已供，对齐 principal.ts:767）；其余四件用 `blankToUndefined(rawEnv[name]) !== undefined`；消灭 `{}` 回退。prove 增 **A10** 回归钉（五件套齐全+仅缺 AUTH_SECRET → problems 精确等于 `['missing:AUTH_SECRET']`，禁含 database_target_missing 成员）；复跑 `pnpm env-schema:prove` **EXIT=0（22/22）**；tsc 30≤30 门（26 既有零漂移+4 TS2532 测试侧）。A1-A9/B/C/D/E/F 既有断言全数零改 PASS。
+3. **docs:check inherited-red 定性**：`PTP_FILE_LIMIT`（MAX_FILES=2_048，public-text-policy.mjs:40）在本刀 base `6aa83c48` 即已红（本席实测 managed 4126 > 2048；席2 处方口径基线 4585 tracked 超限）——**inherited-red 与本刀无关**（本刀 +3 文件仅使计数 4126→4129）；该门为干净 CI checkout 设计，本地长青工作树超限属环境既有态，归 docs 门负责席，本刀不禁借机修。
+4. 复审路径：修复 commit（author `mw-envschema-exec2`）已 push `line/obs-envschema`，直送席1 补签；本 §5 为 append-only 勘误层，§0-§4 原文不重写。
+
 ## STOP
 
 **STOP · `awaiting_post_prove_dual` · alone≠dual。** 实现不自批；post-prove 双审 PASS 后由 meetwise 明示才回填；Ban retry-to-green；neg:input/resume-reference/uc001-neg/uc001-bound 4 红均为既有红（基线实证），不构成本刀 retry 面禁借机修（归各线负责席）。
 
 ---
 
-*OBS-ENVSCHEMA EXEC REQUEST · 2026-10-07 · exec:awaiting_post_prove_dual · base `feat/mysql-schema-skeleton`@`6aa83c48` · 分支 `line/obs-envschema` · pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null · Dual PASS ≠ 合并 · Ban self-approve*
+*OBS-ENVSCHEMA EXEC REQUEST · 2026-10-07 · exec:awaiting_post_prove_dual（rev2 窄口径修复后重送） · base `feat/mysql-schema-skeleton`@`6aa83c48` · 分支 `line/obs-envschema` · pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null · Dual PASS ≠ 合并 · Ban self-approve*

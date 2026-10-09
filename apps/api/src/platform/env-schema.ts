@@ -79,23 +79,26 @@ function issueToProblemCode(issue: z.ZodIssue): string {
   return `invalid:${key}:${issue.message ?? ''}`;
 }
 
-/** 数据库目标存在性恒算（parse 后普通代码，保证与其它缺失项一次性并列）。 */
-function databaseTargetProblem(
-  data: {
-    DATABASE_URL?: string;
-    PGHOST?: string;
-    PGPORT?: number;
-    PGUSER?: string;
-    PGPASSWORD?: string;
-    PGDATABASE?: string;
-  },
-  rawEnv: NodeJS.ProcessEnv,
-): string | undefined {
+/**
+ * 数据库目标存在性恒算（普通代码，保证与其它缺失项一次性并列）。
+ * 组件存在性单源判定于 **rawEnv**（绝不取 parse 后 data——parse 失败时 data 被
+ * 丢弃/部分填充，会把「五件套齐全、仅缺 AUTH_SECRET」误报成 target_missing；
+ * post-dual FAIL 勘误修复，见 REQUEST §5）：
+ *  - `PGPASSWORD`：`rawEnv[name] !== undefined`（空串算已供，对齐 principal.ts:767
+ *    components.password === undefined 才算缺）；
+ *  - 其余四件：`blankToUndefined(rawEnv[name]) !== undefined`（空白视同缺失，
+ *    与 db SSOT nonEmpty 口径一致）。
+ */
+function databaseTargetProblem(rawEnv: NodeJS.ProcessEnv): string | undefined {
   // 已提供（非空白）DATABASE_URL 时不再报 target_missing——格式问题由 invalid:DATABASE_URL 单列（与 db SSOT 的 database_url_malformed 单列口径一致）。
   if (blankToUndefined(rawEnv.DATABASE_URL) !== undefined) return undefined;
   const missingComponents = (
     ['PGHOST', 'PGPORT', 'PGUSER', 'PGPASSWORD', 'PGDATABASE'] as const
-  ).filter((name) => data[name] === undefined);
+  ).filter((name) =>
+    name === 'PGPASSWORD'
+      ? rawEnv[name] === undefined
+      : blankToUndefined(rawEnv[name]) === undefined,
+  );
   if (missingComponents.length === 0) return undefined;   // 五件套齐全=components 路径合法（principal.ts:765-786 同口径）
   return `database_target_missing:DATABASE_URL or complete PG component set (lacking: ${missingComponents.join(',')})`;
 }
@@ -106,7 +109,7 @@ function databaseTargetProblem(
  */
 export function parseCriticalEnv(env: NodeJS.ProcessEnv = process.env): EnvSchemaResult {
   const parsed = criticalEnvSchema.safeParse(env);
-  const targetProblem = databaseTargetProblem(parsed.success ? parsed.data : {}, env);
+  const targetProblem = databaseTargetProblem(env);
   if (parsed.success) {
     return targetProblem === undefined ? { ok: true } : { ok: false, problems: [targetProblem] };
   }
