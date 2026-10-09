@@ -2145,4 +2145,3 @@ flowchart TD
 - [ ] **STILL OPEN**：S1-S5 实现刀；CI 接线另刀；`g7SuiteGreen=false` 维持.
 - 预算：install 网络动作一次·est live=0 模型调用·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · S0 ≠ lint 门上线 ≠ C1 勾销 · 实现方不 self-approve.
->>>>>>> b23a0069 (docs(lint-s0): nail — post-prove dual BOTH PASS (four packages landed in config devDeps, closure 183/183 verified, counting artifact erratum with SSOT 183), S1 unlocked)
