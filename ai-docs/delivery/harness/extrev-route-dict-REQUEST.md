@@ -196,3 +196,14 @@ g7SuiteGreen=false
 - **D4（代价面补句）**：代价面 a) 措辞扩「纯 html/css/javascript/typescript 弱前端证据类简历→backend/general」叶变更（与 S15 同类）。
 - **P3 关单叙事（席1）**：#133 关单须区分「假歧义已修（弱词污染类）/真歧义 409 冻结待后继『用户选择』刀」——不得称全栈简历已可用。
 - Status: `draft_rev2:pre_exec_dual_PASS`（双席 BOTH PASS·EXEC 授权·蓝本=本 rev2）。
+
+## rev3 409 政策改向（2026-10-10 · 产品审计 #133 验收口径并入·协调方裁定审计胜）
+
+**变化**：本刀 rev2 曾裁定「真歧义 409 冻结（G7S 条款）·待后继用户选择刀」；产品审计 #133 验收与 fix-roadmap 第 0 批 #133 行明确要求：**歧义与 0 叶命中都降级为默认路由（backend/general），不 409**；样本验收升级为 ≥30 份 fixture（Node+TS/Java+测试/Python+算法/Go+gin/纯前端/纯QA/纯算法各 3+「后端+自动化测试」反例），断言后端类样本 candidate_route_undecided 计数=0 且反例不落 qa。
+
+- **R3-1（仲裁改动·解除 G7S 冻结）**：:95-104 仲裁增加降级臂——`{≥2 specific}` 真歧义→decided backend/general（不再 409）；`{}` 零命中→decided backend/general（维持 :99 既有面）。「绝不多桶推断」冻结条款由 G7S 立法改为：**在多桶不可判定时选最大覆盖面桶（general）并携带 degraded 信号**（policy_version v3 强制升版——:23-24 冻结条款按「用户决策凌驾」路径解除，erratum 登记 G7S 语义变更归协调方卷）。
+- **R3-2（#270 反例）**：「后端+自动化测试」不落 qa——测试词已收窄（rev2 已定）+反例样本断言（「自动化测试」单叶 qa、「后端+自动化测试」双叶降级 general 而非 qa——注意：若后端叶（如 java）在场则取 specific 后端叶；两者都无后端叶时 general 胜出 qa——样本断言写死该优先序）。
+- **R3-3（409 退役面）**：interview.service.ts:299-300 candidate_route_undecided throw 路径保留代码（防御性）但 v3 词典+仲裁下结构性不可达（supply 必返 decided）；UI 无需改（409 不再发生）——#250/#251 的 409 文案面归 W1 照做（其他 409 原因仍在：binding_conflict 等）。
+- **R3-4（样本集）**：≥30 份 fixture 落 packages/domain/test/fixtures/candidate-route-samples/（审计验收原文）；§1.2 的 16 份扩充至 30+。
+- **R3-5（审议记录）**：G7S「绝不多桶推断」立法本意=防错路由；审计裁定「409 拒绝启动比泛化路由伤害更大」（用户旅程第 4 断点）——协调方裁定采纳；先前「待后继用户选择刀」条款作废（后继 UI 刀 #259 仍立项但非门槛）。
+- Status: `draft_rev3:pre_exec_dual_PASS_plus_policy_redirect`（EXEC 授权·蓝本=本 rev3；rev2 的 D1-D4 登记项照旧）。
