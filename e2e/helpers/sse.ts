@@ -7,9 +7,9 @@ export function parseSseBuffer(buf: string): SseEvent[] {
   for (const match of buf.matchAll(/^id: (\d+)\nevent: (\w+)\ndata: (.*)$/gm)) {
     out.push({
       seq: Number(match[1]),
-      kind: match[2],
+      kind: match[2]!,
       payload: (() => {
-        try { return JSON.parse(match[3]); } catch { return {}; }
+        try { return JSON.parse(match[3]!); } catch { return {}; }
       })(),
     });
   }

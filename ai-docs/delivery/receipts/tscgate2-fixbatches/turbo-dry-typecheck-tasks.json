@@ -1,0 +1,236 @@
+{
+  "turboVersion": "2.10.0",
+  "monorepo": true,
+  "packages": [
+    "//",
+    "@meetwise/ai-graphs",
+    "@meetwise/ai-runtime",
+    "@meetwise/api",
+    "@meetwise/config",
+    "@meetwise/contracts",
+    "@meetwise/db",
+    "@meetwise/db-mysql",
+    "@meetwise/domain",
+    "@meetwise/qdrant-store",
+    "@meetwise/web",
+    "@meetwise/worker"
+  ],
+  "tasks": [
+    {
+      "taskId": "//#typecheck",
+      "task": "typecheck",
+      "package": "//",
+      "command": "pnpm typecheck:e2e",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      }
+    },
+    {
+      "taskId": "@meetwise/ai-graphs#build",
+      "task": "build",
+      "package": "@meetwise/ai-graphs",
+      "command": "<NONEXISTENT>",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      }
+    },
+    {
+      "taskId": "@meetwise/ai-graphs#typecheck",
+      "task": "typecheck",
+      "package": "@meetwise/ai-graphs",
+      "command": "<NONEXISTENT>",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      }
+    },
+    {
+      "taskId": "@meetwise/ai-runtime#build",
+      "task": "build",
+      "package": "@meetwise/ai-runtime",
+      "command": "<NONEXISTENT>",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      }
+    },
+    {
+      "taskId": "@meetwise/ai-runtime#typecheck",
+      "task": "typecheck",
+      "package": "@meetwise/ai-runtime",
+      "command": "<NONEXISTENT>",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      }
+    },
+    {
+      "taskId": "@meetwise/api#typecheck",
+      "task": "typecheck",
+      "package": "@meetwise/api",
+      "command": "<NONEXISTENT>",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      }
+    },
+    {
+      "taskId": "@meetwise/config#typecheck",
+      "task": "typecheck",
+      "package": "@meetwise/config",
+      "command": "<NONEXISTENT>",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      }
+    },
+    {
+      "taskId": "@meetwise/contracts#build",
+      "task": "build",
+      "package": "@meetwise/contracts",
+      "command": "<NONEXISTENT>",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      }
+    },
+    {
+      "taskId": "@meetwise/contracts#typecheck",
+      "task": "typecheck",
+      "package": "@meetwise/contracts",
+      "command": "<NONEXISTENT>",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      }
+    },
+    {
+      "taskId": "@meetwise/db#build",
+      "task": "build",
+      "package": "@meetwise/db",
+      "command": "<NONEXISTENT>",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      }
+    },
+    {
+      "taskId": "@meetwise/db#typecheck",
+      "task": "typecheck",
+      "package": "@meetwise/db",
+      "command": "<NONEXISTENT>",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      }
+    },
+    {
+      "taskId": "@meetwise/db-mysql#typecheck",
+      "task": "typecheck",
+      "package": "@meetwise/db-mysql",
+      "command": "<NONEXISTENT>",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      }
+    },
+    {
+      "taskId": "@meetwise/domain#build",
+      "task": "build",
+      "package": "@meetwise/domain",
+      "command": "<NONEXISTENT>",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      }
+    },
+    {
+      "taskId": "@meetwise/domain#typecheck",
+      "task": "typecheck",
+      "package": "@meetwise/domain",
+      "command": "<NONEXISTENT>",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      }
+    },
+    {
+      "taskId": "@meetwise/qdrant-store#build",
+      "task": "build",
+      "package": "@meetwise/qdrant-store",
+      "command": "<NONEXISTENT>",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      }
+    },
+    {
+      "taskId": "@meetwise/qdrant-store#typecheck",
+      "task": "typecheck",
+      "package": "@meetwise/qdrant-store",
+      "command": "<NONEXISTENT>",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      }
+    },
+    {
+      "taskId": "@meetwise/web#typecheck",
+      "task": "typecheck",
+      "package": "@meetwise/web",
+      "command": "<NONEXISTENT>",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      }
+    },
+    {
+      "taskId": "@meetwise/worker#typecheck",
+      "task": "typecheck",
+      "package": "@meetwise/worker",
+      "command": "<NONEXISTENT>",
+      "cache": {
+        "local": false,
+        "remote": false,
+        "status": "MISS",
+        "timeSaved": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+# TSCGATE-2 — 四门验收批原值（恰 1 run·unfiltered）
+
+## gate1: tsc -p tsconfig.e2e.json --noEmit
+```
+EXIT=0 (no output)
+```
+
+## gate2: pnpm typecheck:e2e
+```
+
+> meetwise@0.1.0 typecheck:e2e /Users/miaole/Desktop/golucky/meetwise-line-tscgate2
+> tsc -p tsconfig.e2e.json
+
+EXIT=0
+```
+
+## gate3: pnpm e2e-static-guards:check
+```
+
+> meetwise@0.1.0 e2e-static-guards:check /Users/miaole/Desktop/golucky/meetwise-line-tscgate2
+> node scripts/e2e-static-guards.mjs
+
+e2e static guards passed: runners=6 helpers=21 flags=9 aiPaths=6; releaseEvidence=false
+EXIT=0
+```
+
+## gate4: pnpm e2e-platform:check
+```
+
+> meetwise@0.1.0 e2e-platform:check /Users/miaole/Desktop/golucky/meetwise-line-tscgate2
+> node scripts/e2e-platform/check.mjs
+
+{"outcome":"passed_directory_contract_core_boundaries_and_trust","releaseEvidence":false,"aiOutputTrusted":false,"coreBoundaries":"ran","trustGuard":"ran","directoryErrors":0,"trustErrors":0,"boundaryErrors":0}
+EXIT=0
+```
+
+## supplement (blueprint §4): pnpm e2e-helpers:prove
+```
+
+> meetwise@0.1.0 e2e-helpers:prove /Users/miaole/Desktop/golucky/meetwise-line-tscgate2
+> node --import tsx e2e/helpers/e2e-helpers.proof.ts
+
+PASS e2e-helpers: signupOrLogin 空凭据只做输入守卫，不发明令牌
+PASS e2e-helpers: signup 200 无 token 不回落到 login，也不用 body.userId
+PASS e2e-helpers: signup 非 200 才 login，令牌只取自 login JSON
+PASS e2e-helpers: signup 200 非空 token 原样返回，零次 login，role 只在注册体
+PASS e2e-helpers: question identity 拒绝缺失字段，不接受客户端伪造半截身份
+PASS e2e-helpers: question identity 拒绝非规范 id 与内嵌字段漂移（伪造/弱绑定）
+PASS e2e-helpers: answerBody 绑定服务端身份 + 答案哈希，不另造 questionId
+PASS e2e-helpers: SSE 解析只接受 id/event/data 三行，坏 JSON 变成空对象而不是抛穿
+PASS e2e-helpers: 终态集合包含成功报告与舱壁失败，不能只认任意非空事件
+PASS e2e-helpers: 支付 webhook HMAC 绑定 orderId:txn:paid，换单/换流水/换事件都不能复用签名
+PASS e2e-helpers: OCR fixture 是可读 PNG 且源码含合成手机号哨兵，不是任意字节贴 image/png
+PASS e2e-helpers: uidFromToken 正例走 domain signToken，三节 JWT 即使 header/payload 都带 uid 也不认
+PASS e2e-helpers: createOrder/payWebhook/entitlement 走对应 path+method，HMAC 用独立 createHmac 核对，错签不代签
+PASS e2e-helpers: full.e2e 源码锁：入账必须 200 且 credited|already，错签 403，未知单 404
+PASS e2e-helpers: resume helper 只封装同意/文本/图片/画像，不打日志、不引用 apps/web
+PASS e2e-helpers: 失败分类区分缺 Key、假服务、越权、供应商，未知 5xx 与裸 403 不洗成 BLOCKED
+PASS e2e-helpers: progress 不得携带 numeric score/overall，否则视为伪造分数
+PASS e2e-helpers: answer_evaluated.score 只作 practice_hint，缺身份则失败，不升格 B 端分
+PASS e2e-helpers: conclude/probe 只接受服务端枚举；缺出处不发明，伪造 reason/mode 失败
+PASS e2e-helpers: inspectInterviewProvenance 聚合服务端出处，拒绝 progress 伪造分与无身份评分
+PASS e2e-helpers: P0 review: 不信任 AI 题面/分数/progress；progress 不能当 identity 或 conclude
+PASS e2e-helpers: 多轮不封顶：10 轮仍只信服务端 identity，不把 AI 分当 B 端分
+PASS e2e-helpers: failure ledger 只有 7 个封闭 class，schema 拒绝未知 class / 多余字段 / 不透明 code
+PASS e2e-helpers: classify 识别已知 runner/helper code，拒绝只写 E2E 失败
+E2E_REVIEW class=worker code=report_unavailable
+E2E_REVIEW class=worker code=report_unavailable
+E2E_REVIEW class=worker code=quiz_ready
+E2E_REVIEW class=worker code=quiz_ready
+E2E_REVIEW_SUMMARY count=2
+E2E_REVIEW_SUMMARY count=2
+PASS e2e-helpers: AI/system 终态必须入账，未分类终态与空 review 不能当通过
+PASS e2e-helpers: 隔离 HTTP 绿结果必须有可复核 AI/system ledger，opaque pass 不得 accept
+PASS e2e-helpers proof: 26 scenarios; releaseEvidence=false
+EXIT=0
+```
