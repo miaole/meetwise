@@ -39,7 +39,7 @@ export class ResumeController {
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.ACCEPTED)   // S1 软删受理（UNSTUB-ERASE rev2）：202+mode:logical+purgePending,非完成态
   remove(@Param('id') id: string, @Req() req: any) {
     return this.resumes.remove(req.principal, id);
   }

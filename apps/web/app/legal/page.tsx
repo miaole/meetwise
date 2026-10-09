@@ -41,7 +41,7 @@ export default function LegalPage() {
           <CardHeader><CardTitle className="text-lg">未开放的事项</CardTitle></CardHeader>
           <CardContent>
             <ul className="list-disc space-y-1.5 pl-5 text-sm leading-relaxed">
-              <li>完整删除、撤回同意、跨存储删除回执、外部处理方回执和留存周期承诺尚未开放。</li>
+              <li>删除/注销受理即时生效（立即停止处理与访问）；跨存储清除回执异步完成，外部处理方回执与留存周期承诺仍在异步流程闭环前保持如实未完成状态。</li>
               <li>支付、购买、退款、自动扣费和自动招聘决定尚未开放。</li>
               <li>在这些能力完成独立验证前，本站不会受理或伪装完成相关请求。</li>
             </ul>
