@@ -25,7 +25,7 @@ import {
   runAuthorizedInterviewErasure, loadRequestStatus, loadRequestTargets,
   reassessRequestStatus, attachExternalRetentionPendingTargets, type Uc052ErasureTarget,
 } from '../src/uc052-internal-erasure.ts';
-import { beginInterviewProjectionErasure } from '../src/int-transcript-projection.ts';
+import { beginInterviewProjectionErasure } from '../src/transcript/int-transcript-projection.ts';
 import { recordDeletionReceipt, resolveDeletionReceipt } from '../src/privacy-authorization.ts';
 
 const REQUIRED_CASES = [

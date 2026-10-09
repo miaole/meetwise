@@ -12,7 +12,7 @@ import type { Client, DbPool } from './principal.ts';
 type Sql = DbPool | Client;
 import {
   purgeInterviewProjectionTarget,
-} from './int-transcript-projection.ts';
+} from './transcript/int-transcript-projection.ts';
 import {
   claimAuthorizationTarget,
   consumeAuthorizationSnapshotBound,

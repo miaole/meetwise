@@ -20,7 +20,7 @@
  *   - 授权防伪造：调用方不能自报 owner/scope；owner 恒取自 app.principal_user，claim 由
  *     冻结代码重验 owner/scope/subject/epoch/活 digest。
  */
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 
 export interface InterviewProjectionErasureTarget {
   // checkpoint_rows 是 fence 锚（0096 Section C：sink='checkpoint_rows'、status='erased'、

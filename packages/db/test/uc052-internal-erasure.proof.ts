@@ -20,7 +20,7 @@ import {
 } from '../src/uc052-internal-erasure.ts';
 import {
   beginInterviewProjectionErasure, purgeInterviewProjectionTarget,
-} from '../src/int-transcript-projection.ts';
+} from '../src/transcript/int-transcript-projection.ts';
 import {
   issueAuthorizationSnapshot, consumeAuthorizationSnapshotBound, claimAuthorizationTarget,
 } from '../src/privacy-authorization.ts';

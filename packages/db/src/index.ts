@@ -306,19 +306,19 @@ export {
   assertInterviewAnswerFactActive, beginInterviewAnswerFactErasure,
   listClaimableInterviewAnswerArtifactTargets, purgeInterviewAnswerArtifactTarget,
   answerBodyHmac, INTERVIEW_ANSWER_KEY_VERSION,
-} from './int-transcript.ts';
+} from './transcript/int-transcript.ts';
 export type {
   SubmitInterviewAnswerInput, InterviewAnswerSubmitResult, InterviewAnswerSubmissionReceipt,
   InterviewAnswerViewItem, InterviewAnswerViewSnapshot, InterviewAnswerFactErasureRequest,
-} from './int-transcript.ts';
+} from './transcript/int-transcript.ts';
 
 // 答案事实根之外的剩余 sink（INT-TRANSCRIPT-01）：event + report 的删除 resolver/purge
 export {
   beginInterviewProjectionErasure, listClaimableInterviewProjectionTargets, purgeInterviewProjectionTarget,
-} from './int-transcript-projection.ts';
+} from './transcript/int-transcript-projection.ts';
 export type {
   InterviewProjectionErasureTarget, InterviewProjectionErasureRequest,
-} from './int-transcript-projection.ts';
+} from './transcript/int-transcript-projection.ts';
 
 // RAG-FUNNEL-02A 规范投影（generation chunk + serving_scope annotation + question attachment 的 metadata-only 数据面，
 // 供 04 做 track-local 过滤；无正文、无模型依赖、无新 SECURITY DEFINER）。
