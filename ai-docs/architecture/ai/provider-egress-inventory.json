@@ -111,6 +111,14 @@
           "class": "local-adapter-test"
         },
         {
+          "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/g7-freetier-reprove-client.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
           "source": "packages/ai-runtime/test/model-client-output-limit.proof.ts",
           "class": "local-adapter-test"
         },
@@ -193,6 +201,14 @@
           "class": "local-adapter-test"
         },
         {
+          "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/g7-freetier-reprove-paths.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
           "source": "apps/worker/test/qbank-retrieval-eval-pg.proof.ts",
           "class": "local-adapter-test"
         }
@@ -232,6 +248,14 @@
         },
         {
           "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/g7-freetier-reprove-paths.proof.ts",
           "class": "local-adapter-test"
         },
         {
@@ -280,6 +304,14 @@
           "class": "local-adapter-test"
         },
         {
+          "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/g7-freetier-reprove-paths.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
           "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
           "class": "local-adapter-test"
         }
@@ -308,6 +340,14 @@
       "consumers": [
         {
           "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/g7-freetier-reprove-paths.proof.ts",
           "class": "local-adapter-test"
         },
         {
@@ -376,6 +416,21 @@
       "class": "test-isolation"
     },
     {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "apps/api/test/uc-e2e-028-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "packages/ai-runtime/test/gap-rag05-classifier.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "scripts/g7-freetier/redact-gap-evidence.mjs",
+      "class": "test-isolation"
+    },
+    {
       "name": "DASHSCOPE_ASR_API_KEY_FINGERPRINT",
       "source": "packages/ai-runtime/src/dashscope-native-config.ts",
       "class": "adapter-configuration"
@@ -419,6 +474,11 @@
       "name": "DASHSCOPE_ASR_API_KEY",
       "source": "packages/ai-runtime/test/interview-voice-seams.proof.ts",
       "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_ASR_API_KEY",
+      "source": "apps/web/e2e-ui/voice-duplex.spec.ts",
+      "class": "manual-live-smoke"
     },
     {
       "name": "DASHSCOPE_ASR_MODEL",
@@ -468,6 +528,11 @@
     {
       "name": "DASHSCOPE_COMPAT_BASE_URL",
       "source": "packages/ai-runtime/test/interview-voice-seams.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_COMPAT_BASE_URL",
+      "source": "packages/ai-runtime/test/gap-rag05-classifier.proof.ts",
       "class": "test-isolation"
     },
     {
@@ -901,6 +966,11 @@
       "class": "test-isolation"
     },
     {
+      "name": "DASHSCOPE_TTS_API_KEY",
+      "source": "apps/web/e2e-ui/voice-duplex.spec.ts",
+      "class": "manual-live-smoke"
+    },
+    {
       "name": "DASHSCOPE_TTS_MODEL",
       "source": "packages/ai-runtime/src/voice.ts",
       "class": "adapter"
@@ -989,6 +1059,11 @@
       "name": "DASHSCOPE_VISION_API_KEY",
       "source": "packages/ai-runtime/test/vision-endpoint-config.proof.ts",
       "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_VISION_API_KEY",
+      "source": "scripts/e2e-live-capability-env.mjs",
+      "class": "live-test-launcher"
     },
     {
       "name": "DASHSCOPE_VISION_MODEL",
@@ -1296,6 +1371,131 @@
       "class": "test-isolation"
     },
     {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/godfn-1c-begin-guard-merge.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-001-nhp-adv.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-001-nhp-bound.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-001-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-001-nhp-neg.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-004-career-path-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-011-adv-refund-callback.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-025-nhp-bound.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-025-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-028-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/web/e2e-ui/voice-duplex.spec.ts",
+      "class": "manual-live-smoke"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-p-meta-ms2-facets-product.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-p-meta-ms3-deploy-product.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/uc-e2e-016-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/src/g7-freetier-reprove-guard.ts",
+      "class": "test-only-guard"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/g7-freetier-reprove-client.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/g7-freetier-reprove-guard.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/g7-freetier-reprove-paths.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/gap-rag05-classifier.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/uc-e2e-017-nhp-load.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/uc052-external-sink-async-purge.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/uc052-external-sink-retention.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/e2e-live-capability-env.mjs",
+      "class": "live-test-launcher"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/g7-freetier/redact-gap-evidence.mjs",
+      "class": "test-isolation"
+    },
+    {
       "name": "MODEL_BACKUP_API_KEY_FINGERPRINT",
       "source": "packages/ai-runtime/src/text-endpoint-config.ts",
       "class": "adapter-configuration"
@@ -1476,6 +1676,46 @@
       "class": "deployment-contract"
     },
     {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/godfn-1c-begin-guard-merge.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-001-nhp-adv.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-001-nhp-bound.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-001-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-001-nhp-neg.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-004-career-path-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-025-nhp-bound.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-025-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
       "name": "MODEL_ENDPOINT_PROFILE",
       "source": "packages/ai-runtime/src/text-endpoint-config.ts",
       "class": "adapter-configuration"
@@ -1502,8 +1742,28 @@
     },
     {
       "name": "MODEL_ENDPOINT_PROFILE",
+<<<<<<< HEAD
       "source": "scripts/tokstream-s2-probe.mjs",
       "class": "manual-live-smoke"
+=======
+      "source": "packages/ai-runtime/src/g7-freetier-reprove-guard.ts",
+      "class": "test-only-guard"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/g7-freetier-reprove-client.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "scripts/e2e-live-capability-env.mjs",
+      "class": "live-test-launcher"
+>>>>>>> a175b02a (code(egress1): EXEC — provider-egress 清算刀落地 (REQUEST rev2 @0790e541 唯一蓝本·worktree line/provider-egress-ledger·零产品码) · ①manifest environmentReferences +46 对 (MODEL_API_KEY×25/MODEL_BASE_URL×8/MODEL_ENDPOINT_PROFILE×4/DASHSCOPE_API_KEY×3/MODEL_TEST_TRANSPORT_OVERRIDES×2/DASHSCOPE_ASR·TTS·VISION_API_KEY/DASHSCOPE_COMPAT_BASE_URL 各×1·25 文件逐条 file:line 证据入收据·class 遵既有 246 条税表: test-isolation×30/test-fixture×8/manual-live-smoke×3/live-test-launcher×3/test-only-guard×2·亲读归类) · ②adapters[].consumers +10 对 (g7-freetier-fix-round2×5+reprove-paths×4+reprove-client×1 五工厂直调·class=local-adapter-test·逐一亲读确证假 transport: fetch 桩 reprove-client:95/117/150+fix-round2:137/241·g7_path_disabled 六路 fail-closed reprove-paths:102-137) · ③proof.mjs:31 单行 33→43 机械跟进 (486e1fad 同型·diff 亲证恰 1 行·其余断言零改) · ④g7-freetier-reprove-guard.ts 源码零 diff 仅 manifest 申报 class=test-only-guard (model-client.ts:382 g7 门控+guard :275-277 指纹-only·循 dashscope-native-config.ts:137-141 先例) · ⑤验收: pnpm provider-egress:prove EXIT=0 主线首绿 7/7 · manifest diff 270 行纯增 0 删 0 改 (既有 246 条零漂移亲证·apps/packages src 零 diff) · node --check 双脚本 OK · est live 模型调用=0 (name-only·零 .env 写) · 双席化妆级残留落 harness (标题旧值 64/~40→实数 56/25/9·Ban 括注 proof.mjs:31 豁免) · pins 十一值照抄 (haStatus=NOT_HA·releaseEvidence=false·claimProductionHA=false·gR45Closed=true·coveredCount=8·ms3EqualsR4Closed=false·PG-retained·公开 DELETE=503·g7SuiteGreen=false·r1Closed=false) +脚注 actualSpendCny=null · 收据 ai-docs/delivery/receipts/egress-ledger/2026-10-07-exec-receipt.md · harness → exec:awaiting_post_prove_dual · STOP · Ban self-approve · 席位 mw-core)
     },
     {
       "name": "MODEL_REVOKED_KEY_FINGERPRINTS",
@@ -1553,6 +1813,16 @@
     {
       "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
       "source": "packages/ai-runtime/test/model-client-dispatch.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/g7-freetier-reprove-client.proof.ts",
       "class": "test-fixture"
     },
     {
