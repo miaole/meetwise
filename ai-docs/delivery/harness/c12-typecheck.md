@@ -1,6 +1,6 @@
 # C1/C2 — turbo typecheck 按包点亮刀（NEXT-NODE C1 lint 门 + C2 tsc --noEmit 进 CI 含 e2e/）
 
-**状态**：`draft_rev2:awaiting_pre_exec_dual`（rev2 席1 FAIL 三处方：e2e 不点亮收窄 web+contracts 两包先行·七包排除清单补列·turbo dry=json 判据·C2 不勾销改「三域就绪 CI 另刀后方勾销」） · base = 主线 tip · 分支 `line/c1c2-typecheck` · 立项依据 = TSC-GATE-1 nail C1/C2 落地路径终评可行（turbo.json:6 typecheck 任务空挂全库零实现·apps include 模式可复制·e2e 域先行红面最小·NEXT-NODE-BEST-PRACTICES.md C1 ❌ C2 ❌）+ TSCGATE-2 rev2 e2e 域先行门禁先例。
+**状态**：`exec:awaiting_post_prove_dual`（EXEC 已落 @ `e1190c96`：web+contracts 两包 typecheck script 点亮 · 零产品码 src diff · 三验收门全 EXIT=0 + e2e-platform:check EXIT=0 · turbo dry=json 选择面恰两包亲证 · 收据 `ai-docs/delivery/receipts/c12-typecheck/00-exec-receipt.md` · erratum：未点亮实为 9 包（config/db-mysql 非标准面未计红）· STOP awaiting post-prove dual · Ban self-approve；前态 `draft_rev2:awaiting_pre_exec_dual`（rev2 席1 FAIL 三处方：e2e 不点亮收窄 web+contracts 两包先行·七包排除清单补列·turbo dry=json 判据·C2 不勾销改「三域就绪 CI 另刀后方勾销」）） · base = 主线 tip · 分支 `line/c1c2-typecheck` · 立项依据 = TSC-GATE-1 nail C1/C2 落地路径终评可行（turbo.json:6 typecheck 任务空挂全库零实现·apps include 模式可复制·e2e 域先行红面最小·NEXT-NODE-BEST-PRACTICES.md C1 ❌ C2 ❌）+ TSCGATE-2 rev2 e2e 域先行门禁先例。
 
 ## 1. 修法（按包渐进点亮·零逻辑变更·零产品码 src 修改）
 - **e2e 包：不点亮**（rev2·席1 FAIL 处方——TSCGATE-2 rev2 仅 REQUEST rev2 无 EXEC·e2e 域亲测 10 错首日红）——**收窄为 web+contracts 两包先行**，e2e 待 TSCGATE-2 EXEC 落地后补刀；
