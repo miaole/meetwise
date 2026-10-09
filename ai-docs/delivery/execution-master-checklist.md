@@ -2163,3 +2163,12 @@ flowchart TD
 - [ ] **STILL OPEN**：S2（40c 完成判据切换+去桩+读侧+#103）·#20 验收 E2E·#204·#229·trio 三绿·`g7SuiteGreen=false` 维持.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · S1 ≠ #20 验收 ≠ 评分体系完成 · 实现方不 self-approve.
+### Line DEPS-AUDIT S1 依赖升级切片 NAIL（2026-10-10 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · critical 3→0·点名五包清零（next 15.5.27 精确 pin/fastify 5.12.5 根 overrides 定点/xmldom 0.8.15 纯 lockfile/multer 2.4.0 经 platform-express 11.2.7 载体/proxy-addr 2.0.8）·剩余 25 条如实留档）
+
+- Pins unchanged（蓝图 §6 verbatim·十一值）.
+- [x] **`post_prove_dual_pass`** recorded（EXEC `2acf92c3`·REQUEST @347a31eb rev2 唯一蓝本·nail tip 本 commit · branch `line/extrev-deps-aud`）· **双审 BOTH PASS**：席1 mw-e2e-ha PASS（三判断全裁最小解：override 恰 1 键=nest12 官方配对非自选·multer 载体 diff 依赖面仅 multer 一项差异·next 精确 pin 防 15.6.x 漂；live audit 复跑三方全等；A1 craftDocx 零新依赖亲读）+ 席2 mw-model-op PASS（A1 真 zip 字节流独立复跑 25 断言·A3 前后锚逐位复现·POST 25 条异样抽 5 全中·lockfile 集差 removed20/added18 零内容变更·记账无虚称）· 协调方正式授权本 nail.
+- **义务登记（席1 两处方+席2 A2 顺延·随 S2/S3 执行）**：①nest12 升级刀 trigger=@nestjs/platform-fastify≥12 落地时移除根 pnpm.overrides.fastify 并复跑 audit（REQUEST 已 append 一行）；②A2（守卫上限值锚）为 S3 头号义务显式化；③platform-fastify <11.2.4 与 fast-uri（经 ajv-compiler 并行版 4.2.1·解除非点名 Ban 时先核范围约束）列 S2/Renovate 首批。
+- **Erratum-S1D1（席2 四 nits）**：multer 括注子集读法·「19→18」计数笔误·「<5.5.12.5」系 <5.12.5 笔误·xmldom「8 high 全部需 ≥0.8.15」略松（2 条 0.8.14 即修·包级最小 0.8.15 仍正确）——记账笔误不动数据。
+- [ ] **STILL OPEN**：S2（CI audit 门+Renovate·在飞）·S3（#107 守卫四件+A2 上限锚）·#107/#108/#109 系.
+- 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · S1 ≠ 全清（high 18 如实留档） · 实现方不 self-approve.
