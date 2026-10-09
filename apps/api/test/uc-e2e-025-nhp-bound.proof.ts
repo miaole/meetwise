@@ -9,7 +9,7 @@
  *
  * Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false
  * gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false
- * PG-retained · public DELETE stays 503 · canHonestlyFlip=false
+ * PG-retained · interview DELETE closed(503)·resume/account DELETE=202 软删受理(purge_pending) · canHonestlyFlip=false
  *
  * Not NEG (B'' stale_quiz is CLOSED and frozen; NEG EXIT0 is not BOUND evidence).
  * Not FAULT. Not ADV. Not UC-E2E-018/052/004. Does not edit the coverage matrix or
@@ -46,7 +46,7 @@ const A = (name: string, cond: boolean, detail = '') => {
 };
 
 console.log('UC-E2E-025 NHP-025-BOUND-01 resumeVersion pin mismatch at interview begin (BOUND column only)');
-console.log('releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · DELETE=503');
+console.log('releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · DELETE=202 软删受理(purge_pending)');
 console.log('Not NEG (frozen) · Not FAULT · Not ADV · no nail · matrix not edited\n');
 
 // ── S: static inventory ─────────────────────────────────────────────

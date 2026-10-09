@@ -13,7 +13,7 @@
  *
  * Pins written into the receipt: NOT_HA, releaseEvidence=false,
  * claimProductionHA=false, gR45Closed=true, coveredCountRetained=8,
- * ms3EqualsR4Closed=false, PG-retained, public DELETE 503.
+ * ms3EqualsR4Closed=false, PG-retained, interview DELETE closed(503)·resume/account DELETE=202 软删受理(purge_pending).
  * This run does not mark UC-018 covered.
  */
 import { createHash } from 'node:crypto';

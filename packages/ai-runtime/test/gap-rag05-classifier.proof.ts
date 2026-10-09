@@ -19,7 +19,7 @@
  *      误路由/P95/成本**实测**留 Stage L——本 proof 不证模型语义质量，EXIT0 ≠ 语义质量冻结）
  *
  * Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true ·
- * coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503 · EXIT0 ≠ GAP-RAG-05
+ * coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=202 软删受理(purge_pending) · EXIT0 ≠ GAP-RAG-05
  * `:73` CLOSED ≠ covered flip ≠ `:70`/`:71` close ≠ router 生产接线 ≠ 替代 R4 ≠ HA。
  */
 import {

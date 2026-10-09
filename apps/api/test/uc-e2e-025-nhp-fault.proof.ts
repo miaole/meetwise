@@ -12,7 +12,7 @@
  *
  * Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false
  * gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false
- * PG-retained · public DELETE stays 503 · canHonestlyFlip=false
+ * PG-retained · interview DELETE closed(503)·resume/account DELETE=202 软删受理(purge_pending) · canHonestlyFlip=false
  *
  * Not NEG (B'' stale_quiz CLOSED frozen; Ban wash). Not BOUND (W nailed evidence;
  * Ban wash). Not ADV. Not UC-E2E-018/052/004. Does not edit coverage matrix / SSOT.
@@ -50,7 +50,7 @@ const A = (name: string, cond: boolean, detail = '') => {
 };
 
 console.log('UC-E2E-025 NHP-025-FAULT-01 missing/NULL expires_at fail-closed (FAULT column only)');
-console.log('releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · DELETE=503');
+console.log('releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · DELETE=202 软删受理(purge_pending)');
 console.log('Not NEG (frozen) · Not BOUND (Ban wash) · Not ADV · no nail · matrix not edited');
 console.log('EVIDENCE_SHAPE  in-process + fake DB · ≠ isolated PG/HTTP E2E · ≠ covered\n');
 

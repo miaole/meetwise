@@ -6,7 +6,7 @@
  *
  * HARD:
  *   - recall=0 + receipt ≠ 0091 ledger aligned (G5 still GAP)
- *   - ≠ fake public DELETE 200/202 (product path still 503)
+ *   - ≠ fake DELETE-path completion (interview closed 503 · resume/account=202 软删受理(purge_pending))
  *   - releaseEvidence=false · Not HA · 本绿 ≠ 已迁 · 不切向量真相
  *
  * Harness: ai-docs/delivery/harness/qdrant-g5-erasure-ledger.md
@@ -95,8 +95,8 @@ async function main() {
       pass('harness pins G5 still GAP (recall=0+receipt ≠ 0091)');
     } else fail('harness must pin G5 still GAP: recall=0+receipt ≠ 0091');
     if (/503/.test(h) && (/DELETE/.test(h) || /公开/.test(h))) {
-      pass('harness pins public DELETE still 503 (no invented success)');
-    } else fail('harness must pin public DELETE still 503');
+      pass('harness pins interview DELETE still 503 closed · resume/account DELETE=202 软删受理(purge_pending) (no invented success)');
+    } else fail('harness must pin interview DELETE still 503 closed · resume/account DELETE=202 软删受理(purge_pending)');
     if (/Inventory|inventory/.test(h) && /erase-honesty/.test(h) && /skeleton/.test(h)) {
       pass('harness inventories skeleton + erase-honesty proves');
     } else fail('harness must inventory existing erase proves');
@@ -166,12 +166,12 @@ async function main() {
     }
     if (
       /deleteResumeData/.test(ps) &&
-      /SERVICE_UNAVAILABLE|HttpStatus\.SERVICE_UNAVAILABLE/.test(ps) &&
-      /resume_erasure_migration_in_progress/.test(ps)
+      /purgePending:\s*true\s+as\s+const/.test(ps) &&
+      /mode:\s*'logical'\s+as\s+const/.test(ps)
     ) {
-      pass('privacy.service deleteResumeData still 503 fail-closed');
+      pass('privacy.service deleteResumeData = 202 软删受理 (purgePending literal-pinned, ≠ physical completion)');
     } else {
-      fail('privacy.service must keep deleteResumeData 503');
+      fail('privacy.service deleteResumeData must pin 202 软删受理 (mode=logical + purgePending=true)');
     }
   }
 
@@ -342,7 +342,7 @@ async function main() {
   } else fail('batchDigestForIds must be sorted-unique stable sha256');
 
   note('COVERED (this prove): subject-scoped Qdrant erase + countable receipt + recall=0 when EXIT=0');
-  note('STILL-GAP G5: recall=0+receipt ≠ 0091 privacy_deletion_receipt / ledger; public DELETE still 503');
+  note('STILL-GAP G5: recall=0+receipt ≠ 0091 privacy_deletion_receipt / ledger; interview DELETE still 503 closed · resume/account DELETE=202 软删受理(purge_pending)');
   note('releaseEvidence=false; Not HA; ≠ privacy covered; ≠ DELETE 200/202; ≠ cutover; 不切向量真相');
   finish();
 }

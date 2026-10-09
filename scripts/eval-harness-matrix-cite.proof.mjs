@@ -18,7 +18,7 @@ const units = [
     evalDoc: 'ai-docs/delivery/eval/privacy-erasure-http-503-pin.eval.md',
     rowIds: ['UC-E2E-050–052', 'PRIVACY-HTTP', 'GAP-PRIV-02', 'BUG-PRIV-503'],
     mustPins: [
-      [/DELETE\s*=\s*503|DELETE.*503/i, 'DELETE=503'],
+      [/DELETE\s*=\s*503|DELETE.*503/i, 'DELETE=202 软删受理(purge_pending) supersession window'],
       [/本绿\s*≠\s*产品删除闭环/, '本绿≠产品删除闭环'],
       [/privacy-erasure:http:prove/, 'lists privacy-erasure:http:prove'],
       [/releaseEvidence\s*=\s*false/i, 'releaseEvidence=false'],
