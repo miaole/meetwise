@@ -14,7 +14,7 @@
  *     同 digest → 同 firstKeptEventId（重放一致性）。
  *   - claim 无法回溯 → draft 拒（不落半写）/ activate 丢（返回 null），零模型补全。
  */
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 import type { CompressionSnapshotStatus, SummaryClaim } from '@meetwise/domain';
 
 function fail(code: string): never { throw Object.assign(new Error(code), { code }); }

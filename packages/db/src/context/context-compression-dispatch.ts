@@ -15,7 +15,7 @@
  *   seam-before-wiring）、四原语本体（复用 0115/0108 的 CAS 模式 + acquireLease 的过期可抢占模式，
  *   绑定本表而非 ai_graph_run）。
  */
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 import type { CompressionDispatchStatus } from '@meetwise/domain';
 
 function fail(code: string): never { throw Object.assign(new Error(code), { code }); }

@@ -13,7 +13,7 @@
  *   - `context_compression_snapshot`：有 fenced/purged 状态 → 完整 fence→purge→物理 DELETE。
  *   - `context_compression_dispatch`：无 fenced/purged 状态 → 不 fence、purge=纯物理 DELETE。
  */
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 
 function fail(code: string): never { throw Object.assign(new Error(code), { code }); }
 
