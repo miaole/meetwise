@@ -31,7 +31,7 @@
 | A2 | 现行 text 调用=非流式 | `packages/ai-runtime/src/model-client.ts:395`（chatUrl）·`:403`（dispatchOnce 一次性 JSON POST） | body 零 `stream` 字段；S2 立项事实在本分支仍成立 |
 | A3 | 供应商流式能力（S2 实测） | `receipts/tokstream-s2-probe/2026-10-07/probe-b.json` · `stitch-compare.json` | B_PASS：TTFT 274ms · 17 chunks/13 非空 delta · 间隔 1–153ms · stop+空 choices usage chunk+[DONE] 三联终结 · T0 归一化全等（A/B sha 同符）· pinnedParams temperature=0/seed=42 |
 | A4 | 错误前置（S2 实测） | `.../probe-c.json` | 404 model_not_found **HTTP 前置** 225ms · 零流字节 · 生成前即拒零计费 |
-| A5 | SSE 泵 | `apps/api/src/platform/sse-pump.ts:46`（pumpSseEvents）·`:66`（10min deadline）·`:87-90`（ping/取数失败收尾即断） | 行泵单源化（B5 四件套）·notify `waitFor(streamKey)` race 兜底 poll·emit=`id: seq / event: kind / data: JSON` |
+| A5 | SSE 泵 | `apps/api/src/platform/sse-pump.ts:53`（pumpSseEvents）·`:66`（10min deadline）·`:87-90`（ping/取数失败收尾即断） | 行泵单源化（B5 四件套）·notify `waitFor(streamKey)` race 兜底 poll·emit=`id: seq / event: kind / data: JSON` |
 | A6 | SSE 端点 | `apps/api/src/modules/interview/interview.controller.ts:253-272` | GET `:id/events` · `last-event-id` 头 · per-principal 槽 ≤5（`acquireSlot` 429 too_many_streams）·isTerminal=report_ready/report_unavailable/assessment_unavailable/interview_unavailable/error 五 kind |
 | A7 | 通知通道 | `apps/api/src/platform/sse-notify.service.ts:28-29`（channel/trigger 名）·`packages/db/migrations/0143_sse_push_notify.sql:26`（`pg_notify('interview_event_ch', NEW.stream_key)`） | 现通道载荷=**仅 stream_key**（lossy hint·零内容）·单例 LISTEN 禁每 SSE 一连接（`:24`）·健康面=LISTEN 在位+trigger 在场 |
 | A8 | 事件持久原语 | `packages/db/src/interview-event.ts:16`（appendEvent）·`:24-28`（0126 raw-answer 围栏） | seq=同 stream MAX+1 advisory 事务锁原子分配 · event_key 幂等（重复返回既有 seq） |
@@ -41,7 +41,7 @@
 | A12 | 关口不变面 | `packages/ai-runtime/src/invoke.ts:135`（idempotencyKey）·`:19`（doubleValidate）·`:346-390`（claim/usage 落账） | durable claim/计费/双校验链**不可旁路**（阶段0 Ban 8 承接） |
 | A13 | 事件目录 SSOT | `CLAUDE.md:54` | 「frontend consumes business events over SSE, **not model tokens**」——阶段2 落地将改变该句语义；其更新登记为 S4c/d 实施刀内事项（本刀零触 SSOT） |
 | A14 | 模型期限面 | `packages/ai-runtime/src/model-client.ts:422`（`resolveModelDeadlineConfig().transportTimeoutMs`） | 现行 35s/30s 级模型期限；流式通道期限设计见 §E-③ |
-| A15 | Redis 存在性 | `apps/worker/package.json` / `apps/api/package.json`（grep ioredis/Redis 零命中） | api/worker 运行时**无 Redis 依赖**——传输面选型排除 Redis Streams 作批1方案（§C T-B 仅登记演进） |
+A15: api 运行时零 Redis（grep 零命中·无 provider 依赖）；**worker 半边更正（post-dual 席1 亲证）**：worker/package.json:137 `"redis": "catalog:"` 位于 dependencies 且 main.ts:45/:48 运行时 import rag-redis-cache.ts/qbank-embedding-compute-seams.ts——T-A 排除理由重锚至 **api 侧零 Redis+第二运维面**（批1 排除 Redis 约束在 api 消费侧仍真·结论不受影响但拒绝理由须改写）
 
 ## §B 数据流图（席1 处方：worker→api 跨进程跳逐段钉死）
 
@@ -56,7 +56,7 @@
                                 │   token_delta 帧【不带 id】——防 Last-Event-ID 光标毒化 §C-4）
 ┌───────────────────────────────┴──────── api 进程（SSE 消费进程） ───────────────────┐
 │  interview.controller.ts:253  GET :id/events（槽≤5·429·404 前置）                    │
-│  pumpSseEvents(sse-pump.ts:46)                                                      │
+│  pumpSseEvents(sse-pump.ts:53)                                                      │
 │   ├ 行泵（既有·语义零改）：fetchMore(seq>) ← interview_event 权威行 → emit(id/kind/data) │
 │   │   ·10min deadline(:66)·ping 保活·终态即收                                       │
 │   └ delta 臂（S4c 新增）：interview_token_ch LISTEN（复用 sse-notify.ts:24 单例连接·   │
@@ -95,7 +95,7 @@
 
 ## §C 传输面设计（增量内容帧不落持久表——阶段0 裁定承接）
 
-**C-1 选型**：**T-A（primary）= PG LISTEN/NOTIFY 专用通道 `interview_token_ch`**。理由：api/worker 运行时零新基建（A15·Redis 不在依赖面）；复用 `sse-notify.service.ts` 单例 LISTEN 连接形态（同连接第二通道·`:24` 禁每 SSE 一连接纪律不破）；worker 侧本有 PG pool（appendEvent 同事务外旁路 `pg_notify`）。**T-B（仅登记演进）= Redis Streams 有界环**（XADD/MAXLEN/XREAD·跨 api 重启短暂回放）：批1 不选——新基建+新运维面，且非权威语义下回放价值低（终态兜底已足）。
+A15: api 运行时零 Redis（grep 零命中·无 provider 依赖）；**worker 半边更正（post-dual 席1 亲证）**：worker/package.json:137 `"redis": "catalog:"` 位于 dependencies 且 main.ts:45/:48 运行时 import rag-redis-cache.ts/qbank-embedding-compute-seams.ts——T-A 排除理由重锚至 **api 侧零 Redis+第二运维面**（批1 排除 Redis 约束在 api 消费侧仍真·结论不受影响但拒绝理由须改写）
 
 **C-2 帧契约**：`{v:1, streamKey, attemptKey, seq, text, coalesced?}`。`seq` 为 (streamKey, attemptKey) 内自 1 单调递增（worker 单写者——invoke 幂等 claim 保证单飞；A12）。L1 合帧后单帧 `text` 字节 ≤4KB（NOTIFY 载荷上限 8KB 的安全半幅）；超长 delta 在观察缝内**码点安全切分**（沿 `model-client.ts:115` codepointSafeSlice 同型，绝不拆孤立代理项）。
 
