@@ -6,7 +6,7 @@
  *   (a) external target forced `erased` (no confirmation / direct-written external_confirmed)
  *       → request must NOT reach `completed` (0091 guard + 0137 tightening · SQLSTATE 55000)
  *   (b) `privacy_resolve_deletion_receipt` without an `external_pending` receipt → 40901 fail-closed
- *   (c) public DELETE stays 503 (service pin here; `privacy-erasure:http:prove` co-recorded same window)
+ *   (c) interview DELETE closed(503)·resume/account DELETE=202 软删受理(purge_pending) (service pin here; `privacy-erasure:http:prove` co-recorded same window)
  * Contract locus = 0091 existing receipt_kind enum + privacy_resolve_deletion_receipt (no new shape).
  *
  * EXIT0 ≠ covered ≠ deletion closed ≠ external purged ≠ open DELETE ≠ HA. Externals stay
@@ -38,7 +38,7 @@ const REQUIRED_CASES = [
   'EXT-NEG-05',    // C-3(b) resolve w/o external_pending (today's retention_pending shape) → 40901
   'EXT-NEG-06',    // C-3(b) resolve on direct-written external_confirmed (not pending) → 40901
   'EXT-POS-01',    // C-4 contract: record external_pending → resolve → external_confirmed audited · target stays retention_pending · request ≠ completed
-  'EXT-DEL-01',    // C-3(c) public DELETE service pin 503 (+ http prove co-recorded separately)
+  'EXT-DEL-01',    // C-3(c) DELETE service pin: interview 503 closed · resume/account=202 软删受理(purge_pending) (+ http prove co-recorded separately)
 ] as const;
 
 const EXTERNAL = ['oss', 'redis', 'langfuse'] as const;
@@ -313,7 +313,7 @@ async function main() {
       `mid=${midStatus} resolvedKind=${resolved.receiptKind} audited=${audited} resolveReq=${resolved.requestStatus} req=${status} externalsStillRp=${extStill} (no confirmer flips target → ≠ completed)`);
   }
 
-  /* ── EXT-DEL-01 (C-3c): public DELETE still 503 (service pin · http prove co-recorded separately) ── */
+  /* ── EXT-DEL-01 (C-3c): interview DELETE still 503 closed · resume/account DELETE=202 软删受理(purge_pending) (service pin · http prove co-recorded separately) ── */
   {
     const id = 'EXT-DEL-01';
     const mod = await import('../../../apps/api/src/modules/privacy/privacy.service.ts');

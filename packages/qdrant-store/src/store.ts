@@ -46,7 +46,7 @@ export class QdrantStore {
 
   /**
    * Subject-scoped erase (G5): delete points with payload owner_user_id=subjectId.
-   * Countable receipt; ≠ 0091 ledger aligned; ≠ public DELETE open.
+   * Countable receipt; ≠ 0091 ledger aligned; ≠ DELETE-path open claim (interview closed 503 · resume/account=202 软删受理(purge_pending)).
    */
   async eraseSubjectPoints(
     subjectId: string,

@@ -113,7 +113,7 @@ const AUDIT_LINE = (cls: string) =>
        ('ADV_C6','advC6','pack_10',9900,10,'created'),
        ('ADV_C7','advC7','pack_10',9900,10,'created')`);
 
-  console.log('PINS: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · row stays gap');
+  console.log('PINS: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=202 软删受理(purge_pending) · row stays gap');
   console.log('EXIT 契约: EXIT 0 ⇔ C1–C7 全立；任一不成立 → EXIT 1 诚实保留 gap。EXIT 0 ≠ 翻行 ≠ covered。');
 
   // ════════════════════════════════════════════════════════════════════════

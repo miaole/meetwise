@@ -26,7 +26,7 @@
  * coveredCount=8 · FAULT stays partial · Ban wash Y/AB/AG · Ban borrow report:prove.
  *
  * Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true ·
- * coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503.
+ * coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · interview DELETE closed(503)·resume/account DELETE=202 软删受理(purge_pending).
  *
  *   pnpm uc001:nhp-fault:prove                 (isolated; MODEL_API_KEY must be absent)
  *   pnpm -C apps/api prove:uc001-nhp-fault     (raw; needs isolated PG env from the runner)
@@ -60,7 +60,7 @@ const A = (name: string, ok: boolean): boolean => {
 const E = (id: string, data: unknown) => console.log(`EVIDENCE ${id} ${JSON.stringify(data)}`);
 
 console.log('NHP-001-FAULT-01 UC-E2E-001 FAULT blind→case prove (F1/F2b/F2/PC/F3 · Ban live · Ban wash Y/AB/AG)');
-console.log('Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503');
+console.log('Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=202 软删受理(purge_pending)');
 console.log('NOTE: EXIT0 = case evidence ≠ covered ≠ FAULT flip ≠ suite green · FAULT stays partial · Ban borrow report:prove');
 console.log('C2 NOTE: complete+enqueueReport = offline seed (completeInterviewAndConfirm) · Ban live-model main-chain narration');
 console.log('C7 NOTE: evidence = createApp + listen(0) + fetch · not Supertest-only');

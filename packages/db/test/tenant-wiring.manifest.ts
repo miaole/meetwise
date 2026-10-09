@@ -250,7 +250,7 @@ export const RESIDUAL_PATHS: ResidualPath[] = [
   {
     file: 'packages/db/src/{checkpoint-privacy,checkpoint-thread,privacy-authorization,memory-vector-chunk-erasure,vector-plane-erasure,int-transcript*,qbank-*,memory-*,retrieval-*}.ts',
     paths: '隐私主链/擦除链/向量/记忆/题库 lane 的 owner 点',
-    reason: '隐私主链与 erasure 链 = 本刀硬 Ban 触面（DELETE=503 冻结 · ADR 门 cite-only）；worker/memory/qbank = 系统 lane',
+    reason: '隐私主链与 erasure 链 = 本刀硬 Ban 触面（interview DELETE 503 关闭 · resume/account DELETE=202 软删受理(purge_pending) · ADR 门 cite-only）；worker/memory/qbank = 系统 lane',
     ownership: 'Ban 链不接线（privacy 主链）· 其余 PRIV01 第二波',
   },
 ];

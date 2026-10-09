@@ -21,7 +21,7 @@
  *
  * Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false
  * gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false
- * PG-retained · public DELETE stays 503 · row/FAULT stay gap · Ban self-nail
+ * PG-retained · interview DELETE closed(503)·resume/account DELETE=202 软删受理(purge_pending) · row/FAULT stay gap · Ban self-nail
  *
  *   pnpm uc025:nhp-fault-isolated:prove
  *   pnpm -C apps/api prove:uc025-nhp-fault-isolated   (raw; needs isolated DATABASE_URL)
@@ -64,7 +64,7 @@ type Snap = {
 
 (async () => {
   console.log('UC-E2E-025 NHP-025-FAULT-01 isolated PG/HTTP evidence (GAP-UC025-FAULT-ISOLATED-01 · Line W)');
-  console.log('releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · DELETE=503');
+  console.log('releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · DELETE=202 软删受理(purge_pending)');
   console.log('Complementary to AA in-process (a8b98fc/3a6ec52) · Ban wash AA · Ban replace AA · EXIT0≠covered≠nail');
   console.log('Not NEG (frozen) · Not BOUND wash · Not ADV · row/FAULT stay gap · Ban self-nail');
   console.log(`ATTEMPT_START  iso=${ATTEMPT_STARTED_AT} · Ban retry-to-green · Ban fake-green\n`);

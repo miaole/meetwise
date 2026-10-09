@@ -164,7 +164,7 @@ function runZMouthRegression(): Promise<number> {
       [x.owner, x.units]);
   }
 
-  console.log('PINS: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · UC-011 stays partial · ADV stays gap/case-only · GAP-UC011-ADV-01 stays OPEN');
+  console.log('PINS: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=202 软删受理(purge_pending) · UC-011 stays partial · ADV stays gap/case-only · GAP-UC011-ADV-01 stays OPEN');
   console.log(`CMD=${CMD}`);
   console.log('MOUTH(main): POST /payment/refund-callback（scenarios :253 字面契约 · body 白名单 {orderId,providerTxn,sig}）');
   console.log('MOUTH(pathA): POST /commerce/webhook/refund/:id（Line Z · 共用同一 refundWebhook 管道 · 不回退）');
@@ -464,7 +464,7 @@ function runZMouthRegression(): Promise<number> {
   }
   console.log(`\nEXIT=0 — ${GAP_ID} 主口 ADV 七类（A1–A7）+ 新鲜 INV + 跨入口一致性 + Z mouth 回归 全部成立（${total} 条断言全绿）。`);
   console.log('主口=POST /payment/refund-callback（scenarios :253 字面）· 与 Path A 共用 refundWebhook 单管道 · EXIT 0 ≠ covered。');
-  console.log('releaseEvidence=false · NOT_HA · PG-retained · public DELETE=503');
+  console.log('releaseEvidence=false · NOT_HA · PG-retained · DELETE=202 软删受理(purge_pending)');
   process.exit(0);
 })().catch((e) => {
   console.error(`${GAP_ID} harness 崩溃（EXIT 1 · 记入 attempts 台账 · 非 flake）:`, e);

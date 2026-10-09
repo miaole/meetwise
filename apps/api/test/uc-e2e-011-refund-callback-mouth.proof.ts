@@ -88,7 +88,7 @@ const A = (cls: Cls, name: string, cond: boolean) => {
       [x.owner, x.units]);
   }
 
-  console.log('PINS: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · UC-011 stays partial · ADV stays gap/case-only');
+  console.log('PINS: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=202 软删受理(purge_pending) · UC-011 stays partial · ADV stays gap/case-only');
   console.log(`CMD=${CMD}`);
   console.log('MOUTH: POST /commerce/webhook/refund/:id （等价 webhook · HMAC 标签 refunded）');
   console.log('EXIT 契约: EXIT 0 ⇔ B-1 pins 全命中；EXIT0 ≠ covered · Ban wash ADV · Ban any-non-404-4xx-as-sig-evidence');
@@ -227,7 +227,7 @@ const A = (cls: Cls, name: string, cond: boolean) => {
   }
   console.log(`\nEXIT=0 — Path A B-1 pins 全命中（${total} 条）。口=POST /commerce/webhook/refund/:id`);
   console.log('EXIT 0 ≠ UC-011 covered ≠ ADV covered · 独立 covered-lift + dual + 协调方 nail 另刀。');
-  console.log('releaseEvidence=false · NOT_HA · PG-retained · public DELETE=503');
+  console.log('releaseEvidence=false · NOT_HA · PG-retained · DELETE=202 软删受理(purge_pending)');
   process.exit(0);
 })().catch((e) => {
   console.error(`${GAP_ID} harness 崩溃（EXIT 1）:`, e);

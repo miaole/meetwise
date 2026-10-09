@@ -13,7 +13,7 @@
  *       与合并前等价的错误码/抛序/放行语义(对齐 nhp-neg/fault/bound 三 prove 的语义面)。
  *
  * Pins(照抄设计 §4):haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true ·
- * coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false。
+ * coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开删除面=202 软删受理(purge_pending) · g7SuiteGreen=false · r1Closed=false。
  * 纯断言新增面:不改任何旧断言、不翻任何 SSOT/backlog、零 DB/网络/模型依赖。
  */
 import 'reflect-metadata';
@@ -38,7 +38,7 @@ const A = (name: string, cond: boolean, detail = '') => {
 };
 
 console.log('GODFN-1c begin() three-guard merge · throw-order equivalence + resume_quiz query count 3→1');
-console.log('haStatus=NOT_HA · releaseEvidence=false · coveredCount=8 · PG-retained · DELETE=503 · r1Closed=false\n');
+console.log('haStatus=NOT_HA · releaseEvidence=false · coveredCount=8 · PG-retained · DELETE=202 软删受理(purge_pending) · r1Closed=false\n');
 
 // ── S: static inventory ─────────────────────────────────────────────
 const svc = read('apps/api/src/modules/interview/interview.service.ts');

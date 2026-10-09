@@ -11,7 +11,7 @@
  * Fixture/build path copied from rag03-filter-locus.proof.ts (F-STARVE corpus).
  * Ban FULLTEXT · Ban Qdrant · Ban covered flip · Ban invent prove · Ban Meridian ·
  * Ban secrets · Ban buy cloud · HOLD AN-CIMG-EA · NOT_HA · releaseEvidence=false ·
- * coveredCount=8 · PG-retained · DELETE=503.
+ * coveredCount=8 · PG-retained · DELETE=202 软删受理(purge_pending).
  *
  * pnpm rag03-hnsw-completeness:prove
  */

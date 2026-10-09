@@ -27,7 +27,7 @@
  *   DB 层注入不触发任何模型调用 · Ban「不跑 trace」冒充「trace 失败」。
  *
  * Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true ·
- * coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 ·
+ * coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · interview DELETE closed(503)·resume/account DELETE=202 软删受理(purge_pending) ·
  * EXIT0 ≠ covered ≠ e2e:isolated suite green ≠ A2/A3 闭合 · UC-E2E-028 行/FAULT 列保持 gap ·
  * attempts 全记录 · Ban retry-to-green · Ban 改断言迁就结果 · EXIT1 诚实保留 · Ban self-nail
  *
@@ -131,7 +131,7 @@ const metricValue = (name: string) => {
 
 (async () => {
   console.log(`UC-E2E-028 NHP-028-FAULT-01 isolated real-PG evidence (${GAP_ID} · Line X)`);
-  console.log('releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · DELETE=503');
+  console.log('releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · DELETE=202 软删受理(purge_pending)');
   console.log('EXIT0 ≠ covered ≠ e2e:isolated suite green ≠ A2/A3 closed · UC-E2E-028 row/FAULT stay gap · Ban self-nail');
   console.log(`ATTEMPT_START  iso=${ATTEMPT_STARTED_AT} · Ban retry-to-green · EXIT1 诚实保留\n`);
 

@@ -17,7 +17,7 @@
  * coveredCount=8 · ADV stays blind/case-only · Ban wash Y/AB · Ban touch 018/052/025.
  *
  * Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true ·
- * coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503.
+ * coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · interview DELETE closed(503)·resume/account DELETE=202 软删受理(purge_pending).
  *
  *   pnpm uc001:nhp-adv:prove                 (isolated; MODEL_API_KEY must be absent)
  *   pnpm -C apps/api prove:uc001-nhp-adv     (raw; needs isolated PG env from the runner)
@@ -46,7 +46,7 @@ const A = (name: string, ok: boolean): boolean => {
 const E = (id: string, data: unknown) => console.log(`EVIDENCE ${id} ${JSON.stringify(data)}`);
 
 console.log('NHP-001-ADV-01 UC-E2E-001 ADV blind→case prove (V1–V5 · /turn · Ban live · Ban fake-model)');
-console.log('Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503');
+console.log('Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=202 软删受理(purge_pending)');
 console.log('NOTE: EXIT0 = case structural evidence ≠ covered ≠ suite green ≠ trio green · ADV stays blind/case-only · Ban wash Y/AB');
 
 // ── Ban live / Ban MODEL_API_KEY ──
@@ -540,7 +540,7 @@ main().then(() => {
   } else {
     console.log('GAP   GAP-UC001-ADV-01 EXIT=1 honest red retained (Ban retry-to-green · Ban flake label · Ban product fix in prove knife)');
   }
-  console.log('NOTE  releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · PG-retained · public DELETE=503 · no SSOT flip · no nail · alone≠dual awaiting POST');
+  console.log('NOTE  releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · PG-retained · DELETE=202 软删受理(purge_pending) · no SSOT flip · no nail · alone≠dual awaiting POST');
   console.log(`CMD=${CMD} EXIT=${exit}`);
   process.exit(exit);
 }).catch(async (error) => {

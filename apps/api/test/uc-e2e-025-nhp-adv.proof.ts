@@ -21,7 +21,7 @@
  * FORCE RLS (packages/db/sql/20_resume_quiz.sql:46-49). Ban fake DB · Ban live · Ban model.
  *
  * Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true
- * coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503
+ * coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=202 软删受理(purge_pending)
  * Row UC-E2E-025 stays gap · ADV stays blind · canHonestlyFlip=false · EXIT0≠covered · Ban self-nail
  *
  *   pnpm uc025:nhp-adv:prove
@@ -79,7 +79,7 @@ type Snap = {
 
 (async () => {
   console.log(`UC-E2E-025 ${CASE_ID} ADV blind→case (${GAP_ID} · Line AK · REQUEST 420aeca · option (b))`);
-  console.log('releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · DELETE=503');
+  console.log('releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · DELETE=202 软删受理(purge_pending)');
   console.log('ADV-new = A1 + A3-b + PC-A1 ONLY · A3-a/A3-c/A3-NULL = complementary (W R4/R2/R5) ≠ ADV-new');
   console.log('Ban wash W BOUND (e8fa74c/6853e17) · Ban wash FAULT-ISOLATED · Ban wash B\'\' NEG / AA FAULT · Ban self-nail');
   console.log(`ATTEMPT_START  iso=${ATTEMPT_STARTED_AT} attempts=1 · Ban retry-to-green · Ban fake-green\n`);
