@@ -43,7 +43,7 @@ export function runCheckpointPrivacyEraser(pool: DbPool, workerId: string, inter
  * consumed-jti feed → 0125 claim（十项 fail-closed 原样，唯一授权裁定者）→ 物理 purge
  * （残留≠0 raise）→ 0091 既有 privacy_record_deletion_receipt 落 local_erased。
  * target 集先钉：仅 sink='memory_vector_chunk'；INT sink='vector' 诚实 no-target；
- * qbank 永不删；本地行级证据 ≠ 云端彻底删除；公开 DELETE 保持 503。
+ * qbank 永不删；本地行级证据 ≠ 云端彻底删除；公开删除面：interview 保持 503 关闭 · resume/account DELETE=202 软删受理(purge_pending)。
  */
 export async function vectorPlanePrivacyErasureTick(
   pool: DbPool, workerId: string,

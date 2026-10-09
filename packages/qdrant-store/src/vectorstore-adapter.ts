@@ -163,7 +163,7 @@ export class QdrantVectorStoreAdapter {
    * Subject-scoped memory vector erase (G5 sub-slice).
    * Deletes points with owner_user_id=owner AND kind=memory; returns countable receipt.
    * Caller must prove post-erase annSearch recall=0 for that owner.
-   * ≠ 0091 ledger / ≠ public DELETE 200/202.
+   * ≠ 0091 ledger / ≠ DELETE-path completion (interview closed 503 · resume/account=202 软删受理(purge_pending)).
    */
   async eraseSubjectMemoryVectors(owner: string): Promise<QdrantErasureReceipt> {
     if (typeof owner !== 'string' || owner.trim().length === 0) {

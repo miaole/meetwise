@@ -10,7 +10,7 @@
  * Does NOT wire into production privacy ledger yet.
  * This prototype ≠ 0091 privacy_deletion_receipt / ledger aligned.
  * Subject-scoped erase (owner_user_id) is additive G5 sub-slice:
- *   recall=0 + countable receipt ≠ 0091 ledger / ≠ public DELETE open.
+ *   recall=0 + countable receipt ≠ 0091 ledger / ≠ DELETE-path open claim (interview closed 503 · resume/account=202 软删受理(purge_pending)).
  * Does NOT cut pgvector / memory-vector-chunk-erasure paths.
  */
 import { createHash } from 'node:crypto';
@@ -143,7 +143,7 @@ export const ERASURE_SUBJECT_PAYLOAD_KEY = 'owner_user_id';
  * Empty subject → deleted_count=0 receipt (idempotent).
  *
  * ≠ 0091 privacy_deletion_receipt / ledger aligned.
- * ≠ public DELETE /privacy/* open (still 503 fail-closed product path).
+ * ≠ DELETE /privacy/* completion claim (interview still 503 closed · resume/account=202 软删受理(purge_pending)).
  */
 export async function eraseSubjectPoints(
   client: QdrantClient,

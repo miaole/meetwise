@@ -17,7 +17,7 @@
  *
  * 诚实披露（沿 AR 口径）：本地隔离 PG 行级证据 ≠ 生产云端彻底删除；HNSW 索引内部页 /
  *   WAL / 备份 / 副本不在行级证据面；Ban「数据已彻底删除/磁盘字节清零」叙事；
- *   releaseEvidence=false；公开 DELETE 保持 503；本 sweep completed ≠ 账户删除完成。
+ *   releaseEvidence=false；公开删除面：interview 保持 503 关闭 · resume/account DELETE=202 软删受理(purge_pending)；本 sweep completed ≠ 账户删除完成。
  */
 import { createHash } from 'node:crypto';
 import type { Client } from './principal.ts';

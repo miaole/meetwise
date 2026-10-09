@@ -91,8 +91,8 @@ function main() {
       pass('harness pins G5 still GAP (≠ 0091)');
     } else fail('harness must pin G5 still GAP ≠ 0091');
     if (/503/.test(h) && (/DELETE/.test(h) || /公开/.test(h))) {
-      pass('harness pins public DELETE still 503');
-    } else fail('harness must pin public DELETE still 503');
+      pass('harness pins interview DELETE still 503 closed · resume/account DELETE=202 软删受理(purge_pending)');
+    } else fail('harness must pin interview DELETE still 503 closed · resume/account DELETE=202 软删受理(purge_pending)');
     if (/mw-privacy-int/.test(h)) pass('harness requires mw-privacy-int review');
     else fail('harness must require mw-privacy-int');
     if (/mw-rag-route|mw-e2e-ha/.test(h)) pass('harness requires second-domain review');
@@ -216,12 +216,12 @@ function main() {
     }
     if (
       /deleteResumeData/.test(ps)
-      && /SERVICE_UNAVAILABLE|HttpStatus\.SERVICE_UNAVAILABLE/.test(ps)
-      && /resume_erasure_migration_in_progress/.test(ps)
+      && /purgePending:\s*true\s+as\s+const/.test(ps)
+      && /mode:\s*'logical'\s+as\s+const/.test(ps)
     ) {
-      pass('privacy.service deleteResumeData still 503');
+      pass('privacy.service deleteResumeData = 202 软删受理 (purgePending literal-pinned)');
     } else {
-      fail('privacy.service must keep deleteResumeData 503');
+      fail('privacy.service deleteResumeData must pin 202 软删受理 (mode=logical + purgePending=true)');
     }
   }
 
@@ -327,7 +327,7 @@ function main() {
   } else pass('map result does not invent request_id/target_id/receipt_kind');
 
   note('COVERED (this prove): P15→0091 receipt schema/mapping table + fail-closed PREREQ list (ledger not writable)');
-  note('STILL-GAP G5: mapping ≠ 0091 privacy_deletion_receipt write; public DELETE still 503; ≠ authz/sink/worker');
+  note('STILL-GAP G5: mapping ≠ 0091 privacy_deletion_receipt write; interview DELETE still 503 closed · resume/account DELETE=202 软删受理(purge_pending); ≠ authz/sink/worker');
   note('releaseEvidence=false; Not HA; ≠ privacy covered; ≠ DELETE 200/202; ≠ cutover; P16 ≠ close G5');
   note('Ready for mw-privacy-int + mw-rag-route (or mw-e2e-ha) — do not self-approve ledger alignment');
   finish();

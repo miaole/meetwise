@@ -127,7 +127,7 @@ if (existsSync(docPath)) {
     ['privacy-authorization:prove', /privacy-authorization:prove/],
     ['crypto (privacy-authorization:crypto:prove)', /privacy-authorization:crypto:prove|\bcrypto\b/],
     ['erasure-preview', /privacy-erasure-preview:prove|erasure-preview/],
-    ['DELETE=503', /DELETE\s*=\s*503|DELETE=503/],
+    ['DELETE=202 软删受理(purge_pending) supersession window', /DELETE\s*=\s*503/],
     ['memory-vector-chunk-erasure', /memory-vector-chunk-erasure/],
   ];
   for (const [name, re] of provePins) {

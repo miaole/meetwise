@@ -415,7 +415,7 @@ async function main() {
       `beforeB=${JSON.stringify(beforeB)} afterB=${JSON.stringify(afterB)} crossRej=${crossClaimRejected}`);
   }
 
-  /* ── NHP-052-CKPT-NEG-03: public DELETE still 503 · no new route ── */
+  /* ── NHP-052-CKPT-NEG-03: interview DELETE still 503 closed · resume/account DELETE=202 软删受理(purge_pending) · no new route ── */
   {
     const id = 'NHP-052-CKPT-NEG-03';
     const mod = await import('../../../apps/api/src/modules/privacy/privacy.service.ts');
