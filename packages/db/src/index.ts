@@ -32,10 +32,10 @@ export {
   enforceOwnerOnRow,
 } from './tenant/index.ts';
 export type { TenantEnforcementCode } from './tenant/index.ts';
-export { enrollCheckpointThread } from './checkpoint-thread.ts';
-export type { CheckpointThreadEnrollment } from './checkpoint-thread.ts';
-export { revokeCheckpointThread, assertInterviewPrivacyActive, isInterviewPrivacyActive, beginCheckpointErasure, listClaimableCheckpointErasureTargets, claimCheckpointErasureTarget, purgeCheckpointErasureTarget } from './checkpoint-privacy.ts';
-export type { CheckpointErasureRequest, ClaimedCheckpointErasureTarget } from './checkpoint-privacy.ts';
+export { enrollCheckpointThread } from './checkpoint/checkpoint-thread.ts';
+export type { CheckpointThreadEnrollment } from './checkpoint/checkpoint-thread.ts';
+export { revokeCheckpointThread, assertInterviewPrivacyActive, isInterviewPrivacyActive, beginCheckpointErasure, listClaimableCheckpointErasureTargets, claimCheckpointErasureTarget, purgeCheckpointErasureTarget } from './checkpoint/checkpoint-privacy.ts';
+export type { CheckpointErasureRequest, ClaimedCheckpointErasureTarget } from './checkpoint/checkpoint-privacy.ts';
 // 隐私删除授权签发器（INT-TRANSCRIPT-00 账本：单次 jti CAS 消费 + 受约束 claim + 逐 sink receipt）
 export { issueAuthorizationSnapshot, consumeAuthorizationSnapshot, consumeAuthorizationSnapshotBound, claimAuthorizationTarget, recordDeletionReceipt, resolveDeletionReceipt } from './privacy-authorization.ts';
 export type { IssueAuthorizationSnapshotInput, IssuedAuthorizationSnapshot, ConsumedAuthorizationSnapshot, ClaimedAuthorizationTarget, ResolvedDeletionReceipt } from './privacy-authorization.ts';

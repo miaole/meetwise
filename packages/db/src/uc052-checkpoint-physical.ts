@@ -19,7 +19,7 @@ import {
   beginCheckpointErasure,
   purgeCheckpointErasureTarget,
   type CheckpointErasureRequest,
-} from './checkpoint-privacy.ts';
+} from './checkpoint/checkpoint-privacy.ts';
 import {
   canonicalTargetSetDigest,
   PrivacyAuthzKeyRegistry,

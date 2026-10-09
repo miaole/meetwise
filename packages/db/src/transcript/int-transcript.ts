@@ -18,7 +18,7 @@
 import type { Client } from '../principal.ts';
 import { createHmac } from 'node:crypto';
 import { newUuidV7 } from '../ids.ts';
-import { assertInterviewPrivacyActive } from '../checkpoint-privacy.ts';
+import { assertInterviewPrivacyActive } from '../checkpoint/checkpoint-privacy.ts';
 import { assertInterviewAnswerLedgerWriteAllowed, remapInterviewAnswerDualWriteError } from '../interview-answer-dual-write.ts';
 
 const IS_PROD = process.env.NODE_ENV === 'production';

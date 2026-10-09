@@ -23,7 +23,7 @@ import {
 } from '../src/uc052-checkpoint-physical.ts';
 import {
   beginCheckpointErasure, purgeCheckpointErasureTarget, claimCheckpointErasureTarget,
-} from '../src/checkpoint-privacy.ts';
+} from '../src/checkpoint/checkpoint-privacy.ts';
 import {
   issueAuthorizationSnapshot, consumeAuthorizationSnapshotBound, claimAuthorizationTarget,
 } from '../src/privacy-authorization.ts';
