@@ -18,8 +18,14 @@ BEGIN
     OR p_password_hash IS NULL OR p_password_hash = '' OR p_role NOT IN ('candidate', 'recruiter') THEN
     RAISE EXCEPTION 'gateway_auth_signup_invalid_input' USING ERRCODE = '22023';
   END IF;
-  INSERT INTO public.user_account(id, email, password_hash, role)
-  VALUES (p_id, p_email, p_password_hash, p_role);
+  -- b110 审核制：recruiter 注册一律落审核队列（admin approve 后方过 B 端门）；candidate 走默认 approved。
+  IF p_role = 'recruiter' THEN
+    INSERT INTO public.user_account(id, email, password_hash, role, approval_status)
+    VALUES (p_id, p_email, p_password_hash, p_role, 'pending');
+  ELSE
+    INSERT INTO public.user_account(id, email, password_hash, role)
+    VALUES (p_id, p_email, p_password_hash, p_role);
+  END IF;
 END;
 $$;
 
@@ -54,9 +60,12 @@ SET search_path = pg_catalog, public
 AS $$
 DECLARE caller text := current_setting('app.principal_user', true);
 BEGIN
+  -- b110（R7）：在 role/status 之外加审批维度（fail-closed 只增不弱）。
+  -- gateway_active_candidate PERFORM 本函数 = invite 的 DB 纵深门：绕 API guard 的
+  -- app_role 直调路径对 pending/rejected recruiter 同样拒绝。
   IF caller IS NULL OR NOT EXISTS (
     SELECT 1 FROM public.user_account
-    WHERE id = caller AND role = 'recruiter' AND status = 'active'
+    WHERE id = caller AND role = 'recruiter' AND status = 'active' AND approval_status = 'approved'
   ) THEN
     RAISE EXCEPTION 'gateway_recruiter_required' USING ERRCODE = '42501';
   END IF;
@@ -203,6 +212,53 @@ BEGIN
 END;
 $$;
 
+-- b110：招聘方审核队列（pending 先到先审，其余为最近态）+ 审批裁决（admin_audit 留痕
+-- 照 gateway_admin_disable 样板；approve = 企业付费主体诞生时刻，#271 挂点）。
+CREATE OR REPLACE FUNCTION gateway_admin_recruiter_approvals()
+RETURNS TABLE(id text, email text, approval_status text, status text, created_at timestamptz)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+BEGIN
+  PERFORM public.gateway_require_active_admin();
+  RETURN QUERY
+    SELECT u.id, u.email, u.approval_status, u.status, u.created_at
+    FROM public.user_account AS u
+    WHERE u.role = 'recruiter'
+    ORDER BY (u.approval_status = 'pending') DESC,
+             CASE WHEN u.approval_status = 'pending' THEN u.created_at END ASC,
+             u.created_at DESC
+    LIMIT 100;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION gateway_admin_recruiter_approval(p_target_id text, p_decision text)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+DECLARE caller text := current_setting('app.principal_user', true);
+DECLARE updated_rows integer := 0;
+BEGIN
+  PERFORM public.gateway_require_active_admin();
+  IF p_decision NOT IN ('approve', 'reject') THEN
+    RAISE EXCEPTION 'gateway_admin_recruiter_approval_invalid_decision' USING ERRCODE = '22023';
+  END IF;
+  UPDATE public.user_account
+  SET approval_status = CASE p_decision WHEN 'approve' THEN 'approved' ELSE 'rejected' END
+  WHERE id = p_target_id AND role = 'recruiter';
+  GET DIAGNOSTICS updated_rows = ROW_COUNT;
+  IF updated_rows > 0 THEN
+    INSERT INTO public.admin_audit(id, actor, action, target)
+    VALUES ('audit-' || gen_random_uuid()::text, caller,
+            CASE p_decision WHEN 'approve' THEN 'approve_recruiter' ELSE 'reject_recruiter' END, p_target_id);
+  END IF;
+  RETURN updated_rows > 0;
+END;
+$$;
+
 REVOKE ALL ON FUNCTION gateway_auth_signup(text, text, text, text) FROM PUBLIC, app_role;
 REVOKE ALL ON FUNCTION gateway_auth_login(text) FROM PUBLIC, app_role;
 REVOKE ALL ON FUNCTION gateway_payment_order_owner(text) FROM PUBLIC, app_role;
@@ -212,6 +268,8 @@ GRANT EXECUTE ON FUNCTION gateway_payment_order_owner(text) TO app_gateway_role;
 
 REVOKE ALL ON FUNCTION gateway_require_active_recruiter() FROM PUBLIC, app_role, app_gateway_role;
 REVOKE ALL ON FUNCTION gateway_require_active_admin() FROM PUBLIC, app_role, app_gateway_role;
+REVOKE ALL ON FUNCTION gateway_admin_recruiter_approvals() FROM PUBLIC, app_gateway_role;
+REVOKE ALL ON FUNCTION gateway_admin_recruiter_approval(text, text) FROM PUBLIC, app_gateway_role;
 REVOKE ALL ON FUNCTION gateway_active_candidate(text, text) FROM PUBLIC, app_gateway_role;
 REVOKE ALL ON FUNCTION gateway_admin_users() FROM PUBLIC, app_gateway_role;
 REVOKE ALL ON FUNCTION gateway_admin_orders() FROM PUBLIC, app_gateway_role;
@@ -226,3 +284,5 @@ GRANT EXECUTE ON FUNCTION gateway_admin_stats() TO app_role;
 GRANT EXECUTE ON FUNCTION gateway_admin_disable(text) TO app_role;
 GRANT EXECUTE ON FUNCTION gateway_admin_audit() TO app_role;
 GRANT EXECUTE ON FUNCTION gateway_admin_feedback_summary() TO app_role;
+GRANT EXECUTE ON FUNCTION gateway_admin_recruiter_approvals() TO app_role;
+GRANT EXECUTE ON FUNCTION gateway_admin_recruiter_approval(text, text) TO app_role;

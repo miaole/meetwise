@@ -14,7 +14,7 @@ export type Credentials = z.infer<typeof Credentials>;
 /** 注册:含身份(求职者 C 端 / 招聘方 B 端)。 */
 export const SignupDto = z.object({ email: z.string().email().max(254), password: z.string().min(8).max(128), role: z.enum(['candidate', 'recruiter']).optional() });
 export type SignupDto = z.infer<typeof SignupDto>;
-export const AuthResult = z.object({ token: z.string(), userId: z.string().optional(), role: z.string().optional() });
+export const AuthResult = z.object({ token: z.string(), userId: z.string().optional(), role: z.string().optional(), approvalStatus: z.enum(['pending', 'approved', 'rejected']).optional() });
 export type AuthResult = z.infer<typeof AuthResult>;
 
 /* ───────────── resume ───────────── */
@@ -356,9 +356,16 @@ export const InviteCandidateDto = z.object({
   candidateEmail: z.string().email().max(254).optional(),
 }).refine((v) => !!(v.candidateId || v.candidateEmail), { message: 'candidateId_or_email_required' });
 export type InviteCandidateDto = z.infer<typeof InviteCandidateDto>;
-/** 邀请结果(幂等:候选人已自投/已被邀请则复用既有申请 id)。 */
+/** 邀请结果(幂等:候选人已自投/已被邀请则复用既有申请 id)。declineApplication 仍用本 schema 零触(b110)。 */
 export const InviteResult = z.object({ applicationId: z.string(), status: z.string() });
 export type InviteResult = z.infer<typeof InviteResult>;
+/** b110 邀请受理恒定壳(反枚举):命中(真实建申请)/未命中/招聘方 email 同形同码零信号;
+ *  applicationId/status 不再出响应——真实申请状态以租户内 candidates 列表承载。 */
+export const InviteReceived = z.object({ received: z.literal(true) });
+export type InviteReceived = z.infer<typeof InviteReceived>;
+/** b110 admin 招聘方审批裁决体:approve=开通(企业付费主体诞生时刻,#271 挂点)·reject=拒绝。 */
+export const RecruiterDecisionDto = z.object({ decision: z.enum(['approve', 'reject']) });
+export type RecruiterDecisionDto = z.infer<typeof RecruiterDecisionDto>;
 /** 人才库一行:跨招聘方自有岗位聚合的候选人。评分校准发布前 score 恒为
  * null，B 端不得据此排序、筛选或作决定。 */
 export const TalentRowView = z.object({
@@ -1104,7 +1111,7 @@ export const apiContract: ContractRoute[] = [
   { id: 'listJobs', method: 'get', path: '/recruiter/jobs', summary: '招聘方岗位列表(租户隔离)', tags: ['recruiter'], auth: true, response: JobList },
   { id: 'getJob', method: 'get', path: '/recruiter/jobs/{id}', summary: '岗位详情', tags: ['recruiter'], auth: true, response: JobView },
   { id: 'jobCandidates', method: 'get', path: '/recruiter/jobs/{id}/candidates', summary: '招聘方查岗位申请人(多方 RLS)', tags: ['recruiter'], auth: true, response: JobCandidates },
-  { id: 'inviteCandidate', method: 'post', path: '/recruiter/jobs/{id}/invite', summary: '招聘方邀请候选人面试(用同一引擎,数据严格隔离)', tags: ['recruiter'], auth: true, request: InviteCandidateDto, response: InviteResult },
+  { id: 'inviteCandidate', method: 'post', path: '/recruiter/jobs/{id}/invite', summary: '招聘方邀请候选人面试(用同一引擎,数据严格隔离)', tags: ['recruiter'], auth: true, request: InviteCandidateDto, response: InviteReceived },
   { id: 'talentPool', method: 'get', path: '/recruiter/talent', summary: '招聘方人才库(跨自有岗位聚合候选人,租户隔离)', tags: ['recruiter'], auth: true, response: TalentPool },
   { id: 'browseJobs', method: 'get', path: '/jobs', summary: '候选人浏览开放岗位', tags: ['jobs'], auth: true, response: JobList },
   { id: 'applyJob', method: 'post', path: '/jobs/{id}/apply', summary: '候选人投递岗位(幂等)', tags: ['jobs'], auth: true, response: ApplyResult },

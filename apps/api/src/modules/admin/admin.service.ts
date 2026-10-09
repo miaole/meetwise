@@ -1,4 +1,5 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import type { RecruiterDecisionDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
 
 /**
@@ -41,6 +42,22 @@ export class AdminService {
   async audit(principal: string) {
     const r = await this.db.asPrincipal(principal, (c) => c.query('SELECT * FROM gateway_admin_audit()'));
     return { audit: r.rows };
+  }
+
+  // b110 招聘方审核制:审批队列(pending 先到先审)+ 裁决(approve/reject)。
+  // 跨用户写仍走受控 SECURITY DEFINER 函数,函数内复核 admin(与 HTTP AdminGuard 双层)并
+  // admin_audit 留痕(approve_recruiter/reject_recruiter)——approve=企业付费主体诞生时刻(#271 挂点)。
+  async recruiterApprovals(principal: string) {
+    const r = await this.db.asPrincipal(principal, (c) => c.query('SELECT * FROM gateway_admin_recruiter_approvals()'));
+    return { approvals: r.rows };
+  }
+
+  async recruiterDecision(id: string, b: RecruiterDecisionDto, principal: string) {
+    const r = await this.db.asPrincipal(principal, (c) => c.query(
+      'SELECT gateway_admin_recruiter_approval($1,$2) AS decided', [id, b.decision]));
+    // false=目标不存在或非招聘方账户(含 candidate)→ 404(不区分两者,无存在性信号)
+    if (r.rows[0]?.decided !== true) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
+    return { decided: true };
   }
 
   // AI 质量监控:聚合题目赞/踩(踩率高 = 出题质量差,触发 prompt/模型复盘)。跨用户特权聚合。

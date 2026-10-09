@@ -1,6 +1,6 @@
 # B110 EXEC REQUEST — #110 招聘方注册审核/邀请制刀（W4 B 端线首刀·设计裁决在案）
 
-**Status**: **`draft_rev2:pre_exec_dual`**（rev2=双席 FAIL R1-R7 已并·待窄域复审五点=R1-R5+R6/R7 落位确认·docs-only 修订本档仍零码动·EXEC 须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual**）
+**Status**: **`draft_rev2:pre_exec_dual`**（rev2=双席 FAIL R1-R7 已并·待窄域复审五点=R1-R5+R6/R7 落位确认·docs-only 修订本档仍零码动·EXEC 须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual**） → **exec_mw-b110-exec: EXEC 已行使（窄域双审 BOTH PASS + 授权经协调方明示转达）· C1-C12 落位（C5=撤销项零字节兑现）· prove 全账 EXIT 原值+admin_audit 留痕+停止条件五条核查+pins 十一值见 `ai-docs/delivery/receipts/b110-recruiter-gate/b110-recruiter-gate-prove.md`（neg:bend 157/157·neg:auth 81·neg:all 五段绿+input 预存红 base 对照⊆·api-runtime-role 0=runMigrations 含 0152）· status `exec_landed:awaiting_dual_review` · alone≠dual**
 **Date**: 2026-10-07
 **Base**: 主线 `feat/mysql-schema-skeleton` @`b429aebb` · 分支 `line/b110-recruiter-gate`（工作树 `meetwise-line-b110`）
 **蓝本**: 上游审计 #110 全条（`Meetwise产品审计-更正版/issues-master.md:171`）+ W4 派单（`ai-docs/delivery/harness/product-campaign-EXECUTION-SOP.md:29`「W4 B 端｜批 3｜#110（审核/邀请制→企业账户主体）→#271（…迁移 0152+）→…」）——**审计文档不在本 base 实树**（上游事实源① `/Users/miaole/Documents/Meetwise产品审计-更正版/`，仓外路径·如实登记），引文逐字誊录；仓内锚点全部本 base 实树亲读。
