@@ -2237,3 +2237,12 @@ flowchart TD
 - **PROCESS-E2（ERRMSG-MAP 单席 nail 时序违规）**：errmsg nail @8aade53f 落线时仅席1 PASS（席2 复审于其后返回 PASS）——违反「双席齐 PASS 方可 nail」时序。结果追溯有效（席2 独立 PASS·五文案语义/503 时序无谎/E2 根因全确认），但程序违规如实登记；nail 段不撤（内容经双席验证）。整改：nail 动作前强制核对双席 verdict 齐备（已入协调方 checklist）。
 - 教训沉淀：①「EXEC 完成」与「nail 落线」之间必须查台账防重；②「席1 PASS」≠「双席齐」——nail 门槛=两份独立 verdict 在卷。
 - Sibling sections stay as written. alone≠dual（含 nail 时序）· 实现方不 self-approve.
+
+### Line LINT-DESIGN S2 指针切片 NAIL（2026-10-10 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 三提交 12 指针薄壳（根+11 workspace·每件 4 行 re-export 零调参·48 行≤50·批 5+5+2 全≤5 文件）·--print-config 12/12 全绿）
+
+- Pins unchanged（十一值照抄零翻转）.
+- [x] **`post_prove_dual_pass`** recorded（EXEC 三提交 `2724e0ae`/`7a458ea0`/`d8df2f0c`·nail tip 本 commit · branch `line/lint-s0-request`）· **双审 BOTH PASS**：席1 mw-e2e-ha PASS（specifier 不可解析负证独立亲跑（双点 ERR_MODULE_NOT_FOUND+声明依赖=0+零 hoist）·相对路径落法裁定成立（tsconfig extends 先例·设计不限定形式）·12 指针逐件读毕·rebase skip 逐字节亲证）+ 席2 mw-model-op PASS（**config 自指针在设计范围内**——设计 §1.3 自身枚举 11 workspace 含 config·根+11=12 非超范围·亲证 pnpm-workspace 恰 11·warn 语义 --stdin 违规样本双证（0 errors 2 warnings EXIT=0）·pathGroups 生效序亲证·patch-id 亲算相同（3c0bdc4d）·S3 移交四项齐）· 协调方正式授权本 nail.
+- **S3 移交链（完备）**：UPPER_CASE 基线 ~845/242（禁自行收紧·超预期回设计面补票）·.prettierignore 顺延·S1 nit 两笔·specifier 消费须先落 workspace devDependencies（另行授权面）。
+- [ ] **STILL OPEN**：S3（基线+dry-run）·S4（点灯）·S5（全量绿）·CI 接线另刀·`g7SuiteGreen=false` 维持.
+- 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · S2 指针 ≠ lint 门上线 ≠ C1 勾销 · 实现方不 self-approve.
