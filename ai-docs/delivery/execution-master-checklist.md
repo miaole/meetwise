@@ -1987,3 +1987,13 @@ flowchart TD
 - [ ] **STILL OPEN**：G7FIX-4（REQUEST 待立）；duplicate re-roll 根因刀；trio 再跑；`:107` 维持（C-MO-P3 材料完备+卡死面在账）；`g7SuiteGreen=false` 维持.
 - 预算：恰 1 run · dual-count 19≤25 · 链 126+19=145≤200 · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 臂=driver 契约对齐非产品修复 · 实现方不 self-approve.
+### Line AC-1 adaptive-consumer 排空环调查刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 纯诊断零修复零产品码（proof 夹具零改）· :raw 双流全量留存（C-1 兑现）· **根因一锤定谳：adaptive_role_route_missing**（夹具债主判：g-r4-3 默认翻 ON 2026-09-23 晚于夹具末次更新 2026-09-04）· 修复刀 A 裁定（供给真 route snapshot））
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（十一值）.
+- [x] **`post_prove_dual_pass`** recorded for Line AC-1 products only（触面=收据 7 件+harness·纯诊断零修复零产品码 apps/packages/test 三面零 diff·proof 夹具零改〔C-2〕·nail tip 本 commit · branch `line/adaptive-consumer-diag`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：零 diff 亲证 9 文件全 ai-docs/证据链亲读〔stderr last_error 原文+溃点 :132 TypeError+根因环 :352-361 三处亲读+10 环对账行号全对〕/时间线因果 3d88cb64<72233a08/attempts 诚实 a2 launcher 缺陷留痕/pins 十一值含 r1Closed 零发明/修复 A 优先合理）+ mw-model-op PASS（六核：**六环根因链亲证全等**〔throw 条件 :55-63+roleFromDeps 设计性排除 :23-28 防技术岗回注+时间线三日期+last_error 逐字段排除 v64/隐私闸替代假说〕/溃点根因环双层读数指导力充分〔只补 :132 卫语句红仅移位——供给级修复才是根因位〕/:raw 面正当性〔:1877-1878 同形态+stderr withhold 设计根源=1a 只见类别不见诊断行〕/a2 EXIT=254 字节级复现/est=0+pins）。· 协调方正式授权本 nail.
+- **AC-1 全链**：REQUEST → 双席预审 BOTH PASS（席2 溯源：签名收窄排空环无码抛+收据须全量留存 child 双流）→ EXEC `f4c2a9f9`（origin tip 零位移）→ 本 nail commit.
+- **核心产出**：**根因一锤定谳 `adaptive_role_route_missing`**——夹具债主判（时间线因果坐实：夹具末次更新 2026-09-04 早于 g-r4-3 默认翻 ON 2026-09-23·裸 SQL 无 route snapshot 供给行→fail-closed 门 throw→start job failed→无 issued 题→喂溃点 :132 TypeError）·10 环对账逐环亲证·产品回归排除（失败收尾链确定性契约执行）·GODFN-1a base≡red 遗留定谳收案.
+- **修复刀裁定（协调方·双席一致建议 A）**：**AC-FIX=夹具供给真 route snapshot**（0142 生产同源供给面·使 fail-closed 门 ON 态生产等价行使·保门诚实度）——B legacy opt-out 仅作登记在案 scope 让步不推荐·产品侧零修复指示正确（g7s 已备 fallback 读）·修复刀另立全链.
+- [ ] **STILL OPEN**：AC-FIX（REQUEST 待立）；GODFN 线残余（§6 余量/预存红 lane）；`g7SuiteGreen=false` 维持.
+- 预算：恰 1 次证明体（a1 零执行 a2 零进入 a3 唯一）· est live=0 · 0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 调查=定谳非修复 · 实现方不 self-approve.
