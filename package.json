@@ -31,6 +31,7 @@
     "quality:governance:prove": "node scripts/quality-governance.proof.mjs",
     "provider-egress:inventory": "node scripts/provider-egress-inventory.mjs",
     "provider-egress:prove": "node scripts/provider-egress-inventory.proof.mjs",
+    "tokstream:s2-probe": "node scripts/tokstream-s2-probe.mjs",
     "public-preview-write:inventory": "node scripts/public-preview-write-inventory.mjs",
     "public-preview-write:prove": "node scripts/public-preview-write-inventory.proof.mjs",
     "public-preview-write-gate:prove": "pnpm -C apps/api prove:public-preview-write-gate",

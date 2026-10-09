@@ -1,0 +1,64 @@
+{
+  "promptSha256": "bcb3d9f538fce9db524fe2326b595851e5f046101e3550af56a65f2b67ce12f6",
+  "pinnedParams": {
+    "model": "qwen-plus",
+    "maxTokens": 192,
+    "temperature": 0,
+    "seed": 42
+  },
+  "a": {
+    "sha256": "97ec512b2882ae336bb48b2a3cc56fdceaa3838065b0756f7d361c7f519d9660",
+    "len": 72,
+    "usage": {
+      "total_tokens": 75,
+      "completion_tokens": 43,
+      "prompt_tokens": 32,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "b": {
+    "sha256": "97ec512b2882ae336bb48b2a3cc56fdceaa3838065b0756f7d361c7f519d9660",
+    "len": 72,
+    "usage": {
+      "total_tokens": 75,
+      "completion_tokens": 43,
+      "prompt_tokens": 32,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "grading": {
+    "normalized": {
+      "lenA": 72,
+      "lenB": 72,
+      "lengthRatio": 0
+    },
+    "prefixAnchor": "SSE 是单向（服务器→客户端）的 HTTP 长连接，基于文本；WebSocket 是双向、全双工的",
+    "suffixAnchor": " 长连接，基于文本；WebSocket 是双向、全双工的独立协议，支持二进制与文本，需握手建立连接。",
+    "T0": {
+      "pass": true,
+      "definition": "normalized equality (trim + whitespace collapse)"
+    },
+    "T1": {
+      "pass": true,
+      "anchorLen": 50,
+      "definition": "prefix+suffix anchor (50 chars)"
+    },
+    "T2": {
+      "pass": true,
+      "band": "|Δ|/len ≤ 10%",
+      "lengthRatio": 0
+    },
+    "T3FilledBy": "per-chunk delta vs accumulated-snapshot qualifier (overlapViolations=0 ∧ resendViolations=0)",
+    "T3": {
+      "pass": false,
+      "overlapViolations": 1,
+      "resendViolations": 1,
+      "definition": "delta-vs-accumulated diagnostic: every non-empty delta is pure new content (no full/overlap resend)"
+    }
+  },
+  "bPass": true
+}

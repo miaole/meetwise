@@ -1172,6 +1172,11 @@
     },
     {
       "name": "MODEL_API_KEY",
+      "source": "scripts/tokstream-s2-probe.mjs",
+      "class": "manual-live-smoke"
+    },
+    {
+      "name": "MODEL_API_KEY",
       "source": "packages/ai-runtime/test/model-client-dispatch.proof.ts",
       "class": "test-fixture"
     },
@@ -1494,6 +1499,11 @@
       "name": "MODEL_ENDPOINT_PROFILE",
       "source": "packages/ai-runtime/test/model-client-dispatch.proof.ts",
       "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "scripts/tokstream-s2-probe.mjs",
+      "class": "manual-live-smoke"
     },
     {
       "name": "MODEL_REVOKED_KEY_FINGERPRINTS",
