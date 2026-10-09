@@ -1,4 +1,4 @@
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 
 /**
  * The synchronous first phase of a privacy erasure: stop future checkpoint

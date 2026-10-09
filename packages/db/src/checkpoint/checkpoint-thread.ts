@@ -1,4 +1,4 @@
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 
 /**
  * Creates the immutable thread → owner enrollment before the first LangGraph

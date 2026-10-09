@@ -2,7 +2,7 @@
  * @meetwise/db · 面试 job 队列 ops（api 入队 / worker 消费）。同面试内按 seq 保序;租约防并发双跑、崩溃可重领。
  */
 import type { PoolClient as Client } from 'pg';
-import { assertInterviewPrivacyActive } from './checkpoint-privacy.ts';
+import { assertInterviewPrivacyActive } from './checkpoint/checkpoint-privacy.ts';
 import {
   assertInterviewAnswerLegacyPlaintextAllowed, plaintextAnswerIdentity, remapInterviewAnswerDualWriteError,
 } from './interview-answer-dual-write.ts';
