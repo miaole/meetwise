@@ -35,7 +35,7 @@
  */
 import type { PoolClient as Client } from 'pg';
 import { asPrincipal, type DbPool } from './principal.ts';
-import { getInterviewRouteSnapshot } from './job-route-decision.ts';
+import { getInterviewRouteSnapshot } from './routing/job-route-decision.ts';
 import { readGenerationQuestionChunkProjection } from './qbank-generation-projection.ts';
 import {
   activeQbankGeneration, qbankQuestionResultsForHits,

@@ -15,14 +15,14 @@
  * 门语义零弱化（C-HA/C-MO 铁律）：worker adaptive-role-resolve fail-closed 门零改动——本模块
  * 只解决「供给缺失」，缺行/缺叶仍拒（拒因前移非拒体消失）。releaseEvidence=false · Not HA。
  */
-import { newEntityId } from './ids.ts';
+import { newEntityId } from '../ids.ts';
 import type { PoolClient as Client } from 'pg';
 import {
   CANDIDATE_ROUTE_TAXONOMY_VERSION, CANDIDATE_ROUTE_POLICY_VERSION, CANDIDATE_ROUTE_REVISION,
   canonicalCandidateProfileDigest, candidateRouteDecisionHash, classifyCandidateProfileByRule,
 } from '@meetwise/domain';
-import { requireOwnerUserId } from './tenant/index.ts';   // PRIV01-C 第二层 E1(应用层 tenant ≠ RLS · 授权根仍为 asPrincipal+RLS)
-import { decryptResumeBlob } from './resume/resume.ts';
+import { requireOwnerUserId } from '../tenant/index.ts';   // PRIV01-C 第二层 E1(应用层 tenant ≠ RLS · 授权根仍为 asPrincipal+RLS)
+import { decryptResumeBlob } from '../resume/resume.ts';
 import { getInterviewRouteSnapshot, type InterviewRouteSnapshotView } from './job-route-decision.ts';
 
 export type CandidateProfileRouteSupply =

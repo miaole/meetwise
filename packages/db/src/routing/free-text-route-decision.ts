@@ -28,9 +28,9 @@
  * 字段送进承重 SQL 并映射返回值。
  */
 import { createHmac } from 'node:crypto';
-import { newEntityId } from './ids.ts';
+import { newEntityId } from '../ids.ts';
 import type { PoolClient as Client } from 'pg';
-import { asPrincipal, type DbPool } from './principal.ts';
+import { asPrincipal, type DbPool } from '../principal.ts';
 import {
   JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_POLICY_VERSION,
   canonicalFreeTextSemanticDigest, classifyFreeTextByRule, validateModelRouteOutput,
