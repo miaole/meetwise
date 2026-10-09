@@ -31,7 +31,7 @@
 | A2 | 现行 text 调用=非流式 | `packages/ai-runtime/src/model-client.ts:395`（chatUrl）·`:403`（dispatchOnce 一次性 JSON POST） | body 零 `stream` 字段；S2 立项事实在本分支仍成立 |
 | A3 | 供应商流式能力（S2 实测） | `receipts/tokstream-s2-probe/2026-10-07/probe-b.json` · `stitch-compare.json` | B_PASS：TTFT 274ms · 17 chunks/13 非空 delta · 间隔 1–153ms · stop+空 choices usage chunk+[DONE] 三联终结 · T0 归一化全等（A/B sha 同符）· pinnedParams temperature=0/seed=42 |
 | A4 | 错误前置（S2 实测） | `.../probe-c.json` | 404 model_not_found **HTTP 前置** 225ms · 零流字节 · 生成前即拒零计费 |
-| A5 | SSE 泵 | `apps/api/src/platform/sse-pump.ts:53`（pumpSseEvents）·`:66`（10min deadline）·`:87-90`（ping/取数失败收尾即断） | 行泵单源化（B5 四件套）·notify `waitFor(streamKey)` race 兜底 poll·emit=`id: seq / event: kind / data: JSON` |
+| A5 | SSE 泵 | `apps/api/src/platform/sse-pump.ts:53`（pumpSseEvents）·`:69`（10min deadline）·`:92-93`（ping/取数失败收尾即断） | 行泵单源化（B5 四件套）·notify `waitFor(streamKey)` race 兜底 poll·emit=`id: seq / event: kind / data: JSON` |
 | A6 | SSE 端点 | `apps/api/src/modules/interview/interview.controller.ts:253-272` | GET `:id/events` · `last-event-id` 头 · per-principal 槽 ≤5（`acquireSlot` 429 too_many_streams）·isTerminal=report_ready/report_unavailable/assessment_unavailable/interview_unavailable/error 五 kind |
 | A7 | 通知通道 | `apps/api/src/platform/sse-notify.service.ts:28-29`（channel/trigger 名）·`packages/db/migrations/0143_sse_push_notify.sql:26`（`pg_notify('interview_event_ch', NEW.stream_key)`） | 现通道载荷=**仅 stream_key**（lossy hint·零内容）·单例 LISTEN 禁每 SSE 一连接（`:24`）·健康面=LISTEN 在位+trigger 在场 |
 | A8 | 事件持久原语 | `packages/db/src/interview-event.ts:16`（appendEvent）·`:24-28`（0126 raw-answer 围栏） | seq=同 stream MAX+1 advisory 事务锁原子分配 · event_key 幂等（重复返回既有 seq） |
@@ -41,7 +41,7 @@
 | A12 | 关口不变面 | `packages/ai-runtime/src/invoke.ts:135`（idempotencyKey）·`:19`（doubleValidate）·`:346-390`（claim/usage 落账） | durable claim/计费/双校验链**不可旁路**（阶段0 Ban 8 承接） |
 | A13 | 事件目录 SSOT | `CLAUDE.md:54` | 「frontend consumes business events over SSE, **not model tokens**」——阶段2 落地将改变该句语义；其更新登记为 S4c/d 实施刀内事项（本刀零触 SSOT） |
 | A14 | 模型期限面 | `packages/ai-runtime/src/model-client.ts:422`（`resolveModelDeadlineConfig().transportTimeoutMs`） | 现行 35s/30s 级模型期限；流式通道期限设计见 §E-③ |
-A15: api 运行时零 Redis（grep 零命中·无 provider 依赖）；**worker 半边更正（post-dual 席1 亲证）**：worker/package.json:137 `"redis": "catalog:"` 位于 dependencies 且 main.ts:45/:48 运行时 import rag-redis-cache.ts/qbank-embedding-compute-seams.ts——T-A 排除理由重锚至 **api 侧零 Redis+第二运维面**（批1 排除 Redis 约束在 api 消费侧仍真·结论不受影响但拒绝理由须改写）
+**C-1 选型**：**T-A（primary）= PG LISTEN/NOTIFY 专用通道 `interview_token_ch`**。理由：**api 运行时零 Redis**（grep 零命中·无 provider 依赖）；复用 `sse-notify.service.ts` 单例 LISTEN 连接形态（同连接第二通道·`:24` 禁每 SSE 一连接纪律不破）；worker 侧本有 PG pool（appendEvent 同事务外旁路 `pg_notify`）。**T-B（仅登记演进）= Redis Streams 有界环**（XADD/MAXLEN/XREAD·跨 api 重启短暂回放）：批1 不选——api 侧新基建+第二运维面，且非权威语义下回放价值低（终态兜底已足）。**worker 半边勘误（post-dual 席1 亲证·erratum）**：worker/package.json:137 `"redis": "catalog:"` 位于 dependencies 且 main.ts:45/:48 运行时 import rag-redis-cache.ts/qbank-embedding-compute-seams.ts——T-A 排除理由**重锚至 api 侧零 Redis+第二运维面**（批1 排除 Redis 约束在 api 消费侧仍真·T-A 结论不受影响但拒绝理由改写）。
 
 ## §B 数据流图（席1 处方：worker→api 跨进程跳逐段钉死）
 
@@ -58,7 +58,7 @@ A15: api 运行时零 Redis（grep 零命中·无 provider 依赖）；**worker 
 │  interview.controller.ts:253  GET :id/events（槽≤5·429·404 前置）                    │
 │  pumpSseEvents(sse-pump.ts:53)                                                      │
 │   ├ 行泵（既有·语义零改）：fetchMore(seq>) ← interview_event 权威行 → emit(id/kind/data) │
-│   │   ·10min deadline(:66)·ping 保活·终态即收                                       │
+│   │   ·10min deadline(:69)·ping 保活·终态即收                                       │
 │   └ delta 臂（S4c 新增）：interview_token_ch LISTEN（复用 sse-notify.ts:24 单例连接·   │
 │       禁每 SSE 一连接不变）→ per-streamKey 进程内环形缓冲（有界·丢旧标记 coalesced）    │
 │       → 插叙 emit(token_delta·无 id) —— 非权威·允许丢                               │
@@ -143,7 +143,7 @@ withTokenStream(pool, owner, streamKey, meta: { attemptKey, jobKind }, run: (t: 
 | 鉴权 | 401/403（key-域错配） | 未实测（S2 以 pre-flight 同族断言防误判） | pre-flight 响应 `model` 同族断言沿 S2 三元组；stream flag OFF 缺省=失败面即非流式既有面 | 合成 fixture |
 | ① | 流中 error frame | **未实测**（C 被 HTTP 前置拦截——REQUEST 明示设计携带） | 解析 `data:{error…}` 帧 → 即刻截断+error 终态+Σlen 封账（守恒账面到中断点） | 合成 fixture |
 | ② | 静默断流（EOF 无三联） | 未实测（B 三联齐） | EOF 且无 finish_reason/usage/[DONE] → `streamEndedByEofWithoutDone`（probe-b 已有键）→ error 终态 | 截断 fixture（去 [DONE] 重放） |
-| ③ | idle 停滞/总闸 | 未实测（样本间隔 ≤153ms） | **idle watchdog**：无字节 >10s → 截断走①路径；**总闸**：流式 transport 期限沿 `resolveModelDeadlineConfig`（A14）另设流式值+泵侧 10min 帽（A5 `:66`）双层；任一触发=error 终态·禁自动重跑 | 合成停滞 fixture |
+| ③ | idle 停滞/总闸 | 未实测（样本间隔 ≤153ms） | **idle watchdog**：无字节 >10s → 截断走①路径；**总闸**：流式 transport 期限沿 `resolveModelDeadlineConfig`（A14）另设流式值+泵侧 10min 帽（A5 `:69`）双层；任一触发=error 终态·禁自动重跑 | 合成停滞 fixture |
 | ⑤ | 并发/取消/断流续传/计费 | — | 并发：per-principal SSE 槽 ≤5（A6）不变·token 通道零新增连接；取消：客户端断开**不取消** worker 生成（既有语义·终态照落·delta 无听众=廉价 no-op）；续传：Last-Event-ID 只重放权威行（delta 永不重放·§C-4）；**计费：流中失败禁自动重跑**（Ban 双跑双扣）·重试=用户显式路径（attemptKey 幂等重放既有） | 槽/重连 fixture |
 | ⑥ | 长流 pacing | **样本仅 72 字符**（S2 诚实边界） | L1 合帧（worker·§D-3）+L2 api 环有界（丢旧标记）+L3 渲染 rAF 批量（frame-coalescer 复用）——三层 coalesce 承接阶段0 裁定；真实长流曲线未测=如实登记，S4 prove 用合成长曲线重放 | 合成长曲线 fixture |
 | ⑦ | 拼接校验 | T0 pass（逐字节全等）·T3 定性器 1 误报实证 | **运行时**：长度守恒 ΣdeltaLen==accLen（D-1 通道自检+web 缓冲面）+终态到达时归一化全等对照（trim+折叠空白·不匹配=telemetry+仍用终态权威）；completion_tokens 量级对账=**telemetry 非门**（跨语言 tokens≠字符可比）；**明文禁裸前缀重叠启发式**（S2 T3 误报会改坏正确输出——该启发式只许存在于离线诊断工具） | stitch-compare.json grading |
@@ -211,3 +211,12 @@ z.object({
 ## §J Ban 合规自检（对 REQUEST §3）
 
 零产品码：本文档+收据 docs-only，apps/packages/scripts 零字节 ✓ · g7 车道零触：§D-2 flag 缺省 OFF·预约/终结面零声明变更 ✓ · Key name-only：本刀零 Key 触碰零 live（est live=0）✓ · pins 十一值见 §3 ✓ · 实现不自批：本设计交 post-prove 双审·alone≠dual ✓ · SSOT（CLAUDE.md/backlog）零触 ✓。
+
+
+---
+
+## erratum（post-dual 席1 FAIL 处方·d03e7b3b 事故修正）
+
+- **A15 勘误**：api 零 Redis 真；worker/package.json:137 `"redis": "catalog:"` 在 dependencies+main.ts:45/:48 运行时 import（rag-redis-cache/qbank-embedding-compute-seams）为真。T-A 排除理由重锚 api 侧零 Redis+第二运维面。
+- **A5 行号勘误**：`:46`→`:53`·`:66`→`:69`·`:87-90`→`:92-93`。
+- **d03e7b3b 事故留痕**：首轮 erratum 编辑误删 §C-1 选型段（A15 注记误贴两次）——post-dual 席1 抓出，本 rev 恢复原段+理由子句改写。文档 sha256 以本 commit 为准（原 ea4403… 为 @9dea6b97 态）。
