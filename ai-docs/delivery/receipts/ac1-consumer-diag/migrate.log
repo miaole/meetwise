@@ -1,0 +1,5 @@
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-line-ac1/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=152 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
