@@ -1,0 +1,9 @@
+
+> meetwise@0.1.0 openapi:prove /Users/miaole/Desktop/golucky/meetwise-line-b110
+> pnpm -C packages/contracts prove:openapi
+
+
+> @meetwise/contracts@0.0.0 prove:openapi /Users/miaole/Desktop/golucky/meetwise-line-b110/packages/contracts
+> tsx test/openapi.proof.ts
+
+✓ openapi:prove 全部通过(73 断言)

@@ -1,0 +1,4 @@
+
+> @meetwise/web@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-line-b110/apps/web
+> tsc --noEmit
+

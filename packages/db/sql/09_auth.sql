@@ -8,6 +8,7 @@ CREATE TABLE user_account (
   password_hash text NOT NULL,                 -- scrypt$salt$dk,绝不明文
   status text NOT NULL DEFAULT 'active' CHECK (status IN ('active','disabled')),
   role text NOT NULL DEFAULT 'candidate' CHECK (role IN ('candidate','recruiter')),  -- 身份:C端求职者 / B端招聘方
+  approval_status text NOT NULL DEFAULT 'approved' CHECK (approval_status IN ('pending','approved','rejected')),  -- b110 审核制:recruiter 注册落 pending,admin approve 后过 B 端门;存量默认 approved(向后兼容,非合规声明)
   is_admin boolean NOT NULL DEFAULT false,     -- 运营 admin(特权:跨用户只读,经 AdminGuard 校验)
   preferences jsonb NOT NULL DEFAULT '{}',     -- 用户设置(语言/通知偏好等)
   pwd_epoch int NOT NULL DEFAULT 0,            -- 密码代次:改密自增 → 旧/被盗令牌(内嵌旧代次)立即失效(会话吊销,见迁移 0015)

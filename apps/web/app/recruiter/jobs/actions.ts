@@ -49,8 +49,10 @@ export async function inviteCandidateAction(_prev: { ok?: boolean; msg?: string 
       signal: AbortSignal.timeout(8_000),
     });
   } catch { return { ok: false, msg: '网络错误,请确认 API 已启动' }; }
-  if (res.status === 404) return { ok: false, msg: '未找到该候选人(需对方已注册为求职者)' };
+  // b110:404 分支退役——恒定壳后 404 仅剩「岗位不存在/非自有」(归属预检前置),候选人存在性零信号,
+  // 不再区分候选人(反枚举);404 落入通用失败文案。400 分支保留(参数无效)。
   if (res.status === 400) return { ok: false, msg: '不能邀请自己 / 参数无效' };
   if (!res.ok) return { ok: false, msg: '邀请失败:' + res.status };
-  return { ok: true, msg: '已邀请，候选人将用同一引擎面试；评分校准完成前你只会看到流程状态（不含面试内容，也没有人工审核工单）' };
+  // b110 受理文案中性化:恒定壳下不宣称邀请已送达/候选人存在;真实受理状态以租户内 candidates 列表为准。
+  return { ok: true, msg: '已受理；若对方是注册求职者将收到邀请' };
 }

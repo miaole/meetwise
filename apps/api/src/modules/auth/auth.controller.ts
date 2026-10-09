@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Post, Body, Req, HttpStatus, HttpCode } from '@nestjs/common';
 import { Credentials, SignupDto } from '@meetwise/contracts';
 import { AuthService } from './auth.service';
 import { ZodValidationPipe } from '../../platform/zod.pipe';
@@ -11,8 +11,9 @@ export class AuthController {
   @Post('signup')
   @HttpCode(HttpStatus.OK)
   // 注册用 SignupDto(email + 密码≥8 + 身份 role:求职者/招聘方)真校验。
-  signup(@Body(new ZodValidationPipe(SignupDto)) b: SignupDto) {
-    return this.auth.signup(b);
+  // b110:req.ip 传给 service 撑 signup:ip 桶(trustProxy 保持关闭=socket 地址,防 XFF 伪造,Ban §5.10)。
+  signup(@Req() req: any, @Body(new ZodValidationPipe(SignupDto)) b: SignupDto) {
+    return this.auth.signup(b, req?.ip);
   }
 
   @Post('login')
