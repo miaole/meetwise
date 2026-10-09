@@ -196,7 +196,7 @@ grep -rnE "packages/db/src/[a-z0-9-]+\.ts" apps packages/domain packages/qdrant-
 
 ## 5. 分批实施切片（④ · 19 批 · 每批 ≤5 文件 · 串行一刀一批）
 
-**排序律**：叶子/低耦合先（立模式）→ fan-in 与机械串面重者后；同域不跨批拆散（>5 文件域拆连续两批）；每批 = 1 commit + 1 收据节。`直跑键`=db 包直跑 script；`receipt 靶`=isolatedReceiptSources 含本批移动串的 runner 靶（③ 类改写后须复跑的抽样全集，**加粗**=必跑，余 post 双审可指令）；`外部串`=M4 ④ 类 file:line。
+**排序律**：叶子/低耦合先（立模式）→ fan-in 与机械串面重者后；同域不跨批拆散（>5 文件域拆连续两批）；每批 = 1 commit + 1 收据节。`直跑键`=db 包直跑 script；`receipt 靶`=isolatedReceiptSources 含本批移动串的 runner 靶（③ 类改写后须复跑的抽样全集，批内必跑集合=∅，复跑由 post 双审指令 + B2s 终批 sweep 兜底）；`外部串`=M4 ④ 类 file:line。
 
 | 批 | 移动文件（行） | 直跑 prove 键 | receipt 靶（runner 抽样面） | 外部串改点 |
 |----|----------------|----------------|------------------------------|------------|
@@ -233,19 +233,19 @@ grep -rnE "packages/db/src/[a-z0-9-]+\.ts" apps packages/domain packages/qdrant-
 | G0 面 | `git diff -M`（行对引号外逐字节）· `node --check scripts/run-e2e-isolated.mjs`（涉 ③ 批必跑）· §3 残留 grep=0 · `git diff --quiet pnpm-lock.yaml` | 全 rename 检出 · 0 违例 · EXIT=0 · lockfile 零改 |
 | G1 契约 | `pnpm e2e-platform:check` · `e2e-platform:layout:prove` · `e2e-static-guards:check` · `e2e-static-guards:prove` · `e2e-parity:check` | 五门 EXIT=0（base 红则同红原值登记；`e2e-platform:prove` 预存红 secret-redaction 不洗） |
 | G2 类型 | `pnpm install --frozen-lockfile` 后 `pnpm exec tsc -p packages/db/tsconfig.json --noEmit` + `apps/api` + `apps/worker` 同法 | **批前实测基线原值**（本 base 未装依赖，B1 教训不预设 EXIT 值）→ 批后错误集逐字节 ≡ 基线 |
-| G3 prove | 本批 §5 表：直跑键全跑 + **加粗 receipt 靶**经唯一合法隔离入口 `node scripts/run-e2e-isolated.mjs <target>` | 直跑键零回归 + sweep 靶零回归（绿保持绿·红同形红）；`LOCAL_ISOLATED_PROOF_RECEIPT` 正常产出（receipt ENOENT=0）为 ③ 类通过的必要观察 |
+| G3 prove | 本批 §5 表：直跑键全跑 + receipt 靶抽样集（post 双审指令）经唯一合法隔离入口 `node scripts/run-e2e-isolated.mjs <target>` | 直跑键零回归 + sweep 靶零回归（绿保持绿·红同形红）；`LOCAL_ISOLATED_PROOF_RECEIPT` 正常产出（receipt ENOENT=0）为 ③ 类通过的必要观察 |
 | G4 收尾 | commit 后 `git status`（0 entries）· runner 容器零残留 | 干净 |
 
 **环境**：`pnpm db:up` 起 dev postgres 属环境准备非行为变更；runner 跑前 `env -u MODEL_API_KEY -u MODEL_BASE_URL`（est live 模型调用=0 · **Key name-only 零打印零落盘**）；live 类面（`e2e:isolated` · `e2e:ui:isolated` · perf/smoke live）不在本刀 prove 面。
 
 ### 6.2 每批 prove 键清单
 
-见 §5 表逐批列（直跑键 + receipt 靶 + base 红候选标注）。汇总：db 包 74 script 全部直跑键分布于 19 批；直跑键每批全跑（63/63 实存）；receipt 靶列为抽样全集，批内必跑集合=∅，由 post-dual 双审指令 + B2s 终批 117 靶 sweep 兜底。
+见 §5 表逐批列（直跑键 + receipt 靶 + base 红候选标注）。汇总：db 包 74 script 全部直跑键分布于 19 批；直跑键每批全跑（62/62 实存）；receipt 靶列为抽样全集，批内必跑集合=∅，由 post-dual 双审指令 + B2s 终批 117 靶 sweep 兜底。
 
 ### 6.3 终批（B2s）收口三件
 
 1. §3 全仓残留 grep = **0 行**（除 7 锚 + tenant）。
-2. runner db 面 **117 靶全量 sweep**（协调方可裁定为抽样，但抽样集须 ≥ 非加粗余量半数并披露未跑清单）。
+2. runner db 面 **117 靶全量 sweep**（协调方可裁定为抽样，但抽样集须 ≥ 未跑余量（117 全量）半数并披露未跑清单）。
 3. `git log --oneline e2834082..HEAD` 19 commit 一批一 commit 对表 + 全批收据归档 `ai-docs/delivery/receipts/dir-b2/`。
 
 ### 6.4 禁止计入成功
@@ -289,7 +289,7 @@ grep -rnE "packages/db/src/[a-z0-9-]+\.ts" apps packages/domain packages/qdrant-
 - **R2**（§5 B2f 外部串）：补 worker `r4-funnel-covered-count-batch4.ts:114`（free-text-route-decision · readRepo 机械）。
 - **R3**（§5 B2s 外部串）：删「batch4（无涉）」，改 `batch2:97/:175`（:175=qbank-retrieval-cache）· `batch3:200/:204/:205`（:205=qbank-retrieval-cache · :117 已由 B2r 记二段）· `batch4:115`（index 锚零改 · :114 已于 B2f 改讫）。
 - **R4**（§5 B2c 外部串）：补 `uc-e2e-027-manual-review-appeal.proof.mjs:127`（resume 面）。
-- **R5**（§6.2/G3）：删「~60 靶次加粗必跑」，改「直跑键每批全跑（63/63 实存）；receipt 靶列为抽样全集，批内必跑集合=∅，由 post-dual 双审指令 + B2s 终批 117 靶 sweep 兜底」；G3 期望「加粗靶零回归」同步改「直跑键零回归 + sweep 靶零回归」。
+- **R5**（§6.2/G3）：删「~60 靶次加粗必跑」，改「直跑键每批全跑（62/62 实存）；receipt 靶列为抽样全集，批内必跑集合=∅，由 post-dual 双审指令 + B2s 终批 117 靶 sweep 兜底」；G3 期望「加粗靶零回归」同步改「直跑键零回归 + sweep 靶零回归」。
 - **R6**（§3/§1.2/§7）：终批「期望 0 行」grep 豁免集补 S1 全部登记行；S1 登记六处→**八处**（新增第七处 `packages/db/test/uc052-checkpoint-physical.proof.ts:7` 头注串·B2o 批收据复述登记 · 第八处 `apps/api/test/uc-e2e-014-026-webhook-adv.proof.ts:19` 头注串）；§7 Ban 10「六处」同步改「八处」。
 - **R7**（§5 B2d 靶列对调）：int-transcript 9→8（删 int-transcript-remaining-sinks）；projection 3→4（增 int-transcript-remaining-sinks）。
 - **R8**（§5 B2r ingest 组成）：补 `qbank-handoff-closure`（计数 16 不变）。
