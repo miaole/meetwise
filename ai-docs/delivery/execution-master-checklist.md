@@ -2077,7 +2077,6 @@ flowchart TD
 - [ ] **STILL OPEN**：S4a-S4d 实施切片 REQUEST（蓝本=本设计 §I）；R-A 解禁须产品裁示+双审+隐私 prove；`g7SuiteGreen=false` 维持.
 - 预算：docs-only 零 run · est 0 live · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 设计 ≠ 实施 ≠ 流式上线 · 实现方不 self-approve.
-<<<<<<< HEAD
 ### Line POST7B 复盘/重启刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · pre-prove 双审 BOTH PASS · 纯盘点零修复零产品码·**修复范围=空集·EXEC 零 coding**·重锚坐标 blob c2f0778c 逐行全中·C1-C8 解除条件全亲证·R1-R7 诚实披露·判别面重定义=绿基线间歇复现监视窗·run 来源优先搭 G7TRIO-2 CMD1 收据）
 
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（十一值）.
@@ -2096,7 +2095,6 @@ flowchart TD
 - [ ] **STILL OPEN**：S0-S5 实现刀 REQUEST 立项+落地；CI 接线另刀（C2 勾销前提）；`g7SuiteGreen=false` 维持.
 - 预算：docs-only 零 run · est 0 live · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 设计 ≠ 实施 ≠ lint 门上线 ≠ C1 勾销 · 实现方不 self-approve.
-=======
 
 ### Line G7TRIO-2 trio 全景重跑刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · EXEC @0d61379c 恰 3 run·零产品码·**CMD1/CMD2 绿·CMD3 EXIT=1 步 10 红=六向预注册第五向命中**·locus 移位如实首录·红因定谳另刀归协调方）
 
@@ -2107,4 +2105,13 @@ flowchart TD
 - [ ] **STILL OPEN**：CMD3 步 10 红因定谳+立靶另刀（探针在飞）；trio 三绿判定待 CMD3 修复后重验；g7SuiteGreen SSOT 刀（收官翻转·独立 REQUEST·前置=CMD3 绿或定谳 carve-out）；`:107` 维持；`g7SuiteGreen=false` 维持.
 - 预算：恰 3 run·attempts 1,1,1·sidecar 链累计 254≤300·est live 0 模型调用·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · EXEC 如实≠红因已定谳≠trio 三绿≠g7SuiteGreen · 实现方不 self-approve.
->>>>>>> 93fb9b92 (docs(g7trio2): nail — post-prove dual BOTH PASS (CMD1/CMD2 green, CMD3 step-10 red = fifth-pre-registered-outcome, locus shift first-recorded honest, red-cause adjudication separate knife), three errata logged)
+
+### Line EXTREV HOTFIX-178 egress 清单冲突标记修复 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-dual 双审 BOTH PASS · 恰 1 文件 5+/5−·dual-keep 两侧 5 条全保留·prove EXIT=0 7/7·CI verify 解除阻断）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（十一值）.
+- [x] **`post_prove_dual_pass`** recorded for HOTFIX-178 products only（fix `0f0799b7` 恰 1 文件 ai-docs/architecture/ai/provider-egress-inventory.json·全仓冲突标记仅此一处·nail tip 本 commit · branch feat/mysql-schema-skeleton 直接落线）· **双审 BOTH PASS**：席1 mw-e2e-ha PASS（字节级复现证明——`git diff 91b5218d 0f0799b7` 与刀真 delta `git diff 0790e541 a175b02a` 排序后逐行集合全等=理想 cherry-pick 复现；43 计数独立核算=adapters[].consumers 口径 12+13+7+7+4·tokstream 零 consumer 故 43 正确非巧合；erratum 双要素随 commit 永久留档）+ 席2 mw-model-op PASS（独立双向集合包含 A∪B⊆C ∧ C⊆A∪B 零丢失零发明〔|A|=292/|B|=248/|C|=294=|A∪B|〕；pins 面 releaseEvidence/mode/schemaVersion 三树全等零触碰；prove+inventory 双 EXIT=0 亲跑；波及四文件标记零命中）· 协调方正式授权本 nail.
+- **Erratum-EGRESS-1-M1（席2 裁定·本 nail 落卷）**：EGRESS-1 NAIL（checklist:1959/:1964）与 harness/egress-ledger.md:3/:16、exec-receipt:5 三处工件所载「provider-egress:prove EXIT=0 **主线首绿** 7/7」宣称在当时主线（e300bfec..28db833f 区间）不成立——主线 manifest 自 e300bfec 起带未解冲突标记 JSON.parse 必崩，「首绿」仅在刀 worktree（line/provider-egress-ledger）成立。根因=EGRESS-1 EXEC commit a175b02a 回主线 cherry-pick（e300bfec）时冲突未解即提交。按 append-only 纪律原工件不重写，本条为唯一更正载体。附注：proof.mjs:32 environmentReferenceCount 断言为自指同义反复（预存口径弱点·294 无断言锚定·非本修引入·留 CI-HONESTY 刀候选）。
+- **Erratum-G7TRIO2-M1（同型事故登记）**：本 checklist 曾带第二处未解冲突（:2080/:2099/:2110 `>>>>>>> 93fb9b92`），由 G7TRIO-2 nail 回主线 cherry-pick（28db833f）冲突未解即提交所致，非 CI 阻断（CI 不解析 .md）但属同型流程缺陷，随本 commit dual-keep 解除（HEAD 侧 POST7B+LINT-DESIGN 段在前·G7TRIO-2 段殿后=落线时序）。**流程整改**：此后所有 cherry-pick 回主线后必须 `grep -rn '^<<<<<<<' apps packages scripts ai-docs` 零命中方可 push（两起事故同因：cherry-pick --continue 前 git add 未确认无标记）。
+- [ ] **STILL OPEN**：EXTREV 战役按 SOP rev2 @1062a254 推进（DEPS-AUDIT/ROUTE-DICT/SCORE-WRITER 三刀 REQUEST 双席验证后 EXEC）.
+- 预算：零 run（prove 复用静态验证）· est 0 live · 0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 修复=文件级恢复 ≠ EGRESS-1 刀重开 · 实现方不 self-approve.
