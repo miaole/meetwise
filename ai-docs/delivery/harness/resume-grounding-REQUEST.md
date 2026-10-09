@@ -1,6 +1,6 @@
 # RESUME-GROUNDING — 简历事实接入 AI 出题链（规划/出题/追问三面接地 + 摄取顺手修 · EXEC REQUEST）
 
-**Status**: **`draft_rev2:pre_exec_dual_PASS`**（双席 BOTH PASS · **7 处方已并** · **EXEC 授权** · 蓝本=本 rev2）
+**Status**: （rev3 蓝本·EXEC a2eb45dc·双域双审 BOTH PASS）· STOP · alone≠dual
 **Date**: 2026-10-09
 **Base**: 主线 `5636d58d`（= `origin/feat/mysql-schema-skeleton` tip，`git fetch` 后亲证）· 分支 `line/resume-grounding`（工作树 `/Users/miaole/Desktop/golucky/meetwise-line-resground`）
 **Honesty**: 本档全部 file:line 锚点在 `line/resume-grounding` @`5636d58d` 实树亲读验证（apps/worker、packages/ai-graphs、packages/ai-runtime、packages/domain、apps/api、packages/db——行号错=审席 FAIL）；用户任务书（§0 引录）逐字誊录字节一致，禁改写；#189–#195 编号**不在** issues-master.md（其上限 #184，`/Users/miaole/Documents/Meetwise学习与审查/01-成品文档/issues-master.md` 亲数）——该五条属用户任务书携带的更新评审轮，码面锚点已由本席逐一亲读落位，EXEC 不得以「编号不在总表」为由跳过。
@@ -187,3 +187,5 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ## EXEC 状态行（append-only · mw-resground-exec2 · 2026-10-10）
 
 - **`exec_resume-grounding:post_prove_awaiting_dual`** —— EXEC 已按本 rev3 完成全范围（S1-S4+P1-P8+G1-G4），续作前任 6 脏面（CONTINUE，处置入收据 §0）。验收：`node scripts/run-e2e-isolated.mjs resume-grounding:prove:raw` **EXIT=0**（39 PASS/0 FAIL · est live=0 · 零 Key · actualSpendCny=null）；基线 quiz/adaptive-life/adaptive-flow/adaptive-consumer(35/35)/diagnosis/adaptive-degrade/tokenstream/ocr/uc016/resume-derivative-reference/adaptive-grounding/adaptive-latency 全绿（最终字节）；tsc 平衡 worker 41=41 · api 26=26 · web 0。G1-G4：consent_record purpose=`interview_personalization` 最小读写面（0152 expand-only GRANT DELETE）+worker 链进入点一次读门+未同意/撤回与现状逐字节一致断言（S1/S3/B 段）+web 最小用途选择/撤回（审计附录 C E 项原文）。新 proof=`apps/worker/test/resume-grounding.proof.ts`（prove 槽 `prove:resume-grounding`+runner `resume-grounding:prove:raw`）。attempts 全账（8 跑 7 红逐因）与基线先在红披露（interview/stress/context-stress=HEAD 平衡坐实先在红，未修）见 `ai-docs/delivery/receipts/resume-grounding/2026-10-10-run-manifest.json` + `2026-10-10-exec-prove.md`。**Ban self-approve：post-prove 双审待独立域（建议 rag/route+privacy）· nail 归 meetwise。**
+
+- N2 补句（席2·nail 顺手）：#259 目标岗位输入面不在本刀·planner 仅消费既有 role 形参。
