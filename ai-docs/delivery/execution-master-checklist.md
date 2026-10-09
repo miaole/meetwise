@@ -2077,3 +2077,13 @@ flowchart TD
 - [ ] **STILL OPEN**：S4a-S4d 实施切片 REQUEST（蓝本=本设计 §I）；R-A 解禁须产品裁示+双审+隐私 prove；`g7SuiteGreen=false` 维持.
 - 预算：docs-only 零 run · est 0 live · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 设计 ≠ 实施 ≠ 流式上线 · 实现方不 self-approve.
+
+### Line G7TRIO-2 trio 全景重跑刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · EXEC @0d61379c 恰 3 run·零产品码·**CMD1/CMD2 绿·CMD3 EXIT=1 步 10 红=六向预注册第五向命中**·locus 移位如实首录·红因定谳另刀归协调方）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false`（零翻转） · actualSpendCny=null · r1Closed=false（十一值）.
+- [x] **`post_prove_dual_pass`** recorded for Line G7TRIO-2 products only（EXEC 0d61379c=仅 harness+收据 21 文件·apps/packages/e2e/scripts diff 空输出亲证·REQUEST rev2 @c76cad4b 唯一蓝本·nail tip 本 commit · branch `line/g7-trio2-full`）· **双审 BOTH PASS**：席1 mw-e2e-ha PASS（收据 21/21 清单一致+CMD1 EXIT=0 三源一致（75 断言+NDJSON bootId=52209 四元组+sourceDigests 15 文件本树重算全 MATCH）+CMD2 14P/0F/10S 逐行+CMD3 十二 FAIL 全落卷+attempts 1,1,1 零 retry+sidecar 21/23/44 与链 254≤300+容器零残留+pins VERBATIM-EQUAL+§1-§5 原文零改写）+ 席2 mw-model-op PASS（六向第五向命中成立+第六向未达≠有红+窗口不重叠物证零 retry+75vs74 +1 旁证口径诚实+88=21+23+44 算术盘面可证+「未再现≠不存在」限定语到位+DELETE=503 pin 张力仅注记未越权）· 协调方正式授权本 nail.
+- **Run 判读（协调方受理席2 建议·按第五向）**：CMD1 EXIT=0（82159ms/75 断言/全程绿形）·CMD2 EXIT=0（24 tests 14P/0F/10S 与 G7Y/G7TRIO 基线同形）·CMD3 EXIT=1 fail-fast 步 10 neg:all（neg:resume 12/87 红=图片同意门×2+DELETE/privacy-erasure 族×10·**NEGCOMM-1 解锁靶 consume 族 12/12 全 PASS·neg:commerce 84 全绿·G7TRIO 七 FAIL 面零复发=locus 移位新红面首录**·步 11-27 not_run 17 步）· **红因定谳**：分类探针（driver 期望形状漂移 vs 产品回归逐条 12 行）在飞，返回后协调方定谳立靶另刀；本 nail 不预设归域。
+- **Erratum-1（席1/席2 同发现）**：EXEC commit message「收据 18 文件」实为 21 文件（少计 3·§6 清单 21/21 本身准确·记账滑差非虚增）。**Erratum-2（席2）**：REQUEST rev2 §4 验收行残留「五向判读」而 §2 已六向（蓝本内部陈旧·EXEC 交付六向=超集无执行缺口）。**Erratum-3（席2）**：步 3 时长双钟 73861ms（套件口径）/73611ms（内层 receipt）并在卷不构成矛盾。
+- [ ] **STILL OPEN**：CMD3 步 10 红因定谳+立靶另刀（探针在飞）；trio 三绿判定待 CMD3 修复后重验；g7SuiteGreen SSOT 刀（收官翻转·独立 REQUEST·前置=CMD3 绿或定谳 carve-out）；`:107` 维持；`g7SuiteGreen=false` 维持.
+- 预算：恰 3 run·attempts 1,1,1·sidecar 链累计 254≤300·est live 0 模型调用·0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · EXEC 如实≠红因已定谳≠trio 三绿≠g7SuiteGreen · 实现方不 self-approve.
