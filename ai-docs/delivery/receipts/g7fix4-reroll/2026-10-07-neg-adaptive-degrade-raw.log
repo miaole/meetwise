@@ -1,0 +1,17 @@
+
+> @meetwise/worker@0.0.0 prove:adaptive-degrade /Users/miaole/Desktop/golucky/meetwise-line-reroll-exec/apps/worker
+> tsx test/adaptive-degrade.proof.ts
+
+PASS  出题模型失败 → 不抛错
+PASS  返回 ok:false，不发明题面
+PASS  provenance.origin=unavailable 且错误可分类
+PASS  失败结果不含兜底题关键词
+PASS  规划失败 → 默认能力集(面试仍可开,不卡在开局)
+PASS  评分失败 → 不抛错(面试不崩)
+PASS  评分失败 → unscored+原因，不产生任何伪造分数
+PASS  评分外部结果未知 → unscored（不把超时伪造成数值分）
+PASS  真实 gateway 执行超时 → 图评分 unscored，AbortSignal 已传到模型适配器
+PASS  出题超时 → ok:false + timeout/unknown，不发明题，AbortSignal 已传到适配器
+PASS  畸形 structured output → schema_invalid，不发明题
+
+✓ agent 出题 fail-closed(不发明题面)+评分 unscored 全部通过

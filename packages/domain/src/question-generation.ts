@@ -28,6 +28,10 @@ export interface QuestionGenerationProvenance {
   readonly errorCode?: QuestionGenerationErrorCode;
   /** Stable invoke/adapter error token (ASCII). Must not contain secrets or user content. */
   readonly invokeError?: string;
+  /** G7FIX-4R bounded duplicate re-roll trajectory: how many replacement rolls
+   *  this turn consumed before the recorded outcome. Absent when the turn never
+   *  re-rolled. Audit metadata only — never secrets or user content. */
+  readonly reroll?: number;
 }
 
 export type QuestionGenerationResult =

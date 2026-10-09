@@ -43,6 +43,7 @@
     "prove:qbank-retrieval-eval": "tsx test/qbank-retrieval-eval-pg.proof.ts",
     "prove:reqid": "tsx test/reqid.proof.ts",
     "prove:adaptive-degrade": "tsx test/adaptive-degrade.proof.ts",
+    "prove:g7fix4-reroll": "tsx test/g7fix4-reroll.proof.ts",
     "prove:adaptive-grounding": "tsx test/adaptive-grounding.proof.ts",
     "prove:adaptive-offtopic": "tsx test/adaptive-offtopic.proof.ts",
     "prove:adaptive-chaos": "tsx test/adaptive-chaos-sequences.proof.ts",

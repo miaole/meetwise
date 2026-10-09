@@ -21,6 +21,12 @@ function nativeRetrievalFailureToken(reason: string): string | null {
 const AskSchema = z.object({ q: z.string().min(1).max(2000), refs: z.array(z.string()) });   // q 封顶:模型出的题理应短;超长=异常输出,schema 闸拦下重试(也防评估侧截断吃掉答案)
 
 const QUESTION_OPERATION_ID = 'interview.question-generation.v1' as const;
+/**
+ * G7FIX-4R 有界换题上限:判重命中后每 turn 最多重掷 2 次(单 turn 生成调用总数 ≤3 含初诊)。
+ * per-turn 计数、跨 turn 不累计、无循环放大;耗尽仍 unavailableGeneration('duplicate_question') 原样判死,
+ * fail-closed 只从「首撞即死」收窄为「撞满上限才死」,零验证放宽。
+ */
+const MAX_DUPLICATE_REROLL = 2;
 export interface AdaptiveServiceDeps {
   pool: DbPool; owner: string; threadId: string; model: ModelClient;
   /** 快模型(qwen-turbo):评分/relevant 等约束性任务用,显著降反问延迟;缺省回退 model(兼容旧调用)。出题仍用 model(质量关键)。 */
@@ -145,10 +151,14 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
         formatUntrustedResearchMaterial(web, 1_600),
       ].filter(Boolean).join('\n');
       // One logical question node has exactly one provider attempt.  Duplicate
-      // detection is deliberately post-response and deterministic; it cannot
-      // create a second :d1 request with a new idempotency key.
-      const generate = () => invoke({
-          idempotencyKey: `${d.threadId}:ask:t${turn}:0`, operation: { id: 'interview.question-generation.v1', businessRevision: `${d.threadId}:ask:t${turn}` },
+      // detection is post-response and deterministic; since G7FIX-4R a hit no
+      // longer dies on first contact — it re-rolls under a NEW revision (a new
+      // auditable logical node), never a second dispatch of the same node.
+      // G7FIX-4R:键/revision 参数化——初诊沿用 `:0` 键+基础 revision;判重命中后的有界 re-roll
+      // 逐次换 `:r{k}` 键+同步 revision(registry 契约:同键只会缓存回放同题,新 revision=新可审计 logical node)。
+      // payload(schema/businessValidate/model/material)与初诊完全同一组确定性闸。
+      const generate = (idempotencyKey: string, businessRevision: string) => invoke({
+          idempotencyKey, operation: { id: 'interview.question-generation.v1', businessRevision },
           threadId: d.threadId, privacyInterviewId: d.threadId,
           sources: local.map((l) => l.ref), retrieval: local,                          // provenance + topScore 信号
           schema: AskSchema,
@@ -161,9 +171,9 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           model: promptedModel(d.model, 'interviewer.ask', { competency, difficulty, kind, resumeFacts: [] }, undefined, material),
         }, d.pool, d.owner);
       run.stage('generate');                                                           // 段名进下一帧心跳(纯时间窗,不为切段加帧)
-      const out = await generate();
+      let out = await generate(`${d.threadId}:ask:t${turn}:0`, `${d.threadId}:ask:t${turn}`);
       run.stage('validate');                                                           // invoke 返回后的确定性检查(查重/引文)段
-      const idempotencyKey = `${d.threadId}:ask:t${turn}:0`;
+      let idempotencyKey = `${d.threadId}:ask:t${turn}:0`;
       if ('error' in out) {
         // Missing keys, timeouts and malformed/schema failures must not become
         // a canned interview stem.  Structured error + provenance only.
@@ -173,8 +183,12 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           invokeError: out.error,
         });
       }
-      // Cross-session exact duplicate is a known local result, not a reason to
-      // call the provider again or invent a replacement stem.
+      // G7FIX-4R 有界换题:跨会话精确判重命中(唯一真相仍是归一化精确匹配,wasAsked)不再首撞即判死——
+      // seam 内有界 re-roll(上限 MAX_DUPLICATE_REROLL,per-turn 计数,生成调用总数 ≤3 含初诊),每 roll
+      // 同步换 `:r{k}` 键+revision(新可审计 logical node)、重过全既有确定性闸(schema/verbatim/引文)再复检判重;
+      // 上限内得到非重复题面 → 正常 modelGeneration 出题(provenance 落 reroll 轨迹);撞满上限仍重复 →
+      // unavailableGeneration('duplicate_question') 原样判死(provenance 落耗尽轨迹)。记忆不可用
+      // (duplicate_check_failed)与 provider/schema/business 分类判死零放宽。
       let duplicate = false;
       try {
         duplicate = await wasAsked(d.pool, d.owner, out.value.q);
@@ -183,15 +197,43 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: 'duplicate_check_failed',
         });
       }
+      let rerolls = 0;
+      while (duplicate && rerolls < MAX_DUPLICATE_REROLL) {
+        rerolls += 1;
+        idempotencyKey = `${d.threadId}:ask:t${turn}:r${rerolls}`;
+        const replacement = await generate(idempotencyKey, idempotencyKey);
+        if ('error' in replacement) {
+          // re-roll 途中 provider/schema/business 失败 → 既有分类判死原样,不借 re-roll 放宽。
+          return unavailableGeneration(classifyQuestionGenerationError(replacement.error), {
+            operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: replacement.error, reroll: rerolls,
+          });
+        }
+        const replacementCited = resolveCitedSources(knownRefs, replacement.value.refs);
+        if (!replacementCited.ok) {
+          return unavailableGeneration(classifyQuestionGenerationError(`business:${replacementCited.reason}`), {
+            operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: `business:${replacementCited.reason}`, reroll: rerolls,
+          });
+        }
+        try {
+          duplicate = await wasAsked(d.pool, d.owner, replacement.value.q);
+        } catch {
+          return unavailableGeneration('generation_unavailable', {
+            operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: 'duplicate_check_failed', reroll: rerolls,
+          });
+        }
+        if (!duplicate) out = replacement;                                               // 上限内得到非重复替代题:换题成功
+      }
       if (duplicate)
-        return unavailableGeneration('duplicate_question', { operationId: QUESTION_OPERATION_ID, idempotencyKey });
+        return unavailableGeneration('duplicate_question', { operationId: QUESTION_OPERATION_ID, idempotencyKey, reroll: rerolls });
       const cited = resolveCitedSources(knownRefs, out.value.refs);
       if (!cited.ok) {
         return unavailableGeneration(classifyQuestionGenerationError(`business:${cited.reason}`), {
           operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: `business:${cited.reason}`,
         });
       }
-      return modelGeneration(out.value.q, cited.sources, { operationId: QUESTION_OPERATION_ID, idempotencyKey });
+      return modelGeneration(out.value.q, cited.sources, {
+        operationId: QUESTION_OPERATION_ID, idempotencyKey, ...(rerolls > 0 ? { reroll: rerolls } : {}),
+      });
       });
     },
     async assess(question, answer, _competency, turn, identity) {
