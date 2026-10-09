@@ -1,0 +1,22 @@
+
+> @meetwise/ai-runtime@0.0.0 prove:stitch-validator /Users/miaole/Desktop/golucky/meetwise-line-tokstream-s4a/packages/ai-runtime
+> tsx test/stitch-validator.proof.ts
+
+PASS  收据锚：grading.T0/T1/T2 定义与 band 亲读在场
+PASS  收据锚：stitchedText 与 grading.normalized 一致（lenA=lenB=72·ratio=0）
+PASS  T0 原语：trim+折叠空白（空白归一到单空格·trim 两端）
+PASS  T0 收据复现：全等输入 → pass（definition 逐字一致）
+PASS  T0 容差：空白差异变体 → 归一化后仍全等（原文本不等）
+PASS  T0 负例：内容不同 → fail
+PASS  T1 语义对齐：authoritative 前/后 50 字符 === 收据 prefixAnchor/suffixAnchor
+PASS  T1 收据复现：全等输入 → pass（anchorLen/definition 逐字一致）
+PASS  T1 负例：尾字符缺失（suffix 锚破） → fail（T2 仍在带内=两面独立）
+PASS  T1 负例：首字符改写（prefix 锚破） → fail
+PASS  T2 收据复现：ratio=0 → pass（band 逐字一致·阈值=0.1）
+PASS  T2 边界：80/100 → ratio 0.2 > 10% → fail；90/100 → ratio 0.1 ≤ 10% → pass
+PASS  T3 禁断言（结构）：校验器判定输出零 T3/overlap 字段
+PASS  T3 禁入运行时（结构）：model-client.ts 代码面零裸前缀重叠启发式标识符
+PASS  T3 误报实证（fixture 注记）：裸前缀启发式会改坏正确输出（「SE 是」≠「SSE 是」）
+PASS  T3 误报实证（fixture 注记）：纯追加拼接与收据权威逐字一致（前 5 字符）——证明 T3 误报
+
+✓ 拼接校验器单测全部通过（T0/T1/T2 承重·T3 仅诊断禁断言·零模型外呼）
