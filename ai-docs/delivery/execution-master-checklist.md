@@ -1944,3 +1944,15 @@ flowchart TD
 - [ ] **STILL OPEN**：CMD3 步 11-27（含 6 LEGACY/R5 步）解锁后另评估；trio 再跑收官；`g7SuiteGreen=false` 维持.
 - 预算：恰 1 run · est live ≤25 · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
+
+### Line TOKSTREAM-S2 供应商 text 流式能力核实探针刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 恰 3 探针·**B_PASS：SSE 逐 token 流式实测成立**（TTFT 274ms vs A 1386ms≈5.1x·拼接与 A 逐字节全等 sha 同·T0 强证层·终结三联与官方一致）· **阶段2 实施设计 REQUEST 可立** · provider-egress +2 申报精确抵消净增零 · 预存红实数勘误 56 条/25 文件）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（十一值）.
+- [x] **`post_prove_dual_pass`** recorded for Line TOKSTREAM-S2 products only（触面=scripts 探针新增+manifest +2 申报+package.json 单 script+收据 7 件+harness · 零产品码 apps/packages diff=0·nail tip 本 commit · branch `line/tokstream-s2-probe`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：脚本亲读三元组/pre-flight/one-shot/redact 7 规则与 rev3 逐条对应+SSE 留档逐行 17 chunks 亲读+**13 段 delta 拼接独立重算 sha 全等**+T3 误报 raw 复核词元拆分 accLen 严格守恒/egress +2 抵消 0 涉本刀数学成立/est live=3 费用自算核验 0.000224/digest 亲等）+ mw-model-op PASS（六核：**B_PASS 三层亲证**〔TTFT 5.1x 优势 n=1 禁作 SLA·字节全等 T0·accLen 严格加性证纯增量语义〕/**T3 误报价值实证**〔裸前缀重叠启发式若作自动校正会把正确输出改坏——明文弃用〕/C=HTTP 前置一等错误路径〔非 200+JSON error body 先判 res.ok〕/预存红独立复算 56 行/25 文件 net-zero/费用公式亲算/one-shot 实测 fail-closed）· 协调方正式授权本 nail.
+- **TOKSTREAM-S2 全链**：REQUEST → rev2（席1 pins/egress 申报/B 判据）→ rev3 `a8f2f67e`（席2 更深：删 native 参数 incremental_output+stream_options.include_usage 必设+三元组钉死防 401 误判+T0-T3 分级）→ 双席复核 BOTH PASS → EXEC `369a07ca`（origin tip 零位移）→ 本 nail commit.
+- **核心产出（用户核心诉求「token 真实展现前端」从诉求变为可实施）**：供应商 SSE 流式能力实测成立（B_PASS·TTFT 274ms·增量语义守恒·usage 面可达）——**阶段2 实施设计 REQUEST 可立**；T3 误报价值（阶段2 拼接校验=长度守恒+归一化全等·明文禁裸前缀重叠启发式）；C=HTTP 前置一等错误路径（sse-pump 设计：非 200 先判 res.ok·4xx 禁重试）.
+- **阶段2 设计 REQUEST 必备面清单（席2 开列·随阶段2 刀携）**：流中 error frame/静默断流两面（C 被 HTTP 前置拦截未实测）·idle/总闸截断策略·跨 chunk 多字节 UTF-8 TextDecoder stream 解码纪律·并发/取消/断流续传与计费语义·长流 pacing（样本仅 72 字符）.
+- **erratum×2 登记（双席·narrative 级）**：①预存红 EXEC 称 64 行/~40 文件·实测 **56 条/25 文件**（46 unregistered+10 adapter·高估非洗绿·EGRESS-1 清算刀在飞承接）；②「间隔 1-153ms」漏计两行 0ms 终结帧（raw 留档自证）.
+- [ ] **STILL OPEN**：阶段2 实施设计 REQUEST（必备面清单随携）；EGRESS-1 清算刀（在飞）；T3 启发式禁用条款随阶段2 设计；`g7SuiteGreen=false` 维持.
+- 预算：est live=3 实测 · 费用 0.000224 CNY console-reported（NOT independently verified）· actualSpendCny=null · Key 值零接触.
+- Sibling sections stay as written. alone≠dual · 探针=供料非实施 · 实现方不 self-approve.
