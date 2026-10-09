@@ -8,7 +8,7 @@
  *   ③ 目标行数=0（per (owner_user_id, kind) 快照）
  *   ④ 残留=0（0125 :348-355 同口径 · purge 内建 55000 fail-closed）
  *   ⑤ 跨 subject intact + qbank intact（content_hash+embedding 聚合 digest 等值断言）
- *   ⑥ 公开 DELETE=503（`pnpm privacy-erasure:http:prove` 同 ledger 入账 · 本证明外同列）
+ *   ⑥ 公开删除面：interview 503 关闭 · resume/account DELETE=202 软删受理(purge_pending)（`pnpm privacy-erasure:http:prove` 同 ledger 入账 · 本证明外同列）
  * 附加：0141 lease 绑定 DELETE fence（app_role 无授权自删红 / 错 token 红）·
  *      0091 local_erased receipt 落账（既有函数 · guard 零语义改动）·
  *      INT sink='vector' 诚实 no-target（无 target + feed 不出 + claim sink_forbidden）。
@@ -314,7 +314,7 @@ async function main() {
 
   await admin.end();
   console.log(failures === 0
-    ? '\n✓ GAP-PRIV-04 向量面擦除收尾 DB 证明通过（本地隔离 · releaseEvidence=false · ≠ 云端彻底删除 · HNSW 内部页/WAL/备份不在行级证据面 · 公开 DELETE=503 同列入账见 privacy-erasure:http:prove）'
+    ? '\n✓ GAP-PRIV-04 向量面擦除收尾 DB 证明通过（本地隔离 · releaseEvidence=false · ≠ 云端彻底删除 · HNSW 内部页/WAL/备份不在行级证据面 · interview 503 关闭 · resume/account DELETE=202 软删受理(purge_pending) 同列入账见 privacy-erasure:http:prove）'
     : `\n✗ ${failures} 个断言失败`);
   process.exit(failures === 0 ? 0 : 1);
 }

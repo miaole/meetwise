@@ -5,7 +5,7 @@
  *   - Mapping / candidate hash ONLY. Does NOT write product ledger.
  *   - Product ledger NOT writable for Qdrant yet → fail-closed PREREQ list.
  *   - Prototype receipt ≠ 0091 privacy_deletion_receipt / PrivacyDeletionReceipt contract.
- *   - ≠ public DELETE 200/202 (product path still 503).
+ *   - ≠ DELETE-path completion claim (interview closed 503 · resume/account=202 软删受理(purge_pending)).
  *   - releaseEvidence=false · Not HA · ≠ G5 closed · ≠ privacy covered · ≠ cutover.
  *
  * @see ai-docs/delivery/harness/qdrant-g5-ledger-map.md
@@ -73,7 +73,7 @@ export const RECEIPT_FIELD_MAP: readonly LedgerFieldMapEntry[] = Object.freeze([
     prototypeField: null,
     ledgerField: 'request_id',
     status: 'blocked',
-    note: 'FK privacy_erasure_request — no Qdrant path mints request; public DELETE still 503',
+    note: 'FK privacy_erasure_request — no Qdrant path mints request; interview DELETE still 503 closed · resume/account DELETE=202 软删受理(purge_pending)',
   },
   {
     prototypeField: null,

@@ -23,7 +23,7 @@
  *
  * 隔离：pnpm uc011:adv:prove → run-e2e-isolated → apps/api prove:uc011-adv-refund-callback；
  * _neg-harness boot() 自建 schema；PAY_PROVIDER_SECRET 仅进程环境；Ban MODEL_API_KEY / live。
- * releaseEvidence=false · NOT_HA · PG-retained · public DELETE=503。
+ * releaseEvidence=false · NOT_HA · PG-retained · DELETE=202 软删受理(purge_pending)。
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -69,7 +69,7 @@ function isExplainableRejectNotGap(status: number): boolean {
   const h = await boot();
   const pool = h.pool;
 
-  console.log('PINS: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503');
+  console.log('PINS: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=202 软删受理(purge_pending)');
   console.log('EXIT 契约: EXIT 0 ⇔ A1+A2 真证据（拒+无双退 · 非-404）；口 404 → EXIT 1 + 双 GAP。EXIT0 ≠ covered · Ban wash 404=pass。');
   console.log(`CMD=${CMD}`);
   console.log('NOTE: Ban live · Ban MODEL_API_KEY · Ban invent product mouth · Ban 互借关 GAP-UC011-REFUND-CALLBACK');

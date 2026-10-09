@@ -5,7 +5,7 @@
  *
  * Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false
  * gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false
- * PG-retained · public DELETE stays 503
+ * PG-retained · interview DELETE closed(503)·resume/account DELETE=202 软删受理(purge_pending)
  *
  * Not FAULT. Not BOUND. Not ADV. Not UC-E2E-018. Not UC-E2E-052.
  * Does not edit the coverage matrix or any SSOT. No nail.
@@ -63,7 +63,7 @@ assert.ok(tableBlock, 'resume_quiz CREATE TABLE block parseable');
 const quizHasExpiry = /\bexpires_at\b|\bfresh_until\b|\bstale_after\b/i.test(tableBlock[1]);
 
 console.log('UC-E2E-025 NHP-025-NEG-01 stale quiz as interview input (NEG column only)');
-console.log('releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · DELETE=503');
+console.log('releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · DELETE=202 软删受理(purge_pending)');
 console.log('Not FAULT · Not BOUND · Not ADV · no nail · matrix not edited');
 console.log(`inventory acceptsQuiz=${acceptsQuiz} realStaleReject=${realReject} resume_quiz_expiry_column=${quizHasExpiry}`);
 console.log(`contracts_stale_token=${/\bstale_quiz\b|\bquiz_expired\b|\bquiz_artifact_expired\b/.test(contracts)}`);

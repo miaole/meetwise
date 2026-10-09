@@ -113,9 +113,9 @@ if (existsSync(adrPath)) {
     fail('ADR must state 应用层 tenant ≠ RLS 等价物');
   }
   if (/DELETE/.test(adr) && /503/.test(adr) && /冻结|仍为|仍 503|仍为 503/.test(adr)) {
-    pass('ADR freezes public DELETE=503');
+    pass('ADR pins DELETE face: interview 503 closed · resume/account=202 软删受理(purge_pending) supersession window');
   } else {
-    fail('ADR must freeze public DELETE=503');
+    fail('ADR must pin the DELETE face freeze language');
   }
   if (/擦除 sink|可证明删除 sink|Qdrant.*sink|sink.*Qdrant/i.test(adr)) {
     pass('ADR names Qdrant as erasure sink requiring proof');

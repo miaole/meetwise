@@ -440,7 +440,7 @@ async function main() {
       `winners=${winners.length} a=${!!a?.leaseToken} b=${!!b?.leaseToken} eventTargets=${nTargets}`);
   }
 
-  /* ── NHP-050-NEG-01: public DELETE still 503 (service pin · no new route) ── */
+  /* ── NHP-050-NEG-01: interview DELETE still 503 closed · resume/account DELETE=202 软删受理(purge_pending) (service pin · no new route) ── */
   {
     const id = 'NHP-050-NEG-01';
     // Import service method — pure throw, no HTTP server required.

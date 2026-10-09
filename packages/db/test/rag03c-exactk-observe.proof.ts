@@ -17,7 +17,7 @@
  * substituted_body) · P-DEFAULT-HNSW-USED. Any reading value (0/<K/false) does NOT red the run.
  * Ban: shared schema/DDL/migration (proof-local corpus via existing write paths only) · MySQL ·
  * FULLTEXT · Qdrant · production data · secrets · retry-to-green. GAP-RAG-03 `:71` stays OPEN ·
- * coveredCount=8 · NOT_HA · releaseEvidence=false · PG-retained · DELETE=503 · actualSpendCny=null.
+ * coveredCount=8 · NOT_HA · releaseEvidence=false · PG-retained · DELETE=202 软删受理(purge_pending) · actualSpendCny=null.
  *
  * pnpm rag03c-exactk-observe:prove        (main arm P1)
  * RAG03C_ARM=P2 pnpm rag03c-exactk-observe:prove   (contrast arm P2)

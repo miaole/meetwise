@@ -10,7 +10,7 @@
  *
  * EXIT0 ≠ covered ≠ :64 CLOSED ≠ cloud vendor deleted ≠ open DELETE ≠ HA.
  * local_isolated_stub ≠ real OSS/Redis/Langfuse wipe · gap :64 stays OPEN · UC-052 partial.
- * Ban count-as-erased · NB-3 · cite ada604a honesty ≠ wash into wipe · DELETE=503.
+ * Ban count-as-erased · NB-3 · cite ada604a honesty ≠ wash into wipe · DELETE=202 软删受理(purge_pending).
  */
 import { randomUUID } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
@@ -41,7 +41,7 @@ const REQUIRED_CASES = [
   'AP-NEG-04',       // partial (langfuse refuse) → failed_cleanup · ≠ completed · Ban count-as-erased
   'AP-NEG-05',       // timeout → failed_cleanup · ≠ completed
   'AP-N3-WIRE',      // N3: after PATH, externals have audited external_confirmed + evidence · not bare retention_pending
-  'AP-DEL-01',       // public DELETE stays 503
+  'AP-DEL-01',       // interview DELETE closed(503)·resume/account DELETE=202 软删受理(purge_pending)
   'AP-HONEST-01',    // stub ≠ cloud wipe · gap64Open · releaseEvidence=false · cloudVendorDeleted=false
 ] as const;
 
@@ -344,7 +344,7 @@ async function main() {
       `confirmed=${confirmed} evidenceN=${ev.rows[0]?.n} (N3: pending→resolve after evidence)`);
   }
 
-  /* ── AP-DEL-01: DELETE=503 ── */
+  /* ── AP-DEL-01: DELETE=202 软删受理(purge_pending) ── */
   {
     const id = 'AP-DEL-01';
     const mod = await import('../../../apps/api/src/modules/privacy/privacy.service.ts');
@@ -399,7 +399,7 @@ async function main() {
   }));
 
   console.log(failures === 0
-    ? '\n✓ UC052 external sink async-purge prove PASS (stub path evidenced · ≠ cloud wipe · ≠ :64 CLOSED · ≠ covered · DELETE=503)'
+    ? '\n✓ UC052 external sink async-purge prove PASS (stub path evidenced · ≠ cloud wipe · ≠ :64 CLOSED · ≠ covered · DELETE=202 软删受理(purge_pending))'
     : `\n✗ UC052 external sink async-purge prove FAIL failures=${failures}`);
   await admin.end();
   process.exit(failures === 0 ? 0 : 1);
