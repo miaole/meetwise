@@ -44,8 +44,12 @@ const IMG_B64 = Buffer.from('fake-png-bytes-not-really-an-image').toString('base
   A('userB 文本上传回带 purpose=resume_processing', r.body?.purpose === 'resume_processing');
 
   const f = await h.post('/resume/file', AUTH_B, { filename: 'cv.png', mimeType: 'image/png', contentBase64: IMG_B64 });
-  A('userB 图片上传未同意 → 403(计费前即拦,绝不先扣费)', f.status === 403);
-  A('userB 图片上传 error=consent_required', f.body?.error === 'consent_required');
+  // consent 硬门在图片路径存在且先于计费 reserve(resume.service.ts:96→:98)——本断言面当前被能力门先答
+  // (neg harness 钉 OCR_ENABLED='0', _neg-harness.ts:49 → OCR 能力门 422 image_ocr_unavailable 先应),pin 计费前即拦意图不变;
+  // 活断言承载见 validate.ts:395(422 形)+:396(拒绝→计费增量 0)。
+  // 翻转条件:若未来 harness 启 fake OCR(另刀翻转 _neg-harness.ts:49),本面须回和 403/consent_required(原 B1 形,§11 if/else 为条件化先例)。
+  A('userB 图片上传未同意 → 422(OCR 能力门先答,计费前即拦,绝不先扣费)', f.status === 422);
+  A('userB 图片上传 error=image_ocr_unavailable', f.body?.error === 'image_ocr_unavailable');
 
   const cs = await h.req('GET', '/privacy/consent', AUTH_B);
   A('userB GET consent → consented=false', cs.status === 200 && cs.body?.consented === false);
@@ -223,22 +227,23 @@ let RA = '';   // userA 一份真简历(供后续越权/删除/兜底复用)
 // ══════════════════════════════════════════════════════════════════════════
 {
   const none = await h.req('DELETE', '/resume/22222222-2222-2222-2222-222222222222', AUTH_A);
-  A('delete 不存在 id → 404', none.status === 404);
-  A('delete 不存在 error=not_found_or_forbidden', none.body?.error === 'not_found_or_forbidden');
+  // 旧单份硬删除恒 fail-closed 503(resume.service.ts:278-280 不按存在性/归属分叉;不泄漏存在性面由 validate.ts:548 已钉同形)
+  A('delete 不存在 id → 503(fail-closed,不按存在性分叉)', none.status === 503);
+  A('delete 不存在 error=resume_erasure_migration_in_progress', none.body?.error === 'resume_erasure_migration_in_progress');
 
   const cross = await h.req('DELETE', `/resume/${RA}`, AUTH_B);      // userB 删 userA 的简历
-  A('userB 删 userA 的简历 → 404(越权无效)', cross.status === 404);
+  A('userB 删 userA 的简历 → 503(恒 fail-closed,不按归属分叉,不泄漏存在性)', cross.status === 503 && cross.body?.error === 'resume_erasure_migration_in_progress');
   A('越权删除后 userA 的简历依然存在(未被删)', await resumeExists(RA));
 
-  // 建一份 userA 专供删除,验证二次删除幂等(第二次 404)
+  // 建一份 userA 专供删除,验证二次删除幂等(恒 503 fail-closed,等异步擦除状态机)
   const rd = await h.post('/resume', AUTH_A, { text: '工作经历\n负责消息队列可靠投递与幂等消费三年，用于删除幂等测试' });
   const RD = rd.body?.resumeId ?? '';
   A('删除测试前置:创建一份 userA 简历', !!RD);
   const del1 = await h.req('DELETE', `/resume/${RD}`, AUTH_A);
-  A('首次删除自有简历成功(前置,非业务断言)', del1.status === 200);
+  A('首次删除自有简历 → 503(fail-closed,等异步擦除状态机)', del1.status === 503);
   const del2 = await h.req('DELETE', `/resume/${RD}`, AUTH_A);
-  A('二次删除同一简历 → 404(幂等,不重复删/不 500)', del2.status === 404);
-  A('二次删除 error=not_found_or_forbidden', del2.body?.error === 'not_found_or_forbidden');
+  A('二次删除同一简历 → 503(幂等 fail-closed,不重复删/不 500/不分叉)', del2.status === 503);
+  A('二次删除 error=resume_erasure_migration_in_progress', del2.body?.error === 'resume_erasure_migration_in_progress');
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -278,14 +283,18 @@ let RA = '';   // userA 一份真简历(供后续越权/删除/兜底复用)
             ('userA','erase-ocr-invocation-a',$1,'succeeded','{}',false,'resume.vision',clock_timestamp())`, [digest],
   );
 
-  // userB 删除自己的简历数据:只删己,不动 userA 的 RA / victimU 的 RV
+  // userB 删除自己的简历数据:恒 fail-closed 503(privacy.controller.ts:57-61 @HttpCode(503) 钉死),不动 userA 的 RA / victimU 的 RV;
+  // 「503 后行数不变」沿 validate.ts:552-:555 形(:555 before>0 && after===before 种子护栏,禁裸 after===before 空真·0===0=弱化);
+  // 旧同步删除返回形状(resumesRemoved/ocrTracesRemoved/ocrInvocationsRemoved)随退疫退役。
+  const beforeTrace = Number((await h.pool.query("SELECT count(*)::int n FROM ai_invocation_trace WHERE owner_user_id='userB' AND service='resume.vision'")).rows[0].n);
+  const beforeInvocation = Number((await h.pool.query("SELECT count(*)::int n FROM ai_model_invocation WHERE owner_user_id='userB' AND service='resume.vision'")).rows[0].n);
   const delB = await h.req('DELETE', '/privacy/resume-data', AUTH_B);
-  A('userB 删除自有简历数据成功(前置)', delB.status === 200);
-  A('userB 删数据仅删己(resumesRemoved=0,userB 本无简历)', delB.body?.resumesRemoved === 0);
-  A('userB 的 OCR trace 被同一删除事务清除', delB.body?.ocrTracesRemoved === 1
-    && Number((await h.pool.query("SELECT count(*)::int n FROM ai_invocation_trace WHERE owner_user_id='userB' AND service='resume.vision'")).rows[0].n) === 0);
-  A('userB 的 OCR durable invocation 被同一删除事务清除', delB.body?.ocrInvocationsRemoved === 1
-    && Number((await h.pool.query("SELECT count(*)::int n FROM ai_model_invocation WHERE owner_user_id='userB' AND service='resume.vision'")).rows[0].n) === 0);
+  A('userB 删除自有简历数据 → 503(fail-closed,等异步擦除状态机)', delB.status === 503);
+  A('userB 删除 error=resume_erasure_migration_in_progress(旧三字段形状随退疫退役)', delB.body?.error === 'resume_erasure_migration_in_progress');
+  A('userB 的 OCR trace 行数在 503 后不变(fail-closed 不伪造删除;种子护栏 before>0)', beforeTrace > 0
+    && Number((await h.pool.query("SELECT count(*)::int n FROM ai_invocation_trace WHERE owner_user_id='userB' AND service='resume.vision'")).rows[0].n) === beforeTrace);
+  A('userB 的 OCR durable invocation 行数在 503 后不变(同上种子护栏)', beforeInvocation > 0
+    && Number((await h.pool.query("SELECT count(*)::int n FROM ai_model_invocation WHERE owner_user_id='userB' AND service='resume.vision'")).rows[0].n) === beforeInvocation);
   A('删除 userB 时不误删 userA 的 OCR 衍生记录',
     Number((await h.pool.query("SELECT count(*)::int n FROM ai_invocation_trace WHERE owner_user_id='userA' AND service='resume.vision'")).rows[0].n) === 1
     && Number((await h.pool.query("SELECT count(*)::int n FROM ai_model_invocation WHERE owner_user_id='userA' AND service='resume.vision'")).rows[0].n) === 1);

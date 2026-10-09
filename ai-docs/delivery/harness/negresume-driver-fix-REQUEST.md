@@ -1,6 +1,6 @@
 # NEGRESFIX REQUEST — neg:resume 12 红 driver 断言面回和刀（协调方定谳后立靶）
 
-**draft_rev2:pre_exec_dual（席1 PASS+席2 FAIL 处方(a) 已并·协调方裁定采纳）· STOP · alone≠dual · Ban self-approve**
+**draft_rev2:pre_exec_dual（席1 PASS+席2 FAIL 处方(a) 已并·协调方裁定采纳）· STOP · alone≠dual · Ban self-approve** · **→ exec:stopped_input_lane_signature_mismatch（EXEC 2026-10-07：恰 2 run 已行使·EXIT 原值 0/1 如实·run1 neg:resume 87/87 全绿+改前改后名单 diff 恰 12 条+其余 75 零弱化·run2 五段判据 MET〔auth 81+commerce 84+resume 87+interview 97+bend 120 全绿·resume 修复实证入全链〕但 neg:input lane 实测 2/135≠godfn-1d 收据 :81 钉 4/135·签名不一致→按 §3.2 预注册出口触发 §5 通用 STOP 停手上报·零 commit 零 push·改动面留存工作树·收据 receipts/negresume-driver-fix/·lane 重钉与续行裁决归协调方）** · **→ exec:awaiting_post_prove_dual（协调方裁决 2026-10-07·input lane 重钉：lane base≡red 族确认·签名漂移 4→2 归因上下文依赖非本刀 diff〔godfn-1d 另 2 红 :267/:268 XSS 对在全链上下文转绿=上下文依赖红·standalone 4 红 vs 全链 2 红差异·finding 登记 NEGINPUT 刀 §0〕·两残留红〔:216 harness 环境缺口+:229 B2 同族 driver 漂移〕已立项归 NEGINPUT 重划刀〔恰 1 文件 neg-input.proof.ts:3 shim+1 回和〕·五段判据 MET 成立·prove 有效·续行面放行→commit+push 已落地〔收据 receipts/negresfix/ §6〕）**
 
 ## §0 立靶依据（协调方定谳 2026-10-09）
 G7TRIO-2 CMD3 步 10 neg:resume 12/87 红，探针定谳 12/12=driver 期望形状漂移·0 产品回归（证据：同目录 negresume-driver-fix-probe.md 12 行分类表+时间线+同 run 步 9 绿反证）。红非新发（godfn-1d 已账 base≡red）。本刀=回和 driver 断言面至已钉 fail-closed 契约，零产品码。
