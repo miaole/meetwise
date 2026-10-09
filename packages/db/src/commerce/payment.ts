@@ -2,7 +2,7 @@
  * @meetwise/db · 支付订单 ops。承重:回调**幂等 exactly-once 入账**——CAS(created→paid)保证重复回调只入账一次。
  */
 import type { PoolClient as Client } from 'pg';
-import { errCode } from './errors.ts';
+import { errCode } from '../errors.ts';
 
 /** 创建订单(幂等):同 owner+idempotencyKey 重试 → 返回已存在订单 id(不重复下单)。返回最终 orderId。 */
 export async function createOrder(

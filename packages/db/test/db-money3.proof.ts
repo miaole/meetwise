@@ -26,8 +26,8 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createPool, asPrincipal, assertIsolatedTestTarget } from '../src/index.ts';
-import { createOrder, markOrderPaidAndCredit } from '../src/payment.ts';
-import { reserveEntitlement, confirmConsumption, releaseConsumption } from '../src/commerce.ts';
+import { createOrder, markOrderPaidAndCredit } from '../src/commerce/payment.ts';
+import { reserveEntitlement, confirmConsumption, releaseConsumption } from '../src/commerce/commerce.ts';
 import { appendEvent } from '../src/interview-event.ts';
 
 const pool = createPool();

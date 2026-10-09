@@ -281,7 +281,7 @@ const AUDIT_LINE = (cls: string) =>
     for (const f of failures) {
       console.log(`  GAP-ITEM class=${f.cls} assertion="${f.name}"`);
     }
-    console.log('  依据: apps/api/src/modules/commerce/commerce.service.ts:56-70 · packages/db/src/payment.ts:59-93 · commerce-webhook.controller.ts:11-16');
+    console.log('  依据: apps/api/src/modules/commerce/commerce.service.ts:56-70 · packages/db/src/commerce/payment.ts:59-93 · commerce-webhook.controller.ts:11-16');
     console.log('  处置: row UC-E2E-014/026 ADV 保持 gap → case-only 停留；不翻行；attempts 台账记 EXIT=1。');
     process.exit(1);
   }

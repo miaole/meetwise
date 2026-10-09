@@ -283,7 +283,7 @@ async function forceQuarantine(owner: string, interviewId: string, leaseOwner: s
   console.log('\n──────── H5 · §1b refund-callback mouth landed inventory + remaining covered lift ────────');
   console.log('NOTE: PREREQ-6 生效 — 禁止 404 GAP 叙事；真 B-1 pins 在 uc011:refund-callback:prove；本绿 ≠ covered');
 
-  const paymentSrc = readRepo('packages/db/src/payment.ts');
+  const paymentSrc = readRepo('packages/db/src/commerce/payment.ts');
   const dbIndex = readRepo('packages/db/src/index.ts');
   const commerceCtrl = readRepo('apps/api/src/modules/commerce/commerce.controller.ts');
   const webhookCtrl = readRepo('apps/api/src/modules/commerce/commerce-webhook.controller.ts');

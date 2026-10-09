@@ -179,7 +179,7 @@ function runZMouthRegression(): Promise<number> {
     const ctrlPath = fileURLToPath(new URL('../src/modules/commerce/payment-callback.controller.ts', import.meta.url));
     const svcPath = fileURLToPath(new URL('../src/modules/commerce/commerce.service.ts', import.meta.url));
     const modPath = fileURLToPath(new URL('../src/app.module.ts', import.meta.url));
-    const payPath = fileURLToPath(new URL('../../../packages/db/src/payment.ts', import.meta.url));
+    const payPath = fileURLToPath(new URL('../../../packages/db/src/commerce/payment.ts', import.meta.url));
     const ctrlSrc = readFileSync(ctrlPath, 'utf8');
     const svcSrc = readFileSync(svcPath, 'utf8');
     const modSrc = readFileSync(modPath, 'utf8');
@@ -188,7 +188,7 @@ function runZMouthRegression(): Promise<number> {
     // 管道存在：service refundWebhook + db markOrderRefunded（单管道，未复制）
     A('INV', '管道存在: commerce.service.ts 含 refundWebhook（单管道 · 全链路 400/403/404/CAS/409/200 只此一份）',
       svcSrc.includes('async refundWebhook'));
-    A('INV', '管道存在: packages/db/src/payment.ts 含 markOrderRefunded（CAS + 红冲语义在树）',
+    A('INV', '管道存在: packages/db/src/commerce/payment.ts 含 markOrderRefunded（CAS + 红冲语义在树）',
       paySrc.includes('export async function markOrderRefunded'));
     // 薄适配：controller 委托 refundWebhook；Ban 复制第二套 HMAC/owner/CAS（Ban 业务逻辑）
     A('INV', '薄适配: payment-callback.controller.ts 委托 refundWebhook（单管道 · 无第二套守卫）',
@@ -458,7 +458,7 @@ function runZMouthRegression(): Promise<number> {
   if (failures.length > 0) {
     console.log(`\n${GAP_ID} — 诚实保留 gap（EXIT 1 · 非 flake · 非环境问题 · Ban invent fix）:`);
     for (const f of failures) console.log(`  GAP-ITEM class=${f.cls} assertion="${f.name}"`);
-    console.log('  依据: apps/api/src/modules/commerce/payment-callback.controller.ts · commerce.service.ts:79-93 · packages/db/src/payment.ts:104 · app.module.ts:38');
+    console.log('  依据: apps/api/src/modules/commerce/payment-callback.controller.ts · commerce.service.ts:79-93 · packages/db/src/commerce/payment.ts:104 · app.module.ts:38');
     console.log('  处置: row UC-E2E-011 stays partial · ADV stays gap/case-only · GAP-UC011-ADV-01 stays OPEN · attempts 台账记 EXIT=1。');
     process.exit(1);
   }

@@ -69,7 +69,7 @@ function lineOf(src: string, re: RegExp, from = 0): number {
 {
   const svc = readFileSync(resolve(repoRoot, 'apps/api/src/modules/interview/interview.service.ts'), 'utf8');
   const ctrl = readFileSync(resolve(repoRoot, 'apps/api/src/modules/interview/interview.controller.ts'), 'utf8');
-  const commerce = readFileSync(resolve(repoRoot, 'packages/db/src/commerce.ts'), 'utf8');
+  const commerce = readFileSync(resolve(repoRoot, 'packages/db/src/commerce/commerce.ts'), 'utf8');
   const beginLine = lineOf(svc, /^\s*begin\(principal: string, id: string, resumeId: string/);
   const advisoryLine = lineOf(svc, /pg_advisory_xact_lock\(hashtext\(\$1\), hashtext\(\$2\)\).*\[\s*'begin'\s*,\s*id\s*\]/, Math.max(0, beginLine - 1));
   // fallback if comment-style match fails — match the lock call near begin

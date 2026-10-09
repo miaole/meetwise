@@ -197,7 +197,7 @@ async function main() {
     A('R4 schema status CHECK 含 released', hasReleased);
     A('R4 schema status CHECK 不含 refunded（红冲路径 · 非 consumption.refunded）', !hasRefunded);
 
-    const paymentSrc = readRepo('packages/db/src/payment.ts');
+    const paymentSrc = readRepo('packages/db/src/commerce/payment.ts');
     const dbIndex = readRepo('packages/db/src/index.ts');
     A('R4 payment.ts 有 markOrderPaidAndCredit（入账旁证）',
       /export async function markOrderPaidAndCredit\b/.test(paymentSrc));
