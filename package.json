@@ -570,6 +570,11 @@
     "uc018:receipt-backfill:prove": "node scripts/uc-e2e-018-receipt-backfill.proof.mjs",
     "uc018:receipt-backfill:emit": "node scripts/uc018-receipt-backfill-emit.mjs"
   },
+  "pnpm": {
+    "overrides": {
+      "fastify": "5.12.5"
+    }
+  },
   "devDependencies": {
     "@types/node": "catalog:",
     "dependency-cruiser": "^18.0.0",
