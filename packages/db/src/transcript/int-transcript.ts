@@ -15,11 +15,11 @@
  *   - 提交幂等：同 owner + 同 client_submission_key → 回放既有回执；同键异体（正文不同）
  *     → 冲突抛错（DB 只保证键唯一，正文唯一性由本层比对 canonical_body_hmac 判）。
  */
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 import { createHmac } from 'node:crypto';
-import { newUuidV7 } from './ids.ts';
-import { assertInterviewPrivacyActive } from './checkpoint-privacy.ts';
-import { assertInterviewAnswerLedgerWriteAllowed, remapInterviewAnswerDualWriteError } from './interview-answer-dual-write.ts';
+import { newUuidV7 } from '../ids.ts';
+import { assertInterviewPrivacyActive } from '../checkpoint-privacy.ts';
+import { assertInterviewAnswerLedgerWriteAllowed, remapInterviewAnswerDualWriteError } from '../interview-answer-dual-write.ts';
 
 const IS_PROD = process.env.NODE_ENV === 'production';
 /** 必需密钥：prod 缺失即 fail-closed 抛错（杜绝静默用 dev 默认 = 加密形同虚设）。 */
