@@ -2096,7 +2096,6 @@ flowchart TD
 - 预算：docs-only 零 run · est 0 live · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 设计 ≠ 实施 ≠ lint 门上线 ≠ C1 勾销 · 实现方不 self-approve.
 
-<<<<<<< HEAD
 ### Line G7TRIO-2 trio 全景重跑刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · EXEC @0d61379c 恰 3 run·零产品码·**CMD1/CMD2 绿·CMD3 EXIT=1 步 10 红=六向预注册第五向命中**·locus 移位如实首录·红因定谳另刀归协调方）
 
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false`（零翻转） · actualSpendCny=null · r1Closed=false（十一值）.
@@ -2146,7 +2145,6 @@ flowchart TD
 - [ ] **STILL OPEN**：S1-S5 实现刀；CI 接线另刀；`g7SuiteGreen=false` 维持.
 - 预算：install 网络动作一次·est live=0 模型调用·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · S0 ≠ lint 门上线 ≠ C1 勾销 · 实现方不 self-approve.
-=======
 ### Line TOKSTREAM S4a 流式首切片 NAIL（2026-10-10 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · +1380/−3 恰 12 文件（model-client.ts +422/−3 declare+实现面·三 proof +653·prove 槽×3）·三 prove 键全绿（54/16/13）·ModelClient 接口零改·apps 零字节）
 
 - Pins unchanged（十一值照抄零翻转）.
@@ -2156,4 +2154,3 @@ flowchart TD
 - [ ] **STILL OPEN**：S4b（worker TokenSink 接线+telemetry）·S4c（sse-pump delta 臂+10min 帽）·S4d（web 渲染）·`g7SuiteGreen=false` 维持.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · S4a ≠ 流式上线（flag 双零开启） · 实现方不 self-approve.
->>>>>>> 513dab2a (docs(tokstream-s4a): nail — post-prove dual BOTH PASS (implementation authorized by blueprint §I S4a row verbatim, slice boundary zero-overrun, attempts 8 reds all test-side verified), S4b telemetry hook noted)
