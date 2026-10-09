@@ -2,9 +2,12 @@
  *  注入 fake 检索(生产注 annSearch);脚本模型。 pnpm adaptive-consumer:prove（根脚本使用临时 pgvector cluster） */
 process.env.RESUME_ENC_KEY = 'test-resume-enc-key';
 process.env.RESUME_HASH_SECRET = 'test-resume-hash-secret';
+// 测试专用 job-route 输入 HMAC key(同 adaptive-lifecycle.proof 先例;runner 隔离面按设计剥除生产 key,
+// createJob→createJobSemanticRevision 的生产链在夹具内需要同形 key 才能落 0104 语义修订行)。
+process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'adaptive-consumer-job-route-input-hmac-proof-key-not-production-01';
 import { MemorySaver } from '@langchain/langgraph';
 import { randomUUID } from 'node:crypto';
-import { createPool, asPrincipal, provisionRuntimeLogin, reserveEntitlement, createResumeWithBlob, completeIngestion, transitionResume, enqueueInterviewJob, availableUnits, getReport, answerHash, claimInterviewAnswer, claimNextInterviewJob, requeueInterviewJob, decryptActiveResumeBlob, withInterviewGraphFence, supplyCandidateProfileRoute } from '@meetwise/db';
+import { createPool, asPrincipal, provisionRuntimeLogin, reserveEntitlement, createResumeWithBlob, completeIngestion, transitionResume, enqueueInterviewJob, availableUnits, getReport, answerHash, claimInterviewAnswer, claimNextInterviewJob, requeueInterviewJob, decryptActiveResumeBlob, withInterviewGraphFence, supplyCandidateProfileRoute, createJob, classifyJobRoute, bindApplicationRoute, snapshotInterviewRoute } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { ingestResume } from '@meetwise/domain';
 import { drainInterviewJobOnce, type ConsumerDeps } from '../src/interview-consumer.ts';
@@ -17,8 +20,8 @@ let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' :
 let stage = 'BOOT';
 const OWNER = 'consA', IID = 'cons-' + Date.now();
 let askSeq = 0;
-const scripted = scriptedModelClient({
-  'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发', '缓存'] } }),
+  const scripted = scriptedModelClient({
+  'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发'] } }),
   'interviewer.ask': () => ({
     ok: true,
     raw: { q: `结合你的限流经历聊聊高并发下怎么兼顾吞吐与一致，并说明第 ${++askSeq} 轮验证方法`, refs: ['https://allow.example/deep'] },
@@ -81,6 +84,31 @@ async function main() {
   // 从该 snapshot 取 role（deps 注入在 ON 态结构性不足过门）。
   const routeSupply = await asPrincipal(pool, OWNER, (c) => supplyCandidateProfileRoute(c, OWNER, IID, up.resumeId));
   A('fixture 经生产同链供给 route snapshot(0142 decision+snapshot 幂等供给)', routeSupply.status === 'supplied');
+  // G-R2-5 检索面(0104 招聘流程链,沿 adaptive-lifecycle proof 同款生产写手链):consumer 的
+  // localRetrieve scope 门直读旧表 interview_route_snapshot(candidate 面快照按设计不喂检索面),
+  // 缺行 → localRetrieve 被 degraded('route_snapshot_missing') 包裹 → CRAG deny_external → 零
+  // deepResearch/零信封(:123/:124 断言面)。生产同链补全:createJob → classifyJobRoute(rule 零
+  // 模型) → bindApplicationRoute(apply 面) → snapshotInterviewRoute。
+  stage = 'RECRUITER_ROUTE_CHAIN_SUPPLY';
+  const RECRUITER = OWNER + '-recruiter';
+  const routeJob = await asPrincipal(pool, RECRUITER, (c) => createJob(c, RECRUITER, {
+    title: 'Node.js 服务端工程师',
+    description: '使用 NestJS 构建服务',
+    competencies: ['nestjs', 'express', 'koa'],
+  }));
+  const routeRev = Number((await admin.query(
+    'SELECT COALESCE(MAX(revision),0)::int AS n FROM job_semantic_revision WHERE job_id=$1', [routeJob.id],
+  )).rows[0].n);
+  const routeClassify = await classifyJobRoute(pool, RECRUITER, routeJob.id, routeRev, {
+    modelClassify: async () => { throw new Error('fixture job must rule-decide; model path unexpected'); },
+  });
+  const routeApplicationId = 'consA-app-' + IID;
+  const routeBound = await asPrincipal(pool, OWNER, (c) => bindApplicationRoute(c, {
+    candidateUserId: OWNER, recruiterUserId: RECRUITER, jobId: routeJob.id, applicationId: routeApplicationId, emitConsumptionEvent: true,
+  }));
+  const routeSnapped = await asPrincipal(pool, OWNER, (c) => snapshotInterviewRoute(c, OWNER, IID, routeApplicationId));
+  A('fixture 经生产链补全 0104 招聘流程 route 链(rule_decided+binding+snapshot)',
+    routeClassify.status === 'route_decided' && routeBound.status === 'bound' && routeSnapped.status === 'snapshotted');
   stage = 'RESERVATION_SETUP';
   const before = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));   // reserve 前(预留即扣 available)
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, IID, 'mock_interview', 1.0));
