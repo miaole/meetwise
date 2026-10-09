@@ -1,0 +1,21 @@
+# LINT-DESIGN S1 触碰面 + 门零劣化
+# date: 2026-10-10
+
+## 产物触碰面（git status --short @ S1 EXEC 后·恰 3 文件 ≤3 预算）
+ M packages/config/package.json
+?? packages/config/eslint.config.base.mjs
+?? packages/config/prettier.config.mjs
+
+## numstat（产物面）
+2	0	packages/config/package.json
+（新增 untracked：packages/config/eslint.config.base.mjs · packages/config/prettier.config.mjs）
+
+## 零污染面核查
+turbo.json / 根 package.json / pnpm-workspace.yaml / .github / apps/** / packages/**（除 config 三文件）/ catalog / CI——git status 全零（见 s1-commit-numstat.txt 终值）
+
+## tsc 门零劣化
+# cmd: pnpm typecheck（根 = tsc -p tsconfig.e2e.json）
+TYPECHECK-EXIT=0（一次过·零新增红）
+
+## 零 lint 执行面声明
+--print-config = 纯配置解析查询（合成路径·零文件 lint）；/tmp 探针 = 仓外单文件停止条件证据；全仓 lint 零跑·零 --fix·零 prettier --write·CI 零触

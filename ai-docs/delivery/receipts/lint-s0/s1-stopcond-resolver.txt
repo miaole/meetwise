@@ -1,0 +1,31 @@
+# LINT-DESIGN S1 停止条件核查 — import-order 是否需 resolver / 额外插件
+# date: 2026-10-10
+
+## 结论：无需 eslint-import-resolver-typescript，无需任何额外插件，停止条件未触发
+
+## 静态证据 1 — lockfile（pnpm-lock.yaml @ 主线 3be96fc6）
+eslint-import-resolver-node@0.3.10 在场（eslint-plugin-import 直接依赖·S0 闭包自带）：
+2786:  eslint-import-resolver-node@0.3.10:
+6960:  eslint-import-resolver-node@0.3.10:
+
+eslint-import-resolver-typescript 仅以 optional peer 声明出现（无 @version resolution 块 = 未安装）：
+2796:      eslint-import-resolver-typescript: '*'
+2805:      eslint-import-resolver-typescript:
+7003:      - eslint-import-resolver-typescript
+（三处均在 peerDependencies/peerDependenciesMeta/transitivePeerDependencies 段·pnpm-lock.yaml:2796/:2805/:7003）
+
+## 静态证据 2 — config 产物零 resolver 设置
+grep import/resolver packages/config/eslint.config.base.mjs => 零命中（见下）
+0
+
+## 运行时证据 — /tmp 探针（仓外合成文件·非 apps/packages 源码·非全仓·零 --fix）
+# probe.ts:
+import { helper } from './helper';
+import { writeFileSync } from 'node:fs';
+import { something } from '@meetwise/config';
+export const probe = [helper, writeFileSync, something];
+# cmd: cd /tmp/mw-lint-s1-probe && packages/config/node_modules/.bin/eslint --config <abs>/packages/config/eslint.config.base.mjs --format json probe.ts
+PROBE-EXIT=0（纯 warn·warn 起步骨架预期）
+messages = ["import/order:L1"]（相对 ./helper 应排 node:fs 与 @meetwise/* 之后 → 正确触发）
+import/order fired WITHOUT resolver-typescript = true
+探针目录已删（/tmp/mw-lint-s1-probe 即删零残留）
