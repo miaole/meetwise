@@ -89,3 +89,11 @@
 1. **交付优先**：产品功能可用 > 机器完美。删除类一律**软删先行**（deleted_at+查询过滤+立即停止处理与访问=对用户即真实可用），物理清除走已建 PRIV 链**异步**补完+回执——UNSTUB-ERASE 按此重定义，「假可用禁令」由「软删语义如实」满足。
 2. **隐私管流量不管存在**：围栏/脱敏/注入拦截管「什么数据进提示词」（脱敏事实可进·原文/PII 永不进），不得成为「数据不流动」的理由（RESUME-GROUNDING 蓝本已是此模型）；新 fence/触发器/层必须附产品功能级正当性，无则不建。
 3. **简化优先**：触到过度设计机器的刀优先**删/缩而非加**。SIMPLIFY 批次候选（待审计坐实）：tenant 第二层死校验（#148）/比例结算死代码（#26）/gift-trial 死桶（#29）/interview active 死分支（#27）/worker src 33 个不可达 r4-* 模块迁出（#169）/HMAC 验签三份合一（#100）/tf_* 函数 PUBLIC 授权收敛（#150）/NEGINPUT 型 fence 依赖迁移链的测试解耦/**每新增一层抽象须先删一层旧抽象**。
+
+## 接线债审计收编（2026-10-09 · 审计席报告归档）
+
+**新刀登记**：
+- **EVIDENCE-DELIVERY（产品偏移级·A1）**：逐题评分证据产出+过闸（prompts.ts:85-101 强制 evidence+quote 逐字引文·interview-service.ts:19-46 双闸）→ 四出口全断（business-events.ts:33-42 无 evidence 字段·adaptive-lifecycle.ts:276-279 事件 payload 不带·interview-report.ts:58-89 transcriptView 不带·报告页 report/[id]/page.tsx:243-252 用维度名冒充题目+assessment.ts:57-58 两固定串冒充点评）——修法=criterion 数组随事件/转写带出+报告页改吃 transcript+evidence。连带 A2（学习计划/职业路径固定句式在「模型生成内容」区呈现·learning.ts:10-20/career.ts:12-18）+C1（evaluateAnswer 生产零调用·#159 同形）。
+- **证据补强归原刀**：B1 competency 字段现成可用被 loadSummary 丢弃（main.ts:175-181）→ 归 SCORE-WRITER；B2 评分卡无 writer→memory 弱项偏置永久冷启动（pastWeakDimensions 恒空）+assessment_report 恒 409 饿死成长链 → 归 SCORE-WRITER 下游验证面。
+- **B3 缓刑情节登记**：图层有诚实弃用文档（ai-graphs state.ts:69-75/generate-question.ts:28-44 facts 禁过节点边界·因隐私删除生命周期未建）——RESUME-GROUNDING 双审须裁：脱敏 facts 经 <data> 围栏进提示词≠持久化 fact 引用，与 EXTREV-7 铁律 2 对齐后该弃用文档应更新而非阻塞。
+**清白面（防重复立案）**：quiz/diagnosis/OCR 真喂数路径·记忆服务双向接线·voice 同图同评分·DATA_BOUNDARY 围栏族——审计证实无空转。
