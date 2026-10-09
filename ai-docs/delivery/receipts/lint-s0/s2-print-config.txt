@@ -1,0 +1,26 @@
+# LINT-DESIGN S2 --print-config 指针矩阵（12/12 指针·cwd 正确直调=未来 S4 'eslint .' 真实消费形态）
+# cmd: (cd <pkg> && packages/config/node_modules/.bin/eslint --config ./eslint.config.mjs --print-config ./__s2_print_config_probe__.ts)
+# 断言: exit=0 · rules 恰四·全 severity 1(warn) · 零清单外规则 · 合成探针路径零文件零 lint
+# date: 2026-10-10
+
+. => exit=0 OK_4RULES_ALL_WARN
+apps/api => exit=0 OK_4RULES_ALL_WARN
+apps/web => exit=0 OK_4RULES_ALL_WARN
+apps/worker => exit=0 OK_4RULES_ALL_WARN
+packages/ai-graphs => exit=0 OK_4RULES_ALL_WARN
+packages/ai-runtime => exit=0 OK_4RULES_ALL_WARN
+packages/contracts => exit=0 OK_4RULES_ALL_WARN
+packages/db => exit=0 OK_4RULES_ALL_WARN
+packages/db-mysql => exit=0 OK_4RULES_ALL_WARN
+packages/domain => exit=0 OK_4RULES_ALL_WARN
+packages/qdrant-store => exit=0 OK_4RULES_ALL_WARN
+packages/config => exit=0 OK_4RULES_ALL_WARN
+
+== 抽验样本（apps/api verbatim）==
+rules keys: ["@typescript-eslint/naming-convention","@typescript-eslint/no-explicit-any","@typescript-eslint/no-unused-vars","import/order"]
+no-explicit-any: [1]
+no-unused-vars: [1,{"argsIgnorePattern":"^_"}]
+naming-convention severity: 1 · selector 条目: interface · class+typeAlias · variable · function · memberLike
+import/order: [1,{"groups":["builtin","external","internal","parent","sibling","index"],"pathGroups":[{"pattern":"@meetwise/**","group":"internal","position":"after"}],"pathGroupsExcludedImportTypes":[],"distinctGroup":true,"sortTypesGroup":false,"named":false,"warnOnUnassignedImports":false}]
+parser: typescript-eslint/parser@8.71.1
+enabled rule count: 4

@@ -171,3 +171,29 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 **Non-claims 承继（§7 原样）**：S1 产物 ≠ lint 门上线 ≠ C1 勾销（S2 指针/S3 dry-run 基线/S4 点灯/S5 全量绿全未行使·四规则全 warn 零 --max-warnings 闸·零 workspace 接线）；NEXT-NODE-BEST-PRACTICES.md:40 C1 仍 ❌。
 
 **pins（十一值照抄·零翻转）**：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null。
+
+---
+
+## §11 S2 EXEC trail（append-only · 2026-10-10 行使记录 · 零改写 §0–§10）
+
+**状态推进**：S1 nail（S2 解锁）→ **`exec:s2_awaiting_post_prove_dual`**（EXEC 席 mw-lints0-exec · S2 沿用 author · 本节为零改写追加）。基线 = 主线 `feat/mysql-schema-skeleton` @`c0c18012`（rebase：本线旧 S0/S1 EXEC commit 与主线逐字节重复被 skip；S1 nail docs commit 与主线 `c0c18012` 的 S1 段 diff=IDENTICAL 后 skip——本线 tip 即主线 tip，零内容丢失）。
+
+**蓝本（双源）**：①主线 `lint-design.md` §1.5 S2 行原文「S2 → workspace 指针（根 eslint.config.mjs + 11 workspace 逐个 extends，≤5 文件/批·可拆两批）」；②S1 产物 `eslint.config.base.mjs` 头注消费注记 + 本档 §10。
+
+**行使面（恰 12 指针文件·4 行/件·共 48 行 ≤50·批 5+5+2 全 ≤5 文件/批）**：根 `eslint.config.mjs` + 11 workspace `eslint.config.mjs`（api/web/worker/ai-graphs/ai-runtime/contracts/db/db-mysql/domain/qdrant-store/config）——每件薄壳 `import base` + `export default base` **零调参零新增规则**（规则唯一授权面 = `packages/config/eslint.config.base.mjs`）；零 script 键·零 turbo 触·零 CI 触·零 package.json/lockfile 触·apps/packages 源码零字节·全仓 lint 一次未跑·零 --fix·零 prettier --write（指针产物自身 check 除外）。批1 `2724e0ae`（根+api/web/worker/ai-graphs·5 文件 +20）·批2 `7a458ea0`（ai-runtime/contracts/db/db-mysql/domain·5 文件 +20）·批3 = 本 commit（qdrant-store/config + REQUEST §11 + 收据 S2 节）。
+
+**形式裁定（如实披露·机器负证收据 `s2-form-evidence.txt`）**：S1 base 头注的 specifier 消费形式 `'@meetwise/config/eslint/base'` 在实树**不可解析**（apps/api+根 双点 `ERR_MODULE_NOT_FOUND` 亲证 · 零 `.npmrc` hoist · `@meetwise` 作用域零公共链接 · 11 workspace+根声明 `@meetwise/config` 依赖 = **0**）→ 指针落**相对路径** re-export（沿 tsconfig extends 仓内既立消费惯例：apps/api `../../packages/config/...` · packages/* `../config/...`）；**S1 产物零字节不改**（头注注记维持原文·exports `./eslint/base` 键保留——声明依赖的后续消费者仍可用）。设计 S2 行原文不限定 import 形式 → 非「设计与实树不符」·无需 resolver 插件·不停手。
+
+**「可拆两批」算术披露**：12 文件 @ ≤5 文件/批 严格 = **3 批**（5+5+2）——硬预算「≤5 文件/批」（§1.5 头双现）为准，「两批」为设计估算松处（S4 行「≤5 文件/批·两批」对 11 文件同型），如实登记非偏离。
+
+**prove 结果**：①**--print-config 12/12 指针 EXIT=0**·rules 恰四全 severity 1（warn）·零清单外规则（抽验 apps/api verbatim：rules keys 恰四·parser=typescript-eslint/parser@8.71.1·import/order groups/pathGroups 钉死序与 S1 基线逐项一致）；调用形态 = cwd 正确直调（指针同目录）= 未来 S4 `eslint .` 真实消费形态；**方法论披露**：`pnpm --filter exec` 强制 cwd=config 包致 basePath 错位、探针 `../` 前缀 glob 不匹配打印 `undefined`（exit 仍 0）——--print-config 探针须与指针同 cwd，登记防复蹈；②**prettier --check 12/12 EXIT=0**（`--config packages/config/prettier.config.mjs` 产物配置）；③**门零劣化**：根 `pnpm typecheck`（tsc -p tsconfig.e2e.json）EXIT=0 一次过；④触碰面 git status 恰 12 指针文件·tracked 零 diff·est live=0·0 Key 值·actualSpendCny=null。
+
+**停止条件核查**：a) 设计 S2 行与实树不符——**未命中**（S2 行可原样执行；specifier 不符属 S1 头注注记非设计文本·负证+惯例落法登记）；b) 需装 resolver 插件——**未命中**（相对路径零依赖零插件）；c) 预算超——**未命中**（12=5+5+2 全 ≤5/批·48≤50 行）。
+
+**S3 移交登记（`s2-s3-handoff.txt`·S2 零行使零动作）**：UPPER_CASE const 基线 ~845/242（席2 定量）原样顺传（超预期回设计面补票·禁 S3 内自行收紧）；.prettierignore 顺延维持（不在 S2 行原文·范围严格）；S1 nit 两笔（披露③默认豁免集补 object 成员·披露②「v8 无 constant selector」措辞）顺传；新增登记：S3/S4 若需 specifier 消费须先落 workspace devDependencies 声明（另行授权面·lockfile 变更）。
+
+**收据**：`ai-docs/delivery/receipts/lint-s0/` S2 节（s2-print-config.txt · s2-prettier-check.txt · s2-form-evidence.txt · s2-zero-diff.txt · s2-s3-handoff.txt · s2-commit-numstat.txt · s2-sha256.txt）。
+
+**Non-claims 承继（§7 原样）**：S2 指针 ≠ lint 门上线 ≠ C1 勾销（S3 dry-run 基线 / S4 点灯 / S5 全量绿全未行使·四规则全 warn 零 `--max-warnings` 闸·零 script 键·`pnpm turbo lint` 零触）；`NEXT-NODE-BEST-PRACTICES.md:40` C1 仍 ❌。
+
+**pins（十一值照抄·零翻转）**：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null。
