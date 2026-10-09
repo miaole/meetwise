@@ -2105,6 +2105,7 @@ flowchart TD
 - [ ] **STILL OPEN**：CMD3 步 10 红因定谳+立靶另刀（探针在飞）；trio 三绿判定待 CMD3 修复后重验；g7SuiteGreen SSOT 刀（收官翻转·独立 REQUEST·前置=CMD3 绿或定谳 carve-out）；`:107` 维持；`g7SuiteGreen=false` 维持.
 - 预算：恰 3 run·attempts 1,1,1·sidecar 链累计 254≤300·est live 0 模型调用·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · EXEC 如实≠红因已定谳≠trio 三绿≠g7SuiteGreen · 实现方不 self-approve.
+<<<<<<< HEAD
 
 ### Line EXTREV HOTFIX-178 egress 清单冲突标记修复 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-dual 双审 BOTH PASS · 恰 1 文件 5+/5−·dual-keep 两侧 5 条全保留·prove EXIT=0 7/7·CI verify 解除阻断）
 
@@ -2134,3 +2135,16 @@ flowchart TD
 - [ ] **STILL OPEN**：NEGINPUT 刀（3 shim+1 回和·蓝本 b44ad582）；neg:all 全链 EXIT=0 待 NEGINPUT；trio 三绿重验；`g7SuiteGreen=false` 维持.
 - 预算：恰 2 run·est live=0 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · driver 回和≠产品行为变化 · 实现方不 self-approve.
+=======
+>>>>>>> 93fb9b92 (docs(g7trio2): nail — post-prove dual BOTH PASS (CMD1/CMD2 green, CMD3 step-10 red = fifth-pre-registered-outcome, locus shift first-recorded honest, red-cause adjudication separate knife), three errata logged)
+
+### Line LINT-DESIGN S0 依赖落地切片 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 码面恰 2 文件（config package.json +6 四包字典序·pnpm-lock +1840/−22）·install 单次 EXIT=0·版本冒烟 4/4·零污染全仓·eslint9+ts-eslint8+plugin-import2+prettier3 落 @meetwise/config devDependencies）
+
+- Pins unchanged（十一值照抄零翻转）.
+- [x] **`post_prove_dual_pass`** recorded（EXEC `db63fa78`·REQUEST rev3 @f728b509 唯一蓝本·nail tip 本 commit · branch `line/lint-s0-request`）· **双审 BOTH PASS**：席1 mw-e2e-ha PASS（消失面四口径全空+闭包 183/183 全量 BFS 零断边+22 删侧行 1+6+15 定性逐行复核+冒烟复跑+sha256 五指纹全 OK）+ 席2 mw-model-op PASS（计数伪影机制独立复原〔734→917/183 真值·虚增 8=peer 后缀键双计〕+全量既有快照键依赖体 0 变异机器证+deprecation 面裁定唯一合规解+蓝图逐项符）· 协调方正式授权本 nail.
+- **Erratum-S0E1（双席同证）**：EXEC 自报键计数 823→1014/191 系归一化引号残缺伪增（真值 734→917/新增 183）——结论不变（四口径 disappeared 全空），S1 起审计归一化器须修（剥 peer 后缀连引号·以 183 为 SSOT 计数）。
+- **S1 解锁面**：--print-config 冒烟（S1 首项）+flat config 产物+四规则骨架——C1 勾销路径第一步落定（S0≠lint 门上线≠C1 勾销）.
+- [ ] **STILL OPEN**：S1-S5 实现刀；CI 接线另刀；`g7SuiteGreen=false` 维持.
+- 预算：install 网络动作一次·est live=0 模型调用·0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · S0 ≠ lint 门上线 ≠ C1 勾销 · 实现方不 self-approve.
+>>>>>>> b23a0069 (docs(lint-s0): nail — post-prove dual BOTH PASS (four packages landed in config devDeps, closure 183/183 verified, counting artifact erratum with SSOT 183), S1 unlocked)
