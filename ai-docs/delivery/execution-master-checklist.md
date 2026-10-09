@@ -2095,3 +2095,13 @@ flowchart TD
 - [ ] **STILL OPEN**：S0-S5 实现刀 REQUEST 立项+落地；CI 接线另刀（C2 勾销前提）；`g7SuiteGreen=false` 维持.
 - 预算：docs-only 零 run · est 0 live · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 设计 ≠ 实施 ≠ lint 门上线 ≠ C1 勾销 · 实现方不 self-approve.
+
+### Line TOKSTREAM S4a 流式首切片 NAIL（2026-10-10 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · +1380/−3 恰 12 文件（model-client.ts +422/−3 declare+实现面·三 proof +653·prove 槽×3）·三 prove 键全绿（54/16/13）·ModelClient 接口零改·apps 零字节）
+
+- Pins unchanged（十一值照抄零翻转）.
+- [x] **`post_prove_dual_pass`** recorded（EXEC `be40ecec`·REQUEST @3b84c6e0 唯一蓝本·nail tip 本 commit · branch `line/tokstream-s4a-request`）· **双审 BOTH PASS**：席1 mw-e2e-ha PASS（三落点收束全裁等价：raw 兜底不可达（生产双路径 JSON）/execution 维度设计原文支持（A14 两维并列+C4 零新增 env）/C3 锁面与 voice-stream 形制逐字同构；闭包 183 键审计；tsc/arch 基线一致）+ 席2 mw-model-op PASS（「declare 不实现」系 S3 设计自述·后半句「实施刀按此对齐」明示实现权在 S4a——偏离不成立逐字引证；切片边界零越界（新 exports 全仓零外部引用=S4b/c/d 未触）；attempts 8 次三例红因指纹全在测试码·零行为变更裁可信；token-coalesce 亲跑 EXIT=0 13 PASS 重放 7 帧与收据逐字同）· 协调方正式授权本 nail.
+- **交付语义**：watchdog 实测 ≥10s（10001/10002/10004ms 三席复跑）·总闸 execution 维度先触发·probe-b 按字节切（cut=13/cut=1）拼接全等 72 字符零孤立代理项·L1 合帧 13 delta→7 帧全≤4KB·T3 结构性禁入（零代码）·flag 双开才流式否则恒走非流式零回归。
+- **S4b 挂接注记**：`void classifyProviderError(...)` 纯调用弃值=接线标记；transient/unknown 返回=ModelResult 无类别载荷位（S4b telemetry 面兑现或移除）。
+- [ ] **STILL OPEN**：S4b（worker TokenSink 接线+telemetry）·S4c（sse-pump delta 臂+10min 帽）·S4d（web 渲染）·`g7SuiteGreen=false` 维持.
+- 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · S4a ≠ 流式上线（flag 双零开启） · 实现方不 self-approve.
