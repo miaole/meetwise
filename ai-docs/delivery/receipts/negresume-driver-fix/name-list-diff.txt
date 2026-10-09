@@ -1,0 +1,28 @@
+# 改前改后 A() 断言名 diff（静态 A( 位点提取·恰 12 条改写·其余 73-12=61 静态位点逐字零变）
+# pre static sites=73  post static sites=73  removed=12  added=12
+# run1 runtime: PASS=87 FAIL=0（分母 87 稳定·含 §3 循环 10 展开+§4 循环 9 展开+§11 else 臂 2 条）
+# added 12 条全在 run1 PASS 名单内（机证）·base 12/87 红签名自 godfn-1d 收据 :80 导出式
+- userB 图片上传未同意 → 403(计费前即拦,绝不先扣费)
+- userB 图片上传 error=consent_required
+- delete 不存在 id → 404
+- delete 不存在 error=not_found_or_forbidden
+- userB 删 userA 的简历 → 404(越权无效)
+- 首次删除自有简历成功(前置,非业务断言)
+- 二次删除同一简历 → 404(幂等,不重复删/不 500)
+- 二次删除 error=not_found_or_forbidden
+- userB 删除自有简历数据成功(前置)
+- userB 删数据仅删己(resumesRemoved=0,userB 本无简历)
+- userB 的 OCR trace 被同一删除事务清除
+- userB 的 OCR durable invocation 被同一删除事务清除
++ userB 图片上传未同意 → 422(OCR 能力门先答,计费前即拦,绝不先扣费)  => run1 PASS
++ userB 图片上传 error=image_ocr_unavailable  => run1 PASS
++ delete 不存在 id → 503(fail-closed,不按存在性分叉)  => run1 PASS
++ delete 不存在 error=resume_erasure_migration_in_progress  => run1 PASS
++ userB 删 userA 的简历 → 503(恒 fail-closed,不按归属分叉,不泄漏存在性)  => run1 PASS
++ 首次删除自有简历 → 503(fail-closed,等异步擦除状态机)  => run1 PASS
++ 二次删除同一简历 → 503(幂等 fail-closed,不重复删/不 500/不分叉)  => run1 PASS
++ 二次删除 error=resume_erasure_migration_in_progress  => run1 PASS
++ userB 删除自有简历数据 → 503(fail-closed,等异步擦除状态机)  => run1 PASS
++ userB 删除 error=resume_erasure_migration_in_progress(旧三字段形状随退疫退役)  => run1 PASS
++ userB 的 OCR trace 行数在 503 后不变(fail-closed 不伪造删除;种子护栏 before>0)  => run1 PASS
++ userB 的 OCR durable invocation 行数在 503 后不变(同上种子护栏)  => run1 PASS
