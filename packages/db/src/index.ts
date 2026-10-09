@@ -99,8 +99,8 @@ export type { ResumeStatus, IngestedProfile, ResumeSourceKind, ResumeOcrBindingS
 export {
   enqueueReport, claimReport, markReportReady, markReportFailed, requeueFailedReport, sweepReports, getReport,
   MAX_REPORT_ATTEMPTS,
-} from './report.ts';
-export type { ReportStatus } from './report.ts';
+} from './report/report.ts';
+export type { ReportStatus } from './report/report.ts';
 
 // Commit-delivered, data-free worker wakeup constants.  They are not a queue
 // or authorization mechanism; the durable queue and RLS claim path remain
@@ -291,7 +291,7 @@ export { createOrder, getOrder, markOrderPaidAndCredit, markOrderRefunded } from
 export type { CreditResult, RefundResult } from './payment.ts';
 
 // 站内通知
-export { insertNotification, listNotifications, markNotificationRead, markAllNotificationsRead, unreadCount } from './notification.ts';
+export { insertNotification, listNotifications, markNotificationRead, markAllNotificationsRead, unreadCount } from './notification/notification.ts';
 
 // 版本化迁移运行器
 export { runMigrations, loadMigrations } from './migrate.ts';

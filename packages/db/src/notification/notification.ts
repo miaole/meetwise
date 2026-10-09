@@ -8,7 +8,7 @@
  * lane），不在本刀接线面（residual · PRIV01 第二波 db 层）。
  */
 import type { PoolClient as Client } from 'pg';
-import { buildRequiredOwnerFilter } from './tenant/index.ts';
+import { buildRequiredOwnerFilter } from '../tenant/index.ts';
 
 export async function insertNotification(c: Client, owner: string, id: string, kind: string, payload: unknown): Promise<void> {
   await c.query('INSERT INTO notification(id, owner_user_id, kind, payload) VALUES ($1,$2,$3,$4)', [id, owner, kind, JSON.stringify(payload)]);
