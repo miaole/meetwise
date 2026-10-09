@@ -237,6 +237,15 @@ async function main() {
     });
     const rep = await readJson(await fetch(`${BASE}/interview/${failIv}/report`, { headers: H }));
     if (failLoop.terminal) reviews.recordTerminal(failLoop.terminal);
+    if (failLoop.terminal === 'interview_unavailable') { try { // G7P-6 7a 定靶: 红时 exit 前补抓 last_error/reason/invoke_error 一次定谳(G7FIX-1 同 createRequire pg 契约·零产品码)
+      const { createRequire } = await import('node:module');
+      const { Client } = createRequire(new URL('../packages/db/package.json', import.meta.url))('pg');
+      const pgc = new Client({ host: process.env.PGHOST, port: Number(process.env.PGPORT), user: process.env.PGUSER, password: process.env.PGPASSWORD, database: process.env.PGDATABASE, ssl: false, connectionTimeoutMillis: 2000 });
+      await pgc.connect();
+      const jobs = await pgc.query(`SELECT status, attempts, last_error FROM interview_job WHERE interview_id=$1 ORDER BY seq DESC`, [failIv]);
+      const evs = await pgc.query(`SELECT kind, payload->>'reason' AS reason, payload->'provenance'->>'invokeError' AS invoke_error FROM interview_event WHERE stream_key=$1 ORDER BY seq DESC LIMIT 5`, [failIv]);
+      for (const row of [...jobs.rows.map((j: any) => ({ face: 'interview_job', ...j })), ...evs.rows.map((v: any) => ({ face: 'interview_event', ...v }))]) { const line = JSON.stringify({ bootId, step: '7a_diag', terminal: failLoop.terminal, interviewId: failIv, ...row }); fs.appendFileSync('.tmp/e2e-7a-diag.ndjson', line + '\n'); console.log('[7a-diag]', line); }
+      await pgc.end().catch(() => {}); } catch (de: any) { const line = JSON.stringify({ bootId, step: '7a_diag', diag_failed: `${de?.name}/${de?.code}/${String(de?.message ?? '').slice(0, 200)}` }); try { fs.appendFileSync('.tmp/e2e-7a-diag.ndjson', line + '\n'); } catch { /* 防自伤: 补抓自身异常不改写红面 class */ } console.error('[7a-diag]', line); } }
     A(failLoop.terminal === 'report_unavailable' && rep.status === 'quarantined',
       `[兜底] 报告失败 → report_unavailable + quarantined(无死胡同;终态=${failLoop.terminal || 'none'}, status=${rep.status ?? 'none'})`);
   }

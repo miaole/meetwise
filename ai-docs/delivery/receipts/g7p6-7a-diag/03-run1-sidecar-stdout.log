@@ -1,0 +1,6 @@
+[sidecar 2026-10-09T02:50:00.726Z] sidecar v3 start; wrapperLog=.tmp/g7p6-run1-wrapper.log; runStart=1791514200726; discipline: post-migrate anchor / 42P01 pending / stop-needle armed post-first-ok (>=5) / per-query guarded / SELECT-only aggregates / migrations 152 + /^0151(_|$/) (normalized, .sql stripped) / est<=25 dual-count chain 0+0+14 cap200
+[sidecar 2026-10-09T02:50:06.747Z] CONTAINER BIND exact=meetwise-e2e-72755-1791514201169 port=50733
+[sidecar 2026-10-09T02:50:13.777Z] ANCHOR post-migrate seen (v3 anchor; Ban container_found anchor) container=meetwise-e2e-72755-1791514201169
+[sidecar 2026-10-09T02:50:13.935Z] CORRELATION migrations=152 max=0151_pgp_sym_encrypt_grant (raw=0151_pgp_sym_encrypt_grant) match=true
+[sidecar 2026-10-09T02:50:14.116Z] first-ok tick (stop-needle ARMED post-first-ok)
+[sidecar 2026-10-09T02:51:25.040Z] STOPPED: STOP sentinel by orchestrator (wrapper exited); pending42P01=0 anchorSeen=true firstOk=true correlationMatch=true
