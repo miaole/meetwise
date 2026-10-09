@@ -104,3 +104,13 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *ERRMSG-MAP EXEC REQUEST · 2026-10-07 · draft:awaiting_pre_exec_dual · base `origin/feat/mysql-schema-skeleton` @`115c47f2` · 分支 `line/errmsg-map` · 蓝本=fix-roadmap 批 0 原文 · pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null · Dual PASS ≠ 开工 · Ban self-approve*
+
+## rev2 双审收口（2026-10-10 · 席1 PASS+席2 PASS·E1-E5 转_EXEC 义务）
+
+- **E1（binding_conflict 出口列修正）**：「继续入口=列表『进入 →』按钮（interviews/page.tsx:117）；放弃入口=进会话后 InterviewPanel『放弃』+确认弹层（InterviewPanel.tsx:241-253/:260-269·放弃退还额度）——两跳可达，非列表一键」。
+- **E2（签名页域化·根因钉死）**：actionErrorMessage 签名钉 `actionErrorMessage(page:'interviews'|'quiz'|'diagnosis'|'jobs', status, code)`（create_failed 三页异文案须「原文一字不改」二参不可满足）；quiz/diag begin 未映射兜底=**create_failed**（各页既有文案）·interviews 专属 begin_failed 文案**不跨页**；席1 处方（quiz/diag 补 begin_failed+防御码 superset 注记+C7 兜底逐字）同向并入。
+- **E3（jobs 前态义务归属）**：批 0「上线前如仍扣候选人须如实提示」**不在本刀实施**·显式归 #271 刀（本刀 jobs 面零新增任何提示文案=前态如实现状；上线后「本场由企业支付」亦归 #271）。
+- **E4（落点钉死）**：C1 钉 `apps/web/lib/errors/action-error.ts`（沿 lib/jobs/application-start-error.ts 同型先例·lib/errors/ 现不存在为新建）。
+- **E5**：Honesty 行「（§5-8）」→「（§5-4）」。
+- 席1 三勘误并入：quiz/diag 码集补 begin_failed+public_preview_read_only 防御性 superset 注记（或移除·EXEC 择一）+prove 前置 pnpm install（环境准备不计 attempts）。
+- Status: `draft_rev2:pre_exec_dual_PASS`（双席 BOTH PASS·EXEC 授权·蓝本=本 rev2）。
