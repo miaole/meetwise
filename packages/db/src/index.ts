@@ -367,6 +367,21 @@ export type {
   AdjudicateEvidenceInput, ScoreUncertaintyInput, AdjudicateScoreCardInput, AdjudicateScoreCardResult,
 } from './scoring-evidence-conflict.ts';
 
+// EXTREV-1 SCORE-WRITER S1 全链接线组合层（零迁移·0100/0103/0109 落库契约的调用面）：
+// D1 出题投影事务 publish+issue；D2 API submit 事务邻域 createScoreRequest；D4 drain 定位读面。
+export {
+  SCORING_MEASUREMENT_VERSION, SCORING_OPERATION_POLICY_VERSION, SCORING_PROMPT_POLICY_VERSION,
+  SCORING_ROUTE, SCORING_LANGUAGE, SCORING_LANGUAGE_SCOPE, SCORING_ISSUE_PRIVACY_EPOCH,
+  SCORING_SEED_CRITERION_ID,
+  questionContentHashOf, scoringRubricQuestionId, publishRubricAndIssueContract,
+  createScoreRequestForSubmission, findActiveScoreRequest,
+} from './scoring-wire.ts';
+export type {
+  PublishRubricAndIssueContractInput, PublishRubricAndIssueContractResult,
+  CreateScoreRequestForSubmissionInput, CreateScoreRequestForSubmissionResult,
+  ActiveScoreRequestRow,
+} from './scoring-wire.ts';
+
 // RAG-FUNNEL-02B / EMBED-CACHE-01 计算缓存（metadata 审核后、projection 前；只复用相同计算的无主 float32 向量，
 // 不决定 leaf/可见性/激活）。PG = durable fill intent + 成本预留 + dispatch slot；Redis = 薄 value store + merge lock。
 export {

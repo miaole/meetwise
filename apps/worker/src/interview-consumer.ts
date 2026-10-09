@@ -305,6 +305,8 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
             researchBoundary: research.researchBoundary,
             competencyKeywords: adaptive.competencyKeywords, maxTurns: adaptive.maxTurns, absoluteMaxTurns: adaptive.absoluteMaxTurns, graphObserver: adaptive.graphObserver, fence,
             onBeforeResumeProfileHydration: adaptive.onBeforeResumeProfileHydration,
+            // EXTREV-1 SCORE-WRITER S1（D3/D4）：写卡步 claim 的 lease_owner（job 级 worker 身份）。
+            scoreWriterLeaseOwner: d.leaseOwner,
           };
           if (job.kind === 'start') {
             // `resume_id` is the sole source locator. Never revive a

@@ -1,6 +1,6 @@
 import { Injectable, Inject, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { assertInterviewPrivacyActive, reserveEntitlement, enqueueInterviewJob, abandonInterviewAndRelease, claimInterviewAnswer, submitInterviewAnswer, readbackInterviewAnswerSubmission, viewInterviewAnswerSnapshot, supplyCandidateProfileRoute, requireOwnerUserId, buildRequiredOwnerFilter, newEntityId, asErr, errCode } from '@meetwise/db';
+import { assertInterviewPrivacyActive, reserveEntitlement, enqueueInterviewJob, abandonInterviewAndRelease, claimInterviewAnswer, submitInterviewAnswer, readbackInterviewAnswerSubmission, viewInterviewAnswerSnapshot, supplyCandidateProfileRoute, requireOwnerUserId, buildRequiredOwnerFilter, newEntityId, asErr, errCode, createScoreRequestForSubmission, SCORING_ISSUE_PRIVACY_EPOCH } from '@meetwise/db';
 import { deriveCareerPath, requireTrustedPracticeOverall, resolveOverlongAnswerPolicy } from '@meetwise/domain';
 import { runCareerPathGraph, selectCareerPathDerive, CAREER_PATH_GRAPH_NAME } from '@meetwise/ai-graphs';
 import type { InterviewAnswerPreviewSubmitDto, InterviewAnswerSubmitResult, TranscribeDto, TurnDto } from '@meetwise/contracts';
@@ -405,11 +405,23 @@ export class InterviewService {
           stateVersion: body.stateVersion,
           clientSubmissionKey: body.clientSubmissionKey,
           answer: body.answer,
-          privacyEpoch: 1,
+          privacyEpoch: SCORING_ISSUE_PRIVACY_EPOCH,
         });
         if (submitted.interviewId !== id || submitted.questionId !== body.questionId
           || submitted.stateVersion !== body.stateVersion)
           throw new HttpException({ error: 'interview_answer_submission_conflict' }, HttpStatus.CONFLICT);
+        // EXTREV-1 SCORE-WRITER S1（rev2 D2 勘误锚点=interview.service.ts:402 邻域）：
+        // score_request 与 0092 账本写入**同事务原子**（绑 submissionId/artifactId/bodyHmac），
+        // 非 claim 位。题面契约缺位（S1 接线前的存量题）→ fail-soft 跳过（存量不追溯供卡）。
+        await createScoreRequestForSubmission(c, {
+          interviewId: id,
+          questionId: body.questionId,
+          stateVersion: body.stateVersion,
+          submissionId: submitted.submissionId,
+          artifactId: submitted.artifactId,
+          canonicalBodyHmac: submitted.canonicalBodyHmac,
+          privacyEpoch: submitted.privacyEpoch,
+        });
         return {
           interviewId: submitted.interviewId,
           questionId: submitted.questionId,

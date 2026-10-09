@@ -5,13 +5,15 @@
 import {
   asPrincipal, appendEvent, completeInterviewAndConfirm, failInterviewAndRelease, enqueueReport, markApplicationAssessmentUnavailable, markApplicationNoEligibleScore,
   persistInterviewQuestion, verifyInterviewAnswerClaim, markInterviewAnswerApplied, enrollCheckpointThread,
-  assertInterviewGraphFence, type AcceptedInterviewAnswer, type DbPool, type InterviewGraphFence,
+  assertInterviewGraphFence, publishRubricAndIssueContract,
+  type AcceptedInterviewAnswer, type DbPool, type InterviewGraphFence,
 } from '@meetwise/db';
 import { Command } from '@langchain/langgraph';
 import { buildAdaptiveInterviewGraph, type PendingQuestion } from '@meetwise/ai-graphs';
 import type { ModelClient, GraphObserver } from '@meetwise/ai-runtime';
 import { admitInterviewResume, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision } from '@meetwise/domain';
 import { buildAdaptiveDeps, planCompetencies } from './adaptive-interview-service.ts';
+import { writeScoreCardAfterProjectionFenceTolerant } from './score-writer.ts';
 import { recordAskedQuestions } from './memory-service.ts';
 import { emitSignalConcludeEvent } from './signal-conclude-event.ts';
 
@@ -98,6 +100,11 @@ export interface AdaptiveLifecycleDeps {
   graphObserver?: GraphObserver;
   /** 仅测试观测：在读取脱敏简历画像前触发；生产不注入，不承载业务逻辑。 */
   onBeforeResumeProfileHydration?: () => void;
+  /**
+   * EXTREV-1 SCORE-WRITER S1（rev2 D3/D4）：score_request claim 的 lease_owner。缺省 =
+   * 该 drain 不执行写卡步（兼容旧 seam/测试）。生产由 consumer 注入 job 级 leaseOwner。
+   */
+  scoreWriterLeaseOwner?: string;
 }
 
 async function requireCurrentFence(c: Parameters<typeof assertInterviewGraphFence>[0], d: AdaptiveLifecycleDeps): Promise<void> {
@@ -173,6 +180,13 @@ async function persistAndEmitQuestion(d: AdaptiveLifecycleDeps, p: PendingQuesti
     await persistInterviewQuestion(c, d.owner, d.interviewId, {
       questionId: p.questionId, stateVersion: p.stateVersion, turn: p.turn,
       question: p.question, competency: p.competency, qkind: p.kind,
+    });
+    // EXTREV-1 SCORE-WRITER S1（rev2 D1）：同一投影事务内发布版本化 rubric（幂等）+
+    // 冻结题面契约（冻题不冻答·绑 rubricId·12 参）。difficulty 由图状态 PendingQuestion
+    // plumbing（state.ts difficulty 字段，1..5 与 rubric CHECK 同标度）——投影层此前不消费它。
+    await publishRubricAndIssueContract(c, {
+      interviewId: d.interviewId, questionId: p.questionId, stateVersion: p.stateVersion, turn: p.turn,
+      question: p.question, competency: p.competency, difficulty: p.difficulty, kind: p.kind,
     });
     await appendEvent(c, d.owner, d.interviewId, 'question_ready', {
       questionId: p.questionId, stateVersion: p.stateVersion, turn: p.turn,
@@ -266,10 +280,17 @@ async function submitAdaptiveAnswerImpl(
     if (!claimed) throw Object.assign(new Error('answer_identity_lost'), { code: 'answer_identity_lost' });
     if (!await markInterviewAnswerApplied(c, d.owner, d.interviewId, input))
       throw Object.assign(new Error('answer_apply_fence_lost'), { code: 'answer_apply_fence_lost' });
-    if (next) await persistInterviewQuestion(c, d.owner, d.interviewId, {
-      questionId: next.questionId, stateVersion: next.stateVersion, turn: next.turn,
-      question: next.question, competency: next.competency, qkind: next.kind,
-    });
+    if (next) {
+      await persistInterviewQuestion(c, d.owner, d.interviewId, {
+        questionId: next.questionId, stateVersion: next.stateVersion, turn: next.turn,
+        question: next.question, competency: next.competency, qkind: next.kind,
+      });
+      // EXTREV-1 D1：answer 投影事务内的下一题同样发 rubric+契约（与 persistAndEmitQuestion 同形）。
+      await publishRubricAndIssueContract(c, {
+        interviewId: d.interviewId, questionId: next.questionId, stateVersion: next.stateVersion, turn: next.turn,
+        question: next.question, competency: next.competency, difficulty: next.difficulty, kind: next.kind,
+      });
+    }
     const generationFailed = generationFailureOf(snap);
     if (generationFailed) {
       if (!unscored && typeof last.score === 'number') {
@@ -316,6 +337,22 @@ async function submitAdaptiveAnswerImpl(
       question: next.question, competency: next.competency, qkind: next.kind,
     }, `question_ready:${next.questionId}`);
   });
+
+  // EXTREV-1 SCORE-WRITER S1（rev2 D4=后置异 txn）：上方投影事务**提交后**、同一 answer-job
+  // drain 内、独立 asScoringWorkerPrincipal 事务 claim+写卡；consumer 的 markJobDone 在其后
+  // 收口 → crash 于二者之间 = requeue at-least-once + 0100 CAS（单 winner）= exactly-once 效果。
+  // 仅对投影已落 answer_evaluated 且计入 eligible 的回合执行（非 unscored/非 clarify；clarify&&done
+  // 的 unresolved 事件不计 eligible，不供卡）。供源 = v5 hint 分（score 卡进度提示），经 D6 过渡桥
+  // 映射 disposition；模型不出总分，总分在 0103 DB 函数内确定性计算。
+  if (d.scoreWriterLeaseOwner && !unscored && !clarifying && typeof last.score === 'number') {
+    await writeScoreCardAfterProjectionFenceTolerant(
+      { pool: d.pool, owner: d.owner, leaseOwner: d.scoreWriterLeaseOwner },
+      {
+        interviewId: d.interviewId, questionId: input.questionId, stateVersion: input.stateVersion,
+        answerText: input.answer, hintScore: last.score,
+      },
+    );
+  }
 
   const generationFailed = generationFailureOf(snap);
   if (generationFailed) {
