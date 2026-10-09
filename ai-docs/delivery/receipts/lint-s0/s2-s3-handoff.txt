@@ -1,0 +1,7 @@
+# LINT-DESIGN S3 移交项登记（S2 零行使·原样顺传）
+# date: 2026-10-10
+
+1. UPPER_CASE const 面 dry-run 独立计数：基准 ~845/242 文件（席2 定量·S1 nail 交接口径）——S2 零触碰零动作·原样移交 S3；超预期回设计面补票·禁 S3 内自行收紧。
+2. S1 顺延项 .prettierignore（设计 §1.2 落位项）——不在 S2 行原文范围·维持顺延（S2 行=workspace 指针·范围严格）；落位切片由协调方后裁。
+3. S1 nit 两笔（席2·S3 顺手）：披露③默认豁免集补 object 成员·披露②措辞更新「v8 无 constant selector」。
+4. 本刀新增登记：S1 base 头注 specifier 消费形式与实树不符（见 s2-form-evidence.txt 负证）——S3/S4 点灯时若需 specifier 消费须先落 workspace devDependencies 声明（另行授权面·lockfile 变更）。

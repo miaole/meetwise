@@ -1,0 +1,22 @@
+# LINT-DESIGN S2 commit numstat（批1/2=已落 commit git show·批3=staged 全量=commit 终值·本件与 sha256 自身行数以 commit numstat 为准）
+== 批1 2724e0ae ==
+4	0	apps/api/eslint.config.mjs
+4	0	apps/web/eslint.config.mjs
+4	0	apps/worker/eslint.config.mjs
+4	0	eslint.config.mjs
+4	0	packages/ai-graphs/eslint.config.mjs
+== 批2 7a458ea0 ==
+4	0	packages/ai-runtime/eslint.config.mjs
+4	0	packages/contracts/eslint.config.mjs
+4	0	packages/db-mysql/eslint.config.mjs
+4	0	packages/db/eslint.config.mjs
+4	0	packages/domain/eslint.config.mjs
+== 批3（本 commit·staged）==
+26	0	ai-docs/delivery/harness/lint-s0-REQUEST.md
+23	0	ai-docs/delivery/receipts/lint-s0/s2-form-evidence.txt
+3	0	ai-docs/delivery/receipts/lint-s0/s2-prettier-check.txt
+26	0	ai-docs/delivery/receipts/lint-s0/s2-print-config.txt
+7	0	ai-docs/delivery/receipts/lint-s0/s2-s3-handoff.txt
+38	0	ai-docs/delivery/receipts/lint-s0/s2-zero-diff.txt
+4	0	packages/config/eslint.config.mjs
+4	0	packages/qdrant-store/eslint.config.mjs

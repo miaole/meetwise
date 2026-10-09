@@ -1,0 +1,7 @@
+# LINT-DESIGN S2 收据指纹（sha256·本件自身除外）
+e31e0964f399aae6cb5bd8727d270c71bea9b37023eb2951cea32dba28af04af  s2-print-config.txt
+801bb6edb505ab16e4e2c77074532232453b12ac6dccd7edf0870b55a3c22aa9  s2-prettier-check.txt
+90e08e46c7bef777dc2e98ec07c6ec4d67144671f381a9413fb0cb9c1bf4707d  s2-form-evidence.txt
+0168f00502c3f7a3d5dd4462d9d0b146ad18791cfc5ae589d8811595b2a92307  s2-zero-diff.txt
+fdf959b8bafa7ab30c41591179714ec004464e7f1307e6b2c3a8b66719d9c9e3  s2-s3-handoff.txt
+e54176603fc3377a490c3cb2c9ab1e9ecd305c1dd0633fb303492a4c8b4edc48  s2-commit-numstat.txt
