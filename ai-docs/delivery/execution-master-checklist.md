@@ -2040,3 +2040,13 @@ flowchart TD
 - [ ] **STILL OPEN**：G7FIX-5 臂回改刀；G7TRIO-2 全景重跑；g7SuiteGreen SSOT 刀；duplicate re-roll 根因刀；`:107` 维持；`g7SuiteGreen=false` 维持.
 - 预算：est live=0 · 隔离 PG 容器一次性 · Docker daemon 重启已恢复（29.1.3）· 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 产品面正规修复 · 实现方不 self-approve.
+
+### Line G7FIX-5 driver 臂回改刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · +2/−6 恰 1 文件·恰 1 run **EXIT=0 原值**（passed·80706ms·74 断言）· **G7 间歇红全部修复后 CMD1 主旅程首次全程绿** · G7FIX-4 kind 翻转 driver 可见级坐实·恢复通路端到端亲证·trio 全景重跑就绪）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
+- [x] **`post_prove_dual_pass`** recorded for Line G7FIX-5 products only（diff +2/−6 恰 1 文件·零产品码·armed 探针全保留·nail tip 本 commit · branch `line/g7fix5-arm-rework`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：diff numstat 亲读恰 +2/−6+零 cannot_finalize 残留+completed 面逐字保留/RUN1 EXIT=0 三源一致+sourceDigests 15 亲算全 MATCH/四元组与 G7FIX-4 prove 钉死形状逐键一致/恢复通路 a4+a5 原行亲证/sidecar correlationMatch=true 双计 21≤25 链 166≤200/pins+r1Closed 注记+erratum-1 核销）+ mw-model-op PASS（六核：**CMD1 全绿证据强度终审**〔qualified 义首绿：generation 族实弹+恢复通路+replayed 钉·非 ever 首绿·G7FIX-2 RUN1/G7TRIO CMD3 步3 先例绿如实对照〕/四元组因果闭环与 G7FIX-4 prove 逐键一致/74 vs 72 位移亲读 A() 调用次计数分解/sidecar v3 原件 sha256 同符/链 166 亲核/trio 就绪度=就绪）· 协调方正式授权本 nail.
+- **G7FIX-5 全链**：REQUEST `cd755b46` → rev2 `f3b28343`（席2 臂靶错位纠正：G7FIX-4 后 bound generation 族 kind 翻转·409 臂=死分支·改收敛式）→ 双席复核 BOTH PASS → EXEC `1caafeeb`（origin tip 零位移）→ 本 nail commit.
+- **核心产出**：①:404 scorelessBound 并入 || interview_unavailable（防御钉）②:406-408 三元 409 臂消解 ③:407 补 finalized.replayed===false ④:421-422 卡死死支删除——**G7FIX-4 产品面对称标记后 driver 契约对齐**·CMD1 主旅程首次全程绿·恢复通路端到端行使·generation 族 kind 翻转 driver 可见级坐实。
+- [ ] **STILL OPEN**：trio 全景重跑（G7TRIO-2·CMD1 预期绿 CMD2 绿 CMD3 步 10 已由 NEGCOMM-1 解锁）；`:107` 维持；`g7SuiteGreen=false` 维持（=trio 后 SSOT 刀）.
+- 预算：恰 1 run · dual-count 21≤25 · 链 145+21=166≤200 · 0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
