@@ -1,7 +1,7 @@
 # EVIDENCE-DELIVERY — 逐题评分证据四断口接线刀（criterion 数组随事件/转写带出+报告页退役冒充 · EXEC REQUEST）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（本 REQUEST 只送审 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 自动开工 · 须 meetwise 明示授权才进 EXEC）
-**Date**: 2026-10-07（起草席 mw-eviddel-draft）
+**Status**: **`draft_rev2:pre_exec_dual_PASS`**（双席 BOTH PASS · EXEC 授权 · 蓝本=本 rev2 · **Ban self-approve** · **alone≠dual**）
+**Date**: 2026-10-07（起草席 mw-eviddel-draft）· rev2 2026-10-07（修订席 mw-eviddel-rev2·预执行双审双席 BOTH PASS 附 P1-P4 处方·逐字落位·除处方外冻结）
 **Base**: `origin/feat/mysql-schema-skeleton` @`5e1e7fde` · 分支 `line/evidence-delivery`（工作树 `meetwise-line-eviddel`）
 **立项依据**: `ai-docs/delivery/harness/extreview-fix-campaign-SOP.md` §接线债审计收编（2026-10-09 归档·EVIDENCE-DELIVERY 产品偏移级·A1+A2+C1 连带）+ EXTREV-7 三铁律（交付/隐私流量/简化优先）。
 **Honesty**: 本档全部 file:line 锚点在 `line/evidence-delivery` @`5e1e7fde` 实树亲读验证（worker/api/web/domain/ai-graphs/ai-runtime/db/contracts/CLAUDE.md）；审计誊录锚两处漂移已勘误标注（evaluate-answer.ts 审计锚 :131→实位 :154〔ingestAssessment 调用行·:131 为 unresolved 分支头〕·assessment.ts 审计锚 :57-58→实位 :53〔两固定串·:57-58 为 return 行〕·E 先例±行漂如实记）。SOP 引文逐字誊录字节一致。
@@ -56,7 +56,8 @@
 
 ### S2 transcript API 带 evidence+报告页改吃 transcript（④断口修复）
 - `interview-report.ts:86-89` 投影增 `evidence`：`Array.isArray(p.evidence) ? p.evidence.filter((x) => typeof x === 'string').slice(0,6) : []`（历史事件无键=空数组·脏值过滤·上限沿 EvalSchema max(6)）。
-- 报告页「逐题点评」区（page.tsx:243-253）改数据源：serverGet `/interview/:id/transcript`（controller:195 既有路由·**web 首次接线**），逐 turn 渲染 AnnotationCard——`question=turn.question`（真题目文本·**维度名冒充退役**）·`note=turn.evidence`（真判据·**固定串退役**）·`score=turn.score ?? undefined`（分数权威仍=ScoreCard·无卡 null·SCOR-02 消费迁移纪律 :305-309 保持——payload.score 仍非合法 C 端分数消费者）。
+- 报告页「逐题点评」区（page.tsx:243-253）改数据源：serverGet `/interview/:id/transcript`（controller:195 既有路由·**web 首次接线**）。**rev2 形态钉死（P3）**：逐题点评投影落为 **`apps/web/lib/report/turn-annotations.ts`**（沿 `lib/interview/turn-submission.ts` 纯函数先例）导出 **`projectTurnAnnotations(turns)`**——transcript turns→AnnotationCard props：`question=turn.question`（真题目文本·**维度名冒充退役**）·`note=turn.evidence`（真判据·**固定串退役**·**note 空⇒undefined**）·**score null⇒undefined**（分数权威仍=ScoreCard·无卡 null·SCOR-02 :305-309 纪律保持——payload.score 仍非合法 C 端分数消费者）；page.tsx AssessmentSection **薄消费**（投影纯函数薄调用·渲染逻辑零内联）。
+- **旧行/未评分回合 evidence 缺失→回退隐藏（P2·rev2）**：note 不渲染（AnnotationCard.tsx:33 `note ? … : null` 天然隐藏）——**禁止任何新造回退文案**。
 - `assessment.ts:53` 两固定串处置（**旁路优先建议**）：web 唯一读面=page.tsx:250（grep 亲证）——读面退役后 deriveAssessment 停写冒充串（Dimension.evidence 字段退役或写空·EXEC 按 tsc 门收束）；`assessment_report.dimensions` JSONB 旧行残键**零迁移零回填**（读侧已不读）。
 - dashboard:32 承诺在 S2 后为真（不改文案）。
 
@@ -67,10 +68,10 @@
 3. **简化优先不支持加法**：本刀若碰 learning/career 只能加调用层，恰是铁律 3 要抑制的方向。
 后继刀登记建议：**GROWTH-REAL**（A2·依赖 SCORE-WRITER 下游稳定·含 :77「模型生成内容」框架句对模板区的诚实面处置）。本刀 §2 显式钉死零触。
 
-### S4 C1 evaluateAnswer 删除+注释留档（简化优先倾向删除·裁定建议=删除）
-- 删 `apps/worker/src/interview-service.ts:270-287` evaluateAnswer（生产零调用·§0.4 亲证·#159 同形处置先例=删）。
-- 两测试文件消费面回和：`scoring-report-integrity.proof.ts`+`context-stress.proof.ts` 改直吃 `invokeEvaluationOnce`（同为导出面·断言语义零弱化——幂等/引文核验/降级断言逐条对位迁移）。
-- 注释留档：interview-service.ts 评分段头注记 evaluateAnswer 已删（2026-10·EVIDENCE-DELIVERY S4·#159 同形·生产路径=adaptive assess→invokeEvaluationOnce）。
+### S4 C1 evaluateAnswer 删除+注释留档（简化优先倾向删除·裁定建议=删除·rev2 双席追认）
+- 删 `apps/worker/src/interview-service.ts:270-287` evaluateAnswer（生产零调用·§0.4 亲证·#159 同形处置先例=删）。**同 commit 删除孤死私有 isStoredEvidence**（:85-87——isStoredEvidence 唯一消费面 :284〔evaluateAnswer evidenceRecords 臂〕删后孤死；**toEvidenceRecord 留用**——persistedEvaluation :92 仍消费）。
+- 两测试文件消费面回和（**P1 回和细则·rev2**）：`scoring-report-integrity.proof.ts`+`context-stress.proof.ts` 改直吃 `invokeEvaluationOnce`（同为导出面·断言语义零弱化——幂等/引文核验/降级断言逐条对位迁移）。**回和形状事实**：invoke() 首次成功返回原始 schema 值（`{criterion,quote}` 形·invoke.ts:875/:931）；span+hash 记录形仅在 storeOutput 落库值（invoke.ts:876）与缓存命中重放值。toEvidenceRecord/isStoredEvidence 为私有函数不可测试复用——故 C12 回和时：**span+hash 记录形状断言必须落在缓存命中重放调用上**（同 baseIdempotencyKey+answer 二次调 invokeEvaluationOnce→value.evidence 即记录形）；`:56-58` DB trace 断言原值不动。
+- 注释留档：interview-service.ts 评分段头注记 evaluateAnswer 已删（2026-10·EVIDENCE-DELIVERY S4·#159 同形·生产路径=adaptive assess→invokeEvaluationOnce）；**evaluateAnswer 段头键字符集约束注释（:263-268）归档注记指向存续面**（该 `/^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/` businessRevision 键约束的存续强制面=invoke registry 层 fail-closed·存续调用面 invokeEvaluationOnce baseIdempotencyKey 同受辖——注记指回存续面·约束知识不随删失载）。
 - **接线选项否决理由**：生产唯一评分路径（adaptive graph assess）已直连 invokeEvaluationOnce；再接线 evaluateAnswer=第二入口=反简化。
 
 ---
@@ -99,16 +100,16 @@
 | C3 | S1 | `apps/worker/src/adaptive-lifecycle.ts:252-254` | transcript 本地结构类型无 evidence 键 | 增 `evidence?: string[]` |
 | C4 | S1 | `apps/worker/src/adaptive-lifecycle.ts:276-279`（generationFailed 臂） | answer_evaluated payload 7+1 键无 evidence | payload 增 `evidence: last.evidence`（缺省省略键·undefined 不进 JSONB） |
 | C5 | S1 | `apps/worker/src/adaptive-lifecycle.ts:310-313`（主路径） | 同上 | 同 C4 |
-| C6 | S1 | `apps/web/lib/stream/business-events.ts:33-42` | answer_evaluated data 无 evidence 成员 | 增 `evidence: z.array(z.string()).max(6).optional()`（**与 C4/C5 同刀=写读双端同刀·§F 禁半边注册**；optional=历史事件重放兼容）；contracts 提升为 EXEC 可选（若做·contracts/src/index.ts+web 同刀） |
-| C7 | S2 | `apps/api/src/modules/interview/interview-report.ts:86-89` | 投影 5 键剔 evidence | 增 `evidence`（isArray 过滤 string·slice(0,6)·缺键=空数组） |
-| C8 | S2 | `apps/web/app/report/[id]/page.tsx:243-253` | 「逐题点评」吃 assessment dimensions：:249 question=维度名·:250 note=固定串回退 | 改吃 serverGet `/interview/:id/transcript`：逐 turn AnnotationCard question=turn.question·note=turn.evidence 判据列表·score=turn.score ?? undefined；能力评估维度条（:234-241 AbilityBar 区）沿 assessment 面不动（维度总览≠逐题点评·语义分离） |
+| C6 | S1 | `apps/web/lib/stream/business-events.ts:33-42` | answer_evaluated data 无 evidence 成员 | 增 `evidence: z.array(z.string()).max(6).optional()`（**与 C4/C5 同刀=写读双端同刀·§F 禁半边注册**；optional=历史事件重放兼容）；**加一行注释「沿 EvalSchema max(6)」（interview-service.ts:36 权威源）锚定来源——不引入跨包共享常量（简化优先）·三处未来单独漂移=后续刀面不预支**（P4·rev2）；contracts 提升为 EXEC 可选（若做·contracts/src/index.ts+web 同刀） |
+| C7 | S2 | `apps/api/src/modules/interview/interview-report.ts:86-89` | 投影 5 键剔 evidence | 增 `evidence`（isArray 过滤 string·slice(0,6)·缺键=空数组）；**加一行注释「沿 EvalSchema max(6)」（interview-service.ts:36 权威源）锚定来源——不引入跨包共享常量（简化优先）·三处未来单独漂移=后续刀面不预支**（P4·rev2） |
+| C8 | S2 | `apps/web/app/report/[id]/page.tsx:243-253`+**`apps/web/lib/report/turn-annotations.ts`（rev2 新建）** | 「逐题点评」吃 assessment dimensions：:249 question=维度名·:250 note=固定串回退 | 改吃 serverGet `/interview/:id/transcript`：**投影落为 `apps/web/lib/report/turn-annotations.ts`（P3 形态钉死·rev2·沿 `lib/interview/turn-submission.ts` 纯函数先例）导出 `projectTurnAnnotations(turns)`**——transcript turns→AnnotationCard props（question=turn.question·note=turn.evidence 判据列表·**note 空⇒undefined**·**score null⇒undefined**·SCOR-02 :305-309 纪律保持）·page.tsx AssessmentSection **薄消费**；**旧行/未评分回合 evidence 缺失→回退隐藏（P2·rev2：note 不渲染·AnnotationCard.tsx:33 note?…:null 天然隐藏·禁止任何新造回退文案）**；能力评估维度条（:234-241 AbilityBar 区）沿 assessment 面不动（维度总览≠逐题点评·语义分离） |
 | C9 | S2 | `packages/domain/src/assessment.ts:49-54`（实锚 :53） | Dimension.evidence=两固定串冒充点评 | 停写冒充串（字段退役或空串·EXEC 按 tsc 门收束）；:42/:47 question.slice(0,40) 回退零触（legacy 数据兼容路径非冒充面） |
 | C10 | S2 | `apps/web/app/report/[id]/page.tsx:250`（唯一读面·grep 亲证） | d.evidence 消费 | 随 C8 退役；assessment_report 旧行残键零迁移零回填 |
-| C11 | S4 | `apps/worker/src/interview-service.ts:270-287` | evaluateAnswer 生产零调用（§0.4） | 删除+段头注释留档（#159 同形·生产路径=adaptive assess→invokeEvaluationOnce:133-150） |
-| C12 | S4 | `apps/worker/test/scoring-report-integrity.proof.ts:14/:47/:48/:52/:69/:71/:126/:128`+`test/context-stress.proof.ts:21/:154` | 两文件经 evaluateAnswer 消费 | 改直吃 invokeEvaluationOnce（导出面既有）·断言语义逐条对位零弱化（幂等重放/answer-hash 分键/quote 拒绝/降级 unscored） |
+| C11 | S4 | `apps/worker/src/interview-service.ts:270-287` | evaluateAnswer 生产零调用（§0.4） | 删除+段头注释留档（#159 同形·生产路径=adaptive assess→invokeEvaluationOnce:133-150）；**同 commit 删除孤死私有 isStoredEvidence（:85-87——唯一消费面 :284 删后孤死·toEvidenceRecord 留用——persistedEvaluation :92 仍消费）；evaluateAnswer 段头键字符集约束注释（:263-268）归档注记指向存续面（P1·rev2）** |
+| C12 | S4 | `apps/worker/test/scoring-report-integrity.proof.ts:14/:47/:48/:52/:69/:71/:126/:128`+`test/context-stress.proof.ts:21/:154` | 两文件经 evaluateAnswer 消费 | 改直吃 invokeEvaluationOnce（导出面既有）·断言语义逐条对位零弱化（幂等重放/answer-hash 分键/quote 拒绝/降级 unscored）；**P1 回和细则（rev2）：invoke() 首次成功返回原始 schema 值（{criterion,quote} 形·invoke.ts:875/:931）·span+hash 记录形仅在 storeOutput 落库值与缓存命中重放值·toEvidenceRecord/isStoredEvidence 私有不可测试复用——故 span+hash 记录形状断言必须落在缓存命中重放调用上（同 baseIdempotencyKey+answer 二次调 invokeEvaluationOnce→value.evidence 即记录形）；:56-58 DB trace 断言原值不动** |
 | C13 | prove | 收据 `ai-docs/delivery/receipts/evidence-delivery/`（新增·沿 `receipts/<knife>/` 惯例） | 无 | manifest 沿 run-manifest.json schema（EXIT 原值/attempts 全账/est live=0） |
 
-触碰面收束：`packages/ai-graphs`（state.ts+evaluate-answer.ts）·`apps/worker/src`（adaptive-lifecycle.ts+interview-service.ts）·`apps/web/lib/stream/business-events.ts`+`apps/web/app/report/[id]/page.tsx`·`apps/api/src/modules/interview/interview-report.ts`·`packages/domain/src/assessment.ts`·两 worker 测试文件·收据。apps/web/lib/stream 其余文件/apps/api 其余模块/CLAUDE.md/迁移目录零字节。
+触碰面收束：`packages/ai-graphs`（state.ts+evaluate-answer.ts）·`apps/worker/src`（adaptive-lifecycle.ts+interview-service.ts）·`apps/web/lib/stream/business-events.ts`+**`apps/web/lib/report/turn-annotations.ts`（rev2 新建·P3）**+`apps/web/app/report/[id]/page.tsx`·`apps/api/src/modules/interview/interview-report.ts`·`packages/domain/src/assessment.ts`·两 worker 测试文件·收据。apps/web/lib/stream 其余文件/apps/api 其余模块/CLAUDE.md/迁移目录零字节。
 
 ---
 
@@ -116,7 +117,7 @@
 
 1. **事件 payload 断言（S1 出②）**：worker proof（扩展 `prove:interview` 或新 `evidence-delivery.proof.ts`）——scriptedModelClient 沿 `apps/worker/test/interview.proof.ts:43` 形制（evidence fixture `{criterion:'…',quote:'…'}`·quote 取自 scripted answer 原文子串）跑 adaptive 提交链，断言 `interview_event` answer_evaluated 行 `payload->'evidence'` = criterion 数组（jsonb 逐元素相等）且 `payload ? 'quote'` 为 false（原文禁断言）。
 2. **SSE wire 验证（S1 出①）**：web `prove`（web-logic.proof.ts）——构造 `event: answer_evaluated` SSE 文本帧（data=含 evidence 帧过 decodeSSE/toBusinessEvent 解析成功且 evidence 数组保真；**无 evidence 键的历史形状帧仍解析成功**（optional 兼容断言·断线重放不杀））；api 侧 `sse-push-notify.proof.ts`+`last-event-id.proof.ts` 零回归（payload 直通语义 :64 未改）。
-3. **报告页组件测试吃 transcript（S2 出④）**：web prove 增纯逻辑断言——transcript turns→逐题点评投影：question=真实题目文本（非维度名·断言不含 dimension 冒充形状）·note=evidence 判据·固定串两值（'低于达标线，需加强'/'达标'）在任何渲染路径零出现；score=null（无卡）时无数值呈现（SCOR-02 纪律）。transcriptView API 出③：api proof（`prove:int-transcript-preview-submit-http` 邻域或 neg harness 扩展）断言响应 turns[].evidence 在场。
+3. **报告页逐题点评投影纯逻辑断言吃 transcript（S2 出④·rev2 形态）**：**组件测试形态否决——web prove 面纯 tsx 逻辑测试·新建 React harness=反简化（P3）**。web `web-logic.proof.ts` **import 断言（import `projectTurnAnnotations`——`apps/web/lib/report/turn-annotations.ts`）**：question=真实题目文本（**非维度名形状**·断言不含 dimension 冒充形状）·note=evidence 判据·**P2 四串零出现**（固定串零出现断言由两串扩为四串：`'低于达标线，需加强'`/`'达标'`〔assessment.ts:53 两串〕+`'该维度低于达标线(60),建议优先补强。'`/`'该维度表现达标。'`〔page.tsx:250 两回退串〕在任何渲染路径零出现）·**空 evidence 无 note**（增断言「空 evidence⇒note 不渲染」）·**无卡无数值**（score=null〔无卡〕时无数值呈现·SCOR-02 纪律）。transcriptView API 出③：api proof（`prove:int-transcript-preview-submit-http` 邻域或 neg harness 扩展）断言响应 turns[].evidence 在场。
 4. **既有 prove 零回归**：`neg:interview`（apps/api/package.json:29）·`turn-idempotency:prove`（:32·评分幂等分键面）·`prove:interview`/`prove:flow`（worker·answer_evaluated 计数断言 :142-150 原值）·`adaptive-flow.proof.ts` 族·`prove:scoring-integrity`（apps/worker/package.json:51）+`prove:stress`（:15·C12 回和后全绿）·web `prove`（apps/web/package.json:7）——EXIT 原值如实记，**Ban retry-to-green**。
 5. **预算**：全 scripted/fake seam 零模型外呼零 Key 触碰——**est live=0 模型调用**·actualSpendCny=null·收据落 `receipts/evidence-delivery/`。
 
@@ -152,8 +153,17 @@
 
 ## §7 STOP
 
-**STOP · `awaiting_pre_exec_dual` · alone≠dual · Ban self-approve。** REQUEST 写完即停零码动；EXEC 须双审 PASS + meetwise 明示授权；S3 缓行裁定与 S4 删除裁定（两处裁量建议）须协调方在预执行双审中追认或改判；Ban retry-to-green。
+**STOP · `pre_exec_dual_PASS`（双席 BOTH PASS·EXEC 授权·蓝本=本 rev2）· alone≠dual · Ban self-approve。** 预执行双审闭环（双席 BOTH PASS 附 P1-P4 处方·已逐字落位本 rev2·除处方外冻结）；rev1「REQUEST 写完即停零码动·EXEC 须双审 PASS+明示授权」闸门已过；S3 缓行裁定与 S4 删除裁定（两处裁量建议）经预执行双审 PASS 收束；EXEC 按本 rev2 唯一蓝本开工·完工须 post-prove dual（Ban self-approve·alone≠dual）；Ban retry-to-green。
 
 ---
 
-*EVIDENCE-DELIVERY EXEC REQUEST · 2026-10-07 · draft:awaiting_pre_exec_dual · base `5e1e7fde`（origin/feat/mysql-schema-skeleton）· 分支 `line/evidence-delivery` · 立项=extreview-fix-campaign-SOP.md §接线债审计收编（A1+A2+C1）· pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null · Dual PASS ≠ 开工 · Ban self-approve*
+## §8 观察项登记（收据勘误节预登记·rev2 修订席·EXEC 收据须逐条誊入 `receipts/evidence-delivery/` 勘误节）
+
+- **O-a 键数勘误**：Ban7「8 键」/C4「7+1」实为 **9 键含 question**（answer_evaluated payload 键集=questionId/stateVersion/answerId/answerHash/turn/score/outcome/competency/question·§0.3② 亲录）——正文两处原文冻结不改·收据勘误节如实记。
+- **O-b #159 锚仓外**：`issues-master.md:309`（#159 同形引证）锚在仓外——经 SOP 佐证（extreview-fix-campaign-SOP.md:96 逐字誊录面）·行号未亲证·收据如实记。
+- **O-c SCORE-WRITER 对称引用条款**：彼刀（SCORE-WRITER）落地时对称引本刀 commit·行号漂±亲读复核。
+- **O-d 两审计锚勘误复核属实**：evaluate-answer 审计锚 :131→实位 :154〔ingestAssessment 调用行〕·assessment.ts 审计锚 :57-58→实位 :53〔两固定串〕——rev2 复核两勘误属实（Honesty 行既有记载维持）。
+
+---
+
+*EVIDENCE-DELIVERY EXEC REQUEST · 2026-10-07 · draft_rev2:pre_exec_dual_PASS（双席 BOTH PASS·EXEC 授权·蓝本=本 rev2·修订席 mw-eviddel-rev2）· base `5e1e7fde`（origin/feat/mysql-schema-skeleton）· 分支 `line/evidence-delivery` · 立项=extreview-fix-campaign-SOP.md §接线债审计收编（A1+A2+C1）· pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null · Dual PASS ≠ 开工 · Ban self-approve*
