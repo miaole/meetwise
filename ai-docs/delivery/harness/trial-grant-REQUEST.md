@@ -81,3 +81,11 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 - **P4（§4.2③ 归因修正）**：同邮箱并发双注册收敛由 user_account UNIQUE(email) 23505 达成（输家死于桶 INSERT 之前，不经 partial index）；prove 双层——(i) HTTP 并发同邮箱 Promise.all→恰一 2xx+恰一 409+桶恰 1 行（归因注明 UNIQUE）+(ii) 隔离库直插同 owner 第二条 trial→23505 证索引 DB 层兜底（必留）；(iii) 双 PoolClient 交错真并发可选（省略则 prove 叙事禁写「ON CONFLICT 并发已证」）。
 - **EXEC 注意清单（席1 三条+席2 一条合并）**：①§4.3 夹具复用 neg-interview:218-264「推进 begin 至扣额面」播种形制；②0152 禁顶层 BEGIN/COMMIT（migrate.ts 硬抛）·普通 CREATE UNIQUE INDEX 于 runner 事务内·可重跑形制照 0018；③ON CONFLICT 谓词与 index 定义逐字一致·23505 断言用裸 INSERT；④0152 由与既有 gateway fn 同属主角色应用·prove 走真 HTTP signup 链。
 - Status: `draft_rev2:pre_exec_dual_PASS`（双席 BOTH PASS·EXEC 授权·蓝本=本 rev2）。
+
+## EXEC 执行收口（2026-10-10 · mw-trial001-exec · coding+prove 一次优先已履行）
+
+- **交付**：`0152_trial_bucket_grant.sql`（partial unique index + gateway_auth_signup 同事务 trial 桶 + REVOKE/GRANT 0041 形重申）·sql/ 同步（23_api_gateway 函数体逐字一致 + 02_commerce 索引落真源·0018 先例形）·位形 A 零 TS 产品代码改动 · prove `apps/api/test/trial-grant.proof.ts`（键 `trial:grant:prove` 三处注册）·收据 `ai-docs/delivery/receipts/trial-grant/`。
+- **Prove 逐键 EXIT**：`trial:grant:prove` 27/27 **EXIT=0**（[0] 真 runner 隔离容器空库全量 153/153 应用+重跑幂等+属主三方案硬门；[1] 主证 availableUnits=1+桶 1 行；[2i] HTTP 并发同邮箱恰一 200+恰一 409+桶 1 行；[2ii] 裸 INSERT 23505；[2iii] 双 PoolClient 交错 ON CONFLICT 收敛+裸败者 23505；[3] begin 202→402 夹具=neg-interview:218-264 形制；[4] 零回归不变量）· `neg:auth` 81 全绿 **0** · `neg:commerce` 84 全绿 **0** · `neg:interview` 97 全绿 **0** · `auth:prove` **0**。归因=P4：HTTP 并发收敛经 UNIQUE(email)；索引层并发由 (ii)+(iii) 独立已证。
+- **EXEC 注意四条**：①②③④逐条履行证据见收据 §2（含 0152 属主角色不符即 prove 内硬抛即停核）。
+- **est live=0**（无模型调用·零 secrets 入卷·日志已 grep 凭证）。
+- Status: `exec:awaiting_post_prove_dual`（append-only·post-prove 双审前不视为收口·alone ≠ dual）。
