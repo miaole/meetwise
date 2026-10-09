@@ -2172,3 +2172,15 @@ flowchart TD
 - [ ] **STILL OPEN**：S2（CI audit 门+Renovate·在飞）·S3（#107 守卫四件+A2 上限锚）·#107/#108/#109 系.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · S1 ≠ 全清（high 18 如实留档） · 实现方不 self-approve.
+
+
+### Line OBS-LOGGING #89 可观测性刀 NAIL（2026-10-10 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · +290/−9 恰 9 文件（main.ts pino+genReqId 单源·filter 500 结构化行·proof 23 断言·runner 探针子进程）·审计三要素 reqId/路径/堆栈逐要素亲证）
+
+- Pins unchanged（十一值照抄零翻转）.
+- [x] **`post_prove_dual_pass`** recorded（EXEC `44da47c0`·REQUEST @44da47c0 同 commit·nail tip 本 commit · branch `line/obs-logging`）· **双审 BOTH PASS**：席1 mw-model-op PASS（泄露面审计席级——独立投放真密（Bearer/体 marker/query token）零入卷·fastify@5.8.5 源码亲证默认 serializer 不含 body/headers·genReqId 四边界实测·堆栈只进日志不进响应 26 字节信封亲证）+ 席2 mw-e2e-ha PASS（双 prove 门亲跑 23+110 断言·500 真抛三要素原始行在卷·filter 三零触逐行·logger:false 保持裁定=审计意图满足）· 协调方正式授权本 nail.
+- **合并路径（席2 硬条件）**：主线已前移且 c51bf18b 将 fastify 5.8.5→5.12.5 触及本刀依赖面——rebase 后**双 prove 门必须重跑通过**方可合并（不得凭 5.8.5 上复跑放行）；rebase 保线性史。
+- **Erratum-OBS1（席2）**：filter 注释「手搓序列化不依赖 pino err serializer」措辞不精确（pino 默认 err serializer 仍改写 err 键·堆栈/name/message 仍全落卷）——注释 nit 不动行为。**登记残留**：fastify 默认访问行含 query（QUERY 探针入卷 1 行）——微刀候选（logger req serializer 剥 search 约 3 行）排后续；authorization/body 零命中 Ban 面完好。**收据卫生**：manual-boot-sample.log 系中间迭代产物（现行代码单 reqId 键实测）——合并后重生成。
+- [ ] **STILL OPEN**：访问行 query 剥离微刀·收据重生成·主线锁文件合并面 typecheck（DEPS S2 席并行补验）·`g7SuiteGreen=false` 维持.
+- 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · #89 ≠ 访问行 query 已剥（残留登记） · 实现方不 self-approve.
+>>>>>>> edaf02ce (docs(obs-logging): nail — post-prove dual BOTH PASS (leak-face audited with real secrets zero-hit, genReqId single-source proven, merge path = rebase + mandatory prove re-run on fastify 5.12.5))
