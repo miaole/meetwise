@@ -2204,3 +2204,11 @@ flowchart TD
 - [ ] **STILL OPEN**：#92 深化面（迁移版本/拓扑/workerReady）·访问行 query 剥离微刀·`g7SuiteGreen=false` 维持.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · fail-fast ≠ #92 完成 · 实现方不 self-approve.
+### Line LINT-DESIGN S1 config 产物切片 NAIL（2026-10-10 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 恰 3 产物文件（eslint.config.base.mjs 四规则 warn 骨架+prettier.config.mjs 恰四键+exports 扩 2 键）·--print-config 断言全绿·rebase 干净）
+
+- Pins unchanged（十一值照抄零翻转）.
+- [x] **`post_prove_dual_pass`** recorded（EXEC `c5e260b0`·nail tip 本 commit · branch `line/lint-s0-request`）· **双审 BOTH PASS**：席1 mw-e2e-ha PASS（产物对设计 §1.2 逐字零缺零溢+四披露独立复核全如实（pathGroupsExcludedImportTypes:[] 经插件源码 order.js:1050 亲证=机械使能件非调参）+rebase skip 面逐字节亲证+两键 prove 复跑）+ 席2 mw-model-op PASS（五 selector 对照 §1.2.2 逐条忠实+import-order 六值序零漂+UPPER_CASE 独立定量基线（UC const ~845/242 文件·camel ~5315·Pascal 残余警示 351·UC let=0）交 S3+v8 无 constant selector 源码亲证=并集唯一落法）· 协调方正式授权本 nail.
+- **S3 强制移交项（席1）**：UPPER_CASE const 面 dry-run 独立计数（基准 ~845/242·超预期回设计面补票禁 S3 内自行收紧）。**Nit 两笔（席2·S3 顺手）**：披露③默认豁免集补 object 成员·披露②措辞更新「v8 无 constant selector」。
+- [ ] **STILL OPEN**：S2（指针/turbo lint 挂点）·S3（基线+dry-run）·S4（点灯）·S5（全量绿）·CI 接线另刀·`g7SuiteGreen=false` 维持.
+- 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · S1 产物 ≠ lint 门上线 ≠ C1 勾销 · 实现方不 self-approve.
