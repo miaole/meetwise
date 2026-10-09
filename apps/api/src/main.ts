@@ -9,6 +9,7 @@ import { buildOpenApiDocument } from '@meetwise/contracts/openapi';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './platform/all-exceptions.filter';
 import { installPublicPreviewIngressGate, resolvePublicPreviewMode } from './platform/public-preview';
+import { assertCriticalEnv } from './platform/env-schema';
 
 // GODFN-1b composition-root single read point: G7_FREETIER_REPROVE is read
 // exactly ONCE here (env key name and `=1` activation semantics unchanged —
@@ -29,6 +30,11 @@ if (g7FreetierReproveEnabled) {
 
 /** 真 NestJS（Fastify + 类型 DI + SWC 运行）。 run: pnpm -C apps/api serve */
 export async function createApp(): Promise<NestFastifyApplication> {
+  // 审计 #91 配置集中校验刀:关键必需 env(AUTH_SECRET/数据库目标)启动期 fail-fast,
+  // 缺失/格式错 → 抛 env_schema_invalid(一次性列全缺失项),进程启动即死——
+  // 不再出现「AUTH_SECRET 缺失照常启动并通过 readiness、登录/验签运行时才全瘫」。
+  // 只做启动校验层,不改写散落的 process.env 读法(审计口径 Ban 大规模重构)。
+  assertCriticalEnv();
   const publicPreview = resolvePublicPreviewMode();
   // Queue producers share the worker's timeout contract; reject a broken
   // deployment before accepting requests that cannot be processed safely.
