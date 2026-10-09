@@ -1,0 +1,98 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-92358-1791544755111 on 127.0.0.1:59024
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 neg:resume /Users/miaole/Desktop/golucky/meetwise-line-negresfix/apps/api
+> node --import @swc-node/register/esm-register test/neg-resume.proof.ts
+
+PASS  userB 文本上传未同意 → 403
+PASS  userB 文本上传 error=consent_required
+PASS  userB 文本上传回带 purpose=resume_processing
+PASS  userB 图片上传未同意 → 422(OCR 能力门先答,计费前即拦,绝不先扣费)
+PASS  userB 图片上传 error=image_ocr_unavailable
+PASS  userB GET consent → consented=false
+PASS  userB 仅同意 marketing 后文本上传仍 403(purpose 隔离)
+PASS  userB 未知/无关 purpose 未泄漏成简历同意
+PASS  victimU 三次同意(含缺 purpose 默认)仅落 1 条记录(幂等)
+PASS  userA 重复同意仍仅 1 条记录(幂等)
+PASS  未鉴权 POST /resume → 401
+PASS  未鉴权 POST /resume/file → 401
+PASS  未鉴权 GET /resume → 401
+PASS  未鉴权 POST /resume/00000000-0000-0000-0000-000000000000/reparse → 401
+PASS  未鉴权 DELETE /resume/00000000-0000-0000-0000-000000000000 → 401
+PASS  未鉴权 GET /resume/00000000-0000-0000-0000-000000000000/profile → 401
+PASS  未鉴权 POST /privacy/consent → 401
+PASS  未鉴权 GET /privacy/consent → 401
+PASS  未鉴权 GET /privacy/export → 401
+PASS  未鉴权 DELETE /privacy/resume-data → 401
+PASS  未鉴权 export body error=unauthenticated
+PASS  文本上传畸形拒:空字符串 → 400
+PASS  文本上传畸形拒:纯短空白(5 空格 <20) → 400
+PASS  文本上传畸形拒:过短(2 字) → 400
+PASS  文本上传畸形拒:边界 19 字(< min20) → 400
+PASS  文本上传畸形拒:超大(>60000 字) → 400
+PASS  文本上传畸形拒:text 为数字(非字符串) → 400
+PASS  文本上传畸形拒:text 为 null → 400
+PASS  文本上传畸形拒:text 为数组 → 400
+PASS  文本上传畸形拒:text 为布尔 → 400
+PASS  文本上传缺 text 字段 → 400
+PASS  文本含 null 字节 → 不 5xx(落库前剥除 NUL 优雅处理,不崩)
+PASS  userA(已同意)含 PII 文本上传成功入库(前置:取 resumeId 定位库行)
+PASS  structured 不含明文手机号 13800138000
+PASS  structured 不含明文邮箱 zhangsan@example.com
+PASS  structured 不含明文身份证 11010119900307461X
+PASS  pii_summary.phone 计数 >=1
+PASS  pii_summary.email 计数 >=1
+PASS  pii_summary.idcard 计数 >=1
+PASS  pii_summary 只存计数不存掩码/明文值(值均为数字)
+PASS  分隔符/全角规避文本上传成功(前置:取 id)
+PASS  规避手机号(点分隔)被兜底脱敏,structured 不含 13800138000
+PASS  规避手机号(点分隔)原串不整段泄漏
+PASS  全角手机号被归一后脱敏,structured 不含半角 13612345678
+PASS  文件缺 filename → 400
+PASS  文件缺 contentBase64 → 400
+PASS  文件 filename 空串(< min1) → 400
+PASS  文件 filename 超长(>255) → 400
+PASS  文件 mimeType 超长(>255) → 400
+PASS  文件 contentBase64 空串(< min1) → 400
+PASS  非法 base64 padding(====) → 400，解码/解析前拒绝
+PASS  文件 base64 超上限 → 400(大文件 DoS 门)
+PASS  坏字节冒充 PDF → >=400 可解释(非 5xx 裸崩)
+PASS  mime 与内容不符(文本冒充 PDF) → >=400
+PASS  不支持类型/扩展(.exe) → 415 unsupported_file_format
+PASS  XLSX 未接专用表格 adapter 时 → 415，绝不乱码入库
+PASS  PPTX 即使 MIME 伪称 PDF 仍 → 415，文件名/MIME 双侧 fail-closed
+PASS  视频不走简历 text 解析 → 415，等待 ASR/时间轴摄取器
+PASS  路径穿越 filename 被安全处理(4xx,不写文件/不 5xx)
+PASS  文件提取文本过短 → 400(extracted_too_short)
+PASS  reparse 不存在 id → 404
+PASS  reparse 不存在 error=not_found_or_forbidden
+PASS  userB reparse userA 的简历 → 404(RLS 越权即不可见)
+PASS  reparse 非法 uuid → >=400(不 200 泄漏)
+PASS  delete 不存在 id → 503(fail-closed,不按存在性分叉)
+PASS  delete 不存在 error=resume_erasure_migration_in_progress
+PASS  userB 删 userA 的简历 → 503(恒 fail-closed,不按归属分叉,不泄漏存在性)
+PASS  越权删除后 userA 的简历依然存在(未被删)
+PASS  删除测试前置:创建一份 userA 简历
+PASS  首次删除自有简历 → 503(fail-closed,等异步擦除状态机)
+PASS  二次删除同一简历 → 503(幂等 fail-closed,不重复删/不 500/不分叉)
+PASS  二次删除 error=resume_erasure_migration_in_progress
+PASS  GET profile 不存在 id → 404
+PASS  userB 读 userA 的画像 → 404(RLS 越权)
+PASS  跨租户前置:victimU 上传一份简历
+PASS  userA 导出成功(前置:取 resumes 列表)
+PASS  userA 导出不含 victimU 的简历(跨租户隔离)
+PASS  userA 导出确实含自己的简历 RA(RLS 只己见,自证非空导错)
+PASS  userB 删除自有简历数据 → 503(fail-closed,等异步擦除状态机)
+PASS  userB 删除 error=resume_erasure_migration_in_progress(旧三字段形状随退疫退役)
+PASS  userB 的 OCR trace 行数在 503 后不变(fail-closed 不伪造删除;种子护栏 before>0)
+PASS  userB 的 OCR durable invocation 行数在 503 后不变(同上种子护栏)
+PASS  删除 userB 时不误删 userA 的 OCR 衍生记录
+PASS  userB 删数据后 userA 的 RA 仍在(跨用户不越界)
+PASS  userB 删数据后 victimU 的 RV 仍在(跨用户不越界)
+PASS  OCR 链路降级路径可解释(>=400,非 200 半成品)
+PASS  OCR 降级回带 error 标志(不静默)
+
+✓ neg:resume: 87 条负路径用例全绿
