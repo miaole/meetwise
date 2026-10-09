@@ -6,7 +6,11 @@ export interface AssessTurn { question: string; score: number; competency?: stri
 export interface Dimension { dimension: string; score: number; gap: boolean; evidence: string }
 export interface Assessment { overall: number; dimensions: Dimension[]; weaknesses: string[] }
 
-const GAP = 60;
+/**
+ * 达标线单源（EXTREV-1 SCORE-WRITER rev2 D5(i)/D6）：60 一处定义，全仓复用禁字面量散布。
+ * SCORE-WRITER S1 的 disposition 过渡桥（dispositionFromHintScore）以本值为 below/meets 分界锚。
+ */
+export const GAP = 60;
 
 /**
  * 所有面试综合分的唯一聚合规则。报告、成长档案必须复用它，不能把一组逐题

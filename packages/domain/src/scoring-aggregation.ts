@@ -12,6 +12,7 @@
 import { createHash } from 'node:crypto';
 import { isScoreCardScorable, type ScoreCardStatus } from './scoring-fact-root.ts';
 import { utf8ByteLength } from './memory-admission.ts';
+import { GAP } from './assessment.ts';
 
 function fail(code: string): never { throw Object.assign(new Error(code), { code }); }
 
@@ -24,6 +25,28 @@ export type DispositionBand = (typeof DISPOSITION_BANDS)[number];
 
 /** 判定档位 → 确定性分量（below:0 / meets:1 / exceeds:2）。per-criterion score = 50×band。 */
 export const DISPOSITION_BAND_VALUE: Record<DispositionBand, number> = { below: 0, meets: 1, exceeds: 2 };
+
+/**
+ * DELETE-ON: #52 v6（SCORE-WRITER S2）——S1 过渡窗 85 过渡锚（rev2 D6）。
+ * 60 锚复用 legacy GAP 单源（assessment.ts 导出，禁字面量散布）；85 无 legacy 语义对应，
+ * 仅为「meets / exceeds」分界的过渡命名常量（单点）。S2 的 mock-interview.evaluate v6 上线后，
+ * 模型直出 criterionId+span+disposition，本桥与本常量一并删除（S2 验收含 rg 门：v5→disposition 桥零残留）。
+ * 过渡窗声明：卡总分为 0/50/100 档位化值（computeDeterministicTotal of 单档），≠ v5 hint 分。
+ */
+export const SCORE_HINT_EXCEEDS_THRESHOLD = 85;
+
+/**
+ * S1 过渡 disposition 桥（rev2 D6 裁定 (a)）：把 v5 hint 分（answer_evaluated.score · 进度
+ * 提示，非分数权威）映射为有限档位。score<60 → below；60≤score<85 → meets；score≥85 → exceeds。
+ * 输入必须是 0..100 整数（hint 分的既有 schema 域），非法 fail-closed（绝不静默取整/截断）。
+ * DELETE-ON: #52 v6（S2）——与 SCORE_HINT_EXCEEDS_THRESHOLD 同点删除。
+ */
+export function dispositionFromHintScore(score: number): DispositionBand {
+  if (!Number.isInteger(score) || score < 0 || score > 100) fail('score_hint_invalid');
+  if (score < GAP) return 'below';
+  if (score < SCORE_HINT_EXCEEDS_THRESHOLD) return 'meets';
+  return 'exceeds';
+}
 
 export interface ScoreSpan {
   offsetKind: ScoreSpanOffsetKind;

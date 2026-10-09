@@ -111,7 +111,7 @@ export type {
 } from './memory-index-generation.ts';
 
 // 能力评估
-export { deriveAssessment, aggregateScores } from './assessment.ts';
+export { GAP, deriveAssessment, aggregateScores } from './assessment.ts';
 export type { AssessTurn, Dimension, Assessment } from './assessment.ts';
 
 // 学习计划
@@ -219,8 +219,10 @@ export {
 export type { CandidateProfileRouteRuleResult } from './candidate-profile-route.ts';
 
 // 评分确定性聚合（SCOR-02）纯域原语：确定性总分公式 + span/digest 文本级复验 + C 端 ScoreCard 评估消费面。
+// dispositionFromHintScore（S1 过渡桥·rev2 D6）：score<60 below / 60≤score<85 meets / ≥85 exceeds。
 export {
   SCORE_SPAN_OFFSET_KIND, DISPOSITION_BANDS, DISPOSITION_BAND_VALUE,
+  SCORE_HINT_EXCEEDS_THRESHOLD, dispositionFromHintScore,
   canonicalScoreSpan, scoreSpanDigest, reverifyScoreEvidenceSpan,
   computeDeterministicTotal, computeCoverage, aggregateScoreCards, deriveScoreCardAssessment,
 } from './scoring-aggregation.ts';
