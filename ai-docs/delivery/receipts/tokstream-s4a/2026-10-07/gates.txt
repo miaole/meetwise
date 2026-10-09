@@ -1,0 +1,11 @@
+== tsc（packages/ai-runtime · tsconfig.json --noEmit）==
+基线（git HEAD·stash 往返实测）：23 行预存错误
+本刀后：23 行，与基线逐行一致 → 零新增（含三个新测试文件）
+diff(/tmp/s4a-tsc-baseline.txt, /tmp/s4a-tsc-current.txt) = 空（多次复核，末次于终态三绿后）
+
+== turbo typecheck（turbo.json:7）==
+3 successful, 3 total · EXIT=0
+
+== arch（turbo.json:10 · depcruise apps packages）==
+21 dependency violations (12 errors, 9 warnings) —— 与 git HEAD 基线违例集逐行一致（全预存：packages/db test→apps/api、apps/api test→apps/worker 等既有面）
+涉 ai-runtime 违例数=0；本刀零新增
