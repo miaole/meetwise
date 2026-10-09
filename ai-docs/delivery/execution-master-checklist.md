@@ -2105,7 +2105,6 @@ flowchart TD
 - [ ] **STILL OPEN**：CMD3 步 10 红因定谳+立靶另刀（探针在飞）；trio 三绿判定待 CMD3 修复后重验；g7SuiteGreen SSOT 刀（收官翻转·独立 REQUEST·前置=CMD3 绿或定谳 carve-out）；`:107` 维持；`g7SuiteGreen=false` 维持.
 - 预算：恰 3 run·attempts 1,1,1·sidecar 链累计 254≤300·est live 0 模型调用·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · EXEC 如实≠红因已定谳≠trio 三绿≠g7SuiteGreen · 实现方不 self-approve.
-<<<<<<< HEAD
 
 ### Line EXTREV HOTFIX-178 egress 清单冲突标记修复 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-dual 双审 BOTH PASS · 恰 1 文件 5+/5−·dual-keep 两侧 5 条全保留·prove EXIT=0 7/7·CI verify 解除阻断）
 
@@ -2135,8 +2134,7 @@ flowchart TD
 - [ ] **STILL OPEN**：NEGINPUT 刀（3 shim+1 回和·蓝本 b44ad582）；neg:all 全链 EXIT=0 待 NEGINPUT；trio 三绿重验；`g7SuiteGreen=false` 维持.
 - 预算：恰 2 run·est live=0 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · driver 回和≠产品行为变化 · 实现方不 self-approve.
-=======
->>>>>>> 93fb9b92 (docs(g7trio2): nail — post-prove dual BOTH PASS (CMD1/CMD2 green, CMD3 step-10 red = fifth-pre-registered-outcome, locus shift first-recorded honest, red-cause adjudication separate knife), three errata logged)
+
 
 ### Line LINT-DESIGN S0 依赖落地切片 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 码面恰 2 文件（config package.json +6 四包字典序·pnpm-lock +1840/−22）·install 单次 EXIT=0·版本冒烟 4/4·零污染全仓·eslint9+ts-eslint8+plugin-import2+prettier3 落 @meetwise/config devDependencies）
 
