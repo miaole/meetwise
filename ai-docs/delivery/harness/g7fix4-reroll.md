@@ -1,6 +1,6 @@
 # G7FIX-4R — duplicate re-roll 根因刀（判重后果语义·首撞即死改有界换题）
 
-**状态**：`draft:awaiting_pre_exec_dual` · base = 主线 `e2834082` · 分支 `line/g7fix4-contract`（树上 HEAD `ed84a22d`·G7FIX-4 产品面对称标记已落 `07218104`/nail `37035c3d`——本文全部 file:line 以 HEAD 树亲证） · 立项依据 = G7FIX-3 EXEC 定谳（RUN 1 四元组 reason=`generation_duplicate_question`·同 run 先 concluding 面试 conclude 写 episode→第二题生成撞判重→终态死）+ G7FIX-4 nail 裁定（g7fix4-contract.md §5 Non-claims「本刀 ≠ duplicate re-roll 根因刀（另立）」——与本刀正交产品面可并行）。
+**状态**：`draft_rev2:awaiting_pre_exec_dual`（rev2 双席 FAIL 合并：pins 恢复 r1Closed=false+actualSpendCny 退脚注·砍 avoid prompt 注入〔cap+精确复检独立保证〕·缓存回放引证校准 0088:424-426·计费引证校准 :377-380） · base = 主线 `e2834082` · 分支 `line/g7fix4-contract`（树上 HEAD `ed84a22d`·G7FIX-4 产品面对称标记已落 `07218104`/nail `37035c3d`——本文全部 file:line 以 HEAD 树亲证） · 立项依据 = G7FIX-3 EXEC 定谳（RUN 1 四元组 reason=`generation_duplicate_question`·同 run 先 concluding 面试 conclude 写 episode→第二题生成撞判重→终态死）+ G7FIX-4 nail 裁定（g7fix4-contract.md §5 Non-claims「本刀 ≠ duplicate re-roll 根因刀（另立）」——与本刀正交产品面可并行）。
 
 ## 1. 根因链码面亲证（全链 file:line·HEAD 树逐行核过）
 
@@ -17,7 +17,7 @@
 **语义**：判重命中（§1.3 :186-187）不再首撞即 `unavailableGeneration`——先在 worker seam 内做**有界 re-roll**（重新经 invoke 生成替代题目并复检判重），上限内得到非重复题面则正常 `modelGeneration` 出题（整场继续）；**撞满上限仍重复 → 维持现判死不变**（fail-closed 语义从「首撞即死」收窄为「撞满上限才死」·非放宽验证·只改后果）。边界与上限：
 
 1. **上限**：常量 `MAX_DUPLICATE_REROLL = 2`（单 turn 生成调用总数 ≤3 含初诊）·per-turn 计数·跨 turn 不累计·无循环放大。耗尽 → `unavailableGeneration('duplicate_question')` 原样（provenance 携带耗尽轨迹）。
-2. **re-roll 必须同时换键+revision（DB/registry 契约三反证）**：同键 → invoke 缓存回放**同题**（packages/ai-runtime/src/invoke.ts:883-911）·同 revision 异键 → logical node header `canonical_invocation_mismatch` 判死（packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql:272·claim 失败链 :383-409）·同键异 payload → `idempotency_key_payload_mismatch`（0088:417）。故 re-roll k 次用 `idempotencyKey` 与 `operation.businessRevision` 同步后缀 `${threadId}:ask:t${turn}:r${k}`（registry 自证「any retry requires a new revision and therefore a new, auditable node」model-operation-registry.ts:243·resolveModelOperation :245-263·每个 re-roll=独立可审计计费节点·interview.question-generation.v1 maxDispatches:1 :69-72 逐节点照旧）。
+2. **re-roll 必须同时换键+revision（DB/registry 契约三反证）**：同键 → invoke 缓存回放**同题**（packages/ai-runtime/src/0088:424-426（invoke.ts:883-911 系标记写入侧非回放面））·同 revision 异键 → logical node header `canonical_invocation_mismatch` 判死（packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql:272·claim 失败链 :383-409）·同键异 payload → `idempotency_key_payload_mismatch`（0088:417）。故 re-roll k 次用 `idempotencyKey` 与 `operation.businessRevision` 同步后缀 `${threadId}:ask:t${turn}:r${k}`（registry 自证「any retry requires a new revision and therefore a new, auditable node」model-operation-registry.ts:243·resolveModelOperation :245-263·每个 re-roll=独立可审计计费节点·interview.question-generation.v1 maxDispatches:1 :69-72 逐节点照旧）。
 3. **复检与避免面**：每次 re-roll 产出重过全既有确定性闸（verbatim 版权 :156·引文 :157-158/:188-193·schema :154）+ `wasAsked` 复检；已撞题面（我方生成·归一化前原文·非 PII 同 memory-service.ts:6 铁律）以「勿重复」提示注入 interviewer.ask prompt——**判重唯一真相仍是精确归一化**（memory-store.ts:27-31·不引入语义相似）。
 4. **provenance 轨迹**：packages/domain/src/question-generation.ts:24-31 `QuestionGenerationProvenance` 增 **optional 字段**（如 `reroll?: number`·类型级零迁移零 SSOT）；re-roll 成功与耗尽判死均落轨迹，终态时随 provenance 自入 `assessment_unavailable` payload（adaptive-lifecycle.ts:65-68 零改自带）。
 5. **保守面字节零改**：`duplicate_check_failed`（:181-184 记忆不可用→无法验证唯一性→仍判死）·`attempt_replay_forbidden`（:86-91）·provider/schema/business 分类判死（:167-175）·图节点 critique 判死（generate-question.ts:69-80）——全部不触；re-roll 完全封闭在 `retrieveAndGenerate` seam（:82-196）内部，图/lifecycle 契约零感知。
@@ -25,7 +25,7 @@
 ## 3. 产品语义影响评估
 
 - **candidate 体验**：现面（G7FIX-4 后）判死=正向可重试终态（assessment_unavailable→mark-then-recover retry 新 interview·G7FIX-5 EXEC a4/a5 亲证），但候选人中途被终态打断+须手动重开整场；re-roll 后单次撞题 run 内自愈换题、零感知。G7FIX-3 EXEC 实证的第二题撞第一题 episode 面即此刀消解面。
-- **计费**：判死面走 failInterviewAndRelease 释放/退款（adaptive-lifecycle.ts:359-361 注释+commerce 释放通路·G7FIX-4 §1.3 亲证）；re-roll 后面试正常 complete → 正常完成计费路径·无退款面变化；新增成本=每 turn ≤2 次 text-quality 生成调用·有界·各为独立 logical node 走既有 cost scope/meter（text-tokens）分账自动覆盖·无新账面。
+- **计费**：判死面走 failInterviewAndRelease 释放/退款（adaptive-lifecycle.ts:377-380 注释+commerce 释放通路·G7FIX-4 §1.3 亲证）；re-roll 后面试正常 complete → 正常完成计费路径·无退款面变化；新增成本=每 turn ≤2 次 text-quality 生成调用·有界·各为独立 logical node 走既有 cost scope/meter（text-tokens）分账自动覆盖·无新账面。
 - **安全性**：零 fail-closed 放宽（provider 错误/版权/引文/记忆不可用闸全保留）；判重仍精确归一化+owner 硬过滤（无语义误挡·无跨租户）；avoid 提示只喂我方生成题面（非 PII 铁律同源）；re-roll 全程可审计（每 roll 独立 header/invocation 行+provenance 轨迹）；失控面=模型连续同题→上限耗尽→仍判死·不弱化。
 
 ## 4. prove 策略（判重命中→re-roll→新题目成功断言）
