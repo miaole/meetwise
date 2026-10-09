@@ -50,6 +50,7 @@ import {
   RECRUITER_ARCHITECTURE_HIGHLIGHTS,
   RECRUITER_ARCHITECTURE_IDS,
 } from '../lib/recruiter/surface.ts';
+import { actionErrorMessage } from '../lib/errors/action-error.ts';
 
 /** 把若干 chunk 串成异步流(模拟 ReadableStream 分块)。 */
 async function* streamOf(...chunks: string[]) { for (const c of chunks) yield c; }
@@ -788,6 +789,58 @@ async function main() {
   A('ACL 卡片不把检索权限写成已交付', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'acl')?.body.includes('生产接线还没完成') === true);
   A('评分卡片写明不用 0 分凑数', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'scoring')?.body.includes('不会用 0 分凑数') === true);
   A('分开记账卡片不把 0126 写成完整档案', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'fence')?.body.includes('生产作答仍可能写明文任务') === true);
+
+  section('ERRMSG-MAP #250/#251/#224 actionErrorMessage：四页×码集×兜底×未知码（纯函数输出断言·非浏览器 DOM 证明）');
+  const pages = ['interviews', 'quiz', 'diagnosis', 'jobs'] as const;
+  const credits402 = ['insufficient_entitlement', 'credits_unavailable', 'apply_credits_unavailable', 'interview_credits_unavailable'];
+  A('402 四码×四页同落额度行：蓝本定稿文案+『额度说明』+/pricing+如实注记（无购买承诺）',
+    credits402.every((c) => pages.every((p) => {
+      const m = actionErrorMessage(p, 0, c);
+      return m !== null
+        && m.text === '额度不足，请前往『额度说明』查看获取方式'
+        && m.text.includes('额度说明')
+        && m.href === '/pricing'
+        && m.note === '预览环境暂未开放购买';
+    })));
+  A('interviews 409 mapped 两码逐字蓝本：无链接出口（E1：继续/放弃=列表/会话两跳既有按钮面）',
+    actionErrorMessage('interviews', 0, 'candidate_route_undecided')?.text === '暂时无法判断岗位方向'
+    && actionErrorMessage('interviews', 0, 'candidate_route_undecided')?.href === undefined
+    && actionErrorMessage('interviews', 0, 'interview_resume_binding_conflict')?.text === '你有一场未结束的面试：继续/放弃后重来'
+    && actionErrorMessage('interviews', 0, 'interview_resume_binding_conflict')?.href === undefined);
+  A('409 两码为 interviews 页域专属：quiz/diagnosis/jobs → null（rev2 E2 不跨页）',
+    (['quiz', 'diagnosis', 'jobs'] as const).every((p) =>
+      actionErrorMessage(p, 0, 'candidate_route_undecided') === null
+      && actionErrorMessage(p, 0, 'interview_resume_binding_conflict') === null));
+  A('503：码通道 public_preview_read_only 与 status 通道（含无码/未知码）→ 服务暂不可用',
+    pages.every((p) => actionErrorMessage(p, 0, 'public_preview_read_only')?.text === '服务暂不可用')
+    && actionErrorMessage('interviews', 503, null)?.text === '服务暂不可用'
+    && actionErrorMessage('jobs', 503, 'interview_resume_binding_conflict')?.text === '服务暂不可用'
+    && actionErrorMessage('quiz', 503, 'some_future_code')?.text === '服务暂不可用');
+  A('create_failed 兜底三页原文一字不改（jobs 无 create 渲染面 → null）',
+    actionErrorMessage('interviews', 0, 'create_failed')?.text === '创建面试失败,请稍后重试;若反复出现请确认额度与网络。'
+    && actionErrorMessage('quiz', 0, 'create_failed')?.text === '创建押题失败,请稍后重试;若反复出现请确认额度与网络。'
+    && actionErrorMessage('diagnosis', 0, 'create_failed')?.text === '创建诊断失败,请稍后重试;若反复出现请确认额度与网络。'
+    && actionErrorMessage('jobs', 0, 'create_failed') === null);
+  A('begin_failed 原文一字不改且不跨页（rev2 E2：quiz/diag 归一各页 create_failed 原文·jobs → null）',
+    actionErrorMessage('interviews', 0, 'begin_failed')?.text === '启动面试失败（未预留额度）,请稍后重试;不会进入空会话。'
+    && actionErrorMessage('quiz', 0, 'begin_failed')?.text === '创建押题失败,请稍后重试;若反复出现请确认额度与网络。'
+    && actionErrorMessage('diagnosis', 0, 'begin_failed')?.text === '创建诊断失败,请稍后重试;若反复出现请确认额度与网络。'
+    && actionErrorMessage('jobs', 0, 'begin_failed') === null);
+  A('防御码七枚透传不折叠丢失：interviews 四码→begin_failed 原文；quiz/diag 三类→各页 create_failed 原文',
+    ['interview_resume_binding_unavailable', 'legacy_resume_reference_unavailable', 'resume_version_mismatch', 'interview_not_active'].every((c) =>
+      actionErrorMessage('interviews', 0, c)?.text === '启动面试失败（未预留额度）,请稍后重试;不会进入空会话。')
+    && actionErrorMessage('quiz', 0, 'resume_not_found_or_not_ready')?.text === '创建押题失败,请稍后重试;若反复出现请确认额度与网络。'
+    && actionErrorMessage('quiz', 0, 'quiz_resume_reference_conflict')?.text === '创建押题失败,请稍后重试;若反复出现请确认额度与网络。'
+    && actionErrorMessage('diagnosis', 0, 'resume_not_found_or_not_ready')?.text === '创建诊断失败,请稍后重试;若反复出现请确认额度与网络。'
+    && actionErrorMessage('diagnosis', 0, 'diagnosis_resume_reference_conflict')?.text === '创建诊断失败,请稍后重试;若反复出现请确认额度与网络。');
+  A('未知码/空码/无码（非 503）→ null：四页不渲染空壳',
+    pages.every((p) => actionErrorMessage(p, 0, 'totally_unknown_code') === null)
+    && pages.every((p) => actionErrorMessage(p, 0, '') === null)
+    && pages.every((p) => actionErrorMessage(p, 0, null) === null));
+  A('status 通道只认 503：status=409/402 + 未知码 → null（不发明渲染面）',
+    actionErrorMessage('interviews', 409, 'not_a_mapped_code') === null
+    && actionErrorMessage('interviews', 402, 'not_a_mapped_code') === null
+    && actionErrorMessage('jobs', 402, 'not_a_mapped_code') === null);
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
   process.exit(failures === 0 ? 0 : 1);
