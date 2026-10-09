@@ -2125,6 +2125,7 @@ flowchart TD
 - 预算：est live=0（全 scripted fake seam·云凭据剥离）·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 有界换题 ≠ 判重弱化 ≠ G7 面触碰 · 实现方不 self-approve.
 
+<<<<<<< HEAD
 
 ### Line NEGRESFIX neg:resume 12 红 driver 回和刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 恰 1 测试文件 +25/−16·run1 neg:resume EXIT=0 87/87 名单 diff 恰 12 条·run2 neg:all 五段全绿（81/84/87/97/120）EXIT=1 原值·input lane 2/135 经协调方重钉=base≡red 族）
 
@@ -2154,3 +2155,14 @@ flowchart TD
 - [ ] **STILL OPEN**：S4b（worker TokenSink 接线+telemetry）·S4c（sse-pump delta 臂+10min 帽）·S4d（web 渲染）·`g7SuiteGreen=false` 维持.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · S4a ≠ 流式上线（flag 双零开启） · 实现方不 self-approve.
+=======
+### Line SCORE-WRITER S1 写入接线切片 NAIL（2026-10-10 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 19 文件 +1045/−11（scoring-wire.ts +217 五环组合层·score-writer.ts +116·interview.proof +160/−2）·interview:prove base 红修复转绿 29 PASS·配额中断续作合规）
+
+- Pins unchanged（十一值照抄零翻转·「公开 DELETE /privacy/interview-data/:id=503」按当时主线权威值照抄——翻面归 UNSTUB-ERASE 主线落地）.
+- [x] **`post_prove_dual_pass`** recorded（EXEC `f22583f8`·REQUEST rev2 @1181d959 唯一蓝本·nail tip 本 commit · branch `line/extrev-score-writer`）· **双审 BOTH PASS**：席1 mw-e2e-ha PASS（续作脏面 18 staged 独立复核全合规·prove 亲跑 29 PASS·crash 重放 claim 单 CAS+复用 token 机制真实·base 红修复=生产同链 0142 供给非 opt-out·桩 :316 字节原样）+ 席2 mw-model-op PASS（D5 双面字节冻结（INSERT 零 diff+:661 逐字节）·GAP 单源零散布·三租约域零原语混用·幂等 ON CONFLICT 回读逐字段核对·存量声明诚实（基线零调用方亲 grep）·at-least-once 残余未越权）· 协调方正式授权本 nail.
+- **义务落定**：D2=createScoreRequest 绑 submit 同事务（:399-421 幂等键 sr:{submissionId}）；D4=投影 COMMIT 后独立 asScoringWorkerPrincipal 事务+crash 重放 lease_token 复用（bearer capability 语义=登记残余）；D6=dispositionFromHintScore 单点（60 GAP 导出·85 命名常量 DELETE-ON）；D5=INSERT 前派生待 S2（本切片 legacy 派生未动=形状冻结自然成立）。
+- **Erratum-S1E1（双席同证·本 nail 登记）**：收据 §0「16 code/prove 面」计数误（实为 11 码面+6 收据/日志+1 REQUEST=18·前任 18 staged+exec2 续作件）——计数标签勘误实质盘点准确。**S1E2**：工作树 unstaged tsconfig.tsbuildinfo 系 exec2 typecheck 再生构建工件非源面。**观察项登记**：claim CAS 失败读回现任 owner token=跨重投 bearer capability（D4 本然形状·job 级串行化+对账残余覆盖·后续刀收口）。
+- [ ] **STILL OPEN**：S2（40c 完成判据切换+去桩+读侧+#103）·#20 验收 E2E·#204·#229·trio 三绿·`g7SuiteGreen=false` 维持.
+- 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · S1 ≠ #20 验收 ≠ 评分体系完成 · 实现方不 self-approve.
+>>>>>>> 5253b35b (docs(score-writer): nail — post-prove dual BOTH PASS (five-ring wiring verified D2/D4/D6, crash-replay token reuse real, base red fixed via production-chain 0142 supply), errata S1E1/S1E2 registered, bearer-token observation logged)
