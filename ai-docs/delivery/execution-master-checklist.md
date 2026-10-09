@@ -2096,6 +2096,7 @@ flowchart TD
 - 预算：docs-only 零 run · est 0 live · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 设计 ≠ 实施 ≠ lint 门上线 ≠ C1 勾销 · 实现方不 self-approve.
 
+<<<<<<< HEAD
 ### Line G7TRIO-2 trio 全景重跑刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · EXEC @0d61379c 恰 3 run·零产品码·**CMD1/CMD2 绿·CMD3 EXIT=1 步 10 红=六向预注册第五向命中**·locus 移位如实首录·红因定谳另刀归协调方）
 
 - Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false`（零翻转） · actualSpendCny=null · r1Closed=false（十一值）.
@@ -2115,3 +2116,14 @@ flowchart TD
 - [ ] **STILL OPEN**：EXTREV 战役按 SOP rev2 @1062a254 推进（DEPS-AUDIT/ROUTE-DICT/SCORE-WRITER 三刀 REQUEST 双席验证后 EXEC）.
 - 预算：零 run（prove 复用静态验证）· est 0 live · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 修复=文件级恢复 ≠ EGRESS-1 刀重开 · 实现方不 self-approve.
+=======
+### Line G7FIX-4R duplicate re-roll 根因刀 S1 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 生产 diff 恰两文件（adaptive-interview-service.ts +52/−10 有界换题+question-generation.ts +4 provenance optional reroll 字段）+prove 基建（test +280+script+收据 5 件）·六键全绿 25 PASS/EXIT=0·neg 三套绿·tsc 41=base 41 零新增）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · actualSpendCny=null · r1Closed=false（十一值）.
+- [x] **`post_prove_dual_pass`** recorded for Line G7FIX-4R S1 products only（EXEC `0144e2ac`·REQUEST rev5 @49c7122d 唯一蓝本·零图零 lifecycle 零 DB 零 e2e 零 migrations·nail tip 本 commit · branch `line/g7fix4-reroll-exec`）· **双审 BOTH PASS**：席1 mw-e2e-ha PASS（三披露裁定=prove 基建在 §4 钉名授权内/键参数化=§2.2 唯一无复制风险落法/lifecycle 整链驱动严格强于 import 私有；六键达标 ④⑤强于蓝本最低要求；复跑容器亲证 25 PASS+neg 42+tsc 41 逐行 diff 空）+ 席2 mw-model-op PASS（六键对表无漏换弱化；耗尽判死仅新增 reroll 字段零替换；每 roll 同一 generate 闭包 schema/verbatim/引文自动重过+循环内 resolveCitedSources+wasAsked 复检无跳闸；保守面四块不在任何 hunk=逐字节保留；Ban 面 git diff 三禁区 0 行亲证；tsc 41 独立重跑佐证）· 协调方正式授权本 nail.
+- **语义核心**：首撞判死改有界换题——MAX_DUPLICATE_REROLL=2·每 roll 同步换键+revision `:r{k}` 后缀（同串）·重过同一组确定性闸·耗尽仍 unavailableGeneration('duplicate_question') 判死面形状零改（仅新增 reroll:2 provenance）·成功面 provenance 带 reroll:k·事件键账 `:0`→`:r1`→`:r2`·G7 判定面零触（generation_duplicate_question 终态事件仍发·driver G7FIX-5 形状兼容）.
+- **残余登记（未做如实）**：S2 critique 场内 duplicate 面（generate-question.ts:69-80 未触）；runner 未注册 g7fix4-reroll:prove:raw 目标；re-roll 复用基础 progress attemptKey（:0）.
+- [ ] **STILL OPEN**：S2 critique 场另刀；G7TRIO 三绿重验（CMD3 步 10 修复后）；`g7SuiteGreen=false` 维持.
+- 预算：est live=0（全 scripted fake seam·云凭据剥离）·0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 有界换题 ≠ 判重弱化 ≠ G7 面触碰 · 实现方不 self-approve.
+>>>>>>> 6421223d (docs(g7fix4-reroll): nail — post-prove dual BOTH PASS (bounded re-roll MAX=2, per-roll :r{k} key+revision same-string, gates re-passed in-loop, exhaust keeps duplicate_question death shape, conservative four blocks byte-preserved), six-keys 25 PASS, residuals registered)
