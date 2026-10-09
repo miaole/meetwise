@@ -96,6 +96,7 @@
     "api:validate": "node scripts/run-e2e-isolated.mjs api:validate",
     "neg:auth": "node scripts/run-e2e-isolated.mjs neg:auth",
     "neg:commerce": "node scripts/run-e2e-isolated.mjs neg:commerce",
+    "trial:grant:prove": "node scripts/run-e2e-isolated.mjs trial:grant:prove",
     "neg:resume": "node scripts/run-e2e-isolated.mjs neg:resume",
     "neg:interview": "node scripts/run-e2e-isolated.mjs neg:interview",
     "neg:bend": "node scripts/run-e2e-isolated.mjs neg:bend",
