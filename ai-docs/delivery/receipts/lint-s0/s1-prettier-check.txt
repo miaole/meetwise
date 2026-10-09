@@ -1,0 +1,15 @@
+# prettier 独立条目断言 + 产物自身 --check 冒烟
+# date: 2026-10-10
+# versions: eslint v9.39.5 / prettier 3.9.9
+--- config key assertion ---
+printWidth = 140
+semi = true
+singleQuote = true
+trailingComma = "all"
+keys = ["printWidth","semi","singleQuote","trailingComma"]
+PRETTIER-ASSERT-ALL-OK = true
+--- prettier --check（对 config 产物自身）---
+# cmd: cd packages/config && pnpm exec prettier --check eslint.config.base.mjs prettier.config.mjs package.json
+Checking formatting...
+All matched files use Prettier code style!
+PRETTIER-CHECK-EXIT=0

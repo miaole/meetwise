@@ -149,3 +149,25 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 **Non-claims 承继（§7 原样）**：S0 ≠ lint 门上线 ≠ C1 勾销；装后仓库仍零 lint/format 配置零 CI 变化；NEXT-NODE-BEST-PRACTICES.md:40 C1 仍 ❌。
 
 **pins（十一值照抄·零翻转）**：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null。
+
+---
+
+## §10 S1 EXEC trail（append-only · 2026-10-10 行使记录 · 零改写 §0–§9）
+
+**状态推进**：S0 nail（S1 解锁）→ **`exec:s1_awaiting_post_prove_dual`**（EXEC 席 mw-lints0-exec · S1 沿用 author · 本节为零改写追加）。基线 = 主线 `feat/mysql-schema-skeleton` @`3be96fc6`（rebase 后本线与主线 tip 树零差异·S0 五提交按「变更已在上游」全部 skip·REQUEST/收据/package.json 与主线逐字节一致后对齐）。
+
+**蓝本（双源）**：①主线 `lint-design.md` §1.5 S1 行原文「config 包产物（packages/config 下 eslint flat base + prettier 配置 + package.json exports·≤3 文件）」+ §1.2 四规则钉死组合与 prettier 四键；②本档 §1.4（产物落位预告 `eslint.config.base.mjs` + exports 扩 `./eslint/…`·`./prettier/…` + **--print-config 登记 S1 首项冒烟**）。
+
+**行使面（恰 ≤3 文件预算）**：①新增 `packages/config/eslint.config.base.mjs`（flat base·恰四规则 warn 骨架照 §1.2 钉死组合·零清单外规则零 severity 调参·files=['**/*.ts','**/*.tsx']·parser=typescript-eslint）；②新增 `packages/config/prettier.config.mjs`（独立条目·恰四键 printWidth 140/semi true/singleQuote true/trailingComma 'all'）；③`packages/config/package.json` exports 扩 `./eslint/base`·`./prettier` 两键（tsconfig 两键零字节）。零 script 键新增·零 turbo 触·零 apps/packages 源码触·零 CI 触·全仓 lint 一次未跑·零 --fix·零 prettier --write（产物自身以 prettier stdout canonical 形态落盘合规化，非源码面）。
+
+**prove 结果**：①**--print-config 冒烟（S0 移交项·S1 首项）**：`eslint --config eslint.config.base.mjs --print-config ./__s1_print_config_probe__.ts` EXIT=0（合成路径·纯配置解析查询零 lint）——enabled-rule-count=**4**·四规则全 severity 1（warn）·options 与 §1.2 逐项一致（no-unused-vars argsIgnorePattern '^_'·naming-convention 五 selector 条目·import-order groups/pathGroups 钉死顺序）·**non-design rules enabled=[]**·parser=typescript-eslint/parser@8.71.1；②**prettier 断言**：import 冒烟恰四键 printWidth===140/semi===true/singleQuote===true/trailingComma==='all'·keys 恰 4；**产物自身 prettier --check 三文件全过 EXIT=0**；③**tsc/门零劣化**：根 `pnpm typecheck`（tsc -p tsconfig.e2e.json）EXIT=0 一次过；④触碰面 git status 恰 config 三文件+本档+收据·est live=0·actualSpendCny=null。
+
+**停止条件核查（--print-config 是否需 resolver/额外插件）**：**未触发·无需停手**。静态：`eslint-import-resolver-node@0.3.10` 为 eslint-plugin-import 直接依赖随 S0 闭包在场；`eslint-import-resolver-typescript` 在 lockfile 仅三处 optional peer 声明（:2796/:2805/:7003·无 @version resolution 块=未安装）；产物零 `import/resolver` 设置。运行时：/tmp 仓外合成探针（非 apps/packages 源码·非全仓·零 --fix）lint EXIT=0·`import/order` 于 L1 正确触发（相对路径应排 node:fs/@meetwise/* 之后）——纯排序规则+builtin/external 分类+pathGroups 正则以自带 node resolver 即可运行。
+
+**如实披露（映射与顺延四项）**：①设计原文 `allowLeadingUnderscores: true` → typescript-eslint 实际选项名 `leadingUnderscore: 'allow'`（语义等值映射）；②「常量 UPPER_CASE」以 variable 双格式并集 `['camelCase','UPPER_CASE']` 落法（constant⊂variable 选择器重叠面·独占 UPPER_CASE 会对全仓 camelCase 字面量 const 大面积误警·与「存量宽容起步」冲突）——S3 dry-run 实测复核项；③`pathGroupsExcludedImportTypes: []` 为钉死顺序（node:→外部→@meetwise/*→相对）的机械使能件（默认值会把 external 类 @meetwise/* 排除在 pathGroups 重划外·槽位无法成立）·非调参；④`.prettierignore`（设计 §1.2 落位项）超本切片 ≤3 文件预算**顺延后片**（如实登记·非丢弃）。--print-config 序列化回显的 import-order 默认项（distinctGroup/sortTypesGroup/named/warnOnUnassignedImports）为规则内建默认·非本刀授权。
+
+**收据**：`ai-docs/delivery/receipts/lint-s0/` S1 节（s1-print-config.txt · s1-prettier-check.txt · s1-stopcond-resolver.txt · s1-zero-diff.txt · s1-sha256.txt）。
+
+**Non-claims 承继（§7 原样）**：S1 产物 ≠ lint 门上线 ≠ C1 勾销（S2 指针/S3 dry-run 基线/S4 点灯/S5 全量绿全未行使·四规则全 warn 零 --max-warnings 闸·零 workspace 接线）；NEXT-NODE-BEST-PRACTICES.md:40 C1 仍 ❌。
+
+**pins（十一值照抄·零翻转）**：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null。
