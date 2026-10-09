@@ -227,3 +227,17 @@ Not run · not built · not closed · not covered · not HA · not `releaseEvide
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503（**supersession 申报中·§3**） · g7SuiteGreen=false · actualSpendCny=null · r1Closed=false · STOP
 
 *Harness · UNSTUB-ERASE · 2026-10-07 · draft:awaiting_pre_exec_dual · base 5e1e7fde · docs-only REQUEST · Ban coding · Ban prove · Ban push · 软删先行（EXTREV-7 铁律 1）· 物理清除禁宣称 · alone ≠ dual · STOP*
+
+## rev2 范围重定（2026-10-10 · 席1 六处方全并 + 产品审计 D6 合规最低集瘦身·协调方落方）
+
+**范围重定**：本刀收窄为 D6 最低集=①账户级删除接通②简历删除接通③注销（deactivate→发起账户级删除）——**interview-data DELETE 维持关闭**（审计批 4 原文「interview-data 的 DELETE 维持关闭」胜过 rev1 的三端点接线设计）；#242（隐私页移除「一份面试」删除预览入口·PreviewErasureForm 路径亲读重定位）并入本刀（从源头去掉误围栏触发点）。
+
+**席1 六处方逐条并入**：
+1. **R1 入口改指**：P-06 段整段作废（interview DELETE 关闭）——42501 入口风险随之消解；`interview_projection_begin_erasure` 仍作为账户级删除的面试面实现引用（0096:323/:450·0129 预览同形），dormant 断言按 4-target projection 形状，:118-122 ACL 子句原值保留。
+2. **R2 账户注销吸收既有端点**：POST /profile/deactivate（profile.controller.ts:43-47·status='disabled'+evict）扩展=+密码复核+pwd_epoch+1+deleted_at+发起账户级删除（#236 语义）+UI 解锁——「UI 称未开放而端点已通」倒挂由本刀收口。
+3. **R3 迁移面**：两迁移 0152/0153（0060 两处拦截同步放行：fenced :71-73+epoch 不可变 :65-67·app_role 直写仍钉死）；放行判别=current_user='privacy_api_owner' AND session_user<>privacy_api_owner（防 SET ROLE 伪造）·rollback down 面落卷·「全 additive」改「additive 列+新函数+trigger 修订」。
+4. **R4 三读面补过滤**：profile.service.ts:63 growth()/privacy.service.ts:40 export() 第三查/memory-store.ts:50 historicalWeakDimensions 补 interview_privacy_active 过滤（app_role EXECUTE 已有）——账户级删除后成长档案/导出/弱项偏置零泄漏；quiz/diagnosis 派生读面=随账户删除（不单独过滤·D6 最低集裁定）。
+5. **R5 pin 翻转集 30→39**：全清单闭卷（39 文件·含 gap-rag05-classifier.proof.ts:22+8 源文件注释）；privacy/page.tsx:57 句+public-copy :126/:127/:172 随账户/简历翻转同刀改；grep=0 断言按 39 清单域执行。
+6. **R6 grep 口径**：CC-5 改「39 清单域 grep=0+清单外逐件排除理由登记」。
+**prove 增补**：账户级删除默认 compose 推进 completed（审计批 4 验收）·growth/export/memory 弱项三面删除后不可见断言·deactivate 后登录拒绝。
+Status: `draft_rev2:pre_exec_dual_FAIL_absorbed_and_rescoped`（席1 六处方全并+D6 重定范围·协调方裁定后 EXEC 授权·蓝本=本 rev2；原 rev1 的 interview DELETE 面作废归档）。
