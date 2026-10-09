@@ -172,3 +172,14 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *RESUME-GROUNDING EXEC REQUEST · 2026-10-09 · draft_rev2:pre_exec_dual_PASS · base 主线 `5636d58d` · 分支 `line/resume-grounding` · 任务书=用户直令（§0.2 逐字）· pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null · Dual PASS ≠ 开工 · Ban self-approve*
+
+## rev3 同意门（2026-10-10 · 产品审计 D7 已决并入·协调方落方）
+
+**变化**：审计 fix-roadmap 第 2 批 #196 条与附录 C 任务提示词 E 项（D7 已决）——简历要点进模型以「用途同意」为上线门槛，本刀 rev2 设计补同意门后再 EXEC：
+
+- **G1（新增·C1 前置）**：consent_record 新 purpose `interview_personalization`（带 policy_version·可撤回）；仅当 active consent 存在时 S1/S2 注入 digest/facts——**未同意或已撤回：与现状逐字节一致**（占位串路径照旧·自动化断言·蓝图 §4 验收第 5 条同源）。
+- **G2（调用面）**：consent 查询在 worker planCompetencies/persistAndEmitQuestion 链进入点一次（亲读定位，勿每 turn 查）；读法沿 resume_processing consent 检查先例（resume.service.ts:93-96 consent 门）。
+- **G3（文案）**：同意文案明示「简历要点将发送给模型服务商用于出题」（审计附录 C E 项原文）；web 同意面（上传页 consent 流）另刀或随本刀最小版（上传后一次性 purpose 选择），S1 落最小版即可。
+- **G4（撤回语义）**：撤回=停止后续使用（审计批 4 #81 口径）；已落 checkpoint/事件不回溯清除（P1 Non-claims 既有条文继续覆盖），撤回断言=撤回后新一轮面试 buildData 无 digest/facts。
+- **范围不变条款**：围栏/四重过滤/防编造闸/refs 禁入 Turn.sources/raw-only 差分——全部保留；G1-G4 仅在注入点外再包一层 consent 开关。#81 全量改造（撤回端点/policy 升版通用化）仍归 W5 批 4，本刀只带最小同意读写面（若 consent_record 读写已够则零迁移；不够则迁移 0152 起编号 expand-only）。
+- Status: `draft_rev3:pre_exec_dual_PASS_plus_consent_gate`（rev2 双审 BOTH PASS 有效·G1-G4 经协调方据 D7 已决并入·EXEC 授权·蓝本=本 rev3）。
