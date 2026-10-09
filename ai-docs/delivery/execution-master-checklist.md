@@ -1935,3 +1935,14 @@ flowchart TD
 - [ ] **STILL OPEN（GODFN 线残余·均已登记）**：§6 余量（HMAC×3/req:any·c:any 参数面/bootstrap 拆分/vectorPlaneErasureLoop 独立授权面）；预存红 6 lane 翻绿须另刀（neg:commerce 归 NEGCOMM-1·余五 lane 各自域）；adaptive-consumer 域刀（1a 席2 建议）；trio 持钥复跑归 G7TRIO 主线刀；base worktree godfn1a-base 处置归协调方.
 - 预算：est live=0 · 0 Key 值接触 · `actualSpendCny=null` · 容器 30 只自拆.
 - Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
+
+### Line EGRESS-1 provider-egress 清算刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 56 条/25 文件欠账收编（46 env+10 consumers）· proof.mjs:31 单行机械跟进（33→43·486e1fad 先例）· **provider-egress:prove 主线首绿 EXIT=0 7/7**· 门重新武装活体实证）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（十一值）.
+- [x] **`post_prove_dual_pass`** recorded for Line EGRESS-1 products only（触面=manifest +270/−0 纯增+proof.mjs 恰 1 行+harness/收据·零产品码 apps/packages src 零 diff·nail tip 本 commit · branch `line/provider-egress-ledger`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：**prove EXIT=0 亲跑复现+base 树反向亲证**〔git archive 7ad2b3e2 全量提取跑 prove EXIT=1 恰 56 条与清算数严丝合缝〕/manifest 270 增 0 删 0 改既有 246 条零漂移+proof.mjs 恰 1 行/46 条分类抽验 20+ 覆盖全部 5 class 全部 file:line 精确命中/consumers 10 对全数亲证五工厂直调行号精确+假 transport 亲证/g7 guard 源码零 diff+:382 门内 fail-closed+:277 指纹-only/pins+est 0+sanitize）+ mw-model-op PASS（六核：**门重新武装活体探针实证**〔投放临时文件碰 MODEL_API_KEY+工厂直调即双错齐发·删除复绿——门的牙齿恢复〕/test-isolation×30 全部亲读无真读键值 live 调用/test-fixture×8 假值桩亲证非真 Key/diff 恰 4 文件 audit/g7 无雷申报足额六路 fail-closed/pins+Non-claims 双落）· 协调方正式授权本 nail.
+- **EGRESS-1 全链**：REQUEST `a57035b6` → rev2 `0790e541`（rev1 双席 FAIL：数学死锁〔proof.mjs:31 断言零改∧manifest-only∧EXIT=0 三角不可成立〕+adapter_consumer 10 对漏项+class 词汇改口+实数勘误）→ 双席复核 BOTH PASS → EXEC `a175b02a`（origin tip 零位移）→ 本 nail commit.
+- **核心产出**：provider-egress 门重新武装（收编前 25 文件失明恒红=警报失明·收编后 EXIT=0 首绿+新文件碰 policy env 名/工厂直调即红活体实证）·56 条/25 文件历刀欠账收编（46 env 按 246 条税表归类+10 consumers local-adapter-test）·主线基建账清.
+- **erratum×2 登记（双席·narrative 级）**：①预存红实数 56 条/25 文件（TOKSTREAM-S2 EXEC 称 64/~40 系计数法差·高估非洗绿）；②attempts 日期等簿记微瑕.
+- [ ] **STILL OPEN**：src 内嵌测试守卫结构债（g7-freetier-reprove-guard.ts 另域立账）；env 值卫生/轮换域；`g7SuiteGreen=false` 维持.
+- 预算：est 0 live · 0 Key 值接触 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
