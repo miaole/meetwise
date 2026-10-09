@@ -18,7 +18,7 @@
 
 1. **上限**：常量 `MAX_DUPLICATE_REROLL = 2`（单 turn 生成调用总数 ≤3 含初诊）·per-turn 计数·跨 turn 不累计·无循环放大。耗尽 → `unavailableGeneration('duplicate_question')` 原样（provenance 携带耗尽轨迹）。
 2. **re-roll 必须同时换键+revision（DB/registry 契约三反证）**：同键 → invoke 缓存回放**同题**（packages/db/migrations/0088_….sql:424-426（invoke.ts:883-911 系标记写入侧非回放面））·同 revision 异键 → logical node header `canonical_invocation_mismatch` 判死（packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql:272·claim 失败链 :383-409）·同键异 payload → `idempotency_key_payload_mismatch`（0088:417）。故 re-roll k 次用 `idempotencyKey` 与 `operation.businessRevision` 同步后缀 `${threadId}:ask:t${turn}:r${k}`（registry 自证「any retry requires a new revision and therefore a new, auditable node」model-operation-registry.ts:243·resolveModelOperation :245-263·每个 re-roll=独立可审计计费节点·interview.question-generation.v1 maxDispatches:1 :69-72 逐节点照旧）。
-3. **复检面**：每次 re-roll 产出重过全既有确定性闸（verbatim 版权 :156·引文 :157-158/:188-193·schema :154）+ `wasAsked` 复检；已撞题面（我方生成·归一化前原文·非 PII 同 memory-service.ts:6 铁律）以「勿重复」提示注入 interviewer.ask prompt——**判重唯一真相仍是精确归一化**（memory-store.ts:27-31·不引入语义相似）。
+3. **复检面**：每次 re-roll 产出重过全既有确定性闸（verbatim 版权 :156·引文 :157-158/:188-193·schema :154）+ `wasAsked` 复检——**判重唯一真相仍是精确归一化**（memory-store.ts:27-31·不引入语义相似）。
 4. **provenance 轨迹**：packages/domain/src/question-generation.ts:24-31 `QuestionGenerationProvenance` 增 **optional 字段**（如 `reroll?: number`·类型级零迁移零 SSOT）；re-roll 成功与耗尽判死均落轨迹，终态时随 provenance 自入 `assessment_unavailable` payload（adaptive-lifecycle.ts:65-68 零改自带）。
 5. **保守面字节零改**：`duplicate_check_failed`（:181-184 记忆不可用→无法验证唯一性→仍判死）·`attempt_replay_forbidden`（:86-91）·provider/schema/business 分类判死（:167-175）·图节点 critique 判死（generate-question.ts:69-80）——全部不触；re-roll 完全封闭在 `retrieveAndGenerate` seam（:82-196）内部，图/lifecycle 契约零感知。
 
@@ -47,7 +47,7 @@
 
 ## 6. Ban
 
-零迁移零 SSOT · G7 判定面零触（writeGenerationUnavailable/markApplicationAssessmentUnavailable/事件分流/finalize 契约/recruiter 恢复通路字节零改）· Key name-only · est live ≤25 · 图节点 attempt 契约零触（:86-91 语义不动）· 判重唯一真相不引入语义·**零 avoid prompt 注入**（cap+精确复检独立保证·avoid 提示仅引导非判重）/向量（memory-store.ts:27-31）· pins 十一值照抄（haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false）+脚注 actualSpendCny=null+脚注 actualSpendCny=null · 实现不自批·alone≠dual。
+零迁移零 SSOT · G7 判定面零触（writeGenerationUnavailable/markApplicationAssessmentUnavailable/事件分流/finalize 契约/recruiter 恢复通路字节零改）· Key name-only · est live ≤25 · 图节点 attempt 契约零触（:86-91 语义不动）· 判重唯一真相不引入语义·**零 avoid prompt 注入**（cap+精确复检独立保证·avoid 提示仅引导非判重）/向量（memory-store.ts:27-31）· pins 十一值照抄（haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false）+脚注 actualSpendCny=null · 实现不自批·alone≠dual。
 
 ## 7. 验收
 
