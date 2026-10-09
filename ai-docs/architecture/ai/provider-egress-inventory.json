@@ -111,6 +111,14 @@
           "class": "local-adapter-test"
         },
         {
+          "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/g7-freetier-reprove-client.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
           "source": "packages/ai-runtime/test/model-client-output-limit.proof.ts",
           "class": "local-adapter-test"
         },
@@ -193,6 +201,14 @@
           "class": "local-adapter-test"
         },
         {
+          "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/g7-freetier-reprove-paths.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
           "source": "apps/worker/test/qbank-retrieval-eval-pg.proof.ts",
           "class": "local-adapter-test"
         }
@@ -232,6 +248,14 @@
         },
         {
           "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/g7-freetier-reprove-paths.proof.ts",
           "class": "local-adapter-test"
         },
         {
@@ -280,6 +304,14 @@
           "class": "local-adapter-test"
         },
         {
+          "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/g7-freetier-reprove-paths.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
           "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
           "class": "local-adapter-test"
         }
@@ -308,6 +340,14 @@
       "consumers": [
         {
           "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/g7-freetier-reprove-paths.proof.ts",
           "class": "local-adapter-test"
         },
         {
@@ -376,6 +416,21 @@
       "class": "test-isolation"
     },
     {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "apps/api/test/uc-e2e-028-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "packages/ai-runtime/test/gap-rag05-classifier.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "scripts/g7-freetier/redact-gap-evidence.mjs",
+      "class": "test-isolation"
+    },
+    {
       "name": "DASHSCOPE_ASR_API_KEY_FINGERPRINT",
       "source": "packages/ai-runtime/src/dashscope-native-config.ts",
       "class": "adapter-configuration"
@@ -419,6 +474,11 @@
       "name": "DASHSCOPE_ASR_API_KEY",
       "source": "packages/ai-runtime/test/interview-voice-seams.proof.ts",
       "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_ASR_API_KEY",
+      "source": "apps/web/e2e-ui/voice-duplex.spec.ts",
+      "class": "manual-live-smoke"
     },
     {
       "name": "DASHSCOPE_ASR_MODEL",
@@ -468,6 +528,11 @@
     {
       "name": "DASHSCOPE_COMPAT_BASE_URL",
       "source": "packages/ai-runtime/test/interview-voice-seams.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_COMPAT_BASE_URL",
+      "source": "packages/ai-runtime/test/gap-rag05-classifier.proof.ts",
       "class": "test-isolation"
     },
     {
@@ -901,6 +966,11 @@
       "class": "test-isolation"
     },
     {
+      "name": "DASHSCOPE_TTS_API_KEY",
+      "source": "apps/web/e2e-ui/voice-duplex.spec.ts",
+      "class": "manual-live-smoke"
+    },
+    {
       "name": "DASHSCOPE_TTS_MODEL",
       "source": "packages/ai-runtime/src/voice.ts",
       "class": "adapter"
@@ -989,6 +1059,11 @@
       "name": "DASHSCOPE_VISION_API_KEY",
       "source": "packages/ai-runtime/test/vision-endpoint-config.proof.ts",
       "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_VISION_API_KEY",
+      "source": "scripts/e2e-live-capability-env.mjs",
+      "class": "live-test-launcher"
     },
     {
       "name": "DASHSCOPE_VISION_MODEL",
@@ -1291,6 +1366,131 @@
       "class": "test-isolation"
     },
     {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/godfn-1c-begin-guard-merge.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-001-nhp-adv.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-001-nhp-bound.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-001-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-001-nhp-neg.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-004-career-path-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-011-adv-refund-callback.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-025-nhp-bound.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-025-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-028-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/web/e2e-ui/voice-duplex.spec.ts",
+      "class": "manual-live-smoke"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-p-meta-ms2-facets-product.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-p-meta-ms3-deploy-product.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/uc-e2e-016-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/src/g7-freetier-reprove-guard.ts",
+      "class": "test-only-guard"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/g7-freetier-reprove-client.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/g7-freetier-reprove-guard.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/g7-freetier-reprove-paths.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/gap-rag05-classifier.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/uc-e2e-017-nhp-load.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/uc052-external-sink-async-purge.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/uc052-external-sink-retention.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/e2e-live-capability-env.mjs",
+      "class": "live-test-launcher"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/g7-freetier/redact-gap-evidence.mjs",
+      "class": "test-isolation"
+    },
+    {
       "name": "MODEL_BACKUP_API_KEY_FINGERPRINT",
       "source": "packages/ai-runtime/src/text-endpoint-config.ts",
       "class": "adapter-configuration"
@@ -1471,6 +1671,46 @@
       "class": "deployment-contract"
     },
     {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/godfn-1c-begin-guard-merge.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-001-nhp-adv.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-001-nhp-bound.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-001-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-001-nhp-neg.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-004-career-path-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-025-nhp-bound.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-025-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
       "name": "MODEL_ENDPOINT_PROFILE",
       "source": "packages/ai-runtime/src/text-endpoint-config.ts",
       "class": "adapter-configuration"
@@ -1494,6 +1734,26 @@
       "name": "MODEL_ENDPOINT_PROFILE",
       "source": "packages/ai-runtime/test/model-client-dispatch.proof.ts",
       "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/src/g7-freetier-reprove-guard.ts",
+      "class": "test-only-guard"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/g7-freetier-reprove-client.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "scripts/e2e-live-capability-env.mjs",
+      "class": "live-test-launcher"
     },
     {
       "name": "MODEL_REVOKED_KEY_FINGERPRINTS",
@@ -1543,6 +1803,16 @@
     {
       "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
       "source": "packages/ai-runtime/test/model-client-dispatch.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/g7-freetier-reprove-client.proof.ts",
       "class": "test-fixture"
     },
     {
