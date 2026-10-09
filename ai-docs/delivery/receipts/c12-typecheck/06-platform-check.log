@@ -1,0 +1,5 @@
+
+> meetwise@0.1.0 e2e-platform:check /Users/miaole/Desktop/golucky/meetwise-line-c12
+> node scripts/e2e-platform/check.mjs
+
+{"outcome":"passed_directory_contract_core_boundaries_and_trust","releaseEvidence":false,"aiOutputTrusted":false,"coreBoundaries":"ran","trustGuard":"ran","directoryErrors":0,"trustErrors":0,"boundaryErrors":0}

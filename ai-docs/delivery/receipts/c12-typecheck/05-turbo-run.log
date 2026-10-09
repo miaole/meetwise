@@ -1,0 +1,21 @@
+• turbo 2.10.0
+
+   • Packages in scope: @meetwise/ai-graphs, @meetwise/ai-runtime, @meetwise/api, @meetwise/config, @meetwise/contracts, @meetwise/db, @meetwise/db-mysql, @meetwise/domain, @meetwise/qdrant-store, @meetwise/web, @meetwise/worker
+   • Running typecheck in 11 packages
+   • Remote caching disabled, using shared worktree cache
+
+@meetwise/contracts:typecheck: cache miss, executing 5eeb2ca4c39b0e8d
+@meetwise/web:typecheck: cache miss, executing a92ba0d043f56c8c
+@meetwise/web:typecheck: 
+@meetwise/web:typecheck: > @meetwise/web@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-line-c12/apps/web
+@meetwise/web:typecheck: > tsc --noEmit
+@meetwise/web:typecheck: 
+@meetwise/contracts:typecheck: 
+@meetwise/contracts:typecheck: > @meetwise/contracts@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-line-c12/packages/contracts
+@meetwise/contracts:typecheck: > tsc --noEmit
+@meetwise/contracts:typecheck: 
+
+ Tasks:    2 successful, 2 total
+Cached:    0 cached, 2 total
+  Time:    1.897s 
+
