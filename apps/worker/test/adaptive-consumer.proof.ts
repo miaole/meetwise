@@ -4,7 +4,7 @@ process.env.RESUME_ENC_KEY = 'test-resume-enc-key';
 process.env.RESUME_HASH_SECRET = 'test-resume-hash-secret';
 import { MemorySaver } from '@langchain/langgraph';
 import { randomUUID } from 'node:crypto';
-import { createPool, asPrincipal, provisionRuntimeLogin, reserveEntitlement, createResumeWithBlob, completeIngestion, transitionResume, enqueueInterviewJob, availableUnits, getReport, answerHash, claimInterviewAnswer, claimNextInterviewJob, requeueInterviewJob, decryptActiveResumeBlob, withInterviewGraphFence } from '@meetwise/db';
+import { createPool, asPrincipal, provisionRuntimeLogin, reserveEntitlement, createResumeWithBlob, completeIngestion, transitionResume, enqueueInterviewJob, availableUnits, getReport, answerHash, claimInterviewAnswer, claimNextInterviewJob, requeueInterviewJob, decryptActiveResumeBlob, withInterviewGraphFence, supplyCandidateProfileRoute } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { ingestResume } from '@meetwise/domain';
 import { drainInterviewJobOnce, type ConsumerDeps } from '../src/interview-consumer.ts';
@@ -71,6 +71,16 @@ async function main() {
   await admin.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'active',$3,$4)", [IID, OWNER, up.resumeId, resumeEpoch]);
   const FENCE_RACE = 'FENCE-RACE';
   await admin.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'active',$3,$4)", [FENCE_RACE, OWNER, up.resumeId, resumeEpoch]);
+  stage = 'ROUTE_SNAPSHOT_SUPPLY';
+  // 0142 生产同源供给面（AC-FIX A 路线，沿 neg-interview 先例 FK 序 decision→snapshot）：
+  // 生产 begin 在扣额/入队前同事务内经 supplyCandidateProfileRoute 以候选人本人简历 rule
+  // 派生唯一叶，落 candidate_profile_route_decision(route_outcome='route_decided',
+  // attempt_outcome='rule_decided') + candidate_profile_route_snapshot——非伪造 0104 job
+  // 维度行（0142 Ban masking）、非 MEETWISE_TECH_ROLE_FAIL_CLOSED opt-out。本 fixture 简历
+  // （Redis/限流/分布式锁）恰命中 backend/general 唯一叶，角色门在 fail-closed 默认 ON 态
+  // 从该 snapshot 取 role（deps 注入在 ON 态结构性不足过门）。
+  const routeSupply = await asPrincipal(pool, OWNER, (c) => supplyCandidateProfileRoute(c, OWNER, IID, up.resumeId));
+  A('fixture 经生产同链供给 route snapshot(0142 decision+snapshot 幂等供给)', routeSupply.status === 'supplied');
   stage = 'RESERVATION_SETUP';
   const before = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));   // reserve 前(预留即扣 available)
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, IID, 'mock_interview', 1.0));
@@ -128,6 +138,16 @@ async function main() {
   while (!done && guard++ < 8) {
     const q = await asPrincipal(pool, OWNER, async (c) => (await c.query(
       "SELECT question_id,state_version,turn FROM interview_question WHERE interview_id=$1 AND status='issued' ORDER BY state_version DESC LIMIT 1", [IID])).rows[0]);
+    if (!q) {
+      // 溃点卫生（AC-FIX ③）：查无 issued 题时诚实 FAIL 带诊断，不再以 TypeError 无码
+      // 逃逸（CODE=UNKNOWN）——排空环 claim→evaluate→complete 语义原样，零弱化。
+      const diagnostic = await asPrincipal(pool, OWNER, (c) => c.query(
+        "SELECT status,last_error FROM interview_job WHERE interview_id=$1 AND kind='start'", [IID],
+      ));
+      console.error('adaptive-consumer drain diagnostic:', diagnostic.rows[0]);
+      A(`排空环第${guard}轮查无 issued 题:start 链未产题(诚实 FAIL 而非 TypeError)`, false);
+      break;
+    }
     const answer = '我用计数器+滑动窗口扛高并发并降级';
     const input = { questionId: q.question_id, stateVersion: Number(q.state_version), turn: Number(q.turn), answerId: randomUUID(), answerHash: answerHash(answer), answer };
     A(`第${input.turn}题 API identity ledger 接受`, (await asPrincipal(pool, OWNER, (c) => claimInterviewAnswer(c, OWNER, IID, input))).status === 'accepted');
