@@ -1976,3 +1976,14 @@ flowchart TD
 - [ ] **STILL OPEN**：G7FIX-3=finalize 409 skew 裁决刀（REQUEST 待立·材料已足成本低定谳价值最高·driver 补 interview_unavailable 臂 vs 产品面契约增补归协调方）；对称微探针采样 run（boundLoop.terminal 镜像 7a 探针）；consume 7F（NEGCOMM-1 已修）；7A-DOWNGRADE `:107` 域 P1 OPEN 维持；`g7SuiteGreen=false` 维持.
 - 预算：run 预算 1/3（首红即收·余 2 弃用）· 链 126≤200 · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 探针=定靶非修复 · 实现方不 self-approve.
+
+### Line G7FIX-3 finalize 409 skew 裁决刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · +6/−4 恰 1 文件·恰 1 run **EXIT=0 原值**（76905ms·72 断言）· 四元组=臂消化绿（409 cannot_finalize 双验+in_progress 卡死面断言·不作收口声称）· **归因代码级闭合：reason=generation_duplicate_question（判重后果语义过严·非竞态·同 run 先 concluding 面试撞题）** · 下刀裁定=产品面 finalize 契约增补刀）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
+- [x] **`post_prove_dual_pass`** recorded for Line G7FIX-3 products only（diff +6/−4 恰 full.e2e.ts·零产品码·armed 探针全保留·nail tip 本 commit · branch `line/g7-finalize-skew`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：diff 三元形态+else 200 面零弱化/RUN1 三源一致+NDJSON byte-identical/四元组守界/erratum-1 三证零 e2e 执行/sidecar 58 ticks 链 145/pins+归属登记+sanitize）+ mw-model-op PASS（六核：**归因代码级闭合**〔reason 唯一产生点 adaptive-interview-service.ts:187 wasAsked 归一化判重→episodeSeen exact match·全仓 rg 零字面命中=动态拼接·invokeError 缺席系该路径固有（:186-187 不设）非材料缺口〕/**间歇触发条件定谳：非竞态**〔episode 仅 conclude 落账 :368·isolated 每次新库⇒本 run 判死必为同 run 先 concluding 面试落同题 episode 撞第二题〕/**根因=判重后果语义过严**（:154 注释自证 cannot create second request——duplicate 可 re-roll 却 fail-closed 判终态死无重掷）/report_unavailable×2 单 run 绿形限定语/erratum-1 定性/账面全对）· 协调方正式授权本 nail.
+- **G7FIX-3 全链**：REQUEST `b6a33eae` → rev2 `539393c0`（双席处方：409 形状双验禁泛容忍+a4 选路同窗+四元组判读+臂回改归属）→ 双席复核 BOTH PASS → EXEC `a9a90aba`（origin tip 零位移）→ 本 nail commit.
+- **核心产出**：driver interview_unavailable 臂落地（409 cannot_finalize 双验+in_progress 卡死面显式断言=文档化非接纳）·**G7 间歇红第二面（finalize 409）代码级闭合**——generation_duplicate_question 根因定谳（判重过严·非竞态·可 re-roll 条件被判死）·driver 可见级首证方法学（NDJSON reason 前缀）确立.
+- **G7 下一刀裁定（协调方·采纳席2 排序）**：①**G7FIX-4=产品面 finalize 契约增补刀**（generation 族对称标记 bound application 为正向可重试终态+startApplicationInterview 放行 in_progress+failed 新 attempt 消 binding_invalid 死路——消整族卡死面含 provider_timeout 等其余 errorCode·产品语义裁归协调方预审）②duplicate_question re-roll 根因刀（缩触发频率）③trio 再跑殿后（未修前重跑=对同一间歇面重复采样）。
+- [ ] **STILL OPEN**：G7FIX-4（REQUEST 待立）；duplicate re-roll 根因刀；trio 再跑；`:107` 维持（C-MO-P3 材料完备+卡死面在账）；`g7SuiteGreen=false` 维持.
+- 预算：恰 1 run · dual-count 19≤25 · 链 126+19=145≤200 · 0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 臂=driver 契约对齐非产品修复 · 实现方不 self-approve.
