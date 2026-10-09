@@ -2134,4 +2134,3 @@ flowchart TD
 - [ ] **STILL OPEN**：NEGINPUT 刀（3 shim+1 回和·蓝本 b44ad582）；neg:all 全链 EXIT=0 待 NEGINPUT；trio 三绿重验；`g7SuiteGreen=false` 维持.
 - 预算：恰 2 run·est live=0 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · driver 回和≠产品行为变化 · 实现方不 self-approve.
->>>>>>> 888fc5b3 (docs(negresfix): nail — post-prove dual BOTH PASS (seat-2 independently ruled coordinator lane re-pin as authorized adjudication; zero-assertion-weakening final check passed), four errata registered for NEGINPUT knife)
