@@ -132,7 +132,7 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/interview/interview.service.ts',
     'apps/api/src/modules/interview/interview.controller.ts',
     'apps/worker/src/report-worker.ts',
-    'packages/db/src/report.ts',
+    'packages/db/src/report/report.ts',
     'packages/db/src/commerce.ts',
     'packages/db/src/interview-question.ts',
     'packages/db/src/isolated-test-target.ts',
@@ -466,7 +466,7 @@ const isolatedReceiptSources = {
   'report:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/report-bulkhead.proof.ts', 'apps/worker/src/report-worker.ts',
-    'packages/db/src/report.ts', 'packages/db/migrations/0059_interview_privacy_projection_fence.sql',
+    'packages/db/src/report/report.ts', 'packages/db/migrations/0059_interview_privacy_projection_fence.sql',
   ],
   'quiz:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -750,7 +750,7 @@ const isolatedReceiptSources = {
   ],
   'uc011:report-refund:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/uc-e2e-011-report-refund.proof.ts', 'packages/db/src/commerce.ts', 'packages/db/src/report.ts',
+    'packages/db/test/uc-e2e-011-report-refund.proof.ts', 'packages/db/src/commerce.ts', 'packages/db/src/report/report.ts',
     'packages/db/migrations/0001_baseline.sql',
   ],
   'uc011:report-refund:http:prove:raw': [
@@ -761,7 +761,7 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/commerce/commerce-webhook.controller.ts',
     'apps/api/src/modules/interview/interview.controller.ts',
     'apps/api/src/modules/interview/interview.service.ts',
-    'packages/db/src/commerce.ts', 'packages/db/src/report.ts', 'packages/db/src/payment.ts',
+    'packages/db/src/commerce.ts', 'packages/db/src/report/report.ts', 'packages/db/src/payment.ts',
   ],
   'uc011:adv:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -781,7 +781,7 @@ const isolatedReceiptSources = {
   ],
   'uc019:report-regenerate:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/uc-e2e-019-report-regenerate.proof.ts', 'packages/db/src/commerce.ts', 'packages/db/src/report.ts',
+    'packages/db/test/uc-e2e-019-report-regenerate.proof.ts', 'packages/db/src/commerce.ts', 'packages/db/src/report/report.ts',
     'packages/db/migrations/0001_baseline.sql',
   ],
   'uc019:report-regenerate:http:prove:raw': [
@@ -791,7 +791,7 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/commerce/commerce.service.ts',
     'apps/api/src/modules/interview/interview.controller.ts',
     'apps/api/src/modules/interview/interview.service.ts',
-    'packages/db/src/commerce.ts', 'packages/db/src/report.ts',
+    'packages/db/src/commerce.ts', 'packages/db/src/report/report.ts',
   ],
   'uc002:lease:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -995,7 +995,7 @@ const isolatedReceiptSources = {
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/tenant-wiring-neg.proof.ts', 'packages/db/test/tenant-wiring.manifest.ts',
     'packages/db/test/tenant-wiring-e5.proof.ts', 'packages/db/test/tenant-enforcement.proof.ts',
-    'packages/db/src/tenant/index.ts', 'packages/db/src/notification.ts',
+    'packages/db/src/tenant/index.ts', 'packages/db/src/notification/notification.ts',
     'packages/db/src/recruiter.ts', 'packages/db/src/candidate-route.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/migrations/0001_baseline.sql',
@@ -1083,7 +1083,7 @@ const isolatedReceiptSources = {
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/db-acl.proof.ts',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts',
-    'packages/db/src/isolated-test-target.ts', 'packages/db/src/report.ts',
+    'packages/db/src/isolated-test-target.ts', 'packages/db/src/report/report.ts',
     'packages/db/package.json', 'package.json',
     'packages/db/migrations/0143_db_id_v7_unify.sql',
     'packages/db/migrations/0150_uuidv7_grant_acl.sql',
