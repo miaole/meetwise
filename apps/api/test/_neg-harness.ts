@@ -69,6 +69,94 @@ export async function boot(): Promise<Harness> {
     await db.pool.query(sql(f, 'migrations'));
   await db.pool.query(sql('23_api_gateway.sql'));
 
+  // UNSTUB-ERASE rev2 neg-mirror:0152/0153 在**本负测环境**的最小镜像。sql/ 引导链不
+  // 含隐私账本表与 0152 函数;真相=迁移链(主证 unstube-erase.proof 在真迁移链上跑),
+  // 这里只补负测所需最小面,函数体与 0152 同形(owner 为隔离库引导角色,无 write-guard
+  // 触发器——sql/ 镜像本就未建它,行为面一致:受理即围栏)。
+  await db.pool.query(`CREATE TABLE IF NOT EXISTS privacy_erasure_request (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    owner_user_id text NOT NULL,
+    scope text NOT NULL CHECK (scope IN ('resume_data','interview_data','account_data')),
+    subject_id text NOT NULL,
+    idempotency_key_hash text NOT NULL,
+    status text NOT NULL DEFAULT 'requested'
+      CHECK (status IN ('requested','fenced','purging','pending_external','completed','partial_failed')),
+    privacy_epoch bigint NOT NULL DEFAULT 1,
+    version bigint NOT NULL DEFAULT 1 CHECK (version >= 1),
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (owner_user_id, idempotency_key_hash))`);
+  await db.pool.query('ALTER TABLE resume ADD COLUMN IF NOT EXISTS erasure_requested_at timestamptz');
+  await db.pool.query('ALTER TABLE user_account ADD COLUMN IF NOT EXISTS deleted_at timestamptz');
+  // interview_privacy_active 的最小镜像（真相=0058/0076 迁移链;本环境无 privacy_checkpoint_target
+  // 账本 → 省略其存在性检查）。负测路径全部是「未擦除/跨 owner」:owner 不匹配或 principal 空
+  // 时镜像与真函数逐值一致;growth/export/overview 等读面过滤在此环境下行为面一致。
+  await db.pool.query(`
+    CREATE OR REPLACE FUNCTION interview_privacy_active(target_interview text)
+    RETURNS boolean
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path = pg_catalog, public, pg_temp AS $ivf$
+    DECLARE principal text := current_setting('app.principal_user', true);
+    BEGIN
+      IF principal IS NULL OR length(principal)=0 OR target_interview IS NULL OR length(target_interview)=0 THEN RETURN false; END IF;
+      PERFORM 1 FROM interview i WHERE i.id = target_interview AND i.owner_user_id = principal;
+      IF NOT FOUND THEN RETURN false; END IF;
+      RETURN true;
+    END;
+    $ivf$;`);
+  await db.pool.query(`
+    CREATE OR REPLACE FUNCTION privacy_begin_resume_soft_delete(p_owner text, p_resume_id uuid)
+    RETURNS TABLE (request_id uuid, resume_id uuid, already_fenced boolean, fenced_at timestamptz)
+    LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $fn$
+    DECLARE
+      principal text := current_setting('app.principal_user', true);
+      v_key text; v_request uuid;
+      v_existing privacy_erasure_request%ROWTYPE;
+      v_fenced_at timestamptz; v_epoch bigint;
+    BEGIN
+      IF principal IS NULL OR length(principal)=0 OR principal <> p_owner OR p_resume_id IS NULL THEN
+        RAISE EXCEPTION 'resume_soft_delete_forbidden' USING ERRCODE='42501';
+      END IF;
+      SELECT encode(digest('resume_soft_delete:' || p_owner || ':' || p_resume_id::text, 'sha256'), 'hex') INTO v_key;
+      SELECT * INTO v_existing FROM privacy_erasure_request r
+       WHERE r.owner_user_id = p_owner AND r.idempotency_key_hash = v_key
+       ORDER BY r.created_at DESC LIMIT 1;
+      IF FOUND THEN
+        IF v_existing.scope <> 'resume_data' OR v_existing.subject_id <> p_resume_id::text THEN
+          RAISE EXCEPTION 'resume_soft_delete_idempotency_conflict' USING ERRCODE='23505';
+        END IF;
+        RETURN QUERY SELECT v_existing.id, p_resume_id, true,
+          (SELECT r.erasure_requested_at FROM resume r WHERE r.id = p_resume_id AND r.owner_user_id = p_owner);
+        RETURN;
+      END IF;
+      UPDATE resume
+         SET status='erasure_fenced', erasure_requested_at=now(), privacy_epoch=privacy_epoch+1
+       WHERE id = p_resume_id AND owner_user_id = p_owner
+         AND status IN ('uploaded','ingesting','ingested','failed')
+       RETURNING erasure_requested_at, privacy_epoch INTO v_fenced_at, v_epoch;
+      IF NOT FOUND THEN
+        SELECT * INTO v_existing FROM privacy_erasure_request r
+         WHERE r.owner_user_id = p_owner AND r.idempotency_key_hash = v_key
+         ORDER BY r.created_at DESC LIMIT 1;
+        IF FOUND THEN
+          RETURN QUERY SELECT v_existing.id, p_resume_id, true,
+            (SELECT r.erasure_requested_at FROM resume r WHERE r.id = p_resume_id AND r.owner_user_id = p_owner);
+          RETURN;
+        END IF;
+        RAISE EXCEPTION 'resume_soft_delete_not_found_or_forbidden' USING ERRCODE='42501';
+      END IF;
+      INSERT INTO privacy_erasure_request(owner_user_id, scope, subject_id, idempotency_key_hash, status, privacy_epoch)
+        VALUES (p_owner, 'resume_data', p_resume_id::text, v_key, 'fenced', v_epoch)
+        ON CONFLICT (owner_user_id, idempotency_key_hash) DO NOTHING
+        RETURNING id INTO v_request;
+      IF v_request IS NULL THEN
+        SELECT r.id INTO v_request FROM privacy_erasure_request r
+         WHERE r.owner_user_id = p_owner AND r.idempotency_key_hash = v_key;
+      END IF;
+      RETURN QUERY SELECT v_request, p_resume_id, false, v_fenced_at;
+    END;
+    $fn$;`);
+
   // ── 种子:各种状态,专供负测(绝不含"正常成功"作为断言目标)──
   await db.pool.query("INSERT INTO user_account(id,email,password_hash,is_admin,role) VALUES " +
     "('userA','a@x.com','scrypt$x$y',false,'candidate'),('userB','b@x.com','scrypt$b$w',false,'candidate')," +

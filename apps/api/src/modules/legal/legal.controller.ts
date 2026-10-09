@@ -1,9 +1,10 @@
 import { Controller, Get, Header } from '@nestjs/common';
 
 /**
- * Conservative public-preview boundary. Complete deletion, withdrawal and
- * sink-level receipts are not available, so this endpoint cannot advertise
- * them as a data-rights workflow.
+ * Conservative public-preview boundary. Deletion/deactivation acceptance is
+ * immediate (soft delete: processing and access stop at once); sink-level
+ * cross-storage receipts remain an asynchronous workflow and are never
+ * advertised as complete.
  */
 export const PRIVACY_POLICY = {
   version: process.env.PRIVACY_POLICY_VERSION ?? 'preview-v1',
@@ -12,7 +13,7 @@ export const PRIVACY_POLICY = {
     { id: 'preview_boundary', desc: '公开预览不接收真实简历、身份信息、面试回答、录音或访问密钥。' },
     { id: 'capability_notice', desc: '页面只说明项目边界，不构成正式服务、支付或招聘决策。' },
   ],
-  dataRights: ['完整删除、撤回同意和跨存储回执流程当前未开放。', '请勿通过公开预览提交个人或机密内容。'],
+  dataRights: ['删除/注销即时生效（立即停止处理与访问），跨存储清除回执异步完成。', '请勿通过公开预览提交个人或机密内容。'],
   retentionDays: 0,
   pii: '公开预览不承诺处理或留存真实个人信息。',
 };

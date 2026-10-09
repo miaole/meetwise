@@ -43,12 +43,15 @@ export async function episodeSeen(c: Client, owner: string, content: string): Pr
 
 /** 弱项读取投影(**只读,不新建信念表**):历史 assessment_report 里 gap=true 的能力维度名(去重)。
  *  仅取 status='ready' 的已生成报告;显式按 owner 过滤(RLS 之上再加一道,防越权/防误串户)。
+ *  R4 读面过滤(UNSTUB-ERASE rev2):已围栏面试的评估不再给出题软偏置——与列表/导出/成长档案
+ *  同一 interview_privacy_active 谓词,账户级删除后弱项偏置零泄漏。
  *  **只返回维度名**(标签),绝不带分数/答案/时间——成长曲线唯一真相仍是 assessment_report→deriveGrowth,这里只借"历史弱项名"给出题做软偏置。 */
 export async function historicalWeakDimensions(c: Client, owner: string): Promise<string[]> {
   const r = await c.query(
     `SELECT DISTINCT d->>'dimension' AS dimension
        FROM assessment_report ar, jsonb_array_elements(ar.dimensions) d
       WHERE ar.owner_user_id = $1 AND ar.status = 'ready'
+        AND interview_privacy_active(ar.interview_id)
         AND coalesce(d->>'gap', 'false') = 'true'
         AND coalesce(btrim(d->>'dimension'), '') <> ''`,
     [owner]);

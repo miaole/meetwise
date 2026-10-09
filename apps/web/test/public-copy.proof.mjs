@@ -33,6 +33,8 @@ const resumeActions = read('apps/web/app/resume/actions.ts');
 const resumeOcrUi = read('apps/web/lib/resume/ocr-preview-ui.ts');
 const resumeOcrPreview = read('apps/web/lib/ocr-preview.ts');
 const settings = read('apps/web/app/settings/page.tsx');
+const resumeDeleteButton = read('apps/web/app/resume/DeleteResumeButton.tsx');
+const deactivateForm = read('apps/web/app/settings/DeactivateForm.tsx');
 const pricing = read('apps/web/app/pricing/page.tsx');
 const legal = read('apps/web/app/legal/page.tsx');
 const legalApi = read('apps/api/src/modules/legal/legal.controller.ts');
@@ -121,20 +123,29 @@ const checks = {
   },
   'TC-PUBLIC-COPY-E1': () => {
     const privacyAction = read('apps/web/app/privacy/actions.ts');
+    const previewForm = read('apps/web/app/privacy/PreviewErasureForm.tsx');
+    // UNSTUB-ERASE rev2 翻转：删除/注销能力与文案同刀落地，旧「尚未开放/暂未开放」文案禁回潮。
     forbid(privacy, ['deleteResumeDataAction', '删除我的简历数据'], 'privacy page');
+    forbid(privacy, ['生产 `DELETE /privacy/*` 仍关闭'], 'privacy page');
     requireText(privacy, '预览版', 'privacy page');
     requireText(privacy, '不替代完整数据权利或跨存储生产删除', 'privacy page');
-    requireText(privacy, '生产 `DELETE /privacy/*` 仍关闭', 'privacy page');
-    forbid(resume, ['deleteResumeAction', 'pendingLabel="删除中…"'], 'resume page');
-    requireText(resume, '删除功能暂未开放', 'resume page');
-    forbid(settings, ['deactivateAction', '删除我的数据', '注销中…'], 'settings page');
-    requireText(settings, '账户注销暂未开放', 'settings page');
+    requireText(privacy, '单份简历删除在简历页、账户注销在设置页受理', 'privacy page');
+    // #242：隐私页不再提供「一份面试」删除预览入口（误围栏触发点从源头移除）。
+    forbid(previewForm, ['一份面试', 'interview_data'], 'privacy preview form');
+    forbid(resume, ['删除功能暂未开放', '完整删除与跨存储回执流程尚未开放'], 'resume page');
+    forbid(resumeDeleteButton, ['删除功能暂未开放', '完整删除与跨存储回执流程尚未开放'], 'resume delete button');
+    requireText(resumeDeleteButton, '删除后立即从你的账号中移除并停止一切处理；后台清除稍后完成', 'resume delete button');
+    forbid(settings, ['账户注销暂未开放', '删除我的数据'], 'settings page');
+    forbid(deactivateForm, ['账户注销暂未开放', '删除我的数据'], 'deactivate form');
+    requireText(deactivateForm, '注销后立即登出且无法再登录；关联数据停止一切处理与访问，后台清除稍后完成；清除完成前同一邮箱无法重新注册', 'deactivate form');
+    requireText(settings, '后台物理清除为异步流程稍后完成', 'settings page');
     assert.equal(existsSync(resolve(repoRoot, 'apps/web/app/privacy/actions.ts')), true, 'preview receipt action must exist');
     forbid(privacyAction, ['deleteResumeDataAction', '/privacy/resume-data', '/privacy/interview-data'], 'privacy preview action');
     requireText(privacyAction, '/privacy/erasure-preview', 'privacy preview action');
     requireText(privacyAction, 'preview_incomplete', 'privacy preview action');
-    requireText(faq, '完整的删除、撤回与跨存储回执流程尚未开放', 'FAQ');
-    requireText(faq, '预览版删除回执', 'FAQ');
+    forbid(faq, ['完整的删除、撤回与跨存储回执流程尚未开放'], 'FAQ');
+    requireText(faq, '删除/注销即时生效（立即停止处理与访问）', 'FAQ');
+    requireText(faq, '跨存储物理清除与回执为后台异步流程', 'FAQ');
   },
   'TC-PUBLIC-COPY-E2': () => {
     forbid(pricing, ["serverGet(", "'/billing'", '购买</Link>', '¥'], 'credits page');
@@ -167,9 +178,11 @@ const checks = {
   },
   'TC-PUBLIC-COPY-E7': () => {
     forbid(legal, ['serverGet(', '到期或经你申请后删除', 'retentionDays'], 'public legal page');
-    requireText(legal, '完整删除、撤回同意、跨存储删除回执', 'public legal page');
+    forbid(legal, ['完整删除、撤回同意、跨存储删除回执、外部处理方回执和留存周期承诺尚未开放'], 'public legal page');
+    requireText(legal, '删除/注销受理即时生效（立即停止处理与访问）', 'public legal page');
+    requireText(legal, '跨存储清除回执异步完成', 'public legal page');
     forbid(legalApi, ['删除权(删除简历/数据)', 'retentionDays: 365'], 'public legal API');
-    requireText(legalApi, '当前未开放', 'public legal API');
+    requireText(legalApi, '删除/注销即时生效（立即停止处理与访问），跨存储清除回执异步完成', 'public legal API');
   },
   'TC-PUBLIC-COPY-E8': () => {
     forbid(billing, ['serverGet(', 'BuyButton', '¥'], 'billing page');

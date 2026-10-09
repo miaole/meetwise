@@ -415,7 +415,8 @@ export const PrivacyDeletionReceipt = z.object({
 export type PrivacyDeletionReceipt = z.infer<typeof PrivacyDeletionReceipt>;
 
 /* ───────────── privacy erasure preview path（预览版，非生产删除 SLO） ─────────────
- * 接线 request → sink 盘点 → 回执。登录令牌可受理预览请求；生产 DELETE 仍 503。
+ * 接线 request → sink 盘点 → 回执。登录令牌可受理预览请求；生产 DELETE 不进 OpenAPI
+ * （UNSTUB-ERASE rev2：简历/账户删除=202 软删受理,面试删除仍 503 关闭）。
  * 回执禁止 completed / productionSloClaimed=true。
  */
 export const PrivacyPreviewScope = z.enum(['interview_data', 'account_data', 'resume_data']);
@@ -469,6 +470,42 @@ export const PrivacyPreviewList = z.object({
   items: z.array(PrivacyPreviewListItem),
 }).strict();
 export type PrivacyPreviewList = z.infer<typeof PrivacyPreviewList>;
+
+/* ───────────── S1 软删受理（UNSTUB-ERASE rev2 · D6 最低集） ─────────────
+ * 简历单删 / 全量删 / 账户注销（发起账户级删除）的受理形状。**字面量类型钉死**：
+ * mode='logical' 与 purgePending=true 在类型层不可漂移成完成态——物理清除归 S2
+ * 异步 PRIV 链（逐 sink 回执），S1 恒不宣称完成。与上方 privacy 块同理：本块仅冻结
+ * 跨端 schema，不登记进 apiContract（不进 OpenAPI），前端既有 zod 契约零破坏（additive）。
+ */
+export const ResumeEraseResult = z.object({
+  resumeId: z.string().uuid(),
+  mode: z.literal('logical'),
+  deletedAt: z.string().datetime().nullable(),
+  purgePending: z.literal(true),
+  requestId: z.string().uuid(),
+  alreadyFenced: z.boolean().optional(),
+}).strict();
+export type ResumeEraseResult = z.infer<typeof ResumeEraseResult>;
+export const ResumeDataEraseResult = z.object({
+  mode: z.literal('logical'),
+  purgePending: z.literal(true),
+  resumesFenced: z.number().int().nonnegative(),
+  requestId: z.string().uuid().nullable(),
+}).strict();
+export type ResumeDataEraseResult = z.infer<typeof ResumeDataEraseResult>;
+export const AccountDeactivateDto = z.object({
+  password: z.string().min(1).max(1024),
+}).strict();
+export type AccountDeactivateDto = z.infer<typeof AccountDeactivateDto>;
+export const AccountDeactivateResult = z.object({
+  deactivated: z.literal(true),
+  mode: z.literal('logical'),
+  purgePending: z.literal(true),
+  deletedAt: z.string().datetime(),
+  resumesFenced: z.number().int().nonnegative(),
+  interviewsFenced: z.number().int().nonnegative(),
+}).strict();
+export type AccountDeactivateResult = z.infer<typeof AccountDeactivateResult>;
 
 /* ───────────── memory governance (MEM-00) ─────────────
  * 记忆治理的多端契约形状。与上方 privacy 块同理：这些形状**仅冻结跨端 schema**，不登记进

@@ -1,4 +1,5 @@
 'use server';
+import { redirect } from 'next/navigation';
 import { serverFetch } from '../../lib/api/server';
 import { revalidatePath } from 'next/cache';
 
@@ -36,4 +37,40 @@ export async function changePasswordAction(
   if (!res.ok) return { error: '修改失败,请稍后重试(' + res.status + ')' };
   revalidatePath('/settings');
   return { ok: true };
+}
+
+/**
+ * 账户注销 + 发起账户级删除（UNSTUB-ERASE rev2 · #236 语义）：POST /profile/deactivate
+ * （密码复核）→ 202 {mode:'logical', purgePending:true, deletedAt}。注销后立即登出且
+ * 无法再登录；关联数据停止一切处理与访问，后台清除稍后完成；清除完成前同一邮箱无法
+ * 重新注册——本 action 只受理,绝不宣称「已彻底删除」。
+ */
+export type DeactivateActionState = { ok?: boolean; error?: string };
+
+export async function deactivateAction(
+  _prev: DeactivateActionState,
+  formData: FormData,
+): Promise<DeactivateActionState> {
+  const password = String(formData.get('password') ?? '');
+  if (!password) return { error: '请输入密码以确认注销。' };
+  let res: Response;
+  try {
+    res = await serverFetch('/profile/deactivate', {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+    });
+  } catch {
+    return { error: '网络错误,请稍后重试;账户未注销。' };
+  }
+  if (res.status === 400) return { error: '请输入密码以确认注销。' };
+  if (res.status === 401) return { error: '密码不正确,账户未注销。' };
+  if (res.status === 404) return { error: '账户状态异常,未执行注销。' };
+  if (res.status !== 202) return { error: '注销请求未受理(' + res.status + '),未当作已注销。' };
+  const body = await res.json().catch(() => null) as { mode?: string; purgePending?: boolean } | null;
+  if (body?.mode !== 'logical' || body?.purgePending !== true) {
+    return { error: '注销受理形状不合法,未当作已注销。' };
+  }
+  revalidatePath('/settings');
+  // 会话已被服务端吊销:硬导航到登录页,带注销完成态(不伪装成「数据已彻底删除」)。
+  redirect('/login?deactivated=1');
 }

@@ -382,6 +382,8 @@
     "int-answer-dual-write-fence:prove": "node scripts/run-e2e-isolated.mjs int-answer-dual-write-fence:prove:raw",
     "int-answer-dual-write-fence:prove:raw": "pnpm -C packages/db prove:int-answer-dual-write-fence",
     "privacy-erasure:http:prove": "node scripts/run-e2e-isolated.mjs privacy-erasure:http:prove:raw",
+  "unstube-erase:prove": "node scripts/run-e2e-isolated.mjs unstube-erase:prove:raw",
+  "unstube-erase:prove:raw": "pnpm -C apps/api prove:unstube-erase",
     "privacy-erasure:http:prove:raw": "pnpm -C apps/api prove:privacy-erasure-http",
     "resume-erasure:foundation:prove": "node scripts/run-e2e-isolated.mjs resume-erasure:foundation:prove:raw",
     "resume-erasure:foundation:prove:raw": "pnpm -C apps/worker prove:resume-erasure-tombstone",

@@ -119,3 +119,31 @@ export async function reparseResumeAction(id: string): Promise<void> {
   revalidatePath('/resume');
   redirect('/resume?updated=reparsed');
 }
+
+/**
+ * 简历软删受理（UNSTUB-ERASE rev2）：DELETE /resume/:id → 202 {mode:'logical',
+ * purgePending:true}。**如实态**：受理即从列表/画像/一切处理面消失；后台物理清除
+ * 稍后完成（purgePending 恒真直至 S2 逐回执闭合），本 action 永不把它显示成
+ * 「已彻底删除」。幂等由 0152 内部派生键保证（重放同 requestId，不建第二份账）。
+ */
+export type ResumeDeleteActionResult =
+  | { ok: true; purgePending: true }
+  | { ok: false; message: string };
+
+export async function deleteResumeAction(id: string): Promise<ResumeDeleteActionResult> {
+  let res: Response;
+  try {
+    res = await serverFetch('/resume/' + encodeURIComponent(id), { method: 'DELETE' });
+  } catch {
+    return { ok: false, message: '网络错误，请稍后重试；简历未被删除。' };
+  }
+  if (res.status === 401) redirect('/login?expired=1');
+  if (res.status === 404) return { ok: false, message: '找不到这份简历，或它已被删除。' };
+  if (res.status !== 202) return { ok: false, message: '删除请求未受理（' + res.status + '），未当作已删除。' };
+  const body = await res.json().catch(() => null) as { mode?: string; purgePending?: boolean } | null;
+  if (body?.mode !== 'logical' || body?.purgePending !== true) {
+    return { ok: false, message: '删除受理形状不合法，未当作已删除。' };
+  }
+  revalidatePath('/resume');
+  return { ok: true, purgePending: true };
+}

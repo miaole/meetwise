@@ -64,7 +64,7 @@ export class PrivacyController {
   }
 
   @Delete('resume-data')
-  @HttpCode(HttpStatus.SERVICE_UNAVAILABLE)
+  @HttpCode(HttpStatus.ACCEPTED)   // S1 软删受理（UNSTUB-ERASE rev2）：202+mode:logical+purgePending,非完成态
   deleteResumeData(@Req() req: any) {
     return this.privacy.deleteResumeData(req.principal);
   }

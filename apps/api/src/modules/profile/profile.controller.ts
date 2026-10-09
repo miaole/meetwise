@@ -41,8 +41,8 @@ export class ProfileController {
   }
 
   @Post('deactivate')
-  @HttpCode(HttpStatus.OK)
-  deactivate(@Req() req: any) {
-    return this.profiles.deactivate(req.principal);
+  @HttpCode(HttpStatus.ACCEPTED)   // 注销+账户级删除受理（UNSTUB-ERASE rev2）：202 软删受理,非完成态
+  deactivate(@Req() req: any, @Body() b: { password?: string }) {
+    return this.profiles.deactivate(req.principal, b?.password);
   }
 }

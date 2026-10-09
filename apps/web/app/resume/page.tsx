@@ -4,6 +4,7 @@ import { getServerToken, serverGet } from '../../lib/api/server';
 import { reparseResumeAction, grantConsentAction, withdrawInterviewPersonalizationAction } from './actions';
 import { startDiagnosisAction } from '../diagnosis/actions';
 import { ResumeUploadForms } from './ResumeUploadForms';
+import { DeleteResumeButton } from './DeleteResumeButton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +17,8 @@ export const metadata = { title: '简历 · 知面' };
 
 /**
  * 简历页(Server Component):服务端取令牌→未登录跳 /login;服务端 GET /resume 渲染列表;
- * 上传与重新解析走 Server Action。完整删除仍未闭环，因此页面不提供会误导用户的删除操作。
+ * 上传/重新解析/删除走 Server Action。删除为 S1 软删受理（202+purgePending）:
+ * 即时从列表与一切处理面消失;后台物理清除异步完成,文案如实披露,不宣称「彻底删除」。
  */
 export default async function ResumePage() {
   if (!(await getServerToken())) redirect('/login');
@@ -37,7 +39,7 @@ export default async function ResumePage() {
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">简历 · 知面</h1>
         <p className="text-sm text-muted-foreground">
-          用于练习的简历内容会经过当前已覆盖的存储与访问约束；只提取必要结构化事实，不编造经历。完整删除流程尚未开放；面试出题个性化同意可随时撤回。
+          用于练习的简历内容会经过当前已覆盖的存储与访问约束；只提取必要结构化事实，不编造经历。删除即时生效（立即停止处理与访问）；跨存储清除回执稍后在隐私边界说明中保持如实状态。
         </p>
       </header>
 
@@ -48,7 +50,7 @@ export default async function ResumePage() {
         <Card>
           <CardHeader>
             <CardTitle>先同意隐私政策(PIPL)</CardTitle>
-            <CardDescription>上传简历会处理个人信息。请阅读并同意后再上传——系统只用于练习所需的结构化提取，不编造经历。完整删除、撤回与跨存储回执流程尚未开放。</CardDescription>
+            <CardDescription>上传简历会处理个人信息。请阅读并同意后再上传——系统只用于练习所需的结构化提取，不编造经历。删除即时生效；跨存储清除回执异步完成。</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <form action={grantConsentAction} className="space-y-3">
@@ -105,9 +107,7 @@ export default async function ResumePage() {
                       <form action={reparseResumeAction.bind(null, r.id)}>
                         <SubmitButton variant="outline" size="sm" pendingLabel="解析中…">重新解析</SubmitButton>
                       </form>
-                      <button type="button" disabled title="完整删除与跨存储回执流程尚未开放" className="rounded-md border border-destructive/30 px-3 py-1.5 text-sm text-destructive/60 disabled:cursor-not-allowed">
-                        删除功能暂未开放
-                      </button>
+                      <DeleteResumeButton resumeId={r.id} />
                     </div>
                   </CardContent>
                 </Card>

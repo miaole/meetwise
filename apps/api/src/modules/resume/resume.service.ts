@@ -4,7 +4,7 @@ import {
   createResumeWithBlob, transitionResume, completeIngestion, decryptResumeBlob,
   persistResumeOcrArtifact, decryptResumeOcrArtifact, deleteResumeOcrArtifact,
   reserveEntitlement, confirmConsumption, releaseConsumption,
-  requireOwnerUserId, buildRequiredOwnerFilter,
+  requireOwnerUserId, buildRequiredOwnerFilter, beginResumeSoftDelete,
   type ResumeOcrBindingSnapshot, type ResumeSourceKind, errCode, asErr,
 } from '@meetwise/db';
 import { ingestResume, extractResumeText, parseSealedOcrProvenance } from '@meetwise/domain';
@@ -214,6 +214,8 @@ export class ResumeService {
     const owner = requireOwnerUserId(principal, 'resume.list');
     const listFilter = buildRequiredOwnerFilter(owner, 'resume.list.scope');
     return this.db.asPrincipal(owner, async (c: any) => {
+      // S1 软删即时可见面（UNSTUB-ERASE rev2 §2.2-C）：已围栏/已 erased 简历从「我的简历」
+      // 消失（列表过滤 ≠ 物理删除——行仍在,0153/S2 面受理 prove 断言物理行不变）。
       const r = await c.query(`
         SELECT r.id, r.status, r.created_at, r.content_sha,
           rp.structured #>> '{experience,0,text}' AS experience_hint,
@@ -221,6 +223,7 @@ export class ResumeService {
         FROM resume r
         LEFT JOIN resume_profile rp ON rp.resume_id=r.id AND rp.owner_user_id=r.owner_user_id
         WHERE r.owner_user_id=$1
+          AND r.status NOT IN ('erasure_fenced','erased')
         ORDER BY r.created_at DESC, r.id`, [listFilter.value]);   // RLS:只己见 + 显式必选谓词第二层
       return {
         resumes: r.rows.map((row: any) => ({
@@ -270,13 +273,36 @@ export class ResumeService {
   }
 
   /**
-   * The historical hard DELETE bypassed the C/B reference snapshot, queue and
-   * graph fences, receipt ledger, and external deletion targets.  Keep the
-   * route fail-closed until the per-resume asynchronous erasure state machine
-   * replaces it; a 200 here would falsely represent a privacy guarantee.
+   * S1 软删受理（UNSTUB-ERASE rev2 · D6 最低集）：202 + `mode:'logical'` +
+   * `purgePending:true`。同事务内①owner+uuid 校验（不存在/越权/非 uuid → 404 不分叉，
+   * 沿 profile() 形制）②0152 受审墓碑函数：`status→'erasure_fenced'` +
+   * `erasure_requested_at` + `privacy_epoch+1` + `privacy_erasure_request`（scope=
+   * resume_data · 内部派生幂等键）落账。围栏即时生效面全部已在库（0063 active-read
+   * RLS/0060 部分去重索引/列表过滤/begin 绑定谓词/队列三元组）。**状态幂等**：再删
+   * 已围栏行 → 202 同态（`alreadyFenced:true`·同 requestId），不建第二份账。
+   * **不撒谎边界**：本地围栏 ≠ 物理清除——`purgePending:true` 恒真直至 S2 简历轨
+   * claim/purge worker 逐回执闭合；本响应永不携带完成态字段。
    */
-  remove(_principal: string, _id: string): never {
-    throw new HttpException({ error: 'resume_erasure_migration_in_progress' }, HttpStatus.SERVICE_UNAVAILABLE);
+  async remove(principal: string, id: string) {
+    if (!UUID_RE.test(id)) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+    return this.db.asPrincipal(principal, async (c: any) => {
+      let receipt;
+      try {
+        receipt = await beginResumeSoftDelete(c, principal, id);
+      } catch (e: unknown) {
+        // 42501 = 不存在/越权/不可围栏：404 不分叉，不泄漏存在性（P-04 桩期的立法意图继承）。
+        if (errCode(e) === '42501') throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+        throw e;
+      }
+      return {
+        resumeId: receipt.resumeId,
+        mode: 'logical' as const,
+        deletedAt: receipt.fencedAt,
+        purgePending: true as const,
+        requestId: receipt.requestId,
+        ...(receipt.alreadyFenced ? { alreadyFenced: true as const } : {}),
+      };
+    });
   }
 
   profile(principal: string, id: string) {

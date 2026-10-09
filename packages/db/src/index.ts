@@ -94,6 +94,9 @@ export {
   persistResumeOcrArtifact, decryptResumeOcrArtifact, deleteResumeOcrArtifact,
 } from './resume.ts';
 export type { ResumeStatus, IngestedProfile, ResumeSourceKind, ResumeOcrBindingSnapshot } from './resume.ts';
+// resume S1 软删受理（UNSTUB-ERASE rev2 · 0152 唯一受审墓碑写入路径的薄包装;物理清除归 S2,purgePending 恒真）
+export { beginResumeSoftDelete } from './resume-privacy.ts';
+export type { ResumeSoftDeleteReceipt } from './resume-privacy.ts';
 
 // report job ops（报告子图舱壁：持久 job + 状态机 + 租约 + 重试）
 export {
