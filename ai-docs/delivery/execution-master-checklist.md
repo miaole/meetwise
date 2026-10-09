@@ -2183,4 +2183,3 @@ flowchart TD
 - [ ] **STILL OPEN**：访问行 query 剥离微刀·收据重生成·主线锁文件合并面 typecheck（DEPS S2 席并行补验）·`g7SuiteGreen=false` 维持.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · #89 ≠ 访问行 query 已剥（残留登记） · 实现方不 self-approve.
->>>>>>> edaf02ce (docs(obs-logging): nail — post-prove dual BOTH PASS (leak-face audited with real secrets zero-hit, genReqId single-source proven, merge path = rebase + mandatory prove re-run on fastify 5.12.5))
