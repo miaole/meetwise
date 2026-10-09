@@ -1,0 +1,4 @@
+e2e/full.e2e.ts(209,5): error TS2304: Cannot find name 'emitE2EFailure'.
+e2e/helpers/e2e-helpers.proof.ts(54,33): error TS2304: Cannot find name 'HeadersInit'.
+e2e/helpers/e2e-helpers.proof.ts(70,37): error TS2552: Cannot find name 'RequestInfo'. Did you mean 'RequestInit'?
+e2e/helpers/interview.ts(182,30): error TS2322: Type 'string' is not assignable to type '"budget_exhausted" | "all_resolved"'.
