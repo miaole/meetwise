@@ -2537,8 +2537,7 @@ async function main() {
       // Re-attest host SQL after migrate (flake: migrate green → prove ECONNREFUSED).
       await waitForPostgres(env, { consecutive: 3, label: 'post-migrate' });
     }
-    if (target === 'api:validate' || process.env.DEBUG_SHOW_PROOF === '1') env.E2E_PREMIGRATED = '1';
-    if (process.env.DEBUG_SHOW_PROOF === '1') { /* temp debug: run in-band to see failures */ }
+    if (target === 'api:validate') env.E2E_PREMIGRATED = '1';
     // Final host+container SELECT 1 immediately before prove spawn (GAP-PRIV-AUTHZ-PROVE-FLAKE).
     // Cold ledger reproduced ECONNREFUSED after post-migrate ready when the container/proxy
     // vanished (state_bytes=29); re-attest and confirm container still running.
