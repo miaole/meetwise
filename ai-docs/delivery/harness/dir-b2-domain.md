@@ -1,6 +1,6 @@
 # Harness / REQUEST — DIR-1 · B2 domain 目录拆解刀（packages/db/src 域文件夹化 · 65 纯移动 · ≤5 文件分批 B2a–B2s）
 
-**Status**: `draft:awaiting_pre_exec_dual` · **STOP**（预执行双审未开 · 未授权不得 mv · 本 REQUEST docs-only）
+**Status**: `draft:awaiting_pre_exec_dual`（rev1→rev2 · 状态保持）· **STOP**（预执行双审未开 · 未授权不得 mv · 本 REQUEST docs-only · rev2 修订见文末 Erratum）
 **Date**: 2026-10-07 · **Base tip**: `e2834082`（g7p6 nail · 本 worktree 实测 HEAD · 工作树干净）
 **Worktree**: `meetwise-line-dirb2` · branch `line/dir-b2-domain`
 **前置裁定引用**：DIR-1 B1（`line/dir-structure` · `409843b3` · 65 纯 git mv + 白名单路径文本）+ E4 微刀（`d3507770` · run-e2e-isolated.mjs receipt 层纯路径文本修正案）已由协调方裁定 nail —— B2 前置达成；本刀 = **同先例模式在本线的落地刀**：前缀迁移 + runner receipt 路径更新 + 静态守卫/机械串面更新，一鱼三吃并入每批。
@@ -36,12 +36,12 @@
 
 | 文件 | 行 | 域 | inSRC | barrel | runner | ext |
 |------|---:|----|------:|-------:|-------:|----:|
-| principal.ts | 2077 | **根锚** | 45 | 3 | 67 | 11 |
-| index.ts | 568 | **根锚（桶）** | — | — | 39 | 8 |
+| principal.ts | 2077 | **根锚** | 45（含桶） | 3 | 67 | 10 |
+| index.ts | 568 | **根锚（桶）** | — | — | 39 | 7 |
 | qbank-embedding-compute-cache.ts | 549 | qbank | 0 | 2 | 1 | 3 |
 | recruiter.ts | 475 | recruiting | 0 | 2 | 10 | 6 |
-| qbank-ingest.ts | 459 | qbank | 4 | 2 | 16 | 2 |
-| job-route-decision.ts | 404 | routing | 4 | 2 | 7 | 9 |
+| qbank-ingest.ts | 459 | qbank | 2 | 2 | 16 | 2 |
+| job-route-decision.ts | 404 | routing | 4 | 2 | 7 | 8 |
 | commerce.ts | 388 | commerce | 0 | 2 | 23 | 4 |
 | qbank-miss.ts | 385 | qbank | 0 | 2 | 2 | 2 |
 | qbank-retrieval-cache.ts | 374 | qbank | 2 | 2 | 7 | 3 |
@@ -54,7 +54,7 @@
 | memory-index-generation.ts | 282 | memory | 0 | 2 | 3 | 2 |
 | uc052-internal-erasure.ts | 275 | privacy | 1 | 1 | 4 | 1 |
 | memory-summary.ts | 275 | memory | 0 | 2 | 3 | 1 |
-| qbank-track-local-retrieval.ts | 271 | qbank | 0 | 2 | 4 | 9 |
+| qbank-track-local-retrieval.ts | 271 | qbank | 0 | 2 | 4 | 8 |
 | interview-jobs.ts | 265 | interview | 0 | 2 | 8 | 1 |
 | free-text-route-decision.ts | 264 | routing | 0 | 2 | 2 | 2 |
 | qbank-generation-retrieval.ts | 262 | qbank | 5 | 2 | 13 | 2 |
@@ -99,7 +99,7 @@
 | migrate-cli.ts | 84 | **根锚** | 0 | 0 | 1 | 3 |
 | memory-vector-chunk-erasure.ts | 81 | memory | 1 | 2 | 2 | 1 |
 | interview-answer-dual-write.ts | 67 | interview | 3 | 1 | 1 | 1 |
-| retrieval-store.ts | 66 | retrieval | 1 | 1 | 3 | 14 |
+| retrieval-store.ts | 66 | retrieval | 1 | 1 | 3 | 13 |
 | gateway-dispatch.ts | 63 | jobs | 0 | 2 | 0 | 1 |
 | memory-store.ts | 56 | memory | 0 | 2 | 2 | 1 |
 | retrieval-legacy.ts | 45 | retrieval | 1 | 0 | 2 | 1 |
@@ -117,15 +117,15 @@
 | M1 | 桶 `src/index.ts` | 568 行 · **128 行相对 re-export**（`from './<name>.ts'`）+ tenant 2 行（:33/:34 · `barrelTenantReexports===2` 断言钉死 **禁触**） | 每批随移动改写对应 specifier |
 | M2 | runner `scripts/run-e2e-isolated.mjs` `isolatedReceiptSources`（:93–:1640 · 消费点 :2558） | **243 行含串 / 435 处串 / 66 唯一文件 / 117 靶**；移动件净面 = **258 处串 / 59 文件**；内核锚 176 处（principal 67 · isolated-test-target 64 · index 39 · migrate 4 · migrate-cli 1 · ids 1）+ tenant 1 处 + errors 0 处 = **零改**；**块外 db 串 = 0 行（已证）** | E4 同型·同批纯文本改写 |
 | M3 | 包内 import | src 移动件互引 + 移动件→锚/tenant（principal ×45 文件 · ids ×7 · errors ×2 · tenant ×3：candidate-route/notification/recruiter）；`packages/db/test/` 73 proof 中 **47 文件**含 `../src/` 相对 import，其中**非桶直引 = 13 文件 24 行**，须随批改 = **6 文件 17 行**（db-money3 ×3 · retrieval-backend-qdrant ×1 · uc052-{checkpoint-physical ×3 · external-sink-async-purge ×4 · external-sink-retention ×3 · internal-erasure ×3}，§5 逐批列）；其余 7 文件为锚/tenant 直引（db-acl · db-acl2 · db-trigfam-unify · migrate · pool-error-listener · isolated-test-target · tenant-enforcement）+ 34 文件仅 `../src/index.ts` 桶引 = **零改** | 每批随移动改写 |
-| M4 | 仓内机械路径**串**消费（readFileSync/readRepo/readPkg/join/STATIC_TARGET） | ① `scripts/conn-stack/` 8 文件 11 处（1 处 principal 锚零改 → 净 10 处/7 文件）② `packages/qdrant-store/test/` 8 文件（全部 `retrieval-store.ts`）③ `apps/api/test/` 11 文件（1 文件仅 principal 锚零改）④ `apps/worker/src/r4-funnel-covered-count-batch{1..4}.ts` 4 文件 12 处 ⑤ `apps/worker/test/` 14 文件（6 文件仅 principal 锚零改）⑥ `packages/db/test/` 机械串 6 文件（§5 逐批列）⑦ `tenant-wiring.manifest.ts` WIRED_FILES **6 处 file: 实值**（:147/:157/:170/:227/:233/:239）+ RESIDUAL_PATHS brace-glob 2 行（:245/:251） | 每批同批纯文本改写（漏改 = 机械红） |
-| S1 | 注释/文档型路径串（非机械） | `packages/db/src/int-transcript.ts:7` · `packages/db/test/db-acl.proof.ts:267/:490` · `qbank-source.proof.ts:2` · `packages/domain/src/qbank-{route-scope-cache:16,track-local-retrieval:13}.ts` · `packages/qdrant-store/src/product-vectorstore-bridge.ts:5/:9` · `apps/api/test/uc-e2e-011-{adv-refund-callback:15,refund-callback-adv:24}.proof.ts` 头注 | **判留陈旧 + 本节登记**（E3b 同型先例：`docker/env/worker.env.example:171`）；改则仅路径文本且须批 REQUEST 单列 |
+| M4 | 仓内机械路径**串**消费（readFileSync/readRepo/readPkg/join/STATIC_TARGET） | ① `scripts/conn-stack/` 8 文件 11 处（1 处 principal 锚零改 → 净 10 处/7 文件）② `packages/qdrant-store/test/` 8 文件（全部 `retrieval-store.ts`）③ `apps/api/test/` 11 文件（1 文件仅 principal 锚零改）④ `apps/worker/src/r4-funnel-covered-count-batch{1..4}.ts` 4 文件 **17 行 = 13 处移动面**（batch1 2 · batch2 5 · batch3 5 · batch4 1）+ 4 处 index.ts 锚零改（b2:176·b3:118·b3:201·b4:115）＝ b1:97 job-route-decision · b1:181 track-local · b2:96 projection · b2:97 track-local · b2:174 compute-cache · b2:175 retrieval-cache · b2:179 memory-index-generation · b3:117 miss · b3:200 route-scope-cache · b3:202 compute-cache · b3:204 track-local · b3:205 retrieval-cache · b4:114 free-text-route-decision ⑤ `apps/worker/test/` 14 文件（6 文件仅 principal 锚零改）⑥ `packages/db/test/` 机械串 6 文件（§5 逐批列）⑦ `tenant-wiring.manifest.ts` WIRED_FILES **6 处 file: 实值**（:147/:157/:170/:227/:233/:239）+ RESIDUAL_PATHS brace-glob 2 行（:245/:251） | 每批同批纯文本改写（漏改 = 机械红） |
+| S1 | 注释/文档型路径串（非机械） | `packages/db/src/int-transcript.ts:7` · `packages/db/test/db-acl.proof.ts:267/:490` · `qbank-source.proof.ts:2` · `packages/domain/src/qbank-{route-scope-cache:16,track-local-retrieval:13}.ts` · `packages/qdrant-store/src/product-vectorstore-bridge.ts:5/:9` · `apps/api/test/uc-e2e-011-{adv-refund-callback:15,refund-callback-adv:24}.proof.ts` 头注 · `packages/db/test/uc052-checkpoint-physical.proof.ts:7` 头注（B2o 批收据复述登记） · `apps/api/test/uc-e2e-014-026-webhook-adv.proof.ts:19` 头注 | **判留陈旧 + 本节登记（八处）**（E3b 同型先例：`docker/env/worker.env.example:171`）；改则仅路径文本且须批 REQUEST 单列 |
 | M5 | 锚点外部引用（**零改面**） | `docker/compose.prod.yml:231`（`src/migrate-cli.ts` 容器命令）· 根 `tsconfig.json:8`（`@meetwise/db → packages/db/src/index.ts`）· `scripts/deploy-check.mjs:31` · `scripts/quality-governance.proof.mjs:266` · `scripts/mysql-schema.skeleton.proof.mjs:142` · `scripts/ha/prove-nest-session.mjs:150` · `scripts/conn-stack/mysql-stack.m2-tenant:16`（全指锚）· apps 56 文件经 `@meetwise/db` 桶 import | 锚不动 ⇒ 全部零改 |
 | M6 | **static guards**（`scripts/e2e-static-guards.mjs`+`.proof.mjs`） | **零 packages/db/src 引用**（只钉 `e2e/` 树：helpers 7 + full.e2e + proof） | **B2 更新点 = 0**；但五契约门每批必跑（§6 G1）——「static guards 更新」在本刀的实体 = M2 runner receipt 面 + M4 manifest/串面，guards 本体零触 |
 
 ### 1.3 候选域判定
 
 沿 B1 先例 18 域（§2）；**本刀新增裁定 2 条**（交双审复核）：
-- `errors.ts`（35 行 · 2 消费者）· `ids.ts`（98 行 · 7 消费者跨 6 域）为**跨域共享内核**，判留根锚（同 `principal.ts` 判例 · SPLIT-1 候选）——B1 基线无此二文件（主线后增），无先例覆盖，故显式裁定。
+- `errors.ts`（35 行 · 2 消费者）· `ids.ts`（98 行 · 7 消费者跨 4 域（routing/qbank/transcript/recruiting））为**跨域共享内核**，判留根锚（同 `principal.ts` 判例 · SPLIT-1 候选）——B1 基线无此二文件（主线后增），无先例覆盖，故显式裁定。
 - 其余 65 文件全部入域；`tenant/` 原地；根最终留 **7 锚**（index · principal · migrate · migrate-cli · isolated-test-target · errors · ids）+ tenant/。
 
 ---
@@ -172,7 +172,8 @@ grep -nE "packages/db/src/<本批移动名>\.ts['\"]" scripts/run-e2e-isolated.m
 ```bash
 grep -rnE "packages/db/src/[a-z0-9-]+\.ts" apps packages/domain packages/qdrant-store packages/db/test scripts e2e \
   --include="*.ts" --include="*.mjs" \
-  | grep -vE "src/(index|principal|migrate|migrate-cli|isolated-test-target|errors|ids|tenant/index)\.ts"   # 期望 0 行
+  | grep -vE "src/(index|principal|migrate|migrate-cli|isolated-test-target|errors|ids|tenant/index)\.ts" \
+  | grep -vE "db-acl\.proof\.ts:(267|490):|qbank-source\.proof\.ts:2:|uc052-checkpoint-physical\.proof\.ts:7:|qbank-route-scope-cache\.ts:16:|qbank-track-local-retrieval\.ts:13:|product-vectorstore-bridge\.ts:(5|9):|uc-e2e-011-adv-refund-callback\.proof\.ts:15:|uc-e2e-011-refund-callback-adv\.proof\.ts:24:|uc-e2e-014-026-webhook-adv\.proof\.ts:19:"   # 期望 0 行（S1 登记八处豁免 · int-transcript.ts:7 处 packages/db/src 不入本 grep 路径集）
 ```
 
 ---
@@ -201,13 +202,13 @@ grep -rnE "packages/db/src/[a-z0-9-]+\.ts" apps packages/domain packages/qdrant-
 |----|----------------|----------------|------------------------------|------------|
 | **B2a** | audit/：audit(10) | `prove:db-acl` · `prove:isolated-target` | 无（audit runner=0）——本批立模式：桶 1 行 + tsc + 残留 grep=0 即收口 | 无 |
 | **B2b** | report/：report(92)；notification/：notification(36) | `prove:uc019-report-regenerate` · `prove:db-acl` · `tenant-enforcement:prove` · `prove:tenant-wiring-e5` | **report**：db-acl · report · uc001:nhp-fault · uc011:report-refund:http · uc011:report-refund · uc019:report-regenerate:http · uc019:report-regenerate；**notification**：tenant-wiring-neg（base 红候选） | `uc-e2e-001-nhp-fault.proof.ts:90`；manifest :147/:227（notification file: 实值·readFileSync 机械） |
-| **B2c** | resume/：resume(220)；recruiting/：recruiter(475) | `resume` · `recruiter` · `prove:tenant-wiring-e5` · `prove:db-id-v7` | **resume**：resume · interview · ocr · reaper · resume-derivative-reference · resume-erasure:foundation · resume-reference:http · uc027:manual-review-appeal · adaptive-consumer（base 红候选）；**recruiter**：recruiter · db-id-v7 · rag03-route · rag04-track-local · rag05-qbank-miss · scor-00:http · tenant-wiring-neg · nhp-r4-adv-covered · r4-wrong-track-adv-live-pg · r4-wrong-track-prod-surface | `r2-p-api-route-classify.proof.ts:29`；worker r2 五连（r2-classify-job-route-prereq:33 · r2-p-live:31 · r2-p-loop:26 · r2-p-start:25）；manifest :157/:233 |
-| **B2d** | transcript/：int-transcript(285) · int-transcript-projection(105) | `prove:int-transcript-answer-fact-root` · `prove:int-transcript-remaining-sinks` · `prove:int-answer-dual-write-fence` | **int-transcript**：int-transcript-answer-fact-root · int-transcript-remaining-sinks · int-answer-dual-write-fence · db-id-v7 · growth · scor-01 · scor-02 · scor03-evidence-conflict · int-transcript-preview-submit:http（base 红候选·privacy_fenced 族）；**projection**：uc052:internal-erasure · uc052:external-sink-retention · uc052:external-sink-async-purge | 无（uc052 proofs 的 `../src/int-transcript-projection.ts` import 属 ① 类随批改） |
+| **B2c** | resume/：resume(220)；recruiting/：recruiter(475) | `resume` · `recruiter` · `prove:tenant-wiring-e5` · `prove:db-id-v7` | **resume**：resume · interview · ocr · reaper · resume-derivative-reference · resume-erasure:foundation · resume-reference:http · uc027:manual-review-appeal · adaptive-consumer（base 红候选）；**recruiter**：recruiter · db-id-v7 · rag03-route · rag04-track-local · rag05-qbank-miss · scor-00:http · tenant-wiring-neg · nhp-r4-adv-covered · r4-wrong-track-adv-live-pg · r4-wrong-track-prod-surface | `r2-p-api-route-classify.proof.ts:29`；worker r2 4 + api:29（r2-classify-job-route-prereq:33 · r2-p-live:31 · r2-p-loop:26 · r2-p-start:25）；manifest :157/:233；`uc-e2e-027-manual-review-appeal.proof.mjs:127`（resume 面） |
+| **B2d** | transcript/：int-transcript(285) · int-transcript-projection(105) | `prove:int-transcript-answer-fact-root` · `prove:int-transcript-remaining-sinks` · `prove:int-answer-dual-write-fence` | **int-transcript**：int-transcript-answer-fact-root · int-answer-dual-write-fence · db-id-v7 · growth · scor-01 · scor-02 · scor03-evidence-conflict · int-transcript-preview-submit:http（base 红候选·privacy_fenced 族）；**projection**：uc052:internal-erasure · uc052:external-sink-retention · uc052:external-sink-async-purge · int-transcript-remaining-sinks | 无（uc052 proofs 的 `../src/int-transcript-projection.ts` import 属 ① 类随批改） |
 | **B2e** | commerce/：commerce(388) · payment(166) | `commerce` · `prove:db-money3` · `prove:uc011-report-refund` · `prove:uc019-report-regenerate` | **commerce（23）**：commerce · db-money3 · ocr · reaper · recruiter · uc001:nhp-{adv,bound,fault,neg} · uc011:report-refund{,:http} · uc016:nhp-fault · uc017:{nhp-load,orphan} · uc018:{abandon,abandon:http,adv,graph,perf-load,ttl} · uc019:report-regenerate{,:http} · uc025:nhp-adv；**payment（4）**：db-money3 · uc011:adv · uc011:refund-callback · uc011:report-refund:http | **E6 残留面收口**：`packages/db/test/uc-e2e-011-report-refund.proof.ts:200`（readRepo payment）；api 五文件：uc-e2e-011-adv-refund-callback(:80,:296) · uc-e2e-011-refund-callback-adv(:182,:191,:461) · uc-e2e-011-report-refund-http(:286) · uc-e2e-014-026-webhook-adv(:284) · uc-e2e-001-nhp-{adv:75,bound:72,fault:92}；`db-money3.proof.ts` imports（commerce/payment/interview-event→B2l 二段） |
-| **B2f** | routing/：candidate-route(134) · free-text-route-decision(264) · job-route-decision(404) | `prove:rag03-route` · `prove:rag07-free-text-route` · `prove:db-id-v7` · `prove:tenant-wiring-e5` | **candidate-route**：db-id-v7 · tenant-wiring-neg（红候选）；**free-text**：rag07-free-text-route · db-id-v7；**job-route-decision**：rag03-route · rag04-track-local · rag05-qbank-miss · db-id-v7 · nhp-r4-adv-covered · r4-wrong-track-adv-live-pg · r4-wrong-track-prod-surface | manifest :170/:239；`conn-stack/mysql-stack.m4-rag:21`；worker `r4-funnel-covered-count-batch1.ts:97`；worker r2 六处（r2-classify:32 · r2-p-fake:36 · r2-p-live:32 · r2-p-loop:27 · r2-p-start:26 · r2-p-worker:31） |
+| **B2f** | routing/：candidate-route(134) · free-text-route-decision(264) · job-route-decision(404) | `prove:rag03-route` · `prove:rag07-free-text-route` · `prove:db-id-v7` · `prove:tenant-wiring-e5` | **candidate-route**：db-id-v7 · tenant-wiring-neg（红候选）；**free-text**：rag07-free-text-route · db-id-v7；**job-route-decision**：rag03-route · rag04-track-local · rag05-qbank-miss · db-id-v7 · nhp-r4-adv-covered · r4-wrong-track-adv-live-pg · r4-wrong-track-prod-surface | manifest :170/:239；`conn-stack/mysql-stack.m4-rag:21`；worker `r4-funnel-covered-count-batch1.ts:97`；worker r2 六处（r2-classify:32 · r2-p-fake:36 · r2-p-live:32 · r2-p-loop:27 · r2-p-start:26 · r2-p-worker:31）；worker `r4-funnel-covered-count-batch4.ts:114`（free-text-route-decision · readRepo 机械） |
 | **B2g** | checkpoint/：checkpoint-privacy(123) · checkpoint-thread(34) | `prove:uc052-checkpoint-physical`（927 行重 proof·本批必跑） | **checkpoint-privacy（7）**：checkpoint-role · int-transcript-answer-fact-root · privacy-erasure:http · privacy-erasure:pause-upgrade · privacy-erasure:prove · scor-01 · uc052:checkpoint-physical；checkpoint-thread 无靶 | `uc052-checkpoint-physical.proof.ts` import（checkpoint-privacy）① 类 |
 | **B2h** | jobs/：diagnosis-jobs(87) · quiz-jobs(89) · gateway-dispatch(63) · worker-job-wakeup(35) | `prove:uc017-orphan` · `prove:uc017-nhp-load` · `prove:uc018-abandon` · `prove:uc018-graph` | **diagnosis**：diagnosis · resume-derivative-reference · uc016:nhp-fault；**quiz**：quiz · reaper · resume-derivative-reference · uc016:nhp-fault；gateway/worker-job-wakeup 无靶 | **E4b 面收口**：`conn-stack/mysql-stack.m3-queue:17` + `redis-wakeup:21`（worker-job-wakeup）；`r2-p-api-route-classify.proof.ts:24` · `r2-classify-job-route-prereq.proof.ts:60` · `r2-p-worker-route-classify.proof.ts:32`（gateway-dispatch） |
-| **B2i** | context/：ctx03-event-source(304) · context-compression-dispatch(193) · -erasure(92) · -snapshot(170) | `prove:ctx03-event-source` · `prove:ctx04-compression-snapshot` · `prove:ctx05-concurrency-recovery` · `prove:ctx06-deletion-closure` | **ctx03（6）**：ctx03-event-source · ctx04 · ctx05 · ctx06 · mem02-summary（红候选）· mem03-summary-tree（红候选）；**dispatch（2）**：ctx05 · ctx06；**erasure（1）**：ctx06；**snapshot（3）**：ctx04 · ctx05 · ctx06 | 无 |
+| **B2i** | context/：ctx03-event-source(304) · context-compression-dispatch(193) · -erasure(92) · -snapshot(170) | `prove:ctx03-event-source` · `prove:ctx04-compression-snapshot` · `prove:ctx05-concurrency-recovery` · `prove:ctx06-deletion-closure` | **ctx03（6）**：ctx03-event-source · ctx04-compression-snapshot · ctx05-concurrency-recovery · ctx06-deletion-closure · mem02-summary（红候选）· mem03-summary-tree（红候选）；**dispatch（2）**：ctx05-concurrency-recovery · ctx06-deletion-closure；**erasure（1）**：ctx06-deletion-closure；**snapshot（3）**：ctx04-compression-snapshot · ctx05-concurrency-recovery · ctx06-deletion-closure | 无 |
 | **B2j** | retrieval/：rag-corpus-versioning(257) · retrieval-backend(149) · retrieval-legacy(45) · retrieval-store(66) | `prove:vectorstore` · `prove:rag-corpus-version` · `prove:rag-control-role` · `prove:rag-control-upgrade` · `prove:rag-control-dispatch` · `prove:rag03-filter-locus` · `prove:rag03-hnsw-completeness` · `prove:rag03c-exactk-observe` · `prove:retrieval-backend-qdrant`（红候选 EXIT=3） | **rag-corpus-versioning（3）**：rag-control-role · rag-control-upgrade · rag-corpus-version；**retrieval-legacy（2）**：rag03-filter-locus · rag03-hnsw-completeness；**retrieval-store（3）**：rag03-filter-locus · rag03-hnsw-completeness · rag03c-exactk-observe；retrieval-backend 无靶 | **conn-stack 四连**：m4-rag:24 · m5-fixtures:23 · qdrant-backed:33 · r5-mark-red:30；**qdrant-store 八文件**：memory-qdrant:49 · qdrant-store.erase-honesty:29 · g5-erasure:41 · g5-ledger-map:49 · skeleton:24 · vectorstore-adapter:37 · rag-qdrant:48 · vectorstore-qdrant:41；`retrieval-backend-qdrant.proof.ts:41/:42`（join src/…）+ :32 import |
 | **B2k** | model-op/：ai-cost-governance(98) · model-invocation(183) · model-operation-admission(108) · online-judge-control(114) · usage-calibration(137) | `prove:ai-cost` | **ai-cost（10）**：db-trigfam · model-cost · model-op00 · model-op02 · model-op00-usage-reconciler · model-invocation-reconcile · failover-price-policy · model-slot-bypass · estimate-threading-invoke · uc028:nhp-fault；**model-invocation（8）**：model-op00 · model-op02 · model-op00-usage-reconciler · model-invocation-reconcile · model-slot-bypass · adaptive-degrade · privacy-erasure:prove · runtime:claim-join；**admission（2）**：model-op02 · model-slot-bypass；**usage-calibration（1）**：model-op00-usage-reconciler；online-judge-control 无靶 | 无 |
 | **B2l** | interview/：interview-answer-dual-write(67) · interview-event(43) · interview-graph-lease(87) · interview-jobs(265) · interview-question(131) | `prove:uc002-lease` · `prove:int-answer-dual-write-fence` · `prove:db-money3`（interview-event 面·二段） | **dual-write（1）**：int-answer-dual-write-fence；**event（4）**：db-money3 · int-answer-dual-write-fence · rag05-qbank-miss · tokenstream:prove:raw（若含 live 面→E5 base 同红登记不跑不洗）；**lease（1）**：uc002:lease；**jobs（8）**：interview · reaper · reqid · stress · adaptive-consumer（红候选）· privacy-erasure:prove · resume-reference:http · int-answer-dual-write-fence；**question（3）**：rag05-qbank-miss · uc001:nhp-adv · uc001:nhp-fault | `uc-e2e-001-nhp-adv.proof.ts:74`（api） |
@@ -216,8 +217,8 @@ grep -rnE "packages/db/src/[a-z0-9-]+\.ts" apps packages/domain packages/qdrant-
 | **B2o** | privacy/ 后段：uc052-checkpoint-physical(251) · uc052-external-sink-async-purge(296) · uc052-internal-erasure(275) | `prove:uc052-internal-erasure` · `prove:uc052-external-sink-retention` · `prove:uc052-external-sink-async-purge` · `prove:uc052-checkpoint-physical` | **uc052-checkpoint-physical（1）**：uc052:checkpoint-physical；**async-purge（1）**：uc052:external-sink-async-purge；**internal-erasure（4）**：uc052:internal-erasure · uc052:external-sink-retention · uc052:external-sink-async-purge · uc052:checkpoint-physical | `uc052-checkpoint-physical.proof.ts` imports ×3（① 类）+ :907 seal 披露串（④ 类） |
 | **B2p** | memory/ 前段：memory-admission(123) · memory-control-surface(348) · memory-fact-adjudication(146) · memory-governance(237) · memory-index-generation(282) | `prove:memory-admission` · `prove:memory-control-surface` · `prove:memory-fact-adjudication` · `prove:memory-governance` · `prove:memory-index-generation` | 各自同名靶 + 交叉：memory-control-surface（admission/fact-adjudication/index-generation 串）· memory-index-generation · memory-two-stage-recall（下批文件串在本批数组亦出现→③ 类随批改） | `r4-funnel-covered-count-batch2.ts:179`（memory-index-generation） |
 | **B2q** | memory/ 后段：memory-store(56) · memory-summary(275) · memory-summary-tree(185) · memory-two-stage-recall(191) · memory-vector-chunk-erasure(81) | `prove:memory-two-stage-recall` · `prove:mem02-summary`（红候选）· `prove:mem03-summary-tree`（红候选）· `prove:memory-vector-chunk-erasure` · `prove:dbhy1`（memory-store 面） | **store（2）**：memory-governance · memory；**summary（3）**：mem02-summary（红候选）· mem03-summary-tree（红候选）· ctx04-compression-snapshot；**summary-tree（1）**：mem03-summary-tree；**two-stage（1）**：memory-two-stage-recall；**vector-chunk-erasure（2）**：memory-vector-chunk-erasure · vector-plane-erasure | 无 |
-| **B2r** | qbank/ 前段：qbank-curation(101) · qbank-embedding-compute-cache(549) · qbank-generation-projection(174) · qbank-generation-retrieval(262) · qbank-ingest(459) | `prove:qbank-control-role` · `prove:qbank-handoff-closure` · `prove:embed-compute-cache` · `prove:rag03-filter-locus` · `prove:rag03-hnsw-completeness` · `prove:rag03c-exactk-observe` · `prove:rag04-track-local` | **curation（5）**：qbank-handoff-closure · rag03-filter-locus · rag03-hnsw-completeness · rag03c-exactk-observe · uc027:manual-review-appeal；**embed-cache（1）**：embed-cache；**projection（5）**：rag-generation · rag04-track-local · nhp-r4-adv-covered · r4-wrong-track-adv-live-pg · r4-wrong-track-prod-surface；**generation-retrieval（13）**：上五 + qbank-integrity-upgrade · qbank-pipeline · qbank-retrieval-eval · rag03-filter-locus · rag03-hnsw-completeness · rag03c-exactk-observe · rag05-qbank-miss · rag06-route-scope-cache；**ingest（16）**：上十三去重 + embed-cache · migrate-cli | **STATIC_TARGET 双串**：`rag03-filter-locus.proof.ts:54` + `rag03-hnsw-completeness.proof.ts:50`；`conn-stack/mysql-stack.m4-rag:22`；api `.mjs` ×2：uc-e2e-027:109 · uc-e2e-040-043:99；worker `r4-funnel-batch2:96/:174` · `batch3:117(=miss·B2s 二段)/:202` |
-| **B2s** | qbank/ 后段：qbank-miss(385) · qbank-provider-input(116) · qbank-retrieval-cache(374) · qbank-route-scope-cache(310) · qbank-track-local-retrieval(271) + **终批收口** | `prove:qbank-cache` · `prove:rag05-qbank-miss` · `prove:rag06-route-scope-cache` · `prove:rag04-track-local` · `prove:db-id-v7` | **miss（2）**：rag05-qbank-miss · db-id-v7；**provider-input（1）**：rag-generation；**retrieval-cache（7）**：rag06-route-scope-cache · rag04-track-local · rag-generation · embed-cache · nhp-r4-adv-covered · r4-wrong-track-adv-live-pg · r4-wrong-track-prod-surface；**route-scope-cache（2）**：rag06-route-scope-cache · db-id-v7；**track-local（4）**：rag04-track-local · nhp-r4-adv-covered · r4-wrong-track-adv-live-pg · r4-wrong-track-prod-surface | `conn-stack/mysql-stack.m4-rag:23` + `r4-domain-isolation:26`；worker `r4-funnel-b1:181` · `batch2:97` · `batch3:200/:204` · `batch4`（无涉）；`g4-dispatch-recheck-prereq:27` · `r4-wrong-track-adv:62`；**终批收口 = §3 全仓残留 grep=0 + runner db 面 117 靶全量 sweep（或协调方裁定抽样面）** |
+| **B2r** | qbank/ 前段：qbank-curation(101) · qbank-embedding-compute-cache(549) · qbank-generation-projection(174) · qbank-generation-retrieval(262) · qbank-ingest(459) | `prove:qbank-control-role` · `prove:qbank-handoff-closure` · `prove:embed-compute-cache` · `prove:rag03-filter-locus` · `prove:rag03-hnsw-completeness` · `prove:rag03c-exactk-observe` · `prove:rag04-track-local` | **curation（5）**：qbank-handoff-closure · rag03-filter-locus · rag03-hnsw-completeness · rag03c-exactk-observe · uc027:manual-review-appeal；**embed-cache（1）**：embed-cache；**projection（5）**：rag-generation · rag04-track-local · nhp-r4-adv-covered · r4-wrong-track-adv-live-pg · r4-wrong-track-prod-surface；**generation-retrieval（13）**：上五 + qbank-integrity-upgrade · qbank-pipeline · qbank-retrieval-eval · rag03-filter-locus · rag03-hnsw-completeness · rag03c-exactk-observe · rag05-qbank-miss · rag06-route-scope-cache；**ingest（16）**：上十三去重 + qbank-handoff-closure · embed-cache · migrate-cli | **STATIC_TARGET 双串**：`rag03-filter-locus.proof.ts:54` + `rag03-hnsw-completeness.proof.ts:50`；`conn-stack/mysql-stack.m4-rag:22`；api `.mjs` ×2：uc-e2e-027:109 · uc-e2e-040-043:99；worker `r4-funnel-batch2:96/:174` · `batch3:117(=miss·B2s 二段)/:202` |
+| **B2s** | qbank/ 后段：qbank-miss(385) · qbank-provider-input(116) · qbank-retrieval-cache(374) · qbank-route-scope-cache(310) · qbank-track-local-retrieval(271) + **终批收口** | `prove:qbank-cache` · `prove:rag05-qbank-miss` · `prove:rag06-route-scope-cache` · `prove:rag04-track-local` · `prove:db-id-v7` | **miss（2）**：rag05-qbank-miss · db-id-v7；**provider-input（1）**：rag-generation；**retrieval-cache（7）**：rag06-route-scope-cache · rag04-track-local · rag-generation · embed-cache · nhp-r4-adv-covered · r4-wrong-track-adv-live-pg · r4-wrong-track-prod-surface；**route-scope-cache（2）**：rag06-route-scope-cache · db-id-v7；**track-local（4）**：rag04-track-local · nhp-r4-adv-covered · r4-wrong-track-adv-live-pg · r4-wrong-track-prod-surface | `conn-stack/mysql-stack.m4-rag:23` + `r4-domain-isolation:26`；worker `r4-funnel-b1:181` · `batch2:97/:175`（:175=qbank-retrieval-cache）· `batch3:200/:204/:205`（:205=qbank-retrieval-cache · :117 已由 B2r 记二段）· `batch4:115`（index 锚零改 · :114 已于 B2f 改讫）；`g4-dispatch-recheck-prereq:27` · `r4-wrong-track-adv:62`；**终批收口 = §3 全仓残留 grep=0 + runner db 面 117 靶全量 sweep（或协调方裁定抽样面）** |
 
 批次核对：1+2+2+2+2+3+2+4+4+4+5+5+3+3+3+5+5+5+5 = **65 ✓**（每批 ≤5）。
 
@@ -232,14 +233,14 @@ grep -rnE "packages/db/src/[a-z0-9-]+\.ts" apps packages/domain packages/qdrant-
 | G0 面 | `git diff -M`（行对引号外逐字节）· `node --check scripts/run-e2e-isolated.mjs`（涉 ③ 批必跑）· §3 残留 grep=0 · `git diff --quiet pnpm-lock.yaml` | 全 rename 检出 · 0 违例 · EXIT=0 · lockfile 零改 |
 | G1 契约 | `pnpm e2e-platform:check` · `e2e-platform:layout:prove` · `e2e-static-guards:check` · `e2e-static-guards:prove` · `e2e-parity:check` | 五门 EXIT=0（base 红则同红原值登记；`e2e-platform:prove` 预存红 secret-redaction 不洗） |
 | G2 类型 | `pnpm install --frozen-lockfile` 后 `pnpm exec tsc -p packages/db/tsconfig.json --noEmit` + `apps/api` + `apps/worker` 同法 | **批前实测基线原值**（本 base 未装依赖，B1 教训不预设 EXIT 值）→ 批后错误集逐字节 ≡ 基线 |
-| G3 prove | 本批 §5 表：直跑键全跑 + **加粗 receipt 靶**经唯一合法隔离入口 `node scripts/run-e2e-isolated.mjs <target>` | 直跑键 + 加粗靶**零回归**（绿保持绿·红同形红）；`LOCAL_ISOLATED_PROOF_RECEIPT` 正常产出（receipt ENOENT=0）为 ③ 类通过的必要观察 |
+| G3 prove | 本批 §5 表：直跑键全跑 + **加粗 receipt 靶**经唯一合法隔离入口 `node scripts/run-e2e-isolated.mjs <target>` | 直跑键零回归 + sweep 靶零回归（绿保持绿·红同形红）；`LOCAL_ISOLATED_PROOF_RECEIPT` 正常产出（receipt ENOENT=0）为 ③ 类通过的必要观察 |
 | G4 收尾 | commit 后 `git status`（0 entries）· runner 容器零残留 | 干净 |
 
 **环境**：`pnpm db:up` 起 dev postgres 属环境准备非行为变更；runner 跑前 `env -u MODEL_API_KEY -u MODEL_BASE_URL`（est live 模型调用=0 · **Key name-only 零打印零落盘**）；live 类面（`e2e:isolated` · `e2e:ui:isolated` · perf/smoke live）不在本刀 prove 面。
 
 ### 6.2 每批 prove 键清单
 
-见 §5 表逐批列（直跑键 + receipt 靶 + base 红候选标注）。汇总：db 包 74 script 全部直跑键分布于 19 批；runner 117 靶中 db 面加粗必跑 ~60 靶次、其余由 B2s 终批全量 sweep + post 双审兜底。
+见 §5 表逐批列（直跑键 + receipt 靶 + base 红候选标注）。汇总：db 包 74 script 全部直跑键分布于 19 批；直跑键每批全跑（63/63 实存）；receipt 靶列为抽样全集，批内必跑集合=∅，由 post-dual 双审指令 + B2s 终批 117 靶 sweep 兜底。
 
 ### 6.3 终批（B2s）收口三件
 
@@ -264,7 +265,7 @@ grep -rnE "packages/db/src/[a-z0-9-]+\.ts" apps packages/domain packages/qdrant-
 7. **Ban secrets / live**：Key name-only 零打印零落盘（`.env` ABSENT）；est 0 live 模型调用；Ban 把任何绿记为 HA/releaseEvidence/covered。
 8. **Ban 假绿/洗红**：base 同红原值登记（E5）；proof 绿 + receipt ENOENT = 该批 G3 FAIL（E4 教训成文）。
 9. **Ban 自批/越序**：预执行双审 BOTH PASS + 协调方授权前 mv = 作废；批间串行，上一批 post 双审过方开下一批；每批开批前通用律 0 三查（fetch tip 对齐 / SOP / W 线冻结序 + loop §3 冲突表），命中即顺延入档。
-10. **Ban 注释静默漂移**：S1 判留清单六处须随批收据复述登记；新增判留须当批补登，不得无声。
+10. **Ban 注释静默漂移**：S1 判留清单八处须随批收据复述登记；新增判留须当批补登，不得无声。
 
 ---
 
@@ -280,4 +281,23 @@ grep -rnE "packages/db/src/[a-z0-9-]+\.ts" apps packages/domain packages/qdrant-
 
 ---
 
-*DIR-1 B2 domain 目录拆解 REQUEST · 2026-10-07 · base `e2834082` · worktree `meetwise-line-dirb2` · 65 纯移动 · releaseEvidence=false · NOT_HA · actualSpendCny=null · awaiting pre-exec dual · STOP*
+---
+
+## Erratum（rev1 → rev2 · 预执行双审三 FAIL 席处方合并 · docs-only 机械修订）
+
+- **R1**（§1.2 M4④）：「4 文件 12 处」→「4 文件 **17 行 = 13 处移动面**（batch1 2 · batch2 5 · batch3 5 · batch4 1）+ 4 处 index.ts 锚零改（b2:176·b3:118·b3:201·b4:115）」，附 13 点全清单（b1:97 job-route-decision · b1:181 track-local · b2:96 projection · b2:97 track-local · b2:174 compute-cache · b2:175 retrieval-cache · b2:179 memory-index-generation · b3:117 miss · b3:200 route-scope-cache · b3:202 compute-cache · b3:204 track-local · b3:205 retrieval-cache · b4:114 free-text-route-decision）。
+- **R2**（§5 B2f 外部串）：补 worker `r4-funnel-covered-count-batch4.ts:114`（free-text-route-decision · readRepo 机械）。
+- **R3**（§5 B2s 外部串）：删「batch4（无涉）」，改 `batch2:97/:175`（:175=qbank-retrieval-cache）· `batch3:200/:204/:205`（:205=qbank-retrieval-cache · :117 已由 B2r 记二段）· `batch4:115`（index 锚零改 · :114 已于 B2f 改讫）。
+- **R4**（§5 B2c 外部串）：补 `uc-e2e-027-manual-review-appeal.proof.mjs:127`（resume 面）。
+- **R5**（§6.2/G3）：删「~60 靶次加粗必跑」，改「直跑键每批全跑（63/63 实存）；receipt 靶列为抽样全集，批内必跑集合=∅，由 post-dual 双审指令 + B2s 终批 117 靶 sweep 兜底」；G3 期望「加粗靶零回归」同步改「直跑键零回归 + sweep 靶零回归」。
+- **R6**（§3/§1.2/§7）：终批「期望 0 行」grep 豁免集补 S1 全部登记行；S1 登记六处→**八处**（新增第七处 `packages/db/test/uc052-checkpoint-physical.proof.ts:7` 头注串·B2o 批收据复述登记 · 第八处 `apps/api/test/uc-e2e-014-026-webhook-adv.proof.ts:19` 头注串）；§7 Ban 10「六处」同步改「八处」。
+- **R7**（§5 B2d 靶列对调）：int-transcript 9→8（删 int-transcript-remaining-sinks）；projection 3→4（增 int-transcript-remaining-sinks）。
+- **R8**（§5 B2r ingest 组成）：补 `qbank-handoff-closure`（计数 16 不变）。
+- **R9**（口径勘误）：qbank-ingest inSRC 4→2（含桶 2 语句口径）· principal inSRC 45 标「含桶」· ids「跨 6 域」→「跨 4 域（routing/qbank/transcript/recruiting）」· ext 列五名（principal/index/job-route-decision/qbank-track-local-retrieval/retrieval-store）各 −1（conn-stack 裸名与 `mysql-schema.skeleton.proof.mjs` 重复计入 · index 原含根 `tsconfig.json:8`）· B2c「五连」→「worker 4 + api:29」。
+- **R10**（§5 B2i）：receipt 靶 ctx04/ctx05/ctx06 写 runner 全名 `ctx04-compression-snapshot` · `ctx05-concurrency-recovery` · `ctx06-deletion-closure`（@`packages/db/package.json` scripts + runner 实名核）。
+
+**非阻塞披露**：`packages/db/src/qbank-generation-projection.ts` 与 `qbank-provider-input.ts` 含 NUL 字节——执行席任何 rg 残留/消费面抽查须 binary-aware，入每批收据登记。
+
+---
+
+*DIR-1 B2 domain 目录拆解 REQUEST · 2026-10-07 · rev2 · base `e2834082` · worktree `meetwise-line-dirb2` · 65 纯移动 · releaseEvidence=false · NOT_HA · actualSpendCny=null · awaiting pre-exec dual · STOP*
