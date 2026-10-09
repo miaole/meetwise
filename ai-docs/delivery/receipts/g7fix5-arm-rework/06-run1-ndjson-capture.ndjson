@@ -1,0 +1,8 @@
+{"bootId":38048,"step":"consent","status":200,"elapsed_ms":7,"body":"{\"recorded\":true,\"policyVersion\":\"v1\"}"}
+{"bootId":38048,"step":"app_start","status":200,"elapsed_ms":39,"body":"{\"applicationId\":\"app_01a11fd905667a3bacd45058a3a38d48\",\"status\":\"started\",\"interviewId\":\"iv_01a11fd915607f16b3adb727f15bdc1f\",\"redirectTo\":\"/interview/iv_01a11fd915607f16b3adb727f15bdc1f?applicationI"}
+{"bootId":38048,"step":"app_start_reid","status":200,"elapsed_ms":15,"body":"{\"applicationId\":\"app_01a11fd905667a3bacd45058a3a38d48\",\"status\":\"reused\",\"interviewId\":\"iv_01a11fd915607f16b3adb727f15bdc1f\",\"redirectTo\":\"/interview/iv_01a11fd915607f16b3adb727f15bdc1f?applicationId"}
+{"bootId":38048,"step":"postm7_a1_loop","questions":2,"turns":3,"terminal":"assessment_unavailable"}
+{"bootId":38048,"step":"postm7_a2_provenance","trustedBSideScore":null,"identities":3,"questions":2,"clarifications":1}
+{"bootId":38048,"step":"postm7_a3_finalize","status":200,"outcome":"assessment_unavailable","terminal":"assessment_unavailable","scorelessBound":true,"reason":"generation_duplicate_question"}
+{"bootId":38048,"step":"postm7_a4_cand","candStatus":"assessment_unavailable","score":null,"scorelessBound":true}
+{"bootId":38048,"step":"postm7_a5_retry","retryStatus":200,"retriedStatus":"started","newInterviewId":true}
