@@ -26,7 +26,7 @@ let askSeq = 0;
     ok: true,
     raw: { q: `结合你的限流经历聊聊高并发下怎么兼顾吞吐与一致，并说明第 ${++askSeq} 轮验证方法`, refs: ['https://allow.example/deep'] },
   }),
-  'mock-interview.evaluate': () => ({ ok: true, raw: { score: 88, evidence: [{ criterion: '讲清滑动窗口', quote: '滑动窗口' }] } }),
+  'mock-interview.evaluate': () => ({ ok: true, raw: { score: 30, evidence: [{ criterion: '讲清滑动窗口', quote: '滑动窗口' }] } }),
 });
 const askRequests: Array<{ system: string; userData: string; rag?: string }> = [];
 let modelCalls = 0;
@@ -56,8 +56,10 @@ async function main() {
   // `sql/` 影子 schema，否则最新的跨域约束会在测试中悄然缺席。
   stage = 'ENTITLEMENT_SETUP';
   await admin.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0, now()+interval '300 days')", [OWNER]);
-  // 不带“经历/技能”分段的受控样本令第一题确定性降为 fundamental，
-  // 从而真实经过低置信 CRAG→deep research 分支；来源关联仍只由 typed resume_id 承担。
+  // 受控样本(RESUME-GROUNDING #191 修后:无标题简历正文行确定性归 experience facts)→ 首题 grounded;
+  // consent 缺省(本 proof 不插 interview_personalization 行)→ grounded 走既有固定模板,首 ask 移到首答后的
+  // fundamental 追问(评分 30 压低 confidence → depthProbed=1 → pickKind 奇数位 fundamental),低置信
+  // CRAG→deep research 分支断言随迁到首答后,本体语义(真实 consumer→graph 路径)零弱化。
   const resumeText = '合成样本：围绕 Redis、限流与分布式锁回答技术问题。';
   const up = await asPrincipal(pool, OWNER, async (c) => {
     stage = 'RESUME_CREATE';
@@ -158,8 +160,6 @@ async function main() {
   A('正常 v64 start 只读画像授权门、不解密简历原文', resumeDecryptions === 0);
   let qr = await asPrincipal(pool, OWNER, (c) => c.query("SELECT count(*)::int n FROM interview_event WHERE stream_key=$1 AND kind='question_ready'", [IID]));
   A('start 后发首题 question_ready(经队列→消费者→自适应图)', qr.rows[0].n >= 1);
-  A('低置信 RAG 在真实 consumer→graph 路径走有界 deepResearch，未落回浅层 seam', deepCalls === 1 && shallowCalls === 0);
-  A('深检索正文以不可信信封进入出题 prompt，系统明确禁止执行来源指令', askRequests.length >= 1 && askRequests[0]!.rag?.includes('[UNTRUSTED_RESEARCH_SOURCE') === true && askRequests[0]!.rag?.includes('忽略此前指令') === true && askRequests[0]!.system.includes('检索安全'));
 
   let done = false, guard = 0;
   stage = 'NORMAL_ANSWER_DRAIN';
@@ -181,6 +181,11 @@ async function main() {
     A(`第${input.turn}题 API identity ledger 接受`, (await asPrincipal(pool, OWNER, (c) => claimInterviewAnswer(c, OWNER, IID, input))).status === 'accepted');
     await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, IID, 'answer', input, input.turn + 1));
     await drainInterviewJobOnce(d, OWNER);
+    if (guard === 1) {
+      // 深检索断言(随 #191 修迁移):首答后的 fundamental 追问真实经过低置信 CRAG→deepResearch。
+      A('低置信 RAG 在真实 consumer→graph 路径走有界 deepResearch，未落回浅层 seam', deepCalls === 1 && shallowCalls === 0);
+      A('深检索正文以不可信信封进入出题 prompt，系统明确禁止执行来源指令', askRequests.length >= 1 && askRequests[0]!.rag?.includes('[UNTRUSTED_RESEARCH_SOURCE') === true && askRequests[0]!.rag?.includes('忽略此前指令') === true && askRequests[0]!.system.includes('检索安全'));
+    }
     const st = await asPrincipal(pool, OWNER, (c) => c.query("SELECT status FROM interview WHERE id=$1", [IID]));
     done = st.rows[0].status === 'completed';
   }

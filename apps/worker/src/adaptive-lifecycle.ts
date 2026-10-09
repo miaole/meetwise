@@ -11,7 +11,7 @@ import { Command } from '@langchain/langgraph';
 import { buildAdaptiveInterviewGraph, type PendingQuestion } from '@meetwise/ai-graphs';
 import type { ModelClient, GraphObserver } from '@meetwise/ai-runtime';
 import { admitInterviewResume, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision } from '@meetwise/domain';
-import { buildAdaptiveDeps, planCompetencies } from './adaptive-interview-service.ts';
+import { buildAdaptiveDeps, buildResumeFactPool, planCompetencies, selectPlannerFacts } from './adaptive-interview-service.ts';
 import { recordAskedQuestions } from './memory-service.ts';
 import { emitSignalConcludeEvent } from './signal-conclude-event.ts';
 
@@ -110,10 +110,11 @@ function makeDeps(
   competencies: (string | CompetencySpec)[],
   resumeProfileAvailable = false,
   answer?: AcceptedInterviewAnswer,
+  resumeFactPool: readonly string[] = [],
 ) {
   return buildAdaptiveDeps({
     pool: d.pool, owner: d.owner, threadId: d.interviewId, model: d.model, fastModel: d.fastModel,
-    competencies, resumeProfileAvailable, localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary, competencyKeywords: d.competencyKeywords, maxTurns: d.maxTurns, absoluteMaxTurns: d.absoluteMaxTurns, graphObserver: d.graphObserver,
+    competencies, resumeProfileAvailable, resumeFacts: [...resumeFactPool], localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary, competencyKeywords: d.competencyKeywords, maxTurns: d.maxTurns, absoluteMaxTurns: d.absoluteMaxTurns, graphObserver: d.graphObserver,
     loadAnswer: async (reference) => {
       if (!answer || reference.answerId !== answer.answerId)
         throw Object.assign(new Error('answer_artifact_unavailable'), { code: 'answer_artifact_unavailable' });
@@ -122,13 +123,27 @@ function makeDeps(
   });
 }
 
+/** C1/S1(RESUME-GROUNDING)同门读取产物:授权位 + 有界 facts 池(仅 worker deps 闭包持有,禁入图 state)。 */
+interface InterviewResumeGrounding {
+  available: boolean;
+  pool: string[];
+}
+
 /**
- * Resume personalization is only an authorization bit at the graph boundary.
- * This function reads the profile under owner RLS, but no fact text leaves the
- * DB callback: historic checkpoints cannot retain it through a generated
- * question, interrupt payload or transcript.
+ * Resume personalization reaches the model seam, and only through the worker
+ * deps closure (C1/C3 · RESUME-GROUNDING): facts 输入仅在 worker deps 闭包内经
+ * `<data-nonce>` 围栏直达模型 seam，禁入图 state/checkpoint/interrupt/SSE/episode；
+ * 模型产出的 grounded 题面属派生内容可持久化，其擦除残差（interview_event/题面 ledger/memory
+ * episode/ai_invocation_trace.output 中的事实派生片段）登记 Non-claims 并归 #183/#153
+ * PRIVACY-FACE（roadmap:84）收口。This function reads the profile under owner RLS
+ * through the immutable parent `(resume_id, privacy_epoch)` and the active resume
+ * generation (never by a bare resume id left in a historical interview), passes the
+ * same `admitInterviewResume` admission gate, and returns a bounded fact pool
+ * (buildResumeFactPool: 脱敏/敏感词过滤 ∩ experience>skills 小节优先 ∩ 条数/字符帽);
+ * historic checkpoints still cannot retain fact text through a generated question,
+ * interrupt payload or transcript.
  */
-async function hasResumeProfileFactsForInterview(d: AdaptiveLifecycleDeps): Promise<boolean> {
+async function loadInterviewResumeGrounding(d: AdaptiveLifecycleDeps): Promise<InterviewResumeGrounding> {
   return asPrincipal(d.pool, d.owner, async (c) => {
     // The profile is sensitive derived data.  Read it only through the
     // immutable parent `(resume_id, privacy_epoch)` and the active resume
@@ -145,18 +160,26 @@ async function hasResumeProfileFactsForInterview(d: AdaptiveLifecycleDeps): Prom
           AND r.privacy_epoch=i.resume_privacy_epoch`, [d.interviewId, d.owner],
     );
     const resumeId = parent.rows[0]?.resume_id;
-    if (!resumeId) return false;
+    if (!resumeId) return { available: false, pool: [] };
     d.onBeforeResumeProfileHydration?.();
     const profile = await c.query<{ structured: unknown; ocr_binding: unknown }>(
       'SELECT structured, ocr_binding FROM resume_profile WHERE resume_id=$1 AND owner_user_id=$2', [resumeId, d.owner],
     );
-    const facts = (profile.rows[0]?.structured as { facts?: unknown } | undefined)?.facts;
+    const structured = profile.rows[0]?.structured as { facts?: unknown; experience?: unknown; skills?: unknown } | undefined;
+    const facts = structured?.facts;
     const admitted = admitInterviewResume({
       sourceKind: parent.rows[0].source_kind,
       facts: Array.isArray(facts) ? facts : [],
       ocrBinding: profile.rows[0]?.ocr_binding ?? undefined,
     });
-    return admitted.ok === true && admitted.resumeProfileAvailable === true;
+    if (!(admitted.ok === true && admitted.resumeProfileAvailable === true)) return { available: false, pool: [] };
+    // G1/G2(RESUME-GROUNDING rev3 同意门):仅当 active consent(purpose='interview_personalization')存在时
+    // 才放行 facts 池;未同意/已撤回 → pool=[] → planner 走既有占位串、grounded 走既有固定模板,
+    // 与本刀前现状**逐字节一致**(自动化断言:resume-grounding.proof.ts)。读法沿 resume_processing consent 门
+    // 先例(resume.service.ts:95 同形 SELECT…LIMIT 1);同一 asPrincipal client 内一次查询(G2:链进入点一次,
+    // 勿每 turn 查)。撤回=行删除(G4:撤回=停止后续使用;已落 checkpoint/事件不回溯清除,归 #81 W5 全量面)。
+    const consent = await c.query("SELECT 1 FROM consent_record WHERE purpose='interview_personalization' LIMIT 1");
+    return { available: true, pool: (consent.rowCount ?? 0) > 0 ? buildResumeFactPool(structured ?? {}) : [] };
   });
 }
 
@@ -189,14 +212,20 @@ export type StartAdaptiveInterviewResult = {
 };
 
 /** 开始到第一个纯 awaitAnswer interrupt。重试只会投影同一 question/event，不会重生模型题。 */
-async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string, facts: string[]): Promise<StartAdaptiveInterviewResult> {
-  // The planner may know a profile exists, but not its raw facts.  This is a
-  // deliberate fail-closed mitigation until fact references have their own
-  // artifact/deletion lifecycle.
-  const resumeProfileAvailable = facts.some((fact) => fact.trim().length > 0);
-  const competencies = await planCompetencies(d.pool, d.owner, d.interviewId, d.fastModel ?? d.model, role, resumeProfileAvailable ? ['authorized_resume_profile_available'] : []);
+async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string, _legacyCallerFacts: string[]): Promise<StartAdaptiveInterviewResult> {
+  // C1/C2(RESUME-GROUNDING):规划边界不再丢简历内容——loadInterviewResumeGrounding 以同一 RLS+admit 门
+  // 读出有界脱敏 facts 池(consent 开,G1);按岗位相关性确定性选 ≤8 条×≤120 字符(selectPlannerFacts,A-3,
+  // 禁模型选)真 facts 进 planner <data>。未同意/已撤回/画像不可用 → 既有占位串路径照旧(与现状逐字节一致)。
+  // `_legacyCallerFacts` 为 consumer 侧历史准入位:授权位=「RLS 现读 ∨ 调用方准入位」——RLS 现读管弹药
+  // (facts 池/consent),调用方位仅作模板路由的向后兼容回退(consumer 只在 DB 准入后才传;零回归保形)。
+  const grounding = await loadInterviewResumeGrounding(d);
+  const resumeProfileAvailable = grounding.available || _legacyCallerFacts.some((fact) => fact.trim().length > 0);
+  const plannerFacts = grounding.pool.length > 0
+    ? selectPlannerFacts(grounding.pool, role)
+    : resumeProfileAvailable ? ['authorized_resume_profile_available'] : [];
+  const competencies = await planCompetencies(d.pool, d.owner, d.interviewId, d.fastModel ?? d.model, role, plannerFacts);
   await asPrincipal(d.pool, d.owner, (c) => enrollCheckpointThread(c, d.owner, d.interviewId));
-  const g = buildAdaptiveInterviewGraph(d.cp, makeDeps(d, competencies, resumeProfileAvailable));
+  const g = buildAdaptiveInterviewGraph(d.cp, makeDeps(d, competencies, resumeProfileAvailable, undefined, grounding.pool));
   const cfg = { configurable: { thread_id: d.interviewId } };
   // start job 在 checkpoint 已到 awaitAnswer、但 ledger/SSE 投影尚未来得及提交时会被重投。
   // 对 interrupt 中的图再 invoke({}) 会重新从 START 走到 genQuestion（从而浪费模型调用并换题）；
@@ -220,6 +249,7 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
   return { question: pending.question, questionId: pending.questionId, stateVersion: pending.stateVersion };
 }
 
+/** facts 形参为 consumer 侧历史准入位(向后兼容保留);规划边界真值由 RLS 现读(见 impl 内 C1/C2 注记)。 */
 export function startAdaptiveInterview(d: AdaptiveLifecycleDeps, role: string, facts: string[]): Promise<StartAdaptiveInterviewResult> {
   return runGraph(d, 'start', () => startAdaptiveInterviewImpl(d, role, facts));
 }
@@ -234,8 +264,10 @@ async function submitAdaptiveAnswerImpl(
   d: AdaptiveLifecycleDeps, input: AcceptedInterviewAnswer,
 ): Promise<{ score?: number; nextQuestion?: string; nextQuestionId?: string; done: boolean; clarifying: boolean; degraded: boolean }> {
   await asPrincipal(d.pool, d.owner, (c) => enrollCheckpointThread(c, d.owner, d.interviewId));
-  const resumeProfileAvailable = await hasResumeProfileFactsForInterview(d);
-  const g = buildAdaptiveInterviewGraph(d.cp, makeDeps(d, [], resumeProfileAvailable, input));
+  // C2/G2(RESUME-GROUNDING):answer 链进入点同源注入——一次 RLS 读出授权位+consent 门控 facts 池
+  // (S2 grounded 真出题与 S3 追问上下文共用的弹药面;撤回后新一轮面试 buildData 零 digest/facts,G4)。
+  const grounding = await loadInterviewResumeGrounding(d);
+  const g = buildAdaptiveInterviewGraph(d.cp, makeDeps(d, [], grounding.available, input, grounding.pool));
   const cfg = { configurable: { thread_id: d.interviewId } };
   const before = await g.getState(cfg);
   const beforeTranscript = (before.values?.transcript ?? []) as { questionId?: string }[];
