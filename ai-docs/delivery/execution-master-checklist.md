@@ -2204,4 +2204,3 @@ flowchart TD
 - [ ] **STILL OPEN**：#92 深化面（迁移版本/拓扑/workerReady）·访问行 query 剥离微刀·`g7SuiteGreen=false` 维持.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · fail-fast ≠ #92 完成 · 实现方不 self-approve.
->>>>>>> aa63da21 (docs(obs-envschema): nail — dual closed via seat-2 narrow FAIL + verbatim fix + seat-1 countersign (rawEnv single-source, A10 regression pin, 22/22), T1 fail-fast dual-anchor landed)
