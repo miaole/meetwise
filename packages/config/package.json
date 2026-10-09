@@ -7,5 +7,11 @@
   "exports": {
     "./tsconfig/base.json": "./tsconfig/base.json",
     "./tsconfig/nest.json": "./tsconfig/nest.json"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.5",
+    "eslint-plugin-import": "^2.32.0",
+    "prettier": "^3.9.9",
+    "typescript-eslint": "^8.71.1"
   }
 }

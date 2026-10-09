@@ -1,0 +1,27 @@
+# LINT-S0 zero-pollution proof (blueprint §1.5 触碰面收束 / §4.1 / §4.3)
+
+## git diff --name-only (全仓, 收据目录外)
+packages/config/package.json
+pnpm-lock.yaml
+→ 恰 2 文件: packages/config/package.json + pnpm-lock.yaml。PASS
+
+## git diff --stat
+ packages/config/package.json |    6 +
+ pnpm-lock.yaml               | 1862 +++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 1846 insertions(+), 22 deletions(-)
+
+## 零字节保护面逐项
+turbo.json (含 :9 "lint": {} 空槽与 :4 //#typecheck): 0 diff 行 (0=零字节)
+pnpm-workspace.yaml (catalog typescript 6.0.3 等): 0 diff 行
+根 package.json: 0 diff 行
+.github/ (CI): 0 diff 行
+CLAUDE.md / ai-docs/engineering/NEXT-NODE-BEST-PRACTICES.md: 0 diff 行
+
+## apps/** + packages/** 源码 (排除 C1 一文件)
+→ 空 = 零字节。11 workspace package.json 全零触 (lint script 0/11 与 typecheck 2/11 现状不动)。PASS
+
+## untracked
+?? ai-docs/delivery/receipts/lint-s0/
+
+## 零 lint run · 零 --fix 声明 (§4.3)
+本切片执行面 = install + 版本冒烟 + diff 审计, 零 eslint . / 零 pnpm turbo lint / 零 --fix / 零 prettier --write / 零 lint script 新增 / 零 turbo 触碰。

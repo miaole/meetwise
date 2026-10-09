@@ -1,0 +1,21 @@
+# LINT-S0 smoke — 工具链版本冒烟 (blueprint §4.2)
+date: 2026-10-07 · EXIT codes recorded verbatim, zero retry
+
+== pnpm --filter @meetwise/config exec eslint --version ==
+v9.39.5
+EXIT=0
+
+== pnpm --filter @meetwise/config exec prettier --version ==
+3.9.9
+EXIT=0
+
+== closure sanity (require package.json version) ==
+typescript-eslint: 8.71.1
+eslint-plugin-import: 2.32.0
+
+== --print-config 不可行使登记 (S0 零 config 产物, 蓝图 §1.4/§4.2) ==
+eslint --print-config 需要 flat config 产物 (packages/config/eslint.config.base.mjs 等) — 全部划归 S1 (设计 §1.5), S0 零产物故不可载。
+登记为 S1 首项冒烟。本切片以版本冒烟证明四包装得上、跑得动。
+
+== major line check (停止条件 c 核查) ==
+eslint 9.39.5 ∈ @9 ✓ · typescript-eslint 8.71.1 ∈ @8 ✓ · eslint-plugin-import 2.32.0 ∈ @2 ✓ · prettier 3.9.9 ∈ @3 ✓ — 无一落线外。
