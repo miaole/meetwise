@@ -2192,3 +2192,16 @@ flowchart TD
 - [ ] **STILL OPEN**：S3（#107 守卫四件+A2 上限锚头号义务）·Renovate app 首跑观察·`g7SuiteGreen=false` 维持.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · S2 ≠ high 清零 · 实现方不 self-approve.
+
+
+### Line OBS-ENVSCHEMA #91 配置校验刀 NAIL（2026-10-10 SSOT nail · 协调方授权 · post-prove 双审闭环（席1 PASS+席2 FAIL 窄口径→修复 @7a2ff21b→席1 补签 PASS）·+416/−6+修复 +35/−15·env-schema.ts rawEnv 单源+A10 回归钉·prove 22/22·T1 fail-fast 双锚）
+
+- Pins unchanged（十一值照抄零翻转）.
+- [x] **`post_prove_dual_pass`** recorded（EXEC `aedd834c`+修复 `7a2ff21b`·REQUEST rev2 @7a2ff21b 唯一蓝本·nail tip 本 commit · branch `line/obs-envschema`）· **双审闭环**：席1 mw-e2e-ha PASS（三档定谳独立复核+T1 双锚亲证+prove 亲跑+ERRATA-1 发现）+ 席2 mw-model-op FAIL 窄口径（真缺陷：parse 失败 {} 回退丢弃组件存在性→一等路径误报 database_target_missing·T1 足额独立定谳 16 env 逐一定性·降级论证两证据成立）→ 修复逐字落刀（rawEnv 单源·PGPASSWORD 空串算已供对齐 principal.ts:767）→ **席1 补签 PASS**（A10 全等断言钉位准确防未来误报成员·26 既有集合零漂移机证·append-only 合规）· 协调方正式授权本 nail.
+- **交付语义**：T1=AUTH_SECRET+DB 目标五件套无条件 fail-fast（AUTH_SECRET 唯一 `?? ''` 静默全瘫面 16 env 逐一定性）·T2 零成员（MODEL_API_KEY 降 T3=compose worker-only 契约胜+validate 主动行使 unconfigured·审计问号如实处置）·T3 运行时 fail-closed·readiness configReady 纯 env 零 DB 读（#92 深化面分刀不冒领）。
+- **Erratum-ENV1**：§3「26=26」实为 26→30（+4 TS2532 测试侧新文件·ERRATA-1 放宽）——append-only 归档。**Erratum-ENV2**：docs:check PTP_FILE_LIMIT=基线仓库级超限 inherited-red（base 4585 tracked>2048 cap·本刀 +3 文件登记链）。
+- **合并执行记录（协调方·席1 路径）**：rebase 至主线 tip→重跑 env-schema:prove+#89 双门（fastify 5.12.5 面）→ff 合并；api:validate 由 push 触发 CI 自证（readiness 形状 #89 零触）。
+- [ ] **STILL OPEN**：#92 深化面（迁移版本/拓扑/workerReady）·访问行 query 剥离微刀·`g7SuiteGreen=false` 维持.
+- 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · fail-fast ≠ #92 完成 · 实现方不 self-approve.
+>>>>>>> aa63da21 (docs(obs-envschema): nail — dual closed via seat-2 narrow FAIL + verbatim fix + seat-1 countersign (rawEnv single-source, A10 regression pin, 22/22), T1 fail-fast dual-anchor landed)
