@@ -11,6 +11,7 @@
   "smoke:display-names": "node --import @swc-node/register/esm-register test/resume-display.proof.ts",
   "neg:auth": "node --import @swc-node/register/esm-register test/neg-auth.proof.ts",
   "neg:commerce": "node --import @swc-node/register/esm-register test/neg-commerce.proof.ts",
+  "trial:grant:prove": "node --import @swc-node/register/esm-register test/trial-grant.proof.ts",
   "neg:resume": "node --import @swc-node/register/esm-register test/neg-resume.proof.ts",
   "prove:unstube-erase": "node --import @swc-node/register/esm-register test/unstube-erase.proof.ts",
   "prove:uc015-ingest-failures": "node --import @swc-node/register/esm-register test/uc-e2e-015-resume-ingest-failures.proof.ts",

@@ -20,6 +20,13 @@ BEGIN
   END IF;
   INSERT INTO public.user_account(id, email, password_hash, role)
   VALUES (p_id, p_email, p_password_hash, p_role);
+  -- 注册赠送一次体验额度（#228 D1 已决）：signup+grant 同事务原子——注册 23505 回滚则桶不存在；
+  -- 桶冲突 DO NOTHING 不拖垮注册。kind='trial'·units_total=1.00（1 次面试=1.00）·expires 同 paid 先例
+  -- now()+interval '365 days'·source_order_id=NULL（无单）。幂等每用户一次由 partial unique index
+  -- uq_bucket_trial_one_per_owner 兜底；ON CONFLICT 谓词与 index 定义逐字一致。
+  INSERT INTO public.entitlement_bucket(owner_user_id, kind, units_total, expires_at)
+  VALUES (p_id, 'trial', 1.00, now() + interval '365 days')
+  ON CONFLICT (owner_user_id) WHERE kind = 'trial' DO NOTHING;
 END;
 $$;
 
