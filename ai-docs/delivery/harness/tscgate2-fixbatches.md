@@ -1,6 +1,6 @@
 # TSCGATE-2 — e2e tsc 修复四批+门禁点亮刀（C1/C2 落地）
 
-**状态**：`draft_rev2:awaiting_pre_exec_dual`（rev2 双席 FAIL 合并：B2 落点 e2e/helpers/undici-types.d.ts+值域并集禁 any·门禁改道根级 tsconfig.e2e.json+turbo root 接线 dry-run 亲证·apps/api 禁点亮 26 错实测·验收补三门·erratum 两处） · base = 主线 `c17804a5`（**含 E2EFAIL-1 修复补收 3a2a2e2b·B1 已消·残余 10 错**）· 分支 `line/tsc-fix-batches` · 立项依据 = TSC-GATE-1 nail 四批估算（≈15-20 行/6 文件）+ C1/C2 落地路径（turbo.json:6 typecheck 空挂+apps include 模式复制）。
+**状态**：`draft_rev3:awaiting_pre_exec_dual`（rev3 席1 处方：e2e-parity:check 移出验收·sibling 债务登记 parity-baseline 再生另立——rev2 双席处方保留）（rev2 双席 FAIL 合并：B2 落点 e2e/helpers/undici-types.d.ts+值域并集禁 any·门禁改道根级 tsconfig.e2e.json+turbo root 接线 dry-run 亲证·apps/api 禁点亮 26 错实测·验收补三门·erratum 两处） · base = 主线 `c17804a5`（**含 E2EFAIL-1 修复补收 3a2a2e2b·B1 已消·残余 10 错**）· 分支 `line/tsc-fix-batches` · 立项依据 = TSC-GATE-1 nail 四批估算（≈15-20 行/6 文件）+ C1/C2 落地路径（turbo.json:6 typecheck 空挂+apps include 模式复制）。
 
 ## 1. 修法（四批·零逻辑变更）
 - **B2 类型环境**（2 错 TS2304 HeadersInit/RequestInfo·proof.ts:54/:70）：**ambient d.ts 正选落点=e2e/helpers/undici-types.d.ts**（rev2·双席实测：e2e/types/ 撞 directory-contract.mjs:136 forbidden_domain_tree；helpers/*.d.ts 匹配 HELPER_FILE 正则 :139 照拾 include **/*）——声明面手塑（undici-types@8.3.0 仅存 .pnpm 无顶层 hoist·import 不可解析）：`RequestInfo` 逐字镜像 `string|URL|Request`（保 proof.ts:70 逆变兼容）·`HeadersInit` 并集 `Headers|[string,string][]|Record<string,string|readonly string[]>`（HeaderRecord KnownHeaderValues 收窄适度放宽=tests 面 non-claim）·**禁 any 塑**（编译绿但静默禁用检查——收据钉防）；
@@ -15,8 +15,8 @@
 ## 3. Ban
 零逻辑变更（型收窄/守卫/环境声明·零行为 diff——tests/纯型面）·e2e/ 外仅 tsconfig/turbo/package.json script·apps/packages src 零 diff·pins 十一值照抄（haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false）+脚注 actualSpendCny=null·实现不自批·alone≠dual·est 0 live。
 
-## 4. 验收补全（席2 处方2）
-验收清单补 `e2e-platform:check`+`e2e-parity:check`+`e2e-helpers:prove`（运行时腿·base 亲证 EXIT=0 26 scenarios）全 EXIT=0·**erratum×2**：B4 码标 TS2322×1(:10)+TS2345×1(:12) 非 ×2；「41 错」系 apps/worker 非 api（api=26）。
+## 4. 验收补全（席2 处方2·rev2 席1 修正）
+验收清单：`e2e-static-guards:check` EXIT=0 + `e2e-platform:check` EXIT=0 + `e2e-helpers:prove` EXIT=0（26 scenarios）·**`e2e-parity:check` 移出本刀验收**（base c17804a5 实测红 EXIT=1·9 条漂移 g7fix 族断言文本未再生——**sibling 债务登记**：parity-baseline 再生子步循 parity-baseline-regen/f548c0d9 先例另立）·**erratum×2**：B4 码标 TS2322×1(:10)+TS2345×1(:12) 非 ×2；「41 错」系 apps/worker 非 api（api=26）。
 
 ## 5. Non-claims
 本刀 ≠ C1 lint 门 ≠ apps/packages 全量 typecheck 点亮（e2e 先行·按包点亮后续）≠ G7 面。
