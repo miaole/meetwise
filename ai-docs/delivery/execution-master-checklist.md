@@ -2221,3 +2221,12 @@ flowchart TD
 - [ ] **STILL OPEN**：#259 目标岗位输入刀·#44/#51 追问上下文深化·#189-193 剩余面（#190 若有）·S3 前置同意 UX 深化·`g7SuiteGreen=false` 维持.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 接地 ≠ 全链个性化 ≠ C1 勾销 · 实现方不 self-approve.
+
+### Line ERRMSG-MAP 错误文案映射刀 NAIL（2026-10-10 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 12 文件 +592/−19（lib/errors/action-error.ts 页域纯函数+四页接入+jobs 补读 error#224+quiz/diag C7 带码回列表+proof 9 断言）·web:prove 199 PASS 双席复跑一次过）
+
+- Pins unchanged（十一值照抄零翻转）.
+- [x] **`post_prove_dual_pass`** recorded（EXEC `e15f1e1a`·REQUEST rev2 @2e942ace 唯一蓝本·nail tip 本 commit · branch `line/errmsg-map`）· **双审 BOTH PASS**：席1 mw-e2e-ha PASS（映射断言×rev2 表逐行相符+E2 begin_failed 不跨页+防御码七枚透传+未知码 null+apps/api 零字节双空+E1-E4 义务履行+E5 残留如实（append-only 下收据披露更正记录））+ 席2 mw-model-op PASS（五文案产品语义逐条裁真·503×begin_failed 并存无谎（全时序亲读 reserve 前抛·rollback）·E2 签名根因修复·E3 jobs 前态归 #271·E1 两跳实距）· 协调方正式授权本 nail.
+- **交付语义**：402 四码×四页「额度不足，请前往『额度说明』查看获取方式」+/pricing+预览注记（无购买承诺·D5/#271 前态如实）·binding_conflict「你有一场未结束的面试：继续/放弃后重来」·503「服务暂不可用」·create_failed/begin_failed 兜底原文一字不改·防御码七枚透传不折叠·未知码 null 不渲染空壳·quiz/diag begin 静默 redirect→带码回列表（C7）·jobs 补读 error（#224）。
+- [ ] **STILL OPEN**：#271 企业付费文案切换·根错误边界通道现状（Non-claims 留债）·`g7SuiteGreen=false` 维持.
+- 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 文案 ≠ 功能 ≠ 充值可用 · 实现方不 self-approve.
