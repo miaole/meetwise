@@ -187,3 +187,13 @@ canHonestlyFlip=false
 - 冒烟：web typecheck/prove×2/**build**·api 隔离 validate+三 smoke·domain prove（25 断言）·root typecheck 全 **EXIT 0**；root arch **12=基线 12 既有红**（逐条同·零恶化）；docs:check **1 持恒·错误码集合不变**（PTP_FILE_LIMIT 4104→4107·+3=收据文件自指增量）。
 - A1 义务**本切片已落**：真实 docx 提取正例（手构 OOXML zip·零新依赖·输出精确断言·xmldom 0.8.15 端到端旁证·craftDocx 面与 S3 负例共用）；A3 前后锚坐实（§8）。
 - Pins 十一值原值照抄（收据 §10）·零 stop-condition 命中。
+
+## rev3 / S2 EXEC 结果（append-only · 2026-10-07 · mw-depsaud-exec2）
+
+- **Status**: `exec_S2_DONE_awaiting_review`（S2 实跑收口·收据=receipts/extrev-deps-audit/S2/·S3 未起）。
+- **门**：`.github/workflows/deps-audit.yml` 新建（**物理零触 ci.yml**·rev2 记账「audit 步独立 workflow 文件」落实）——`pnpm audit --prod --audit-level=critical`·门语义 **fail-closed**：critical>0 = 非零退出 = red 阻断；**网络失败（registry 不可达）同为非零退出 = 红非静默**；步骤置于 install 前（本 workflow 零 install·audit 只读 pnpm-lock.yaml + advisory 端点·负例实测无 node_modules 亦可真红）；触发面 push(main)/PR/每周 cron（advisory 库滚动——lockfile 不变亦重审同一 lockfile）/workflow_dispatch；high/medium/low **不挡门**（与 §7 Non-claims 一致）。
+- **prove**：正例=S1 完成态主线同命令 **EXIT=0**（25 条：1 low/6 moderate/18 high·critical=0·与 S1 剩余列一致）；负例=临时 **detached** worktree 回退 next 15.5.27→15.5.19（声明面+`pnpm install --lockfile-only`·corepack 按 packageManager 走 pnpm 10.18.0）实跑 **EXIT=1**（37 条·critical×2=GHSA-p293-qw3h-jr36 + GHSA-2xp9-vwfh-vxw4·路径 apps/web>next·均 <15.5.24 受影响列）；**EXIT 原值零 retry-to-green**；worktree 即删·零分支残留·主线零污染。
+- **校验**：actionlint 1.7.12（brew 本地补装）对 deps-audit.yml **EXIT=0 全净**；全仓 7 workflow 基线 EXIT=1（既有 shellcheck warning·ci.yml/deploy.yml/nightly.yml·**未触文件零恶化**·新文件零贡献）；renovate.json JSON.parse EXIT=0 + ajv-cli 5.0.0 对官方 renovate-schema.json（draft-07）**valid EXIT=0**（`--strict=false` 为 schema 自带 x-renovate-version 自定义关键字所需·非配置问题）。
+- **Renovate 二选一裁定落实（rev2 席2）**：`renovate.json` 新建·最小配置（config:recommended + 周一凌晨窗口 schedule + prHourlyLimit 4 / prConcurrentLimit 10 + package.json 分组单一周更 PR）。**取舍理由**：Dependabot 不解析 pnpm 双层 catalog——本仓根 `catalog` + 命名 `catalogs.langchain` 承重·8 个 workspace 文件 **33 处 `catalog:` 引用**；Renovate ≥39 原生解析 catalog 且零额外配置。锁文件维护（lockFileMaintenance）保持默认关——Ban 全量升级纪律不因自动化放水。
+- **席1 处方记账（登记入本节·执行归后续刀·nail 归协调方）**：① **nest12 升级落地时摘除根 package.json `pnpm.overrides.fastify` 钉子**——@nestjs/platform-fastify@12.1.2 官方配对即 fastify@5.12.5，overrides 在 nest11 线内属定点过渡机制非通用策略（S1 收据已声明）·摘除动作归 nest12 升级刀·非本刀；② `@nestjs/platform-fastify` 闭包残留 **fast-uri@3.1.2**（S1 剩余列 7 high + 1 moderate·经 @fastify/ajv-compiler·fast-json-stringify 7 侧已有并行 4.2.1）**列 S2/Renovate 首批**——Renovate 首个周期优先收口。
+- Pins 十一值原值照抄 §6·零 stop-condition 命中·est live=0。
