@@ -2029,3 +2029,14 @@ flowchart TD
 - [ ] **STILL OPEN**：`g7SuiteGreen=false` 维持.
 - 预算：零新跑（双收据复用）· est live=0 · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
+### Line G7FIX-4 产品面 finalize 契约增补刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 产品码恰两文件（adaptive-lifecycle.ts generation 族对称标记+recruiter.ts mark-then-recover 单触点）· prove 终态 adaptive-life 13/13 绿+g7fix4:finalize 7/7 绿+neg:bend 120/120 零回归+recruiter base≡red 双向坐实 · tsc worker41/db20 与 base 全等零新增 · **G7 间歇红第三面（finalize 409 契约缺口）产品面修复落地** · 下一步=driver 臂回改（协调方）→trio 再跑→三绿）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（十一值）.
+- [x] **`post_prove_dual_pass`** recorded for Line G7FIX-4 products only（产品码恰两文件各单 hunk·零 e2e 改零 migrations 零 SSOT 零 G7 判定面·nail tip 本 commit · branch `line/g7fix4-contract`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：产品码 diff 恰两文件单 hunk+marker 语义 UPDATE 条件四元绑定亲读+事件分流 consumer.ts:90-95 逐行对齐/:431 守卫 hunk 外零字节改/prove 终态日志+JSON 亲读 adaptive-life 13 PASS+finalize 7/7+neg:bend 120 全绿+recruiter base≡red 双向/attempts 七跑全账逐条对应/双席附注 0144 六处行码逐处对源文件亲读全对/tsc 亲跑 worker41+db20 总恰合唯一产品文件命中在 base 同字节存在=零新增）+ mw-model-op PASS（六核：产品语义双视角闭环〔candidate 可见可重试+额度释放+score NULL 不伪造+resume 恒等+recruiter 表面 assessment_unavailable 非 in_progress 悬置+SSE 谓词双 kind 同收〕/mark-then-recover 四点引证逐行+手工推演全过+双活不引入分析/prove 双键真 ApplicationsService 非mock+G7FIX-4 段 13 PASS 一一对应/recruiter base≡red 双向坐实/tsc 本席独立复跑 worker41+db20 与申报全等）· 协调方正式授权本 nail.
+- **G7FIX-4 全链**：REQUEST → rev2（席1 mark-first 同事务+席2 双触点手术式）→ rev3 `ea3e38a7`（席2 自纠：:431 加宽被 0144 终端触发器逐行推翻——改 mark-then-recover 单触点零 migration 真）→ 双席复核 BOTH PASS → EXEC `07218104`（origin tip 零位移）→ 本 nail commit.
+- **核心产出**：generation 族对称标记（assessment_unavailable 正向可重试终态·额度释放·score NULL 不伪造 0 分·resume 同源新 attempt）+mark-then-recover 单触点恢复通路（:431 守卫字节零改·触发器恢复形全链零拦·零 migration）——**G7 间歇红第三面（finalize 409 契约缺口）产品面修复落地**·G7FIX-3 driver 臂消化绿的前提（产品面对称终态）已备。
+- **erratum×1 登记（席1）**：Docker daemon 僵死重启未入收据 corpus（EXEC 自报「如实登记」与收据不符）——本 nail 补记如上·一行 erratum 已兑现。
+- **G7 收官路径裁定（协调方·采纳席2 排序）**：①**G7FIX-5=driver 臂回改刀**（e2e/full.e2e.ts :402-406 G7FIX-3 409/interview_unavailable 旧形→200+assessment_unavailable+retry started 新 id·形状已由 G7FIX-4 prove 钉死·改动极小·协调方最小刀）→②**trio 全景重跑**（CMD1 预期绿·CMD2 绿·CMD3 步 10 已由 NEGCOMM-1 解锁——三绿在望）→③**g7SuiteGreen SSOT 刀**（收官翻转·独立 REQUEST）→④duplicate re-roll 根因刀（正交产品面·可并行）。
+- [ ] **STILL OPEN**：G7FIX-5 臂回改刀；G7TRIO-2 全景重跑；g7SuiteGreen SSOT 刀；duplicate re-roll 根因刀；`:107` 维持；`g7SuiteGreen=false` 维持.
+- 预算：est live=0 · 隔离 PG 容器一次性 · Docker daemon 重启已恢复（29.1.3）· 0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 产品面正规修复 · 实现方不 self-approve.
