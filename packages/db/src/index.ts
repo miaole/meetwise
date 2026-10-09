@@ -298,7 +298,7 @@ export { runMigrations, loadMigrations } from './migrate.ts';
 export type { Migration } from './migrate.ts';
 
 // admin 审计(append-only)
-export { appendAudit, listAudit } from './audit.ts';
+export { appendAudit, listAudit } from './audit/audit.ts';
 
 // 答案事实根（INT-TRANSCRIPT-00 评分前置：加密正文源 + 提交回执 + ref-only job + INT 域删除 resolver）
 export {
