@@ -241,3 +241,4 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 6. **R6 grep 口径**：CC-5 改「39 清单域 grep=0+清单外逐件排除理由登记」。
 **prove 增补**：账户级删除默认 compose 推进 completed（审计批 4 验收）·growth/export/memory 弱项三面删除后不可见断言·deactivate 后登录拒绝。
 Status: `draft_rev2:pre_exec_dual_FAIL_absorbed_and_rescoped`（席1 六处方全并+D6 重定范围·协调方裁定后 EXEC 授权·蓝本=本 rev2；原 rev1 的 interview DELETE 面作废归档）。
+→ exec:EXEC 完成（mw-unstube-exec · 2026-10-07 · 蓝本=本 rev2 逐字）— commits `52cb6d8a`（impl·产品码+两迁移 0152/0153+proof 翻转+新主证 unstube-erase.proof 46 断言）+ `eb695d30`（#6 pin 翻转集 39 文件机械面·闭卷 grep=0）· §5.1 八键+邻接（preview 0129 byte-intact/godfn-1c/foundation PRES·neg:interview 零改）+ uc052×4/vector-plane/rag03×2/tenant-wiring-e5/domain/qdrant-ledger/gap-rag05/eval-harness/conn-stack 全 EXIT=0（prove-ledger.txt）· 账户级+简历删除推进 completed·三读面不可见·deactivate 登录拒·重放幂等·物理行仍在三轨在卷 · interview DELETE 维持 503 关闭 · 收据 receipts/unstube-erase/2026-10-07/ · est live=0 → awaiting_post_prove_dual
