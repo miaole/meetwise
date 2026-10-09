@@ -1719,6 +1719,7 @@ if (![
   'uc001:nhp-bound:prove:raw',
   'uc001:nhp-adv:prove:raw',
   'uc001:nhp-fault:prove:raw',
+  'env-schema:prove:raw',
   'uc025:nhp-adv:prove:raw',
   'uc028:nhp-fault:prove:raw',
   'dbhy1:prove:raw',
@@ -2007,6 +2008,8 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'packages/qdrant-store', 'prove:vectorstore-qdrant']]
   : target === 'tenant-wiring-neg:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:tenant-wiring-neg']]
+  : target === 'env-schema:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:env-schema']]
   : undefined;
 
 const container = `meetwise-e2e-${process.pid}-${Date.now()}`;
