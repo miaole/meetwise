@@ -2018,3 +2018,14 @@ flowchart TD
 - [ ] **STILL OPEN**：24 深段断言首次可达后的逐段覆盖评估（本绿已行使至 :134·后续段归残余刀）；`g7SuiteGreen=false` 维持.
 - 预算：证明体总 3（红+诊断+绿）· est live=0 · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
+
+### Line AC-RES adaptive-consumer 24 深段覆盖评估刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · pre-prove 双审 BOTH PASS · 纯盘点零修复零新跑 · **重大发现：AC-FIX nail「行使至 :134」前提被收据推翻——闭合链证绿 run 全文件行使（可达未达=∅）** · 三档判据收口残余登记 · 调查刀直收）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（十一值）.
+- [x] **pre-prove 双审 BOTH PASS + 调查直收**（双席独立分析证「零新跑可建覆盖表」——纯盘点刀产出已由双审分析定形，EXEC 阶段=写正式报告的形式步骤，协调方裁直收·nail tip 本 commit · branch `line/ac-residual`）· **双审 BOTH PASS**：mw-e2e-ha PASS（五核：24 条实数收据锚定核真〔raw-stdout.raw :14-:37=claim×3+固定 21·33=31 固定+2 环内 claim 算术闭环〕/行使数据复用双收据即足无需新跑/:raw 恰 1 默认休眠/产出四件套机核可裁/erratum 行号锚混用两套文件态登记）+ mw-model-op PASS（五核：**nail 前提推翻实证**〔绿 run 双流零逐断言行=包裹器吞流铁证 run-e2e-isolated.mjs:2194/:2211·digest 全等 a41efbb3≡现文件+33=31+2 算术闭合+diag raw 24 深段全 PASS 旁证三链闭合〕/三分类框架双因子同族可复用须带三源+sim 复算严格性门槛/三档判据落字/零产品码零夹具改）。· 协调方正式授权本 nail.
+- **AC-RES 全链**：REQUEST `af967ef8` → 双席预审 BOTH PASS → **调查直收（EXEC 形式步骤由本 nail 吸收——零新跑纯静态分析产出已定形）**· 本 nail commit.
+- **核心产出**：**AC-FIX nail「行使至 :134」前提推翻**——闭合链（digest 全等+33=31 固定+2 环内 claim 算术+diag raw 24 深段全 PASS 旁证）证绿 run **全文件行使**：可达未达段=**∅**（唯 :176 卫语句 by-design FAIL 路金丝雀零触发=绿的性质非债）·残余登记收口三档判据：(i) 未达=∅ 或仅 by-design 金丝雀 → 残余登记退役 no-residual；(ii) 未达=夹具/场景债 → 夹具供给修复刀断言字节零改；(iii) 真产品漂移 → 三源定谳+sim 复算升协调方裁。
+- **GODFN-1a 遗留全案正式收口**：adaptive-consumer base≡red 遗留=AC-1 定谳+AC-FIX 全绿转+AC-RES 残余∅退役——全链无残余。
+- [ ] **STILL OPEN**：`g7SuiteGreen=false` 维持.
+- 预算：零新跑（双收据复用）· est live=0 · 0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
