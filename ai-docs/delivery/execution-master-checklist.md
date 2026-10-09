@@ -2007,3 +2007,14 @@ flowchart TD
 - [ ] **STILL OPEN**：C1/C2 落地（turbo typecheck 按包点亮·e2e 域先行红面最小）；修复分批 REQUEST（四批 ≈15-20 行）；undici-types ambient d.ts 正选（B3）；`g7SuiteGreen=false` 维持.
 - 预算：canonical 恰 1+探针 1（上限 2 用 1）· est 0 live · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 盘点=供料非实施 · 实现方不 self-approve.
+
+### Line AC-FIX adaptive-consumer 夹具供给修复刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 分叉①全绿收口（prove#2 EXIT=0·33/0·判别面恰 1）· 双因子夹具债定谳（A 检索 scope 门旧表直读·B planner 双 core 字面量漂移）· 0104 链四环全生产写手亲证·断言字节零改零弱化）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（十一值）.
+- [x] **`post_prove_dual_pass`** recorded for Line AC-FIX products only（触面=adaptive-consumer.proof.ts 夹具段累计 +51/−3 双刀口径·零产品码 apps/packages src 零 diff·nail tip 本 commit · branch `line/adaptive-consumer-diag`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：diff numstat+fixture.diff 逐字节相等+断言字节零改零弱化 :123/:124 base 零改/prove#2 EXIT=0 33/0 亲读+prove#1 红原值 retained+:raw 诊断恰 1+预算全账零 retry/双因子亲证〔A getInterviewRouteSnapshot :355-361 旧表直读 fail-closed route_snapshot_missing→degradedRetrieval 包裹→CRAG deny_external·B score88 hasHook=false→0.88≥0.7 单轮结算×top-2 core→双 core 必 2 fundamental→===1 不可达〕一一对应/sim 三分支逐位互证/est live=0·零 runner diff/判别面恰 1 全库当日 2 份收据红 1 绿 1）+ mw-model-op PASS（六核：**0104 链四环全生产写手亲证**〔createJob HMAC≥32→classifyJobRoute rule 零模型 corpus 命中 backend/nodejs 唯一叶 modelCalls=0·夹具 modelClassify 无条件 throw 结构性强制零模型→bindApplicationRoute→snapshotInterviewRoute 写 G-R2-5 直读旧表〕/**排空环真走**〔claim 服务端重算 answerHash+identity ledger·evaluate=生产 adaptive-lifecycle :216-294·done=生产 all_resolved 终态写手〕/**裁定核：修场景非凑断言**〔:123/:124 逐字节零改·三源独立定谳 dual-core 不可达·改 ===2 反是改断言焊死场景常数〕/双因子闭合 sim 可复算/est=0 结构成立/残余登记齐）· 协调方正式授权本 nail.
+- **AC-FIX 全链（裁决行动树纪律样板）**：REQUEST → 双席预审 BOTH PASS → EXEC 首轮 STOP（命名目标全达+2 残余红不可定位·拒盲修 retry-to-green）→ 协调方裁决行动树（:raw 诊断恰 1+按根因分叉续收/收口）→ 分叉①成立（双因子均夹具债 NEGCOMM-1 同族）→ 修复 → prove#2 **EXIT=0·33/0**·判别面恰 1 → `4323d81f`（origin tip 零位移）→ 本 nail commit.
+- **核心产出**：adaptive-consumer 排空环 4/4 base≡red **全绿转**（红掩覆盖解锁·GODFN-1a 遗留全案收口）·双因子定谳（A 检索 scope 门 0104 旧表直读·B planner 双 core 字面量漂移单 core 修复·===1 界原强度首次可执行）·新门负探针常驻.
+- **erratum×2 登记（双席·cosmetic）**：①"+31/−3 累计"系本刀口径（双刀合计 +51/−3）；②proof.ts:23 缩进 2 空格漂移.
+- [ ] **STILL OPEN**：24 深段断言首次可达后的逐段覆盖评估（本绿已行使至 :134·后续段归残余刀）；`g7SuiteGreen=false` 维持.
+- 预算：证明体总 3（红+诊断+绿）· est live=0 · 0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
