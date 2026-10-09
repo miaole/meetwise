@@ -1,0 +1,38 @@
+# LINT-DESIGN S2 触碰面 + 门零劣化
+# date: 2026-10-10
+
+== 产物触碰面（git status --short @ S2 EXEC·恰 12 指针文件·全 untracked 新增）==
+?? ai-docs/delivery/receipts/lint-s0/s2-form-evidence.txt
+?? ai-docs/delivery/receipts/lint-s0/s2-prettier-check.txt
+?? ai-docs/delivery/receipts/lint-s0/s2-print-config.txt
+?? ai-docs/delivery/receipts/lint-s0/s2-zero-diff.txt
+?? apps/api/eslint.config.mjs
+?? apps/web/eslint.config.mjs
+?? apps/worker/eslint.config.mjs
+?? eslint.config.mjs
+?? packages/ai-graphs/eslint.config.mjs
+?? packages/ai-runtime/eslint.config.mjs
+?? packages/config/eslint.config.mjs
+?? packages/contracts/eslint.config.mjs
+?? packages/db-mysql/eslint.config.mjs
+?? packages/db/eslint.config.mjs
+?? packages/domain/eslint.config.mjs
+?? packages/qdrant-store/eslint.config.mjs
+
+== 行预算 ==
+12 文件 × 4 行 = 48 行 ≤ 50（设计 §1.5 头「每步 ≤5 文件 / ≤50 行」）·批结构 5+5+2 全 ≤5 文件/批
+
+== 零污染面核查（以下应零输出）==
+git diff --stat（tracked 零改）：
+diff-lines=0
+turbo.json / 根 package.json / pnpm-workspace.yaml / .github / catalog / 11 workspace package.json / apps+packages src（除 12 指针）——零字节
+
+== tsc 门零劣化 ==
+# cmd: pnpm typecheck（根 = tsc -p tsconfig.e2e.json）
+TYPECHECK-EXIT=0（一次过·零新增红）
+
+== 零 lint 执行面声明 ==
+--print-config = 纯配置解析查询（合成探针路径·零文件存在·零 lint run）；全仓 lint 零跑·pnpm turbo lint 零触·零 --fix·零 prettier --write（产物自身 check 除外）·CI 零触·script 键零新增
+
+== est live ==
+est live=0 · 0 Key 值 · actualSpendCny=null（--print-config/prettier/typecheck 全本地·零业务外呼）
