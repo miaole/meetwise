@@ -154,8 +154,8 @@ tags:
 - 触发 Trigger：编排器调用 `GET /livez` 进行存活判断，或调用 `GET /readyz/api` 决定能否接收命令流量；旧 `GET /health` 仅作为等价的 readiness（就绪）兼容路径。
 - 主流程 Main：
   1. `GET /livez` 只返回固定 `{status:"ok"}`，不访问 PostgreSQL、Tair、OSS（对象存储服务）、模型或队列。
-  2. `GET /readyz/api` 只执行受限 `SELECT 1` 读探针；成功返回固定 `{status:"ok"}`。
-  3. 失败时 readiness 返回 `503 {status:"degraded"}`；流量控制器摘流，但不以 liveness 失败重启仍可诊断的 API 进程。
+  2. `GET /readyz/api` 只执行受限 `SELECT 1` 读探针 + 启动配置校验位（审计 #91：`config.envSchema` 布尔，不携带键名/明细）；成功返回 `{status:"ok",config:{envSchema:"ok"}}`。
+  3. 失败时 readiness 返回 `503 {status:"degraded",config:{envSchema:"ok"|"invalid"}}`；流量控制器摘流，但不以 liveness 失败重启仍可诊断的 API 进程。
 - 备选流 Alternate：调用旧 `/health` 时返回与 `/readyz/api` 相同状态，不改变旧探活集成的语义。
 - 异常流 Exception：
   - E1 重复：任意次数探针均为只读、零业务写入；不需要幂等记录。

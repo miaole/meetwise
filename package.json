@@ -393,6 +393,8 @@
     "resume-reference:http:prove:raw": "pnpm -C apps/api prove:resume-reference-http",
     "api-runtime-role:prove": "node scripts/run-e2e-isolated.mjs api-runtime-role:prove:raw",
     "api-runtime-role:prove:raw": "pnpm -C apps/api prove:runtime-role-http",
+    "env-schema:prove": "node scripts/run-e2e-isolated.mjs env-schema:prove:raw",
+    "env-schema:prove:raw": "pnpm -C apps/api prove:env-schema",
     "breaker:prove": "pnpm -C packages/ai-runtime prove:breaker",
     "failover:prove": "pnpm -C packages/ai-runtime prove:failover",
     "vstream:prove": "pnpm -C packages/ai-runtime prove:vstream",

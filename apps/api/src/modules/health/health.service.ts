@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DbService } from '../../platform/db.service';
+import { parseCriticalEnv } from '../../platform/env-schema';
 
 /**
  * 探针语义必须稳定且最小：liveness（存活）绝不能被数据库、缓存、模型或队列拖成失败；
@@ -24,5 +25,15 @@ export class HealthService {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * 审计 #91：readiness 纳入启动配置校验状态。boot 时 assertCriticalEnv 已 fail-fast，
+   * 这里每次 readyz 现算同一纯函数（zod parse 微秒级、不缓存）：正常恒 true；
+   * 万一仍为 false（理论上不可达，防御 embedder 绕过 createApp 组合）readiness 必须
+   * fail-closed 降级。返回布尔——公开探针纪律（controller 注记）禁止泄露键名/拓扑。
+   */
+  configReady(): boolean {
+    return parseCriticalEnv().ok;
   }
 }
