@@ -2230,3 +2230,10 @@ flowchart TD
 - [ ] **STILL OPEN**：#271 企业付费文案切换·根错误边界通道现状（Non-claims 留债）·`g7SuiteGreen=false` 维持.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 文案 ≠ 功能 ≠ 充值可用 · 实现方不 self-approve.
+
+### 流程勘误 PROCESS-E1/E2（2026-10-10 · 协调方自查登记 · 本段即更正载体）
+
+- **PROCESS-E1（SCORE-WRITER S1 重复 nail）**：协调方在 S1 双席 PASS 后未核对台账（该刀已于 974fb6c3/d8d93f4c nail 落线），误判未 nail 并重走 cherry-pick——重复 EXEC pick（dbbf8d6c 仅带入 1 空行）+重复 nail 段（fe412948 10 行）已 revert（dddc3b8e/7c415fbc）。根因=派单面板与台账脱节。整改：nail 前必须 grep 台账段计数=1 校验（已入协调方 checklist）。
+- **PROCESS-E2（ERRMSG-MAP 单席 nail 时序违规）**：errmsg nail @8aade53f 落线时仅席1 PASS（席2 复审于其后返回 PASS）——违反「双席齐 PASS 方可 nail」时序。结果追溯有效（席2 独立 PASS·五文案语义/503 时序无谎/E2 根因全确认），但程序违规如实登记；nail 段不撤（内容经双席验证）。整改：nail 动作前强制核对双席 verdict 齐备（已入协调方 checklist）。
+- 教训沉淀：①「EXEC 完成」与「nail 落线」之间必须查台账防重；②「席1 PASS」≠「双席齐」——nail 门槛=两份独立 verdict 在卷。
+- Sibling sections stay as written. alone≠dual（含 nail 时序）· 实现方不 self-approve.
