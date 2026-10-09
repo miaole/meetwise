@@ -1,6 +1,6 @@
 # Harness / REQUEST — DIR-1 · B2 domain 目录拆解刀（packages/db/src 域文件夹化 · 65 纯移动 · ≤5 文件分批 B2a–B2s）
 
-**Status**: `draft:awaiting_pre_exec_dual`（rev1→rev2 · 状态保持）· **STOP**（预执行双审未开 · 未授权不得 mv · 本 REQUEST docs-only · rev2 修订见文末 Erratum）
+**Status**: `draft_rev3:pre_exec_dual_PASS`（席1 rev2 PASS+席2 rev3 终态 PASS·2026-10-09·EXEC 已授权·蓝本=f6110e9f+本 bump）· **STOP**（预执行双审未开 · 未授权不得 mv · 本 REQUEST docs-only · rev2 修订见文末 Erratum）
 **Date**: 2026-10-07 · **Base tip**: `e2834082`（g7p6 nail · 本 worktree 实测 HEAD · 工作树干净）
 **Worktree**: `meetwise-line-dirb2` · branch `line/dir-b2-domain`
 **前置裁定引用**：DIR-1 B1（`line/dir-structure` · `409843b3` · 65 纯 git mv + 白名单路径文本）+ E4 微刀（`d3507770` · run-e2e-isolated.mjs receipt 层纯路径文本修正案）已由协调方裁定 nail —— B2 前置达成；本刀 = **同先例模式在本线的落地刀**：前缀迁移 + runner receipt 路径更新 + 静态守卫/机械串面更新，一鱼三吃并入每批。
@@ -300,4 +300,4 @@ grep -rnE "packages/db/src/[a-z0-9-]+\.ts" apps packages/domain packages/qdrant-
 
 ---
 
-*DIR-1 B2 domain 目录拆解 REQUEST · 2026-10-07 · rev2 · base `e2834082` · worktree `meetwise-line-dirb2` · 65 纯移动 · releaseEvidence=false · NOT_HA · actualSpendCny=null · awaiting pre-exec dual · STOP*
+*DIR-1 B2 domain 目录拆解 REQUEST · 2026-10-07 · rev2 · base `e2834082` · worktree `meetwise-line-dirb2` · 65 纯移动 · releaseEvidence=false · NOT_HA · actualSpendCny=null · pre_exec_dual_PASS rev3 · STOP（EXEC 授权面：仅批次机械执行）*
