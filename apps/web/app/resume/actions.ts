@@ -31,14 +31,33 @@ export type ResumeUploadActionResult =
   | { ok: true }
   | { ok: false; message: string };
 
-/** 授予 PIPL 采集同意(上传简历前置)。此前 UI 无此入口 → 用户永远传不了简历(死胡同)。幂等。 */
-export async function grantConsentAction(): Promise<void> {
+/**
+ * 授予 PIPL 采集同意(上传简历前置)。此前 UI 无此入口 → 用户永远传不了简历(死胡同)。幂等。
+ * G3(RESUME-GROUNDING rev3)最小同意面:上传入口一次性用途选择——勾选后同时授予
+ * `interview_personalization`(面试出题个性化)。文案按审计附录 C E 项原文明示
+ * 「简历要点将发送给模型服务商用于出题」;不勾选只授采集同意,worker 同意门读缺行即不注入简历要点。
+ * 撤回走 DELETE /privacy/consent?purpose=…(G4,最小读写面)。
+ */
+export async function grantConsentAction(formData: FormData): Promise<void> {
   assertOk(await serverFetch('/privacy/consent', { method: 'POST', body: JSON.stringify({ purpose: 'resume_processing' }) }));
+  if (formData.get('interview_personalization') === 'on') {
+    assertOk(await serverFetch('/privacy/consent', { method: 'POST', body: JSON.stringify({ purpose: 'interview_personalization' }) }));
+  }
   // 真实移动端并发 E2E 发现，仅依赖 Server Action 的 RSC patch 时偶发停在 pending：后端已写入、
   // 但当前视图未提交。显式导航到带状态的 URL 强制获得新请求的服务端真相，避免用户停在“记录中”。
   // 不在跳转前 revalidatePath：它会额外启动一轮同页 RSC 刷新，网络慢或 API 短暂拥塞时该刷新可让
   // 表单一直处于 pending。redirect 本身会发起新的 no-store 请求，已足以读取刚写入的同意状态。
   redirect('/resume?updated=consent');
+}
+
+/**
+ * G4(RESUME-GROUNDING rev3)最小撤回面:撤回=停止后续使用(行删除)。
+ * 已生成的题目/事件不回溯清除(Non-claims 覆盖;#81 全量撤回归 W5)。
+ */
+export async function withdrawInterviewPersonalizationAction(): Promise<void> {
+  assertOk(await serverFetch('/privacy/consent?purpose=interview_personalization', { method: 'DELETE' }));
+  revalidatePath('/resume');
+  redirect('/resume?updated=consent_withdrawn');
 }
 
 /**
