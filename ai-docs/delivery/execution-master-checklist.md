@@ -2183,3 +2183,12 @@ flowchart TD
 - [ ] **STILL OPEN**：访问行 query 剥离微刀·收据重生成·主线锁文件合并面 typecheck（DEPS S2 席并行补验）·`g7SuiteGreen=false` 维持.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · #89 ≠ 访问行 query 已剥（残留登记） · 实现方不 self-approve.
+### Line DEPS-AUDIT S2 CI 依赖审计门 NAIL（2026-10-10 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 8 文件 +12031（deps-audit.yml 独立 workflow 零触 ci.yml·renovate.json·REQUEST rev3 节+收据 5 件）·正例 EXIT=0/负例真红 EXIT=1）
+
+- Pins unchanged（十一值照抄零翻转）.
+- [x] **`post_prove_dual_pass`** recorded（EXEC `6136c8ff`·REQUEST rev3 节·nail tip 本 commit · branch `line/extrev-deps-aud`）· **双审 BOTH PASS**：席1 mw-e2e-ha PASS（门 fail-closed 逐行·负例 critical×2 id 对应 next<15.5.24 双 GHSA·Renovate 与 rev2 裁定对表+33 处 catalog: 抽验·**主线锁文件合并面三键全绿**（frozen-lockfile EXIT=0+eslint 9.39.5+typecheck EXIT=0——统一再生成解法验证通过））+ 席2 mw-model-op PASS（周 cron「门会自己变红」语义三处一致·clone 法独立复现负例（37=1+13+21+2 逐数同·零 node_modules 顺证 install 前置）·S2 对主线零 lockfile 触碰· Renovate 张力四重受控（零 automerge/lockFileMaintenance 关/周频单分组/critical 门兜底））· 协调方正式授权本 nail.
+- **Erratum-S2E1（双席四 nits）**：「8 个 workspace」实为 9 文件（33 计数正确）·NEGATIVE_EXIT 重复行·positive-exit 薄证（席2 复跑补强）·「high 白名单」无文档锚点（审计原文无 critical/白名单字样——不构成欠账；若未来 high 挡门属新刀）。
+- **记账维持**：nest12 摘 overrides 钉子+fast-uri 列 Renovate 首批（rev3 逐字）·Renovate 张力受控四件套（零 automerge 等）·合并 tip 复跑正例 audit=new workflow push(main) 自证。
+- [ ] **STILL OPEN**：S3（#107 守卫四件+A2 上限锚头号义务）·Renovate app 首跑观察·`g7SuiteGreen=false` 维持.
+- 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · S2 ≠ high 清零 · 实现方不 self-approve.
