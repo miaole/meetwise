@@ -1,0 +1,3 @@
+f71609bbf358e631570d5ea1d69f80a69dcd08165b0bc1681eb325d7dc88c2e1  ai-docs/delivery/harness/lint-design.md
+f71609bbf358e631570d5ea1d69f80a69dcd08165b0bc1681eb325d7dc88c2e1  ai-docs/delivery/receipts/lint-design/01-lint-design.snapshot.md
+（双面同符 · shasum -a 256 · snapshot = 本体逐字节 cp 快照 · 快照含自指前 sha256 值指本文件所载同一值）
