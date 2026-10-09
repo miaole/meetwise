@@ -114,3 +114,11 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 - **E5**：Honesty 行「（§5-8）」→「（§5-4）」。
 - 席1 三勘误并入：quiz/diag 码集补 begin_failed+public_preview_read_only 防御性 superset 注记（或移除·EXEC 择一）+prove 前置 pnpm install（环境准备不计 attempts）。
 - Status: `draft_rev2:pre_exec_dual_PASS`（双席 BOTH PASS·EXEC 授权·蓝本=本 rev2）。
+
+## EXEC 收口（2026-10-07 · EXEC 席 mw-errmsg-exec · 状态行 append-only）
+
+- Status: **`exec:done_prove_green`**（§1+rev2 全项落地 · C1-C8 · rev2 E1-E5 落实，择一项=「保留 quiz/diag begin_failed+防御码 superset 归一各页 create_failed 原文」）。
+- prove：`pnpm web:prove` **第 1 次运行 EXIT=0**（attempts=1·一次过·零 retry；199 PASS/0 FAIL·新 section 9 断言全 PASS·纯函数输出断言非浏览器 DOM 证明）。全量日志 `ai-docs/delivery/receipts/errmsg-map/web-prove-full.log`。
+- 门：apps/api 零字节（git diff/status 双空）✓ · 冲突标记全仓=0 ✓ · diff 面「消耗|次额度」=0 ✓ · 兜底原文逐字照抄 proof 精确串 ✓ · jobs throw 面/SSOT//pricing//billing 零触 ✓。
+- 收据：`ai-docs/delivery/receipts/errmsg-map/EXEC-RECEIPT.md` · est live=0 · 零外呼零消耗 · pins 十一值不变（actualSpendCny=null）。
+- Non-claims 沿 §7：文案 ≠ 功能 ≠ 充值可用 ≠ candidate_route_undecided 可达；防御码兜底残留「请稍后重试」如实保留。
