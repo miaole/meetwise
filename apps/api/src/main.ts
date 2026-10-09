@@ -35,7 +35,28 @@ export async function createApp(): Promise<NestFastifyApplication> {
   // MODEL-OP-02：全局 MODEL_MAX_CONCURRENT/MODEL_RPM 限流已废弃（per-adapter 限流移除），
   // 并发/断路器改由共享权威（迁移 0120 的 ai_model_admission_acquire_scoped）在 invoke() 内裁决。
   resolveModelDeadlineConfig();
-  const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter({ bodyLimit: 12 * 1024 * 1024 }), { logger: false, abortOnError: false });   // 12MB:容 base64 简历文件(8MB 原文)
+  // **可观测性(审计#89)**:pino 由 fastify 内置,这里开 level=info 的访问日志。
+  // 序列化面仅 method/url/status/reqId/耗时/err 堆栈——fastify 默认 req/res serializer 本就不含
+  // body/headers;redact authorization/cookie 作纵深。**Ban 打印请求体/响应体/提示词/PII**。
+  // NestFactory 层 logger:false 保持(免 Nest 启动噪音双写;异常日志见 all-exceptions.filter 走 pino)。
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    new FastifyAdapter({
+      bodyLimit: 12 * 1024 * 1024,   // 12MB:容 base64 简历文件(8MB 原文)
+      logger: {
+        level: 'info',
+        redact: { paths: ['req.headers.authorization', 'req.headers.cookie'], censor: '[REDACTED]' },
+      },
+      // reqId 单源:与下方 onRequest 钩子同一套净化规则(x-request-id 仅安全字符集+封顶,
+      // 非法/空→新 UUID,防响应头 CRLF 注入)。fastify 日志的 reqId === 响应头 x-request-id ===
+      // req.reqId(controller→service→job.payload→worker trace)——全链路对账一根 id。
+      genReqId: (req: { headers: Record<string, unknown> }) => {
+        const raw = String(req.headers['x-request-id'] ?? '').trim();
+        return raw && raw.length <= 200 && /^[A-Za-z0-9._-]+$/.test(raw) ? raw : randomUUID();
+      },
+    }),
+    { logger: false, abortOnError: false },
+  );
   const fastify = app.getHttpAdapter().getInstance() as any;
   // Public preview's method allowlist must be the first Fastify lifecycle
   // hook: no request body parsing, authentication, controller or queue work
@@ -45,12 +66,10 @@ export async function createApp(): Promise<NestFastifyApplication> {
   // 系统指标:每个 HTTP 响应记请求数(按 method/route/status)+ 延迟直方图。route 用路由模板(低基数,不爆 label)。
   // **全链路 request-id 起点**:有 x-request-id 头(网关/前端上游给)就沿用,没有就生成一根。
   //  放 req.reqId(controller → service → 写进 job.payload → worker → 模型 trace.request_id)+ 回写响应头,让调用方拿到同一根 id 对账。
-  //  客户端可控头需净化:只收安全字符集 + 封顶长度,非法/空 → 换新 UUID(防响应头 CRLF 注入 / 超长值污染 trace 列)。
+  //  净化规则已上移到 FastifyAdapter.genReqId(单源):req.id 即净化结果,这里只透传到 req.reqId + 响应头。
   fastify.addHook('onRequest', (req: any, reply: any, done: any) => {
-    const raw = String(req.headers['x-request-id'] ?? '').trim();
-    const reqId = raw && raw.length <= 200 && /^[A-Za-z0-9._-]+$/.test(raw) ? raw : randomUUID();
-    req.reqId = reqId;
-    reply.header('x-request-id', reqId);
+    req.reqId = req.id;
+    reply.header('x-request-id', req.reqId);
     done();
   });
   // **传输层封顶(纵深 + 防 DoS 放大)**:全局 bodyLimit 为容 base64 简历/音频上传开到 12MB,但纯文本端点逻辑只需 KB 级。
