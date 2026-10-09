@@ -1,0 +1,16 @@
+# CMOP03-POST7B-RESTART · GAP-CMOP03-POST7B 复盘/重启 REQUEST · slice（docs-only）
+
+status: **`draft:awaiting_pre_exec_dual`**（复盘/重启 REQUEST 就绪 · 预执行双审未做 · 本 commit 零码零埋点零实跑 · 修复范围=空集）
+
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null · r1Closed=false（十一值照抄）
+
+- **前链**：本分支 CMOP03-D 鉴别刀全链（REQUEST `3aa494db`≡`bfcdcc6d` · EXEC `3434f82b` 7 埋点落树 · nail `5e2e32fb`）——本文 append-only 新文零改写。Base 披露：fetch 2026-10-09 主线 tip=`2fab7946`；本线分支落后主线 132 commit（docs commit 仅落本线 · 零 rebase 零 force-push · EXEC 基点归协调方裁）。G7TRIO-2 REQUEST rev2 `c76cad4b`（`line/g7-trio2-full` · 未 EXEC）只读引用。
+- **① 原始范围**：`GAP-CMOP03-POST7B` P1 OPEN——旅程末段红 死亡窗 ∈(:256,:356]（blob `7d65d0f3` era）· class=api · 78798ms 首达 · **×3 窗红 retained**（78798/101906/67369 · G7Y 两 run 末心跳 M5 子段收敛 (:337,:351) marker era · 岔B 相容未定谳）。两岔=岔A step8/9 vs 岔B 专家评审段（boundLoop throw/`:356` 死胡同两子型）；机制①M1-M7 分段心跳+机制②sidecar 账本臂 R1/R2；预注册映射+升级条款+单 attempt+Ban retry-to-green。
+- **① 压后原因**：判别 run2 红点 `:236` 窗外（7A-DOWNGRADE 立行·M1-M7 全未达）→ G7Y ×3 复现子段收敛未定谳 → CMOP03-F 段外再升级 → 跨 run 形状漂移 ≥4 形状使判别输入不可期 → 协调方裁定 G7 间歇红线先行（G7P-1/G7P-2 nail「POST7B deferred」· G7FIX-1/2 nail「POST7B 复评（重锚后评估）」殿后）。
+- **① 解除条件清单（全达成）**：C1 route 409 时序错位定谳+修复（G7P-5+G7FIX-1）· C2 `:388` 孪生同步（G7FIX-2）· C3 sidecar v3 仪器修复（G7FIX-2）· C4 finalize 409 契约缺口归因代码级闭合+产品面对称标记+mark-then-recover（G7P-6+G7FIX-3+G7FIX-4）· C5 driver 臂回改（G7FIX-5）· **C6 CMD1 首次全程绿 EXIT=0/80706ms/74 断言（G7FIX-5）** · C7 埋点绿证 19 行 ledger≤32 · C8 重锚可行（§3）。原始阻塞消除 · 余前置=排序（G7TRIO-2 在先）。
+- **② 更新版范围**：仍适用=POST7B 行 P1 OPEN（处置归协调方）·M1-M7 映射协议·单 attempt/升级条款/sidecar v3/三零纪律/pins。**已覆盖（零重复修复）**=bound-start 409 时序面（G7FIX-1）· boundLoop 孪生 throw 族+`:357` 残留（G7FIX-2 同刀）· `:236` 7A 形状（G7FIX-3/4/5 归因+产品面可恢复）· sidecar 仪器缺陷（G7FIX-2）· 埋点处方（已在树）· parity baseline（PARITY-B 再生）。⇒ **修复范围=空集 · EXEC 面零 coding**。
+- **③ 重锚+prove（判别面重定义）**：窗重定义（坐标无关）=〔diag 终态后 .. boundLoop 状态机断言含〕· 当值行域 ≈ (:268,:398] @ blob `c2f0778c`·子段 ≈ (:350,:384)=G7FIX-1 轮询插入区+F1-F4 仪器区 · EXEC 复核条款（判读按 marker 序位非裸行号）。原判别「预期红定窗」前提消失 → 重定义=**绿基线间歇复现监视窗**：G 臂（预期主臂）=授权 run 绿 → 段标全达+窗形状未复现=读数增量≠关闭（单 run 绿≠恒绿）；R 臂=窗红复活 → 预注册映射首次有效行使+R1/R2 互证 · 窗外/7A 形状→升级。run 来源：**优先搭 G7TRIO-2 CMD1 收据（零增量 run · est 0 live）**；备选 standalone 单 attempt 须授权（est ≤25）。静态门四件 EXIT=0 · 收据要件（ledger 全行+sidecar v3+invocation 计数+sourceDigests MATCH+四钉当值全等）。钉①③已漂移（授权链在卷）· EXEC 重钉。
+- **④ 风险**：R1 间歇本体未根除（duplicate re-roll 根因刀未落地 · 单绿读数力有限·关闭强度依赖 trio 三绿）· R2 形状漂移史 ≥5（判读按 ledger 序位）· R3 窗内机制已变（G7FIX-1 轮询·时序形状被改变·可能吸收/变形原窗红）· R4 预算紧（standalone 可容但紧）· R5 双钉漂移已发生 · R6 三行 P1 OPEN 治理归协调方 · R7 base 分叉已披露。
+- **Ban**：产品码/A() 本体/埋点触碰/withhold 契约/四钉当值 blob/共享 SSOT 行结构/归因两岔任一岔/就地归因/行关闭翻转/G7TRIO-2 线触碰/retry-to-green/未经授权加跑/secrets/`.env*`/force-push/self-approve · Key name-only · est 0 live（本 commit）· pins 十一值照抄。
+- **流程**：本文 → 预执行双审（mw-e2e-ha + mw-model-op · stub `reviews/REQUEST-2026-10-09-cmop03-post7b-restart-{mw-e2e-ha,mw-model-op}.md`）→ meetwise 授权 → EXEC（重锚复核+判别读数）→ post-prove 双审 → nail。详版见 `ai-docs/delivery/harness/cmop03-post7b-restart.md`。
+- **Not-a-pass**：not coding · not proven · not run（零实跑零 live 零容器）· not 定谳 · not 归因 · not 修复 · not 行处置（三行 P1 OPEN 维持 · ×3 原值 retained 零冲销）· not covered · not nail · not coordinator authorize · `g7SuiteGreen=false` · `actualSpendCny=null` · alone ≠ dual。
