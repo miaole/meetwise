@@ -170,13 +170,17 @@ function concludeMarked(event: Pick<SseEvent, 'kind' | 'payload'>): boolean {
  * the reason is a domain enum. Terminal SSE reasons (assessment_unavailable,
  * report_unavailable, …) and progress.route are not conclude reasons.
  */
+/** Type guard narrowing a server-payload string to the domain ConcludeReason enum. */
+const isConcludeReason = (value: string): value is ConcludeReason =>
+  (CONCLUDE_REASONS as readonly string[]).includes(value);
+
 export function attributableConclude(event: Pick<SseEvent, 'kind' | 'payload'>): AttributableConclude | null {
   if (!concludeMarked(event)) return null;
   const reason = event.payload?.concludeReason ?? event.payload?.reason;
   if (typeof reason !== 'string' || reason.length === 0) {
     throw new Error('e2e_conclude_attribution_missing');
   }
-  if (!(CONCLUDE_REASONS as readonly string[]).includes(reason)) {
+  if (!isConcludeReason(reason)) {
     throw new Error('e2e_conclude_attribution_forged');
   }
   return { kind: 'conclude', reason, source: 'server_payload' };
