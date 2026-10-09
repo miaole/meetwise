@@ -2068,3 +2068,12 @@ flowchart TD
 - [ ] **STILL OPEN**：trio 全景重跑（G7TRIO-2·CMD1 预期绿 CMD2 绿 CMD3 步 10 已由 NEGCOMM-1 解锁）；`:107` 维持；`g7SuiteGreen=false` 维持（=trio 后 SSOT 刀）.
 - 预算：恰 1 run · dual-count 21≤25 · 链 145+21=166≤200 · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
+### Line TOKSTREAM-S3 阶段2 完整流式实施设计刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · docs-only 恰 2 文件设计定稿·§B 数据流图钉 worker→api 跨进程跳·§E 错误矩阵+S2 未实测面合成 fixture 分栏如实·§F zod 双端 schema·§I 实施切片 S4a-S4d·erratum A15+A5 勘正·R-A/R-B 分层裁定开列）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（十一值）.
+- [x] **`post_prove_dual_pass`** recorded for Line TOKSTREAM-S3 products only（恰 2 文件 docs-only 设计文档扩写 194 行+EXEC 收据·零产品码·nail tip 本 commit · branch `line/tokstream-s3-design`）· **双审 BOTH PASS**：mw-e2e-ha PASS（五核：docs-only 恰 2 文件+锚点抽验 11 精确/§B 跨进程跳钉死核与现树衔接成立〔0143:26 载荷仅 stream_key→delta 须专用通道推理成立·复用 sse-notify 单例不破 :24 禁每 SSE 一连接〕/§E 分栏如实〔实测栏逐项对卷+未实测栏设计携带非预 claim〕/§F §G §I 可裁性/零产品码 pins 自证）+ mw-model-op PASS（五项清单：①测试矩阵二类标注满足②R-B×FORBIDDEN_SCORE_KINDS 主体满足条件留 S4c③①-⑧ 对表满足无清单在场正文缺面④interview_token_ch 裁定设计成立⑤续传相容满足·**A15 erratum 条件**〔worker 半边 redis catalog 依赖真·T-A 结论不受影响但拒绝理由改写〕·三处行号漂移非阻断）· 协调方正式授权本 nail（**erratum @d03e7b3b 事故修正 @f0b59730 双席复核 PASS 后直收**——rev3 恢复 §C-1+删 dup A15+A5 修正+erratum 尾段）.
+- **TOKSTREAM-S3 全链**：REQUEST `0a52d12c` → rev2（席1 pins/egress 申报/B 判据）→ rev3 `a8f2f67e`（席2 删 native 参数+stream_options+三元组钉死+T0-T3）→ 双席复核 BOTH PASS → EXEC `9dea6b97` → erratum @d03e7b3b → rev3 修正 @f0b59730 → 本 nail commit.
+- **核心产出**：①§B 数据流图钉 worker→api 跨进程跳（PG LISTEN/NOTIFY 专用通道 interview_token_ch≤8KB at-most-once→api sse-pump→浏览器——增量帧不落持久表·终态全文权威覆盖=唯一恢复）②§E 错误矩阵（HTTP 前置一等错误路径+流中 error frame/静默断流/idle 截断三备用面）③§F zod 双端 schema（token_delta 唯一 id-optional 成员·光标防毒三件套）④§I 实施切片 S4a-S4d ⑤**R-A/R-B 分层裁定开列**（正文流式不触 R-B 思考隐私·reasoning_content delta 处理策略两案并陈 R-A 待产品裁示·EXEC 不得单方选边）.
+- [ ] **STILL OPEN**：S4a-S4d 实施切片 REQUEST（蓝本=本设计 §I）；R-A 解禁须产品裁示+双审+隐私 prove；`g7SuiteGreen=false` 维持.
+- 预算：docs-only 零 run · est 0 live · 0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 设计 ≠ 实施 ≠ 流式上线 · 实现方不 self-approve.
