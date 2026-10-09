@@ -14,7 +14,7 @@
  *     range_digest 比对——checkpoint/trace 永不成为「原文聊天库」。
  *   - 事件 append-only：content 不可 UPDATE；status 单向 active → privacy_fenced → purged。
  */
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 import { createHmac } from 'node:crypto';
 import type {
   ConversationEventCategory, ConversationEventSource, ConversationRetentionClass,

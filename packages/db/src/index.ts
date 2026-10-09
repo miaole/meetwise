@@ -441,14 +441,14 @@ export {
   // 0111：账户删除 sink 闭合（复用冻结 issuer，仅包 CTX begin/claim/purge）+ 补偿控制 + version CAS
   beginConversationEventErasure, claimConversationEventTarget, purgeConversationEventTarget,
   dispatchConversationEventReplay, transitionConversationEventStatus,
-} from './ctx03-event-source.ts';
+} from './context/ctx03-event-source.ts';
 export type {
   AppendConversationEventInput, ConversationEventAppendReceipt,
   ReplayedConversationEvent, ConversationEventRangeRef,
   ConversationEventErasureTarget, BegunConversationEventErasure,
   ClaimedConversationEventTarget, PurgedConversationEventTarget,
   ConversationEventDispatchDecision, ConversationEventTransitionReceipt,
-} from './ctx03-event-source.ts';
+} from './context/ctx03-event-source.ts';
 
 // RAG-FUNNEL-06 / route-scope 缓存 + provenance + 撤销隔离：retrieval-result / singleflight 键
 // HMAC 绑定 routeScopeCacheDigest（七面）；durable negative-result cache 权威判定在 PG 行/epoch CAS
@@ -499,11 +499,11 @@ export type {
 export {
   draftCompressionSnapshot, activateCompressionSnapshot, supersedeCompressionSnapshot,
   hydrateCompressionSnapshots, replayCompressionSnapshots,
-} from './context-compression-snapshot.ts';
+} from './context/context-compression-snapshot.ts';
 export type {
   DraftCompressionSnapshotInput, CompressionSnapshotDraftReceipt, CompressionSnapshotTransitionReceipt,
   CompressionSnapshotRow,
-} from './context-compression-snapshot.ts';
+} from './context/context-compression-snapshot.ts';
 
 // 多层会话摘要树（MEM-03）：父只引用 verified/active 子 + 仅追加不覆盖 + supersede/invalidate/fence
 // 精确传播 + traceback 沿父链回溯到 turn 叶事件范围。父节点激活复用 MEM-02 verify/activate。
@@ -522,21 +522,21 @@ export {
   claimCompressionDispatch, markCompressionDispatchDispatched, commitCompressionDispatch,
   markCompressionDispatchUnknown, discardCompressionDispatch, recoverCompressionDispatch,
   replayCompressionDispatches,
-} from './context-compression-dispatch.ts';
+} from './context/context-compression-dispatch.ts';
 export type {
   ClaimCompressionDispatchInput, CompressionDispatchClaimReceipt,
   CompressionDispatchTransitionReceipt, CompressionDispatchRow,
-} from './context-compression-dispatch.ts';
+} from './context/context-compression-dispatch.ts';
 
 // 撤回、过期和删除（CTX-06）存储侧：压缩轨道删除 sink 闭合（snapshot + dispatch 的 begin/claim/
 // purge，复用冻结 PrivacyAuthorizationIssuer 不重实现删除根）。删后 read=0 + 逐 sink receipt。
 export {
   beginCompressionErasure, claimCompressionTarget, purgeCompressionTarget,
-} from './context-compression-erasure.ts';
+} from './context/context-compression-erasure.ts';
 export type {
   CompressionErasureTarget, BegunCompressionErasure,
   ClaimedCompressionTarget, PurgedCompressionTarget,
-} from './context-compression-erasure.ts';
+} from './context/context-compression-erasure.ts';
 
 // 0125：vector_chunk.kind=memory 账户删除 sink（独立于 0093 memory_embedding）。
 export {
