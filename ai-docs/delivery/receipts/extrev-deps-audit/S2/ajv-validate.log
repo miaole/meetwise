@@ -1,0 +1,5 @@
+unknown format "regex" ignored in schema at path "#/definitions/extractVersion"
+unknown format "regex" ignored in schema at path "#/definitions/extractVersion"
+unknown format "regex" ignored in schema at path "#/definitions/versionCompatibility"
+unknown format "regex" ignored in schema at path "#/definitions/versionCompatibility"
+/Users/miaole/Desktop/golucky/meetwise-line-depsaud/renovate.json valid

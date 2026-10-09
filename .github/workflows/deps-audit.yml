@@ -1,0 +1,42 @@
+name: deps-audit
+
+# EXTREV-0 DEPS-AUDIT S2（#106 CI 面）：生产依赖 audit 门。
+# 门语义（fail-closed）：
+#   - `pnpm audit --prod --audit-level=critical`：critical>0 → 非零退出 → 本 job 红（阻断）。
+#     high/medium/low 不挡门（与 REQUEST §7 Non-claims 一致·S1 剩余 18 high 为 Non-claim 面）。
+#   - 网络失败（registry 不可达）：pnpm audit 同样非零退出 → 红，非静默放行。
+#   - 步骤置于 install 之前（本 workflow 不 install）：audit 只读 pnpm-lock.yaml + registry
+#     advisory 端点，无需 node_modules（本地负例实测坐实：lockfile-only 回退后同命令真红）。
+#     lockfile 缺失或不可解析同样非零退出 → 红。
+# 物理零触 ci.yml（rev2 记账：audit 步独立 workflow 文件）。
+# schedule 周跑：advisory 库滚动——lockfile 不变也可能出现新 critical，定时重审同一 lockfile。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "20 20 * * 0" # 每周一 04:20 UTC+8 错峰（独立于 nightly）
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        # 版本读 package.json packageManager(pnpm@10.18.0)，与 ci.yml 同一机制
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          # 不配 cache：本 job 零 install，无 store 可缓存
+
+      - name: pnpm audit (prod, critical gate)
+        run: pnpm audit --prod --audit-level=critical
+        # critical>0 / 网络失败 / lockfile 不可解析 → 非零退出 → 红（fail-closed，无任何放行开关）
