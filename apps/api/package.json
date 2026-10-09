@@ -52,6 +52,7 @@
   "prove:uc025-nhp-fault-isolated": "node --import @swc-node/register/esm-register test/uc-e2e-025-nhp-fault-isolated.proof.ts",
   "prove:uc025-nhp-adv": "node --import @swc-node/register/esm-register test/uc-e2e-025-nhp-adv.proof.ts",
   "prove:begin-guard-merge": "node --import @swc-node/register/esm-register test/godfn-1c-begin-guard-merge.proof.ts",
+  "prove:obs-logging": "node --import @swc-node/register/esm-register test/obs-logging.proof.ts",
   "prove:uc004-career-path": "node test/uc-e2e-004-career-path.proof.mjs",
   "prove:uc004-career-path-fault": "node --import @swc-node/register/esm-register test/uc-e2e-004-career-path-fault.proof.ts",
   "prove:uc001-nhp-neg": "node --import @swc-node/register/esm-register test/uc-e2e-001-nhp-neg.proof.ts",
