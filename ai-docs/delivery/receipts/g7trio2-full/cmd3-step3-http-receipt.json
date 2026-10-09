@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_e2e_receipt",
+  "target": "e2e:prove",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 73611,
+  "startedAt": "2026-10-09T10:07:47.194Z",
+  "finishedAt": "2026-10-09T10:09:00.805Z",
+  "assertionCount": 75,
+  "reviewLedger": [
+    {
+      "class": "capability",
+      "code": "image_ocr_unavailable"
+    },
+    {
+      "class": "capability",
+      "code": "voice_unavailable"
+    },
+    {
+      "class": "worker",
+      "code": "report_unavailable"
+    },
+    {
+      "class": "worker",
+      "code": "report_unavailable"
+    },
+    {
+      "class": "worker",
+      "code": "quiz_unavailable"
+    },
+    {
+      "class": "worker",
+      "code": "diagnosis_ready"
+    },
+    {
+      "class": "worker",
+      "code": "seg_diag_green_enter"
+    },
+    {
+      "class": "worker",
+      "code": "seg_step8_enter"
+    },
+    {
+      "class": "worker",
+      "code": "seg_step9_green"
+    },
+    {
+      "class": "worker",
+      "code": "seg_expert_enter"
+    },
+    {
+      "class": "worker",
+      "code": "seg_bound_start_enter"
+    },
+    {
+      "class": "worker",
+      "code": "seg2_start_readjson"
+    },
+    {
+      "class": "worker",
+      "code": "seg2_start_assert_pre"
+    },
+    {
+      "class": "worker",
+      "code": "seg2_start_assert_post"
+    },
+    {
+      "class": "worker",
+      "code": "seg2_idem_assert_post"
+    },
+    {
+      "class": "worker",
+      "code": "seg2_begin_assert_post"
+    },
+    {
+      "class": "worker",
+      "code": "seg_boundloop_enter"
+    },
+    {
+      "class": "worker",
+      "code": "assessment_unavailable"
+    },
+    {
+      "class": "worker",
+      "code": "seg_boundloop_terminal"
+    }
+  ],
+  "sourceDigests": {
+    "e2e/full.e2e.ts": "sha256:7105778eb5ef65662ec531b967fdf82aad1bfb673058e42df14924e0f35c2fc1",
+    "e2e/helpers/assert.ts": "sha256:269e61413061627bec45cf5f225518af1f0c913af008020c1835c393e0314f28",
+    "e2e/helpers/auth.ts": "sha256:6243aa47cf6661c9905c9c3c41e9190565c85011ac3dd25b793b90dfdaa4abde",
+    "e2e/helpers/classify-failure.ts": "sha256:f5277aadb6d781e7aa1eba0a26d600fbfdc3eda3704b1c2d8c6ed171ac585cfb",
+    "e2e/helpers/commerce.ts": "sha256:0b21a938c1d7a87507de7e8ff00fbbd2051549af6dfdc98632e56964e5444d6f",
+    "e2e/helpers/failure-class.mjs": "sha256:9c6a468e9fe46a182cf8e3cdcc4779be9f0fc1298291625fcc939119ba786f87",
+    "e2e/helpers/failure.ts": "sha256:5ddb000a626276de001c726d138681c61ba19e72dfd42ddf82e2c06ed8124cbc",
+    "e2e/helpers/http.ts": "sha256:cb678b6b96954f96cd584826efb6266cc1607f3e1419821fbd6e118865e4e91d",
+    "e2e/helpers/interview.ts": "sha256:5b21dbee896a235ff19db1ab250314d38e299254b70e29bdc6f6b2d19e2a79c0",
+    "e2e/helpers/resume.ts": "sha256:de02295819af4ba7a31c28cb2152a6f2b164da8271999a9a5cef6cfdcadb390d",
+    "e2e/helpers/sse.ts": "sha256:298de8143c7b7efecb140028d82903e8858f1480d1c418089adc492b80b26aa2",
+    "e2e/helpers/voice.ts": "sha256:e0e101e35fc358308aa3293126bae0f98781cb79e3a8de7dd4179fd87bda2f2b",
+    "e2e/ocr-fixture.ts": "sha256:01ea0c1788a4eae636e9dcde1bab86b1af90e9a9fb254976ceca1f33273b3bb0",
+    "scripts/run-e2e.mjs": "sha256:926fdf7dafb3752b639ba3e451934d6be0bf2ba2bc2549daeee0a881a1044f2b",
+    "scripts/run-e2e-isolated.mjs": "sha256:c3900ae95e1c043ef8c406a403fc5d018aedbf78cfc538c28abdb5a0a84d2cd6"
+  },
+  "schemaMigrationManifest": {
+    "count": 152,
+    "latest": "0151_pgp_sym_encrypt_grant.sql",
+    "digest": "sha256:0a1dcf53a4fd969215b9ca4245862d53cf7724a48706e929b650a3c7271ac4e8"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}
