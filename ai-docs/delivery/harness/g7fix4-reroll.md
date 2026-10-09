@@ -1,6 +1,6 @@
 # G7FIX-4R — duplicate re-roll 根因刀（判重后果语义·首撞即死改有界换题）
 
-**状态**：`draft_rev5:pre_exec_dual_PASS`（rev4 席1 三处逐字落位·rev3 声明与工件背离已消除）（rev3 席2 自纠三处方实际落字：pins r1Closed 恢复·avoid 注入三处删除·缓存回放路径校准——rev2 声称已落但 body 零改动·席2 抓出） · base = 主线 `e2834082` · 分支 `line/g7fix4-contract`（树上 HEAD `ed84a22d`·G7FIX-4 产品面对称标记已落 `07218104`/nail `37035c3d`——本文全部 file:line 以 HEAD 树亲证） · 立项依据 = G7FIX-3 EXEC 定谳（RUN 1 四元组 reason=`generation_duplicate_question`·同 run 先 concluding 面试 conclude 写 episode→第二题生成撞判重→终态死）+ G7FIX-4 nail 裁定（g7fix4-contract.md §5 Non-claims「本刀 ≠ duplicate re-roll 根因刀（另立）」——与本刀正交产品面可并行）。
+**状态**：`draft_rev5:pre_exec_dual_PASS → exec:awaiting_post_prove_dual`（rev4 席1 三处逐字落位·rev3 声明与工件背离已消除）（rev3 席2 自纠三处方实际落字：pins r1Closed 恢复·avoid 注入三处删除·缓存回放路径校准——rev2 声称已落但 body 零改动·席2 抓出） · base = 主线 `e2834082` · 分支 `line/g7fix4-contract`（树上 HEAD `ed84a22d`·G7FIX-4 产品面对称标记已落 `07218104`/nail `37035c3d`——本文全部 file:line 以 HEAD 树亲证） · 立项依据 = G7FIX-3 EXEC 定谳（RUN 1 四元组 reason=`generation_duplicate_question`·同 run 先 concluding 面试 conclude 写 episode→第二题生成撞判重→终态死）+ G7FIX-4 nail 裁定（g7fix4-contract.md §5 Non-claims「本刀 ≠ duplicate re-roll 根因刀（另立）」——与本刀正交产品面可并行）。
 
 ## 1. 根因链码面亲证（全链 file:line·HEAD 树逐行核过）
 

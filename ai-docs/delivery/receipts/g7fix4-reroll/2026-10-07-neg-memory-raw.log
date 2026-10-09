@@ -1,0 +1,25 @@
+
+> @meetwise/worker@0.0.0 prove:memory /Users/miaole/Desktop/golucky/meetwise-line-reroll-exec/apps/worker
+> tsx test/memory.proof.ts
+
+
+──────── ① 跨会话精确判重:recordAskedQuestions 写 episode → wasAsked 命中(归一化 exact,零语义) ────────
+PASS  同批归一化去重:恰 2 条 episode(重复题面合一)
+PASS  问过的题 wasAsked=true
+PASS  空白/大小写变体仍判 true(归一化 exact,非语义相似)
+PASS  语义相近但不同题 wasAsked=false(不做语义误挡)
+PASS  完全没问过的题 wasAsked=false
+
+──────── ② 历史弱项只读投影:从 assessment_report(ready 且 gap=true)读维度名 ────────
+PASS  只取 gap=true 的维度名(分布式锁+消息队列,不含达标的高并发)
+PASS  pending 报告的弱项不投影(只信 status=ready)
+
+──────── ③ RLS 不串户:userB 读不到 userA 的 episode / 弱项 ────────
+PASS  userB wasAsked(userA 问过的题) = false
+PASS  userB pastWeakDimensions = 空(读不到 userA 报告)
+
+──────── ④ 隐私:episode 只存我方归一化题面,绝无答案/PII ────────
+PASS  episode 内容无手机号等原文 PII
+PASS  episode 存的是归一化题面(小写去多余空白)
+
+✓ 记忆 lean MVP(跨会话精确判重 + 弱项只读投影 + RLS + 隐私)全部通过

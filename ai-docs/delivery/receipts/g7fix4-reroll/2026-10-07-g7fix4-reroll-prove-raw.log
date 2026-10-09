@@ -1,0 +1,41 @@
+
+> @meetwise/worker@0.0.0 prove:g7fix4-reroll /Users/miaole/Desktop/golucky/meetwise-line-reroll-exec/apps/worker
+> tsx test/g7fix4-reroll.proof.ts
+
+
+──── §4.1 主断言:判重命中 → 有界 re-roll → 新题成功 ────
+PASS  命中 → 换题成功:ok===true 且无 unavailable
+PASS  新题非重复题面:normalizeQuestion(q)≠S1 且=S2
+PASS  invoke 计数===2(初诊 1 次 re-roll,零循环放大)
+PASS  第二次键=:r1 后缀(必换键):provenance.idempotencyKey 精确相等
+PASS  provenance 带 reroll 轨迹(reroll===1)且 origin=model
+PASS  DB 两笔独立 invocation 行:基础键 + :r1 键
+PASS  DB 两棵独立 logical node(revision 后缀入 header digest):基础 revision 与 :r1 revision 各一行
+
+──── §4.2 耗尽回归:恒返 S1 → 上限到 → duplicate_question 判死面形状不变 ────
+PASS  撞满上限 → 仍 unavailableGeneration(duplicate_question) 不弱化
+PASS  耗尽 provenance 携带轨迹:reroll===2 且键停在最后一个 roll `:r2`
+PASS  上限内调用总数===3(含初诊,无循环放大)
+PASS  errorCode 保持 duplicate_question(generationFailureOf reason 前置=generation_duplicate_question)
+
+──── §4.3 fail-closed 保留:三面零位移 ────
+PASS  wasAsked throw(记忆不可用) → generation_unavailable + duplicate_check_failed,零 re-roll
+PASS  attempt=1 → attempt_replay_forbidden(结构闸零触,零 provider 外呼)
+PASS  provider 确定性失败 → 既有分类判死(非 duplicate_question、分类自洽、零 re-roll 轨迹)
+
+──── §4.4 DB/registry 契约负证 ────
+PASS  同 revision 异键首投 → ok(注册 canonical 头)
+PASS  同 revision 异键再投 → logical_node_canonical_invocation_mismatch(0088:272 DB 层判死)
+PASS  新 revision 形过 resolveModelOperation:ok 且 logicalNodeKey 相异且含 :r1 revision
+
+──── §4.5 事件面回归:判死事件键仍 assessment_unavailable:generation_duplicate_question ────
+PASS  B 端岗位 rule-classified route_decided(start 前置)
+PASS  lifecycle 判死面:start 返回 unavailable 且 reason=generation_duplicate_question(generationFailureOf 映射不变)
+PASS  终态 provenance 自带耗尽轨迹:reroll===2 且 errorCode=duplicate_question
+PASS  上限内调用总数===3(lifecycle 全链)
+PASS  判死事件键恰一且仍 assessment_unavailable:generation_duplicate_question(consumer 键族零碰撞)
+PASS  事件 payload provenance 自带 reroll 轨迹(lifecycle 投影零改自带)
+PASS  判死面形状回归:interview=failed 且预留释放
+PASS  lifecycle 全链 re-roll 键账::0 → :r1 → :r2 恰三笔
+
+✓ G7FIX-4R §4 六键全绿:有界换题(命中→:r{k}→新题)+耗尽判死不变+fail-closed 零位移+契约负证+事件键回归
