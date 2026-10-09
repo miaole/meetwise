@@ -1,0 +1,40 @@
+{
+  "discipline": "sidecar v3 (post-migrate anchor / 42P01 pending / stop-needle armed post-first-ok / per-query guarded / SELECT-only aggregates / migrations 152 + /^0151(_|$/) normalized)",
+  "wrapperLog": ".tmp/g7trio2/cmd2-wrapper.log",
+  "container": "meetwise-e2e-53574-1791540109356",
+  "port": "55175",
+  "anchorSeen": true,
+  "firstOkSeen": true,
+  "correlationChecked": true,
+  "correlationMatch": true,
+  "pending42P01Ticks": 0,
+  "fallbackUsed": false,
+  "runStartMs": 1791540109034,
+  "runStartIso": "2026-10-09T10:01:49.034Z",
+  "pollCount": 240,
+  "lastPoll": {
+    "ts": "2026-10-09T10:06:38.710Z",
+    "phase": "poll",
+    "queries": {
+      "ai_model_invocation_status": {
+        "ok": true,
+        "via": "docker-exec",
+        "rows": [
+          "dispatching|1",
+          "failed|4",
+          "succeeded|19"
+        ]
+      },
+      "interview_job_status": {
+        "ok": true,
+        "via": "docker-exec",
+        "rows": [
+          "done|13|2",
+          "running|1|1"
+        ]
+      }
+    },
+    "class": "ok"
+  },
+  "stoppedReason": "STOP sentinel by orchestrator (wrapper exited)"
+}

@@ -1,0 +1,16 @@
+{"bootId":52209,"step":"consent","status":200,"elapsed_ms":8,"body":"{\"recorded\":true,\"policyVersion\":\"v1\"}"}
+{"bootId":52209,"step":"app_start","status":200,"elapsed_ms":15,"body":"{\"applicationId\":\"app_01a1201b9f8473f5a8de6d47995bd902\",\"status\":\"started\",\"interviewId\":\"iv_01a1201baf777cae85e1b46140d4e6bb\",\"redirectTo\":\"/interview/iv_01a1201baf777cae85e1b46140d4e6bb?applicationI"}
+{"bootId":52209,"step":"app_start_reid","status":200,"elapsed_ms":8,"body":"{\"applicationId\":\"app_01a1201b9f8473f5a8de6d47995bd902\",\"status\":\"reused\",\"interviewId\":\"iv_01a1201baf777cae85e1b46140d4e6bb\",\"redirectTo\":\"/interview/iv_01a1201baf777cae85e1b46140d4e6bb?applicationId"}
+{"bootId":52209,"step":"postm7_a1_loop","questions":2,"turns":4,"terminal":"assessment_unavailable"}
+{"bootId":52209,"step":"postm7_a2_provenance","trustedBSideScore":null,"identities":4,"questions":2,"clarifications":2}
+{"bootId":52209,"step":"postm7_a3_finalize","status":200,"outcome":"assessment_unavailable","terminal":"assessment_unavailable","scorelessBound":true,"reason":"no_eligible_scored_answer"}
+{"bootId":52209,"step":"postm7_a4_cand","candStatus":"assessment_unavailable","score":null,"scorelessBound":true}
+{"bootId":52209,"step":"postm7_a5_retry","retryStatus":200,"retriedStatus":"started","newInterviewId":true}
+{"bootId":60229,"step":"consent","status":200,"elapsed_ms":30,"body":"{\"recorded\":true,\"policyVersion\":\"v1\"}"}
+{"bootId":60229,"step":"app_start","status":200,"elapsed_ms":23,"body":"{\"applicationId\":\"app_01a12022f8ba762ca3497dc076e77593\",\"status\":\"started\",\"interviewId\":\"iv_01a1202308a07dba8acab9e3a67bdecd\",\"redirectTo\":\"/interview/iv_01a1202308a07dba8acab9e3a67bdecd?applicationI"}
+{"bootId":60229,"step":"app_start_reid","status":200,"elapsed_ms":8,"body":"{\"applicationId\":\"app_01a12022f8ba762ca3497dc076e77593\",\"status\":\"reused\",\"interviewId\":\"iv_01a1202308a07dba8acab9e3a67bdecd\",\"redirectTo\":\"/interview/iv_01a1202308a07dba8acab9e3a67bdecd?applicationId"}
+{"bootId":60229,"step":"postm7_a1_loop","questions":2,"turns":4,"terminal":"assessment_unavailable"}
+{"bootId":60229,"step":"postm7_a2_provenance","trustedBSideScore":null,"identities":4,"questions":2,"clarifications":2}
+{"bootId":60229,"step":"postm7_a3_finalize","status":200,"outcome":"assessment_unavailable","terminal":"assessment_unavailable","scorelessBound":true,"reason":"no_eligible_scored_answer"}
+{"bootId":60229,"step":"postm7_a4_cand","candStatus":"assessment_unavailable","score":null,"scorelessBound":true}
+{"bootId":60229,"step":"postm7_a5_retry","retryStatus":200,"retriedStatus":"started","newInterviewId":true}

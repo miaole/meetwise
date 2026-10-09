@@ -1,6 +1,6 @@
 # G7TRIO-2 — trio 全景重跑刀（G7 三级间歇红全部修复后三绿判定）
 
-**状态**：`draft_rev2:awaiting_pre_exec_dual`（rev2 席2 FAIL 一行修：增第六向 CMD3 步 1-9 红承接·消判读真空） · base = 主线 `2fab7946`（含 G7FIX-1 轮询+G7FIX-2 孪生同步+G7FIX-4 对称标记+G7FIX-5 臂回改全链修复）· 分支 `line/g7-trio2-full` · 立项依据 = G7FIX-5 nail（CMD1 首次 EXIT=0 全绿）+ G7TRIO 席2 trio 就绪度终评（臂回改=唯一阻塞·已落地）。
+**状态**：`exec:awaiting_post_prove_dual`（EXEC 已落 mw-core · 恰 3 run attempts 1,1,1 · EXIT 原值 **CMD1=0 / CMD2=0 / CMD3=1**＝2 绿/1 红·非三绿候选·六向判读命中**第五向（CMD3 步 10 红）**·红 locus=`neg:resume` 12/87（consume 族 12/12 全 PASS·NEGCOMM-1 靶兑现·locus 移位）·步 11-27 not_run·收据 `ai-docs/delivery/receipts/g7trio2-full/00-exec-receipt.md`·post-prove 双审归协调方派·下方 §1-§5 蓝本原文零改写·EXEC 注记见文末 §6） · base = 主线 `2fab7946`（含 G7FIX-1 轮询+G7FIX-2 孪生同步+G7FIX-4 对称标记+G7FIX-5 臂回改全链修复）· 分支 `line/g7-trio2-full` · 立项依据 = G7FIX-5 nail（CMD1 首次 EXIT=0 全绿）+ G7TRIO 席2 trio 就绪度终评（臂回改=唯一阻塞·已落地）。
 
 ## 1. 手段
 恰 3 run（每键恰一次·零重跑至绿）：
@@ -26,3 +26,7 @@
 
 ## 5. Non-claims
 本刀 ≠ g7SuiteGreen 翻转（三绿⇒SSOT 刀另立·协调方 AUTHORIZE）≠ `:107` 关闭 ≠ HA/releaseEvidence 面·CMD3 步 11-27 LEGACY/R5 六步如实登记非本刀域。
+
+## 6. EXEC 注记（本刀落卷 · 上文 §1-§5 蓝本原文零改写 · append-only）
+
+- **注记（锚 §2 六向 + §1 CMD3 行）**：EXEC HEAD=`c76cad4b`（=REQUEST rev2 亲证）· 恰 3 run attempts 1,1,1 · EXIT 原值 **0/0/1** · 六向落桶=**第五向（CMD3 步 10 红）**——但红 locus 与 G7TRIO era 移位：NEGCOMM-1 解锁靶 **consume 族本 run 12/12 全 PASS**（neg:commerce 84 条全绿），步 10 实红于 **`neg:resume` 12/87**（图片同意门 ×2 + DELETE/privacy-erasure 族 ×10·与 pins「公开 DELETE=503 fail-closed」可能存在契约形状分歧·定谳归协调方）· 步 11-27 not_run（LEGACY/R5 六步零行使 retained）· CMD1/CMD2 各自绿（75 断言四元组兑现 / 14P-0F-10S 基线同形）· 链累计 166+88=254 ≤ 裁帽 300 · sidecar v3 原样 correlation ^0151 match · `g7SuiteGreen=false` 零翻转 · §2 第二向/第三向/第四向/第六向均未命中如实记 · 详证 `ai-docs/delivery/receipts/g7trio2-full/00-exec-receipt.md` · `exec:awaiting_post_prove_dual` · Ban self-approve · 席 mw-core。

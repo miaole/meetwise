@@ -1,0 +1,4 @@
+CMD=CMD3 pnpm verify:e2e-performance
+start_utc=2026-10-09T10:07:10Z
+end_utc=2026-10-09T10:14:13Z
+EXIT=1
