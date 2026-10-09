@@ -72,3 +72,12 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *REQUEST stub · #228+#29 trial-grant · Line trial-grant · mw-trial001-draft · 2026-10-07 · PENDING awaiting pre-exec dual · alone ≠ dual · STOP*
+
+## rev2 双审收口（2026-10-10 · 席1 PASS+席2 PASS·五处方转 EXEC 义务）
+
+- **NC1（Non-claims 增）**：trial 入共享池四路径无差别可扣（mock_interview/resume_quiz/resume_diagnosis/ocr 同 reserve 1.0）；D1「够完成一场面试」=数量口径非路径锁定；钉路径=改已签共享池口径，归 D3/W4。
+- **NC2（Non-claims 增）**：units_total=1.00 绑定当前已签量纲，D3 重定价时 trial 数量随动重裁（存量桶不回溯补差）；批量注册上限量化=60/min/实例全局·≤86,400 桶/天/实例·in-memory 重启清零·多实例倍增；flag 灰度留作 #110 前触发器。
+- **NC3（Non-claims 增）**：signup+grant 不加审计行——溯源=user_account.created_at+kind='trial' 单写点+expires_at 反推；admin_audit 为 admin 域不扩。
+- **P4（§4.2③ 归因修正）**：同邮箱并发双注册收敛由 user_account UNIQUE(email) 23505 达成（输家死于桶 INSERT 之前，不经 partial index）；prove 双层——(i) HTTP 并发同邮箱 Promise.all→恰一 2xx+恰一 409+桶恰 1 行（归因注明 UNIQUE）+(ii) 隔离库直插同 owner 第二条 trial→23505 证索引 DB 层兜底（必留）；(iii) 双 PoolClient 交错真并发可选（省略则 prove 叙事禁写「ON CONFLICT 并发已证」）。
+- **EXEC 注意清单（席1 三条+席2 一条合并）**：①§4.3 夹具复用 neg-interview:218-264「推进 begin 至扣额面」播种形制；②0152 禁顶层 BEGIN/COMMIT（migrate.ts 硬抛）·普通 CREATE UNIQUE INDEX 于 runner 事务内·可重跑形制照 0018；③ON CONFLICT 谓词与 index 定义逐字一致·23505 断言用裸 INSERT；④0152 由与既有 gateway fn 同属主角色应用·prove 走真 HTTP signup 链。
+- Status: `draft_rev2:pre_exec_dual_PASS`（双席 BOTH PASS·EXEC 授权·蓝本=本 rev2）。
