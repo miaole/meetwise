@@ -2018,3 +2018,15 @@ flowchart TD
 - [ ] **STILL OPEN**：24 深段断言首次可达后的逐段覆盖评估（本绿已行使至 :134·后续段归残余刀）；`g7SuiteGreen=false` 维持.
 - 预算：证明体总 3（红+诊断+绿）· est live=0 · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
+
+### Line TSCGATE-2 e2e tsc 修复四批+门禁点亮刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 16 files 621+/7- 零产品码·恰 1 run 四门+helpers:prove EXIT=0·B2 ambient d.ts 零 any·B3 真型守卫健全化·B4 纯 ! 零 emit·门禁点亮可达·**C2 部分就绪**）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（十一值）.
+- [x] **`post_prove_dual_pass`** recorded for Line TSCGATE-2 products only（恰 16 文件 621+/7- 零产品码·nail tip 本 commit · branch `line/tsc-fix-batches`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：diff 16 files 621+/7- 零产品码 grep EXIT=1/四门亲跑复现 EXIT=0/tsc -p tsconfig.e2e.json --noEmit EXIT=0/turbo dry=json 恰 1 runnable 逐字命中/B2 零 any 亲证/零行为 diff B3 同一 includes 调用 B4 纯 ! 编译期擦除/E5 合理 attempts 全账/pins 十一值+恰 1 run+strict 零降级）+ mw-model-op PASS（六核：**C2 落地路径价值终评**〔姊妹刀 dc75fb23 web+contracts 已点亮·两刀合计三域门就绪补齐 e2e 缺口〕/**B2 语义核**〔undici-types@8.3.0 .pnpm 亲读 HeadersInit 三成员全保留·HeaderRecord optional 值域含 undefined·E5 放宽数学必需非图省事·d.ts 零 any〕/**B3 健全化修复**〔基线 TS2322 真实型错以真型守卫消解·非断言〕/**B4 三族不变式**〔`!` 编译期擦除零运行时〕/attempts/恰 1 run/零产品码/独立复跑四门全绿）· 协调方正式授权本 nail.
+- **TSCGATE-2 全链**：REQUEST → rev2（双席 FAIL：B2 落点改道 e2e/helpers/undici-types.d.ts+值域并集禁 any+门禁改道根级 tsconfig.e2e.json+apps/api 禁点亮 26 错实测+验收补三门+erratum×2）→ rev3（席2 turbo 接线修正：//#typecheck 根任务声明+erratum B4×3+B2 :70 TS2552）→ rev4（席2 两行修：token meetwise#typecheck→//#typecheck+TS2552 erratum）→ 双席复核 BOTH PASS → EXEC `1eb3324b`（origin tip 零位移）→ 本 nail commit.
+- **核心产出**：①e2e 域 tsc 门就绪且点亮（tsconfig.e2e.json+turbo //#typecheck+root typecheck:e2e·恰 1 runnable 亲证）②B2 ambient d.ts（RequestInfo 逐字镜像+HeadersInit 并集零 any）③B3 isConcludeReason 真型守卫健全化 ④B4 7 错机械修——**C2 部分就绪**（e2e+web+contracts 三域 tsc 门就绪·CI 接线另刀后方勾销）·**C1 维持 ❌**（仓内零 lint 配置·lint 独立设计刀）.
+- **姊妹刀互补确认（席2）**：line/c1c2-typecheck@dc75fb23 已点亮 web+contracts 两包 typecheck script（nail BOTH PASS·CI 接线 deferred）——两刀合计三域门就绪补齐 e2e 缺口·CI 接线另刀成立.
+- **erratum×2 登记（席2·非阻断）**：①d.ts 头注 "import('undici-types') 不可解析" 因果表述与实测不符（实为 @types/node 内部可解析·根级不可）——结论不变·事实更正；②root typecheck 别名现仅转发 e2e·c12 合并后聚合归 CI 接线刀.
+- [ ] **STILL OPEN**：C2 勾销待 CI 接线另刀；C1 lint 独立设计刀；sibling 债（e2e-parity:check·docs:check PTP_FILE_LIMIT）；root typecheck 别名聚合归 CI 接线刀；`g7SuiteGreen=false` 维持.
+- 预算：恰 1 run 四门·五项独立复跑 EXIT=0 · est 0 live · 0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
