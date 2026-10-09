@@ -41,7 +41,7 @@
 
 ## 5. 分批切片
 
-- **S1（本刀主体）**：worker seam re-roll（:178-187 改写+上限常量+avoid 注入）+ domain provenance optional 字段 + §4 全键 prove——恰两文件（adaptive-interview-service.ts + question-generation.ts）·零图零 lifecycle 零 DB 零 e2e；
+- **S1（本刀主体）**：worker seam re-roll（:178-187 改写+上限常量）+ domain provenance optional 字段 + §4 全键 prove——恰两文件（adaptive-interview-service.ts + question-generation.ts）·零图零 lifecycle 零 DB 零 e2e；
 - **S2（另裁后续）**：critique 场内 duplicate 面（generate-question.ts:69-80·ai-graphs 跨包）同语义化——本刀不做·登记 residual；
 - **S3（协调方）**：e2e:isolated/G7TRIO 全景对 re-roll 面的观测键与判读——本刀外。
 
@@ -56,3 +56,13 @@ diff 面（恰 §5.S1 两文件）+ §4 prove 全键 EXIT 原值 + neg 全绿零
 ## 8. Non-claims
 
 本刀 ≠ G7FIX-4 finalize 契约刀（已落）≠ critique 场内判重语义（S2 另裁）≠ G7 收官 ≠ g7SuiteGreen 翻转 ≠ 判重/记忆读取语义改动（只改判重命中后的后果·不改何时算重复）。
+
+
+---
+
+## erratum（rev3 席1/席2 双审处方落实·d03e7b3b 事故级修正）
+
+- pins 十值补回 r1Closed=false·actualSpendCny 退脚注。
+- avoid prompt 注入三处正文删除（cap+精确复检独立保证·省第三文件）。
+- 缓存回放引证校准：invoke.ts:615 'cached' 返回原 output·0088:424-426 replayable 标记写入侧。
+- 计费引证 :377-380 释放/退款面（rev1 :359-361 系 completeInterviewAndConfirm 成功路径·本就错引）。
