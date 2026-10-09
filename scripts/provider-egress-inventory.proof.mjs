@@ -28,7 +28,7 @@ const checks = {
     assert.equal(result.valid, true, result.errors.join('\n'));
     assert.equal(result.stats.adapterCount, 5);
     assert.equal(result.stats.operationCount, 10);
-    assert.equal(result.stats.registeredConsumerSourcePairCount, 33);
+    assert.equal(result.stats.registeredConsumerSourcePairCount, 43);
     assert.equal(result.stats.environmentReferenceCount, manifest.environmentReferences.length);
     assert.equal(result.stats.releaseEvidence, false);
   },
