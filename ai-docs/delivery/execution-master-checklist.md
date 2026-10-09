@@ -1966,3 +1966,13 @@ flowchart TD
 - [ ] **STILL OPEN**：src 内嵌测试守卫结构债（g7-freetier-reprove-guard.ts 另域立账）；env 值卫生/轮换域；`g7SuiteGreen=false` 维持.
 - 预算：est 0 live · 0 Key 值接触 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
+
+### Line G7P-6 7a 间歇定靶刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 恰 1 run 红原值 retained·**纪律标杆：红面≠补抓面·定谳缺席拒绝伪称**· 席2 skew 读至代码行级：generation 族直发 interview_unavailable 不标 application→finalize 409→driver 白名单缺臂 · 裁 G7FIX-3=finalize 409 skew 裁决刀）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`.
+- [x] **`post_prove_dual_pass`** recorded for Line G7P-6 products only（diff +9/−0 恰 1 文件两查询逐字照抄蓝本·diag_failed 不 rethrow 防自伤·零产品码·nail tip 本 commit · branch `line/g7-7a-diag`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：diff/收据副本字节全等+诚实性「G7 线最严纪律时刻成立」〔红面≠补抓面如实·判读谱零分桶·聚合证据自降级·新域读数不自裁〕/ticks 原行亲读 failed 5 succeeded 14 vs job done 13 failed=0/链 126≤200/sourceDigests 15 同符）+ mw-model-op PASS（六核：**skew 形态读至代码行级**〔driver :404/:406-407 期待 200+completed vs 服务端 recruiter.ts:186-213 not_ready→409 cannot_finalize·**worker 发射不对称**：job 失败族 consumer.ts:78-99 先标 application assessment_unavailable→finalize 200·**generation 失败族 adaptive-lifecycle.ts:46-56 直发 interview_unavailable 不标 application**→409——服务端按契约行事非错〕/消费 7F 不同族无同根/逐事件材料通道=interview_event reason/provenance.invokeError 瞄准正确/间歇多面性已证但**按族定谳可收敛**〔族少且均可插针〕/est 126≤200/pins 卫生）· 协调方正式授权本 nail.
+- **G7P-6 全链**：REQUEST → rev2（席1 SQL 硬伤三改）→ rev3 `eaf8fc23`（席2 provenance.invokeError 通道+判读谱增补）→ 双席复核 BOTH PASS（原席2 长飞超时重派收口·沿双审记录链）→ EXEC `d9f2903c`（rebase a3378de5 披露·origin tip 零位移）→ 本 nail commit.
+- **核心产出**：①7a 探针 armed 常驻（后续任一 run 红于 7a 即自动补抓 last_error/reason/invoke_error）；②**新域读数（席2 代读到底）**：G7 间歇红第二次出现=bound-loop finalize 409·skew 两层事件（主层=generation 族间歇触发·次层=driver 契约缺口确定性）·**间歇多面性已证但按族定谳可收敛**（generation 族/额度消费族/旅程早亡族·族少均可插针）③transient requeue 评估：先定谳 finalize 409 契约再议 requeue（顺序正确·requeue 改分布不改契约面）.
+- [ ] **STILL OPEN**：G7FIX-3=finalize 409 skew 裁决刀（REQUEST 待立·材料已足成本低定谳价值最高·driver 补 interview_unavailable 臂 vs 产品面契约增补归协调方）；对称微探针采样 run（boundLoop.terminal 镜像 7a 探针）；consume 7F（NEGCOMM-1 已修）；7A-DOWNGRADE `:107` 域 P1 OPEN 维持；`g7SuiteGreen=false` 维持.
+- 预算：run 预算 1/3（首红即收·余 2 弃用）· 链 126≤200 · 0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 探针=定靶非修复 · 实现方不 self-approve.
