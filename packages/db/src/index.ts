@@ -69,11 +69,11 @@ export {
   completeInterviewAndConfirm, failInterviewAndRelease, abandonInterviewAndRelease,
   renewReservationLease, sweepExpiredReservations, settleOutbox, reconcile,
   MIN_UNIT, DEFAULT_LEASE_SECONDS,
-} from './commerce.ts';
+} from './commerce/commerce.ts';
 export type {
   Allocation, ReserveResult, ConfirmResult, ReleaseResult, SweptReservation,
   CompleteInterviewResult, FailInterviewAndReleaseResult, AbandonInterviewResult,
-} from './commerce.ts';
+} from './commerce/commerce.ts';
 
 // 招聘方(B 端)岗位仓储(多租户 RLS 隔离)+ 候选人申请闭环(多方 RLS)
 export {
@@ -287,8 +287,8 @@ export type {
 } from './memory-two-stage-recall.ts';
 
 // 支付订单（幂等入账）
-export { createOrder, getOrder, markOrderPaidAndCredit, markOrderRefunded } from './payment.ts';
-export type { CreditResult, RefundResult } from './payment.ts';
+export { createOrder, getOrder, markOrderPaidAndCredit, markOrderRefunded } from './commerce/payment.ts';
+export type { CreditResult, RefundResult } from './commerce/payment.ts';
 
 // 站内通知
 export { insertNotification, listNotifications, markNotificationRead, markAllNotificationsRead, unreadCount } from './notification/notification.ts';

@@ -242,7 +242,7 @@ export const RESIDUAL_PATHS: ResidualPath[] = [
     ownership: 'PRIV01 第二波（worker 刀）',
   },
   {
-    file: 'packages/db/src/{resume/resume,quiz-jobs,diagnosis-jobs,interview-jobs,interview-question,report/report,payment,commerce,job-route-decision,free-text-route-decision,gateway-dispatch,usage-calibration}.ts',
+    file: 'packages/db/src/{resume/resume,quiz-jobs,diagnosis-jobs,interview-jobs,interview-question,report/report,commerce/payment,commerce/commerce,job-route-decision,free-text-route-decision,gateway-dispatch,usage-calibration}.ts',
     paths: '各文件内 owner_user_id SQL 点（resume.ts 18 · interview-jobs.ts 20 · commerce.ts 23 · payment.ts 10 · report.ts 10 · quiz-jobs/diagnosis-jobs 各 9 等）',
     reason: 'worker/系统消费 lane 与深层 db helper（owner 形参由本刀已接线服务层供给）；§3.2 排除 worker lane',
     ownership: 'PRIV01 第二波（db 层刀）',
