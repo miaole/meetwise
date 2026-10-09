@@ -196,6 +196,8 @@
     "resume:prove": "node scripts/run-e2e-isolated.mjs resume:prove:raw",
     "recruiter:prove": "node scripts/run-e2e-isolated.mjs recruiter:prove:raw",
     "recruiter:prove:raw": "pnpm -C packages/db recruiter",
+    "g7fix4:finalize:prove": "node scripts/run-e2e-isolated.mjs g7fix4:finalize:prove:raw",
+    "g7fix4:finalize:prove:raw": "pnpm -C apps/api exec tsx test/g7fix4-finalize-contract.proof.ts",
     "commerce-reconcile:prove": "node scripts/run-e2e-isolated.mjs commerce-reconcile:prove:raw",
     "commerce-reconcile:prove:raw": "pnpm -C apps/worker prove:commerce-reconcile",
     "model-invocation-reconcile:prove": "node scripts/run-e2e-isolated.mjs model-invocation-reconcile:prove:raw",

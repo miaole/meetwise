@@ -1,0 +1,54 @@
+
+> meetwise@0.1.0 recruiter:prove /Users/miaole/Desktop/golucky/meetwise-line-g7fix4
+> node scripts/run-e2e-isolated.mjs recruiter:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-22514-1791531859456 on 127.0.0.1:55312
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-line-g7fix4/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=152 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> meetwise@0.1.0 recruiter:prove:raw /Users/miaole/Desktop/golucky/meetwise-line-g7fix4
+> pnpm -C packages/db recruiter
+
+
+> @meetwise/db@0.0.0 recruiter /Users/miaole/Desktop/golucky/meetwise-line-g7fix4/packages/db
+> tsx test/recruiter-depth.proof.ts
+
+error: interview_event_raw_answer_fenced
+    at /Users/miaole/Desktop/golucky/meetwise-line-g7fix4/node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:652:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async asPrincipal (/Users/miaole/Desktop/golucky/meetwise-line-g7fix4/packages/db/src/principal.ts:951:15)
+    at async setup (/Users/miaole/Desktop/golucky/meetwise-line-g7fix4/packages/db/test/recruiter-depth.proof.ts:42:3)
+    at async main (/Users/miaole/Desktop/golucky/meetwise-line-g7fix4/packages/db/test/recruiter-depth.proof.ts:59:3) {
+  length: 170,
+  severity: 'ERROR',
+  code: 'P0001',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: 'PL/pgSQL function enforce_interview_event_no_raw_answer() line 4 at RAISE',
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'pl_exec.c',
+  line: '3897',
+  routine: 'exec_stmt_raise'
+}
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.
+ISOLATED_POSTGRES_OUTPUT_WITHHELD container=meetwise-e2e-22514-1791531859456 state_bytes=216 logs_bytes=1587
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-09T07-44-30-788Z-22514-e7753e76-6e09-46ac-9856-2f11e2f93655.json release_evidence=false
+ ELIFECYCLE  Command failed with exit code 1.
+recruiter-exit=1
+ALL-BASE-DONE
