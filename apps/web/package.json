@@ -13,7 +13,8 @@
     "prove:application-start-error": "tsx test/application-start-error.proof.ts",
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@meetwise/contracts": "workspace:*",

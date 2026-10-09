@@ -12,7 +12,8 @@
     "prove:privacy-authorization": "tsx test/privacy-authorization.proof.ts",
     "prove:interview-answer-submission": "tsx test/interview-answer-submission.proof.ts",
     "prove:privacy-erasure-preview": "tsx test/privacy-erasure-preview.proof.ts",
-    "prove:signal-sse": "tsx test/interview-signal-sse.proof.ts"
+    "prove:signal-sse": "tsx test/interview-signal-sse.proof.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "zod": "catalog:"
