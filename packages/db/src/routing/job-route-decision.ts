@@ -17,9 +17,9 @@
  *    各自单 owner 单调追加，事务内分配 event_seq，无跨 owner 读 MAX。
  */
 import { createHmac } from 'node:crypto';
-import { newEntityId } from './ids.ts';
+import { newEntityId } from '../ids.ts';
 import type { PoolClient as Client } from 'pg';
-import { asPrincipal, type DbPool } from './principal.ts';
+import { asPrincipal, type DbPool } from '../principal.ts';
 import {
   TAXONOMY_V1_LEAVES, JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_POLICY_VERSION,
   canonicalJobSemanticDigest, classifyJobByRule, validateModelRouteOutput,

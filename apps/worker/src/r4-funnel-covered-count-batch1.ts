@@ -94,7 +94,7 @@ function readPkg(rel: string): string {
 export function assessFunnel03JobRouteDecisionProductionPath(): Funnel03Assessor {
   const contracts = readPkg('packages/contracts/src/index.ts');
   const domain = readPkg('packages/domain/src/job-route-classifier.ts');
-  const db = readPkg('packages/db/src/job-route-decision.ts');
+  const db = readPkg('packages/db/src/routing/job-route-decision.ts');
   const consumer = readSrc('route-classify-consumer.ts');
   const main = readSrc('main.ts');
   const r2Status = readRepo('ai-docs/delivery/harness/r2-classify-job-route-status.md');

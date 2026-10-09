@@ -391,19 +391,19 @@ export {
   createJobSemanticRevision, classifyJobRoute, listNextJobRoutePending,
   bindApplicationRoute, snapshotInterviewRoute, getInterviewRouteSnapshot,
   TAXONOMY_V1_LEAVES, JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_POLICY_VERSION,
-} from './job-route-decision.ts';
+} from './routing/job-route-decision.ts';
 export type {
   JobSemanticRevisionStatus, JobRouteAttemptOutcome, JobRouteModelInput, JobRouteModelClassify,
   JobRoutePendingClaim, ClassifyJobRouteResult, BindApplicationRouteResult, SnapshotInterviewRouteResult, InterviewRouteSnapshotView,
-} from './job-route-decision.ts';
+} from './routing/job-route-decision.ts';
 
 // G7S 通用 begin 供给面收口：candidate-profile-derived route decision + snapshot（0142 新结构，
 // additive-only；job 维度零冒用）。写侧 = begin 事务同步供给（先于扣额/入队，未决 409 fail-closed）；
 // 读侧 = worker 角色门 fallback（旧 recruiter snapshot 优先，零回归）。
 export {
   supplyCandidateProfileRoute, getInterviewRouteSnapshotForAdaptiveRole,
-} from './candidate-route.ts';
-export type { CandidateProfileRouteSupply } from './candidate-route.ts';
+} from './routing/candidate-route.ts';
+export type { CandidateProfileRouteSupply } from './routing/candidate-route.ts';
 
 // RAG-FUNNEL-04 / track-local retrieval dispatch seam（图内 planner 消费）：
 // 冻结 RetrievalPlan + 服务端校验属于 snapshot + DB 层 serving_scope 硬过滤检索 + recheck。
@@ -488,11 +488,11 @@ export type {
 export {
   FREE_TEXT_SCOPE_REVISION_STATUSES, FREE_TEXT_ROUTE_ATTEMPT_OUTCOMES,
   createFreeTextScopeRevision, classifyFreeTextScope,
-} from './free-text-route-decision.ts';
+} from './routing/free-text-route-decision.ts';
 export type {
   FreeTextScopeRevisionStatus, FreeTextRouteAttemptOutcome, FreeTextRouteModelInput,
   FreeTextRouteModelClassify, ClassifyFreeTextScopeResult,
-} from './free-text-route-decision.ts';
+} from './routing/free-text-route-decision.ts';
 
 // 可验证压缩快照（CTX-04）：压缩边界快照（不是 MEM-14 memory_context_snapshot）——固化事件范围/
 // checksum/版本/摘要 hash + claim→span/firstKeptEventId/状态；原事件 append-only；claim 无法回溯→丢弃。
