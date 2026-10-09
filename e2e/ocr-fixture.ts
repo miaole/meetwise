@@ -72,8 +72,8 @@ function writeLine(image: Buffer, text: string, x: number, y: number, scale: num
   for (const char of text) {
     const glyph = FONT[char];
     if (!glyph) throw new Error(`unsupported_ocr_fixture_glyph:${char}`);
-    for (let row = 0; row < glyph.length; row++) for (let column = 0; column < glyph[row].length; column++) {
-      if (glyph[row][column] !== '1') continue;
+    for (let row = 0; row < glyph.length; row++) for (let column = 0; column < glyph[row]!.length; column++) {
+      if (glyph[row]![column] !== '1') continue;
       for (let dy = 0; dy < scale; dy++) for (let dx = 0; dx < scale; dx++) {
         const offset = ((y + row * scale + dy) * WIDTH + x + column * scale + dx) * 3;
         image[offset] = 31; image[offset + 1] = 41; image[offset + 2] = 55;
