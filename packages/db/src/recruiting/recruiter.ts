@@ -4,9 +4,9 @@
  */
 import type { PoolClient as Client } from 'pg';   // 直引 pg 类型,不从 ./index 桶引(防成环)
 import { createHash } from 'node:crypto';
-import { newEntityId } from './ids.ts';
-import { createJobSemanticRevision, bindApplicationRoute, snapshotInterviewRoute } from './job-route-decision.ts';  // RAG-FUNNEL-03 路由 seam
-import { requireOwnerUserId } from './tenant/index.ts';   // PRIV01-C 第二层 E1(应用层 tenant ≠ RLS · 授权根仍为 asPrincipal+RLS)
+import { newEntityId } from '../ids.ts';
+import { createJobSemanticRevision, bindApplicationRoute, snapshotInterviewRoute } from '../job-route-decision.ts';  // RAG-FUNNEL-03 路由 seam
+import { requireOwnerUserId } from '../tenant/index.ts';   // PRIV01-C 第二层 E1(应用层 tenant ≠ RLS · 授权根仍为 asPrincipal+RLS)
 
 async function assertPrincipal(c: Client, owner: string): Promise<void> {
   const r = await c.query("SELECT current_setting('app.principal_user', true) AS p");
