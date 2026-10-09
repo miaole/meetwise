@@ -1,6 +1,7 @@
 # TOKSTREAM-S4a — 流式通道切片（model-client completeStream 实现+fake seam 测试矩阵 · EXEC REQUEST）
 
 **Status**: **`draft:awaiting_pre_exec_dual`**（本 REQUEST 只送审 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 自动开工 · 须 meetwise 明示授权才进 EXEC · EXEC 写完本档即停零码动）
+**Status+（EXEC append-only · 2026-10-07 · 原行零改写）**: → **`exec:awaiting_post_prove_dual`**（S4a 七项+C1-C12 已实施 · prove 终态三卷 EXIT=0：stream 54/54·stitch 16/16·coalesce 13/13 · attempts 全账 8 次如实入收据（stream 4/stitch 2/coalesce 2·终态非一次过·红因全测试侧）· 收据 @ `ai-docs/delivery/receipts/tokstream-s4a/2026-10-07/` · apps/ 零字节 · est live=0 · 待 post-prove 双审）
 **Date**: 2026-10-07
 **Base**: 主线 `0aa1d503` · 分支 `line/tokstream-s4a-request`（工作树 `meetwise-line-tokstream-s4a`）
 **蓝本**: `ai-docs/delivery/harness/tokstream-s3-design.md`（S3 设计定稿 @`0aa1d503` 已在主线）——**唯一蓝本**：§I 切片表 S4a 行+§C/§D-1/§E/§G 为全部设计输入，**禁自由发挥**，S4a 范围严格=§I 表 S4a 行，逐条誊录不增删。
