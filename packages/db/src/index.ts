@@ -39,8 +39,8 @@ export type { CheckpointErasureRequest, ClaimedCheckpointErasureTarget } from '.
 // 隐私删除授权签发器（INT-TRANSCRIPT-00 账本：单次 jti CAS 消费 + 受约束 claim + 逐 sink receipt）
 export { issueAuthorizationSnapshot, consumeAuthorizationSnapshot, consumeAuthorizationSnapshotBound, claimAuthorizationTarget, recordDeletionReceipt, resolveDeletionReceipt } from './privacy-authorization.ts';
 export type { IssueAuthorizationSnapshotInput, IssuedAuthorizationSnapshot, ConsumedAuthorizationSnapshot, ClaimedAuthorizationTarget, ResolvedDeletionReceipt } from './privacy-authorization.ts';
-export { gatewayDispatchOwners, gatewayModelInvocationOwners, gatewayUsageCalibrationOwners, gatewayJobGauges, gatewayCostBudgetSnapshot } from './gateway-dispatch.ts';
-export type { GatewayDispatchWork, GatewayJobGauge, GatewayCostBudgetSnapshot } from './gateway-dispatch.ts';
+export { gatewayDispatchOwners, gatewayModelInvocationOwners, gatewayUsageCalibrationOwners, gatewayJobGauges, gatewayCostBudgetSnapshot } from './jobs/gateway-dispatch.ts';
+export type { GatewayDispatchWork, GatewayJobGauge, GatewayCostBudgetSnapshot } from './jobs/gateway-dispatch.ts';
 
 /** 原语②：状态机 CAS——仅当当前态 == from 时迁移到 to 并 version+1，返回是否生效（陈旧落败=0 行）。 */
 export async function casTransition(c: Client, id: string, from: string, to: string): Promise<boolean> {
@@ -105,7 +105,7 @@ export type { ReportStatus } from './report/report.ts';
 // Commit-delivered, data-free worker wakeup constants.  They are not a queue
 // or authorization mechanism; the durable queue and RLS claim path remain
 // authoritative.
-export { WORKER_JOB_WAKEUP_CHANNEL, WORKER_JOB_WAKEUP_PAYLOAD, WORKER_JOB_WAKEUP_REDIS_STREAM, WORKER_JOB_WAKEUP_REDIS_GROUP, WORKER_JOB_WAKEUP_REDIS_FIELD, notifyWorkerJobWakeup } from './worker-job-wakeup.ts';
+export { WORKER_JOB_WAKEUP_CHANNEL, WORKER_JOB_WAKEUP_PAYLOAD, WORKER_JOB_WAKEUP_REDIS_STREAM, WORKER_JOB_WAKEUP_REDIS_GROUP, WORKER_JOB_WAKEUP_REDIS_FIELD, notifyWorkerJobWakeup } from './jobs/worker-job-wakeup.ts';
 
 // 面试 job 队列（api 入队 / worker 消费）+ 心跳续租 + reaper 收割孤儿 running
 export {
@@ -137,13 +137,13 @@ export type { PersistedInterviewQuestion, AcceptedInterviewAnswer, ClaimAnswerRe
 export {
   enqueueQuizJob, claimNextQuizJob, markQuizJobDone, markQuizJobFailed,
   renewQuizJobLease, sweepStuckQuizJobs, MAX_QUIZ_JOB_ATTEMPTS, RESUME_DERIVATIVE_REFERENCE_VERSION,
-} from './quiz-jobs.ts';
+} from './jobs/quiz-jobs.ts';
 
 // 简历诊断(resume-diagnosis)生成 job 队列（api 入队 / worker 消费）+ 心跳续租 + reaper 收割
 export {
   enqueueDiagnosisJob, claimNextDiagnosisJob, markDiagnosisJobDone, markDiagnosisJobFailed,
   renewDiagnosisJobLease, sweepStuckDiagnosisJobs, MAX_DIAGNOSIS_JOB_ATTEMPTS,
-} from './diagnosis-jobs.ts';
+} from './jobs/diagnosis-jobs.ts';
 
 // 生产向量库（pgvector HNSW）
 export { upsertVectorChunk, annSearch, annSearchLegacy } from './retrieval-store.ts';

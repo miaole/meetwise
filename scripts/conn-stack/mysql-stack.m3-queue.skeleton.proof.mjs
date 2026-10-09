@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const docPath = join(root, 'ai-docs/delivery/m3-queue-wakeup-selection.md');
 const scriptPath = join(root, 'scripts/conn-stack/mysql-stack.m3-queue.skeleton.proof.mjs');
-const wakeupConstPath = join(root, 'packages/db/src/worker-job-wakeup.ts');
+const wakeupConstPath = join(root, 'packages/db/src/jobs/worker-job-wakeup.ts');
 const wakeupListenerPath = join(root, 'apps/worker/src/job-wakeup-listener.ts');
 
 let exitCode = 0;

@@ -2,7 +2,7 @@
  * Fixed cross-owner dispatch metadata seam. The gateway returns only owner
  * identifiers; each job action must immediately re-enter `asPrincipal`.
  */
-import { asGateway, type DbPool } from './principal.ts';
+import { asGateway, type DbPool } from '../principal.ts';
 
 export type GatewayDispatchWork = 'interview' | 'quiz' | 'diagnosis' | 'report' | 'commerce' | 'job_route';
 
