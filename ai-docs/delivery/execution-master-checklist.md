@@ -2040,3 +2040,13 @@ flowchart TD
 - [ ] **STILL OPEN**：G7FIX-5 臂回改刀；G7TRIO-2 全景重跑；g7SuiteGreen SSOT 刀；duplicate re-roll 根因刀；`:107` 维持；`g7SuiteGreen=false` 维持.
 - 预算：est live=0 · 隔离 PG 容器一次性 · Docker daemon 重启已恢复（29.1.3）· 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 产品面正规修复 · 实现方不 self-approve.
+
+### Line C1/C2 turbo typecheck 按包点亮刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 产品面恰 2 文件纯 script 行新增（web+contracts·零 src diff）· turbo dry=json 选择面恰 2 无第三包·三门亲跑复现 EXIT=0·erratum 9 包闭合·C2 部分就绪（CI 接线另刀））
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（十一值）.
+- [x] **`post_prove_dual_pass`** recorded for Line C1/C2 products only（产品面恰 2 文件纯 script 行新增·零 src diff·零 tsconfig/turbo/CI 触碰·nail tip 本 commit · branch `line/c1c2-typecheck`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：diff 恰 2 文件纯 script 行/tsconfig+turbo+CI 零触碰/未点亮 9 包零新增 script 逐包 node 亲扫/turbo dry=json 亲跑恰 2 无第三包/三门+附门亲跑复现 EXIT=0 强制实跑 2/2 缓存 hash 互证/tsbuildinfo 插曲现场复现登记如实）+ mw-model-op PASS（六核：**C2 字义边界裁定正确**〔点亮≠勾销·CI 另刀·三域含 e2e 就绪方勾〕/C1 维持 ❌ 无越权/dry=json 选择面亲跑恰 2/erratum 9 包闭合 2+9=11/pins 十一值+est 0 live+单 attempt+sanitize 全过/tsbuildinfo 追踪生成物卫生留协调方）· 协调方正式授权本 nail.
+- **C1/C2 全链**：REQUEST `7ce510f0` → rev2 `e1190c96`（席1 FAIL 三处方：e2e 不点亮收窄 web+contracts·七包排除清单补列·C2 不勾销改门面就绪）→ 双席复核 BOTH PASS → EXEC `15dde2c8`（origin tip 零位移）→ 本 nail commit.
+- **核心产出**：apps/web + packages/contracts 两包 typecheck script 点亮（tsc --noEmit 零错面·turbo 接线可达）·**C2 部分就绪**（web+contracts 两域 tsc 门就绪·CI 接线另刀·三域含 e2e 就绪后方勾销）·C1 维持 ❌（仓内零 lint 配置·lint 需独立设计刀）.
+- [ ] **STILL OPEN**：apps/packages 五包+qdrant-store/ai-graphs 修复后逐包解锁；C1 lint 独立设计刀；CI 接线另刀（C2 勾销前提）；tsbuildinfo 追踪生成物卫生（留协调方）；`g7SuiteGreen=false` 维持.
+- 预算：三门亲跑复现 EXIT=0 · est 0 live · 0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
