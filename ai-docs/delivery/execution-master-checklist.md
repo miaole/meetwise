@@ -1997,3 +1997,13 @@ flowchart TD
 - [ ] **STILL OPEN**：AC-FIX（REQUEST 待立）；GODFN 线残余（§6 余量/预存红 lane）；`g7SuiteGreen=false` 维持.
 - 预算：恰 1 次证明体（a1 零执行 a2 零进入 a3 唯一）· est live=0 · 0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 调查=定谳非修复 · 实现方不 self-approve.
+### Line TSC-GATE-1 e2e/ tsc 覆盖盘点刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 纯盘点零修复零产品码·恰 1 canonical 全量+双跑分离（11 错=A∩B 4 strict 无关+A∖B 7 strict 面）· 四定性发现·门禁 B+C 分层·A 作钉·反降 strict 换绿 · **史实发现：E2EFAIL-1 修复非主线祖先→已补收 3a2a2e2b**）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（十一值）.
+- [x] **`post_prove_dual_pass`** recorded for Line TSC-GATE-1 products only（触面=收据 7 件+SHA256SUMS+harness·零产品码 apps/packages diff=0·临时 tsconfig 用后即删 untracked 零残留·nail tip 本 commit · branch `line/tsc-gate-survey`）· **双审 BOTH PASS**：mw-e2e-ha PASS（六核：**临时配置重建独立复跑 11 错字节级一致**+EXIT=2 原值+零残留/双跑分离 4+7=11 守恒机器验证+A 类 4/4 亲读（:14 缺失导入+failure.ts:21 重导出+链断裂确认+类型环境缺口）+B 类 5/7 覆盖 3 文件/史实双向核清〔83a6ec8b 非祖先+3a2a2e2b 主线谱系断链已消〕+零 diff/pins 十一值+sanitize）/mw-model-op PASS（六核：四定性源码复核+反降 strict 警告核〔run-B 残余 4 含真断链+真型错——降 strict 11→4 非 11→0〕/83a6ec8b merge-base 亲跑复证+补收 3a2a2e2b 实含 :14 修复/四批估算可行+**B3 undici-types 不可解析修正**〔pnpm 布局仅 .pnpm 无顶层 hoist——ambient d.ts 为正选〕/双跑分离方法学 noUncheckedIndexedAccess 独立性精确/C1/C2 落地路径终评可行）· 协调方正式授权本 nail.
+- **TSC-GATE-1 全链**：REQUEST `b24fcc5a` → 双席预审 BOTH PASS（席2 展开恐惧实证排除+三附注）→ EXEC `4d84b131`（origin tip 零位移）→ 本 nail commit.
+- **核心产出**：e2e/ 全量 11 错盘点（真断链恰 1=full.e2e.ts:209 已由主线补收 3a2a2e2b 消解·类型环境缺口 2·真型不配 1·strict 噪声 7）·四批修复估算 ≈15-20 行/6 文件·门禁 B+C 分层建议（static guards 作钉+turbo.json:6 typecheck 空挂现成落点按包点亮）·**反降 strict 换绿立场**（run-B 残余 4 含真断链+真型错——降 strict 掩盖 7 可修错误）.
+- **并轨提醒登记（席1）**：git `main` 尖端仍缺 E2EFAIL-1 修复——后续 merge 轨道决策时留意（循环主线 feat/mysql-schema-skeleton 已含）.
+- [ ] **STILL OPEN**：C1/C2 落地（turbo typecheck 按包点亮·e2e 域先行红面最小）；修复分批 REQUEST（四批 ≈15-20 行）；undici-types ambient d.ts 正选（B3）；`g7SuiteGreen=false` 维持.
+- 预算：canonical 恰 1+探针 1（上限 2 用 1）· est 0 live · 0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 盘点=供料非实施 · 实现方不 self-approve.
