@@ -2124,3 +2124,14 @@ flowchart TD
 - [ ] **STILL OPEN**：S2 critique 场另刀；G7TRIO 三绿重验（CMD3 步 10 修复后）；`g7SuiteGreen=false` 维持.
 - 预算：est live=0（全 scripted fake seam·云凭据剥离）·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 有界换题 ≠ 判重弱化 ≠ G7 面触碰 · 实现方不 self-approve.
+
+
+### Line NEGRESFIX neg:resume 12 红 driver 回和刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 恰 1 测试文件 +25/−16·run1 neg:resume EXIT=0 87/87 名单 diff 恰 12 条·run2 neg:all 五段全绿（81/84/87/97/120）EXIT=1 原值·input lane 2/135 经协调方重钉=base≡red 族）
+
+- Pins unchanged（十一值照抄零翻转）.
+- [x] **`post_prove_dual_pass`** recorded（EXEC `5a46c2ae`·REQUEST rev2 @b7b83996·STOP→裁决→续行三段链完整）· **双审 BOTH PASS**：席1 mw-e2e-ha PASS（diff/收据/STOP 纪律/诚实面四项全机证·B3 双种子护栏亲证非空真·名单 diff 双证 removed=added=12）+ 席2 mw-model-op PASS（**协调方 input lane 重钉独立裁=蓝图明文预留权限内合理 adjudication 非越权**·因果隔离三证亲证·B2 语义等价终检「不可观测面+活钉 validate.ts:546-548 在位」·fixture 生命周期机制坐实上下文依赖可能·12/61 零触+73=73 独立复算）· 协调方正式授权本 nail.
+- **Erratum 四笔（双席共识·随 NEGINPUT 刀归档）**：①收据 §1「58 位点」陈旧算术（正确 61·§6④ 已修工件未同步正文）；②standalone 4 红枚举无树内机证（NEGINPUT §0 须附 standalone run log 含 :216/:229/:267/:268 名单）；③收据目录名漂移（negresfix/→negresume-driver-fix/）+run1 log 无 RUN1_EXIT 标记行（EXIT=0 由汇总行导出）；④NEGINPUT 蓝本 b44ad582 未 push（本 nail 后协调方推）。
+- [ ] **STILL OPEN**：NEGINPUT 刀（3 shim+1 回和·蓝本 b44ad582）；neg:all 全链 EXIT=0 待 NEGINPUT；trio 三绿重验；`g7SuiteGreen=false` 维持.
+- 预算：恰 2 run·est live=0 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · driver 回和≠产品行为变化 · 实现方不 self-approve.
+>>>>>>> 888fc5b3 (docs(negresfix): nail — post-prove dual BOTH PASS (seat-2 independently ruled coordinator lane re-pin as authorized adjudication; zero-assertion-weakening final check passed), four errata registered for NEGINPUT knife)
