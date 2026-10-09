@@ -2124,3 +2124,13 @@ flowchart TD
 - [ ] **STILL OPEN**：S2 critique 场另刀；G7TRIO 三绿重验（CMD3 步 10 修复后）；`g7SuiteGreen=false` 维持.
 - 预算：est live=0（全 scripted fake seam·云凭据剥离）·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 有界换题 ≠ 判重弱化 ≠ G7 面触碰 · 实现方不 self-approve.
+
+### Line RESUME-GROUNDING 简历接地刀 NAIL（2026-10-10 SSOT nail · 协调方授权 · post-prove 双域双审 BOTH PASS · +414/−80 17 文件（worker 接线+domain 四重过滤+0152 consent GRANT+web 同意/撤回+proof 359 行）·resume-grounding:prove EXIT=0 39 PASS 双席各自复跑）
+
+- Pins unchanged（十一值照抄零翻转）.
+- [x] **`post_prove_dual_pass`** recorded（EXEC `a2eb45dc`·REQUEST rev3 @0d75ffa8 唯一蓝本·nail tip 本 commit · branch `line/resume-grounding`）· **双域双审 BOTH PASS**：席1 mw-privacy-int PASS（P4 四重过滤亲读（六域黑名单/码点安全 A10）·G1 同意门 worker 唯一查询点+三处逐字节断言·G3 opt-in+审计 E 项原文·G4 撤回行删除 RLS 限己·P2 refs 闸料-only sources≡[]·P5 raw-only 差分 Z×5 零字节·P7 围栏归属 zero system·0152 expand-only·两处产品保形修正裁不越 P2（fence-lost 位回退≠事实文本·consumer fixture=C16 授权类））+ 席2 mw-rag-route PASS（S2 grounded :gr{k} 独立重试恰 3 调用与 :r{k} 零碰撞 T2 亲证·组合闸委托本体禁重实现·耗尽回退 provenance 可审计·S3 闭包 strip 先截后·#189-191 ingestResume 亲读+A1 断言·#193 换闸 grep 双 0·prove 亲跑 39 PASS）· 协调方正式授权本 nail.
+- **Status 头校正（席1 nit·nail 顺手）**：REQUEST 头部 Status 行 rev2→rev3 蓝本指向随本 nail 同步。
+- **席2 观察登记（N1-N3·非阻塞）**：grounded 封顶 4 不设硬下限 2（池 1 条时 1 条出题=蓝本预算建议值非闸）·Non-claims #259 划界建议 nail 补句（本行即补：「#259 目标岗位输入面不在本刀·planner 仅消费既有 role 形参」）·consent 读门依赖 asPrincipal RLS（resume.service:95 同形先例）。
+- [ ] **STILL OPEN**：#259 目标岗位输入刀·#44/#51 追问上下文深化·#189-193 剩余面（#190 若有）·S3 前置同意 UX 深化·`g7SuiteGreen=false` 维持.
+- 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 接地 ≠ 全链个性化 ≠ C1 勾销 · 实现方不 self-approve.
