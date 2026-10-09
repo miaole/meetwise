@@ -2125,7 +2125,6 @@ flowchart TD
 - 预算：est live=0（全 scripted fake seam·云凭据剥离）·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 有界换题 ≠ 判重弱化 ≠ G7 面触碰 · 实现方不 self-approve.
 
-<<<<<<< HEAD
 
 ### Line NEGRESFIX neg:resume 12 红 driver 回和刀 NAIL（2026-10-09 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 恰 1 测试文件 +25/−16·run1 neg:resume EXIT=0 87/87 名单 diff 恰 12 条·run2 neg:all 五段全绿（81/84/87/97/120）EXIT=1 原值·input lane 2/135 经协调方重钉=base≡red 族）
 
@@ -2155,7 +2154,6 @@ flowchart TD
 - [ ] **STILL OPEN**：S4b（worker TokenSink 接线+telemetry）·S4c（sse-pump delta 臂+10min 帽）·S4d（web 渲染）·`g7SuiteGreen=false` 维持.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · S4a ≠ 流式上线（flag 双零开启） · 实现方不 self-approve.
-=======
 ### Line SCORE-WRITER S1 写入接线切片 NAIL（2026-10-10 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 19 文件 +1045/−11（scoring-wire.ts +217 五环组合层·score-writer.ts +116·interview.proof +160/−2）·interview:prove base 红修复转绿 29 PASS·配额中断续作合规）
 
 - Pins unchanged（十一值照抄零翻转·「公开 DELETE /privacy/interview-data/:id=503」按当时主线权威值照抄——翻面归 UNSTUB-ERASE 主线落地）.
@@ -2165,4 +2163,3 @@ flowchart TD
 - [ ] **STILL OPEN**：S2（40c 完成判据切换+去桩+读侧+#103）·#20 验收 E2E·#204·#229·trio 三绿·`g7SuiteGreen=false` 维持.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · S1 ≠ #20 验收 ≠ 评分体系完成 · 实现方不 self-approve.
->>>>>>> 5253b35b (docs(score-writer): nail — post-prove dual BOTH PASS (five-ring wiring verified D2/D4/D6, crash-replay token reuse real, base red fixed via production-chain 0142 supply), errata S1E1/S1E2 registered, bearer-token observation logged)
