@@ -5,6 +5,13 @@ import { errCode } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
 import { RateLimitService } from '../../platform/rate-limit.service';
 
+// b110 §1.2.6:signup:ip 桶参数 prod 钉死 (10, 0.05)(突发 10·稳态 ~3/分,沿 signup:email 注释量级纪律)。
+// RL_SIGNUP_IP(容量,速率 两值)为独立限流段覆写口,仅 perf/E2E 启动档放宽并显式落档
+// (scripts/run-performance-e2e.mjs),prod 不设即用钉死值;禁删桶检查/禁静默 special-case(Ban §5.11)。
+const RL_SIGNUP_IP_RAW = (process.env.RL_SIGNUP_IP ?? '10,0.05').split(',');
+const SIGNUP_IP_CAPACITY = Number(RL_SIGNUP_IP_RAW[0]) > 0 ? Number(RL_SIGNUP_IP_RAW[0]) : 10;
+const SIGNUP_IP_REFILL = Number(RL_SIGNUP_IP_RAW[1]) > 0 ? Number(RL_SIGNUP_IP_RAW[1]) : 0.05;
+
 /**
  * 鉴权应用服务(拥有 SQL/哈希/令牌/限流编排)。controller 只解析/校验/映射 HTTP(修审计 F1)。
  * 机制不变:注册 scrypt 哈希落库;登录常量时间校验 + 同邮箱限流防爆破;签发 HMAC 会话令牌。密码绝不明文存/日志。
@@ -13,11 +20,12 @@ import { RateLimitService } from '../../platform/rate-limit.service';
 export class AuthService {
   constructor(private readonly db: DbService, private readonly rl: RateLimitService) {}
 
-  async signup(b: { email?: string; password?: string; role?: string }) {
+  async signup(b: { email?: string; password?: string; role?: string }, ip?: string) {
     if (!b.email || !b.password || b.password.length < 8) throw new HttpException({ error: 'invalid_credentials' }, HttpStatus.BAD_REQUEST);
     // 防注册滥用(安全审计#3:免费不限流注册是成本 DoS 的 on-ramp):同邮箱 3 次突发 + 慢补充 + 全局粗上限。
     //  (真·防海量不同邮箱注册仍需 IP 维度/验证码——内存限流是已知 seam,多实例换 Redis。)
-    if (!this.rl.allow(`signup:${b.email}`, 3, 0.02) || !this.rl.allow('signup:global', 60, 1))
+    // b110 §1.2.6:桶序钉死 per-email→ip→global(|| 短路;429 断言确定性);signup:ip 桶参数钉死 (10, 0.05)。
+    if (!this.rl.allow(`signup:${b.email}`, 3, 0.02) || !this.rl.allow(`signup:ip:${ip ?? 'unknown'}`, SIGNUP_IP_CAPACITY, SIGNUP_IP_REFILL) || !this.rl.allow('signup:global', 60, 1))
       throw new HttpException({ error: 'too_many_attempts' }, HttpStatus.TOO_MANY_REQUESTS);
     const role = b.role === 'recruiter' ? 'recruiter' : 'candidate';   // 身份:招聘方(B)/ 求职者(C),默认 C
     const id = randomUUID();
@@ -34,6 +42,9 @@ export class AuthService {
       if (errCode(e) === '23505') throw new HttpException({ error: 'email_taken' }, HttpStatus.CONFLICT);   // 仅唯一冲突=邮箱已注册;其它 DB 错(连接/约束)照抛,不误报 email_taken 掩盖故障
       throw e;
     }
+    // b110 R1 双通道感知:recruiter 注册落审核队列(DB 0155·回填重编号 0152→0155),token 照发(账户可登录、B 端功能全 403),
+    // signup 模式即时读 body approvalStatus;login 模式靠 B 端 API 403 分码感知(晚一跳 UX 让步)。
+    if (role === 'recruiter') return { token: this.issue(id), userId: id, role, approvalStatus: 'pending' as const };
     return { token: this.issue(id), userId: id, role };
   }
 

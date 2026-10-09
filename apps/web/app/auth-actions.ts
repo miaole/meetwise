@@ -23,6 +23,12 @@ export async function authAction(_prev: { error?: string }, formData: FormData):
     body = await res.json().catch(() => ({}));
     if (!res.ok || !body.token) return { error: '失败:' + (body.error ?? res.status) };
   } catch { return { error: '网络错误,请确认 API 已启动' }; }
+  // b110 招聘方审核制(R1 双通道即时侧):signup 模式读 body approvalStatus——recruiter 注册落审核队列,
+  // token 虽照发但不在此建会话/不进 /recruiter/jobs 死胡同,分流审核中反馈;approve 后正常登录即可
+  // (login 模式无此字段,靠 B 端 API 403 分码感知,晚一跳 UX 让步)。禁新增后端面,渲染落在既有表单状态位。
+  if (mode === 'signup' && body.approvalStatus === 'pending') {
+    return { error: '招聘方注册已提交:账户进入管理员审核队列,审核通过后即可登录使用招聘方功能。' };
+  }
   const c = await cookies();
   c.set('mw_token', body.token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/', maxAge: 7 * 24 * 3600 });
   // mw_role 非 httpOnly:供 Nav/路由按角色渲染(非敏感;真实权限仍由 token + 后端 RLS 把关)。

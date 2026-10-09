@@ -1,6 +1,8 @@
-import { Controller, Get, Post, Param, Req, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Param, Req, Body, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import { RecruiterDecisionDto } from '@meetwise/contracts';
 import { PrincipalGuard } from '../../platform/principal.guard';
 import { AdminGuard } from '../../platform/admin.guard';
+import { ZodValidationPipe } from '../../platform/zod.pipe';
 import { AdminService } from './admin.service';
 
 /**
@@ -31,6 +33,18 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   disable(@Param('id') id: string, @Req() req: any) {
     return this.admin.disable(id, req.principal);
+  }
+
+  // b110 招聘方审核制:审批队列 + 裁决(AdminGuard+函数内复核双层照既有)。
+  @Get('recruiter-approvals')
+  recruiterApprovals(@Req() req: any) {
+    return this.admin.recruiterApprovals(req.principal);
+  }
+
+  @Post('recruiter-approvals/:id/decision')
+  @HttpCode(HttpStatus.OK)
+  recruiterDecision(@Param('id') id: string, @Req() req: any, @Body(new ZodValidationPipe(RecruiterDecisionDto)) b: RecruiterDecisionDto) {
+    return this.admin.recruiterDecision(id, b, req.principal);
   }
 
   @Get('audit')

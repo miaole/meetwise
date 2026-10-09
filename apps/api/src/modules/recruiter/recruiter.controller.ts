@@ -49,7 +49,8 @@ export class RecruiterController {
 
   @Post('jobs/:id/invite')
   @HttpCode(HttpStatus.OK)
+  // b110:req.ip 传给 service 撑 invite:ip 桶(trustProxy 保持关闭=socket 地址,防 XFF 伪造,Ban §5.10)。
   invite(@Param('id') id: string, @Req() req: any, @Body(new ZodValidationPipe(InviteCandidateDto)) b: InviteCandidateDto) {
-    return this.recruiter.invite(req.principal, id, b);
+    return this.recruiter.invite(req.principal, id, b, req?.ip);
   }
 }
