@@ -44,9 +44,6 @@ import {
 } from '../lib/resume/ocr-preview-ui.ts';
 import { interviewContextTitle, interviewResumeLabel, interviewTimeLabel } from '../lib/interview/context.ts';
 import { practiceHintScore, webTrustedQuestionIdentity } from '../lib/stream/scoring-honesty.ts';
-import { isEligibleResume, resumeEmptyState } from '../lib/resume/display.ts';
-import { parseEntitlement, entitlementLineView } from '../lib/commerce/display.ts';
-import { interviewProgressBadge } from '../lib/interview/progress-badge.ts';
 import {
   applicationScoreVisible,
   applicationStatusLabel,
@@ -57,6 +54,9 @@ import {
   RECRUITER_ARCHITECTURE_IDS,
 } from '../lib/recruiter/surface.ts';
 import { actionErrorMessage } from '../lib/errors/action-error.ts';
+import { isEligibleResume, resumeEmptyState } from '../lib/resume/display.ts';
+import { parseEntitlement, entitlementLineView } from '../lib/commerce/display.ts';
+import { interviewProgressBadge } from '../lib/interview/progress-badge.ts';
 import {
   InterviewPrivacyFencedError, isInterviewPrivacyFencedError, iterateInterviewSseBody, iterateSseBody,
   throwIfPrivacyFencedStatus,
@@ -1311,6 +1311,8 @@ async function main() {
       && lineOf(reportPageSrc, /question=\{d\.dimension\}/) === -1 && lineOf(reportPageSrc, /note=\{d\.evidence/) === -1);
     A('page.tsx 薄消费在位（projectTurnAnnotations import+调用·P3 形态钉死）',
       lineOf(reportPageSrc, /projectTurnAnnotations/) > 0 && lineOf(reportPageSrc, /from '@\/lib\/report\/turn-annotations'/) > 0);
+  }
+
   section('G3 #260 简历下拉可用性过滤：isEligibleResume 六态表 + 空态三臂（纯函数级·R3 落槽写死）');
   {
     const r = (id: string, status: string) => ({ id, status, display_name: `简历 ${id}` });
