@@ -1,0 +1,25 @@
+{
+  "result": "OK",
+  "v": "V1",
+  "healthySeconds": 10,
+  "services": [
+    "api-a",
+    "api-b",
+    "web-a",
+    "web-b",
+    "worker-a",
+    "worker-b",
+    "lb"
+  ],
+  "infra": [
+    "ha-pg",
+    "ha-redis"
+  ],
+  "rx1OriginalThreeRunning": [],
+  "command": "MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs up",
+  "composeArgs": "docker compose --env-file .tmp/ha-sandbox/sandbox.env -f docker/compose.prod.yml -f docker/compose.ha.yml -f docker/compose.ha.sandbox.yml up -d",
+  "note": "local sandbox topology up ≠ production HA; haStatus NOT_HA unchanged",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false
+}
