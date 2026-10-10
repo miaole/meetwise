@@ -33,6 +33,7 @@
   "prove:report-retry-http": "node --import @swc-node/register/esm-register test/report-retry-http.proof.ts",
   "prove:uc014-webhook-adv": "node --import @swc-node/register/esm-register test/uc-e2e-014-026-webhook-adv.proof.ts",
   "prove:env-schema": "node --import @swc-node/register/esm-register test/env-schema.proof.ts",
+    "prove:ha2-drain": "node --import @swc-node/register/esm-register test/ha-2-drain.proof.ts",
   "neg:interview": "node --import @swc-node/register/esm-register test/neg-interview.proof.ts",
   "neg:bend": "node --import @swc-node/register/esm-register test/neg-bend.proof.ts",
   "neg:input": "node --import @swc-node/register/esm-register test/neg-input.proof.ts",

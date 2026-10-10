@@ -103,3 +103,7 @@ Ban self-approve · Ban retry-to-green（attempts 全账）· Ban skip-as-pass �
 ---
 
 *`draft_rev2:pre_exec_dual`（席1 PASS+席2 FAIL 窄面处方 7 条落卷·待复审确认后协调方行使 EXEC 授权）*
+
+---
+
+*`executed:awaiting_post_prove_dual`（EXEC 席 `ha2-exec` 落卷 @line/ha-2-graceful：W1-W4+§3 C1-C8 全兑·八组 EXIT=0（A1-A4 注入式 47+39 断言双绿·B5 api 容器 exit 0/<15s/SSE 干净 end/拒新 503·B6 exit 0/0.26s·B7 deadline 30s 裁决+reaper 隔离环复绿·B8 config 15s/40s+85/137 stub 亲证吻合）·rebase 46ff2290 零冲突·锚点零漂·R1-R4+席2①②③ 全兑现·attempts 全账入 receipts/ha-2/exec-receipt.md·markers=0·est live=0·pins 十一值零翻转·⛔push·alone≠dual·待 post-prove 双审）*
