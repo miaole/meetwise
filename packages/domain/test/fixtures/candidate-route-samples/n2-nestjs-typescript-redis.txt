@@ -1,0 +1,1 @@
+NestJS 微服务工程师，TypeScript，Prisma ORM，Redis 缓存
