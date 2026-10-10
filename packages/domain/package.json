@@ -7,6 +7,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
+    "prove:candidate-route": "tsx test/candidate-profile-route.proof.ts",
     "prove:auth": "tsx test/auth.proof.ts",
     "prove:privacy-authorization": "tsx test/privacy-authorization.proof.ts",
     "prove:adaptive": "tsx test/adaptive-interview.proof.ts",

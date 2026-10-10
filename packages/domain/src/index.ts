@@ -243,13 +243,14 @@ export type {
 } from './job-route-classifier.ts';
 
 // 候选人面 track 路由（G7S 通用 begin 供给面）纯域原语：candidate-profile-derived 能力语义 rule
-// 分类（唯一叶才命中 · 0 外发）+ canonical digest。与 job 面（岗位要求语义）刻意分离，零 IO 零模型零 db。
+// 分类（0 外发；v3 起降级臂 backend/general 兜底）+ canonical digest。与 job 面（岗位要求语义）
+// 刻意分离，零 IO 零模型零 db。
 export {
   CANDIDATE_ROUTE_TAXONOMY_VERSION, CANDIDATE_ROUTE_POLICY_VERSION, CANDIDATE_ROUTE_REVISION,
   CANDIDATE_ROUTE_ALLOCATION_BPS, CANDIDATE_ROUTE_LEAF_RE,
   canonicalCandidateProfileDigest, candidateRouteDecisionHash, classifyCandidateProfileByRule,
 } from './candidate-profile-route.ts';
-export type { CandidateProfileRouteRuleResult } from './candidate-profile-route.ts';
+export type { CandidateProfileRouteRuleResult, CandidateProfileRouteDegradedFrom } from './candidate-profile-route.ts';
 
 // 评分确定性聚合（SCOR-02）纯域原语：确定性总分公式 + span/digest 文本级复验 + C 端 ScoreCard 评估消费面。
 // #52 v6（S2）起：模型直出 criterionId+quote+disposition，quote→span/digest 派生单源
