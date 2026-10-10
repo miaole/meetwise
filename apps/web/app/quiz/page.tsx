@@ -9,11 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { ResumeList, type ResumeRef as Resume } from '@meetwise/contracts';
 import { resumeOptionLabel } from '@/lib/resume/display';
 import { actionErrorMessage } from '@/lib/errors/action-error';
+import { interviewResumeLabel, interviewTimeLabel } from '@/lib/interview/context';
 
 export const metadata = { title: '押题 · 知面' };          // App Router Metadata API(SEO,服务端注入)
 
 /** 押题列表 + 开始押题:服务端鉴权 + 服务端取数(GET /quiz、/resume),Server Action 启动押题。镜像 interviews 页。 */
-type Quiz = { id: string; status: string };
+// #232:API list 扩投影返回 created_at/resume_display_name(简历 id 不再当显示名——列表行不撒谎)。
+type Quiz = { id: string; status: string; created_at?: string | null; resume_display_name?: string | null };
 
 const STATUS_LABEL: Record<string, string> = {
   created: '待开始', generating: '生成中', ready: '已完成', failed: '已失败',
@@ -98,7 +100,12 @@ export default async function QuizListPage({ searchParams }: { searchParams: Pro
           <ul className="divide-y divide-border overflow-hidden rounded-lg border bg-card">
             {quizzes.map((it) => (
               <li key={it.id} className="flex flex-wrap items-center gap-3 p-3">
-                <code className="flex-1 truncate text-sm">{it.id.slice(0, 12)}…</code>
+                {/* #232:简历名+时间(复用 interview context.ts helper,P3 裁定禁同形新写;NULL 兜底内建:
+                    未绑定简历→「未绑定简历」、时间缺→「时间待同步」——无数据如实说无,禁编 id 假名)。 */}
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium">{interviewResumeLabel(it.resume_display_name)}</div>
+                  <div className="truncate text-xs text-muted-foreground">{interviewTimeLabel(it.created_at)}</div>
+                </div>
                 {statusBadge(it.status)}
                 <Button asChild variant="outline" size="sm">
                   <Link href={`/quiz/${it.id}`}>查看 →</Link>

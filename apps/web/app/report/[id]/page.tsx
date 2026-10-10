@@ -34,7 +34,6 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
   const { retry_error } = await searchParams;   // #229 D2:重试 action 非 2xx 回跳携带的业务码 → 渲染明确提示条
   if (!(await getServerToken())) redirect('/login');
 
-  const base = process.env.NEXT_PUBLIC_API_BASE ?? '';
   const [r, interviewRaw] = await Promise.all([
     serverGet<Report>('/interview/' + id + '/report'),
     serverGet<unknown>('/interview/' + id),
@@ -66,7 +65,8 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
         <Link href="/interviews" className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> 返回面试列表
         </Link>
-        <a href={base + '/interview/' + id + '/report/export'} className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-primary">
+        {/* #257:导出走同源代理(服务端 cookie→Bearer 转发,浏览器拿不到令牌)——不再直拼 API 主机(无 Authorization 头必 401)。 */}
+        <a href={'/api/interview/' + id + '/report/export'} className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-primary">
           <Download className="h-4 w-4" /> 导出 Markdown
         </a>
       </div>
@@ -151,9 +151,10 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
           <CardContent className="p-6 text-center">
             <p className="mb-2 font-semibold">报告还没生成</p>
             <p className="mb-4 text-sm text-muted-foreground">这场面试还没完成——答完题、面试结束后,系统会自动生成你的综合报告。</p>
-            <a href={base + '/interview/' + id} className="inline-flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+            {/* #257:站内跳转用站内路由(SPA 导航),不再落到 API 主机。 */}
+            <Link href={'/interview/' + id} className="inline-flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
               继续这场面试 →
-            </a>
+            </Link>
           </CardContent>
         </Card>
       )}
@@ -164,9 +165,10 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
           <CardContent className="p-6 text-center">
             <p className="mb-2 font-semibold text-destructive">面试已中断</p>
             <p className="mb-4 text-sm text-muted-foreground">这场面试因故未能完成,无法生成报告。你可以回到面试列表重新开始一场。</p>
-            <a href={base + '/interviews'} className="inline-flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+            {/* #257:站内跳转用站内路由,不再落到 API 主机。 */}
+            <Link href="/interviews" className="inline-flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
               回到面试列表 →
-            </a>
+            </Link>
           </CardContent>
         </Card>
       )}

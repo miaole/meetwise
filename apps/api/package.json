@@ -12,6 +12,7 @@
   "neg:auth": "node --import @swc-node/register/esm-register test/neg-auth.proof.ts",
   "neg:commerce": "node --import @swc-node/register/esm-register test/neg-commerce.proof.ts",
   "trial:grant:prove": "node --import @swc-node/register/esm-register test/trial-grant.proof.ts",
+  "quiz-list:prove": "node --import @swc-node/register/esm-register test/quiz-list.proof.ts",
   "entpay:s1:prove": "node --import @swc-node/register/esm-register test/enterprise-pay-s1.proof.ts",
   "entpay:s2:preverify": "node --import @swc-node/register/esm-register test/entpay-s2-preverify.proof.ts",
     "entpay:s2:prove": "node --import @swc-node/register/esm-register test/entpay-s2.proof.ts",
