@@ -93,3 +93,4 @@ Ban self-approve · Ban retry-to-green（attempts 全账）· Ban skip-as-pass �
 - **注记 C（文案）**：干净 end 轮换闪回措辞偏软（非断网是换连接）——C5 分臂时给软措辞
 - **EXEC 附注**：prove4 NEXT_REDIRECT 自建 try/catch 捕获 next/navigation redirect 抛错（仓内无先例）
 - 状态：`dual_pass:ready_for_exec` · EXEC 授权（S 系决策按建议值已裁）
+- 状态：`executed:awaiting_post_prove_dual`（EXEC sse-exec · 2026-10-10 · prove EXIT=0 236 PASS/0 FAIL · typecheck EXIT=0 零新增 · prove:public-copy EXIT=0 · markers 门禁 0 · 三面板 location.reload=0 · 补钉1+注记A/B/C 已落 · **两处披露提请补审**：①C9×W1 冲突调和——3 处钉旧「≤maxRetries+1 即 degraded」语义的边界断言最小基线更新（改前逐字已录收据）；②C8 抽 `lib/jobs/ensure-ok.ts` 纯模块（探针实证 actions.ts server-only 链 prove 不可导入）——均见 `receipts/sse-resilience/exec-receipt.md` §3 · est live=0 · pins 十一值零翻转 · claimDone=false）

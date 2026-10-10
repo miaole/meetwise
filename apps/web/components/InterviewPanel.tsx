@@ -15,6 +15,8 @@ import { VoiceCallPanel } from '@/components/VoiceCallPanel';
 import { Thinking } from '@/components/ui/Thinking';
 import { interviewTurnWindow, VISIBLE_TURN_LIMIT } from '@/lib/stream/turn-window';
 import { buildTurnSubmission, newAnswerId } from '@/lib/interview/turn-submission';
+// SSE-RESILIENCE #54(W2/C6/C7)：作答草稿 sessionStorage 持久化(按 resultId+questionId;降级键只写不恢复;注记A 空框恢复前提)。
+import { makeDraftStore, sessionDraftStorage, draftKeyExact, draftKeyFallback, restoreDraftIfEmpty } from '@/lib/interview/draft-store';
 
 /** Blob → base64(剥掉 data:URL 前缀)。FileReader 路径避免大数组 btoa 爆栈。 */
 function blobToBase64(blob: Blob): Promise<string> {
@@ -63,7 +65,7 @@ function Typewriter({ text }: { text: string }) {
 }
 
 export function InterviewPanel({ resultId, applicationId }: { resultId: string; applicationId?: string }) {
-  const { view, display } = useInterviewStream(resultId);
+  const { view, display, retry } = useInterviewStream(resultId);
   const [mode, setMode] = useState<'text' | 'voice'>('text');  // 打字 / 单人本机语音模式,共用同一条 SSE 流
   const [answer, setAnswer] = useState('');
   const [answers, setAnswers] = useState<Record<number, string>>({});   // turnIndex → 已提交答案(本地保留以显示对话)
@@ -93,7 +95,41 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
 
   useEffect(() => { if (historyPage === 0) endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [view.turns.length, display.action.kind, historyPage]);
   useEffect(() => { setHistoryPage(0); }, [resultId]);
-  useEffect(() => { answerAttemptIdsRef.current.clear(); setAnswer(''); setAnswers({}); }, [resultId]);
+  // W2 :96:resultId 切换清除**只清匹配前缀键**(旧场草稿),不误伤他场;既有本地作答态重置照旧。
+  const prevResultRef = useRef(resultId);
+  useEffect(() => {
+    if (prevResultRef.current !== resultId) {
+      try { getDraftStore().clearByPrefix(`${prevResultRef.current}:`); } catch { /* 存储不可用不碍作答 */ }
+      prevResultRef.current = resultId;
+    }
+    answerAttemptIdsRef.current.clear(); setAnswer(''); setAnswers({});
+  }, [resultId]);
+
+  // ── W2 草稿持久化(C6/C7):sessionStorage 按 `${resultId}:${questionId}`;防抖写入;成功提交同拍清除;空框才恢复(注记A)。──
+  const draftStoreRef = useRef<ReturnType<typeof makeDraftStore> | null>(null);
+  function getDraftStore() {
+    if (!draftStoreRef.current) draftStoreRef.current = makeDraftStore(sessionDraftStorage());
+    return draftStoreRef.current;
+  }
+  const draftIdentity = view.questionIdentity;
+  // questionId 在手 → 精确键(可恢复);缺失 → 降级键 `${resultId}:${turns.length}`(只写,**不自动恢复**,防跨题误复用·注记A)。
+  const currentDraftKey = draftIdentity
+    ? draftKeyExact(resultId, draftIdentity.questionId)
+    : view.turns.length > 0 ? draftKeyFallback(resultId, view.turns.length) : null;
+  // 输入防抖写入(300ms;任一 setAnswer 路径——打字/语音转写——都汇入 answer state,统一经此落盘)。
+  useEffect(() => {
+    if (!currentDraftKey) return;
+    const t = setTimeout(() => { try { getDraftStore().save(currentDraftKey, answer); } catch { /* 配额/隐私模式失败不碍作答 */ } }, 300);
+    return () => clearTimeout(t);
+  }, [answer, currentDraftKey]);
+  // 恢复入框:仅当前输入框为空 + 有 questionId 精确键(注记A:防存储落后于活内存砸掉更新键入;防降级键跨题误复用)。
+  useEffect(() => {
+    if (answer !== '' || !draftIdentity) return;
+    let stored: string | null = null;
+    try { stored = getDraftStore().load(draftKeyExact(resultId, draftIdentity.questionId)); } catch { stored = null; }
+    const restored = restoreDraftIfEmpty(answer, stored);
+    if (restored !== answer) setAnswer(restored);
+  }, [answer, draftIdentity, resultId]);
   // 岗位面试完成后确认回填。即便 URL applicationId 被改写，代理/API 也不会接收 interviewId，
   // 而是从 application 的持久化绑定校验 owner/job/resume/终态；数据库 trigger 还是浏览器关闭时的兜底。
   useEffect(() => {
@@ -207,6 +243,9 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
         clearSubmitBridge();                                          // 回到作答态,保留输入框内容
         return;
       }
+      // W2 :210 同拍:成功提交 → 清该题草稿 + 清空作答框(同事务语义,先清草稿防防抖回写);
+      // 失败/异常路径不动草稿(输入框内容本就保留,草稿随在)。
+      if (currentDraftKey) { try { getDraftStore().clear(currentDraftKey); } catch { /* 存储不可用不碍流程 */ } }
       setAnswer('');                                       // 仅成功才清空作答框
     } catch {
       toast.error('提交未成功，请重试');
@@ -486,7 +525,8 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
       )}
       {display.action.kind === 'retry' && (
         <button
-          onClick={(e) => { e.currentTarget.disabled = true; e.currentTarget.setAttribute('aria-busy', 'true'); location.reload(); }}
+          onClick={(e) => { e.currentTarget.disabled = true; e.currentTarget.setAttribute('aria-busy', 'true'); retry(); }}
+          title="立即重连(重置退避),不刷新页面——恢复不走整页刷新(#53 口径)"
           className="inline-flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm hover:border-primary disabled:cursor-not-allowed disabled:opacity-50">
           {display.action.label}
         </button>

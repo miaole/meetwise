@@ -75,8 +75,11 @@ export type BusinessEvent = z.infer<typeof BusinessEvent>;
 export interface SSEFrame { id?: number; event?: string; data: string }
 
 /** 流式 SSE 解码：在**空行分隔符**(CRLF/CR/LF 皆可,spec)切帧;返回完整帧 + 未完成尾巴(rest,下次拼接,不归一以免拆裂不完整分隔符)。
- *  审计 MEDIUM 修复:`split('\n\n')` 遇 `\r\n\r\n` 切不出帧 → 永久转圈;改按 `/\r\n\r\n|\r\r|\n\n/` 分,行内按 `/\r\n|\r|\n/` 拆。 */
-export function decodeSSE(buffer: string): { frames: SSEFrame[]; rest: string } {
+ *  审计 MEDIUM 修复:`split('\n\n')` 遇 `\r\n\r\n` 切不出帧 → 永久转圈;改按 `/\r\n\r\n|\r\r|\n\n/` 分,行内按 `/\r\n|\r|\n/` 拆。
+ *  SSE-RESILIENCE #55(W3 可选小件 C10):`sawTraffic`=本次解码见过任何非空白字节(含 `: ping` 注释/心跳行——它们在 :88,:94 被静默丢弃,
+ *  驱动从此旗得知"连接还活着",收到即重置失败预算;frames 语义零改,既有 `{frames,rest}` 解构不受影响)。 */
+export function decodeSSE(buffer: string): { frames: SSEFrame[]; rest: string; sawTraffic: boolean } {
+  const sawTraffic = buffer.trim().length > 0;
   const parts = buffer.split(/\r\n\r\n|\r\r|\n\n/);
   const rest = parts.pop() ?? '';                       // 最后一段可能不完整(含半截分隔符),留到下次
   const frames: SSEFrame[] = [];
@@ -94,7 +97,7 @@ export function decodeSSE(buffer: string): { frames: SSEFrame[]; rest: string } 
     if (f.event === undefined) continue;                // 纯心跳/注释帧(无 event)不产出幻象帧
     frames.push(f);
   }
-  return { frames, rest };
+  return { frames, rest, sawTraffic };
 }
 
 /** 帧 → 强类型业务事件。schema 不过(未知事件/坏 payload)返回 null（前端只信契约内的事件,不裸用）。 */
