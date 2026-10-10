@@ -86,8 +86,12 @@ export function InvoiceProfileForm({ initial }: { initial: { title: string; taxI
   );
 }
 
-/** 开票申请入口(仅 paid 订单·DB 触发器具名门·一单至多一张)。 */
-export function InvoiceRequestForm() {
+/** 开票申请入口(仅 paid 订单·DB 触发器具名门·一单至多一张)。
+ *  B271 片3 P4（裁定③）：手填订单号 Input 撤除改 select 下拉——数据源=GET /commerce/orders 仅 status='paid' 行
+ *  （服务端读取·页面已过滤传入）；空表=下拉禁用+「暂无已支付订单」，不保留手填口（>50 单窗口外老 paid 单不可选
+ *  =如实边界非缺陷；他人/未支付单 409 仍由 submitInvoiceRequestAction + 0156 触发器具名门双层承，不弱）。 */
+export function InvoiceRequestForm({ paidOrders }: { paidOrders: Array<{ id: string; amount_cents: number; created_at: string }> | null }) {
+  const orders = paidOrders ?? [];
   const [state, formAction] = useActionState(async (_prev: { ok?: boolean; error?: string }, f: FormData) => (
     await submitInvoiceRequestAction(String(f.get('orderId') ?? '').trim())
   ), {} as { ok?: boolean; error?: string });
@@ -100,12 +104,26 @@ export function InvoiceRequestForm() {
   return (
     <form ref={formRef} action={formAction} className="flex flex-wrap items-end gap-2 border-t pt-4">
       <div className="space-y-1">
-        <Label htmlFor="inv-order">已支付订单号 *</Label>
-        <Input id="inv-order" name="orderId" placeholder="ord-…" className="w-64" required />
+        <Label htmlFor="inv-order">已支付订单 *</Label>
+        <select
+          id="inv-order"
+          name="orderId"
+          required
+          disabled={orders.length === 0}
+          defaultValue={orders[0]?.id ?? ''}
+          aria-label="选择已支付订单"
+          className="h-9 w-72 rounded border bg-background px-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {orders.length === 0 ? (
+            <option value="">暂无已支付订单</option>
+          ) : (
+            orders.map((o) => <option key={o.id} value={o.id}>{o.id} · ¥{(o.amount_cents / 100).toFixed(2)} · {o.created_at}</option>)
+          )}
+        </select>
       </div>
-      <SubmitButton pendingLabel="提交中…">申请开票</SubmitButton>
+      <SubmitButton pendingLabel="提交中…" disabled={orders.length === 0}>申请开票</SubmitButton>
       <p role="status" aria-live="polite" className={`text-xs ${state.error ? 'text-destructive' : 'text-muted-foreground'}`}>
-        {state.error ?? '仅已支付订单可申请；每笔订单限一次。'}
+        {state.error ?? (orders.length === 0 ? '暂无已支付订单；线上支付成功后可在此申请开票。' : '仅已支付订单可申请；每笔订单限一次。')}
       </p>
     </form>
   );

@@ -153,6 +153,8 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                       {invited && <form action={declineApplicationAction.bind(null, app.id)}>
                         <SubmitButton size="sm" variant="outline" pendingLabel="处理中…">婉拒</SubmitButton>
                       </form>}
+                      {/* B271 片3 P1-a 修法⑥（文案逐字=b271 REQUEST:44/§4.3-3）：企业支付静态知情行——非状态位零查询。 */}
+                      <p className="w-full text-xs text-muted-foreground">本场由企业支付，不消耗你的额度</p>
                     </>
                   )}
                 </div>

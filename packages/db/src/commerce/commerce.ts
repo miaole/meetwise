@@ -19,6 +19,7 @@
  * 故 B 端行必须路由。C 端行（payer NULL）路径逐字节零改。
  */
 import type { PoolClient as Client } from 'pg';   // 直接取 pg 类型,不从 ./index 桶引（否则 index↔commerce 成环）
+import type { CreditBucketKind } from './payment.ts';   // B271 片3 P3 形 A：kind 可选形参类型（类型面单源=./payment.ts）
 
 export interface Allocation { bucket_id: string; units: number }
 export type ReserveResult =
@@ -392,12 +393,15 @@ export async function abandonInterviewAndRelease(c: Client, owner: string, inter
   });
 }
 
-/** 当前可用额度（共享池 = 各未过期桶 available 之和）。 */
-export async function availableUnits(c: Client, owner: string): Promise<number> {
+/** 当前可用额度（共享池 = 各未过期桶 available 之和）。B271 片3 P3 形 A（裁定②）：kind 缺省 undefined →
+ * 谓词 `$2::text IS NULL OR kind=$2` 恒真 = 既有全桶口径逐值不变（C 端调用点零触）；指定 kind 只扫该桶
+ * （沿 markOrderRefunded 桶过滤同形先例 payment.ts:155 区·只读余额读函数·扣费路径零触）。 */
+export async function availableUnits(c: Client, owner: string, kind?: CreditBucketKind): Promise<number> {
   await assertPrincipal(c, owner);
   const r = await c.query(
     `SELECT COALESCE(SUM(units_total - units_reserved - units_consumed),0) AS avail
-       FROM entitlement_bucket WHERE owner_user_id=$1 AND expires_at > now()`, [owner]);
+       FROM entitlement_bucket WHERE owner_user_id=$1 AND expires_at > now()
+         AND ($2::text IS NULL OR kind = $2)`, [owner, kind ?? null]);
   return r2(Number(r.rows[0].avail));
 }
 

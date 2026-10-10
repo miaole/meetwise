@@ -38,10 +38,24 @@ export class CommerceController {
     return this.commerce.payCallback(req.principal, id, b);
   }
 
+  // B271 片3 P4：本人订单列表（RLS p_owner 仅本人·开票下拉数据源）。静态段先于参数段，路由不冲突。
+  @Get('orders')
+  @UseGuards(PrincipalGuard)
+  orders(@Req() req: any) {
+    return this.commerce.listMyOrders(req.principal);
+  }
+
   @Get('orders/:id')
   @UseGuards(PrincipalGuard)
   order(@Param('id') id: string, @Req() req: any) {
     return this.commerce.getOrder(req.principal, id);
+  }
+
+  // B271 片3 P2：本人对公订单台账（approved recruiter 门 + 0159 受控 DEFINER 本人行读函数）。
+  @Get('offline-orders')
+  @UseGuards(PrincipalGuard)
+  offlineOrders(@Req() req: any) {
+    return this.commerce.listMyOfflineOrders(req.principal);
   }
 
   @Get('entitlement')
