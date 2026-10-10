@@ -162,3 +162,10 @@ rev2 回填 commit f6206d18 message 谎报「②R12 锚/③C4 锚已落」而 di
 2. 时序钉死：rev2（席2 七处方合并）双审 BOTH PASS + 协调方明示授权 → 片1 EXEC 才动码。
 3. 席2 FAIL 三实体随 rev2 落卷：FAIL-1 现状证词错（entitlement_bucket 自 0001:150-163 即 ENABLE+FORCE RLS+p_owner·非「无任何 RLS」）·FAIL-2 pre_exec STOP 击穿（本条）·FAIL-3 片2 释放路漏点（commerce-reconcile.ts:46/:56 sweeper owner 路由 + interview.service.ts:511 候选人 abandon 预留泄漏）。
 4. 0156 迁移号与批4 CONSENT 撞号风险（SOP:79）——先登记者胜（TASK-SOP-v2.md:16），ENTPAY rev2 文首登记。
+
+## 迁移编号裁定：0156 归 ENTPAY 片1（协调方裁定 2026-10-10）
+
+**裁定**：B271 ENTPAY 片1（企业桶+充值）持 **0156**；其片2 顺延 **0157**；CONSENT-MIN（#69+#82）预计零迁移（撤回 grant 已在 0152），例外路径若触发按其开工时点领下一空号（预计 **0158+**）并开工即 claim 回注。
+
+**理由**：① TASK-SOP-v2.md:16 claim 定义=「REQUEST 文首声明拟用号+开工即 claim·撞号以先登记者胜」——B271 REQUEST @68f680cd 是首个在树已提交的 specific-number 0156 声明；SOP:79 批4 表「迁移 0156+」为规划下限，非 specific claim，不构成在先占用。② SOP:13「P0 断链凌驾一切」——#271 为唯一零开工 P0 断链，批4 CONSENT 残项（#82 enum/#69 checkbox）非 P0。③ 实用面：CONSENT-MIN 用号概率近零，让渡将迫使 ENTPAY 重编号空转；「后到者重编号并回注」条款零成本容纳反向情形。
+**回注义务**：双方 EXEC 落迁移文件前须核对本条与本 REQUEST 处方⑥（避免 0152 三重撞车重演）。ENTPAY rev3 已在 REQUEST 处方⑥回注（协调方授权 rev3 追记时落）。
