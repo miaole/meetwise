@@ -1,0 +1,7 @@
+
+> @meetwise/web@0.0.0 prove:transcribe-proxy /Users/miaole/Desktop/golucky/meetwise-consentmin/apps/web
+> tsx test/transcribe-proxy.proof.ts
+
+PASS  同源 ASR 代理把浏览器请求的同一 AbortSignal 传给 API fetch，并原样终止
+
+✓ ASR 代理取消合同全部通过

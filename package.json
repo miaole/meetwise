@@ -393,6 +393,8 @@
     "privacy-erasure:http:prove": "node scripts/run-e2e-isolated.mjs privacy-erasure:http:prove:raw",
   "unstube-erase:prove": "node scripts/run-e2e-isolated.mjs unstube-erase:prove:raw",
   "unstube-erase:prove:raw": "pnpm -C apps/api prove:unstube-erase",
+  "consent-min:prove": "node scripts/run-e2e-isolated.mjs consent-min:prove:raw",
+  "consent-min:prove:raw": "pnpm -C apps/api prove:consent-min",
     "privacy-erasure:http:prove:raw": "pnpm -C apps/api prove:privacy-erasure-http",
     "resume-erasure:foundation:prove": "node scripts/run-e2e-isolated.mjs resume-erasure:foundation:prove:raw",
     "resume-erasure:foundation:prove:raw": "pnpm -C apps/worker prove:resume-erasure-tombstone",

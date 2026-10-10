@@ -397,6 +397,22 @@ export const PRIVACY_AUTHZ_DIGEST_RE = /^[a-f0-9]{64}$/;
 /** 契约冻结三个目的枚举；当前 DB 只签发 `interview_data_erasure`（其余为 MEM-00/后续复用预留，DB 侧 fail-closed 拒绝）。 */
 export const PRIVACY_AUTHZ_PURPOSES = ['interview_data_erasure', 'resume_data_erasure', 'account_data_erasure'] as const;
 export const PrivacyAuthzPurpose = z.enum(PRIVACY_AUTHZ_PURPOSES);
+/**
+ * 采集同意目的枚举（CONSENT-MIN · #82/#69 缩水件）：与上面的删除授权域枚举
+ * （PRIVACY_AUTHZ_PURPOSES）是**不同机制、零交集**，亦不含 memory_consent 域
+ * （0093 interview_prep/career/preference/self_improvement）。仅约束
+ * /privacy/consent 三入口的 purpose 值；库层 consent_record.purpose 仍为无 CHECK 的
+ * text（库层立法不在本刀）。
+ */
+export const CONSENT_PURPOSES = ['resume_processing', 'interview_personalization', 'voice_capture'] as const;
+export const ConsentPurpose = z.enum(CONSENT_PURPOSES);
+export type ConsentPurpose = z.infer<typeof ConsentPurpose>;
+/** POST /privacy/consent body：purpose 可选（缺省 resume_processing 由 controller 保留），strict 拒未知键。 */
+export const ConsentPurposeDto = z.object({ purpose: ConsentPurpose.optional() }).strict();
+export type ConsentPurposeDto = z.infer<typeof ConsentPurposeDto>;
+/** GET/DELETE /privacy/consent query：非 strict——只校 purpose 值，其余 query 键 strip 不拒。 */
+export const ConsentPurposeQueryDto = z.object({ purpose: ConsentPurpose.optional() });
+export type ConsentPurposeQueryDto = z.infer<typeof ConsentPurposeQueryDto>;
 export const PrivacyAuthorizationSnapshot = z.object({
   iss: z.literal(PRIVACY_AUTHZ_ISSUER),
   aud: z.literal(PRIVACY_AUTHZ_AUDIENCE),

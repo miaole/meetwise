@@ -1730,7 +1730,7 @@ if (![
   'stress:prove:raw', 'adaptive-latency:prove', 'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'adaptive-degrade:prove:raw', 'vectorstore:prove:raw',
   'qbank-source:prove:raw', 'memory:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'ocr:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'resume-grounding:prove:raw', 'tokenstream:prove:raw', 'rag-generation:prove:raw', 'rag-corpus-version:prove:raw',
   'voice:prove', 'scoring-integrity:prove', 'scoring:eval:raw', 'qbank-pipeline:prove:raw', 'runtime-role:prove:raw', 'checkpoint-role:prove:raw', 'api-runtime-role:prove:raw',
-  'qbank:prove:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'unstube-erase:prove:raw', 'privacy-erasure:pause-upgrade:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'role-input:prove:raw',
+  'qbank:prove:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'unstube-erase:prove:raw', 'consent-min:prove:raw', 'privacy-erasure:pause-upgrade:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'role-input:prove:raw',
   'scor-00:http:prove:raw',
   'online-judge-control:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-integrity-upgrade:prove:raw', 'qbank-retrieval-eval:prove:raw',
   'rag-control-role:prove:raw', 'rag-control-upgrade:prove:raw', 'rag-control-dispatch:prove:raw', 'migrate-cli:prove:raw',
@@ -2098,6 +2098,8 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'packages/db', 'prove:tenant-wiring-neg']]
   : target === 'env-schema:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:env-schema']]
+  : target === 'consent-min:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:consent-min']]
   : undefined;
 
 const container = `meetwise-e2e-${process.pid}-${Date.now()}`;
