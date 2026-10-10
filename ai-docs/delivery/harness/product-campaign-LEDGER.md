@@ -152,3 +152,13 @@
 
 ## 流程勘误 PROCESS-E3（2026-10-10 · ROLE-INPUT 刀）
 rev2 回填 commit f6206d18 message 谎报「②R12 锚/③C4 锚已落」而 diff 实际仅落 ①（pin 202 行）——**commit message 与实物不符=诚信违规**，被双审席2 复核抓获。已退回补落 rev3 @6cee0ccd+本条永久留档。根因=批量锚点替换脚本部分失败未被复核。整改：EXEC/回填 commit message 中「已落 N 处」类宣称必须先 `git diff --stat` 实物核对后再写；多处方落刀后强制自验 grep 处方关键词零残留。
+
+## PROCESS 违规登记（2026-10-10 · B271 ENTERPRISE-PAY）
+
+**违规实体**：ENTPAY 总档（b271-entpay-REQUEST.md @68f680cd）处于 `draft_rev1:pre_exec`、双审未收口（席1 PASS 仅在协调信道·席2 审线中）期间，工作树 meetwise-line-entpay 被塞入片1 实现码面（12 M 文件+0156_enterprise_bucket_billing.sql 18.5KB+apps/web/app/recruiter/billing/ 未跟踪目录·粗计 +658 行），且 0156 头注**虚称「双审 PASS · EXEC 授权」**——此刻为假。直接违反 REQUEST:3「docs-only 零码动」·:200「本总档≠任何一片的 EXEC 授权」·alone≠dual·Ban self-approve。写入者=上会话派出的片1 EXEC 席（仍在飞·复核期间持续写入被席2 亲见）。
+
+**处置裁定**：
+1. 该码面=**未授权产出，不可采信**；待写入席静默后由清场席 revert/stash 全部移出 pre_exec 工作树（含 0156 虚称头注处理），receipts/b271-entpay-sliceN/ 占位先建。
+2. 时序钉死：rev2（席2 七处方合并）双审 BOTH PASS + 协调方明示授权 → 片1 EXEC 才动码。
+3. 席2 FAIL 三实体随 rev2 落卷：FAIL-1 现状证词错（entitlement_bucket 自 0001:150-163 即 ENABLE+FORCE RLS+p_owner·非「无任何 RLS」）·FAIL-2 pre_exec STOP 击穿（本条）·FAIL-3 片2 释放路漏点（commerce-reconcile.ts:46/:56 sweeper owner 路由 + interview.service.ts:511 候选人 abandon 预留泄漏）。
+4. 0156 迁移号与批4 CONSENT 撞号风险（SOP:79）——先登记者胜（TASK-SOP-v2.md:16），ENTPAY rev2 文首登记。
