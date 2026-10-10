@@ -1,0 +1,11 @@
+{
+  "kind": "ha4-backup-beat",
+  "ok": true,
+  "stamp": "20261010T191155Z",
+  "startedAt": "2026-10-10T19:11:55Z",
+  "finishedAt": "2026-10-10T19:11:55Z",
+  "dump": {"name": "meetwise-20261010T191155Z.dump", "sizeBytes": 1801971, "sha256": "3c732ffd5966505712c18165015a6a9bcb0c36bb1f18755810ed8e70e1edad22", "mode": "0600"},
+  "validation": {"pgRestoreListExit": 0, "tocTableEntries": 175, "tocTableDataEntries": 174, "sizeAssertGtZero": true},
+  "versions": {"clientPgDumpMajor": 16, "serverMajor": 16, "clientGteServer": true},
+  "rotation": {"retainCount": 7, "retainedCount": 4, "deleted": []}
+}

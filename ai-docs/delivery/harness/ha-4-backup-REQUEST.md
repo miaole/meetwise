@@ -151,3 +151,26 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *HA-4 BACKUP REQUEST（起草） · 2026-10-10 · ha4-draft 席 · base `feat/mysql-schema-skeleton` @`9f6edf8f`（主线 tip 亲证） · R-26 P1 备份/PITR 未找到=全仓零备份机械零证据（§1.1 亲证表） · 修法=本地 pg_dump 定时+完整性校验+隔离容器 restore 演练+N 份轮转（预览尺度·简化优先） · 云上传归 S15·完整 PITR 降级裁决留双审 · est live=0 · pins 十一值零翻转 · markers=0 · ⛔push ⛔动主线仓 ⛔触其他工作树 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工*
+
+---
+
+## §10 预执行双审落卷（EXEC 开工前 · append-only 登记 · 本节为补线与终裁账）
+
+**双审状态**：席2 PASS＋席1 PASS（分歧无）·协调方明示授权 R-26 EXEC（开工三条款 §9-1/9-2/9-3 齐）。预执行双审卷（`reviews/REQUEST-2026-10-10-ha-4-backup-*-mw-*.md` 形制）未落仓，双席处方以协调方明示文本为准随本节与 EXEC 收据落卷（如实登记·不虚称卷面在位）。
+
+**席1 补线（3 条 · EXEC 全兑现）**：
+1. **①连接面沿 TLS 契约登记**：backup 服务连接变量独立定名 `BACKUP_DATABASE_URL`（与 migrate 面的 `MIGRATION_DATABASE_URL` / runtime 面 `RUNTIME_DATABASE_URL` 分离不混挂）；RDS 形态下该 URL 由机器一次性 provision 携带 `sslmode=verify-full&sslrootcert=/run/secrets/rds_ca`，`rds_ca` secret 与 compose.prod.yml:385-387 同源同定义（同一 `RDS_CA_HOST_PATH` 供值）。
+2. **②pg_dump major ≥ RDS major 亲证登记入收据**：沙箱验证面 = pgvector:pg16 自带客户端（pg_dump 16.x）对 PG16 服务端 major 等值亲证；生产 RDS major 仓内零证据（如实登记空白），实机启用核验列入运行手册 checklist（客户端 16 ≥ 服务端 major 为启用前置断言，非本刀可证面）。
+3. **③BACKUP_DATABASE_URL 沿 .env provision 先例**：机器一次性 provision、部署不下发（`ops/deploy/remote-deploy.sh:33` env_file_missing 守卫同口径；`ops/deploy/bootstrap-ecs.sh:46-53` .env provision 步骤同源——双席勘误：REQUEST §1.1 原载 `:41-43` 系 ssh 公钥安装步骤，.env provision 实锚 `:46-53`）。
+
+**席2 三终裁（裁定·EXEC 全兑现）**：
+1. **定时形态裁甲**：compose 服务内 interval 循环（自包含零宿主依赖·循环单线程顺序执行=构造性不双跑；幂等锁另设防御层）。
+2. **备份登录**：最小权限专用只读登录优先（`BACKUP_DB_USER`/`BACKUP_DB_PASSWORD` 沿 migrate.env.example 四登录先例扩展·provision 面与 SQL 样例入运行手册）；**全库 dump 完备性为硬判据**（pg_dump 零表过滤零 --table/--exclude）；**V2 表清单等值为实测裁决**（源库↔restore 目标库表集合双向等值=完备性的实证判据）。
+3. **PITR 降级确认**：dump 定时档（§5-2 降级裁决成立）；RPO=备份间隔量级如实登记（BACKUP_INTERVAL_SECONDS 默认 21600s=6h 量级），不叙事 PITR、不签 RPO/RTO 目标（runbook:257 口径维持）。
+
+**双席勘误（REQUEST 原文锚漂移三处 · 原文零改·以本节为准）**：
+- `ops/deploy/bootstrap-ecs.sh` `.env provision` 锚：REQUEST §1.1 载 `:41-43` → 实锚 `:46-53`（:41-43 为 ssh 公钥安装步骤）。
+- `ai-docs/delivery/north-star-ha.md` 「retained = Postgres (+pgvector + PostgresSaver)」锚：REQUEST §1.2 载 `:29` → 实锚 `:32`。
+- `requirements/use-cases/expert-interview-coach-agent-graph.md` 路径：仓内实路径带前缀 `ai-docs/`（根级 `requirements/` 不存在·亲证 ls EXIT=1）→ 实锚 `ai-docs/requirements/use-cases/expert-interview-coach-agent-graph.md:785/:924`（外部依赖「备份/恢复演练」反依赖语义零变）。
+
+*`executed:awaiting_post_prove_dual`（EXEC 席 `ha4-exec` 落卷 @line/ha-4-backup：W1-W4+§3 C1/C2/C3/C5 全兑·V1-V7 终态 7/7 PASS（V1 产出 175 表 sha256 入账/V2 演练 24 角色预建零过滤 restore+表集双向等值+全表行数等值+密文字节 md5 等值零解密/V3 轮转双 retain 值+碎片清扫/V4 形态甲 4s 间隔 4 拍实录+锁探针 EXIT=4/V5 三 config 全绿+prod 四服务 byte-equal 零漂/V6 0600/0700+零凭据泄漏+零端口/V7 产品码零 diff+markers=0）·二次 rebase 干净（会话中主线推进 h1 链 9f6edf8f→141da56f·a4f8cd02→3d83b3b2 内容零改）·双席处方六条+三终裁+勘误三处全兑现（§10）·ACL 处置=先建角色零 --no-acl（24 角色全闭包入收据）·attempts 八组全账入 receipts/ha-4/exec-receipt.md·沙箱全灭 est live=0·RDS major 仓内零证据如实登记空白·实机启用 checklist 入 runbook §2·markers=0·est live=0·pins 十一值零翻转·⛔push·alone≠dual·待 post-prove 双审）*
