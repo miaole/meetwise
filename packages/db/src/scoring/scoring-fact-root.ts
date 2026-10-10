@@ -17,7 +17,7 @@
  *     transition/supersede 走 scoring_worker_executor（本模块的 asScoringWorker* helper，
  *     不触碰 principal.ts，避免与并发迁移代理冲突）。
  */
-import type { Client, DbPool } from './principal.ts';
+import type { Client, DbPool } from '../principal.ts';
 
 function fail(code: string): never { throw Object.assign(new Error(code), { code }); }
 

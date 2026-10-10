@@ -16,7 +16,7 @@
  * 权限分离（复用 SCOR-01 角色，不新增角色）：
  *   - scoring_adjudicate_score_card → EXECUTE 授 scoring_worker_executor（asScoringWorkerPrincipal）。
  */
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 
 function fail(code: string): never { throw Object.assign(new Error(code), { code }); }
 

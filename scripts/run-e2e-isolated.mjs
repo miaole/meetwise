@@ -1365,7 +1365,7 @@ const isolatedReceiptSources = {
   'scor-01:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/scor-01.proof.ts',
-    'packages/db/src/scoring-fact-root.ts', 'packages/db/src/index.ts',
+    'packages/db/src/scoring/scoring-fact-root.ts', 'packages/db/src/index.ts',
     'packages/db/src/transcript/int-transcript.ts', 'packages/db/src/checkpoint/checkpoint-privacy.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/scoring-fact-root.ts', 'packages/domain/src/index.ts',
@@ -1379,7 +1379,7 @@ const isolatedReceiptSources = {
   'scor-02:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/scor-02.proof.ts',
-    'packages/db/src/scoring-aggregation.ts', 'packages/db/src/scoring-fact-root.ts',
+    'packages/db/src/scoring/scoring-aggregation.ts', 'packages/db/src/scoring/scoring-fact-root.ts',
     'packages/db/src/index.ts', 'packages/db/src/transcript/int-transcript.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/scoring-aggregation.ts', 'packages/domain/src/scoring-fact-root.ts',
@@ -1395,8 +1395,8 @@ const isolatedReceiptSources = {
   'scor03-evidence-conflict:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/scor-03.proof.ts',
-    'packages/db/src/scoring-evidence-conflict.ts', 'packages/db/src/scoring-aggregation.ts',
-    'packages/db/src/scoring-fact-root.ts', 'packages/db/src/index.ts', 'packages/db/src/transcript/int-transcript.ts',
+    'packages/db/src/scoring/scoring-evidence-conflict.ts', 'packages/db/src/scoring/scoring-aggregation.ts',
+    'packages/db/src/scoring/scoring-fact-root.ts', 'packages/db/src/index.ts', 'packages/db/src/transcript/int-transcript.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/scoring-evidence-conflict.ts', 'packages/domain/src/scoring-aggregation.ts',
     'packages/domain/src/scoring-fact-root.ts', 'packages/domain/src/memory-admission.ts', 'packages/domain/src/index.ts',
@@ -1412,8 +1412,8 @@ const isolatedReceiptSources = {
   'growth:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/growth.proof.ts',
-    'packages/db/src/index.ts', 'packages/db/src/scoring-aggregation.ts',
-    'packages/db/src/scoring-fact-root.ts', 'packages/db/src/transcript/int-transcript.ts',
+    'packages/db/src/index.ts', 'packages/db/src/scoring/scoring-aggregation.ts',
+    'packages/db/src/scoring/scoring-fact-root.ts', 'packages/db/src/transcript/int-transcript.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/growth.ts', 'packages/domain/src/scoring-aggregation.ts',
     'packages/domain/src/scoring-fact-root.ts', 'packages/domain/src/index.ts',
@@ -1581,7 +1581,7 @@ const isolatedReceiptSources = {
   'rag05-qbank-miss:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/rag05-qbank-miss.proof.ts',
-    'packages/db/src/qbank-miss.ts', 'packages/db/src/interview/interview-event.ts', 'packages/db/src/interview/interview-question.ts', 'packages/db/src/scoring-fact-root.ts',
+    'packages/db/src/qbank-miss.ts', 'packages/db/src/interview/interview-event.ts', 'packages/db/src/interview/interview-question.ts', 'packages/db/src/scoring/scoring-fact-root.ts',
     'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/src/qbank-ingest.ts',
     'packages/db/src/routing/job-route-decision.ts', 'packages/db/src/recruiting/recruiter.ts',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',

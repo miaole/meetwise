@@ -11,7 +11,7 @@
  *   - scoring_aggregate_interview_scores / scoring_list_scorable_score_cards → EXECUTE 授 app_role
  *     （asPrincipal），C 端只读，owner 作用域 RLS 生效。
  */
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 
 function fail(code: string): never { throw Object.assign(new Error(code), { code }); }
 
