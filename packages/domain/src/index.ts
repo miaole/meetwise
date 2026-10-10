@@ -252,12 +252,15 @@ export {
 export type { CandidateProfileRouteRuleResult } from './candidate-profile-route.ts';
 
 // 评分确定性聚合（SCOR-02）纯域原语：确定性总分公式 + span/digest 文本级复验 + C 端 ScoreCard 评估消费面。
-// dispositionFromHintScore（S1 过渡桥·rev2 D6）：score<60 below / 60≤score<85 meets / ≥85 exceeds。
+// #52 v6（S2）起：模型直出 criterionId+quote+disposition，quote→span/digest 派生单源
+// scoreDispositionFromCodeUnitSpan；S1 的 v5→disposition 过渡桥已废除（rg 门零残留）。
+export type { ScoredCriterionDisposition } from './scoring-aggregation.ts';
 export {
   SCORE_SPAN_OFFSET_KIND, DISPOSITION_BANDS, DISPOSITION_BAND_VALUE,
-  SCORE_HINT_EXCEEDS_THRESHOLD, dispositionFromHintScore,
+  scoreDispositionFromCodeUnitSpan,
   canonicalScoreSpan, scoreSpanDigest, reverifyScoreEvidenceSpan,
   computeDeterministicTotal, computeCoverage, aggregateScoreCards, deriveScoreCardAssessment,
+  deriveScoreCardAssessmentLegacy,
 } from './scoring-aggregation.ts';
 
 // SCOR-00 消费面诚实闸：可信 identity、practice hint、禁止映射 B 端分、证据不足 ≠ 0。

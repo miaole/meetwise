@@ -1,0 +1,51 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-54116-1791601371061 on 127.0.0.1:51046
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-line-scorewr/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=153 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:stress /Users/miaole/Desktop/golucky/meetwise-line-scorewr/apps/worker
+> tsx test/context-stress.proof.ts
+
+
+──────── A. 入口上下文封顶与码点安全 ────────
+PASS  18000 字评估输入封顶至 ≤ 12000
+PASS  50000 字评估输入仍封顶至 ≤ 12000
+PASS  80000 字默认输入封顶至 ≤ 20000
+PASS  正常短答案不被篡改
+PASS  调用方 nonce（随机一次性标识）截断标记被保留
+PASS  emoji 截断不留下孤立高代理项
+
+──────── B. 边缘契约在落库前拒绝异常大输入 ────────
+PASS  TurnDto（答题契约）8001 字拒绝、8000 字接受
+PASS  AnswerDto（旧答题契约）8001 字拒绝
+PASS  UploadResumeDto（上传简历契约）60001 字拒绝、60000 字接受
+
+──────── C. 真 invoke（模型网关）路径：截断不可由用户伪造 ────────
+PASS  18000 字经真实 HTTP 模型适配器实收 ≤ 12000
+FAIL  真实截断带 nonce 标记（v6 信道：截断→档位 below）
+PASS  用户伪造无 nonce 截断字样不会被当作系统截断（未触发真实截断·档位 meets）
+
+──────── D. 数万字多轮经 v64 队列与当前自适应图，逐轮评估不累积 transcript ────────
+FAIL  当前图实际完成至少 3 次评估
+FAIL  累计会话达到 ≥ 30000 字（实际 0k）
+PASS  每次评估请求 ≤ 12000 字
+FAIL  同等长度回答的评估输入极差 < 50（实际 Infinity）
+
+──────── E. 8000 字答案在 v64 队列中短暂存在、消费后清除，SSE 不回放正文 ────────
+FAIL  队列在消费前确实承载 8000 字答案
+PASS  消费完成后 answer payload（回答载荷）已清除
+PASS  SSE（服务器推送事件）载荷不含 8000 字正文且每条 < 500 字
+FAIL  大答案链路所有 job 收口为 done、额度精确扣 1
+FAIL  大答案不阻塞报告舱壁
+
+✗ 7 项失败
+ ELIFECYCLE  Command failed with exit code 1.
+ISOLATED_POSTGRES_OUTPUT_WITHHELD container=meetwise-e2e-54116-1791601371061 state_bytes=217 logs_bytes=1665
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-10T03-02-57-678Z-54116-6a8a5fbb-05b3-435f-ad81-7ee881d195d0.json release_evidence=false

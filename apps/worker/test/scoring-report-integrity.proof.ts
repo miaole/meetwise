@@ -36,8 +36,8 @@ async function main() {
       return {
         ok: true,
         raw: {
-          score: 84, relevant: true, hasHook: true,
-          evidence: [{ criterion: '提供了具体权衡', quote: answer.slice(0, 24) }],
+          relevant: true, hasHook: true,
+          dispositions: [{ criterionId: 'answer_quality', disposition: 'exceeds', quote: answer.slice(0, 24) }],
         },
       };
     },
@@ -62,7 +62,7 @@ async function main() {
   const quoteRepairModel: ModelClient = {
     async complete(req) {
       repairRequests.push({ system: req.system, userData: req.userData });
-      return { ok: true, raw: { score: 73, relevant: true, hasHook: false, evidence: [{ criterion: '给出令牌桶与过载处置', quote: '不存在于本次回答' }] } };
+      return { ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'meets', quote: '不存在于本次回答' }] } };
     },
   };
   const repairAnswer = '我会使用 Redis 令牌桶，超限快速失败，并对热点接口做降级。';
@@ -80,7 +80,7 @@ async function main() {
       if (req.service === 'interviewer.ask') return { ok: true, raw: { q: '请说明高峰限流方案？', refs: [] } };
       if (req.service !== 'mock-interview.evaluate') return { ok: false, kind: 'deterministic' };
       graphEvalRequests.push({ system: req.system });
-      return { ok: true, raw: { score: 76, relevant: true, hasHook: false, evidence: [{ criterion: '说明令牌桶和降级', quote: '伪造引文' }] } };
+      return { ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'meets', quote: '伪造引文' }] } };
     },
   };
   const graphThread = `quote-repair-graph-${Date.now()}`;
@@ -101,7 +101,7 @@ async function main() {
   const exhaustedGraphModel: ModelClient = {
     async complete(req) {
       if (req.service === 'interviewer.ask') return { ok: true, raw: { q: '请说明高峰限流方案？', refs: [] } };
-      if (req.service === 'mock-interview.evaluate') return { ok: true, raw: { score: 91, relevant: true, hasHook: false, evidence: [{ criterion: '伪造', quote: '永远不在回答中的引文' }] } };
+      if (req.service === 'mock-interview.evaluate') return { ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'exceeds', quote: '永远不在回答中的引文' }] } };
       return { ok: false, kind: 'deterministic' };
     },
   };
@@ -121,7 +121,7 @@ async function main() {
 
   console.log('\n──── ② 失败只能是 unscored，不得冒充人的分数 ────');
   const foreignEvidence = scriptedModelClient({
-    'mock-interview.evaluate': () => ({ ok: true, raw: { score: 99, relevant: true, hasHook: true, evidence: [{ criterion: '高质量', quote: '不在本次答案的语句' }] } }),
+    'mock-interview.evaluate': () => ({ ok: true, raw: { relevant: true, hasHook: true, dispositions: [{ criterionId: 'answer_quality', disposition: 'exceeds', quote: '不在本次答案的语句' }] } }),
   });
   const invalid = await evaluateAnswer(pool, owner, 'turn:invalid', '题目', '本次答案有效内容', foreignEvidence);
   A('repair 后引文仍不属于答案 → unscored，不可写入 99 分', invalid.status === 'unscored' && !('score' in invalid));

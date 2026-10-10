@@ -5,10 +5,20 @@
 import { StateGraph, Annotation, START, END } from '@langchain/langgraph';
 import { aggregateScores } from '@meetwise/domain';
 
+/** #50 v3 逐题结构化摘要（仅 ID 引用，不传题目/答案原文）。 */
+export interface InterviewSummaryItem {
+  questionId: string;
+  competency: string;
+  score: number;
+  /** 证据引用（score_card 行 ID；非原文）。 */
+  cardId: string;
+}
 export interface InterviewSummary {
   interviewId: string;
   questionCount: number;
   scores: number[];
+  /** #50 v3：loadSummary 侧供给的 competency 分组结构；缺省=旧形状（v2 兼容）。 */
+  items?: InterviewSummaryItem[];
   owner?: string;   // 组合根注入(多 owner dispatcher 据此构 reportGenerator 的 owner/幂等键)
 }
 export interface ReportContent { overall: number; sections: { title: string; body: string }[]; }

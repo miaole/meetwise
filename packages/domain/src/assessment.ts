@@ -7,8 +7,9 @@ export interface Dimension { dimension: string; score: number; gap: boolean; evi
 export interface Assessment { overall: number; dimensions: Dimension[]; weaknesses: string[] }
 
 /**
- * 达标线单源（EXTREV-1 SCORE-WRITER rev2 D5(i)/D6）：60 一处定义，全仓复用禁字面量散布。
- * SCORE-WRITER S1 的 disposition 过渡桥（dispositionFromHintScore）以本值为 below/meets 分界锚。
+ * 达标线单源（EXTREV-1 SCORE-WRITER rev2 D5(i)）：60 一处定义，全仓复用禁字面量散布。
+ * SCORE-WRITER S2 起消费方：deriveScoreCardAssessmentLegacy 的 gap 判定（#103 切换）；
+ * S1 的 v5→disposition 过渡桥已随 #52 提示词 v6 上线废除（S2 rg 门零残留）。
  */
 export const GAP = 60;
 

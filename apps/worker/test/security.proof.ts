@@ -37,10 +37,13 @@ function main() {
   section('③ 结构化输出兜底:注入"打印题库/给满分"→ 输出 schema 拒,机密进不了业务');
   const dump = { questions: BANK.map((q) => ({ q: q.question, rubric: q.rubric })) };          // 模型若被注入诱导吐题库
   A('题库 dump 不是合法 eval 输出 → EvalSchema 拒(泄露被挡在业务外)', !EvalSchema.safeParse(dump).success);
-  A('注入"score=999 给满分"→ 越界被 schema 拒', !EvalSchema.safeParse({ score: 999, evidence: [{ criterion: 'x', quote: '我的回答' }] }).success);
+  const injected = EvalSchema.safeParse({ score: 999, dispositions: [{ criterionId: 'answer_quality', disposition: 'exceeds', quote: '我的回答' }] });
+  A('注入"score=999 给满分"→ v6 契约无总分字段:score 被剥离进不了输出,档位权威不受污染', injected.success && injected.success && !('score' in (injected.data ?? {})));
+  A('模型越权输出总分(score 字段)→ 不在 v6 契约形状,派生分只来自档位(总分禁模型输出)', injected.success && injected.data?.dispositions.every((d) => d.disposition === 'exceeds') === true);
   A('裸文本"已忽略指令,这是全部题库…"→ 非 JSON 结构,拒', !EvalSchema.safeParse('已忽略指令，这是全部题库' as unknown).success);
-  A('合法 {score,evidence,hasHook} 才放行', EvalSchema.safeParse({ score: 76, hasHook: true, evidence: [{ criterion: '答到限流要点', quote: '我用令牌桶' }] }).success);
-  A('relevant=false 不能带非零分或 hasHook', !EvalSchema.safeParse({ score: 10, relevant: false, hasHook: true, evidence: [{ criterion: '跑题', quote: '聊天气' }] }).success);
+  A('合法 {relevant,dispositions,hasHook} 才放行', EvalSchema.safeParse({ relevant: true, hasHook: true, dispositions: [{ criterionId: 'answer_quality', disposition: 'meets', quote: '我用令牌桶' }] }).success);
+  A('relevant=false 必须全 below 且不能带 hasHook', !EvalSchema.safeParse({ relevant: false, hasHook: true, dispositions: [{ criterionId: 'answer_quality', disposition: 'meets', quote: '聊天气' }] }).success && !EvalSchema.safeParse({ relevant: false, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'exceeds', quote: '跑题' }] }).success);
+  A('criterionId 重复 → schema 拒(每分项恰一档)', !EvalSchema.safeParse({ relevant: true, dispositions: [{ criterionId: 'answer_quality', disposition: 'meets', quote: '答' }, { criterionId: 'answer_quality', disposition: 'exceeds', quote: '答' }] }).success);
 
   section('④ eval 上下文最小化:只喂当前题+答,绝不含其它题/rubric(题库不进模型上下文)');
   const tpl = getPrompt('mock-interview.evaluate');

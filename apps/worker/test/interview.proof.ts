@@ -10,13 +10,13 @@ import { randomUUID } from 'node:crypto';
 import { MemorySaver } from '@langchain/langgraph';
 import {
   assertIsolatedTestTarget, asPrincipal, asScoringWorkerPrincipal, availableUnits, claimInterviewAnswer,
-  createPool, createResumeWithBlob, enqueueInterviewJob, getReport,
+  createPool, createResumeWithBlob, enqueueInterviewJob, enqueueReport, getReport, listScorableScoreCards,
   reserveEntitlement, transitionResume, completeIngestion, answerHash, supplyCandidateProfileRoute,
   submitInterviewAnswer, createScoreRequestForSubmission, publishRubricAndIssueContract,
   claimScoreRequest, SCORING_ISSUE_PRIVACY_EPOCH,
 } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
-import { ingestResume } from '@meetwise/domain';
+import { ingestResume, scoreSpanDigest, SCORE_SPAN_OFFSET_KIND, utf8ByteLength, type ScoredCriterionDisposition } from '@meetwise/domain';
 import { drainReportsOnce } from '../src/report-worker.ts';
 import { interviewDispatchTick, type ConsumerDeps } from '../src/interview-consumer.ts';
 import { reportGenerator } from '../src/interview-service.ts';
@@ -43,9 +43,15 @@ let askSeq = 0;
 const model: ModelClient = scriptedModelClient({
   'planner.competencies': () => ({ ok: true, raw: { competencies: ['高并发'] } }),
   'interviewer.ask': () => ({ ok: true, raw: { q: `请说明高并发限流的取舍，并给出第 ${++askSeq} 轮验证方法。`, refs: [] } }),
-  'mock-interview.evaluate': () => ({ ok: true, raw: { score: 80, evidence: [{ criterion: 'Redis', quote: 'Redis' }] } }),
+  // #52 v6：模型直出 per-criterion 档位（非 0-100 总分）；quote 必须是回答原文子串（逐字校验门）。
+  'mock-interview.evaluate': () => ({ ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'meets', quote: 'Redis' }] } }),
   'report.generate': () => ({ ok: true, raw: { overall: 80, sections: [{ title: '总评', body: '能说明限流取舍。' }] } }),
 });
+/** ②b 直接行使 score-writer 时的 v6 证据构造（整答案 span；与 evaluate 侧派生同域单源）。 */
+function fullSpanDisposition(answerText: string, disposition: 'below' | 'meets' | 'exceeds'): ScoredCriterionDisposition[] {
+  const span = { offsetKind: SCORE_SPAN_OFFSET_KIND, start: 0, end: utf8ByteLength(answerText) } as const;
+  return [{ criterionId: 'answer_quality', disposition, span, spanDigest: scoreSpanDigest(answerText, span) }];
+}
 
 async function main() {
   await assertIsolatedTestTarget(pool);
@@ -200,18 +206,18 @@ async function main() {
   // 的全链（D2 request+D4 写卡）在 ②b 用独立面试行使。
   A('明文 /turn 家族结构性零 score_request/零卡（0126 围栏·S1 过渡形状如实）', d1.requests === 0 && d1.cards === 0);
 
-  section('②b S1 全链：D2 submit 事务 request → D3 claim → D4 写卡（D6 过渡桥·卡数断言）');
+  section('②b S1 全链：D2 submit 事务 request → D3 claim → D4 写卡（#52 v6 直供档位·卡数断言）');
   const IID2 = `${INTERVIEW_ID}-ledger`;
   await asPrincipal(pool, OWNER, (c) => c.query(
     "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [IID2, OWNER],
   ));
   const LEDGER_TURNS = [
-    { q: 'q-v1-t0-c0', stateVersion: 1, turn: 0, hint: 80, expect: 50 },
-    { q: 'q-v1-t1-c0', stateVersion: 2, turn: 1, hint: 59, expect: 0 },
-    { q: 'q-v1-t2-c0', stateVersion: 3, turn: 2, hint: 85, expect: 100 },
+    { q: 'q-v1-t0-c0', stateVersion: 1, turn: 0, band: 'meets', expect: 50 },
+    { q: 'q-v1-t1-c0', stateVersion: 2, turn: 1, band: 'below', expect: 0 },
+    { q: 'q-v1-t2-c0', stateVersion: 3, turn: 2, band: 'exceeds', expect: 100 },
   ] as const;
   for (const t of LEDGER_TURNS) {
-    const answer = `第 ${t.turn + 1} 题作答：Redis 令牌桶 + 滑动窗口限流，超限降级保护下游（hint=${t.hint}）。`;
+    const answer = `第 ${t.turn + 1} 题作答：Redis 令牌桶 + 滑动窗口限流，超限降级保护下游（band=${t.band}）。`;
     // D1：与生产投影同款 helper 发布 rubric+契约（这里由 prove 直接行使投影面）。
     await asPrincipal(pool, OWNER, (c) => publishRubricAndIssueContract(c, {
       interviewId: IID2, questionId: t.q, stateVersion: t.stateVersion, turn: t.turn,
@@ -232,12 +238,12 @@ async function main() {
       return { request };
     });
     A(`D2 同事务落 score_request（${t.q}）`, request.created === true && request.replayed === false);
-    // D3+D4：drain 写卡步本体（claim→lease→writeFinal·D6 过渡桥 disposition）。
+    // D3+D4：drain 写卡步本体（claim→lease→writeFinal·#52 v6 模型直供档位证据，过渡桥已废除）。
     const written = await writeScoreCardAfterProjection(
       { pool, owner: OWNER, leaseOwner: `s1-proof-scoring-${process.pid}` },
-      { interviewId: IID2, questionId: t.q, stateVersion: t.stateVersion, answerText: answer, hintScore: t.hint },
+      { interviewId: IID2, questionId: t.q, stateVersion: t.stateVersion, answerText: answer, dispositions: fullSpanDisposition(answer, t.band) },
     );
-    A(`D4 写卡成功且总分=0/50/100 档位化值（hint=${t.hint}→${t.expect}，≠v5 hint 分）`,
+    A(`D4 写卡成功且总分=0/50/100 档位化值（v6 档位 ${t.band}→${t.expect}，模型直供档位·非 hint 分派档）`,
       written.kind === 'written' && written.deterministicTotal === t.expect);
   }
   // D4 恢复钉：crash 于 claim 与写卡之间 → 重放复用既有 lease_token（禁新造，否则永久 claim 不到）。
@@ -267,7 +273,7 @@ async function main() {
     A('模拟 crash：首 claim 单次 CAS 成功', claimed.claimed === true);
     const written = await writeScoreCardAfterProjection(
       { pool, owner: OWNER, leaseOwner: `s1-proof-scoring-${process.pid}` },
-      { interviewId: IID2, questionId: q4, stateVersion: 4, answerText: answer, hintScore: 90 },
+      { interviewId: IID2, questionId: q4, stateVersion: 4, answerText: answer, dispositions: fullSpanDisposition(answer, 'exceeds') },
     );
     A('D4 恢复钉：重放复用既有 lease_token 写卡成功（禁新造）', written.kind === 'written' && written.deterministicTotal === 100);
   }
@@ -292,7 +298,7 @@ async function main() {
     'SELECT count(*)::int AS n FROM interview_answer_submission WHERE interview_id=$1', [IID2],
   )).rows[0]?.n);
   A('score_card 行数 = 已答（ledger 提交）题数（S1 卡数断言）', ledger.cards.length === ledgerSubmissions && ledgerSubmissions === 4);
-  A('卡总分全为 0/50/100 档位化值（D6 过渡窗声明·非 v5 hint 分）',
+  A('卡总分全为 0/50/100 档位化值（#52 v6 档位确定性分量·模型直供档位）',
     ledger.cards.length === 4 && ledger.cards.every((t) => [0, 50, 100].includes(t)));
   A('全部 score_request 经 CAS 收口 scored（0100 单 winner）', ledger.scored === 4);
   A('写卡同事务原子追加 score_card_written 事件（0103 原语④）', ledger.events === 4);
@@ -301,7 +307,7 @@ async function main() {
   const replay = await writeScoreCardAfterProjection(
     { pool, owner: OWNER, leaseOwner: `s1-proof-scoring-${process.pid}` },
     { interviewId: IID2, questionId: LEDGER_TURNS[0].q, stateVersion: LEDGER_TURNS[0].stateVersion,
-      answerText: '重放作答', hintScore: 100 },
+      answerText: '重放作答', dispositions: fullSpanDisposition('重放作答', 'exceeds') },
   );
   const cardsAfterReplay = await asPrincipal(pool, OWNER, (c) => c.query<{ n: number }>(
     'SELECT count(*)::int AS n FROM score_card WHERE interview_id=$1', [IID2],
@@ -309,14 +315,48 @@ async function main() {
   A('at-least-once 重放幂等：scored 请求跳过·零重复卡', replay.kind === 'skipped' && Number(cardsAfterReplay.rows[0]?.n) === 4);
 
 
-  section('③ 报告舱壁独立领取并形成 ready');
+  section('③ 报告舱壁独立领取并形成 ready（S2 真实 loadSummary 化·去桩·#50 v3 competency 面）');
   const report = await asPrincipal(pool, OWNER, (c) => getReport(c, OWNER, INTERVIEW_ID));
   A('面试完成只入队报告，不在图内生成报告', report?.status === 'queued');
-  const reportResult = await drainReportsOnce(pool, OWNER, `interview-proof-report-${process.pid}`, {
-    loadSummary: () => ({ interviewId: INTERVIEW_ID, questionCount: after.evaluated, scores: Array.from({ length: after.evaluated }, () => 80) }),
+  // 去 :315-316 loadSummary 桩（伪造 80 分数组的假绿面）——改用**生产同形制真实 loadSummary**
+  // （=main.ts reportWorkerDeps.loadSummary 同链：listScorableScoreCards→scores，#50 v3 加 items）。
+  const realLoadSummary = (owner: string, interviewId: string) => asPrincipal(pool, owner, async (c) => {
+    const cards = await listScorableScoreCards(c, interviewId);
+    const scores = cards.map((card) => card.deterministicTotal);
+    return {
+      interviewId, questionCount: scores.length, scores, owner,
+      items: cards.map((card) => ({ questionId: card.questionId, competency: card.competency, score: card.deterministicTotal, cardId: card.cardId })),
+    };
+  });
+  // 诚实面 1（fail-closed·#20 形状如实）：图家族（明文 /turn·0126 围栏）结构性零卡 →
+  // aggregateScores 抛 score_aggregate_empty → report failed。绝不回退 legacy/桩分数。
+  const graphDrain = await drainReportsOnce(pool, OWNER, `interview-proof-report-graph-${process.pid}`, {
+    loadSummary: realLoadSummary,
     generate: reportGenerator(pool, OWNER, `${INTERVIEW_ID}:report`, model),
   });
-  A('报告 worker（后台进程）独立收口 ready', reportResult === 'ready' && (await asPrincipal(pool, OWNER, (c) => getReport(c, OWNER, INTERVIEW_ID)))?.status === 'ready');
+  const graphReportAfter = await asPrincipal(pool, OWNER, (c) => getReport(c, OWNER, INTERVIEW_ID));
+  A('图家族报告真实 loadSummary 零卡 → fail-closed failed（0126 围栏·无卡绝不回退桩/legacy 分数）',
+    graphDrain === 'failed' && graphReportAfter?.status === 'failed');
+  // 诚实面 2（真实路径绿·S2 验收）：账本家族 IID2 有 4 张实卡 → 生产同链 enqueue → drain → ready。
+  const ledgerEnqueue = await asPrincipal(pool, OWNER, (c) => enqueueReport(c, OWNER, IID2));
+  A('账本家族生产同链入队报告 job（幂等 enqueue）', ledgerEnqueue.created === true);
+  const reportResult = await drainReportsOnce(pool, OWNER, `interview-proof-report-${process.pid}`, {
+    loadSummary: realLoadSummary,
+    generate: reportGenerator(pool, OWNER, `${IID2}:report`, model),
+  });
+  const ledgerReportAfter = await asPrincipal(pool, OWNER, (c) => getReport(c, OWNER, IID2));
+  A('报告 worker（后台进程）真实 loadSummary 独立收口 ready（实卡·aggregateScores 不抛）',
+    reportResult === 'ready' && ledgerReportAfter?.status === 'ready');
+  // 报告 overall=确定性聚合 of 实卡总分 round((50+0+100+100)/4)=63——桩假绿（恒 80）已废除。
+  const ledgerContent = ledgerReportAfter?.content as { overall?: number; sections?: unknown[] } | undefined;
+  A('报告 overall=确定性聚合 of 实卡总分（63）·sections 非空（#50 v3 结构化输入真链）',
+    ledgerContent?.overall === 63 && Array.isArray(ledgerContent?.sections) && ledgerContent.sections.length >= 1);
+  const unavailableEvents = await asPrincipal(pool, OWNER, async (c) => {
+    const r = await c.query<{ n: number }>(
+      "SELECT count(*)::int AS n FROM interview_event WHERE stream_key=$1 AND kind='report_unavailable'", [IID2]);
+    return Number(r.rows[0]?.n);
+  });
+  A('账本家族事件流零 report_unavailable（S2 验收 roadmap:54-55）', unavailableEvents === 0);
 
   console.log(`\n${failures === 0 ? '✓ 当前 v64 面试链路全部通过' : `✗ ${failures} 项失败`}`);
   await pool.end();

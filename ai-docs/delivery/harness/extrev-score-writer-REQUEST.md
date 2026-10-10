@@ -130,3 +130,14 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 - 前任席 prove 完成后 commit 前配额中断（18 staged 脏文件·零 unstaged/untracked）。续作席逐文件 `git diff --cached` 盘点对照 §1.S1+rev2（D6/D5/D4/D2/D1）：**判定=合规→续作（保留合规面·补缺），未 reset**。判定表+承继声明入收据 §0 续（`2026-10-09-s1-exec-prove.md`）。
 - 续作席独立复跑 `pnpm interview:prove` **EXIT=0 原值**（29 PASS/0 FAIL·续作确认跑非 retry-to-green·日志 `2026-10-09-exec2-continue-interview-prove.log` 在卷）+ typecheck EXIT=0；:157-160 桩（现 :316）字节原样保留·卡数断言在卷·est live=0。
 - **Status**: `executed_s1:awaiting_post_prove_dual`（承继前任同一状态·续作收口=commit+push·post-prove 双审待启）。
+
+## S2 EXEC 登记（2026-10-10 · mw-scorewr-exec3 · append-only）
+
+- **Status**: `executed_s2:awaiting_post_prove_dual`（S2 读侧切换全四项落地·收据 `ai-docs/delivery/receipts/extrev-score-writer/S2/2026-10-10-s2-exec-prove.md`）。
+- ①D6 桥废除：`dispositionFromHintScore`+`SCORE_HINT_EXCEEDS_THRESHOLD` 删除（DELETE-ON 兑现）·rg 门 v5→disposition 桥零残留（GATE-A/B/C 零命中在卷）·#52 提示词 v5→v6（量表逐分项判档+逐字引文·总分禁模型输出·量表段序钉死回答恒在末尾）·`SCORING_PROMPT_POLICY_VERSION`→v6·score-writer 供源=模型直供档位（hintScore 参数删除·写卡前 span 文本级复验 fail-closed）。
+- ②去桩：interview.proof :315-316 loadSummary 桩（伪造 80 分数组）废除→生产同形制真实 loadSummary 双面行使：图家族（0126 围栏零卡）真实链 **fail-closed failed**（#20 形状如实）+账本家族（实卡）生产同链 enqueue→drain→**ready**·overall=确定性聚合 63·零 report_unavailable。
+- ③#103 切换+D5 三钉：生产消费面切 `deriveScoreCardAssessmentLegacy`（D5 legacy-parity 适配·domain 纯函数）；(i) gap 唯一经 `GAP` 单源（新增代码零 60 字面量）；(ii) 持久化形状冻结 `{dimension,score,gap,evidence}`（interview.service:673+web 零改动·git status 亲证）；(iii) generateAssessmentFor INSERT 前派生；rg 门：生产面零 legacy 聚合器调用（严格调用形制 GATE-B 零命中）。
+- ④#50 v3：`InterviewSummary.items`（questionId/competency/score/cardId 仅 ID 引用·不传原文）+生产 loadSummary 供给+`report.generate` v2→v3；overall 仍服务端确定性聚合。
+- prove 终版：`interview:prove` **EXIT=0（33 PASS/0 FAIL·基线 29 PASS 对照·去桩后 +4 诚实断言）**；`scoring-integrity:prove` **EXIT=1 既有 base 红逐字节同形**（①c :99:50 hasOwn TypeError·pristine 对照在卷·非 S2 引入）；spot-check：adaptive-flow/life/consumer·resume-grounding·adaptive-latency **EXIT=0**·security EXIT=0·context-stress 与 pristine **恰同 7 FAIL 同形**（既有环境红如实）；tsc 三门（root e2e/worker/api 清单 diff）**零新增**；est live=0·actualSpendCny=null·0 Key 值接触。fixture 值断言随 v6 契约更新（88→100·buildData 段序·security strip 语义）三项披露全在收据 §4。
+- 结构性登记：hint 分=档位确定性派生（seed 0/50/100）；Turn checkpoint 增档位证据投影（派生物无原文）；升级窗 v5 checkpoint 回合跳写（存量不追溯供卡延续）；rubric 评分期供给=seed 常量单源（多分项读取面归 EXTREV-4）。
+- 零迁移·零 S3 面（#42/#43/#47/#41 零触）·零 G7 面·SSOT 零触（本行=授权 append-only 面）·pins 十一值零翻转。

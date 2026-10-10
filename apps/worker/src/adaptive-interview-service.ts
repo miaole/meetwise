@@ -9,7 +9,7 @@ import { invoke, promptedModel, type ModelClient, type GraphObserver } from '@me
 import { cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, modelGeneration, unavailableGeneration, resolveCitedSources, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
 import type { AdaptiveDeps } from '@meetwise/ai-graphs';
 import { wasAsked, pastWeakDimensions } from './memory-service.ts';
-import { invokeEvaluationOnce } from './interview-service.ts';
+import { invokeEvaluationOnce, evaluateOutcomeFromValue } from './interview-service.ts';
 import { withGenerationProgress } from './generation-progress.ts';
 
 /** Native embed/rerank miss is not “empty qbank”; do not invent a stem from the competency name. */
@@ -393,7 +393,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       const { clean, detected } = stripScoringManipulation(answer);
       const scored = detected ? clean : answer;
       // **检到操纵 → 评分升级到 quality 模型(qwen-plus 更抗残留注入)**,并对剥空的直接判非作答(免一次模型调用 + 杜绝空输入误评)。
-      if (detected && isNonAnswer(scored)) return { score: 0, evidence: ['含评分操纵企图,剥离后无实质作答(已忽略操纵指令)'], relevant: false, hasHook: false };
+      if (detected && isNonAnswer(scored)) return { score: 0, evidence: ['含评分操纵企图,剥离后无实质作答(已忽略操纵指令)'], relevant: false, hasHook: false, dispositions: [] };
       // 同一 pending question 的 stateVersion/turn 写进 idempotency base。逐字引文
       // 无法核验时只澄清原题，不派生 repair key 再次调用模型。
       // Graph 调用始终提供 identity。保留这个固定 fallback 仅兼容旧的 isolated-deps
@@ -410,9 +410,12 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       // 引文无法逐字核验而答案仍是正常作答时，不能写 unscored/能力画像；图会走 clarify，
       // 让用户以同一题补充一次。其余确定性/供应商失败仍严格 unscored（不编造分数）。
       if (out.status === 'quote_repair_exhausted') {
-        return { status: 'scored' as const, score: 0, evidence: ['评分证据无法逐字核验，请围绕原题补充一次具体作答。'], relevant: false, hasHook: false };
+        return { status: 'scored' as const, score: 0, evidence: ['评分证据无法逐字核验，请围绕原题补充一次具体作答。'], relevant: false, hasHook: false, dispositions: [] };
       }
       if (out.status === 'failed') return { status: 'unscored' as const, reason: `evaluation_${out.error}` };
+      // #52 v6：score=evaluate 侧确定性派生（档位×量表权重，非模型输出）；dispositions=0103
+      // 契约证据随 assess 返回（evaluate-answer 节点透传进 transcript → 投影后供 score-writer）。
+      const derived = evaluateOutcomeFromValue(out.value, clean);
       // S3/C13/C15(RESUME-GROUNDING):真实评分过的回合 → 捕获追问上下文(仅本闭包,禁入图 state):
       // 题目摘要=本轮题目(有界截取);作答摘要=stripScoringManipulation 后的 clean(**先剥离**)再确定性截取
       // ≤200 字符(**后截取**,顺序钉死禁倒置);证据弱点=评分 criteria(mind evidence 同源材料,slice(-6) 语义
@@ -420,15 +423,15 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       lastFollowUp = {
         question: boundedTextSlice(question, FOLLOWUP_QUESTION_MAX_CHARS),
         answerSummary: boundedTextSlice(clean, FOLLOWUP_ANSWER_SUMMARY_MAX_CHARS),
-        weaknesses: out.value.evidence.map((item) => item.criterion).slice(-FOLLOWUP_WEAKNESS_MAX_COUNT)
+        weaknesses: derived.evidence.slice(-FOLLOWUP_WEAKNESS_MAX_COUNT)
           .map((c) => boundedTextSlice(c, FOLLOWUP_WEAKNESS_MAX_CHARS)),
       };
       // 业务规整(双校验补强,非仅 schema):relevant=false 时**强制** score=0 + hasHook=false(对齐 prompt 契约,
       // 防模型自相矛盾地"判跑题却给高分/给钩子"驱动错误深挖;两个控制流布尔不裸过 schema)。
       const relevant = out.value.relevant;
       return relevant
-        ? { status: 'scored' as const, score: out.value.score, evidence: out.value.evidence.map((item) => item.criterion), relevant: true, hasHook: out.value.hasHook }
-        : { status: 'scored' as const, score: 0, evidence: out.value.evidence.map((item) => item.criterion), relevant: false, hasHook: false };
+        ? { status: 'scored' as const, score: derived.score, evidence: derived.evidence, relevant: true, hasHook: out.value.hasHook, dispositions: derived.dispositions }
+        : { status: 'scored' as const, score: 0, evidence: derived.evidence, relevant: false, hasHook: false, dispositions: derived.dispositions };
     },
     // 无 report:报告走舱壁 report-worker(失败隔离),不在 agent 图内出。
   };
