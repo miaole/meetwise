@@ -167,3 +167,13 @@
 ---
 
 *EVIDENCE-DELIVERY EXEC REQUEST · 2026-10-07 · draft_rev2:pre_exec_dual_PASS（双席 BOTH PASS·EXEC 授权·蓝本=本 rev2·修订席 mw-eviddel-rev2）· base `5e1e7fde`（origin/feat/mysql-schema-skeleton）· 分支 `line/evidence-delivery` · 立项=extreview-fix-campaign-SOP.md §接线债审计收编（A1+A2+C1）· pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null · Dual PASS ≠ 开工 · Ban self-approve*
+
+---
+
+## nail 落卷（2026-10-10 · post-prove 双席 BOTH PASS）
+
+**双审结果**：席1（实现语义）+席2（用户旅程/回归）互盲复核 BOTH PASS。四断口逐环亲读在位（S1 产出门 state.ts:43+evaluate-answer :180 answered 直投影→S1→SSE adaptive-lifecycle :334/:369+business-events max(6).optional 向后兼容→S2→HTTP interview-report :93 投影+controller :197-199 web 首次消费→web turn-annotations 纯函数+page.tsx :242-279 AssessmentSection）·**quote 结构性不入**（criterionId 数组+span+hash 留 trace=隐私承诺保持）·P2 回退隐藏四串全退役（assessment.ts :55-62 停写+page.tsx 回退串删+proof :1299-1307 零出现断言）·C12 双形亲读（首呼原始 schema/重放记录形+quote_repair_exhausted 机器码精确形反强化）·D9 SCORE-WRITER D5 冻结零触·D11 isStoredEvidence 保留（消费面漂至 :312 活面）·五门双席独立复跑全绿（web 269/interview 57/validate 204/typecheck/honesty）·base 红同形如实（pristine+S2 在先登记）。merge 落主线 @eae56953。
+
+**渲染级限度**：page 渲染层无 DOM 级自动化断言（P3 组件测试 Ban 既定限度·收据如实披露）——源级静态断言+AnnotationCard 未改签名封住风险·后继解禁可补。
+
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·merge 落主线 @eae56953·逐题评分证据「指出哪里可以补」到达用户眼前·接线债 A1+A2+C1 正式清偿·markers=0·est live=0）。
