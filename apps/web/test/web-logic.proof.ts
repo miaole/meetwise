@@ -54,6 +54,17 @@ import {
   RECRUITER_ARCHITECTURE_IDS,
 } from '../lib/recruiter/surface.ts';
 import { actionErrorMessage } from '../lib/errors/action-error.ts';
+import {
+  InterviewPrivacyFencedError, isInterviewPrivacyFencedError, iterateInterviewSseBody, iterateSseBody,
+  throwIfPrivacyFencedStatus,
+} from '../lib/stream/sse-cursor.ts';
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
+/** 静态 lineOf（沿 uc-e2e-001-nhp-bound.proof.ts 先例·F2 源断言用）。 */
+function lineOf(src: string, re: RegExp, from = 0): number {
+  const lines = src.split('\n');
+  for (let i = from; i < lines.length; i++) if (re.test(lines[i]!)) return i + 1;
+  return -1;
+}
 
 /** 把若干 chunk 串成异步流(模拟 ReadableStream 分块)。 */
 async function* streamOf(...chunks: string[]) { for (const c of chunks) yield c; }
@@ -1171,6 +1182,87 @@ async function main() {
       cap2Opens === 5 && cap2Run.degraded && cap2Run.connection === 'closed' && cap2Run.phase === 'question'
       && cap2Run.streamStopReason === undefined
       && cap2Disp.message === '练习连接已停止，不会再用同一续传编号自动重连。可重试本场练习或返回列表。');
+  }
+
+  section('FENCE-REFLOW F6(#243)：SSE 410 围栏 → 停转不重连直接出口（判据=status 状态基·非 body 码基）');
+  A('actionErrorMessage("interviews",410,"interview_privacy_fenced") 文案逐字=「该面试已进入数据删除流程，请新建面试」（审计 §5.2-3 原文·§4-3①）',
+    actionErrorMessage('interviews', 410, 'interview_privacy_fenced')?.text === '该面试已进入数据删除流程，请新建面试');
+  A('410 映射命中 → 不再落 begin_failed 兜底（≠「稍后重试」家族·§4-3②）',
+    actionErrorMessage('interviews', 410, 'interview_privacy_fenced')?.text !== actionErrorMessage('interviews', 410, 'begin_failed')?.text
+    && actionErrorMessage('interviews', 410, 'begin_failed')?.text === actionErrorMessage('interviews', 0, 'begin_failed')?.text);
+  A('410 → 抛 InterviewPrivacyFencedError；400/502/401 不走围栏通道',
+    (() => {
+      try { throwIfPrivacyFencedStatus(410); return false; } catch (err) {
+        if (!isInterviewPrivacyFencedError(err)) return false;
+      }
+      throwIfPrivacyFencedStatus(400);
+      throwIfPrivacyFencedStatus(502);
+      throwIfPrivacyFencedStatus(401);
+      return true;
+    })());
+  {
+    // 代理 :60-69 对 410 换 body（stream_unavailable）→ 围栏判据只能 status 基（§4 标题承诺②）。
+    const proxied410 = await sseProxyFailureResponse(new Response('', { status: 410 }));
+    A('SSE 代理 410 原样透传且换 body（status=410·body=stream_unavailable → 判据必须 status 基）',
+      proxied410.status === 410 && (await proxied410.text()) === 'stream_unavailable');
+    // quiz/diagnosis 同款 iterateSseBody：410 走 SSE-RESILIENCE 既有 SseOpenStatusError 分类通道（transport→有界退避重连），
+    // 绝不入围栏停转通道（#243 审计域=interview 流·他流零 FENCE 语义新增;旧基"非 OK=空结束"已被 #56 分类臂取代,行为等价面=不停转不围栏）。
+    const quiz410Err = await (async () => { try { await iterateSseBody(new Response('stream_unavailable', { status: 410 })).next(); return null; } catch (e) { return e; } })();
+    A('iterateSseBody（quiz/diagnosis 同款）410 → SseOpenStatusError 既有分类（transport 有界重连·不入围栏停转,他流零 FENCE 语义新增）',
+      isSseOpenStatusError(quiz410Err) && quiz410Err.status === 410 && !isInterviewPrivacyFencedError(quiz410Err));
+    let interview410Threw = false;
+    try {
+      for await (const frame of iterateInterviewSseBody(new Response('stream_unavailable', { status: 410 }))) void frame;
+    } catch (err) {
+      interview410Threw = isInterviewPrivacyFencedError(err);
+    }
+    A('iterateInterviewSseBody 410 → 抛围栏错（interview 流 fence 停转通道）', interview410Threw);
+  }
+  {
+    const fenceOpenIds: number[] = [];
+    const fencedRun = await runInterviewStream({
+      open: (lastId) => { fenceOpenIds.push(lastId); throw new InterviewPrivacyFencedError(); },
+      onView: () => {}, sleep: noSleep, maxRetries: 5,
+    });
+    const fencedDisp = interviewDisplay(fencedRun);
+    A('SSE 410 围栏 → open 恰 1 次·0 次重连（重连/耗尽路径均不触达）', fenceOpenIds.length === 1);
+    A('围栏出口 view：privacyFenced=true + degraded + connection=closed',
+      fencedRun.privacyFenced === true && fencedRun.degraded === true && fencedRun.connection === 'closed');
+    A('围栏出口一句话=「该面试已进入数据删除流程，请新建面试」（审计 §5.2-3 原文逐字）',
+      fencedDisp.message === '该面试已进入数据删除流程，请新建面试');
+    A('围栏出口复用 :40 degraded 出口形（不转圈+retry 出口·非死胡同）',
+      fencedDisp.degraded && !fencedDisp.spinner && fencedDisp.action.kind === 'retry' && !isDeadEnd(fencedDisp));
+  }
+
+  section('FENCE-REFLOW F2(#238 C 面)：选择面契约——reused 必达页面 + 两出口可达（静态源断言+纯函数文案·沿 :793 先例）');
+  {
+    const actionsSrc = readFileSync(resolve(repoRoot, 'apps/web/app/interviews/actions.ts'), 'utf8');
+    const pageSrc = readFileSync(resolve(repoRoot, 'apps/web/app/interviews/page.tsx'), 'utf8');
+    // ① reused=true → 信号透传必达 /interviews 页；选择面仅由 ?reused 门控（reused=false 页面 byte 级不变）。
+    const reusedPassthrough = lineOf(actionsSrc, /createdBody\.reused === true\) redirect\(`\/interviews\?reused=/);
+    const bannerGate = lineOf(pageSrc, /\{reused && \(\(\) => \{/);
+    A('F2① create reused=true → ?reused=<id> 透传回列表页（选择面必达）·页面仅 ?reused 门控',
+      reusedPassthrough > 0 && bannerGate > 0);
+    // ② 两出口：继续=进既有会话；放弃后重来=POST :id/abandon 后重跑 create+begin。
+    const continueExit = lineOf(pageSrc, /href=\{`\/interview\/\$\{reusedId\}`\}/);
+    const restartForm = lineOf(pageSrc, /action=\{restartInterviewAction\}/);
+    const restartAbandon = lineOf(actionsSrc, /abandon', \{ method: 'POST' \}/);
+    const restartRerun = lineOf(actionsSrc, /await startInterviewAction\(formData\)/);
+    A('F2② 出口一「继续」=进既有会话（Link /interview/:id）', continueExit > 0);
+    A('F2② 出口二「放弃后重来」=restartInterviewAction（abandon 后重跑 create+begin·两路径各自可达）',
+      restartForm > 0 && restartAbandon > 0 && restartRerun > 0);
+    // ③ 文案=BINDING_CONFLICT 家族（不新增第三文案；caption 取自 errmsg-map 映射）。
+    const captionMap = actionErrorMessage('interviews', 0, 'interview_resume_binding_conflict');
+    const captionUse = lineOf(pageSrc, /actionErrorMessage\('interviews', 0, 'interview_resume_binding_conflict'\)/);
+    A('F2③ 选择面文案=BINDING_CONFLICT 家族「你有一场未结束的面试：继续/放弃后重来」（不新增第三文案）',
+      captionMap?.text === '你有一场未结束的面试：继续/放弃后重来' && captionUse > 0);
+    // ④ 无未结束面试（reused=false）→ 主链不变：create→begin 顺序与 402/401/码解析面原样（静态在位）。
+    const beginCall = lineOf(actionsSrc, /serverFetch\('\/interview\/' \+ interviewId \+ '\/begin'/);
+    const codeFallback = lineOf(actionsSrc, /actionErrorMessage\('interviews', 0, raw\) \? raw : 'begin_failed'/);
+    const branch402 = lineOf(actionsSrc, /begin\.status === 402/);
+    const branch401 = lineOf(actionsSrc, /begin\.status === 401/);
+    A('F2④ reused=false 主链逐字段不变（begin 调用/402/401 分支/begin_failed 码解析兜底原样在位）',
+      beginCall > 0 && branch402 > 0 && branch401 > 0 && codeFallback > 0 && beginCall > reusedPassthrough);
   }
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);

@@ -11,6 +11,7 @@
     "prove:transcribe-proxy": "tsx test/transcribe-proxy.proof.ts",
     "prove:middleware": "tsx test/web-middleware.proof.ts",
     "prove:application-start-error": "tsx test/application-start-error.proof.ts",
+    "prove:interviews-actions": "tsx test/interviews-actions.proof.ts",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

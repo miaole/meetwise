@@ -4,7 +4,7 @@
  *      ②活会话(续约)绝不被误扫 ③confirm 投的 outbox 被真实入账本 ④重跑/并发幂等(不重退/不重发/不重入账)。
  *   pnpm -C apps/worker prove:commerce-reconcile   (需 db:up)
  */
-import { randomUUID } from 'node:crypto';
+import { randomUUID, createHash } from 'node:crypto';
 import {
   createPool, asPrincipal, reserveEntitlement, confirmConsumption, availableUnits,
   renewReservationLease, DEFAULT_LEASE_SECONDS, assertIsolatedTestTarget,
@@ -13,7 +13,7 @@ import {
 
 // Test-only HMAC key for createJob/classifyJobRoute (same pattern as adaptive-life/rag03/r4; not production).
 process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'commerce-reconcile-job-route-input-hmac-proof-key-not-production-01';
-import { commerceReconcileTick, reconcileOwner } from '../src/commerce-reconcile.ts';
+import { commerceReconcileTick, reconcileOwner, consecutiveReconcileFailureCount } from '../src/commerce-reconcile.ts';
 
 const pool = createPool();
 let fail = 0;
@@ -40,6 +40,25 @@ async function seedOwner(owner: string, units = 5.0) {
 async function expireLease(owner: string, key: string) {
   await pool.query("UPDATE entitlement_consumption SET lease_expires_at = now() - interval '1 minute' WHERE owner_user_id=$1 AND idempotency_key=$2", [owner, key]);
 }
+
+/** FENCE-REFLOW §4-1 围栏 fixture：privacy_erasure_request('fenced') × privacy_checkpoint_target（0076 v2 interview_privacy_active 判定面）。
+ *  admin(superuser dev 池)直插仅作 fixture；围栏判定只经布尔函数消费，工具/产品面零旁路。 */
+async function fenceInterview(owner: string, interviewId: string) {
+  const req = await pool.query(
+    "INSERT INTO privacy_erasure_request(owner_user_id,scope,subject_id,idempotency_key_hash,status) VALUES ($1,'interview_data',$2,$3,'fenced') RETURNING id",
+    [owner, interviewId, `fence-reflow-proof:${owner}:${interviewId}`]);
+  const requestId = req.rows[0].id as string;
+  const tgt = await pool.query(
+    "INSERT INTO privacy_deletion_target(request_id,sink,resource_hmac) VALUES ($1,'checkpoint_rows',$2) RETURNING id",
+    // resource_hmac 钉 64-hex（0047 privacy_deletion_target_resource_hmac_chk）——fixture 用 sha256 摘要满足格式。
+    [requestId, createHash('sha256').update(`fence-reflow-proof-hmac:${interviewId}`).digest('hex')]);
+  await pool.query(
+    'INSERT INTO privacy_checkpoint_target(target_id,request_id,owner_user_id,thread_id,fence_epoch) VALUES ($1,$2,$3,$4,2)',
+    [tgt.rows[0].id, requestId, owner, interviewId]);
+}
+const ivStatus = (owner: string, iid: string) =>
+  asPrincipal(pool, owner, (c) => c.query('SELECT status FROM interview WHERE id=$1', [iid]))
+    .then((r) => r.rows[0]?.status as string | undefined);
 
 async function main() {
   // This proof writes expired reservations and must only run against the
@@ -187,6 +206,74 @@ async function main() {
     const retry = (await pool.query('SELECT status,interview_id,interview_attempt,score FROM job_application WHERE id=$1', [app!.applicationId])).rows[0];
     A('20 路恢复只创建下一 attempt=2，旧失败会话不可回填', retries.every((x: any) => (x.status === 'started' || x.status === 'reused') && x.interviewId === retryId)
       && retry?.status === 'in_progress' && retry?.interview_id === retryId && Number(retry?.interview_attempt) === 2 && retry?.score === null);
+  }
+
+  section('⑧ FENCE-REFLOW F3(#238)：围栏行两分支全跳零 DML——同户结算不毒化、围栏行零事件零终态、B 端围栏同跳');
+  {
+    const owner = OWN('fence'), ivFenced = IID('fence'), ivOk = IID('fence-ok');
+    await seedOwner(owner, 5.0);
+    // C 端围栏行：非终态 + 围栏锚落库（0076 v2 判定面）。
+    await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'waiting_user')", [ivFenced, owner]);
+    await fenceInterview(owner, ivFenced);
+    // 同户非围栏对照行 + 同户另一笔 pending 结算 outbox（confirm 投 settlement_proposed）。
+    await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'waiting_user')", [ivOk, owner]);
+    await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, ivOk, 'mock_interview', 1.0));
+    const settleIid = IID('fence-settle');
+    await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, settleIid, 'mock_interview', 1.0));
+    await asPrincipal(pool, owner, (c) => confirmConsumption(c, owner, settleIid, 1));
+    // 围栏行挂死预留（过期 → 会被 sweep 翻 released）。
+    await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, ivFenced, 'mock_interview', 1.0));
+    const evBeforeFenced = await evCount(owner, ivFenced, 'interview_unavailable');
+    await expireLease(owner, ivFenced);
+    await expireLease(owner, ivOk);
+    const r = await commerceReconcileTick(pool);
+    A('F3 同户 pending 结算对账入账成功（settlement_ledger 落行·outbox relayed——围栏行不毒化整批）',
+      r.settled >= 1
+      && (await asPrincipal(pool, owner, (c) => c.query("SELECT count(*)::int n FROM settlement_ledger WHERE owner_user_id=$1", [owner]))).rows[0].n >= 1
+      && (await asPrincipal(pool, owner, (c) => c.query("SELECT count(*)::int n FROM commerce_outbox WHERE owner_user_id=$1 AND status='pending'", [owner]))).rows[0].n === 0);
+    A('F3 围栏行预留 released（sweep 释放不被回滚）', (await consStatus(owner, ivFenced)) === 'released');
+    A('F3 无 interview_privacy_fenced 循环报错（连续失败计数=0）', consecutiveReconcileFailureCount() === 0);
+    A('F3 围栏行 interview_event 增量=0（两分支全跳·零事件写）',
+      (await evCount(owner, ivFenced, 'interview_unavailable')) === evBeforeFenced && evBeforeFenced === 0);
+    A('F3 围栏 interview 保持非终态（零 DML·不置 abandoned/failed）', (await ivStatus(owner, ivFenced)) === 'waiting_user');
+    A('F3 非围栏对照行 byte 级不变（abandoned + interview_unavailable 恰 1）',
+      (await ivStatus(owner, ivOk)) === 'abandoned' && (await evCount(owner, ivOk, 'interview_unavailable')) === 1);
+    A('F3 fencedSkipped 计数 ≥1 随 ReconcileOutcome 上报', r.fencedSkipped >= 1);
+
+    // B 端围栏行（application_id≠NULL）：⑦ 同款真 start 链 fixture → 围栏 → 挂死预留 → 同跳。
+    const recruiter = OWN('fence-rec');
+    const resumeId = randomUUID();
+    const jobRow = await asPrincipal(pool, recruiter, (c) => createJob(c, recruiter, {
+      title: 'Fence B 端工程师', description: '围栏同跳 fixture', competencies: ['nodejs'],
+    }));
+    const rev = Number((await pool.query('SELECT COALESCE(MAX(revision),0)::int AS n FROM job_semantic_revision WHERE job_id=$1', [jobRow.id])).rows[0].n);
+    await classifyJobRoute(pool, recruiter, jobRow.id, rev, {
+      modelClassify: async () => { throw new Error('B-side seed must rule-decide; model path unexpected'); },
+    });
+    await pool.query("INSERT INTO resume(id,owner_user_id,status,content_sha) VALUES ($1,$2,'ingested',$3)", [resumeId, owner, `reconcile-fence:${owner}`]);
+    const app = await asPrincipal(pool, recruiter, (c) => inviteCandidate(c, recruiter, jobRow.id, owner));
+    const started = await asPrincipal(pool, owner, (c) => startApplicationInterview(c, owner, app!.applicationId, resumeId));
+    const bInterviewId = (started.status === 'started' || started.status === 'reused') ? started.interviewId : undefined;
+    if (!bInterviewId) throw Object.assign(new Error('fence_b_side_start_missing'), { code: 'fence_b_side_start_missing' });
+    const bBound = (await pool.query('SELECT application_id FROM interview WHERE id=$1', [bInterviewId])).rows[0]?.application_id;
+    A('F3 B 端围栏 fixture：interview 绑定 application_id（≠NULL）', typeof bBound === 'string' && bBound === app!.applicationId);
+    const appBefore = (await pool.query('SELECT status,interview_attempt,score FROM job_application WHERE id=$1', [app!.applicationId])).rows[0];
+    const ivBStatusBefore = await ivStatus(owner, bInterviewId);
+    await fenceInterview(owner, bInterviewId);
+    await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, bInterviewId, 'mock_interview', 1.0));
+    await expireLease(owner, bInterviewId);
+    const r2 = await commerceReconcileTick(pool);
+    A('F3 B 端围栏行同跳：零 assessment_unavailable 事件（:46-49 块同跳·appendEvent 不触发）',
+      (await evCount(owner, bInterviewId, 'assessment_unavailable')) === 0);
+    const appAfter = (await pool.query('SELECT status,interview_attempt,score FROM job_application WHERE id=$1', [app!.applicationId])).rows[0];
+    A('F3 B 端围栏行同跳：application 状态零翻转', JSON.stringify(appAfter) === JSON.stringify(appBefore));
+    A('F3 B 端围栏行同跳：interview 状态零翻转（不置 failed/abandoned）', (await ivStatus(owner, bInterviewId)) === ivBStatusBefore);
+    A('F3 B 端围栏行同跳：预留 released（sweep 已释放·围栏跳过不回滚释放）', (await consStatus(owner, bInterviewId)) === 'released');
+    A('F3 B 端围栏行同跳：零 interview_unavailable 事件', (await evCount(owner, bInterviewId, 'interview_unavailable')) === 0);
+    // EXEC 续做修正（前席断言语义错位）：fencedSkipped=逐拍计数（非跨拍累计）——r 拍=C 端围栏行（≥1 已断言）,
+    // r2 拍仅新 sweep 的 B 端围栏行 → 本拍 ≥1、两拍合计 ≥2（r.fencedSkipped≥1 + r2.fencedSkipped≥1）。
+    A('F3 fencedSkipped 含 B 端行（本拍 ≥1·两拍合计 ≥2）', r2.fencedSkipped >= 1 && (r.fencedSkipped + r2.fencedSkipped) >= 2);
+    A('F3 二拍后仍零循环报错（连续失败计数=0）', consecutiveReconcileFailureCount() === 0);
   }
 
   console.log(`\n${fail === 0 ? '✓ C1 对账兜底调度侧:孤儿预留回收+终态事件+结算入账+幂等+并发安全 全部通过' : '✗ ' + fail + ' 失败'}`);

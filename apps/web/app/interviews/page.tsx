@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getServerToken, serverGet } from '../../lib/api/server';
-import { startInterviewAction } from './actions';
+import { startInterviewAction, restartInterviewAction } from './actions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,9 +30,9 @@ function statusBadge(status: string) {
   return <Badge variant={variant}>{STATUS_LABEL[status] ?? '状态未知'}</Badge>;
 }
 
-export default async function InterviewsPage({ searchParams }: { searchParams: Promise<{ limit?: string; error?: string }> }) {
+export default async function InterviewsPage({ searchParams }: { searchParams: Promise<{ limit?: string; error?: string; reused?: string }> }) {
   if (!(await getServerToken())) redirect('/login');       // 服务端鉴权门(无 cookie 直接服务端跳转,不发任何页面 JS)
-  const { limit, error } = await searchParams;
+  const { limit, error, reused } = await searchParams;
 
   // 真服务端取数:在 RSC 里 await,HTML 服务端渲染好再发(首屏即有数据,无客户端 fetch 闪烁)。
   const data = await serverGet<unknown>('/interview');
@@ -59,6 +59,45 @@ export default async function InterviewsPage({ searchParams }: { searchParams: P
             )}
             {actionError.note && <span className="mt-1 block text-xs opacity-80">{actionError.note}</span>}
           </p>
+        );
+      })()}
+
+      {/* FENCE-REFLOW F2(#238 C 面)：create 复用信号（?reused=<id>）→ 选择面（banner 形，EXEC 审定）。
+          两出口：继续=进既有会话；放弃后重来=restartInterviewAction（POST :id/abandon 后重跑 create+begin）。
+          文案沿 errmsg-map BINDING_CONFLICT 家族（actionErrorMessage 映射取文案，不新增第三文案）。
+          无 ?reused= 时本段不渲染，页面 byte 级不变。 */}
+      {reused && (() => {
+        const reusedId = reused;
+        const caption = actionErrorMessage('interviews', 0, 'interview_resume_binding_conflict');
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">{caption?.text ?? '你有一场未结束的面试：继续/放弃后重来'}</CardTitle>
+              <CardDescription>继续将回到这场未结束的面试；放弃后重来会先结束它，再为你新建一场。</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Button asChild size="sm"><Link href={`/interview/${reusedId}`}>继续</Link></Button>
+                {resumes.length > 0 && (
+                  <form action={restartInterviewAction} className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <input type="hidden" name="priorInterviewId" value={reusedId} />
+                    <label className="text-sm text-muted-foreground" htmlFor="restart-resumeId">放弃后重来的简历</label>
+                    <select
+                      id="restart-resumeId"
+                      name="resumeId"
+                      defaultValue={resumes[0]?.id}
+                      className="h-10 rounded-md border border-input bg-background px-3 text-sm sm:flex-1"
+                    >
+                      {resumes.map((r) => (
+                        <option key={r.id} value={r.id}>{resumeOptionLabel(r)}</option>
+                      ))}
+                    </select>
+                    <SubmitButton pendingLabel="处理中…" variant="outline">放弃后重来</SubmitButton>
+                  </form>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         );
       })()}
 
