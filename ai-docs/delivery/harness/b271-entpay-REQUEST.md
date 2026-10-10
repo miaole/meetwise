@@ -276,3 +276,20 @@ END $$;
 **Status**: **`executed_slice1:awaiting_post_prove_dual`**（片1 EXEC 落卷·prove 收口·待 post-prove 双审·2026-10-10 · entpay-slice1-exec 席 · append-only · 历史行不抹改 · ⛔push ⛔动主线仓 ⛔触其他工作树）
 
 *B271 片1 EXEC 落卷追记 2026-10-10 · 授权=pre-exec 双审收口（席1 PASS+席2 FAIL→rev2→rev3 会签 PASS 零缺口）+协调方明示 EXEC 授权 · stash `b8b350d` 13 文件 apply 回执 exit 0 零冲突 · 0156 全新书写（quarantine 档零恢复·头注事实态）· EXEC 级缺口修复三件（source_order_id provenance/对公同流水具名 conflict/recruiter 门 app_role 可执行形——0155 REVOKE 致恢复码面门调用形产线必炸·attempt4 实测）· 前席发现②收口（公开目录 consumer 域过滤+企业商品独立端点）· prove **48/48 EXIT 0**（attempt 六跑全账如实·零同码态复跑）· neg:commerce 终态 84/84 · TS 三门（contracts/web 清洁·db/api 误差清单与触面零交集=pristine 全同）· markers=0 · 片2 零开工（0-b 不满足·preverify 只写未跑·0157 零字节）· est live=0·隔离库=本地临时容器零生产 DSN · pins 十一值零翻转 · 收据 `ai-docs/delivery/receipts/enterprise-pay/slice1/`（commit hash 见本行 git 登记面）· alone≠dual*
+
+---
+
+## 片1 nail 落卷（2026-10-10 · post-prove 双席 BOTH PASS）
+
+**双审结果**：席1（安全/语义·最高审点=跨主体扣费边界）+席2（验收矩阵+产品面）互盲复核 BOTH PASS。
+- **跨主体安全边界逐面亲证**：企业充值只入企业桶（kind 服务端权威派生·C 端商品结构上不可能走对公）·候选人零扣费路径零字节触·红冲过滤谓词恒真保 C 端行集 byte 同·invoice 双表 FORCE RLS 同构 0001 先例·offline_remit_record 零 GRANT 只经 DEFINER·对公双人分离/金额校验/bank_ref CAS 具名门全在位+HTTP AdminGuard 双层。
+- **recruiter 门修复无弱化**：新形 APPROVED_RECRUITER_SQL 与 0155:66 谓词逐值同义·RLS 有无只影响可见行集·门判定恒等价（修复动机 attempt4 日志确证）。
+- **0156 与底稿实质一致**：唯二语义差=虚称头注去除+NOT FOUND 跨单具名 conflict（只增不弱·镜像同形）。
+- **五判据独立复跑**：48/48+neg:commerce 84/84+部署车 158/158 幂等（双席各自全新隔离容器）·attempt 六跑零同码态复跑成立·sha256 11/11 亲算吻合。
+- **片2 零开工**：迁移止于 0156·无 0157/扣费路由面·preverify 只写未跑·0-b 前置闸如实未绕行。
+
+**nail 随卷勘误与归档**：①收据 :21 与 commerce.service.ts:27 注释「user_account p_user_account_self FORCE RLS」引用失实（user_account 实无 RLS·门安全性与 0155 等价·注释更正归后刀）（席1 观1）。②对公单 pay CAS 无 channel 过滤——持 PAY_PROVIDER_SECRET 者技术可绕双人确认直置 paid（入账仍落订单 owner 本人桶·无跨主体风险·当前信任根=平台自身）——**归片2/片3：pay CAS 增 channel='online' 守卫（只增不弱）**（席1 观2）。③产品面打磨归片3：招聘方自服对公订单状态列表/企业余额挂件/开票 paid 单下拉（席2）。
+
+merge 落主线 @68e66f18（runner dual-keep=report-retry+entpay 并存·node --check 过）。
+
+**Status**: `slice1_nail:closed`（post-prove 双席 BOTH PASS·merge 落主线 @68e66f18·片1 企业桶+充值闭环·片2 待 0-b 前置闸=B110 post-dual 双审收口后启动·markers=0·est live=0）。
