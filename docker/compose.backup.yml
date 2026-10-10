@@ -1,0 +1,79 @@
+# HA-4 backup (R-26) — scheduled pg_dump + integrity validation + retention
+# rotation.  Independent non-governance composition: `compose.prod.yml` remains
+# cloud-only with zero volumes (:1-3 contract) and is NEVER edited by this file
+# — load order `-f compose.prod.yml -f compose.backup.yml` must keep every prod
+# service field byte-identical (V5 zero-drift assertion).
+#
+# Scheduled form (dual-review ruling seat2-①): form A — an in-service interval
+# loop (self-contained, zero host-coupling). The loop is strictly sequential
+# (one dump at a time), so a missed beat can never pile up into a double run;
+# backup.sh additionally takes an exclusive mkdir lock as a defense-in-depth
+# idempotency latch (V4 probe).
+#
+# Connection contract (dual-review seat1-①): this service reads exactly one
+# database variable, `BACKUP_DATABASE_URL`, deliberately distinct from the
+# node-side `RUNTIME_DATABASE_URL` / `MIGRATION_DATABASE_URL` / the four
+# low-privilege runtime logins. In the managed-RDS form the provisioned value
+# carries `sslmode=verify-full&sslrootcert=/run/secrets/rds_ca`; the `rds_ca`
+# secret below is the same-source secret as compose.prod.yml:385-387 (fed by
+# the same uncommitted RDS_CA_HOST_PATH). Provision follows the one-time
+# machine-side .env precedent (remote-deploy.sh:33, bootstrap-ecs.sh:46-53).
+#
+# Client/server major (dual-review seat1-②): the image is pgvector/pgvector:pg16
+# so pg_dump/pg_restore are major 16. Production enablement must first assert
+# server_major <= 16 (checklist in ai-docs/delivery/harness/ha-4-backup-runbook.md).
+#
+# Security form is a deliberate copy of the x-container-runtime-security anchor
+# at compose.prod.yml:124-131 (YAML anchors cannot cross files):
+#   read_only + cap_drop ALL + no-new-privileges + bounded tmpfs /tmp.
+# No ports and no expose — the backup plane is never reachable from the host
+# loopback or 0.0.0.0 (REQUEST §6-1).
+#
+# Refuse-by-default gate (REQUEST §9-1): the loop entrypoint exits 3 unless
+# MEETWISE_HA4_BACKUP_AUTHORIZED=1 is provisioned in the machine .env. The
+# container therefore crash-loops by design until the coordinator authorization
+# latch is set — never enable it silently.
+
+x-backup-container-security: &backup-container-security
+  read_only: true
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,nodev,size=64m
+
+services:
+  backup:
+    <<: *backup-container-security
+    image: pgvector/pgvector:pg16
+    # pg_dump -Fc full-database dump (zero table filters — dual-review seat2-②
+    # completeness hard criterion) + pg_restore --list validation + sha256/size
+    # receipt + RETAIN_COUNT FIFO rotation, then sleep until the next beat.
+    command: ["sh", "/work/backup-scripts/backup-loop.sh"]
+    restart: unless-stopped
+    environment:
+      BACKUP_DATABASE_URL: ${BACKUP_DATABASE_URL:?set BACKUP_DATABASE_URL from the machine one-time provision (never committed; RDS form carries sslmode=verify-full&sslrootcert=/run/secrets/rds_ca)}
+      BACKUP_DIR: /backups
+      # Seconds-level interval is intentional: RPO = interval magnitude, stated
+      # as-is (default 6h; the sandbox drill runs seconds to capture two beats).
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-21600}
+      BACKUP_RETAIN_COUNT: ${BACKUP_RETAIN_COUNT:-7}
+      MEETWISE_HA4_BACKUP_AUTHORIZED: ${MEETWISE_HA4_BACKUP_AUTHORIZED:-}
+    volumes:
+      # Repo checkout scripts, read-only. Relative paths resolve against the
+      # compose project directory (repo root in both sandbox and production).
+      - type: bind
+        source: ./scripts/backup
+        target: /work/backup-scripts
+        read_only: true
+      # Dump artifacts land on the host bind volume (0700 dir, 0600 files).
+      # The host path is operator-provisioned per machine and never committed.
+      - type: bind
+        source: ${BACKUP_DIR_HOST:?set BACKUP_DIR_HOST to a host directory outside git (0700 owner, holds 0600 dumps)}
+        target: /backups
+    secrets: [rds_ca]
+
+secrets:
+  rds_ca:
+    file: ${RDS_CA_HOST_PATH:?set RDS_CA_HOST_PATH to an uncommitted PEM file}

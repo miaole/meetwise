@@ -1,0 +1,17 @@
+{
+  "kind": "ha4-v7-regression",
+  "ok": true,
+  "productCodeDiff": {"paths": ["apps/", "packages/", "ops/", "e2e/"], "filesChanged": 0},
+  "changedSet": [
+    "ai-docs/delivery/harness/ha-4-backup-REQUEST.md (tracked; dual-seat §10 append +21, EXEC status append at tail)",
+    "ai-docs/delivery/harness/ha-4-backup-runbook.md (new)",
+    "docker/compose.backup.yml (new)", "docker/compose.backup.sandbox.yml (new)",
+    "scripts/backup/{backup-loop,backup,rotate,restore-drill,sandbox-seed}.sh (new)",
+    "docker/env/migrate.env.example (+8 append: BACKUP_DB_USER/PASSWORD template)",
+    "receipts/ha-4/ (new)"
+  ],
+  "markers": {"pattern": "five marker tokens (exact grep cmd in verification-matrix.md 前置行)", "files": "compose.backup*.yml + scripts/backup/* + runbook + REQUEST", "hits": 0},
+  "v5CrossRef": "prod compose zero-drift verified twice (see v5-config.receipt.json)",
+  "pins": "eleven values untouched (haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null)",
+  "privacySink": "backup_pitr honest_unresolved zero-flip (packages/domain/src/privacy-erasure-preview.ts untouched)"
+}
