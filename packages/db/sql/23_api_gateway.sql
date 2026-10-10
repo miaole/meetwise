@@ -267,6 +267,147 @@ BEGIN
 END;
 $$;
 
+
+-- B271 片1：对公转账受控函数族（迁移 0156 同形·照 gateway_admin_disable 0041:107-120 样板：
+-- require_active_admin + admin_audit INSERT）。入账复用同一 CAS 语义（created→paid WHERE NOT EXISTS
+-- 同 provider_txn·bank_ref 作 provider_txn·uq_payment_order_provider_txn 防一笔流水入两单）；
+-- 企业桶落位 kind='enterprise'。金额不符/录入人==确认人/流水冲突一律具名拒绝且不入账。
+CREATE OR REPLACE FUNCTION gateway_admin_offline_remit_entry(p_order_id text, p_bank_ref text, p_amount_cents int)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+DECLARE caller text := current_setting('app.principal_user', true);
+DECLARE v_channel text; v_status text;
+BEGIN
+  PERFORM public.gateway_require_active_admin();
+  IF p_order_id IS NULL OR p_bank_ref IS NULL OR p_bank_ref = '' OR p_amount_cents IS NULL OR p_amount_cents <= 0 THEN
+    RAISE EXCEPTION 'offline_remit_entry_invalid_input';
+  END IF;
+  SELECT channel, status INTO v_channel, v_status FROM public.payment_order WHERE id = p_order_id;
+  IF NOT FOUND THEN RAISE EXCEPTION 'offline_remit_order_not_found'; END IF;
+  IF v_channel <> 'offline' THEN RAISE EXCEPTION 'offline_remit_order_not_offline'; END IF;
+  IF v_status <> 'created' THEN RAISE EXCEPTION 'offline_remit_order_not_entrant'; END IF;
+  INSERT INTO public.offline_remit_record(order_id, bank_ref, amount_cents, entered_by)
+    VALUES (p_order_id, p_bank_ref, p_amount_cents, caller);
+  INSERT INTO public.admin_audit(id, actor, action, target, detail)
+    VALUES ('audit-' || gen_random_uuid()::text, caller, 'offline_remit_entry', p_order_id,
+            jsonb_build_object('bank_ref', p_bank_ref, 'amount', p_amount_cents, 'actor', caller));
+  RETURN true;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION gateway_admin_offline_remit_confirm(p_order_id text)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+DECLARE caller text := current_setting('app.principal_user', true);
+DECLARE r public.offline_remit_record%ROWTYPE;
+DECLARE v_amount int; v_owner text; v_txn text; v_status text;
+BEGIN
+  PERFORM public.gateway_require_active_admin();
+  IF p_order_id IS NULL THEN RAISE EXCEPTION 'offline_remit_confirm_invalid_input'; END IF;
+  SELECT * INTO r FROM public.offline_remit_record WHERE order_id = p_order_id FOR UPDATE;
+  IF NOT FOUND OR r.status <> 'entered' THEN RAISE EXCEPTION 'offline_remit_order_not_entrant'; END IF;
+  IF r.entered_by = caller THEN
+    RAISE EXCEPTION 'offline_remit_segregation_required';
+  END IF;
+  SELECT amount_cents, owner_user_id, status INTO v_amount, v_owner, v_status
+    FROM public.payment_order WHERE id = p_order_id;
+  IF NOT FOUND OR v_status <> 'created' THEN RAISE EXCEPTION 'offline_remit_order_not_entrant'; END IF;
+  IF r.amount_cents <> v_amount THEN
+    RAISE EXCEPTION 'offline_remit_amount_mismatch';
+  END IF;
+  BEGIN
+    UPDATE public.payment_order
+       SET status='paid', provider_txn=r.bank_ref, version=version+1
+     WHERE id = p_order_id AND status='created'
+       AND NOT EXISTS (SELECT 1 FROM public.payment_order claimed WHERE claimed.provider_txn = r.bank_ref)
+    RETURNING owner_user_id INTO v_owner;
+  EXCEPTION WHEN unique_violation THEN
+    RAISE EXCEPTION 'offline_remit_provider_txn_conflict';
+  END;
+  IF NOT FOUND THEN
+    -- 未改到 = 非 created。幂等重放通道：同单已 paid 且 provider_txn=本流水 → 台账补齐 confirmed 后 already；
+    -- 同流水已被**其他**订单占用 → 具名 provider_txn_conflict（B271 §4.1-2「同一银行流水号确认第二单 → conflict」）。
+    SELECT provider_txn, status INTO v_txn, v_status FROM public.payment_order WHERE id = p_order_id;
+    IF EXISTS (SELECT 1 FROM public.payment_order claimed
+                WHERE claimed.provider_txn = r.bank_ref AND claimed.id <> p_order_id) THEN
+      RAISE EXCEPTION 'offline_remit_provider_txn_conflict';
+    END IF;
+    IF v_status = 'paid' AND v_txn = r.bank_ref THEN
+      UPDATE public.offline_remit_record
+         SET status='confirmed', confirmed_by=caller, confirmed_at=now()
+       WHERE order_id = p_order_id AND status='entered' AND confirmed_by IS DISTINCT FROM caller;
+      RETURN true;
+    END IF;
+    RAISE EXCEPTION 'offline_remit_order_not_entrant';
+  END IF;
+  UPDATE public.offline_remit_record
+     SET status='confirmed', confirmed_by=caller, confirmed_at=now()
+   WHERE order_id = p_order_id;
+  INSERT INTO public.entitlement_bucket(owner_user_id, kind, units_total, expires_at, source_order_id)
+    SELECT v_owner, 'enterprise', units, now() + interval '365 days', p_order_id
+      FROM public.payment_order WHERE id = p_order_id;
+  INSERT INTO public.admin_audit(id, actor, action, target, detail)
+    VALUES ('audit-' || gen_random_uuid()::text, caller, 'offline_remit_confirm', p_order_id,
+            jsonb_build_object('order', p_order_id, 'bank_ref', r.bank_ref, 'amount', r.amount_cents, 'actor', caller));
+  RETURN true;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION gateway_admin_offline_remit_fail(p_order_id text, p_reason text)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+DECLARE caller text := current_setting('app.principal_user', true);
+DECLARE updated_rows integer := 0;
+BEGIN
+  PERFORM public.gateway_require_active_admin();
+  IF p_order_id IS NULL THEN RAISE EXCEPTION 'offline_remit_fail_invalid_input'; END IF;
+  UPDATE public.payment_order SET status='failed', version=version+1
+   WHERE id = p_order_id AND status='created';
+  GET DIAGNOSTICS updated_rows = ROW_COUNT;
+  IF updated_rows > 0 THEN
+    UPDATE public.offline_remit_record
+       SET status='failed', failed_by=caller, failed_at=now()
+     WHERE order_id = p_order_id AND status='entered';
+    INSERT INTO public.admin_audit(id, actor, action, target, detail)
+      VALUES ('audit-' || gen_random_uuid()::text, caller, 'offline_remit_fail', p_order_id,
+              jsonb_build_object('reason', coalesce(p_reason, ''), 'actor', caller));
+  END IF;
+  RETURN updated_rows > 0;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION gateway_admin_offline_remit_queue()
+RETURNS TABLE(order_id text, owner_user_id text, product_id text, amount_cents int, channel text,
+              order_status text, bank_ref text, remit_amount_cents int, remit_status text,
+              entered_by text, entered_at timestamptz, confirmed_by text, confirmed_at timestamptz,
+              created_at timestamptz)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+BEGIN
+  PERFORM public.gateway_require_active_admin();
+  RETURN QUERY
+    SELECT p.id, p.owner_user_id, p.product_id, p.amount_cents, p.channel, p.status,
+           r.bank_ref, r.amount_cents, r.status, r.entered_by, r.entered_at, r.confirmed_by, r.confirmed_at,
+           p.created_at
+      FROM public.payment_order p
+      LEFT JOIN public.offline_remit_record r ON r.order_id = p.id
+     WHERE p.channel = 'offline'
+     ORDER BY p.created_at DESC
+     LIMIT 100;
+END;
+$$;
+
 REVOKE ALL ON FUNCTION gateway_auth_signup(text, text, text, text) FROM PUBLIC, app_role;
 REVOKE ALL ON FUNCTION gateway_auth_login(text) FROM PUBLIC, app_role;
 REVOKE ALL ON FUNCTION gateway_payment_order_owner(text) FROM PUBLIC, app_role;
@@ -294,3 +435,12 @@ GRANT EXECUTE ON FUNCTION gateway_admin_audit() TO app_role;
 GRANT EXECUTE ON FUNCTION gateway_admin_feedback_summary() TO app_role;
 GRANT EXECUTE ON FUNCTION gateway_admin_recruiter_approvals() TO app_role;
 GRANT EXECUTE ON FUNCTION gateway_admin_recruiter_approval(text, text) TO app_role;
+
+REVOKE ALL ON FUNCTION gateway_admin_offline_remit_entry(text, text, int) FROM PUBLIC, app_role, app_gateway_role;
+REVOKE ALL ON FUNCTION gateway_admin_offline_remit_confirm(text) FROM PUBLIC, app_role, app_gateway_role;
+REVOKE ALL ON FUNCTION gateway_admin_offline_remit_fail(text, text) FROM PUBLIC, app_role, app_gateway_role;
+REVOKE ALL ON FUNCTION gateway_admin_offline_remit_queue() FROM PUBLIC, app_role, app_gateway_role;
+GRANT EXECUTE ON FUNCTION gateway_admin_offline_remit_entry(text, text, int) TO app_role;
+GRANT EXECUTE ON FUNCTION gateway_admin_offline_remit_confirm(text) TO app_role;
+GRANT EXECUTE ON FUNCTION gateway_admin_offline_remit_fail(text, text) TO app_role;
+GRANT EXECUTE ON FUNCTION gateway_admin_offline_remit_queue() TO app_role;
