@@ -51,6 +51,9 @@ export interface InterviewView {
   /** TOKSTREAM 阶段1 生成进度态：非权威、非终态；幂等覆盖写（同 attempt 取 max）；任何业务事件到达即清
    *  （断线重放防"已完成题重新显示生成中"）。进度帧不改 phase/不触发 degraded——缺帧回段级兜底,不死等。 */
   generationProgress?: GenerationProgressView;
+  /** FENCE-REFLOW F6/#243：SSE open 返 410 = 该面试已围栏（interview_privacy_fenced）。驱动停转不重连，
+   *  view-model 据此给围栏出口（一句话，复用 degraded 出口形）。仅由驱动 fence 停转通道置位。 */
+  privacyFenced?: boolean;
 }
 
 export const initialView: InterviewView = { phase: 'connecting', degraded: false, connection: 'live', lastEventId: 0, turns: [] };

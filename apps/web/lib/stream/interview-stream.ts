@@ -5,11 +5,12 @@
  *
  * 不变量:① 终态(report_ready/unavailable/error)→ 收尾返回,不再重连;② 非终态断流/传输错 → reconnecting,凭 lastEventId 续(seq>lastId 重放,不丢不重);
  *        ③ 重连耗尽 → degraded 出口,停止;④ 本次连接有进展(收到帧)→ 重置重试计数(健康的 flapping 不误判耗尽);
- *        ⑤ HTTP 400 invalid_last_event_id → 立即停转 / degraded,不得用同一游标重试(HC-GAP-014)。
+ *        ⑤ HTTP 400 invalid_last_event_id → 立即停转 / degraded,不得用同一游标重试(HC-GAP-014);
+ *        ⑥ HTTP 410 interview_privacy_fenced → 立即停转**不重连**,直接围栏出口(F6/#243:永久围栏重连无意义,重试=教用户白点)。
  */
 import { decodeSSE, toBusinessEvent, type BusinessEvent } from './business-events';
 import { applyEvents, initialView, isTerminal, onStreamClosed, onReconnectExhausted, type InterviewView } from './interview-state';
-import { isInvalidLastEventIdError } from './sse-cursor';
+import { isInterviewPrivacyFencedError, isInvalidLastEventIdError } from './sse-cursor';
 
 /** 打开 SSE 流：真实实现 fetch(url, {headers:{'last-event-id': String(lastEventId)}, signal}) 返回 res.body 的字符串分块异步迭代;
  *  此处注入便于确定性单测。lastEventId>0 时带 Last-Event-ID 头让服务端从 seq>lastEventId 重放;signal 用于卸载取消。 */
@@ -76,6 +77,12 @@ export async function runInterviewStream(opts: RunStreamOpts): Promise<Interview
       }
     } catch (err) {
       if (opts.signal?.aborted) return view;
+      if (isInterviewPrivacyFencedError(err)) {
+        // F6/#243:围栏=永久态,重连/重试同一游标只会再 410 → 停转不重连,直接围栏出口(view-model 据 privacyFenced 渲染一句话出口)。
+        view = { ...view, connection: 'closed', degraded: true, privacyFenced: true };
+        opts.onView(view);
+        return view;
+      }
       if (isInvalidLastEventIdError(err)) {
         view = onReconnectExhausted(view); // 非法游标:失败关闭,不重试同一 Last-Event-ID
         opts.onView(view);
