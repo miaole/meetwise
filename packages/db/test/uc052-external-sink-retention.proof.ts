@@ -24,7 +24,7 @@ import { generatePrivacyAuthzKeyPair } from '@meetwise/domain';
 import {
   runAuthorizedInterviewErasure, loadRequestStatus, loadRequestTargets,
   reassessRequestStatus, attachExternalRetentionPendingTargets, type Uc052ErasureTarget,
-} from '../src/uc052-internal-erasure.ts';
+} from '../src/privacy/uc052-internal-erasure.ts';
 import { beginInterviewProjectionErasure } from '../src/transcript/int-transcript-projection.ts';
 import { recordDeletionReceipt, resolveDeletionReceipt } from '../src/privacy/privacy-authorization.ts';
 

@@ -6,19 +6,19 @@
  * oss/redis/langfuse as retention_pending → happy terminal pending_external.
  */
 import { createHash, createHmac } from 'node:crypto';
-import type { Client, DbPool } from './principal.ts';
+import type { Client, DbPool } from '../principal.ts';
 
 /** Pool or txn client — both expose .query used by admin helpers. */
 type Sql = DbPool | Client;
 import {
   purgeInterviewProjectionTarget,
-} from './transcript/int-transcript-projection.ts';
+} from '../transcript/int-transcript-projection.ts';
 import {
   claimAuthorizationTarget,
   consumeAuthorizationSnapshotBound,
   issueAuthorizationSnapshot,
   recordDeletionReceipt,
-} from './privacy/privacy-authorization.ts';
+} from './privacy-authorization.ts';
 import {
   canonicalTargetSetDigest,
   PrivacyAuthzKeyRegistry,

@@ -14,8 +14,8 @@
  * Ban count-as-erased · Ban forge receipt · Ban open DELETE · UC-052 partial.
  */
 import { createHash } from 'node:crypto';
-import type { Client } from './principal.ts';
-import { recordDeletionReceipt, resolveDeletionReceipt } from './privacy/privacy-authorization.ts';
+import type { Client } from '../principal.ts';
+import { recordDeletionReceipt, resolveDeletionReceipt } from './privacy-authorization.ts';
 
 export const EXTERNAL_ASYNC_PURGE_SINKS = ['oss', 'redis', 'langfuse'] as const;
 export type ExternalAsyncPurgeSink = (typeof EXTERNAL_ASYNC_PURGE_SINKS)[number];

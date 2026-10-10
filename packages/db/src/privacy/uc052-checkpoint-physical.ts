@@ -8,18 +8,18 @@
  * digest trim.
  */
 import { createHash } from 'node:crypto';
-import type { Client, DbPool } from './principal.ts';
+import type { Client, DbPool } from '../principal.ts';
 import {
   claimAuthorizationTarget,
   consumeAuthorizationSnapshotBound,
   issueAuthorizationSnapshot,
   recordDeletionReceipt,
-} from './privacy/privacy-authorization.ts';
+} from './privacy-authorization.ts';
 import {
   beginCheckpointErasure,
   purgeCheckpointErasureTarget,
   type CheckpointErasureRequest,
-} from './checkpoint/checkpoint-privacy.ts';
+} from '../checkpoint/checkpoint-privacy.ts';
 import {
   canonicalTargetSetDigest,
   PrivacyAuthzKeyRegistry,
