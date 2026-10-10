@@ -52,10 +52,10 @@
 | # | 码面 | 现状（亲读） | 目标 |
 |---|---|---|---|
 | C1 | `apps/api/src/modules/interview/interview.service.ts:525-538`（复用查询 `:531-532`） | 三无过滤：无 `interview_privacy_active`·无 `application_id IS NULL`（audit 引 :513-527 漂 +12） | F1 两谓词；注释登记漂移与新-#274；create 其余零改 |
-| C2 | `apps/web/app/interviews/actions.ts:11-39` | create→盲 begin→402/失败重定向带码（`:31-37` 码解析已接 errmsg-map） | F2 `reused` 透传；F5 begin 非 2xx（401 除外）→先 POST abandon 回收空壳→再带码 redirect；402 分支码面不变 |
+| C2 | `apps/web/app/interviews/actions.ts:10-30（create:13·begin:18·402:19·401:20·非2xx:21-27·码解析:24-26·全长30行登记）` | create→盲 begin→402/失败重定向带码（`:31-37` 码解析已接 errmsg-map） | F2 `reused` 透传；F5 begin 非 2xx（401 除外）→先 POST abandon 回收空壳→再带码 redirect；402 分支码面不变 |
 | C3 | `apps/web/app/interviews/page.tsx:100-123` | 列表按钮面（`:118-123` 查看/进入/已结束） | F2 选择面渲染（继续=进既有会话·放弃后重来=abandon+重开）；文案 `:34` 家族不新增 |
-| C4 | `apps/worker/src/commerce-reconcile.ts:25-72,:75-93` | 单事务耦合：sweep+settle+业务写同事务（`:27,:36-69`）·吞错仅 console.error（`:88-90`） | F3 围栏分支（择型 A/B 登记）+连续失败计数+error 级日志；非围栏路径 byte 级不变 |
-| C5 | `packages/db/src/commerce.ts:341-356,:363-380,:384-388`（+`src/index.ts:70` 导出面） | `reconcile()` 耦合 sweep+settleOutbox | 择型 A：本文件零改；择型 B：拆分体导出+index.ts 导出同步（EXEC 审定并登记） |
+| C4 | `apps/worker/src/commerce-reconcile.ts:25-72,:75-93` | 单事务耦合：sweep+settle+业务写同事务（`:27,:36-69`）·吞错仅 console.error（`:88-90`） | F3 围栏分支（定谳形 A（见 F3 五钉））+连续失败计数+error 级日志；非围栏路径 byte 级不变 |
+| C5 | `packages/db/src/commerce.ts:341-356,:363-380,:384-388`（+`src/index.ts:70` 导出面） | `reconcile()` 耦合 sweep+settleOutbox | 择型 A：本文件零改；（已裁形 A·本文件零改） |
 | C6 | `apps/web/lib/errors/action-error.ts`（无 410 行） | `interview_privacy_fenced`→null→begin_failed 兜底 | F6 410 行（interviews 页域·文案逐字「该面试已进入删除流程，请新建面试」）；既有行零改 |
 | C7 | `apps/web/lib/stream/sse-cursor.ts:42-55,:60-69` | 只特判 400（`:42-45`）；410 随「空结束」透传 | F6 410 fence 停转通道（沿 `InvalidLastEventIdError` 先例）；`sseProxyFailureResponse` 零改 |
 | C8 | `apps/web/lib/stream/interview-stream.ts:30-31,:77-84,:96-98` + `apps/web/lib/hooks/useInterviewStream.ts:19` | 410 当普通断流重连≤3 次后 degraded | 驱动 catch 分支对 fence 错停转不重连直接出口；`:19` 注释同步 |
