@@ -71,7 +71,7 @@ function lineOf(src: string, re: RegExp, from = 0): number {
   const ctrl = readFileSync(resolve(repoRoot, 'apps/api/src/modules/interview/interview.controller.ts'), 'utf8');
   const contracts = readFileSync(resolve(repoRoot, 'packages/contracts/src/index.ts'), 'utf8');
   const resumeCtrl = readFileSync(resolve(repoRoot, 'apps/api/src/modules/resume/resume.controller.ts'), 'utf8');
-  const iq = readFileSync(resolve(repoRoot, 'packages/db/src/interview-question.ts'), 'utf8');
+  const iq = readFileSync(resolve(repoRoot, 'packages/db/src/interview/interview-question.ts'), 'utf8');
   const commerce = readFileSync(resolve(repoRoot, 'packages/db/src/commerce/commerce.ts'), 'utf8');
   const thisSrc = readFileSync(fileURLToPath(import.meta.url), 'utf8');
 

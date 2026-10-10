@@ -9,7 +9,7 @@
  * `index.ts → qbank-miss.ts → index.ts` 的循环依赖，被 `pnpm arch` 的 no-circular 门禁拒绝。
  * 四原语是 DAG 最底层，绝不能参与任何依赖环——单独成文件是结构上的防环保证。
  */
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 import { eventPayloadHasRawAnswer, remapInterviewAnswerDualWriteError } from './interview-answer-dual-write.ts';
 
 /** 原语③：durable ordered event log——同 stream advisory 事务锁串行 + INSERT…SELECT MAX+1，返回分配到的 seq。 */

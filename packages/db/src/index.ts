@@ -49,7 +49,7 @@ export async function casTransition(c: Client, id: string, from: string, to: str
 }
 
 /** 原语③ appendEvent：独立成 packages/db/src/interview-event.ts，此处 re-export 防 index→qbank-miss→index 循环。 */
-export { appendEvent } from './interview-event.ts';
+export { appendEvent } from './interview/interview-event.ts';
 
 /** 原语④：抢租约——空或已过期才能抢（防裂脑并发推进）。 */
 export async function acquireLease(c: Client, threadId: string, leaseOwner: string): Promise<boolean> {
@@ -112,8 +112,8 @@ export {
   enqueueInterviewJob, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, enumerateOwnersWithJobs,
   renewInterviewJobLease, sweepStuckInterviewJobs, requeueInterviewJob, MAX_INTERVIEW_JOB_ATTEMPTS, INTERVIEW_RESUME_REFERENCE_VERSION,
   DEFAULT_INTERVIEW_PER_OWNER_INFLIGHT,
-} from './interview-jobs.ts';
-export type { JobKind, ClaimedInterviewJob, ClaimedInterviewJobRequestId, ClaimedInterviewAnswerPayload, InterviewClaimBudget } from './interview-jobs.ts';
+} from './interview/interview-jobs.ts';
+export type { JobKind, ClaimedInterviewJob, ClaimedInterviewJobRequestId, ClaimedInterviewAnswerPayload, InterviewClaimBudget } from './interview/interview-jobs.ts';
 
 // 答题正文双写互斥（0126 / INT-P0-RAW-QUEUE 围栏，不是 INT-TRANSCRIPT-01）
 export {
@@ -121,17 +121,17 @@ export {
   plaintextAnswerIdentity, eventPayloadHasRawAnswer, remapInterviewAnswerDualWriteError,
   INTERVIEW_ANSWER_LEGACY_PLAINTEXT_FENCED, INTERVIEW_ANSWER_LEDGER_DUAL_WRITE_FENCED,
   INTERVIEW_EVENT_RAW_ANSWER_FENCED,
-} from './interview-answer-dual-write.ts';
+} from './interview/interview-answer-dual-write.ts';
 
-export { withInterviewGraphFence, assertInterviewGraphFence, renewInterviewGraphFence, releaseInterviewGraphFence } from './interview-graph-lease.ts';
-export type { InterviewGraphFence } from './interview-graph-lease.ts';
+export { withInterviewGraphFence, assertInterviewGraphFence, renewInterviewGraphFence, releaseInterviewGraphFence } from './interview/interview-graph-lease.ts';
+export type { InterviewGraphFence } from './interview/interview-graph-lease.ts';
 
 // server-issued question / answer identity ledger (stale resume 与双标签页的图外 fencing)
 export {
   answerHash, persistInterviewQuestion, claimInterviewAnswer, verifyInterviewAnswerClaim,
   markInterviewAnswerApplied, cancelOpenInterviewQuestion,
-} from './interview-question.ts';
-export type { PersistedInterviewQuestion, AcceptedInterviewAnswer, ClaimAnswerResult } from './interview-question.ts';
+} from './interview/interview-question.ts';
+export type { PersistedInterviewQuestion, AcceptedInterviewAnswer, ClaimAnswerResult } from './interview/interview-question.ts';
 
 // 押题(resume-quiz)生成 job 队列（api 入队 / worker 消费）+ 心跳续租 + reaper 收割
 export {

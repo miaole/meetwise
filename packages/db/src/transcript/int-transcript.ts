@@ -19,7 +19,7 @@ import type { Client } from '../principal.ts';
 import { createHmac } from 'node:crypto';
 import { newUuidV7 } from '../ids.ts';
 import { assertInterviewPrivacyActive } from '../checkpoint/checkpoint-privacy.ts';
-import { assertInterviewAnswerLedgerWriteAllowed, remapInterviewAnswerDualWriteError } from '../interview-answer-dual-write.ts';
+import { assertInterviewAnswerLedgerWriteAllowed, remapInterviewAnswerDualWriteError } from '../interview/interview-answer-dual-write.ts';
 
 const IS_PROD = process.env.NODE_ENV === 'production';
 /** 必需密钥：prod 缺失即 fail-closed 抛错（杜绝静默用 dev 默认 = 加密形同虚设）。 */
