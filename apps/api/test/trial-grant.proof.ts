@@ -8,9 +8,9 @@ import { runMigrations, loadMigrations, errCode, createPool, type DbPool } from 
  * 隔离库（run-e2e-isolated 门·assertIsolatedTestTarget）·真 HTTP 链（boot() 起真 NestJS + fetch）·est live=0（无模型调用）。
  *
  * 断言表（rev2 §4 + P4 + EXEC 注意①②③④）：
- *  [0] 部署车/归属：隔离容器内一次性空库由真 runMigrations 全量应用 0001→0152（top-level 事务控制硬抛面
+ *  [0] 部署车/归属：隔离容器内一次性空库由真 runMigrations 全量应用 0001→0154（top-level 事务控制硬抛面
  *      被真 manifest 行使=EXEC 注意②）·重跑全 skipped（幂等）·gateway fn 属主 == 桶表属主 == 应用角色
- *      （EXEC 注意④·0152 属主角色不符即停的前置核查）；boot() 库内再验裸 SQL 文本可重跑（0018 形制）。
+ *      （EXEC 注意④·0154 属主角色不符即停的前置核查）；boot() 库内再验裸 SQL 文本可重跑（0018 形制）。
  *  [1] 主证（§4.1）：HTTP signup → 2xx + GET /commerce/entitlement availableUnits=1 +
  *      桶恰 1 行（kind='trial'·units_total=1.00·expires≈+365d·source_order_id IS NULL）。
  *  [2] 幂等双层（§4.2/P4）：
@@ -62,7 +62,7 @@ async function seedBeginFixture(pool: any, owner: string, interviewId: string, r
 
 /**
  * [0] 真 runner 部署车证明：隔离容器内建一次性空库（此刻 cluster 仍 virgin——sql/ 引导未跑，
- * app_role 未建，0001 可 CLEAN 建账本），loadMigrations 目录形制全量应用 0001→0152。
+ * app_role 未建，0001 可 CLEAN 建账本），loadMigrations 目录形制全量应用 0001→0154。
  * 连接取自隔离门注入的 PG* 组件（该门禁 DATABASE_URL，见 isolated-test-target.ts）。
  * 归属不符/首过不全/重跑不幂等 → 硬红抛错（EXEC 注意④停止条件在 prove 内即停，不出绿）。
  */
@@ -78,11 +78,11 @@ async function proveMigrationRunner() {
     const first = await runMigrations(mig, manifest);
     const total = manifest.length;
     console.log(`trial-grant[0] runner_first_pass applied=${first.applied.length} total=${total} last=${first.applied[first.applied.length - 1]}`);
-    if (!(first.applied.length === total && first.applied[total - 1] === '0152_trial_bucket_grant')) {
+    if (!(first.applied.length === total && first.applied[total - 1] === '0154_trial_bucket_grant')) {
       throw new Error('trial_grant_runner_first_pass_incomplete');
     }
     const second = await runMigrations(mig, manifest);
-    if (!(second.applied.length === 0 && second.skipped.length === total && second.skipped[total - 1] === '0152_trial_bucket_grant')) {
+    if (!(second.applied.length === 0 && second.skipped.length === total && second.skipped[total - 1] === '0154_trial_bucket_grant')) {
       throw new Error('trial_grant_runner_rerun_not_idempotent');
     }
     const own = await mig.query(
@@ -249,7 +249,7 @@ CREATE POLICY p_candidate_profile_route_snapshot_owner ON candidate_profile_rout
 
 async function main() {
   const migSql = readFileSync(
-    fileURLToPath(new URL('../../../packages/db/migrations/0152_trial_bucket_grant.sql', import.meta.url)), 'utf8');
+    fileURLToPath(new URL('../../../packages/db/migrations/0154_trial_bucket_grant.sql', import.meta.url)), 'utf8');
   // [0] 先于 boot()：sql/ 引导会建 app_role 并占住 'meetwise' 库，真 runner 空账本证明必须在 virgin cluster 上先行。
   await proveMigrationRunner();
 
@@ -258,10 +258,10 @@ async function main() {
   const { A, done } = mkAssert('trial:grant:prove');
 
   // ══════════════════════════════════════════════════════════════════════════
-  // [0b] harness 库内的可重跑 + 归属核查（0152 裸 SQL 文本在已成形库上重 apply·0018 形制）
+  // [0b] harness 库内的可重跑 + 归属核查（0154 裸 SQL 文本在已成形库上重 apply·0018 形制）
   // ══════════════════════════════════════════════════════════════════════════
   await h.pool.query(migSql);   // 已存在 index/函数上再 apply 全文不抛（IF NOT EXISTS + CREATE OR REPLACE + REVOKE/GRANT 重申）
-  A('0152/裸 SQL 文本双 apply 不抛（IF NOT EXISTS + CREATE OR REPLACE + REVOKE/GRANT 重申可重跑）', true);
+  A('0154/裸 SQL 文本双 apply 不抛（IF NOT EXISTS + CREATE OR REPLACE + REVOKE/GRANT 重申可重跑）', true);
   {
     const own = await h.pool.query(
       `SELECT p.proowner::regrole::text AS fn_owner,
@@ -269,12 +269,12 @@ async function main() {
               current_user AS applied_by
          FROM pg_proc p WHERE p.proname='gateway_auth_signup'`);
     const r = own.rows[0];
-    A('0152/gateway_auth_signup 属主 == entitlement_bucket 属主 == 应用角色（0152 与既有 gateway fn 同属主角色，EXEC 注意④）',
+    A('0154/gateway_auth_signup 属主 == entitlement_bucket 属主 == 应用角色（0154 与既有 gateway fn 同属主角色，EXEC 注意④）',
       r?.fn_owner === r?.bucket_owner && r?.fn_owner === r?.applied_by);
     const idx = await h.pool.query(
       "SELECT indexdef FROM pg_indexes WHERE indexname='uq_bucket_trial_one_per_owner'");
     const def = String(idx.rows[0]?.indexdef ?? '');
-    A('0152/partial unique index 在库：UNIQUE btree (owner_user_id) WHERE kind=trial',
+    A('0154/partial unique index 在库：UNIQUE btree (owner_user_id) WHERE kind=trial',
       /CREATE UNIQUE INDEX/.test(def) && /USING btree/.test(def) && /\(owner_user_id\)/.test(def) && /WHERE.*kind.*=.*'trial'/.test(def));
   }
 
