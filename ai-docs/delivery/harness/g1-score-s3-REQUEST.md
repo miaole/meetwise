@@ -130,3 +130,13 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 - #41：0020:8/:18+README:77 三翻 accepted · README:78 后果行 + 0020:84 状态段收口（接线锚 50cb3238/2c3a7d80·保留未闭合项）+ :79-84 域已接线锚一行 · 决策正文/被否方案/:63 零触
 - 门禁 EXIT 表（attempts 全账·零 retry-to-green）：scor-parity 0/0（确认复跑）·scor-01 0·scor-02 0·scor03 0·migrate:prove 0（95 PASS）·neg:interview 0（97=基线原值）·db tsc 预存 20 零新增（自身 6 处 strict 修复）·docs:check=1 **预存 base 红如实**（PTP_FILE_LIMIT：HEAD 已 4325≫cap 2048·本刀 +2 交付物=4327·零语义恶化·修法域外留协调方）
 - est live=0 · actualSpendCny=null · 0 Key 值接触 · markers=0 · pins 十一值零翻转 · 停止条件三条全否（零漂移/白名单恰四值/零翻全绿）· ⛔push · 收据 `receipts/g1-score-s3/`（exec-prove.md+8 日志）
+
+---
+
+## nail 落卷（2026-10-10 · post-prove 双席 BOTH PASS）
+
+**双审结果**：席1（对拍语义/守门正确性）+席2（验收/回归）互盲复核 BOTH PASS。**对拍真对拍核**：100 格含全部非法格真 UPDATE 行使（两侧任一漂移必现形）·23514 归因分析排除混淆路径（CHECK 枚举 10 合法值/触发器先行/部分索引后求值）·round 边界三类机器断言（整商/.5 精确命中 den=2 幂/远界≥1e-6）+numeric 半点向上与 Math.round 同向数学证明·正测硬门四处 INSERT 面经真实函数行使结构上不可削弱·六注册点+ci.yml 增步全亲证·scor-01/02/03 零翻（64/59/64）·migrate 95·neg 97·db tsc 预存 20 零新增。merge 落主线 @005c7fde。
+
+**随卷登记**：①docs:check 预存红（PTP cap 2048 vs 4327 受管路径·本刀 +2 计数门零语义恶化·域外留协调方）②§B 归因精度后续可选强化（未来加 status CHECK 时归因会退化·漂移检出性不退化）③§C 期望表/§E 互锚依赖已在 proof 头注如实披露。
+
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·merge 落主线 @005c7fde·#42 状态机对拍+0158 INSERT 守门+#41 ADR 收口正式解除·SCORE 系接线债全清·批1 残 3→1·markers=0·est live=0）。
