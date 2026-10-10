@@ -58,6 +58,8 @@ async function validate() {
   }
   await db.pool.query(`INSERT INTO interview(id,owner_user_id,status) VALUES ('ABND','userA','created')`);
   await db.pool.query(`INSERT INTO interview(id,owner_user_id,status,questions) VALUES ('ASMT','userA','completed','["订单限流方案","分布式锁可靠性"]')`);
+  // EVIDENCE-DELIVERY S2(出③) fixture：completed 场次（fence 同 ASMT 面）供 transcript evidence 断言。
+  await db.pool.query(`INSERT INTO interview(id,owner_user_id,status,questions) VALUES ('EVDEL','eviddelUser','completed','["请说明限流方案","请说明降级策略"]')`);
   // 图内 issueQuestionId 编码 q-v{stateVersion}-t{turn}-c{clarifyAttempts}，stateVersion 从 0 起、每题 +1：
   // turn 0 → stateVersion 1（q-v1-t0-c0），turn 1 → stateVersion 2（q-v2-t1-c0）。0021 的
   // UNIQUE(owner_user_id,interview_id,state_version) 要求同场两题 state_version 不同，故第二题用 2。
@@ -418,6 +420,32 @@ async function validate() {
   r = await req('GET', '/interview', { 'x-user-id': 'userB' }); A('userB 列表看不到 userA 的面试(RLS)', r.status === 200 && !r.body.interviews.some((x: any) => x.id === newIv));
   r = await req('GET', `/interview/${newIv}/transcript`, { 'x-user-id': 'userA' }); A('转写(空题目→空 turns)', r.status === 200 && Array.isArray(r.body.turns) && r.body.turns.length === 0);
   r = await req('GET', `/interview/${newIv}/transcript`, { 'x-user-id': 'userB' }); A('userB 越权取转写 → 404', r.status === 404);
+  // EVIDENCE-DELIVERY S2(出③)：answer_evaluated.payload 带 evidence（模型判据）→ transcript turns[].evidence 在场；
+  // 历史形状（无 evidence 键）→ evidence=[]（P2 旧行回退隐藏的上游投影）；quote 原文键不入投影（脱敏边界）。
+  // 专用 client 上重绑 session principal（池化连接可能残留跨用户 HTTP 段设置的 userB 等 principal）。
+  {
+    const seedClient = await db.pool.connect();
+    try {
+      await seedClient.query("SELECT set_config('app.principal_user', 'eviddelUser', false)");
+      await seedClient.query(
+        `INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question,competency,status,answer_id,answer_hash)
+         VALUES ('eviddelUser','EVDEL','q-v1-t0-c0',1,0,'请说明限流方案','高并发','answered','11111111-1111-4111-8111-111111111111',repeat('a',64)),
+                ('eviddelUser','EVDEL','q-v2-t1-c0',2,1,'请说明降级策略','高并发','answered','22222222-2222-4222-8222-222222222222',repeat('b',64))`,
+      );
+      await seedClient.query(
+        `INSERT INTO interview_event(owner_user_id,stream_key,seq,kind,payload) VALUES
+           ('eviddelUser','EVDEL',1,'answer_evaluated',$1),
+           ('eviddelUser','EVDEL',2,'answer_evaluated',$2)`,
+        [JSON.stringify({ questionId: 'q-v1-t0-c0', stateVersion: 1, answerId: '11111111-1111-4111-8111-111111111111', answerHash: 'a'.repeat(64), turn: 0, competency: '高并发', score: 80, outcome: 'answered', question: '请说明限流方案', evidence: ['answer_quality'] }),
+         JSON.stringify({ questionId: 'q-v2-t1-c0', stateVersion: 2, answerId: '22222222-2222-4222-8222-222222222222', answerHash: 'b'.repeat(64), turn: 1, competency: '高并发', score: 40, outcome: 'answered', question: '请说明降级策略' })],
+      );
+    } finally { seedClient.release(); }
+  }
+  r = await req('GET', '/interview/EVDEL/transcript', { 'x-user-id': 'eviddelUser' });
+  A('转写带 evidence：判据数组逐元素在场（出③）', r.status === 200 && r.body.turns[0]?.evidence?.length === 1 && r.body.turns[0].evidence[0] === 'answer_quality');
+  A('转写历史形状回合 evidence=[]（缺键→空数组·P2 回退隐藏上游）', r.status === 200 && Array.isArray(r.body.turns[1]?.evidence) && r.body.turns[1].evidence.length === 0);
+  A('转写投影零 quote 原文（脱敏边界·响应面无 quote/evidenceRecords 键）',
+    r.status === 200 && r.body.turns.every((t: any) => !('quote' in t) && !('evidenceRecords' in t)));
   // 面试列表过滤 + 简历重解析
   r = await req('GET', '/interview?status=completed', { 'x-user-id': 'userA' }); A('按 status 过滤面试列表', r.status === 200 && r.body.interviews.every((x: any) => x.status === 'completed') && r.body.interviews.some((x: any) => x.id === 'ASMT'));
   r = await postJson('/resume/' + resumeId + '/reparse', { 'x-user-id': 'userA' }, {}); A('简历重解析 → 200(解密重结构化)', r.status === 200 && r.body.reparsed === true);

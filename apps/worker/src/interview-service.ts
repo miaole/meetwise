@@ -293,14 +293,15 @@ export function diagnosisGenerator(pool: DbPool, owner: string, resumeFacts: str
 }
 
 /**
- * 评分:一题一答经 invoke。供应商/schema 失败是 `unscored`，不是 50 分。
- * 调用方必须发审计事件并排除出能力画像/报告聚合，不允许编造中性分数。
- * `idempotencyKey` 会作为 registry businessRevision 派发:必须满足
- * `/^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/`(首字符字母数字,余下仅 `._:-`);否则
- * invoke 以 `model_operation_revision_invalid` fail-closed(不会派发,绝不静默吞掉)。
+ * 评分段头留档（EVIDENCE-DELIVERY S4 · 2026-10）：遗留包装 `evaluateAnswer` 已删——生产零调用
+ * （#159 同形处置先例），生产路径=自适应图 assess→invokeEvaluationOnce。
+ * 其段头键字符集约束注释归档指向存续面：idempotencyKey 作为 registry businessRevision 派发时必须满足
+ * `/^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/`(首字符字母数字,余下仅 `._:-`);否则 invoke 以
+ * `model_operation_revision_invalid` fail-closed(不会派发,绝不静默吞掉)——该约束的存续强制面=invoke
+ * registry 层,存续调用面 invokeEvaluationOnce 的 baseIdempotencyKey 同受辖（约束知识不随删失载）。
  */
 /**
- * v6 派生（evaluateAnswer / 自适应 assess 共用单源）：schema 值 → 脱敏 records + 0103 契约
+ * v6 派生（自适应 assess 单源）：schema 值 → 脱敏 records + 0103 契约
  * 证据 + 确定性 hint 分。cache 命中返回的已是脱敏 record；首次模型返回则在这里做一次脱敏转换。
  * 0103 证据（utf8_byte span+digest）由 records 唯一派生（domain 单源）——首次/缓存两条路径
  * 同形；答案明文只在调用内存态存活，派生物不含原文。hint 分 = 档位×量表权重的确定性派生
@@ -317,18 +318,6 @@ export function evaluateOutcomeFromValue(value: z.infer<typeof EvalSchema>, answ
     weight: EVALUATION_SEED_CRITERIA.find((c) => c.criterionId === d.criterionId)?.weight ?? 0,
   })));
   return { score, evidence: evidenceRecords.map((item) => item.criterionId), evidenceRecords, dispositions };
-}
-
-export async function evaluateAnswer(pool: DbPool, owner: string, idempotencyKey: string, question: string, answer: string, model: ModelClient): Promise<EvaluationOutcome> {
-  {
-    const out = await invokeEvaluationOnce(pool, owner, {
-      baseIdempotencyKey: idempotencyKey, question, answer, model,
-    });
-    // 旧的非自适应调用方没有 clarify 分支，保守保持 unscored；自适应图会把
-    // quote_repair_exhausted 转为同题澄清，见 adaptive-interview-service。
-    if (out.status !== 'scored') return { status: 'unscored', reason: out.error, evidence: [], evidenceRecords: [], dispositions: [] };
-    return { status: 'scored', relevant: out.value.relevant, hasHook: out.value.relevant && out.value.hasHook, ...evaluateOutcomeFromValue(out.value, answer) };
-  }
 }
 
 /** 报告:report 图的 generate,经 invoke(空报告=业务校验失败)。

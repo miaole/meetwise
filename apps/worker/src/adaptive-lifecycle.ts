@@ -298,6 +298,7 @@ async function submitAdaptiveAnswerImpl(
   const transcript = (snap.values?.transcript ?? []) as Array<{
     questionId?: string; stateVersion?: number; score: number | null; outcome?: string; competency?: string; q?: string; hint?: string; reason?: string;
     dispositions?: ScoredCriterionDisposition[];
+    evidence?: string[];
   }>;
   const last = transcript[transcript.length - 1];
   if (!last || last.questionId !== input.questionId)
@@ -330,6 +331,7 @@ async function submitAdaptiveAnswerImpl(
         await appendEvent(c, d.owner, d.interviewId, 'answer_evaluated', {
           questionId: input.questionId, stateVersion: last.stateVersion, answerId: input.answerId, answerHash: input.answerHash, turn: input.turn,
           score: last.score, outcome: last.outcome ?? 'answered', competency: last.competency, question: last.q ?? '',
+          evidence: last.evidence,   // EVIDENCE-DELIVERY S1(C4)：模型判据随事件带出（缺省=undefined，不进 JSONB）
         }, `answer_evaluated:${input.questionId}`);
       } else if (unscored) {
         await appendEvent(c, d.owner, d.interviewId, 'answer_unscored', {
@@ -364,6 +366,7 @@ async function submitAdaptiveAnswerImpl(
     await appendEvent(c, d.owner, d.interviewId, 'answer_evaluated', {
       questionId: input.questionId, stateVersion: last.stateVersion, answerId: input.answerId, answerHash: input.answerHash, turn: input.turn,
       score: last.score, outcome, competency: last.competency, question: last.q ?? '',
+      evidence: last.evidence,   // EVIDENCE-DELIVERY S1(C5)：模型判据随事件带出（缺省=undefined，不进 JSONB）
     }, `answer_evaluated:${input.questionId}`);
     if (next) await appendEvent(c, d.owner, d.interviewId, 'question_ready', {
       questionId: next.questionId, stateVersion: next.stateVersion, turn: next.turn,
