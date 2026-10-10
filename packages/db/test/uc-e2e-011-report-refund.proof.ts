@@ -143,7 +143,10 @@ async function main() {
     A('R2 舱壁：consumption 仍 confirmed（报告失败不退款）', (await consStatus(owner, id)) === 'confirmed');
     A('R2 额度不回补（仍 4）', (await asPrincipal(pool, owner, (c) => availableUnits(c, owner))) === 4.0);
 
-    // regenerate 入口（UC-019）在 quarantined 上 requeueFailedReport 应失败——诚实钉 BLOCKED
+    // regenerate 入口（UC-019）在 quarantined 上 requeueFailedReport——#229 D2 已决翻转旧诚实钉
+    // （旧语义 quarantined 不可 requeue · 见 git blame）：现在 CAS 接受 failed|quarantined 并重置
+    // attempts/next_attempt_at（全新自动预算），且零扣费不变（consumption 仍 confirmed）。
+    const unitsBeforeRq = await asPrincipal(pool, owner, (c) => availableUnits(c, owner));
     const rq = await asPrincipal(pool, owner, async (c) => {
       const row = await c.query(
         'SELECT id FROM ai_report WHERE owner_user_id=$1 AND interview_id=$2',
@@ -152,7 +155,11 @@ async function main() {
       const reportId = row.rows[0]?.id as string;
       return requeueFailedReport(c, owner, reportId);
     });
-    A('R2 quarantined 不可 requeueFailedReport（regenerate 产品口仍 BLOCKED→UC-019）', rq === false);
+    const repAfterRq = await asPrincipal(pool, owner, (c) => getReport(c, owner, id));
+    A('R2 quarantined 手动 requeueFailedReport → true（#229 D2 翻转旧诚实钉 · quarantined 解锁 · 旧语义见 git blame）', rq === true);
+    A('R2 重排重置预算：attempts=0（全新 3 次自动重试预算）', (repAfterRq?.attempts ?? -1) === 0);
+    A('R2 重排零扣费：额度与 consumption 逐位不变', (await asPrincipal(pool, owner, (c) => availableUnits(c, owner))) === unitsBeforeRq
+      && (await consStatus(owner, id)) === 'confirmed');
   }
 
   // ── R3: mistaken refund on completed+confirmed rejected ──
@@ -229,7 +236,7 @@ async function main() {
     ? '✓ UC-E2E-011 R1–R4 integration/honesty asserts passed (partial ladder only; ≠ covered; ≠ e2e:isolated refund assert)'
     : `✗ ${fail} UC-E2E-011 asserts failed`}`);
   console.log('BLOCKED_FOR_FULL_E2E: full.e2e 有 report_unavailable+quarantined 兜底，但缺额度/ConsumptionRecord 回滚业务断言进 e2e:isolated');
-  console.log('BLOCKED: TC-E2E-011-refund-idem（支付回调幂等）+ balance-ui + regenerate 入口（UC-019）仍 gap');
+  console.log('BLOCKED: TC-E2E-011-refund-idem（支付回调幂等）+ balance-ui 仍 gap；regenerate 入口（UC-019）quarantine 出口已由 #229 D2 解锁（需求名 /reports/:id/regenerate 仍未落·UC-019 covered 判定归其自身刀线）');
   console.log('BLOCKED: 本绿≠ UC-E2E-011 covered；releaseEvidence=false；Not HA');
   await pool.end();
   process.exit(fail ? 1 : 0);
