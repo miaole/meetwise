@@ -184,39 +184,39 @@ export type {
 } from './qbank-ingest.ts';
 
 // 外部 AI 调用费用账本：预留/派发/结算/未知结果冻结均由数据库状态机承重。
-export { reserveAiCost, reserveAiTextCost, markAiCostDispatched, settleAiCost, settleAiTextCost, releaseAiCost, markAiCostUnknown, markAiCostsUnknownForModelReconcile, markAiTextCostRejected } from './ai-cost-governance.ts';
-export type { AiCostDecision, AiCostReservationInput, AiTextCostReservationInput, AiCostReservationDecision } from './ai-cost-governance.ts';
+export { reserveAiCost, reserveAiTextCost, markAiCostDispatched, settleAiCost, settleAiTextCost, releaseAiCost, markAiCostUnknown, markAiCostsUnknownForModelReconcile, markAiTextCostRejected } from './model-op/ai-cost-governance.ts';
+export type { AiCostDecision, AiCostReservationInput, AiTextCostReservationInput, AiCostReservationDecision } from './model-op/ai-cost-governance.ts';
 
 // 模型调用持久 claim：短事务声明意图，网络 I/O 一律在事务外；unknown 禁止自动重发。
-export { claimModelInvocation, markModelInvocationDispatched, failModelInvocationClaim, completeModelInvocation, markModelInvocationUnknown, reconcileStaleModelInvocations } from './model-invocation.ts';
-export type { ModelInvocationClaim, ClaimModelInvocationInput, CompleteModelInvocationInput, ReconciledModelInvocation } from './model-invocation.ts';
+export { claimModelInvocation, markModelInvocationDispatched, failModelInvocationClaim, completeModelInvocation, markModelInvocationUnknown, reconcileStaleModelInvocations } from './model-op/model-invocation.ts';
+export type { ModelInvocationClaim, ClaimModelInvocationInput, CompleteModelInvocationInput, ReconciledModelInvocation } from './model-op/model-invocation.ts';
 
 // usage 对账校准因子数据面（MODEL-OP-00 收尾）：estimate↔usage 配对读面 + 版本化因子/观测日志幂等落库。
 export {
   listUsageCalibrationPairs, insertUsageCalibrationFactor, insertUsageCalibrationObservation, latestUsageCalibrationFactor,
-} from './usage-calibration.ts';
+} from './model-op/usage-calibration.ts';
 export type {
   UsageCalibrationPair, UsageCalibrationFactorRow,
   InsertUsageCalibrationFactorInput, InsertUsageCalibrationObservationInput,
-} from './usage-calibration.ts';
+} from './model-op/usage-calibration.ts';
 
 // MODEL-OP-02 共享 provider 准入/费用账本/断路器/并发 数据访问（SECURITY DEFINER 过程真相）。
-export { acquireModelAdmission, recordModelAdmission } from './model-operation-admission.ts';
+export { acquireModelAdmission, recordModelAdmission } from './model-op/model-operation-admission.ts';
 export type {
   ModelAdmissionPartition, ModelAdmissionDecision, ModelBreakerOutcome, ModelFeeStatus,
   ModelAdmissionAcquireInput, ModelAdmissionAcquireResult, ModelAdmissionRecordInput,
-} from './model-operation-admission.ts';
+} from './model-op/model-operation-admission.ts';
 
 // 在线 Judge 控制面：只处理 HMAC 引用和状态机；不持有用户正文或模型 payload。
 export {
   registerOnlineJudgeCandidate, revokeOnlineJudgeCandidate, claimNextOnlineJudgeDispatch,
   markOnlineJudgeDispatching, completeOnlineJudgeDispatch,
-} from './online-judge-control.ts';
+} from './model-op/online-judge-control.ts';
 export type {
   OnlineJudgeFeature, OnlineJudgeLanguageGroup, OnlineJudgeModality, OnlineJudgeRiskBucket, OnlineJudgeSourcePolicy,
   OnlineJudgeSelectionState, OnlineJudgeDispatchTerminal, RegisterOnlineJudgeCandidateInput, OnlineJudgeCandidateReceipt,
   ClaimedOnlineJudgeDispatch, CompleteOnlineJudgeDispatchInput,
-} from './online-judge-control.ts';
+} from './model-op/online-judge-control.ts';
 
 // 泛化全格式 RAG 版本控制面：不可变内容/recipe/generation、评测发布门、灰度 binding、回滚与擦除传播。
 export {

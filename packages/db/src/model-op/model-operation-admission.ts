@@ -13,7 +13,7 @@
  *    ai_cost_require_request_owner 绑定租户；
  *  - 持久有序日志：fee ledger 逐调用落库。
  */
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 
 /** 准入分区四字段（与 registry 的 modelOperationAdmissionKey 同源，绝不 caller 供）。 */
 export interface ModelAdmissionPartition {

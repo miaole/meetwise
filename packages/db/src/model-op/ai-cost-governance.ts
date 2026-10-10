@@ -2,7 +2,7 @@
  * AI 费用账本的应用侧契约。数据库过程才是并发预算与状态机的真相；此文件不缓存
  * 决策、不做金额运算，避免多 worker 的本地状态把预算打穿。
  */
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 
 export type AiCostDecision = 'reserved' | 'held' | 'unknown' | 'settled' | 'released' | 'policy_missing' | 'price_missing' | 'binding_mismatch' | 'budget_exhausted';
 export interface AiCostReservationInput {

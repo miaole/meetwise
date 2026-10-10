@@ -4,7 +4,7 @@
  * `asOnlineJudgeExecutor()`; this module deliberately never accepts user
  * content and never constructs a provider request.
  */
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 
 export type OnlineJudgeFeature = 'agent' | 'rag' | 'scoring' | 'voice' | 'memory' | 'observability';
 export type OnlineJudgeLanguageGroup = 'zh' | 'en' | 'mixed';
