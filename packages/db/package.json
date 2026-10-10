@@ -15,6 +15,7 @@
     "prove:uc018-abandon": "tsx test/uc-e2e-018-user-abandon.proof.ts",
     "prove:uc011-report-refund": "tsx test/uc-e2e-011-report-refund.proof.ts",
     "prove:uc019-report-regenerate": "tsx test/uc-e2e-019-report-regenerate.proof.ts",
+    "prove:report-retry": "tsx test/report-retry.proof.ts",
     "resume": "tsx test/resume-ingest.proof.ts",
     "recruiter": "tsx test/recruiter-depth.proof.ts",
     "growth": "tsx test/growth.proof.ts",

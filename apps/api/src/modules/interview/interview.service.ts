@@ -25,6 +25,9 @@ import { generateLearningPlanFor, getLearningPlanFor, completeLearningItemFor } 
 const VOICE_RL = { capacity: 40, refillPerSec: 0.3 };
 // 每次 turn 都入队一条**付费评分** job → 无限流 = 成本 DoS(安全审计 F1)。突发 30(足够一场面试的作答+澄清重答),稳态 0.2/秒(~12/分)。
 const TURN_RL = { capacity: 30, refillPerSec: 0.2 };
+// 手动报告重试(#229 D2):重排即给一轮全新 3 次自动重试预算(每轮都是付费模型调用) → 无限点击 = 成本 DoS。
+// **每份报告 3 次/小时**令牌桶(突发 3,稳态 3/3600 每秒)·阈值=建议值待用户追认(S12)·常量钉死可调,改值不需重开 REQUEST。
+const REPORT_RETRY_RL = { capacity: 3, refillPerSec: 3 / 3600 };
 // interview 表状态机:created → active →(completed | failed | abandoned)。终态集中一处定义,begin/turn/abandon 守卫共用。
 const TERMINAL_INTERVIEW = ['completed', 'abandoned', 'failed'];
 const MAX_TURN = 256;             // turn 号上界(默认绝对杀开关 120 + clarify 冗余;防超大 turn 号刷无限 job)
@@ -615,8 +618,11 @@ export class InterviewService {
   }
 
   // 报告重试:失败/隔离的报告重新入队生成(舱壁降级后的用户侧恢复——报告挂了不连累面试,且可重试)。
+  // #229 D2:入口前置**每份报告 3 次/小时**令牌桶频控(重排给全新自动预算=付费调用,无限点击=成本 DoS);超限 429 report_retry_limited。
   async retryReport(principal: string, id: string) {
     this.denyPublicPreviewWrite();
+    if (!this.rl.allow('report_retry:' + id, REPORT_RETRY_RL.capacity, REPORT_RETRY_RL.refillPerSec))
+      throw new HttpException({ error: 'report_retry_limited' }, HttpStatus.TOO_MANY_REQUESTS);
     return retryReportById(this.db, this.guardInterviewPrivacy.bind(this), principal, id);
   }
 
