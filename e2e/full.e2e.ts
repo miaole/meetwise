@@ -9,7 +9,7 @@
 import { randomUUID } from 'node:crypto';
 import { liveOcrResumePngBase64 } from './ocr-fixture.ts';
 import { createAssert } from './helpers/assert.ts';
-import { signupOrLogin, uidFromToken } from './helpers/auth.ts';
+import { adminHeaders, signupOrLogin, uidFromToken } from './helpers/auth.ts';
 import { createOrder, entitlement, isWebhookCreditResult, paidWebhookSignature, payWebhook, postPayWebhook } from './helpers/commerce.ts';
 import { createE2EReviewLedger, emitClassifiedE2EFailure, emitE2EFailure } from './helpers/failure.ts';
 import { BASE, readJson } from './helpers/http.ts';
@@ -273,6 +273,14 @@ async function main() {
   reviews.record({ class: 'worker', code: 'seg_step8_enter' }); // CMOP03-D M2: step8 B 端区入口
   const recruiter = await signupOrLogin(`e2e_rec_${tag}@x.com`, password, 'recruiter');
   const HR = recruiter.headers;
+  // B110 处方2 审批活契约(pending 落库为 0155 signup 默认):发岗先吃 403 分码,admin approve 后原 200 断言照旧兑现。
+  // 403 无副作用:RecruiterGuard 先于限流/解析,零桶消耗。拒绝支线 API 级已证(neg-bend),此处不加。
+  r = await fetch(`${BASE}/recruiter/jobs`, { method: 'POST', headers: HR, body: JSON.stringify({ title: '审批门前岗位', competencies: ['审批门'] }) });
+  b = await readJson(r);
+  A(r.status === 403 && b.error === 'recruiter_pending_review', 'B端审批活契约:pending 发岗 → 403 分码 recruiter_pending_review', 'data_or_permission');
+  r = await fetch(`${BASE}/admin/recruiter-approvals/${uidFromToken(recruiter.token)}/decision`, { method: 'POST', headers: adminHeaders(), body: JSON.stringify({ decision: 'approve' }) });
+  b = await readJson(r);
+  A(r.status === 200 && b.decided === true, 'B端审批活契约:admin approve → decided=true');
   r = await fetch(`${BASE}/recruiter/jobs`, { method: 'POST', headers: HR, body: JSON.stringify({ title: '后端工程师', competencies: ['高并发', '分布式锁', '限流'] }) });
   b = await readJson(r);
   A(r.status === 200 && typeof b.id === 'string', `B端:招聘方发岗位 → jobId(${b.id})`);
@@ -290,6 +298,10 @@ async function main() {
   b = await readJson(r);
   A(r.status === 200 && (b.jobs ?? []).some((x: any) => x.id === jobId), 'B端:招聘方看到自己的岗位');
   const recruiter2 = await signupOrLogin(`e2e_rec2_${tag}@x.com`, password, 'recruiter');
+  // B110 处方2: recruiter2 须在 RLS 断言前过审批门(只令过门,不加第二遍分码断言/不加 reject 支线)。
+  r = await fetch(`${BASE}/admin/recruiter-approvals/${uidFromToken(recruiter2.token)}/decision`, { method: 'POST', headers: adminHeaders(), body: JSON.stringify({ decision: 'approve' }) });
+  b = await readJson(r);
+  A(r.status === 200 && b.decided === true, 'B端审批活契约:recruiter2 admin approve → decided=true');
   r = await fetch(`${BASE}/recruiter/jobs`, { headers: { authorization: `Bearer ${recruiter2.token}` } });
   b = await readJson(r);
   A(r.status === 200 && !(b.jobs ?? []).some((x: any) => x.id === jobId), 'B端 RLS:另一招聘方看不到他人岗位(租户隔离 ✅)', 'data_or_permission');
