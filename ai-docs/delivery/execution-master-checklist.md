@@ -2254,3 +2254,13 @@ flowchart TD
 - **残余（nail 登记）**：①assessment 正路径 200 prove 零覆盖（席2 强制）→GROWTH ③a 承接；②存量 v5 checkpoint 回合跳写不追溯；③live 红队 smoke 归下次 live 授权窗；④S3 收尾（#42/#43 对拍+ADR-0020 accepted+#47）.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · S2 ≠ 评分体系完成 ≠ #20 独立 E2E（等价覆盖已裁定） · 实现方不 self-approve.
+
+### Line GROWTH-GEN 成长链接通刀 NAIL（2026-10-10 SSOT nail · 协调方授权 · post-prove 双域双审 BOTH PASS · 18 files +667/−43（growth-generation.ts @meetwise/db 共享核+report-worker 钩子硬接线+interview.proof +171 含 ③a 21 断言+0152 consent GRANT+web growth 文案）·interview:prove 54 PASS（33+21）·**P0 断链 #204 成长链正式走通**）
+
+- Pins unchanged（十一值照抄零翻转）.
+- [x] **`post_prove_dual_pass`** recorded（EXEC `fb724eef`（rebase 吸收 SCORE S2·Legacy 符号承继）·REQUEST rev3+勘误 @9da7ec79 唯一蓝本·nail tip 本 commit · branch `line/growth-gen`）· **双域双审 BOTH PASS**：席1 mw-e2e-ha PASS（rebase 吸收亲证 GATE-B/C 复跑零命中+D1 形A 全件落位（tx2 后硬接线/逐段独立事务/fencedSkipped/零卡 skipped/竞态+crash 登记）+prove 三跑亲证全绿（③a 21 断言含三区块非空/deriveGrowth 出点两点/弱项非 no-op（historicalWeakDimensions+biasByPastWeakness 生产直行使）/幂等三表行数各=1/尽力而为故障注入三断言）+D2 薄委托信封 neg 97 绿+D3 单事务 upsert API 零触（interview.service.ts diff 空））+ 席2 mw-model-op PASS（D1 三登记完整与审计「自动产出」承诺对齐·D2 409 双门信封字节原样+neg 97 亲数·D3 零触+并发恒等论成立（同纯函数同输入 last-writer-wins 良性）·rebase 四点独立复核）· 协调方正式授权本 nail.
+- **D1/D2/D3 裁定全落实**：D1 形 A（tx2 后紧邻事务·尽力而为·B 升级项登记）·D2a 落 @meetwise/db（信封留 API）·D3 worker 单事务 upsert+API 零触（#187 不再加厚）。
+- **残余登记**：assessment HTTP 200 正封面 prove 归 S3 兜口（席1 等价覆盖裁定·非阻断）·crash 窗口尽力而为≠保证·fencedSkipped 无正证专项断言（如实登记·assertInterviewPrivacyActive 有 S1 前证明面）·/turn 过渡窗零卡承 S1/S2 形状归 SCORE 域。
+- **P0 断链 #204 收口宣言**：成长链（评估→学习计划→职业路径→成长曲线）report-worker 成功后自动生成·弱项偏置生产直行使·前端只读·/growth 出点·Dashboard 三区块——**审计原文「整条链不可达」正式解除**。
+- 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 成长链接通 ≠ 弱项闭环（#252/#205/#206 另刀） · 实现方不 self-approve.
