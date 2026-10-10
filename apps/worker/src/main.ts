@@ -17,7 +17,7 @@ import {
 } from '@meetwise/db';
 import { configureG7RuntimeInjection, createLangfuseV5Runtime, isG7FreetierReproveEnabled, resolveLangfuseConnection, resolveModelDeadlineConfig, resolveDashscopeNativeConfig, setTracer, dashscopeEmbedder, cachingEmbedder, inMemoryEmbeddingStore, getMetrics, registerBaselineMetrics, METRIC, type Embedder, type ModelClient } from '@meetwise/ai-runtime';
 import { assertLegacyInterviewGraphDisabled } from './production-config.ts';
-import { runDrainLoop } from './drain-loop.ts';
+import { runDrainLoop, drainWithDeadline, wireSignalShutdown, type NamedStop } from './drain-loop.ts';
 import { startWorkerJobWakeupListener } from './job-wakeup-listener.ts';
 import {
   createWakeupRedisClient,
@@ -712,6 +712,20 @@ async function bootstrap() {
   const gaugeLoop = runDrainLoop(() => Promise.all([
     refreshJobGauges(pool), refreshRagCostGauges(pool, ragCost.scopeId), refreshModelCostGauges(pool, modelCost.scopeId),
   ]).then(() => undefined), Number(process.env.WORKER_GAUGE_INTERVAL_MS || 15000));
+  // HA-2 排水证明 stub(REQUEST §4 B6/B7·rev2-R4):env-gated·绝不触发真实模型调用
+  // (守 est live=0 与 pins actualSpendCny=null)。MEETWISE_HA2_STUB_TICK_MODE:
+  //   pg-roundtrip — 每 tick 一次真 PG 往返(select 1)+ha2_stub_tick_done 日志(B6 短
+  //                  tick 自然完退:在飞 tick 完整收尾后自退,排水等待可观测);
+  //   hang        — 首个 tick 挂死永不 resolve(B7:deadline 裁决路径,worker_drain_timeout)。
+  // 未设 env 零行为零成本;stub 循环进 drainStops 清单(name=stub-tick),不入 workerReady
+  // (stub 不参与生产 readiness 语义)。落库断言口径:stub 为 PG 往返 tick,非真实 job
+  // markDone(真实 markDone 需真租约 job→模型管线,违 R4 绝不触发真实模型)——记账如实。
+  const stubTickMode = process.env.MEETWISE_HA2_STUB_TICK_MODE?.trim();
+  const stubLoop = stubTickMode ? runDrainLoop(async () => {
+    if (stubTickMode === 'hang') await new Promise<void>(() => {});            // 挂死:deadline 裁决
+    else await pool.query('select 1').then(() => console.log(`ha2_stub_tick_done pid=${process.pid}`));
+  }, 200) : undefined;
+  if (stubLoop) console.log(`ha2_stub_tick_loop enabled mode=${stubTickMode}`);
   const metricsServer = startMetricsExposition({
     ragReady: () => ragCache.available && qbankReadModel.ready,
     workerReady: () => reportLoop.ready() && interviewLoop.ready() && quizLoop.ready() && diagnosisLoop.ready()
@@ -734,7 +748,53 @@ async function bootstrap() {
       void initializeQbankReadModel(qbankControlPool, embedder, qbankReadModel);
     }
   }
-  process.on('SIGTERM', async () => { await jobWakeupListener.stop().catch(() => {}); await jobWakeupRedisListener.stop().catch(() => {}); await jobWakeupRedisClient?.close().catch(() => {}); await Promise.allSettled([Promise.resolve(reportLoop.stop()), interviewLoop.stop(), quizLoop.stop(), diagnosisLoop.stop(), routeClassifyLoop.stop(), commerceLoop.stop(), modelInvocationReconcileLoop.stop(), usageCalibrationReconcileLoop.stop(), privacyErasureLoop?.stop() ?? Promise.resolve(), gaugeLoop.stop(), ragCache.close(), privacyPool?.end() ?? Promise.resolve(), qbankControlPool?.end() ?? Promise.resolve(), ragControlPool?.end() ?? Promise.resolve(), langfuse?.shutdown()]); metricsServer.close(); console.log('drained, exiting'); process.exit(0); });   // 优雅排空在飞 job 再退
+  // HA-2 W3(REQUEST §3 C5):优雅排空 + WORKER_DRAIN_TIMEOUT_MS(默认 30s)deadline
+  // 竞速 + SIGINT 同链。清单 16 项(R3 勘误:原 allSettled 实数 15,补漏
+  // vectorPlaneErasureLoop?.stop() 后 16):10 loop.stop(report/interview/quiz/diagnosis/
+  // route-classify/commerce/modelInvocationReconcile/usageCalibrationReconcile/
+  // privacyErasure/vectorPlaneErasure/gauge)+ ragCache.close + 3 pool.end(privacy/
+  // qbankControl/ragControl)+ langfuse.shutdown。deadline 胜出 → worker_drain_timeout
+  // (含在飞名)后 exit 0:被弃 job 走租约过期→reaper/sweep 重领,不双跑(既有 crash-safe);
+  // metricsServer.close() 补 await(诚实收口,2s 上限 race,非阻断)。
+  const drainStops: NamedStop[] = [
+    { name: 'report', stop: () => reportLoop.stop() },
+    { name: 'interview', stop: () => interviewLoop.stop() },
+    { name: 'quiz', stop: () => quizLoop.stop() },
+    { name: 'diagnosis', stop: () => diagnosisLoop.stop() },
+    { name: 'route-classify', stop: () => routeClassifyLoop.stop() },
+    { name: 'commerce', stop: () => commerceLoop.stop() },
+    { name: 'model-invocation-reconcile', stop: () => modelInvocationReconcileLoop.stop() },
+    { name: 'usage-calibration-reconcile', stop: () => usageCalibrationReconcileLoop.stop() },
+    { name: 'privacy-erasure', stop: () => privacyErasureLoop?.stop() ?? Promise.resolve() },
+    { name: 'vector-plane-erasure', stop: () => vectorPlaneErasureLoop?.stop() ?? Promise.resolve() },
+    { name: 'gauge', stop: () => gaugeLoop.stop() },
+    { name: 'rag-cache', stop: () => ragCache.close() },
+    { name: 'privacy-pool', stop: () => privacyPool?.end() ?? Promise.resolve() },
+    { name: 'qbank-control-pool', stop: () => qbankControlPool?.end() ?? Promise.resolve() },
+    { name: 'rag-control-pool', stop: () => ragControlPool?.end() ?? Promise.resolve() },
+    { name: 'langfuse', stop: () => langfuse?.shutdown() ?? Promise.resolve() },
+    ...(stubLoop ? [{ name: 'stub-tick', stop: () => stubLoop.stop() }] : []),
+  ];
+  let workerShuttingDown = false;
+  const shutdownWorker = (signal: string): void => {
+    if (workerShuttingDown) return;                 // SIGTERM/SIGINT 双落·重复信号幂等
+    workerShuttingDown = true;
+    void (async () => {
+      await jobWakeupListener.stop().catch(() => {});
+      await jobWakeupRedisListener.stop().catch(() => {});
+      await jobWakeupRedisClient?.close().catch(() => {});
+      const outcome = await drainWithDeadline(drainStops, boundedIntEnv('WORKER_DRAIN_TIMEOUT_MS', 30_000, 1_000, 300_000), (inFlight) => {
+        console.error(`worker_drain_timeout signal=${signal} in_flight=${inFlight.join(',')}`);
+      });
+      await Promise.race([                          // 上限 2s:metrics 收口诚实但不悬挂(极简败者纪律)
+        new Promise<void>((resolve) => metricsServer.close(() => resolve())),
+        new Promise<void>((resolve) => { const t = setTimeout(resolve, 2_000); t.unref?.(); }),
+      ]);
+      console.log(`drained (${outcome}), exiting`);
+      process.exit(0);
+    })();
+  };
+  wireSignalShutdown(['SIGTERM', 'SIGINT'], () => shutdownWorker('SIGTERM'));   // 优雅排空在飞 job 再退;两信号同一 handler
   console.log(`worker ${ragCache.available ? 'ready' : 'degraded'}: event wakeup + ${jobReconcileIntervalMs}ms bounded reconciliation for report/interview/quiz/diagnosis/route-classify + commerce reconciler + model invocation reconciler + usage calibration reconciler + privacy eraser(${privacyErasureLoop ? 'enabled' : 'pending dedicated login'}) + gauge refresh started as`, leaseOwner);
 }
 
