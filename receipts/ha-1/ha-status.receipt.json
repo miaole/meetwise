@@ -1,0 +1,135 @@
+{
+  "at": "2026-10-10T16:08:06.634Z",
+  "sandboxMode": true,
+  "haStatus": "NOT_HA",
+  "haStatusBasis": "pin 十一值零翻转（north-star-ha.md:67 + REQUEST §6）；翻转须 B1-B6（含 G7 全量收据）+协调方裁定·非本刀",
+  "topologyVerdict": "HA_TOPOLOGY_LOCAL_ELIGIBLE",
+  "topologySemantics": "HA_TOPOLOGY_LOCAL=单机进程级冗余（多副本+健康检查+自愈+LB）·宿主仍是 SPOF·≠生产 100% HA",
+  "criteria": {
+    "A1": true,
+    "A2": true,
+    "A3": true,
+    "A4": true,
+    "A5": true,
+    "A6": true
+  },
+  "rx1ExclusionPass": true,
+  "evidence": {
+    "receipts": {
+      "v4": "present",
+      "v2": "present",
+      "v3": "present",
+      "v1": "present",
+      "v6": "present",
+      "resourceBudget": "A_4c8g_host_upgrade"
+    },
+    "exclusions": {
+      "rx1OriginalThreeRunning": []
+    },
+    "api": [
+      {
+        "service": "api-a",
+        "state": "running",
+        "health": "healthy"
+      },
+      {
+        "service": "api-b",
+        "state": "running",
+        "health": "healthy"
+      }
+    ],
+    "web": [
+      {
+        "service": "web-a",
+        "state": "running",
+        "health": "healthy"
+      },
+      {
+        "service": "web-b",
+        "state": "running",
+        "health": "healthy"
+      }
+    ],
+    "worker": [
+      {
+        "service": "worker-a",
+        "state": "running",
+        "health": "healthy"
+      },
+      {
+        "service": "worker-b",
+        "state": "running",
+        "health": "healthy"
+      }
+    ],
+    "v6": {
+      "takeoverBy": "worker-b",
+      "takeoverSeconds": 15,
+      "rx4CasRowCount": 0,
+      "rx4AssertOk": true
+    }
+  },
+  "note": "A1-A6 全绿=进程级冗余本体齐（拓扑级证据）·仍 NOT_HA·仍 releaseEvidence=false·≠宿主 HA",
+  "steps": [
+    {
+      "step": "honesty banner",
+      "ok": true,
+      "detail": "haStatus=NOT_HA maintained (pin unchanged; flip not this knife — B5/B6); topology-local verdict only"
+    },
+    {
+      "step": "RX-1 original api/worker/web not running",
+      "ok": true,
+      "detail": "absent/never created"
+    },
+    {
+      "step": "A1 api×2 healthy",
+      "ok": true,
+      "detail": "running=2 healthy=2"
+    },
+    {
+      "step": "A2 web×2 healthy",
+      "ok": true,
+      "detail": "running=2 healthy=2"
+    },
+    {
+      "step": "A3 worker×2 healthy",
+      "ok": true,
+      "detail": "running=2 healthy=2"
+    },
+    {
+      "step": "A4 lb running+healthy",
+      "ok": true,
+      "detail": "lbConf=2 servers, hostNginx=2 servers"
+    },
+    {
+      "step": "A4 split proof",
+      "ok": true,
+      "detail": "distinct=2 instanceIds=true"
+    },
+    {
+      "step": "A5 kill+heal receipts",
+      "ok": true,
+      "detail": "3 kills healed"
+    },
+    {
+      "step": "A6 down-window zero failure",
+      "ok": true,
+      "detail": "failures=0 window=37s"
+    },
+    {
+      "step": "V1 topology receipt",
+      "ok": true,
+      "detail": "healthySeconds=10"
+    },
+    {
+      "step": "V6 optional RX-4 assertion",
+      "ok": true,
+      "detail": "takeover=worker-b in 15s casRowCount=0"
+    },
+    {
+      "step": "resource budget receipt",
+      "ok": true,
+      "detail": "totalMib=4160"
+    }
+  ]
+}
