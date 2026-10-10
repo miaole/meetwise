@@ -155,7 +155,7 @@ roleFromUserInput（本场 begin 携带的用户显式岗位）
 
 ## §6 pins（十一值照抄）
 
-haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · 脚注 actualSpendCny=null（本刀零外呼·零消耗）
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=202 软删受理(purge_pending)——沿 c9200502 现行值（interview-data :43 仍 503 属登记滞后） · g7SuiteGreen=false · r1Closed=false · 脚注 actualSpendCny=null（本刀零外呼·零消耗）
 
 ---
 
@@ -171,4 +171,4 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ---
 
-*ROLE-INPUT EXEC REQUEST · 2026-10-10 · draft:awaiting_pre_exec_dual · base 主线 `3c3406bd`（origin tip·起草中途前移已 ff·锚点零漂移亲证）· 分支 `line/role-input` · 依据=W3 批 2（SOP:28）+ RG REQUEST N2 划界 + ROUTE-DICT rev3 R3-5「后继 UI 刀 #259 仍立项」· pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null · Dual PASS ≠ 开工 · Ban self-approve*
+*ROLE-INPUT EXEC REQUEST · 2026-10-10 · draft:awaiting_pre_exec_dual · base 主线 `3c3406bd`（origin tip·起草中途前移已 ff·锚点零漂移亲证）· 分支 `line/role-input` · 依据=W3 批 2（SOP:28）+ RG REQUEST N2 划界 + ROUTE-DICT rev3 R3-5「后继 UI 刀 #259 仍立项」· pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=202 软删受理(purge_pending)——沿 c9200502 现行值（interview-data :43 仍 503 属登记滞后） · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null · Dual PASS ≠ 开工 · Ban self-approve*
