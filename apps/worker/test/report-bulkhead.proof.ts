@@ -73,7 +73,9 @@ async function main() {
   A('requeue failed→queued', await asPrincipal(pool, 'userA', (c) => requeueFailedReport(c, 'userA', e1.reportId)));
   A('重试跑报告成功', (await runReportOnce('userA', 'w1', goodGenerate)) === 'ready');
   const done = await asPrincipal(pool, 'userA', (c) => getReport(c, 'userA', 'R1'));
-  A('报告 ready 且含内容（attempts=2）', done!.status === 'ready' && (done!.content as any).overall === 74 && done!.attempts === 2);
+  // #229 D2 已决翻转旧钉（rev2 翻转⑦·旧断言 attempts===2·见 git blame）:requeue 现重置 attempts=0 →
+  // 本链 claim+1=1（failed 时 attempts=1 → requeue 归零 → claim 计 1）。
+  A('报告 ready 且含内容（attempts=1·#229 D2 requeue 重置预算后 0→claim+1）', done!.status === 'ready' && (done!.content as any).overall === 74 && done!.attempts === 1);
   A('ready 才发 report_ready 事件（SSE 信号）',
     (await asPrincipal(pool, 'userA', (c) => c.query("SELECT count(*)::int n FROM interview_event WHERE stream_key='R1' AND kind='report_ready'"))).rows[0].n === 1);
 

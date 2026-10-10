@@ -20,7 +20,7 @@ import { interviewContextTitle, interviewResumeLabel, interviewTimeLabel } from 
 export const metadata = { title: '面试报告 · 知面' };
 
 type ReportStatus = 'queued' | 'running' | 'ready' | 'failed' | 'quarantined' | 'interview_failed' | 'assessment_unavailable';
-type Report = { status: ReportStatus; content: { overall: number; sections: Array<{ title: string; body: string }> } | null };
+type Report = { status: ReportStatus; content: { overall: number; sections: Array<{ title: string; body: string }> } | null; attempts?: number };
 type Dimension = { dimension: string; score: number; gap: boolean; evidence?: string };
 type Assessment = { status?: string; dimensions?: Dimension[]; overall?: number };
 type LearningPlan = { items: Array<{ topic: string; priority: string; action: string; done: boolean }>; progress: { completed: number; total: number } };
@@ -29,8 +29,9 @@ type Career = { readiness?: string; level?: string; milestones?: Milestone[] };
 
 const LEVEL_LABEL: Record<string, string> = { junior: '初级', mid: '中级', senior: '高级' };
 
-export default async function ReportPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ReportPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ retry_error?: string }> }) {
   const { id } = await params;
+  const { retry_error } = await searchParams;   // #229 D2:重试 action 非 2xx 回跳携带的业务码 → 渲染明确提示条
   if (!(await getServerToken())) redirect('/login');
 
   const base = process.env.NEXT_PUBLIC_API_BASE ?? '';
@@ -53,6 +54,11 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   const assessmentUnavailable = status === 'assessment_unavailable';
   const noReport = !r;   // 报告**还没生成**(面试进行中/未开始)——不是失败,引导回面试继续
   const overall = ready && typeof r?.content?.overall === 'number' ? r!.content!.overall : null;
+  const attempts = unavailable ? r?.attempts ?? 0 : 0;   // 已耗自动重试次数(④文案如实渲染;页面不承诺)
+  // 重试失败提示(#229 D2②「明确提示」义务):业务码 → 人话,不再静默吞 404/429。
+  const retryErrorText = retry_error === 'report_retry_limited' ? '重试太频繁，请稍后再试。'
+    : retry_error === 'no_retriable_report' ? '当前没有可重试的报告。'
+      : retry_error ? '重试请求未成功，请稍后再试。' : null;
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
@@ -92,6 +98,13 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
           ) : null}
         </div>
       </header>
+
+      {/* 重试失败提示条(#229 D2②「明确提示」义务·独立于状态卡:queued 态下 404 回跳也可见,不再静默吞)。 */}
+      {retryErrorText ? (
+        <div className="mb-6 rounded-md border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive" data-testid="retry-error" role="alert">
+          {retryErrorText}
+        </div>
+      ) : null}
 
       {ready && r?.content && (
         <section className="mb-8 space-y-4">
@@ -172,7 +185,10 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
         <Card className="mb-8 border-destructive/30 bg-destructive/5">
           <CardContent className="p-6 text-center">
             <p className="mb-2 font-semibold text-destructive">报告暂不可用</p>
-            <p className="mb-4 text-sm text-muted-foreground">生成可能因临时故障被中断,可以重新尝试生成。</p>
+            {/* #229 D2 ④文案(逐字):N=attempts·零扣费承诺(账本规则=完成时 confirm 一次,重试不再扣费)。重试生成=唯一出口,不引导重开面试。 */}
+            <p className="mb-4 text-sm text-muted-foreground">
+              报告生成失败，系统已自动重试 {attempts} 次；你可以再次重试，不会重复扣费
+            </p>
             <form action={retry}>
               <SubmitButton pendingLabel="重试中…">重试生成</SubmitButton>
             </form>

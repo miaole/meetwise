@@ -85,3 +85,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 - **附加缺口 (a)**（席2）：nhp-fault:105 `requeueOnlyFailed` 首匹配语义现锚 report.ts:52 SET 行——②后不自然翻红（假见证）·改写为主动钉新正则 `status IN ('failed','quarantined')` 锚 requeue 函数体。
 - **附加缺口 (b)**（席2）：§4 prove 表补排 uc019 db/http+nhp-fault 三文件翻转后复跑与 EXIT 预期（全绿·否则禁 retry-to-green 纪律同款张力）。
 - EXEC 注记：nhp-fault :135-136 C3 自披露字符串（F2b/no_retriable_report/quarantined）保留于新钉注释防 C3 自红。
+
+---
+
+*REQUEST 状态行 append-only · #229 REPORT-RETRY · mw-retry229-exec · 2026-10-10 · `executed_d2:awaiting_post_prove_dual`——五件+rev2 三补全落位（D2 五件 §1·翻转七处对表含 rev2 翻转⑦ bulkhead:76+nhp-fault 主动钉改写+三文件复跑排）；prove：report-retry:prove EXIT=0（P1-P4）·report-retry:http:prove EXIT=0（38/38）·uc011 db EXIT=0（36·R2/R3 逐字节原样）·uc011:http EXIT=0（52/52）·uc019 db EXIT=0（29）·uc019:http EXIT=0（35/35）·report:prove EXIT=0（31·除:76 外原值）·neg:interview EXIT=0（97/97）；tsc 三门 pristine 同形（api 30 仅行号漂移零新增·db 20·worker 63 逐字节）·web tsc EXIT=0；**既有 base 红如实登记零 retry-to-green**：interview:prove 模块加载 SyntaxError（a03b9371 dual-keep 重复导入·零触）+ uc001:nhp-fault f1 begin 409 candidate_route_undecided（G7S supplyCandidateProfileRoute 对裸 fixture profile_unavailable·零触）——两处 stash pristine 同形对照在卷，归 SCORE 回填线/G7S 线各自修复；est live=0·actualSpendCny=null·0 Key 值接触·零迁移·零 SSOT 编辑·pins 十一值零翻转；收据 receipts/report-retry/2026-10-10-exec-prove.md · alone ≠ dual · awaiting post-prove dual（meetwise 授权 nail）*

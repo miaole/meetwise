@@ -191,10 +191,15 @@ async function forceQuarantine(owner: string, interviewId: string, leaseOwner: s
   A('H2 GET report → 200 quarantined',
     got.status === 200 && got.body?.status === 'quarantined');
 
-  // regenerate 产品口：quarantined 上 requeueFailedReport 失败 → HTTP 404 no_retriable_report
+  // #229 D2 已决翻转旧诚实钉（旧语义 quarantined→404 no_retriable_report·见 git blame）：HTTP retry 口对 quarantined 解锁 200+预算重置
+  const beforeRetryUnits = await httpUnits(A_);
   const retry = await h.post(`/interview/${id}/report/retry`, A_, {});
-  A('H2 POST report/retry quarantined → 404 no_retriable_report（regenerate BLOCKED→UC-019）',
-    retry.status === 404 && retry.body?.error === 'no_retriable_report');
+  A('H2 POST report/retry quarantined → 200 requeued:true（#229 D2 翻转旧诚实钉·quarantine 出口解锁·旧语义见 git blame）',
+    retry.status === 200 && retry.body?.requeued === true);
+  const afterRq = await h.req('GET', `/interview/${id}/report`, A_);
+  A('H2 重排重置预算：queued + attempts=0',
+    afterRq.status === 200 && afterRq.body?.status === 'queued' && afterRq.body?.attempts === 0);
+  A('H2 重排零扣费：HTTP 额度不变', (await httpUnits(A_)) === beforeRetryUnits);
 }
 
 // ── H3 · 误退：confirmed 上 release 拒 + HTTP 额度不变 ──

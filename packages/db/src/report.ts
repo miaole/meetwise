@@ -56,10 +56,11 @@ export async function markReportFailed(c: Client, owner: string, reportId: strin
   return r.rowCount === 1;
 }
 
-/** 手动重排单个失败报告（failed→queued）。批量/自动走 sweepReports。 */
+/** 手动重排单个失败或隔离报告（failed|quarantined→queued）。#229 D2 已决:重排时重置 attempts/next_attempt_at——
+ *  每次手动重试给一轮**全新的自动重试预算**(重排后 sweep 再跑满 3 轮自动重试)。频控在 API 服务层(防成本 DoS)。批量/自动走 sweepReports。 */
 export async function requeueFailedReport(c: Client, owner: string, reportId: string): Promise<boolean> {
   const r = await c.query(
-    "UPDATE ai_report SET status='queued', lease_owner=NULL, version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status='failed'",
+    "UPDATE ai_report SET status='queued', lease_owner=NULL, version=version+1, attempts=0, next_attempt_at=NULL WHERE id=$1 AND owner_user_id=$2 AND status IN ('failed','quarantined')",
     [reportId, owner]);
   return r.rowCount === 1;
 }

@@ -14,8 +14,8 @@
  *
  * C1 path: GET /interview/:id（@Controller('interview') · 非 /interviews/）
  * C2 complete = offline seed（completeInterviewAndConfirm + enqueueReport）；Ban 无模型跑通主链叙述
- * C3 F2b before F2 / separate fixtures；requeueFailedReport only status='failed'；
- *    quarantined → POST retry 404 no_retriable_report
+ * C3 F2b before F2 / separate fixtures；#229 D2 已决翻转旧钉：requeueFailedReport CAS=failed|quarantined + 重置预算；
+ *    旧语义 quarantined → POST retry 404 no_retriable_report（历史形·见 git blame；本文件注释保留该字符串防 C3 自红）
  * C4 additive runner uc001:nhp-fault:prove（AG 7eb1c88 shape）
  * C5 LEDGER-SNAP on true PG（exact-1 confirmed · byte-identical across fail/retry）
  * C6 MUT-F1 temp only · record actual · EXIT≠0 · never commit（separate run）
@@ -102,7 +102,11 @@ function sha256(s: string): string {
   const drainFn = lineOf(worker, /export async function drainReportsOnce\(/);
   const markFailCall = lineOf(worker, /markReportFailed\(c, owner, claim\.reportId/, Math.max(0, drainFn - 1));
   const sweepFn = lineOf(worker, /export async function sweepReportsOnce\(/);
-  const requeueOnlyFailed = lineOf(reportDb, /status='failed'/);
+  // #229 D2 附加缺口(a) 席2:requeueOnlyFailed 首匹配语义已假见证化——改写为**主动钉**:
+  // 新正则锚 requeue 函数体内的新 CAS 谓词（failed|quarantined + attempts/next_attempt_at 重置）。
+  const requeueFn = lineOf(reportDb, /export async function requeueFailedReport\(/);
+  const requeueResetPin = lineOf(reportDb, /status IN \('failed','quarantined'\)/, Math.max(0, requeueFn - 1));
+  const requeueAttemptsReset = lineOf(reportDb, /attempts=0, next_attempt_at=NULL/, Math.max(0, requeueFn - 1));
   const completeFn = lineOf(commerce, /export async function completeInterviewAndConfirm\(/);
   const reportSvc = lineOf(svc, /^\s*async report\(principal: string, id: string\)/);
   const retrySvc = lineOf(svc, /^\s*async retryReport\(principal: string, id: string\)/);
@@ -118,7 +122,9 @@ function sha256(s: string): string {
     'report-worker.ts:drainReportsOnce': drainFn,
     'report-worker.ts:markReportFailed on generate throw': markFailCall,
     'report-worker.ts:sweepReportsOnce': sweepFn,
-    "report.ts:requeueFailedReport status='failed' only": requeueOnlyFailed,
+    // #229 D2 翻转旧锚名（旧语义「requeue failed-only」·见 git blame）:现在 CAS=failed|quarantined + 预算重置
+    "report.ts:requeueFailedReport status IN (failed,quarantined) + attempts reset": requeueResetPin,
+    'report.ts:requeueFailedReport attempts=0,next_attempt_at=NULL': requeueAttemptsReset,
     'commerce.ts:completeInterviewAndConfirm': completeFn,
     'interview.service.ts:report': reportSvc,
     'interview.service.ts:retryReport': retrySvc,
@@ -128,8 +134,8 @@ function sha256(s: string): string {
     ctrlPrefix > 0 && getOne > 0);
   A('ANCHOR report/retry/export + /turn mouths present · /answer GONE line present',
     getReportRoute > 0 && retryRoute > 0 && exportRoute > 0 && turnRoute > 0 && answerGone > 0);
-  A('ANCHOR drainReportsOnce + markReportFailed + sweepReportsOnce + requeue failed-only + completeInterviewAndConfirm',
-    drainFn > 0 && markFailCall > 0 && sweepFn > 0 && requeueOnlyFailed > 0 && completeFn > 0);
+  A('ANCHOR drainReportsOnce + markReportFailed + sweepReportsOnce + requeue failed|quarantined+reset (#229 D2) + completeInterviewAndConfirm',
+    drainFn > 0 && markFailCall > 0 && sweepFn > 0 && requeueResetPin > 0 && requeueAttemptsReset > 0 && completeFn > 0);
   A('C2 disclose: this proof names completeInterviewAndConfirm + enqueueReport as offline seed',
     /offline seed/.test(thisSrc) && /completeInterviewAndConfirm/.test(thisSrc) && /enqueueReport/.test(thisSrc));
   A('C3 disclose: F2b separate fixture / before F2 · quarantined→404 no_retriable_report named',
@@ -437,11 +443,16 @@ async function main(): Promise<void> {
       A("F2 report_unavailable reason max_attempts_exceeded",
         (unavailReason[0]?.payload as any)?.reason === 'max_attempts_exceeded');
 
-      // C3: quarantined → requeueFailedReport no-ops → 404 no_retriable_report（不得写成 200）
+      // #229 D2 已决翻转旧诚实钉（旧 C3 语义:quarantined → requeueFailedReport no-ops → 404 no_retriable_report「不得写成 200」·见 git blame）:
+      // 新语义=quarantined 手动重排**成功**（200 requeued:true + attempts/next_attempt_at 重置·频控内第 1 次,3 次/小时/份）+ 零扣费不变。
       const retryQ = await retryReportHttp(fx.iv, fx.auth);
       E('F2-RETRY-QUARANTINED', { status: retryQ.status, body: retryQ.body });
-      A("F2 POST retry on quarantined → 404 {error:'no_retriable_report'} (C3 · requeue failed-only)",
-        retryQ.status === 404 && retryQ.body?.error === 'no_retriable_report');
+      A('F2 POST retry on quarantined → 200 {requeued:true} (#229 D2 翻转旧钉 · 旧语义 404 no_retriable_report 见 git blame · 频控内)',
+        retryQ.status === 200 && retryQ.body?.requeued === true);
+      const repAfterQ = await getReportHttp(fx.iv, fx.auth);
+      E('F2-RETRY-RESET', { status: repAfterQ.status, body: repAfterQ.body });
+      A('F2 重排重置预算：queued + attempts=0（全新 3 次自动重试预算）',
+        repAfterQ.status === 200 && repAfterQ.body?.status === 'queued' && repAfterQ.body?.attempts === 0);
 
       const ledgerAfterQ = await ledgerSnap(fx.u.userId, fx.iv);
       A('F2 LEDGER-SNAP byte-identical after quarantine',

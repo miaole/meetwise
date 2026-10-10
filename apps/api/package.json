@@ -27,6 +27,7 @@
   "prove:uc011-refund-callback-mouth": "node --import @swc-node/register/esm-register test/uc-e2e-011-refund-callback-mouth.proof.ts",
   "prove:uc011-refund-callback-adv": "node --import @swc-node/register/esm-register test/uc-e2e-011-refund-callback-adv.proof.ts",
   "prove:uc019-report-regenerate-http": "node --import @swc-node/register/esm-register test/uc-e2e-019-report-regenerate-http.proof.ts",
+  "prove:report-retry-http": "node --import @swc-node/register/esm-register test/report-retry-http.proof.ts",
   "prove:uc014-webhook-adv": "node --import @swc-node/register/esm-register test/uc-e2e-014-026-webhook-adv.proof.ts",
   "prove:env-schema": "node --import @swc-node/register/esm-register test/env-schema.proof.ts",
   "neg:interview": "node --import @swc-node/register/esm-register test/neg-interview.proof.ts",
