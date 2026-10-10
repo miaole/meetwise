@@ -107,3 +107,13 @@ Ban self-approve · Ban retry-to-green（attempts 全账）· Ban skip-as-pass �
 ---
 
 *`executed:awaiting_post_prove_dual`（EXEC 席 `ha2-exec` 落卷 @line/ha-2-graceful：W1-W4+§3 C1-C8 全兑·八组 EXIT=0（A1-A4 注入式 47+39 断言双绿·B5 api 容器 exit 0/<15s/SSE 干净 end/拒新 503·B6 exit 0/0.26s·B7 deadline 30s 裁决+reaper 隔离环复绿·B8 config 15s/40s+85/137 stub 亲证吻合）·rebase 46ff2290 零冲突·锚点零漂·R1-R4+席2①②③ 全兑现·attempts 全账入 receipts/ha-2/exec-receipt.md·markers=0·est live=0·pins 十一值零翻转·⛔push·alone≠dual·待 post-prove 双审）*
+
+---
+
+## nail 落卷（2026-10-10 · post-prove 双席 BOTH PASS）
+
+**双审结果**：席1（关闭链语义/RX 兑现）+席2（编排/回归）互盲复核 BOTH PASS。W1 关闭链逐环亲读（drainGateHook 503 三别名豁免/livez 恒 200 断言在 proof·createApiShutdownChain 幂等闸→beginDrain→drainAll→归零→app.close() 点亮 SseNotifyLifecycle 死钩子→exit 0·10s deadline 不 unref·双信号幂等·R2 全仓零 enableShutdownHooks 复证）·R1 泵单点（safeWrite/while 同读旗·双 break 禁 emit·raw.end() 恰一次·A2「end 后 write=0」断言力有牙=ERR_STREAM_WRITE_AFTER_END 计数）·W3 worker 16 项清单逐点亲数（vector-plane-erasure 补漏 :769↔:710 实接线）+deadline race 81ms 注入形·**B7 最重断言席1 独立容器复现（30.0s 精确触发+exit 0 非 137·≪40s 宽限）**·B6 短 tick 0.19s·B8 perl 复数 85/137 逐字吻合。席2：compose 嵌套成立（10s<15s·32s<40s 余量 8s）·readyz 三消费方零副作用（零 autoheal/—wait 180s 只观察新容器/depends_on 仅启动排序）·客户端接管有界（503→server 臂计失败·jitter+cap 无风暴·clean end 走 cleanEnd 臂与 SSE-RESILIENCE 契约零新耦合）·四键复跑全绿·tsc 触面零命中。merge 落主线 @ed0505a6。
+
+**非阻断记账**：①B6 判据字面 markDone 实为 stub PG 往返 tick（真 markDone 需模型管线违 est live=0·收据已披露合 rev2-R4）②SIGINT 场 signal 字段显示 SIGTERM（观感）③diff-numstat 漏列 REQUEST 一行④收据 tsc 行数记账不精确（方向性断言 a fortiori 成立）⑤WORKER_DRAIN_TIMEOUT_MS 运维可调 300s 会破宽限（默认路径成立）。
+
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·merge 落主线 @ed0505a6·R-18 API 优雅停机+R-19 worker 排水双面正式解除·HA 簇 R-17(R-18/R-19)/R-22/26/47 配套中·markers=0·est live=0）。
