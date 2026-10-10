@@ -17,8 +17,8 @@
 |---|---|---|
 | **R-47「占位」本体：监控栈骨架已备但不常驻** | `docker/compose.monitoring.yml:12-69` | Prometheus v2.54.1 + Alertmanager v0.27.0 + Grafana（profile `grafana` 可选 :58-59）——**独立 compose 手动起**（文件头注 :2-4「docker compose -f … up -d」），不在 `compose.prod.yml` 服务清单内；`docker/compose.prod.yml:329-330` 注释亲证口径：「Metrics 由独立的 docker/compose.monitoring.yml 抓取（**单机 4G 预览不常驻 Prometheus**）」→ 指标告警面在生产形态下**无人评估**＝闭环断点一 |
 | **闭环断点二：接收端全占位** | `docker/monitoring/alertmanager.yml:46-58` | receivers `default`/`critical`/`watchdog` 三者**全部空壳**（无 `webhook_configs`·文件头注 :2 自认「接收端一律留占位注释：不写任何真实 webhook/邮箱/密钥」）→ 即使 Prometheus 常驻，告警发进黑洞 |
-| **指标暴露面（真实·已被 rules 引用）** | api `apps/api/src/modules/metrics/metrics.controller.ts:9-11`（`@Controller('metrics') @Get()`）+ `apps/api/src/main.ts:158`（onResponse hook 记 http_requests_total/http_request_duration_ms）；worker `apps/worker/src/main.ts:233-261`（`startMetricsExposition`·`WORKER_METRICS_PORT` 默认 9091·仅 `expose` 私网 `docker/compose.prod.yml:334-336`） | 抓取配置 `docker/monitoring/prometheus.yml:20-38`（api:8787 + worker:9091）；告警规则 `docker/monitoring/alert.rules.yml:13-271` 共 **22 条**（api SLO 6 + worker/模型/RAG/费用 15 + MonitoringWatchdog :264）；防假告警 lint `scripts/alerts-lint.mjs`（指标白名单 :20-49·`package.json:453` `alerts:lint`）；deploy 门禁已查栈结构 `scripts/deploy-check.mjs:10,120-127`（prometheus/alertmanager 声明+镜像钉版+抓 api:8787/worker:9091+禁 host.docker.internal）——**指标面基建完好，只欠常驻+接收端（S15）** |
-| **日志面缺口一：结构化事件近零** | `packages/db/src/principal.ts:886-897` | `observePoolError` 是全仓**唯一 JSON 结构化事件**：`console.error(JSON.stringify({ event: 'db_pool_error', purpose, count, error_name, error_message }))`（:896·dedupe `observedPoolErrors` + `poolErrorTotal` 计数）——池 error 的告警原料已就位 |
+| **指标暴露面（真实·已被 rules 引用）** | api `apps/api/src/modules/metrics/metrics.controller.ts:9-11`（`@Controller('metrics') @Get()`）+ `apps/api/src/main.ts:158`（onResponse hook 记 http_requests_total/http_request_duration_ms）；worker `apps/worker/src/main.ts:233-261`（`startMetricsExposition`·`WORKER_METRICS_PORT` 默认 9091·仅 `expose` 私网 `docker/compose.prod.yml:334-336`） | 抓取配置 `docker/monitoring/prometheus.yml:20-38`（api:8787 + worker:9091）；告警规则 `docker/monitoring/alert.rules.yml:13-271` 共 **22 条**（api SLO 6 + worker/模型/RAG/费用 15 + MonitoringWatchdog :264）；防假告警 lint `scripts/alerts-lint.mjs`（指标白名单 :20-49·`package.json:453` `alerts:lint`）；deploy 门禁已查栈结构 `scripts/deploy-check.mjs:10,120-127`（prometheus/alertmanager 声明+镜像钉版+抓 api:8787/worker:9091+禁 host.docker.internal）——**指标面基建完好，只欠常驻+接收端（S15）**〖rev2 勘误（席2）：本行「共 **22 条**（api SLO 6 + worker/模型/RAG/费用 15 + MonitoringWatchdog :264）」为起草席误记——alert.rules.yml 实数 **25 条** `- alert:`（落卷席逐行亲证@5d6dd7de：api SLO 6 条 :18-:71 + worker/RAG/模型/费用 18 条 :84-:251 + MonitoringWatchdog 1 条 :264 实锚）；本档同误记共**五处**（:30/:40/:62/:78 同步注记·处方列三处·实物五处以实物为准）——原文措辞零改·以注记承载〗 |
+| **日志面缺口一：结构化事件近零** | `packages/db/src/principal.ts:886-897` | `observePoolError` 是全仓**唯一 JSON 结构化事件**：`console.error(JSON.stringify({ event: 'db_pool_error', purpose, count, error_name, error_message }))`（:896·dedupe `observedPoolErrors` + `poolErrorTotal` 计数）——池 error 的告警原料已就位〖rev2 勘误（席1）：本行「全仓**唯一** JSON 结构化事件」为起草席误记——全仓实为**三个** JSON 结构化事件，db_pool_error 是**唯一直接告警向**；另两锚亲证：`apps/worker/src/generation-progress.ts:57`（`generation_progress_write_failed`·事件名在 :58·进度写失败 best-effort 旁路日志）+ `packages/ai-runtime/src/invoke.ts:387`（`ai_trace_persist_failed`·事件名在 :388·trace 持久化失败旁路日志）——两事件对 alert.rules.yml 与 alerts-lint.mjs 指标白名单**零命中**（rg 亲证@5d6dd7de＝告警双通道皆盲·如实登记）；目录处置见 §1 W1① rev2 注记〗 |
 | **日志面缺口二：HA-2 关键事件为 key=value 文本非 JSON** | `apps/worker/src/main.ts:787`（`worker_drain_timeout signal=${signal} in_flight=${inFlight.join(',')}`）·`apps/api/src/main.ts:82`（`deps.error('api_drain_timeout')`） | HA-2 已 nail 的两条 drain 超时事件：console.error 人读文本（key=value 形）。**本刀不改这两处码面**（HA-1/HA-2 已 nail 面零回触），检查脚本解析器须**双形兼容**（JSON 事件形 + key=value 文本形） |
 | **日志面缺口三：reaper 接管无成功事件** | 失败侧 `apps/worker/src/interview-consumer.ts:439`（`interview reap failed`）·:225（`reservation lease renew failed`）；接管本体 `packages/db/src/interview/interview-jobs.ts` / `report/report.ts` / `jobs/quiz-jobs.ts`（sweepStuckInterviewJobs/sweepReports 族） | reap **失败**有日志、**接管成功**（sweep 重领孤儿 job）零结构化事件——「worker 崩了但系统自愈了」这一最重要健康信号今天不可观测＝盲区 |
 | **日志面缺口四：migrate 失败无告警面** | `docker/compose.prod.yml:223-237`（migrate 服务：migrate-cli.ts + cost-configure.ts · `restart: "no"`）·:246-248（worker `depends_on: migrate: condition: service_completed_successfully`） | migrate 失败信号只在 compose 事件流与容器退出码里（worker 因此不启动）——无任何日志扫描/告警触点；一次性任务（restart:no）也不会被 Prometheus `up` 指标覆盖 |
@@ -27,7 +27,7 @@
 | **判定器先例（本刀检查脚本蓝本）** | `scripts/ha/ha-status.mjs:1-50` | HA-1 拓扑判定器：机械判据 fail-closed（不齐 EXIT=1）·`--report` 只评估降级输出不非零·RECEIPT 块+CMD+EXIT 行 stdout·机器可读 JSON 收据落 `receipts/ha-1/ha-status.receipt.json`——本刀 check-alerts 脚本沿同形制 |
 | **告警分层策略（既有文档锚）** | `ai-docs/observability/observability-strategy.md:110-118`（§5：Page/Ticket/Trend 三层·「告警必须可一键下钻…无法下钻的告警=噪音」:117） | 本刀事件目录的 severity 与 runbook 链接须落此分层口径（Page/Ticket/Trend），不另造分级 |
 
-**靶心一句话**：R-47 说「告警闭环占位」——指标面骨架（compose.monitoring + 22 条 rules + lint + deploy 门禁）齐而不转（不常驻+接收端空壳=归 S15），日志面则连「占位」都没有：全仓唯一结构化事件是 db_pool_error，drain 超时是文本、reaper 接管/migrate 失败/磁盘写满四类关键事件零可观测。本刀把日志面从零到一落成「事件目录 + 本地检查脚本 + 运行手册」的轻量闭环，Prometheus 常驻一刀不动。
+**靶心一句话**：R-47 说「告警闭环占位」——指标面骨架（compose.monitoring + 22 条 rules + lint + deploy 门禁）齐而不转（不常驻+接收端空壳=归 S15），日志面则连「占位」都没有：全仓唯一结构化事件是 db_pool_error，drain 超时是文本、reaper 接管/migrate 失败/磁盘写满四类关键事件零可观测。本刀把日志面从零到一落成「事件目录 + 本地检查脚本 + 运行手册」的轻量闭环，Prometheus 常驻一刀不动。〖rev2 勘误（席1+席2 sweep）：本行两处随 §0 勘误同步——「22 条 rules」实数 25 条；「全仓唯一结构化事件是 db_pool_error」实为三个 JSON 结构化事件（唯一直接告警向=db_pool_error·另两锚 generation-progress.ts:57 / invoke.ts:387 见 §0 缺口一行勘误）——原文措辞零改·以注记承载〗
 
 ## §1 范围（轻量告警三件 · EXEC 依此实现）
 
@@ -35,10 +35,10 @@
 
 | 件 | 锚 | 修法（EXEC 依此实现） |
 |---|---|---|
-| **W1 关键事件目录 + 缺口事件补齐（最小码动）** | 事件全景见 §0 六缺口 | ① **事件目录机读文件**（建议 `scripts/alerts/event-catalog.json`·EXEC 可随仓惯例定名）：唯一真源，每事件条目声明 `event` 名 / `matcher`（JSON 事件形=精确 event 名匹配；文本形=正则）/ `severity`（Page/Ticket/Trend 沿 observability-strategy.md:112-116）/ `source`（码锚 file:line）/ `runbook` 锚（W3 文档节锚）。首批事件清单：`db_pool_error`（principal.ts:896·已有）·`worker_drain_timeout`（worker main.ts:787·文本形）·`api_drain_timeout`（api main.ts:82·文本形）·`reaper_takeover`（**新增**·见②）·`migrate_failed`（**compose 事件源·零码动**·读 migrate 容器 Exit 非 0 或其日志尾窗 error）·`disk_enospc`（**模式匹配**·任一日志行含 `ENOSPC`/`No space left` 即中）+ `disk_watermark`（**宿主 df 探针**·阈值默认 85%·零码动）。② **补 `reaper_takeover` 结构化事件**（唯一新码动点）：sweep 重领成功路径（`packages/db/src/interview/interview-jobs.ts`/`report/report.ts`/`jobs/quiz-jobs.ts` 的 sweep 族被 worker 消费侧实际领到孤儿 job 处——EXEC 亲读 sweep 调用链后定精确行）落 `console.warn(JSON.stringify({ event: 'reaper_takeover', kind, job_ref, prev_lease_expired: true, … }))` 沿 principal.ts:896 JSON 先例；**只加一行观测日志，零改 sweep 选取/租约/CAS 语义**。③ 既有 `worker_drain_timeout`/`api_drain_timeout`/`interview reap failed` 文本事件**零改码**，目录以 matcher 声明兼容 |
+| **W1 关键事件目录 + 缺口事件补齐（最小码动）** | 事件全景见 §0 六缺口 | ① **事件目录机读文件**（建议 `scripts/alerts/event-catalog.json`·EXEC 可随仓惯例定名）：唯一真源，每事件条目声明 `event` 名 / `matcher`（JSON 事件形=精确 event 名匹配；文本形=正则）/ `severity`（Page/Ticket/Trend 沿 observability-strategy.md:112-116）/ `source`（码锚 file:line）/ `runbook` 锚（W3 文档节锚）。首批事件清单：`db_pool_error`（principal.ts:896·已有）·`worker_drain_timeout`（worker main.ts:787·文本形）·`api_drain_timeout`（api main.ts:82·文本形）·`reaper_takeover`（**新增**·见②）·`migrate_failed`（**compose 事件源·零码动**·读 migrate 容器 Exit 非 0 或其日志尾窗 error）·`disk_enospc`（**模式匹配**·任一日志行含 `ENOSPC`/`No space left` 即中）+ `disk_watermark`（**宿主 df 探针**·阈值默认 85%·零码动）。② **补 `reaper_takeover` 结构化事件**（唯一新码动点）：sweep 重领成功路径（`packages/db/src/interview/interview-jobs.ts`/`report/report.ts`/`jobs/quiz-jobs.ts` 的 sweep 族被 worker 消费侧实际领到孤儿 job 处——EXEC 亲读 sweep 调用链后定精确行）落 `console.warn(JSON.stringify({ event: 'reaper_takeover', kind, job_ref, prev_lease_expired: true, … }))` 沿 principal.ts:896 JSON 先例；**只加一行观测日志，零改 sweep 选取/租约/CAS 语义**。③ 既有 `worker_drain_timeout`/`api_drain_timeout`/`interview reap failed` 文本事件**零改码**，目录以 matcher 声明兼容〖rev2（席1 双盲事件目录处置·二择一裁决=**纳入目录首批**）：首批事件清单增补两条——`generation_progress_write_failed`（severity=**Trend**·码面头部纪律自认「进度不是健康信号」generation-progress.ts:11·只周期复盘不做健康告警）+ `ai_trace_persist_failed`（severity=**Trend**·事件含 P0001 幂等命中正常重放形态〔apps/api/test/uc-e2e-028-nhp-fault.proof.ts:220-224 亲证〕直接 Page/Ticket 必噪音化·复盘看 errorName/pgCode 分布再定是否升 Ticket）；C1「≥6 事件条目」按 **9** 实数同步。顺带登记（席1）：`interview-consumer.ts:225`（`reservation lease renew failed`·文本形失败日志·性质同 :439 reap failed）＝**首批外**（W1③ 零改兼容口径·不列首批 matcher 断言面）；`apps/worker/smoke/cloud-readiness.ts:15`（`cloud_connectivity_receipt`·同族 `apps/worker/smoke/cloud-test-serial.ts:12` `cloud_test_serial_receipt` 落卷席 sweep 补登）＝**非事件**（烟测工具收据形·不入目录不入事件普查）——排除亦登记·不沉默缺席〗 |
 | **W2 本地告警检查脚本（判定器）** | 新增 `scripts/alerts/check-alerts.mjs`·形制沿 `scripts/ha/ha-status.mjs:1-50` | ① **输入源三路**：`docker compose -f docker/compose.prod.yml logs --since <窗>`（默认窗 env 可调，建议 24h）+ `docker compose ps`（migrate/核心服务 Exit 态）+ 宿主 `df`（水位）；无 docker 时对 `--log-file <path>` 直读退化（CI/本地样本喂入通道，prove 依赖此注入缝）。② 目录驱动扫描：逐目录事件跑 matcher → 产出**告警清单**（event/severity/first_seen/count/样本行/runbook 锚），stdout 为 RECEIPT 块 + CMD+EXIT 行（沿 ha-status.mjs 形）。③ **白名单假阳性防**：`scripts/alerts/alert-whitelist.json`（每条目=event+窗口理由+到期日——防白名单腐化，无到期日的条目 lint 拒绝）；已知一次性事件（deploy 窗 migrate 单次、重启窗 pool_error burst）不产告警条目。④ **EXIT 语义 fail-closed**：存在未决（非白名单）Page/Ticket 告警 → EXIT 1；干净 → 0；`--report` 模式只评估降级输出恒 0（沿 ha-status.mjs `--report` 先例）；机器可读 JSON 收据落 `receipts/ha-5/check-alerts.receipt.json`。⑤ **非 daemon**：脚本单遍扫完即退，零常驻进程——尊重单机 4G 预览现状 |
-| **W3 告警运行手册（文档）** | 新增 `ai-docs/observability/alerting-runbook.md` | ① 事件目录人读面：每事件 severity 分层（Page=触碰零丢失红线立即响应/Ticket=降级在发生工作时间排查/Trend=周期复盘——逐字对齐 observability-strategy.md:112-116）+ 响应动作 + 下钻锚（日志样本行→对应码面/账本，落 :117「可下钻」纪律）。② **与 Prometheus 栈的分工声明**：指标面（alert.rules.yml 22 条）归 S15 常驻后启用；本刀日志面补其盲区（进程 stderr、compose 一次性任务、宿主磁盘——皆 `up` 指标抓不到的面）。③ **S15 边界登记**：Prometheus/Alertmanager/Grafana 常驻化、alertmanager.yml receivers 真实化（webhook/值班通道）、通知链路=买云后刀（本刀 runbook 只登记，不占位实现）。④ 检查脚本使用说明（窗口/白名单/EXIT/收据） |
-| **W4（轻·可裁）alerts-lint 扩展** | `scripts/alerts-lint.mjs`（既有 :20-49 指标白名单零动） | 追加事件目录结构校验：每条目必含 event 名/matcher/severity/runbook 锚、白名单条目必含到期日——缺任一即 lint 失败（防目录腐化，同「防假告警」初衷）。**EXEC 可裁**：若目录结构在 W2 脚本内已自校验，本件可并入脚本启动检查，不强制双处实现——二选一，prove 须覆盖「目录腐化可被机检拒绝」断言 |
+| **W3 告警运行手册（文档）** | 新增 `ai-docs/observability/alerting-runbook.md` | ① 事件目录人读面：每事件 severity 分层（Page=触碰零丢失红线立即响应/Ticket=降级在发生工作时间排查/Trend=周期复盘——逐字对齐 observability-strategy.md:112-116）+ 响应动作 + 下钻锚（日志样本行→对应码面/账本，落 :117「可下钻」纪律）。② **与 Prometheus 栈的分工声明**：指标面（alert.rules.yml 22 条）归 S15 常驻后启用；本刀日志面补其盲区（进程 stderr、compose 一次性任务、宿主磁盘——皆 `up` 指标抓不到的面）。③ **S15 边界登记**：Prometheus/Alertmanager/Grafana 常驻化、alertmanager.yml receivers 真实化（webhook/值班通道）、通知链路=买云后刀（本刀 runbook 只登记，不占位实现）。④ 检查脚本使用说明（窗口/白名单/EXIT/收据）〖rev2（席2 勘误+席1 同步）：本行「alert.rules.yml 22 条」实数 **25 条**（§0 勘误同源·原文零改）；runbook 人读面与 §4.9 锚解析断言面同步覆盖 W1① rev2 增补两 Trend 事件〗 |
+| **W4（轻·可裁）alerts-lint 扩展** | `scripts/alerts-lint.mjs`（既有 :20-49 指标白名单零动） | 追加事件目录结构校验：每条目必含 event 名/matcher/severity/runbook 锚、白名单条目必含到期日——缺任一即 lint 失败（防目录腐化，同「防假告警」初衷）。**EXEC 可裁**：若目录结构在 W2 脚本内已自校验，本件可并入脚本启动检查，不强制双处实现——二选一，prove 须覆盖「目录腐化可被机检拒绝」断言〖rev2（席2 §4.9 载体二选一裁决）：runbook 锚存在性机检载体选定 **W4 lint 扩展路径**（静态·无 docker 依赖·沿 `package.json:453` alerts:lint 既有入口）；check-alerts 启动自检路径不选——运行时判定器不背文档机检职责；本裁决不改本行原「可裁」条款对目录结构校验落点的留给（见 §4.9）〗 |
 
 ## §2 非范围（全列 · 越界即废）
 
@@ -54,12 +54,12 @@
 
 | # | 码面 | 现状（亲读） → 目标 |
 |---|---|---|
-| C1 | `scripts/alerts/event-catalog.json`（新增·名 EXEC 可随仓惯例定） | 事件目录机读唯一真源：≥6 事件条目（db_pool_error / worker_drain_timeout / api_drain_timeout / reaper_takeover / migrate_failed / disk_enospc / disk_watermark），每条目含 event/matcher/severity/source 码锚/runbook 锚（W1①） |
+| C1 | `scripts/alerts/event-catalog.json`（新增·名 EXEC 可随仓惯例定） | 事件目录机读唯一真源：≥6 事件条目（db_pool_error / worker_drain_timeout / api_drain_timeout / reaper_takeover / migrate_failed / disk_enospc / disk_watermark），每条目含 event/matcher/severity/source 码锚/runbook 锚（W1①）〖rev2（席1）：首批条目按 W1① rev2 注记增补两条=**9** 条（generation_progress_write_failed / ai_trace_persist_failed·均 Trend）〗 |
 | C2 | `packages/db/src/interview/interview-jobs.ts` 或 `report/report.ts` / `jobs/quiz-jobs.ts` sweep 族（**唯一新码动**·W1②） | sweep 重领成功路径补一行 `reaper_takeover` JSON 观测日志（沿 principal.ts:896 形制）；**零改 sweep 选取/租约/CAS 语义**（精确落点 EXEC 亲读调用链后定，落 REQUEST 附记） |
 | C3 | `scripts/alerts/check-alerts.mjs`（新增·W2） | 判定器脚本：三路输入（compose logs/ps + df；`--log-file` 退化注入缝）·目录驱动 matcher（JSON 形+文本形双兼容）·白名单消费·RECEIPT 块+CMD+EXIT 行·`--report` 降级·EXIT 语义（未决 Page/Ticket=1·干净=0）·JSON 收据落 `receipts/ha-5/` |
 | C4 | `scripts/alerts/alert-whitelist.json`（新增·W2③） | 假阳性白名单：每条目 event+理由+到期日；无到期日条目=结构非法 |
 | C5 | `ai-docs/observability/alerting-runbook.md`（新增·W3） | 运行手册：分层口径逐字对齐 observability-strategy.md:112-116 · 每事件响应动作+下钻锚 · Prometheus 栈分工与 S15 边界登记 · 脚本使用说明 · docker logging 无界已知风险登记 |
-| C6 | `scripts/alerts-lint.mjs`（既有·W4 可裁） | 追加事件目录+白名单结构校验；既有指标白名单（:20-49）与 22 条规则校验逻辑**零改** |
+| C6 | `scripts/alerts-lint.mjs`（既有·W4 可裁） | 追加事件目录+白名单结构校验；既有指标白名单（:20-49）与 22 条规则校验逻辑**零改**〖rev2 勘误（席2）：「22 条」实数 25 条（§0 勘误同源·原文零改）〗 |
 
 ## §4 prove 判据（验证矩阵 · EXEC 必须全过）
 
@@ -73,9 +73,11 @@
 
 **B. 实栈烟测（轻·单遍·沿沙箱形制，不要求长跑）**
 
-6. **实容器日志通路**：起最小栈（单 worker 或沙箱形态·**沙箱哑凭据沿 ha-1 沙箱形制·est live=0 铁律**）→ 写一条含 `db_pool_error` JSON 的事件进其日志（或注入 env-gated 触发）→ `docker compose logs --since` 通路下脚本抓到并产条目；migrate 服务 Exit 0 → 零 migrate_failed 条目。
+6. **实容器日志通路**：起最小栈（单 worker 或沙箱形态·**沙箱哑凭据沿 ha-1 沙箱形制·est live=0 铁律**）→ 写一条含 `db_pool_error` JSON 的事件进其日志（或注入 env-gated 触发）→ `docker compose logs --since` 通路下脚本抓到并产条目；migrate 服务 Exit 0 → 零 migrate_failed 条目。〖rev2 备案（席2·防 ha-2 rev2-②/C8 私造载体先例重演）：沙箱载体**零改复用 `docker/compose.ha.sandbox.yml` 形制**（与 §2.7「compose.ha\*.yml 本体零改·只沿其形制」同口径）——EXEC 不得私造清单外 compose 载体〗
 7. **静态边界断言**：`git diff 9f6edf8f..HEAD --stat` 断言 `docker/compose.monitoring.yml`、`docker/monitoring/*` 三件、`docker/compose.prod.yml` **零出现在改动清单**（S15 边界机械可证）。
-8. **既有零回归**：`pnpm alerts:lint` 全绿（22 条指标规则白名单零动）；`scripts/deploy-check.mjs` 不因新增文件误红；全部收据（EXIT、清单 JSON、耗时）入 EXEC 记账 + `receipts/ha-5/`，Ban retry-to-green。
+8. **既有零回归**：`pnpm alerts:lint` 全绿（22 条指标规则白名单零动）；`scripts/deploy-check.mjs` 不因新增文件误红；全部收据（EXIT、清单 JSON、耗时）入 EXEC 记账 + `receipts/ha-5/`，Ban retry-to-green。〖rev2（席2 勘误+加宽）：本条「22 条指标规则白名单零动」实数 25 条（§0 勘误同源·原文零改）；回归面加宽至 ha-2 先例口径（ha-2-graceful-REQUEST.md:73「api/worker/web 各 prove 矩阵按仓内现状全量如实记账（跑/未跑列账）；红项逐条基线对账禁 skip-as-pass」〔处方引 :74·落卷席 grep 亲证实锚 :73·以实物为准〕）：至少对 C2 sweep 族相关 prove 跑/未跑如实列账——report-bulkhead（apps/worker/test/report-bulkhead.proof.ts）/ report-retry-http（apps/api/test/report-retry-http.proof.ts）/ interview-dispatch-fairness（apps/worker/test/interview-dispatch-fairness.proof.ts·-pg 变体同族）〗
+
+9. **W3 runbook 锚机检断言（rev2 增补·静态）**：机检断言三件——① `ai-docs/observability/alerting-runbook.md` 文件存在；② 事件目录（C1）每条 runbook 锚解析到 runbook 实际小节（标题锚存在性：锚→小节标题逐一匹配·悬空锚=断言失败）；③ runbook 含 S15 边界登记节与 Page/Ticket/Trend 分层词面（observability-strategy.md:112-116 分层口径的词面机检）。载体=W4 alerts-lint 扩展（二选一裁决见 W4 行 rev2 注记·静态无 docker 依赖）；任一断言失败=lint 失败（防 runbook 与目录漂移）。〖rev2（席2·预执行双审 FAIL 主因修法落卷）：本条纯 docs 机检断言·零码面触碰·不越 §2〗
 
 ## §5 Ban
 
@@ -92,3 +94,23 @@ Ban self-approve · Ban retry-to-green（attempts 全账）· Ban skip-as-pass �
 ## §8 STOP
 
 **STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工。** 本 REQUEST 为起草席 docs-only 产物：未动任何产品码/compose/监控栈、未跑 prove、无实现自批资格。预执行双审 PASS 后由协调方派 EXEC coding；EXEC 不得改 §1 修法口径与 §5 Ban，漂移须回 REQUEST 补审。任何越 §2 非范围冲动（顺手真实化 alertmanager receiver、起 Prometheus、加 logging 块、动 drain/sweep 语义）= 停手上报，不借机修。
+
+---
+
+## rev2 落卷登记（双席 FAIL 窄面处方合并 · append-only · docs-only 零码动）
+
+**rev2 缘起**：预执行双审席1 三条+席2 三条 FAIL（窄面）·双席一致修法 §1/§5 零需动——本节由落卷席 `ha5-rev2` 合并落卷（改正处行尾 〖rev2〗 注记·原文措辞零改·码面零触·est live=0）。
+
+| # | 席 | 处方 | 落卷处 |
+|---|---|---|---|
+| 1 | 席1 | §0 缺口一勘误：「全仓唯一 JSON 结构化事件」→全仓**三个** JSON 结构化事件·唯一直接告警向=db_pool_error+补登 generation-progress.ts:57 / invoke.ts:387 两锚（alert.rules+alerts-lint 白名单双通道皆盲·如实登记） | §0 缺口一行行尾注记 |
+| 2 | 席1 | 两盲事件目录处置二择一：裁决=**纳入目录首批**（generation_progress_write_failed=Trend·码面自认「进度不是健康信号」generation-progress.ts:11；ai_trace_persist_failed=Trend·P0001 幂等命中正常重放噪音防） | §1 W1① 行+C1 行行尾注记（首批按 9 实数） |
+| 3 | 席1 | 顺带登记 interview-consumer.ts:225（reservation lease renew failed）＝首批外·smoke/cloud-readiness.ts:15（cloud_connectivity_receipt）＝非事件（同族 cloud-test-serial.ts:12 落卷席 sweep 补登）——排除亦登记不沉默缺席 | §1 W1① 行行尾注记（同 #2） |
+| 4 | 席2 | §4 增补 W3 验收断言=§4.9（runbook 存在+每条目录 runbook 锚解析到实际小节+S15 登记节+Page/Ticket/Trend 分层词面机检）·载体二选一裁决=**W4 lint 扩展** | §4.9（新增）+W4 行行尾注记 |
+| 5 | 席2 | §4.8 回归面加宽至 ha-2 先例口径（prove 矩阵全量如实记账·红项基线对账禁 skip-as-pass·C2 sweep 族 report-bulkhead/report-retry-http/interview-dispatch-fairness 跑/未跑列账） | §4.8 行行尾注记 |
+| 6 | 席2 | 「22 条」勘误 **25 条**（`- alert:` 实数：api SLO 6+worker/RAG/模型/费用 18+MonitoringWatchdog 1·:264 实锚） | 处方列三处（:20/:40/:78）·落卷席实物 sweep 实数**五处**（:20/:30/:40/:62/:78）——照 ha-2 rev2-③「以实物为准」先例五处全注 |
+| 7 | 席2 | B6 沙箱载体备案：零改复用 docker/compose.ha.sandbox.yml 形制·防 EXEC 私造清单外载体（ha-2 rev2-②/C8 先例） | §4.6 行行尾注记 |
+
+**勘误附记（落卷席实物核对）**：① 处方引 ha-2-graceful-REQUEST.md:74——grep 亲证实锚 **:73**（「9. **既有零回归**：api/worker/web 各 prove 矩阵按仓内现状全量如实记账（跑/未跑列账）；红项逐条基线对账禁 skip-as-pass…」）·以实物为准；② 处方引 generation-progress.ts:57 / invoke.ts:387——亲证 =JSON 语句起行（事件名分别在 :58/:388）·锚成立；③「22 条」处方列三处·实物五处·同前例以实物为准。
+
+`draft_rev2:pre_exec_dual`（双席 FAIL 窄面处方 7 条落卷·修法 §1/§5 零需动·待复审确认后协调方行使 EXEC 授权）
