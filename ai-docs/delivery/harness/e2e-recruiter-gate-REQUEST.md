@@ -87,3 +87,15 @@ e2e 绿 ≠ 审批制产品验收（处置裁决留协调方·b110 R6 分码≠�
 *rev2 勘误注记（append-only · pre-exec 双席 FAIL 锚点处方落卷 · 逐处 awk 亲读定谳 @`1ae677b8` 实树 · 只动锚点行号零设计变更）：①`0155` approval_status ALTER `:41`→`:37-38`（亲读 :37-38 即 ALTER 全句·:41 实为 gateway_auth_signup CREATE 行）；②recruiter pending 分支 `:44-47`→`:47-49`（:47 IF recruiter·:49 INSERT 'pending'·:50=ELSE candidate 支线——席2 对·席1 `:47-50` 越一行）；③`gateway_require_active_recruiter` 扩展 `:108-117`→`:61-70`（:61 幅注·:62 CREATE·:66 approval_status 维度·:70 收尾·:108-117 实为 REVOKE/GRANT 块）；④`admin.guard.ts` is_admin 检查 `:19-20`→`:16`（全文件 19 行·:16 单行即 `is_admin !== true` 403·:19-20 引不存在行）；⑤`http.ts` jsonHeaders `:17-24`→`:12-18`（全文件 18 行）；⑥蓝本处方2 登记行 `:178`→`:177`（亲读 b110-REQUEST：:177=处方2 三要件·:178=卫生观察条——处方列 :6/:13/:85 三处·实查全文五处 :6/:13/:32/:36/:85 全改）；⑦neg-bend 区间 `:398-431`→`:395-469`（13) b110 段幅注释 :395 起·块闭 :469 止·approve 解锁/留痕 :446-456·reject 裁决/留痕 :457-465·404 边界 :466-468——席1 :395-468 漏 :469 块闭·席2 :398-446 截断解锁/reject 留痕/边界·点锚 :398/:402/:431 亲读 exact 不动）；⑧principal.guard 三子锚 `:42-49`/`:24-38`/`:39-41`→`:48-60`/`:28-42`/`:44-46`（Bearer 验签=canActivate :48 起 :60 return true 止·账户态复核=accountState 方法体 :28-42·哨兵=isReserved :44-46——席1 全对·席2 :28-41 漏 :42 收括号·":48-50+" 开放式不取）；⑨低危两锚亲读不改：`domain/auth.ts` signToken 恰 `:31-35`（:31 export 起·:35 收括号·席2 提 :30-34 反错·:30 为注释尾）·`_neg-harness.ts` INSERT 开行恰 `:161`、`:161-164` 完整四行（席1 对·席2 :159-161 错）——其余口径一字未动（含已登记蓝本勘误三处与 §4 验收两档）。*
 
 draft_rev2:pre_exec_dual（双席锚点处方落卷·逐处亲读定谳·待窄域复审）
+
+---
+
+## nail 落卷（2026-10-10 · post-prove 双席 BOTH PASS·B110 同批收口）
+
+**双审结果**：席1（实现语义）+席2（契约/旅程）互盲复核 BOTH PASS。C1 铸形逐字同 signToken（payload+'.'+HMAC·pe=0·secret 同一 env 对象传 API 子进程 HMAC 必然互验）·INSERT ON CONFLICT 幂等·fail-closed 分类链亲证（tagE2EFailure→E2E_FAILURE_LINE_RE→cleanup+exit 1）·C3 三步活契约真 HTTP 全链（响应体 error 字段断言对齐生产分码·admin 步走全生产链 Bearer HMAC→principal→admin guard→zod→0155 SQL+audit 留痕）·**真 signup 路径增量达成**（neg-bend 为 dev-header+DB 直插·本刀 pending 由生产 signup 真产生）·零删改结构性证明（13+/1− 唯一删除行=import）·两档门双席独立复跑绿（typecheck+28/28）。merge 落主线 @cedf631b。
+
+**B110 同批收口（裁决席附条件兑现）**：B110 EXEC 实体合格（0155 在链·neg:bend 157/157·三分码·双层守卫）+处方1 登记三实体锚点亲证+处方2 本刀三要件全交付——B110 正式收口。附条件兑现：①live 冻结至本刀合入（现已合入）②同批 nail（本卷）③合入前主线 tip 四面零漂已证。
+
+**e2e:isolated 解冻判断（席2）**：解冻条件已满足（pending→403 分码→approve→200 链码面闭合·bootstrap 失败 fail-closed 无假绿旁路·残余依赖=wrapper 每跑新容器与现行行为一致）——live 授权跑（MODEL_API_KEY 真消耗）归协调方/用户排程。
+
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·merge 落主线 @cedf631b·B110 同批收口·0-b 前置闸开启→ENTPAY 片2 EXEC 授权链就绪·markers=0·est live=0）。
