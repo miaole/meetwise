@@ -27,7 +27,7 @@ const e2eIsolatedPath = join(root, 'scripts/run-e2e-isolated.mjs');
 const soleWiringPath = join(root, 'scripts/conn-stack/mysql-stack.sole-wiring.proof.mjs');
 const perfSuitePath = join(root, 'scripts/run-e2e-performance-suite.mjs');
 const packageJsonPath = join(root, 'package.json');
-const retrievalPath = join(root, 'packages/db/src/retrieval-store.ts');
+const retrievalPath = join(root, 'packages/db/src/retrieval/retrieval-store.ts');
 const adversarialPgEvalPath = join(root, 'apps/worker/smoke/rag-adversarial-pg-eval.ts');
 const qbankRetrievalEvalPgPath = join(root, 'apps/worker/test/qbank-retrieval-eval-pg.proof.ts');
 

@@ -248,7 +248,7 @@ export const RESIDUAL_PATHS: ResidualPath[] = [
     ownership: 'PRIV01 第二波（db 层刀）',
   },
   {
-    file: 'packages/db/src/{checkpoint/checkpoint-privacy,checkpoint/checkpoint-thread,privacy-authorization,memory-vector-chunk-erasure,vector-plane-erasure,int-transcript*,qbank-*,memory-*,retrieval-*}.ts',
+    file: 'packages/db/src/{checkpoint/checkpoint-privacy,checkpoint/checkpoint-thread,privacy-authorization,memory-vector-chunk-erasure,vector-plane-erasure,int-transcript*,qbank-*,memory-*,retrieval/retrieval-*}.ts',
     paths: '隐私主链/擦除链/向量/记忆/题库 lane 的 owner 点',
     reason: '隐私主链与 erasure 链 = 本刀硬 Ban 触面（DELETE=503 冻结 · ADR 门 cite-only）；worker/memory/qbank = 系统 lane',
     ownership: 'Ban 链不接线（privacy 主链）· 其余 PRIV01 第二波',

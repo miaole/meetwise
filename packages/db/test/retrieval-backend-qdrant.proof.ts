@@ -29,7 +29,7 @@ import {
   RETRIEVAL_VECTOR_BACKEND_ENV,
   resolveRetrievalVectorBackend,
   createRetrievalVectorBackend,
-} from '../src/retrieval-backend.ts';
+} from '../src/retrieval/retrieval-backend.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = join(here, '..');
@@ -38,8 +38,8 @@ const scriptLabel = 'pnpm retrieval-store:qdrant:prove';
 
 const harnessPath = join(repoRoot, 'ai-docs/delivery/harness/retrieval-backend-qdrant.md');
 const statusPath = join(repoRoot, 'ai-docs/delivery/harness/r5-retirement-sole-stack-status.md');
-const retrievalPath = join(pkgRoot, 'src/retrieval-store.ts');
-const backendPath = join(pkgRoot, 'src/retrieval-backend.ts');
+const retrievalPath = join(pkgRoot, 'src/retrieval/retrieval-store.ts');
+const backendPath = join(pkgRoot, 'src/retrieval/retrieval-backend.ts');
 const rootPkgPath = join(repoRoot, 'package.json');
 const e2eIsolatedPath = join(repoRoot, 'scripts/run-e2e-isolated.mjs');
 const vectorstoreProofPath = join(pkgRoot, 'test/vectorstore.proof.ts');

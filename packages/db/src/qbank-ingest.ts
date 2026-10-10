@@ -24,7 +24,7 @@
  * 隐私:原文不入向量库(只 ref_id+hash+向量);题面原文在业务表/题库源。返回真正入库(未跳过)的条数。
  */
 import { asQbankControlExecutor, type DbPool } from './principal.ts';
-import { upsertVectorChunk } from './retrieval-store.ts';
+import { upsertVectorChunk } from './retrieval/retrieval-store.ts';
 import { createHash } from 'node:crypto';
 import {
   proposeSource, reviewSource, promoteToPool, isApprovedSource, findSourceByHash, type QbankSourceKind,

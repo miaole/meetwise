@@ -21,7 +21,7 @@ const consumerPath = join(root, 'apps/worker/src/interview-consumer.ts');
 const routePath = join(root, 'packages/db/src/routing/job-route-decision.ts');
 const hybridPath = join(root, 'packages/db/src/qbank-generation-retrieval.ts');
 const trackLocalPath = join(root, 'packages/db/src/qbank-track-local-retrieval.ts');
-const retrievalPath = join(root, 'packages/db/src/retrieval-store.ts');
+const retrievalPath = join(root, 'packages/db/src/retrieval/retrieval-store.ts');
 const vectorstoreProofPath = join(root, 'packages/db/test/vectorstore.proof.ts');
 const e2eIsolatedPath = join(root, 'scripts/run-e2e-isolated.mjs');
 
