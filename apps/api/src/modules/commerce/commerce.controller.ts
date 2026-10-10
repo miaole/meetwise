@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Param, Body, Headers, Header, Req, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
-import { CreateOrderDto } from '@meetwise/contracts';
+import { CreateOrderDto, InvoiceProfileDto, InvoiceRequestDto } from '@meetwise/contracts';
 import { PrincipalGuard } from '../../platform/principal.guard';
 import { ZodValidationPipe } from '../../platform/zod.pipe';
 import { CommerceService } from './commerce.service';
@@ -15,6 +15,13 @@ export class CommerceController {
   @Get('products')
   @Header('Cache-Control', 'public, max-age=300')   // 公开近静态(性能:前端/CDN 可缓存,审计 F9)
   products() { return this.commerce.products(); }
+
+  // B271 片1(前席发现②):企业商品独立端点——公开目录 C 端域零触,企业面走本端点(approved recruiter 门)。
+  @Get('enterprise-products')
+  @UseGuards(PrincipalGuard)
+  enterpriseProducts(@Req() req: any) {
+    return this.commerce.enterpriseProducts(req.principal);
+  }
 
   @Post('orders')
   @UseGuards(PrincipalGuard)
@@ -41,5 +48,32 @@ export class CommerceController {
   @UseGuards(PrincipalGuard)
   balance(@Req() req: any) {
     return this.commerce.entitlement(req.principal);
+  }
+
+  // ── B271 片1 开票面（RLS 仅本人 + 仅-paid 触发器门·薄适配层不碰 SQL 语义）──────────────
+  @Get('invoice-profile')
+  @UseGuards(PrincipalGuard)
+  invoiceProfile(@Req() req: any) {
+    return this.commerce.getInvoiceProfile(req.principal);
+  }
+
+  @Post('invoice-profile')
+  @UseGuards(PrincipalGuard)
+  @HttpCode(HttpStatus.OK)
+  saveInvoiceProfile(@Req() req: any, @Body(new ZodValidationPipe(InvoiceProfileDto)) b: InvoiceProfileDto) {
+    return this.commerce.saveInvoiceProfile(req.principal, b);
+  }
+
+  @Get('invoice-requests')
+  @UseGuards(PrincipalGuard)
+  invoiceRequests(@Req() req: any) {
+    return this.commerce.listInvoiceRequests(req.principal);
+  }
+
+  @Post('invoice-requests')
+  @UseGuards(PrincipalGuard)
+  @HttpCode(HttpStatus.OK)
+  submitInvoiceRequest(@Req() req: any, @Body(new ZodValidationPipe(InvoiceRequestDto)) b: InvoiceRequestDto) {
+    return this.commerce.submitInvoiceRequest(req.principal, b.orderId);
   }
 }

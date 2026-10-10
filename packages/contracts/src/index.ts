@@ -231,8 +231,50 @@ export const Products = z.object({ products: z.array(Product) });
 export type Products = z.infer<typeof Products>;
 export const Entitlement = z.object({ availableUnits: z.number().int() });
 export type Entitlement = z.infer<typeof Entitlement>;
-export const CreateOrderDto = z.object({ productId: z.string() });
+export const CreateOrderDto = z.object({ productId: z.string(), channel: z.enum(['online', 'offline']).optional() });
 export type CreateOrderDto = z.infer<typeof CreateOrderDto>;
+// B271 #271 片1（前席发现②）：企业商品独立端点契约——公开 /commerce/products 保持 C 端域 2 条不变；
+// 本端点 approved recruiter 门，返回 enterprise 域套餐（含 domain 判别域）。
+export const EnterpriseProduct = z.object({ id: z.string(), name: z.string(), amountCents: z.number().int(), units: z.number().int(), domain: z.string() });
+export const EnterpriseProducts = z.object({ products: z.array(EnterpriseProduct) });
+export type EnterpriseProducts = z.infer<typeof EnterpriseProducts>;
+
+// B271 #271 片1：对公录入/置败与开票资料/申请 DTO（服务器权威金额语义——entry 的 amountCents 是
+// 「到账金额」录入值，与订单 amount_cents 的一致性校验在受控 DB 函数内，客户端不可绕过）。
+export const OfflineRemitEntryDto = z.object({ bankRef: z.string().min(1).max(128), amountCents: z.number().int().positive() });
+export type OfflineRemitEntryDto = z.infer<typeof OfflineRemitEntryDto>;
+export const OfflineRemitFailDto = z.object({ reason: z.string().max(500).optional() });
+export type OfflineRemitFailDto = z.infer<typeof OfflineRemitFailDto>;
+export const InvoiceProfileDto = z.object({
+  title: z.string().min(1).max(200),
+  taxId: z.string().min(1).max(64),
+  addressPhone: z.string().max(300).optional(),
+  bankAccount: z.string().max(200).optional(),
+  email: z.string().email().max(200),
+});
+export type InvoiceProfileDto = z.infer<typeof InvoiceProfileDto>;
+export const InvoiceRequestDto = z.object({ orderId: z.string().min(1).max(64) });
+export type InvoiceRequestDto = z.infer<typeof InvoiceRequestDto>;
+export const InvoiceProfileView = z.object({
+  profile: z.object({
+    title: z.string(), tax_id: z.string(), address_phone: z.string().nullable(), bank_account: z.string().nullable(),
+    email: z.string(), updated_at: z.string(),
+  }).nullable(),
+});
+export type InvoiceProfileView = z.infer<typeof InvoiceProfileView>;
+export const InvoiceProfileSaved = z.object({ saved: z.boolean() });
+export type InvoiceProfileSaved = z.infer<typeof InvoiceProfileSaved>;
+export const InvoiceRequestList = z.object({
+  requests: z.array(z.object({
+    id: z.string(), order_id: z.string(), status: z.string(), invoice_no: z.string().nullable(),
+    reject_reason: z.string().nullable(), requested_at: z.string(),
+  })),
+});
+export type InvoiceRequestList = z.infer<typeof InvoiceRequestList>;
+export const InvoiceRequestCreated = z.object({
+  request: z.object({ id: z.string(), order_id: z.string(), status: z.string(), requested_at: z.string() }),
+});
+export type InvoiceRequestCreated = z.infer<typeof InvoiceRequestCreated>;
 export const OrderResult = z.object({ orderId: z.string(), amountCents: z.number().int(), status: z.string() });
 
 /* ───────────── profile ───────────── */
@@ -1144,6 +1186,11 @@ export const apiContract: ContractRoute[] = [
   { id: 'listProducts', method: 'get', path: '/commerce/products', summary: '面试包列表', tags: ['commerce'], response: Products },
   { id: 'getEntitlement', method: 'get', path: '/commerce/entitlement', summary: '剩余额度', tags: ['commerce'], auth: true, response: Entitlement },
   { id: 'createOrder', method: 'post', path: '/commerce/orders', summary: '创建订单', tags: ['commerce'], auth: true, request: CreateOrderDto, response: OrderResult },
+  { id: 'listEnterpriseProducts', method: 'get', path: '/commerce/enterprise-products', summary: '企业充值套餐(approved recruiter·B271 片1)', tags: ['commerce'], auth: true, response: EnterpriseProducts },
+  { id: 'getInvoiceProfile', method: 'get', path: '/commerce/invoice-profile', summary: '读取本人开票资料(RLS 仅本人)', tags: ['commerce'], auth: true, response: InvoiceProfileView },
+  { id: 'saveInvoiceProfile', method: 'post', path: '/commerce/invoice-profile', summary: '维护本人开票资料(approved recruiter)', tags: ['commerce'], auth: true, request: InvoiceProfileDto, response: InvoiceProfileSaved },
+  { id: 'listInvoiceRequests', method: 'get', path: '/commerce/invoice-requests', summary: '本人开票申请列表(RLS 仅本人)', tags: ['commerce'], auth: true, response: InvoiceRequestList },
+  { id: 'submitInvoiceRequest', method: 'post', path: '/commerce/invoice-requests', summary: '提交开票申请(仅 paid 订单·DB 触发器门)', tags: ['commerce'], auth: true, request: InvoiceRequestDto, response: InvoiceRequestCreated },
   { id: 'createJob', method: 'post', path: '/recruiter/jobs', summary: '招聘方发布岗位', tags: ['recruiter'], auth: true, request: CreateJobDto, response: JobView },
   { id: 'listJobs', method: 'get', path: '/recruiter/jobs', summary: '招聘方岗位列表(租户隔离)', tags: ['recruiter'], auth: true, response: JobList },
   { id: 'getJob', method: 'get', path: '/recruiter/jobs/{id}', summary: '岗位详情', tags: ['recruiter'], auth: true, response: JobView },

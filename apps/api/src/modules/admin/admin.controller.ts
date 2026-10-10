@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Param, Req, Body, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
-import { RecruiterDecisionDto } from '@meetwise/contracts';
+import { OfflineRemitEntryDto, OfflineRemitFailDto, RecruiterDecisionDto } from '@meetwise/contracts';
 import { PrincipalGuard } from '../../platform/principal.guard';
 import { AdminGuard } from '../../platform/admin.guard';
 import { ZodValidationPipe } from '../../platform/zod.pipe';
@@ -45,6 +45,30 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   recruiterDecision(@Param('id') id: string, @Req() req: any, @Body(new ZodValidationPipe(RecruiterDecisionDto)) b: RecruiterDecisionDto) {
     return this.admin.recruiterDecision(id, b, req.principal);
+  }
+
+  // B271 片1:对公转账台账(队列+录入/确认/置败·AdminGuard+DB 函数内复核双层)。
+  @Get('offline-remits')
+  offlineRemits(@Req() req: any) {
+    return this.admin.offlineRemits(req.principal);
+  }
+
+  @Post('offline-remits/:id/entry')
+  @HttpCode(HttpStatus.OK)
+  remitEntry(@Param('id') id: string, @Req() req: any, @Body(new ZodValidationPipe(OfflineRemitEntryDto)) b: OfflineRemitEntryDto) {
+    return this.admin.remitEntry(id, b, req.principal);
+  }
+
+  @Post('offline-remits/:id/confirm')
+  @HttpCode(HttpStatus.OK)
+  remitConfirm(@Param('id') id: string, @Req() req: any) {
+    return this.admin.remitConfirm(id, req.principal);
+  }
+
+  @Post('offline-remits/:id/fail')
+  @HttpCode(HttpStatus.OK)
+  remitFail(@Param('id') id: string, @Req() req: any, @Body(new ZodValidationPipe(OfflineRemitFailDto)) b: OfflineRemitFailDto) {
+    return this.admin.remitFail(id, b, req.principal);
   }
 
   @Get('audit')

@@ -1,6 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { createOrder, getOrder, markOrderPaidAndCredit, markOrderRefunded, availableUnits, requireOwnerUserId, newEntityId, errCode } from '@meetwise/db';
+import { createOrder, getOrder, markOrderPaidAndCredit, markOrderRefunded, availableUnits, requireOwnerUserId, newEntityId, errCode, asErr, type Client, type CreditBucketKind } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
 
 /**
@@ -8,32 +8,77 @@ import { DbService } from '../../platform/db.service';
  * 承重:回调**幂等 exactly-once 入账**(CAS,重复回调不双扣不双入)+ HMAC 验签(密钥缺失 fail-closed)。
  * 注:此回调经 principal(适合"支付后跳回"确认流);真异步 webhook 需独立无登录态端点 + 验签 + 查单 owner + 特权入账。
  */
-export const PRODUCTS = [
-  { id: 'pack_10', name: '10 次面试包', amountCents: 9900, units: 10 },
-  { id: 'pack_30', name: '30 次面试包', amountCents: 24900, units: 30 },
+export type ProductDomain = 'consumer' | 'enterprise';
+export const PRODUCTS: Array<{ id: string; name: string; amountCents: number; units: number; domain: ProductDomain }> = [
+  { id: 'pack_10', name: '10 次面试包', amountCents: 9900, units: 10, domain: 'consumer' },
+  { id: 'pack_30', name: '30 次面试包', amountCents: 24900, units: 30, domain: 'consumer' },
+  // B271 #271 片1 企业商品（audit①「开放企业商品」）：下单人须 approved recruiter（gateway_require_active_recruiter·
+  // 0155 同门）；enterprise 域入账落位 kind='enterprise'（下单招聘方企业桶·非个人池）。
+  { id: 'ent_pack_50', name: '企业充值 50 次面试', amountCents: 39900, units: 50, domain: 'enterprise' },
+  { id: 'ent_pack_200', name: '企业充值 200 次面试', amountCents: 149900, units: 200, domain: 'enterprise' },
 ];
 
 @Injectable()
 export class CommerceService {
+  /** B271 片1：approved recruiter 门（0155 同谓词·app_role 可执行形）。gateway_require_active_recruiter()
+   * 已被 0155 REVOKE 自 app_role（23_api_gateway.sql:418）——app_role 会话内直调必 42501 insufficient_privilege
+   * （EXEC attempt4 实测），不可作服务端门调用形。此处按该门**同谓词**在调用方 RLS 自身行作用域内校验
+   * （user_account p_user_account_self FORCE RLS：主体只见自己行·fail-closed 同义：candidate/pending/rejected
+   * 皆零行 → 403）。DB 侧 gateway_active_candidate 等 DEFINER 门仍持纵深（B 端端点面），双层不弱。 */
+  private static readonly APPROVED_RECRUITER_SQL =
+    "SELECT 1 AS ok FROM user_account WHERE id = current_setting('app.principal_user', true) " +
+    "AND role='recruiter' AND status='active' AND approval_status='approved'";
+
   constructor(private readonly db: DbService) {}
 
+  // 公开目录=**C 端域子集**（B271 片1·前席发现②兼容收口）：C 端契约「恰 2 个面试包」逐字节不变
+  // （neg-commerce:389 / api validate:448 / openapi 公开面零弱化）；企业商品经独立端点 enterpriseProducts
+  // （approved recruiter 门·上方 requireApprovedRecruiter 同门）对招聘方开放。
   products() {
-    return { products: PRODUCTS };
+    return { products: PRODUCTS.filter((p) => p.domain === 'consumer') };
   }
 
-  async createOrder(principal: string, dto: { productId?: string }, idempotencyKey?: string) {
+  async enterpriseProducts(principal: string) {
+    await this.requireApprovedRecruiter(principal);
+    return { products: PRODUCTS.filter((p) => p.domain === 'enterprise') };
+  }
+
+  async createOrder(principal: string, dto: { productId?: string; channel?: 'online' | 'offline' }, idempotencyKey?: string) {
     const p = PRODUCTS.find((x) => x.id === dto?.productId);
     if (!p) throw new HttpException({ error: 'unknown_product' }, HttpStatus.BAD_REQUEST);
+    const offline = p.domain === 'enterprise' && dto?.channel === 'offline';
     const id = newEntityId('ord');
     let orderId: string;
     try {
-      orderId = await this.db.asPrincipal(principal, (c) =>              // 幂等:同 key 同参重试返回原单
-        createOrder(c, principal, { id, productId: p.id, amountCents: p.amountCents, units: p.units, idempotencyKey }));
+      orderId = await this.db.asPrincipal(principal, async (c) => {        // 幂等:同 key 同参重试返回原单
+        // B271 片1:企业商品下单人须 approved recruiter(0155 同谓词·RLS 自身行·403);C 端商品零触。
+        if (p.domain === 'enterprise') {
+          const gate = await c.query(CommerceService.APPROVED_RECRUITER_SQL);
+          if (gate.rowCount !== 1) throw new HttpException({ error: 'recruiter_required' }, HttpStatus.FORBIDDEN);
+        }
+        const oid = await createOrder(c, principal, { id, productId: p.id, amountCents: p.amountCents, units: p.units, idempotencyKey });
+        // 对公单停 created(channel='offline'·审计①「对公转账订单停 created」):不经 webhook 推进,
+        // 由 admin 录入银行流水+人工确认入账。幂等重放(同 key)重复置 offline 收敛同值。
+        if (offline) await c.query("UPDATE payment_order SET channel='offline' WHERE id=$1 AND status='created'", [oid]);
+        return oid;
+      });
     } catch (e: unknown) {
+      if (e instanceof HttpException) throw e;
       if (errCode(e) === 'idempotency_key_conflict') throw new HttpException({ error: 'idempotency_key_conflict' }, HttpStatus.CONFLICT);   // 同 key 换商品 → 409(不静默吞)
       throw e;
     }
-    return { orderId, amountCents: p.amountCents, status: 'created' };
+    return { orderId, amountCents: p.amountCents, status: 'created', channel: offline ? 'offline' : 'online' };
+  }
+
+  /**
+   * B271 片1(S1-C3):入账落桶类型由订单商品域派生——enterprise 域 → 企业桶(kind='enterprise',
+   * owner=下单招聘方);consumer 域 → C 端语义零触(credit 缺省 'paid'·refund 不带桶过滤)。
+   * 同事务内读本人订单派生,不引入跨域读;CAS/幂等/HMAC 链零改。
+   */
+  private async bucketForOrder(c: Client, owner: string, id: string): Promise<{ kind: CreditBucketKind } | undefined> {
+    const o = await getOrder(c, owner, id);
+    if (!o) return undefined;
+    return PRODUCTS.find((p) => p.id === o.productId)?.domain === 'enterprise' ? { kind: 'enterprise' } : undefined;
   }
 
   async payCallback(principal: string, id: string, body: { providerTxn?: string; sig?: string }) {
@@ -42,7 +87,8 @@ export class CommerceService {
     const exp = createHmac('sha256', secret).update(`${id}:${body.providerTxn}:paid`).digest('hex');
     const a = Buffer.from(body.sig), e = Buffer.from(exp);
     if (!secret || a.length !== e.length || !timingSafeEqual(a, e)) throw new HttpException({ error: 'bad_signature' }, HttpStatus.FORBIDDEN);
-    const res = await this.db.asPrincipal(principal, (c) => markOrderPaidAndCredit(c, principal, id, body.providerTxn!));
+    const res = await this.db.asPrincipal(principal, async (c) =>
+      markOrderPaidAndCredit(c, principal, id, body.providerTxn!, (await this.bucketForOrder(c, principal, id)) ?? { kind: 'paid' }));
     if (res === 'not_found') throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
     if (res === 'conflict') throw new HttpException({ error: 'order_conflict' }, HttpStatus.CONFLICT);
     return { result: res };   // credited(首次) | already(幂等重复)
@@ -69,7 +115,8 @@ export class CommerceService {
     } catch {
       throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
     }
-    const res = await this.db.asPrincipal(owner, (c) => markOrderPaidAndCredit(c, owner, id, body.providerTxn!));
+    const res = await this.db.asPrincipal(owner, async (c) =>
+      markOrderPaidAndCredit(c, owner, id, body.providerTxn!, (await this.bucketForOrder(c, owner, id)) ?? { kind: 'paid' }));
     if (res === 'not_found') throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
     if (res === 'conflict') throw new HttpException({ error: 'order_conflict' }, HttpStatus.CONFLICT);
     return { result: res };
@@ -98,7 +145,8 @@ export class CommerceService {
     } catch {
       throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
     }
-    const res = await this.db.asPrincipal(owner, (c) => markOrderRefunded(c, owner, id, body.providerTxn!));
+    const res = await this.db.asPrincipal(owner, async (c) =>
+      markOrderRefunded(c, owner, id, body.providerTxn!, await this.bucketForOrder(c, owner, id)));
     if (res === 'not_found') throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
     if (res === 'conflict') throw new HttpException({ error: 'order_conflict' }, HttpStatus.CONFLICT);
     return { result: res };   // refunded(首次) | already(幂等重放)
@@ -113,5 +161,59 @@ export class CommerceService {
   async entitlement(principal: string) {
     const u = await this.db.asPrincipal(principal, (c) => availableUnits(c, principal));
     return { availableUnits: u };
+  }
+
+  // ── B271 片1 开票面（audit①「企业开票资料 RLS 仅招聘方本人可读写 + 开票申请仅 paid 订单」）──
+  // 读写全在 RLS p_owner 之下（本人）；写面再加 approved recruiter 门；仅-paid 门在 DB 触发器
+  // （invoice_request_order_not_paid·0156/11_commerce 镜像）——端点+触发器双层，禁半开门。
+
+  async getInvoiceProfile(principal: string) {
+    const r = await this.db.asPrincipal(principal, (c) =>
+      c.query('SELECT title, tax_id, address_phone, bank_account, email, updated_at FROM invoice_profile WHERE owner_user_id=$1', [principal]));
+    return { profile: r.rows[0] ?? null };
+  }
+
+  async saveInvoiceProfile(principal: string, b: { title: string; taxId: string; addressPhone?: string; bankAccount?: string; email: string }) {
+    await this.requireApprovedRecruiter(principal);
+    await this.db.asPrincipal(principal, (c) =>
+      c.query(
+        `INSERT INTO invoice_profile(owner_user_id, title, tax_id, address_phone, bank_account, email, updated_at)
+         VALUES ($1,$2,$3,$4,$5,$6, now())
+         ON CONFLICT (owner_user_id) DO UPDATE SET
+           title=$2, tax_id=$3, address_phone=$4, bank_account=$5, email=$6, updated_at=now()`,
+        [principal, b.title, b.taxId, b.addressPhone ?? null, b.bankAccount ?? null, b.email]));
+    return { saved: true };
+  }
+
+  async listInvoiceRequests(principal: string) {
+    const r = await this.db.asPrincipal(principal, (c) =>
+      c.query('SELECT id, order_id, status, invoice_no, reject_reason, requested_at FROM invoice_request WHERE owner_user_id=$1 ORDER BY requested_at DESC LIMIT 50', [principal]));
+    return { requests: r.rows };
+  }
+
+  async submitInvoiceRequest(principal: string, orderId: string) {
+    await this.requireApprovedRecruiter(principal);
+    try {
+      const r = await this.db.asPrincipal(principal, (c) =>
+        c.query(
+          'INSERT INTO invoice_request(order_id, owner_user_id) VALUES ($1,$2) RETURNING id, order_id, status, requested_at',
+          [orderId, principal]));
+      return { request: r.rows[0] };
+    } catch (e: unknown) {
+      const msg = asErr(e)?.message;
+      if (msg === 'invoice_request_order_not_paid' || msg === 'invoice_request_order_not_found')
+        throw new HttpException({ error: 'invoice_request_order_not_paid' }, HttpStatus.CONFLICT);   // 负例面:created/refunded/他人单 → 409(不区分存在性)
+      if (msg === 'invoice_request_owner_mismatch')
+        throw new HttpException({ error: 'invoice_request_order_not_paid' }, HttpStatus.CONFLICT);
+      if (errCode(e) === '23505') throw new HttpException({ error: 'invoice_request_duplicate' }, HttpStatus.CONFLICT);   // 一单至多一张票
+      throw e;
+    }
+  }
+
+  private async requireApprovedRecruiter(principal: string) {
+    await this.db.asPrincipal(principal, async (c) => {
+      const gate = await c.query(CommerceService.APPROVED_RECRUITER_SQL);
+      if (gate.rowCount !== 1) throw new HttpException({ error: 'recruiter_required' }, HttpStatus.FORBIDDEN);
+    });
   }
 }
