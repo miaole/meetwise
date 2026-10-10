@@ -93,8 +93,8 @@ function readRepo(rel: string): string {
 export function assessFunnel02AImmutableGenerationProjectionRecipe(): Funnel02AAssessor {
   const gen = readSrc('qbank-generation.ts');
   const main = readSrc('main.ts');
-  const projection = readRepo('packages/db/src/qbank-generation-projection.ts');
-  const trackLocal = readRepo('packages/db/src/qbank-track-local-retrieval.ts');
+  const projection = readRepo('packages/db/src/qbank/qbank-generation-projection.ts');
+  const trackLocal = readRepo('packages/db/src/qbank/qbank-track-local-retrieval.ts');
 
   const recipeCanonicalFieldsPresent =
     /export function qbankEmbeddingRecipe\s*\(/.test(gen)
@@ -171,12 +171,12 @@ export function funnel02ARefuseReason(): string | null {
  * from packages/db module alone / process-local cachingEmbedder alone).
  */
 export function assessFunnel02BDurableEmbeddingComputeCache(): Funnel02BAssessor {
-  const compute = readRepo('packages/db/src/qbank-embedding-compute-cache.ts');
-  const retrieval = readRepo('packages/db/src/qbank-retrieval-cache.ts');
+  const compute = readRepo('packages/db/src/qbank/qbank-embedding-compute-cache.ts');
+  const retrieval = readRepo('packages/db/src/qbank/qbank-retrieval-cache.ts');
   const dbIndex = readRepo('packages/db/src/index.ts');
   const main = readSrc('main.ts');
   const gen = readSrc('qbank-generation.ts');
-  const memory = readRepo('packages/db/src/memory-index-generation.ts');
+  const memory = readRepo('packages/db/src/memory/memory-index-generation.ts');
 
   const hmacCacheIdentityPresent =
     /export function embeddingComputeCacheKey\s*\(/.test(compute)

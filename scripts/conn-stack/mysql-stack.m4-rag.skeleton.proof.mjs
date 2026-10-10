@@ -18,10 +18,10 @@ const docPath = join(root, 'ai-docs/delivery/m4-rag-hard-gates.md');
 const scriptPath = join(root, 'scripts/conn-stack/mysql-stack.m4-rag.skeleton.proof.mjs');
 const mainPath = join(root, 'apps/worker/src/main.ts');
 const consumerPath = join(root, 'apps/worker/src/interview-consumer.ts');
-const routePath = join(root, 'packages/db/src/job-route-decision.ts');
-const hybridPath = join(root, 'packages/db/src/qbank-generation-retrieval.ts');
-const trackLocalPath = join(root, 'packages/db/src/qbank-track-local-retrieval.ts');
-const retrievalPath = join(root, 'packages/db/src/retrieval-store.ts');
+const routePath = join(root, 'packages/db/src/routing/job-route-decision.ts');
+const hybridPath = join(root, 'packages/db/src/qbank/qbank-generation-retrieval.ts');
+const trackLocalPath = join(root, 'packages/db/src/qbank/qbank-track-local-retrieval.ts');
+const retrievalPath = join(root, 'packages/db/src/retrieval/retrieval-store.ts');
 const vectorstoreProofPath = join(root, 'packages/db/test/vectorstore.proof.ts');
 const e2eIsolatedPath = join(root, 'scripts/run-e2e-isolated.mjs');
 

@@ -21,7 +21,7 @@ const pkgRoot = join(here, '..');
 const repoRoot = join(pkgRoot, '..', '..');
 const scriptLabel = 'pnpm qdrant-store:skeleton:prove';
 
-const retrievalPath = join(repoRoot, 'packages/db/src/retrieval-store.ts');
+const retrievalPath = join(repoRoot, 'packages/db/src/retrieval/retrieval-store.ts');
 const vectorstoreProofPath = join(repoRoot, 'packages/db/test/vectorstore.proof.ts');
 const e2eIsolatedPath = join(repoRoot, 'scripts/run-e2e-isolated.mjs');
 const harnessPath = join(repoRoot, 'ai-docs/delivery/harness/qdrant-store.prototype.md');

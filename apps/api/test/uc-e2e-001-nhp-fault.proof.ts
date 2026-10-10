@@ -87,9 +87,9 @@ function sha256(s: string): string {
 {
   const svc = readFileSync(resolve(repoRoot, 'apps/api/src/modules/interview/interview.service.ts'), 'utf8');
   const ctrl = readFileSync(resolve(repoRoot, 'apps/api/src/modules/interview/interview.controller.ts'), 'utf8');
-  const reportDb = readFileSync(resolve(repoRoot, 'packages/db/src/report.ts'), 'utf8');
+  const reportDb = readFileSync(resolve(repoRoot, 'packages/db/src/report/report.ts'), 'utf8');
   const worker = readFileSync(resolve(repoRoot, 'apps/worker/src/report-worker.ts'), 'utf8');
-  const commerce = readFileSync(resolve(repoRoot, 'packages/db/src/commerce.ts'), 'utf8');
+  const commerce = readFileSync(resolve(repoRoot, 'packages/db/src/commerce/commerce.ts'), 'utf8');
   const thisSrc = readFileSync(fileURLToPath(import.meta.url), 'utf8');
 
   const ctrlPrefix = lineOf(ctrl, /@Controller\('interview'\)/);
