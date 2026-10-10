@@ -83,6 +83,7 @@ export async function sweepReports(
     `UPDATE ai_report SET status='queued', lease_owner=NULL, version=version+1
        WHERE owner_user_id=$1 AND status='failed' AND attempts < $2
          AND (next_attempt_at IS NULL OR next_attempt_at <= now())`, [owner, maxAttempts]); // 退避未到不重排
+  if (r.rowCount) console.warn(JSON.stringify({ event: 'reaper_takeover', kind: 'report', job_ref: `requeued:${r.rowCount}`, prev_lease_expired: false }));
   return { requeued: r.rowCount ?? 0, quarantined: q.rowCount ?? 0, quarantinedInterviews: q.rows.map((x) => x.interview_id) };
 }
 

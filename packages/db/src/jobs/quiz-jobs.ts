@@ -85,5 +85,6 @@ export async function sweepStuckQuizJobs(
     `UPDATE quiz_job SET status='queued', lease_owner=NULL, version=version+1
        WHERE owner_user_id=$1 AND status='running' AND lease_expires_at < now() AND attempts < $2`,
     [owner, maxAttempts]);
+  if (rq.rowCount) console.warn(JSON.stringify({ event: 'reaper_takeover', kind: 'quiz', job_ref: `requeued:${rq.rowCount}`, prev_lease_expired: true }));
   return { requeued: rq.rowCount ?? 0, failed: dead.rowCount ?? 0, failedQuizzes: dead.rows.map((x) => x.quiz_id as string) };
 }
