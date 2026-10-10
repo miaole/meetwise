@@ -1,5 +1,6 @@
 import { Controller, Get, Header } from '@nestjs/common';
 import { getMetrics } from '@meetwise/ai-runtime';
+import { renderPoolErrorsTotalLines } from '@meetwise/db';
 
 /**
  * Prometheus 抓取端点(公开,只出聚合标量——无 PII)。覆盖 Langfuse 管不到的系统层:
@@ -11,6 +12,8 @@ export class MetricsController {
   @Get()
   @Header('content-type', 'text/plain; version=0.0.4')
   scrape(): string {
-    return getMetrics().render();
+    // R-22: 既有渲染后追加逐 purpose 池错误计数行(仅已注册 purpose·0 预注册)——
+    // observability gauge 非健康信号,/readyz 零 consult(candidate B 边界不动)。
+    return getMetrics().render() + renderPoolErrorsTotalLines();
   }
 }

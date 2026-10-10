@@ -1,0 +1,21 @@
+CMD: HA3_PG_URL=postgresql://meetwise:***@127.0.0.1:54340/meetwise node --import tsx .tmp/ha3/b5-query-timeout.mjs
+B5_EXIT=0
+{
+  "driver": {
+    "threw": true,
+    "elapsedMs": 3018,
+    "name": "Error",
+    "message": "Query read timeout",
+    "code": null,
+    "severity": null
+  },
+  "server": {
+    "threw": true,
+    "elapsedMs": 1519,
+    "name": "error",
+    "message": "canceling statement due to statement timeout",
+    "code": "57014",
+    "severity": "ERROR"
+  }
+}
+B5 VERDICT: PASS — 两形态均触发且 message 形态可区分（driver vs server）

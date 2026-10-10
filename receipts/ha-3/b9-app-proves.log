@@ -1,0 +1,7 @@
+== B9: worker drain proof (untouched face sanity) + api/worker ha3 proves ==
+HA2_DRAIN_EXIT=0
+===== ha2-drain.proof(worker) PASS=39 FAIL=0 =====
+WK_HA3_EXIT=0
+✓ HA-3 worker /metrics 池错误行渲染 proof 全部通过
+API_HA3_EXIT=0
+✓ HA-3 api /metrics 池错误行渲染 proof 全部通过
