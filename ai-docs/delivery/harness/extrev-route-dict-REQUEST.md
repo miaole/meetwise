@@ -221,3 +221,17 @@ g7SuiteGreen=false
 - **停止条件核查**：实树锚漂——无（rev3 锚 `deacfd49` 内容完整，rebase 后同内容 hash=`28c24e6a`；指定路径工作树缺失系环境态，按原路径+原分支重建后推进）；证明键冲突——无（`candidate-route:prove` 根/domain 均无既有键）；需触范围外——无（db/api/迁移/job 面词典零触碰）。
 - ** Pins**：§6 十一值照抄不变 + `candidateRoutePolicy=2026-10-frozen:v1→v3（本刀改路由语义·升版强制）` · `fullstackAmbiguous409=retired-by-user-decision（真歧义降级 general·R3-5 作废「待用户选择刀」门槛，#259 非门槛）` · `routeAccuracyGuarantee=false`。
 - **Non-claims**：词典收紧 ≠ 路由准确率保证 · EXIT0 ≠ 全简历形态覆盖 · ≠ CI 纳入（归 CI-WIRING）· 409 退役面 = 结构性不可达而非代码删除（防御路径保留）· #133 关单叙事须区分「假歧义已修 + 真歧义降级 general（#270 反例不落 qa）」· alone ≠ dual。
+
+---
+
+## nail 落卷（2026-10-10 · 双席 BOTH PASS）
+
+**双审结果**：席1+席2 独立互盲复核 BOTH PASS。词典 v3 逐词清点相符（GO 大写 6 变体/qa 收窄 3/ai_ml 收窄 3/泛词四迁移）·降级臂与旧规则逐字等价仅加 degraded:false 判别字段·409 词典级两拒因（no_signal_hit/ambiguous_language_evidence）类型级不可达亲证·42 fixture 全读断言方向正确（S03/S16 冻结守护经 R3-1 改向登记透明）·prove 复跑 EXIT=0（59/59 PASS）·两基线红（turn-idempotency 3 FAIL·resume-reference 5 FAIL）基线 worktree 对照坐实预存非回归·merge 落主线 @d272f885 后主线复验 EXIT=0。
+
+**双席同证处方（随 nail 登记·归后继同域刀）**：
+1. P2 断言计数虚报：proof 汇总行 `${33 + files.length}` 硬编码 33≠17（实为 17 静态+42 循环=59）——「75 断言」为程序自身错误计数，EXEC message 采信之。绿真（59/59）。处方：同域刀把常量 33 改 17 或动态计数。
+2. P3 措辞收紧：「candidate_route_undecided 不可达」措辞过宽——profile_unavailable 路径 409 防御面仍可达（interview.service.ts:300·fail-closed 保留）；结构性退役的仅词典级两拒因。后继 append-only 注记分述。
+3. P3 D2 登记面：英文 Go developer 观察项仅在 REQUEST rev2 D2（权威面），docstring 补一句或更正措辞。
+4. P3 基线红归因按键分述：turn-idempotency=42883 缺函数；resume-reference=fixture 缺 blob/epoch 面（与 uc001:nhp-bound 同属）。
+
+**Status**: `nail:closed`（双席 BOTH PASS·merge 落主线 @d272f885·#133/#270 消费面收口·est live=0·markers=0）。
