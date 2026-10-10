@@ -184,6 +184,24 @@ const checks = {
     forbid(legalApi, ['删除权(删除简历/数据)', 'retentionDays: 365'], 'public legal API');
     requireText(legalApi, '删除/注销即时生效（立即停止处理与访问），跨存储清除回执异步完成', 'public legal API');
   },
+  'TC-PUBLIC-COPY-G3': () => {
+    // G3 BEGIN-GUARD #261 W2④（R3 落槽写死：pricing/faq 文案断言落本管道）。
+    // ① 真读数上屏 → 口径句改如实转述（裁定③：措辞去「实时」——余额=渲染时点读数 ≠ 实时余额保证，§7 Non-claim 对齐。
+    // forbid 面窄化到本刀句式（faq :26 既有「请以页面实时状态为准」属他句，零触碰）。
+    requireText(pricing, '它们来自你的账户余额查询，反映开始练习时的剩余额度', 'pricing credits copy');
+    requireText(faq, '页面中的额度信息来自你的账户余额查询，反映开始练习时的剩余额度', 'FAQ credits copy');
+    forbid(pricing, ['实时'], 'pricing credits copy');
+    forbid(faq, ['额度信息实时', '账户实时查询', '实时余额'], 'FAQ credits copy');
+    // ② 旧假读数短语禁回潮（真读数上屏后旧句失真）。
+    forbid(pricing, ['仅表示界面或开发流程状态'], 'pricing credits copy');
+    forbid(faq, ['仅用于展示'], 'FAQ credits copy');
+    // ③ post-prove 判收硬项：两尾段免责句逐字保留（一字不动）。
+    requireText(pricing, '不构成可购买服务、报价或销售要约', 'pricing disclaimer verbatim');
+    requireText(faq, '不构成销售要约', 'FAQ disclaimer verbatim');
+    // ④ 预览零支付口径两页原样（E2 家族句不因本刀漂移）。
+    requireText(pricing, '预览环境不提供支付、购买或退款', 'pricing no-payment copy');
+    requireText(faq, '当前为预览环境，不对外提供支付、购买或退款服务', 'FAQ no-payment copy');
+  },
   'TC-PUBLIC-COPY-E8': () => {
     forbid(billing, ['serverGet(', 'BuyButton', '¥'], 'billing page');
     forbid(billingAction, ['serverFetch(', '/commerce/orders'], 'billing action');

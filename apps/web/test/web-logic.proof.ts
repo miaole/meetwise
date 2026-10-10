@@ -44,6 +44,9 @@ import {
 } from '../lib/resume/ocr-preview-ui.ts';
 import { interviewContextTitle, interviewResumeLabel, interviewTimeLabel } from '../lib/interview/context.ts';
 import { practiceHintScore, webTrustedQuestionIdentity } from '../lib/stream/scoring-honesty.ts';
+import { isEligibleResume, resumeEmptyState } from '../lib/resume/display.ts';
+import { parseEntitlement, entitlementLineView } from '../lib/commerce/display.ts';
+import { interviewProgressBadge } from '../lib/interview/progress-badge.ts';
 import {
   applicationScoreVisible,
   applicationStatusLabel,
@@ -1263,6 +1266,124 @@ async function main() {
     const branch401 = lineOf(actionsSrc, /begin\.status === 401/);
     A('F2④ reused=false 主链逐字段不变（begin 调用/402/401 分支/begin_failed 码解析兜底原样在位）',
       beginCall > 0 && branch402 > 0 && branch401 > 0 && codeFallback > 0 && beginCall > reusedPassthrough);
+  }
+
+  section('G3 #260 简历下拉可用性过滤：isEligibleResume 六态表 + 空态三臂（纯函数级·R3 落槽写死）');
+  {
+    const r = (id: string, status: string) => ({ id, status, display_name: `简历 ${id}` });
+    // 六态逐态：唯一可用=ingested（服务端 begin/bind 同语义；Ban 第二谓词）。
+    for (const s of ['uploaded', 'ingesting', 'ingested', 'failed', 'erasure_fenced', 'erased']) {
+      A(`isEligibleResume 六态 ${s} → ${s === 'ingested'}`, isEligibleResume(r(`id-${s}`, s)) === (s === 'ingested'));
+    }
+    // RSC 组合面纯函数级：混合列表过滤后仅含 ingested、默认值=首 ingested id（§4.1）。
+    const mixed = [r('a-failed', 'failed'), r('b-ingested', 'ingested'), r('c-fenced', 'erasure_fenced'), r('d-ingested', 'ingested')];
+    const eligible = mixed.filter(isEligibleResume);
+    A('混合列表过滤后仅含 ingested 且默认值=首 ingested id',
+      eligible.length === 2 && eligible[0].id === 'b-ingested' && eligible[0].id === mixed.filter(isEligibleResume)[0]!.id);
+    // 空态三臂（三页同一纯函数单源）。
+    const emptyNone = resumeEmptyState([]);
+    A('空态三臂① resumes=0 →「还没有简历」逐字不变（既有文案零字污染）',
+      emptyNone !== null && emptyNone.text === '还没有简历。' && emptyNone.linkHref === '/resume' && emptyNone.linkText === '先去上传简历 →');
+    const emptyStuck = resumeEmptyState([r('a', 'failed'), r('b', 'erasure_fenced'), r('c', 'ingesting')]);
+    A('空态三臂② resumes>0 且可用=0 → 新「暂不可用」臂（只述状态不解释围栏细节·带 /resume 链）',
+      emptyStuck !== null
+      && emptyStuck.text === '简历暂不可用（解析中/失败/删除处理中），先去简历页处理。'
+      && emptyStuck.linkHref === '/resume');
+    A('空态三臂③ ingested≥1 → null（表单照旧）', resumeEmptyState([r('a', 'ingested'), r('b', 'failed')]) === null);
+    // 页面组合层（RSC 数据面/表单门/下拉渲染）= proof 盲区 → 缺口登记 coverage-matrix（nail 时）；
+    // 此处仅静态源锚（沿 F2 :1237 先例）：三页过滤面/门/默认值全切 eligible，零 resumes 全量渲染残留。
+    const interviewsSrc = readFileSync(resolve(repoRoot, 'apps/web/app/interviews/page.tsx'), 'utf8');
+    const quizSrc = readFileSync(resolve(repoRoot, 'apps/web/app/quiz/page.tsx'), 'utf8');
+    const diagnosisSrc = readFileSync(resolve(repoRoot, 'apps/web/app/diagnosis/page.tsx'), 'utf8');
+    const eligibleLine = (src: string) => lineOf(src, /const eligibleResumes = resumes\.filter\(isEligibleResume\)/) > 0;
+    A('三页同源过滤在位（静态源锚）且零 resumes 全量下拉/全量默认值残留',
+      eligibleLine(interviewsSrc) && eligibleLine(quizSrc) && eligibleLine(diagnosisSrc)
+      && (interviewsSrc.match(/eligibleResumes\.map/g) ?? []).length === 2
+      && !/resumes\.map\(/.test(interviewsSrc) && !/resumes\.map\(/.test(quizSrc) && !/resumes\.map\(/.test(diagnosisSrc)
+      && !/defaultValue=\{resumes\[0\]/.test(interviewsSrc) && !/defaultValue=\{resumes\[0\]/.test(quizSrc) && !/defaultValue=\{resumes\[0\]/.test(diagnosisSrc));
+    A('interviews 重来表单门切 eligible 面（静态源锚）', lineOf(interviewsSrc, /\{eligibleResumes\.length > 0 && \(/) > 0);
+  }
+
+  section('G3 #261 余额行：entitlement 三形状 {3}/{0}/null（纯函数级·降级零伪读数）');
+  {
+    // 形状① {availableUnits:3} → 「余额 3 · 本次消耗 1 次额度」+预览注记、无不足提示。
+    const v3 = entitlementLineView(parseEntitlement({ availableUnits: 3 }));
+    A('entitlement {availableUnits:3} → 余额行逐字+预览口径注记+无不足提示',
+      parseEntitlement({ availableUnits: 3 }) === 3
+      && v3?.balanceLine === '余额 3 · 本次消耗 1 次额度'
+      && v3.previewNote === '预览环境额度仅展示，不构成购买'
+      && v3.insufficientHint === null);
+    // 形状② {availableUnits:0} → 中性不足提示（不拦提交、不给购买入口、不恐吓——服务端 402 才是权威）。
+    const v0 = entitlementLineView(parseEntitlement({ availableUnits: 0 }));
+    A('entitlement {availableUnits:0} → 「余额 0」行+中性不足提示',
+      v0?.balanceLine === '余额 0 · 本次消耗 1 次额度' && v0?.insufficientHint === '余额不足，开始将无法预留');
+    // 形状③ null/形状漂移 → 整行不渲染（降级零假数，禁「余额 —」类伪读数）。
+    A('entitlement null/网络失败/形状漂移/非整数 → 整行不渲染（null）',
+      entitlementLineView(null) === null
+      && parseEntitlement(null) === null
+      && parseEntitlement({ foo: 1 }) === null
+      && parseEntitlement({ availableUnits: 2.5 }) === null
+      && parseEntitlement({ availableUnits: '3' }) === null);
+    // 静态源锚：RSC 消费在位（serverGet 形沿 :38 同鉴权；testid 行挂开始按钮前）。
+    const interviewsSrc = readFileSync(resolve(repoRoot, 'apps/web/app/interviews/page.tsx'), 'utf8');
+    A('interviews RSC 消费 /commerce/entitlement + 余额行挂载（静态源锚）',
+      lineOf(interviewsSrc, /parseEntitlement\(await serverGet<unknown>\('\/commerce\/entitlement'\)\)/) > 0
+      && lineOf(interviewsSrc, /data-testid="entitlement-line"/) > 0
+      && lineOf(interviewsSrc, /entitlementLineView\(availableUnits\)/) > 0);
+  }
+
+  section('G3 #161 connecting 真进度：三臂（有帧拼文案/进题清除/零帧逐字兜底）+ isDeadEnd 零违例');
+  {
+    // 臂1：connecting 期 generation_progress 帧（retrieve/已 3 秒）→ 静态文案拼真实进度（沿 answered 臂同形）。
+    const progressFrame = toBusinessEvent({ event: 'generation_progress', id: 1, data: JSON.stringify({ attemptKey: 'e2e-progress', stage: 'retrieve', elapsedMs: 3000 }) })!;
+    const withProgress = interviewDisplay(reduceInterview([progressFrame]));
+    A('臂1 connecting 期进度帧 → 「正在建立连接…（AI 生成中 · 检索素材 · 已 3 秒）」',
+      withProgress.message === '正在建立连接…（AI 生成中 · 检索素材 · 已 3 秒）');
+    A('臂1 isDeadEnd 零违例（spinner+非空 message+取消出口）', !isDeadEnd(withProgress) && withProgress.spinner && withProgress.action.kind === 'reconnecting');
+    // 臂2：question_ready 到达 → 进度态清除+题面渲染（业务事件清除红线，进度帧不改 phase）。
+    const questionFrame = toBusinessEvent({ event: 'question_ready', id: 2, data: JSON.stringify({ question: 'Q1', questionId: 'q-v2-t0-c0', stateVersion: 2, turn: 0, plannedTurns: 5 }) })!;
+    const afterQuestion = reduceInterview([progressFrame, questionFrame]);
+    A('臂2 question_ready 到达 → 进度清除+phase=question（进度帧不改 phase 红线）',
+      afterQuestion.phase === 'question' && afterQuestion.generationProgress === undefined && afterQuestion.plannedTurns === 5);
+    // 臂3：零进度帧 → 静态文案逐字兜底（不空转不编造）。
+    const silent = interviewDisplay(initialView);
+    A('臂3 零进度帧 → 「正在建立连接…」逐字+isDeadEnd 零违例',
+      silent.message === '正在建立连接…' && !isDeadEnd(silent));
+    // 降级细臂：未知段名/无数值不崩、缺 elapsedMs 无时长尾。
+    const bareFrame = toBusinessEvent({ event: 'generation_progress', id: 3, data: JSON.stringify({ attemptKey: 'k' }) })!;
+    A('connecting 缺数值帧 → 只有「AI 生成中」段头（无编造时长）',
+      interviewDisplay(reduceInterview([bareFrame])).message === '正在建立连接…（AI 生成中）');
+  }
+
+  section('G3 #256 进度徽标（形制 A）：N 派生（1 基勘误口径·微漂⑥）+ M 约数可调 + 缺失降级');
+  {
+    const idv = (turn: number) => ({ questionId: `q-v2-t${turn}-c0`, stateVersion: 2, turn });
+    // §4.4 示例（勘误口径：服务端 turn 0 基→显示 1 基，微漂⑥全录）：turn=2+plannedTurns=5 → 第 3 题 / 预计约 5 题。
+    A('turn=2+plannedTurns=5 → 「第 3 题 / 预计约 5 题」勘误口径（0 基 turn→1 基显示·微漂⑥）',
+      interviewProgressBadge({ questionIdentity: idv(2), turns: [], plannedTurns: 5 })?.label === '第 3 题 / 预计约 5 题（自适应，可能调整）');
+    A('首题 turn=0 → 「第 1 题」（防 0 基漏显「第 0 题」）',
+      interviewProgressBadge({ questionIdentity: idv(0), turns: [], plannedTurns: 5 })?.label === '第 1 题 / 预计约 5 题（自适应，可能调整）');
+    // identity 缺失（旧流）→ 降级 turns.length（本身 1 基）。
+    A('identity 缺失 → 降级 turns.length（3 题 → 第 3 题，与 identity 臂同口径）',
+      interviewProgressBadge({ questionIdentity: undefined, turns: [{ q: 'a', followUp: false }, { q: 'b', followUp: false }, { q: 'c', followUp: false }], plannedTurns: undefined })?.label === '第 3 题');
+    // plannedTurns 缺失/非法 → 只显「第 N 题」。
+    A('plannedTurns 缺失 → 只显「第 N 题」',
+      interviewProgressBadge({ questionIdentity: idv(0), turns: [], plannedTurns: undefined })?.label === '第 1 题'
+      && interviewProgressBadge({ questionIdentity: idv(0), turns: [], plannedTurns: undefined })?.planned === null);
+    A('plannedTurns 非法（0/负/非整数）→ 同降级（只显第 N 题）',
+      [0, -2, 2.5].every((m) => interviewProgressBadge({ questionIdentity: idv(0), turns: [], plannedTurns: m })?.planned === null));
+    // 追问不增 N 口径：N 只由 identity.turn（或 turns.length）派生，绝不数 followUp 旗。
+    const probeHist = (followUp: boolean) => [{ q: 'a', followUp }, { q: 'b', followUp }];
+    A('追问（followUp）不增 N：同 identity.turn、追问旗不同 → 同一 N',
+      interviewProgressBadge({ questionIdentity: idv(3), turns: probeHist(true), plannedTurns: 8 })?.current === 4
+      && interviewProgressBadge({ questionIdentity: idv(3), turns: probeHist(false), plannedTurns: 8 })?.current === 4);
+    // 无任何题 → 不渲染（防「第 0 题」幻影）。
+    A('空视图（无 identity/零轮）→ null 不渲染', interviewProgressBadge(initialView) === null);
+    // 旧流 question_ready 缺 plannedTurns 字段零破坏：schema 宽容+投影 undefined。
+    const legacyQ = toBusinessEvent({ event: 'question_ready', id: 4, data: JSON.stringify({ question: '旧流题' }) })!;
+    const legacyView = reduceInterview([legacyQ]);
+    A('旧流缺 plannedTurns → schema 零破坏+投影 undefined（显示面降级）',
+      legacyView.phase === 'question' && legacyView.plannedTurns === undefined);
   }
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);

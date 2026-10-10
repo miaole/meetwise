@@ -100,6 +100,9 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
         sources,
         critique: critiqueIssues,
         hint,
+        // #256 形制 A：decide 节点已经 rememberDecision 写回 mind（maxTurns=nextSoft，含 raise 后现值，
+        // domain adaptive-interview.ts rememberDecision/:400-404 raise 臂）——此处直读即发射时点软预算约数。
+        plannedTurns: state.mind.maxTurns,
       },
       generationProvenance: provenance,
       degraded: null,
