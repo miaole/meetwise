@@ -89,3 +89,14 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 - **EXEC 注意四条**：①②③④逐条履行证据见收据 §2（含 0152 属主角色不符即 prove 内硬抛即停核）。
 - **est live=0**（无模型调用·零 secrets 入卷·日志已 grep 凭证）。
 - Status: `exec:awaiting_post_prove_dual`（append-only·post-prove 双审前不视为收口·alone ≠ dual）。
+
+## nail 落卷（2026-10-10 · mw-coordinator 回填席 · 协调方授权重编号）
+
+- **回填链**：cherry-pick `3ef2403c` → 主线 `91c686d9`（author 原样保留 mw-trial001-exec；唯一冲突=本 REQUEST 文件 DU → dual-keep 全文保留；`run-e2e-isolated.mjs`/根+api `package.json` 三面自动并集·亲验 `trial:grant:prove` 三处注册齐）+ 重编号 `c51c792d`（mw-coordinator）。
+- **Erratum #1（0152→0154 重编号）**：主线 0152/0153 已被 unstube-erase 两迁移占用（`0152_resume_soft_delete_fence`+`0153_account_deletion_column`·另有前史 `0152_consent_revoke_grant` 同号并存）——coord_notes 撞号预警兑现。`git mv` 迁移文件（SQL 面零改动·仅头注释编号+两行 provenance）·`sql/02_commerce.sql` 镜像编号注释同步（`23_api_gateway.sql` 无编号注释·亲证零需改）·proof 编号联动（manifest 断言字符串×2+文件路径+注释/断言标签）·收据日志内 0152/153 字样为 trial 线历史证据 append-only 不改。
+- **Erratum #2（断言语义 末位→包含）**：终段复跑亲历 b110 席并发回填 `0155_recruiter_approval_gate` 入列使「末位=0154」断言红（applied=157/157 链仍全量绿·非本刀缺陷）——主线为活树·末位不稳定，断言改 `.includes('0154_trial_bucket_grant')`：全链 applied=total+本刀在列+重跑 skipped=total 仍证部署车全量与幂等·证明力不减。
+- **主线树复跑记录**：`trial:grant:prove` @主线 `a2b161df`（回填+重编号后在树·一次性隔离容器 pgvector-legacy）——`runner_first_pass applied=156 total=156 last=0154_trial_bucket_grant` + virgin-ledger 全量应用 + 重跑幂等 + 属主三方案 OK · **27/27 全绿 EXIT=0**；另有重编号后首跑 @`c51c792d` 同形 27/27 EXIT=0（156/156 last=0154）。
+- **双席 BOTH PASS（post-prove dual @协调方卷宗）**：**席1 `e0084ffb`**——0152（今 0154·SQL 面零改动）逐字合规 + [2iii] 真交错双证（双 PoolClient：ON CONFLICT 败者 rowCount=0 收敛 + 裸败者 23505）+ 修夹具裁定（neg-interview:218-264「推进 begin 至扣额面」形制）；**席2 `8d64b41b`**——P4 三层逐字（(i) HTTP 并发归因 UNIQUE(email) 23505+(ii) 裸 INSERT 23505+(iii) 交错真并发）+ 位形 A 原子性双向 fail-closed（signup 23505 回滚则桶不存在·桶冲突 DO NOTHING 不拖垮注册）+ FIFO 到期亲读。
+- **五处方履行核**：NC1 共享池语义（四路径无差别可扣·数量口径非路径锁定）· NC2 量化滥用上限（60/min/实例全局·≤86,400 桶/天/实例·批量注册联动 #110）· NC3 审计豁免理由（溯源=created_at+kind 单写点+expires_at 反推）· P4 归因修正（prove 双层必留+(iii) 可选项已履行）· EXEC 注意四条合并（收据 §2 逐条证据）——rev2/EXEC 收口/收据三方对齐。
+- **席2 两备注落卷**：① trial 过期桶未直接测——FIFO 到期过滤=谓词亲读+同抛点行使（402 insufficient_entitlement 同路径·非新建过期夹具）；② entitlement_bucket 无 FK 至 user_account——本刀 signup 同事务写入面无孤儿可能·未来 admin 发放面（无 signup 事务的直插路径）须自带属主校验·登记关注。
+- Status: `nail:closed`（回填+重编号+nail 落卷·markers=0·est live=0·alone ≠ dual 已满足·#110 联动在卷）。

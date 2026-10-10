@@ -78,11 +78,14 @@ async function proveMigrationRunner() {
     const first = await runMigrations(mig, manifest);
     const total = manifest.length;
     console.log(`trial-grant[0] runner_first_pass applied=${first.applied.length} total=${total} last=${first.applied[first.applied.length - 1]}`);
-    if (!(first.applied.length === total && first.applied[total - 1] === '0154_trial_bucket_grant')) {
+    // 断言语义=「包含」而非「末位」（回填席 Erratum #2）：主线为活树·并发回填下末位不稳定
+    // （终段复跑亲历 0155_recruiter_approval_gate 并发入列使末位断言红）；全链 applied=total +
+    // 本刀在列 + 重跑 skipped=total 仍证全量部署车与幂等。
+    if (!(first.applied.length === total && first.applied.includes('0154_trial_bucket_grant'))) {
       throw new Error('trial_grant_runner_first_pass_incomplete');
     }
     const second = await runMigrations(mig, manifest);
-    if (!(second.applied.length === 0 && second.skipped.length === total && second.skipped[total - 1] === '0154_trial_bucket_grant')) {
+    if (!(second.applied.length === 0 && second.skipped.length === total && second.skipped.includes('0154_trial_bucket_grant'))) {
       throw new Error('trial_grant_runner_rerun_not_idempotent');
     }
     const own = await mig.query(
