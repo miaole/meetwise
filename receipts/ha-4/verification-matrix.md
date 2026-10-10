@@ -17,3 +17,9 @@
 | V7 | 零回归 | `git diff --name-only feat/mysql-schema-skeleton -- apps/ packages/ ops/ e2e/ \| wc -l`；markers grep | **0/0** | 改动集=新增件+REQUEST+env.example+收据（`v7-regression.receipt.json`） |
 
 复跑注意：①V2 前须 `--profile ha4-drill down`（目标容器跨 run 常驻·角色为集群级·复用会使 rolesPrecreated=0——机制仍绿但非洁净单 run 记录）；②种子库为 tmpfs·`down -v` 即灭·重跑先 `sandbox-seed.sh`；③沙箱哑 URL 只允许出现在 compose.backup.sandbox.yml（先例形）·禁入收据/日志。
+
+**rev2 勘误与补线注记（append-only · 2026-10-10 · `ha4-exec2` · 上文原文零改·详见 exec-receipt.md §九）**：
+① **V4 行拍戳勘误**：`191143/191147/191151/191155` → 落卷实物 **`191147/191151/191155/191159`**（`v4-backup-loop-full.log` 实录=loop 第 2-5 拍·191143Z 收据未落卷如实登记；卷侧 `backup-20261010T1911{47,51,55}Z.json` 三件在位·191159Z 拍收据未提交）。interval=4s·delta 4,4,4·严格递增实质成立注记保留。
+② **F1 补闸**：`scripts/backup/backup.sh` 头部补 `MEETWISE_HA4_BACKUP_AUTHORIZED` 闸（exit 3·锁检查前·四入口同形收口）→ 四入口负控实录齐：beat/loop/seed/drill 各 EXIT=3（CMD 逐条见 `gate-negative-control.receipt.json`）；beat 正控复跑 **EXIT=0**（stamp `20261010T193712Z`·size 1801975·sha256 `f98466f2…`·toc 175/174·收据 `backup-20261010T193712Z.json`）；V4b 锁探针授权态复验 **EXIT=4** 零产物（闸先于锁·锁层零变）；沙箱即用即灭终态 0 容器。
+③ **复跑注意追加④**：V4b 探针 CMD 现须并设 `MEETWISE_HA4_BACKUP_AUTHORIZED=1` 方达锁层（rev2 闸先于锁；未设闸即在闸处 exit 3 不及锁——原样 CMD 的 EXIT=4 实录属 e02a3549 树·仍然有效于其执行时点）。
+④ **V7 基线注记**：产品码零 diff 判据=vs merge-base `141da56f`（0 文件）；vs 已推进主线 tip `3af029a9` 的 16 个产品路径 diff 文件系他刀（entpay-slice3/ha-5）主线落卷·非本分支产物。markers=0（五 token TODO/FIXME/XXX/PLACEHOLDER/待填 grep 0 命中）。
