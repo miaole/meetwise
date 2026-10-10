@@ -24,13 +24,13 @@
 
 ## §1 范围（六件·同 PR）
 
-**F1 create 复用查询三过滤（#241+#238+新-#274·同查询同 PR·fix-roadmap `:63` 不得拆开上线）**：复用查询（interview.service.ts `:531-532`）加 `interview_privacy_active(i.id)` 与 `application_id IS NULL` 两谓词——围栏尸不复用、岗位绑定面试不复用，C 端练习 create 返回**新**面试。应用形 EXEC 审定（list() `:573-574` 同谓词先例；`asPrincipal(owner)` 上下文不变；advisory 锁 `:530` 原样；RLS 只见己语义不动）。
+**F1 create 三过滤=既有 status NOT IN+新 interview_privacy_active+新 application_id IS NULL（禁加 resume/任何第三谓词——破 :523 单会话幂等立法）·不得拆开上线
 
 **F2 遇未结束面试给「继续/放弃后重来」（#238 C 面·fix-roadmap 批 1 验收「有未结束面试时点『开始新面试』出现选择，而不是『请稍后重试』」）**：create 返回 `reused=true` 时 startInterviewAction 透传信号 → /interviews 页渲染选择面（继续=进既有会话；放弃后重来=POST `:id/abandon` 后重跑 create+begin）。文案沿 errmsg-map 家族 `BINDING_CONFLICT_TEXT`（action-error.ts `:34`「你有一场未结束的面试：继续/放弃后重来」）——**不新增第三文案**。交互形 EXEC 审定（banner/确认层），契约=`reused` 必达页面+两出口可达；无未结束面试时行为 byte 级不变。
 
-**F3 对账拆分（#238 服务面）**：围栏面试回收与 settleOutbox 拆开——**围栏被回收预留「只释放不写事件」**（sweep 释放已由 `sweepExpiredReservations` 原子完成；跳过 `failInterviewAndRelease`/`abandonInterviewAndRelease`/`markApplicationAssessmentUnavailable`/`appendEvent` 全部业务写）；**settleOutbox 同拍照常入账、不被围栏 ROLLBACK 毒化**；非围栏 swept 行为 byte 级不变。**连续失败打错误日志+计数告警**（逐 owner 连续失败计数、error 级日志、门限后告警日志；readiness 语义零改——audit 2026-10-09 决策注「readiness 联动降为错误日志+计数告警」，不假绿也不新增 readiness 红面）。EXEC 择型：**A=围栏先检分支**（swept 逐条查围栏锚→围栏跳业务写·单事务保持·**建议型**）或 **B=两事务拆分**（sweep+settle 先提交→业务写独立尽力事务）；两型皆满足审计「拆成独立事务/分支（只释放不写事件）」。
+**F3 对账拆分——定谳形 A（围栏先检分支·单事务保持）五钉：(i) commerce.ts/index.ts 零改；(ii) 先检=SELECT 布尔 interview_privacy_active($1)·禁 assertInterviewPrivacyActive（其 RAISE 即毒化）；(iii) 围栏跳过=两分支全跳（B 端 :46-49 块同跳）；(iv) 围栏跳过不计连续失败计数（fence-skip=正常出口·skip 判据=围栏谓词·禁 catch-all 吞咽）；(v) ReconcileOutcome 增 fencedSkipped 计数
 
-**F4 存量修复运维脚本（#241 修法末句「释放额度并关闭被围栏面试」）**：`ops/recovery/` 新目录（**不入产品面**·不进 API/worker 运行面）·一次性脚本 · **dry-run 默认**（SELECT-only：列围栏+非终态面试、挂死预留、影响 owner 计数·零写断言）· `--apply` 才写（释放额度=镜像 `sweepExpiredReservations` 原子 UPDATE 形 commerce.ts `:343-351`；关终态=guarded UPDATE status→`'abandoned'`；**零事件写**——围栏触发器本就拒事件写 0059 `:95-98`）· 幂等可重跑（二跑零变更）· 零迁移。
+**F4 ops/recovery/ 存量修复脚本：(i) dry-run 默认+--apply 幂等；(ii) 每条 SELECT/UPDATE 强制 application_id IS NULL 谓词+dry-run 报 B 端围栏跳过计数；(iii) 关终态 guard 钉 status IN (created/active/waiting_user)（=abandonInterviewAndRelease :297 同枚举·二跑 0 行）；(iv) principal=逐 owner asPrincipal(app_role)·禁 superuser/privacy_api_owner 旁路；(v) 导出 dryRun/apply 供 prove import
 
 **F5 空壳回收（best-effort：abandon 非 2xx 不阻塞带码 redirect·不重试）（#253）**：begin 非 2xx（401 跳登录除外）→ 回收空壳（POST `:id/abandon`·`'created'` 无消费走 commerce.ts `:274-277` NOT EXISTS 分支→`'abandoned'`·列表 `:120` 显示「已结束」）→ 再 redirect 带码。审计两 option「begin 成功再落壳，或失败回收空壳」→ EXEC 择**失败回收**（begin 需 interview id 先存在，「成功再落壳」在现行 API 形下不可行·如实登记）；402 壳与确定性失败壳同覆盖。
 
@@ -63,7 +63,7 @@
 | C10 | `ops/recovery/fence-reflow-repair.*`（新目录新文件） | 无 | F4：dry-run 默认+`--apply`+幂等；样例输出在卷；零产品面引用 |
 | C11 | `apps/web/test/web-logic.proof.ts`（新 section）+ `apps/worker/test/commerce-reconcile.proof.ts`（增围栏场景） | 既有断言面 | §4 断言矩阵；既有 section 零删改 |
 
-## §4 prove
+## §4（补强：①围栏行零 interview_event 写+interview 保持非终态断言；②F6 fence 判据=status 410 状态基非 body 码基·sse 代理 :60-69 换 body） prove
 
 1. **对账拆分（`commerce-reconcile:prove`·隔离库·根 package.json:203）**：构造围栏面试（fence 锚落库）+挂死预留+同户另一笔 pending outbox → 一拍后断言：`settlement_ledger` 行落 + outbox `relayed`（**同户 pending 结算对账入账成功**）；该预留 `released`；**无 `interview_privacy_fenced` 循环报错**（重复 error 计数=0）；非围栏对照 swept 行为 byte 级不变（终态+事件照发）。
 2. **create 三过滤**：围栏非终态面试存在 → create 返回新面试（`reused=false`·新 id）；岗位绑定面试（`application_id≠NULL` 非终态）存在 → C 端 create 仍新建（**新-#274 断言**）；正常未结束练习面试 → 仍复用（`reused=true` 不回归）；并发 advisory 锁面原样（既有并发 proof 原样绿）。
