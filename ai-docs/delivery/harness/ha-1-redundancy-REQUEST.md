@@ -221,3 +221,15 @@ draft_rev2:awaiting_dual（席1 PASS+席2 FAIL 窄面处方 11 条落卷·待复
 executed:awaiting_post_prove_dual（EXEC 续做席 ha1-exec2 落卷 2026-10-10：rev2 处方 11 条全落实（RX-1 profiles 停用+排除断言/RX-2 HOSTNAME/RX-3 INSTANCE_ID/RX-4 CAS 拒 rowCount=0/R4 限流逐流稀释表）·rebase 主线 `049f19e1` 零冲突（分支 tip `c5300f73`）·净栈单遍 V1-V6 全绿+ha-status=**HA_TOPOLOGY_LOCAL_ELIGIBLE**（A1-A6 全绿·rx1Exclusion PASS）·pins 十一值零翻转（haStatus=NOT_HA·releaseEvidence=false·claimProductionHA=false 维持）·markers=0·est live=0·沙箱已 down 全灭；crash 注入忠实化（引擎 29.1.3 docker kill=manual stop 绕过策略→host-PID-ns SIGKILL）/V6 冻结编舞（假 Key 秒败活窗不可捕捉·接管+CAS 为真产品机械）/V5 composed（驱动窗 attach 停滞·harness 登记）等产品面预存红（VoiceCallPanel.tsx:566 幽灵 lint 规则）等限度与登记详见 `receipts/ha-1/exec-inventory.md` + `verification-matrix.md`·待 post-prove 双审）
 
 rev2-勘误三（HA-1 rev2 勘误落卷席 2026-10-10·双席分歧取严·引席2 FAIL 裁决：`receipts/ha-1/verification-matrix.md` 三处叙述读数 append-only 勘误对齐卷内 JSON（**JSON 为准**·原文零改·〖勘误〗行注承载照 rev2-勘误①②「原文零改·注记承载」先例）——V2 heal 6s/0s/6s→**6s/3s/5s**（v2-kill-heal.receipt.json healSeconds=6/3/5·via docker-health/app-probe/app-probe）/V3 crash 窗 38s→**37s**（v3-failover.receipt.json windowSeconds=37·ha-status.receipt.json:117 判定器步注「failures=0 window=37s」自证）/V6 接管 14s→**15s**（v6-lease.receipt.json takeoverSeconds=15·ha-status.receipt.json:127「takeover=worker-b in 15s」同）；另 verification-matrix.md:7 补「migrate applied=159」与「RestartCount 增量」读数溯源注记（实测产物在 `.tmp/ha-sandbox/` 未入卷·他人重跑路径=ha-status.mjs+ha-sandbox.mjs CMD 行）·零码动·markers=0·⛔push）
+
+---
+
+## nail 落卷（2026-10-10 · post-prove 双席 PASS+勘误确认·附条件收口）
+
+**双审结果**：席1（拓扑/判定器语义）PASS（RX-1 假绿通道独立复现实证结构性封死：profiles 双面反证+判定器显式清单+先置排除断言+fail-closed 实跑 NOT_ELIGIBLE EXIT=1·判定器 A1-A6 对表合格·诚实边界不弱化判定）+席2（编排/治理）FAIL 窄面勘误级（三处叙述读数 vs 卷内 JSON 不一致）→ rev2 勘误落卷 @1339de27（三处对齐 6/3/5·37s·15s+溯源注记·原文零改注记承载）→ 席2 确认「HA-1 可 nail」（md5 字节级证明原文零改·三查全过·无残余）。**双席分歧取严流程闭环**。merge 落主线 @b4b756b4。
+
+**V 矩阵（勘误后读数）**：V1 九 service 拓扑 healthy（migrate 159·RX-1 双面反证）·V2 kill 自愈 **6/3/5s**·V3 failover **37s** 窗 22 探零失败·V4 分流 INSTANCE_ID+X-HA-Upstream 双证·V5 跨副本 SSE 重放恰 ['2'] 零丢失（pg_notify 零 redis 零粘性实证）·V6 接管 **15s**+RX-4 CAS rowCount=0。判定=**HA_TOPOLOGY_LOCAL_ELIGIBLE**（A1-A6 全绿·fail-closed 可复跑）。
+
+**诚实边界（随卷）**：单机进程级冗余·宿主仍 SPOF（B4/S15 终裁留位）·haStatus=NOT_HA 维持（翻转不归本刀·需 G7 收据前置 B6+簇收口 B3+B4 终裁）·V6 行冻结模拟/V5 composed/crash 形态忠实化三登记·资源裁决 A_4c8g（4160MiB·B4/S15 前置入继承面）·叙述数漂移三处以收据 JSON 为准。
+
+**Status**: `nail:closed`（post-prove 双席 PASS+勘误确认·merge 落主线 @b4b756b4·R-17 单机进程级冗余拓扑+判定器正式落主线·HA_TOPOLOGY_LOCAL_ELIGIBLE 可复现判定器在卷·宿主 SPOF 边界与翻转前置如实·markers=0·est live=0）。
