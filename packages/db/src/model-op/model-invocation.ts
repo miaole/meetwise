@@ -6,7 +6,7 @@
  * an invitation to send the same billable request again.
  */
 import { createHash } from 'node:crypto';
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 
 export type ModelInvocationClaim =
   | { action: 'execute'; leaseToken: string }

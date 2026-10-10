@@ -12,7 +12,7 @@
  * 读面 `listUsageCalibrationPairs` 走 SECURITY DEFINER `ai_usage_calibration_pairs_scoped(owner)`：
  * ai_model_logical_node_header 对 app_role REVOKE ALL（0085），只能经 SECURITY DEFINER 读 frozen model。
  */
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 
 /** estimate↔provider usage 配对（成功 + 校验失败的可计费调用；unknown 无 usage 不产出）。 */
 export interface UsageCalibrationPair {
