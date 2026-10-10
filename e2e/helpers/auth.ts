@@ -68,3 +68,15 @@ export function uidFromToken(token: string): string {
   if (typeof parsed?.uid !== 'string' || parsed.uid.length === 0) throw new Error('e2e_token_uid_missing');
   return parsed.uid;
 }
+
+/**
+ * Admin headers for the B110 recruiter approval gate: the isolated runner
+ * seeds an is_admin identity and hands over the signed E2E_ADMIN_TOKEN.
+ * A missing/empty token is a bootstrap contract failure — throw, never skip
+ * the approval step and never fabricate a decision response.
+ */
+export function adminHeaders(): Record<string, string> {
+  const token = process.env.E2E_ADMIN_TOKEN;
+  if (typeof token !== 'string' || token.length === 0) throw new Error('e2e_admin_bootstrap_missing');
+  return jsonHeaders(token);
+}

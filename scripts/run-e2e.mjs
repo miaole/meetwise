@@ -4,6 +4,7 @@
  * 用法:pnpm e2e:isolated（包装器注入 E2E_ISOLATED=1）。缺 MODEL_API_KEY 或打开假服务开关会立即失败，不会降级成假绿。
  */
 import { spawn } from 'node:child_process';
+import { createHmac } from 'node:crypto';
 import { readFileSync, existsSync, mkdirSync } from 'node:fs';
 import { emitClassifiedE2EFailure, emitE2EFailure, tagE2EFailure } from '../e2e/helpers/failure-class.mjs';
 import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
@@ -141,9 +142,34 @@ async function main() {
   const workerReady = await fetch(`http://127.0.0.1:${workerMetricsPort}/readyz/worker`).then((r) => r.ok).catch(() => false);
   if (!workerReady) throw tagE2EFailure('worker', 'worker_not_ready');
 
+  // B110 处方2: 隔离库播 admin 身份 + 铸测试令牌(注册面无 admin 入口,AdminGuard 只认 is_admin=true 行)。
+  // 直插沿 API 负测先例 _neg-harness.ts:161-164;铸形逐字同 domain signToken(payload=base64url{uid,exp,pe} + HMAC-SHA256);
+  // pe=0 对齐 pwd_epoch 列默认,secret 同 :14 测试键(API 子进程同键)。seed/铸任一步失败 fail-closed,不在 e2e 面静默降级。
+  const seedAdmin = async () => {
+    const { createRequire } = await import('node:module');
+    const { Client } = createRequire(new URL('../packages/db/package.json', import.meta.url))('pg');
+    const pgc = new Client({ host: env.PGHOST, port: Number(env.PGPORT), user: env.PGUSER, password: env.PGPASSWORD, database: env.PGDATABASE, ssl: false, connectionTimeoutMillis: 2000 });
+    await pgc.connect();
+    try {
+      // status/pwd_epoch/role 取列默认(active/0/candidate)→ PrincipalGuard 账户态复核链全过。
+      await pgc.query("INSERT INTO user_account(id,email,password_hash,is_admin,role) VALUES ('e2e-admin','e2e-admin@x.com','scrypt$e2e$bootstrap',true,'candidate') ON CONFLICT (id) DO NOTHING");
+    } finally {
+      await pgc.end().catch(() => {});
+    }
+    const nowSec = Math.floor(Date.now() / 1000);
+    const payload = Buffer.from(JSON.stringify({ uid: 'e2e-admin', exp: nowSec + 3600, pe: 0 })).toString('base64url');
+    return `${payload}.${createHmac('sha256', env.AUTH_SECRET).update(payload).digest('base64url')}`;
+  };
+  let adminToken;
+  try {
+    adminToken = await seedAdmin();
+  } catch {
+    throw tagE2EFailure('db', 'admin_bootstrap_failed');
+  }
+
   console.log('E2E: 跑全栈用例…');
   const tsx = run('e2e', [ROOT + 'node_modules/tsx/dist/cli.mjs', 'e2e/full.e2e.ts'], ROOT, {
-    E2E_TAG: 'ci' + Math.floor(process.hrtime()[1] / 1000), E2E_BASE: apiBase,
+    E2E_TAG: 'ci' + Math.floor(process.hrtime()[1] / 1000), E2E_BASE: apiBase, E2E_ADMIN_TOKEN: adminToken,
   }, false);
   tsx.stdout.on('data', (d) => process.stdout.write(d));
   tsx.stderr.on('data', (d) => process.stderr.write(d));
