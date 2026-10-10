@@ -111,7 +111,7 @@ function readWorkerTree(): string {
  */
 export function assessFunnel07FreeTextAllowlistedScopeFunnel(): Funnel07Assessor {
   const domain = readRepo('packages/domain/src/free-text-route.ts');
-  const db = readRepo('packages/db/src/free-text-route-decision.ts');
+  const db = readRepo('packages/db/src/routing/free-text-route-decision.ts');
   const dbIndex = readRepo('packages/db/src/index.ts');
   const funnel = readSrc('free-text-route-funnel.ts');
   const main = readSrc('main.ts');

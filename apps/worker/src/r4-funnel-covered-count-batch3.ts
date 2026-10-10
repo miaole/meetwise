@@ -114,7 +114,7 @@ function readWorkerTree(): string {
  */
 export function assessFunnel05SameLeafLlmCleanMiss(): Funnel05Assessor {
   const domain = readRepo('packages/domain/src/qbank-miss.ts');
-  const miss = readRepo('packages/db/src/qbank-miss.ts');
+  const miss = readRepo('packages/db/src/qbank/qbank-miss.ts');
   const dbIndex = readRepo('packages/db/src/index.ts');
   const worker = readWorkerTree();
 
@@ -197,12 +197,12 @@ export function funnel05RefuseReason(): string | null {
  */
 export function assessFunnel06RouteScopeCacheProvenanceRevoke(): Funnel06Assessor {
   const domain = readRepo('packages/domain/src/qbank-route-scope-cache.ts');
-  const rsc = readRepo('packages/db/src/qbank-route-scope-cache.ts');
+  const rsc = readRepo('packages/db/src/qbank/qbank-route-scope-cache.ts');
   const dbIndex = readRepo('packages/db/src/index.ts');
-  const compute = readRepo('packages/db/src/qbank-embedding-compute-cache.ts');
+  const compute = readRepo('packages/db/src/qbank/qbank-embedding-compute-cache.ts');
   const worker = readWorkerTree();
-  const trackLocal = readRepo('packages/db/src/qbank-track-local-retrieval.ts');
-  const retrieval = readRepo('packages/db/src/qbank-retrieval-cache.ts');
+  const trackLocal = readRepo('packages/db/src/qbank/qbank-track-local-retrieval.ts');
+  const retrieval = readRepo('packages/db/src/qbank/qbank-retrieval-cache.ts');
 
   const domainRouteScopeDigestPresent =
     /export function deriveRouteScopeCacheDigest\s*\(/.test(domain)

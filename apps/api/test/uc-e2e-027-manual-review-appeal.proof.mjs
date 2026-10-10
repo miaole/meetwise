@@ -106,7 +106,7 @@ const checks = {
 
   'S3-旁证-qbank-selective-resume-ne-uc027': () => {
     // qbank ReviewDecision = approved/rejected for qbank_source — ≠ ManualReview outcome_code
-    const qbank = read('packages/db/src/qbank-curation.ts');
+    const qbank = read('packages/db/src/qbank/qbank-curation.ts');
     assert.match(qbank, /export type ReviewDecision\s*=\s*'approved'\s*\|\s*'rejected'/, 'qbank ReviewDecision旁证 present');
     assert.doesNotMatch(
       qbank,
@@ -124,7 +124,7 @@ const checks = {
     );
 
     // resume needs_review is a profile status mark — not a ManualReview case
-    const resume = read('packages/db/src/resume.ts');
+    const resume = read('packages/db/src/resume/resume.ts');
     assert.match(resume, /needs_review/, 'resume needs_review旁证 present');
     assert.doesNotMatch(
       resume,

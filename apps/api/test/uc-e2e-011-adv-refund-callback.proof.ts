@@ -77,7 +77,7 @@ function isExplainableRejectNotGap(status: number): boolean {
   // ── INV · 静态库存（产品口缺失前提 · 与 H5 对齐，不发明口）──
   {
     console.log('\n──────── INV · static inventory（refund 产品面）────────');
-    const paymentSrc = readRepo('packages/db/src/payment.ts');
+    const paymentSrc = readRepo('packages/db/src/commerce/payment.ts');
     const webhookCtrl = readRepo('apps/api/src/modules/commerce/commerce-webhook.controller.ts');
     const commerceCtrl = readRepo('apps/api/src/modules/commerce/commerce.controller.ts');
     const commerceSvc = readRepo('apps/api/src/modules/commerce/commerce.service.ts');
@@ -293,7 +293,7 @@ function isExplainableRejectNotGap(status: number): boolean {
       console.log(`  GAP-ITEM leg=${f.leg} assertion="${f.name}"`);
     }
     console.log(`${GAP_PRODUCT} — POST /payment/refund-callback + markOrderRefunded / webhook refund 产品口未落（H4/H5 一致）`);
-    console.log('依据: apps/api/src/modules/commerce/commerce-webhook.controller.ts（仅 pay/:id）· commerce.service.ts（无 refund*）· packages/db/src/payment.ts（无 markOrderRefunded）');
+    console.log('依据: apps/api/src/modules/commerce/commerce-webhook.controller.ts（仅 pay/:id）· commerce.service.ts（无 refund*）· packages/db/src/commerce/payment.ts（无 markOrderRefunded）');
     console.log('处置: row UC-E2E-011 stays partial · ADV stays gap/case-only · coveredCount=8 · 不翻行；attempts 台账记 EXIT=1');
     console.log('非宣称: ≠ covered · ≠ ADV partial · ≠ 产品口已落 · ≠ HA · Ban self-nail');
     console.log(`CMD=${CMD} EXIT=1`);
