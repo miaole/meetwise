@@ -80,3 +80,41 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *REQUEST stub · G1 SCORE-S3 收尾刀 · Line line/g1-score-s3 · g1-draft · 2026-10-10 · PENDING awaiting pre-exec dual · alone ≠ dual · Ban push · STOP*
+
+## rev2 预执行双审落卷（2026-10-10 · g1-rev2 落卷席 · D1-D3 双席裁定一致 BOTH PASS · 合并落卷 · append-only 原文零冲销·docs-only 零码动）
+
+落卷席实物核对 @`82a5f5c5`（本节全部 file:line 亲读实证后方落字）。
+
+### D1 落卷 =（b）新键 `scor-parity:prove` 双注册 + ci.yml 增步（#42 对拍进 CI 形制定谳）
+
+- **形制=（b）**：新键 `scor-parity:prove`（不扩 scor-01/scor-03·#42 对拍独立成 proof）。**四处注册清单（席1 定谳·缺一不可）**：
+  1. **根 package.json 双脚本**——`scor-parity:prove`（包 runner：`node scripts/run-e2e-isolated.mjs scor-parity:prove:raw`，同 `scor-00:http:prove` :444 形）+ `scor-parity:prove:raw`（包 db：`pnpm -C packages/db prove:scor-parity`，同 `scor-01:prove:raw` :519-520 形）；
+  2. **runner target 表 deps 条目**——`scripts/run-e2e-isolated.mjs` :1451 邻域 deps 表（`scor-01:prove:raw` deps 数组 :1448-1461 同族）增 `scor-parity:prove:raw` 键+文件清单（新 proof 文件+domain `scoring-fact-root.ts`/`scoring-aggregation.ts`+迁移 0100/0103/0109+baseline 前置）；
+  3. **家族清单两处**——:1734 族（`scor-00:http:prove:raw` 所在族）与 :1767 族（`scor-01:prove:raw`/`scor-02:prove:raw`/`scor03-evidence-conflict:prove:raw` 所在族）各增 `scor-parity:prove:raw`；
+  4. **派发 ternary 链**——~:2051 邻域（:2051 scor-01 臂实证）增 `target === 'scor-parity:prove:raw'` 臂→`['pnpm', ['-C', 'packages/db', 'prove:scor-parity']]`。
+  另 **packages/db/package.json** 增 `prove:scor-parity`（:62-64 `prove:scor-01/02/03` 同族·tsx test 入口）——**以上缺一即断链，注册面全查后方可 EXEC**。
+- **对拍基准=0109 live 版**：状态机基准取 `0109:157-194` CREATE OR REPLACE 重挂版（0100 版缺 `review_required→unscored` 边 @`0109:184-185` 亲证）；对拍探针走 **live DB 行为实测**——真实 UPDATE 施于触发器观察通/23514 拒，**非文本解析迁移 SQL**。
+- **执行要求两条**：①**浮点 vs numeric round 边界对拍向量选可证一致权重**——TS `Math.round`（二进制浮点）vs SQL `round`（numeric 十进制），权重组合须选两侧舍入结果数学可证的向量，Ban 碰运气向量；②**拒绝路径对拍只覆盖算术可达面不伪造函数**——TS fail 分支 vs SQL 异常行为对拍限于真实可达输入域，Ban 为凑矩阵伪造调用路径/桩函数。
+
+### D2 落卷 = 白名单恰四值 + 新迁移 0158（#43 定谳）
+
+- **白名单恰四值** `{pending_evidence, review_required, practice_eligible, b_review_eligible}`——四处 INSERT 面亲证并集（`0100:869-876`·`0100:1006-1013`·`0103:251-258`·`0109:470-478`；落卷席抽证 :875/:1010/:257/:455/:457/:478 均原位命中）。
+- **新迁移 0158**（现树最大 `0157_billing_payer_route.sql` 实证顺延·Ban 复写 0100/0103/0109）：形制照 **0109:190-194 同族**（四件套亲证：`ALTER FUNCTION … OWNER TO scoring_definer_owner` :190 + `REVOKE ALL … FROM PUBLIC, app_role` :191 + `DROP TRIGGER IF EXISTS` :192 + `CREATE TRIGGER` :193-194）·命名入 `*_insert_guard` 家族（同 `score_card_status_transition_guard` 形·本刀=`score_card_insert_guard`）·非法初始态 `RAISE … USING ERRCODE='23514'`（0100/0109 23514 族一致亲证）。
+- **「真实函数行使正测全通」为不可削弱硬门**：经 `scoring_record_score_card`/`write_final`/`adjudicate` 的合法初始态 INSERT 全通（SECURITY DEFINER 函数同样触发本触发器·白名单错一值即断 S1/S2 已落写卡链）——**负测绿不足以过门，正测全绿是 EXEC 验收必要条件**。
+- **score_request 面裁不做**：唯一 INSERT 面=`0100:634`（status 硬编码 `'pending'` :636）+五态 CHECK `0100:141` 已限——补挂 BEFORE INSERT 守门属**无引用扩权**（无第二 INSERT 面·触发器无引用价值只增权限面），本刀不挂。
+
+### D3 落卷 = 最小形制扩定（#41 定谳·docs-only）
+
+- **3 处翻 accepted**：`adr/0020-scorecard-authority-and-eligibility.md:8`（frontmatter `status: proposed`）·`:18`（正文标题「… · proposed」）·`adr/README.md:77`（目录行「### ADR-0020 … · proposed」）——proposed→accepted，仅状态词翻转。
+- **2 处收口**：①`README.md:77` 块后果行（:78 正文「等待产品确认与专用 writer 部署设计」）按 accepted 语义收口——该等待项已不成立（S1/S2 已落主线）；②`0020:84` 状态段（「该 ADR 为 `proposed`。…」）改写——写明 **accepted + 接线收据锚 `50cb3238`（S2 EXEC）`2c3a7d80`（nail）**，**保留未闭合项指涉**（完整 C 端可见性切换/只读 `practice_eligible` 收窄/GET 重闸/B 端校准——原文 `0020:84`+:82 实证在卷）并与 §6 Non-claims 对齐零丢失。
+- **+1 行「已接线」锚**：落 `0020:79-84` 域（「后果与验证」节内）——引 score-writer S1/S2 收据+nail `2c3a7d80`。
+- **零触面**：决策正文（`0020:26-67`）/被否方案（`:69-77`）/:63 产品过渡措辞——一字不动。验收=`docs:check` 过（ci.yml:45 同门·亲证）。
+
+### 勘误落卷（4 条 · append-only 原文零冲销 · EXEC 引用本节为准）
+
+- **勘误①（席1 必改·§0 车道机制误归因）**：REQUEST:20「远程隔离库·需 `E2E_CLOUD_ISOLATED=1`」系 **interview-dispatch 家族的门**——`scripts/interview-dispatch-remote-gate.mjs:4`（头注释「Remote Postgres only…Never starts Docker」）+:46（`E2E_CLOUD_ISOLATED !== '1'` 即 throw 实证）；`scripts/run-e2e-isolated.mjs` **自供一次性本地 Docker PG**（:2113-2116 container/image 装配亲证）**无此门**；ci.yml :95 该注释语境即 interview-dispatch 步族。**结论（scor 系零 per-push 覆盖）不变**。D1 叙事按「**isolated-runner 键可入 per-push 本地车道**」行使——先例=scor-00（package.json:444→ci.yml:208 亲证）。§4「Ban 动远程隔离库车道语义」顺改读为「**Ban 动 isolated 车道既有 target 语义**」。
+- **勘误②（席2·ci.yml 三 pin）**：`:92-93`→**`:95`**（注释行亲证）；`db:up` `:128`→**`:137`**（:128 实为 container build 注释行）；`db:prove` `:146`→**`:148`**（:146 实为车道注释行「可复跑验证 gate」）。§1 表行 3 内 `ci.yml:146` 同步按 :148 读；§0:20 内 :92-93 同步按 :95 读。
+- **勘误③（席2 建议·引用面）**：`fix-roadmap.md:87,188` 为**库外路径**（`/Users/miaole/Documents/Meetwise产品审计-更正版/fix-roadmap.md`——:87「#47 由第 1 批移入以消除 #47→#45 前向依赖」+:188「#47 移到第 2 批」亲证）——REQUEST:51 读引时按此路径注记，或改引库内 `batch-residual-plan.md:86`（在 `meetwise-line-entpay` worktree @`ab02d499`·G1 行不含 #47 亲证）。
+- **勘误④（席2 建议·声明面）**：REQUEST:5 头部「逐位原位命中，无漂移」收敛为「**除 ci.yml 三处（勘误②已收）外逐位命中**」；markers 声明补一行=本 rev2 落卷后 **markers=0**（全卷无未闭合占位）；§7/§8 编号口径注记=本文件现行止于 §7 STOP，双审席报若引「§8」均指席报内部小节号非本文件新增章节，EXEC 引用以本文件实际章节为准。
+
+**Status**: `draft_rev2:pre_exec_dual（双席 PASS·D1=(b) 新键双注册·D2=四值+0158·D3=最小形制扩 :84·勘误 4 条落卷·待复审确认后协调方行使 EXEC 授权）`
