@@ -106,3 +106,13 @@ create 过滤 ≠ 围栏面试被清除（物理数据仍在·软删受理语义
 *rev3 状态行（append-only·不改历史行）: `draft_rev3:pre_exec_dual（席2 六处方落卷·待授权方复认后 BOTH PASS·可授权 EXEC）` · 2026-10-10 · 六处方=①P1 create 三过滤四断言落槽具名（privacy-erasure-http.proof.ts 增「create 三过滤」section·C11 同步增行·§4-5 措辞改「既有断言零删改」）②P2 F2/F5 断言补齐（web-logic 新 section+具名新 proof interviews-actions.proof.ts）③P3 C10 工具面具名（dry-run/--apply 运行命令形+prove 导入方 fence-reflow-repair.proof.ts+F4(ii) B 端跳过计数断言+F4(iv) asPrincipal 禁旁路验收形+§4-1 B 端同跳断言）④P4 §4-1 补齐标题承诺二断言（围栏行 interview_event 增量=0+围栏 interview 保持非终态）⑤N1 0059 写护栏锚 :95-98→:96-99（一字修·附勘误注记）⑥N2 §4-2 并发 proof 落名（begin 锁=uc-e2e-001-nhp-bound:74-87 静态断言·create iv-create 锁现无 proof 覆盖→列 prove 补测项） · docs-only 零码动·只触 §0-2 一字/§3-C11 一行/§4 面 · Dual PASS ≠ 开工 · Ban self-approve*
 
 *exec 状态行（append-only·不改历史行）: `executed:awaiting_post_prove_dual（EXEC 续做收口席·前席 quota 中断卷接续·待 post-prove 双审）` · 2026-10-10 · 实物盘点前置（`git diff --stat` 对照 §3 C1-C11 逐条核：C1-C4/C6-C11 前席已落·C5 零改亲证·缺项=§4-3①②断言未落+三处 proof fixture/断言缺陷+C10 跑法器 target 未注册）→ 续完 7 项（web-logic 410 逐字/不落兜底两断言·F1④ fixture 改真 start 链·resource_hmac 64-hex·fencedSkipped 逐拍语义·C10 桶断言·run-e2e-isolated 注册·C10 HMAC env·逐条注记见 receipts）→ 门禁全跑（§4 矩阵 EXIT 表：web typecheck=0·worker/api tsc=2 预存红 41/30 stash 基线逐字一致零触及·web:prove=0·interviews-actions=0·privacy-erasure:http:prove=0·commerce-reconcile:prove=0·fence-reflow-repair:prove=0·neg:interview=0·markers=0；attempts 全账如实·Ban retry-to-green 核注无同码碰运气）→ 收据 `ai-docs/delivery/receipts/fence-reflow/EXEC-RECEIPT.md` · est live=0 · pins 十一值零翻转 · 0058/0059/0062/0076 零字节 · commerce.ts/index.ts 零改 · SSOT 零触 · STOP `awaiting_post_prove_dual` · alone≠dual · Ban self-approve*
+
+---
+
+## nail 落卷（2026-10-10 · post-prove 双席 BOTH PASS）
+
+**双审结果**：席1（实现语义）+席2（用户旅程/回归）互盲复核 BOTH PASS。三件套逐字忠实 rev3（F1 create 三过滤 :541 禁第三谓词·list() 对齐·F3 形 A 五钉 commerce.ts 零改亲证·fencedSkipped·F6 410 文案 :43 逐字先于兜底）·卡死解除隔离库实证（25/25 两跑·F1①④ 围栏不复用/B 端行不被捞·F1③ 直连仍 410）·对账毒化解除（⑧ 同户 pending 照常入账/围栏行 released 不回滚/interview_event 增量=0/B 端同跳/连续失败=0）·F5 幽灵回收四断言力（恰一次 abandon/500 不阻塞/402 壳/401 零 abandon）·C10 工具旁路 grep=0·续做 7/7 全过·四门双席独立复跑绿。
+
+**merge 语义融合**：@fd57a6fc（FENCE×SSE-RESILIENCE 非机械 dual-keep——SSE 新结构为基底·FENCE fence 臂织入：410 终态停转不进退避循环/F6 臂置于 degraded 兜底前/F5 与 #259 targetRole 融合/三刀 proof sections 全量并存 256 PASS·唯一适配点=FENCE「410 空结束」断言按 #56 架构改断 SseOpenStatusError 分类·行为等价面不变）。七门全绿：web prove 256/0·typecheck 0·interviews-actions 0·privacy-erasure 25/0·commerce-reconcile 0·fence-reflow-repair 0·node --check OK。
+
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·语义融合落主线 @fd57a6fc·#241 围栏回流卡死+#238 幽灵场次+#253/#243 正式解除·审计第五章删除分支三件套闭环·markers=0·est live=0）。
