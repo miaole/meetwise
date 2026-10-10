@@ -344,28 +344,28 @@ export {
   claimScoreRequest, markScoreRequestDispatched, fenceScoreRequest,
   recordScoreCard, transitionScoreCard, supersedeScoreCard,
   asScoringWorkerPrincipal,
-} from './scoring-fact-root.ts';
+} from './scoring/scoring-fact-root.ts';
 export type {
   RubricCriterionInput, PublishQuestionRubricInput, IssueQuestionContractInput,
   CreateScoreRequestInput, ScoreCardCriterionInput, RecordScoreCardInput,
-} from './scoring-fact-root.ts';
+} from './scoring/scoring-fact-root.ts';
 
 // 评分确定性聚合（SCOR-02）：专用终态 score-writer（只写 practice_eligible/b_review_eligible）+ C 端只读聚合。
 // 复用 SCOR-01 角色/fence/delete-first-wins，不重实现删除根；legacy answer_evaluated.score 整数事件不参与。
 export {
   writeFinalScoreCard, aggregateInterviewScores, listScorableScoreCards,
-} from './scoring-aggregation.ts';
+} from './scoring/scoring-aggregation.ts';
 export type {
   ScoreEvidenceInput, WriteFinalScoreCardInput, WriteFinalScoreCardResult,
   InterviewScoreAggregate, ScorableScoreCardRow,
-} from './scoring-aggregation.ts';
+} from './scoring/scoring-aggregation.ts';
 
 // 评分证据冲突与多来源 uncertainty（SCOR-03）：证据裁决 writer（practice_eligible/review_required
 // + 8 来源 uncertainty + required coverage + 冲突路由）。复用 SCOR-01 角色/fence/delete-first-wins。
-export { adjudicateScoreCard } from './scoring-evidence-conflict.ts';
+export { adjudicateScoreCard } from './scoring/scoring-evidence-conflict.ts';
 export type {
   AdjudicateEvidenceInput, ScoreUncertaintyInput, AdjudicateScoreCardInput, AdjudicateScoreCardResult,
-} from './scoring-evidence-conflict.ts';
+} from './scoring/scoring-evidence-conflict.ts';
 
 // RAG-FUNNEL-02B / EMBED-CACHE-01 计算缓存（metadata 审核后、projection 前；只复用相同计算的无主 float32 向量，
 // 不决定 leaf/可见性/激活）。PG = durable fill intent + 成本预留 + dispatch slot；Redis = 薄 value store + merge lock。
