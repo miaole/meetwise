@@ -116,3 +116,15 @@ consent_record voice_capture 行 ≠ 录音可持久化（ephemeral 口径不动
 `draft_rev2:pre_exec_dual（双席处方 7 条落卷·待复核席快核）` · 2026-10-10 · rev2 docs-only 零码动 · rev2 基线仍 @`6a81acfc`（本文件为唯一改动面）
 
 `executed:awaiting_post_prove_dual` · 2026-10-10 · EXEC 落卷（append-only 状态行）· 工作树 `meetwise-consentmin` @分支 `line/consent-min`（rebase 主线 `6979a069` 干净重放后于 `5f6eeee6` 开工）· C1+C2 全件落地 + 新证 `prove:consent-min`（isolated runner 登记·EXIT=0 19/19）· 矩阵全跑收据 `ai-docs/delivery/receipts/consent-min/2026-10-10-exec-receipt.md`（logs 20 件在卷）· **零新增红**：neg:input 3 红与 web build 1 红均基线血统（stash 对照跑/临时 worktree 对照跑同集实证·详收据 §2/§3）· 两处登记更新（voice-timeout:40=3 / validate:401=403 consent_required）均一次过 · 零迁移 · markers=0 · **awaiting_post_prove_dual（alone≠dual）**
+
+---
+
+## nail 落卷（2026-10-10 · post-prove 双席 BOTH PASS·批4 收官）
+
+**双审结果**：席1（实现语义+范围纪律）+席2（用户旅程+回归）互盲复核 BOTH PASS。范围零越界（C1 三入口仅挂枚举·C2 恰四小件零新机制·byte 同 resume.service :95-96 形）·序钉亲证（guard :451 先于门 :454-455·privacy-erasure-http 19/0 复跑绿=410 先于 403）·两登记更新语义精确（queries===3=归属 1+围栏 1+门 1·validate :403-404 断言真实 seed 无 voice 行 403 只能出自新门）·四证全亲跑绿（consent-min 19/19·neg:interview 97·api:validate·privacy-erasure-http 19/0）·语音旅程全链亲读（await 落库成功才开录/RLS owner 隔离无跨户解锁/三处回卡/503 环境面非门误伤）·既有 5 调用方零破坏·委托函数与 0058 立法同形仅作用一次性证明库（围栏族零字节）·neg:input 血统独立坐实（PASS/FAIL 集 diff 空+3c9f235c 更早刀已录 base≡red 旁证）。merge 落主线 @07ab0c12（runner+InterviewPanel dual-keep·web typecheck+prove 复验 EXIT=0）。
+
+**nail 随卷勘误与注记**：①neg:input 3 红根因标注勘误——其中 2 红（xss 对）实为 42883 assert_interview_privacy_active 缺失（sql/ 镜像链漂移家族）非 i.created_at；材料结论（基线血统非新增红）不变（席2）。②新证 EXIT=0 系 attempt2 达成（attempt1 红=证明环境缺 0058 镜像·收据 §2 全账·非断言改口）——Ban「一次过」披露偏差如实留档（席1）。③runner 登记 5 行=REQUEST 外最小必要管道已披露（席1）。
+
+**批4 收官**：10 条全闭（#247/#236/#242/#198/#241/#238/#253/#243/#69/#82+#83 降 P4+#153/#183 归 ERASE）——隐私机制冻结在用户裁定水位（「上传时授权协议即可」），不再新增任何隐私机制。
+
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·merge 落主线 @07ab0c12·批4 正式收官·markers=0·est live=0）。
