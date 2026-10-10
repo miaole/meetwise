@@ -36,16 +36,16 @@
 import type { PoolClient as Client } from 'pg';
 import { asPrincipal, type DbPool } from './principal.ts';
 import { getInterviewRouteSnapshot } from './routing/job-route-decision.ts';
-import { readGenerationQuestionChunkProjection } from './qbank-generation-projection.ts';
+import { readGenerationQuestionChunkProjection } from './qbank/qbank-generation-projection.ts';
 import {
   activeQbankGeneration, qbankQuestionResultsForHits,
   type QbankServingScopeInput, type QbankQuestionRetrievalResult,
-} from './qbank-generation-retrieval.ts';
+} from './qbank/qbank-generation-retrieval.ts';
 import {
   cachedQbankSearch, type QbankRetrievalCacheBackend,
   type QbankEmbeddingCallContext, type QbankCacheStatus,
 } from './qbank-retrieval-cache.ts';
-import { qbankMetadataHash, QBANK_ANNOTATION_SOURCES } from './qbank-ingest.ts';
+import { qbankMetadataHash, QBANK_ANNOTATION_SOURCES } from './qbank/qbank-ingest.ts';
 import {
   deriveRetrievalPlanKey, validateRetrievalPlan,
   type RetrievalPlan, type RetrievalPlanStatus, type RetrievalPlanSnapshot,

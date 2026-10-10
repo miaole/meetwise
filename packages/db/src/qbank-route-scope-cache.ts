@@ -29,7 +29,7 @@ import { asPrincipal, type DbPool } from './principal.ts';
 import {
   activeQbankGeneration, qbankQuestionResultsForHits,
   type QbankQuestionRetrievalResult, type QbankServingScopeInput,
-} from './qbank-generation-retrieval.ts';
+} from './qbank/qbank-generation-retrieval.ts';
 import type { QbankRetrievalHit } from './qbank-retrieval-cache.ts';
 import {
   deriveRouteScopeCacheDigest, validateRouteScopeCacheFacets,

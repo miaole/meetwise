@@ -30,7 +30,7 @@
 import { createHash, createHmac, randomUUID } from 'node:crypto';
 import { Buffer } from 'node:buffer';
 import type { PoolClient as Client } from 'pg';
-import { asQbankControlExecutor, type DbPool } from './principal.ts';
+import { asQbankControlExecutor, type DbPool } from '../principal.ts';
 import { QBANK_OWNER } from './qbank-ingest.ts';
 
 const CACHE_KEY_VERSION = 'embedding-compute-cache:v1';
