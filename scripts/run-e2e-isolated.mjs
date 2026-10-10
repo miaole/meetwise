@@ -461,7 +461,7 @@ const isolatedReceiptSources = {
   'memory:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/memory.proof.ts', 'apps/worker/src/memory-service.ts',
-    'packages/db/src/memory-store.ts', 'packages/db/migrations/0001_baseline.sql',
+    'packages/db/src/memory/memory-store.ts', 'packages/db/migrations/0001_baseline.sql',
   ],
   'report:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -1103,7 +1103,7 @@ const isolatedReceiptSources = {
   'memory-governance:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/memory-governance.proof.ts',
-    'packages/db/src/memory/memory-governance.ts', 'packages/db/src/memory-store.ts', 'packages/db/src/index.ts',
+    'packages/db/src/memory/memory-governance.ts', 'packages/db/src/memory/memory-store.ts', 'packages/db/src/index.ts',
     'packages/db/src/privacy/privacy-authorization.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/memory-governance.ts', 'packages/domain/src/privacy-authorization.ts', 'packages/domain/src/index.ts',
     'packages/contracts/src/index.ts',
@@ -1153,7 +1153,7 @@ const isolatedReceiptSources = {
   'memory-two-stage-recall:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/memory-two-stage-recall.proof.ts',
-    'packages/db/src/memory-two-stage-recall.ts', 'packages/db/src/index.ts',
+    'packages/db/src/memory/memory-two-stage-recall.ts', 'packages/db/src/index.ts',
     'packages/db/src/memory/memory-index-generation.ts', 'packages/db/src/memory/memory-fact-adjudication.ts',
     'packages/db/src/memory/memory-admission.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/memory-two-stage-recall.ts', 'packages/domain/src/memory-index-generation.ts',
@@ -1196,7 +1196,7 @@ const isolatedReceiptSources = {
   'mem02-summary:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/mem02-summary.proof.ts',
-    'packages/db/src/memory-summary.ts', 'packages/db/src/index.ts',
+    'packages/db/src/memory/memory-summary.ts', 'packages/db/src/index.ts',
     'packages/db/src/context/ctx03-event-source.ts', 'packages/db/src/privacy/privacy-authorization.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/memory-summary.ts', 'packages/domain/src/index.ts',
@@ -1210,7 +1210,7 @@ const isolatedReceiptSources = {
   'mem03-summary-tree:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/mem03-summary-tree.proof.ts',
-    'packages/db/src/memory-summary-tree.ts', 'packages/db/src/memory-summary.ts', 'packages/db/src/index.ts',
+    'packages/db/src/memory/memory-summary-tree.ts', 'packages/db/src/memory/memory-summary.ts', 'packages/db/src/index.ts',
     'packages/db/src/context/ctx03-event-source.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/memory-summary-tree.ts', 'packages/domain/src/memory-summary.ts', 'packages/domain/src/index.ts',
     'packages/domain/src/ctx03-event-source.ts',
@@ -1225,7 +1225,7 @@ const isolatedReceiptSources = {
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/ctx04-compression-snapshot.proof.ts',
     'packages/db/src/context/context-compression-snapshot.ts', 'packages/db/src/index.ts',
-    'packages/db/src/context/ctx03-event-source.ts', 'packages/db/src/memory-summary.ts',
+    'packages/db/src/context/ctx03-event-source.ts', 'packages/db/src/memory/memory-summary.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/package.json',
     'packages/domain/src/ctx04-compression-snapshot.ts', 'packages/domain/src/memory-summary.ts',
@@ -1274,7 +1274,7 @@ const isolatedReceiptSources = {
   'memory-vector-chunk-erasure:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/memory-vector-chunk-erasure.proof.ts',
-    'packages/db/src/memory-vector-chunk-erasure.ts', 'packages/db/src/index.ts',
+    'packages/db/src/memory/memory-vector-chunk-erasure.ts', 'packages/db/src/index.ts',
     'packages/db/src/memory/memory-governance.ts', 'packages/db/src/privacy/privacy-authorization.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/package.json',
@@ -1290,7 +1290,7 @@ const isolatedReceiptSources = {
   'vector-plane-erasure:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/vector-plane-erasure.proof.ts',
-    'packages/db/src/privacy/vector-plane-erasure.ts', 'packages/db/src/memory-vector-chunk-erasure.ts',
+    'packages/db/src/privacy/vector-plane-erasure.ts', 'packages/db/src/memory/memory-vector-chunk-erasure.ts',
     'packages/db/src/index.ts', 'packages/db/src/privacy/privacy-authorization.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/package.json',

@@ -232,8 +232,8 @@ export type {
 } from './retrieval/rag-corpus-versioning.ts';
 
 // 长期记忆存储 + 跨会话精确判重(normalizeQuestion/episodeSeen) + 历史弱项只读投影(historicalWeakDimensions)
-export { insertMemory, getMemoriesByRefIds, episodeSeen, normalizeQuestion, historicalWeakDimensions } from './memory-store.ts';
-export type { MemoryKind, MemoryRow } from './memory-store.ts';
+export { insertMemory, getMemoriesByRefIds, episodeSeen, normalizeQuestion, historicalWeakDimensions } from './memory/memory-store.ts';
+export type { MemoryKind, MemoryRow } from './memory/memory-store.ts';
 
 // 记忆治理(MEM-00)：事实/同意/召回/生成/快照状态机 + 账户级删除(复用冻结 issuer，仅包 MEM claim/purge)
 export {
@@ -281,10 +281,10 @@ export type {
 // 刻意不同名（MEM-14 是候选来源卡片 + 重验 verdict + 冻结/派发，MEM-00 是最小召回）。
 export {
   recallHybridCandidates, hydrateRecallFacts, freezeRecallContextSnapshot, dispatchRecallContextSnapshot,
-} from './memory-two-stage-recall.ts';
+} from './memory/memory-two-stage-recall.ts';
 export type {
   RecallHybridCandidatesInput, HydrateRecallFactsInput, FreezeRecallContextSnapshotInput,
-} from './memory-two-stage-recall.ts';
+} from './memory/memory-two-stage-recall.ts';
 
 // 支付订单（幂等入账）
 export { createOrder, getOrder, markOrderPaidAndCredit, markOrderRefunded } from './commerce/payment.ts';
@@ -472,12 +472,12 @@ export {
   draftMemorySummary, verifyMemorySummary, activateMemorySummary, supersedeMemorySummary, invalidateMemorySummary,
   hydrateMemorySummaries, replayMemorySummaries, dispatchMemorySummaryHydrate,
   beginMemorySummaryErasure, claimMemorySummaryTarget, purgeMemorySummaryTarget,
-} from './memory-summary.ts';
+} from './memory/memory-summary.ts';
 export type {
   DraftMemorySummaryInput, MemorySummaryDraftReceipt, MemorySummaryTransitionReceipt, MemorySummaryRow,
   MemorySummaryDispatchDecision, MemorySummaryErasureTarget, BegunMemorySummaryErasure,
   ClaimedMemorySummaryTarget, PurgedMemorySummaryTarget,
-} from './memory-summary.ts';
+} from './memory/memory-summary.ts';
 
 // RAG-FUNNEL-07 / 自由文本自动漏斗与成本/unknown：把 RAG-03 岗位意图路由**结构同构但
 // scope 隔离**地复用到自由文本（专项训练目标），不扩大权限。revision 只存 digest+HMAC
@@ -510,11 +510,11 @@ export type {
 export {
   composeMemorySummary, tracebackMemorySummary,
   invalidateMemorySummaryCascade, fenceMemorySummaryCascade,
-} from './memory-summary-tree.ts';
+} from './memory/memory-summary-tree.ts';
 export type {
   SummaryTreeParentKind, ComposeMemorySummaryInput, MemorySummaryComposeReceipt,
   MemorySummaryTraceNode, MemorySummaryCascadeReceipt,
-} from './memory-summary-tree.ts';
+} from './memory/memory-summary-tree.ts';
 
 // 并发与故障恢复（CTX-05）存储侧：压缩派发/提交状态机（lease 抢租约 + CAS 单赢家 + unknown 终态
 // sticky）。边界稳定判定由 SQL claim 服务端重验（域侧 classifyCompressibleRange 交叉 pin）。
@@ -542,11 +542,11 @@ export type {
 export {
   beginMemoryVectorChunkErasure, claimMemoryVectorChunkTarget, purgeMemoryVectorChunkTarget,
   isMemoryVectorChunkErasureActive,
-} from './memory-vector-chunk-erasure.ts';
+} from './memory/memory-vector-chunk-erasure.ts';
 export type {
   MemoryVectorChunkErasureTarget, BegunMemoryVectorChunkErasure,
   ClaimedMemoryVectorChunkTarget, PurgedMemoryVectorChunkTarget,
-} from './memory-vector-chunk-erasure.ts';
+} from './memory/memory-vector-chunk-erasure.ts';
 
 // 0129：预览版删除路径（request → sink 盘点 → 回执），不宣称生产 SLO。
 export {
