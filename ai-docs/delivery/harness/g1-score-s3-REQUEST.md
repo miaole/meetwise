@@ -118,3 +118,15 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 - **勘误④（席2 建议·声明面）**：REQUEST:5 头部「逐位原位命中，无漂移」收敛为「**除 ci.yml 三处（勘误②已收）外逐位命中**」；markers 声明补一行=本 rev2 落卷后 **markers=0**（全卷无未闭合占位）；§7/§8 编号口径注记=本文件现行止于 §7 STOP，双审席报若引「§8」均指席报内部小节号非本文件新增章节，EXEC 引用以本文件实际章节为准。
 
 **Status**: `draft_rev2:pre_exec_dual（双席 PASS·D1=(b) 新键双注册·D2=四值+0158·D3=最小形制扩 :84·勘误 4 条落卷·待复审确认后协调方行使 EXEC 授权）`
+
+## EXEC 落卷（2026-10-10 · g1-exec · 协调方授权 EXEC·D1-D3 按 rev2 落卷定值行使）
+
+**Status**: `draft_rev2 → executed:awaiting_post_prove_dual`（完工≠收口·post-prove dual 待开·Ban self-approve·alone ≠ dual）
+
+- rebase `feat/mysql-schema-skeleton`@74895b7c EXIT=0 零冲突（9cac8778→74895b7c 主线 docs/merge 链·与本刀零交）· 逐锚重定位漂移表入收据（全命中·两形制注记：:1734/:1767 实为同一 gate 数组·migrateWithRecovery 白名单为必要第 5 注册点）
+- #42：新键 `scor-parity:prove` 四处注册全落（根 package.json 双脚本+runner deps 表+gate 数组+migrate 白名单+ternary 臂+packages/db prove·缺一不可全查）+ ci.yml 增步（scor-00:208 先例·isolated-runner 本地车道·勘误①语义）· 新 proof `packages/db/test/scor-parity.proof.ts` 57 断言：枚举值级双向（live CHECK 非文本解析）+ card 10×10=100 格逐值互推（SAVEPOINT 真 UPDATE 施于 0109 live 触发器）+ request 5×5=25 格单向门 + 公式 17 向量值级（write_final 0103 副本 12 + adjudicate 0109 副本 5·两 SQL 副本互拍 4 组）+ 拒绝路径算术可达面 4 组——**首跑+确认复跑双绿 EXIT=0·零漂移检出·评分语义零变**
+- round 边界对拍向量全部「可证一致」三类机器断言（整商 / .5 精确命中 den=2 的幂 / 远界 ≥1e-6·float64 误差 2.2e-14 不可翻转）· rev2 执行要求②拒绝路径不伪造函数已守
+- #43：新迁移 `0158_score_card_insert_guard.sql`（0157 实证顺延·0109:190-194 四件套同族·23514·白名单恰四值）· 负测 6 态裸 INSERT 逐个 23514 + 白名单对照组通 · **正测硬门全绿**（四处 INSERT 面逐个真实函数行使·record/supersede/write_final×2/adjudicate×2·SECURITY DEFINER 同触发）· scor-01/02/03 零翻复跑三键全绿（64/59/64 PASS）· validate.ts:112 夹具兼容面亲证（practice_eligible 在列）· score_request 面不挂遵 D2 · sql/ 镜像不适用披露（scoring 域无承重墙·dbhy1 P4⑤ 重放面）
+- #41：0020:8/:18+README:77 三翻 accepted · README:78 后果行 + 0020:84 状态段收口（接线锚 50cb3238/2c3a7d80·保留未闭合项）+ :79-84 域已接线锚一行 · 决策正文/被否方案/:63 零触
+- 门禁 EXIT 表（attempts 全账·零 retry-to-green）：scor-parity 0/0（确认复跑）·scor-01 0·scor-02 0·scor03 0·migrate:prove 0（95 PASS）·neg:interview 0（97=基线原值）·db tsc 预存 20 零新增（自身 6 处 strict 修复）·docs:check=1 **预存 base 红如实**（PTP_FILE_LIMIT：HEAD 已 4325≫cap 2048·本刀 +2 交付物=4327·零语义恶化·修法域外留协调方）
+- est live=0 · actualSpendCny=null · 0 Key 值接触 · markers=0 · pins 十一值零翻转 · 停止条件三条全否（零漂移/白名单恰四值/零翻全绿）· ⛔push · 收据 `receipts/g1-score-s3/`（exec-prove.md+8 日志）

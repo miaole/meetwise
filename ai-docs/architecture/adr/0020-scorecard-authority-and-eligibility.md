@@ -5,7 +5,7 @@ description: 规定评分事实必须从不可变已发题合同、版本化 rub
 type: reference
 scope: shared
 level: guide
-status: proposed
+status: accepted
 owner: architecture
 related:
   - ./README.md
@@ -15,7 +15,7 @@ related:
   - ../../delivery/execution-master-checklist.md
 ---
 
-# ADR-0020 评分卡事实权威与资格门 · proposed
+# ADR-0020 评分卡事实权威与资格门 · accepted
 
 ## 背景
 
@@ -81,4 +81,5 @@ ScoreCard、ScoreEvidence、report/profile projection、cache、trace 和人工�
 - 首期可能让未配置 rubric 的现有 C 端评分显示为 unavailable；这是有意停止不可信聚合，不是功能回归的隐藏实现。
 - `SCOR-01/02` 的实现前置是 `INT-TRANSCRIPT-00/01` 已在真实组合根证明 canonical artifact、删除 resolver、逐 sink receipt 和删后 read=0。之后的隔离数据库 proof 必须覆盖原始 SQL、旧 worker、跨 owner、并发重放、答案替换、删除/撤权、迟到结果与所有消费者；真实模型质量、校准和 B 端用途不由此证明。
 - 专用 writer 的部署凭据、数据库角色、启动门和删除链是生产配置变更，实施前须有平台/安全复核。
-- 该 ADR 为 `proposed`。`SCOR-00H` 只收紧消费面诚实（不展示无出处 event 分、不伪造 0），不写入 ScoreCard，也不恢复 B 端数值。完整 C 端可见性切换、只读 `practice_eligible`、GET 重闸与 score-writer 仍等待 `INT-TRANSCRIPT-00/01` 的真实数据/删除前置闭合。
+- 已接线：score-writer S1/S2 已落主线并完成接线（S2 EXEC 收据 `50cb3238`、nail `2c3a7d80`「P0 chain #40 code-complete」），0100–0109 迁移在主线，ScoreCard 事实根 + 确定性总分公式 + 专用 writer 为现行评分写路径。本 ADR 据此由 `proposed` 翻为 `accepted`。
+- 该 ADR 为 `accepted`。`SCOR-00H` 只收紧消费面诚实（不展示无出处 event 分、不伪造 0），不写入 ScoreCard，也不恢复 B 端数值。仍未闭合（另刀，不在本 ADR 验收面）：完整 C 端可见性切换、只读 `practice_eligible` 收窄、GET 重闸与 B 端校准——其 `INT-TRANSCRIPT-00/01` 真实数据/删除前置已闭合，剩余为产品/用途门推进项。
