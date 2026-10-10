@@ -18,6 +18,12 @@ export {
   QBANK_CONTROL_DEFINER_ROLE, QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST, QBANK_CONTROL_DEFINER_TABLE_MANIFEST, QBANK_CONTROL_DEFINER_VIEW_MANIFEST,
 } from './principal.ts';
 export type { Client, DbPool, PoolOverrides, RuntimeLoginInput } from './principal.ts';
+// R-22 observability surface: purpose-registered pool-error counter lines for
+// the two existing scrape faces (worker /metrics + api GET /metrics).
+export { readPoolErrorTotal, readRegisteredPoolPurposes, renderPoolErrorsTotalLines } from './principal.ts';
+// R-22 W3: connect-level retry for the one-shot migrate job (never DDL).
+export { classifyConnectError, withConnectRetry, warmUpPool } from './migrate-connect-retry.ts';
+export type { ConnectErrorClass, ConnectRetryDeps } from './migrate-connect-retry.ts';
 export { assertIsolatedTestEnvironment, assertIsolatedTestTarget } from './isolated-test-target.ts';
 export { AppError, asErr, errCode } from './errors.ts';
 export type { ErrLike } from './errors.ts';

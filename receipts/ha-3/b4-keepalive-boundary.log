@@ -1,0 +1,5 @@
+== B4 keepAlive honest boundary (EXEC 裁撤佐证·落卷) ==
+主证1 A1 参数生效: pool.options keepAlive=true/initial=10000 (packages/db/test/ha3-pool-resilience.proof.ts 全绿)
+主证2 A1-live 存储面: 真实连接 client.connection._keepAlive===true + _keepAliveInitialDelayMillis===10000 (pg@8.22.0 connection.js:24-25) 全绿
+主证3 源码锚: client.js:95-96 默认 false→消费 true; connection.js:47-48 stream.setKeepAlive(true,delay) — 逐行读数在卷
+佐证裁撤理由: iptables DROP 半开模拟需沙箱 pg 容器 NET_ADMIN 权能(沙箱零权能纪律·ha-1 LB cap 冲突先例)且 OS 层 per-probe 间隔(tcp_keepalive_*)进程内不可达(REQUEST §2-7 诚实边界)——本地无法快速天然复现半开死连,EXEC 裁撤可选佐证,Ban 宣称『keepAlive 灭绝半开死连』照卷

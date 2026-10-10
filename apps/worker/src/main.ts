@@ -13,7 +13,7 @@ import { buildMockInterviewGraph } from '@meetwise/ai-graphs';
 import { webExplore, deepExplore, createSafeFetch, degradedRetrieval, type AllowedSource, type RawFetch } from '@meetwise/domain';
 import {
   createPool, resolveDatabaseConnectionString, asPrincipal, asQbankControlExecutor, assertQbankControlExecutorIdentity, assertQbankControlDefinerOwnership, activeQbankGeneration, cachedQbankSearch, gatewayCostBudgetSnapshot, gatewayJobGauges,
-  qbankEvidenceForRefs, qbankQuestionResultsForHits, listScorableScoreCards, type GatewayCostBudgetSnapshot, type QbankServingScopeInput,
+  qbankEvidenceForRefs, qbankQuestionResultsForHits, listScorableScoreCards, renderPoolErrorsTotalLines, type GatewayCostBudgetSnapshot, type QbankServingScopeInput,
 } from '@meetwise/db';
 import { configureG7RuntimeInjection, createLangfuseV5Runtime, isG7FreetierReproveEnabled, resolveLangfuseConnection, resolveModelDeadlineConfig, resolveDashscopeNativeConfig, setTracer, dashscopeEmbedder, cachingEmbedder, inMemoryEmbeddingStore, getMetrics, registerBaselineMetrics, METRIC, type Embedder, type ModelClient } from '@meetwise/ai-runtime';
 import { assertLegacyInterviewGraphDisabled } from './production-config.ts';
@@ -130,7 +130,7 @@ export function createCheckpointer(connString?: string, useRuntimeRole = false):
   // pg Pool and would silently bypass our CA/verify-full TLS policy. Sharing the
   // same factory makes ordinary DB work and LangGraph checkpoints one target and
   // one transport-security policy.
-  const pool = createPool({ connectionString: url.toString() });
+  const pool = createPool({ connectionString: url.toString(), purpose: 'checkpoint' });
   return new PostgresSaver(useRuntimeRole ? new PrincipalBoundCheckpointPool(pool).asPool() : pool);
 }
 
@@ -243,7 +243,10 @@ export function startMetricsExposition(options: { ragReady?: () => boolean; work
     const path = (req.url ?? '').split('?')[0];
     if (req.method === 'GET' && path === '/metrics') {
       res.writeHead(200, { 'content-type': 'text/plain; version=0.0.4' });
-      res.end(getMetrics().render());
+      // R-22: append per-purpose pool-error counter lines (registered purposes,
+      // 0-prefilled).  Observability gauge, never a health signal; /readyz
+      // untouched.
+      res.end(getMetrics().render() + renderPoolErrorsTotalLines());
     } else if (req.method === 'GET' && (path === '/healthz' || path === '/livez')) {
       res.writeHead(200, { 'content-type': 'text/plain' }); res.end('ok\n');
     } else if (req.method === 'GET' && path === '/readyz/rag') {
@@ -424,7 +427,7 @@ async function bootstrap() {
   // 「启动期校验」名不副实——一旦未来改动移掉/延后 embedder 构造，这些校验就静默消失。这里显式解析
   // 一次：任何一把已挂载的原生 Key 命中撤销清单或与期望指纹不符，都在启动期 fail-closed。
   resolveDashscopeNativeConfig();
-  const pool = createPool();
+  const pool = createPool({ purpose: 'worker' });
   // 观测:预注册基线指标序列(熔断打开/退款失败 counter 置 0)+ 自挂 /metrics 端点(Prometheus 抓取,up 即 worker 存活数据源)。
   registerBaselineMetrics();
   // Schema migration 由独立的一次性 migrate 服务完成；运行时 worker 绝不持有 DDL 权限，
@@ -495,7 +498,7 @@ async function bootstrap() {
   // It is required only for a governed bootstrap rebuild; serving a previously
   // promoted immutable generation uses the normal read-only runtime path.
   const qbankControlUrl = process.env.QBANK_CONTROL_DATABASE_URL?.trim();
-  const qbankControlPool = qbankControlUrl ? createPool({ connectionString: qbankControlUrl }) : undefined;
+  const qbankControlPool = qbankControlUrl ? createPool({ connectionString: qbankControlUrl, purpose: 'qbank-control' }) : undefined;
   if (qbankControlPool) {
     await assertQbankControlExecutorIdentity(qbankControlPool);
     await assertQbankControlDefinerOwnership(qbankControlPool);
@@ -655,7 +658,7 @@ async function bootstrap() {
   // This is a dedicated, otherwise-idle PG session. It never performs RLS
   // work or claims jobs: every notification merely coalesces a normal drain
   // across all queue classes. Notifications contain no job or tenant data.
-  const jobWakeupListener = startWorkerJobWakeupListener(createPool({ max: 1 }), () => {
+  const jobWakeupListener = startWorkerJobWakeupListener(createPool({ max: 1, purpose: 'job-wakeup' }), () => {
     reportLoop.wake();
     interviewLoop.wake();
     quizLoop.wake();

@@ -148,7 +148,7 @@ export class SseNotifyService {
     }
     try {
       // 每进程恰一条:独立 max:1 专用池,不占请求池(禁每 SSE 一条连接)。
-      this.pool = createPool({ max: 1 });
+      this.pool = createPool({ max: 1, purpose: 'sse-listen' });
     } catch {
       this.degrade('listen_down');
       this.scheduleReconnect();

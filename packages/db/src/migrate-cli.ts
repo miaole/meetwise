@@ -1,10 +1,15 @@
 /** Dedicated production migration entrypoint. It is intentionally separate from API/worker startup. */
 import { fileURLToPath } from 'node:url';
-import { assertDistinctProvisionedLoginNames, assertQbankControlDefinerOwnership, assertQbankControlExecutorIdentity, assertRagControlDefinerOwnership, assertRagControlExecutorIdentity, createPool, loadMigrations, provisionPrivacyWorkerLogin, provisionQbankControlDefiner, provisionQbankControlLogin, provisionRagControlLogin, provisionRuntimeLogin, rebindDatabaseLogin, resolveDatabaseConnectionString, runMigrations } from './index.ts';
+import { assertDistinctProvisionedLoginNames, assertQbankControlDefinerOwnership, assertQbankControlExecutorIdentity, assertRagControlDefinerOwnership, assertRagControlExecutorIdentity, createPool, loadMigrations, provisionPrivacyWorkerLogin, provisionQbankControlDefiner, provisionQbankControlLogin, provisionRagControlLogin, provisionRuntimeLogin, rebindDatabaseLogin, resolveDatabaseConnectionString, runMigrations, warmUpPool } from './index.ts';
 
 async function main(): Promise<void> {
-  const pool = createPool();
+  const pool = createPool({ purpose: 'migrate' });
   try {
+    // W3/R-22: connect-level warm-up with bounded backoff absorbs
+    // deployment-window database jitter HERE only.  runMigrations below is
+    // deliberately NOT retried (DDL/transaction/checksum failures stay
+    // fail-loud); budget exhaustion throws → the catch below exits 1.
+    await warmUpPool(pool);
     const migrationDir = fileURLToPath(new URL('../migrations', import.meta.url));
     const migrations = loadMigrations(migrationDir);
     const result = await runMigrations(pool, migrations);
@@ -40,12 +45,17 @@ async function main(): Promise<void> {
       await provisionQbankControlDefiner(pool);
       await provisionQbankControlLogin(pool, { roleName: qbankControlUser, password: qbankControlPassword });
       const qbankControlPool = createPool({
+        purpose: 'qbank-control',
         connectionString: rebindDatabaseLogin(resolveDatabaseConnectionString(), {
           roleName: qbankControlUser,
           password: qbankControlPassword,
         }),
       });
       try {
+        // W3/R-22: same connect-level warm-up shape as the main pool (retry
+        // covers "cannot reach" only; the identity asserts below stay
+        // fail-loud).
+        await warmUpPool(qbankControlPool);
         await assertQbankControlExecutorIdentity(qbankControlPool);
         await assertQbankControlDefinerOwnership(qbankControlPool);
       } finally {
@@ -60,12 +70,15 @@ async function main(): Promise<void> {
       // control identity.  Do not grant the migration account executor
       // membership merely to inspect the manifest.
       const ragControlPool = createPool({
+        purpose: 'rag-control',
         connectionString: rebindDatabaseLogin(resolveDatabaseConnectionString(), {
           roleName: ragControlUser,
           password: ragControlPassword,
         }),
       });
       try {
+        // W3/R-22: same connect-level warm-up shape as the main pool.
+        await warmUpPool(ragControlPool);
         await assertRagControlExecutorIdentity(ragControlPool);
         await assertRagControlDefinerOwnership(ragControlPool);
       } finally {
