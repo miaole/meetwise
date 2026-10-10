@@ -2237,3 +2237,12 @@ flowchart TD
 - **PROCESS-E2（ERRMSG-MAP 单席 nail 时序违规）**：errmsg nail @8aade53f 落线时仅席1 PASS（席2 复审于其后返回 PASS）——违反「双席齐 PASS 方可 nail」时序。结果追溯有效（席2 独立 PASS·五文案语义/503 时序无谎/E2 根因全确认），但程序违规如实登记；nail 段不撤（内容经双席验证）。整改：nail 动作前强制核对双席 verdict 齐备（已入协调方 checklist）。
 - 教训沉淀：①「EXEC 完成」与「nail 落线」之间必须查台账防重；②「席1 PASS」≠「双席齐」——nail 门槛=两份独立 verdict 在卷。
 - Sibling sections stay as written. alone≠dual（含 nail 时序）· 实现方不 self-approve.
+
+### Line SCORE-WRITER S2 读侧切换切片 NAIL（2026-10-10 SSOT nail · 协调方授权 · post-prove 双审 BOTH PASS · 41 files +1099/−170·D5 三钉全落·rg 门 ABC 全零·去桩后 interview:prove 33 PASS 含报告 ready 链 overall=63·**P0 链 #40 代码层全通**）
+
+- Pins unchanged（十一值照抄零翻转）.
+- [x] **`post_prove_dual_pass`** recorded（EXEC `19ddcbb4`·REQUEST rev2 唯一蓝本·nail tip 本 commit · branch `line/extrev-score-writer`）· **双审 BOTH PASS**：席1 mw-e2e-ha PASS（D5 三钉亲读（GAP :14 单源+形状冻结 :673+INSERT 前 :32→:38）+rg 三门亲跑全零+33 PASS 复跑亲见四关键断言（图家族 fail-closed failed/账本 ready/overall=63/零 report_unavailable）+pristine 三套对照+GROWTH 交叠两条移交警示）+ 席2 mw-model-op PASS（五成员逐字段等价亲读（dimension 轴/score/gap/evidence 逐字/weaknesses/overall）+v6 vs 0103 契约对齐（模型零总分+band 确定性+criterion rubric 白名单·quote→span 服务端派生=强化非偏离）+**#20 验收=等价覆盖裁定**（双家族分解：图家族真 begin→completed 链+账本家族生产写卡→ready·单面试合流被 0126 围栏结构性阻断如实登记）+**assessment-409 残余强制登记**（正路径零 prove 面→GROWTH ③a 扩展或 S3 兜口）+GROWTH rebase 已验证吸收（8904b7ba 含 19ddcbb4+Legacy 符号已换+rg 零））· 协调方正式授权本 nail.
+- **核心产出**：loadSummary 生产化（S1 桩 :315 废除→realLoadSummary 与 main.ts:175-189 同链）·deriveAssessment→deriveScoreCardAssessmentLegacy 切换（#103 关·五成员等价+GAP 单源）·v5→v6 提示词（rubric+criterion disposition·模型零总分）·dispositionFromHintScore 桥废除（rg 门 A）·报告 ready 链 33 PASS.
+- **残余（nail 登记）**：①assessment 正路径 200 prove 零覆盖（席2 强制）→GROWTH ③a 承接；②存量 v5 checkpoint 回合跳写不追溯；③live 红队 smoke 归下次 live 授权窗；④S3 收尾（#42/#43 对拍+ADR-0020 accepted+#47）.
+- 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · S2 ≠ 评分体系完成 ≠ #20 独立 E2E（等价覆盖已裁定） · 实现方不 self-approve.
