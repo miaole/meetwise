@@ -1,0 +1,81 @@
+
+> meetwise@0.1.0 scor-02:prove /Users/miaole/Desktop/golucky/meetwise-g1
+> node scripts/run-e2e-isolated.mjs scor-02:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=5
+E2E isolated PostgreSQL: meetwise-e2e-90267-1791640281689 on 127.0.0.1:53830
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-g1/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=160 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/db@0.0.0 prove:scor-02 /Users/miaole/Desktop/golucky/meetwise-g1/packages/db
+> tsx test/scor-02.proof.ts
+
+PASS  公式：meets+exceeds w[2,3] → 80
+PASS  公式：exceeds+exceeds w[2,3] → 100
+PASS  公式：below+below w[2,3] → 0
+PASS  公式：重放字节级一致（确定性，非模型随机）
+PASS  公式：空集抛错（无分 ≠ 0 分）
+PASS  公式：重复 criterionId 抛错
+PASS  聚合：aggregateScoreCards([80,100]) → 90
+PASS  聚合：aggregateScoreCards([]) 抛错
+PASS  C 端评估消费面：非评分态卡不进入 overall（null）+ nonScorableCount=1
+PASS  C 端评估消费面：两张可评分卡 → overall 90
+PASS  非评分态不参与评分（unscored/review_required/calibration_blocked/evidence_invalid）
+PASS  span 规范化：utf8_byte 合法
+PASS  span 规范化：非 utf8_byte 坐标系抛错
+PASS  span 复验：正确 digest + 界内 → true
+PASS  span 复验：错误 digest → false
+PASS  span 复验：span.end 越界 → false
+PASS  发布版本化 rubric（返回 rubricId + 2 分项落库）
+PASS  终态写卡成功（recorded=true, status=practice_eligible, total=80, coverage=1.0）
+PASS  DB 确定性总分与 domain 公式逐值一致（跨侧 pin）
+PASS  写卡后 request → scored（原语① CAS 单 winner）
+PASS  score_evidence 落库 2 条（append-only）
+PASS  score_evidence 坐标系 = utf8_byte + 有限档（below/meets/exceeds）
+PASS  score_card_criterion 落库（per-criterion score = 50×band：clarity=50, depth=100）
+PASS  写卡同事务原子发出 score_card_written 事件（原语④ 单调 seq）
+PASS  迟到第二次写卡（request 已 scored）→ recorded=false + cardId=null
+PASS  每 request 至多一张终态卡（partial unique index 兜底）
+PASS  非评分态目标态 unscored → 拒写（fail-closed）
+PASS  非评分态目标态 review_required → 拒写（fail-closed）
+PASS  非评分态目标态 calibration_blocked → 拒写（fail-closed）
+PASS  非评分态目标态 evidence_invalid → 拒写（fail-closed）
+PASS  非评分态拒写后 request 仍 claimed（未误 scored）
+PASS  非评分态拒写后 card=0
+PASS  幻觉 criterionId → 拒（成员校验）
+PASS  陈旧 sourceAnswerId → 拒（当前答案版本绑定）
+PASS  错误 answerVersion → 拒
+PASS  span start>end → 拒
+PASS  span offsetKind 非 utf8_byte → 拒
+PASS  spanDigest 格式非法 → 拒
+PASS  重复 span（两 criterion 引用同一 span）→ 拒
+PASS  required criterion 缺失（只给 1/2 分项）→ 拒
+PASS  负路径全部拒后 request 仍 claimed + card=0（未误写）
+PASS  负路径后同请求成功写卡（total=80）
+PASS  硬上限 capRules.maxBand=meets：depth exceeds → 越上限拒
+PASS  硬上限内：depth meets → 通过（total=(2×50+3×50)/5=50）
+PASS  聚合前置：写卡 agg-1 成功（total=80）
+PASS  聚合前置：写卡 agg-2 成功（total=100）
+PASS  聚合：2 张可评分卡 → eligible=2, overall=90, non_scoring=0
+PASS  DB 聚合与 domain 均值一致（round((80+100)/2)=90）
+PASS  C 端逐题读面：只返回 2 张可评分卡
+PASS  跨包 e2e：2 张卡经读面→deriveAssessment → overall=90 + competency 单维度 + score=90
+PASS  聚合：非评分态卡（unscored）→ eligible=0, overall=null, non_scoring=1
+PASS  C 端逐题读面：非评分态卡不返回
+PASS  跨包 e2e：legacy answer_evaluated.score=95 事件 → 读面 listScorableScoreCards=0
+PASS  跨包 e2e：空卡消费 → overall=null + eligibleCount=0 + dimensions=[]（无数值）
+PASS  legacy answer_evaluated.score=95 事件 → 聚合 eligible=0 + overall=null
+PASS  跨 owner 读 score_evidence = 0 行
+PASS  app_role 无 score_evidence 写权（原始 INSERT 被拒）
+PASS  score_evidence append-only：UPDATE 被拒
+PASS  score_evidence append-only：DELETE 被拒
+
+✓ 评分确定性聚合（SCOR-02）DB 证明通过（本地隔离证据）
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-10T13-51-42-944Z-90267-f44ac0c1-c992-4a13-bdfa-469e101125a1.json release_evidence=false

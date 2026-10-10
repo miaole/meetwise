@@ -1,0 +1,86 @@
+
+> meetwise@0.1.0 scor-01:prove /Users/miaole/Desktop/golucky/meetwise-g1
+> node scripts/run-e2e-isolated.mjs scor-01:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=5
+E2E isolated PostgreSQL: meetwise-e2e-89811-1791640244454 on 127.0.0.1:53737
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-g1/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=160 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/db@0.0.0 prove:scor-01 /Users/miaole/Desktop/golucky/meetwise-g1/packages/db
+> tsx test/scor-01.proof.ts
+
+PASS  铁律：issued_question_contract 无 answer_id/answer_hash/answer_version 列
+PASS  发布版本化 rubric（返回 rubricId + 2 分项落库）
+PASS  rubric append-only：原地 UPDATE 被拒
+PASS  rubric append-only：DELETE 被拒
+PASS  rubric 幂等重放（同 (q,v,r) 返回既有 id）
+PASS  issue 阶段冻结契约（replayed=false，contractId 非空）
+PASS  issue 幂等重放（同身份返回同 contractId + replayed=true）
+PASS  issue 语言出适用范围被拒（rubric language_scope 门）
+PASS  issue 跨 owner 面试发题被拒
+PASS  issue 契约 append-only：原地 UPDATE 被拒
+PASS  submission 首包 accepted_unscored + canonicalBodyHmac == keyed-HMAC
+PASS  createScoreRequest 绑定 canonical artifact（requestId 非空, answerVersion=1, replayed=false）
+PASS  createScoreRequest 同键幂等重放（同 requestId + replayed=true）
+PASS  createScoreRequest 同键异体（hmac 不符）→ 冲突 fail-closed
+PASS  createScoreRequest body_hmac 不符 → 拒（artifact 绑定）
+PASS  createScoreRequest epoch 漂移（≠ 契约冻结 epoch）→ 拒
+PASS  createScoreRequest 跨 owner → 拒（契约 owner 隔离）
+PASS  score_request 内容 append-only：原地改 answer_version 被拒
+PASS  claim 并发单 winner（一个 claimed=true，另一个 claimed=false）
+PASS  claim 跨 owner 不可见（claimed=false + status=null）
+PASS  dispatch token 匹配 → dispatched=true
+PASS  dispatch token 错配 → dispatched=false
+PASS  claim 重放（已 dispatched，非 pending）→ claimed=false
+PASS  写卡 criterion 不在 rubric → 拒（成员校验）
+PASS  写卡成功（recorded=true, status=pending_evidence, cardId 非空）
+PASS  写卡后 request → scored（CAS 单 winner）
+PASS  分项分落库（2 分项, weight 冻结自 rubric）
+PASS  写卡同事务原子发出 score_card_written 事件（单调 seq, 事件链可见）
+PASS  迟到第二次写卡（request 已 scored）→ recorded=false + cardId=null
+PASS  每 request 至多一张终态卡（partial unique index 兜底）
+PASS  domain 转移表：pending_evidence→evidence_valid 合法
+PASS  domain 转移表：pending_evidence→practice_eligible 非法
+PASS  domain 转移表：evidence_valid→practice_eligible 合法
+PASS  domain 转移表：→superseded 从任意非吸收态合法
+PASS  domain 转移表：superseded 吸收态不可迁出
+PASS  domain 非评分态不参与评分（unscored/review_required/calibration_blocked/evidence_invalid）
+PASS  domain 可评分态仅 practice_eligible/b_review_eligible
+PASS  domain 状态枚举与 DB 逐值一致（SCORE_CARD_STATUSES 10 态 / SCORE_REQUEST_STATUSES 5 态）
+PASS  DB 转移：pending_evidence→evidence_valid 允许
+PASS  DB 转移：evidence_valid→review_required 逆证据流（跳过 practice）被触发器拒
+PASS  DB 转移：evidence_valid→practice_eligible 允许
+PASS  DB 转移：原始 SQL 非法转移被触发器拒（practice_eligible→pending_evidence 回退）
+PASS  撤权先赢：fence 后迟到写卡 → recorded=false + cardId=null（card=0）
+PASS  撤权先赢：fenced request 下无任何 score_card 行
+PASS  删除先赢：erasure fence 后迟到写卡被 fence 重校验拒（抛错, 事务回滚）
+PASS  删除先赢：fence 后 card=0（无 score_card 行）
+PASS  答案版本替换：v2 提交后，v1 在途 request 被 fence
+PASS  答案版本替换：v2 request 仍 pending（可正常 claim）
+PASS  supersede：旧卡转 superseded + 新卡非空
+PASS  supersede：历史不覆盖（旧卡行仍存在，supersedes 链指向旧卡）
+PASS  supersede 后终态卡唯一（旧卡 superseded 不再计入 partial unique index）
+PASS  supersede 已 inactive 卡（再次 supersede 旧卡）被拒
+PASS  supersede 传幻觉 criterionId → 拒（成员校验镜像）
+PASS  supersede 传错误 weight → 拒（weight 校验镜像）
+PASS  supersede 校验被拒后旧卡仍 active（未误转 superseded）
+PASS  跨 owner 读 score_card = 0 行
+PASS  跨 owner 读 score_request = 0 行
+PASS  跨 owner 读 issued_question_contract = 0 行
+PASS  跨 owner 读 score_card_criterion = 0 行
+PASS  app_role 无 scoring_definer 表写权（原始 INSERT score_card 被拒）
+PASS  J1 前置：卡片已写卡成功（recorded + cardId 非空）
+PASS  删除 fence 后 supersede 被拒（assert_interview_answer_fact_active）
+PASS  J2 前置：卡片已写卡成功（recorded + cardId 非空）
+PASS  erasure 后 supersede 被拒（assert_interview_privacy_active）
+
+✓ 评分测量事实根（SCOR-01）DB 证明通过（本地隔离证据）
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-10T13-51-16-001Z-89811-c9d312a3-a795-4bca-a8f8-4882e0e4bd8b.json release_evidence=false

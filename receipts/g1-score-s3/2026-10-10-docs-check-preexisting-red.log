@@ -1,0 +1,7 @@
+
+> meetwise@0.1.0 docs:check /Users/miaole/Desktop/golucky/meetwise-g1
+> node scripts/ai-docs/check-docs.mjs
+
+ai-docs check failed:
+- public_text_policy:PTP_FILE_LIMIT:4327
+ ELIFECYCLE  Command failed with exit code 1.
