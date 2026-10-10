@@ -62,6 +62,7 @@
     "prove:scor-01": "tsx test/scor-01.proof.ts",
     "prove:scor-02": "tsx test/scor-02.proof.ts",
     "prove:scor-03": "tsx test/scor-03.proof.ts",
+    "prove:scor-parity": "tsx test/scor-parity.proof.ts",
     "prove:embed-compute-cache": "tsx test/qbank-embedding-compute-cache.proof.ts",
     "prove:rag03-route": "tsx test/job-route-decision.proof.ts",
     "prove:rag04-track-local": "tsx test/rag04-track-local-retrieval.proof.ts",

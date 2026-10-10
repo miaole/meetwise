@@ -74,8 +74,8 @@ related:
 ### ADR-0019 公共文本策略的静态治理 · proposed
 **背景**：公共成果既要拒绝外部项目归属表述，也要保留合法技术术语。**决定**：受管路径静态扫描 + 原因码 + 独立 L3 治理记录。**后果**：审阅者身份和摘要是声明而不是独立性证明；未复核记录保持 `blocked`，结果恒为 `releaseEvidence=false`。**详见 [`adr/0019-public-text-policy-static-governance.md`](./0019-public-text-policy-static-governance.md)。**
 
-### ADR-0020 评分卡事实权威与资格门 · proposed
-**背景**：普通 runtime 可伪造 event 分数，题目/rubric/答案/版本未被同时冻结。**决定**：评分仅从不可变已发题合同、版本化 rubric、数据库 verifier 与专用 score-writer 产生；消费者只读资格化 ScoreCard，未标注题 score-excluded。**后果**：过渡期 C 端可能显示 unavailable，B 端继续无数值用途；等待产品确认与专用 writer 部署设计。**详见 [`adr/0020-scorecard-authority-and-eligibility.md`](./0020-scorecard-authority-and-eligibility.md)。**
+### ADR-0020 评分卡事实权威与资格门 · accepted
+**背景**：普通 runtime 可伪造 event 分数，题目/rubric/答案/版本未被同时冻结。**决定**：评分仅从不可变已发题合同、版本化 rubric、数据库 verifier 与专用 score-writer 产生；消费者只读资格化 ScoreCard，未标注题 score-excluded。**后果**：过渡期 C 端可能显示 unavailable，B 端继续无数值用途；score-writer S1/S2 已接线落主线（收据锚 `50cb3238`/nail `2c3a7d80`），C 端完整可见性切换、只读 `practice_eligible` 收窄、GET 重闸与 B 端校准仍未闭合另刀。**详见 [`adr/0020-scorecard-authority-and-eligibility.md`](./0020-scorecard-authority-and-eligibility.md)。**
 
 ### ADR-0022 应用版本与发布机制 · accepted
 **背景**：全包 version=0.0.0、无 tag/CHANGELOG/发布脚本、探针不报版本，无法钉/校验/回滚部署。**决定**：锁定式 monorepo 单一 semver（根 `package.json`）+ `scripts/release.mjs`（bump→CHANGELOG→tag）+ 运行时 `/meta`（读部署注入 `APP_VERSION`，当前管线未接线）+ CI 一致性门（tag↔版本一致 + CHANGELOG 段 + docs:check/arch）。**被否**：Changesets 独立发版、运行时读文件取版本、脚本自动 push。**后果**：可复现发布、`curl /meta` 锚点就位（注入管线接线后返回真实版本）、回滚有锚点。**详见 [`adr/0022-app-versioning-release.md`](./0022-app-versioning-release.md)。**

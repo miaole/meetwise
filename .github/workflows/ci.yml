@@ -206,6 +206,9 @@ jobs:
           pnpm privacy-erasure:pause-upgrade:prove
       - name: 评分旁路停用（真实 HTTP + 当前迁移组合根零副作用）
         run: pnpm scor-00:http:prove
+      # G1 SCORE-S3 #42：TS↔SQL 评分状态机/总分公式对拍进 per-push（isolated-runner 一次性本地 PG·沿 scor-00 先例）+#43 0158 INSERT 守门正负测。
+      - name: 评分状态机/公式 TS↔SQL 对拍 + INSERT 初始态守门
+        run: pnpm scor-parity:prove
       - name: agent 模型可观测（token / 延迟 / 成本落库）
         run: |
           pnpm metrics:prove
