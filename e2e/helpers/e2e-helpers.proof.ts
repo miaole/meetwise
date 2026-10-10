@@ -13,7 +13,7 @@ import {
   refuseBSideScoreFromInterviewStream, reviewInterviewProvenance, unscoredReason,
 } from './interview.ts';
 import { parseSseBuffer, payloadHasNumericScore, rejectForgedProgressScores } from './sse.ts';
-import { signupOrLogin, uidFromToken } from './auth.ts';
+import { adminHeaders, signupOrLogin, uidFromToken } from './auth.ts';
 import { classifyFailure } from './classify-failure.ts';
 import {
   AI_SYSTEM_TERMINAL_REVIEWS,
@@ -250,6 +250,34 @@ await test('uidFromToken 正例走 domain signToken，三节 JWT 即使 header/p
   assert.throws(() => uidFromToken('not-json.sig'), /e2e_token_uid_missing/);
   const forgedJwt = `${encodePayload({ uid: 'evil', alg: 'HS256' })}.${encodePayload({ uid: 'victim', exp: PROOF_NOW + 3600, pe: 0 })}.sig`;
   assert.throws(() => uidFromToken(forgedJwt), /e2e_token_uid_missing/);
+});
+
+await test('adminHeaders 缺/空 E2E_ADMIN_TOKEN 即 throw，不静默跳过审批步', () => {
+  const original = process.env.E2E_ADMIN_TOKEN;
+  try {
+    delete process.env.E2E_ADMIN_TOKEN;
+    assert.throws(() => adminHeaders(), /e2e_admin_bootstrap_missing/);
+    process.env.E2E_ADMIN_TOKEN = '';
+    assert.throws(() => adminHeaders(), /e2e_admin_bootstrap_missing/);
+  } finally {
+    if (original === undefined) delete process.env.E2E_ADMIN_TOKEN;
+    else process.env.E2E_ADMIN_TOKEN = original;
+  }
+});
+
+await test('adminHeaders 有令牌走 jsonHeaders Bearer 形，令牌原样透传不 rewrite', () => {
+  const original = process.env.E2E_ADMIN_TOKEN;
+  try {
+    const token = issuedToken('e2e-admin');
+    process.env.E2E_ADMIN_TOKEN = token;
+    const headers = adminHeaders();
+    assert.equal(headers['content-type'], 'application/json');
+    assert.equal(headers.authorization, `Bearer ${token}`);
+    assert.equal(uidFromToken(token), 'e2e-admin');
+  } finally {
+    if (original === undefined) delete process.env.E2E_ADMIN_TOKEN;
+    else process.env.E2E_ADMIN_TOKEN = original;
+  }
 });
 
 await test('createOrder/payWebhook/entitlement 走对应 path+method，HMAC 用独立 createHmac 核对，错签不代签', async () => {
