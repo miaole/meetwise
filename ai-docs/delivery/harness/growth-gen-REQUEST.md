@@ -114,3 +114,16 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *REQUEST stub · #204 GROWTH-GEN · Line GROWTH-GEN · mw-grow201-draft · 2026-10-10 · PENDING awaiting pre-exec dual · alone ≠ dual · Ban push · STOP*
+
+---
+
+## Status（append-only · EXEC 登记）
+
+- **Status**: `executed_s1s2:awaiting_post_prove_dual`（S1 触发链+S2 偏置验证+#275 文案落地·收据 `ai-docs/delivery/receipts/growth-gen/2026-10-10-s1s2-exec-prove.md`·分支 `line/growth-gen` rebase onto `19ddcbb4`）。
+- **EXEC 期交叠兑现（本刀=后落者）**：开工时 `origin/line/extrev-score-writer`=8e9ee663（零 S2 面）；EXEC 中段 SCORE S2 `19ddcbb4` 先落→协调方三面警示移交（①聚合器符号换 `deriveScoreCardAssessmentLegacy` ②REQUEST :28 原引 `deriveScoreCardAssessment` 系起草时对 S2 rev2 设计形的引用·实际落地为 `*Legacy`（本节勘误拾取·body 不改）③rebase 到其上）→WIP `6af6946d` rebase onto 19ddcbb4（15 docs/chore 提交干净重放·2 文件冲突人工解决）·§0③ 后落者条款兑现·互引先刀 commit=19ddcbb4。
+- **D1 形A 落地**：`report-worker.ts` drainReportsOnce tx2 后硬接线 `generateGrowthChain`（生产默认依赖非可选开关·`growthFaults` 仅 prove 故障 seam 沿 privacyCheck 先例）；逐段独立事务尽力而为（失败→`growth_gen_<segment>_failed` 日志+`failedCount` 计数·评估失败依赖段跳过·零卡 `skipped` 空集跳过·围栏 `fencedSkipped` 整链跳过·异常绝不上抛）；ms 竞态+crash 窗口登记接受（收据 §1）。
+- **D2a 落地**：`packages/db/src/growth-generation.ts` 三核心（评估/学习/职业·plain {code} 错误·幂等=三表现有 UNIQUE version+1·纯派生留 domain）；评估核心聚合器=**deriveScoreCardAssessmentLegacy**（S2 #103 切换承继·生产面零 legacy 聚合器）；API 两端点薄委托·**信封字节原样=neg:interview EXIT=0（97 条全绿·:384-389/:408-411/:420-423 亲证在卷·双审补引兑现）**。
+- **D3 落地**：worker 单事务 upsert（#187 简化裁定）·API AiGraphRun 状态机零触·`ai_graph_run` 观测面分叉+advisory lock 形分叉（席2 注记①）双登记（收据 §1）。
+- **prove**：`interview:prove` **EXIT=0（54 PASS/0 FAIL=S2 基线 33+本刀 ③a 21）**；SCORE 域 ①-③ 断言零改动（对 19ddcbb4 删除面=2 行 import 合并）；`neg:interview` EXIT=0；`typecheck` EXIT=0；`report:prove`/`adaptive-life:prove` spot-check EXIT=0；est live=0·actualSpendCny=null·0 Key 值接触·prove 4 跑全披露（收据 §0·禁 retry-to-green 核查项）。
+- **S2 零代码兑现**：`historicalWeakDimensions` 含弱项+biasByPastWeakness 生产函数直行使（弱项前移·原序保留）两断言 PASS；出题偏置本体零改动（biasByPastWeakness 仅加 export 关键字·函数体逐字节原样）。**#275**：growth/page.tsx:67 一行自动语义。
+- 零迁移·零 G7 面·SSOT 零触（本行=授权 append-only 面）·pins 十一值零翻转。

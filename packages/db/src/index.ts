@@ -385,6 +385,14 @@ export type {
   ActiveScoreRequestRow,
 } from './scoring-wire.ts';
 
+// 成长链生成核心（#204 GROWTH-GEN · D2a 共享单源）：评估/学习/职业三段「读→domain 纯派生→upsert」。
+// API 端点薄委托（HTTP 信封字节原样·plain {code}→409/404 映射留 API 侧）；worker report-worker
+// tx2 成功钩子（D1 形A）调同一函数。幂等=三表现有 UNIQUE(owner_user_id,interview_id)。职业段=
+// worker 侧单事务 upsert 简化形（D3 · #187 裁定）；API 侧 AiGraphRun 状态机零触（观测面分叉在案）。
+export {
+  generateAssessmentReportCore, generateLearningPlanCore, generateCareerPathCore,
+} from './growth-generation.ts';
+
 // RAG-FUNNEL-02B / EMBED-CACHE-01 计算缓存（metadata 审核后、projection 前；只复用相同计算的无主 float32 向量，
 // 不决定 leaf/可见性/激活）。PG = durable fill intent + 成本预留 + dispatch slot；Redis = 薄 value store + merge lock。
 export {
