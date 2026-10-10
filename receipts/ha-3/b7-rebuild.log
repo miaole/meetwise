@@ -1,0 +1,7 @@
+== rebuild sandbox db (tmpfs wiped by B2 stop) ==
+
+migrations: applied=160 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=provisioned qbank_control_login=not_requested privacy_worker_login=not_requested
+MIGRATE_EXIT=0
+app_role
+app_gateway_role
+meetwise_ha_runtime

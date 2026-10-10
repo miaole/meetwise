@@ -1,0 +1,20 @@
+CMD: docker exec meetwise-ha-3-proof-pg psql -U meetwise -d meetwise -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='meetwise' AND pid<>pg_backend_pid();"
+== PRE ==
+api readyz=200 worker readyz=200
+api metrics: meetwise_db_pool_errors_total{purpose="api"} 0
+api pid/start before: 15290 2026-10-10T19:13:38.762127876Z
+== INJECT (t=0) ==
+1791659696.406485000
+ pg_terminate_backend 
+----------------------
+ t
+ t
+ t
+ t
+ t
+ t
+ t
+(7 rows)
+
+== RECOVERY WATCH (200ms poll) ==
+zsh:17: bad math expression: operator expected at `N'

@@ -1,0 +1,5 @@
+== B9: migrate proofs via canonical isolated runner ==
+MIGRATE_CLI_PROVE_EXIT=0
+✓ migration CLI DATABASE_URL post-flight contract passed (local isolated evidence only)
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-10T19-37-25-257Z-52485-6c657f17-e627-41c2-b1b9-f39789747c5d.json release_evidence=false
+PROVE_MIGRATE_DIRECT_EXIT=1 (env-gated proof · canonical runner below)
