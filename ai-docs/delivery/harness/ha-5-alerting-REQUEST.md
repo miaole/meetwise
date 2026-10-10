@@ -116,3 +116,13 @@ Ban self-approve · Ban retry-to-green（attempts 全账）· Ban skip-as-pass �
 `draft_rev2:pre_exec_dual`（双席 FAIL 窄面处方 7 条落卷·修法 §1/§5 零需动·待复审确认后协调方行使 EXEC 授权）
 
 **Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席 `ha5-exec` 落卷 @本工作树 `line/ha-5-alerting`·append-only·上行原文零改）——W1 事件目录 9 条（`scripts/alerts/event-catalog.json`·rev2 两 Trend 纳入·首批外/非事件 registered_exclusions 登记不缺席）+唯一新码动=reaper_takeover 三处各恰一行（interview-jobs.ts:269/report.ts:86/quiz-jobs.ts:88·`git diff 9f6edf8f` 实证 +3/-0·sweep 选取/租约/CAS 零改）·W2 `scripts/alerts/check-alerts.mjs`（三路采集+--log-file/--ps-file/--df-file 注入缝+白名单到期防腐化+未决 Page/Ticket=1·干净=0·--report 恒 0·live 源失效 fail-closed=1·收据 receipts/ha-5/）·W3 `ai-docs/observability/alerting-runbook.md`（133 行·分层逐字对齐 observability-strategy.md:112-116·九事件×响应动作×下钻锚·S15 边界登记节）·W4 alerts-lint 第 4 节（目录结构+白名单到期日+§4.9 runbook 锚解析三断言·既有 1-3 节与 25 条规则校验零改 +87/-1）·八组门禁 EXIT 全账：proof 21/21 EXIT=0 · 实栈烟测（沙箱零改复用 compose.ha.sandbox.yml 形制最小栈·migrate Exit 0→零 migrate_failed·psql RAISE 发射 db_pool_error 入真实 json-file 日志经 compose logs 通路抓到·EXIT 语义实栈双向实证）EXIT=0 · 静态边界监控栈四文件+compose.prod.yml 零触 · alerts:lint EXIT=0（25 条零动）· deploy-check EXIT=0 · sweep 族隔离环 prove 5×EXIT=0（report-bulkhead/report-retry-http 38 负路径/reaper/quiz/dispatch-unit·dispatch-pg 未跑列账=需 E2E_CLOUD_ISOLATED 云隔离环境）· markers=0（小写 "placeholder"×3=ha-sandbox.mjs 哑 CA 文头逐字镜像·如实注记）· est live=0 · attempts 全账 4 次（migrate esbuild 平台二进制缺→.npmrc 本地 helper 沿 ha-1 先例不 commit；/proc/1/fd 注入被 docker 默认 cap 拒→postgres 应用层发射向量）· rebase 主线 9f6edf8f 零冲突（主线 tip 实测同点·分支严格领先·漂移表空表）· pins 十一值零翻转 · 收据 receipts/ha-5/（exec-receipt.md+7 件·CMD+EXIT 他人可复跑）· ⛔push ⛔动主线 ⛔触其他工作树 · Ban self-approve · alone≠dual · prove EXIT=0 ≠ DONE（claimDone=false·待 post-prove 双审+nail）
+
+---
+
+## nail 落卷（2026-10-10 · post-prove 双席 BOTH PASS）
+
+**双审结果**：席1（事件目录/判定器语义）+席2（运行手册/回归）互盲复核 BOTH PASS。W1 目录 9 条双形 matcher+白名单空数组不预造+首批外/非事件登记不缺席·W1 唯一新码动=reaper 三处（interview-jobs :269/report :86/quiz-jobs :88）各恰一行 JSON 观测（sweep 选取/租约/CAS 零改·report 臂 failed 筛 prev_lease_expired:false 如实·job_ref 聚合零租户标识）·W2 判定器 370 行三路采集+注入缝三件+白名单到期防腐+fail-closed EXIT 三态·W3 runbook 133 行分层表格 byte 级 verbatim（observability-strategy :112-116 亲 diff 零差异）+九锚零悬空·W4 lint 四路断言亲咬合。八组门禁双席复跑（A 组 21/21·B6 实栈 9 步双向实证·lint 25 规则·sweep 族五键 attempt=1 全绿）。merge 落主线 @1d477a72。
+
+**监控栈四文件+compose.prod 零触**（S15 后刀边界保持）·reaper 三处对既有 prove stdout 断言零翻（report-retry:http 38 负路径含新 reaper_takeover JSON 行 6 处零翻实证）·R-22 交叉面（db_pool_error/KNOWN_METRICS）零触碰。
+
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·merge 落主线 @1d477a72·R-47 告警闭环正式解除·HA 簇 R-17/18/19/22/26/47 全动码收口中·markers=0·est live=0）。
