@@ -75,3 +75,69 @@
 8. 主线中途推进：h1 链并入（9f6edf8f→141da56f）→ 二次 rebase 零冲突+V5/V7 全量复验（双跑同绿）。
 
 **沙箱终态**：`compose --profile ha4-drill down -v --remove-orphans` EXIT=0·meetwise-ha4-* 容器 0 台·邻 worktree 容器（meetwise-ha-dual-postgres）零触碰。
+
+---
+
+## 九、rev2 修复落卷（post-prove 双席裁决合并处方 · 补线+勘误 · append-only · 本文 §一-§八 原文零改）
+
+**席别**: `ha4-exec2`（R-26 备份 rev2 修复席） · **日期**: 2026-10-10 · **基树**: `e02a3549`（工作树 clean 起修）。双席裁决：席1 语义面 PASS·声明面 FAIL（F1 授权闸账面失实+F2 V4 拍戳漂移）·席2 FAIL 窄面勘误级同源 → 合并取强方案执行。
+
+### 9-1 F1 授权闸补线（修复 A·取席1 推荐案=补闸让声明为真）
+
+`scripts/backup/backup.sh` 头部（`umask 077` 后·必填变量检查与 mkdir 锁检查前）补同形闸（+9 行=注记 4+闸块 4+空行 1·全文件 118→127 行）：
+
+| 项 | 值 |
+|---|---|
+| 闸块 | backup.sh:16-23（`if [ "${MEETWISE_HA4_BACKUP_AUTHORIZED:-}" != "1" ] … exit 3`·沿 loop:17-20/seed:21-24/drill:35-38（e02a3549 树行号）同形·错误字 `ha4_backup_not_authorized`） |
+| 闸序 | 闸先于必填变量检查（rev2 树 :27-28）先于锁层（rev2 树 :42-51）——负控单命令即拒·零卷零库零产物触 |
+| 闸外逻辑 | 零触（授权路径逐语句等价·`bash -n` EXIT=0·正控复跑 EXIT=0+锁探针复验 EXIT=4 双实证=闸纯增量） |
+
+### 9-2 四入口负控实录（gateNegativeControl · CMD+EXIT·他人可复跑）
+
+§三 表「闸」行原载「负控实录 EXIT=3 在 v5-config.receipt.json」=**仅 seed 一条**（声明面失实根源）·本节补齐四条（原行零改·以本节为准）：
+
+| 入口 | CMD（闸未设·宿主直跑） | EXIT | stderr 标记 | 产物 |
+|---|---|---|---|---|
+| beat | `bash scripts/backup/backup.sh` | **3** | `ha4_backup_not_authorized` | 0 |
+| loop | `bash scripts/backup/backup-loop.sh` | **3** | `ha4_backup_not_authorized` | 0 |
+| seed | `bash scripts/backup/sandbox-seed.sh` | **3** | `ha4_seed_not_authorized` | 0 |
+| drill | `bash scripts/backup/restore-drill.sh` | **3** | `ha4_drill_not_authorized` | 0 |
+
+四条实录落 `receipts/ha-4/gate-negative-control.receipt.json`。「四入口缺省拒跑 exit 3」声明自本节起为真（rev2 前 beat 入口无闸·loop/seed/drill 三闸在位但仅 seed 有实录——两半失实均由本节收口）。
+
+### 9-3 正控复跑（闸纯增量实证·沙箱重 provision 即用即灭）
+
+- seed 重 provision：`MEETWISE_HA4_BACKUP_AUTHORIZED=1 bash scripts/backup/sandbox-seed.sh` → **EXIT=0** applied=160 tables=175 哨兵全在位 server_version_num=160015。
+- beat 正控（授权 env·V1 同形 CMD）：**EXIT=0** `ha4_backup_ok stamp=20261010T193712Z size=1801975 sha256=f98466f2… toc_tables=175 retained=6`·收据 `receipts/ha-4/backup-20261010T193712Z.json`（pgRestoreListExit=0·toc 175/174·clientGteServer=true·mode 0600）。
+- V4b 锁探针复验（授权 env+预持锁·rev2 树）：**EXIT=4** `ha4_backup_already_running`·零新产物——闸先于锁·锁层语义零变。
+- 沙箱终态：`--profile ha4-drill down -v --remove-orphans` EXIT=0·meetwise-ha4-* 容器 0 台·est live=0 维持。
+
+### 9-4 F2 拍戳勘误（原文零改·本节承载）
+
+§四 V4 行（本档 :49）与 verification-matrix.md:13 原载拍戳「191143/47/51/55」勘误为**落卷实物「191147/51/55/59」**：`v4-backup-loop-full.log` 实录=loop 第 2-5 拍（**第 1 拍 191143Z 收据未落卷·如实登记**）；卷侧收据三件 `1911{47,51,55}Z` 在位（191159Z 拍收据未提交·落卷面=3 JSON+全量 log）。interval=4s·delta 4,4,4·**严格递增实质成立注记保留**（时间戳严格递增=顺序无重叠结论零变）。
+
+### 9-5 行锚系统性重钉（席1 处方③·以落卷树实物为准）
+
+§二/§三 各行原载锚（旧稿值）→ 实值重钉（原文零改·本表为准）：
+
+| 载体 | 原载 | 实值 |
+|---|---|---|
+| compose.backup.yml 行数（§三 W1） | 86 行 | **79**（rev2 零触·仍 79） |
+| compose.backup.yml 安全锚 | :10-16 | **:37-44**（`x-backup-container-security` 定义块·注释声明锚位 :26-30） |
+| compose.backup.yml backup 服务 | :18-79 | **:47-75**（image :49·command=loop :53·`BACKUP_DATABASE_URL` :? :56·interval :60·retain :61·bind 卷 :63-74·secrets[rds_ca] :75·secret 定义 :77-79） |
+| §二 席1-① compose 锚 | :20-25 / :53 / :79 / :82-83 | 契约注记 **:13-20** / **:56** / **:75** / **:79**（:82-83 不存在于 79 行文件） |
+| backup.sh §三 W2（e02a3549 树=V1-V7 执行时点） | :41 / :45-53 / :54-57 / :58-61 / :73 / :75-84 / :99-112 | **:53（pg_dump）/ :57-65（pg_restore 断言）/ :70-71（TOC regex）/ :72-76（size）/ :77（sha256）/ :79-89（major 断言）/ :102-115（逐拍收据）**；rev2 补闸 +9 行后同段锚=**:62 / :66-74 / :79-80 / :81-85 / :86 / :88-98 / :111-124**（闸块 :16-23·锁层 :42-51） |
+| §二 席1-② backup.sh major 断言 | :75-84 | e02a3549 树 **:79-89**（rev2 后 :88-98） |
+| restore-drill.sh §三 W3 | 闸 :32-35·目标 :56-71·T4 :82-95·ACL :97-118·restore :120-126·T1 :128-142·T2 :144-163·T3 :165-181·收据 :183-215 | **闸 :35-38·目标 wait+reset :56-69（版本侧检 :71-76）·T4 :84-96·ACL :98-117·零过滤 restore :119-125·T1 :127-138·T2 :140-167·T3 :169-181·收据 :183-220**（rev2 零触 restore-drill.sh·即 rev2 树实值） |
+| rotate.sh §三 W4 | 碎片 :27-45·FIFO :47-60·收据 :70-82 | **:25-42 / :44-59 / :83-94**（`ROTATE_EXCLUDE_STAMP` 豁免检查 :36·注记 :30-31） |
+
+### 9-6 收据双侧断言建议（席1 nano·落卷注记·零改码）
+
+restore-drill.sh 成功收据 :215 `"clientGteServer": true` 为**硬编码字面量**（实际硬断言 :73-76 仅对 source 侧；target 侧版本仅记录未断言）——本刀零语义改动边界内仅注记：**实机首演（生产启用后实机演练）建议改双侧计算断言**（client ≥ source AND client ≥ target·计算值写收据替代字面量）·与 runbook §2-1 启用 checklist 同面核验。（beat 侧 backup.sh 收据 `versions.clientGteServer` 本为计算值·无此问题。）
+
+### 9-7 V7 复验（rev2 后）
+
+- 产品码：`git diff --name-only 141da56f -- apps/ packages/ ops/ e2e/` = **0 文件**（141da56f=本分支 merge-base·V7 判据正基线）；全树改动集 vs merge-base=25 文件=HA-4 新增件+REQUEST(m)+env.example(+8)+receipts/ha-4/（含 rev2 新增 gate-negative-control.receipt.json+backup-20261010T193712Z.json）。
+- 主线再推进如实登记：rev2 会话中主线 `141da56f→3af029a9`（entpay-slice3+ha-5 落主线）——vs 新 tip 的 16 个产品路径 diff 文件**全部系他刀主线落卷**（`141da56f..feat/mysql-schema-skeleton` 仅他刀提交·本分支 vs merge-base=0 实证归因）。rev2 零 rebase（边界=只修闸+收据勘误·rebase 时点归协调方合并裁决·如实登记不隐瞒）。
+- markers=0：`grep -rnE "TODO|FIXME|XXX|PLACEHOLDER|待填"` over compose.backup\*.yml + scripts/backup/\* + runbook + REQUEST（=原 v7 canonical 范围·产品/相关面）= **0 命中**（五 token 沿 ha-5 先例）；receipts/ha-4/ 内仅 2 处自指命中（本节与 verification-matrix 注记对 grep 命令自身的引用文字·与 V6 行自引 grep 命令同类·非产品面标记）。
+- pins/privacy：`privacy-erasure-preview.ts` 零 diff·十一值零翻转。

@@ -13,6 +13,15 @@
 set -eu
 umask 077
 
+# Refuse-by-default gate (REQUEST §9-1; rev2 F1 closure): without
+# MEETWISE_HA4_BACKUP_AUTHORIZED=1 this beat exits 3 before touching the
+# volume or the database — same shape as the loop/seed/drill gates, so all
+# four entrypoints (loop/beat/seed/drill) default-refuse.
+if [ "${MEETWISE_HA4_BACKUP_AUTHORIZED:-}" != "1" ]; then
+  echo "ha4_backup_not_authorized: MEETWISE_HA4_BACKUP_AUTHORIZED must be exactly 1 (coordinator gate; default refuse-to-run)" >&2
+  exit 3
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 BACKUP_DIR="${BACKUP_DIR:?BACKUP_DIR required (volume mount point)}"
