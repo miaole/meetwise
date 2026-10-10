@@ -8,7 +8,7 @@
  * releaseEvidence=false · Not HA · G2 still open · ≠ fixtures retired
  */
 import type { PoolClient as Client } from 'pg';
-import { activeQbankGeneration } from './qbank-generation-retrieval.ts';
+import { activeQbankGeneration } from '../qbank-generation-retrieval.ts';
 import { annSearchLegacy } from './retrieval-legacy.ts';
 
 export { annSearchLegacy } from './retrieval-legacy.ts';

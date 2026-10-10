@@ -146,12 +146,12 @@ export {
 } from './jobs/diagnosis-jobs.ts';
 
 // 生产向量库（pgvector HNSW）
-export { upsertVectorChunk, annSearch, annSearchLegacy } from './retrieval-store.ts';
+export { upsertVectorChunk, annSearch, annSearchLegacy } from './retrieval/retrieval-store.ts';
 export {
   RETRIEVAL_VECTOR_BACKEND_ENV,
   resolveRetrievalVectorBackend,
   createRetrievalVectorBackend,
-} from './retrieval-backend.ts';
+} from './retrieval/retrieval-backend.ts';
 export type {
   RetrievalVectorBackendId,
   RetrievalVectorBackend,
@@ -159,7 +159,7 @@ export type {
   QdrantRetrievalBackend,
   ResolveRetrievalVectorBackendOptions,
   CreateRetrievalVectorBackendOptions,
-} from './retrieval-backend.ts';
+} from './retrieval/retrieval-backend.ts';
 export { activeQbankGeneration, requireActiveQbankGeneration, hybridQbankSearch, qbankEvidenceForRefs, qbankQuestionEvidenceForRefs, qbankQuestionResultsForHits } from './qbank-generation-retrieval.ts';
 export type { QbankActiveGeneration, QbankHybridHit, QbankEvidenceExcerpt, QbankQuestionEvidence, QbankQuestionEvidencePart, QbankQuestionRetrievalResult, QbankServingScopeInput, QbankRetrievalMode } from './qbank-generation-retrieval.ts';
 
@@ -225,11 +225,11 @@ export {
   recordRagShadowEvaluation, gateRagGeneration, advanceRagGenerationRollout, promoteRagGeneration,
   rollbackRagGeneration, bindRagQuery, searchRagBinding, ragBindingEvidence, recordRagCitation,
   tombstoneRagDocument, createRagRebuildRun, claimRagRebuildRun, heartbeatRagRebuildRun,
-} from './rag-corpus-versioning.ts';
+} from './retrieval/rag-corpus-versioning.ts';
 export type {
   RagVisibility, RagSourceKind, RagCorpusChunkInput, RagEmbeddingRecipeInput, RagBinding,
   RagBoundHit, RagBoundEvidence,
-} from './rag-corpus-versioning.ts';
+} from './retrieval/rag-corpus-versioning.ts';
 
 // 长期记忆存储 + 跨会话精确判重(normalizeQuestion/episodeSeen) + 历史弱项只读投影(historicalWeakDimensions)
 export { insertMemory, getMemoriesByRefIds, episodeSeen, normalizeQuestion, historicalWeakDimensions } from './memory-store.ts';

@@ -620,7 +620,7 @@ const isolatedReceiptSources = {
   ],
   'rag-control-role:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/rag-control-role.proof.ts', 'packages/db/src/principal.ts', 'packages/db/src/rag-corpus-versioning.ts',
+    'packages/db/test/rag-control-role.proof.ts', 'packages/db/src/principal.ts', 'packages/db/src/retrieval/rag-corpus-versioning.ts',
     'packages/db/migrations/0032_rag_corpus_version_control.sql',
     'packages/db/migrations/0073_rag_control_plane_identity_isolation.sql',
       'packages/db/migrations/0074_rag_rebuild_request_fence.sql',
@@ -630,7 +630,7 @@ const isolatedReceiptSources = {
   ],
   'rag-control-upgrade:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/rag-control-upgrade.proof.ts', 'packages/db/src/rag-corpus-versioning.ts',
+    'packages/db/test/rag-control-upgrade.proof.ts', 'packages/db/src/retrieval/rag-corpus-versioning.ts',
     'packages/db/migrations/0032_rag_corpus_version_control.sql',
     'packages/db/migrations/0073_rag_control_plane_identity_isolation.sql',
       'packages/db/migrations/0074_rag_rebuild_request_fence.sql',
@@ -670,7 +670,7 @@ const isolatedReceiptSources = {
   ],
   'rag-corpus-version:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/rag-corpus-version.proof.ts', 'packages/db/src/rag-corpus-versioning.ts', 'packages/db/src/principal.ts',
+    'packages/db/test/rag-corpus-version.proof.ts', 'packages/db/src/retrieval/rag-corpus-versioning.ts', 'packages/db/src/principal.ts',
     'packages/db/migrations/0032_rag_corpus_version_control.sql',
     'packages/db/migrations/0073_rag_control_plane_identity_isolation.sql',
     'packages/db/migrations/0074_rag_rebuild_request_fence.sql',
@@ -1467,7 +1467,7 @@ const isolatedReceiptSources = {
   'rag03-filter-locus:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/rag03-filter-locus.proof.ts',
-    'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/src/retrieval-store.ts', 'packages/db/src/retrieval-legacy.ts',
+    'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/src/retrieval/retrieval-store.ts', 'packages/db/src/retrieval/retrieval-legacy.ts',
     'packages/db/src/qbank-ingest.ts', 'packages/db/src/qbank-curation.ts',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/package.json',
@@ -1482,7 +1482,7 @@ const isolatedReceiptSources = {
   'rag03-hnsw-completeness:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/rag03-hnsw-completeness.proof.ts',
-    'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/src/retrieval-store.ts', 'packages/db/src/retrieval-legacy.ts',
+    'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/src/retrieval/retrieval-store.ts', 'packages/db/src/retrieval/retrieval-legacy.ts',
     'packages/db/src/qbank-ingest.ts', 'packages/db/src/qbank-curation.ts',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/package.json',
@@ -1498,7 +1498,7 @@ const isolatedReceiptSources = {
   'rag03c-exactk-observe:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/rag03c-exactk-observe.proof.ts',
-    'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/src/retrieval-store.ts',
+    'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/src/retrieval/retrieval-store.ts',
     'packages/db/src/qbank-ingest.ts', 'packages/db/src/qbank-curation.ts',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/package.json',
