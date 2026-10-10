@@ -229,7 +229,9 @@ export type DiagnosisBeginResult = z.infer<typeof DiagnosisBeginResult>;
 export const Product = z.object({ id: z.string(), name: z.string(), amountCents: z.number().int(), units: z.number().int() });
 export const Products = z.object({ products: z.array(Product) });
 export type Products = z.infer<typeof Products>;
-export const Entitlement = z.object({ availableUnits: z.number().int() });
+// B271 片3 P3（裁定②）：enterpriseAvailableUnits 恒并列（响应形状只增不改·C 端 parseEntitlement 读
+// availableUnits 逐值不变）；schema 侧 optional=对假想旧载荷向后兼容，现 API 恒返回（entpay-s3.proof 断言）。
+export const Entitlement = z.object({ availableUnits: z.number().int(), enterpriseAvailableUnits: z.number().int().optional() });
 export type Entitlement = z.infer<typeof Entitlement>;
 export const CreateOrderDto = z.object({ productId: z.string(), channel: z.enum(['online', 'offline']).optional() });
 export type CreateOrderDto = z.infer<typeof CreateOrderDto>;
@@ -276,6 +278,24 @@ export const InvoiceRequestCreated = z.object({
 });
 export type InvoiceRequestCreated = z.infer<typeof InvoiceRequestCreated>;
 export const OrderResult = z.object({ orderId: z.string(), amountCents: z.number().int(), status: z.string() });
+
+// B271 片3 P4：本人订单列表（RLS p_owner 仅本人·LIMIT 50 窗口·开票下拉数据源——web 侧仅取 status='paid' 行）。
+export const OrderList = z.object({
+  orders: z.array(z.object({
+    id: z.string(), product_id: z.string(), amount_cents: z.number().int(), units: z.number(),
+    status: z.string(), channel: z.string(), created_at: z.string(),
+  })),
+});
+export type OrderList = z.infer<typeof OrderList>;
+// B271 片3 P2：本人对公订单台账（0159 受控 DEFINER 读函数·本人行作用域·remit_status NULL=created 未入账）。
+export const OfflineOrderList = z.object({
+  orders: z.array(z.object({
+    order_id: z.string(), product_id: z.string(), amount_cents: z.number().int(), order_status: z.string(),
+    remit_status: z.string().nullable(), entered_at: z.string().nullable(), confirmed_at: z.string().nullable(),
+    created_at: z.string(),
+  })),
+});
+export type OfflineOrderList = z.infer<typeof OfflineOrderList>;
 
 /* ───────────── profile ───────────── */
 export const Profile = z.object({ id: z.string(), email: z.string(), status: z.string(), preferences: z.record(z.string(), z.unknown()).optional() });
@@ -1207,6 +1227,8 @@ export const apiContract: ContractRoute[] = [
   { id: 'saveInvoiceProfile', method: 'post', path: '/commerce/invoice-profile', summary: '维护本人开票资料(approved recruiter)', tags: ['commerce'], auth: true, request: InvoiceProfileDto, response: InvoiceProfileSaved },
   { id: 'listInvoiceRequests', method: 'get', path: '/commerce/invoice-requests', summary: '本人开票申请列表(RLS 仅本人)', tags: ['commerce'], auth: true, response: InvoiceRequestList },
   { id: 'submitInvoiceRequest', method: 'post', path: '/commerce/invoice-requests', summary: '提交开票申请(仅 paid 订单·DB 触发器门)', tags: ['commerce'], auth: true, request: InvoiceRequestDto, response: InvoiceRequestCreated },
+  { id: 'listMyOrders', method: 'get', path: '/commerce/orders', summary: '本人订单列表(RLS 仅本人·片3 开票下拉数据源)', tags: ['commerce'], auth: true, response: OrderList },
+  { id: 'listMyOfflineOrders', method: 'get', path: '/commerce/offline-orders', summary: '本人对公订单台账(0159 受控 DEFINER 读函数·approved recruiter·片3)', tags: ['commerce'], auth: true, response: OfflineOrderList },
   { id: 'createJob', method: 'post', path: '/recruiter/jobs', summary: '招聘方发布岗位', tags: ['recruiter'], auth: true, request: CreateJobDto, response: JobView },
   { id: 'listJobs', method: 'get', path: '/recruiter/jobs', summary: '招聘方岗位列表(租户隔离)', tags: ['recruiter'], auth: true, response: JobList },
   { id: 'getJob', method: 'get', path: '/recruiter/jobs/{id}', summary: '岗位详情', tags: ['recruiter'], auth: true, response: JobView },
