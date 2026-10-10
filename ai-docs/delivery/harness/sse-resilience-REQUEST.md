@@ -84,3 +84,12 @@ Ban self-approve · Ban retry-to-green（attempts 全账）· Ban skip-as-pass �
 **STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 本 REQUEST 为起草席 docs-only 产物：未动任何产品码、未跑 prove、无实现自批资格。预执行双审 PASS 后由协调方派 EXEC coding；EXEC 不得改 §1 修法口径与 §5 Ban，漂移须回 REQUEST 补审。任何越 §2 非范围冲动 = 停手上报，不借机修。
 
 ---
+
+## 双审收口（rev2 · 2026-10-10 · 席1 PASS+席2 PASS）
+- **EXEC 派发序（席1 附注 a）**：W4（错误分类原语）→ W1/W3（驱动消费）→ W2（去 reload+草稿）→ W5（ensureOk 401）
+- **补钉 1（席2·W3 必落）**：sse-pump `:97` `fetchMore().catch(()=>null)→break` = 第三种 clean-end（DB 取数失败）——连续 N 次（建议 5-10）无进展（lastEventId 不涨）的 clean end 重新计入失败预算走退避；有进展即清零。prove #2 增对应断言。禁 1Hz 永续轮询退化向量。
+- **注记 A（W2 恢复钉）**：恢复入框须以「当前输入框为空」为前提（防存储落后于活内存砸掉更新键入）；questionId 缺失降级只写不自动恢复（防跨题误复用）
+- **注记 B（W1 生命周期）**：resumeSignals 监听随驱动全部退出路径 dispose（prove #1 加处置断言）
+- **注记 C（文案）**：干净 end 轮换闪回措辞偏软（非断网是换连接）——C5 分臂时给软措辞
+- **EXEC 附注**：prove4 NEXT_REDIRECT 自建 try/catch 捕获 next/navigation redirect 抛错（仓内无先例）
+- 状态：`dual_pass:ready_for_exec` · EXEC 授权（S 系决策按建议值已裁）
