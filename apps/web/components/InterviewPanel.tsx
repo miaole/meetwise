@@ -5,6 +5,7 @@
  * 自适应引擎做追问(同能力=追问 probe、换能力=pivot);面板把它呈现出来。无死胡同由 view-model 保证。
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Loader2, Mic, Send, Square, CornerDownRight, Sparkle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -452,6 +453,16 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
         <div className="rounded-lg border bg-accent p-4 text-center text-accent-foreground">
           练习完成 · 本次练习反馈 <span className="text-2xl font-extrabold text-primary">{display.report.overall}</span>
           <p className="mt-1 text-xs text-muted-foreground">仅供个人复盘，不用于招聘决定。</p>
+          {/* #254:report_ready 产出 view_report(view-model 单一出处)——横幅卡内给「查看完整报告」入口(SPA 导航 /report/{resultId}),
+              修"产出即死":完成面试后用户由此进逐题报告。label 用 display.action.label 既有值,零新文案。 */}
+          {display.action.kind === 'view_report' && (
+            <Link
+              href={'/report/' + resultId}
+              data-testid="banner-view-report"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+              {display.action.label}
+            </Link>
+          )}
         </div>
       )}
       {display.degraded && <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{display.message}</p>}
@@ -555,6 +566,16 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
           className="inline-flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm hover:border-primary">
           {display.action.label}
         </button>
+      )}
+      {/* #254:view_report kind 渲染分支(沿 retry/view_applications 同形;kind 间构造性互斥不破坏)——
+          同源相对路径 /report/{resultId},站内路由不落 API 主机。 */}
+      {display.action.kind === 'view_report' && (
+        <Link
+          href={'/report/' + resultId}
+          data-testid="action-view-report"
+          className="inline-flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm hover:border-primary">
+          {display.action.label}
+        </Link>
       )}
     </div>
   );
