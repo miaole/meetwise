@@ -89,3 +89,19 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *REQUEST 状态行 append-only · #229 REPORT-RETRY · mw-retry229-exec · 2026-10-10 · `executed_d2:awaiting_post_prove_dual`——五件+rev2 三补全落位（D2 五件 §1·翻转七处对表含 rev2 翻转⑦ bulkhead:76+nhp-fault 主动钉改写+三文件复跑排）；prove：report-retry:prove EXIT=0（P1-P4）·report-retry:http:prove EXIT=0（38/38）·uc011 db EXIT=0（36·R2/R3 逐字节原样）·uc011:http EXIT=0（52/52）·uc019 db EXIT=0（29）·uc019:http EXIT=0（35/35）·report:prove EXIT=0（31·除:76 外原值）·neg:interview EXIT=0（97/97）；tsc 三门 pristine 同形（api 30 仅行号漂移零新增·db 20·worker 63 逐字节）·web tsc EXIT=0；**既有 base 红如实登记零 retry-to-green**：interview:prove 模块加载 SyntaxError（a03b9371 dual-keep 重复导入·零触）+ uc001:nhp-fault f1 begin 409 candidate_route_undecided（G7S supplyCandidateProfileRoute 对裸 fixture profile_unavailable·零触）——两处 stash pristine 同形对照在卷，归 SCORE 回填线/G7S 线各自修复；est live=0·actualSpendCny=null·0 Key 值接触·零迁移·零 SSOT 编辑·pins 十一值零翻转；收据 receipts/report-retry/2026-10-10-exec-prove.md · alone ≠ dual · awaiting post-prove dual（meetwise 授权 nail）*
+
+---
+
+## nail 落卷（2026-10-10 · post-prove 双席 BOTH PASS）
+
+**双审结果**：席1（实现语义视角）+席2（E2E/用户面视角）独立复核 BOTH PASS。五件实现亲读全过（sweepReports 零改/CAS 并发安全=READ COMMITTED 谓词重估+SKIP LOCKED 双防/零扣费静态门真断言/四句文案逐字/存量重排 ledger byte-identical）·翻转表七处语义全对（failed→可重试≠自动成功·quarantined 有界成本 ≤9 次/时/报告封口）·频控正确分离（自动 sweep 不走 RL·手动预算互不侵蚀）·HTTP prove 全真腿（真 fetch 打真端口·worker generate 确定性 stub 唯一注入点）·用户旅程闭环（failed/quarantined 才显重试口·与 API 404 语义严格对表）·R2/R3 零字节·正常路径 31 PASS 零回归。merge 落主线 @3ec4c2fc。
+
+**nail 随卷勘误（收据计数三处·docs-only·EXIT=0 本身为真）**：①report-retry:prove 47→42（静态推导误计）②uc019 db 29→28（G2 if/else 互斥支·总结行误计）③numstat 头标 +147/−44→+146/−43（笔误）。
+
+**非阻塞 seam 备注（归 HA/后续刀）**：RL 检查先于 ownership guard（认证非 owner 可烧受害者 ≤3 令牌/时·与 signup 同 seam）·buckets Map 按 interviewId 无界增长（单实例内存已登记）。
+
+**待用户追认**：S12 频控阈值 3 次/小时/份（REPORT_RETRY_RL 常量钉死可调）。
+
+**遗留依赖登记**：interview:prove 曾因 a03b9371 dual-keep 残留红——已在主线 @6979a069 修复（54 PASS 恢复）；uc001:nhp-fault 409=fixture 面预存（归 G7S 线）。
+
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·merge 落主线 @3ec4c2fc·#229 付费后报告不可得兜底正式解除·markers=0·est live=0）。
