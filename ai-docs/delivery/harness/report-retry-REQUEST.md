@@ -79,3 +79,9 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *REQUEST stub · #229 report-retry · Line REPORT-RETRY · mw-retry229-draft · 2026-10-10 · PENDING awaiting pre-exec dual · alone ≠ dual · STOP*
+
+## rev2 补登（双席同向 FAIL 合并 · 2026-10-10）
+- **翻转⑦（席1 发现·席2 独立坐实）**：`report-bulkhead.proof.ts:76` `attempts===2` 随②重置必翻（requeue 重置 0→claim+1=1≠2）——断言值/标签更新+注记「#229 D2 翻转·旧语义 git blame」；§4-⑦「全绿原值」改「除 :76 外原值」（:73 返 true 仍绿）。全仓 .attempts 消费面独立穷举确认无第 8 处（席2）。
+- **附加缺口 (a)**（席2）：nhp-fault:105 `requeueOnlyFailed` 首匹配语义现锚 report.ts:52 SET 行——②后不自然翻红（假见证）·改写为主动钉新正则 `status IN ('failed','quarantined')` 锚 requeue 函数体。
+- **附加缺口 (b)**（席2）：§4 prove 表补排 uc019 db/http+nhp-fault 三文件翻转后复跑与 EXIT 预期（全绿·否则禁 retry-to-green 纪律同款张力）。
+- EXEC 注记：nhp-fault :135-136 C3 自披露字符串（F2b/no_retriable_report/quarantined）保留于新钉注释防 C3 自红。
