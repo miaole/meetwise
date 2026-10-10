@@ -484,6 +484,14 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0109_scoring_evidence_conflict_uncertainty.sql',
     'packages/db/migrations/0126_interview_answer_dual_write_fence.sql',
     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
+    // #204 GROWTH-GEN（成长链自动生成·D1 形A worker 钩子 + D2a 共享单源 + D3 职业单事务 upsert）：
+    // （receipt source 上限 32——db index 再导出面与 0001 基线迁移不单列：前者随核心文件覆盖，
+    //  后者由 isolated 全量 migrate 亲跑覆盖。）
+    'packages/db/src/growth-generation.ts',
+    'apps/api/src/modules/interview/interview-assessment.ts',
+    'apps/api/src/modules/interview/interview-learning.ts',
+    'packages/domain/src/learning.ts', 'packages/domain/src/career.ts',
+    'packages/domain/src/growth.ts', 'packages/domain/src/scoring-honesty.ts',
   ],
   'stress:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',

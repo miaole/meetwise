@@ -64,7 +64,7 @@ async function GrowthArchive({ limit }: { limit?: string }) {
           <div className="space-y-1">
             <p className="font-serif text-lg font-bold">再完成一场,这里就会画出你的成长曲线</p>
             <p className="text-sm text-muted-foreground">
-              {points.length === 1 ? '已经有第一场了,再来一场就能看到趋势对比。' : '完成模拟面试并生成评估,即可开始记录能力演进。'}
+              {points.length === 1 ? '已经有第一场了,再来一场就能看到趋势对比。' : '完成模拟面试后,系统会自动生成评估并记录能力演进。'}
             </p>
           </div>
           <Button asChild><Link href="/interviews">开始模拟面试 <ArrowRight className="size-4" /></Link></Button>
