@@ -214,6 +214,8 @@ async function persistAndEmitQuestion(d: AdaptiveLifecycleDeps, p: PendingQuesti
     await appendEvent(c, d.owner, d.interviewId, 'question_ready', {
       questionId: p.questionId, stateVersion: p.stateVersion, turn: p.turn,
       question: p.question, competency: p.competency, qkind: p.kind,
+      // #256 形制 A：软预算约数随题下发（additive 可选；旧 checkpoint 缺省 undefined，JSON 序列化即缺字段）。
+      plannedTurns: p.plannedTurns,
     }, `question_ready:${p.questionId}`);
   });
 }
@@ -371,6 +373,8 @@ async function submitAdaptiveAnswerImpl(
     if (next) await appendEvent(c, d.owner, d.interviewId, 'question_ready', {
       questionId: next.questionId, stateVersion: next.stateVersion, turn: next.turn,
       question: next.question, competency: next.competency, qkind: next.kind,
+      // #256 形制 A：answer 臂同面（next=pendingQuestion(snap)，发射作用域直读·R2 勘误路径）。
+      plannedTurns: next.plannedTurns,
     }, `question_ready:${next.questionId}`);
   });
 

@@ -12,7 +12,8 @@ import { listWindow, withLimitHref } from '@/lib/paginate';
 import { actionErrorMessage } from '@/lib/errors/action-error';
 import { interviewDisplayStatus, interviewProgressLabel, isInterviewEnterable } from '@/lib/interview/progress';
 import { interviewContextTitle, interviewResumeLabel, interviewTimeLabel } from '@/lib/interview/context';
-import { resumeOptionLabel } from '@/lib/resume/display';
+import { resumeOptionLabel, isEligibleResume, resumeEmptyState } from '@/lib/resume/display';
+import { parseEntitlement, entitlementLineView } from '@/lib/commerce/display';
 import { InterviewList, ResumeList, type InterviewView as Interview, type ResumeRef as Resume } from '@meetwise/contracts';
 
 const PAGE = 20;          // 初始/每次"加载更多"渲染条数,封顶首屏 DOM(极端长列表防卡)
@@ -42,6 +43,10 @@ export default async function InterviewsPage({ searchParams }: { searchParams: P
   const interviews: Interview[] | null = parsedInterviews.success ? parsedInterviews.data.interviews : null;
   const parsedResumes = ResumeList.safeParse(resumesRaw);
   const resumes: Resume[] = parsedResumes.success ? parsedResumes.data.resumes : [];
+  // #260:唯一可用谓词 ingested(服务端 begin/bind 同语义·jobs 页同形先例)——两下拉/表单门/默认值全切过滤面。
+  const eligibleResumes = resumes.filter(isEligibleResume);
+  // #261:余额读数(RSC 服务端消费;401 redirect/非 ok→null/网络失败→null 由 serverGet 内建;形状漂移→safeParse 失败同降级 null)。
+  const availableUnits = parseEntitlement(await serverGet<unknown>('/commerce/entitlement'));
 
   return (
     <main className="mx-auto max-w-2xl space-y-6 px-4 py-8 sm:px-6">
@@ -78,17 +83,17 @@ export default async function InterviewsPage({ searchParams }: { searchParams: P
             <CardContent className="space-y-3">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Button asChild size="sm"><Link href={`/interview/${reusedId}`}>继续</Link></Button>
-                {resumes.length > 0 && (
+                {eligibleResumes.length > 0 && (
                   <form action={restartInterviewAction} className="flex flex-col gap-3 sm:flex-row sm:items-center">
                     <input type="hidden" name="priorInterviewId" value={reusedId} />
                     <label className="text-sm text-muted-foreground" htmlFor="restart-resumeId">放弃后重来的简历</label>
                     <select
                       id="restart-resumeId"
                       name="resumeId"
-                      defaultValue={resumes[0]?.id}
+                      defaultValue={eligibleResumes[0]?.id}
                       className="h-10 rounded-md border border-input bg-background px-3 text-sm sm:flex-1"
                     >
-                      {resumes.map((r) => (
+                      {eligibleResumes.map((r) => (
                         <option key={r.id} value={r.id}>{resumeOptionLabel(r)}</option>
                       ))}
                     </select>
@@ -107,34 +112,51 @@ export default async function InterviewsPage({ searchParams }: { searchParams: P
           <CardDescription>选择一份简历,可选填目标岗位,开启一场自适应模拟面试。</CardDescription>
         </CardHeader>
         <CardContent>
-          {resumes.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              还没有简历。
-              <Link href="/resume" className="font-medium text-foreground underline-offset-4 hover:underline">先去上传简历 →</Link>
-            </p>
-          ) : (
-            <form action={startInterviewAction} className="flex flex-col gap-3">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <label className="text-sm text-muted-foreground" htmlFor="resumeId">选择简历</label>
-                <select
-                  id="resumeId"
-                  name="resumeId"
-                  defaultValue={resumes[0]?.id}
-                  className="h-10 rounded-md border border-input bg-background px-3 text-sm sm:flex-1"
-                >
-                  {resumes.map((r) => (
-                    <option key={r.id} value={r.id}>{resumeOptionLabel(r)}</option>
-                  ))}
-                </select>
-              </div>
-              {/* #259 目标岗位输入:可选自由文本(仅限长与脱空白,语义归 planner;镜像 diagnosis/page 同形制)。 */}
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <label className="text-sm text-muted-foreground" htmlFor="targetRole">目标岗位</label>
-                <Input id="targetRole" name="targetRole" maxLength={100} placeholder="可选,如:后端工程师(留空按简历自动匹配方向)" className="sm:flex-1" />
-              </div>
-              <div className="flex justify-end"><SubmitButton pendingLabel="启动中…">开始新面试</SubmitButton></div>
-            </form>
-          )}
+          {/* #260 空态三臂（纯函数单源）：resumes=0 → 既有「还没有简历」逐字；resumes>0 且 ingested=0 → 新「暂不可用」臂；ingested≥1 → 表单照旧。 */}
+          {(() => {
+            const empty = resumeEmptyState(resumes);
+            return empty === null ? (
+              <form action={startInterviewAction} className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <label className="text-sm text-muted-foreground" htmlFor="resumeId">选择简历</label>
+                  <select
+                    id="resumeId"
+                    name="resumeId"
+                    defaultValue={eligibleResumes[0]?.id}
+                    className="h-10 rounded-md border border-input bg-background px-3 text-sm sm:flex-1"
+                  >
+                    {eligibleResumes.map((r) => (
+                      <option key={r.id} value={r.id}>{resumeOptionLabel(r)}</option>
+                    ))}
+                  </select>
+                </div>
+                {/* #259 目标岗位输入:可选自由文本(仅限长与脱空白,语义归 planner;镜像 diagnosis/page 同形制)。 */}
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <label className="text-sm text-muted-foreground" htmlFor="targetRole">目标岗位</label>
+                  <Input id="targetRole" name="targetRole" maxLength={100} placeholder="可选,如:后端工程师(留空按简历自动匹配方向)" className="sm:flex-1" />
+                </div>
+                {/* #261 余额行:读数在→「余额 N · 本次消耗 1 次额度」+预览口径注记;N<1 静态中性提示不拦提交(服务端 402 权威);
+                    读数失败/形状漂移→整行不渲染(降级零伪读数,禁「余额 —」类假数)。 */}
+                {(() => {
+                  const line = entitlementLineView(availableUnits);
+                  if (!line) return null;
+                  return (
+                    <div className="space-y-1" data-testid="entitlement-line">
+                      <p className="text-sm text-muted-foreground">{line.balanceLine}</p>
+                      <p className="text-xs text-muted-foreground">{line.previewNote}</p>
+                      {line.insufficientHint && <p className="text-xs text-muted-foreground">{line.insufficientHint}</p>}
+                    </div>
+                  );
+                })()}
+                <div className="flex justify-end"><SubmitButton pendingLabel="启动中…">开始新面试</SubmitButton></div>
+              </form>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {empty.text}
+                <Link href={empty.linkHref} className="font-medium text-foreground underline-offset-4 hover:underline">{empty.linkText}</Link>
+              </p>
+            );
+          })()}
         </CardContent>
       </Card>
 

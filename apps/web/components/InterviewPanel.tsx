@@ -16,6 +16,7 @@ import { VoiceCallPanel } from '@/components/VoiceCallPanel';
 import { Thinking } from '@/components/ui/Thinking';
 import { interviewTurnWindow, VISIBLE_TURN_LIMIT } from '@/lib/stream/turn-window';
 import { buildTurnSubmission, newAnswerId } from '@/lib/interview/turn-submission';
+import { interviewProgressBadge } from '@/lib/interview/progress-badge';
 // SSE-RESILIENCE #54(W2/C6/C7)：作答草稿 sessionStorage 持久化(按 resultId+questionId;降级键只写不恢复;注记A 空框恢复前提)。
 import { makeDraftStore, sessionDraftStorage, draftKeyExact, draftKeyFallback, restoreDraftIfEmpty } from '@/lib/interview/draft-store';
 import { grantVoiceCaptureConsentAction } from '@/app/interview/actions';
@@ -92,6 +93,8 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
   const finalizedApplicationRef = useRef<string | null>(null);
   const canAnswer = display.action.kind === 'answer';
   const lastIdx = view.turns.length - 1;
+  // #256 显示面：当前题进度徽标（纯派生 lib/interview/progress-badge；仅当前题可作答时渲染一处，不逐题历史重复）。
+  const progressBadge = canAnswer ? interviewProgressBadge(view) : null;
   const turnWindow = useMemo(() => interviewTurnWindow(view.turns.length, historyPage), [view.turns.length, historyPage]);
   const visibleTurns = useMemo(() => view.turns.slice(turnWindow.start, turnWindow.end), [view.turns, turnWindow.start, turnWindow.end]);
 
@@ -392,6 +395,10 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
 
       {/* 对话历史 */}
       <div className="space-y-4">
+        {/* #256 第 N 题/预计约 M 题（形制 A）：当前题头部一处；约数+可调注记，非承诺非上限（提前结束🔒D3 零触碰）。 */}
+        {progressBadge && (
+          <p data-testid="interview-progress-badge" role="status" className="text-xs text-muted-foreground">{progressBadge.label}</p>
+        )}
         {turnWindow.maxPage > 0 && (
           <div data-testid="history-window" className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground" role="status">
             <span>显示第 {turnWindow.start + 1}–{turnWindow.end} 轮 / 共 {view.turns.length} 轮（每页最多 {VISIBLE_TURN_LIMIT} 轮，保护长会话性能）</span>
