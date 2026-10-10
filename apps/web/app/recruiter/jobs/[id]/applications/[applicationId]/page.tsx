@@ -121,6 +121,13 @@ export default async function RecruiterApplicationStatusPage({
               <dd className="mt-1 text-muted-foreground">{assessment}</dd>
             </div>
           </dl>
+          {/* B271 片3 P1-b（裁定⑤语义批·文案与 RX-1 断言逐字绑定）：企业支付静态知情行+充值指引——
+              非状态位·零查询（失败 start 事务整体回滚无持久信号，卡片不假装知道实时余额）。
+              既有 dl 四行（候选人/来源/状态/评估）零字节锚。 */}
+          <p className="text-muted-foreground">
+            候选人开始本场面试由贵司企业额度支付；额度不足时候选人将无法开始。
+            <Link href="/recruiter/billing" className="ml-1 text-primary hover:underline">企业额度不足，请充值</Link>
+          </p>
           {job.competencies?.length ? (
             <div>
               <div className="text-muted-foreground">岗位目标能力</div>

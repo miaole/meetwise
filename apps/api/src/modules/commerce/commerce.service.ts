@@ -23,8 +23,8 @@ export class CommerceService {
   /** B271 片1：approved recruiter 门（0155 同谓词·app_role 可执行形）。gateway_require_active_recruiter()
    * 已被 0155 REVOKE 自 app_role（23_api_gateway.sql:418）——app_role 会话内直调必 42501 insufficient_privilege
    * （EXEC attempt4 实测），不可作服务端门调用形。此处按该门**同谓词**在调用方 RLS 自身行作用域内校验
-   * （勘误①·B271 片2 S2-C9：user_account 实无 RLS——此为应用层自身行显式谓词校验·门安全性与 0155 等价·fail-closed 同义：candidate/pending/rejected
-   * 皆零行 → 403）。DB 侧 gateway_active_candidate 等 DEFINER 门仍持纵深（B 端端点面），双层不弱。 */
+   * （勘误①更正·B271 片3 P6·机制描述事实更正非翻案：user_account p_user_account_self FORCE RLS 在位且生效——0041:14-20 ENABLE/FORCE+策略·镜像 09_auth.sql:23-27·asPrincipal `SET LOCAL ROLE app_role` principal.ts:949·表级 GRANT 0001:372 再证可达·自初档 d9394e91 在位；
+   * 门判定=RLS 自身行可见性 × 本显式三键谓词双重收窄·与 0155 等价·fail-closed 同义：candidate/pending/rejected 自行零行 → 403 不变）。DB 侧 gateway_active_candidate 等 DEFINER 门仍持纵深（B 端端点面），双层不弱。 */
   private static readonly APPROVED_RECRUITER_SQL =
     "SELECT 1 AS ok FROM user_account WHERE id = current_setting('app.principal_user', true) " +
     "AND role='recruiter' AND status='active' AND approval_status='approved'";
@@ -159,8 +159,30 @@ export class CommerceService {
   }
 
   async entitlement(principal: string) {
-    const u = await this.db.asPrincipal(principal, (c) => availableUnits(c, principal));
-    return { availableUnits: u };
+    // B271 片3 P3（裁定②）：一次调用双算恒并列——availableUnits=全桶和（缺省路径 C 端逐值不变）+
+    // enterpriseAvailableUnits=企业桶和（kind 形参·零 query 入参分叉·响应形状只增不改）。
+    const u = await this.db.asPrincipal(principal, async (c) => ({
+      all: await availableUnits(c, principal),
+      enterprise: await availableUnits(c, principal, 'enterprise'),
+    }));
+    return { availableUnits: u.all, enterpriseAvailableUnits: u.enterprise };
+  }
+
+  // ── B271 片3 P4：本人订单列表（RLS p_owner 仅本人·零迁移·开票下拉数据源·只读 LIMIT 50 窗口）──
+  async listMyOrders(principal: string) {
+    const r = await this.db.asPrincipal(principal, (c) =>
+      c.query('SELECT id, product_id, amount_cents, units, status, channel, created_at FROM payment_order WHERE owner_user_id=$1 ORDER BY created_at DESC LIMIT 50', [principal]));
+    return { orders: r.rows };
+  }
+
+  // ── B271 片3 P2：本人对公订单台账（approved recruiter 门复用 + 0159 受控 DEFINER 读函数·本人行作用域）──
+  // offline_remit_record 全库零 GRANT（0156:80-83 纪律）→ 招聘方 principal 物理不可直读，entered 态只能
+  // 经 0159 函数（SECURITY DEFINER·WHERE owner_user_id=current_setting('app.principal_user',true)·Ban 无作用域全表读）。
+  async listMyOfflineOrders(principal: string) {
+    await this.requireApprovedRecruiter(principal);
+    const r = await this.db.asPrincipal(principal, (c) =>
+      c.query('SELECT order_id, product_id, amount_cents, order_status, remit_status, entered_at, confirmed_at, created_at FROM gateway_entpay_my_offline_orders()'));
+    return { orders: r.rows };
   }
 
   // ── B271 片1 开票面（audit①「企业开票资料 RLS 仅招聘方本人可读写 + 开票申请仅 paid 订单」）──

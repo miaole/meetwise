@@ -548,3 +548,28 @@ REVOKE ALL ON FUNCTION gateway_entpay_reserve(text, text, text, numeric, int) FR
 REVOKE ALL ON FUNCTION gateway_entpay_apply_allocation(text, text, numeric, numeric) FROM PUBLIC, app_role, app_gateway_role;
 GRANT EXECUTE ON FUNCTION gateway_entpay_reserve(text, text, text, numeric, int) TO app_role;
 GRANT EXECUTE ON FUNCTION gateway_entpay_apply_allocation(text, text, numeric, numeric) TO app_role;
+
+-- ── B271 片3 招聘方自服对公订单读函数（0159 镜像·SECURITY DEFINER·本人行作用域=0156 queue 同形去 admin 门）──
+CREATE OR REPLACE FUNCTION gateway_entpay_my_offline_orders()
+RETURNS TABLE(order_id text, product_id text, amount_cents int, order_status text,
+              remit_status text, entered_at timestamptz, confirmed_at timestamptz,
+              created_at timestamptz)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+BEGIN
+  RETURN QUERY
+    SELECT p.id, p.product_id, p.amount_cents, p.status,
+           r.status, r.entered_at, r.confirmed_at, p.created_at
+      FROM public.payment_order p
+      LEFT JOIN public.offline_remit_record r ON r.order_id = p.id
+     WHERE p.channel = 'offline'
+       AND p.owner_user_id = current_setting('app.principal_user', true)
+     ORDER BY p.created_at DESC
+     LIMIT 100;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION gateway_entpay_my_offline_orders() FROM PUBLIC, app_role, app_gateway_role;
+GRANT EXECUTE ON FUNCTION gateway_entpay_my_offline_orders() TO app_role;
