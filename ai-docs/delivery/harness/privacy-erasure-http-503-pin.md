@@ -1,5 +1,7 @@
 # Harness — 公开隐私 DELETE=503 pin（GAP-PRIV-02 · BUG-PRIV-503 · PRIVACY-HTTP）
 
+> **SUPERSCEEDED（部分 · 2026-10-10 · UNSTUB-ERASE nail · nail tip=本落卷 commit · branch `feat/mysql-schema-skeleton`）**：本文档**原文逐字保留**（沿 marked-red 保留史惯例·禁改写）。UNSTUB-ERASE 刀（蓝本 `ai-docs/delivery/harness/unstube-erase.md` rev2 @`40e31da9` · 主线 impl `f9383f76`/pin `c9200502`/docs `217dde27`/chore `c47b5523`）经 pre-exec + post-prove dual BOTH PASS + 协调方授权，按 rev2 §3.0 立法意图继承（**不得虚称删除/擦除已完成**）完成 pin supersession：**简历/账户轨**（`DELETE /resume/:id` · `DELETE /privacy/resume-data` · `POST /profile/deactivate` 账户级）= **202 软删受理（mode=logical · purgePending=true 恒真直至 S2 逐 sink 回执 · 物理清除完成仍禁宣称）**；**interview-data 公开 DELETE 仍 503 关闭原值**——本 pin 对 interview 面继续为真；0129 预览三钉（`preview_incomplete`/`productionSloClaimed=false`）原样。
+
 **releaseEvidence=false** · **Not HA** · **本绿 ≠ 产品删除闭环** · **pass ≠ 擦除已开放**  
 **硬钉**：公开 `DELETE /privacy/interview-data/:id` **必须保持 503**，直至独立 prove + 专家审批准放开。  
 **对照矩阵行**：`UC-E2E-050–052` · `PRIVACY-HTTP` · backlog `GAP-PRIV-02` · `BUG-PRIV-503`  
@@ -26,6 +28,8 @@
 ## 1. 测什么（评测条目）
 
 ### 1.1 必测（现有 prove 已覆盖 · 本 harness 钉合同）
+
+> **S1 改版标注（UNSTUB-ERASE rev2 §3.1 · 2026-10-10 nail · 下表原文零改写）**：P5（resume-data=503）已随 supersession 翻为 **202 软删受理**形——现行断言见 `apps/api/test/privacy-erasure-http.proof.ts`（「全量简历删除入口 S1 软删受理：202+mode=logical+purgePending=true」）+ `validate.ts`/`neg-resume.proof.ts`/`unstube-erase.proof.ts`；P1/P2/P4/P7（interview-data 503 族）**原语义仍真**（interview DELETE 维持关闭·rev2 R1）；P3（JWS 冒充→401）/P6/P8（0129 预览面）/P9（文档钉）原值不动。表内「期望」列按立卷时点保留。
 
 | ID | 测什么 | 期望 | 假绿风险（标红） |
 |----|--------|------|------------------|

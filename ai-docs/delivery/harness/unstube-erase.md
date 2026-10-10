@@ -242,3 +242,26 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 **prove 增补**：账户级删除默认 compose 推进 completed（审计批 4 验收）·growth/export/memory 弱项三面删除后不可见断言·deactivate 后登录拒绝。
 Status: `draft_rev2:pre_exec_dual_FAIL_absorbed_and_rescoped`（席1 六处方全并+D6 重定范围·协调方裁定后 EXEC 授权·蓝本=本 rev2；原 rev1 的 interview DELETE 面作废归档）。
 → exec:EXEC 完成（mw-unstube-exec · 2026-10-07 · 蓝本=本 rev2 逐字）— commits `52cb6d8a`（impl·产品码+两迁移 0152/0153+proof 翻转+新主证 unstube-erase.proof 46 断言）+ `eb695d30`（#6 pin 翻转集 39 文件机械面·闭卷 grep=0）· §5.1 八键+邻接（preview 0129 byte-intact/godfn-1c/foundation PRES·neg:interview 零改）+ uc052×4/vector-plane/rag03×2/tenant-wiring-e5/domain/qdrant-ledger/gap-rag05/eval-harness/conn-stack 全 EXIT=0（prove-ledger.txt）· 账户级+简历删除推进 completed·三读面不可见·deactivate 登录拒·重放幂等·物理行仍在三轨在卷 · interview DELETE 维持 503 关闭 · 收据 receipts/unstube-erase/2026-10-07/ · est live=0 → awaiting_post_prove_dual
+
+## rev2 nail 段（2026-10-10 · 回填席 mw-coordinator 落卷 · 前任回填席于 checklist 落卷前因磁盘事故中断·本席补卷 · docs-only+纯注释·零行为 SQL）
+
+**落线四提交亲读核验**（主线 `feat/mysql-schema-skeleton`）：impl `f9383f76`（≡EXEC 记 `52cb6d8a`·32 文件 +1301/−104·两迁移+三端点翻真+deactivate+三读面过滤+文案退役+主证 46 断言）/ pin `c9200502`（≡`eb695d30`·实改 **38 文件** +82/−80 仅 pin 行）/ docs `217dde27`（EXEC 收据+状态行）/ chore `c47b5523`（席2 处方①·单文件）。四提交均 HEAD 祖先亲证；后续 `91c686d9`+`c51c792d`（trial-grant 刀）撞号回填 0152→`0154` 与本刀零冲突。
+
+**双席 post-dual BOTH PASS**（记录号 `bd5f6ad0`/`1f85e170` 随磁盘事故未落本 repo·结论由协调方转交补录；本席逐项技术实证如下）：
+
+| 席 | 裁定 | 三勘误/两处方与本 nail 履行 |
+|----|------|------|
+| 席1 | **PASS** | ①**38vs39 计数**：`c9200502` git stat 实改 38 文件，收据 §4 对表按 glob 算术编号至 39（uc-e2e-025 族 glob 展开恰 4 文件占 10-14 五号）——对表编号误差，清单覆盖无缺（闭卷 grep=0 在卷·本席复核仍=0）；②**.sql 4 token 未逐件登记**：`0125:16`/`0129:7`/`0137:24`/`0141:30` 四个历史迁移注释含旧 token（「公开 DELETE…503」形），EXEC 闭卷 grep 仅覆盖 `--include=*.ts --include=*.mjs` 故漏记——本 nail 补登记为**清单外排除件**（排除理由：已应用历史迁移 append-only 禁改·注释属立卷时点语境·0129 另有 CC-7 零 diff 钉·supersession 语义由本 nail SSOT 三件承载）；③**DEBUG 钩子中间态**：EXEC 调试期 `scripts/run-e2e-isolated.mjs` 遗留 `DEBUG_SHOW_PROOF` 临时钩子两行（E2E_PREMIGRATED 提前注入面） |
+| 席2 | **PASS** | 处方①**DEBUG_SHOW_PROOF 钩子还原**：已由 `c47b5523` 落主线（本席 diff 亲证：两行删·还原 `if (target === 'api:validate') env.E2E_PREMIGRATED = '1';` 原形·现树与 `c47b5523` 一致零再触碰）；处方②**0152 头注 SET ROLE 表述修正**：`c47b5523` 未含（仅触 run-e2e-isolated.mjs 单文件）→ **本 nail 补落**（纯注释·零 SQL 语义·零行为 token）：原头注「direct connect **or SET ROLE forgery** → session_user='privacy_api_owner' → pinned」表述不实——SET ROLE 改 `current_user` 而永不改 `session_user`，成员伪造若可达将现 `current_user='privacy_api_owner' AND session_user=<login>` 恰似判别式放行路径；实际防线在上游=`privacy_api_owner` **NOLOGIN NOINHERIT（0048 亲证）+ 全库零成员授予**（`GRANT privacy_api_owner TO …` grep=0 亲证）→ `SET ROLE privacy_api_owner` 对一切会话 42501 不可达；`session_user` 子句实捕面=以 owner 角色直连（纵深防御）。头注三态表+trigger 函数体内注释两处同步修正，成员授予 ban 明文入注（0060 法延伸） |
+
+**0152/0153 摘要**（`f9383f76` diff 亲读）：`0152_resume_soft_delete_fence.sql`=resume.erasure_requested_at 列 + privacy_begin_resume_soft_delete(p_owner,p_resume_id)（SECURITY DEFINER OWNER privacy_api_owner·FORCE RLS p_owner 租户域不放松·幂等键 sha256('resume_soft_delete':owner:id)·并发恰一 winner·23505→409）+ 0060 双拦截受审放行（trigger 转 SECURITY INVOKER·判别式见上·app_role 直写仍钉死 PRES002 自证·INSERT branch 全钉）+ down 面注释落卷；`0153_account_deletion_column.sql`=user_account.deleted_at + 弱一致 CHECK（deleted_at IS NULL OR status='disabled'）+ down 面。
+
+**39 清单闭卷**：`grep -rn "DELETE=503|公开 DELETE|public DELETE" --include=*.ts --include=*.mjs apps packages scripts` = **0**（`grep-closure.txt` 空文件在卷·本席复核=0）；清单外排除件补登记=席1 勘误②四 .sql 历史迁移件（理由如上）。
+
+**SSOT 三件落位**（rev2 §3.1 · 本 commit · additive·零改写原语义）：① `NORTH-STAR-EXECUTION-LOOP.md` §1 pins 代码块**原值零改**（抄写面不污染），块后 append superseded 注记（简历/账户轨 202+purgePending·interview-data 仍 503·四 SHA+授权链引用）；② `harness/privacy-erasure-http-503-pin.md` 头部 SUPERSCEEDED 注记（原文逐字保留·指向本刀+nail tip）+ §1.1 表 S1 改版标注（P5 已翻 202 形·P1/P2/P4/P7 interview 面仍真·P3/P6/P8/P9 原值）；③ `gap-bug-backlog.md` `:58` GAP-PRIV-02 行本体零改写 + append-only 登记注（行 P0 OPEN 维持·covered 仍归六门/S2·目标列原语义不动）。**检查器亲和亲证**：`eval-harness-matrix-cite.proof.mjs` mustPin 正则（`DELETE…503` 原文保留故仍命中·「本绿≠产品删除闭环」等未触）零破坏；`qdrant-store.g5-erasure.proof.ts` 对 503-pin 文档仅 existsSync 断言。
+
+**Erratum 三件闭卷**：① 38vs39 计数（对表 glob 算术误差·非清单缺件·实改 38）；② .sql 4 token 历史迁移注释残留未逐件登记（本注补登记+排除理由）；③ DEBUG 钩子中间态（EXEC 调试遗留→席2 处方①→`c47b5523` 还原·现树亲证原形）。
+
+**Non-claims**：软删 ≠ 物理清除完成（purgePending 恒真直至 S2 逐 sink 回执）· ≠ GAP-PRIV-02/03/04 CLOSED · ≠ INT01 六门过 · ≠ UC-052 flip（stays partial）· ≠ P-04..07 行翻 CLOSED（UNSTUB-INV @`89e3575e` 他线文件零触碰·引不改）· ≠ 注销匿名化/同邮箱可重注册（S2）· coveredCount=8 不变 · HA/releaseEvidence 不变 · 本 nail=docs+纯注释补卷·零产品码零行为 SQL·本落卷不洗白任何 EXIT1（无 prove 执行·est live=0）。
+
+Status: `nail:post_dual_both_pass_ssot_landed`（2026-10-10 · mw-coordinator · 蓝本 rev2 @`40e31da9` · 主线四提交 `f9383f76`/`c9200502`/`217dde27`/`c47b5523` + 本 nail commit）
