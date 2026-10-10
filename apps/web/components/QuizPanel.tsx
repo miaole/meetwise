@@ -36,7 +36,7 @@ function QuizSkeletonCard() {
 }
 
 export function QuizPanel({ quizId }: { quizId: string }) {
-  const { view, display } = useQuizStream(quizId);
+  const { view, display, retry } = useQuizStream(quizId);
 
   // 进度:已到题数 / 预期总题数(无 total 时退化为不确定)。
   const total = view.total ?? 0;
@@ -104,9 +104,10 @@ export function QuizPanel({ quizId }: { quizId: string }) {
           </CardContent>
         </Card>
       )}
-      {/* 重连/连接态:即便未 degraded 也给手动出口(专家审计:reconnecting 时 quizDisplay 给 retry,但旧版只在 degraded 块渲染→按钮丢失)。 */}
+      {/* 重连/连接态:即便未 degraded 也给手动出口(专家审计:reconnecting 时 quizDisplay 给 retry,但旧版只在 degraded 块渲染→按钮丢失)。
+          SSE-RESILIENCE W2:重试=驱动「立即重连+重置退避」信号出口,不整页刷新。 */}
       {!display.degraded && display.action.kind === 'retry' && (
-        <Button variant="outline" onClick={(e) => { e.currentTarget.disabled = true; e.currentTarget.setAttribute('aria-busy', 'true'); location.reload(); }} className="disabled:cursor-not-allowed disabled:opacity-50">{display.action.label}</Button>
+        <Button variant="outline" onClick={(e) => { e.currentTarget.disabled = true; e.currentTarget.setAttribute('aria-busy', 'true'); retry(); }} title="立即重连(重置退避),不刷新页面" className="disabled:cursor-not-allowed disabled:opacity-50">{display.action.label}</Button>
       )}
 
       {/* 完成总结(接地报告) */}
@@ -118,8 +119,8 @@ export function QuizPanel({ quizId }: { quizId: string }) {
             {(view.total ?? view.questions.length) === 0 ? (
               <p className="mt-2 text-muted-foreground">本次未能从简历中提取到可接地的题目。请完善简历后<Link href="/quiz" className="font-medium text-primary underline-offset-4 hover:underline">重新押题</Link>。</p>
             ) : view.questions.length === 0 && (
-              // 终态已到但题目事件未随重放到达(罕见):给"重新加载"出口,不显示误导的"未提取到题目"。
-              <button onClick={(e) => { e.currentTarget.disabled = true; e.currentTarget.setAttribute('aria-busy', 'true'); location.reload(); }} className="mt-2 text-sm text-primary underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-50">题目加载不全？点此重新加载</button>
+              // 终态已到但题目事件未随重放到达(罕见):给"重启驱动重放"出口(SSE-RESILIENCE W2:不 reload,凭服务端账本重放),不显示误导的"未提取到题目"。
+              <button onClick={(e) => { e.currentTarget.disabled = true; e.currentTarget.setAttribute('aria-busy', 'true'); retry(); }} className="mt-2 text-sm text-primary underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-50">题目加载不全？点此重新加载</button>
             )}
             <Button asChild variant="link" className="mt-2 h-auto p-0"><Link href="/interviews">用这些题去模拟面试 →</Link></Button>
           </CardContent>
