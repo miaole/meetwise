@@ -32,7 +32,7 @@
 
 **F4 存量修复运维脚本（#241 修法末句「释放额度并关闭被围栏面试」）**：`ops/recovery/` 新目录（**不入产品面**·不进 API/worker 运行面）·一次性脚本 · **dry-run 默认**（SELECT-only：列围栏+非终态面试、挂死预留、影响 owner 计数·零写断言）· `--apply` 才写（释放额度=镜像 `sweepExpiredReservations` 原子 UPDATE 形 commerce.ts `:343-351`；关终态=guarded UPDATE status→`'abandoned'`；**零事件写**——围栏触发器本就拒事件写 0059 `:95-98`）· 幂等可重跑（二跑零变更）· 零迁移。
 
-**F5 空壳回收（#253）**：begin 非 2xx（401 跳登录除外）→ 回收空壳（POST `:id/abandon`·`'created'` 无消费走 commerce.ts `:274-277` NOT EXISTS 分支→`'abandoned'`·列表 `:120` 显示「已结束」）→ 再 redirect 带码。审计两 option「begin 成功再落壳，或失败回收空壳」→ EXEC 择**失败回收**（begin 需 interview id 先存在，「成功再落壳」在现行 API 形下不可行·如实登记）；402 壳与确定性失败壳同覆盖。
+**F5 空壳回收（best-effort：abandon 非 2xx 不阻塞带码 redirect·不重试）（#253）**：begin 非 2xx（401 跳登录除外）→ 回收空壳（POST `:id/abandon`·`'created'` 无消费走 commerce.ts `:274-277` NOT EXISTS 分支→`'abandoned'`·列表 `:120` 显示「已结束」）→ 再 redirect 带码。审计两 option「begin 成功再落壳，或失败回收空壳」→ EXEC 择**失败回收**（begin 需 interview id 先存在，「成功再落壳」在现行 API 形下不可行·如实登记）；402 壳与确定性失败壳同覆盖。
 
 **F6 #243：410 一句文案 + SSE 410 不复连直接出口**：action-error.ts 增 410 行——`interview_privacy_fenced` → **「该面试已进入删除流程，请新建面试」**（issues-master #243 修法原文逐字·interviews 页域）；interviews/actions.ts 现有码解析（`:33-34`）自动直达（映射命中→不再落 begin_failed 兜底）。SSE：iterateSseBody/驱动新增 fence 停转通道（**沿 `InvalidLastEventIdError` 先例** sse-cursor.ts `:13-29`、`:42-45` 增 410）→ 驱动 catch 分支（interview-stream.ts `:77-84`）停转**不重连** → view-model 围栏出口（同一句话·复用 `:40` degraded 出口形）；代理 `sseProxyFailureResponse :60-69` 已原样透传 410·零改。#243 复用第 0 批 actionErrorMessage（fix-roadmap `:63` 原文）。
 
@@ -89,7 +89,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §7 Non-claims
 
-create 过滤 ≠ 围栏面试被清除（物理数据仍在·软删受理语义·UNSTUB-ERASE S1 口径）≠ 围栏可解除；对账拆分 ≠ 结算 SLO/到账承诺，计数告警 ≠ 告警系统建成（error 日志+计数·ready() 语义零改≠健康宣称）；运维脚本 = 一次性修复工具 ≠ 产品功能 ≠ 常态运维面，dry-run ≠ 已修复；410 文案 ≠ 删除流程已完成（purgePending 恒真直至 S2 逐 sink 回执闭合·`productionSloClaimed=false` 口径继承）≠ 删除进度可查询；410 文案 ≠ 信封统一（#59/#88 泛化 toast/信封残留如实·本刀零触）；F5 空壳回收 ≠ begin 失败根因修复（402 额度不足根因零触·只是不残留幽灵壳）；F2 选择面 ≠ 多岗位并行练习（#238 修法=「继续/放弃后重来」二出口·并行多开仍非目标）；SSE 410 出口 ≠ quiz/diagnosis 流同款（§2-5 残留）；本 REQUEST ≠ EXEC 编码授权；`actualSpendCny=null`。
+create 过滤 ≠ 围栏面试被清除（物理数据仍在·软删受理语义·UNSTUB-ERASE S1 口径）≠ 围栏可解除；对账拆分 ≠ 结算 SLO/到账承诺，计数告警 ≠ 告警系统建成（error 日志+计数·ready() 语义零改≠健康宣称）；运维脚本 = 一次性修复工具 ≠ 产品功能 ≠ 常态运维面，dry-run ≠ 已修复；410 文案 ≠ 删除流程已完成（purgePending 恒真直至 S2 逐 sink 回执闭合·`productionSloClaimed=false` 口径继承）≠ 删除进度可查询；410 文案 ≠ 信封统一（#59/#88 泛化 toast/信封残留如实·本刀零触）；F5 空壳回收（best-effort：abandon 非 2xx 不阻塞带码 redirect·不重试） ≠ begin 失败根因修复（402 额度不足根因零触·只是不残留幽灵壳）；F2 选择面 ≠ 多岗位并行练习（#238 修法=「继续/放弃后重来」二出口·并行多开仍非目标）；SSE 410 出口 ≠ quiz/diagnosis 流同款（§2-5 残留）；本 REQUEST ≠ EXEC 编码授权；`actualSpendCny=null`。
 
 ## §8 STOP
 
