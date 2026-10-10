@@ -176,3 +176,15 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 *`executed:awaiting_post_prove_dual`（EXEC 席 `ha4-exec` 落卷 @line/ha-4-backup：W1-W4+§3 C1/C2/C3/C5 全兑·V1-V7 终态 7/7 PASS（V1 产出 175 表 sha256 入账/V2 演练 24 角色预建零过滤 restore+表集双向等值+全表行数等值+密文字节 md5 等值零解密/V3 轮转双 retain 值+碎片清扫/V4 形态甲 4s 间隔 4 拍实录+锁探针 EXIT=4/V5 三 config 全绿+prod 四服务 byte-equal 零漂/V6 0600/0700+零凭据泄漏+零端口/V7 产品码零 diff+markers=0）·二次 rebase 干净（会话中主线推进 h1 链 9f6edf8f→141da56f·a4f8cd02→3d83b3b2 内容零改）·双席处方六条+三终裁+勘误三处全兑现（§10）·ACL 处置=先建角色零 --no-acl（24 角色全闭包入收据）·attempts 八组全账入 receipts/ha-4/exec-receipt.md·沙箱全灭 est live=0·RDS major 仓内零证据如实登记空白·实机启用 checklist 入 runbook §2·markers=0·est live=0·pins 十一值零翻转·⛔push·alone≠dual·待 post-prove 双审）*
 
 *`rev2:post-prove-fix`（修复席 `ha4-exec2` 落卷 @line/ha-4-backup·基树 e02a3549：post-prove 双席裁决合并处方=席1 语义面 PASS·声明面 FAIL（F1+F2）+席2 FAIL 窄面勘误级同源→取强方案执行——**F1 补闸**：`scripts/backup/backup.sh` 头部（锁检查前）补 `MEETWISE_HA4_BACKUP_AUTHORIZED` 同形闸（exit 3·+9 行·闸外逻辑零触）→「四入口 loop/beat/seed/drill 缺省拒跑 exit 3」声明为真·**四入口负控实录齐**（beat/loop/seed/drill 各 EXIT=3 落 `receipts/ha-4/gate-negative-control.receipt.json`+exec-receipt.md §9-2 gateNegativeControl 段四条·beat 正控复跑 EXIT=0 stamp 193712Z 收据在卷·V4b 锁探针授权态复验 EXIT=4=闸纯增量实证·沙箱即用即灭 0 容器）·**F2 勘误**：V4 拍戳「191143/47/51/55」→落卷实物「191147/51/55/59」（log=loop 第 2-5 拍·191143Z 未落卷如实登记·严格递增实质成立保留·exec-receipt.md:49+verification-matrix.md:13 原文零改注记承载）·**行锚系统性重钉**（席1 处方③）：compose.backup.yml 86→79 行+安全锚 :37-44+backup.sh/restore-drill.sh/rotate.sh 锚全表实值重钉（exec-receipt.md §9-5）·**收据双侧断言建议落卷**（席1 nano）：restore-drill.sh:215 clientGteServer 硬编码→实机首演建议双侧计算断言注记（零改码）·**V7 复验**：vs merge-base 141da56f 产品码 0 diff·markers=0（五 token 0 命中）·主线再推进 141da56f→3af029a9 如实登记（16 产品路径 diff 系他刀 entpay-slice3/ha-5 主线落卷·非本分支·rev2 零 rebase 归协调方合并裁决）·零语义改动（闸外零触）·零产品码触碰·est live=0·pins 十一值零翻转·⛔push·alone≠dual·待 post-prove 复审）*
+
+---
+
+## nail 落卷（2026-10-11 · post-prove 双席 PASS+rev2 勘误席2 确认）
+
+**双审结果**：席1（备份/restore 语义）语义面 PASS·声明面 FAIL（F1 授权闸账面失实+F2 V4 拍戳漂一位）+席2（治理/回归）FAIL 窄面勘误级同源（F1/F2 同）→ rev2 修复落卷 @e58541a8（F1 取席1 推荐案补闸让「四入口」声明为真 +112/-0 纯追加）→ 席2 窄域确认「R-26 可 nail」（三项全过·四入口负控独立重跑 EXIT=3×4·正控复跑在卷·残余无阻断）。merge 落主线 @007b718f（席2 nail 合并点两断言重验：①产品文件集=16 与主线推进全等归因账实相符 ②V5 prod 四服务 byte-equal 切片 cmp 形零漂·markers=0）。
+
+**V 矩阵（7/7 PASS）**：V1 备份产出（160 迁移·175 表·sha256）·V2 restore 演练（24 角色预建 ACL 显式处置·表集双向等值·密文字节等值零解密·容器即弃）·V3 轮转（retain 7/2 两形）·V4 定时甲 4s×4 拍严格递增+锁探针 EXIT=4·V5 config 三连+prod byte-equal·V6 安全面（0600/0700·零凭明文）·V7 零产品码回归。
+
+**诚实边界（随卷）**：≠PITR≠容灾≠「备份已生效」·dump 档 RPO=间隔量级如实·生产 RDS major 空白登记（启用 checklist）·实机启用另行授权·云上传=S15·WAL 归档留后刀·backup_pitr 零翻转。
+
+**Status**: `nail:closed`（post-prove 双席 PASS+rev2 勘误席2 确认·merge 落主线 @007b718f·R-26 备份闭环正式解除·HA 簇 R-17/18/19/22/26/47 全动码收口完成·markers=0·est live=0）。
