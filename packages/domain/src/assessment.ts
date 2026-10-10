@@ -3,7 +3,9 @@
  * 达标线 GAP=60;gap 维度=弱项,回写 user_memory 形成成长闭环(由服务层做)。
  */
 export interface AssessTurn { question: string; score: number; competency?: string }
-export interface Dimension { dimension: string; score: number; gap: boolean; evidence: string }
+// EVIDENCE-DELIVERY S2(C9)：evidence 可选化——deriveAssessment 停写固定串冒充点评；legacy-parity
+// 形状冻结面（deriveScoreCardAssessmentLegacy·SCORE-WRITER D5）仍写该键，本刀零触。
+export interface Dimension { dimension: string; score: number; gap: boolean; evidence?: string }
 export interface Assessment { overall: number; dimensions: Dimension[]; weaknesses: string[] }
 
 /**
@@ -55,7 +57,10 @@ export function deriveAssessment(turns: AssessTurn[]): Assessment {
     dimension: r.dimension,
     score: r.score,
     gap: r.score < GAP,
-    evidence: r.score < GAP ? '低于达标线，需加强' : '达标',
+    // EVIDENCE-DELIVERY S2(C9)：固定串冒充点评停写退役——web 唯一读面 report/[id]/page.tsx 逐题点评
+    // 已改吃 transcript 判据（本字段不再被读）。assessment_report 旧行残键零迁移零回填（读侧已不读）；
+    // SCORE-WRITER D5 legacy-parity 适配（scoring-aggregation.ts deriveScoreCardAssessmentLegacy）
+    // 形状冻结归彼刀域，本刀零触。
   }));
   const overall = aggregateScores(turns.map((turn) => turn.score));   // overall 仍按逐题均分(不受聚合影响)
   const weaknesses = dimensions.filter((d) => d.gap).map((d) => d.dimension);

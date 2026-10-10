@@ -35,6 +35,12 @@ export interface Turn {
    * 非 v6 评估回合（deterministic 非作答/clarify/unscored/旧 checkpoint）缺省无此字段。
    */
   dispositions?: ScoredCriterionDisposition[];
+  /**
+   * EVIDENCE-DELIVERY S1：模型评分判据（criterion 列表，来自 invoke 评估证据）——**模型判据非用户
+   * 原文**；quote 逐字引文永不入 checkpoint/transcript（沿上方投影纪律：原文的保留、加密与删除权
+   * 由图外业务存储负责）。仅 answered 回合写入；clarify/unresolved/unscored/旧 checkpoint 缺省无此键。
+   */
+  evidence?: string[];
 }
 
 export interface ClarifyDirective {

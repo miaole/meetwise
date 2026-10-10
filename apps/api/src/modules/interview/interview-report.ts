@@ -87,7 +87,10 @@ export async function transcriptView(db: DbService, guard: PrivacyGuard, princip
     return { turns: ev.rows.filter((r: any) => isTrustedScoreIdentity(r.payload)).map((r: any, i: number) => {
       const p = r.payload ?? {};
       const t = Number.isInteger(Number(p.turn)) ? Number(p.turn) : i;
-      return { index: t, question: p.question || legacy[t] || '', competency: p.competency, score: totalByQuestion.get(p.questionId) ?? null, outcome: p.outcome ?? undefined };
+      return { index: t, question: p.question || legacy[t] || '', competency: p.competency, score: totalByQuestion.get(p.questionId) ?? null, outcome: p.outcome ?? undefined,
+        // EVIDENCE-DELIVERY S2(C7·出③)：模型判据(criterion)数组随转写带出。历史事件无键=空数组；脏值过滤；
+        // 上限沿 EvalSchema max(6)（apps/worker/src/interview-service.ts:40 权威源·不引入跨包共享常量）。
+        evidence: Array.isArray(p.evidence) ? p.evidence.filter((x: unknown) => typeof x === 'string').slice(0, 6) : [] };
     }) };
   });
 }

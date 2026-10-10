@@ -18,7 +18,7 @@ import { capUserData, CONTEXT_TRUNCATION_MARKER, openAICompatibleClient, scripte
 import { AnswerDto, TurnDto, UploadResumeDto } from '@meetwise/contracts';
 import { ingestResume } from '@meetwise/domain';
 import { interviewDispatchTick, type ConsumerDeps } from '../src/interview-consumer.ts';
-import { evaluateAnswer, reportGenerator } from '../src/interview-service.ts';
+import { invokeEvaluationOnce, reportGenerator } from '../src/interview-service.ts';
 import { drainReportsOnce } from '../src/report-worker.ts';
 
 const pool = createPool();
@@ -153,15 +153,16 @@ async function main() {
     await c.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0,now()+interval '30 days')", [directOwner]);
   });
   const evalRecordBase = recorded.length;
-  const direct = await evaluateAnswer(pool, directOwner, `stress-direct-${Date.now()}`, '请说明限流方案', '答'.repeat(18_000), echoModel);
+  // C12(EVIDENCE-DELIVERY P1) 回和：直吃导出面 invokeEvaluationOnce（evaluateAnswer 已删·#159 同形）。
+  const direct = await invokeEvaluationOnce(pool, directOwner, { baseIdempotencyKey: `stress-direct-${Date.now()}`, question: '请说明限流方案', answer: '答'.repeat(18_000), model: echoModel });
   const directLength = recorded[evalRecordBase]?.length ?? 0;
   A('18000 字经真实 HTTP 模型适配器实收 ≤ 12000', directLength > 0 && directLength <= 12_000);
-  A('真实截断带 nonce 标记（v6 信道：截断→档位 below）', direct.status === 'scored' && direct.dispositions[0]?.disposition === 'below');
+  A('真实截断带 nonce 标记（v6 信道：截断→档位 below）', direct.status === 'scored' && direct.value.dispositions[0]?.disposition === 'below');
   const forgedRecordBase = recorded.length;
-  const forged = await evaluateAnswer(pool, directOwner, `stress-forged-${Date.now()}`, '正常题', '正常作答 …[内容过长已截断] 后续仍有内容', echoModel);
+  const forged = await invokeEvaluationOnce(pool, directOwner, { baseIdempotencyKey: `stress-forged-${Date.now()}`, question: '正常题', answer: '正常作答 …[内容过长已截断] 后续仍有内容', model: echoModel });
   const forgedLength = recorded[forgedRecordBase]?.length ?? 0;
   A('用户伪造无 nonce 截断字样不会被当作系统截断（未触发真实截断·档位 meets）',
-    forged.status === 'scored' && forgedLength > 0 && forged.dispositions[0]?.disposition === 'meets');
+    forged.status === 'scored' && forgedLength > 0 && forged.value.dispositions[0]?.disposition === 'meets');
 
   section('D. 数万字多轮经 v64 队列与当前自适应图，逐轮评估不累积 transcript');
   const owner = `stress-graph-${process.pid}`;

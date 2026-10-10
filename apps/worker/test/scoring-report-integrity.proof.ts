@@ -11,7 +11,7 @@ import { createPool, asPrincipal, loadMigrations, runMigrations } from '@meetwis
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { buildAdaptiveInterviewGraph, buildReportGraph, createEphemeralAnswerVault } from '@meetwise/ai-graphs';
 import { aggregateScores } from '@meetwise/domain';
-import { evaluateAnswer, reportGenerator } from '../src/interview-service.ts';
+import { invokeEvaluationOnce, reportGenerator } from '../src/interview-service.ts';
 import { buildAdaptiveDeps } from '../src/adaptive-interview-service.ts';
 
 const pool = createPool();
@@ -44,12 +44,26 @@ async function main() {
   };
 
   console.log('\n──── ① 可验证证据 + hasHook + answer hash 幂等 ────');
-  const first = await evaluateAnswer(pool, owner, 'turn:0', '请设计限流', '我用 Redis 令牌桶，超限返回 429。', validModel);
-  const replay = await evaluateAnswer(pool, owner, 'turn:0', '请设计限流', '我用 Redis 令牌桶，超限返回 429。', validModel);
-  A('hasHook 通过 schema/invoke 保留', first.status === 'scored' && first.hasHook === true);
-  A('结构化证据仅保留可重验 span+hash，不落候选人 quote 原文', first.status === 'scored' && first.evidenceRecords[0]?.start === 0 && first.evidenceRecords[0]?.end > 0 && first.evidenceRecords[0]?.quoteSha256.length === 64 && !('quote' in first.evidenceRecords[0]!));
+  // C12(EVIDENCE-DELIVERY P1) 回和：直吃导出面 invokeEvaluationOnce（evaluateAnswer 已删·#159 同形）。
+  // 形状事实：invoke 首次成功返回**原始 schema 值**（{criterionId,disposition,quote} 形）；span+hash 记录形
+  // 仅在 storeOutput 落库值与缓存命中重放值——故记录形断言必须落在重放调用上（toEvidenceRecord/isStoredEvidence
+  // 为私有函数不可测试复用）。
+  const evalOnce = (key: string, answer: string) =>
+    invokeEvaluationOnce(pool, owner, { baseIdempotencyKey: key, question: '请设计限流', answer, model: validModel });
+  const first = await evalOnce('turn:0', '我用 Redis 令牌桶，超限返回 429。');
+  A('hasHook 通过 schema/invoke 保留', first.status === 'scored' && first.value.hasHook === true);
+  A('首次成功返回原始 schema 值：dispositions 携带 quote 且无 span/hash 脱敏形',
+    first.status === 'scored' && typeof first.value.dispositions[0]?.quote === 'string' && first.value.dispositions[0]!.quote.length > 0
+    && !('quoteSha256' in first.value.dispositions[0]!) && !('start' in first.value.dispositions[0]!));
+  const replay = await evalOnce('turn:0', '我用 Redis 令牌桶，超限返回 429。');
+  const replayRecord = replay.status === 'scored'
+    ? replay.value.dispositions[0] as unknown as { start?: number; end?: number; quoteSha256?: string; quote?: string }
+    : undefined;
   A('同 answer 重放命中缓存，模型只打 1 次', replay.status === 'scored' && calls === 1);
-  const changed = await evaluateAnswer(pool, owner, 'turn:0', '请设计限流', '我用滑动窗口，超限快速失败。', validModel);
+  A('缓存命中重放值为 span+hash 记录形：quote 原文不出 invoke 边界',
+    replayRecord != null && replayRecord.start === 0 && (replayRecord.end ?? 0) > 0
+    && replayRecord.quoteSha256?.length === 64 && replayRecord.quote === undefined);
+  const changed = await evalOnce('turn:0', '我用滑动窗口，超限快速失败。');
   A('同 turn 换答案必须重新评分（answer SHA-256 参与幂等键）', changed.status === 'scored' && calls === 2);
   const traces = await asPrincipal(pool, owner, (c) => c.query("SELECT count(*)::int AS n FROM ai_invocation_trace WHERE idempotency_key LIKE 'turn:0:answer:%'"));
   A('存储层为两个不同答案留两个幂等实体', traces.rows[0].n === 2);
@@ -66,10 +80,13 @@ async function main() {
     },
   };
   const repairAnswer = '我会使用 Redis 令牌桶，超限快速失败，并对热点接口做降级。';
-  const rejected = await evaluateAnswer(pool, owner, 'turn:quote-repair', '如何实现高峰限流？', repairAnswer, quoteRepairModel);
-  A('quote 校验失败只调用一次模型，并以 unscored 拒绝结果收口', rejected.status === 'unscored' && repairRequests.length === 1);
-  const rejectedReplay = await evaluateAnswer(pool, owner, 'turn:quote-repair', '如何实现高峰限流？', repairAnswer, quoteRepairModel);
-  A('quote 拒绝重放读取同一失败状态，不再重打模型', rejectedReplay.status === 'unscored' && repairRequests.length === 1);
+  const rejected = await invokeEvaluationOnce(pool, owner, { baseIdempotencyKey: 'turn:quote-repair', question: '如何实现高峰限流？', answer: repairAnswer, model: quoteRepairModel });
+  A('quote 校验失败只调用一次模型，并以 quote_repair_exhausted 拒绝结果收口', rejected.status === 'quote_repair_exhausted' && repairRequests.length === 1);
+  const rejectedReplay = await invokeEvaluationOnce(pool, owner, { baseIdempotencyKey: 'turn:quote-repair', question: '如何实现高峰限流？', answer: repairAnswer, model: quoteRepairModel });
+  // 重放形状事实：首次业务拒绝在内存面返回可读 `business:evidence_quote_not_in_answer`（→quote_repair_exhausted）；
+  // 失败重放经 durable claim 返回**落库机器码** `business_validation_failed`（0088 稳定 ASCII 纪律）。
+  A('quote 拒绝重放读取同一失败状态（落库机器码），不再重打模型',
+    rejectedReplay.status === 'failed' && rejectedReplay.error === 'business_validation_failed' && repairRequests.length === 1);
   const repairTrace = await asPrincipal(pool, owner, (c) => c.query("SELECT idempotency_key FROM ai_invocation_trace WHERE idempotency_key LIKE 'turn:quote-repair:answer:%'"));
   A('DB 不持久化未通过逐字校验的 quote 输出', repairTrace.rowCount === 0);
 
@@ -123,10 +140,10 @@ async function main() {
   const foreignEvidence = scriptedModelClient({
     'mock-interview.evaluate': () => ({ ok: true, raw: { relevant: true, hasHook: true, dispositions: [{ criterionId: 'answer_quality', disposition: 'exceeds', quote: '不在本次答案的语句' }] } }),
   });
-  const invalid = await evaluateAnswer(pool, owner, 'turn:invalid', '题目', '本次答案有效内容', foreignEvidence);
-  A('repair 后引文仍不属于答案 → unscored，不可写入 99 分', invalid.status === 'unscored' && !('score' in invalid));
-  const unavailable = await evaluateAnswer(pool, owner, 'turn:down', '题目', '本次答案有效内容', scriptedModelClient({}));
-  A('供应商不可用 → unscored 带可审计原因，绝不生成 50 分', unavailable.status === 'unscored' && unavailable.reason.length > 0 && !('score' in unavailable));
+  const invalid = await invokeEvaluationOnce(pool, owner, { baseIdempotencyKey: 'turn:invalid', question: '题目', answer: '本次答案有效内容', model: foreignEvidence });
+  A('repair 后引文仍不属于答案 → quote_repair_exhausted，不产出任何评分值', invalid.status === 'quote_repair_exhausted' && !('value' in invalid));
+  const unavailable = await invokeEvaluationOnce(pool, owner, { baseIdempotencyKey: 'turn:down', question: '题目', answer: '本次答案有效内容', model: scriptedModelClient({}) });
+  A('供应商不可用 → failed 带可审计原因，绝不生成 50 分', unavailable.status === 'failed' && unavailable.error.length > 0 && !('value' in unavailable));
 
   const unavailableAnswerVault = createEphemeralAnswerVault();
   const graph = buildAdaptiveInterviewGraph(new MemorySaver(), {
