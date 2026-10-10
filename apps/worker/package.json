@@ -81,6 +81,7 @@
     "attack": "tsx smoke/adaptive-attack.ts",
     "prove:job-wakeup-redis": "tsx test/worker-job-wakeup-redis.proof.ts",
     "prove:r1-tech-role-fail-closed": "tsx test/r1-tech-role-fail-closed.proof.ts",
+    "prove:role-input": "tsx test/role-input.proof.ts",
     "prove:g4-production-scoped-retrieve": "tsx test/g4-production-scoped-retrieve.proof.ts",
     "prove:g4-dispatch-recheck-prereq": "tsx test/g4-dispatch-recheck-prereq.proof.ts",
     "prove:r4-real-wire-impl": "tsx test/r4-real-wire-impl.proof.ts",

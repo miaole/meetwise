@@ -163,10 +163,15 @@ export class InterviewService {
 
   // 开始面试:扣额度 + 入队 start job(长编排在 worker 跑,api 薄)。reqId 随 payload 入队 → worker 出队沿用 → 落模型 trace.request_id(全链路一跳到底)。
   // GAP-UC025-NEG-01 真接线:第 5 形参 sourceQuizId 为可选源押题工件(controller header quiz-id 透传)。
-  begin(principal: string, id: string, resumeId: string, requestId?: string, sourceQuizId?: string) {
+  // #259 第 6 形参 targetRole 为可选用户显式目标岗位(controller header target-role 透传)。
+  begin(principal: string, id: string, resumeId: string, requestId?: string, sourceQuizId?: string, targetRole?: string) {
     this.denyPublicPreviewWrite();
     if (!resumeId) throw new HttpException({ error: 'missing_resume_id' }, HttpStatus.BAD_REQUEST);
     if (!UUID_RE.test(resumeId)) throw new HttpException({ error: 'invalid_resume_id' }, HttpStatus.BAD_REQUEST);
+    // #259 用户显式目标岗位:归一化 trim/限长 100/空串→undefined(诊断链 diagnosis.service 同形制,
+    // 限长防滥用)。仅作 job payload 安全标量传输(不入表列/图 state/SSE);undefined → payload 零新键,
+    // 与现状逐字节一致。幂等:alreadyBegun 既有 job 原样短路不改写(下方 existing 分支零改,首场 role 生效)。
+    const targetRoleNormalized = (targetRole ?? '').trim().slice(0, 100) || undefined;
     // PRIV01-C 应用层 tenant 强制第二层:E1 入口显式 owner + E2 必选谓词绑定——授权根仍为 RLS(应用层 tenant ≠ RLS)。
     const owner = requireOwnerUserId(principal, 'interview.begin');
     const quizScope = buildRequiredOwnerFilter(owner, 'interview.begin.quizScope');
@@ -309,7 +314,8 @@ export class InterviewService {
       if (rr.status !== 'reserved') throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
       // The queue derives the v64 typed id+epoch from the just-bound parent;
       // JSON retains only transport tracing, never a resume locator.
-      const jobId = await enqueueInterviewJob(c, owner, id, 'start', { requestId }, 0);
+      // #259: targetRole 仅在场时写入 payload 键(缺省零新键=现状 payload 字节)。
+      const jobId = await enqueueInterviewJob(c, owner, id, 'start', targetRoleNormalized ? { requestId, targetRole: targetRoleNormalized } : { requestId }, 0);
       return { accepted: true, jobId };
     });
   }

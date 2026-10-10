@@ -4,6 +4,7 @@ import { getServerToken, serverGet } from '../../lib/api/server';
 import { startInterviewAction } from './actions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -64,7 +65,7 @@ export default async function InterviewsPage({ searchParams }: { searchParams: P
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">开始新面试</CardTitle>
-          <CardDescription>选择一份简历,开启一场自适应模拟面试。</CardDescription>
+          <CardDescription>选择一份简历,可选填目标岗位,开启一场自适应模拟面试。</CardDescription>
         </CardHeader>
         <CardContent>
           {resumes.length === 0 ? (
@@ -73,19 +74,26 @@ export default async function InterviewsPage({ searchParams }: { searchParams: P
               <Link href="/resume" className="font-medium text-foreground underline-offset-4 hover:underline">先去上传简历 →</Link>
             </p>
           ) : (
-            <form action={startInterviewAction} className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <label className="text-sm text-muted-foreground" htmlFor="resumeId">选择简历</label>
-              <select
-                id="resumeId"
-                name="resumeId"
-                defaultValue={resumes[0]?.id}
-                className="h-10 rounded-md border border-input bg-background px-3 text-sm sm:flex-1"
-              >
-                {resumes.map((r) => (
-                  <option key={r.id} value={r.id}>{resumeOptionLabel(r)}</option>
-                ))}
-              </select>
-              <SubmitButton pendingLabel="启动中…">开始新面试</SubmitButton>
+            <form action={startInterviewAction} className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <label className="text-sm text-muted-foreground" htmlFor="resumeId">选择简历</label>
+                <select
+                  id="resumeId"
+                  name="resumeId"
+                  defaultValue={resumes[0]?.id}
+                  className="h-10 rounded-md border border-input bg-background px-3 text-sm sm:flex-1"
+                >
+                  {resumes.map((r) => (
+                    <option key={r.id} value={r.id}>{resumeOptionLabel(r)}</option>
+                  ))}
+                </select>
+              </div>
+              {/* #259 目标岗位输入:可选自由文本(仅限长与脱空白,语义归 planner;镜像 diagnosis/page 同形制)。 */}
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <label className="text-sm text-muted-foreground" htmlFor="targetRole">目标岗位</label>
+                <Input id="targetRole" name="targetRole" maxLength={100} placeholder="可选,如:后端工程师(留空按简历自动匹配方向)" className="sm:flex-1" />
+              </div>
+              <div className="flex justify-end"><SubmitButton pendingLabel="启动中…">开始新面试</SubmitButton></div>
             </form>
           )}
         </CardContent>
