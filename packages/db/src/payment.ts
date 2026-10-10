@@ -52,12 +52,20 @@ export async function getOrder(c: Client, owner: string, id: string): Promise<{ 
 
 export type CreditResult = 'credited' | 'already' | 'conflict' | 'not_found';
 
+/** 入账落桶类型（B271 #271 片1）：C 端='paid'（默认·既有语义逐值不变）；企业单='enterprise'（审核通过招聘方桶）。 */
+export type CreditBucketKind = 'paid' | 'enterprise';
+
 /** 支付回调入账：
  * - `payment_order.provider_txn` 的 partial global UNIQUE 是渠道支付事实的唯一归属，禁止同一流水跨订单发两次权益；
  * - 同订单同流水重放 → `already`；同流水指向另一订单/订单已被其他流水处理 → `conflict`；
  * - 订单状态与权益桶在调用方的同一 `asPrincipal` 事务内提交，事务失败不会留下「paid 但未发权益」。
+ * - 落桶类型由调用方按订单商品域派生（B271 片1·S1-C3 参数化）：缺省 'paid' 保持 C 端逐值不变；
+ *   线上企业单落 ('enterprise', 下单招聘方)（对公确认路径在 DB 受控函数内同形落位，0156）。
  */
-export async function markOrderPaidAndCredit(c: Client, owner: string, orderId: string, providerTxn: string): Promise<CreditResult> {
+export async function markOrderPaidAndCredit(
+  c: Client, owner: string, orderId: string, providerTxn: string,
+  bucket: { kind: CreditBucketKind } = { kind: 'paid' },
+): Promise<CreditResult> {
   // 唯一索引在跨订单并发时会抛 23505。Savepoint 让当前外层业务事务可回到可查询状态，
   // 以确定性的 `conflict` 回应，而非把数据库错误泄漏成 500。
   await c.query('SAVEPOINT payment_provider_txn_claim');
@@ -81,9 +89,12 @@ export async function markOrderPaidAndCredit(c: Client, owner: string, orderId: 
     return 'conflict';
   }
   if (upd.rowCount === 1) {
+    // 落桶参数化（S1-C3）：kind 由调用方按订单商品域派生；缺省 'paid' 时参数值与旧字面量逐值一致。
+    // source_order_id 溯源（B271 片1 EXEC 补齐）：列 0001:101 既有，此前 unpaid 值恒 NULL——新入账行
+    // 落订单 id（对公确认函数 0156 同列同义）；C 端 reserve/confirm/refund 链零读该列，行为零变。
     await c.query(
-      "INSERT INTO entitlement_bucket(owner_user_id, kind, units_total, expires_at) VALUES ($1,'paid',$2, now()+interval '365 days')",
-      [owner, Number(upd.rows[0].units)]);
+      "INSERT INTO entitlement_bucket(owner_user_id, kind, units_total, expires_at, source_order_id) VALUES ($1,$2,$3, now()+interval '365 days', $4)",
+      [owner, bucket.kind, Number(upd.rows[0].units), orderId]);
     return 'credited';
   }
   // 没改到 = 不是 created。看是否已 paid 且同流水(幂等重复回调)
@@ -101,8 +112,13 @@ export type RefundResult = 'refunded' | 'already' | 'conflict' | 'not_found';
  * - 同单同流水重放 → `already`（无二次红冲）；
  * - 同流水指向另一单 / 订单非 paid → `conflict`；
  * - 红冲：从 owner 可用额度桶扣减 order.units（结构性无金额通道；服务器权威 units）。
+ * - 桶类型过滤（B271 片1·S1-C5）：企业订单必须只减 enterprise 桶（C 端桶零触）；C 端退款
+ *   不传 bucket → 谓词 `$2 IS NULL` 对全行恒真 → 行集与既有语义逐字节一致（零弱化）。
  */
-export async function markOrderRefunded(c: Client, owner: string, orderId: string, providerTxn: string): Promise<RefundResult> {
+export async function markOrderRefunded(
+  c: Client, owner: string, orderId: string, providerTxn: string,
+  bucket?: { kind: CreditBucketKind },
+): Promise<RefundResult> {
   // Savepoint 覆盖 CAS+红冲：不足红冲 / 唯一约束冲突 → 回滚本段，外层事务可继续以确定性码回应。
   await c.query('SAVEPOINT payment_refund_txn_claim');
   let upd;
@@ -125,14 +141,17 @@ export async function markOrderRefunded(c: Client, owner: string, orderId: strin
   }
   if (upd.rowCount === 1) {
     const need = Number(upd.rows[0].units);
-    // 红冲：按 FIFO 从可用额度扣减 units_total（不碰 reserved/consumed；受 ck_bucket_capacity 约束）
+    // 红冲：按 FIFO 从可用额度扣减 units_total（不碰 reserved/consumed；受 ck_bucket_capacity 约束）。
+    // 桶类型过滤（S1-C5）：bucket 缺省（C 端）→ $2=NULL → 谓词恒真 = 既有全桶 FIFO 语义逐字节一致；
+    // 企业单 → 只扫 enterprise 桶。
     const buckets = await c.query(
       `SELECT id, (units_total - units_reserved - units_consumed) AS avail
          FROM entitlement_bucket
         WHERE owner_user_id=$1
+          AND ($2::text IS NULL OR kind = $2)
           AND (units_total - units_reserved - units_consumed) > 0
         ORDER BY expires_at ASC, id ASC
-        FOR UPDATE`, [owner]);
+        FOR UPDATE`, [owner, bucket?.kind ?? null]);
     let remaining = need;
     for (const b of buckets.rows) {
       if (remaining <= 0) break;
