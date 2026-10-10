@@ -1,0 +1,24 @@
+5	7	apps/web/app/jobs/actions.ts
+5	4	apps/web/components/DiagnosisPanel.tsx
+43	3	apps/web/components/InterviewPanel.tsx
+6	5	apps/web/components/QuizPanel.tsx
+29	7	apps/web/lib/hooks/useDiagnosisStream.ts
+49	10	apps/web/lib/hooks/useInterviewStream.ts
+29	7	apps/web/lib/hooks/useQuizStream.ts
+6	3	apps/web/lib/stream/business-events.ts
+40	6	apps/web/lib/stream/diagnosis-state.ts
+104	35	apps/web/lib/stream/diagnosis-stream.ts
+25	6	apps/web/lib/stream/interview-state.ts
+154	56	apps/web/lib/stream/interview-stream.ts
+41	6	apps/web/lib/stream/quiz-state.ts
+104	35	apps/web/lib/stream/quiz-stream.ts
+37	3	apps/web/lib/stream/sse-cursor.ts
+36	2	apps/web/lib/view-model.ts
+315	5	apps/web/test/web-logic.proof.ts
+
+# untracked (new files, not in numstat above):
+# apps/web/lib/interview/draft-store.ts  (C6)
+# apps/web/lib/jobs/ensure-ok.ts         (C8 纯模块,探针 necessitated,见 exec-receipt §3)
+# apps/web/lib/stream/backoff.ts         (C1)
+# receipts/sse-resilience/*              (本收据)
+# ai-docs/delivery/harness/sse-resilience-REQUEST.md 状态行(append-only)

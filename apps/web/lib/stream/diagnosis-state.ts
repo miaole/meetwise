@@ -30,6 +30,11 @@ export const ALL_DIAGNOSIS_PHASES = ['connecting', 'generating', 'ready', 'diagn
 export type DiagnosisPhase = typeof ALL_DIAGNOSIS_PHASES[number];
 export type ConnectionState = 'live' | 'reconnecting' | 'closed';
 
+/**
+ * SSE-RESILIENCE #56(C5)：停转/降级原因分类（与 quiz-state 同构；驱动按打开状态码与游标错误承载）。
+ */
+export type StreamStopReason = 'auth' | 'rate_limited' | 'server' | 'not_found' | 'cursor';
+
 export interface DiagFinding { text: string; refs: string[] }
 export interface DiagSection { kind: string; title: string; score: number | null; findings: DiagFinding[] }
 export interface DiagRewrite { before: string; after: string; refs: string[] }
@@ -44,6 +49,10 @@ export interface DiagnosisViewState {
   degraded: boolean;
   connection: ConnectionState;
   lastEventId: number;
+  /** SSE-RESILIENCE #56(C5)：停转/降级/慢速重试原因分类；缺省=普通传输断线。 */
+  streamStopReason?: StreamStopReason;
+  /** SSE-RESILIENCE #55(注记C)：reconnecting 来自无错干净 end（轮换闪回软措辞臂）。 */
+  cleanEndReconnect?: boolean;
 }
 
 export const initialDiagnosisView: DiagnosisViewState = { phase: 'connecting', sections: [], rewrites: [], degraded: false, connection: 'live', lastEventId: 0 };
@@ -79,13 +88,18 @@ export function applyDiagnosisEvent(v: DiagnosisViewState, e: DiagnosisEvent): D
   return next;
 }
 
-/** 流关闭：非终态 → reconnecting(组件据此用同一 diagnosisId+Last-Event-ID 自动重连);终态 → closed(正常)。 */
-export function onDiagnosisStreamClosed(v: DiagnosisViewState): DiagnosisViewState {
-  return { ...v, connection: isDiagnosisTerminal(v.phase) ? 'closed' : 'reconnecting' };
+/** 流关闭：非终态 → reconnecting(组件据此用同一 diagnosisId+Last-Event-ID 自动重连);终态 → closed(正常)。
+ *  SSE-RESILIENCE(C5)：flags 同 interview-state（stopReason/cleanEnd 承载与清除语义同构）。 */
+export function onDiagnosisStreamClosed(v: DiagnosisViewState, flags?: { stopReason?: StreamStopReason; cleanEnd?: boolean }): DiagnosisViewState {
+  const base = { ...v, connection: isDiagnosisTerminal(v.phase) ? 'closed' as const : 'reconnecting' as const };
+  if (flags?.stopReason) return { ...base, streamStopReason: flags.stopReason, cleanEndReconnect: undefined };
+  if (flags?.cleanEnd) return { ...base, cleanEndReconnect: true, streamStopReason: undefined };
+  return { ...base, streamStopReason: undefined, cleanEndReconnect: undefined };
 }
-/** 重连耗尽 → 给出口:degraded + 停止重连;若还卡在 connecting(从没拿到状态)则置 error。 */
-export function onDiagnosisReconnectExhausted(v: DiagnosisViewState): DiagnosisViewState {
-  return { ...v, connection: 'closed', degraded: true, phase: v.phase === 'connecting' ? 'error' : v.phase };
+/** 重连耗尽 → 给出口:degraded + 停止重连;若还卡在 connecting(从没拿到状态)则置 error。
+ *  #53 W1②：连续无进展耗尽不再走此出口（驱动转慢速永续），degraded 只留给绝对上限/游标/致命状态码。 */
+export function onDiagnosisReconnectExhausted(v: DiagnosisViewState, reason?: StreamStopReason): DiagnosisViewState {
+  return { ...v, connection: 'closed', degraded: true, phase: v.phase === 'connecting' ? 'error' : v.phase, streamStopReason: reason };
 }
 
 /* ── 视图模型(纯逻辑:状态 → 该显示什么。承重 UX-HA:任何状态不死胡同) ── */
@@ -100,9 +114,29 @@ export interface DiagnosisDisplay {
 
 export function diagnosisDisplay(v: DiagnosisViewState): DiagnosisDisplay {
   if (v.connection === 'reconnecting') {
+    // SSE-RESILIENCE #56(C5)：reconnecting 按 reason 分臂；注记C：无错干净 end（服务器轮换）给软措辞。
+    if (v.streamStopReason === 'rate_limited') {
+      return { heading: '连接过多', message: '当前连接数过多(可能开了多个标签页),已放慢自动重连,已生成的诊断不会丢失…可关闭其它标签页或手动重试。', spinner: true, action: { kind: 'retry', label: '手动重试' }, degraded: v.degraded };
+    }
+    if (v.streamStopReason === 'server') {
+      return { heading: '服务恢复中', message: '诊断服务暂时不可用,正在自动重连,已生成的诊断不会丢失…', spinner: true, action: { kind: 'retry', label: '手动重试' }, degraded: v.degraded };
+    }
+    if (v.cleanEndReconnect) {
+      return { heading: '正在切换连接', message: '服务端正在轮换连接,正在无缝续传,已生成的诊断不会丢失…', spinner: true, action: { kind: 'retry', label: '手动重试' }, degraded: v.degraded };
+    }
     return { heading: '网络中断', message: '正在重连,已生成的诊断不会丢失…', spinner: true, action: { kind: 'retry', label: '手动重试' }, degraded: v.degraded };
   }
   if (v.degraded && v.connection === 'closed' && !isDiagnosisTerminal(v.phase)) {
+    // SSE-RESILIENCE #56(C5)：停转按 reason 分臂；默认与游标臂保持原文案逐字。
+    if (v.streamStopReason === 'auth') {
+      return { heading: '登录已过期', message: '登录状态已过期,诊断连接已停止。请重新登录后继续,已生成的诊断不会丢失。', spinner: false, action: { kind: 'retry', label: '重新登录' }, degraded: true };
+    }
+    if (v.streamStopReason === 'not_found') {
+      return { heading: '诊断不存在或无权访问', message: '未找到这份诊断,或当前账号无权访问,已停止自动重连。可返回列表。', spinner: false, action: { kind: 'retry', label: '重试' }, degraded: true };
+    }
+    if (v.streamStopReason === 'server') {
+      return { heading: '诊断连接已停止', message: '诊断服务持续不可用,已暂停自动重连。可稍后重试或返回列表。', spinner: false, action: { kind: 'retry', label: '重试' }, degraded: true };
+    }
     return { heading: '诊断连接已停止', message: '诊断连接已停止，不会再用同一续传编号自动重连。可重试或返回列表。', spinner: false, action: { kind: 'retry', label: '重试' }, degraded: true };
   }
   switch (v.phase) {

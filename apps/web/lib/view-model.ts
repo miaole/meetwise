@@ -30,12 +30,46 @@ export function interviewDisplay(v: InterviewView): Display {
   const signalConclude = v.signalConcludeReason
     ? { code: v.signalConcludeReason.code, message: signalConcludePracticeCopy(v.signalConcludeReason.code) }
     : undefined;
-  // 连接中断重连 → 永远显式告知"重连中"+可手动重试,绝不冻结
+  // 连接中断重连 → 永远显式告知"重连中"+可手动重试,绝不冻结。
+  // SSE-RESILIENCE #56(C5)：reconnecting 按 reason 分臂透出真实原因（429 多标签/5xx 服务端）;
+  // 注记C：无错干净 end（服务器 10min 轮换）给软措辞——不是断网,是换一条连接无缝续传。
   if (v.connection === 'reconnecting') {
+    if (v.streamStopReason === 'rate_limited') {
+      return { heading: '连接过多', message: '当前连接数过多(可能开了多个标签页),已放慢自动重连,已答内容不会丢失。可关闭其它标签页,或手动重试。', spinner: true, action: { kind: 'retry', label: '手动重试' }, degraded: v.degraded, signalConclude };
+    }
+    if (v.streamStopReason === 'server') {
+      return { heading: '服务恢复中', message: '服务暂时不可用,正在自动重连,已答内容不会丢失,未提交的草稿也已保留在本页。', spinner: true, action: { kind: 'retry', label: '手动重试' }, degraded: v.degraded, signalConclude };
+    }
+    if (v.cleanEndReconnect) {
+      return { heading: '正在切换连接', message: '服务端正在轮换连接,正在无缝续传,已答内容不会丢失…', spinner: true, action: { kind: 'retry', label: '手动重试' }, degraded: v.degraded, signalConclude };
+    }
     return { heading: '网络中断', message: '正在用同一面试重连,已答内容不会丢失…', spinner: true, action: { kind: 'retry', label: '手动重试' }, degraded: v.degraded, signalConclude };
   }
-  // 非法 Last-Event-ID / 重连耗尽：连接已关且非终态 → 失败关闭出口，不当成仍可作答。
+  // 非法 Last-Event-ID / 重连耗尽 / 401 / 404：连接已关且非终态 → 失败关闭出口，不当成仍可作答。
+  // SSE-RESILIENCE #56(C5)：按 reason 分臂（auth 引导重新登录/not_found fail-closed/server 暂停重连）;
+  // 游标与绝对上限（缺省）保持原文案逐字（既有断言锚定）。
   if (v.degraded && v.connection === 'closed' && !isTerminal(v.phase)) {
+    if (v.streamStopReason === 'auth') {
+      return {
+        heading: '登录已过期',
+        message: '登录状态已过期,练习连接已停止。请重新登录后继续,已答内容已在服务端保存。',
+        spinner: false, action: { kind: 'retry', label: '重新登录' }, degraded: true, signalConclude,
+      };
+    }
+    if (v.streamStopReason === 'not_found') {
+      return {
+        heading: '练习不存在或无权访问',
+        message: '未找到这场练习,或当前账号无权访问,已停止自动重连。可返回列表。',
+        spinner: false, action: { kind: 'retry', label: '重试' }, degraded: true, signalConclude,
+      };
+    }
+    if (v.streamStopReason === 'server') {
+      return {
+        heading: '练习连接已停止',
+        message: '练习服务持续不可用,已暂停自动重连。可稍后重试或返回列表。',
+        spinner: false, action: { kind: 'retry', label: '重试' }, degraded: true, signalConclude,
+      };
+    }
     return {
       heading: '练习连接已停止',
       message: '练习连接已停止，不会再用同一续传编号自动重连。可重试本场练习或返回列表。',
