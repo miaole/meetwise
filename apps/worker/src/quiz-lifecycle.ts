@@ -37,6 +37,10 @@ export async function runQuiz(
     await appendEvent(c, owner, quizId, 'progress', { stage: 'generating' });   // SSE→前端:已开始押题
   });
 
+  // G4 #209 facts 空前置拦截(binding 后 dispatch 前):空 facts 简历注定全滤空(押题 refs 必须接地于 facts)——
+  // 此处拦下,省一次注定空转的模型外呼;job 已 generating → 消费者既有失败路径置 failed+退额,不留孤儿 created。
+  if (facts.length === 0) throw new Error('quiz_empty_facts');
+
   // 纯图:parse(摄取)→ generate(经 invoke 双校验)→ validate(factuality 歪曲门)→ make_report(业务派生)。模型在注入边界外。
   // progressStream=quizId(TOKSTREAM 阶段1):押题模型调用发生成进度事件(SSE→前端 loading 变真实进度)。
   const graph = buildResumeQuizGraph({ generate: quizGenerator(pool, owner, facts, `${quizId}:quiz`, model, quizId) });
@@ -46,6 +50,10 @@ export async function runQuiz(
 
   // 交付与结算同一事务,且**结算/状态机都校验返回值**(专家审计:不可静默把已退/已被放弃的押题当成功收尾 → 免费交付/状态倒退)。
   await asPrincipal(pool, owner, async (c: PoolClient) => {
+    // G4 #209 空结果失败退额:滤后 0 题=factuality 歪曲门把幻觉题滤光(生成器闸 'empty_quiz' 只拦 items 空,拦不住
+    // 「有题但全幻觉」)——confirm 之前 throw 稳定码(裁定③:事务内 confirm 前)→ 回滚整事务 → 消费者既有失败路径
+    // (markFailed+quiz_unavailable 终态事件+releaseConsumption 退额)收口,绝不「扣全额交白卷」。
+    if (questions.length === 0) throw new Error('quiz_empty_questions');
     // ① 先结算:若额度已被 abandon 释放/异常 → confirm 返回 error(不抛),此处**显式拒绝成功**,throw 回滚整事务 → 走失败路径。
     const conf = await confirmConsumption(c, owner, quizId, 1);                  // 押题成功 → 全额结算(idempotencyKey=quizId,对终态幂等)
     if (conf.status !== 'confirmed' && conf.status !== 'partial_confirmed')

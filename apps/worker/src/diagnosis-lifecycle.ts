@@ -43,11 +43,19 @@ export async function runDiagnosis(
     await appendEvent(c, owner, diagnosisId, 'progress', { stage: 'generating' });   // SSE→前端:已开始诊断
   });
 
+  // G4 #209 facts 空前置拦截(binding 后 dispatch 前):空 facts 简历注定无接地发现——
+  // 此处拦下,省一次注定空转的模型外呼;job 已 generating → 消费者既有失败路径置 failed+退额,不留孤儿 created。
+  if (facts.length === 0) throw new Error('diagnosis_empty_facts');
+
   // 纯图:parse(摄取)→ generate(经 invoke 双校验 + 接地业务闸)→ validate(factuality 歪曲门)→ finalize(业务派生)。模型在注入边界外。
   const graph = buildResumeDiagnosisGraph({ generate: diagnosisGenerator(pool, owner, facts, role, `${diagnosisId}:diagnosis`, model) });
   const out = await graph.invoke({ raw: resumeRaw });
   const report = (out.report ?? null) as DiagnosisReport | null;
   if (!report) throw new Error('diagnosis_empty_report');
+  // G4 #209 空结果失败退额:报告非空但 groundedCount=0(factuality 歪曲门把发现滤光)——白卷照结=不诚实。
+  // confirm 之前(裁定③对称位:diagnosis_empty_report 现检后、事务开前)throw 稳定码 → 消费者既有失败路径
+  // (markFailed+diagnosis_unavailable 终态事件+releaseConsumption 退额)收口,绝不「扣全额交白壳 ready」。
+  if (report.groundedCount === 0) throw new Error('diagnosis_no_grounded_finding');
 
   // 交付与结算同一事务,且**结算/状态机都校验返回值**(不可静默把已退/已被放弃的诊断当成功收尾 → 免费交付/状态倒退)。
   await asPrincipal(pool, owner, async (c: PoolClient) => {
