@@ -11,7 +11,7 @@ import {
 import { Command } from '@langchain/langgraph';
 import { buildAdaptiveInterviewGraph, type PendingQuestion } from '@meetwise/ai-graphs';
 import type { ModelClient, GraphObserver } from '@meetwise/ai-runtime';
-import { admitInterviewResume, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision } from '@meetwise/domain';
+import { admitInterviewResume, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision, type ScoredCriterionDisposition } from '@meetwise/domain';
 import { buildAdaptiveDeps, buildResumeFactPool, planCompetencies, selectPlannerFacts } from './adaptive-interview-service.ts';
 import { writeScoreCardAfterProjectionFenceTolerant } from './score-writer.ts';
 import { recordAskedQuestions } from './memory-service.ts';
@@ -297,6 +297,7 @@ async function submitAdaptiveAnswerImpl(
   const snap = alreadyApplied ? before : await g.getState(cfg);
   const transcript = (snap.values?.transcript ?? []) as Array<{
     questionId?: string; stateVersion?: number; score: number | null; outcome?: string; competency?: string; q?: string; hint?: string; reason?: string;
+    dispositions?: ScoredCriterionDisposition[];
   }>;
   const last = transcript[transcript.length - 1];
   if (!last || last.questionId !== input.questionId)
@@ -374,16 +375,22 @@ async function submitAdaptiveAnswerImpl(
   // drain 内、独立 asScoringWorkerPrincipal 事务 claim+写卡；consumer 的 markJobDone 在其后
   // 收口 → crash 于二者之间 = requeue at-least-once + 0100 CAS（单 winner）= exactly-once 效果。
   // 仅对投影已落 answer_evaluated 且计入 eligible 的回合执行（非 unscored/非 clarify；clarify&&done
-  // 的 unresolved 事件不计 eligible，不供卡）。供源 = v5 hint 分（score 卡进度提示），经 D6 过渡桥
-  // 映射 disposition；模型不出总分，总分在 0103 DB 函数内确定性计算。
+  // 的 unresolved 事件不计 eligible，不供卡）。
+  // #52 v6（S2）供源：evaluate 侧直出的 0103 档位证据随图 transcript 到达（D6 过渡桥已废除）；
+  // hint 分仍随事件供 SSE/完成判定，但**不再供卡**。升级窗 face：存量 v5 checkpoint 回合
+  // （transcript 无 dispositions）结构性无档位供源 → 跳过写卡（同「存量 interview 不追溯供卡」
+  // rev2 残余登记，绝不回退 hint 分派档）；系统性丢档由 prove 卡数=已答数断言兜底。
   if (d.scoreWriterLeaseOwner && !unscored && !clarifying && typeof last.score === 'number') {
-    await writeScoreCardAfterProjectionFenceTolerant(
-      { pool: d.pool, owner: d.owner, leaseOwner: d.scoreWriterLeaseOwner },
-      {
-        interviewId: d.interviewId, questionId: input.questionId, stateVersion: input.stateVersion,
-        answerText: input.answer, hintScore: last.score,
-      },
-    );
+    const turnDispositions = last.dispositions ?? [];
+    if (turnDispositions.length > 0) {
+      await writeScoreCardAfterProjectionFenceTolerant(
+        { pool: d.pool, owner: d.owner, leaseOwner: d.scoreWriterLeaseOwner },
+        {
+          interviewId: d.interviewId, questionId: input.questionId, stateVersion: input.stateVersion,
+          answerText: input.answer, dispositions: turnDispositions,
+        },
+      );
+    }
   }
 
   const generationFailed = generationFailureOf(snap);

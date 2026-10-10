@@ -1,5 +1,5 @@
 /**
- * EXTREV-1 SCORE-WRITER S1 · worker 写卡步（rev2 D3+D4）。
+ * EXTREV-1 SCORE-WRITER S2 · worker 写卡步（rev2 D3+D4 写入形制不变·D6 桥已废）。
  *
  * 接线位（D4 裁定=后置异 txn）：**投影事务提交后**、同一 answer-job drain 内、以独立
  * asScoringWorkerPrincipal（scoring_worker_executor）事务 claim + 写卡；job 未 done 前完成
@@ -9,22 +9,25 @@
  * 恢复钉（D4）：crash 重放**复用 claim 返回的既有 lease_token**（禁新造——pending→claimed
  * 单次 CAS，新 token 重放永远 claim 不到，请求会永久卡 claimed）。
  *
- * disposition 供源（D6 过渡桥）：answer_evaluated 的 v5 hint 分（进度提示，非分数权威）
- * → dispositionFromHintScore（score<60 below / 60≤score<85 meets / ≥85 exceeds；60 锚=
- * legacy GAP 单源）。模型不出总分；总分在 0103 DB 函数按确定性公式算（本过渡窗卡总分
- * = 0/50/100 档位化值 ≠ v5 hint 分）。
+ * disposition 供源（#52 v6 起，S1 过渡桥已废除·rg 门零残留）：mock-interview.evaluate v6
+ * 模型直出 per-criterion disposition（below/meets/exceeds + 逐字引文引文 span），evaluate 侧经
+ * scoreDispositionFromCodeUnitSpan 派生 0103 契约证据（utf8_byte span+digest）随图 transcript
+ * （checkpoint 审计投影，无答案原文）到达本步；模型不出总分，总分在 0103 DB 函数按确定性公式
+ * 算。answer_evaluated.score 仍为 hint（进度提示/完成判定），其值 = computeDeterministicTotal
+ * 的确定性派生（非模型自由输出）。
  *
- * 证据 span：S1 过渡窗取整答案正文 [0, utf8len)（digest=sha256 of span 字节）；S2 v6
- * 改模型逐 criterion 引文 span。冲突/多来源裁决（adjudicateScoreCard·SCOR-03）在 S1
- * 单分项 seed 下结构性不触发（每卡恰一条证据），冲突面接线随 v6 扩项落地。
+ * 证据 span：v6 逐 criterion 引文 span（模型 quote→code-unit span→本域派生 byte span/digest）；
+ * quote 只在 evaluate 期存活于内存，绝不入图 state/checkpoint。冲突/多来源裁决
+ * （adjudicateScoreCard·SCOR-03）在 seed 单分项下结构性不触发（每卡恰一条证据），冲突面接线
+ * 随 EXTREV-4 QBANK-CORPUS 扩项落地。
  */
 import { randomUUID } from 'node:crypto';
 import {
   asPrincipal, asScoringWorkerPrincipal, claimScoreRequest, fenceScoreRequest, writeFinalScoreCard,
-  isInterviewPrivacyActive, findActiveScoreRequest, SCORING_SEED_CRITERION_ID,
+  isInterviewPrivacyActive, findActiveScoreRequest,
   type DbPool,
 } from '@meetwise/db';
-import { dispositionFromHintScore, scoreSpanDigest, utf8ByteLength, SCORE_SPAN_OFFSET_KIND } from '@meetwise/domain';
+import { reverifyScoreEvidenceSpan, type ScoredCriterionDisposition } from '@meetwise/domain';
 
 /** 删除/撤权先赢（D3 fence 序）：这类 code 下不抛错、改走 fenceScoreRequest + 跳过。 */
 function isPrivacyFenceCode(code: string | undefined): boolean {
@@ -42,10 +45,10 @@ export interface ScoreWriteQuery {
   interviewId: string;
   questionId: string;
   stateVersion: number;
-  /** 答案明文（drain 内存态，绝不落图 state/checkpoint）；供 span/digest 计算。 */
+  /** 答案明文（drain 内存态，绝不落图 state/checkpoint）；供 span/digest 复算。 */
   answerText: string;
-  /** v5 hint 分（投影事务写入 answer_evaluated.score 的同一值）。 */
-  hintScore: number;
+  /** v6 模型档位证据（evaluate 侧派生·0103 契约形状；非 v5 hint 分——过渡桥已废除）。 */
+  dispositions: readonly ScoredCriterionDisposition[];
 }
 
 export type ScoreWriteResult =
@@ -80,19 +83,26 @@ export async function writeScoreCardAfterProjection(d: ScoreWriterDeps, q: Score
     const leaseToken = claimed.claimed ? (claimed.leaseToken ?? freshToken) : (claimed.leaseToken ?? active.leaseToken);
     if (!leaseToken) return { kind: 'skipped', reason: 'unclaimable' };
 
-    const disposition = dispositionFromHintScore(q.hintScore);
-    const span = { offsetKind: SCORE_SPAN_OFFSET_KIND, start: 0, end: utf8ByteLength(q.answerText) } as const;
+    // v6：逐 criterion 直供档位证据。明文只在 drain 内存态存活——写卡前做一次文本级复验
+    // （span 在当前答案版本内 + sha256(span 字节)==digest，domain 单源），不匹配 fail-closed
+    // （绝不把对不上答案的证据写进卡）；空集/重复 criterionId 由 0103 writeFinal 确定性门兜底。
+    const evidence = q.dispositions.map((d) => {
+      if (!reverifyScoreEvidenceSpan(q.answerText, d.span, d.spanDigest)) {
+        throw Object.assign(new Error('score_evidence_span_reverify_failed'), { code: 'score_evidence_span_reverify_failed' });
+      }
+      return {
+        criterionId: d.criterionId,
+        sourceAnswerId: active.artifactId,
+        answerVersion: active.answerVersion,
+        span: d.span,
+        spanDigest: d.spanDigest,
+        disposition: d.disposition,
+      };
+    });
     const written = await writeFinalScoreCard(c, {
       requestId: active.requestId,
       leaseToken,
-      evidence: [{
-        criterionId: SCORING_SEED_CRITERION_ID,
-        sourceAnswerId: active.artifactId,
-        answerVersion: active.answerVersion,
-        span,
-        spanDigest: scoreSpanDigest(q.answerText, span),
-        disposition,
-      }],
+      evidence,
       targetStatus: 'practice_eligible',
     });
     if (!written.recorded || !written.cardId) {
