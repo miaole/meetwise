@@ -17,6 +17,8 @@ import { Thinking } from '@/components/ui/Thinking';
 import { interviewTurnWindow, VISIBLE_TURN_LIMIT } from '@/lib/stream/turn-window';
 import { buildTurnSubmission, newAnswerId } from '@/lib/interview/turn-submission';
 import { interviewProgressBadge } from '@/lib/interview/progress-badge';
+// G4 #59:提交失败分码映射(纯函数·action 判定在函数/执行在组件)——撤裸透传读数(错误体={error:code}无 message 字段)。
+import { turnSubmitFeedback } from '@/lib/errors/turn-submit-error';
 // SSE-RESILIENCE #54(W2/C6/C7)：作答草稿 sessionStorage 持久化(按 resultId+questionId;降级键只写不恢复;注记A 空框恢复前提)。
 import { makeDraftStore, sessionDraftStorage, draftKeyExact, draftKeyFallback, restoreDraftIfEmpty } from '@/lib/interview/draft-store';
 import { grantVoiceCaptureConsentAction } from '@/app/interview/actions';
@@ -197,7 +199,7 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
           if (res.status === 403 && j?.error === 'consent_required') {
             setVoiceCaptureConsented(false); setVoiceConsentPrompt(true);
           } else {
-            const msg = j?.message ?? '语音转写失败，请改用文字作答';                    // 503 asr_unavailable / 502 asr_failed
+            const msg = '语音转写失败，请改用文字作答';                                    // 503 asr_unavailable / 502 asr_failed（G4 #59 收编:撤 message 死读数——错误体={error:code}无 message 字段,裸读恒 undefined 恒落兜底;固定文案逐字兜底,零行为变化）
             setVoiceErr(msg); toast.error(msg);                                          // 显式反馈:不静默吞掉这一答
           }
         } else {
@@ -249,7 +251,12 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({} as any));
-        toast.error(j?.message ?? '提交失败,请重试');                 // 显式反馈,绝不静默失败
+        // G4 #59:错误体={error: code}无 message 字段——撤裸透传读数(生产面恒 undefined 恒落泛化,401 无引导/409 无出路);
+        // 分码映射 turnSubmitFeedback(401 登录/409 回列表/410 围栏/503/兜底)——action 判定在纯函数,跳转在组件薄执行。
+        const fb = turnSubmitFeedback(res.status, typeof j?.error === 'string' ? j.error : null);
+        toast.error(fb.text);                                          // 显式反馈,绝不静默失败
+        if (fb.action === 'login') router.push('/login?expired=1');    // 401:跳登录(沿 lib/api/server.ts:30 同参形)
+        else if (fb.action === 'back_to_interviews') router.push('/interviews');   // 409 已结束/410 围栏:回列表出路
         setAnswers((m) => { const n = { ...m }; delete n[lastIdx]; return n; });   // 回滚回显
         clearSubmitBridge();                                          // 回到作答态,保留输入框内容
         return;
