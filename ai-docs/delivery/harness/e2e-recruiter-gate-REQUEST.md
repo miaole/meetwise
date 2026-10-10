@@ -1,6 +1,6 @@
 # E2E-RECRUITER-GATE — B110 处方2 后继刀（审批面升 e2e 级活契约 · EXEC REQUEST）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（本 REQUEST 只送审 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 自动开工 · 须 meetwise 明示授权才进 EXEC）
+**Status**: **`draft:awaiting_pre_exec_dual`**（本 REQUEST 只送审 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 自动开工 · 须 meetwise 明示授权才进 EXEC） → **executed:awaiting_post_prove_dual（EXEC 已行使：rebase `feat/mysql-schema-skeleton`@`9000f02e` 干净重放 2/2 零冲突 · C1-C3 落位（run-e2e.mjs seedAdmin/E2E_ADMIN_TOKEN · auth.ts adminHeaders fail-closed + proof 两 test · full.e2e.ts 两处审批步+三步活契约·既有断言零删改）· 零模型两档 typecheck EXIT=0 + e2e-helpers:prove 28/28 EXIT=0 一次过 · §4-3 e2e:isolated 冻结待协调方排程（live 授权跑不解冻）· 收据 `ai-docs/delivery/receipts/e2e-recruiter-gate/e2e-recruiter-gate-exec.md` · markers=0 · est live=0 · alone≠dual）**
 **Date**: 2026-10-10
 **Base**: `feat/mysql-schema-skeleton` @`1ae677b8`（主线 tip 亲证 `git log --oneline -1`） · 分支 `line/e2e-recruiter-gate`（工作树 `/Users/miaole/Desktop/golucky/meetwise-e2rg`，`git worktree add` 亲建）
 **蓝本**: `ai-docs/delivery/harness/b110-REQUEST.md` post-dual 席1 FAIL 处置 **处方2 登记行 `:177`**（后继刀 E2E-RECRUITER-GATE 三要件：隔离 runner bootstrap 播 admin 身份 · full.e2e.ts 注册后各加 `POST /admin/recruiter-approvals/{uid}/decision`（approve·recruiter2 须在 RLS 断言前过门）· 审批面升 e2e 级活契约 pending→403 分码→approve→200）+ 处方1 冻结条款 `:176`（e2e:isolated live 授权跑冻结直至处方2 落地）。**唯一蓝本，逐条忠实，禁自由发挥。**
