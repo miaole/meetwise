@@ -37,8 +37,8 @@ export type { CheckpointThreadEnrollment } from './checkpoint/checkpoint-thread.
 export { revokeCheckpointThread, assertInterviewPrivacyActive, isInterviewPrivacyActive, beginCheckpointErasure, listClaimableCheckpointErasureTargets, claimCheckpointErasureTarget, purgeCheckpointErasureTarget } from './checkpoint/checkpoint-privacy.ts';
 export type { CheckpointErasureRequest, ClaimedCheckpointErasureTarget } from './checkpoint/checkpoint-privacy.ts';
 // 隐私删除授权签发器（INT-TRANSCRIPT-00 账本：单次 jti CAS 消费 + 受约束 claim + 逐 sink receipt）
-export { issueAuthorizationSnapshot, consumeAuthorizationSnapshot, consumeAuthorizationSnapshotBound, claimAuthorizationTarget, recordDeletionReceipt, resolveDeletionReceipt } from './privacy-authorization.ts';
-export type { IssueAuthorizationSnapshotInput, IssuedAuthorizationSnapshot, ConsumedAuthorizationSnapshot, ClaimedAuthorizationTarget, ResolvedDeletionReceipt } from './privacy-authorization.ts';
+export { issueAuthorizationSnapshot, consumeAuthorizationSnapshot, consumeAuthorizationSnapshotBound, claimAuthorizationTarget, recordDeletionReceipt, resolveDeletionReceipt } from './privacy/privacy-authorization.ts';
+export type { IssueAuthorizationSnapshotInput, IssuedAuthorizationSnapshot, ConsumedAuthorizationSnapshot, ClaimedAuthorizationTarget, ResolvedDeletionReceipt } from './privacy/privacy-authorization.ts';
 export { gatewayDispatchOwners, gatewayModelInvocationOwners, gatewayUsageCalibrationOwners, gatewayJobGauges, gatewayCostBudgetSnapshot } from './jobs/gateway-dispatch.ts';
 export type { GatewayDispatchWork, GatewayJobGauge, GatewayCostBudgetSnapshot } from './jobs/gateway-dispatch.ts';
 
@@ -551,8 +551,8 @@ export type {
 // 0129：预览版删除路径（request → sink 盘点 → 回执），不宣称生产 SLO。
 export {
   beginPrivacyPreviewErasure, getPrivacyPreviewReceipt, listPrivacyPreviewReceipts,
-} from './privacy-erasure-preview.ts';
-export type { PrivacyPreviewListRow } from './privacy-erasure-preview.ts';
+} from './privacy/privacy-erasure-preview.ts';
+export type { PrivacyPreviewListRow } from './privacy/privacy-erasure-preview.ts';
 export * from './uc052-internal-erasure.ts';
 export * from './uc052-external-sink-async-purge.ts';
 
@@ -562,7 +562,7 @@ export * from './uc052-external-sink-async-purge.ts';
 export {
   listClaimableVectorChunkTargets, resolveVectorChunkTargetConsumedJti,
   recordVectorPlaneLocalErasedReceipt, runVectorPlaneErasureTick,
-} from './vector-plane-erasure.ts';
+} from './privacy/vector-plane-erasure.ts';
 export type {
   VectorChunkErasureFeedItem, VectorPlaneErasureTickDeps, VectorPlaneErasureTickResult,
-} from './vector-plane-erasure.ts';
+} from './privacy/vector-plane-erasure.ts';

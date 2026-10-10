@@ -23,7 +23,7 @@ import {
 } from '../src/transcript/int-transcript-projection.ts';
 import {
   issueAuthorizationSnapshot, consumeAuthorizationSnapshotBound, claimAuthorizationTarget,
-} from '../src/privacy-authorization.ts';
+} from '../src/privacy/privacy-authorization.ts';
 
 const REQUIRED_CASES = [
   'NHP-050-FAULT-01',

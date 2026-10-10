@@ -24,7 +24,7 @@ import {
   reassessRequestStatus, attachExternalRetentionPendingTargets, type Uc052ErasureTarget,
 } from '../src/uc052-internal-erasure.ts';
 import { beginInterviewProjectionErasure } from '../src/transcript/int-transcript-projection.ts';
-import { recordDeletionReceipt, resolveDeletionReceipt } from '../src/privacy-authorization.ts';
+import { recordDeletionReceipt, resolveDeletionReceipt } from '../src/privacy/privacy-authorization.ts';
 import {
   EXTERNAL_ASYNC_PURGE_SINKS, EVIDENCE_CLASS_BY_SINK, ENVIRONMENT_CLASS,
   createLocalStubVendorSurface, runExternalSinkAsyncPurgeConfirm,

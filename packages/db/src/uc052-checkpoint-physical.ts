@@ -14,7 +14,7 @@ import {
   consumeAuthorizationSnapshotBound,
   issueAuthorizationSnapshot,
   recordDeletionReceipt,
-} from './privacy-authorization.ts';
+} from './privacy/privacy-authorization.ts';
 import {
   beginCheckpointErasure,
   purgeCheckpointErasureTarget,
