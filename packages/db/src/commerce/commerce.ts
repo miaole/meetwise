@@ -11,6 +11,12 @@
  *  ⑥ owner 必须等于已绑定 principal（防把 owner 当可信入参绕 RLS 的脚枪）
  *
  * 死锁自由：reserve 按 (expires_at ASC, id ASC) 全序锁桶；confirm/release 按 reserve 写入的 allocations 顺序（同升序）→ 单调一致。
+ *
+ * B271 片2 扣费路由（0157·D-1 裁决=形状甲）：consumption 行 owner=会话主体（RLS 语境零改）+ payer_user_id=
+ * 招聘方（NULL=C 端本人·零触）。payer 非空的行的预留走 gateway_entpay_reserve（SECURITY DEFINER·
+ * 跨 RLS 写招聘方企业桶），其 allocation 结算/释放/回收走 gateway_entpay_apply_allocation（作用域守卫：
+ * 调用方名下消费行 allocations 所列桶）——RLS 下 owner 会话不可直写 payer 桶，直写必 0 行=静默泄漏，
+ * 故 B 端行必须路由。C 端行（payer NULL）路径逐字节零改。
  */
 import type { PoolClient as Client } from 'pg';   // 直接取 pg 类型,不从 ./index 桶引（否则 index↔commerce 成环）
 
@@ -86,6 +92,70 @@ export async function reserveEntitlement(
   return { status: 'reserved', consumptionId, allocations };
 }
 
+export type EntpayReserveResult =
+  | { status: 'reserved'; consumptionId: string; allocations: Allocation[] }
+  | { status: 'duplicate'; consumptionId: string; existingStatus: string };
+
+/** 岗位面试企业路由预留（B271 片2·S2-C1/C2·0157 gateway_entpay_reserve 同形包装）。
+ *  consumption 行 owner=当前 principal（候选人）·payer=job_application.recruiter_user_id（函数内单跳派生，
+ *  授权链=0155 审核制+0005:23 投递时刻固化）；FIFO 预留招聘方企业桶。不足抛 insufficient_entitlement
+ *  （P0001·与 reserveEntitlement 同码·外层事务整体回滚零悬账=0-c④ 判据）。幂等键 (owner,key) uq 背书
+ *  同 attempt 网络重放收敛单行（S2-C5·0-c②）。C 端路径（application_id IS NULL）Ban 触零改（S2-C2）。 */
+export async function reserveEntitlementForApplication(
+  c: Client, owner: string, applicationId: string, idempotencyKey: string, serviceType: string, units: number,
+  leaseSeconds: number = DEFAULT_LEASE_SECONDS,
+): Promise<EntpayReserveResult> {
+  await assertPrincipal(c, owner);
+  if (units < MIN_UNIT) throw Object.assign(new Error('unit_below_minimum'), { code: 'unit_below_minimum', min: MIN_UNIT });
+  if (typeof idempotencyKey !== 'string' || idempotencyKey.length === 0) {
+    throw Object.assign(new Error('idempotency_key_required'), { code: 'idempotency_key_required' });
+  }
+  let r;
+  try {
+    r = await c.query(
+      `SELECT gateway_entpay_reserve($1,$2,$3,$4,$5) AS r`,
+      [applicationId, idempotencyKey, serviceType, units, String(leaseSeconds)]);
+  } catch (e: unknown) {
+    // 0157 函数内 RAISE 的 JS 面归一化：pg 错误 .code=SQLSTATE('P0001')，而调用方（beginInterviewCore
+    // catch→分码映射·C 端 402 面）按 errCode(e)==='insufficient_entitlement' 判——此处统一 rethrow 成与
+    // reserveEntitlement 同形 JS 错误（code=message='insufficient_entitlement'），两路径一判据。
+    if ((e as { message?: string })?.message === 'insufficient_entitlement') {
+      throw Object.assign(new Error('insufficient_entitlement'), { code: 'insufficient_entitlement' });
+    }
+    throw e;
+  }
+  const out = String(r.rows[0]?.r ?? '');
+  const sep = out.indexOf(':');
+  const kind = sep > 0 ? out.slice(0, sep) : '';
+  const consumptionId = sep > 0 ? out.slice(sep + 1) : '';
+  if (kind === 'reserved' && consumptionId) {
+    // allocations 读回（owner 会话可见自己的消费行·形状甲 RLS 正确行为）
+    const row = await c.query('SELECT status, allocations FROM entitlement_consumption WHERE id=$1', [consumptionId]);
+    return { status: 'reserved', consumptionId, allocations: (row.rows[0]?.allocations ?? []) as Allocation[] };
+  }
+  if (kind === 'duplicate') {
+    const ex = await c.query('SELECT id, status FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2', [owner, idempotencyKey]);
+    return { status: 'duplicate', consumptionId: ex.rows[0]?.id ?? consumptionId, existingStatus: ex.rows[0]?.status ?? '' };
+  }
+  throw Object.assign(new Error('entpay_reserve_unexpected_result'), { code: 'entpay_reserve_unexpected_result', result: out });
+}
+
+/** B 端路由的 allocation 桶增量应用（0157 gateway_entpay_apply_allocation·作用域守卫 fail-closed）。
+ *  桶缺失/作用域外 → 具名 RETHROW 为调用方既有 rowcount 码（⑤不静默语义与 C 端直写路径逐字同面）。 */
+async function applyAllocationDelta(
+  c: Client, idempotencyKey: string, a: Allocation, reservedDelta: number, consumedDelta: number, failCode: string,
+): Promise<void> {
+  try {
+    await c.query('SELECT gateway_entpay_apply_allocation($1,$2,$3::numeric,$4::numeric)', [idempotencyKey, a.bucket_id, reservedDelta, consumedDelta]);
+  } catch (e: unknown) {
+    const code = (e as { message?: string })?.message ?? '';
+    if (code === 'entpay_apply_bucket_missing' || code === 'entpay_apply_scope_rejected' || code === 'entpay_apply_principal_missing') {
+      throw Object.assign(new Error(failCode), { code: failCode, bucket: a.bucket_id });
+    }
+    throw e;
+  }
+}
+
 export type ConfirmResult =
   | { status: 'confirmed' | 'partial_confirmed'; unitsSettled: number }
   | { status: 'noop'; finalStatus: string }
@@ -99,7 +169,7 @@ export async function confirmConsumption(
   await assertPrincipal(c, owner);
   if (ratio <= 0 || ratio > 1) return { status: 'error', reason: 'ratio_out_of_range' };
   const row = await c.query(
-    'SELECT id, status, units_requested, allocations FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2 FOR UPDATE',
+    'SELECT id, status, units_requested, allocations, payer_user_id FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2 FOR UPDATE',
     [owner, idempotencyKey]);
   if (row.rowCount === 0) return { status: 'error', reason: 'not_found' };
   const r = row.rows[0];
@@ -113,15 +183,22 @@ export async function confirmConsumption(
   const allocations: Allocation[] = r.allocations;
   // ④ 大余数法：前 n-1 桶按比例舍入,最后一桶吸收差额 → Σconsume 严格 === settled,不漏分不重分
   let distributed = 0;
+  // B271 片2：payer 非空=企业路由行（0157）→ 桶增量经受控 DEFINER（owner 会话不可直写招聘方桶）；
+  // payer NULL=C 端本人行 → 直写路径逐字节零改。
+  const payerRouted = (r as { payer_user_id?: string | null }).payer_user_id != null;
   for (let i = 0; i < allocations.length; i++) {
     const a = allocations[i];
     if (!a) throw Object.assign(new Error('confirm_allocation_missing'), { code: 'confirm_allocation_missing', index: i });
     const consume = i < allocations.length - 1 ? r2(a.units * ratio) : r2(settled - distributed);
     distributed = r2(distributed + consume);
-    const upd = await c.query(
-      'UPDATE entitlement_bucket SET units_reserved = units_reserved - $2, units_consumed = units_consumed + $3, version = version + 1 WHERE id=$1',
-      [a.bucket_id, a.units, consume]);
-    if (upd.rowCount !== 1) throw Object.assign(new Error('confirm_bucket_rowcount'), { code: 'confirm_bucket_rowcount', bucket: a.bucket_id }); // ⑤ 不静默
+    if (payerRouted) {
+      await applyAllocationDelta(c, idempotencyKey, a, -a.units, consume, 'confirm_bucket_rowcount');
+    } else {
+      const upd = await c.query(
+        'UPDATE entitlement_bucket SET units_reserved = units_reserved - $2, units_consumed = units_consumed + $3, version = version + 1 WHERE id=$1',
+        [a.bucket_id, a.units, consume]);
+      if (upd.rowCount !== 1) throw Object.assign(new Error('confirm_bucket_rowcount'), { code: 'confirm_bucket_rowcount', bucket: a.bucket_id }); // ⑤ 不静默
+    }
   }
   const finalStatus = ratio >= 1 ? 'confirmed' : 'partial_confirmed';
   await c.query('UPDATE entitlement_consumption SET status=$2, units_settled=$3 WHERE id=$1', [r.id, finalStatus, settled]);
@@ -138,15 +215,20 @@ export type ReleaseResult = { status: 'released' | 'noop'; } | { status: 'error'
 export async function releaseConsumption(c: Client, owner: string, idempotencyKey: string): Promise<ReleaseResult> {
   await assertPrincipal(c, owner);
   const row = await c.query(
-    'SELECT id, status, allocations FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2 FOR UPDATE',
+    'SELECT id, status, allocations, payer_user_id FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2 FOR UPDATE',
     [owner, idempotencyKey]);
   if (row.rowCount === 0) return { status: 'error', reason: 'not_found' };
   const r = row.rows[0];
   if (r.status === 'released') return { status: 'noop' };
   if (r.status === 'confirmed' || r.status === 'partial_confirmed') return { status: 'error', reason: 'already_confirmed' };
+  const payerRouted = (r as { payer_user_id?: string | null }).payer_user_id != null;
   for (const a of (r.allocations as Allocation[])) {
-    const upd = await c.query('UPDATE entitlement_bucket SET units_reserved = units_reserved - $2, version = version + 1 WHERE id=$1', [a.bucket_id, a.units]);
-    if (upd.rowCount !== 1) throw Object.assign(new Error('release_bucket_rowcount'), { code: 'release_bucket_rowcount', bucket: a.bucket_id }); // ⑤ 不静默
+    if (payerRouted) {
+      await applyAllocationDelta(c, idempotencyKey, a, -a.units, 0, 'release_bucket_rowcount');
+    } else {
+      const upd = await c.query('UPDATE entitlement_bucket SET units_reserved = units_reserved - $2, version = version + 1 WHERE id=$1', [a.bucket_id, a.units]);
+      if (upd.rowCount !== 1) throw Object.assign(new Error('release_bucket_rowcount'), { code: 'release_bucket_rowcount', bucket: a.bucket_id }); // ⑤ 不静默
+    }
   }
   await c.query("UPDATE entitlement_consumption SET status='released' WHERE id=$1", [r.id]);
   return { status: 'released' };
@@ -343,12 +425,17 @@ export async function sweepExpiredReservations(c: Client, owner: string): Promis
   const swept = await c.query(
     `UPDATE entitlement_consumption SET status='released'
        WHERE owner_user_id=$1 AND status='reserved' AND lease_expires_at < now()
-       RETURNING id, idempotency_key, service_type, allocations`, [owner]);
+       RETURNING id, idempotency_key, service_type, allocations, payer_user_id`, [owner]);
   const reclaimed: SweptReservation[] = [];
   for (const row of swept.rows) {
+    const payerRouted = (row as { payer_user_id?: string | null }).payer_user_id != null;
     for (const a of (row.allocations as Allocation[])) {
-      const upd = await c.query('UPDATE entitlement_bucket SET units_reserved = units_reserved - $2, version = version + 1 WHERE id=$1', [a.bucket_id, a.units]);
-      if (upd.rowCount !== 1) throw Object.assign(new Error('release_bucket_rowcount'), { code: 'release_bucket_rowcount', bucket: a.bucket_id });
+      if (payerRouted) {
+        await applyAllocationDelta(c, row.idempotency_key, a, -a.units, 0, 'release_bucket_rowcount');
+      } else {
+        const upd = await c.query('UPDATE entitlement_bucket SET units_reserved = units_reserved - $2, version = version + 1 WHERE id=$1', [a.bucket_id, a.units]);
+        if (upd.rowCount !== 1) throw Object.assign(new Error('release_bucket_rowcount'), { code: 'release_bucket_rowcount', bucket: a.bucket_id });
+      }
     }
     reclaimed.push({ consumptionId: row.id, idempotencyKey: row.idempotency_key, serviceType: row.service_type });
   }

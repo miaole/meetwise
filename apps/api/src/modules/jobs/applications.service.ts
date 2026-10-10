@@ -3,6 +3,12 @@ import { listMyApplications, finalizeApplication, startApplicationInterview, dec
 import type { StartApplicationDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
 import { assertPublicPreviewWritesClosed, PublicPreviewReadOnlyError } from '../../platform/public-preview';
+import { beginInterviewCore } from '../interview/interview.service';
+
+/** S2-C4 拒因分码（修法③）：候选人稳定面=application_enterprise_pay_unavailable；企业侧原始子码
+ *  enterprise_insufficient_balance 由 beginInterviewCore 抛出（招聘方面 API 分码·卡片触面归片3）。 */
+const ENTERPRISE_PAY_UNAVAILABLE = 'application_enterprise_pay_unavailable' as const;
+const ENTERPRISE_PAY_UNAVAILABLE_MESSAGE = '该岗位面试暂不可用，请联系招聘方';
 
 /**
  * 候选人(C 端)申请应用服务。RLS:候选人只见/只改自己的申请(p_party_read + p_candidate_update)。
@@ -35,10 +41,28 @@ export class ApplicationsService {
     }
   }
 
-  async start(principal: string, appId: string, dto: StartApplicationDto) {
+  async start(principal: string, appId: string, dto: StartApplicationDto, requestId?: string) {
     this.denyPublicPreviewWrite();
     const owner = requireOwnerUserId(principal, 'applications.start');   // PRIV01-C 第二层 E1
-    const r = await this.db.asPrincipal(owner, (c) => startApplicationInterview(c, owner, appId, dto.resumeId));
+    // B271 片2 S2-C4（修法⑤·#227 缺陷收口）：start+begin 服务端动作合一——企业预留与申请状态迁移
+    // 同一事务（同一 asPrincipal 事务：startApplicationInterview 的 INSERT/CAS 与 beginInterviewCore 的
+    // 预留/入队原子提交或整体回滚）。企业额度不足 ⇒ 预留抛 → 整事务回滚 ⇒ 不产生 in_progress 空申请
+    // （recruiter.ts CAS 落库零触）；候选人分码 application_enterprise_pay_unavailable（402·非候选人
+    // 个人额度语义·Ban 条款-5）。reused 复用路（recruiter.ts:373-387）同样走 begin 核心：已 begun 幂等
+    // 短路零重扣；未 begun 则预留——零余额同拒（rev2-R8）。
+    const r = await this.db.asPrincipal(owner, async (c) => {
+      const started = await startApplicationInterview(c, owner, appId, dto.resumeId);
+      if (started.status !== 'started' && started.status !== 'reused') return started;
+      try {
+        await beginInterviewCore(c, owner, started.interviewId, dto.resumeId, requestId);
+      } catch (e: unknown) {
+        if (e instanceof HttpException && (e.getResponse() as { error?: string })?.error === 'enterprise_insufficient_balance') {
+          throw new HttpException({ error: ENTERPRISE_PAY_UNAVAILABLE, message: ENTERPRISE_PAY_UNAVAILABLE_MESSAGE }, HttpStatus.PAYMENT_REQUIRED);
+        }
+        throw e;
+      }
+      return started;
+    });
     if (r.status === 'resume_not_ready')
       throw new HttpException({ error: 'resume_not_ready', message: '请选择一份已完成解析的本人简历' }, HttpStatus.CONFLICT);
     if (r.status === 'binding_invalid')

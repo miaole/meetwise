@@ -1,3 +1,5 @@
+import { APPLICATION_START_REDIRECT_ERRORS } from '../jobs/application-start-error';
+
 /**
  * actionErrorMessage —— #250/#251/#224 错误文案映射刀（蓝本=errmsg-map-REQUEST.md @2e942ace rev2）。
  * 纯字符串面、零依赖（沿 lib/jobs/application-start-error.ts 同型先例）：server action 与 RSC 页面共用，
@@ -69,6 +71,9 @@ const DIAGNOSIS_BEGIN_DEFENSIVE_CODES: ReadonlySet<string> = new Set([
   'diagnosis_resume_reference_conflict',
 ]);
 
+// ── jobs 页域专属行（B271 片2 S2-C6）：企业支付不可用分码·稳定文案单源=lib/jobs/application-start-error.ts ──
+const JOBS_ENTERPRISE_PAY_UNAVAILABLE_TEXT = APPLICATION_START_REDIRECT_ERRORS['application_enterprise_pay_unavailable'];
+
 /** 映射表逐码（§1③ 全文）：页域化 `actionErrorMessage(page, status, code)`。未知码→null（不渲染空壳）。 */
 export function actionErrorMessage(page: ActionErrorPage, status: number, code: string | null): ActionErrorMessage | null {
   if (code !== null && CREDITS_402_CODES.has(code)) {
@@ -90,7 +95,10 @@ export function actionErrorMessage(page: ActionErrorPage, status: number, code: 
     ) {
       return { text: CREATE_FAILED_TEXT[page] };
     }
-  } // jobs：无专属行（redirect 通道只写 402 家族，#224 渲染面即 402 行）
+  } else if (page === 'jobs') {
+    // B271 片2 S2-C6：企业支付不可用（候选人稳定拒因·修法③文案）；费用文案（修法⑥）归片3。
+    if (code === 'application_enterprise_pay_unavailable') return { text: JOBS_ENTERPRISE_PAY_UNAVAILABLE_TEXT };
+  } // jobs 其余：无专属行（redirect 通道只写 402 家族，#224 渲染面即 402 行）
   if (code === 'public_preview_read_only' || status === 503) return { text: SERVICE_UNAVAILABLE_TEXT }; // 503 行（全局·含「及其余 503」）
   return null;                                                                    // 未知码：无渲染面
 }

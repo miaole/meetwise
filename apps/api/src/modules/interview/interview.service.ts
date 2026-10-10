@@ -1,6 +1,6 @@
 import { Injectable, Inject, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { assertInterviewPrivacyActive, reserveEntitlement, enqueueInterviewJob, abandonInterviewAndRelease, claimInterviewAnswer, submitInterviewAnswer, readbackInterviewAnswerSubmission, viewInterviewAnswerSnapshot, supplyCandidateProfileRoute, requireOwnerUserId, buildRequiredOwnerFilter, newEntityId, asErr, errCode, createScoreRequestForSubmission, SCORING_ISSUE_PRIVACY_EPOCH } from '@meetwise/db';
+import { assertInterviewPrivacyActive, reserveEntitlement, reserveEntitlementForApplication, enqueueInterviewJob, abandonInterviewAndRelease, claimInterviewAnswer, submitInterviewAnswer, readbackInterviewAnswerSubmission, viewInterviewAnswerSnapshot, supplyCandidateProfileRoute, requireOwnerUserId, buildRequiredOwnerFilter, newEntityId, asErr, errCode, createScoreRequestForSubmission, SCORING_ISSUE_PRIVACY_EPOCH } from '@meetwise/db';
 import { deriveCareerPath, requireTrustedPracticeOverall, resolveOverlongAnswerPolicy } from '@meetwise/domain';
 import { runCareerPathGraph, selectCareerPathDerive, CAREER_PATH_GRAPH_NAME } from '@meetwise/ai-graphs';
 import type { InterviewAnswerPreviewSubmitDto, InterviewAnswerSubmitResult, TranscribeDto, TurnDto } from '@meetwise/contracts';
@@ -53,6 +53,198 @@ function careerPathFailSeamThreadId(): string | undefined {
 export const VOICE_ASR = Symbol.for('meetwise.VOICE_ASR');
 export const VOICE_TTS = Symbol.for('meetwise.VOICE_TTS');
 export const VOICE_STREAM_TTS = Symbol.for('meetwise.VOICE_STREAM_TTS');
+
+/** 面试隐私围栏事务内守卫（原 InterviewService.guardInterviewPrivacy 方法体·模块化抽取供 beginInterviewCore 同事务复用·语义逐字等价）。 */
+export async function guardInterviewPrivacyTx(c: any, id: string): Promise<void> {
+  const owned = await c.query('SELECT 1 FROM interview WHERE id=$1', [id]);
+  if (owned.rowCount === 0)
+    throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+  try {
+    await assertInterviewPrivacyActive(c, id);
+  } catch (error) {
+    if (asErr(error)?.message === 'interview_privacy_fenced')
+      throw new HttpException({ error: 'interview_privacy_fenced' }, HttpStatus.GONE);
+    throw error;
+  }
+}
+
+/**
+ * begin 语义核心（B271 片2 S2-C2/C4 模块化抽取·原 InterviewService.begin() asPrincipal 事务体逐字搬移）：
+ * 在**给定事务客户端**上执行完整 begin 守卫链+扣额路由+入队——begin() 端点（C 端练习·原路径）与
+ * applications.start 合一事务（S2-C4 修法⑤·start+begin 同一事务·#227 缺陷收口）共用本函数。
+ * 扣额路由（S2-C2）：interview.application_id 非空 ⇒ reserveEntitlementForApplication（0157 企业路由·
+ * payer=job_application.recruiter_user_id 单跳派生·候选人桶零触）；IS NULL ⇒ reserveEntitlement 原路径
+ * 逐字节零改（C 端五调用点同构·Ban 触）。企业不足 ⇒ 409 enterprise_insufficient_balance（Ban 条款-5：
+ * 企业不足任何路径不映射候选人 402）；C 端本人不足 ⇒ 402 insufficient_entitlement（原 402 映射零改）。
+ */
+export async function beginInterviewCore(
+  c: any, owner: string, id: string, resumeId: string,
+  requestId?: string, sourceQuizId?: string, targetRole?: string,
+): Promise<{ accepted: boolean; jobId?: string; alreadyBegun?: boolean }> {
+  if (!resumeId) throw new HttpException({ error: 'missing_resume_id' }, HttpStatus.BAD_REQUEST);
+  if (!UUID_RE.test(resumeId)) throw new HttpException({ error: 'invalid_resume_id' }, HttpStatus.BAD_REQUEST);
+  // #259 用户显式目标岗位:归一化 trim/限长 100/空串→undefined(诊断链 diagnosis.service 同形制,
+  // 限长防滥用)。仅作 job payload 安全标量传输(不入表列/图 state/SSE);undefined → payload 零新键,
+  // 与现状逐字节一致。幂等:alreadyBegun 既有 job 原样短路不改写(下方 existing 分支零改,首场 role 生效)。
+  const targetRoleNormalized = (targetRole ?? '').trim().slice(0, 100) || undefined;
+  // PRIV01-C 应用层 tenant 强制第二层:E1 入口显式 owner + E2 必选谓词绑定——授权根仍为 RLS(应用层 tenant ≠ RLS)。
+  const quizScope = buildRequiredOwnerFilter(owner, 'interview.begin.quizScope');
+  const bindScope = buildRequiredOwnerFilter(owner, 'interview.begin.bind');
+  // **并发竞态安全**:事务级 advisory 锁串行化同面试的并发 begin(对齐 invoke 关口)——否则两并发都过 check-then-act = 双开。
+  await c.query('SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))', ['begin', id]);
+  const cur = await c.query('SELECT status,resume_id,resume_privacy_epoch,application_id FROM interview WHERE id=$1 FOR UPDATE', [id]);
+  if (cur.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+  await guardInterviewPrivacyTx(c, id);
+  // **状态机守卫(此前 begin 一个守卫都没有 → 可复活终态面试 + 白扣额度,负测 BUG-PROBE 抓到)**:
+  //   终态(completed/failed/abandoned)绝不可再 begin(不可复活、不可二次扣额)。
+  if (TERMINAL_INTERVIEW.includes(cur.rows[0].status))
+    throw new HttpException({ error: 'interview_not_active', status: cur.rows[0].status }, HttpStatus.CONFLICT);
+
+    // GODFN-1c 三守卫合并(纯机械语义等价):源押题工件三刀守卫块(NEG stale_quiz / FAULT missing_quiz_expiry /
+    // BOUND resume_version_mismatch)原各自 SELECT resume_quiz(前两刀 SQL 字节级重复)→ 归一为**单查**
+    // (status+expires_at+pin JOIN 一查询回);抛序逐字节保持现行精确顺序:
+    //   404 not_found_or_forbidden → stale_quiz(NEG;C-1 窄保留:expires_at NULL≠过期) → missing_quiz_expiry(FAULT;NULL
+    //   独立错误码) → missing_quiz_expiry(NaN fold) → resume_version_mismatch(BOUND;pin NULL 旧工件不假拒)。
+    // 每刀都发生在**任何简历绑定写、扣额度(reserveEntitlement)与入队(enqueueInterviewJob)之前**,无局部 catch 吞
+    // (下方唯一 catch 只映射 insufficient_entitlement 且原样重抛),经 Nest 异常层映射为真实 HTTP 状态。
+    // 不带 sourceQuizId → 完全跳过本块,行为与合并前一致(rag C-6);resume_quiz 查询次数 3→1
+    // (断言面:prove:begin-guard-merge 抛序等价+计数断言)。
+    if (sourceQuizId) {
+      const quiz = await c.query(
+        `SELECT q.status, q.expires_at,
+                q.resume_id::text AS pinned_resume_id,
+                q.privacy_epoch AS pinned_epoch,
+                r.privacy_epoch AS current_epoch
+           FROM resume_quiz q
+           LEFT JOIN resume r ON r.id=q.resume_id AND r.owner_user_id=q.owner_user_id
+          WHERE q.id=$1 AND q.owner_user_id=$2`,
+        [sourceQuizId, quizScope.value],
+      );
+      if (quiz.rowCount === 0)
+        throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+      // NEG stale_quiz:owner-scoped 真消费工件,stale/未 ready → 在扣额度与入队之前抛真 409。
+      // expires_at 为 NULL 不得当 stale_quiz 过期拒(C-1 窄保留:NULL≠stale);非法/NaN 日期由下方 FAULT 同口 fail-closed。
+      const quizExpired = quiz.rows[0].expires_at != null
+        && new Date(quiz.rows[0].expires_at).getTime() <= Date.now();
+      if (quiz.rows[0].status !== 'ready' || quizExpired)
+        throw new HttpException({ error: 'stale_quiz' }, HttpStatus.CONFLICT);
+      // FAULT missing_quiz_expiry:missing/NULL expires_at fail-closed(独立错误码;NULL 仍不得抛 stale_quiz)。
+      const rawExpiry = quiz.rows[0].expires_at;
+      if (rawExpiry == null)
+        throw new HttpException({ error: 'missing_quiz_expiry' }, HttpStatus.CONFLICT);
+      const expiryMs = new Date(rawExpiry as string | Date).getTime();
+      if (Number.isNaN(expiryMs))
+        throw new HttpException({ error: 'missing_quiz_expiry' }, HttpStatus.CONFLICT);
+      // BOUND resumeVersion pin 失配:0061 typed 引用钉死 (resume_id, privacy_epoch)=工件 pin。本次 resume-id ≠ pin 的
+      // resume_id(简历变更后拿旧押题开面),或 pin 的 privacy_epoch ≠ 该简历当前世代 → 409。pin 为 NULL(0061 前
+      // 旧工件/无 typed 引用)不得当失配拒(NULL pin 旧工件不假拒)。
+      const pinnedResumeId = quiz.rows[0].pinned_resume_id as string | null | undefined;
+      if (pinnedResumeId != null) {
+        const pinnedEpoch = quiz.rows[0].pinned_epoch == null ? null : Number(quiz.rows[0].pinned_epoch);
+        const currentEpoch = quiz.rows[0].current_epoch == null ? null : Number(quiz.rows[0].current_epoch);
+        const resumeVersionMismatch = pinnedResumeId.toLowerCase() !== resumeId.toLowerCase()
+          || pinnedEpoch === null || currentEpoch === null || pinnedEpoch !== currentEpoch;
+        if (resumeVersionMismatch)
+          throw new HttpException({ error: 'resume_version_mismatch' }, HttpStatus.CONFLICT);
+      }
+    }
+
+    // A new C-side start must bind its source in a typed, owner-checked
+    // column before any quota reservation or queue write.  B-side sessions
+    // already carry an immutable resume_id from application creation and
+    // must match it rather than being rebound through this generic endpoint.
+    const existingResumeId = cur.rows[0].resume_id as string | null;
+    const existingResumeEpoch = cur.rows[0].resume_privacy_epoch == null
+      ? null
+      : Number(cur.rows[0].resume_privacy_epoch);
+    if (existingResumeId && existingResumeId !== resumeId)
+      throw new HttpException({ error: 'interview_resume_binding_conflict' }, HttpStatus.CONFLICT);
+    // A pre-v64 parent has no immutable authorization snapshot.  Do not
+    // infer one from the current resume row: its existing unique start-job
+    // key prevents a safe replacement and a guessed upgrade could revive a
+    // stale task after a future privacy fence.
+    if (existingResumeId && existingResumeEpoch === null)
+      throw new HttpException({ error: 'legacy_resume_reference_unavailable' }, HttpStatus.CONFLICT);
+    if (!existingResumeId) {
+      const bound = await c.query(
+        `UPDATE interview i
+            SET resume_id=r.id,
+                resume_privacy_epoch=r.privacy_epoch,
+                version=i.version+1
+           FROM resume r
+          WHERE i.id=$1
+            AND i.owner_user_id=$2
+            AND i.application_id IS NULL
+            AND i.resume_id IS NULL
+            AND i.resume_privacy_epoch IS NULL
+            AND i.status='created'
+            AND r.id=$3
+            AND r.owner_user_id=$2
+            AND r.status='ingested'`,
+        [id, bindScope.value, resumeId],
+      );
+      if (bound.rowCount !== 1)
+        throw new HttpException({ error: 'interview_resume_binding_unavailable' }, HttpStatus.CONFLICT);
+    }
+    // 幂等:已有 start job(重复 begin/网络重试)→ 不再扣额度、不再入队(否则双扣 + 双出题双花模型)
+    const existing = await c.query(
+      `SELECT j.id
+         FROM interview_job j
+         JOIN interview i ON i.id=j.interview_id AND i.owner_user_id=j.owner_user_id
+         JOIN resume r ON r.id=i.resume_id AND r.owner_user_id=i.owner_user_id
+        WHERE j.interview_id=$1
+          AND j.kind='start'
+          AND j.reference_schema_version=64
+          AND j.resume_id=i.resume_id
+          AND j.resume_privacy_epoch=i.resume_privacy_epoch
+          AND r.status='ingested'
+          AND r.privacy_epoch=i.resume_privacy_epoch`, [id],
+    );
+    if (existing.rowCount! > 0) return { accepted: true, jobId: existing.rows[0].id, alreadyBegun: true };
+    const anyExistingStart = await c.query("SELECT 1 FROM interview_job WHERE interview_id=$1 AND kind='start'", [id]);
+    if (anyExistingStart.rowCount! > 0)
+      throw new HttpException({ error: 'legacy_resume_reference_unavailable' }, HttpStatus.CONFLICT);
+    // 已 active(worker 已开面/已出题)但无 start job 行(边角恢复态)→ 幂等返回,绝不二次预留额度。
+    if (cur.rows[0].status === 'active') return { accepted: true, alreadyBegun: true };
+    // G7S 通用 begin 供给面收口(C-MO-S4 事务序):candidate-profile-derived route decision + snapshot
+    // 同步落库,先于扣额/入队(同 asPrincipal 事务,未决 throw → 整体回滚零悬账)。通用面
+    // (application_id IS NULL)才供给;recruiter-flow 面的 bound interview 由 recruiter 启动事务的
+    // snapshot(recruiter.ts:428 唯一生产者)供给,本步零触碰零回归。无决策/歧义 → 409
+    // candidate_route_undecided(拒因从 worker 异步 throw 前移为 begin 同步业务拒绝,拒的本体
+    // 零消失);worker fail-closed 门(adaptive-role-resolve 默认 ON)零改动,缺行/缺叶仍拒。
+    if (cur.rows[0].application_id == null) {
+      const supply = await supplyCandidateProfileRoute(c, owner, id, resumeId);
+      if (supply.status === 'undecided')
+        throw new HttpException({ error: 'candidate_route_undecided', reason: supply.reason }, HttpStatus.CONFLICT);
+    }
+    // 扣额路由（B271 片2 S2-C2）：application_id 非空=岗位面试 → 企业桶（0157 gateway_entpay_reserve·
+    // payer=job_application.recruiter_user_id 单跳派生·候选人桶零读写）；IS NULL ⇒ C 端本人原路径逐字节零改。
+    // 额度不足时 **抛**(回滚),不是返回——必须 catch 映射,否则被异常过滤当 500(E2E 实测抓到)。
+    // 分码（S2-C4/REQUEST Ban 条款-5）：企业不足 ⇒ 409 enterprise_insufficient_balance（绝不映射候选人 402）；
+    // C 端本人不足 ⇒ 402 insufficient_entitlement（原 :314/:317 语义零改）。
+    const applicationId = cur.rows[0].application_id as string | null;
+    let rr;
+    try {
+      rr = applicationId != null
+        ? await reserveEntitlementForApplication(c, owner, applicationId, id, 'mock_interview', 1.0)
+        : await reserveEntitlement(c, owner, id, 'mock_interview', 1.0);
+    } catch (e: unknown) {
+      if (errCode(e) === 'insufficient_entitlement') {
+        if (applicationId != null) throw new HttpException({ error: 'enterprise_insufficient_balance' }, HttpStatus.CONFLICT);
+        throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
+      }
+      throw e;
+    }
+    if (rr.status !== 'reserved') {
+      if (applicationId != null) throw new HttpException({ error: 'enterprise_insufficient_balance' }, HttpStatus.CONFLICT);
+      throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
+    }
+    // The queue derives the v64 typed id+epoch from the just-bound parent;
+    // JSON retains only transport tracing, never a resume locator.
+    // #259: targetRole 仅在场时写入 payload 键(缺省零新键=现状 payload 字节)。
+    const jobId = await enqueueInterviewJob(c, owner, id, 'start', targetRoleNormalized ? { requestId, targetRole: targetRoleNormalized } : { requestId }, 0);
+    return { accepted: true, jobId };
+}
 
 /**
  * 面试应用服务(拥有 asPrincipal 事务边界 + 业务编排:advisory 锁、幂等、额度预留、入队、状态机、RLS)。
@@ -152,175 +344,20 @@ export class InterviewService {
    * write; never turn a privacy fence into a best-effort controller check.
    */
   private async guardInterviewPrivacy(c: any, id: string): Promise<void> {
-    const owned = await c.query('SELECT 1 FROM interview WHERE id=$1', [id]);
-    if (owned.rowCount === 0)
-      throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
-    try {
-      await assertInterviewPrivacyActive(c, id);
-    } catch (error: unknown) {
-      if (asErr(error)?.message === 'interview_privacy_fenced')
-        throw new HttpException({ error: 'interview_privacy_fenced' }, HttpStatus.GONE);
-      throw error;
-    }
+    // B271 片2：方法体模块化为 guardInterviewPrivacyTx（文件顶部导出·beginInterviewCore 同事务复用）·语义逐字等价委托。
+    await guardInterviewPrivacyTx(c, id);
   }
 
   // 开始面试:扣额度 + 入队 start job(长编排在 worker 跑,api 薄)。reqId 随 payload 入队 → worker 出队沿用 → 落模型 trace.request_id(全链路一跳到底)。
   // GAP-UC025-NEG-01 真接线:第 5 形参 sourceQuizId 为可选源押题工件(controller header quiz-id 透传)。
   // #259 第 6 形参 targetRole 为可选用户显式目标岗位(controller header target-role 透传)。
+  // B271 片2 S2-C2/C4：事务体模块化为 beginInterviewCore（文件顶部导出）——本端点（C 端练习·原路径）
+  // 与 applications.start 合一事务（S2-C4 修法⑤）共用同一核心·签名/this 语义零变（dbid1 冒烟
+  // Object.create(prototype) 直调形保持）；扣额路由与分码语义见 beginInterviewCore 头注。
   begin(principal: string, id: string, resumeId: string, requestId?: string, sourceQuizId?: string, targetRole?: string) {
     this.denyPublicPreviewWrite();
-    if (!resumeId) throw new HttpException({ error: 'missing_resume_id' }, HttpStatus.BAD_REQUEST);
-    if (!UUID_RE.test(resumeId)) throw new HttpException({ error: 'invalid_resume_id' }, HttpStatus.BAD_REQUEST);
-    // #259 用户显式目标岗位:归一化 trim/限长 100/空串→undefined(诊断链 diagnosis.service 同形制,
-    // 限长防滥用)。仅作 job payload 安全标量传输(不入表列/图 state/SSE);undefined → payload 零新键,
-    // 与现状逐字节一致。幂等:alreadyBegun 既有 job 原样短路不改写(下方 existing 分支零改,首场 role 生效)。
-    const targetRoleNormalized = (targetRole ?? '').trim().slice(0, 100) || undefined;
-    // PRIV01-C 应用层 tenant 强制第二层:E1 入口显式 owner + E2 必选谓词绑定——授权根仍为 RLS(应用层 tenant ≠ RLS)。
     const owner = requireOwnerUserId(principal, 'interview.begin');
-    const quizScope = buildRequiredOwnerFilter(owner, 'interview.begin.quizScope');
-    const bindScope = buildRequiredOwnerFilter(owner, 'interview.begin.bind');
-    return this.db.asPrincipal(owner, async (c) => {
-      // **并发竞态安全**:事务级 advisory 锁串行化同面试的并发 begin(对齐 invoke 关口)——否则两并发都过 check-then-act = 双开。
-      await c.query('SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))', ['begin', id]);
-      const cur = await c.query('SELECT status,resume_id,resume_privacy_epoch,application_id FROM interview WHERE id=$1 FOR UPDATE', [id]);
-      if (cur.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
-      await this.guardInterviewPrivacy(c, id);
-      // **状态机守卫(此前 begin 一个守卫都没有 → 可复活终态面试 + 白扣额度,负测 BUG-PROBE 抓到)**:
-      //   终态(completed/failed/abandoned)绝不可再 begin(不可复活、不可二次扣额)。
-      if (TERMINAL_INTERVIEW.includes(cur.rows[0].status))
-        throw new HttpException({ error: 'interview_not_active', status: cur.rows[0].status }, HttpStatus.CONFLICT);
-
-      // GODFN-1c 三守卫合并(纯机械语义等价):源押题工件三刀守卫块(NEG stale_quiz / FAULT missing_quiz_expiry /
-      // BOUND resume_version_mismatch)原各自 SELECT resume_quiz(前两刀 SQL 字节级重复)→ 归一为**单查**
-      // (status+expires_at+pin JOIN 一查询回);抛序逐字节保持现行精确顺序:
-      //   404 not_found_or_forbidden → stale_quiz(NEG;C-1 窄保留:expires_at NULL≠过期) → missing_quiz_expiry(FAULT;NULL
-      //   独立错误码) → missing_quiz_expiry(NaN fold) → resume_version_mismatch(BOUND;pin NULL 旧工件不假拒)。
-      // 每刀都发生在**任何简历绑定写、扣额度(reserveEntitlement)与入队(enqueueInterviewJob)之前**,无局部 catch 吞
-      // (下方唯一 catch 只映射 insufficient_entitlement 且原样重抛),经 Nest 异常层映射为真实 HTTP 状态。
-      // 不带 sourceQuizId → 完全跳过本块,行为与合并前一致(rag C-6);resume_quiz 查询次数 3→1
-      // (断言面:prove:begin-guard-merge 抛序等价+计数断言)。
-      if (sourceQuizId) {
-        const quiz = await c.query(
-          `SELECT q.status, q.expires_at,
-                  q.resume_id::text AS pinned_resume_id,
-                  q.privacy_epoch AS pinned_epoch,
-                  r.privacy_epoch AS current_epoch
-             FROM resume_quiz q
-             LEFT JOIN resume r ON r.id=q.resume_id AND r.owner_user_id=q.owner_user_id
-            WHERE q.id=$1 AND q.owner_user_id=$2`,
-          [sourceQuizId, quizScope.value],
-        );
-        if (quiz.rowCount === 0)
-          throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
-        // NEG stale_quiz:owner-scoped 真消费工件,stale/未 ready → 在扣额度与入队之前抛真 409。
-        // expires_at 为 NULL 不得当 stale_quiz 过期拒(C-1 窄保留:NULL≠stale);非法/NaN 日期由下方 FAULT 同口 fail-closed。
-        const quizExpired = quiz.rows[0].expires_at != null
-          && new Date(quiz.rows[0].expires_at).getTime() <= Date.now();
-        if (quiz.rows[0].status !== 'ready' || quizExpired)
-          throw new HttpException({ error: 'stale_quiz' }, HttpStatus.CONFLICT);
-        // FAULT missing_quiz_expiry:missing/NULL expires_at fail-closed(独立错误码;NULL 仍不得抛 stale_quiz)。
-        const rawExpiry = quiz.rows[0].expires_at;
-        if (rawExpiry == null)
-          throw new HttpException({ error: 'missing_quiz_expiry' }, HttpStatus.CONFLICT);
-        const expiryMs = new Date(rawExpiry as string | Date).getTime();
-        if (Number.isNaN(expiryMs))
-          throw new HttpException({ error: 'missing_quiz_expiry' }, HttpStatus.CONFLICT);
-        // BOUND resumeVersion pin 失配:0061 typed 引用钉死 (resume_id, privacy_epoch)=工件 pin。本次 resume-id ≠ pin 的
-        // resume_id(简历变更后拿旧押题开面),或 pin 的 privacy_epoch ≠ 该简历当前世代 → 409。pin 为 NULL(0061 前
-        // 旧工件/无 typed 引用)不得当失配拒(NULL pin 旧工件不假拒)。
-        const pinnedResumeId = quiz.rows[0].pinned_resume_id as string | null | undefined;
-        if (pinnedResumeId != null) {
-          const pinnedEpoch = quiz.rows[0].pinned_epoch == null ? null : Number(quiz.rows[0].pinned_epoch);
-          const currentEpoch = quiz.rows[0].current_epoch == null ? null : Number(quiz.rows[0].current_epoch);
-          const resumeVersionMismatch = pinnedResumeId.toLowerCase() !== resumeId.toLowerCase()
-            || pinnedEpoch === null || currentEpoch === null || pinnedEpoch !== currentEpoch;
-          if (resumeVersionMismatch)
-            throw new HttpException({ error: 'resume_version_mismatch' }, HttpStatus.CONFLICT);
-        }
-      }
-
-      // A new C-side start must bind its source in a typed, owner-checked
-      // column before any quota reservation or queue write.  B-side sessions
-      // already carry an immutable resume_id from application creation and
-      // must match it rather than being rebound through this generic endpoint.
-      const existingResumeId = cur.rows[0].resume_id as string | null;
-      const existingResumeEpoch = cur.rows[0].resume_privacy_epoch == null
-        ? null
-        : Number(cur.rows[0].resume_privacy_epoch);
-      if (existingResumeId && existingResumeId !== resumeId)
-        throw new HttpException({ error: 'interview_resume_binding_conflict' }, HttpStatus.CONFLICT);
-      // A pre-v64 parent has no immutable authorization snapshot.  Do not
-      // infer one from the current resume row: its existing unique start-job
-      // key prevents a safe replacement and a guessed upgrade could revive a
-      // stale task after a future privacy fence.
-      if (existingResumeId && existingResumeEpoch === null)
-        throw new HttpException({ error: 'legacy_resume_reference_unavailable' }, HttpStatus.CONFLICT);
-      if (!existingResumeId) {
-        const bound = await c.query(
-          `UPDATE interview i
-              SET resume_id=r.id,
-                  resume_privacy_epoch=r.privacy_epoch,
-                  version=i.version+1
-             FROM resume r
-            WHERE i.id=$1
-              AND i.owner_user_id=$2
-              AND i.application_id IS NULL
-              AND i.resume_id IS NULL
-              AND i.resume_privacy_epoch IS NULL
-              AND i.status='created'
-              AND r.id=$3
-              AND r.owner_user_id=$2
-              AND r.status='ingested'`,
-          [id, bindScope.value, resumeId],
-        );
-        if (bound.rowCount !== 1)
-          throw new HttpException({ error: 'interview_resume_binding_unavailable' }, HttpStatus.CONFLICT);
-      }
-      // 幂等:已有 start job(重复 begin/网络重试)→ 不再扣额度、不再入队(否则双扣 + 双出题双花模型)
-      const existing = await c.query(
-        `SELECT j.id
-           FROM interview_job j
-           JOIN interview i ON i.id=j.interview_id AND i.owner_user_id=j.owner_user_id
-           JOIN resume r ON r.id=i.resume_id AND r.owner_user_id=i.owner_user_id
-          WHERE j.interview_id=$1
-            AND j.kind='start'
-            AND j.reference_schema_version=64
-            AND j.resume_id=i.resume_id
-            AND j.resume_privacy_epoch=i.resume_privacy_epoch
-            AND r.status='ingested'
-            AND r.privacy_epoch=i.resume_privacy_epoch`, [id],
-      );
-      if (existing.rowCount! > 0) return { accepted: true, jobId: existing.rows[0].id, alreadyBegun: true };
-      const anyExistingStart = await c.query("SELECT 1 FROM interview_job WHERE interview_id=$1 AND kind='start'", [id]);
-      if (anyExistingStart.rowCount! > 0)
-        throw new HttpException({ error: 'legacy_resume_reference_unavailable' }, HttpStatus.CONFLICT);
-      // 已 active(worker 已开面/已出题)但无 start job 行(边角恢复态)→ 幂等返回,绝不二次预留额度。
-      if (cur.rows[0].status === 'active') return { accepted: true, alreadyBegun: true };
-      // G7S 通用 begin 供给面收口(C-MO-S4 事务序):candidate-profile-derived route decision + snapshot
-      // 同步落库,先于扣额/入队(同 asPrincipal 事务,未决 throw → 整体回滚零悬账)。通用面
-      // (application_id IS NULL)才供给;recruiter-flow 面的 bound interview 由 recruiter 启动事务的
-      // snapshot(recruiter.ts:428 唯一生产者)供给,本步零触碰零回归。无决策/歧义 → 409
-      // candidate_route_undecided(拒因从 worker 异步 throw 前移为 begin 同步业务拒绝,拒的本体
-      // 零消失);worker fail-closed 门(adaptive-role-resolve 默认 ON)零改动,缺行/缺叶仍拒。
-      if (cur.rows[0].application_id == null) {
-        const supply = await supplyCandidateProfileRoute(c, owner, id, resumeId);
-        if (supply.status === 'undecided')
-          throw new HttpException({ error: 'candidate_route_undecided', reason: supply.reason }, HttpStatus.CONFLICT);
-      }
-      // 额度不足时 reserveEntitlement **抛**(回滚),不是返回——必须 catch 映射成 402,否则被异常过滤当 500(E2E 实测抓到)。
-      let rr;
-      try { rr = await reserveEntitlement(c, owner, id, 'mock_interview', 1.0); }
-      catch (e: unknown) {
-        if (errCode(e) === 'insufficient_entitlement') throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
-        throw e;
-      }
-      if (rr.status !== 'reserved') throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
-      // The queue derives the v64 typed id+epoch from the just-bound parent;
-      // JSON retains only transport tracing, never a resume locator.
-      // #259: targetRole 仅在场时写入 payload 键(缺省零新键=现状 payload 字节)。
-      const jobId = await enqueueInterviewJob(c, owner, id, 'start', targetRoleNormalized ? { requestId, targetRole: targetRoleNormalized } : { requestId }, 0);
-      return { accepted: true, jobId };
-    });
+    return this.db.asPrincipal(owner, (c) => beginInterviewCore(c, owner, id, resumeId, requestId, sourceQuizId, targetRole));
   }
 
   // 提交一题答案:入队 answer job(worker 续图+评分)。text 答案;音频先 ASR 转写再走此端点。
