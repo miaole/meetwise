@@ -319,7 +319,9 @@ main().catch((e) => { console.error(e); process.exit(1); });
  * ── 其它契约/一致性观察 ──
  *   - /auth/login 故意不套 Credentials(见 controller 注释:限流需看全部尝试 + 兼容历史短密码),
  *     故 login 的短密码/空密码负例归 neg-auth,本文件不打(避免与设计意图冲突)。
- *   - /privacy/consent、/commerce/pay-callback、/roles/match 用裸 @Body(无 pipe):
- *     语法畸形靠 Fastify 解析器兜(已覆盖),但语义字段无 zod 约束(purpose/providerTxn/sig 任意串)——
+ *   - /commerce/pay-callback、/roles/match 用裸 @Body(无 pipe):
+ *     语法畸形靠 Fastify 解析器兜(已覆盖),但语义字段无 zod 约束(providerTxn/sig 任意串)——
  *     非本次「协议/校验健壮性」5xx 范畴,记录供契约方评估是否补 schema。
+ *   - /privacy/consent 已补 purpose 枚举校验(CONSENT-MIN:三入口经 ZodValidationPipe →
+ *     400 {error:'invalid'};POST body strict / GET+DELETE query 非 strict;语法畸形仍靠 Fastify 解析器兜)。
  * ───────────────────────────────────────────────────────────────────────────── */

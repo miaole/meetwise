@@ -32,6 +32,7 @@
   "neg:interview": "node --import @swc-node/register/esm-register test/neg-interview.proof.ts",
   "neg:bend": "node --import @swc-node/register/esm-register test/neg-bend.proof.ts",
   "neg:input": "node --import @swc-node/register/esm-register test/neg-input.proof.ts",
+  "prove:consent-min": "node --import @swc-node/register/esm-register test/consent-min.proof.ts",
   "turn-idempotency:prove": "PORT=0 node --import @swc-node/register/esm-register test/turn-idempotency.proof.ts",
   "prove:runtime-role-http": "node --import @swc-node/register/esm-register test/runtime-role-http.proof.ts",
   "prove:privacy-erasure-http": "node --import @swc-node/register/esm-register test/privacy-erasure-http.proof.ts",

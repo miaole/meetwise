@@ -1,5 +1,5 @@
 import { Controller, Post, Get, Delete, Body, Query, Req, UseGuards, HttpStatus, HttpCode, Headers, Param } from '@nestjs/common';
-import { PrivacyPreviewBeginDto } from '@meetwise/contracts';
+import { ConsentPurposeDto, ConsentPurposeQueryDto, PrivacyPreviewBeginDto } from '@meetwise/contracts';
 import { PrincipalGuard } from '../../platform/principal.guard';
 import { ZodValidationPipe } from '../../platform/zod.pipe';
 import { PrivacyService } from './privacy.service';
@@ -14,22 +14,23 @@ export class PrivacyController {
 
   @Post('consent')
   @HttpCode(HttpStatus.OK)
-  consent(@Req() req: any, @Body() b: { purpose?: string }) {
+  consent(@Req() req: any, @Body(new ZodValidationPipe(ConsentPurposeDto)) b: ConsentPurposeDto) {
     return this.privacy.consent(req.principal, b?.purpose ?? 'resume_processing');
   }
 
   @Get('consent')
-  consentStatus(@Req() req: any, @Query('purpose') purpose?: string) {
+  consentStatus(@Req() req: any, @Query(new ZodValidationPipe(ConsentPurposeQueryDto)) q: ConsentPurposeQueryDto) {
     // G3(RESUME-GROUNDING rev3):purpose 可选(缺省 resume_processing 兼容既有前端);
     // 上传页据此读 interview_personalization 同意态渲染一次性用途选择。
-    return this.privacy.consentStatus(req.principal, purpose ?? 'resume_processing');
+    // CONSENT-MIN(#82):purpose 值经枚举校验(400 {error:'invalid'});query 其余键 strip 不拒。
+    return this.privacy.consentStatus(req.principal, q?.purpose ?? 'resume_processing');
   }
 
   /** G4(RESUME-GROUNDING rev3):撤回=停止后续使用(行删除;缺省 purpose 兼容既有采集同意撤回面)。 */
   @Delete('consent')
   @HttpCode(HttpStatus.OK)
-  withdrawConsent(@Req() req: any, @Query('purpose') purpose?: string) {
-    return this.privacy.withdrawConsent(req.principal, purpose ?? 'resume_processing');
+  withdrawConsent(@Req() req: any, @Query(new ZodValidationPipe(ConsentPurposeQueryDto)) q: ConsentPurposeQueryDto) {
+    return this.privacy.withdrawConsent(req.principal, q?.purpose ?? 'resume_processing');
   }
 
   @Get('export')

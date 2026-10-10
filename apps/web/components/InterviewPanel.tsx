@@ -15,6 +15,7 @@ import { VoiceCallPanel } from '@/components/VoiceCallPanel';
 import { Thinking } from '@/components/ui/Thinking';
 import { interviewTurnWindow, VISIBLE_TURN_LIMIT } from '@/lib/stream/turn-window';
 import { buildTurnSubmission, newAnswerId } from '@/lib/interview/turn-submission';
+import { grantVoiceCaptureConsentAction } from '@/app/interview/actions';
 
 /** Blob → base64(剥掉 data:URL 前缀)。FileReader 路径避免大数组 btoa 爆栈。 */
 function blobToBase64(blob: Blob): Promise<string> {
@@ -151,8 +152,14 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
         });
         if (!res.ok) {
           const j = await res.json().catch(() => ({} as any));
-          const msg = j?.message ?? '语音转写失败，请改用文字作答';                    // 503 asr_unavailable / 502 asr_failed
-          setVoiceErr(msg); toast.error(msg);                                          // 显式反馈:不静默吞掉这一答
+          // CONSENT-MIN(#69):同意门 403 consent_required → 重开协议卡,不误报转写失败;
+          // 其余(503 asr_unavailable / 502 asr_failed)既有出路不变。
+          if (res.status === 403 && j?.error === 'consent_required') {
+            setVoiceCaptureConsented(false); setVoiceConsentPrompt(true);
+          } else {
+            const msg = j?.message ?? '语音转写失败，请改用文字作答';                    // 503 asr_unavailable / 502 asr_failed
+            setVoiceErr(msg); toast.error(msg);                                          // 显式反馈:不静默吞掉这一答
+          }
         } else {
           const body = await res.json().catch(() => null) as { text?: unknown } | null;
           const text = body?.text;
@@ -468,7 +475,18 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
               <div className="mt-3 flex gap-2">
                 <button
                   type="button"
-                  onClick={() => { setVoiceCaptureConsented(true); setVoiceConsentPrompt(false); void startRecording(); }}
+                  onClick={async () => {
+                    // CONSENT-MIN(#69):await 落库(consent_record voice_capture)成功才开录;
+                    // 失败重开协议卡,不假前进、不请求麦克风。
+                    try {
+                      await grantVoiceCaptureConsentAction();
+                      setVoiceCaptureConsented(true);
+                      setVoiceConsentPrompt(false);
+                      void startRecording();
+                    } catch {
+                      setVoiceConsentPrompt(true);
+                    }
+                  }}
                   className="rounded bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
                 >
                   同意并开始录音

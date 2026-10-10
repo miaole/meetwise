@@ -397,8 +397,11 @@ async function validate() {
     ocrAfter.consumption === ocrBefore.consumption && ocrAfter.artifact === ocrBefore.artifact && ocrAfter.invocation === ocrBefore.invocation);
 
   // 语音未配置时 API 给可恢复的显式降级；真实双向语音由 live E2E 用百炼完成。
+  // CONSENT-MIN(#69)登记更新:transcribe 链在 guardInterviewPrivacy 之后新增 voice_capture 同意门,
+  // userA fixture 无该同意行(seed 仅 resume_processing)→ 先改判 403 consent_required(门先于 ASR 503 判);
+  // 门过后的 503 asr_unavailable 形状由 prove:consent-min e 案承接。
   r = await postJson('/interview/R1/transcribe', { 'x-user-id': 'userA' }, { audioBase64: Buffer.from([1, 2, 3, 4]).toString('base64'), mimeType: 'audio/webm', capture: { mode: 'single_local_microphone', consent: true, policyVersion: 'voice_ephemeral_v1' } });
-  A('未配置 ASR → 503 asr_unavailable（前端可回落文字）', r.status === 503 && r.body.error === 'asr_unavailable');
+  A('未授 voice_capture 同意 → 403 consent_required（同意门先于 ASR 判,前端回协议卡）', r.status === 403 && r.body.error === 'consent_required' && r.body.purpose === 'voice_capture');
   r = await postJson('/interview/R1/speak', { 'x-user-id': 'userA' }, { text: '请介绍一下你自己' });
   A('未配置 TTS → 503 tts_unavailable（前端可回落文字）', r.status === 503 && r.body.error === 'tts_unavailable');
   r = await postJson('/interview/R9/transcribe', { 'x-user-id': 'userA' }, { audioBase64: Buffer.from([1, 2, 3]).toString('base64'), mimeType: 'audio/webm', capture: { mode: 'single_local_microphone', consent: true, policyVersion: 'voice_ephemeral_v1' } });
