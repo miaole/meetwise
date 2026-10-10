@@ -72,7 +72,7 @@ function SectionCard({ s }: { s: DiagSection }) {
 }
 
 export function DiagnosisPanel({ diagnosisId }: { diagnosisId: string }) {
-  const { view, display } = useDiagnosisStream(diagnosisId);
+  const { view, display, retry } = useDiagnosisStream(diagnosisId);
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
@@ -139,9 +139,9 @@ export function DiagnosisPanel({ diagnosisId }: { diagnosisId: string }) {
           ? <Thinking label={display.message} />
           : <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin motion-reduce:hidden" />{display.message}</p>
       )}
-      {/* 重连/连接态出口(即便未 degraded 也给手动重试) */}
+      {/* 重连/连接态出口(即便未 degraded 也给手动重试)。SSE-RESILIENCE W2:重试=驱动重连信号出口,不整页刷新。 */}
       {!display.degraded && display.action.kind === 'retry' && (
-        <Button variant="outline" onClick={(e) => { e.currentTarget.disabled = true; e.currentTarget.setAttribute('aria-busy', 'true'); location.reload(); }} className="disabled:cursor-not-allowed disabled:opacity-50">{display.action.label}</Button>
+        <Button variant="outline" onClick={(e) => { e.currentTarget.disabled = true; e.currentTarget.setAttribute('aria-busy', 'true'); retry(); }} title="立即重连(重置退避),不刷新页面" className="disabled:cursor-not-allowed disabled:opacity-50">{display.action.label}</Button>
       )}
 
       {/* 完成总结 / 空诊断出口 */}
@@ -152,7 +152,8 @@ export function DiagnosisPanel({ diagnosisId }: { diagnosisId: string }) {
             {(view.total ?? view.sections.length) === 0 ? (
               <p className="mt-2 text-muted-foreground">本次未能从简历中提取到可诊断的内容。请完善简历后<Link href="/diagnosis" className="font-medium text-primary underline-offset-4 hover:underline">重新诊断</Link>。</p>
             ) : view.sections.length === 0 && (
-              <button onClick={(e) => { e.currentTarget.disabled = true; e.currentTarget.setAttribute('aria-busy', 'true'); location.reload(); }} className="mt-2 text-sm text-primary underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-50">内容加载不全？点此重新加载</button>
+              // 终态已到但维度事件未随重放到达(罕见):重启驱动重放(SSE-RESILIENCE W2:不 reload,凭服务端账本重放)。
+              <button onClick={(e) => { e.currentTarget.disabled = true; e.currentTarget.setAttribute('aria-busy', 'true'); retry(); }} className="mt-2 text-sm text-primary underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-50">内容加载不全？点此重新加载</button>
             )}
             <Button asChild variant="link" className="mt-2 h-auto p-0"><Link href="/quiz">据这份简历去押题 →</Link></Button>
           </CardContent>

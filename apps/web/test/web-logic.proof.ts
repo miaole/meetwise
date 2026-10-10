@@ -285,14 +285,14 @@ async function main() {
   A('重连凭 Last-Event-ID=2 续(seq>2 重放,不丢不重)', seenLastIds[1] === 2);
   A('续上报告 → report_ready', resumed.phase === 'report_ready' && resumed.report?.overall === 88);
 
-  section('SSE 驱动：重连耗尽 → degraded 出口(不无限重连)');
+  section('SSE 驱动：重连耗尽 → 慢速永续不降级;绝对上限仍有界 degraded(#53 W1② 基线更新:旧「≤maxRetries+1 即 degraded」语义废除,见 REQUEST C9×W1 调和披露)');
   let opens = 0;
   const exhaustedRun = await runInterviewStream({
     open: () => { opens++; return streamOf(ev(1, 'waiting_user', {})); },   // 每次都只到 waiting 就断,永不出报告
     onView: () => {}, sleep: noSleep, maxRetries: 2,
   });
-  A('重连耗尽(≤maxRetries+1 次)后 degraded 收尾', exhaustedRun.degraded && exhaustedRun.connection === 'closed');
-  A('确实有界,不无限重连', opens <= 3);
+  A('maxRetries 耗尽后不即时 degraded;绝对上限(缺省 100)兜底仍有界 degraded 收尾', exhaustedRun.degraded && exhaustedRun.connection === 'closed');
+  A('确实有界,不无限重连(无进展宽限5+失败预算+永续至绝对上限,opens=101;不再钉 ≤3)', opens > 3 && opens <= 105);
 
   section('SSE 驱动：终态 report_unavailable 不再重连(优雅降级)');
   let opens2 = 0;
@@ -504,7 +504,7 @@ async function main() {
   A('断流自动重连凭 Last-Event-ID=1 续 → ready', qSeen.length === 2 && qSeen[1] === 1 && qResumed.phase === 'ready');
   let qOpens = 0;
   const qExhaust = await runQuizStream({ open: () => { qOpens++; return streamOf(ev(1, 'progress', {})); }, onView: () => {}, sleep: noSleep, maxRetries: 2 });
-  A('永不出终态 → 有界重连后 degraded(不无限转圈)', qExhaust.degraded && qExhaust.connection === 'closed' && qOpens <= 3);
+  A('永不出终态 → 慢速永续不即时降级;绝对上限仍有界 degraded(不无限转圈,#53 W1② 基线更新:不再钉 ≤3)', qExhaust.degraded && qExhaust.connection === 'closed' && qOpens > 3 && qOpens <= 105);
   const qBadIds: number[] = [];
   const qBad = await runQuizStream({
     open: (lastId) => { qBadIds.push(lastId); throw new InvalidLastEventIdError(); },
@@ -578,7 +578,7 @@ async function main() {
   A('断流自动重连凭 Last-Event-ID=1 续 → ready', dSeen.length === 2 && dSeen[1] === 1 && dResumed.phase === 'ready');
   let dOpens = 0;
   const dExhaust = await runDiagnosisStream({ open: () => { dOpens++; return streamOf(ev(1, 'progress', {})); }, onView: () => {}, sleep: noSleep, maxRetries: 2 });
-  A('永不出终态 → 有界重连后 degraded(不无限转圈)', dExhaust.degraded && dExhaust.connection === 'closed' && dOpens <= 3);
+  A('永不出终态 → 慢速永续不即时降级;绝对上限仍有界 degraded(不无限转圈,#53 W1② 基线更新:不再钉 ≤3)', dExhaust.degraded && dExhaust.connection === 'closed' && dOpens > 3 && dOpens <= 105);
   const dBadIds: number[] = [];
   const dBad = await runDiagnosisStream({
     open: (lastId) => { dBadIds.push(lastId); throw new InvalidLastEventIdError(); },
@@ -863,6 +863,315 @@ async function main() {
     /serverFetch\('\/interview\/' \+ interviewId \+ '\/begin', \{ method: 'POST', headers \}\)/.test(ivActions));
   A('#259 表单含目标岗位可选输入(name=targetRole·maxLength=100·镜像 diagnosis 形制)',
     /<Input id="targetRole" name="targetRole" maxLength=\{100\}/.test(readSrc('app/interviews/page.tsx')));
+  // ───────────────────────── SSE-RESILIENCE 批1 波A(#53/#54/#55/#56+#61 · rev2 dual_pass)新增六组证明 ─────────────────────────
+  const {
+    iterateSseBody, isSseOpenStatusError, SseOpenStatusError, classifySseOpenStatus,
+  } = await import('../lib/stream/sse-cursor.ts');
+  const { jitteredBackoff, capJitterBackoff, SSE_BACKOFF_BASE_MS, SSE_BACKOFF_CAP_MS } = await import('../lib/stream/backoff.ts');
+  const { makeDraftStore, draftKeyExact, draftKeyFallback, restoreDraftIfEmpty, sessionDraftStorage } = await import('../lib/interview/draft-store.ts');
+  const { ensureOk } = await import('../lib/jobs/ensure-ok.ts');
+  const { redirect } = await import('next/navigation');
+  const flushMicro = async (n = 25) => { for (let i = 0; i < n; i++) await Promise.resolve(); };
+  /** 非 OK Response → iterateSseBody 首次 next() 应抛的错(生成器体惰性执行,首 next 才跑)。 */
+  const openErr = async (status: number): Promise<unknown> => {
+    try { await iterateSseBody(new Response(null, { status })).next(); return null; } catch (e) { return e; }
+  };
+
+  section('SSE-RESILIENCE 1/6(#53):断网 30s 不 degraded(新旧对照)+C1 full-jitter 钉值');
+  {
+    // 新旧对照:旧退避 200+400+800=1400ms≈1.4s 三连败即 degraded;新钉值 full-jitter base=500/cap=30s,连续耗尽转慢速永续。
+    A('新旧对照锚:旧退避 200+400+800=1400ms(≈1.4s 即 degraded);新生产钉值 base=500ms/cap=30000ms',
+      200 + 400 + 800 === 1400 && SSE_BACKOFF_BASE_MS === 500 && SSE_BACKOFF_CAP_MS === 30_000);
+    A('C1 full-jitter 包络 [0,min(cap,base·factor^(n-1))] 封顶 cap;注入 rand 确定性', (() => {
+      const det = jitteredBackoff(500, 2, 30_000, () => 1);
+      const zero = jitteredBackoff(500, 2, 30_000, () => 0);
+      const cap = capJitterBackoff(30_000, () => 1);
+      return det(1) === 500 && det(2) === 1000 && det(3) === 2000 && det(7) === 30_000 && det(99) === 30_000
+        && zero(1) === 0 && zero(99) === 0 && cap() === 30_000;
+    })());
+    // 恒抛传输错 + 虚拟时钟推进 ≥30s(确定性包络 rand=0.5;cap 档注入定值 30s):全程 reconnecting、degraded=false。
+    const ac30 = new AbortController();
+    let vclock = 0;
+    let dropOpens = 0;
+    const r30 = await runInterviewStream({
+      open: () => { dropOpens++; throw new Error('net down'); },
+      onView: () => {},
+      signal: ac30.signal,
+      backoffMs: jitteredBackoff(500, 2, 30_000, () => 0.5),
+      capBackoffMs: () => 30_000,
+      sleep: (ms) => { vclock += ms; if (vclock >= 30_000) ac30.abort(); return Promise.resolve(); },
+    });
+    A('恒抛传输错+虚拟时钟 ≥30s:全程 reconnecting、degraded=false(旧实现 ≈1.4s 已 degraded——同一时钟下 4 拍内即死)',
+      r30.connection === 'reconnecting' && !r30.degraded && r30.phase === 'connecting' && vclock >= 30_000);
+    A('30s 内有界推进:恰好 4 次 open(250+500+1000 + 永续cap档 30000 = 31750ms;耗尽后进入 cap 档永续,不再 degraded)',
+      dropOpens === 4 && vclock === 31_750);
+  }
+
+  section('SSE-RESILIENCE 2/6(#53+注记B):online/visible→立即唤醒+重置退避;retry 同缝;监听随退出路径 dispose');
+  {
+    const registered: Array<{ kind: string; disposed: boolean }> = [];
+    const stubSignals = {
+      onOnline: (cb: () => void) => { const r = { kind: 'online', disposed: false }; registered.push(r); void cb; return () => { r.disposed = true; }; },
+      onVisible: (cb: () => void) => { const r = { kind: 'visible', disposed: false }; registered.push(r); void cb; return () => { r.disposed = true; }; },
+      onRetry: (cb: () => void) => { const r = { kind: 'retry', disposed: false }; registered.push(r); void cb; return () => { r.disposed = true; }; },
+    };
+    const triggers: Array<() => void> = [];
+    const captureSignals = {
+      onOnline: (cb: () => void) => { triggers.push(cb); return stubSignals.onOnline(cb); },
+      onVisible: (cb: () => void) => { triggers.push(cb); return stubSignals.onVisible(cb); },
+      onRetry: (cb: () => void) => { triggers.push(cb); return stubSignals.onRetry(cb); },
+    };
+    const pending: Array<() => void> = [];
+    let mode: 'fail' | 'done' = 'fail';
+    const ladderCalls: number[] = [];
+    const run = runInterviewStream({
+      open: () => { if (mode === 'done') return streamOf(ev(1, 'report_ready', { overall: 50 })); throw new Error('offline'); },
+      onView: () => {},
+      sleep: () => new Promise<void>((r) => { pending.push(r); }),
+      backoffMs: (a) => { ladderCalls.push(a); return 1000; },
+      capBackoffMs: () => 1000,
+      maxRetries: 1,
+      resumeSignals: captureSignals,
+    });
+    await flushMicro();
+    A('传输错断流 → 进入退避等待(阶梯请求 attempt=1,每个失败恰对应 1 个待唤醒 sleep)', ladderCalls.length === 1 && ladderCalls[0] === 1 && pending.length === ladderCalls.length);
+    triggers[0]();   // online → 立即重连+重置退避
+    await flushMicro();
+    A('online → 跳过剩余退避等待立即重连;退避重置(下一失败仍从 attempt=1 爬坡)', ladderCalls.length === 2 && ladderCalls[1] === 1 && pending.length === ladderCalls.length);
+    triggers[1]();   // visible → 若在退避等待立即唤醒
+    await flushMicro();
+    A('visible → 剩余退避等待被跳过(立即重连,阶梯仍重置)', ladderCalls.length === 3 && ladderCalls[2] === 1 && pending.length === ladderCalls.length);
+    triggers[2]();   // 手动重试(W2 去 reload 出口)→ 同一 resume 缝
+    await flushMicro();
+    A('retry → 同一 resume 缝(立即重连+重置退避)——面板 :489 去 reload 的驱动面', ladderCalls.length === 4 && ladderCalls[3] === 1 && pending.length === ladderCalls.length);
+    mode = 'done';
+    pending.splice(0).forEach((r) => r());   // 放行全部等待 → 下一连接送达终态
+    const doneView = await run;
+    A('resume 后驱动照常消费业务流到终态收尾;resumeSignals 监听随退出路径全部 dispose(注记B:online/visible/retry 三缝)',
+      doneView.phase === 'report_ready' && doneView.connection === 'closed' && registered.length === 3 && registered.every((r) => r.disposed));
+  }
+
+  section('SSE-RESILIENCE 3/6(#55+补钉1+C10):干净 end 不计失败;超宽限入预算(禁1Hz轮询);抛错对照组绝对上限;sawTraffic 心跳重置');
+  {
+    let cleanOpens = 0;
+    const cleanRun = await runInterviewStream({
+      open: () => { cleanOpens++; return cleanOpens <= 5 ? streamOf() : streamOf(ev(1, 'report_ready', { overall: 66 })); },
+      onView: () => {}, sleep: async () => {}, cleanEndReconnectMs: 0,
+    });
+    A('干净 end(空流,模拟 10min 轮换压缩)连打 5 轮(宽限内)不计失败,第 6 连接续到终态且不降级',
+      cleanOpens === 6 && cleanRun.phase === 'report_ready' && !cleanRun.degraded);
+    let errOpens = 0;
+    const errRun = await runInterviewStream({
+      open: () => { errOpens++; throw new Error('transport'); },
+      onView: () => {}, sleep: async () => {}, maxTotalReconnects: 3, backoffMs: () => 0, capBackoffMs: () => 0,
+    });
+    A('对照组:抛错流仍计失败并可按绝对上限 degraded(既有语义保留,opens=4 有界)', errRun.degraded && errOpens === 4);
+    let npOpens = 0;
+    const npRun = await runInterviewStream({
+      open: () => { npOpens++; return streamOf(); },   // 恒空流=DB 取数失败第三种 clean-end 的客户端观感
+      onView: () => {}, sleep: async () => {}, maxRetries: 2, maxTotalReconnects: 8, backoffMs: () => 0, capBackoffMs: () => 0, cleanEndReconnectMs: 0,
+    });
+    A('补钉1:连续 >5 次无进展 clean end 重新计入失败预算走退避,绝对上限(8)处有界 degraded(禁 1Hz 永续轮询退化向量)',
+      npRun.degraded && npOpens === 9);
+    let hbOpens = 0;
+    const hbRun = await runInterviewStream({
+      open: () => { hbOpens++; return hbOpens <= 8 ? streamOf(': ping\n\n') : streamOf(ev(1, 'report_ready', { overall: 70 })); },
+      onView: () => {}, sleep: async () => {}, cleanEndReconnectMs: 0,
+    });
+    let silentOpens = 0;
+    const silentRun = await runInterviewStream({
+      open: () => { silentOpens++; return silentOpens <= 11 ? streamOf() : streamOf(ev(1, 'report_ready', { overall: 70 })); },
+      onView: () => {}, sleep: async () => {}, maxRetries: 2, maxTotalReconnects: 8, backoffMs: () => 0, capBackoffMs: () => 0, cleanEndReconnectMs: 0,
+    });
+    A('C10 sawTraffic:带心跳字节(`: ping`)的无进展流重置预算,8 轮后仍续到终态不降级(心跳盲区修复)',
+      hbOpens === 9 && hbRun.phase === 'report_ready' && !hbRun.degraded);
+    A('对照组:同起步的无字节空流在第 9 连接即按预算+绝对上限 degraded(心跳旗的差分对照面;终态被推到第 12 连接以暴露预算差异)',
+      silentRun.degraded && silentOpens === 9 && silentRun.streamStopReason === undefined);
+  }
+
+  section('SSE-RESILIENCE 4/6(#54+注记A):draft-store 写读/跨题隔离/成功清除/换场前缀不误清/空框恢复前提/SSR 守卫');
+  {
+    const backing = new Map<string, string>();
+    const store = makeDraftStore({
+      getItem: (k) => backing.get(k) ?? null,
+      setItem: (k, v) => { backing.set(k, v); },
+      removeItem: (k) => { backing.delete(k); },
+      get length() { return backing.size; },
+      key: (i) => Array.from(backing.keys())[i] ?? null,
+    });
+    const k1 = draftKeyExact('r1', 'q-v1-t0-c0');
+    const k2 = draftKeyExact('r1', 'q-v1-t1-c1');
+    store.save(k1, '长答案草稿A');
+    store.save(k2, '草稿B');
+    A('写入/读取回显(纯函数+注入 stub;防抖由面板层负责)', store.load(k1) === '长答案草稿A' && store.load(k2) === '草稿B');
+    A('跨题隔离:不同 questionId 键互不串扰', k1 !== k2 && store.load(k1) !== store.load(k2));
+    store.save(k2, '');
+    A('空白文本 save=清除(不存空草稿——提交成功/清空路径不残留)', store.load(k2) === null);
+    store.save(k2, '草稿B');
+    store.clear(k1);
+    A('成功提交清除面:clear 精确删本键(:210 同拍;面板在 setAnswer("") 同事务语义先清草稿)', store.load(k1) === null && store.load(k2) === '草稿B');
+    A('换 resultId:前缀清除只删本场(r1)全部键,不误伤他场 r2(:96 面)', (() => {
+      store.save(k1, 'A');
+      const other = draftKeyExact('r2', 'q-v1-t0-c0');
+      store.save(other, '他场草稿');
+      const rm = store.clearByPrefix('r1:');
+      return rm.length === 2 && rm.includes(k1) && store.load(k1) === null && store.load(k2) === null && store.load(other) === '他场草稿';
+    })());
+    A('降级键形状 `${resultId}:${turns.length}`(questionId 缺失兜底;与精确键不碰撞;只写不自动恢复防跨题误复用)',
+      draftKeyFallback('r1', 3) === 'r1:3' && draftKeyFallback('r1', 3) !== draftKeyExact('r1', 'q-v1-t0-c0'));
+    A('注记A:恢复以「当前输入框为空」为前提——非空框不砸活内存;空框才落存储值;空/空白存储值不恢复',
+      restoreDraftIfEmpty('正在打字', '旧草稿') === '正在打字'
+      && restoreDraftIfEmpty('', '旧草稿') === '旧草稿'
+      && restoreDraftIfEmpty('', null) === ''
+      && restoreDraftIfEmpty('', '   ') === '');
+    A('SSR 守卫:无 sessionStorage 环境回退内存实现,构造/读写不抛', (() => {
+      try { const s = makeDraftStore(sessionDraftStorage()); s.save('x', 'y'); return s.load('x') === 'y' && s.clearByPrefix('x').length === 1; } catch { return false; }
+    })());
+  }
+
+  section('SSE-RESILIENCE 5/6(#56+#61):401/429/5xx/404 分类消费+iterateSseBody 抛分类+三面板文案分臂+ensureOk 401→NEXT_REDIRECT');
+  {
+    A('守卫函数:isSseOpenStatusError 对实例/同名 Error 为真;对 InvalidLastEventIdError/普通错为假;classify 钉值 401/404/429/5xx/其余4xx', (() => {
+      const e = new SseOpenStatusError(429);
+      const shadow = Object.assign(new Error('sse_open_status_429'), { name: 'SseOpenStatusError' });
+      return isSseOpenStatusError(e) && e.status === 429 && isSseOpenStatusError(shadow)
+        && !isSseOpenStatusError(new InvalidLastEventIdError()) && !isSseOpenStatusError(new Error('x'))
+        && classifySseOpenStatus(401) === 'auth' && classifySseOpenStatus(404) === 'not_found'
+        && classifySseOpenStatus(429) === 'rate_limited' && classifySseOpenStatus(500) === 'server'
+        && classifySseOpenStatus(403) === 'transport';
+    })());
+    A('iterateSseBody 非 OK(401/404/429/500/503)→ SseOpenStatusError(status);400 仍 InvalidLastEventIdError(既有语义零改)', await (async () => {
+      for (const s of [401, 404, 429, 500, 503]) {
+        const e = await openErr(s);
+        if (!isSseOpenStatusError(e) || e.status !== s) return false;
+      }
+      return isInvalidLastEventIdError(await openErr(400));
+    })());
+    let authOpens = 0;
+    const authRun = await runInterviewStream({
+      open: () => { authOpens++; return iterateSseBody(new Response(null, { status: 401 })); },
+      onView: () => {}, sleep: async () => {},
+    });
+    A('401 → 停转零重连(open 恰 1 次)+degraded+streamStopReason=auth(不再空流假断线;跳转由 hooks 层执行)',
+      authOpens === 1 && authRun.streamStopReason === 'auth' && authRun.degraded && authRun.connection === 'closed');
+    let nfOpens = 0;
+    const nfRun = await runInterviewStream({
+      open: () => { nfOpens++; return iterateSseBody(new Response(null, { status: 404 })); },
+      onView: () => {}, sleep: async () => {},
+    });
+    A('404 → fail-closed degraded+not_found,不无限重连(open 恰 1 次)',
+      nfOpens === 1 && nfRun.streamStopReason === 'not_found' && nfRun.degraded);
+    let rlOpens = 0;
+    const rlLadder: number[] = [];
+    const rlCap: number[] = [];
+    const rlReasons: Array<string | undefined> = [];
+    const rlRun = await runInterviewStream({
+      open: () => { rlOpens++; return iterateSseBody(new Response(null, { status: 429 })); },
+      onView: (v) => { rlReasons.push(v.streamStopReason); },
+      sleep: async () => {}, maxRetries: 0, maxTotalReconnects: 3,
+      backoffMs: (a) => { rlLadder.push(a); return 0; },
+      capBackoffMs: () => { rlCap.push(1); return 0; },
+    });
+    A('429 → rate_limited 停升级慢速重试(不走失败阶梯,走 cap 档;reconnecting 态透出原因),绝对上限 3 封顶 degraded(opens=4)',
+      rlOpens === 4 && rlRun.streamStopReason === 'rate_limited' && rlRun.degraded && rlReasons.includes('rate_limited') && rlLadder.length === 0 && rlCap.length >= 3);
+    let svOpens = 0;
+    const svLadder: number[] = [];
+    const svRun = await runInterviewStream({
+      open: () => { svOpens++; return iterateSseBody(new Response(null, { status: 500 })); },
+      onView: () => {}, sleep: async () => {}, maxTotalReconnects: 3,
+      backoffMs: (a) => { svLadder.push(a); return 0; }, capBackoffMs: () => 0,
+    });
+    A('5xx → 计失败走 W1 退避(阶梯 1,2,3 爬坡),绝对上限 degraded+server',
+      svOpens === 4 && svRun.streamStopReason === 'server' && svRun.degraded && svLadder.join(',') === '1,2,3');
+    A('interview 文案分臂:rate_limited→连接过多+多标签提示;server→服务恢复中;干净 end→软措辞(注记C);缺省→原文案逐字', (() => {
+      const rl = interviewDisplay(baseV({ connection: 'reconnecting', streamStopReason: 'rate_limited' }));
+      const sv = interviewDisplay(baseV({ connection: 'reconnecting', streamStopReason: 'server' }));
+      const ce = interviewDisplay(baseV({ connection: 'reconnecting', cleanEndReconnect: true }));
+      const df = interviewDisplay(baseV({ connection: 'reconnecting' }));
+      return rl.heading === '连接过多' && rl.message.includes('标签') && !isDeadEnd(rl)
+        && sv.heading === '服务恢复中' && !isDeadEnd(sv)
+        && ce.heading === '正在切换连接' && !ce.message.includes('网络中断') && !isDeadEnd(ce)
+        && df.heading === '网络中断' && df.message === '正在用同一面试重连,已答内容不会丢失…';
+    })());
+    A('interview 停转臂:auth→登录已过期+重新登录;not_found→fail-closed;server→已暂停重连;缺省/游标→原文案逐字', (() => {
+      const au = interviewDisplay(baseV({ connection: 'closed', degraded: true, streamStopReason: 'auth' }));
+      const nf = interviewDisplay(baseV({ connection: 'closed', degraded: true, streamStopReason: 'not_found' }));
+      const sv = interviewDisplay(baseV({ connection: 'closed', degraded: true, streamStopReason: 'server' }));
+      const cu = interviewDisplay(baseV({ connection: 'closed', degraded: true, streamStopReason: 'cursor' }));
+      const df = interviewDisplay(baseV({ connection: 'closed', degraded: true }));
+      return au.heading === '登录已过期' && au.action.label === '重新登录' && !isDeadEnd(au)
+        && nf.heading === '练习不存在或无权访问' && !isDeadEnd(nf)
+        && sv.message.includes('已暂停自动重连') && !isDeadEnd(sv)
+        && cu.message.includes('不会再用同一续传编号') && df.message === cu.message;
+    })());
+    A('quiz/diagnosis 文案分臂同构:rate_limited/server/软措辞 reconnecting + auth 停转(无死胡同不变量保持)', (() => {
+      const qr = quizDisplay({ phase: 'generating', questions: [], degraded: false, connection: 'reconnecting', lastEventId: 0, streamStopReason: 'rate_limited' });
+      const qs = quizDisplay({ phase: 'generating', questions: [], degraded: false, connection: 'reconnecting', lastEventId: 0, streamStopReason: 'server' });
+      const qce = quizDisplay({ phase: 'generating', questions: [], degraded: false, connection: 'reconnecting', lastEventId: 0, cleanEndReconnect: true });
+      const qa = quizDisplay({ phase: 'generating', questions: [], degraded: true, connection: 'closed', lastEventId: 0, streamStopReason: 'auth' });
+      const dr = diagnosisDisplay({ phase: 'generating', sections: [], rewrites: [], degraded: false, connection: 'reconnecting', lastEventId: 0, streamStopReason: 'rate_limited' });
+      const dce = diagnosisDisplay({ phase: 'generating', sections: [], rewrites: [], degraded: false, connection: 'reconnecting', lastEventId: 0, cleanEndReconnect: true });
+      const da = diagnosisDisplay({ phase: 'generating', sections: [], rewrites: [], degraded: true, connection: 'closed', lastEventId: 0, streamStopReason: 'auth' });
+      return qr.heading === '连接过多' && !isQuizDeadEnd(qr) && qs.heading === '服务恢复中' && qce.heading === '正在切换连接'
+        && qa.heading === '登录已过期' && !isQuizDeadEnd(qa)
+        && dr.heading === '连接过多' && dce.heading === '正在切换连接' && da.heading === '登录已过期' && !isDiagnosisDeadEnd(da);
+    })());
+    A('ensureOk:401 → redirect(/login?expired=1) 抛 NEXT_REDIRECT(digest 含目标路径);402 既有分支零改;409 容忍集不抛不跳;其余非 ok 仍抛 action_failed_<status>', await (async () => {
+      try { ensureOk(new Response(null, { status: 401 }), 'apply', [409]); return false; } catch (e) {
+        const err = e as { message?: string; digest?: string };
+        if (err.message !== 'NEXT_REDIRECT' || !(err.digest ?? '').includes('/login?expired=1')) return false;
+      }
+      try { ensureOk(new Response(null, { status: 402 }), 'apply'); return false; } catch (e) {
+        if (!((e as { digest?: string }).digest ?? '').includes('apply_credits_unavailable')) return false;
+      }
+      try { ensureOk(new Response(null, { status: 409 }), 'apply', [409]); } catch { return false; }
+      try { ensureOk(new Response(null, { status: 500 }), 'apply'); return false; } catch (e) {
+        return (e as { message?: string }).message === 'action_failed_500';
+      }
+    })());
+  }
+
+  section('SSE-RESILIENCE 6/6:集成回归锚——耗尽转永续后仍可恢复到终态(三驱动);绝对上限缺省文案逐字;retry 唤醒后终态收尾');
+  {
+    // W1② 回归钉:连续失败超过 maxRetries(缺省 3)后驱动仍活着,后续连接续到终态(旧实现第 4 拍已 degraded 死亡)。
+    let pOpens = 0;
+    const pRun = await runInterviewStream({
+      open: (lastId) => { pOpens++; if (pOpens <= 4) throw new Error('down'); return lastId === 0 ? streamOf(ev(1, 'question_ready', { question: 'Q' })) : streamOf(ev(2, 'report_ready', { overall: 81 })); },
+      onView: () => {}, sleep: async () => {}, backoffMs: () => 0, capBackoffMs: () => 0,
+    });
+    A('interview:耗尽(4>3)转慢速永续不降级,第 5/6 连接续到 report_ready(旧实现第 4 拍即 degraded)',
+      pOpens === 6 && pRun.phase === 'report_ready' && !pRun.degraded);
+    let qPins = 0;
+    const qPin = await runQuizStream({
+      open: () => { qPins++; return qPins <= 4 ? Promise.reject(new Error('down')) : streamOf(ev(1, 'quiz_ready', { count: 0 })); },
+      onView: () => {}, sleep: async () => {}, backoffMs: () => 0, capBackoffMs: () => 0,
+    });
+    A('quiz 同构:耗尽转永续不降级,第 5 连接续到 ready', qPins === 5 && qPin.phase === 'ready' && !qPin.degraded);
+    let dPins = 0;
+    const dPin = await runDiagnosisStream({
+      open: () => { dPins++; return dPins <= 4 ? Promise.reject(new Error('down')) : streamOf(ev(1, 'diagnosis_ready', { sectionCount: 0 })); },
+      onView: () => {}, sleep: async () => {}, backoffMs: () => 0, capBackoffMs: () => 0,
+    });
+    A('diagnosis 同构:耗尽转永续不降级,第 5 连接续到 ready', dPins === 5 && dPin.phase === 'ready' && !dPin.degraded);
+    let capOpens = 0;
+    const capRun = await runInterviewStream({
+      open: () => { capOpens++; throw new Error('x'); },
+      onView: () => {}, sleep: async () => {}, backoffMs: () => 0, capBackoffMs: () => 0, maxTotalReconnects: 5,
+    });
+    A('绝对上限(cap 档,opens=6)degraded:从未连上(connecting)耗尽 → phase=error 终态收尾(既有语义零改)',
+      capOpens === 6 && capRun.degraded && capRun.phase === 'error' && capRun.streamStopReason === undefined);
+    // 绝对上限缺省文案逐字(非终态中途耗尽面):先拿到题面再断,耗尽不落在 error 终态 → 走缺省停转文案(游标同臂,既有断言锚不被本刀改写)。
+    let cap2Opens = 0;
+    const cap2Run = await runInterviewStream({
+      open: (lastId) => { cap2Opens++; return lastId === 0 ? streamOf(ev(1, 'question_ready', { question: 'Q' })) : Promise.reject(new Error('x')); },
+      onView: () => {}, sleep: async () => {}, backoffMs: () => 0, capBackoffMs: () => 0, maxTotalReconnects: 4,
+    });
+    const cap2Disp = interviewDisplay(cap2Run);
+    A('绝对上限缺省文案逐字保留(degraded+closed+非终态+无分类 → 原文)',
+      cap2Opens === 5 && cap2Run.degraded && cap2Run.connection === 'closed' && cap2Run.phase === 'question'
+      && cap2Run.streamStopReason === undefined
+      && cap2Disp.message === '练习连接已停止，不会再用同一续传编号自动重连。可重试本场练习或返回列表。');
+  }
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
   process.exit(failures === 0 ? 0 : 1);

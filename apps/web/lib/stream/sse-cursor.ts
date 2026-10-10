@@ -6,7 +6,8 @@
  * Drivers must stop / enter degraded and surface a fail-closed exit.
  *
  * The Next proxy currently forwards upstream 400 (body may be JSON or `stream_unavailable`).
- * Any 400 on SSE open is therefore fatal. 502/401/404 still look like a dropped connection.
+ * Any 400 on SSE open is therefore fatal. Other non-OK statuses surface as `SseOpenStatusError`
+ * so the driver can classify (SSE-RESILIENCE #56) instead of faking a dropped connection.
  */
 export const INVALID_LAST_EVENT_ID = 'invalid_last_event_id' as const;
 
@@ -43,10 +44,43 @@ export function throwIfInvalidLastEventIdStatus(status: number): void {
   if (status === 400) throw new InvalidLastEventIdError();
 }
 
-/** Read an opened SSE Response: 400 → fatal; other non-OK → empty (driver reconnects). */
+/**
+ * SSE-RESILIENCE #56：SSE 打开非 OK 不再静默空结束（旧实现把 401/404/429/5xx 都扮成"空流结束"→假断线）。
+ * 驱动按 status 分类消费：401→停转跳登录、404→fail-closed、429→慢速重试、5xx→计失败退避（见各驱动）。
+ * 代理 `sseProxyFailureResponse` 已透传原 status，这里是客户端把分类信息真正用起来。
+ */
+export const SSE_OPEN_STATUS_ERROR = 'sse_open_status_error' as const;
+
+export class SseOpenStatusError extends Error {
+  readonly code = SSE_OPEN_STATUS_ERROR;
+  readonly status: number;
+  constructor(status: number) {
+    super(`sse_open_status_${status}`);
+    this.name = 'SseOpenStatusError';
+    this.status = status;
+  }
+}
+
+export function isSseOpenStatusError(err: unknown): err is SseOpenStatusError {
+  if (err instanceof SseOpenStatusError) return true;
+  if (!(err instanceof Error)) return false;
+  return err.name === 'SseOpenStatusError' || (err as { code?: string }).code === SSE_OPEN_STATUS_ERROR;
+}
+
+/** 打开状态 → 驱动消费分类。400 已在上游走 InvalidLastEventIdError 既有语义（零改）；此处不涉 400。 */
+export type SseOpenClass = 'auth' | 'rate_limited' | 'server' | 'not_found' | 'transport';
+export function classifySseOpenStatus(status: number): SseOpenClass {
+  if (status === 401) return 'auth';
+  if (status === 404) return 'not_found';
+  if (status === 429) return 'rate_limited';
+  if (status >= 500) return 'server';
+  return 'transport';   // 其余 4xx（403 等）按传输失败计退避，不无限同游标重试语义之外加戏
+}
+
+/** Read an opened SSE Response: 400 → fatal（既有语义零改）; other non-OK → SseOpenStatusError(status)（驱动分类）。 */
 export async function* iterateSseBody(res: Response): AsyncGenerator<string> {
   throwIfInvalidLastEventIdStatus(res.status);
-  if (!res.ok || !res.body) return;
+  if (!res.ok || !res.body) throw new SseOpenStatusError(res.status);
   const reader = res.body.getReader();
   const dec = new TextDecoder();
   for (;;) {
