@@ -11,13 +11,15 @@ import { MemorySaver } from '@langchain/langgraph';
 import {
   assertIsolatedTestTarget, asPrincipal, asScoringWorkerPrincipal, availableUnits, claimInterviewAnswer,
   createPool, createResumeWithBlob, enqueueInterviewJob, enqueueReport, getReport, listScorableScoreCards,
+  historicalWeakDimensions,
   reserveEntitlement, transitionResume, completeIngestion, answerHash, supplyCandidateProfileRoute,
   submitInterviewAnswer, createScoreRequestForSubmission, publishRubricAndIssueContract,
   claimScoreRequest, SCORING_ISSUE_PRIVACY_EPOCH,
 } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
-import { ingestResume, scoreSpanDigest, SCORE_SPAN_OFFSET_KIND, utf8ByteLength, type ScoredCriterionDisposition } from '@meetwise/domain';
-import { drainReportsOnce } from '../src/report-worker.ts';
+import { deriveGrowth, ingestResume, toGrowthRow, scoreSpanDigest, SCORE_SPAN_OFFSET_KIND, utf8ByteLength, type ScoredCriterionDisposition } from '@meetwise/domain';
+import { drainReportsOnce, generateGrowthChain } from '../src/report-worker.ts';
+import { biasByPastWeakness } from '../src/adaptive-interview-service.ts';
 import { interviewDispatchTick, type ConsumerDeps } from '../src/interview-consumer.ts';
 import { reportGenerator } from '../src/interview-service.ts';
 import { writeScoreCardAfterProjection } from '../src/score-writer.ts';
@@ -357,6 +359,173 @@ async function main() {
     return Number(r.rows[0]?.n);
   });
   A('账本家族事件流零 report_unavailable（S2 验收 roadmap:54-55）', unavailableEvents === 0);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ③a 成长链自动生成（#204 GROWTH-GEN·D1 形A：tx2 成功后紧邻事务·尽力而为）。
+  // SCORE 域 ①-③ 断言（S2 已去桩·真实 loadSummary 化）零改动；本段为纯追加。
+  // 注：上方 ③ 段账本家族 IID2 的 drain 已在本刀默认 growth 钩子下自动产出评估
+  // （[50,0,100,100]→「高并发」63 分·不 gap——对照面）。
+  // ─────────────────────────────────────────────────────────────────────────
+  section('③a 成长链自动生成（报告 ready → 评估→学习→职业·#204）');
+  // fixture：IID3 独立面试（ledger 家族供卡）——两题 v6 档位=below → 卡总分 [0,0] →
+  // 维度分 0 < GAP=60 → gap=true（对照 ②b IID2 [50,0,100,100] 均分 63 不 gap，
+  // 故须独立面试+定向档位钉死弱项产出维度；维度分/overall 对聚合语义为纯函数可预期）。
+  const IID3 = `${INTERVIEW_ID}-growth`;
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [IID3, OWNER],
+  ));
+  const GROWTH_TURNS = [
+    { q: 'q-v1-t0-c0', stateVersion: 1, turn: 0 },
+    { q: 'q-v1-t1-c0', stateVersion: 2, turn: 1 },
+  ] as const;
+  for (const t of GROWTH_TURNS) {
+    const answer = `第 ${t.turn + 1} 题作答：Redis 令牌桶 + 滑动窗口限流（band=below 钉死弱项维度）。`;
+    await asPrincipal(pool, OWNER, (c) => publishRubricAndIssueContract(c, {
+      interviewId: IID3, questionId: t.q, stateVersion: t.stateVersion, turn: t.turn,
+      question: `请说明第 ${t.turn + 1} 个高并发取舍？`, competency: '高并发', difficulty: 3, kind: 'fundamental',
+    }));
+    const { request } = await asPrincipal(pool, OWNER, async (c) => {
+      const submitted = await submitInterviewAnswer(c, {
+        interviewId: IID3, questionId: t.q, stateVersion: t.stateVersion,
+        clientSubmissionKey: `growth-${t.q}`, answer, privacyEpoch: SCORING_ISSUE_PRIVACY_EPOCH,
+      });
+      const request = await createScoreRequestForSubmission(c, {
+        interviewId: IID3, questionId: t.q, stateVersion: t.stateVersion,
+        submissionId: submitted.submissionId, artifactId: submitted.artifactId,
+        canonicalBodyHmac: submitted.canonicalBodyHmac, privacyEpoch: submitted.privacyEpoch,
+      });
+      return { request };
+    });
+    A(`③a fixture 供卡 score_request（${t.q}）`, request.created === true && request.replayed === false);
+    const written = await writeScoreCardAfterProjection(
+      { pool, owner: OWNER, leaseOwner: `growth-proof-scoring-${process.pid}` },
+      { interviewId: IID3, questionId: t.q, stateVersion: t.stateVersion, answerText: answer, dispositions: fullSpanDisposition(answer, 'below') },
+    );
+    A(`③a fixture 卡总分=0（v6 档位 below→0·钉死 gap 维度）`, written.kind === 'written' && written.deterministicTotal === 0);
+  }
+  // 报告入队 → 生产 deps drain（loadSummary=③ 同款真实读面·growth 钩子=drainReportsOnce 硬接线默认）。
+  await asPrincipal(pool, OWNER, (c) => enqueueReport(c, OWNER, IID3));
+  const growthDrain = await drainReportsOnce(pool, OWNER, `growth-proof-report-${process.pid}`, {
+    loadSummary: realLoadSummary,
+    generate: reportGenerator(pool, OWNER, `${IID3}:report`, model),
+  });
+  A('③a 报告 drain 收口 ready（生产 deps·growth 钩子默认接线·非注入桩）',
+    growthDrain === 'ready' && (await asPrincipal(pool, OWNER, (c) => getReport(c, OWNER, IID3)))?.status === 'ready');
+
+  const blocks = await asPrincipal(pool, OWNER, async (c) => {
+    const ar = await c.query<{ status: string; dimensions: Array<{ dimension: string; score: number; gap: boolean }>; overall: number }>(
+      'SELECT status, dimensions, overall FROM assessment_report WHERE interview_id=$1', [IID3]);
+    const lp = await c.query<{ items: Array<{ topic: string; priority: string; action: string }> }>(
+      'SELECT items FROM learning_plan WHERE interview_id=$1', [IID3]);
+    const cp = await c.query<{ readiness: string; level: string; milestones: Array<{ stage: string; goal: string }> }>(
+      'SELECT readiness, level, milestones FROM career_path WHERE interview_id=$1', [IID3]);
+    return { ar: ar.rows[0], lp: lp.rows[0], cp: cp.rows[0] };
+  });
+  A('区块一 assessment_report：status=ready·dimensions 非空·overall=0（三区块之一）',
+    blocks.ar?.status === 'ready' && Array.isArray(blocks.ar.dimensions) && blocks.ar.dimensions.length > 0 && blocks.ar.overall === 0);
+  A('评估弱项钉死：「高并发」维度分 0<GAP=60 → gap=true',
+    !!blocks.ar && Array.isArray(blocks.ar.dimensions) && blocks.ar.dimensions.some((d) => d.dimension === '高并发' && d.score === 0 && d.gap === true));
+  A('区块二 learning_plan：gap 维度→topic 在列·priority=high（score<40 最弱优先）',
+    !!blocks.lp && Array.isArray(blocks.lp.items) && blocks.lp.items.length > 0
+    && blocks.lp.items.some((it) => it.topic === '高并发' && it.priority === 'high'));
+  A('区块三 career_path：readiness/level/milestones 非空·弱项→「补短板」里程碑（overall=0→junior）',
+    !!blocks.cp?.readiness && blocks.cp?.level === 'junior' && Array.isArray(blocks.cp?.milestones) && blocks.cp.milestones.length > 0
+    && blocks.cp.milestones.some((m) => m.stage === '补短板' && m.goal.includes('高并发')));
+  // 空集跳过（明文 /turn 过渡窗·承 S1 形状非回归）：图家族报告 failed（③ 段 fail-closed·钩子未达）
+  // ——此处直行使 growth 钩子本体对零卡面试的尽力而为语义：assessment='skipped'·零失败计数·依赖段跳过。
+  const skipOutcome = await generateGrowthChain(pool, OWNER, INTERVIEW_ID);
+  A('零卡空集跳过：assessment=skipped·failedCount=0·学习/职业无源跳过（/turn 过渡窗·非失败）',
+    skipOutcome.assessment === 'skipped' && skipOutcome.learning === 'skipped' && skipOutcome.career === 'skipped'
+    && skipOutcome.failedCount === 0 && skipOutcome.fencedSkipped === false);
+
+  // /growth 出点：profile.growth 同一 SQL 谓词 → toGrowthRow+deriveGrowth（domain 单一真相映射同源）。
+  // ③ 段 IID2 已由默认钩子自动入曲线（63·不 gap）+ 本段 IID3（0·gap）→ 两点。
+  const growthView = await asPrincipal(pool, OWNER, async (c) => {
+    const rep = await c.query(
+      "SELECT interview_id, overall, dimensions, created_at FROM assessment_report WHERE owner_user_id=$1 AND status='ready' AND interview_privacy_active(assessment_report.interview_id) ORDER BY created_at ASC, interview_id ASC",
+      [OWNER]);
+    const ans = await c.query<{ n: number }>(
+      "SELECT count(*)::int AS n FROM score_card WHERE status IN ('practice_eligible','b_review_eligible')");
+    return deriveGrowth(rep.rows.map(toGrowthRow), Number(ans.rows[0]?.n));
+  });
+  const growthIds = growthView.points.map((p) => p.interviewId);
+  A('/growth 出点：deriveGrowth 两点在曲线（③ IID2 自动评估 + ③a IID3·成长链断→通）',
+    growthView.points.length === 2 && growthIds.includes(IID2) && growthIds.includes(IID3));
+  A('/growth 维度集合含弱项维度', growthView.dimensions.includes('高并发'));
+  A('（辅·S1 已落面）Dashboard 读面 avgScore 非 null（score_card 均分）',
+    (await asPrincipal(pool, OWNER, (c) => c.query<{ avg: string | null }>(
+      "SELECT avg(deterministic_total) avg FROM score_card WHERE status IN ('practice_eligible','b_review_eligible')",
+    ))).rows[0]?.avg != null);
+
+  // S2 弱项偏置断言链：评估自动落库 → historicalWeakDimensions（只读投影）自动非空 → 稳定分区前移。
+  const weak = await asPrincipal(pool, OWNER, (c) => historicalWeakDimensions(c, OWNER));
+  A('S2 断链根因解除：historicalWeakDimensions 含「高并发」（此前恒空→偏置恒 no-op）', weak.includes('高并发'));
+  const biasedNames = await biasByPastWeakness(pool, OWNER, ['项目经验', '高并发', '技术深度']);
+  A('S2 弱项偏置非 no-op：biasByPastWeakness 弱项稳定前移·非弱项原序（生产函数直行使）',
+    biasedNames[0] === '高并发' && biasedNames.length === 3 && biasedNames.slice(1).join('|') === '项目经验|技术深度');
+
+  // 幂等（主形=直接重放 growth 钩子·席2 注记②）：三表现有 UNIQUE + version+1 → 零重复行。
+  const growthReplay = await generateGrowthChain(pool, OWNER, IID3);
+  const growthRows = await asPrincipal(pool, OWNER, async (c) => {
+    const one = async (table: string) => Number((await c.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM ${table} WHERE interview_id=$1`, [IID3])).rows[0]?.n);
+    return { ar: await one('assessment_report'), lp: await one('learning_plan'), cp: await one('career_path') };
+  });
+  A('幂等：重放 growth 钩子三段全 generated·三表行数各=1（UNIQUE+version+1·零重复）',
+    growthReplay.assessment === 'generated' && growthReplay.learning === 'generated' && growthReplay.career === 'generated'
+    && growthReplay.failedCount === 0 && growthRows.ar === 1 && growthRows.lp === 1 && growthRows.cp === 1);
+
+  // 尽力而为故障注入（IID4·deps.growthFaults 注入职业段失败）：报告不连累·依赖段保留·计数+1·不上抛。
+  const IID4 = `${INTERVIEW_ID}-growth-fault`;
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [IID4, OWNER],
+  ));
+  {
+    const q4 = 'q-v1-t0-c0';
+    const answer = '第 1 题作答：Redis 令牌桶限流（band=below·故障注入面试）。';
+    await asPrincipal(pool, OWNER, (c) => publishRubricAndIssueContract(c, {
+      interviewId: IID4, questionId: q4, stateVersion: 1, turn: 0,
+      question: '请说明高并发限流的取舍？', competency: '高并发', difficulty: 3, kind: 'fundamental',
+    }));
+    const { request } = await asPrincipal(pool, OWNER, async (c) => {
+      const submitted = await submitInterviewAnswer(c, {
+        interviewId: IID4, questionId: q4, stateVersion: 1,
+        clientSubmissionKey: `growth-fault-${q4}`, answer, privacyEpoch: SCORING_ISSUE_PRIVACY_EPOCH,
+      });
+      const request = await createScoreRequestForSubmission(c, {
+        interviewId: IID4, questionId: q4, stateVersion: 1,
+        submissionId: submitted.submissionId, artifactId: submitted.artifactId,
+        canonicalBodyHmac: submitted.canonicalBodyHmac, privacyEpoch: submitted.privacyEpoch,
+      });
+      return { request };
+    });
+    A('③a 故障注入 fixture 供卡 score_request', request.created === true && request.replayed === false);
+    const written = await writeScoreCardAfterProjection(
+      { pool, owner: OWNER, leaseOwner: `growth-proof-scoring-${process.pid}` },
+      { interviewId: IID4, questionId: q4, stateVersion: 1, answerText: answer, dispositions: fullSpanDisposition(answer, 'below') },
+    );
+    A('③a 故障注入 fixture 卡总分=0', written.kind === 'written' && written.deterministicTotal === 0);
+  }
+  await asPrincipal(pool, OWNER, (c) => enqueueReport(c, OWNER, IID4));
+  const faultDrain = await drainReportsOnce(pool, OWNER, `growth-fault-report-${process.pid}`, {
+    loadSummary: realLoadSummary,
+    generate: reportGenerator(pool, OWNER, `${IID4}:report`, model),
+    growthFaults: { career: new Error('injected_career_failure') },
+  });
+  A('尽力而为：职业段注入失败 → 报告仍 ready·drain 无异常上抛',
+    faultDrain === 'ready' && (await asPrincipal(pool, OWNER, (c) => getReport(c, OWNER, IID4)))?.status === 'ready');
+  const faultState = await asPrincipal(pool, OWNER, async (c) => {
+    const ar = await c.query<{ n: number }>('SELECT count(*)::int AS n FROM assessment_report WHERE interview_id=$1', [IID4]);
+    const lp = await c.query<{ n: number }>('SELECT count(*)::int AS n FROM learning_plan WHERE interview_id=$1', [IID4]);
+    const cp = await c.query<{ n: number }>('SELECT count(*)::int AS n FROM career_path WHERE interview_id=$1', [IID4]);
+    return { ar: Number(ar.rows[0]?.n), lp: Number(lp.rows[0]?.n), cp: Number(cp.rows[0]?.n) };
+  });
+  A('尽力而为：评估+学习仍在·职业缺位（依赖段不连累）', faultState.ar === 1 && faultState.lp === 1 && faultState.cp === 0);
+  const faultReplay = await generateGrowthChain(pool, OWNER, IID4, { career: new Error('injected_career_failure') });
+  A('尽力而为：failedCount=1·career=failed·评估/学习照常（结构化计数器核对）',
+    faultReplay.failedCount === 1 && faultReplay.career === 'failed'
+    && faultReplay.assessment === 'generated' && faultReplay.learning === 'generated'
+    && faultReplay.fencedSkipped === false);
 
   console.log(`\n${failures === 0 ? '✓ 当前 v64 面试链路全部通过' : `✗ ${failures} 项失败`}`);
   await pool.end();

@@ -183,8 +183,10 @@ export async function planCompetencies(pool: DbPool, owner: string, threadId: st
 /** 弱项软偏置(**反 confirmation-bias**):把规划官**本次已提**、且命中历史弱项(assessment_report gap=true)的能力**稳定前移**
  *  → 更可能落进 core(复测更充分);但**只重排、绝不注入岗位无关能力**(hint 非硬过滤)。
  *  关键:记忆只影响"考哪些能力",**绝不影响"多难/多有信心"**——难度仍由 initMind 从中性 2 起(上次弱→这次中性难度复测,prior 完全向中性衰减),
- *  confidence 恒从 0 起(只累积本场证据)。空历史(冷启动/记忆不可用)→ 稳定分区自然恒等(**非特殊分支**:空集 → 全部落后桶、保持原序)。 */
-async function biasByPastWeakness(pool: DbPool, owner: string, names: string[]): Promise<string[]> {
+ *  confidence 恒从 0 起(只累积本场证据)。空历史(冷启动/记忆不可用)→ 稳定分区自然恒等(**非特殊分支**:空集 → 全部落后桶、保持原序)。
+ *  (#204 GROWTH-GEN S2:export 仅 prove 可见性——interview.proof ③a 直接行使本函数断言弱项偏置非 no-op;
+ *   函数体逐字节原样,零逻辑改动。) */
+export async function biasByPastWeakness(pool: DbPool, owner: string, names: string[]): Promise<string[]> {
   const weak = await pastWeakDimensions(pool, owner).catch(() => [] as string[]);   // 记忆不可用/冷启动 → [] → 恒等(fail-soft,绝不因判重故障阻断开面)
   const weakSet = new Set(weak.map(normalizeQuestion));
   const isWeak = (n: string) => weakSet.has(normalizeQuestion(n));
