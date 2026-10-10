@@ -357,7 +357,10 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
               const primary = snap?.allocations?.[0]?.leafTrackId;
               if (typeof primary === 'string' && primary.trim()) roleFromRouteSnapshot = primary.trim();
             }
+            // #259: 用户显式岗位(payload->>'targetRole',begin 头透传)置最高优先源;旧 job 缺键 →
+            // undefined(容忍不崩,沿 requestId 同形制)。门语义零改:缺 snapshot 仍 throw(下方 resolver)。
             const role = resolveAdaptiveInterviewRole({
+              roleFromUserInput: requestContext.targetRole,
               roleFromRouteSnapshot,
               roleFromDeps: adaptive.role,
             });

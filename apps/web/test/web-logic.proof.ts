@@ -2,6 +2,9 @@
  * 前端承重逻辑证明（纯函数,无浏览器）：SSE 解码(含 CRLF/心跳/分块)、契约客户端(状态分流+幂等键)、视图归约的优雅降级与无静默死胡同。
  *   pnpm web:prove
  */
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { decodeSSE, toBusinessEvent } from '../lib/stream/business-events.ts';
 import {
   reduceInterview, applyEvent, applyEvents, initialView, onStreamClosed, onReconnectExhausted, isTerminal,
@@ -841,6 +844,25 @@ async function main() {
     actionErrorMessage('interviews', 409, 'not_a_mapped_code') === null
     && actionErrorMessage('interviews', 402, 'not_a_mapped_code') === null
     && actionErrorMessage('jobs', 402, 'not_a_mapped_code') === null);
+
+  section('ROLE-INPUT #259 表单→begin 传输：目标岗位空串不发头（静态源面断言）');
+  // server action('use server' + next/navigation redirect)无法在无浏览器纯函数 proof 内行使;
+  // 沿 godfn-1c S 层形制断言源面形制:trim 归一 + 真值门(空/缺省 → falsy → 不发 target-role 头=现状字节)。
+  const webTestRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+  const readSrc = (rel: string) => {
+    const p = resolve(webTestRoot, rel);
+    if (!existsSync(p)) return '';
+    return readFileSync(p, 'utf8');
+  };
+  const ivActions = readSrc('app/interviews/actions.ts');
+  A('#259 action 读取 targetRole 且 trim 归一',
+    /const targetRole = String\(formData\.get\('targetRole'\) \?\? ''\)\.trim\(\);/.test(ivActions));
+  A('#259 begin 头基座仅 resume-id(现状字节)', /const headers: Record<string, string> = \{ 'resume-id': resumeId \};/.test(ivActions));
+  A('#259 target-role 头走真值门(空串/缺省 falsy → 不发头)', /if \(targetRole\) headers\['target-role'\] = targetRole;/.test(ivActions));
+  A('#259 begin 调用传 headers 变量(不再内联 resume-id 单键对象)',
+    /serverFetch\('\/interview\/' \+ interviewId \+ '\/begin', \{ method: 'POST', headers \}\)/.test(ivActions));
+  A('#259 表单含目标岗位可选输入(name=targetRole·maxLength=100·镜像 diagnosis 形制)',
+    /<Input id="targetRole" name="targetRole" maxLength=\{100\}/.test(readSrc('app/interviews/page.tsx')));
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
   process.exit(failures === 0 ? 0 : 1);

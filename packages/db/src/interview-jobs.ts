@@ -152,21 +152,32 @@ export async function claimNextInterviewJob(
   };
 }
 
-export type ClaimedInterviewJobRequestId = { stillClaimed: boolean; requestId?: string };
+export type ClaimedInterviewJobRequestId = { stillClaimed: boolean; requestId?: string; targetRole?: string };
 
-/** Read only the safe correlation scalar after the reference gate succeeds. */
+/**
+ * Read only the safe correlation scalars after the reference gate succeeds.
+ * #259 additive: `payload->>'targetRole'` rides the same gated single-row read —
+ * the requestId semantics, query shape, and lease re-check are byte-for-byte
+ * unchanged; a missing/blank key yields `targetRole: undefined` (legacy job
+ * replay tolerated, mirroring the requestId tolerance).
+ */
 export async function loadClaimedInterviewJobRequestId(
   c: Client, owner: string, jobId: string, leaseOwner: string,
 ): Promise<ClaimedInterviewJobRequestId> {
-  const r = await c.query<{ request_id: string | null }>(
-    `SELECT payload->>'requestId' AS request_id
+  const r = await c.query<{ request_id: string | null; target_role: string | null }>(
+    `SELECT payload->>'requestId' AS request_id, payload->>'targetRole' AS target_role
        FROM interview_job
       WHERE id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3`,
     [jobId, owner, leaseOwner],
   );
   if (r.rowCount !== 1) return { stillClaimed: false };
   const requestId = r.rows[0]?.request_id;
-  return { stillClaimed: true, ...(typeof requestId === 'string' && requestId ? { requestId } : {}) };
+  const targetRole = r.rows[0]?.target_role;
+  return {
+    stillClaimed: true,
+    ...(typeof requestId === 'string' && requestId ? { requestId } : {}),
+    ...(typeof targetRole === 'string' && targetRole ? { targetRole } : {}),
+  };
 }
 
 export type ClaimedInterviewAnswerPayload = { stillClaimed: boolean; payload?: unknown };

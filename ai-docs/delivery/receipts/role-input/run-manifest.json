@@ -1,0 +1,98 @@
+{
+  "knife": "role-input",
+  "requestBlueprint": "REQUEST rev4 @d29d8f1d (ai-docs/delivery/harness/role-input-REQUEST.md) · EXEC 授权=S1 范围（协调方·pre-exec 双席 BOTH PASS+快核 PASS）",
+  "runId": "2026-10-10",
+  "branch": "line/role-input（工作树 /Users/miaole/Desktop/golucky/meetwise-line-259role）",
+  "rebase": {
+    "onto": "feat/mysql-schema-skeleton @6979a0694c739ada5c9477957aac92434133136e（主线 tip·a03b9371 dual-keep 残留已由主线 hotfix 清理）",
+    "outcome": "clean（EXIT=0·零冲突·4 docs-only 提交链重写 d99d01e0→77830acf→199eeab4→d29d8f1d）",
+    "c1c7ZeroDriftProof": "git diff --stat 6979a069..HEAD -- (C1-C7 七文件) 为空（字节零动亲证）"
+  },
+  "scope": "S1 only（#259 表单字段+begin 透传+planner 消费；S2a 未并入·S2b/S3 未触）",
+  "execChoice": {
+    "s1_4_loader": "additive 扩展 loadClaimedInterviewJobRequestId 同查询补读 payload->>'targetRole'（二选一之 additive 案；requestId 语义/查询形状/lease 复核零改）",
+    "api_proof_transport": "apps/api/test/role-input.proof.ts = godfn-1c 形制 in-process fake client（零 DB/零网络/零模型）→ 不经隔离 runner，root wrapper role-input:api:prove:raw 直跑；runner 仅登记 worker target role-input:prove:raw"
+  },
+  "guards": {
+    "banDictAndSupplyChain": "packages/domain/src/candidate-profile-route.ts · packages/db/src/candidate-route.ts 零字节（diff 亲证 BAN_CLEAN）",
+    "banPrompts": "packages/ai-runtime/src/prompts.ts 零字节（diff 亲证）",
+    "banMigration": "packages/db/migrations/ 零新文件",
+    "banTransportSmuggling": "targetRole 仅 begin 头→payload 标量；不入表列/图 state/checkpoint/interrupt/SSE（api proof S7 断言）",
+    "gateSemanticUntouched": "MEETWISE_TECH_ROLE_FAIL_CLOSED 语义零弱化：worker proof U2/U4/③c + r1-tech-role-fail-closed:prove EXIT=0 零改自证",
+    "markersZero": "本刀触碰面 diff 新增行 grep TODO/FIXME/XXX/HACK/TBD/PLACEHOLDER/待补族 = 0",
+    "secretsZero": "diff 零 key 零 secret；零 live·零网络（fake seam 总策）"
+  },
+  "pins": {
+    "haStatus": "NOT_HA",
+    "releaseEvidence": false,
+    "claimProductionHA": false,
+    "gR45Closed": true,
+    "coveredCount": 8,
+    "ms3EqualsR4Closed": false,
+    "pgRetained": true,
+    "publicDelete": "202 软删受理(purge_pending)——沿 c9200502 现行值",
+    "g7SuiteGreen": false,
+    "r1Closed": false,
+    "actualSpendCny": null
+  },
+  "measuredBaselines": {
+    "interviewProveBaseline": "rebase 后开工前实跑：54 PASS / 0 FAIL，EXIT=0（实测值落账；历史值 54/29 未引用为本刀判据）",
+    "negInterviewBaseline": "97 条全绿（本次实跑）",
+    "note": "基线跑前环境一次性事件见 attemptsLedger.interviewProveBaseline"
+  },
+  "attemptsLedger": {
+    "interviewProveBaseline": [
+      { "attempt": 1, "exit": 1, "outcomeClass": "environment_boot", "transient": true, "note": "isolated_postgres_database_not_ready:boot（工作树 node_modules 未装+容器首启竞态；docker 探针复核容器本体健康，pnpm install 后重跑）" },
+      { "attempt": 2, "exit": 0, "pass": 54, "fail": 0, "transient": false }
+    ],
+    "workerRoleInputProve": [
+      { "attempt": 1, "exit": 1, "outcomeClass": "proof_fixture_defect", "transient": false, "note": "新 proof 内 epoch 推导双重 .rows[0] 笔误 → bigint NaN（22P02）；U1-U9 单元段已绿。修 fixture 后重跑，非断言放宽非 retry-to-green" },
+      { "attempt": 2, "exit": 0, "pass": 31, "fail": 0, "transient": false }
+    ],
+    "apiRoleInputProve": [ { "attempt": 1, "exit": 0, "pass": 13, "fail": 0 } ],
+    "webProve": [ { "attempt": 1, "exit": 0, "pass": 204, "fail": 0, "note": "含本刀新增 5 断言（ROLE-INPUT 段）" } ],
+    "interviewProvePostChange": [ { "attempt": 1, "exit": 0, "pass": 54, "fail": 0, "note": "与基线 54/0 逐位一致=②byte-identical 回归面" } ],
+    "negInterview": [ { "attempt": 1, "exit": 0, "pass": 97, "fail": 0 } ],
+    "typecheckRoot": [ { "attempt": 1, "exit": 0 } ],
+    "typecheckWeb": [ { "attempt": 1, "exit": 0 } ],
+    "r1TechRoleFailClosed": [ { "attempt": 1, "exit": 0, "note": "零改自证（resolver 改后门语义等价）" } ]
+  },
+  "verdicts": {
+    "judge1_userRoleIntoPlanner": "PASS（worker proof ①b-①f：planner userData 岗位行=用户串·零 snapshot 叶串·issued 首题在·selectPlannerFacts 同参）",
+    "judge2_emptyByteIdentical": "PASS（worker proof ②a-②c + post interview:prove 54/0：payload 零键现状字节·snapshot 叶路径照旧）",
+    "judge3_priorityEdges": "PASS（U1-U9 单元 + ③b flag-off 用户胜零 deps/legacy 串 + ③c 缺 snapshot 仍 throw adaptive_role_route_missing 门零弱化 + ②c 旧 job 无键容忍）",
+    "judge4_beginTransport": "PASS（api proof R1-R5：超100截断/纯空白→undefined/缺省现状字节/幂等 alreadyBegun 零改写 + web 5 断言空串不发头）",
+    "offlineRegression": "PASS（interview:prove 54/0 · neg:interview 97 全绿 · root/web typecheck EXIT=0 · r1 EXIT=0）",
+    "selfApprovalBan": "≠ 合入自批——待 post_prove 双席独立复核（executed_s1:awaiting_post_prove_dual）"
+  },
+  "diffNumstat": {
+    "tracked": [
+      "1/0 apps/api/package.json",
+      "4/2 apps/api/src/modules/interview/interview.controller.ts",
+      "8/2 apps/api/src/modules/interview/interview.service.ts",
+      "6/2 apps/web/app/interviews/actions.ts",
+      "22/14 apps/web/app/interviews/page.tsx",
+      "22/0 apps/web/test/web-logic.proof.ts",
+      "1/0 apps/worker/package.json",
+      "18/3 apps/worker/src/adaptive-role-resolve.ts",
+      "3/0 apps/worker/src/interview-consumer.ts",
+      "3/0 package.json",
+      "16/5 packages/db/src/interview-jobs.ts",
+      "15/2 scripts/run-e2e-isolated.mjs"
+    ],
+    "untrackedNew": [
+      "apps/api/test/role-input.proof.ts",
+      "apps/worker/test/role-input.proof.ts",
+      "ai-docs/delivery/receipts/role-input/run-manifest.json",
+      "ai-docs/delivery/receipts/role-input/prove-exits.md",
+      "ai-docs/delivery/harness/role-input-REQUEST.md（状态行 append）"
+    ],
+    "receiptSourcesLimitNote": "runner isolatedReceiptSources['role-input:prove:raw'] 15 项（≤32 上限）"
+  },
+  "estimatedCostCny": 0,
+  "costNote": "零 Key·零 live·零网络（fake seam 总策：捕获型 ModelClient + in-process fake client + 隔离 PG）",
+  "receipts": [
+    { "file": "run-manifest.json" },
+    { "file": "prove-exits.md" }
+  ]
+}
