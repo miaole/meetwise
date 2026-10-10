@@ -9,9 +9,22 @@
  * proof starts; it never drops a schema ledger or targets a cloud database.
  */
 import 'reflect-metadata';
-import { createHash } from 'node:crypto';
-import { asPrincipal, beginCheckpointErasure, createPool, provisionRuntimeLogin } from '@meetwise/db';
+import { createHash, randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { asPrincipal, beginCheckpointErasure, classifyJobRoute, createJob, createPool, inviteCandidate, provisionRuntimeLogin, startApplicationInterview } from '@meetwise/db';
 import { generatePrivacyAuthzKeyPair, signPrivacyAuthorizationSnapshot } from '@meetwise/domain';
+
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
+// F1④ B 端真 start 链 fixture 的 rule-classify HMAC key（test-only,同 commerce-reconcile.proof 先例;非生产）。
+process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'privacy-http-job-route-input-hmac-proof-key-not-production-01';
+/** 静态 lineOf（沿 uc-e2e-001-nhp-bound.proof.ts 先例·N2 并发锁补测用）。 */
+function lineOf(src: string, re: RegExp, from = 0): number {
+  const lines = src.split('\n');
+  for (let i = from; i < lines.length; i++) if (re.test(lines[i]!)) return i + 1;
+  return -1;
+}
 
 const admin = createPool();
 const role = `privacy_http_api_${process.pid}`;
@@ -245,6 +258,70 @@ async function main() {
     A('面试预览后 /turn 410 且不写答案 job（0096 围栏副作用）',
       fencedTurn.status === 410 && (await json(fencedTurn)).error === 'interview_privacy_fenced'
       && Number(fencedJobs.rows[0]?.count) === 0);
+
+    // ── FENCE-REFLOW F1「create 三过滤」section（§4-2 P1 落槽。围栏 fixture=上方 preview 202 local_fenced 流）──
+    {
+      // N2 补测（rev3）：create 同用户并发 advisory 锁静态 lineOf 断言（begin 锁由 uc-e2e-001-nhp-bound:74-87 覆盖,原样绿）。
+      const svcSrc = readFileSync(resolve(repoRoot, 'apps/api/src/modules/interview/interview.service.ts'), 'utf8');
+      const createLine = lineOf(svcSrc, /async create\(principal: string\)/);
+      const ivCreateLock = lineOf(svcSrc, /pg_advisory_xact_lock\(hashtext\(\$1\), hashtext\(\$2\)\)'\s*,\s*\[owner, 'iv-create'\]/, Math.max(0, createLine - 1));
+      A('N2 补测：create iv-create 并发 advisory 锁静态在位（lineOf）', createLine > 0 && ivCreateLock > 0);
+
+      const created = await fetch(`${base}/interview`, {
+        method: 'POST', headers: { ...authorization, 'content-type': 'application/json' }, body: '{}',
+      });
+      const createdBody = await json(created);
+      A('F1① 围栏非终态面试存在 → create 不复用（reused=false·新 id≠围栏 id）',
+        created.status === 200 && createdBody.reused === false
+        && typeof createdBody.interviewId === 'string' && createdBody.interviewId !== interviewId);
+      const listAfterCreate = await fetch(`${base}/interview`, { headers: authorization });
+      const listAfterCreateBody = await json(listAfterCreate);
+      A('F1② list 与 create 同过滤面（未结束集合不含围栏 id）',
+        listAfterCreate.status === 200 && Array.isArray(listAfterCreateBody.interviews)
+        && !listAfterCreateBody.interviews.some((row: { id: string }) => row.id === interviewId));
+      const beginFenced = await fetch(`${base}/interview/${interviewId}/begin`, {
+        method: 'POST', headers: { ...authorization, 'resume-id': '00000000-0000-4000-8000-000000000002' },
+      });
+      A('F1③ guard 410 保留（直连围栏 id begin 仍 410 interview_privacy_fenced·guard 路径零回归）',
+        beginFenced.status === 410 && (await json(beginFenced)).error === 'interview_privacy_fenced');
+      // F1④ 新-#274：B 端岗位绑定面试（application_id≠NULL·非终态）不被 C 端 create 捞走。
+      // 隔离口径：落在本 proof 既有第二候选人（otherBody·无围栏）名下——其唯一非终态行=B 端绑定行,
+      // 若 create 复用查询缺 application_id 过滤即会捞走它；围栏面（用户1）与 B 端面（用户2）互不混染。
+      // fixture=真 start 链（createJob→rule-classify→invite→startApplicationInterview,同
+      // commerce-reconcile.proof ⑦ 先例）——resume.id/application 绑定链为 uuid+复合 FK+0051 状态机
+      // 触发器管轄,裸 INSERT 撞约束（EXEC 续做修正,原稿假 id 直插即抛 uncaught）。
+      {
+        const bResumeId = randomUUID();
+        const recruiter = `f1b-recruiter-${process.pid}`;
+        await admin.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0, now()+interval '300 days')", [otherBody.userId]);
+        await admin.query("INSERT INTO resume(id,owner_user_id,status,content_sha) VALUES ($1,$2,'ingested',$3)", [bResumeId, otherBody.userId, `fence-reflow:${bResumeId}`]);
+        const jobRow = await asPrincipal(admin, recruiter, (c) => createJob(c, recruiter, {
+          title: 'F1④ B 端 fixture 岗位', description: 'create 三过滤 application_id 谓词 fixture', competencies: ['nodejs'],
+        }));
+        const rev = Number((await admin.query('SELECT COALESCE(MAX(revision),0)::int AS n FROM job_semantic_revision WHERE job_id=$1', [jobRow.id])).rows[0].n);
+        await classifyJobRoute(admin, recruiter, jobRow.id, rev, {
+          modelClassify: async () => { throw new Error('B-side seed must rule-decide; model path unexpected'); },
+        });
+        const app = await asPrincipal(admin, recruiter, (c) => inviteCandidate(c, recruiter, jobRow.id, otherBody.userId));
+        const started = await asPrincipal(admin, otherBody.userId, (c) => startApplicationInterview(c, otherBody.userId, app!.applicationId, bResumeId));
+        const bInterviewId = (started.status === 'started' || started.status === 'reused') ? started.interviewId : undefined;
+        if (!bInterviewId) throw Object.assign(new Error('f1b_side_start_missing'), { code: 'f1b_side_start_missing', started });
+        const createdB = await fetch(`${base}/interview`, {
+          method: 'POST', headers: { authorization: `Bearer ${otherBody.token}`, 'content-type': 'application/json' }, body: '{}',
+        });
+        const createdBBody = await json(createdB);
+        A('F1④ B 端绑定面试不被 C 端 create 捞走（application_id IS NULL 谓词·新-#274 落断言）',
+          createdB.status === 200 && createdBBody.reused === false
+          && typeof createdBBody.interviewId === 'string' && createdBBody.interviewId !== bInterviewId);
+      }
+      // 正常未结束 C 端练习面试仍复用（reused=true 不回归）——F1① 新建的会话即复用对照。
+      const createdAgain = await fetch(`${base}/interview`, {
+        method: 'POST', headers: { ...authorization, 'content-type': 'application/json' }, body: '{}',
+      });
+      const createdAgainBody = await json(createdAgain);
+      A('F1 复用不回归：正常未结束练习面试仍 reused=true（同一会话）',
+        createdAgain.status === 200 && createdAgainBody.reused === true && createdAgainBody.interviewId === createdBody.interviewId);
+    }
 
     // UNSTUB-ERASE rev2 (D6 minimum set): the public interview-data DELETE stays
     // 503-closed (seat-1 audit ruling); resume/account deletion went live in the

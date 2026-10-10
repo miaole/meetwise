@@ -210,6 +210,8 @@
     "g7fix4:finalize:prove:raw": "pnpm -C apps/api exec tsx test/g7fix4-finalize-contract.proof.ts",
     "commerce-reconcile:prove": "node scripts/run-e2e-isolated.mjs commerce-reconcile:prove:raw",
     "commerce-reconcile:prove:raw": "pnpm -C apps/worker prove:commerce-reconcile",
+    "fence-reflow-repair:prove": "node scripts/run-e2e-isolated.mjs fence-reflow-repair:prove:raw",
+    "fence-reflow-repair:prove:raw": "pnpm -C apps/worker prove:fence-reflow-repair",
     "model-invocation-reconcile:prove": "node scripts/run-e2e-isolated.mjs model-invocation-reconcile:prove:raw",
     "model-invocation-reconcile:prove:raw": "pnpm -C apps/worker prove:model-invocation-reconcile",
     "model-op00:prove": "node scripts/run-e2e-isolated.mjs model-op00:prove:raw",

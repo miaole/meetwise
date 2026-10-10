@@ -48,6 +48,15 @@ export function interviewDisplay(v: InterviewView): Display {
   // 非法 Last-Event-ID / 重连耗尽 / 401 / 404：连接已关且非终态 → 失败关闭出口，不当成仍可作答。
   // SSE-RESILIENCE #56(C5)：按 reason 分臂（auth 引导重新登录/not_found fail-closed/server 暂停重连）;
   // 游标与绝对上限（缺省）保持原文案逐字（既有断言锚定）。
+  // F6/#243 围栏出口（同一句话）：SSE 410 interview_privacy_fenced → 驱动停转不重连 → 复用 degraded
+  // 出口形（heading/action/degraded 同形，:40 家族），message=「该面试已进入数据删除流程，请新建面试」逐字。
+  if (v.privacyFenced && v.connection === 'closed') {
+    return {
+      heading: '练习连接已停止',
+      message: '该面试已进入数据删除流程，请新建面试',
+      spinner: false, action: { kind: 'retry', label: '重试' }, degraded: true, signalConclude,
+    };
+  }
   if (v.degraded && v.connection === 'closed' && !isTerminal(v.phase)) {
     if (v.streamStopReason === 'auth') {
       return {

@@ -63,6 +63,9 @@ export interface InterviewView {
   /** SSE-RESILIENCE #55(注记C)：reconnecting 来自**无错干净 end**（服务器 10min 轮换/正常收尾）——
    *  文案分臂给软措辞（"切换连接"而非"网络中断"）。只在 reconnecting 臂被消费。 */
   cleanEndReconnect?: boolean;
+  /** FENCE-REFLOW F6/#243：SSE open 返 410 = 该面试已围栏（interview_privacy_fenced）。驱动停转不重连，
+   *  view-model 据此给围栏出口（一句话，复用 degraded 出口形）。仅由驱动 fence 停转通道置位。 */
+  privacyFenced?: boolean;
 }
 
 export const initialView: InterviewView = { phase: 'connecting', degraded: false, connection: 'live', lastEventId: 0, turns: [] };

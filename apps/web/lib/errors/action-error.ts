@@ -37,6 +37,11 @@ const BINDING_CONFLICT_TEXT = '你有一场未结束的面试：继续/放弃后
 // （E1 出口注：继续=列表「进入 →」按钮；放弃=进会话后 InterviewPanel「放弃」+确认弹层（放弃退还额度）
 //  ——两跳可达，页面自身即 /interviews 列表，故本行不带链接。）
 
+// ── 410 行（interview begin 确定性围栏；interviews 页域专属。FENCE-REFLOW F6/#243：
+//    文案=审计第五章 §5.2 建议 3 原文逐字「该面试已进入数据删除流程，请新建面试」；
+//    旧行为=映射 miss → begin_failed 兜底「稍后重试」——永久围栏给重试指引=教用户白点）──
+const INTERVIEW_PRIVACY_FENCED_TEXT = '该面试已进入数据删除流程，请新建面试';
+
 // ── 503 行 ────────────────────────────────────────────────────────────────
 const SERVICE_UNAVAILABLE_TEXT = '服务暂不可用';
 
@@ -72,6 +77,7 @@ export function actionErrorMessage(page: ActionErrorPage, status: number, code: 
   if (page === 'interviews') {
     if (code === 'candidate_route_undecided') return { text: ROUTE_UNDECIDED_TEXT };
     if (code === 'interview_resume_binding_conflict') return { text: BINDING_CONFLICT_TEXT };
+    if (code === 'interview_privacy_fenced') return { text: INTERVIEW_PRIVACY_FENCED_TEXT };   // F6 410 行（interviews 页域·映射命中→不再落 begin_failed 兜底）
     if (code === 'create_failed') return { text: CREATE_FAILED_TEXT.interviews };
     if (code === 'begin_failed' || (code !== null && INTERVIEW_BEGIN_DEFENSIVE_CODES.has(code))) {
       return { text: INTERVIEWS_BEGIN_FAILED_TEXT };

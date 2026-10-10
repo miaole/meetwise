@@ -3,7 +3,7 @@
  * React 桥:把已测的 runInterviewStream 驱动包进 effect。组件只拿 view + display + retry,不碰 SSE 细节。
  * 卸载用 AbortController 取消(驱动已支持);掉线驱动自动重连;无静默死胡同由 view-model 保证。
  *
- * SSE-RESILIENCE(C4)：① openSse 分类透传（iterateSseBody 非 OK 抛 SseOpenStatusError,驱动按状态码分支）;
+ * SSE-RESILIENCE(C4)：① openSse 分类透传（iterateInterviewSseBody:非 OK 抛 SseOpenStatusError 驱动按状态码分支;410 围栏抛 InterviewPrivacyFencedError 停转不重连,F6）;
  * ② 挂浏览器 resumeSignals（window online / document visibilitychange,SSR 守卫;随驱动退出路径 dispose）;
  * ③ 401 停转（streamStopReason='auth'）→ 本层执行 /login?expired=1 跳转（驱动框架无关不碰 location）;
  * ④ retry()（W2 :489 去 reload 出口）：驱动在跑 → resume 信号(立即重连+重置退避);驱动已退出 → 重启驱动。绝不 location.reload。
@@ -12,7 +12,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { runInterviewStream, type ResumeSignals } from '../stream/interview-stream';
 import { initialView, type InterviewView } from '../stream/interview-state';
-import { iterateSseBody, lastEventIdHeaderValue } from '../stream/sse-cursor';
+import { iterateInterviewSseBody, lastEventIdHeaderValue } from '../stream/sse-cursor';
 import { interviewDisplay, type Display } from '../view-model';
 import { useFrameCoalescedState } from './useFrameCoalescedState';
 
@@ -22,7 +22,7 @@ async function* openSse(resultId: string, lastEventId: number, signal?: AbortSig
   const cursor = lastEventIdHeaderValue(lastEventId);
   if (cursor !== undefined) headers['last-event-id'] = cursor;
   const res = await fetch(`/api/interview/${encodeURIComponent(resultId)}/events`, { headers, signal });
-  yield* iterateSseBody(res); // 400 非法游标抛错 → 驱动停转('cursor');401/404/429/5xx 抛 SseOpenStatusError → 驱动分类消费(#56)
+  yield* iterateInterviewSseBody(res); // 400 非法游标抛错 → 驱动停转('cursor');410 围栏抛错 → 驱动停转不重连直接围栏出口(F6);401/404/429/5xx 抛 SseOpenStatusError → 驱动分类消费(#56)
 }
 
 /** 浏览器 resumeSignals 实现(SSR 守卫;dispose 即解绑)。onRetry 由本 hook 的 retry() 触发。三 hooks 共用(同构面单源)。 */
