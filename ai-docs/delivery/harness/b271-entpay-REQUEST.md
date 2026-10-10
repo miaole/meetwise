@@ -293,3 +293,21 @@ END $$;
 merge 落主线 @68e66f18（runner dual-keep=report-retry+entpay 并存·node --check 过）。
 
 **Status**: `slice1_nail:closed`（post-prove 双席 BOTH PASS·merge 落主线 @68e66f18·片1 企业桶+充值闭环·片2 待 0-b 前置闸=B110 post-dual 双审收口后启动·markers=0·est live=0）。
+
+---
+
+## 片2 nail 落卷（2026-10-10 · post-prove 双席 BOTH PASS·#271 全通）
+
+**双审结果**：席1（跨主体安全）+席2（验收矩阵+产品面）互盲复核 BOTH PASS。
+- **D-1 裁决机理亲读成立**：形状乙 ⑤FAIL（reconcile 判支 SQL :65 形状乙下 B 端行静默误入 abandon 支·application 永不翻转）⑥FAIL（RLS 不可见→租约断供被扫）——两 FAIL 为形状性质非探针错（探针 :338-348/:371-386 逐字镜像生产 SQL+错配反例 [B]⑤-err 留痕）；形状甲全 PASS·扣费路径 IDOR 安全（owner 取 principal_user Ban 伪造·payer 单跳派生绑 candidate-owned application·FIFO CAS 候选人桶结构性零触·apply_allocation 作用域守卫越界具名拒）。
+- **跨主体铁律终核成立**：C 端五调用点零 diff·begin C 端 NULL 支归一化 diff 仅守卫换名·begin 面 409 绝不 402·start 面 409→402 重映射=修法③明文（候选人见「暂不可用，请联系招聘方」·旧 402 面零触·已审明语义点）·授权链三重码面成立。
+- **0157 合规**：payer 列 expand-only+脏值 fail-loud·RLS 断言·DEFINER 族具名拒全列·REVOKE/GRANT 逐形 0156·D-1 头注·镜像逐字节同文（neg:commerce 84 背书）。
+- **C8 channel 守卫成立**：CAS 单谓词 :81·offline 持有效 HMAC 直调 webhook→409 滞 created 桶零入账断言在 proof。
+- **五段 prove 双席独立复跑全绿**：entpay:s2 28/28·neg:commerce 84·neg:interview 97·neg:bend 157·commerce-reconcile（F3 共存）·TS 四门 pristine 全同。
+- merge 落主线 @f632e289（零冲突·markers=0）。
+
+**#271 全通宣告**：片1 企业桶+充值（@bcd3bfcf）+片2 扣费路由（@f632e289）——招聘方充值→岗位面试扣企业桶→候选人零扣零感知全链闭环。审计 B 端"候选人被动付费+主链零产出付费循环"（#271/#227·D5 已决企业付费）正式解除。片3（文案知情窗/产品打磨：自服订单列表/余额挂件/开票下拉/channel 观察归档）登记为后继打磨刀·非闭环阻塞。
+
+**P0 四链全通宣告**：#196 简历→出题模型 ✅ · #40 评分卡→报告 ✅ · #204 成长链闭环 ✅ · #271 企业付费 ✅（本卷）——产品四断链全数闭环（用户 2026-10-09 指令「最最重要的 P0 要先把产品断的链路全部走通」达成）。
+
+**Status**: `slice2_nail:closed`（post-prove 双席 BOTH PASS·merge @f632e289·#271 全通·P0 四链全通·markers=0·est live=0）。
