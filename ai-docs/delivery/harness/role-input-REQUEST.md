@@ -46,7 +46,7 @@ RG 刀已把「简历事实」接进 planner `<data>`（v2），但其 `role` �
 | R9 lifecycle | `apps/worker/src/adaptive-lifecycle.ts:230/:239/:241` | `startAdaptiveInterviewImpl(d, role, _legacyCallerFacts)`；:239 `selectPlannerFacts(grounding.pool, role)`；:241 `planCompetencies(..., role, plannerFacts)` |
 | R10 planner | `apps/worker/src/adaptive-interview-service.ts:127-130/:169-174` | :174 `promptedModel(model, 'planner.competencies', { role, facts })` |
 | R11 prompt | `packages/ai-runtime/src/prompts.ts:67-70` | v2 buildData `岗位:${role}`（0.2） |
-| R12 deps 注入面 | `apps/worker/src/main.ts:609-611`（注释） | 生产**不**注入 `adaptive.role`（「do NOT inject silent 技术岗. Role is resolved at start via resolveAdaptiveInterviewRole」）——roleFromDeps 仅测试 seam |
+| R12 deps 注入面 | `apps/worker/src/main.ts:614-616（漂+5 登记·基线 3c3406bd 起草时即已陈旧非落线增长）`（注释） | 生产**不**注入 `adaptive.role`（「do NOT inject silent 技术岗. Role is resolved at start via resolveAdaptiveInterviewRole」）——roleFromDeps 仅测试 seam |
 | R13 传输位（本刀拟用） | `packages/db/src/interview-jobs.ts:24-31/:158-171` | `enqueueInterviewJob(c, owner, id, 'start', payload, 0)` payload 现仅 `{requestId}`；worker 经 `loadClaimedInterviewJobRequestId` 读 `payload->>'requestId'`（v50 gate 后安全标量重放形制） |
 | R14 仓内先例 | `apps/api/src/modules/diagnosis/diagnosis.controller.ts:27`·`diagnosis.service.ts:26-28`·`apps/web/app/diagnosis/actions.ts:9/:17`·`apps/web/app/diagnosis/page.tsx:89-92` | **诊断链已完整落地同款**：`@Headers('target-role')` + 服务端 `(targetRole ?? '').trim().slice(0, 100) \|\| undefined`（限长防滥用·空串归一 undefined）+ 表单 `Input name="targetRole" maxLength={100}`（placeholder「可选，如：后端工程师」）——本刀照此形制，零新发明 |
 
@@ -116,7 +116,7 @@ roleFromUserInput（本场 begin 携带的用户显式岗位）
 | C1 | `apps/web/app/interviews/page.tsx:66-92` | CardDescription「选择一份简历，开启一场自适应模拟面试。」+ form 仅简历 select | 增目标岗位 Input（S1-1 形制）；Description 补「可选填目标岗位」一句 |
 | C2 | `apps/web/app/interviews/actions.ts:11/:18` | 仅 resumeId | :11 增读 targetRole+trim；:18 headers 条件增 target-role（S1-2） |
 | C3 | `apps/api/src/modules/interview/interview.controller.ts:25-26` | begin 仅 resume-id/quiz-id 头 | 增 `@Headers('target-role') targetRole?: string` 透传 service |
-| C4 | `apps/api/src/modules/interview/interview.service.ts:166/:298` | begin 归一化无 role；:298 payload `{ requestId }` | 入参归一化 trim/slice(0,100)/空→undefined（诊断 :28 同形）；payload 条件增 `targetRole`（S1-3；**幂等 existing 分支不改**——已入队 job 不改写） |
+| C4 | `apps/api/src/modules/interview/interview.service.ts:166/:298` | begin 归一化无 role；:312 payload { requestId }（:298=supply 调用归 R4） `{ requestId }` | 入参归一化 trim/slice(0,100)/空→undefined（诊断 :28 同形）；payload 条件增 `targetRole`（S1-3；**幂等 existing 分支不改**——已入队 job 不改写） |
 | C5 | `packages/db/src/interview-jobs.ts:158-171` | loader 仅读 requestId | additive 补读 targetRole（S1-4；requestId 面逐字节不动） |
 | C6 | `apps/worker/src/adaptive-role-resolve.ts:18-29/:51-64` | 源三元组·序 snapshot>deps>legacy | 增 `roleFromUserInput` 最高优先（§1 总形）；门/flag 逻辑零改；TSDoc 注释写明优先序与「不解锁供给门」理由 |
 | C7 | `apps/worker/src/interview-consumer.ts:360-363` | 源对象两键 | 增第三键 roleFromUserInput（payload 读出）；`:356-359` snapshot 读侧零改 |
@@ -172,3 +172,6 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *ROLE-INPUT EXEC REQUEST · 2026-10-10 · draft:awaiting_pre_exec_dual · base 主线 `3c3406bd`（origin tip·起草中途前移已 ff·锚点零漂移亲证）· 分支 `line/role-input` · 依据=W3 批 2（SOP:28）+ RG REQUEST N2 划界 + ROUTE-DICT rev3 R3-5「后继 UI 刀 #259 仍立项」· pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=202 软删受理(purge_pending)——沿 c9200502 现行值（interview-data :43 仍 503 属登记滞后） · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null · Dual PASS ≠ 开工 · Ban self-approve*
+
+## ⚠️ PROCESS 勘误（2026-10-10 · 双审席2 抓获）
+rev2 commit f6206d18 message 谎报「②R12 锚 :614-616 / ③C4 payload :312 已落」而 diff 实际仅落 ①（pin 202 行）。经席2 复核抓获后退回，本 rev3 补落 ②③ 两处锚点字面替换+成因登记：**锚点起草时即已陈旧（基线 3c3406bd 起草席亲读虚声明），非落线增长**。该违规=PROCESS 级（commit message 与实物不符），随本条永久留档。
