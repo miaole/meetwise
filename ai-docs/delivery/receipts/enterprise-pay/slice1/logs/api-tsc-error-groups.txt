@@ -1,0 +1,17 @@
+   4 test/uc-e2e-011-report-refund-http.proof.ts
+   4 test/env-schema.proof.ts
+   4 ../../packages/ai-runtime/src/interview-voice-seams.ts
+   3 test/uc-e2e-019-report-regenerate-http.proof.ts
+   2 test/uc-e2e-010-sse-resume.proof.ts
+   2 src/modules/resume/resume.service.ts
+   1 test/validate.ts
+   1 test/uc-e2e-002-cross-device-http.proof.ts
+   1 test/uc-e2e-002-adv-led-crossuser.proof.ts
+   1 test/uc-e2e-001-nhp-adv.proof.ts
+   1 test/scor-00-http-db.proof.ts
+   1 test/public-preview-write-gate.proof.ts
+   1 test/int-transcript-preview-submit-http.proof.ts
+   1 ../../packages/domain/src/privacy-erasure-preview.ts
+   1 ../../packages/domain/src/interview-control-signals.ts
+   1 ../../packages/domain/src/adaptive-interview.ts
+   1 ../../packages/ai-graphs/src/adaptive-interview/graph.ts

@@ -7,11 +7,12 @@
 --   * outbox：confirm 落账投 settlement_proposed，对账 sweeper 兜底
 DROP TABLE IF EXISTS entitlement_bucket, entitlement_consumption, commerce_outbox, settlement_ledger CASCADE;
 
--- 共享池的一笔来源桶（gift/trial/paid）。numeric 单位：1 次面试=1.00，降级按比例可落 0.50。
+-- 共享池的一笔来源桶（gift/trial/paid/enterprise）。numeric 单位：1 次面试=1.00，降级按比例可落 0.50。
+-- enterprise=B271 #271 企业桶（迁移 0156 具名换装 ck_bucket_kind 同形·审核通过招聘方为持有人）。
 CREATE TABLE entitlement_bucket (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_user_id text NOT NULL,
-  kind text NOT NULL CHECK (kind IN ('gift','trial','paid')),
+  kind text NOT NULL CONSTRAINT ck_bucket_kind CHECK (kind IN ('gift','trial','paid','enterprise')),
   units_total numeric(12,2) NOT NULL CHECK (units_total >= 0),
   units_reserved numeric(12,2) NOT NULL DEFAULT 0 CHECK (units_reserved >= 0),
   units_consumed numeric(12,2) NOT NULL DEFAULT 0 CHECK (units_consumed >= 0),

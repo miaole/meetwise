@@ -270,3 +270,9 @@ END $$;
 **Status**: **`draft_rev3:pre_exec_dual（复审三追记+0156 裁定回注落卷·待会签复核）`** · 2026-10-10 · entpay-rev3 席 · append-only · 历史行不抹改 · ⛔push ⛔动主线仓 ⛔触其他工作树 ⛔恢复被清场码面 ⛔动码面
 
 *B271 ENTERPRISE-PAY EXEC REQUEST 总档 · rev3 追记 2026-10-10 · (a) 处方⑥治理条行号勘误：rev2「实测 :15」错·治理条实测定格 **:16**（rev1 引 :16 本来正确·rev2 反向引入 ±1）· (b) Post-dual 追记 wave3（归档时序 page.tsx 12:55:39·0156 12:56:01·rev2 提交 b34e25a1=12:56:09·落卷时滞 8 秒非造假·隔离库累计三波 8 文件 wave1 3+wave2 2+wave3 3·wave3 归档实存 `.tmp/quarantine-entpay-unauthorized/wave3-20261010/`·wave1/wave3 两份 0156 头注「双审 PASS·EXEC 授权」皆虚称同型警示·真 0156 须 EXEC 授权后全新书写）· (c) §3「payment_order=全仓唯一桶域 RLS 先例」E1 后失效原位注记（0001:152-163 四表 DO 块同构 p_owner 在位）· (d) 0156 归属裁定回注（协调方裁定·**0156 归 ENTPAY 片1**·SOP:16 claim 定义+SOP:79 规划下限非 claim+SOP:13 P0 凌驾·CONSENT-MIN 例外路径按开工时点领下一空号预计 0158+·campaign-LEDGER 一行登记由协调方在主线处理）· 上文 rev2 落款「SOP:15 先登记者胜」行号随之由 (a) 改正为 SOP:16 · alone≠dual*
+
+---
+
+**Status**: **`executed_slice1:awaiting_post_prove_dual`**（片1 EXEC 落卷·prove 收口·待 post-prove 双审·2026-10-10 · entpay-slice1-exec 席 · append-only · 历史行不抹改 · ⛔push ⛔动主线仓 ⛔触其他工作树）
+
+*B271 片1 EXEC 落卷追记 2026-10-10 · 授权=pre-exec 双审收口（席1 PASS+席2 FAIL→rev2→rev3 会签 PASS 零缺口）+协调方明示 EXEC 授权 · stash `b8b350d` 13 文件 apply 回执 exit 0 零冲突 · 0156 全新书写（quarantine 档零恢复·头注事实态）· EXEC 级缺口修复三件（source_order_id provenance/对公同流水具名 conflict/recruiter 门 app_role 可执行形——0155 REVOKE 致恢复码面门调用形产线必炸·attempt4 实测）· 前席发现②收口（公开目录 consumer 域过滤+企业商品独立端点）· prove **48/48 EXIT 0**（attempt 六跑全账如实·零同码态复跑）· neg:commerce 终态 84/84 · TS 三门（contracts/web 清洁·db/api 误差清单与触面零交集=pristine 全同）· markers=0 · 片2 零开工（0-b 不满足·preverify 只写未跑·0157 零字节）· est live=0·隔离库=本地临时容器零生产 DSN · pins 十一值零翻转 · 收据 `ai-docs/delivery/receipts/enterprise-pay/slice1/`（commit hash 见本行 git 登记面）· alone≠dual*

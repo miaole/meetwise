@@ -1,6 +1,32 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import type { RecruiterDecisionDto } from '@meetwise/contracts';
+import type { OfflineRemitEntryDto, OfflineRemitFailDto, RecruiterDecisionDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
+
+/**
+ * B271 片1：对公转账 DB 具名拒绝 → HTTP 分码映射（AdminGuard 之外的第二层语义保真；
+ * 函数内 require_active_admin 双层不变——直调受控函数的非 admin 仍 403）。
+ */
+function mapOfflineRemitError(e: unknown): never {
+  const msg = typeof (e as any)?.message === 'string' ? (e as any).message as string : undefined;
+  switch (msg) {
+    case 'offline_remit_order_not_found':
+      throw new HttpException({ error: 'offline_remit_order_not_found' }, HttpStatus.NOT_FOUND);
+    case 'offline_remit_segregation_required':                      // 录入人==确认人（双人分离）
+    case 'offline_remit_amount_mismatch':                           // 金额不符（拒且不入账）
+    case 'offline_remit_provider_txn_conflict':                     // 同一流水指向第二单（CAS 23505）
+    case 'offline_remit_order_not_entrant':
+    case 'offline_remit_order_not_offline':
+      throw new HttpException({ error: msg }, HttpStatus.CONFLICT);
+    case 'offline_remit_entry_invalid_input':
+    case 'offline_remit_confirm_invalid_input':
+    case 'offline_remit_fail_invalid_input':
+      throw new HttpException({ error: msg }, HttpStatus.BAD_REQUEST);
+    case 'gateway_admin_required':
+      throw new HttpException({ error: 'admin_required' }, HttpStatus.FORBIDDEN);
+    default:
+      throw e as Error;
+  }
+}
 
 /**
  * 运营 admin 应用服务(跨用户特权只读 + 写操作审计)。所有跨用户读取都调用受版本控制的
@@ -65,5 +91,39 @@ export class AdminService {
     const r = await this.db.asPrincipal(principal, (c) => c.query('SELECT * FROM gateway_admin_feedback_summary()'));
     const up = Number(r.rows[0]?.up ?? 0), down = Number(r.rows[0]?.down ?? 0), total = up + down;
     return { up, down, total, downRate: total ? Math.round((down / total) * 100) / 100 : null };
+  }
+
+  // ── B271 片1:对公录入/确认/置败三端点(AdminGuard+函数内 require_active_admin 双层照 B110 先例)──
+  // 全部经受控 SECURITY DEFINER 函数(0156);audit 留痕(entry/confirm/fail)在函数内写 admin_audit。
+  async offlineRemits(principal: string) {
+    const r = await this.db.asPrincipal(principal, (c) => c.query('SELECT * FROM gateway_admin_offline_remit_queue()'));
+    return { remits: r.rows };
+  }
+
+  async remitEntry(id: string, b: OfflineRemitEntryDto, principal: string) {
+    try {
+      const r = await this.db.asPrincipal(principal, (c) =>
+        c.query('SELECT gateway_admin_offline_remit_entry($1,$2,$3) AS entered', [id, b.bankRef, b.amountCents]));
+      if (r.rows[0]?.entered !== true) throw new HttpException({ error: 'offline_remit_order_not_found' }, HttpStatus.NOT_FOUND);
+      return { entered: true };
+    } catch (e: unknown) { mapOfflineRemitError(e); }
+  }
+
+  async remitConfirm(id: string, principal: string) {
+    try {
+      const r = await this.db.asPrincipal(principal, (c) =>
+        c.query('SELECT gateway_admin_offline_remit_confirm($1) AS confirmed', [id]));
+      if (r.rows[0]?.confirmed !== true) throw new HttpException({ error: 'offline_remit_order_not_found' }, HttpStatus.NOT_FOUND);
+      return { confirmed: true };   // true=首次入账 | 重放收敛(同流水同单幂等)
+    } catch (e: unknown) { mapOfflineRemitError(e); }
+  }
+
+  async remitFail(id: string, b: OfflineRemitFailDto, principal: string) {
+    try {
+      const r = await this.db.asPrincipal(principal, (c) =>
+        c.query('SELECT gateway_admin_offline_remit_fail($1,$2) AS failed', [id, b.reason ?? null]));
+      if (r.rows[0]?.failed !== true) throw new HttpException({ error: 'offline_remit_order_not_found' }, HttpStatus.NOT_FOUND);
+      return { failed: true };
+    } catch (e: unknown) { mapOfflineRemitError(e); }
   }
 }
