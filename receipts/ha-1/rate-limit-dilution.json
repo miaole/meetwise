@@ -1,0 +1,29 @@
+{
+  "receipt": "ha-1/rate-limit-dilution",
+  "rev2Prescription": "§9-9（R4·席2·建议）— EXEC 收据补限流逐流稀释表：rate-limit 单实例内存桶在 ×2 api 副本下逐流有效上限=2×（安全控制强度变化入账·归 R-20/21/23 配套后刀精确继承·本刀零改限流面）",
+  "mechanism": {
+    "shape": "每 api 实例进程内 Map 令牌桶+并发槽（apps/api/src/platform/rate-limit.service.ts:11-18 allow / :27-36 acquireSlot·:4-6 注释自证单实例）",
+    "multiplicationRule": "LB 轮询分流下 per-key 请求近似均摊到 2 副本·各副本独立计数 → 聚合有效上限 = capacity×2 / refill×2 / 并发槽×2",
+    "redisSeam": "多实例生产换 Redis 共享桶（rate-limit.service.ts:5 注释 seam:同 allow 接口）——R-20/21 后刀面·本刀不动"
+  },
+  "perFlowTable": [
+    { "flow": "signup:email（per-email 防爆破）", "anchor": "apps/api/src/modules/auth/auth.service.ts:28", "current": "3 burst / 0.02 perSec", "effectiveX2": "6 burst / 0.04 perSec" },
+    { "flow": "signup:ip（per-IP）", "anchor": "auth.service.ts:28（容量 :12-13 默认 10/0.05）", "current": "10 burst / 0.05 perSec", "effectiveX2": "20 burst / 0.1 perSec" },
+    { "flow": "signup:global", "anchor": "auth.service.ts:28", "current": "60 burst / 1 perSec", "effectiveX2": "120 burst / 2 perSec" },
+    { "flow": "login:email（per-email 短口令也计次）", "anchor": "auth.service.ts:54", "current": "5 burst / 0.2 perSec", "effectiveX2": "10 burst / 0.4 perSec" },
+    { "flow": "recruiter invite:principal", "anchor": "apps/api/src/modules/recruiter/recruiter.service.ts:67", "current": "12 burst / 0.05 perSec", "effectiveX2": "24 burst / 0.1 perSec" },
+    { "flow": "recruiter invite:ip", "anchor": "recruiter.service.ts:69", "current": "12 burst / 0.05 perSec", "effectiveX2": "24 burst / 0.1 perSec" },
+    { "flow": "quiz SSE 并发槽（per-principal-key）", "anchor": "apps/api/src/modules/quiz/quiz.controller.ts:56", "current": "5 concurrent", "effectiveX2": "10 concurrent" },
+    { "flow": "interview SSE 并发槽（per-principal-key）", "anchor": "apps/api/src/modules/interview/interview.controller.ts:260", "current": "5 concurrent", "effectiveX2": "10 concurrent" },
+    { "flow": "resume-file:principal", "anchor": "apps/api/src/modules/resume/resume.service.ts:36", "current": "15 burst / 0.1 perSec", "effectiveX2": "30 burst / 0.2 perSec" },
+    { "flow": "resume-parse:global 并发槽", "anchor": "resume.service.ts:48（PARSE_MAX :20 默认 6）", "current": "6 concurrent", "effectiveX2": "12 concurrent" },
+    { "flow": "voice:principal", "anchor": "apps/api/src/modules/interview/interview.service.ts:316（:25 常量）", "current": "40 burst / 0.3 perSec", "effectiveX2": "80 burst / 0.6 perSec" },
+    { "flow": "turn:principal", "anchor": "interview.service.ts:377/:410（:27 常量）", "current": "30 burst / 0.2 perSec", "effectiveX2": "60 burst / 0.4 perSec" },
+    { "flow": "report_retry:per-report", "anchor": "interview.service.ts:679（:30 常量）", "current": "3 burst / (3/3600) perSec", "effectiveX2": "6 burst / (6/3600) perSec" }
+  ],
+  "disposition": "本刀零改限流面（REQUEST §4-3 只登记不改）——逐流有效上限稀释 2× 登记在案；恢复全局精确上限归 R-20/21（Redis 共享桶）与 R-23 配套后刀，届时按本表逐流继承核对",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "note": "本收据=静态码面稀释账（@c5300f73 实树逐锚亲读）+V4 分流实证旁证；est live=0"
+}

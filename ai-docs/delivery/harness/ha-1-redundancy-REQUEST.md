@@ -217,3 +217,5 @@ compose.ha.yml 非治理叠加层（§2.1 治理先例 compose.prod.override.yml
 *HA-1 REDUNDANCY REQUEST（起草） · 2026-10-10 · ha1-draft 席 · base `feat/mysql-schema-skeleton` @`df12a054`（主线 tip 亲证） · R-17 P0 haStatus 翻转本体=单机多副本+健康检查+重启自愈+LB+判定面+证据链契约 · 全锚 @df12a054 亲读 · 翻转不归本刀（B5） · est live=0 · pins 十一值零翻转 · markers=0 · ⛔push ⛔动主线仓 ⛔触其他工作树 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工*
 
 draft_rev2:awaiting_dual（席1 PASS+席2 FAIL 窄面处方 11 条落卷·待复审确认后协调方行使 EXEC 授权）
+
+executed:awaiting_post_prove_dual（EXEC 续做席 ha1-exec2 落卷 2026-10-10：rev2 处方 11 条全落实（RX-1 profiles 停用+排除断言/RX-2 HOSTNAME/RX-3 INSTANCE_ID/RX-4 CAS 拒 rowCount=0/R4 限流逐流稀释表）·rebase 主线 `049f19e1` 零冲突（分支 tip `c5300f73`）·净栈单遍 V1-V6 全绿+ha-status=**HA_TOPOLOGY_LOCAL_ELIGIBLE**（A1-A6 全绿·rx1Exclusion PASS）·pins 十一值零翻转（haStatus=NOT_HA·releaseEvidence=false·claimProductionHA=false 维持）·markers=0·est live=0·沙箱已 down 全灭；crash 注入忠实化（引擎 29.1.3 docker kill=manual stop 绕过策略→host-PID-ns SIGKILL）/V6 冻结编舞（假 Key 秒败活窗不可捕捉·接管+CAS 为真产品机械）/V5 composed（驱动窗 attach 停滞·harness 登记）等产品面预存红（VoiceCallPanel.tsx:566 幽灵 lint 规则）等限度与登记详见 `receipts/ha-1/exec-inventory.md` + `verification-matrix.md`·待 post-prove 双审）
