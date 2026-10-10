@@ -164,8 +164,8 @@ export { activeQbankGeneration, requireActiveQbankGeneration, hybridQbankSearch,
 export type { QbankActiveGeneration, QbankHybridHit, QbankEvidenceExcerpt, QbankQuestionEvidence, QbankQuestionEvidencePart, QbankQuestionRetrievalResult, QbankServingScopeInput, QbankRetrievalMode } from './qbank/qbank-generation-retrieval.ts';
 
 // qbank ANN 跨实例结果缓存：Redis 热数据面 + PostgreSQL epoch/RLS/外部调用 intent 控制面。
-export { cachedQbankSearch, qbankRetrievalCacheKey, RagCacheDependencyError } from './qbank-retrieval-cache.ts';
-export type { CachedQbankSearchInput, CachedQbankSearchResult, QbankCacheStatus, QbankRetrievalHit, QbankRetrievalCacheKeyInput, QbankEmbeddingCallContext, QbankRetrievalCacheBackend, QbankRetrievalCacheAddress, QbankRetrievalCacheLock } from './qbank-retrieval-cache.ts';
+export { cachedQbankSearch, qbankRetrievalCacheKey, RagCacheDependencyError } from './qbank/qbank-retrieval-cache.ts';
+export type { CachedQbankSearchInput, CachedQbankSearchResult, QbankCacheStatus, QbankRetrievalHit, QbankRetrievalCacheKeyInput, QbankEmbeddingCallContext, QbankRetrievalCacheBackend, QbankRetrievalCacheAddress, QbankRetrievalCacheLock } from './qbank/qbank-retrieval-cache.ts';
 
 // 共享题库数据面（策展门 + 灌库/题面 artifact 摄取）。原散在 apps/worker/src，现收敛回 packages/db，
 // 与早已在此的检索面 qbank-generation-retrieval 同层——消除 packages→apps 越界（arch 承重边界）。
@@ -332,10 +332,10 @@ export type {
 export {
   buildQbankProviderInputRecipe, validateQbankProviderInputRecipe, qbankProviderInputDigest,
   QBANK_PROVIDER_INPUT_SCHEMA, QBANK_PROVIDER_INPUT_MAX_EXCERPT,
-} from './qbank-provider-input.ts';
+} from './qbank/qbank-provider-input.ts';
 export type {
   QbankProviderInputPart, QbankProviderInputRecipe, QbankProviderInputRole, BuildQbankProviderInput,
-} from './qbank-provider-input.ts';
+} from './qbank/qbank-provider-input.ts';
 
 // 评分测量事实根（SCOR-01）：版本化 rubric + 两阶段事实根（issue/submission）+ append-only ScoreCard
 // + 显式状态机 + 幂等/并发/RLS。只建事实根，不接生产写路径、不调模型（SCOR-02/03/04 边界见迁移 0100）。
@@ -408,18 +408,18 @@ export type { CandidateProfileRouteSupply } from './routing/candidate-route.ts';
 // RAG-FUNNEL-04 / track-local retrieval dispatch seam（图内 planner 消费）：
 // 冻结 RetrievalPlan + 服务端校验属于 snapshot + DB 层 serving_scope 硬过滤检索 + recheck。
 // 复用 RAG-03 getInterviewRouteSnapshot / RAG-02A readGenerationQuestionChunkProjection，不改检索函数 ACL。
-export { dispatchTrackLocalRetrieval } from './qbank-track-local-retrieval.ts';
+export { dispatchTrackLocalRetrieval } from './qbank/qbank-track-local-retrieval.ts';
 export type {
   DispatchTrackLocalRetrievalDeps, DispatchTrackLocalRetrievalResult,
-} from './qbank-track-local-retrieval.ts';
+} from './qbank/qbank-track-local-retrieval.ts';
 
 // RAG-FUNNEL-05 / LLM 同桶生成题（leaf 无合格题时生成一题）：两阶段 durable 派发 +
 // exact-once 投影（interview_question + question_ready + provenance），复用 ① asPrincipal /
 // ③ appendEvent；E2 epoch fence 承重「绝不写回 QBank/vector、绝不评分」。
-export { dispatchQbankMissGeneration } from './qbank-miss.ts';
+export { dispatchQbankMissGeneration } from './qbank/qbank-miss.ts';
 export type {
   QbankMissModelInput, QbankMissModelGenerate, DispatchQbankMissGenerationDeps, DispatchQbankMissGenerationResult,
-} from './qbank-miss.ts';
+} from './qbank/qbank-miss.ts';
 
 // MEM-10 管理控制面命令层：用户命令（owner 作用域）+ 运营命令（受控角色）+ 逐 sink 删除 worker。
 export {
@@ -459,12 +459,12 @@ export {
   routeScopeRetrievalCacheKey, routeScopeSingleflightKey,
   recordRouteScopeNegativeResult, readRouteScopeNegativeResult,
   supersedeRouteScopeNegativeResults, revalidateRouteScopeCacheHit,
-} from './qbank-route-scope-cache.ts';
+} from './qbank/qbank-route-scope-cache.ts';
 export type {
   RouteScopeRetrievalCacheKeyInput, RecordRouteScopeNegativeResultDeps, RecordRouteScopeNegativeResultResult,
   RouteScopeNegativeResultLive, ReadRouteScopeNegativeResultResult,
   SupersedeRouteScopeNegativeResultsResult, RouteScopeCacheHitFrozen, RevalidateRouteScopeCacheHitResult,
-} from './qbank-route-scope-cache.ts';
+} from './qbank/qbank-route-scope-cache.ts';
 
 // 单轮与区间摘要（MEM-02）：不可变 summary 派生物 append-only + 状态机 + summarizer 只写 draft +
 // 受控 verify/activate + 账户删除 sink 闭合（复用冻结 issuer，仅包 MEM begin/claim/purge）。

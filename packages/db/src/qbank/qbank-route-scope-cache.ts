@@ -23,13 +23,13 @@
  * 分层纪律：形状校验归 domain（validateRouteScopeCacheFacets）；本层只把字段送进承重 SQL 并映射返回值。
  */
 import { createHmac } from 'node:crypto';
-import { newEntityId } from './ids.ts';
+import { newEntityId } from '../ids.ts';
 import type { PoolClient as Client } from 'pg';
-import { asPrincipal, type DbPool } from './principal.ts';
+import { asPrincipal, type DbPool } from '../principal.ts';
 import {
   activeQbankGeneration, qbankQuestionResultsForHits,
   type QbankQuestionRetrievalResult, type QbankServingScopeInput,
-} from './qbank/qbank-generation-retrieval.ts';
+} from './qbank-generation-retrieval.ts';
 import type { QbankRetrievalHit } from './qbank-retrieval-cache.ts';
 import {
   deriveRouteScopeCacheDigest, validateRouteScopeCacheFacets,
