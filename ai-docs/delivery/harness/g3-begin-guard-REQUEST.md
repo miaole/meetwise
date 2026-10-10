@@ -149,3 +149,13 @@ STOP 由 `draft:awaiting_pre_exec_dual` 流转 **`draft_rev2:pre_exec_dual`**—
 `draft_rev2:pre_exec_dual`（席1 PASS+席2 FAIL 窄面处方 8 条落卷·裁定=形制 A 附 R1/R2·待复审确认后协调方行使 EXEC 授权）
 
 `executed:awaiting_post_prove_dual`（EXEC `g3-exec` @`line/g3-begin-guard` rebase 后落码·2026-10-10 · 协调方明示授权后依 §1 含 rev2 勘误实现：W1 三页过滤+空态三臂/W2 余额行+pricing·faq 口径句/W3 connecting 真进度/W4 形制 A 全管道/C8 STRESS 变体族·八处方全兑现·断言落槽 web-logic 纯函数级 285 PASS/0 FAIL+public-copy TC-PUBLIC-COPY-G3 PASS·免责尾句逐字保留·门禁亲跑 neg:interview 97/97+interview:prove 54+adaptive-life:prove 42+ai-graphs 2 键+web/api typecheck 全 EXIT=0·prove:public-copy EXIT=1=预存红 E8 基线对账同点同抛零触碰·微漂⑥⑦⑧入收据漂移表（⑥=turn 0 基→显示 1 基勘误·§4.4 按勘误口径断言·⑦=?duplicateFrames 死通路→变体 id 族双门·⑧=行号漠记）·§4.4/§4.2 判收请对账微漂⑥与裁定③·提前结束/D3/评分语义/服务端守卫/扣费路径/402 文案/contracts 零触碰·零迁移·est live=0 · 收据 `ai-docs/delivery/receipts/g3-begin-guard/`（EXEC 报告+EXIT 表+漂移表+蓝本回补附录+三证据卷）·⛔push · alone≠dual）
+
+---
+
+## nail 落卷（2026-10-10 · post-prove 双席 BOTH PASS）
+
+**双审结果**：席1（实现语义/形制 A 链）+席2（用户旅程/回归）互盲复核 BOTH PASS。形制 A 全链 7 环亲读闭环（PendingQuestion :76 additive→reducer :105 自 decide 后 mind.maxTurns 填充（R2 勘误兑现）→两发射点 :218/:374→business-events :31 optional→InterviewView :48（R1 写死案）→progress-badge 纯派生→canAnswer 门控一处渲染）·微漂⑥ 勘误双实证接受（服务端 turn 0 基→显示 1 基·原公式两臂恒差 1 会显「第 0 题」幻影）·W1 三页过滤唯一谓词单源+空态三臂·W2 余额三形状+免责尾句逐字保留（public-copy TC-PUBLIC-COPY-G3 判收 PASS）·W3 connecting 三臂+isDeadEnd 零违例·六门禁双席独立复现（web 285/97/54/42/public-copy 9✓+E8 预存独立实证）。merge 落主线 @01ee59bf+截断修复 @3b827fb2（dual-keep 正则非贪婪切分缺陷→行级切片重建·web prove 298 全绿·G3 四 section 完整性亲证）。
+
+**nail 时随卷**：①D-rcpt 账面勘误（收据称 G3 五 section 34 断言·实测 4 section 29 PASS·总量 285/298 真仅措辞虚高）②组合层 DOM 缺口入 coverage-matrix ③e2e-ui 两新测试随卷待 runner 栈复跑。
+
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·merge @01ee59bf+修复 @3b827fb2·#260/#261/#161/#256 显示面四条款正式解除·批1 残 9→5·markers=0·est live=0）。
