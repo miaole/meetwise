@@ -2,6 +2,7 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { reserveEntitlement, enqueueQuizJob, releaseConsumption, requireOwnerUserId, buildRequiredOwnerFilter, newEntityId, errCode } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
 import { parseLastEventId } from '../../platform/last-event-id.ts';
+import { resumeDisplayName } from '../resume/resume-display.ts';
 
 /**
  * 押题应用服务(拥有 asPrincipal 事务边界 + 业务编排:advisory 锁、幂等、额度预留、入队、状态机、RLS)。
@@ -80,13 +81,38 @@ export class QuizService {
   }
 
   // 列出自己的押题(RLS 只见己),可按 status 过滤 + limit 分页。
+  // #232 列表显示面:扩投影 created_at + 双 LEFT JOIN 取简历名派生源四字段(镜像 interview.service list 投影形逐字);
+  // status 过滤/ORDER BY/LIMIT 封顶/asPrincipal(RLS owner 谓词)语义零变,零新推导(名字经 resumeDisplayName 单一出处)。
   async list(principal: string, status?: string, limit?: string) {
     const lim = Math.min(Math.max(Number(limit) || 50, 1), 200);
+    const projection = `
+      SELECT q.id, q.status, q.created_at,
+        q.resume_id,
+        r.created_at AS resume_created_at, r.content_sha AS resume_content_sha,
+        rp.structured #>> '{experience,0,text}' AS resume_experience_hint,
+        rp.structured #>> '{skills,0,text}' AS resume_skill_hint
+      FROM resume_quiz q
+      LEFT JOIN resume r ON r.id=q.resume_id AND r.owner_user_id=q.owner_user_id
+      LEFT JOIN resume_profile rp ON rp.resume_id=r.id AND rp.owner_user_id=r.owner_user_id`;
     const r = await this.db.asPrincipal(principal, (c) =>
       status
-        ? c.query('SELECT id, status FROM resume_quiz WHERE status=$1 ORDER BY created_at DESC LIMIT $2', [status, lim])
-        : c.query('SELECT id, status FROM resume_quiz ORDER BY created_at DESC LIMIT $1', [lim]));
-    return { quizzes: r.rows };
+        ? c.query(`${projection} WHERE q.status=$1 ORDER BY q.created_at DESC LIMIT $2`, [status, lim])
+        : c.query(`${projection} ORDER BY q.created_at DESC LIMIT $1`, [lim]));
+    return {
+      quizzes: r.rows.map((row: any) => ({
+        id: row.id,
+        status: row.status,
+        created_at: row.created_at ? new Date(row.created_at).toISOString() : null,
+        resume_display_name: row.resume_id
+          ? resumeDisplayName({
+              created_at: row.resume_created_at,
+              experience_hint: row.resume_experience_hint,
+              skill_hint: row.resume_skill_hint,
+              content_sha: row.resume_content_sha,
+            })
+          : null,
+      })),
+    };
   }
 
   // 押题详情:题目(含考察点 refs)+ 报告。generating/failed 据 status 渲染(前端按事件刷新,无死胡同)。

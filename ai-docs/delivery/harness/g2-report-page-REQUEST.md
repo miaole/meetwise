@@ -81,3 +81,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *REQUEST stub · G2 report-page · Line G2 REPORT-PAGE · g2-draft · 2026-10-10 · PENDING awaiting pre-exec dual · alone ≠ dual · STOP*
+
+*markers=0（本刀改动 12 文件 TODO/FIXME/XXX/PLACEHOLDER/待填 扫描零命中·EXEC 席自证）*
+
+*`executed:awaiting_post_prove_dual`（G2 REPORT-PAGE EXEC 落卷·2026-10-10·g2-exec 席·协调方明示授权+pre-exec 双席 BOTH PASS·rebase 主线 `feat/mysql-schema-skeleton`@`46ff2290` 干净 1/1（`d994870c`→`ca2d99a5` docs-only 零冲突）·锚点漂移表 5 处登记入 `receipts/g2-report-page/2026-10-10-exec-prove.md`（context.ts helper 实 `:6-8`/`:10-16`·20_resume_quiz.sql resume_id 实 `:11`·quiz.service list `:83-90`+1·interview.controller export `:190-194`·余全同位）·#254=横幅卡内 `:457-466` next/link 入口+action 区 `:571-580` view_report 分支（P1 全落·静态正门 view_report=4·/report/=4）·#257=形 A lib `report-export-proxy.ts`（注入 fetchImpl）+薄壳路由 `app/api/interview/[id]/report/export/route.ts`+page 三处 base 直拼消除（`:69`→同源代理·`:155`/`:169`→站内 Link·原 `:37` base 删）+proof 6 判据（P3 全落·§4.4 双 rg=0）·#232=quiz.service list `:88-113` 扩投影双 LEFT JOIN 镜像 interview.service 形+quiz/page `:105-109` 复用 context.ts helper（P2 全落·正门 resume_display_name=3·interviewTimeLabel=2·diagnosis:108 不收编）·门禁全账：web prove 256 PASS/0 FAIL 基线原值+web typecheck 0+prove:report-export-proxy 6/6+quiz-list:prove 9/9（新·隔离库 159 迁移）+quiz:prove 复跑全绿·uc025 EXIT=1=预存钉漂红基线同值亲证（interview.controller.ts:27 begin 已带 quiz-id 头·#200 产品面浮出·G7 盘点在案·非本刀新红·归域刀）·est live=0·actualSpendCny=null·零迁移·零 secrets·pins 十一值零翻转·markers=0·⛔push·Ban self-approve·alone≠dual）*
