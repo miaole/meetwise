@@ -163,3 +163,16 @@ rejected 用户「请稍后重试」文案微调（invite 403 面措辞）→ **
 ### 9.5 冲突标记门
 
 `grep '^<<<<<<< $\|^=======$\|^>>>>>>> '`（含 opener/closer 双形·`115c47f2` 加宽口径）全仓 staged+工作树=**0**（§5.8 strict 门·push 前最后跑·见收据 nail 复核行）。
+
+---
+
+## post-dual 席1 FAIL（窄域）登记（2026-10-10）
+
+**六点 PASS 一点 FAIL**：形态裁决(a) C1-C12 全兑现·0155 expand-only 并发无碰撞·存量招聘方 DEFAULT approved 合理·neg:bend 157/157 工作树+主线双跑绿·审批动作面双层守卫无绕行·卫生 numstat 28 files 零越界——唯**影响范围漏爆炸半径**：
+
+**FAIL 实体**：本刀把招聘方注册改 `approval_status='pending'` 后未适配主层 LIVE E2E——`e2e/full.e2e.ts:274/:292` 经真 HTTP signupOrLogin('recruiter') 注册后 `:277-278` 断言发岗 200，全 suite 无审批步骤 → 刀后 e2e:isolated step 8 deterministic EXIT=1（A() fail-closed）。收据 b110-recruiter-gate-prove.md:134 只析 signup:ip 容量面、漏析审批 pending 面；REQUEST/收据零残留登记。
+
+**处置**（照 neg-auth 预存红登记先例·禁 skip-as-pass）：
+1. 【本条即处方1 落卷】e2e:isolated（主层）B 端段 full.e2e.ts:277 因 pending 门预期红·未适配——**冻结下一次 e2e:isolated live 授权跑直至处方2 落地**。
+2. 后继刀 E2E-RECRUITER-GATE（已立项·下次 e2e:isolated 授权跑之前必须落地）：隔离 runner bootstrap 播 admin 身份（先例 _neg-harness.ts:73-76）·full.e2e.ts:274/:292 注册后各加 `POST /admin/recruiter-approvals/{uid}/decision`（approve·recruiter2 须在 :287-:292 RLS 断言前过门）——顺带把审批面升为 e2e 级活契约（pending→403 分码→approve→200）。
+3. 工作树卫生观察：execution-master-checklist.md:2148 有 1 处 base 已存 markers（lint-s0 引入·主线 7b042e46 已治愈·非本刀面）。
