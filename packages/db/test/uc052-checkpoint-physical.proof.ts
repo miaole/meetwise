@@ -26,7 +26,7 @@ import {
 } from '../src/checkpoint/checkpoint-privacy.ts';
 import {
   issueAuthorizationSnapshot, consumeAuthorizationSnapshotBound, claimAuthorizationTarget,
-} from '../src/privacy-authorization.ts';
+} from '../src/privacy/privacy-authorization.ts';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import {
   withCheckpointAccess, PrincipalBoundCheckpointPool, type CheckpointAccess,

@@ -2,7 +2,7 @@
  * 隐私删除预览路径（预览版）存储侧。
  * 受理预览请求、落盘点行、可选链接既有本地 sweep。不宣称生产删除完成。
  */
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 import {
   composePrivacyPreviewReceipt,
   type PrivacyPreviewReceiptView,
