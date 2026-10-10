@@ -58,6 +58,7 @@ import {
   InterviewPrivacyFencedError, isInterviewPrivacyFencedError, iterateInterviewSseBody, iterateSseBody,
   throwIfPrivacyFencedStatus,
 } from '../lib/stream/sse-cursor.ts';
+import { projectTurnAnnotations, type TranscriptTurn } from '../lib/report/turn-annotations.ts';
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 /** 静态 lineOf（沿 uc-e2e-001-nhp-bound.proof.ts 先例·F2 源断言用）。 */
 function lineOf(src: string, re: RegExp, from = 0): number {
@@ -1263,6 +1264,50 @@ async function main() {
     const branch401 = lineOf(actionsSrc, /begin\.status === 401/);
     A('F2④ reused=false 主链逐字段不变（begin 调用/402/401 分支/begin_failed 码解析兜底原样在位）',
       beginCall > 0 && branch402 > 0 && branch401 > 0 && codeFallback > 0 && beginCall > reusedPassthrough);
+  }
+
+  section('EVIDENCE-DELIVERY(S1+S2)：evidence 随事件/转写带出+报告页冒充退役（P2 四串零出现·P3 投影纯函数·无 React harness）');
+  {
+    // ① SSE wire（S1 出①）：带 evidence 帧解析保真；历史形状（无 evidence 键）仍解析成功（optional·断线 catch-up 重放不杀）。
+    const withEvidence = toBusinessEvent({ event: 'answer_evaluated', id: 2, data: '{"score":80,"questionId":"q-v1-t0-c0","stateVersion":1,"turn":0,"answerId":"11111111-1111-4111-8111-111111111111","answerHash":"' + 'a'.repeat(64) + '","competency":"限流","evidence":["answer_quality"]}' })!;
+    A('answer_evaluated 带 evidence 帧解析保真（zod 双端同刀·上限 max(6)）',
+      withEvidence.event === 'answer_evaluated' && withEvidence.data.evidence?.length === 1 && withEvidence.data.evidence![0] === 'answer_quality');
+    const withoutEvidence = toBusinessEvent({ event: 'answer_evaluated', id: 2, data: '{"score":80,"questionId":"q-v1-t0-c0","stateVersion":1,"turn":0}' })!;
+    A('无 evidence 键的历史形状帧仍解析成功（optional 兼容·重放不杀）', withoutEvidence.event === 'answer_evaluated' && withoutEvidence.data.evidence === undefined);
+    const overlong = toBusinessEvent({ event: 'answer_evaluated', id: 2, data: '{"score":80,"evidence":["a","b","c","d","e","f","g"]}' })!;
+    A('evidence 超 max(6) 的帧被 schema 闸拒绝（fail-closed 非 strip）', overlong === null);
+
+    // ② 投影纯函数（S2 出④·P3）：question=真题目文本（非维度名冒充形状）·note=evidence 判据·score null⇒undefined。
+    const turns: TranscriptTurn[] = [
+      { index: 0, question: '请设计一个高并发限流方案', competency: '系统设计', score: 75, evidence: ['answer_quality'] },
+      { index: 1, question: '请说明 Redis 持久化机制', competency: '存储', score: null, evidence: [] },
+      { index: 2, question: '旧数据回合（无 evidence 键）', competency: '遗留能力', score: null },
+    ];
+    const projected = projectTurnAnnotations(turns);
+    A('投影 question=真题目文本（非维度名/competency 冒充形状）',
+      projected[0]!.question === '请设计一个高并发限流方案' && projected[0]!.question !== turns[0]!.competency);
+    A('投影 note=evidence 模型判据列表（固定串退役）', projected[0]!.note === 'answer_quality');
+    A('空 evidence⇒note 不渲染（undefined·AnnotationCard note?…:null 天然隐藏·零回退文案）',
+      projected[1]!.note === undefined);
+    A('evidence 键缺失（旧行/未评分回合）⇒note 同样隐藏（P2 回退隐藏）', projected[2]!.note === undefined);
+    A('无 ScoreCard（score=null）⇒无数值呈现（SCOR-02 分数权威纪律·无卡无数值）',
+      projected[1]!.score === undefined && projected[2]!.score === undefined);
+    A('有卡回合分数透传（数值权威仍=ScoreCard deterministic_total）', projected[0]!.score === 75);
+
+    // ③ P2 四串零出现：投影渲染路径零出现 + 两退役源文件（assessment.ts 两串·page.tsx 两回退串）字面退役。
+    const rendered = JSON.stringify(projected);
+    const fourStrings = ['低于达标线，需加强', '达标', '该维度低于达标线(60),建议优先补强。', '该维度表现达标。'];
+    A('P2 四固定串在任何渲染路径零出现（投影输出全量 JSON 不含四串）',
+      fourStrings.every((s) => !rendered.includes(s)));
+    const assessmentSrc = readFileSync(resolve(repoRoot, 'packages/domain/src/assessment.ts'), 'utf8');
+    const reportPageSrc = readFileSync(resolve(repoRoot, 'apps/web/app/report/[id]/page.tsx'), 'utf8');
+    A('assessment.ts 冒充串退役（deriveAssessment 停写·D5 冻结面归 scoring-aggregation 零触）',
+      !assessmentSrc.includes('低于达标线，需加强') && lineOf(assessmentSrc, /evidence:\s*r\.score < GAP/) === -1);
+    A('page.tsx 两回退串退役+维度名冒充退役（逐题点评改吃 transcript 投影）',
+      !reportPageSrc.includes('该维度低于达标线(60),建议优先补强。') && !reportPageSrc.includes('该维度表现达标。')
+      && lineOf(reportPageSrc, /question=\{d\.dimension\}/) === -1 && lineOf(reportPageSrc, /note=\{d\.evidence/) === -1);
+    A('page.tsx 薄消费在位（projectTurnAnnotations import+调用·P3 形态钉死）',
+      lineOf(reportPageSrc, /projectTurnAnnotations/) > 0 && lineOf(reportPageSrc, /from '@\/lib\/report\/turn-annotations'/) > 0);
   }
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
