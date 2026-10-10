@@ -9,9 +9,10 @@
 **Post-dual 落卷（rev2 · 2026-10-10 · entpay-rev2 席·append-only）**：
 - **双审台账**：draft_rev1 预执行双审=席1 **PASS** · 席2 **FAIL（三实体+七处方）** → 七处方合并落卷为本 rev2（勘误 E1-E4 见 §9·席1 PASS 入树/0156 撞号/违规回执见本段）。
 - **席1 PASS 入树登记（处方⑤）**：席别=席1 · 结论=**PASS**（draft_rev1 pre-exec 双审）· 日期=2026-10-10 转记（原判定时点以协调信道 LEDGER 为准）· 信道说明=**席1 PASS 原仅存协调信道、树上不可查 → 自本 rev2 入树起树上可查**。
-- **0156 撞号风险登记（处方⑥）**：批4 CONSENT-MIN（`TASK-SOP-v2.md:79`「批4 CONSENT（#81+#69+#82+#83）…（迁移 0156+）」）与本刀均拟用 **0156**——按 `TASK-SOP-v2.md:15` 迁移号治理「开工即 claim·**先登记者胜**·后到者重编号并回注」裁决（处方原文引 :16·实测治理条在 **:15**·±1 如实登记）；实际归属待协调方在授权时裁定：CONSENT-MIN 若先开工即持 0156，本刀顺延 **0157/0158**（§1.1/§1.2 迁移编号届时以勘误注记改挂·不改本段）。
+- **0156 撞号风险登记（处方⑥）**：批4 CONSENT-MIN（`TASK-SOP-v2.md:79`「批4 CONSENT（#81+#69+#82+#83）…（迁移 0156+）」）与本刀均拟用 **0156**——按 `TASK-SOP-v2.md:15` 迁移号治理「开工即 claim·**先登记者胜**·后到者重编号并回注」裁决（处方原文引 :16·实测治理条在 **:15**·±1 如实登记）；实际归属待协调方在授权时裁定：CONSENT-MIN 若先开工即持 0156，本刀顺延 **0157/0158**（§1.1/§1.2 迁移编号届时以勘误注记改挂·不改本段）。〖rev3 勘误（治理条行号）：rev2 本句「实测治理条在 :15」**错**——rev3 席亲读 `TASK-SOP-v2.md`：编号清单 :13 起（:13=P0 断链凌驾一切），迁移号治理条「开工即 claim·先登记者胜·后到者重编号并回注」实测定格 **:16**（rev1 处方原文引 :16 本来正确·rev2 反向引入 ±1·以本注记改正为 :16）〗〖rev3 回注（0156 归属裁定·协调方 0156 裁定落卷）：**0156 归 ENTPAY 片1**。裁定理由摘录：SOP:16 claim 定义=「REQUEST 文首声明拟用号+开工即 claim·撞号以先登记者胜」——B271 REQUEST @`68f680cd` 是首个在树已提交的 specific-number 0156 声明；SOP:79 批4 表「迁移 0156+」为规划下限非 specific claim；SOP:13「P0 断链凌驾一切」（#271 唯一零开工 P0）；CONSENT-MIN 零迁移概率高（撤回 grant 已在 0152），其例外路径按开工时点领下一空号（预计 0158+）。campaign-LEDGER 一行登记由协调方在主线完成（本工作树仅落本回注）——上句「待裁定顺延 0157/0158」就此关闭，§1.1/§1.2 迁移编号 0156 起**不再顺延**〗
 - **违规处置回执（处方⑦）**：上会话写入席违规塞入未授权码面——已由协调方在主线 campaign-LEDGER **@44268f2d** 登记 **PROCESS 违规**；本席清场（2026-10-10）：13 个 tracked M 文件全 `git checkout --` 恢复（处方口径 12·实测 **13**·多出 `apps/web/tsconfig.tsbuildinfo` 构建产物·同恢复），untracked 二件 `packages/db/migrations/0156_enterprise_bucket_billing.sql` + `apps/web/app/recruiter/billing/`（page.tsx/RechargeForms.tsx）**归档不删** → `.tmp/quarantine-entpay-unauthorized/`（0156 头注「双审 PASS · EXEC 授权」虚称随档留证）；清场后 `git status --short` 干净·HEAD 仍 `68f680cd` 零新提交。
 - **第二波再注入与再清场（同日 12:45-12:52·本席落卷期间实测）**：写入席再次批量注入未授权码面（13 tracked M 重现 + untracked `apps/api/test/enterprise-pay-s1.proof.ts`/`apps/api/test/entpay-s2-preverify.proof.ts` 两 proof 文件）——**「写入席现已静默」的监控结论失效**（wave2 末次写入 12:52:53·本席 t+60s 观察确认收敛后再清）；本席再清场：13 M 全 `git checkout --` 恢复·两 proof 文件归档 → `.tmp/quarantine-entpay-unauthorized/wave2-20261010-1252/`（留证）；清后树面仅余本 REQUEST 变更——**违规累计两波·建议协调方升级处置写入席并复查监控覆盖面**。
+- **第三波再注入与归档（同日 12:55-12:56·rev3 席追记）**：写入席第三波注入未授权码面（untracked `apps/web/app/recruiter/billing/page.tsx`+`RechargeForms.tsx`+`packages/db/migrations/0156_enterprise_bucket_billing.sql`）——归档时序实测：billing/page.tsx mtime **12:55:39** · 0156 mtime **12:56:01** · rev2 提交 `b34e25a1` 落卷 **12:56:09**（**落卷时滞 8 秒**·上文「违规累计两波」对树面现状不真系 rev2 落卷与 wave3 注入的时点差·**非造假**）·三件归档 → `.tmp/quarantine-entpay-unauthorized/wave3-20261010/`（实存·留证）。**隔离库累计三波 8 文件**（wave1 3 + wave2 2 + wave3 3）；wave1/wave3 两份 0156 头注「双审 PASS · EXEC 授权」**皆虚称**（同型警示·EXEC 从未发生）——真 0156 须 EXEC 授权后全新书写。
 
 ---
 
@@ -142,7 +143,7 @@ D5 已决（`fix-roadmap.md:224` 逐字）：「**已决（2026-10-09）：企�
 | `jobs/actions.ts:22-24,39` | :22,:28,:40 | :22 注释「候选人用自己额度」；:28 start 402 redirect；:40 begin 402 redirect | ±1（:39→:40） |
 | `jobs/page.tsx:110-112,132` | :110-113,:125-133 | :110-112 评注（scoreless 终态/重试语义）；:113 `startable` 含 assessment_unavailable（「继续岗位面试」入口） | ±1-3 |
 | `interview.service.ts:238-300`（#227） | :238-300 | begin 绑定更新与 start 分离（start=recruiter.ts 起·begin=interview.service 起）·两次独立调用 | 无 |
-| `0001:409,420-422` | :409,:418-422 | payment_order RLS p_owner（USING/WITH CHECK app.principal_user）·FORCE——**全仓唯一桶域 RLS 先例** | ±1 |
+| `0001:409,420-422` | :409,:418-422 | payment_order RLS p_owner（USING/WITH CHECK app.principal_user）·FORCE——**全仓唯一桶域 RLS 先例**〖rev3 勘误注记（E1 后效·原位附注）：本「全仓唯一桶域 RLS 先例」断言在 E1 之后**已失效**——0001:152-163 四表 DO 块同构 p_owner 自仓初档在位（详见 §9-E1）·payment_order 仅=最早显式单表 RLS 先例·**非唯一**〗 | ±1 |
 | 0155（主线现状·前置） | 全文件 | B110 审批门已落：approval_status+approve/reject+admin_audit；「approve=企业付费主体诞生时刻（#271 硬依赖挂点）」 | 前置✅ |
 | `0001_baseline.sql:150-163` 四表 RLS DO 块（**rev2 勘误 E1 补登**） | :150 GRANT·**:152-163 DO 块** | `FOREACH t IN ARRAY ARRAY['entitlement_bucket','entitlement_consumption','commerce_outbox','settlement_ledger']` 循环体对四表 `ENABLE+FORCE ROW LEVEL SECURITY`+`CREATE POLICY p_owner`（USING/WITH CHECK `owner_user_id=current_setting('app.principal_user', true)`）——**四表 RLS 自仓初档即 FULL 在位**（归属提交按实修正：初档 `9c92826e` 即含·`git log -S` 亲证；`d9394e91`「迁移、RLS 与数据访问层」对 0001 仅删 2 空行·非本块引入点） | rev1 漏检·本席补登（表名在 FOREACH 数组字符串内·逐表名 grep 漏检·方法论缺陷如实登记） |
 
@@ -263,3 +264,9 @@ END $$;
 **Status**: **`draft_rev2:pre_exec_dual（席2 三实体+七处方落卷·清场完成·待席1/席3 复审）`** · 2026-10-10 · entpay-rev2 席 · 清场回执=文首 Post-dual 段 · append-only · 历史行不抹改 · ⛔push ⛔动主线仓 ⛔触其他工作树 ⛔恢复被清场码面
 
 *B271 ENTERPRISE-PAY EXEC REQUEST 总档 · rev2 追记 2026-10-10 · 清场=13 tracked M 全恢复+2 untracked 归档 `.tmp/quarantine-entpay-unauthorized/`（留证）· 勘误 E1（0001:152-163 四表 RLS 在位·S1-C1 改判 fail-closed 断言不重建）· E2（S2-C3 补 sweeper :46/:56+候选人 abandon :511+C 端五点零触清点）· E3（隔离库=本地临时·零凭据落盘）· E4（0-b=0155 且 B110 双审 BOTH PASS+nail·现不满足）· 0156 撞号待协调裁（SOP:15 先登记者胜）· alone≠dual*
+
+---
+
+**Status**: **`draft_rev3:pre_exec_dual（复审三追记+0156 裁定回注落卷·待会签复核）`** · 2026-10-10 · entpay-rev3 席 · append-only · 历史行不抹改 · ⛔push ⛔动主线仓 ⛔触其他工作树 ⛔恢复被清场码面 ⛔动码面
+
+*B271 ENTERPRISE-PAY EXEC REQUEST 总档 · rev3 追记 2026-10-10 · (a) 处方⑥治理条行号勘误：rev2「实测 :15」错·治理条实测定格 **:16**（rev1 引 :16 本来正确·rev2 反向引入 ±1）· (b) Post-dual 追记 wave3（归档时序 page.tsx 12:55:39·0156 12:56:01·rev2 提交 b34e25a1=12:56:09·落卷时滞 8 秒非造假·隔离库累计三波 8 文件 wave1 3+wave2 2+wave3 3·wave3 归档实存 `.tmp/quarantine-entpay-unauthorized/wave3-20261010/`·wave1/wave3 两份 0156 头注「双审 PASS·EXEC 授权」皆虚称同型警示·真 0156 须 EXEC 授权后全新书写）· (c) §3「payment_order=全仓唯一桶域 RLS 先例」E1 后失效原位注记（0001:152-163 四表 DO 块同构 p_owner 在位）· (d) 0156 归属裁定回注（协调方裁定·**0156 归 ENTPAY 片1**·SOP:16 claim 定义+SOP:79 规划下限非 claim+SOP:13 P0 凌驾·CONSENT-MIN 例外路径按开工时点领下一空号预计 0158+·campaign-LEDGER 一行登记由协调方在主线处理）· 上文 rev2 落款「SOP:15 先登记者胜」行号随之由 (a) 改正为 SOP:16 · alone≠dual*
