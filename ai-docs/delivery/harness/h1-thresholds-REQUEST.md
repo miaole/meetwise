@@ -8,7 +8,7 @@
 
 - 蓝本：`batch-residual-plan.md:96` H1 行（`line/batch1-residual` @`ab02d499` 实树亲读）——「纯 docs 决议件·LEVEL-SCHEME 验收前置」。
 - 上游审计：issues-master **更正版** #45(:332 五档+scheme_version+离线对比+规则把关)/#102(:339 三套规则四数值互不关联·阈值集中到版本化策略配置)/#104(:340)/#105(:471)/#124(:341)/#125(:472)/#38(:330 关联)。行号勘误：派单锚「:250 区」实为更正版 **:330-341** 区（:248-252 为鉴权条目·已核对）；「三套规则四阈值」措辞出 #102。
-- 方案源：更正版 fix-roadmap 批2 §0(:82)/验收(:94-96)/**附录 A**(:155-167)；refactor-backlog A.3.1-A.3.6/A.9（Lmin 取消·S≥30-unavailable 更正·单字段+版本号+离线对比）。
+- 方案源：更正版 fix-roadmap 批2 §0(:82)/验收(:94-96)/**附录 A**(:199-214·rev2 行号勘误：原锚 :155-167 系 01-成品文档副本区=真实有向依赖章（本刀起草实读面·引文混抄发现见决议 §5 注记）；更正版副本标题无「摘要」二字·「…最终方案摘要」系 01-成品文档副本 :155 措辞)；refactor-backlog A.3.1-A.3.6/A.9（Lmin 取消·S≥30-unavailable 更正·单字段+版本号+离线对比）。
 
 ## §2 范围（docs-only·零码动）
 
@@ -33,7 +33,7 @@
    `rg -n "对外契约冻结:成功体" apps/api/src/modules/interview/interview.service.ts` → `725`。
 3. markers=0：本刀两文件全卷无未闭合占位/未完成标记（五类标记词 grep 门·命令留 prove 回执·卷内不复抄避免自匹配）。
 4. est live=0（零模型外呼·零生产操作·零迁移）；Key name-only 不适用（无运行时）。
-5. 上游原文核对：预审席对照 `~/Documents/Meetwise产品审计-更正版/issues-master.md:332,339` 与 fix-roadmap 附录 A 第 5 条逐字核对决议 §5 引文。
+5. 上游原文核对：预审席对照 `~/Documents/Meetwise产品审计-更正版/issues-master.md:332,339` 与 **更正版** fix-roadmap `~/Documents/Meetwise产品审计-更正版/fix-roadmap.md:205` 附录 A 第 5 条逐字核对决议 §5 引文（rev2 副本统一具名锚·防复核误对 01-成品文档副本 :160 旧抄文·席2 复核已实证会翻车）。
 
 ## §5 Ban 列表
 
@@ -54,3 +54,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *H1 THRESHOLDS EXEC REQUEST · 2026-10-10 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`9f6edf8f` · 分支 `line/h1-thresholds` · 工作树 `meetwise-h1` · 蓝本=batch-residual-plan.md:96 H1（@ab02d499）· 裁决=边界 B（仅决议文档·理由 §3）· pins 十一值照抄 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
+
+*rev2 卫生声明：零数值改动——本 REQUEST §6 pins 十一值与决议 §2/§6 全部数值、§3/§4 协议、§8 裁决 B 一字不动；rev2 改动仅限引用保真窄面（§1 行号锚勘误/§4.5 核对指令副本具名化·注记承载）。*
+
+*draft_rev2:pre_exec_dual（双席 FAIL 窄面处方 7 条落卷·副本统一=具名更正版·零数值改动·待复审确认后协调方行使 EXEC 授权）*
