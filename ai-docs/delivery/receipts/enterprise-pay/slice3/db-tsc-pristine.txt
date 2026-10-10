@@ -1,0 +1,24 @@
+test/privacy-erasure-preview.proof.ts(161,60): error TS2532: Object is possibly 'undefined'.
+test/qbank-handoff-closure.proof.ts(223,44): error TS2345: Argument of type '"SELECT"' is not assignable to parameter of type 'never'.
+test/qbank-handoff-closure.proof.ts(228,43): error TS2345: Argument of type '"SELECT"' is not assignable to parameter of type 'never'.
+test/rag03c-exactk-observe.proof.ts(471,124): error TS18046: 'receipt.pHnsw' is of type 'unknown'.
+test/rag03c-exactk-observe.proof.ts(493,35): error TS18046: 'receipt.pHnsw' is of type 'unknown'.
+test/rag03c-exactk-observe.proof.ts(494,15): error TS18046: 'receipt.pHnsw' is of type 'unknown'.
+test/rag03c-exactk-observe.proof.ts(495,15): error TS18046: 'receipt.pHnsw' is of type 'unknown'.
+test/rag03c-exactk-observe.proof.ts(496,16): error TS18046: 'receipt.pHnsw' is of type 'unknown'.
+test/rag03c-exactk-observe.proof.ts(497,15): error TS18046: 'receipt.pDefault' is of type 'unknown'.
+test/rag03c-exactk-observe.proof.ts(498,15): error TS18046: 'receipt.pDefault' is of type 'unknown'.
+test/rag03c-exactk-observe.proof.ts(501,21): error TS18046: 'receipt.pHnsw' is of type 'unknown'.
+test/rag03c-exactk-observe.proof.ts(501,61): error TS18046: 'receipt.pHnsw' is of type 'unknown'.
+test/rag03c-exactk-observe.proof.ts(501,107): error TS18046: 'receipt.pHnsw' is of type 'unknown'.
+test/rag03c-exactk-observe.proof.ts(501,158): error TS18046: 'receipt.pHnsw' is of type 'unknown'.
+test/rag03c-exactk-observe.proof.ts(501,229): error TS18046: 'receipt.pDefault' is of type 'unknown'.
+test/uc-e2e-017-nhp-load.proof.ts(312,55): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+test/uc-e2e-017-nhp-load.proof.ts(400,45): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+../domain/src/adaptive-interview.ts(113,31): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+../domain/src/interview-control-signals.ts(103,29): error TS18047: 'c' is possibly 'null'.
+../domain/src/privacy-erasure-preview.ts(159,71): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.

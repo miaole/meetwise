@@ -1472,6 +1472,61 @@ async function main() {
     A('记账:组件行为面无 DOM 载体·静态+人工对账（上四件为源面接线断言,非浏览器 DOM 证明）', true);
   }
 
+  // ══ B271 片3（entpay-slice3-REQUEST rev2 §4·RX-1/RX-2 载体·read-file 静态断言·est live=0）══════════
+  {
+    section('B271 片3 §4-1 修法③链既有复验+新增 read-file（RX-2：既有面=entpay:s2 28/28+上 ERRMSG-MAP 段复跑·以下两件=本刀新增断言）');
+    const startErrSrc = readSrc('lib/jobs/application-start-error.ts');
+    A('片3-1a 注册表分码文案逐字（application-start-error.ts :21-23·application_enterprise_pay_unavailable→稳定拒因）',
+      startErrSrc.includes("application_enterprise_pay_unavailable: '该岗位面试暂不可用，请联系招聘方'"));
+    const jobsPageSrc = readSrc('app/jobs/page.tsx');
+    A('片3-1b jobs 页 402 渲染块静态接线（page.tsx :60-72 区·actionErrorMessage(\'jobs\',0,error)+role=alert·既有零改面）',
+      /const actionError = actionErrorMessage\('jobs', 0, error \?\? null\);/.test(jobsPageSrc)
+      && /role="alert"/.test(jobsPageSrc)
+      && /actionError\.text/.test(jobsPageSrc));
+
+    section('B271 片3 §4-2 P1-a 修法⑥字面+P1-b 招聘方卡（RX-1：文案与裁定⑤定稿逐字绑定+卡区既有四行零字节锚）');
+    A('片3-2a 修法⑥知情行逐字在 /jobs 渲染面（「本场由企业支付，不消耗你的额度」·startable 婉拒按钮邻位）',
+      jobsPageSrc.includes('本场由企业支付，不消耗你的额度')
+      && jobsPageSrc.indexOf('declineApplicationAction.bind(null, app.id)') < jobsPageSrc.indexOf('本场由企业支付，不消耗你的额度'));
+    const appCardSrc = readSrc('app/recruiter/jobs/[id]/applications/[applicationId]/page.tsx');
+    A('片3-2b P1-b 知情行逐字（「候选人开始本场面试由贵司企业额度支付；额度不足时候选人将无法开始」）',
+      appCardSrc.includes('候选人开始本场面试由贵司企业额度支付；额度不足时候选人将无法开始'));
+    A('片3-2c P1-b 充值链接逐字绑定（「企业额度不足，请充值」→ href /recruiter/billing·目标面已存在）',
+      appCardSrc.includes('企业额度不足，请充值')
+      && /href="\/recruiter\/billing"[^>]*>企业额度不足，请充值<\/Link>/.test(appCardSrc));
+    A('片3-2d 卡区既有 dl 四行零字节锚（候选人/来源/状态/评估·P1 改动不触既有面）',
+      ['候选人', '来源', '状态', '评估'].every((label) => appCardSrc.includes(`<dt className="text-muted-foreground">${label}</dt>`)));
+
+    section('B271 片3 §4-4 P3 余额挂件（裁定②形 A·零参调用读并列值·读时快照非实时承诺）');
+    const billingSrc = readSrc('app/recruiter/billing/page.tsx');
+    A('片3-3a 挂件零参调用读并列 enterpriseAvailableUnits（一次调用双算·响应只增）',
+      billingSrc.includes("serverGet<{ availableUnits: number; enterpriseAvailableUnits: number }>('/commerce/entitlement')")
+      && billingSrc.includes('enterpriseAvailableUnits'));
+    A('片3-3b 挂件语境行（「候选人岗位面试由企业额度支付」+快照非实时注记·首屏套餐卡之上）',
+      billingSrc.includes('候选人岗位面试由企业额度支付（读时快照，非实时余额承诺）。')
+      && billingSrc.indexOf('<BalanceSection /></Suspense>') < billingSrc.indexOf('<ProductsSection /></Suspense>'));
+
+    section('B271 片3 §4-5 P4 开票 paid 下拉（裁定③：禁用不保留手填·仅 paid 行）');
+    const formsSrc = readSrc('app/recruiter/billing/RechargeForms.tsx');
+    A('片3-4a 手填 Input 零残留（<Input id="inv-order" 撤除·orderId 只落 select）',
+      !formsSrc.includes('<Input id="inv-order"') && /<select[^>]*name="orderId"/.test(formsSrc));
+    A('片3-4b 空表回退=下拉禁用+「暂无已支付订单」逐字（不保留手填口）',
+      /disabled=\{orders\.length === 0\}/.test(formsSrc) && formsSrc.includes('暂无已支付订单'));
+    A('片3-4c 数据源仅 paid（billing 页 filter status===\'paid\'·>50 窗外老 paid 单不可选=如实边界）',
+      /paidOrders = ordersRes\?\.orders\?\.filter\(\(o\) => o\.status === 'paid'\)/.test(billingSrc));
+    A('片3-4d submitInvoiceRequestAction 既有 409/403 面零改（actions.ts·DB 仅-paid 触发器双层承）',
+      /if \(res\.status === 409\) return \{ ok: false, error: '仅已支付订单可申请开票（或该订单已申请过）。' \};/.test(readSrc('app/billing/actions.ts'))
+      && readSrc('app/billing/actions.ts').includes("if (res.status === 403) return { ok: false, error: '开票申请需审核通过的招聘方账户。' };"));
+
+    section('B271 片3 §4-3 web 面 P2 对公订单卡（只读无操作口·三态徽标）');
+    A('片3-5a offline-orders 只读卡在位（零参 serverGet·本人台账）',
+      billingSrc.includes("serverGet<{ orders: OfflineOrder[] }>('/commerce/offline-orders')"));
+    A('片3-5b 三态徽标（remit_status NULL=created→entered→confirmed·failed=destructive·无操作口）',
+      billingSrc.includes('remitBadge[o.remit_status ?? \'created\']')
+      && billingSrc.includes("failed: { text: 'failed', variant: 'destructive' }")
+      && !/OfflineOrdersSection[\s\S]*?(SubmitButton|<form action=)/.test(billingSrc));
+  }
+
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
   process.exit(failures === 0 ? 0 : 1);
 }
