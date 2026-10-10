@@ -1,4 +1,4 @@
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 import type {
   MemoryAdmissionCandidate, MemoryAdmissionReceipt, MemoryAdmissionAuthorization, MemoryFactWrite,
 } from '@meetwise/contracts';
