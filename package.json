@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "packageManager": "pnpm@10.18.0",
   "scripts": {
+    "candidate-route:prove": "pnpm -C packages/domain prove:candidate-route",
     "docs:check": "node scripts/ai-docs/check-docs.mjs",
     "golden-tasks:check": "node scripts/golden-tasks-check.mjs",
     "generation-trust:prove": "node scripts/generation-trust-check.mjs",

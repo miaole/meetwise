@@ -207,3 +207,17 @@ g7SuiteGreen=false
 - **R3-4（样本集）**：≥30 份 fixture 落 packages/domain/test/fixtures/candidate-route-samples/（审计验收原文）；§1.2 的 16 份扩充至 30+。
 - **R3-5（审议记录）**：G7S「绝不多桶推断」立法本意=防错路由；审计裁定「409 拒绝启动比泛化路由伤害更大」（用户旅程第 4 断点）——协调方裁定采纳；先前「待后继用户选择刀」条款作废（后继 UI 刀 #259 仍立项但非门槛）。
 - Status: `draft_rev3:pre_exec_dual_PASS_plus_policy_redirect`（EXEC 授权·蓝本=本 rev3；rev2 的 D1-D4 登记项照旧）。
+
+## EXEC 收口（2026-10-10 · 席 mw-routedict-exec · #133 ROUTE-DICT 刀落地）
+
+- **Status**: `exec_done:prove_green_6keys_4green_2_preexisting_red_registered`（本行为 append-only 状态行；蓝本=rev3）。
+- **改动面**：`packages/domain/src/candidate-profile-route.ts`（词典 v3+降级臂+docstring）· `packages/domain/src/index.ts`（+1 type export 行）· `packages/domain/test/candidate-profile-route.proof.ts`（新 proof）· `packages/domain/test/fixtures/candidate-route-samples/`（42 fixtures）· `packages/domain/package.json`+根 `package.json`（各 +1 script 行）。零迁移零 DB 文件零 `interview.service.ts` 触碰（R3-3 409 防御面原样）。
+- **词典 EXEC 记录**：§1.1 全表落地；go 上下文 token 18 个（§1.1 12 + rev2 D1 GO 大写 6）；D3 裁定 `'机器学习算法'` **保留**（冗余——必中 `'机器学习'` 子串——按 §3 #6 原样收词，注释已登记）；D2 观察项（测开/自动化裸词/英文 "Go developer"）登记于词典 docstring，未收词。
+- **R3-1 落地**：`:103-104` 两臂改为 `{}` 零命中→decided `backend/general`+degraded`no_signal_hit`；`{≥2 specific}`→decided `backend/general`+degraded`ambiguous_language_evidence`；`:95-102` 恰 1 叶/general+唯一 specific 两规则零改动；`profile_empty` 唯一剩余 undecided（db 侧 profile_unavailable→409 防御面保留）。`no_signal_hit`/`ambiguous_language_evidence` 未决拒因退役（仅存 `degradedFrom` 对账信号）。policy v1→**v3**。
+- **R3-2 断言序裁定（诚实登记）**：rev3 括注「若后端叶在场则取 specific 后端叶」按 R3-1 全称规则（{≥2 specific}→general 无例外）解释为 `general+唯一 specific`（无 qa 在场）既有 `:100-102` 提升面；反例 fixture 写死：`{java|nodejs|go, qa}` 双 specific→degraded general 不落 qa（ce1-ce3/j3）；`{frontend, qa}` 无后端叶→general 胜出 qa（ce4）；「自动化测试」单叶→qa（g6+q 类）。
+- **§1.2 rev3 改向行**：S03（真全栈）与 S16（零信号）由 v2 期望「409 未决守护」改写为「decided backend/general+degraded」——依 R3-1/R3-5 审计裁定（409 拒绝启动伤害更大），proof 表内注明。
+- **prove 收据**：`candidate-route:prove` **EXIT=0**（75 断言全 PASS·fixture 42 份）。既有键：`job-route-classify-binding:prove` **EXIT=0** · `neg:interview` **EXIT=0**（97 条全绿）· `neg:commerce` **EXIT=0**（84 条全绿）· `r2-p-api-route-classify:prove` **EXIT=0** · `turn-idempotency:prove` **EXIT=1** 与 `resume-reference:http:prove` **EXIT=1** ——**基线预存红（非本刀回归）**：根因=隔离 e2e PG 容器缺 `assert_interview_privacy_active()`（42883·migrations 0059/0062/0096 未入隔离容器·rebase 后基线 runner 漂移）；已在未改动基线 commit `28c24e6a` 对照复跑坐实同 signature（3 FAIL/5 FAIL 全同）。登记残留归基线/runner 后继刀，本刀未触碰（Ban 顺手修）。
+- **uc001:nhp-bound:prove 现状登记（§4 预告项）**：**EXIT=1**（非本刀键）——begin 409 `candidate_route_undecided`/`profile_unavailable`（夹具无 resume_blob，分类器未触达）；同时坐实 R3-3 防御 409 面仍有效。残留归 G7S 后继刀。
+- **停止条件核查**：实树锚漂——无（rev3 锚 `deacfd49` 内容完整，rebase 后同内容 hash=`28c24e6a`；指定路径工作树缺失系环境态，按原路径+原分支重建后推进）；证明键冲突——无（`candidate-route:prove` 根/domain 均无既有键）；需触范围外——无（db/api/迁移/job 面词典零触碰）。
+- ** Pins**：§6 十一值照抄不变 + `candidateRoutePolicy=2026-10-frozen:v1→v3（本刀改路由语义·升版强制）` · `fullstackAmbiguous409=retired-by-user-decision（真歧义降级 general·R3-5 作废「待用户选择刀」门槛，#259 非门槛）` · `routeAccuracyGuarantee=false`。
+- **Non-claims**：词典收紧 ≠ 路由准确率保证 · EXIT0 ≠ 全简历形态覆盖 · ≠ CI 纳入（归 CI-WIRING）· 409 退役面 = 结构性不可达而非代码删除（防御路径保留）· #133 关单叙事须区分「假歧义已修 + 真歧义降级 general（#270 反例不落 qa）」· alone ≠ dual。
