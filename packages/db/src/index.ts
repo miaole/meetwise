@@ -297,7 +297,7 @@ export type { CreditResult, RefundResult } from './payment.ts';
 export { insertNotification, listNotifications, markNotificationRead, markAllNotificationsRead, unreadCount } from './notification.ts';
 
 // 版本化迁移运行器
-export { runMigrations, loadMigrations } from './migrate.ts';
+export { runMigrations, loadMigrations, latestMigrationVersion } from './migrate.ts';
 export type { Migration } from './migrate.ts';
 
 // admin 审计(append-only)

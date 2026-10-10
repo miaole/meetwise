@@ -313,3 +313,20 @@ export function loadMigrations(dir: string): Migration[] {
     };
   });
 }
+
+/**
+ * 审计 #92（readiness 深化）：目录侧最大迁移版本。版本源与 runner 同一——版本=文件名词干
+ * （loadMigrations/canonicalMigrations 同源）。排序用 JS 默认 `.sort()`（码元序=ASCII 字节序），
+ * 与探针侧账本读数 `max(version COLLATE "C")`（字节序）**刻意成对**：两侧 max 比较不依赖
+ * DB 集群 locale 与 Node ICU，任何环境都确定。只 readdirSync（微秒级、零文件内容 IO），
+ * 供探针每拍现算，禁止探针读迁移正文。
+ * 双数字前缀（0143/0152 各两文件）不构成口径冲突：两侧都按**完整词干**比较，序确定。
+ * 空目录/无 .sql → undefined（调用方必须 fail-closed 视为不一致）。
+ */
+export function latestMigrationVersion(dir: string): string | undefined {
+  return readdirSync(dir)
+    .filter((f) => f.endsWith('.sql'))
+    .map((f) => f.replace(/\.sql$/, ''))
+    .sort()
+    .at(-1);
+}

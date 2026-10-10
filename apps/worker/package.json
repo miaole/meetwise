@@ -25,6 +25,7 @@
     "prove:security": "tsx test/security.proof.ts",
     "prove:memory": "tsx test/memory.proof.ts",
     "prove:drain": "tsx test/drain-loop.proof.ts",
+    "prove:obs-ready": "node --import @swc-node/register/esm-register test/obs-ready.proof.ts",
     "prove:interview-dispatch": "tsx test/interview-dispatch-fairness.proof.ts",
     "prove:owner-drain-order": "tsx test/owner-drain-order.proof.ts",
     "prove:interview-dispatch-pg": "tsx test/interview-dispatch-fairness-pg.proof.ts",

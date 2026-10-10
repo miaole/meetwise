@@ -30,6 +30,17 @@ async function main() {
   A('连续 3 次消费者失败时进程仍存活但 readiness（就绪检查）为 false', failedTicks >= 3 && !failing.ready() && failing.snapshot().consecutiveFailures >= 3);
   await failing.stop();
 
+  // 审计 #92：首拍成功门——启动初期（首拍成功前）不得宣称就绪（此前 lastSuccessAt 构造即置 now = fail-open）。
+  let gatedTicks = 0;
+  let releaseGated!: () => void;
+  const gatedFirstTick = new Promise<void>((resolve) => { releaseGated = resolve; });
+  const gated = runDrainLoop(async () => { gatedTicks++; await gatedFirstTick; }, 1_000);
+  A('首拍门测试首个 tick 已开始且仍在飞（尚未成功）', await waitFor(() => gatedTicks === 1) && !gated.ready());
+  A('#92 首拍成功前 ready()=false（启动窗 fail-closed）', gated.snapshot().consecutiveFailures === 0 && !gated.ready());
+  releaseGated();
+  A('#92 首拍成功后 ready()=true', await waitFor(() => gated.ready()));
+  await gated.stop();
+
   let wakeTicks = 0;
   const wakeable = runDrainLoop(async () => { wakeTicks++; }, 1_000);
   A('初始 reconcile 会立刻执行', await waitFor(() => wakeTicks === 1));

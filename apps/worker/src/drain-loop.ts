@@ -6,7 +6,7 @@ export interface DrainLoop {
   /** Coalesced edge trigger: never overlaps a tick and never carries job data. */
   wake(): void;
   stop(): Promise<void>;
-  /** A live process with repeatedly failing or hung work must not be "ready". */
+  /** A live process with repeatedly failing, hung, or never-yet-succeeded work must not be "ready". */
   ready(): boolean;
   snapshot(): { consecutiveFailures: number; lastSuccessAt: number };
 }
@@ -15,6 +15,7 @@ export function runDrainLoop(tick: () => Promise<void>, intervalMs = 5000): Drai
   let stopped = false;
   let consecutiveFailures = 0;
   let lastSuccessAt = Date.now();
+  let everSucceeded = false;    // 审计 #92：首拍成功门——启动初期（首拍成功前）一律不就绪（禁 fail-open）。
   let wakePending = true; // initial reconciliation must run before the first notification.
   let settleWait: (() => void) | undefined;
   let stopPromise: Promise<void> | undefined;
@@ -45,6 +46,7 @@ export function runDrainLoop(tick: () => Promise<void>, intervalMs = 5000): Drai
         await tick();
         consecutiveFailures = 0;
         lastSuccessAt = Date.now();
+        everSucceeded = true;
       } catch (e) {
         consecutiveFailures++;
         console.error('drain tick error', e);
@@ -68,9 +70,10 @@ export function runDrainLoop(tick: () => Promise<void>, intervalMs = 5000): Drai
       await stopPromise;
     },   // 等循环(含在飞 tick)真正结束
     ready() {
-      // 3 consecutive failures is a deterministic failure signal. The stale
-      // bound also catches a permanently hung tick that never rejects.
-      return !stopped && consecutiveFailures < 3 && Date.now() - lastSuccessAt <= Math.max(intervalMs * 3, 5_000);
+      // 审计 #92：首拍成功门（everSucceeded）——此前 `lastSuccessAt` 构造时即置 now，
+      // 启动初期零次成功也"就绪"（fail-open）。现在必须至少一拍真成功；其后 3 连败或
+      // 陈旧窗（成功时刻距今 > max(intervalMs*3, 5s)）照旧判不就绪。
+      return !stopped && everSucceeded && consecutiveFailures < 3 && Date.now() - lastSuccessAt <= Math.max(intervalMs * 3, 5_000);
     },
     snapshot() { return { consecutiveFailures, lastSuccessAt }; },
   };
