@@ -27,7 +27,8 @@ export async function reportView(db: DbService, guard: PrivacyGuard, principal: 
     if ((failed.rowCount ?? 0) > 0) return { status: 'interview_failed' as const, content: null };   // 200:页面显示"面试已中断"
     throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);   // 真·进行中
   }
-  return { status: r.status, content: r.status === 'ready' ? r.content : null };
+  // #229 D2 ④文案:回传 attempts(已耗自动重试次数)——报告页「系统已自动重试 N 次」如实渲染。
+  return { status: r.status, content: r.status === 'ready' ? r.content : null, attempts: r.attempts };
 }
 
 // 报告重试:失败/隔离的报告重新入队生成(舱壁降级后的用户侧恢复——报告挂了不连累面试,且可重试)。

@@ -4,7 +4,7 @@
  * Report regenerate + refund concurrency honesty (D1: report fail 不退; regenerate 免费):
  *   G1 failed→requeueFailedReport 幂等（连点仅一次 failed→queued；A1 proxy）
  *   G2 regenerate(requeue) × releaseConsumption 并发：无「已退款且又重排报告」非法组合（A2）
- *   G3 refund-first→released→regen 拒 产品路径缺失 + quarantined 不可 requeue（A3 / UC-011 R2 BLOCKED）
+ *   G3 refund-first→released→regen 拒 产品路径缺失（A3）+ quarantined 出口已解锁（#229 D2 翻转旧钉·A3/UC-011 R2）
  *   G4 honesty GAP：无 regenerateAttempt 幂等键产品口；HTTP 产品口见 uc019:…:http（report/retry）
  *
  * NO MODEL_API_KEY · HTTP/UI e2e → uc019:report-regenerate:http:prove（本文件仍纯 db）.
@@ -14,7 +14,7 @@
  *   pnpm -C packages/db prove:uc019-report-regenerate
  *
  * Cite: e2e-scenarios.md UC-E2E-019 A1/A2/A3 · matrix row UC-E2E-019
- * Related: UC-E2E-011 R2 quarantined cannot requeue / regenerate BLOCKED
+ * Related: UC-E2E-011 R2 quarantine 出口 #229 D2 已解锁（旧「cannot requeue」钉翻转·git blame）
  */
 import {
   assertIsolatedTestTarget, createPool, asPrincipal,
@@ -190,14 +190,20 @@ async function main() {
       rel.status === 'error' && (rel as { reason?: string }).reason === 'already_confirmed');
     A('G3 consumption 仍 confirmed（A3 退款先赢路径不存在）', (await consStatus(owner, id)) === 'confirmed');
 
-    // Quarantined regenerate BLOCKED (UC-011 R2 related)
+    // Quarantined regenerate 出口——#229 D2 已决翻转旧诚实钉（旧语义 quarantined 不可 requeue·见 git blame）：
+    // CAS 现接受 failed|quarantined 并重置 attempts/next_attempt_at，零扣费不变。
     const rep = await forceQuarantine(owner, id, `w-uc019-g3-${S}`);
     A('G3 poison → quarantined', rep?.status === 'quarantined');
     const rid = await reportIdOf(owner, id);
+    const unitsBeforeRq = await asPrincipal(pool, owner, (c) => availableUnits(c, owner));
     const rq = await asPrincipal(pool, owner, (c) => requeueFailedReport(c, owner!, rid!));
-    A('G3 quarantined 不可 requeueFailedReport（产品 regenerate 对 quarantine BLOCKED·UC-011 R2）', rq === false);
+    const repAfter = await asPrincipal(pool, owner, (c) => getReport(c, owner, id));
+    A('G3 quarantined 手动 requeueFailedReport → true（#229 D2 翻转旧诚实钉 · quarantine 出口解锁 · 旧语义见 git blame）', rq === true);
+    A('G3 重排重置预算：queued + attempts=0', repAfter?.status === 'queued' && (repAfter?.attempts ?? -1) === 0);
+    A('G3 重排零扣费：额度不变 + consumption 仍 confirmed', (await asPrincipal(pool, owner, (c) => availableUnits(c, owner))) === unitsBeforeRq
+      && (await consStatus(owner, id)) === 'confirmed');
     console.log('GAP_PIN: GAP-UC019-REFUND-FIRST-ORDER — 无 confirmed→released 产品口；A3「退款先到→regen 拒」不可在现 API 闭环');
-    console.log('GAP_PIN: GAP-UC019-QUARANTINE-REGEN — quarantined 不可 requeue；免费 regenerate 产品口未对接 quarantine 出口');
+    console.log('PIN_RETIRED: GAP-UC019-QUARANTINE-REGEN — #229 D2 已决翻转（quarantined 手动 requeue 解锁+预算重置+零扣费）；UC-019 covered 判定归其自身刀线');
   }
 
   // ── G4 honesty GAP pins ──
@@ -214,7 +220,7 @@ async function main() {
     A('G4 ai_report 有 status/attempts（现有 requeue CAS 代理）',
       names.includes('status') && names.includes('attempts'));
 
-    console.log('GAP_PIN: GAP-UC019-REGEN-IDEM-KEY — 需求幂等键 (interviewId, regenerateAttempt) 未产品化；仅 status=failed CAS via requeueFailedReport');
+    console.log('GAP_PIN: GAP-UC019-REGEN-IDEM-KEY — 需求幂等键 (interviewId, regenerateAttempt) 未产品化；仅 status CAS via requeueFailedReport（#229 后=failed|quarantined）');
     console.log('GAP_PIN: GAP-UC019-HTTP-REGENERATE — 产品口 POST /interview/:id/report/retry 由 uc019:report-regenerate:http:prove 钉；需求名 /reports/:id/regenerate 未落；未进 full.e2e/UI');
     console.log('GAP_PIN: 本 prove EXIT=0 仅= G1–G2 集成诚实 + G3/G4 GAP 钉，≠ UC-E2E-019 covered');
     A('G4 honesty: regenerate* 列缺失已钉且 status/attempts 存在', !hasRegenAttempt && names.includes('status'));
@@ -223,8 +229,8 @@ async function main() {
   console.log(`\n${fail === 0
     ? '✓ UC-E2E-019 G1–G4 integration/honesty asserts passed (partial ladder only; ≠ covered; ≠ e2e:isolated regenerate)'
     : `✗ ${fail} UC-E2E-019 asserts failed`}`);
-  console.log('BLOCKED_FOR_FULL_E2E: regenerateAttempt 幂等键 + A3 refund-first→released + quarantine regen 出口 + full.e2e/UI 仍 gap（HTTP report/retry 见 http prove）');
-  console.log('BLOCKED: quarantined regenerate 出口（UC-011 R2）仍 BLOCKED；balance-ui / 支付退款回调另轨');
+  console.log('BLOCKED_FOR_FULL_E2E: regenerateAttempt 幂等键 + A3 refund-first→released + full.e2e/UI 仍 gap（HTTP report/retry 见 http prove）');
+  console.log('BLOCKED: quarantined regenerate 出口已由 #229 D2 解锁（旧 BLOCKED 钉翻转）；balance-ui / 支付退款回调另轨');
   console.log('BLOCKED: 本绿≠ UC-E2E-019 covered；releaseEvidence=false；Not HA');
   await pool.end();
   process.exit(fail ? 1 : 0);

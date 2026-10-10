@@ -8,8 +8,8 @@
  *   ✅ Product mouth EXISTS: report/retry (NOT demand-side POST /reports/:id/regenerate)
  *   ❌ regenerateAttempt column / (interviewId, regenerateAttempt) idem key — schema GAP
  *   ❌ A3 confirmed→released→regen 拒 — no confirmed→released product path
- *   ❌ quarantined regenerate 出口 — retry SELECT includes quarantined but requeue CAS
- *      only failed→queued → HTTP 404 no_retriable_report (UC-011 H2 / G3 BLOCKED)
+ *   ✅ quarantined regenerate 出口 — #229 D2 已决翻转旧钉（UC-011 H2 / G3 BLOCKED 退役·git blame）：
+ *      requeue CAS 接受 failed|quarantined + 重置 attempts/next_attempt_at → HTTP 200 requeued:true；
  *
  * Fixture note: `_neg-harness` does not load migration 0058. This prove installs a
  * **minimal** privacy-active stub so GET report / retry can run. Stub ≠ full fence covered.
@@ -36,7 +36,7 @@ const { A, done } = mkAssert('uc019:report-regenerate:http');
 console.log('UC-E2E-019 report-regenerate HTTP prove · releaseEvidence=false · Not HA');
 console.log('NOTE: 本绿≠全链路 E2E covered；≠ matrix covered；HTTP report/retry 口 + GAP probe；fixture=pgvector → green-risk/R5');
 console.log('NOTE: D1 — 报告失败默认不退；regenerate 应免费；产品口 = POST /interview/:id/report/retry（≠ /reports/:id/regenerate）');
-console.log('NOTE: remaining→covered: regenerateAttempt 幂等键 · A3 confirmed→released 产品口 · quarantine regen 出口 · full.e2e/UI');
+console.log('NOTE: remaining→covered: regenerateAttempt 幂等键 · A3 confirmed→released 产品口 · full.e2e/UI（quarantine 出口已由 #229 D2 解锁）');
 
 // Minimal privacy-active stubs (0058 not in _neg-harness). Owner match only; no erasure fence.
 await h.pool.query(`
@@ -257,13 +257,17 @@ async function forceQuarantine(owner: string, interviewId: string, leaseOwner: s
   A('H3 GET report → 200 quarantined',
     got.status === 200 && got.body?.status === 'quarantined');
   const before = await httpUnits(A_);
+  // #229 D2 已决翻转旧诚实钉（旧语义 quarantined→404 no_retriable_report·见 git blame）：HTTP 口对 quarantined 解锁 200
   const retry = await h.post(`/interview/${id}/report/retry`, A_, {});
-  A('H3 POST report/retry quarantined → 404 no_retriable_report（quarantine regen 出口 BLOCKED）',
-    retry.status === 404 && retry.body?.error === 'no_retriable_report');
-  A('H3 HTTP 额度不回补（报告失败不退）', (await httpUnits(A_)) === before);
+  A('H3 POST report/retry quarantined → 200 requeued:true（#229 D2 翻转·quarantine 出口解锁·旧语义见 git blame）',
+    retry.status === 200 && retry.body?.requeued === true);
+  const afterRq = await h.req('GET', `/interview/${id}/report`, A_);
+  A('H3 重排重置预算：queued + attempts=0（全新 3 次自动重试预算）',
+    afterRq.status === 200 && afterRq.body?.status === 'queued' && afterRq.body?.attempts === 0);
+  A('H3 HTTP 额度不回补（报告失败不退·重排零扣费）', (await httpUnits(A_)) === before);
   A('H3 consumption 仍 confirmed', (await consStatus('userA', id)) === 'confirmed');
   console.log('GAP_PIN: GAP-UC019-REFUND-FIRST-ORDER — 无 confirmed→released 产品口；A3「退款先到→regen 拒」不可在现 API 闭环');
-  console.log('GAP_PIN: GAP-UC019-QUARANTINE-REGEN — retry 选到 quarantined 但 requeueFailedReport 仅 failed CAS → HTTP 404；免费 regenerate 出口未对接');
+  console.log('PIN_RETIRED: GAP-UC019-QUARANTINE-REGEN — #229 D2 已决翻转（quarantined retry 200+预算重置+零扣费）；旧语义 quarantined→404 见 git blame');
 }
 
 // ── H4 · honesty GAP：regenerateAttempt / demand-path /reports/regenerate / full.e2e ──
@@ -298,7 +302,7 @@ async function forceQuarantine(owner: string, interviewId: string, leaseOwner: s
 console.log('\n──────── GAP pins (抬 covered 仍缺) ────────');
 console.log('PIN   GAP-UC019-REGEN-IDEM-KEY: (interviewId, regenerateAttempt) 未落库/未产品化');
 console.log('PIN   GAP-UC019-REFUND-FIRST-ORDER: 无 confirmed→released；A3 退款先赢→regen 拒不可闭环');
-console.log('PIN   GAP-UC019-QUARANTINE-REGEN: quarantined 上 report/retry → 404；无免费 regenerate 出口');
+console.log('PIN_RETIRED GAP-UC019-QUARANTINE-REGEN: #229 D2 已决翻转（quarantined retry 200+预算重置）；旧语义见 git blame');
 console.log('PIN   GAP-UC019-FULL-E2E: 未进 full.e2e.ts / e2e:isolated UI regenerate 断言');
 console.log('PIN   GAP-UC019-DEMAND-PATH: 需求名 POST /reports/:id/regenerate 未落（≠ report/retry covered 冒充）');
 A('honesty: HTTP prove 绿 ≠ UC-E2E-019 covered（GAP pins 已印）', true);
