@@ -53,7 +53,8 @@ import {
   RECRUITER_ARCHITECTURE_HIGHLIGHTS,
   RECRUITER_ARCHITECTURE_IDS,
 } from '../lib/recruiter/surface.ts';
-import { actionErrorMessage } from '../lib/errors/action-error.ts';
+import { actionErrorMessage, INTERVIEW_PRIVACY_FENCED_TEXT } from '../lib/errors/action-error.ts';
+import { turnSubmitFeedback } from '../lib/errors/turn-submit-error.ts';
 import { isEligibleResume, resumeEmptyState } from '../lib/resume/display.ts';
 import { parseEntitlement, entitlementLineView } from '../lib/commerce/display.ts';
 import { interviewProgressBadge } from '../lib/interview/progress-badge.ts';
@@ -1429,6 +1430,46 @@ async function main() {
     const legacyView = reduceInterview([legacyQ]);
     A('旧流缺 plannedTurns → schema 零破坏+投影 undefined（显示面降级）',
       legacyView.phase === 'question' && legacyView.plannedTurns === undefined);
+  }
+
+  section('G4 #59 提交失败分码映射：turnSubmitFeedback 纯函数输出断言（形制 A·mock res 仅输入叙述）+ 组件源码静态接线（read-file 四件）');
+  {
+    // ── 纯函数输出断言（REQUEST rev2 §4.2 洞A·形制 A 本意——不做组件端到端 mock 执行）──
+    A('401/unauthorized → 「登录已过期，请重新登录」+action=login（组件跳 /login?expired=1·沿 server.ts:30 同参形）',
+      turnSubmitFeedback(401, 'unauthorized').text === '登录已过期，请重新登录'
+      && turnSubmitFeedback(401, 'unauthorized').action === 'login');
+    A('409/interview_not_active → 「该面试已结束」+action=back_to_interviews（回列表出路）',
+      turnSubmitFeedback(409, 'interview_not_active').text === '该面试已结束'
+      && turnSubmitFeedback(409, 'interview_not_active').action === 'back_to_interviews');
+    A('409/interview_answer_submission_conflict → 中性防重文案+无导航（作答保留、既有回滚行为零改）',
+      turnSubmitFeedback(409, 'interview_answer_submission_conflict').text === '该作答已提交，请勿重复提交'
+      && turnSubmitFeedback(409, 'interview_answer_submission_conflict').action === undefined);
+    A('410/interview_privacy_fenced → #243 文案常量同一性（import 单源：proof 与实现引同一常量）+action=back_to_interviews',
+      turnSubmitFeedback(410, 'interview_privacy_fenced').text === INTERVIEW_PRIVACY_FENCED_TEXT
+      && INTERVIEW_PRIVACY_FENCED_TEXT === '该面试已进入数据删除流程，请新建面试'
+      && turnSubmitFeedback(410, 'interview_privacy_fenced').action === 'back_to_interviews');
+    A('503（码通道 public_preview_read_only/status 通道含无码/未知码）→ 与 actionErrorMessage 503 行同文「服务暂不可用」',
+      turnSubmitFeedback(503, 'public_preview_read_only').text === '服务暂不可用'
+      && turnSubmitFeedback(503, null).text === actionErrorMessage('interviews', 503, null)?.text
+      && turnSubmitFeedback(503, 'some_future_code').text === '服务暂不可用');
+    A('未知码/无码/空串码 → 既有兜底逐字「提交失败,请重试」+无 action（原文一字不改）',
+      turnSubmitFeedback(400, 'missing_idempotency_key').text === '提交失败,请重试'
+      && turnSubmitFeedback(400, 'missing_idempotency_key').action === undefined
+      && turnSubmitFeedback(500, null).text === '提交失败,请重试' && turnSubmitFeedback(500, null).action === undefined
+      && turnSubmitFeedback(403, '').text === '提交失败,请重试' && turnSubmitFeedback(403, '').action === undefined
+      && turnSubmitFeedback(402, 'insufficient_entitlement').text === '提交失败,请重试');
+    // ── 组件源码静态接线四件（rev2 洞A·沿 :863 readSrc read-file 先例）──
+    const panelSrc = readSrc('components/InterviewPanel.tsx');
+    A('静态接线①:提交失败臂接线 turnSubmitFeedback（判定在纯函数·执行在组件:toast+login/back 薄执行）',
+      /const fb = turnSubmitFeedback\(res\.status, typeof j\?\.error === 'string' \? j\.error : null\);/.test(panelSrc)
+      && /toast\.error\(fb\.text\);/.test(panelSrc)
+      && /if \(fb\.action === 'login'\) router\.push\('\/login\?expired=1'\);/.test(panelSrc)
+      && /router\.push\('\/interviews'\)/.test(panelSrc));
+    A('静态接线②:j?.message 全文件零残留（提交臂+voice 臂双撤·Ban 裸透传）', !panelSrc.includes('j?.message'));
+    A('静态接线③:失败臂回滚三行形仍在（回滚回显+clearSubmitBridge+return·作答保留零回归）',
+      /toast\.error\(fb\.text\);[\s\S]*?setAnswers\(\(m\) => \{ const n = \{ \.\.\.m \}; delete n\[lastIdx\]; return n; \}\);\s*\/\/ 回滚回显\s*[\r\n]\s*clearSubmitBridge\(\);\s*\/\/ 回到作答态,保留输入框内容\s*[\r\n]\s*return;/.test(panelSrc));
+    A('静态接线④:网络层 catch 文案逐字零改「提交未成功，请重试」', panelSrc.includes("toast.error('提交未成功，请重试');"));
+    A('记账:组件行为面无 DOM 载体·静态+人工对账（上四件为源面接线断言,非浏览器 DOM 证明）', true);
   }
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);

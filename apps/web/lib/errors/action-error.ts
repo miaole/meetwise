@@ -42,7 +42,9 @@ const BINDING_CONFLICT_TEXT = '你有一场未结束的面试：继续/放弃后
 // ── 410 行（interview begin 确定性围栏；interviews 页域专属。FENCE-REFLOW F6/#243：
 //    文案=审计第五章 §5.2 建议 3 原文逐字「该面试已进入数据删除流程，请新建面试」；
 //    旧行为=映射 miss → begin_failed 兜底「稍后重试」——永久围栏给重试指引=教用户白点）──
-const INTERVIEW_PRIVACY_FENCED_TEXT = '该面试已进入数据删除流程，请新建面试';
+// （G4 #59：补 export=非文案行改动（REQUEST rev2 §1② 注记⑤·值零改）——turn-submit-error.ts 以 import 单源
+//  引用本常量落 410 同一性断言；既有四页行/文案零改。）
+export const INTERVIEW_PRIVACY_FENCED_TEXT = '该面试已进入数据删除流程，请新建面试';
 
 // ── 503 行 ────────────────────────────────────────────────────────────────
 const SERVICE_UNAVAILABLE_TEXT = '服务暂不可用';
