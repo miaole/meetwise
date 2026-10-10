@@ -266,6 +266,7 @@ export async function sweepStuckInterviewJobs(
     `UPDATE interview_job SET status='queued', lease_owner=NULL, version=version+1
        WHERE owner_user_id=$1 AND status='running' AND lease_expires_at < now() AND attempts < $2`,
     [owner, maxAttempts]);
+  if (rq.rowCount) console.warn(JSON.stringify({ event: 'reaper_takeover', kind: 'interview', job_ref: `requeued:${rq.rowCount}`, prev_lease_expired: true }));
   return { requeued: rq.rowCount ?? 0, failed: dead.rowCount ?? 0, failedInterviews: dead.rows.map((x) => x.interview_id as string) };
 }
 
