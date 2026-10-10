@@ -169,3 +169,72 @@ rev2 回填 commit f6206d18 message 谎报「②R12 锚/③C4 锚已落」而 di
 
 **理由**：① TASK-SOP-v2.md:16 claim 定义=「REQUEST 文首声明拟用号+开工即 claim·撞号以先登记者胜」——B271 REQUEST @68f680cd 是首个在树已提交的 specific-number 0156 声明；SOP:79 批4 表「迁移 0156+」为规划下限，非 specific claim，不构成在先占用。② SOP:13「P0 断链凌驾一切」——#271 为唯一零开工 P0 断链，批4 CONSENT 残项（#82 enum/#69 checkbox）非 P0。③ 实用面：CONSENT-MIN 用号概率近零，让渡将迫使 ENTPAY 重编号空转；「后到者重编号并回注」条款零成本容纳反向情形。
 **回注义务**：双方 EXEC 落迁移文件前须核对本条与本 REQUEST 处方⑥（避免 0152 三重撞车重演）。ENTPAY rev3 已在 REQUEST 处方⑥回注（协调方授权 rev3 追记时落）。
+
+## P0 四链全通收口节（2026-10-10 · LEDGER 总对账席 · 全 hash 经主线 git log/merge-base 亲证·docs-only 零码动）
+
+**收口宣告**：P0 四断链（#196/#40/#204/#271）全数落主线收口——用户 2026-10-09 指令「最最重要的 P0 要先把产品断的链路全部走通」正式达成。四链每链均走完全协议（REQUEST→pre-exec 双审→EXEC→post-prove 双席 BOTH PASS→merge→nail）。本节为 271 条排期最新事实源，上文批表行内 🔄/📋 徽记不再逐行改写（append-only 纪律），以本节 C 表计数为准。
+
+### A. 四链 nail commit 链（全部 HEAD 祖先亲证）
+
+1. **#196 简历→出题模型 ✅**：EXEC @202b6c1a（01:27·prove **39 PASS**/0 FAIL·零 Key）→ nail @9379e359（01:43·post-dual dual-domain BOTH PASS·同意门+四重过滤+围栏+防编造双域亲证）。
+2. **#40 评分卡→报告 ✅**：S1 EXEC @d8d93f4c（00:20·29 断言·五环写入接线）→ S1 nail @974fb6c3（00:34）〔重复 EXEC/nail 对 @dbbf8d6c/@fe412948 当日 revert（@dddc3b8e/@7c415fbc）·PROCESS-E1 @ffae0c41 永久留档〕；S2 EXEC @50cb3238（11:08·读侧切换+完成判据切换+去桩+#103 切换+#50 v3+#52 v6·interview:prove **33 PASS**/基线 29）→ S2 nail @2c3a7d80（11:28·D5 三钉·rg 门零·#20 equivalent-coverage ruled·「P0 chain #40 code-complete」）→ 残留 hotfix @a03b9371（dual-keep import）→ @6979a069（12:57 清理·主线 interview:prove 复归 EXIT=0 **54 PASS=33+21**）。注记：@19ddcbb4 为 S2 EXEC rebase 孪生（line/extrev-score-writer·line/growth-gen·非主线祖先·如实登记）。
+3. **#204 成长链闭环 ✅**：EXEC @dc7e6daf（11:17·S1+S2·report-worker 硬接线 generateGrowthChain·三核心共享单源·interview:prove 54 PASS+neg:interview 97）→ nail @6a7a3acc（12:14·**54 PASS**·三区块非空·弱项偏置生产直行使·「#204 整条链不可达正式解除」·residuals registered）。
+4. **#271 企业付费 ✅**：片1 EXEC @ab420f61（13:44·prove 48/48 EXIT 0）→ merge @68e66f18 → 片1 nail @bcd3bfcf（13:56·五判据双席独立复跑 **48/48+neg:commerce 84/84+部署车 158/158 幂等**·企业桶+充值闭环·channel 守卫归片2）；片2 EXEC @5ff5f96d（16:58·0157·S2-C1~C9）→ merge @f632e289 → 片2 nail @df12a054（17:16·**entpay:s2 28/28+neg:commerce 84**+neg:interview 97+neg:bend 157·D-1 形状甲隔离库裁决·C8 channel 守卫成立·0157 合规·「#271 全通·P0 四链全通」）。
+
+### B. 伴随收口清单（今日 11 merge·hash 亲证）
+
+| # | 刀 | EXEC → merge → nail | 关键证明 |
+|---|---|---|---|
+| 1 | #133+#195+#270 ROUTE-DICT | @127ffbcd → @20d80271/@d272f885 → @9b8e7c4c | candidate-route prove 75 断言·nail 复跑 59/59·409 退役降级臂·「消费面收口」 |
+| 2 | #229 REPORT-RETRY | @a62919dd → @3ec4c2fc → @1ae677b8 | report-retry-http 38/38·uc011/uc019/bulkhead 复跑·零扣费·「兜底正式解除」 |
+| 3 | #259(+S1 面) ROLE-INPUT | @e0208e9f → @8fb2de35 → @fb077b19 | 两红如实非凑绿·「消费面兑现·审计 P1 拔钉」·S2a/S2b/S3 slice 后继 |
+| 4 | #53-56+#61+#256 SSE-RESILIENCE | @59772b20 → @8cea67fb → @ed56c73b | 五件全落 236/0·web prove 240 断言复验·「#256 兜底正式解除·已答不丢失兑现」 |
+| 5 | #69+#82 CONSENT-MIN | @effda881 → @07ab0c12 → @9000f02e | prove 19/19·「批4 十条全闭正式收官·隐私冻结用户裁定水位」 |
+| 6 | #241+#238+#253+#243+新-#274 FENCE-REFLOW | @49fa7334 → @fd57a6fc → @6d029323 | 卡死解除 25/25·语义融合七门绿 256 PASS·含 N2 补测断言落 privacy-erasure-http.proof.ts:267-268 |
+| 7 | #110 B110→E2E-RECRUITER-GATE | rev2 @59e93ee1 → EXEC @e2479961 → merge @cedf631b → nail @79aeb04b | e2e-helpers 28/28（新增 2）·「B110 同批收口·e2e:isolated 解冻条件已满足」 |
+| 8 | #228+#29 TRIAL-GRANT | @91c686d9 → 重编号 @c51c792d → nail @b4882af4 | 27/27 EXIT=0·applied=156/156 last=0154·双席 BOTH PASS·Erratum×2 随卷 |
+| 9 | DIR-B2 域文件夹化（5B 前置） | B2r @a9d1cbdc/B2q @098de4a1/B2p @4950bd51/B2s @1b2cbf86 → merge @8262d976 → hotfix @6799544f | 19/19 收官·65 文件 pure-mv·tsc 三重自洽·MIG-RUNNER 前置全齐 |
+| 10 | dual-keep 清理 hotfix | @6979a069 | interview:prove 54 复归·neg:interview 97 绿·ESM 严格加载解除 |
+| 11 | #247/#236/#242/#198+UNSTUB-ERASE（批4 隐私面） | impl @f9383f76/pin @c9200502 → EXEC @217dde27 → nail 补卷 @2666c59a | 39 清单闭卷 grep=0·202 软删受理·pins supersession 注记（原文保留） |
+
+（背景＝昨日各刀：#178 hotfix @0f0799b7+nail @e97f48b2·lint S0 @6765881f→@191f1052·lint S2 nail @f47670e6·G7FIX-4R reroll @c4ecde7d·negresfix @0b297877·tscgate/c12/G7 trio 等钉面——均为本节四链与伴随刀的地基。）
+
+### C. 271 条状态刷新计数（总对账席核定·以主线 git log 今日 11 merge+昨日各刀为准）
+
+| 批 | done/total | 今日刷新（+） | 残留要点 |
+|---|---|---|---|
+| 批0 | **15/15 全收口** | +#133+#195/#270（@9b8e7c4c）+#228+#29（@b4882af4） | 零残留（#194 已并入随刀闭） |
+| 批1 | **14/26** | +#40b/c+#20（@2c3a7d80）+#229+#204+#241/#238/#253/#243+#53/#54/#55/#56/#61/#256 | 残 12：SCORE S3 三件（#42/#43/#41）+体验族九条（#59/#161/#209/#232/#237/#254/#255/#260/#261） |
+| 批2 | **12/54**（另 4 部分面：#51/#266/#268/#199） | +#259（@fb077b19）+#50/#52（随 @2c3a7d80） | 残 42：LEVEL-SCHEME/QBANK-CORPUS/WEAKNESS-LOOP 三刀未立项+ROLE-INPUT S2a/S2b/S3+阈值决议 |
+| 批3 | **3/23** | +#110（@79aeb04b）+#271（@df12a054）+#227（随 #271 片2 解除·nail 宣告） | 残 20：#218/#219/#220/#221/#222/#223/#265/#239 等+文档刀 #225/#233/#234/#235/#262-264/#267 |
+| 批4 | **10/10 全收官** | +#69/#82（@9000f02e）＝8 落+#81 砍+#83 降 P4 | 零残留 |
+| 批5 | **4/143** | +#187（随 @dc7e6daf D3）；#96 部分（S0-S2 ✅·S3-S5 未）；#92 在飞（@3684bc00 在 line 分支·非主线祖先·如实） | 残 139：MIG-RUNNER/AUTHZ-HARDEN/CI-WIRING/5C 四子刀/5E 批量 |
+| HA | **0/9 行映射面** | — | NOT_HA pins 不变·R-17~R-28 簇零开工（解锁前置 P0 已满足·批1 余 12 未清） |
+
+**合计**：271 条中 **58 条收口（21.4%）**+4 条部分面；批0/批4 两批全闭·批1 过半·批3 三条·批2/批5 大部未动（后继主力面）。
+
+### D. 片3/伴随打磨残留登记表（后继刀排队·总对账席登记）
+
+| # | 项 | 来源刀 | 内容 | 建议批次 | 状态 |
+|---|---|---|---|---|---|
+| R1 | 对公充值知情文案窗 | B271 片2 EXEC（@dbad5884/@5ff5f96d） | 对公转账+开票知情同意窗文案（总档无定义·EXEC 期如实登记归片3） | ENTPAY 片3 | 开放 |
+| R2 | 自服对公订单状态列表 | B271 片1 nail @bcd3bfcf 席2 | 招聘方自服查询对公订单入账状态列表 | ENTPAY 片3 | 开放 |
+| R3 | 企业余额挂件 | B271 片1 nail @bcd3bfcf 席2 | 招聘方 Dashboard/发岗侧企业桶余额展示 | ENTPAY 片3 | 开放 |
+| R4 | 开票 paid 单下拉 | B271 片1 nail @bcd3bfcf 席2 | 已支付订单开票信息提交下拉 | ENTPAY 片3 | 开放 |
+| R5 | channel 守卫观察归档 | B271 片1 席1 观2→片2 C8 | C8 守卫已落（@5ff5f96d·CAS :81 单谓词）·余=观察面归档一行 | ENTPAY 片3 | 守卫已闭·归档开放 |
+| R6 | unload flush | SSE-RESILIENCE nail @ed56c73b 席2 观① | 防抖无 pagehide/beforeunload flush·最后键入 300ms 内刷新丢尾值（断流路径不受影响） | 5C-SSE 子刀或批1 体验族 | 开放 |
+| R7 | 'server' 臂不可达 | SSE nail @ed56c73b 席2 观② | reconnecting+'server' 臂经驱动不可达（5xx 落缺省臂）·文案真实性微损功能无损 | 5C-SSE 子刀 | 开放 |
+| R8 | 空框回填对称代价 | SSE nail @ed56c73b 席2 观③ | 存草稿时手动清空被 restore effect 立即回填（注记A 固有） | 5C-SSE 子刀 | 开放 |
+| R9 | create 锁 proof 补测 | FENCE-REFLOW REQUEST rev3 N2 处方 | **核验已闭**：N2 补测断言随 @49fa7334 落 privacy-erasure-http.proof.ts:267-268（lineOf·主线实物亲读） | — | 已闭（转出残留） |
+| R10 | ensure-ok server-only 标注 | SSE nail @ed56c73b 席1 nit | lib/jobs/ensure-ok.ts 未标 server-only（无实际渗漏·可选收紧） | 5C-API-HARDEN 顺手 | 开放 |
+| R11 | p_user_account_self 注释更正 | B271 片1 nail 勘误①/S2-C9 | **核验已闭**：commerce.service.ts:23-27 注释已改「user_account 实无 RLS…应用层自身行显式谓词·fail-closed 同义」（@5ff5f96d·主线实物亲读） | — | 已闭（转出残留） |
+
+→ **净残留 9 条开放**（R1-R8+R10；R9/R11 核验转已闭·逐条转出留痕）。
+
+### E. 北星门进度快照（2026-10-10）
+
+- **门1 全量 E2E 零漏项**：P0 四链 ✅。残留＝批1 12 条+批2 42 条+批3 20 条+批5 139 条。e2e:isolated 解冻条件已满足（@79aeb04b）·live 全量跑归协调方排程（est live=0 纪律未破）。**还差**：批1 收口兑现「断链走通后用例落地率拉升」验证；矩阵 gap/blind 行按 §4 算法另行循环。
+- **门2 生产 100% HA**：haStatus=NOT_HA（pins 未翻转）。R-17~R-28 簇零开工（单副本/优雅停机/DB 韧性/备份 PITR/告警闭环等·映射表见「重构文档审查补录」节）；#229 nail 登记 seam 备注归 HA 线（@1ae677b8）。**还差**：批1 清尾→HA 簇立项（R-17 起步）→阶 C/D 云证据（Ban 买云未解除·D3 报价已钉≠授权）→独立审。
+- **门3 0 BUG**：prove 全绿面＝interview 54（=33+21）·neg:interview 97·neg:commerce 84·neg:bend 157·web 240·entpay:s2 28/28·RG 39·route-dict 75/59·consent-min 19/19·trial 27/27·report-retry 38/38·e2e-helpers 28/28·fence 融合七门 256 PASS·growth 54。预存红清单（如实非凑绿）：scoring-integrity EXIT=1（①c :99:50 pristine 同形）·context-stress 7 FAIL（环境红）·turn-idempotency/resume-reference 基线红（42883 隔离容器缺失）·nhp-fault G7S begin 409（G7S 线）·uc001:nhp-bound EXIT=1（夹具缺 blob）。**还差**：预存红逐项消除或用户明示延期+双域审；0 BUG 未证·禁叙事。
+- **门4 G7 验证关**：g7SuiteGreen=false（pins 未翻转）。解冻待 live 跑（@79aeb04b 已满足解冻条件·排程归协调方）；昨日 G7 trio/fix 面已钉（@c4ecde7d/@28db833f 等）·今日各刀全数 est live=0。**还差**：协调方授权 live 全量跑→CMD+EXIT 收据齐→独立双审同意套件结论→方可议翻转（releaseEvidence 保持 false 直至 HA 齐）。
+
