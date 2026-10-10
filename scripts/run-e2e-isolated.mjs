@@ -97,7 +97,7 @@ const isolatedReceiptSources = {
     'apps/worker/src/generation-progress.ts',
     'apps/worker/src/interview-service.ts', 'apps/worker/src/adaptive-interview-service.ts',
     'packages/ai-runtime/src/invoke.ts', 'packages/ai-runtime/src/model-client.ts',
-    'packages/db/src/interview-event.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/src/interview/interview-event.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
   ],
   'uc001:nhp-neg:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -123,7 +123,7 @@ const isolatedReceiptSources = {
     'apps/api/src/platform/zod.pipe.ts',
     'packages/contracts/src/index.ts',
     'packages/db/src/commerce/commerce.ts',
-    'packages/db/src/interview-question.ts',
+    'packages/db/src/interview/interview-question.ts',
     'packages/db/src/isolated-test-target.ts',
   ],
   'uc001:nhp-fault:prove:raw': [
@@ -134,7 +134,7 @@ const isolatedReceiptSources = {
     'apps/worker/src/report-worker.ts',
     'packages/db/src/report/report.ts',
     'packages/db/src/commerce/commerce.ts',
-    'packages/db/src/interview-question.ts',
+    'packages/db/src/interview/interview-question.ts',
     'packages/db/src/isolated-test-target.ts',
   ],
   'uc004:career-path-fault:prove:raw': [
@@ -336,7 +336,7 @@ const isolatedReceiptSources = {
   'privacy-erasure:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/checkpoint-privacy-erasure.proof.ts',
-    'packages/db/src/checkpoint/checkpoint-privacy.ts', 'packages/db/src/interview-jobs.ts',
+    'packages/db/src/checkpoint/checkpoint-privacy.ts', 'packages/db/src/interview/interview-jobs.ts',
     'packages/db/src/model-op/model-invocation.ts', 'apps/worker/src/report-worker.ts',
     'packages/db/migrations/0058_interview_privacy_queue_fence.sql',
     'packages/db/migrations/0059_interview_privacy_projection_fence.sql',
@@ -426,7 +426,7 @@ const isolatedReceiptSources = {
   'resume-reference:http:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/api/test/resume-reference-http.proof.ts', 'apps/api/src/modules/interview/interview.service.ts',
-    'packages/db/src/interview-jobs.ts', 'packages/db/src/resume/resume.ts',
+    'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/resume/resume.ts',
     'packages/db/migrations/0063_resume_active_content_read_gate.sql',
     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
   ],
@@ -440,7 +440,7 @@ const isolatedReceiptSources = {
   'reqid:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/reqid.proof.ts', 'apps/worker/src/interview-consumer.ts',
-    'packages/db/src/interview-jobs.ts', 'packages/ai-runtime/src/invoke.ts',
+    'packages/db/src/interview/interview-jobs.ts', 'packages/ai-runtime/src/invoke.ts',
     'packages/db/migrations/0057_model_invocation_cost_scope.sql',
     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
   ],
@@ -448,14 +448,14 @@ const isolatedReceiptSources = {
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/interview.proof.ts', 'apps/worker/src/interview-consumer.ts',
     'apps/worker/src/adaptive-lifecycle.ts', 'apps/worker/src/report-worker.ts',
-    'packages/db/src/interview-jobs.ts', 'packages/db/src/resume/resume.ts',
+    'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/resume/resume.ts',
     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
   ],
   'stress:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/context-stress.proof.ts', 'apps/worker/src/interview-consumer.ts',
     'apps/worker/src/adaptive-lifecycle.ts', 'apps/worker/src/interview-service.ts',
-    'apps/worker/src/report-worker.ts', 'packages/db/src/interview-jobs.ts',
+    'apps/worker/src/report-worker.ts', 'packages/db/src/interview/interview-jobs.ts',
     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
   ],
   'memory:prove:raw': [
@@ -496,7 +496,7 @@ const isolatedReceiptSources = {
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/reaper.proof.ts', 'apps/worker/src/interview-consumer.ts',
     'apps/worker/src/quiz-consumer.ts', 'apps/worker/src/job-heartbeat.ts',
-    'packages/db/src/interview-jobs.ts', 'packages/db/src/jobs/quiz-jobs.ts',
+    'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/jobs/quiz-jobs.ts',
     'packages/db/src/commerce/commerce.ts', 'packages/db/src/resume/resume.ts',
     'packages/db/migrations/0061_resume_derivative_reference_guard.sql',
     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
@@ -795,7 +795,7 @@ const isolatedReceiptSources = {
   ],
   'uc002:lease:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/uc-e2e-002-cross-device-lease.proof.ts', 'packages/db/src/interview-graph-lease.ts',
+    'packages/db/test/uc-e2e-002-cross-device-lease.proof.ts', 'packages/db/src/interview/interview-graph-lease.ts',
     'packages/db/migrations/0001_baseline.sql',
     'packages/db/migrations/0058_interview_privacy_queue_fence.sql',
     'packages/db/migrations/0059_interview_privacy_projection_fence.sql',
@@ -925,7 +925,7 @@ const isolatedReceiptSources = {
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/adaptive-consumer.proof.ts',
     'apps/worker/src/interview-consumer.ts', 'apps/worker/src/adaptive-lifecycle.ts',
-    'packages/db/src/interview-jobs.ts', 'packages/db/src/resume/resume.ts',
+    'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/resume/resume.ts',
     'packages/db/migrations/0063_resume_active_content_read_gate.sql',
     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
   ],
@@ -1076,7 +1076,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0149_money_status_constraints.sql',
     'packages/db/sql/01_schema.sql',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
-    'packages/db/src/commerce/payment.ts', 'packages/db/src/commerce/commerce.ts', 'packages/db/src/interview-event.ts',
+    'packages/db/src/commerce/payment.ts', 'packages/db/src/commerce/commerce.ts', 'packages/db/src/interview/interview-event.ts',
     'packages/db/package.json',
   ],
   'db-acl:prove:raw': [
@@ -1333,9 +1333,9 @@ const isolatedReceiptSources = {
   'int-answer-dual-write-fence:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/int-answer-dual-write-fence.proof.ts',
-    'packages/db/src/interview-answer-dual-write.ts',
-    'packages/db/src/interview-jobs.ts', 'packages/db/src/transcript/int-transcript.ts',
-    'packages/db/src/interview-event.ts', 'packages/db/src/index.ts',
+    'packages/db/src/interview/interview-answer-dual-write.ts',
+    'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/transcript/int-transcript.ts',
+    'packages/db/src/interview/interview-event.ts', 'packages/db/src/index.ts',
     'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts',
     'packages/db/migrations/0092_int_transcript_answer_fact_root.sql',
     'packages/db/migrations/0126_interview_answer_dual_write_fence.sql',
@@ -1581,7 +1581,7 @@ const isolatedReceiptSources = {
   'rag05-qbank-miss:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/rag05-qbank-miss.proof.ts',
-    'packages/db/src/qbank-miss.ts', 'packages/db/src/interview-event.ts', 'packages/db/src/interview-question.ts', 'packages/db/src/scoring-fact-root.ts',
+    'packages/db/src/qbank-miss.ts', 'packages/db/src/interview/interview-event.ts', 'packages/db/src/interview/interview-question.ts', 'packages/db/src/scoring-fact-root.ts',
     'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/src/qbank-ingest.ts',
     'packages/db/src/routing/job-route-decision.ts', 'packages/db/src/recruiting/recruiter.ts',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',

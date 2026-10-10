@@ -5,7 +5,7 @@
  * ai_graph_run 的 lease/version 留下可审计 fence，并在旧进程消失后由 TTL 允许接管。
  */
 import type { PoolClient as Client } from 'pg';
-import { asPrincipal, type DbPool } from './principal.ts';
+import { asPrincipal, type DbPool } from '../principal.ts';
 
 const GRAPH_NAME = 'adaptive-interview';
 const LEASE_SECONDS = 120;

@@ -9,7 +9,7 @@
  * 明文判定与触发器一致：顶层 `answer` 键存在即进入互斥（含 "" / null / 非 string）。
  * kind 不豁免。questionId / stateVersion 与 SQL 同一套 trim + `^[0-9]+$` 规范。
  */
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 
 export const INTERVIEW_ANSWER_LEGACY_PLAINTEXT_FENCED = 'interview_answer_legacy_plaintext_fenced';
 export const INTERVIEW_ANSWER_LEDGER_DUAL_WRITE_FENCED = 'interview_answer_ledger_dual_write_fenced';
