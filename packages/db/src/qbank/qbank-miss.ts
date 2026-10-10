@@ -29,13 +29,13 @@
  * 分层纪律：schema 校验与 leaf ∈ allocations 判定归 domain（validateQuestionPlan /
  * validateGeneratedQuestion）；本层只把字段送进承重 SQL 并映射返回值，与 job-route-decision.ts 一致。
  */
-import { newEntityId } from './ids.ts';
+import { newEntityId } from '../ids.ts';
 import type { PoolClient as Client } from 'pg';
-import { asPrincipal, type DbPool } from './principal.ts';
-import { getInterviewRouteSnapshot } from './routing/job-route-decision.ts';
-import { activeQbankGeneration } from './qbank/qbank-generation-retrieval.ts';
-import { persistInterviewQuestion } from './interview/interview-question.ts';
-import { appendEvent } from './interview/interview-event.ts';
+import { asPrincipal, type DbPool } from '../principal.ts';
+import { getInterviewRouteSnapshot } from '../routing/job-route-decision.ts';
+import { activeQbankGeneration } from './qbank-generation-retrieval.ts';
+import { persistInterviewQuestion } from '../interview/interview-question.ts';
+import { appendEvent } from '../interview/interview-event.ts';
 import {
   deriveQuestionPlanKey, validateQuestionPlan, validateGeneratedQuestion,
   type QuestionPlan, type QuestionPlanSnapshot, type QuestionPlanStatus,

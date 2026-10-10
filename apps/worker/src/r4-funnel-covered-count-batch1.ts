@@ -178,7 +178,7 @@ export function funnel03RefuseReason(): string | null {
  */
 export function assessFunnel04TrackLocalScopedRetrievalProduction(): Funnel04Assessor {
   const helper = readSrc('qbank-track-local-retrieve.ts');
-  const db = readPkg('packages/db/src/qbank-track-local-retrieval.ts');
+  const db = readPkg('packages/db/src/qbank/qbank-track-local-retrieval.ts');
   const domain = readPkg('packages/domain/src/qbank-track-local-retrieval.ts');
   const main = readSrc('main.ts');
   const consumer = readSrc('interview-consumer.ts');
