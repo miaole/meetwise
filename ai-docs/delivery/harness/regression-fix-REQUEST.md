@@ -138,3 +138,47 @@ pnpm g6-e2e-iso-blocked:prove                      # 组8
 ---
 
 *REG-FIX 交叉回归修复刀任务书 · 2026-10-10 · 起草席 regfix-draft · base `feat/mysql-schema-skeleton @ 44734d7f` · 分支 `line/regression-fix` · 工作树 `meetwise-regfix` · 蓝本=mainline-regression-matrix.md §2 新增红 8 组（修 6 组 13 键）· 六组修法全部 file:line 固化·红证与机制亲读落卷（/tmp/regm 六键日志+守卫/迁移/proof 源面亲证）· markers=0 · est live=0 · pins 十一值零翻转 · STOP=draft:awaiting_pre_exec_dual · ⛔push · alone≠dual*
+
+---
+
+## §5 rev2 双审合并落卷（席 regfix-rev2 · 2026-10-10 · append-only·上文零字节改动）
+
+> 双审收口：**席1 PASS＋席2 PASS**（席2 附组3 dual 意见；席1 一处必落处方＋两脚注）。本节七项均为追加面·§1-§4 原判文字零删改；与本卷正文行引/口径冲突处**以本节 rev2 为准**·EXEC 行使按本节。落卷席已对下列全部 file:line 于实树 @48edea81 逐条亲证。
+
+### §5.1 席1 必落处方 · 组4c 404 锚行首谓词收紧（随卷必落）
+
+- 4c 主案（形状锚·唯一命中定位 helper）区域**限 scoped**＝`beginInterviewCore`（interview.service.ts:80 起）→ `export class InterviewService`（:257 止）切片·与组2/4a/4b 同域（全文件 indexOf 面废除）。
+- 404 锚 regex 改**行首谓词** `/^\s*throw new HttpException\(\{ error: 'not_found_or_forbidden' \}/`——**区域双同形行实证（落卷席亲读）**：:96 行首 `if (cur.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);`（单行 if+throw·与 :124 同含 regex 原样子串）·:124 行首独立 `throw new HttpException({ error: 'not_found_or_forbidden' }, ...)`·:106 为注释提及（非码面）。regex 原样子串区域内**恰双命中（:96/:124）且 indexOf 首中 :96**＝「regex 原样+唯一命中」假设不成立·静默错钉 :96 弱锚；行首谓词**唯一命中 :124**（if 行非 throw 起始·注释行不匹配）。
+- 余七 regex 原样**区域唯一已验**（落卷席逐条亲证）：merged SELECT :114／stale_quiz 引号形 :130／toLowerCase 比较形 :145／resume_version_mismatch 引号形 :148（:104/:107 注释无引号形不命中）／bind-owner `r.owner_user_id=$2` :182／reserveEntitlement 实参形 :230（:229 `reserveEntitlementForApplication(` 异名不命中）／enqueueInterviewJob 带括号 :245（:108 注释闭括号形不命中）。
+
+### §5.2 组3 裁定落卷（主案定值）
+
+- **取主案**：动态链头锚（`manifest[manifest.length - 1]?.version ?? ''`）＋0156/0157 双在链 Set 面——§1 组3 代码块原样生效（enterprise-pay-s1.proof.ts:47 改形·亲证 :47 现行即 `const lastOk = last === '0156_enterprise_bucket_billing';`）。
+- **备案硬钉 0157 不取**：0158 落地即再漂＝复刻红成因（本红即片2 0157 落链后片1 终值硬钉 `=== '0156_...'` 失配·硬钉 0157 属同构复发·禁取）。
+- 可选非绑定硬化：`first.applied` 与 `manifest.map(m => m.version)` **全序逐位对比**——严格强于末位对比（链中截断亦可捕捉）·EXEC 可顺手采·非必修。
+- 依据亲证：`loadMigrations` `readdirSync(dir).filter(...).sort()`（packages/db/src/migrate.ts:307）＋`canonicalMigrations` version `localeCompare` 全序校验（migrate.ts:192-195）＝manifest 末位即当前最大号；空 manifest 经 `?? ''` **fail-closed**（链头空串→`last === ''` 恒假→探针必红·防线在断言面）。
+
+### §5.3 组4c 备案行号实证落卷（存照）
+
+- 备案八行**全命中**（落卷席 interview.service.ts 逐行亲证）：**:114** merged SELECT（`SELECT q.status, q.expires_at,`）／**:124** 404 throw／**:130** stale_quiz throw／**:145** toLowerCase 比较／**:148** resume_version_mismatch CONFLICT throw／**:182** `AND r.owner_user_id=$2`／**:230** reserveEntitlement／**:245** enqueueInterviewJob。
+- proof 文件 **:282-284 自证已二漂**（「预存红根因①：行锚随 priv01-C owner 改名与 begin 三守卫合并漂移：重钉至合并后现行行号」亲读）——第三次重钉仍必漂；**形状锚是防第四次漂移唯一诚实解**·备案行号仅作 EXEC 对照存照非修法。
+
+### §5.4 组1 脚注落卷
+
+- 守卫 **file-scoped 实证**：public-copy.proof.mjs:**42** `const billingAction = read('apps/web/app/billing/actions.ts');` 精确单文件读取——E8 forbid/requireText 判据面只及该一文件·迁出后守卫 **:187-195 零字节改动**（同路径 stub 恢复后 :189 forbid 自然过·:190 拒绝文案逐字保留自然过）。
+- 企业充值路由链**可达亲证**：`recruiter/billing/page.tsx:10`（`import { EnterpriseRechargeForms, ... } from './RechargeForms'`）→ **:35**（`<EnterpriseRechargeForms ... />`）→ `RechargeForms.tsx:11`（`import { createOrderAction, saveInvoiceProfileAction, submitInvoiceRequestAction } from '@/app/billing/actions'`·全仓唯一消费者 grep 亲证）→ 迁出后 import 改 `@/app/recruiter/billing/actions` 三 action 链路完整；C 端 `billing/page.tsx` **静态封闭零 action import**（仅 Link/Card 组件亲证）。
+- **EXEC 注意**：恢复 stub 所加注释**不得含 `serverFetch(` 或 `/commerce/orders` 词元**（:189 forbid 扫 read 全文·注释行亦命中即红）。
+
+### §5.5 组8 脚注落卷
+
+- 仓根 **.env 现不存在**（落卷席 `ls -la .env` 亲证 No such file·矩阵探针时点存·任务书 §1 组8「本机 .env 实存亲证」表述陈旧）——**钩使门在任何宿主形态确定化**（.env 复活亦不静默绕门＝强化 8b 必要性·修法主案零动摇）；EXEC 留痕按现态如实注记。
+
+### §5.6 组4 行引微瑕尾账（四条·席2）
+
+- 4a：uc-e2e-025-nhp-fault.proof.ts 区域锚实读 **:61-62**（表内 :58-59）——:61 `svc.indexOf('begin(principal')`·:62 `svc.indexOf('turn(principal', bStart)` 亲证；
+- 4b：uc-e2e-025-nhp-bound.proof.ts 区域锚实读 **:58-59**（表内 :59-60）——同形两行亲证；
+- 4e：uc-e2e-025-nhp-neg.proof.mjs beginSignature/beginRegion **函数体实读 :38-48**（表内 :51-54/:45-49）——:38 `function beginSignature` 起·:48 `}` 止亲证；
+- 4f：uc-e2e-025-stale-quiz-expiry.proof.mjs **S1 体实读 :39-58**（表内 :39-52）——:39 `'S1-begin-no-quiz-input'` 起·:58 `},` 闭合亲证。
+- 四条均**行引微瑕·锚均字符串/regex 定位修法不受影响**·EXEC 按 rev2 行引执行。
+
+draft_rev2:pre_exec_dual（双席 PASS·4c-404 行首谓词收紧随卷·组3 主案定值·脚注落卷·待复审确认后协调方行使 EXEC 授权）
