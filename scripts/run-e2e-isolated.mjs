@@ -932,7 +932,7 @@ const isolatedReceiptSources = {
   'uc052:internal-erasure:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/uc052-internal-erasure.proof.ts',
-    'packages/db/src/uc052-internal-erasure.ts',
+    'packages/db/src/privacy/uc052-internal-erasure.ts',
     'packages/db/src/transcript/int-transcript-projection.ts',
     'packages/db/src/privacy/privacy-authorization.ts',
     'packages/db/src/principal.ts',
@@ -945,7 +945,7 @@ const isolatedReceiptSources = {
   'uc052:external-sink-retention:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/uc052-external-sink-retention.proof.ts',
-    'packages/db/src/uc052-internal-erasure.ts', 'packages/db/src/transcript/int-transcript-projection.ts',
+    'packages/db/src/privacy/uc052-internal-erasure.ts', 'packages/db/src/transcript/int-transcript-projection.ts',
     'packages/db/src/privacy/privacy-authorization.ts', 'packages/db/src/principal.ts',
     'packages/db/src/isolated-test-target.ts', 'apps/api/src/modules/privacy/privacy.service.ts',
     'packages/db/migrations/0091_privacy_authorization_issuer.sql',
@@ -955,8 +955,8 @@ const isolatedReceiptSources = {
   'uc052:external-sink-async-purge:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/uc052-external-sink-async-purge.proof.ts',
-    'packages/db/src/uc052-external-sink-async-purge.ts',
-    'packages/db/src/uc052-internal-erasure.ts', 'packages/db/src/transcript/int-transcript-projection.ts',
+    'packages/db/src/privacy/uc052-external-sink-async-purge.ts',
+    'packages/db/src/privacy/uc052-internal-erasure.ts', 'packages/db/src/transcript/int-transcript-projection.ts',
     'packages/db/src/privacy/privacy-authorization.ts', 'packages/db/src/principal.ts',
     'packages/db/src/isolated-test-target.ts', 'apps/api/src/modules/privacy/privacy.service.ts',
     'packages/db/migrations/0091_privacy_authorization_issuer.sql',
@@ -967,8 +967,8 @@ const isolatedReceiptSources = {
   'uc052:checkpoint-physical:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/uc052-checkpoint-physical.proof.ts',
-    'packages/db/src/uc052-checkpoint-physical.ts',
-    'packages/db/src/uc052-internal-erasure.ts',
+    'packages/db/src/privacy/uc052-checkpoint-physical.ts',
+    'packages/db/src/privacy/uc052-internal-erasure.ts',
     'packages/db/src/checkpoint/checkpoint-privacy.ts',
     'apps/worker/src/checkpoint-principal.ts',
     'packages/db/src/privacy/privacy-authorization.ts',

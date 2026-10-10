@@ -17,7 +17,7 @@ import {
 import {
   runAuthorizedInterviewErasure, retryFailedLocalTarget, loadRequestStatus, loadRequestTargets,
   reassessRequestStatus, attachExternalRetentionPendingTargets,
-} from '../src/uc052-internal-erasure.ts';
+} from '../src/privacy/uc052-internal-erasure.ts';
 import {
   beginInterviewProjectionErasure, purgeInterviewProjectionTarget,
 } from '../src/transcript/int-transcript-projection.ts';

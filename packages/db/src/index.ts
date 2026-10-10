@@ -553,8 +553,8 @@ export {
   beginPrivacyPreviewErasure, getPrivacyPreviewReceipt, listPrivacyPreviewReceipts,
 } from './privacy/privacy-erasure-preview.ts';
 export type { PrivacyPreviewListRow } from './privacy/privacy-erasure-preview.ts';
-export * from './uc052-internal-erasure.ts';
-export * from './uc052-external-sink-async-purge.ts';
+export * from './privacy/uc052-internal-erasure.ts';
+export * from './privacy/uc052-external-sink-async-purge.ts';
 
 // 0141：GAP-PRIV-04 向量面擦除收尾（dispatch feed + jti feed + 0091 receipt 落账 +
 // 产品 sweep 步）。target 集先钉：仅 memory_vector_chunk（owner+kind 双谓词）；INT
