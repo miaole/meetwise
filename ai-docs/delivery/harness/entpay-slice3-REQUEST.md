@@ -203,3 +203,15 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 draft_rev2:pre_exec_dual（席1 PASS+席2 FAIL 窄口径三处方落卷·五裁定定值（P2=0159 首选形/P3=形 A 并列/P4=下拉禁用/P6=四锚+第五锚更正/P1-b=语义批定稿绑定）·微漂六处入账·待复审确认后协调方行使 EXEC 授权）
 
 executed:awaiting_post_prove_dual（片3 EXEC 落卷 2026-10-10：六条全兑（P1-a/b+P2 0159 首选形+P3 形 A 并列+P4 下拉禁用+P5 归档零新码+P6 注释更正）· 门禁原值：web typecheck 0/contracts 0/web prove 323 全绿/neg:commerce 84/entpay:s3 26/26 EXIT 0/api validate 0/api·db tsc=pristine 逐字节全同/entpay:s1 47·48 与 s2 27·28 唯 S1-0·S2-0 链末位钉死预存红（pristine 7585b89c 对照树同断言同败实证·非本刀新增红·零触他席 gate 面）· attempt 全账：s3 attempt1 §4-5c 断言倒置红已录·fix 后全绿·Ban retry-to-green 未犯（产品行为正确·修的是测试期望）· 漂移表 12 条入收据（web-logic 实值 :812-813+jobs 域 :829-843 复审注记成立）· 范围注记两条（§2.1 文面×裁定②按落卷定值执行·收据路径按 REQUEST §4-8）· 收据 receipts/enterprise-pay/slice3/（report+11 log）· est live=0·markers=0·pins 十一值零翻转·扣费语义零触·⛔push·Ban self-approve·alone≠dual）
+
+---
+
+## nail 落卷（2026-10-11 · post-prove 双席 BOTH PASS·双席实际回归确认·按 E4 教训严格等待）
+
+**双审结果**：席1（产品面/迁移语义）+席2（用户旅程/回归）互盲复核 BOTH PASS。P2 迁移语义亲读（受控 DEFINER+SET search_path 防劫持·去 admin 门·owner 谓词承重 fail-closed·无行倍增无泄漏·bank_ref/entered_by 数据最小化·ACL 形制 0156 同纪律·**镜像逐字节 922 字节完全一致**·expand-only·11_commerce 零改）·P3 形 A（可选 kind·缺省恒真 C 端逐值不变·响应只增·contracts 向后兼容）·P1-a/b 渲染面（知情行+充值链接·修法③四锚零字节）·P4 下拉禁用不保留手填（409 双层兜底）·P6 四锚+第五锚更正在位·P5 零字节归档。全旅程收口核（候选人分码知情→招聘方卡→充值→对公三态→仅-paid 开票）。merge 落主线 @64259063。
+
+**门禁双席复现**：web prove 323/neg:commerce 84/entpay:s3 26/web typecheck 0/contracts tsc 0·预存红 S1-0/S2-0（链末位钉过期·0158 起预存）pristine 实证非本刀。
+
+**ENOSPC**：本刀收据无磁盘事件；loop 级自救制度在 RESOURCE-HYGIENE.md+G2 历史卷。
+
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·merge 落主线 @64259063·企业付费打磨六条正式解除·#271 片3 闭环·B271 战役全链收口·批3 残 20→19·markers=0·est live=0）。
