@@ -1,6 +1,6 @@
 # B110 EXEC REQUEST — #110 招聘方注册审核/邀请制刀（W4 B 端线首刀·设计裁决在案）
 
-**Status**: **`draft_rev2:pre_exec_dual`**（rev2=双席 FAIL R1-R7 已并·待窄域复审五点=R1-R5+R6/R7 落位确认·docs-only 修订本档仍零码动·EXEC 须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual**） → **exec_mw-b110-exec: EXEC 已行使（窄域双审 BOTH PASS + 授权经协调方明示转达）· C1-C12 落位（C5=撤销项零字节兑现）· prove 全账 EXIT 原值+admin_audit 留痕+停止条件五条核查+pins 十一值见 `ai-docs/delivery/receipts/b110-recruiter-gate/b110-recruiter-gate-prove.md`（neg:bend 157/157·neg:auth 81·neg:all 五段绿+input 预存红 base 对照⊆·api-runtime-role 0=runMigrations 含 0152）· status `exec_landed:awaiting_dual_review` · alone≠dual**
+**Status**: **`draft_rev2:pre_exec_dual`**（rev2=双席 FAIL R1-R7 已并·待窄域复审五点=R1-R5+R6/R7 落位确认·docs-only 修订本档仍零码动·EXEC 须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual**） → **exec_mw-b110-exec: EXEC 已行使（窄域双审 BOTH PASS + 授权经协调方明示转达）· C1-C12 落位（C5=撤销项零字节兑现）· prove 全账 EXIT 原值+admin_audit 留痕+停止条件五条核查+pins 十一值见 `ai-docs/delivery/receipts/b110-recruiter-gate/b110-recruiter-gate-prove.md`（neg:bend 157/157·neg:auth 81·neg:all 五段绿+input 预存红 base 对照⊆·api-runtime-role 0=runMigrations 含 0152）· status `exec_landed:awaiting_dual_review` · alone≠dual** → **backfill_mw-core: 回填已行使（post-dual 双席 BOTH PASS：席1 `cbc89a72`+席2 `1da18412`）·迁移重编号 0152→0155（撞号·ls 亲证·先例 `c51c792d`）·镜像/迁移双并集（保 `#228` trial 发放不被末位换体抹除）·prove 主线树复跑 neg:bend 157/157 EXIT=0·neg:auth 78/81（3 红=deactivate 面·base `a2b161df` 逐条同红=预存·非本刀面·§9.3）·push 按「不过即停」条款冻结待协调方裁定 ·详见 §9 nail 段**
 **Date**: 2026-10-07
 **Base**: 主线 `feat/mysql-schema-skeleton` @`b429aebb` · 分支 `line/b110-recruiter-gate`（工作树 `meetwise-line-b110`）
 **蓝本**: 上游审计 #110 全条（`Meetwise产品审计-更正版/issues-master.md:171`）+ W4 派单（`ai-docs/delivery/harness/product-campaign-EXECUTION-SOP.md:29`「W4 B 端｜批 3｜#110（审核/邀请制→企业账户主体）→#271（…迁移 0152+）→…」）——**审计文档不在本 base 实树**（上游事实源① `/Users/miaole/Documents/Meetwise产品审计-更正版/`，仓外路径·如实登记），引文逐字誊录；仓内锚点全部本 base 实树亲读。
@@ -135,3 +135,31 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *B110 EXEC REQUEST · 2026-10-07 · draft_rev2:pre_exec_dual（rev2=双席 FAIL R1-R7 并入·待窄域复审） · base `feat/mysql-schema-skeleton` @`b429aebb` · 分支 `line/b110-recruiter-gate` · 蓝本=上游审计 #110（issues-master.md:171）+ product-campaign-EXECUTION-SOP.md:29 W4 首刀 · 形态裁决=(a) 注册即审核队列（b/c 否决理由 §1.1）· 四件事=审批列+门/admin 审批面（0041:107-120 样板留痕）/invite 枚举面恒定壳/signup+invite IP 维度限流 · 迁移 0152 起·expand-only·lock_timeout · pins 十一值照抄 · Dual PASS ≠ 开工 · Ban self-approve*
+
+## §9 nail（回填席落卷 · 2026-10-10 · mw-core 授权重编号）
+
+### 9.1 post-dual 双席 BOTH PASS（钉合卷宗·逐字登记）
+
+* **席1 `cbc89a72` PASS**：①迁移 0152（→0155）逐段对 R7（`gateway_require_active_recruiter` 同签名 RETURNS void 换体·fail-closed 只增）；②三分码（`recruiter_pending_review`/`recruiter_rejected`/`recruiter_required`）与第四探针（越权岗位×{注册候选人,幽灵}两路 invite 逐字节一致）**亲见**；③**勘误①登记**：attempt1 红跑日志（attempt-ledger 本地件）未入 git——EXEC 收据仅含 attempt2/attempt3 两卷，attempt1 全账以收据 §N 文字转述承载，证据链弱一档·如实披露不补救（历史日志已不可再生·禁事后伪造）。
+* **席2 `1da18412` PASS**：①R6 承诺（rejected 分码≠处置裁决）与 §2.8/§7 逐字对齐；②R7 纵深**真行使**亲读证明面（`_neg-harness:65/:70` 直载镜像 → `gateway_active_candidate` PERFORM `gateway_require_active_recruiter` 的 app_role 直调路径对 pending/rejected 同拒·§4.1 断言实测）；③防薅面可接受残留三建议（内存桶≠多实例防刷·trustProxy 关闭 seam·反代共享桶）确认=§7 Non-claims 既有登记·无需加码；④**勘误②登记**：线内 EXEC 用号 0152 与主线撞号（consent_revoke_grant+resume_soft_delete_fence 并存·0153·0154 已占）——已登记协调面并由本回填席执行重编号（§9.2）。
+
+### 9.2 回填重编号 0152→0155（mw-core 协调方授权 · 2026-10-10）
+
+* **占用亲证**：`ls packages/db/migrations/` 实跑——主线 0152×2（`consent_revoke_grant`+`resume_soft_delete_fence`）·0153（`account_deletion_column`）·0154（`trial_bucket_grant`）已占，最小未占号=**0155**（另：0143×2 为更早历史双占·非本刀范围）。先例=`c51c792d`（trial 0152→0154 同型操作）。
+* **落位**：`git mv 0152_recruiter_approval_gate.sql → 0155_recruiter_approval_gate.sql` + 头注释/provenance + 代码注释编号联动三处（`auth.service.ts:45`·`recruiter.service.ts:62`·`neg-bend.proof.ts:420`）。REQUEST/收据历史文本内「0152」表述 append-only 不改（trial 先例同形）。
+* **冲突解（cherry-pick `ee02bf4d` onto 主线）**：①`sql/23_api_gateway.sql` content 冲突 → **机械并集**：b110 审批分支（recruiter→pending IF/ELSE）+ 主线 `#228` trial 桶 INSERT（两态注册同适用·与审核维度正交）共存；②**`0155` 迁移内 `gateway_auth_signup` 换体同步并集**（回填并集注·承重）：若照线内原样落主线，迁移序 0154(trial)→0155(b110) 末位 CREATE OR REPLACE 定义胜出会把 trial 同事务发放**静默抹除**——故函数体=审批分支+trial INSERT 并集·与镜像定义一致（源=真源·迁移=部署车·0018 先例形）；③`b110-REQUEST.md` 主线原缺（线分支 docs 提交 `4ad687b8`/`f0a8a8ee` 未回填）=modify/delete → 保留 pick 版全文落主线；④`contracts/src/index.ts` 双边改动不同区域·auto-merge 干净。
+* **并发重放登记**：回填进行中协调方 loop 在同仓活动（batch-4 文档提交+`pull --rebase` onto 上游 `b4882af4` trial-grant nail）——pick 由 `0c9d441f` 重放为 `abf80ce6`，解冲突内容 `git diff 0c9d441f HEAD -- <七关键文件>` =0（逐字节保留·亲证）。上游 nail 席 Erratum#2 已把 trial 末位断言放宽为 includes（预留本刀 0155 末位·协调面在案）。`TASK-SOP-v2.md`（协调方作战文档·状态=待用户拍板）现留言工作树 untracked——**本席不代落**（非本刀交付物·禁越权落待决文档）。
+
+### 9.3 prove 主线树复跑记录（最终树 = `abf80ce6`+`b53112bf`）
+
+* **neg:bend：157/157 全绿 · EXIT=0**（prove DB 经 `_neg-harness` 直载镜像——09_auth/23_api_gateway 并集后 approval 列+审批门函数在案·§4.1 纵深断言实测过）。
+* **neg:auth：78/81 · EXIT=1**——3 红=deactivate 三断言（停用后 DB status=disabled/原令牌失效/再登录被拒）。**base 对照**：`a2b161df`（回填前 tip·detach 实跑）同 3/81 同点同红 → **预存红**：主线 unstub-erase `f9383f76` 已把 deactivate 升级为密码复核+账户级删除编排（`password_required` 400），而 `neg-auth.proof.ts:375-395` deactivate 段仍是空 body 旧形——**该面归 unstub-erase 线（其 nail `2666c59a` 已落）**，本刀零触 profile/neg-auth 面。按派单「prove 不过即停手上报」条款：**push 冻结**，本段即为上报卷，处置待协调方（候选：a) 预存红登记放行 push；b) 先修 neg-auth deactivate 段再 push——归 unstub-erase 面非本席落码）。
+* 线内原卷收据（157/157·81·neg:all 五段）=line 树历史证据 append-only 不改；主线树以本段为准。
+
+### 9.4 席2 钉合期建议处置
+
+rejected 用户「请稍后重试」文案微调（invite 403 面措辞）→ **归后刀登记·本席不落码**（§7「分码≠处置裁决」既定·文案面随 R6 处置裁决一并走）。
+
+### 9.5 冲突标记门
+
+`grep '^<<<<<<< $\|^=======$\|^>>>>>>> '`（含 opener/closer 双形·`115c47f2` 加宽口径）全仓 staged+工作树=**0**（§5.8 strict 门·push 前最后跑·见收据 nail 复核行）。
