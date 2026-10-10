@@ -66,6 +66,9 @@ export async function markOrderPaidAndCredit(
   c: Client, owner: string, orderId: string, providerTxn: string,
   bucket: { kind: CreditBucketKind } = { kind: 'paid' },
 ): Promise<CreditResult> {
+  // S2-C8 channel 守卫（B271 片2）：CAS 增 `AND channel='online'` 单谓词——对公（offline）单不得经
+  // 线上签名回调直置 paid（双人确认唯一路径=0156 受控函数·fail-closed）；两调用点 payCallback/payWebhook
+  // 零改（均只服务 online 单·channel DEFAULT 'online' 0001/0156）。offline 单误入 → 0 行 → conflict 409。
   // 唯一索引在跨订单并发时会抛 23505。Savepoint 让当前外层业务事务可回到可查询状态，
   // 以确定性的 `conflict` 回应，而非把数据库错误泄漏成 500。
   await c.query('SAVEPOINT payment_provider_txn_claim');
@@ -75,6 +78,7 @@ export async function markOrderPaidAndCredit(
       `UPDATE payment_order
           SET status='paid', provider_txn=$3, version=version+1
         WHERE id=$1 AND owner_user_id=$2 AND status='created'
+          AND channel='online'
           AND NOT EXISTS (
             SELECT 1 FROM payment_order claimed
              WHERE claimed.provider_txn=$3

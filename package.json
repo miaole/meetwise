@@ -100,6 +100,7 @@
     "trial:grant:prove": "node scripts/run-e2e-isolated.mjs trial:grant:prove",
     "entpay:s1:prove": "node scripts/run-e2e-isolated.mjs entpay:s1:prove",
     "entpay:s2:preverify": "node scripts/run-e2e-isolated.mjs entpay:s2:preverify",
+    "entpay:s2:prove": "node scripts/run-e2e-isolated.mjs entpay:s2:prove",
     "neg:resume": "node scripts/run-e2e-isolated.mjs neg:resume",
     "neg:interview": "node scripts/run-e2e-isolated.mjs neg:interview",
     "neg:bend": "node scripts/run-e2e-isolated.mjs neg:bend",
