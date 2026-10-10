@@ -94,3 +94,19 @@ Ban self-approve · Ban retry-to-green（attempts 全账）· Ban skip-as-pass �
 - **EXEC 附注**：prove4 NEXT_REDIRECT 自建 try/catch 捕获 next/navigation redirect 抛错（仓内无先例）
 - 状态：`dual_pass:ready_for_exec` · EXEC 授权（S 系决策按建议值已裁）
 - 状态：`executed:awaiting_post_prove_dual`（EXEC sse-exec · 2026-10-10 · prove EXIT=0 236 PASS/0 FAIL · typecheck EXIT=0 零新增 · prove:public-copy EXIT=0 · markers 门禁 0 · 三面板 location.reload=0 · 补钉1+注记A/B/C 已落 · **两处披露提请补审**：①C9×W1 冲突调和——3 处钉旧「≤maxRetries+1 即 degraded」语义的边界断言最小基线更新（改前逐字已录收据）；②C8 抽 `lib/jobs/ensure-ok.ts` 纯模块（探针实证 actions.ts server-only 链 prove 不可导入）——均见 `receipts/sse-resilience/exec-receipt.md` §3 · est live=0 · pins 十一值零翻转 · claimDone=false）
+
+---
+
+## nail 落卷（2026-10-10 · post-prove 双席 BOTH PASS）
+
+**双审结果**：席1（实现语义+漂移裁决）+席2（用户面/回归）互盲复核 BOTH PASS。五件全落 prove 236/0·tsc 0·public-copy 13/13 独立复跑全绿。
+
+**两处漂移裁决（席1 专项·均裁"合理披露·授权范围内"随卷闭账）**：①C9×W1 三处基线更新=W1 语义废除的必然后果（旧断言钉的恰是被废除的死语义·更新方向钉新语义非放松：degraded 界 ≤3→>3 && ≤105 实测 101·只增不减·§6/6 另钉耗尽转永续后仍恢复终态·绝对上限 :1140-1141 零改）——C9「零改零删」与 W1 系任务书内部矛盾非 EXEC 违令。②ensure-ok.ts 纯模块抽取=prove4 唯一可行路径（server-only 链探针复现·byte 级对比唯一差异是 W5 明令的 401 行·替代路径均更劣）。
+
+**防 DoS 面亲证**：绝对上限 degraded 三条重连路径（429/clean end/失败预算）全保留·totalReconnects 每路必增·resume fire() 不重置。补钉1 断死 1Hz 永续轮询向量（恰 5 次宽限→预算→cap→绝对上限）。断言力抽读：opens===4 && vclock===31750 精确算术（250+500+1000+30000）。
+
+**席2 三项非阻塞观察（随卷登记·归 backlog）**：①防抖无 pagehide/beforeunload flush——最后一次键入 300ms 内刷新丢尾值（断流路径不受影响·建议 backlog「unload flush」）②reconnecting+'server' 臂经驱动不可达（5xx 走无 flags onStreamClosed 落缺省臂·文案真实性微损功能无损）③空框回填对称代价（存草稿时手动清空被 restore effect 立即回填·注记A 固有）。席1 nit：ensure-ok.ts 未标 server-only（无实际渗漏·后续刀可选收紧）。
+
+merge 落主线 @8cea67fb（web-logic dual-keep=#259 5 断言+SSE 六组并存·主线 web prove EXIT=0 复验 240 断言）。
+
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·#256 弱网降级+#53-56 SSE 韧性+#61 草稿恢复正式解除·「已答内容不会丢失」兑现·markers=0·est live=0）。
