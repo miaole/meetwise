@@ -241,27 +241,27 @@ export {
   recallMemoryCandidates, hydrateMemoryFacts, startMemoryGeneration, activateMemoryGeneration, retireMemoryGeneration,
   issueMemoryContextSnapshot, consumeMemoryContextSnapshot, voidMemoryContextSnapshot,
   beginMemoryAccountErasure, claimMemoryTarget, purgeMemoryTarget,
-} from './memory-governance.ts';
+} from './memory/memory-governance.ts';
 export type {
   RecordedMemoryFact, ConfirmMemoryFactResult, HydratedMemoryFact, MemoryFactKind, MemoryPurpose,
   MemoryAllowedDataClass, MemorySourceType, GenerationResult, SnapshotResult,
   MemoryErasureTarget, BegunMemoryErasure, ClaimedMemoryTarget, PurgedMemoryTarget,
-} from './memory-governance.ts';
+} from './memory/memory-governance.ts';
 
 // 记忆准入元标签门（MEM-12）：服务端授权快照签发 + 准入记录（三身份派生 + 元标签 fail-closed 校验）
-export { issueMemoryAdmissionSnapshot, admitMemoryRecord } from './memory-admission.ts';
-export type { MemoryAdmissionIssueInput, IssuedMemoryAdmissionSnapshot, AdmittedMemoryRecord } from './memory-admission.ts';
+export { issueMemoryAdmissionSnapshot, admitMemoryRecord } from './memory/memory-admission.ts';
+export type { MemoryAdmissionIssueInput, IssuedMemoryAdmissionSnapshot, AdmittedMemoryRecord } from './memory/memory-admission.ts';
 
 // 记忆事实裁决（MEM-13）：消费 MEM-12 candidate 的长期事实冲突/时效判定状态机
 // （稳定 factKey 派生 + 单/多值 + contradicts/supersedes 边 + 六分量分离 + 单值并发不变量）
 export {
   materializeAdjudicationFact, confirmAdjudicationFact, correctAdjudicationFact,
   revokeAdjudicationFact, expireAdjudicationFacts,
-} from './memory-fact-adjudication.ts';
+} from './memory/memory-fact-adjudication.ts';
 export type {
   MaterializeAdjudicationFactInput, MaterializedAdjudicationFact, ConfirmedAdjudicationFact,
   CorrectedAdjudicationFact, RevokedAdjudicationFact,
-} from './memory-fact-adjudication.ts';
+} from './memory/memory-fact-adjudication.ts';
 
 // 索引 generation 生命周期 + 缓存失效治理（MEM-11）：冻结 source manifest → shadow 独立构建
 // → 验证后 CAS 切换 → 撤回/删除同步失效。embedding seam 与 RAG-02B qbank compute cache 隔离。
@@ -270,11 +270,11 @@ export {
   switchActiveGeneration, retireGenerationWindow, fenceGeneration, fenceGenerationsForFacts,
   putGenerationCacheEntry, lookupGenerationCache, invalidateGenerationCache, activeGeneration,
   recallActiveGenerationFactIds, buildMemoryGeneration,
-} from './memory-index-generation.ts';
+} from './memory/memory-index-generation.ts';
 export type {
   FreezeSourceManifestInput, EmbeddableManifestFact, GenerationEmbeddingInput,
   BuildShadowGenerationInput, GenerationReceipt, ActiveGeneration, GenerationCacheEntry,
-} from './memory-index-generation.ts';
+} from './memory/memory-index-generation.ts';
 
 // 两阶段召回 + 派发前复核（MEM-14）：DB 内硬过滤候选召回 → 水合来源重验 → 冻结 ContextSnapshot
 // → 派发前复核（围栏先赢/派发先赢）。与 MEM-00 的 recallMemoryCandidates/hydrateMemoryFacts
@@ -426,13 +426,13 @@ export {
   listSourceCards, deletionProgress, correctFact, withdrawFact, beginDeletion,
   pauseCollection, resumeCollection, exportReceipt, recordPolicyPublish, recordReindex,
   reviewSourceCard, switchGeneration, claimDeletionTarget, completeDeletionTarget, failDeletionTarget,
-} from './memory-control-surface.ts';
+} from './memory/memory-control-surface.ts';
 export type {
   MemoryControlSourceCard, MemoryControlDeletionProgressRow, MemoryControlDeletionRow,
   MemoryControlCorrectResult, MemoryControlPauseResult, MemoryControlExportResult,
   MemoryControlPolicyPublishResult, MemoryControlReindexResult, MemoryControlReviewCard,
   MemoryControlSwitchResult, MemoryControlClaimResult, MemoryControlTargetResult,
-} from './memory-control-surface.ts';
+} from './memory/memory-control-surface.ts';
 
 // CTX-03 不可变会话事件源：owner RLS 加密 append-only 业务事件源 + checkpoint 事件引用。
 export {

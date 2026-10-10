@@ -176,7 +176,7 @@ export function assessFunnel02BDurableEmbeddingComputeCache(): Funnel02BAssessor
   const dbIndex = readRepo('packages/db/src/index.ts');
   const main = readSrc('main.ts');
   const gen = readSrc('qbank-generation.ts');
-  const memory = readRepo('packages/db/src/memory-index-generation.ts');
+  const memory = readRepo('packages/db/src/memory/memory-index-generation.ts');
 
   const hmacCacheIdentityPresent =
     /export function embeddingComputeCacheKey\s*\(/.test(compute)

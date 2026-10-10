@@ -1,4 +1,4 @@
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 import type {
   MemoryFactNamespace, MemoryFactCardinality, MemoryAdjudicationStatus, MemoryUserConfirmation,
   MemoryConfirmationKind, MemoryFactWrite,
