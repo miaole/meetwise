@@ -24,7 +24,7 @@ CREATE TABLE entitlement_bucket (
 CREATE INDEX ix_bucket_fifo ON entitlement_bucket (owner_user_id, expires_at);
 
 -- 注册赠送 trial 桶每用户至多一桶（#228）：partial unique index，DB 层兜底挡任何第二 trial 写入路径
--- （含未来 admin 发放面）。与迁移 0152 同定义（源=真源·迁移=部署车，0018 先例形）。
+-- （含未来 admin 发放面）。与迁移 0154 同定义（源=真源·迁移=部署车，0018 先例形·回填重编号 0152→0154）。
 CREATE UNIQUE INDEX IF NOT EXISTS uq_bucket_trial_one_per_owner
   ON entitlement_bucket (owner_user_id) WHERE kind = 'trial';
 
