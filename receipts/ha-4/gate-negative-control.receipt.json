@@ -1,0 +1,18 @@
+{
+  "kind": "ha4-rev2-gate-negative-control",
+  "ok": true,
+  "rev2": "post-prove dual-seat merged prescription F1 (authorization gate closure): scripts/backup/backup.sh head gate added (rev2 commit), making the four-entrypoint default-refuse claim true. All four entries re-run NEGATIVE (gate unset, host-side, exit at gate before any volume/docker/DB touch) — zero artifacts each.",
+  "gateShape": "if [ \"${MEETWISE_HA4_BACKUP_AUTHORIZED:-}\" != \"1\" ]; then echo ... >&2; exit 3; fi — identical shape to backup-loop.sh:17-20 / sandbox-seed.sh:21-24 / restore-drill.sh:35-38 (line numbers as of pre-rev2 tree e02a3549)",
+  "gateNegativeControl": [
+    {"entry": "beat (scripts/backup/backup.sh)", "cmd": "bash scripts/backup/backup.sh  (MEETWISE_HA4_BACKUP_AUTHORIZED unset; rev2 post-gate)", "exit": 3, "stderr": "ha4_backup_not_authorized", "artifacts": 0, "note": "gate at backup.sh:16-23 (rev2 tree), BEFORE required-var checks :27-28 and lock :46 — single clean refuse"},
+    {"entry": "loop (scripts/backup/backup-loop.sh)", "cmd": "bash scripts/backup/backup-loop.sh  (gate unset)", "exit": 3, "stderr": "ha4_backup_not_authorized", "artifacts": 0, "note": "gate at backup-loop.sh:17-20, first check — unchanged by rev2"},
+    {"entry": "seed (scripts/backup/sandbox-seed.sh)", "cmd": "bash scripts/backup/sandbox-seed.sh  (gate unset)", "exit": 3, "stderr": "ha4_seed_not_authorized", "artifacts": 0, "note": "gate at sandbox-seed.sh:21-24 — unchanged by rev2 (previously recorded in v5-config.receipt.json gateNegativeControl; re-run rev2 for the four-entry record)"},
+    {"entry": "drill (scripts/backup/restore-drill.sh)", "cmd": "bash scripts/backup/restore-drill.sh  (gate unset)", "exit": 3, "stderr": "ha4_drill_not_authorized", "artifacts": 0, "note": "gate at restore-drill.sh:35-38 (pre-rev2 numbering) — unchanged by rev2"}
+  ],
+  "positiveControlReRun": {
+    "purpose": "prove the rev2 gate is purely additive on the authorized path (zero semantic change outside the gate)",
+    "beatPositive": {"cmd": "seed re-provision (MEETWISE_HA4_BACKUP_AUTHORIZED=1 bash scripts/backup/sandbox-seed.sh → EXIT=0 applied=160 tables=175 server_version_num=160015) then MEETWISE_HA4_BACKUP_AUTHORIZED=1 … compose run --rm backup sh /work/backup-scripts/backup.sh (full CMD in verification-matrix.md V1 row, rev2 re-run)", "exit": 0, "stdout": "ha4_backup_ok stamp=20261010T193712Z size=1801975 sha256=f98466f244e393a1f6bff7731aae18cfee76dcc5067ec21891d4349a78deed75 toc_tables=175 retained=6", "receipt": "receipts/ha-4/backup-20261010T193712Z.json (pgRestoreListExit=0 · toc 175/174 · clientGteServer=true · mode 0600)"},
+    "lockProbeReRun": {"cmd": "V4b probe CMD (verification-matrix.md V4b row) re-run WITH MEETWISE_HA4_BACKUP_AUTHORIZED=1 added and /tmp/ha4-backup.lock pre-held (rev2 post-gate tree)", "exit": 4, "stderr": "ha4_backup_already_running", "artifacts": 0, "note": "gate sits BEFORE the lock — gate addition does not alter the lock layer; pre-rev2 probe CMD (gate unset) now refuses at the gate with exit 3 instead of reaching the lock (erratum noted in verification-matrix.md)"}
+  },
+  "sandboxEndState": "compose --profile ha4-drill down -v --remove-orphans EXIT=0 · meetwise-ha4-* containers = 0 · est live=0 restored"
+}

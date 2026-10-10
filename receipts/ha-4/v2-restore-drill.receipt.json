@@ -1,0 +1,25 @@
+{
+  "kind": "ha4-restore-drill",
+  "ok": true,
+  "startedAt": "2026-10-10T19:10:07Z",
+  "finishedAt": "2026-10-10T19:10:08Z",
+  "restoreExit": 0,
+  "statementFiltering": "none (no --no-acl, no --section cuts, no exclusions)",
+  "aclDisposal": "pre-created 24 source roles as NOLOGIN in throwaway target before restore (dump cannot carry cluster-global roles)",
+  "rolesPrecreated": ["app_gateway_role", "app_role", "meetwise", "memory_admission_issuer", "memory_policy_releaser", "memory_reviewer", "memory_runtime", "memory_summarizer", "online_judge_executor", "online_judge_owner", "online_judge_scheduler", "privacy_api_owner", "privacy_guard_owner", "privacy_issuer", "privacy_worker_executor", "privacy_worker_owner", "qbank_control_definer", "qbank_control_executor", "rag_control_definer", "rag_control_executor", "rag_control_login", "rag_runtime_definer", "scoring_definer_owner", "scoring_worker_executor"],
+  "rolesClosureVerified": true,
+  "asserts": {
+    "tableSetEqualBothDirections": true,
+    "tableCount": 175,
+    "rowCountsEqualAllTables": true,
+    "nonEmptyTablesChecked": 19,
+    "resumeBlobCiphertextBytesEqual": true,
+    "checkpointBlobBytesEqual": true,
+    "tocTableEntries": 175,
+    "tocTableDataEntries": 174,
+    "tocTableEntriesEqualsSourceTableCount": true
+  },
+  "versions": {"clientPgDumpMajor": 16, "sourceServerMajor": 16, "targetServerMajor": 16, "clientGteServer": true},
+  "drillContainerRemoved": "restore-drill via run --rm; ha4-drill-pg via profile down -v",
+  "decryptionPerformed": false
+}
