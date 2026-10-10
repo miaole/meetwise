@@ -9,7 +9,7 @@
 import { createHmac, randomUUID } from 'node:crypto';
 import type { PoolClient as Client } from 'pg';
 import { asPrincipal, type DbPool } from './principal.ts';
-import { hybridQbankSearch, type QbankRetrievalMode, type QbankServingScopeInput } from './qbank-generation-retrieval.ts';
+import { hybridQbankSearch, type QbankRetrievalMode, type QbankServingScopeInput } from './qbank/qbank-generation-retrieval.ts';
 
 // v4 binds the track-local serving scope into the cache identity so two leaves
 // never share a hot-cache entry (a global-Top-K hit must not leak across tracks).

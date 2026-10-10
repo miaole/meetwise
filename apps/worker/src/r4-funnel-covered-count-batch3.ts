@@ -199,7 +199,7 @@ export function assessFunnel06RouteScopeCacheProvenanceRevoke(): Funnel06Assesso
   const domain = readRepo('packages/domain/src/qbank-route-scope-cache.ts');
   const rsc = readRepo('packages/db/src/qbank-route-scope-cache.ts');
   const dbIndex = readRepo('packages/db/src/index.ts');
-  const compute = readRepo('packages/db/src/qbank-embedding-compute-cache.ts');
+  const compute = readRepo('packages/db/src/qbank/qbank-embedding-compute-cache.ts');
   const worker = readWorkerTree();
   const trackLocal = readRepo('packages/db/src/qbank-track-local-retrieval.ts');
   const retrieval = readRepo('packages/db/src/qbank-retrieval-cache.ts');

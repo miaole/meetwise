@@ -33,7 +33,7 @@ import { newEntityId } from './ids.ts';
 import type { PoolClient as Client } from 'pg';
 import { asPrincipal, type DbPool } from './principal.ts';
 import { getInterviewRouteSnapshot } from './routing/job-route-decision.ts';
-import { activeQbankGeneration } from './qbank-generation-retrieval.ts';
+import { activeQbankGeneration } from './qbank/qbank-generation-retrieval.ts';
 import { persistInterviewQuestion } from './interview/interview-question.ts';
 import { appendEvent } from './interview/interview-event.ts';
 import {

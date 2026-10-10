@@ -160,8 +160,8 @@ export type {
   ResolveRetrievalVectorBackendOptions,
   CreateRetrievalVectorBackendOptions,
 } from './retrieval/retrieval-backend.ts';
-export { activeQbankGeneration, requireActiveQbankGeneration, hybridQbankSearch, qbankEvidenceForRefs, qbankQuestionEvidenceForRefs, qbankQuestionResultsForHits } from './qbank-generation-retrieval.ts';
-export type { QbankActiveGeneration, QbankHybridHit, QbankEvidenceExcerpt, QbankQuestionEvidence, QbankQuestionEvidencePart, QbankQuestionRetrievalResult, QbankServingScopeInput, QbankRetrievalMode } from './qbank-generation-retrieval.ts';
+export { activeQbankGeneration, requireActiveQbankGeneration, hybridQbankSearch, qbankEvidenceForRefs, qbankQuestionEvidenceForRefs, qbankQuestionResultsForHits } from './qbank/qbank-generation-retrieval.ts';
+export type { QbankActiveGeneration, QbankHybridHit, QbankEvidenceExcerpt, QbankQuestionEvidence, QbankQuestionEvidencePart, QbankQuestionRetrievalResult, QbankServingScopeInput, QbankRetrievalMode } from './qbank/qbank-generation-retrieval.ts';
 
 // qbank ANN 跨实例结果缓存：Redis 热数据面 + PostgreSQL epoch/RLS/外部调用 intent 控制面。
 export { cachedQbankSearch, qbankRetrievalCacheKey, RagCacheDependencyError } from './qbank-retrieval-cache.ts';
@@ -172,16 +172,16 @@ export type { CachedQbankSearchInput, CachedQbankSearchResult, QbankCacheStatus,
 // 灌库/摄取只依赖 db 控制面身份(asQbankControlExecutor)+本地 Embedder seam，不依赖任何 worker 装配。
 export {
   proposeSource, reviewSource, promoteToPool, isApprovedSource, findSourceByHash, listRetrievalCandidates,
-} from './qbank-curation.ts';
-export type { QbankSourceKind, QbankSourceStatus, ReviewDecision, ProposeInput, ProposeResult } from './qbank-curation.ts';
+} from './qbank/qbank-curation.ts';
+export type { QbankSourceKind, QbankSourceStatus, ReviewDecision, ProposeInput, ProposeResult } from './qbank/qbank-curation.ts';
 export {
   ingestQbank, ingestQuestionBankArtifacts, qbankMetadataHash, QBANK_OWNER, QBANK_TAXONOMY_V1,
   QBANK_ANNOTATION_SOURCES, QBANK_QUESTION_CHUNK_ROLES,
-} from './qbank-ingest.ts';
+} from './qbank/qbank-ingest.ts';
 export type {
   QbankEmbedder, QbankServingMetadata, QbankAnnotationSource, QbankIngestOptions, QbankItem,
   QbankQuestionChunkRole, QbankQuestionArtifactChunk, QbankQuestionArtifact,
-} from './qbank-ingest.ts';
+} from './qbank/qbank-ingest.ts';
 
 // 外部 AI 调用费用账本：预留/派发/结算/未知结果冻结均由数据库状态机承重。
 export { reserveAiCost, reserveAiTextCost, markAiCostDispatched, settleAiCost, settleAiTextCost, releaseAiCost, markAiCostUnknown, markAiCostsUnknownForModelReconcile, markAiTextCostRejected } from './model-op/ai-cost-governance.ts';
@@ -322,10 +322,10 @@ export type {
 
 // RAG-FUNNEL-02A 规范投影（generation chunk + serving_scope annotation + question attachment 的 metadata-only 数据面，
 // 供 04 做 track-local 过滤；无正文、无模型依赖、无新 SECURITY DEFINER）。
-export { readGenerationQuestionChunkProjection } from './qbank-generation-projection.ts';
+export { readGenerationQuestionChunkProjection } from './qbank/qbank-generation-projection.ts';
 export type {
   GenerationQuestionChunkProjection, ProjectedQuestionAttachment, ReadGenerationProjectionInput,
-} from './qbank-generation-projection.ts';
+} from './qbank/qbank-generation-projection.ts';
 
 // RAG-FUNNEL-02A provider-input recipe（投影行 → 模型数据块：typed + serving_scope 维度 + fail-closed 校验 + 稳定 digest）。
 // 严格区别于 MODEL-OP 模型目录（which model/region/prompt version）。
@@ -375,14 +375,14 @@ export {
   embeddingComputeCacheKey, embeddingExactRecipeDigest, embeddingProviderInputDigest,
   buildEmbeddingComputeValue, validateEmbeddingComputeValue,
   EMBEDDING_COMPUTE_GLOBAL_QBANK_SCOPE,
-} from './qbank-embedding-compute-cache.ts';
+} from './qbank/qbank-embedding-compute-cache.ts';
 export type {
   ExactEmbeddingRecipe, EmbeddingComputeCostReservation, EmbeddingComputeValue,
   EmbeddingComputeValueStore, EmbeddingComputeLock, EmbeddingComputeLockBackend,
   ResolveEmbeddingComputeInput, EmbeddingComputeResolution,
   ClaimFillIntentInput, FillClaim, FillClaimResult,
   ReconcileEmbeddingComputeInput, ReconcileEmbeddingComputeResult,
-} from './qbank-embedding-compute-cache.ts';
+} from './qbank/qbank-embedding-compute-cache.ts';
 
 // RAG-FUNNEL-03 / ROUTE-01 岗位意图路由：revision/decision/binding/snapshot 状态机 + CAS + RLS + 事务 outbox。
 // PG 是 route 决策的权威事实源；真实模型外发是受控 seam（归 MODEL-OP-01）。不改检索函数 ACL。
