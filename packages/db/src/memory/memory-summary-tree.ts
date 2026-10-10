@@ -15,7 +15,7 @@
  *   - 父节点只引用 verified/active 子（draft→拒）；子派生 digest 由 SQL 侧重算，TS↔SQL 逐字节一致。
  *   - version = MAX(version)+1（根治 MEM-02 审计④），supersedes 目标已 retired → 响亮失败。
  */
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 import type { SummaryClaim, SummaryKind, SummaryStatus, SummaryTreeKind } from '@meetwise/domain';
 
 function fail(code: string): never { throw Object.assign(new Error(code), { code }); }

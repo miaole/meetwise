@@ -24,7 +24,7 @@ import type { Client } from '../principal.ts';
 import {
   claimMemoryVectorChunkTarget,
   purgeMemoryVectorChunkTarget,
-} from '../memory-vector-chunk-erasure.ts';
+} from '../memory/memory-vector-chunk-erasure.ts';
 import { recordDeletionReceipt } from './privacy-authorization.ts';
 
 function fail(code: string): never { throw Object.assign(new Error(code), { code }); }

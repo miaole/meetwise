@@ -4,7 +4,7 @@
  * 为 `vector_chunk.kind='memory'` 补账户删除等价 sweep（begin → 受约束 claim →
  * 物理 purge → 删后 kind=memory 残留=0）。**不**删除 qbank，**不**重实现删除根。
  */
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 
 function fail(code: string): never { throw Object.assign(new Error(code), { code }); }
 

@@ -14,7 +14,7 @@
  *   - claims 每 claim 带 spanLocator，固定 UTF-8 字节偏移（offsetKind='utf8_byte'）。
  *   - 删除侧三 resolver（begin/claim/purge）复用冻结 PrivacyAuthorizationIssuer，不重实现。
  */
-import type { Client } from './principal.ts';
+import type { Client } from '../principal.ts';
 import type {
   SummaryKind, SummaryStatus, SummaryClaim,
 } from '@meetwise/domain';
