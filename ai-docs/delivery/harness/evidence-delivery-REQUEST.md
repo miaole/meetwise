@@ -1,6 +1,6 @@
 # EVIDENCE-DELIVERY — 逐题评分证据四断口接线刀（criterion 数组随事件/转写带出+报告页退役冒充 · EXEC REQUEST）
 
-**Status**: **`draft_rev2:pre_exec_dual_PASS`**（双席 BOTH PASS · EXEC 授权 · 蓝本=本 rev2 · **Ban self-approve** · **alone≠dual**）
+**Status**: **`draft_rev2:pre_exec_dual_PASS`**（双席 BOTH PASS · EXEC 授权 · 蓝本=本 rev2 · **Ban self-approve** · **alone≠dual**） → **`executed:awaiting_post_prove_dual`**（EXEC `eviddel-exec` 2026-10-10 完工·rebase `df12a054` 干净·C1-C13 逐条落位·锚点漂移表 D9/D11/D-evid+O-a..O-d 勘误入 `receipts/evidence-delivery/2026-10-10-exec-prove.md`·web prove EXIT=0·interview:prove EXIT=0·api:validate EXIT=0·neg:interview EXIT=0·scoring-integrity/stress 既有 base 红如实记（pristine 对照+SCORE-WRITER S2 在先登记同形佐证）·est live=0·零迁移·markers=0·pins 十一值零翻转·完工≠收口·post-prove dual 待开）
 **Date**: 2026-10-07（起草席 mw-eviddel-draft）· rev2 2026-10-07（修订席 mw-eviddel-rev2·预执行双审双席 BOTH PASS 附 P1-P4 处方·逐字落位·除处方外冻结）
 **Base**: `origin/feat/mysql-schema-skeleton` @`5e1e7fde` · 分支 `line/evidence-delivery`（工作树 `meetwise-line-eviddel`）
 **立项依据**: `ai-docs/delivery/harness/extreview-fix-campaign-SOP.md` §接线债审计收编（2026-10-09 归档·EVIDENCE-DELIVERY 产品偏移级·A1+A2+C1 连带）+ EXTREV-7 三铁律（交付/隐私流量/简化优先）。

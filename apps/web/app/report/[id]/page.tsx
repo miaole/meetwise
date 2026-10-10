@@ -16,6 +16,7 @@ import { Thinking } from '@/components/ui/Thinking';
 import { Skeleton, SkeletonText } from '@/components/ui/Skeleton';
 import { InterviewView } from '@meetwise/contracts';
 import { interviewContextTitle, interviewResumeLabel, interviewTimeLabel } from '@/lib/interview/context';
+import { projectTurnAnnotations, type TranscriptTurn } from '@/lib/report/turn-annotations';
 
 export const metadata = { title: '面试报告 · 知面' };
 
@@ -240,34 +241,39 @@ function SectionFallback({ label }: { label: string }) {
 }
 
 async function AssessmentSection({ id }: { id: string }) {
-  const assessment = await serverGet<Assessment>('/interview/' + id + '/assessment');
+  const [assessment, transcript] = await Promise.all([
+    serverGet<Assessment>('/interview/' + id + '/assessment'),
+    // EVIDENCE-DELIVERY S2(C8)：逐题点评改吃 transcript（web 首次接线 GET :id/transcript）——
+    // 真题目+真判据，维度名/固定串冒充退役。投影纯函数薄消费（lib/report/turn-annotations.ts）。
+    serverGet<{ turns?: TranscriptTurn[] }>('/interview/' + id + '/transcript'),
+  ]);
   const dims = Array.isArray(assessment?.dimensions) ? assessment!.dimensions! : [];
-  if (!assessment || dims.length === 0) return null;
+  const annotations = projectTurnAnnotations(Array.isArray(transcript?.turns) ? transcript!.turns! : []);
+  if ((!assessment || dims.length === 0) && annotations.length === 0) return null;
 
   return (
     <section>
       <SectionHeading>能力评估</SectionHeading>
-      {/* 维度总览:每维一条能力条,差距维度(gap)落主色强调 */}
-      <Card>
-        <CardContent className="space-y-3 p-6">
-          {dims.map((d, i) => (
-            <AbilityBar key={i} label={d.dimension} value={d.score} em={!!d.gap} />
-          ))}
-        </CardContent>
-      </Card>
+      {dims.length > 0 ? (
+        // 维度总览:每维一条能力条,差距维度(gap)落主色强调(沿 assessment 面·维度总览≠逐题点评·语义分离)。
+        <Card>
+          <CardContent className="space-y-3 p-6">
+            {dims.map((d, i) => (
+              <AbilityBar key={i} label={d.dimension} value={d.score} em={!!d.gap} />
+            ))}
+          </CardContent>
+        </Card>
+      ) : null}
 
-      {/* 逐题点评:每维一张签名批注卡。evidence 当点评,gap 维度同时落到能力条强调。 */}
-      <div className="mt-5 grid gap-4">
-        <div className="text-xs font-medium uppercase tracking-wide text-primary">逐题点评</div>
-        {dims.map((d, i) => (
-          <AnnotationCard
-            key={i}
-            question={d.dimension}
-            note={d.evidence ?? (d.gap ? '该维度低于达标线(60),建议优先补强。' : '该维度表现达标。')}
-            score={d.score}
-          />
-        ))}
-      </div>
+      {/* 逐题点评:transcript 逐回合真题目+真判据;evidence 缺失回合 note 天然隐藏(零回退文案);分数=ScoreCard,无卡无数值。 */}
+      {annotations.length > 0 ? (
+        <div className="mt-5 grid gap-4">
+          <div className="text-xs font-medium uppercase tracking-wide text-primary">逐题点评</div>
+          {annotations.map((a, i) => (
+            <AnnotationCard key={i} question={a.question} note={a.note} score={a.score} />
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }

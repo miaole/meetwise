@@ -171,6 +171,9 @@ export function createEvaluateAnswerNode(deps: AdaptiveDeps) {
           relevant: true,
           kind: pending.kind,
           dispositions,
+          // EVIDENCE-DELIVERY S1(C2)：模型判据(criterion 列表)直投影入 transcript（非用户原文；
+          // quote 永不入投影）。clarify/unresolved/unscored 分支沿现状不写（键缺省）。
+          evidence,
         },
       ],
     };

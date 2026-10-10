@@ -169,6 +169,23 @@ async function main() {
   A('start/answer durable job（持久任务）均收口为 done', after.unfinished === 0);
   A('权益确认后可用额度精确减少 1', (await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER))) === before - 1);
 
+  section('②+ EVIDENCE-DELIVERY S1 出②：answer_evaluated payload 带模型判据（evidence），quote 原文不出闸');
+  {
+    const evalPayloads = await asPrincipal(pool, OWNER, async (c) => (await c.query<{ payload: unknown }>(
+      "SELECT payload FROM interview_event WHERE stream_key=$1 AND kind='answer_evaluated' ORDER BY seq", [INTERVIEW_ID],
+    )).rows.map((r) => r.payload) as Record<string, unknown>[]);
+    A('answer_evaluated payload->evidence = criterion 数组（jsonb 逐元素相等·上限沿 EvalSchema max(6)）',
+      evalPayloads.length >= 1 && evalPayloads.every((p) => {
+        const e = (p as { evidence?: unknown }).evidence;
+        return Array.isArray(e) && e.length >= 1 && e.length <= 6 && e.every((x) => x === 'answer_quality');
+      }));
+    A('payload 不带 quote 逐字引文（Ban 原文出闸·?\'quote\' 为 false）',
+      evalPayloads.every((p) => !('quote' in p)));
+    A('既有 9 键零删改（questionId/stateVersion/answerId/answerHash/turn/score/outcome/competency/question 只增不改）',
+      evalPayloads.every((p) => ['questionId', 'stateVersion', 'answerId', 'answerHash', 'turn', 'score', 'outcome', 'competency', 'question']
+        .every((k) => k in p)));
+  }
+
   section('②a S1 D1 接线：出题投影事务逐题发布 rubric+冻结契约（图状态 difficulty plumbing）');
   // question_rubric(_criterion) 是全局内容表：app_role 无 SELECT（0100 只授 scoring_definer_owner，
   // 读写均走 DEFINER 链）——prove 观测用直连读面（迁移 owner），非生产路径；owner 作用域表仍走 asPrincipal。

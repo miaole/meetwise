@@ -39,6 +39,9 @@ export const BusinessEvent = z.discriminatedUnion('event', [
     answerId: z.string().uuid().optional(),
     answerHash: z.string().regex(/^[a-f0-9]{64}$/).optional(),
     competency: z.string().min(1).optional(),
+    // EVIDENCE-DELIVERY S1(C6)：模型判据(criterion)列表；optional=断线 catch-up 重放的历史事件无此键(strict 会杀重放解析)。
+    // 上限沿 EvalSchema max(6)（apps/worker/src/interview-service.ts:40 权威源·不引入跨包共享常量·写读双端同刀）。
+    evidence: z.array(z.string()).max(6).optional(),
   }) }),
   // 引导事件(**非终态**):回答没正面回应本题 → 图已发放一条新的 pending question
   // identity（不是旧题的重放许可），前端必须随事件替换提交令牌，否则重答会被服务端拒绝为 stale。
