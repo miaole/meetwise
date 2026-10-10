@@ -1,4 +1,6 @@
--- 0152_trial_bucket_grant.sql — #228+#29 注册赠送体验额度刀：trial 桶每用户至多一桶 + signup 同事务发放。
+-- 0154_trial_bucket_grant.sql — #228+#29 注册赠送体验额度刀：trial 桶每用户至多一桶 + signup 同事务发放。
+-- 回填重编号 0152→0154（mw-coordinator·2026-10-10）：主线 0152/0153 已被 unstube-erase 两迁移占用
+-- （0152_resume_soft_delete_fence + 0153_account_deletion_column·coord_notes 撞号预警兑现），SQL 面零改动。
 -- 承重（蓝图 ai-docs/delivery/harness/trial-grant-REQUEST.md @4f8e5942 rev2 §1.1）：
 --   ① partial unique index：trial 是结构性 once-per-user 赠送，DB 层兜底挡任何第二 trial 写入路径
 --     （含未来 admin 发放面），不靠调用方自觉；拒绝幂等键列方案（0018 先例语义=每单幂等，不适用）。
