@@ -198,3 +198,15 @@ rev2 commit f6206d18 message 谎报「②R12 锚 :614-616 / ③C4 payload :312 �
 ## EXEC 状态（2026-10-10 · S1 落码）
 
 `executed_s1:awaiting_post_prove_dual`（EXEC 席 role-input-exec · 授权范围=S1 · rebase 干净 @主线 6979a069 · C1-C8+C10+C11 全落 · §4 矩阵全绿：基线 interview:prove 实测 54/0（首跑容器 boot 环境红如实记账）· 改后 interview:prove 54/0 逐位一致 · neg:interview 97 全绿 · worker role-input.proof 31/0（首跑 fixture 笔误红如实记账）· api role-input.proof 13/0 · web 204 含新增 5 断言 · typecheck root+web EXIT=0 · r1 零改自证 EXIT=0 · S1-4 裁定=additive 同 loader 扩展 · Ban 面零字节亲证 · markers=0 · est live=0 · actualSpendCny=null · 收据=receipts/role-input/{run-manifest.json,prove-exits.md} · 待 post_prove 双席独立复核，≠ 合入自批）
+
+---
+
+## nail 落卷（2026-10-10 · post-prove 双席 BOTH PASS）
+
+**双审结果**：席1（实现语义）+席2（E2E/用户面）互盲复核 BOTH PASS。四象限码面逐象限坐实（:69 fromUser 先算·:73 用户胜·:74 门零弱化=用户输入不解锁 fail-closed 供给门·TSDoc rationale :19-22/:52-63 在卷）·R13 标量传输守住（loader additive·WHERE/rowCount 逐字节不动·payload 条件键缺省零污染·幂等 alreadyBegun 零触）·web 面诊断链镜像 byte 同（trim+slice(0,100)||undefined）·§4① 最小产品链真断言（捕获型 ModelClient 真截获 planner.competencies userData「岗位:…」且负断言叶非空有效）·三段式落槽齐备（worker 31+api 13+web 5）·复跑全绿（31/31·13/13·interview:prove 54/0·neg 97·web 204）·两红 attemptsLedger 如实（环境 boot transient+fixture 双重 rows[0]——fixture 侧修复断言零动·非 retry-to-green）·Ban 面零字节·触碰面恰 17 文件。merge 落主线 @8fb2de35（runner 注册 dual-keep=retry+role-input 两键并存·node --check 过）。
+
+**随卷排程建议两条（非阻塞·归协调方）**：① nail 后 e2e:isolated 全量跑一次（HTTP 层全旅程空路径回归·本刀门禁未含）②后继小刀给 full.e2e.ts 增 target-role begin 用例（与 E2E-RECRUITER-GATE 刀同批排程）。
+
+**非阻断观察**：EXEC 提交 REQUEST 7+/1- 中 1- 为 rev4 勘误注记行内微改（删陈旧交叉引用）——后续席位勘误注记宜走追加式（席1 建议·留档）。
+
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·merge 落主线 @8fb2de35·#259「按你的目标岗位来问」消费面正式兑现·审计 P1 行拔钉·markers=0·est live=0）。
