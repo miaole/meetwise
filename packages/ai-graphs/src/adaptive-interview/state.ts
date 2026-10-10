@@ -74,6 +74,12 @@ export interface PendingQuestion {
   sources: string[];
   critique: string[];
   hint?: string;
+  /**
+   * #256 显示面形制 A（additive 可选·向后兼容）：发射时点的自适应软预算约数（=decide 后 mind.maxTurns，
+   * domain rememberDecision 已含 raise 后现值）。仅供显示「预计约 M 题（自适应，可能调整）」——
+   * 软预算可上调，非承诺非上限；旧 checkpoint/旧流缺省 undefined，消费者必须降级。
+   */
+  plannedTurns?: number;
 }
 
 export interface AdaptiveDeps {

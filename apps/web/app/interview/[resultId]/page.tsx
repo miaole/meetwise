@@ -6,7 +6,11 @@ import { getServerToken, serverGet } from '@/lib/api/server';
 import { interviewContextTitle, interviewResumeLabel, interviewTimeLabel } from '@/lib/interview/context';
 import { isInterviewEnterable } from '@/lib/interview/progress';
 
-const E2E_STREAM_STRESS_ID = '__e2e_stream_stress__';
+// G3 BEGIN-GUARD #161/#256（REQUEST §2.10）：STRESS 变体 id 族与 events 代理路由同门扩展（e2e-guard-only，
+// 仍要求 E2E_UI_STRESS==='1'；原单 id '__e2e_stream_stress__' 语义原样保留于首位移）。
+// 变体选择=id 本身（页面 query 不透传 SSE fetch——既有 ?duplicateFrames=1 即死参数实证，见 G3 收据漂移表微漂⑥），
+// 零新增生产路由、零 query 通道依赖。
+const E2E_STREAM_STRESS_IDS = ['__e2e_stream_stress__', '__e2e_stream_progress__', '__e2e_stream_silent__'];
 
 export default async function InterviewPage({ params, searchParams }: { params: Promise<{ resultId: string }>; searchParams: Promise<{ applicationId?: string }> }) {
   if (!(await getServerToken())) redirect('/login');
@@ -14,7 +18,7 @@ export default async function InterviewPage({ params, searchParams }: { params: 
   // Guard-only UI stress seam: when the isolated UI runner enables E2E_UI_STRESS, render the
   // InterviewPanel for the synthetic id without a backend interview row so the hermetic SSE
   // source can exercise the real reducer/DOM window. Never enabled in production.
-  const stressEnterable = resultId === E2E_STREAM_STRESS_ID && process.env.E2E_UI_STRESS === '1';
+  const stressEnterable = E2E_STREAM_STRESS_IDS.includes(resultId) && process.env.E2E_UI_STRESS === '1';
   const parsed = stressEnterable ? { success: false as const, data: null } : InterviewView.safeParse(await serverGet<unknown>(`/interview/${resultId}`));
   const interview = parsed.success ? parsed.data : null;
   if (!stressEnterable && interview?.status === 'completed') redirect(`/report/${resultId}`);

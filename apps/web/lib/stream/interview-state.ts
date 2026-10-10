@@ -40,6 +40,12 @@ export interface InterviewView {
   report?: { overall: number };
   /** 对话历史:逐题(题+能力+分),供面板渲染会话流 + 追问标记。 */
   turns: InterviewTurn[];
+  /**
+   * #256 形制 A（R1 选定面）：最新 question_ready 携带的自适应软预算约数（服务端发射，可上调）。
+   * 只进渲染投影——**不塞 QuestionIdentity/turns 历史**（identity=fail-closed 提交令牌，塞预算值会扩令牌契约）。
+   * 缺失/旧流 → 显示面降级只显「第 N 题」；约数+可调注记，非承诺非上限。
+   */
+  plannedTurns?: number;
   /** 引导态(非终态):回答没正面回应本题 → 展示引导 + 可重答/跳过。收到下一个 question_ready/answer_evaluated 即清(自动消解,无死胡同)。 */
   guidance?: { hint: string; question: string; competency?: string };
   /** 报告不可用(被隔离)或重连耗尽 → true：前端显示"暂不可用,可重试/联系支持",而不是永远等。 */
@@ -92,13 +98,15 @@ export function applyEvents(v: InterviewView, events: readonly BusinessEvent[]):
     switch (e.event) {
     case 'question_ready': {
       const competency = (e.data as any).competency as string | undefined;
-      const candidate = e.data as { questionId?: string; stateVersion?: number; turn?: number; qkind?: InterviewTurn['qkind'] };
+      const candidate = e.data as { questionId?: string; stateVersion?: number; turn?: number; qkind?: InterviewTurn['qkind']; plannedTurns?: number };
       const questionIdentity = candidate.questionId !== undefined && candidate.stateVersion !== undefined && candidate.turn !== undefined
         ? { questionId: candidate.questionId, stateVersion: candidate.stateVersion, turn: candidate.turn }
         : undefined;
       const prev = turns[turns.length - 1];
       const followUp = !!competency && competency === prev?.competency;   // 同能力=追问(probe)
       next.phase = 'question'; next.question = e.data.question; next.competency = competency; next.questionIdentity = questionIdentity;
+      // #256 形制 A：随题读入预算约数（逐题覆盖写；缺字段=undefined 即显示面降级，不残留上一题旧值）。
+      next.plannedTurns = candidate.plannedTurns;
       turns.push({ q: e.data.question, competency, followUp, questionIdentity, qkind: candidate.qkind });
       next.guidance = undefined;                                     // 新题 → 清引导(已消解)
       break;
