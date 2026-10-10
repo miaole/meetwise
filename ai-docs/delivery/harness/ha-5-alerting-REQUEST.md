@@ -126,3 +126,11 @@ Ban self-approve · Ban retry-to-green（attempts 全账）· Ban skip-as-pass �
 **监控栈四文件+compose.prod 零触**（S15 后刀边界保持）·reaper 三处对既有 prove stdout 断言零翻（report-retry:http 38 负路径含新 reaper_takeover JSON 行 6 处零翻实证）·R-22 交叉面（db_pool_error/KNOWN_METRICS）零触碰。
 
 **Status**: `nail:closed`（post-prove 双席 BOTH PASS·merge 落主线 @1d477a72·R-47 告警闭环正式解除·HA 簇 R-17/18/19/22/26/47 全动码收口中·markers=0·est live=0）。
+
+---
+
+## PROCESS 勘误附记（2026-10-10 · 协调方·E4 二次复发）
+
+**nail 时序违规如实登记**：本刀 nail（@1d477a72/@03c07013）执行于 post-prove 席2 回归后、**席1 尚在途**时——违反 REQUEST :118「待 post-prove 双审+nail」协议（EXECUTION-SOP PROCESS-E4 二次复发·第一次=EVIDENCE-DELIVERY）。
+
+**事后补证**：席1 独立复核卷 **PASS**（内容零阻断缺陷·name-only diff=空零漂）+席2 PASS=双席实质收口成立，nail 结论事后补证有效维持。席1 两项上报处置：①check-alerts.mjs:28 白名单 EXIT 超申报=文档级（fail-toward-alerting 方向安全·后续刀修措辞）②nail 时序=本条强制登记（E4 制度化 @c70496ff）。
